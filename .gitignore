@@ -1,0 +1,27 @@
+# Godot 4
+.godot/
+*.uid
+
+# Godot import files (auto-generated)
+*.import
+
+# Godot translation files (auto-generated)
+*.translation
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Saves / user data
+saves/
+
+# OS
+Thumbs.db

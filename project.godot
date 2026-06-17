@@ -1,0 +1,28 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes in [<name>]
+;   param=value ; section parameter
+
+config_version=5
+
+[application]
+
+config/name="Crownfall"
+config/description="2D見下ろし型自動探索ハクスラRPG"
+config/version="0.1.0"
+config/features=PackedStringArray("4.6", "Mobile")
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=0
+
+[rendering]
+
+renderer/rendering_method="mobile"
