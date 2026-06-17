@@ -5,6 +5,9 @@
 # Godot import files (auto-generated)
 *.import
 
+# Godot export presets (may contain signing keys)
+export_presets.cfg
+
 # Godot translation files (auto-generated)
 *.translation
 
