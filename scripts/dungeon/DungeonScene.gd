@@ -48,8 +48,12 @@ func _on_attack_pressed() -> void:
 	$CombatController.apply_damage_to_enemy(DEBUG_ATTACK_DAMAGE)
 	_update_enemy_hp_label()
 	if $CombatController.is_enemy_defeated():
+		$CombatController.capture_rewards()
 		$CombatController.end_combat()
-		$VBoxContainer/LabelLog.text = "戦闘終了（仮）"
+		$VBoxContainer/LabelLog.text = "戦闘終了（仮） EXP:%d Gold:%d" % [
+			$CombatController.last_exp_reward,
+			$CombatController.last_gold_reward,
+		]
 		_update_enemy_label()
 		_update_enemy_hp_label()
 		_update_next_room_button()
