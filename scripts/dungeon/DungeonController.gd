@@ -17,12 +17,17 @@ var current_dungeon_data: Resource = null
 var current_room_index: int = 0
 var current_room_type: int = Enums.RoomType.START
 var is_completed: bool = false
+var current_exploration_policy: int = Enums.ExplorationPolicy.EXPLORE
 
 func start_dungeon(path: String) -> void:
 	current_dungeon_data = load(path)
 	current_room_index = 0
 	current_room_type = ROOM_SEQUENCE[0]
 	is_completed = false
+	current_exploration_policy = Enums.ExplorationPolicy.EXPLORE
+
+func set_policy(policy: int) -> void:
+	current_exploration_policy = policy
 
 func advance_room() -> void:
 	current_room_index += 1
