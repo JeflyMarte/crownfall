@@ -18,6 +18,9 @@ var dungeon_progress: Dictionary = {}
 # チュートリアル進行フラグ { flag_name: bool }
 var tutorial_flags: Dictionary = {}
 
+var last_run_exp_reward: int = 0
+var last_run_gold_reward: int = 0
+
 func _ready() -> void:
 	_init_party()
 

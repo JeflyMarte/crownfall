@@ -71,4 +71,6 @@ func _update_next_room_button() -> void:
 		$VBoxContainer/ButtonNextRoom.disabled = false
 
 func _on_finish_button_pressed() -> void:
+	GameState.last_run_exp_reward = $DungeonController.run_exp_reward
+	GameState.last_run_gold_reward = $DungeonController.run_gold_reward
 	SceneRouter.change_scene("res://scenes/result/ResultScene.tscn")
