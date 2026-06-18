@@ -6,6 +6,7 @@ func _ready() -> void:
 	$DungeonController.start_dungeon("res://resources/dungeons/royal_ruins.tres")
 	_update_room_label()
 	_update_enemy_label()
+	_update_enemy_hp_label()
 
 func _update_room_label() -> void:
 	var idx: int = $DungeonController.current_room_index + 1
@@ -24,6 +25,7 @@ func _on_next_room_pressed() -> void:
 	else:
 		$CombatController.end_combat()
 	_update_enemy_label()
+	_update_enemy_hp_label()
 
 func _update_enemy_label() -> void:
 	var data: Resource = $CombatController.current_enemy_data
@@ -31,6 +33,12 @@ func _update_enemy_label() -> void:
 		$VBoxContainer/LabelEnemy.text = data.display_name
 	else:
 		$VBoxContainer/LabelEnemy.text = ""
+
+func _update_enemy_hp_label() -> void:
+	if $CombatController.is_in_combat:
+		$VBoxContainer/LabelEnemyHp.text = "HP: %d" % $CombatController.current_enemy_hp
+	else:
+		$VBoxContainer/LabelEnemyHp.text = ""
 
 func _on_finish_button_pressed() -> void:
 	SceneRouter.change_scene("res://scenes/result/ResultScene.tscn")
