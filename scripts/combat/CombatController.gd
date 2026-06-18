@@ -20,3 +20,6 @@ func apply_damage_to_enemy(amount: int) -> void:
 	if current_enemy_data == null:
 		return
 	current_enemy_hp = max(0, current_enemy_hp - amount)
+
+func is_enemy_defeated() -> bool:
+	return is_in_combat and current_enemy_hp <= 0

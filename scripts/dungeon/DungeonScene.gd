@@ -48,6 +48,9 @@ func _update_enemy_hp_label() -> void:
 func _on_attack_pressed() -> void:
 	$CombatController.apply_damage_to_enemy(DEBUG_ATTACK_DAMAGE)
 	_update_enemy_hp_label()
+	if $CombatController.is_enemy_defeated():
+		$VBoxContainer/LabelLog.text = "敵を倒した（仮）"
+		$VBoxContainer/ButtonAttack.disabled = true
 
 func _on_finish_button_pressed() -> void:
 	SceneRouter.change_scene("res://scenes/result/ResultScene.tscn")
