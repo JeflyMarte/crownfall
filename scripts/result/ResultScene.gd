@@ -9,4 +9,5 @@ func _ready() -> void:
 
 func _on_back_button_pressed() -> void:
 	GameState.gold += GameState.last_run_gold_reward
+	SaveManager.save_game()
 	SceneRouter.change_scene("res://scenes/base/BaseScene.tscn")

@@ -22,6 +22,7 @@ GameState="*res://scripts/autoload/GameState.gd"
 DataRegistry="*res://scripts/autoload/DataRegistry.gd"
 SceneRouter="*res://scripts/autoload/SceneRouter.gd"
 EventBus="*res://scripts/autoload/EventBus.gd"
+SaveManager="*res://scripts/save/SaveManager.gd"
 
 [display]
 
