@@ -27,6 +27,7 @@ enum RoomType {
 	COMBAT,
 	EVENT,
 	TREASURE,
+	ELITE,
 	MID_BOSS,
 	BOSS,
 	EXIT,
