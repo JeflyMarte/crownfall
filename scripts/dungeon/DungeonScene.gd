@@ -49,10 +49,16 @@ func _on_attack_pressed() -> void:
 	_update_enemy_hp_label()
 	if $CombatController.is_enemy_defeated():
 		$CombatController.capture_rewards()
-		$CombatController.end_combat()
-		$VBoxContainer/LabelLog.text = "戦闘終了（仮） EXP:%d Gold:%d" % [
+		$DungeonController.accumulate_rewards(
 			$CombatController.last_exp_reward,
 			$CombatController.last_gold_reward,
+		)
+		$CombatController.end_combat()
+		$VBoxContainer/LabelLog.text = "戦闘終了（仮） EXP:%d Gold:%d\n累計 EXP:%d Gold:%d" % [
+			$CombatController.last_exp_reward,
+			$CombatController.last_gold_reward,
+			$DungeonController.run_exp_reward,
+			$DungeonController.run_gold_reward,
 		]
 		_update_enemy_label()
 		_update_enemy_hp_label()

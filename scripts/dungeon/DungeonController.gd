@@ -18,6 +18,8 @@ var current_room_index: int = 0
 var current_room_type: int = Enums.RoomType.START
 var is_completed: bool = false
 var current_exploration_policy: int = Enums.ExplorationPolicy.EXPLORE
+var run_exp_reward: int = 0
+var run_gold_reward: int = 0
 
 func start_dungeon(path: String) -> void:
 	current_dungeon_data = load(path)
@@ -25,6 +27,8 @@ func start_dungeon(path: String) -> void:
 	current_room_type = ROOM_SEQUENCE[0]
 	is_completed = false
 	current_exploration_policy = Enums.ExplorationPolicy.EXPLORE
+	run_exp_reward = 0
+	run_gold_reward = 0
 
 func set_policy(policy: int) -> void:
 	current_exploration_policy = policy
@@ -43,6 +47,10 @@ func is_combat_room() -> bool:
 		Enums.RoomType.MID_BOSS,
 		Enums.RoomType.BOSS,
 	]
+
+func accumulate_rewards(exp: int, gold: int) -> void:
+	run_exp_reward += exp
+	run_gold_reward += gold
 
 func pick_enemy_data() -> Resource:
 	if current_dungeon_data == null:
