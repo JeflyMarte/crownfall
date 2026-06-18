@@ -14,6 +14,7 @@ config/name="Crownfall"
 config/description="2D見下ろし型自動探索ハクスラRPG"
 config/version="0.1.0"
 config/features=PackedStringArray("4.6", "Mobile")
+config/run/main_scene="res://scenes/boot/BootScene.tscn"
 
 [display]
 
