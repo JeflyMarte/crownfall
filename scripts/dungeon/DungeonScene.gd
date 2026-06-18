@@ -19,8 +19,6 @@ func _update_room_label() -> void:
 func _on_next_room_pressed() -> void:
 	$DungeonController.advance_room()
 	_update_room_label()
-	if $DungeonController.is_completed:
-		$VBoxContainer/ButtonNextRoom.disabled = true
 	if $DungeonController.is_combat_room():
 		var enemy_data: Resource = $DungeonController.pick_enemy_data()
 		if enemy_data != null:
@@ -29,6 +27,7 @@ func _on_next_room_pressed() -> void:
 		$CombatController.end_combat()
 	_update_enemy_label()
 	_update_enemy_hp_label()
+	_update_next_room_button()
 
 func _update_enemy_label() -> void:
 	var data: Resource = $CombatController.current_enemy_data
@@ -53,6 +52,13 @@ func _on_attack_pressed() -> void:
 		$VBoxContainer/LabelLog.text = "戦闘終了（仮）"
 		_update_enemy_label()
 		_update_enemy_hp_label()
+		_update_next_room_button()
+
+func _update_next_room_button() -> void:
+	if $DungeonController.is_completed or $CombatController.is_in_combat:
+		$VBoxContainer/ButtonNextRoom.disabled = true
+	else:
+		$VBoxContainer/ButtonNextRoom.disabled = false
 
 func _on_finish_button_pressed() -> void:
 	SceneRouter.change_scene("res://scenes/result/ResultScene.tscn")
