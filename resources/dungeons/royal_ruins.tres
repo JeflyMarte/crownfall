@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="DungeonData" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://ci3ng430yaydt" path="res://scripts/data/DungeonData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "royal_ruins"
+display_name = "王都跡"
+difficulty = 1
+room_count = 10
+enemy_pool = Array[String](["fallen_soldier", "ruined_guard", "ruins_looter", "rusted_knight"])
+boss_id = "royal_guard_captain"
+drop_table_id = "royal_ruins_drops"
+discovery_unlocks = {"hidden_room": 0.3, "special_event": 0.6, "hidden_boss": 1.0}
