@@ -35,3 +35,11 @@ func advance_room() -> void:
 		is_completed = true
 		return
 	current_room_type = ROOM_SEQUENCE[current_room_index]
+
+func is_combat_room() -> bool:
+	return current_room_type in [
+		Enums.RoomType.COMBAT,
+		Enums.RoomType.ELITE,
+		Enums.RoomType.MID_BOSS,
+		Enums.RoomType.BOSS,
+	]
