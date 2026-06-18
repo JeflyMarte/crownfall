@@ -16,6 +16,10 @@ func _on_next_room_pressed() -> void:
 	_update_room_label()
 	if $DungeonController.is_completed:
 		$VBoxContainer/ButtonNextRoom.disabled = true
+	if $DungeonController.is_combat_room():
+		$CombatController.start_combat()
+	else:
+		$CombatController.end_combat()
 
 func _on_finish_button_pressed() -> void:
 	SceneRouter.change_scene("res://scenes/result/ResultScene.tscn")
