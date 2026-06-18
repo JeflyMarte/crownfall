@@ -13,3 +13,10 @@ func end_combat() -> void:
 	is_in_combat = false
 	current_enemy_data = null
 	current_enemy_hp = 0
+
+func apply_damage_to_enemy(amount: int) -> void:
+	if not is_in_combat:
+		return
+	if current_enemy_data == null:
+		return
+	current_enemy_hp = max(0, current_enemy_hp - amount)

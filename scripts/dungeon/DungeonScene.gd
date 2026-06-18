@@ -1,8 +1,11 @@
 extends Control
 
+const DEBUG_ATTACK_DAMAGE: int = 10
+
 func _ready() -> void:
 	$VBoxContainer/ButtonFinish.pressed.connect(_on_finish_button_pressed)
 	$VBoxContainer/ButtonNextRoom.pressed.connect(_on_next_room_pressed)
+	$VBoxContainer/ButtonAttack.pressed.connect(_on_attack_pressed)
 	$DungeonController.start_dungeon("res://resources/dungeons/royal_ruins.tres")
 	_update_room_label()
 	_update_enemy_label()
@@ -37,8 +40,14 @@ func _update_enemy_label() -> void:
 func _update_enemy_hp_label() -> void:
 	if $CombatController.is_in_combat:
 		$VBoxContainer/LabelEnemyHp.text = "HP: %d" % $CombatController.current_enemy_hp
+		$VBoxContainer/ButtonAttack.disabled = false
 	else:
 		$VBoxContainer/LabelEnemyHp.text = ""
+		$VBoxContainer/ButtonAttack.disabled = true
+
+func _on_attack_pressed() -> void:
+	$CombatController.apply_damage_to_enemy(DEBUG_ATTACK_DAMAGE)
+	_update_enemy_hp_label()
 
 func _on_finish_button_pressed() -> void:
 	SceneRouter.change_scene("res://scenes/result/ResultScene.tscn")
