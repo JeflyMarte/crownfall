@@ -43,3 +43,12 @@ func is_combat_room() -> bool:
 		Enums.RoomType.MID_BOSS,
 		Enums.RoomType.BOSS,
 	]
+
+func pick_enemy_data() -> Resource:
+	if current_dungeon_data == null:
+		return null
+	var pool: Array = current_dungeon_data.enemy_pool
+	if pool.is_empty():
+		return null
+	var enemy_id: String = pool[randi() % pool.size()]
+	return load("res://resources/enemies/" + enemy_id + ".tres")

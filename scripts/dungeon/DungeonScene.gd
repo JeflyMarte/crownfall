@@ -17,7 +17,9 @@ func _on_next_room_pressed() -> void:
 	if $DungeonController.is_completed:
 		$VBoxContainer/ButtonNextRoom.disabled = true
 	if $DungeonController.is_combat_room():
-		$CombatController.start_combat()
+		var enemy_data: Resource = $DungeonController.pick_enemy_data()
+		if enemy_data != null:
+			$CombatController.start_combat(enemy_data)
 	else:
 		$CombatController.end_combat()
 
