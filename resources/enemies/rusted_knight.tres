@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://dldfcddm8qkpr" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "rusted_knight"
+display_name = "朽ちた騎士"
+max_hp = 160
+attack = 12
+defense = 22
+exp_reward = 25
+gold_reward = 12
+drop_table_id = "rusted_knight_drops"

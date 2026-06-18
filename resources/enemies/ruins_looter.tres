@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://dldfcddm8qkpr" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "ruins_looter"
+display_name = "王都の盗掘者"
+max_hp = 70
+attack = 20
+defense = 3
+exp_reward = 11
+gold_reward = 8
+drop_table_id = "ruins_looter_drops"
