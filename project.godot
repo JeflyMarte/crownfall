@@ -23,6 +23,13 @@ window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/handheld/orientation=0
 
+[autoload]
+
+GameState="*res://scripts/autoload/GameState.gd"
+DataRegistry="*res://scripts/autoload/DataRegistry.gd"
+SceneRouter="*res://scripts/autoload/SceneRouter.gd"
+EventBus="*res://scripts/autoload/EventBus.gd"
+
 [rendering]
 
 renderer/rendering_method="mobile"
