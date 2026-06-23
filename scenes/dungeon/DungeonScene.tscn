@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/dungeon/DungeonScene.gd" id="1"]
 [ext_resource type="Script" uid="uid://f8bhuxqq6fh" path="res://scripts/dungeon/DungeonController.gd" id="2"]
 [ext_resource type="Script" uid="uid://jfwf6uw2ugr7" path="res://scripts/combat/CombatController.gd" id="3"]
 [ext_resource type="Theme" path="res://assets/ui/production_theme.tres" id="4"]
 [ext_resource type="Texture2D" path="res://assets/ui/batch1/UI_BG_Dark.png" id="5"]
+[ext_resource type="SpriteFrames" path="res://resources/animation/BossRoyalGuardCaptain.tres" id="6"]
 
 [node name="DungeonScene" type="Control"]
 anchor_right = 1.0
@@ -170,3 +171,10 @@ text = "次の部屋"
 [node name="ButtonFinish" type="Button" parent="VBoxContainer"]
 layout_mode = 2
 text = "探索終了"
+
+[node name="BossSprite" type="AnimatedSprite2D" parent="."]
+position = Vector2(640, 80)
+scale = Vector2(3, 3)
+sprite_frames = ExtResource("6")
+animation = &"idle"
+visible = false

@@ -11,6 +11,8 @@ var _merchant_active: bool = false
 var _event_active: bool = false
 var _skill_executor: RefCounted = SkillExecutorScript.new()
 
+@onready var _boss_sprite: AnimatedSprite2D = $BossSprite
+
 func _ready() -> void:
 	$VBoxContainer/ButtonNextRoom.pressed.connect(_on_next_room_pressed)
 	$VBoxContainer/ButtonFinish.pressed.connect(_on_finish_button_pressed)
@@ -82,6 +84,7 @@ func _advance_to_next_room() -> void:
 	$DungeonController.advance_room()
 	_update_room_label()
 	_update_room_art()
+	_update_boss_sprite_visibility()
 	if $DungeonController.is_combat_room():
 		var enemy_data: Resource = $DungeonController.pick_combat_enemy_data()
 		if enemy_data != null:
@@ -497,6 +500,7 @@ func _handle_enemy_defeated() -> void:
 	$DungeonController.accumulate_rewards(final_exp, final_gold)
 	if $DungeonController.current_room_type == Enums.RoomType.BOSS:
 		$DungeonController.update_discovery($DungeonController.DISCOVERY_BOSS_BONUS)
+		_play_boss_animation("death")
 	$CombatController.end_combat()
 	var bonus_tag: String = " (x%.1f)" % mult if mult > 1.0 else ""
 	var log_lines: PackedStringArray = [
@@ -611,6 +615,20 @@ func _on_finish_button_pressed() -> void:
 	if not $DungeonController.last_accessory_dropped.is_empty():
 		GameState.last_run_accessory_dropped = $DungeonController.last_accessory_dropped
 	SceneRouter.change_scene("res://scenes/result/ResultScene.tscn")
+
+# ---- Boss Sprite ----
+
+func _update_boss_sprite_visibility() -> void:
+	var is_boss_room: bool = $DungeonController.current_room_type == Enums.RoomType.BOSS
+	_boss_sprite.visible = is_boss_room
+	if is_boss_room:
+		_boss_sprite.play("idle")
+
+func _play_boss_animation(anim: String) -> void:
+	if not _boss_sprite.visible:
+		return
+	if _boss_sprite.sprite_frames != null and _boss_sprite.sprite_frames.has_animation(anim):
+		_boss_sprite.play(anim)
 
 # ---- Room Art ----
 
