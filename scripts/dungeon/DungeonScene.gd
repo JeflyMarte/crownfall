@@ -28,6 +28,7 @@ func _ready() -> void:
 	$DungeonController.start_dungeon(dungeon_id)
 	GameState.last_run_accessory_dropped = ""
 	_update_room_label()
+	_update_room_art()
 	_update_enemy_label()
 	_update_enemy_hp_label()
 	_update_party_hp_label()
@@ -80,6 +81,7 @@ func _on_branch_unknown_pressed() -> void:
 func _advance_to_next_room() -> void:
 	$DungeonController.advance_room()
 	_update_room_label()
+	_update_room_art()
 	if $DungeonController.is_combat_room():
 		var enemy_data: Resource = $DungeonController.pick_combat_enemy_data()
 		if enemy_data != null:
@@ -609,3 +611,33 @@ func _on_finish_button_pressed() -> void:
 	if not $DungeonController.last_accessory_dropped.is_empty():
 		GameState.last_run_accessory_dropped = $DungeonController.last_accessory_dropped
 	SceneRouter.change_scene("res://scenes/result/ResultScene.tscn")
+
+# ---- Room Art ----
+
+const _BATCH3: String = "res://assets/dungeon/royal_ruins/batch3/"
+
+func _update_room_art() -> void:
+	var room_type: int = $DungeonController.current_room_type
+	var tile_path: String
+	var obj_path: String = ""
+	match room_type:
+		Enums.RoomType.COMBAT, Enums.RoomType.ELITE, Enums.RoomType.MID_BOSS, Enums.RoomType.BOSS:
+			tile_path = _BATCH3 + "TILE_RoyalRuins_Wall_01.png"
+		Enums.RoomType.TREASURE:
+			tile_path = _BATCH3 + "TILE_RoyalRuins_Floor_01.png"
+			obj_path = _BATCH3 + "OBJ_TreasureChest_Closed.png"
+		Enums.RoomType.EXIT:
+			tile_path = _BATCH3 + "TILE_RoyalRuins_Floor_01.png"
+			obj_path = _BATCH3 + "OBJ_ExitGate_RoyalRuins.png"
+		_:
+			tile_path = _BATCH3 + "TILE_RoyalRuins_Floor_01.png"
+	_set_room_texture($VBoxContainer/RoomArt/RoomTileBg, tile_path)
+	_set_room_texture($VBoxContainer/RoomArt/RoomObject, obj_path)
+
+func _set_room_texture(node: TextureRect, path: String) -> void:
+	if path.is_empty() or not ResourceLoader.exists(path):
+		node.texture = null
+		node.visible = false
+		return
+	node.texture = load(path) as Texture2D
+	node.visible = true

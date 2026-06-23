@@ -53,6 +53,22 @@ layout_mode = 2
 text = "部屋 1 / 10  [開始]"
 horizontal_alignment = 1
 
+[node name="RoomArt" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="RoomTileBg" type="TextureRect" parent="VBoxContainer/RoomArt"]
+layout_mode = 2
+custom_minimum_size = Vector2(64, 64)
+stretch_mode = 0
+visible = false
+
+[node name="RoomObject" type="TextureRect" parent="VBoxContainer/RoomArt"]
+layout_mode = 2
+custom_minimum_size = Vector2(32, 32)
+stretch_mode = 0
+visible = false
+
 [node name="LabelLog" type="Label" parent="VBoxContainer"]
 layout_mode = 2
 text = ""
