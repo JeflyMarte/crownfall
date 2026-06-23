@@ -49,6 +49,12 @@ layout_mode = 2
 text = "未鑑定武器: なし"
 horizontal_alignment = 1
 
+[node name="IconCurrentItem" type="TextureRect" parent="VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(32, 32)
+stretch_mode = 5
+visible = false
+
 [node name="LabelLog" type="Label" parent="VBoxContainer"]
 layout_mode = 2
 text = ""
