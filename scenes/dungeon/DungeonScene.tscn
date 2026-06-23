@@ -178,3 +178,8 @@ scale = Vector2(3, 3)
 sprite_frames = ExtResource("6")
 animation = &"idle"
 visible = false
+
+[node name="EnemySprite" type="AnimatedSprite2D" parent="."]
+position = Vector2(640, 80)
+scale = Vector2(3, 3)
+visible = false

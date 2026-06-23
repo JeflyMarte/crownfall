@@ -3,6 +3,13 @@ extends Control
 const FALLBACK_ATTACK: int = 10
 const CRITICAL_MULTIPLIER: float = 1.5
 const HEAL_AMOUNT: int = 10
+
+const ENEMY_SPRITE_MAP: Dictionary = {
+	"fallen_soldier": "res://resources/animation/ENM_FallenSoldier.tres",
+	"ruined_guard": "res://resources/animation/ENM_RuinedGuard.tres",
+	"ruins_looter": "res://resources/animation/ENM_RuinsLooter.tres",
+	"rusted_knight": "res://resources/animation/ENM_RustedKnight.tres",
+}
 const SkillExecutorScript: Script = preload("res://scripts/combat/SkillExecutor.gd")
 const AffixStatCalculatorScript: Script = preload("res://scripts/equipment/AffixStatCalculator.gd")
 const JobStatCalculatorScript: Script = preload("res://scripts/equipment/JobStatCalculator.gd")
@@ -12,6 +19,7 @@ var _event_active: bool = false
 var _skill_executor: RefCounted = SkillExecutorScript.new()
 
 @onready var _boss_sprite: AnimatedSprite2D = $BossSprite
+@onready var _enemy_sprite: AnimatedSprite2D = $EnemySprite
 
 func _ready() -> void:
 	$VBoxContainer/ButtonNextRoom.pressed.connect(_on_next_room_pressed)
@@ -91,6 +99,7 @@ func _advance_to_next_room() -> void:
 			$CombatController.start_combat(enemy_data)
 			_skill_executor.reset()
 			$CombatTimer.start()
+			_show_enemy_sprite(enemy_data.id)
 			if $DungeonController.current_room_type == Enums.RoomType.ELITE:
 				$VBoxContainer/LabelLog.text = "【エリート】%s があらわれた" % enemy_data.display_name
 			elif $DungeonController.current_room_type == Enums.RoomType.BOSS:
@@ -101,7 +110,9 @@ func _advance_to_next_room() -> void:
 				$VBoxContainer/LabelLog.text = "%s があらわれた" % enemy_data.display_name
 		else:
 			$VBoxContainer/LabelLog.text = "敵が現れなかった"
+			_hide_enemy_sprite()
 	else:
+		_hide_enemy_sprite()
 		match $DungeonController.current_room_type:
 			Enums.RoomType.HEAL:
 				var heal_amount: int = _apply_healing_bonus(HEAL_AMOUNT)
@@ -501,6 +512,8 @@ func _handle_enemy_defeated() -> void:
 	if $DungeonController.current_room_type == Enums.RoomType.BOSS:
 		$DungeonController.update_discovery($DungeonController.DISCOVERY_BOSS_BONUS)
 		_play_boss_animation("death")
+	else:
+		_play_enemy_animation("death")
 	$CombatController.end_combat()
 	var bonus_tag: String = " (x%.1f)" % mult if mult > 1.0 else ""
 	var log_lines: PackedStringArray = [
@@ -531,6 +544,7 @@ func _handle_enemy_defeated() -> void:
 func _handle_party_wipe() -> void:
 	$CombatTimer.stop()
 	$CombatController.end_combat()
+	_hide_enemy_sprite()
 	_merchant_active = false
 	_event_active = false
 	$VBoxContainer/MerchantContainer.visible = false
@@ -615,6 +629,33 @@ func _on_finish_button_pressed() -> void:
 	if not $DungeonController.last_accessory_dropped.is_empty():
 		GameState.last_run_accessory_dropped = $DungeonController.last_accessory_dropped
 	SceneRouter.change_scene("res://scenes/result/ResultScene.tscn")
+
+# ---- Enemy Sprite ----
+
+func _show_enemy_sprite(enemy_id: String) -> void:
+	if $DungeonController.current_room_type == Enums.RoomType.BOSS:
+		_enemy_sprite.visible = false
+		return
+	var path: String = ENEMY_SPRITE_MAP.get(enemy_id, "")
+	if path.is_empty() or not ResourceLoader.exists(path):
+		_enemy_sprite.visible = false
+		return
+	var frames: SpriteFrames = load(path) as SpriteFrames
+	if frames == null:
+		_enemy_sprite.visible = false
+		return
+	_enemy_sprite.sprite_frames = frames
+	_enemy_sprite.play("idle")
+	_enemy_sprite.visible = true
+
+func _hide_enemy_sprite() -> void:
+	_enemy_sprite.visible = false
+
+func _play_enemy_animation(anim: String) -> void:
+	if not _enemy_sprite.visible:
+		return
+	if _enemy_sprite.sprite_frames != null and _enemy_sprite.sprite_frames.has_animation(anim):
+		_enemy_sprite.play(anim)
 
 # ---- Boss Sprite ----
 
