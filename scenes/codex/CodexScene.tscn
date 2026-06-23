@@ -1,0 +1,153 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/codex/CodexScene.gd" id="1"]
+[ext_resource type="Theme" path="res://assets/ui/production_theme.tres" id="2"]
+
+[node name="CodexScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2")
+script = ExtResource("1")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -320.0
+offset_right = 300.0
+offset_bottom = 320.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 6
+
+[node name="LabelTitle" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "図鑑"
+horizontal_alignment = 1
+
+[node name="TabRow" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 4
+
+[node name="ButtonTabEnemy" type="Button" parent="VBoxContainer/TabRow"]
+layout_mode = 2
+text = "Enemy"
+
+[node name="ButtonTabDungeon" type="Button" parent="VBoxContainer/TabRow"]
+layout_mode = 2
+text = "Dungeon"
+
+[node name="ButtonTabMaterial" type="Button" parent="VBoxContainer/TabRow"]
+layout_mode = 2
+text = "Material"
+
+[node name="ButtonTabWeapon" type="Button" parent="VBoxContainer/TabRow"]
+layout_mode = 2
+text = "Weapon"
+
+[node name="ButtonTabHistory" type="Button" parent="VBoxContainer/TabRow"]
+layout_mode = 2
+text = "History"
+
+[node name="LabelListHeader" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "--- 一覧 ---"
+horizontal_alignment = 1
+
+[node name="EntryListScroll" type="ScrollContainer" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="EntryListContainer" type="VBoxContainer" parent="VBoxContainer/EntryListScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="LabelDetailHeader" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "--- 詳細 ---"
+horizontal_alignment = 1
+
+[node name="DetailPanel" type="VBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="IconRow" type="HBoxContainer" parent="VBoxContainer/DetailPanel"]
+layout_mode = 2
+
+[node name="IconPlaceholder" type="PanelContainer" parent="VBoxContainer/DetailPanel/IconRow"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+
+[node name="LabelIconPlaceholder" type="Label" parent="VBoxContainer/DetailPanel/IconRow/IconPlaceholder"]
+layout_mode = 2
+text = "[Icon]"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextureIcon" type="TextureRect" parent="VBoxContainer/DetailPanel/IconRow"]
+visible = false
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LabelDetailId" type="Label" parent="VBoxContainer/DetailPanel"]
+layout_mode = 2
+text = "Entry ID: —"
+
+[node name="LabelDetailName" type="Label" parent="VBoxContainer/DetailPanel"]
+layout_mode = 2
+text = "Name: —"
+
+[node name="LabelDetailStatus" type="Label" parent="VBoxContainer/DetailPanel"]
+layout_mode = 2
+text = "Status: —"
+
+[node name="LabelDetailCategory" type="Label" parent="VBoxContainer/DetailPanel"]
+layout_mode = 2
+text = "Category: —"
+
+[node name="LabelDetailExtraA" type="Label" parent="VBoxContainer/DetailPanel"]
+visible = false
+layout_mode = 2
+text = "Era: —"
+
+[node name="LabelDetailExtraB" type="Label" parent="VBoxContainer/DetailPanel"]
+visible = false
+layout_mode = 2
+text = "Theme: —"
+
+[node name="LabelDetailOverviewHeader" type="Label" parent="VBoxContainer/DetailPanel"]
+layout_mode = 2
+text = "Description:"
+
+[node name="LabelDetailDescription" type="Label" parent="VBoxContainer/DetailPanel"]
+layout_mode = 2
+text = "項目を選択してください"
+autowrap_mode = 3
+
+[node name="LabelDetailRelatedHeader" type="Label" parent="VBoxContainer/DetailPanel"]
+visible = false
+layout_mode = 2
+text = "Related:"
+
+[node name="LabelDetailRelated" type="Label" parent="VBoxContainer/DetailPanel"]
+visible = false
+layout_mode = 2
+text = ""
+autowrap_mode = 3
+
+[node name="ButtonBack" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "戻る"
