@@ -15,6 +15,15 @@ const ENEMY_SPRITE_MAP: Dictionary = {
 	"pale_hound": "res://resources/animation/ENM_PaleHound.tres",
 	"ossuary_knight": "res://resources/animation/ENM_OssuaryKnight.tres",
 }
+const BOSS_SPRITE_MAP: Dictionary = {
+	"royal_ruins": "res://resources/animation/BossRoyalGuardCaptain.tres",
+	"graveyard": "res://resources/animation/BOSS_Gravekeeper.tres",
+}
+const CHR_SPRITE_MAP: Dictionary = {
+	"warrior": "res://resources/animation/CHR_Warrior.tres",
+	"guardian": "res://resources/animation/CHR_Guardian.tres",
+	"scout": "res://resources/animation/CHR_Scout.tres",
+}
 const VFX_HIT_PATH: String = "res://resources/animation/FX_Hit_Normal.tres"
 const VFX_HEAL_PATH: String = "res://resources/animation/FX_Heal.tres"
 const SkillExecutorScript: Script = preload("res://scripts/combat/SkillExecutor.gd")
@@ -29,6 +38,10 @@ var _skill_executor: RefCounted = SkillExecutorScript.new()
 @onready var _enemy_sprite: AnimatedSprite2D = $EnemySprite
 @onready var _hit_vfx_sprite: AnimatedSprite2D = $HitVfxSprite
 @onready var _heal_vfx_sprite: AnimatedSprite2D = $HealVfxSprite
+@onready var _chr_sprite_0: AnimatedSprite2D = $ChrSprite0
+@onready var _chr_sprite_1: AnimatedSprite2D = $ChrSprite1
+@onready var _chr_sprite_2: AnimatedSprite2D = $ChrSprite2
+var _chr_sprites: Array[AnimatedSprite2D] = []
 
 func _ready() -> void:
 	$VBoxContainer/ButtonNextRoom.pressed.connect(_on_next_room_pressed)
@@ -45,6 +58,13 @@ func _ready() -> void:
 	EventBus.weapon_obtained.connect(_on_weapon_obtained)
 	_hit_vfx_sprite.animation_finished.connect(func(): _hit_vfx_sprite.visible = false)
 	_heal_vfx_sprite.animation_finished.connect(func(): _heal_vfx_sprite.visible = false)
+	_chr_sprites = [_chr_sprite_0, _chr_sprite_1, _chr_sprite_2]
+	for sprite: AnimatedSprite2D in _chr_sprites:
+		sprite.animation_finished.connect(func():
+			if sprite.visible and sprite.sprite_frames != null:
+				if sprite.animation in ["attack", "hurt"]:
+					sprite.play("idle")
+		)
 	var dungeon_id: String = GameState.get_active_dungeon_id()
 	$DungeonController.start_dungeon(dungeon_id)
 	GameState.last_run_accessory_dropped = ""
@@ -111,6 +131,7 @@ func _advance_to_next_room() -> void:
 			_skill_executor.reset()
 			$CombatTimer.start()
 			_show_enemy_sprite(enemy_data.id)
+			_show_chr_sprites()
 			if $DungeonController.current_room_type == Enums.RoomType.ELITE:
 				$VBoxContainer/LabelLog.text = "【エリート】%s があらわれた" % enemy_data.display_name
 			elif $DungeonController.current_room_type == Enums.RoomType.BOSS:
@@ -122,8 +143,10 @@ func _advance_to_next_room() -> void:
 		else:
 			$VBoxContainer/LabelLog.text = "敵が現れなかった"
 			_hide_enemy_sprite()
+			_hide_chr_sprites()
 	else:
 		_hide_enemy_sprite()
+		_hide_chr_sprites()
 		match $DungeonController.current_room_type:
 			Enums.RoomType.HEAL:
 				var heal_amount: int = _apply_healing_bonus(HEAL_AMOUNT)
@@ -337,6 +360,7 @@ func _do_party_attack() -> void:
 	$VBoxContainer/LabelLog.text = "攻撃: %dダメージ%s%s%s" % [total_dmg, crit_tag, skill_log, secondary_log]
 	if total_dmg > 0:
 		_play_hit_vfx()
+		_play_chr_attack()
 
 func _get_player_skill_data() -> Resource:
 	var skill_id: String = Constants.DEFAULT_PLAYER_SKILL_ID
@@ -475,6 +499,9 @@ func _do_enemy_attack() -> void:
 	var target_idx: int = alive[randi() % alive.size()]
 	var enemy_result: Dictionary = _calc_enemy_damage_to_member(target_idx)
 	$CombatController.apply_damage_to_member(target_idx, enemy_result["final"])
+	_play_chr_hurt(target_idx)
+	if not $CombatController.is_member_alive(target_idx) and target_idx < _chr_sprites.size():
+		_chr_sprites[target_idx].visible = false
 	var member_name: String = GameState.party_members[target_idx].display_name
 	var log_text: String
 	if enemy_result["mitigated"] > 0:
@@ -561,6 +588,7 @@ func _handle_party_wipe() -> void:
 	$CombatTimer.stop()
 	$CombatController.end_combat()
 	_hide_enemy_sprite()
+	_hide_chr_sprites()
 	_merchant_active = false
 	_event_active = false
 	$VBoxContainer/MerchantContainer.visible = false
@@ -673,6 +701,45 @@ func _play_enemy_animation(anim: String) -> void:
 	if _enemy_sprite.sprite_frames != null and _enemy_sprite.sprite_frames.has_animation(anim):
 		_enemy_sprite.play(anim)
 
+# ---- CHR Sprites ----
+
+func _show_chr_sprites() -> void:
+	for i in GameState.party_members.size():
+		if i >= _chr_sprites.size():
+			break
+		var sprite: AnimatedSprite2D = _chr_sprites[i]
+		if not $CombatController.is_member_alive(i):
+			sprite.visible = false
+			continue
+		var member: Resource = GameState.party_members[i]
+		var path: String = CHR_SPRITE_MAP.get(member.job_id, "")
+		if path.is_empty() or not ResourceLoader.exists(path):
+			sprite.visible = false
+			continue
+		var frames: SpriteFrames = load(path) as SpriteFrames
+		if frames == null:
+			sprite.visible = false
+			continue
+		sprite.sprite_frames = frames
+		sprite.play("idle")
+		sprite.visible = true
+
+func _hide_chr_sprites() -> void:
+	for sprite: AnimatedSprite2D in _chr_sprites:
+		sprite.visible = false
+
+func _play_chr_attack() -> void:
+	for sprite: AnimatedSprite2D in _chr_sprites:
+		if sprite.visible and sprite.sprite_frames != null and sprite.sprite_frames.has_animation("attack"):
+			sprite.play("attack")
+
+func _play_chr_hurt(member_idx: int) -> void:
+	if member_idx < 0 or member_idx >= _chr_sprites.size():
+		return
+	var sprite: AnimatedSprite2D = _chr_sprites[member_idx]
+	if sprite.visible and sprite.sprite_frames != null and sprite.sprite_frames.has_animation("hurt"):
+		sprite.play("hurt")
+
 # ---- VFX ----
 
 func _play_hit_vfx() -> void:
@@ -701,9 +768,23 @@ func _play_heal_vfx() -> void:
 
 func _update_boss_sprite_visibility() -> void:
 	var is_boss_room: bool = $DungeonController.current_room_type == Enums.RoomType.BOSS
-	_boss_sprite.visible = is_boss_room
-	if is_boss_room:
-		_boss_sprite.play("idle")
+	if not is_boss_room:
+		_boss_sprite.visible = false
+		return
+	var dungeon_id: String = ""
+	if $DungeonController.current_dungeon_data != null:
+		dungeon_id = $DungeonController.current_dungeon_data.id
+	var path: String = BOSS_SPRITE_MAP.get(dungeon_id, "")
+	if path.is_empty() or not ResourceLoader.exists(path):
+		_boss_sprite.visible = false
+		return
+	var frames: SpriteFrames = load(path) as SpriteFrames
+	if frames == null:
+		_boss_sprite.visible = false
+		return
+	_boss_sprite.sprite_frames = frames
+	_boss_sprite.play("idle")
+	_boss_sprite.visible = true
 
 func _play_boss_animation(anim: String) -> void:
 	if not _boss_sprite.visible:

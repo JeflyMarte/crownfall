@@ -1,0 +1,102 @@
+[gd_resource type="SpriteFrames" load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/characters/batch7/CHR_Guardian_Sheet.png" id="1_sheet"]
+
+[sub_resource type="AtlasTexture" id="i0"]
+atlas = ExtResource("1_sheet")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="i1"]
+atlas = ExtResource("1_sheet")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="i2"]
+atlas = ExtResource("1_sheet")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="i3"]
+atlas = ExtResource("1_sheet")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="a0"]
+atlas = ExtResource("1_sheet")
+region = Rect2(128, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="a1"]
+atlas = ExtResource("1_sheet")
+region = Rect2(160, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="a2"]
+atlas = ExtResource("1_sheet")
+region = Rect2(192, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="a3"]
+atlas = ExtResource("1_sheet")
+region = Rect2(224, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="a4"]
+atlas = ExtResource("1_sheet")
+region = Rect2(256, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="a5"]
+atlas = ExtResource("1_sheet")
+region = Rect2(288, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="h0"]
+atlas = ExtResource("1_sheet")
+region = Rect2(320, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="h1"]
+atlas = ExtResource("1_sheet")
+region = Rect2(352, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="h2"]
+atlas = ExtResource("1_sheet")
+region = Rect2(384, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="d0"]
+atlas = ExtResource("1_sheet")
+region = Rect2(416, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="d1"]
+atlas = ExtResource("1_sheet")
+region = Rect2(448, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="d2"]
+atlas = ExtResource("1_sheet")
+region = Rect2(480, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="d3"]
+atlas = ExtResource("1_sheet")
+region = Rect2(512, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="d4"]
+atlas = ExtResource("1_sheet")
+region = Rect2(544, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="d5"]
+atlas = ExtResource("1_sheet")
+region = Rect2(576, 0, 32, 32)
+
+[resource]
+animations = [{
+"frames": [{"duration": 1.0, "texture": SubResource("i0")}, {"duration": 1.0, "texture": SubResource("i1")}, {"duration": 1.0, "texture": SubResource("i2")}, {"duration": 1.0, "texture": SubResource("i3")}],
+"loop": true,
+"name": &"idle",
+"speed": 6.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("a0")}, {"duration": 1.0, "texture": SubResource("a1")}, {"duration": 1.0, "texture": SubResource("a2")}, {"duration": 1.0, "texture": SubResource("a3")}, {"duration": 1.0, "texture": SubResource("a4")}, {"duration": 1.0, "texture": SubResource("a5")}],
+"loop": false,
+"name": &"attack",
+"speed": 10.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("h0")}, {"duration": 1.0, "texture": SubResource("h1")}, {"duration": 1.0, "texture": SubResource("h2")}],
+"loop": false,
+"name": &"hurt",
+"speed": 8.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("d0")}, {"duration": 1.0, "texture": SubResource("d1")}, {"duration": 1.0, "texture": SubResource("d2")}, {"duration": 1.0, "texture": SubResource("d3")}, {"duration": 1.0, "texture": SubResource("d4")}, {"duration": 1.0, "texture": SubResource("d5")}],
+"loop": false,
+"name": &"death",
+"speed": 6.0
+}]
