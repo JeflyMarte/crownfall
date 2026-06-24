@@ -183,3 +183,13 @@ visible = false
 position = Vector2(640, 80)
 scale = Vector2(3, 3)
 visible = false
+
+[node name="HitVfxSprite" type="AnimatedSprite2D" parent="."]
+position = Vector2(640, 80)
+scale = Vector2(3, 3)
+visible = false
+
+[node name="HealVfxSprite" type="AnimatedSprite2D" parent="."]
+position = Vector2(640, 360)
+scale = Vector2(3, 3)
+visible = false

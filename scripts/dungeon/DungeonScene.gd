@@ -9,7 +9,14 @@ const ENEMY_SPRITE_MAP: Dictionary = {
 	"ruined_guard": "res://resources/animation/ENM_RuinedGuard.tres",
 	"ruins_looter": "res://resources/animation/ENM_RuinsLooter.tres",
 	"rusted_knight": "res://resources/animation/ENM_RustedKnight.tres",
+	"bone_walker": "res://resources/animation/ENM_BoneWalker.tres",
+	"grave_bat": "res://resources/animation/ENM_GraveBat.tres",
+	"hollow_gravedigger": "res://resources/animation/ENM_HollowGravedigger.tres",
+	"pale_hound": "res://resources/animation/ENM_PaleHound.tres",
+	"ossuary_knight": "res://resources/animation/ENM_OssuaryKnight.tres",
 }
+const VFX_HIT_PATH: String = "res://resources/animation/FX_Hit_Normal.tres"
+const VFX_HEAL_PATH: String = "res://resources/animation/FX_Heal.tres"
 const SkillExecutorScript: Script = preload("res://scripts/combat/SkillExecutor.gd")
 const AffixStatCalculatorScript: Script = preload("res://scripts/equipment/AffixStatCalculator.gd")
 const JobStatCalculatorScript: Script = preload("res://scripts/equipment/JobStatCalculator.gd")
@@ -20,6 +27,8 @@ var _skill_executor: RefCounted = SkillExecutorScript.new()
 
 @onready var _boss_sprite: AnimatedSprite2D = $BossSprite
 @onready var _enemy_sprite: AnimatedSprite2D = $EnemySprite
+@onready var _hit_vfx_sprite: AnimatedSprite2D = $HitVfxSprite
+@onready var _heal_vfx_sprite: AnimatedSprite2D = $HealVfxSprite
 
 func _ready() -> void:
 	$VBoxContainer/ButtonNextRoom.pressed.connect(_on_next_room_pressed)
@@ -34,6 +43,8 @@ func _ready() -> void:
 	$VBoxContainer/EventContainer/ButtonEventA.pressed.connect(_on_event_choice_a_pressed)
 	$VBoxContainer/EventContainer/ButtonEventB.pressed.connect(_on_event_choice_b_pressed)
 	EventBus.weapon_obtained.connect(_on_weapon_obtained)
+	_hit_vfx_sprite.animation_finished.connect(func(): _hit_vfx_sprite.visible = false)
+	_heal_vfx_sprite.animation_finished.connect(func(): _heal_vfx_sprite.visible = false)
 	var dungeon_id: String = GameState.get_active_dungeon_id()
 	$DungeonController.start_dungeon(dungeon_id)
 	GameState.last_run_accessory_dropped = ""
@@ -117,6 +128,7 @@ func _advance_to_next_room() -> void:
 			Enums.RoomType.HEAL:
 				var heal_amount: int = _apply_healing_bonus(HEAL_AMOUNT)
 				$CombatController.heal_party(heal_amount)
+				_play_heal_vfx()
 				$VBoxContainer/LabelLog.text = "回復の部屋: 生存メンバーを%d回復" % heal_amount
 			Enums.RoomType.TREASURE:
 				var treasure: Dictionary = $DungeonController.generate_treasure_loot()
@@ -206,6 +218,7 @@ func _on_buy_offer1_pressed() -> void:
 func _apply_merchant_purchase_effect(offer: Dictionary) -> void:
 	if offer.get("type") == "heal":
 		$CombatController.heal_party(_apply_healing_bonus(offer.get("amount", 10)))
+		_play_heal_vfx()
 		_update_party_hp_label()
 
 func _format_merchant_offer_label(offer: Dictionary) -> String:
@@ -258,6 +271,7 @@ func _resolve_event_choice(choice_index: int) -> void:
 		"heal":
 			var amount: int = _apply_healing_bonus(outcome.get("amount", 5))
 			$CombatController.heal_party(amount)
+			_play_heal_vfx()
 			log_text = "パーティが%dHP回復した" % amount
 			_update_party_hp_label()
 		"gold":
@@ -321,6 +335,8 @@ func _do_party_attack() -> void:
 	_update_enemy_hp_label()
 	var crit_tag: String = "  CRITICAL!" if crit_hit else ""
 	$VBoxContainer/LabelLog.text = "攻撃: %dダメージ%s%s%s" % [total_dmg, crit_tag, skill_log, secondary_log]
+	if total_dmg > 0:
+		_play_hit_vfx()
 
 func _get_player_skill_data() -> Resource:
 	var skill_id: String = Constants.DEFAULT_PLAYER_SKILL_ID
@@ -656,6 +672,30 @@ func _play_enemy_animation(anim: String) -> void:
 		return
 	if _enemy_sprite.sprite_frames != null and _enemy_sprite.sprite_frames.has_animation(anim):
 		_enemy_sprite.play(anim)
+
+# ---- VFX ----
+
+func _play_hit_vfx() -> void:
+	if not _enemy_sprite.visible and not _boss_sprite.visible:
+		return
+	if not ResourceLoader.exists(VFX_HIT_PATH):
+		return
+	var frames: SpriteFrames = load(VFX_HIT_PATH) as SpriteFrames
+	if frames == null:
+		return
+	_hit_vfx_sprite.sprite_frames = frames
+	_hit_vfx_sprite.play("default")
+	_hit_vfx_sprite.visible = true
+
+func _play_heal_vfx() -> void:
+	if not ResourceLoader.exists(VFX_HEAL_PATH):
+		return
+	var frames: SpriteFrames = load(VFX_HEAL_PATH) as SpriteFrames
+	if frames == null:
+		return
+	_heal_vfx_sprite.sprite_frames = frames
+	_heal_vfx_sprite.play("default")
+	_heal_vfx_sprite.visible = true
 
 # ---- Boss Sprite ----
 
