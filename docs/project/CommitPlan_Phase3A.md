@@ -25,7 +25,7 @@ P3-Prep-docs: CODEMAP/TaskIndex/AssetPipeline 同期
 - Task 単位で 1 コミット（複数 .tres を同一 Task で生成した場合はまとめて 1 コミット）
 - gameplay ロジック変更のコミットは HQ が行う
 - Doc 系（docs/specs/ 更新）は HQ コミット責務（Impl は code コミットのみ）
-- `.import` ファイルは生成されたら即コミット（PNG と同タイミング）
+- `.import` ファイルは **コミットしない**（`.gitignore` 維持）。各環境で `bash tools/smoke_test.sh --import-only` を実行（P3-D010）
 - `--no-verify` / `--amend` 禁止。hook が通らない場合は原因を調べる
 
 ---

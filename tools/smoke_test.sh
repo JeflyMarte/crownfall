@@ -30,6 +30,14 @@ find_godot() {
             return 0
         fi
     done
+    # Repo-local Godot (HQ / CI bootstrap; not committed)
+    local script_dir project_godot
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    project_godot="$script_dir/godot/Godot.app/Contents/MacOS/Godot"
+    if [[ -x "$project_godot" ]]; then
+        echo "$project_godot"
+        return 0
+    fi
     return 1
 }
 

@@ -1,8 +1,545 @@
-# Crownfall - Decision Log
+# Crownfall — Decision Log
 
-- 自動探索採用
-- 5分周回採用
-- 武器主軸
-- 装備4枠
-- MVPは仮アート
-- AI共同開発
+## 初期決定（プロジェクト開始時）
+
+| # | 決定事項 | 詳細 |
+|---|---|---|
+| D-001 | 自動探索採用 | プレイヤーは隊を直接操作しない。方針選択のみ |
+| D-002 | 5分周回採用 | 通常ダンジョン1周を4〜6分に設計 |
+| D-003 | 武器主軸 | 戦力寄与60%を武器が担う |
+| D-004 | 装備枠（MVP3枠・正式版4枠） | MVP：武器・防具・装飾品。正式版で王遺産を追加 |
+| D-005 | MVPは仮アート | MVP期間中はSprite不使用。UIは最低限テキストベース |
+| D-006 | AI共同開発 | Claude Codeによる実装支援。Task単位で依頼 |
+
+---
+
+## MVP実装フェーズ決定（Task035〜Task047）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| D-007 | MVPゲームループ確定 | Base→Dungeon→Result→Appraisal→Equipment→Base の6シーン固定順 |
+| D-008 | Appraisal/EquipmentをMVP対象に含める | 鑑定→装備のコアループなしではMVP成立しない |
+| D-009 | 鑑定済み武器のみ装備可能 | is_appraised = true が装備の前提条件 |
+| D-010 | 装備保存はinstance_idで行う | WeaponInstanceへの参照ではなくIDで保存し、復元時にinventory検索で解決 |
+| D-011 | equipment復元はinventory復元後に行う | オブジェクト参照の整合性確保のため順序を強制 |
+| D-012 | Gold報酬を1周最低100G以上に調整 | 鑑定1回（100G）を1周で賄えないとコアループが回らない |
+| D-013 | MVPテーマはmvp_theme.tres単一ファイルで管理 | 全シーンに同じThemeを適用し、個別スタイル定義を排除 |
+| D-014 | SaveManagerにequipment保存を追加 | Task035-Fix時点でGold保存のみだった実装を完全化 |
+| D-015 | ボタン多重押し対策（ButtonFinish/ButtonNext） | ResultScene gold二重加算・DungeonScene武器二重ドロップを防止 |
+| D-016 | EXITルーム到達後はButtonNextRoomを無効化 | 「部屋11/10」表示を防止し、EXITが探索の終端であることを明示 |
+| D-017 | party_members参照はインデックス直参照禁止 | セーブ破損時の部分復元でクラッシュしないようループ処理に変更 |
+
+---
+
+## Phase2-M1 Equipment Complete 決定（P2-Task005〜012）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D001 | Weapon / Armor / Accessory を同一設計思想（Data/Instance分離）で拡張する | 設計の一貫性確保。DataはResource定義、Instanceは個体情報を保持。拡張時のパターンを固定 |
+| P2-D002 | 防御計算式: `max(1, enemy_attack - total_defense)` を採用 | 最低1ダメージ保証で戦闘が完全に無力化されることを防止 |
+| P2-D003 | total_defense = armor.rolled_defense + accessory.defense_bonus の合算式を採用 | Armor と Accessory の防御効果を単純加算。将来の Resistance（属性）は別計算系に分離 |
+| P2-D004 | ~~プレイヤーHP管理は DungeonScene が担当（CombatController は敵HPのみ）~~ **→ P2-D009に置き換え** | 冒険者個別HP対応に伴い変更 |
+| P2-D005 | Accessory の効果値はダンジョン入室時に1回 load() してキャッシュする | 毎攻撃ごとの load() 呼び出しを避けパフォーマンスを保護。Armor は rolled 値をInstanceに保持するため load 不要 |
+| P2-D006 | AccessoryInstance はロール値を持たない（fixed 値のみ） | Accessory はランダム性なし。効果値は AccessoryData をIDで参照。WeaponInstance / ArmorInstance との設計差分として明示 |
+| P2-D007 | Appraisal の duck typing は `"weapon_id" in item` → `"armor_id" in item` → else（accessory）の elif 構造に統一 | アイテム種別の安全な識別。isinstance() 不使用。将来カテゴリ追加時は elif を追加する |
+| P2-D008 | _get_effective_stats() を DungeonScene 内に設置し全装備効果を集約計算する | **P2-D009の戦闘仕様整合により廃止。** 装備効果計算は _calc_damage() / _calc_enemy_damage_to_member() に分散 |
+
+---
+
+## Phase2-M2 Combat Spec Alignment 決定（P2-Task009〜）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D009 | パーティHP管理を CombatController へ移管（P2-D004置き換え） | 冒険者3人個別HP・死亡判定・全滅判定を実装するため。CombatController.party_combat_hp[]: Array[int] で管理。DungeonSceneはUIのみ担当 |
+| P2-D010 | 自動戦闘は CombatTimer 固定1.5秒（attack_speed は未接続） | MVPでは全員同タイミングで攻撃するシンプルな実装を優先。attack_speedをTimer.wait_timeに接続するのは将来フェーズ |
+| P2-D011 | 全生存メンバーが同一の装備パラメータで攻撃する（MVP割り切り） | 個別装備は後フェーズのスコープ。MVP時点では GameState.equipped_weapon を全員共有 |
+| P2-D012 | 全滅時は蓄積済み報酬のみ持ち帰る（ドロップ発生なし） | 敗北ペナルティの明確化。generate_run_loot() を呼ばずにResultSceneへ遷移 |
+| P2-D013 | Armor HP Bonus は ArmorInstance に保存済みだが party_max_hp には未接続（将来実装） | CombatController移管時のスコープ制限。hp_bonusの戦闘接続は別Taskで対応 |
+| P2-D014 | Accessory の load() はCombatTimer毎ティックで呼ぶ（キャッシュなし） | P2-D005のキャッシュ方針を廃止。1.5秒間隔のため実用上問題なし。GodotのResource cacheで対応 |
+
+---
+
+## Phase2-M3 Room System 決定（v3.4 反映分）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D015 | Branch Route は `DungeonData.branch_enabled` で ON/OFF | 王都跡は固定シーケンス維持。将来ダンジョンで分岐有効化 |
+| P2-D016 | 分岐プール: Safe=HEAL/TREASURE, Dangerous=COMBAT, Unknown=COMBAT/HEAL/TREASURE | Phase2-M3 v3.4 確定スコープ。MID_BOSS/BOSS/EXIT は固定 |
+| P2-D017 | HEAL Room は生存メンバー全員 +10 HP（最大 HP 上限） | `CombatController.heal_party(10)` |
+| P2-D018 | TREASURE Room は Gold+30、20% で装飾品（silver_ring） | 探索中報酬累積。Result 前に inventory へ追加 |
+| P2-D019 | EnemyData に 7+ パラメータ拡張・EnemyType enum 追加 | max_hp/attack/exp/gold は戦闘接続。move/detection/attack_range/critical_rate はデータ定義のみ |
+
+---
+
+## Phase2-M3 Merchant Room 決定（P2-Task015）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D020 | Merchant Room は武器を販売しない | 武器はドロップ→鑑定コアループの中心。商人は防具・装飾品・回復の支援役 |
+| P2-D021 | Merchant 支払いは永続 Gold（`GameState.gold`） | 鑑定費用と同一通貨。探索中の Gold シンクとして機能 |
+| P2-D022 | Merchant は SAFE / UNKNOWN Branch Pool から出現 | 安全・不明ルートの支援報酬。ボス前準備部屋として位置づけ |
+| P2-D023 | 商品はカタログから 2 品ランダム提示・1 回限り購入 | 短時間・読みやすい UI。在庫永続管理は MVP 対象外 |
+
+---
+
+## Phase2-M3 Event Room 決定（P2-Task016）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D024 | Event Room は 2 択・即時解決。戦闘を発生させない | 数秒で完了する非戦闘 Special Room |
+| P2-D025 | Event は UNKNOWN Branch Pool および固定シーケンスから出現 | Branch 多様化 + branch_enabled=false でも体験可能 |
+| P2-D026 | 報酬 type: heal / gold / buff / material / lore（後2つは placeholder） | M3 初期カテゴリ。Shrine / Discovery 連動は対象外 |
+| P2-D027 | Temporary buff は `run_damage_multiplier`（周回内のみ・セーブ非永続） | 1.15x 攻撃。探索終了でリセット |
+| P2-D028 | Branch UNKNOWN Pool に EVENT を含める（v3.4.2 更新） | P2-D016 の Unknown 定義を Merchant/Event 反映で更新 |
+
+---
+
+## Phase2-M3 Elite Room 決定（P2-Task017）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D029 | Elite Room は常に戦闘。elite_pool から敵選択 | 高リスク Special Room。ボス mechanics は対象外 |
+| P2-D030 | Elite 報酬: EXP/Gold x1.5 + ボーナスドロップ（防具/装飾品/素材placeholder） | 通常戦闘より高報酬。deterministic 倍率 + 確率ボーナス |
+| P2-D031 | Elite は DANGEROUS Branch Pool および固定シーケンス index 4 | 危険ルートの核心 |
+| P2-D032 | elite_pool 敵は enemy_type=ELITE | rusted_knight / ruins_looter を ELITE 化 |
+| P2-D033 | Branch DANGEROUS Pool に ELITE を含める（v3.4.3 更新） | P2-D016 Dangerous 定義を ELITE 反映で更新 |
+
+---
+
+## Phase2-M3 Discovery System 決定（P2-Task018）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D034 | 発見登録は `GameState.discovery_registry`（category:entry_id） | Codex 基盤。UI なし M3 |
+| P2-D035 | カテゴリ: room / enemy / event / lore / material | M3 最小スコープ |
+| P2-D036 | 新規発見は LabelLog に `【新規発見】` 追記 | デバッグ・検証用可視化 |
+| P2-D037 | dungeon_progress.discovery float は既存維持（登録型と別） | 戦闘バランス変更なし。将来 hidden 解放用 |
+| P2-D038 | lore/material は placeholder ID 登録のみ（Codex/MaterialData 未実装） | 将来拡張のフック |
+
+---
+
+## Phase2-M3 SkillData 決定（P2-Task019）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D039 | SkillData は Resource。skill_type で player/enemy/boss/job を区別 | 将来スキル種別を同一スキーマで定義 |
+| P2-D040 | trigger_type は M3 placeholder（"cooldown"）。power_multiplier で倍率表現 | SkillExecutor 未実装。最小フィールドで拡張可能 |
+| P2-D041 | M3 では DataRegistry 参照のみ。SkillExecutor / 戦闘接続なし | 戦闘再設計・バランス変更を避ける |
+
+---
+
+## Phase2-M3 DataRegistry 決定（P2-Task020）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D042 | DataRegistry は id → `resources/{category}/{id}.tres` の lookup 層 | 6 カテゴリを単一 Autoload で参照 |
+| P2-D043 | 既存 inline load() は M3 で一括置換しない。新規コードは DataRegistry 推奨 | リスク回避。段階移行 |
+| P2-D044 | AffixData / JobData / drop_table は M3 未サポート | 将来拡張。エディタ UI 不要 |
+
+---
+
+## Phase2-M4 Multi-Dungeon 決定（P2-Task021）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D045 | 探索対象 DG は `GameState.current_dungeon_id`。空なら `Constants.DEFAULT_DUNGEON_ID` | 単一 hardcode 排除。Task022 で UI 選択 |
+| P2-D046 | `DungeonController.start_dungeon` は id 引数 + `DataRegistry.get_dungeon_data` | M3 DataRegistry SSOT 継続 |
+| P2-D047 | EVENTS / MERCHANT_CATALOG は M4 Task021 では DG 分離しない | 王都跡挙動維持。2 DG 目追加時に分離 |
+
+---
+
+## Phase2-M4 Base Dungeon Select 決定（P2-Task022）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D048 | BaseScene に最小 DG 選択 UI。探索ボタンは「探索開始」 | プレイヤーが DG を明示選択 |
+| P2-D049 | 白骸墓地 id は `graveyard`。未登録時は「準備中」disabled | Task023 までコンテンツ追加しない |
+| P2-D050 | 探索開始は DataRegistry に存在する id のみ許可 | 不正 id 遷移防止 |
+
+---
+
+## Phase2-M4 Graveyard Dungeon 決定（P2-Task023）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D051 | 白骸墓地 id = graveyard。difficulty 2、branch_enabled = true | 2 DG 目。Branch 体験を Graveyard で提供 |
+| P2-D052 | 敵 6 体（通常 4 / Elite 1 / Boss 1）。AI は default 維持 | コンテンツ追加のみ。戦闘再設計なし |
+| P2-D053 | BOSS 部屋は `DungeonData.boss_id` を使用（pick_combat_enemy_data） | 王都跡含め boss 出現を正しく接続 |
+
+---
+
+## Phase2-M4 MaterialData 決定（P2-Task024）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D054 | 素材は `MaterialData` Resource + `material_inventory`（id→quantity） | Event/Elite placeholder 解消 |
+| P2-D055 | M4 取得経路: Event relic_shard / Elite elite_relic_shard のみ | 最小接続。クラフト未実装 |
+| P2-D056 | ancient_bone / cursed_iron はサンプル定義のみ（ドロップ未接続） | 将来 DG/イベント拡張用 |
+
+---
+
+## Phase2-M4 Milestone Closeout（2026-06-21）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D057 | **Phase2-M4 を完了**とする。Task021〜024 が SSOT 確定 | World Expansion Foundation 達成 |
+| P2-D058 | Multi-Dungeon 基盤確立（2 DG playable・Base 選択・DataRegistry 起動） | M4 核心成果 |
+| P2-D059 | MaterialData 基盤確立（inventory + Event/Elite 接続） | placeholder 解消 |
+| P2-D060 | **Combat Depth（SkillExecutor）は Phase2-M5 で開始** | M4 は世界拡張のみ。戦闘深みは M5 |
+
+---
+
+## Phase2-M5 SkillExecutor 決定（P2-Task025）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D061 | SkillExecutor は RefCounted。`effect_type = damage` のみ実行 | 最小 M5 基盤。heal/buff は無視 |
+| P2-D062 | M5 プレイヤースキルは `slash_attack` 固定（`Constants.DEFAULT_PLAYER_SKILL_ID`） | 武器 fixed_skill_id は将来 Task |
+| P2-D063 | cooldown は CombatTimer tick 単位で `tick(COMBAT_TICK_INTERVAL)` | slash_attack cooldown 3.0s / tick 1.5s |
+| P2-D064 | スキルは通常攻撃に**追加**ダメージ。敵戦闘・Skill UI 変更なし | 既存ループを壊さない |
+
+---
+
+## Phase2-M5 Weapon Skill Link 決定（P2-Task026）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D065 | 戦闘スキルは `WeaponData.fixed_skill_id` → `DataRegistry.get_skill_data` で解決 | 武器主役の progression 方針 |
+| P2-D066 | `fixed_skill_id` 空または SkillData 未取得時は `DEFAULT_PLAYER_SKILL_ID` にフォールバック | 未装備・旧武器互換 |
+| P2-D067 | iron_sword のみ `fixed_skill_id = slash_attack`。rusted_blade は空（フォールバック検証用） | 既存 2 武器で差分確認 |
+| P2-D068 | 戦闘ログに武器 display_name / スキル display_name を表示 | 武器差の可視化。UI 追加なし |
+
+---
+
+## Phase2-M5 Job Foundation 決定（P2-Task027）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D069 | JobData Resource を最小スキーマで追加 | 将来 job build の data 層 |
+| P2-D070 | DataRegistry `get_job_data(id)` → `resources/jobs/{id}.tres` | 既存 lookup 規約継続 |
+| P2-D071 | M5 サンプル: warrior / guardian / scout | 3 ロール代表。戦闘未接続 |
+| P2-D072 | Adventurer.job_id との自動解決・ステ補正・UI は M5+ | データ準備のみ |
+
+---
+
+## Phase2-M5 Milestone Closeout（2026-06-21）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D073 | **Phase2-M5 を完了**とする。Task025〜027 が SSOT 確定 | Combat Depth Foundation 達成 |
+| P2-D074 | SkillExecutor + 武器 fixed_skill_id スキル接続を M5 核心成果とする | 戦闘深度の第一歩 |
+| P2-D075 | JobData 基盤確立（lookup のみ） | Job 本実装は M6+ |
+| P2-D076 | **次マイルストーン候補: Phase2-M6 Equipment Depth Foundation** | Affix / 装備深度を M6 で計画 |
+
+---
+
+## Affix Bible 決定（Affix_Bible_Completed v1.0 — 2026-06-21）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D077 | MVP Affix 容量 **固定**: Weapon Prefix×1 + Suffix×1 / Armor Prefix×1 / Accessory Prefix×1 | Recommended だと実装が迷う |
+| P2-D078 | AffixData `stat_type` 登録単位を 13 種で固定（Attack〜Exploration） | AffixData.tres 作成容易化 |
+| P2-D079 | Legendary Affix は **新 play style** を生む。単純数値増（例 +500 ATK）禁止 | identity over raw power |
+| P2-D080 | Affix_Bible_Completed_v1.0 を M6 Affix 系 Task の Design Reference として採用 | P2-Task028 入力 SSOT 前参照 |
+
+---
+
+## Repository Cleanup Policy 決定（2026-06-21）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D081 | **ProjectDocs ZIP はリポジトリ管理対象外**。正式 SSOT は `docs/`。ZIP は Release Artifact | 重複 SSOT 回避 |
+| P2-D082 | **Proposal は Completed 後も削除しない** | Proposal → Completed → Decision 履歴 |
+| P2-D083 | Lore（16/17/18）は当面 **`docs/specs/game/`** が正式配置先 | WorldArchive 移動は Lore 完成後 |
+| P2-D084 | **Git Commit は Milestone 単位で分割**（Gameplay / ProjectDocs / Cleanup 等） | 大量一括 commit 回避 |
+
+---
+
+## Phase2-M6 AffixData Foundation 決定（P2-Task028）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D085 | AffixData 最小スキーマ（id, affix_category, stat_type, value, tags 等） | Affix Bible → 実装可能 data 層 |
+| P2-D086 | `stat_type` は Affix Bible §6 の 13 種に整合 | AffixData.tres 作成容易化 |
+| P2-D087 | `get_affix_data(id)` → `resources/affixes/{id}.tres`（`RESOURCE_AFFIXES_PATH`） | DataRegistry 規約継続 |
+| P2-D088 | Task028 は lookup のみ。Roll / Appraisal / 戦闘 / Save 未接続 | Foundation のみ |
+
+---
+
+## Phase2-M6 Affix Roll 決定（P2-Task029）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D089 | AffixRoller は `scripts/equipment/AffixRoller.gd`（RefCounted） | equipment ドメイン配置 |
+| P2-D090 | MVP スロット: weapon P+S / armor P / accessory P（Bible 固定） | P2-D077 継続 |
+| P2-D091 | 候補フィルタ: affix_category + tags + rarity tier | 不正 Affix 排除 |
+| P2-D092 | Task029 は roll 結果 Dictionary のみ。Appraisal / Instance / Save 未接続 | 段階統合 |
+
+---
+
+## Phase2-M6 Affix Appraisal 決定（P2-Task030）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D093 | 鑑定完了時に `AffixRoller.roll_for_equipment()` を呼ぶ | Weapon Discovery → Appraisal → Affix ループ |
+| P2-D094 | Instance に `prefix_ids` / `suffix_ids`（Array[String]）を保存 | Roll 結果の最小永続化 |
+| P2-D095 | SaveManager が affix ID 配列を serialize（後方互換: 欠落時空配列） | 鑑定後の再読込 |
+| P2-D096 | Task030 は Reveal 表示のみ。戦闘 stat 反映は後続 Task | 段階統合 |
+
+---
+
+## Phase2-M6 Affix Stat 決定（P2-Task031）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D097 | `AffixStatCalculator` は `scripts/equipment/AffixStatCalculator.gd` | equipment ドメイン配置 |
+| P2-D098 | 鑑定済み装備の Affix ID のみ stat 反映（`is_appraised`） | Task030 ループ整合 |
+| P2-D099 | Task031 対応 stat: Attack / Defense / HP / Critical / Gold Gain / Material Gain / Healing | MVP 最小 |
+| P2-D100 | run Gold は `DungeonController.accumulate_rewards()` で倍率適用 | 単一接続点 |
+
+---
+
+## Phase2-M6 Equipment Detail UI 決定（P2-Task032）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D101 | `AffixDisplayFormatter` は UI 専用（`scripts/equipment/`） | stat 計算と分離 |
+| P2-D102 | Affix 表示は `is_appraised == true` のみ | 未鑑定 conceal |
+| P2-D103 | 表示形式: 名称行 + stat_type/value 行（Gold Gain は %） | 比較可読性 |
+| P2-D104 | Task032 は表示のみ。gameplay / stat 計算は変更しない | UI Task 境界 |
+
+---
+
+## Phase2-M6 Milestone Closeout（2026-06-21）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D105 | **Phase2-M6 を完了**とする。Task028〜032 が SSOT 確定 | Equipment Depth Foundation 達成 |
+| P2-D106 | **Affix ループ確立:** AffixData → Roll → Appraisal → Instance → Stat → Equipment UI | Core Loop 完成 |
+| P2-D107 | Affix gameplay 効果（Attack/Defense/HP/Critical/Gold/Material/Healing）確立 | Task031 正式採用 |
+| P2-D108 | 高度 Affix（reroll / Legendary / Curse / Material usage）は **Defer** | M6 スコープ外 |
+| P2-D109 | **次マイルストーン候補: Phase2-M7 UI / UX Foundation** | 可読性・モバイル polish を M7 で計画 |
+
+> **注:** P2-D111 により M7 正式名称は **Job & Build Foundation** に変更。P2-D109 の UI/UX 名称は置換済み。
+
+---
+
+## Phase2-M6 Closeout — Master Plan Sync（2026-06-21）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D110 | M6 Closeout 後に **Development Master Plan v1.1** を ProjectDocs と同期 | SSOT 整合 |
+| P2-D111 | **Phase2-M7 正式名称: Job & Build Foundation** | Job を weapon-centric の支援層として接続 |
+| P2-D112 | Material Usage Planning を **Future Craft & Economy Foundation** Milestone へ移管 | M6/M7 スコープから除外 |
+
+---
+
+## Phase2-M7 Scope Adoption（2026-06-21）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D113 | **Phase2-M7 正式 Scope** を `Phase2-M7_Scope_Proposal_v1.0.md` 通り採用 | DevelopmentHQ 承認 |
+| P2-D114 | Job modifier は **パーティメンバー単位** に適用（共有装備でも per-member） | Build Identity |
+| P2-D115 | stat 合成順序: base → Affix → **Job multiply** → crit / run mult | 合成バグ防止 |
+| P2-D116 | `starting_skill_ids[0]` のみ MVP。Job skill = **Secondary**、武器 fixed_skill = **Primary** | Weapon-Centric |
+| P2-D117 | Primary と同一 SkillData id の Secondary は **実行しない** | 二重 skill 防止 |
+| P2-D118 | MVP パーティ job_id = **warrior / guardian / scout** | JobData SSOT 整合 |
+| P2-D119 | `JobStatCalculator` は `scripts/equipment/JobStatCalculator.gd` | AffixStatCalculator 同型 |
+| P2-D120 | Job UI は **BaseScene 読み取り専用** | MVP |
+| P2-D121 | Build Summary は **EquipmentScene 内 1 ブロック**（Task037 は Task033+034+032 依存） | 保守性 |
+| P2-D122 | M7 Task 計画: **P2-Task033〜038**（038 = Closeout） | Milestone 分解 |
+
+---
+
+## Phase2-M7 Party Job Alignment 決定（P2-Task033）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D123 | MVP パーティ初期 job_id = **warrior / guardian / scout** | JobData SSOT 整合（P2-D118 実装） |
+| P2-D124 | `JobStatCalculator` は Job modifier 読み取りの標準ヘルパー | AffixStatCalculator 同型 |
+| P2-D125 | Task033 は Calculator + party 整合のみ。**戦闘反映は Task034** | 段階統合 |
+
+---
+
+## Phase2-M7 Job Combat Integration 決定（P2-Task034）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D126 | Task034 で P2-D115 合成順序を **CombatController / DungeonScene** に実装 | HP / ATK / DEF |
+| P2-D127 | Job 戦闘接続は **CombatController + DungeonScene のみ**。SkillExecutor / UI / Save 非変更 | 最小 diff |
+| P2-D128 | 被弾 Defense は **被弾メンバー index** の job def modifier を適用 | P2-D114 per-member |
+
+---
+
+## Phase2-M7 starting_skill_ids Combat Link 決定（P2-Task035）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D134 | `_get_job_skill_data(member_index)` で攻撃メンバーの `starting_skill_ids[0]` を SkillData として解決 | P2-D116 実装。job_id 空 / JobData なし / starting_skill_ids 空 → null |
+| P2-D135 | `_try_cast_secondary_skill` で Primary と同一 SkillData id の場合は実行しない | P2-D117 実装。warrior + slash_attack 武器 → Primary のみ（二重なし） |
+| P2-D136 | Secondary Skill 未設定・未取得は安全スキップ。guardian / scout 空は正常系 | クラッシュなし fallback |
+
+---
+
+## Phase3 Split Adoption 決定（Project Structure）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D129 | Phase3 を **Phase3-A（Visual Production）** + **Phase3-B（Content Expansion）** へ分割採用 | Phase3 Split Proposal v1.0 |
+| P2-D130 | **Phase3-A Visual Production** = スプライト / UI art / テーマ / 演出アセット制作。**gameplay 仕様変更なし** | Pixel Apprentice 主担当 |
+| P2-D131 | **Phase3-B Content Expansion** = ダンジョン / 敵 / イベント / Affix プール / Legendary 等の **コンテンツ量産** | Game Designer 主担当 |
+| P2-D132 | Phase 再編: **Phase4 = Polish**、**Phase5 = Release Preparation**（旧 Phase4 Content / Phase5 Release を再配置） | Roadmap 整合 |
+| P2-D133 | `04_Development_Master_Plan.md` の Phase 構造を P2-D129 分割に同期更新 | Master Plan SSOT |
+
+### Responsibility（P2-D129 採用）
+
+| 役割 | 担当 |
+|---|---|
+| Decision / Review / SSOT | DevelopmentHQ |
+| Repository / Document 更新 | Claude Code |
+| Visual Production | Pixel Apprentice |
+| Content Expansion Design | Game Designer |
+
+---
+
+## Phase2-M7 Milestone Closeout（2026-06-22）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D137 | **Phase2-M7 を完了**とする。P2-Task033〜037 が SSOT 確定 | Job & Build Foundation 達成。EC-1〜4 全確認 |
+| P2-D138 | **次マイルストーン候補: Phase2-M8 Craft & Economy Foundation** | Material data（M4）と Job/装備基盤の上に Craft ループを積む（P2-D112） |
+
+---
+
+## Phase2-M8 Scope Adoption（2026-06-22）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D139 | **Phase2-M8「Craft & Economy Foundation」正式 Scope 採用**（Design v1.0 + Task Proposal v1.0 通り） | DevelopmentHQ 承認 |
+| P2-D140 | CraftData スキーマ（id / display_name / required_materials / gold_cost / output_type / output_id / unlock_condition）を **SSOT 確定** | Design §2-2 正式採用 |
+| P2-D141 | **MVP レシピ 3 件採用**: craft_leather_armor / craft_silver_ring / craft_bone_armor。素材・Gold コストは Design §2-3 通り | Economy バランス確認済み |
+| P2-D142 | **MVP では Weapon クラフト不可**。output_type="weapon" は将来拡張予約のみ | Special Room Bible 継承（P2-D112） |
+| P2-D143 | **consume_materials() は GameState に配置**。専用 CraftController 新規作成なし | アーキテクチャ最小差分 |
+| P2-D144 | **Merchant Materials 購入（P2-Task043）を M8 スコープとして正式計画**。価格: relic_shard 20G / ancient_bone 20G（MaterialData.value 基準） | Gold/Material 双方向循環 |
+| P2-D145 | **P2-Task039（CraftData Foundation）は Craft Resource Pack で完了済み**（M7 並行 Task）。M8 実装開始は P2-Task040 から | SSOT 整合 |
+
+---
+
+## Lore Bible Adoption（2026-06-22）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D146 | **22_DungeonBible.md を ProjectDocs SSOT として正式採用**。Dungeon探索参照の一元管理確立 | DevelopmentHQ 承認済。既存 Lore のみ収録。Gameplay 仕様記載なし |
+| P2-D147 | **23_FactionBible.md を ProjectDocs SSOT として正式採用**。勢力・組織の一元管理確立（F-001〜F-007 + 王国内行政機関） | DevelopmentHQ 承認済。既存 Lore のみ収録。Gameplay 仕様記載なし |
+
+---
+
+## Phase2-M9 Codex & Discovery Scope Adoption 決定（P2-Task045）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D148 | Phase2-M9「Codex & Discovery Foundation」Scope を **正式採用** | `Phase2_M9_Codex_Discovery_Scope_Proposal_v1.0.md` |
+| P2-D149 | Codex MVP カテゴリ = **Enemy / Dungeon / Material / Weapon / History** | Proposal §2.1 |
+| P2-D150 | `discovery_registry` **Save 形式不変**。category 拡張（`dungeon` / `weapon`）のみ許可 | Proposal §4 |
+| P2-D151 | Codex UI = **BaseScene 遷移・閲覧専用**（報酬 / Unlock なし） | Proposal §1.3 |
+| P2-D152 | History Bible MVP = **サブセット表示**（全 66 件一括非表示） | Proposal §9 R-1 |
+| P2-D153 | M9 Task 計画: **P2-Task045〜050**（050 = Closeout） | Proposal §6 |
+
+---
+
+## DevelopmentHQ Cursor Migration（2026-06-23）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D154 | **DevelopmentHQ を ChatGPT ブラウザから Cursor HQ セッションへ移行** | リポジトリ直接アクセスによるレビュー・運用効率化。`06_DevelopmentHQ_Operations.md` を SSOT 化 |
+| P2-D155 | **AI 実装は Cursor Impl セッションに統一**（Claude Code 併用時も同一ルール・HQ レビューは Cursor） | Task Bundle / スコープ制約を維持しつつツール分業を廃止 |
+| P2-D156 | **Phase3 順序を Phase3-A（Visual）→ Phase3-B（Content）で正式採用** | Alpha 基盤完成後、見た目整備を先行しコンテンツ量産の評価基盤を確立 |
+| P2-D157 | **ChatGPT 向け `■ Task:` コピペ報告フローを廃止** | 情報の正はリポジトリ更新のみ。`.cursor/rules/developmenthq-operations.mdc` に置換 |
+| P2-D158 | **ProjectDocs ZIP を Git リポジトリに含めない**（`.gitignore` で `*.zip` 除外） | P2-D081 継続。既存ルート ZIP は削除 |
+
+---
+
+## World Assets Bible Adoption（2026-06-23）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D159 | **`World_Assets_Bible_v1.1` を ProjectDocs SSOT として正式採用**（`25_WorldAssetsBible.md`） | オーナー承認。12 World Pillars を世界観基幹とする |
+| P2-D160 | **World Pillars A-01〜A-12** をロア設計の上位概念として確定 | Proposal レビュー Exit Criteria |
+| P2-D161 | **九王時代と九王戦争の時系列を統一** — 秩序の時代ののち大戦で王国時代終焉。当事者は未解明 | `03_世界観` / HE-002 との整合 |
+| P2-D162 | **伝説武器・竜の改名を採用** — 継承剣レガート、翠杖ヴェルド、深竜トレンチャ、シルヴァーン王国 | ネーミングレビュー承認 |
+| P2-D163 | **A-10 灯火（The Last Flame）** を World Pillar として新規採用 | raw 欠落分の執筆・承認 |
+| P2-D164 | **Phase9 メインストーリー（終わりなき回廊叙事詩）をゲーム本編スコープ外**とする | ハクスラ軽量ループ・原則2との整合 |
+| P2-D165 | **王国設定の正は五王国（K-001〜005）**。GPT 草案の九王国現役設定は不採用（神話古地名としてのみ可） | `19_KingdomBible.md` SSOT 優先 |
+
+---
+
+## Combat Vision Adoption（2026-06-23）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D166 | **`26_CombatVision.md` を戦闘設計の長期 SSOT として正式採用** | DevelopmentHQ / GPT 協議内容の反映。Invariant: プレイヤー＝指揮官、AI 自律戦闘 |
+| P2-D167 | **Combat Vision の Core Concept / Player Role / Development Rule は長期不変** | 新システム追加時も「指揮官＋AI 自律」を維持 |
+| P2-D168 | **現行 Alpha 実装（CombatTimer・部屋ステップ）と Vision の関係を明示** | `01_MVP方針決定` §3 はマクロ進行。Vision は戦闘表現・リアルタイム自律の将来正。`08_戦闘_AI.md` にギャップ表 |
+
+---
+
+## Design Pipeline v1.1（2026-06-23）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D169 | **設計パイプラインを `06_DevelopmentHQ_Operations.md` v1.1 に明文化** — Spark → Proposal → Decision → Spec → Task → Impl。GPT 協議は Proposal 必須 | 戦闘 Vision 等の未反映協議を防ぐ |
+| P2-D170 | **状態異常・属性は Proposal 検討完了**（`Phase3B_Status_Element_Combat_Proposal_v1.0.md`） | Tier1=出血/毒/鈍化、属性5種、麻痺/睡眠は Tier3 保留 |
+
+---
+
+## Status & Element Combat Adoption（2026-06-23）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D171 | **`27_状態異常と属性.md` を ProjectDocs SSOT として正式採用** | オーナー承認。Combat Vision 準拠 |
+| P2-D172 | **属性 5 種を確定** — physical / ember / frost / venom / curse | 弱点 ×1.25 / 耐性 ×0.75。6 種以上は拡張禁止（当面） |
+| P2-D173 | **Tier1 状態異常 3 種を第一実装対象** — bleed / poison / slow。出血数値（5s / 20%/tick / 5 stack）を SSOT 化 | `08_戦闘_AI.md` 将来仕様を統合 |
+| P2-D174 | **Tier3（麻痺 / 睡眠 / 凍結 / 沈黙）を実装保留**。スタン・鈍化で代替 | 「見て分かる」戦闘との整合 |
+| P2-D175 | **Phase3-B-M1「Status & Element Foundation」** を Combat Depth の第一 Milestone 候補として計画 | Task 順は `27_状態異常と属性.md` |
+
+---
+
+## Phase2-M9 Milestone Closeout（2026-06-23）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D176 | **Phase2-M9 を完了**とする。P2-Task045〜050 Exit Criteria 達成（EC-6 は Deferred 明示） | Codex & Discovery Foundation 達成 |
+| P2-D177 | **Impl は Claude Code 最大 2 セッション並行**（16GB MacBook Air）。HQ は Cursor。git worktree 推奨 | 運用効率・RAM 制約 |
+
+---
+
+## Phase3 開始（2026-06-23）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P2-D178 | **次マイルストーンを Phase3-A Visual Production とする**（P2-D156 継続） | M9 完了後の公式順序 |
+
+---
+
+## Phase3-A Scope Adoption 決定（2026-06-24）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P3-D001 | **Phase3-A Visual Production Scope を正式採用**（`Phase3A_Scope_Adoption_Completed_v1.1.md`） | オーナー承認。IN/OUT・Exit Criteria・P0/P1/P2 リスト確定 |
+| P3-D002 | **全アイコン（素材含む）キャンバス 64×64 統一**。UI 表示は Godot 側でスケール | D-PA-001 承認。Request Pack v1.0 の素材 32×32 指定は不採用 |
+| P3-D003 | **ファイル名にサイズサフィックスなし**（例: `ICO_WPN_IronSword.png`） | D-PA-002 承認。Visual Production v1.0 命名規則に統一 |
+| P3-D004 | **敵スプライト `ENM_BoneWalker_Sheet`** を採用（`ENM_Skeleton` 不採用） | D-PA-003 承認。`bone_walker` ゲーム id と一致 |
+| P3-D005 | **Phase3-A 開始時はシステムフォント維持**。Bitmap Font は P0 UI Frame 承認後の Batch 2 | D-PA-004 承認 |
+| P3-D006 | **TileSet は手動マッピング**（AutoTile / Terrain は Phase3-B 工廠 DG で検討） | D-PA-005 承認 |
+| P3-D007 | **P0 制作を 3 段階 Batch** — (1) UI Frame → (2) Icons → (3) Tileset+Sprites | D-PA-006 承認 |
+
+---
+
+## Phase3-A Closeout 決定（2026-06-25）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P3-D008 | **P3-A-009 B-2/B-3 を P2 格下げ** — `FX_Hit_Critical.png`、RoyalRuins 補完タイル 3 件（Floor_02 / Floor_Cracked / Wall_02）は Phase3-A Closeout ブロッカーとしない | Impl 未接続・EC-7/EC-6 は既存アセットで充足。オーナー承認（P3-A-009） |
+| P3-D009 | **Phase3-A Closeout 必須条件は EC-1〜7 全 PASS**。EC-8 は P1 納品照合で別途記録 | Scope v1.1 §2 維持。B-1（Godot `.import`）解消後に EC-3/7 実機確認 |
+| P3-D010 | **`.import` は `.gitignore` 維持・リポジトリ非コミット**。各環境で `smoke_test.sh --import-only` 実行が正規フロー | Godot 標準運用。CommitPlan の import commit は方針撤回 |
+

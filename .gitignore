@@ -20,6 +20,7 @@ export_presets.cfg
 # Editor
 .vscode/
 .idea/
+tools/godot/
 *.swp
 *.swo
 
@@ -28,3 +29,8 @@ saves/
 
 # OS
 Thumbs.db
+
+# ProjectDocs release artifacts (SSOT is docs/ tree — see Project_Repository_Policy.md)
+*.zip
+ProjectDocs_*.zip
+crownfall_projectdocs_*.zip
