@@ -714,22 +714,39 @@ func _play_boss_animation(anim: String) -> void:
 # ---- Room Art ----
 
 const _BATCH3: String = "res://assets/dungeon/royal_ruins/batch3/"
+const _BATCH7: String = "res://assets/dungeon/graveyard/batch7/"
 
 func _update_room_art() -> void:
 	var room_type: int = $DungeonController.current_room_type
+	var dungeon_id: String = ""
+	if $DungeonController.current_dungeon_data != null:
+		dungeon_id = $DungeonController.current_dungeon_data.id
 	var tile_path: String
 	var obj_path: String = ""
-	match room_type:
-		Enums.RoomType.COMBAT, Enums.RoomType.ELITE, Enums.RoomType.MID_BOSS, Enums.RoomType.BOSS:
-			tile_path = _BATCH3 + "TILE_RoyalRuins_Wall_01.png"
-		Enums.RoomType.TREASURE:
-			tile_path = _BATCH3 + "TILE_RoyalRuins_Floor_01.png"
-			obj_path = _BATCH3 + "OBJ_TreasureChest_Closed.png"
-		Enums.RoomType.EXIT:
-			tile_path = _BATCH3 + "TILE_RoyalRuins_Floor_01.png"
-			obj_path = _BATCH3 + "OBJ_ExitGate_RoyalRuins.png"
-		_:
-			tile_path = _BATCH3 + "TILE_RoyalRuins_Floor_01.png"
+	if dungeon_id == "graveyard":
+		match room_type:
+			Enums.RoomType.COMBAT, Enums.RoomType.ELITE, Enums.RoomType.MID_BOSS, Enums.RoomType.BOSS:
+				tile_path = _BATCH7 + "TILE_Graveyard_Wall_Tombstone.png"
+			Enums.RoomType.TREASURE:
+				tile_path = _BATCH7 + "TILE_Graveyard_Floor_02.png"
+				obj_path = _BATCH7 + "OBJ_TreasureChest_Open.png"
+			Enums.RoomType.EXIT:
+				tile_path = _BATCH7 + "TILE_Graveyard_Floor_02.png"
+				obj_path = _BATCH7 + "OBJ_ExitGate_Graveyard.png"
+			_:
+				tile_path = _BATCH7 + "TILE_Graveyard_Floor_02.png"
+	else:
+		match room_type:
+			Enums.RoomType.COMBAT, Enums.RoomType.ELITE, Enums.RoomType.MID_BOSS, Enums.RoomType.BOSS:
+				tile_path = _BATCH3 + "TILE_RoyalRuins_Wall_01.png"
+			Enums.RoomType.TREASURE:
+				tile_path = _BATCH3 + "TILE_RoyalRuins_Floor_01.png"
+				obj_path = _BATCH3 + "OBJ_TreasureChest_Closed.png"
+			Enums.RoomType.EXIT:
+				tile_path = _BATCH3 + "TILE_RoyalRuins_Floor_01.png"
+				obj_path = _BATCH3 + "OBJ_ExitGate_RoyalRuins.png"
+			_:
+				tile_path = _BATCH3 + "TILE_RoyalRuins_Floor_01.png"
 	_set_room_texture($VBoxContainer/RoomArt/RoomTileBg, tile_path)
 	_set_room_texture($VBoxContainer/RoomArt/RoomObject, obj_path)
 
