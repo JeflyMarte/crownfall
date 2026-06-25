@@ -33,175 +33,231 @@ wait_time = 1.5
 one_shot = false
 autostart = false
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="MainVBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HeaderBar" type="HBoxContainer" parent="MainVBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 56)
+
+[node name="ButtonMenu" type="Button" parent="MainVBox/HeaderBar"]
+layout_mode = 2
+custom_minimum_size = Vector2(56, 0)
+text = "≡"
+
+[node name="LabelDungeonName" type="Label" parent="MainVBox/HeaderBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ダンジョン"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LabelRoom" type="Label" parent="MainVBox/HeaderBar"]
+layout_mode = 2
+text = "部屋 1 / 10  [開始]"
+vertical_alignment = 1
+
+[node name="BattlefieldArea" type="Control" parent="MainVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 200)
+
+[node name="RoomTileBg" type="TextureRect" parent="MainVBox/BattlefieldArea"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch_mode = 1
+visible = false
+
+[node name="RoomObject" type="TextureRect" parent="MainVBox/BattlefieldArea"]
+layout_mode = 1
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 72.0
+offset_bottom = 72.0
+stretch_mode = 0
+visible = false
+
+[node name="BattleLogScroll" type="ScrollContainer" parent="MainVBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 100)
+
+[node name="LabelLog" type="Label" parent="MainVBox/BattleLogScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = ""
+horizontal_alignment = 0
+autowrap_mode = 3
+
+[node name="BottomZone" type="VBoxContainer" parent="MainVBox"]
+layout_mode = 2
+
+[node name="AutoCombatRow" type="HBoxContainer" parent="MainVBox/BottomZone"]
+layout_mode = 2
+visible = false
+
+[node name="LabelAutoCombat" type="Label" parent="MainVBox/BottomZone/AutoCombatRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "⚔ 自動戦闘中"
+horizontal_alignment = 0
+vertical_alignment = 1
+
+[node name="ButtonPause" type="Button" parent="MainVBox/BottomZone/AutoCombatRow"]
+layout_mode = 2
+text = "一時停止"
+
+[node name="NonCombatZone" type="VBoxContainer" parent="MainVBox/BottomZone"]
+layout_mode = 2
+
+[node name="BranchContainer" type="HBoxContainer" parent="MainVBox/BottomZone/NonCombatZone"]
+layout_mode = 2
+visible = false
+
+[node name="ButtonBranchSafe" type="Button" parent="MainVBox/BottomZone/NonCombatZone/BranchContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "安全"
+
+[node name="ButtonBranchDangerous" type="Button" parent="MainVBox/BottomZone/NonCombatZone/BranchContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "危険"
+
+[node name="ButtonBranchUnknown" type="Button" parent="MainVBox/BottomZone/NonCombatZone/BranchContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "不明"
+
+[node name="MerchantContainer" type="VBoxContainer" parent="MainVBox/BottomZone/NonCombatZone"]
+layout_mode = 2
+visible = false
+
+[node name="LabelMerchantTitle" type="Label" parent="MainVBox/BottomZone/NonCombatZone/MerchantContainer"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+
+[node name="Offer0Row" type="HBoxContainer" parent="MainVBox/BottomZone/NonCombatZone/MerchantContainer"]
+layout_mode = 2
+
+[node name="LabelOffer0" type="Label" parent="MainVBox/BottomZone/NonCombatZone/MerchantContainer/Offer0Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = ""
+
+[node name="ButtonBuyOffer0" type="Button" parent="MainVBox/BottomZone/NonCombatZone/MerchantContainer/Offer0Row"]
+layout_mode = 2
+text = "購入"
+
+[node name="Offer1Row" type="HBoxContainer" parent="MainVBox/BottomZone/NonCombatZone/MerchantContainer"]
+layout_mode = 2
+
+[node name="LabelOffer1" type="Label" parent="MainVBox/BottomZone/NonCombatZone/MerchantContainer/Offer1Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = ""
+
+[node name="ButtonBuyOffer1" type="Button" parent="MainVBox/BottomZone/NonCombatZone/MerchantContainer/Offer1Row"]
+layout_mode = 2
+text = "購入"
+
+[node name="ButtonMerchantLeave" type="Button" parent="MainVBox/BottomZone/NonCombatZone/MerchantContainer"]
+layout_mode = 2
+text = "立ち去る"
+
+[node name="EventContainer" type="VBoxContainer" parent="MainVBox/BottomZone/NonCombatZone"]
+layout_mode = 2
+visible = false
+
+[node name="LabelEventDesc" type="Label" parent="MainVBox/BottomZone/NonCombatZone/EventContainer"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="ButtonEventA" type="Button" parent="MainVBox/BottomZone/NonCombatZone/EventContainer"]
+layout_mode = 2
+text = ""
+
+[node name="ButtonEventB" type="Button" parent="MainVBox/BottomZone/NonCombatZone/EventContainer"]
+layout_mode = 2
+text = ""
+
+[node name="ButtonNextRoom" type="Button" parent="MainVBox/BottomZone/NonCombatZone"]
+layout_mode = 2
+text = "次の部屋"
+
+[node name="ButtonFinish" type="Button" parent="MainVBox/BottomZone/NonCombatZone"]
+layout_mode = 2
+text = "探索終了"
+
+[node name="BossSprite" type="AnimatedSprite2D" parent="."]
+position = Vector2(960, 260)
+scale = Vector2(3, 3)
+visible = false
+
+[node name="EnemySprite" type="AnimatedSprite2D" parent="."]
+position = Vector2(960, 260)
+scale = Vector2(3, 3)
+visible = false
+
+[node name="HitVfxSprite" type="AnimatedSprite2D" parent="."]
+position = Vector2(960, 260)
+scale = Vector2(3, 3)
+visible = false
+
+[node name="HealVfxSprite" type="AnimatedSprite2D" parent="."]
+position = Vector2(420, 380)
+scale = Vector2(3, 3)
+visible = false
+
+[node name="ChrSprite0" type="AnimatedSprite2D" parent="."]
+position = Vector2(220, 390)
+scale = Vector2(3, 3)
+visible = false
+
+[node name="ChrSprite1" type="AnimatedSprite2D" parent="."]
+position = Vector2(420, 370)
+scale = Vector2(3, 3)
+visible = false
+
+[node name="ChrSprite2" type="AnimatedSprite2D" parent="."]
+position = Vector2(620, 390)
+scale = Vector2(3, 3)
+visible = false
+
+[node name="MenuOverlay" type="PanelContainer" parent="."]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
+offset_left = -140.0
+offset_top = -64.0
+offset_right = 140.0
+offset_bottom = 64.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="LabelDungeonName" type="Label" parent="VBoxContainer"]
-layout_mode = 2
-text = "王都跡"
-horizontal_alignment = 1
-
-[node name="LabelRoom" type="Label" parent="VBoxContainer"]
-layout_mode = 2
-text = "部屋 1 / 10  [開始]"
-horizontal_alignment = 1
-
-[node name="RoomArt" type="HBoxContainer" parent="VBoxContainer"]
-layout_mode = 2
-alignment = 1
-
-[node name="RoomTileBg" type="TextureRect" parent="VBoxContainer/RoomArt"]
-layout_mode = 2
-custom_minimum_size = Vector2(64, 64)
-stretch_mode = 0
 visible = false
+z_index = 10
 
-[node name="RoomObject" type="TextureRect" parent="VBoxContainer/RoomArt"]
-layout_mode = 2
-custom_minimum_size = Vector2(32, 32)
-stretch_mode = 0
-visible = false
-
-[node name="LabelLog" type="Label" parent="VBoxContainer"]
-layout_mode = 2
-text = ""
-horizontal_alignment = 1
-
-[node name="LabelEnemy" type="Label" parent="VBoxContainer"]
-layout_mode = 2
-text = ""
-horizontal_alignment = 1
-
-[node name="LabelEnemyHp" type="Label" parent="VBoxContainer"]
-layout_mode = 2
-text = ""
-horizontal_alignment = 1
-
-[node name="LabelPlayerHp" type="Label" parent="VBoxContainer"]
-layout_mode = 2
-text = ""
-horizontal_alignment = 1
-
-[node name="BranchContainer" type="HBoxContainer" parent="VBoxContainer"]
-layout_mode = 2
-visible = false
-
-[node name="ButtonBranchSafe" type="Button" parent="VBoxContainer/BranchContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "安全"
-
-[node name="ButtonBranchDangerous" type="Button" parent="VBoxContainer/BranchContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "危険"
-
-[node name="ButtonBranchUnknown" type="Button" parent="VBoxContainer/BranchContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "不明"
-
-[node name="MerchantContainer" type="VBoxContainer" parent="VBoxContainer"]
-layout_mode = 2
-visible = false
-
-[node name="LabelMerchantTitle" type="Label" parent="VBoxContainer/MerchantContainer"]
-layout_mode = 2
-text = ""
-horizontal_alignment = 1
-
-[node name="Offer0Row" type="HBoxContainer" parent="VBoxContainer/MerchantContainer"]
+[node name="MenuVBox" type="VBoxContainer" parent="MenuOverlay"]
 layout_mode = 2
 
-[node name="LabelOffer0" type="Label" parent="VBoxContainer/MerchantContainer/Offer0Row"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = ""
-
-[node name="ButtonBuyOffer0" type="Button" parent="VBoxContainer/MerchantContainer/Offer0Row"]
-layout_mode = 2
-text = "購入"
-
-[node name="Offer1Row" type="HBoxContainer" parent="VBoxContainer/MerchantContainer"]
-layout_mode = 2
-
-[node name="LabelOffer1" type="Label" parent="VBoxContainer/MerchantContainer/Offer1Row"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = ""
-
-[node name="ButtonBuyOffer1" type="Button" parent="VBoxContainer/MerchantContainer/Offer1Row"]
-layout_mode = 2
-text = "購入"
-
-[node name="ButtonMerchantLeave" type="Button" parent="VBoxContainer/MerchantContainer"]
-layout_mode = 2
-text = "立ち去る"
-
-[node name="EventContainer" type="VBoxContainer" parent="VBoxContainer"]
-layout_mode = 2
-visible = false
-
-[node name="LabelEventDesc" type="Label" parent="VBoxContainer/EventContainer"]
-layout_mode = 2
-text = ""
-horizontal_alignment = 1
-autowrap_mode = 3
-
-[node name="ButtonEventA" type="Button" parent="VBoxContainer/EventContainer"]
-layout_mode = 2
-text = ""
-
-[node name="ButtonEventB" type="Button" parent="VBoxContainer/EventContainer"]
-layout_mode = 2
-text = ""
-
-[node name="ButtonNextRoom" type="Button" parent="VBoxContainer"]
-layout_mode = 2
-text = "次の部屋"
-
-[node name="ButtonFinish" type="Button" parent="VBoxContainer"]
+[node name="ButtonFinishFromMenu" type="Button" parent="MenuOverlay/MenuVBox"]
 layout_mode = 2
 text = "探索終了"
 
-[node name="BossSprite" type="AnimatedSprite2D" parent="."]
-position = Vector2(640, 80)
-scale = Vector2(3, 3)
-visible = false
-
-[node name="EnemySprite" type="AnimatedSprite2D" parent="."]
-position = Vector2(640, 80)
-scale = Vector2(3, 3)
-visible = false
-
-[node name="HitVfxSprite" type="AnimatedSprite2D" parent="."]
-position = Vector2(640, 80)
-scale = Vector2(3, 3)
-visible = false
-
-[node name="HealVfxSprite" type="AnimatedSprite2D" parent="."]
-position = Vector2(640, 360)
-scale = Vector2(3, 3)
-visible = false
-
-[node name="ChrSprite0" type="AnimatedSprite2D" parent="."]
-position = Vector2(320, 580)
-scale = Vector2(3, 3)
-visible = false
-
-[node name="ChrSprite1" type="AnimatedSprite2D" parent="."]
-position = Vector2(512, 580)
-scale = Vector2(3, 3)
-visible = false
-
-[node name="ChrSprite2" type="AnimatedSprite2D" parent="."]
-position = Vector2(704, 580)
-scale = Vector2(3, 3)
-visible = false
+[node name="ButtonCloseMenu" type="Button" parent="MenuOverlay/MenuVBox"]
+layout_mode = 2
+text = "閉じる"

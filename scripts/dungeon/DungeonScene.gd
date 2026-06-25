@@ -41,20 +41,39 @@ var _skill_executor: RefCounted = SkillExecutorScript.new()
 @onready var _chr_sprite_0: AnimatedSprite2D = $ChrSprite0
 @onready var _chr_sprite_1: AnimatedSprite2D = $ChrSprite1
 @onready var _chr_sprite_2: AnimatedSprite2D = $ChrSprite2
+
+@onready var _label_log: Label = $MainVBox/BattleLogScroll/LabelLog
+@onready var _label_dungeon_name: Label = $MainVBox/HeaderBar/LabelDungeonName
+@onready var _label_room: Label = $MainVBox/HeaderBar/LabelRoom
+@onready var _room_tile_bg: TextureRect = $MainVBox/BattlefieldArea/RoomTileBg
+@onready var _room_object: TextureRect = $MainVBox/BattlefieldArea/RoomObject
+@onready var _auto_combat_row: HBoxContainer = $MainVBox/BottomZone/AutoCombatRow
+@onready var _non_combat_zone: VBoxContainer = $MainVBox/BottomZone/NonCombatZone
+@onready var _branch_container: HBoxContainer = $MainVBox/BottomZone/NonCombatZone/BranchContainer
+@onready var _merchant_container: VBoxContainer = $MainVBox/BottomZone/NonCombatZone/MerchantContainer
+@onready var _event_container: VBoxContainer = $MainVBox/BottomZone/NonCombatZone/EventContainer
+@onready var _btn_next_room: Button = $MainVBox/BottomZone/NonCombatZone/ButtonNextRoom
+@onready var _btn_finish: Button = $MainVBox/BottomZone/NonCombatZone/ButtonFinish
+@onready var _menu_overlay: PanelContainer = $MenuOverlay
+
 var _chr_sprites: Array[AnimatedSprite2D] = []
 
 func _ready() -> void:
-	$VBoxContainer/ButtonNextRoom.pressed.connect(_on_next_room_pressed)
-	$VBoxContainer/ButtonFinish.pressed.connect(_on_finish_button_pressed)
+	_btn_next_room.pressed.connect(_on_next_room_pressed)
+	_btn_finish.pressed.connect(_on_finish_button_pressed)
 	$CombatTimer.timeout.connect(_on_combat_timer_timeout)
-	$VBoxContainer/BranchContainer/ButtonBranchSafe.pressed.connect(_on_branch_safe_pressed)
-	$VBoxContainer/BranchContainer/ButtonBranchDangerous.pressed.connect(_on_branch_dangerous_pressed)
-	$VBoxContainer/BranchContainer/ButtonBranchUnknown.pressed.connect(_on_branch_unknown_pressed)
-	$VBoxContainer/MerchantContainer/Offer0Row/ButtonBuyOffer0.pressed.connect(_on_buy_offer0_pressed)
-	$VBoxContainer/MerchantContainer/Offer1Row/ButtonBuyOffer1.pressed.connect(_on_buy_offer1_pressed)
-	$VBoxContainer/MerchantContainer/ButtonMerchantLeave.pressed.connect(_on_merchant_leave_pressed)
-	$VBoxContainer/EventContainer/ButtonEventA.pressed.connect(_on_event_choice_a_pressed)
-	$VBoxContainer/EventContainer/ButtonEventB.pressed.connect(_on_event_choice_b_pressed)
+	_branch_container.get_node("ButtonBranchSafe").pressed.connect(_on_branch_safe_pressed)
+	_branch_container.get_node("ButtonBranchDangerous").pressed.connect(_on_branch_dangerous_pressed)
+	_branch_container.get_node("ButtonBranchUnknown").pressed.connect(_on_branch_unknown_pressed)
+	_merchant_container.get_node("Offer0Row/ButtonBuyOffer0").pressed.connect(_on_buy_offer0_pressed)
+	_merchant_container.get_node("Offer1Row/ButtonBuyOffer1").pressed.connect(_on_buy_offer1_pressed)
+	_merchant_container.get_node("ButtonMerchantLeave").pressed.connect(_on_merchant_leave_pressed)
+	_event_container.get_node("ButtonEventA").pressed.connect(_on_event_choice_a_pressed)
+	_event_container.get_node("ButtonEventB").pressed.connect(_on_event_choice_b_pressed)
+	$MainVBox/HeaderBar/ButtonMenu.pressed.connect(_on_menu_button_pressed)
+	_menu_overlay.get_node("MenuVBox/ButtonFinishFromMenu").pressed.connect(_on_menu_finish_pressed)
+	_menu_overlay.get_node("MenuVBox/ButtonCloseMenu").pressed.connect(_on_close_menu_pressed)
+	$MainVBox/BottomZone/AutoCombatRow/ButtonPause.pressed.connect(_on_pause_button_pressed)
 	EventBus.weapon_obtained.connect(_on_weapon_obtained)
 	_hit_vfx_sprite.animation_finished.connect(func(): _hit_vfx_sprite.visible = false)
 	_heal_vfx_sprite.animation_finished.connect(func(): _heal_vfx_sprite.visible = false)
@@ -77,8 +96,8 @@ func _ready() -> void:
 	var dungeon_name: String = "ダンジョン"
 	if $DungeonController.current_dungeon_data != null:
 		dungeon_name = $DungeonController.current_dungeon_data.display_name
-		$VBoxContainer/LabelDungeonName.text = dungeon_name
-	$VBoxContainer/LabelLog.text = "%s の探索を開始した" % dungeon_name
+		_label_dungeon_name.text = dungeon_name
+	_label_log.text = "%s の探索を開始した" % dungeon_name
 	if not dungeon_id.is_empty():
 		_try_register_discovery("dungeon", dungeon_id)
 
@@ -98,11 +117,11 @@ func _get_room_type_name() -> String:
 
 func _update_room_label() -> void:
 	if $DungeonController.current_dungeon_data == null:
-		$VBoxContainer/LabelRoom.text = "部屋 — / —"
+		_label_room.text = "部屋 — / —"
 		return
 	var idx: int = $DungeonController.current_room_index + 1
 	var total: int = $DungeonController.current_dungeon_data.room_count
-	$VBoxContainer/LabelRoom.text = "部屋 %d / %d  [%s]" % [idx, total, _get_room_type_name()]
+	_label_room.text = "部屋 %d / %d  [%s]" % [idx, total, _get_room_type_name()]
 
 func _on_next_room_pressed() -> void:
 	_advance_to_next_room()
@@ -133,15 +152,15 @@ func _advance_to_next_room() -> void:
 			_show_enemy_sprite(enemy_data.id)
 			_show_chr_sprites()
 			if $DungeonController.current_room_type == Enums.RoomType.ELITE:
-				$VBoxContainer/LabelLog.text = "【エリート】%s があらわれた" % enemy_data.display_name
+				_label_log.text = "【エリート】%s があらわれた" % enemy_data.display_name
 			elif $DungeonController.current_room_type == Enums.RoomType.BOSS:
-				$VBoxContainer/LabelLog.text = "【ボス】%s があらわれた" % enemy_data.display_name
+				_label_log.text = "【ボス】%s があらわれた" % enemy_data.display_name
 			elif $DungeonController.current_room_type == Enums.RoomType.MID_BOSS:
-				$VBoxContainer/LabelLog.text = "【中ボス】%s があらわれた" % enemy_data.display_name
+				_label_log.text = "【中ボス】%s があらわれた" % enemy_data.display_name
 			else:
-				$VBoxContainer/LabelLog.text = "%s があらわれた" % enemy_data.display_name
+				_label_log.text = "%s があらわれた" % enemy_data.display_name
 		else:
-			$VBoxContainer/LabelLog.text = "敵が現れなかった"
+			_label_log.text = "敵が現れなかった"
 			_hide_enemy_sprite()
 			_hide_chr_sprites()
 	else:
@@ -152,20 +171,20 @@ func _advance_to_next_room() -> void:
 				var heal_amount: int = _apply_healing_bonus(HEAL_AMOUNT)
 				$CombatController.heal_party(heal_amount)
 				_play_heal_vfx()
-				$VBoxContainer/LabelLog.text = "回復の部屋: 生存メンバーを%d回復" % heal_amount
+				_label_log.text = "回復の部屋: 生存メンバーを%d回復" % heal_amount
 			Enums.RoomType.TREASURE:
 				var treasure: Dictionary = $DungeonController.generate_treasure_loot()
 				var log_text: String = "宝箱を発見: Gold +%d" % treasure["gold"]
 				if not (treasure["accessory_id"] as String).is_empty():
 					log_text += "\n宝箱から装飾品を入手: " + treasure["accessory_id"]
 					GameState.last_run_accessory_dropped = treasure["accessory_id"]
-				$VBoxContainer/LabelLog.text = log_text
+				_label_log.text = log_text
 			Enums.RoomType.MERCHANT:
 				_handle_merchant_room()
 			Enums.RoomType.EVENT:
 				_handle_event_room()
 			_:
-				$VBoxContainer/LabelLog.text = _get_room_type_name() + "の部屋に入った"
+				_label_log.text = _get_room_type_name() + "の部屋に入った"
 	_update_enemy_label()
 	_update_enemy_hp_label()
 	_update_party_hp_label()
@@ -180,7 +199,7 @@ func _try_register_discovery(category: String, entry_id: String) -> void:
 		_append_discovery_log(category, entry_id)
 
 func _append_discovery_log(category: String, entry_id: String) -> void:
-	$VBoxContainer/LabelLog.text += "\n" + DiscoveryRegistry.format_new_discovery(category, entry_id)
+	_label_log.text += "\n" + DiscoveryRegistry.format_new_discovery(category, entry_id)
 
 func _format_material_reward_log(material_id: String, amount: int, fallback_label: String) -> String:
 	var display_name: String = fallback_label
@@ -203,40 +222,40 @@ func _register_discoveries_for_room() -> void:
 func _handle_merchant_room() -> void:
 	_merchant_active = true
 	var offers: Array = $DungeonController.generate_merchant_offers()
-	$VBoxContainer/MerchantContainer/LabelMerchantTitle.text = "商人が現れた  所持Gold: %d" % GameState.gold
+	_merchant_container.get_node("LabelMerchantTitle").text = "商人が現れた  所持Gold: %d" % GameState.gold
 	for i in offers.size():
 		var offer: Dictionary = offers[i]
 		var label_text: String = _format_merchant_offer_label(offer)
 		if i == 0:
-			$VBoxContainer/MerchantContainer/Offer0Row/LabelOffer0.text = label_text
-			$VBoxContainer/MerchantContainer/Offer0Row/ButtonBuyOffer0.disabled = GameState.gold < offer["price"]
+			_merchant_container.get_node("Offer0Row/LabelOffer0").text = label_text
+			_merchant_container.get_node("Offer0Row/ButtonBuyOffer0").disabled = GameState.gold < offer["price"]
 		elif i == 1:
-			$VBoxContainer/MerchantContainer/Offer1Row/LabelOffer1.text = label_text
-			$VBoxContainer/MerchantContainer/Offer1Row/ButtonBuyOffer1.disabled = GameState.gold < offer["price"]
-	$VBoxContainer/MerchantContainer.visible = true
-	$VBoxContainer/LabelLog.text = "商人の部屋に入った"
+			_merchant_container.get_node("Offer1Row/LabelOffer1").text = label_text
+			_merchant_container.get_node("Offer1Row/ButtonBuyOffer1").disabled = GameState.gold < offer["price"]
+	_merchant_container.visible = true
+	_label_log.text = "商人の部屋に入った"
 
 func _on_buy_offer0_pressed() -> void:
 	if $DungeonController.buy_merchant_item(0):
 		var offer: Dictionary = $DungeonController.current_merchant_offers[0]
 		_apply_merchant_purchase_effect(offer)
-		$VBoxContainer/LabelLog.text = "%s を購入した！  -%dG" % [offer["label"], offer["price"]]
-		$VBoxContainer/MerchantContainer/Offer0Row/ButtonBuyOffer0.disabled = true
-		$VBoxContainer/MerchantContainer/LabelMerchantTitle.text = "商人が現れた  所持Gold: %d" % GameState.gold
+		_label_log.text = "%s を購入した！  -%dG" % [offer["label"], offer["price"]]
+		_merchant_container.get_node("Offer0Row/ButtonBuyOffer0").disabled = true
+		_merchant_container.get_node("LabelMerchantTitle").text = "商人が現れた  所持Gold: %d" % GameState.gold
 		_refresh_merchant_buttons()
 	else:
-		$VBoxContainer/LabelLog.text = "Gold不足"
+		_label_log.text = "Gold不足"
 
 func _on_buy_offer1_pressed() -> void:
 	if $DungeonController.buy_merchant_item(1):
 		var offer: Dictionary = $DungeonController.current_merchant_offers[1]
 		_apply_merchant_purchase_effect(offer)
-		$VBoxContainer/LabelLog.text = "%s を購入した！  -%dG" % [offer["label"], offer["price"]]
-		$VBoxContainer/MerchantContainer/Offer1Row/ButtonBuyOffer1.disabled = true
-		$VBoxContainer/MerchantContainer/LabelMerchantTitle.text = "商人が現れた  所持Gold: %d" % GameState.gold
+		_label_log.text = "%s を購入した！  -%dG" % [offer["label"], offer["price"]]
+		_merchant_container.get_node("Offer1Row/ButtonBuyOffer1").disabled = true
+		_merchant_container.get_node("LabelMerchantTitle").text = "商人が現れた  所持Gold: %d" % GameState.gold
 		_refresh_merchant_buttons()
 	else:
-		$VBoxContainer/LabelLog.text = "Gold不足"
+		_label_log.text = "Gold不足"
 
 func _apply_merchant_purchase_effect(offer: Dictionary) -> void:
 	if offer.get("type") == "heal":
@@ -254,14 +273,14 @@ func _refresh_merchant_buttons() -> void:
 	for i in offers.size():
 		var can_buy: bool = not offers[i].get("purchased", false) and GameState.gold >= offers[i]["price"]
 		if i == 0:
-			$VBoxContainer/MerchantContainer/Offer0Row/ButtonBuyOffer0.disabled = not can_buy
+			_merchant_container.get_node("Offer0Row/ButtonBuyOffer0").disabled = not can_buy
 		elif i == 1:
-			$VBoxContainer/MerchantContainer/Offer1Row/ButtonBuyOffer1.disabled = not can_buy
+			_merchant_container.get_node("Offer1Row/ButtonBuyOffer1").disabled = not can_buy
 
 func _on_merchant_leave_pressed() -> void:
 	_merchant_active = false
-	$VBoxContainer/MerchantContainer.visible = false
-	$VBoxContainer/LabelLog.text = "商人の部屋を後にした"
+	_merchant_container.visible = false
+	_label_log.text = "商人の部屋を後にした"
 	_update_next_room_button()
 
 # ---- Event ----
@@ -269,17 +288,17 @@ func _on_merchant_leave_pressed() -> void:
 func _handle_event_room() -> void:
 	var event: Dictionary = $DungeonController.pick_event()
 	if event.is_empty():
-		$VBoxContainer/LabelLog.text = "イベントの部屋に入った"
+		_label_log.text = "イベントの部屋に入った"
 		return
 	_event_active = true
 	var event_id: String = event.get("id", "")
 	if not event_id.is_empty():
 		_try_register_discovery("event", event_id)
-	$VBoxContainer/EventContainer/LabelEventDesc.text = event["description"]
-	$VBoxContainer/EventContainer/ButtonEventA.text = event.get("choice_a", "A")
-	$VBoxContainer/EventContainer/ButtonEventB.text = event.get("choice_b", "B")
-	$VBoxContainer/EventContainer.visible = true
-	$VBoxContainer/LabelLog.text = "イベントの部屋に入った"
+	_event_container.get_node("LabelEventDesc").text = event["description"]
+	_event_container.get_node("ButtonEventA").text = event.get("choice_a", "A")
+	_event_container.get_node("ButtonEventB").text = event.get("choice_b", "B")
+	_event_container.visible = true
+	_label_log.text = "イベントの部屋に入った"
 
 func _on_event_choice_a_pressed() -> void:
 	_resolve_event_choice(0)
@@ -317,9 +336,9 @@ func _resolve_event_choice(choice_index: int) -> void:
 			_try_register_discovery("lore", lore_id)
 		_:
 			log_text = "何も起こらなかった"
-	$VBoxContainer/LabelLog.text = log_text
+	_label_log.text = log_text
 	_event_active = false
-	$VBoxContainer/EventContainer.visible = false
+	_event_container.visible = false
 	_update_next_room_button()
 
 # ---- Combat timer ----
@@ -357,7 +376,7 @@ func _do_party_attack() -> void:
 	var secondary_log: String = _try_cast_secondary_skill(primary_id)
 	_update_enemy_hp_label()
 	var crit_tag: String = "  CRITICAL!" if crit_hit else ""
-	$VBoxContainer/LabelLog.text = "攻撃: %dダメージ%s%s%s" % [total_dmg, crit_tag, skill_log, secondary_log]
+	_label_log.text = "攻撃: %dダメージ%s%s%s" % [total_dmg, crit_tag, skill_log, secondary_log]
 	if total_dmg > 0:
 		_play_hit_vfx()
 		_play_chr_attack()
@@ -510,7 +529,7 @@ func _do_enemy_attack() -> void:
 		log_text = "敵の攻撃: %s に %dダメージ" % [member_name, enemy_result["final"]]
 	if not $CombatController.is_member_alive(target_idx):
 		log_text += "\n%s が倒れた！" % member_name
-	$VBoxContainer/LabelLog.text = log_text
+	_label_log.text = log_text
 
 func _calc_damage(member_index: int = -1) -> Dictionary:
 	var base_info: Dictionary = _calc_attack_base(member_index)
@@ -579,7 +598,7 @@ func _handle_enemy_defeated() -> void:
 		$DungeonController.run_exp_reward,
 		$DungeonController.run_gold_reward,
 	])
-	$VBoxContainer/LabelLog.text = "\n".join(log_lines)
+	_label_log.text = "\n".join(log_lines)
 	_update_enemy_label()
 	_update_enemy_hp_label()
 	_update_next_room_button()
@@ -591,14 +610,9 @@ func _handle_party_wipe() -> void:
 	_hide_chr_sprites()
 	_merchant_active = false
 	_event_active = false
-	$VBoxContainer/MerchantContainer.visible = false
-	$VBoxContainer/EventContainer.visible = false
-	$VBoxContainer/ButtonNextRoom.disabled = true
-	$VBoxContainer/ButtonFinish.disabled = true
-	$VBoxContainer/BranchContainer/ButtonBranchSafe.disabled = true
-	$VBoxContainer/BranchContainer/ButtonBranchDangerous.disabled = true
-	$VBoxContainer/BranchContainer/ButtonBranchUnknown.disabled = true
-	$VBoxContainer/LabelLog.text = "全員が倒れた... 探索失敗"
+	_non_combat_zone.visible = false
+	_auto_combat_row.visible = false
+	_label_log.text = "全員が倒れた... 探索失敗"
 	GameState.last_run_exp_reward = $DungeonController.run_exp_reward
 	GameState.last_run_gold_reward = $DungeonController.run_gold_reward
 	GameState.last_run_weapon_dropped = ""
@@ -615,54 +629,44 @@ func _apply_healing_bonus(base_amount: int) -> int:
 func _apply_material_bonus(base_amount: int) -> int:
 	return AffixStatCalculatorScript.apply_material_bonus(base_amount)
 
+# HP labels removed in v2 — overhead HP bars are P3-UI-002
 func _update_enemy_label() -> void:
-	var data: Resource = $CombatController.current_enemy_data
-	$VBoxContainer/LabelEnemy.text = data.display_name if data != null else ""
+	pass
 
 func _update_enemy_hp_label() -> void:
-	if $CombatController.is_in_combat:
-		$VBoxContainer/LabelEnemyHp.text = "敵HP: %d" % $CombatController.current_enemy_hp
-	else:
-		$VBoxContainer/LabelEnemyHp.text = ""
+	pass
 
 func _update_party_hp_label() -> void:
-	if $CombatController.party_combat_hp.is_empty():
-		$VBoxContainer/LabelPlayerHp.text = ""
-		return
-	var lines: PackedStringArray = []
-	for i in GameState.party_members.size():
-		var member: Resource = GameState.party_members[i]
-		var hp: int = 0
-		var max_hp: int = 0
-		if i < $CombatController.party_combat_hp.size():
-			hp = $CombatController.party_combat_hp[i]
-			max_hp = $CombatController.party_max_hp[i]
-		var status: String = " [戦死]" if hp <= 0 else ""
-		lines.append("%s: %d/%d%s" % [member.display_name, hp, max_hp, status])
-	$VBoxContainer/LabelPlayerHp.text = "\n".join(lines)
+	pass
 
 func _update_branch_ui() -> void:
 	if _merchant_active or _event_active:
-		$VBoxContainer/BranchContainer.visible = false
-		$VBoxContainer/ButtonNextRoom.visible = false
+		_branch_container.visible = false
+		_btn_next_room.visible = false
 		return
 	var show_branch: bool = $DungeonController.is_branch_choice_phase()
-	$VBoxContainer/BranchContainer.visible = show_branch
-	$VBoxContainer/ButtonNextRoom.visible = not show_branch
+	_branch_container.visible = show_branch
+	_btn_next_room.visible = not show_branch
 	if show_branch:
 		var blocked: bool = $DungeonController.is_completed or $CombatController.is_in_combat
-		$VBoxContainer/BranchContainer/ButtonBranchSafe.disabled = blocked
-		$VBoxContainer/BranchContainer/ButtonBranchDangerous.disabled = blocked
-		$VBoxContainer/BranchContainer/ButtonBranchUnknown.disabled = blocked
+		_branch_container.get_node("ButtonBranchSafe").disabled = blocked
+		_branch_container.get_node("ButtonBranchDangerous").disabled = blocked
+		_branch_container.get_node("ButtonBranchUnknown").disabled = blocked
 
 func _update_next_room_button() -> void:
 	var at_exit: bool = $DungeonController.current_room_type == Enums.RoomType.EXIT
 	var blocked: bool = $DungeonController.is_completed or $CombatController.is_in_combat or at_exit
-	$VBoxContainer/ButtonNextRoom.disabled = blocked
+	_btn_next_room.disabled = blocked
 	_update_branch_ui()
+	_update_combat_visibility()
+
+func _update_combat_visibility() -> void:
+	var in_combat: bool = $CombatController.is_in_combat
+	_non_combat_zone.visible = not in_combat
+	_auto_combat_row.visible = in_combat
 
 func _on_finish_button_pressed() -> void:
-	$VBoxContainer/ButtonFinish.disabled = true
+	_btn_finish.disabled = true
 	$CombatTimer.stop()
 	$CombatController.end_combat()
 	$DungeonController.generate_run_loot()
@@ -673,6 +677,21 @@ func _on_finish_button_pressed() -> void:
 	if not $DungeonController.last_accessory_dropped.is_empty():
 		GameState.last_run_accessory_dropped = $DungeonController.last_accessory_dropped
 	SceneRouter.change_scene("res://scenes/result/ResultScene.tscn")
+
+# ---- Menu Overlay ----
+
+func _on_menu_button_pressed() -> void:
+	_menu_overlay.visible = true
+
+func _on_close_menu_pressed() -> void:
+	_menu_overlay.visible = false
+
+func _on_menu_finish_pressed() -> void:
+	_menu_overlay.visible = false
+	_on_finish_button_pressed()
+
+func _on_pause_button_pressed() -> void:
+	pass
 
 # ---- Enemy Sprite ----
 
@@ -828,8 +847,8 @@ func _update_room_art() -> void:
 				obj_path = _BATCH3 + "OBJ_ExitGate_RoyalRuins.png"
 			_:
 				tile_path = _BATCH3 + "TILE_RoyalRuins_Floor_01.png"
-	_set_room_texture($VBoxContainer/RoomArt/RoomTileBg, tile_path)
-	_set_room_texture($VBoxContainer/RoomArt/RoomObject, obj_path)
+	_set_room_texture(_room_tile_bg, tile_path)
+	_set_room_texture(_room_object, obj_path)
 
 func _set_room_texture(node: TextureRect, path: String) -> void:
 	if path.is_empty() or not ResourceLoader.exists(path):
