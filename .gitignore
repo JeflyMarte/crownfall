@@ -30,6 +30,9 @@ saves/
 # OS
 Thumbs.db
 
+# 一時スプライト生成（スクラッチ）
+.tmp_pl/
+
 # ProjectDocs release artifacts (SSOT is docs/ tree — see Project_Repository_Policy.md)
 *.zip
 ProjectDocs_*.zip
