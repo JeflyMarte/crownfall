@@ -15,17 +15,24 @@
 
 ## 開発状況
 
-Phase 0: プロジェクト初期化（進行中）
+**最新状態:** [`docs/project/CurrentState.md`](docs/project/CurrentState.md)  
+**現在のスプリント:** [`docs/project/CurrentSprint.md`](docs/project/CurrentSprint.md)
 
 ## ドキュメント
 
 ```
-docs/specs/core/          プロジェクト憲章・設計原則
-docs/specs/game/          ゲーム仕様
-docs/specs/implementation/ Godotアーキテクチャ・実装ロードマップ
-docs/specs/decisions/     確定済みMVP方針
+docs/project/              進捗ダッシュボード（AI 入口）
+docs/specs/core/           憲章・ロードマップ・DevelopmentHQ 運用
+docs/specs/game/             ゲーム仕様
+docs/specs/implementation/   Godotアーキテクチャ・実装ルール・CODEMAP
+docs/specs/decisions/        確定済みMVP方針
 ```
 
-## 開発ルール
+## AI 開発ルール
 
-CLAUDE.md を参照。
+| 役割 | 入口 |
+|---|---|
+| DevelopmentHQ（設計・進行） | [`docs/specs/core/06_DevelopmentHQ_Operations.md`](docs/specs/core/06_DevelopmentHQ_Operations.md) |
+| Implementation（実装） | [`AGENTS.md`](AGENTS.md) / [`CLAUDE.md`](CLAUDE.md) |
+
+開発は **Cursor** 上で運用する。旧 ChatGPT 司令塔 + コピペ報告フローは廃止。

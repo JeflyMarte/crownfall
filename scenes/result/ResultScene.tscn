@@ -45,6 +45,11 @@ layout_mode = 2
 text = "入手: -"
 horizontal_alignment = 1
 
+[node name="LabelLevelUp" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+
 [node name="ButtonNext" type="Button" parent="VBoxContainer"]
 layout_mode = 2
 text = "鑑定へ"

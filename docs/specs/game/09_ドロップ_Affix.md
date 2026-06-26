@@ -29,8 +29,8 @@
 
 - Attack
 - Critical
-- Bleed
-- Summon
+- Status（状態付与 — shocking / igniting / chilling / septic 等）
+- Summon（Backlog）
 - Defense
 - Survival
 - Discovery
@@ -43,15 +43,12 @@
 - 攻撃速度上昇
 - クリティカル率上昇
 - クリティカルダメージ上昇
-- 出血付与率上昇
-- 出血ダメージ上昇
-- 出血特効
-- 召喚ダメージ上昇
-- 召喚耐久上昇
-- 召喚時間延長
+- 状態付与 Affix（感電 / 炎上 / 冷却 / 毒 — `27_状態異常と属性.md`）
 - HP上昇
 - 防御力上昇
 - 被ダメージ軽減
 - 発見力上昇
 - 宝箱発見率上昇
 - ゴールド獲得量上昇
+
+**Backlog:** 召喚系 Affix / 旧出血系 Affix（廃止 — P3-D022）

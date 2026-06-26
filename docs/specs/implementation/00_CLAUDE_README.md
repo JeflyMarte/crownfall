@@ -1,38 +1,17 @@
 # 00_CLAUDE_README
 
-## あなたの役割
-
-あなたはGodot 4に精通したシニアゲームエンジニアです。
-
-このプロジェクトでは、Crownfallという2D見下ろし型・自動探索ハクスラRPGのMVPを実装します。
+> **Deprecated:** 入口指示は `CLAUDE.md` / `AGENTS.md` / `06_DevelopmentHQ_Operations.md` に移行済み。本ファイルは後方互換のため残す。
 
 ## 最初に読むファイル
 
-1. ../docs/01_ゲーム概要.md
-2. ../docs/02_MVP設計.md
-3. 01_Godotアーキテクチャ.md
-4. 02_ディレクトリ構成.md
-5. 05_実装ロードマップ.md
+1. `docs/project/CurrentState.md`
+2. `docs/project/CurrentSprint.md`
+3. `docs/specs/core/06_DevelopmentHQ_Operations.md`（HQ / Impl 役割）
+4. Task Context Bundle（`10_Claude依頼テンプレート.md` 参照）
+5. 現行実装マップ: `CODEMAP.md`
 
 ## 実装ルール
 
-- 一度に巨大実装しない
-- Task単位で実装する
-- 1Task完了ごとに変更点を報告する
-- 仕様が不足している場合は推測せず質問する
-- 既存仕様と矛盾する変更をしない
-- MVPを優先し、正式版要素は後回しにする
-
-## 最初の実装目標
-
-まずは以下を実装する。
-
-- Godotプロジェクトの基本構造
-- BootScene
-- BaseScene
-- DungeonScene
-- GameState Autoload
-- ダミー3人パーティ表示
-- BaseSceneからDungeonSceneへの遷移
-
-戦闘・ドロップ・鑑定は最初のTaskでは実装しない。
+- Task 単位で実装する（詳細: `06_Claude運用ルール.md`）
+- 仕様不足時は推測せず質問する
+- `docs/archives/` はデフォルトで読まない

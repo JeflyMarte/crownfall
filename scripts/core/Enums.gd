@@ -31,6 +31,8 @@ enum RoomType {
 	MID_BOSS,
 	BOSS,
 	EXIT,
+	HEAL,
+	MERCHANT,
 }
 
 enum ExplorationPolicy {
@@ -43,4 +45,10 @@ enum ExplorationPolicy {
 enum TargetPriority {
 	NEAREST,
 	BOSS_FIRST,
+}
+
+enum EnemyType {
+	NORMAL,
+	ELITE,
+	BOSS,
 }

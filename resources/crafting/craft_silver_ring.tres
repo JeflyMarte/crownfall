@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CraftData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/CraftData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "craft_silver_ring"
+display_name = "銀の指輪の作成"
+required_materials = {"relic_shard": 3, "elite_relic_shard": 1}
+gold_cost = 80
+output_type = "accessory"
+output_id = "silver_ring"
+unlock_condition = ""

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="AffixData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AffixData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "shocking"
+display_name = "感電"
+description = "攻撃時に感電を付与しやすくなる。"
+affix_category = "suffix"
+rarity = 0
+stat_type = "Shock"
+value = 0.3
+tags = Array[String](["weapon"])

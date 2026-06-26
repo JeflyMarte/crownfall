@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CraftData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/CraftData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "craft_bone_armor"
+display_name = "骨鎧の作成"
+required_materials = {"ancient_bone": 3}
+gold_cost = 40
+output_type = "armor"
+output_id = "bone_armor"
+unlock_condition = ""

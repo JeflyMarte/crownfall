@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="MaterialShopData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/MaterialShopData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+material_id = "relic_shard"
+price = 20
+stock = -1
+unlock_condition = ""

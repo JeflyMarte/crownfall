@@ -44,6 +44,11 @@ layout_mode = 2
 text = "拠点"
 horizontal_alignment = 1
 
+[node name="BuildChipRow" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 6
+
 [node name="LabelGold" type="Label" parent="VBoxContainer"]
 layout_mode = 2
 text = "Gold: 0"
@@ -86,18 +91,14 @@ layout_mode = 2
 alignment = 1
 theme_override_constants/separation = 12
 
-[node name="ButtonSelectRoyalRuins" type="Button" parent="VBoxContainer/DungeonSelectRow"]
+[node name="ButtonSelectMourngate" type="Button" parent="VBoxContainer/DungeonSelectRow"]
 layout_mode = 2
-text = "王都跡"
+text = "モーンゲート"
 
-[node name="ButtonSelectGraveyard" type="Button" parent="VBoxContainer/DungeonSelectRow"]
-layout_mode = 2
-disabled = true
-text = "白骸墓地（準備中）"
 
 [node name="LabelSelectedDungeon" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-text = "選択中: 王都跡"
+text = "選択中: モーンゲート"
 horizontal_alignment = 1
 
 [node name="ButtonDungeon" type="Button" parent="VBoxContainer"]

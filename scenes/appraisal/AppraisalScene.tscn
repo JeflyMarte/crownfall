@@ -60,9 +60,18 @@ layout_mode = 2
 text = ""
 horizontal_alignment = 1
 
+[node name="LabelBatchInfo" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+
 [node name="ButtonAppraise" type="Button" parent="VBoxContainer"]
 layout_mode = 2
 text = "鑑定する"
+
+[node name="ButtonAppraiseAll" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "一括鑑定"
 
 [node name="ButtonEquipment" type="Button" parent="VBoxContainer"]
 layout_mode = 2

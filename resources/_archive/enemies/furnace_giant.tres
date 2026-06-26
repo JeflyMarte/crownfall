@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "furnace_giant"
+display_name = "炉心の巨人"
+max_hp = 660
+attack = 39
+defense = 21
+attack_speed = 1.0
+critical_rate = 0.1
+move_speed = 0.85
+detection_range = 7.0
+attack_range = 2.0
+enemy_type = 2
+ai_type = "default"
+exp_reward = 148
+gold_reward = 185
+drop_table_id = "furnace_giant_drops"
+element_weakness = Array[String](["thunder", "ice"])
+element_resist = Array[String]([])
+on_hit_status_id = "shock"
+on_hit_status_chance = 0.25

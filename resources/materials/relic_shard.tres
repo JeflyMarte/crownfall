@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MaterialData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/MaterialData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "relic_shard"
+display_name = "遺跡の欠片"
+description = "王都跡から採取された古代遺物の破片。"
+rarity = 0
+icon = ""
+category = "relic"
+value = 10
+lore_id = ""

@@ -1,0 +1,40 @@
+---
+description: DevelopmentHQ（Cursor）運用ルール — レビュー・Task 完了時
+alwaysApply: true
+---
+
+# DevelopmentHQ Operations（Cursor）
+
+Crownfall の DevelopmentHQ は **Cursor HQ セッション** が担う。ChatGPT へのコピペブロックは **使用しない**。
+
+正式 SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md`
+
+## HQ セッションの責務
+
+- Scope / Decision / Task 発行 / レビュー / Closeout
+- 完了 Task の `CurrentState.md` / `CurrentSprint.md` 更新
+- Decision Log への設計判断記録
+
+## Impl セッション完了時（HQ が確認）
+
+Impl 報告を受けたら、**リポジトリで以下を確認**してから承認する:
+
+1. 変更ファイル数・Task スコープ一致
+2. 該当 spec / Decision Log との整合
+3. `CODEMAP.md` との整合
+4. Exit Criteria 充足
+5. Known Issues への悪影響なし
+
+## Impl 報告に含めるもの
+
+- 変更ファイル一覧
+- 実装要約
+- テスト手順と結果
+- 懸念点
+
+## 禁止
+
+- ChatGPT 向け `■ Task:` コピペブロックの要求
+- 報告のみで承認（diff 未確認）
+- Decision 未承認の仕様変更
+- 承認依頼・Claude プロンプト以外の長文応答（`hq-response-minimal.mdc`）

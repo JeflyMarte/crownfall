@@ -72,7 +72,34 @@ const EVENTS: Array = [
 		"description": "色あせた碑文を見つけた。記録するか？",
 		"choice_a": "記録する",
 		"choice_b": "見送る",
-		"outcome_a": {"type": "lore", "label": "王都跡の碑文", "discovery_id": "royal_ruins_inscription"},
+		"outcome_a": {"type": "lore", "label": "風化した記録", "discovery_id": "ancient_record"},
+		"outcome_b": {"type": "nothing"},
+	},
+]
+
+const EVENTS_MOURNGATE: Array = [
+	{
+		"id": "mourngate_crystal_vein",
+		"description": "壁に水晶の鉱脈が走っている。砕いて持ち帰るか？",
+		"choice_a": "砕く",
+		"choice_b": "見送る",
+		"outcome_a": {"type": "gold", "amount": 24},
+		"outcome_b": {"type": "nothing"},
+	},
+	{
+		"id": "mourngate_old_scent",
+		"description": "獣道に古い匂いが残っている。たどると群れを避けられそうだ。",
+		"choice_a": "たどる",
+		"choice_b": "見送る",
+		"outcome_a": {"type": "buff", "multiplier": 1.1},
+		"outcome_b": {"type": "nothing"},
+	},
+	{
+		"id": "mourngate_rune_shell",
+		"description": "古代文字が刻まれた甲殻の欠片を見つけた。読み解くか？",
+		"choice_a": "読み解く",
+		"choice_b": "見送る",
+		"outcome_a": {"type": "lore", "label": "ルーンの甲殻", "discovery_id": "mourngate_rune_shell"},
 		"outcome_b": {"type": "nothing"},
 	},
 ]
@@ -263,10 +290,20 @@ func buy_merchant_item(offer_index: int) -> bool:
 	return true
 
 func pick_event() -> Dictionary:
-	if EVENTS.is_empty():
+	var pool: Array = _get_event_pool()
+	if pool.is_empty():
 		return {}
-	current_event = EVENTS[randi() % EVENTS.size()].duplicate(true)
+	current_event = pool[randi() % pool.size()].duplicate(true)
 	return current_event
+
+func _get_event_pool() -> Array:
+	if current_dungeon_data == null:
+		return EVENTS
+	var combined: Array = []
+	combined.append_array(EVENTS)
+	if current_dungeon_data.id == "mourngate":
+		combined.append_array(EVENTS_MOURNGATE)
+	return combined
 
 func resolve_event(choice_index: int) -> Dictionary:
 	var key: String = "outcome_a" if choice_index == 0 else "outcome_b"
@@ -320,7 +357,14 @@ func generate_run_loot() -> void:
 		_generate_accessory_loot()
 
 func _generate_weapon_loot() -> void:
-	const WEAPON_POOL: Array[String] = ["iron_sword", "rusted_blade"]
+	const WEAPON_POOL: Array[String] = [
+		"iron_sword",
+		"rusted_blade",
+		"heater_blade",
+		"frost_blade",
+		"bolt_knife",
+		"sanctified_dagger",
+	]
 	_spawn_weapon(WEAPON_POOL[randi() % WEAPON_POOL.size()])
 
 func _spawn_weapon(weapon_id: String) -> void:
@@ -338,7 +382,7 @@ func _spawn_weapon(weapon_id: String) -> void:
 	instance.attack_speed = weapon_data.base_attack_speed
 	instance.critical_rate = weapon_data.base_critical_rate
 	instance.knockback = weapon_data.base_knockback
-	instance.stun_power = weapon_data.base_stun_power
+	instance.stagger_power = weapon_data.base_stagger_power
 	instance.attack_range = weapon_data.base_attack_range
 	instance.weight = weapon_data.weight
 	GameState.inventory.append(instance)

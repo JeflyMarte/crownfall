@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "heater_blade"
+display_name = "燻し刃"
+fixed_skill_id = "kindling_strike"
+base_attack = 9
+rarity = 0
+base_attack_speed = 1.0
+base_critical_rate = 0.05
+base_knockback = 0.4
+base_stagger_power = 0.2
+base_attack_range = 1.0
+weight = 1.0
+element = "fire"
+weapon_type = "greatsword"

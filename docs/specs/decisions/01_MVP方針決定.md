@@ -46,9 +46,17 @@ MVPでのセーブ発生タイミング。
 
 ## 5. ゴールドの用途
 
-MVPでは鑑定費用のみ。
+MVP 初期方針: 鑑定費用のみ。
 
-鍛冶場・強化・酒場消費は後回し。
+**現行（M8 以降 — P3-D024f）:**
+
+| 用途 | 状態 | 備考 |
+|---|---|---|
+| 鑑定 | 実装済 | 100G/件（AppraisalScene） |
+| 鍛冶 | 実装済 | BlacksmithScene（Phase2-M8） |
+| 酒場消費 | Backlog | — |
+
+SSOT 参照: `04_ゲームループ.md` §ゴールド用途 / `28_ゲームデザイン点検.md` §P3-D024f
 
 ---
 
@@ -106,3 +114,75 @@ MVPでは以下のみで成立させる。
 ArmorData：HP・防御中心の簡易構造。
 AccessoryData：Affix中心の簡易構造。
 WeaponDataほど複雑にしない。
+
+---
+
+## 11. MVPゲームループ確定
+
+BaseScene → DungeonScene → ResultScene → AppraisalScene → EquipmentScene → BaseScene の6シーン固定順とする。
+
+パーティ編成・ダンジョン選択は正式版で追加。
+
+---
+
+## 12. AppraisalScene・EquipmentSceneをMVP対象に含める
+
+鑑定と装備変更はBaseSceneに統合せず、それぞれ独立したシーンとして実装する。
+
+ResultScene → AppraisalScene → EquipmentScene → BaseScene の導線とする。
+
+---
+
+## 13. 鑑定済み武器のみ装備可能
+
+WeaponInstance.is_appraised が true の武器のみ EquipmentScene に表示し、装備できる。
+
+未鑑定武器は AppraisalScene で鑑定するまで装備不可。
+
+---
+
+## 14. 装備状態の保存仕様
+
+SaveManager は装備中武器を WeaponInstance.instance_id として保存する。
+
+```json
+"equipment": { "weapon": "<instance_id>" }
+```
+
+instance_id は `Time.get_ticks_msec() + "_" + randi()` 形式で生成し、インベントリ内での一意性を保証する。
+
+---
+
+## 15. equipment復元はinventory復元後に行う
+
+_apply_save_data() 内で inventory → equipment の順に復元する。
+
+装備武器の復元は inventory から instance_id で検索して参照を取得する。inventory 復元前に equipment を復元するとオブジェクト参照が取れずnullになる。
+
+---
+
+## 16. Gold報酬バランス（MVP調整済み）
+
+1周で最低1回の鑑定（100G）を賄えるGold報酬に調整する。
+
+MVP確定値：
+
+| 敵 | gold_reward |
+|---|---|
+| 亡国兵 | 22 |
+| 廃墟守兵 | 25 |
+| 廃墟漁り | 28 |
+| 錆剣騎士 | 35 |
+| 王都守護兵長（ボス） | 150 |
+
+王都跡1周（戦闘部屋クリア時）で150G以上獲得可能。
+
+---
+
+## 17. MVP UIテーマ
+
+MVP期間中は `assets/ui/mvp_theme.tres` の単一Themeリソースを全シーンに適用する。
+
+Button・Labelの共通スタイルを定義し、シーンごとのスタイル個別定義を行わない。
+
+アート実装（本番UI）は正式版フェーズで行う。

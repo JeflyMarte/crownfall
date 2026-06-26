@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "crystal_hedgehog"
+display_name = "水晶ハリネズミ"
+max_hp = 64
+attack = 15
+defense = 5
+attack_speed = 1.0
+critical_rate = 0.08
+move_speed = 0.95
+detection_range = 6.5
+attack_range = 3.0
+enemy_type = 0
+ai_type = "default"
+exp_reward = 11
+gold_reward = 24
+drop_table_id = "crystal_hedgehog_drops"
+element_weakness = Array[String](["thunder"])
+element_resist = Array[String]([])
+on_hit_status_id = "bleed"
+on_hit_status_chance = 0.25

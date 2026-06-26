@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="AffixData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AffixData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "fortune"
+display_name = "幸運"
+description = "ゴールド獲得を高める。"
+affix_category = "prefix"
+rarity = 0
+stat_type = "Gold Gain"
+value = 0.1
+tags = Array[String](["accessory", "weapon"])

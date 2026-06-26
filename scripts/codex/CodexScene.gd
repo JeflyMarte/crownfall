@@ -5,7 +5,7 @@ const STATUS_DISCOVERED: String = "Discovered"
 const STATUS_UNDISCOVERED: String = "Undiscovered"
 const ICON_PLACEHOLDER_TEXT: String = "[Icon]"
 
-const CATEGORIES: Array[String] = ["enemy", "dungeon", "material", "weapon", "history"]
+const CATEGORIES: Array[String] = ["enemy", "dungeon", "material", "weapon", "history", "guide"]
 
 const CATEGORY_DISPLAY: Dictionary = {
 	"enemy": "Enemy",
@@ -13,6 +13,7 @@ const CATEGORY_DISPLAY: Dictionary = {
 	"material": "Material",
 	"weapon": "Weapon",
 	"history": "History",
+	"guide": "Guide",
 }
 
 var _current_category: String = "enemy"
@@ -39,6 +40,10 @@ func _ready() -> void:
 	$VBoxContainer/TabRow/ButtonTabMaterial.pressed.connect(func(): _select_category("material"))
 	$VBoxContainer/TabRow/ButtonTabWeapon.pressed.connect(func(): _select_category("weapon"))
 	$VBoxContainer/TabRow/ButtonTabHistory.pressed.connect(func(): _select_category("history"))
+	$VBoxContainer/TabRow/ButtonTabGuide.pressed.connect(func():
+		_select_category("guide")
+		_show_detail(0)
+	)
 	_select_category("enemy")
 
 func _select_category(category: String) -> void:
@@ -62,6 +67,8 @@ func _fetch_entries(category: String) -> Array:
 			return CatalogHelper.get_weapon_entries()
 		"history":
 			return CatalogHelper.get_history_entries()
+		"guide":
+			return CatalogHelper.get_guide_entries()
 		_:
 			return []
 
@@ -75,6 +82,7 @@ func _update_tab_buttons() -> void:
 		"material": $VBoxContainer/TabRow/ButtonTabMaterial,
 		"weapon": $VBoxContainer/TabRow/ButtonTabWeapon,
 		"history": $VBoxContainer/TabRow/ButtonTabHistory,
+		"guide": $VBoxContainer/TabRow/ButtonTabGuide,
 	}
 	for cat in CATEGORIES:
 		var btn: Button = mapping[cat]

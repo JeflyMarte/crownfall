@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MaterialData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/MaterialData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "cursed_iron"
+display_name = "呪いの鉄"
+description = "不気味な力を帯びた錆びた金属片。"
+rarity = 1
+icon = ""
+category = "metal"
+value = 20
+lore_id = ""

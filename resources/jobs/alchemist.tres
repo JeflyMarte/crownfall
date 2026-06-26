@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="JobData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/JobData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "alchemist"
+display_name = "アルケミスト"
+description = "杖で魔法ダメージとデバフを扱う支援アタッカー。（MVP では回復・バフなし）"
+role = "support"
+base_hp_modifier = 0.85
+base_attack_modifier = 1.0
+base_defense_modifier = 0.9
+base_initiative_modifier = 1.0
+preferred_weapon_types = Array[String](["staff"])
+starting_skill_ids = Array[String]([])
+passive_tag_ids = Array[String](["caster"])

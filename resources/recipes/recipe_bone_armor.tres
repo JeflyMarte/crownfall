@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RecipeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/RecipeData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "recipe_bone_armor"
+craft_id = "craft_bone_armor"
+display_name = "骨鎧の作成"
+output_summary = "骨鎧（未鑑定）"
+category = "armor"
+description = "白骸墓地で採取した骨を組み合わせて防具を作製する。"

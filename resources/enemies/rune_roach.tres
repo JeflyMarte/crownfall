@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "rune_roach"
+display_name = "ルーンローチ"
+max_hp = 96
+attack = 11
+defense = 8
+attack_speed = 0.9
+critical_rate = 0.0
+move_speed = 0.85
+detection_range = 5.0
+attack_range = 1.0
+enemy_type = 0
+ai_type = "default"
+exp_reward = 12
+gold_reward = 20
+drop_table_id = "rune_roach_drops"
+element_weakness = Array[String](["fire"])
+element_resist = Array[String](["dark"])
+on_hit_status_id = ""
+on_hit_status_chance = 0.0

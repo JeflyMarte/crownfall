@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "aimed_shot"
+display_name = "狙撃"
+description = "離れた敵を弓で正確に射抜く遠隔スキル。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 1.6
+cooldown = 3.5
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["ranged"])
+element = ""
+apply_status_id = ""
+apply_status_chance = 0.0

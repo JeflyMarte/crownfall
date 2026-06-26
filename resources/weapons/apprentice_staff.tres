@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "apprentice_staff"
+display_name = "見習いの杖"
+fixed_skill_id = "hex_bolt"
+base_attack = 8
+rarity = 0
+base_attack_speed = 0.9
+base_critical_rate = 0.03
+base_knockback = 0.2
+base_stagger_power = 0.1
+base_attack_range = 2.5
+weight = 1.0
+element = "dark"
+weapon_type = "staff"

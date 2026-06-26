@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="JobData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/JobData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "warrior"
+display_name = "戦士"
+description = "前線で敵と渡り合う近接戦闘のジョブ。"
+role = "dps"
+base_hp_modifier = 1.0
+base_attack_modifier = 1.1
+base_defense_modifier = 1.0
+base_initiative_modifier = 1.0
+preferred_weapon_types = Array[String](["greatsword", "spear"])
+starting_skill_ids = Array[String](["slash_attack"])
+passive_tag_ids = Array[String](["frontline"])

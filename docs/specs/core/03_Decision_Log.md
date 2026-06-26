@@ -542,4 +542,148 @@
 | P3-D008 | **P3-A-009 B-2/B-3 を P2 格下げ** — `FX_Hit_Critical.png`、RoyalRuins 補完タイル 3 件（Floor_02 / Floor_Cracked / Wall_02）は Phase3-A Closeout ブロッカーとしない | Impl 未接続・EC-7/EC-6 は既存アセットで充足。オーナー承認（P3-A-009） |
 | P3-D009 | **Phase3-A Closeout 必須条件は EC-1〜7 全 PASS**。EC-8 は P1 納品照合で別途記録 | Scope v1.1 §2 維持。B-1（Godot `.import`）解消後に EC-3/7 実機確認 |
 | P3-D010 | **`.import` は `.gitignore` 維持・リポジトリ非コミット**。各環境で `smoke_test.sh --import-only` 実行が正規フロー | Godot 標準運用。CommitPlan の import commit は方針撤回 |
+| P3-D011 | **OD-UI-001 戦闘画面 — `UI_Reference_003_07_Battle_Auto_v2` を採用**（Phase UI-1）。段階的寄せ（B）第 1 段 | オーナー承認。手動戦闘なし・タイマー/下部ナビ/カード列/獲得予定除外 |
+| P3-D012 | **Phase UI-1 実装前提** — (1) 縦長スマホ固定 (2) バトルフィールド主体・RoomArt は背景化 or 非表示 (3) ≡ メニューは探索終了のみ (4) x1=1.5s / x2=0.75s・停止=Timer 停止のみ | オーナー承認（2026-06-25） |
+| P3-D013 | **アセット生成分担** — **PA = どうしても必要なもの**（キャラ/敵スプライトシート・ICO 等）。**ChatGPT 生成 = 代替可能なもの**（背景・雰囲気用 art 等） | オーナー承認。コスト・速度最適化 |
+
+## Phase UI-1 Closeout 決定（2026-06-25）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P3-D014 | **Phase UI-1 Closeout — EC-UI-1〜7 全 PASS**。次マイルストーン **Phase3-B-M1**（状態異常・属性）へ | P3-UI-001〜003 + 002b 完了。`smoke_test` PASS |
+| P3-D015 | **Phase UI-2 へ格下げ** — (1) 浮動ダメージ数字 (2) 縦長 viewport 固定（P3-D012 未着手分） (3) HP バー座標のスプライト追従 (4) バトルログ UI 枠 art (5) CHR/敵 vs v2 背景の位置微調整 | v2 第 1 段の IN だが Closeout ブロッカーとしない。モック寄せは段階的（P3-D011 B） |
+
+## Phase3-B-M1 着手（2026-06-25）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P3-D016 | **Tier1 poison / slow 暫定数値** — poison: 5 tick / stack 3 / flat 4 per tick。slow: 3 tick / stack 1 / interval_multiplier 1.5（P3-B-002 MVP: 敵攻撃 50% スキップ） | SSOT 未記載。M1 暫定 |
+| — | **P3-B-001 完了** — StatusEffectData + Tier1 tres + DataRegistry + element フィールド | bleed SSOT 一致 |
+| P3-D017 | **Phase3-B-M1 Closeout — EC-B-1〜7 全 PASS** | P3-B-001〜007 完了 |
+| P3-D018 | **OD-UI-002 キャラ別装備 GO** — `Adventurer.equipped_*` を正とし `GameState` グローバル装備を廃止。1 instance = 1 メンバーのみ。旧セーブは member0 へ移行 | オーナー承認（A） |
+
+## Phase EQ-1 Closeout（2026-06-25）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P3-D020 | **Phase EQ-1 Closeout — EC-EQ-1〜5 全 PASS** | P3-EQ-001〜004 完了。`smoke_test` PASS |
+| — | **EC-EQ-1** per-member `equipped_*` + Save 移行 | GameState / SaveManager |
+| — | **EC-EQ-2** 戦闘 stat per-member | DungeonScene / CombatController / AffixStatCalculator |
+| — | **EC-EQ-3** EquipmentScene メンバー選択 | EquipmentScene |
+| — | **EC-EQ-4** BaseScene パーティ装備表示 | BaseScene |
+| — | **EC-EQ-5** 1 instance = 1 member 排他 | EquipmentController |
+
+## Phase3-B-M2 着手（2026-06-25）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P3-D021 | **Tier2 暫定数値** — burn: flat 3/tick / stack 3 / incoming×1.15。stun: 2 tick / skip 100%。weak: outgoing×0.75 / 3 tick | M1 暫定と同様。SSOT 追記は Closeout 時 |
+| — | **P3-B-008〜010 着手** — burn/stun/weak + StatusResolver 拡張 + 戦闘接続 | Tier2 Backlog |
+
+## Element & Status Redesign（2026-06-25）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P3-D022 | **属性を 5 種に刷新** — `fire` / `ice` / `thunder` / `dark` / `holy`。無属性 `""` は弱点ボーナスなし。弱点時 ×1.25 のみ（耐性ペナルティ廃止） | オーナー承認。モンハン型 |
+| P3-D022a | **状態異常 6 種** — poison / chill / shock / ignite / curse / stun。旧 bleed/slow/weak/burn 廃止 | オーナー承認 |
+
+## Element & Status Closeout（2026-06-25）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P3-D023 | **Phase3-B-M2 Closeout — 属性5種+状態6種 実装完了** | P3-D022 体系。Affix 4種 / スキル3種 / 武器5種。`smoke_test` PASS |
+
+## Phase EQ-1 着手（2026-06-25）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| — | **Phase EQ-1 Scope** — P3-EQ-001 データ/Save → P3-EQ-002 戦闘 → P3-EQ-003 UI | P3-D018 |
+
+## Combat Initiative（2026-06-25）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P3-D019 | **戦闘ターン順の長期方針 — イニシアチブ（C）を Combat Vision 整合の正式目標とする**。Alpha 検証中は現行どおり **味方先制固定**（`08_戦闘_AI.md` 1ティック順序）を維持。Alpha 後も Decision + Task で差し替え可 | オーナー承認。先制固定は过渡期。防御・速度ビルドの可視化にはイニシアチブが必要 |
+| P3-D019a | **段階導入** — (1) 単純速度 stat で先攻/後攻 (2) ジョブ・Affix 補正 (3) Front/Mid/Back 位置 AI と統合。数値・API は Task 化時に `08_戦闘_AI.md` / `26_CombatVision.md` へ | P2-D168 Alpha↔Vision ギャップ。P2-D010 attack_speed 未接続の後継 |
+
+## Game Design Review（2026-06-25 — オーナー全件承認）
+
+**SSOT:** `28_ゲームデザイン点検.md`
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P3-D024 | **GD 点検 Closeout** — bleed/方針/召喚 MVP 等の spec 陳腐化を一括同期 | オーナー承認 |
+| P3-D024a | **Alpha プレイヤー役割 = 準備専用** — 意思決定は拠点・帰還後。旧「探索優先/戦闘優先…」4 方針は **Backlog**（Phase 2 で最小 2〜3 種から段階導入） | Vision↔Alpha ギャップ解消 |
+| P3-D024b | **簡易ヘイトを P1 Combat** — 敵単体攻撃時 Guardian / Front 優先被弾を Initiative 前に実装 | タンク fantasy 可視化 |
+| P3-D024c | **武器 `stun_power` は接続時 `stagger_power` へリネーム** — 状態 `stun` と混同防止。未接続 stat は UI 非表示 | 命名衝突 |
+| P3-D024d | **呪い — 当面プレイヤー→敵 debuff のみ**。敵→味方 curse はエリート以降 or 状態 UI 整備後 | 観察ゲームでの敗因可読性 |
+| P3-D024e | **Alpha: ジョブ＝stat ロール、武器種制限なし**。`preferred_weapon_types` 小ボーナスは P2 | 06 vs 実装データの整合 |
+| P3-D024f | **ループ UX P2** — 一括鑑定・装備比較 1 行・Gold 用途 SSOT 再整理 | 5 分周回摩擦 |
+| P3-D024g | **ダンジョン別ビルドフック** — 王都=弱点属性 / 墓地=状態異常 / 工廠=感電+機械 | コンテンツ役割明確化 |
+| P3-D024h | **MVP 3 ビルド検証** — 状態異常・属性弱点・クリティカル（出血・召喚は Backlog） | 02_MVP設計 更新 |
+| P3-D024i | **属性 vs 状態 — Codex/チュートリアル 1 画面を P1 UX 必須** | P3-D022 学習コスト |
+| P3-D024j | **聖属性武器 1 本を P1 Content** | 5 属性 asymmetric 解消 |
+| P3-D024k | **弱点敵比率 — 上げすぎない**（全員属性武器必須化を避ける） | ビルド自由度 |
+
+## Phase 3 優先順（2026-06-25 — オーナー承認）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P3-D025 | **Phase 3-B（コンテンツ）を Phase 3-A（ビジュアル本格化）より先行**。中身（敵・DG・イベント等）を先に埋める | オーナー判断。画面未確定のうちの全面 polish は差し戻しリスク |
+| P3-D025a | **Phase 3-A フル Closeout / 全画面 mock 寄せは後 Phase で一括**（UI_Reference 003 系）。現行は UI-2+ 仮 UI + 既存 PA 差し替え可能分のみ維持 | C-lite で戦闘ホットスポットのみ随時可。メイン画面・敵グラフィックの本番化はコンテンツ固着後 |
+| P3-D025b | **P3-D024a Phase 2（ラン中方針）は 3-B 一段落後** — Alpha 準備専用を維持しつつコンテンツ検証を優先 | 方針 UI はレイアウト再変更を招くため |
+
+## 世界観刷新 — Postwar Ecology（2026-06-26 — オーナー決定）
+
+**SSOT:** `29_PostwarEcology.md` 〜 `36_JobBible.md`（新規 Bible 8 件）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P3-D026 | **世界観を「戦後生態系（Postwar Ecology）」へ刷新** — 三本柱 History / Relics / Ecology。モンスターは全て実在生物由来。アンデッド・悪魔・スライム等の異世界起源種は排除 | オーナー決定。`29_PostwarEcology.md` |
+| P3-D027 | **モンスター分類体系 Class I〜VII** 採用（獣/鳥/爬虫/昆虫/水棲/菌植物/古代種）+ 地域派生 | `30_EcologyClassification.md` |
+| P3-D028 | **探索者ギルド（調査管理機構）** を組織設定の正とする。評価軸は討伐数でなく発見・調査成果 | `31_SeekersGuild.md` |
+| P3-D029 | **Biome 体系** — DG を生態系単位として設計。MVP は モーンゲート（王都地下）/ ウィスパーウッド（ヴェルディア） | `32_BiomeBible.md` |
+| P3-D030 | **Ecology Codex（5 段階調査）** を図鑑方針とする。コンプより「世界理解」を重視 | `33_EcologyCodex.md` |
+| P3-D031 | **モンスター命名** — 漢字/カタカナ両用可。実在生物ベース必須 | `34_MonsterNamingGuide.md` |
+| P3-D032 | **エルド大陸（World Geography v1.0）** を現在の探索地理の正とする。旧王国地理は History 柱として保持 | `35_WorldGeography.md` |
+| P3-D033 | **基本ジョブ 5 種**（ソードマン/レンジャー/ヴァンガード/アルケミスト/ビーストテイマー）。上位下位職なし。旧 5 ジョブ・上位ジョブ候補は Superseded | `36_JobBible.md` |
+| — | **整合課題（実装移行は将来 Task）** — 既存敵の生物化再設計 / DG↔Biome 再マッピング / ジョブ .tres 移行 / Codex データ拡張。本決定は**文書（世界観 SSOT）刷新のみ**。コード未変更 | DevelopmentHQ が移行 Proposal を別途起票 |
+
+## 実装移行 Scope — Postwar Ecology MVP（2026-06-26 — オーナー決定）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P3-D034 | **第一弾実装スコープ = 1 DG（モーンゲート/王都地下）+ 3 ジョブ（ソードマン/レンジャー/アルケミスト）+ モックグラフィック**。残り 2 ジョブ・他 Biome は後続 | オーナー判断。前衛(ソードマン)を含めロール三角を確保 |
+| P3-D034a | **ジョブ構成は前衛+遠隔+支援** — ソードマン(剣/前衛) / レンジャー(弓/遠隔) / アルケミスト(杖)。「ハンター」は採用せずレンジャーに統合 | 前衛不在=簡易ヘイト破綻の回避 |
+| P3-D034b | **アルケミストは MVP で 魔法ダメージ + デバフ(状態異常付与)のみ**。回復/バフは戦闘ロジック未実装のため後続 | `SkillExecutor` は damage のみ実行 |
+| P3-D034c | **武器種を sword / bow / staff へ整理**。弓・杖の武器データ + スキルを新規作成 | 現行武器は全て剣系 |
+| P3-D034d | **モーンゲートの敵（生物由来）はオーナー指示待ち** — 敵 .tres / スプライトは指示後に着手 | オーナーが種を指定 |
+| P3-D034e | **ドット絵（スプライト/アイコン）はオーナーが作画**。Cursor/Claude はコードのみ。AI 画像生成は行わない | オーナー方針 |
+| P3-D034f | **モーンゲートを新規ゲーム既定ダンジョンに採用**（`Constants.DEFAULT_DUNGEON_ID = mourngate`）。royal_ruins は `ROYAL_RUINS_DUNGEON_ID` として選択可で残置 | オーナー決定 |
+| P3-D034g | **スプライト命名規約**: `ENM_<PascalName>.tres` / `BOSS_<Name>.tres` / `CHR_<Job>.tres`。新ジョブ・モーンゲート敵の名前付き .tres を作成しスプライトマップを最終名へ差し替え済。中身は現状プレースホルダ複製で、**オーナーが新ドット絵で各 .tres のシートを差し替える**（コード変更不要） | オーナー決定 |
+
+## ピクセル基準 — モック忠実（C案）（2026-06-26 — オーナー決定）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P3-D039 | **ピクセル基準を高解像度（C案）に統一**。通常キャラ/敵=96×96、エリート=128×128、ボス=192×192、タイル=48×48、UIアイコン=64×64（現状維持）。細部サイズは HQ 一任 | オーナー決定（モック再現優先） |
+| P3-D039a | **スプライトシート規格**: 横1列ストリップ・透過PNG・コマ間余白なし。コマ順 idle×4 / attack×4 / hurt×2 / death×4（計14コマ）。詳細は `docs/art/Sprite_Production_Spec.md` | 制作標準化 |
+| P3-D039b | 既存プレースホルダ .tres の region は現状（32/64）のまま据え置き、**オーナーの新シート納品時に HQ が C 基準へ一括更新**（オーナーはコード不要） | ビルドを壊さず移行 |
+
+## 世界観一本化 — 旧資産退役（2026-06-26 — オーナー決定）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P3-D038 | **旧3ダンジョン（royal_ruins / graveyard / underground_factory）と旧16敵（不死・機械系）を退役**し、Postwar Ecology の新Biomeに一本化する。モーンゲートを起点に再構築。旧データは削除せず `resources/_archive/` 等へ退避し git 履歴を残す | オーナー決定（選択肢C） |
+| P3-D038a | **段階実行**: R1=旧DGをUIから退役＋セーブ移行、R2=旧 .tres 退避＋コード参照除去、R3=旧ロア/spec を新世界へ刷新、B=新Biome追加 | 安全にビルドを壊さず移行するため |
+| P3-D038b | **旧ジョブ .tres（warrior/guardian/scout）は退避**（セーブ移行は `SaveManager._JOB_MIGRATION` で新3職へ吸収済） | 一本化方針 |
+
+## 将来システム登録（2026-06-26 — オーナー決定 / Backlog 化）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P3-D035 | **レベル制を将来実装** — `Adventurer.level` 基盤あり。経験値→レベル→ステ成長。OD-UI-003（保留）を本決定で採用方針化 | オーナー決定。詳細設計は別 Proposal |
+| P3-D035a | **レベル制 実装（2026-06-26）** — パーティ共有 EXP（ラン成功時、全員へ同量付与）。`exp_to_next(L)=100×L`、上限 **Lv20**。成長 **+6 HP / +2 ATK** per Lv（flat、affix と同じ加算点で適用＝HP は CombatController、ATK は DungeonScene）。`Adventurer.exp` 追加・セーブ永続化。`LevelSystem.gd` 新設。失敗（全滅）時は EXP 付与なし。DEF 成長は MVP 対象外 | 実装決定（数値は調整可） |
+| P3-D036 | **助っ人キャラ制を将来実装** — 戦闘を「3 人 + 助っ人」で行える設計。パーティ枠拡張・一時参加 | オーナー決定。`MAX_PARTY_SIZE` 拡張要 |
+| P3-D037 | **ジョブ強化システムを将来実装** — ジョブレベルを設け、一定到達でジョブが進化し名称が変わる。P3-D033「基本 5 職は対等・上位下位なし」は**launch 時点の基本層**を指し、進化は**その上の将来プログレッション層**として両立 | オーナー決定。`36_JobBible.md` に注記 |
 

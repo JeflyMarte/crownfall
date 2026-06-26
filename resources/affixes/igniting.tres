@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="AffixData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AffixData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "igniting"
+display_name = "炎上"
+description = "通常攻撃時に炎上を付与しやすくなる（炎属性とは無関係）。"
+affix_category = "suffix"
+rarity = 0
+stat_type = "Ignite"
+value = 0.25
+tags = Array[String](["weapon"])

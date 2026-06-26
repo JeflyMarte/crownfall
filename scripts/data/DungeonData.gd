@@ -9,3 +9,5 @@ extends Resource
 @export var boss_id: String = ""
 @export var drop_table_id: String = ""
 @export var discovery_unlocks: Dictionary = {}
+@export var branch_enabled: bool = false
+@export var elite_pool: Array[String] = []

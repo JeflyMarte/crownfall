@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="StatusEffectData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/StatusEffectData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "stun"
+display_name = "スタン"
+tier = 1
+max_stacks = 1
+duration_ticks = 2
+effect_type = "action_skip"
+element_tag = ""
+dot_percent_of_attack = 0.0
+dot_flat = 0
+interval_multiplier = 1.0
+skip_action_chance = 1.0
+outgoing_damage_multiplier = 1.0
+incoming_damage_multiplier = 1.0

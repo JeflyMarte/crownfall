@@ -280,3 +280,34 @@ v3.4+ 確定スコープ:
 **Phase3-A Visual Production**
 **Status:** **完了**（2026-06-25）
 **EC 状況:** EC-1〜8 ✅（EC-8 P2 defer: P3-D008）
+
+### Phase UI-1 Tasks — 完了
+
+| Task | 内容 | 状態 |
+|---|---|---|
+| P3-UI-001〜003 | 戦闘画面 v2 レイアウト / HP bar / 背景 | **完了** |
+
+### Phase3-B-M1 Tasks — 完了
+
+| Task | 内容 | 状態 |
+|---|---|---|
+| P3-B-001〜007 | Status/Element Foundation（旧 Tier1 — P3-D023 前段） | **完了** |
+
+### Phase EQ-1 Tasks — 完了
+
+| Task | 内容 | 状態 |
+|---|---|---|
+| P3-EQ-001 | GameState / Save per-member 移行 | **完了** |
+| P3-EQ-002 | 戦闘 per-member 装備 | **完了** |
+| P3-EQ-003 | EquipmentScene メンバー選択 | **完了** |
+| P3-EQ-004 | BaseScene パーティ装備表示 | **完了** |
+
+### Phase3-B-M2 Tasks — 完了
+
+| Task | 内容 | 状態 |
+|---|---|---|
+| P3-B-008 | StatusEffectData 拡張 + 6 status .tres | **完了** |
+| P3-B-009 | StatusResolver + ElementResolver（P3-D022） | **完了** |
+| P3-B-010 | DungeonScene 戦闘接続 | **完了** |
+| P3-B-011 | Affix×4 / Skill×3 / Weapon×5 | **完了** |
+| P3-B-012 | M2 Closeout（P3-D023） | **完了** |

@@ -4,6 +4,9 @@ extends RefCounted
 const ICON_MAP: Dictionary = {
 	"weapon:iron_sword":           "res://assets/ui/batch2/ICO_WPN_IronSword.png",
 	"weapon:rusted_blade":         "res://assets/ui/batch2/ICO_WPN_RustedBlade.png",
+	"weapon:heater_blade":         "res://assets/ui/batch2/ICO_WPN_IronSword.png",
+	"weapon:frost_blade":          "res://assets/ui/batch2/ICO_WPN_IronSword.png",
+	"weapon:bolt_knife":           "res://assets/ui/batch2/ICO_WPN_RustedBlade.png",
 	"weapon:unidentified":         "res://assets/ui/batch2/ICO_WPN_Unidentified.png",
 	"armor:leather_armor":         "res://assets/ui/batch2/ICO_ARM_LeatherArmor.png",
 	"armor:bone_armor":            "res://assets/ui/batch7/ICO_ARM_BoneArmor.png",

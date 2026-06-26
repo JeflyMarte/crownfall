@@ -1,0 +1,49 @@
+{
+  "group_id": null,
+  "states": [
+    {
+      "character": {
+        "id": "f77ab3c8-d3fd-4ed4-8662-c8f08f68297a",
+        "name": "A small spiky ice hedgehog monster, body covered in pale blue crystal quills, frost-white fur, dark fantasy creature, side view, clean pixel art, transparent background",
+        "prompt": "A small spiky ice hedgehog monster, body covered in pale blue crystal quills, frost-white fur, dark fantasy creature, side view, clean pixel art, transparent background",
+        "size": {
+          "width": 160,
+          "height": 160
+        },
+        "template_id": "dog",
+        "directions": 8,
+        "view": "side",
+        "created_at": "2026-06-26T05:48:50.477831+00:00"
+      },
+      "folder": "A_small_spiky_ice_hedgehog_monster_body_covered_in",
+      "frames": {
+        "rotations": {
+          "south": "A_small_spiky_ice_hedgehog_monster_body_covered_in/rotations/south.png",
+          "south-east": "A_small_spiky_ice_hedgehog_monster_body_covered_in/rotations/south-east.png",
+          "east": "A_small_spiky_ice_hedgehog_monster_body_covered_in/rotations/east.png",
+          "north-east": "A_small_spiky_ice_hedgehog_monster_body_covered_in/rotations/north-east.png",
+          "north": "A_small_spiky_ice_hedgehog_monster_body_covered_in/rotations/north.png",
+          "north-west": "A_small_spiky_ice_hedgehog_monster_body_covered_in/rotations/north-west.png",
+          "west": "A_small_spiky_ice_hedgehog_monster_body_covered_in/rotations/west.png",
+          "south-west": "A_small_spiky_ice_hedgehog_monster_body_covered_in/rotations/south-west.png"
+        },
+        "animations": {
+          "Idle": {
+            "west": [
+              "A_small_spiky_ice_hedgehog_monster_body_covered_in/animations/Idle/west/frame_000.png",
+              "A_small_spiky_ice_hedgehog_monster_body_covered_in/animations/Idle/west/frame_001.png",
+              "A_small_spiky_ice_hedgehog_monster_body_covered_in/animations/Idle/west/frame_002.png",
+              "A_small_spiky_ice_hedgehog_monster_body_covered_in/animations/Idle/west/frame_003.png",
+              "A_small_spiky_ice_hedgehog_monster_body_covered_in/animations/Idle/west/frame_004.png",
+              "A_small_spiky_ice_hedgehog_monster_body_covered_in/animations/Idle/west/frame_005.png",
+              "A_small_spiky_ice_hedgehog_monster_body_covered_in/animations/Idle/west/frame_006.png",
+              "A_small_spiky_ice_hedgehog_monster_body_covered_in/animations/Idle/west/frame_007.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.0",
+  "export_date": "2026-06-26T05:59:14.935801"
+}

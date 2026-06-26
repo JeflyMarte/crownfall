@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "iron_hound"
+display_name = "鉄の番犬"
+max_hp = 78
+attack = 15
+defense = 7
+attack_speed = 1.1
+critical_rate = 0.05
+move_speed = 1.2
+detection_range = 6.0
+attack_range = 1.0
+enemy_type = 0
+ai_type = "default"
+exp_reward = 13
+gold_reward = 29
+drop_table_id = "iron_hound_drops"
+element_weakness = Array[String](["thunder"])
+element_resist = Array[String]([])
+on_hit_status_id = "shock"
+on_hit_status_chance = 0.2

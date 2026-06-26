@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "sepia_hound"
+display_name = "セピアハウンド"
+max_hp = 72
+attack = 13
+defense = 4
+attack_speed = 1.1
+critical_rate = 0.05
+move_speed = 1.25
+detection_range = 6.0
+attack_range = 1.0
+enemy_type = 0
+ai_type = "default"
+exp_reward = 10
+gold_reward = 22
+drop_table_id = "sepia_hound_drops"
+element_weakness = Array[String](["fire"])
+element_resist = Array[String]([])
+on_hit_status_id = ""
+on_hit_status_chance = 0.0

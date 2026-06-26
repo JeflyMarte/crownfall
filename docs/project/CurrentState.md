@@ -4,99 +4,95 @@
 
 ## Last Update
 
-2026-06-25（**Phase3-A Closeout 完了** — EC-1〜7 PASS / EC-8 P2 defer 記録）
+2026-06-26（**世界観刷新 — Postwar Ecology** 文書反映 / P3-D026〜033）
 
 ---
 
 ## Project Version
 
-ProjectDocs **v3.5.46**
+ProjectDocs **v3.6.0**
 
 ---
 
 ## Current Phase
 
-**Phase3-B — Content Expansion**（次マイルストーン候補）
+**Phase3-B — Content Expansion**（**着手** — P3-D025。3-A 全画面 polish は後 Phase）
 
 ---
 
 ## Current Milestone
 
-**Phase3-A — Visual Production** — **完了**（2026-06-25）
-
-| 項目 | 状態 |
-|---|---|
-| Scope Adoption | **完了**（P3-D001〜007） |
-| P0 / P1 PA 全 Batch | **完了**（Batch 1〜7） |
-| Impl P3-A-001〜008 | **完了** |
-| P3-A-009 Closeout | **完了**（EC-1〜7 PASS） |
-
----
-
-## Phase3-A Exit Criteria
-
-| EC | 条件 | 状態 |
-|---|---|---|
-| EC-1 | P0 アセット配置・import | ✅ |
-| EC-2 | production_theme 適用 | ✅ |
-| EC-3 | 王都跡完走で全敵・ボス production 表示 | ✅ import + smoke |
-| EC-4 | 装備 UI production アイコン | ✅ |
-| EC-5 | 未鑑定 Unidentified アイコン | ✅ |
-| EC-6 | 王都跡 Tileset 適用 | ✅ |
-| EC-7 | Hit / Heal VFX | ✅ import + smoke |
-| EC-8 | P1 アセット（墓地・CHR 等） | ✅（P2 defer: Hit_Critical / RoyalRuins 補完タイル 3 — P3-D008） |
-
----
-
-## Previous Milestone
-
-Phase2-M9 — Codex & Discovery Foundation（完了 2026-06-23）
-
----
-
-## Development Workflow（P2-D177）
-
-| 役割 | ツール |
-|---|---|
-| HQ | Cursor |
-| Impl | Claude Code × **2 並行**（worktree 任意） |
-| Visual | Pixel Apprentice（オーナー + Pixellab） |
-
----
-
-## Current Playable Features
-
-（Phase2 Alpha + Phase3-A ビジュアル）
-
-| 領域 | 内容 |
-|---|---|
-| ダンジョン | 王都跡 / 白骸墓地（2 DG・完走可能） |
-| ビジュアル | production タイル・敵/ボス/CHR スプライト・VFX |
-| Base | DG 選択・鍛冶屋・図鑑 |
-| Special Rooms | Branch / Heal / Treasure / Merchant / Event / Elite |
-| 戦闘 | 自動戦闘・Skill・Affix・Job |
-| 装備 | 3 枠・鑑定・Build Summary・production アイコン |
-| 経済・クラフト | 素材・Merchant・Blacksmith |
-| 発見 | discovery_registry・Codex UI |
+**Phase3-B-M2** — **完了**（P3-D023）— 属性5種 + 状態6種
 
 ---
 
 ## Active Tasks
 
-（Phase3-A 完了 — 次マイルストーン待ち）
+| ID | 内容 | 状態 |
+|---|---|---|
+| — | P3-D024 spec 同期 | **完了** |
+| P3-TH-001 | 簡易ヘイト | **完了** |
+| P3-HW-001 | 聖属性武器 | **完了** |
+| P3-D024b | 簡易ヘイト | **完了**（P3-TH-001） |
+| P3-D024j | 聖属性武器 | **完了**（P3-HW-001） |
+| P3-D024i | 属性 vs 状態チュートリアル | **完了**（P3-CX-001） |
+| P3-HW-002 | slash_attack bleed 削除 | **完了** |
+| P3-UI2-001 | 戦闘状態テキスト表示 | **完了** |
+| P3-APPR-001 | 一括鑑定 | **完了** |
+| P3-INIT-001 | イニシアチブ Phase 1 | **完了** |
+| P3-EQ-CMP-001 | 装備比較 1 行 | **完了** |
+| P3-UI2-002 | 状態ラベル折り返し | **完了** |
+| P3-INIT-002 | イニシアチブ Phase 2 | **完了** |
+| P3-JOB-001 | preferred_weapon +5% ATK | **完了** |
+| P3-EQ-CMP-002 | 防具比較 1 行 | **完了** |
+| P3-D024d-001 | 敵 curse エリート限定 | **完了** |
+| P3-AFFIX-SPD-001 | Affix 速度 → イニシアチブ | **完了** |
+| P3-D024c-001 | stagger_power リネーム | **完了** |
+| P3-UI2-003 | viewport 縦長固定 720×1280 | **完了** |
+| P3-UI2-004 | 浮動ダメージ数字 | **完了** |
+| P3-EQ-CMP-003 | 装飾品比較 1 行 | **完了** |
+| P3-UI2-005 | HP バー座標のスプライト追従 | **完了** |
+| P3-SPEC-001 | 戦闘 AI spec イニシアチブ同期 | **完了** |
+| P3-UI2-006 | バトルログ枠 art / スプライト位置 | **完了** |
+| P3-SPEC-002 | UI spec / CODEMAP 同期 | **完了** |
+| P3-THEME-001 | Panel 9-slice margin 調整 | **完了** |
+| P3-ALPHA-001 | Alpha 5 分周回チェックリスト | **完了** |
+| P3-UI2-007 | 浮動ダメージ座標（CanvasLayer） | **完了** |
+| P3-UI2-009 | 宝箱中央配置 / 下部テキスト可読性 | **完了** |
+| P3-UI2-008 | 戦闘スプライト scale / 遠近配置 | **完了** |
+| P3-UI2-BG-001 | 王都跡戦闘 BG v3 差し替え | **完了** |
+| P3-ALPHA-002 | 旧セーブ job_id マイグレーション | **完了** |
+| P3-UI2-011 | ヘッダー B1 / 部屋表示 | **完了** |
+| P3-UI2-012 | バトルログ戦闘限定 / ナレーション Panel | **完了** |
+| P3-UI2-013 | 状態異常アイコン（頭上バッジ） | **完了** |
+| P3-UI2-014 | エリート/ボス戦闘枠 | **完了** |
+| P3-UI2-015 | Codex 初見トースト | **完了** |
+| P3-UI2-016 | Build チップ（拠点・装備） | **完了** |
+| P3-SPEC-004 | UI-2+ spec / CODEMAP 同期 | **完了** |
+| P3-B-001 | 白骸墓地 完走検証・バランス初調整 | **完了**（オーナー GO） |
+| P3-B-002 | 王都跡専用イベント 3 件 | **完了**（オーナー GO） |
+| P3-B-003 | 地下工廠 Proposal | **完了**（オーナー GO） |
+| P3-B-004 | 地下工廠プレイアブル追加 | **完了**（オーナー GO） |
+| P3-B-005 | 地下工廠バランス初調整 | **完了**（オーナー GO） |
+| P3-D026〜033 | 世界観刷新 Postwar Ecology（文書反映） | **完了**（Bible 29〜36 新設・既存 spec 同期） |
+| OD-UI-003 | レベル制 | HQ 保留 |
 
-| ID | 内容 | 担当 | 状態 |
-|---|---|---|---|
-| OD-UI-001 | モック寄せ方針 Decision | HQ | **未**（Closeout 後） |
-| Phase3-B | Content Expansion 着手 | HQ | **未** |
+### 世界観刷新（Postwar Ecology — 2026-06-26）
 
----
+世界観を「戦後生態系」へ刷新。文書（世界観 SSOT）のみ反映済み。**コード未変更**（既存敵・DG・ジョブの実装移行は将来 Task）。
 
-## Next Recommended（HQ）
+| 新 Bible | 内容 |
+|---|---|
+| 29_PostwarEcology | 三本柱・生物由来モンスター・デザインルール |
+| 30_EcologyClassification | Class I〜VII |
+| 31_SeekersGuild | 探索者ギルド |
+| 32_BiomeBible | Biome（MVP 2 種） |
+| 33_EcologyCodex | 生態図鑑 5 段階 |
+| 34_MonsterNamingGuide | 命名ガイド |
+| 35_WorldGeography | エルド大陸 |
+| 36_JobBible | 5 基本ジョブ |
 
-1. **HQ** — **OD-UI-001** モック寄せ方針 Decision
-2. **HQ** — Phase3-B Scope / 次スプリント策定
-3. 新環境セットアップ: `bash tools/smoke_test.sh --import-only`（P3-D010）
+**実装移行 整合課題:** 既存敵の生物化 / DG↔Biome 再マッピング / ジョブ 3→5 / Codex 拡張 → 移行 Proposal 待ち。
 
 ---
 
@@ -104,9 +100,11 @@ Phase2-M9 — Codex & Discovery Foundation（完了 2026-06-23）
 
 | 課題 | 詳細 |
 |---|---|
-| モック vs 現 UI | 部屋ステップ UI は MVP 確定。モック再現は Closeout 後 Decision |
-| Combat Vision vs 実装 | リアルタイム戦闘・位置 AI 未実装（`26_CombatVision.md`） |
-| 状態異常・属性 | SSOT 済。Phase3-B-M1 で実装 |
+| viewport 比率 | **720×1280** ✅。スプライト 720 幅内 ✅（P3-UI2-006） |
+| 状態 UI | 頭上アイコン ✅（013）。Codex トースト ✅（015）。Build チップ ✅（016）。PA art は Phase 3-A |
+| 聖属性武器 | ~~未実装~~ → **sanctified_dagger**（P3-HW-001） |
+| タンク fantasy | ~~ランダム被弾~~ → 簡易ヘイト（P3-TH-001） |
+| ラン中介入 | Alpha=準備専用（P3-D024a）。方針切替は Phase 2 |
 
 ---
 
@@ -114,8 +112,7 @@ Phase2-M9 — Codex & Discovery Foundation（完了 2026-06-23）
 
 | 文書 | 用途 |
 |---|---|
-| [UI_Reference_Notes.md](../art/reference/UI_Reference_Notes.md) | モック 001 + 002（公式ペア） |
-| [Phase3A_Scope_Adoption_Completed_v1.1.md](../archives/ArtArchive/Completed/Phase3A_Scope_Adoption_Completed_v1.1.md) | Phase3-A Scope 正 |
-| [06_DevelopmentHQ_Operations.md](../specs/core/06_DevelopmentHQ_Operations.md) | HQ / Impl 運用 |
-| [26_CombatVision.md](../specs/game/26_CombatVision.md) | 戦闘ビジョン |
-| [SessionHandoff.md](./SessionHandoff.md) | 新 Cursor チャット入口 |
+| [28_ゲームデザイン点検.md](../specs/game/28_ゲームデザイン点検.md) | **GD 点検 SSOT** — P3-D024 |
+| [27_状態異常と属性.md](../specs/game/27_状態異常と属性.md) | 属性/状態 SSOT v1.1 |
+| [03_Decision_Log.md](../specs/core/03_Decision_Log.md) | P3-D016〜024 |
+| [05_Backlog.md](../specs/core/05_Backlog.md) | P3-D024 / Initiative |

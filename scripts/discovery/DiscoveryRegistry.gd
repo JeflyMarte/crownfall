@@ -21,6 +21,46 @@ static func is_discovered(category: String, entry_id: String) -> bool:
 static func format_new_discovery(category: String, entry_id: String) -> String:
 	return "【新規発見】%s / %s" % [category, entry_id]
 
+static func get_category_label(category: String) -> String:
+	match category:
+		"enemy": return "敵"
+		"weapon": return "武器"
+		"dungeon": return "ダンジョン"
+		"material": return "素材"
+		"room": return "部屋"
+		"event": return "イベント"
+		"lore": return "碑文"
+		_: return category
+
+static func get_display_label(category: String, entry_id: String) -> String:
+	match category:
+		"enemy":
+			var data: Resource = DataRegistry.get_enemy_data(entry_id)
+			if data != null and not data.display_name.is_empty():
+				return data.display_name
+		"weapon":
+			var weapon: Resource = DataRegistry.get_weapon_data(entry_id)
+			if weapon != null and not weapon.display_name.is_empty():
+				return weapon.display_name
+		"dungeon":
+			var dungeon: Resource = DataRegistry.get_dungeon_data(entry_id)
+			if dungeon != null and not dungeon.display_name.is_empty():
+				return dungeon.display_name
+		"material":
+			var material: Resource = DataRegistry.get_material_data(entry_id)
+			if material != null and not material.display_name.is_empty():
+				return material.display_name
+		"room":
+			match entry_id:
+				"heal": return "回復の部屋"
+				"treasure": return "宝箱の部屋"
+				"merchant": return "商人の部屋"
+				"event": return "イベントの部屋"
+				"elite": return "エリートの部屋"
+				_: return entry_id
+		_: pass
+	return entry_id
+
 static func room_type_to_id(room_type: int) -> String:
 	match room_type:
 		Enums.RoomType.HEAL:     return "heal"
