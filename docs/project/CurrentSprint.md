@@ -38,7 +38,8 @@
   - 助っ人 Known Issue ✅解消: event_helper を敵ターゲティングから完全除外（CombatController.pick_enemy_target_member_index）
 - **世界観一本化（P3-D038）進捗:** R1 完了（旧DG UI退役＋セーブ移行 / Claude）・R2 完了（旧16敵/旧3DG/旧3職を `resources/_archive/` 退避＋コード参照除去 / HQ）・**R3 コア完了**（ゲームシステム系 spec=02/05/06/08/12/13/27 と汎用イベントを新世界へ同期 / HQ）。残: B 新Biome追加。※16〜25 の WorldBible 群は「滅びた王都＝歴史上の地名」として正当に残置
 - **ダンジョンはモーンゲート1本で凍結**（オーナー決定 2026-06-26）。Biome-02（ウィスパーウッド）以降は保留。以後はシステム実装に注力
-- 残り 2 ジョブ（ヴァンガード/ビーストテイマー）は後続
+- **世界観 深掘り完了（設定レイヤ / P3-W-001〜017）**: world 文書を一通り確定（エルダ/暦/ギルド/社会/経済/信仰/ロア運用/囁きの森生態/NPC/伝説個体/情勢/Relics/言語/ジョブ）。**設定先行で実装は別途**（Biome-02 生態=W-011 確定も実装は保留）。詳細は `CurrentState.md` 世界観節・`core/03`
+- **残り2ジョブ ✅（P3-D066）**: vanguard=守護斬り `guard_strike`(stun25%)・beast_tamer=拘束矢 `snare_shot`(chill50%)。ジョブ副スキルの状態異常付与を有効化（`_try_apply_secondary_skill_status`）。本体(roster/編成/装備/セーブ/進化)は既に実装済だった
 - **ダンジョン進行 全自動化 ✅（P3-D053）**: 分岐(安全/危険/不明)撤廃・部屋自動進行(AutoProgressTimer one_shot, x1=1.2s/x2=0.6s, pause連動)・商人/イベントのみ「出発」手動・EXIT自動リザルト
 - **中ボス廃止 ✅（P3-D054）**: ROOM_SEQUENCE index7=COMBAT 化・MID_BOSS固有処理除去（列挙値は温存）・ELITE追加ドロップ維持
 - smoke_test PASS（R1/R2/R3 とも）
