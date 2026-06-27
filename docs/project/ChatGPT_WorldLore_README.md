@@ -8,36 +8,37 @@
 
 ## この ZIP に含まれるもの
 
+> 世界観は **戦後生態系（Postwar Ecology）** に刷新（2026-06-26）。旧 World/Lore Bible（16〜25）は削除し、コアは `37_RelicsHistoryCore.md` に統合。
+
 | 区分 | ファイル | 内容 |
 |---|---|---|
 | 入口 | `01_ゲーム概要.md` | ジャンル・コア体験 |
 | 入口 | `03_世界観.md` | 世界観要約（ゲームデザイン視点） |
-| 原則 | `17_WorldBible.md` | 世界設計 10 原則・命名・時代 |
-| 原則 | `20_WorldBible.md` | 世界全体の俯瞰（専門 Bible への入口） |
-| 柱 | `25_WorldAssetsBible.md` | World Pillars A-01〜A-12・Canon 索引 |
-| 開示 | `18_LoreDeliveryGuide.md` | ロアの届け方（説明しすぎない） |
-| 歴史 | `16_HistoryBible.md` | History Entry HE-001〜 |
-| 王国 | `19_KingdomBible.md` | 五王国 K-001〜005 |
-| 地理 | `21_GeographyBible.md` | 地域・地名 |
-| 探索 | `22_DungeonBible.md` | ダンジョンのロア設計 |
-| 勢力 | `23_FactionBible.md` | 派閥・組織 |
-| NPC | `24_NPCBible.md` | 主要 NPC |
+| マスター | `29_PostwarEcology.md` | 三本柱・生物由来モンスター・デザインルール |
+| 分類 | `30_EcologyClassification.md` | モンスター分類体系（Class I〜VII） |
+| 組織 | `31_SeekersGuild.md` | 探索者ギルド（調査管理機構） |
+| 生態 | `32_BiomeBible.md` | バイオーム（生態系単位）・MVP 2 種 |
+| 図鑑 | `33_EcologyCodex.md` | 生態図鑑（5 段階調査） |
+| 命名 | `34_MonsterNamingGuide.md` | モンスター命名ガイド |
+| 地理 | `35_WorldGeography.md` | エルド大陸地理 |
+| ジョブ | `36_JobBible.md` | 5 基本ジョブ |
+| 歴史・遺産 | `37_RelicsHistoryCore.md` | 語源（王冠）・時代区分・九王・王遺産・中核の謎 |
 | 体験 | `04_ゲームループ.md` | プレイヤーループ |
 | 敵 | `12_モンスター.md` | 敵・Family の設計方針 |
 | 戦闘 | `26_CombatVision.md` | 戦闘ビジョン（不変原則） |
-| 属性 | `27_状態異常と属性.md` | 属性・状態異常（未実装・設計のみ） |
+| 属性 | `27_状態異常と属性.md` | 属性・状態異常 |
 | 設計 | `core/01_Design_Principles.md` | 全体設計原則 |
 
-**含まないもの:** 実装コード、アーカイブ Proposal、Task 報告、Phase3-A アート制作指示
+**含まないもの:** 実装コード、アーカイブ Proposal、Task 報告
 
 ---
 
 ## 推奨読み順（ChatGPT 向け）
 
 1. `01_ゲーム概要.md` → `03_世界観.md`
-2. `17_WorldBible.md` → `20_WorldBible.md` → `25_WorldAssetsBible.md`
-3. `18_LoreDeliveryGuide.md`（**フレーバーテキスト作成前に必読**）
-4. 必要に応じて `16_` / `19_` / `21_` / `22_` / `23_` / `24_`
+2. `29_PostwarEcology.md`（**世界観マスター。必読**）
+3. `30`〜`36`（分類 / ギルド / Biome / 図鑑 / 命名 / 地理 / ジョブ）
+4. `37_RelicsHistoryCore.md`（歴史・遺産・中核の謎）
 5. 戦闘・敵の文脈: `26_CombatVision.md` + `12_モンスター.md`
 
 ---
@@ -48,11 +49,12 @@
 添付 ZIP は Crownfall（2D見下ろし・自動探索ハクスラRPG）の公式世界観 SSOT です。
 
 ルール:
-- プレイヤーは「選ばれし英雄」ではなくレリックハンター（探索者）
-- ロアは断片的に開示。直接説明しすぎない（18_LoreDeliveryGuide 準拠）
+- プレイヤーは「選ばれし英雄」ではなく探索者（Seeker）。探索隊の指揮官で直接操作しない
+- モンスターは魔物・不死者ではなく全て実在生物が祖先（戦後生態系 / 29_PostwarEcology）
+- ロアは断片的に開示。直接説明しすぎない
 - 九王時代 → 王国時代 → 九王戦争 → 静寂 → 探索者の時代
 - 王遺産・第十の王・王冠の失墜は中核の謎。断定しない
-- MVP は王都跡・白骸墓地の 2 ダンジョン。装備 3 枠（王遺産枠は正式版）
+- MVP は王都地下モーンゲート（嘆きの地下水路）。ジョブは 5 基本職
 
 この文脈で [依頼内容] を作成してください。
 ```

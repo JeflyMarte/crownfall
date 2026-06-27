@@ -47,7 +47,7 @@ Implementation Agent（Claude Code — 最大 2 並行 / worktree 推奨）
 | レイヤー | 格納先 | 役割 | 変更頻度 |
 |---|---|---|---|
 | **Vision** | `26_CombatVision.md` 等 | 体験の不変原則 | 極めて低い（Decision 必須） |
-| **World / Lore Bible** | `16_`〜`25_` | 世界観・歴史の正 | Decision 後 |
+| **World / Lore（戦後生態系）** | `29_`〜`37_` | 世界観・歴史・生態の正 | Decision 後 |
 | **System Spec** | `07_`〜`09_`, `08_` 等 | ゲームルール・数値・スキーマ | Task 単位で更新 |
 | **Proposal** | `docs/archives/.../Proposal/` | 未承認の設計案 | レビュー中 |
 | **Implementation** | `CODEMAP.md`, コード | 実装の正 | Impl Task で更新 |

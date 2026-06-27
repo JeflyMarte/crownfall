@@ -4,8 +4,10 @@ extends RefCounted
 ## M9 Codex カタログ取得（P2-Task046〜049）。
 
 const UNKNOWN_DISPLAY: String = "???"
-const HISTORY_BIBLE_PATH: String = "res://docs/specs/game/16_HistoryBible.md"
-const DUNGEON_BIBLE_PATH: String = "res://docs/specs/game/22_DungeonBible.md"
+# History Entry（HE-001〜004）は 37_RelicsHistoryCore の機械可読ブロックを解析する（旧 16 は削除）。
+const HISTORY_BIBLE_PATH: String = "res://docs/specs/game/37_RelicsHistoryCore.md"
+# 旧 22_DungeonBible は削除。DUNGEON_ID_TO_BIBLE が空のため未使用（file_exists=false で graceful に {} を返す）。
+const DUNGEON_BIBLE_PATH: String = ""
 
 const STARTER_HISTORY_IDS: Array[String] = ["HE-001", "HE-002", "HE-003", "HE-004"]
 

@@ -2,7 +2,7 @@
 
 **Status:** SSOT（オーナー決定 2026-06-26）
 **親:** `29_PostwarEcology.md`
-**関連:** `33_EcologyCodex.md` / `36_JobBible.md` / `23_FactionBible.md`（旧勢力史）
+**関連:** `33_EcologyCodex.md` / `36_JobBible.md`
 
 ---
 

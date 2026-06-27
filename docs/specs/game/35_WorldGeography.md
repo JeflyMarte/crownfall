@@ -2,7 +2,7 @@
 
 **Status:** SSOT（オーナー決定 2026-06-26）
 **親:** `29_PostwarEcology.md`
-**関連:** `32_BiomeBible.md` / `21_GeographyBible.md`（旧王国地理史） / `19_KingdomBible.md`
+**関連:** `32_BiomeBible.md` / `37_RelicsHistoryCore.md`（歴史・遺産のコア）
 
 世界全体は **エルド大陸（Eld Continent）** を舞台とする。
 
@@ -130,7 +130,7 @@
 
 ## 整合課題（旧地理との関係）
 
-`21_GeographyBible.md`（White Kingdom / Black Forge 等の旧王国地理）は **History 柱の歴史地理** として保持。本書（エルド大陸）は **現在の探索地理** として上位運用。両者の対応（例: White Capital ↔ 王都アステリア）は DevelopmentHQ が別途統合する。
+旧王国地理（White Kingdom / Black Forge 等を定義した `21_GeographyBible.md` / `19_KingdomBible.md`）は実態と乖離したため削除済。本書（エルド大陸）が現在の探索地理の正。歴史上の地名が必要な場合は `37_RelicsHistoryCore.md` の時代区分・九王の範囲で扱う。
 
 ---
 
