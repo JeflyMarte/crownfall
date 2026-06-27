@@ -116,3 +116,15 @@ text = "鍛冶屋"
 [node name="ButtonCodex" type="Button" parent="VBoxContainer"]
 layout_mode = 2
 text = "図鑑"
+
+[node name="ButtonGacha" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "ガチャ"
+
+[node name="ButtonRoster" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "編成"
+
+[node name="ButtonGuild" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "ギルド認定"

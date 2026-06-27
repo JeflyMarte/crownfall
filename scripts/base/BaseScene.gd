@@ -12,6 +12,9 @@ func _ready() -> void:
 	$VBoxContainer/ButtonEquipment.pressed.connect(_on_equipment_button_pressed)
 	$VBoxContainer/ButtonBlacksmith.pressed.connect(_on_blacksmith_button_pressed)
 	$VBoxContainer/ButtonCodex.pressed.connect(_on_codex_button_pressed)
+	$VBoxContainer/ButtonGacha.pressed.connect(_on_gacha_button_pressed)
+	$VBoxContainer/ButtonRoster.pressed.connect(_on_roster_button_pressed)
+	$VBoxContainer/ButtonGuild.pressed.connect(_on_guild_button_pressed)
 	_ensure_valid_dungeon_selection()
 	$VBoxContainer/LabelEquipped.visible = false
 	$VBoxContainer/LabelArmorEquipped.visible = false
@@ -133,3 +136,18 @@ func _on_blacksmith_button_pressed() -> void:
 
 func _on_codex_button_pressed() -> void:
 	SceneRouter.change_scene("res://scenes/codex/CodexScene.tscn")
+
+func _on_gacha_button_pressed() -> void:
+	var path: String = "res://scenes/gacha/GachaScene.tscn"
+	if ResourceLoader.exists(path):
+		SceneRouter.change_scene(path)
+
+func _on_roster_button_pressed() -> void:
+	var path: String = "res://scenes/roster/RosterScene.tscn"
+	if ResourceLoader.exists(path):
+		SceneRouter.change_scene(path)
+
+func _on_guild_button_pressed() -> void:
+	var path: String = "res://scenes/guild/GuildScene.tscn"
+	if ResourceLoader.exists(path):
+		SceneRouter.change_scene(path)

@@ -93,6 +93,15 @@ func get_material_price(material_id: String) -> int:
 		return -1
 	return res.price
 
+func get_gacha_helper_data(helper_id: String) -> Resource:
+	var path: String = Constants.RESOURCE_GACHA_HELPERS_PATH + helper_id + ".tres"
+	if not ResourceLoader.exists(path):
+		return null
+	return load(path)
+
+func get_all_gacha_helper_data() -> Array:
+	return _load_all_resources(Constants.RESOURCE_GACHA_HELPERS_PATH)
+
 func get_all_enemy_data() -> Array:
 	return _load_all_resources(Constants.RESOURCE_ENEMIES_PATH)
 

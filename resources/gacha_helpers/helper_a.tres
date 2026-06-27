@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="GachaHelperData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/GachaHelperData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "helper_a"
+display_name = "ユニーク助っ人A（仮★4）"
+job_id = "vanguard"
+rarity = 4
+sprite_resource_path = ""
