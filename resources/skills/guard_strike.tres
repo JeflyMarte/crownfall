@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "guard_strike"
+display_name = "守護斬り"
+description = "前線を支えながら敵を打ち据え、怯ませて味方への被害を抑える。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 1.1
+cooldown = 3.5
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["melee", "guard"])
+element = ""
+apply_status_id = "stun"
+apply_status_chance = 0.25

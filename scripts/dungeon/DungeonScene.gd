@@ -642,6 +642,7 @@ func _on_combat_timer_timeout() -> void:
 func _run_party_combat_phase() -> void:
 	_do_party_attack()
 	_try_apply_skill_status()
+	_try_apply_secondary_skill_status()
 
 func _run_enemy_combat_phase() -> void:
 	if $CombatController.should_enemy_skip_action():
@@ -677,6 +678,32 @@ func _try_apply_skill_status() -> void:
 	var member_idx: int = _first_alive_member_index()
 	var skill_data: Resource = _get_player_skill_data(member_idx)
 	if skill_data == null or skill_data.apply_status_id.is_empty():
+		return
+	if skill_data.apply_status_chance <= 0.0 or randf() > skill_data.apply_status_chance:
+		return
+	var base_info: Dictionary = _calc_attack_base(member_idx)
+	if not $CombatController.apply_status(
+		"enemy",
+		skill_data.apply_status_id,
+		1,
+		base_info["base_damage"]
+	):
+		return
+	var effect: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id)
+	var label: String = skill_data.apply_status_id
+	if effect != null:
+		label = effect.display_name
+	_append_log("[%s] 付与" % label)
+
+func _try_apply_secondary_skill_status() -> void:
+	if $CombatController.is_enemy_defeated():
+		return
+	var member_idx: int = _first_alive_member_index()
+	var skill_data: Resource = _get_job_skill_data(member_idx)
+	if skill_data == null or skill_data.apply_status_id.is_empty():
+		return
+	var primary: Resource = _get_player_skill_data(member_idx)
+	if primary != null and skill_data.id == primary.id:
 		return
 	if skill_data.apply_status_chance <= 0.0 or randf() > skill_data.apply_status_chance:
 		return
