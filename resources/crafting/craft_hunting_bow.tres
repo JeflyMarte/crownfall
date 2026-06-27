@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CraftData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/CraftData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "craft_hunting_bow"
+display_name = "狩猟弓の作成"
+required_materials = {"leather": 2, "relic_shard": 1}
+gold_cost = 40
+output_type = "weapon"
+output_id = "hunting_bow"
+unlock_condition = ""

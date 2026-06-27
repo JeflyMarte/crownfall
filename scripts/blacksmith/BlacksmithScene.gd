@@ -42,10 +42,7 @@ func _add_craft_row(container: VBoxContainer, craft: Resource) -> void:
 	container.add_child(row)
 
 func _on_craft_pressed(craft: Resource) -> void:
-	if craft.output_type == "weapon":
-		_log_craft("Craft Failed: weapon crafting unavailable")
-		return
-	if craft.output_type != "armor" and craft.output_type != "accessory":
+	if craft.output_type != "armor" and craft.output_type != "accessory" and craft.output_type != "weapon":
 		_log_craft("Craft Failed: invalid output")
 		return
 	if craft.output_id.is_empty() or not _craft_output_exists(craft):
@@ -69,6 +66,8 @@ func _craft_output_exists(craft: Resource) -> bool:
 		return DataRegistry.get_armor_data(craft.output_id) != null
 	if craft.output_type == "accessory":
 		return DataRegistry.get_accessory_data(craft.output_id) != null
+	if craft.output_type == "weapon":
+		return DataRegistry.get_weapon_data(craft.output_id) != null
 	return false
 
 func _has_enough_materials(required: Dictionary) -> bool:
@@ -82,6 +81,25 @@ func _generate_craft_output(craft: Resource) -> void:
 		_spawn_armor(craft.output_id)
 	elif craft.output_type == "accessory":
 		_spawn_accessory(craft.output_id)
+	elif craft.output_type == "weapon":
+		_spawn_weapon(craft.output_id)
+
+func _spawn_weapon(weapon_id: String) -> void:
+	var weapon_data: Resource = DataRegistry.get_weapon_data(weapon_id)
+	if weapon_data == null:
+		return
+	var instance := WeaponInstance.new()
+	instance.instance_id = str(Time.get_ticks_msec()) + "_craft_" + str(randi() % 100000)
+	instance.weapon_id = weapon_id
+	instance.is_appraised = false
+	instance.rolled_attack = weapon_data.base_attack + randi() % 6
+	instance.attack_speed = weapon_data.base_attack_speed
+	instance.critical_rate = weapon_data.base_critical_rate
+	instance.knockback = weapon_data.base_knockback
+	instance.stagger_power = weapon_data.base_stagger_power
+	instance.attack_range = weapon_data.base_attack_range
+	instance.weight = weapon_data.weight
+	GameState.inventory.append(instance)
 
 func _spawn_armor(armor_id: String) -> void:
 	var armor_data: Resource = DataRegistry.get_armor_data(armor_id)

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CraftData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/CraftData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "craft_iron_sword"
+display_name = "鉄剣の作成"
+required_materials = {"cursed_iron": 2}
+gold_cost = 40
+output_type = "weapon"
+output_id = "iron_sword"
+unlock_condition = ""

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RecipeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/RecipeData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "recipe_hunting_bow"
+craft_id = "craft_hunting_bow"
+display_name = "狩猟弓の作成"
+output_summary = "狩猟弓（未鑑定）"
+category = "weapon"
+description = "革と遺跡の欠片を組み合わせ、弓を仕上げる。"
