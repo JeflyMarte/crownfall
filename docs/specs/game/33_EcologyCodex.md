@@ -1,8 +1,9 @@
 # 33_EcologyCodex — 生態図鑑（Ecology Codex）
 
 **Status:** SSOT（オーナー決定 2026-06-26）
-**親:** `29_PostwarEcology.md`
-**関連:** `30_EcologyClassification.md` / `31_SeekersGuild.md`
+**親:** `world/03_Ecology.md`
+**関連:** `world/04_Classification.md` / `world/08_SeekersGuild.md`
+**位置づけ:** 図鑑（Codex）の**システム仕様**。世界観ロアは `docs/specs/world/` を参照。
 **現行実装:** `scripts/codex/`（enemy/dungeon/material/weapon/history/guide）— 本仕様へ段階移行
 
 ---
@@ -17,7 +18,7 @@ Ecology Codex は、探索者ギルドが長年蓄積してきた調査記録で
 
 ## 図鑑画面
 
-カテゴリ（`30_EcologyClassification.md` のクラス）ごとに閲覧。
+カテゴリ（`world/04_Classification.md` のクラス）ごとに閲覧。
 
 ```text
 Ecology Codex

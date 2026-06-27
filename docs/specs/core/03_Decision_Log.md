@@ -694,6 +694,7 @@
 | P3-D040 | **旧 World/Lore Bible（`game/16`〜`25`）を削除**し、コアを `game/37_RelicsHistoryCore.md` に抽出統合（語源/時代区分/九王/九英雄/王遺産・伝説武器/中核の謎 + HE-001〜004 機械可読）。`CatalogHelper.gd` の History 解析を 16→37 へ切替。削除方式は git rm（履歴に保持） | オーナー決定。旧資料が Postwar Ecology と矛盾 |
 | P3-D041 | **世界観資料の全体構成を刷新** — `docs/specs/world/` を新設し、4層（過去/現在の自然/現在の人類/運用）+ マスターの **12 文書**へ再編。世界観↔仕様を分離（Jobs/Codex は世界観面=`world/`、数値・仕様=`game/`。図鑑は `game/` のシステム仕様）。各文書は ChatGPT が執筆。構成・移行手順は `docs/specs/world/README.md` | オーナー決定（配置=world分離 / 粒度=12 / Jobs・Codex=分離） |
 | P3-D041a | **移行は段階 cutover** — 現行 `game/29`〜`37` は world 文書完成まで live SSOT として残し、Draft 明記で二重 SSOT を回避。完成後に参照切替→旧削除→smoke | ビルドを壊さない |
+| P3-D041b | **cutover 完了（2026-06-27）** — world 12 文書を正式 SSOT 化。`game/29`〜`32`・`34`〜`37` を削除（`33_EcologyCodex` は図鑑システム仕様として game/ 存置）。`37` の HE-001〜004 機械可読ブロックを `world/01_History.md` 末尾へ移管し `CatalogHelper.gd` の `HISTORY_BIBLE_PATH` を `world/01` へ切替。全 spec/運用/スクリプトの参照を `world/` へ更新 | P3-D041a の完了 |
 
 ## 助っ人キャラ制 詳細確定（2026-06-27 — オーナー決定 / P3-D036 詳細化）
 

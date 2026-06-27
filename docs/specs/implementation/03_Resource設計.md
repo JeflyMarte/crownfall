@@ -587,7 +587,7 @@ static func is_discovered(category: String, entry_id: String) -> bool
 
 ### History Bible
 
-- Read-only parse: `docs/specs/game/37_RelicsHistoryCore.md`（HE-001〜004 機械可読ブロック。旧 16 は削除）
+- Read-only parse: `docs/specs/world/01_History.md`（HE-001〜004 機械可読ブロック。旧 16/37 は削除）
 - 欠落時 → 空配列
 
 ---

@@ -79,18 +79,24 @@ ProjectDocs **v3.6.0**
 
 ### 世界観刷新（Postwar Ecology — 2026-06-26）
 
-世界観を「戦後生態系」へ刷新。文書（世界観 SSOT）のみ反映済み。**コード未変更**（既存敵・DG・ジョブの実装移行は将来 Task）。
+世界観を「戦後生態系」へ刷新。世界観 SSOT は **`docs/specs/world/`**（旧 `game/29`〜`37` から移行・統合済み / 2026-06-27 cutover, P3-D041b）。**コード未変更**（既存敵・DG・ジョブの実装移行は将来 Task）。
 
-| 新 Bible | 内容 |
+| world/ 文書 | 内容 |
 |---|---|
-| 29_PostwarEcology | 三本柱・生物由来モンスター・デザインルール |
-| 30_EcologyClassification | Class I〜VII |
-| 31_SeekersGuild | 探索者ギルド |
-| 32_BiomeBible | Biome（MVP 2 種） |
-| 33_EcologyCodex | 生態図鑑 5 段階 |
-| 34_MonsterNamingGuide | 命名ガイド |
-| 35_WorldGeography | エルド大陸 |
-| 36_JobBible | 5 基本ジョブ |
+| 00_Overview | 世界観マスター・三本柱・読み順 |
+| 01_History | 歴史・HE エントリ（Codex 解析対象） |
+| 02_Relics | 遺産・伝説武器・中核の謎 |
+| 03_Ecology | 戦後生態系 総論 |
+| 04_Classification | Class I〜VII |
+| 05_Biomes | Biome |
+| 06_MonsterNaming | 命名ガイド |
+| 07_Geography | エルド大陸 |
+| 08_SeekersGuild | 探索者ギルド |
+| 09_Jobs | ジョブ（世界観面。数値は game/06） |
+| 10_LoreDelivery | ロア提示ガイド |
+| 11_Glossary | 用語レジストリ |
+
+> 図鑑システム仕様は `game/33_EcologyCodex.md`（存置）。
 
 **実装移行 整合課題:** 既存敵の生物化 / DG↔Biome 再マッピング / ジョブ 3→5 / Codex 拡張 → 移行 Proposal 待ち。
 
