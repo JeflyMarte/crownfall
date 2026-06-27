@@ -86,14 +86,15 @@ ProjectDocs **v3.6.0**
 | — | 助っ人 targeting 修正（event_helper を狙撃対象外） | **完了** |
 | P3-Cleanup-001 | 旧graveyard残骸一掃＋mourngate env改称＋部屋オブジェ修正 | **完了**（HQ巻取り・敵tres6+シート削除/env→mourngate改称/dead branch撤去） |
 | P3-D066 | 残り2ジョブ スキル確定（vanguard=守護斬り/stun・beast_tamer=拘束矢/chill・副スキル状態付与有効化） | **完了** |
+| P3-CODEX5-AUDIT | Codex 5段階 静的監査（P3-D051 a〜e 充足確認） | **完了**（コード変更不要・軽微な逸脱2件は容認） |
 | OD-UI-003 | レベル制 | **完了**（P3-D035a） |
 
 ### 残スケジュール（Phase 3-B' システム完成まで）
 
 1. ~~P3-Cleanup-001 完了確認（graveyard一掃）~~ **完了**
 2. ~~残り2ジョブ（ヴァンガード/ビーストテイマー）~~ **完了**（P3-D066・スキル付与）
-3. Ecology Codex 5段階調査（P3-D051 a〜e）完成 ← 次の推奨
-4. 武器クラフト有効化（防具/装飾は実装済）
+3. ~~Ecology Codex 5段階調査（P3-D051 a〜e）完成~~ **完了**（HQ静的監査: データ/トリガー/セーブ/UI段階ゲート/6敵コンテンツ すべて充足）
+4. 武器クラフト有効化（防具/装飾は実装済）← 次の推奨
 5. → システム完成 → Phase 3-A ポリッシュ（本番UI 003系 / 本番ドット絵量産 C案）
 
 > アート並行（オーナーレーン）: 残り4ジョブのドット絵（ranger/alchemist/vanguard/beast_tamer）。swordsman 取り込み済。
