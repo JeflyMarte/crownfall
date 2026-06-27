@@ -84,12 +84,12 @@ ProjectDocs **v3.6.0**
 | P3-D054 | 中ボス(MID_BOSS)廃止（ROOM_SEQUENCE[7]=COMBAT・列挙値温存） | **完了**（承認済） |
 | — | 敵 attack/hurt アニメ配線（idle復帰接続・ボス対応） | **完了** |
 | — | 助っ人 targeting 修正（event_helper を狙撃対象外） | **完了** |
-| P3-Cleanup-001 | 旧graveyard残骸一掃＋mourngate env改称＋部屋オブジェ修正 | **Claude発行済・報告待ち** |
+| P3-Cleanup-001 | 旧graveyard残骸一掃＋mourngate env改称＋部屋オブジェ修正 | **完了**（HQ巻取り・敵tres6+シート削除/env→mourngate改称/dead branch撤去） |
 | OD-UI-003 | レベル制 | **完了**（P3-D035a） |
 
 ### 残スケジュール（Phase 3-B' システム完成まで）
 
-1. P3-Cleanup-001 完了確認（graveyard一掃）
+1. ~~P3-Cleanup-001 完了確認（graveyard一掃）~~ **完了**
 2. **残り2ジョブ**（ヴァンガード/ビーストテイマー）← 次の推奨
 3. Ecology Codex 5段階調査（P3-D051 a〜e）完成
 4. 武器クラフト有効化（防具/装飾は実装済）
@@ -132,7 +132,7 @@ ProjectDocs **v3.6.0**
 | タンク fantasy | ~~ランダム被弾~~ → 簡易ヘイト（P3-TH-001） |
 | ラン中介入 | Alpha=準備専用（P3-D024a）。方針切替は Phase 2 |
 | 助っ人 targeting | ~~ヘイト優先で狙われ無敵タンク化~~ → **解消**: `pick_enemy_target_member_index` で event_helper を狙撃対象から完全除外（メイン編成のみ標的） |
-| mourngate アセット依存 | 敵6体＋swordsman は本番ドット絵取り込み済。残4ジョブは旧32px placeholder（オーナー作画待ち）。環境アート（BG/タイル/オブジェ）は旧 `graveyard` 命名のまま流用 → P3-Cleanup-001 で mourngate env へ改称予定（報告待ち） |
+| mourngate アセット依存 | 敵6体＋swordsman は本番ドット絵取り込み済。残4ジョブは旧32px placeholder（オーナー作画待ち）。環境アート（BG/タイル/オブジェ）は **`assets/dungeon/mourngate/env/` へ改称移設済**（P3-Cleanup-001）。BG/出口は `*_Mourngate` 名 |
 
 ---
 
