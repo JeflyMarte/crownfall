@@ -108,10 +108,13 @@ func pick_enemy_target_member_index() -> int:
 			alive.append(i)
 	if alive.is_empty():
 		return -1
-	for i in alive:
-		var combatant: Resource = GameState.get_combatant(i)
-		if combatant != null and combatant.job_id == "swordsman":
-			return i
+	for tag in ["vanguard", "swordsman"]:
+		for i in alive:
+			if GameState.is_helper_combatant(i):
+				continue
+			var c: Resource = GameState.get_combatant(i)
+			if c != null and c.job_id == tag:
+				return i
 	return alive[randi() % alive.size()]
 
 func capture_rewards() -> void:
