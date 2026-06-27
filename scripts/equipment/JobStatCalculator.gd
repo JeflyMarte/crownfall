@@ -5,6 +5,9 @@ extends RefCounted
 
 const DEFAULT_MULTIPLIER: float = 1.0
 const UNKNOWN_DISPLAY_NAME: String = "Unknown"
+## ジョブ進化の専門深化係数（P3-D037 / P3-D052-1）。
+## 進化後補正 = 1.0 + (基礎補正 - 1.0) × EVOLUTION_FACTOR。
+const EVOLUTION_FACTOR: float = 1.3
 
 static func get_member_modifiers(adventurer: Resource) -> Dictionary:
 	var calculator: RefCounted = load("res://scripts/equipment/JobStatCalculator.gd").new()
@@ -29,14 +32,30 @@ func _get_member_modifiers(adventurer: Resource) -> Dictionary:
 	var job_data: Resource = DataRegistry.get_job_data(job_id)
 	if job_data == null:
 		return _fallback_for_missing_job(job_id)
+	var evolved: bool = bool(adventurer.is_evolved)
+	var hp_mult: float = _safe_multiplier(job_data.base_hp_modifier)
+	var atk_mult: float = _safe_multiplier(job_data.base_attack_modifier)
+	var def_mult: float = _safe_multiplier(job_data.base_defense_modifier)
+	var display: String = _job_display_name(job_data, job_id)
+	if evolved:
+		hp_mult = _deepen(hp_mult)
+		atk_mult = _deepen(atk_mult)
+		def_mult = _deepen(def_mult)
+		if not job_data.evolved_display_name.is_empty():
+			display = job_data.evolved_display_name
 	return {
-		"hp_multiplier": _safe_multiplier(job_data.base_hp_modifier),
-		"attack_multiplier": _safe_multiplier(job_data.base_attack_modifier),
-		"defense_multiplier": _safe_multiplier(job_data.base_defense_modifier),
+		"hp_multiplier": hp_mult,
+		"attack_multiplier": atk_mult,
+		"defense_multiplier": def_mult,
 		"job_id": job_id,
-		"display_name": _job_display_name(job_data, job_id),
+		"display_name": display,
 		"role": str(job_data.role),
+		"is_evolved": evolved,
 	}
+
+## 専門深化: 1.0 からの乖離（強み/弱み）を EVOLUTION_FACTOR 倍に拡大する。
+func _deepen(value: float) -> float:
+	return 1.0 + (value - 1.0) * EVOLUTION_FACTOR
 
 func _fallback_for_missing_job(job_id: String) -> Dictionary:
 	var result: Dictionary = empty_modifiers()

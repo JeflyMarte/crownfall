@@ -15,3 +15,5 @@ base_initiative_modifier = 1.05
 preferred_weapon_types = Array[String](["bow", "staff"])
 starting_skill_ids = Array[String]([])
 passive_tag_ids = Array[String](["tamer"])
+evolved_display_name = "ビーストロード"
+evolution_level = 10

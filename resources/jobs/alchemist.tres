@@ -15,3 +15,5 @@ base_initiative_modifier = 1.0
 preferred_weapon_types = Array[String](["staff"])
 starting_skill_ids = Array[String]([])
 passive_tag_ids = Array[String](["caster"])
+evolved_display_name = "セージ"
+evolution_level = 10

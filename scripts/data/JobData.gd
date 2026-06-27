@@ -19,3 +19,7 @@ extends Resource
 @export var preferred_weapon_types: Array[String] = []
 @export var starting_skill_ids: Array[String] = []
 @export var passive_tag_ids: Array[String] = []
+## ジョブ進化（到達形）の表示名（P3-D037）。空なら進化先なし。
+@export var evolved_display_name: String = ""
+## 進化に必要なキャラレベル（0 = 進化不可）。
+@export var evolution_level: int = 0
