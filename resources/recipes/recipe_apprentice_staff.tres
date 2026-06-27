@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RecipeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/RecipeData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "recipe_apprentice_staff"
+craft_id = "craft_apprentice_staff"
+display_name = "見習いの杖の作成"
+output_summary = "見習いの杖（未鑑定）"
+category = "weapon"
+description = "魔導触角と晶核を組み、エルダを導く触媒杖を仕立てる。"

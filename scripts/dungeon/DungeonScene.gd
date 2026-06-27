@@ -1062,11 +1062,32 @@ func _calc_enemy_damage_to_member(target_index: int) -> Dictionary:
 	var mitigated: int = base_dmg - final_dmg
 	return {"final": final_dmg, "base": base_dmg, "mitigated": mitigated}
 
+# 敵の codex_materials を rarity 別確率で実ドロップ（P3-D067 / 図鑑↔経済の一本化）
+const ECOLOGY_DROP_CHANCE: Dictionary = {0: 0.6, 1: 0.3, 2: 0.12, 3: 0.05}
+
+func _roll_ecology_material_drops(enemy_data: Resource, log_lines: PackedStringArray) -> void:
+	if enemy_data == null:
+		return
+	for raw_mat_id in enemy_data.codex_materials:
+		var mat_id: String = str(raw_mat_id)
+		if mat_id.is_empty():
+			continue
+		var mat_data: Resource = DataRegistry.get_material_data(mat_id)
+		var rarity: int = 0 if mat_data == null else int(mat_data.rarity)
+		var chance: float = float(ECOLOGY_DROP_CHANCE.get(rarity, 0.05))
+		if randf() > chance:
+			continue
+		var amount: int = _apply_material_bonus(1)
+		GameState.add_material(mat_id, amount)
+		log_lines.append("採取: %s" % _format_material_reward_log(mat_id, amount, ""))
+		_try_register_discovery("material", mat_id)
+
 func _handle_enemy_defeated() -> void:
 	$CombatTimer.stop()
 	$CombatController.capture_rewards()
-	if $CombatController.current_enemy_data != null:
-		GameState.add_enemy_kill($CombatController.current_enemy_data.id)
+	var defeated_enemy: Resource = $CombatController.current_enemy_data
+	if defeated_enemy != null:
+		GameState.add_enemy_kill(defeated_enemy.id)
 	var exp: int = $CombatController.last_exp_reward
 	var gold: int = $CombatController.last_gold_reward
 	var mult: float = $DungeonController.get_reward_multiplier()
@@ -1084,6 +1105,7 @@ func _handle_enemy_defeated() -> void:
 	var log_lines: PackedStringArray = [
 		"撃破!  EXP +%d  Gold +%d%s" % [final_exp, final_gold, bonus_tag],
 	]
+	_roll_ecology_material_drops(defeated_enemy, log_lines)
 	if $DungeonController.current_room_type == Enums.RoomType.ELITE:
 		var elite_bonus: Dictionary = $DungeonController.apply_elite_bonus_loot()
 		if not (elite_bonus["armor_id"] as String).is_empty():
