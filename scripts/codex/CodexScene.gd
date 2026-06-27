@@ -111,9 +111,12 @@ func _show_detail(index: int) -> void:
 		_clear_detail()
 		return
 	var entry: Dictionary = _entries[index]
-	var discovered: bool = bool(entry.get("discovered", false))
 	_label_detail_category.text = "Category: %s" % _get_category_display()
 	_hide_bible_fields()
+	if _current_category == "enemy":
+		_apply_enemy_stage_fields(entry)
+		return
+	var discovered: bool = bool(entry.get("discovered", false))
 	if discovered:
 		_label_detail_id.text = "Entry ID: %s" % str(entry.get("id", ""))
 		_label_detail_name.text = "Name: %s" % str(entry.get("display_name", ""))
@@ -128,6 +131,56 @@ func _show_detail(index: int) -> void:
 		_label_detail_description.text = UNKNOWN_DISPLAY
 		_update_icon(null)
 		_apply_bible_fields_undiscovered()
+
+func _apply_enemy_stage_fields(entry: Dictionary) -> void:
+	var enemy_id: String = str(entry.get("id", ""))
+	var stage: int = int(entry.get("stage", 1))
+	const STAGE_LABELS: Array[String] = ["", "未発見", "発見", "初回討伐", "追加調査", "調査完了"]
+	if stage == 1:
+		_label_detail_id.text = "Entry ID: %s" % UNKNOWN_DISPLAY
+		_label_detail_name.text = "Name: %s" % UNKNOWN_DISPLAY
+		_label_detail_status.text = "Stage 1 | 未発見"
+		_label_detail_overview_header.text = "調査記録:"
+		_label_detail_overview_header.visible = true
+		_label_detail_description.text = UNKNOWN_DISPLAY
+		_update_icon(null)
+		return
+	_label_detail_id.text = "Entry ID: %s" % enemy_id
+	_label_detail_name.text = "Name: %s" % str(entry.get("display_name", ""))
+	_label_detail_status.text = "Stage %d | %s" % [stage, STAGE_LABELS[stage]]
+	_update_icon(IconPaths.get_icon_texture(enemy_id, "enemy"))
+	_label_detail_overview_header.text = "調査記録:"
+	_label_detail_overview_header.visible = true
+	_label_detail_description.text = "調査記録なし"
+	if stage < 3:
+		return
+	var codex_class: String = str(entry.get("codex_class", ""))
+	var codex_danger: int = int(entry.get("codex_danger", 0))
+	var codex_habitat: String = str(entry.get("codex_habitat", ""))
+	var danger_stars: String = "★".repeat(codex_danger) if codex_danger > 0 else "—"
+	if stage < 5:
+		_label_detail_extra_a.text = "分類: %s" % codex_class
+		_label_detail_extra_a.visible = true
+		_label_detail_extra_b.text = "危険度: %s" % danger_stars
+		_label_detail_extra_b.visible = true
+		_label_detail_overview_header.text = "生息地:"
+		_label_detail_description.text = codex_habitat
+	else:
+		_label_detail_extra_a.text = "分類: %s  危険度: %s" % [codex_class, danger_stars]
+		_label_detail_extra_a.visible = true
+		_label_detail_extra_b.text = "生息地: %s" % codex_habitat
+		_label_detail_extra_b.visible = true
+		_label_detail_overview_header.text = "調査記録:"
+		_label_detail_description.text = str(entry.get("codex_research_note", ""))
+	if stage >= 4:
+		var weaknesses: Array = entry.get("element_weakness", [])
+		var resists: Array = entry.get("element_resist", [])
+		var weak_str: String = ", ".join(weaknesses) if not weaknesses.is_empty() else "なし"
+		var resist_str: String = ", ".join(resists) if not resists.is_empty() else "なし"
+		_label_detail_related_header.text = "弱点 / 耐性"
+		_label_detail_related_header.visible = true
+		_label_detail_related.text = "弱: %s  耐: %s" % [weak_str, resist_str]
+		_label_detail_related.visible = true
 
 func _apply_bible_fields_discovered(entry: Dictionary) -> void:
 	match _current_category:

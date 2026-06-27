@@ -23,3 +23,7 @@ element_weakness = Array[String](["fire"])
 element_resist = Array[String]([])
 on_hit_status_id = ""
 on_hit_status_chance = 0.0
+codex_class = "獣類"
+codex_danger = 2
+codex_habitat = "地下水路"
+codex_research_note = "群れを成して行動する。縄張りへの侵入を即座に察知し、複数で対象を追い詰める。火に弱く、明るい場所を忌避する傾向がある。"

@@ -21,6 +21,7 @@ func start_combat(enemy_data: Resource) -> void:
 	current_enemy_hp = enemy_data.max_hp
 	last_exp_reward = 0
 	last_gold_reward = 0
+	GameState.mark_enemy_seen(enemy_data.id)
 	_init_party_hp()
 
 func end_combat() -> void:

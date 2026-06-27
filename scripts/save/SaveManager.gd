@@ -13,6 +13,7 @@ func save_game() -> void:
 		"inventory": _serialize_inventory(),
 		"armor_inventory": _serialize_armor_inventory(),
 		"accessory_inventory": _serialize_accessory_inventory(),
+		"enemy_codex": _serialize_enemy_codex(),
 	}
 	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file == null:
@@ -32,6 +33,16 @@ func load_game() -> void:
 	if not result is Dictionary:
 		return
 	_apply_save_data(result)
+
+func _serialize_enemy_codex() -> Dictionary:
+	var out: Dictionary = {}
+	for enemy_id in GameState.enemy_codex:
+		var entry: Dictionary = GameState.enemy_codex[enemy_id]
+		out[enemy_id] = {
+			"seen": bool(entry.get("seen", false)),
+			"kills": int(entry.get("kills", 0)),
+		}
+	return out
 
 func _serialize_party() -> Array:
 	var out: Array = []
@@ -115,6 +126,16 @@ func _apply_save_data(data: Dictionary) -> void:
 		if not (party_result["members"] as Array).is_empty():
 			GameState.party_members = party_result["members"]
 			_resolve_party_equipment(party_result["equipment_ids"])
+	if data.has("enemy_codex") and data["enemy_codex"] is Dictionary:
+		var codex: Dictionary = {}
+		for enemy_id in data["enemy_codex"]:
+			var entry = data["enemy_codex"][enemy_id]
+			if entry is Dictionary:
+				codex[str(enemy_id)] = {
+					"seen": bool(entry.get("seen", false)),
+					"kills": int(entry.get("kills", 0)),
+				}
+		GameState.enemy_codex = codex
 	_migrate_legacy_global_equipment(data)
 
 const _DUNGEON_MIGRATION: Dictionary = {

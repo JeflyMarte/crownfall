@@ -96,13 +96,18 @@ func _build_enemy_entries() -> Array:
 	for data in DataRegistry.get_all_enemy_data():
 		if data == null or data.id.is_empty():
 			continue
-		entries.append(_make_entry(
-			data.id,
-			data.display_name,
-			"",
-			"",
-			"enemy"
-		))
+		var stage: int = GameState.get_enemy_stage(data.id)
+		entries.append({
+			"id": data.id,
+			"display_name": data.display_name if stage >= 2 else UNKNOWN_DISPLAY,
+			"stage": stage,
+			"codex_class": data.codex_class,
+			"codex_danger": data.codex_danger,
+			"codex_habitat": data.codex_habitat,
+			"element_weakness": data.element_weakness.duplicate(),
+			"element_resist": data.element_resist.duplicate(),
+			"codex_research_note": data.codex_research_note,
+		})
 	return entries
 
 func _build_dungeon_entries() -> Array:

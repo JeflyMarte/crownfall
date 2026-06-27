@@ -23,3 +23,7 @@ element_weakness = Array[String](["thunder", "holy"])
 element_resist = Array[String](["dark"])
 on_hit_status_id = "bleed"
 on_hit_status_chance = 0.2
+codex_class = "古代種"
+codex_danger = 5
+codex_habitat = "モーンゲート最深層"
+codex_research_note = "モーンゲートの最深部に潜む古代生物。水晶質の外骨格と怒涛の体当たりが脅威。討伐に成功した探索者はごく少数。"

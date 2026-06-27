@@ -1027,6 +1027,8 @@ func _calc_enemy_damage_to_member(target_index: int) -> Dictionary:
 func _handle_enemy_defeated() -> void:
 	$CombatTimer.stop()
 	$CombatController.capture_rewards()
+	if $CombatController.current_enemy_data != null:
+		GameState.add_enemy_kill($CombatController.current_enemy_data.id)
 	var exp: int = $CombatController.last_exp_reward
 	var gold: int = $CombatController.last_gold_reward
 	var mult: float = $DungeonController.get_reward_multiplier()

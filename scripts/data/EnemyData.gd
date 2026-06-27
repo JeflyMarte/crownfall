@@ -20,3 +20,7 @@ extends Resource
 @export var element_resist: Array[String] = []
 @export var on_hit_status_id: String = ""
 @export var on_hit_status_chance: float = 0.0
+@export var codex_class: String = ""
+@export var codex_danger: int = 0
+@export var codex_habitat: String = ""
+@export_multiline var codex_research_note: String = ""

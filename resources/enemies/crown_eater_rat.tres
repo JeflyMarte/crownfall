@@ -23,3 +23,7 @@ element_weakness = Array[String](["fire"])
 element_resist = Array[String]([])
 on_hit_status_id = ""
 on_hit_status_chance = 0.0
+codex_class = "獣類"
+codex_danger = 1
+codex_habitat = "廃棄物集積路"
+codex_research_note = "王冠型の頭部装飾を持つ大型ネズミ。素早い動きで隙を突く。かつての王族の装飾品を巣材にすることで知られる。"

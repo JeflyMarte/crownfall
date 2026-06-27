@@ -192,6 +192,44 @@ func set_event_helper(adv: Resource) -> void:
 func clear_event_helper() -> void:
 	event_helper = null
 
+# ---- 生態図鑑進捗（P3-CODEX5-001） ----
+const STAGE4_KILLS: int = 3
+const STAGE5_KILLS: int = 6
+
+var enemy_codex: Dictionary = {}
+
+func mark_enemy_seen(enemy_id: String) -> void:
+	if enemy_id.is_empty():
+		return
+	if not enemy_codex.has(enemy_id):
+		enemy_codex[enemy_id] = {"seen": true, "kills": 0}
+	else:
+		enemy_codex[enemy_id]["seen"] = true
+
+func add_enemy_kill(enemy_id: String) -> void:
+	if enemy_id.is_empty():
+		return
+	if not enemy_codex.has(enemy_id):
+		enemy_codex[enemy_id] = {"seen": true, "kills": 1}
+	else:
+		enemy_codex[enemy_id]["seen"] = true
+		enemy_codex[enemy_id]["kills"] = int(enemy_codex[enemy_id].get("kills", 0)) + 1
+
+func get_enemy_stage(enemy_id: String) -> int:
+	if not enemy_codex.has(enemy_id):
+		return 1
+	var entry: Dictionary = enemy_codex[enemy_id]
+	var kills: int = int(entry.get("kills", 0))
+	if kills >= STAGE5_KILLS:
+		return 5
+	if kills >= STAGE4_KILLS:
+		return 4
+	if kills >= 1:
+		return 3
+	if bool(entry.get("seen", false)):
+		return 2
+	return 1
+
 func add_material(material_id: String, amount: int = 1) -> void:
 	if material_id.is_empty() or amount <= 0:
 		return
