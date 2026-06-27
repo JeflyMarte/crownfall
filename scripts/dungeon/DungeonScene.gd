@@ -27,7 +27,7 @@ const CHR_SPRITE_MAP: Dictionary = {
 	"beast_tamer": "res://resources/animation/CHR_BeastTamer.tres",
 }
 const BATTLE_BG_MAP: Dictionary = {
-	"mourngate": "res://assets/dungeon/graveyard/batch7/BG_Battle_Graveyard_v2.png",
+	"mourngate": "res://assets/dungeon/mourngate/env/BG_Battle_Mourngate.png",
 }
 const STATUS_ICON_DEF: Dictionary = {
 	"poison": {"abbrev": "毒", "color": Color(0.25, 0.75, 0.3)},
@@ -1438,8 +1438,7 @@ func _play_boss_animation(anim: String) -> void:
 
 # ---- Room Art ----
 
-const _BATCH3: String = "res://assets/dungeon/royal_ruins/batch3/"
-const _BATCH7: String = "res://assets/dungeon/graveyard/batch7/"
+const _MG_ENV: String = "res://assets/dungeon/mourngate/env/"
 
 func _update_room_art() -> void:
 	var room_type: int = $DungeonController.current_room_type
@@ -1450,11 +1449,9 @@ func _update_room_art() -> void:
 	_set_room_texture(_room_tile_bg, bg_path)
 	var obj_path: String = ""
 	if room_type == Enums.RoomType.TREASURE:
-		obj_path = (_BATCH7 + "OBJ_TreasureChest_Open.png") if dungeon_id == "graveyard" \
-			else (_BATCH3 + "OBJ_TreasureChest_Closed.png")
+		obj_path = _MG_ENV + "OBJ_TreasureChest_Open.png"
 	elif room_type == Enums.RoomType.EXIT:
-		obj_path = (_BATCH7 + "OBJ_ExitGate_Graveyard.png") if dungeon_id == "graveyard" \
-			else (_BATCH3 + "OBJ_ExitGate_RoyalRuins.png")
+		obj_path = _MG_ENV + "OBJ_ExitGate_Mourngate.png"
 	_set_room_texture(_room_object, obj_path)
 
 func _set_room_texture(node: TextureRect, path: String) -> void:
