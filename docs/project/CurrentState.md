@@ -4,7 +4,7 @@
 
 ## Last Update
 
-2026-06-27（**世界観 cutover** — lore SSOT を `docs/specs/world/`（12 文書）へ移行 / P3-D041b。旧 `game/29`〜`37` 削除、`33_EcologyCodex` のみ存置）
+2026-06-28（**Phase 3-B' システム実装 進行**: ガチャ/ロスター・ジョブ進化・スプライト取り込み・ダンジョン全自動化(P3-D053)・中ボス廃止(P3-D054)・敵攻撃/被弾アニメ配線・助っ人targeting修正）
 
 ---
 
@@ -75,7 +75,27 @@ ProjectDocs **v3.6.0**
 | P3-B-004 | 地下工廠プレイアブル追加 | **完了**（オーナー GO） |
 | P3-B-005 | 地下工廠バランス初調整 | **完了**（オーナー GO） |
 | P3-D026〜033 | 世界観刷新 Postwar Ecology（文書反映） | **完了**（Bible 29〜36 新設・既存 spec 同期） |
-| OD-UI-003 | レベル制 | HQ 保留 |
+| P3-D035a | レベル制（共有EXP/Lv20/HP+ATK成長/セーブ） | **完了** |
+| P3-D036a | 助っ人（戦闘 編成3+助っ人固定枠1 / イベント助っ人） | **完了** |
+| P3-D036b | 助っ人ガチャ/ロスター（A〜D・gacha_token・天井・編成入替） | **完了**（smoke PASS） |
+| P3-D037/052 | ジョブ進化（is_evolved・ギルド認定Lv10・専門深化×1.3） | **完了** |
+| — | 敵6体＋主人公(swordsman)スプライト取り込み（96px/14コマ・LANCZOS） | **完了** |
+| P3-D053 | ダンジョン進行 全自動化（分岐撤廃・自動進行・x1/x2/pause・EXIT自動リザルト） | **完了**（承認済） |
+| P3-D054 | 中ボス(MID_BOSS)廃止（ROOM_SEQUENCE[7]=COMBAT・列挙値温存） | **完了**（承認済） |
+| — | 敵 attack/hurt アニメ配線（idle復帰接続・ボス対応） | **完了** |
+| — | 助っ人 targeting 修正（event_helper を狙撃対象外） | **完了** |
+| P3-Cleanup-001 | 旧graveyard残骸一掃＋mourngate env改称＋部屋オブジェ修正 | **Claude発行済・報告待ち** |
+| OD-UI-003 | レベル制 | **完了**（P3-D035a） |
+
+### 残スケジュール（Phase 3-B' システム完成まで）
+
+1. P3-Cleanup-001 完了確認（graveyard一掃）
+2. **残り2ジョブ**（ヴァンガード/ビーストテイマー）← 次の推奨
+3. Ecology Codex 5段階調査（P3-D051 a〜e）完成
+4. 武器クラフト有効化（防具/装飾は実装済）
+5. → システム完成 → Phase 3-A ポリッシュ（本番UI 003系 / 本番ドット絵量産 C案）
+
+> アート並行（オーナーレーン）: 残り4ジョブのドット絵（ranger/alchemist/vanguard/beast_tamer）。swordsman 取り込み済。
 
 ### 世界観刷新（Postwar Ecology — 2026-06-26）
 
@@ -111,8 +131,8 @@ ProjectDocs **v3.6.0**
 | 聖属性武器 | ~~未実装~~ → **sanctified_dagger**（P3-HW-001） |
 | タンク fantasy | ~~ランダム被弾~~ → 簡易ヘイト（P3-TH-001） |
 | ラン中介入 | Alpha=準備専用（P3-D024a）。方針切替は Phase 2 |
-| 助っ人 targeting | 助っ人ソードマンがヘイト優先で狙われ実質無敵タンク化（全滅対象外）。後続で targeting から除外（P3-D036） |
-| mourngate アセット依存 | 戦闘BG・宝箱・出口ゲートが退役済 `graveyard`/`royal_ruins` の PNG を流用。敵 `.tres` は `crystal_hedgehog` 以外プレースホルダ（旧シート参照）。オーナー作画＋推進チャットで差し替え予定（ビルドは現状 PASS） |
+| 助っ人 targeting | ~~ヘイト優先で狙われ無敵タンク化~~ → **解消**: `pick_enemy_target_member_index` で event_helper を狙撃対象から完全除外（メイン編成のみ標的） |
+| mourngate アセット依存 | 敵6体＋swordsman は本番ドット絵取り込み済。残4ジョブは旧32px placeholder（オーナー作画待ち）。環境アート（BG/タイル/オブジェ）は旧 `graveyard` 命名のまま流用 → P3-Cleanup-001 で mourngate env へ改称予定（報告待ち） |
 
 ---
 
