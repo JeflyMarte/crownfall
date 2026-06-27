@@ -94,6 +94,13 @@ func clear_item_from_other_members(item: Resource, keep_member_index: int) -> vo
 		if member.equipped_accessory == item:
 			member.equipped_accessory = null
 
+# 新規ゲーム時にジョブごとへ付与する初期武器 { job_id: weapon_id }
+const STARTING_WEAPON_BY_JOB: Dictionary = {
+	"swordsman": "iron_sword",
+	"ranger": "hunting_bow",
+	"alchemist": "apprentice_staff",
+}
+
 func _ready() -> void:
 	_init_party()
 
@@ -120,6 +127,42 @@ func _init_party() -> void:
 	alchemist.base_stats = stats_class.new()
 
 	party_members = [swordsman, ranger, alchemist]
+	_grant_starting_equipment()
+
+# 初期武器を生成し、inventory に登録した上で装備させる。
+# 装備品が inventory に存在することは SaveManager の装備復元（instance_id 解決）の前提。
+func _grant_starting_equipment() -> void:
+	for member in party_members:
+		if member == null or member.equipped_weapon != null:
+			continue
+		var weapon_id: String = str(STARTING_WEAPON_BY_JOB.get(member.job_id, ""))
+		if weapon_id.is_empty():
+			continue
+		var instance: Resource = _create_starting_weapon(weapon_id)
+		if instance == null:
+			continue
+		inventory.append(instance)
+		member.equipped_weapon = instance
+
+func _create_starting_weapon(weapon_id: String) -> Resource:
+	var weapon_data: Resource = DataRegistry.get_weapon_data(weapon_id)
+	if weapon_data == null:
+		return null
+	var instance_class = load("res://scripts/domain/WeaponInstance.gd")
+	if instance_class == null:
+		return null
+	var instance = instance_class.new()
+	instance.instance_id = "starting_" + weapon_id
+	instance.weapon_id = weapon_id
+	instance.is_appraised = true
+	instance.rolled_attack = weapon_data.base_attack
+	instance.attack_speed = weapon_data.base_attack_speed
+	instance.critical_rate = weapon_data.base_critical_rate
+	instance.knockback = weapon_data.base_knockback
+	instance.stagger_power = weapon_data.base_stagger_power
+	instance.attack_range = weapon_data.base_attack_range
+	instance.weight = weapon_data.weight
+	return instance
 
 func add_material(material_id: String, amount: int = 1) -> void:
 	if material_id.is_empty() or amount <= 0:
