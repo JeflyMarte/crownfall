@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MaterialData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/MaterialData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "royal_gold_incisor"
+display_name = "王金の門歯"
+description = "金属を削るほど硬い前歯。武器・工具素材。"
+rarity = 0
+icon = ""
+category = "fang"
+value = 26
+lore_id = ""

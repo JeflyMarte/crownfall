@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MaterialData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/MaterialData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "gem_gastrolith"
+display_name = "宝石胃石"
+description = "宝石を磨き続けてできた鉱石。換金・装飾品素材。"
+rarity = 1
+icon = ""
+category = "gem"
+value = 40
+lore_id = ""

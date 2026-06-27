@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MaterialData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/MaterialData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "crystal_core"
+display_name = "晶核"
+description = "魔力を蓄える結晶核。魔法武器やアクセサリー素材。"
+rarity = 1
+icon = ""
+category = "crystal_core"
+value = 35
+lore_id = ""

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MaterialData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/MaterialData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "clockwing_feather"
+display_name = "時針羽"
+description = "歯車状の羽。時間魔法や風属性装備の素材。"
+rarity = 0
+icon = ""
+category = "feather"
+value = 24
+lore_id = ""

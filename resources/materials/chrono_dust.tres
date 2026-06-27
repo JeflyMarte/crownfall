@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MaterialData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/MaterialData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "chrono_dust"
+display_name = "時鱗粉"
+description = "羽から舞う銀色の鱗粉。錬金術や魔法触媒に使われる。"
+rarity = 0
+icon = ""
+category = "dust"
+value = 26
+lore_id = ""

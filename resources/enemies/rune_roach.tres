@@ -27,3 +27,4 @@ codex_class = "昆虫類"
 codex_danger = 2
 codex_habitat = "廃墟・岩壁"
 codex_research_note = "甲殻にルーン状の模様を持つ大型昆虫。防御力が高く暗所での索敵に長ける。炎には弱いが闇系の干渉を受け付けない。"
+codex_materials = Array[String](["engraved_carapace", "magic_antenna"])

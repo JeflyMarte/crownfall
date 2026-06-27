@@ -171,7 +171,18 @@ func _apply_enemy_stage_fields(entry: Dictionary) -> void:
 		_label_detail_extra_b.text = "生息地: %s" % codex_habitat
 		_label_detail_extra_b.visible = true
 		_label_detail_overview_header.text = "調査記録:"
-		_label_detail_description.text = str(entry.get("codex_research_note", ""))
+		var research_note: String = str(entry.get("codex_research_note", ""))
+		var mat_ids: Array = entry.get("codex_materials", [])
+		if not mat_ids.is_empty():
+			var mat_parts: PackedStringArray = []
+			for mat_id in mat_ids:
+				var mat_data: Resource = DataRegistry.get_material_data(str(mat_id))
+				var mat_name: String = str(mat_id) if mat_data == null else mat_data.display_name
+				if mat_data != null and int(mat_data.rarity) >= 2:
+					mat_name = "【レア】" + mat_name
+				mat_parts.append(mat_name)
+			research_note += "\n\n採取素材: " + "  /  ".join(mat_parts)
+		_label_detail_description.text = research_note
 	if stage >= 4:
 		var weaknesses: Array = entry.get("element_weakness", [])
 		var resists: Array = entry.get("element_resist", [])

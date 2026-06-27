@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MaterialData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/MaterialData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "magic_antenna"
+display_name = "魔導触角"
+description = "魔力を感知する長い触角。杖や触媒の素材。"
+rarity = 0
+icon = ""
+category = "antenna"
+value = 24
+lore_id = ""

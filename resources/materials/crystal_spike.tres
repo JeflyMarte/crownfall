@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MaterialData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/MaterialData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "crystal_spike"
+display_name = "晶針"
+description = "水晶化した鋭い針。矢・短剣素材。"
+rarity = 0
+icon = ""
+category = "spike"
+value = 22
+lore_id = ""

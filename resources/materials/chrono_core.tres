@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MaterialData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/MaterialData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "chrono_core"
+display_name = "時環核"
+description = "クロックモスの体内で時の魔力を循環させる核。高位装備やアーティファクトの素材。"
+rarity = 2
+icon = ""
+category = "crystal_core"
+value = 80
+lore_id = ""

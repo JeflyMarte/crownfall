@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MaterialData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/MaterialData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "reminiscence_fang"
+display_name = "追憶の牙"
+description = "古い魔力を宿した犬歯。武器強化や装飾品素材。"
+rarity = 0
+icon = ""
+category = "fang"
+value = 22
+lore_id = ""

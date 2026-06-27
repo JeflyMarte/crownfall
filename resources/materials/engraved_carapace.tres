@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MaterialData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/MaterialData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "engraved_carapace"
+display_name = "刻印甲殻"
+description = "古代文字が刻まれた硬い甲殻。防具素材。"
+rarity = 0
+icon = ""
+category = "carapace"
+value = 22
+lore_id = ""

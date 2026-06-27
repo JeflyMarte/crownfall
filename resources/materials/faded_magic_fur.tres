@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MaterialData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/MaterialData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "faded_magic_fur"
+display_name = "褪色した魔毛"
+description = "セピア色の魔力を帯びた毛。防具や衣装素材。"
+rarity = 0
+icon = ""
+category = "fur"
+value = 20
+lore_id = ""

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MaterialData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/MaterialData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "azure_crystal_fang"
+display_name = "蒼晶牙"
+description = "水晶化した竜牙。武器の刃材として非常に硬い。"
+rarity = 1
+icon = ""
+category = "fang"
+value = 48
+lore_id = ""

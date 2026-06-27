@@ -27,3 +27,4 @@ codex_class = "昆虫類"
 codex_danger = 3
 codex_habitat = "地下大空洞"
 codex_research_note = "翅の模様が時計盤に似ていることから命名された大型蛾。神経毒性の鱗粉を散布し、接触した対象の行動を一時的に阻害する。"
+codex_materials = Array[String](["clockwing_feather", "chrono_dust", "resonance_antenna", "chrono_core"])

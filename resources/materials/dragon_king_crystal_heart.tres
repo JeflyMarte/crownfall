@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MaterialData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/MaterialData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "dragon_king_crystal_heart"
+display_name = "竜王晶心"
+description = "セルディオンを動かしていた巨大結晶心臓。伝説級装備・特殊クラフトに使う最高級素材。"
+rarity = 3
+icon = ""
+category = "heart"
+value = 200
+lore_id = ""

@@ -24,3 +24,4 @@ extends Resource
 @export var codex_danger: int = 0
 @export var codex_habitat: String = ""
 @export_multiline var codex_research_note: String = ""
+@export var codex_materials: Array[String] = []

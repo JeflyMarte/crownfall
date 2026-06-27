@@ -107,6 +107,7 @@ func _build_enemy_entries() -> Array:
 			"element_weakness": data.element_weakness.duplicate(),
 			"element_resist": data.element_resist.duplicate(),
 			"codex_research_note": data.codex_research_note,
+			"codex_materials": data.codex_materials.duplicate(),
 		})
 	return entries
 
