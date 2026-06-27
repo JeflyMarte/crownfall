@@ -729,3 +729,16 @@
 | 経済 | Gold用途 / 専用通貨 `gacha_token` / 素材ショップ / クラフト（防具・装飾=実装済、**武器=有効化要**） | 一部 → 完成必須 |
 | 永続 | セーブ移行 | ✅ |
 
+## Ecology Codex 5段階調査 — 段階定義（2026-06-27 — オーナー決定）
+
+**SSOT:** `game/33_EcologyCodex.md`（システム仕様）
+
+| # | 決定事項 | 根拠 |
+|---|---|---|
+| P3-D043 | **Codex を5段階調査制で実装**（現行の発見/未発見2値から移行）。段階制は **enemy（＋boss）のみ**、weapon/dungeon/material/history は2値維持 | 33_EcologyCodex v1.0 |
+| P3-D043a | **段階トリガー**: S1=未遭遇 / S2=戦闘遭遇 / S3=1体撃破 / S4=累計3体撃破 / S5=累計6体撃破（数値は調整可） | 「討伐数」でなく調査の積み重ね |
+| P3-D043b | **段階別開示**: S1=シルエット / S2=名前・イラスト / S3=分類・危険度・生息地 / S4=弱点・耐性・行動傾向 / S5=採取素材・調査記録 | 段階的理解 |
+| P3-D043c | **データモデル**: `GameState.enemy_codex = { enemy_id: {seen:bool, kills:int} }`（セーブ永続）。段階は seen/kills から導出。既存 discovery_registry の "enemy" は seen 扱いへ統合 | 移行容易性 |
+| P3-D043d | **EnemyData 拡張（MVP最小）**: `codex_class:String` / `codex_danger:int(1-5)` / `codex_habitat:String` / `codex_research_note:String(multiline)`。弱点/耐性=既存 element_weakness/resist 流用、素材=既存 drop_table_id 流用。本文テキストは仮置き可（後日 world/文章レビュー側で調整） | 既存6敵に追記 |
+| P3-D043e | **boss は MVP では一般種と同じ5段階**で通す。boss 専用ページ（生態系の役割等）は Future | スコープ最小化 |
+
