@@ -2,10 +2,13 @@ extends Control
 
 func _ready() -> void:
 	$VBoxContainer/ButtonNext.pressed.connect(_on_next_button_pressed)
-	$VBoxContainer/LabelReward.text = "獲得報酬: EXP:%d Gold:%d" % [
+	var reward_text: String = "獲得報酬: EXP:%d Gold:%d" % [
 		GameState.last_run_exp_reward,
 		GameState.last_run_gold_reward,
 	]
+	if GameState.last_run_token_reward > 0:
+		reward_text += " Token:%d" % GameState.last_run_token_reward
+	$VBoxContainer/LabelReward.text = reward_text
 	_update_loot_label()
 	_update_levelup_label()
 
@@ -43,4 +46,7 @@ func _update_loot_label() -> void:
 func _on_next_button_pressed() -> void:
 	$VBoxContainer/ButtonNext.disabled = true
 	GameState.gold += GameState.last_run_gold_reward
+	if GameState.last_run_token_reward > 0:
+		GameState.gacha_token += GameState.last_run_token_reward
+		GameState.last_run_token_reward = 0
 	SceneRouter.change_scene("res://scenes/appraisal/AppraisalScene.tscn")

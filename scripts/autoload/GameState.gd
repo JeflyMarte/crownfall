@@ -3,8 +3,18 @@ extends Node
 # 所持ゴールド（MVP: 鑑定費用のみ消費）
 var gold: int = 0
 
-# 編成中の冒険者リスト（Adventurer Resource × 3）
+# 編成中（アクティブ）の冒険者リスト（Adventurer Resource × 最大3）。roster の部分集合（参照）。
 var party_members: Array = []
+
+# 所持冒険者ロスター（基本5職 + ガチャ入手分）。party_members はここから3名選択（P3-D036b）。
+var roster: Array = []
+
+# ガチャ通貨（無償のみ） — P3-D036b
+var gacha_token: int = 0
+# ガチャ所持数 { helper_id: count }（重複＝凸用カウント。MVP は還元のみ）
+var owned_helpers: Dictionary = {}
+# 天井カウンタ（未所持が出ていない連続抽選回数）
+var gacha_pity: int = 0
 
 # 所持アイテムリスト（WeaponInstance。未鑑定・鑑定済み混在）
 var inventory: Array = []
@@ -26,6 +36,8 @@ var accessory_inventory: Array = []
 
 var last_run_exp_reward: int = 0
 var last_run_gold_reward: int = 0
+# 直近ランで獲得したガチャ token（成功時のみ >0） — P3-D036b-D
+var last_run_token_reward: int = 0
 var last_run_weapon_dropped: String = ""
 var last_run_armor_dropped: String = ""
 var last_run_accessory_dropped: String = ""
@@ -99,52 +111,70 @@ const STARTING_WEAPON_BY_JOB: Dictionary = {
 	"swordsman": "iron_sword",
 	"ranger": "hunting_bow",
 	"alchemist": "apprentice_staff",
+	"vanguard": "iron_sword",
+	"beast_tamer": "hunting_bow",
 }
+
+# 初期ロスター（基本5職）。アクティブ3は先頭3名（P3-D036b-9）。
+const BASE_ROSTER_DEFS: Array = [
+	{"id": "adventurer_0", "name": "ソードマン", "job": "swordsman"},
+	{"id": "adventurer_1", "name": "レンジャー", "job": "ranger"},
+	{"id": "adventurer_2", "name": "アルケミスト", "job": "alchemist"},
+	{"id": "adventurer_3", "name": "ヴァンガード", "job": "vanguard"},
+	{"id": "adventurer_4", "name": "ビーストテイマー", "job": "beast_tamer"},
+]
+const ACTIVE_PARTY_SIZE: int = 3
 
 func _ready() -> void:
 	_init_party()
 
 func _init_party() -> void:
-	var adventurer_class = load("res://scripts/domain/Adventurer.gd")
-	var stats_class = load("res://scripts/domain/Stats.gd")
-
-	var swordsman = adventurer_class.new()
-	swordsman.id = "adventurer_0"
-	swordsman.display_name = "ソードマン"
-	swordsman.job_id = "swordsman"
-	swordsman.base_stats = stats_class.new()
-
-	var ranger = adventurer_class.new()
-	ranger.id = "adventurer_1"
-	ranger.display_name = "レンジャー"
-	ranger.job_id = "ranger"
-	ranger.base_stats = stats_class.new()
-
-	var alchemist = adventurer_class.new()
-	alchemist.id = "adventurer_2"
-	alchemist.display_name = "アルケミスト"
-	alchemist.job_id = "alchemist"
-	alchemist.base_stats = stats_class.new()
-
-	party_members = [swordsman, ranger, alchemist]
+	roster = []
+	for def in BASE_ROSTER_DEFS:
+		roster.append(_create_base_adventurer(def))
+	party_members = []
+	for i in mini(ACTIVE_PARTY_SIZE, roster.size()):
+		party_members.append(roster[i])
 	_grant_starting_equipment()
 
-# 初期武器を生成し、inventory に登録した上で装備させる。
+func _create_base_adventurer(def: Dictionary) -> Resource:
+	var adventurer_class = load("res://scripts/domain/Adventurer.gd")
+	var stats_class = load("res://scripts/domain/Stats.gd")
+	var adv = adventurer_class.new()
+	adv.id = str(def["id"])
+	adv.display_name = str(def["name"])
+	adv.job_id = str(def["job"])
+	adv.base_stats = stats_class.new()
+	return adv
+
+# 初期武器を生成し、inventory に登録した上で装備させる（ロスター全員分）。
 # 装備品が inventory に存在することは SaveManager の装備復元（instance_id 解決）の前提。
 func _grant_starting_equipment() -> void:
-	for member in party_members:
-		if member == null or member.equipped_weapon != null:
-			continue
-		var weapon_id: String = str(STARTING_WEAPON_BY_JOB.get(member.job_id, ""))
-		if weapon_id.is_empty():
-			continue
-		var instance: Resource = _create_starting_weapon(weapon_id)
-		if instance == null:
-			continue
-		inventory.append(instance)
-		member.equipped_weapon = instance
+	for member in roster:
+		_grant_member_starting_weapon(member)
 
-func _create_starting_weapon(weapon_id: String) -> Resource:
+func _grant_member_starting_weapon(member: Resource) -> void:
+	if member == null or member.equipped_weapon != null:
+		return
+	var weapon_id: String = str(STARTING_WEAPON_BY_JOB.get(member.job_id, ""))
+	if weapon_id.is_empty():
+		return
+	var instance: Resource = _create_starting_weapon(member.id, weapon_id)
+	if instance == null:
+		return
+	inventory.append(instance)
+	member.equipped_weapon = instance
+
+# 旧セーブ復元時など、ロスターに欠けている基本職を補完する（武器も付与）。
+func ensure_base_roster_complete() -> void:
+	for def in BASE_ROSTER_DEFS:
+		if find_roster_member_by_id(str(def["id"])) != null:
+			continue
+		var adv: Resource = _create_base_adventurer(def)
+		roster.append(adv)
+		_grant_member_starting_weapon(adv)
+
+func _create_starting_weapon(member_id: String, weapon_id: String) -> Resource:
 	var weapon_data: Resource = DataRegistry.get_weapon_data(weapon_id)
 	if weapon_data == null:
 		return null
@@ -152,7 +182,7 @@ func _create_starting_weapon(weapon_id: String) -> Resource:
 	if instance_class == null:
 		return null
 	var instance = instance_class.new()
-	instance.instance_id = "starting_" + weapon_id
+	instance.instance_id = "starting_" + member_id + "_" + weapon_id
 	instance.weapon_id = weapon_id
 	instance.is_appraised = true
 	instance.rolled_attack = weapon_data.base_attack
@@ -246,4 +276,37 @@ func consume_materials(required_materials: Dictionary) -> bool:
 	for mat_id in required_materials:
 		material_inventory[mat_id] = get_material_quantity(mat_id) - int(required_materials[mat_id])
 	print("[GameState] consume_materials: ", required_materials)
+	return true
+
+# ---- ロスター / 編成（P3-D036b） ----
+
+func get_roster() -> Array:
+	return roster
+
+func is_member_active(adv: Resource) -> bool:
+	return adv != null and party_members.has(adv)
+
+func add_roster_member(adv: Resource) -> void:
+	if adv != null and not roster.has(adv):
+		roster.append(adv)
+
+func find_roster_member_by_id(member_id: String) -> Resource:
+	if member_id.is_empty():
+		return null
+	for adv in roster:
+		if adv != null and str(adv.id) == member_id:
+			return adv
+	return null
+
+# アクティブ編成を更新。members は roster 内 Adventurer の配列（1〜ACTIVE_PARTY_SIZE）。
+# 無効（roster外/重複/数超過/空）なら false で現状維持。
+func set_active_party(members: Array) -> bool:
+	if members.is_empty() or members.size() > ACTIVE_PARTY_SIZE:
+		return false
+	var seen: Array = []
+	for adv in members:
+		if adv == null or not roster.has(adv) or seen.has(adv):
+			return false
+		seen.append(adv)
+	party_members = members.duplicate()
 	return true

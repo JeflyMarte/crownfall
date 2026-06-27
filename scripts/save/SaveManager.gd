@@ -5,7 +5,8 @@ const SAVE_PATH: String = "user://save_data.json"
 func save_game() -> void:
 	var data: Dictionary = {
 		"gold": GameState.gold,
-		"party": _serialize_party(),
+		"roster": _serialize_roster(),
+		"active_party_ids": _serialize_active_party_ids(),
 		"dungeon_progress": GameState.dungeon_progress,
 		"current_dungeon_id": GameState.current_dungeon_id,
 		"discovery_registry": GameState.discovery_registry,
@@ -14,6 +15,9 @@ func save_game() -> void:
 		"armor_inventory": _serialize_armor_inventory(),
 		"accessory_inventory": _serialize_accessory_inventory(),
 		"enemy_codex": _serialize_enemy_codex(),
+		"gacha_token": GameState.gacha_token,
+		"gacha_pity": GameState.gacha_pity,
+		"owned_helpers": GameState.owned_helpers.duplicate(),
 	}
 	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file == null:
@@ -44,10 +48,17 @@ func _serialize_enemy_codex() -> Dictionary:
 		}
 	return out
 
-func _serialize_party() -> Array:
+func _serialize_roster() -> Array:
+	var out: Array = []
+	for member in GameState.roster:
+		out.append(_serialize_adventurer(member))
+	return out
+
+func _serialize_active_party_ids() -> Array:
 	var out: Array = []
 	for member in GameState.party_members:
-		out.append(_serialize_adventurer(member))
+		if member != null:
+			out.append(str(member.id))
 	return out
 
 func _serialize_adventurer(adv: Resource) -> Dictionary:
@@ -66,6 +77,7 @@ func _serialize_adventurer(adv: Resource) -> Dictionary:
 		"level": adv.level,
 		"exp": adv.exp,
 		"job_id": adv.job_id,
+		"is_evolved": adv.is_evolved,
 		"base_stats": _serialize_stats(adv.base_stats),
 		"equipped_weapon": weapon_instance_id,
 		"equipped_armor": armor_instance_id,
@@ -121,11 +133,8 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.armor_inventory = _deserialize_armor_inventory(data["armor_inventory"])
 	if data.has("accessory_inventory") and data["accessory_inventory"] is Array:
 		GameState.accessory_inventory = _deserialize_accessory_inventory(data["accessory_inventory"])
-	if data.has("party") and data["party"] is Array:
-		var party_result: Dictionary = _deserialize_party(data["party"])
-		if not (party_result["members"] as Array).is_empty():
-			GameState.party_members = party_result["members"]
-			_resolve_party_equipment(party_result["equipment_ids"])
+	_apply_roster_save(data)
+	_apply_gacha_save(data)
 	if data.has("enemy_codex") and data["enemy_codex"] is Dictionary:
 		var codex: Dictionary = {}
 		for enemy_id in data["enemy_codex"]:
@@ -186,6 +195,7 @@ func _deserialize_party(party_data: Array) -> Dictionary:
 		adv.level = int(entry.get("level", 1))
 		adv.exp = int(entry.get("exp", 0))
 		adv.job_id = _migrate_job_id(entry.get("job_id", ""))
+		adv.is_evolved = bool(entry.get("is_evolved", false))
 		var stats = stats_class.new()
 		var sd = entry.get("base_stats", {})
 		if sd is Dictionary:
@@ -205,11 +215,52 @@ func _deserialize_party(party_data: Array) -> Dictionary:
 		})
 	return {"members": members, "equipment_ids": equipment_ids}
 
-func _resolve_party_equipment(equipment_ids: Array) -> void:
-	for i in GameState.party_members.size():
+# roster + アクティブ編成の復元（P3-D036b）。旧 "party" のみのセーブも互換復元する。
+func _apply_roster_save(data: Dictionary) -> void:
+	var roster_key: String = "roster" if data.has("roster") and data["roster"] is Array else ""
+	if roster_key.is_empty() and data.has("party") and data["party"] is Array:
+		roster_key = "party"
+	if roster_key.is_empty():
+		return
+	var result: Dictionary = _deserialize_party(data[roster_key])
+	var members: Array = result["members"]
+	if members.is_empty():
+		return
+	GameState.roster = members
+	_resolve_equipment_for(members, result["equipment_ids"])
+	# 欠落基本職を補完（旧セーブ＝3名のみのケースで vanguard/beast_tamer を追加）
+	GameState.ensure_base_roster_complete()
+	_restore_active_party(data)
+
+func _restore_active_party(data: Dictionary) -> void:
+	var active: Array = []
+	if data.has("active_party_ids") and data["active_party_ids"] is Array:
+		for raw_id in data["active_party_ids"]:
+			var m: Resource = GameState.find_roster_member_by_id(str(raw_id))
+			if m != null and not active.has(m):
+				active.append(m)
+	if active.is_empty():
+		var limit: int = mini(GameState.ACTIVE_PARTY_SIZE, GameState.roster.size())
+		for i in limit:
+			active.append(GameState.roster[i])
+	GameState.party_members = active
+
+func _apply_gacha_save(data: Dictionary) -> void:
+	if data.has("gacha_token"):
+		GameState.gacha_token = int(data["gacha_token"])
+	if data.has("gacha_pity"):
+		GameState.gacha_pity = int(data["gacha_pity"])
+	if data.has("owned_helpers") and data["owned_helpers"] is Dictionary:
+		var oh: Dictionary = {}
+		for k in data["owned_helpers"]:
+			oh[str(k)] = int(data["owned_helpers"][k])
+		GameState.owned_helpers = oh
+
+func _resolve_equipment_for(members: Array, equipment_ids: Array) -> void:
+	for i in members.size():
 		if i >= equipment_ids.size():
 			continue
-		var member: Resource = GameState.party_members[i]
+		var member: Resource = members[i]
 		if member == null:
 			continue
 		var ids: Dictionary = equipment_ids[i]
