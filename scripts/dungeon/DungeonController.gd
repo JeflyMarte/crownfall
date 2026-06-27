@@ -102,6 +102,14 @@ const EVENTS_MOURNGATE: Array = [
 		"outcome_a": {"type": "lore", "label": "ルーンの甲殻", "discovery_id": "mourngate_rune_shell"},
 		"outcome_b": {"type": "nothing"},
 	},
+	{
+		"id": "mourngate_temp_companion",
+		"description": "負傷した探索者が壁に寄りかかっている。「もう少しだけ戦える」と同行を申し出てきた。",
+		"choice_a": "同行を許可する",
+		"choice_b": "断る",
+		"outcome_a": {"type": "event_helper"},
+		"outcome_b": {"type": "nothing"},
+	},
 ]
 
 var current_dungeon_data: Resource = null

@@ -60,6 +60,7 @@ var _request_scroll_to_bottom: bool = false
 @onready var _chr_sprite_0: AnimatedSprite2D = $ChrSprite0
 @onready var _chr_sprite_1: AnimatedSprite2D = $ChrSprite1
 @onready var _chr_sprite_2: AnimatedSprite2D = $ChrSprite2
+@onready var _chr_sprite_3: AnimatedSprite2D = $ChrSprite3
 
 @onready var _battle_log_scroll: ScrollContainer = $MainVBox/BattleLogPanel/BattleLogScroll
 @onready var _battle_log_content: VBoxContainer = $MainVBox/BattleLogPanel/BattleLogScroll/BattleLogContent
@@ -85,6 +86,7 @@ var _request_scroll_to_bottom: bool = false
 @onready var _hp_bar_chr0: ProgressBar = $HpBarChr0
 @onready var _hp_bar_chr1: ProgressBar = $HpBarChr1
 @onready var _hp_bar_chr2: ProgressBar = $HpBarChr2
+@onready var _hp_bar_chr3: ProgressBar = $HpBarChr3
 @onready var _hp_bar_enemy: ProgressBar = $HpBarEnemy
 
 var _chr_sprites: Array[AnimatedSprite2D] = []
@@ -114,8 +116,8 @@ func _ready() -> void:
 	EventBus.weapon_obtained.connect(_on_weapon_obtained)
 	_hit_vfx_sprite.animation_finished.connect(func(): _hit_vfx_sprite.visible = false)
 	_heal_vfx_sprite.animation_finished.connect(func(): _heal_vfx_sprite.visible = false)
-	_chr_sprites = [_chr_sprite_0, _chr_sprite_1, _chr_sprite_2]
-	_chr_hp_bars = [_hp_bar_chr0, _hp_bar_chr1, _hp_bar_chr2]
+	_chr_sprites = [_chr_sprite_0, _chr_sprite_1, _chr_sprite_2, _chr_sprite_3]
+	_chr_hp_bars = [_hp_bar_chr0, _hp_bar_chr1, _hp_bar_chr2, _hp_bar_chr3]
 	_init_status_icon_rows()
 	for sprite: AnimatedSprite2D in _chr_sprites:
 		sprite.animation_finished.connect(func():
@@ -570,6 +572,24 @@ func _resolve_event_choice(choice_index: int) -> void:
 			var lore_id: String = outcome.get("discovery_id", "unknown_lore")
 			log_text = "%s を記録した（Codexは将来実装）" % outcome.get("label", "碑文")
 			_try_register_discovery("lore", lore_id)
+		"event_helper":
+			var job_ids: Array = ["swordsman", "ranger", "alchemist"]
+			var job_names: Dictionary = {
+				"swordsman": "ソードマン",
+				"ranger": "レンジャー",
+				"alchemist": "アルケミスト",
+			}
+			var job_id: String = job_ids[randi() % job_ids.size()]
+			var adv_class: Script = load("res://scripts/domain/Adventurer.gd")
+			var stats_class: Script = load("res://scripts/domain/Stats.gd")
+			var helper: Resource = adv_class.new()
+			helper.id = "event_helper"
+			helper.job_id = job_id
+			helper.display_name = str(job_names.get(job_id, job_id))
+			helper.base_stats = stats_class.new()
+			helper.level = 1
+			GameState.set_event_helper(helper)
+			log_text = "%s が一時的に同行を申し出た" % helper.display_name
 		_:
 			log_text = "何も起こらなかった"
 	_set_narrative(log_text)
@@ -685,7 +705,7 @@ func _do_party_attack() -> void:
 	var total_dmg: int = 0
 	var crit_hit: bool = false
 	var elem_tag: String = ""
-	for i in GameState.party_members.size():
+	for i in GameState.combatant_count():
 		if not $CombatController.is_member_alive(i):
 			continue
 		var result: Dictionary = _calc_damage(i)
@@ -920,9 +940,10 @@ func _do_enemy_attack() -> void:
 		_spawn_damage_number(str(enemy_result["final"]), _chr_sprites[target_idx].global_position, Color(1.0, 0.35, 0.35))
 	if not $CombatController.is_member_alive(target_idx) and target_idx < _chr_sprites.size():
 		_chr_sprites[target_idx].visible = false
-	var member_name: String = GameState.party_members[target_idx].display_name
+	var target_combatant: Resource = GameState.get_combatant(target_idx)
+	var member_name: String = target_combatant.display_name if target_combatant != null else "?"
 	var guard_prefix: String = ""
-	if target_idx < GameState.party_members.size() and GameState.party_members[target_idx].job_id == "swordsman":
+	if target_combatant != null and target_combatant.job_id == "swordsman" and not GameState.is_helper_combatant(target_idx):
 		guard_prefix = "[前衛] "
 	var log_text: String
 	if enemy_result["mitigated"] > 0:
@@ -957,7 +978,8 @@ func _try_apply_enemy_hit_status(target_idx: int) -> void:
 	var label: String = enemy_data.on_hit_status_id
 	if effect != null:
 		label = effect.display_name
-	var member_name: String = GameState.party_members[target_idx].display_name
+	var hit_target: Resource = GameState.get_combatant(target_idx)
+	var member_name: String = hit_target.display_name if hit_target != null else "?"
 	_append_log("[%s] %s に付与" % [label, member_name])
 
 func _calc_damage(member_index: int = -1) -> Dictionary:
@@ -1061,6 +1083,7 @@ func _handle_party_wipe() -> void:
 	await get_tree().create_timer(2.0).timeout
 	if not is_inside_tree():
 		return
+	GameState.clear_event_helper()
 	SceneRouter.change_scene("res://scenes/result/ResultScene.tscn")
 
 func _apply_healing_bonus(base_amount: int) -> int:
@@ -1165,6 +1188,7 @@ func _on_finish_button_pressed() -> void:
 	GameState.last_run_armor_dropped = $DungeonController.last_armor_dropped
 	if not $DungeonController.last_accessory_dropped.is_empty():
 		GameState.last_run_accessory_dropped = $DungeonController.last_accessory_dropped
+	GameState.clear_event_helper()
 	SceneRouter.change_scene("res://scenes/result/ResultScene.tscn")
 
 # ---- Menu Overlay ----
@@ -1247,15 +1271,15 @@ func _play_enemy_animation(anim: String) -> void:
 func _show_chr_sprites() -> void:
 	if OS.is_debug_build():
 		var jobs: Array = GameState.party_members.map(func(m): return m.job_id if m != null else "null")
-		print("[CHR] _show_chr_sprites: party=%d jobs=%s" % [GameState.party_members.size(), str(jobs)])
-	for i in GameState.party_members.size():
+		print("[CHR] _show_chr_sprites: party=%d combatants=%d jobs=%s" % [GameState.party_members.size(), GameState.combatant_count(), str(jobs)])
+	for i in GameState.combatant_count():
 		if i >= _chr_sprites.size():
 			break
 		var sprite: AnimatedSprite2D = _chr_sprites[i]
 		if not $CombatController.is_member_alive(i):
 			sprite.visible = false
 			continue
-		var member: Resource = GameState.party_members[i]
+		var member: Resource = GameState.get_combatant(i)
 		var path: String = CHR_SPRITE_MAP.get(member.job_id, "")
 		if path.is_empty() or not ResourceLoader.exists(path):
 			sprite.visible = false

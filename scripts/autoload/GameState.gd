@@ -164,6 +164,34 @@ func _create_starting_weapon(weapon_id: String) -> Resource:
 	instance.weight = weapon_data.weight
 	return instance
 
+# ---- イベント助っ人（P3-D036a） ----
+# ラン内一時参加。party_members に含めない（Save/EXP/装備/全滅判定対象外）。
+var event_helper: Resource = null
+
+func get_combatants() -> Array:
+	if event_helper != null:
+		return party_members + [event_helper]
+	return party_members
+
+func combatant_count() -> int:
+	return party_members.size() + (1 if event_helper != null else 0)
+
+func get_combatant(i: int) -> Resource:
+	if i < 0 or i >= combatant_count():
+		return null
+	if i < party_members.size():
+		return party_members[i]
+	return event_helper
+
+func is_helper_combatant(i: int) -> bool:
+	return event_helper != null and i == party_members.size()
+
+func set_event_helper(adv: Resource) -> void:
+	event_helper = adv
+
+func clear_event_helper() -> void:
+	event_helper = null
+
 func add_material(material_id: String, amount: int = 1) -> void:
 	if material_id.is_empty() or amount <= 0:
 		return

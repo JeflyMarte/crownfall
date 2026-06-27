@@ -32,8 +32,9 @@ func end_combat() -> void:
 func _init_party_hp() -> void:
 	party_combat_hp.clear()
 	party_max_hp.clear()
-	for i in GameState.party_members.size():
-		var member: Resource = GameState.party_members[i]
+	var combatants: Array = GameState.get_combatants()
+	for i in combatants.size():
+		var member: Resource = combatants[i]
 		var max_hp: int = BASE_MEMBER_HP
 		if member.base_stats != null and member.base_stats.hp > 0:
 			max_hp = member.base_stats.hp
@@ -45,9 +46,11 @@ func _init_party_hp() -> void:
 			var acc_data: Resource = load("res://resources/accessories/" + acc.accessory_id + ".tres")
 			if acc_data != null:
 				max_hp += acc_data.hp_bonus
-		var affix_bonuses: Dictionary = _AffixStatCalculator.get_bonuses(i)
-		max_hp += int(affix_bonuses.get("hp_flat", 0))
-		max_hp += LevelSystem.level_hp_bonus(member.level)
+		# 助っ人は Affix ボーナスとレベル HP をスキップ（装備なし・EXP対象外）
+		if not GameState.is_helper_combatant(i):
+			var affix_bonuses: Dictionary = _AffixStatCalculator.get_bonuses(i)
+			max_hp += int(affix_bonuses.get("hp_flat", 0))
+			max_hp += LevelSystem.level_hp_bonus(member.level)
 		var job_mods: Dictionary = _JobStatCalculator.get_member_modifiers(member)
 		var hp_mult: float = float(job_mods.get("hp_multiplier", _JobStatCalculator.DEFAULT_MULTIPLIER))
 		max_hp = maxi(1, int(round(float(max_hp) * hp_mult)))
@@ -71,7 +74,12 @@ func get_alive_count() -> int:
 	return count
 
 func is_party_wiped() -> bool:
-	return get_alive_count() == 0
+	# 助っ人のみ生存ではラン継続しない。メイン編成3人が全滅で判定。
+	var main_count: int = GameState.party_members.size()
+	for i in mini(main_count, party_combat_hp.size()):
+		if party_combat_hp[i] > 0:
+			return false
+	return true
 
 func apply_damage_to_enemy(amount: int) -> void:
 	if not is_in_combat:
@@ -101,7 +109,8 @@ func pick_enemy_target_member_index() -> int:
 	if alive.is_empty():
 		return -1
 	for i in alive:
-		if i < GameState.party_members.size() and GameState.party_members[i].job_id == "swordsman":
+		var combatant: Resource = GameState.get_combatant(i)
+		if combatant != null and combatant.job_id == "swordsman":
 			return i
 	return alive[randi() % alive.size()]
 
