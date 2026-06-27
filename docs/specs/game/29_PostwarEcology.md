@@ -105,18 +105,14 @@
 
 ---
 
-## 整合課題（実装移行 — 将来 Task）
+## 整合状況（実装移行）
 
-本決定は世界観の上位方針であり、現行実装との差分は別 Task で段階移行する。
-
-| 課題 | 現行 | 新方針 | 対応 |
-|---|---|---|---|
-| 既存敵が不死/機械系 | bone_walker / 骸骨 / ゴーレム 等 | 全て生物由来へ | 敵 .tres の再設計（命名・素材・弱点） |
-| ダンジョン名 | royal_ruins / graveyard / underground_factory | Biome 体系（`32_BiomeBible.md` / `35_WorldGeography.md`） | DG 再マッピング or 改称 |
-| ジョブ | warrior / guardian / scout | 5 基本ジョブ（`36_JobBible.md`） | ジョブ .tres 拡張 |
-| Codex | enemy/dungeon/lore 等 | Ecology Codex 5 段階（`33_EcologyCodex.md`） | Codex データ拡張 |
-
-実装移行の優先順・スコープは DevelopmentHQ が別途 Proposal 化する。
+| 課題 | 新方針 | 状況 |
+|---|---|---|
+| 敵を全て生物由来へ | モーンゲート 6 体（生物由来）に一本化 | **完了**（旧不死/機械系は削除済 — P3-D038/P3-D041） |
+| ダンジョンを Biome 体系へ | `mourngate` 起点（`32_BiomeBible.md` / `35_WorldGeography.md`） | **完了**（旧3DG 削除済） |
+| ジョブを 5 基本職へ | swordsman / ranger / alchemist 実装（残2職は設計） | 進行中（`36_JobBible.md`） |
+| Codex を Ecology Codex へ | 5 段階調査（`33_EcologyCodex.md`） | 将来 Task（データ拡張） |
 
 ---
 
