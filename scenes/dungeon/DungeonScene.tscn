@@ -33,6 +33,11 @@ wait_time = 1.5
 one_shot = false
 autostart = false
 
+[node name="AutoProgressTimer" type="Timer" parent="."]
+wait_time = 1.2
+one_shot = true
+autostart = false
+
 [node name="MainVBox" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -200,25 +205,6 @@ text = "一時停止"
 [node name="NonCombatZone" type="VBoxContainer" parent="MainVBox/BottomZone"]
 layout_mode = 2
 
-[node name="BranchContainer" type="HBoxContainer" parent="MainVBox/BottomZone/NonCombatZone"]
-layout_mode = 2
-visible = false
-
-[node name="ButtonBranchSafe" type="Button" parent="MainVBox/BottomZone/NonCombatZone/BranchContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "安全"
-
-[node name="ButtonBranchDangerous" type="Button" parent="MainVBox/BottomZone/NonCombatZone/BranchContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "危険"
-
-[node name="ButtonBranchUnknown" type="Button" parent="MainVBox/BottomZone/NonCombatZone/BranchContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "不明"
-
 [node name="MerchantContainer" type="VBoxContainer" parent="MainVBox/BottomZone/NonCombatZone"]
 layout_mode = 2
 visible = false
@@ -270,49 +256,50 @@ text = ""
 
 [node name="ButtonNextRoom" type="Button" parent="MainVBox/BottomZone/NonCombatZone"]
 layout_mode = 2
-text = "次の部屋"
+visible = false
+text = "出発"
 
 [node name="ButtonFinish" type="Button" parent="MainVBox/BottomZone/NonCombatZone"]
 layout_mode = 2
 text = "探索終了"
 
 [node name="BossSprite" type="AnimatedSprite2D" parent="."]
-position = Vector2(500, 420)
-scale = Vector2(4, 4)
+position = Vector2(495, 470)
+scale = Vector2(3, 3)
 visible = false
 
 [node name="EnemySprite" type="AnimatedSprite2D" parent="."]
-position = Vector2(540, 480)
+position = Vector2(500, 515)
 scale = Vector2(4, 4)
 visible = false
 
 [node name="HitVfxSprite" type="AnimatedSprite2D" parent="."]
-position = Vector2(540, 480)
+position = Vector2(500, 515)
 scale = Vector2(4, 4)
 visible = false
 
 [node name="HealVfxSprite" type="AnimatedSprite2D" parent="."]
-position = Vector2(250, 660)
+position = Vector2(240, 665)
 scale = Vector2(5, 5)
 visible = false
 
 [node name="ChrSprite0" type="AnimatedSprite2D" parent="."]
-position = Vector2(110, 700)
+position = Vector2(135, 700)
 scale = Vector2(5, 5)
 visible = false
 
 [node name="ChrSprite1" type="AnimatedSprite2D" parent="."]
-position = Vector2(250, 660)
+position = Vector2(240, 665)
 scale = Vector2(5, 5)
 visible = false
 
 [node name="ChrSprite2" type="AnimatedSprite2D" parent="."]
-position = Vector2(390, 620)
+position = Vector2(345, 630)
 scale = Vector2(5, 5)
 visible = false
 
 [node name="ChrSprite3" type="AnimatedSprite2D" parent="."]
-position = Vector2(530, 580)
+position = Vector2(450, 595)
 scale = Vector2(5, 5)
 visible = false
 

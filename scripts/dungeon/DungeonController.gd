@@ -10,14 +10,11 @@ const ROOM_SEQUENCE: Array[int] = [
 	Enums.RoomType.ELITE,
 	Enums.RoomType.EVENT,
 	Enums.RoomType.COMBAT,
-	Enums.RoomType.MID_BOSS,
+	Enums.RoomType.COMBAT,
 	Enums.RoomType.BOSS,
 	Enums.RoomType.EXIT,
 ]
 
-const SAFE_POOL: Array[int] = [Enums.RoomType.HEAL, Enums.RoomType.TREASURE, Enums.RoomType.MERCHANT]
-const DANGEROUS_POOL: Array[int] = [Enums.RoomType.COMBAT, Enums.RoomType.ELITE]
-const UNKNOWN_POOL: Array[int] = [Enums.RoomType.COMBAT, Enums.RoomType.HEAL, Enums.RoomType.EVENT, Enums.RoomType.TREASURE, Enums.RoomType.MERCHANT]
 
 const TREASURE_GOLD: int = 30
 const TREASURE_ACCESSORY_CHANCE: float = 0.2
@@ -122,8 +119,6 @@ var run_gold_reward: int = 0
 var last_weapon_dropped: String = ""
 var last_armor_dropped: String = ""
 var last_accessory_dropped: String = ""
-var branch_mode: bool = false
-var _next_room_type: int = -1
 var current_merchant_offers: Array = []
 var current_event: Dictionary = {}
 var run_damage_multiplier: float = 1.0
@@ -142,8 +137,6 @@ func start_dungeon(dungeon_id: String) -> void:
 	last_weapon_dropped = ""
 	last_armor_dropped = ""
 	last_accessory_dropped = ""
-	branch_mode = current_dungeon_data.branch_enabled
-	_next_room_type = -1
 	current_merchant_offers = []
 	current_event = {}
 	run_damage_multiplier = 1.0
@@ -157,43 +150,18 @@ func _init_discovery() -> void:
 func set_policy(policy: int) -> void:
 	current_exploration_policy = policy
 
-func is_branch_choice_phase() -> bool:
-	if not branch_mode:
-		return false
-	var next_idx: int = current_room_index + 1
-	if next_idx >= current_dungeon_data.room_count:
-		return false
-	if next_idx >= ROOM_SEQUENCE.size():
-		return false
-	var fixed_type: int = ROOM_SEQUENCE[next_idx]
-	return fixed_type not in [Enums.RoomType.MID_BOSS, Enums.RoomType.BOSS, Enums.RoomType.EXIT]
-
-func set_branch_choice(branch_type: int) -> void:
-	match branch_type:
-		0:
-			_next_room_type = SAFE_POOL[randi() % SAFE_POOL.size()]
-		1:
-			_next_room_type = DANGEROUS_POOL[randi() % DANGEROUS_POOL.size()]
-		2:
-			_next_room_type = UNKNOWN_POOL[randi() % UNKNOWN_POOL.size()]
-
 func advance_room() -> void:
 	current_room_index += 1
 	if current_room_index >= current_dungeon_data.room_count:
 		is_completed = true
 		return
-	if branch_mode and _next_room_type != -1:
-		current_room_type = _next_room_type
-		_next_room_type = -1
-	else:
-		current_room_type = ROOM_SEQUENCE[current_room_index]
+	current_room_type = ROOM_SEQUENCE[current_room_index]
 	update_discovery()
 
 func is_combat_room() -> bool:
 	return current_room_type in [
 		Enums.RoomType.COMBAT,
 		Enums.RoomType.ELITE,
-		Enums.RoomType.MID_BOSS,
 		Enums.RoomType.BOSS,
 	]
 
@@ -204,7 +172,7 @@ func accumulate_rewards(exp: int, gold: int) -> void:
 	run_gold_reward += gold
 
 func get_reward_multiplier() -> float:
-	if current_room_type in [Enums.RoomType.ELITE, Enums.RoomType.MID_BOSS]:
+	if current_room_type == Enums.RoomType.ELITE:
 		return ELITE_REWARD_MULTIPLIER
 	return 1.0
 
@@ -238,7 +206,7 @@ func pick_combat_enemy_data() -> Resource:
 	match current_room_type:
 		Enums.RoomType.BOSS:
 			return pick_boss_enemy_data()
-		Enums.RoomType.ELITE, Enums.RoomType.MID_BOSS:
+		Enums.RoomType.ELITE:
 			return pick_elite_enemy_data()
 		_:
 			return pick_enemy_data()

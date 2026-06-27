@@ -12,5 +12,4 @@ enemy_pool = Array[String](["sepia_hound", "rune_roach", "crystal_hedgehog", "cr
 boss_id = "serdion"
 drop_table_id = "mourngate_drops"
 discovery_unlocks = {"hidden_room": 0.3, "special_event": 0.6, "hidden_boss": 1.0}
-branch_enabled = true
-elite_pool = Array[String](["clock_moth", "crystal_hedgehog"])
+elite_pool = Array[String](["clock_moth"])

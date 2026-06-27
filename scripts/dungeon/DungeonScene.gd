@@ -5,6 +5,8 @@ const CRITICAL_MULTIPLIER: float = 1.5
 const HEAL_AMOUNT: int = 10
 const SPEED_X1: float = 1.5
 const SPEED_X2: float = 0.75
+const AUTO_DELAY_X1: float = 1.2
+const AUTO_DELAY_X2: float = 0.6
 const _LOG_MAX: int = 60
 
 const ENEMY_SPRITE_MAP: Dictionary = {
@@ -47,6 +49,10 @@ const JobStatCalculatorScript: Script = preload("res://scripts/equipment/JobStat
 
 var _merchant_active: bool = false
 var _event_active: bool = false
+var _waiting_departure: bool = false
+var _auto_delay: float = AUTO_DELAY_X1
+var _auto_progress_paused_remaining: float = 0.0
+var _auto_progress_finishes: bool = false
 var _discovery_toast_tween: Tween
 var _skill_executor: RefCounted = SkillExecutorScript.new()
 var _is_paused: bool = false
@@ -79,7 +85,6 @@ var _request_scroll_to_bottom: bool = false
 @onready var _label_status_party: Label = $MainVBox/BottomZone/LabelStatusParty
 @onready var _auto_combat_row: HBoxContainer = $MainVBox/BottomZone/AutoCombatRow
 @onready var _non_combat_zone: VBoxContainer = $MainVBox/BottomZone/NonCombatZone
-@onready var _branch_container: HBoxContainer = $MainVBox/BottomZone/NonCombatZone/BranchContainer
 @onready var _merchant_container: VBoxContainer = $MainVBox/BottomZone/NonCombatZone/MerchantContainer
 @onready var _event_container: VBoxContainer = $MainVBox/BottomZone/NonCombatZone/EventContainer
 @onready var _btn_next_room: Button = $MainVBox/BottomZone/NonCombatZone/ButtonNextRoom
@@ -100,9 +105,7 @@ func _ready() -> void:
 	_btn_next_room.pressed.connect(_on_next_room_pressed)
 	_btn_finish.pressed.connect(_on_finish_button_pressed)
 	$CombatTimer.timeout.connect(_on_combat_timer_timeout)
-	_branch_container.get_node("ButtonBranchSafe").pressed.connect(_on_branch_safe_pressed)
-	_branch_container.get_node("ButtonBranchDangerous").pressed.connect(_on_branch_dangerous_pressed)
-	_branch_container.get_node("ButtonBranchUnknown").pressed.connect(_on_branch_unknown_pressed)
+	$AutoProgressTimer.timeout.connect(_on_auto_progress_timeout)
 	_merchant_container.get_node("Offer0Row/ButtonBuyOffer0").pressed.connect(_on_buy_offer0_pressed)
 	_merchant_container.get_node("Offer1Row/ButtonBuyOffer1").pressed.connect(_on_buy_offer1_pressed)
 	_merchant_container.get_node("ButtonMerchantLeave").pressed.connect(_on_merchant_leave_pressed)
@@ -127,6 +130,16 @@ func _ready() -> void:
 				if sprite.animation in ["attack", "hurt"]:
 					sprite.play("idle")
 		)
+	_enemy_sprite.animation_finished.connect(func():
+		if _enemy_sprite.visible and _enemy_sprite.sprite_frames != null:
+			if _enemy_sprite.animation in ["attack", "hurt"]:
+				_enemy_sprite.play("idle")
+	)
+	_boss_sprite.animation_finished.connect(func():
+		if _boss_sprite.visible and _boss_sprite.sprite_frames != null:
+			if _boss_sprite.animation in ["attack", "hurt"]:
+				_boss_sprite.play("idle")
+	)
 	_style_hp_bars()
 	var dungeon_id: String = GameState.get_active_dungeon_id()
 	$DungeonController.start_dungeon(dungeon_id)
@@ -144,6 +157,7 @@ func _ready() -> void:
 	if not dungeon_id.is_empty():
 		_try_register_discovery("dungeon", dungeon_id)
 	_update_combat_visibility()
+	_start_auto_progress()
 
 func _process(_delta: float) -> void:
 	if _request_scroll_to_bottom:
@@ -311,7 +325,6 @@ func _get_room_type_name() -> String:
 		Enums.RoomType.EVENT:    return "イベント"
 		Enums.RoomType.TREASURE: return "宝箱"
 		Enums.RoomType.ELITE:    return "エリート"
-		Enums.RoomType.MID_BOSS: return "中ボス"
 		Enums.RoomType.BOSS:     return "ボス"
 		Enums.RoomType.EXIT:     return "出口"
 		Enums.RoomType.HEAL:     return "回復"
@@ -328,22 +341,11 @@ func _update_room_label() -> void:
 	var badge_color: Color = Color.WHITE
 	match $DungeonController.current_room_type:
 		Enums.RoomType.ELITE: badge_color = Color(1.0, 0.7, 0.2)
-		Enums.RoomType.MID_BOSS, Enums.RoomType.BOSS: badge_color = Color(1.0, 0.35, 0.35)
+		Enums.RoomType.BOSS: badge_color = Color(1.0, 0.35, 0.35)
 	_label_room.add_theme_color_override("font_color", badge_color)
 
 func _on_next_room_pressed() -> void:
-	_advance_to_next_room()
-
-func _on_branch_safe_pressed() -> void:
-	$DungeonController.set_branch_choice(0)
-	_advance_to_next_room()
-
-func _on_branch_dangerous_pressed() -> void:
-	$DungeonController.set_branch_choice(1)
-	_advance_to_next_room()
-
-func _on_branch_unknown_pressed() -> void:
-	$DungeonController.set_branch_choice(2)
+	_waiting_departure = false
 	_advance_to_next_room()
 
 func _advance_to_next_room() -> void:
@@ -366,8 +368,6 @@ func _advance_to_next_room() -> void:
 				_append_log("【エリート】%s があらわれた" % enemy_data.display_name)
 			elif $DungeonController.current_room_type == Enums.RoomType.BOSS:
 				_append_log("【ボス】%s があらわれた" % enemy_data.display_name)
-			elif $DungeonController.current_room_type == Enums.RoomType.MID_BOSS:
-				_append_log("【中ボス】%s があらわれた" % enemy_data.display_name)
 			else:
 				_append_log("%s があらわれた" % enemy_data.display_name)
 			if $CombatController.does_enemy_act_first():
@@ -382,11 +382,16 @@ func _advance_to_next_room() -> void:
 		_hide_enemy_sprite()
 		_hide_chr_sprites()
 		match $DungeonController.current_room_type:
+			Enums.RoomType.EXIT:
+				_set_narrative("脱出口に到着した — 探索終了")
+				_auto_progress_finishes = true
+				_start_auto_progress()
 			Enums.RoomType.HEAL:
 				var heal_amount: int = _apply_healing_bonus(HEAL_AMOUNT)
 				$CombatController.heal_party(heal_amount)
 				_play_heal_vfx()
 				_set_narrative("回復の部屋: 生存メンバーを%d回復" % heal_amount)
+				_start_auto_progress()
 			Enums.RoomType.TREASURE:
 				var treasure: Dictionary = $DungeonController.generate_treasure_loot()
 				var log_text: String = "宝箱を発見: Gold +%d" % treasure["gold"]
@@ -394,12 +399,14 @@ func _advance_to_next_room() -> void:
 					log_text += "\n宝箱から装飾品を入手: " + treasure["accessory_id"]
 					GameState.last_run_accessory_dropped = treasure["accessory_id"]
 				_set_narrative(log_text)
+				_start_auto_progress()
 			Enums.RoomType.MERCHANT:
 				_handle_merchant_room()
 			Enums.RoomType.EVENT:
 				_handle_event_room()
 			_:
 				_set_narrative(_get_room_type_name() + "の部屋に入った")
+				_start_auto_progress()
 	_update_enemy_label()
 	_update_status_labels()
 	_update_hp_bars()
@@ -521,6 +528,7 @@ func _refresh_merchant_buttons() -> void:
 func _on_merchant_leave_pressed() -> void:
 	_merchant_active = false
 	_merchant_container.visible = false
+	_waiting_departure = true
 	_set_narrative("商人の部屋を後にした")
 	_update_next_room_button()
 
@@ -597,6 +605,7 @@ func _resolve_event_choice(choice_index: int) -> void:
 	_set_narrative(log_text)
 	_event_active = false
 	_event_container.visible = false
+	_waiting_departure = true
 	_update_next_room_button()
 
 # ---- Combat timer ----
@@ -731,6 +740,8 @@ func _do_party_attack() -> void:
 	if total_dmg > 0:
 		_play_hit_vfx()
 		_play_chr_attack()
+		if $CombatController.current_enemy_hp > 0:
+			_play_active_enemy_animation("hurt")
 		var enemy_spawn_pos: Vector2 = _enemy_sprite.global_position if _enemy_sprite.visible else _boss_sprite.global_position
 		_spawn_damage_number(str(total_dmg), enemy_spawn_pos, Color(1.0, 0.9, 0.0), 1.25 if crit_hit else 1.0)
 
@@ -935,6 +946,7 @@ func _do_enemy_attack() -> void:
 	var target_idx: int = $CombatController.pick_enemy_target_member_index()
 	if target_idx < 0:
 		return
+	_play_active_enemy_animation("attack")
 	var enemy_result: Dictionary = _calc_enemy_damage_to_member(target_idx)
 	$CombatController.apply_damage_to_member(target_idx, enemy_result["final"])
 	_play_chr_hurt(target_idx)
@@ -965,7 +977,6 @@ func _try_apply_enemy_hit_status(target_idx: int) -> void:
 		var room_type: int = $DungeonController.current_room_type
 		var is_elevated: bool = (
 			room_type == Enums.RoomType.ELITE
-			or room_type == Enums.RoomType.MID_BOSS
 			or room_type == Enums.RoomType.BOSS
 		)
 		if not is_elevated:
@@ -1067,6 +1078,7 @@ func _handle_enemy_defeated() -> void:
 	_update_enemy_label()
 	_update_hp_bars()
 	_update_next_room_button()
+	_start_auto_progress()
 
 func _handle_party_wipe() -> void:
 	$CombatTimer.stop()
@@ -1081,6 +1093,7 @@ func _handle_party_wipe() -> void:
 	_set_narrative("全員が倒れた... 探索失敗")
 	GameState.last_run_exp_reward = $DungeonController.run_exp_reward
 	GameState.last_run_gold_reward = $DungeonController.run_gold_reward
+	GameState.last_run_token_reward = 0
 	GameState.last_run_weapon_dropped = ""
 	GameState.last_run_armor_dropped = ""
 	GameState.last_run_accessory_dropped = ""
@@ -1121,25 +1134,9 @@ func _update_enemy_hp_label() -> void:
 func _update_party_hp_label() -> void:
 	_update_hp_bars()
 
-func _update_branch_ui() -> void:
-	if _merchant_active or _event_active:
-		_branch_container.visible = false
-		_btn_next_room.visible = false
-		return
-	var show_branch: bool = $DungeonController.is_branch_choice_phase()
-	_branch_container.visible = show_branch
-	_btn_next_room.visible = not show_branch
-	if show_branch:
-		var blocked: bool = $DungeonController.is_completed or $CombatController.is_in_combat
-		_branch_container.get_node("ButtonBranchSafe").disabled = blocked
-		_branch_container.get_node("ButtonBranchDangerous").disabled = blocked
-		_branch_container.get_node("ButtonBranchUnknown").disabled = blocked
-
 func _update_next_room_button() -> void:
-	var at_exit: bool = $DungeonController.current_room_type == Enums.RoomType.EXIT
-	var blocked: bool = $DungeonController.is_completed or $CombatController.is_in_combat or at_exit
-	_btn_next_room.disabled = blocked
-	_update_branch_ui()
+	_btn_next_room.visible = _waiting_departure
+	_btn_next_room.text = "出発"
 	_update_combat_visibility()
 
 func _update_combat_visibility() -> void:
@@ -1160,10 +1157,6 @@ func _update_combat_tier_frame() -> void:
 				show = true
 				tier_text = "⚔ エリート戦"
 				border_color = Color(1.0, 0.7, 0.2)
-			Enums.RoomType.MID_BOSS:
-				show = true
-				tier_text = "⚔ 中ボス戦"
-				border_color = Color(1.0, 0.35, 0.35)
 			Enums.RoomType.BOSS:
 				show = true
 				tier_text = "⚔ ボス戦"
@@ -1180,6 +1173,20 @@ func _update_combat_tier_frame() -> void:
 	style.set_corner_radius_all(8)
 	_combat_tier_frame.add_theme_stylebox_override("panel", style)
 
+func _start_auto_progress() -> void:
+	if _is_paused:
+		_auto_progress_paused_remaining = _auto_delay
+		return
+	$AutoProgressTimer.wait_time = _auto_delay
+	$AutoProgressTimer.start()
+
+func _on_auto_progress_timeout() -> void:
+	if _auto_progress_finishes:
+		_auto_progress_finishes = false
+		_on_finish_button_pressed()
+	else:
+		_advance_to_next_room()
+
 func _on_finish_button_pressed() -> void:
 	_btn_finish.disabled = true
 	$CombatTimer.stop()
@@ -1188,6 +1195,7 @@ func _on_finish_button_pressed() -> void:
 	GameState.last_run_exp_reward = $DungeonController.run_exp_reward
 	GameState.last_run_level_ups = LevelSystem.grant_exp_to_party($DungeonController.run_exp_reward)
 	GameState.last_run_gold_reward = $DungeonController.run_gold_reward
+	GameState.last_run_token_reward = randi_range(1, 2)
 	GameState.last_run_weapon_dropped = $DungeonController.last_weapon_dropped
 	GameState.last_run_armor_dropped = $DungeonController.last_armor_dropped
 	if not $DungeonController.last_accessory_dropped.is_empty():
@@ -1211,17 +1219,23 @@ func _on_menu_finish_pressed() -> void:
 
 func _on_speed_x1_pressed() -> void:
 	_is_paused = false
+	_auto_delay = AUTO_DELAY_X1
 	$CombatTimer.wait_time = SPEED_X1
 	if $CombatController.is_in_combat:
 		$CombatTimer.start()
+	if $AutoProgressTimer.time_left > 0:
+		$AutoProgressTimer.start(_auto_delay)
 	$MainVBox/BottomZone/AutoCombatRow/ButtonPause.text = "一時停止"
 	$MainVBox/HeaderBar/ButtonStop.text = "停止"
 
 func _on_speed_x2_pressed() -> void:
 	_is_paused = false
+	_auto_delay = AUTO_DELAY_X2
 	$CombatTimer.wait_time = SPEED_X2
 	if $CombatController.is_in_combat:
 		$CombatTimer.start()
+	if $AutoProgressTimer.time_left > 0:
+		$AutoProgressTimer.start(_auto_delay)
 	$MainVBox/BottomZone/AutoCombatRow/ButtonPause.text = "一時停止"
 	$MainVBox/HeaderBar/ButtonStop.text = "停止"
 
@@ -1231,8 +1245,14 @@ func _on_pause_button_pressed() -> void:
 	$MainVBox/HeaderBar/ButtonStop.text = "再開" if _is_paused else "停止"
 	if _is_paused:
 		$CombatTimer.stop()
-	elif $CombatController.is_in_combat:
-		$CombatTimer.start()
+		_auto_progress_paused_remaining = $AutoProgressTimer.time_left
+		$AutoProgressTimer.stop()
+	else:
+		if $CombatController.is_in_combat:
+			$CombatTimer.start()
+		if _auto_progress_paused_remaining > 0:
+			$AutoProgressTimer.start(_auto_progress_paused_remaining)
+			_auto_progress_paused_remaining = 0.0
 
 func _on_stop_pressed() -> void:
 	_is_paused = not _is_paused
@@ -1240,8 +1260,14 @@ func _on_stop_pressed() -> void:
 	$MainVBox/BottomZone/AutoCombatRow/ButtonPause.text = "再開" if _is_paused else "一時停止"
 	if _is_paused:
 		$CombatTimer.stop()
-	elif $CombatController.is_in_combat:
-		$CombatTimer.start()
+		_auto_progress_paused_remaining = $AutoProgressTimer.time_left
+		$AutoProgressTimer.stop()
+	else:
+		if $CombatController.is_in_combat:
+			$CombatTimer.start()
+		if _auto_progress_paused_remaining > 0:
+			$AutoProgressTimer.start(_auto_progress_paused_remaining)
+			_auto_progress_paused_remaining = 0.0
 
 # ---- Enemy Sprite ----
 
@@ -1258,8 +1284,20 @@ func _show_enemy_sprite(enemy_id: String) -> void:
 		_enemy_sprite.visible = false
 		return
 	_enemy_sprite.sprite_frames = frames
+	_normalize_enemy_scale(_enemy_sprite, frames)
 	_enemy_sprite.play("idle")
 	_enemy_sprite.visible = true
+
+# 敵セルサイズが種別で異なる（通常 96px / エリート 128px 等）ため表示高さを揃える。
+# 固定 scale だと 128px が突出して巨大化するのを防ぐ。
+func _normalize_enemy_scale(sprite: AnimatedSprite2D, frames: SpriteFrames) -> void:
+	const ENEMY_DISPLAY_PX: float = 256.0
+	var tex: Texture2D = frames.get_frame_texture("idle", 0)
+	var h: float = tex.get_height() if tex != null else 96.0
+	if h <= 0.0:
+		return
+	var s: float = max(1.0, ENEMY_DISPLAY_PX / h)
+	sprite.scale = Vector2(s, s)
 
 func _hide_enemy_sprite() -> void:
 	_enemy_sprite.visible = false
@@ -1269,6 +1307,13 @@ func _play_enemy_animation(anim: String) -> void:
 		return
 	if _enemy_sprite.sprite_frames != null and _enemy_sprite.sprite_frames.has_animation(anim):
 		_enemy_sprite.play(anim)
+
+# 戦闘中の敵（通常は EnemySprite、ボス部屋は BossSprite）にアニメを再生
+func _play_active_enemy_animation(anim: String) -> void:
+	if _boss_sprite.visible:
+		_play_boss_animation(anim)
+	else:
+		_play_enemy_animation(anim)
 
 # ---- CHR Sprites ----
 
@@ -1293,8 +1338,20 @@ func _show_chr_sprites() -> void:
 			sprite.visible = false
 			continue
 		sprite.sprite_frames = frames
+		_normalize_chr_scale(sprite, frames)
 		sprite.play("idle")
 		sprite.visible = true
+
+# 職ごとに素材セルサイズが異なる（新規 96px / 旧 32px placeholder）ため、
+# 表示高さを揃える。整数倍にして拡大時のにじみを防ぐ。
+func _normalize_chr_scale(sprite: AnimatedSprite2D, frames: SpriteFrames) -> void:
+	const CHR_DISPLAY_PX: float = 192.0
+	var tex: Texture2D = frames.get_frame_texture("idle", 0)
+	var h: float = tex.get_height() if tex != null else 32.0
+	if h <= 0.0:
+		return
+	var s: float = max(1.0, round(CHR_DISPLAY_PX / h))
+	sprite.scale = Vector2(s, s)
 
 func _hide_chr_sprites() -> void:
 	for sprite: AnimatedSprite2D in _chr_sprites:
