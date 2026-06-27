@@ -1,6 +1,6 @@
 # Crownfall 世界観資料（World）
 
-**Status:** 構成確定（オーナー決定 2026-06-27）/ 各文書は ChatGPT 執筆待ち（Draft）
+**Status:** 採用（正式 SSOT / cutover 完了 2026-06-27 P3-D041b）。12 文書 v1.0 執筆済み
 **入口:** `00_Overview.md`
 
 世界観・ロアの SSOT 置き場。数値・スキーマ・実装ルールは `docs/specs/game/` / `docs/specs/implementation/` に置く。
@@ -34,12 +34,8 @@
 
 ---
 
-## 移行（cutover）手順
+## 移行（cutover）— 完了（2026-06-27 / P3-D041b）
 
-現行 `game/29`〜`37` は **本資料完成まで live SSOT として残す**（二重 SSOT 回避のため Draft と明記）。
+`game/29`〜`32`・`34`〜`37` は削除済み（git 履歴に保持）。`33_EcologyCodex` は図鑑システム仕様として `game/` に存置。`world/01_History` 末尾に HE-001〜004 機械可読ブロックを移管し、`CatalogHelper.gd` の History パスを `world/01` へ切替済み。smoke PASS。
 
-1. ChatGPT が各 `world/NN` を執筆。
-2. HQ がレビュー・正典整合を確認。
-3. 参照を `game/29`〜`37` → `world/NN` へ切替（`CatalogHelper.gd` の History パス、各 spec のリンク、`package_chatgpt_worldlore.sh` 等）。
-4. 旧 `game/29`〜`37` を削除（git 履歴に保持）。
-5. smoke test。
+> 上表「移行元」列は来歴記録（旧ファイルは削除済み）。
