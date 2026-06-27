@@ -4,7 +4,7 @@
 
 ## Last Update
 
-2026-06-26（**世界観刷新 — Postwar Ecology** 文書反映 / P3-D026〜033）
+2026-06-27（**世界観 cutover** — lore SSOT を `docs/specs/world/`（12 文書）へ移行 / P3-D041b。旧 `game/29`〜`37` 削除、`33_EcologyCodex` のみ存置）
 
 ---
 
@@ -111,6 +111,8 @@ ProjectDocs **v3.6.0**
 | 聖属性武器 | ~~未実装~~ → **sanctified_dagger**（P3-HW-001） |
 | タンク fantasy | ~~ランダム被弾~~ → 簡易ヘイト（P3-TH-001） |
 | ラン中介入 | Alpha=準備専用（P3-D024a）。方針切替は Phase 2 |
+| 助っ人 targeting | 助っ人ソードマンがヘイト優先で狙われ実質無敵タンク化（全滅対象外）。後続で targeting から除外（P3-D036） |
+| mourngate アセット依存 | 戦闘BG・宝箱・出口ゲートが退役済 `graveyard`/`royal_ruins` の PNG を流用。敵 `.tres` は `crystal_hedgehog` 以外プレースホルダ（旧シート参照）。オーナー作画＋推進チャットで差し替え予定（ビルドは現状 PASS） |
 
 ---
 
