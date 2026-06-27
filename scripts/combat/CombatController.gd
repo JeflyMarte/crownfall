@@ -103,16 +103,16 @@ func heal_party(amount: int) -> void:
 			party_combat_hp[i] = min(party_combat_hp[i] + amount, party_max_hp[i])
 
 func pick_enemy_target_member_index() -> int:
+	# 助っ人(event_helper)は敵のターゲット対象外。狙われてダメージを肩代わりし
+	# 全滅判定外＝無敵タンク化するのを防ぐ（メイン編成のみ狙う）。
 	var alive: Array[int] = []
 	for i in party_combat_hp.size():
-		if is_member_alive(i):
+		if is_member_alive(i) and not GameState.is_helper_combatant(i):
 			alive.append(i)
 	if alive.is_empty():
 		return -1
 	for tag in ["vanguard", "swordsman"]:
 		for i in alive:
-			if GameState.is_helper_combatant(i):
-				continue
 			var c: Resource = GameState.get_combatant(i)
 			if c != null and c.job_id == tag:
 				return i
