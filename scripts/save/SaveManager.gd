@@ -136,12 +136,12 @@ const _JOB_MIGRATION: Dictionary = {
 	"scout": "ranger",
 	"thief": "ranger",
 	"rogue": "ranger",
-	"guardian": "alchemist",
-	"knight": "alchemist",
+	"guardian": "vanguard",
+	"knight": "vanguard",
 	"mage": "alchemist",
 	"wizard": "alchemist",
 }
-const _VALID_JOB_IDS: PackedStringArray = ["swordsman", "ranger", "alchemist"]
+const _VALID_JOB_IDS: PackedStringArray = ["swordsman", "ranger", "alchemist", "vanguard", "beast_tamer"]
 
 func _migrate_job_id(raw_id: String) -> String:
 	if raw_id in _VALID_JOB_IDS:

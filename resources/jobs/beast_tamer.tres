@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="JobData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/JobData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "beast_tamer"
+display_name = "ビーストテイマー"
+description = "弓・杖を扱い、生物の生態を利用して戦う支援職。（召喚は将来実装）"
+role = "support"
+base_hp_modifier = 1.0
+base_attack_modifier = 0.95
+base_defense_modifier = 0.95
+base_initiative_modifier = 1.05
+preferred_weapon_types = Array[String](["bow", "staff"])
+starting_skill_ids = Array[String]([])
+passive_tag_ids = Array[String](["tamer"])

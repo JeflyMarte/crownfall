@@ -21,6 +21,8 @@ const CHR_SPRITE_MAP: Dictionary = {
 	"swordsman": "res://resources/animation/CHR_Swordsman.tres",
 	"ranger": "res://resources/animation/CHR_Ranger.tres",
 	"alchemist": "res://resources/animation/CHR_Alchemist.tres",
+	"vanguard": "res://resources/animation/CHR_Vanguard.tres",
+	"beast_tamer": "res://resources/animation/CHR_BeastTamer.tres",
 }
 const BATTLE_BG_MAP: Dictionary = {
 	"mourngate": "res://assets/dungeon/graveyard/batch7/BG_Battle_Graveyard_v2.png",
