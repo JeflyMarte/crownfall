@@ -1,102 +1,53 @@
-[gd_resource type="SpriteFrames" load_steps=2 format=3]
+[gd_resource type="SpriteFrames" load_steps=29 format=3]
 
-[ext_resource type="Texture2D" path="res://assets/characters/batch7/CHR_Scout_Sheet.png" id="1_sheet"]
-
-[sub_resource type="AtlasTexture" id="i0"]
-atlas = ExtResource("1_sheet")
-region = Rect2(0, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="i1"]
-atlas = ExtResource("1_sheet")
-region = Rect2(32, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="i2"]
-atlas = ExtResource("1_sheet")
-region = Rect2(64, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="i3"]
-atlas = ExtResource("1_sheet")
-region = Rect2(96, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="a0"]
-atlas = ExtResource("1_sheet")
-region = Rect2(128, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="a1"]
-atlas = ExtResource("1_sheet")
-region = Rect2(160, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="a2"]
-atlas = ExtResource("1_sheet")
-region = Rect2(192, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="a3"]
-atlas = ExtResource("1_sheet")
-region = Rect2(224, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="a4"]
-atlas = ExtResource("1_sheet")
-region = Rect2(256, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="a5"]
-atlas = ExtResource("1_sheet")
-region = Rect2(288, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="h0"]
-atlas = ExtResource("1_sheet")
-region = Rect2(320, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="h1"]
-atlas = ExtResource("1_sheet")
-region = Rect2(352, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="h2"]
-atlas = ExtResource("1_sheet")
-region = Rect2(384, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="d0"]
-atlas = ExtResource("1_sheet")
-region = Rect2(416, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="d1"]
-atlas = ExtResource("1_sheet")
-region = Rect2(448, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="d2"]
-atlas = ExtResource("1_sheet")
-region = Rect2(480, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="d3"]
-atlas = ExtResource("1_sheet")
-region = Rect2(512, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="d4"]
-atlas = ExtResource("1_sheet")
-region = Rect2(544, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="d5"]
-atlas = ExtResource("1_sheet")
-region = Rect2(576, 0, 32, 32)
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/idle_0.png" id="1"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/attack_0.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/attack_1.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/attack_2.png" id="4"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/attack_3.png" id="5"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/attack_4.png" id="6"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/attack_5.png" id="7"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/attack_6.png" id="8"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/attack_7.png" id="9"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/attack_8.png" id="10"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/hurt_0.png" id="11"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/hurt_1.png" id="12"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/hurt_2.png" id="13"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/hurt_3.png" id="14"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/hurt_4.png" id="15"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/hurt_5.png" id="16"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/hurt_6.png" id="17"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/hurt_7.png" id="18"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/hurt_8.png" id="19"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/death_0.png" id="20"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/death_1.png" id="21"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/death_2.png" id="22"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/death_3.png" id="23"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/death_4.png" id="24"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/death_5.png" id="25"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/death_6.png" id="26"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/death_7.png" id="27"]
+[ext_resource type="Texture2D" path="res://assets/characters/ranger/death_8.png" id="28"]
 
 [resource]
 animations = [{
-"frames": [{"duration": 1.0, "texture": SubResource("i0")}, {"duration": 1.0, "texture": SubResource("i1")}, {"duration": 1.0, "texture": SubResource("i2")}, {"duration": 1.0, "texture": SubResource("i3")}],
+"frames": [{"duration": 1.0, "texture": ExtResource("1")}],
 "loop": true,
 "name": &"idle",
 "speed": 6.0
 }, {
-"frames": [{"duration": 1.0, "texture": SubResource("a0")}, {"duration": 1.0, "texture": SubResource("a1")}, {"duration": 1.0, "texture": SubResource("a2")}, {"duration": 1.0, "texture": SubResource("a3")}, {"duration": 1.0, "texture": SubResource("a4")}, {"duration": 1.0, "texture": SubResource("a5")}],
+"frames": [{"duration": 1.0, "texture": ExtResource("2")}, {"duration": 1.0, "texture": ExtResource("3")}, {"duration": 1.0, "texture": ExtResource("4")}, {"duration": 1.0, "texture": ExtResource("5")}, {"duration": 1.0, "texture": ExtResource("6")}, {"duration": 1.0, "texture": ExtResource("7")}, {"duration": 1.0, "texture": ExtResource("8")}, {"duration": 1.0, "texture": ExtResource("9")}, {"duration": 1.0, "texture": ExtResource("10")}],
 "loop": false,
 "name": &"attack",
-"speed": 10.0
+"speed": 14.0
 }, {
-"frames": [{"duration": 1.0, "texture": SubResource("h0")}, {"duration": 1.0, "texture": SubResource("h1")}, {"duration": 1.0, "texture": SubResource("h2")}],
+"frames": [{"duration": 1.0, "texture": ExtResource("11")}, {"duration": 1.0, "texture": ExtResource("12")}, {"duration": 1.0, "texture": ExtResource("13")}, {"duration": 1.0, "texture": ExtResource("14")}, {"duration": 1.0, "texture": ExtResource("15")}, {"duration": 1.0, "texture": ExtResource("16")}, {"duration": 1.0, "texture": ExtResource("17")}, {"duration": 1.0, "texture": ExtResource("18")}, {"duration": 1.0, "texture": ExtResource("19")}],
 "loop": false,
 "name": &"hurt",
-"speed": 8.0
+"speed": 12.0
 }, {
-"frames": [{"duration": 1.0, "texture": SubResource("d0")}, {"duration": 1.0, "texture": SubResource("d1")}, {"duration": 1.0, "texture": SubResource("d2")}, {"duration": 1.0, "texture": SubResource("d3")}, {"duration": 1.0, "texture": SubResource("d4")}, {"duration": 1.0, "texture": SubResource("d5")}],
+"frames": [{"duration": 1.0, "texture": ExtResource("20")}, {"duration": 1.0, "texture": ExtResource("21")}, {"duration": 1.0, "texture": ExtResource("22")}, {"duration": 1.0, "texture": ExtResource("23")}, {"duration": 1.0, "texture": ExtResource("24")}, {"duration": 1.0, "texture": ExtResource("25")}, {"duration": 1.0, "texture": ExtResource("26")}, {"duration": 1.0, "texture": ExtResource("27")}, {"duration": 1.0, "texture": ExtResource("28")}],
 "loop": false,
 "name": &"death",
-"speed": 6.0
+"speed": 8.0
 }]
