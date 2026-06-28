@@ -72,7 +72,7 @@ func _update_equipped_label() -> void:
 		_equipped_content.get_node("LabelEquipped").text = "武器: なし"
 		return
 	var base_text: String = "武器: %s  ATK %d  SPD %.1f  CRT %.0f%%" % [
-		w.weapon_id, w.rolled_attack, w.attack_speed, w.critical_rate * 100.0
+		DataRegistry.get_weapon_name(w.weapon_id), w.rolled_attack, w.attack_speed, w.critical_rate * 100.0
 	]
 	_equipped_content.get_node("LabelEquipped").text = _AffixDisplayFormatter.append_to_text(base_text, w)
 
@@ -96,7 +96,7 @@ func _rebuild_weapon_list() -> void:
 		row.add_child(_make_icon_rect(IconPaths.get_icon_texture(item.weapon_id, "weapon")))
 		var btn := Button.new()
 		var base_text: String = "%s  ATK %d  SPD %.1f  CRT %.0f%%" % [
-			item.weapon_id, item.rolled_attack, item.attack_speed, item.critical_rate * 100.0
+			DataRegistry.get_weapon_name(item.weapon_id), item.rolled_attack, item.attack_speed, item.critical_rate * 100.0
 		]
 		var compare_text: String = _get_weapon_compare_text(item)
 		btn.text = _AffixDisplayFormatter.append_to_text(base_text, item) + "  " + compare_text
@@ -135,7 +135,7 @@ func _update_armor_equipped_label() -> void:
 		_equipped_content.get_node("LabelArmorEquipped").text = "防具: なし"
 		return
 	var base_text: String = "防具: %s  DEF %d  HP+%d" % [
-		a.armor_id, a.rolled_defense, a.hp_bonus
+		DataRegistry.get_armor_name(a.armor_id), a.rolled_defense, a.hp_bonus
 	]
 	_equipped_content.get_node("LabelArmorEquipped").text = _AffixDisplayFormatter.append_to_text(base_text, a)
 
@@ -149,7 +149,7 @@ func _rebuild_armor_list() -> void:
 		row.add_child(_make_icon_rect(IconPaths.get_icon_texture(item.armor_id, "armor")))
 		var btn := Button.new()
 		var base_text: String = "%s  DEF %d  HP+%d  WGT %.1f" % [
-			item.armor_id, item.rolled_defense, item.hp_bonus, item.weight
+			DataRegistry.get_armor_name(item.armor_id), item.rolled_defense, item.hp_bonus, item.weight
 		]
 		var compare_text: String = _get_armor_compare_text(item)
 		btn.text = _AffixDisplayFormatter.append_to_text(base_text, item) + "  " + compare_text
@@ -187,11 +187,11 @@ func _update_accessory_equipped_label() -> void:
 	var acc_data: Resource = load("res://resources/accessories/" + acc.accessory_id + ".tres")
 	var base_text: String
 	if acc_data == null:
-		base_text = "装飾品: %s" % acc.accessory_id
+		base_text = "装飾品: %s" % DataRegistry.get_accessory_name(acc.accessory_id)
 	else:
 		base_text = (
 			"装飾品: %s  HP+%d  ATK+%d  DEF+%d  CRT+%.0f%%  LCK+%.1f" % [
-				acc.accessory_id,
+				DataRegistry.get_accessory_name(acc.accessory_id),
 				acc_data.hp_bonus,
 				acc_data.attack_bonus,
 				acc_data.defense_bonus,
@@ -214,7 +214,7 @@ func _rebuild_accessory_list() -> void:
 		var base_text: String
 		if acc_data != null:
 			base_text = "%s  HP+%d  ATK+%d  DEF+%d  CRT+%.0f%%  LCK+%.1f" % [
-				item.accessory_id,
+				DataRegistry.get_accessory_name(item.accessory_id),
 				acc_data.hp_bonus,
 				acc_data.attack_bonus,
 				acc_data.defense_bonus,
@@ -222,7 +222,7 @@ func _rebuild_accessory_list() -> void:
 				acc_data.luck_bonus,
 			]
 		else:
-			base_text = item.accessory_id
+			base_text = DataRegistry.get_accessory_name(item.accessory_id)
 		var compare_text: String = _get_accessory_compare_text(item)
 		btn.text = _AffixDisplayFormatter.append_to_text(base_text, item) + "  " + compare_text
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -276,11 +276,11 @@ func _build_summary_text() -> String:
 		lines.append("")
 		lines.append("[%s]" % member.display_name)
 		var w: Resource = member.equipped_weapon
-		lines.append("Weapon: %s  ATK %d" % [w.weapon_id, w.rolled_attack] if w != null else "Weapon: None")
+		lines.append("Weapon: %s  ATK %d" % [DataRegistry.get_weapon_name(w.weapon_id), w.rolled_attack] if w != null else "Weapon: None")
 		var a: Resource = member.equipped_armor
-		lines.append("Armor: %s  DEF %d" % [a.armor_id, a.rolled_defense] if a != null else "Armor: None")
+		lines.append("Armor: %s  DEF %d" % [DataRegistry.get_armor_name(a.armor_id), a.rolled_defense] if a != null else "Armor: None")
 		var acc: Resource = member.equipped_accessory
-		lines.append("Accessory: %s" % acc.accessory_id if acc != null else "Accessory: None")
+		lines.append("Accessory: %s" % DataRegistry.get_accessory_name(acc.accessory_id) if acc != null else "Accessory: None")
 		var affix_lines: PackedStringArray = _collect_affix_lines_for_member(i)
 		if not affix_lines.is_empty():
 			lines.append("Affix:")

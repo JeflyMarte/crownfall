@@ -73,13 +73,13 @@ func _format_member_line(member: Resource) -> String:
 	var equip_parts: PackedStringArray = []
 	var w: Resource = member.equipped_weapon
 	if w != null:
-		equip_parts.append("W:%s" % w.weapon_id)
+		equip_parts.append("W:%s" % DataRegistry.get_weapon_name(w.weapon_id))
 	var a: Resource = member.equipped_armor
 	if a != null:
-		equip_parts.append("A:%s" % a.armor_id)
+		equip_parts.append("A:%s" % DataRegistry.get_armor_name(a.armor_id))
 	var acc: Resource = member.equipped_accessory
 	if acc != null:
-		equip_parts.append("Acc:%s" % acc.accessory_id)
+		equip_parts.append("Acc:%s" % DataRegistry.get_accessory_name(acc.accessory_id))
 	if equip_parts.is_empty():
 		equip_parts.append("装備なし")
 	line += "\n  " + " / ".join(equip_parts)

@@ -18,13 +18,13 @@ func _update_inventory_label() -> void:
 	var lines: PackedStringArray = []
 	for item in GameState.inventory:
 		if not item.is_appraised:
-			lines.append("・未鑑定の武器 [%s]" % item.weapon_id)
+			lines.append("・未鑑定の武器 [%s]" % DataRegistry.get_weapon_name(item.weapon_id))
 	for item in GameState.armor_inventory:
 		if not item.is_appraised:
-			lines.append("・未鑑定の防具 [%s]" % item.armor_id)
+			lines.append("・未鑑定の防具 [%s]" % DataRegistry.get_armor_name(item.armor_id))
 	for item in GameState.accessory_inventory:
 		if not item.is_appraised:
-			lines.append("・未鑑定の装飾品 [%s]" % item.accessory_id)
+			lines.append("・未鑑定の装飾品 [%s]" % DataRegistry.get_accessory_name(item.accessory_id))
 	if lines.is_empty():
 		$VBoxContainer/LabelInventory.text = "未鑑定アイテム: なし"
 	else:
@@ -114,14 +114,14 @@ func _on_appraise_pressed() -> void:
 
 func _build_appraisal_log(item: Resource) -> String:
 	if "weapon_id" in item:
-		return "鑑定完了: %s  ATK %d" % [item.weapon_id, item.rolled_attack]
+		return "鑑定完了: %s  ATK %d" % [DataRegistry.get_weapon_name(item.weapon_id), item.rolled_attack]
 	if "armor_id" in item:
 		return "鑑定完了: %s  DEF %d  HP+%d" % [
-			item.armor_id,
+			DataRegistry.get_armor_name(item.armor_id),
 			item.rolled_defense,
 			item.hp_bonus,
 		]
-	return "鑑定完了: %s" % item.accessory_id
+	return "鑑定完了: %s" % DataRegistry.get_accessory_name(item.accessory_id)
 
 func _on_equipment_pressed() -> void:
 	SceneRouter.change_scene("res://scenes/equipment/EquipmentScene.tscn")

@@ -33,11 +33,11 @@ func _update_loot_label() -> void:
 	var accessory: String = GameState.last_run_accessory_dropped
 	var parts: PackedStringArray = []
 	if not weapon.is_empty():
-		parts.append("武器: " + weapon)
+		parts.append("武器: " + DataRegistry.get_weapon_name(weapon))
 	if not armor.is_empty():
-		parts.append("防具: " + armor)
+		parts.append("防具: " + DataRegistry.get_armor_name(armor))
 	if not accessory.is_empty():
-		parts.append("装飾品: " + accessory)
+		parts.append("装飾品: " + DataRegistry.get_accessory_name(accessory))
 	if parts.is_empty():
 		$VBoxContainer/LabelLoot.text = "入手: なし"
 	else:

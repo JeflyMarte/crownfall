@@ -114,6 +114,46 @@ func get_all_material_data() -> Array:
 func get_all_weapon_data() -> Array:
 	return _load_all_resources(Constants.RESOURCE_WEAPONS_PATH)
 
+func get_weapon_name(id: String) -> String:
+	if id.is_empty():
+		return id
+	var data: Resource = get_weapon_data(id)
+	if data != null and not data.display_name.is_empty():
+		return data.display_name
+	return id
+
+func get_armor_name(id: String) -> String:
+	if id.is_empty():
+		return id
+	var data: Resource = get_armor_data(id)
+	if data != null and not data.display_name.is_empty():
+		return data.display_name
+	return id
+
+func get_accessory_name(id: String) -> String:
+	if id.is_empty():
+		return id
+	var data: Resource = get_accessory_data(id)
+	if data != null and not data.display_name.is_empty():
+		return data.display_name
+	return id
+
+func get_material_name(id: String) -> String:
+	if id.is_empty():
+		return id
+	var data: Resource = get_material_data(id)
+	if data != null and not data.display_name.is_empty():
+		return data.display_name
+	return id
+
+func get_item_name(id: String, item_type: String) -> String:
+	match item_type:
+		"weapon":    return get_weapon_name(id)
+		"armor":     return get_armor_name(id)
+		"accessory": return get_accessory_name(id)
+		"material":  return get_material_name(id)
+	return id
+
 func _load_all_resources(dir_path: String) -> Array:
 	var result: Array = []
 	var dir := DirAccess.open(dir_path)

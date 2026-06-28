@@ -30,7 +30,7 @@ func _add_craft_row(container: VBoxContainer, craft: Resource) -> void:
 		_format_required_materials(craft.required_materials),
 		craft.gold_cost,
 		craft.output_type,
-		craft.output_id,
+		DataRegistry.get_item_name(craft.output_id, craft.output_type),
 	]
 	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	row.add_child(info)
@@ -58,7 +58,7 @@ func _on_craft_pressed(craft: Resource) -> void:
 	GameState.consume_materials(craft.required_materials)
 	_generate_craft_output(craft)
 	SaveManager.save_game()
-	_log_craft("Craft Success: %s" % craft.output_id)
+	_log_craft("Craft Success: %s" % DataRegistry.get_item_name(craft.output_id, craft.output_type))
 	_build_craft_ui()
 
 func _craft_output_exists(craft: Resource) -> bool:
@@ -133,7 +133,7 @@ func _format_materials() -> String:
 	for mat_id in GameState.material_inventory:
 		var qty: int = GameState.get_material_quantity(mat_id)
 		if qty > 0:
-			parts.append("%s x%d" % [mat_id, qty])
+			parts.append("%s x%d" % [DataRegistry.get_material_name(mat_id), qty])
 	if parts.is_empty():
 		return "素材: なし"
 	return "素材: " + " / ".join(parts)
@@ -145,7 +145,7 @@ func _format_required_materials(required: Dictionary) -> String:
 	for mat_id in required:
 		var needed: int = int(required[mat_id])
 		var owned: int = GameState.get_material_quantity(mat_id)
-		parts.append("%s %d/%d" % [mat_id, owned, needed])
+		parts.append("%s %d/%d" % [DataRegistry.get_material_name(mat_id), owned, needed])
 	return " / ".join(parts)
 
 func _set_status(msg: String) -> void:
