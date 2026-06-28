@@ -16,7 +16,9 @@ ProjectDocs **v3.6.0**
 
 ## Current Phase
 
-**Phase3-B — Content Expansion**（**着手** — P3-D025。3-A 全画面 polish は後 Phase）
+**Phase3-A — Visual Production 着手**（P3-D069 = 純ポリッシュ/gameplay不変）。Phase 3-B' システム完成リストは全消化（P3-D053〜068）。
+- 3-A スコープ: 人数3＋助っ人1 / 装備3枠 / メタ無し は据置（4人・6枠・メタは Beta）
+- 起点 A1: BaseScene を 003_01 へ寄せる（テーマ基準づくり）
 
 ---
 
@@ -89,6 +91,8 @@ ProjectDocs **v3.6.0**
 | P3-CODEX5-AUDIT | Codex 5段階 静的監査（P3-D051 a〜e 充足確認） | **完了**（コード変更不要・軽微な逸脱2件は容認） |
 | P3-D067 | 武器クラフト実機能化（codex_materials 実ドロップ化・レシピ新生態素材改訂・apprentice_staff 追加） | **完了** |
 | P3-D068 | 装備ドロップを直ドロップ化（鑑定済み100%・Affix自動付与・鑑定システムは温存） | **完了**（Claude実装・HQ diff承認 `fed5ffd`） |
+| P3-D069 | Phase 3-A スコープ確定（純ポリッシュ・人数3/装備3枠/メタ無し据置） | **確定** |
+| P3-A-UI-001 | 拠点(BaseScene) を 003_01 へ寄せる（テーマ基準づくり） | **Claude発行・実装待ち** |
 | OD-UI-003 | レベル制 | **完了**（P3-D035a） |
 
 ### 残スケジュール（Phase 3-B' システム完成まで）
