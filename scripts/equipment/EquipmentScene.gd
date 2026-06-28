@@ -4,23 +4,29 @@ const _AffixDisplayFormatter = preload("res://scripts/equipment/AffixDisplayForm
 const _JobStatCalculator = preload("res://scripts/equipment/JobStatCalculator.gd")
 const BuildTagHelperScript: Script = preload("res://scripts/equipment/BuildTagHelper.gd")
 
-@onready var _content: VBoxContainer = $VBoxContainer/ScrollContainer/ContentVBox
+@onready var _header: VBoxContainer = $VBoxContainer/HeaderVBox
+@onready var _tabs: TabContainer = $VBoxContainer/TabContainer
+@onready var _equipped_content: VBoxContainer = $VBoxContainer/TabContainer/TabEquipped/EquippedContent
+@onready var _inventory_content: VBoxContainer = $VBoxContainer/TabContainer/TabInventory/InventoryContent
 
 var _selected_member_index: int = 0
 
 func _ready() -> void:
+	_tabs.set_tab_title(0, "現在の装備")
+	_tabs.set_tab_title(1, "所持一覧")
 	$VBoxContainer/ButtonBack.pressed.connect(_on_back_pressed)
-	_content.get_node("MemberSelectRow/ButtonMember0").pressed.connect(_on_member_selected.bind(0))
-	_content.get_node("MemberSelectRow/ButtonMember1").pressed.connect(_on_member_selected.bind(1))
-	_content.get_node("MemberSelectRow/ButtonMember2").pressed.connect(_on_member_selected.bind(2))
+	_header.get_node("MemberSelectRow/ButtonMember0").pressed.connect(_on_member_selected.bind(0))
+	_header.get_node("MemberSelectRow/ButtonMember1").pressed.connect(_on_member_selected.bind(1))
+	_header.get_node("MemberSelectRow/ButtonMember2").pressed.connect(_on_member_selected.bind(2))
 	call_deferred("_sync_content_width_once")
 	_refresh_member_buttons()
 	_refresh_display()
 
 func _sync_content_width_once() -> void:
-	var scroll_width: float = $VBoxContainer/ScrollContainer.size.x
-	if scroll_width > 1.0:
-		_content.custom_minimum_size.x = scroll_width
+	var tab_width: float = _tabs.size.x
+	if tab_width > 1.0:
+		_equipped_content.custom_minimum_size.x = tab_width
+		_inventory_content.custom_minimum_size.x = tab_width
 
 func _on_member_selected(member_index: int) -> void:
 	_selected_member_index = member_index
@@ -29,9 +35,9 @@ func _on_member_selected(member_index: int) -> void:
 
 func _refresh_member_buttons() -> void:
 	var buttons: Array[Node] = [
-		_content.get_node("MemberSelectRow/ButtonMember0"),
-		_content.get_node("MemberSelectRow/ButtonMember1"),
-		_content.get_node("MemberSelectRow/ButtonMember2"),
+		_header.get_node("MemberSelectRow/ButtonMember0"),
+		_header.get_node("MemberSelectRow/ButtonMember1"),
+		_header.get_node("MemberSelectRow/ButtonMember2"),
 	]
 	for i in buttons.size():
 		var btn: Button = buttons[i] as Button
@@ -44,7 +50,7 @@ func _refresh_member_buttons() -> void:
 			btn.disabled = true
 	var member_label: Resource = GameState.get_member(_selected_member_index)
 	var name_text: String = member_label.display_name if member_label != null else "—"
-	_content.get_node("LabelSelectedMember").text = "編成: %s" % name_text
+	_header.get_node("LabelSelectedMember").text = "編成: %s" % name_text
 
 func _refresh_display() -> void:
 	_update_equipped_label()
@@ -57,18 +63,18 @@ func _refresh_display() -> void:
 	_update_build_chips()
 
 func _update_build_chips() -> void:
-	var row: HBoxContainer = _content.get_node("BuildChipRow") as HBoxContainer
+	var row: HBoxContainer = _header.get_node("BuildChipRow") as HBoxContainer
 	BuildTagHelperScript.populate_chip_row(row)
 
 func _update_equipped_label() -> void:
 	var w: Resource = GameState.get_member_equipped_weapon(_selected_member_index)
 	if w == null:
-		_content.get_node("LabelEquipped").text = "武器: なし"
+		_equipped_content.get_node("LabelEquipped").text = "武器: なし"
 		return
 	var base_text: String = "武器: %s  ATK %d  SPD %.1f  CRT %.0f%%" % [
 		w.weapon_id, w.rolled_attack, w.attack_speed, w.critical_rate * 100.0
 	]
-	_content.get_node("LabelEquipped").text = _AffixDisplayFormatter.append_to_text(base_text, w)
+	_equipped_content.get_node("LabelEquipped").text = _AffixDisplayFormatter.append_to_text(base_text, w)
 
 func _make_icon_rect(texture: Texture2D) -> TextureRect:
 	var tr := TextureRect.new()
@@ -81,7 +87,7 @@ func _make_icon_rect(texture: Texture2D) -> TextureRect:
 	return tr
 
 func _rebuild_weapon_list() -> void:
-	var list: Node = _content.get_node("WeaponList")
+	var list: Node = _inventory_content.get_node("WeaponList")
 	for child in list.get_children():
 		child.queue_free()
 	var weapons: Array = $EquipmentController.get_appraised_weapons_for_member(_selected_member_index)
@@ -126,15 +132,15 @@ func _on_equip_pressed(item: Resource) -> void:
 func _update_armor_equipped_label() -> void:
 	var a: Resource = GameState.get_member_equipped_armor(_selected_member_index)
 	if a == null:
-		_content.get_node("LabelArmorEquipped").text = "防具: なし"
+		_equipped_content.get_node("LabelArmorEquipped").text = "防具: なし"
 		return
 	var base_text: String = "防具: %s  DEF %d  HP+%d" % [
 		a.armor_id, a.rolled_defense, a.hp_bonus
 	]
-	_content.get_node("LabelArmorEquipped").text = _AffixDisplayFormatter.append_to_text(base_text, a)
+	_equipped_content.get_node("LabelArmorEquipped").text = _AffixDisplayFormatter.append_to_text(base_text, a)
 
 func _rebuild_armor_list() -> void:
-	var list: Node = _content.get_node("ArmorList")
+	var list: Node = _inventory_content.get_node("ArmorList")
 	for child in list.get_children():
 		child.queue_free()
 	var armors: Array = $EquipmentController.get_appraised_armors_for_member(_selected_member_index)
@@ -176,7 +182,7 @@ func _on_equip_armor_pressed(item: Resource) -> void:
 func _update_accessory_equipped_label() -> void:
 	var acc: Resource = GameState.get_member_equipped_accessory(_selected_member_index)
 	if acc == null:
-		_content.get_node("LabelAccessoryEquipped").text = "装飾品: なし"
+		_equipped_content.get_node("LabelAccessoryEquipped").text = "装飾品: なし"
 		return
 	var acc_data: Resource = load("res://resources/accessories/" + acc.accessory_id + ".tres")
 	var base_text: String
@@ -193,10 +199,10 @@ func _update_accessory_equipped_label() -> void:
 				acc_data.luck_bonus,
 			]
 		)
-	_content.get_node("LabelAccessoryEquipped").text = _AffixDisplayFormatter.append_to_text(base_text, acc)
+	_equipped_content.get_node("LabelAccessoryEquipped").text = _AffixDisplayFormatter.append_to_text(base_text, acc)
 
 func _rebuild_accessory_list() -> void:
-	var list: Node = _content.get_node("AccessoryList")
+	var list: Node = _inventory_content.get_node("AccessoryList")
 	for child in list.get_children():
 		child.queue_free()
 	var accessories: Array = $EquipmentController.get_appraised_accessories_for_member(_selected_member_index)
@@ -259,7 +265,7 @@ func _on_equip_accessory_pressed(item: Resource) -> void:
 	_refresh_display()
 
 func _update_build_summary() -> void:
-	_content.get_node("LabelBuildSummary").text = _build_summary_text()
+	_equipped_content.get_node("LabelBuildSummary").text = _build_summary_text()
 
 func _build_summary_text() -> String:
 	var lines: PackedStringArray = ["=== Build Summary ==="]
