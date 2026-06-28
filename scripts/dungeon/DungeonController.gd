@@ -26,87 +26,54 @@ const ELITE_MATERIAL_CHANCE: float = 0.15
 const DISCOVERY_PER_ROOM: float = 0.05
 const DISCOVERY_BOSS_BONUS: float = 0.20
 
-const MERCHANT_CATALOG: Array = [
-	{"type": "armor",     "item_id": "leather_armor", "price": 40, "label": "革鎧"},
-	{"type": "accessory", "item_id": "silver_ring",   "price": 60, "label": "銀の指輪"},
-	{"type": "heal",      "amount": 15,              "price": 35, "label": "回復薬"},
-]
-
 const EVENTS: Array = [
 	{
 		"id": "fallen_altar",
-		"description": "崩れた祭壇を発見した。碑文に触れるか？",
-		"choice_a": "触れる",
-		"choice_b": "無視する",
-		"outcome_a": {"type": "heal", "amount": 8},
-		"outcome_b": {"type": "nothing"},
+		"description": "崩れた祭壇を発見し、碑文に触れた。",
+		"outcome": {"type": "heal", "amount": 8},
 	},
 	{
 		"id": "ancient_tome",
-		"description": "古文書を発見した。解読するか？",
-		"choice_a": "解読する",
-		"choice_b": "無視する",
-		"outcome_a": {"type": "gold", "amount": 25},
-		"outcome_b": {"type": "nothing"},
+		"description": "古文書を見つけ、解読した。",
+		"outcome": {"type": "gold", "amount": 25},
 	},
 	{
 		"id": "sealed_door",
-		"description": "封印された扉を発見した。扉を開けるか？",
-		"choice_a": "開ける",
-		"choice_b": "立ち去る",
-		"outcome_a": {"type": "buff", "multiplier": 1.15},
-		"outcome_b": {"type": "nothing"},
+		"description": "封印された扉を開け、内部に足を踏み入れた。",
+		"outcome": {"type": "buff", "multiplier": 1.15},
 	},
 	{
 		"id": "ruined_crate",
-		"description": "朽ちた木箱を見つけた。中身を調べるか？",
-		"choice_a": "調べる",
-		"choice_b": "見送る",
-		"outcome_a": {"type": "material", "label": "遺跡の欠片", "material_id": "relic_shard", "discovery_id": "relic_shard", "amount": 1},
-		"outcome_b": {"type": "nothing"},
+		"description": "朽ちた木箱を調べ、中身を持ち帰った。",
+		"outcome": {"type": "material", "label": "遺跡の欠片", "material_id": "relic_shard", "discovery_id": "relic_shard", "amount": 1},
 	},
 	{
 		"id": "faded_inscription",
-		"description": "色あせた碑文を見つけた。記録するか？",
-		"choice_a": "記録する",
-		"choice_b": "見送る",
-		"outcome_a": {"type": "lore", "label": "風化した記録", "discovery_id": "ancient_record"},
-		"outcome_b": {"type": "nothing"},
+		"description": "色あせた碑文を発見し、記録した。",
+		"outcome": {"type": "lore", "label": "風化した記録", "discovery_id": "ancient_record"},
 	},
 ]
 
 const EVENTS_MOURNGATE: Array = [
 	{
 		"id": "mourngate_crystal_vein",
-		"description": "壁に水晶の鉱脈が走っている。砕いて持ち帰るか？",
-		"choice_a": "砕く",
-		"choice_b": "見送る",
-		"outcome_a": {"type": "gold", "amount": 24},
-		"outcome_b": {"type": "nothing"},
+		"description": "壁に水晶の鉱脈が走っていた。砕いて持ち帰った。",
+		"outcome": {"type": "gold", "amount": 24},
 	},
 	{
 		"id": "mourngate_old_scent",
-		"description": "獣道に古い匂いが残っている。たどると群れを避けられそうだ。",
-		"choice_a": "たどる",
-		"choice_b": "見送る",
-		"outcome_a": {"type": "buff", "multiplier": 1.1},
-		"outcome_b": {"type": "nothing"},
+		"description": "獣道に古い匂いをたどり、群れを巧みに避けた。",
+		"outcome": {"type": "buff", "multiplier": 1.1},
 	},
 	{
 		"id": "mourngate_rune_shell",
-		"description": "古代文字が刻まれた甲殻の欠片を見つけた。読み解くか？",
-		"choice_a": "読み解く",
-		"choice_b": "見送る",
-		"outcome_a": {"type": "lore", "label": "ルーンの甲殻", "discovery_id": "mourngate_rune_shell"},
-		"outcome_b": {"type": "nothing"},
+		"description": "古代文字が刻まれた甲殻の欠片を見つけ、読み解いた。",
+		"outcome": {"type": "lore", "label": "ルーンの甲殻", "discovery_id": "mourngate_rune_shell"},
 	},
 	{
 		"id": "mourngate_temp_companion",
-		"description": "負傷した探索者が壁に寄りかかっている。「もう少しだけ戦える」と同行を申し出てきた。",
-		"choice_a": "同行を許可する",
-		"choice_b": "断る",
-		"outcome_a": {"type": "event_helper"},
-		"outcome_b": {"type": "nothing"},
+		"description": "負傷した探索者と出会い、同行を許可した。",
+		"outcome": {"type": "event_helper"},
 	},
 ]
 
@@ -120,7 +87,6 @@ var run_gold_reward: int = 0
 var last_weapon_dropped: String = ""
 var last_armor_dropped: String = ""
 var last_accessory_dropped: String = ""
-var current_merchant_offers: Array = []
 var current_event: Dictionary = {}
 var run_damage_multiplier: float = 1.0
 
@@ -138,7 +104,6 @@ func start_dungeon(dungeon_id: String) -> void:
 	last_weapon_dropped = ""
 	last_armor_dropped = ""
 	last_accessory_dropped = ""
-	current_merchant_offers = []
 	current_event = {}
 	run_damage_multiplier = 1.0
 	_init_discovery()
@@ -212,60 +177,6 @@ func pick_combat_enemy_data() -> Resource:
 		_:
 			return pick_enemy_data()
 
-func generate_merchant_offers() -> Array:
-	var catalog: Array = _build_merchant_catalog()
-	catalog.shuffle()
-	current_merchant_offers = []
-	for i in min(2, catalog.size()):
-		var offer: Dictionary = catalog[i].duplicate()
-		offer["purchased"] = false
-		current_merchant_offers.append(offer)
-	return current_merchant_offers
-
-func _build_merchant_catalog() -> Array:
-	var catalog: Array = MERCHANT_CATALOG.duplicate(true)
-	for shop_item in DataRegistry.get_material_shop_items():
-		if shop_item == null or shop_item.material_id.is_empty():
-			continue
-		var price: int = shop_item.price
-		if price <= 0:
-			price = DataRegistry.get_material_price(shop_item.material_id)
-		if price <= 0:
-			continue
-		catalog.append({
-			"type": "material",
-			"item_id": shop_item.material_id,
-			"price": price,
-			"label": "Material: %s" % shop_item.material_id,
-		})
-	return catalog
-
-func buy_merchant_item(offer_index: int) -> bool:
-	if offer_index >= current_merchant_offers.size():
-		return false
-	var offer: Dictionary = current_merchant_offers[offer_index]
-	if offer.get("purchased", false):
-		return false
-	if GameState.gold < offer["price"]:
-		return false
-	if offer.get("type") == "material":
-		var material_id: String = str(offer.get("item_id", ""))
-		if material_id.is_empty() or DataRegistry.get_material_price(material_id) < 0:
-			return false
-	GameState.gold -= offer["price"]
-	match offer["type"]:
-		"armor":
-			_spawn_armor(offer["item_id"])
-		"accessory":
-			_spawn_accessory(offer["item_id"])
-		"material":
-			GameState.add_material(str(offer["item_id"]), 1)
-			print("[Merchant] Material purchased: %s (-%dG)" % [offer["item_id"], offer["price"]])
-		"heal":
-			pass  # 即時回復は DungeonScene で適用
-	current_merchant_offers[offer_index]["purchased"] = true
-	return true
-
 func pick_event() -> Dictionary:
 	var pool: Array = _get_event_pool()
 	if pool.is_empty():
@@ -282,11 +193,8 @@ func _get_event_pool() -> Array:
 		combined.append_array(EVENTS_MOURNGATE)
 	return combined
 
-func resolve_event(choice_index: int) -> Dictionary:
-	var key: String = "outcome_a" if choice_index == 0 else "outcome_b"
-	if not current_event.has(key):
-		return {"type": "nothing"}
-	return current_event[key]
+func auto_resolve_event() -> Dictionary:
+	return current_event.get("outcome", {"type": "nothing"})
 
 func update_discovery(bonus: float = 0.0) -> void:
 	if current_dungeon_data == null:
