@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "magic_antenna"
 display_name = "魔導触角"
-description = "魔力を感知する長い触角。杖や触媒の素材。"
+description = "ルーンローチの触角。微弱なエルダを感じ取る器官。「魔導」は俗称で魔法ではない。"
 rarity = 0
 icon = ""
 category = "antenna"

@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "chrono_core"
 display_name = "時環核"
-description = "クロックモスの体内で時の魔力を循環させる核。高位装備やアーティファクトの素材。"
+description = "クロックモスの体内核。王国時代の歯車時計の核に似た構造を持ち、耳を近づけると微かに音がするという。"
 rarity = 2
 icon = ""
 category = "crystal_core"
 value = 80
-lore_id = ""
+lore_id = "HE-001"

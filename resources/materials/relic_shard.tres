@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "relic_shard"
 display_name = "遺跡の欠片"
-description = "王都跡から採取された古代遺物の破片。"
+description = "王都アステリア地下（モーンゲート）の遺構から採取された古代遺物の破片。"
 rarity = 0
 icon = ""
 category = "relic"
 value = 10
-lore_id = ""
+lore_id = "HE-007"

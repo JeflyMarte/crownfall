@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "parasitic_crystal_core"
 display_name = "寄晶核"
-description = "骨に寄生した水晶生命体の核。魔法武器や杖の素材。"
+description = "セルディオンを蝕む寄生性結晶生命の核。骨を動かしていた本体の一部。"
 rarity = 1
 icon = ""
 category = "crystal_core"

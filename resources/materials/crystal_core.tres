@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "crystal_core"
 display_name = "晶核"
-description = "魔力を蓄える結晶核。魔法武器やアクセサリー素材。"
+description = "鉱物化適応の生物が体内にエルダを蓄えた結晶核。"
 rarity = 1
 icon = ""
 category = "crystal_core"

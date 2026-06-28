@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "gem_gastrolith"
 display_name = "宝石胃石"
-description = "宝石を磨き続けてできた鉱石。換金・装飾品素材。"
+description = "冠喰いネズミの胃石。呑み込んだ王族の宝石が磨かれて成った。失われた宝具の断片が混じることもある。"
 rarity = 1
 icon = ""
 category = "gem"
 value = 40
-lore_id = ""
+lore_id = "HE-007"

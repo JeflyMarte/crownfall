@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "clockwing_feather"
 display_name = "時針羽"
-description = "歯車状の羽。時間魔法や風属性装備の素材。"
+description = "クロックモスの翅。金属粉を含み、歯車に似た紋様を持つ。"
 rarity = 0
 icon = ""
 category = "feather"
 value = 24
-lore_id = ""
+lore_id = "HE-001"

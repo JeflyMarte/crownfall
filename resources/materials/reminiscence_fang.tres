@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "reminiscence_fang"
 display_name = "追憶の牙"
-description = "古い魔力を宿した犬歯。武器強化や装飾品素材。"
+description = "セピアハウンドの犬歯。古い人の痕跡の匂いを追ううちにエルダを帯びたとされる。"
 rarity = 0
 icon = ""
 category = "fang"

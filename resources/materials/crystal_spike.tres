@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "crystal_spike"
 display_name = "晶針"
-description = "水晶化した鋭い針。矢・短剣素材。"
+description = "水晶ハリネズミが鉱物を蓄積・結晶化させた針。鋭く硬い。"
 rarity = 0
 icon = ""
 category = "spike"

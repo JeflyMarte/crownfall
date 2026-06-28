@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "azure_crystal_fang"
 display_name = "蒼晶牙"
-description = "水晶化した竜牙。武器の刃材として非常に硬い。"
+description = "古龍種の牙が水晶化したもの。刃材として極めて硬い。"
 rarity = 1
 icon = ""
 category = "fang"

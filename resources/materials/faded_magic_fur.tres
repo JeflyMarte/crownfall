@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "faded_magic_fur"
 display_name = "褪色した魔毛"
-description = "セピア色の魔力を帯びた毛。防具や衣装素材。"
+description = "セピアハウンドの毛。地下のエルダを帯びて淡く褪せた色を放つ。「魔毛」は民間の俗称。"
 rarity = 0
 icon = ""
 category = "fur"

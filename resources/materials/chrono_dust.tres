@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "chrono_dust"
 display_name = "時鱗粉"
-description = "羽から舞う銀色の鱗粉。錬金術や魔法触媒に使われる。"
+description = "クロックモスの翅から舞う金属質の鱗粉。平衡感覚を乱す共鳴を帯びる。"
 rarity = 0
 icon = ""
 category = "dust"

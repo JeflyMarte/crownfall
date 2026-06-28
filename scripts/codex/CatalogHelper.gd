@@ -4,12 +4,16 @@ extends RefCounted
 ## M9 Codex カタログ取得（P2-Task046〜049）。
 
 const UNKNOWN_DISPLAY: String = "???"
-# History Entry（HE-001〜004）は world/01_History の機械可読ブロックを解析する（旧 16/37 は削除）。
+# History Entry（HE-001〜009）は world/01_History の機械可読ブロックを解析する（旧 16/37 は削除）。
 const HISTORY_BIBLE_PATH: String = "res://docs/specs/world/01_History.md"
 # 旧 22_DungeonBible は削除。DUNGEON_ID_TO_BIBLE が空のため未使用（file_exists=false で graceful に {} を返す）。
 const DUNGEON_BIBLE_PATH: String = ""
 
-const STARTER_HISTORY_IDS: Array[String] = ["HE-001", "HE-002", "HE-003", "HE-004"]
+# HE-001〜004=基幹、HE-005〜009=追加（P3-W-019）。lore ドロップ未実装のため全て starter 開示。
+const STARTER_HISTORY_IDS: Array[String] = [
+	"HE-001", "HE-002", "HE-003", "HE-004",
+	"HE-005", "HE-006", "HE-007", "HE-008", "HE-009",
+]
 
 const LORE_TO_HISTORY: Dictionary = {}
 

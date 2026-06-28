@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "dragon_crystal_bone"
 display_name = "竜晶骨"
-description = "水晶が浸食した竜骨。重装備や大剣の素材。"
+description = "セルディオンの骨格片。古龍種の骨に寄生結晶が浸食したもの。"
 rarity = 1
 icon = ""
 category = "bone"
 value = 45
-lore_id = ""
+lore_id = "HE-006"

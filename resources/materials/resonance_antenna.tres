@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "resonance_antenna"
 display_name = "共鳴触角"
-description = "時間を狂わせる振動を発する触角。杖やアクセサリー素材。"
+description = "クロックモスの触角。羽音の共鳴を生む器官。地下で時間感覚が狂う正体とされる。"
 rarity = 1
 icon = ""
 category = "antenna"
 value = 32
-lore_id = ""
+lore_id = "HE-001"

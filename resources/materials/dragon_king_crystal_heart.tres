@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "dragon_king_crystal_heart"
 display_name = "竜王晶心"
-description = "セルディオンを動かしていた巨大結晶心臓。伝説級装備・特殊クラフトに使う最高級素材。"
+description = "セルディオンを動かしていた巨大な結晶心臓。古龍種に群体化した結晶生命の中枢。"
 rarity = 3
 icon = ""
 category = "heart"
 value = 200
-lore_id = ""
+lore_id = "HE-006"

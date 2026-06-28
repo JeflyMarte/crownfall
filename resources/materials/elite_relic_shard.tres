@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "elite_relic_shard"
 display_name = "高品質遺跡の欠片"
-description = "エリート敵から得られる希少な遺跡の破片。"
+description = "状態よく残った遺物の破片。手強い個体が巣へ持ち込んでいたもの。"
 rarity = 1
 icon = ""
 category = "relic"
 value = 25
-lore_id = ""
+lore_id = "HE-007"

@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "engraved_carapace"
 display_name = "刻印甲殻"
-description = "古代文字が刻まれた硬い甲殻。防具素材。"
+description = "ルーンローチの甲殻。文書庫跡のインク鉱物を取り込み、古代文字に似た模様が析出している。"
 rarity = 0
 icon = ""
 category = "carapace"
 value = 22
-lore_id = ""
+lore_id = "HE-001"

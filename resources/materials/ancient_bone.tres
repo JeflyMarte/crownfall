@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "ancient_bone"
 display_name = "古き骨"
-description = "白骸墓地で見つかる朽ちた骨片。"
+description = "モーンゲートの崩落区画で見つかる朽ちた骨片。"
 rarity = 0
 icon = ""
 category = "bone"
