@@ -8,7 +8,6 @@ const _JobStatCalculator = preload("res://scripts/equipment/JobStatCalculator.gd
 
 @onready var _btn_dungeon: Button = $LeftMenuPanel/MenuVBox/ButtonDungeon
 @onready var _btn_equipment: Button = $LeftMenuPanel/MenuVBox/ButtonEquipment
-@onready var _btn_blacksmith: Button = $LeftMenuPanel/MenuVBox/ButtonBlacksmith
 @onready var _btn_codex: Button = $LeftMenuPanel/MenuVBox/ButtonCodex
 @onready var _btn_gacha: Button = $LeftMenuPanel/MenuVBox/ButtonGacha
 @onready var _btn_roster: Button = $LeftMenuPanel/MenuVBox/ButtonRoster
@@ -28,7 +27,6 @@ func _ready() -> void:
 	_btn_select_mourngate.pressed.connect(_on_select_mourngate_pressed)
 	_btn_dungeon.pressed.connect(_on_dungeon_button_pressed)
 	_btn_equipment.pressed.connect(_on_equipment_button_pressed)
-	_btn_blacksmith.pressed.connect(_on_blacksmith_button_pressed)
 	_btn_codex.pressed.connect(_on_codex_button_pressed)
 	_btn_gacha.pressed.connect(_on_gacha_button_pressed)
 	_btn_roster.pressed.connect(_on_roster_button_pressed)
@@ -142,9 +140,6 @@ func _on_dungeon_button_pressed() -> void:
 
 func _on_equipment_button_pressed() -> void:
 	SceneRouter.change_scene("res://scenes/equipment/EquipmentScene.tscn")
-
-func _on_blacksmith_button_pressed() -> void:
-	SceneRouter.change_scene("res://scenes/blacksmith/BlacksmithScene.tscn")
 
 func _on_codex_button_pressed() -> void:
 	SceneRouter.change_scene("res://scenes/codex/CodexScene.tscn")

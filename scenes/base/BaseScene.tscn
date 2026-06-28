@@ -87,11 +87,6 @@ layout_mode = 2
 text = "▶  装備へ"
 alignment = 0
 
-[node name="ButtonBlacksmith" type="Button" parent="LeftMenuPanel/MenuVBox"]
-layout_mode = 2
-text = "▶  鍛冶屋"
-alignment = 0
-
 [node name="ButtonCodex" type="Button" parent="LeftMenuPanel/MenuVBox"]
 layout_mode = 2
 text = "▶  図鑑"
