@@ -1,6 +1,7 @@
 extends Node
 
 const _AffixStatCalculator = preload("res://scripts/equipment/AffixStatCalculator.gd")
+const _AffixRoller = preload("res://scripts/equipment/AffixRoller.gd")
 
 const ROOM_SEQUENCE: Array[int] = [
 	Enums.RoomType.START,
@@ -343,6 +344,22 @@ func _generate_weapon_loot() -> void:
 	]
 	_spawn_weapon(WEAPON_POOL[randi() % WEAPON_POOL.size()])
 
+func _auto_appraise(instance: Resource, category: String, rarity: int) -> void:
+	instance.is_appraised = true
+	var roll: Dictionary = _AffixRoller.roll_for_equipment(category, rarity)
+	if roll.is_empty() or roll.has("error"):
+		instance.prefix_ids = []
+		instance.suffix_ids = []
+		return
+	var prefix: Array[String] = []
+	for v in roll.get("prefix_ids", []):
+		prefix.append(str(v))
+	var suffix: Array[String] = []
+	for v in roll.get("suffix_ids", []):
+		suffix.append(str(v))
+	instance.prefix_ids = prefix
+	instance.suffix_ids = suffix
+
 func _spawn_weapon(weapon_id: String) -> void:
 	var weapon_data = load("res://resources/weapons/" + weapon_id + ".tres")
 	if weapon_data == null:
@@ -353,7 +370,6 @@ func _spawn_weapon(weapon_id: String) -> void:
 	var instance = instance_class.new()
 	instance.instance_id = str(Time.get_ticks_msec()) + "_" + str(randi() % 100000)
 	instance.weapon_id = weapon_id
-	instance.is_appraised = false
 	instance.rolled_attack = weapon_data.base_attack + randi() % 6
 	instance.attack_speed = weapon_data.base_attack_speed
 	instance.critical_rate = weapon_data.base_critical_rate
@@ -361,6 +377,7 @@ func _spawn_weapon(weapon_id: String) -> void:
 	instance.stagger_power = weapon_data.base_stagger_power
 	instance.attack_range = weapon_data.base_attack_range
 	instance.weight = weapon_data.weight
+	_auto_appraise(instance, _AffixRoller.CATEGORY_WEAPON, weapon_data.rarity)
 	GameState.inventory.append(instance)
 	last_weapon_dropped = weapon_id
 	EventBus.weapon_obtained.emit(weapon_id)
@@ -379,12 +396,12 @@ func _spawn_armor(armor_id: String) -> void:
 	var instance = instance_class.new()
 	instance.instance_id = str(Time.get_ticks_msec() + 1) + "_" + str(randi() % 100000)
 	instance.armor_id = armor_id
-	instance.is_appraised = false
 	instance.rolled_defense = armor_data.base_defense + randi() % 4
 	instance.hp_bonus = armor_data.base_hp_bonus
 	instance.resistance = armor_data.base_resistance
 	instance.weight = armor_data.weight
 	instance.rarity = armor_data.rarity
+	_auto_appraise(instance, _AffixRoller.CATEGORY_ARMOR, armor_data.rarity)
 	GameState.armor_inventory.append(instance)
 	last_armor_dropped = armor_id
 
@@ -402,6 +419,6 @@ func _spawn_accessory(accessory_id: String) -> void:
 	var instance = instance_class.new()
 	instance.instance_id = str(Time.get_ticks_msec() + 2) + "_" + str(randi() % 100000)
 	instance.accessory_id = accessory_id
-	instance.is_appraised = false
+	_auto_appraise(instance, _AffixRoller.CATEGORY_ACCESSORY, accessory_data.rarity)
 	GameState.accessory_inventory.append(instance)
 	last_accessory_dropped = accessory_id
