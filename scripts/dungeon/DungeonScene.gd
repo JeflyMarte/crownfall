@@ -9,6 +9,8 @@ const AUTO_DELAY_X1: float = 1.2
 const AUTO_DELAY_X2: float = 0.6
 # P3-D074: 味方/敵の攻撃アニメが重ならないよう、tick内の攻撃フェーズ間に挿入するディレイ（速度連動）
 const ATTACK_STAGGER_X1: float = 0.4
+# 味方CHRの「見える体格」を揃える目標高さ（実体=α領域の高さ基準）
+const CHR_BODY_TARGET_PX: float = 140.0
 const _LOG_MAX: int = 60
 
 const ENEMY_SPRITE_MAP: Dictionary = {
@@ -1427,16 +1429,31 @@ func _update_party_cards_hp() -> void:
 			$CombatController.party_combat_hp[i], $CombatController.party_max_hp[i]
 		]
 
-# 職ごとに素材セルサイズが異なる（新規 96px / 旧 32px placeholder）ため、
-# 表示高さを揃える。整数倍にして拡大時のにじみを防ぐ。
 func _normalize_chr_scale(sprite: AnimatedSprite2D, frames: SpriteFrames) -> void:
-	const CHR_DISPLAY_PX: float = 192.0
+	# 素材ごとに透明余白の割合が異なるため、フレーム高ではなく
+	# 実体（α非透明領域）の高さを基準に float スケールで「見える体格」を統一する。
+	# さらに実体の下端中央をノード位置へ合わせて足元を揃える（余白差による浮き/横ズレ解消）。
 	var tex: Texture2D = frames.get_frame_texture("idle", 0)
-	var h: float = tex.get_height() if tex != null else 32.0
-	if h <= 0.0:
+	if tex == null:
 		return
-	var s: float = max(1.0, round(CHR_DISPLAY_PX / h))
+	var frame_w: float = tex.get_width()
+	var frame_h: float = tex.get_height()
+	if frame_h <= 0.0:
+		return
+	var body_h: float = frame_h
+	var body_cx: float = frame_w / 2.0
+	var body_bottom: float = frame_h
+	var img: Image = tex.get_image()
+	if img != null:
+		var used: Rect2i = img.get_used_rect()
+		if used.size.y > 0:
+			body_h = float(used.size.y)
+			body_cx = float(used.position.x) + float(used.size.x) / 2.0
+			body_bottom = float(used.position.y + used.size.y)
+	var s: float = clampf(CHR_BODY_TARGET_PX / body_h, 0.05, 20.0)
 	sprite.scale = Vector2(s, s)
+	sprite.centered = true
+	sprite.offset = Vector2(frame_w / 2.0 - body_cx, frame_h / 2.0 - body_bottom)
 
 func _hide_chr_sprites() -> void:
 	for sprite: AnimatedSprite2D in _chr_sprites:

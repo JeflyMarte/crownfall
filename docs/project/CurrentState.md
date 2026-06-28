@@ -105,6 +105,7 @@ ProjectDocs **v3.6.0**
 | P3-ART-001 | レンジャー／アルケミスト専用ドット絵を実装（generic batch7流用を専用SpriteFramesに差替・idle/attack/hurt/death） | ✅ 完了（HQ実装・要実機確認） |
 | P3-D075 | 鍛冶屋オミット・退避（BaseScene導線撤去・archive/blacksmithへ移動） | ✅ 完了（HQ実装） |
 | P3-A-UI-006 | 戦闘下部パーティパネルに専用キャラアイコン（バスト）。IconPaths chrカテゴリ追加・仮アイコンは正面ドット絵から自動生成 | ✅ 完了（HQ実装・仮アイコン/要差替） |
+| P3-FIX-001 | 味方CHRサイズ不揃い修正（フレーム高基準→α実体高基準のfloat正規化・実体140px統一・足元bbox下端整列） | ✅ 完了（HQ実装・要実機確認） |
 | P3-D072 | 断片ロア実機配信（碑文イベント本文表示＋Codex「記録」カテゴリ・`world/12` LFブロック解析・mourngate碑文イベント拡充） | **Claude発行・実装待ち** |
 | OD-UI-003 | レベル制 | **完了**（P3-D035a） |
 
