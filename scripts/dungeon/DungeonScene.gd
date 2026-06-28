@@ -1404,6 +1404,10 @@ func _rebuild_party_cards() -> void:
 	_update_party_cards_hp()
 
 func _get_chr_icon_texture(job_id: String) -> Texture2D:
+	# 専用バストアイコンを優先（無ければ全身idleフレームにフォールバック）
+	var icon: Texture2D = IconPaths.get_icon_texture(job_id, "chr")
+	if icon != null:
+		return icon
 	var path: String = CHR_SPRITE_MAP.get(job_id, "")
 	if path.is_empty() or not ResourceLoader.exists(path):
 		return null

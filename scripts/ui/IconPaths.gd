@@ -2,6 +2,9 @@ class_name IconPaths
 extends RefCounted
 
 const ICON_MAP: Dictionary = {
+	"chr:swordsman":               "res://assets/ui/chr_icons/ICO_CHR_Swordsman.png",
+	"chr:ranger":                  "res://assets/ui/chr_icons/ICO_CHR_Ranger.png",
+	"chr:alchemist":               "res://assets/ui/chr_icons/ICO_CHR_Alchemist.png",
 	"weapon:iron_sword":           "res://assets/ui/batch2/ICO_WPN_IronSword.png",
 	"weapon:rusted_blade":         "res://assets/ui/batch2/ICO_WPN_RustedBlade.png",
 	"weapon:heater_blade":         "res://assets/ui/batch2/ICO_WPN_IronSword.png",
