@@ -231,26 +231,36 @@ func apply_elite_bonus_loot() -> Dictionary:
 		bonus["material_id"] = "elite_relic_shard"
 	return bonus
 
+const WEAPON_POOL: Array[String] = [
+	"iron_sword",
+	"rusted_blade",
+	"heater_blade",
+	"frost_blade",
+	"bolt_knife",
+	"sanctified_dagger",
+]
+
+# P3-D074: 武器はラン終了一括ではなく撃破時に直ドロップ。ここでは防具/装飾のみ。
 func generate_run_loot() -> void:
-	last_weapon_dropped = ""
 	last_armor_dropped = ""
 	last_accessory_dropped = ""
-	_generate_weapon_loot()
 	if randf() < 0.3:
 		_generate_armor_loot()
 	if randf() < 0.2:
 		_generate_accessory_loot()
 
-func _generate_weapon_loot() -> void:
-	const WEAPON_POOL: Array[String] = [
-		"iron_sword",
-		"rusted_blade",
-		"heater_blade",
-		"frost_blade",
-		"bolt_knife",
-		"sanctified_dagger",
-	]
-	_spawn_weapon(WEAPON_POOL[randi() % WEAPON_POOL.size()])
+# P3-D074: 撃破時の武器直ドロップ。確率はボス/エリートで上昇。戻り値はドロップ weapon_id（無しは空）。
+func roll_kill_weapon_drop(room_type: int) -> String:
+	var chance: float = 0.25
+	if room_type == Enums.RoomType.BOSS:
+		chance = 1.0
+	elif room_type == Enums.RoomType.ELITE:
+		chance = 0.6
+	if randf() > chance:
+		return ""
+	var weapon_id: String = WEAPON_POOL[randi() % WEAPON_POOL.size()]
+	_spawn_weapon(weapon_id)
+	return weapon_id
 
 func _auto_appraise(instance: Resource, category: String, rarity: int) -> void:
 	instance.is_appraised = true

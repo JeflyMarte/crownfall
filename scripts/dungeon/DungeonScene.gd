@@ -7,6 +7,8 @@ const SPEED_X1: float = 1.5
 const SPEED_X2: float = 0.75
 const AUTO_DELAY_X1: float = 1.2
 const AUTO_DELAY_X2: float = 0.6
+# P3-D074: 味方/敵の攻撃アニメが重ならないよう、tick内の攻撃フェーズ間に挿入するディレイ（速度連動）
+const ATTACK_STAGGER_X1: float = 0.4
 const _LOG_MAX: int = 60
 
 const ENEMY_SPRITE_MAP: Dictionary = {
@@ -560,17 +562,32 @@ func _on_combat_timer_timeout() -> void:
 		if $CombatController.is_party_wiped():
 			_handle_party_wipe()
 			return
+		await _attack_stagger_delay()
+		if not _combat_still_active():
+			return
 		_run_party_combat_phase()
 	else:
 		_run_party_combat_phase()
 		if $CombatController.is_enemy_defeated():
 			_handle_enemy_defeated()
 			return
+		await _attack_stagger_delay()
+		if not _combat_still_active():
+			return
 		_run_enemy_combat_phase()
 	_update_hp_bars()
 	_update_status_labels()
 	if $CombatController.is_party_wiped():
 		_handle_party_wipe()
+
+# 攻撃フェーズ間ディレイ（速度連動）。味方→敵の攻撃アニメを視覚的に分離する。
+func _attack_stagger_delay() -> void:
+	var factor: float = $CombatTimer.wait_time / SPEED_X1
+	var d: float = maxf(0.15, ATTACK_STAGGER_X1 * factor)
+	await get_tree().create_timer(d).timeout
+
+func _combat_still_active() -> bool:
+	return is_inside_tree() and $CombatController.is_in_combat and not _is_paused
 
 func _run_party_combat_phase() -> void:
 	_do_party_attack()
@@ -1041,7 +1058,13 @@ func _handle_enemy_defeated() -> void:
 	var log_lines: PackedStringArray = [
 		"撃破!  EXP +%d  Gold +%d%s" % [final_exp, final_gold, bonus_tag],
 	]
-	_roll_ecology_material_drops(defeated_enemy, log_lines)
+	# P3-D074: 撃破時の武器直ドロップ（素材ドロップは一旦オミット）
+	var dropped_weapon: String = $DungeonController.roll_kill_weapon_drop($DungeonController.current_room_type)
+	if not dropped_weapon.is_empty():
+		GameState.last_run_weapon_dropped = dropped_weapon
+		log_lines.append("武器ドロップ: %s" % DataRegistry.get_weapon_name(dropped_weapon))
+		var drop_pos: Vector2 = _enemy_sprite.global_position if _enemy_sprite.visible else _boss_sprite.global_position
+		_spawn_weapon_drop(dropped_weapon, drop_pos)
 	if $DungeonController.current_room_type == Enums.RoomType.ELITE:
 		var elite_bonus: Dictionary = $DungeonController.apply_elite_bonus_loot()
 		if not (elite_bonus["armor_id"] as String).is_empty():
@@ -1049,12 +1072,6 @@ func _handle_enemy_defeated() -> void:
 		if not (elite_bonus["accessory_id"] as String).is_empty():
 			log_lines.append("エリート報酬: 装飾品 %s" % DataRegistry.get_accessory_name(elite_bonus["accessory_id"]))
 			GameState.last_run_accessory_dropped = elite_bonus["accessory_id"]
-		if not (elite_bonus["material_id"] as String).is_empty():
-			var mat_id: String = elite_bonus["material_id"]
-			var mat_amount: int = _apply_material_bonus(1)
-			GameState.add_material(mat_id, mat_amount)
-			log_lines.append("エリート報酬: %s" % _format_material_reward_log(mat_id, mat_amount, ""))
-			_try_register_discovery("material", mat_id)
 	log_lines.append("累計  EXP %d  Gold %d" % [
 		$DungeonController.run_exp_reward,
 		$DungeonController.run_gold_reward,
@@ -1069,7 +1086,8 @@ func _handle_party_wipe() -> void:
 	$CombatTimer.stop()
 	$CombatController.end_combat()
 	_update_status_labels()
-	_hide_enemy_sprite()
+	# 勝利した敵はその場に残す（撃破ではなく味方全滅の演出）
+	_play_active_enemy_animation("idle")
 	_hide_chr_sprites()
 	_update_combat_visibility()
 	_non_combat_zone.visible = false
@@ -1470,6 +1488,34 @@ func _spawn_damage_number(text: String, world_pos: Vector2, color: Color = Color
 	tw.tween_property(lbl, "position:y", lbl.position.y - 56.0, 0.75)
 	tw.tween_property(lbl, "modulate:a", 0.0, 0.75)
 	tw.chain().tween_callback(lbl.queue_free)
+
+# P3-D074: 撃破→敵が消えた後にドロップ武器アイコンをポップさせ、入手アニメで吸い込む
+func _spawn_weapon_drop(weapon_id: String, world_pos: Vector2) -> void:
+	var tex: Texture2D = IconPaths.get_icon_texture(weapon_id, "weapon")
+	if tex == null:
+		return
+	var spr := Sprite2D.new()
+	spr.texture = tex
+	spr.global_position = world_pos
+	spr.scale = Vector2(0.1, 0.1)
+	spr.z_index = 50
+	add_child(spr)
+	var settle_y: float = world_pos.y - 24.0
+	var pickup_target: Vector2 = world_pos + Vector2(0.0, 200.0)
+	var tw: Tween = create_tween()
+	# 敵の死亡アニメ後に出現させるための待機
+	tw.tween_interval(0.35)
+	# ポップ（拡大＋上方へ放物）
+	tw.tween_property(spr, "scale", Vector2(1.0, 1.0), 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(spr, "global_position:y", world_pos.y - 56.0, 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	# 着地
+	tw.tween_property(spr, "global_position:y", settle_y, 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	# 入手（吸い込み＋縮小＋フェード）
+	tw.tween_interval(0.2)
+	tw.tween_property(spr, "global_position", pickup_target, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_property(spr, "scale", Vector2(0.3, 0.3), 0.35)
+	tw.parallel().tween_property(spr, "modulate:a", 0.0, 0.35)
+	tw.tween_callback(spr.queue_free)
 
 func _play_heal_vfx() -> void:
 	if not ResourceLoader.exists(VFX_HEAL_PATH):
