@@ -95,6 +95,7 @@ var _request_scroll_to_bottom: bool = false
 @onready var _hp_bar_chr2: ProgressBar = $HpBarChr2
 @onready var _hp_bar_chr3: ProgressBar = $HpBarChr3
 @onready var _hp_bar_enemy: ProgressBar = $HpBarEnemy
+@onready var _enemy_nameplate: Label = $EnemyNamePlate
 
 var _chr_sprites: Array[AnimatedSprite2D] = []
 var _chr_hp_bars: Array[ProgressBar] = []
@@ -213,6 +214,9 @@ func _update_hp_bars() -> void:
 			_hp_bar_enemy.value = $CombatController.current_enemy_hp
 		var active_enemy: AnimatedSprite2D = _boss_sprite if _boss_sprite.visible else _enemy_sprite
 		_set_hp_bar_above_sprite(_hp_bar_enemy, active_enemy)
+		_update_enemy_nameplate(active_enemy)
+	else:
+		_enemy_nameplate.visible = false
 	for i: int in _chr_hp_bars.size():
 		var bar: ProgressBar = _chr_hp_bars[i]
 		var sprite: AnimatedSprite2D = _chr_sprites[i]
@@ -232,6 +236,24 @@ func _set_hp_bar_above_sprite(bar: ProgressBar, sprite: AnimatedSprite2D) -> voi
 	bar.offset_top = ty
 	bar.offset_right = cx + BAR_HALF_W
 	bar.offset_bottom = ty + BAR_HEIGHT
+
+# 敵スプライト頭上（HPバーの上）に敵名を表示（モック UI_Reference_003_07 準拠）
+func _update_enemy_nameplate(sprite: AnimatedSprite2D) -> void:
+	var enemy_data: Resource = $CombatController.current_enemy_data
+	if enemy_data == null:
+		_enemy_nameplate.visible = false
+		return
+	const NAME_HALF_W: float = 100.0
+	const NAME_HEIGHT: float = 22.0
+	const NAME_Y_OFFSET: float = -74.0
+	_enemy_nameplate.text = enemy_data.display_name
+	var cx: float = sprite.position.x
+	var ty: float = sprite.position.y + NAME_Y_OFFSET
+	_enemy_nameplate.offset_left = cx - NAME_HALF_W
+	_enemy_nameplate.offset_top = ty
+	_enemy_nameplate.offset_right = cx + NAME_HALF_W
+	_enemy_nameplate.offset_bottom = ty + NAME_HEIGHT
+	_enemy_nameplate.visible = true
 
 func _init_status_icon_rows() -> void:
 	_status_icon_enemy = _make_status_icon_row()
@@ -396,7 +418,7 @@ func _advance_to_next_room() -> void:
 				var treasure: Dictionary = $DungeonController.generate_treasure_loot()
 				var log_text: String = "宝箱を発見: Gold +%d" % treasure["gold"]
 				if not (treasure["accessory_id"] as String).is_empty():
-					log_text += "\n宝箱から装飾品を入手: " + treasure["accessory_id"]
+					log_text += "\n宝箱から装飾品を入手: " + DataRegistry.get_accessory_name(treasure["accessory_id"])
 					GameState.last_run_accessory_dropped = treasure["accessory_id"]
 				_set_narrative(log_text)
 				_start_auto_progress()
@@ -1109,9 +1131,9 @@ func _handle_enemy_defeated() -> void:
 	if $DungeonController.current_room_type == Enums.RoomType.ELITE:
 		var elite_bonus: Dictionary = $DungeonController.apply_elite_bonus_loot()
 		if not (elite_bonus["armor_id"] as String).is_empty():
-			log_lines.append("エリート報酬: 防具 %s" % elite_bonus["armor_id"])
+			log_lines.append("エリート報酬: 防具 %s" % DataRegistry.get_armor_name(elite_bonus["armor_id"]))
 		if not (elite_bonus["accessory_id"] as String).is_empty():
-			log_lines.append("エリート報酬: 装飾品 %s" % elite_bonus["accessory_id"])
+			log_lines.append("エリート報酬: 装飾品 %s" % DataRegistry.get_accessory_name(elite_bonus["accessory_id"]))
 			GameState.last_run_accessory_dropped = elite_bonus["accessory_id"]
 		if not (elite_bonus["material_id"] as String).is_empty():
 			var mat_id: String = elite_bonus["material_id"]
@@ -1159,12 +1181,10 @@ func _apply_material_bonus(base_amount: int) -> int:
 	return AffixStatCalculatorScript.apply_material_bonus(base_amount)
 
 func _update_enemy_label() -> void:
-	if not $CombatController.is_in_combat or $CombatController.current_enemy_data == null:
-		_label_enemy.text = ""
-		_label_enemy.visible = false
-		return
-	_label_enemy.text = $CombatController.current_enemy_data.display_name
-	_label_enemy.visible = true
+	# 敵名は頭上ネームプレート(_update_enemy_nameplate)へ集約（モック準拠）。
+	# 下部固定ラベルは常に非表示にする。
+	_label_enemy.text = ""
+	_label_enemy.visible = false
 
 func _update_status_labels() -> void:
 	_update_status_icons()

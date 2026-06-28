@@ -380,6 +380,21 @@ show_percentage = false
 value = 100.0
 visible = false
 
+[node name="EnemyNamePlate" type="Label" parent="."]
+layout_mode = 1
+offset_left = 870.0
+offset_top = 188.0
+offset_right = 1050.0
+offset_bottom = 210.0
+text = ""
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.96, 0.92, 0.78, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+visible = false
+
 [node name="DamageNumbers" type="CanvasLayer" parent="."]
 layer = 10
 
