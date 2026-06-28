@@ -52,4 +52,4 @@ horizontal_alignment = 1
 
 [node name="ButtonNext" type="Button" parent="VBoxContainer"]
 layout_mode = 2
-text = "鑑定へ"
+text = "拠点へ"

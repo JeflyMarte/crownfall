@@ -49,4 +49,4 @@ func _on_next_button_pressed() -> void:
 	if GameState.last_run_token_reward > 0:
 		GameState.gacha_token += GameState.last_run_token_reward
 		GameState.last_run_token_reward = 0
-	SceneRouter.change_scene("res://scenes/appraisal/AppraisalScene.tscn")
+	SceneRouter.change_scene("res://scenes/base/BaseScene.tscn")

@@ -1,5 +1,7 @@
 extends Control
 
+const _AffixRoller = preload("res://scripts/equipment/AffixRoller.gd")
+
 func _ready() -> void:
 	$VBoxContainer/ButtonBack.pressed.connect(_on_back_pressed)
 	_build_craft_ui()
@@ -76,6 +78,23 @@ func _has_enough_materials(required: Dictionary) -> bool:
 			return false
 	return true
 
+# 鑑定機能オミットに伴い、クラフト品も生成時に鑑定済み＋Affix自動付与（P3-D072 / 直ドロップと整合）
+func _auto_appraise(instance: Resource, category: String, rarity: int) -> void:
+	instance.is_appraised = true
+	var roll: Dictionary = _AffixRoller.roll_for_equipment(category, rarity)
+	if roll.is_empty() or roll.has("error"):
+		instance.prefix_ids = []
+		instance.suffix_ids = []
+		return
+	var prefix: Array[String] = []
+	for v in roll.get("prefix_ids", []):
+		prefix.append(str(v))
+	var suffix: Array[String] = []
+	for v in roll.get("suffix_ids", []):
+		suffix.append(str(v))
+	instance.prefix_ids = prefix
+	instance.suffix_ids = suffix
+
 func _generate_craft_output(craft: Resource) -> void:
 	if craft.output_type == "armor":
 		_spawn_armor(craft.output_id)
@@ -91,7 +110,6 @@ func _spawn_weapon(weapon_id: String) -> void:
 	var instance := WeaponInstance.new()
 	instance.instance_id = str(Time.get_ticks_msec()) + "_craft_" + str(randi() % 100000)
 	instance.weapon_id = weapon_id
-	instance.is_appraised = false
 	instance.rolled_attack = weapon_data.base_attack + randi() % 6
 	instance.attack_speed = weapon_data.base_attack_speed
 	instance.critical_rate = weapon_data.base_critical_rate
@@ -99,6 +117,7 @@ func _spawn_weapon(weapon_id: String) -> void:
 	instance.stagger_power = weapon_data.base_stagger_power
 	instance.attack_range = weapon_data.base_attack_range
 	instance.weight = weapon_data.weight
+	_auto_appraise(instance, _AffixRoller.CATEGORY_WEAPON, weapon_data.rarity)
 	GameState.inventory.append(instance)
 
 func _spawn_armor(armor_id: String) -> void:
@@ -108,12 +127,12 @@ func _spawn_armor(armor_id: String) -> void:
 	var instance := ArmorInstance.new()
 	instance.instance_id = str(Time.get_ticks_msec()) + "_craft_" + str(randi() % 100000)
 	instance.armor_id = armor_id
-	instance.is_appraised = false
 	instance.rolled_defense = armor_data.base_defense + randi() % 4
 	instance.hp_bonus = armor_data.base_hp_bonus
 	instance.resistance = armor_data.base_resistance
 	instance.weight = armor_data.weight
 	instance.rarity = armor_data.rarity
+	_auto_appraise(instance, _AffixRoller.CATEGORY_ARMOR, armor_data.rarity)
 	GameState.armor_inventory.append(instance)
 
 func _spawn_accessory(accessory_id: String) -> void:
@@ -123,7 +142,7 @@ func _spawn_accessory(accessory_id: String) -> void:
 	var instance := AccessoryInstance.new()
 	instance.instance_id = str(Time.get_ticks_msec()) + "_craft_" + str(randi() % 100000)
 	instance.accessory_id = accessory_id
-	instance.is_appraised = false
+	_auto_appraise(instance, _AffixRoller.CATEGORY_ACCESSORY, accessory_data.rarity)
 	GameState.accessory_inventory.append(instance)
 
 func _format_materials() -> String:
