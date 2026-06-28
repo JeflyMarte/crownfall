@@ -759,6 +759,7 @@ func _try_cast_player_skill() -> String:
 	$CombatController.apply_damage_to_enemy(final_dmg)
 	var skill_is_crit: bool = result.get("is_critical", false)
 	var skill_spawn_pos: Vector2 = _enemy_sprite.global_position if _enemy_sprite.visible else _boss_sprite.global_position
+	_spawn_hit_vfx(skill_spawn_pos)
 	_spawn_damage_number(str(final_dmg), skill_spawn_pos + Vector2(12.0, 0.0), Color(1.0, 0.9, 0.0), 1.25 if skill_is_crit else 1.0)
 	var skill_crit_tag: String = "  CRITICAL!" if skill_is_crit else ""
 	var weapon_name: String = _get_equipped_weapon_display_name(member_idx)
@@ -820,6 +821,7 @@ func _try_cast_secondary_skill(primary_skill_id: String) -> String:
 	$CombatController.apply_damage_to_enemy(final_dmg)
 	var sec_is_crit: bool = result.get("is_critical", false)
 	var sec_spawn_pos: Vector2 = _enemy_sprite.global_position if _enemy_sprite.visible else _boss_sprite.global_position
+	_spawn_hit_vfx(sec_spawn_pos)
 	_spawn_damage_number(str(final_dmg), sec_spawn_pos + Vector2(-12.0, 8.0), Color(1.0, 0.9, 0.0), 1.25 if sec_is_crit else 1.0)
 	var skill_crit_tag: String = "  CRITICAL!" if sec_is_crit else ""
 	return "\n【ジョブスキル】%s: %dダメージ%s%s" % [
@@ -909,6 +911,7 @@ func _do_enemy_attack() -> void:
 	$CombatController.apply_damage_to_member(target_idx, enemy_result["final"])
 	_play_chr_hurt(target_idx)
 	if enemy_result["final"] > 0 and target_idx < _chr_sprites.size():
+		_spawn_hit_vfx(_chr_sprites[target_idx].global_position)
 		_spawn_damage_number(str(enemy_result["final"]), _chr_sprites[target_idx].global_position, Color(1.0, 0.35, 0.35))
 	if not $CombatController.is_member_alive(target_idx) and target_idx < _chr_sprites.size():
 		_chr_sprites[target_idx].visible = false
@@ -1418,16 +1421,26 @@ func _play_chr_hurt(member_idx: int) -> void:
 # ---- VFX ----
 
 func _play_hit_vfx() -> void:
+	# 後方互換: 引数なし呼び出しは敵スプライト位置で発火
 	if not _enemy_sprite.visible and not _boss_sprite.visible:
 		return
+	var enemy_pos: Vector2 = _enemy_sprite.global_position if _enemy_sprite.visible else _boss_sprite.global_position
+	_spawn_hit_vfx(enemy_pos)
+
+# 命中ごとに使い捨ての Hit VFX を生成（敵味方両対応・同一tick内の複数ヒットも個別表示）
+func _spawn_hit_vfx(world_pos: Vector2) -> void:
 	if not ResourceLoader.exists(VFX_HIT_PATH):
 		return
 	var frames: SpriteFrames = load(VFX_HIT_PATH) as SpriteFrames
 	if frames == null:
 		return
-	_hit_vfx_sprite.sprite_frames = frames
-	_hit_vfx_sprite.play("default")
-	_hit_vfx_sprite.visible = true
+	var spr := AnimatedSprite2D.new()
+	spr.sprite_frames = frames
+	spr.scale = _hit_vfx_sprite.scale
+	spr.global_position = world_pos
+	add_child(spr)
+	spr.play("default")
+	spr.animation_finished.connect(func() -> void: spr.queue_free())
 
 func _spawn_damage_number(text: String, world_pos: Vector2, color: Color = Color.WHITE, scale: float = 1.0) -> void:
 	var lbl := Label.new()
