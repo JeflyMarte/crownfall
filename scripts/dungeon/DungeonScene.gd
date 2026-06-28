@@ -93,6 +93,8 @@ var _request_scroll_to_bottom: bool = false
 @onready var _hp_bar_chr3: ProgressBar = $HpBarChr3
 @onready var _hp_bar_enemy: ProgressBar = $HpBarEnemy
 @onready var _enemy_nameplate: Label = $EnemyNamePlate
+@onready var _transition_overlay: ColorRect = $TransitionLayer/TransitionOverlay
+@onready var _label_transition: Label = $TransitionLayer/TransitionOverlay/LabelTransition
 
 var _chr_sprites: Array[AnimatedSprite2D] = []
 var _chr_hp_bars: Array[ProgressBar] = []
@@ -1164,7 +1166,19 @@ func _on_auto_progress_timeout() -> void:
 		_auto_progress_finishes = false
 		_on_finish_button_pressed()
 	else:
-		_advance_to_next_room()
+		_transition_to_next_room()
+
+# 部屋移動の軽量トランジション（フェード＋部屋名キャプション・速度連動）
+func _transition_to_next_room() -> void:
+	var half: float = clampf(_auto_delay * 0.3, 0.12, 0.3)
+	var tw: Tween = create_tween()
+	tw.tween_property(_transition_overlay, "modulate:a", 1.0, half)
+	tw.tween_callback(_advance_with_caption)
+	tw.tween_property(_transition_overlay, "modulate:a", 0.0, half)
+
+func _advance_with_caption() -> void:
+	_advance_to_next_room()
+	_label_transition.text = _label_room.text
 
 func _on_finish_button_pressed() -> void:
 	_btn_finish.disabled = true
