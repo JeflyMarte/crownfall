@@ -7,6 +7,6 @@ script = ExtResource("1")
 id = "recipe_apprentice_staff"
 craft_id = "craft_apprentice_staff"
 display_name = "見習いの杖の作成"
-output_summary = "見習いの杖（未鑑定）"
+output_summary = "見習いの杖"
 category = "weapon"
 description = "魔導触角と晶核を組み、エルダを導く触媒杖を仕立てる。"

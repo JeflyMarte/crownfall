@@ -16,6 +16,16 @@ const ROOM_SEQUENCE: Array[int] = [
 	Enums.RoomType.EXIT,
 ]
 
+# 中間部屋の抽選重み（戦闘多めプリセット）。合計100。
+const ROOM_WEIGHT_COMBAT: int = 60
+const ROOM_WEIGHT_EVENT: int = 15
+const ROOM_WEIGHT_TREASURE: int = 13
+const ROOM_WEIGHT_ELITE: int = 12
+
+# 安全ガード（事故防止）
+const ROOM_MAX_ELITE: int = 2      # 1ラン内のELITE上限
+const ROOM_MIN_COMBAT: int = 3     # COMBAT最低数（肩慣らし含む / BOSS除く）
+
 
 const TREASURE_GOLD: int = 30
 const TREASURE_ACCESSORY_CHANCE: float = 0.2
@@ -71,6 +81,26 @@ const EVENTS_MOURNGATE: Array = [
 		"outcome": {"type": "lore", "label": "ルーンの甲殻", "discovery_id": "mourngate_rune_shell"},
 	},
 	{
+		"id": "mourngate_pilgrim_marker",
+		"description": "旧王の大街道に残る道標を発見し、刻まれた落書きを書き留めた。",
+		"outcome": {"type": "lore", "label": "巡礼の道標", "discovery_id": "mourngate_pilgrim_marker"},
+	},
+	{
+		"id": "mourngate_record_margin",
+		"description": "崩れた写字室で学識王の目録写しを見つけ、欄外の記述を記録した。",
+		"outcome": {"type": "lore", "label": "写しの欄外", "discovery_id": "mourngate_record_margin"},
+	},
+	{
+		"id": "mourngate_forge_brand",
+		"description": "崩れた鍛冶場の炉壁に刻まれた銘を見つけ、書き写した。",
+		"outcome": {"type": "lore", "label": "炉壁の銘", "discovery_id": "mourngate_forge_brand"},
+	},
+	{
+		"id": "mourngate_lamp_relief",
+		"description": "崩れた壁のレリーフを見つけ、刻まれた一文を書き留めた。",
+		"outcome": {"type": "lore", "label": "灯火のレリーフ", "discovery_id": "mourngate_lamp_relief"},
+	},
+	{
 		"id": "mourngate_temp_companion",
 		"description": "負傷した探索者と出会い、同行を許可した。",
 		"outcome": {"type": "event_helper"},
@@ -79,6 +109,7 @@ const EVENTS_MOURNGATE: Array = [
 
 var current_dungeon_data: Resource = null
 var current_room_index: int = 0
+var room_sequence: Array[int] = []
 var current_room_type: int = Enums.RoomType.START
 var is_completed: bool = false
 var current_exploration_policy: int = Enums.ExplorationPolicy.EXPLORE
@@ -95,8 +126,9 @@ func start_dungeon(dungeon_id: String) -> void:
 	if current_dungeon_data == null:
 		push_error("DataRegistry: dungeon not found: %s" % dungeon_id)
 		return
+	room_sequence = _build_room_sequence(current_dungeon_data)
 	current_room_index = 0
-	current_room_type = ROOM_SEQUENCE[0]
+	current_room_type = room_sequence[0]
 	is_completed = false
 	current_exploration_policy = Enums.ExplorationPolicy.EXPLORE
 	run_exp_reward = 0
@@ -118,11 +150,80 @@ func set_policy(policy: int) -> void:
 
 func advance_room() -> void:
 	current_room_index += 1
-	if current_room_index >= current_dungeon_data.room_count:
+	if current_room_index >= room_sequence.size():
 		is_completed = true
 		return
-	current_room_type = ROOM_SEQUENCE[current_room_index]
+	current_room_type = room_sequence[current_room_index]
 	update_discovery()
+
+func get_total_rooms() -> int:
+	return room_sequence.size()
+
+# ── 部屋列の生成 ─────────────────────────────────────────────
+# floor_count > 0: ランダム抽選（START + 肩慣らしCOMBAT + 重み付き中間 + BOSS + EXIT）
+# floor_count <= 0: 従来固定列（ROOM_SEQUENCE を room_count で切り詰め）
+func _build_room_sequence(dungeon: DungeonData) -> Array[int]:
+	if dungeon.floor_count > 0:
+		return _generate_random_sequence(dungeon.floor_count)
+	var legacy: Array[int] = []
+	var n: int = dungeon.room_count if dungeon.room_count > 0 else ROOM_SEQUENCE.size()
+	for i in mini(n, ROOM_SEQUENCE.size()):
+		legacy.append(ROOM_SEQUENCE[i])
+	return legacy
+
+func _generate_random_sequence(floor_count: int) -> Array[int]:
+	var fc: int = maxi(floor_count, 3)
+	var seq: Array[int] = []
+	seq.append(Enums.RoomType.START)            # F1: 入口
+	if fc >= 3:
+		seq.append(Enums.RoomType.COMBAT)       # F2: 肩慣らし（固定）
+	# 中間（重み付き抽選）: START・肩慣らし・BOSS を除いた数
+	var middle_count: int = maxi(0, fc - 3)
+	var elite_count: int = 0
+	var prev: int = Enums.RoomType.COMBAT
+	for _i in middle_count:
+		var rt: int = _roll_room_type()
+		if rt == Enums.RoomType.ELITE and (elite_count >= ROOM_MAX_ELITE or prev == Enums.RoomType.ELITE):
+			rt = Enums.RoomType.COMBAT
+		if rt == Enums.RoomType.ELITE:
+			elite_count += 1
+		seq.append(rt)
+		prev = rt
+	seq.append(Enums.RoomType.BOSS)             # F(fc): ボス
+	_enforce_min_combat(seq)
+	seq.append(Enums.RoomType.EXIT)             # 脱出ゲート（フロア番号外）
+	return seq
+
+func _roll_room_type() -> int:
+	var r: int = randi() % 100
+	if r < ROOM_WEIGHT_COMBAT:
+		return Enums.RoomType.COMBAT
+	r -= ROOM_WEIGHT_COMBAT
+	if r < ROOM_WEIGHT_EVENT:
+		return Enums.RoomType.EVENT
+	r -= ROOM_WEIGHT_EVENT
+	if r < ROOM_WEIGHT_TREASURE:
+		return Enums.RoomType.TREASURE
+	return Enums.RoomType.ELITE
+
+# COMBAT が ROOM_MIN_COMBAT 未満なら、中間の非COMBAT部屋をCOMBATへ変換して補う。
+# START(先頭)・BOSS(末尾) は対象外。EVENT/TREASURE を優先的に変換し、足りなければ ELITE も変換。
+func _enforce_min_combat(seq: Array[int]) -> void:
+	var combat_total: int = seq.count(Enums.RoomType.COMBAT)
+	if combat_total >= ROOM_MIN_COMBAT:
+		return
+	for pass_idx in 2:
+		for i in range(1, seq.size() - 1):
+			if combat_total >= ROOM_MIN_COMBAT:
+				return
+			var rt: int = seq[i]
+			if rt == Enums.RoomType.COMBAT:
+				continue
+			# 1巡目は EVENT/TREASURE のみ、2巡目で ELITE も対象
+			if pass_idx == 0 and rt == Enums.RoomType.ELITE:
+				continue
+			seq[i] = Enums.RoomType.COMBAT
+			combat_total += 1
 
 func is_combat_room() -> bool:
 	return current_room_type in [
@@ -238,7 +339,17 @@ const WEAPON_POOL: Array[String] = [
 	"frost_blade",
 	"bolt_knife",
 	"sanctified_dagger",
+	"hunting_bow",
+	"apprentice_staff",
 ]
+
+# レア度別ドロップ重み（レアほど低確率＝レア度を体感に反映）
+const RARITY_DROP_WEIGHT: Dictionary = {
+	Enums.Rarity.COMMON: 40,
+	Enums.Rarity.RARE: 15,
+	Enums.Rarity.EPIC: 5,
+	Enums.Rarity.LEGENDARY: 1,
+}
 
 # P3-D074: 武器はラン終了一括ではなく撃破時に直ドロップ。ここでは防具/装飾のみ。
 func generate_run_loot() -> void:
@@ -258,9 +369,29 @@ func roll_kill_weapon_drop(room_type: int) -> String:
 		chance = 0.6
 	if randf() > chance:
 		return ""
-	var weapon_id: String = WEAPON_POOL[randi() % WEAPON_POOL.size()]
+	var weapon_id: String = _pick_weighted_weapon()
 	_spawn_weapon(weapon_id)
 	return weapon_id
+
+# WEAPON_POOL からレア度重みで1本抽選
+func _pick_weighted_weapon() -> String:
+	var weights: Array[int] = []
+	var total: int = 0
+	for wid in WEAPON_POOL:
+		var wdata: Resource = DataRegistry.get_weapon_data(wid)
+		var r: int = 0 if wdata == null else int(wdata.rarity)
+		var w: int = int(RARITY_DROP_WEIGHT.get(r, 1))
+		weights.append(w)
+		total += w
+	if total <= 0:
+		return WEAPON_POOL[randi() % WEAPON_POOL.size()]
+	var roll: int = randi() % total
+	var cumulative: int = 0
+	for i in WEAPON_POOL.size():
+		cumulative += weights[i]
+		if roll < cumulative:
+			return WEAPON_POOL[i]
+	return WEAPON_POOL[WEAPON_POOL.size() - 1]
 
 func _auto_appraise(instance: Resource, category: String, rarity: int) -> void:
 	instance.is_appraised = true
@@ -301,8 +432,9 @@ func _spawn_weapon(weapon_id: String) -> void:
 	EventBus.weapon_obtained.emit(weapon_id)
 
 func _generate_armor_loot() -> void:
-	const ARMOR_POOL: Array[String] = ["leather_armor"]
-	_spawn_armor(ARMOR_POOL[randi() % ARMOR_POOL.size()])
+	# 革(rarity0/HP寄り) 70% / 骨(rarity1/DEF寄り) 30% でレア度感を維持
+	var armor_id: String = "bone_armor" if randf() < 0.3 else "leather_armor"
+	_spawn_armor(armor_id)
 
 func _spawn_armor(armor_id: String) -> void:
 	var armor_data = load("res://resources/armors/" + armor_id + ".tres")

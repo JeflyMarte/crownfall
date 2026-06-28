@@ -21,6 +21,7 @@ export_presets.cfg
 .vscode/
 .idea/
 tools/godot/
+tools/_ed.log
 *.swp
 *.swo
 

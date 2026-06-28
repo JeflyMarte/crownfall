@@ -7,6 +7,6 @@ script = ExtResource("1")
 id = "recipe_hunting_bow"
 craft_id = "craft_hunting_bow"
 display_name = "狩猟弓の作成"
-output_summary = "狩猟弓（未鑑定）"
+output_summary = "狩猟弓"
 category = "weapon"
 description = "褪色した魔毛と魔導触角を組み合わせ、弓を仕上げる。"

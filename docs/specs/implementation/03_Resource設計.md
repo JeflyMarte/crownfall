@@ -131,11 +131,11 @@ static func roll_for_equipment(equipment_category: String, item_rarity: int) -> 
 @export var suffix_ids: Array[String] = []  # weapon のみ通常 1 件。armor/accessory は空
 ```
 
-### 鑑定連携
+### 識別連携
 
 `AppraisalController.appraise_next()` が `AffixRoller.roll_for_equipment()` を呼び、roll 結果を instance に保存。Reveal は `【Affix】display_name / …` 形式。
 
-Roll 失敗（error / 空候補）時も鑑定は完了。`prefix_ids` / `suffix_ids` は空配列。
+Roll 失敗（error / 空候補）時も識別は完了。`prefix_ids` / `suffix_ids` は空配列。
 
 ### Save
 
@@ -162,7 +162,7 @@ static func apply_material_bonus(base_amount: int) -> int
 
 ### 入力
 
-鑑定済み装備の Affix ID のみ（`is_appraised == true`）:
+識別済み装備の Affix ID のみ（`is_appraised == true`）:
 
 | 装備 | prefix_ids | suffix_ids |
 |---|---|---|
@@ -482,7 +482,7 @@ extends Resource
 検証（output_type / output_id / gold / materials）
   → GameState.gold 減算
   → GameState.consume_materials(required_materials)
-  → Instance 生成（未鑑定、affix なし）
+  → Instance 生成（未識別、affix なし）
   → armor_inventory / accessory_inventory 追加
   → SaveManager.save_game()
 ```

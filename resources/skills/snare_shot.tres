@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "snare_shot"
-display_name = "拘束矢"
+display_name = "スネアアロー"
 description = "生物の動線を読んで急所を射抜き、動きを鈍らせて誘導・弱体化する。"
 skill_type = "player"
 target_type = "enemy"

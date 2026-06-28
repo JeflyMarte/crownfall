@@ -102,6 +102,29 @@ func heal_party(amount: int) -> void:
 		if party_combat_hp[i] > 0:
 			party_combat_hp[i] = min(party_combat_hp[i] + amount, party_max_hp[i])
 
+## 指定メンバーを回復し、実際に回復した量を返す（死亡者は蘇生しない／上限クランプ）。
+func heal_member(index: int, amount: int) -> int:
+	if index < 0 or index >= party_combat_hp.size():
+		return 0
+	if party_combat_hp[index] <= 0:
+		return 0
+	var before: int = party_combat_hp[index]
+	party_combat_hp[index] = min(before + amount, party_max_hp[index])
+	return party_combat_hp[index] - before
+
+## 最も負傷している生存メンバーのindexを返す（負傷者なしは -1）。
+func get_most_injured_member_index() -> int:
+	var best: int = -1
+	var best_deficit: int = 0
+	for i in party_combat_hp.size():
+		if party_combat_hp[i] <= 0:
+			continue
+		var deficit: int = party_max_hp[i] - party_combat_hp[i]
+		if deficit > best_deficit:
+			best_deficit = deficit
+			best = i
+	return best
+
 func pick_enemy_target_member_index() -> int:
 	# 助っ人(event_helper)は敵のターゲット対象外。狙われてダメージを肩代わりし
 	# 全滅判定外＝無敵タンク化するのを防ぐ（メイン編成のみ狙う）。

@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "kindling_strike"
-display_name = "着火斬"
+display_name = "イグナイトエッジ"
 description = "武器の属性ダメージとは別に、炎上状態異常を付与する。スキル自体は無属性。"
 skill_type = "player"
 target_type = "enemy"

@@ -14,6 +14,7 @@ base_defense_modifier = 1.05
 base_initiative_modifier = 1.0
 preferred_weapon_types = Array[String](["sword", "greatsword", "dual_blades"])
 starting_skill_ids = Array[String](["slash_attack"])
+learnable_skill_ids = Array[String](["slash_attack", "kindling_strike", "static_strike", "rime_touch"])
 passive_tag_ids = Array[String](["frontline"])
 evolved_display_name = "ソードセイバー"
 evolution_level = 10

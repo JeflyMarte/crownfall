@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "slash_attack"
-display_name = "斬撃"
+display_name = "一閃"
 description = "敵にダメージを与える基本スキル"
 skill_type = "player"
 target_type = "enemy"

@@ -28,6 +28,22 @@ content_margin_top = 4.0
 content_margin_right = 4.0
 content_margin_bottom = 4.0
 
+[sub_resource type="StyleBoxFlat" id="SB_Card"]
+bg_color = Color(0.12, 0.10, 0.08, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.45, 0.40, 0.32, 0.7)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 12.0
+content_margin_top = 12.0
+content_margin_right = 12.0
+content_margin_bottom = 12.0
+
 [node name="EquipmentScene" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -64,41 +80,108 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 8
 
-[node name="HeaderVBox" type="VBoxContainer" parent="VBoxContainer"]
+[node name="HeaderRow" type="HBoxContainer" parent="VBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
-[node name="LabelTitle" type="Label" parent="VBoxContainer/HeaderVBox"]
+[node name="ButtonBack" type="Button" parent="VBoxContainer/HeaderRow"]
 layout_mode = 2
-text = "装備"
+text = "← 拠点へ"
+
+[node name="LabelTitle" type="Label" parent="VBoxContainer/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "キャラクター装備"
 horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="BuildChipRow" type="HBoxContainer" parent="VBoxContainer/HeaderVBox"]
+[node name="LabelGold" type="Label" parent="VBoxContainer/HeaderRow"]
 layout_mode = 2
-alignment = 1
-theme_override_constants/separation = 6
+text = "🪙 0"
+vertical_alignment = 1
 
-[node name="LabelSelectedMember" type="Label" parent="VBoxContainer/HeaderVBox"]
-layout_mode = 2
-text = "編成: —"
-horizontal_alignment = 1
-
-[node name="MemberSelectRow" type="HBoxContainer" parent="VBoxContainer/HeaderVBox"]
+[node name="MemberSelectRow" type="HBoxContainer" parent="VBoxContainer"]
 layout_mode = 2
 alignment = 1
 theme_override_constants/separation = 8
 
-[node name="ButtonMember0" type="Button" parent="VBoxContainer/HeaderVBox/MemberSelectRow"]
+[node name="ButtonMember0" type="Button" parent="VBoxContainer/MemberSelectRow"]
 layout_mode = 2
 text = "メンバー1"
 
-[node name="ButtonMember1" type="Button" parent="VBoxContainer/HeaderVBox/MemberSelectRow"]
+[node name="ButtonMember1" type="Button" parent="VBoxContainer/MemberSelectRow"]
 layout_mode = 2
 text = "メンバー2"
 
-[node name="ButtonMember2" type="Button" parent="VBoxContainer/HeaderVBox/MemberSelectRow"]
+[node name="ButtonMember2" type="Button" parent="VBoxContainer/MemberSelectRow"]
 layout_mode = 2
 text = "メンバー3"
+
+[node name="CharacterCard" type="PanelContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("SB_Card")
+
+[node name="CardRow" type="HBoxContainer" parent="VBoxContainer/CharacterCard"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="PortraitBox" type="VBoxContainer" parent="VBoxContainer/CharacterCard/CardRow"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="LabelStars" type="Label" parent="VBoxContainer/CharacterCard/CardRow/PortraitBox"]
+layout_mode = 2
+text = "★★★★★"
+horizontal_alignment = 1
+
+[node name="Portrait" type="PanelContainer" parent="VBoxContainer/CharacterCard/CardRow/PortraitBox"]
+custom_minimum_size = Vector2(96, 96)
+layout_mode = 2
+
+[node name="PortraitArt" type="TextureRect" parent="VBoxContainer/CharacterCard/CardRow/PortraitBox/Portrait"]
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PortraitGlyph" type="Label" parent="VBoxContainer/CharacterCard/CardRow/PortraitBox/Portrait"]
+layout_mode = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="InfoBox" type="VBoxContainer" parent="VBoxContainer/CharacterCard/CardRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="LabelName" type="Label" parent="VBoxContainer/CharacterCard/CardRow/InfoBox"]
+layout_mode = 2
+text = "—"
+
+[node name="LabelJobLevel" type="Label" parent="VBoxContainer/CharacterCard/CardRow/InfoBox"]
+layout_mode = 2
+text = "Lv1  —"
+
+[node name="StatsGrid" type="GridContainer" parent="VBoxContainer/CharacterCard/CardRow/InfoBox"]
+layout_mode = 2
+theme_override_constants/h_separation = 14
+theme_override_constants/v_separation = 2
+columns = 4
+
+[node name="ButtonsRow" type="HBoxContainer" parent="VBoxContainer/CharacterCard/CardRow/InfoBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ButtonUnequipAll" type="Button" parent="VBoxContainer/CharacterCard/CardRow/InfoBox/ButtonsRow"]
+layout_mode = 2
+text = "一括解除"
+
+[node name="LabelSlotsTitle" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "装備スロット"
+
+[node name="EquipSlotsRow" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
 
 [node name="TabContainer" type="TabContainer" parent="VBoxContainer"]
 layout_mode = 2
@@ -111,77 +194,79 @@ theme_override_colors/font_selected_color = Color(0.83137, 0.79608, 0.72157, 1)
 theme_override_colors/font_unselected_color = Color(0.5, 0.48, 0.44, 1)
 theme_override_colors/font_hovered_color = Color(1, 1, 1, 1)
 
-[node name="TabEquipped" type="ScrollContainer" parent="VBoxContainer/TabContainer"]
+[node name="TabEquip" type="ScrollContainer" parent="VBoxContainer/TabContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="EquippedContent" type="VBoxContainer" parent="VBoxContainer/TabContainer/TabEquipped"]
+[node name="EquipContent" type="VBoxContainer" parent="VBoxContainer/TabContainer/TabEquip"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="LabelEffectsTitle" type="Label" parent="VBoxContainer/TabContainer/TabEquip/EquipContent"]
+layout_mode = 2
+text = "装備中の効果"
+
+[node name="EffectsGrid" type="GridContainer" parent="VBoxContainer/TabContainer/TabEquip/EquipContent"]
+layout_mode = 2
+theme_override_constants/h_separation = 14
+theme_override_constants/v_separation = 2
+columns = 4
+
+[node name="CategoryRow" type="HBoxContainer" parent="VBoxContainer/TabContainer/TabEquip/EquipContent"]
+layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="LabelEquipped" type="Label" parent="VBoxContainer/TabContainer/TabEquipped/EquippedContent"]
+[node name="ButtonCatAll" type="Button" parent="VBoxContainer/TabContainer/TabEquip/EquipContent/CategoryRow"]
 layout_mode = 2
-text = "武器: なし"
-horizontal_alignment = 1
-autowrap_mode = 3
+toggle_mode = true
+text = "すべて"
 
-[node name="LabelArmorEquipped" type="Label" parent="VBoxContainer/TabContainer/TabEquipped/EquippedContent"]
+[node name="ButtonCatWeapon" type="Button" parent="VBoxContainer/TabContainer/TabEquip/EquipContent/CategoryRow"]
 layout_mode = 2
-text = "防具: なし"
-horizontal_alignment = 1
-autowrap_mode = 3
+toggle_mode = true
+text = "武器"
 
-[node name="LabelAccessoryEquipped" type="Label" parent="VBoxContainer/TabContainer/TabEquipped/EquippedContent"]
+[node name="ButtonCatArmor" type="Button" parent="VBoxContainer/TabContainer/TabEquip/EquipContent/CategoryRow"]
 layout_mode = 2
-text = "装飾品: なし"
-horizontal_alignment = 1
-autowrap_mode = 3
+toggle_mode = true
+text = "防具"
 
-[node name="LabelBuildSummary" type="Label" parent="VBoxContainer/TabContainer/TabEquipped/EquippedContent"]
+[node name="ButtonCatAccessory" type="Button" parent="VBoxContainer/TabContainer/TabEquip/EquipContent/CategoryRow"]
 layout_mode = 2
-autowrap_mode = 3
+toggle_mode = true
+text = "装飾品"
 
-[node name="TabInventory" type="ScrollContainer" parent="VBoxContainer/TabContainer"]
+[node name="InventoryGrid" type="GridContainer" parent="VBoxContainer/TabContainer/TabEquip/EquipContent"]
+layout_mode = 2
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 6
+columns = 6
+
+[node name="TabSkill" type="ScrollContainer" parent="VBoxContainer/TabContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="InventoryContent" type="VBoxContainer" parent="VBoxContainer/TabContainer/TabInventory"]
+[node name="SkillContent" type="VBoxContainer" parent="VBoxContainer/TabContainer/TabSkill"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
-[node name="LabelWeaponListHeader" type="Label" parent="VBoxContainer/TabContainer/TabInventory/InventoryContent"]
+[node name="LabelSkillSlots" type="Label" parent="VBoxContainer/TabContainer/TabSkill/SkillContent"]
 layout_mode = 2
-text = "鑑定済み武器:"
+text = "装備中スキル: —"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="LabelSkillHint" type="Label" parent="VBoxContainer/TabContainer/TabSkill/SkillContent"]
+layout_mode = 2
+text = "習得可能スキル（最大2つ装備）:"
 horizontal_alignment = 1
 
-[node name="WeaponList" type="VBoxContainer" parent="VBoxContainer/TabContainer/TabInventory/InventoryContent"]
+[node name="SkillList" type="VBoxContainer" parent="VBoxContainer/TabContainer/TabSkill/SkillContent"]
 layout_mode = 2
 theme_override_constants/separation = 4
-
-[node name="LabelArmorListHeader" type="Label" parent="VBoxContainer/TabContainer/TabInventory/InventoryContent"]
-layout_mode = 2
-text = "鑑定済み防具:"
-horizontal_alignment = 1
-
-[node name="ArmorList" type="VBoxContainer" parent="VBoxContainer/TabContainer/TabInventory/InventoryContent"]
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="LabelAccessoryListHeader" type="Label" parent="VBoxContainer/TabContainer/TabInventory/InventoryContent"]
-layout_mode = 2
-text = "鑑定済み装飾品:"
-horizontal_alignment = 1
-
-[node name="AccessoryList" type="VBoxContainer" parent="VBoxContainer/TabContainer/TabInventory/InventoryContent"]
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="ButtonBack" type="Button" parent="VBoxContainer"]
-layout_mode = 2
-text = "拠点へ戻る"

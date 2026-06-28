@@ -7,6 +7,6 @@ script = ExtResource("1")
 id = "recipe_iron_sword"
 craft_id = "craft_iron_sword"
 display_name = "鉄剣の作成"
-output_summary = "鉄剣（未鑑定）"
+output_summary = "鉄剣"
 category = "weapon"
 description = "王金の門歯と刻印甲殻を鍛え合わせ、武器として仕上げる。"

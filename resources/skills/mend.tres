@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "mend"
+display_name = "治癒"
+description = "錬金の妙薬で味方の傷を癒やす。最も負傷した味方を回復する。"
+skill_type = "player"
+target_type = "ally"
+power_multiplier = 1.0
+cooldown = 5.0
+trigger_type = "cooldown"
+effect_type = "heal"
+tags = Array[String](["support"])
+element = ""
+apply_status_id = ""
+apply_status_chance = 0.0

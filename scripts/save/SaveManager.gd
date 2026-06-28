@@ -82,6 +82,7 @@ func _serialize_adventurer(adv: Resource) -> Dictionary:
 		"equipped_weapon": weapon_instance_id,
 		"equipped_armor": armor_instance_id,
 		"equipped_accessory": accessory_instance_id,
+		"equipped_skills": adv.equipped_skill_ids.duplicate(),
 	}
 
 func _serialize_stats(stats: Resource) -> Dictionary:
@@ -196,6 +197,11 @@ func _deserialize_party(party_data: Array) -> Dictionary:
 		adv.exp = int(entry.get("exp", 0))
 		adv.job_id = _migrate_job_id(entry.get("job_id", ""))
 		adv.is_evolved = bool(entry.get("is_evolved", false))
+		var saved_skills: Array = entry.get("equipped_skills", [])
+		var skill_ids: Array[String] = []
+		for sid in saved_skills:
+			skill_ids.append(str(sid))
+		adv.equipped_skill_ids = skill_ids
 		var stats = stats_class.new()
 		var sd = entry.get("base_stats", {})
 		if sd is Dictionary:
@@ -230,6 +236,8 @@ func _apply_roster_save(data: Dictionary) -> void:
 	_resolve_equipment_for(members, result["equipment_ids"])
 	# 欠落基本職を補完（旧セーブ＝3名のみのケースで vanguard/beast_tamer を追加）
 	GameState.ensure_base_roster_complete()
+	# 旧セーブの基本職名/職IDを現行定義へ正規化（戦士/盗賊/魔術師 等の残存を解消）
+	GameState.normalize_base_roster()
 	_restore_active_party(data)
 
 func _restore_active_party(data: Dictionary) -> void:

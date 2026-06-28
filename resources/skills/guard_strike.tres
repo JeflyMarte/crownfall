@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "guard_strike"
-display_name = "守護斬り"
+display_name = "衛士斬り"
 description = "前線を支えながら敵を打ち据え、怯ませて味方への被害を抑える。"
 skill_type = "player"
 target_type = "enemy"

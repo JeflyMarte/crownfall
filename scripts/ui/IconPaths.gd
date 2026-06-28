@@ -5,6 +5,8 @@ const ICON_MAP: Dictionary = {
 	"chr:swordsman":               "res://assets/ui/chr_icons/ICO_CHR_Swordsman.png",
 	"chr:ranger":                  "res://assets/ui/chr_icons/ICO_CHR_Ranger.png",
 	"chr:alchemist":               "res://assets/ui/chr_icons/ICO_CHR_Alchemist.png",
+	"chr:vanguard":                "res://assets/ui/chr_icons/ICO_CHR_Vanguard.png",
+	"chr:beast_tamer":             "res://assets/ui/chr_icons/ICO_CHR_BeastTamer.png",
 	"weapon:iron_sword":           "res://assets/ui/batch2/ICO_WPN_IronSword.png",
 	"weapon:rusted_blade":         "res://assets/ui/batch2/ICO_WPN_RustedBlade.png",
 	"weapon:heater_blade":         "res://assets/ui/batch2/ICO_WPN_IronSword.png",
@@ -21,6 +23,12 @@ const ICON_MAP: Dictionary = {
 	"material:ancient_bone":       "res://assets/ui/batch7/ICO_MAT_AncientBone.png",
 	"material:cursed_iron":        "res://assets/ui/batch7/ICO_MAT_CursedIron.png",
 	"material:leather":            "res://assets/ui/batch7/ICO_MAT_Leather.png",
+	"enemy:sepia_hound":           "res://assets/codex/enemies/ART_ENM_SepiaHound.png",
+	"enemy:rune_roach":            "res://assets/codex/enemies/ART_ENM_RuneRoach.png",
+	"enemy:crystal_hedgehog":      "res://assets/codex/enemies/ART_ENM_CrystalHedgehog.png",
+	"enemy:crown_eater_rat":       "res://assets/codex/enemies/ART_ENM_CrownEaterRat.png",
+	"enemy:clock_moth":            "res://assets/codex/enemies/ART_ENM_ClockMoth.png",
+	"enemy:serdion":               "res://assets/codex/enemies/ART_BOSS_Serdion.png",
 }
 
 static func get_icon_texture(id: String, category: String) -> Texture2D:

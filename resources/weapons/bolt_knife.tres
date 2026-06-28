@@ -5,10 +5,10 @@
 [resource]
 script = ExtResource("1")
 id = "bolt_knife"
-display_name = "電撃短刀"
+display_name = "雷紋の双刃"
 fixed_skill_id = "static_strike"
 base_attack = 8
-rarity = 0
+rarity = 1
 base_attack_speed = 1.1
 base_critical_rate = 0.08
 base_knockback = 0.3

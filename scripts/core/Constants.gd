@@ -9,6 +9,8 @@ const MOURNGATE_DUNGEON_ID: String = "mourngate"
 const DEFAULT_DUNGEON_ID: String = MOURNGATE_DUNGEON_ID
 const COMBAT_TICK_INTERVAL: float = 1.5
 const DEFAULT_PLAYER_SKILL_ID: String = "slash_attack"
+## 1キャラが装備できるスキル数（P3-D077）。
+const MAX_EQUIPPED_SKILLS: int = 2
 
 # DataRegistry resource paths (P2-Task020)
 const RESOURCE_WEAPONS_PATH: String = "res://resources/weapons/"

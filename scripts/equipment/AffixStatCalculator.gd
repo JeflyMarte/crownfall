@@ -1,7 +1,7 @@
 class_name AffixStatCalculator
 extends RefCounted
 
-## M6 Affix stat 集計（P2-Task031）。鑑定済み装備の prefix/suffix のみ反映。
+## M6 Affix stat 集計（P2-Task031）。装備の prefix/suffix のみ反映。
 ## P3-EQ-002: member_index >= 0 はそのメンバーの装備のみ。-1 は全員分を合算（Gold/Healing 等）。
 
 const STAT_ATTACK: String = "Attack"

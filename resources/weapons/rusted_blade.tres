@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "rusted_blade"
-display_name = "錆びた刃"
+display_name = "朽ちた近衛の剣"
 base_attack = 7
 rarity = 0
 base_attack_speed = 1.3
@@ -14,5 +14,5 @@ base_knockback = 0.1
 base_stagger_power = 0.0
 base_attack_range = 0.8
 weight = 0.7
-element = "dark"
+element = ""
 weapon_type = "greatsword"

@@ -1,6 +1,6 @@
 extends Node
 
-# 所持ゴールド（MVP: 鑑定費用のみ消費）
+# 所持ゴールド（永続）
 var gold: int = 0
 
 # 編成中（アクティブ）の冒険者リスト（Adventurer Resource × 最大3）。roster の部分集合（参照）。
@@ -16,7 +16,7 @@ var owned_helpers: Dictionary = {}
 # 天井カウンタ（未所持が出ていない連続抽選回数）
 var gacha_pity: int = 0
 
-# 所持アイテムリスト（WeaponInstance。未鑑定・鑑定済み混在）
+# 所持アイテムリスト（WeaponInstance）
 var inventory: Array = []
 
 # 現在選択中のダンジョンID
@@ -52,6 +52,20 @@ func get_active_dungeon_id() -> String:
 		return Constants.DEFAULT_DUNGEON_ID
 	return current_dungeon_id
 
+# ダンジョン選択画面の CLEAR バッジ用。ラン完走（ボス突破→EXIT 到達）時に立てる。
+func mark_dungeon_cleared(dungeon_id: String) -> void:
+	if dungeon_id.is_empty():
+		return
+	var progress: Dictionary = dungeon_progress.get(dungeon_id, {})
+	progress["cleared"] = true
+	dungeon_progress[dungeon_id] = progress
+
+func is_dungeon_cleared(dungeon_id: String) -> bool:
+	if dungeon_id.is_empty():
+		return false
+	var progress: Dictionary = dungeon_progress.get(dungeon_id, {})
+	return bool(progress.get("cleared", false))
+
 func get_member(member_index: int) -> Resource:
 	if member_index < 0 or member_index >= party_members.size():
 		return null
@@ -74,6 +88,41 @@ func get_member_equipped_accessory(member_index: int) -> Resource:
 	if member == null:
 		return null
 	return member.equipped_accessory
+
+# ---- 装備スキル（P3-D077） ----
+# ジョブ learnable_skill_ids の先頭 MAX_EQUIPPED_SKILLS 個を既定装備とする。
+func get_default_skill_ids(member: Resource) -> Array[String]:
+	var out: Array[String] = []
+	if member == null or str(member.job_id).is_empty():
+		return out
+	var job: Resource = DataRegistry.get_job_data(member.job_id)
+	if job == null:
+		return out
+	var pool: Array = job.learnable_skill_ids
+	for i in mini(Constants.MAX_EQUIPPED_SKILLS, pool.size()):
+		out.append(str(pool[i]))
+	return out
+
+# 現在の装備スキル。未設定（空）ならジョブ既定にフォールバック。
+func get_equipped_skill_ids(member: Resource) -> Array[String]:
+	if member == null:
+		return [] as Array[String]
+	if "equipped_skill_ids" in member and not member.equipped_skill_ids.is_empty():
+		return member.equipped_skill_ids
+	return get_default_skill_ids(member)
+
+# スキルの装備/解除トグル（最大 MAX_EQUIPPED_SKILLS）。
+func toggle_member_skill(member: Resource, skill_id: String) -> void:
+	if member == null or skill_id.is_empty():
+		return
+	var ids: Array[String] = get_equipped_skill_ids(member).duplicate()
+	if ids.has(skill_id):
+		ids.erase(skill_id)
+	elif ids.size() < Constants.MAX_EQUIPPED_SKILLS:
+		ids.append(skill_id)
+	else:
+		return
+	member.equipped_skill_ids = ids
 
 func find_item_equipped_member_index(item: Resource) -> int:
 	if item == null:
@@ -173,6 +222,16 @@ func ensure_base_roster_complete() -> void:
 		var adv: Resource = _create_base_adventurer(def)
 		roster.append(adv)
 		_grant_member_starting_weapon(adv)
+
+# 旧セーブに残る基本職の display_name / job_id を現行定義へ正規化する。
+# （旧名「戦士/盗賊/魔術師」等の残存を解消。基本職にカスタム改名機能は無いため上書き安全）
+func normalize_base_roster() -> void:
+	for def in BASE_ROSTER_DEFS:
+		var m: Resource = find_roster_member_by_id(str(def["id"]))
+		if m == null:
+			continue
+		m.display_name = str(def["name"])
+		m.job_id = str(def["job"])
 
 func _create_starting_weapon(member_id: String, weapon_id: String) -> Resource:
 	var weapon_data: Resource = DataRegistry.get_weapon_data(weapon_id)

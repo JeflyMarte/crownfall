@@ -819,6 +819,33 @@
 | P3-D054-2 | MID_BOSS 固有処理（ラベル/バッジ/報酬/抽選分岐）を除去。`Enums.RoomType.MID_BOSS` の**列挙値自体は残す**（並び変更による既存値ズレ回避、未使用化） | 低リスク優先 |
 | P3-D054-3 | MID_BOSS の追加ドロップは元々無し→廃止で報酬影響なし。ELITE の追加ドロップ抽選は維持 | 現仕様維持 |
 
+## スキル装備システム・キャラ管理画面（2026-06-29 — オーナー決定 / P3-D077）
+
+> 動機: スキルは武器`fixed_skill_id`＋ジョブ`starting_skill_ids[0]`から戦闘時に導出する設計でキャラ非保持だった。プレイヤーが明示的にスキルを装備し、戦闘では装備スキルのみ使用する形へ変更。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D077-1 | メニュー「装備へ」→**「キャラ管理」**に改称（`BaseScene`） | 装備＋スキル管理を担う画面へ |
+| P3-D077-2 | **装備スキルは1キャラ2スロット**（`Constants.MAX_EQUIPPED_SKILLS=2`）。`Adventurer.equipped_skill_ids` に保持＋セーブ対応 | 旧「武器＋ジョブ」2発と整合 |
+| P3-D077-3 | **装備可能プールはジョブ別**（`JobData.learnable_skill_ids`）。先頭MAX個を既定装備にフォールバック。剣士=斬撃/着火斬/放電斬/霜触, ヴァンガード=守護斬り/斬撃/着火斬/霜触, レンジャー=狙撃/拘束矢/呪詛弾, アルケミスト=呪詛弾/放電斬/着火斬/霜触, ビーストテイマー=拘束矢/狙撃/呪詛弾/霜触 | ジョブ個性・8スキル流用 |
+| P3-D077-4 | **戦闘では全メンバーが自分の装備スキルのみ発動**（従来＝先頭1人・武器/ジョブ導出を廃止）。CDはメンバー×スキルで独立 | キャラ管理の意図に沿う |
+| P3-D077-5 | 武器`fixed_skill_id`の自動付与は廃止（明示装備に一本化）。武器スキルはプール/初期装備候補として温存 | スキル管理の一本化 |
+| P3-D077-6 | キャラ管理画面に**スキルタブ**追加（装備中スロット表示＋ジョブ習得可能スキル一覧で装備/解除）。EquipmentScene TabContainer 第3タブ | UI |
+| P3-D077-7 | 実装は HQ。headless で全スクリプトコンパイル＋全リソースロード検証 | 品質担保 |
+
+## 部屋抽選のランダム化・ダンジョン別フロア数（2026-06-29 — オーナー決定 / P3-D076）
+
+> 動機: `ROOM_SEQUENCE` 固定列で毎ラン同一進行だったため、中間部屋を重み付きランダム化。事故（宝箱だらけ/ELITE連続等）はガードで抑制。ダンジョン別に長さを設定可能化。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D076-1 | **中間部屋を重み付きランダム抽選**化（プリセット=戦闘多め: COMBAT60 / EVENT15 / TREASURE13 / ELITE12） | 周回の単調さ解消・戦闘テンポ優先 |
+| P3-D076-2 | **両端固定**: F1=START / 2部屋目=COMBAT(肩慣らし固定) / 最終フロア=BOSS / その後にEXIT付与(フロア番号外) | 開幕事故防止・クライマックス保証 |
+| P3-D076-3 | **安全ガード全適用**: ELITE最大2 / ELITE連続禁止(直前ELITEならCOMBATへ) / COMBAT最低3保証(不足時は非COMBATをEVENT/TREASURE→ELITEの順に変換) | 報酬・難度の極端化を防止 |
+| P3-D076-4 | **ダンジョン別フロア数** `DungeonData.floor_count`(START〜BOSS含む。0なら従来固定列にフォールバック)。**mourngate=7**(案A: STARTをF1に数える→中間抽選4部屋) | ダンジョン毎に長さ設定したい要望 |
+| P3-D076-5 | 抽選はラン開始時(`start_dungeon`)に一括生成し `room_sequence` に保持。進行・部屋数表示は同配列基準(`get_total_rooms`) | 決定性・UI整合 |
+| P3-D076-6 | 実装は HQ。headless で2万試行検証(全不変条件0件: サイズ/両端/ELITE上限・連続/COMBAT最低 すべて違反なし) | 品質担保 |
+
 ## 鍛冶屋（クラフト）のオミット・退避（2026-06-28 — オーナー決定 / P3-D075）
 
 > 経緯: P3-D068 で探索ドロップを直ドロップ化、P3-D074 で素材ドロップをオミット済。素材消費前提のクラフト導線（鍛冶屋）は当面不要のためオミット。鑑定(P3-D072)同様、コードは将来用途のため退避（削除しない）。
@@ -938,3 +965,49 @@
 | P3-D066-4 | **回復/バフは見送り**（alchemist MVP と同方針）。SkillExecutor は damage のみ実行 | スコープ最小化 |
 | P3-D066-5 | **ジョブ副スキルの状態異常付与を有効化**（`_try_apply_secondary_skill_status`）。従来は weapon 主スキルのみ付与 | 副スキルの `apply_status` を機能させる最小コード追加 |
 | P3-D066-6 | バランス値は P3-D050b に従い都度調整 | プレイ感依存 |
+
+## 旧セーブ残存データ修正 / パーティアイコン統一（2026-06-29 — P3-FIX-002）
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-FIX-002-1 | **基本ロスター正規化を追加**（`GameState.normalize_base_roster()` を `SaveManager._apply_roster_save` のロード時に実行）。基本職 `adventurer_0..4` の `display_name`/`job_id` を `BASE_ROSTER_DEFS` で上書き | 旧セーブの「戦士/盗賊/魔術師」等が `_migrate_job_id`（job_id のみ移行）で残存していた。基本職にカスタム改名機能は無く上書き安全 |
+| P3-FIX-002-2 | **vanguard / beast_tamer に仮バストアイコンを追加**（dot シートから 128px 生成 / `IconPaths` に `chr:vanguard` `chr:beast_tamer` 追加）。パーティパネルの 32px ドット絵フォールバック（小さく不揃い）を解消 | helper_a(vanguard) 等で枠サイズ不揃いが発生していた |
+| P3-FIX-002-3 | **既知の残課題**: vanguard/beast_tamer は仮アイコン＝ピクセル絵柄。剣士/レンジャー/錬金（ハイレゾイラスト）と絵柄が不一致。完全統一には専用イラスト提供が必要 → **解消済**: 2026-06-29 にヴァンガード/ビーストテイマーの本イラストを実装（全5職ハイレゾ統一） | 専用素材提供済 |
+
+## ボス戦フリーズ修正（2026-06-29 — P3-FIX-003）
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-FIX-003-1 | **`_append_log` のログ間引きを `queue_free()` 単独→`remove_child()`＋`queue_free()` に修正**（`DungeonScene.gd`） | `queue_free()` はフレーム終端まで遅延削除のため `while get_child_count() > _LOG_MAX` 内で件数が減らず**無限ループ→フリーズ**。`remove_child()` で即時 detach し解消 |
+| P3-FIX-003-2 | 発症条件＝バトルログが `_LOG_MAX(60)` 超過。長期戦のボス戦で初発症。P3-D074(ログ常駐化)/P3-D077(全員スキルログ)で行数増加し顕在化 | 既存バグの顕在化 |
+
+## 断片ロア実機配信 クローズ（2026-06-29 — P3-D072-LORE）
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D072-LORE | **断片ロア実機配信を完了クローズ**。`world/12_Fragments.md` の `# LF` ブロック6件が `DungeonController` の碑文イベントID（ancient_record / mourngate_rune_shell / pilgrim_marker / record_margin / forge_brand / lamp_relief）と一致し、本文パーサ（`CatalogHelper._load_fragment_entries`）・碑文表示（`DungeonScene` `type:"lore"`）・Codex「記録」カテゴリの配線を確認済 | コード・コンテンツ・ID対応が既に揃っており、残は実機確認のみ。オーナー判断でクローズ |
+
+## 回復/バフスキル MVP（2026-06-29 — P3-D078）
+
+> P3-D066-4 / alchemist MVP で見送っていた回復/バフを SkillExecutor に解禁。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D078-1 | **SkillExecutor を damage 専用から heal/buff 対応へ拡張**。`can_cast` を `effect_type != "none"` に緩和し、CD判定/CDセットのみ行う `execute_support_skill()` を追加（効果適用は呼び出し側） | 既存 damage 経路（`execute_damage_skill`/`calculate_damage`）は不変のまま最小拡張 |
+| P3-D078-2 | **回復スキル `mend`（治癒・CD5.0・heal）**。発動時 `CombatController.get_most_injured_member_index()` の最も負傷した生存メンバーを `HEAL_SKILL_BASE(14)×power` 回復（`_apply_healing_bonus` 適用）。**負傷者ゼロなら CD を消費せず不発** | オート戦闘での無駄撃ち防止・単体集中回復で MVP 単純化 |
+| P3-D078-3 | **バフスキル `empower`（鼓舞・CD6.0・buff）**。`empower` 状態（`stat_mod`/`outgoing_damage_multiplier=1.3`/3tick）を生存メイン編成全員に付与。与ダメ倍率は通常攻撃・スキル双方に既存配線で適用 | 既存 `get_member_outgoing_damage_multiplier` を流用し追加配線なしで成立 |
+| P3-D078-4 | **alchemist に `mend`/`empower` を learnable 追加**（並び= hex_bolt, mend, empower, ...）。既定装備2枠＝hex_bolt+mend（火力+回復）で支援役の identity を確立。装備変更で empower に差替可 | キャラ管理(P3-D077)のスキル装備と整合 |
+| P3-D078-5 | **演出**: 回復は対象頭上に緑「+N」ポップ＋発動者にスキル名。バフは `STATUS_ICON_DEF` に `empower`(「攻」橙)アイコン追加で付与可視化。EquipmentScene スキルタブは heal/buff 用の説明文に分岐 | 既存 `_spawn_damage_number`/`_spawn_skill_name`/状態アイコン機構を流用 |
+| P3-D078-6 | **防御バフ（被ダメ減）は今回見送り**。敵→メンバーのダメージ計算に member `incoming_damage_multiplier` 未配線のため。将来 vanguard 用に別途配線 | スコープ最小化 |
+
+## ボススキル MVP（2026-06-29 — P3-D079）
+
+> Master Plan / Backlog で Defer されていた「敵スキル / ボス mechanics」を MVP 実装。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D079-1 | **EnemyData に `skill_ids: Array[String]` / `skill_use_chance: float` を追加**。敵ターンで `skill_use_chance` 判定→使用可能スキル（CD明け）からランダム発動、無ければ通常攻撃 | データ駆動でボス/エリートにスキル付与可能。既存通常攻撃はフォールバックで不変 |
+| P3-D079-2 | **敵スキルは共有 `SkillExecutor` で CD 管理**（key=`"enemy:<id>"`）。`execute_support_skill` で CD ゲートのみ行い、効果適用は DungeonScene 側 | 味方スキルと同一機構を流用・追加状態管理なし |
+| P3-D079-3 | **Serdion に2スキル付与（`skill_use_chance=0.4`）**: `boss_enrage`（激昂・buff・CD12: 自身に `enrage` 与ダメ+40%/3tick）／`boss_decree_wave`（断罪の波動・damage・CD6・`target_type="all_party"`: 全味方に attack×0.7 のAoE） | 「激昂→全体攻撃」で危険な連携を演出。AoEは全滅判定（既存）に直結 |
+| P3-D079-4 | **演出**: 敵ドット絵頭上に赤系スキル名ポップ（`_spawn_enemy_skill_name`）。AoEは各対象に被弾VFX＋赤ダメージ数字、ログに対象別内訳。撃破時は該当スプライト非表示 | 既存 `_spawn_damage_number`/`_play_chr_hurt`/被弾処理を流用 |
+| P3-D079-5 | **敵スキルの属性耐性/被ダメ補正は今回最小**（メンバー側 element 耐性・incoming 補正は未配線）。`_calc_enemy_damage_to_member` に `power_multiplier` 引数を追加しスキル威力のみ反映 | スコープ最小化・既存敵ダメージ式を踏襲 |

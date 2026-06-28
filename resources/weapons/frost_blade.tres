@@ -5,10 +5,10 @@
 [resource]
 script = ExtResource("1")
 id = "frost_blade"
-display_name = "霜刃"
-	fixed_skill_id = "rime_touch"
+display_name = "霜結びの剣"
+fixed_skill_id = "rime_touch"
 base_attack = 9
-rarity = 0
+rarity = 1
 base_attack_speed = 1.0
 base_critical_rate = 0.05
 base_knockback = 0.4

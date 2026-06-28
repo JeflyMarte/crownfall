@@ -175,11 +175,11 @@ Task 明示指示がない限り作成しない:
 | `assets/ui/batch1/UI_Frame_Panel_Base.png` | 9-slice フレーム | ✅ |
 | `assets/ui/batch2/ICO_WPN_IronSword.png` | 武器アイコン 64×64 | ✅ |
 | `assets/ui/batch2/ICO_WPN_RustedBlade.png` | 武器アイコン 64×64 | ✅ |
-| `assets/ui/batch2/ICO_WPN_Unidentified.png` | 武器未鑑定 64×64 | ✅ |
+| `assets/ui/batch2/ICO_WPN_Unidentified.png` | 武器未識別 64×64 | ✅ |
 | `assets/ui/batch2/ICO_ARM_LeatherArmor.png` | 防具アイコン 64×64 | ✅ |
-| `assets/ui/batch2/ICO_ARM_Unidentified.png` | 防具未鑑定 64×64 | ✅ |
+| `assets/ui/batch2/ICO_ARM_Unidentified.png` | 防具未識別 64×64 | ✅ |
 | `assets/ui/batch2/ICO_ACC_SilverRing.png` | 装飾品アイコン 64×64 | ✅ |
-| `assets/ui/batch2/ICO_ACC_Unidentified.png` | 装飾品未鑑定 64×64 | ✅ |
+| `assets/ui/batch2/ICO_ACC_Unidentified.png` | 装飾品未識別 64×64 | ✅ |
 | `assets/ui/batch2/ICO_Gold.png` | Gold アイコン 32×32 | ✅ |
 | `assets/ui/batch2/ICO_HP.png` | HP アイコン 32×32 | ✅ |
 | `assets/ui/batch2/ICO_MAT_RelicShard.png` | 素材アイコン 64×64 | ✅ |

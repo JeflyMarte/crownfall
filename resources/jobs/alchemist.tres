@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "alchemist"
 display_name = "アルケミスト"
-description = "杖で魔法ダメージとデバフを扱う支援アタッカー。（MVP では回復・バフなし）"
+description = "杖で魔法ダメージ・デバフに加え、回復と鼓舞（与ダメ上昇）で味方を支える支援役。"
 role = "support"
 base_hp_modifier = 0.85
 base_attack_modifier = 1.0
@@ -14,6 +14,7 @@ base_defense_modifier = 0.9
 base_initiative_modifier = 1.0
 preferred_weapon_types = Array[String](["staff"])
 starting_skill_ids = Array[String]([])
+learnable_skill_ids = Array[String](["hex_bolt", "mend", "empower", "static_strike", "kindling_strike", "rime_touch"])
 passive_tag_ids = Array[String](["caster"])
 evolved_display_name = "セージ"
 evolution_level = 10

@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "iron_sword"
-display_name = "鉄の剣"
+display_name = "王国制式剣"
 fixed_skill_id = "slash_attack"
 base_attack = 10
 rarity = 0

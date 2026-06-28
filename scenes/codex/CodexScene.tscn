@@ -69,6 +69,10 @@ text = "Weapon"
 layout_mode = 2
 text = "History"
 
+[node name="ButtonTabLore" type="Button" parent="VBoxContainer/TabRow"]
+layout_mode = 2
+text = "記録"
+
 [node name="ButtonTabGuide" type="Button" parent="VBoxContainer/TabRow"]
 layout_mode = 2
 text = "Guide"

@@ -1,26 +1,54 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/base/BaseScene.gd" id="1"]
 [ext_resource type="Theme" path="res://assets/ui/production_theme.tres" id="2"]
-[ext_resource type="Texture2D" path="res://assets/ui/batch1/UI_BG_Dark.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/ui/UI_BG_Title.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/ui/batch2/ICO_Gold.png" id="4"]
+
+[sub_resource type="StyleBoxFlat" id="SB_TopBar"]
+bg_color = Color(0.04, 0.04, 0.1, 0.85)
+border_width_bottom = 1
+border_color = Color(0.55, 0.45, 0.18, 0.6)
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
 
 [sub_resource type="StyleBoxFlat" id="SB_LeftPanel"]
-bg_color = Color(0.04, 0.04, 0.1, 0.9)
+bg_color = Color(0.04, 0.04, 0.1, 0.82)
 border_width_right = 1
-border_color = Color(0.55, 0.45, 0.18, 0.7)
-content_margin_left = 12.0
-content_margin_top = 16.0
-content_margin_right = 12.0
-content_margin_bottom = 12.0
+border_color = Color(0.55, 0.45, 0.18, 0.6)
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
 
-[sub_resource type="StyleBoxFlat" id="SB_BottomPanel"]
+[sub_resource type="StyleBoxFlat" id="SB_BottomNav"]
 bg_color = Color(0.04, 0.04, 0.1, 0.92)
 border_width_top = 1
 border_color = Color(0.55, 0.45, 0.18, 0.6)
-content_margin_left = 14.0
-content_margin_top = 10.0
-content_margin_right = 14.0
-content_margin_bottom = 10.0
+content_margin_left = 8.0
+content_margin_top = 6.0
+content_margin_right = 8.0
+content_margin_bottom = 6.0
+
+[sub_resource type="StyleBoxFlat" id="SB_Chip"]
+bg_color = Color(0.1, 0.09, 0.05, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.55, 0.45, 0.18, 0.5)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+content_margin_left = 10.0
+content_margin_top = 4.0
+content_margin_right = 10.0
+content_margin_bottom = 4.0
 
 [node name="BaseScene" type="Control"]
 layout_mode = 3
@@ -40,51 +68,141 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-stretch_mode = 1
+expand_mode = 1
+stretch_mode = 6
+
+[node name="CenterBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchor_left = 0.5
+anchor_top = 0.0
+anchor_right = 0.5
+anchor_bottom = 0.0
+offset_left = -190.0
+offset_top = 72.0
+offset_right = 190.0
+grow_horizontal = 2
+grow_vertical = 1
+theme_override_constants/separation = 6
+
+[node name="LabelLogo" type="Label" parent="CenterBox"]
+layout_mode = 2
+text = "♛"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.92, 0.78, 0.28, 1)
+theme_override_font_sizes/font_size = 40
+
+[node name="LabelTitle" type="Label" parent="CenterBox"]
+layout_mode = 2
+text = "CROWNFALL"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
+theme_override_font_sizes/font_size = 44
+
+[node name="LabelSubtitle" type="Label" parent="CenterBox"]
+layout_mode = 2
+text = "九王の遺産を巡る自動探索RPG"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
+theme_override_font_sizes/font_size = 13
+
+[node name="TopBar" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_right = 1.0
+offset_bottom = 44.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("SB_TopBar")
+
+[node name="TopBarRow" type="HBoxContainer" parent="TopBar"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Spacer" type="Control" parent="TopBar/TopBarRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="GoldChip" type="PanelContainer" parent="TopBar/TopBarRow"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("SB_Chip")
+
+[node name="GoldRow" type="HBoxContainer" parent="TopBar/TopBarRow/GoldChip"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="GoldIcon" type="TextureRect" parent="TopBar/TopBarRow/GoldChip/GoldRow"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("4")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LabelGold" type="Label" parent="TopBar/TopBarRow/GoldChip/GoldRow"]
+layout_mode = 2
+size_flags_vertical = 4
+text = "0"
+theme_override_colors/font_color = Color(0.95, 0.82, 0.35, 1)
+theme_override_font_sizes/font_size = 14
+
+[node name="TokenChip" type="PanelContainer" parent="TopBar/TopBarRow"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("SB_Chip")
+
+[node name="TokenRow" type="HBoxContainer" parent="TopBar/TopBarRow/TokenChip"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TokenGlyph" type="Label" parent="TopBar/TopBarRow/TokenChip/TokenRow"]
+layout_mode = 2
+size_flags_vertical = 4
+text = "◆"
+theme_override_colors/font_color = Color(0.45, 0.72, 0.95, 1)
+theme_override_font_sizes/font_size = 14
+
+[node name="LabelToken" type="Label" parent="TopBar/TopBarRow/TokenChip/TokenRow"]
+layout_mode = 2
+size_flags_vertical = 4
+text = "0"
+theme_override_colors/font_color = Color(0.72, 0.85, 0.98, 1)
+theme_override_font_sizes/font_size = 14
 
 [node name="LeftMenuPanel" type="PanelContainer" parent="."]
 layout_mode = 1
-anchor_left = 0.0
 anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 1.0
-offset_right = 260.0
-grow_horizontal = 1
+anchor_bottom = 0.0
+offset_left = 12.0
+offset_top = 60.0
+offset_right = 196.0
+grow_vertical = 1
 theme_override_styles/panel = SubResource("SB_LeftPanel")
 
 [node name="MenuVBox" type="VBoxContainer" parent="LeftMenuPanel"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="TitleBlock" type="VBoxContainer" parent="LeftMenuPanel/MenuVBox"]
+[node name="LabelMenuTitle" type="Label" parent="LeftMenuPanel/MenuVBox"]
 layout_mode = 2
-theme_override_constants/separation = 4
+text = "メニュー"
+theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
+theme_override_font_sizes/font_size = 11
 
-[node name="LabelTitle" type="Label" parent="LeftMenuPanel/MenuVBox/TitleBlock"]
-layout_mode = 2
-text = "C R O W N F A L L"
-horizontal_alignment = 1
-theme_override_colors/font_color = Color(0.92, 0.78, 0.28, 1)
-theme_override_font_sizes/font_size = 20
-
-[node name="LabelSubtitle" type="Label" parent="LeftMenuPanel/MenuVBox/TitleBlock"]
-layout_mode = 2
-text = "九王の遺産を巡る自動探索RPG"
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 10
-autowrap_mode = 3
-
-[node name="SepTitle" type="HSeparator" parent="LeftMenuPanel/MenuVBox"]
+[node name="SepMenu" type="HSeparator" parent="LeftMenuPanel/MenuVBox"]
 layout_mode = 2
 
-[node name="ButtonDungeon" type="Button" parent="LeftMenuPanel/MenuVBox"]
+[node name="ButtonAdventure" type="Button" parent="LeftMenuPanel/MenuVBox"]
 layout_mode = 2
-text = "▶  探索に出る"
+text = "▶  ダンジョン"
 alignment = 0
 
 [node name="ButtonEquipment" type="Button" parent="LeftMenuPanel/MenuVBox"]
 layout_mode = 2
-text = "▶  装備へ"
+text = "▶  英雄管理"
+alignment = 0
+
+[node name="ButtonRoster" type="Button" parent="LeftMenuPanel/MenuVBox"]
+layout_mode = 2
+text = "▶  編成"
 alignment = 0
 
 [node name="ButtonCodex" type="Button" parent="LeftMenuPanel/MenuVBox"]
@@ -97,86 +215,49 @@ layout_mode = 2
 text = "▶  ガチャ"
 alignment = 0
 
-[node name="ButtonRoster" type="Button" parent="LeftMenuPanel/MenuVBox"]
-layout_mode = 2
-text = "▶  編成"
-alignment = 0
-
 [node name="ButtonGuild" type="Button" parent="LeftMenuPanel/MenuVBox"]
 layout_mode = 2
 text = "▶  ギルド認定"
 alignment = 0
 
-[node name="BottomStatusPanel" type="PanelContainer" parent="."]
+[node name="BottomNav" type="PanelContainer" parent="."]
 layout_mode = 1
-anchor_left = 0.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -240.0
+offset_top = -52.0
+grow_horizontal = 2
 grow_vertical = 0
-theme_override_styles/panel = SubResource("SB_BottomPanel")
+theme_override_styles/panel = SubResource("SB_BottomNav")
 
-[node name="StatusVBox" type="VBoxContainer" parent="BottomStatusPanel"]
-layout_mode = 2
-theme_override_constants/separation = 5
-
-[node name="TopRow" type="HBoxContainer" parent="BottomStatusPanel/StatusVBox"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="BuildChipRow" type="HBoxContainer" parent="BottomStatusPanel/StatusVBox/TopRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-alignment = 0
-theme_override_constants/separation = 6
-
-[node name="LabelGold" type="Label" parent="BottomStatusPanel/StatusVBox/TopRow"]
-layout_mode = 2
-text = "Gold: 0"
-size_flags_horizontal = 8
-theme_override_colors/font_color = Color(0.95, 0.82, 0.35, 1)
-
-[node name="DungeonSection" type="VBoxContainer" parent="BottomStatusPanel/StatusVBox"]
+[node name="NavRow" type="HBoxContainer" parent="BottomNav"]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="LabelDungeonSelect" type="Label" parent="BottomStatusPanel/StatusVBox/DungeonSection"]
+[node name="NavHome" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
-text = "ダンジョン選択:"
-theme_override_font_sizes/font_size = 11
+size_flags_horizontal = 3
+text = "ホーム"
 
-[node name="DungeonSelectRow" type="HBoxContainer" parent="BottomStatusPanel/StatusVBox/DungeonSection"]
+[node name="NavAdventure" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
-theme_override_constants/separation = 8
+size_flags_horizontal = 3
+text = "ダンジョン"
 
-[node name="ButtonSelectMourngate" type="Button" parent="BottomStatusPanel/StatusVBox/DungeonSection/DungeonSelectRow"]
+[node name="NavParty" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
-text = "モーンゲート"
+size_flags_horizontal = 3
+text = "パーティ"
 
-[node name="LabelSelectedDungeon" type="Label" parent="BottomStatusPanel/StatusVBox/DungeonSection"]
+[node name="NavCodex" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
-text = "選択中: モーンゲート"
-theme_override_font_sizes/font_size = 11
+size_flags_horizontal = 3
+text = "図鑑"
 
-[node name="MembersVBox" type="VBoxContainer" parent="BottomStatusPanel/StatusVBox"]
+[node name="NavShop" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
-theme_override_constants/separation = 3
-
-[node name="LabelMember0" type="Label" parent="BottomStatusPanel/StatusVBox/MembersVBox"]
-layout_mode = 2
-autowrap_mode = 3
-theme_override_font_sizes/font_size = 10
-
-[node name="LabelMember1" type="Label" parent="BottomStatusPanel/StatusVBox/MembersVBox"]
-layout_mode = 2
-autowrap_mode = 3
-theme_override_font_sizes/font_size = 10
-
-[node name="LabelMember2" type="Label" parent="BottomStatusPanel/StatusVBox/MembersVBox"]
-layout_mode = 2
-autowrap_mode = 3
-theme_override_font_sizes/font_size = 10
+size_flags_horizontal = 3
+text = "ショップ"
 
 [node name="HiddenLabels" type="Control" parent="."]
 layout_mode = 1

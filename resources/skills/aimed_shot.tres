@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "aimed_shot"
-display_name = "狙撃"
+display_name = "スナイプショット"
 description = "離れた敵を弓で正確に射抜く遠隔スキル。"
 skill_type = "player"
 target_type = "enemy"

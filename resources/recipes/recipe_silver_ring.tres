@@ -7,6 +7,6 @@ script = ExtResource("1")
 id = "recipe_silver_ring"
 craft_id = "craft_silver_ring"
 display_name = "銀の指輪の作成"
-output_summary = "銀の指輪（未鑑定）"
+output_summary = "銀の指輪"
 category = "accessory"
 description = "遺跡の欠片に宿る力を銀の指輪へ封じ込める。"

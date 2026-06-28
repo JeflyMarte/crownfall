@@ -5,10 +5,10 @@
 [resource]
 script = ExtResource("1")
 id = "heater_blade"
-display_name = "燻し刃"
+display_name = "燻鉄の大剣"
 fixed_skill_id = "kindling_strike"
 base_attack = 9
-rarity = 0
+rarity = 1
 base_attack_speed = 1.0
 base_critical_rate = 0.05
 base_knockback = 0.4

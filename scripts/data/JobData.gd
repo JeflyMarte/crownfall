@@ -18,6 +18,8 @@ extends Resource
 @export var base_initiative_modifier: float = 1.0
 @export var preferred_weapon_types: Array[String] = []
 @export var starting_skill_ids: Array[String] = []
+## このジョブが装備可能なスキル id プール（先頭から既定装備に採用）。P3-D077。
+@export var learnable_skill_ids: Array[String] = []
 @export var passive_tag_ids: Array[String] = []
 ## ジョブ進化（到達形）の表示名（P3-D037）。空なら進化先なし。
 @export var evolved_display_name: String = ""

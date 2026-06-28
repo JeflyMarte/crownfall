@@ -20,6 +20,9 @@ extends Resource
 @export var element_resist: Array[String] = []
 @export var on_hit_status_id: String = ""
 @export var on_hit_status_chance: float = 0.0
+## ボス/エリート用スキル。skill_ids の中から skill_use_chance で発動を試行する。
+@export var skill_ids: Array[String] = []
+@export var skill_use_chance: float = 0.0
 @export var codex_class: String = ""
 @export var codex_danger: int = 0
 @export var codex_habitat: String = ""

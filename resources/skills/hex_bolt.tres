@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 id = "hex_bolt"
-display_name = "呪詛弾"
-description = "闇属性の魔力弾を放ち、敵に呪いを付与してデバフを狙う。"
+display_name = "アンブラボルト"
+description = "闇のエルダを込めた弾を放ち、敵を蝕んでデバフを狙う。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.3

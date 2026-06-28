@@ -1,6 +1,6 @@
 # Crownfall 世界観資料（World）
 
-**Status:** 採用（正式 SSOT / cutover 完了 2026-06-27 P3-D041b）。12 文書 v1.0 執筆済み
+**Status:** 採用（正式 SSOT / cutover 完了 2026-06-27 P3-D041b）。13 文書 v1.0 執筆済み（+ Fragments P3-W-022）
 **入口:** `00_Overview.md`
 
 世界観・ロアの SSOT 置き場。数値・スキーマ・実装ルールは `docs/specs/game/` / `docs/specs/implementation/` に置く。
@@ -23,6 +23,7 @@
 | 09 | Jobs（職・世界観面） | 現在の人類 | `game/36`（世界観面のみ） |
 | 10 | LoreDelivery（開示ガイド） | 運用 | 新規 |
 | 11 | Glossary（用語・正典索引） | 運用 | `game/37` + `game/35` |
+| 12 | Fragments（断片ロア集） | 運用 | 新規（P3-W-022） |
 
 ---
 

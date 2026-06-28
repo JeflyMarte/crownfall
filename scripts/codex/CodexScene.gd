@@ -4,8 +4,10 @@ const UNKNOWN_DISPLAY: String = "???"
 const STATUS_DISCOVERED: String = "Discovered"
 const STATUS_UNDISCOVERED: String = "Undiscovered"
 const ICON_PLACEHOLDER_TEXT: String = "[Icon]"
+const DEFAULT_ICON_SIZE: Vector2 = Vector2(48, 48)
+const ENEMY_ART_SIZE: Vector2 = Vector2(256, 256)
 
-const CATEGORIES: Array[String] = ["enemy", "dungeon", "material", "weapon", "history", "guide"]
+const CATEGORIES: Array[String] = ["enemy", "dungeon", "material", "weapon", "history", "lore", "guide"]
 
 const CATEGORY_DISPLAY: Dictionary = {
 	"enemy": "Enemy",
@@ -13,6 +15,7 @@ const CATEGORY_DISPLAY: Dictionary = {
 	"material": "Material",
 	"weapon": "Weapon",
 	"history": "History",
+	"lore": "記録",
 	"guide": "Guide",
 }
 
@@ -40,6 +43,7 @@ func _ready() -> void:
 	$VBoxContainer/TabRow/ButtonTabMaterial.pressed.connect(func(): _select_category("material"))
 	$VBoxContainer/TabRow/ButtonTabWeapon.pressed.connect(func(): _select_category("weapon"))
 	$VBoxContainer/TabRow/ButtonTabHistory.pressed.connect(func(): _select_category("history"))
+	$VBoxContainer/TabRow/ButtonTabLore.pressed.connect(func(): _select_category("lore"))
 	$VBoxContainer/TabRow/ButtonTabGuide.pressed.connect(func():
 		_select_category("guide")
 		_show_detail(0)
@@ -67,6 +71,8 @@ func _fetch_entries(category: String) -> Array:
 			return CatalogHelper.get_weapon_entries()
 		"history":
 			return CatalogHelper.get_history_entries()
+		"lore":
+			return CatalogHelper.get_lore_entries()
 		"guide":
 			return CatalogHelper.get_guide_entries()
 		_:
@@ -82,6 +88,7 @@ func _update_tab_buttons() -> void:
 		"material": $VBoxContainer/TabRow/ButtonTabMaterial,
 		"weapon": $VBoxContainer/TabRow/ButtonTabWeapon,
 		"history": $VBoxContainer/TabRow/ButtonTabHistory,
+		"lore": $VBoxContainer/TabRow/ButtonTabLore,
 		"guide": $VBoxContainer/TabRow/ButtonTabGuide,
 	}
 	for cat in CATEGORIES:
@@ -148,7 +155,7 @@ func _apply_enemy_stage_fields(entry: Dictionary) -> void:
 	_label_detail_id.text = "Entry ID: %s" % enemy_id
 	_label_detail_name.text = "Name: %s" % str(entry.get("display_name", ""))
 	_label_detail_status.text = "Stage %d | %s" % [stage, STAGE_LABELS[stage]]
-	_update_icon(IconPaths.get_icon_texture(enemy_id, "enemy"))
+	_update_icon(IconPaths.get_icon_texture(enemy_id, "enemy"), true)
 	_label_detail_overview_header.text = "調査記録:"
 	_label_detail_overview_header.visible = true
 	_label_detail_description.text = "調査記録なし"
@@ -248,7 +255,10 @@ func _hide_bible_fields() -> void:
 	_label_detail_related_header.visible = false
 	_label_detail_related.visible = false
 
-func _update_icon(texture: Texture2D) -> void:
+func _update_icon(texture: Texture2D, big: bool = false) -> void:
+	var icon_size: Vector2 = ENEMY_ART_SIZE if big else DEFAULT_ICON_SIZE
+	_texture_icon.custom_minimum_size = icon_size
+	_icon_placeholder.custom_minimum_size = icon_size
 	_texture_icon.texture = null
 	_texture_icon.visible = false
 	_icon_placeholder.visible = true

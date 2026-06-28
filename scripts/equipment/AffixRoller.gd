@@ -1,7 +1,7 @@
 class_name AffixRoller
 extends RefCounted
 
-## M6 AffixRoller（P2-Task029）。鑑定連携（P2-Task030）。戦闘 stat 未接続。
+## M6 AffixRoller（P2-Task029）。Affix 付与（P2-Task030）。戦闘 stat 未接続。
 ## equipment_category: "weapon" | "armor" | "accessory"
 
 const CATEGORY_WEAPON: String = "weapon"

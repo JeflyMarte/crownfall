@@ -8,6 +8,7 @@ const UNKNOWN_DISPLAY: String = "???"
 const HISTORY_BIBLE_PATH: String = "res://docs/specs/world/01_History.md"
 # 旧 22_DungeonBible は削除。DUNGEON_ID_TO_BIBLE が空のため未使用（file_exists=false で graceful に {} を返す）。
 const DUNGEON_BIBLE_PATH: String = ""
+const FRAGMENTS_PATH: String = "res://docs/specs/world/12_Fragments.md"
 
 # HE-001〜004=基幹、HE-005〜009=追加（P3-W-019）。lore ドロップ未実装のため全て starter 開示。
 const STARTER_HISTORY_IDS: Array[String] = [
@@ -21,6 +22,7 @@ const DUNGEON_ID_TO_BIBLE: Dictionary = {}
 
 var _history_entries_cache: Array = []
 var _dungeon_bible_cache: Dictionary = {}
+var _fragment_entries_cache: Array = []
 
 static func get_enemy_entries() -> Array:
 	var helper: RefCounted = load("res://scripts/codex/CatalogHelper.gd").new()
@@ -41,6 +43,17 @@ static func get_weapon_entries() -> Array:
 static func get_history_entries() -> Array:
 	var helper: RefCounted = load("res://scripts/codex/CatalogHelper.gd").new()
 	return helper._build_history_entries()
+
+static func get_lore_entries() -> Array:
+	var helper: RefCounted = load("res://scripts/codex/CatalogHelper.gd").new()
+	return helper._build_lore_entries()
+
+static func get_lore_body(lore_id: String) -> String:
+	var helper: RefCounted = load("res://scripts/codex/CatalogHelper.gd").new()
+	for raw in helper._load_fragment_entries():
+		if str(raw.get("id", "")) == lore_id:
+			return str(raw.get("body", ""))
+	return ""
 
 static func get_guide_entries() -> Array:
 	return [
@@ -166,6 +179,54 @@ func _build_history_entries() -> Array:
 			continue
 		entries.append(_make_history_entry(raw))
 	return entries
+
+func _build_lore_entries() -> Array:
+	var entries: Array = []
+	for raw in _load_fragment_entries():
+		var lf_id: String = str(raw.get("id", ""))
+		if lf_id.is_empty():
+			continue
+		var body: String = str(raw.get("body", ""))
+		var medium: String = str(raw.get("medium", ""))
+		var source: String = str(raw.get("source", ""))
+		var description: String = body
+		if not medium.is_empty():
+			description += "\n\n媒体: " + medium
+		if not source.is_empty():
+			description += "\n出自: " + source
+		entries.append(_make_entry(lf_id, str(raw.get("title", "")), "", description, "lore"))
+	return entries
+
+func _load_fragment_entries() -> Array:
+	if not _fragment_entries_cache.is_empty():
+		return _fragment_entries_cache
+	if not FileAccess.file_exists(FRAGMENTS_PATH):
+		_fragment_entries_cache = []
+		return _fragment_entries_cache
+	var lines: PackedStringArray = FileAccess.get_file_as_string(FRAGMENTS_PATH).split("\n")
+	var entries: Array = []
+	var i: int = 0
+	while i < lines.size():
+		var line: String = lines[i].strip_edges()
+		if not line.begins_with("# LF "):
+			i += 1
+			continue
+		var body_text: String = line.substr(5).strip_edges()
+		var space_idx: int = body_text.find(" ")
+		var lf_id: String = body_text.substr(0, space_idx) if space_idx >= 0 else body_text
+		var title: String = body_text.substr(space_idx + 1).strip_edges() if space_idx >= 0 else ""
+		i += 1
+		var sections: Dictionary = _collect_markdown_sections(lines, i, "## ", "# LF ")
+		i = int(sections.get("next_index", i))
+		entries.append({
+			"id": lf_id,
+			"title": title,
+			"body": str(sections.get("Body", "")),
+			"medium": str(sections.get("Medium", "")),
+			"source": str(sections.get("Source", "")),
+		})
+	_fragment_entries_cache = entries
+	return _fragment_entries_cache
 
 func _make_entry(entry_id: String, display_name: String, icon: String, description: String, category: String) -> Dictionary:
 	var discovered: bool = is_discovered(category, entry_id)

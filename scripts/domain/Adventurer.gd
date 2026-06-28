@@ -11,5 +11,7 @@ extends Resource
 @export var equipped_armor: Resource = null
 @export var equipped_accessory: Resource = null
 @export var traits: Array[String] = []
+## 装備中スキル id（最大 Constants.MAX_EQUIPPED_SKILLS）。空ならジョブ既定にフォールバック。P3-D077。
+@export var equipped_skill_ids: Array[String] = []
 ## ジョブ進化（到達形）済みか（P3-D037 / 手動ギルド認定で true）。
 @export var is_evolved: bool = false
