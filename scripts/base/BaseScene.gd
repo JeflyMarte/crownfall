@@ -6,19 +6,37 @@ const DUNGEON_DISPLAY_NAMES: Dictionary = {
 const BuildTagHelperScript: Script = preload("res://scripts/equipment/BuildTagHelper.gd")
 const _JobStatCalculator = preload("res://scripts/equipment/JobStatCalculator.gd")
 
+@onready var _btn_dungeon: Button = $LeftMenuPanel/MenuVBox/ButtonDungeon
+@onready var _btn_equipment: Button = $LeftMenuPanel/MenuVBox/ButtonEquipment
+@onready var _btn_blacksmith: Button = $LeftMenuPanel/MenuVBox/ButtonBlacksmith
+@onready var _btn_codex: Button = $LeftMenuPanel/MenuVBox/ButtonCodex
+@onready var _btn_gacha: Button = $LeftMenuPanel/MenuVBox/ButtonGacha
+@onready var _btn_roster: Button = $LeftMenuPanel/MenuVBox/ButtonRoster
+@onready var _btn_guild: Button = $LeftMenuPanel/MenuVBox/ButtonGuild
+@onready var _btn_select_mourngate: Button = $BottomStatusPanel/StatusVBox/DungeonSection/DungeonSelectRow/ButtonSelectMourngate
+@onready var _label_gold: Label = $BottomStatusPanel/StatusVBox/TopRow/LabelGold
+@onready var _label_member0: Label = $BottomStatusPanel/StatusVBox/MembersVBox/LabelMember0
+@onready var _label_member1: Label = $BottomStatusPanel/StatusVBox/MembersVBox/LabelMember1
+@onready var _label_member2: Label = $BottomStatusPanel/StatusVBox/MembersVBox/LabelMember2
+@onready var _label_selected_dungeon: Label = $BottomStatusPanel/StatusVBox/DungeonSection/LabelSelectedDungeon
+@onready var _build_chip_row: HBoxContainer = $BottomStatusPanel/StatusVBox/TopRow/BuildChipRow
+@onready var _label_equipped: Label = $HiddenLabels/LabelEquipped
+@onready var _label_armor_equipped: Label = $HiddenLabels/LabelArmorEquipped
+@onready var _label_accessory_equipped: Label = $HiddenLabels/LabelAccessoryEquipped
+
 func _ready() -> void:
-	$VBoxContainer/DungeonSelectRow/ButtonSelectMourngate.pressed.connect(_on_select_mourngate_pressed)
-	$VBoxContainer/ButtonDungeon.pressed.connect(_on_dungeon_button_pressed)
-	$VBoxContainer/ButtonEquipment.pressed.connect(_on_equipment_button_pressed)
-	$VBoxContainer/ButtonBlacksmith.pressed.connect(_on_blacksmith_button_pressed)
-	$VBoxContainer/ButtonCodex.pressed.connect(_on_codex_button_pressed)
-	$VBoxContainer/ButtonGacha.pressed.connect(_on_gacha_button_pressed)
-	$VBoxContainer/ButtonRoster.pressed.connect(_on_roster_button_pressed)
-	$VBoxContainer/ButtonGuild.pressed.connect(_on_guild_button_pressed)
+	_btn_select_mourngate.pressed.connect(_on_select_mourngate_pressed)
+	_btn_dungeon.pressed.connect(_on_dungeon_button_pressed)
+	_btn_equipment.pressed.connect(_on_equipment_button_pressed)
+	_btn_blacksmith.pressed.connect(_on_blacksmith_button_pressed)
+	_btn_codex.pressed.connect(_on_codex_button_pressed)
+	_btn_gacha.pressed.connect(_on_gacha_button_pressed)
+	_btn_roster.pressed.connect(_on_roster_button_pressed)
+	_btn_guild.pressed.connect(_on_guild_button_pressed)
 	_ensure_valid_dungeon_selection()
-	$VBoxContainer/LabelEquipped.visible = false
-	$VBoxContainer/LabelArmorEquipped.visible = false
-	$VBoxContainer/LabelAccessoryEquipped.visible = false
+	_label_equipped.visible = false
+	_label_armor_equipped.visible = false
+	_label_accessory_equipped.visible = false
 	_update_display()
 
 func _ensure_valid_dungeon_selection() -> void:
@@ -37,18 +55,13 @@ func _update_display() -> void:
 	_update_dungeon_selection_ui()
 
 func _update_build_chips() -> void:
-	var row: HBoxContainer = $VBoxContainer/BuildChipRow
-	BuildTagHelperScript.populate_chip_row(row)
+	BuildTagHelperScript.populate_chip_row(_build_chip_row)
 
 func _update_gold_label() -> void:
-	$VBoxContainer/LabelGold.text = "Gold: %d" % GameState.gold
+	_label_gold.text = "Gold: %d" % GameState.gold
 
 func _update_party_display() -> void:
-	var labels: Array[Node] = [
-		$VBoxContainer/LabelMember0,
-		$VBoxContainer/LabelMember1,
-		$VBoxContainer/LabelMember2,
-	]
+	var labels: Array[Label] = [_label_member0, _label_member1, _label_member2]
 	for i in labels.size():
 		if i < GameState.party_members.size():
 			labels[i].text = _format_member_line(GameState.party_members[i])
@@ -107,9 +120,9 @@ func _format_member_job_line(member: Resource) -> String:
 func _update_dungeon_selection_ui() -> void:
 	var selected_id: String = GameState.get_active_dungeon_id()
 	var display_name: String = str(DUNGEON_DISPLAY_NAMES.get(selected_id, selected_id))
-	$VBoxContainer/LabelSelectedDungeon.text = "選択中: %s" % display_name
-	$VBoxContainer/DungeonSelectRow/ButtonSelectMourngate.disabled = selected_id == Constants.MOURNGATE_DUNGEON_ID
-	$VBoxContainer/ButtonDungeon.disabled = not _is_dungeon_available(selected_id)
+	_label_selected_dungeon.text = "選択中: %s" % display_name
+	_btn_select_mourngate.disabled = selected_id == Constants.MOURNGATE_DUNGEON_ID
+	_btn_dungeon.disabled = not _is_dungeon_available(selected_id)
 
 func _select_dungeon(dungeon_id: String) -> void:
 	if not _is_dungeon_available(dungeon_id):
@@ -119,7 +132,6 @@ func _select_dungeon(dungeon_id: String) -> void:
 
 func _on_select_mourngate_pressed() -> void:
 	_select_dungeon(Constants.MOURNGATE_DUNGEON_ID)
-
 
 func _on_dungeon_button_pressed() -> void:
 	var dungeon_id: String = GameState.get_active_dungeon_id()

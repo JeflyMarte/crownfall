@@ -1,8 +1,26 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/base/BaseScene.gd" id="1"]
 [ext_resource type="Theme" path="res://assets/ui/production_theme.tres" id="2"]
 [ext_resource type="Texture2D" path="res://assets/ui/batch1/UI_BG_Dark.png" id="3"]
+
+[sub_resource type="StyleBoxFlat" id="SB_LeftPanel"]
+bg_color = Color(0.04, 0.04, 0.1, 0.9)
+border_width_right = 1
+border_color = Color(0.55, 0.45, 0.18, 0.7)
+content_margin_left = 12.0
+content_margin_top = 16.0
+content_margin_right = 12.0
+content_margin_bottom = 12.0
+
+[sub_resource type="StyleBoxFlat" id="SB_BottomPanel"]
+bg_color = Color(0.04, 0.04, 0.1, 0.92)
+border_width_top = 1
+border_color = Color(0.55, 0.45, 0.18, 0.6)
+content_margin_left = 14.0
+content_margin_top = 10.0
+content_margin_right = 14.0
+content_margin_bottom = 10.0
 
 [node name="BaseScene" type="Control"]
 layout_mode = 3
@@ -24,107 +42,156 @@ grow_horizontal = 2
 grow_vertical = 2
 stretch_mode = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="LeftMenuPanel" type="PanelContainer" parent="."]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -200.0
-offset_top = -220.0
-offset_right = 200.0
-offset_bottom = 220.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 8
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 1.0
+offset_right = 260.0
+grow_horizontal = 1
+theme_override_styles/panel = SubResource("SB_LeftPanel")
 
-[node name="LabelTitle" type="Label" parent="VBoxContainer"]
+[node name="MenuVBox" type="VBoxContainer" parent="LeftMenuPanel"]
 layout_mode = 2
-text = "拠点"
-horizontal_alignment = 1
-
-[node name="BuildChipRow" type="HBoxContainer" parent="VBoxContainer"]
-layout_mode = 2
-alignment = 1
 theme_override_constants/separation = 6
 
-[node name="LabelGold" type="Label" parent="VBoxContainer"]
+[node name="TitleBlock" type="VBoxContainer" parent="LeftMenuPanel/MenuVBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="LabelTitle" type="Label" parent="LeftMenuPanel/MenuVBox/TitleBlock"]
+layout_mode = 2
+text = "C R O W N F A L L"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.92, 0.78, 0.28, 1)
+theme_override_font_sizes/font_size = 20
+
+[node name="LabelSubtitle" type="Label" parent="LeftMenuPanel/MenuVBox/TitleBlock"]
+layout_mode = 2
+text = "九王の遺産を巡る自動探索RPG"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 10
+autowrap_mode = 3
+
+[node name="SepTitle" type="HSeparator" parent="LeftMenuPanel/MenuVBox"]
+layout_mode = 2
+
+[node name="ButtonDungeon" type="Button" parent="LeftMenuPanel/MenuVBox"]
+layout_mode = 2
+text = "▶  探索に出る"
+alignment = 0
+
+[node name="ButtonEquipment" type="Button" parent="LeftMenuPanel/MenuVBox"]
+layout_mode = 2
+text = "▶  装備へ"
+alignment = 0
+
+[node name="ButtonBlacksmith" type="Button" parent="LeftMenuPanel/MenuVBox"]
+layout_mode = 2
+text = "▶  鍛冶屋"
+alignment = 0
+
+[node name="ButtonCodex" type="Button" parent="LeftMenuPanel/MenuVBox"]
+layout_mode = 2
+text = "▶  図鑑"
+alignment = 0
+
+[node name="ButtonGacha" type="Button" parent="LeftMenuPanel/MenuVBox"]
+layout_mode = 2
+text = "▶  ガチャ"
+alignment = 0
+
+[node name="ButtonRoster" type="Button" parent="LeftMenuPanel/MenuVBox"]
+layout_mode = 2
+text = "▶  編成"
+alignment = 0
+
+[node name="ButtonGuild" type="Button" parent="LeftMenuPanel/MenuVBox"]
+layout_mode = 2
+text = "▶  ギルド認定"
+alignment = 0
+
+[node name="BottomStatusPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -240.0
+grow_vertical = 0
+theme_override_styles/panel = SubResource("SB_BottomPanel")
+
+[node name="StatusVBox" type="VBoxContainer" parent="BottomStatusPanel"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="TopRow" type="HBoxContainer" parent="BottomStatusPanel/StatusVBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BuildChipRow" type="HBoxContainer" parent="BottomStatusPanel/StatusVBox/TopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 0
+theme_override_constants/separation = 6
+
+[node name="LabelGold" type="Label" parent="BottomStatusPanel/StatusVBox/TopRow"]
 layout_mode = 2
 text = "Gold: 0"
-horizontal_alignment = 1
+size_flags_horizontal = 8
+theme_override_colors/font_color = Color(0.95, 0.82, 0.35, 1)
 
-[node name="LabelEquipped" type="Label" parent="VBoxContainer"]
+[node name="DungeonSection" type="VBoxContainer" parent="BottomStatusPanel/StatusVBox"]
 layout_mode = 2
-text = "装備: 未装備"
-horizontal_alignment = 1
+theme_override_constants/separation = 4
 
-[node name="LabelArmorEquipped" type="Label" parent="VBoxContainer"]
+[node name="LabelDungeonSelect" type="Label" parent="BottomStatusPanel/StatusVBox/DungeonSection"]
 layout_mode = 2
-text = "防具: 未装備"
-horizontal_alignment = 1
+text = "ダンジョン選択:"
+theme_override_font_sizes/font_size = 11
 
-[node name="LabelAccessoryEquipped" type="Label" parent="VBoxContainer"]
+[node name="DungeonSelectRow" type="HBoxContainer" parent="BottomStatusPanel/StatusVBox/DungeonSection"]
 layout_mode = 2
-text = "装飾品: 未装備"
-horizontal_alignment = 1
+theme_override_constants/separation = 8
 
-[node name="LabelMember0" type="Label" parent="VBoxContainer"]
-layout_mode = 2
-horizontal_alignment = 1
-
-[node name="LabelMember1" type="Label" parent="VBoxContainer"]
-layout_mode = 2
-horizontal_alignment = 1
-
-[node name="LabelMember2" type="Label" parent="VBoxContainer"]
-layout_mode = 2
-horizontal_alignment = 1
-
-[node name="LabelDungeonSelect" type="Label" parent="VBoxContainer"]
-layout_mode = 2
-text = "ダンジョン選択"
-horizontal_alignment = 1
-
-[node name="DungeonSelectRow" type="HBoxContainer" parent="VBoxContainer"]
-layout_mode = 2
-alignment = 1
-theme_override_constants/separation = 12
-
-[node name="ButtonSelectMourngate" type="Button" parent="VBoxContainer/DungeonSelectRow"]
+[node name="ButtonSelectMourngate" type="Button" parent="BottomStatusPanel/StatusVBox/DungeonSection/DungeonSelectRow"]
 layout_mode = 2
 text = "モーンゲート"
 
-
-[node name="LabelSelectedDungeon" type="Label" parent="VBoxContainer"]
+[node name="LabelSelectedDungeon" type="Label" parent="BottomStatusPanel/StatusVBox/DungeonSection"]
 layout_mode = 2
 text = "選択中: モーンゲート"
-horizontal_alignment = 1
+theme_override_font_sizes/font_size = 11
 
-[node name="ButtonDungeon" type="Button" parent="VBoxContainer"]
+[node name="MembersVBox" type="VBoxContainer" parent="BottomStatusPanel/StatusVBox"]
 layout_mode = 2
-text = "探索開始"
+theme_override_constants/separation = 3
 
-[node name="ButtonEquipment" type="Button" parent="VBoxContainer"]
+[node name="LabelMember0" type="Label" parent="BottomStatusPanel/StatusVBox/MembersVBox"]
 layout_mode = 2
-text = "装備へ"
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 10
 
-[node name="ButtonBlacksmith" type="Button" parent="VBoxContainer"]
+[node name="LabelMember1" type="Label" parent="BottomStatusPanel/StatusVBox/MembersVBox"]
 layout_mode = 2
-text = "鍛冶屋"
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 10
 
-[node name="ButtonCodex" type="Button" parent="VBoxContainer"]
+[node name="LabelMember2" type="Label" parent="BottomStatusPanel/StatusVBox/MembersVBox"]
 layout_mode = 2
-text = "図鑑"
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 10
 
-[node name="ButtonGacha" type="Button" parent="VBoxContainer"]
-layout_mode = 2
-text = "ガチャ"
+[node name="HiddenLabels" type="Control" parent="."]
+layout_mode = 1
+visible = false
 
-[node name="ButtonRoster" type="Button" parent="VBoxContainer"]
+[node name="LabelEquipped" type="Label" parent="HiddenLabels"]
 layout_mode = 2
-text = "編成"
 
-[node name="ButtonGuild" type="Button" parent="VBoxContainer"]
+[node name="LabelArmorEquipped" type="Label" parent="HiddenLabels"]
 layout_mode = 2
-text = "ギルド認定"
+
+[node name="LabelAccessoryEquipped" type="Label" parent="HiddenLabels"]
+layout_mode = 2
