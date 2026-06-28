@@ -47,9 +47,6 @@ const ElementResolverScript: Script = preload("res://scripts/combat/ElementResol
 const AffixStatCalculatorScript: Script = preload("res://scripts/equipment/AffixStatCalculator.gd")
 const JobStatCalculatorScript: Script = preload("res://scripts/equipment/JobStatCalculator.gd")
 
-var _merchant_active: bool = false
-var _event_active: bool = false
-var _waiting_departure: bool = false
 var _auto_delay: float = AUTO_DELAY_X1
 var _auto_progress_paused_remaining: float = 0.0
 var _auto_progress_finishes: bool = false
@@ -72,6 +69,8 @@ var _request_scroll_to_bottom: bool = false
 
 @onready var _battle_log_scroll: ScrollContainer = $MainVBox/BattleLogPanel/BattleLogScroll
 @onready var _battle_log_content: VBoxContainer = $MainVBox/BattleLogPanel/BattleLogScroll/BattleLogContent
+@onready var _party_status_panel: PanelContainer = $MainVBox/PartyStatusPanel
+@onready var _party_cards_row: HBoxContainer = $MainVBox/PartyStatusPanel/PartyCardsRow
 @onready var _narrative_panel: PanelContainer = $MainVBox/NarrativePanel
 @onready var _label_narrative: Label = $MainVBox/NarrativePanel/LabelNarrative
 @onready var _label_dungeon_name: Label = $MainVBox/HeaderBar/LabelDungeonName
@@ -85,8 +84,6 @@ var _request_scroll_to_bottom: bool = false
 @onready var _label_status_party: Label = $MainVBox/BottomZone/LabelStatusParty
 @onready var _auto_combat_row: HBoxContainer = $MainVBox/BottomZone/AutoCombatRow
 @onready var _non_combat_zone: VBoxContainer = $MainVBox/BottomZone/NonCombatZone
-@onready var _merchant_container: VBoxContainer = $MainVBox/BottomZone/NonCombatZone/MerchantContainer
-@onready var _event_container: VBoxContainer = $MainVBox/BottomZone/NonCombatZone/EventContainer
 @onready var _btn_next_room: Button = $MainVBox/BottomZone/NonCombatZone/ButtonNextRoom
 @onready var _btn_finish: Button = $MainVBox/BottomZone/NonCombatZone/ButtonFinish
 @onready var _menu_overlay: PanelContainer = $MenuOverlay
@@ -99,6 +96,8 @@ var _request_scroll_to_bottom: bool = false
 
 var _chr_sprites: Array[AnimatedSprite2D] = []
 var _chr_hp_bars: Array[ProgressBar] = []
+var _party_card_hp_bars: Array[ProgressBar] = []
+var _party_card_hp_labels: Array[Label] = []
 var _status_icon_enemy: HBoxContainer
 var _status_icon_chr_rows: Array[HBoxContainer] = []
 
@@ -107,11 +106,6 @@ func _ready() -> void:
 	_btn_finish.pressed.connect(_on_finish_button_pressed)
 	$CombatTimer.timeout.connect(_on_combat_timer_timeout)
 	$AutoProgressTimer.timeout.connect(_on_auto_progress_timeout)
-	_merchant_container.get_node("Offer0Row/ButtonBuyOffer0").pressed.connect(_on_buy_offer0_pressed)
-	_merchant_container.get_node("Offer1Row/ButtonBuyOffer1").pressed.connect(_on_buy_offer1_pressed)
-	_merchant_container.get_node("ButtonMerchantLeave").pressed.connect(_on_merchant_leave_pressed)
-	_event_container.get_node("ButtonEventA").pressed.connect(_on_event_choice_a_pressed)
-	_event_container.get_node("ButtonEventB").pressed.connect(_on_event_choice_b_pressed)
 	$MainVBox/HeaderBar/ButtonMenu.pressed.connect(_on_menu_button_pressed)
 	$MainVBox/HeaderBar/ButtonSpeedX1.pressed.connect(_on_speed_x1_pressed)
 	$MainVBox/HeaderBar/ButtonSpeedX2.pressed.connect(_on_speed_x2_pressed)
@@ -225,6 +219,7 @@ func _update_hp_bars() -> void:
 			bar.max_value = $CombatController.party_max_hp[i]
 			bar.value = $CombatController.party_combat_hp[i]
 			_set_hp_bar_above_sprite(bar, sprite)
+	_update_party_cards_hp()
 
 func _set_hp_bar_above_sprite(bar: ProgressBar, sprite: AnimatedSprite2D) -> void:
 	const BAR_HALF_W: float = 40.0
@@ -350,7 +345,6 @@ func _get_room_type_name() -> String:
 		Enums.RoomType.BOSS:     return "ボス"
 		Enums.RoomType.EXIT:     return "出口"
 		Enums.RoomType.HEAL:     return "回復"
-		Enums.RoomType.MERCHANT: return "商人"
 	return ""
 
 func _update_room_label() -> void:
@@ -367,7 +361,6 @@ func _update_room_label() -> void:
 	_label_room.add_theme_color_override("font_color", badge_color)
 
 func _on_next_room_pressed() -> void:
-	_waiting_departure = false
 	_advance_to_next_room()
 
 func _advance_to_next_room() -> void:
@@ -422,8 +415,6 @@ func _advance_to_next_room() -> void:
 					GameState.last_run_accessory_dropped = treasure["accessory_id"]
 				_set_narrative(log_text)
 				_start_auto_progress()
-			Enums.RoomType.MERCHANT:
-				_handle_merchant_room()
 			Enums.RoomType.EVENT:
 				_handle_event_room()
 			_:
@@ -487,97 +478,18 @@ func _register_discoveries_for_room() -> void:
 	if $CombatController.is_in_combat and $CombatController.current_enemy_data != null:
 		_try_register_discovery("enemy", $CombatController.current_enemy_data.id)
 
-# ---- Merchant ----
-
-func _handle_merchant_room() -> void:
-	_merchant_active = true
-	var offers: Array = $DungeonController.generate_merchant_offers()
-	_merchant_container.get_node("LabelMerchantTitle").text = "商人が現れた  所持Gold: %d" % GameState.gold
-	for i in offers.size():
-		var offer: Dictionary = offers[i]
-		var label_text: String = _format_merchant_offer_label(offer)
-		if i == 0:
-			_merchant_container.get_node("Offer0Row/LabelOffer0").text = label_text
-			_merchant_container.get_node("Offer0Row/ButtonBuyOffer0").disabled = GameState.gold < offer["price"]
-		elif i == 1:
-			_merchant_container.get_node("Offer1Row/LabelOffer1").text = label_text
-			_merchant_container.get_node("Offer1Row/ButtonBuyOffer1").disabled = GameState.gold < offer["price"]
-	_merchant_container.visible = true
-	_set_narrative("商人の部屋に入った")
-
-func _on_buy_offer0_pressed() -> void:
-	if $DungeonController.buy_merchant_item(0):
-		var offer: Dictionary = $DungeonController.current_merchant_offers[0]
-		_apply_merchant_purchase_effect(offer)
-		_set_narrative("%s を購入した！  -%dG" % [offer["label"], offer["price"]])
-		_merchant_container.get_node("Offer0Row/ButtonBuyOffer0").disabled = true
-		_merchant_container.get_node("LabelMerchantTitle").text = "商人が現れた  所持Gold: %d" % GameState.gold
-		_refresh_merchant_buttons()
-	else:
-		_set_narrative("Gold不足")
-
-func _on_buy_offer1_pressed() -> void:
-	if $DungeonController.buy_merchant_item(1):
-		var offer: Dictionary = $DungeonController.current_merchant_offers[1]
-		_apply_merchant_purchase_effect(offer)
-		_set_narrative("%s を購入した！  -%dG" % [offer["label"], offer["price"]])
-		_merchant_container.get_node("Offer1Row/ButtonBuyOffer1").disabled = true
-		_merchant_container.get_node("LabelMerchantTitle").text = "商人が現れた  所持Gold: %d" % GameState.gold
-		_refresh_merchant_buttons()
-	else:
-		_set_narrative("Gold不足")
-
-func _apply_merchant_purchase_effect(offer: Dictionary) -> void:
-	if offer.get("type") == "heal":
-		$CombatController.heal_party(_apply_healing_bonus(offer.get("amount", 10)))
-		_play_heal_vfx()
-		_update_hp_bars()
-
-func _format_merchant_offer_label(offer: Dictionary) -> String:
-	if offer.get("type") == "material":
-		return "%s %dG" % [offer["label"], offer["price"]]
-	return "%s — %dG" % [offer["label"], offer["price"]]
-
-func _refresh_merchant_buttons() -> void:
-	var offers: Array = $DungeonController.current_merchant_offers
-	for i in offers.size():
-		var can_buy: bool = not offers[i].get("purchased", false) and GameState.gold >= offers[i]["price"]
-		if i == 0:
-			_merchant_container.get_node("Offer0Row/ButtonBuyOffer0").disabled = not can_buy
-		elif i == 1:
-			_merchant_container.get_node("Offer1Row/ButtonBuyOffer1").disabled = not can_buy
-
-func _on_merchant_leave_pressed() -> void:
-	_merchant_active = false
-	_merchant_container.visible = false
-	_waiting_departure = true
-	_set_narrative("商人の部屋を後にした")
-	_update_next_room_button()
-
 # ---- Event ----
 
 func _handle_event_room() -> void:
 	var event: Dictionary = $DungeonController.pick_event()
 	if event.is_empty():
 		_set_narrative("イベントの部屋に入った")
+		_start_auto_progress()
 		return
-	_event_active = true
 	var event_id: String = event.get("id", "")
 	if not event_id.is_empty():
 		_try_register_discovery("event", event_id)
-	_set_narrative(event["description"])
-	_event_container.get_node("ButtonEventA").text = event.get("choice_a", "A")
-	_event_container.get_node("ButtonEventB").text = event.get("choice_b", "B")
-	_event_container.visible = true
-
-func _on_event_choice_a_pressed() -> void:
-	_resolve_event_choice(0)
-
-func _on_event_choice_b_pressed() -> void:
-	_resolve_event_choice(1)
-
-func _resolve_event_choice(choice_index: int) -> void:
-	var outcome: Dictionary = $DungeonController.resolve_event(choice_index)
+	var outcome: Dictionary = $DungeonController.auto_resolve_event()
 	var log_text: String
 	match outcome.get("type", "nothing"):
 		"heal":
@@ -624,11 +536,8 @@ func _resolve_event_choice(choice_index: int) -> void:
 			log_text = "%s が一時的に同行を申し出た" % helper.display_name
 		_:
 			log_text = "何も起こらなかった"
-	_set_narrative(log_text)
-	_event_active = false
-	_event_container.visible = false
-	_waiting_departure = true
-	_update_next_room_button()
+	_set_narrative("%s\n%s" % [event["description"], log_text])
+	_start_auto_progress()
 
 # ---- Combat timer ----
 
@@ -1157,8 +1066,6 @@ func _handle_party_wipe() -> void:
 	_update_status_labels()
 	_hide_enemy_sprite()
 	_hide_chr_sprites()
-	_merchant_active = false
-	_event_active = false
 	_update_combat_visibility()
 	_non_combat_zone.visible = false
 	_set_narrative("全員が倒れた... 探索失敗")
@@ -1204,8 +1111,7 @@ func _update_party_hp_label() -> void:
 	_update_hp_bars()
 
 func _update_next_room_button() -> void:
-	_btn_next_room.visible = _waiting_departure
-	_btn_next_room.text = "出発"
+	_btn_next_room.visible = false
 	_update_combat_visibility()
 
 func _update_combat_visibility() -> void:
@@ -1213,6 +1119,7 @@ func _update_combat_visibility() -> void:
 	_non_combat_zone.visible = not in_combat
 	_auto_combat_row.visible = in_combat
 	$MainVBox/BattleLogPanel.visible = in_combat
+	_party_status_panel.visible = in_combat
 	_narrative_panel.visible = not in_combat
 	_update_combat_tier_frame()
 
@@ -1410,6 +1317,76 @@ func _show_chr_sprites() -> void:
 		_normalize_chr_scale(sprite, frames)
 		sprite.play("idle")
 		sprite.visible = true
+	_rebuild_party_cards()
+
+# バトルログ下のパーティカード列（アイコン/HP/武器）を再構築（モック準拠・MP無し/CD維持）
+func _rebuild_party_cards() -> void:
+	for c in _party_cards_row.get_children():
+		c.queue_free()
+	_party_card_hp_bars.clear()
+	_party_card_hp_labels.clear()
+	for i in GameState.combatant_count():
+		var member: Resource = GameState.get_combatant(i)
+		if member == null:
+			continue
+		var card := VBoxContainer.new()
+		card.custom_minimum_size = Vector2(110, 0)
+		card.add_theme_constant_override("separation", 2)
+		var icon := TextureRect.new()
+		icon.custom_minimum_size = Vector2(48, 48)
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		var tex: Texture2D = _get_chr_icon_texture(member.job_id)
+		if tex != null:
+			icon.texture = tex
+		card.add_child(icon)
+		var name_label := Label.new()
+		name_label.text = member.display_name
+		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		name_label.add_theme_font_size_override("font_size", 12)
+		card.add_child(name_label)
+		var hp_bar := ProgressBar.new()
+		hp_bar.show_percentage = false
+		hp_bar.custom_minimum_size = Vector2(0, 10)
+		var hp_style := StyleBoxFlat.new()
+		hp_style.bg_color = Color(0.2, 0.8, 0.2)
+		hp_bar.add_theme_stylebox_override("fill", hp_style)
+		card.add_child(hp_bar)
+		var hp_label := Label.new()
+		hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		hp_label.add_theme_font_size_override("font_size", 11)
+		card.add_child(hp_label)
+		var weapon_label := Label.new()
+		var wname: String = _get_equipped_weapon_display_name(i)
+		weapon_label.text = wname if not wname.is_empty() else "素手"
+		weapon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		weapon_label.add_theme_font_size_override("font_size", 10)
+		weapon_label.add_theme_color_override("font_color", Color(0.83, 0.79, 0.72))
+		card.add_child(weapon_label)
+		_party_cards_row.add_child(card)
+		_party_card_hp_bars.append(hp_bar)
+		_party_card_hp_labels.append(hp_label)
+	_update_party_cards_hp()
+
+func _get_chr_icon_texture(job_id: String) -> Texture2D:
+	var path: String = CHR_SPRITE_MAP.get(job_id, "")
+	if path.is_empty() or not ResourceLoader.exists(path):
+		return null
+	var frames: SpriteFrames = load(path) as SpriteFrames
+	if frames == null or not frames.has_animation("idle"):
+		return null
+	return frames.get_frame_texture("idle", 0)
+
+func _update_party_cards_hp() -> void:
+	for i in _party_card_hp_bars.size():
+		if i >= $CombatController.party_max_hp.size() or i >= $CombatController.party_combat_hp.size():
+			continue
+		var bar: ProgressBar = _party_card_hp_bars[i]
+		bar.max_value = $CombatController.party_max_hp[i]
+		bar.value = $CombatController.party_combat_hp[i]
+		_party_card_hp_labels[i].text = "%d/%d" % [
+			$CombatController.party_combat_hp[i], $CombatController.party_max_hp[i]
+		]
 
 # 職ごとに素材セルサイズが異なる（新規 96px / 旧 32px placeholder）ため、
 # 表示高さを揃える。整数倍にして拡大時のにじみを防ぐ。
