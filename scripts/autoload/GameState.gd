@@ -124,6 +124,20 @@ func toggle_member_skill(member: Resource, skill_id: String) -> void:
 		return
 	member.equipped_skill_ids = ids
 
+# ---- 戦術（AI設定・P3-D086） ----
+# メンバーの戦術 id（未設定/無効なら既定 "balanced"）。
+func get_member_tactics_id(member: Resource) -> String:
+	if member == null:
+		return CombatTactics.DEFAULT_TACTICS_ID
+	if "tactics_id" in member:
+		return CombatTactics.normalize_id(str(member.tactics_id))
+	return CombatTactics.DEFAULT_TACTICS_ID
+
+func set_member_tactics(member: Resource, tactics_id: String) -> void:
+	if member == null:
+		return
+	member.tactics_id = CombatTactics.normalize_id(tactics_id)
+
 func find_item_equipped_member_index(item: Resource) -> int:
 	if item == null:
 		return -1

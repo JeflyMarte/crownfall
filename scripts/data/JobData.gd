@@ -20,6 +20,8 @@ extends Resource
 @export var starting_skill_ids: Array[String] = []
 ## このジョブが装備可能なスキル id プール（先頭から既定装備に採用）。P3-D077。
 @export var learnable_skill_ids: Array[String] = []
+## 必殺技スロットのスキル id（P3-D085）。空なら Constants.DEFAULT_ULTIMATE_SKILL_ID にフォールバック。
+@export var ultimate_skill_id: String = ""
 @export var passive_tag_ids: Array[String] = []
 ## ジョブ進化（到達形）の表示名（P3-D037）。空なら進化先なし。
 @export var evolved_display_name: String = ""

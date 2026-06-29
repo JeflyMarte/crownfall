@@ -107,7 +107,7 @@ layout_mode = 2
 size_flags_vertical = 4
 text = "0"
 theme_override_colors/font_color = Color(0.95, 0.82, 0.35, 1)
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 18
 
 [node name="TokenChip" type="PanelContainer" parent="Header/HeaderRow"]
 layout_mode = 2
@@ -123,14 +123,14 @@ layout_mode = 2
 size_flags_vertical = 4
 text = "◆"
 theme_override_colors/font_color = Color(0.45, 0.72, 0.95, 1)
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 18
 
 [node name="LabelToken" type="Label" parent="Header/HeaderRow/TokenChip/TokenRow"]
 layout_mode = 2
 size_flags_vertical = 4
 text = "0"
 theme_override_colors/font_color = Color(0.72, 0.85, 0.98, 1)
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 18
 
 [node name="TabsRow" type="HBoxContainer" parent="."]
 layout_mode = 1

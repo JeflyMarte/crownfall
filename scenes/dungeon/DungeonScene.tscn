@@ -29,7 +29,7 @@ script = ExtResource("2")
 script = ExtResource("3")
 
 [node name="CombatTimer" type="Timer" parent="."]
-wait_time = 1.5
+wait_time = 0.55
 one_shot = false
 autostart = false
 
@@ -127,7 +127,7 @@ size_flags_horizontal = 3
 text = ""
 horizontal_alignment = 1
 vertical_alignment = 0
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 24
 theme_override_constants/outline_size = 3
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 
@@ -163,7 +163,7 @@ size_flags_horizontal = 3
 text = ""
 horizontal_alignment = 1
 vertical_alignment = 1
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 22
 theme_override_constants/outline_size = 3
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 autowrap_mode = 3
@@ -184,7 +184,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = ""
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 20
 autowrap_mode = 3
 visible = false
 
@@ -193,7 +193,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = ""
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 20
 autowrap_mode = 3
 visible = false
 
@@ -225,11 +225,13 @@ layout_mode = 2
 text = "探索終了"
 
 [node name="BossSprite" type="AnimatedSprite2D" parent="."]
+texture_filter = 1
 position = Vector2(495, 470)
 scale = Vector2(3, 3)
 visible = false
 
 [node name="EnemySprite" type="AnimatedSprite2D" parent="."]
+texture_filter = 1
 position = Vector2(500, 515)
 scale = Vector2(4, 4)
 visible = false
@@ -350,7 +352,7 @@ offset_bottom = 210.0
 text = ""
 horizontal_alignment = 1
 vertical_alignment = 1
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 22
 theme_override_colors/font_color = Color(0.96, 0.92, 0.78, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4

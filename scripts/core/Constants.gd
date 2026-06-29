@@ -11,6 +11,8 @@ const COMBAT_TICK_INTERVAL: float = 1.5
 const DEFAULT_PLAYER_SKILL_ID: String = "slash_attack"
 ## 1キャラが装備できるスキル数（P3-D077）。
 const MAX_EQUIPPED_SKILLS: int = 2
+## 必殺技スロットの既定スキル id（P3-D085）。ジョブ未指定時に使用。
+const DEFAULT_ULTIMATE_SKILL_ID: String = "ultimate_strike"
 
 # DataRegistry resource paths (P2-Task020)
 const RESOURCE_WEAPONS_PATH: String = "res://resources/weapons/"

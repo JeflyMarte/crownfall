@@ -6,6 +6,9 @@ extends Resource
 @export var difficulty: int = 0
 ## 推奨レベル（ダンジョン選択画面の表示用）。0 以下は非表示扱い。
 @export var recommended_level: int = 0
+## 敵レベル（P3-D081）。戦闘開始時に敵ステータス/EXP をスケールする。
+## 同一ダンジョンの難易度調整に使用。1 以下は等倍（Lv1＝tres 基準値）。
+@export var enemy_level: int = 1
 @export var room_count: int = 0
 ## フロア数（START〜BOSS を含む。EXIT は末尾に自動付与）。
 ## 1 以上で部屋ランダム抽選を有効化。0 の場合は ROOM_SEQUENCE/room_count の従来固定列。

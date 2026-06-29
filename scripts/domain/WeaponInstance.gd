@@ -9,6 +9,7 @@ extends Resource
 @export var critical_rate: float = 0.0
 @export var knockback: float = 0.0
 @export var stagger_power: float = 0.0
+## 射程: 全自動戦闘では未使用（将来用に予約・UI非表示）。
 @export var attack_range: float = 1.0
 @export var weight: float = 1.0
 @export var prefix_ids: Array[String] = []

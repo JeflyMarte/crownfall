@@ -5,12 +5,12 @@
 [resource]
 script = ExtResource("1")
 id = "silver_ring"
-display_name = "銀の指輪"
+display_name = "近衛の銀環"
 rarity = 0
 icon = ""
-description = "銀製の指輪。若干の幸運を高める。"
+description = "近衛がはめた銀の環。手元を僅かに冴えさせ、急所を捉えやすくする。"
 hp_bonus = 5
 attack_bonus = 0
 defense_bonus = 0
 crit_rate_bonus = 0.02
-luck_bonus = 0.1
+luck_bonus = 0.0

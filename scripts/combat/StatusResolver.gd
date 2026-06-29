@@ -8,6 +8,9 @@ var _active: Dictionary = {}  # unit_id -> Array[StatusInstance]
 func clear_all() -> void:
 	_active.clear()
 
+func clear_unit(unit_id: String) -> void:
+	_active.erase(unit_id)
+
 func apply_status(
 	unit_id: String,
 	effect_id: String,

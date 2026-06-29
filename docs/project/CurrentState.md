@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-06-30（**戦闘システム v1.0 MVP縦切り①②③: P3-D084 CT/ATB ＋ P3-D085 5スロット/防御/必殺 ＋ P3-D086 AI設定(戦術)**。①CT/ATB=各ユニット個別CT・速度で行動回数差・1パルス1行動・上部UIをCTプレビュー化。②1行動=5スロットから1手(通常/防御/スキル①②/必殺)・必殺=汎用`ultimate_strike`(×3/CD30)・防御=`guard`(被ダメ0.5/2tick)でメンバー被ダメ補正を実配線。③メンバー単位の戦術プリセット6種(バランス/積極/慎重/生存/ボス集中/掃討)でスロット選択を優先度＋発動条件(always/HP%/Boss/Elite/敵数/味方死亡)駆動に。`CombatTactics`静的＋`Adventurer.tactics_id`セーブ永続＋キャラ管理スキルタブに戦術セレクタ。Target層(敵個体狙い分け)は現行フォーカス撃破で無効のため別Decisionへ分離。headless import 検証済 / 実機未確認 / 未コミット）
+
 2026-06-29（**Phase 3-A UI/バランス ポリッシュ**: ホーム(BaseScene)モック準拠リニューアル＋タイトル背景アート導入(P3-A-UI-007)・ダンジョン選択画面新設(P3-D080)・序盤バランス調整(P3-BAL-001)・死にステ解消=敵DEF/耐性を与ダメ計算へ統合(P3-BAL-002)・スキル名 世界観リネーム(P3-W-024)。鑑定ワード一掃は現行spec/player向けへ反映済）
 
 2026-06-28（**Phase 3-B' システム実装 ほぼ完了**: ガチャ/ロスター・ジョブ進化・スプライト取り込み・ダンジョン全自動化(P3-D053)・中ボス廃止(P3-D054)・敵アニメ配線・助っ人targeting修正・graveyard残骸一掃(P3-Cleanup-001)・残り2ジョブ スキル(P3-D066)・Codex5段階監査・武器クラフト実機能化(P3-D067)。→ Phase 3-A ポリッシュへ）
@@ -118,6 +120,13 @@ ProjectDocs **v3.6.0**
 | P3-BAL-002 | 死にステ解消（敵DEF逓減軽減 `K/(K+DEF)` K=100＋属性耐性0.75x を与ダメ計算 `_apply_enemy_mitigation` へ統合） | ✅ 完了（HQ実装・要実機確認） |
 | P3-W-024 | スキル名 世界観リネーム（ハイブリッド: 基本=和名/属性技・弓・杖=カタカナ・hex_bolt→アンブラボルト＋説明文を闇エルダ整合） | ✅ 完了（HQ実装） |
 | P3-A-UI-007 | ホーム(BaseScene)モック準拠リニューアル＋タイトル背景アート(`UI_BG_Title.png`)導入（上部通貨バー/左メニュー/下部タブナビ・中央ロゴのみ・浮遊CTA/肖像撤去・通貨=gold/gacha_token） | ✅ 完了（HQ実装・要実機確認） |
+| P3-D086 | AI設定（Tactics→Condition→Priority）MVP（戦闘v1.0 MVP縦切り③）。メンバー単位の戦術プリセット6種(`CombatTactics`静的: バランス/積極攻撃/慎重/生存優先/ボス集中/雑魚掃討)でスロット選択を優先度＋発動条件駆動に。Condition MVP=always/self_hp_below/enemy_is_boss/enemy_is_elite/enemy_count_gte/ally_dead。`_do_member_turn`を戦術プラン駆動へ置換(`_build_tactics_context`供給・防御条件は戦術へ移譲し二重ガードのみ抑止)。`Adventurer.tactics_id`セーブ永続(`GameState.get/set_member_tactics`)・キャラ管理スキルタブ上部に戦術OptionButton(`EquipmentScene`)。**Target層(敵個体狙い分け)はフォーカス撃破モデルで無効のため別Decisionへ分離** | ✅ 完了（HQ実装・headless検証・要実機確認） |
+| P3-D085 | スキルスロット5＋防御＋必殺技（戦闘v1.0 MVP縦切り②）。1行動=5スロットから1手だけ実行(通常攻撃/防御/スキル①②/必殺技)・暫定選択優先度=必殺→防御→スキル①②→通常(D086でAI設定化)。必殺=長CD高威力(`JobData.ultimate_skill_id`/既定`ultimate_strike` power×3/CD30/`slot_type=ultimate`)。防御=自己被ダメ減バフ(新`guard` incoming×0.5/2tick)＋`CombatController.get_member_incoming_damage_multiplier`新設→`_calc_enemy_damage_to_member`配線。防御暫定条件=自HP<30%かつguard未付与。`SkillData`に`slot_type`/`range_type`追加。スキル①②はP3-D077(最大2)流用・必殺/防御は当面ジョブ/既定供給 | ✅ 完了（HQ実装・headless検証・要実機確認） |
+| P3-D084 | 戦闘 CT/ATB 移行（戦闘v1.0 土台・MVP縦切り①）。ラウンド制(P3-D083)を置換＝各生存ユニット個別CT・`BASE_ACTION_CT/initiative_score`で行動CT・CT0で1体ずつ行動・速度で行動回数差。スケジューラ=`CombatController.advance_to_next_actor()`/`get_ct_order()`（決定的・同時0は味方優先→index昇順）。1パルス1行動（x1=0.55s/x2=0.28s・同期実行で再入なし）。スキルCDは進行CT量・状態異常は`CT_PER_STATUS_TICK=2.0`ごと1tick。スキルは現行CD暫定流用。上部UIを行動順→CTプレビュー(残量昇順)へ転用。3人据置 | ✅ 完了（HQ実装・headless検証・要実機確認） |
+| ~~P3-D083~~ | ~~行動順制＋行動順表示~~ → **P3-D084 で置換（CT/ATB 制へ移行）** | 置換 |
+| P3-D083 | 行動順制＋行動順表示（ラウンド制・イニシアチブ降順で1体ずつ逐次行動・同時攻撃を解消／速度=initiative_score流用・同値は味方優先／逐次await＋`_round_active`再入防止／上部アイコン列ターンオーダー表示=行動中ハイライト・このラウンドのみ／`does_enemy_act_first`先制ログ廃止・撃破処理を分割） | ✅ 完了（HQ実装・headless検証・要実機確認） |
+| P3-D082 | 群れ出現MVP（`EnemyData.can_swarm`/swarm_min/max・COMBATで20%群れ化(2〜3体)・ELITE/BOSS除外・sepia_hound/crown_eater_rat対象・CombatController群れ配列化+アクティブ繰り上げ・先頭フォーカス撃破/敵は各自攻撃・状態異常はアクティブ単一スロット流用・横並びスロットUI/個別HPバー&Lv名・撃破ごと報酬/武器個別ドロップ） | ✅ 完了（HQ実装・headless検証・要実機確認） |
+| P3-D081 | 敵レベル制MVP（`DungeonData.enemy_level`でDG単位固定・戦闘開始時確定/DG中不変・HP/ATK×(1+0.10×(Lv−1))/DEF据置・EXP×(1+0.15×(Lv−1))・共有Resource不汚染=CombatControllerの派生スケール値・ネームプレート`Lv{n} 名前`） | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D080 | ダンジョン選択画面新設（ホーム「ダンジョン」→`DungeonSelectScene`→ラン。カード=ボス絵/★(difficulty)/推奨Lv/主なドロップ/CLEARバッジ・難易度タブ(ロック表示)・ロック行3件(仮名)・下部ナビ。`DungeonData.recommended_level`追加・`GameState.mark/is_dungeon_cleared`・完走時マーク） | ✅ 完了（HQ実装・要実機確認） |
 
 ### 残スケジュール（Phase 3-B' システム完成まで）

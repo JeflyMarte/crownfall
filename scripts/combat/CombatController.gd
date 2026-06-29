@@ -11,23 +11,178 @@ var current_enemy_hp: int = 0
 var last_exp_reward: int = 0
 var last_gold_reward: int = 0
 
+# 敵レベル（P3-D081）。start_combat で決定し、ダンジョン中は不変。
+# Lv1＝tres 基準値。HP/ATK は乗算スケール、DEF は据置、EXP は別係数で増加。
+const ENEMY_LEVEL_HP_K: float = 0.10
+const ENEMY_LEVEL_ATK_K: float = 0.10
+const ENEMY_LEVEL_EXP_K: float = 0.15
+var enemy_level: int = 1
+var _scaled_max_hp: int = 0
+var _scaled_attack: int = 0
+var _scaled_defense: int = 0
+var _scaled_exp: int = 0
+
+# 群れ（複数敵）状態（P3-D082）。current_enemy_* / _scaled_* は常に「アクティブ（先頭生存）敵」を映す。
+# 全員がアクティブを集中攻撃（フォーカス撃破）し、撃破ごとに次の生存敵へ繰り上げる。
+var swarm_data: Array[Resource] = []
+var swarm_hp: Array[int] = []
+var swarm_max_hp: Array[int] = []
+var swarm_atk: Array[int] = []
+var swarm_def: Array[int] = []
+var swarm_exp: Array[int] = []
+var active_enemy_index: int = 0
+
+# CT/ATB スケジューラ（P3-D084）。各生存ユニット（味方/群れ各敵）は個別の CT を持ち、
+# CT が 0 になったユニットから 1 体ずつ行動する。速度（initiative_score）が大きいほど
+# 行動 CT が短く、行動回数が増える（ラウンド制 P3-D083 を置換）。
+const BASE_ACTION_CT: float = 2.0
+const _CT_EPSILON: float = 0.0001
+# 生存ユニットごとの残り CT（key = "party_<i>" / "enemy_<slot>"）
+var unit_ct: Dictionary = {}
+# 直近 advance_to_next_actor で進めた CT 量（呼出側の状態異常/スキルCD進行に使う）
+var _last_ct_step: float = 0.0
+
 var party_combat_hp: Array[int] = []
 var party_max_hp: Array[int] = []
 var _status_resolver: RefCounted = _StatusResolver.new()
 
-func start_combat(enemy_data: Resource) -> void:
+func start_combat(enemy_data: Resource, level: int = 1) -> void:
+	start_combat_group([enemy_data], level)
+
+# 群れ対応の戦闘開始（P3-D082）。単体は要素1の配列として扱う。
+func start_combat_group(enemies: Array, level: int = 1) -> void:
 	is_in_combat = true
-	current_enemy_data = enemy_data
-	current_enemy_hp = enemy_data.max_hp
+	enemy_level = maxi(1, level)
+	var lf: float = float(enemy_level - 1)
+	swarm_data.clear()
+	swarm_hp.clear()
+	swarm_max_hp.clear()
+	swarm_atk.clear()
+	swarm_def.clear()
+	swarm_exp.clear()
+	for e in enemies:
+		if e == null:
+			continue
+		var hp: int = maxi(1, int(round(float(e.max_hp) * (1.0 + ENEMY_LEVEL_HP_K * lf))))
+		var atk: int = maxi(1, int(round(float(e.attack) * (1.0 + ENEMY_LEVEL_ATK_K * lf))))
+		var df: int = maxi(0, int(e.defense))
+		var xp: int = maxi(0, int(round(float(e.exp_reward) * (1.0 + ENEMY_LEVEL_EXP_K * lf))))
+		swarm_data.append(e)
+		swarm_hp.append(hp)
+		swarm_max_hp.append(hp)
+		swarm_atk.append(atk)
+		swarm_def.append(df)
+		swarm_exp.append(xp)
+		GameState.mark_enemy_seen(e.id)
+	active_enemy_index = 0
+	_sync_active_enemy()
 	last_exp_reward = 0
 	last_gold_reward = 0
-	GameState.mark_enemy_seen(enemy_data.id)
 	_init_party_hp()
+	init_ct()
+
+# current_enemy_* / _scaled_* をアクティブ敵スロットに同期する。
+func _sync_active_enemy() -> void:
+	if active_enemy_index < 0 or active_enemy_index >= swarm_data.size():
+		current_enemy_data = null
+		current_enemy_hp = 0
+		_scaled_max_hp = 0
+		_scaled_attack = 0
+		_scaled_defense = 0
+		_scaled_exp = 0
+		return
+	current_enemy_data = swarm_data[active_enemy_index]
+	current_enemy_hp = swarm_hp[active_enemy_index]
+	_scaled_max_hp = swarm_max_hp[active_enemy_index]
+	_scaled_attack = swarm_atk[active_enemy_index]
+	_scaled_defense = swarm_def[active_enemy_index]
+	_scaled_exp = swarm_exp[active_enemy_index]
+
+func swarm_count() -> int:
+	return swarm_data.size()
+
+func is_enemy_slot_alive(i: int) -> bool:
+	return i >= 0 and i < swarm_hp.size() and swarm_hp[i] > 0
+
+func get_living_enemy_indices() -> Array[int]:
+	var out: Array[int] = []
+	for i in swarm_hp.size():
+		if swarm_hp[i] > 0:
+			out.append(i)
+	return out
+
+func living_enemy_count() -> int:
+	return get_living_enemy_indices().size()
+
+# 群れ全滅（戦闘クリア）判定。
+func is_combat_cleared() -> bool:
+	return is_in_combat and living_enemy_count() == 0
+
+func get_enemy_attack_at(i: int) -> int:
+	if i >= 0 and i < swarm_atk.size():
+		return swarm_atk[i]
+	return _scaled_attack
+
+func get_enemy_defense_at(i: int) -> int:
+	if i >= 0 and i < swarm_def.size():
+		return swarm_def[i]
+	return _scaled_defense
+
+func get_enemy_max_hp_at(i: int) -> int:
+	if i >= 0 and i < swarm_max_hp.size():
+		return swarm_max_hp[i]
+	return _scaled_max_hp
+
+func get_enemy_hp_at(i: int) -> int:
+	if i >= 0 and i < swarm_hp.size():
+		return swarm_hp[i]
+	return current_enemy_hp
+
+func get_enemy_data_at(i: int) -> Resource:
+	if i >= 0 and i < swarm_data.size():
+		return swarm_data[i]
+	return current_enemy_data
+
+# アクティブ敵を次の生存スロットへ繰り上げる。アクティブの状態異常はクリアする
+# （フォーカス撃破モデルのため敵状態は単一スロット "enemy" を流用）。新indexを返す（無ければ -1）。
+func advance_active_enemy() -> int:
+	_status_resolver.clear_unit("enemy")
+	for i in swarm_hp.size():
+		if swarm_hp[i] > 0:
+			active_enemy_index = i
+			_sync_active_enemy()
+			return i
+	active_enemy_index = -1
+	_sync_active_enemy()
+	return -1
+
+func get_enemy_max_hp() -> int:
+	return _scaled_max_hp
+
+func get_enemy_attack() -> int:
+	return _scaled_attack
+
+func get_enemy_defense() -> int:
+	return _scaled_defense
 
 func end_combat() -> void:
 	is_in_combat = false
 	current_enemy_data = null
 	current_enemy_hp = 0
+	enemy_level = 1
+	_scaled_max_hp = 0
+	_scaled_attack = 0
+	_scaled_defense = 0
+	_scaled_exp = 0
+	swarm_data.clear()
+	swarm_hp.clear()
+	swarm_max_hp.clear()
+	swarm_atk.clear()
+	swarm_def.clear()
+	swarm_exp.clear()
+	active_enemy_index = 0
+	unit_ct.clear()
+	_last_ct_step = 0.0
 	_status_resolver.clear_all()
 
 func _init_party_hp() -> void:
@@ -85,7 +240,11 @@ func is_party_wiped() -> bool:
 func apply_damage_to_enemy(amount: int) -> void:
 	if not is_in_combat:
 		return
-	current_enemy_hp = max(0, current_enemy_hp - amount)
+	if active_enemy_index >= 0 and active_enemy_index < swarm_hp.size():
+		swarm_hp[active_enemy_index] = max(0, swarm_hp[active_enemy_index] - amount)
+		current_enemy_hp = swarm_hp[active_enemy_index]
+	else:
+		current_enemy_hp = max(0, current_enemy_hp - amount)
 
 func apply_damage_to_member(index: int, amount: int) -> void:
 	if index < 0 or index >= party_combat_hp.size():
@@ -144,7 +303,7 @@ func pick_enemy_target_member_index() -> int:
 func capture_rewards() -> void:
 	if current_enemy_data == null:
 		return
-	last_exp_reward = current_enemy_data.exp_reward
+	last_exp_reward = _scaled_exp
 	last_gold_reward = current_enemy_data.gold_reward
 
 func apply_status(
@@ -171,6 +330,10 @@ func get_enemy_skip_action_label() -> String:
 func get_member_outgoing_damage_multiplier(member_index: int) -> float:
 	return _status_resolver.get_outgoing_damage_multiplier("party_%d" % member_index)
 
+# 被ダメ補正（防御=guard 等）。1.0=等倍。P3-D085 で配線。
+func get_member_incoming_damage_multiplier(member_index: int) -> float:
+	return _status_resolver.get_incoming_damage_multiplier("party_%d" % member_index)
+
 func get_enemy_incoming_damage_multiplier() -> float:
 	return _status_resolver.get_incoming_damage_multiplier("enemy")
 
@@ -191,24 +354,28 @@ func get_member_status_list(member_index: int) -> Array[Dictionary]:
 
 # ---- Initiative (P3-D019 Phase 1 + Phase 2) ----
 
+# 単体メンバーのイニシアチブ（武器attack_speed×ジョブ補正×Affix）。死亡は 0。
+func get_member_initiative_score(i: int) -> float:
+	if not is_member_alive(i):
+		return 0.0
+	var spd: float = 1.0
+	var weapon_inst: Resource = GameState.get_member_equipped_weapon(i)
+	if weapon_inst != null and not weapon_inst.weapon_id.is_empty() and weapon_inst.attack_speed > 0.0:
+		spd = weapon_inst.attack_speed
+	var job_mod: float = 1.0
+	if i < GameState.party_members.size():
+		var member: Resource = GameState.party_members[i]
+		if member != null and not member.job_id.is_empty():
+			var job_data: Resource = DataRegistry.get_job_data(member.job_id)
+			if job_data != null and job_data.base_initiative_modifier > 0.0:
+				job_mod = job_data.base_initiative_modifier
+	var affix_mult: float = float(_AffixStatCalculator.get_bonuses(i).get("attack_speed_mult_add", 0.0))
+	return spd * job_mod * (1.0 + affix_mult)
+
 func get_party_initiative_score() -> float:
 	var best: float = 0.0
 	for i in party_combat_hp.size():
-		if not is_member_alive(i):
-			continue
-		var spd: float = 1.0
-		var weapon_inst: Resource = GameState.get_member_equipped_weapon(i)
-		if weapon_inst != null and not weapon_inst.weapon_id.is_empty() and weapon_inst.attack_speed > 0.0:
-			spd = weapon_inst.attack_speed
-		var job_mod: float = 1.0
-		if i < GameState.party_members.size():
-			var member: Resource = GameState.party_members[i]
-			if member != null and not member.job_id.is_empty():
-				var job_data: Resource = DataRegistry.get_job_data(member.job_id)
-				if job_data != null and job_data.base_initiative_modifier > 0.0:
-					job_mod = job_data.base_initiative_modifier
-		var affix_mult: float = float(_AffixStatCalculator.get_bonuses(i).get("attack_speed_mult_add", 0.0))
-		best = maxf(best, spd * job_mod * (1.0 + affix_mult))
+		best = maxf(best, get_member_initiative_score(i))
 	return best if best > 0.0 else 1.0
 
 func get_enemy_initiative_score() -> float:
@@ -216,5 +383,107 @@ func get_enemy_initiative_score() -> float:
 		return 1.0
 	return current_enemy_data.attack_speed if current_enemy_data.attack_speed > 0.0 else 1.0
 
-func does_enemy_act_first() -> bool:
-	return get_enemy_initiative_score() > get_party_initiative_score()
+# 敵スロット別イニシアチブ（attack_speed）。
+func get_enemy_initiative_score_at(slot: int) -> float:
+	var d: Resource = get_enemy_data_at(slot)
+	if d == null:
+		return 1.0
+	return d.attack_speed if d.attack_speed > 0.0 else 1.0
+
+# ---- CT/ATB スケジューラ（P3-D084） ----
+
+func _ct_unit_key(kind: String, index: int) -> String:
+	return "%s_%d" % [kind, index]
+
+func _ct_parse_key(key: String) -> Dictionary:
+	var sep: int = key.rfind("_")
+	return {"kind": key.substr(0, sep), "index": int(key.substr(sep + 1))}
+
+# ユニットの行動 CT。速度（initiative_score）が速いほど短い＝多く動ける。
+func get_unit_action_ct(kind: String, index: int) -> float:
+	var spd: float = 1.0
+	if kind == "party":
+		spd = get_member_initiative_score(index)
+	else:
+		spd = get_enemy_initiative_score_at(index)
+	if spd <= 0.0:
+		spd = 1.0
+	return BASE_ACTION_CT / spd
+
+# 現在の生存ユニット一覧（味方→群れ敵の順）。各要素: {"kind","index"}。
+func get_living_units() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for i in party_combat_hp.size():
+		if is_member_alive(i):
+			out.append({"kind": "party", "index": i})
+	for slot in swarm_hp.size():
+		if is_enemy_slot_alive(slot):
+			out.append({"kind": "enemy", "index": slot})
+	return out
+
+# 戦闘開始時に全生存ユニットの CT を初期化（満タン＝1回分）。
+func init_ct() -> void:
+	unit_ct.clear()
+	for u in get_living_units():
+		unit_ct[_ct_unit_key(u["kind"], u["index"])] = get_unit_action_ct(u["kind"], u["index"])
+	_last_ct_step = 0.0
+
+# unit_ct のキー集合を現在の生存ユニットへ同期（新規=満タン追加 / 死亡=除去）。
+func _sync_ct_units() -> void:
+	var living: Dictionary = {}
+	for u in get_living_units():
+		var key: String = _ct_unit_key(u["kind"], u["index"])
+		living[key] = true
+		if not unit_ct.has(key):
+			unit_ct[key] = get_unit_action_ct(u["kind"], u["index"])
+	for key in unit_ct.keys():
+		if not living.has(key):
+			unit_ct.erase(key)
+
+# 次に行動するユニットへクロックを進める。{"kind","index"} を返す（生存ユニット無し={}）。
+# 全ユニットの CT を最小残量ぶん減算し、0 に達したユニットを選ぶ（同時0は味方優先→index昇順）。
+func advance_to_next_actor() -> Dictionary:
+	_sync_ct_units()
+	if unit_ct.is_empty():
+		_last_ct_step = 0.0
+		return {}
+	var min_rem: float = INF
+	for key in unit_ct:
+		min_rem = minf(min_rem, unit_ct[key])
+	if min_rem < 0.0:
+		min_rem = 0.0
+	for key in unit_ct:
+		unit_ct[key] -= min_rem
+	_last_ct_step = min_rem
+	var ready: Array[Dictionary] = []
+	for key in unit_ct:
+		if unit_ct[key] <= _CT_EPSILON:
+			var info: Dictionary = _ct_parse_key(key)
+			ready.append({"key": key, "kind": info["kind"], "index": info["index"]})
+	ready.sort_custom(func(a, b):
+		if a["kind"] != b["kind"]:
+			return a["kind"] == "party"
+		return a["index"] < b["index"])
+	var chosen: Dictionary = ready[0]
+	unit_ct[chosen["key"]] = get_unit_action_ct(chosen["kind"], chosen["index"])
+	return {"kind": chosen["kind"], "index": chosen["index"]}
+
+# 直近 advance_to_next_actor で進めた CT 量。
+func consume_last_ct_step() -> float:
+	return _last_ct_step
+
+# CT 残量の昇順（次に動く順）でユニットを返す。CT 表示UI用。
+# 各要素: {"kind","index","ct"}。同値は味方優先→index 昇順。
+func get_ct_order() -> Array[Dictionary]:
+	_sync_ct_units()
+	var entries: Array[Dictionary] = []
+	for key in unit_ct:
+		var info: Dictionary = _ct_parse_key(key)
+		entries.append({"kind": info["kind"], "index": info["index"], "ct": float(unit_ct[key])})
+	entries.sort_custom(func(a, b):
+		if not is_equal_approx(a["ct"], b["ct"]):
+			return a["ct"] < b["ct"]
+		if a["kind"] != b["kind"]:
+			return a["kind"] == "party"
+		return a["index"] < b["index"])
+	return entries

@@ -1,10 +1,14 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/result/ResultScene.gd" id="1"]
 [ext_resource type="Theme" path="res://assets/ui/production_theme.tres" id="2"]
-[ext_resource type="Texture2D" path="res://assets/ui/batch1/UI_BG_Dark.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/ui/UI_BG_Result.png" id="3"]
+
+[sub_resource type="StyleBoxEmpty" id="EmptyHeader"]
 
 [node name="ResultScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 theme = ExtResource("2")
@@ -20,36 +24,144 @@ grow_horizontal = 2
 grow_vertical = 2
 stretch_mode = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="Scroll" type="ScrollContainer" parent="."]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+horizontal_scroll_mode = 0
 
-[node name="LabelTitle" type="Label" parent="VBoxContainer"]
+[node name="Margin" type="MarginContainer" parent="Scroll"]
 layout_mode = 2
-text = "探索結果"
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="Main" type="VBoxContainer" parent="Scroll/Margin"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="HeaderPanel" type="PanelContainer" parent="Scroll/Margin/Main"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("EmptyHeader")
+
+[node name="HeaderVBox" type="VBoxContainer" parent="Scroll/Margin/Main/HeaderPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="LabelTitle" type="Label" parent="Scroll/Margin/Main/HeaderPanel/HeaderVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+theme_override_colors/font_color = Color(0.85, 0.74, 0.45, 1)
+text = "✧ 探索結果 ✧"
 horizontal_alignment = 1
 
-[node name="LabelReward" type="Label" parent="VBoxContainer"]
+[node name="LabelDungeon" type="Label" parent="Scroll/Margin/Main/HeaderPanel/HeaderVBox"]
 layout_mode = 2
-text = "獲得報酬: （なし）"
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.78, 0.8, 0.86, 1)
+text = "ダンジョン"
 horizontal_alignment = 1
 
-[node name="LabelLoot" type="Label" parent="VBoxContainer"]
+[node name="LabelClear" type="Label" parent="Scroll/Margin/Main/HeaderPanel/HeaderVBox"]
 layout_mode = 2
-text = "入手: -"
+theme_override_font_sizes/font_size = 56
+theme_override_colors/font_color = Color(0.96, 0.84, 0.42, 1)
+text = "CLEAR"
 horizontal_alignment = 1
 
-[node name="LabelLevelUp" type="Label" parent="VBoxContainer"]
+[node name="StarsRow" type="HBoxContainer" parent="Scroll/Margin/Main/HeaderPanel/HeaderVBox"]
 layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="RewardPanel" type="PanelContainer" parent="Scroll/Margin/Main"]
+layout_mode = 2
+
+[node name="RewardVBox" type="VBoxContainer" parent="Scroll/Margin/Main/RewardPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="LabelRewardTitle" type="Label" parent="Scroll/Margin/Main/RewardPanel/RewardVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.85, 0.74, 0.45, 1)
+text = "獲得報酬"
+horizontal_alignment = 1
+
+[node name="RewardRow" type="HBoxContainer" parent="Scroll/Margin/Main/RewardPanel/RewardVBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="RarePanel" type="PanelContainer" parent="Scroll/Margin/Main"]
+layout_mode = 2
+
+[node name="RareVBox" type="VBoxContainer" parent="Scroll/Margin/Main/RarePanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LabelRareTitle" type="Label" parent="Scroll/Margin/Main/RarePanel/RareVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.85, 0.74, 0.45, 1)
+text = "入手したレアアイテム"
+horizontal_alignment = 1
+
+[node name="RareList" type="VBoxContainer" parent="Scroll/Margin/Main/RarePanel/RareVBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="InfoPanel" type="PanelContainer" parent="Scroll/Margin/Main"]
+layout_mode = 2
+
+[node name="InfoVBox" type="VBoxContainer" parent="Scroll/Margin/Main/InfoPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LabelInfoTitle" type="Label" parent="Scroll/Margin/Main/InfoPanel/InfoVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.85, 0.74, 0.45, 1)
+text = "探索情報"
+horizontal_alignment = 1
+
+[node name="InfoGrid" type="GridContainer" parent="Scroll/Margin/Main/InfoPanel/InfoVBox"]
+layout_mode = 2
+theme_override_constants/h_separation = 24
+theme_override_constants/v_separation = 8
+columns = 2
+
+[node name="LevelUpPanel" type="PanelContainer" parent="Scroll/Margin/Main"]
+layout_mode = 2
+
+[node name="LabelLevelUp" type="Label" parent="Scroll/Margin/Main/LevelUpPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.92, 0.6, 1)
 text = ""
 horizontal_alignment = 1
+autowrap_mode = 2
 
-[node name="ButtonNext" type="Button" parent="VBoxContainer"]
+[node name="Footer" type="HBoxContainer" parent="Scroll/Margin/Main"]
 layout_mode = 2
-text = "拠点へ"
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="ButtonRetry" type="Button" parent="Scroll/Margin/Main/Footer"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 56)
+text = "再挑戦する"
+
+[node name="ButtonHome" type="Button" parent="Scroll/Margin/Main/Footer"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 56)
+text = "拠点へ戻る"

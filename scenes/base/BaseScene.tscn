@@ -103,7 +103,7 @@ layout_mode = 2
 text = "九王の遺産を巡る自動探索RPG"
 horizontal_alignment = 1
 theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 16
 
 [node name="TopBar" type="PanelContainer" parent="."]
 layout_mode = 1
@@ -142,7 +142,7 @@ layout_mode = 2
 size_flags_vertical = 4
 text = "0"
 theme_override_colors/font_color = Color(0.95, 0.82, 0.35, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 18
 
 [node name="TokenChip" type="PanelContainer" parent="TopBar/TopBarRow"]
 layout_mode = 2
@@ -158,14 +158,14 @@ layout_mode = 2
 size_flags_vertical = 4
 text = "◆"
 theme_override_colors/font_color = Color(0.45, 0.72, 0.95, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 18
 
 [node name="LabelToken" type="Label" parent="TopBar/TopBarRow/TokenChip/TokenRow"]
 layout_mode = 2
 size_flags_vertical = 4
 text = "0"
 theme_override_colors/font_color = Color(0.72, 0.85, 0.98, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 18
 
 [node name="LeftMenuPanel" type="PanelContainer" parent="."]
 layout_mode = 1
@@ -185,7 +185,7 @@ theme_override_constants/separation = 6
 layout_mode = 2
 text = "メニュー"
 theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 14
 
 [node name="SepMenu" type="HSeparator" parent="LeftMenuPanel/MenuVBox"]
 layout_mode = 2

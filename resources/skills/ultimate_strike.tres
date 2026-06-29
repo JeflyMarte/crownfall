@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "ultimate_strike"
+display_name = "渾身の一撃"
+description = "力を解き放つ大技。長い再使用時間を要するが、絶大な威力で敵を打ち砕く。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 3.0
+cooldown = 30.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["ultimate"])
+element = ""
+apply_status_id = ""
+apply_status_chance = 0.0
+slot_type = "ultimate"
+range_type = "global"

@@ -87,7 +87,7 @@ static func _make_chip(tag: String) -> PanelContainer:
 	panel.add_theme_stylebox_override("panel", style)
 	var label := Label.new()
 	label.text = tag
-	label.add_theme_font_size_override("font_size", 14)
+	label.add_theme_font_size_override("font_size", 16)
 	label.add_theme_color_override("font_color", Color.WHITE)
 	label.add_theme_constant_override("outline_size", 2)
 	label.add_theme_color_override("font_outline_color", Color.BLACK)

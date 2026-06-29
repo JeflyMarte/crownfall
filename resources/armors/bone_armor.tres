@@ -5,9 +5,9 @@
 [resource]
 script = ExtResource("1")
 armor_id = "bone_armor"
-display_name = "骨鎧"
-base_defense = 8
-base_hp_bonus = 5
+display_name = "納骨堂の骨甲"
+base_defense = 10
+base_hp_bonus = 20
 base_resistance = 0.0
 weight = 1.2
 rarity = 1

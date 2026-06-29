@@ -18,6 +18,23 @@ const RARITY_COLORS: Array[Color] = [
 	Color(0.70, 0.45, 0.95),
 	Color(0.95, 0.75, 0.25),
 ]
+# レアリティ隅マーカー（COMMON/RARE/EPIC/LEGENDARY）。
+const RARITY_GEMS: Array[String] = ["◇", "◆", "✦", "★"]
+
+const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45)
+const COLOR_SUB: Color = Color(0.72, 0.69, 0.62)
+const COLOR_VALUE: Color = Color(0.94, 0.91, 0.83)
+const COLOR_POS: Color = Color(0.55, 0.88, 0.5)
+
+# ステータス／スロットのグリフ装飾。
+const STAT_GLYPHS: Dictionary = {
+	"hp": "❤", "attack": "⚔", "defense": "🛡",
+	"speed": "💨", "crit_rate": "🎯", "crit_damage": "💥",
+}
+const EFFECT_GLYPHS: Dictionary = {
+	"攻撃力": "⚔", "防御力": "🛡", "HP": "❤", "クリティカル率": "🎯",
+}
+const SLOT_GLYPHS: Dictionary = {"weapon": "⚔", "armor": "🛡", "accessory": "💍"}
 
 @onready var _button_back: Button = $VBoxContainer/HeaderRow/ButtonBack
 @onready var _label_gold: Label = $VBoxContainer/HeaderRow/LabelGold
@@ -39,6 +56,9 @@ const RARITY_COLORS: Array[Color] = [
 var _selected_member_index: int = 0
 # 所持一覧のカテゴリフィルタ: "all" / "weapon" / "armor" / "accessory"
 var _inventory_filter: String = "all"
+# 戦術セレクタ（P3-D086・スキルタブ上部に動的生成）
+var _tactics_option: OptionButton = null
+var _tactics_ids: Array[String] = []
 
 func _ready() -> void:
 	_tabs.set_tab_title(0, "装備")
@@ -50,8 +70,16 @@ func _ready() -> void:
 		btn.pressed.connect(_on_member_selected.bind(i))
 	_connect_category_buttons()
 	_inventory_grid.columns = GRID_COLUMNS
+	_decorate_portrait()
 	_refresh_member_buttons()
 	_refresh_display()
+
+func _decorate_portrait() -> void:
+	var p := $VBoxContainer/CharacterCard/CardRow/PortraitBox/Portrait as PanelContainer
+	if p != null:
+		p.add_theme_stylebox_override("panel", _framed_box(COLOR_GOLD, 2, Color(0.06, 0.05, 0.04, 1.0)))
+	_portrait_glyph.add_theme_font_size_override("font_size", 40)
+	_portrait_glyph.add_theme_color_override("font_color", COLOR_GOLD)
 
 func _connect_category_buttons() -> void:
 	var defs: Array = [
@@ -91,9 +119,18 @@ func _refresh_member_buttons() -> void:
 		if i < GameState.party_members.size():
 			var member: Resource = GameState.party_members[i]
 			btn.text = member.display_name
-			btn.disabled = i == _selected_member_index
+			btn.icon = IconPaths.get_icon_texture(str(member.job_id), "chr")
+			btn.expand_icon = true
+			btn.custom_minimum_size = Vector2(0, 56)
+			var selected: bool = i == _selected_member_index
+			btn.disabled = selected
+			var box: StyleBoxFlat = _framed_box(COLOR_GOLD if selected else Color(0.4, 0.36, 0.3, 0.8), 2 if selected else 1, Color(0.16, 0.13, 0.1, 0.95) if selected else Color(0.1, 0.09, 0.07, 0.9))
+			btn.add_theme_stylebox_override("normal", box)
+			btn.add_theme_stylebox_override("hover", _framed_box(COLOR_GOLD, 2, Color(0.18, 0.15, 0.11, 1.0)))
+			btn.add_theme_stylebox_override("disabled", box)
 		else:
 			btn.text = "—"
+			btn.icon = null
 			btn.disabled = true
 
 func _refresh_display() -> void:
@@ -120,8 +157,9 @@ func _update_character_card() -> void:
 	var job_mods: Dictionary = _JobStatCalculator.get_member_modifiers(member)
 	var job_name: String = str(job_mods.get("display_name", member.job_id))
 	_label_job_level.text = "Lv%d  %s" % [int(member.level), job_name]
-	_portrait_art.texture = null
-	_portrait_glyph.text = member.display_name.substr(0, 1)
+	var chr_tex: Texture2D = IconPaths.get_icon_texture(str(member.job_id), "chr")
+	_portrait_art.texture = chr_tex
+	_portrait_glyph.text = "" if chr_tex != null else member.display_name.substr(0, 1)
 	_label_stars.text = "★★★★★"
 	var stats: Dictionary = _compute_member_stats(_selected_member_index)
 	_populate_stat_grid(stats)
@@ -130,26 +168,36 @@ func _populate_stat_grid(stats: Dictionary) -> void:
 	for child in _stats_grid.get_children():
 		child.queue_free()
 	var rows: Array = [
-		["HP", str(stats["hp"])],
-		["攻撃力", str(stats["attack"])],
-		["防御力", str(stats["defense"])],
-		["速度", "%.1f" % stats["speed"]],
-		["クリティカル率", "%.0f%%" % (stats["crit_rate"] * 100.0)],
-		["クリティカルダメージ", "%.0f%%" % (stats["crit_damage"] * 100.0)],
+		["hp", "HP", str(stats["hp"])],
+		["attack", "攻撃", str(stats["attack"])],
+		["defense", "防御", str(stats["defense"])],
+		["speed", "速度", "%.1f" % stats["speed"]],
+		["crit_rate", "会心率", "%.0f%%" % (stats["crit_rate"] * 100.0)],
+		["crit_damage", "会心ダメ", "%.0f%%" % (stats["crit_damage"] * 100.0)],
 	]
 	for r in rows:
-		_stats_grid.add_child(_make_dim_label(str(r[0]) + ":"))
-		_stats_grid.add_child(_make_value_label(str(r[1])))
+		var glyph: String = str(STAT_GLYPHS.get(r[0], ""))
+		_stats_grid.add_child(_make_dim_label("%s %s" % [glyph, r[1]]))
+		_stats_grid.add_child(_make_value_label(str(r[2])))
 
 func _make_dim_label(text: String) -> Label:
 	var l := Label.new()
 	l.text = text
-	l.add_theme_color_override("font_color", Color(0.72, 0.69, 0.62))
+	l.add_theme_color_override("font_color", COLOR_SUB)
 	return l
 
 func _make_value_label(text: String) -> Label:
 	var l := Label.new()
 	l.text = text
+	l.add_theme_color_override("font_color", COLOR_VALUE)
+	l.add_theme_font_size_override("font_size", 15)
+	return l
+
+func _make_pos_label(text: String) -> Label:
+	var l := Label.new()
+	l.text = text
+	l.add_theme_color_override("font_color", COLOR_POS)
+	l.add_theme_font_size_override("font_size", 15)
 	return l
 
 # ---- 装備中の効果（装備品由来のボーナス集計） ----
@@ -181,8 +229,9 @@ func _rebuild_effects() -> void:
 		_effects_grid.add_child(_make_dim_label("（装備ボーナスなし）"))
 		return
 	for r in rows:
-		_effects_grid.add_child(_make_dim_label(str(r[0]) + ":"))
-		_effects_grid.add_child(_make_value_label(str(r[1])))
+		var glyph: String = str(EFFECT_GLYPHS.get(str(r[0]), "・"))
+		_effects_grid.add_child(_make_dim_label("%s %s" % [glyph, r[0]]))
+		_effects_grid.add_child(_make_pos_label(str(r[1])))
 
 # ---- 装備スロット ----
 func _rebuild_equip_slots() -> void:
@@ -195,10 +244,13 @@ func _rebuild_equip_slots() -> void:
 
 func _make_slot(slot_label: String, category: String, item: Resource) -> Control:
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 2)
+	box.add_theme_constant_override("separation", 3)
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
 	var cap := Label.new()
 	cap.text = slot_label
-	cap.add_theme_color_override("font_color", Color(0.72, 0.69, 0.62))
+	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cap.add_theme_color_override("font_color", COLOR_GOLD)
+	cap.add_theme_font_size_override("font_size", 13)
 	box.add_child(cap)
 	var btn := Button.new()
 	btn.custom_minimum_size = CELL_SIZE
@@ -208,9 +260,18 @@ func _make_slot(slot_label: String, category: String, item: Resource) -> Control
 			btn.icon = icon
 			btn.expand_icon = true
 		btn.tooltip_text = _item_label(item, category)
-		btn.add_theme_stylebox_override("normal", _rarity_box(_item_rarity(item, category), false))
+		var rarity: int = _item_rarity(item, category)
+		btn.add_theme_stylebox_override("normal", _rarity_box(rarity, false))
+		btn.add_theme_stylebox_override("hover", _rarity_box(rarity, true))
+		_add_corner_badge(btn, RARITY_GEMS[clampi(rarity, 0, RARITY_GEMS.size() - 1)], RARITY_COLORS[clampi(rarity, 0, RARITY_COLORS.size() - 1)], true)
 	else:
-		btn.text = "—"
+		btn.text = str(SLOT_GLYPHS.get(category, "+"))
+		btn.add_theme_font_size_override("font_size", 30)
+		btn.add_theme_color_override("font_color", Color(0.5, 0.45, 0.35, 0.7))
+		btn.add_theme_color_override("font_hover_color", COLOR_GOLD)
+		var empty_box: StyleBoxFlat = _framed_box(Color(0.45, 0.4, 0.3, 0.55), 1, Color(0.08, 0.07, 0.05, 0.9))
+		btn.add_theme_stylebox_override("normal", empty_box)
+		btn.add_theme_stylebox_override("hover", _framed_box(COLOR_GOLD, 2, Color(0.13, 0.11, 0.08, 1.0)))
 	btn.pressed.connect(_on_slot_pressed.bind(category))
 	box.add_child(btn)
 	return box
@@ -253,14 +314,17 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 	var is_equipped: bool = item == equipped
 	btn.tooltip_text = "%s  %s" % [_item_label(item, category), _compare_text(item, category)]
 	btn.pressed.connect(_on_cell_pressed.bind(item, category))
+	var rarity_col: Color = RARITY_COLORS[clampi(rarity, 0, RARITY_COLORS.size() - 1)]
 	if is_equipped:
 		btn.disabled = true
 		btn.focus_mode = Control.FOCUS_NONE
 		btn.modulate = Color(0.5, 0.5, 0.5, 0.7)
 		btn.add_theme_stylebox_override("disabled", _rarity_box(rarity, true))
+		_add_corner_badge(btn, "E", COLOR_GOLD, false)
 	else:
 		btn.add_theme_stylebox_override("normal", _rarity_box(rarity, false))
 		btn.add_theme_stylebox_override("hover", _rarity_box(rarity, true))
+	_add_corner_badge(btn, RARITY_GEMS[clampi(rarity, 0, RARITY_GEMS.size() - 1)], rarity_col, true)
 	return btn
 
 func _on_cell_pressed(item: Resource, category: String) -> void:
@@ -283,12 +347,40 @@ func _on_unequip_all_pressed() -> void:
 func _rarity_box(rarity: int, highlight: bool) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	var col: Color = RARITY_COLORS[clampi(rarity, 0, RARITY_COLORS.size() - 1)]
-	sb.bg_color = Color(0.10, 0.09, 0.07, 0.95) if not highlight else Color(0.18, 0.16, 0.12, 1.0)
-	sb.set_border_width_all(2)
-	sb.border_color = col
-	sb.set_corner_radius_all(6)
+	sb.bg_color = Color(0.10, 0.09, 0.07, 0.95) if not highlight else Color(0.20, 0.18, 0.13, 1.0)
+	sb.set_border_width_all(3 if highlight else 2)
+	sb.border_color = col if not highlight else col.lerp(Color.WHITE, 0.25)
+	sb.set_corner_radius_all(8)
+	sb.set_content_margin_all(4.0)
+	if highlight:
+		sb.shadow_color = Color(col.r, col.g, col.b, 0.5)
+		sb.shadow_size = 4
+	return sb
+
+# 汎用の額縁スタイル（枠色・枠幅・地色を指定）。
+func _framed_box(border: Color, width: int, bg: Color) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = bg
+	sb.set_border_width_all(width)
+	sb.border_color = border
+	sb.set_corner_radius_all(8)
 	sb.set_content_margin_all(4.0)
 	return sb
+
+# ボタン隅にバッジ（レアリティ宝石 / 装備中マーク）を重ねる。
+func _add_corner_badge(btn: Button, text: String, color: Color, top_right: bool) -> void:
+	var lbl := Label.new()
+	lbl.text = text
+	lbl.add_theme_color_override("font_color", color)
+	lbl.add_theme_font_size_override("font_size", 13)
+	lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	lbl.add_theme_constant_override("outline_size", 3)
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if top_right:
+		lbl.position = Vector2(CELL_SIZE.x - 18.0, 1.0)
+	else:
+		lbl.position = Vector2(3.0, 1.0)
+	btn.add_child(lbl)
 
 # ---- アイテム情報ヘルパー ----
 func _equipped_for_category(category: String) -> Resource:
@@ -350,10 +442,10 @@ func _item_label(item: Resource, category: String) -> String:
 			var acc_data: Resource = _accessory_data(item)
 			var act: String
 			if acc_data != null:
-				act = "%s  HP+%d  ATK+%d  DEF+%d  CRT+%.0f%%  LCK+%.1f" % [
+				act = "%s  HP+%d  ATK+%d  DEF+%d  CRT+%.0f%%" % [
 					DataRegistry.get_accessory_name(item.accessory_id),
 					acc_data.hp_bonus, acc_data.attack_bonus, acc_data.defense_bonus,
-					acc_data.crit_rate_bonus * 100.0, acc_data.luck_bonus,
+					acc_data.crit_rate_bonus * 100.0,
 				]
 			else:
 				act = DataRegistry.get_accessory_name(item.accessory_id)
@@ -417,9 +509,6 @@ func _accessory_compare(candidate: Resource, equipped: Resource) -> String:
 	var crt_d: float = c_data.crit_rate_bonus - e_data.crit_rate_bonus
 	if not is_zero_approx(crt_d):
 		parts.append("CRT %s%.0f%%" % ["+" if crt_d >= 0.0 else "", crt_d * 100.0])
-	var lck_d: float = c_data.luck_bonus - e_data.luck_bonus
-	if not is_zero_approx(lck_d):
-		parts.append("LCK %s%.1f" % ["+" if lck_d >= 0.0 else "", lck_d])
 	if parts.is_empty():
 		return "[±0]"
 	return "[%s]" % " | ".join(parts)
@@ -476,6 +565,8 @@ func _compute_member_stats(idx: int) -> Dictionary:
 # ---- スキルタブ（P3-D077） ----
 func _rebuild_skill_tab() -> void:
 	var member: Resource = GameState.get_member(_selected_member_index)
+	_ensure_tactics_ui()
+	_refresh_tactics_ui(member)
 	var slots_label: Label = _skill_content.get_node("LabelSkillSlots") as Label
 	var list: Node = _skill_content.get_node("SkillList")
 	for child in list.get_children():
@@ -510,6 +601,46 @@ func _rebuild_skill_tab() -> void:
 		btn.pressed.connect(_on_skill_toggle_pressed.bind(sid))
 		row.add_child(btn)
 		list.add_child(row)
+
+# 戦術セレクタ（P3-D086）。スキルタブ最上部に 1 度だけ生成する。
+func _ensure_tactics_ui() -> void:
+	if _tactics_option != null and is_instance_valid(_tactics_option):
+		return
+	var row := HBoxContainer.new()
+	row.name = "TacticsRow"
+	var label := Label.new()
+	label.text = "戦術:"
+	row.add_child(label)
+	var opt := OptionButton.new()
+	opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_tactics_ids.clear()
+	for t: Dictionary in CombatTactics.tactics_list():
+		opt.add_item(str(t["display_name"]))
+		_tactics_ids.append(str(t["id"]))
+	opt.item_selected.connect(_on_tactics_selected)
+	row.add_child(opt)
+	_skill_content.add_child(row)
+	_skill_content.move_child(row, 0)
+	_tactics_option = opt
+
+func _refresh_tactics_ui(member: Resource) -> void:
+	if _tactics_option == null:
+		return
+	if member == null:
+		_tactics_option.disabled = true
+		return
+	_tactics_option.disabled = false
+	var current: String = GameState.get_member_tactics_id(member)
+	var idx: int = _tactics_ids.find(current)
+	_tactics_option.select(idx if idx >= 0 else 0)
+
+func _on_tactics_selected(index: int) -> void:
+	if index < 0 or index >= _tactics_ids.size():
+		return
+	var member: Resource = GameState.get_member(_selected_member_index)
+	if member == null:
+		return
+	GameState.set_member_tactics(member, _tactics_ids[index])
 
 func _skill_label_name(skill_id: String) -> String:
 	var sd: Resource = DataRegistry.get_skill_data(skill_id)

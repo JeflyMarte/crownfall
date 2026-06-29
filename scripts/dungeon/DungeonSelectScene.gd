@@ -90,7 +90,7 @@ func _make_dungeon_card(data: Resource) -> PanelContainer:
 	if int(data.recommended_level) > 0:
 		var lv := Label.new()
 		lv.text = "推奨Lv %d〜" % int(data.recommended_level)
-		lv.add_theme_font_size_override("font_size", 12)
+		lv.add_theme_font_size_override("font_size", 15)
 		lv.add_theme_color_override("font_color", Color(0.78, 0.74, 0.6))
 		info.add_child(lv)
 
@@ -126,7 +126,7 @@ func _make_locked_card(dungeon_name: String, level: int) -> PanelContainer:
 	info.add_child(name_label)
 	var lv := Label.new()
 	lv.text = "推奨Lv %d〜（近日追加）" % level
-	lv.add_theme_font_size_override("font_size", 12)
+	lv.add_theme_font_size_override("font_size", 15)
 	lv.add_theme_color_override("font_color", Color(0.7, 0.68, 0.6))
 	info.add_child(lv)
 
@@ -190,7 +190,7 @@ func _make_badge(text: String, color: Color) -> PanelContainer:
 	var label := Label.new()
 	label.text = text
 	label.add_theme_color_override("font_color", color)
-	label.add_theme_font_size_override("font_size", 11)
+	label.add_theme_font_size_override("font_size", 13)
 	badge.add_child(label)
 	return badge
 
@@ -199,7 +199,7 @@ func _make_drop_row(dungeon_id: String) -> HBoxContainer:
 	row.add_theme_constant_override("separation", 6)
 	var caption := Label.new()
 	caption.text = "主なドロップ"
-	caption.add_theme_font_size_override("font_size", 11)
+	caption.add_theme_font_size_override("font_size", 14)
 	caption.add_theme_color_override("font_color", Color(0.7, 0.68, 0.6))
 	row.add_child(caption)
 	var preview: Array = DROP_PREVIEW.get(dungeon_id, [])

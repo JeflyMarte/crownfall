@@ -20,10 +20,19 @@ func _rebuild_roster_list() -> void:
 
 func _add_roster_row(container: VBoxContainer, adv: Resource) -> void:
 	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
 	var btn := Button.new()
 	btn.text = "★" if _selected.has(adv) else "☆"
 	btn.pressed.connect(func(): _toggle_selection(adv))
 	row.add_child(btn)
+	var icon_tex: Texture2D = IconPaths.get_icon_texture(str(adv.job_id), "chr")
+	if icon_tex != null:
+		var portrait := TextureRect.new()
+		portrait.texture = icon_tex
+		portrait.custom_minimum_size = Vector2(48, 48)
+		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		row.add_child(portrait)
 	var lbl := Label.new()
 	lbl.text = _format_roster_member(adv)
 	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

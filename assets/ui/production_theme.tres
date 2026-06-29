@@ -1,8 +1,9 @@
-[gd_resource type="Theme" load_steps=4 format=3]
+[gd_resource type="Theme" load_steps=10 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/ui/batch1/UI_Btn_Normal.png" id="1_BtnNormal"]
 [ext_resource type="Texture2D" path="res://assets/ui/batch1/UI_Btn_Pressed.png" id="2_BtnPressed"]
 [ext_resource type="Texture2D" path="res://assets/ui/batch1/UI_Frame_Panel_Base.png" id="3_Panel"]
+[ext_resource type="FontFile" path="res://assets/fonts/NotoSansJP-VariableFont_wght.ttf" id="4_BodyFont"]
 
 [sub_resource type="StyleBoxTexture" id="SB_BtnNormal"]
 texture = ExtResource("1_BtnNormal")
@@ -62,6 +63,8 @@ content_margin_right = 8.0
 content_margin_bottom = 8.0
 
 [resource]
+default_font = ExtResource("4_BodyFont")
+default_font_size = 22
 Button/styles/normal = SubResource("SB_BtnNormal")
 Button/styles/hover = SubResource("SB_BtnHover")
 Button/styles/pressed = SubResource("SB_BtnPressed")

@@ -5,9 +5,9 @@
 [resource]
 script = ExtResource("1")
 armor_id = "leather_armor"
-display_name = "革の鎧"
+display_name = "巡邏兵の革鎧"
 base_defense = 5
-base_hp_bonus = 20
-base_resistance = 0.05
+base_hp_bonus = 15
+base_resistance = 0.0
 weight = 0.8
 rarity = 0

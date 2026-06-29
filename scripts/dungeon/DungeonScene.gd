@@ -1,16 +1,20 @@
 extends Control
 
+# 戦闘演出用アクセントフォント（重厚ゴシック）。ダメージ数値/スキル名のインパクト用。
+# preload だと未インポート時にスクリプト全体のロードが失敗するため、ランタイム load＋null許容にする。
+const ACCENT_FONT_PATH: String = "res://assets/fonts/DelaGothicOne-Regular.ttf"
+var _accent_font: Font = null
+
 const FALLBACK_ATTACK: int = 10
 const CRITICAL_MULTIPLIER: float = 1.5
 # 敵DEFの逓減軽減係数。軽減率 = K/(K+DEF)。flat減算は小ダメージ多段で0化するため割合式を採用。
 const DEFENSE_MITIGATION_K: float = 100.0
 const HEAL_AMOUNT: int = 10
-const SPEED_X1: float = 1.5
-const SPEED_X2: float = 0.75
+# P3-D084: CT/ATB の 1 パルス（1 行動）間隔。x1=通常 / x2=倍速。
+const SPEED_X1: float = 0.55
+const SPEED_X2: float = 0.28
 const AUTO_DELAY_X1: float = 1.2
 const AUTO_DELAY_X2: float = 0.6
-# P3-D074: 味方/敵の攻撃アニメが重ならないよう、tick内の攻撃フェーズ間に挿入するディレイ（速度連動）
-const ATTACK_STAGGER_X1: float = 0.4
 # 味方CHRの「見える体格」を揃える目標高さ（実体=α領域の高さ基準）
 const CHR_BODY_TARGET_PX: float = 140.0
 const _LOG_MAX: int = 60
@@ -43,6 +47,7 @@ const STATUS_ICON_DEF: Dictionary = {
 	"curse": {"abbrev": "呪", "color": Color(0.55, 0.25, 0.75)},
 	"stun": {"abbrev": "麻", "color": Color(0.7, 0.7, 0.75)},
 	"empower": {"abbrev": "攻", "color": Color(0.95, 0.55, 0.2)},
+	"guard": {"abbrev": "防", "color": Color(0.4, 0.55, 0.85)},
 }
 const HEAL_SKILL_BASE: int = 14
 const STATUS_ICON_SIZE: float = 26.0
@@ -50,6 +55,24 @@ const STATUS_ICON_GAP: float = 3.0
 const STATUS_ICON_Y_OFFSET: float = -74.0
 const VFX_HIT_PATH: String = "res://resources/animation/FX_Hit_Normal.tres"
 const VFX_HEAL_PATH: String = "res://resources/animation/FX_Heal.tres"
+## 属性ごとの演出色（命中VFXの modulate / スキル名フォント色に共用）。
+## 未設定/無属性は WHITE（VFX）・既定の青系（スキル名）にフォールバック。
+const ELEMENT_COLOR: Dictionary = {
+	"fire": Color(1.0, 0.5, 0.2),
+	"ice": Color(0.45, 0.82, 1.0),
+	"thunder": Color(1.0, 0.93, 0.35),
+	"dark": Color(0.78, 0.5, 1.0),
+	"holy": Color(1.0, 0.93, 0.6),
+}
+## 属性別の専用命中VFX（任意）。CC0素材から作った SpriteFrames を置けば自動採用。
+## 未配置の属性は FX_Hit_Normal をティント着色してフォールバックする（非破壊）。
+const ELEMENT_VFX_PATH: Dictionary = {
+	"fire": "res://resources/animation/FX_Hit_Fire.tres",
+	"ice": "res://resources/animation/FX_Hit_Ice.tres",
+	"thunder": "res://resources/animation/FX_Hit_Thunder.tres",
+	"dark": "res://resources/animation/FX_Hit_Dark.tres",
+	"holy": "res://resources/animation/FX_Hit_Holy.tres",
+}
 const SkillExecutorScript: Script = preload("res://scripts/combat/SkillExecutor.gd")
 const ElementResolverScript: Script = preload("res://scripts/combat/ElementResolver.gd")
 const AffixStatCalculatorScript: Script = preload("res://scripts/equipment/AffixStatCalculator.gd")
@@ -61,6 +84,8 @@ var _auto_progress_finishes: bool = false
 var _discovery_toast_tween: Tween
 var _skill_executor: RefCounted = SkillExecutorScript.new()
 var _is_paused: bool = false
+# ラウンド処理中フラグ（P3-D083・逐次awaitの多重実行防止）
+var _round_active: bool = false
 var _request_scroll_to_bottom: bool = false
 
 @onready var _boss_sprite: AnimatedSprite2D = $BossSprite
@@ -117,6 +142,23 @@ var _party_card_hp_labels: Array[Label] = []
 var _status_icon_enemy: HBoxContainer
 var _status_icon_chr_rows: Array[HBoxContainer] = []
 
+# 群れ（複数敵）表示スロット（P3-D082）。slot0 は既存ノード（_enemy_sprite/_hp_bar_enemy/_enemy_nameplate）を流用し、
+# 2体目以降は duplicate で動的生成する。ボス戦では使用しない（BossSprite を使う）。
+var _swarm_sprites: Array[AnimatedSprite2D] = []
+var _swarm_hp_bars: Array[ProgressBar] = []
+var _swarm_nameplates: Array[Label] = []
+const SWARM_SPACING: float = 145.0
+const SWARM_BASE_X: float = 500.0
+const SWARM_BASE_Y: float = 515.0
+
+# 行動順（ターンオーダー）表示（P3-D083）。
+var _turn_order_row: HBoxContainer
+var _turn_order_items: Array = []  # [{kind, index, node, icon}]
+const TURN_ORDER_ICON_PX: float = 52.0
+const TURN_ORDER_GAP: float = 8.0
+const TURN_ORDER_CENTER_X: float = 360.0
+const TURN_ORDER_Y: float = 132.0
+
 func _ready() -> void:
 	_btn_next_room.pressed.connect(_on_next_room_pressed)
 	_btn_finish.pressed.connect(_on_finish_button_pressed)
@@ -135,6 +177,7 @@ func _ready() -> void:
 	_chr_sprites = [_chr_sprite_0, _chr_sprite_1, _chr_sprite_2, _chr_sprite_3]
 	_chr_hp_bars = [_hp_bar_chr0, _hp_bar_chr1, _hp_bar_chr2, _hp_bar_chr3]
 	_init_status_icon_rows()
+	_init_turn_order_row()
 	for sprite: AnimatedSprite2D in _chr_sprites:
 		sprite.animation_finished.connect(func():
 			if sprite.visible and sprite.sprite_frames != null:
@@ -185,6 +228,7 @@ func _append_log(text: String) -> void:
 		var entry := Label.new()
 		entry.text = "[%s] %s" % [_log_timestamp(), line]
 		entry.add_theme_color_override("font_color", _log_color(line))
+		entry.add_theme_font_size_override("font_size", 24)
 		entry.autowrap_mode = TextServer.AUTOWRAP_WORD
 		entry.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_battle_log_content.add_child(entry)
@@ -220,18 +264,30 @@ func _style_hp_bars() -> void:
 func _update_hp_bars() -> void:
 	var in_combat: bool = $CombatController.is_in_combat
 	var on_combat_floor: bool = $DungeonController.is_combat_room()
-	var enemy_visible: bool = _enemy_sprite.visible or _boss_sprite.visible
-	_hp_bar_enemy.visible = in_combat and enemy_visible
-	if _hp_bar_enemy.visible:
-		var enemy_data: Resource = $CombatController.current_enemy_data
-		if enemy_data != null:
-			_hp_bar_enemy.max_value = enemy_data.max_hp
+	if _boss_sprite.visible:
+		# ボス: 単体オーバーレイ
+		_hp_bar_enemy.visible = in_combat
+		if _hp_bar_enemy.visible:
+			_hp_bar_enemy.max_value = $CombatController.get_enemy_max_hp()
 			_hp_bar_enemy.value = $CombatController.current_enemy_hp
-		var active_enemy: AnimatedSprite2D = _boss_sprite if _boss_sprite.visible else _enemy_sprite
-		_set_hp_bar_above_sprite(_hp_bar_enemy, active_enemy)
-		_update_enemy_nameplate(active_enemy)
+			_position_enemy_overlays(_boss_sprite)
+		else:
+			_enemy_nameplate.visible = false
 	else:
-		_enemy_nameplate.visible = false
+		# 通常/群れ: スロットごとに HPバー＋ネームプレートを更新（死亡スロットは隠す）
+		for slot in _swarm_sprites.size():
+			var spr: AnimatedSprite2D = _swarm_sprites[slot]
+			var bar: ProgressBar = _swarm_hp_bars[slot]
+			var np: Label = _swarm_nameplates[slot]
+			var alive: bool = $CombatController.is_enemy_slot_alive(slot)
+			var show: bool = in_combat and spr.visible and alive
+			bar.visible = show
+			if show:
+				bar.max_value = $CombatController.get_enemy_max_hp_at(slot)
+				bar.value = $CombatController.get_enemy_hp_at(slot)
+				_position_swarm_overlay(slot)
+			else:
+				np.visible = false
 	for i: int in _chr_hp_bars.size():
 		var bar: ProgressBar = _chr_hp_bars[i]
 		var sprite: AnimatedSprite2D = _chr_sprites[i]
@@ -253,22 +309,49 @@ func _set_hp_bar_above_sprite(bar: ProgressBar, sprite: AnimatedSprite2D) -> voi
 	bar.offset_right = cx + BAR_HALF_W
 	bar.offset_bottom = ty + BAR_HEIGHT
 
-# 敵スプライト頭上（HPバーの上）に敵名を表示（モック UI_Reference_003_07 準拠）
-func _update_enemy_nameplate(sprite: AnimatedSprite2D) -> void:
+# スプライトの実描画上端の Y を返す（centered 前提でフレーム高×scaleの半分を上に取る）。
+# ボスのように体高正規化を通らない大きなスプライトでも、頭上UIが重ならないようにするため。
+func _sprite_top_y(sprite: AnimatedSprite2D) -> float:
+	var half_h: float = 0.0
+	if sprite.sprite_frames != null:
+		var anim: String = sprite.animation
+		if not sprite.sprite_frames.has_animation(anim):
+			anim = "idle"
+		if sprite.sprite_frames.has_animation(anim):
+			var tex: Texture2D = sprite.sprite_frames.get_frame_texture(anim, 0)
+			if tex != null:
+				half_h = float(tex.get_height()) * absf(sprite.scale.y) * 0.5
+	return sprite.position.y - half_h
+
+# 敵HPバー＋頭上ネームプレートを、スプライト実上端の上に積んで配置（重なり回避）。
+# 小型敵は従来位置を下限に維持し、大型(ボス)時のみ上方向へ押し上げる。
+func _position_enemy_overlays(sprite: AnimatedSprite2D) -> void:
+	const BAR_HALF_W: float = 40.0
+	const BAR_HEIGHT: float = 8.0
+	const NAME_HALF_W: float = 120.0
+	const NAME_HEIGHT: float = 30.0
+	const GAP_ABOVE_SPRITE: float = 12.0
+	const GAP_BAR_NAME: float = 6.0
+	var cx: float = sprite.position.x
+	var top_y: float = _sprite_top_y(sprite)
+	# HPバー: 従来 -50 を下限に、スプライト上端より上に来るよう調整
+	var bar_ty: float = minf(sprite.position.y - 50.0, top_y - GAP_ABOVE_SPRITE - BAR_HEIGHT)
+	_hp_bar_enemy.offset_left = cx - BAR_HALF_W
+	_hp_bar_enemy.offset_top = bar_ty
+	_hp_bar_enemy.offset_right = cx + BAR_HALF_W
+	_hp_bar_enemy.offset_bottom = bar_ty + BAR_HEIGHT
 	var enemy_data: Resource = $CombatController.current_enemy_data
 	if enemy_data == null:
 		_enemy_nameplate.visible = false
 		return
-	const NAME_HALF_W: float = 100.0
-	const NAME_HEIGHT: float = 22.0
-	const NAME_Y_OFFSET: float = -74.0
-	_enemy_nameplate.text = enemy_data.display_name
-	var cx: float = sprite.position.x
-	var ty: float = sprite.position.y + NAME_Y_OFFSET
+	var lv: int = $CombatController.enemy_level
+	_enemy_nameplate.text = "Lv%d %s" % [lv, enemy_data.display_name]
+	# 名前は HPバーのさらに上
+	var name_ty: float = bar_ty - GAP_BAR_NAME - NAME_HEIGHT
 	_enemy_nameplate.offset_left = cx - NAME_HALF_W
-	_enemy_nameplate.offset_top = ty
+	_enemy_nameplate.offset_top = name_ty
 	_enemy_nameplate.offset_right = cx + NAME_HALF_W
-	_enemy_nameplate.offset_bottom = ty + NAME_HEIGHT
+	_enemy_nameplate.offset_bottom = name_ty + NAME_HEIGHT
 	_enemy_nameplate.visible = true
 
 func _init_status_icon_rows() -> void:
@@ -304,7 +387,7 @@ func _build_status_icon(entry: Dictionary) -> PanelContainer:
 	label.text = abbrev
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", 12)
+	label.add_theme_font_size_override("font_size", 14)
 	label.add_theme_color_override("font_color", Color.WHITE)
 	label.add_theme_constant_override("outline_size", 2)
 	label.add_theme_color_override("font_outline_color", Color.BLACK)
@@ -349,9 +432,10 @@ func _update_status_icons() -> void:
 	if _boss_sprite.visible:
 		_status_icon_enemy.visible = false
 	else:
+		# 群れ時はアクティブ敵の頭上に状態異常アイコンを表示（敵状態はアクティブのみ管理）
 		_set_status_row_above_sprite(
 			_status_icon_enemy,
-			_enemy_sprite,
+			_active_enemy_sprite(),
 			$CombatController.get_enemy_status_list()
 		)
 	for i: int in _status_icon_chr_rows.size():
@@ -393,26 +477,31 @@ func _advance_to_next_room() -> void:
 	_update_room_art()
 	_update_boss_sprite_visibility()
 	if $DungeonController.is_combat_room():
-		var enemy_data: Resource = $DungeonController.pick_combat_enemy_data()
-		if enemy_data != null:
-			$CombatController.start_combat(enemy_data)
+		var group: Array[Resource] = $DungeonController.pick_combat_enemy_group()
+		if not group.is_empty():
+			var lead: Resource = group[0]
+			$CombatController.start_combat_group(group, $DungeonController.get_enemy_level())
 			_skill_executor.reset()
+			_round_active = false
+			_ct_status_accum = 0.0
 			_is_paused = false
 			$MainVBox/BottomZone/AutoCombatRow/ButtonPause.text = "一時停止"
 			$MainVBox/HeaderBar/ButtonStop.text = "停止"
 			$CombatTimer.start()
-			_show_enemy_sprite(enemy_data.id)
+			var enemy_ids: Array = []
+			for e in group:
+				enemy_ids.append(e.id)
+			_show_enemy_swarm(enemy_ids)
 			_show_chr_sprites()
 			if $DungeonController.current_room_type == Enums.RoomType.ELITE:
-				_append_log("【エリート】%s があらわれた" % enemy_data.display_name)
+				_append_log("【エリート】%s があらわれた" % lead.display_name)
 			elif $DungeonController.current_room_type == Enums.RoomType.BOSS:
-				_append_log("【ボス】%s があらわれた" % enemy_data.display_name)
+				_append_log("【ボス】%s があらわれた" % lead.display_name)
+			elif group.size() > 1:
+				_append_log("%s の群れ（%d体）があらわれた" % [lead.display_name, group.size()])
 			else:
-				_append_log("%s があらわれた" % enemy_data.display_name)
-			if $CombatController.does_enemy_act_first():
-				_append_log("[先制:敵]")
-			else:
-				_append_log("[先制:パーティ]")
+				_append_log("%s があらわれた" % lead.display_name)
+			_update_turn_order_ui($CombatController.get_ct_order())
 		else:
 			_set_narrative("敵が現れなかった")
 			_hide_enemy_sprite()
@@ -569,62 +658,79 @@ func _handle_event_room() -> void:
 
 # ---- Combat timer ----
 
+# P3-D084: CT/ATB 制。CombatTimer の 1 パルス＝CT クロックを次の行動者まで進め、
+# その 1 体だけが行動する。速いユニットほど CT が早く溜まり多く動く。スキルCDは進行した
+# CT 量で、状態異常は一定 CT（CT_PER_STATUS_TICK）ごとに 1 tick 進める。
+# 同期実行（await無し）のため再入は起きないが、安全のため _round_active を残す。
+const CT_PER_STATUS_TICK: float = 2.0
+var _ct_status_accum: float = 0.0
+
 func _on_combat_timer_timeout() -> void:
 	if not $CombatController.is_in_combat:
 		$CombatTimer.stop()
 		return
-	_skill_executor.tick(Constants.COMBAT_TICK_INTERVAL)
-	_process_status_ticks()
-	if $CombatController.is_enemy_defeated():
-		_handle_enemy_defeated()
+	if _round_active:
 		return
-	if $CombatController.is_party_wiped():
-		_handle_party_wipe()
+	_round_active = true
+	_run_combat_step()
+	_round_active = false
+
+func _run_combat_step() -> void:
+	if not $CombatController.is_in_combat:
 		return
-	if $CombatController.does_enemy_act_first():
-		_run_enemy_combat_phase()
+	var actor: Dictionary = $CombatController.advance_to_next_actor()
+	var delta: float = $CombatController.consume_last_ct_step()
+	# スキルCDは進行した CT 量だけ進める
+	if delta > 0.0:
+		_skill_executor.tick(delta)
+	# 状態異常（DoT/バフ等）は一定 CT ごとに 1 tick
+	_ct_status_accum += delta
+	while _ct_status_accum >= CT_PER_STATUS_TICK:
+		_ct_status_accum -= CT_PER_STATUS_TICK
+		_process_status_ticks()
+		if $CombatController.is_enemy_defeated():
+			if _on_active_enemy_killed():
+				return
 		if $CombatController.is_party_wiped():
 			_handle_party_wipe()
 			return
-		await _attack_stagger_delay()
-		if not _combat_still_active():
-			return
-		_run_party_combat_phase()
+	if actor.is_empty():
+		return
+	var kind: String = actor["kind"]
+	var idx: int = actor["index"]
+	if kind == "party":
+		if $CombatController.is_member_alive(idx):
+			_do_member_turn(idx)
+			if $CombatController.is_enemy_defeated():
+				if _on_active_enemy_killed():
+					return
 	else:
-		_run_party_combat_phase()
-		if $CombatController.is_enemy_defeated():
-			_handle_enemy_defeated()
-			return
-		await _attack_stagger_delay()
-		if not _combat_still_active():
-			return
-		_run_enemy_combat_phase()
+		if $CombatController.is_enemy_slot_alive(idx):
+			_do_enemy_turn(idx)
+			if $CombatController.is_party_wiped():
+				_handle_party_wipe()
+				return
 	_update_hp_bars()
 	_update_status_labels()
-	if $CombatController.is_party_wiped():
-		_handle_party_wipe()
+	# CT 表示を更新し、次に動くユニット（CT 残量最小＝先頭）を強調
+	var order: Array[Dictionary] = $CombatController.get_ct_order()
+	_update_turn_order_ui(order)
+	if not order.is_empty():
+		_set_turn_order_active(order[0])
 
-# 攻撃フェーズ間ディレイ（速度連動）。味方→敵の攻撃アニメを視覚的に分離する。
-func _attack_stagger_delay() -> void:
-	var factor: float = $CombatTimer.wait_time / SPEED_X1
-	var d: float = maxf(0.15, ATTACK_STAGGER_X1 * factor)
-	await get_tree().create_timer(d).timeout
-
-func _combat_still_active() -> bool:
-	return is_inside_tree() and $CombatController.is_in_combat and not _is_paused
-
-func _run_party_combat_phase() -> void:
-	# 通常攻撃＋各メンバーの「装備スキル」発動（状態異常付与もスキル発動内で処理）。P3-D077。
-	_do_party_attack()
-
-func _run_enemy_combat_phase() -> void:
-	if $CombatController.should_enemy_skip_action():
-		var skip_label: String = $CombatController.get_enemy_skip_action_label()
-		if skip_label.is_empty():
-			skip_label = "鈍化"
-		_append_log("[%s] 敵の行動が遅れた" % skip_label)
-	elif not _try_enemy_skill():
-		_do_enemy_attack()
+# 敵スロット1体の行動（P3-D083）。アクティブ敵のみ 鈍化判定＋ボス/エリートのスキル発動を行い、
+# それ以外は通常攻撃。状態異常/スキルはアクティブ敵のみに作用（P3-D082）。
+func _do_enemy_turn(slot: int) -> void:
+	if slot == $CombatController.active_enemy_index:
+		if $CombatController.should_enemy_skip_action():
+			var skip_label: String = $CombatController.get_enemy_skip_action_label()
+			if skip_label.is_empty():
+				skip_label = "鈍化"
+			_append_log("[%s] 敵の行動が遅れた" % skip_label)
+			return
+		if _try_enemy_skill():
+			return
+	_do_enemy_attack(slot)
 
 func _process_status_ticks() -> void:
 	for result: Dictionary in $CombatController.tick_all_statuses():
@@ -635,7 +741,7 @@ func _process_status_ticks() -> void:
 			continue
 		if unit_id == "enemy":
 			$CombatController.apply_damage_to_enemy(dmg)
-			var dot_pos: Vector2 = _enemy_sprite.global_position if _enemy_sprite.visible else _boss_sprite.global_position
+			var dot_pos: Vector2 = _active_enemy_pos()
 			_spawn_damage_number(str(dmg), dot_pos, Color(1.0, 0.6, 0.0))
 		elif unit_id.begins_with("party_"):
 			var idx: int = int(unit_id.substr(7))
@@ -712,64 +818,6 @@ func _try_apply_affix_statuses(member_index: int) -> void:
 			continue
 		_append_log("[%s] 付与" % rule["label"])
 
-func _do_party_attack() -> void:
-	var total_dmg: int = 0
-	var crit_hit: bool = false
-	var elem_tag: String = ""
-	for i in GameState.combatant_count():
-		if not $CombatController.is_member_alive(i):
-			continue
-		var result: Dictionary = _calc_damage(i)
-		if elem_tag.is_empty() and not result.get("element_tag", "").is_empty():
-			elem_tag = result["element_tag"]
-		$CombatController.apply_damage_to_enemy(result["damage"])
-		total_dmg += result["damage"]
-		_try_apply_affix_statuses(i)
-		if result["is_critical"]:
-			crit_hit = true
-		if $CombatController.is_enemy_defeated():
-			break
-	# 各生存メンバーが「自分の装備スキル」を発動する（P3-D077）
-	var skill_log: String = ""
-	for i in GameState.combatant_count():
-		if $CombatController.is_enemy_defeated():
-			break
-		if not $CombatController.is_member_alive(i):
-			continue
-		skill_log += _cast_member_equipped_skills(i)
-	_update_hp_bars()
-	var crit_tag: String = "  CRITICAL!" if crit_hit else ""
-	_append_log("攻撃: %dダメージ%s%s%s" % [total_dmg, crit_tag, elem_tag, skill_log])
-	if total_dmg > 0:
-		_play_hit_vfx()
-		_play_chr_attack()
-		if $CombatController.current_enemy_hp > 0:
-			_play_active_enemy_animation("hurt")
-		var enemy_spawn_pos: Vector2 = _enemy_sprite.global_position if _enemy_sprite.visible else _boss_sprite.global_position
-		_spawn_damage_number(str(total_dmg), enemy_spawn_pos, Color(1.0, 0.9, 0.0), 1.25 if crit_hit else 1.0)
-
-# P3-D077: メンバーの装備スキル（最大2）を順に発動。発動した分のログ文字列を返す。
-func _cast_member_equipped_skills(member_idx: int) -> String:
-	var member: Resource = GameState.get_combatant(member_idx)
-	if member == null:
-		return ""
-	var skill_ids: Array[String] = GameState.get_equipped_skill_ids(member)
-	var out: String = ""
-	var cast_count: int = 0
-	for sid in skill_ids:
-		if $CombatController.is_enemy_defeated():
-			break
-		var skill_data: Resource = DataRegistry.get_skill_data(sid)
-		if skill_data == null:
-			continue
-		# cast_count=この tick で実際に発動したスキル数。スキル名ラベルの段組み offset と
-		# 「この tick の最初の発動で旧 tick のラベルを消す」判定に使う（重なり防止）。
-		var res: String = _execute_member_skill(member_idx, skill_data, cast_count)
-		if not res.is_empty():
-			cast_count += 1
-		out += res
-	return out
-
 # 単一スキルの発動（ダメージ＋状態異常付与）。CDはメンバー×スキルで独立管理。
 # cast_index: この tick でそのメンバーが発動した順番（0始まり）。ラベル段組みに使用。
 func _execute_member_skill(member_idx: int, skill_data: Resource, cast_index: int = 0) -> String:
@@ -806,13 +854,13 @@ func _execute_member_skill(member_idx: int, skill_data: Resource, cast_index: in
 	)
 	$CombatController.apply_damage_to_enemy(final_dmg)
 	var skill_is_crit: bool = result.get("is_critical", false)
-	var spawn_pos: Vector2 = _enemy_sprite.global_position if _enemy_sprite.visible else _boss_sprite.global_position
-	_spawn_hit_vfx(spawn_pos)
+	var spawn_pos: Vector2 = _active_enemy_pos()
+	_spawn_hit_vfx(spawn_pos, attack_element)
 	_spawn_damage_number(str(final_dmg), spawn_pos + Vector2(12.0, 0.0), Color(1.0, 0.9, 0.0), 1.25 if skill_is_crit else 1.0)
 	# この tick の最初の発動で旧 tick のラベルを除去し、2つ目以降は段違いに表示して重なりを防ぐ
 	if cast_index == 0:
 		_clear_member_skill_labels(member_idx)
-	_spawn_skill_name(result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP)
+	_spawn_skill_name(result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP, attack_element)
 	_apply_skill_status(member_idx, skill_data)
 	var crit_tag: String = "  CRITICAL!" if skill_is_crit else ""
 	return "\n【スキル】%s: %dダメージ%s%s" % [
@@ -942,10 +990,10 @@ func _try_cast_player_skill() -> String:
 	)
 	$CombatController.apply_damage_to_enemy(final_dmg)
 	var skill_is_crit: bool = result.get("is_critical", false)
-	var skill_spawn_pos: Vector2 = _enemy_sprite.global_position if _enemy_sprite.visible else _boss_sprite.global_position
-	_spawn_hit_vfx(skill_spawn_pos)
+	var skill_spawn_pos: Vector2 = _active_enemy_pos()
+	_spawn_hit_vfx(skill_spawn_pos, attack_element)
 	_spawn_damage_number(str(final_dmg), skill_spawn_pos + Vector2(12.0, 0.0), Color(1.0, 0.9, 0.0), 1.25 if skill_is_crit else 1.0)
-	_spawn_skill_name(result["display_name"], member_idx)
+	_spawn_skill_name(result["display_name"], member_idx, 0.0, attack_element)
 	var skill_crit_tag: String = "  CRITICAL!" if skill_is_crit else ""
 	var weapon_name: String = _get_equipped_weapon_display_name(member_idx)
 	var skill_header: String = result["display_name"]
@@ -1005,10 +1053,10 @@ func _try_cast_secondary_skill(primary_skill_id: String) -> String:
 	)
 	$CombatController.apply_damage_to_enemy(final_dmg)
 	var sec_is_crit: bool = result.get("is_critical", false)
-	var sec_spawn_pos: Vector2 = _enemy_sprite.global_position if _enemy_sprite.visible else _boss_sprite.global_position
-	_spawn_hit_vfx(sec_spawn_pos)
+	var sec_spawn_pos: Vector2 = _active_enemy_pos()
+	_spawn_hit_vfx(sec_spawn_pos, attack_element)
 	_spawn_damage_number(str(final_dmg), sec_spawn_pos + Vector2(-12.0, 8.0), Color(1.0, 0.9, 0.0), 1.25 if sec_is_crit else 1.0)
-	_spawn_skill_name(result["display_name"], member_idx, 34.0)
+	_spawn_skill_name(result["display_name"], member_idx, 34.0, attack_element)
 	var skill_crit_tag: String = "  CRITICAL!" if sec_is_crit else ""
 	return "\n【ジョブスキル】%s: %dダメージ%s%s" % [
 		result["display_name"],
@@ -1102,9 +1150,18 @@ func _first_alive_member_index() -> int:
 			return i
 	return -1
 
-# 戦闘中の敵スプライト（通常 or ボス）を返す
+# 戦闘中のアクティブ敵スプライト（群れ時は先頭生存スロット、ボス部屋は BossSprite）を返す
 func _active_enemy_sprite() -> AnimatedSprite2D:
-	return _boss_sprite if _boss_sprite.visible else _enemy_sprite
+	if _boss_sprite.visible:
+		return _boss_sprite
+	var ai: int = $CombatController.active_enemy_index
+	if ai >= 0 and ai < _swarm_sprites.size():
+		return _swarm_sprites[ai]
+	return _enemy_sprite
+
+# VFX/ドロップの発生位置に使うアクティブ敵のグローバル座標。
+func _active_enemy_pos() -> Vector2:
+	return _active_enemy_sprite().global_position
 
 # ボス/エリートのスキル発動を試行。発動したら true（通常攻撃をスキップ）。
 func _try_enemy_skill() -> bool:
@@ -1190,32 +1247,49 @@ func _spawn_enemy_skill_name(skill_name: String) -> void:
 	var spr: AnimatedSprite2D = _active_enemy_sprite()
 	if not spr.visible:
 		return
-	const ENEMY_SKILL_FONT_SIZE: int = 28
+	const ENEMY_SKILL_FONT_SIZE: int = 26
 	var lbl := Label.new()
 	lbl.text = skill_name
+	var af: Font = _get_accent_font()
+	if af != null:
+		lbl.add_theme_font_override("font", af)
 	lbl.add_theme_font_size_override("font_size", ENEMY_SKILL_FONT_SIZE)
-	lbl.add_theme_color_override("font_color", Color(1.0, 0.55, 0.4))
-	lbl.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.9))
-	lbl.add_theme_constant_override("outline_size", 6)
+	lbl.add_theme_color_override("font_color", Color(1.0, 0.45, 0.35))
+	lbl.add_theme_color_override("font_outline_color", Color(0.1, 0.0, 0.0, 0.95))
+	lbl.add_theme_constant_override("outline_size", 8)
+	lbl.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.5))
+	lbl.add_theme_constant_override("shadow_offset_x", 2)
+	lbl.add_theme_constant_override("shadow_offset_y", 3)
+	var base_y: float = spr.global_position.y - 150.0
+	lbl.pivot_offset = Vector2(float(skill_name.length()) * ENEMY_SKILL_FONT_SIZE * 0.5, ENEMY_SKILL_FONT_SIZE * 0.5)
 	lbl.position = Vector2(
 		spr.global_position.x - float(skill_name.length()) * ENEMY_SKILL_FONT_SIZE * 0.5,
-		spr.global_position.y - 150.0
+		base_y
 	)
+	# ボス/敵技は一瞬大きく出して威圧感を出す
+	lbl.scale = Vector2(1.3, 1.3)
+	lbl.modulate.a = 0.0
 	_damage_numbers_layer.add_child(lbl)
 	var tw: Tween = create_tween()
-	tw.set_parallel(true)
-	tw.tween_property(lbl, "position:y", lbl.position.y - 26.0, 0.85)
-	tw.tween_property(lbl, "modulate:a", 0.0, 0.85).set_delay(0.45)
+	tw.tween_property(lbl, "scale", Vector2.ONE, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_property(lbl, "modulate:a", 1.0, 0.12)
+	tw.chain().set_parallel(true)
+	tw.tween_property(lbl, "position:y", base_y - 26.0, 0.7)
+	tw.tween_property(lbl, "modulate:a", 0.0, 0.5).set_delay(0.35)
 	tw.chain().tween_callback(lbl.queue_free)
 
-func _do_enemy_attack() -> void:
+func _do_enemy_attack(slot: int = -1) -> void:
 	if $CombatController.current_enemy_data == null:
 		return
 	var target_idx: int = $CombatController.pick_enemy_target_member_index()
 	if target_idx < 0:
 		return
-	_play_active_enemy_animation("attack")
-	var enemy_result: Dictionary = _calc_enemy_damage_to_member(target_idx)
+	if slot >= 0:
+		_play_enemy_slot_animation(slot, "attack")
+	else:
+		_play_active_enemy_animation("attack")
+	var attacker_atk: int = $CombatController.get_enemy_attack_at(slot) if slot >= 0 else -1
+	var enemy_result: Dictionary = _calc_enemy_damage_to_member(target_idx, 1.0, attacker_atk)
 	$CombatController.apply_damage_to_member(target_idx, enemy_result["final"])
 	_play_chr_hurt(target_idx)
 	if enemy_result["final"] > 0 and target_idx < _chr_sprites.size():
@@ -1253,7 +1327,7 @@ func _try_apply_enemy_hit_status(target_idx: int) -> void:
 	if enemy_data.on_hit_status_chance <= 0.0 or randf() > enemy_data.on_hit_status_chance:
 		return
 	var unit_id: String = "party_%d" % target_idx
-	var source_atk: int = enemy_data.attack
+	var source_atk: int = $CombatController.get_enemy_attack()
 	if not $CombatController.apply_status(unit_id, enemy_data.on_hit_status_id, 1, source_atk):
 		return
 	var effect: Resource = DataRegistry.get_status_effect(enemy_data.on_hit_status_id)
@@ -1281,8 +1355,9 @@ func _calc_damage(member_index: int = -1) -> Dictionary:
 		"element_tag": elem_result["element_tag"],
 	}
 
-func _calc_enemy_damage_to_member(target_index: int, power_multiplier: float = 1.0) -> Dictionary:
-	var base_dmg: int = int(float($CombatController.current_enemy_data.attack) * power_multiplier)
+func _calc_enemy_damage_to_member(target_index: int, power_multiplier: float = 1.0, attacker_atk: int = -1) -> Dictionary:
+	var atk: int = attacker_atk if attacker_atk >= 0 else $CombatController.get_enemy_attack()
+	var base_dmg: int = int(float(atk) * power_multiplier)
 	base_dmg = maxi(1, int(float(base_dmg) * $CombatController.get_enemy_outgoing_damage_multiplier()))
 	var defense: int = 0
 	var armor: Resource = GameState.get_member_equipped_armor(target_index)
@@ -1301,6 +1376,10 @@ func _calc_enemy_damage_to_member(target_index: int, power_multiplier: float = 1
 		var def_mult: float = float(job_mods.get("defense_multiplier", JobStatCalculator.DEFAULT_MULTIPLIER))
 		defense = maxi(0, int(round(float(defense) * def_mult)))
 	var final_dmg: int = max(1, base_dmg - defense)
+	# 防御(guard)等の被ダメ補正（P3-D085）。
+	var incoming_mult: float = $CombatController.get_member_incoming_damage_multiplier(target_index)
+	if not is_equal_approx(incoming_mult, 1.0):
+		final_dmg = maxi(0, int(round(float(final_dmg) * incoming_mult)))
 	var mitigated: int = base_dmg - final_dmg
 	return {"final": final_dmg, "base": base_dmg, "mitigated": mitigated}
 
@@ -1324,58 +1403,221 @@ func _roll_ecology_material_drops(enemy_data: Resource, log_lines: PackedStringA
 		log_lines.append("採取: %s" % _format_material_reward_log(mat_id, amount, ""))
 		_try_register_discovery("material", mat_id)
 
-func _handle_enemy_defeated() -> void:
-	$CombatTimer.stop()
+# アクティブ敵 1体の撃破ブックキーピング（P3-D082/D083）。報酬/キル/ドロップ/死亡演出を行う。
+# タイマー制御・繰り上げ・戦闘終了は呼び出し側（_on_active_enemy_killed）が担う。
+func _award_enemy_kill() -> void:
+	var room_type: int = $DungeonController.current_room_type
+	var killed_slot: int = $CombatController.active_enemy_index
 	$CombatController.capture_rewards()
 	var defeated_enemy: Resource = $CombatController.current_enemy_data
 	if defeated_enemy != null:
 		GameState.add_enemy_kill(defeated_enemy.id)
-	var exp: int = $CombatController.last_exp_reward
-	var gold: int = $CombatController.last_gold_reward
 	var mult: float = $DungeonController.get_reward_multiplier()
-	var final_exp: int = int(exp * mult)
-	var final_gold: int = int(gold * mult)
+	var final_exp: int = int($CombatController.last_exp_reward * mult)
+	var final_gold: int = int($CombatController.last_gold_reward * mult)
 	$DungeonController.accumulate_rewards(final_exp, final_gold)
-	if $DungeonController.current_room_type == Enums.RoomType.BOSS:
+	if room_type == Enums.RoomType.BOSS:
 		$DungeonController.update_discovery($DungeonController.DISCOVERY_BOSS_BONUS)
 		_play_boss_animation("death")
 	else:
-		_play_enemy_animation("death")
-	$CombatController.end_combat()
-	_update_status_labels()
+		_play_enemy_slot_animation(killed_slot, "death")
+		if killed_slot >= 0 and killed_slot < _swarm_hp_bars.size():
+			_swarm_hp_bars[killed_slot].visible = false
+			_swarm_nameplates[killed_slot].visible = false
 	var bonus_tag: String = " (x%.1f)" % mult if mult > 1.0 else ""
 	var log_lines: PackedStringArray = [
 		"撃破!  EXP +%d  Gold +%d%s" % [final_exp, final_gold, bonus_tag],
 	]
-	# P3-D074: 撃破時の武器直ドロップ（素材ドロップは一旦オミット）
-	var dropped_weapon: String = $DungeonController.roll_kill_weapon_drop($DungeonController.current_room_type)
+	# P3-D074/D082: 撃破ごとの武器直ドロップ（各敵個別判定）
+	var dropped_weapon: String = $DungeonController.roll_kill_weapon_drop(room_type)
 	if not dropped_weapon.is_empty():
 		GameState.last_run_weapon_dropped = dropped_weapon
 		log_lines.append("武器ドロップ: %s" % DataRegistry.get_weapon_name(dropped_weapon))
-		var drop_pos: Vector2 = _enemy_sprite.global_position if _enemy_sprite.visible else _boss_sprite.global_position
-		_spawn_weapon_drop(dropped_weapon, drop_pos)
-	if $DungeonController.current_room_type == Enums.RoomType.ELITE:
+		_spawn_weapon_drop(dropped_weapon, _active_enemy_pos())
+	if room_type == Enums.RoomType.ELITE:
 		var elite_bonus: Dictionary = $DungeonController.apply_elite_bonus_loot()
 		if not (elite_bonus["armor_id"] as String).is_empty():
 			log_lines.append("エリート報酬: 防具 %s" % DataRegistry.get_armor_name(elite_bonus["armor_id"]))
 		if not (elite_bonus["accessory_id"] as String).is_empty():
 			log_lines.append("エリート報酬: 装飾品 %s" % DataRegistry.get_accessory_name(elite_bonus["accessory_id"]))
 			GameState.last_run_accessory_dropped = elite_bonus["accessory_id"]
-	log_lines.append("累計  EXP %d  Gold %d" % [
+	_append_log("\n".join(log_lines))
+
+# アクティブ敵撃破時に呼ぶ（P3-D083）。撃破処理後、群れに生存敵が残れば繰り上げて false、
+# 全滅なら戦闘を終了して true を返す（true のとき呼び出し側は処理を打ち切る）。
+func _on_active_enemy_killed() -> bool:
+	_award_enemy_kill()
+	var next_idx: int = $CombatController.advance_active_enemy()
+	if next_idx >= 0:
+		_append_log("残り %d 体" % $CombatController.living_enemy_count())
+		_update_status_labels()
+		_update_hp_bars()
+		_update_turn_order_ui($CombatController.get_ct_order())
+		return false
+	_finalize_combat_cleared()
+	return true
+
+# 群れ全滅で戦闘を終了する（P3-D083）。
+func _finalize_combat_cleared() -> void:
+	$CombatTimer.stop()
+	$CombatController.end_combat()
+	_update_status_labels()
+	_clear_turn_order_ui()
+	_append_log("累計  EXP %d  Gold %d" % [
 		$DungeonController.run_exp_reward,
 		$DungeonController.run_gold_reward,
 	])
-	# 戦闘フロアでは narrative パネルを出さないため、撃破報酬はバトルログへ出す（撃破後も残す）。
-	_append_log("\n".join(log_lines))
 	_update_enemy_label()
 	_update_hp_bars()
 	_update_next_room_button()
 	_start_auto_progress()
 
+# 単体メンバーの 1 行動（P3-D086）。戦術プラン（優先度＋発動条件）に従い、
+# 条件成立かつ実際に発動できた最初のスロットで行動を確定する。
+func _do_member_turn(member_idx: int) -> void:
+	if not $CombatController.is_member_alive(member_idx):
+		return
+	var member: Resource = GameState.get_combatant(member_idx)
+	var tactics_id: String = GameState.get_member_tactics_id(member)
+	var ctx: Dictionary = _build_tactics_context(member_idx)
+	for rule: Dictionary in CombatTactics.get_slot_plan(tactics_id):
+		if not CombatTactics.condition_met(rule, ctx):
+			continue
+		var fired: bool = false
+		match str(rule.get("slot", "")):
+			"ultimate":
+				fired = _try_member_ultimate(member_idx)
+			"defend":
+				fired = _do_member_defend_slot(member_idx)
+			"skill":
+				fired = _try_member_equipped_skill(member_idx)
+			"attack":
+				_do_member_basic_attack(member_idx)
+				fired = true
+		if fired:
+			return
+	# 安全フォールバック（プランが空/全不発の場合）
+	_do_member_basic_attack(member_idx)
+
+# 戦術条件の評価に使う戦闘コンテキスト。
+func _build_tactics_context(member_idx: int) -> Dictionary:
+	var hp_ratio: float = 1.0
+	if member_idx >= 0 and member_idx < $CombatController.party_max_hp.size():
+		var maxhp: int = $CombatController.party_max_hp[member_idx]
+		if maxhp > 0:
+			hp_ratio = float($CombatController.party_combat_hp[member_idx]) / float(maxhp)
+	var room_type: int = $DungeonController.current_room_type
+	var ally_dead: bool = false
+	for i: int in GameState.party_members.size():
+		if not $CombatController.is_member_alive(i):
+			ally_dead = true
+			break
+	return {
+		"self_hp_ratio": hp_ratio,
+		"enemy_is_boss": room_type == Enums.RoomType.BOSS,
+		"enemy_is_elite": room_type == Enums.RoomType.ELITE,
+		"enemy_count": $CombatController.living_enemy_count(),
+		"ally_dead": ally_dead,
+	}
+
+# 必殺技スロット（長CD・高威力）。発動できたら true。
+func _try_member_ultimate(member_idx: int) -> bool:
+	var ult: Resource = _get_member_ultimate_skill(member_idx)
+	if ult == null:
+		return false
+	var log_text: String = _execute_member_skill(member_idx, ult, 0).strip_edges()
+	if log_text.is_empty():
+		return false
+	_append_log("【必殺】" + log_text.trim_prefix("【スキル】"))
+	_update_hp_bars()
+	return true
+
+# 防御スロット（被ダメ減バフを自身に付与）。発動条件は戦術プラン側で判定する。
+# 既に guard 中なら不発（毎行動の重ね掛けで硬直しないようガード）。付与できたら true。
+func _do_member_defend_slot(member_idx: int) -> bool:
+	if _member_has_status(member_idx, "guard"):
+		return false
+	if not $CombatController.apply_status("party_%d" % member_idx, "guard", 1, 0):
+		return false
+	_update_status_icons()
+	_clear_member_skill_labels(member_idx)
+	_spawn_skill_name("防御", member_idx, 0.0)
+	var m: Resource = GameState.get_combatant(member_idx)
+	var nm: String = m.display_name if m != null else "?"
+	_append_log("[防御] %s は身を固めた" % nm)
+	return true
+
+# スキル①②スロット（装備スキル）。最初に発動可能な 1 つだけ撃つ。発動したら true。
+func _try_member_equipped_skill(member_idx: int) -> bool:
+	var member: Resource = GameState.get_combatant(member_idx)
+	if member == null:
+		return false
+	for sid: String in GameState.get_equipped_skill_ids(member):
+		var sd: Resource = DataRegistry.get_skill_data(sid)
+		if sd == null:
+			continue
+		var log_text: String = _execute_member_skill(member_idx, sd, 0).strip_edges()
+		if not log_text.is_empty():
+			_append_log(log_text)
+			_update_hp_bars()
+			return true
+	return false
+
+# 通常攻撃スロット（武器ベース）。
+func _do_member_basic_attack(member_idx: int) -> void:
+	var result: Dictionary = _calc_damage(member_idx)
+	$CombatController.apply_damage_to_enemy(result["damage"])
+	_try_apply_affix_statuses(member_idx)
+	_update_hp_bars()
+	var member: Resource = GameState.get_combatant(member_idx)
+	var mname: String = member.display_name if member != null else "?"
+	var crit_tag: String = "  CRITICAL!" if result["is_critical"] else ""
+	var elem_tag: String = result.get("element_tag", "")
+	_append_log("%s の攻撃: %dダメージ%s%s" % [mname, result["damage"], crit_tag, elem_tag])
+	if result["damage"] > 0:
+		_play_hit_vfx(_get_weapon_element(member_idx))
+		_play_chr_attack_one(member_idx)
+		if $CombatController.current_enemy_hp > 0:
+			_play_active_enemy_animation("hurt")
+		_spawn_damage_number(
+			str(result["damage"]),
+			_active_enemy_pos(),
+			Color(1.0, 0.9, 0.0),
+			1.25 if result["is_critical"] else 1.0
+		)
+
+# 必殺技スロットのスキル（ジョブ ultimate_skill_id → 既定 ultimate_strike）。
+func _get_member_ultimate_skill(member_idx: int) -> Resource:
+	var member: Resource = GameState.get_combatant(member_idx)
+	if member == null:
+		return null
+	var ult_id: String = Constants.DEFAULT_ULTIMATE_SKILL_ID
+	if not str(member.job_id).is_empty():
+		var job: Resource = DataRegistry.get_job_data(member.job_id)
+		if job != null and "ultimate_skill_id" in job and not str(job.ultimate_skill_id).is_empty():
+			ult_id = str(job.ultimate_skill_id)
+	if ult_id.is_empty():
+		return null
+	return DataRegistry.get_skill_data(ult_id)
+
+func _member_has_status(member_idx: int, effect_id: String) -> bool:
+	for e: Dictionary in $CombatController.get_member_status_list(member_idx):
+		if str(e.get("effect_id", "")) == effect_id:
+			return true
+	return false
+
+func _play_chr_attack_one(idx: int) -> void:
+	if idx < 0 or idx >= _chr_sprites.size():
+		return
+	var s: AnimatedSprite2D = _chr_sprites[idx]
+	if s.visible and s.sprite_frames != null and s.sprite_frames.has_animation("attack"):
+		s.play("attack")
+
 func _handle_party_wipe() -> void:
 	$CombatTimer.stop()
 	$CombatController.end_combat()
 	_update_status_labels()
+	_clear_turn_order_ui()
 	# 勝利した敵はその場に残す（撃破ではなく味方全滅の演出）
 	_play_active_enemy_animation("idle")
 	_hide_chr_sprites()
@@ -1401,7 +1643,7 @@ func _apply_material_bonus(base_amount: int) -> int:
 	return AffixStatCalculatorScript.apply_material_bonus(base_amount)
 
 func _update_enemy_label() -> void:
-	# 敵名は頭上ネームプレート(_update_enemy_nameplate)へ集約（モック準拠）。
+	# 敵名は頭上ネームプレート(_position_enemy_overlays)へ集約（モック準拠）。
 	# 下部固定ラベルは常に非表示にする。
 	_label_enemy.text = ""
 	_label_enemy.visible = false
@@ -1599,7 +1841,7 @@ func _show_enemy_sprite(enemy_id: String) -> void:
 func _normalize_enemy_scale(sprite: AnimatedSprite2D, frames: SpriteFrames) -> void:
 	# 味方CHR(_normalize_chr_scale)と同様、フレーム高ではなく実体(α非透明領域)の高さを
 	# 基準にスケールする。モック準拠で「敵≒味方サイズ(やや大)」へ揃える（縮小も許可）。
-	const ENEMY_BODY_TARGET_PX: float = 160.0
+	const ENEMY_BODY_TARGET_PX: float = 132.0
 	var tex: Texture2D = frames.get_frame_texture("idle", 0)
 	if tex == null:
 		return
@@ -1617,20 +1859,136 @@ func _normalize_enemy_scale(sprite: AnimatedSprite2D, frames: SpriteFrames) -> v
 	sprite.centered = true
 
 func _hide_enemy_sprite() -> void:
+	_clear_swarm_slots()
+	_clear_turn_order_ui()
 	_enemy_sprite.visible = false
+	_hp_bar_enemy.visible = false
+	_enemy_nameplate.visible = false
+
+# ---- 群れ表示（P3-D082） ----
+
+# 動的生成した 2体目以降のスロットを解放し、スロット配列を空に戻す（slot0 の既存ノードは残す）。
+func _clear_swarm_slots() -> void:
+	for i in range(1, _swarm_sprites.size()):
+		if is_instance_valid(_swarm_sprites[i]):
+			_swarm_sprites[i].queue_free()
+	for i in range(1, _swarm_hp_bars.size()):
+		if is_instance_valid(_swarm_hp_bars[i]):
+			_swarm_hp_bars[i].queue_free()
+	for i in range(1, _swarm_nameplates.size()):
+		if is_instance_valid(_swarm_nameplates[i]):
+			_swarm_nameplates[i].queue_free()
+	_swarm_sprites.clear()
+	_swarm_hp_bars.clear()
+	_swarm_nameplates.clear()
+
+# 必要なスロット数を確保する。slot0 は既存ノードを流用、追加分は duplicate で生成。
+func _ensure_swarm_slots(n: int) -> void:
+	if _swarm_sprites.is_empty():
+		_swarm_sprites.append(_enemy_sprite)
+		_swarm_hp_bars.append(_hp_bar_enemy)
+		_swarm_nameplates.append(_enemy_nameplate)
+	while _swarm_sprites.size() < n:
+		var spr: AnimatedSprite2D = _enemy_sprite.duplicate()
+		add_child(spr)
+		var spr_ref := spr
+		spr.animation_finished.connect(func():
+			if spr_ref.visible and spr_ref.sprite_frames != null:
+				if spr_ref.animation in ["attack", "hurt"]:
+					spr_ref.play("idle"))
+		var bar: ProgressBar = _hp_bar_enemy.duplicate()
+		add_child(bar)
+		var np: Label = _enemy_nameplate.duplicate()
+		add_child(np)
+		_swarm_sprites.append(spr)
+		_swarm_hp_bars.append(bar)
+		_swarm_nameplates.append(np)
+
+# 群れ（または単体）の敵スプライトを横並びで表示する。ボス戦は BossSprite を使うため対象外。
+func _show_enemy_swarm(enemy_ids: Array) -> void:
+	_clear_swarm_slots()
+	if $DungeonController.current_room_type == Enums.RoomType.BOSS:
+		_enemy_sprite.visible = false
+		_hp_bar_enemy.visible = false
+		_enemy_nameplate.visible = false
+		return
+	var n: int = enemy_ids.size()
+	if n <= 0:
+		_hide_enemy_sprite()
+		return
+	_ensure_swarm_slots(n)
+	# 群れは名前が密集するため小さめフォントに、単体は従来サイズ。
+	var name_fs: int = 15 if n > 1 else 22
+	var start_x: float = SWARM_BASE_X - float(n - 1) * SWARM_SPACING * 0.5
+	for i in n:
+		_swarm_nameplates[i].add_theme_font_size_override("font_size", name_fs)
+		var spr: AnimatedSprite2D = _swarm_sprites[i]
+		var id: String = str(enemy_ids[i])
+		var path: String = ENEMY_SPRITE_MAP.get(id, "")
+		if path.is_empty() or not ResourceLoader.exists(path):
+			spr.visible = false
+			continue
+		var frames: SpriteFrames = load(path) as SpriteFrames
+		if frames == null:
+			spr.visible = false
+			continue
+		spr.sprite_frames = frames
+		_normalize_enemy_scale(spr, frames)
+		spr.position = Vector2(start_x + float(i) * SWARM_SPACING, SWARM_BASE_Y)
+		spr.play("idle")
+		spr.visible = true
+	for j in range(n, _swarm_sprites.size()):
+		_swarm_sprites[j].visible = false
+
+# 指定スロットの HPバー＋ネームプレートをスプライト上端の上に配置（_position_enemy_overlays の群れ版）。
+func _position_swarm_overlay(slot: int) -> void:
+	if slot < 0 or slot >= _swarm_sprites.size():
+		return
+	var sprite: AnimatedSprite2D = _swarm_sprites[slot]
+	var bar: ProgressBar = _swarm_hp_bars[slot]
+	var np: Label = _swarm_nameplates[slot]
+	const BAR_HALF_W: float = 36.0
+	const BAR_HEIGHT: float = 8.0
+	const NAME_HALF_W: float = 66.0
+	const NAME_HEIGHT: float = 24.0
+	const GAP_ABOVE_SPRITE: float = 12.0
+	const GAP_BAR_NAME: float = 6.0
+	var cx: float = sprite.position.x
+	var top_y: float = _sprite_top_y(sprite)
+	var bar_ty: float = minf(sprite.position.y - 50.0, top_y - GAP_ABOVE_SPRITE - BAR_HEIGHT)
+	bar.offset_left = cx - BAR_HALF_W
+	bar.offset_top = bar_ty
+	bar.offset_right = cx + BAR_HALF_W
+	bar.offset_bottom = bar_ty + BAR_HEIGHT
+	var data: Resource = $CombatController.get_enemy_data_at(slot)
+	if data == null:
+		np.visible = false
+		return
+	np.text = "Lv%d %s" % [$CombatController.enemy_level, data.display_name]
+	var name_ty: float = bar_ty - GAP_BAR_NAME - NAME_HEIGHT
+	np.offset_left = cx - NAME_HALF_W
+	np.offset_top = name_ty
+	np.offset_right = cx + NAME_HALF_W
+	np.offset_bottom = name_ty + NAME_HEIGHT
+	np.visible = true
 
 func _play_enemy_animation(anim: String) -> void:
-	if not _enemy_sprite.visible:
-		return
-	if _enemy_sprite.sprite_frames != null and _enemy_sprite.sprite_frames.has_animation(anim):
-		_enemy_sprite.play(anim)
+	_play_enemy_slot_animation($CombatController.active_enemy_index, anim)
 
-# 戦闘中の敵（通常は EnemySprite、ボス部屋は BossSprite）にアニメを再生
+# 指定スロットの敵スプライトにアニメを再生する。
+func _play_enemy_slot_animation(slot: int, anim: String) -> void:
+	if slot < 0 or slot >= _swarm_sprites.size():
+		return
+	var spr: AnimatedSprite2D = _swarm_sprites[slot]
+	if spr.visible and spr.sprite_frames != null and spr.sprite_frames.has_animation(anim):
+		spr.play(anim)
+
+# 戦闘中の敵（通常は アクティブスロット、ボス部屋は BossSprite）にアニメを再生
 func _play_active_enemy_animation(anim: String) -> void:
 	if _boss_sprite.visible:
 		_play_boss_animation(anim)
 	else:
-		_play_enemy_animation(anim)
+		_play_enemy_slot_animation($CombatController.active_enemy_index, anim)
 
 # ---- CHR Sprites ----
 
@@ -1699,10 +2057,13 @@ func _rebuild_party_cards() -> void:
 		if member == null:
 			continue
 		var card := VBoxContainer.new()
-		card.custom_minimum_size = Vector2(110, 0)
+		card.custom_minimum_size = Vector2(128, 0)
 		card.add_theme_constant_override("separation", 2)
 		var icon := TextureRect.new()
 		icon.custom_minimum_size = Vector2(48, 48)
+		# expand_mode を IGNORE_SIZE にしないと、大判ポートレート(1024x1536)の実寸が
+		# 最小サイズになりカードが巨大化する（背景のように全画面化する不具合）。
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		var tex: Texture2D = _get_chr_icon_texture(member.job_id)
@@ -1712,7 +2073,7 @@ func _rebuild_party_cards() -> void:
 		var name_label := Label.new()
 		name_label.text = member.display_name
 		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		name_label.add_theme_font_size_override("font_size", 12)
+		name_label.add_theme_font_size_override("font_size", 15)
 		card.add_child(name_label)
 		var hp_bar := ProgressBar.new()
 		hp_bar.show_percentage = false
@@ -1723,13 +2084,13 @@ func _rebuild_party_cards() -> void:
 		card.add_child(hp_bar)
 		var hp_label := Label.new()
 		hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		hp_label.add_theme_font_size_override("font_size", 11)
+		hp_label.add_theme_font_size_override("font_size", 14)
 		card.add_child(hp_label)
 		var weapon_label := Label.new()
 		var wname: String = _get_equipped_weapon_display_name(i)
 		weapon_label.text = wname if not wname.is_empty() else "素手"
 		weapon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		weapon_label.add_theme_font_size_override("font_size", 10)
+		weapon_label.add_theme_font_size_override("font_size", 13)
 		weapon_label.add_theme_color_override("font_color", Color(0.83, 0.79, 0.72))
 		card.add_child(weapon_label)
 		_party_cards_row.add_child(card)
@@ -1749,6 +2110,84 @@ func _get_chr_icon_texture(job_id: String) -> Texture2D:
 	if frames == null or not frames.has_animation("idle"):
 		return null
 	return frames.get_frame_texture("idle", 0)
+
+func _get_enemy_icon_texture(enemy_id: String) -> Texture2D:
+	var path: String = ENEMY_SPRITE_MAP.get(enemy_id, "")
+	if path.is_empty() and $DungeonController.current_dungeon_data != null:
+		# ボスは dungeon 別マップから取得
+		path = BOSS_SPRITE_MAP.get($DungeonController.current_dungeon_data.id, "")
+	if path.is_empty() or not ResourceLoader.exists(path):
+		return null
+	var frames: SpriteFrames = load(path) as SpriteFrames
+	if frames == null or not frames.has_animation("idle"):
+		return null
+	return frames.get_frame_texture("idle", 0)
+
+# ---- 行動順（ターンオーダー）表示（P3-D083） ----
+
+func _init_turn_order_row() -> void:
+	_turn_order_row = HBoxContainer.new()
+	_turn_order_row.add_theme_constant_override("separation", int(TURN_ORDER_GAP))
+	_turn_order_row.visible = false
+	_turn_order_row.z_index = 20
+	add_child(_turn_order_row)
+
+# ラウンドの行動順アイコン列を再構築する。
+func _update_turn_order_ui(order: Array) -> void:
+	if _turn_order_row == null:
+		return
+	for c in _turn_order_row.get_children():
+		c.queue_free()
+	_turn_order_items.clear()
+	if not $DungeonController.is_combat_room() or order.is_empty():
+		_turn_order_row.visible = false
+		return
+	for entry: Dictionary in order:
+		var holder := Control.new()
+		holder.custom_minimum_size = Vector2(TURN_ORDER_ICON_PX, TURN_ORDER_ICON_PX)
+		var icon := TextureRect.new()
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.set_anchors_preset(Control.PRESET_FULL_RECT)
+		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		var tex: Texture2D = null
+		if entry["kind"] == "party":
+			var m: Resource = GameState.get_combatant(entry["index"])
+			if m != null:
+				tex = _get_chr_icon_texture(m.job_id)
+		else:
+			var d: Resource = $CombatController.get_enemy_data_at(entry["index"])
+			if d != null:
+				tex = _get_enemy_icon_texture(d.id)
+		icon.texture = tex
+		icon.modulate = Color(1.0, 1.0, 1.0, 0.55)
+		icon.pivot_offset = Vector2(TURN_ORDER_ICON_PX * 0.5, TURN_ORDER_ICON_PX * 0.5)
+		holder.add_child(icon)
+		_turn_order_row.add_child(holder)
+		_turn_order_items.append({"kind": entry["kind"], "index": entry["index"], "icon": icon})
+	_turn_order_row.visible = true
+	var n: int = order.size()
+	var total_w: float = float(n) * TURN_ORDER_ICON_PX + float(maxi(0, n - 1)) * TURN_ORDER_GAP
+	_turn_order_row.position = Vector2(TURN_ORDER_CENTER_X - total_w * 0.5, TURN_ORDER_Y)
+
+# 現在行動中のユニットを拡大＋強調表示する。
+func _set_turn_order_active(entry: Dictionary) -> void:
+	for item: Dictionary in _turn_order_items:
+		var icon: TextureRect = item["icon"]
+		if item["kind"] == entry["kind"] and item["index"] == entry["index"]:
+			icon.modulate = Color(1.0, 1.0, 1.0, 1.0)
+			icon.scale = Vector2(1.2, 1.2)
+		else:
+			icon.modulate = Color(1.0, 1.0, 1.0, 0.45)
+			icon.scale = Vector2.ONE
+
+func _clear_turn_order_ui() -> void:
+	if _turn_order_row == null:
+		return
+	for c in _turn_order_row.get_children():
+		c.queue_free()
+	_turn_order_items.clear()
+	_turn_order_row.visible = false
 
 func _update_party_cards_hp() -> void:
 	for i in _party_card_hp_bars.size():
@@ -1812,51 +2251,84 @@ func _play_chr_hurt(member_idx: int) -> void:
 
 # ---- VFX ----
 
-func _play_hit_vfx() -> void:
+func _play_hit_vfx(element: String = "") -> void:
 	# 後方互換: 引数なし呼び出しは敵スプライト位置で発火
 	if not _enemy_sprite.visible and not _boss_sprite.visible:
 		return
-	var enemy_pos: Vector2 = _enemy_sprite.global_position if _enemy_sprite.visible else _boss_sprite.global_position
-	_spawn_hit_vfx(enemy_pos)
+	var enemy_pos: Vector2 = _active_enemy_pos()
+	_spawn_hit_vfx(enemy_pos, element)
 
-# 命中ごとに使い捨ての Hit VFX を生成（敵味方両対応・同一tick内の複数ヒットも個別表示）
-func _spawn_hit_vfx(world_pos: Vector2) -> void:
-	if not ResourceLoader.exists(VFX_HIT_PATH):
-		return
-	var frames: SpriteFrames = load(VFX_HIT_PATH) as SpriteFrames
+# 命中ごとに使い捨ての Hit VFX を生成（敵味方両対応・同一tick内の複数ヒットも個別表示）。
+# 属性専用VFX(ELEMENT_VFX_PATH)があればそれを無着色で再生、無ければ
+# FX_Hit_Normal を ELEMENT_COLOR でティント着色してフォールバックする。
+func _spawn_hit_vfx(world_pos: Vector2, element: String = "") -> void:
+	var elem_path: String = str(ELEMENT_VFX_PATH.get(element, ""))
+	var use_dedicated: bool = not elem_path.is_empty() and ResourceLoader.exists(elem_path)
+	var frames: SpriteFrames = null
+	if use_dedicated:
+		frames = load(elem_path) as SpriteFrames
+	# 専用素材が無い/未インポートで読めない場合は通常VFXをティント着色してフォールバック
+	if frames == null:
+		use_dedicated = false
+		if not ResourceLoader.exists(VFX_HIT_PATH):
+			return
+		frames = load(VFX_HIT_PATH) as SpriteFrames
 	if frames == null:
 		return
 	var spr := AnimatedSprite2D.new()
 	spr.sprite_frames = frames
 	spr.scale = _hit_vfx_sprite.scale
 	spr.global_position = world_pos
+	# 専用素材は元の色を尊重（無着色）、フォールバック時のみ属性色でティント
+	spr.modulate = Color.WHITE if use_dedicated else ELEMENT_COLOR.get(element, Color.WHITE)
 	add_child(spr)
 	spr.play("default")
 	spr.animation_finished.connect(func() -> void: spr.queue_free())
 
+# アクセントフォントを遅延ロード（未インポートなら null のまま＝既定フォントで描画）
+func _get_accent_font() -> Font:
+	if _accent_font == null and ResourceLoader.exists(ACCENT_FONT_PATH):
+		_accent_font = load(ACCENT_FONT_PATH) as Font
+	return _accent_font
+
 func _spawn_damage_number(text: String, world_pos: Vector2, color: Color = Color.WHITE, scale: float = 1.0) -> void:
-	const DMG_FONT_SIZE: int = 42
-	const DMG_OUTLINE_SIZE: int = 8
+	const DMG_FONT_SIZE: int = 40
+	const DMG_OUTLINE_SIZE: int = 10
+	var is_crit: bool = scale > 1.0
 	var lbl := Label.new()
 	lbl.text = text
-	lbl.add_theme_color_override("font_color", color)
+	# ゲームらしい打撃感: 重厚ゴシック体＋太い黒縁＋ドロップシャドウ
+	var af: Font = _get_accent_font()
+	if af != null:
+		lbl.add_theme_font_override("font", af)
 	lbl.add_theme_font_size_override("font_size", DMG_FONT_SIZE)
-	# 背景に紛れないよう黒縁取りで視認性を確保
-	lbl.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.9))
+	lbl.add_theme_color_override("font_color", color)
+	lbl.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.95))
 	lbl.add_theme_constant_override("outline_size", DMG_OUTLINE_SIZE)
+	lbl.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.55))
+	lbl.add_theme_constant_override("shadow_offset_x", 3)
+	lbl.add_theme_constant_override("shadow_offset_y", 4)
+	lbl.pivot_offset = Vector2(DMG_FONT_SIZE * 0.5, DMG_FONT_SIZE * 0.5)
 	lbl.position = world_pos + Vector2(-DMG_FONT_SIZE * 0.5, -DMG_FONT_SIZE)
-	if scale > 1.0:
-		lbl.scale = Vector2(scale, scale)
-		lbl.position -= Vector2(DMG_FONT_SIZE * 0.5 * (scale - 1.0), DMG_FONT_SIZE * 0.5 * (scale - 1.0))
+	var target_scale: Vector2 = Vector2(scale, scale)
+	lbl.scale = target_scale * 0.35
 	_damage_numbers_layer.add_child(lbl)
+	var rise: float = -64.0 if is_crit else -56.0
 	var tw: Tween = create_tween()
-	tw.set_parallel(true)
-	tw.tween_property(lbl, "position:y", lbl.position.y - 56.0, 0.75)
-	tw.tween_property(lbl, "modulate:a", 0.0, 0.75)
+	# 出現: ポップ（オーバーシュート）
+	tw.tween_property(lbl, "scale", target_scale, 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	# クリティカルは回転ワブルで強調
+	if is_crit:
+		tw.tween_property(lbl, "rotation_degrees", -5.0, 0.05)
+		tw.tween_property(lbl, "rotation_degrees", 5.0, 0.05)
+		tw.tween_property(lbl, "rotation_degrees", 0.0, 0.05)
+	# 上昇＋減衰（フェードは上昇に並列）
+	tw.tween_property(lbl, "position:y", lbl.position.y + rise, 0.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(lbl, "modulate:a", 0.0, 0.5).set_delay(0.2)
 	tw.chain().tween_callback(lbl.queue_free)
 
 # スキル発動時、発動者(ドット絵)の頭上にスキル名をポップ表示する
-func _spawn_skill_name(skill_name: String, member_idx: int, stack_offset: float = 0.0) -> void:
+func _spawn_skill_name(skill_name: String, member_idx: int, stack_offset: float = 0.0, element: String = "") -> void:
 	if skill_name.is_empty():
 		return
 	if member_idx < 0 or member_idx >= _chr_sprites.size():
@@ -1864,26 +2336,40 @@ func _spawn_skill_name(skill_name: String, member_idx: int, stack_offset: float 
 	var sprite: AnimatedSprite2D = _chr_sprites[member_idx]
 	if not sprite.visible:
 		return
-	const SKILL_FONT_SIZE: int = 26
+	const SKILL_FONT_SIZE: int = 24
 	var lbl := Label.new()
 	lbl.text = skill_name
+	var af: Font = _get_accent_font()
+	if af != null:
+		lbl.add_theme_font_override("font", af)
 	lbl.add_theme_font_size_override("font_size", SKILL_FONT_SIZE)
-	lbl.add_theme_color_override("font_color", Color(0.7, 0.92, 1.0))
-	lbl.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.9))
-	lbl.add_theme_constant_override("outline_size", 6)
+	# 属性スキルは属性色、無属性は既定の青系で表示
+	lbl.add_theme_color_override("font_color", ELEMENT_COLOR.get(element, Color(0.72, 0.93, 1.0)))
+	lbl.add_theme_color_override("font_outline_color", Color(0.0, 0.05, 0.12, 0.95))
+	lbl.add_theme_constant_override("outline_size", 8)
+	lbl.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.5))
+	lbl.add_theme_constant_override("shadow_offset_x", 2)
+	lbl.add_theme_constant_override("shadow_offset_y", 3)
 	# 頭上（足元基準スプライトの上方）に中央寄せで配置
 	var head_top: float = sprite.global_position.y - CHR_BODY_TARGET_PX - 40.0 + stack_offset
-	lbl.position = Vector2(
-		sprite.global_position.x - float(skill_name.length()) * SKILL_FONT_SIZE * 0.5,
-		head_top
-	)
+	var base_x: float = sprite.global_position.x - float(skill_name.length()) * SKILL_FONT_SIZE * 0.5
+	lbl.pivot_offset = Vector2(float(skill_name.length()) * SKILL_FONT_SIZE * 0.5, SKILL_FONT_SIZE * 0.5)
+	lbl.position = Vector2(base_x, head_top)
+	# スライドイン（左から）＋ポップ
+	lbl.position.x -= 18.0
+	lbl.scale = Vector2(0.7, 0.7)
+	lbl.modulate.a = 0.0
 	_damage_numbers_layer.add_child(lbl)
 	if member_idx < _chr_skill_labels.size():
 		_chr_skill_labels[member_idx].append(lbl)
 	var tw: Tween = create_tween()
 	tw.set_parallel(true)
-	tw.tween_property(lbl, "position:y", lbl.position.y - 26.0, 0.85)
-	tw.tween_property(lbl, "modulate:a", 0.0, 0.85).set_delay(0.45)
+	tw.tween_property(lbl, "position:x", base_x, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(lbl, "scale", Vector2.ONE, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(lbl, "modulate:a", 1.0, 0.12)
+	tw.chain().set_parallel(true)
+	tw.tween_property(lbl, "position:y", head_top - 26.0, 0.7)
+	tw.tween_property(lbl, "modulate:a", 0.0, 0.5).set_delay(0.35)
 	tw.chain().tween_callback(func() -> void:
 		if member_idx < _chr_skill_labels.size():
 			_chr_skill_labels[member_idx].erase(lbl)

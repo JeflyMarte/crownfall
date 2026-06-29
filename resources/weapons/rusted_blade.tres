@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "rusted_blade"
 display_name = "朽ちた近衛の剣"
-base_attack = 7
+base_attack = 6
 rarity = 0
 base_attack_speed = 1.3
 base_critical_rate = 0.10

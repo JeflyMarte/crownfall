@@ -83,6 +83,7 @@ func _serialize_adventurer(adv: Resource) -> Dictionary:
 		"equipped_armor": armor_instance_id,
 		"equipped_accessory": accessory_instance_id,
 		"equipped_skills": adv.equipped_skill_ids.duplicate(),
+		"tactics_id": adv.tactics_id,
 	}
 
 func _serialize_stats(stats: Resource) -> Dictionary:
@@ -202,6 +203,7 @@ func _deserialize_party(party_data: Array) -> Dictionary:
 		for sid in saved_skills:
 			skill_ids.append(str(sid))
 		adv.equipped_skill_ids = skill_ids
+		adv.tactics_id = str(entry.get("tactics_id", ""))
 		var stats = stats_class.new()
 		var sd = entry.get("base_stats", {})
 		if sd is Dictionary:

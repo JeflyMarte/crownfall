@@ -10,6 +10,7 @@ extends Resource
 @export var critical_rate: float = 0.0
 @export var move_speed: float = 1.0
 @export var detection_range: float = 5.0
+## 射程: 全自動戦闘では未使用（将来用に予約）。
 @export var attack_range: float = 1.0
 @export var enemy_type: int = 0
 @export var ai_type: String = "default"
@@ -23,6 +24,11 @@ extends Resource
 ## ボス/エリート用スキル。skill_ids の中から skill_use_chance で発動を試行する。
 @export var skill_ids: Array[String] = []
 @export var skill_use_chance: float = 0.0
+## 群れ出現（P3-D082）。true の敵は COMBAT 部屋で一定確率により複数体（同種）で出現する。
+## ELITE/BOSS 部屋は対象外。swarm_min..swarm_max からサイズを抽選。
+@export var can_swarm: bool = false
+@export var swarm_min: int = 2
+@export var swarm_max: int = 3
 @export var codex_class: String = ""
 @export var codex_danger: int = 0
 @export var codex_habitat: String = ""

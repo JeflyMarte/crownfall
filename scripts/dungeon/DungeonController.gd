@@ -238,6 +238,11 @@ func accumulate_rewards(exp: int, gold: int) -> void:
 		gold = _AffixStatCalculator.apply_gold_bonus(gold)
 	run_gold_reward += gold
 
+func get_enemy_level() -> int:
+	if current_dungeon_data == null:
+		return 1
+	return maxi(1, int(current_dungeon_data.enemy_level))
+
 func get_reward_multiplier() -> float:
 	if current_room_type == Enums.RoomType.ELITE:
 		return ELITE_REWARD_MULTIPLIER
@@ -277,6 +282,30 @@ func pick_combat_enemy_data() -> Resource:
 			return pick_elite_enemy_data()
 		_:
 			return pick_enemy_data()
+
+# COMBAT 部屋で群れ出現を抽選する確率（P3-D082）。
+const SWARM_CHANCE: float = 0.20
+
+# 戦闘の敵編成を返す（P3-D082）。
+# BOSS/ELITE は常に単体。COMBAT は can_swarm 敵なら SWARM_CHANCE で同種の群れ（swarm_min..swarm_max）。
+func pick_combat_enemy_group() -> Array[Resource]:
+	var group: Array[Resource] = []
+	var base: Resource = pick_combat_enemy_data()
+	if base == null:
+		return group
+	group.append(base)
+	if current_room_type != Enums.RoomType.COMBAT:
+		return group
+	if not bool(base.can_swarm):
+		return group
+	if randf() >= SWARM_CHANCE:
+		return group
+	var lo: int = maxi(2, int(base.swarm_min))
+	var hi: int = maxi(lo, int(base.swarm_max))
+	var size: int = randi_range(lo, hi)
+	for _i in (size - 1):
+		group.append(base)
+	return group
 
 func pick_event() -> Dictionary:
 	var pool: Array = _get_event_pool()

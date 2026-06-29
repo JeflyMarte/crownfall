@@ -10,6 +10,7 @@ extends Resource
 @export var base_critical_rate: float = 0.0
 @export var base_knockback: float = 0.0
 @export var base_stagger_power: float = 0.0
+## 射程: 現状の全自動戦闘では未使用（将来用に予約・UI非表示）。
 @export var base_attack_range: float = 1.0
 @export var weight: float = 1.0
 @export var element: String = ""

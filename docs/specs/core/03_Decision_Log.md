@@ -1011,3 +1011,93 @@
 | P3-D079-3 | **Serdion に2スキル付与（`skill_use_chance=0.4`）**: `boss_enrage`（激昂・buff・CD12: 自身に `enrage` 与ダメ+40%/3tick）／`boss_decree_wave`（断罪の波動・damage・CD6・`target_type="all_party"`: 全味方に attack×0.7 のAoE） | 「激昂→全体攻撃」で危険な連携を演出。AoEは全滅判定（既存）に直結 |
 | P3-D079-4 | **演出**: 敵ドット絵頭上に赤系スキル名ポップ（`_spawn_enemy_skill_name`）。AoEは各対象に被弾VFX＋赤ダメージ数字、ログに対象別内訳。撃破時は該当スプライト非表示 | 既存 `_spawn_damage_number`/`_play_chr_hurt`/被弾処理を流用 |
 | P3-D079-5 | **敵スキルの属性耐性/被ダメ補正は今回最小**（メンバー側 element 耐性・incoming 補正は未配線）。`_calc_enemy_damage_to_member` に `power_multiplier` 引数を追加しスキル威力のみ反映 | スコープ最小化・既存敵ダメージ式を踏襲 |
+
+## 行動順制（イニシアチブ・ラウンド制）＋行動順表示（2026-06-29 — P3-D083）
+
+> 動機: 従来は1 tick で味方全員＋敵全体が一括行動し「同時攻撃」に見えた。速度（イニシアチブ）に基づく行動順で1体ずつ行動させ、行動順を画面表示する。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D083-1 | **ラウンド制**（1 tick=1ラウンド）。ラウンド開始時に生存ユニット（味方＋群れ各敵）を**イニシアチブ降順**で並べ、1体ずつ逐次行動。速度は順番のみに影響（行動回数は全員1回） | 「行動順に行動」の最小素直実装。ATB（速度で回数差）は不採用 |
+| P3-D083-2 | **速度指標＝既存 `initiative_score` 流用**（味方=武器`attack_speed`×ジョブ補正×Affix、敵=`attack_speed`）。同値は**味方優先→index昇順**。`CombatController.build_turn_order()` が生成 | 既存 P3-D019 実装の流用 |
+| P3-D083-3 | **逐次表示**: 各ユニット行動間に速度連動の短ディレイ（`_attack_stagger_delay`）。味方は「通常攻撃＋装備スキル」を解決、敵はアクティブのみ鈍化/スキル判定後に攻撃。フォーカス撃破（味方は先頭生存敵を狙う）維持 | テンポ維持・既存処理流用 |
+| P3-D083-4 | **多重実行防止**: 逐次awaitでラウンド処理が `wait_time`(x1=1.5s) を超え得るため `_round_active` ガードで再入を抑止（処理中の timeout は無視） | 1ラウンド=複数awaitに伴う再入バグ回避 |
+| P3-D083-5 | **行動順表示UI**: 画面上部にアイコン列（味方=CHRアイコン/敵=敵ドット idle）。ラウンド開始時に構築、**現在行動中を拡大＋不透明で強調**、行動前/他は淡色、死亡で除外。このラウンドの順のみ表示 | オーナー要望（アイコン式・当該ラウンドのみ） |
+| P3-D083-6 | **`does_enemy_act_first` の陣営先制ログを廃止**（行動順表示に統合）。撃破処理は `_award_enemy_kill`/`_on_active_enemy_killed`/`_finalize_combat_cleared` に分割（群れ繰り上げと整合） | 行動順制への一本化・関数責務分離 |
+
+## 群れ出現（複数敵）MVP（2026-06-29 — P3-D082）
+
+> 動機: 一定確率で複数の敵が同時に出現する戦闘を追加し、難易度に緩急をつける。群れ対象は敵ごとに事前定義。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D082-A1 | **群れ可否は `EnemyData.can_swarm`（+`swarm_min`/`swarm_max`）で敵側に定義** | 「群れる敵を最初に決めておく」要望に直結 |
+| P3-D082-A2 | **対象＝sepia_hound / crown_eater_rat**（lore=群れ・低HPの遊撃型）。同種のみの群れ | テーマ適合・MVP単純化 |
+| P3-D082-B | **COMBAT 部屋でのみ 20%（`SWARM_CHANCE`）で群れ化、サイズ2〜3。ELITE/BOSS は常に単体** | 雑魚戦のみ・節度ある頻度 |
+| P3-D082-C1 | **CombatController を群れ配列化**（`swarm_data/hp/atk/def/exp`＋`active_enemy_index`）。`current_enemy_*`/`_scaled_*` は常に「アクティブ（先頭生存）敵」を映すプロキシ | 既存単体ロジックをアクティブ敵に対し再利用（最小破壊） |
+| P3-D082-C2 | **プレイヤーは先頭フォーカス撃破**（全員がアクティブ敵を集中攻撃→撃破で次へ繰り上げ）。全滅で戦闘終了 | 既存攻撃/スキル経路を改変せず流用 |
+| P3-D082-C3 | **敵ターンは生存敵が各自1回ずつ攻撃**（被ダメが敵数分に増加＝難易度上昇） | 群れの脅威を表現 |
+| P3-D082-C4 | **状態異常はアクティブ敵のみ `"enemy"` 単一スロットを流用し、繰り上げ時にクリア**（StatusResolver の多重化は見送り） | フォーカス撃破モデルでは攻撃対象＝状態付与対象が常にアクティブのため破綻せず、改修量を最小化（承認時の"多重化"を実装簡潔性のため調整） |
+| P3-D082-D | **UI＝横並び固定スロット**（slot0 は既存ノード流用、2体目以降は duplicate 生成）。敵ごとに HPバー＋`Lv{n} 名前`ネームプレート（群れ時は小フォント）。撃破は個別 death アニメ＋当該HPバー/名前を即時非表示（死体は残置） | 視認性・既存オーバーレイ機構の流用 |
+| P3-D082-E | **報酬は撃破ごと加算**（EXP/Gold）、**武器ドロップは各敵個別判定** | 敵数分の報酬を自然に反映 |
+| P3-D082-F | **敵レベル(P3-D081)は群れ各体に同一適用** | 一貫性 |
+
+## 敵レベル制 MVP（2026-06-29 — P3-D081）
+
+> 動機: 同一ダンジョンでも難易度を調整できるようにする（敵を強く・EXP も増やす）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D081-1 | **敵レベルは DG 単位で固定**（`DungeonData.enemy_level`、既定=1）。`DungeonController.get_enemy_level()` 経由で戦闘開始時に確定。**ダンジョン中はレベルアップしない** | 難易度調整に直結・最小実装。深度逓増（C案）は不採用 |
+| P3-D081-2 | **ステータスは乗算スケール**: `HP/ATK = base × (1 + 0.10×(Lv−1))`、**DEF は据置**。Lv1 で tres 基準値＝完全互換 | 役割が薄い DEF を据置にしつつ攻防 HP を一様強化 |
+| P3-D081-3 | **EXP は別係数**: `exp = base × (1 + 0.15×(Lv−1))`。プレイヤー必要EXP=100×Lv との釣り合いは P3-D050b に従い都度調整 | レベル相応の報酬。整数丸め |
+| P3-D081-4 | **共有 Resource は不変**。`CombatController` がスケール後値（`_scaled_max_hp/_scaled_attack/_scaled_defense/_scaled_exp` と `enemy_level`）を派生変数で保持し、`get_enemy_max_hp/attack/defense` 経由で参照 | 共有 EnemyData のプール汚染を回避 |
+| P3-D081-5 | **表示**: ネームプレートを `Lv{n} {敵名}` 形式に変更（常時表示） | オーナー要望 |
+
+## ヴァンガード ドット絵実装 / 敵スプライト画質改善（2026-06-29 — P3-ART-002）
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-ART-002-1 | **vanguard のダンジョンドット絵を実装**。プレースホルダ（`CHR_Warrior_Sheet.png` 流用）を廃し、提供素材(232px・north-east)から `assets/characters/vanguard/` に idle/attack/hurt/death 各9枚を配置、`CHR_Vanguard.tres` を再生成（idle=9フレーム実アニメ） | 5職中 vanguard のみダンジョン絵がプレースホルダだった |
+| P3-ART-002-2 | **レンジャー提供素材は既存実装と同一**のため対応不要（バイナリ一致確認） | 重複差替の回避 |
+| P3-ART-002-3 | **敵スプライトを Nearest フィルタ化＋表示サイズ 160→132px**（`DungeonScene.tscn` EnemySprite/BossSprite `texture_filter=1` / `ENEMY_BODY_TARGET_PX`）。96pxドット絵の拡大ぼやけを解消し精細化 | 既存 Linear 拡大でぼやけていた（オーナー指摘） |
+
+## 戦闘 時間モデルを CT/ATB へ移行（2026-06-30 — P3-D084）
+
+> 戦闘システム v1.0（深い事前準備で勝敗が決まるオート戦闘）への再設計の土台。オーナー承認: ①CT/ATB全面移行（P3-D083 ラウンド制を置換）／②薄い縦切りMVP（まず通常攻撃のみ）／③3人据置（陣形=前後列のみ・4人はBeta）。後続: P3-D085 スロット5＋防御＋必殺 / P3-D086 AI設定（Tactics→Condition→Priority→Target）。defer: 遺物/陣形2×2/生態特効/Biome/探索/プリセット/パッシブ/タグコンボ/詠唱。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D084-1 | **ラウンド制（P3-D083）を CT/ATB 制へ置換**。各生存ユニット（味方＋群れ各敵）が個別 CT を持ち、CT が 0 に達したユニットから 1 体ずつ行動。速度が攻撃回数に直結する | 「全行動にCT・速度で行動回数差」要望の土台。`build_turn_order`/`does_enemy_act_first` は撤去 |
+| P3-D084-2 | **スケジューラ＝イベント駆動（決定的）**。`CombatController.advance_to_next_actor()` が全ユニットの CT を最小残量ぶん減算→0 のユニットを選択（同時0は味方優先→index昇順）→行動 CT を再セット。`get_ct_order()` で CT 残量昇順を取得 | delta 実時間積分を避け、pause/倍速とも整合する決定的実装 |
+| P3-D084-3 | **行動 CT ＝ `BASE_ACTION_CT(2.0) / initiative_score`**（速度は既存 P3-D019 流用：味方=武器attack_speed×ジョブ×Affix／敵=attack_speed）。共有 Resource 不変 | 速い装備/ジョブ/Affix ほど多く動く。既存速度指標を再利用 |
+| P3-D084-4 | **1 パルス＝1 行動**（`CombatTimer` 1 timeout で 1 ユニットのみ行動）。間隔 x1=0.55s / x2=0.28s。await 不使用＝同期実行で再入なし（`_round_active` は安全保持） | P3-D083 の逐次await＋`wait_time`超過問題を解消。倍速＝パルス間隔短縮 |
+| P3-D084-5 | **スキルCDは進行 CT 量で、状態異常は一定 CT（`CT_PER_STATUS_TICK=2.0`）ごとに 1 tick**。群れ/フォーカス撃破/報酬/全滅判定は不変。スキルは現行 CD 経路を暫定流用（5スロット/必殺は P3-D085） | DoT 持続をラウンド時代と同等に保ちつつ最小改修 |
+| P3-D084-6 | **表示＝上部アイコン列を「行動順」から「CT プレビュー（CT 残量昇順・次に動く順）」へ転用**。行動ごとに再構築し先頭（最短 CT）を強調 | P3-D083 の UI 機構を流用し追加コスト最小。CT バー化は後続で検討可 |
+
+## スキルスロット5＋防御＋必殺技（2026-06-30 — P3-D085）
+
+> 戦闘 v1.0 MVP縦切り②（P3-D084 の上に構築）。1 行動＝1 スロット（排他選択）。スロット選択の暫定優先度は P3-D086（AI設定 Tactics→Condition→Priority→Target）で player 設定化する。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D085-1 | **メンバーの 1 CT 行動を「5スロットから 1 つだけ実行」へ再構成**（従来=通常攻撃＋装備スキル全部を同 tick 一括）。スロット＝通常攻撃 / 防御 / スキル① / スキル② / 必殺技 | ATB（1行動=1手）と整合。スキルが通常攻撃に積み増しされない＝威力配分が選択になる |
+| P3-D085-2 | **暫定選択優先度（D086 で設定化）**: 必殺技(発動可) → 防御(条件) → スキル①②(最初に撃てる1つ) → 通常攻撃 | AI レイヤ未実装のためのデフォルト。`_do_member_turn` に集約 |
+| P3-D085-3 | **必殺技スロット＝長CD高威力スキル**。`JobData.ultimate_skill_id`（空なら `Constants.DEFAULT_ULTIMATE_SKILL_ID`）。MVPは全ジョブ共通の汎用 `ultimate_strike`（power×3.0 / CD30.0 / `slot_type="ultimate"`）。CD は CT 秒で管理（既存 SkillExecutor 流用） | 必殺 tier の実証を最小ファイルで。ジョブ別必殺は後続で差別化 |
+| P3-D085-4 | **防御スロット＝自己被ダメ減バフ**。新ステータス `guard`（`stat_mod` / `incoming_damage_multiplier=0.5` / 2 tick）を自身付与。`CombatController.get_member_incoming_damage_multiplier()` を新設し `_calc_enemy_damage_to_member` に配線（D078-6 で保留していたメンバー被ダメ補正を実配線） | 防御に実効果。敵通常/敵スキル両方の被ダメに適用 |
+| P3-D085-5 | **防御の暫定発動条件**＝自HP30%未満 かつ guard 未付与（連続防御で硬直しないようガード）。頭上に「防御」ポップ＋状態アイコン「防」 | オート戦闘での無駄/硬直防止。条件は D086 で player 設定化 |
+| P3-D085-6 | **SkillData に `slot_type`（attack/defend/skill/ultimate）/`range_type`（melee/mid/long/global）を追加**。現状 slot_type=ultimate のみ必殺判定に使用、range_type はメタ情報（挙動未反映） | 共通フォーマット拡張。射程/AI は後続で利用 |
+| P3-D085-7 | **スキル①②の装備は P3-D077（最大2・`MAX_EQUIPPED_SKILLS`）を流用**。必殺/防御は当面 player 装備対象外（ジョブ/既定で供給）。5スロット編集UIは P3-D086 で整備 | UI 大改修を回避しつつ機構を先行実装 |
+
+## AI設定（Tactics→Condition→Priority）MVP（2026-06-30 — P3-D086）
+
+> 戦闘 v1.0 MVP縦切り③。P3-D085 の固定スロット優先度を player 設定の戦術プリセットで置換。スロット選択を「戦術＝優先度＋発動条件」で決める。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D086-1 | **戦術（Tactics）をメンバー単位の最上位AI設定として導入**。`Adventurer.tactics_id`（空=`balanced`）・セーブ永続（`SaveManager` party 直列化に追加）。`GameState.get_member_tactics_id/set_member_tactics` | プリセット選択でAI挙動を一括切替。最小データで「作戦を組む」体験を成立 |
+| P3-D086-2 | **`CombatTactics`（静的）で 6 プリセット定義**: バランス/積極攻撃/慎重/生存優先/ボス集中/雑魚掃討。各プリセット＝優先度順スロット計画（`{slot, condition, value}` の配列） | Tactics→Priority→（per-slot）Condition を 1 構造に集約。データ駆動で増設容易 |
+| P3-D086-3 | **Condition MVP セット**: `always` / `self_hp_below`(HP割合) / `enemy_is_boss` / `enemy_is_elite` / `enemy_count_gte`(体数) / `ally_dead`。`CombatTactics.condition_met(rule, ctx)` で評価 | オート戦闘で意味を持つ最小条件。距離/状態条件は後続（射程・Target と併せて） |
+| P3-D086-4 | **実行エンジン**＝`DungeonScene._do_member_turn` を戦術プラン駆動へ置換。優先度順に評価し「条件成立かつ実発動できた最初のスロット」で行動確定（不発時は次ルール→最終フォールバック通常攻撃）。`_build_tactics_context` が HP割合/Boss/Elite/敵数/味方死亡 を供給。防御は条件を戦術へ移譲し二重ガードのみ抑止（`_do_member_defend_slot`） | P3-D085 の各スロット executor をそのまま再利用。固定優先度を撤去 |
+| P3-D086-5 | **編集UI**＝キャラ管理「スキル」タブ最上部に戦術 OptionButton（`EquipmentScene`）。選択で `set_member_tactics`→保存は戻る時。per-slot 条件のフル編集（ガンビット式）は後続 | UI 大改修（新タブ/行ビルダ）を避け、プリセット選択で価値を先行提供 |
+| P3-D086-6 | **Target 層（敵個体の狙い分け：Lowest HP/Highest ATK 等）は本MVPでは見送り**。現行フォーカス撃破（全員がアクティブ先頭敵を集中攻撃・`apply_damage_to_enemy` 一本）では選択肢が無く効果が出ないため。Target 実装は「複数敵同時ターゲット可能化」の戦闘モデル変更を伴う別 Decision | スコープ最小化・無効機能の実装回避 |

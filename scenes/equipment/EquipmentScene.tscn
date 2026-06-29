@@ -29,20 +29,20 @@ content_margin_right = 4.0
 content_margin_bottom = 4.0
 
 [sub_resource type="StyleBoxFlat" id="SB_Card"]
-bg_color = Color(0.12, 0.10, 0.08, 0.92)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.45, 0.40, 0.32, 0.7)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-content_margin_left = 12.0
-content_margin_top = 12.0
-content_margin_right = 12.0
-content_margin_bottom = 12.0
+bg_color = Color(0.12, 0.10, 0.08, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.62, 0.51, 0.3, 0.85)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
 
 [node name="EquipmentScene" type="Control"]
 layout_mode = 3
@@ -91,12 +91,16 @@ text = "← 拠点へ"
 [node name="LabelTitle" type="Label" parent="VBoxContainer/HeaderRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "キャラクター装備"
+theme_override_colors/font_color = Color(0.86, 0.74, 0.45, 1)
+theme_override_font_sizes/font_size = 24
+text = "⚔ 英雄の装備 ⚔"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="LabelGold" type="Label" parent="VBoxContainer/HeaderRow"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.82, 0.42, 1)
+theme_override_font_sizes/font_size = 18
 text = "🪙 0"
 vertical_alignment = 1
 
@@ -131,6 +135,8 @@ theme_override_constants/separation = 4
 
 [node name="LabelStars" type="Label" parent="VBoxContainer/CharacterCard/CardRow/PortraitBox"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.82, 0.35, 1)
+theme_override_font_sizes/font_size = 16
 text = "★★★★★"
 horizontal_alignment = 1
 
@@ -155,10 +161,14 @@ theme_override_constants/separation = 4
 
 [node name="LabelName" type="Label" parent="VBoxContainer/CharacterCard/CardRow/InfoBox"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.93, 0.86, 0.66, 1)
+theme_override_font_sizes/font_size = 22
 text = "—"
 
 [node name="LabelJobLevel" type="Label" parent="VBoxContainer/CharacterCard/CardRow/InfoBox"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.66, 0.58, 1)
+theme_override_font_sizes/font_size = 14
 text = "Lv1  —"
 
 [node name="StatsGrid" type="GridContainer" parent="VBoxContainer/CharacterCard/CardRow/InfoBox"]
@@ -177,7 +187,10 @@ text = "一括解除"
 
 [node name="LabelSlotsTitle" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-text = "装備スロット"
+theme_override_colors/font_color = Color(0.86, 0.74, 0.45, 1)
+theme_override_font_sizes/font_size = 18
+text = "◆ 装備スロット ◆"
+horizontal_alignment = 1
 
 [node name="EquipSlotsRow" type="HBoxContainer" parent="VBoxContainer"]
 layout_mode = 2
@@ -207,7 +220,10 @@ theme_override_constants/separation = 8
 
 [node name="LabelEffectsTitle" type="Label" parent="VBoxContainer/TabContainer/TabEquip/EquipContent"]
 layout_mode = 2
-text = "装備中の効果"
+theme_override_colors/font_color = Color(0.86, 0.74, 0.45, 1)
+theme_override_font_sizes/font_size = 16
+text = "◆ 装備中の効果 ◆"
+horizontal_alignment = 1
 
 [node name="EffectsGrid" type="GridContainer" parent="VBoxContainer/TabContainer/TabEquip/EquipContent"]
 layout_mode = 2

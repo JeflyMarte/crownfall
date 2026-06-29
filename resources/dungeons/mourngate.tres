@@ -8,6 +8,7 @@ id = "mourngate"
 display_name = "王都地下モーンゲート"
 difficulty = 1
 recommended_level = 1
+enemy_level = 1
 room_count = 10
 floor_count = 7
 enemy_pool = Array[String](["sepia_hound", "rune_roach", "crystal_hedgehog", "crown_eater_rat"])
