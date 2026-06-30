@@ -198,6 +198,7 @@ func _ready() -> void:
 	var dungeon_id: String = GameState.get_active_dungeon_id()
 	$DungeonController.start_dungeon(dungeon_id)
 	GameState.last_run_accessory_dropped = ""
+	GameState.last_run_relic_dropped = ""
 	_update_room_label()
 	_update_room_art()
 	_update_enemy_label()
@@ -1488,6 +1489,11 @@ func _award_enemy_kill() -> void:
 		if not (elite_bonus["accessory_id"] as String).is_empty():
 			log_lines.append("エリート報酬: 装飾品 %s" % DataRegistry.get_accessory_name(elite_bonus["accessory_id"]))
 			GameState.last_run_accessory_dropped = elite_bonus["accessory_id"]
+	# P3-D093: 撃破時の遺物ドロップ（解放型）
+	var dropped_relic: String = $DungeonController.roll_kill_relic_drop(room_type)
+	if not dropped_relic.is_empty():
+		GameState.last_run_relic_dropped = dropped_relic
+		log_lines.append("遺物入手: %s" % CombatRelics.display_name(dropped_relic))
 	_append_log("\n".join(log_lines))
 
 # アクティブ敵撃破時に呼ぶ（P3-D083）。撃破処理後、群れに生存敵が残れば繰り上げて false、
@@ -1753,6 +1759,7 @@ func _handle_party_wipe() -> void:
 	GameState.last_run_weapon_dropped = ""
 	GameState.last_run_armor_dropped = ""
 	GameState.last_run_accessory_dropped = ""
+	GameState.last_run_relic_dropped = ""
 	await get_tree().create_timer(2.0).timeout
 	if not is_inside_tree():
 		return

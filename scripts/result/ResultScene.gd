@@ -85,6 +85,10 @@ func _build_rewards() -> void:
 	if not accessory.is_empty():
 		_reward_row.add_child(_make_reward_cell(
 			IconPaths.get_icon_texture(accessory, "accessory"), "", DataRegistry.get_accessory_name(accessory), "1"))
+	var relic: String = GameState.last_run_relic_dropped
+	if not relic.is_empty():
+		_reward_row.add_child(_make_reward_cell(
+			null, "遺", CombatRelics.display_name(relic), "1"))
 
 func _make_reward_cell(texture: Texture2D, glyph: String, name_text: String, value_text: String) -> Control:
 	var cell: VBoxContainer = VBoxContainer.new()

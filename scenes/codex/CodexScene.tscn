@@ -84,9 +84,8 @@ text = "─── 一覧 ───"
 horizontal_alignment = 1
 
 [node name="EntryListScroll" type="ScrollContainer" parent="VBoxContainer"]
-custom_minimum_size = Vector2(0, 170)
+custom_minimum_size = Vector2(0, 264)
 layout_mode = 2
-size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
 [node name="EntryListContainer" type="VBoxContainer" parent="VBoxContainer/EntryListScroll"]
@@ -102,6 +101,7 @@ horizontal_alignment = 1
 
 [node name="DetailPanel" type="VBoxContainer" parent="VBoxContainer"]
 layout_mode = 2
+size_flags_vertical = 3
 theme_override_constants/separation = 6
 
 [node name="TopRow" type="HBoxContainer" parent="VBoxContainer/DetailPanel"]
@@ -144,26 +144,26 @@ text = "—"
 [node name="LabelDetailStatus" type="Label" parent="VBoxContainer/DetailPanel/TopRow/InfoCol"]
 layout_mode = 2
 size_flags_horizontal = 0
-text = "Status: —"
+text = "—"
 
 [node name="LabelDetailCategory" type="Label" parent="VBoxContainer/DetailPanel/TopRow/InfoCol"]
 layout_mode = 2
-text = "Category: —"
+text = "種別: —"
 
 [node name="LabelDetailExtraA" type="Label" parent="VBoxContainer/DetailPanel/TopRow/InfoCol"]
 visible = false
 layout_mode = 2
-text = "Era: —"
+text = "時代: —"
 
 [node name="LabelDetailExtraB" type="Label" parent="VBoxContainer/DetailPanel/TopRow/InfoCol"]
 visible = false
 layout_mode = 2
-text = "Theme: —"
+text = "テーマ: —"
 
 [node name="LabelDetailRelatedHeader" type="Label" parent="VBoxContainer/DetailPanel/TopRow/InfoCol"]
 visible = false
 layout_mode = 2
-text = "Related:"
+text = "関連:"
 
 [node name="LabelDetailRelated" type="Label" parent="VBoxContainer/DetailPanel/TopRow/InfoCol"]
 visible = false
@@ -171,12 +171,22 @@ layout_mode = 2
 text = ""
 autowrap_mode = 3
 
-[node name="LabelDetailOverviewHeader" type="Label" parent="VBoxContainer/DetailPanel"]
+[node name="DescBox" type="PanelContainer" parent="VBoxContainer/DetailPanel"]
+custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
-text = "Description:"
+size_flags_vertical = 3
 
-[node name="LabelDetailDescription" type="Label" parent="VBoxContainer/DetailPanel"]
+[node name="DescInner" type="VBoxContainer" parent="VBoxContainer/DetailPanel/DescBox"]
 layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="LabelDetailOverviewHeader" type="Label" parent="VBoxContainer/DetailPanel/DescBox/DescInner"]
+layout_mode = 2
+text = "解説:"
+
+[node name="LabelDetailDescription" type="Label" parent="VBoxContainer/DetailPanel/DescBox/DescInner"]
+layout_mode = 2
+size_flags_vertical = 3
 text = "項目を選択してください"
 autowrap_mode = 3
 

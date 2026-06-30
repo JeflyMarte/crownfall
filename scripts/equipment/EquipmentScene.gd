@@ -660,24 +660,33 @@ func _ensure_relic_ui() -> void:
 	row.add_child(label)
 	var opt := OptionButton.new()
 	opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_relic_ids.clear()
-	for r: Dictionary in CombatRelics.relic_list():
-		opt.add_item(str(r["display_name"]))
-		_relic_ids.append(str(r["id"]))
 	opt.item_selected.connect(_on_relic_selected)
 	row.add_child(opt)
 	_skill_content.add_child(row)
 	_skill_content.move_child(row, 1)
 	_relic_option = opt
 
+# 所持遺物のみ選択可（P3-D093）。先頭=なし＋所持済み。現在装備が未所持なら参考表示。
 func _refresh_relic_ui(member: Resource) -> void:
 	if _relic_option == null:
 		return
+	_relic_option.clear()
+	_relic_ids.clear()
+	_relic_option.add_item("なし")
+	_relic_ids.append("")
+	for rid: String in CombatRelics.all_ids():
+		if GameState.has_relic(rid):
+			_relic_option.add_item(CombatRelics.display_name(rid))
+			_relic_ids.append(rid)
 	if member == null:
 		_relic_option.disabled = true
+		_relic_option.select(0)
 		return
 	_relic_option.disabled = false
 	var current: String = GameState.get_member_relic_id(member)
+	if not current.is_empty() and current not in _relic_ids:
+		_relic_option.add_item("%s (未所持)" % CombatRelics.display_name(current))
+		_relic_ids.append(current)
 	var idx: int = _relic_ids.find(current)
 	_relic_option.select(idx if idx >= 0 else 0)
 

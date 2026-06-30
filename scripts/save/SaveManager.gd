@@ -19,6 +19,7 @@ func save_game() -> void:
 		"gacha_pity": GameState.gacha_pity,
 		"owned_helpers": GameState.owned_helpers.duplicate(),
 		"combat_presets": GameState.combat_presets.duplicate(true),
+		"owned_relics": GameState.owned_relics.duplicate(),
 	}
 	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file == null:
@@ -151,6 +152,13 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.enemy_codex = codex
 	if data.has("combat_presets") and data["combat_presets"] is Array:
 		GameState.combat_presets = (data["combat_presets"] as Array).duplicate(true)
+	if data.has("owned_relics") and data["owned_relics"] is Array:
+		var relics: Array = []
+		for rid in data["owned_relics"]:
+			var norm: String = CombatRelics.normalize_id(str(rid))
+			if not norm.is_empty() and norm not in relics:
+				relics.append(norm)
+		GameState.owned_relics = relics
 	_migrate_legacy_global_equipment(data)
 
 const _DUNGEON_MIGRATION: Dictionary = {

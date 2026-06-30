@@ -41,6 +41,8 @@ var last_run_token_reward: int = 0
 var last_run_weapon_dropped: String = ""
 var last_run_armor_dropped: String = ""
 var last_run_accessory_dropped: String = ""
+# 直近ランで入手（新規解放）した遺物 id（P3-D093）。Result 表示用。
+var last_run_relic_dropped: String = ""
 # 直近ランの獲得レベル { member_id: gained_levels } — Result 表示用（P3-D035）
 var last_run_level_ups: Dictionary = {}
 
@@ -151,6 +153,29 @@ func set_member_relic(member: Resource, relic_id: String) -> void:
 	if member == null:
 		return
 	member.relic_id = CombatRelics.normalize_id(relic_id)
+
+# ---- 遺物 所持（解放型・P3-D093） ----
+# 入手した遺物 id の集合（解放型: 一度入手すれば恒久・全員装備可）。セーブ永続。
+var owned_relics: Array = []
+
+func has_relic(relic_id: String) -> bool:
+	return relic_id in owned_relics
+
+# 未所持なら解放し true。既所持/無効は false。
+func unlock_relic(relic_id: String) -> bool:
+	var rid: String = CombatRelics.normalize_id(relic_id)
+	if rid.is_empty() or rid in owned_relics:
+		return false
+	owned_relics.append(rid)
+	return true
+
+# まだ所持していないドロップ候補遺物 id 一覧。
+func unowned_relic_ids() -> Array:
+	var out: Array = []
+	for rid: String in CombatRelics.all_ids():
+		if rid not in owned_relics:
+			out.append(rid)
+	return out
 
 # ---- 作戦プリセット（P3-D091） ----
 # party 全体の「戦術＋遺物」セットを最大 COMBAT_PRESET_SLOTS スロット保存し、一括適用する。

@@ -41,8 +41,9 @@ var _entry_rows: Array = []
 @onready var _label_detail_category: Label = $VBoxContainer/DetailPanel/TopRow/InfoCol/LabelDetailCategory
 @onready var _label_detail_extra_a: Label = $VBoxContainer/DetailPanel/TopRow/InfoCol/LabelDetailExtraA
 @onready var _label_detail_extra_b: Label = $VBoxContainer/DetailPanel/TopRow/InfoCol/LabelDetailExtraB
-@onready var _label_detail_overview_header: Label = $VBoxContainer/DetailPanel/LabelDetailOverviewHeader
-@onready var _label_detail_description: Label = $VBoxContainer/DetailPanel/LabelDetailDescription
+@onready var _label_detail_overview_header: Label = $VBoxContainer/DetailPanel/DescBox/DescInner/LabelDetailOverviewHeader
+@onready var _label_detail_description: Label = $VBoxContainer/DetailPanel/DescBox/DescInner/LabelDetailDescription
+@onready var _desc_box: PanelContainer = $VBoxContainer/DetailPanel/DescBox
 @onready var _label_detail_related_header: Label = $VBoxContainer/DetailPanel/TopRow/InfoCol/LabelDetailRelatedHeader
 @onready var _label_detail_related: Label = $VBoxContainer/DetailPanel/TopRow/InfoCol/LabelDetailRelated
 @onready var _art_frame: PanelContainer = $VBoxContainer/DetailPanel/TopRow/ArtFrame
@@ -69,6 +70,8 @@ func _decorate_static() -> void:
 	_art_frame.add_theme_stylebox_override("panel", _framed_box(COLOR_GOLD, 2, Color(0.05, 0.05, 0.06, 1.0)))
 	_label_detail_name.add_theme_color_override("font_color", Color(0.93, 0.86, 0.66))
 	_label_detail_name.add_theme_font_size_override("font_size", 18)
+	_desc_box.add_theme_stylebox_override("panel", _framed_box(Color(0.35, 0.3, 0.24, 0.8), 1, Color(0.09, 0.08, 0.1, 0.85)))
+	_label_detail_overview_header.add_theme_color_override("font_color", COLOR_GOLD)
 
 func _framed_box(border: Color, width: int, bg: Color) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
@@ -253,7 +256,7 @@ func _show_detail(index: int) -> void:
 		_label_detail_id.text = "Entry ID: %s" % UNKNOWN_DISPLAY
 		_label_detail_name.text = "%s" % UNKNOWN_DISPLAY
 		_set_status("未確認", false)
-		_label_detail_description.text = UNKNOWN_DISPLAY
+		_label_detail_description.text = "調査中"
 		_update_icon(null)
 		_apply_bible_fields_undiscovered()
 
@@ -267,7 +270,7 @@ func _apply_enemy_stage_fields(entry: Dictionary) -> void:
 		_set_status("未発見", false)
 		_label_detail_overview_header.text = "調査記録:"
 		_label_detail_overview_header.visible = true
-		_label_detail_description.text = UNKNOWN_DISPLAY
+		_label_detail_description.text = "調査中"
 		_update_icon(null)
 		return
 	_label_detail_id.text = "Entry ID: %s" % enemy_id
@@ -276,7 +279,7 @@ func _apply_enemy_stage_fields(entry: Dictionary) -> void:
 	_update_icon(IconPaths.get_icon_texture(enemy_id, "enemy"), true)
 	_label_detail_overview_header.text = "調査記録:"
 	_label_detail_overview_header.visible = true
-	_label_detail_description.text = "調査記録なし"
+	_label_detail_description.text = "調査中"
 	if stage < 3:
 		return
 	var codex_class: String = str(entry.get("codex_class", ""))

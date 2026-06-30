@@ -118,6 +118,7 @@ var run_gold_reward: int = 0
 var last_weapon_dropped: String = ""
 var last_armor_dropped: String = ""
 var last_accessory_dropped: String = ""
+var last_relic_dropped: String = ""
 var current_event: Dictionary = {}
 var run_damage_multiplier: float = 1.0
 
@@ -136,6 +137,7 @@ func start_dungeon(dungeon_id: String) -> void:
 	last_weapon_dropped = ""
 	last_armor_dropped = ""
 	last_accessory_dropped = ""
+	last_relic_dropped = ""
 	current_event = {}
 	run_damage_multiplier = 1.0
 	_init_discovery()
@@ -401,6 +403,25 @@ func roll_kill_weapon_drop(room_type: int) -> String:
 	var weapon_id: String = _pick_weighted_weapon()
 	_spawn_weapon(weapon_id)
 	return weapon_id
+
+# P3-D093: 撃破時の遺物ドロップ（解放型）。未所持の遺物から1つ解放する。
+# ボス=未所持があれば確定 / エリート=15% / それ以外=なし。全所持済は ""。戻り値=解放した遺物id。
+func roll_kill_relic_drop(room_type: int) -> String:
+	var pool: Array = GameState.unowned_relic_ids()
+	if pool.is_empty():
+		return ""
+	var chance: float = 0.0
+	if room_type == Enums.RoomType.BOSS:
+		chance = 1.0
+	elif room_type == Enums.RoomType.ELITE:
+		chance = 0.15
+	if chance <= 0.0 or randf() > chance:
+		return ""
+	var relic_id: String = str(pool[randi() % pool.size()])
+	if GameState.unlock_relic(relic_id):
+		last_relic_dropped = relic_id
+		return relic_id
+	return ""
 
 # WEAPON_POOL からレア度重みで1本抽選
 func _pick_weighted_weapon() -> String:

@@ -36,6 +36,14 @@ const _DEFS: Dictionary = {
 # 選択肢順（UI 用）。先頭は「なし」。
 const _ORDER: Array = ["", "war_banner", "aegis_shard", "old_hourglass", "berserker_charm"]
 
+# カタログ全遺物 id（「なし」を除く）。ドロップ候補/解放判定に使用。
+static func all_ids() -> Array:
+	var out: Array = []
+	for rid: String in _ORDER:
+		if not rid.is_empty():
+			out.append(rid)
+	return out
+
 static func normalize_id(relic_id: String) -> String:
 	return relic_id if _DEFS.has(relic_id) else NONE_ID
 
