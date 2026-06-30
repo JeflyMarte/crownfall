@@ -17,5 +17,6 @@ base_attack_range = 1.0
 weight = 1.0
 element = "fire"
 weapon_type = "greatsword"
+tags = Array[String](["slash", "fire"])
 bane_class = "獣類"
 bane_multiplier = 1.3

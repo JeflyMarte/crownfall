@@ -15,6 +15,9 @@ extends Resource
 @export var weight: float = 1.0
 @export var element: String = ""
 @export var weapon_type: String = ""
+## シナジータグ（P3-D094）。攻撃の性質（斬撃/刺突/打撃・炎/氷/雷…）。
+## 状態異常コンボの起爆条件（require_tag）等に用いる。CombatTags が正式定義。
+@export var tags: Array[String] = []
 ## 生態特効（P3-D087）。bane_class が敵の codex_class と一致すると与ダメ ×bane_multiplier。
 ## 空なら特効なし。属性弱点/耐性とは乗算で併用。
 @export var bane_class: String = ""

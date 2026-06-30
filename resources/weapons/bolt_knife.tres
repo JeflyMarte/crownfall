@@ -17,3 +17,4 @@ base_attack_range = 1.0
 weight = 0.9
 element = "thunder"
 weapon_type = "dual_blades"
+tags = Array[String](["pierce", "lightning"])

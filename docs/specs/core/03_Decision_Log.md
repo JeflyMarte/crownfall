@@ -1192,3 +1192,16 @@
 | P3-D092-4 | **stage5 追加開示**: 使用スキル一覧（`skill_ids`→表示名。ボス大技含む）＋ 有効戦術ヒント（弱点属性＋特効分類から**自動生成**、例「❄氷 が有効 ｜ 昆虫類特効が有効」） | 完全調査の報酬＝手の内開示。ヒントは手書きでなく派生＝データ増設ゼロ |
 | P3-D092-5 | **データ供給**＝`CatalogHelper` 敵エントリに `attack_speed`/`on_hit_status_id`/`on_hit_status_chance`/`skill_ids` を追加。表示出し分けは CodexScene が stage で判定 | entry に素材を渡し、ゲートは表示側に集約 |
 | P3-D092-6 | **スコープ外**: ボスのフェーズ/大技CTの手書き設定・調査専用テキスト・図鑑→装備への直接導線・武器特効の図鑑内逆引き | MVP最小化。自動生成で賄えない詳細は後続 |
+
+## シナジータグ正式化 MVP（2026-06-30 — P3-D094）
+
+> D089（状態異常コンボ）の上に、武器/スキルの「シナジータグ」を正式定義。攻撃の性質（斬撃/刺突/打撃・属性）をコンボ起爆条件に組み込み、編成・装備の連携軸を増やす。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D094-1 | **タグ正式定義＝`CombatTags`（静的・SSOT）**。物理(slash/pierce/blunt) + 属性(fire/ice/lightning/holy/dark) + 効果(bleed/poison/buff/debuff) の id↔和名。未知 id は無視（正規化） | タグ id を一元管理。武器/スキル/コンボが同一語彙を参照 |
+| P3-D094-2 | **データ拡張**: `WeaponData.tags: Array[String]` を新設（`SkillData.tags` は既存流用）。攻撃のタグ＝武器タグ ∪（スキル時）スキルタグ。`DungeonScene._member_action_tags` が CombatTags で正規化して供給 | 攻撃ごとに性質タグが定まる。スキルは武器タグも継承＝武器選択がコンボに効く |
+| P3-D094-3 | **コンボに `require_tag` を追加**（`CombatCombos`）。空=無条件、指定時は攻撃側がそのタグ保有時のみ起爆。`tag_eligible(trigger, tags)` で判定し `_consume_enemy_combo_bonus` に配線 | 「凍結→打撃で粉砕」「出血→斬撃で追撃」等のタグ連携を表現。既存の毒/冷却(無条件)は非回帰 |
+| P3-D094-4 | **コンボ追加**: 出血(bleed)→**出血追撃**(require slash・per_stack6) / 感電(shock)→**感電**(require lightning・hit×0.4)。既存 毒爆発(無条件)/粉砕(無条件) は維持 | 追加は非回帰（タグ無し攻撃では発火しないだけ）。斬撃武器は普及済で出血追撃は到達容易 |
+| P3-D094-5 | **武器タグ初期付与**: 朽刃=slash / 燻鉄=slash,fire / 霜結=slash,ice / 聖別刃=pierce,holy / 雷紋双刃=pierce,lightning / 呪杖=blunt,dark | 武器種(剣=斬/短=刺/杖=打)＋elementで整合。粉砕(杖=blunt)・感電(雷紋=lightning)の到達経路を確保 |
+| P3-D094-6 | **スコープ外**: 同系統タグ揃えのシナジーボーナス・タグのUI/図鑑表示・敵側タグ耐性・タグ連鎖(3段)・スキルへの個別タグ付与作り込み | MVP最小化。まずタグ語彙＋タグ起点コンボの機構を実証 |

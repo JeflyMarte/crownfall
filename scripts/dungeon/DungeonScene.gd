@@ -858,7 +858,7 @@ func _execute_member_skill(member_idx: int, skill_data: Resource, cast_index: in
 		1,
 		int(float(elem_result["damage"]) * $CombatController.get_enemy_incoming_damage_multiplier())
 	)
-	final_dmg += _consume_enemy_combo_bonus(member_idx, final_dmg)
+	final_dmg += _consume_enemy_combo_bonus(member_idx, final_dmg, _member_action_tags(member_idx, skill_data))
 	$CombatController.apply_damage_to_enemy(final_dmg)
 	var skill_is_crit: bool = result.get("is_critical", false)
 	var spawn_pos: Vector2 = _active_enemy_pos()
@@ -995,7 +995,7 @@ func _try_cast_player_skill() -> String:
 			* $CombatController.get_enemy_incoming_damage_multiplier()
 		)
 	)
-	final_dmg += _consume_enemy_combo_bonus(member_idx, final_dmg)
+	final_dmg += _consume_enemy_combo_bonus(member_idx, final_dmg, _member_action_tags(member_idx, skill_data))
 	$CombatController.apply_damage_to_enemy(final_dmg)
 	var skill_is_crit: bool = result.get("is_critical", false)
 	var skill_spawn_pos: Vector2 = _active_enemy_pos()
@@ -1059,7 +1059,7 @@ func _try_cast_secondary_skill(primary_skill_id: String) -> String:
 			* $CombatController.get_enemy_incoming_damage_multiplier()
 		)
 	)
-	final_dmg += _consume_enemy_combo_bonus(member_idx, final_dmg)
+	final_dmg += _consume_enemy_combo_bonus(member_idx, final_dmg, _member_action_tags(member_idx, skill_data))
 	$CombatController.apply_damage_to_enemy(final_dmg)
 	var sec_is_crit: bool = result.get("is_critical", false)
 	var sec_spawn_pos: Vector2 = _active_enemy_pos()
@@ -1120,12 +1120,14 @@ func _apply_enemy_mitigation(damage: int, attack_element: String, member_index: 
 # 状態異常コンボ起爆（P3-D089）。味方の攻撃ヒット時、アクティブ敵に前提状態が
 # 乗っていれば 1 つだけ起爆し、追加ダメージを返してその状態を消費する。
 # 戻り値は攻撃ダメージへ上乗せする（既存の撃破判定をそのまま通すため）。
-func _consume_enemy_combo_bonus(member_idx: int, hit_damage: int) -> int:
+func _consume_enemy_combo_bonus(member_idx: int, hit_damage: int, attacker_tags: Array = []) -> int:
 	if $CombatController.is_enemy_defeated():
 		return 0
 	for trigger_id: String in CombatCombos.trigger_ids():
 		var stacks: int = $CombatController.get_enemy_status_stacks(trigger_id)
 		if stacks <= 0:
+			continue
+		if not CombatCombos.tag_eligible(trigger_id, attacker_tags):
 			continue
 		var bonus: int = CombatCombos.bonus_for(trigger_id, stacks, hit_damage)
 		if bonus <= 0:
@@ -1137,6 +1139,22 @@ func _consume_enemy_combo_bonus(member_idx: int, hit_damage: int) -> int:
 		_append_log("[コンボ] %s +%d" % [label, bonus])
 		return bonus
 	return 0
+
+# メンバーの現在アクションのシナジータグ（P3-D094）。武器タグ∪スキルタグ。未知idは除外。
+func _member_action_tags(member_idx: int, skill_data: Resource = null) -> Array:
+	var tags: Array = []
+	var winst: Resource = GameState.get_member_equipped_weapon(member_idx)
+	if winst != null and not str(winst.weapon_id).is_empty():
+		var wd: Resource = DataRegistry.get_weapon_data(winst.weapon_id)
+		if wd != null and "tags" in wd:
+			for t in wd.tags:
+				if CombatTags.is_known(str(t)) and str(t) not in tags:
+					tags.append(str(t))
+	if skill_data != null and "tags" in skill_data:
+		for t in skill_data.tags:
+			if CombatTags.is_known(str(t)) and str(t) not in tags:
+				tags.append(str(t))
+	return tags
 
 # 装備武器の生態特効（{class, mult}）。特効なしは class="" / mult=1.0。
 func _get_weapon_bane(member_index: int) -> Dictionary:
@@ -1619,7 +1637,7 @@ func _try_member_equipped_skill(member_idx: int) -> bool:
 # 通常攻撃スロット（武器ベース）。
 func _do_member_basic_attack(member_idx: int) -> void:
 	var result: Dictionary = _calc_damage(member_idx)
-	result["damage"] = int(result["damage"]) + _consume_enemy_combo_bonus(member_idx, int(result["damage"]))
+	result["damage"] = int(result["damage"]) + _consume_enemy_combo_bonus(member_idx, int(result["damage"]), _member_action_tags(member_idx))
 	$CombatController.apply_damage_to_enemy(result["damage"])
 	_try_apply_affix_statuses(member_idx)
 	_update_hp_bars()

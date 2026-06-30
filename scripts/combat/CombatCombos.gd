@@ -5,23 +5,35 @@ extends RefCounted
 ## 味方の攻撃が敵に当たる瞬間、敵に前提状態が乗っていれば「起爆」し、
 ## 追加ダメージを与えてその状態を消費する（1ヒット1コンボ）。
 ##
-## ルール: trigger 状態 → { label, per_stack, hit_fraction }
+## ルール: trigger 状態 → { label, per_stack, hit_fraction, require_tag }
 ##   bonus = per_stack * stacks + round(hit_fraction * hit_damage)
-## 数値は調整可。シナジータグ（Slash/Fire 等）の正式タクソノミは後続。
+##   require_tag … 攻撃側がこのシナジータグ(CombatTags)を持つ時のみ起爆（空=無条件）。
+## 数値は調整可。
 
 const _RULES: Dictionary = {
-	"poison": {"label": "毒爆発", "per_stack": 8, "hit_fraction": 0.0},
-	"chill": {"label": "粉砕", "per_stack": 0, "hit_fraction": 0.5},
+	"poison": {"label": "毒爆発", "per_stack": 8, "hit_fraction": 0.0, "require_tag": ""},
+	"bleed": {"label": "出血追撃", "per_stack": 6, "hit_fraction": 0.0, "require_tag": "slash"},
+	"chill": {"label": "粉砕", "per_stack": 0, "hit_fraction": 0.5, "require_tag": ""},
+	"shock": {"label": "感電", "per_stack": 0, "hit_fraction": 0.4, "require_tag": "lightning"},
 }
 
 # 評価順（先に成立したものを1つだけ起爆）。
-const _ORDER: Array = ["poison", "chill"]
+const _ORDER: Array = ["poison", "bleed", "chill", "shock"]
 
 static func trigger_ids() -> Array:
 	return _ORDER
 
 static func rule(trigger_id: String) -> Dictionary:
 	return _RULES.get(trigger_id, {})
+
+# 起爆に必要な攻撃側タグ（空=無条件）。
+static func require_tag(trigger_id: String) -> String:
+	return str(_RULES.get(trigger_id, {}).get("require_tag", ""))
+
+# 攻撃側タグ条件を満たすか。
+static func tag_eligible(trigger_id: String, attacker_tags: Array) -> bool:
+	var req: String = require_tag(trigger_id)
+	return req.is_empty() or req in attacker_tags
 
 static func bonus_for(trigger_id: String, stacks: int, hit_damage: int) -> int:
 	var r: Dictionary = _RULES.get(trigger_id, {})
