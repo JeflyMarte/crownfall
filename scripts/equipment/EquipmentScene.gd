@@ -59,6 +59,7 @@ var _selected_member_index: int = 0
 var _inventory_filter: String = "all"
 # 戦術セレクタ（P3-D086・スキルタブ上部に動的生成）
 var _tactics_option: OptionButton = null
+var _formation_button: Button = null
 var _tactics_ids: Array[String] = []
 var _relic_option: OptionButton = null
 var _relic_ids: Array[String] = []
@@ -593,6 +594,8 @@ func _rebuild_skill_tab() -> void:
 	_refresh_tactics_ui(member)
 	_ensure_relic_ui()
 	_refresh_relic_ui(member)
+	_ensure_formation_ui()
+	_refresh_formation_ui(member)
 	_ensure_preset_ui()
 	_refresh_preset_ui()
 	_ensure_tag_info_ui()
@@ -631,6 +634,52 @@ func _rebuild_skill_tab() -> void:
 		btn.pressed.connect(_on_skill_toggle_pressed.bind(sid))
 		row.add_child(btn)
 		list.add_child(row)
+
+# 陣形（前列/後列）UI（P3-D106）。選択メンバーの行トグル＋party プリセット3種。
+func _ensure_formation_ui() -> void:
+	if _formation_button != null and is_instance_valid(_formation_button):
+		return
+	var row := HBoxContainer.new()
+	row.name = "FormationRow"
+	var label := Label.new()
+	label.text = "陣形:"
+	row.add_child(label)
+	var toggle := Button.new()
+	toggle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	toggle.pressed.connect(_on_formation_toggle_pressed)
+	row.add_child(toggle)
+	_formation_button = toggle
+	for preset in [["前衛", "front"], ["均衡", "balanced"], ["後衛", "back"]]:
+		var pb := Button.new()
+		pb.text = str(preset[0])
+		pb.pressed.connect(_on_formation_preset_pressed.bind(str(preset[1])))
+		row.add_child(pb)
+	_skill_content.add_child(row)
+	_skill_content.move_child(row, 2)
+
+func _refresh_formation_ui(member: Resource) -> void:
+	if _formation_button == null:
+		return
+	if member == null:
+		_formation_button.disabled = true
+		_formation_button.text = "—"
+		return
+	_formation_button.disabled = false
+	var back: bool = GameState.get_member_formation_row(member) == GameState.FORMATION_BACK
+	_formation_button.text = "後列（被ダメ-15%）" if back else "前列"
+
+func _on_formation_toggle_pressed() -> void:
+	var member: Resource = GameState.get_member(_selected_member_index)
+	if member == null:
+		return
+	var cur: int = GameState.get_member_formation_row(member)
+	var nxt: int = GameState.FORMATION_FRONT if cur == GameState.FORMATION_BACK else GameState.FORMATION_BACK
+	GameState.set_member_formation_row(member, nxt)
+	_refresh_formation_ui(member)
+
+func _on_formation_preset_pressed(preset: String) -> void:
+	GameState.apply_formation_preset(preset)
+	_refresh_formation_ui(GameState.get_member(_selected_member_index))
 
 # 戦術セレクタ（P3-D086）。スキルタブ最上部に 1 度だけ生成する。
 func _ensure_tactics_ui() -> void:

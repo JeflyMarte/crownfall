@@ -1322,3 +1322,15 @@
 | P3-D105-2 | **助っ人衝突の解決**: 戦闘スロット上限 `COMBAT_SLOT_MAX=4`。`_helper_active()`＝編成が満員(4)なら event_helper を戦闘に含めない（5体目＝枠不足を防止）。get_combatants/combatant_count/get_combatant/is_helper_combatant が参照 | 4人＋助っ人＝5体でスプライト枠超過するクラッシュ/描画破綻を回避 |
 | P3-D105-3 | **Threat(D104)/陣形(A-3)/状態UI/ターンオーダーは非改修**: いずれも size 駆動で4人へ自動対応 | 4人化と独立して機能。A-3 陣形を4人前提で載せられる |
 | P3-D105-4 | **スコープ外/要追跡**: 4人化に伴うリバランス（アタッカー+1の火力過多・敵/群れ難度）・4人前提のレイアウト微調整（実機確認）・初期編成は roster 先頭4名 | 数値調整は実機後。まず機構を通す |
+
+## 陣形（前列/後列）MVP（2026-06-30 — P3-D106・残ロードマップ フェーズA-3）
+
+> 4人編成(D105)に前列/後列の概念を導入。A-2 Threat と直結し「タンク前・後衛保護」を機能させる。提案の 2×2（前2・後2）を 2列モデルで実現。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D106-1 | **行を `Adventurer.formation_row`（0=前列/1=後列）で保持**。GameState get/set＋プリセット（前衛/均衡=最後尾1人後列/後衛=後ろ2人後列）。SaveManager 直列化に追加 | tactics_id/relic_id と同じ per-member 保存パターン。プリセットで素早く配置 |
+| P3-D106-2 | **効果**: 後列＝被ダメ ×0.85（`FORMATION_BACK_INCOMING`）＋ Threat 基礎 ×0.6（`FORMATION_BACK_THREAT`・狙われにくい）。前列＝等倍＋`war_banner`（王国軍旗）の与ダメ+10%を**前列限定**に整合 | A-2 Threat と連動し前衛が矢面・後衛が保護される。war_banner を提案「前列+10%」へ寄せる |
+| P3-D106-3 | **配線（中央フック相乗り）**: 被ダメ→`get_member_incoming_damage_multiplier`×`formation_incoming_multiplier`／Threat→`_job_threat_base`×`formation_threat_multiplier`／war_banner→`_member_relic_effects` で後列時 outgoing 無効化 | 既存倍率/Threat/遺物計算に1フックずつ。散在回避 |
+| P3-D106-4 | **UI＝スキルタブに陣形行**（`EquipmentScene`・選択メンバーの前列/後列トグル＋プリセット前衛/均衡/後衛ボタン） | 戦術/遺物セレクタと同列に集約。即時反映 |
+| P3-D106-5 | **スコープ外**: 射程(Melee/Mid/Long)連動の近接ペナルティ・敵 AoE の列範囲・列ごとの被弾分散・散開/密集ボーナス・隊列の視覚表現 | MVP最小化。射程連動はフェーズC以降 |
