@@ -1,0 +1,86 @@
+site_name: Crownfall 攻略Wiki
+site_description: 2D見下ろし型 自動探索ハクスラRPG「Crownfall」の世界観・攻略・データ事典
+docs_dir: docs
+site_dir: site
+use_directory_urls: true
+
+theme:
+  name: material
+  language: ja
+  palette:
+    - scheme: slate
+      primary: amber
+      accent: deep orange
+      toggle:
+        icon: material/weather-night
+        name: ライトモードへ
+    - scheme: default
+      primary: brown
+      accent: deep orange
+      toggle:
+        icon: material/weather-sunny
+        name: ダークモードへ
+  font:
+    text: Noto Sans JP
+    code: Roboto Mono
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - toc.follow
+  icon:
+    logo: material/crown
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+plugins:
+  - search:
+      lang:
+        - ja
+
+extra:
+  social:
+    - icon: material/crown
+      link: /
+
+nav:
+  - ホーム: index.md
+  - 世界観:
+      - 概要: world/overview.md
+      - 歴史: world/history.md
+      - 九王: world/characters.md
+      - 九英雄: world/heroes.md
+      - 地理: world/geography.md
+      - 社会と派閥: world/society.md
+      - 探索者ギルド: world/guild.md
+      - 信仰と死生観: world/faith.md
+      - 古代種と伝説個体: world/legends.md
+      - 王遺産（遺物）: world/relics.md
+      - 断片ロア: world/fragments.md
+      - 用語集: world/glossary.md
+  - 攻略:
+      - はじめに: guide/getting-started.md
+      - 戦闘の仕組み: guide/combat.md
+      - 属性と状態異常: guide/elements.md
+      - モーンゲート攻略: guide/mourngate.md
+  - データ:
+      - モンスター図鑑: data/monsters.md
+      - 武器一覧: data/weapons.md
+      - 防具・装飾品: data/equipment.md
+      - ジョブ: data/jobs.md
+      - スキル一覧: data/skills.md
+      - ダンジョンデータ: data/dungeons.md

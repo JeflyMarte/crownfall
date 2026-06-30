@@ -38,3 +38,6 @@ Thumbs.db
 *.zip
 ProjectDocs_*.zip
 crownfall_projectdocs_*.zip
+
+# MkDocs build output
+wiki/site/
