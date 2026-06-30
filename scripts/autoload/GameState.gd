@@ -184,6 +184,29 @@ func unowned_relic_ids() -> Array:
 const COMBAT_PRESET_SLOTS: int = 3
 var combat_presets: Array = []
 
+# 探索方針（P3-D098）。run 単位で1つ。プリセットに内包され、適用時にここへ反映される。
+# ""=なし / safe=安全優先 / material=素材優先 / relic=遺物優先 / codex=図鑑優先
+const EXPLORATION_POLICIES: Array = ["", "safe", "material", "relic", "codex"]
+var current_exploration_policy: String = ""
+
+func get_exploration_policy() -> String:
+	return current_exploration_policy
+
+func set_exploration_policy(policy: String) -> void:
+	current_exploration_policy = policy if policy in EXPLORATION_POLICIES else ""
+
+static func exploration_policy_label(policy: String) -> String:
+	match policy:
+		"safe": return "安全優先"
+		"material": return "素材優先"
+		"relic": return "遺物優先"
+		"codex": return "図鑑優先"
+		_: return "なし"
+
+# 安全優先＝被ダメ軽減倍率（CombatController が乗算）。
+func exploration_incoming_multiplier() -> float:
+	return 0.92 if current_exploration_policy == "safe" else 1.0
+
 func get_combat_presets() -> Array:
 	return combat_presets
 
@@ -215,7 +238,11 @@ func save_combat_preset(slot: int, preset_name: String = "") -> void:
 	var nm: String = preset_name.strip_edges()
 	if nm.is_empty():
 		nm = "作戦%d" % (slot + 1)
-	combat_presets[slot] = {"name": nm, "settings": settings}
+	combat_presets[slot] = {
+		"name": nm,
+		"settings": settings,
+		"exploration_policy": current_exploration_policy,
+	}
 
 # スロットの設定を現在の party へ一括適用（member_id 一致分のみ）。
 func apply_combat_preset(slot: int) -> bool:
@@ -230,6 +257,7 @@ func apply_combat_preset(slot: int) -> bool:
 			continue
 		set_member_tactics(member, str((s as Dictionary).get("tactics_id", "")))
 		set_member_relic(member, str((s as Dictionary).get("relic_id", "")))
+	set_exploration_policy(str((combat_presets[slot] as Dictionary).get("exploration_policy", "")))
 	return true
 
 func find_item_equipped_member_index(item: Resource) -> int:

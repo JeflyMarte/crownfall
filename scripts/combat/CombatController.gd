@@ -339,12 +339,28 @@ func _member_relic_effects(member_index: int) -> Dictionary:
 
 func get_member_outgoing_damage_multiplier(member_index: int) -> float:
 	var mult: float = _status_resolver.get_outgoing_damage_multiplier("party_%d" % member_index)
-	return mult * float(_member_relic_effects(member_index).get("outgoing_mult", 1.0))
+	mult *= float(_member_relic_effects(member_index).get("outgoing_mult", 1.0))
+	# 物理タグシナジー＋ロール（攻勢）ボーナス（P3-D097・party 全体）
+	mult *= 1.0 + CombatSynergy.compute_physical_bonus(GameState.party_members)
+	mult *= float(CombatSynergy.compute_role_bonuses(GameState.party_members).get("outgoing_mult", 1.0))
+	return mult
 
 # 被ダメ補正（防御=guard 等）。1.0=等倍。P3-D085 で配線。遺物 incoming_mult も乗算（P3-D090）。
 func get_member_incoming_damage_multiplier(member_index: int) -> float:
 	var mult: float = _status_resolver.get_incoming_damage_multiplier("party_%d" % member_index)
-	return mult * float(_member_relic_effects(member_index).get("incoming_mult", 1.0))
+	mult *= float(_member_relic_effects(member_index).get("incoming_mult", 1.0))
+	# ロール（堅守）ボーナス（P3-D097・party 全体）
+	mult *= float(CombatSynergy.compute_role_bonuses(GameState.party_members).get("incoming_mult", 1.0))
+	# 探索方針（安全優先）被ダメ軽減（P3-D098）
+	mult *= GameState.exploration_incoming_multiplier()
+	return mult
+
+# ロール編成ボーナス（P3-D097）。回復量倍率 / 会心率加算。
+func get_party_role_heal_multiplier() -> float:
+	return float(CombatSynergy.compute_role_bonuses(GameState.party_members).get("heal_mult", 1.0))
+
+func get_party_role_crit_add() -> float:
+	return float(CombatSynergy.compute_role_bonuses(GameState.party_members).get("crit_add", 0.0))
 
 func get_enemy_incoming_damage_multiplier() -> float:
 	return _status_resolver.get_incoming_damage_multiplier("enemy")

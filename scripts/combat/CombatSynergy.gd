@@ -27,6 +27,60 @@ static func compute_element_bonuses(members: Array) -> Dictionary:
 			out[e] = BONUS_TWO
 	return out
 
+# ---- ロールボーナス / 物理タグシナジー（P3-D097） ----
+
+const PHYSICAL_TAGS: Array = ["slash", "pierce", "blunt"]
+const SYNERGY_THRESHOLD: int = 2
+const PHYS_BONUS_TWO: float = 0.05
+const PHYS_BONUS_THREE: float = 0.08
+
+# 物理タグ（斬/刺/打）を 2人以上で共有していると全員の与ダメに加わるフラットボーナス（最大値を採用）。
+static func compute_physical_bonus(members: Array) -> float:
+	var counts: Dictionary = {}
+	for m in members:
+		if m == null:
+			continue
+		for t: String in _member_weapon_tags(m):
+			if t in PHYSICAL_TAGS:
+				counts[t] = int(counts.get(t, 0)) + 1
+	var best: float = 0.0
+	for t: String in counts:
+		var c: int = int(counts[t])
+		if c >= 3:
+			best = maxf(best, PHYS_BONUS_THREE)
+		elif c >= 2:
+			best = maxf(best, PHYS_BONUS_TWO)
+	return best
+
+# ロール（tank/dps/support/scout）を 2人以上で共有すると編成ボーナス。
+# 戻り値: {incoming_mult, outgoing_mult, heal_mult, crit_add, labels}
+static func compute_role_bonuses(members: Array) -> Dictionary:
+	var counts: Dictionary = {}
+	for m in members:
+		if m == null:
+			continue
+		var role: String = str(JobStatCalculator.get_member_modifiers(m).get("role", ""))
+		if role.is_empty():
+			continue
+		counts[role] = int(counts.get(role, 0)) + 1
+	var out: Dictionary = {
+		"incoming_mult": 1.0, "outgoing_mult": 1.0,
+		"heal_mult": 1.0, "crit_add": 0.0, "labels": [],
+	}
+	if int(counts.get("tank", 0)) >= SYNERGY_THRESHOLD:
+		out["incoming_mult"] *= 0.92
+		out["labels"].append("堅守 被ダメ-8%")
+	if int(counts.get("dps", 0)) >= SYNERGY_THRESHOLD:
+		out["outgoing_mult"] *= 1.06
+		out["labels"].append("攻勢 与ダメ+6%")
+	if int(counts.get("support", 0)) >= SYNERGY_THRESHOLD:
+		out["heal_mult"] *= 1.20
+		out["labels"].append("治癒 回復+20%")
+	if int(counts.get("scout", 0)) >= SYNERGY_THRESHOLD:
+		out["crit_add"] += 0.08
+		out["labels"].append("索敵 会心+8%")
+	return out
+
 static func _member_weapon_tags(member: Resource) -> Array:
 	var winst: Resource = member.equipped_weapon
 	if winst == null or str(winst.weapon_id).is_empty():

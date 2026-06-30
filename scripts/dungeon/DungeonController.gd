@@ -238,6 +238,9 @@ func accumulate_rewards(exp: int, gold: int) -> void:
 	run_exp_reward += exp
 	if gold > 0:
 		gold = _AffixStatCalculator.apply_gold_bonus(gold)
+		# 探索方針（素材優先）gold +15%（P3-D098）
+		if GameState.get_exploration_policy() == "material":
+			gold = int(round(float(gold) * 1.15))
 	run_gold_reward += gold
 
 func get_enemy_level() -> int:
@@ -300,7 +303,11 @@ func pick_combat_enemy_group() -> Array[Resource]:
 		return group
 	if not bool(base.can_swarm):
 		return group
-	if randf() >= SWARM_CHANCE:
+	var swarm_chance: float = SWARM_CHANCE
+	# 探索方針（安全優先）群れ出現率を半減（P3-D098）
+	if GameState.get_exploration_policy() == "safe":
+		swarm_chance *= 0.5
+	if randf() >= swarm_chance:
 		return group
 	var lo: int = maxi(2, int(base.swarm_min))
 	var hi: int = maxi(lo, int(base.swarm_max))
@@ -359,7 +366,11 @@ func apply_elite_bonus_loot() -> Dictionary:
 	if randf() < ELITE_ACCESSORY_CHANCE:
 		_generate_accessory_loot()
 		bonus["accessory_id"] = last_accessory_dropped
-	if randf() < ELITE_MATERIAL_CHANCE:
+	var material_chance: float = ELITE_MATERIAL_CHANCE
+	# 探索方針（素材優先）ELITE 素材ドロップ率↑（P3-D098）
+	if GameState.get_exploration_policy() == "material":
+		material_chance = 0.30
+	if randf() < material_chance:
 		bonus["material_id"] = "elite_relic_shard"
 	return bonus
 
@@ -414,7 +425,8 @@ func roll_kill_relic_drop(room_type: int) -> String:
 	if room_type == Enums.RoomType.BOSS:
 		chance = 1.0
 	elif room_type == Enums.RoomType.ELITE:
-		chance = 0.15
+		# 探索方針（遺物優先）ELITE 遺物ドロップ率↑（P3-D098）
+		chance = 0.25 if GameState.get_exploration_policy() == "relic" else 0.15
 	if chance <= 0.0 or randf() > chance:
 		return ""
 	var relic_id: String = str(pool[randi() % pool.size()])

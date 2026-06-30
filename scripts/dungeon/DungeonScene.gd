@@ -1196,6 +1196,8 @@ func _calc_attack_base(member_index: int = -1) -> Dictionary:
 	var affix_bonuses: Dictionary = AffixStatCalculatorScript.get_bonuses(member_index)
 	damage += int(affix_bonuses.get("attack_flat", 0))
 	crit_rate += float(affix_bonuses.get("crit_rate_add", 0.0))
+	# ロール編成ボーナス（scout×2=会心+8%・P3-D097）
+	crit_rate += $CombatController.get_party_role_crit_add()
 	if member_index >= 0 and member_index < GameState.party_members.size():
 		damage += LevelSystem.level_attack_bonus(GameState.party_members[member_index].level)
 	damage = _apply_job_attack_multiplier(damage, member_index)
@@ -1483,6 +1485,9 @@ func _award_enemy_kill() -> void:
 	var defeated_enemy: Resource = $CombatController.current_enemy_data
 	if defeated_enemy != null:
 		GameState.add_enemy_kill(defeated_enemy.id)
+		# 探索方針（図鑑優先）撃破1回につき図鑑進捗を加速（P3-D098）
+		if GameState.get_exploration_policy() == "codex":
+			GameState.add_enemy_kill(defeated_enemy.id)
 	var mult: float = $DungeonController.get_reward_multiplier()
 	var final_exp: int = int($CombatController.last_exp_reward * mult)
 	var final_gold: int = int($CombatController.last_gold_reward * mult)
@@ -1790,7 +1795,10 @@ func _handle_party_wipe() -> void:
 	SceneRouter.change_scene("res://scenes/result/ResultScene.tscn")
 
 func _apply_healing_bonus(base_amount: int) -> int:
-	return AffixStatCalculatorScript.apply_healing_bonus(base_amount)
+	var amount: int = AffixStatCalculatorScript.apply_healing_bonus(base_amount)
+	# ロール編成ボーナス（support×2=治癒+20%・P3-D097）
+	var heal_mult: float = $CombatController.get_party_role_heal_multiplier()
+	return maxi(0, int(round(float(amount) * heal_mult)))
 
 func _apply_material_bonus(base_amount: int) -> int:
 	return AffixStatCalculatorScript.apply_material_bonus(base_amount)

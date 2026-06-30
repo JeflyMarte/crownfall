@@ -1217,3 +1217,27 @@
 | P3-D095-3 | **算出は party 全員の装備武器タグ集計**（`compute_element_bonuses`）。スキル/遺物タグは含めず武器のみ（MVP） | 「武器選びで揃える」に焦点。毎ヒット算出だが party 小規模で軽量 |
 | P3-D095-4 | **可視化＝装備スキルタブに情報行**（`EquipmentScene._refresh_tag_info`）。「武器タグ: 斬撃/炎 ｜ 属性シナジー: 炎 +10%」を表示。タグ和名は `CombatTags.display_name` | 既存セレクタ群と同列に集約。タグ/シナジーの効果を可読化 |
 | P3-D095-5 | **スコープ外**: 物理/効果タグのシナジー・ロールボーナス(盾2人で防御UP等)・図鑑/戦闘中のシナジー表示・スキル/遺物タグの集計・属性別の専用VFX | MVP最小化。物理シナジーやロール系は後続 |
+
+## ロールボーナス＋物理タグシナジー MVP（2026-06-30 — P3-D097）
+
+> D095 の属性シナジーに加え、編成（ジョブ・ロール）と物理武器の揃えに報酬を付与。「誰を組ませるか／何で殴るか」を編成段階の選択肢にする。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D097-1 | **ロールボーナス＝party のジョブ role を 2人以上共有で発火**（`CombatSynergy.compute_role_bonuses`）。tank×2=被ダメ-8% / dps×2=与ダメ+6% / support×2=回復+20% / scout×2=会心+8%。role は `JobStatCalculator` 経由 | 同ロール重ね編成に明快な報酬。既存の役割語彙(tank/dps/support/scout)を流用 |
+| P3-D097-2 | **物理タグシナジー＝物理タグ(slash/pierce/blunt)を 2人=+5% / 3人=+8% の与ダメ**（`compute_physical_bonus`・最大値採用・party 全体フラット）。属性シナジー(D095)とは別枠で乗算 | 属性で揃えにくい物理寄り編成にも揃え報酬。属性非依存のフラット枠で明快 |
+| P3-D097-3 | **配線＝既存の中央倍率に相乗り**。与ダメ＝`get_member_outgoing_damage_multiplier` に ×(1+物理) ×role.outgoing。被ダメ＝`get_member_incoming_damage_multiplier` に ×role.incoming。回復＝`_apply_healing_bonus` に ×role.heal。会心＝`_calc_attack_base` に +role.crit | 散在回避。既存の状態/遺物倍率と同経路で一括適用 |
+| P3-D097-4 | **可視化＝装備スキルタブの情報行に「編成ボーナス」行を追加**（`EquipmentScene._refresh_tag_info`）。物理連携・ロール各ラベルを列挙（無=「なし」） | D095 のタグ情報行に併記。編成の効果を装備段階で可読化 |
+| P3-D097-5 | **スコープ外**: 陣形(2×2)・Aggro/Threat・3ロール以上の段階ボーナス・敵側ロール・素材/索敵への scout 反映・効果タグ(buff/debuff)のシナジー | MVP最小化。陣形/Threat は別系統で後続 |
+
+## 探索方針プリセット連動 MVP（2026-06-30 — P3-D098）
+
+> 既存の作戦プリセット（P3-D091＝戦術＋遺物）に「探索方針」を内包し、プリセット切替で *戦い方* と *探索の稼ぎ方* を一括変更できるようにする。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D098-1 | **探索方針＝run 単位で1つ**（`GameState.current_exploration_policy`）。`""`=なし / safe=安全優先 / material=素材優先 / relic=遺物優先 / codex=図鑑優先。run 中は固定（DG 中不変・敵Lv P3-D081 と同じ扱い） | 探索全体の傾向を1枚で表現。run 揮発でセーブ非依存（プリセットから復元） |
+| P3-D098-2 | **効果（中央フックに相乗り）**: safe=被ダメ×0.92（`exploration_incoming_multiplier`→`get_member_incoming_damage_multiplier`）＋群れ出現率×0.5（`pick_combat_enemy_group`）／material=gold+15%（`accumulate_rewards`）＋ELITE 素材率 0.15→0.30（`apply_elite_bonus_loot`）／relic=ELITE 遺物率 0.15→0.25（`roll_kill_relic_drop`・BOSS据置1.0）／codex=撃破時 `add_enemy_kill` を二重計上し図鑑段階を加速（`_award_enemy_kill`） | 既存の倍率/抽選/ドロップ経路に最小フックで配線。新規システムを増やさない |
+| P3-D098-3 | **プリセット連動**: `combat_presets[slot]` に `exploration_policy` キーを追加。`save_combat_preset` で現在方針も保存、`apply_combat_preset` で `set_exploration_policy` を反映。`SaveManager` は既存の `combat_presets` deep-duplicate で自動保存（変更不要） | 「Boss攻略/素材集め/図鑑調査」等の意図をプリセット単位で完結。保存配線の追加なし |
+| P3-D098-4 | **UI＝プリセット行直下に「探索方針」セレクタ**（`EquipmentScene`・5項目）。選択即 `set_exploration_policy`、`apply`/`refresh` で同期。既定=なし（後方互換） | 既存プリセットUIと同列に集約。単体でも切替可・保存でプリセットに内包 |
+| P3-D098-5 | **スコープ外**: 探索スキル(採取/採掘/鍵/解読/罠)・環境変化(雨/夜/霧/増水/落石)・方針による部屋構成変更・高速周回(戦闘スキップ)・方針別演出 | MVP最小化。探索システム拡張は後続 Decision |

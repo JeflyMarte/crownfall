@@ -62,6 +62,8 @@ var _tactics_ids: Array[String] = []
 var _relic_option: OptionButton = null
 var _relic_ids: Array[String] = []
 var _preset_option: OptionButton = null
+var _policy_option: OptionButton = null
+const _POLICY_IDS: Array = ["", "safe", "material", "relic", "codex"]
 var _tag_info_label: Label = null
 
 func _ready() -> void:
@@ -725,6 +727,21 @@ func _ensure_preset_ui() -> void:
 	_skill_content.add_child(row)
 	_skill_content.move_child(row, 0)
 	_preset_option = opt
+	# 探索方針セレクタ（P3-D098）。プリセットに内包され、保存時に一緒に記録される。
+	var policy_row := HBoxContainer.new()
+	policy_row.name = "PolicyRow"
+	var policy_label := Label.new()
+	policy_label.text = "探索方針:"
+	policy_row.add_child(policy_label)
+	var policy_opt := OptionButton.new()
+	policy_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	for pid: String in _POLICY_IDS:
+		policy_opt.add_item(GameState.exploration_policy_label(pid))
+	policy_opt.item_selected.connect(_on_policy_selected)
+	policy_row.add_child(policy_opt)
+	_skill_content.add_child(policy_row)
+	_skill_content.move_child(policy_row, 1)
+	_policy_option = policy_opt
 
 func _refresh_preset_ui() -> void:
 	if _preset_option == null:
@@ -737,6 +754,18 @@ func _refresh_preset_ui() -> void:
 		_preset_option.add_item(text)
 	if _preset_option.item_count > 0:
 		_preset_option.select(clampi(prev, 0, _preset_option.item_count - 1))
+	_sync_policy_option()
+
+func _sync_policy_option() -> void:
+	if _policy_option == null:
+		return
+	var idx: int = _POLICY_IDS.find(GameState.get_exploration_policy())
+	_policy_option.select(idx if idx >= 0 else 0)
+
+func _on_policy_selected(index: int) -> void:
+	if index < 0 or index >= _POLICY_IDS.size():
+		return
+	GameState.set_exploration_policy(str(_POLICY_IDS[index]))
 
 func _on_preset_apply_pressed() -> void:
 	if _preset_option == null:
@@ -747,6 +776,7 @@ func _on_preset_apply_pressed() -> void:
 	var member: Resource = GameState.get_member(_selected_member_index)
 	_refresh_tactics_ui(member)
 	_refresh_relic_ui(member)
+	_sync_policy_option()
 
 func _on_preset_save_pressed() -> void:
 	if _preset_option == null:
@@ -792,7 +822,15 @@ func _refresh_tag_info(member: Resource) -> void:
 	for e: String in syn:
 		syn_parts.append("%s +%d%%" % [CombatTags.display_name(e), int(round(float(syn[e]) * 100.0))])
 	var syn_text: String = " / ".join(syn_parts) if not syn_parts.is_empty() else "なし"
-	_tag_info_label.text = "武器タグ: %s   ｜   属性シナジー: %s" % [tag_text, syn_text]
+	# 物理タグシナジー＋ロール編成ボーナス（P3-D097）
+	var bonus_parts: PackedStringArray = []
+	var phys: float = CombatSynergy.compute_physical_bonus(GameState.party_members)
+	if phys > 0.0:
+		bonus_parts.append("物理連携 与ダメ+%d%%" % int(round(phys * 100.0)))
+	for lbl in CombatSynergy.compute_role_bonuses(GameState.party_members).get("labels", []):
+		bonus_parts.append(str(lbl))
+	var bonus_text: String = " / ".join(bonus_parts) if not bonus_parts.is_empty() else "なし"
+	_tag_info_label.text = "武器タグ: %s   ｜   属性シナジー: %s\n編成ボーナス: %s" % [tag_text, syn_text, bonus_text]
 
 func _skill_label_name(skill_id: String) -> String:
 	var sd: Resource = DataRegistry.get_skill_data(skill_id)
