@@ -349,6 +349,12 @@ func get_member_incoming_damage_multiplier(member_index: int) -> float:
 func get_enemy_incoming_damage_multiplier() -> float:
 	return _status_resolver.get_incoming_damage_multiplier("enemy")
 
+# 同系統タグ・シナジー（P3-D095）。指定属性をパーティで複数人が共有する時の与ダメボーナス（0.0=なし）。
+func get_element_synergy_bonus(element: String) -> float:
+	if element.is_empty():
+		return 0.0
+	return float(CombatSynergy.compute_element_bonuses(GameState.party_members).get(element, 0.0))
+
 func get_enemy_status_stacks(effect_id: String) -> int:
 	return _status_resolver.get_status_stacks("enemy", effect_id)
 

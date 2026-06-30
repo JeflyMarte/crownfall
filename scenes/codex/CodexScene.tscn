@@ -109,14 +109,16 @@ layout_mode = 2
 theme_override_constants/separation = 12
 
 [node name="ArtFrame" type="PanelContainer" parent="VBoxContainer/DetailPanel/TopRow"]
+clip_contents = true
 custom_minimum_size = Vector2(220, 220)
 layout_mode = 2
+size_flags_vertical = 0
 
 [node name="TextureIcon" type="TextureRect" parent="VBoxContainer/DetailPanel/TopRow/ArtFrame"]
 visible = false
 layout_mode = 2
 expand_mode = 1
-stretch_mode = 5
+stretch_mode = 6
 
 [node name="IconPlaceholder" type="PanelContainer" parent="VBoxContainer/DetailPanel/TopRow/ArtFrame"]
 layout_mode = 2

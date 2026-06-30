@@ -62,6 +62,7 @@ var _tactics_ids: Array[String] = []
 var _relic_option: OptionButton = null
 var _relic_ids: Array[String] = []
 var _preset_option: OptionButton = null
+var _tag_info_label: Label = null
 
 func _ready() -> void:
 	_tabs.set_tab_title(0, "装備")
@@ -574,6 +575,8 @@ func _rebuild_skill_tab() -> void:
 	_refresh_relic_ui(member)
 	_ensure_preset_ui()
 	_refresh_preset_ui()
+	_ensure_tag_info_ui()
+	_refresh_tag_info(member)
 	var slots_label: Label = _skill_content.get_node("LabelSkillSlots") as Label
 	var list: Node = _skill_content.get_node("SkillList")
 	for child in list.get_children():
@@ -754,6 +757,42 @@ func _on_preset_save_pressed() -> void:
 	GameState.save_combat_preset(slot)
 	_refresh_preset_ui()
 	_preset_option.select(slot)
+
+# タグ/シナジー可視化（P3-D095）。装備武器タグ＋パーティ属性シナジーを読み取り表示。
+func _ensure_tag_info_ui() -> void:
+	if _tag_info_label != null and is_instance_valid(_tag_info_label):
+		return
+	var row := HBoxContainer.new()
+	row.name = "TagInfoRow"
+	var lbl := Label.new()
+	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lbl.add_theme_font_size_override("font_size", 13)
+	row.add_child(lbl)
+	_skill_content.add_child(row)
+	_skill_content.move_child(row, 3)
+	_tag_info_label = lbl
+
+func _refresh_tag_info(member: Resource) -> void:
+	if _tag_info_label == null:
+		return
+	if member == null:
+		_tag_info_label.text = ""
+		return
+	var wtags: PackedStringArray = []
+	var winst: Resource = member.equipped_weapon
+	if winst != null and not str(winst.weapon_id).is_empty():
+		var wd: Resource = DataRegistry.get_weapon_data(winst.weapon_id)
+		if wd != null and "tags" in wd:
+			for t in wd.tags:
+				wtags.append(CombatTags.display_name(str(t)))
+	var tag_text: String = " / ".join(wtags) if not wtags.is_empty() else "なし"
+	var syn: Dictionary = CombatSynergy.compute_element_bonuses(GameState.party_members)
+	var syn_parts: PackedStringArray = []
+	for e: String in syn:
+		syn_parts.append("%s +%d%%" % [CombatTags.display_name(e), int(round(float(syn[e]) * 100.0))])
+	var syn_text: String = " / ".join(syn_parts) if not syn_parts.is_empty() else "なし"
+	_tag_info_label.text = "武器タグ: %s   ｜   属性シナジー: %s" % [tag_text, syn_text]
 
 func _skill_label_name(skill_id: String) -> String:
 	var sd: Resource = DataRegistry.get_skill_data(skill_id)

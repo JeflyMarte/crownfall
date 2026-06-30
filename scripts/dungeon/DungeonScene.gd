@@ -1114,6 +1114,11 @@ func _apply_enemy_mitigation(damage: int, attack_element: String, member_index: 
 		if not bane_class.is_empty() and bane_class == str(enemy_data.codex_class):
 			damage = maxi(1, int(round(float(damage) * float(bane.get("mult", 1.0)))))
 			element_tag += "  [特効:%s]" % bane_class
+	# 同系統タグ・シナジー（P3-D095）: 属性をパーティで複数人共有なら、その属性の与ダメ増幅。
+	var synergy: float = $CombatController.get_element_synergy_bonus(attack_element)
+	if synergy > 0.0:
+		damage = maxi(1, int(round(float(damage) * (1.0 + synergy))))
+		element_tag += "  [シナジー:%s]" % ElementResolverScript.get_display_name(attack_element)
 	damage = _apply_enemy_defense(damage, enemy_data)
 	return {"damage": damage, "element_tag": element_tag}
 
