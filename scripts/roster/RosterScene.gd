@@ -56,7 +56,7 @@ func _update_confirm_button() -> void:
 
 func _on_confirm_pressed() -> void:
 	if not GameState.set_active_party(_selected):
-		$VBoxContainer/LabelStatus.text = "編成の変更に失敗しました（1〜3名・重複不可）"
+		$VBoxContainer/LabelStatus.text = "編成の変更に失敗しました（1〜%d名・重複不可）" % GameState.ACTIVE_PARTY_SIZE
 		return
 	SaveManager.save_game()
 	$VBoxContainer/LabelStatus.text = "編成を更新しました"

@@ -19,6 +19,8 @@ extends Resource
 @export var drop_table_id: String = ""
 @export var element_weakness: Array[String] = []
 @export var element_resist: Array[String] = []
+## 攻撃属性（P3-D103）。この敵の攻撃が持つ属性 id（空=無属性）。防具の resist_elements で軽減される。
+@export var attack_element: String = ""
 @export var on_hit_status_id: String = ""
 @export var on_hit_status_chance: float = 0.0
 ## ボス/エリート用スキル。skill_ids の中から skill_use_chance で発動を試行する。

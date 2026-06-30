@@ -796,6 +796,7 @@ func _do_enemy_turn(slot: int) -> void:
 	_do_enemy_attack(slot)
 
 func _process_status_ticks() -> void:
+	$CombatController.decay_threat()
 	for result: Dictionary in $CombatController.tick_all_statuses():
 		var unit_id: String = result.get("unit_id", "")
 		var dmg: int = result.get("damage", 0)
@@ -917,6 +918,7 @@ func _execute_member_skill(member_idx: int, skill_data: Resource, cast_index: in
 	)
 	final_dmg += _consume_enemy_combo_bonus(member_idx, final_dmg, _member_action_tags(member_idx, skill_data))
 	$CombatController.apply_damage_to_enemy(final_dmg)
+	$CombatController.add_threat(member_idx, float(final_dmg) * CombatController.THREAT_DAMAGE_K)
 	var skill_is_crit: bool = result.get("is_critical", false)
 	var spawn_pos: Vector2 = _active_enemy_pos()
 	_spawn_hit_vfx(spawn_pos, attack_element)
@@ -1054,6 +1056,7 @@ func _try_cast_player_skill() -> String:
 	)
 	final_dmg += _consume_enemy_combo_bonus(member_idx, final_dmg, _member_action_tags(member_idx, skill_data))
 	$CombatController.apply_damage_to_enemy(final_dmg)
+	$CombatController.add_threat(member_idx, float(final_dmg) * CombatController.THREAT_DAMAGE_K)
 	var skill_is_crit: bool = result.get("is_critical", false)
 	var skill_spawn_pos: Vector2 = _active_enemy_pos()
 	_spawn_hit_vfx(skill_spawn_pos, attack_element)
@@ -1118,6 +1121,7 @@ func _try_cast_secondary_skill(primary_skill_id: String) -> String:
 	)
 	final_dmg += _consume_enemy_combo_bonus(member_idx, final_dmg, _member_action_tags(member_idx, skill_data))
 	$CombatController.apply_damage_to_enemy(final_dmg)
+	$CombatController.add_threat(member_idx, float(final_dmg) * CombatController.THREAT_DAMAGE_K)
 	var sec_is_crit: bool = result.get("is_critical", false)
 	var sec_spawn_pos: Vector2 = _active_enemy_pos()
 	_spawn_hit_vfx(sec_spawn_pos, attack_element)
@@ -1373,6 +1377,7 @@ func _execute_enemy_damage(skill: Resource) -> void:
 	for ti in targets:
 		var dmg: int = _calc_enemy_damage_to_member(ti, skill.power_multiplier)["final"]
 		$CombatController.apply_damage_to_member(ti, dmg)
+		$CombatController.add_threat(ti, float(dmg) * CombatController.THREAT_TAKEN_K)
 		_play_chr_hurt(ti)
 		if dmg > 0 and ti < _chr_sprites.size():
 			_spawn_hit_vfx(_chr_sprites[ti].global_position)
@@ -1439,6 +1444,7 @@ func _do_enemy_attack(slot: int = -1) -> void:
 	var attacker_atk: int = $CombatController.get_enemy_attack_at(slot) if slot >= 0 else -1
 	var enemy_result: Dictionary = _calc_enemy_damage_to_member(target_idx, 1.0, attacker_atk)
 	$CombatController.apply_damage_to_member(target_idx, enemy_result["final"])
+	$CombatController.add_threat(target_idx, float(enemy_result["final"]) * CombatController.THREAT_TAKEN_K)
 	_play_chr_hurt(target_idx)
 	if enemy_result["final"] > 0 and target_idx < _chr_sprites.size():
 		_spawn_hit_vfx(_chr_sprites[target_idx].global_position)
@@ -1450,11 +1456,14 @@ func _do_enemy_attack(slot: int = -1) -> void:
 	var guard_prefix: String = ""
 	if target_combatant != null and target_combatant.job_id == "swordsman" and not GameState.is_helper_combatant(target_idx):
 		guard_prefix = "[前衛] "
+	var resist_tag: String = ""
+	if enemy_result.get("elem_resisted", false):
+		resist_tag = "  [耐性:%s]" % ElementResolverScript.get_display_name(_active_enemy_attack_element())
 	var log_text: String
 	if enemy_result["mitigated"] > 0:
-		log_text = "敵の攻撃: %s%s に %dダメージ（軽減%d）" % [guard_prefix, member_name, enemy_result["final"], enemy_result["mitigated"]]
+		log_text = "敵の攻撃: %s%s に %dダメージ（軽減%d）%s" % [guard_prefix, member_name, enemy_result["final"], enemy_result["mitigated"], resist_tag]
 	else:
-		log_text = "敵の攻撃: %s%s に %dダメージ" % [guard_prefix, member_name, enemy_result["final"]]
+		log_text = "敵の攻撃: %s%s に %dダメージ%s" % [guard_prefix, member_name, enemy_result["final"], resist_tag]
 	if not $CombatController.is_member_alive(target_idx):
 		log_text += "\n%s が倒れた！" % member_name
 	_append_log(log_text)
@@ -1529,8 +1538,31 @@ func _calc_enemy_damage_to_member(target_index: int, power_multiplier: float = 1
 	var incoming_mult: float = $CombatController.get_member_incoming_damage_multiplier(target_index)
 	if not is_equal_approx(incoming_mult, 1.0):
 		final_dmg = maxi(0, int(round(float(final_dmg) * incoming_mult)))
+	# 防具の属性耐性（P3-D103）: 敵攻撃属性が防具 resist_elements と一致なら軽減。
+	var elem_resisted: bool = false
+	if _member_resists_element(target_index, _active_enemy_attack_element()):
+		final_dmg = maxi(0, int(round(float(final_dmg) * ARMOR_RESIST_MULTIPLIER)))
+		elem_resisted = true
 	var mitigated: int = base_dmg - final_dmg
-	return {"final": final_dmg, "base": base_dmg, "mitigated": mitigated}
+	return {"final": final_dmg, "base": base_dmg, "mitigated": mitigated, "elem_resisted": elem_resisted}
+
+# 防御側属性耐性（P3-D103）。被ダメ軽減倍率。
+const ARMOR_RESIST_MULTIPLIER: float = 0.75
+
+func _active_enemy_attack_element() -> String:
+	var ed: Resource = $CombatController.current_enemy_data
+	return str(ed.attack_element) if ed != null else ""
+
+func _member_resists_element(target_index: int, attack_element: String) -> bool:
+	if attack_element.is_empty():
+		return false
+	var armor: Resource = GameState.get_member_equipped_armor(target_index)
+	if armor == null:
+		return false
+	var armor_data: Resource = load("res://resources/armors/" + str(armor.armor_id) + ".tres")
+	if armor_data == null or not ("resist_elements" in armor_data):
+		return false
+	return attack_element in armor_data.resist_elements
 
 # 敵の codex_materials を rarity 別確率で実ドロップ（P3-D067 / 図鑑↔経済の一本化）
 const ECOLOGY_DROP_CHANCE: Dictionary = {0: 0.6, 1: 0.3, 2: 0.12, 3: 0.05}
@@ -1706,6 +1738,8 @@ func _do_member_defend_slot(member_idx: int) -> bool:
 		return false
 	if not $CombatController.apply_status("party_%d" % member_idx, "guard", 1, 0):
 		return false
+	# 防御＝挑発（Threat スパイク・P3-D104）。身を固めて敵の attention を引く。
+	$CombatController.apply_taunt(member_idx)
 	_update_status_icons()
 	_clear_member_skill_labels(member_idx)
 	_spawn_skill_name("防御", member_idx, 0.0)
@@ -1735,6 +1769,7 @@ func _do_member_basic_attack(member_idx: int) -> void:
 	var result: Dictionary = _calc_damage(member_idx)
 	result["damage"] = int(result["damage"]) + _consume_enemy_combo_bonus(member_idx, int(result["damage"]), _member_action_tags(member_idx))
 	$CombatController.apply_damage_to_enemy(result["damage"])
+	$CombatController.add_threat(member_idx, float(result["damage"]) * CombatController.THREAT_DAMAGE_K)
 	_try_apply_affix_statuses(member_idx)
 	_update_hp_bars()
 	var member: Resource = GameState.get_combatant(member_idx)

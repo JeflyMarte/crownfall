@@ -9,5 +9,6 @@ display_name = "巡邏兵の革鎧"
 base_defense = 5
 base_hp_bonus = 15
 base_resistance = 0.0
+resist_elements = Array[String](["ice"])
 weight = 0.8
 rarity = 0

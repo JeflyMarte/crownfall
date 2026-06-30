@@ -3,6 +3,7 @@ extends Control
 const _AffixDisplayFormatter = preload("res://scripts/equipment/AffixDisplayFormatter.gd")
 const _JobStatCalculator = preload("res://scripts/equipment/JobStatCalculator.gd")
 const _AffixStatCalculator = preload("res://scripts/equipment/AffixStatCalculator.gd")
+const _ElementResolver = preload("res://scripts/combat/ElementResolver.gd")
 
 # CombatController.BASE_MEMBER_HP と同値（表示用の素HP）。
 const BASE_MEMBER_HP: int = 30
@@ -71,7 +72,7 @@ func _ready() -> void:
 	_tabs.set_tab_title(1, "スキル")
 	_button_back.pressed.connect(_on_back_pressed)
 	_button_unequip_all.pressed.connect(_on_unequip_all_pressed)
-	for i in 3:
+	for i in GameState.ACTIVE_PARTY_SIZE:
 		var btn: Button = _member_row.get_node("ButtonMember%d" % i) as Button
 		btn.pressed.connect(_on_member_selected.bind(i))
 	_connect_category_buttons()
@@ -120,7 +121,7 @@ func _on_member_selected(member_index: int) -> void:
 	_refresh_display()
 
 func _refresh_member_buttons() -> void:
-	for i in 3:
+	for i in GameState.ACTIVE_PARTY_SIZE:
 		var btn: Button = _member_row.get_node("ButtonMember%d" % i) as Button
 		if i < GameState.party_members.size():
 			var member: Resource = GameState.party_members[i]
@@ -443,6 +444,7 @@ func _item_label(item: Resource, category: String) -> String:
 			var at: String = "%s  DEF %d  HP+%d  WGT %.1f" % [
 				DataRegistry.get_armor_name(item.armor_id), item.rolled_defense, item.hp_bonus, item.weight
 			]
+			at += _armor_resist_suffix(item)
 			return _AffixDisplayFormatter.append_to_text(at, item)
 		"accessory":
 			var acc_data: Resource = _accessory_data(item)
@@ -484,6 +486,22 @@ func _weapon_compare(candidate: Resource, equipped: Resource) -> String:
 	if not is_zero_approx(crt_diff):
 		parts.append("CRT %s%.0f%%" % ["+" if crt_diff >= 0.0 else "", crt_diff * 100.0])
 	return "[%s]" % " | ".join(parts)
+
+# 防具の属性耐性表示（P3-D103）。例: "  耐性:闇"。
+func _armor_resist_suffix(item: Resource) -> String:
+	if item == null:
+		return ""
+	var armor_data: Resource = load("res://resources/armors/" + str(item.armor_id) + ".tres")
+	if armor_data == null or not ("resist_elements" in armor_data):
+		return ""
+	var names: PackedStringArray = []
+	for e in armor_data.resist_elements:
+		var nm: String = _ElementResolver.get_display_name(str(e))
+		if not nm.is_empty():
+			names.append(nm)
+	if names.is_empty():
+		return ""
+	return "  耐性:%s" % "/".join(names)
 
 func _armor_compare(candidate: Resource, equipped: Resource) -> String:
 	var parts: PackedStringArray = []

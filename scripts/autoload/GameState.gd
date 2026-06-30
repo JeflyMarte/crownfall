@@ -154,6 +154,44 @@ func set_member_relic(member: Resource, relic_id: String) -> void:
 		return
 	member.relic_id = CombatRelics.normalize_id(relic_id)
 
+# ---- 陣形（前列/後列・P3-D106） ----
+const FORMATION_FRONT: int = 0
+const FORMATION_BACK: int = 1
+const FORMATION_BACK_INCOMING: float = 0.85  # 後列の被ダメ倍率
+const FORMATION_BACK_THREAT: float = 0.6     # 後列の Threat 基礎倍率
+
+func get_member_formation_row(member: Resource) -> int:
+	if member != null and "formation_row" in member:
+		return FORMATION_BACK if int(member.formation_row) == FORMATION_BACK else FORMATION_FRONT
+	return FORMATION_FRONT
+
+func set_member_formation_row(member: Resource, row: int) -> void:
+	if member == null:
+		return
+	member.formation_row = FORMATION_BACK if row == FORMATION_BACK else FORMATION_FRONT
+
+func is_member_back_row(member_index: int) -> bool:
+	return get_member_formation_row(get_combatant(member_index)) == FORMATION_BACK
+
+# 後列の被ダメ軽減倍率（CombatController が乗算）。
+func formation_incoming_multiplier(member_index: int) -> float:
+	return FORMATION_BACK_INCOMING if is_member_back_row(member_index) else 1.0
+
+# 行の Threat 基礎倍率（後列は狙われにくい）。
+func formation_threat_multiplier(member_index: int) -> float:
+	return FORMATION_BACK_THREAT if is_member_back_row(member_index) else 1.0
+
+# 陣形プリセット適用（前から row 数だけ前列、残りを後列）。preset: "balanced"/"front"/"back"
+func apply_formation_preset(preset: String) -> void:
+	var n: int = party_members.size()
+	var front_count: int = n
+	match preset:
+		"front": front_count = n
+		"back": front_count = maxi(1, n - 2)
+		_: front_count = maxi(1, n - 1) # balanced=最後尾1人を後列
+	for i in n:
+		set_member_formation_row(party_members[i], FORMATION_FRONT if i < front_count else FORMATION_BACK)
+
 # ---- 遺物 所持（解放型・P3-D093） ----
 # 入手した遺物 id の集合（解放型: 一度入手すれば恒久・全員装備可）。セーブ永続。
 var owned_relics: Array = []
@@ -317,7 +355,9 @@ const BASE_ROSTER_DEFS: Array = [
 	{"id": "adventurer_3", "name": "ヴァンガード", "job": "vanguard"},
 	{"id": "adventurer_4", "name": "ビーストテイマー", "job": "beast_tamer"},
 ]
-const ACTIVE_PARTY_SIZE: int = 3
+const ACTIVE_PARTY_SIZE: int = 4
+# 戦闘スロット上限（スプライト/HPバー枠＝4）。助っ人含む同時表示の最大数（P3-D105）。
+const COMBAT_SLOT_MAX: int = 4
 
 func _ready() -> void:
 	_init_party()
@@ -402,13 +442,18 @@ func _create_starting_weapon(member_id: String, weapon_id: String) -> Resource:
 # ラン内一時参加。party_members に含めない（Save/EXP/装備/全滅判定対象外）。
 var event_helper: Resource = null
 
+# 助っ人が実際に戦闘参加するか（P3-D105）。戦闘スロットは COMBAT_SLOT_MAX。
+# 編成が満員（4人）の場合は助っ人を出さない（5体目＝スプライト枠不足を防止）。
+func _helper_active() -> bool:
+	return event_helper != null and party_members.size() < COMBAT_SLOT_MAX
+
 func get_combatants() -> Array:
-	if event_helper != null:
+	if _helper_active():
 		return party_members + [event_helper]
 	return party_members
 
 func combatant_count() -> int:
-	return party_members.size() + (1 if event_helper != null else 0)
+	return party_members.size() + (1 if _helper_active() else 0)
 
 func get_combatant(i: int) -> Resource:
 	if i < 0 or i >= combatant_count():
@@ -418,7 +463,7 @@ func get_combatant(i: int) -> Resource:
 	return event_helper
 
 func is_helper_combatant(i: int) -> bool:
-	return event_helper != null and i == party_members.size()
+	return _helper_active() and i == party_members.size()
 
 func set_event_helper(adv: Resource) -> void:
 	event_helper = adv

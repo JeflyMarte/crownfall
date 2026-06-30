@@ -21,6 +21,7 @@ gold_reward = 52
 drop_table_id = "clock_moth_drops"
 element_weakness = Array[String](["thunder"])
 element_resist = Array[String]([])
+attack_element = "thunder"
 on_hit_status_id = "stun"
 on_hit_status_chance = 0.2
 codex_class = "昆虫類"

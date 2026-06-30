@@ -21,6 +21,7 @@ gold_reward = 190
 drop_table_id = "serdion_drops"
 element_weakness = Array[String](["thunder", "holy"])
 element_resist = Array[String](["dark"])
+attack_element = "dark"
 on_hit_status_id = "bleed"
 on_hit_status_chance = 0.2
 skill_ids = Array[String](["boss_enrage", "boss_decree_wave"])

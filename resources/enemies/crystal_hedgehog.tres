@@ -21,6 +21,7 @@ gold_reward = 24
 drop_table_id = "crystal_hedgehog_drops"
 element_weakness = Array[String](["thunder"])
 element_resist = Array[String]([])
+attack_element = "ice"
 on_hit_status_id = "bleed"
 on_hit_status_chance = 0.25
 codex_class = "獣類"

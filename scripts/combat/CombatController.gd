@@ -46,6 +46,27 @@ var party_combat_hp: Array[int] = []
 var party_max_hp: Array[int] = []
 var _status_resolver: RefCounted = _StatusResolver.new()
 
+# ── Threat / Aggro 基盤（P3-D104・ロードマップ フェーズA-2）──
+# 敵は最大 Threat のメンバーを狙う。Threat は被ダメ肩代わり・与ダメ・挑発で増え、毎tick減衰。
+var party_threat: Array[float] = []
+const THREAT_DAMAGE_K: float = 0.10   # 与ダメ1あたりの加算
+const THREAT_TAKEN_K: float = 0.15    # 被ダメ1あたりの加算（タンクが矢面で稼ぐ）
+const THREAT_TAUNT: float = 40.0      # 挑発（防御スロット）スパイク
+const THREAT_DECAY: float = 0.90      # status tick ごとの減衰率（基礎値へ寄せる）
+
+# ジョブ別の基礎 Threat 重み（タンクが引きやすい）。
+func _job_threat_base(member_index: int) -> float:
+	var c: Resource = GameState.get_combatant(member_index)
+	if c == null:
+		return 1.0
+	var base: float = 1.0
+	match str(c.job_id):
+		"vanguard": base = 4.0
+		"swordsman": base = 2.0
+		_: base = 1.0
+	# 陣形（後列は狙われにくい）（P3-D106）
+	return base * GameState.formation_threat_multiplier(member_index)
+
 func start_combat(enemy_data: Resource, level: int = 1) -> void:
 	start_combat_group([enemy_data], level)
 
@@ -214,6 +235,7 @@ func end_combat() -> void:
 func _init_party_hp() -> void:
 	party_combat_hp.clear()
 	party_max_hp.clear()
+	party_threat.clear()
 	var combatants: Array = GameState.get_combatants()
 	for i in combatants.size():
 		var member: Resource = combatants[i]
@@ -238,6 +260,7 @@ func _init_party_hp() -> void:
 		max_hp = maxi(1, int(round(float(max_hp) * hp_mult)))
 		party_combat_hp.append(max_hp)
 		party_max_hp.append(max_hp)
+		party_threat.append(_job_threat_base(i))
 		print(
 			"[JobCombat] HP member=%s job=%s mult=%.2f max_hp=%d"
 			% [member.display_name, job_mods.get("job_id", ""), hp_mult, max_hp]
@@ -319,12 +342,33 @@ func pick_enemy_target_member_index() -> int:
 			alive.append(i)
 	if alive.is_empty():
 		return -1
-	for tag in ["vanguard", "swordsman"]:
-		for i in alive:
-			var c: Resource = GameState.get_combatant(i)
-			if c != null and c.job_id == tag:
-				return i
-	return alive[randi() % alive.size()]
+	# Threat 最大を狙う（P3-D104）。同値はジョブ優先→index 昇順で安定化。
+	var best: int = alive[0]
+	for i in alive:
+		if _threat_of(i) > _threat_of(best):
+			best = i
+	return best
+
+func _threat_of(member_index: int) -> float:
+	if member_index < 0 or member_index >= party_threat.size():
+		return 0.0
+	return party_threat[member_index]
+
+# Threat を加算（P3-D104）。member が範囲外なら無視。
+func add_threat(member_index: int, amount: float) -> void:
+	if member_index < 0 or member_index >= party_threat.size():
+		return
+	party_threat[member_index] = maxf(0.0, party_threat[member_index] + amount)
+
+# 挑発（防御スロット等）。当該メンバーへ大きな Threat スパイクを与え矢面に立たせる。
+func apply_taunt(member_index: int) -> void:
+	add_threat(member_index, THREAT_TAUNT)
+
+# status tick ごとに Threat を基礎値へ向けて減衰させる（挑発が時間で薄れる）。
+func decay_threat() -> void:
+	for i in party_threat.size():
+		var base: float = _job_threat_base(i)
+		party_threat[i] = base + (party_threat[i] - base) * THREAT_DECAY
 
 func capture_rewards() -> void:
 	if current_enemy_data == null:
@@ -361,7 +405,12 @@ func _member_relic_effects(member_index: int) -> Dictionary:
 	var rid: String = ""
 	if member != null and "relic_id" in member:
 		rid = str(member.relic_id)
-	return CombatRelics.effects_for(rid)
+	var eff: Dictionary = CombatRelics.effects_for(rid)
+	# 王国軍旗＝前列限定の与ダメ+10%（P3-D106）。後列では outgoing ボーナスを無効化。
+	if rid == "war_banner" and GameState.is_member_back_row(member_index):
+		eff = eff.duplicate()
+		eff["outgoing_mult"] = 1.0
+	return eff
 
 func get_member_outgoing_damage_multiplier(member_index: int) -> float:
 	var mult: float = _status_resolver.get_outgoing_damage_multiplier("party_%d" % member_index)
@@ -381,6 +430,8 @@ func get_member_incoming_damage_multiplier(member_index: int) -> float:
 	mult *= GameState.exploration_incoming_multiplier()
 	# 天候（霧＝被ダメ軽減）（P3-D101）
 	mult *= CombatWeather.incoming_multiplier(GameState.get_weather())
+	# 陣形（後列＝被ダメ軽減）（P3-D106）
+	mult *= GameState.formation_incoming_multiplier(member_index)
 	return mult
 
 # ロール編成ボーナス（P3-D097）。回復量倍率 / 会心率加算。

@@ -17,5 +17,8 @@ extends Resource
 @export var tactics_id: String = ""
 ## 遺物 id（P3-D090・第3装備枠）。空＝なし。与ダメ/被ダメ/行動速度の常時倍率を与える。
 @export var relic_id: String = ""
+
+## 陣形の行（P3-D106）。0=前列 / 1=後列。後列は被ダメ/Threat 減、前列は war_banner 等の前列ボーナス対象。
+@export var formation_row: int = 0
 ## ジョブ進化（到達形）済みか（P3-D037 / 手動ギルド認定で true）。
 @export var is_evolved: bool = false

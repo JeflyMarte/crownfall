@@ -9,5 +9,6 @@ display_name = "納骨堂の骨甲"
 base_defense = 10
 base_hp_bonus = 20
 base_resistance = 0.0
+resist_elements = Array[String](["dark"])
 weight = 1.2
 rarity = 1

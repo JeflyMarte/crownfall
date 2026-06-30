@@ -1288,3 +1288,37 @@
 | P3-D100-2 | **選択＝単一アクティブの付け替え**（`CombatController.set_focus_by_rule`）。生存敵からルールで1体選び active に設定。全員がそのフォーカスを攻撃 | 単一アクティブ維持＝既存の被ダメ/状態異常/コンボ/HPバー処理を一切変えずに狙い分けを実現 |
 | P3-D100-3 | **配線＝`_do_member_turn` 冒頭で行動メンバーの戦術 target を適用**（`_apply_focus_target`）。発火条件: 群れ(生存2体以上)時のみ＋**アクティブ敵に状態異常が乗っている間は切替えない**（単一スロット "enemy" 状態の他個体への転移を防止） | 同種群れの focus-fire（lowest_hp で頭数を早く減らし被ダメ減）を安全に実現。DoT 整合を保護 |
 | P3-D100-4 | **スコープ外（後続 大物）**: 混成エンカウント・敵別状態異常スロット・メンバー個別ターゲット（同時に別個体狙い）・Target条件9種全実装・狙いの可視化 | 同種群れ中心の現状では focus 方針で十分。基盤拡張は別 Decision |
+
+## 防具の属性耐性 MVP（2026-06-30 — P3-D103・残ロードマップ フェーズA-1）
+
+> 攻撃偏重だった属性システムを防御側へ拡張。防具が特定属性の敵攻撃を軽減し、天候(D101)/地形(D099)と対になる防御選択を生む。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D103-1 | **データ追加**: `ArmorData.resist_elements: Array[String]`（ElementResolver id）／`EnemyData.attack_element: String`（敵攻撃の属性・空=無属性）。旧 `base_resistance` は予約のまま非使用 | 攻撃側(敵 attack_element)↔防御側(防具 resist)のマッチングで属性防御を成立 |
+| P3-D103-2 | **効果＝一致で被ダメ ×0.75**（`ARMOR_RESIST_MULTIPLIER`・ElementResolver の RESIST_MULTIPLIER と同値）。敵攻撃属性＝アクティブ敵の `attack_element`（群れは同種で共通） | 弱点/耐性と同じ −25% で体感を統一。単一倍率で明快 |
+| P3-D103-3 | **配線＝`_calc_enemy_damage_to_member` に1フック**（incoming_mult の後）。`_member_resists_element`（装備防具 ArmorData の resist_elements を判定）。ログに `[耐性:◯]`（通常攻撃経路） | 既存の被ダメ中央計算に相乗り。散在回避・敵スキルダメージにも倍率は作用 |
+| P3-D103-4 | **初期データ**: 防具 bone_armor=闇耐性 / leather_armor=氷耐性。敵 crystal_hedgehog=氷攻撃 / clock_moth=雷攻撃 / serdion(ボス)=闇攻撃。装備一覧に「耐性:◯」表示（`EquipmentScene._armor_resist_suffix`） | 既存2防具・6敵に最小付与で機能実証。プレイヤーが装備選択時に耐性を確認可能 |
+| P3-D103-5 | **スコープ外**: 属性耐性の数値レアリティ/Affix・複数段階(半減/無効/吸収)・敵スキルごとの個別属性・耐性貫通・耐性の図鑑表示 | MVP最小化。耐性深掘りは後続 |
+
+## Aggro / Threat 基盤 MVP（2026-06-30 — P3-D104・残ロードマップ フェーズA-2）
+
+> 旧「簡易ヘイト」（ジョブ優先で vanguard→swordsman→ランダム）を本格 Threat 値システムへ置換。敵が誰を狙うかを動的にし、タンク/挑発・連携の土台を作る。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D104-1 | **Threat 値を party 各員に保持**（`CombatController.party_threat`）。戦闘開始時にジョブ基礎値で初期化（vanguard=4.0/swordsman=2.0/他=1.0）。敵は **最大 Threat のメンバー**を狙う（`pick_enemy_target_member_index` を threat 最大選択へ書換・助っ人除外は維持・同値は index 昇順） | 動的ターゲティングの基盤。タンクが自然に矢面へ。旧ジョブ優先は基礎重みとして吸収 |
+| P3-D104-2 | **Threat 増加源**: 与ダメ ×0.10（`THREAT_DAMAGE_K`・通常/スキル/必殺の全ダメージ適用後）／被ダメ ×0.15（`THREAT_TAKEN_K`・敵通常/スキル被弾後）／**防御スロット＝挑発スパイク +40**（`apply_taunt`・`THREAT_TAUNT`） | アタッカーは殴るほど狙われ、タンクは殴られ・防御で能動的に Threat を稼ぐ。「防御＝挑発」で vanguard の役割を明確化 |
+| P3-D104-3 | **減衰**: status tick ごとに基礎値へ向けて ×0.90（`decay_threat`・`THREAT_DECAY`）。挑発スパイクは時間で薄れ元のターゲットへ戻る | 「挑発→Threat最大→終了後元に戻る」を表現。CT/状態tickに相乗りで追加ループ無し |
+| P3-D104-4 | **スコープ外**: 挑発専用スキル/遺物（王盾の欠片の挑発延長）・Threat の可視化(UI バー)・敵ごとの個別 Threat テーブル（現状は party 単一 Threat を全敵共有）・キャラ連携（挑発→連携斬り）・複数タンクの按分 | MVP最小化。連携(フェーズD-12)・遺物発火(D-11)で活用予定 |
+
+## 4人編成化（A-3 前段）（2026-06-30 — P3-D105）
+
+> 提案の陣形「2×2（前2・後2）」に合わせ、アクティブ編成を 3→4 人へ拡張。戦闘エンジンは既に4ユニット前提（スプライト/HPバー4枠・size 駆動ロジック）のため低コストで実現。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D105-1 | **`GameState.ACTIVE_PARTY_SIZE` 3→4**。ロスター選択・装備メンバー切替・戦闘表示は同定数/`party_members.size()`/`combatant_count()` 駆動のため自動追従。装備画面に `ButtonMember3` を追加（`for i in 3`→`ACTIVE_PARTY_SIZE`） | 既存スケーリングを活かし最小変更。スプライト/HPバーは .tscn に4枠既設 |
+| P3-D105-2 | **助っ人衝突の解決**: 戦闘スロット上限 `COMBAT_SLOT_MAX=4`。`_helper_active()`＝編成が満員(4)なら event_helper を戦闘に含めない（5体目＝枠不足を防止）。get_combatants/combatant_count/get_combatant/is_helper_combatant が参照 | 4人＋助っ人＝5体でスプライト枠超過するクラッシュ/描画破綻を回避 |
+| P3-D105-3 | **Threat(D104)/陣形(A-3)/状態UI/ターンオーダーは非改修**: いずれも size 駆動で4人へ自動対応 | 4人化と独立して機能。A-3 陣形を4人前提で載せられる |
+| P3-D105-4 | **スコープ外/要追跡**: 4人化に伴うリバランス（アタッカー+1の火力過多・敵/群れ難度）・4人前提のレイアウト微調整（実機確認）・初期編成は roster 先頭4名 | 数値調整は実機後。まず機構を通す |
