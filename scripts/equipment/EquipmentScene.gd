@@ -59,6 +59,8 @@ var _inventory_filter: String = "all"
 # 戦術セレクタ（P3-D086・スキルタブ上部に動的生成）
 var _tactics_option: OptionButton = null
 var _tactics_ids: Array[String] = []
+var _relic_option: OptionButton = null
+var _relic_ids: Array[String] = []
 
 func _ready() -> void:
 	_tabs.set_tab_title(0, "装備")
@@ -567,6 +569,8 @@ func _rebuild_skill_tab() -> void:
 	var member: Resource = GameState.get_member(_selected_member_index)
 	_ensure_tactics_ui()
 	_refresh_tactics_ui(member)
+	_ensure_relic_ui()
+	_refresh_relic_ui(member)
 	var slots_label: Label = _skill_content.get_node("LabelSkillSlots") as Label
 	var list: Node = _skill_content.get_node("SkillList")
 	for child in list.get_children():
@@ -641,6 +645,46 @@ func _on_tactics_selected(index: int) -> void:
 	if member == null:
 		return
 	GameState.set_member_tactics(member, _tactics_ids[index])
+
+# 遺物セレクタ（P3-D090）。戦術行の直下に 1 度だけ生成する。
+func _ensure_relic_ui() -> void:
+	if _relic_option != null and is_instance_valid(_relic_option):
+		return
+	var row := HBoxContainer.new()
+	row.name = "RelicRow"
+	var label := Label.new()
+	label.text = "遺物:"
+	row.add_child(label)
+	var opt := OptionButton.new()
+	opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_relic_ids.clear()
+	for r: Dictionary in CombatRelics.relic_list():
+		opt.add_item(str(r["display_name"]))
+		_relic_ids.append(str(r["id"]))
+	opt.item_selected.connect(_on_relic_selected)
+	row.add_child(opt)
+	_skill_content.add_child(row)
+	_skill_content.move_child(row, 1)
+	_relic_option = opt
+
+func _refresh_relic_ui(member: Resource) -> void:
+	if _relic_option == null:
+		return
+	if member == null:
+		_relic_option.disabled = true
+		return
+	_relic_option.disabled = false
+	var current: String = GameState.get_member_relic_id(member)
+	var idx: int = _relic_ids.find(current)
+	_relic_option.select(idx if idx >= 0 else 0)
+
+func _on_relic_selected(index: int) -> void:
+	if index < 0 or index >= _relic_ids.size():
+		return
+	var member: Resource = GameState.get_member(_selected_member_index)
+	if member == null:
+		return
+	GameState.set_member_relic(member, _relic_ids[index])
 
 func _skill_label_name(skill_id: String) -> String:
 	var sd: Resource = DataRegistry.get_skill_data(skill_id)

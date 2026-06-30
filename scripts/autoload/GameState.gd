@@ -138,6 +138,20 @@ func set_member_tactics(member: Resource, tactics_id: String) -> void:
 		return
 	member.tactics_id = CombatTactics.normalize_id(tactics_id)
 
+# ---- 遺物（Relics・P3-D090） ----
+# メンバーの遺物 id（未設定/無効なら "" = なし）。
+func get_member_relic_id(member: Resource) -> String:
+	if member == null:
+		return CombatRelics.NONE_ID
+	if "relic_id" in member:
+		return CombatRelics.normalize_id(str(member.relic_id))
+	return CombatRelics.NONE_ID
+
+func set_member_relic(member: Resource, relic_id: String) -> void:
+	if member == null:
+		return
+	member.relic_id = CombatRelics.normalize_id(relic_id)
+
 func find_item_equipped_member_index(item: Resource) -> int:
 	if item == null:
 		return -1

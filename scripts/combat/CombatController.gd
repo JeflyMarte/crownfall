@@ -327,12 +327,24 @@ func should_enemy_skip_action() -> bool:
 func get_enemy_skip_action_label() -> String:
 	return _status_resolver.get_skip_action_label("enemy")
 
-func get_member_outgoing_damage_multiplier(member_index: int) -> float:
-	return _status_resolver.get_outgoing_damage_multiplier("party_%d" % member_index)
+# メンバーの遺物効果倍率（P3-D090）。メイン編成のみ（助っ人は遺物なし）。
+func _member_relic_effects(member_index: int) -> Dictionary:
+	if member_index < 0 or member_index >= GameState.party_members.size():
+		return CombatRelics.effects_for(CombatRelics.NONE_ID)
+	var member: Resource = GameState.party_members[member_index]
+	var rid: String = ""
+	if member != null and "relic_id" in member:
+		rid = str(member.relic_id)
+	return CombatRelics.effects_for(rid)
 
-# 被ダメ補正（防御=guard 等）。1.0=等倍。P3-D085 で配線。
+func get_member_outgoing_damage_multiplier(member_index: int) -> float:
+	var mult: float = _status_resolver.get_outgoing_damage_multiplier("party_%d" % member_index)
+	return mult * float(_member_relic_effects(member_index).get("outgoing_mult", 1.0))
+
+# 被ダメ補正（防御=guard 等）。1.0=等倍。P3-D085 で配線。遺物 incoming_mult も乗算（P3-D090）。
 func get_member_incoming_damage_multiplier(member_index: int) -> float:
-	return _status_resolver.get_incoming_damage_multiplier("party_%d" % member_index)
+	var mult: float = _status_resolver.get_incoming_damage_multiplier("party_%d" % member_index)
+	return mult * float(_member_relic_effects(member_index).get("incoming_mult", 1.0))
 
 func get_enemy_incoming_damage_multiplier() -> float:
 	return _status_resolver.get_incoming_damage_multiplier("enemy")
@@ -377,7 +389,8 @@ func get_member_initiative_score(i: int) -> float:
 			if job_data != null and job_data.base_initiative_modifier > 0.0:
 				job_mod = job_data.base_initiative_modifier
 	var affix_mult: float = float(_AffixStatCalculator.get_bonuses(i).get("attack_speed_mult_add", 0.0))
-	return spd * job_mod * (1.0 + affix_mult)
+	var relic_speed: float = float(_member_relic_effects(i).get("speed_mult", 1.0))
+	return spd * job_mod * (1.0 + affix_mult) * relic_speed
 
 func get_party_initiative_score() -> float:
 	var best: float = 0.0

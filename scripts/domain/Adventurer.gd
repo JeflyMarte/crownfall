@@ -15,5 +15,7 @@ extends Resource
 @export var equipped_skill_ids: Array[String] = []
 ## 戦術プリセット id（P3-D086・AI最上位設定）。空なら "balanced"。スロット選択優先度を決める。
 @export var tactics_id: String = ""
+## 遺物 id（P3-D090・第3装備枠）。空＝なし。与ダメ/被ダメ/行動速度の常時倍率を与える。
+@export var relic_id: String = ""
 ## ジョブ進化（到達形）済みか（P3-D037 / 手動ギルド認定で true）。
 @export var is_evolved: bool = false

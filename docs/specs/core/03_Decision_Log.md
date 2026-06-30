@@ -1140,3 +1140,16 @@
 | P3-D089-4 | **基盤追加**: `StatusResolver.get_status_stacks/consume_status`、`CombatController.get_enemy_status_stacks/consume_enemy_status`。`DungeonScene._consume_enemy_combo_bonus` を通常攻撃＋スキル3経路（primary/buff系/secondary）の apply 直前に配線 | 状態の取得/丸ごと消費を最小APIで追加。全味方与ダメ経路を被覆 |
 | P3-D089-5 | **表示**: 頭上に `毒爆発 +N` ポップ（橙）＋ログ `[コンボ] 毒爆発 +N`。ダメージ数値は攻撃と合算表示 | 起爆の視認性。専用ポップ関数は増設せず既存 `_spawn_damage_number` 流用 |
 | P3-D089-6 | **スコープ外**: シナジータグ(Slash/Pierce/Fire…)の正式分類・味方への状態コンボ・出血/感電等の追加コンボ・コンボ専用VFX | MVP最小化。タグ体系は遺物/スキル拡張と併せて後続 |
+
+## 遺物（Relics）MVP（2026-06-30 — P3-D090）
+
+> 「武器=何で戦うか / 防具=どれだけ耐えるか / 遺物=どう戦うか」の第3の柱。入手/インベントリは作らず、プリセット選択（戦術と同UI）で常時倍率効果を付与する薄いMVP。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D090-1 | **1メンバー1遺物枠**。`Adventurer.relic_id`（空=なし）・セーブ永続（`SaveManager` party 直列化に追加）。`GameState.get_member_relic_id/set_member_relic` | 戦術(P3-D086)と同データパターン。最小データで第3枠を成立 |
+| P3-D090-2 | **カタログ＝`CombatRelics`（静的・tres非増設）**。効果＝常時倍率 `outgoing_mult`/`incoming_mult`/`speed_mult`（既定1.0）。`effects_for(id)` でマージ取得 | Tactics/Passives/Combos と一貫。発火型/条件型は後続で拡張可 |
+| P3-D090-3 | **配線＝戦闘の中央3フックのみ**（低リスク・全攻撃/被弾経路を被覆）: 与ダメ=`get_member_outgoing_damage_multiplier`、被ダメ=`get_member_incoming_damage_multiplier`、行動速度=`get_member_initiative_score`（CT短縮）。いずれも状態異常倍率と乗算。助っ人は遺物なし | 既存倍率関数に1係数を乗じるだけ＝ダメ計算/CT計算の散在を回避 |
+| P3-D090-4 | **MVP遺物4種**: 王国軍旗(与ダメ×1.10) / 王盾の欠片(被ダメ×0.90) / 古い砂時計(行動速度+10%) / 狂戦士の護符(与ダメ×1.20・被ダメ×1.15のリスク型) | 攻/守/速/トレードオフを各1で被覆し、ビルド選択の体験を成立 |
+| P3-D090-5 | **UI＝装備画面スキルタブ、戦術行の直下に遺物 OptionButton**（`EquipmentScene`・`_ensure_relic_ui`/`_refresh_relic_ui`/`_on_relic_selected`）。選択即 `set_member_relic`・保存は戻る時 | 戦術セレクタの実績パターンを流用。新タブ/インベントリUIを回避 |
+| P3-D090-6 | **スコープ外**: ドロップ/インベントリ化・前後列/HP等の条件付き効果・通常N回毎などの発火型遺物・スキルCD直接短縮・遺物アイコン | MVP最小化。入手導線とイベント型は後続 Decision |
