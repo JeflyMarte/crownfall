@@ -5,19 +5,24 @@ extends RefCounted
 ## 同じ属性タグを複数人で共有していると、その属性の与ダメにボーナスを付与する。
 ## 「炎で揃える」等のビルド選択に報酬を与える。物理/効果タグは対象外（MVP）。
 
-const ELEMENT_TAGS: Array = ["fire", "ice", "lightning", "holy", "dark"]
+# 属性 id は ElementResolver（ダメージ SSOT）に揃える。タグ空間の "lightning" は
+# 攻撃属性 "thunder" と同一物なので集計時に正規化する（P3-D099 整合修正）。
+const ELEMENT_TAGS: Array = ["fire", "ice", "thunder", "holy", "dark"]
+const _ELEMENT_TAG_ALIAS: Dictionary = {"lightning": "thunder"}
 const BONUS_TWO: float = 0.10   # 2人共有
 const BONUS_THREE: float = 0.15 # 3人共有
 
 # party 全員の装備武器タグから {element: bonus} を算出（2人未満の属性は含めない）。
+# キーは ElementResolver id（attack_element と一致する）。
 static func compute_element_bonuses(members: Array) -> Dictionary:
 	var counts: Dictionary = {}
 	for m in members:
 		if m == null:
 			continue
 		for t: String in _member_weapon_tags(m):
-			if t in ELEMENT_TAGS:
-				counts[t] = int(counts.get(t, 0)) + 1
+			var e: String = str(_ELEMENT_TAG_ALIAS.get(t, t))
+			if e in ELEMENT_TAGS:
+				counts[e] = int(counts.get(e, 0)) + 1
 	var out: Dictionary = {}
 	for e: String in counts:
 		var c: int = int(counts[e])

@@ -6,6 +6,8 @@ const ROSTER_SCENE: String = "res://scenes/roster/RosterScene.tscn"
 const CODEX_SCENE: String = "res://scenes/codex/CodexScene.tscn"
 const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
 
+const _ElementResolver: Script = preload("res://scripts/combat/ElementResolver.gd")
+
 const THUMB_SIZE: Vector2 = Vector2(68, 68)
 const DROP_ICON_SIZE: Vector2 = Vector2(28, 28)
 const MAX_STARS: int = 3
@@ -93,6 +95,13 @@ func _make_dungeon_card(data: Resource) -> PanelContainer:
 		lv.add_theme_font_size_override("font_size", 15)
 		lv.add_theme_color_override("font_color", Color(0.78, 0.74, 0.6))
 		info.add_child(lv)
+
+	if not str(data.favored_element).is_empty():
+		var biome := Label.new()
+		biome.text = "地形相性: %s 有利" % _ElementResolver.get_display_name(str(data.favored_element))
+		biome.add_theme_font_size_override("font_size", 15)
+		biome.add_theme_color_override("font_color", Color(0.6, 0.82, 0.78))
+		info.add_child(biome)
 
 	info.add_child(_make_drop_row(dungeon_id))
 

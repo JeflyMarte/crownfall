@@ -9,6 +9,8 @@ const FALLBACK_ATTACK: int = 10
 const CRITICAL_MULTIPLIER: float = 1.5
 # 敵DEFの逓減軽減係数。軽減率 = K/(K+DEF)。flat減算は小ダメージ多段で0化するため割合式を採用。
 const DEFENSE_MITIGATION_K: float = 100.0
+## Biome 属性相性（P3-D099）。有利属性一致時の与ダメ倍率。
+const BIOME_FAVORED_BONUS: float = 1.15
 const HEAL_AMOUNT: int = 10
 # P3-D084: CT/ATB の 1 パルス（1 行動）間隔。x1=通常 / x2=倍速。
 const SPEED_X1: float = 0.55
@@ -1088,6 +1090,15 @@ func _resolve_skill_element(skill_data: Resource, member_index: int = -1) -> Str
 	return _get_weapon_element(member_index)
 
 # 敵の属性(弱点×1.25 / 耐性×0.75)と防御(逓減軽減)を与ダメージへ反映する
+# Biome 属性相性（P3-D099）。現在ダンジョンの favored_element と攻撃属性が一致するか。
+func _is_biome_favored(attack_element: String) -> bool:
+	if attack_element.is_empty():
+		return false
+	var dungeon: Resource = $DungeonController.current_dungeon_data
+	if dungeon == null:
+		return false
+	return str(dungeon.favored_element) == attack_element
+
 func _apply_enemy_mitigation(damage: int, attack_element: String, member_index: int = -1) -> Dictionary:
 	var element_tag: String = ""
 	var enemy_data: Resource = $CombatController.current_enemy_data
@@ -1119,6 +1130,10 @@ func _apply_enemy_mitigation(damage: int, attack_element: String, member_index: 
 	if synergy > 0.0:
 		damage = maxi(1, int(round(float(damage) * (1.0 + synergy))))
 		element_tag += "  [シナジー:%s]" % ElementResolverScript.get_display_name(attack_element)
+	# Biome 属性相性（P3-D099）: ダンジョンの有利属性と一致なら与ダメ増幅。
+	if _is_biome_favored(attack_element):
+		damage = maxi(1, int(round(float(damage) * BIOME_FAVORED_BONUS)))
+		element_tag += "  [地形:%s]" % ElementResolverScript.get_display_name(attack_element)
 	damage = _apply_enemy_defense(damage, enemy_data)
 	return {"damage": damage, "element_tag": element_tag}
 

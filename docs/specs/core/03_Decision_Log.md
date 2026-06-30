@@ -1241,3 +1241,16 @@
 | P3-D098-3 | **プリセット連動**: `combat_presets[slot]` に `exploration_policy` キーを追加。`save_combat_preset` で現在方針も保存、`apply_combat_preset` で `set_exploration_policy` を反映。`SaveManager` は既存の `combat_presets` deep-duplicate で自動保存（変更不要） | 「Boss攻略/素材集め/図鑑調査」等の意図をプリセット単位で完結。保存配線の追加なし |
 | P3-D098-4 | **UI＝プリセット行直下に「探索方針」セレクタ**（`EquipmentScene`・5項目）。選択即 `set_exploration_policy`、`apply`/`refresh` で同期。既定=なし（後方互換） | 既存プリセットUIと同列に集約。単体でも切替可・保存でプリセットに内包 |
 | P3-D098-5 | **スコープ外**: 探索スキル(採取/採掘/鍵/解読/罠)・環境変化(雨/夜/霧/増水/落石)・方針による部屋構成変更・高速周回(戦闘スキップ)・方針別演出 | MVP最小化。探索システム拡張は後続 Decision |
+
+## Biome 属性相性 MVP（2026-06-30 — P3-D099）
+
+> ダンジョンごとに「地形で有利な属性」を持たせ、属性シナジー(D095)・図鑑・ダンジョン選択を噛み合わせる。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D099-1 | **データ＝`DungeonData.favored_element`（有利属性 id・空=補正なし）**。MVP は有利のみ（不利ペナルティ無し） | ダンジョンが理不尽にならない。後方互換（未設定=従来通り） |
+| P3-D099-2 | **効果＝味方攻撃の attack_element が favored_element 一致で与ダメ ×1.15**（`BIOME_FAVORED_BONUS`）。弱点/特効/シナジーと乗算 | 「地形に合わせた属性編成」を選択肢に。倍率は控えめで明快 |
+| P3-D099-3 | **配線＝D095 と同じ `_apply_enemy_mitigation` 属性段に1フック**（`_is_biome_favored`→`$DungeonController.current_dungeon_data.favored_element`）。ログに `[地形:◯]` | 既存の属性処理に相乗り＝散在回避。味方攻撃のみ |
+| P3-D099-4 | **可視化＝ダンジョン選択に「地形相性: ◯ 有利」表示**（`DungeonSelectScene`・`ElementResolver.get_display_name`）。mourngate(王都地下)=dark を初期設定 | 編成前に地形が分かる。図鑑併記は後続 |
+| P3-D099-5 | **スコープ外**: 不利属性ペナルティ・敵側の地形補正・環境変化(雨/夜/霧)・地形による部屋構成変更・複数属性地形・図鑑への地形表示 | MVP最小化 |
+| P3-D099-6 | **整合修正（バランスパス）**: `thunder`/`lightning` の id 不整合で雷属性シナジーが恒久不発だったため、`CombatSynergy` で属性タグ集計時に `lightning→thunder` 正規化（`_ELEMENT_TAG_ALIAS`）し、シナジーキーを `ElementResolver` id（attack_element）に統一。コンボ(感電=require lightning)はタグ空間内で完結のため非影響。数値そのものは実機確認まで据置 | 雷シナジー/地形相性の発火を修正。バランス分析では乗算レンジ（与ダメ最大~4.0倍/被ダメ~0.76・暴走ループ無し）は許容と判定 |

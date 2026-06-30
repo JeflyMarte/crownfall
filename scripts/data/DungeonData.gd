@@ -18,3 +18,6 @@ extends Resource
 @export var drop_table_id: String = ""
 @export var discovery_unlocks: Dictionary = {}
 @export var elite_pool: Array[String] = []
+## Biome 属性相性（P3-D099）。この地形で有利な属性 id（fire/ice/lightning/holy/dark 等）。
+## 味方攻撃の属性が一致すると与ダメに BIOME_FAVORED_BONUS を乗算。空＝補正なし。
+@export var favored_element: String = ""
