@@ -337,6 +337,13 @@ func get_member_incoming_damage_multiplier(member_index: int) -> float:
 func get_enemy_incoming_damage_multiplier() -> float:
 	return _status_resolver.get_incoming_damage_multiplier("enemy")
 
+func get_enemy_status_stacks(effect_id: String) -> int:
+	return _status_resolver.get_status_stacks("enemy", effect_id)
+
+# 状態異常コンボ起爆: アクティブ敵の指定状態を消費しスタック数を返す（P3-D089）。
+func consume_enemy_status(effect_id: String) -> int:
+	return _status_resolver.consume_status("enemy", effect_id)
+
 func get_enemy_outgoing_damage_multiplier() -> float:
 	return _status_resolver.get_outgoing_damage_multiplier("enemy")
 

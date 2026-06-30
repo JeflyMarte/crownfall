@@ -15,3 +15,7 @@ extends Resource
 @export var weight: float = 1.0
 @export var element: String = ""
 @export var weapon_type: String = ""
+## 生態特効（P3-D087）。bane_class が敵の codex_class と一致すると与ダメ ×bane_multiplier。
+## 空なら特効なし。属性弱点/耐性とは乗算で併用。
+@export var bane_class: String = ""
+@export var bane_multiplier: float = 1.3

@@ -484,6 +484,7 @@ func _advance_to_next_room() -> void:
 			_skill_executor.reset()
 			_round_active = false
 			_ct_status_accum = 0.0
+			_passive_cd.clear()
 			_is_paused = false
 			$MainVBox/BottomZone/AutoCombatRow/ButtonPause.text = "一時停止"
 			$MainVBox/HeaderBar/ButtonStop.text = "停止"
@@ -502,6 +503,7 @@ func _advance_to_next_room() -> void:
 			else:
 				_append_log("%s があらわれた" % lead.display_name)
 			_update_turn_order_ui($CombatController.get_ct_order())
+			_fire_combat_start_passives()
 		else:
 			_set_narrative("敵が現れなかった")
 			_hide_enemy_sprite()
@@ -664,6 +666,8 @@ func _handle_event_room() -> void:
 # 同期実行（await無し）のため再入は起きないが、安全のため _round_active を残す。
 const CT_PER_STATUS_TICK: float = 2.0
 var _ct_status_accum: float = 0.0
+# パッシブCD（P3-D088）。key="<member_idx>:<passive_id>" → 残りCT。
+var _passive_cd: Dictionary = {}
 
 func _on_combat_timer_timeout() -> void:
 	if not $CombatController.is_in_combat:
@@ -680,9 +684,10 @@ func _run_combat_step() -> void:
 		return
 	var actor: Dictionary = $CombatController.advance_to_next_actor()
 	var delta: float = $CombatController.consume_last_ct_step()
-	# スキルCDは進行した CT 量だけ進める
+	# スキルCD・パッシブCDは進行した CT 量だけ進める
 	if delta > 0.0:
 		_skill_executor.tick(delta)
+		_tick_passive_cd(delta)
 	# 状態異常（DoT/バフ等）は一定 CT ごとに 1 tick
 	_ct_status_accum += delta
 	while _ct_status_accum >= CT_PER_STATUS_TICK:
@@ -847,11 +852,12 @@ func _execute_member_skill(member_idx: int, skill_data: Resource, cast_index: in
 		1,
 		int(float(result["damage"]) * $CombatController.get_member_outgoing_damage_multiplier(member_idx))
 	)
-	var elem_result: Dictionary = _apply_enemy_mitigation(skill_dmg, attack_element)
+	var elem_result: Dictionary = _apply_enemy_mitigation(skill_dmg, attack_element, member_idx)
 	var final_dmg: int = maxi(
 		1,
 		int(float(elem_result["damage"]) * $CombatController.get_enemy_incoming_damage_multiplier())
 	)
+	final_dmg += _consume_enemy_combo_bonus(member_idx, final_dmg)
 	$CombatController.apply_damage_to_enemy(final_dmg)
 	var skill_is_crit: bool = result.get("is_critical", false)
 	var spawn_pos: Vector2 = _active_enemy_pos()
@@ -988,6 +994,7 @@ func _try_cast_player_skill() -> String:
 			* $CombatController.get_enemy_incoming_damage_multiplier()
 		)
 	)
+	final_dmg += _consume_enemy_combo_bonus(member_idx, final_dmg)
 	$CombatController.apply_damage_to_enemy(final_dmg)
 	var skill_is_crit: bool = result.get("is_critical", false)
 	var skill_spawn_pos: Vector2 = _active_enemy_pos()
@@ -1051,6 +1058,7 @@ func _try_cast_secondary_skill(primary_skill_id: String) -> String:
 			* $CombatController.get_enemy_incoming_damage_multiplier()
 		)
 	)
+	final_dmg += _consume_enemy_combo_bonus(member_idx, final_dmg)
 	$CombatController.apply_damage_to_enemy(final_dmg)
 	var sec_is_crit: bool = result.get("is_critical", false)
 	var sec_spawn_pos: Vector2 = _active_enemy_pos()
@@ -1079,7 +1087,7 @@ func _resolve_skill_element(skill_data: Resource, member_index: int = -1) -> Str
 	return _get_weapon_element(member_index)
 
 # 敵の属性(弱点×1.25 / 耐性×0.75)と防御(逓減軽減)を与ダメージへ反映する
-func _apply_enemy_mitigation(damage: int, attack_element: String) -> Dictionary:
+func _apply_enemy_mitigation(damage: int, attack_element: String, member_index: int = -1) -> Dictionary:
 	var element_tag: String = ""
 	var enemy_data: Resource = $CombatController.current_enemy_data
 	if enemy_data == null or damage <= 0:
@@ -1098,8 +1106,45 @@ func _apply_enemy_mitigation(damage: int, attack_element: String) -> Dictionary:
 		damage = maxi(1, int(float(damage) * elem_mult))
 		if not elem_name.is_empty():
 			element_tag = "  [耐性:%s]" % elem_name
+	# 生態特効（P3-D087）: 武器 bane_class が敵 codex_class と一致で増幅。属性と乗算。
+	if member_index >= 0:
+		var bane: Dictionary = _get_weapon_bane(member_index)
+		var bane_class: String = str(bane.get("class", ""))
+		if not bane_class.is_empty() and bane_class == str(enemy_data.codex_class):
+			damage = maxi(1, int(round(float(damage) * float(bane.get("mult", 1.0)))))
+			element_tag += "  [特効:%s]" % bane_class
 	damage = _apply_enemy_defense(damage, enemy_data)
 	return {"damage": damage, "element_tag": element_tag}
+
+# 状態異常コンボ起爆（P3-D089）。味方の攻撃ヒット時、アクティブ敵に前提状態が
+# 乗っていれば 1 つだけ起爆し、追加ダメージを返してその状態を消費する。
+# 戻り値は攻撃ダメージへ上乗せする（既存の撃破判定をそのまま通すため）。
+func _consume_enemy_combo_bonus(member_idx: int, hit_damage: int) -> int:
+	if $CombatController.is_enemy_defeated():
+		return 0
+	for trigger_id: String in CombatCombos.trigger_ids():
+		var stacks: int = $CombatController.get_enemy_status_stacks(trigger_id)
+		if stacks <= 0:
+			continue
+		var bonus: int = CombatCombos.bonus_for(trigger_id, stacks, hit_damage)
+		if bonus <= 0:
+			continue
+		$CombatController.consume_enemy_status(trigger_id)
+		var label: String = str(CombatCombos.rule(trigger_id).get("label", "コンボ"))
+		var pos: Vector2 = _active_enemy_pos()
+		_spawn_damage_number("%s +%d" % [label, bonus], pos + Vector2(0.0, -34.0), Color(1.0, 0.55, 0.15), 1.15)
+		_append_log("[コンボ] %s +%d" % [label, bonus])
+		return bonus
+	return 0
+
+# 装備武器の生態特効（{class, mult}）。特効なしは class="" / mult=1.0。
+func _get_weapon_bane(member_index: int) -> Dictionary:
+	var weapon: Resource = GameState.get_member_equipped_weapon(member_index)
+	if weapon != null and not weapon.weapon_id.is_empty():
+		var wd: Resource = DataRegistry.get_weapon_data(weapon.weapon_id)
+		if wd != null and "bane_class" in wd and not str(wd.bane_class).is_empty():
+			return {"class": str(wd.bane_class), "mult": float(wd.bane_multiplier)}
+	return {"class": "", "mult": 1.0}
 
 # 敵DEFによる逓減軽減: damage × K/(K+DEF)。最低1。
 func _apply_enemy_defense(damage: int, enemy_data: Resource) -> int:
@@ -1238,6 +1283,7 @@ func _execute_enemy_damage(skill: Resource) -> void:
 			lines.append("%s に %d（撃破）" % [mname, dmg])
 		else:
 			lines.append("%s に %d" % [mname, dmg])
+		_on_member_damaged(ti)
 	_append_log("敵スキル【%s】\n  %s" % [skill.display_name, " / ".join(lines)])
 
 # 敵スキル発動時、敵ドット絵の頭上にスキル名を赤系でポップ表示
@@ -1310,6 +1356,7 @@ func _do_enemy_attack(slot: int = -1) -> void:
 	if not $CombatController.is_member_alive(target_idx):
 		log_text += "\n%s が倒れた！" % member_name
 	_append_log(log_text)
+	_on_member_damaged(target_idx)
 	_try_apply_enemy_hit_status(target_idx)
 
 func _try_apply_enemy_hit_status(target_idx: int) -> void:
@@ -1346,7 +1393,7 @@ func _calc_damage(member_index: int = -1) -> Dictionary:
 		damage = int(damage * CRITICAL_MULTIPLIER)
 	damage = int(damage * $DungeonController.run_damage_multiplier)
 	damage = maxi(1, int(float(damage) * $CombatController.get_member_outgoing_damage_multiplier(member_index)))
-	var elem_result: Dictionary = _apply_enemy_mitigation(damage, _get_weapon_element(member_index))
+	var elem_result: Dictionary = _apply_enemy_mitigation(damage, _get_weapon_element(member_index), member_index)
 	damage = elem_result["damage"]
 	damage = maxi(1, int(float(damage) * $CombatController.get_enemy_incoming_damage_multiplier()))
 	return {
@@ -1566,6 +1613,7 @@ func _try_member_equipped_skill(member_idx: int) -> bool:
 # 通常攻撃スロット（武器ベース）。
 func _do_member_basic_attack(member_idx: int) -> void:
 	var result: Dictionary = _calc_damage(member_idx)
+	result["damage"] = int(result["damage"]) + _consume_enemy_combo_bonus(member_idx, int(result["damage"]))
 	$CombatController.apply_damage_to_enemy(result["damage"])
 	_try_apply_affix_statuses(member_idx)
 	_update_hp_bars()
@@ -1605,6 +1653,81 @@ func _member_has_status(member_idx: int, effect_id: String) -> bool:
 		if str(e.get("effect_id", "")) == effect_id:
 			return true
 	return false
+
+# ---- パッシブ / リアクション（P3-D088） ----
+
+func _tick_passive_cd(delta: float) -> void:
+	for k in _passive_cd.keys():
+		_passive_cd[k] = maxf(0.0, float(_passive_cd[k]) - delta)
+
+# 戦闘開始時パッシブを生存メンバーで発火。
+func _fire_combat_start_passives() -> void:
+	for i: int in GameState.party_members.size():
+		if $CombatController.is_member_alive(i):
+			_fire_member_passives(i, "on_combat_start")
+
+# メンバー被弾フック: 生存なら on_hit_taken、死亡なら生存者の on_ally_death を発火。
+func _on_member_damaged(target_idx: int) -> void:
+	if $CombatController.is_member_alive(target_idx):
+		_fire_member_passives(target_idx, "on_hit_taken")
+		return
+	for i: int in GameState.party_members.size():
+		if i == target_idx:
+			continue
+		if $CombatController.is_member_alive(i):
+			_fire_member_passives(i, "on_ally_death")
+
+# 指定メンバーの該当 trigger パッシブを順に試行。
+func _fire_member_passives(member_idx: int, trigger: String) -> void:
+	var member: Resource = GameState.get_combatant(member_idx)
+	if member == null:
+		return
+	for p: Dictionary in CombatPassives.for_job(str(member.job_id)):
+		if str(p.get("trigger", "")) != trigger:
+			continue
+		_try_fire_passive(member_idx, p)
+
+func _try_fire_passive(member_idx: int, p: Dictionary) -> void:
+	var pid: String = str(p.get("id", ""))
+	var key: String = "%d:%s" % [member_idx, pid]
+	if float(_passive_cd.get(key, 0.0)) > 0.0:
+		return
+	# 条件
+	if str(p.get("condition", "always")) == "self_hp_below":
+		var ratio: float = 1.0
+		if member_idx < $CombatController.party_max_hp.size():
+			var maxhp: int = $CombatController.party_max_hp[member_idx]
+			if maxhp > 0:
+				ratio = float($CombatController.party_combat_hp[member_idx]) / float(maxhp)
+		if ratio >= float(p.get("value", 0.0)):
+			return
+	# 効果
+	var applied: bool = false
+	match str(p.get("effect", "")):
+		"apply_status":
+			var sid: String = str(p.get("status_id", ""))
+			if sid.is_empty():
+				return
+			if str(p.get("target", "self")) == "party":
+				for i: int in GameState.party_members.size():
+					if $CombatController.is_member_alive(i):
+						applied = $CombatController.apply_status("party_%d" % i, sid, 1, 0) or applied
+			else:
+				applied = $CombatController.apply_status("party_%d" % member_idx, sid, 1, 0)
+			_update_status_icons()
+		"heal":
+			var amount: int = _apply_healing_bonus(int(p.get("value", 10)))
+			$CombatController.heal_party(amount)
+			_update_hp_bars()
+			applied = true
+	if not applied:
+		return
+	var cd: float = float(p.get("cooldown", 0.0))
+	if cd > 0.0:
+		_passive_cd[key] = cd
+	_clear_member_skill_labels(member_idx)
+	_spawn_skill_name("◇" + str(p.get("display_name", "")), member_idx, 0.0)
+	_append_log("[パッシブ] %s 発動" % str(p.get("display_name", "")))
 
 func _play_chr_attack_one(idx: int) -> void:
 	if idx < 0 or idx >= _chr_sprites.size():

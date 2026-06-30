@@ -17,3 +17,5 @@ base_attack_range = 1.0
 weight = 0.9
 element = "holy"
 weapon_type = "dual_blades"
+bane_class = "古代種"
+bane_multiplier = 1.3

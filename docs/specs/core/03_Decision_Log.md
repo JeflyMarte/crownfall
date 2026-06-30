@@ -1101,3 +1101,42 @@
 | P3-D086-4 | **実行エンジン**＝`DungeonScene._do_member_turn` を戦術プラン駆動へ置換。優先度順に評価し「条件成立かつ実発動できた最初のスロット」で行動確定（不発時は次ルール→最終フォールバック通常攻撃）。`_build_tactics_context` が HP割合/Boss/Elite/敵数/味方死亡 を供給。防御は条件を戦術へ移譲し二重ガードのみ抑止（`_do_member_defend_slot`） | P3-D085 の各スロット executor をそのまま再利用。固定優先度を撤去 |
 | P3-D086-5 | **編集UI**＝キャラ管理「スキル」タブ最上部に戦術 OptionButton（`EquipmentScene`）。選択で `set_member_tactics`→保存は戻る時。per-slot 条件のフル編集（ガンビット式）は後続 | UI 大改修（新タブ/行ビルダ）を避け、プリセット選択で価値を先行提供 |
 | P3-D086-6 | **Target 層（敵個体の狙い分け：Lowest HP/Highest ATK 等）は本MVPでは見送り**。現行フォーカス撃破（全員がアクティブ先頭敵を集中攻撃・`apply_damage_to_enemy` 一本）では選択肢が無く効果が出ないため。Target 実装は「複数敵同時ターゲット可能化」の戦闘モデル変更を伴う別 Decision | スコープ最小化・無効機能の実装回避 |
+
+## 生態特効＋図鑑連動 MVP（2026-06-30 — P3-D087）
+
+> 「図鑑で調べるほど攻略精度が上がる」コア体験の足がかり。武器の生態特効と Codex 表示を連動。新アート/敵データ追加なし。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D087-1 | **生態特効の判定キー＝既存 `EnemyData.codex_class`** を流用（獣類/昆虫類/古代種…）。敵データの新規フィールド/編集は不要 | モーンゲート6体は codex_class 設定済（獣類×3/昆虫類×2/古代種×1）。world/04 分類と整合 |
+| P3-D087-2 | **特効源＝武器のみ（MVP）**。`WeaponData` に `bane_class`（敵 codex_class と同文字列）/`bane_multiplier`（既定×1.3）を追加。スキル特効は後続 | オーナー確定（weapon_only）。武器選びに直結 |
+| P3-D087-3 | **与ダメ計算**: `_apply_enemy_mitigation` に `member_index` を追加し、武器 `bane_class`＝敵 `codex_class` で `×bane_multiplier`。**属性弱点(×1.25)/耐性(×0.75)と乗算で併用**。ログ/数値に `[特効:獣類]` タグ | 既存の弱点タグ機構を流用。通常攻撃＋装備スキルに適用（武器の常時効果） |
+| P3-D087-4 | **図鑑連動＝情報表示のみ**（特効ボーナスは常時適用）。Codex 敵詳細（stage≥4）の「弱点/耐性」行に `特効: {codex_class}` を併記＝「この生態には◯◯特効が有効」 | オーナー確定（info_only）。図鑑＝攻略本＝武器選択の導線。機構ゲートは将来 |
+| P3-D087-5 | **初期特効付与（調整可）**: 燻鉄の大剣=獣類 / 霜結びの剣=昆虫類 / 霊廟の聖別刃=古代種（各×1.3）。他武器は特効なし | 火→獣・氷→昆虫・聖→古代種でテーマ整合。3分類を被覆 |
+| P3-D087-6 | **スコープ外**: 防具の分類耐性 / 敵→味方の特効 / 調査段階による特効ゲート / Biome地形補正 | MVP最小化 |
+
+## パッシブ / リアクション MVP（2026-06-30 — P3-D088）
+
+> 戦闘 v1.0 のビルド構築深化。戦闘中に自動発火する常在能力（共通フォーマット Trigger→Condition→Effect→Cooldown）を導入。D086(戦術)・D085(状態/被ダメ補正)・D084(CT) を再利用し新アート/新メカ最小。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D088-1 | **パッシブ定義＝`CombatPassives`（静的・データ駆動）**。CombatTactics と同方式でコード内 `_DEFS`＋ジョブ紐付け `_JOB_PASSIVES`（tres 非増設）。共通フォーマット Trigger→Condition→Effect→Cooldown | 既存戦術と一貫。武器/遺物への移譲は後続で容易 |
+| P3-D088-2 | **Trigger MVP**: `on_combat_start` / `on_hit_taken`（被弾・生存時） / `on_ally_death`（生存者で発火）。`on_attack`(N回毎)・距離/タグ系は後続 | オート戦闘で意味を持つ最小イベント。既存の敵通常/敵スキル被弾点・撃破点にフック |
+| P3-D088-3 | **Condition MVP**: `always` / `self_hp_below`(HP割合)。**Effect MVP**: `apply_status`(status_id / target self\|party) / `heal`(party・`_apply_healing_bonus` 経由) | D085 の guard/empower・CombatController.apply_status/heal_party を再利用。新規効果ゼロ |
+| P3-D088-4 | **CD＝CT秒で管理**（`_passive_cd[\"idx:pid\"]`、`_run_combat_step` で進行CTぶん減算）。発火成功時のみCDセット。戦闘開始でクリア。頭上に `◇名称` ポップ＋ログ `[パッシブ]` | スキルCD(D084)と同管理。`on_combat_start`(CD0)は実質1回 |
+| P3-D088-5 | **ジョブ別初期パッシブ**: vanguard=鉄壁(被弾&HP<50%→guard・CD6) / swordsman・ranger=高揚(戦闘開始→empower自己) / alchemist=野戦救護(味方死亡→party回復12) / beast_tamer=群れの本能(味方死亡→empower全体) | 各ロールの性格付け。タンク=耐え/支援=蘇生フォロー/連携=被撃破時の奮起 |
+| P3-D088-6 | **スコープ外**: パッシブの player 編集/装備化・`on_attack`回数トリガ・無敵/バリア専用効果・リアクションの能動UI | MVP最小化。まずジョブ固定で機構実証 |
+
+## 状態異常コンボ MVP（2026-06-30 — P3-D089）
+
+> 戦闘 v1.0 の手応え強化。味方の攻撃ヒット時、敵に乗った状態異常を「起爆」して追加ダメージ＋消費。既存の毒/冷却付与スキルがそのまま起点になり、新アート/新データ不要。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D089-1 | **コンボ＝攻撃ヒット時の状態起爆**。味方の与ダメ確定直前にアクティブ敵の前提状態を判定し、成立なら 1 つだけ起爆＝追加ダメージをヒット値へ上乗せ＋その状態を消費（1ヒット1コンボ） | 追加分を攻撃ダメージへ folding することで既存の撃破/報酬判定をそのまま通す（別経路 apply 回避＝低リスク） |
+| P3-D089-2 | **ルール定義＝`CombatCombos`（静的・コード内）**。`bonus = per_stack×stacks + round(hit_fraction×hit_damage)`。tres 非増設（Tactics/Passives/Combos 一貫） | データ駆動で増設容易。シナジータグの正式タクソノミは後続 |
+| P3-D089-3 | **MVP 2種**: 毒(poison)→**毒爆発**（per_stack=8・毒消費） / 冷却(chill)→**粉砕**（hit_fraction=0.5・冷却消費）。評価順 poison→chill | 既存付与経路（属性スキル/Affix）が起点。提案の「毒爆発」「凍結→粉砕」に対応。数値は調整可 |
+| P3-D089-4 | **基盤追加**: `StatusResolver.get_status_stacks/consume_status`、`CombatController.get_enemy_status_stacks/consume_enemy_status`。`DungeonScene._consume_enemy_combo_bonus` を通常攻撃＋スキル3経路（primary/buff系/secondary）の apply 直前に配線 | 状態の取得/丸ごと消費を最小APIで追加。全味方与ダメ経路を被覆 |
+| P3-D089-5 | **表示**: 頭上に `毒爆発 +N` ポップ（橙）＋ログ `[コンボ] 毒爆発 +N`。ダメージ数値は攻撃と合算表示 | 起爆の視認性。専用ポップ関数は増設せず既存 `_spawn_damage_number` 流用 |
+| P3-D089-6 | **スコープ外**: シナジータグ(Slash/Pierce/Fire…)の正式分類・味方への状態コンボ・出血/感電等の追加コンボ・コンボ専用VFX | MVP最小化。タグ体系は遺物/スキル拡張と併せて後続 |

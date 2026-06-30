@@ -75,6 +75,31 @@ func tick_unit(unit_id: String) -> Array[Dictionary]:
 		_active[unit_id] = survivors
 	return results
 
+func get_status_stacks(unit_id: String, effect_id: String) -> int:
+	if not _active.has(unit_id):
+		return 0
+	for inst: StatusInstance in _active[unit_id]:
+		if inst.effect_id == effect_id:
+			return inst.stacks
+	return 0
+
+# 指定状態を丸ごと除去し、消費したスタック数を返す（0=不在）。コンボ起爆用。
+func consume_status(unit_id: String, effect_id: String) -> int:
+	if not _active.has(unit_id):
+		return 0
+	var removed: int = 0
+	var survivors: Array = []
+	for inst: StatusInstance in _active[unit_id]:
+		if inst.effect_id == effect_id:
+			removed = inst.stacks
+		else:
+			survivors.append(inst)
+	if survivors.is_empty():
+		_active.erase(unit_id)
+	else:
+		_active[unit_id] = survivors
+	return removed
+
 func should_skip_action(unit_id: String) -> bool:
 	if not _active.has(unit_id):
 		return false

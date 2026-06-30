@@ -31,17 +31,19 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -300.0
-offset_top = -320.0
-offset_right = 300.0
-offset_bottom = 320.0
+offset_left = -270.0
+offset_top = -460.0
+offset_right = 270.0
+offset_bottom = 460.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
 [node name="LabelTitle" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-text = "図鑑"
+theme_override_colors/font_color = Color(0.86, 0.74, 0.45, 1)
+theme_override_font_sizes/font_size = 26
+text = "✦ 図鑑 ✦"
 horizontal_alignment = 1
 
 [node name="TabRow" type="HBoxContainer" parent="VBoxContainer"]
@@ -79,13 +81,15 @@ text = "Guide"
 
 [node name="LabelListHeader" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-text = "--- 一覧 ---"
+theme_override_colors/font_color = Color(0.78, 0.7, 0.5, 1)
+text = "─── 一覧 ───"
 horizontal_alignment = 1
 
 [node name="EntryListScroll" type="ScrollContainer" parent="VBoxContainer"]
-custom_minimum_size = Vector2(0, 120)
+custom_minimum_size = Vector2(0, 170)
 layout_mode = 2
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
 
 [node name="EntryListContainer" type="VBoxContainer" parent="VBoxContainer/EntryListScroll"]
 layout_mode = 2
@@ -94,58 +98,79 @@ theme_override_constants/separation = 4
 
 [node name="LabelDetailHeader" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-text = "--- 詳細 ---"
+theme_override_colors/font_color = Color(0.78, 0.7, 0.5, 1)
+text = "─── 詳細 ───"
 horizontal_alignment = 1
 
 [node name="DetailPanel" type="VBoxContainer" parent="VBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 6
 
-[node name="IconRow" type="HBoxContainer" parent="VBoxContainer/DetailPanel"]
+[node name="TopRow" type="HBoxContainer" parent="VBoxContainer/DetailPanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ArtFrame" type="PanelContainer" parent="VBoxContainer/DetailPanel/TopRow"]
+custom_minimum_size = Vector2(220, 220)
 layout_mode = 2
 
-[node name="IconPlaceholder" type="PanelContainer" parent="VBoxContainer/DetailPanel/IconRow"]
-custom_minimum_size = Vector2(48, 48)
+[node name="TextureIcon" type="TextureRect" parent="VBoxContainer/DetailPanel/TopRow/ArtFrame"]
+visible = false
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="IconPlaceholder" type="PanelContainer" parent="VBoxContainer/DetailPanel/TopRow/ArtFrame"]
 layout_mode = 2
 
-[node name="LabelIconPlaceholder" type="Label" parent="VBoxContainer/DetailPanel/IconRow/IconPlaceholder"]
+[node name="LabelIconPlaceholder" type="Label" parent="VBoxContainer/DetailPanel/TopRow/ArtFrame/IconPlaceholder"]
 layout_mode = 2
 text = "[Icon]"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="TextureIcon" type="TextureRect" parent="VBoxContainer/DetailPanel/IconRow"]
-visible = false
-custom_minimum_size = Vector2(48, 48)
+[node name="InfoCol" type="VBoxContainer" parent="VBoxContainer/DetailPanel/TopRow"]
 layout_mode = 2
-expand_mode = 1
-stretch_mode = 5
+size_flags_horizontal = 3
+theme_override_constants/separation = 5
 
-[node name="LabelDetailId" type="Label" parent="VBoxContainer/DetailPanel"]
+[node name="LabelDetailId" type="Label" parent="VBoxContainer/DetailPanel/TopRow/InfoCol"]
 layout_mode = 2
 text = "Entry ID: —"
 
-[node name="LabelDetailName" type="Label" parent="VBoxContainer/DetailPanel"]
+[node name="LabelDetailName" type="Label" parent="VBoxContainer/DetailPanel/TopRow/InfoCol"]
 layout_mode = 2
 text = "Name: —"
 
-[node name="LabelDetailStatus" type="Label" parent="VBoxContainer/DetailPanel"]
+[node name="LabelDetailStatus" type="Label" parent="VBoxContainer/DetailPanel/TopRow/InfoCol"]
 layout_mode = 2
+size_flags_horizontal = 0
 text = "Status: —"
 
-[node name="LabelDetailCategory" type="Label" parent="VBoxContainer/DetailPanel"]
+[node name="LabelDetailCategory" type="Label" parent="VBoxContainer/DetailPanel/TopRow/InfoCol"]
 layout_mode = 2
 text = "Category: —"
 
-[node name="LabelDetailExtraA" type="Label" parent="VBoxContainer/DetailPanel"]
+[node name="LabelDetailExtraA" type="Label" parent="VBoxContainer/DetailPanel/TopRow/InfoCol"]
 visible = false
 layout_mode = 2
 text = "Era: —"
 
-[node name="LabelDetailExtraB" type="Label" parent="VBoxContainer/DetailPanel"]
+[node name="LabelDetailExtraB" type="Label" parent="VBoxContainer/DetailPanel/TopRow/InfoCol"]
 visible = false
 layout_mode = 2
 text = "Theme: —"
+
+[node name="LabelDetailRelatedHeader" type="Label" parent="VBoxContainer/DetailPanel/TopRow/InfoCol"]
+visible = false
+layout_mode = 2
+text = "Related:"
+
+[node name="LabelDetailRelated" type="Label" parent="VBoxContainer/DetailPanel/TopRow/InfoCol"]
+visible = false
+layout_mode = 2
+text = ""
+autowrap_mode = 3
 
 [node name="LabelDetailOverviewHeader" type="Label" parent="VBoxContainer/DetailPanel"]
 layout_mode = 2
@@ -154,17 +179,6 @@ text = "Description:"
 [node name="LabelDetailDescription" type="Label" parent="VBoxContainer/DetailPanel"]
 layout_mode = 2
 text = "項目を選択してください"
-autowrap_mode = 3
-
-[node name="LabelDetailRelatedHeader" type="Label" parent="VBoxContainer/DetailPanel"]
-visible = false
-layout_mode = 2
-text = "Related:"
-
-[node name="LabelDetailRelated" type="Label" parent="VBoxContainer/DetailPanel"]
-visible = false
-layout_mode = 2
-text = ""
 autowrap_mode = 3
 
 [node name="ButtonBack" type="Button" parent="VBoxContainer"]
