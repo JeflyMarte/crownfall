@@ -125,6 +125,10 @@ func _build_enemy_entries() -> Array:
 			"element_resist": data.element_resist.duplicate(),
 			"codex_research_note": data.codex_research_note,
 			"codex_materials": data.codex_materials.duplicate(),
+			"attack_speed": data.attack_speed,
+			"on_hit_status_id": data.on_hit_status_id,
+			"on_hit_status_chance": data.on_hit_status_chance,
+			"skill_ids": data.skill_ids.duplicate(),
 		})
 	return entries
 

@@ -312,14 +312,69 @@ func _apply_enemy_stage_fields(entry: Dictionary) -> void:
 			research_note += "\n\n採取素材: " + "  /  ".join(mat_parts)
 		_label_detail_description.text = research_note
 	if stage >= 4:
-		var weaknesses: Array = entry.get("element_weakness", [])
-		var resists: Array = entry.get("element_resist", [])
-		_label_detail_related_header.text = "弱点属性 / 耐性"
-		_label_detail_related_header.visible = true
-		# 生態特効ヒント（P3-D087）: この生態には codex_class 特効武器が有効。
-		var bane_hint: String = "\n特効: %s" % codex_class if not codex_class.is_empty() else ""
-		_label_detail_related.text = "弱点: %s\n耐性: %s%s" % [_format_elements(weaknesses), _format_elements(resists), bane_hint]
-		_label_detail_related.visible = true
+		_apply_enemy_combat_data(entry, stage, codex_class)
+
+# 戦闘データブロック（P3-D092・攻略本拡充）。stage4=基本戦闘情報 / stage5=スキル＋戦術ヒント。
+func _apply_enemy_combat_data(entry: Dictionary, stage: int, codex_class: String) -> void:
+	const BASE_ACTION_CT: float = 2.0  # CombatController.BASE_ACTION_CT と同値（CT秒目安）
+	var weaknesses: Array = entry.get("element_weakness", [])
+	var resists: Array = entry.get("element_resist", [])
+	var lines: PackedStringArray = []
+	lines.append("弱点: %s" % _format_elements(weaknesses))
+	lines.append("耐性: %s" % _format_elements(resists))
+	# 行動間隔の目安（attack_speed → CT秒換算）。
+	var spd: float = float(entry.get("attack_speed", 1.0))
+	if spd > 0.0:
+		lines.append("行動間隔: 約%.1f秒" % (BASE_ACTION_CT / spd))
+	# 攻撃時の付与状態異常。
+	var on_hit: String = str(entry.get("on_hit_status_id", ""))
+	if not on_hit.is_empty():
+		var chance: float = float(entry.get("on_hit_status_chance", 0.0))
+		var st_name: String = _status_display_name(on_hit)
+		if chance > 0.0:
+			lines.append("攻撃で付与: %s（%d%%）" % [st_name, int(round(chance * 100.0))])
+		else:
+			lines.append("攻撃で付与: %s" % st_name)
+	if not codex_class.is_empty():
+		lines.append("特効: %s" % codex_class)
+	if stage >= 5:
+		var skill_ids: Array = entry.get("skill_ids", [])
+		var skill_names: PackedStringArray = []
+		for sid in skill_ids:
+			skill_names.append(_skill_display_name(str(sid)))
+		if not skill_names.is_empty():
+			lines.append("使用スキル: %s" % " / ".join(skill_names))
+		var hint: String = _build_tactics_hint(weaknesses, codex_class)
+		if not hint.is_empty():
+			lines.append("有効戦術: %s" % hint)
+	_label_detail_related_header.text = "戦闘データ"
+	_label_detail_related_header.visible = true
+	_label_detail_related.text = "\n".join(lines)
+	_label_detail_related.visible = true
+
+func _status_display_name(status_id: String) -> String:
+	var eff: Resource = DataRegistry.get_status_effect(status_id)
+	if eff != null and not eff.display_name.is_empty():
+		return eff.display_name
+	return status_id
+
+func _skill_display_name(skill_id: String) -> String:
+	var sd: Resource = DataRegistry.get_skill_data(skill_id)
+	if sd != null and not sd.display_name.is_empty():
+		return sd.display_name
+	return skill_id
+
+# 弱点属性＋特効分類から有効戦術ヒントを自動生成。
+func _build_tactics_hint(weaknesses: Array, codex_class: String) -> String:
+	var parts: PackedStringArray = []
+	if weaknesses is Array and not weaknesses.is_empty():
+		var elems: PackedStringArray = []
+		for e in weaknesses:
+			elems.append(str(ELEMENT_EMOJI.get(str(e), str(e))))
+		parts.append("%s が有効" % " / ".join(elems))
+	if not codex_class.is_empty():
+		parts.append("%s特効が有効" % codex_class)
+	return " ｜ ".join(parts)
 
 func _apply_bible_fields_discovered(entry: Dictionary) -> void:
 	match _current_category:
