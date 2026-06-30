@@ -10,13 +10,13 @@ const ENEMY_ART_SIZE: Vector2 = Vector2(256, 256)
 const CATEGORIES: Array[String] = ["enemy", "dungeon", "material", "weapon", "history", "lore", "guide"]
 
 const CATEGORY_DISPLAY: Dictionary = {
-	"enemy": "Enemy",
-	"dungeon": "Dungeon",
-	"material": "Material",
-	"weapon": "Weapon",
-	"history": "History",
+	"enemy": "敵",
+	"dungeon": "ダンジョン",
+	"material": "素材",
+	"weapon": "武器",
+	"history": "歴史",
 	"lore": "記録",
-	"guide": "Guide",
+	"guide": "手引き",
 }
 
 const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45)
@@ -236,7 +236,7 @@ func _show_detail(index: int) -> void:
 	_selected_index = index
 	_highlight_selected()
 	var entry: Dictionary = _entries[index]
-	_label_detail_category.text = "Category: %s" % _get_category_display()
+	_label_detail_category.text = "種別: %s" % _get_category_display()
 	_hide_bible_fields()
 	if _current_category == "enemy":
 		_apply_enemy_stage_fields(entry)
@@ -244,14 +244,14 @@ func _show_detail(index: int) -> void:
 	var discovered: bool = bool(entry.get("discovered", false))
 	if discovered:
 		_label_detail_id.text = "Entry ID: %s" % str(entry.get("id", ""))
-		_label_detail_name.text = "Name: %s" % str(entry.get("display_name", ""))
+		_label_detail_name.text = "%s" % str(entry.get("display_name", ""))
 		_set_status("確認済み", true)
 		_label_detail_description.text = str(entry.get("description", ""))
 		_update_icon(IconPaths.get_icon_texture(str(entry.get("id", "")), _current_category))
 		_apply_bible_fields_discovered(entry)
 	else:
 		_label_detail_id.text = "Entry ID: %s" % UNKNOWN_DISPLAY
-		_label_detail_name.text = "Name: %s" % UNKNOWN_DISPLAY
+		_label_detail_name.text = "%s" % UNKNOWN_DISPLAY
 		_set_status("未確認", false)
 		_label_detail_description.text = UNKNOWN_DISPLAY
 		_update_icon(null)
@@ -263,7 +263,7 @@ func _apply_enemy_stage_fields(entry: Dictionary) -> void:
 	const STAGE_LABELS: Array[String] = ["", "未発見", "発見", "初回討伐", "追加調査", "調査完了"]
 	if stage == 1:
 		_label_detail_id.text = "Entry ID: %s" % UNKNOWN_DISPLAY
-		_label_detail_name.text = "Name: %s" % UNKNOWN_DISPLAY
+		_label_detail_name.text = "%s" % UNKNOWN_DISPLAY
 		_set_status("未発見", false)
 		_label_detail_overview_header.text = "調査記録:"
 		_label_detail_overview_header.visible = true
@@ -271,8 +271,8 @@ func _apply_enemy_stage_fields(entry: Dictionary) -> void:
 		_update_icon(null)
 		return
 	_label_detail_id.text = "Entry ID: %s" % enemy_id
-	_label_detail_name.text = "Name: %s" % str(entry.get("display_name", ""))
-	_set_status("Stage %d | %s" % [stage, STAGE_LABELS[stage]], stage >= 3)
+	_label_detail_name.text = "%s" % str(entry.get("display_name", ""))
+	_set_status("段階%d ｜ %s" % [stage, STAGE_LABELS[stage]], stage >= 3)
 	_update_icon(IconPaths.get_icon_texture(enemy_id, "enemy"), true)
 	_label_detail_overview_header.text = "調査記録:"
 	_label_detail_overview_header.visible = true
@@ -321,35 +321,35 @@ func _apply_enemy_stage_fields(entry: Dictionary) -> void:
 func _apply_bible_fields_discovered(entry: Dictionary) -> void:
 	match _current_category:
 		"history":
-			_label_detail_overview_header.text = "Overview:"
+			_label_detail_overview_header.text = "概要:"
 			_label_detail_overview_header.visible = true
 			var era: String = str(entry.get("era", ""))
 			if not era.is_empty() and era != "—":
-				_label_detail_extra_a.text = "Era: %s" % era
+				_label_detail_extra_a.text = "時代: %s" % era
 				_label_detail_extra_a.visible = true
-			_show_related("Related:", entry.get("related_entries", []))
+			_show_related("関連:", entry.get("related_entries", []))
 		"dungeon":
-			_label_detail_overview_header.text = "Overview:"
+			_label_detail_overview_header.text = "概要:"
 			_label_detail_overview_header.visible = true
 			var location: String = str(entry.get("location", ""))
 			if not location.is_empty():
-				_label_detail_extra_a.text = "Location: %s" % location
+				_label_detail_extra_a.text = "場所: %s" % location
 				_label_detail_extra_a.visible = true
 			var theme: String = str(entry.get("exploration_theme", ""))
 			if not theme.is_empty():
-				_label_detail_extra_b.text = "Theme: %s" % theme
+				_label_detail_extra_b.text = "テーマ: %s" % theme
 				_label_detail_extra_b.visible = true
-			_show_related("Related History:", entry.get("related_history", []))
+			_show_related("関連史:", entry.get("related_history", []))
 		_:
-			_label_detail_overview_header.text = "Description:"
+			_label_detail_overview_header.text = "解説:"
 			_label_detail_overview_header.visible = true
 
 func _apply_bible_fields_undiscovered() -> void:
 	if _current_category == "history" or _current_category == "dungeon":
-		_label_detail_overview_header.text = "Overview:"
+		_label_detail_overview_header.text = "概要:"
 		_label_detail_overview_header.visible = true
 	else:
-		_label_detail_overview_header.text = "Description:"
+		_label_detail_overview_header.text = "解説:"
 		_label_detail_overview_header.visible = true
 
 func _show_related(header: String, related: Variant) -> void:
@@ -386,10 +386,10 @@ func _update_icon(texture: Texture2D, _big: bool = false) -> void:
 
 func _clear_detail() -> void:
 	_label_detail_id.text = "Entry ID: —"
-	_label_detail_name.text = "Name: —"
+	_label_detail_name.text = "—"
 	_set_status("—", false)
-	_label_detail_category.text = "Category: %s" % _get_category_display()
-	_label_detail_overview_header.text = "Description:"
+	_label_detail_category.text = "種別: %s" % _get_category_display()
+	_label_detail_overview_header.text = "解説:"
 	_label_detail_overview_header.visible = true
 	_label_detail_description.text = "項目を選択してください"
 	_hide_bible_fields()

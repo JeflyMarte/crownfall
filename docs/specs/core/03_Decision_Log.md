@@ -1153,3 +1153,16 @@
 | P3-D090-4 | **MVP遺物4種**: 王国軍旗(与ダメ×1.10) / 王盾の欠片(被ダメ×0.90) / 古い砂時計(行動速度+10%) / 狂戦士の護符(与ダメ×1.20・被ダメ×1.15のリスク型) | 攻/守/速/トレードオフを各1で被覆し、ビルド選択の体験を成立 |
 | P3-D090-5 | **UI＝装備画面スキルタブ、戦術行の直下に遺物 OptionButton**（`EquipmentScene`・`_ensure_relic_ui`/`_refresh_relic_ui`/`_on_relic_selected`）。選択即 `set_member_relic`・保存は戻る時 | 戦術セレクタの実績パターンを流用。新タブ/インベントリUIを回避 |
 | P3-D090-6 | **スコープ外**: ドロップ/インベントリ化・前後列/HP等の条件付き効果・通常N回毎などの発火型遺物・スキルCD直接短縮・遺物アイコン | MVP最小化。入手導線とイベント型は後続 Decision |
+
+## 作戦プリセット MVP（2026-06-30 — P3-D091）
+
+> 「ボス用」「周回用」等の作戦をまとめて保存し、ワンタップで全員へ一括切替。新メカ無し（既存の戦術/遺物設定を束ねるだけ）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D091-1 | **プリセット＝party 全体の「戦術＋遺物」セット**（武器/防具は含めない）。実体アイテム（武器/防具）は複数人同時装備で競合するため除外し、抽象選択（戦術/遺物）のみ束ねる | 競合ゼロで安全に一括適用。装備セット保存は後続 Decision |
+| P3-D091-2 | **3スロット固定**（`GameState.COMBAT_PRESET_SLOTS=3`）。各スロット＝`{name, settings:{member_id:{tactics_id,relic_id}}}`。**member_id キー保持**で編成順が変わっても正しく復元 | 索引でなく id で持つことで party 入替に頑健 |
+| P3-D091-3 | **API**＝`GameState.save_combat_preset(slot,name)` / `apply_combat_preset(slot)` / `get_combat_presets` / `has/get_combat_preset_name`。適用は現 party の member_id 一致分のみ `set_member_tactics`/`set_member_relic` を呼ぶ | 既存 setter 流用＝新規ロジック最小。未編成メンバー分はスキップ |
+| P3-D091-4 | **セーブ永続**＝save ルートに `combat_presets`（party 横断のためメンバー直列化でなくトップレベル）。`duplicate(true)` で深複製 | per-member でなく party 設定のため roster 直列化と分離 |
+| P3-D091-5 | **UI**＝装備画面スキルタブ最上部に「作戦: [プリセット▼] [適用] [保存]」（`EquipmentScene`・`_ensure_preset_ui`/`_refresh_preset_ui`）。保存＝現設定をスロットへ・適用＝全員反映後に戦術/遺物セレクタを再描画 | 戦術/遺物セレクタと同列に集約。新画面を作らない |
+| P3-D091-6 | **スコープ外**: 武器/防具/アクセの装備セット保存・探索方針/プリセット連動・スロット数可変・プリセット名のリネームUI・ダンジョン開始画面からの切替 | MVP最小化。名前は既定「作戦N」自動付与 |

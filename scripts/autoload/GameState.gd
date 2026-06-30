@@ -152,6 +152,61 @@ func set_member_relic(member: Resource, relic_id: String) -> void:
 		return
 	member.relic_id = CombatRelics.normalize_id(relic_id)
 
+# ---- 作戦プリセット（P3-D091） ----
+# party 全体の「戦術＋遺物」セットを最大 COMBAT_PRESET_SLOTS スロット保存し、一括適用する。
+# 各スロット: {"name": String, "settings": { member_id: {"tactics_id","relic_id"} }}
+# member_id キーで保持するため編成順が変わっても正しく復元できる。
+const COMBAT_PRESET_SLOTS: int = 3
+var combat_presets: Array = []
+
+func get_combat_presets() -> Array:
+	return combat_presets
+
+func has_combat_preset(slot: int) -> bool:
+	if slot < 0 or slot >= combat_presets.size():
+		return false
+	var p = combat_presets[slot]
+	return p is Dictionary and not (p as Dictionary).is_empty()
+
+func get_combat_preset_name(slot: int) -> String:
+	if not has_combat_preset(slot):
+		return ""
+	return str((combat_presets[slot] as Dictionary).get("name", ""))
+
+# 現在の party 全員の戦術/遺物をスロットへ保存。name 空なら "作戦N"。
+func save_combat_preset(slot: int, preset_name: String = "") -> void:
+	if slot < 0 or slot >= COMBAT_PRESET_SLOTS:
+		return
+	var settings: Dictionary = {}
+	for member in party_members:
+		if member == null:
+			continue
+		settings[str(member.id)] = {
+			"tactics_id": get_member_tactics_id(member),
+			"relic_id": get_member_relic_id(member),
+		}
+	while combat_presets.size() <= slot:
+		combat_presets.append({})
+	var nm: String = preset_name.strip_edges()
+	if nm.is_empty():
+		nm = "作戦%d" % (slot + 1)
+	combat_presets[slot] = {"name": nm, "settings": settings}
+
+# スロットの設定を現在の party へ一括適用（member_id 一致分のみ）。
+func apply_combat_preset(slot: int) -> bool:
+	if not has_combat_preset(slot):
+		return false
+	var settings: Dictionary = (combat_presets[slot] as Dictionary).get("settings", {})
+	for member in party_members:
+		if member == null:
+			continue
+		var s = settings.get(str(member.id), {})
+		if not (s is Dictionary) or (s as Dictionary).is_empty():
+			continue
+		set_member_tactics(member, str((s as Dictionary).get("tactics_id", "")))
+		set_member_relic(member, str((s as Dictionary).get("relic_id", "")))
+	return true
+
 func find_item_equipped_member_index(item: Resource) -> int:
 	if item == null:
 		return -1

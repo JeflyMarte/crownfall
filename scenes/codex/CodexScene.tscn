@@ -26,15 +26,13 @@ stretch_mode = 1
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -270.0
-offset_top = -460.0
-offset_right = 270.0
-offset_bottom = 460.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 12.0
+offset_right = -20.0
+offset_bottom = -12.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 8
@@ -53,23 +51,23 @@ theme_override_constants/separation = 4
 
 [node name="ButtonTabEnemy" type="Button" parent="VBoxContainer/TabRow"]
 layout_mode = 2
-text = "Enemy"
+text = "敵"
 
 [node name="ButtonTabDungeon" type="Button" parent="VBoxContainer/TabRow"]
 layout_mode = 2
-text = "Dungeon"
+text = "ダンジョン"
 
 [node name="ButtonTabMaterial" type="Button" parent="VBoxContainer/TabRow"]
 layout_mode = 2
-text = "Material"
+text = "素材"
 
 [node name="ButtonTabWeapon" type="Button" parent="VBoxContainer/TabRow"]
 layout_mode = 2
-text = "Weapon"
+text = "武器"
 
 [node name="ButtonTabHistory" type="Button" parent="VBoxContainer/TabRow"]
 layout_mode = 2
-text = "History"
+text = "歴史"
 
 [node name="ButtonTabLore" type="Button" parent="VBoxContainer/TabRow"]
 layout_mode = 2
@@ -77,7 +75,7 @@ text = "記録"
 
 [node name="ButtonTabGuide" type="Button" parent="VBoxContainer/TabRow"]
 layout_mode = 2
-text = "Guide"
+text = "手引き"
 
 [node name="LabelListHeader" type="Label" parent="VBoxContainer"]
 layout_mode = 2
@@ -125,7 +123,7 @@ layout_mode = 2
 
 [node name="LabelIconPlaceholder" type="Label" parent="VBoxContainer/DetailPanel/TopRow/ArtFrame/IconPlaceholder"]
 layout_mode = 2
-text = "[Icon]"
+text = "？"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -135,12 +133,13 @@ size_flags_horizontal = 3
 theme_override_constants/separation = 5
 
 [node name="LabelDetailId" type="Label" parent="VBoxContainer/DetailPanel/TopRow/InfoCol"]
+visible = false
 layout_mode = 2
-text = "Entry ID: —"
+text = ""
 
 [node name="LabelDetailName" type="Label" parent="VBoxContainer/DetailPanel/TopRow/InfoCol"]
 layout_mode = 2
-text = "Name: —"
+text = "—"
 
 [node name="LabelDetailStatus" type="Label" parent="VBoxContainer/DetailPanel/TopRow/InfoCol"]
 layout_mode = 2
