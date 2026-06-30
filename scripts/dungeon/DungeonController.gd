@@ -140,6 +140,7 @@ func start_dungeon(dungeon_id: String) -> void:
 	last_relic_dropped = ""
 	current_event = {}
 	run_damage_multiplier = 1.0
+	GameState.set_weather(CombatWeather.roll())
 	_init_discovery()
 
 func _init_discovery() -> void:
@@ -383,6 +384,11 @@ const WEAPON_POOL: Array[String] = [
 	"sanctified_dagger",
 	"hunting_bow",
 	"apprentice_staff",
+	"ember_fang",
+	"glacier_staff",
+	"storm_edge",
+	"umbral_fang",
+	"consecrated_maul",
 ]
 
 # レア度別ドロップ重み（レアほど低確率＝レア度を体感に反映）

@@ -120,6 +120,9 @@ ProjectDocs **v3.6.0**
 | P3-BAL-002 | 死にステ解消（敵DEF逓減軽減 `K/(K+DEF)` K=100＋属性耐性0.75x を与ダメ計算 `_apply_enemy_mitigation` へ統合） | ✅ 完了（HQ実装・要実機確認） |
 | P3-W-024 | スキル名 世界観リネーム（ハイブリッド: 基本=和名/属性技・弓・杖=カタカナ・hex_bolt→アンブラボルト＋説明文を闇エルダ整合） | ✅ 完了（HQ実装） |
 | P3-A-UI-007 | ホーム(BaseScene)モック準拠リニューアル＋タイトル背景アート(`UI_BG_Title.png`)導入（上部通貨バー/左メニュー/下部タブナビ・中央ロゴのみ・浮遊CTA/肖像撤去・通貨=gold/gacha_token） | ✅ 完了（HQ実装・要実機確認） |
+| P3-D100 | AIターゲット選択(パーティ・フォーカス方針)MVP。D086保留のTarget層をフォーカス撃破モデル非破壊で導入。targetルールを`CombatTactics`に追加(front/lowest_hp/highest_hp/highest_atk・balanced/cautious=front・aggressive/survival/sweep=lowest_hp・boss_focus=highest_hp)。選択=単一アクティブの付け替え(`CombatController.set_focus_by_rule`・生存敵からルールで1体選びactiveに設定・全員集中)で既存の被ダメ/状態異常/コンボ/HPバー処理を不変。配線=`_do_member_turn`冒頭で行動メンバーのtarget適用(`_apply_focus_target`・群れ2体以上時のみ＋アクティブ敵に状態異常がある間は非切替＝単一スロット状態の転移防止)。混成エンカウント/敵別状態異常/個別ターゲット/Target条件9種は後続(大物) | ✅ 完了（HQ実装・headless検証・要実機確認） |
+| P3-D101 | 環境変化(天候)MVP。run開始時に天候抽選・DG中不変(`CombatWeather.roll()`→`GameState.current_weather`・揮発・晴れ55%/雨夜霧各15%)。効果(属性idはElementResolver準拠)=雨:雷+15%/炎-10%・夜:闇+15%/聖-10%・霧:与ダメ×0.95＋被ダメ×0.95。配線=属性/全体与ダメ→`_apply_enemy_mitigation`(地形隣・`[天候:◯]`ログ)/被ダメ→`get_member_incoming_damage_multiplier`(GameState参照)。可視化=HUDにダンジョン名〔天候〕併記＋ナラティブ＋procedural オーバーレイ(`_setup_weather`・夜=暗青ColorRect/霧=薄灰alphaドリフトTween/雨=CPUParticles2D＋生成雨粒テクスチャ・新規アセット0・CanvasLayer layer3・MOUSE_IGNORE)。増水/落石/フロア毎変化/敵側補正は後続 | ✅ 完了（HQ実装・headless検証・要実機確認） |
+| P3-D102 | 属性武器拡充 MVP。属性シナジー(D095・同属性2本)/地形相性(D099)を実用域に。各属性1本のみで「2人で同属性」不可だったため各属性2本目を+5追加: 燻る炎牙(fire/dual_blades/pierce)/氷霜の杖(ice/staff/blunt)/雷鳴の大剣(thunder/greatsword/slash)/影喰みの短刃(dark/dual_blades/pierce)/祝聖の大槌(holy/greatsword/slash)。新規アセット0=アイコンは対応属性の既存ICO_WPN流用(`IconPaths`)・`fixed_skill_id`は既存同属性スキル流用(kindling/rime/static/hex・聖=slash_attack)・雷tag=`lightning`(D094感電互換・D099-6正規化でsynergy発火)。流通=`WEAPON_POOL`に5本追加(`DataRegistry`はid→path自動解決で追加コード不要)。専用アート/新規スキルは後続 | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D099 | Biome属性相性 MVP。ダンジョンごとの有利属性。データ=`DungeonData.favored_element`(空=補正なし・MVP有利のみ/不利ペナルティ無し・後方互換)。効果=味方attack_elementが一致で与ダメ×1.15(`BIOME_FAVORED_BONUS`・弱点/特効/シナジーと乗算)。配線=D095同様`_apply_enemy_mitigation`属性段に1フック(`_is_biome_favored`→`current_dungeon_data.favored_element`・`[地形:◯]`ログ)。可視化=ダンジョン選択に「地形相性: ◯有利」(`DungeonSelectScene`)。mourngate(王都地下)=dark初期設定。不利ペナルティ/敵側補正/環境変化/部屋構成変更は後続 | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D098 | 探索方針プリセット連動 MVP。作戦プリセット(P3-D091)に「探索方針」を内包。方針=run単位1つ(`GameState.current_exploration_policy`・""/safe/material/relic/codex・DG中不変)。効果(中央フック相乗り)=safe:被ダメ×0.92＋群れ率×0.5/material:gold+15%＋ELITE素材率0.15→0.30/relic:ELITE遺物率0.15→0.25(BOSS据置)/codex:撃破時`add_enemy_kill`二重計上で図鑑段階加速。連動=`combat_presets[slot].exploration_policy`追加・`save/apply_combat_preset`で保存/反映(`SaveManager`は既存deep-duplicateで自動保存・変更不要)。UI=プリセット行直下に探索方針セレクタ(`EquipmentScene`・選択即反映・既定なし)。探索スキル/環境変化/部屋構成変更/高速周回は後続 | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D097 | ロールボーナス＋物理タグシナジー MVP。編成(ジョブrole)と物理武器の揃えに報酬。ロール=`CombatSynergy.compute_role_bonuses`がparty role(`JobStatCalculator`経由)を2人以上共有で発火: tank×2=被ダメ-8%/dps×2=与ダメ+6%/support×2=回復+20%/scout×2=会心+8%。物理タグシナジー=`compute_physical_bonus`が物理タグ(slash/pierce/blunt)を2人+5%/3人+8%の与ダメ(最大値・party全体フラット・属性シナジーと別枠乗算)。配線=既存中央倍率に相乗り(与ダメ`get_member_outgoing_damage_multiplier`×(1+物理)×role.outgoing/被ダメ`get_member_incoming...`×role.incoming/回復`_apply_healing_bonus`×role.heal/会心`_calc_attack_base`+role.crit)。可視化=装備スキルタブの情報行に「編成ボーナス」行追加(`_refresh_tag_info`)。陣形/Aggro/scout素材反映は後続 | ✅ 完了（HQ実装・headless検証・要実機確認） |
@@ -140,6 +143,39 @@ ProjectDocs **v3.6.0**
 | P3-D082 | 群れ出現MVP（`EnemyData.can_swarm`/swarm_min/max・COMBATで20%群れ化(2〜3体)・ELITE/BOSS除外・sepia_hound/crown_eater_rat対象・CombatController群れ配列化+アクティブ繰り上げ・先頭フォーカス撃破/敵は各自攻撃・状態異常はアクティブ単一スロット流用・横並びスロットUI/個別HPバー&Lv名・撃破ごと報酬/武器個別ドロップ） | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D081 | 敵レベル制MVP（`DungeonData.enemy_level`でDG単位固定・戦闘開始時確定/DG中不変・HP/ATK×(1+0.10×(Lv−1))/DEF据置・EXP×(1+0.15×(Lv−1))・共有Resource不汚染=CombatControllerの派生スケール値・ネームプレート`Lv{n} 名前`） | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D080 | ダンジョン選択画面新設（ホーム「ダンジョン」→`DungeonSelectScene`→ラン。カード=ボス絵/★(difficulty)/推奨Lv/主なドロップ/CLEARバッジ・難易度タブ(ロック表示)・ロック行3件(仮名)・下部ナビ。`DungeonData.recommended_level`追加・`GameState.mark/is_dungeon_cleared`・完走時マーク） | ✅ 完了（HQ実装・要実機確認） |
+
+### Combat System v1.0 残実装ロードマップ（2026-06-30 確定 / オーナー承認）
+
+> 提案「Crownfall Combat System v1.0」の未実装/部分要素を、依存関係と費用対効果で並べた実装順序。原則＝土台先行・小さく効くもの先行・大物後段。採番は着手時に P3-Dxxx を付与。
+
+**フェーズA：防御と編成の土台（タンクを機能させる）**
+1. 防具の属性耐性（小・即効・依存なし）← 推奨着手点
+2. Aggro / Threat 基盤（中・挑発/誘導/連携/陣形の前提）
+3. 陣形 2×2 前後列（中・射程/前列ボーナス/後衛保護の前提・2とセット）
+
+**フェーズB：状態異常と条件の解像度**
+4. 状態異常拡充（中・Control[スタン/恐怖]＋Debuff[脆弱/マーキング/防御DOWN]＋延長）
+5. Condition 拡充（小〜中・出血中/毒中/CT準備完了/距離・4依存）
+6. シナジータグ残＋コンボ追加（小・Shield/Heal/Buff、バフ→必殺）
+
+**フェーズC：戦闘の多様性（Target 本格化）**
+7. 混成エンカウント＋敵別状態異常スロット（大・D100本格化/単一スロット制約解消）
+8. 個別ターゲット＋Target 条件拡充（中・7依存）
+
+**フェーズD：テンポ・AI深化**
+9. Cast/詠唱＋Action Lock（中）
+10. スキル予約／ローテーション（中）
+11. 遺物：発火型＋種類拡充（中・D096本格版）
+12. パーティシナジー連鎖＋キャラ連携（中・Aggro[2]前提）
+
+**フェーズE：コンテンツ・周回**
+13. ボスのフェーズ移行（中〜大・図鑑フェーズ判明と接続）
+14. 探索スキル群（採取/採掘/鍵/解読/罠）（大・別ピラー）
+15. 高速周回（戦闘スキップ）（小・周回QoL）
+
+依存固定: 2→3→12 / 4→5→6 / 7→8。単発で軽量＝1・6・15（隙間差し込み可）。
+
+---
 
 ### 残スケジュール（Phase 3-B' システム完成まで）
 

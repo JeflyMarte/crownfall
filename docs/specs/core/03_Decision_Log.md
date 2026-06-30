@@ -1254,3 +1254,37 @@
 | P3-D099-4 | **可視化＝ダンジョン選択に「地形相性: ◯ 有利」表示**（`DungeonSelectScene`・`ElementResolver.get_display_name`）。mourngate(王都地下)=dark を初期設定 | 編成前に地形が分かる。図鑑併記は後続 |
 | P3-D099-5 | **スコープ外**: 不利属性ペナルティ・敵側の地形補正・環境変化(雨/夜/霧)・地形による部屋構成変更・複数属性地形・図鑑への地形表示 | MVP最小化 |
 | P3-D099-6 | **整合修正（バランスパス）**: `thunder`/`lightning` の id 不整合で雷属性シナジーが恒久不発だったため、`CombatSynergy` で属性タグ集計時に `lightning→thunder` 正規化（`_ELEMENT_TAG_ALIAS`）し、シナジーキーを `ElementResolver` id（attack_element）に統一。コンボ(感電=require lightning)はタグ空間内で完結のため非影響。数値そのものは実機確認まで据置 | 雷シナジー/地形相性の発火を修正。バランス分析では乗算レンジ（与ダメ最大~4.0倍/被ダメ~0.76・暴走ループ無し）は許容と判定 |
+
+## 属性武器の拡充 MVP（2026-06-30 — P3-D102）
+
+> 属性シナジー(D095・同属性2本で発動)/地形相性(D099)を実用域にする。各属性1本のみでは「2人で同属性を揃える」が不可能だったため、各属性に2本目を追加。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D102-1 | **各属性に2本目を追加（+5本）**。武器種を1本目とずらして差別化: 炎=燻る炎牙(dual_blades/pierce) / 氷=氷霜の杖(staff/blunt) / 雷=雷鳴の大剣(greatsword/slash) / 闇=影喰みの短刃(dual_blades/pierce) / 聖=祝聖の大槌(greatsword/slash) | 「同属性でも戦い方が違う2本」で編成幅を確保。属性シナジー成立条件(2本)を満たせるように |
+| P3-D102-2 | **新規アセット0**: アイコンは対応属性の既存 ICO_WPN を流用（`IconPaths`）、`fixed_skill_id` は既存同属性スキル流用（kindling/rime/static/hex、聖は slash_attack）。`element`/`tags` は `ElementResolver`/`CombatTags` id 準拠（雷は tag `lightning`＝D094 感電コンボ互換・D099-6 正規化で synergy も発火） | アート/スキル新規作成なしで即実用化。後でアート差替前提 |
+| P3-D102-3 | **流通＝`DungeonController.WEAPON_POOL` に5本追加**（rarity 重みでドロップ）。`DataRegistry` は id→path 自動解決のため追加コード不要 | 既存ドロップ機構に相乗り。入手経路を確保 |
+| P3-D102-4 | **スコープ外**: 専用アート・新規固有スキル・防具/装飾の属性拡充・属性武器の鍛冶/進化・gacha 排出調整 | MVP最小化。アート/スキル作り込みは後続 |
+
+## 環境変化（天候）MVP（2026-06-30 — P3-D101）
+
+> ダンジョン進入ごとに天候を抽選し、戦闘へ一時補正。属性武器(D102)/地形相性(D099)と噛み合わせ「天候を見て属性を選ぶ」判断を足す。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D101-1 | **天候＝run 開始時に1つ抽選・DG中不変**（`CombatWeather.roll()`→`GameState.current_weather`・揮発）。晴れ55% / 雨・夜・霧 各15% | 敵Lv(D081)/地形(D099)と同じ run 固定モデル。多くは晴れで過剰干渉を回避 |
+| P3-D101-2 | **効果（属性 id は ElementResolver 準拠）**: 雨=雷+15%/炎−10%・夜=闇+15%/聖−10%・霧=与ダメ×0.95＋被ダメ×0.95（視界不良で双方手探り） | 属性天候は D102 の属性武器選択に意味を与える。霧は属性非依存の鈍化で差別化 |
+| P3-D101-3 | **配線（既存中央フックに相乗り）**: 属性/全体与ダメ→`DungeonScene._apply_enemy_mitigation`（地形の隣・`CombatWeather.element_multiplier×outgoing_multiplier`・ログ `[天候:◯]`）。被ダメ→`CombatController.get_member_incoming_damage_multiplier`（`GameState.get_weather()` 参照） | D098/D099 と同じ相乗り方式。散在回避・味方攻撃/被弾の既存経路に統合 |
+| P3-D101-4 | **可視化＝HUD 併記＋procedural オーバーレイ（新規アセット0）**。ダンジョン名に〔天候〕併記＋開始ナラティブ。`DungeonScene._setup_weather`: 夜=暗青 ColorRect / 霧=薄灰 ColorRect の alpha ドリフト(Tween) / 雨=`CPUParticles2D`（生成した 2×14 雨粒 ImageTexture・上端から落下）。全て MOUSE_FILTER_IGNORE・低 alpha で可読性維持 | アニメーション要望に対応しつつアセット追加ゼロ。CanvasLayer(layer3)で UI を阻害しない |
+| P3-D101-5 | **スコープ外**: 増水/落石・フロアごとの天候変化・敵側への天候補正・天候別 VFX/BGM 作り込み・ダンジョン選択での事前表示（開始時抽選のため不可） | MVP最小化 |
+
+## AIターゲット選択 — パーティ・フォーカス方針 MVP（2026-06-30 — P3-D100）
+
+> D086 で保留した Target 層を、現行フォーカス撃破モデルを壊さない範囲で導入。各メンバー行動時に戦術 target ルールで生存敵から狙いを定める。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D100-1 | **target ルールを `CombatTactics` に追加**（front/lowest_hp/highest_hp/highest_atk）。割当: balanced/cautious=front・aggressive/survival/sweep=lowest_hp・boss_focus=highest_hp | 既存6戦術に狙い方の個性を付与。`highest_atk`/highest_hp は混成実装後に本領 |
+| P3-D100-2 | **選択＝単一アクティブの付け替え**（`CombatController.set_focus_by_rule`）。生存敵からルールで1体選び active に設定。全員がそのフォーカスを攻撃 | 単一アクティブ維持＝既存の被ダメ/状態異常/コンボ/HPバー処理を一切変えずに狙い分けを実現 |
+| P3-D100-3 | **配線＝`_do_member_turn` 冒頭で行動メンバーの戦術 target を適用**（`_apply_focus_target`）。発火条件: 群れ(生存2体以上)時のみ＋**アクティブ敵に状態異常が乗っている間は切替えない**（単一スロット "enemy" 状態の他個体への転移を防止） | 同種群れの focus-fire（lowest_hp で頭数を早く減らし被ダメ減）を安全に実現。DoT 整合を保護 |
+| P3-D100-4 | **スコープ外（後続 大物）**: 混成エンカウント・敵別状態異常スロット・メンバー個別ターゲット（同時に別個体狙い）・Target条件9種全実装・狙いの可視化 | 同種群れ中心の現状では focus 方針で十分。基盤拡張は別 Decision |

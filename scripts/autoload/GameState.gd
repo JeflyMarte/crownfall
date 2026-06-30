@@ -207,6 +207,15 @@ static func exploration_policy_label(policy: String) -> String:
 func exploration_incoming_multiplier() -> float:
 	return 0.92 if current_exploration_policy == "safe" else 1.0
 
+# 天候（環境変化・P3-D101）。run 開始時に DungeonController が抽選してセット。run 揮発。
+var current_weather: String = ""
+
+func get_weather() -> String:
+	return current_weather
+
+func set_weather(weather: String) -> void:
+	current_weather = weather
+
 func get_combat_presets() -> Array:
 	return combat_presets
 

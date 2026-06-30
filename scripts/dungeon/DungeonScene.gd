@@ -210,11 +210,66 @@ func _ready() -> void:
 	if $DungeonController.current_dungeon_data != null:
 		dungeon_name = $DungeonController.current_dungeon_data.display_name
 		_label_dungeon_name.text = dungeon_name
-	_set_narrative("%s の探索を開始した" % dungeon_name)
+	_setup_weather()
+	var weather_suffix: String = ""
+	if not GameState.get_weather().is_empty():
+		weather_suffix = "（天候: %s）" % CombatWeather.label(GameState.get_weather())
+	_set_narrative("%s の探索を開始した%s" % [dungeon_name, weather_suffix])
 	if not dungeon_id.is_empty():
 		_try_register_discovery("dungeon", dungeon_id)
 	_update_combat_visibility()
 	_start_auto_progress()
+
+# 天候の可視化（P3-D101）。HUD ラベル併記＋procedural オーバーレイ（新規アセット無し）。
+func _setup_weather() -> void:
+	var weather: String = GameState.get_weather()
+	if weather.is_empty():
+		return
+	if is_instance_valid(_label_dungeon_name):
+		_label_dungeon_name.text += "  〔%s〕" % CombatWeather.label(weather)
+	var layer := CanvasLayer.new()
+	layer.name = "WeatherLayer"
+	layer.layer = 3
+	add_child(layer)
+	var view: Vector2 = get_viewport_rect().size
+	match weather:
+		CombatWeather.NIGHT:
+			var tint := ColorRect.new()
+			tint.color = Color(0.04, 0.06, 0.16, 0.30)
+			tint.set_anchors_preset(Control.PRESET_FULL_RECT)
+			tint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			layer.add_child(tint)
+		CombatWeather.FOG:
+			var haze := ColorRect.new()
+			haze.color = Color(0.76, 0.78, 0.82, 0.16)
+			haze.set_anchors_preset(Control.PRESET_FULL_RECT)
+			haze.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			layer.add_child(haze)
+			var tw := create_tween().set_loops()
+			tw.tween_property(haze, "color:a", 0.24, 2.2).set_trans(Tween.TRANS_SINE)
+			tw.tween_property(haze, "color:a", 0.10, 2.2).set_trans(Tween.TRANS_SINE)
+		CombatWeather.RAIN:
+			var rain := CPUParticles2D.new()
+			rain.texture = _make_raindrop_texture()
+			rain.amount = 150
+			rain.lifetime = 0.7
+			rain.local_coords = false
+			rain.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+			rain.emission_rect_extents = Vector2(view.x * 0.6, 2.0)
+			rain.position = Vector2(view.x * 0.5, -12.0)
+			rain.direction = Vector2(0.1, 1.0)
+			rain.spread = 4.0
+			rain.gravity = Vector2(20.0, 900.0)
+			rain.initial_velocity_min = 420.0
+			rain.initial_velocity_max = 540.0
+			rain.modulate = Color(0.75, 0.82, 1.0, 0.7)
+			rain.emitting = true
+			layer.add_child(rain)
+
+func _make_raindrop_texture() -> Texture2D:
+	var img := Image.create(2, 14, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0.8, 0.86, 1.0, 0.55))
+	return ImageTexture.create_from_image(img)
 
 func _process(_delta: float) -> void:
 	if _request_scroll_to_bottom:
@@ -1134,6 +1189,12 @@ func _apply_enemy_mitigation(damage: int, attack_element: String, member_index: 
 	if _is_biome_favored(attack_element):
 		damage = maxi(1, int(round(float(damage) * BIOME_FAVORED_BONUS)))
 		element_tag += "  [地形:%s]" % ElementResolverScript.get_display_name(attack_element)
+	# 天候（環境変化・P3-D101）: 属性別補正＋全体与ダメ補正。
+	var weather: String = GameState.get_weather()
+	var weather_mult: float = CombatWeather.element_multiplier(weather, attack_element) * CombatWeather.outgoing_multiplier(weather)
+	if weather_mult != 1.0:
+		damage = maxi(1, int(round(float(damage) * weather_mult)))
+		element_tag += "  [天候:%s]" % CombatWeather.label(weather)
 	damage = _apply_enemy_defense(damage, enemy_data)
 	return {"damage": damage, "element_tag": element_tag}
 
@@ -1575,6 +1636,7 @@ func _do_member_turn(member_idx: int) -> void:
 		return
 	var member: Resource = GameState.get_combatant(member_idx)
 	var tactics_id: String = GameState.get_member_tactics_id(member)
+	_apply_focus_target(tactics_id)
 	var ctx: Dictionary = _build_tactics_context(member_idx)
 	for rule: Dictionary in CombatTactics.get_slot_plan(tactics_id):
 		if not CombatTactics.condition_met(rule, ctx):
@@ -1594,6 +1656,15 @@ func _do_member_turn(member_idx: int) -> void:
 			return
 	# 安全フォールバック（プランが空/全不発の場合）
 	_do_member_basic_attack(member_idx)
+
+# パーティ・フォーカス対象を戦術 target ルールで設定（P3-D100）。
+# 群れ(2体以上)時のみ作用。状態異常付き敵からは切替えない（単一スロット状態の転移防止）。
+func _apply_focus_target(tactics_id: String) -> void:
+	if $CombatController.living_enemy_count() <= 1:
+		return
+	if not $CombatController.get_enemy_status_list().is_empty():
+		return
+	$CombatController.set_focus_by_rule(CombatTactics.get_target_rule(tactics_id))
 
 # 戦術条件の評価に使う戦闘コンテキスト。
 func _build_tactics_context(member_idx: int) -> Dictionary:

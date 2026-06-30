@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "storm_edge"
+display_name = "雷鳴の大剣"
+fixed_skill_id = "static_strike"
+base_attack = 13
+rarity = 1
+base_attack_speed = 0.9
+base_critical_rate = 0.05
+base_knockback = 0.45
+base_stagger_power = 0.25
+base_attack_range = 1.0
+weight = 1.1
+element = "thunder"
+weapon_type = "greatsword"
+tags = Array[String](["slash", "lightning"])

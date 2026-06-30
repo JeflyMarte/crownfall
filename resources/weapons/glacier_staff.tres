@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "glacier_staff"
+display_name = "氷霜の杖"
+fixed_skill_id = "rime_touch"
+base_attack = 11
+rarity = 1
+base_attack_speed = 0.95
+base_critical_rate = 0.05
+base_knockback = 0.3
+base_stagger_power = 0.15
+base_attack_range = 1.0
+weight = 0.9
+element = "ice"
+weapon_type = "staff"
+tags = Array[String](["blunt", "ice"])

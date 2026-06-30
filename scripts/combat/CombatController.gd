@@ -156,6 +156,32 @@ func advance_active_enemy() -> int:
 	_sync_active_enemy()
 	return -1
 
+# パーティ・フォーカス対象を target ルールで選び、アクティブ敵に設定する（P3-D100）。
+# 単一アクティブ＝状態異常/コンボ非破壊。生存敵が居なければ何もしない。
+# rule: "front" | "lowest_hp" | "highest_hp" | "highest_atk"
+func set_focus_by_rule(rule: String) -> int:
+	var living: Array[int] = get_living_enemy_indices()
+	if living.is_empty():
+		return active_enemy_index
+	var best: int = living[0]
+	for i: int in living:
+		match rule:
+			"lowest_hp":
+				if swarm_hp[i] < swarm_hp[best]:
+					best = i
+			"highest_hp":
+				if swarm_hp[i] > swarm_hp[best]:
+					best = i
+			"highest_atk":
+				if swarm_atk[i] > swarm_atk[best]:
+					best = i
+			_:
+				best = living[0] # front＝先頭の生存個体
+	if best != active_enemy_index:
+		active_enemy_index = best
+		_sync_active_enemy()
+	return active_enemy_index
+
 func get_enemy_max_hp() -> int:
 	return _scaled_max_hp
 
@@ -353,6 +379,8 @@ func get_member_incoming_damage_multiplier(member_index: int) -> float:
 	mult *= float(CombatSynergy.compute_role_bonuses(GameState.party_members).get("incoming_mult", 1.0))
 	# 探索方針（安全優先）被ダメ軽減（P3-D098）
 	mult *= GameState.exploration_incoming_multiplier()
+	# 天候（霧＝被ダメ軽減）（P3-D101）
+	mult *= CombatWeather.incoming_multiplier(GameState.get_weather())
 	return mult
 
 # ロール編成ボーナス（P3-D097）。回復量倍率 / 会心率加算。
