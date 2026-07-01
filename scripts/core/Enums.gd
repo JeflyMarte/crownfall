@@ -31,6 +31,7 @@ enum RoomType {
 	MID_BOSS,
 	BOSS,
 	EXIT,
+	TRAP,
 	HEAL,
 	MERCHANT,
 }

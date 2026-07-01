@@ -17,9 +17,10 @@ const ROOM_SEQUENCE: Array[int] = [
 ]
 
 # 中間部屋の抽選重み（戦闘多めプリセット）。合計100。
-const ROOM_WEIGHT_COMBAT: int = 60
+const ROOM_WEIGHT_COMBAT: int = 52
 const ROOM_WEIGHT_EVENT: int = 15
 const ROOM_WEIGHT_TREASURE: int = 13
+const ROOM_WEIGHT_TRAP: int = 8
 const ROOM_WEIGHT_ELITE: int = 12
 
 # 安全ガード（事故防止）
@@ -27,7 +28,11 @@ const ROOM_MAX_ELITE: int = 2      # 1ラン内のELITE上限
 const ROOM_MIN_COMBAT: int = 3     # COMBAT最低数（肩慣らし含む / BOSS除く）
 
 
-const TREASURE_GOLD: int = 30
+const TRAP_ROOM_NARRATIVES: Array[String] = [
+	"床板の罠が作動した",
+	"崩れた床から棘が飛び出した",
+	"古いワイヤーが足元を締め付けた",
+]
 const TREASURE_ACCESSORY_CHANCE: float = 0.2
 const ELITE_REWARD_MULTIPLIER: float = 1.5
 const ELITE_ARMOR_CHANCE: float = 0.35
@@ -207,6 +212,9 @@ func _roll_room_type() -> int:
 	r -= ROOM_WEIGHT_EVENT
 	if r < ROOM_WEIGHT_TREASURE:
 		return Enums.RoomType.TREASURE
+	r -= ROOM_WEIGHT_TREASURE
+	if r < ROOM_WEIGHT_TRAP:
+		return Enums.RoomType.TRAP
 	return Enums.RoomType.ELITE
 
 # COMBAT が ROOM_MIN_COMBAT 未満なら、中間の非COMBAT部屋をCOMBATへ変換して補う。

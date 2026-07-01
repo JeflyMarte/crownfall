@@ -1884,3 +1884,5 @@
 | P3-D151-3 | **抽選** — 中間部屋重みに TRAP **~8%** 追加（COMBAT から微減 or 新規枠）。START/BOSS/EXIT 固定は維持 | モーンゲート floor_count 抽選に組込 |
 | P3-D151-4 | **ログ** — `[罠]` 成功/失敗・被弾者名。ナラティブ1行（例:「床板の罠が作動した」） | フルオートでも可視化 |
 | P3-D151-5 | **スコープ外**: 罠の種類拡充・手動解除UI・報酬付き罠・商人/HEAL 復活 | MVP最小化 |
+
+**Closeout（2026-07-01）:** `RoomType.TRAP` 追加・抽選重み COMBAT52/EVENT15/TREASURE13/**TRAP8**/ELITE12・`DungeonScene._resolve_trap_room`・`ExplorationSkills.can_disarm_trap_room`・全滅時は Result へ。headless smoke PASS。

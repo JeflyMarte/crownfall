@@ -166,6 +166,7 @@
 | P3 | Status Tier2（burn / stun / weak） |
 | P3 | Merchant Expansion |
 | P3 | Special Room Expansion |
+| P1 | **罠部屋（TRAP Room）** — ✅ **P3-D151** 完了 |
 
 ---
 

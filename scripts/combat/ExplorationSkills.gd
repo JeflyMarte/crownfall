@@ -32,7 +32,7 @@ const _SKILLS: Dictionary = {
 	"disarm": {
 		"label": "罠解除",
 		"roles": ["scout", "tank"],
-		"room_types": [Enums.RoomType.COMBAT, Enums.RoomType.ELITE],
+		"room_types": [Enums.RoomType.COMBAT, Enums.RoomType.ELITE, Enums.RoomType.TRAP],
 	},
 }
 
@@ -52,6 +52,9 @@ static func has_skill_for_room(members: Array, skill_id: String, room_type: int)
 
 static func can_disarm(members: Array) -> bool:
 	return has_skill_for_room(members, "disarm", Enums.RoomType.COMBAT)
+
+static func can_disarm_trap_room(members: Array) -> bool:
+	return has_skill_for_room(members, "disarm", Enums.RoomType.TRAP)
 
 static func should_roll_trap() -> bool:
 	return randf() < TRAP_CHANCE
