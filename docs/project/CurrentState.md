@@ -4,7 +4,9 @@
 
 ## Last Update
 
-2026-07-01（**P3-D131 Result 採取素材表示** + **P3-D132 DG選択に探索方針表示**: ラン素材差分スナップショット・Result情報行・選択画面ラベル。headless smoke PASS / コミット済）
+2026-07-01（**P3-ALPHA-005 Alpha Combat Formation ブランチ Closeout**: `cursor/alpha-combat-formation-ui` → `main` マージ。D120〜133 + headless Closeout 一式。smoke PASS）
+
+2026-07-01（**P3-D133 Result 天候表示**: `last_run_weather` スナップショット・Result 情報行）
 
 2026-07-01（**P3-ALPHA-003 Closeout（headless）**: 実機一括確認はオーナー実施困難のため **Defer**。暫定ゲート＝`smoke_test.sh` PASS。開発継続可。**次=Phase 3-A ポリッシュ / Backlog 小タスク**）
 

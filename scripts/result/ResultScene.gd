@@ -224,6 +224,9 @@ func _build_info() -> void:
 	var run_policy: String = GameState.last_run_exploration_policy
 	if not run_policy.is_empty():
 		_add_info_pair("探索方針", GameState.exploration_policy_label(run_policy))
+	var run_weather: String = GameState.last_run_weather
+	if not run_weather.is_empty():
+		_add_info_pair("天候", CombatWeather.label(run_weather))
 	var mat_ids: Array = GameState.last_run_material_gains.keys()
 	mat_ids.sort()
 	for mat_id in mat_ids:
