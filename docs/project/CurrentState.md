@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-01（**P3-D129 探索方針効果ヒント** + **P3-ALPHA-004 チェックリスト v2.1**: 装備画面ヒント・D120〜128 追検項目。headless import 検証済 / 実機未確認 / コミット済。**次=P3-ALPHA-003 実機**）
+
 2026-07-01（**P3-D128 図鑑調査実利報酬（D2）**: P3-D067 生態素材ドロップ配線復元・図鑑方針×未完了敵でEXP+10%/素材率×1.5・ログ`[図鑑調査]`。headless import 検証済 / 実機未確認 / コミット済。**次=P3-ALPHA-003 実機**）
 
 2026-07-01（**P3-D127 ターゲット条件拡張（A2）**: 条件4種（stun/vulnerable/armor_break/fear）・標的`enemy_with_debuff`・cautious/sweep プリセット反映。headless import 検証済 / 実機未確認 / コミット済）
