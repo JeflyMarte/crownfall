@@ -16,5 +16,6 @@ preferred_weapon_types = Array[String](["bow", "staff"])
 starting_skill_ids = Array[String](["snare_shot"])
 learnable_skill_ids = Array[String](["snare_shot", "aimed_shot", "hex_bolt", "rime_touch"])
 passive_tag_ids = Array[String](["tamer"])
+ultimate_skill_id = "beast_dominion"
 evolved_display_name = "ビーストロード"
 evolution_level = 10

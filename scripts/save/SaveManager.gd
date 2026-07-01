@@ -80,6 +80,7 @@ func _serialize_adventurer(adv: Resource) -> Dictionary:
 		"level": adv.level,
 		"exp": adv.exp,
 		"job_id": adv.job_id,
+		"rarity": adv.rarity,
 		"is_evolved": adv.is_evolved,
 		"base_stats": _serialize_stats(adv.base_stats),
 		"equipped_weapon": weapon_instance_id,
@@ -241,6 +242,7 @@ func _deserialize_party(party_data: Array) -> Dictionary:
 		adv.level = int(entry.get("level", 1))
 		adv.exp = int(entry.get("exp", 0))
 		adv.job_id = _migrate_job_id(entry.get("job_id", ""))
+		adv.rarity = int(entry.get("rarity", Adventurer.DEFAULT_RARITY))
 		adv.is_evolved = bool(entry.get("is_evolved", false))
 		var saved_skills: Array = entry.get("equipped_skills", [])
 		var skill_ids: Array[String] = []
@@ -293,6 +295,7 @@ func _apply_roster_save(data: Dictionary) -> void:
 	GameState.ensure_base_roster_complete()
 	# 旧セーブの基本職名/職IDを現行定義へ正規化（戦士/盗賊/魔術師 等の残存を解消）
 	GameState.normalize_base_roster()
+	GameState.normalize_roster_rarity()
 	_restore_active_party(data)
 
 func _restore_active_party(data: Dictionary) -> void:

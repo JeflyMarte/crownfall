@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "grand_elixir"
+display_name = "グランドエリクサー"
+description = "錬成術の極致。最も傷ついた仲間へ、生命を満たす大いなる一滴を注ぐ。"
+skill_type = "player"
+target_type = "ally"
+power_multiplier = 4.0
+cooldown = 35.0
+trigger_type = "cooldown"
+effect_type = "heal"
+tags = Array[String](["ultimate", "heal"])
+element = ""
+apply_status_id = ""
+apply_status_chance = 0.0
+slot_type = "ultimate"
+range_type = "global"
+cast_time = 1.0

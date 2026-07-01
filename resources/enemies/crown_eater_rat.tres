@@ -32,3 +32,5 @@ codex_danger = 1
 codex_habitat = "宝物庫跡"
 codex_research_note = "ネズミの類を祖先とする鉱物食性の害獣。宝物庫跡に適応し、金属や宝石を選んで齧る。王族の装飾品を巣材に持ち込む習性があり、その胃石から失われた宝具の断片が見つかることもある。素早く隙を突くが臆病。胃石の金片には、本来別々の宝具のものでありながら同じ紋様を刻んだものが混じることがあり、なぜ一致するのかは説明されていない。"
 codex_materials = Array[String](["royal_gold_incisor", "gem_gastrolith"])
+skill_ids = Array[String](["enemy_crown_gnaw"])
+skill_use_chance = 0.24

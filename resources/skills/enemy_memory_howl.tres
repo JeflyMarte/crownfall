@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_memory_howl"
+display_name = "追憶の遠吠え"
+description = "古い記憶の匂いを追い、群れで前列の探索者を襲う。"
+skill_type = "enemy"
+target_type = "party_front"
+power_multiplier = 0.48
+cooldown = 5.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["aoe"])
+element = ""
+apply_status_id = ""
+apply_status_chance = 0.0

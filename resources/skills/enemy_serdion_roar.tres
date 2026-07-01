@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_serdion_roar"
+display_name = "骸晶の咆哮"
+description = "古龍の骨格が轟き、寄生結晶の瘴気を探索隊全体へ浴びせる。"
+skill_type = "boss"
+target_type = "all_party"
+power_multiplier = 0.45
+cooldown = 8.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["boss"])
+element = "dark"
+apply_status_id = ""
+apply_status_chance = 0.0
+cast_time = 1.0

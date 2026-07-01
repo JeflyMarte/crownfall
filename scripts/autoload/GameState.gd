@@ -689,11 +689,11 @@ const STARTING_WEAPON_BY_JOB: Dictionary = {
 
 # 初期ロスター（基本5職）。アクティブ3は先頭3名（P3-D036b-9）。
 const BASE_ROSTER_DEFS: Array = [
-	{"id": "adventurer_0", "name": "ソードマン", "job": "swordsman"},
-	{"id": "adventurer_1", "name": "レンジャー", "job": "ranger"},
-	{"id": "adventurer_2", "name": "アルケミスト", "job": "alchemist"},
-	{"id": "adventurer_3", "name": "ヴァンガード", "job": "vanguard"},
-	{"id": "adventurer_4", "name": "ビーストテイマー", "job": "beast_tamer"},
+	{"id": "adventurer_0", "name": "アルド（Ald）", "job": "swordsman"},
+	{"id": "adventurer_1", "name": "リーヴァ（Riva）", "job": "ranger"},
+	{"id": "adventurer_2", "name": "エリアス（Elias）", "job": "alchemist"},
+	{"id": "adventurer_3", "name": "ガレン（Galen）", "job": "vanguard"},
+	{"id": "adventurer_4", "name": "ミレイ（Mirei）", "job": "beast_tamer"},
 ]
 const ACTIVE_PARTY_SIZE: int = 4
 # 戦闘スロット上限（スプライト/HPバー枠＝4）。助っ人含む同時表示の最大数（P3-D105）。
@@ -709,6 +709,7 @@ func _init_party() -> void:
 	party_members = []
 	for i in mini(ACTIVE_PARTY_SIZE, roster.size()):
 		party_members.append(roster[i])
+	normalize_roster_rarity()
 	_grant_starting_equipment()
 
 func _create_base_adventurer(def: Dictionary) -> Resource:
@@ -718,6 +719,7 @@ func _create_base_adventurer(def: Dictionary) -> Resource:
 	adv.id = str(def["id"])
 	adv.display_name = str(def["name"])
 	adv.job_id = str(def["job"])
+	adv.rarity = Adventurer.DEFAULT_RARITY
 	adv.base_stats = stats_class.new()
 	return adv
 
@@ -757,6 +759,13 @@ func normalize_base_roster() -> void:
 			continue
 		m.display_name = str(def["name"])
 		m.job_id = str(def["job"])
+		m.rarity = Adventurer.DEFAULT_RARITY
+
+# ロスター全員のキャラ★を既定値へ揃える（基本職・ガチャ助っ人共通）。
+func normalize_roster_rarity() -> void:
+	for adv in roster:
+		if adv != null:
+			adv.rarity = Adventurer.DEFAULT_RARITY
 
 func _create_starting_weapon(member_id: String, weapon_id: String) -> Resource:
 	var weapon_data: Resource = DataRegistry.get_weapon_data(weapon_id)

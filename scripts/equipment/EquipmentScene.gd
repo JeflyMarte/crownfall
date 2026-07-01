@@ -186,7 +186,7 @@ func _update_character_card() -> void:
 	_label_name.text = member.display_name
 	var job_mods: Dictionary = _JobStatCalculator.get_member_modifiers(member)
 	var job_name: String = str(job_mods.get("display_name", member.job_id))
-	_label_job_level.text = "Lv%d  %s" % [int(member.level), job_name]
+	_label_job_level.text = "★%d  Lv%d  %s" % [int(member.rarity), int(member.level), job_name]
 	var chr_tex: Texture2D = IconPaths.get_icon_texture(str(member.job_id), "chr")
 	_portrait_art.texture = chr_tex
 	_portrait_glyph.text = "" if chr_tex != null else member.display_name.substr(0, 1)

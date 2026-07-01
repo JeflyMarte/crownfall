@@ -337,7 +337,7 @@ func _format_roster_member(adv: Resource) -> String:
 	var role: String = mods.get("role", "")
 	var level: int = int(adv.level)
 	var prefix: String = "[編成] " if _selected.has(adv) else "       "
-	var line: String = "%s%s Lv%d / %s" % [prefix, adv.display_name, level, job_display]
+	var line: String = "%s★%d %s Lv%d / %s" % [prefix, int(adv.rarity), adv.display_name, level, job_display]
 	if not role.is_empty():
 		line += " / %s" % role
 	return line

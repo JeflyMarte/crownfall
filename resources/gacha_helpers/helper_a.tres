@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "helper_a"
-display_name = "ユニーク助っ人A（仮★4）"
+display_name = "ユニーク助っ人A（仮★3）"
 job_id = "vanguard"
-rarity = 4
+rarity = 3
 sprite_resource_path = ""

@@ -28,3 +28,5 @@ codex_danger = 2
 codex_habitat = "文書庫跡"
 codex_research_note = "ゴキブリの類を祖先とする。文書庫跡に堆積したインク鉱物を取り込み、甲殻表面に古代文字に似た結晶模様が析出する。これを「ルーン」と呼ぶ者もいるが、意味を持つ文字とは限らず、ただの析出模様にすぎない。硬い外殻で正面からの打撃を凌ぐが、動きは鈍い。もっとも、析出した模様がまれに未解読の古代文字と一致する例があり、記録部はその一致を偶然と片付けかねている。"
 codex_materials = Array[String](["engraved_carapace", "magic_antenna"])
+skill_ids = Array[String](["enemy_rune_carapace"])
+skill_use_chance = 0.2

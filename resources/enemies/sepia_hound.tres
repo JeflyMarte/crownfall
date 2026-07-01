@@ -31,3 +31,5 @@ codex_danger = 2
 codex_habitat = "地下水路"
 codex_research_note = "イヌ科を祖先とし、光の乏しい地下で嗅覚が極度に発達した個体。遺物に染みついた人の痕跡——古い手の脂や香の残り——を選り好んで追うため、探索者は「古い記憶を嗅ぐ犬」と呼ぶ。群れで縄張りを巡回し、侵入を察すると複数で追い詰める。火と明かりを嫌う。ごくまれに、人の手を離れて久しい遺物にだけ執着する個体が記録されるが、何の匂いを追っているのかは分かっていない。"
 codex_materials = Array[String](["faded_magic_fur", "reminiscence_fang", "ancient_bone"])
+skill_ids = Array[String](["enemy_memory_howl"])
+skill_use_chance = 0.22

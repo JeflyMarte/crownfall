@@ -60,6 +60,15 @@ const STATUS_ICON_SIZE: float = 26.0
 const STATUS_ICON_GAP: float = 3.0
 const VFX_HIT_PATH: String = "res://resources/animation/FX_Hit_Normal.tres"
 const VFX_HEAL_PATH: String = "res://resources/animation/FX_Heal.tres"
+const SUPPORT_VFX_TINT: Dictionary = {
+	"heal": Color(0.5, 1.0, 0.55, 1.0),
+	"empower": Color(1.0, 0.72, 0.25, 1.0),
+	"guard": Color(0.45, 0.78, 1.0, 1.0),
+	"default_buff": Color(1.0, 0.9, 0.45, 1.0),
+}
+const ULTIMATE_GOLD: Color = Color(1.0, 0.78, 0.22)
+const ULTIMATE_FLASH_DAMAGE: Color = Color(1.0, 0.88, 0.45)
+const ULTIMATE_FLASH_HEAL: Color = Color(0.55, 1.0, 0.72)
 ## 属性ごとの演出色（命中VFXの modulate / スキル名フォント色に共用）。
 ## 未設定/無属性は WHITE（VFX）・既定の青系（スキル名）にフォールバック。
 const ELEMENT_COLOR: Dictionary = {
@@ -1209,11 +1218,25 @@ func _execute_member_skill(member_idx: int, skill_data: Resource, cast_index: in
 	)
 	var skill_is_crit: bool = result.get("is_critical", false)
 	var spawn_pos: Vector2 = _enemy_slot_pos(target_slot)
-	_spawn_hit_vfx(spawn_pos, attack_element)
-	_spawn_damage_number(str(final_dmg), spawn_pos + Vector2(12.0, 0.0), Color(1.0, 0.9, 0.0), 1.25 if skill_is_crit else 1.0)
-	if cast_index == 0:
-		_clear_member_skill_labels(member_idx)
-	_spawn_skill_name(result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP, attack_element)
+	var is_ultimate: bool = _is_ultimate_skill(skill_data)
+	if is_ultimate:
+		if cast_index == 0:
+			_clear_member_skill_labels(member_idx)
+		_play_ultimate_resolve_vfx(member_idx, skill_data, spawn_pos, attack_element)
+		_play_chr_attack_one(member_idx)
+		_spawn_ultimate_skill_name(result["display_name"], member_idx, attack_element)
+		var ult_dmg_scale: float = 1.65 if skill_is_crit else 1.4
+		_spawn_damage_number(
+			str(final_dmg), spawn_pos + Vector2(12.0, 0.0), ULTIMATE_GOLD, ult_dmg_scale
+		)
+	else:
+		_spawn_hit_vfx(spawn_pos, attack_element)
+		_spawn_damage_number(
+			str(final_dmg), spawn_pos + Vector2(12.0, 0.0), Color(1.0, 0.9, 0.0), 1.25 if skill_is_crit else 1.0
+		)
+		if cast_index == 0:
+			_clear_member_skill_labels(member_idx)
+		_spawn_skill_name(result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP, attack_element)
 	var crit_tag: String = "  CRITICAL!" if skill_is_crit else ""
 	var tgt_tag: String = _member_target_tag(member_idx)
 	var log_line: String = "\n【スキル】%s: %dダメージ%s%s%s%s" % [
@@ -1273,12 +1296,24 @@ func _execute_member_heal(member_idx: int, skill_data: Resource, cast_index: int
 	var healed: int = $CombatController.heal_member(target_idx, heal_amount)
 	_set_heal_rally(target_idx)
 	_update_hp_bars()
-	if cast_index == 0:
-		_clear_member_skill_labels(member_idx)
-	_spawn_skill_name(result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP)
-	if target_idx >= 0 and target_idx < _chr_sprites.size() and _chr_sprites[target_idx].visible:
-		var heal_pos: Vector2 = _chr_sprites[target_idx].global_position + Vector2(0.0, -CHR_BODY_TARGET_PX * 0.5)
-		_spawn_damage_number("+%d" % healed, heal_pos, Color(0.45, 1.0, 0.5), 1.1)
+	var is_ultimate: bool = _is_ultimate_skill(skill_data)
+	if is_ultimate:
+		if cast_index == 0:
+			_clear_member_skill_labels(member_idx)
+		var focus_pos: Vector2 = _member_sprite_world_pos(target_idx, 0.5)
+		_play_ultimate_resolve_vfx(member_idx, skill_data, focus_pos, "")
+		_spawn_ultimate_skill_name(result["display_name"], member_idx, "")
+	else:
+		if cast_index == 0:
+			_clear_member_skill_labels(member_idx)
+		_spawn_skill_name(result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP)
+	if healed > 0:
+		_spawn_member_heal_vfx(target_idx)
+		if target_idx >= 0 and target_idx < _chr_sprites.size() and _chr_sprites[target_idx].visible:
+			var heal_pos: Vector2 = _chr_sprites[target_idx].global_position + Vector2(0.0, -CHR_BODY_TARGET_PX * 0.5)
+			var heal_scale: float = 1.45 if is_ultimate else 1.1
+			var heal_color: Color = ULTIMATE_GOLD if is_ultimate else Color(0.45, 1.0, 0.5)
+			_spawn_damage_number("+%d" % healed, heal_pos, heal_color, heal_scale)
 	var target_name: String = ""
 	var target_member: Resource = GameState.get_combatant(target_idx)
 	if target_member != null:
@@ -1294,11 +1329,13 @@ func _execute_member_buff(member_idx: int, skill_data: Resource, cast_index: int
 	if not result.get("executed", false):
 		return ""
 	var applied: int = 0
+	var status_id: String = skill_data.apply_status_id
 	for i: int in GameState.party_members.size():
 		if not $CombatController.is_member_alive(i):
 			continue
-		if $CombatController.apply_status("party_%d" % i, skill_data.apply_status_id, 1, 0):
+		if $CombatController.apply_status("party_%d" % i, status_id, 1, 0):
 			applied += 1
+			_spawn_member_buff_vfx(i, status_id)
 	_update_status_icons()
 	if cast_index == 0:
 		_clear_member_skill_labels(member_idx)
@@ -2447,7 +2484,23 @@ func _try_cast_member_skill(member_idx: int, skill_data: Resource, is_ultimate: 
 	var member: Resource = GameState.get_combatant(member_idx)
 	var mname: String = member.display_name if member != null else "?"
 	_append_log("[詠唱] %s が%sを唱え始めた" % [mname, skill_data.display_name])
-	_spawn_cast_chant_label(skill_data.display_name, member_idx)
+	_clear_member_skill_labels(member_idx)
+	if is_ultimate:
+		_play_ultimate_cast_vfx(member_idx, skill_data)
+		_spawn_ultimate_skill_name(
+			skill_data.display_name,
+			member_idx,
+			_resolve_skill_element(skill_data, member_idx),
+			true
+		)
+	else:
+		_spawn_skill_name(
+			skill_data.display_name,
+			member_idx,
+			0.0,
+			_resolve_skill_element(skill_data, member_idx),
+			true
+		)
 	return true
 
 func _advance_member_cast(member_idx: int) -> void:
@@ -2461,7 +2514,6 @@ func _advance_member_cast(member_idx: int) -> void:
 	var state: String = $CombatController.advance_pending_cast("party", member_idx)
 	if state == "chant":
 		_append_log("[詠唱] %s…" % skill_data.display_name)
-		_spawn_cast_chant_label(skill_data.display_name, member_idx)
 		return
 	$CombatController.clear_pending_cast("party", member_idx)
 	if pending.has("target_slot"):
@@ -2563,7 +2615,7 @@ func _fire_member_passives(member_idx: int, trigger: String) -> void:
 	var member: Resource = GameState.get_combatant(member_idx)
 	if member == null:
 		return
-	for p: Dictionary in CombatPassives.for_job(str(member.job_id)):
+	for p: Dictionary in CombatPassives.for_member(member):
 		if str(p.get("trigger", "")) != trigger:
 			continue
 		_try_fire_passive(member_idx, p)
@@ -2591,15 +2643,23 @@ func _try_fire_passive(member_idx: int, p: Dictionary) -> void:
 				return
 			if str(p.get("target", "self")) == "party":
 				for i: int in GameState.party_members.size():
-					if $CombatController.is_member_alive(i):
-						applied = $CombatController.apply_status("party_%d" % i, sid, 1, 0) or applied
+					if not $CombatController.is_member_alive(i):
+						continue
+					if $CombatController.apply_status("party_%d" % i, sid, 1, 0):
+						applied = true
+						_spawn_member_buff_vfx(i, sid)
 			else:
 				applied = $CombatController.apply_status("party_%d" % member_idx, sid, 1, 0)
+				if applied:
+					_spawn_member_buff_vfx(member_idx, sid)
 			_update_status_icons()
 		"heal":
 			var amount: int = _apply_healing_bonus(int(p.get("value", 10)))
 			$CombatController.heal_party(amount)
 			_update_hp_bars()
+			for i: int in GameState.party_members.size():
+				if $CombatController.is_member_alive(i):
+					_spawn_member_heal_vfx(i)
 			applied = true
 	if not applied:
 		return
@@ -3549,7 +3609,7 @@ func _play_hit_vfx(element: String = "") -> void:
 # 命中ごとに使い捨ての Hit VFX を生成（敵味方両対応・同一tick内の複数ヒットも個別表示）。
 # 属性専用VFX(ELEMENT_VFX_PATH)があればそれを無着色で再生、無ければ
 # FX_Hit_Normal を ELEMENT_COLOR でティント着色してフォールバックする。
-func _spawn_hit_vfx(world_pos: Vector2, element: String = "") -> void:
+func _spawn_hit_vfx(world_pos: Vector2, element: String = "", scale_mult: float = 1.0) -> void:
 	var elem_path: String = str(ELEMENT_VFX_PATH.get(element, ""))
 	var use_dedicated: bool = not elem_path.is_empty() and ResourceLoader.exists(elem_path)
 	var frames: SpriteFrames = null
@@ -3565,7 +3625,7 @@ func _spawn_hit_vfx(world_pos: Vector2, element: String = "") -> void:
 		return
 	var spr := AnimatedSprite2D.new()
 	spr.sprite_frames = frames
-	spr.scale = _hit_vfx_sprite.scale
+	spr.scale = _hit_vfx_sprite.scale * scale_mult
 	spr.global_position = world_pos
 	# 専用素材は元の色を尊重（無着色）、フォールバック時のみ属性色でティント
 	spr.modulate = Color.WHITE if use_dedicated else ELEMENT_COLOR.get(element, Color.WHITE)
@@ -3615,8 +3675,107 @@ func _spawn_damage_number(text: String, world_pos: Vector2, color: Color = Color
 	tw.parallel().tween_property(lbl, "modulate:a", 0.0, 0.5).set_delay(0.2)
 	tw.chain().tween_callback(lbl.queue_free)
 
-# スキル発動時、発動者(ドット絵)の頭上にスキル名をポップ表示する
-func _spawn_skill_name(skill_name: String, member_idx: int, stack_offset: float = 0.0, element: String = "") -> void:
+func _is_ultimate_skill(skill_data: Resource) -> bool:
+	return skill_data != null and str(skill_data.slot_type) == "ultimate"
+
+func _flash_battlefield(flash_color: Color, peak_alpha: float = 0.38) -> void:
+	var flash := ColorRect.new()
+	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	flash.color = Color(flash_color.r, flash_color.g, flash_color.b, 0.0)
+	flash.z_index = 120
+	_damage_numbers_layer.add_child(flash)
+	var tw: Tween = create_tween()
+	tw.tween_property(flash, "color:a", peak_alpha, 0.07).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(flash, "color:a", 0.0, 0.32).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	tw.chain().tween_callback(flash.queue_free)
+
+func _shake_battlefield(intensity: float = 9.0) -> void:
+	var base: Vector2 = position
+	var tw: Tween = create_tween()
+	tw.set_trans(Tween.TRANS_SINE)
+	tw.tween_property(self, "position", base + Vector2(intensity, -intensity * 0.45), 0.04)
+	tw.tween_property(self, "position", base + Vector2(-intensity * 0.85, intensity * 0.35), 0.04)
+	tw.tween_property(self, "position", base + Vector2(intensity * 0.5, intensity * 0.25), 0.035)
+	tw.tween_property(self, "position", base, 0.055).set_ease(Tween.EASE_OUT)
+
+func _pulse_member_ultimate(member_idx: int) -> void:
+	if member_idx < 0 or member_idx >= _chr_sprites.size():
+		return
+	var sprite: AnimatedSprite2D = _chr_sprites[member_idx]
+	if not sprite.visible:
+		return
+	var orig_scale: Vector2 = sprite.scale
+	var tw: Tween = create_tween()
+	tw.tween_property(sprite, "scale", orig_scale * 1.14, 0.11).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(sprite, "scale", orig_scale, 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_flash_member_sprite(member_idx, Color(1.0, 0.9, 0.5))
+
+func _spawn_ultimate_ring_burst(world_pos: Vector2, tint: Color, peak_scale: float = 2.1) -> void:
+	if world_pos == Vector2.ZERO or not ResourceLoader.exists(VFX_HEAL_PATH):
+		return
+	var frames: SpriteFrames = load(VFX_HEAL_PATH) as SpriteFrames
+	if frames == null:
+		return
+	var spr := AnimatedSprite2D.new()
+	spr.sprite_frames = frames
+	spr.global_position = world_pos
+	spr.modulate = tint
+	spr.scale = Vector2(0.35, 0.35)
+	spr.z_index = 20
+	add_child(spr)
+	spr.play("default")
+	var tw: Tween = create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(spr, "scale", Vector2(peak_scale, peak_scale), 0.28).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(spr, "modulate:a", 0.0, 0.32).set_delay(0.08)
+	tw.chain().tween_callback(spr.queue_free)
+
+func _spawn_ultimate_impact_vfx(world_pos: Vector2, element: String = "") -> void:
+	if world_pos == Vector2.ZERO:
+		return
+	var offsets: Array[Vector2] = [Vector2(-26.0, -10.0), Vector2.ZERO, Vector2(30.0, -14.0)]
+	for i: int in offsets.size():
+		var hit_pos: Vector2 = world_pos + offsets[i]
+		var delay: float = float(i) * 0.055
+		var tw: Tween = create_tween()
+		tw.tween_interval(delay)
+		tw.tween_callback(func() -> void: _spawn_hit_vfx(hit_pos, element, 1.5))
+
+func _play_ultimate_cast_vfx(member_idx: int, skill_data: Resource) -> void:
+	var caster_pos: Vector2 = _member_sprite_world_pos(member_idx, 0.35)
+	var is_heal: bool = skill_data != null and str(skill_data.effect_type) == "heal"
+	var ring_tint: Color = Color(0.65, 1.0, 0.78) if is_heal else ULTIMATE_GOLD
+	_spawn_ultimate_ring_burst(caster_pos, ring_tint, 1.45)
+	_flash_battlefield(ULTIMATE_FLASH_HEAL if is_heal else ULTIMATE_FLASH_DAMAGE, 0.16)
+	_flash_member_sprite(member_idx, ring_tint)
+
+func _play_ultimate_resolve_vfx(
+	member_idx: int,
+	skill_data: Resource,
+	focus_pos: Vector2,
+	element: String = ""
+) -> void:
+	var is_heal: bool = skill_data != null and str(skill_data.effect_type) == "heal"
+	_flash_battlefield(ULTIMATE_FLASH_HEAL if is_heal else ULTIMATE_FLASH_DAMAGE, 0.44 if is_heal else 0.4)
+	_shake_battlefield(11.5 if is_heal else 12.0)
+	_pulse_member_ultimate(member_idx)
+	var caster_pos: Vector2 = _member_sprite_world_pos(member_idx, 0.35)
+	var ring_tint: Color = Color(0.7, 1.0, 0.82) if is_heal else ULTIMATE_GOLD
+	_spawn_ultimate_ring_burst(caster_pos, ring_tint, 2.25)
+	if is_heal:
+		for i: int in GameState.party_members.size():
+			if $CombatController.is_member_alive(i):
+				_spawn_ultimate_ring_burst(_member_sprite_world_pos(i, 0.4), Color(0.55, 1.0, 0.72), 1.35)
+	elif focus_pos != Vector2.ZERO:
+		_spawn_ultimate_impact_vfx(focus_pos, element)
+
+func _spawn_ultimate_skill_name(
+	skill_name: String,
+	member_idx: int,
+	element: String = "",
+	persist: bool = false
+) -> void:
 	if skill_name.is_empty():
 		return
 	if member_idx < 0 or member_idx >= _chr_sprites.size():
@@ -3624,29 +3783,108 @@ func _spawn_skill_name(skill_name: String, member_idx: int, stack_offset: float 
 	var sprite: AnimatedSprite2D = _chr_sprites[member_idx]
 	if not sprite.visible:
 		return
-	const SKILL_FONT_SIZE: int = 24
+	const TITLE_FONT_SIZE: int = 16
+	const NAME_FONT_SIZE: int = 36
+	var wrap := VBoxContainer.new()
+	wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	wrap.alignment = BoxContainer.ALIGNMENT_CENTER
+	var title := Label.new()
+	title.text = "必殺技"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var af: Font = _get_accent_font()
+	if af != null:
+		title.add_theme_font_override("font", af)
+		title.add_theme_font_size_override("font_size", TITLE_FONT_SIZE)
+	title.add_theme_color_override("font_color", Color(1.0, 0.92, 0.55))
+	title.add_theme_color_override("font_outline_color", Color(0.15, 0.05, 0.0, 0.95))
+	title.add_theme_constant_override("outline_size", 5)
+	var name_lbl := Label.new()
+	name_lbl.text = skill_name
+	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if af != null:
+		name_lbl.add_theme_font_override("font", af)
+	name_lbl.add_theme_font_size_override("font_size", NAME_FONT_SIZE)
+	var name_color: Color = ELEMENT_COLOR.get(element, ULTIMATE_GOLD)
+	name_lbl.add_theme_color_override("font_color", name_color)
+	name_lbl.add_theme_color_override("font_outline_color", Color(0.12, 0.04, 0.0, 0.95))
+	name_lbl.add_theme_constant_override("outline_size", 10)
+	name_lbl.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.65))
+	name_lbl.add_theme_constant_override("shadow_offset_x", 3)
+	name_lbl.add_theme_constant_override("shadow_offset_y", 4)
+	wrap.add_child(title)
+	wrap.add_child(name_lbl)
+	var wrap_w: float = maxf(float(skill_name.length()) * 26.0, 120.0)
+	var wrap_h: float = float(TITLE_FONT_SIZE + NAME_FONT_SIZE + 10)
+	wrap.custom_minimum_size = Vector2(wrap_w, wrap_h)
+	var head_top: float = sprite.global_position.y - CHR_BODY_TARGET_PX - 72.0
+	var base_x: float = sprite.global_position.x
+	wrap.position = Vector2(base_x - wrap_w * 0.5, head_top)
+	wrap.pivot_offset = Vector2(wrap_w * 0.5, wrap_h * 0.5)
+	wrap.scale = Vector2(0.25, 0.25)
+	wrap.modulate.a = 0.0
+	wrap.z_index = 16
+	_damage_numbers_layer.add_child(wrap)
+	if member_idx < _chr_skill_labels.size():
+		_chr_skill_labels[member_idx].append(wrap)
+	var tw: Tween = create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(wrap, "scale", Vector2(1.12, 1.12), 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(wrap, "modulate:a", 1.0, 0.14)
+	tw.chain().tween_property(wrap, "scale", Vector2.ONE, 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	if persist:
+		return
+	tw.chain().set_parallel(true)
+	tw.tween_property(wrap, "position:y", head_top - 36.0, 0.85)
+	tw.tween_property(wrap, "modulate:a", 0.0, 0.6).set_delay(0.45)
+	tw.chain().tween_callback(func() -> void:
+		if member_idx < _chr_skill_labels.size():
+			_chr_skill_labels[member_idx].erase(wrap)
+		wrap.queue_free()
+	)
+
+# スキル発動時、発動者(ドット絵)の頭上にスキル名をポップ表示する。
+# persist=true のときは詠唱中ラベルとして表示を維持（_clear_member_skill_labels で除去）。
+func _spawn_skill_name(
+	skill_name: String,
+	member_idx: int,
+	stack_offset: float = 0.0,
+	element: String = "",
+	persist: bool = false
+) -> void:
+	if skill_name.is_empty():
+		return
+	if member_idx < 0 or member_idx >= _chr_sprites.size():
+		return
+	var sprite: AnimatedSprite2D = _chr_sprites[member_idx]
+	if not sprite.visible:
+		return
+	const SKILL_FONT_SIZE: int = 28
 	var lbl := Label.new()
 	lbl.text = skill_name
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var af: Font = _get_accent_font()
 	if af != null:
 		lbl.add_theme_font_override("font", af)
 	lbl.add_theme_font_size_override("font_size", SKILL_FONT_SIZE)
-	# 属性スキルは属性色、無属性は既定の青系で表示
 	lbl.add_theme_color_override("font_color", ELEMENT_COLOR.get(element, Color(0.72, 0.93, 1.0)))
 	lbl.add_theme_color_override("font_outline_color", Color(0.0, 0.05, 0.12, 0.95))
 	lbl.add_theme_constant_override("outline_size", 8)
 	lbl.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.5))
 	lbl.add_theme_constant_override("shadow_offset_x", 2)
 	lbl.add_theme_constant_override("shadow_offset_y", 3)
-	# 頭上（足元基準スプライトの上方）に中央寄せで配置
-	var head_top: float = sprite.global_position.y - CHR_BODY_TARGET_PX - 40.0 + stack_offset
-	var base_x: float = sprite.global_position.x - float(skill_name.length()) * SKILL_FONT_SIZE * 0.5
-	lbl.pivot_offset = Vector2(float(skill_name.length()) * SKILL_FONT_SIZE * 0.5, SKILL_FONT_SIZE * 0.5)
-	lbl.position = Vector2(base_x, head_top)
-	# スライドイン（左から）＋ポップ
-	lbl.position.x -= 18.0
+	lbl.reset_size()
+	var text_w: float = maxf(lbl.size.x, float(skill_name.length()) * float(SKILL_FONT_SIZE) * 0.55)
+	var head_top: float = sprite.global_position.y - CHR_BODY_TARGET_PX - 44.0 + stack_offset
+	var base_x: float = sprite.global_position.x - text_w * 0.5
+	lbl.custom_minimum_size = Vector2(text_w, lbl.size.y)
+	lbl.pivot_offset = Vector2(text_w * 0.5, lbl.size.y * 0.5)
+	lbl.position = Vector2(base_x - 18.0, head_top)
 	lbl.scale = Vector2(0.7, 0.7)
 	lbl.modulate.a = 0.0
+	lbl.z_index = 8
 	_damage_numbers_layer.add_child(lbl)
 	if member_idx < _chr_skill_labels.size():
 		_chr_skill_labels[member_idx].append(lbl)
@@ -3655,43 +3893,20 @@ func _spawn_skill_name(skill_name: String, member_idx: int, stack_offset: float 
 	tw.tween_property(lbl, "position:x", base_x, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.tween_property(lbl, "scale", Vector2.ONE, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.tween_property(lbl, "modulate:a", 1.0, 0.12)
+	if persist:
+		return
 	tw.chain().set_parallel(true)
-	tw.tween_property(lbl, "position:y", head_top - 26.0, 0.7)
-	tw.tween_property(lbl, "modulate:a", 0.0, 0.5).set_delay(0.35)
+	tw.tween_property(lbl, "position:y", head_top - 30.0, 0.75)
+	tw.tween_property(lbl, "modulate:a", 0.0, 0.55).set_delay(0.4)
 	tw.chain().tween_callback(func() -> void:
 		if member_idx < _chr_skill_labels.size():
 			_chr_skill_labels[member_idx].erase(lbl)
 		lbl.queue_free()
 	)
 
-# 味方の詠唱中ポップ（P3-D112）
+# 味方の詠唱中ポップ（P3-D112）— 互換のため残すが、通常は _spawn_skill_name(persist=true) を使用。
 func _spawn_cast_chant_label(skill_name: String, member_idx: int) -> void:
-	if skill_name.is_empty() or member_idx < 0 or member_idx >= _chr_sprites.size():
-		return
-	var sprite: AnimatedSprite2D = _chr_sprites[member_idx]
-	if not sprite.visible:
-		return
-	const CAST_FONT_SIZE: int = 20
-	var lbl := Label.new()
-	lbl.text = "◆ %s" % skill_name
-	var af: Font = _get_accent_font()
-	if af != null:
-		lbl.add_theme_font_override("font", af)
-	lbl.add_theme_font_size_override("font_size", CAST_FONT_SIZE)
-	lbl.add_theme_color_override("font_color", Color(0.78, 0.62, 1.0))
-	lbl.add_theme_color_override("font_outline_color", Color(0.08, 0.0, 0.14, 0.95))
-	lbl.add_theme_constant_override("outline_size", 6)
-	var head_top: float = sprite.global_position.y - CHR_BODY_TARGET_PX - 52.0
-	var base_x: float = sprite.global_position.x - float(lbl.text.length()) * CAST_FONT_SIZE * 0.28
-	lbl.position = Vector2(base_x, head_top)
-	lbl.modulate.a = 0.0
-	_damage_numbers_layer.add_child(lbl)
-	var tw: Tween = create_tween()
-	tw.tween_property(lbl, "modulate:a", 1.0, 0.1)
-	tw.chain().set_parallel(true)
-	tw.tween_property(lbl, "position:y", head_top - 20.0, 0.5)
-	tw.tween_property(lbl, "modulate:a", 0.0, 0.35).set_delay(0.2)
-	tw.chain().tween_callback(lbl.queue_free)
+	_spawn_skill_name(skill_name, member_idx, 0.0, "", true)
 
 # メンバーの表示中スキル名ラベルを即時除去（新しい tick の発動で旧ラベルを置換する）
 func _clear_member_skill_labels(member_idx: int) -> void:
@@ -3730,15 +3945,55 @@ func _spawn_weapon_drop(weapon_id: String, world_pos: Vector2) -> void:
 	tw.parallel().tween_property(spr, "modulate:a", 0.0, 0.35)
 	tw.tween_callback(spr.queue_free)
 
-func _play_heal_vfx() -> void:
-	if not ResourceLoader.exists(VFX_HEAL_PATH):
+func _member_sprite_world_pos(member_idx: int, height_ratio: float = 0.5) -> Vector2:
+	if member_idx < 0 or member_idx >= _chr_sprites.size():
+		return Vector2.ZERO
+	var sprite: AnimatedSprite2D = _chr_sprites[member_idx]
+	if not sprite.visible:
+		return Vector2.ZERO
+	return sprite.global_position + Vector2(0.0, -CHR_BODY_TARGET_PX * height_ratio)
+
+func _spawn_support_sprite_vfx(world_pos: Vector2, vfx_path: String, tint: Color) -> void:
+	if world_pos == Vector2.ZERO or not ResourceLoader.exists(vfx_path):
 		return
-	var frames: SpriteFrames = load(VFX_HEAL_PATH) as SpriteFrames
+	var frames: SpriteFrames = load(vfx_path) as SpriteFrames
 	if frames == null:
 		return
-	_heal_vfx_sprite.sprite_frames = frames
-	_heal_vfx_sprite.play("default")
-	_heal_vfx_sprite.visible = true
+	var spr := AnimatedSprite2D.new()
+	spr.sprite_frames = frames
+	spr.global_position = world_pos
+	spr.modulate = tint
+	spr.scale = Vector2(0.85, 0.85)
+	add_child(spr)
+	spr.play("default")
+	spr.animation_finished.connect(func() -> void: spr.queue_free())
+
+func _flash_member_sprite(member_idx: int, flash_color: Color) -> void:
+	if member_idx < 0 or member_idx >= _chr_sprites.size():
+		return
+	var sprite: AnimatedSprite2D = _chr_sprites[member_idx]
+	if not sprite.visible:
+		return
+	var orig: Color = sprite.modulate
+	var tw: Tween = create_tween()
+	tw.tween_property(sprite, "modulate", flash_color, 0.08)
+	tw.tween_property(sprite, "modulate", orig, 0.22)
+
+func _spawn_member_heal_vfx(member_idx: int) -> void:
+	var pos: Vector2 = _member_sprite_world_pos(member_idx)
+	_spawn_support_sprite_vfx(pos, VFX_HEAL_PATH, SUPPORT_VFX_TINT["heal"])
+	_flash_member_sprite(member_idx, Color(0.65, 1.0, 0.7))
+
+func _spawn_member_buff_vfx(member_idx: int, status_id: String = "") -> void:
+	var tint: Color = SUPPORT_VFX_TINT.get(status_id, SUPPORT_VFX_TINT["default_buff"])
+	var pos: Vector2 = _member_sprite_world_pos(member_idx)
+	_spawn_support_sprite_vfx(pos, VFX_HEAL_PATH, tint)
+	_flash_member_sprite(member_idx, tint)
+
+func _play_heal_vfx() -> void:
+	for i: int in GameState.party_members.size():
+		if $CombatController.is_member_alive(i):
+			_spawn_member_heal_vfx(i)
 
 # ---- Boss Sprite ----
 

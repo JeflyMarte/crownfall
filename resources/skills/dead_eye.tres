@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "dead_eye"
+display_name = "デッドアイ"
+description = "死角を穿つ究極の一矢。標的を確実に仕留め、隊の集中砲火の起点となる。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 3.0
+cooldown = 30.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["ultimate", "pierce"])
+element = ""
+apply_status_id = "mark"
+apply_status_chance = 0.7
+slot_type = "ultimate"
+range_type = "long"
+cast_time = 1.0
