@@ -15,6 +15,8 @@ const COLOR_RETIRE: Color = Color(0.72, 0.8, 0.95, 1)
 @onready var _label_outcome: Label = $Scroll/Margin/Main/HeaderPanel/HeaderVBox/LabelClear
 @onready var _stars_row: HBoxContainer = $Scroll/Margin/Main/HeaderPanel/HeaderVBox/StarsRow
 @onready var _reward_row: HBoxContainer = $Scroll/Margin/Main/RewardPanel/RewardVBox/RewardRow
+@onready var _material_panel: PanelContainer = $Scroll/Margin/Main/MaterialPanel
+@onready var _material_row: HBoxContainer = $Scroll/Margin/Main/MaterialPanel/MaterialVBox/MaterialRow
 @onready var _rare_panel: PanelContainer = $Scroll/Margin/Main/RarePanel
 @onready var _rare_list: VBoxContainer = $Scroll/Margin/Main/RarePanel/RareVBox/RareList
 @onready var _info_grid: GridContainer = $Scroll/Margin/Main/InfoPanel/InfoVBox/InfoGrid
@@ -29,6 +31,7 @@ func _ready() -> void:
 	_bank_rewards()
 	_build_header()
 	_build_rewards()
+	_build_materials()
 	_build_rare_items()
 	_build_info()
 	_build_levelup()
@@ -154,6 +157,30 @@ func _make_reward_cell(texture: Texture2D, glyph: String, name_text: String, val
 	cell.add_child(value_label)
 	return cell
 
+func _build_materials() -> void:
+	for child in _material_row.get_children():
+		child.queue_free()
+	var mat_ids: Array = GameState.last_run_material_gains.keys()
+	mat_ids.sort()
+	var count: int = 0
+	for mat_id in mat_ids:
+		var qty: int = int(GameState.last_run_material_gains[mat_id])
+		if qty <= 0:
+			continue
+		var mat_key: String = str(mat_id)
+		var icon: Texture2D = IconPaths.get_icon_texture(mat_key, "material")
+		var glyph: String = "材"
+		if icon == null and not mat_key.is_empty():
+			glyph = mat_key.substr(0, 1)
+		_material_row.add_child(_make_reward_cell(
+			icon,
+			glyph,
+			DataRegistry.get_material_name(mat_key),
+			str(qty),
+		))
+		count += 1
+	_material_panel.visible = count > 0
+
 func _build_rare_items() -> void:
 	for child in _rare_list.get_children():
 		child.queue_free()
@@ -227,13 +254,6 @@ func _build_info() -> void:
 	var run_weather: String = GameState.last_run_weather
 	if not run_weather.is_empty():
 		_add_info_pair("天候", CombatWeather.label(run_weather))
-	var mat_ids: Array = GameState.last_run_material_gains.keys()
-	mat_ids.sort()
-	for mat_id in mat_ids:
-		var qty: int = int(GameState.last_run_material_gains[mat_id])
-		if qty <= 0:
-			continue
-		_add_info_pair("採取素材", "%s x%d" % [DataRegistry.get_material_name(str(mat_id)), qty])
 	_add_info_pair("入手経験値", "%d EXP" % GameState.last_run_exp_reward)
 	_add_info_pair("入手ゴールド", "%d G" % GameState.last_run_gold_reward)
 	if GameState.last_run_token_reward > 0:
