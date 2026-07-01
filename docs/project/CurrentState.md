@@ -4,6 +4,10 @@
 
 ## Last Update
 
+2026-07-02（**P3-GACHA-004 ガチャ助っ人+2**: レオン/ミラ・5職カバー・プール動的化。smoke PASS）
+
+2026-07-02（**P3-BETA-001b**: スタミナ Beta 除外。Beta最小=B1(2本目DG)のみ）
+
 2026-07-02（**P3-UI2-029 DG下部パネル占位**: スタミナチップ・下部3枠・挑戦⚡20表記。smoke PASS。**Alpha コードレーン完了**）
 
 2026-07-02（**P3-ALPHA-006 / P3-BETA-001**: Alpha Closeout=案A・Beta最小=B1(2本目DG)+B2(スタミナ)・次Impl=P3-UI2-029）
@@ -148,20 +152,20 @@
 
 ---
 
-## Next Implementation Queue（HQ 確定 2026-07-02 — P3-ALPHA-006 / P3-BETA-001）
+## Next Implementation Queue（HQ 確定 2026-07-02 — P3-BETA-001b）
 
-> **Alpha コードレーン完了**（P3-UI2-029 Closeout）。**Beta最小=B1(2本目DG)+B2(スタミナ)**。作画・実機はオーナーレーン並行。
+> **Beta最小=B1(2本目DG)のみ**（スタミナ撤回）。作画・実機はオーナーレーン並行。
 
 | 順 | ID | 内容 | レーン | 状態 |
 |---|---|---|---|---|
 | 0 | P3-ALPHA-003 | 実機チェックリスト v2.1（GO/NO-GO） | オーナー（可能時） | Defer |
 | — | P3-ART-002〜004 / P3-A-ENV-001 | 5職ドット / env / 助っ人本番立ち絵 | オーナー→Impl | **並行** |
-| — | P3-UI2-029 | DG下部パネル占位 | Impl | ✅ **Closeout** |
-| **1** | **P3-BETA-001 設計** | B1=2本目DG 具体 + B2=スタミナ仕様 | HQ+オーナー | **次** |
+| — | P3-GACHA-004 | ガチャ助っ人+2（swordsman/beast_tamer） | Impl | ✅ **Closeout** |
+| **1** | **P3-BETA-001 設計** | 2本目DG 具体（Biome/敵/イベント） | HQ+オーナー | **次** |
 | 2 | P3-BETA-B1 | 2本目 DG 実装 | Impl | Beta |
-| 3 | P3-BETA-B2 | スタミナ実装（029 占位→実ロジック） | Impl | Beta |
 | — | P3-DAILY-B | 日課 UI polish | Impl | 任意 |
 | — | P3-UI2-026 | 召喚 SE/パーティクル | Impl | Defer（音源なし） |
+| — | 029 占位整理 | ⚡/挑戦回数 UI 削除（任意） | Impl | 未計画 |
 
 **凍結（Decision まで着手しない）:** 天候本格 / 週間日課 / 10連ガチャ / 6装備枠 / Affix本格 / 位置AI本格 / 探索手動+CD。
 
@@ -176,7 +180,7 @@ ProjectDocs **v3.6.0**
 ## Current Phase
 
 **Phase3-A — Alpha Closeout 完了（案A）** — P3-UI2-029 Closeout。受理ゲート=`smoke_test.sh` PASS（P3-ALPHA-003b）。Phase 3-B' システム完成済。
-- **Beta 計画（P3-BETA-001）:** B1=2本目DG / B2=スタミナ — **設計 Decision が次**
+- **Beta 計画（P3-BETA-001b）:** **2本目DG のみ**（スタミナ撤回）— **設計 Decision が次**
 - 作画・実機はオーナーレーン並行（プレースホルダのまま Alpha Close 可）
 
 ---

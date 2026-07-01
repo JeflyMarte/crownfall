@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="GachaHelperData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/GachaHelperData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "helper_d"
+display_name = "レオン（Leon）"
+job_id = "swordsman"
+origin_note = "旧王都の実戦剣士。落ち武者ギルドで後進を導く"
+rarity = 3
+sprite_resource_path = ""
+portrait_resource_path = "res://assets/gacha/portraits/ART_HELPER_helper_d.png"
