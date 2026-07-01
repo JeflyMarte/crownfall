@@ -4,6 +4,10 @@
 
 ## Last Update
 
+2026-07-01（**P3-BAL-004 経済バランス**: 生態ドロップ率微増・6レシピコスト引下・ELITE素材20%。headless smoke PASS）
+
+2026-07-01（**P3-ECO-001 経済ループ Closeout**: D134〜141 完了宣言・`04_ゲームループ`/`CODEMAP` 同期）
+
 2026-07-01（**P3-D140 ガンビット条件静的ヒント**: `CombatGambit.condition_hint`・装備画面各行に説明1行。headless smoke PASS）
 
 2026-07-01（**P3-D141 Result 作成可能レシピ表示**: 採取素材あり時に鍛冶作成可能レシピ名を表示・`CraftHelper` 抽出。headless smoke PASS）
@@ -96,22 +100,15 @@
 
 ## Next Implementation Queue（HQ 確定 2026-07-01 / 更新 2026-07-01）
 
-> 原則＝**準備ループの穴埋め → 経済可視化 → 作画は Defer**。キャラ/環境ドット絵はオーナー指示で後回し。
+> **準備+経済ループ（D134〜141 / ECO-001）完了。** 作画 Defer。次はバランス調整 or Backlog（Decision 要）。
 
 | 順 | ID（案） | 内容 | レーン | 状態 |
 |---|---|---|---|---|
 | 0 | P3-ALPHA-003 | 実機チェックリスト v2.1（GO/NO-GO） | オーナー（可能時） | Defer |
-| — | P3-ART-002〜004 | 戦闘スプライト取り込み | オーナー作画→Impl | **Defer** |
-| — | P3-A-ENV-001 | mourngate 環境アート | オーナー→Impl | **Defer** |
-| 3 | P3-D134 | 作戦プリセット装備競合トースト | Impl | ✅ |
-| 4 | P3-D135 | Result 素材アイコン行 | Impl | ✅ |
-| 5 | P3-D136 | 鍛冶屋復活 MVP | Impl | ✅ |
-| 6 | P3-D137 | ガンビット UI 改善（行並替 ↑↓） | Impl | ✅ |
-| 7 | P3-D138 | 拠点素材可視化（TopBar 等） | Impl | ✅ |
-| 8 | P3-D139 | 鍛冶屋軽 UX（素材アイコン・ソート） | Impl | ✅ |
-| 9 | P3-D141 | Result 作成可能レシピ表示 | Impl | ✅ |
-| 10 | P3-D140 | ガンビット条件静的ヒント | Impl | ✅ |
-| 11 | P3-ECO-001 | 経済ループ Closeout（文書のみ） | HQ | **次** |
+| — | P3-ART-002〜004 / P3-A-ENV-001 | 作画取り込み | オーナー→Impl | **Defer** |
+| — | P3-D134〜141 / P3-ECO-001 | 準備+経済ループ | Impl/HQ | ✅ **Closeout** |
+| 1 | P3-BAL-004 | 経済バランス調整（ドロップ率/レシピコスト） | Impl+HQ | ✅ **Closeout** |
+| 2 | — | Backlog 大物（ELITEスキップ/天候本格/複数DG 等） | Decision 待ち | **次候補** |
 
 **Backlog（単独 Decision まで着手しない）:** 敵別 Threat テーブル / 探索手動+CD / ELITE スキップ / 周回敗北シミュ / 天候本格 / 位置AI / 複数DG / Affix本格 / ラン中方針切替 / Biome-02 以降。
 

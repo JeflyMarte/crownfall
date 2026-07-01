@@ -32,7 +32,7 @@ const TREASURE_ACCESSORY_CHANCE: float = 0.2
 const ELITE_REWARD_MULTIPLIER: float = 1.5
 const ELITE_ARMOR_CHANCE: float = 0.35
 const ELITE_ACCESSORY_CHANCE: float = 0.25
-const ELITE_MATERIAL_CHANCE: float = 0.15
+const ELITE_MATERIAL_CHANCE: float = 0.20
 const DISCOVERY_PER_ROOM: float = 0.05
 const DISCOVERY_BOSS_BONUS: float = 0.20
 

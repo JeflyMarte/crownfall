@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "craft_hunting_bow"
 display_name = "狩猟弓の作成"
-required_materials = {"faded_magic_fur": 2, "magic_antenna": 1}
+required_materials = {"faded_magic_fur": 1, "magic_antenna": 1}
 gold_cost = 40
 output_type = "weapon"
 output_id = "hunting_bow"
