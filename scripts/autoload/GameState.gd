@@ -50,6 +50,10 @@ const RUN_OUTCOME_CLEAR: String = "clear"
 const RUN_OUTCOME_RETIRE: String = "retire"
 const RUN_OUTCOME_WIPE: String = "wipe"
 var last_run_outcome: String = ""
+var last_run_exploration_policy: String = ""
+
+func snapshot_last_run_context() -> void:
+	last_run_exploration_policy = current_exploration_policy
 
 static func run_outcome_label(outcome: String) -> String:
 	match outcome:
@@ -419,6 +423,14 @@ func get_combat_preset_summary(slot: int) -> String:
 	var policy: String = str((combat_presets[slot] as Dictionary).get("exploration_policy", ""))
 	if not policy.is_empty():
 		parts.append(exploration_policy_label(policy))
+	var custom_count: int = 0
+	for raw in settings.values():
+		if not raw is Dictionary:
+			continue
+		if bool((raw as Dictionary).get("tactics_custom_enabled", false)):
+			custom_count += 1
+	if custom_count > 0:
+		parts.append("カスタム%d" % custom_count)
 	return "・".join(parts)
 
 func find_weapon_instance(instance_id: String) -> Resource:

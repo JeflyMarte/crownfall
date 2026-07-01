@@ -221,6 +221,9 @@ func _build_info() -> void:
 	var outcome: String = GameState.last_run_outcome
 	if not outcome.is_empty():
 		_add_info_pair("帰還", GameState.run_outcome_label(outcome))
+	var run_policy: String = GameState.last_run_exploration_policy
+	if not run_policy.is_empty():
+		_add_info_pair("探索方針", GameState.exploration_policy_label(run_policy))
 	_add_info_pair("入手経験値", "%d EXP" % GameState.last_run_exp_reward)
 	_add_info_pair("入手ゴールド", "%d G" % GameState.last_run_gold_reward)
 	if GameState.last_run_token_reward > 0:

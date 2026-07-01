@@ -230,6 +230,7 @@ func _ready() -> void:
 	GameState.last_run_accessory_dropped = ""
 	GameState.last_run_relic_dropped = ""
 	GameState.last_run_outcome = ""
+	GameState.last_run_exploration_policy = ""
 	_update_room_label()
 	_update_room_art()
 	_update_enemy_label()
@@ -2722,6 +2723,7 @@ func _handle_party_wipe() -> void:
 	GameState.last_run_accessory_dropped = ""
 	GameState.last_run_relic_dropped = ""
 	GameState.last_run_outcome = GameState.RUN_OUTCOME_WIPE
+	GameState.snapshot_last_run_context()
 	await get_tree().create_timer(2.0).timeout
 	if not is_inside_tree():
 		return
@@ -2844,6 +2846,7 @@ func _on_finish_button_pressed() -> void:
 		GameState.last_run_accessory_dropped = $DungeonController.last_accessory_dropped
 	GameState.mark_dungeon_cleared(GameState.get_active_dungeon_id())
 	GameState.last_run_outcome = GameState.RUN_OUTCOME_CLEAR
+	GameState.snapshot_last_run_context()
 	GameState.clear_event_helper()
 	SceneRouter.change_scene("res://scenes/result/ResultScene.tscn")
 
@@ -2927,6 +2930,7 @@ func _retire_from_dungeon() -> void:
 	if GameState.last_run_armor_dropped.is_empty():
 		GameState.last_run_armor_dropped = $DungeonController.last_armor_dropped
 	GameState.last_run_outcome = GameState.RUN_OUTCOME_RETIRE
+	GameState.snapshot_last_run_context()
 	GameState.clear_event_helper()
 	SceneRouter.change_scene("res://scenes/result/ResultScene.tscn")
 
