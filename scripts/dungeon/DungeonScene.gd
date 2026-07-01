@@ -126,6 +126,7 @@ var _request_scroll_to_bottom: bool = false
 @onready var _btn_next_room: Button = $MainVBox/BottomZone/NonCombatZone/ButtonNextRoom
 @onready var _btn_finish: Button = $MainVBox/BottomZone/NonCombatZone/ButtonFinish
 @onready var _menu_overlay: PanelContainer = $MenuOverlay
+@onready var _pause_overlay: Control = $PauseOverlay
 @onready var _hp_bar_chr0: ProgressBar = $HpBarChr0
 @onready var _hp_bar_chr1: ProgressBar = $HpBarChr1
 @onready var _hp_bar_chr2: ProgressBar = $HpBarChr2
@@ -197,6 +198,8 @@ func _ready() -> void:
 	_menu_overlay.get_node("MenuVBox/ButtonFinishFromMenu").pressed.connect(_on_menu_finish_pressed)
 	_menu_overlay.get_node("MenuVBox/ButtonCloseMenu").pressed.connect(_on_close_menu_pressed)
 	$MainVBox/BottomZone/AutoCombatRow/ButtonPause.pressed.connect(_on_pause_button_pressed)
+	_pause_overlay.get_node("PausePanel/PauseVBox/ButtonPauseResume").pressed.connect(_on_pause_resume_pressed)
+	_pause_overlay.get_node("PausePanel/PauseVBox/ButtonPauseRetire").pressed.connect(_on_pause_retire_pressed)
 	EventBus.weapon_obtained.connect(_on_weapon_obtained)
 	_hit_vfx_sprite.animation_finished.connect(func(): _hit_vfx_sprite.visible = false)
 	_heal_vfx_sprite.animation_finished.connect(func(): _heal_vfx_sprite.visible = false)
@@ -607,9 +610,7 @@ func _advance_to_next_room() -> void:
 			_relic_cd.clear()
 			_relic_attack_hits.clear()
 			_clear_party_links()
-			_is_paused = false
-			$MainVBox/BottomZone/AutoCombatRow/ButtonPause.text = "一時停止"
-			$MainVBox/HeaderBar/ButtonStop.text = "停止"
+			_set_paused(false)
 			var enemy_ids: Array = []
 			for e in group:
 				enemy_ids.append(e.id)
@@ -2828,56 +2829,72 @@ func _on_menu_finish_pressed() -> void:
 # ---- Speed / Pause ----
 
 func _on_speed_x1_pressed() -> void:
-	_is_paused = false
+	_set_paused(false)
 	_auto_delay = AUTO_DELAY_X1
 	$CombatTimer.wait_time = SPEED_X1
 	if $CombatController.is_in_combat:
 		$CombatTimer.start()
 	if $AutoProgressTimer.time_left > 0:
 		$AutoProgressTimer.start(_auto_delay)
-	$MainVBox/BottomZone/AutoCombatRow/ButtonPause.text = "一時停止"
-	$MainVBox/HeaderBar/ButtonStop.text = "停止"
 
 func _on_speed_x2_pressed() -> void:
-	_is_paused = false
+	_set_paused(false)
 	_auto_delay = AUTO_DELAY_X2
 	$CombatTimer.wait_time = SPEED_X2
 	if $CombatController.is_in_combat:
 		$CombatTimer.start()
 	if $AutoProgressTimer.time_left > 0:
 		$AutoProgressTimer.start(_auto_delay)
-	$MainVBox/BottomZone/AutoCombatRow/ButtonPause.text = "一時停止"
-	$MainVBox/HeaderBar/ButtonStop.text = "停止"
+
+func _set_paused(paused: bool) -> void:
+	if _is_paused == paused:
+		return
+	_is_paused = paused
+	var resume_label: String = "再開" if paused else "一時停止"
+	$MainVBox/BottomZone/AutoCombatRow/ButtonPause.text = resume_label
+	$MainVBox/HeaderBar/ButtonStop.text = "再開" if paused else "停止"
+	_pause_overlay.visible = paused
+	if paused:
+		$CombatTimer.stop()
+		_auto_progress_paused_remaining = $AutoProgressTimer.time_left
+		$AutoProgressTimer.stop()
+	else:
+		if $CombatController.is_in_combat:
+			$CombatTimer.start()
+		if _auto_progress_paused_remaining > 0:
+			$AutoProgressTimer.start(_auto_progress_paused_remaining)
+			_auto_progress_paused_remaining = 0.0
 
 func _on_pause_button_pressed() -> void:
-	_is_paused = not _is_paused
-	$MainVBox/BottomZone/AutoCombatRow/ButtonPause.text = "再開" if _is_paused else "一時停止"
-	$MainVBox/HeaderBar/ButtonStop.text = "再開" if _is_paused else "停止"
-	if _is_paused:
-		$CombatTimer.stop()
-		_auto_progress_paused_remaining = $AutoProgressTimer.time_left
-		$AutoProgressTimer.stop()
-	else:
-		if $CombatController.is_in_combat:
-			$CombatTimer.start()
-		if _auto_progress_paused_remaining > 0:
-			$AutoProgressTimer.start(_auto_progress_paused_remaining)
-			_auto_progress_paused_remaining = 0.0
+	_set_paused(not _is_paused)
 
 func _on_stop_pressed() -> void:
-	_is_paused = not _is_paused
-	$MainVBox/HeaderBar/ButtonStop.text = "再開" if _is_paused else "停止"
-	$MainVBox/BottomZone/AutoCombatRow/ButtonPause.text = "再開" if _is_paused else "一時停止"
-	if _is_paused:
-		$CombatTimer.stop()
-		_auto_progress_paused_remaining = $AutoProgressTimer.time_left
-		$AutoProgressTimer.stop()
-	else:
-		if $CombatController.is_in_combat:
-			$CombatTimer.start()
-		if _auto_progress_paused_remaining > 0:
-			$AutoProgressTimer.start(_auto_progress_paused_remaining)
-			_auto_progress_paused_remaining = 0.0
+	_set_paused(not _is_paused)
+
+func _on_pause_resume_pressed() -> void:
+	_set_paused(false)
+
+func _on_pause_retire_pressed() -> void:
+	if not _is_paused:
+		return
+	_retire_from_dungeon()
+
+func _retire_from_dungeon() -> void:
+	_pause_overlay.visible = false
+	_is_paused = false
+	$CombatTimer.stop()
+	$AutoProgressTimer.stop()
+	if $CombatController.is_in_combat:
+		$CombatController.end_combat()
+	_append_log("リタイアして帰還した")
+	GameState.last_run_exp_reward = $DungeonController.run_exp_reward
+	GameState.last_run_level_ups = LevelSystem.grant_exp_to_party($DungeonController.run_exp_reward)
+	GameState.last_run_gold_reward = $DungeonController.run_gold_reward
+	GameState.last_run_token_reward = 0
+	if GameState.last_run_armor_dropped.is_empty():
+		GameState.last_run_armor_dropped = $DungeonController.last_armor_dropped
+	GameState.clear_event_helper()
+	SceneRouter.change_scene("res://scenes/result/ResultScene.tscn")
 
 # ---- Enemy Sprite ----
 

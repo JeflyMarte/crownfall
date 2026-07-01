@@ -289,6 +289,58 @@ text = "探索終了"
 layout_mode = 2
 text = "閉じる"
 
+[node name="PauseOverlay" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+visible = false
+z_index = 15
+
+[node name="Dimmer" type="ColorRect" parent="PauseOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0, 0, 0, 0.45)
+
+[node name="PausePanel" type="PanelContainer" parent="PauseOverlay"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -88.0
+offset_right = 150.0
+offset_bottom = 88.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PauseVBox" type="VBoxContainer" parent="PauseOverlay/PausePanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="LabelPause" type="Label" parent="PauseOverlay/PausePanel/PauseVBox"]
+layout_mode = 2
+text = "一時停止中"
+horizontal_alignment = 1
+
+[node name="ButtonPauseResume" type="Button" parent="PauseOverlay/PausePanel/PauseVBox"]
+layout_mode = 2
+text = "再開"
+
+[node name="ButtonPauseRetire" type="Button" parent="PauseOverlay/PausePanel/PauseVBox"]
+layout_mode = 2
+text = "リタイア"
+
 [node name="HpBarChr0" type="ProgressBar" parent="."]
 layout_mode = 1
 offset_left = 180.0
