@@ -1989,6 +1989,19 @@
 
 **P3-UI2-020 Closeout（2026-07-01）:** `GachaScene` / `CodexScene` Header+BottomNav。headless smoke PASS。
 
+## 召喚演出 MVP（2026-07-01 — P3-UI2-022）
+
+> 段階A。`GachaSystem.pull()` 後にリビールオーバーレイ。ロジック不変。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UI2-022-1 | **演出フロー** — 暗転→魔晶石フラッシュ→キャラアイコン拡大→NEW/重複表示→タップで閉じる | 段階A |
+| P3-UI2-022-2 | **入力** — 演出中は召喚・ナビ無効。完了後タップで dismiss | 連打防止 |
+| P3-UI2-022-3 | **天井表示** — 「未所持確定」表記（★3固定データに整合） | 仕様ゆれ解消 |
+| P3-UI2-022-4 | **スコープ外** — 専用立ち絵・10連・SE/パーティクル本格 | Beta |
+
+**P3-UI2-022 Closeout（2026-07-01）:** `SummonRevealLayer` + Tween。headless smoke PASS。
+
 ## ダンジョン選択モック寄せ（2026-07-01 — P3-UI2-021）
 
 > `UI_Reference_003_05_Dungeon` / `003_06_Dungeon_List` 骨格の第2段。スタミナ・週間ボーナスは Defer。
