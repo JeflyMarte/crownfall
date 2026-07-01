@@ -266,9 +266,42 @@ anchor_bottom = 1.0
 offset_left = 12.0
 offset_top = 60.0
 offset_right = 200.0
-offset_bottom = -58.0
+offset_bottom = -204.0
 grow_vertical = 2
 theme_override_styles/panel = SubResource("SB_LeftPanel")
+
+[node name="DailyMissionPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = -198.0
+offset_right = 200.0
+offset_bottom = -58.0
+grow_vertical = 0
+
+[node name="DailyVBox" type="VBoxContainer" parent="DailyMissionPanel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="LabelDailyTitle" type="Label" parent="DailyMissionPanel/DailyVBox"]
+layout_mode = 2
+text = "ギルド日課"
+theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
+theme_override_font_sizes/font_size = 13
+
+[node name="LabelDailyReset" type="Label" parent="DailyMissionPanel/DailyVBox"]
+layout_mode = 2
+text = "リセットまで —"
+theme_override_colors/font_color = Color(0.68, 0.66, 0.58, 1)
+theme_override_font_sizes/font_size = 10
+
+[node name="MissionList" type="VBoxContainer" parent="DailyMissionPanel/DailyVBox"]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="ResetTimer" type="Timer" parent="."]
+wait_time = 30.0
+autostart = true
 
 [node name="MenuVBox" type="VBoxContainer" parent="LeftMenuPanel"]
 layout_mode = 2

@@ -20,6 +20,7 @@ func save_game() -> void:
 		"owned_helpers": GameState.owned_helpers.duplicate(),
 		"combat_presets": GameState.combat_presets.duplicate(true),
 		"owned_relics": GameState.owned_relics.duplicate(),
+		"daily_mission_state": GameState.daily_mission_state.duplicate(true),
 	}
 	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file == null:
@@ -39,6 +40,7 @@ func load_game() -> void:
 	if not result is Dictionary:
 		return
 	_apply_save_data(result)
+	DailyMissionSystem.ensure_refreshed()
 
 func _serialize_enemy_codex() -> Dictionary:
 	var out: Dictionary = {}
@@ -193,6 +195,8 @@ func _apply_save_data(data: Dictionary) -> void:
 			if not norm.is_empty() and norm not in relics:
 				relics.append(norm)
 		GameState.owned_relics = relics
+	if data.has("daily_mission_state") and data["daily_mission_state"] is Dictionary:
+		GameState.daily_mission_state = (data["daily_mission_state"] as Dictionary).duplicate(true)
 	_migrate_legacy_global_equipment(data)
 
 const _DUNGEON_MIGRATION: Dictionary = {

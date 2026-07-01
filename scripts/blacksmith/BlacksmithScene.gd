@@ -428,6 +428,7 @@ func _on_craft_pressed(craft: Resource) -> void:
 	GameState.gold -= craft.gold_cost
 	GameState.consume_materials(craft.required_materials)
 	_generate_craft_output(craft)
+	DailyMissionSystem.report_progress("craft_item")
 	SaveManager.save_game()
 	_log_craft("作成完了: %s" % DataRegistry.get_item_name(craft.output_id, craft.output_type))
 	_refresh_all()
