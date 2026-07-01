@@ -2002,6 +2002,20 @@
 
 **P3-UI2-022 Closeout（2026-07-01）:** `SummonRevealLayer` + Tween。headless smoke PASS。
 
+## 助っ人専用立ち絵（2026-07-02 — P3-GACHA-003）
+
+> ガチャ助っ人の UI 立ち絵パイプライン。戦闘スプライトは対象外。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-GACHA-003-1 | **`GachaHelperData.portrait_resource_path`** — 召喚演出・ラインナップ・編成・装備の肖像 SSOT | 差替容易 |
+| P3-GACHA-003-2 | **命名** — `assets/gacha/portraits/ART_HELPER_{helper_id}.png` | 一貫性 |
+| P3-GACHA-003-3 | **暫定アセット** — 職バストをコピー（ヴァルデン/イヴァル/セリン）。オーナー作画で差替可 | 作画待ち解消の最小 |
+| P3-GACHA-003-4 | **フォールバック** — パス空/欠落時は `job_id` バストアイコン | 堅牢性 |
+| P3-GACHA-003-5 | **スコープ外** — 戦闘スプライト（`sprite_resource_path`）・台詞演出 | Beta |
+
+**P3-GACHA-003 Closeout（2026-07-02）:** 立ち絵配線+暫定3枚。headless smoke PASS。
+
 ## 拠点モック第2段（2026-07-01 — P3-UI2-027）
 
 > `UI_Reference_003_01` / `003_02` 骨格の第2段。中央ビジュアル・メニュー密度向上。ロジック不変。

@@ -78,4 +78,20 @@
 - [ ] コマ間余白ゼロ・等間隔
 - [ ] 背景透過
 - [ ] 足元位置がコマ間で安定
+
+---
+
+## 5. ガチャ助っ人立ち絵（P3-GACHA-003）
+
+UI 用バスト立ち絵（召喚演出・編成・装備）。戦闘スプライトシートとは別。
+
+| 項目 | 規格 |
+|---|---|
+| 形式 | 透過 PNG |
+| 推奨サイズ | **512×512** 以上（HQ が UI スケール調整） |
+| 命名 | `ART_HELPER_{helper_id}.png`（例: `ART_HELPER_helper_a.png`） |
+| 配置 | `assets/gacha/portraits/` |
+| 差し込み | `resources/gacha_helpers/{helper_id}.tres` の `portrait_resource_path` を更新 |
+
+> 暫定は職バストのコピー。オーナー作画納品時は同名パスへ上書きするだけで反映される。
 - [ ] ファイル名が §3 準拠

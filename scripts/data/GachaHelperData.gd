@@ -13,5 +13,12 @@ extends Resource
 @export var rarity: int = 3
 ## 専用スプライト animation resource パス（空なら job 既定）。
 @export var sprite_resource_path: String = ""
+## 専用立ち絵 PNG パス（召喚演出・編成等。空なら job バストへフォールバック / P3-GACHA-003）。
+@export var portrait_resource_path: String = ""
 ## 基礎ステータス（空欄なら Stats 既定）。
 @export var base_stats: Stats
+
+func get_portrait_texture() -> Texture2D:
+	if not portrait_resource_path.is_empty() and ResourceLoader.exists(portrait_resource_path):
+		return load(portrait_resource_path) as Texture2D
+	return IconPaths.get_icon_texture(job_id, "chr")

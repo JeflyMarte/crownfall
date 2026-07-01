@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-02（**P3-GACHA-003 助っ人専用立ち絵**: portrait_resource_path 配線・暫定3枚・召喚/編成/装備反映。smoke PASS）
+
 2026-07-01（**P3-UI2-027 拠点モック第2段**: TitlePanel/Spotlight/FeatureGrid・左メニューカード化・7機能グリッド。smoke PASS）
 
 2026-07-01（**P3-GACHA-002 ガチャ助っ人コンテンツ**: ヴァルデン/イヴァル/セリン・来歴行・セーブ同期。smoke PASS）
