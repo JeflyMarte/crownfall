@@ -208,7 +208,7 @@ layout_mode = 2
 
 [node name="ButtonAdventure" type="Button" parent="LeftMenuPanel/MenuVBox"]
 layout_mode = 2
-text = "▶  ダンジョン"
+text = "▶  冒険"
 alignment = 0
 
 [node name="ButtonEquipment" type="Button" parent="LeftMenuPanel/MenuVBox"]
@@ -233,7 +233,7 @@ alignment = 0
 
 [node name="ButtonGacha" type="Button" parent="LeftMenuPanel/MenuVBox"]
 layout_mode = 2
-text = "▶  ガチャ"
+text = "▶  召喚"
 alignment = 0
 
 [node name="ButtonGuild" type="Button" parent="LeftMenuPanel/MenuVBox"]
@@ -258,12 +258,14 @@ theme_override_constants/separation = 4
 [node name="NavHome" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
 size_flags_horizontal = 3
+toggle_mode = true
+button_pressed = true
 text = "ホーム"
 
 [node name="NavAdventure" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "ダンジョン"
+text = "冒険"
 
 [node name="NavParty" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
@@ -278,7 +280,7 @@ text = "図鑑"
 [node name="NavShop" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "ショップ"
+text = "召喚"
 
 [node name="HiddenLabels" type="Control" parent="."]
 layout_mode = 1

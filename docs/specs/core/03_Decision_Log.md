@@ -2002,6 +2002,19 @@
 
 **P3-UI2-022 Closeout（2026-07-01）:** `SummonRevealLayer` + Tween。headless smoke PASS。
 
+## 拠点 BottomNav 表記統一（2026-07-01 — P3-UI2-025）
+
+> 021 で確定した「冒険」「召喚」表記を全拠点系画面へ展開。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UI2-025-1 | **BaseScene** — BottomNav `冒険`/`召喚`・`NavHome` ハイライト | 021 統一の起点 |
+| P3-UI2-025-2 | **左メニュー** — `▶ 冒険` / `▶ 召喚` に表記合わせ | 導線一貫性 |
+| P3-UI2-025-3 | **残画面** — Equipment/Blacksmith/Roster の `NavShop` を `召喚` に | 021 漏れ解消 |
+| P3-UI2-025-4 | **スコープ外** — 鍛冶 `NavForge` 構成・Result 専用フッター | 画面固有 |
+
+**P3-UI2-025 Closeout（2026-07-01）:** BottomNav 表記統一。headless smoke PASS。
+
 ## ガチャ仕様整合（2026-07-01 — P3-GACHA-001）
 
 > P3-D036b の実装差分を解消。UI 演出・10連・有償通貨は対象外。
