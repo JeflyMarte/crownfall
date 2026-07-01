@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-01（**P3-D134 作戦プリセット装備競合トースト**: `apply_combat_preset` が skipped 返却・装備画面フィードバック表示。headless smoke PASS）
+
 2026-07-01（**実装順序 HQ 確定** — 下記 `Next Implementation Queue`）
 
 2026-07-01（**P3-ALPHA-005 Alpha Combat Formation ブランチ Closeout**: `cursor/alpha-combat-formation-ui` → `main` マージ。D120〜133 + headless Closeout 一式。smoke PASS）
@@ -87,8 +89,8 @@
 | 0 | P3-ALPHA-003 | 実機チェックリスト v2.1（GO/NO-GO） | オーナー（可能時） | 品質の正。不可なら Defer 維持 |
 | 1 | P3-ART-002 | vanguard 戦闘スプライト取り込み | オーナー作画→Impl | Known Issue・4人編成の見た目 |
 | 2 | P3-ART-003 | beast_tamer 戦闘スプライト取り込み | 同上 | 同上 |
-| 3 | P3-D134 | 作戦プリセット装備競合トースト | Impl | E1 スコープ外・準備ループの最後の UX 穴 |
-| 4 | P3-D135 | Result 素材アイコン行（D131 拡張） | Impl | 図鑑/経済ループの帰還フィードバック |
+| 3 | P3-D134 | 作戦プリセット装備競合トースト | Impl | ✅ 完了 |
+| 4 | P3-D135 | Result 素材アイコン行（D131 拡張） | Impl | **次** |
 | 5 | P3-D136 | 鍛冶屋復活 MVP（D075 逆・導線のみ） | Impl+Decision | D067/D128 で素材が回るようになった |
 | 6 | P3-ART-004 | ranger / alchemist 本番差替 | オーナー→Impl | swordsman 次の優先作画 |
 | 7 | P3-D137 | ガンビット UI 改善（並替 or 条件プレビュー 1 点） | Impl | A1 スコープ外のうち最小1機能 |

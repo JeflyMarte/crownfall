@@ -532,13 +532,36 @@ func rename_combat_preset(slot: int, preset_name: String) -> bool:
 func default_combat_preset_name(slot: int) -> String:
 	return "作戦%d" % (slot + 1)
 
+static func preset_equipment_kind_label(kind: String) -> String:
+	match kind:
+		"weapon":
+			return "武器"
+		"armor":
+			return "防具"
+		"accessory":
+			return "装飾品"
+		_:
+			return kind
+
+static func preset_equipment_skip_label(reason: String) -> String:
+	match reason:
+		"missing":
+			return "未所持"
+		"conflict":
+			return "他員に使用中"
+		_:
+			return reason
+
 # スロットの設定を現在の party へ一括適用（member_id 一致分のみ）。
-# 装備は instance_id で解決。インベントリに無い／同一適用内で競合する場合はその枠のみスキップ。
-func apply_combat_preset(slot: int) -> bool:
+# 戻り値: { ok: bool, skipped: Array[Dictionary] } — skipped 各要素は
+# { member_name, kind, reason }（reason = missing | conflict）。
+func apply_combat_preset(slot: int) -> Dictionary:
+	var empty: Dictionary = {"ok": false, "skipped": []}
 	if not has_combat_preset(slot):
-		return false
+		return empty
 	var settings: Dictionary = (combat_presets[slot] as Dictionary).get("settings", {})
 	var claimed_items: Dictionary = {}
+	var skipped: Array = []
 	for i in party_members.size():
 		var member: Resource = party_members[i]
 		if member == null:
@@ -555,28 +578,31 @@ func apply_combat_preset(slot: int) -> bool:
 			set_member_tactics_custom_target(member, str(entry.get("tactics_custom_target", "")))
 		if entry.has("tactics_custom_plan") and entry.get("tactics_custom_plan") is Array:
 			set_member_tactics_custom_plan(member, entry.get("tactics_custom_plan"))
-		_apply_preset_equipment(member, i, entry, claimed_items)
+		_apply_preset_equipment(member, i, entry, claimed_items, skipped)
 	set_exploration_policy(str((combat_presets[slot] as Dictionary).get("exploration_policy", "")))
-	return true
+	return {"ok": true, "skipped": skipped}
 
-func _apply_preset_equipment(member: Resource, member_index: int, entry: Dictionary, claimed_items: Dictionary) -> void:
+func _apply_preset_equipment(member: Resource, member_index: int, entry: Dictionary, claimed_items: Dictionary, skipped: Array) -> void:
 	if entry.has("weapon_instance_id"):
 		_apply_preset_equipment_slot(
 			member, member_index, "weapon",
 			str(entry.get("weapon_instance_id", "")),
 			claimed_items,
+			skipped,
 		)
 	if entry.has("armor_instance_id"):
 		_apply_preset_equipment_slot(
 			member, member_index, "armor",
 			str(entry.get("armor_instance_id", "")),
 			claimed_items,
+			skipped,
 		)
 	if entry.has("accessory_instance_id"):
 		_apply_preset_equipment_slot(
 			member, member_index, "accessory",
 			str(entry.get("accessory_instance_id", "")),
 			claimed_items,
+			skipped,
 		)
 
 func _apply_preset_equipment_slot(
@@ -585,6 +611,7 @@ func _apply_preset_equipment_slot(
 	kind: String,
 	instance_id: String,
 	claimed_items: Dictionary,
+	skipped: Array,
 ) -> void:
 	if instance_id.is_empty():
 		match kind:
@@ -603,7 +630,12 @@ func _apply_preset_equipment_slot(
 			item = find_armor_instance(instance_id)
 		"accessory":
 			item = find_accessory_instance(instance_id)
-	if item == null or claimed_items.has(instance_id):
+	var member_name: String = str(member.display_name) if member != null else "?"
+	if item == null:
+		skipped.append({"member_name": member_name, "kind": kind, "reason": "missing"})
+		return
+	if claimed_items.has(instance_id):
+		skipped.append({"member_name": member_name, "kind": kind, "reason": "conflict"})
 		return
 	claimed_items[instance_id] = member_index
 	clear_item_from_other_members(item, member_index)

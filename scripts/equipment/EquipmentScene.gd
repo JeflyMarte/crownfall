@@ -79,6 +79,9 @@ var _preset_name_edit: LineEdit = null
 var _preset_rename_btn: Button = null
 var _policy_option: OptionButton = null
 var _policy_hint_label: Label = null
+var _preset_feedback_panel: PanelContainer = null
+var _preset_feedback_label: Label = null
+var _preset_feedback_tween: Tween = null
 const _POLICY_IDS: Array = ["", "safe", "material", "relic", "codex"]
 var _tag_info_label: Label = null
 
@@ -1114,8 +1117,12 @@ func _on_preset_apply_pressed() -> void:
 	if _preset_option == null:
 		return
 	var slot: int = _preset_option.selected
-	if not GameState.apply_combat_preset(slot):
+	var result: Dictionary = GameState.apply_combat_preset(slot)
+	if not bool(result.get("ok", false)):
 		return
+	var skipped: Array = result.get("skipped", [])
+	if not skipped.is_empty():
+		_show_preset_apply_feedback(skipped)
 	SaveManager.save_game()
 	_refresh_display()
 	var member: Resource = GameState.get_member(_selected_member_index)
@@ -1123,6 +1130,66 @@ func _on_preset_apply_pressed() -> void:
 	_refresh_gambit_ui(member)
 	_refresh_relic_ui(member)
 	_sync_policy_option()
+
+func _ensure_preset_feedback_ui() -> void:
+	if _preset_feedback_panel != null and is_instance_valid(_preset_feedback_panel):
+		return
+	var layer := CanvasLayer.new()
+	layer.name = "PresetFeedbackLayer"
+	layer.layer = 12
+	add_child(layer)
+	var panel := PanelContainer.new()
+	panel.name = "PresetFeedback"
+	panel.visible = false
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	panel.offset_top = -96.0
+	panel.offset_bottom = -16.0
+	panel.offset_left = 16.0
+	panel.offset_right = -16.0
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.08, 0.06, 0.05, 0.92)
+	style.border_color = COLOR_GOLD
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(6)
+	style.set_content_margin_all(10)
+	panel.add_theme_stylebox_override("panel", style)
+	layer.add_child(panel)
+	var label := Label.new()
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 13)
+	label.add_theme_color_override("font_color", COLOR_VALUE)
+	panel.add_child(label)
+	_preset_feedback_panel = panel
+	_preset_feedback_label = label
+
+func _show_preset_apply_feedback(skipped: Array) -> void:
+	_ensure_preset_feedback_ui()
+	var parts: PackedStringArray = PackedStringArray()
+	for entry in skipped:
+		if not entry is Dictionary:
+			continue
+		var d: Dictionary = entry as Dictionary
+		var member_name: String = str(d.get("member_name", "?"))
+		var kind: String = GameState.preset_equipment_kind_label(str(d.get("kind", "")))
+		var reason: String = GameState.preset_equipment_skip_label(str(d.get("reason", "")))
+		parts.append("%s・%s（%s）" % [member_name, kind, reason])
+	if parts.is_empty():
+		return
+	_preset_feedback_label.text = "装備スキップ: " + " / ".join(parts)
+	_preset_feedback_panel.visible = true
+	_preset_feedback_panel.modulate.a = 0.0
+	if _preset_feedback_tween != null and _preset_feedback_tween.is_valid():
+		_preset_feedback_tween.kill()
+	_preset_feedback_tween = create_tween()
+	_preset_feedback_tween.tween_property(_preset_feedback_panel, "modulate:a", 1.0, 0.2)
+	_preset_feedback_tween.tween_interval(3.0)
+	_preset_feedback_tween.tween_property(_preset_feedback_panel, "modulate:a", 0.0, 0.3)
+	_preset_feedback_tween.tween_callback(func() -> void:
+		if is_instance_valid(_preset_feedback_panel):
+			_preset_feedback_panel.visible = false
+	)
 
 func _on_preset_save_pressed() -> void:
 	if _preset_option == null:
