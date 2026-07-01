@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-01（**P3-D121 作戦プリセット装備セット保存（E1 Closeout）**: `weapon/armor/accessory_instance_id` 保存・適用・競合/欠落スキップ・`find_*_instance`・UIサマリー表示。headless import 検証済 / 実機未確認 / コミット済。**次=P3-ALPHA-003 実機 or G1 バランス**）
+
 2026-07-01（**P3-D120 マーキング状態 MVP（A3 Closeout）**: `mark`（被ダメ×1.15・3tick）・`aimed_shot`副次付与・`enemy_marked`/`enemy_has_mark`・プリセット反映（aggressive/sweep）・`CombatLinks`先頭登録。headless import 検証済 / 実機未確認 / コミット済。**次=E1 装備プリセット**）
 
 2026-07-01（**未コミット整理**: リタイア・A3・CombatGambit を3コミット分割。B-5 コミット済）
@@ -159,6 +161,7 @@ ProjectDocs **v3.6.0**
 | P3-ALPHA-003 | Combat v1.0 実機一括確認チェックリスト（`AlphaPlaytest_Checklist.md` v2.0） | ✅ 文書完了（**要オーナー実機実施**） |
 | P3-D119 | Combat System v1.0 Closeout（CODEMAP 同期・15/15 完了宣言・Decision Log） | ✅ 完了 |
 | P3-D120 | マーキング状態 MVP（A3 Closeout） | ✅ 完了（HQ実装・headless検証・要実機確認） |
+| P3-D121 | 作戦プリセット装備セット保存（E1 Closeout） | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D118 | 高速周回・戦闘スキップ MVP（残ロードマップ フェーズE-15）。`CombatFastRun`・クリア済みDGで「周回」トグル・COMBATのみ即撃破（報酬通常）。ON時x2自動。配線=`_try/_execute_combat_skip` | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D117 | 探索スキル群 MVP（残ロードマップ フェーズE-14）。`ExplorationSkills`5種=採取/採掘/鍵開け/解読/罠解除。ロール連動自動発動(EVENT/TREASURE/COMBAT/ELITE)。罠20%×8ダメ・解除で無効。配線=`_apply_exploration_*`/`_try_exploration_trap` | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D116 | ボスフェーズ移行 MVP（残ロードマップ フェーズE-13）。`CombatBossPhases`静的SSOT(serdion3段・HP50/25%)。`enemy_phase_index`+`_check_boss_phase_transition`(与ダメ/DoT)。フェーズでskill率/attack_mult/断罪重み2。図鑑=`phases_seen`目撃開示(stage5) | ✅ 完了（HQ実装・headless検証・要実機確認） |

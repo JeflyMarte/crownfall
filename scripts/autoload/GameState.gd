@@ -278,9 +278,10 @@ func unowned_relic_ids() -> Array:
 			out.append(rid)
 	return out
 
-# ---- 作戦プリセット（P3-D091） ----
-# party 全体の「戦術＋遺物」セットを最大 COMBAT_PRESET_SLOTS スロット保存し、一括適用する。
-# 各スロット: {"name": String, "settings": { member_id: {"tactics_id","relic_id"} }}
+# ---- 作戦プリセット（P3-D091 / P3-D121） ----
+# party 全体の「戦術＋遺物＋装備＋探索方針」を最大 COMBAT_PRESET_SLOTS スロット保存し、一括適用する。
+# 各スロット: {"name", "exploration_policy", "settings": { member_id: {tactics_id, relic_id,
+#   weapon_instance_id, armor_instance_id, accessory_instance_id} }}
 # member_id キーで保持するため編成順が変わっても正しく復元できる。
 const COMBAT_PRESET_SLOTS: int = 3
 var combat_presets: Array = []
@@ -331,6 +332,57 @@ func get_combat_preset_name(slot: int) -> String:
 		return ""
 	return str((combat_presets[slot] as Dictionary).get("name", ""))
 
+func get_combat_preset_summary(slot: int) -> String:
+	if not has_combat_preset(slot):
+		return ""
+	var settings: Dictionary = (combat_presets[slot] as Dictionary).get("settings", {})
+	var equip_count: int = 0
+	for raw in settings.values():
+		if not raw is Dictionary:
+			continue
+		var s: Dictionary = raw as Dictionary
+		for key: String in ["weapon_instance_id", "armor_instance_id", "accessory_instance_id"]:
+			if not str(s.get(key, "")).is_empty():
+				equip_count += 1
+	var parts: PackedStringArray = PackedStringArray()
+	if equip_count > 0:
+		parts.append("装備%d" % equip_count)
+	var policy: String = str((combat_presets[slot] as Dictionary).get("exploration_policy", ""))
+	if not policy.is_empty():
+		parts.append(exploration_policy_label(policy))
+	return "・".join(parts)
+
+func find_weapon_instance(instance_id: String) -> Resource:
+	if instance_id.is_empty():
+		return null
+	for item in inventory:
+		if item != null and str(item.instance_id) == instance_id:
+			return item
+	return null
+
+func find_armor_instance(instance_id: String) -> Resource:
+	if instance_id.is_empty():
+		return null
+	for item in armor_inventory:
+		if item != null and str(item.instance_id) == instance_id:
+			return item
+	return null
+
+func find_accessory_instance(instance_id: String) -> Resource:
+	if instance_id.is_empty():
+		return null
+	for item in accessory_inventory:
+		if item != null and str(item.instance_id) == instance_id:
+			return item
+	return null
+
+static func _equipped_instance_id(item: Resource) -> String:
+	if item == null:
+		return ""
+	if "instance_id" in item:
+		return str(item.instance_id)
+	return ""
+
 # 現在の party 全員の戦術/遺物をスロットへ保存。name 空なら "作戦N"。
 func save_combat_preset(slot: int, preset_name: String = "") -> void:
 	if slot < 0 or slot >= COMBAT_PRESET_SLOTS:
@@ -342,6 +394,9 @@ func save_combat_preset(slot: int, preset_name: String = "") -> void:
 		settings[str(member.id)] = {
 			"tactics_id": get_member_tactics_id(member),
 			"relic_id": get_member_relic_id(member),
+			"weapon_instance_id": _equipped_instance_id(member.equipped_weapon),
+			"armor_instance_id": _equipped_instance_id(member.equipped_armor),
+			"accessory_instance_id": _equipped_instance_id(member.equipped_accessory),
 		}
 	while combat_presets.size() <= slot:
 		combat_presets.append({})
@@ -355,20 +410,81 @@ func save_combat_preset(slot: int, preset_name: String = "") -> void:
 	}
 
 # スロットの設定を現在の party へ一括適用（member_id 一致分のみ）。
+# 装備は instance_id で解決。インベントリに無い／同一適用内で競合する場合はその枠のみスキップ。
 func apply_combat_preset(slot: int) -> bool:
 	if not has_combat_preset(slot):
 		return false
 	var settings: Dictionary = (combat_presets[slot] as Dictionary).get("settings", {})
-	for member in party_members:
+	var claimed_items: Dictionary = {}
+	for i in party_members.size():
+		var member: Resource = party_members[i]
 		if member == null:
 			continue
 		var s = settings.get(str(member.id), {})
 		if not (s is Dictionary) or (s as Dictionary).is_empty():
 			continue
-		set_member_tactics(member, str((s as Dictionary).get("tactics_id", "")))
-		set_member_relic(member, str((s as Dictionary).get("relic_id", "")))
+		var entry: Dictionary = s as Dictionary
+		set_member_tactics(member, str(entry.get("tactics_id", "")))
+		set_member_relic(member, str(entry.get("relic_id", "")))
+		_apply_preset_equipment(member, i, entry, claimed_items)
 	set_exploration_policy(str((combat_presets[slot] as Dictionary).get("exploration_policy", "")))
 	return true
+
+func _apply_preset_equipment(member: Resource, member_index: int, entry: Dictionary, claimed_items: Dictionary) -> void:
+	if entry.has("weapon_instance_id"):
+		_apply_preset_equipment_slot(
+			member, member_index, "weapon",
+			str(entry.get("weapon_instance_id", "")),
+			claimed_items,
+		)
+	if entry.has("armor_instance_id"):
+		_apply_preset_equipment_slot(
+			member, member_index, "armor",
+			str(entry.get("armor_instance_id", "")),
+			claimed_items,
+		)
+	if entry.has("accessory_instance_id"):
+		_apply_preset_equipment_slot(
+			member, member_index, "accessory",
+			str(entry.get("accessory_instance_id", "")),
+			claimed_items,
+		)
+
+func _apply_preset_equipment_slot(
+	member: Resource,
+	member_index: int,
+	kind: String,
+	instance_id: String,
+	claimed_items: Dictionary,
+) -> void:
+	if instance_id.is_empty():
+		match kind:
+			"weapon":
+				member.equipped_weapon = null
+			"armor":
+				member.equipped_armor = null
+			"accessory":
+				member.equipped_accessory = null
+		return
+	var item: Resource = null
+	match kind:
+		"weapon":
+			item = find_weapon_instance(instance_id)
+		"armor":
+			item = find_armor_instance(instance_id)
+		"accessory":
+			item = find_accessory_instance(instance_id)
+	if item == null or claimed_items.has(instance_id):
+		return
+	claimed_items[instance_id] = member_index
+	clear_item_from_other_members(item, member_index)
+	match kind:
+		"weapon":
+			member.equipped_weapon = item
+		"armor":
+			member.equipped_armor = item
+		"accessory":
+			member.equipped_accessory = item
 
 func find_item_equipped_member_index(item: Resource) -> int:
 	if item == null:

@@ -760,8 +760,8 @@ func _on_relic_selected(index: int) -> void:
 		return
 	GameState.set_member_relic(member, _relic_ids[index])
 
-# 作戦プリセット（P3-D091）。スキルタブ最上部に「作戦 [▼] [適用] [保存]」を 1 度だけ生成。
-# プリセット＝party 全員の戦術＋遺物セット。適用で全員へ一括反映する。
+# 作戦プリセット（P3-D091 / P3-D121）。スキルタブ最上部に「作戦 [▼] [適用] [保存]」を 1 度だけ生成。
+# プリセット＝party 全員の戦術＋遺物＋装備＋探索方針。適用で全員へ一括反映する。
 func _ensure_preset_ui() -> void:
 	if _preset_option != null and is_instance_valid(_preset_option):
 		return
@@ -807,7 +807,14 @@ func _refresh_preset_ui() -> void:
 	_preset_option.clear()
 	for slot: int in GameState.COMBAT_PRESET_SLOTS:
 		var nm: String = GameState.get_combat_preset_name(slot)
-		var text: String = "%d: (空)" % (slot + 1) if nm.is_empty() else "%d: %s" % [slot + 1, nm]
+		var summary: String = GameState.get_combat_preset_summary(slot)
+		var text: String
+		if nm.is_empty():
+			text = "%d: (空)" % (slot + 1)
+		elif summary.is_empty():
+			text = "%d: %s" % [slot + 1, nm]
+		else:
+			text = "%d: %s (%s)" % [slot + 1, nm, summary]
 		_preset_option.add_item(text)
 	if _preset_option.item_count > 0:
 		_preset_option.select(clampi(prev, 0, _preset_option.item_count - 1))
@@ -830,6 +837,8 @@ func _on_preset_apply_pressed() -> void:
 	var slot: int = _preset_option.selected
 	if not GameState.apply_combat_preset(slot):
 		return
+	SaveManager.save_game()
+	_refresh_display()
 	var member: Resource = GameState.get_member(_selected_member_index)
 	_refresh_tactics_ui(member)
 	_refresh_relic_ui(member)
@@ -842,6 +851,7 @@ func _on_preset_save_pressed() -> void:
 	if slot < 0:
 		return
 	GameState.save_combat_preset(slot)
+	SaveManager.save_game()
 	_refresh_preset_ui()
 	_preset_option.select(slot)
 

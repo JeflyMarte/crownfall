@@ -1552,6 +1552,18 @@
 | P3-D120-5 | **連携**: `CombatLinks.DEBUFF_MARK_STATUSES` 先頭に `mark` | 標的付与→他員追撃+20%（debuff_mark）と整合 |
 | P3-D120-6 | **スコープ外**: マーク専用 UI ハイライト・複数マーク種・敵→味方マーク・図鑑追記 | MVP最小化。実機確認は P3-ALPHA-003 |
 
+## 作戦プリセット装備セット（2026-07-01 — P3-D121）
+
+> P3-D091 スコープ外だった装備セット保存を E1 として追加。準備専用ループの一括切替を完結。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D121-1 | **保存キー追加**＝`settings[member_id]` に `weapon_instance_id` / `armor_instance_id` / `accessory_instance_id`（空=未装備） | P3-D091 の member_id キー設計を維持。後方互換＝キー無しは装備を触らない |
+| P3-D121-2 | **適用**＝`find_*_instance` で解決→`clear_item_from_other_members`→装備。同一 `apply` 内で既に他員へ割当済みの instance はスキップ | 競合時に後勝ちで奪わない。インベントリ欠落もスキップ（現装備維持） |
+| P3-D121-3 | **API**＝`save/apply_combat_preset` 拡張のみ。`SaveManager` は `combat_presets` deep-duplicate で自動追従 | 新フィールド追加のみ |
+| P3-D121-4 | **UI**＝`EquipmentScene` プリセット行にサマリー（装備数・探索方針）。適用後 `_refresh_display`＋`save_game` | 装備タブ全体を再描画 |
+| P3-D121-5 | **スコープ外**: プリセット名リネーム UI・装備競合トースト・スキル装備セット・陣形行 | MVP最小化 |
+
 ## Alpha 実機一括確認（2026-07-01 — P3-ALPHA-003）
 
 > Combat System v1.0 Closeout（P3-D119）後の実機検証。コード変更なし — チェックリスト更新のみ。
