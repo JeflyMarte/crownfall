@@ -73,6 +73,7 @@ var _gambit_value_edits: Array[LineEdit] = []
 var _gambit_range_opts: Array[OptionButton] = []
 var _gambit_move_up_btns: Array[Button] = []
 var _gambit_move_down_btns: Array[Button] = []
+var _gambit_cond_hint_labels: Array[Label] = []
 var _gambit_ui_syncing: bool = false
 var _relic_option: OptionButton = null
 var _relic_ids: Array[String] = []
@@ -749,7 +750,11 @@ func _ensure_gambit_ui() -> void:
 	_gambit_range_opts.clear()
 	_gambit_move_up_btns.clear()
 	_gambit_move_down_btns.clear()
+	_gambit_cond_hint_labels.clear()
 	for i in CombatGambit.plan_row_count():
+		var row_wrap := VBoxContainer.new()
+		row_wrap.name = "GambitPlanWrap%d" % i
+		row_wrap.add_theme_constant_override("separation", 2)
 		var plan_row := HBoxContainer.new()
 		plan_row.name = "GambitPlanRow%d" % i
 		var pri := Label.new()
@@ -793,13 +798,21 @@ func _ensure_gambit_ui() -> void:
 		btn_down.pressed.connect(_on_gambit_move_row.bind(i, 1))
 		move_col.add_child(btn_down)
 		plan_row.add_child(move_col)
-		_gambit_custom_box.add_child(plan_row)
+		row_wrap.add_child(plan_row)
+		var cond_hint := Label.new()
+		cond_hint.text = ""
+		cond_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		cond_hint.add_theme_color_override("font_color", COLOR_SUB)
+		cond_hint.add_theme_font_size_override("font_size", 11)
+		row_wrap.add_child(cond_hint)
+		_gambit_custom_box.add_child(row_wrap)
 		_gambit_slot_opts.append(slot_opt)
 		_gambit_cond_opts.append(cond_opt)
 		_gambit_value_edits.append(value_edit)
 		_gambit_range_opts.append(range_opt)
 		_gambit_move_up_btns.append(btn_up)
 		_gambit_move_down_btns.append(btn_down)
+		_gambit_cond_hint_labels.append(cond_hint)
 	var gambit_hint := Label.new()
 	gambit_hint.text = "上から優先。↑↓で並替。条件成立かつ発動可の最初の行動を実行"
 	gambit_hint.autowrap_mode = TextServer.AUTOWRAP_WORD
@@ -839,7 +852,20 @@ func _refresh_gambit_ui(member: Resource) -> void:
 		_gambit_cond_opts[i].select(cond_idx if cond_idx >= 0 else 0)
 		_update_gambit_row_value_widgets(i, cond_id, rule)
 	_update_gambit_move_buttons()
+	_update_gambit_condition_hints()
 	_gambit_ui_syncing = false
+
+func _update_gambit_condition_hints() -> void:
+	for i in CombatGambit.plan_row_count():
+		if i >= _gambit_cond_opts.size() or i >= _gambit_cond_hint_labels.size():
+			continue
+		var cond_idx: int = _gambit_cond_opts[i].selected
+		var cond_id: String = "always"
+		if cond_idx >= 0 and cond_idx < CombatGambit.CONDITION_IDS.size():
+			cond_id = CombatGambit.CONDITION_IDS[cond_idx]
+		var hint: String = CombatGambit.condition_hint(cond_id)
+		_gambit_cond_hint_labels[i].text = hint
+		_gambit_cond_hint_labels[i].visible = not hint.is_empty()
 
 func _update_gambit_move_buttons() -> void:
 	var row_count: int = CombatGambit.plan_row_count()
@@ -932,6 +958,7 @@ func _on_gambit_row_changed(_unused: Variant = null) -> void:
 		var cond_idx: int = _gambit_cond_opts[i].selected
 		var cond_id: String = CombatGambit.CONDITION_IDS[cond_idx] if cond_idx >= 0 else "always"
 		_update_gambit_row_value_widgets(i, cond_id)
+	_update_gambit_condition_hints()
 	_persist_gambit_plan(member)
 
 func _on_gambit_move_row(row: int, delta: int) -> void:
