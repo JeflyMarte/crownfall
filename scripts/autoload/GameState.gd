@@ -466,12 +466,29 @@ func save_combat_preset(slot: int, preset_name: String = "") -> void:
 		combat_presets.append({})
 	var nm: String = preset_name.strip_edges()
 	if nm.is_empty():
-		nm = "作戦%d" % (slot + 1)
+		nm = default_combat_preset_name(slot)
 	combat_presets[slot] = {
 		"name": nm,
 		"settings": settings,
 		"exploration_policy": current_exploration_policy,
 	}
+
+# 既存プリセットの表示名のみ変更（中身は不変）。
+func rename_combat_preset(slot: int, preset_name: String) -> bool:
+	if slot < 0 or slot >= COMBAT_PRESET_SLOTS:
+		return false
+	if not has_combat_preset(slot):
+		return false
+	var nm: String = preset_name.strip_edges()
+	if nm.is_empty():
+		return false
+	var preset: Dictionary = (combat_presets[slot] as Dictionary).duplicate(true)
+	preset["name"] = nm
+	combat_presets[slot] = preset
+	return true
+
+func default_combat_preset_name(slot: int) -> String:
+	return "作戦%d" % (slot + 1)
 
 # スロットの設定を現在の party へ一括適用（member_id 一致分のみ）。
 # 装備は instance_id で解決。インベントリに無い／同一適用内で競合する場合はその枠のみスキップ。

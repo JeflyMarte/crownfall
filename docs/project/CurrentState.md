@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-01（**P3-D124 作戦プリセット名リネーム**: `rename_combat_preset`・装備画面名称入力/名前変更・保存時名称反映。headless import 検証済 / 実機未確認 / コミット済）
+
 2026-07-01（**P3-D123 リタイア Result 差別化**: `last_run_outcome`(clear/retire/wipe)・Result ヘッダー「リタイア帰還」/「探索失敗」/「CLEAR」・探索情報に帰還種別。headless import 検証済 / 実機未確認 / コミット済）
 
 2026-07-01（**P3-D122 カスタム戦術ガンビット MVP（A1 Closeout）**: `tactics_custom_*`・装備画面5行UI・セーブ/作戦プリセット連動。headless import 検証済 / 実機未確認 / コミット済。**次=P3-ALPHA-003 実機 or 小タスク**）
@@ -171,6 +173,7 @@ ProjectDocs **v3.6.0**
 | P3-D121 | 作戦プリセット装備セット保存（E1 Closeout） | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D122 | カスタム戦術ガンビット MVP（A1 Closeout） | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D123 | リタイア Result 差別化 | ✅ 完了（HQ実装・headless検証・要実機確認） |
+| P3-D124 | 作戦プリセット名リネーム | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D118 | 高速周回・戦闘スキップ MVP（残ロードマップ フェーズE-15）。`CombatFastRun`・クリア済みDGで「周回」トグル・COMBATのみ即撃破（報酬通常）。ON時x2自動。配線=`_try/_execute_combat_skip` | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D117 | 探索スキル群 MVP（残ロードマップ フェーズE-14）。`ExplorationSkills`5種=採取/採掘/鍵開け/解読/罠解除。ロール連動自動発動(EVENT/TREASURE/COMBAT/ELITE)。罠20%×8ダメ・解除で無効。配線=`_apply_exploration_*`/`_try_exploration_trap` | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D116 | ボスフェーズ移行 MVP（残ロードマップ フェーズE-13）。`CombatBossPhases`静的SSOT(serdion3段・HP50/25%)。`enemy_phase_index`+`_check_boss_phase_transition`(与ダメ/DoT)。フェーズでskill率/attack_mult/断罪重み2。図鑑=`phases_seen`目撃開示(stage5) | ✅ 完了（HQ実装・headless検証・要実機確認） |

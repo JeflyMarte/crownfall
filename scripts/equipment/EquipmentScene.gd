@@ -75,6 +75,8 @@ var _gambit_ui_syncing: bool = false
 var _relic_option: OptionButton = null
 var _relic_ids: Array[String] = []
 var _preset_option: OptionButton = null
+var _preset_name_edit: LineEdit = null
+var _preset_rename_btn: Button = null
 var _policy_option: OptionButton = null
 const _POLICY_IDS: Array = ["", "safe", "material", "relic", "codex"]
 var _tag_info_label: Label = null
@@ -981,6 +983,7 @@ func _ensure_preset_ui() -> void:
 	row.add_child(label)
 	var opt := OptionButton.new()
 	opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	opt.item_selected.connect(_on_preset_slot_selected)
 	row.add_child(opt)
 	var apply_btn := Button.new()
 	apply_btn.text = "適用"
@@ -993,6 +996,23 @@ func _ensure_preset_ui() -> void:
 	_skill_content.add_child(row)
 	_skill_content.move_child(row, 0)
 	_preset_option = opt
+	var name_row := HBoxContainer.new()
+	name_row.name = "PresetNameRow"
+	var name_label := Label.new()
+	name_label.text = "名称:"
+	_preset_name_edit = LineEdit.new()
+	_preset_name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_preset_name_edit.placeholder_text = "作戦1"
+	_preset_name_edit.max_length = 24
+	_preset_name_edit.text_submitted.connect(_on_preset_rename_submitted)
+	name_row.add_child(name_label)
+	name_row.add_child(_preset_name_edit)
+	_preset_rename_btn = Button.new()
+	_preset_rename_btn.text = "名前変更"
+	_preset_rename_btn.pressed.connect(_on_preset_rename_pressed)
+	name_row.add_child(_preset_rename_btn)
+	_skill_content.add_child(name_row)
+	_skill_content.move_child(name_row, 1)
 	# 探索方針セレクタ（P3-D098）。プリセットに内包され、保存時に一緒に記録される。
 	var policy_row := HBoxContainer.new()
 	policy_row.name = "PolicyRow"
@@ -1006,7 +1026,7 @@ func _ensure_preset_ui() -> void:
 	policy_opt.item_selected.connect(_on_policy_selected)
 	policy_row.add_child(policy_opt)
 	_skill_content.add_child(policy_row)
-	_skill_content.move_child(policy_row, 1)
+	_skill_content.move_child(policy_row, 2)
 	_policy_option = policy_opt
 
 func _refresh_preset_ui() -> void:
@@ -1027,7 +1047,40 @@ func _refresh_preset_ui() -> void:
 		_preset_option.add_item(text)
 	if _preset_option.item_count > 0:
 		_preset_option.select(clampi(prev, 0, _preset_option.item_count - 1))
+	_sync_preset_name_field(_preset_option.selected)
 	_sync_policy_option()
+
+func _sync_preset_name_field(slot: int) -> void:
+	if _preset_name_edit == null:
+		return
+	var default_name: String = GameState.default_combat_preset_name(slot)
+	if GameState.has_combat_preset(slot):
+		_preset_name_edit.text = GameState.get_combat_preset_name(slot)
+		if _preset_rename_btn != null:
+			_preset_rename_btn.disabled = false
+	else:
+		_preset_name_edit.text = default_name
+		if _preset_rename_btn != null:
+			_preset_rename_btn.disabled = true
+	_preset_name_edit.placeholder_text = default_name
+
+func _on_preset_slot_selected(index: int) -> void:
+	_sync_preset_name_field(index)
+
+func _on_preset_rename_submitted(_text: String) -> void:
+	_on_preset_rename_pressed()
+
+func _on_preset_rename_pressed() -> void:
+	if _preset_option == null or _preset_name_edit == null:
+		return
+	var slot: int = _preset_option.selected
+	if slot < 0:
+		return
+	if not GameState.rename_combat_preset(slot, _preset_name_edit.text):
+		return
+	SaveManager.save_game()
+	_refresh_preset_ui()
+	_preset_option.select(slot)
 
 func _sync_policy_option() -> void:
 	if _policy_option == null:
@@ -1060,7 +1113,7 @@ func _on_preset_save_pressed() -> void:
 	var slot: int = _preset_option.selected
 	if slot < 0:
 		return
-	GameState.save_combat_preset(slot)
+	GameState.save_combat_preset(slot, _preset_name_edit.text if _preset_name_edit != null else "")
 	SaveManager.save_game()
 	_refresh_preset_ui()
 	_preset_option.select(slot)
