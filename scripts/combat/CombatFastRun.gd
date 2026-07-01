@@ -10,4 +10,9 @@ static func can_enable(dungeon_id: String) -> bool:
 static func can_skip_room(room_type: int, fast_run_enabled: bool) -> bool:
 	if not fast_run_enabled:
 		return false
-	return room_type == Enums.RoomType.COMBAT
+	return room_type == Enums.RoomType.COMBAT or room_type == Enums.RoomType.ELITE
+
+static func skip_log_message(room_type: int) -> String:
+	if room_type == Enums.RoomType.ELITE:
+		return "[周回] エリート戦闘をスキップ"
+	return "[周回] 戦闘をスキップ"

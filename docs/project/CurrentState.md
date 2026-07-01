@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-01（**P3-D142 周回ELITEスキップ**: `CombatFastRun` が ELITE も即撃破・ログ差別化。headless smoke PASS）
+
 2026-07-01（**P3-BAL-004 経済バランス**: 生態ドロップ率微増・6レシピコスト引下・ELITE素材20%。headless smoke PASS）
 
 2026-07-01（**P3-ECO-001 経済ループ Closeout**: D134〜141 完了宣言・`04_ゲームループ`/`CODEMAP` 同期）
@@ -108,9 +110,10 @@
 | — | P3-ART-002〜004 / P3-A-ENV-001 | 作画取り込み | オーナー→Impl | **Defer** |
 | — | P3-D134〜141 / P3-ECO-001 | 準備+経済ループ | Impl/HQ | ✅ **Closeout** |
 | 1 | P3-BAL-004 | 経済バランス調整（ドロップ率/レシピコスト） | Impl+HQ | ✅ **Closeout** |
-| 2 | — | Backlog 大物（ELITEスキップ/天候本格/複数DG 等） | Decision 待ち | **次候補** |
+| 2 | P3-D142 | 周回 ELITE スキップ拡張 | Impl+HQ | ✅ **Closeout** |
+| 3 | — | Backlog 大物（天候本格/複数DG 等） | Decision 待ち | **次候補** |
 
-**Backlog（単独 Decision まで着手しない）:** 敵別 Threat テーブル / 探索手動+CD / ELITE スキップ / 周回敗北シミュ / 天候本格 / 位置AI / 複数DG / Affix本格 / ラン中方針切替 / Biome-02 以降。
+**Backlog（単独 Decision まで着手しない）:** 敵別 Threat テーブル / 探索手動+CD / 周回敗北シミュ / 天候本格 / 位置AI / 複数DG / Affix本格 / ラン中方針切替 / Biome-02 以降。
 
 ---
 

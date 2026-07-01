@@ -844,7 +844,7 @@ func _try_combat_skip() -> bool:
 	return true
 
 func _execute_combat_skip() -> void:
-	_append_log("[周回] 戦闘をスキップ")
+	_append_log(CombatFastRun.skip_log_message($DungeonController.current_room_type))
 	$CombatTimer.stop()
 	var slots: Array[int] = []
 	for i: int in $CombatController.swarm_hp.size():
