@@ -54,12 +54,14 @@ const SLOT_GLYPHS: Dictionary = {"weapon": "⚔", "armor": "🛡", "accessory": 
 @onready var _inventory_grid: GridContainer = $VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryGrid
 @onready var _skill_content: VBoxContainer = $VBoxContainer/TabContainer/TabSkill/SkillContent
 
+var _combat_setup_panel: PanelContainer = null
+var _combat_setup_content: VBoxContainer = null
+
 var _selected_member_index: int = 0
 # 所持一覧のカテゴリフィルタ: "all" / "weapon" / "armor" / "accessory"
 var _inventory_filter: String = "all"
 # 戦術セレクタ（P3-D086・スキルタブ上部に動的生成）
 var _tactics_option: OptionButton = null
-var _formation_button: Button = null
 var _tactics_ids: Array[String] = []
 var _relic_option: OptionButton = null
 var _relic_ids: Array[String] = []
@@ -70,7 +72,9 @@ var _tag_info_label: Label = null
 
 func _ready() -> void:
 	_tabs.set_tab_title(0, "装備")
-	_tabs.set_tab_title(1, "スキル")
+	_tabs.set_tab_title(1, "戦術・スキル")
+	$VBoxContainer/HeaderRow/LabelTitle.text = "英雄管理"
+	_ensure_combat_setup_panel()
 	_button_back.pressed.connect(_on_back_pressed)
 	_button_unequip_all.pressed.connect(_on_unequip_all_pressed)
 	for i in GameState.ACTIVE_PARTY_SIZE:
@@ -594,8 +598,6 @@ func _rebuild_skill_tab() -> void:
 	_refresh_tactics_ui(member)
 	_ensure_relic_ui()
 	_refresh_relic_ui(member)
-	_ensure_formation_ui()
-	_refresh_formation_ui(member)
 	_ensure_preset_ui()
 	_refresh_preset_ui()
 	_ensure_tag_info_ui()
@@ -635,56 +637,44 @@ func _rebuild_skill_tab() -> void:
 		row.add_child(btn)
 		list.add_child(row)
 
-# 陣形（前列/後列）UI（P3-D106）。選択メンバーの行トグル＋party プリセット3種。
-func _ensure_formation_ui() -> void:
-	if _formation_button != null and is_instance_valid(_formation_button):
+# 戦術・陣形はタブ外の常時表示パネル（P3-ALPHA-003 フィードバック）。
+func _ensure_combat_setup_panel() -> void:
+	if _combat_setup_panel != null and is_instance_valid(_combat_setup_panel):
 		return
-	var row := HBoxContainer.new()
-	row.name = "FormationRow"
-	var label := Label.new()
-	label.text = "陣形:"
-	row.add_child(label)
-	var toggle := Button.new()
-	toggle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	toggle.pressed.connect(_on_formation_toggle_pressed)
-	row.add_child(toggle)
-	_formation_button = toggle
-	for preset in [["前衛", "front"], ["均衡", "balanced"], ["後衛", "back"]]:
-		var pb := Button.new()
-		pb.text = str(preset[0])
-		pb.pressed.connect(_on_formation_preset_pressed.bind(str(preset[1])))
-		row.add_child(pb)
-	_skill_content.add_child(row)
-	_skill_content.move_child(row, 2)
+	var vbox: VBoxContainer = $VBoxContainer
+	_combat_setup_panel = PanelContainer.new()
+	_combat_setup_panel.name = "CombatSetupPanel"
+	_combat_setup_panel.add_theme_stylebox_override(
+		"panel", _framed_box(COLOR_GOLD, 2, Color(0.08, 0.07, 0.05, 0.92))
+	)
+	var outer := VBoxContainer.new()
+	outer.add_theme_constant_override("separation", 6)
+	var title := Label.new()
+	title.text = "◆ 戦術 ◆"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_color_override("font_color", COLOR_GOLD)
+	title.add_theme_font_size_override("font_size", 16)
+	outer.add_child(title)
+	var hint := Label.new()
+	hint.text = "陣形は拠点 → 編成 → 陣形タブで設定"
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint.add_theme_color_override("font_color", COLOR_SUB)
+	hint.add_theme_font_size_override("font_size", 12)
+	outer.add_child(hint)
+	_combat_setup_content = VBoxContainer.new()
+	_combat_setup_content.name = "CombatSetupContent"
+	_combat_setup_content.add_theme_constant_override("separation", 6)
+	outer.add_child(_combat_setup_content)
+	_combat_setup_panel.add_child(outer)
+	vbox.add_child(_combat_setup_panel)
+	var tab_idx: int = vbox.get_node("TabContainer").get_index()
+	vbox.move_child(_combat_setup_panel, tab_idx)
 
-func _refresh_formation_ui(member: Resource) -> void:
-	if _formation_button == null:
-		return
-	if member == null:
-		_formation_button.disabled = true
-		_formation_button.text = "—"
-		return
-	_formation_button.disabled = false
-	var back: bool = GameState.get_member_formation_row(member) == GameState.FORMATION_BACK
-	_formation_button.text = "後列（被ダメ-15%）" if back else "前列"
-
-func _on_formation_toggle_pressed() -> void:
-	var member: Resource = GameState.get_member(_selected_member_index)
-	if member == null:
-		return
-	var cur: int = GameState.get_member_formation_row(member)
-	var nxt: int = GameState.FORMATION_FRONT if cur == GameState.FORMATION_BACK else GameState.FORMATION_BACK
-	GameState.set_member_formation_row(member, nxt)
-	_refresh_formation_ui(member)
-
-func _on_formation_preset_pressed(preset: String) -> void:
-	GameState.apply_formation_preset(preset)
-	_refresh_formation_ui(GameState.get_member(_selected_member_index))
-
-# 戦術セレクタ（P3-D086）。スキルタブ最上部に 1 度だけ生成する。
+# 戦術セレクタ（P3-D086）。常時表示パネル最上部。
 func _ensure_tactics_ui() -> void:
 	if _tactics_option != null and is_instance_valid(_tactics_option):
 		return
+	_ensure_combat_setup_panel()
 	var row := HBoxContainer.new()
 	row.name = "TacticsRow"
 	var label := Label.new()
@@ -698,8 +688,8 @@ func _ensure_tactics_ui() -> void:
 		_tactics_ids.append(str(t["id"]))
 	opt.item_selected.connect(_on_tactics_selected)
 	row.add_child(opt)
-	_skill_content.add_child(row)
-	_skill_content.move_child(row, 0)
+	_combat_setup_content.add_child(row)
+	_combat_setup_content.move_child(row, 0)
 	_tactics_option = opt
 
 func _refresh_tactics_ui(member: Resource) -> void:

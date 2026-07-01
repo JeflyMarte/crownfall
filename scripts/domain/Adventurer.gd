@@ -20,5 +20,7 @@ extends Resource
 
 ## 陣形の行（P3-D106）。0=前列 / 1=後列。後列は被ダメ/Threat 減、前列は war_banner 等の前列ボーナス対象。
 @export var formation_row: int = 0
+## 編成グリッドのマス番号（0〜3）。0,1=前衛列 / 2,3=後衛列。戦闘画面の立ち位置に使用。
+@export var formation_slot: int = 0
 ## ジョブ進化（到達形）済みか（P3-D037 / 手動ギルド認定で true）。
 @export var is_evolved: bool = false

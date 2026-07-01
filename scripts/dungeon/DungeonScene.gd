@@ -157,14 +157,23 @@ var _swarm_nameplates: Array[Label] = []
 const SWARM_SPACING: float = 145.0
 const SWARM_BASE_X: float = 500.0
 const SWARM_BASE_Y: float = 515.0
+# 編成スロット別の戦闘配置（DungeonScene ルート座標・足元基準）。
+# スロット 0,1=前衛 / 2,3=後衛（combat_index ではなく formation_slot で参照）。
+const FORMATION_SLOT_POSITIONS: Array[Vector2] = [
+	Vector2(265, 668),  # 0 前衛左
+	Vector2(395, 718),  # 1 前衛右（敵寄り）
+	Vector2(125, 728),  # 2 後衛左（奥）
+	Vector2(265, 748),  # 3 後衛右
+]
 
 # 行動順（ターンオーダー）表示（P3-D083）。
 var _turn_order_row: HBoxContainer
 var _turn_order_items: Array = []  # [{kind, index, node, icon}]
-const TURN_ORDER_ICON_PX: float = 52.0
-const TURN_ORDER_GAP: float = 8.0
+const TURN_ORDER_ICON_PX: float = 72.0
+const TURN_ORDER_FRAME_PAD: float = 6.0
+const TURN_ORDER_GAP: float = 10.0
 const TURN_ORDER_CENTER_X: float = 360.0
-const TURN_ORDER_Y: float = 132.0
+const TURN_ORDER_Y: float = 52.0
 
 func _ready() -> void:
 	_btn_next_room.pressed.connect(_on_next_room_pressed)
@@ -366,8 +375,9 @@ func _set_hp_bar_above_sprite(bar: ProgressBar, sprite: AnimatedSprite2D) -> voi
 	const BAR_HALF_W: float = 40.0
 	const BAR_HEIGHT: float = 8.0
 	const BAR_Y_OFFSET: float = -50.0
-	var cx: float = sprite.position.x
-	var ty: float = sprite.position.y + BAR_Y_OFFSET
+	var gp: Vector2 = sprite.global_position
+	var cx: float = gp.x
+	var ty: float = gp.y + BAR_Y_OFFSET
 	bar.offset_left = cx - BAR_HALF_W
 	bar.offset_top = ty
 	bar.offset_right = cx + BAR_HALF_W
@@ -385,7 +395,7 @@ func _sprite_top_y(sprite: AnimatedSprite2D) -> float:
 			var tex: Texture2D = sprite.sprite_frames.get_frame_texture(anim, 0)
 			if tex != null:
 				half_h = float(tex.get_height()) * absf(sprite.scale.y) * 0.5
-	return sprite.position.y - half_h
+	return sprite.global_position.y - half_h
 
 # 敵HPバー＋頭上ネームプレートを、スプライト実上端の上に積んで配置（重なり回避）。
 # 小型敵は従来位置を下限に維持し、大型(ボス)時のみ上方向へ押し上げる。
@@ -396,10 +406,11 @@ func _position_enemy_overlays(sprite: AnimatedSprite2D) -> void:
 	const NAME_HEIGHT: float = 30.0
 	const GAP_ABOVE_SPRITE: float = 12.0
 	const GAP_BAR_NAME: float = 6.0
-	var cx: float = sprite.position.x
+	var gp: Vector2 = sprite.global_position
+	var cx: float = gp.x
 	var top_y: float = _sprite_top_y(sprite)
 	# HPバー: 従来 -50 を下限に、スプライト上端より上に来るよう調整
-	var bar_ty: float = minf(sprite.position.y - 50.0, top_y - GAP_ABOVE_SPRITE - BAR_HEIGHT)
+	var bar_ty: float = minf(gp.y - 50.0, top_y - GAP_ABOVE_SPRITE - BAR_HEIGHT)
 	_hp_bar_enemy.offset_left = cx - BAR_HALF_W
 	_hp_bar_enemy.offset_top = bar_ty
 	_hp_bar_enemy.offset_right = cx + BAR_HALF_W
@@ -486,8 +497,8 @@ func _set_status_row_above_sprite(row: HBoxContainer, sprite: AnimatedSprite2D, 
 		return
 	var count: int = statuses.size()
 	var total_w: float = count * STATUS_ICON_SIZE + maxf(0.0, float(count - 1)) * STATUS_ICON_GAP
-	var cx: float = sprite.position.x
-	row.position = Vector2(cx - total_w * 0.5, sprite.position.y + STATUS_ICON_Y_OFFSET)
+	var gp: Vector2 = sprite.global_position
+	row.position = Vector2(gp.x - total_w * 0.5, gp.y + STATUS_ICON_Y_OFFSET)
 
 func _update_status_icons() -> void:
 	var in_combat: bool = $CombatController.is_in_combat
@@ -2931,7 +2942,7 @@ func _show_enemy_swarm(enemy_ids: Array) -> void:
 	for j in range(n, _swarm_sprites.size()):
 		_swarm_sprites[j].visible = false
 
-# 指定スロットの HPバー＋ネームプレートをスプライト上端の上に配置（_position_enemy_overlays の群れ版）。
+# 指定スロットの HPバー＋ネームプレートをスプライト上端の上に配置
 func _position_swarm_overlay(slot: int) -> void:
 	if slot < 0 or slot >= _swarm_sprites.size():
 		return
@@ -2944,9 +2955,10 @@ func _position_swarm_overlay(slot: int) -> void:
 	const NAME_HEIGHT: float = 24.0
 	const GAP_ABOVE_SPRITE: float = 12.0
 	const GAP_BAR_NAME: float = 6.0
-	var cx: float = sprite.position.x
+	var gp: Vector2 = sprite.global_position
+	var cx: float = gp.x
 	var top_y: float = _sprite_top_y(sprite)
-	var bar_ty: float = minf(sprite.position.y - 50.0, top_y - GAP_ABOVE_SPRITE - BAR_HEIGHT)
+	var bar_ty: float = minf(gp.y - 50.0, top_y - GAP_ABOVE_SPRITE - BAR_HEIGHT)
 	bar.offset_left = cx - BAR_HALF_W
 	bar.offset_top = bar_ty
 	bar.offset_right = cx + BAR_HALF_W
@@ -3011,6 +3023,10 @@ func _show_chr_sprites() -> void:
 			continue
 		sprite.sprite_frames = frames
 		_normalize_chr_scale(sprite, frames)
+		var slot: int = _formation_slot_for_combat_index(i)
+		if slot < FORMATION_SLOT_POSITIONS.size():
+			sprite.position = FORMATION_SLOT_POSITIONS[slot]
+			sprite.z_index = 12 if slot < 2 else 10
 		sprite.play("idle")
 		sprite.visible = true
 		_setup_chr_idle_motion(i, sprite, frames)
@@ -3103,9 +3119,11 @@ func _get_chr_icon_texture(job_id: String) -> Texture2D:
 	return frames.get_frame_texture("idle", 0)
 
 func _get_enemy_icon_texture(enemy_id: String) -> Texture2D:
+	var icon: Texture2D = IconPaths.get_icon_texture(enemy_id, "enemy")
+	if icon != null:
+		return icon
 	var path: String = ENEMY_SPRITE_MAP.get(enemy_id, "")
 	if path.is_empty() and $DungeonController.current_dungeon_data != null:
-		# ボスは dungeon 別マップから取得
 		path = BOSS_SPRITE_MAP.get($DungeonController.current_dungeon_data.id, "")
 	if path.is_empty() or not ResourceLoader.exists(path):
 		return null
@@ -3114,16 +3132,31 @@ func _get_enemy_icon_texture(enemy_id: String) -> Texture2D:
 		return null
 	return frames.get_frame_texture("idle", 0)
 
-# ---- 行動順（ターンオーダー）表示（P3-D083） ----
+func _make_turn_order_frame_style(active: bool) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.06, 0.05, 0.04, 0.94)
+	style.border_color = Color(0.95, 0.78, 0.35, 1.0) if active else Color(0.55, 0.48, 0.32, 1.0)
+	style.set_border_width_all(3 if active else 2)
+	style.set_corner_radius_all(8)
+	style.content_margin_left = TURN_ORDER_FRAME_PAD
+	style.content_margin_top = TURN_ORDER_FRAME_PAD
+	style.content_margin_right = TURN_ORDER_FRAME_PAD
+	style.content_margin_bottom = TURN_ORDER_FRAME_PAD
+	return style
+
+func _turn_order_cell_size() -> float:
+	return TURN_ORDER_ICON_PX + TURN_ORDER_FRAME_PAD * 2.0
+
+# ---- 行動順（CT プレビュー）表示（P3-D084 / P3-ALPHA-003 UI改善） ----
 
 func _init_turn_order_row() -> void:
 	_turn_order_row = HBoxContainer.new()
 	_turn_order_row.add_theme_constant_override("separation", int(TURN_ORDER_GAP))
 	_turn_order_row.visible = false
-	_turn_order_row.z_index = 20
+	_turn_order_row.z_index = 30
 	add_child(_turn_order_row)
 
-# ラウンドの行動順アイコン列を再構築する。
+# CT 順アイコン列を再構築する（枠付き・大きめ表示）。
 func _update_turn_order_ui(order: Array) -> void:
 	if _turn_order_row == null:
 		return
@@ -3133,13 +3166,15 @@ func _update_turn_order_ui(order: Array) -> void:
 	if not $DungeonController.is_combat_room() or order.is_empty():
 		_turn_order_row.visible = false
 		return
+	var cell: float = _turn_order_cell_size()
 	for entry: Dictionary in order:
-		var holder := Control.new()
-		holder.custom_minimum_size = Vector2(TURN_ORDER_ICON_PX, TURN_ORDER_ICON_PX)
+		var holder := PanelContainer.new()
+		holder.custom_minimum_size = Vector2(cell, cell)
+		holder.add_theme_stylebox_override("panel", _make_turn_order_frame_style(false))
 		var icon := TextureRect.new()
+		icon.custom_minimum_size = Vector2(TURN_ORDER_ICON_PX, TURN_ORDER_ICON_PX)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.set_anchors_preset(Control.PRESET_FULL_RECT)
 		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		var tex: Texture2D = null
 		if entry["kind"] == "party":
@@ -3151,26 +3186,29 @@ func _update_turn_order_ui(order: Array) -> void:
 			if d != null:
 				tex = _get_enemy_icon_texture(d.id)
 		icon.texture = tex
-		icon.modulate = Color(1.0, 1.0, 1.0, 0.55)
-		icon.pivot_offset = Vector2(TURN_ORDER_ICON_PX * 0.5, TURN_ORDER_ICON_PX * 0.5)
+		icon.modulate = Color(1.0, 1.0, 1.0, 0.7)
 		holder.add_child(icon)
 		_turn_order_row.add_child(holder)
-		_turn_order_items.append({"kind": entry["kind"], "index": entry["index"], "icon": icon})
+		_turn_order_items.append({
+			"kind": entry["kind"],
+			"index": entry["index"],
+			"icon": icon,
+			"frame": holder,
+		})
 	_turn_order_row.visible = true
 	var n: int = order.size()
-	var total_w: float = float(n) * TURN_ORDER_ICON_PX + float(maxi(0, n - 1)) * TURN_ORDER_GAP
+	var total_w: float = float(n) * cell + float(maxi(0, n - 1)) * TURN_ORDER_GAP
 	_turn_order_row.position = Vector2(TURN_ORDER_CENTER_X - total_w * 0.5, TURN_ORDER_Y)
 
-# 現在行動中のユニットを拡大＋強調表示する。
+# 次に行動するユニットの枠を強調する。
 func _set_turn_order_active(entry: Dictionary) -> void:
 	for item: Dictionary in _turn_order_items:
 		var icon: TextureRect = item["icon"]
-		if item["kind"] == entry["kind"] and item["index"] == entry["index"]:
-			icon.modulate = Color(1.0, 1.0, 1.0, 1.0)
-			icon.scale = Vector2(1.2, 1.2)
-		else:
-			icon.modulate = Color(1.0, 1.0, 1.0, 0.45)
-			icon.scale = Vector2.ONE
+		var frame: PanelContainer = item["frame"]
+		var active: bool = item["kind"] == entry["kind"] and item["index"] == entry["index"]
+		frame.add_theme_stylebox_override("panel", _make_turn_order_frame_style(active))
+		frame.scale = Vector2(1.08, 1.08) if active else Vector2.ONE
+		icon.modulate = Color(1.0, 1.0, 1.0, 1.0) if active else Color(1.0, 1.0, 1.0, 0.55)
 
 func _clear_turn_order_ui() -> void:
 	if _turn_order_row == null:
@@ -3192,9 +3230,8 @@ func _update_party_cards_hp() -> void:
 		]
 
 func _normalize_chr_scale(sprite: AnimatedSprite2D, frames: SpriteFrames) -> void:
-	# 素材ごとに透明余白の割合が異なるため、フレーム高ではなく
-	# 実体（α非透明領域）の高さを基準に float スケールで「見える体格」を統一する。
-	# さらに実体の下端中央をノード位置へ合わせて足元を揃える（余白差による浮き/横ズレ解消）。
+	# 実体（α非透明領域）のバウンディングボックスを CHR_BODY_TARGET_PX に揃える。
+	# 足元（下端中央）をノード position に合わせる。
 	var tex: Texture2D = frames.get_frame_texture("idle", 0)
 	if tex == null:
 		return
@@ -3202,6 +3239,7 @@ func _normalize_chr_scale(sprite: AnimatedSprite2D, frames: SpriteFrames) -> voi
 	var frame_h: float = tex.get_height()
 	if frame_h <= 0.0:
 		return
+	var body_w: float = frame_w
 	var body_h: float = frame_h
 	var body_cx: float = frame_w / 2.0
 	var body_bottom: float = frame_h
@@ -3209,13 +3247,23 @@ func _normalize_chr_scale(sprite: AnimatedSprite2D, frames: SpriteFrames) -> voi
 	if img != null:
 		var used: Rect2i = img.get_used_rect()
 		if used.size.y > 0:
+			body_w = float(used.size.x)
 			body_h = float(used.size.y)
-			body_cx = float(used.position.x) + float(used.size.x) / 2.0
+			body_cx = float(used.position.x) + body_w * 0.5
 			body_bottom = float(used.position.y + used.size.y)
-	var s: float = clampf(CHR_BODY_TARGET_PX / body_h, 0.05, 20.0)
+	var body_max: float = maxf(body_w, body_h)
+	var s: float = clampf(CHR_BODY_TARGET_PX / body_max, 0.05, 20.0)
 	sprite.scale = Vector2(s, s)
 	sprite.centered = true
 	sprite.offset = Vector2(frame_w / 2.0 - body_cx, frame_h / 2.0 - body_bottom)
+
+func _is_event_helper_combat_index(member_index: int) -> bool:
+	return GameState.event_helper != null and member_index == GameState.party_members.size()
+
+func _formation_slot_for_combat_index(combat_index: int) -> int:
+	if _is_event_helper_combat_index(combat_index):
+		return clampi(GameState.party_members.size(), 0, 3)
+	return GameState.get_combatant_formation_slot(combat_index)
 
 func _hide_chr_sprites() -> void:
 	for i in _chr_idle_tweens.size():

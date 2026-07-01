@@ -170,6 +170,40 @@ func set_member_formation_row(member: Resource, row: int) -> void:
 		return
 	member.formation_row = FORMATION_BACK if row == FORMATION_BACK else FORMATION_FRONT
 
+func get_member_formation_slot(member: Resource) -> int:
+	if member != null and "formation_slot" in member:
+		return clampi(int(member.formation_slot), 0, 3)
+	return 0
+
+func set_member_formation_slot(member: Resource, slot: int) -> void:
+	if member == null:
+		return
+	member.formation_slot = clampi(slot, 0, 3)
+
+func get_combatant_formation_slot(member_index: int) -> int:
+	return get_member_formation_slot(get_combatant(member_index))
+
+# formation_slot 未保存の旧データ向け。formation_row から空きスロットへ割当。
+func migrate_formation_slots_if_needed() -> void:
+	var needs: bool = false
+	for m in party_members:
+		if m != null and int(m.formation_slot) < 0:
+			needs = true
+			break
+	if not needs:
+		return
+	var front_fill: int = 0
+	var back_fill: int = 0
+	for m in party_members:
+		if m == null or int(m.formation_slot) >= 0:
+			continue
+		if get_member_formation_row(m) == FORMATION_BACK:
+			m.formation_slot = 2 + (back_fill % 2)
+			back_fill += 1
+		else:
+			m.formation_slot = front_fill % 2
+			front_fill += 1
+
 func is_member_back_row(member_index: int) -> bool:
 	return get_member_formation_row(get_combatant(member_index)) == FORMATION_BACK
 
@@ -572,4 +606,5 @@ func set_active_party(members: Array) -> bool:
 			return false
 		seen.append(adv)
 	party_members = members.duplicate()
+	migrate_formation_slots_if_needed()
 	return true

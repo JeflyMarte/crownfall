@@ -248,22 +248,18 @@ visible = false
 
 [node name="ChrSprite0" type="AnimatedSprite2D" parent="."]
 position = Vector2(110, 700)
-scale = Vector2(5, 5)
 visible = false
 
 [node name="ChrSprite1" type="AnimatedSprite2D" parent="."]
 position = Vector2(215, 700)
-scale = Vector2(5, 5)
 visible = false
 
 [node name="ChrSprite2" type="AnimatedSprite2D" parent="."]
 position = Vector2(320, 700)
-scale = Vector2(5, 5)
 visible = false
 
 [node name="ChrSprite3" type="AnimatedSprite2D" parent="."]
 position = Vector2(425, 700)
-scale = Vector2(5, 5)
 visible = false
 
 [node name="MenuOverlay" type="PanelContainer" parent="."]

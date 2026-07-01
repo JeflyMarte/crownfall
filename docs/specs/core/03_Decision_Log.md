@@ -1491,3 +1491,14 @@
 | P3-D119-2 | **`CODEMAP.md` 同期**: `scripts/combat/` 16 モジュール・状態14種・DungeonScene 戦闘配線・EquipmentScene 探索/連携表示を反映 | 実装の正を現行コードへ |
 | P3-D119-3 | **次焦点**: Phase 3-A Visual Production（本番 UI/ドット絵）＋ **P3-D103〜118 実機一括確認**（`AlphaPlaytest_Checklist.md`） | headless のみ検証済。未コミット塊はオーナー判断で分割コミット |
 | P3-D119-4 | **Defer 集約**（各 Task スコープ外）: 本格射程/AoE・敵別 Threat テーブル・マーキング・探索手動/CD・ELITE スキップ・敗北シミュ・`CombatWeather`・複数 DG 本格化 | Backlog 候補。単独 Decision まで実装しない |
+
+## Alpha 実機一括確認（2026-07-01 — P3-ALPHA-003）
+
+> Combat System v1.0 Closeout（P3-D119）後の実機検証。コード変更なし — チェックリスト更新のみ。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-ALPHA-003-1 | **`AlphaPlaytest_Checklist.md` v2.0** — 対象をモーンゲート1本・フルオート・CT/ATB・戦闘v1.0（P3-D103〜118）に刷新 | v1.0 は白骸墓地/分岐/鑑定屋等が陳腐化 |
+| P3-ALPHA-003-2 | **初回完走 8〜12 分 / 周回ON 3〜5 分** を目安。ステップ5で周回のみ別検証 | P3-D118 はクリア済み DG のみ解禁 |
+| P3-ALPHA-003-3 | **GO 判定はオーナー実施後**に記録欄へ。P0なし・P1は P3-FIX-### 化 | HQ は文書発行まで。実機はオーナーレーン |
+| P3-ALPHA-003-4 | **遺物・連携（3-H）は SKIP 可**（未装備時）。ボスフェーズ・探索は必須 | 装備依存機能の柔軟化 |

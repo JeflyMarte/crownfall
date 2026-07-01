@@ -89,6 +89,7 @@ func _serialize_adventurer(adv: Resource) -> Dictionary:
 		"tactics_id": adv.tactics_id,
 		"relic_id": adv.relic_id,
 		"formation_row": adv.formation_row,
+		"formation_slot": adv.formation_slot,
 	}
 
 func _serialize_stats(stats: Resource) -> Dictionary:
@@ -225,6 +226,10 @@ func _deserialize_party(party_data: Array) -> Dictionary:
 		adv.tactics_id = str(entry.get("tactics_id", ""))
 		adv.relic_id = str(entry.get("relic_id", ""))
 		adv.formation_row = int(entry.get("formation_row", 0))
+		if entry.has("formation_slot"):
+			adv.formation_slot = clampi(int(entry["formation_slot"]), 0, 3)
+		else:
+			adv.formation_slot = -1
 		var stats = stats_class.new()
 		var sd = entry.get("base_stats", {})
 		if sd is Dictionary:
@@ -275,6 +280,7 @@ func _restore_active_party(data: Dictionary) -> void:
 		for i in limit:
 			active.append(GameState.roster[i])
 	GameState.party_members = active
+	GameState.migrate_formation_slots_if_needed()
 
 func _apply_gacha_save(data: Dictionary) -> void:
 	if data.has("gacha_token"):

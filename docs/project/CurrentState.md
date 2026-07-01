@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-01（**P3-ALPHA-003 Combat v1.0 実機一括確認チェックリスト**: `AlphaPlaytest_Checklist.md` v2.0 更新（モーンゲート/フルオート/CT/戦闘v1.0 全項目）。**次=オーナー実機実施 → GO/NO-GO 記録**）
+
 2026-07-01（**P3-D119 Combat System v1.0 Closeout**: 残ロードマップ 15/15 完了宣言。`CODEMAP.md` に combat モジュール群（P3-D103〜118）・状態14種・探索/周回配線を同期。Decision Log P3-D119 追記。**次=Phase 3-A ポリッシュ / P3-D103〜118 実機一括確認**）
 
 2026-07-01（**P3-D118 高速周回・戦闘スキップ MVP（フェーズE-15）**: `CombatFastRun`・クリア済みDGのみ「周回」トグル。COMBATのみ即撃破・報酬通常通り。ON時x2自動。ログ`[周回]`。headless import 検証済 / 実機未確認 / 未コミット。**Combat System v1.0 残ロードマップ 全15項目完了**）
@@ -146,6 +148,7 @@ ProjectDocs **v3.6.0**
 | P3-BAL-002 | 死にステ解消（敵DEF逓減軽減 `K/(K+DEF)` K=100＋属性耐性0.75x を与ダメ計算 `_apply_enemy_mitigation` へ統合） | ✅ 完了（HQ実装・要実機確認） |
 | P3-W-024 | スキル名 世界観リネーム（ハイブリッド: 基本=和名/属性技・弓・杖=カタカナ・hex_bolt→アンブラボルト＋説明文を闇エルダ整合） | ✅ 完了（HQ実装） |
 | P3-A-UI-007 | ホーム(BaseScene)モック準拠リニューアル＋タイトル背景アート(`UI_BG_Title.png`)導入（上部通貨バー/左メニュー/下部タブナビ・中央ロゴのみ・浮遊CTA/肖像撤去・通貨=gold/gacha_token） | ✅ 完了（HQ実装・要実機確認） |
+| P3-ALPHA-003 | Combat v1.0 実機一括確認チェックリスト（`AlphaPlaytest_Checklist.md` v2.0） | ✅ 文書完了（**要オーナー実機実施**） |
 | P3-D119 | Combat System v1.0 Closeout（CODEMAP 同期・15/15 完了宣言・Decision Log） | ✅ 完了 |
 | P3-D118 | 高速周回・戦闘スキップ MVP（残ロードマップ フェーズE-15）。`CombatFastRun`・クリア済みDGで「周回」トグル・COMBATのみ即撃破（報酬通常）。ON時x2自動。配線=`_try/_execute_combat_skip` | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D117 | 探索スキル群 MVP（残ロードマップ フェーズE-14）。`ExplorationSkills`5種=採取/採掘/鍵開け/解読/罠解除。ロール連動自動発動(EVENT/TREASURE/COMBAT/ELITE)。罠20%×8ダメ・解除で無効。配線=`_apply_exploration_*`/`_try_exploration_trap` | ✅ 完了（HQ実装・headless検証・要実機確認） |
