@@ -146,6 +146,7 @@ const SKILL_LABEL_STACK_GAP: float = 34.0
 var _chr_hp_bars: Array[ProgressBar] = []
 var _party_card_hp_bars: Array[ProgressBar] = []
 var _party_card_hp_labels: Array[Label] = []
+var _party_card_roots: Array[Control] = []
 var _status_icon_swarm_rows: Array[HBoxContainer] = []
 var _status_icon_chr_rows: Array[HBoxContainer] = []
 
@@ -165,6 +166,10 @@ const FORMATION_SLOT_POSITIONS: Array[Vector2] = [
 	Vector2(125, 728),  # 2 後衛左（奥）
 	Vector2(265, 748),  # 3 後衛右
 ]
+const PARTY_CARD_SLOT_COUNT: int = 4
+const PARTY_CARD_ICON_PX: float = 80.0
+const PARTY_CARD_EMPTY_MODULATE: Color = Color(0.45, 0.45, 0.5, 0.55)
+const PARTY_CARD_DEAD_MODULATE: Color = Color(0.55, 0.55, 0.55, 0.75)
 
 # 行動順（ターンオーダー）表示（P3-D083）。
 var _turn_order_row: HBoxContainer
@@ -1776,12 +1781,13 @@ func _execute_enemy_damage(skill: Resource) -> void:
 			_spawn_damage_number(str(dmg), _chr_sprites[ti].global_position, Color(1.0, 0.35, 0.35))
 		var member: Resource = GameState.get_combatant(ti)
 		var mname: String = member.display_name if member != null else "?"
+		var density_tag: String = $CombatController.get_density_log_tag(ti)
 		if not $CombatController.is_member_alive(ti):
 			if ti < _chr_sprites.size():
 				_chr_sprites[ti].visible = false
-			lines.append("%s に %d（撃破）" % [mname, dmg])
+			lines.append("%s に %d（撃破）%s" % [mname, dmg, density_tag])
 		else:
-			lines.append("%s に %d" % [mname, dmg])
+			lines.append("%s に %d%s" % [mname, dmg, density_tag])
 		_on_member_damaged(ti)
 	_append_log("敵スキル【%s】\n  %s" % [skill.display_name, " / ".join(lines)])
 
@@ -1886,11 +1892,16 @@ func _do_enemy_attack(slot: int = -1) -> void:
 	var resist_tag: String = ""
 	if enemy_result.get("elem_resisted", false):
 		resist_tag = "  [耐性:%s]" % ElementResolverScript.get_display_name(_enemy_attack_element_at(slot))
+	var density_tag: String = $CombatController.get_density_log_tag(target_idx)
 	var log_text: String
 	if enemy_result["mitigated"] > 0:
-		log_text = "敵の攻撃: %s%s に %dダメージ（軽減%d）%s" % [guard_prefix, member_name, enemy_result["final"], enemy_result["mitigated"], resist_tag]
+		log_text = "敵の攻撃: %s%s に %dダメージ（軽減%d）%s%s" % [
+			guard_prefix, member_name, enemy_result["final"], enemy_result["mitigated"], density_tag, resist_tag,
+		]
 	else:
-		log_text = "敵の攻撃: %s%s に %dダメージ%s" % [guard_prefix, member_name, enemy_result["final"], resist_tag]
+		log_text = "敵の攻撃: %s%s に %dダメージ%s%s" % [
+			guard_prefix, member_name, enemy_result["final"], density_tag, resist_tag,
+		]
 	if not $CombatController.is_member_alive(target_idx):
 		log_text += "\n%s が倒れた！" % member_name
 	_append_log(log_text)
@@ -3053,57 +3064,115 @@ func _setup_chr_idle_motion(idx: int, sprite: AnimatedSprite2D, frames: SpriteFr
 	tw.tween_property(sprite, "offset:y", base_y, 0.85)
 	_chr_idle_tweens[idx] = tw
 
-# バトルログ下のパーティカード列（アイコン/HP/武器）を再構築（モック準拠・MP無し/CD維持）
+# バトルログ下のパーティカード列（左:アイコン80px / 右:HP・名前・職業・武器）
 func _rebuild_party_cards() -> void:
 	for c in _party_cards_row.get_children():
 		c.queue_free()
 	_party_card_hp_bars.clear()
 	_party_card_hp_labels.clear()
-	for i in GameState.combatant_count():
-		var member: Resource = GameState.get_combatant(i)
-		if member == null:
-			continue
-		var card := VBoxContainer.new()
-		card.custom_minimum_size = Vector2(128, 0)
-		card.add_theme_constant_override("separation", 2)
-		var icon := TextureRect.new()
-		icon.custom_minimum_size = Vector2(48, 48)
-		# expand_mode を IGNORE_SIZE にしないと、大判ポートレート(1024x1536)の実寸が
-		# 最小サイズになりカードが巨大化する（背景のように全画面化する不具合）。
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		var tex: Texture2D = _get_chr_icon_texture(member.job_id)
-		if tex != null:
-			icon.texture = tex
-		card.add_child(icon)
-		var name_label := Label.new()
-		name_label.text = member.display_name
-		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		name_label.add_theme_font_size_override("font_size", 15)
-		card.add_child(name_label)
-		var hp_bar := ProgressBar.new()
-		hp_bar.show_percentage = false
-		hp_bar.custom_minimum_size = Vector2(0, 10)
-		var hp_style := StyleBoxFlat.new()
-		hp_style.bg_color = Color(0.2, 0.8, 0.2)
-		hp_bar.add_theme_stylebox_override("fill", hp_style)
-		card.add_child(hp_bar)
-		var hp_label := Label.new()
-		hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		hp_label.add_theme_font_size_override("font_size", 14)
-		card.add_child(hp_label)
-		var weapon_label := Label.new()
-		var wname: String = _get_equipped_weapon_display_name(i)
-		weapon_label.text = wname if not wname.is_empty() else "素手"
-		weapon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		weapon_label.add_theme_font_size_override("font_size", 13)
-		weapon_label.add_theme_color_override("font_color", Color(0.83, 0.79, 0.72))
-		card.add_child(weapon_label)
-		_party_cards_row.add_child(card)
-		_party_card_hp_bars.append(hp_bar)
-		_party_card_hp_labels.append(hp_label)
+	_party_card_roots.clear()
+	for slot in PARTY_CARD_SLOT_COUNT:
+		if slot < GameState.combatant_count():
+			var member: Resource = GameState.get_combatant(slot)
+			if member == null:
+				_party_cards_row.add_child(_make_empty_party_card())
+				continue
+			var built: Dictionary = _make_party_card(member, slot)
+			_party_cards_row.add_child(built["card"])
+			_party_card_hp_bars.append(built["hp_bar"])
+			_party_card_hp_labels.append(built["hp_label"])
+			_party_card_roots.append(built["card"])
+		else:
+			_party_cards_row.add_child(_make_empty_party_card())
 	_update_party_cards_hp()
+
+func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
+	var card := HBoxContainer.new()
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	card.add_theme_constant_override("separation", 6)
+	var icon := TextureRect.new()
+	icon.custom_minimum_size = Vector2(PARTY_CARD_ICON_PX, PARTY_CARD_ICON_PX)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var tex: Texture2D = _get_chr_icon_texture(member.job_id)
+	if tex != null:
+		icon.texture = tex
+	card.add_child(icon)
+	var info := VBoxContainer.new()
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	info.add_theme_constant_override("separation", 1)
+	var hp_row := HBoxContainer.new()
+	hp_row.add_theme_constant_override("separation", 4)
+	var hp_bar := ProgressBar.new()
+	hp_bar.show_percentage = false
+	hp_bar.custom_minimum_size = Vector2(0, 10)
+	hp_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var hp_style := StyleBoxFlat.new()
+	hp_style.bg_color = Color(0.2, 0.8, 0.2)
+	hp_bar.add_theme_stylebox_override("fill", hp_style)
+	hp_row.add_child(hp_bar)
+	var hp_label := Label.new()
+	hp_label.custom_minimum_size = Vector2(48, 0)
+	hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	hp_label.add_theme_font_size_override("font_size", 12)
+	hp_row.add_child(hp_label)
+	info.add_child(hp_row)
+	var name_label := Label.new()
+	name_label.text = member.display_name
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	name_label.clip_text = true
+	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	name_label.add_theme_font_size_override("font_size", 15)
+	info.add_child(name_label)
+	var job_label := Label.new()
+	job_label.text = _get_member_job_display_name(member)
+	job_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	job_label.clip_text = true
+	job_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	job_label.add_theme_font_size_override("font_size", 13)
+	job_label.add_theme_color_override("font_color", Color(0.78, 0.76, 0.7))
+	info.add_child(job_label)
+	var weapon_label := Label.new()
+	var wname: String = _get_equipped_weapon_display_name(combat_index)
+	weapon_label.text = wname if not wname.is_empty() else "素手"
+	weapon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	weapon_label.clip_text = true
+	weapon_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	weapon_label.add_theme_font_size_override("font_size", 13)
+	weapon_label.add_theme_color_override("font_color", Color(0.83, 0.79, 0.72))
+	info.add_child(weapon_label)
+	card.add_child(info)
+	return {"card": card, "hp_bar": hp_bar, "hp_label": hp_label}
+
+func _make_empty_party_card() -> Control:
+	var card := HBoxContainer.new()
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	card.modulate = PARTY_CARD_EMPTY_MODULATE
+	card.add_theme_constant_override("separation", 6)
+	var icon := TextureRect.new()
+	icon.custom_minimum_size = Vector2(PARTY_CARD_ICON_PX, PARTY_CARD_ICON_PX)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	card.add_child(icon)
+	var info := VBoxContainer.new()
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	info.add_theme_constant_override("separation", 1)
+	for line in ["—", "—", "—", "—"]:
+		var label := Label.new()
+		label.text = line
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		label.add_theme_font_size_override("font_size", 13)
+		label.add_theme_color_override("font_color", Color(0.55, 0.54, 0.5, 0.8))
+		info.add_child(label)
+	card.add_child(info)
+	return card
+
+func _get_member_job_display_name(member: Resource) -> String:
+	var mods: Dictionary = JobStatCalculatorScript.get_member_modifiers(member)
+	return str(mods.get("display_name", ""))
 
 func _get_chr_icon_texture(job_id: String) -> Texture2D:
 	# 専用バストアイコンを優先（無ければ全身idleフレームにフォールバック）
@@ -3228,6 +3297,9 @@ func _update_party_cards_hp() -> void:
 		_party_card_hp_labels[i].text = "%d/%d" % [
 			$CombatController.party_combat_hp[i], $CombatController.party_max_hp[i]
 		]
+		if i < _party_card_roots.size():
+			var card: Control = _party_card_roots[i]
+			card.modulate = Color.WHITE if $CombatController.is_member_alive(i) else PARTY_CARD_DEAD_MODULATE
 
 func _normalize_chr_scale(sprite: AnimatedSprite2D, frames: SpriteFrames) -> void:
 	# 実体（α非透明領域）のバウンディングボックスを CHR_BODY_TARGET_PX に揃える。

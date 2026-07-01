@@ -1333,7 +1333,19 @@
 | P3-D106-2 | **効果**: 後列＝被ダメ ×0.85（`FORMATION_BACK_INCOMING`）＋ Threat 基礎 ×0.6（`FORMATION_BACK_THREAT`・狙われにくい）。前列＝等倍＋`war_banner`（王国軍旗）の与ダメ+10%を**前列限定**に整合 | A-2 Threat と連動し前衛が矢面・後衛が保護される。war_banner を提案「前列+10%」へ寄せる |
 | P3-D106-3 | **配線（中央フック相乗り）**: 被ダメ→`get_member_incoming_damage_multiplier`×`formation_incoming_multiplier`／Threat→`_job_threat_base`×`formation_threat_multiplier`／war_banner→`_member_relic_effects` で後列時 outgoing 無効化 | 既存倍率/Threat/遺物計算に1フックずつ。散在回避 |
 | P3-D106-4 | **UI＝スキルタブに陣形行**（`EquipmentScene`・選択メンバーの前列/後列トグル＋プリセット前衛/均衡/後衛ボタン） | 戦術/遺物セレクタと同列に集約。即時反映 |
-| P3-D106-5 | **スコープ外**: 射程(Melee/Mid/Long)連動の近接ペナルティ・敵 AoE の列範囲・列ごとの被弾分散・散開/密集ボーナス・隊列の視覚表現 | MVP最小化。射程連動はフェーズC以降 |
+| P3-D106-5 | **スコープ外（当時）**: 射程連動の近接ペナルティ・敵 AoE の列範囲・列ごとの被弾分散・散開/密集ボーナス・隊列の視覚表現 | MVP最小化。射程連動はフェーズC以降 |
+
+## 陣形×散開/密集（2026-07-01 — P3-D106e・B-4）
+
+> 同列（前列 or 後列）の**生存人数**で被ダメ倍率を変える。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D106e-1 | **密集**（同列2人以上）: 被ダメ ×1.08（`DENSE_ROW_INCOMING`） | 2-2 編成は両列密集。列攻撃リスク |
+| P3-D106e-2 | **散開**（同列1人のみ）: 被ダメ ×0.94（`SPREAD_ROW_INCOMING`） | 1前3後 等の孤立メンバーが軽減 |
+| P3-D106e-3 | **配線**: `get_member_incoming_damage_multiplier`×`CombatFormation.density_incoming_multiplier` | 後列軽減・guard と併用 |
+| P3-D106e-4 | **ログ**: `[密集]` / `[散開]`（`get_density_log_tag`） | Alpha 可視化 |
+| P3-D106e-5 | **スコープ外**: formation_slot 座標距離・与ダメ側・UI プレビュー | 行人数のみ |
 
 ## 状態異常拡充 MVP（2026-06-30 — P3-D107・残ロードマップ フェーズB-4）
 

@@ -150,8 +150,8 @@ visible = false
 [node name="PartyCardsRow" type="HBoxContainer" parent="MainVBox/PartyStatusPanel"]
 layout_mode = 2
 size_flags_horizontal = 3
-alignment = 1
-theme_override_constants/separation = 8
+alignment = 0
+theme_override_constants/separation = 4
 
 [node name="NarrativePanel" type="PanelContainer" parent="MainVBox"]
 layout_mode = 2

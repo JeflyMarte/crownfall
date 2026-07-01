@@ -581,7 +581,16 @@ func get_member_incoming_damage_multiplier(member_index: int) -> float:
 	mult *= CombatWeather.incoming_multiplier(GameState.get_weather())
 	# 陣形（後列＝被ダメ軽減）（P3-D106）
 	mult *= GameState.formation_incoming_multiplier(member_index)
+	# 散開/密集（同列人数・P3-D106e）
+	mult *= CombatFormation.density_incoming_multiplier(
+		member_index, party_combat_hp.size(), Callable(self, "is_member_alive")
+	)
 	return mult
+
+func get_density_log_tag(member_index: int) -> String:
+	return CombatFormation.density_log_tag(
+		member_index, party_combat_hp.size(), Callable(self, "is_member_alive")
+	)
 
 # ロール編成ボーナス（P3-D097）。回復量倍率 / 会心率加算。
 func get_party_role_heal_multiplier() -> float:
