@@ -1,7 +1,7 @@
 extends Node
 
-## 助っ人ガチャ（P3-D036b）。通貨=魔晶石（`GameState.gacha_token`）を消費して単発抽選。
-## プール=★4×1 + ★3×2。未所持優先・★4=20%/★3=80%・ハード天井30・重複還元。
+## 助っ人ガチャ（P3-D036b / P3-GACHA-004）。通貨=魔晶石（`GameState.gacha_token`）を消費して単発抽選。
+## プール=`resources/gacha_helpers/` 全件。未所持優先・★4=20%/★3=80%・ハード天井30・重複還元。
 
 const PULL_COST: int = 1
 const TOKEN_PURCHASE_GOLD: int = 100
@@ -11,12 +11,8 @@ const RARITY_THREE: int = 3
 const RATE_RARITY_FOUR: float = 0.20
 const REFUND_BY_RARITY: Dictionary = {4: 5, 3: 2}
 
-var _pool: Array = []
-
 func _get_pool() -> Array:
-	if _pool.is_empty():
-		_pool = DataRegistry.get_all_gacha_helper_data()
-	return _pool
+	return DataRegistry.get_all_gacha_helper_data()
 
 func can_pull() -> bool:
 	return GameState.gacha_token >= PULL_COST
