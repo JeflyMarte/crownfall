@@ -576,6 +576,7 @@ func _get_room_type_name() -> String:
 		Enums.RoomType.EVENT:    return "イベント"
 		Enums.RoomType.TREASURE: return "宝箱"
 		Enums.RoomType.ELITE:    return "エリート"
+		Enums.RoomType.TRAP:     return "罠"
 		Enums.RoomType.BOSS:     return "ボス"
 		Enums.RoomType.EXIT:     return "出口"
 		Enums.RoomType.HEAL:     return "回復"
@@ -591,6 +592,7 @@ func _update_room_label() -> void:
 	var badge_color: Color = Color.WHITE
 	match $DungeonController.current_room_type:
 		Enums.RoomType.ELITE: badge_color = Color(1.0, 0.7, 0.2)
+		Enums.RoomType.TRAP: badge_color = Color(1.0, 0.45, 0.25)
 		Enums.RoomType.BOSS: badge_color = Color(1.0, 0.35, 0.35)
 	_label_room.add_theme_color_override("font_color", badge_color)
 
@@ -671,6 +673,8 @@ func _advance_to_next_room() -> void:
 				_start_auto_progress()
 			Enums.RoomType.EVENT:
 				_handle_event_room()
+			Enums.RoomType.TRAP:
+				_resolve_trap_room()
 			_:
 				_set_narrative(_get_room_type_name() + "の部屋に入った")
 				_start_auto_progress()
@@ -934,6 +938,38 @@ func _try_exploration_trap() -> void:
 	var nm: String = m.display_name if m != null else "?"
 	_append_log("[探索] 罠: %s に %d ダメージ" % [nm, dmg])
 	_update_hp_bars()
+
+func _resolve_trap_room() -> void:
+	$CombatController.ensure_party_hp_for_combat()
+	var narratives: Array = $DungeonController.TRAP_ROOM_NARRATIVES
+	var narrative: String = narratives[randi() % narratives.size()] if not narratives.is_empty() else "罠が作動した"
+	var members: Array = GameState.party_members
+	if ExplorationSkills.can_disarm_trap_room(members):
+		_set_narrative(narrative)
+		_append_log("[罠] 罠解除: パーティは無事だった")
+		_start_auto_progress()
+		return
+	var dmg: int = ExplorationSkills.trap_damage()
+	var living: Array[int] = []
+	for i: int in members.size():
+		if $CombatController.is_member_alive(i):
+			living.append(i)
+	if living.is_empty():
+		_set_narrative(narrative)
+		_start_auto_progress()
+		return
+	var target: int = living[randi() % living.size()]
+	$CombatController.apply_damage_to_member(target, dmg)
+	_on_member_damaged(target)
+	var m: Resource = GameState.get_combatant(target)
+	var nm: String = m.display_name if m != null else "?"
+	_set_narrative("%s — %s に %d ダメージ" % [narrative, nm, dmg])
+	_append_log("[罠] %s に %d ダメージ" % [nm, dmg])
+	_update_hp_bars()
+	if $CombatController.is_party_wiped():
+		_handle_party_wipe()
+		return
+	_start_auto_progress()
 
 # ---- Combat timer ----
 
