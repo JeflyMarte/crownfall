@@ -231,6 +231,7 @@ func _ready() -> void:
 	GameState.last_run_relic_dropped = ""
 	GameState.last_run_outcome = ""
 	GameState.last_run_exploration_policy = ""
+	GameState.begin_run_material_tracking()
 	_update_room_label()
 	_update_room_art()
 	_update_enemy_label()

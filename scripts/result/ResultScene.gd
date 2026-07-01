@@ -224,6 +224,13 @@ func _build_info() -> void:
 	var run_policy: String = GameState.last_run_exploration_policy
 	if not run_policy.is_empty():
 		_add_info_pair("探索方針", GameState.exploration_policy_label(run_policy))
+	var mat_ids: Array = GameState.last_run_material_gains.keys()
+	mat_ids.sort()
+	for mat_id in mat_ids:
+		var qty: int = int(GameState.last_run_material_gains[mat_id])
+		if qty <= 0:
+			continue
+		_add_info_pair("採取素材", "%s x%d" % [DataRegistry.get_material_name(str(mat_id)), qty])
 	_add_info_pair("入手経験値", "%d EXP" % GameState.last_run_exp_reward)
 	_add_info_pair("入手ゴールド", "%d G" % GameState.last_run_gold_reward)
 	if GameState.last_run_token_reward > 0:

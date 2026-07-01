@@ -103,6 +103,14 @@ func _make_dungeon_card(data: Resource) -> PanelContainer:
 		biome.add_theme_color_override("font_color", Color(0.6, 0.82, 0.78))
 		info.add_child(biome)
 
+	var policy: String = GameState.get_exploration_policy()
+	if not policy.is_empty():
+		var policy_label := Label.new()
+		policy_label.text = "探索方針: %s" % GameState.exploration_policy_label(policy)
+		policy_label.add_theme_font_size_override("font_size", 14)
+		policy_label.add_theme_color_override("font_color", Color(0.72, 0.78, 0.9))
+		info.add_child(policy_label)
+
 	info.add_child(_make_drop_row(dungeon_id))
 
 	var action := VBoxContainer.new()

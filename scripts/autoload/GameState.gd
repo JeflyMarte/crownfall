@@ -51,9 +51,29 @@ const RUN_OUTCOME_RETIRE: String = "retire"
 const RUN_OUTCOME_WIPE: String = "wipe"
 var last_run_outcome: String = ""
 var last_run_exploration_policy: String = ""
+var run_material_start: Dictionary = {}
+var last_run_material_gains: Dictionary = {}
+
+func begin_run_material_tracking() -> void:
+	run_material_start = material_inventory.duplicate()
+	last_run_material_gains = {}
+
+func _compute_run_material_gains() -> Dictionary:
+	var gains: Dictionary = {}
+	var all_keys: Dictionary = {}
+	for k in run_material_start.keys():
+		all_keys[str(k)] = true
+	for k in material_inventory.keys():
+		all_keys[str(k)] = true
+	for mat_id: String in all_keys.keys():
+		var delta: int = get_material_quantity(mat_id) - int(run_material_start.get(mat_id, 0))
+		if delta > 0:
+			gains[mat_id] = delta
+	return gains
 
 func snapshot_last_run_context() -> void:
 	last_run_exploration_policy = current_exploration_policy
+	last_run_material_gains = _compute_run_material_gains()
 
 static func run_outcome_label(outcome: String) -> String:
 	match outcome:
