@@ -1886,3 +1886,16 @@
 | P3-D151-5 | **スコープ外**: 罠の種類拡充・手動解除UI・報酬付き罠・商人/HEAL 復活 | MVP最小化 |
 
 **Closeout（2026-07-01）:** `RoomType.TRAP` 追加・抽選重み COMBAT52/EVENT15/TREASURE13/**TRAP8**/ELITE12・`DungeonScene._resolve_trap_room`・`ExplorationSkills.can_disarm_trap_room`・全滅時は Result へ。headless smoke PASS。
+
+## 敵別 Threat ターゲット偏重（2026-07-01 — P3-D145）
+
+> P3-D104 スコープ外だった敵種別の狙い方を `EnemyData.threat_target_bias` で実装。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D145-1 | **`threat_target_bias`** 4種＝`max_threat`(既定) / `lowest_hp` / `back_row` / `lowest_threat` | 獣=タンク狙い・遠隔=後列・ネズミ=仕留め、を最小データで表現 |
+| P3-D145-2 | **配線**＝`pick_enemy_target_from_indices` が攻撃者スロットの敵データを参照してスコアリング | 群れ・混成でもスロット別に判定 |
+| P3-D145-3 | **モーンゲート初期値** — 水晶ハリネズミ/クロックモス=`back_row`・冠喰いネズミ=`lowest_hp`・他=`max_threat` | 役割の差別化。数値は実機後に調整可 |
+| P3-D145-4 | **スコープ外**: Threat UI バー・挑発専用スキル・複数タンク按分 | D104-4 継続 |
+
+**Closeout（2026-07-01）:** headless smoke PASS。

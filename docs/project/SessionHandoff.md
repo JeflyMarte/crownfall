@@ -1,6 +1,6 @@
 # Session Handoff — Cursor HQ
 
-**Updated:** 2026-07-01（P3-D151 罠部屋 Closeout）
+**Updated:** 2026-07-01（P3-D145 敵別Threat Closeout）
 **ProjectDocs:** v3.6.0
 **Branch:** `main`
 
@@ -8,7 +8,7 @@
 
 ## 1. 一言サマリー
 
-罠部屋（P3-D151）実装済。HP持ち越し（P3-FIX-004）済。次＝Backlog（Decision 待ち）。
+P3-D145（敵別Threat）・P3-D151（罠部屋）・P3-FIX-004（HP持ち越し）済。次＝Backlog。
 
 ---
 

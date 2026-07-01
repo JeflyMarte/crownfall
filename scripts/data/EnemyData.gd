@@ -36,3 +36,5 @@ extends Resource
 @export var codex_habitat: String = ""
 @export_multiline var codex_research_note: String = ""
 @export var codex_materials: Array[String] = []
+## 味方狙いの偏重（P3-D145）。max_threat=最大Threat / lowest_hp=低HP優先 / back_row=後列優先 / lowest_threat=最小Threat
+@export var threat_target_bias: String = "max_threat"
