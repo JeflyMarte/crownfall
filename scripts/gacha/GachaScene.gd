@@ -16,6 +16,7 @@ const COLOR_NEW: Color = Color(0.95, 0.78, 0.35)
 @onready var _label_gold: Label = $Header/HeaderRow/GoldChip/GoldRow/LabelGold
 @onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
 @onready var _label_pity: Label = $MainScroll/MainVBox/LabelPity
+@onready var _label_rate: Label = $MainScroll/MainVBox/LabelRate
 @onready var _lineup_container: VBoxContainer = $MainScroll/MainVBox/LineupScrollContainer/LineupContainer
 @onready var _label_result: Label = $MainScroll/MainVBox/LabelResult
 @onready var _button_pull: Button = $MainScroll/MainVBox/ButtonPull
@@ -59,6 +60,7 @@ func _refresh() -> void:
 	_label_token.text = CurrencyHelper.format_amount()
 	var remaining: int = GachaSystem.HARD_PITY - GameState.gacha_pity
 	_label_pity.text = "天井まで %d 連（未所持確定）" % maxi(0, remaining)
+	_label_rate.text = GachaSystem.rate_display_text()
 	_set_pull_controls_enabled(not _summon_active)
 	_button_pull.text = "単発召喚（%s 1）" % CurrencyHelper.DISPLAY_NAME
 	_button_buy_crystal.text = "%s購入（%dG）" % [CurrencyHelper.DISPLAY_NAME, GachaSystem.TOKEN_PURCHASE_GOLD]

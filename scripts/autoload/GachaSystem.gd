@@ -1,12 +1,15 @@
 extends Node
 
 ## 助っ人ガチャ（P3-D036b）。通貨=魔晶石（`GameState.gacha_token`）を消費して単発抽選。
-## キャラ★は全員★3固定。未所持優先、ハード天井30連。重複は魔晶石還元。
+## プール=★4×1 + ★3×2。未所持優先・★4=20%/★3=80%・ハード天井30・重複還元。
 
 const PULL_COST: int = 1
 const TOKEN_PURCHASE_GOLD: int = 100
 const HARD_PITY: int = 30
-const REFUND_BY_RARITY: Dictionary = {3: 2}
+const RARITY_FOUR: int = 4
+const RARITY_THREE: int = 3
+const RATE_RARITY_FOUR: float = 0.20
+const REFUND_BY_RARITY: Dictionary = {4: 5, 3: 2}
 
 var _pool: Array = []
 
@@ -17,6 +20,12 @@ func _get_pool() -> Array:
 
 func can_pull() -> bool:
 	return GameState.gacha_token >= PULL_COST
+
+func rate_display_text() -> String:
+	return "★4 %.0f%% / ★3 %.0f%%（未所持優先）" % [
+		RATE_RARITY_FOUR * 100.0,
+		(1.0 - RATE_RARITY_FOUR) * 100.0,
+	]
 
 func add_tokens(n: int) -> void:
 	if n > 0:
@@ -67,16 +76,34 @@ func pull() -> Dictionary:
 	}
 
 func _select_helper(pool: Array, pity_forced: bool) -> Resource:
-	# 天井: 未所持を最優先で確定付与
 	if pity_forced:
 		var unowned_all: Array = _filter_unowned(pool)
 		if not unowned_all.is_empty():
-			return unowned_all[randi() % unowned_all.size()]
-	# キャラ★は全員★3固定。プールから未所持優先で抽選。
+			return _pick_by_rarity(unowned_all)
 	var unowned: Array = _filter_unowned(pool)
 	var candidates: Array = unowned if not unowned.is_empty() else pool
+	return _pick_by_rarity(candidates)
+
+func _pick_by_rarity(candidates: Array) -> Resource:
 	if candidates.is_empty():
 		return null
+	var by_rarity: Dictionary = {}
+	for helper in candidates:
+		if helper == null:
+			continue
+		var rarity: int = int(helper.rarity)
+		if not by_rarity.has(rarity):
+			by_rarity[rarity] = []
+		(by_rarity[rarity] as Array).append(helper)
+	var tier4: Array = by_rarity.get(RARITY_FOUR, [])
+	var tier3: Array = by_rarity.get(RARITY_THREE, [])
+	if not tier4.is_empty() and not tier3.is_empty():
+		var pool_pick: Array = tier4 if randf() < RATE_RARITY_FOUR else tier3
+		return pool_pick[randi() % pool_pick.size()]
+	if not tier4.is_empty():
+		return tier4[randi() % tier4.size()]
+	if not tier3.is_empty():
+		return tier3[randi() % tier3.size()]
 	return candidates[randi() % candidates.size()]
 
 func _filter_unowned(pool: Array) -> Array:
@@ -93,7 +120,7 @@ func create_adventurer_from_helper(helper: Resource) -> Resource:
 	adv.id = "gacha_" + str(helper.id)
 	adv.display_name = str(helper.display_name)
 	adv.job_id = str(helper.job_id)
-	adv.rarity = Adventurer.DEFAULT_RARITY
+	adv.rarity = clampi(int(helper.rarity), 1, 5)
 	if helper.base_stats != null:
 		adv.base_stats = helper.base_stats.duplicate()
 	else:

@@ -2002,6 +2002,20 @@
 
 **P3-UI2-022 Closeout（2026-07-01）:** `SummonRevealLayer` + Tween。headless smoke PASS。
 
+## ガチャ仕様整合（2026-07-01 — P3-GACHA-001）
+
+> P3-D036b の実装差分を解消。UI 演出・10連・有償通貨は対象外。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-GACHA-001-1 | **プール** — `helper_a` を ★4、B/C は ★3 のまま | D036b-1/7 |
+| P3-GACHA-001-2 | **排出** — 未所持優先のうえ ★4=20% / ★3=80% | D036b-4 |
+| P3-GACHA-001-3 | **還元** — 重複 ★4=5 / ★3=2 | D036b-6 |
+| P3-GACHA-001-4 | **ロスター** — 取得時 `Adventurer.rarity` を helper 値で反映 | 表示整合 |
+| P3-GACHA-001-5 | **UI** — 排出率1行表示（`GachaSystem.rate_display_text`） | 可読性 |
+
+**P3-GACHA-001 Closeout（2026-07-01）:** `GachaSystem` + `helper_a` + 画面表示。headless smoke PASS。
+
 ## ギルド認定モック寄せ（2026-07-01 — P3-UI2-024）
 
 > 拠点「ギルド認定」画面の UI polish。認定ロジック不変（P3-D052-2 手動認定）。
