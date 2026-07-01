@@ -17,6 +17,7 @@ const COLOR_RETIRE: Color = Color(0.72, 0.8, 0.95, 1)
 @onready var _reward_row: HBoxContainer = $Scroll/Margin/Main/RewardPanel/RewardVBox/RewardRow
 @onready var _material_panel: PanelContainer = $Scroll/Margin/Main/MaterialPanel
 @onready var _material_row: HBoxContainer = $Scroll/Margin/Main/MaterialPanel/MaterialVBox/MaterialRow
+@onready var _label_craftable: Label = $Scroll/Margin/Main/MaterialPanel/MaterialVBox/LabelCraftable
 @onready var _rare_panel: PanelContainer = $Scroll/Margin/Main/RarePanel
 @onready var _rare_list: VBoxContainer = $Scroll/Margin/Main/RarePanel/RareVBox/RareList
 @onready var _info_grid: GridContainer = $Scroll/Margin/Main/InfoPanel/InfoVBox/InfoGrid
@@ -180,6 +181,23 @@ func _build_materials() -> void:
 		))
 		count += 1
 	_material_panel.visible = count > 0
+	_build_craftable_hint(count > 0)
+
+func _build_craftable_hint(had_material_gains: bool) -> void:
+	if not had_material_gains:
+		_label_craftable.visible = false
+		_label_craftable.text = ""
+		return
+	var recipes: Array = CraftHelper.get_craftable_recipes()
+	if recipes.is_empty():
+		_label_craftable.visible = false
+		_label_craftable.text = ""
+		return
+	var names: PackedStringArray = []
+	for craft in recipes:
+		names.append(str(craft.display_name))
+	_label_craftable.text = "赤鉄の工房で作成可能: " + " / ".join(names)
+	_label_craftable.visible = true
 
 func _build_rare_items() -> void:
 	for child in _rare_list.get_children():

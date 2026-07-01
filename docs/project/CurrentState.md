@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-01（**P3-D141 Result 作成可能レシピ表示**: 採取素材あり時に鍛冶作成可能レシピ名を表示・`CraftHelper` 抽出。headless smoke PASS）
+
 2026-07-01（**P3-D139 鍛冶屋軽 UX**: 所持/レシピ素材アイコン・作成可能優先ソート・出力アイコン行。headless smoke PASS）
 
 2026-07-01（**P3-D138 拠点素材可視化**: BaseScene TopBar 素材チップ（最大3種+overflow・ツールチップ・タップで鍛冶）。headless smoke PASS）
@@ -105,7 +107,9 @@
 | 6 | P3-D137 | ガンビット UI 改善（行並替 ↑↓） | Impl | ✅ |
 | 7 | P3-D138 | 拠点素材可視化（TopBar 等） | Impl | ✅ |
 | 8 | P3-D139 | 鍛冶屋軽 UX（素材アイコン・ソート） | Impl | ✅ |
-| 9 | — | 経済ループ Closeout（D134〜139）／Backlog 小タスク | HQ | **次** |
+| 9 | P3-D141 | Result 作成可能レシピ表示 | Impl | ✅ |
+| 10 | P3-D140 | ガンビット条件静的ヒント | Impl | **次** |
+| 11 | P3-ECO-001 | 経済ループ Closeout（文書のみ） | HQ | 予定 |
 
 **Backlog（単独 Decision まで着手しない）:** 敵別 Threat テーブル / 探索手動+CD / ELITE スキップ / 周回敗北シミュ / 天候本格 / 位置AI / 複数DG / Affix本格 / ラン中方針切替 / Biome-02 以降。
 

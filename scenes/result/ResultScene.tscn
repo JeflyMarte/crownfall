@@ -120,6 +120,14 @@ layout_mode = 2
 theme_override_constants/separation = 8
 alignment = 1
 
+[node name="LabelCraftable" type="Label" parent="Scroll/Margin/Main/MaterialPanel/MaterialVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.7, 0.92, 0.6, 1)
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 3
+
 [node name="RarePanel" type="PanelContainer" parent="Scroll/Margin/Main"]
 layout_mode = 2
 
