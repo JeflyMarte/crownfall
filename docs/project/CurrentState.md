@@ -4,6 +4,10 @@
 
 ## Last Update
 
+2026-07-01（**P3-ALPHA-003 Closeout（headless）**: 実機一括確認はオーナー実施困難のため **Defer**。暫定ゲート＝`smoke_test.sh` PASS。開発継続可。**次=Phase 3-A ポリッシュ / Backlog 小タスク**）
+
+2026-07-01（**P3-D130 Result 探索方針表示**: `last_run_exploration_policy` スナップショット・Result 情報行。作戦プリセットサマリーにカスタム戦術数。headless import 検証済 / コミット済）
+
 2026-07-01（**P3-D129 探索方針効果ヒント** + **P3-ALPHA-004 チェックリスト v2.1**: 装備画面ヒント・D120〜128 追検項目。headless import 検証済 / 実機未確認 / コミット済。**次=P3-ALPHA-003 実機**）
 
 2026-07-01（**P3-D128 図鑑調査実利報酬（D2）**: P3-D067 生態素材ドロップ配線復元・図鑑方針×未完了敵でEXP+10%/素材率×1.5・ログ`[図鑑調査]`。headless import 検証済 / 実機未確認 / コミット済。**次=P3-ALPHA-003 実機**）
