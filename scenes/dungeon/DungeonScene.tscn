@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://f8bhuxqq6fh" path="res://scripts/dungeon/DungeonController.gd" id="2"]
 [ext_resource type="Script" uid="uid://jfwf6uw2ugr7" path="res://scripts/combat/CombatController.gd" id="3"]
 [ext_resource type="Theme" path="res://assets/ui/production_theme.tres" id="4"]
-[ext_resource type="Texture2D" path="res://assets/ui/batch1/UI_BG_Dark.png" id="5"]
+[ext_resource type="Texture2D" path="res://assets/dungeon/mourngate/env/BG_Battle_Mourngate.png" id="5"]
 
 [node name="DungeonScene" type="Control"]
 anchor_right = 1.0

@@ -1333,7 +1333,57 @@
 | P3-D106-2 | **効果**: 後列＝被ダメ ×0.85（`FORMATION_BACK_INCOMING`）＋ Threat 基礎 ×0.6（`FORMATION_BACK_THREAT`・狙われにくい）。前列＝等倍＋`war_banner`（王国軍旗）の与ダメ+10%を**前列限定**に整合 | A-2 Threat と連動し前衛が矢面・後衛が保護される。war_banner を提案「前列+10%」へ寄せる |
 | P3-D106-3 | **配線（中央フック相乗り）**: 被ダメ→`get_member_incoming_damage_multiplier`×`formation_incoming_multiplier`／Threat→`_job_threat_base`×`formation_threat_multiplier`／war_banner→`_member_relic_effects` で後列時 outgoing 無効化 | 既存倍率/Threat/遺物計算に1フックずつ。散在回避 |
 | P3-D106-4 | **UI＝スキルタブに陣形行**（`EquipmentScene`・選択メンバーの前列/後列トグル＋プリセット前衛/均衡/後衛ボタン） | 戦術/遺物セレクタと同列に集約。即時反映 |
-| P3-D106-5 | **スコープ外**: 射程(Melee/Mid/Long)連動の近接ペナルティ・敵 AoE の列範囲・列ごとの被弾分散・散開/密集ボーナス・隊列の視覚表現 | MVP最小化。射程連動はフェーズC以降 |
+| P3-D106-5 | **スコープ外（当時）**: 敵 AoE の列範囲・列ごとの被弾分散・散開/密集ボーナス・隊列の視覚表現 | MVP最小化。射程連動はフェーズC以降 |
+
+## 陣形×射程 与ダメ補正（2026-07-01 — P3-D106b・B-1）
+
+> P3-D106-5 でスコープ外とした「射程連動の近接ペナルティ」を後続実装。与ダメのみ・被ダメ/Threat は既存 P3-D106 のまま。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D106b-1 | **倍率**: 後列+melee=与ダメ×0.85／前列+long/global=×0.85／後列+mid=×0.92／理想配置=×1.0 | 近接は前列・遠隔は後列が有利。mid は将来の槍等向けに軽ペナルティのみ |
+| P3-D106b-2 | **射程解決 SSOT=`CombatRange`**: 発動スキルの `range_type` 優先 → 装備スキル/武器種のメンバー既定（`_member_combat_range` と同一ロジック） | DungeonScene と CombatController の二重定義回避 |
+| P3-D106b-3 | **配線**: `get_member_outgoing_damage_multiplier(member_index, action_range)` に `formation_range_outgoing_multiplier` を乗算。通常攻撃・ダメージスキル・ジョブスキルの4経路のみ | 回復/バフ/防御は `action_range` 未指定で従来どおり |
+| P3-D106b-4 | **ログ**: ペナルティ時 `[陣形:近接不利]`/`[陣形:遠隔不利]`/`[陣形:中距離不利]` | Alpha の可視化方針に合わせる |
+| P3-D106b-5 | **スコープ外**: 命中率ペナルティ・敵 AoE 列（B-2）・WeaponData.attack_range 本格化（B-5） | B-1 は与ダメ倍率のみ |
+
+## 陣形×敵 AoE 列範囲（2026-07-01 — P3-D106c・B-2）
+
+> 敵スキルの味方対象を前列/後列/全体で切り分け。B-3（列内被弾分散）は未着手。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D106c-1 | **`SkillData.target_type` 拡張（敵→味方）**: `party`(単体・Threat) / `all_party`(全体) / `party_front`(前列生存者) / `party_back`(後列生存者) | 既存 `all_party` を維持し列限定を追加。新フィールド不要 |
+| P3-D106c-2 | **解決 SSOT=`CombatFormation.resolve_enemy_party_targets`**。`_execute_enemy_damage` から呼ぶ | 散在回避。`formation_row`（P3-D106）と連動 |
+| P3-D106c-3 | **列限定で対象0人** → ダメージなし・ログ「対象なし」（後列のみ生存時の前列スキル等） | 空振りを明示。B-3 のフォールバックは後続 |
+| P3-D106c-4 | **ログ**: AoE 列スキルに `（前列）`/`（後列）`/`（全体）` タグ | Alpha 可視化 |
+| P3-D106c-5 | **キャリア**: クロックモス(ELITE)に `enemy_sweep_front`（前列 AoE・雷×0.55・CD5）を付与 | 実戦で列範囲を検証可能。Serdion 断罪は `all_party` 維持 |
+| P3-D106c-6 | **スコープ外**: 列内の被弾分散（B-3）・通常攻撃の前列限定・敵 `attack_range` 本格化 | B-2 は敵スキル target_type のみ |
+
+## 陣形×列内被弾分散（2026-07-01 — P3-D106d・B-3）
+
+> B-2 の列スキルに Threat 按分とフォールバックを追加。通常攻撃は近接敵が前列優先。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D106d-1 | **列スキル（party_front/back）**: 列内生存者全員が対象。ダメージは **Threat 比率で按分**（`threat_damage_shares`）。2人以上でログ `[分散]` | 同一列に複数いると被弾が分散。タンクが多く引き受ける |
+| P3-D106d-2 | **列が空** → **反対列へフォールバック**（ログ `（前列）→反対列` 等）。全滅時のみ「対象なし」 | B-2 の空振りを緩和。後列のみ生存でも前列スキルが届く |
+| P3-D106d-3 | **通常攻撃・単体スキル**: `attack_range ≤ 2.5` の敵は **前列 Threat 最大**を狙う。前列全滅時のみ後列 | 近接は前衛が矢面。`pick_enemy_target_for_melee_attack` |
+| P3-D106d-4 | **遠隔敵**（`attack_range > 2.5`・現状=crystal_hedgehog）は従来どおり **全体 Threat 最大** | 水晶ハリネズミのみ遠隔扱い |
+| P3-D106d-5 | **`all_party` は従来どおり全員に等倍**（按分なし） | 断罪の波動等の真全体 AoE を維持 |
+| P3-D106d-6 | **スコープ外**: 散開/密集（B-4）・WeaponData.attack_range 本格化（B-5）・列内ランダム分散 | B-3 は Threat 按分のみ |
+
+## 陣形×散開/密集（2026-07-01 — P3-D106e・B-4）
+
+> 同列（前列 or 後列）の**生存人数**で被ダメ倍率を変える。B-3 の列按分と併用。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D106e-1 | **密集**（同列2人以上）: 被ダメ ×1.08（`DENSE_ROW_INCOMING`） | 列スキル・近接の矢面リスク。2-2 編成は両列とも密集 |
+| P3-D106e-2 | **散開**（同列1人のみ）: 被ダメ ×0.94（`SPREAD_ROW_INCOMING`） | 1前3後 / 3前1後 など孤立メンバーが軽減 |
+| P3-D106e-3 | **配線**: `get_member_incoming_damage_multiplier` に `CombatFormation.density_incoming_multiplier` を乗算（後列軽減・guard 等と併用） | 中央フック相乗り |
+| P3-D106e-4 | **ログ**: 被弾時 `[密集]` / `[散開]`（`get_density_log_tag`） | Alpha 可視化 |
+| P3-D106e-5 | **スコープ外**: formation_slot 座標距離・与ダメ側ボーナス・UI 数値プレビュー | MVP は行人数のみ |
 
 ## 状態異常拡充 MVP（2026-06-30 — P3-D107・残ロードマップ フェーズB-4）
 

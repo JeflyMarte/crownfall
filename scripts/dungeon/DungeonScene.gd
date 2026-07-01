@@ -57,7 +57,6 @@ const STATUS_ICON_DEF: Dictionary = {
 const HEAL_SKILL_BASE: int = 14
 const STATUS_ICON_SIZE: float = 26.0
 const STATUS_ICON_GAP: float = 3.0
-const STATUS_ICON_Y_OFFSET: float = -74.0
 const VFX_HIT_PATH: String = "res://resources/animation/FX_Hit_Normal.tres"
 const VFX_HEAL_PATH: String = "res://resources/animation/FX_Heal.tres"
 ## 属性ごとの演出色（命中VFXの modulate / スキル名フォント色に共用）。
@@ -165,6 +164,12 @@ const FORMATION_SLOT_POSITIONS: Array[Vector2] = [
 	Vector2(125, 728),  # 2 後衛左（奥）
 	Vector2(265, 748),  # 3 後衛右
 ]
+# 前衛/後衛ごとの頭上HPバー微調整（Y+ = 下方向）。
+const CHR_HP_BAR_FRONT_Y_OFFSET: float =50.0
+const CHR_HP_BAR_BACK_Y_OFFSET: float = -50.0
+const CHR_HP_BAR_GAP_ABOVE_SPRITE: float = 12.0
+const CHR_HP_BAR_HEIGHT: float = 8.0
+const CHR_STATUS_GAP_ABOVE_BAR: float = 4.0
 
 # 行動順（ターンオーダー）表示（P3-D083）。
 var _turn_order_row: HBoxContainer
@@ -368,25 +373,34 @@ func _update_hp_bars() -> void:
 		if bar.visible and i < $CombatController.party_combat_hp.size():
 			bar.max_value = $CombatController.party_max_hp[i]
 			bar.value = $CombatController.party_combat_hp[i]
-			_set_hp_bar_above_sprite(bar, sprite)
+			_set_hp_bar_above_sprite(bar, sprite, _formation_slot_for_combat_index(i))
 	_update_party_cards_hp()
 
-func _set_hp_bar_above_sprite(bar: ProgressBar, sprite: AnimatedSprite2D) -> void:
+func _chr_hp_bar_row_y_offset(formation_slot: int) -> float:
+	if formation_slot <= 1:
+		return CHR_HP_BAR_FRONT_Y_OFFSET
+	if formation_slot <= 3:
+		return CHR_HP_BAR_BACK_Y_OFFSET
+	return 0.0
+
+func _chr_hp_bar_top_y(sprite: AnimatedSprite2D, formation_slot: int) -> float:
+	return _sprite_top_y(sprite) - CHR_HP_BAR_GAP_ABOVE_SPRITE - CHR_HP_BAR_HEIGHT + _chr_hp_bar_row_y_offset(formation_slot)
+
+func _sprite_visual_center(sprite: AnimatedSprite2D) -> Vector2:
+	return sprite.global_position + sprite.offset
+
+func _set_hp_bar_above_sprite(bar: ProgressBar, sprite: AnimatedSprite2D, formation_slot: int = 0) -> void:
 	const BAR_HALF_W: float = 40.0
-	const BAR_HEIGHT: float = 8.0
-	const BAR_Y_OFFSET: float = -50.0
-	var gp: Vector2 = sprite.global_position
-	var cx: float = gp.x
-	var ty: float = gp.y + BAR_Y_OFFSET
-	bar.offset_left = cx - BAR_HALF_W
-	bar.offset_top = ty
-	bar.offset_right = cx + BAR_HALF_W
-	bar.offset_bottom = ty + BAR_HEIGHT
+	var center: Vector2 = _sprite_visual_center(sprite)
+	var bar_ty: float = _chr_hp_bar_top_y(sprite, formation_slot)
+	bar.offset_left = center.x - BAR_HALF_W
+	bar.offset_top = bar_ty
+	bar.offset_right = center.x + BAR_HALF_W
+	bar.offset_bottom = bar_ty + CHR_HP_BAR_HEIGHT
 
 # スプライトの実描画上端の Y を返す（centered 前提でフレーム高×scaleの半分を上に取る）。
-# ボスのように体高正規化を通らない大きなスプライトでも、頭上UIが重ならないようにするため。
+# offset 補正（味方CHRの足元合わせ等）も加味する。
 func _sprite_top_y(sprite: AnimatedSprite2D) -> float:
-	var half_h: float = 0.0
 	if sprite.sprite_frames != null:
 		var anim: String = sprite.animation
 		if not sprite.sprite_frames.has_animation(anim):
@@ -394,8 +408,10 @@ func _sprite_top_y(sprite: AnimatedSprite2D) -> float:
 		if sprite.sprite_frames.has_animation(anim):
 			var tex: Texture2D = sprite.sprite_frames.get_frame_texture(anim, 0)
 			if tex != null:
-				half_h = float(tex.get_height()) * absf(sprite.scale.y) * 0.5
-	return sprite.global_position.y - half_h
+				var frame_h: float = float(tex.get_height()) * absf(sprite.scale.y)
+				var center_y: float = _sprite_visual_center(sprite).y
+				return center_y - frame_h * 0.5
+	return sprite.global_position.y
 
 # 敵HPバー＋頭上ネームプレートを、スプライト実上端の上に積んで配置（重なり回避）。
 # 小型敵は従来位置を下限に維持し、大型(ボス)時のみ上方向へ押し上げる。
@@ -406,11 +422,11 @@ func _position_enemy_overlays(sprite: AnimatedSprite2D) -> void:
 	const NAME_HEIGHT: float = 30.0
 	const GAP_ABOVE_SPRITE: float = 12.0
 	const GAP_BAR_NAME: float = 6.0
-	var gp: Vector2 = sprite.global_position
-	var cx: float = gp.x
+	var center: Vector2 = _sprite_visual_center(sprite)
+	var cx: float = center.x
 	var top_y: float = _sprite_top_y(sprite)
 	# HPバー: 従来 -50 を下限に、スプライト上端より上に来るよう調整
-	var bar_ty: float = minf(gp.y - 50.0, top_y - GAP_ABOVE_SPRITE - BAR_HEIGHT)
+	var bar_ty: float = minf(center.y - 50.0, top_y - GAP_ABOVE_SPRITE - BAR_HEIGHT)
 	_hp_bar_enemy.offset_left = cx - BAR_HALF_W
 	_hp_bar_enemy.offset_top = bar_ty
 	_hp_bar_enemy.offset_right = cx + BAR_HALF_W
@@ -489,7 +505,7 @@ func _populate_status_icon_row(row: HBoxContainer, statuses: Array) -> void:
 	for entry: Dictionary in statuses:
 		row.add_child(_build_status_icon(entry))
 
-func _set_status_row_above_sprite(row: HBoxContainer, sprite: AnimatedSprite2D, statuses: Array) -> void:
+func _set_status_row_above_sprite(row: HBoxContainer, sprite: AnimatedSprite2D, statuses: Array, formation_slot: int = -1) -> void:
 	_populate_status_icon_row(row, statuses)
 	var show: bool = sprite.visible and not statuses.is_empty()
 	row.visible = show
@@ -497,8 +513,14 @@ func _set_status_row_above_sprite(row: HBoxContainer, sprite: AnimatedSprite2D, 
 		return
 	var count: int = statuses.size()
 	var total_w: float = count * STATUS_ICON_SIZE + maxf(0.0, float(count - 1)) * STATUS_ICON_GAP
-	var gp: Vector2 = sprite.global_position
-	row.position = Vector2(gp.x - total_w * 0.5, gp.y + STATUS_ICON_Y_OFFSET)
+	var center: Vector2 = _sprite_visual_center(sprite)
+	var icon_y: float
+	if formation_slot >= 0:
+		icon_y = _chr_hp_bar_top_y(sprite, formation_slot) - CHR_STATUS_GAP_ABOVE_BAR - STATUS_ICON_SIZE
+	else:
+		var top_y: float = _sprite_top_y(sprite)
+		icon_y = top_y - STATUS_ICON_SIZE - 4.0
+	row.position = Vector2(center.x - total_w * 0.5, icon_y)
 
 func _update_status_icons() -> void:
 	var in_combat: bool = $CombatController.is_in_combat
@@ -529,7 +551,12 @@ func _update_status_icons() -> void:
 	for i: int in _status_icon_chr_rows.size():
 		var sprite: AnimatedSprite2D = _chr_sprites[i]
 		var statuses: Array = $CombatController.get_member_status_list(i)
-		_set_status_row_above_sprite(_status_icon_chr_rows[i], sprite, statuses)
+		_set_status_row_above_sprite(
+			_status_icon_chr_rows[i],
+			sprite,
+			statuses,
+			_formation_slot_for_combat_index(i)
+		)
 
 func _get_room_type_name() -> String:
 	match $DungeonController.current_room_type:
@@ -1103,9 +1130,11 @@ func _execute_member_skill(member_idx: int, skill_data: Resource, cast_index: in
 	if not result.get("executed", false):
 		return ""
 	var attack_element: String = _resolve_skill_element(skill_data, member_idx)
+	var action_range: String = CombatRange.resolve_for_action(member_idx, skill_data)
+	var form_tag: String = GameState.formation_range_log_tag(member_idx, action_range)
 	var skill_dmg: int = maxi(
 		1,
-		int(float(result["damage"]) * $CombatController.get_member_outgoing_damage_multiplier(member_idx))
+		int(float(result["damage"]) * $CombatController.get_member_outgoing_damage_multiplier(member_idx, action_range))
 	)
 	var elem_result: Dictionary = _apply_enemy_mitigation(skill_dmg, attack_element, member_idx, target_slot)
 	var final_dmg: int = maxi(
@@ -1124,8 +1153,8 @@ func _execute_member_skill(member_idx: int, skill_data: Resource, cast_index: in
 	_spawn_skill_name(result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP, attack_element)
 	var crit_tag: String = "  CRITICAL!" if skill_is_crit else ""
 	var tgt_tag: String = _member_target_tag(member_idx)
-	var log_line: String = "\n【スキル】%s: %dダメージ%s%s%s" % [
-		result["display_name"], final_dmg, crit_tag, elem_result["element_tag"], tgt_tag,
+	var log_line: String = "\n【スキル】%s: %dダメージ%s%s%s%s" % [
+		result["display_name"], final_dmg, crit_tag, elem_result["element_tag"], form_tag, tgt_tag,
 	]
 	if _deal_member_damage_to_enemy(member_idx, final_dmg, target_slot):
 		return log_line
@@ -1258,9 +1287,11 @@ func _try_cast_player_skill() -> String:
 	if not result.get("executed", false):
 		return ""
 	var attack_element: String = _resolve_skill_element(skill_data, member_idx)
+	var action_range: String = CombatRange.resolve_for_action(member_idx, skill_data)
+	var form_tag: String = GameState.formation_range_log_tag(member_idx, action_range)
 	var skill_dmg: int = maxi(
 		1,
-		int(float(result["damage"]) * $CombatController.get_member_outgoing_damage_multiplier(member_idx))
+		int(float(result["damage"]) * $CombatController.get_member_outgoing_damage_multiplier(member_idx, action_range))
 	)
 	var elem_result: Dictionary = _apply_enemy_mitigation(skill_dmg, attack_element)
 	var final_dmg: int = maxi(
@@ -1283,11 +1314,12 @@ func _try_cast_player_skill() -> String:
 	var skill_header: String = result["display_name"]
 	if not weapon_name.is_empty():
 		skill_header = "%s / %s" % [weapon_name, result["display_name"]]
-	return "\n【スキル】%s: %dダメージ%s%s" % [
+	return "\n【スキル】%s: %dダメージ%s%s%s" % [
 		skill_header,
 		final_dmg,
 		skill_crit_tag,
 		elem_result["element_tag"],
+		form_tag,
 	]
 
 func _get_job_skill_data(member_index: int) -> Resource:
@@ -1323,9 +1355,11 @@ func _try_cast_secondary_skill(primary_skill_id: String) -> String:
 	if not result.get("executed", false):
 		return ""
 	var attack_element: String = _resolve_skill_element(skill_data, member_idx)
+	var action_range: String = CombatRange.resolve_for_action(member_idx, skill_data)
+	var form_tag: String = GameState.formation_range_log_tag(member_idx, action_range)
 	var skill_dmg: int = maxi(
 		1,
-		int(float(result["damage"]) * $CombatController.get_member_outgoing_damage_multiplier(member_idx))
+		int(float(result["damage"]) * $CombatController.get_member_outgoing_damage_multiplier(member_idx, action_range))
 	)
 	var elem_result: Dictionary = _apply_enemy_mitigation(skill_dmg, attack_element)
 	var final_dmg: int = maxi(
@@ -1344,11 +1378,12 @@ func _try_cast_secondary_skill(primary_skill_id: String) -> String:
 	_spawn_damage_number(str(final_dmg), sec_spawn_pos + Vector2(-12.0, 8.0), Color(1.0, 0.9, 0.0), 1.25 if sec_is_crit else 1.0)
 	_spawn_skill_name(result["display_name"], member_idx, 34.0, attack_element)
 	var skill_crit_tag: String = "  CRITICAL!" if sec_is_crit else ""
-	return "\n【ジョブスキル】%s: %dダメージ%s%s" % [
+	return "\n【ジョブスキル】%s: %dダメージ%s%s%s" % [
 		result["display_name"],
 		final_dmg,
 		skill_crit_tag,
 		elem_result["element_tag"],
+		form_tag,
 	]
 
 func _get_weapon_element(member_index: int = -1) -> String:
@@ -1749,25 +1784,67 @@ func _execute_enemy_buff(skill: Resource) -> void:
 			label = eff.display_name
 	_append_log("敵スキル【%s】: 自身に[%s]" % [skill.display_name, label])
 
-# 敵の攻撃スキル（全体/単体）。power_multiplier 分のダメージを対象へ。
+# 敵の攻撃スキル（全体/列/単体）。power_multiplier 分のダメージを対象へ。
 func _execute_enemy_damage(skill: Resource) -> void:
 	_play_active_enemy_animation("attack")
 	_spawn_enemy_skill_name(skill.display_name)
+	var party_size: int = $CombatController.party_combat_hp.size()
+	var target_type: String = str(skill.target_type)
+	var used_fallback: bool = false
 	var targets: Array[int] = []
-	if skill.target_type == "all_party":
-		for i in $CombatController.party_combat_hp.size():
-			if $CombatController.is_member_alive(i):
-				targets.append(i)
+	var dist_tag: String = ""
+	if target_type in [CombatFormation.TARGET_PARTY_FRONT, CombatFormation.TARGET_PARTY_BACK]:
+		var resolved: Dictionary = CombatFormation.resolve_column_members_with_fallback(
+			target_type,
+			party_size,
+			Callable($CombatController, "is_member_alive")
+		)
+		targets = resolved["indices"]
+		used_fallback = bool(resolved.get("fallback", false))
+		if not targets.is_empty():
+			var shares: Dictionary = CombatFormation.threat_damage_shares(
+				targets, Callable($CombatController, "get_member_threat")
+			)
+			dist_tag = CombatFormation.column_distribution_log_tag(targets)
+			_apply_enemy_damage_to_targets(skill, targets, shares, dist_tag, target_type, used_fallback)
+			return
 	else:
-		var t: int = $CombatController.pick_enemy_target_member_index()
-		if t >= 0:
-			targets.append(t)
+		targets = CombatFormation.resolve_enemy_party_targets(
+			skill,
+			party_size,
+			Callable($CombatController, "is_member_alive"),
+			Callable($CombatController, "pick_enemy_target_for_melee_attack").bind(
+				$CombatController.active_enemy_index
+			)
+		)
 	if targets.is_empty():
+		var empty_tag: String = CombatFormation.enemy_target_row_log_tag(target_type, used_fallback)
+		_append_log("敵スキル【%s】%s\n  対象なし" % [skill.display_name, empty_tag])
 		return
+	var equal_shares: Dictionary = {}
+	for ti: int in targets:
+		equal_shares[ti] = 1.0
+	_apply_enemy_damage_to_targets(skill, targets, equal_shares, dist_tag, target_type, used_fallback)
+
+func _apply_enemy_damage_to_targets(
+	skill: Resource,
+	targets: Array[int],
+	shares: Dictionary,
+	dist_tag: String,
+	target_type: String,
+	used_fallback: bool
+) -> void:
+	var row_tag: String = CombatFormation.enemy_target_row_log_tag(target_type, used_fallback)
 	var lines: PackedStringArray = []
-	for ti in targets:
-		var atk_slot: int = $CombatController.active_enemy_index
-		var dmg: int = _calc_enemy_damage_to_member(ti, skill.power_multiplier, -1, atk_slot)["final"]
+	var atk_slot: int = $CombatController.active_enemy_index
+	for ti: int in targets:
+		var share: float = float(shares.get(ti, 0.0))
+		if share <= 0.0:
+			continue
+		var power: float = float(skill.power_multiplier) * share
+		var dmg: int = _calc_enemy_damage_to_member(ti, power, -1, atk_slot)["final"]
+		if targets.size() > 1:
+			dmg = maxi(1, dmg)
 		$CombatController.apply_damage_to_member(ti, dmg)
 		$CombatController.add_threat(ti, float(dmg) * CombatController.THREAT_TAKEN_K)
 		_play_chr_hurt(ti)
@@ -1776,14 +1853,15 @@ func _execute_enemy_damage(skill: Resource) -> void:
 			_spawn_damage_number(str(dmg), _chr_sprites[ti].global_position, Color(1.0, 0.35, 0.35))
 		var member: Resource = GameState.get_combatant(ti)
 		var mname: String = member.display_name if member != null else "?"
+		var density_tag: String = $CombatController.get_density_log_tag(ti)
 		if not $CombatController.is_member_alive(ti):
 			if ti < _chr_sprites.size():
 				_chr_sprites[ti].visible = false
-			lines.append("%s に %d（撃破）" % [mname, dmg])
+			lines.append("%s に %d（撃破）%s" % [mname, dmg, density_tag])
 		else:
-			lines.append("%s に %d" % [mname, dmg])
+			lines.append("%s に %d%s" % [mname, dmg, density_tag])
 		_on_member_damaged(ti)
-	_append_log("敵スキル【%s】\n  %s" % [skill.display_name, " / ".join(lines)])
+	_append_log("敵スキル【%s】%s%s\n  %s" % [skill.display_name, row_tag, dist_tag, " / ".join(lines)])
 
 # 敵スキル発動時、敵ドット絵の頭上にスキル名を赤系でポップ表示
 func _spawn_enemy_skill_name(skill_name: String) -> void:
@@ -1861,7 +1939,7 @@ func _spawn_enemy_cast_name(skill_name: String, slot: int) -> void:
 func _do_enemy_attack(slot: int = -1) -> void:
 	if $CombatController.current_enemy_data == null:
 		return
-	var target_idx: int = $CombatController.pick_enemy_target_member_index()
+	var target_idx: int = $CombatController.pick_enemy_target_for_melee_attack(slot)
 	if target_idx < 0:
 		return
 	if slot >= 0:
@@ -1886,11 +1964,16 @@ func _do_enemy_attack(slot: int = -1) -> void:
 	var resist_tag: String = ""
 	if enemy_result.get("elem_resisted", false):
 		resist_tag = "  [耐性:%s]" % ElementResolverScript.get_display_name(_enemy_attack_element_at(slot))
+	var density_tag: String = $CombatController.get_density_log_tag(target_idx)
 	var log_text: String
 	if enemy_result["mitigated"] > 0:
-		log_text = "敵の攻撃: %s%s に %dダメージ（軽減%d）%s" % [guard_prefix, member_name, enemy_result["final"], enemy_result["mitigated"], resist_tag]
+		log_text = "敵の攻撃: %s%s に %dダメージ（軽減%d）%s%s" % [
+			guard_prefix, member_name, enemy_result["final"], enemy_result["mitigated"], density_tag, resist_tag,
+		]
 	else:
-		log_text = "敵の攻撃: %s%s に %dダメージ%s" % [guard_prefix, member_name, enemy_result["final"], resist_tag]
+		log_text = "敵の攻撃: %s%s に %dダメージ%s%s" % [
+			guard_prefix, member_name, enemy_result["final"], density_tag, resist_tag,
+		]
 	if not $CombatController.is_member_alive(target_idx):
 		log_text += "\n%s が倒れた！" % member_name
 	_append_log(log_text)
@@ -1933,7 +2016,8 @@ func _calc_damage(member_index: int = -1, target_slot: int = -1) -> Dictionary:
 	if is_critical:
 		damage = int(damage * CRITICAL_MULTIPLIER)
 	damage = int(damage * $DungeonController.run_damage_multiplier)
-	damage = maxi(1, int(float(damage) * $CombatController.get_member_outgoing_damage_multiplier(member_index)))
+	var action_range: String = CombatRange.resolve_for_action(member_index)
+	damage = maxi(1, int(float(damage) * $CombatController.get_member_outgoing_damage_multiplier(member_index, action_range)))
 	var elem_result: Dictionary = _apply_enemy_mitigation(
 		damage, _get_weapon_element(member_index), member_index, target_slot
 	)
@@ -1948,6 +2032,7 @@ func _calc_damage(member_index: int = -1, target_slot: int = -1) -> Dictionary:
 		"damage": damage,
 		"is_critical": is_critical,
 		"element_tag": elem_result["element_tag"],
+		"formation_tag": GameState.formation_range_log_tag(member_index, action_range),
 		"target_slot": target_slot,
 	}
 
@@ -2188,24 +2273,9 @@ func _is_member_ultimate_ready(member_idx: int) -> bool:
 		return false
 	return _skill_executor.can_cast(ult, "%d:%s" % [member_idx, ult.id])
 
-# 戦術「距離」判定用。装備スキル range_type / ranged タグ → 武器種(bow/staff) → 既定 melee。
+# 戦術「距離」判定用（CombatRange SSOT に委譲）。
 func _member_combat_range(member_idx: int) -> String:
-	var member: Resource = GameState.get_combatant(member_idx)
-	if member != null:
-		for sid: String in GameState.get_equipped_skill_ids(member):
-			var sd: Resource = DataRegistry.get_skill_data(sid)
-			if sd == null:
-				continue
-			if str(sd.range_type) in ["long", "global"]:
-				return "long"
-			if "ranged" in sd.tags:
-				return "long"
-	var winst: Resource = GameState.get_member_equipped_weapon(member_idx)
-	if winst != null and not str(winst.weapon_id).is_empty():
-		var wd: Resource = DataRegistry.get_weapon_data(winst.weapon_id)
-		if wd != null and str(wd.weapon_type) in ["bow", "staff"]:
-			return "long"
-	return "melee"
+	return CombatRange.resolve_member_default(member_idx)
 
 # 必殺技スロット（長CD・高威力）。発動できたら true。
 func _try_member_ultimate(member_idx: int) -> bool:
@@ -2328,6 +2398,7 @@ func _do_member_basic_attack(member_idx: int) -> void:
 	var mname: String = member.display_name if member != null else "?"
 	var crit_tag: String = "  CRITICAL!" if result["is_critical"] else ""
 	var elem_tag: String = result.get("element_tag", "")
+	var form_tag: String = result.get("formation_tag", "")
 	var tgt_tag: String = _member_target_tag(member_idx)
 	var dmg: int = int(result["damage"])
 	if dmg > 0:
@@ -2339,7 +2410,7 @@ func _do_member_basic_attack(member_idx: int) -> void:
 			Color(1.0, 0.9, 0.0),
 			1.25 if result["is_critical"] else 1.0
 		)
-	_append_log("%s の攻撃: %dダメージ%s%s%s" % [mname, dmg, crit_tag, elem_tag, tgt_tag])
+	_append_log("%s の攻撃: %dダメージ%s%s%s%s" % [mname, dmg, crit_tag, elem_tag, form_tag, tgt_tag])
 	if _deal_member_damage_to_enemy(member_idx, dmg, target_slot):
 		return
 	if $CombatController.is_enemy_slot_alive(target_slot):
@@ -2955,10 +3026,10 @@ func _position_swarm_overlay(slot: int) -> void:
 	const NAME_HEIGHT: float = 24.0
 	const GAP_ABOVE_SPRITE: float = 12.0
 	const GAP_BAR_NAME: float = 6.0
-	var gp: Vector2 = sprite.global_position
-	var cx: float = gp.x
+	var center: Vector2 = _sprite_visual_center(sprite)
+	var cx: float = center.x
 	var top_y: float = _sprite_top_y(sprite)
-	var bar_ty: float = minf(gp.y - 50.0, top_y - GAP_ABOVE_SPRITE - BAR_HEIGHT)
+	var bar_ty: float = minf(center.y - 50.0, top_y - GAP_ABOVE_SPRITE - BAR_HEIGHT)
 	bar.offset_left = cx - BAR_HALF_W
 	bar.offset_top = bar_ty
 	bar.offset_right = cx + BAR_HALF_W
