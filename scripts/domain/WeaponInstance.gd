@@ -14,3 +14,5 @@ extends Resource
 @export var weight: float = 1.0
 @export var prefix_ids: Array[String] = []
 @export var suffix_ids: Array[String] = []
+## 炉研ぎ段階（0〜5）。実効 ATK = rolled_attack + enhance_level（P3-D152）。
+@export var enhance_level: int = 0

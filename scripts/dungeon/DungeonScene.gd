@@ -1521,12 +1521,7 @@ func _get_player_skill_data(member_index: int = -1) -> Resource:
 
 func _get_equipped_weapon_display_name(member_index: int = -1) -> String:
 	var weapon: Resource = GameState.get_member_equipped_weapon(member_index)
-	if weapon == null or weapon.weapon_id.is_empty():
-		return ""
-	var weapon_data: Resource = DataRegistry.get_weapon_data(weapon.weapon_id)
-	if weapon_data == null or weapon_data.display_name.is_empty():
-		return weapon.weapon_id
-	return weapon_data.display_name
+	return EquipmentEnhancer.get_display_name(weapon)
 
 func _try_cast_player_skill() -> String:
 	if $CombatController.is_enemy_defeated():
@@ -1843,7 +1838,7 @@ func _calc_attack_base(member_index: int = -1) -> Dictionary:
 	var crit_rate: float = 0.0
 	var weapon: Resource = GameState.get_member_equipped_weapon(member_index)
 	if weapon != null:
-		damage = weapon.rolled_attack
+		damage = EquipmentEnhancer.get_effective_attack(weapon)
 		crit_rate = weapon.critical_rate
 	var acc: Resource = GameState.get_member_equipped_accessory(member_index)
 	if acc != null:
@@ -3527,8 +3522,6 @@ func _stop_tier_frame_pulse() -> void:
 	_tier_frame_pulse_tween = null
 	_combat_tier_frame.modulate = Color.WHITE
 
-func _style_party_status_panel() -> void:
-	_party_status_panel.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_NORMAL))
 
 func _style_party_card_ct_bar(bar: ProgressBar) -> void:
 	_style_hp_bar_readable(bar, PARTY_CARD_CT_FILL)

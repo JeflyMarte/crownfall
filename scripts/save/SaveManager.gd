@@ -146,6 +146,7 @@ func _serialize_inventory() -> Array:
 			"weight": item.weight,
 			"prefix_ids": _serialize_affix_ids(item.prefix_ids),
 			"suffix_ids": _serialize_affix_ids(item.suffix_ids),
+			"enhance_level": int(item.enhance_level),
 		})
 	return out
 
@@ -411,6 +412,7 @@ func _deserialize_inventory(inv_data: Array) -> Array:
 		item.weight = float(entry.get("weight", 1.0))
 		item.prefix_ids = _deserialize_affix_ids(entry.get("prefix_ids", []))
 		item.suffix_ids = _deserialize_affix_ids(entry.get("suffix_ids", []))
+		item.enhance_level = int(entry.get("enhance_level", 0))
 		items.append(item)
 	return items
 

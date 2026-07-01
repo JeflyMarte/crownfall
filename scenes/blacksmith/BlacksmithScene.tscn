@@ -59,12 +59,47 @@ vertical_scroll_mode = 0
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="LabelCraftHeader" type="Label" parent="VBoxContainer"]
+[node name="ModeRow" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="BtnModeCraft" type="Button" parent="VBoxContainer/ModeRow"]
+layout_mode = 2
+text = "作成"
+
+[node name="BtnModeEnhance" type="Button" parent="VBoxContainer/ModeRow"]
+layout_mode = 2
+text = "炉研ぎ"
+
+[node name="CraftSection" type="VBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="LabelCraftHeader" type="Label" parent="VBoxContainer/CraftSection"]
 layout_mode = 2
 text = "--- レシピ一覧 ---"
 horizontal_alignment = 1
 
-[node name="CraftListContainer" type="VBoxContainer" parent="VBoxContainer"]
+[node name="CraftListContainer" type="VBoxContainer" parent="VBoxContainer/CraftSection"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="EnhanceSection" type="VBoxContainer" parent="VBoxContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="LabelEnhanceHeader" type="Label" parent="VBoxContainer/EnhanceSection"]
+layout_mode = 2
+text = "--- 炉研ぎ ---"
+horizontal_alignment = 1
+
+[node name="EnhanceWeaponList" type="VBoxContainer" parent="VBoxContainer/EnhanceSection"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="EnhanceDetail" type="VBoxContainer" parent="VBoxContainer/EnhanceSection"]
 layout_mode = 2
 theme_override_constants/separation = 6
 

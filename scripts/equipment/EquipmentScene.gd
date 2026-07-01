@@ -3,6 +3,7 @@ extends Control
 const _AffixDisplayFormatter = preload("res://scripts/equipment/AffixDisplayFormatter.gd")
 const _JobStatCalculator = preload("res://scripts/equipment/JobStatCalculator.gd")
 const _AffixStatCalculator = preload("res://scripts/equipment/AffixStatCalculator.gd")
+const _EquipmentEnhancer = preload("res://scripts/equipment/EquipmentEnhancer.gd")
 const _ElementResolver = preload("res://scripts/combat/ElementResolver.gd")
 
 # CombatController.BASE_MEMBER_HP と同値（表示用の素HP）。
@@ -460,7 +461,10 @@ func _item_label(item: Resource, category: String) -> String:
 	match category:
 		"weapon":
 			var wt: String = "%s  ATK %d  SPD %.1f  CRT %.0f%%" % [
-				DataRegistry.get_weapon_name(item.weapon_id), item.rolled_attack, item.attack_speed, item.critical_rate * 100.0
+				_EquipmentEnhancer.get_display_name(item),
+				_EquipmentEnhancer.get_effective_attack(item),
+				item.attack_speed,
+				item.critical_rate * 100.0,
 			]
 			return _AffixDisplayFormatter.append_to_text(wt, item)
 		"armor":
@@ -500,7 +504,7 @@ func _compare_text(candidate: Resource, category: String) -> String:
 
 func _weapon_compare(candidate: Resource, equipped: Resource) -> String:
 	var parts: PackedStringArray = []
-	var atk_diff: int = candidate.rolled_attack - equipped.rolled_attack
+	var atk_diff: int = _EquipmentEnhancer.get_effective_attack(candidate) - _EquipmentEnhancer.get_effective_attack(equipped)
 	parts.append("ATK %s%d" % ["+" if atk_diff >= 0 else "", atk_diff])
 	var spd_diff: float = candidate.attack_speed - equipped.attack_speed
 	if not is_zero_approx(spd_diff):
@@ -579,7 +583,7 @@ func _compute_member_stats(idx: int) -> Dictionary:
 	hp = int(round(float(hp) * float(job.get("hp_multiplier", 1.0))))
 	var attack: int = 0
 	if weapon != null:
-		attack = weapon.rolled_attack
+		attack = _EquipmentEnhancer.get_effective_attack(weapon)
 	if acc_data != null:
 		attack += acc_data.attack_bonus
 	attack += int(affix.get("attack_flat", 0))
