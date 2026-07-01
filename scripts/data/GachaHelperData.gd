@@ -7,7 +7,7 @@ extends Resource
 @export var id: String = ""
 @export var display_name: String = ""
 @export var job_id: String = ""
-## レアリティ（★表示用。現行は全キャラ★3固定）。重複還元量に使用。
+## レアリティ（★表示・排出率・重複還元に使用。プール=★4×1+★3×2 / P3-D036b）。
 @export var rarity: int = 3
 ## 専用スプライト animation resource パス（空なら job 既定）。
 @export var sprite_resource_path: String = ""
