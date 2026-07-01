@@ -11,6 +11,8 @@ var roster: Array = []
 
 # ガチャ通貨（無償のみ） — P3-D036b
 var gacha_token: int = 0
+## EquipmentScene 起動時に選択するメンバー index（-1=先頭）。RosterScene 詳細ボタン用（P3-UI2-017）。
+var equipment_focus_member_index: int = -1
 # ガチャ所持数 { helper_id: count }（重複＝凸用カウント。MVP は還元のみ）
 var owned_helpers: Dictionary = {}
 # 天井カウンタ（未所持が出ていない連続抽選回数）
