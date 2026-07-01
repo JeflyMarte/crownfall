@@ -692,7 +692,9 @@ const STARTING_WEAPON_BY_JOB: Dictionary = {
 	"beast_tamer": "hunting_bow",
 }
 
-# 初期ロスター（基本5職）。アクティブ3は先頭3名（P3-D036b-9）。
+const _GachaRarityConfig: Script = preload("res://scripts/gacha/GachaRarityConfig.gd")
+
+# 初期ロスター（基本5職・ガチャ対象外の特別キャラ）。アクティブ編成は先頭4名（P3-D036b-9 / P3-D105）。
 const BASE_ROSTER_DEFS: Array = [
 	{"id": "adventurer_0", "name": "アルド（Ald）", "job": "swordsman"},
 	{"id": "adventurer_1", "name": "リーヴァ（Riva）", "job": "ranger"},
@@ -719,13 +721,12 @@ func _init_party() -> void:
 
 func _create_base_adventurer(def: Dictionary) -> Resource:
 	var adventurer_class = load("res://scripts/domain/Adventurer.gd")
-	var stats_class = load("res://scripts/domain/Stats.gd")
 	var adv = adventurer_class.new()
 	adv.id = str(def["id"])
 	adv.display_name = str(def["name"])
 	adv.job_id = str(def["job"])
-	adv.rarity = Adventurer.DEFAULT_RARITY
-	adv.base_stats = stats_class.new()
+	adv.rarity = Adventurer.STARTER_RARITY
+	_GachaRarityConfig.apply_base_stats_to_adventurer(adv, Adventurer.STARTER_RARITY, CombatController.BASE_MEMBER_HP)
 	return adv
 
 # 初期武器を生成し、inventory に登録した上で装備させる（ロスター全員分）。
@@ -764,13 +765,28 @@ func normalize_base_roster() -> void:
 			continue
 		m.display_name = str(def["name"])
 		m.job_id = str(def["job"])
-		m.rarity = Adventurer.DEFAULT_RARITY
+		m.rarity = Adventurer.STARTER_RARITY
+		_GachaRarityConfig.apply_base_stats_to_adventurer(m, Adventurer.STARTER_RARITY, CombatController.BASE_MEMBER_HP)
 
-# ロスター全員のキャラ★を既定値へ揃える（基本職・ガチャ助っ人共通）。
+# スターター5職の★を揃え、ガチャ助っ人は helper 定義へ同期する。
 func normalize_roster_rarity() -> void:
 	for adv in roster:
-		if adv != null:
-			adv.rarity = Adventurer.DEFAULT_RARITY
+		if adv == null:
+			continue
+		var adv_id: String = str(adv.id)
+		if adv_id.begins_with("gacha_"):
+			continue
+		if find_base_roster_def(adv_id) != null:
+			adv.rarity = Adventurer.STARTER_RARITY
+
+func find_base_roster_def(adventurer_id: String) -> Variant:
+	for def in BASE_ROSTER_DEFS:
+		if str(def["id"]) == adventurer_id:
+			return def
+	return null
+
+func is_starter_adventurer(adventurer_id: String) -> bool:
+	return find_base_roster_def(adventurer_id) != null
 
 func _create_starting_weapon(member_id: String, weapon_id: String) -> Resource:
 	var weapon_data: Resource = DataRegistry.get_weapon_data(weapon_id)

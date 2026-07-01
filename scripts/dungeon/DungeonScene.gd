@@ -1853,6 +1853,9 @@ func _calc_attack_base(member_index: int = -1) -> Dictionary:
 	crit_rate += $CombatController.get_party_role_crit_add()
 	if member_index >= 0 and member_index < GameState.party_members.size():
 		damage += LevelSystem.level_attack_bonus(GameState.party_members[member_index].level)
+		var member: Resource = GameState.party_members[member_index]
+		if member.base_stats != null:
+			damage += int(member.base_stats.attack)
 	damage = _apply_job_attack_multiplier(damage, member_index)
 	return {"base_damage": damage, "crit_rate": crit_rate}
 
@@ -2318,9 +2321,10 @@ func _calc_enemy_damage_to_member(
 			defense += acc_data.defense_bonus
 	defense += int(AffixStatCalculatorScript.get_bonuses(target_index).get("defense_flat", 0))
 	if target_index >= 0 and target_index < GameState.party_members.size():
-		var job_mods: Dictionary = JobStatCalculatorScript.get_member_modifiers(
-			GameState.party_members[target_index]
-		)
+		var member: Resource = GameState.party_members[target_index]
+		if member.base_stats != null:
+			defense += int(member.base_stats.defense)
+		var job_mods: Dictionary = JobStatCalculatorScript.get_member_modifiers(member)
 		var def_mult: float = float(job_mods.get("defense_multiplier", JobStatCalculator.DEFAULT_MULTIPLIER))
 		defense = maxi(0, int(round(float(defense) * def_mult)))
 	var final_dmg: int = max(1, base_dmg - defense)

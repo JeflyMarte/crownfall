@@ -9,5 +9,6 @@ display_name = "ヴァルデン（Valden）"
 job_id = "vanguard"
 origin_note = "境界守の家訓を継ぐ重装の探索者"
 rarity = 4
+passive_id = "valden_iron_oath"
 sprite_resource_path = ""
 portrait_resource_path = "res://assets/gacha/portraits/ART_HELPER_helper_a.png"

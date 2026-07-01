@@ -129,6 +129,8 @@ static func compute_member_stats(member: Resource, party_index: int = -1) -> Dic
 	var job: Dictionary = _JobStatCalculator.get_member_modifiers(member)
 	var level: int = int(member.level)
 	var hp: int = BASE_MEMBER_HP
+	if member.base_stats != null and int(member.base_stats.hp) > 0:
+		hp = int(member.base_stats.hp)
 	if armor != null:
 		hp += int(armor.hp_bonus)
 	if acc_data != null:
@@ -143,6 +145,8 @@ static func compute_member_stats(member: Resource, party_index: int = -1) -> Dic
 		attack += int(acc_data.attack_bonus)
 	attack += int(affix.get("attack_flat", 0))
 	attack += LevelSystem.level_attack_bonus(level)
+	if member.base_stats != null:
+		attack += int(member.base_stats.attack)
 	var atk_mult: float = float(job.get("attack_multiplier", 1.0))
 	if weapon != null:
 		atk_mult *= _JobStatCalculator.get_preferred_weapon_multiplier(
@@ -155,6 +159,8 @@ static func compute_member_stats(member: Resource, party_index: int = -1) -> Dic
 	if acc_data != null:
 		defense += int(acc_data.defense_bonus)
 	defense += int(affix.get("defense_flat", 0))
+	if member.base_stats != null:
+		defense += int(member.base_stats.defense)
 	defense = int(round(float(defense) * float(job.get("defense_multiplier", 1.0))))
 	return {"hp": hp, "attack": attack, "defense": defense}
 

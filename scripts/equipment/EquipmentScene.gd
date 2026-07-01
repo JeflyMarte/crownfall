@@ -710,6 +710,8 @@ func _compute_member_stats(idx: int) -> Dictionary:
 	var job: Dictionary = _JobStatCalculator.get_member_modifiers(member)
 	var level: int = int(member.level) if member != null else 1
 	var hp: int = BASE_MEMBER_HP
+	if member != null and member.base_stats != null and int(member.base_stats.hp) > 0:
+		hp = int(member.base_stats.hp)
 	if armor != null:
 		hp += armor.hp_bonus
 	if acc_data != null:
@@ -724,6 +726,8 @@ func _compute_member_stats(idx: int) -> Dictionary:
 		attack += acc_data.attack_bonus
 	attack += int(affix.get("attack_flat", 0))
 	attack += LevelSystem.level_attack_bonus(level)
+	if member != null and member.base_stats != null:
+		attack += int(member.base_stats.attack)
 	var atk_mult: float = float(job.get("attack_multiplier", 1.0))
 	if weapon != null:
 		atk_mult *= _JobStatCalculator.get_preferred_weapon_multiplier(member, DataRegistry.get_weapon_data(weapon.weapon_id))
@@ -734,6 +738,8 @@ func _compute_member_stats(idx: int) -> Dictionary:
 	if acc_data != null:
 		defense += acc_data.defense_bonus
 	defense += int(affix.get("defense_flat", 0))
+	if member != null and member.base_stats != null:
+		defense += int(member.base_stats.defense)
 	defense = int(round(float(defense) * float(job.get("defense_multiplier", 1.0))))
 	var speed: float = weapon.attack_speed if weapon != null else 1.0
 	var crit: float = (weapon.critical_rate if weapon != null else 0.0)
