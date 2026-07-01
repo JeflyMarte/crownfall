@@ -35,6 +35,24 @@ const _CONDITION_NAMES: Dictionary = {
 	"self_range": "射程が",
 	"ally_injured": "味方負傷",
 }
+const _CONDITION_HINTS: Dictionary = {
+	"always": "常にこの行を優先順で検討する。",
+	"self_hp_below": "自分のHPが指定割合未満（0.30＝30%未満）。",
+	"enemy_is_boss": "ボス部屋の戦闘中のみ成立。",
+	"enemy_is_elite": "エリート部屋の戦闘中のみ成立。",
+	"enemy_count_gte": "生存している敵の数が指定以上。",
+	"ally_dead": "パーティに戦闘不能の味方がいる。",
+	"enemy_has_bleed": "ターゲット敵に出血がある。",
+	"enemy_has_poison": "ターゲット敵に毒がある。",
+	"enemy_has_mark": "ターゲット敵に標的（mark）がある。",
+	"enemy_has_stun": "ターゲット敵がスタン状態。",
+	"enemy_has_vulnerable": "ターゲット敵が脆弱状態。",
+	"enemy_has_armor_break": "ターゲット敵が防御DOWN状態。",
+	"enemy_has_fear": "ターゲット敵が恐怖状態。",
+	"ultimate_ready": "必殺技のCT・CDが整い発動可能。",
+	"self_range": "自分の射程区分（melee/mid/long）が一致。",
+	"ally_injured": "味方に負傷（HP低下）がいる。スキル温存と併用。",
+}
 const _TARGET_NAMES: Dictionary = {
 	"front": "前衛優先", "lowest_hp": "HP最低", "highest_hp": "HP最高",
 	"highest_atk": "攻撃最高", "enemy_with_status": "状態異常優先",
@@ -46,6 +64,9 @@ static func slot_label(slot_id: String) -> String:
 
 static func condition_label(condition_id: String) -> String:
 	return str(_CONDITION_NAMES.get(condition_id, condition_id))
+
+static func condition_hint(condition_id: String) -> String:
+	return str(_CONDITION_HINTS.get(condition_id, ""))
 
 static func target_label(target_id: String) -> String:
 	return str(_TARGET_NAMES.get(target_id, target_id))
