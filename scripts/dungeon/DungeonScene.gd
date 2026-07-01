@@ -151,7 +151,7 @@ var _request_scroll_to_bottom: bool = false
 @onready var _battle_log_scroll: ScrollContainer = $MainVBox/BattleLogPanel/BattleLogScroll
 @onready var _battle_log_content: VBoxContainer = $MainVBox/BattleLogPanel/BattleLogScroll/BattleLogContent
 @onready var _party_status_panel: PanelContainer = $MainVBox/PartyStatusPanel
-@onready var _party_cards_row: HBoxContainer = $MainVBox/PartyStatusPanel/PartyCardsRow
+@onready var _party_cards_row: HBoxContainer = $MainVBox/PartyStatusPanel/PartyStatusVBox/PartyCardsRow
 @onready var _narrative_panel: PanelContainer = $MainVBox/NarrativePanel
 @onready var _label_narrative: Label = $MainVBox/NarrativePanel/LabelNarrative
 @onready var _label_dungeon_name: Label = $MainVBox/HeaderBar/LabelDungeonName
@@ -163,7 +163,7 @@ var _request_scroll_to_bottom: bool = false
 @onready var _label_combat_tier: Label = $MainVBox/BattlefieldArea/CombatTierFrame/LabelCombatTier
 @onready var _label_status_enemy: Label = $MainVBox/BottomZone/LabelStatusEnemy
 @onready var _label_status_party: Label = $MainVBox/BottomZone/LabelStatusParty
-@onready var _auto_combat_row: HBoxContainer = $MainVBox/BottomZone/AutoCombatRow
+@onready var _auto_combat_row: HBoxContainer = $MainVBox/PartyStatusPanel/PartyStatusVBox/AutoCombatRow
 @onready var _non_combat_zone: VBoxContainer = $MainVBox/BottomZone/NonCombatZone
 @onready var _btn_next_room: Button = $MainVBox/BottomZone/NonCombatZone/ButtonNextRoom
 @onready var _btn_finish: Button = $MainVBox/BottomZone/NonCombatZone/ButtonFinish
@@ -188,7 +188,10 @@ const SKILL_LABEL_STACK_GAP: float = 34.0
 var _chr_hp_bars: Array[ProgressBar] = []
 var _party_card_hp_bars: Array[ProgressBar] = []
 var _party_card_hp_labels: Array[Label] = []
-var _party_card_roots: Array[Control] = []
+var _party_card_ct_bars: Array[ProgressBar] = []
+var _party_card_portraits: Array[TextureRect] = []
+var _party_card_roots: Array[PanelContainer] = []
+var _party_card_active_turn: int = -1
 var _status_icon_swarm_rows: Array[HBoxContainer] = []
 var _status_icon_chr_rows: Array[HBoxContainer] = []
 
@@ -209,7 +212,12 @@ const FORMATION_SLOT_POSITIONS: Array[Vector2] = [
 	Vector2(265, 748),  # 3 後衛右
 ]
 const PARTY_CARD_SLOT_COUNT: int = 4
-const PARTY_CARD_ICON_PX: float = 80.0
+const PARTY_CARD_ICON_PX: float = 72.0
+const PARTY_CARD_WEAPON_ICON_PX: float = 24.0
+const PARTY_CARD_HP_HEIGHT: float = 14.0
+const PARTY_CARD_CT_HEIGHT: float = 6.0
+const PARTY_CARD_HP_FILL: Color = Color("#41D16A")
+const PARTY_CARD_CT_FILL: Color = Color("#5B9BD5")
 const PARTY_CARD_EMPTY_MODULATE: Color = Color(0.45, 0.45, 0.5, 0.55)
 const PARTY_CARD_DEAD_MODULATE: Color = Color(0.55, 0.55, 0.55, 0.75)
 const UI_TEXT_PRIMARY: Color = Color(0.98, 0.96, 0.92, 1.0)
@@ -242,7 +250,7 @@ func _ready() -> void:
 	$MainVBox/HeaderBar/ButtonStop.pressed.connect(_on_stop_pressed)
 	_menu_overlay.get_node("MenuVBox/ButtonFinishFromMenu").pressed.connect(_on_menu_finish_pressed)
 	_menu_overlay.get_node("MenuVBox/ButtonCloseMenu").pressed.connect(_on_close_menu_pressed)
-	$MainVBox/BottomZone/AutoCombatRow/ButtonPause.pressed.connect(_on_pause_button_pressed)
+	$MainVBox/PartyStatusPanel/PartyStatusVBox/AutoCombatRow/ButtonPause.pressed.connect(_on_pause_button_pressed)
 	_pause_overlay.get_node("PausePanel/PauseVBox/ButtonPauseResume").pressed.connect(_on_pause_resume_pressed)
 	_pause_overlay.get_node("PausePanel/PauseVBox/ButtonPauseRetire").pressed.connect(_on_pause_retire_pressed)
 	EventBus.weapon_obtained.connect(_on_weapon_obtained)
@@ -269,6 +277,7 @@ func _ready() -> void:
 				_boss_sprite.play("idle")
 	)
 	_style_hp_bars()
+	_style_party_status_panel()
 	var dungeon_id: String = GameState.get_active_dungeon_id()
 	$DungeonController.start_dungeon(dungeon_id)
 	$CombatController.reset_party_hp_for_run()
@@ -3152,7 +3161,7 @@ func _set_paused(paused: bool) -> void:
 		return
 	_is_paused = paused
 	var resume_label: String = "再開" if paused else "一時停止"
-	$MainVBox/BottomZone/AutoCombatRow/ButtonPause.text = resume_label
+	$MainVBox/PartyStatusPanel/PartyStatusVBox/AutoCombatRow/ButtonPause.text = resume_label
 	$MainVBox/HeaderBar/ButtonStop.text = "再開" if paused else "停止"
 	_pause_overlay.visible = paused
 	if paused:
@@ -3456,6 +3465,8 @@ func _rebuild_party_cards() -> void:
 		c.queue_free()
 	_party_card_hp_bars.clear()
 	_party_card_hp_labels.clear()
+	_party_card_ct_bars.clear()
+	_party_card_portraits.clear()
 	_party_card_roots.clear()
 	for slot in PARTY_CARD_SLOT_COUNT:
 		if slot < GameState.combatant_count():
@@ -3467,93 +3478,155 @@ func _rebuild_party_cards() -> void:
 			_party_cards_row.add_child(built["card"])
 			_party_card_hp_bars.append(built["hp_bar"])
 			_party_card_hp_labels.append(built["hp_label"])
+			_party_card_ct_bars.append(built["ct_bar"])
+			_party_card_portraits.append(built["portrait"])
 			_party_card_roots.append(built["card"])
 		else:
 			_party_cards_row.add_child(_make_empty_party_card())
 	_update_party_cards_hp()
 
+func _party_card_short_name(display_name: String) -> String:
+	var paren: int = display_name.find("（")
+	if paren > 0:
+		return display_name.substr(0, paren)
+	paren = display_name.find("(")
+	if paren > 0:
+		return display_name.substr(0, paren)
+	return display_name
+
+func _make_party_card_panel_style(active: bool) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.10, 0.10, 0.13, 0.92)
+	style.border_color = Color(0.90, 0.72, 0.35, 1.0) if active else Color(0.33, 0.29, 0.23, 1.0)
+	style.set_border_width_all(2 if active else 1)
+	style.set_corner_radius_all(6)
+	style.content_margin_left = 6
+	style.content_margin_top = 6
+	style.content_margin_right = 6
+	style.content_margin_bottom = 6
+	return style
+
+func _style_party_status_panel() -> void:
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.06, 0.06, 0.08, 0.55)
+	panel_style.set_corner_radius_all(4)
+	panel_style.content_margin_left = 8
+	panel_style.content_margin_top = 6
+	panel_style.content_margin_right = 8
+	panel_style.content_margin_bottom = 8
+	_party_status_panel.add_theme_stylebox_override("panel", panel_style)
+
+func _style_party_card_ct_bar(bar: ProgressBar) -> void:
+	_style_hp_bar_readable(bar, PARTY_CARD_CT_FILL)
+	bar.custom_minimum_size = Vector2(0, PARTY_CARD_CT_HEIGHT)
+
 func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
-	var card := HBoxContainer.new()
+	var card := PanelContainer.new()
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	card.add_theme_constant_override("separation", 6)
-	var icon := TextureRect.new()
-	icon.custom_minimum_size = Vector2(PARTY_CARD_ICON_PX, PARTY_CARD_ICON_PX)
-	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	card.add_theme_stylebox_override("panel", _make_party_card_panel_style(false))
+	var root := VBoxContainer.new()
+	root.add_theme_constant_override("separation", 4)
+	card.add_child(root)
+	var top_row := HBoxContainer.new()
+	top_row.add_theme_constant_override("separation", 6)
+	root.add_child(top_row)
+	var portrait := TextureRect.new()
+	portrait.custom_minimum_size = Vector2(PARTY_CARD_ICON_PX, PARTY_CARD_ICON_PX)
+	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	portrait.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var tex: Texture2D = _get_chr_icon_texture(member.job_id)
 	if tex != null:
-		icon.texture = tex
-	card.add_child(icon)
-	var info := VBoxContainer.new()
-	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	info.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	info.add_theme_constant_override("separation", 1)
-	var hp_row := HBoxContainer.new()
-	hp_row.add_theme_constant_override("separation", 4)
-	var hp_bar := ProgressBar.new()
-	hp_bar.show_percentage = false
-	hp_bar.custom_minimum_size = Vector2(0, 12)
-	hp_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_style_hp_bar_readable(hp_bar, Color(0.25, 0.82, 0.32))
-	hp_row.add_child(hp_bar)
-	var hp_label := Label.new()
-	hp_label.custom_minimum_size = Vector2(48, 0)
-	hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	hp_label.add_theme_font_size_override("font_size", 13)
-	_style_readable_label(hp_label, UI_TEXT_PRIMARY)
-	hp_row.add_child(hp_label)
-	info.add_child(hp_row)
+		portrait.texture = tex
+	top_row.add_child(portrait)
+	var name_col := VBoxContainer.new()
+	name_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_col.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	name_col.alignment = BoxContainer.ALIGNMENT_CENTER
+	name_col.add_theme_constant_override("separation", 4)
 	var name_label := Label.new()
-	name_label.text = member.display_name
+	name_label.text = _party_card_short_name(member.display_name)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	name_label.clip_text = true
 	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	name_label.add_theme_font_size_override("font_size", 16)
-	_style_readable_label(name_label, UI_TEXT_PRIMARY)
-	info.add_child(name_label)
-	var job_label := Label.new()
-	job_label.text = _get_member_job_display_name(member)
-	job_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	job_label.clip_text = true
-	job_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	job_label.add_theme_font_size_override("font_size", 13)
-	_style_readable_label(job_label, UI_TEXT_SECONDARY)
-	info.add_child(job_label)
-	var weapon_label := Label.new()
-	var wname: String = _get_equipped_weapon_display_name(combat_index)
-	weapon_label.text = wname if not wname.is_empty() else "素手"
-	weapon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	weapon_label.clip_text = true
-	weapon_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	weapon_label.add_theme_font_size_override("font_size", 13)
-	_style_readable_label(weapon_label, UI_TEXT_WEAPON)
-	info.add_child(weapon_label)
-	card.add_child(info)
-	return {"card": card, "hp_bar": hp_bar, "hp_label": hp_label}
+	_style_readable_label(name_label, _party_log_color(member), 4)
+	name_col.add_child(name_label)
+	var weapon_icon := TextureRect.new()
+	weapon_icon.custom_minimum_size = Vector2(PARTY_CARD_WEAPON_ICON_PX, PARTY_CARD_WEAPON_ICON_PX)
+	weapon_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	weapon_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	var weapon: Resource = GameState.get_member_equipped_weapon(combat_index)
+	if weapon != null and not weapon.weapon_id.is_empty():
+		var weapon_tex: Texture2D = IconPaths.get_icon_texture(weapon.weapon_id, "weapon")
+		if weapon_tex != null:
+			weapon_icon.texture = weapon_tex
+	name_col.add_child(weapon_icon)
+	top_row.add_child(name_col)
+	var hp_row := HBoxContainer.new()
+	hp_row.add_theme_constant_override("separation", 4)
+	root.add_child(hp_row)
+	var hp_bar := ProgressBar.new()
+	hp_bar.show_percentage = false
+	hp_bar.custom_minimum_size = Vector2(0, PARTY_CARD_HP_HEIGHT)
+	hp_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hp_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_style_hp_bar_readable(hp_bar, PARTY_CARD_HP_FILL)
+	hp_row.add_child(hp_bar)
+	var hp_label := Label.new()
+	hp_label.custom_minimum_size = Vector2(56, 0)
+	hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	hp_label.add_theme_font_size_override("font_size", 12)
+	_style_readable_label(hp_label, UI_TEXT_PRIMARY, 3)
+	hp_row.add_child(hp_label)
+	var ct_bar := ProgressBar.new()
+	ct_bar.show_percentage = false
+	ct_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_style_party_card_ct_bar(ct_bar)
+	root.add_child(ct_bar)
+	return {
+		"card": card,
+		"hp_bar": hp_bar,
+		"hp_label": hp_label,
+		"ct_bar": ct_bar,
+		"portrait": portrait,
+	}
 
 func _make_empty_party_card() -> Control:
-	var card := HBoxContainer.new()
+	var card := PanelContainer.new()
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	card.modulate = PARTY_CARD_EMPTY_MODULATE
-	card.add_theme_constant_override("separation", 6)
+	card.add_theme_stylebox_override("panel", _make_party_card_panel_style(false))
+	var root := VBoxContainer.new()
+	root.add_theme_constant_override("separation", 4)
+	card.add_child(root)
+	var top_row := HBoxContainer.new()
+	top_row.add_theme_constant_override("separation", 6)
+	root.add_child(top_row)
 	var icon := TextureRect.new()
 	icon.custom_minimum_size = Vector2(PARTY_CARD_ICON_PX, PARTY_CARD_ICON_PX)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	card.add_child(icon)
+	top_row.add_child(icon)
 	var info := VBoxContainer.new()
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	info.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	info.add_theme_constant_override("separation", 1)
-	for line in ["—", "—", "—", "—"]:
+	info.add_theme_constant_override("separation", 2)
+	for line in ["—", "—"]:
 		var label := Label.new()
 		label.text = line
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		label.add_theme_font_size_override("font_size", 13)
 		label.add_theme_color_override("font_color", Color(0.55, 0.54, 0.5, 0.8))
 		info.add_child(label)
-	card.add_child(info)
+	top_row.add_child(info)
+	var hp_bar := ProgressBar.new()
+	hp_bar.show_percentage = false
+	hp_bar.custom_minimum_size = Vector2(0, PARTY_CARD_HP_HEIGHT)
+	_style_hp_bar_readable(hp_bar, PARTY_CARD_HP_FILL)
+	root.add_child(hp_bar)
+	var ct_bar := ProgressBar.new()
+	ct_bar.show_percentage = false
+	_style_party_card_ct_bar(ct_bar)
+	root.add_child(ct_bar)
 	return card
 
 func _get_member_job_display_name(member: Resource) -> String:
@@ -3620,6 +3693,8 @@ func _update_turn_order_ui(order: Array) -> void:
 	_turn_order_items.clear()
 	if not $DungeonController.is_combat_room() or order.is_empty():
 		_turn_order_row.visible = false
+		_party_card_active_turn = -1
+		_update_party_cards_hp()
 		return
 	var cell: float = _turn_order_cell_size()
 	for entry: Dictionary in order:
@@ -3654,6 +3729,10 @@ func _update_turn_order_ui(order: Array) -> void:
 	var n: int = order.size()
 	var total_w: float = float(n) * cell + float(maxi(0, n - 1)) * TURN_ORDER_GAP
 	_turn_order_row.position = Vector2(TURN_ORDER_CENTER_X - total_w * 0.5, TURN_ORDER_Y)
+	_party_card_active_turn = -1
+	if not order.is_empty() and order[0].get("kind", "") == "party":
+		_party_card_active_turn = int(order[0].get("index", -1))
+	_update_party_cards_hp()
 
 # 次に行動するユニットの枠を強調する。
 func _set_turn_order_active(entry: Dictionary) -> void:
@@ -3672,20 +3751,30 @@ func _clear_turn_order_ui() -> void:
 		c.queue_free()
 	_turn_order_items.clear()
 	_turn_order_row.visible = false
+	_party_card_active_turn = -1
+	_update_party_cards_hp()
 
 func _update_party_cards_hp() -> void:
 	for i in _party_card_hp_bars.size():
 		if i >= $CombatController.party_max_hp.size() or i >= $CombatController.party_combat_hp.size():
 			continue
-		var bar: ProgressBar = _party_card_hp_bars[i]
-		bar.max_value = $CombatController.party_max_hp[i]
-		bar.value = $CombatController.party_combat_hp[i]
+		var alive: bool = $CombatController.is_member_alive(i)
+		var hp_bar: ProgressBar = _party_card_hp_bars[i]
+		hp_bar.max_value = $CombatController.party_max_hp[i]
+		hp_bar.value = $CombatController.party_combat_hp[i] if alive else 0
 		_party_card_hp_labels[i].text = "%d/%d" % [
-			$CombatController.party_combat_hp[i], $CombatController.party_max_hp[i]
+			$CombatController.party_combat_hp[i], $CombatController.party_max_hp[i],
 		]
+		if i < _party_card_ct_bars.size():
+			var ct_bar: ProgressBar = _party_card_ct_bars[i]
+			ct_bar.max_value = 1.0
+			ct_bar.value = $CombatController.get_unit_ct_readiness("party", i) if alive else 0.0
+		if i < _party_card_portraits.size():
+			_party_card_portraits[i].modulate = Color.WHITE if alive else Color(0.55, 0.55, 0.55, 0.65)
 		if i < _party_card_roots.size():
-			var card: Control = _party_card_roots[i]
-			card.modulate = Color.WHITE if $CombatController.is_member_alive(i) else PARTY_CARD_DEAD_MODULATE
+			var card: PanelContainer = _party_card_roots[i]
+			card.modulate = Color.WHITE if alive else PARTY_CARD_DEAD_MODULATE
+			card.add_theme_stylebox_override("panel", _make_party_card_panel_style(i == _party_card_active_turn and alive))
 
 func _normalize_chr_scale(sprite: AnimatedSprite2D, frames: SpriteFrames) -> void:
 	# 実体（α非透明領域）のバウンディングボックスを CHR_BODY_TARGET_PX に揃える。

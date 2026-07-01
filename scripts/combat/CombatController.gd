@@ -930,6 +930,17 @@ func get_ct_order() -> Array[Dictionary]:
 		return a["index"] < b["index"])
 	return entries
 
+# 行動準備度（1=次に動きやすい / 0=行動直後）。パーティカード CT バー用。
+func get_unit_ct_readiness(kind: String, index: int) -> float:
+	_sync_ct_units()
+	var key: String = _ct_unit_key(kind, index)
+	if not unit_ct.has(key):
+		return 0.0
+	var full: float = get_unit_action_ct(kind, index)
+	if full <= _CT_EPSILON:
+		return 1.0
+	return clampf(1.0 - float(unit_ct[key]) / full, 0.0, 1.0)
+
 # ── 詠唱 / Action Lock（P3-D112）──
 
 func _cast_unit_key(kind: String, index: int) -> String:
