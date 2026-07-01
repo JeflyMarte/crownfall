@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-01（**Combat Polish バンドル**: 基本5人固有名・★3固定・キャラ固有パッシブ・職別必殺・敵スキル・スキル名頭上表示・回復/バフVFX・必殺派手演出。`6696ac7` smoke PASS）
+
 2026-07-01（**P3-D145 敵別Threatターゲット**: `threat_target_bias`・遠隔/ネズミ偏重。headless smoke PASS）
 
 2026-07-01（**P3-D151 罠部屋 MVP**: `RoomType.TRAP`・解除ロール連携・抽選8%・全滅対応。headless smoke PASS）
