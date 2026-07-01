@@ -171,6 +171,9 @@ const PARTY_CARD_SLOT_COUNT: int = 4
 const PARTY_CARD_ICON_PX: float = 80.0
 const PARTY_CARD_EMPTY_MODULATE: Color = Color(0.45, 0.45, 0.5, 0.55)
 const PARTY_CARD_DEAD_MODULATE: Color = Color(0.55, 0.55, 0.55, 0.75)
+const UI_TEXT_PRIMARY: Color = Color(0.98, 0.96, 0.92, 1.0)
+const UI_TEXT_SECONDARY: Color = Color(0.92, 0.90, 0.84, 1.0)
+const UI_TEXT_WEAPON: Color = Color(0.95, 0.91, 0.82, 1.0)
 const CHR_HP_BAR_FRONT_Y_OFFSET: float = 50.0
 const CHR_HP_BAR_BACK_Y_OFFSET: float = -50.0
 const CHR_HP_BAR_GAP_ABOVE_SPRITE: float = 12.0
@@ -316,8 +319,10 @@ func _append_log(text: String) -> void:
 		if line.is_empty():
 			continue
 		var entry := Label.new()
-		entry.text = "[%s] %s" % [_log_timestamp(), line]
+		entry.text = line
 		entry.add_theme_color_override("font_color", _log_color(line))
+		entry.add_theme_constant_override("outline_size", 2)
+		entry.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 		entry.add_theme_font_size_override("font_size", 24)
 		entry.autowrap_mode = TextServer.AUTOWRAP_WORD
 		entry.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -330,9 +335,6 @@ func _append_log(text: String) -> void:
 		oldest.queue_free()
 	_request_scroll_to_bottom = true
 
-func _log_timestamp() -> String:
-	return Time.get_time_string_from_system()
-
 func _log_color(line: String) -> Color:
 	if "CRITICAL" in line:
 		return Color(1.0, 0.9, 0.2)
@@ -343,13 +345,29 @@ func _log_color(line: String) -> Color:
 	return Color.WHITE
 
 func _style_hp_bars() -> void:
-	var chr_style := StyleBoxFlat.new()
-	chr_style.bg_color = Color(0.2, 0.8, 0.2)
-	var enemy_style := StyleBoxFlat.new()
-	enemy_style.bg_color = Color(0.8, 0.2, 0.2)
+	_style_hp_bar_readable(_hp_bar_enemy, Color(0.85, 0.25, 0.25))
 	for bar: ProgressBar in _chr_hp_bars:
-		bar.add_theme_stylebox_override("fill", chr_style)
-	_hp_bar_enemy.add_theme_stylebox_override("fill", enemy_style)
+		_style_hp_bar_readable(bar, Color(0.25, 0.82, 0.32))
+	_style_enemy_nameplate(_enemy_nameplate)
+
+func _style_hp_bar_readable(bar: ProgressBar, fill_color: Color) -> void:
+	var fill_style := StyleBoxFlat.new()
+	fill_style.bg_color = fill_color
+	bar.add_theme_stylebox_override("fill", fill_style)
+	var bg_style := StyleBoxFlat.new()
+	bg_style.bg_color = Color(0.06, 0.06, 0.08, 0.9)
+	bg_style.set_border_width_all(1)
+	bg_style.border_color = Color(0, 0, 0, 0.95)
+	bg_style.set_corner_radius_all(2)
+	bar.add_theme_stylebox_override("background", bg_style)
+
+func _style_readable_label(label: Label, color: Color, outline_size: int = 3) -> void:
+	label.add_theme_color_override("font_color", color)
+	label.add_theme_constant_override("outline_size", outline_size)
+	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.95))
+
+func _style_enemy_nameplate(label: Label) -> void:
+	_style_readable_label(label, Color(1.0, 0.97, 0.88, 1.0), 5)
 
 func _update_hp_bars() -> void:
 	var in_combat: bool = $CombatController.is_in_combat
@@ -428,7 +446,7 @@ func _sprite_top_y(sprite: AnimatedSprite2D) -> float:
 # 小型敵は従来位置を下限に維持し、大型(ボス)時のみ上方向へ押し上げる。
 func _position_enemy_overlays(sprite: AnimatedSprite2D) -> void:
 	const BAR_HALF_W: float = 40.0
-	const BAR_HEIGHT: float = 8.0
+	const BAR_HEIGHT: float = 10.0
 	const NAME_HALF_W: float = 120.0
 	const NAME_HEIGHT: float = 30.0
 	const GAP_ABOVE_SPRITE: float = 12.0
@@ -3057,8 +3075,10 @@ func _ensure_swarm_slots(n: int) -> void:
 					spr_ref.play("idle"))
 		var bar: ProgressBar = _hp_bar_enemy.duplicate()
 		add_child(bar)
+		_style_hp_bar_readable(bar, Color(0.85, 0.25, 0.25))
 		var np: Label = _enemy_nameplate.duplicate()
 		add_child(np)
+		_style_enemy_nameplate(np)
 		_swarm_sprites.append(spr)
 		_swarm_hp_bars.append(bar)
 		_swarm_nameplates.append(np)
@@ -3090,6 +3110,7 @@ func _show_enemy_swarm(enemy_ids: Array) -> void:
 	var name_fs: int = 15 if n > 1 else 22
 	var start_x: float = SWARM_BASE_X - float(n - 1) * SWARM_SPACING * 0.5
 	for i in n:
+		_style_enemy_nameplate(_swarm_nameplates[i])
 		_swarm_nameplates[i].add_theme_font_size_override("font_size", name_fs)
 		var spr: AnimatedSprite2D = _swarm_sprites[i]
 		var id: String = str(enemy_ids[i])
@@ -3117,7 +3138,7 @@ func _position_swarm_overlay(slot: int) -> void:
 	var bar: ProgressBar = _swarm_hp_bars[slot]
 	var np: Label = _swarm_nameplates[slot]
 	const BAR_HALF_W: float = 36.0
-	const BAR_HEIGHT: float = 8.0
+	const BAR_HEIGHT: float = 10.0
 	const NAME_HALF_W: float = 66.0
 	const NAME_HEIGHT: float = 24.0
 	const GAP_ABOVE_SPRITE: float = 12.0
@@ -3263,16 +3284,15 @@ func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
 	hp_row.add_theme_constant_override("separation", 4)
 	var hp_bar := ProgressBar.new()
 	hp_bar.show_percentage = false
-	hp_bar.custom_minimum_size = Vector2(0, 10)
+	hp_bar.custom_minimum_size = Vector2(0, 12)
 	hp_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var hp_style := StyleBoxFlat.new()
-	hp_style.bg_color = Color(0.2, 0.8, 0.2)
-	hp_bar.add_theme_stylebox_override("fill", hp_style)
+	_style_hp_bar_readable(hp_bar, Color(0.25, 0.82, 0.32))
 	hp_row.add_child(hp_bar)
 	var hp_label := Label.new()
 	hp_label.custom_minimum_size = Vector2(48, 0)
 	hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	hp_label.add_theme_font_size_override("font_size", 12)
+	hp_label.add_theme_font_size_override("font_size", 13)
+	_style_readable_label(hp_label, UI_TEXT_PRIMARY)
 	hp_row.add_child(hp_label)
 	info.add_child(hp_row)
 	var name_label := Label.new()
@@ -3280,7 +3300,8 @@ func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	name_label.clip_text = true
 	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	name_label.add_theme_font_size_override("font_size", 15)
+	name_label.add_theme_font_size_override("font_size", 16)
+	_style_readable_label(name_label, UI_TEXT_PRIMARY)
 	info.add_child(name_label)
 	var job_label := Label.new()
 	job_label.text = _get_member_job_display_name(member)
@@ -3288,7 +3309,7 @@ func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
 	job_label.clip_text = true
 	job_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	job_label.add_theme_font_size_override("font_size", 13)
-	job_label.add_theme_color_override("font_color", Color(0.78, 0.76, 0.7))
+	_style_readable_label(job_label, UI_TEXT_SECONDARY)
 	info.add_child(job_label)
 	var weapon_label := Label.new()
 	var wname: String = _get_equipped_weapon_display_name(combat_index)
@@ -3297,7 +3318,7 @@ func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
 	weapon_label.clip_text = true
 	weapon_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	weapon_label.add_theme_font_size_override("font_size", 13)
-	weapon_label.add_theme_color_override("font_color", Color(0.83, 0.79, 0.72))
+	_style_readable_label(weapon_label, UI_TEXT_WEAPON)
 	info.add_child(weapon_label)
 	card.add_child(info)
 	return {"card": card, "hp_bar": hp_bar, "hp_label": hp_label}
