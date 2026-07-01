@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DailyMissionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DailyMissionData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "daily_clear_run"
+title = "調査完走"
+description = "ダンジョンを1回クリアする"
+objective_type = "dungeon_clear"
+target_count = 1
+target_param = ""
+reward_gold = 80
+reward_gacha_token = 0
+reward_material_id = ""
+reward_material_qty = 0

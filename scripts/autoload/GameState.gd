@@ -57,6 +57,9 @@ var run_material_start: Dictionary = {}
 var last_run_material_gains: Dictionary = {}
 var last_run_weather: String = ""
 
+# ギルド日課（P3-DAILY）— SaveManager が永続化。
+var daily_mission_state: Dictionary = {}
+
 func begin_run_material_tracking() -> void:
 	run_material_start = material_inventory.duplicate()
 	last_run_material_gains = {}

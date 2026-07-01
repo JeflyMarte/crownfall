@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DailyMissionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DailyMissionData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "daily_craft_item"
+title = "装備作成"
+description = "赤鉄の工房で装備を1つ作成する"
+objective_type = "craft_item"
+target_count = 1
+target_param = ""
+reward_gold = 0
+reward_gacha_token = 1
+reward_material_id = ""
+reward_material_qty = 0

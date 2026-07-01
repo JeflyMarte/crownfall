@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DailyMissionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DailyMissionData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "daily_combat_win"
+title = "戦闘勝利"
+description = "戦闘に3回勝利する"
+objective_type = "combat_win"
+target_count = 3
+target_param = ""
+reward_gold = 0
+reward_gacha_token = 0
+reward_material_id = "relic_shard"
+reward_material_qty = 2

@@ -2471,6 +2471,7 @@ func _finalize_combat_cleared() -> void:
 	$CombatController.end_combat()
 	_update_status_labels()
 	_clear_turn_order_ui()
+	DailyMissionSystem.report_progress("combat_win")
 	_append_log("累計  EXP %d  Gold %d" % [
 		$DungeonController.run_exp_reward,
 		$DungeonController.run_gold_reward,
@@ -3109,6 +3110,7 @@ func _on_finish_button_pressed() -> void:
 	if not $DungeonController.last_accessory_dropped.is_empty():
 		GameState.last_run_accessory_dropped = $DungeonController.last_accessory_dropped
 	GameState.mark_dungeon_cleared(GameState.get_active_dungeon_id())
+	DailyMissionSystem.report_progress("dungeon_clear", GameState.get_active_dungeon_id())
 	GameState.last_run_outcome = GameState.RUN_OUTCOME_CLEAR
 	GameState.snapshot_last_run_context()
 	GameState.clear_event_helper()

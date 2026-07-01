@@ -92,6 +92,10 @@ const MENU_ENTRIES: Array[Dictionary] = [
 @onready var _nav_party: Button = $BottomNav/NavRow/NavParty
 @onready var _nav_codex: Button = $BottomNav/NavRow/NavCodex
 @onready var _nav_shop: Button = $BottomNav/NavRow/NavShop
+@onready var _daily_panel: PanelContainer = $DailyMissionPanel
+@onready var _label_daily_reset: Label = $DailyMissionPanel/DailyVBox/LabelDailyReset
+@onready var _mission_list: VBoxContainer = $DailyMissionPanel/DailyVBox/MissionList
+@onready var _label_daily_title: Label = $DailyMissionPanel/DailyVBox/LabelDailyTitle
 
 func _ready() -> void:
 	_decorate_panels()
@@ -104,8 +108,12 @@ func _ready() -> void:
 	_nav_codex.pressed.connect(_on_codex_button_pressed)
 	_nav_shop.pressed.connect(_on_gacha_button_pressed)
 	_material_chip.gui_input.connect(_on_material_chip_gui_input)
+	DailyMissionSystem.missions_updated.connect(_refresh_daily_missions)
+	$ResetTimer.timeout.connect(_update_daily_reset_label)
 	_ensure_valid_dungeon_selection()
+	DailyMissionSystem.ensure_refreshed()
 	_update_display()
+	_refresh_daily_missions()
 
 func _decorate_panels() -> void:
 	_title_panel.add_theme_stylebox_override(
@@ -118,6 +126,9 @@ func _decorate_panels() -> void:
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
 	)
 	$LeftMenuPanel.add_theme_stylebox_override(
+		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
+	)
+	_daily_panel.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
 	)
 
@@ -330,6 +341,71 @@ func _on_material_chip_gui_input(event: InputEvent) -> void:
 
 func _on_home_nav_pressed() -> void:
 	_update_display()
+	_refresh_daily_missions()
+
+func _refresh_daily_missions() -> void:
+	_update_daily_reset_label()
+	_label_daily_title.text = "ギルド日課 ●" if DailyMissionSystem.has_claimable() else "ギルド日課"
+	for child in _mission_list.get_children():
+		child.queue_free()
+	var entries: Array[Dictionary] = DailyMissionSystem.get_entries()
+	for i in entries.size():
+		_mission_list.add_child(_make_daily_row(i, entries[i]))
+
+func _update_daily_reset_label() -> void:
+	_label_daily_reset.text = "リセットまで %s" % DailyMissionSystem.reset_countdown_text()
+
+func _make_daily_row(index: int, entry: Dictionary) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 4)
+	var mark := Label.new()
+	var claimed: bool = bool(entry.get("claimed", false))
+	var complete: bool = bool(entry.get("complete", false))
+	if claimed:
+		mark.text = "✓"
+		mark.add_theme_color_override("font_color", Color(0.55, 0.88, 0.5))
+	elif complete:
+		mark.text = "◆"
+		mark.add_theme_color_override("font_color", COLOR_GOLD)
+	else:
+		mark.text = "□"
+		mark.add_theme_color_override("font_color", COLOR_SUB)
+	mark.custom_minimum_size = Vector2(14, 0)
+	mark.add_theme_font_size_override("font_size", 12)
+	row.add_child(mark)
+	var info := Label.new()
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.text = "%s  %d/%d" % [
+		str(entry.get("title", "")),
+		int(entry.get("progress", 0)),
+		int(entry.get("target_count", 1)),
+	]
+	info.add_theme_font_size_override("font_size", 11)
+	info.add_theme_color_override("font_color", COLOR_GOLD if complete else COLOR_SUB)
+	row.add_child(info)
+	var btn := Button.new()
+	btn.custom_minimum_size = Vector2(44, 22)
+	btn.add_theme_font_size_override("font_size", 10)
+	if claimed:
+		btn.text = "済"
+		btn.disabled = true
+	elif bool(entry.get("can_claim", false)):
+		btn.text = "受取"
+		btn.pressed.connect(_on_daily_claim_pressed.bind(index))
+	else:
+		btn.text = "—"
+		btn.disabled = true
+	row.add_child(btn)
+	return row
+
+func _on_daily_claim_pressed(index: int) -> void:
+	var result: Dictionary = DailyMissionSystem.claim(index)
+	if not bool(result.get("ok", false)):
+		return
+	SaveManager.save_game()
+	_update_currency()
+	_update_materials()
+	_refresh_daily_missions()
 
 func _on_dungeon_button_pressed() -> void:
 	SceneRouter.change_scene(DUNGEON_SELECT_SCENE)
