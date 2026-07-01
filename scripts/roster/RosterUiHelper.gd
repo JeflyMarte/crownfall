@@ -21,6 +21,56 @@ const ROLE_GLYPHS: Dictionary = {
 	"support": "✚",
 }
 
+const ROLE_FILTER_LABELS: Dictionary = {
+	"all": "全職",
+	"tank": "タンク",
+	"dps": "アタッカー",
+	"scout": "斥候",
+	"support": "サポート",
+}
+
+static func leader_skill_display(member: Resource) -> Dictionary:
+	if member == null:
+		return {"name": "—", "description": "リーダーを編成してください。"}
+	var passives: Array = CombatPassives.for_member(member)
+	if passives.is_empty():
+		return {"name": "—", "description": "リーダー効果はありません。"}
+	var def: Dictionary = passives[0]
+	return {
+		"name": str(def.get("display_name", "—")),
+		"description": passive_description(def),
+	}
+
+static func passive_description(def: Dictionary) -> String:
+	var effect: String = str(def.get("effect", ""))
+	var target: String = str(def.get("target", "self"))
+	match effect:
+		"heal":
+			return "味方が倒れたとき、パーティを回復する。"
+		"apply_status":
+			var status_id: String = str(def.get("status_id", ""))
+			var status_name: String = _status_label(status_id)
+			if target == "party":
+				return "味方が倒れたとき、パーティに%sを付与する。" % status_name
+			if str(def.get("trigger", "")) == "on_combat_start":
+				return "戦闘開始時、自身に%sを付与する。" % status_name
+			if str(def.get("condition", "")) == "self_hp_below":
+				return "HPが低下したとき、自身に%sを付与する。" % status_name
+			return "条件を満たすと%sを付与する。" % status_name
+	return "編成時に発動するリーダー特性（表示のみ）。"
+
+static func _status_label(status_id: String) -> String:
+	match status_id:
+		"empower":
+			return "鼓舞"
+		"guard":
+			return "防御"
+		_:
+			return status_id
+
+static func stat_line(label: String, value: int) -> String:
+	return "%s %d" % [label, value]
+
 static func short_display_name(full_name: String) -> String:
 	var text: String = str(full_name)
 	var idx: int = text.find("（")

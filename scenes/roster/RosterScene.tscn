@@ -216,6 +216,10 @@ text = "キャラクター一覧"
 layout_mode = 2
 text = "レアリティ順"
 
+[node name="ButtonRoleFilter" type="Button" parent="MainScroll/MainVBox/ListHeader"]
+layout_mode = 2
+text = "全職"
+
 [node name="RosterGrid" type="GridContainer" parent="MainScroll/MainVBox"]
 layout_mode = 2
 theme_override_constants/h_separation = 8

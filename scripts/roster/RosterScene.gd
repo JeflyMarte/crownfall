@@ -22,19 +22,21 @@ const _FRONT_JOB_IDS: Array[String] = ["swordsman", "vanguard"]
 const _RECOMMENDED_JOB_ORDER: Array[String] = [
 	"vanguard", "swordsman", "ranger", "alchemist", "beast_tamer",
 ]
+const _ROLE_FILTER_ORDER: Array[String] = ["all", "tank", "dps", "scout", "support"]
 
 var _selected: Array = []
 var _formation_slots: Array = [null, null, null, null]
 var _formation_pick_slot: int = -1
 var _active_pick_slot: int = -1
 var _sort_by_rarity: bool = true
+var _role_filter_index: int = 0
 var _formation_cells: Array[PanelContainer] = []
 
 @onready var _label_gold: Label = $Header/HeaderRow/GoldChip/GoldRow/LabelGold
 @onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
 @onready var _label_power: Label = $MainScroll/MainVBox/PowerRow/LabelPower
 @onready var _active_party_row: HBoxContainer = $MainScroll/MainVBox/ActivePartyScroll/ActivePartyRow
-@onready var _leader_label: Label = $MainScroll/MainVBox/LeaderStrip/LeaderLabel
+@onready var _leader_strip: PanelContainer = $MainScroll/MainVBox/LeaderStrip
 @onready var _roster_grid: GridContainer = $MainScroll/MainVBox/RosterGrid
 @onready var _label_status: Label = $MainScroll/MainVBox/LabelStatus
 @onready var _formation_overlay: CanvasLayer = $FormationOverlay
@@ -46,6 +48,7 @@ func _ready() -> void:
 	$MainScroll/MainVBox/PowerRow/ButtonRecommend.pressed.connect(_on_recommend_pressed)
 	$MainScroll/MainVBox/PowerRow/ButtonFormation.pressed.connect(_open_formation_overlay)
 	$MainScroll/MainVBox/ListHeader/ButtonSort.pressed.connect(_on_sort_pressed)
+	$MainScroll/MainVBox/ListHeader/ButtonRoleFilter.pressed.connect(_on_role_filter_pressed)
 	$FooterRow/ButtonReset.pressed.connect(_on_reset_pressed)
 	$FooterRow/ButtonSave.pressed.connect(_on_save_pressed)
 	$BottomNav/NavRow/NavHome.pressed.connect(_go_home)
@@ -65,8 +68,17 @@ func _ready() -> void:
 	)
 	_selected = GameState.party_members.duplicate()
 	_init_formation_slots_from_party()
+	_apply_panel_styles()
 	_build_formation_grid()
 	_refresh_all()
+
+func _apply_panel_styles() -> void:
+	_leader_strip.add_theme_stylebox_override(
+		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
+	)
+	$FormationOverlay/FormationPanel.add_theme_stylebox_override(
+		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_NORMAL)
+	)
 
 func _refresh_all() -> void:
 	_update_currency()
@@ -200,8 +212,10 @@ func _make_active_party_card(slot_index: int) -> Control:
 	vbox.add_child(role_lbl)
 	var stats: Dictionary = RosterUiHelper.compute_member_stats(member, _party_index_for_member(member))
 	var stat_lbl := Label.new()
-	stat_lbl.text = "攻撃 %d\n防御 %d\nHP %d" % [
-		int(stats.get("attack", 0)), int(stats.get("defense", 0)), int(stats.get("hp", 0)),
+	stat_lbl.text = "%s\n%s\n%s" % [
+		RosterUiHelper.stat_line("攻撃力", int(stats.get("attack", 0))),
+		RosterUiHelper.stat_line("防御力", int(stats.get("defense", 0))),
+		RosterUiHelper.stat_line("HP", int(stats.get("hp", 0))),
 	]
 	stat_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	stat_lbl.add_theme_font_size_override("font_size", 11)
@@ -263,23 +277,86 @@ func _on_detail_pressed(member: Resource) -> void:
 	SceneRouter.change_scene(EQUIPMENT_SCENE)
 
 func _refresh_leader_strip() -> void:
+	for child in _leader_strip.get_children():
+		child.queue_free()
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	_leader_strip.add_child(row)
+	var crown := Label.new()
+	crown.text = "♛"
+	crown.add_theme_font_size_override("font_size", 28)
+	crown.add_theme_color_override("font_color", COLOR_GOLD)
+	crown.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(crown)
+	var info := VBoxContainer.new()
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.add_theme_constant_override("separation", 2)
+	row.add_child(info)
 	var leader: Resource = _formation_slots[0]
 	if leader == null:
-		_leader_label.text = "リーダー: —"
+		var empty_title := Label.new()
+		empty_title.text = "リーダー未設定"
+		empty_title.add_theme_font_size_override("font_size", 14)
+		empty_title.add_theme_color_override("font_color", COLOR_GOLD)
+		info.add_child(empty_title)
+		var empty_desc := Label.new()
+		empty_desc.text = "編成の先頭スロットにキャラを配置してください。"
+		empty_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		empty_desc.add_theme_font_size_override("font_size", 12)
+		empty_desc.add_theme_color_override("font_color", COLOR_SUB)
+		info.add_child(empty_desc)
 		return
-	var mods: Dictionary = JobStatCalculator.get_member_modifiers(leader)
-	var job_name: String = str(mods.get("display_name", leader.job_id))
-	_leader_label.text = "リーダー: %s — %s" % [
-		RosterUiHelper.short_display_name(str(leader.display_name)), job_name,
+	var skill: Dictionary = RosterUiHelper.leader_skill_display(leader)
+	var title := Label.new()
+	title.text = "%s — %s" % [
+		RosterUiHelper.short_display_name(str(leader.display_name)),
+		str(skill.get("name", "—")),
 	]
+	title.add_theme_font_size_override("font_size", 14)
+	title.add_theme_color_override("font_color", COLOR_GOLD)
+	info.add_child(title)
+	var desc := Label.new()
+	desc.text = str(skill.get("description", ""))
+	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc.add_theme_font_size_override("font_size", 12)
+	desc.add_theme_color_override("font_color", COLOR_SUB)
+	info.add_child(desc)
+	var hint := Label.new()
+	hint.text = "※戦闘効果はパッシブとして既存配線。先頭スロット入替でリーダー変更。"
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.add_theme_font_size_override("font_size", 10)
+	hint.add_theme_color_override("font_color", Color(0.5, 0.48, 0.42))
+	info.add_child(hint)
 
 func _rebuild_roster_grid() -> void:
 	for child in _roster_grid.get_children():
 		child.queue_free()
 	var roster: Array = GameState.get_roster().duplicate()
+	roster = roster.filter(func(adv: Resource) -> bool: return _passes_role_filter(adv))
 	roster.sort_custom(func(a: Resource, b: Resource) -> bool: return _sort_roster_cmp(a, b))
 	for adv in roster:
 		_roster_grid.add_child(_make_roster_grid_card(adv))
+	if roster.is_empty():
+		var empty := Label.new()
+		empty.text = "該当キャラがいません"
+		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		empty.add_theme_color_override("font_color", COLOR_SUB)
+		_roster_grid.add_child(empty)
+
+func _passes_role_filter(adv: Resource) -> bool:
+	var filter_id: String = _ROLE_FILTER_ORDER[_role_filter_index]
+	if filter_id == "all":
+		return true
+	var mods: Dictionary = JobStatCalculator.get_member_modifiers(adv)
+	return str(mods.get("role", "")) == filter_id
+
+func _on_role_filter_pressed() -> void:
+	_role_filter_index = (_role_filter_index + 1) % _ROLE_FILTER_ORDER.size()
+	var filter_id: String = _ROLE_FILTER_ORDER[_role_filter_index]
+	$MainScroll/MainVBox/ListHeader/ButtonRoleFilter.text = str(
+		RosterUiHelper.ROLE_FILTER_LABELS.get(filter_id, filter_id)
+	)
+	_rebuild_roster_grid()
 
 func _sort_roster_cmp(a: Resource, b: Resource) -> bool:
 	if _sort_by_rarity:
@@ -296,13 +373,18 @@ func _sort_roster_cmp(a: Resource, b: Resource) -> bool:
 
 func _make_roster_grid_card(adv: Resource) -> Control:
 	var in_party: bool = _selected.has(adv)
+	var wrapper := PanelContainer.new()
+	wrapper.custom_minimum_size = Vector2(78, 118)
+	wrapper.add_theme_stylebox_override("panel", RosterUiHelper.card_panel_style(in_party, false))
 	var btn := Button.new()
-	btn.toggle_mode = false
-	btn.custom_minimum_size = Vector2(78, 108)
-	btn.add_theme_stylebox_override("normal", RosterUiHelper.card_panel_style(in_party, false))
-	btn.add_theme_stylebox_override("hover", RosterUiHelper.card_panel_style(in_party, false))
-	btn.add_theme_stylebox_override("pressed", RosterUiHelper.card_panel_style(true, false))
+	btn.flat = true
+	btn.set_anchors_preset(Control.PRESET_FULL_RECT)
+	btn.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
+	btn.add_theme_stylebox_override("hover", StyleBoxEmpty.new())
+	btn.add_theme_stylebox_override("pressed", StyleBoxEmpty.new())
+	btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	btn.pressed.connect(_toggle_selection.bind(adv))
+	wrapper.add_child(btn)
 	var vbox := VBoxContainer.new()
 	vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -317,27 +399,46 @@ func _make_roster_grid_card(adv: Resource) -> Control:
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		if in_party:
-			icon.modulate = Color(1, 1, 1, 0.72)
+			icon.modulate = Color(1, 1, 1, 0.78)
 		vbox.add_child(icon)
+	var name_lbl := Label.new()
+	name_lbl.text = RosterUiHelper.short_display_name(str(adv.display_name))
+	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_lbl.add_theme_font_size_override("font_size", 10)
+	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.add_child(name_lbl)
 	var mods: Dictionary = JobStatCalculator.get_member_modifiers(adv)
 	var role: String = str(mods.get("role", ""))
 	var role_lbl := Label.new()
-	role_lbl.text = RosterUiHelper.role_glyph(role)
+	role_lbl.text = "%s %s" % [RosterUiHelper.role_glyph(role), RosterUiHelper.role_label(role)]
 	role_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	role_lbl.add_theme_font_size_override("font_size", 10)
+	role_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(role_lbl)
 	var lv_lbl := Label.new()
 	lv_lbl.text = "Lv%d" % int(adv.level)
 	lv_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lv_lbl.add_theme_font_size_override("font_size", 11)
+	lv_lbl.add_theme_font_size_override("font_size", 10)
+	lv_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(lv_lbl)
 	var star_lbl := Label.new()
 	star_lbl.text = RosterUiHelper.stars_text(int(adv.rarity))
 	star_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	star_lbl.add_theme_font_size_override("font_size", 10)
+	star_lbl.add_theme_font_size_override("font_size", 9)
 	star_lbl.add_theme_color_override("font_color", COLOR_GOLD)
+	star_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(star_lbl)
-	return btn
+	if in_party:
+		var badge := Label.new()
+		badge.text = "編成中"
+		badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		badge.add_theme_font_size_override("font_size", 9)
+		badge.add_theme_color_override("font_color", COLOR_GOLD)
+		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		vbox.add_child(badge)
+	return wrapper
 
 func _toggle_selection(adv: Resource) -> void:
 	if _selected.has(adv):
