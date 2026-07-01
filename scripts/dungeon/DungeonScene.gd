@@ -2699,6 +2699,7 @@ func _handle_party_wipe() -> void:
 	GameState.last_run_accessory_dropped = ""
 	GameState.last_run_relic_dropped = ""
 	GameState.last_run_outcome = GameState.RUN_OUTCOME_WIPE
+	await get_tree().create_timer(2.0).timeout
 	if not is_inside_tree():
 		return
 	GameState.clear_event_helper()
