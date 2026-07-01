@@ -45,6 +45,22 @@ var last_run_accessory_dropped: String = ""
 var last_run_relic_dropped: String = ""
 # 直近ランの獲得レベル { member_id: gained_levels } — Result 表示用（P3-D035）
 var last_run_level_ups: Dictionary = {}
+# 直近ランの帰還種別（Result 表示用）: clear / retire / wipe
+const RUN_OUTCOME_CLEAR: String = "clear"
+const RUN_OUTCOME_RETIRE: String = "retire"
+const RUN_OUTCOME_WIPE: String = "wipe"
+var last_run_outcome: String = ""
+
+static func run_outcome_label(outcome: String) -> String:
+	match outcome:
+		RUN_OUTCOME_CLEAR:
+			return "完走"
+		RUN_OUTCOME_RETIRE:
+			return "リタイア（クリアなし）"
+		RUN_OUTCOME_WIPE:
+			return "全滅"
+		_:
+			return "—"
 
 # 素材インベントリ { material_id: quantity } — P2-Task024
 var material_inventory: Dictionary = {}

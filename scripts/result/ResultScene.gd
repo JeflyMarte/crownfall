@@ -7,7 +7,12 @@ const COLOR_GOLD: Color = Color(0.85, 0.74, 0.45, 1)
 const COLOR_TEXT: Color = Color(0.82, 0.84, 0.9, 1)
 const COLOR_SUB: Color = Color(0.6, 0.62, 0.7, 1)
 
+const COLOR_FAIL: Color = Color(0.82, 0.45, 0.42, 1)
+const COLOR_RETIRE: Color = Color(0.72, 0.8, 0.95, 1)
+
+@onready var _label_title: Label = $Scroll/Margin/Main/HeaderPanel/HeaderVBox/LabelTitle
 @onready var _label_dungeon: Label = $Scroll/Margin/Main/HeaderPanel/HeaderVBox/LabelDungeon
+@onready var _label_outcome: Label = $Scroll/Margin/Main/HeaderPanel/HeaderVBox/LabelClear
 @onready var _stars_row: HBoxContainer = $Scroll/Margin/Main/HeaderPanel/HeaderVBox/StarsRow
 @onready var _reward_row: HBoxContainer = $Scroll/Margin/Main/RewardPanel/RewardVBox/RewardRow
 @onready var _rare_panel: PanelContainer = $Scroll/Margin/Main/RarePanel
@@ -51,7 +56,27 @@ func _build_header() -> void:
 		if df is int or df is float:
 			difficulty = int(df)
 	_label_dungeon.text = name_text
+	_apply_outcome_banner()
 	_build_stars(difficulty)
+
+func _apply_outcome_banner() -> void:
+	var outcome: String = GameState.last_run_outcome
+	if outcome.is_empty():
+		outcome = GameState.RUN_OUTCOME_CLEAR
+	_label_title.text = "✧ 探索結果 ✧"
+	match outcome:
+		GameState.RUN_OUTCOME_RETIRE:
+			_label_outcome.text = "リタイア帰還"
+			_label_outcome.add_theme_font_size_override("font_size", 44)
+			_label_outcome.add_theme_color_override("font_color", COLOR_RETIRE)
+		GameState.RUN_OUTCOME_WIPE:
+			_label_outcome.text = "探索失敗"
+			_label_outcome.add_theme_font_size_override("font_size", 44)
+			_label_outcome.add_theme_color_override("font_color", COLOR_FAIL)
+		_:
+			_label_outcome.text = "CLEAR"
+			_label_outcome.add_theme_font_size_override("font_size", 56)
+			_label_outcome.add_theme_color_override("font_color", COLOR_GOLD)
 
 func _build_stars(filled: int) -> void:
 	for child in _stars_row.get_children():
@@ -193,6 +218,9 @@ func _add_rare_row(item_id: String, category: String) -> int:
 func _build_info() -> void:
 	for child in _info_grid.get_children():
 		child.queue_free()
+	var outcome: String = GameState.last_run_outcome
+	if not outcome.is_empty():
+		_add_info_pair("帰還", GameState.run_outcome_label(outcome))
 	_add_info_pair("入手経験値", "%d EXP" % GameState.last_run_exp_reward)
 	_add_info_pair("入手ゴールド", "%d G" % GameState.last_run_gold_reward)
 	if GameState.last_run_token_reward > 0:
