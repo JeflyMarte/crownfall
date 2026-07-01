@@ -117,7 +117,7 @@ func start_combat_group(enemies: Array, level: int = 1) -> void:
 	_sync_active_enemy()
 	last_exp_reward = 0
 	last_gold_reward = 0
-	_init_party_hp()
+	ensure_party_hp_for_combat()
 	_init_member_targets()
 	_init_member_skill_rotation()
 	init_ct()
@@ -368,6 +368,24 @@ func end_combat() -> void:
 	_last_ct_step = 0.0
 	_pending_casts.clear()
 	_status_resolver.clear_all()
+
+## ラン開始時に1回だけ呼ぶ。全員を最大HPで初期化する。
+func reset_party_hp_for_run() -> void:
+	_init_party_hp()
+
+## 戦闘開始時。HPはラン中持ち越し・Threatのみ戦闘ごとにリセット。
+func ensure_party_hp_for_combat() -> void:
+	var expected_size: int = GameState.get_combatants().size()
+	if party_combat_hp.is_empty() or party_combat_hp.size() != expected_size:
+		_init_party_hp()
+	else:
+		_reset_party_threat_for_combat()
+
+func _reset_party_threat_for_combat() -> void:
+	party_threat.clear()
+	var combatants: Array = GameState.get_combatants()
+	for i in combatants.size():
+		party_threat.append(_job_threat_base(i))
 
 func _init_party_hp() -> void:
 	party_combat_hp.clear()

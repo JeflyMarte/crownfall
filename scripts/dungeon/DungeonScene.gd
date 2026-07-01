@@ -227,6 +227,7 @@ func _ready() -> void:
 	_style_hp_bars()
 	var dungeon_id: String = GameState.get_active_dungeon_id()
 	$DungeonController.start_dungeon(dungeon_id)
+	$CombatController.reset_party_hp_for_run()
 	GameState.last_run_accessory_dropped = ""
 	GameState.last_run_relic_dropped = ""
 	GameState.last_run_outcome = ""
