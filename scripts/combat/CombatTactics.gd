@@ -8,7 +8,7 @@ extends RefCounted
 ## slot: "ultimate" | "defend" | "skill" | "attack"
 ## condition: "always" | "self_hp_below" | "enemy_is_boss" | "enemy_is_elite"
 ##          | "enemy_count_gte" | "ally_dead"
-##          | "enemy_has_bleed" | "enemy_has_poison" | "ultimate_ready"
+##          | "enemy_has_bleed" | "enemy_has_poison" | "enemy_has_mark" | "ultimate_ready"
 ##          | "self_range"（P3-D108・フェーズB-5）
 ##          | "ally_injured"（P3-D113・味方に負傷者がいる）
 ## value: 条件の閾値（self_hp_below=HP割合 / enemy_count_gte=体数 / self_range=melee|mid|long）。
@@ -16,12 +16,12 @@ extends RefCounted
 ## plan は優先度順（Very High → Low）。DungeonScene は先頭から評価し、
 ## 条件成立かつ実際に発動できた最初のスロットで行動を確定する。
 ## Target 層（P3-D100/D111）: 各メンバーが戦術 target で個別に狙う（混成時に分散可能）。
-## ルール: front | lowest_hp | highest_hp | highest_atk | enemy_with_status | back
+## ルール: front | lowest_hp | highest_hp | highest_atk | enemy_with_status | enemy_marked | back
 
 const DEFAULT_TACTICS_ID: String = "balanced"
 const DEFAULT_TARGET: String = "front"
 const TARGET_RULES: Array[String] = [
-	"front", "lowest_hp", "highest_hp", "highest_atk", "enemy_with_status", "back",
+	"front", "lowest_hp", "highest_hp", "highest_atk", "enemy_with_status", "enemy_marked", "back",
 ]
 
 const _DEFS: Dictionary = {
@@ -140,6 +140,8 @@ static func condition_met(rule: Dictionary, ctx: Dictionary) -> bool:
 			return bool(ctx.get("enemy_has_bleed", false))
 		"enemy_has_poison":
 			return bool(ctx.get("enemy_has_poison", false))
+		"enemy_has_mark":
+			return bool(ctx.get("enemy_has_mark", false))
 		"ultimate_ready":
 			return bool(ctx.get("ultimate_ready", false))
 		"self_range":

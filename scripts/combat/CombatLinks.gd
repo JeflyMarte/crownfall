@@ -5,7 +5,7 @@ extends RefCounted
 ## 状態コンボ（CombatCombos）とは別枠。1ヒットで link は1種のみ（コンボとは併用可）。
 
 const DEBUFF_MARK_STATUSES: Array = [
-	"poison", "bleed", "vulnerable", "fear", "armor_break", "curse", "slow", "stun", "chill",
+	"mark", "poison", "bleed", "vulnerable", "fear", "armor_break", "curse", "slow", "stun", "chill",
 ]
 
 const _RULES: Dictionary = {

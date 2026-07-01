@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="StatusEffectData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/StatusEffectData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "mark"
+display_name = "標的"
+tier = 1
+max_stacks = 1
+duration_ticks = 3
+effect_type = "damage_mod"
+element_tag = ""
+dot_percent_of_attack = 0.0
+dot_flat = 0
+interval_multiplier = 1.0
+skip_action_chance = 0.0
+outgoing_damage_multiplier = 1.0
+incoming_damage_multiplier = 1.15
+defense_reduction = 0.0

@@ -229,6 +229,16 @@ func get_member_target_slot(member_index: int) -> int:
 	return pick_enemy_slot_by_rule(CombatTactics.DEFAULT_TARGET)
 
 # 生存敵から target ルールで1体選ぶ（P3-D100/D111）。
+func _pick_status_priority_slots(living: Array[int], priority_status: String) -> Array[int]:
+	var out: Array[int] = []
+	for i: int in living:
+		if priority_status.is_empty():
+			if not get_enemy_status_list_at(i).is_empty():
+				out.append(i)
+		elif get_enemy_status_stacks_at(i, priority_status) > 0:
+			out.append(i)
+	return out
+
 func pick_enemy_slot_by_rule(rule: String) -> int:
 	var living: Array[int] = get_living_enemy_indices()
 	if living.is_empty():
@@ -250,14 +260,19 @@ func pick_enemy_slot_by_rule(rule: String) -> int:
 				if swarm_atk[i] > swarm_atk[best]:
 					best = i
 		"enemy_with_status":
-			var with_status: Array[int] = []
-			for i: int in living:
-				if not get_enemy_status_list_at(i).is_empty():
-					with_status.append(i)
+			var with_status: Array[int] = _pick_status_priority_slots(living, "")
 			if with_status.is_empty():
 				return living[0]
 			best = with_status[0]
 			for i: int in with_status:
+				if swarm_hp[i] < swarm_hp[best]:
+					best = i
+		"enemy_marked":
+			var marked: Array[int] = _pick_status_priority_slots(living, "mark")
+			if marked.is_empty():
+				return living[0]
+			best = marked[0]
+			for i: int in marked:
 				if swarm_hp[i] < swarm_hp[best]:
 					best = i
 		"back":

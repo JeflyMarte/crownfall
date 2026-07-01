@@ -51,6 +51,7 @@ const STATUS_ICON_DEF: Dictionary = {
 	"fear": {"abbrev": "恐", "color": Color(0.55, 0.35, 0.6)},
 	"vulnerable": {"abbrev": "脆", "color": Color(0.95, 0.45, 0.45)},
 	"armor_break": {"abbrev": "破", "color": Color(0.8, 0.6, 0.3)},
+	"mark": {"abbrev": "標", "color": Color(0.95, 0.35, 0.55)},
 	"empower": {"abbrev": "攻", "color": Color(0.95, 0.55, 0.2)},
 	"guard": {"abbrev": "防", "color": Color(0.4, 0.55, 0.85)},
 }
@@ -2265,6 +2266,7 @@ func _build_tactics_context(member_idx: int) -> Dictionary:
 		"ally_dead": ally_dead,
 		"enemy_has_bleed": $CombatController.get_enemy_status_stacks_at(target_slot, "bleed") > 0,
 		"enemy_has_poison": $CombatController.get_enemy_status_stacks_at(target_slot, "poison") > 0,
+		"enemy_has_mark": _any_enemy_has_status("mark"),
 		"ultimate_ready": _is_member_ultimate_ready(member_idx),
 		"self_range": _member_combat_range(member_idx),
 		"ally_injured": $CombatController.get_most_injured_member_index() >= 0,
@@ -2280,6 +2282,12 @@ func _is_member_ultimate_ready(member_idx: int) -> bool:
 # 戦術「距離」判定用（CombatRange SSOT に委譲）。
 func _member_combat_range(member_idx: int) -> String:
 	return CombatRange.resolve_member_default(member_idx)
+
+func _any_enemy_has_status(status_id: String) -> bool:
+	for slot: int in $CombatController.get_living_enemy_indices():
+		if $CombatController.get_enemy_status_stacks_at(slot, status_id) > 0:
+			return true
+	return false
 
 # 必殺技スロット（長CD・高威力）。発動できたら true。
 func _try_member_ultimate(member_idx: int) -> bool:
