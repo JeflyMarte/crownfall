@@ -65,7 +65,11 @@ var party_threat: Array[float] = []
 const THREAT_DAMAGE_K: float = 0.10   # 与ダメ1あたりの加算
 const THREAT_TAKEN_K: float = 0.15    # 被ダメ1あたりの加算（タンクが矢面で稼ぐ）
 const THREAT_TAUNT: float = 40.0      # 挑発（防御スロット）スパイク
-const THREAT_DECAY: float = 0.90      # status tick ごとの減衰率（基礎値へ寄せる）
+const THREAT_DECAY: float = 0.90
+const THREAT_TARGET_BIAS_MAX: String = "max_threat"
+const THREAT_TARGET_BIAS_LOWEST_HP: String = "lowest_hp"
+const THREAT_TARGET_BIAS_BACK_ROW: String = "back_row"
+const THREAT_TARGET_BIAS_LOWEST_THREAT: String = "lowest_threat"
 const MELEE_ATTACK_RANGE_MAX: float = CombatRange.MID_RANGE_MAX  # これ以下＝前列優先ターゲット（P3-D106d/f）
 
 # ジョブ別の基礎 Threat 重み（タンクが引きやすい）。
@@ -491,16 +495,16 @@ func get_most_injured_member_index() -> int:
 			best = i
 	return best
 
-func pick_enemy_target_member_index() -> int:
-	return pick_enemy_target_from_indices(_eligible_enemy_targets(false, false))
+func pick_enemy_target_member_index(attacker_slot: int = -1) -> int:
+	return pick_enemy_target_from_indices(_eligible_enemy_targets(false, false), attacker_slot)
 
 func pick_enemy_target_for_melee_attack(attacker_slot: int = -1) -> int:
 	if _is_enemy_ranged_at(attacker_slot):
-		return pick_enemy_target_member_index()
+		return pick_enemy_target_member_index(attacker_slot)
 	var front: Array[int] = _eligible_enemy_targets(true, false)
 	if not front.is_empty():
-		return pick_enemy_target_from_indices(front)
-	return pick_enemy_target_from_indices(_eligible_enemy_targets(false, true))
+		return pick_enemy_target_from_indices(front, attacker_slot)
+	return pick_enemy_target_from_indices(_eligible_enemy_targets(false, true), attacker_slot)
 
 func get_member_threat(member_index: int) -> float:
 	return _threat_of(member_index)
@@ -524,16 +528,44 @@ func _eligible_enemy_targets(front_only: bool, back_only: bool) -> Array[int]:
 		alive.append(i)
 	return alive
 
-func pick_enemy_target_from_indices(indices: Array[int]) -> int:
+func pick_enemy_target_from_indices(indices: Array[int], attacker_slot: int = -1) -> int:
 	if indices.is_empty():
 		return -1
 	var best: int = indices[0]
 	for i in indices:
-		if _threat_of(i) > _threat_of(best):
+		var score: float = _enemy_target_score(i, attacker_slot)
+		var best_score: float = _enemy_target_score(best, attacker_slot)
+		if score > best_score:
 			best = i
-		elif is_equal_approx(_threat_of(i), _threat_of(best)) and i < best:
+		elif is_equal_approx(score, best_score) and i < best:
 			best = i
 	return best
+
+func _enemy_target_bias(attacker_slot: int) -> String:
+	var data: Resource = get_enemy_data_at(attacker_slot) if attacker_slot >= 0 else current_enemy_data
+	if data == null or not ("threat_target_bias" in data):
+		return THREAT_TARGET_BIAS_MAX
+	var bias: String = str(data.threat_target_bias)
+	if bias.is_empty():
+		return THREAT_TARGET_BIAS_MAX
+	return bias
+
+func _enemy_target_score(member_index: int, attacker_slot: int) -> float:
+	var bias: String = _enemy_target_bias(attacker_slot)
+	match bias:
+		THREAT_TARGET_BIAS_LOWEST_HP:
+			if member_index < 0 or member_index >= party_max_hp.size():
+				return 0.0
+			var max_hp: int = maxi(1, party_max_hp[member_index])
+			var hp: int = party_combat_hp[member_index] if member_index < party_combat_hp.size() else 0
+			return 1.0 - float(hp) / float(max_hp)
+		THREAT_TARGET_BIAS_BACK_ROW:
+			var score: float = _threat_of(member_index)
+			return score * (2.0 if GameState.is_member_back_row(member_index) else 0.55)
+		THREAT_TARGET_BIAS_LOWEST_THREAT:
+			return 1000.0 - _threat_of(member_index)
+		_:
+			return _threat_of(member_index)
 
 func _threat_of(member_index: int) -> float:
 	if member_index < 0 or member_index >= party_threat.size():

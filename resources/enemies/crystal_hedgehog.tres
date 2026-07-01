@@ -16,6 +16,7 @@ detection_range = 6.5
 attack_range = 3.0
 enemy_type = 0
 ai_type = "default"
+threat_target_bias = "back_row"
 exp_reward = 11
 gold_reward = 24
 drop_table_id = "crystal_hedgehog_drops"

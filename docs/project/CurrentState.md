@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-01（**P3-D145 敵別Threatターゲット**: `threat_target_bias`・遠隔/ネズミ偏重。headless smoke PASS）
+
 2026-07-01（**P3-D151 罠部屋 MVP**: `RoomType.TRAP`・解除ロール連携・抽選8%・全滅対応。headless smoke PASS）
 
 2026-07-01（**P3-FIX-004 HP持ち越し**: ラン中ダメージ維持・戦闘開始フル回復を廃止。headless smoke PASS）
@@ -117,9 +119,10 @@
 | 2 | P3-D142 | 周回 ELITE スキップ拡張 | Impl+HQ | ✅ **Closeout** |
 | 3 | P3-FIX-004 | HP 持ち越し（戦闘間フル回復バグ修正） | Impl | ✅ **Closeout** |
 | 4 | **P3-D151** | **罠部屋 MVP**（`RoomType.TRAP`） | Impl | ✅ **Closeout** |
-| 5 | — | Backlog 大物（天候本格/複数DG 等） | Decision 待ち | **次候補** |
+| 5 | P3-D145 | 敵別 Threat ターゲット偏重 | Impl | ✅ **Closeout** |
+| 6 | — | Backlog 大物（天候本格/複数DG 等） | Decision 待ち | **次候補** |
 
-**Backlog（単独 Decision まで着手しない）:** 敵別 Threat テーブル / 探索手動+CD / 周回敗北シミュ / 天候本格 / 位置AI / 複数DG / Affix本格 / ラン中方針切替 / Biome-02 以降。
+**Backlog（単独 Decision まで着手しない）:** 探索手動+CD / 周回敗北シミュ / 天候本格 / 位置AI / 複数DG / Affix本格 / ラン中方針切替 / Biome-02 以降。
 
 ---
 
