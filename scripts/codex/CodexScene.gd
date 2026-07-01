@@ -1,5 +1,11 @@
 extends Control
 
+const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
+const DUNGEON_SCENE: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
+const ROSTER_SCENE: String = "res://scenes/roster/RosterScene.tscn"
+const CODEX_SCENE: String = "res://scenes/codex/CodexScene.tscn"
+const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
+
 const UNKNOWN_DISPLAY: String = "???"
 const STATUS_DISCOVERED: String = "Discovered"
 const STATUS_UNDISCOVERED: String = "Undiscovered"
@@ -35,36 +41,47 @@ var _entries: Array = []
 var _selected_index: int = -1
 var _entry_rows: Array = []
 
-@onready var _label_detail_id: Label = $VBoxContainer/DetailPanel/TopRow/InfoCol/LabelDetailId
-@onready var _label_detail_name: Label = $VBoxContainer/DetailPanel/TopRow/InfoCol/LabelDetailName
-@onready var _label_detail_status: Label = $VBoxContainer/DetailPanel/TopRow/InfoCol/LabelDetailStatus
-@onready var _label_detail_category: Label = $VBoxContainer/DetailPanel/TopRow/InfoCol/LabelDetailCategory
-@onready var _label_detail_extra_a: Label = $VBoxContainer/DetailPanel/TopRow/InfoCol/LabelDetailExtraA
-@onready var _label_detail_extra_b: Label = $VBoxContainer/DetailPanel/TopRow/InfoCol/LabelDetailExtraB
-@onready var _label_detail_overview_header: Label = $VBoxContainer/DetailPanel/DescBox/DescInner/LabelDetailOverviewHeader
-@onready var _label_detail_description: Label = $VBoxContainer/DetailPanel/DescBox/DescInner/LabelDetailDescription
-@onready var _desc_box: PanelContainer = $VBoxContainer/DetailPanel/DescBox
-@onready var _label_detail_related_header: Label = $VBoxContainer/DetailPanel/TopRow/InfoCol/LabelDetailRelatedHeader
-@onready var _label_detail_related: Label = $VBoxContainer/DetailPanel/TopRow/InfoCol/LabelDetailRelated
-@onready var _art_frame: PanelContainer = $VBoxContainer/DetailPanel/TopRow/ArtFrame
-@onready var _icon_placeholder: PanelContainer = $VBoxContainer/DetailPanel/TopRow/ArtFrame/IconPlaceholder
-@onready var _label_icon_placeholder: Label = $VBoxContainer/DetailPanel/TopRow/ArtFrame/IconPlaceholder/LabelIconPlaceholder
-@onready var _texture_icon: TextureRect = $VBoxContainer/DetailPanel/TopRow/ArtFrame/TextureIcon
+@onready var _label_detail_id: Label = $MainScroll/MainVBox/DetailPanel/TopRow/InfoCol/LabelDetailId
+@onready var _label_detail_name: Label = $MainScroll/MainVBox/DetailPanel/TopRow/InfoCol/LabelDetailName
+@onready var _label_detail_status: Label = $MainScroll/MainVBox/DetailPanel/TopRow/InfoCol/LabelDetailStatus
+@onready var _label_detail_category: Label = $MainScroll/MainVBox/DetailPanel/TopRow/InfoCol/LabelDetailCategory
+@onready var _label_detail_extra_a: Label = $MainScroll/MainVBox/DetailPanel/TopRow/InfoCol/LabelDetailExtraA
+@onready var _label_detail_extra_b: Label = $MainScroll/MainVBox/DetailPanel/TopRow/InfoCol/LabelDetailExtraB
+@onready var _label_detail_overview_header: Label = $MainScroll/MainVBox/DetailPanel/DescBox/DescInner/LabelDetailOverviewHeader
+@onready var _label_detail_description: Label = $MainScroll/MainVBox/DetailPanel/DescBox/DescInner/LabelDetailDescription
+@onready var _desc_box: PanelContainer = $MainScroll/MainVBox/DetailPanel/DescBox
+@onready var _label_detail_related_header: Label = $MainScroll/MainVBox/DetailPanel/TopRow/InfoCol/LabelDetailRelatedHeader
+@onready var _label_detail_related: Label = $MainScroll/MainVBox/DetailPanel/TopRow/InfoCol/LabelDetailRelated
+@onready var _art_frame: PanelContainer = $MainScroll/MainVBox/DetailPanel/TopRow/ArtFrame
+@onready var _icon_placeholder: PanelContainer = $MainScroll/MainVBox/DetailPanel/TopRow/ArtFrame/IconPlaceholder
+@onready var _label_icon_placeholder: Label = $MainScroll/MainVBox/DetailPanel/TopRow/ArtFrame/IconPlaceholder/LabelIconPlaceholder
+@onready var _texture_icon: TextureRect = $MainScroll/MainVBox/DetailPanel/TopRow/ArtFrame/TextureIcon
+@onready var _label_gold: Label = $Header/HeaderRow/GoldChip/GoldRow/LabelGold
+@onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
 
 func _ready() -> void:
 	_decorate_static()
-	$VBoxContainer/ButtonBack.pressed.connect(_on_back_pressed)
-	$VBoxContainer/TabRow/ButtonTabEnemy.pressed.connect(func(): _select_category("enemy"))
-	$VBoxContainer/TabRow/ButtonTabDungeon.pressed.connect(func(): _select_category("dungeon"))
-	$VBoxContainer/TabRow/ButtonTabMaterial.pressed.connect(func(): _select_category("material"))
-	$VBoxContainer/TabRow/ButtonTabWeapon.pressed.connect(func(): _select_category("weapon"))
-	$VBoxContainer/TabRow/ButtonTabHistory.pressed.connect(func(): _select_category("history"))
-	$VBoxContainer/TabRow/ButtonTabLore.pressed.connect(func(): _select_category("lore"))
-	$VBoxContainer/TabRow/ButtonTabGuide.pressed.connect(func():
+	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)
+	$BottomNav/NavRow/NavHome.pressed.connect(_go_to.bind(HOME_SCENE))
+	$BottomNav/NavRow/NavAdventure.pressed.connect(_go_to.bind(DUNGEON_SCENE))
+	$BottomNav/NavRow/NavParty.pressed.connect(_go_to.bind(ROSTER_SCENE))
+	$BottomNav/NavRow/NavShop.pressed.connect(_go_to.bind(GACHA_SCENE))
+	$MainScroll/MainVBox/TabRow/ButtonTabEnemy.pressed.connect(func(): _select_category("enemy"))
+	$MainScroll/MainVBox/TabRow/ButtonTabDungeon.pressed.connect(func(): _select_category("dungeon"))
+	$MainScroll/MainVBox/TabRow/ButtonTabMaterial.pressed.connect(func(): _select_category("material"))
+	$MainScroll/MainVBox/TabRow/ButtonTabWeapon.pressed.connect(func(): _select_category("weapon"))
+	$MainScroll/MainVBox/TabRow/ButtonTabHistory.pressed.connect(func(): _select_category("history"))
+	$MainScroll/MainVBox/TabRow/ButtonTabLore.pressed.connect(func(): _select_category("lore"))
+	$MainScroll/MainVBox/TabRow/ButtonTabGuide.pressed.connect(func():
 		_select_category("guide")
 		_show_detail(0)
 	)
+	_update_currency()
 	_select_category("enemy")
+
+func _update_currency() -> void:
+	_label_gold.text = "%d" % GameState.gold
+	_label_token.text = CurrencyHelper.format_amount()
 
 func _decorate_static() -> void:
 	_art_frame.add_theme_stylebox_override("panel", _framed_box(COLOR_GOLD, 2, Color(0.05, 0.05, 0.06, 1.0)))
@@ -151,13 +168,13 @@ func _get_category_display() -> String:
 
 func _update_tab_buttons() -> void:
 	var mapping: Dictionary = {
-		"enemy": $VBoxContainer/TabRow/ButtonTabEnemy,
-		"dungeon": $VBoxContainer/TabRow/ButtonTabDungeon,
-		"material": $VBoxContainer/TabRow/ButtonTabMaterial,
-		"weapon": $VBoxContainer/TabRow/ButtonTabWeapon,
-		"history": $VBoxContainer/TabRow/ButtonTabHistory,
-		"lore": $VBoxContainer/TabRow/ButtonTabLore,
-		"guide": $VBoxContainer/TabRow/ButtonTabGuide,
+		"enemy": $MainScroll/MainVBox/TabRow/ButtonTabEnemy,
+		"dungeon": $MainScroll/MainVBox/TabRow/ButtonTabDungeon,
+		"material": $MainScroll/MainVBox/TabRow/ButtonTabMaterial,
+		"weapon": $MainScroll/MainVBox/TabRow/ButtonTabWeapon,
+		"history": $MainScroll/MainVBox/TabRow/ButtonTabHistory,
+		"lore": $MainScroll/MainVBox/TabRow/ButtonTabLore,
+		"guide": $MainScroll/MainVBox/TabRow/ButtonTabGuide,
 	}
 	for cat in CATEGORIES:
 		var btn: Button = mapping[cat]
@@ -172,7 +189,7 @@ func _update_tab_buttons() -> void:
 		btn.add_theme_color_override("font_disabled_color", Color(0.97, 0.94, 0.8))
 
 func _rebuild_entry_list() -> void:
-	var container: VBoxContainer = $VBoxContainer/EntryListScroll/EntryListContainer
+	var container: VBoxContainer = $MainScroll/MainVBox/EntryListScroll/EntryListContainer
 	for child in container.get_children():
 		child.queue_free()
 	_entry_rows.clear()
@@ -460,4 +477,10 @@ func _clear_detail() -> void:
 	_update_icon(null)
 
 func _on_back_pressed() -> void:
-	SceneRouter.change_scene("res://scenes/base/BaseScene.tscn")
+	_go_to(HOME_SCENE)
+
+func _go_to(path: String) -> void:
+	if path == CODEX_SCENE:
+		return
+	if ResourceLoader.exists(path):
+		SceneRouter.change_scene(path)

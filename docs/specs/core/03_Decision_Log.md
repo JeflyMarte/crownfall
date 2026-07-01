@@ -1976,6 +1976,19 @@
 
 **P3-UI2-019c〜e Closeout（2026-07-01）:** `EquipmentUiHelper` 拡張・`EquipmentScene` レイアウト/一覧/タブ。headless smoke PASS。
 
+## 召喚所・図鑑モック寄せ（2026-07-01 — P3-UI2-020）
+
+> 017〜019 と同型の Header/BottomNav 統一。ガチャロジック・図鑑データは不変。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UI2-020a-1 | **召喚所** — Header（通貨チップ）/ 天井表示 / 排出カード行 / BottomNav `NavShop` ハイライト | 017/018 統一 |
+| P3-UI2-020a-2 | **ラインナップ** — 職アイコン・★・所持バッジのカード行 | 可読性 |
+| P3-UI2-020b-1 | **図鑑** — Header + BottomNav `NavCodex` ハイライト。既存タブ/詳細温存 | 017 統一 |
+| P3-UI2-020b-2 | **スコープ外** — 発見率バー・星評価・002 密度の一覧 | Beta |
+
+**P3-UI2-020 Closeout（2026-07-01）:** `GachaScene` / `CodexScene` Header+BottomNav。headless smoke PASS。
+
 ## ガチャ通貨「魔晶石」（2026-07-01 — P3-ECO-002）
 
 > 仮称 `gacha_token` / ◆ 表示を正式名称・アイコンへ統一。セーブキー `gacha_token` は互換維持。
