@@ -1,48 +1,47 @@
 # Session Handoff — Cursor HQ
 
-**Updated:** 2026-06-26（**世界観刷新 — Postwar Ecology**）
+**Updated:** 2026-07-01（Alpha 戦術/探索拡張レーン D120〜132）
 **ProjectDocs:** v3.6.0
+**Branch:** `cursor/alpha-combat-formation-ui`（`main` より ahead 多数・未 push 想定）
 
 ---
 
 ## 1. 一言サマリー
 
-**世界観を「戦後生態系（Postwar Ecology）」へ刷新。文書（SSOT）反映完了。** Bible 29〜36 新設。**コードは未変更**（実装移行は将来 Task）。
+モーンゲート1本・Combat v1.0 完了。Alpha 拡張（マーキング/ガンビット/装備プリセット/図鑑方針/4人バランス）を D120〜132 まで消化。**実機確認（P3-ALPHA-003）は Defer** — 暫定ゲート＝`tools/smoke_test.sh` PASS。
 
 ---
 
-## 2. Decision（確定）
+## 2. 直近完了（Impl）
 
 | ID | 内容 |
 |---|---|
-| P3-D026 | Postwar Ecology へ刷新（生物由来モンスター） |
-| P3-D027 | モンスター分類 Class I〜VII |
-| P3-D028 | 探索者ギルド |
-| P3-D029 | Biome 体系（MVP: モーンゲート / ウィスパーウッド） |
-| P3-D030 | Ecology Codex 5 段階 |
-| P3-D031 | 命名ガイド（漢字/カタカナ両用） |
-| P3-D032 | エルド大陸地理 |
-| P3-D033 | 基本ジョブ 5 種 |
+| P3-D120〜128 | マーキング・E1装備プリセット・G1バランス・A1ガンビット・Result差別化・A2/D2 |
+| P3-D129〜132 | 方針ヒント・チェックリストv2.1・Result方針/素材・DG選択方針表示 |
+| P3-ALPHA-003b | 実機 Defer・headless Closeout |
 
 ---
 
-## 3. 次
+## 3. 次候補
 
-| Task | 状態 |
+| 優先 | 内容 |
 |---|---|
-| 実装移行 Proposal | 既存敵生物化 / DG↔Biome / ジョブ 3→5 / Codex 拡張 |
+| — | Phase 3-A ポリッシュ（オーナー作画: 残ジョブドット絵） |
+| — | Backlog 小タスク（Decision 要・本格システムは Defer） |
+| 任意 | ブランチ `main` へのマージ判断（オーナー） |
 
 ---
 
-## 4. 整合課題（要オーナー判断）
+## 4. 検証
 
-- 既存敵（不死/機械）→ 生物由来へ全面再設計
-- DG: royal_ruins/graveyard/underground_factory ↔ 新 Biome の対応・改称
-- Biome 名 ↔ 地理名（嘆きの地下水路/モーンゲート 等）の最終表記
-- ジョブ warrior/guardian/scout → 5 ジョブ（新規 2 種含む）
+```bash
+bash tools/smoke_test.sh
+```
+
+実機は `docs/project/AlphaPlaytest_Checklist.md` v2.1（未記入 GO/NO-GO）。
 
 ---
 
 ## 5. SSOT
 
-`docs/specs/game/29〜36` / `03_Decision_Log.md`（P3-D026〜033）
+`docs/project/CurrentState.md` / `docs/specs/core/03_Decision_Log.md`
