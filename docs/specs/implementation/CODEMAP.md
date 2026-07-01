@@ -67,8 +67,11 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 - `VBoxContainer/BuildChipRow` — `BuildTagHelper.populate_chip_row()`（P3-UI2-016）
 
 **EquipmentScene ノード（UI-2+ / Combat v1.0）:**
+- `CharacterCard` — 肖像◀▶（`MemberSelectRow` 非表示）・★/Lv/職アイコン・`StatsGrid` 2列・`EquipSlotsGrid` 2×2+足具🔒（P3-UI2-019c）
+- `TabEquip/InventoryHeaderRow` — ソート・装備状態フィルタ（P3-UI2-019d）・一覧は全装備+装備者ミニアイコン
+- `TabAwaken` / `TabProfile` — disabled+準備中（P3-UI2-019e）
 - `ContentVBox/BuildChipRow` — 同上 + `LabelBuildSummary`（Task037）
-- スキルタブ — 戦術プリセット・陣形行（前列/後列・P3-D106）・探索スキル一覧（P3-D117）・連携 hint（P3-D115）
+- スキルタブ — 戦術プリセット・陣形行（前列/後列・P3-D106）・探索スキル一覧（P3-D117）・連携 hint（P3-D115）・ガンビット（P3-D122）
 
 **DungeonSelectScene** — `scenes/dungeon/DungeonSelectScene.tscn` / `scripts/dungeon/DungeonSelectScene.gd`（P3-D080）
 

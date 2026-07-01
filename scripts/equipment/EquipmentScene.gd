@@ -2,6 +2,7 @@ extends Control
 
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const ROSTER_SCENE: String = "res://scenes/roster/RosterScene.tscn"
+const DUNGEON_SCENE: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
 const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
 const CODEX_SCENE: String = "res://scenes/codex/CodexScene.tscn"
 const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
@@ -49,17 +50,22 @@ const SLOT_GLYPHS: Dictionary = {"weapon": "⚔", "armor": "🛡", "accessory": 
 @onready var _button_back: Button = $Header/HeaderRow/ButtonBack
 @onready var _label_gold: Label = $Header/HeaderRow/GoldChip/GoldRow/LabelGold
 @onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
-@onready var _btn_member_prev: Button = $VBoxContainer/CharacterCard/CardRow/BtnMemberPrev
-@onready var _btn_member_next: Button = $VBoxContainer/CharacterCard/CardRow/BtnMemberNext
+@onready var _btn_member_prev: Button = $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/BtnMemberPrev
+@onready var _btn_member_next: Button = $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/BtnMemberNext
 @onready var _member_row: HBoxContainer = $VBoxContainer/MemberSelectRow
 @onready var _label_stars: Label = $VBoxContainer/CharacterCard/CardRow/PortraitBox/LabelStars
-@onready var _portrait_art: TextureRect = $VBoxContainer/CharacterCard/CardRow/PortraitBox/Portrait/PortraitArt
-@onready var _portrait_glyph: Label = $VBoxContainer/CharacterCard/CardRow/PortraitBox/Portrait/PortraitGlyph
+@onready var _portrait_art: TextureRect = $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/Portrait/PortraitArt
+@onready var _portrait_glyph: Label = $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/Portrait/PortraitGlyph
 @onready var _label_name: Label = $VBoxContainer/CharacterCard/CardRow/InfoBox/LabelName
-@onready var _label_job_level: Label = $VBoxContainer/CharacterCard/CardRow/InfoBox/LabelJobLevel
+@onready var _label_level: Label = $VBoxContainer/CharacterCard/CardRow/InfoBox/LabelLevel
+@onready var _job_icon: TextureRect = $VBoxContainer/CharacterCard/CardRow/InfoBox/JobRow/JobIcon
+@onready var _label_job: Label = $VBoxContainer/CharacterCard/CardRow/InfoBox/JobRow/LabelJob
 @onready var _stats_grid: GridContainer = $VBoxContainer/CharacterCard/CardRow/InfoBox/StatsGrid
-@onready var _button_unequip_all: Button = $VBoxContainer/CharacterCard/CardRow/InfoBox/ButtonsRow/ButtonUnequipAll
-@onready var _slots_row: VBoxContainer = $VBoxContainer/CharacterCard/CardRow/SlotsPanel/EquipSlotsGrid
+@onready var _button_unequip_all: Button = $VBoxContainer/CharacterCard/CardRow/SlotsPanel/ButtonUnequipAll
+@onready var _slots_row: GridContainer = $VBoxContainer/CharacterCard/CardRow/SlotsPanel/EquipSlotsGrid
+@onready var _btn_sort: Button = $VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryHeaderRow/ButtonSort
+@onready var _btn_filter: Button = $VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryHeaderRow/ButtonFilter
+@onready var _nav_forge: Button = $BottomNav/NavRow/NavForge
 @onready var _character_card: PanelContainer = $VBoxContainer/CharacterCard
 @onready var _tabs: TabContainer = $VBoxContainer/TabContainer
 @onready var _effects_grid: GridContainer = $VBoxContainer/TabContainer/TabEquip/EquipContent/EffectsGrid
@@ -71,8 +77,9 @@ var _combat_setup_panel: PanelContainer = null
 var _combat_setup_content: VBoxContainer = null
 
 var _selected_member_index: int = 0
-# 所持一覧のカテゴリフィルタ: "all" / "weapon" / "armor" / "accessory"
 var _inventory_filter: String = "all"
+var _inventory_sort: String = "rarity"
+var _inventory_equipped_filter: String = "all"
 # 戦術セレクタ（P3-D086・スキルタブ上部に動的生成）
 var _tactics_option: OptionButton = null
 var _tactics_ids: Array[String] = []
@@ -103,20 +110,25 @@ var _tag_info_label: Label = null
 
 func _ready() -> void:
 	_tabs.set_tab_title(0, "装備")
-	_tabs.set_tab_title(1, "戦術・スキル")
+	_tabs.set_tab_title(1, "スキル")
+	_tabs.set_tab_title(2, "覚醒 🔒")
+	_tabs.set_tab_title(3, "プロフィール 🔒")
+	_tabs.get_tab_bar().set_tab_disabled(2, true)
+	_tabs.get_tab_bar().set_tab_disabled(3, true)
+	_member_row.visible = false
 	_ensure_combat_setup_panel()
 	_button_back.pressed.connect(_on_back_pressed)
 	_btn_member_prev.pressed.connect(_on_member_prev_pressed)
 	_btn_member_next.pressed.connect(_on_member_next_pressed)
 	$BottomNav/NavRow/NavHome.pressed.connect(_go_to.bind(HOME_SCENE))
 	$BottomNav/NavRow/NavParty.pressed.connect(_go_to.bind(ROSTER_SCENE))
+	$BottomNav/NavRow/NavAdventure.pressed.connect(_go_to.bind(DUNGEON_SCENE))
 	$BottomNav/NavRow/NavForge.pressed.connect(_go_to.bind(BLACKSMITH_SCENE))
 	$BottomNav/NavRow/NavCodex.pressed.connect(_go_to.bind(CODEX_SCENE))
 	$BottomNav/NavRow/NavShop.pressed.connect(_go_to.bind(GACHA_SCENE))
 	_button_unequip_all.pressed.connect(_on_unequip_all_pressed)
-	for i in GameState.ACTIVE_PARTY_SIZE:
-		var btn: Button = _member_row.get_node("ButtonMember%d" % i) as Button
-		btn.pressed.connect(_on_member_selected.bind(i))
+	_btn_sort.pressed.connect(_on_sort_pressed)
+	_btn_filter.pressed.connect(_on_filter_pressed)
 	_connect_category_buttons()
 	_inventory_grid.columns = GRID_COLUMNS
 	_apply_panel_styles()
@@ -128,8 +140,29 @@ func _ready() -> void:
 			maxi(0, GameState.party_members.size() - 1)
 		)
 		GameState.equipment_focus_member_index = -1
-	_refresh_member_buttons()
 	_refresh_display()
+
+func _on_sort_pressed() -> void:
+	_inventory_sort = "name" if _inventory_sort == "rarity" else "rarity"
+	_refresh_inventory_tools()
+	_rebuild_inventory_grid()
+
+func _on_filter_pressed() -> void:
+	match _inventory_equipped_filter:
+		"all":
+			_inventory_equipped_filter = "equipped"
+		"equipped":
+			_inventory_equipped_filter = "unequipped"
+		_:
+			_inventory_equipped_filter = "all"
+	_refresh_inventory_tools()
+	_rebuild_inventory_grid()
+
+func _refresh_inventory_tools() -> void:
+	_btn_sort.text = str(EquipmentUiHelper.SORT_LABELS.get(_inventory_sort, _inventory_sort))
+	_btn_filter.text = str(
+		EquipmentUiHelper.EQUIPPED_FILTER_LABELS.get(_inventory_equipped_filter, _inventory_equipped_filter)
+	)
 
 func _apply_panel_styles() -> void:
 	_character_card.add_theme_stylebox_override(
@@ -137,7 +170,7 @@ func _apply_panel_styles() -> void:
 	)
 
 func _decorate_portrait() -> void:
-	var p := $VBoxContainer/CharacterCard/CardRow/PortraitBox/Portrait as PanelContainer
+	var p := $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/Portrait as PanelContainer
 	if p != null:
 		p.add_theme_stylebox_override("panel", _framed_box(COLOR_GOLD, 2, Color(0.06, 0.05, 0.04, 1.0)))
 	_portrait_glyph.add_theme_font_size_override("font_size", 40)
@@ -172,7 +205,6 @@ func _refresh_category_buttons() -> void:
 
 func _on_member_selected(member_index: int) -> void:
 	_selected_member_index = member_index
-	_refresh_member_buttons()
 	_refresh_display()
 
 func _on_member_prev_pressed() -> void:
@@ -188,34 +220,19 @@ func _cycle_member(delta: int) -> void:
 	var next_index: int = (_selected_member_index + delta + count) % count
 	_on_member_selected(next_index)
 
-func _refresh_member_buttons() -> void:
-	for i in GameState.ACTIVE_PARTY_SIZE:
-		var btn: Button = _member_row.get_node("ButtonMember%d" % i) as Button
-		if i < GameState.party_members.size():
-			var member: Resource = GameState.party_members[i]
-			btn.text = member.display_name
-			btn.icon = IconPaths.get_icon_texture(str(member.job_id), "chr")
-			btn.expand_icon = true
-			btn.custom_minimum_size = Vector2(0, 56)
-			var selected: bool = i == _selected_member_index
-			btn.disabled = selected
-			var box: StyleBoxFlat = _framed_box(COLOR_GOLD if selected else Color(0.4, 0.36, 0.3, 0.8), 2 if selected else 1, Color(0.16, 0.13, 0.1, 0.95) if selected else Color(0.1, 0.09, 0.07, 0.9))
-			btn.add_theme_stylebox_override("normal", box)
-			btn.add_theme_stylebox_override("hover", _framed_box(COLOR_GOLD, 2, Color(0.18, 0.15, 0.11, 1.0)))
-			btn.add_theme_stylebox_override("disabled", box)
-		else:
-			btn.text = "—"
-			btn.icon = null
-			btn.disabled = true
-
 func _refresh_display() -> void:
 	_update_header()
 	_update_character_card()
 	_rebuild_equip_slots()
 	_rebuild_effects()
 	_refresh_category_buttons()
+	_refresh_inventory_tools()
 	_rebuild_inventory_grid()
 	_rebuild_skill_tab()
+	_update_forge_nav_dot()
+
+func _update_forge_nav_dot() -> void:
+	_nav_forge.text = "鍛冶 ●" if BlacksmithUiHelper.has_craftable_recipes() else "鍛冶"
 
 func _update_header() -> void:
 	_label_gold.text = "%d" % GameState.gold
@@ -226,17 +243,21 @@ func _update_character_card() -> void:
 	var member: Resource = GameState.get_member(_selected_member_index)
 	if member == null:
 		_label_name.text = "—"
-		_label_job_level.text = ""
+		_label_level.text = ""
+		_label_job.text = ""
+		_job_icon.texture = null
 		_portrait_glyph.text = "?"
 		return
 	_label_name.text = member.display_name
 	var job_mods: Dictionary = _JobStatCalculator.get_member_modifiers(member)
 	var job_name: String = str(job_mods.get("display_name", member.job_id))
-	_label_job_level.text = "★%d  Lv%d  %s" % [int(member.rarity), int(member.level), job_name]
+	_label_level.text = EquipmentUiHelper.level_line(int(member.level))
+	_label_job.text = job_name
+	_job_icon.texture = IconPaths.get_icon_texture(str(member.job_id), "chr")
 	var chr_tex: Texture2D = IconPaths.get_icon_texture(str(member.job_id), "chr")
 	_portrait_art.texture = chr_tex
 	_portrait_glyph.text = "" if chr_tex != null else member.display_name.substr(0, 1)
-	_label_stars.text = "★★★★★"
+	_label_stars.text = EquipmentUiHelper.stars_text(int(member.rarity))
 	var stats: Dictionary = _compute_member_stats(_selected_member_index)
 	_populate_stat_grid(stats)
 
@@ -245,15 +266,14 @@ func _populate_stat_grid(stats: Dictionary) -> void:
 		child.queue_free()
 	var rows: Array = [
 		["hp", "HP", str(stats["hp"])],
-		["attack", "攻撃", str(stats["attack"])],
-		["defense", "防御", str(stats["defense"])],
+		["attack", "攻撃力", str(stats["attack"])],
+		["defense", "防御力", str(stats["defense"])],
 		["speed", "速度", "%.1f" % stats["speed"]],
 		["crit_rate", "会心率", "%.0f%%" % (stats["crit_rate"] * 100.0)],
 		["crit_damage", "会心ダメ", "%.0f%%" % (stats["crit_damage"] * 100.0)],
 	]
 	for r in rows:
-		var glyph: String = str(STAT_GLYPHS.get(r[0], ""))
-		_stats_grid.add_child(_make_dim_label("%s %s" % [glyph, r[1]]))
+		_stats_grid.add_child(_make_dim_label(str(r[1])))
 		_stats_grid.add_child(_make_value_label(str(r[2])))
 
 func _make_dim_label(text: String) -> Label:
@@ -316,7 +336,30 @@ func _rebuild_equip_slots() -> void:
 	var idx: int = _selected_member_index
 	_slots_row.add_child(_make_slot("武器", "weapon", GameState.get_member_equipped_weapon(idx)))
 	_slots_row.add_child(_make_slot("防具", "armor", GameState.get_member_equipped_armor(idx)))
-	_slots_row.add_child(_make_slot("装飾品", "accessory", GameState.get_member_equipped_accessory(idx)))
+	_slots_row.add_child(_make_slot("装飾", "accessory", GameState.get_member_equipped_accessory(idx)))
+	_slots_row.add_child(_make_locked_slot("足具"))
+
+func _make_locked_slot(label: String) -> Control:
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 2)
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	var cap := Label.new()
+	cap.text = label
+	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cap.add_theme_color_override("font_color", COLOR_SUB)
+	cap.add_theme_font_size_override("font_size", 11)
+	box.add_child(cap)
+	var btn := Button.new()
+	btn.custom_minimum_size = SLOT_CELL_SIZE
+	btn.disabled = true
+	btn.text = "🔒"
+	btn.add_theme_font_size_override("font_size", 18)
+	btn.add_theme_stylebox_override(
+		"disabled",
+		_framed_box(Color(0.35, 0.33, 0.3, 0.55), 1, Color(0.08, 0.07, 0.05, 0.9))
+	)
+	box.add_child(btn)
+	return box
 
 func _make_slot(slot_label: String, category: String, item: Resource) -> Control:
 	var box := VBoxContainer.new()
@@ -364,18 +407,21 @@ func _rebuild_inventory_grid() -> void:
 		child.queue_free()
 	var entries: Array = []
 	if _inventory_filter == "all" or _inventory_filter == "weapon":
-		for it in $EquipmentController.get_appraised_weapons_for_member(_selected_member_index):
+		for it in $EquipmentController.get_appraised_weapons():
 			entries.append({"item": it, "category": "weapon"})
 	if _inventory_filter == "all" or _inventory_filter == "armor":
-		for it in $EquipmentController.get_appraised_armors_for_member(_selected_member_index):
+		for it in $EquipmentController.get_appraised_armors():
 			entries.append({"item": it, "category": "armor"})
 	if _inventory_filter == "all" or _inventory_filter == "accessory":
-		for it in $EquipmentController.get_appraised_accessories_for_member(_selected_member_index):
+		for it in $EquipmentController.get_appraised_accessories():
 			entries.append({"item": it, "category": "accessory"})
+	entries = EquipmentUiHelper.filter_by_equipped_state(
+		entries, _inventory_equipped_filter, _selected_member_index
+	)
 	if entries.is_empty():
 		_inventory_grid.add_child(_make_dim_label("該当する装備がありません"))
 		return
-	for e in EquipmentUiHelper.sort_inventory_entries(entries):
+	for e in EquipmentUiHelper.sort_inventory_entries(entries, _inventory_sort):
 		_inventory_grid.add_child(_make_item_cell(e["item"], str(e["category"])))
 
 func _make_item_cell(item: Resource, category: String) -> Button:
@@ -386,11 +432,15 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 		btn.icon = icon
 		btn.expand_icon = true
 	var rarity: int = _item_rarity(item, category)
-	var equipped: Resource = _equipped_for_category(category)
-	var is_equipped: bool = item == equipped
+	var owner_idx: int = EquipmentUiHelper.equipped_member_index(item)
+	var is_on_self: bool = owner_idx == _selected_member_index
 	btn.tooltip_text = "%s  %s" % [_item_label(item, category), _compare_text(item, category)]
+	if owner_idx >= 0 and not is_on_self:
+		var owner: Resource = GameState.get_member(owner_idx)
+		if owner != null:
+			btn.tooltip_text += "（%s装備中）" % str(owner.display_name)
 	btn.pressed.connect(_on_cell_pressed.bind(item, category))
-	if is_equipped:
+	if is_on_self:
 		btn.disabled = true
 		btn.focus_mode = Control.FOCUS_NONE
 		btn.modulate = Color(0.72, 0.72, 0.72, 0.85)
@@ -398,8 +448,26 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 	else:
 		btn.add_theme_stylebox_override("normal", _rarity_box(rarity, false))
 		btn.add_theme_stylebox_override("hover", _rarity_box(rarity, true))
-	_apply_item_badges(btn, item, category, CELL_SIZE, is_equipped)
+	_apply_item_badges(btn, item, category, CELL_SIZE, is_on_self)
+	if owner_idx >= 0:
+		_add_owner_portrait_badge(btn, owner_idx)
 	return btn
+
+func _add_owner_portrait_badge(btn: Button, owner_idx: int) -> void:
+	var member: Resource = GameState.get_member(owner_idx)
+	if member == null:
+		return
+	var tex: Texture2D = IconPaths.get_icon_texture(str(member.job_id), "chr")
+	if tex == null:
+		return
+	var icon := TextureRect.new()
+	icon.texture = tex
+	icon.custom_minimum_size = Vector2(16, 16)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.position = Vector2(CELL_SIZE.x - 18.0, 2.0)
+	btn.add_child(icon)
 
 func _on_cell_pressed(item: Resource, category: String) -> void:
 	match category:
