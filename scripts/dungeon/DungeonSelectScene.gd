@@ -19,6 +19,17 @@ const COLOR_GOLD: Color = Color(0.95, 0.84, 0.4, 1)
 const COLOR_SUB: Color = Color(0.78, 0.74, 0.6, 1)
 const COLOR_CLEAR: Color = Color(0.45, 0.92, 0.55, 1)
 const COLOR_TEAL: Color = Color(0.6, 0.82, 0.78, 1)
+const COLOR_STAMINA: Color = Color(0.55, 0.92, 0.62, 1)
+
+## P3-UI2-029 — 占位表示のみ（Beta B2 で実ロジック化）
+const PLACEHOLDER_STAMINA_CURRENT: int = 120
+const PLACEHOLDER_STAMINA_MAX: int = 120
+const PLACEHOLDER_STAMINA_COST: int = 20
+const PLACEHOLDER_DAILY_CHALLENGES: String = "3/3"
+const PLACEHOLDER_BONUS_PERCENT: int = 20
+const PLACEHOLDER_BONUS_REMAINING: String = "残り2時間35分"
+const PLACEHOLDER_SPECIAL_CURRENT: int = 2
+const PLACEHOLDER_SPECIAL_TOTAL: int = 5
 
 const DROP_PREVIEW: Dictionary = {
 	"mourngate": [
@@ -30,6 +41,7 @@ const DROP_PREVIEW: Dictionary = {
 }
 
 @onready var _btn_back: Button = $Header/HeaderRow/ButtonBack
+@onready var _label_stamina: Label = $Header/HeaderRow/StaminaChip/StaminaRow/LabelStamina
 @onready var _label_gold: Label = $Header/HeaderRow/GoldChip/GoldRow/LabelGold
 @onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
 @onready var _featured_panel: PanelContainer = $FeaturedPanel
@@ -41,6 +53,13 @@ const DROP_PREVIEW: Dictionary = {
 @onready var _featured_drop_row: HBoxContainer = $FeaturedPanel/FeaturedRow/FeaturedInfo/FeaturedDropRow
 @onready var _btn_featured_challenge: Button = $FeaturedPanel/FeaturedRow/BtnFeaturedChallenge
 @onready var _list: VBoxContainer = $ScrollList/ListVBox
+@onready var _footer_panel: PanelContainer = $FooterPanel
+@onready var _label_daily_challenges: Label = $FooterPanel/FooterRow/DailyCol/LabelDailyValue
+@onready var _label_dungeon_bonus: Label = $FooterPanel/FooterRow/BonusCol/LabelBonusValue
+@onready var _label_bonus_timer: Label = $FooterPanel/FooterRow/BonusCol/LabelBonusTimer
+@onready var _label_special_progress: Label = $FooterPanel/FooterRow/SpecialCol/SpecialRow/LabelSpecialProgress
+@onready var _special_progress_bar: ProgressBar = $FooterPanel/FooterRow/SpecialCol/SpecialRow/SpecialProgressBar
+@onready var _btn_reward_list: Button = $FooterPanel/FooterRow/SpecialCol/BtnRewardList
 @onready var _nav_home: Button = $BottomNav/NavRow/NavHome
 @onready var _nav_party: Button = $BottomNav/NavRow/NavParty
 @onready var _nav_codex: Button = $BottomNav/NavRow/NavCodex
@@ -58,15 +77,39 @@ func _ready() -> void:
 	_featured_panel.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD_ACTIVE)
 	)
+	_footer_panel.add_theme_stylebox_override(
+		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
+	)
 	$FeaturedPanel/FeaturedRow/FeaturedThumb.add_theme_stylebox_override(
 		"panel", _thumb_frame_style()
 	)
+	_btn_reward_list.disabled = true
+	_btn_reward_list.tooltip_text = "準備中（Beta）"
 	_refresh_all()
 
 func _refresh_all() -> void:
 	_update_currency()
+	_refresh_stamina_placeholder()
 	_refresh_featured()
+	_refresh_footer_placeholder()
 	_build_list()
+
+func _refresh_stamina_placeholder() -> void:
+	_label_stamina.text = "⚡ %d/%d" % [PLACEHOLDER_STAMINA_CURRENT, PLACEHOLDER_STAMINA_MAX]
+
+func _refresh_footer_placeholder() -> void:
+	_label_daily_challenges.text = PLACEHOLDER_DAILY_CHALLENGES
+	var data: Resource = DataRegistry.get_dungeon_data(_featured_dungeon_id)
+	var element_name: String = "闇"
+	if data != null and not str(data.favored_element).is_empty():
+		element_name = _ElementResolver.get_display_name(str(data.favored_element))
+	_label_dungeon_bonus.text = "%s属性+%d%%" % [element_name, PLACEHOLDER_BONUS_PERCENT]
+	_label_bonus_timer.text = PLACEHOLDER_BONUS_REMAINING
+	_label_special_progress.text = "特別報酬まであと %d/%d" % [
+		PLACEHOLDER_SPECIAL_CURRENT, PLACEHOLDER_SPECIAL_TOTAL
+	]
+	_special_progress_bar.max_value = float(PLACEHOLDER_SPECIAL_TOTAL)
+	_special_progress_bar.value = float(PLACEHOLDER_SPECIAL_CURRENT)
 
 func _update_currency() -> void:
 	_label_gold.text = "%d" % GameState.gold
@@ -90,6 +133,7 @@ func _refresh_featured() -> void:
 	meta_parts.append(_make_stars_text(int(data.difficulty)))
 	if not str(data.favored_element).is_empty():
 		meta_parts.append("%s 有利" % _ElementResolver.get_display_name(str(data.favored_element)))
+	meta_parts.append("スタミナ消費 ⚡%d" % PLACEHOLDER_STAMINA_COST)
 	var policy: String = GameState.get_exploration_policy()
 	if not policy.is_empty():
 		meta_parts.append("方針:%s" % GameState.exploration_policy_label(policy))
@@ -101,7 +145,7 @@ func _refresh_featured() -> void:
 		_label_featured_discovery.text += " · CLEAR済"
 
 	_populate_drop_row(_featured_drop_row, _featured_dungeon_id, 4)
-	_btn_featured_challenge.text = "挑戦"
+	_btn_featured_challenge.text = "挑戦\n⚡%d" % PLACEHOLDER_STAMINA_COST
 
 func _resolve_featured_dungeon_id() -> String:
 	var active_id: String = GameState.get_active_dungeon_id()
@@ -227,7 +271,7 @@ func _make_floor_card(data: Resource, floor: int, unlocked: bool) -> PanelContai
 	var btn := Button.new()
 	btn.custom_minimum_size = Vector2(80, 36)
 	if unlocked:
-		btn.text = "選択"
+		btn.text = "挑戦\n⚡%d" % PLACEHOLDER_STAMINA_COST
 		btn.pressed.connect(_on_select_pressed.bind(dungeon_id))
 	else:
 		btn.text = "ロック中"

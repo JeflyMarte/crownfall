@@ -1,6 +1,6 @@
 # Session Handoff — Cursor HQ
 
-**Updated:** 2026-07-01（P3-D145 敵別Threat Closeout）
+**Updated:** 2026-07-02（P3-ALPHA-006 / P3-BETA-001）
 **ProjectDocs:** v3.6.0
 **Branch:** `main`
 
@@ -8,7 +8,7 @@
 
 ## 1. 一言サマリー
 
-P3-D145（敵別Threat）・P3-D151（罠部屋）・P3-FIX-004（HP持ち越し）済。次＝Backlog。
+Alpha Closeout=案A。次 Impl=**P3-UI2-029**（DG下部パネル占位）。Beta=B1(2本目DG)+B2(スタミナ)。
 
 ---
 
@@ -16,12 +16,10 @@ P3-D145（敵別Threat）・P3-D151（罠部屋）・P3-FIX-004（HP持ち越し
 
 | 領域 | 内容 |
 |---|---|
-| バランス | P3-BAL-004 — 生態ドロップ65/35%・レシピ1+1化・ELITE素材20% |
-| 周回 | P3-D142 — 周回ONで ELITE も即撃破（BOSSは実戦） |
-| 探索 | P3-D151 — 罠部屋（scout/tank で解除・否则8ダメ） |
-| 経済 | D136 鍛冶復活 / D138 TopBar素材 / D139 鍛冶UX / D141 Result作成可能 |
-| 準備 | D134 競合トースト / D137 ガンビット並替 / D140 条件ヒント |
-| Closeout | P3-ECO-001 — `04_ゲームループ` / CODEMAP 同期 |
+| UI | P3-UI2-027〜028 / P3-DAILY 日課 MVP |
+| ガチャ | P3-GACHA-003 助っ人立ち絵パイプライン |
+| 探索 | P3-D151 罠部屋 / P3-D142 周回 ELITE スキップ |
+| 経済 | P3-BAL-004 / P3-ECO-001 Closeout |
 
 ---
 
@@ -31,8 +29,10 @@ P3-D145（敵別Threat）・P3-D151（罠部屋）・P3-FIX-004（HP持ち越し
 
 | 優先 | 内容 |
 |---|---|
-| 0 | P3-ALPHA-003 実機（可能時） |
-| — | Backlog（天候本格/複数DG 等）— Decision 待ち |
+| 1 | **P3-UI2-029** — DG下部パネル占位（次 Impl） |
+| 2 | P3-BETA-001 設計 — 2本目DG + スタミナ仕様 |
+| 0 | P3-ALPHA-003 実機（可能時・Defer） |
+| — | P3-ART 作画（オーナーレーン並行） |
 
 ---
 
@@ -46,4 +46,4 @@ bash tools/smoke_test.sh
 
 ## 5. SSOT
 
-`docs/project/CurrentState.md` / `docs/specs/core/03_Decision_Log.md`
+`docs/project/CurrentState.md` / `docs/specs/core/03_Decision_Log.md`（P3-ALPHA-006 / P3-BETA-001）
