@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-02（**P3-UI2-028 DG選択モック第3段**: フレーバーテキスト・B1〜B7階層カード・敵/戦力/CLEARリボン。smoke PASS）
+
 2026-07-02（**P3-GACHA-003 助っ人専用立ち絵**: portrait_resource_path 配線・暫定3枚・召喚/編成/装備反映。smoke PASS）
 
 2026-07-01（**P3-UI2-027 拠点モック第2段**: TitlePanel/Spotlight/FeatureGrid・左メニューカード化・7機能グリッド。smoke PASS）

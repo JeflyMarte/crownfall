@@ -169,7 +169,7 @@ anchor_right = 1.0
 offset_left = 12.0
 offset_top = 94.0
 offset_right = -12.0
-offset_bottom = 262.0
+offset_bottom = 288.0
 grow_horizontal = 2
 
 [node name="FeaturedRow" type="HBoxContainer" parent="FeaturedPanel"]
@@ -195,6 +195,14 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
 theme_override_font_sizes/font_size = 17
 text = "—"
+
+[node name="LabelFeaturedFlavor" type="Label" parent="FeaturedPanel/FeaturedRow/FeaturedInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.7, 0.62, 1)
+theme_override_font_sizes/font_size = 12
+text = ""
+autowrap_mode = 3
+max_lines_visible = 2
 
 [node name="LabelFeaturedMeta" type="Label" parent="FeaturedPanel/FeaturedRow/FeaturedInfo"]
 layout_mode = 2
@@ -223,7 +231,7 @@ text = "挑戦"
 layout_mode = 1
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 270.0
+offset_top = 296.0
 offset_bottom = -52.0
 grow_horizontal = 2
 grow_vertical = 2
