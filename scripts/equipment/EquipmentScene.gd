@@ -18,6 +18,7 @@ const BASE_MEMBER_HP: int = 30
 const CRIT_DAMAGE_MULT: float = 1.5
 const GRID_COLUMNS: int = 6
 const CELL_SIZE: Vector2 = Vector2(72, 72)
+const SLOT_CELL_SIZE: Vector2 = Vector2(58, 58)
 
 # レア度別の枠色（COMMON/RARE/EPIC/LEGENDARY）。
 const RARITY_COLORS: Array[Color] = [
@@ -33,6 +34,7 @@ const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45)
 const COLOR_SUB: Color = Color(0.72, 0.69, 0.62)
 const COLOR_VALUE: Color = Color(0.94, 0.91, 0.83)
 const COLOR_POS: Color = Color(0.55, 0.88, 0.5)
+const COLOR_ACCENT: Color = Color(0.75, 0.82, 0.95, 1)
 
 # ステータス／スロットのグリフ装飾。
 const STAT_GLYPHS: Dictionary = {
@@ -57,7 +59,8 @@ const SLOT_GLYPHS: Dictionary = {"weapon": "⚔", "armor": "🛡", "accessory": 
 @onready var _label_job_level: Label = $VBoxContainer/CharacterCard/CardRow/InfoBox/LabelJobLevel
 @onready var _stats_grid: GridContainer = $VBoxContainer/CharacterCard/CardRow/InfoBox/StatsGrid
 @onready var _button_unequip_all: Button = $VBoxContainer/CharacterCard/CardRow/InfoBox/ButtonsRow/ButtonUnequipAll
-@onready var _slots_row: HBoxContainer = $VBoxContainer/EquipSlotsRow
+@onready var _slots_row: VBoxContainer = $VBoxContainer/CharacterCard/CardRow/SlotsPanel/EquipSlotsGrid
+@onready var _character_card: PanelContainer = $VBoxContainer/CharacterCard
 @onready var _tabs: TabContainer = $VBoxContainer/TabContainer
 @onready var _effects_grid: GridContainer = $VBoxContainer/TabContainer/TabEquip/EquipContent/EffectsGrid
 @onready var _category_row: HBoxContainer = $VBoxContainer/TabContainer/TabEquip/EquipContent/CategoryRow
@@ -116,6 +119,7 @@ func _ready() -> void:
 		btn.pressed.connect(_on_member_selected.bind(i))
 	_connect_category_buttons()
 	_inventory_grid.columns = GRID_COLUMNS
+	_apply_panel_styles()
 	_decorate_portrait()
 	if GameState.equipment_focus_member_index >= 0:
 		_selected_member_index = clampi(
@@ -126,6 +130,11 @@ func _ready() -> void:
 		GameState.equipment_focus_member_index = -1
 	_refresh_member_buttons()
 	_refresh_display()
+
+func _apply_panel_styles() -> void:
+	_character_card.add_theme_stylebox_override(
+		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
+	)
 
 func _decorate_portrait() -> void:
 	var p := $VBoxContainer/CharacterCard/CardRow/PortraitBox/Portrait as PanelContainer
@@ -311,16 +320,16 @@ func _rebuild_equip_slots() -> void:
 
 func _make_slot(slot_label: String, category: String, item: Resource) -> Control:
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 3)
+	box.add_theme_constant_override("separation", 2)
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
 	var cap := Label.new()
 	cap.text = slot_label
 	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	cap.add_theme_color_override("font_color", COLOR_GOLD)
-	cap.add_theme_font_size_override("font_size", 13)
+	cap.add_theme_color_override("font_color", COLOR_SUB)
+	cap.add_theme_font_size_override("font_size", 11)
 	box.add_child(cap)
 	var btn := Button.new()
-	btn.custom_minimum_size = CELL_SIZE
+	btn.custom_minimum_size = SLOT_CELL_SIZE
 	if item != null:
 		var icon: Texture2D = _item_icon(item, category)
 		if icon != null:
@@ -330,10 +339,10 @@ func _make_slot(slot_label: String, category: String, item: Resource) -> Control
 		var rarity: int = _item_rarity(item, category)
 		btn.add_theme_stylebox_override("normal", _rarity_box(rarity, false))
 		btn.add_theme_stylebox_override("hover", _rarity_box(rarity, true))
-		_add_corner_badge(btn, RARITY_GEMS[clampi(rarity, 0, RARITY_GEMS.size() - 1)], RARITY_COLORS[clampi(rarity, 0, RARITY_COLORS.size() - 1)], true)
+		_apply_item_badges(btn, item, category, SLOT_CELL_SIZE, true)
 	else:
 		btn.text = str(SLOT_GLYPHS.get(category, "+"))
-		btn.add_theme_font_size_override("font_size", 30)
+		btn.add_theme_font_size_override("font_size", 24)
 		btn.add_theme_color_override("font_color", Color(0.5, 0.45, 0.35, 0.7))
 		btn.add_theme_color_override("font_hover_color", COLOR_GOLD)
 		var empty_box: StyleBoxFlat = _framed_box(Color(0.45, 0.4, 0.3, 0.55), 1, Color(0.08, 0.07, 0.05, 0.9))
@@ -366,7 +375,7 @@ func _rebuild_inventory_grid() -> void:
 	if entries.is_empty():
 		_inventory_grid.add_child(_make_dim_label("該当する装備がありません"))
 		return
-	for e in entries:
+	for e in EquipmentUiHelper.sort_inventory_entries(entries):
 		_inventory_grid.add_child(_make_item_cell(e["item"], str(e["category"])))
 
 func _make_item_cell(item: Resource, category: String) -> Button:
@@ -381,17 +390,15 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 	var is_equipped: bool = item == equipped
 	btn.tooltip_text = "%s  %s" % [_item_label(item, category), _compare_text(item, category)]
 	btn.pressed.connect(_on_cell_pressed.bind(item, category))
-	var rarity_col: Color = RARITY_COLORS[clampi(rarity, 0, RARITY_COLORS.size() - 1)]
 	if is_equipped:
 		btn.disabled = true
 		btn.focus_mode = Control.FOCUS_NONE
-		btn.modulate = Color(0.5, 0.5, 0.5, 0.7)
+		btn.modulate = Color(0.72, 0.72, 0.72, 0.85)
 		btn.add_theme_stylebox_override("disabled", _rarity_box(rarity, true))
-		_add_corner_badge(btn, "E", COLOR_GOLD, false)
 	else:
 		btn.add_theme_stylebox_override("normal", _rarity_box(rarity, false))
 		btn.add_theme_stylebox_override("hover", _rarity_box(rarity, true))
-	_add_corner_badge(btn, RARITY_GEMS[clampi(rarity, 0, RARITY_GEMS.size() - 1)], rarity_col, true)
+	_apply_item_badges(btn, item, category, CELL_SIZE, is_equipped)
 	return btn
 
 func _on_cell_pressed(item: Resource, category: String) -> void:
@@ -434,19 +441,44 @@ func _framed_box(border: Color, width: int, bg: Color) -> StyleBoxFlat:
 	sb.set_content_margin_all(4.0)
 	return sb
 
+# ボタン隅にバッジ（レアリティ / 装備中 / 炉研ぎ）を重ねる。
+func _apply_item_badges(
+	btn: Button,
+	item: Resource,
+	category: String,
+	size: Vector2,
+	is_equipped: bool
+) -> void:
+	var rarity: int = _item_rarity(item, category)
+	var rarity_col: Color = RARITY_COLORS[clampi(rarity, 0, RARITY_COLORS.size() - 1)]
+	_add_corner_badge(
+		btn,
+		EquipmentUiHelper.rarity_gem(rarity),
+		rarity_col,
+		Vector2(2.0, 1.0)
+	)
+	var enhance_text: String = EquipmentUiHelper.enhance_badge(item, category)
+	if not enhance_text.is_empty():
+		_add_corner_badge(btn, enhance_text, COLOR_GOLD, Vector2(size.x - 26.0, size.y - 18.0), 11)
+	if is_equipped:
+		_add_corner_badge(btn, "装", COLOR_ACCENT, Vector2(2.0, size.y - 18.0), 11)
+
 # ボタン隅にバッジ（レアリティ宝石 / 装備中マーク）を重ねる。
-func _add_corner_badge(btn: Button, text: String, color: Color, top_right: bool) -> void:
+func _add_corner_badge(
+	btn: Button,
+	text: String,
+	color: Color,
+	pos: Vector2,
+	font_size: int = 13
+) -> void:
 	var lbl := Label.new()
 	lbl.text = text
 	lbl.add_theme_color_override("font_color", color)
-	lbl.add_theme_font_size_override("font_size", 13)
+	lbl.add_theme_font_size_override("font_size", font_size)
 	lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	lbl.add_theme_constant_override("outline_size", 3)
 	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if top_right:
-		lbl.position = Vector2(CELL_SIZE.x - 18.0, 1.0)
-	else:
-		lbl.position = Vector2(3.0, 1.0)
+	lbl.position = pos
 	btn.add_child(lbl)
 
 # ---- アイテム情報ヘルパー ----
