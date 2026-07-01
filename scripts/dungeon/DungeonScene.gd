@@ -57,7 +57,6 @@ const STATUS_ICON_DEF: Dictionary = {
 const HEAL_SKILL_BASE: int = 14
 const STATUS_ICON_SIZE: float = 26.0
 const STATUS_ICON_GAP: float = 3.0
-const STATUS_ICON_Y_OFFSET: float = -74.0
 const VFX_HIT_PATH: String = "res://resources/animation/FX_Hit_Normal.tres"
 const VFX_HEAL_PATH: String = "res://resources/animation/FX_Heal.tres"
 ## 属性ごとの演出色（命中VFXの modulate / スキル名フォント色に共用）。
@@ -146,6 +145,7 @@ const SKILL_LABEL_STACK_GAP: float = 34.0
 var _chr_hp_bars: Array[ProgressBar] = []
 var _party_card_hp_bars: Array[ProgressBar] = []
 var _party_card_hp_labels: Array[Label] = []
+var _party_card_roots: Array[Control] = []
 var _status_icon_swarm_rows: Array[HBoxContainer] = []
 var _status_icon_chr_rows: Array[HBoxContainer] = []
 
@@ -165,6 +165,15 @@ const FORMATION_SLOT_POSITIONS: Array[Vector2] = [
 	Vector2(125, 728),  # 2 後衛左（奥）
 	Vector2(265, 748),  # 3 後衛右
 ]
+const PARTY_CARD_SLOT_COUNT: int = 4
+const PARTY_CARD_ICON_PX: float = 80.0
+const PARTY_CARD_EMPTY_MODULATE: Color = Color(0.45, 0.45, 0.5, 0.55)
+const PARTY_CARD_DEAD_MODULATE: Color = Color(0.55, 0.55, 0.55, 0.75)
+const CHR_HP_BAR_FRONT_Y_OFFSET: float = 50.0
+const CHR_HP_BAR_BACK_Y_OFFSET: float = -50.0
+const CHR_HP_BAR_GAP_ABOVE_SPRITE: float = 12.0
+const CHR_HP_BAR_HEIGHT: float = 8.0
+const CHR_STATUS_GAP_ABOVE_BAR: float = 4.0
 
 # 行動順（ターンオーダー）表示（P3-D083）。
 var _turn_order_row: HBoxContainer
@@ -368,25 +377,33 @@ func _update_hp_bars() -> void:
 		if bar.visible and i < $CombatController.party_combat_hp.size():
 			bar.max_value = $CombatController.party_max_hp[i]
 			bar.value = $CombatController.party_combat_hp[i]
-			_set_hp_bar_above_sprite(bar, sprite)
+			_set_hp_bar_above_sprite(bar, sprite, _formation_slot_for_combat_index(i))
 	_update_party_cards_hp()
 
-func _set_hp_bar_above_sprite(bar: ProgressBar, sprite: AnimatedSprite2D) -> void:
-	const BAR_HALF_W: float = 40.0
-	const BAR_HEIGHT: float = 8.0
-	const BAR_Y_OFFSET: float = -50.0
-	var gp: Vector2 = sprite.global_position
-	var cx: float = gp.x
-	var ty: float = gp.y + BAR_Y_OFFSET
-	bar.offset_left = cx - BAR_HALF_W
-	bar.offset_top = ty
-	bar.offset_right = cx + BAR_HALF_W
-	bar.offset_bottom = ty + BAR_HEIGHT
+func _chr_hp_bar_row_y_offset(formation_slot: int) -> float:
+	if formation_slot <= 1:
+		return CHR_HP_BAR_FRONT_Y_OFFSET
+	if formation_slot <= 3:
+		return CHR_HP_BAR_BACK_Y_OFFSET
+	return 0.0
 
-# スプライトの実描画上端の Y を返す（centered 前提でフレーム高×scaleの半分を上に取る）。
-# ボスのように体高正規化を通らない大きなスプライトでも、頭上UIが重ならないようにするため。
+func _chr_hp_bar_top_y(sprite: AnimatedSprite2D, formation_slot: int) -> float:
+	return _sprite_top_y(sprite) - CHR_HP_BAR_GAP_ABOVE_SPRITE - CHR_HP_BAR_HEIGHT + _chr_hp_bar_row_y_offset(formation_slot)
+
+func _sprite_visual_center(sprite: AnimatedSprite2D) -> Vector2:
+	return sprite.global_position + sprite.offset
+
+func _set_hp_bar_above_sprite(bar: ProgressBar, sprite: AnimatedSprite2D, formation_slot: int = 0) -> void:
+	const BAR_HALF_W: float = 40.0
+	var center: Vector2 = _sprite_visual_center(sprite)
+	var bar_ty: float = _chr_hp_bar_top_y(sprite, formation_slot)
+	bar.offset_left = center.x - BAR_HALF_W
+	bar.offset_top = bar_ty
+	bar.offset_right = center.x + BAR_HALF_W
+	bar.offset_bottom = bar_ty + CHR_HP_BAR_HEIGHT
+
+# 注: 以下 _sprite_top_y は offset 補正込み
 func _sprite_top_y(sprite: AnimatedSprite2D) -> float:
-	var half_h: float = 0.0
 	if sprite.sprite_frames != null:
 		var anim: String = sprite.animation
 		if not sprite.sprite_frames.has_animation(anim):
@@ -394,8 +411,10 @@ func _sprite_top_y(sprite: AnimatedSprite2D) -> float:
 		if sprite.sprite_frames.has_animation(anim):
 			var tex: Texture2D = sprite.sprite_frames.get_frame_texture(anim, 0)
 			if tex != null:
-				half_h = float(tex.get_height()) * absf(sprite.scale.y) * 0.5
-	return sprite.global_position.y - half_h
+				var frame_h: float = float(tex.get_height()) * absf(sprite.scale.y)
+				var center_y: float = _sprite_visual_center(sprite).y
+				return center_y - frame_h * 0.5
+	return sprite.global_position.y
 
 # 敵HPバー＋頭上ネームプレートを、スプライト実上端の上に積んで配置（重なり回避）。
 # 小型敵は従来位置を下限に維持し、大型(ボス)時のみ上方向へ押し上げる。
@@ -406,11 +425,11 @@ func _position_enemy_overlays(sprite: AnimatedSprite2D) -> void:
 	const NAME_HEIGHT: float = 30.0
 	const GAP_ABOVE_SPRITE: float = 12.0
 	const GAP_BAR_NAME: float = 6.0
-	var gp: Vector2 = sprite.global_position
-	var cx: float = gp.x
+	var center: Vector2 = _sprite_visual_center(sprite)
+	var cx: float = center.x
 	var top_y: float = _sprite_top_y(sprite)
 	# HPバー: 従来 -50 を下限に、スプライト上端より上に来るよう調整
-	var bar_ty: float = minf(gp.y - 50.0, top_y - GAP_ABOVE_SPRITE - BAR_HEIGHT)
+	var bar_ty: float = minf(center.y - 50.0, top_y - GAP_ABOVE_SPRITE - BAR_HEIGHT)
 	_hp_bar_enemy.offset_left = cx - BAR_HALF_W
 	_hp_bar_enemy.offset_top = bar_ty
 	_hp_bar_enemy.offset_right = cx + BAR_HALF_W
@@ -489,7 +508,7 @@ func _populate_status_icon_row(row: HBoxContainer, statuses: Array) -> void:
 	for entry: Dictionary in statuses:
 		row.add_child(_build_status_icon(entry))
 
-func _set_status_row_above_sprite(row: HBoxContainer, sprite: AnimatedSprite2D, statuses: Array) -> void:
+func _set_status_row_above_sprite(row: HBoxContainer, sprite: AnimatedSprite2D, statuses: Array, formation_slot: int = -1) -> void:
 	_populate_status_icon_row(row, statuses)
 	var show: bool = sprite.visible and not statuses.is_empty()
 	row.visible = show
@@ -497,8 +516,14 @@ func _set_status_row_above_sprite(row: HBoxContainer, sprite: AnimatedSprite2D, 
 		return
 	var count: int = statuses.size()
 	var total_w: float = count * STATUS_ICON_SIZE + maxf(0.0, float(count - 1)) * STATUS_ICON_GAP
-	var gp: Vector2 = sprite.global_position
-	row.position = Vector2(gp.x - total_w * 0.5, gp.y + STATUS_ICON_Y_OFFSET)
+	var center: Vector2 = _sprite_visual_center(sprite)
+	var icon_y: float
+	if formation_slot >= 0:
+		icon_y = _chr_hp_bar_top_y(sprite, formation_slot) - CHR_STATUS_GAP_ABOVE_BAR - STATUS_ICON_SIZE
+	else:
+		var top_y: float = _sprite_top_y(sprite)
+		icon_y = top_y - STATUS_ICON_SIZE - 4.0
+	row.position = Vector2(center.x - total_w * 0.5, icon_y)
 
 func _update_status_icons() -> void:
 	var in_combat: bool = $CombatController.is_in_combat
@@ -529,7 +554,12 @@ func _update_status_icons() -> void:
 	for i: int in _status_icon_chr_rows.size():
 		var sprite: AnimatedSprite2D = _chr_sprites[i]
 		var statuses: Array = $CombatController.get_member_status_list(i)
-		_set_status_row_above_sprite(_status_icon_chr_rows[i], sprite, statuses)
+		_set_status_row_above_sprite(
+			_status_icon_chr_rows[i],
+			sprite,
+			statuses,
+			_formation_slot_for_combat_index(i)
+		)
 
 func _get_room_type_name() -> String:
 	match $DungeonController.current_room_type:
@@ -1776,12 +1806,13 @@ func _execute_enemy_damage(skill: Resource) -> void:
 			_spawn_damage_number(str(dmg), _chr_sprites[ti].global_position, Color(1.0, 0.35, 0.35))
 		var member: Resource = GameState.get_combatant(ti)
 		var mname: String = member.display_name if member != null else "?"
+		var density_tag: String = $CombatController.get_density_log_tag(ti)
 		if not $CombatController.is_member_alive(ti):
 			if ti < _chr_sprites.size():
 				_chr_sprites[ti].visible = false
-			lines.append("%s に %d（撃破）" % [mname, dmg])
+			lines.append("%s に %d（撃破）%s" % [mname, dmg, density_tag])
 		else:
-			lines.append("%s に %d" % [mname, dmg])
+			lines.append("%s に %d%s" % [mname, dmg, density_tag])
 		_on_member_damaged(ti)
 	_append_log("敵スキル【%s】\n  %s" % [skill.display_name, " / ".join(lines)])
 
@@ -1886,11 +1917,16 @@ func _do_enemy_attack(slot: int = -1) -> void:
 	var resist_tag: String = ""
 	if enemy_result.get("elem_resisted", false):
 		resist_tag = "  [耐性:%s]" % ElementResolverScript.get_display_name(_enemy_attack_element_at(slot))
+	var density_tag: String = $CombatController.get_density_log_tag(target_idx)
 	var log_text: String
 	if enemy_result["mitigated"] > 0:
-		log_text = "敵の攻撃: %s%s に %dダメージ（軽減%d）%s" % [guard_prefix, member_name, enemy_result["final"], enemy_result["mitigated"], resist_tag]
+		log_text = "敵の攻撃: %s%s に %dダメージ（軽減%d）%s%s" % [
+			guard_prefix, member_name, enemy_result["final"], enemy_result["mitigated"], density_tag, resist_tag,
+		]
 	else:
-		log_text = "敵の攻撃: %s%s に %dダメージ%s" % [guard_prefix, member_name, enemy_result["final"], resist_tag]
+		log_text = "敵の攻撃: %s%s に %dダメージ%s%s" % [
+			guard_prefix, member_name, enemy_result["final"], density_tag, resist_tag,
+		]
 	if not $CombatController.is_member_alive(target_idx):
 		log_text += "\n%s が倒れた！" % member_name
 	_append_log(log_text)
@@ -2955,10 +2991,10 @@ func _position_swarm_overlay(slot: int) -> void:
 	const NAME_HEIGHT: float = 24.0
 	const GAP_ABOVE_SPRITE: float = 12.0
 	const GAP_BAR_NAME: float = 6.0
-	var gp: Vector2 = sprite.global_position
-	var cx: float = gp.x
+	var center: Vector2 = _sprite_visual_center(sprite)
+	var cx: float = center.x
 	var top_y: float = _sprite_top_y(sprite)
-	var bar_ty: float = minf(gp.y - 50.0, top_y - GAP_ABOVE_SPRITE - BAR_HEIGHT)
+	var bar_ty: float = minf(center.y - 50.0, top_y - GAP_ABOVE_SPRITE - BAR_HEIGHT)
 	bar.offset_left = cx - BAR_HALF_W
 	bar.offset_top = bar_ty
 	bar.offset_right = cx + BAR_HALF_W
@@ -3053,57 +3089,115 @@ func _setup_chr_idle_motion(idx: int, sprite: AnimatedSprite2D, frames: SpriteFr
 	tw.tween_property(sprite, "offset:y", base_y, 0.85)
 	_chr_idle_tweens[idx] = tw
 
-# バトルログ下のパーティカード列（アイコン/HP/武器）を再構築（モック準拠・MP無し/CD維持）
+# バトルログ下のパーティカード列（左:アイコン80px / 右:HP・名前・職業・武器）
 func _rebuild_party_cards() -> void:
 	for c in _party_cards_row.get_children():
 		c.queue_free()
 	_party_card_hp_bars.clear()
 	_party_card_hp_labels.clear()
-	for i in GameState.combatant_count():
-		var member: Resource = GameState.get_combatant(i)
-		if member == null:
-			continue
-		var card := VBoxContainer.new()
-		card.custom_minimum_size = Vector2(128, 0)
-		card.add_theme_constant_override("separation", 2)
-		var icon := TextureRect.new()
-		icon.custom_minimum_size = Vector2(48, 48)
-		# expand_mode を IGNORE_SIZE にしないと、大判ポートレート(1024x1536)の実寸が
-		# 最小サイズになりカードが巨大化する（背景のように全画面化する不具合）。
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		var tex: Texture2D = _get_chr_icon_texture(member.job_id)
-		if tex != null:
-			icon.texture = tex
-		card.add_child(icon)
-		var name_label := Label.new()
-		name_label.text = member.display_name
-		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		name_label.add_theme_font_size_override("font_size", 15)
-		card.add_child(name_label)
-		var hp_bar := ProgressBar.new()
-		hp_bar.show_percentage = false
-		hp_bar.custom_minimum_size = Vector2(0, 10)
-		var hp_style := StyleBoxFlat.new()
-		hp_style.bg_color = Color(0.2, 0.8, 0.2)
-		hp_bar.add_theme_stylebox_override("fill", hp_style)
-		card.add_child(hp_bar)
-		var hp_label := Label.new()
-		hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		hp_label.add_theme_font_size_override("font_size", 14)
-		card.add_child(hp_label)
-		var weapon_label := Label.new()
-		var wname: String = _get_equipped_weapon_display_name(i)
-		weapon_label.text = wname if not wname.is_empty() else "素手"
-		weapon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		weapon_label.add_theme_font_size_override("font_size", 13)
-		weapon_label.add_theme_color_override("font_color", Color(0.83, 0.79, 0.72))
-		card.add_child(weapon_label)
-		_party_cards_row.add_child(card)
-		_party_card_hp_bars.append(hp_bar)
-		_party_card_hp_labels.append(hp_label)
+	_party_card_roots.clear()
+	for slot in PARTY_CARD_SLOT_COUNT:
+		if slot < GameState.combatant_count():
+			var member: Resource = GameState.get_combatant(slot)
+			if member == null:
+				_party_cards_row.add_child(_make_empty_party_card())
+				continue
+			var built: Dictionary = _make_party_card(member, slot)
+			_party_cards_row.add_child(built["card"])
+			_party_card_hp_bars.append(built["hp_bar"])
+			_party_card_hp_labels.append(built["hp_label"])
+			_party_card_roots.append(built["card"])
+		else:
+			_party_cards_row.add_child(_make_empty_party_card())
 	_update_party_cards_hp()
+
+func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
+	var card := HBoxContainer.new()
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	card.add_theme_constant_override("separation", 6)
+	var icon := TextureRect.new()
+	icon.custom_minimum_size = Vector2(PARTY_CARD_ICON_PX, PARTY_CARD_ICON_PX)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var tex: Texture2D = _get_chr_icon_texture(member.job_id)
+	if tex != null:
+		icon.texture = tex
+	card.add_child(icon)
+	var info := VBoxContainer.new()
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	info.add_theme_constant_override("separation", 1)
+	var hp_row := HBoxContainer.new()
+	hp_row.add_theme_constant_override("separation", 4)
+	var hp_bar := ProgressBar.new()
+	hp_bar.show_percentage = false
+	hp_bar.custom_minimum_size = Vector2(0, 10)
+	hp_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var hp_style := StyleBoxFlat.new()
+	hp_style.bg_color = Color(0.2, 0.8, 0.2)
+	hp_bar.add_theme_stylebox_override("fill", hp_style)
+	hp_row.add_child(hp_bar)
+	var hp_label := Label.new()
+	hp_label.custom_minimum_size = Vector2(48, 0)
+	hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	hp_label.add_theme_font_size_override("font_size", 12)
+	hp_row.add_child(hp_label)
+	info.add_child(hp_row)
+	var name_label := Label.new()
+	name_label.text = member.display_name
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	name_label.clip_text = true
+	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	name_label.add_theme_font_size_override("font_size", 15)
+	info.add_child(name_label)
+	var job_label := Label.new()
+	job_label.text = _get_member_job_display_name(member)
+	job_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	job_label.clip_text = true
+	job_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	job_label.add_theme_font_size_override("font_size", 13)
+	job_label.add_theme_color_override("font_color", Color(0.78, 0.76, 0.7))
+	info.add_child(job_label)
+	var weapon_label := Label.new()
+	var wname: String = _get_equipped_weapon_display_name(combat_index)
+	weapon_label.text = wname if not wname.is_empty() else "素手"
+	weapon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	weapon_label.clip_text = true
+	weapon_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	weapon_label.add_theme_font_size_override("font_size", 13)
+	weapon_label.add_theme_color_override("font_color", Color(0.83, 0.79, 0.72))
+	info.add_child(weapon_label)
+	card.add_child(info)
+	return {"card": card, "hp_bar": hp_bar, "hp_label": hp_label}
+
+func _make_empty_party_card() -> Control:
+	var card := HBoxContainer.new()
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	card.modulate = PARTY_CARD_EMPTY_MODULATE
+	card.add_theme_constant_override("separation", 6)
+	var icon := TextureRect.new()
+	icon.custom_minimum_size = Vector2(PARTY_CARD_ICON_PX, PARTY_CARD_ICON_PX)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	card.add_child(icon)
+	var info := VBoxContainer.new()
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	info.add_theme_constant_override("separation", 1)
+	for line in ["—", "—", "—", "—"]:
+		var label := Label.new()
+		label.text = line
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		label.add_theme_font_size_override("font_size", 13)
+		label.add_theme_color_override("font_color", Color(0.55, 0.54, 0.5, 0.8))
+		info.add_child(label)
+	card.add_child(info)
+	return card
+
+func _get_member_job_display_name(member: Resource) -> String:
+	var mods: Dictionary = JobStatCalculatorScript.get_member_modifiers(member)
+	return str(mods.get("display_name", ""))
 
 func _get_chr_icon_texture(job_id: String) -> Texture2D:
 	# 専用バストアイコンを優先（無ければ全身idleフレームにフォールバック）
@@ -3228,6 +3322,9 @@ func _update_party_cards_hp() -> void:
 		_party_card_hp_labels[i].text = "%d/%d" % [
 			$CombatController.party_combat_hp[i], $CombatController.party_max_hp[i]
 		]
+		if i < _party_card_roots.size():
+			var card: Control = _party_card_roots[i]
+			card.modulate = Color.WHITE if $CombatController.is_member_alive(i) else PARTY_CARD_DEAD_MODULATE
 
 func _normalize_chr_scale(sprite: AnimatedSprite2D, frames: SpriteFrames) -> void:
 	# 実体（α非透明領域）のバウンディングボックスを CHR_BODY_TARGET_PX に揃える。

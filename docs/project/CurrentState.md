@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-01（**P3-D106e 散開/密集（B-4）**: 同列2人+被ダメ×1.08 / 同列1人×0.94・incoming中央フック・ログ`[密集]`/`[散開]`。headless import 検証済 / 実機未確認 / 未コミット）
+
 2026-07-01（**P3-ALPHA-003 Combat v1.0 実機一括確認チェックリスト**: `AlphaPlaytest_Checklist.md` v2.0 更新（モーンゲート/フルオート/CT/戦闘v1.0 全項目）。**次=オーナー実機実施 → GO/NO-GO 記録**）
 
 2026-07-01（**P3-D119 Combat System v1.0 Closeout**: 残ロードマップ 15/15 完了宣言。`CODEMAP.md` に combat モジュール群（P3-D103〜118）・状態14種・探索/周回配線を同期。Decision Log P3-D119 追記。**次=Phase 3-A ポリッシュ / P3-D103〜118 実機一括確認**）
