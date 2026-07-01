@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-01（**P3-UI2-024 ギルド認定 polish**: Header/BottomNav・認定リストカード化・ソート。smoke PASS）
+
 2026-07-01（**P3-UI2-023 探索リザルト polish**: CombatUiFrames・固定フッター・発見率表示・遷移時セーブ。smoke PASS）
 
 2026-07-01（**P3-UI2-022 召喚演出**: 暗転→魔晶石→キャラリビール・タップ閉じ・演出中入力ロック。smoke PASS）

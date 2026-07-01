@@ -2002,6 +2002,19 @@
 
 **P3-UI2-022 Closeout（2026-07-01）:** `SummonRevealLayer` + Tween。headless smoke PASS。
 
+## ギルド認定モック寄せ（2026-07-01 — P3-UI2-024）
+
+> 拠点「ギルド認定」画面の UI polish。認定ロジック不変（P3-D052-2 手動認定）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UI2-024-1 | **Header/BottomNav** — Gold/魔晶石チップ・5タブ（召喚表記） | 017〜023 統一 |
+| P3-UI2-024-2 | **認定リストカード化** — 肖像+職/到達形+認定CTA・`CombatUiFrames` | 編成/装備パターン |
+| P3-UI2-024-3 | **ソート** — 認定可能→未達→認定済、Lv降順 | UX |
+| P3-UI2-024-4 | **スコープ外** — 認定官NPC台詞・演出・一括認定 | Beta |
+
+**P3-UI2-024 Closeout（2026-07-01）:** `GuildScene` polish。headless smoke PASS。
+
 ## 探索リザルトモック寄せ（2026-07-01 — P3-UI2-023）
 
 > `UI_Reference_002` §7 骨格の段階A。報酬ロジック不変。
