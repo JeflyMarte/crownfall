@@ -69,6 +69,38 @@ const SUPPORT_VFX_TINT: Dictionary = {
 const ULTIMATE_GOLD: Color = Color(1.0, 0.78, 0.22)
 const ULTIMATE_FLASH_DAMAGE: Color = Color(1.0, 0.88, 0.45)
 const ULTIMATE_FLASH_HEAL: Color = Color(0.55, 1.0, 0.72)
+# バトルログ BBCode 色（モック準拠・P3-UI2 拡張）
+const LOG_MUTED: Color = Color("#B8B8C0")
+const LOG_TAG: Color = Color("#C9A0FF")
+const LOG_DAMAGE_OUT: Color = Color("#FFD700")
+const LOG_DAMAGE_CRIT: Color = Color("#FFF176")
+const LOG_DAMAGE_IN: Color = Color("#FF8A65")
+const LOG_HEAL: Color = Color("#81C784")
+const LOG_ENEMY_NORMAL: Color = Color("#E8C4B0")
+const LOG_ENEMY_ELITE: Color = Color("#FF9E7A")
+const LOG_ENEMY_BOSS: Color = Color("#FF6B6B")
+const LOG_PARTY_COLOR_BY_ADV: Dictionary = {
+	"adventurer_0": Color("#E5B870"),
+	"adventurer_1": Color("#88C0D0"),
+	"adventurer_2": Color("#A3BE8C"),
+	"adventurer_3": Color("#B48EAD"),
+	"adventurer_4": Color("#D08770"),
+}
+const LOG_PARTY_COLOR_BY_JOB: Dictionary = {
+	"swordsman": Color("#E5B870"),
+	"ranger": Color("#88C0D0"),
+	"alchemist": Color("#A3BE8C"),
+	"vanguard": Color("#B48EAD"),
+	"beast_tamer": Color("#D08770"),
+}
+const LOG_ENEMY_TIER_BY_ID: Dictionary = {
+	"clock_moth": "elite",
+	"serdion": "boss",
+}
+const LOG_BRACKET_TAGS: PackedStringArray = [
+	"【必殺】", "【スキル】", "【エリート】", "【ボス】", "【混成】", "【フェーズ移行】",
+	"[パッシブ]", "[遺物]", "[防御]", "[詠唱]", "[探索]", "[罠]", "[コンボ]", "[連携]",
+]
 ## 属性ごとの演出色（命中VFXの modulate / スキル名フォント色に共用）。
 ## 未設定/無属性は WHITE（VFX）・既定の青系（スキル名）にフォールバック。
 const ELEMENT_COLOR: Dictionary = {
@@ -327,14 +359,15 @@ func _append_log(text: String) -> void:
 	for line: String in text.split("\n"):
 		if line.is_empty():
 			continue
-		var entry := Label.new()
-		entry.text = line
-		entry.add_theme_color_override("font_color", _log_color(line))
-		entry.add_theme_constant_override("outline_size", 2)
-		entry.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
-		entry.add_theme_font_size_override("font_size", 24)
+		var entry := RichTextLabel.new()
+		entry.bbcode_enabled = true
+		entry.fit_content = true
+		entry.scroll_active = false
 		entry.autowrap_mode = TextServer.AUTOWRAP_WORD
 		entry.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		entry.add_theme_font_size_override("normal_font_size", 24)
+		entry.add_theme_color_override("default_color", LOG_MUTED)
+		entry.text = _format_log_line_bbcode(line)
 		_battle_log_content.add_child(entry)
 	# 上限超過分を間引く。queue_free() は遅延削除で get_child_count() が即座に減らず
 	# while が無限ループ→フリーズするため、remove_child() で即時 detach してから解放する。
@@ -344,14 +377,130 @@ func _append_log(text: String) -> void:
 		oldest.queue_free()
 	_request_scroll_to_bottom = true
 
-func _log_color(line: String) -> Color:
-	if "CRITICAL" in line:
-		return Color(1.0, 0.9, 0.2)
-	if "敵の攻撃" in line:
-		return Color(1.0, 0.55, 0.55)
-	if line.begins_with("【ボス】") or line.begins_with("【エリート】") or line.begins_with("【中ボス】"):
-		return Color(1.0, 0.65, 0.2)
-	return Color.WHITE
+func _log_color_hex(color: Color) -> String:
+	return color.to_html(false)
+
+func _wrap_log_color(text: String, color: Color) -> String:
+	return "[color=%s]%s[/color]" % [_log_color_hex(color), text]
+
+func _party_log_color(member: Resource) -> Color:
+	if member == null:
+		return LOG_MUTED
+	var adv_id: String = str(member.id)
+	if LOG_PARTY_COLOR_BY_ADV.has(adv_id):
+		return LOG_PARTY_COLOR_BY_ADV[adv_id]
+	var job_id: String = str(member.job_id)
+	if LOG_PARTY_COLOR_BY_JOB.has(job_id):
+		return LOG_PARTY_COLOR_BY_JOB[job_id]
+	return LOG_MUTED
+
+func _enemy_log_color_for_id(enemy_id: String) -> Color:
+	match str(LOG_ENEMY_TIER_BY_ID.get(enemy_id, "normal")):
+		"boss":
+			return LOG_ENEMY_BOSS
+		"elite":
+			return LOG_ENEMY_ELITE
+		_:
+			return LOG_ENEMY_NORMAL
+
+func _collect_log_party_name_entries() -> Array:
+	var entries: Array = []
+	for i: int in GameState.combatant_count():
+		var member: Resource = GameState.get_combatant(i)
+		if member == null or member.display_name.is_empty():
+			continue
+		entries.append({
+			"name": member.display_name,
+			"color": _party_log_color(member),
+		})
+	entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return str(a["name"]).length() > str(b["name"]).length()
+	)
+	return entries
+
+func _collect_log_enemy_name_entries() -> Array:
+	var seen: Dictionary = {}
+	var entries: Array = []
+	for data: Resource in DataRegistry.get_all_enemy_data():
+		if data == null or data.display_name.is_empty():
+			continue
+		var eid: String = str(data.id)
+		if seen.has(eid):
+			continue
+		seen[eid] = true
+		entries.append({
+			"name": data.display_name,
+			"color": _enemy_log_color_for_id(eid),
+		})
+	entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return str(a["name"]).length() > str(b["name"]).length()
+	)
+	return entries
+
+func _color_log_names(line: String, entries: Array) -> String:
+	var out: String = line
+	for entry: Dictionary in entries:
+		var name: String = str(entry.get("name", ""))
+		if name.is_empty() or not out.contains(name):
+			continue
+		var wrapped: String = _wrap_log_color(name, entry.get("color", LOG_MUTED))
+		out = out.replace(name, wrapped)
+	return out
+
+func _regex_color_capture(text: String, pattern: String, color: Color, group: int = 1) -> String:
+	var re := RegEx.new()
+	if re.compile(pattern) != OK:
+		return text
+	var out: String = ""
+	var last: int = 0
+	for m: RegExMatch in re.search_all(text):
+		var start: int = m.get_start(group)
+		if start < 0:
+			continue
+		out += text.substr(last, start - last)
+		out += _wrap_log_color(m.get_string(group), color)
+		last = m.get_end(group)
+	out += text.substr(last)
+	return out
+
+func _color_log_numbers(line: String, incoming: bool, crit: bool) -> String:
+	var dmg_color: Color = LOG_DAMAGE_CRIT if crit else (LOG_DAMAGE_IN if incoming else LOG_DAMAGE_OUT)
+	var out: String = line
+	out = _regex_color_capture(out, "（軽減(\\d+)）", LOG_MUTED, 1)
+	out = _regex_color_capture(out, "(\\d+)回復", LOG_HEAL, 1)
+	out = _regex_color_capture(out, "\\+(\\d+)", LOG_DAMAGE_OUT, 1)
+	out = _regex_color_capture(out, "(\\d+)\\s*ダメージ", dmg_color, 1)
+	out = _regex_color_capture(out, "(\\d+)（撃破）", dmg_color, 1)
+	if incoming:
+		out = _regex_color_capture(out, " に (\\d+)", dmg_color, 1)
+	return out
+
+func _color_log_tags(line: String) -> String:
+	var out: String = line
+	for tag: String in LOG_BRACKET_TAGS:
+		if out.contains(tag):
+			out = out.replace(tag, _wrap_log_color(tag, LOG_TAG))
+	if out.contains("CRITICAL!"):
+		out = out.replace("CRITICAL!", _wrap_log_color("CRITICAL!", LOG_DAMAGE_CRIT))
+	return out
+
+func _log_line_incoming_damage(line: String) -> bool:
+	if line.begins_with("敵の攻撃"):
+		return true
+	if (line.begins_with("[探索]") or line.begins_with("[罠]")) and "ダメージ" in line:
+		return true
+	if line.begins_with("  ") and " に " in line:
+		return true
+	return false
+
+func _format_log_line_bbcode(line: String) -> String:
+	var incoming: bool = _log_line_incoming_damage(line)
+	var crit: bool = "CRITICAL" in line
+	var formatted: String = _color_log_tags(line)
+	formatted = _color_log_numbers(formatted, incoming, crit)
+	formatted = _color_log_names(formatted, _collect_log_party_name_entries())
+	formatted = _color_log_names(formatted, _collect_log_enemy_name_entries())
+	return formatted
 
 func _style_hp_bars() -> void:
 	_style_hp_bar_readable(_hp_bar_enemy, Color(0.85, 0.25, 0.25))
