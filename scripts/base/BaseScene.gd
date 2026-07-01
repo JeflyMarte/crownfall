@@ -1,12 +1,14 @@
 extends Control
 
 const DUNGEON_SELECT_SCENE: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
+const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
 
 @onready var _label_gold: Label = $TopBar/TopBarRow/GoldChip/GoldRow/LabelGold
 @onready var _label_token: Label = $TopBar/TopBarRow/TokenChip/TokenRow/LabelToken
 
 @onready var _btn_adventure: Button = $LeftMenuPanel/MenuVBox/ButtonAdventure
 @onready var _btn_equipment: Button = $LeftMenuPanel/MenuVBox/ButtonEquipment
+@onready var _btn_blacksmith: Button = $LeftMenuPanel/MenuVBox/ButtonBlacksmith
 @onready var _btn_roster: Button = $LeftMenuPanel/MenuVBox/ButtonRoster
 @onready var _btn_codex: Button = $LeftMenuPanel/MenuVBox/ButtonCodex
 @onready var _btn_gacha: Button = $LeftMenuPanel/MenuVBox/ButtonGacha
@@ -21,6 +23,7 @@ const DUNGEON_SELECT_SCENE: String = "res://scenes/dungeon/DungeonSelectScene.ts
 func _ready() -> void:
 	_btn_adventure.pressed.connect(_on_dungeon_button_pressed)
 	_btn_equipment.pressed.connect(_on_equipment_button_pressed)
+	_btn_blacksmith.pressed.connect(_on_blacksmith_button_pressed)
 	_btn_roster.pressed.connect(_on_roster_button_pressed)
 	_btn_codex.pressed.connect(_on_codex_button_pressed)
 	_btn_gacha.pressed.connect(_on_gacha_button_pressed)
@@ -57,6 +60,9 @@ func _on_dungeon_button_pressed() -> void:
 
 func _on_equipment_button_pressed() -> void:
 	SceneRouter.change_scene("res://scenes/equipment/EquipmentScene.tscn")
+
+func _on_blacksmith_button_pressed() -> void:
+	SceneRouter.change_scene(BLACKSMITH_SCENE)
 
 func _on_codex_button_pressed() -> void:
 	SceneRouter.change_scene("res://scenes/codex/CodexScene.tscn")

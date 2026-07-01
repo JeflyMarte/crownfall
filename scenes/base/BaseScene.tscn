@@ -200,6 +200,11 @@ layout_mode = 2
 text = "▶  英雄管理"
 alignment = 0
 
+[node name="ButtonBlacksmith" type="Button" parent="LeftMenuPanel/MenuVBox"]
+layout_mode = 2
+text = "▶  赤鉄の工房"
+alignment = 0
+
 [node name="ButtonRoster" type="Button" parent="LeftMenuPanel/MenuVBox"]
 layout_mode = 2
 text = "▶  編成"

@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-01（**P3-D136 鍛冶屋復活 MVP**: 赤鉄の工房導線復帰・全6レシピ・古き骨=セピアハウンドドロップ追加。headless smoke PASS）
+
 2026-07-01（**P3-D135 Result 採取素材アイコン行**: `MaterialPanel`+`IconPaths` material セル・InfoGrid テキスト重複除去。headless smoke PASS）
 
 2026-07-01（**P3-D134 作戦プリセット装備競合トースト**: `apply_combat_preset` が skipped 返却・装備画面フィードバック表示。headless smoke PASS）
@@ -93,8 +95,8 @@
 | 2 | P3-ART-003 | beast_tamer 戦闘スプライト取り込み | 同上 | 同上 |
 | 3 | P3-D134 | 作戦プリセット装備競合トースト | Impl | ✅ 完了 |
 | 4 | P3-D135 | Result 素材アイコン行（D131 拡張） | Impl | ✅ 完了 |
-| 5 | P3-D136 | 鍛冶屋復活 MVP（D075 逆・導線のみ） | Impl+Decision | **次** |
-| 6 | P3-ART-004 | ranger / alchemist 本番差替 | オーナー→Impl | swordsman 次の優先作画 |
+| 5 | P3-D136 | 鍛冶屋復活 MVP（D075 逆・導線のみ） | Impl+Decision | ✅ 完了 |
+| 6 | P3-ART-004 | ranger / alchemist 本番差替 | オーナー→Impl | **次** |
 | 7 | P3-D137 | ガンビット UI 改善（並替 or 条件プレビュー 1 点） | Impl | A1 スコープ外のうち最小1機能 |
 | 8 | P3-A-ENV-001 | mourngate 環境アート差替（タイル/オブジェ） | オーナー→Impl | Phase 3-A Visual |
 
