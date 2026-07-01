@@ -2002,6 +2002,20 @@
 
 **P3-UI2-022 Closeout（2026-07-01）:** `SummonRevealLayer` + Tween。headless smoke PASS。
 
+## 探索リザルトモック寄せ（2026-07-01 — P3-UI2-023）
+
+> `UI_Reference_002` §7 骨格の段階A。報酬ロジック不変。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UI2-023-1 | **パネル統一** — `CombatUiFrames`・報酬セルカード化 | 017〜022 統一 |
+| P3-UI2-023-2 | **固定フッター** — 再挑戦/拠点へをスクロール外に配置 | 002 §7 |
+| P3-UI2-023-3 | **探索情報** — 発見率（`dungeon_progress.discovery`）行を追加 | 002 発見率 |
+| P3-UI2-023-4 | **セーブ** — フッター遷移時に `SaveManager.save_game()` | 報酬反映永続化 |
+| P3-UI2-023-5 | **スコープ外** — 撃破数/最深階/時間・BottomNav | Beta |
+
+**P3-UI2-023 Closeout（2026-07-01）:** `ResultScene` polish。headless smoke PASS。
+
 ## ダンジョン選択モック寄せ（2026-07-01 — P3-UI2-021）
 
 > `UI_Reference_003_05_Dungeon` / `003_06_Dungeon_List` 骨格の第2段。スタミナ・週間ボーナスは Defer。
