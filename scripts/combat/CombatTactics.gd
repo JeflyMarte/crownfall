@@ -11,7 +11,7 @@ extends RefCounted
 ##          | "enemy_has_bleed" | "enemy_has_poison" | "ultimate_ready"
 ##          | "self_range"（P3-D108・フェーズB-5）
 ##          | "ally_injured"（P3-D113・味方に負傷者がいる）
-## value: 条件の閾値（self_hp_below=HP割合 / enemy_count_gte=体数 / self_range=melee|long）。
+## value: 条件の閾値（self_hp_below=HP割合 / enemy_count_gte=体数 / self_range=melee|mid|long）。
 ##
 ## plan は優先度順（Very High → Low）。DungeonScene は先頭から評価し、
 ## 条件成立かつ実際に発動できた最初のスロットで行動を確定する。

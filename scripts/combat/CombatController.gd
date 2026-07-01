@@ -61,7 +61,7 @@ const THREAT_DAMAGE_K: float = 0.10   # 与ダメ1あたりの加算
 const THREAT_TAKEN_K: float = 0.15    # 被ダメ1あたりの加算（タンクが矢面で稼ぐ）
 const THREAT_TAUNT: float = 40.0      # 挑発（防御スロット）スパイク
 const THREAT_DECAY: float = 0.90      # status tick ごとの減衰率（基礎値へ寄せる）
-const MELEE_ATTACK_RANGE_MAX: float = 2.5  # これ以下＝前列優先ターゲット（P3-D106d）
+const MELEE_ATTACK_RANGE_MAX: float = CombatRange.MID_RANGE_MAX  # これ以下＝前列優先ターゲット（P3-D106d/f）
 
 # ジョブ別の基礎 Threat 重み（タンクが引きやすい）。
 func _job_threat_base(member_index: int) -> float:

@@ -1371,6 +1371,17 @@
 | P3-D106e-4 | **ログ**: `[密集]` / `[散開]`（`get_density_log_tag`） | Alpha 可視化 |
 | P3-D106e-5 | **スコープ外**: formation_slot 座標距離・与ダメ側・UI プレビュー | 行人数のみ |
 
+## 本格射程（武器 attack_range 接続）（2026-07-01 — P3-D106f・B-5）
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D106f-1 | **数値→カテゴリ**: ≤1.5=melee／≤2.5=mid／それ以上=long。`CombatRange.attack_range_to_category` が SSOT | Combat Vision 理想距離の Alpha 代理。P3-D108 の bow/staff ヒューリスティックを置換 |
+| P3-D106f-2 | **武器射程**: `WeaponInstance.attack_range` 優先 → なければ `WeaponData.base_attack_range`。`resolve_member_default` の最優先 | 07_武器_装備・26_CombatVision の未接続フィールドを戦闘へ配線 |
+| P3-D106f-3 | **スキル**: `resolve_for_action` は `SkillData.range_type` 優先（B-1 維持）。武器なし時のみ装備スキルメタ fallback | 行動単位とメンバー既定を分離 |
+| P3-D106f-4 | **敵近接判定**: `CombatController.MELEE_ATTACK_RANGE_MAX` = `CombatRange.MID_RANGE_MAX`（2.5） | B-3 前列優先ターゲットと閾値統一 |
+| P3-D106f-5 | **データ整合**: 杖 `base_attack_range=2.5`（`glacier_staff` 修正）。弓=3.0・剣系≈1.0 は既存維持 | 中距離カテゴリを杖で実戦投入 |
+| P3-D106f-6 | **スコープ外**: リアルタイム位置 AI・隊列移動・射程 UI 表示 | Combat Vision 本格は後続 |
+
 ## 状態異常拡充 MVP（2026-06-30 — P3-D107・残ロードマップ フェーズB-4）
 
 > 攻撃偏重だった状態異常を Control / Debuff 方向へ拡充。敵単一スロット制約（D082）は維持し、既存中央フックに相乗りで配線。

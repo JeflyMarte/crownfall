@@ -4,7 +4,9 @@
 
 ## Last Update
 
-2026-07-01（**P3-D106b〜e 陣形 B レーン（B-1〜4）**: 射程×陣形与ダメ/敵AoE列/Threat按分/散開密集。headless import 検証済 / 実機未確認 / コミット `a91bc12`）
+2026-07-01（**P3-D106f 陣形 B レーン（B-5）本格射程**: `WeaponInstance`/`WeaponData.base_attack_range`→`CombatRange`（≤1.5 melee/≤2.5 mid/超 long）。スキル range_type 優先維持。`glacier_staff` 2.5 修正。headless import 検証済 / 実機未確認 / 未コミット）
+
+2026-07-01（**P3-D106b〜e 陣形 B レーン（B-1〜4）**: 射程×陣形与ダメ/敵AoE列/Threat按分/散開密集。headless import 検証済 / 実機未確認 / コミット済）
 
 2026-07-01（**P3-ALPHA-003 Combat v1.0 実機一括確認チェックリスト**: `AlphaPlaytest_Checklist.md` v2.0 更新（モーンゲート/フルオート/CT/戦闘v1.0 全項目）。**次=オーナー実機実施 → GO/NO-GO 記録**）
 
