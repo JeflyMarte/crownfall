@@ -25,7 +25,7 @@ const _DEFS: Dictionary = {
 			"skill_use_chance": 0.70,
 			"attack_mult": 1.25,
 			"log": "【フェーズ移行】断罪の波動が倍加する！",
-			"skill_weight": {"boss_decree_wave": 2.0},
+			"skill_weight": {"boss_decree_wave": 2.0, "enemy_serdion_roar": 2.0},
 		},
 	],
 }

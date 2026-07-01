@@ -48,7 +48,7 @@ func _format_member(adv: Resource) -> String:
 	var job_display: String = mods.get("display_name", str(adv.job_id))
 	if job_display.is_empty():
 		job_display = str(adv.job_id)
-	var line: String = "%s Lv%d / %s" % [adv.display_name, int(adv.level), job_display]
+	var line: String = "★%d %s Lv%d / %s" % [int(adv.rarity), adv.display_name, int(adv.level), job_display]
 	if not bool(adv.is_evolved):
 		var target: String = _JobEvolution.get_evolved_name(adv)
 		if not target.is_empty():

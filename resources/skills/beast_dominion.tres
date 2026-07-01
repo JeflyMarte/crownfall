@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "beast_dominion"
+display_name = "ビーストドミニオン"
+description = "生態の頂点に立ち、獲物の四肢を縛り、捕食の刻を刻む。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 2.5
+cooldown = 30.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["ultimate", "debuff", "poison"])
+element = ""
+apply_status_id = "chill"
+apply_status_chance = 0.65
+apply_status_id2 = "poison"
+apply_status_chance2 = 0.35
+slot_type = "ultimate"
+range_type = "long"

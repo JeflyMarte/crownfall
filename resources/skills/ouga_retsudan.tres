@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "ouga_retsudan"
+display_name = "王牙列断"
+description = "王都騎士の系譜を継ぐ剣閃。装甲を裂き、敵の弱点を露わにする必殺の一撃。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 2.8
+cooldown = 28.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["ultimate", "slash"])
+element = ""
+apply_status_id = "vulnerable"
+apply_status_chance = 0.5
+slot_type = "ultimate"
+range_type = "melee"

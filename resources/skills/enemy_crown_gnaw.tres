@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_crown_gnaw"
+display_name = "宝冠ガジり"
+description = "宝飾の残り香に引き寄せられ、弱った獲物へ致命的一咬みを放つ。"
+skill_type = "enemy"
+target_type = "party"
+power_multiplier = 1.25
+cooldown = 4.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String]([])
+element = ""
+apply_status_id = ""
+apply_status_chance = 0.0

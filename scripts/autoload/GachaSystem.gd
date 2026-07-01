@@ -1,13 +1,12 @@
 extends Node
 
 ## 助っ人ガチャ（P3-D036b）。通貨 gacha_token を消費して単発抽選。
-## 排出 ★4=20% / ★3=80%、未所持優先、ハード天井30連。重複は token 還元。
+## キャラ★は全員★3固定。未所持優先、ハード天井30連。重複は token 還元。
 
 const PULL_COST: int = 1
 const TOKEN_PURCHASE_GOLD: int = 100
 const HARD_PITY: int = 30
-const RATE_4STAR: float = 0.20
-const REFUND_BY_RARITY: Dictionary = {4: 5, 3: 2}
+const REFUND_BY_RARITY: Dictionary = {3: 2}
 
 var _pool: Array = []
 
@@ -73,24 +72,12 @@ func _select_helper(pool: Array, pity_forced: bool) -> Resource:
 		var unowned_all: Array = _filter_unowned(pool)
 		if not unowned_all.is_empty():
 			return unowned_all[randi() % unowned_all.size()]
-	# レア抽選
-	var rarity: int = 4 if randf() < RATE_4STAR else 3
-	var in_rarity: Array = _filter_rarity(pool, rarity)
-	if in_rarity.is_empty():
-		# 該当レアが未定義なら全プールへフォールバック
-		in_rarity = pool
-	var unowned: Array = _filter_unowned(in_rarity)
-	var candidates: Array = unowned if not unowned.is_empty() else in_rarity
+	# キャラ★は全員★3固定。プールから未所持優先で抽選。
+	var unowned: Array = _filter_unowned(pool)
+	var candidates: Array = unowned if not unowned.is_empty() else pool
 	if candidates.is_empty():
 		return null
 	return candidates[randi() % candidates.size()]
-
-func _filter_rarity(pool: Array, rarity: int) -> Array:
-	var out: Array = []
-	for h in pool:
-		if h != null and int(h.rarity) == rarity:
-			out.append(h)
-	return out
 
 func _filter_unowned(pool: Array) -> Array:
 	var out: Array = []
@@ -106,6 +93,7 @@ func create_adventurer_from_helper(helper: Resource) -> Resource:
 	adv.id = "gacha_" + str(helper.id)
 	adv.display_name = str(helper.display_name)
 	adv.job_id = str(helper.job_id)
+	adv.rarity = Adventurer.DEFAULT_RARITY
 	if helper.base_stats != null:
 		adv.base_stats = helper.base_stats.duplicate()
 	else:

@@ -30,5 +30,5 @@ codex_danger = 3
 codex_habitat = "旧時計機構の遺構"
 codex_research_note = "蛾を祖先とし、旧時計機構の遺構に営巣する大型個体。翅の鱗粉が金属粉を含み、歯車に似た紋様を成す。羽音の共鳴が平衡感覚を狂わせるため、地下で時間や方向の感覚が乱れるのはこの羽音のせいだと記録されている。怪奇ではない。営巣する時計機構にはいまも時を刻み続けるものがあり、その針が指す時刻が何の基準なのかは判明していない。"
 codex_materials = Array[String](["clockwing_feather", "chrono_dust", "resonance_antenna", "chrono_core"])
-skill_ids = Array[String](["enemy_sweep_front"])
+skill_ids = Array[String](["enemy_sweep_front", "enemy_chrono_resonance"])
 skill_use_chance = 0.35

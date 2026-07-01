@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "titan_roar"
+display_name = "タイタンロア"
+description = "巨神の如き咆哮と共に敵を叩き伏せ、戦場の流れを強制的に止める。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 2.4
+cooldown = 32.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["ultimate", "blunt", "shield"])
+element = ""
+apply_status_id = "stun"
+apply_status_chance = 0.4
+apply_status_id2 = "fear"
+apply_status_chance2 = 0.35
+slot_type = "ultimate"
+range_type = "melee"

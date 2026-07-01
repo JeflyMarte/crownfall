@@ -16,5 +16,6 @@ preferred_weapon_types = Array[String](["bow"])
 starting_skill_ids = Array[String]([])
 learnable_skill_ids = Array[String](["aimed_shot", "snare_shot", "hex_bolt"])
 passive_tag_ids = Array[String](["recon"])
+ultimate_skill_id = "dead_eye"
 evolved_display_name = "スナイパー"
 evolution_level = 10

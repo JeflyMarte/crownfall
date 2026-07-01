@@ -95,7 +95,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 |---|---|
 | `discovery/` | `DiscoveryRegistry.gd`（`get_display_label` / `get_category_label` — P3-UI2-015） |
 | `appraisal/` | `AppraisalController.gd`, `AppraisalScene.gd` |
-| `base/` | `BaseScene.gd` |
+| `base/` | `BaseScene.gd`（TopBar 素材チップ P3-D138） |
 | `boot/` | `BootScene.gd` |
 | `combat/` | **コア:** `CombatController.gd`（`class_name`・CT/ATB・Threat・群れ/混成・個別ターゲット・詠唱・ボスフェーズ index）, `SkillExecutor.gd`, `StatusResolver.gd`, `StatusInstance.gd`, `ElementResolver.gd` |
 | | **戦術/AI:** `CombatTactics.gd`（プリセット6・発動条件・温存・P3-D086/108/113/127）, `CombatGambit.gd`（カスタム戦術5行・P3-D122/127） |
@@ -103,9 +103,10 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | | **メタ/周回:** `CombatRelics.gd`（静的定義+トリガ・P3-D114）, `CombatLinks.gd`（連鎖3種・P3-D115）, `CombatBossPhases.gd`（P3-D116）, `ExplorationSkills.gd`（P3-D117）, `CombatFastRun.gd`（P3-D118）, `CombatWeather.gd`（天候・P3-D101） |
 | `dungeon/` | `DungeonController.gd`, `DungeonScene.gd`（生態素材ドロップ・図鑑方針ボーナス P3-D128） |
 | `equipment/` | `EquipmentController.gd`, `EquipmentScene.gd`, **`BuildTagHelper.gd`**（P3-UI2-016）, **`AffixRoller.gd`**, **`AffixStatCalculator.gd`**, **`AffixDisplayFormatter.gd`**, **`JobStatCalculator.gd`** |
-| `blacksmith/` | `BlacksmithScene.gd`（Craft 実行: 検証 → Gold/素材消費 → Instance 生成 → Save） |
+| `blacksmith/` | `BlacksmithScene.gd`（P3-D136/139 — Craft 実行・素材アイコンUI） |
+| `crafting/` | **`CraftHelper.gd`**（`can_craft` / `get_craftable_recipes` — P3-D141） |
 | `codex/` | **`CatalogHelper.gd`**（P2-Task046/049 — Bible parse + Entry）, **`CodexScene.gd`**（P2-Task047/048/049 — Detail + Bible fields） |
-| `result/` | `ResultScene.gd` |
+| `result/` | `ResultScene.gd`（素材アイコン P3-D135・作成可能レシピ P3-D141） |
 | `save/` | `SaveManager.gd` |
 | `ui/` | **`IconPaths.gd`**（Phase3-A — static class、ICON_MAP による `category:id` → `ICO_*.png` 解決） |
 
@@ -148,7 +149,7 @@ Task 明示指示がない限り作成しない:
 | 素材 | `resources/materials/` — relic_shard, elite_relic_shard, ancient_bone, cursed_iron, leather |
 | Affix | `resources/affixes/` — 7 サンプル + **AffixRoller** |
 | ジョブ | `resources/jobs/` — warrior, guardian, scout |
-| クラフト | `resources/crafting/` — craft_leather_armor, craft_bone_armor, craft_silver_ring |
+| クラフト | `resources/crafting/` — 6レシピ（武器3/防具2/装飾1・P3-D067/D136） |
 | レシピ | `resources/recipes/` — recipe_leather_armor, recipe_bone_armor, recipe_silver_ring |
 | 素材ショップ | `resources/material_shop/` — relic_shard, ancient_bone |
 
