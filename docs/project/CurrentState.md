@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-01（**P3-GACHA-002 ガチャ助っ人コンテンツ**: ヴァルデン/イヴァル/セリン・来歴行・セーブ同期。smoke PASS）
+
 2026-07-01（**P3-UI2-025 拠点 BottomNav 統一**: 冒険/召喚表記・NavHomeハイライト・装備/鍛冶/編成のNavShop統一。smoke PASS）
 
 2026-07-01（**P3-GACHA-001 ガチャ仕様整合**: ★4=20%/★3=80%・還元★4=5・helper_a★4・ロスターrarity反映。smoke PASS）

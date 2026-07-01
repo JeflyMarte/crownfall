@@ -5,7 +5,8 @@
 [resource]
 script = ExtResource("1")
 id = "helper_b"
-display_name = "ユニーク助っ人B（仮★3）"
+display_name = "イヴァル（Ivar）"
 job_id = "ranger"
+origin_note = "北方辺境の狩人。未踏査域の地図化に長ける"
 rarity = 3
 sprite_resource_path = ""

@@ -138,7 +138,11 @@ func _make_lineup_row(helper: Resource) -> PanelContainer:
 	var sub := Label.new()
 	var job_data: Resource = DataRegistry.get_job_data(str(helper.job_id))
 	var role_id: String = str(job_data.role) if job_data != null else str(helper.job_id)
-	sub.text = str(RosterUiHelper.ROLE_LABELS.get(role_id, str(helper.job_id)))
+	var origin_note: String = str(helper.origin_note) if "origin_note" in helper else ""
+	if not origin_note.is_empty():
+		sub.text = origin_note
+	else:
+		sub.text = str(RosterUiHelper.ROLE_LABELS.get(role_id, str(helper.job_id)))
 	sub.add_theme_color_override("font_color", COLOR_SUB)
 	sub.add_theme_font_size_override("font_size", 13)
 	info.add_child(sub)
