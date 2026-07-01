@@ -1,14 +1,14 @@
 # Session Handoff — Cursor HQ
 
-**Updated:** 2026-07-01（P3-ALPHA-005 ブランチ `main` マージ）
+**Updated:** 2026-07-01（P3-BAL-004 経済バランス）
 **ProjectDocs:** v3.6.0
-**Branch:** `main`（`cursor/alpha-combat-formation-ui` マージ済）
+**Branch:** `main`
 
 ---
 
 ## 1. 一言サマリー
 
-Alpha Combat Formation 拡張（P3-D120〜133）を `main` に統合。Combat v1.0 + 準備ループ（作戦プリセット/ガンビット/探索方針/Result強化）完了。**実機確認は Defer** — `smoke_test.sh` PASS。
+準備+経済ループ完了。**P3-BAL-004** でドロップ率/レシピコスト調整済（2周目標で基本クラフト可能）。作画・実機 Defer — `smoke_test.sh` PASS。
 
 ---
 
@@ -16,23 +16,21 @@ Alpha Combat Formation 拡張（P3-D120〜133）を `main` に統合。Combat v1
 
 | 領域 | 内容 |
 |---|---|
-| 戦術 | A1 ガンビット / A2 条件拡張 / A3 マーキング |
-| 準備 | E1 装備プリセット / G1 4人バランス / 方針ヒント |
-| 帰還 | D123 Result差別化 / D130〜133 方針・素材・天候 |
-| 運用 | P3-ALPHA-003b headless / P3-ALPHA-005 main マージ |
+| バランス | P3-BAL-004 — 生態ドロップ65/35%・レシピ1+1化・ELITE素材20% |
+| 経済 | D136 鍛冶復活 / D138 TopBar素材 / D139 鍛冶UX / D141 Result作成可能 |
+| 準備 | D134 競合トースト / D137 ガンビット並替 / D140 条件ヒント |
+| Closeout | P3-ECO-001 — `04_ゲームループ` / CODEMAP 同期 |
 
 ---
 
-## 3. 次候補（実装順序 HQ 確定）
+## 3. 次候補
 
-`CurrentState.md` → **Next Implementation Queue** 参照。
+`CurrentState.md` → **Next Implementation Queue**
 
-| 順 | 内容 |
+| 優先 | 内容 |
 |---|---|
-| 0 | 実機チェック（可能時） |
-| 1–2 | vanguard / beast_tamer スプライト |
-| 3–5 | D134 競合トースト → D135 Result素材UI → D136 鍛冶復活 |
-| 6–8 | ranger/alchemist 作画 → ガンビット UI 1点 → 環境アート |
+| 0 | P3-ALPHA-003 実機（可能時） |
+| — | Backlog 大物 — Decision 待ち |
 
 ---
 

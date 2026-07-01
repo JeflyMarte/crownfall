@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "craft_apprentice_staff"
 display_name = "見習いの杖の作成"
-required_materials = {"magic_antenna": 2, "crystal_core": 1}
+required_materials = {"magic_antenna": 1, "crystal_spike": 1}
 gold_cost = 40
 output_type = "weapon"
 output_id = "apprentice_staff"

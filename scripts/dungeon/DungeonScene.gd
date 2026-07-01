@@ -2111,7 +2111,7 @@ func _member_resists_element(target_index: int, attack_element: String) -> bool:
 	return attack_element in armor_data.resist_elements
 
 # 敵の codex_materials を rarity 別確率で実ドロップ（P3-D067 / 図鑑↔経済の一本化）
-const ECOLOGY_DROP_CHANCE: Dictionary = {0: 0.6, 1: 0.3, 2: 0.12, 3: 0.05}
+const ECOLOGY_DROP_CHANCE: Dictionary = {0: 0.65, 1: 0.35, 2: 0.12, 3: 0.05}
 const CODEX_INVESTIGATION_EXP_BONUS: float = 1.10
 const CODEX_INVESTIGATION_MATERIAL_MULT: float = 1.50
 

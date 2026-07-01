@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "craft_iron_sword"
 display_name = "鉄剣の作成"
-required_materials = {"royal_gold_incisor": 2, "engraved_carapace": 1}
+required_materials = {"royal_gold_incisor": 1, "engraved_carapace": 1}
 gold_cost = 40
 output_type = "weapon"
 output_id = "iron_sword"
