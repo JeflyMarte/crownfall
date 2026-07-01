@@ -7,7 +7,7 @@ extends RefCounted
 ##
 ## 物理: slash 斬撃 / pierce 刺突 / blunt 打撃
 ## 属性: fire 炎 / ice 氷 / lightning 雷 / holy 光 / dark 闇
-## 効果: bleed 出血 / poison 毒 / buff 強化 / debuff 弱体
+## 効果: bleed 出血 / poison 毒 / buff 強化 / debuff 弱体 / shield 防御 / heal 回復
 
 const _NAMES: Dictionary = {
 	"slash": "斬撃",
@@ -22,6 +22,8 @@ const _NAMES: Dictionary = {
 	"poison": "毒",
 	"buff": "強化",
 	"debuff": "弱体",
+	"shield": "防御",
+	"heal": "回復",
 }
 
 static func is_known(tag: String) -> bool:

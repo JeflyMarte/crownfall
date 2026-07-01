@@ -897,7 +897,11 @@ func _refresh_tag_info(member: Resource) -> void:
 	for lbl in CombatSynergy.compute_role_bonuses(GameState.party_members).get("labels", []):
 		bonus_parts.append(str(lbl))
 	var bonus_text: String = " / ".join(bonus_parts) if not bonus_parts.is_empty() else "なし"
-	_tag_info_label.text = "武器タグ: %s   ｜   属性シナジー: %s\n編成ボーナス: %s" % [tag_text, syn_text, bonus_text]
+	var link_hints: PackedStringArray = CombatLinks.hint_lines()
+	var link_text: String = " / ".join(link_hints)
+	var explore_labels: PackedStringArray = ExplorationSkills.active_labels(GameState.party_members)
+	var explore_text: String = " / ".join(explore_labels) if not explore_labels.is_empty() else "なし"
+	_tag_info_label.text = "武器タグ: %s   ｜   属性シナジー: %s\n編成ボーナス: %s\n戦闘連携: %s\n探索スキル: %s" % [tag_text, syn_text, bonus_text, link_text, explore_text]
 
 func _skill_label_name(skill_id: String) -> String:
 	var sd: Resource = DataRegistry.get_skill_data(skill_id)

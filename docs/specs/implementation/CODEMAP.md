@@ -4,15 +4,15 @@
 
 > **警告:** `02_ディレクトリ構成.md` や `05_実装ロードマップ.md` は将来/target 構成を含む。Task が明示的に要求しない限り、そこに記載された未実装ファイルを**作成・参照してはならない**。本ファイルが現行実装の正。
 
-**最終確認:** 2026-06-25（ProjectDocs v3.5.60）
+**最終確認:** 2026-07-01（ProjectDocs v3.6.0 — Combat System v1.0 Closeout P3-D119）
 
-> **SSOT 注記:** Phase EQ-1 **完了**（P3-D020）。Phase3-B-M2 **完了**（P3-D023）。Phase UI-2 **Closeout**（P3-D015）。**UI-2+ Closeout**（P3-UI2-013〜016）。
+> **SSOT 注記:** Phase EQ-1 **完了**（P3-D020）。Phase3-B-M2 **完了**（P3-D023）。Phase UI-2 **Closeout**（P3-D015）。**UI-2+ Closeout**（P3-UI2-013〜016）。**Combat System v1.0 Closeout**（P3-D119 — P3-D103〜118）。
 
 ---
 
 ## フェーズ
 
-Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。詳細は `docs/project/CurrentState.md`。
+Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat System v1.0**（残ロードマップ 15 項目）**完了**（P3-D119）。次焦点 = Phase 3-A Visual Production / Alpha 実機確認。詳細は `docs/project/CurrentState.md`。
 
 ---
 
@@ -34,6 +34,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。詳細は `doc
 | BootScene | `scenes/boot/BootScene.tscn` | `scripts/boot/BootScene.gd` |
 | BaseScene | `scenes/base/BaseScene.tscn` | `scripts/base/BaseScene.gd` |
 | DungeonScene | `scenes/dungeon/DungeonScene.tscn` | `scripts/dungeon/DungeonScene.gd` |
+| DungeonSelectScene | `scenes/dungeon/DungeonSelectScene.tscn` | `scripts/dungeon/DungeonSelectScene.gd` |
 | ResultScene | `scenes/result/ResultScene.tscn` | `scripts/result/ResultScene.gd` |
 | AppraisalScene | `scenes/appraisal/AppraisalScene.tscn` | `scripts/appraisal/AppraisalScene.gd` |
 | EquipmentScene | `scenes/equipment/EquipmentScene.tscn` | `scripts/equipment/EquipmentScene.gd` |
@@ -57,14 +58,19 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。詳細は `doc
 - `MenuOverlay` — ≡ メニュー（探索終了のみ）
 - 浮動ダメージ数字: `DamageNumbers`（CanvasLayer layer=10）上に `_spawn_damage_number()` が Label を動的生成
 - `DiscoveryToastLayer`（CanvasLayer layer=20）— Codex 初見トースト（P3-UI2-015）
+- `HeaderBar` — CT プレビュー（P3-D084）・x1/x2/pause・**周回トグル**（クリア済み DG のみ・P3-D118）
+- 戦闘ロジック配線（`DungeonScene.gd`）— CT/ATB・5 スロット戦術（P3-D084〜086）・Threat/陣形（P3-D104/106）・混成/個別ターゲット（P3-D110/111）・詠唱（P3-D112）・スキルローテ（P3-D113）・遺物トリガ（P3-D114）・連携（P3-D115）・ボスフェーズ（P3-D116）・探索スキル（P3-D117）・戦闘スキップ（P3-D118）
 
-- 状態異常アイコン: ルート直下 HBox（敵 + Chr0〜2）— HP バー上に追従（P3-UI2-013）。`StatusResolver.get_active_status_list()`
+- 状態異常アイコン: ルート直下 HBox（敵 + Chr0〜2 + 群れ行）— HP バー上に追従（P3-UI2-013 / P3-D110 群れ行）。`StatusResolver.get_active_status_list()`
 
 **BaseScene ノード（UI-2+）:**
 - `VBoxContainer/BuildChipRow` — `BuildTagHelper.populate_chip_row()`（P3-UI2-016）
 
-**EquipmentScene ノード（UI-2+）:**
+**EquipmentScene ノード（UI-2+ / Combat v1.0）:**
 - `ContentVBox/BuildChipRow` — 同上 + `LabelBuildSummary`（Task037）
+- スキルタブ — 戦術プリセット・陣形行（前列/後列・P3-D106）・探索スキル一覧（P3-D117）・連携 hint（P3-D115）
+
+**DungeonSelectScene** — `scenes/dungeon/DungeonSelectScene.tscn` / `scripts/dungeon/DungeonSelectScene.gd`（P3-D080）
 
 `scenes/ui/` は `.gitkeep` のみ（未実装）。
 
@@ -79,7 +85,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。詳細は `doc
 `Constants.gd`（RESOURCE_*_PATH 含む）, `Enums.gd`
 
 ### data/
-`WeaponData.gd`, `ArmorData.gd`, `AccessoryData.gd`, `EnemyData.gd`, `DungeonData.gd`, `SkillData.gd`, `MaterialData.gd`, `JobData.gd`, `AffixData.gd`, `CraftData.gd`, `RecipeData.gd`, `MaterialShopData.gd`
+`WeaponData.gd`, `ArmorData.gd`, `AccessoryData.gd`, `EnemyData.gd`, `DungeonData.gd`, `SkillData.gd`, **`StatusEffectData.gd`**（`defense_reduction` 等・P3-D107）, `MaterialData.gd`, `JobData.gd`, `AffixData.gd`, `CraftData.gd`, `RecipeData.gd`, `MaterialShopData.gd`
 
 ### domain/
 `Adventurer.gd`（**equipped_weapon/armor/accessory**）, `Stats.gd`, `WeaponData.gd`, `ArmorInstance.gd`, `AccessoryInstance.gd`, **`StatusInstance.gd`**
@@ -91,7 +97,10 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。詳細は `doc
 | `appraisal/` | `AppraisalController.gd`, `AppraisalScene.gd` |
 | `base/` | `BaseScene.gd` |
 | `boot/` | `BootScene.gd` |
-| `combat/` | `CombatController.gd`, `SkillExecutor.gd`, **`StatusResolver.gd`**, **`StatusInstance.gd`**, **`ElementResolver.gd`** |
+| `combat/` | **コア:** `CombatController.gd`（`class_name`・CT/ATB・Threat・群れ/混成・個別ターゲット・詠唱・ボスフェーズ index）, `SkillExecutor.gd`, `StatusResolver.gd`, `StatusInstance.gd`, `ElementResolver.gd` |
+| | **戦術/AI:** `CombatTactics.gd`（プリセット6・発動条件・温存・P3-D086/108/113） |
+| | **パッシブ/シナジー:** `CombatPassives.gd`, `CombatSynergy.gd`, `CombatTags.gd`, `CombatCombos.gd`（P3-D109） |
+| | **メタ/周回:** `CombatRelics.gd`（静的定義+トリガ・P3-D114）, `CombatLinks.gd`（連鎖3種・P3-D115）, `CombatBossPhases.gd`（P3-D116）, `ExplorationSkills.gd`（P3-D117）, `CombatFastRun.gd`（P3-D118）, `CombatWeather.gd`（将来用・未配線） |
 | `dungeon/` | `DungeonController.gd`, `DungeonScene.gd` |
 | `equipment/` | `EquipmentController.gd`, `EquipmentScene.gd`, **`BuildTagHelper.gd`**（P3-UI2-016）, **`AffixRoller.gd`**, **`AffixStatCalculator.gd`**, **`AffixDisplayFormatter.gd`**, **`JobStatCalculator.gd`** |
 | `blacksmith/` | `BlacksmithScene.gd`（Craft 実行: 検証 → Gold/素材消費 → Instance 生成 → Save） |
@@ -134,7 +143,8 @@ Task 明示指示がない限り作成しない:
 | 装飾品 | `resources/accessories/silver_ring.tres` |
 | 敵 | 王都跡 5 + 白骸墓地 6（`resources/enemies/`） |
 | ダンジョン | `resources/dungeons/royal_ruins.tres`, `graveyard.tres` |
-| スキル | `resources/skills/slash_attack.tres` |
+| スキル | `resources/skills/` — slash_attack, aimed_shot, guard_strike, snare_shot, hex_bolt, mend, empower, ultimate_strike, kindling_strike, rime_touch, static_strike, boss_enrage, boss_decree_wave |
+| 状態異常 | `resources/status/` — bleed, poison, stun, chill, ignite, shock, slow, curse, guard, empower, enrage, **fear**, **vulnerable**, **armor_break**（P3-D107） |
 | 素材 | `resources/materials/` — relic_shard, elite_relic_shard, ancient_bone, cursed_iron, leather |
 | Affix | `resources/affixes/` — 7 サンプル + **AffixRoller** |
 | ジョブ | `resources/jobs/` — warrior, guardian, scout |

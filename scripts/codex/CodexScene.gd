@@ -347,6 +347,12 @@ func _apply_enemy_combat_data(entry: Dictionary, stage: int, codex_class: String
 		var hint: String = _build_tactics_hint(weaknesses, codex_class)
 		if not hint.is_empty():
 			lines.append("有効戦術: %s" % hint)
+		var enemy_id: String = str(entry.get("id", ""))
+		var phase_text: String = CombatBossPhases.codex_phase_text(
+			enemy_id, GameState.get_boss_phases_seen(enemy_id)
+		)
+		if not phase_text.is_empty():
+			lines.append(phase_text)
 	_label_detail_related_header.text = "戦闘データ"
 	_label_detail_related_header.visible = true
 	_label_detail_related.text = "\n".join(lines)

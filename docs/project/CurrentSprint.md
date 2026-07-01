@@ -44,3 +44,4 @@
 - **中ボス廃止 ✅（P3-D054）**: ROOM_SEQUENCE index7=COMBAT 化・MID_BOSS固有処理除去（列挙値は温存）・ELITE追加ドロップ維持
 - smoke_test PASS（R1/R2/R3 とも）
 - **武器クラフト 実機能化 ✅（P3-D067）**: 機構は P3-CRAFT-001 既済だが旧素材(cursed_iron/leather)入手不可でレシピ不成立だった。通常撃破で敵 `codex_materials` を rarity別確率で実ドロップ化（図鑑S5↔経済の一本化）、レシピを新生態素材へ改訂、`apprentice_staff` レシピ追加で基本3武器種を被覆。→ **Phase 3-B' システム完成**
+- **Combat System v1.0 ✅（P3-D119 Closeout）**: 残ロードマップ 15 項目（P3-D103〜118）完了。CODEMAP 同期済。実機確認・コミット分割はオーナーレーン

@@ -1,3 +1,4 @@
+class_name CombatController
 extends Node
 
 const BASE_MEMBER_HP: int = 30
@@ -22,15 +23,20 @@ var _scaled_attack: int = 0
 var _scaled_defense: int = 0
 var _scaled_exp: int = 0
 
-# 群れ（複数敵）状態（P3-D082）。current_enemy_* / _scaled_* は常に「アクティブ（先頭生存）敵」を映す。
-# 全員がアクティブを集中攻撃（フォーカス撃破）し、撃破ごとに次の生存敵へ繰り上げる。
+# 群れ（複数敵）状態（P3-D082/D110）。current_enemy_* / _scaled_* は常に「アクティブ（フォーカス）敵」を映す。
+# 敵状態異常はスロット別 enemy_<i>（P3-D110）。味方はフォーカス1体を集中攻撃。
 var swarm_data: Array[Resource] = []
 var swarm_hp: Array[int] = []
 var swarm_max_hp: Array[int] = []
 var swarm_atk: Array[int] = []
 var swarm_def: Array[int] = []
 var swarm_exp: Array[int] = []
+var enemy_phase_index: Array[int] = []
 var active_enemy_index: int = 0
+# メンバー個別の攻撃対象スロット（P3-D111）。member_target_slot[i]=敵 swarm インデックス。
+var member_target_slot: Array[int] = []
+# 装備スキル①②のローテーション開始位置（P3-D113）。戦闘中のみ保持。
+var member_skill_rot_idx: Array[int] = []
 
 # CT/ATB スケジューラ（P3-D084）。各生存ユニット（味方/群れ各敵）は個別の CT を持ち、
 # CT が 0 になったユニットから 1 体ずつ行動する。速度（initiative_score）が大きいほど
@@ -41,6 +47,8 @@ const _CT_EPSILON: float = 0.0001
 var unit_ct: Dictionary = {}
 # 直近 advance_to_next_actor で進めた CT 量（呼出側の状態異常/スキルCD進行に使う）
 var _last_ct_step: float = 0.0
+# 詠唱中ペイロード（P3-D112）。key = "party_<i>" / "enemy_<slot>"。
+var _pending_casts: Dictionary = {}
 
 var party_combat_hp: Array[int] = []
 var party_max_hp: Array[int] = []
@@ -81,6 +89,7 @@ func start_combat_group(enemies: Array, level: int = 1) -> void:
 	swarm_atk.clear()
 	swarm_def.clear()
 	swarm_exp.clear()
+	enemy_phase_index.clear()
 	for e in enemies:
 		if e == null:
 			continue
@@ -94,12 +103,15 @@ func start_combat_group(enemies: Array, level: int = 1) -> void:
 		swarm_atk.append(atk)
 		swarm_def.append(df)
 		swarm_exp.append(xp)
+		enemy_phase_index.append(0)
 		GameState.mark_enemy_seen(e.id)
 	active_enemy_index = 0
 	_sync_active_enemy()
 	last_exp_reward = 0
 	last_gold_reward = 0
 	_init_party_hp()
+	_init_member_targets()
+	_init_member_skill_rotation()
 	init_ct()
 
 # current_enemy_* / _scaled_* をアクティブ敵スロットに同期する。
@@ -164,10 +176,15 @@ func get_enemy_data_at(i: int) -> Resource:
 		return swarm_data[i]
 	return current_enemy_data
 
-# アクティブ敵を次の生存スロットへ繰り上げる。アクティブの状態異常はクリアする
-# （フォーカス撃破モデルのため敵状態は単一スロット "enemy" を流用）。新indexを返す（無ければ -1）。
+# 敵スロット別 StatusResolver ユニット id（P3-D110）。CT の enemy_<slot> と整合。
+func enemy_status_unit_id(slot: int) -> String:
+	return "enemy_%d" % slot
+
+func get_active_enemy_status_unit_id() -> String:
+	return enemy_status_unit_id(active_enemy_index)
+
+# アクティブ敵を次の生存スロットへ繰り上げる（撃破スロットの状態は呼び出し側でクリア）。
 func advance_active_enemy() -> int:
-	_status_resolver.clear_unit("enemy")
 	for i in swarm_hp.size():
 		if swarm_hp[i] > 0:
 			active_enemy_index = i
@@ -177,27 +194,91 @@ func advance_active_enemy() -> int:
 	_sync_active_enemy()
 	return -1
 
-# パーティ・フォーカス対象を target ルールで選び、アクティブ敵に設定する（P3-D100）。
-# 単一アクティブ＝状態異常/コンボ非破壊。生存敵が居なければ何もしない。
-# rule: "front" | "lowest_hp" | "highest_hp" | "highest_atk"
-func set_focus_by_rule(rule: String) -> int:
+func clear_enemy_slot_status(slot: int) -> void:
+	if slot < 0:
+		return
+	_status_resolver.clear_unit(enemy_status_unit_id(slot))
+
+func _init_member_targets() -> void:
+	member_target_slot.clear()
+	for i in party_combat_hp.size():
+		member_target_slot.append(0)
+
+func _init_member_skill_rotation() -> void:
+	member_skill_rot_idx.clear()
+	for i in party_combat_hp.size():
+		member_skill_rot_idx.append(0)
+
+func get_skill_rotation_index(member_index: int) -> int:
+	if member_index < 0 or member_index >= member_skill_rot_idx.size():
+		return 0
+	return member_skill_rot_idx[member_index]
+
+func set_skill_rotation_after_cast(member_index: int, used_index: int, slot_count: int) -> void:
+	if member_index < 0 or member_index >= member_skill_rot_idx.size() or slot_count <= 0:
+		return
+	member_skill_rot_idx[member_index] = (used_index + 1) % slot_count
+
+func get_member_target_slot(member_index: int) -> int:
+	if member_index < 0 or member_index >= member_target_slot.size():
+		return active_enemy_index
+	var slot: int = member_target_slot[member_index]
+	if is_enemy_slot_alive(slot):
+		return slot
+	return pick_enemy_slot_by_rule(CombatTactics.DEFAULT_TARGET)
+
+# 生存敵から target ルールで1体選ぶ（P3-D100/D111）。
+func pick_enemy_slot_by_rule(rule: String) -> int:
 	var living: Array[int] = get_living_enemy_indices()
 	if living.is_empty():
-		return active_enemy_index
+		return -1
+	if living.size() == 1:
+		return living[0]
 	var best: int = living[0]
-	for i: int in living:
-		match rule:
-			"lowest_hp":
+	match rule:
+		"lowest_hp":
+			for i: int in living:
 				if swarm_hp[i] < swarm_hp[best]:
 					best = i
-			"highest_hp":
+		"highest_hp":
+			for i: int in living:
 				if swarm_hp[i] > swarm_hp[best]:
 					best = i
-			"highest_atk":
+		"highest_atk":
+			for i: int in living:
 				if swarm_atk[i] > swarm_atk[best]:
 					best = i
-			_:
-				best = living[0] # front＝先頭の生存個体
+		"enemy_with_status":
+			var with_status: Array[int] = []
+			for i: int in living:
+				if not get_enemy_status_list_at(i).is_empty():
+					with_status.append(i)
+			if with_status.is_empty():
+				return living[0]
+			best = with_status[0]
+			for i: int in with_status:
+				if swarm_hp[i] < swarm_hp[best]:
+					best = i
+		"back":
+			return living[living.size() - 1]
+		_:
+			best = living[0]
+	return best
+
+# メンバー戦術の target ルールで狙いを決定し member_target_slot に保存する。
+func resolve_member_target(member_index: int, rule: String) -> int:
+	var slot: int = pick_enemy_slot_by_rule(rule)
+	if member_index >= 0 and member_index < member_target_slot.size():
+		member_target_slot[member_index] = slot
+	return slot
+
+# パーティ・フォーカス対象を target ルールで選び、アクティブ敵に設定する（P3-D100）。
+# 単一アクティブ＝味方はフォーカス1体を集中攻撃。敵別状態スロット（P3-D110）で個体ごとに状態保持。
+# rule: "front" | "lowest_hp" | "highest_hp" | "highest_atk"
+func set_focus_by_rule(rule: String) -> int:
+	var best: int = pick_enemy_slot_by_rule(rule)
+	if best < 0:
+		return active_enemy_index
 	if best != active_enemy_index:
 		active_enemy_index = best
 		_sync_active_enemy()
@@ -227,9 +308,13 @@ func end_combat() -> void:
 	swarm_atk.clear()
 	swarm_def.clear()
 	swarm_exp.clear()
+	enemy_phase_index.clear()
 	active_enemy_index = 0
+	member_target_slot.clear()
+	member_skill_rot_idx.clear()
 	unit_ct.clear()
 	_last_ct_step = 0.0
+	_pending_casts.clear()
 	_status_resolver.clear_all()
 
 func _init_party_hp() -> void:
@@ -300,8 +385,11 @@ func apply_damage_to_member(index: int, amount: int) -> void:
 		return
 	party_combat_hp[index] = max(0, party_combat_hp[index] - amount)
 
+func is_enemy_slot_defeated(slot: int) -> bool:
+	return is_in_combat and not is_enemy_slot_alive(slot)
+
 func is_enemy_defeated() -> bool:
-	return is_in_combat and current_enemy_hp <= 0
+	return is_enemy_slot_defeated(active_enemy_index)
 
 func heal_party(amount: int) -> void:
 	if party_combat_hp.is_empty():
@@ -371,10 +459,14 @@ func decay_threat() -> void:
 		party_threat[i] = base + (party_threat[i] - base) * THREAT_DECAY
 
 func capture_rewards() -> void:
-	if current_enemy_data == null:
+	capture_rewards_at(active_enemy_index)
+
+func capture_rewards_at(slot: int) -> void:
+	var data: Resource = get_enemy_data_at(slot)
+	if data == null:
 		return
-	last_exp_reward = _scaled_exp
-	last_gold_reward = current_enemy_data.gold_reward
+	last_exp_reward = swarm_exp[slot] if slot >= 0 and slot < swarm_exp.size() else _scaled_exp
+	last_gold_reward = data.gold_reward
 
 func apply_status(
 	unit_id: String,
@@ -384,18 +476,75 @@ func apply_status(
 ) -> bool:
 	return _status_resolver.apply_status(unit_id, effect_id, stacks, source_attack)
 
+func apply_status_to_active_enemy(
+	effect_id: String,
+	stacks: int = 1,
+	source_attack: int = 0
+) -> bool:
+	return apply_status(get_active_enemy_status_unit_id(), effect_id, stacks, source_attack)
+
+func apply_status_to_enemy_slot(
+	slot: int,
+	effect_id: String,
+	stacks: int = 1,
+	source_attack: int = 0
+) -> bool:
+	return apply_status(enemy_status_unit_id(slot), effect_id, stacks, source_attack)
+
+func apply_damage_to_enemy_slot(slot: int, amount: int) -> void:
+	if not is_in_combat:
+		return
+	if slot < 0 or slot >= swarm_hp.size():
+		return
+	swarm_hp[slot] = max(0, swarm_hp[slot] - amount)
+	if slot == active_enemy_index:
+		current_enemy_hp = swarm_hp[slot]
+
+func get_enemy_id_at(slot: int) -> String:
+	if slot < 0 or slot >= swarm_data.size():
+		return ""
+	var data: Resource = swarm_data[slot]
+	if data == null:
+		return ""
+	return str(data.id)
+
+func get_enemy_hp_ratio_at(slot: int) -> float:
+	if slot < 0 or slot >= swarm_max_hp.size():
+		return 1.0
+	var maxhp: int = swarm_max_hp[slot]
+	if maxhp <= 0:
+		return 0.0
+	return float(swarm_hp[slot]) / float(maxhp)
+
+func get_enemy_phase_index(slot: int) -> int:
+	if slot < 0 or slot >= enemy_phase_index.size():
+		return 0
+	return enemy_phase_index[slot]
+
+func set_enemy_phase_index(slot: int, phase_index: int) -> void:
+	if slot >= 0 and slot < enemy_phase_index.size():
+		enemy_phase_index[slot] = maxi(0, phase_index)
+
 func tick_all_statuses() -> Array[Dictionary]:
 	var results: Array[Dictionary] = []
-	results.append_array(_status_resolver.tick_unit("enemy"))
+	for slot in swarm_hp.size():
+		if is_enemy_slot_alive(slot):
+			results.append_array(_status_resolver.tick_unit(enemy_status_unit_id(slot)))
 	for i in party_combat_hp.size():
 		results.append_array(_status_resolver.tick_unit("party_%d" % i))
 	return results
 
+func should_enemy_skip_action_at(slot: int) -> bool:
+	return _status_resolver.should_skip_action(enemy_status_unit_id(slot))
+
 func should_enemy_skip_action() -> bool:
-	return _status_resolver.should_skip_action("enemy")
+	return should_enemy_skip_action_at(active_enemy_index)
+
+func get_enemy_skip_action_label_at(slot: int) -> String:
+	return _status_resolver.get_skip_action_label(enemy_status_unit_id(slot))
 
 func get_enemy_skip_action_label() -> String:
-	return _status_resolver.get_skip_action_label("enemy")
+	return get_enemy_skip_action_label_at(active_enemy_index)
 
 # メンバーの遺物効果倍率（P3-D090）。メイン編成のみ（助っ人は遺物なし）。
 func _member_relic_effects(member_index: int) -> Dictionary:
@@ -442,7 +591,17 @@ func get_party_role_crit_add() -> float:
 	return float(CombatSynergy.compute_role_bonuses(GameState.party_members).get("crit_add", 0.0))
 
 func get_enemy_incoming_damage_multiplier() -> float:
-	return _status_resolver.get_incoming_damage_multiplier("enemy")
+	return get_enemy_incoming_damage_multiplier_at(active_enemy_index)
+
+func get_enemy_incoming_damage_multiplier_at(slot: int) -> float:
+	return _status_resolver.get_incoming_damage_multiplier(enemy_status_unit_id(slot))
+
+# アクティブ敵の DEF 減少率（armor_break・P3-D107）。0.0=なし。
+func get_enemy_defense_reduction() -> float:
+	return get_enemy_defense_reduction_at(active_enemy_index)
+
+func get_enemy_defense_reduction_at(slot: int) -> float:
+	return _status_resolver.get_defense_reduction(enemy_status_unit_id(slot))
 
 # 同系統タグ・シナジー（P3-D095）。指定属性をパーティで複数人が共有する時の与ダメボーナス（0.0=なし）。
 func get_element_synergy_bonus(element: String) -> float:
@@ -451,23 +610,45 @@ func get_element_synergy_bonus(element: String) -> float:
 	return float(CombatSynergy.compute_element_bonuses(GameState.party_members).get(element, 0.0))
 
 func get_enemy_status_stacks(effect_id: String) -> int:
-	return _status_resolver.get_status_stacks("enemy", effect_id)
+	return get_enemy_status_stacks_at(active_enemy_index, effect_id)
+
+func get_enemy_status_stacks_at(slot: int, effect_id: String) -> int:
+	return _status_resolver.get_status_stacks(enemy_status_unit_id(slot), effect_id)
 
 # 状態異常コンボ起爆: アクティブ敵の指定状態を消費しスタック数を返す（P3-D089）。
 func consume_enemy_status(effect_id: String) -> int:
-	return _status_resolver.consume_status("enemy", effect_id)
+	return consume_enemy_status_at(active_enemy_index, effect_id)
+
+func consume_enemy_status_at(slot: int, effect_id: String) -> int:
+	return _status_resolver.consume_status(enemy_status_unit_id(slot), effect_id)
 
 func get_enemy_outgoing_damage_multiplier() -> float:
-	return _status_resolver.get_outgoing_damage_multiplier("enemy")
+	return get_enemy_outgoing_damage_multiplier_at(active_enemy_index)
+
+func get_enemy_outgoing_damage_multiplier_at(slot: int) -> float:
+	return _status_resolver.get_outgoing_damage_multiplier(enemy_status_unit_id(slot))
 
 func get_enemy_status_summary() -> String:
-	return _status_resolver.get_active_status_summary("enemy")
+	return get_enemy_status_summary_at(active_enemy_index)
+
+func get_enemy_status_summary_at(slot: int) -> String:
+	return _status_resolver.get_active_status_summary(enemy_status_unit_id(slot))
+
+func get_enemy_status_list() -> Array[Dictionary]:
+	return get_enemy_status_list_at(active_enemy_index)
+
+func get_enemy_status_list_at(slot: int) -> Array[Dictionary]:
+	return _status_resolver.get_active_status_list(enemy_status_unit_id(slot))
+
+func get_member_status_stacks(member_index: int, effect_id: String) -> int:
+	return _status_resolver.get_status_stacks("party_%d" % member_index, effect_id)
+
+# 味方コンボ起爆: メンバー自身の指定状態を消費（P3-D109）。
+func consume_member_status(member_index: int, effect_id: String) -> int:
+	return _status_resolver.consume_status("party_%d" % member_index, effect_id)
 
 func get_member_status_summary(member_index: int) -> String:
 	return _status_resolver.get_active_status_summary("party_%d" % member_index)
-
-func get_enemy_status_list() -> Array[Dictionary]:
-	return _status_resolver.get_active_status_list("enemy")
 
 func get_member_status_list(member_index: int) -> Array[Dictionary]:
 	return _status_resolver.get_active_status_list("party_%d" % member_index)
@@ -608,3 +789,52 @@ func get_ct_order() -> Array[Dictionary]:
 			return a["kind"] == "party"
 		return a["index"] < b["index"])
 	return entries
+
+# ── 詠唱 / Action Lock（P3-D112）──
+
+func _cast_unit_key(kind: String, index: int) -> String:
+	return "%s_%d" % [kind, index]
+
+func has_pending_cast(kind: String, index: int) -> bool:
+	return _pending_casts.has(_cast_unit_key(kind, index))
+
+func get_pending_cast(kind: String, index: int) -> Dictionary:
+	var key: String = _cast_unit_key(kind, index)
+	if not _pending_casts.has(key):
+		return {}
+	return _pending_casts[key].duplicate()
+
+func begin_party_cast(member_index: int, skill_id: String, target_slot: int, turns_left: int) -> void:
+	_pending_casts[_cast_unit_key("party", member_index)] = {
+		"skill_id": skill_id,
+		"target_slot": target_slot,
+		"turns_left": maxi(1, turns_left),
+	}
+
+func begin_enemy_cast(slot: int, skill_id: String, turns_left: int) -> void:
+	_pending_casts[_cast_unit_key("enemy", slot)] = {
+		"skill_id": skill_id,
+		"turns_left": maxi(1, turns_left),
+	}
+
+# 詠唱を1段進める。戻り値: "chant"（継続）/ "ready"（発動可）/ "none"
+func advance_pending_cast(kind: String, index: int) -> String:
+	var key: String = _cast_unit_key(kind, index)
+	if not _pending_casts.has(key):
+		return "none"
+	var pending: Dictionary = _pending_casts[key]
+	var left: int = int(pending.get("turns_left", 0))
+	if left > 0:
+		pending["turns_left"] = left - 1
+		_pending_casts[key] = pending
+		return "chant"
+	return "ready"
+
+func clear_pending_cast(kind: String, index: int) -> void:
+	_pending_casts.erase(_cast_unit_key(kind, index))
+
+func clear_pending_casts_for_kind(kind: String) -> void:
+	var prefix: String = "%s_" % kind
+	for key in _pending_casts.keys():
+		if str(key).begins_with(prefix):
+			_pending_casts.erase(key)

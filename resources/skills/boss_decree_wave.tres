@@ -17,3 +17,4 @@ tags = Array[String](["boss"])
 element = "dark"
 apply_status_id = ""
 apply_status_chance = 0.0
+cast_time = 1.0

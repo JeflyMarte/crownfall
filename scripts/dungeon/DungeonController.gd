@@ -291,9 +291,26 @@ func pick_combat_enemy_data() -> Resource:
 
 # COMBAT 部屋で群れ出現を抽選する確率（P3-D082）。
 const SWARM_CHANCE: float = 0.20
+# 複数体出現時、追加枠を別種にする確率（P3-D110・混成エンカウント）。
+const MIXED_SWARM_CHANCE: float = 0.50
 
-# 戦闘の敵編成を返す（P3-D082）。
-# BOSS/ELITE は常に単体。COMBAT は can_swarm 敵なら SWARM_CHANCE で同種の群れ（swarm_min..swarm_max）。
+func _swarm_capable_enemies() -> Array[Resource]:
+	var out: Array[Resource] = []
+	if current_dungeon_data == null:
+		return out
+	var seen: Dictionary = {}
+	for raw_id in current_dungeon_data.enemy_pool:
+		var ed: Resource = DataRegistry.get_enemy_data(str(raw_id))
+		if ed == null or not bool(ed.can_swarm):
+			continue
+		if seen.has(ed.id):
+			continue
+		seen[ed.id] = true
+		out.append(ed)
+	return out
+
+# 戦闘の敵編成を返す（P3-D082 + P3-D110 混成）。
+# BOSS/ELITE は常に単体。COMBAT は can_swarm 敵なら SWARM_CHANCE で複数体（同種 or 混成）。
 func pick_combat_enemy_group() -> Array[Resource]:
 	var group: Array[Resource] = []
 	var base: Resource = pick_combat_enemy_data()
@@ -313,8 +330,19 @@ func pick_combat_enemy_group() -> Array[Resource]:
 	var lo: int = maxi(2, int(base.swarm_min))
 	var hi: int = maxi(lo, int(base.swarm_max))
 	var size: int = randi_range(lo, hi)
+	var capable: Array[Resource] = _swarm_capable_enemies()
+	var use_mixed: bool = capable.size() >= 2 and randf() < MIXED_SWARM_CHANCE
 	for _i in (size - 1):
-		group.append(base)
+		if use_mixed:
+			var candidates: Array[Resource] = []
+			for ed: Resource in capable:
+				if ed.id != base.id:
+					candidates.append(ed)
+			if candidates.is_empty():
+				candidates = capable
+			group.append(candidates[randi() % candidates.size()])
+		else:
+			group.append(base)
 	return group
 
 func pick_event() -> Dictionary:
@@ -358,6 +386,11 @@ func generate_treasure_loot() -> Dictionary:
 		_generate_accessory_loot()
 		accessory_id = last_accessory_dropped
 	return {"gold": TREASURE_GOLD, "accessory_id": accessory_id}
+
+func generate_accessory_loot() -> String:
+	last_accessory_dropped = ""
+	_generate_accessory_loot()
+	return last_accessory_dropped
 
 func apply_elite_bonus_loot() -> Dictionary:
 	var bonus: Dictionary = {"armor_id": "", "accessory_id": "", "material_id": ""}

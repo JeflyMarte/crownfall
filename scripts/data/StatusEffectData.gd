@@ -14,3 +14,4 @@ extends Resource
 @export var skip_action_chance: float = 0.0  # stun: 1.0 = 行動不能
 @export var outgoing_damage_multiplier: float = 1.0  # weak: 0.75
 @export var incoming_damage_multiplier: float = 1.0  # burn 被ダメ増など
+@export var defense_reduction: float = 0.0  # armor_break: 0.5 = 対象 DEF を半減（0..1・P3-D107）

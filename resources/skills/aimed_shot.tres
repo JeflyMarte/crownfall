@@ -15,5 +15,5 @@ trigger_type = "cooldown"
 effect_type = "damage"
 tags = Array[String](["ranged"])
 element = ""
-apply_status_id = ""
-apply_status_chance = 0.0
+apply_status_id = "armor_break"
+apply_status_chance = 0.45

@@ -48,6 +48,9 @@ const STATUS_ICON_DEF: Dictionary = {
 	"ignite": {"abbrev": "炎", "color": Color(0.95, 0.4, 0.15)},
 	"curse": {"abbrev": "呪", "color": Color(0.55, 0.25, 0.75)},
 	"stun": {"abbrev": "麻", "color": Color(0.7, 0.7, 0.75)},
+	"fear": {"abbrev": "恐", "color": Color(0.55, 0.35, 0.6)},
+	"vulnerable": {"abbrev": "脆", "color": Color(0.95, 0.45, 0.45)},
+	"armor_break": {"abbrev": "破", "color": Color(0.8, 0.6, 0.3)},
 	"empower": {"abbrev": "攻", "color": Color(0.95, 0.55, 0.2)},
 	"guard": {"abbrev": "防", "color": Color(0.4, 0.55, 0.85)},
 }
@@ -86,6 +89,8 @@ var _auto_progress_finishes: bool = false
 var _discovery_toast_tween: Tween
 var _skill_executor: RefCounted = SkillExecutorScript.new()
 var _is_paused: bool = false
+var _fast_run_enabled: bool = false
+var _btn_fast_run: Button = null
 # ラウンド処理中フラグ（P3-D083・逐次awaitの多重実行防止）
 var _round_active: bool = false
 var _request_scroll_to_bottom: bool = false
@@ -141,7 +146,7 @@ const SKILL_LABEL_STACK_GAP: float = 34.0
 var _chr_hp_bars: Array[ProgressBar] = []
 var _party_card_hp_bars: Array[ProgressBar] = []
 var _party_card_hp_labels: Array[Label] = []
-var _status_icon_enemy: HBoxContainer
+var _status_icon_swarm_rows: Array[HBoxContainer] = []
 var _status_icon_chr_rows: Array[HBoxContainer] = []
 
 # 群れ（複数敵）表示スロット（P3-D082）。slot0 は既存ノード（_enemy_sprite/_hp_bar_enemy/_enemy_nameplate）を流用し、
@@ -169,6 +174,7 @@ func _ready() -> void:
 	$MainVBox/HeaderBar/ButtonMenu.pressed.connect(_on_menu_button_pressed)
 	$MainVBox/HeaderBar/ButtonSpeedX1.pressed.connect(_on_speed_x1_pressed)
 	$MainVBox/HeaderBar/ButtonSpeedX2.pressed.connect(_on_speed_x2_pressed)
+	_ensure_fast_run_button()
 	$MainVBox/HeaderBar/ButtonStop.pressed.connect(_on_stop_pressed)
 	_menu_overlay.get_node("MenuVBox/ButtonFinishFromMenu").pressed.connect(_on_menu_finish_pressed)
 	_menu_overlay.get_node("MenuVBox/ButtonCloseMenu").pressed.connect(_on_close_menu_pressed)
@@ -413,12 +419,16 @@ func _position_enemy_overlays(sprite: AnimatedSprite2D) -> void:
 	_enemy_nameplate.visible = true
 
 func _init_status_icon_rows() -> void:
-	_status_icon_enemy = _make_status_icon_row()
-	add_child(_status_icon_enemy)
 	for _i in _chr_sprites.size():
 		var row: HBoxContainer = _make_status_icon_row()
 		add_child(row)
 		_status_icon_chr_rows.append(row)
+
+func _ensure_swarm_status_icon_rows(n: int) -> void:
+	while _status_icon_swarm_rows.size() < n:
+		var row: HBoxContainer = _make_status_icon_row()
+		add_child(row)
+		_status_icon_swarm_rows.append(row)
 
 func _make_status_icon_row() -> HBoxContainer:
 	var row := HBoxContainer.new()
@@ -482,20 +492,29 @@ func _set_status_row_above_sprite(row: HBoxContainer, sprite: AnimatedSprite2D, 
 func _update_status_icons() -> void:
 	var in_combat: bool = $CombatController.is_in_combat
 	if not in_combat:
-		_status_icon_enemy.visible = false
+		for row: HBoxContainer in _status_icon_swarm_rows:
+			row.visible = false
 		for row: HBoxContainer in _status_icon_chr_rows:
 			row.visible = false
 		return
-	# ボスはドット絵が大きく状態異常アイコン（炎/感 等）が重なるため、ボス戦では敵側アイコンを非表示にする。
+	# ボスはドット絵が大きく状態異常アイコンが重なるため非表示。
 	if _boss_sprite.visible:
-		_status_icon_enemy.visible = false
+		for row: HBoxContainer in _status_icon_swarm_rows:
+			row.visible = false
 	else:
-		# 群れ時はアクティブ敵の頭上に状態異常アイコンを表示（敵状態はアクティブのみ管理）
-		_set_status_row_above_sprite(
-			_status_icon_enemy,
-			_active_enemy_sprite(),
-			$CombatController.get_enemy_status_list()
-		)
+		_ensure_swarm_status_icon_rows(_swarm_sprites.size())
+		for slot: int in _swarm_sprites.size():
+			if slot >= _status_icon_swarm_rows.size():
+				continue
+			var row: HBoxContainer = _status_icon_swarm_rows[slot]
+			if not $CombatController.is_enemy_slot_alive(slot):
+				row.visible = false
+				continue
+			_set_status_row_above_sprite(
+				row,
+				_swarm_sprites[slot],
+				$CombatController.get_enemy_status_list_at(slot)
+			)
 	for i: int in _status_icon_chr_rows.size():
 		var sprite: AnimatedSprite2D = _chr_sprites[i]
 		var statuses: Array = $CombatController.get_member_status_list(i)
@@ -539,14 +558,17 @@ func _advance_to_next_room() -> void:
 		if not group.is_empty():
 			var lead: Resource = group[0]
 			$CombatController.start_combat_group(group, $DungeonController.get_enemy_level())
+			_try_exploration_trap()
 			_skill_executor.reset()
 			_round_active = false
 			_ct_status_accum = 0.0
 			_passive_cd.clear()
+			_relic_cd.clear()
+			_relic_attack_hits.clear()
+			_clear_party_links()
 			_is_paused = false
 			$MainVBox/BottomZone/AutoCombatRow/ButtonPause.text = "一時停止"
 			$MainVBox/HeaderBar/ButtonStop.text = "停止"
-			$CombatTimer.start()
 			var enemy_ids: Array = []
 			for e in group:
 				enemy_ids.append(e.id)
@@ -557,11 +579,20 @@ func _advance_to_next_room() -> void:
 			elif $DungeonController.current_room_type == Enums.RoomType.BOSS:
 				_append_log("【ボス】%s があらわれた" % lead.display_name)
 			elif group.size() > 1:
-				_append_log("%s の群れ（%d体）があらわれた" % [lead.display_name, group.size()])
+				if _enemy_group_is_mixed(group):
+					var names: PackedStringArray = []
+					for e: Resource in group:
+						names.append(e.display_name)
+					_append_log("【混成】%s" % " / ".join(names))
+				else:
+					_append_log("%s の群れ（%d体）があらわれた" % [lead.display_name, group.size()])
 			else:
 				_append_log("%s があらわれた" % lead.display_name)
 			_update_turn_order_ui($CombatController.get_ct_order())
 			_fire_combat_start_passives()
+			if _try_combat_skip():
+				return
+			$CombatTimer.start()
 		else:
 			_set_narrative("敵が現れなかった")
 			_hide_enemy_sprite()
@@ -582,10 +613,13 @@ func _advance_to_next_room() -> void:
 				_start_auto_progress()
 			Enums.RoomType.TREASURE:
 				var treasure: Dictionary = $DungeonController.generate_treasure_loot()
+				var explore_treasure: PackedStringArray = _apply_exploration_treasure_skills(treasure)
 				var log_text: String = "宝箱を発見: Gold +%d" % treasure["gold"]
 				if not (treasure["accessory_id"] as String).is_empty():
 					log_text += "\n宝箱から装飾品を入手: " + DataRegistry.get_accessory_name(treasure["accessory_id"])
 					GameState.last_run_accessory_dropped = treasure["accessory_id"]
+				for line: String in explore_treasure:
+					log_text += "\n" + line
 				_set_narrative(log_text)
 				_start_auto_progress()
 			Enums.RoomType.EVENT:
@@ -713,8 +747,146 @@ func _handle_event_room() -> void:
 			log_text = "%s が一時的に同行を申し出た" % helper.display_name
 		_:
 			log_text = "何も起こらなかった"
+	var explore_lines: PackedStringArray = _apply_exploration_event_skills(outcome)
+	for line: String in explore_lines:
+		log_text += "\n" + line
 	_set_narrative("%s\n%s" % [event["description"], log_text])
 	_start_auto_progress()
+
+# ---- 高速周回（P3-D118） ----
+
+func _ensure_fast_run_button() -> void:
+	var header: HBoxContainer = $MainVBox/HeaderBar
+	if header.get_node_or_null("ButtonFastRun") != null:
+		_btn_fast_run = header.get_node("ButtonFastRun")
+		return
+	_btn_fast_run = Button.new()
+	_btn_fast_run.name = "ButtonFastRun"
+	_btn_fast_run.toggle_mode = true
+	var stop_idx: int = header.get_node("ButtonStop").get_index()
+	header.add_child(_btn_fast_run)
+	header.move_child(_btn_fast_run, stop_idx)
+	_btn_fast_run.pressed.connect(_on_fast_run_pressed)
+	_refresh_fast_run_button()
+
+func _on_fast_run_pressed() -> void:
+	var dungeon_id: String = GameState.get_active_dungeon_id()
+	if not CombatFastRun.can_enable(dungeon_id):
+		_fast_run_enabled = false
+		_refresh_fast_run_button()
+		return
+	_fast_run_enabled = _btn_fast_run.button_pressed if _btn_fast_run != null else false
+	if _fast_run_enabled:
+		_on_speed_x2_pressed()
+	_refresh_fast_run_button()
+
+func _refresh_fast_run_button() -> void:
+	if _btn_fast_run == null:
+		return
+	var can_use: bool = CombatFastRun.can_enable(GameState.get_active_dungeon_id())
+	_btn_fast_run.disabled = not can_use
+	_btn_fast_run.button_pressed = _fast_run_enabled and can_use
+	_btn_fast_run.text = "周回ON" if _btn_fast_run.button_pressed else "周回"
+
+func _try_combat_skip() -> bool:
+	var room_type: int = $DungeonController.current_room_type
+	if not CombatFastRun.can_skip_room(room_type, _fast_run_enabled):
+		return false
+	if not CombatFastRun.can_enable(GameState.get_active_dungeon_id()):
+		return false
+	_execute_combat_skip()
+	return true
+
+func _execute_combat_skip() -> void:
+	_append_log("[周回] 戦闘をスキップ")
+	$CombatTimer.stop()
+	var slots: Array[int] = []
+	for i: int in $CombatController.swarm_hp.size():
+		if $CombatController.is_enemy_slot_alive(i):
+			slots.append(i)
+	for slot: int in slots:
+		if $CombatController.living_enemy_count() <= 0:
+			break
+		var hp: int = $CombatController.get_enemy_hp_at(slot)
+		if hp > 0:
+			$CombatController.apply_damage_to_enemy_slot(slot, hp)
+		if $CombatController.get_enemy_hp_at(slot) <= 0:
+			if _on_enemy_slot_killed(slot):
+				return
+	if $CombatController.living_enemy_count() == 0:
+		_finalize_combat_cleared()
+
+# ---- 探索スキル（P3-D117） ----
+
+func _apply_exploration_treasure_skills(treasure: Dictionary) -> PackedStringArray:
+	var members: Array = GameState.party_members
+	var room_type: int = Enums.RoomType.TREASURE
+	var lines: PackedStringArray = []
+	if ExplorationSkills.has_skill_for_room(members, "mine", room_type):
+		var bonus_gold: int = 12
+		$DungeonController.accumulate_rewards(0, bonus_gold)
+		treasure["gold"] = int(treasure.get("gold", 0)) + bonus_gold
+		lines.append("[探索] 採掘: Gold +%d" % bonus_gold)
+	if ExplorationSkills.has_skill_for_room(members, "lockpick", room_type):
+		if str(treasure.get("accessory_id", "")).is_empty() and randf() < 0.35:
+			var acc_id: String = $DungeonController.generate_accessory_loot()
+			if not acc_id.is_empty():
+				treasure["accessory_id"] = acc_id
+				lines.append(
+					"[探索] 鍵開け: 装飾品を入手 — %s" % DataRegistry.get_accessory_name(acc_id)
+				)
+	return lines
+
+func _apply_exploration_event_skills(outcome: Dictionary) -> PackedStringArray:
+	var members: Array = GameState.party_members
+	var room_type: int = Enums.RoomType.EVENT
+	var lines: PackedStringArray = []
+	var outcome_type: String = str(outcome.get("type", ""))
+	if ExplorationSkills.has_skill_for_room(members, "gather", room_type):
+		if outcome_type == "material":
+			var mat_id: String = str(outcome.get("material_id", outcome.get("discovery_id", "relic_shard")))
+			var bonus_amt: int = _apply_material_bonus(1)
+			GameState.add_material(mat_id, bonus_amt)
+			lines.append("[探索] 採取: %s" % _format_material_reward_log(mat_id, bonus_amt, ""))
+			_try_register_discovery("material", mat_id)
+		elif randf() < 0.40:
+			var shard_amt: int = _apply_material_bonus(1)
+			GameState.add_material("relic_shard", shard_amt)
+			lines.append("[探索] 採取: %s" % _format_material_reward_log("relic_shard", shard_amt, ""))
+			_try_register_discovery("material", "relic_shard")
+	if (
+		outcome_type == "lore"
+		and ExplorationSkills.has_skill_for_room(members, "decipher", room_type)
+	):
+		var bonus_gold: int = 20
+		$DungeonController.accumulate_rewards(0, bonus_gold)
+		lines.append("[探索] 解読: Gold +%d" % bonus_gold)
+	return lines
+
+func _try_exploration_trap() -> void:
+	var room_type: int = $DungeonController.current_room_type
+	if room_type != Enums.RoomType.COMBAT and room_type != Enums.RoomType.ELITE:
+		return
+	if not ExplorationSkills.should_roll_trap():
+		return
+	var members: Array = GameState.party_members
+	if ExplorationSkills.can_disarm(members):
+		_append_log("[探索] 罠解除: パーティは無事だった")
+		return
+	var dmg: int = ExplorationSkills.trap_damage()
+	var living: Array[int] = []
+	for i: int in members.size():
+		if $CombatController.is_member_alive(i):
+			living.append(i)
+	if living.is_empty():
+		return
+	var target: int = living[randi() % living.size()]
+	$CombatController.apply_damage_to_member(target, dmg)
+	_on_member_damaged(target)
+	var m: Resource = GameState.get_combatant(target)
+	var nm: String = m.display_name if m != null else "?"
+	_append_log("[探索] 罠: %s に %d ダメージ" % [nm, dmg])
+	_update_hp_bars()
 
 # ---- Combat timer ----
 
@@ -726,6 +898,14 @@ const CT_PER_STATUS_TICK: float = 2.0
 var _ct_status_accum: float = 0.0
 # パッシブCD（P3-D088）。key="<member_idx>:<passive_id>" → 残りCT。
 var _passive_cd: Dictionary = {}
+# 遺物発火CD / 攻撃カウント（P3-D114）。
+var _relic_cd: Dictionary = {}
+var _relic_attack_hits: Dictionary = {}
+# パーティ連携連鎖（P3-D115）。
+var _taunt_link_source: int = -1
+var _taunt_link_charges: int = 0
+var _debuff_marks: Dictionary = {}
+var _heal_rally_member: int = -1
 
 func _on_combat_timer_timeout() -> void:
 	if not $CombatController.is_in_combat:
@@ -751,9 +931,8 @@ func _run_combat_step() -> void:
 	while _ct_status_accum >= CT_PER_STATUS_TICK:
 		_ct_status_accum -= CT_PER_STATUS_TICK
 		_process_status_ticks()
-		if $CombatController.is_enemy_defeated():
-			if _on_active_enemy_killed():
-				return
+		if $CombatController.living_enemy_count() == 0:
+			return
 		if $CombatController.is_party_wiped():
 			_handle_party_wipe()
 			return
@@ -764,9 +943,8 @@ func _run_combat_step() -> void:
 	if kind == "party":
 		if $CombatController.is_member_alive(idx):
 			_do_member_turn(idx)
-			if $CombatController.is_enemy_defeated():
-				if _on_active_enemy_killed():
-					return
+			if $CombatController.living_enemy_count() == 0:
+				return
 	else:
 		if $CombatController.is_enemy_slot_alive(idx):
 			_do_enemy_turn(idx)
@@ -784,13 +962,16 @@ func _run_combat_step() -> void:
 # 敵スロット1体の行動（P3-D083）。アクティブ敵のみ 鈍化判定＋ボス/エリートのスキル発動を行い、
 # それ以外は通常攻撃。状態異常/スキルはアクティブ敵のみに作用（P3-D082）。
 func _do_enemy_turn(slot: int) -> void:
+	if $CombatController.has_pending_cast("enemy", slot):
+		_advance_enemy_cast(slot)
+		return
+	if $CombatController.should_enemy_skip_action_at(slot):
+		var skip_label: String = $CombatController.get_enemy_skip_action_label_at(slot)
+		if skip_label.is_empty():
+			skip_label = "鈍化"
+		_append_log("[%s] 敵の行動が遅れた" % skip_label)
+		return
 	if slot == $CombatController.active_enemy_index:
-		if $CombatController.should_enemy_skip_action():
-			var skip_label: String = $CombatController.get_enemy_skip_action_label()
-			if skip_label.is_empty():
-				skip_label = "鈍化"
-			_append_log("[%s] 敵の行動が遅れた" % skip_label)
-			return
 		if _try_enemy_skill():
 			return
 	_do_enemy_attack(slot)
@@ -803,10 +984,15 @@ func _process_status_ticks() -> void:
 		var display_name: String = result.get("display_name", "")
 		if dmg <= 0:
 			continue
-		if unit_id == "enemy":
-			$CombatController.apply_damage_to_enemy(dmg)
-			var dot_pos: Vector2 = _active_enemy_pos()
-			_spawn_damage_number(str(dmg), dot_pos, Color(1.0, 0.6, 0.0))
+		if unit_id.begins_with("enemy_"):
+			var slot: int = int(unit_id.substr(6))
+			$CombatController.apply_damage_to_enemy_slot(slot, dmg)
+			_check_boss_phase_transition(slot)
+			if slot < _swarm_sprites.size() and _swarm_sprites[slot].visible:
+				_spawn_damage_number(str(dmg), _swarm_sprites[slot].global_position, Color(1.0, 0.6, 0.0))
+			if $CombatController.get_enemy_hp_at(slot) <= 0:
+				if _on_enemy_slot_killed(slot):
+					return
 		elif unit_id.begins_with("party_"):
 			var idx: int = int(unit_id.substr(7))
 			$CombatController.apply_damage_to_member(idx, dmg)
@@ -825,8 +1011,7 @@ func _try_apply_skill_status() -> void:
 	if skill_data.apply_status_chance <= 0.0 or randf() > skill_data.apply_status_chance:
 		return
 	var base_info: Dictionary = _calc_attack_base(member_idx)
-	if not $CombatController.apply_status(
-		"enemy",
+	if not $CombatController.apply_status_to_active_enemy(
 		skill_data.apply_status_id,
 		1,
 		base_info["base_damage"]
@@ -851,8 +1036,7 @@ func _try_apply_secondary_skill_status() -> void:
 	if skill_data.apply_status_chance <= 0.0 or randf() > skill_data.apply_status_chance:
 		return
 	var base_info: Dictionary = _calc_attack_base(member_idx)
-	if not $CombatController.apply_status(
-		"enemy",
+	if not $CombatController.apply_status_to_active_enemy(
 		skill_data.apply_status_id,
 		1,
 		base_info["base_damage"]
@@ -865,7 +1049,7 @@ func _try_apply_secondary_skill_status() -> void:
 	_append_log("[%s] 付与" % label)
 
 func _try_apply_affix_statuses(member_index: int) -> void:
-	if $CombatController.is_enemy_defeated():
+	if not _member_has_living_target(member_index):
 		return
 	var bonuses: Dictionary = AffixStatCalculatorScript.get_bonuses(member_index)
 	var rules: Array[Dictionary] = [
@@ -878,20 +1062,21 @@ func _try_apply_affix_statuses(member_index: int) -> void:
 		var chance: float = float(bonuses.get(rule["chance_key"], 0.0))
 		if chance <= 0.0 or randf() > chance:
 			continue
-		if not $CombatController.apply_status("enemy", rule["status_id"], 1, 0):
+		if not _apply_status_to_member_target(member_index, rule["status_id"], 1, 0):
 			continue
 		_append_log("[%s] 付与" % rule["label"])
 
 # 単一スキルの発動（ダメージ＋状態異常付与）。CDはメンバー×スキルで独立管理。
 # cast_index: この tick でそのメンバーが発動した順番（0始まり）。ラベル段組みに使用。
 func _execute_member_skill(member_idx: int, skill_data: Resource, cast_index: int = 0) -> String:
-	if $CombatController.is_enemy_defeated():
+	if not _member_has_living_target(member_idx):
 		return ""
 	match skill_data.effect_type:
 		"heal":
 			return _execute_member_heal(member_idx, skill_data, cast_index)
 		"buff":
 			return _execute_member_buff(member_idx, skill_data, cast_index)
+	var target_slot: int = $CombatController.get_member_target_slot(member_idx)
 	var cd_key: String = "%d:%s" % [member_idx, skill_data.id]
 	var base_info: Dictionary = _calc_attack_base(member_idx)
 	var is_critical: bool = randf() < base_info["crit_rate"]
@@ -911,47 +1096,66 @@ func _execute_member_skill(member_idx: int, skill_data: Resource, cast_index: in
 		1,
 		int(float(result["damage"]) * $CombatController.get_member_outgoing_damage_multiplier(member_idx))
 	)
-	var elem_result: Dictionary = _apply_enemy_mitigation(skill_dmg, attack_element, member_idx)
+	var elem_result: Dictionary = _apply_enemy_mitigation(skill_dmg, attack_element, member_idx, target_slot)
 	var final_dmg: int = maxi(
 		1,
-		int(float(elem_result["damage"]) * $CombatController.get_enemy_incoming_damage_multiplier())
+		int(float(elem_result["damage"]) * $CombatController.get_enemy_incoming_damage_multiplier_at(target_slot))
 	)
-	final_dmg += _consume_enemy_combo_bonus(member_idx, final_dmg, _member_action_tags(member_idx, skill_data))
-	$CombatController.apply_damage_to_enemy(final_dmg)
-	$CombatController.add_threat(member_idx, float(final_dmg) * CombatController.THREAT_DAMAGE_K)
+	final_dmg += _consume_combo_bonus(
+		member_idx, final_dmg, _member_action_tags(member_idx, skill_data), skill_data, target_slot
+	)
 	var skill_is_crit: bool = result.get("is_critical", false)
-	var spawn_pos: Vector2 = _active_enemy_pos()
+	var spawn_pos: Vector2 = _enemy_slot_pos(target_slot)
 	_spawn_hit_vfx(spawn_pos, attack_element)
 	_spawn_damage_number(str(final_dmg), spawn_pos + Vector2(12.0, 0.0), Color(1.0, 0.9, 0.0), 1.25 if skill_is_crit else 1.0)
-	# この tick の最初の発動で旧 tick のラベルを除去し、2つ目以降は段違いに表示して重なりを防ぐ
 	if cast_index == 0:
 		_clear_member_skill_labels(member_idx)
 	_spawn_skill_name(result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP, attack_element)
-	_apply_skill_status(member_idx, skill_data)
 	var crit_tag: String = "  CRITICAL!" if skill_is_crit else ""
-	return "\n【スキル】%s: %dダメージ%s%s" % [
-		result["display_name"],
-		final_dmg,
-		crit_tag,
-		elem_result["element_tag"],
+	var tgt_tag: String = _member_target_tag(member_idx)
+	var log_line: String = "\n【スキル】%s: %dダメージ%s%s%s" % [
+		result["display_name"], final_dmg, crit_tag, elem_result["element_tag"], tgt_tag,
 	]
+	if _deal_member_damage_to_enemy(member_idx, final_dmg, target_slot):
+		return log_line
+	_apply_skill_status(member_idx, skill_data)
+	_apply_skill_secondary_status(member_idx, skill_data)
+	return log_line
 
 # スキルの状態異常付与（apply_status_id / apply_status_chance）。
 func _apply_skill_status(member_idx: int, skill_data: Resource) -> void:
-	if $CombatController.is_enemy_defeated():
+	if not _member_has_living_target(member_idx):
 		return
 	if skill_data == null or skill_data.apply_status_id.is_empty():
 		return
 	if skill_data.apply_status_chance <= 0.0 or randf() > skill_data.apply_status_chance:
 		return
 	var base_info: Dictionary = _calc_attack_base(member_idx)
-	if not $CombatController.apply_status("enemy", skill_data.apply_status_id, 1, base_info["base_damage"]):
+	if not _apply_status_to_member_target(member_idx, skill_data.apply_status_id, 1, base_info["base_damage"]):
 		return
 	var effect: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id)
 	var label: String = skill_data.apply_status_id
 	if effect != null:
 		label = effect.display_name
 	_append_log("[%s] 付与" % label)
+
+# スキルの副次状態付与（apply_status_id2 / apply_status_chance2・P3-D107）。
+# 主状態のロール成否とは独立に判定する。
+func _apply_skill_secondary_status(member_idx: int, skill_data: Resource) -> void:
+	if not _member_has_living_target(member_idx):
+		return
+	if skill_data == null or skill_data.apply_status_id2.is_empty():
+		return
+	if skill_data.apply_status_chance2 <= 0.0 or randf() > skill_data.apply_status_chance2:
+		return
+	var base_info: Dictionary = _calc_attack_base(member_idx)
+	if not _apply_status_to_member_target(member_idx, skill_data.apply_status_id2, 1, base_info["base_damage"]):
+		return
+	var effect2: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id2)
+	var label2: String = skill_data.apply_status_id2
+	if effect2 != null:
+		label2 = effect2.display_name
+	_append_log("[%s] 付与" % label2)
 
 # 回復スキル: 最も負傷した生存メンバーを回復する。負傷者が居なければCDを消費せず発動しない。
 func _execute_member_heal(member_idx: int, skill_data: Resource, cast_index: int = 0) -> String:
@@ -964,6 +1168,7 @@ func _execute_member_heal(member_idx: int, skill_data: Resource, cast_index: int
 		return ""
 	var heal_amount: int = _apply_healing_bonus(int(round(skill_data.power_multiplier * float(HEAL_SKILL_BASE))))
 	var healed: int = $CombatController.heal_member(target_idx, heal_amount)
+	_set_heal_rally(target_idx)
 	_update_hp_bars()
 	if cast_index == 0:
 		_clear_member_skill_labels(member_idx)
@@ -1054,7 +1259,7 @@ func _try_cast_player_skill() -> String:
 			* $CombatController.get_enemy_incoming_damage_multiplier()
 		)
 	)
-	final_dmg += _consume_enemy_combo_bonus(member_idx, final_dmg, _member_action_tags(member_idx, skill_data))
+	final_dmg += _consume_combo_bonus(member_idx, final_dmg, _member_action_tags(member_idx, skill_data), skill_data)
 	$CombatController.apply_damage_to_enemy(final_dmg)
 	$CombatController.add_threat(member_idx, float(final_dmg) * CombatController.THREAT_DAMAGE_K)
 	var skill_is_crit: bool = result.get("is_critical", false)
@@ -1119,7 +1324,7 @@ func _try_cast_secondary_skill(primary_skill_id: String) -> String:
 			* $CombatController.get_enemy_incoming_damage_multiplier()
 		)
 	)
-	final_dmg += _consume_enemy_combo_bonus(member_idx, final_dmg, _member_action_tags(member_idx, skill_data))
+	final_dmg += _consume_combo_bonus(member_idx, final_dmg, _member_action_tags(member_idx, skill_data), skill_data)
 	$CombatController.apply_damage_to_enemy(final_dmg)
 	$CombatController.add_threat(member_idx, float(final_dmg) * CombatController.THREAT_DAMAGE_K)
 	var sec_is_crit: bool = result.get("is_critical", false)
@@ -1158,9 +1363,16 @@ func _is_biome_favored(attack_element: String) -> bool:
 		return false
 	return str(dungeon.favored_element) == attack_element
 
-func _apply_enemy_mitigation(damage: int, attack_element: String, member_index: int = -1) -> Dictionary:
+func _apply_enemy_mitigation(
+	damage: int,
+	attack_element: String,
+	member_index: int = -1,
+	target_slot: int = -1
+) -> Dictionary:
 	var element_tag: String = ""
-	var enemy_data: Resource = $CombatController.current_enemy_data
+	if target_slot < 0:
+		target_slot = $CombatController.get_member_target_slot(member_index) if member_index >= 0 else $CombatController.active_enemy_index
+	var enemy_data: Resource = $CombatController.get_enemy_data_at(target_slot)
 	if enemy_data == null or damage <= 0:
 		return {"damage": damage, "element_tag": element_tag}
 	var elem_mult: float = ElementResolverScript.get_damage_multiplier(
@@ -1199,17 +1411,28 @@ func _apply_enemy_mitigation(damage: int, attack_element: String, member_index: 
 	if weather_mult != 1.0:
 		damage = maxi(1, int(round(float(damage) * weather_mult)))
 		element_tag += "  [天候:%s]" % CombatWeather.label(weather)
-	damage = _apply_enemy_defense(damage, enemy_data)
+	# 防御DOWN（armor_break・P3-D107）: 敵 DEF を減少率ぶん下げてから逓減軽減。
+	var def_reduction: float = $CombatController.get_enemy_defense_reduction_at(target_slot)
+	if def_reduction > 0.0:
+		element_tag += "  [防御DOWN]"
+	damage = _apply_enemy_defense(damage, enemy_data, def_reduction)
 	return {"damage": damage, "element_tag": element_tag}
 
 # 状態異常コンボ起爆（P3-D089）。味方の攻撃ヒット時、アクティブ敵に前提状態が
 # 乗っていれば 1 つだけ起爆し、追加ダメージを返してその状態を消費する。
 # 戻り値は攻撃ダメージへ上乗せする（既存の撃破判定をそのまま通すため）。
-func _consume_enemy_combo_bonus(member_idx: int, hit_damage: int, attacker_tags: Array = []) -> int:
-	if $CombatController.is_enemy_defeated():
+func _consume_enemy_combo_bonus(
+	member_idx: int,
+	hit_damage: int,
+	attacker_tags: Array = [],
+	target_slot: int = -1
+) -> int:
+	if target_slot < 0:
+		target_slot = $CombatController.get_member_target_slot(member_idx)
+	if not $CombatController.is_enemy_slot_alive(target_slot):
 		return 0
 	for trigger_id: String in CombatCombos.trigger_ids():
-		var stacks: int = $CombatController.get_enemy_status_stacks(trigger_id)
+		var stacks: int = $CombatController.get_enemy_status_stacks_at(target_slot, trigger_id)
 		if stacks <= 0:
 			continue
 		if not CombatCombos.tag_eligible(trigger_id, attacker_tags):
@@ -1217,10 +1440,55 @@ func _consume_enemy_combo_bonus(member_idx: int, hit_damage: int, attacker_tags:
 		var bonus: int = CombatCombos.bonus_for(trigger_id, stacks, hit_damage)
 		if bonus <= 0:
 			continue
-		$CombatController.consume_enemy_status(trigger_id)
+		$CombatController.consume_enemy_status_at(target_slot, trigger_id)
 		var label: String = str(CombatCombos.rule(trigger_id).get("label", "コンボ"))
-		var pos: Vector2 = _active_enemy_pos()
+		var pos: Vector2 = _enemy_slot_pos(target_slot)
 		_spawn_damage_number("%s +%d" % [label, bonus], pos + Vector2(0.0, -34.0), Color(1.0, 0.55, 0.15), 1.15)
+		_append_log("[コンボ] %s +%d" % [label, bonus])
+		return bonus
+	return 0
+
+# 1ヒット1コンボ（敵側優先→味方バフ側・P3-D109）＋パーティ連携（P3-D115・コンボと併用可）。
+func _consume_combo_bonus(
+	member_idx: int,
+	hit_damage: int,
+	attacker_tags: Array = [],
+	skill_data: Resource = null,
+	target_slot: int = -1
+) -> int:
+	var total: int = 0
+	var enemy_bonus: int = _consume_enemy_combo_bonus(member_idx, hit_damage, attacker_tags, target_slot)
+	if enemy_bonus > 0:
+		total += enemy_bonus
+	else:
+		total += _consume_ally_combo_bonus(member_idx, hit_damage, attacker_tags, skill_data)
+	total += _consume_link_bonus(member_idx, hit_damage, target_slot)
+	return total
+
+# 味方バフコンボ（鼓舞→必殺等）。攻撃者自身のバフ状態を消費する。
+func _consume_ally_combo_bonus(
+	member_idx: int,
+	hit_damage: int,
+	attacker_tags: Array = [],
+	skill_data: Resource = null
+) -> int:
+	if skill_data == null or str(skill_data.slot_type) != "ultimate":
+		return 0
+	for trigger_id: String in CombatCombos.ally_trigger_ids():
+		var stacks: int = $CombatController.get_member_status_stacks(member_idx, trigger_id)
+		if stacks <= 0:
+			continue
+		if not CombatCombos.ally_tag_eligible(trigger_id, attacker_tags):
+			continue
+		var bonus: int = CombatCombos.ally_bonus_for(trigger_id, stacks, hit_damage)
+		if bonus <= 0:
+			continue
+		$CombatController.consume_member_status(member_idx, trigger_id)
+		_update_status_icons()
+		var label: String = str(CombatCombos.ally_rule(trigger_id).get("label", "コンボ"))
+		var slot: int = $CombatController.get_member_target_slot(member_idx)
+		var pos: Vector2 = _enemy_slot_pos(slot)
+		_spawn_damage_number("%s +%d" % [label, bonus], pos + Vector2(0.0, -48.0), Color(1.0, 0.75, 0.35), 1.2)
 		_append_log("[コンボ] %s +%d" % [label, bonus])
 		return bonus
 	return 0
@@ -1251,13 +1519,16 @@ func _get_weapon_bane(member_index: int) -> Dictionary:
 	return {"class": "", "mult": 1.0}
 
 # 敵DEFによる逓減軽減: damage × K/(K+DEF)。最低1。
-func _apply_enemy_defense(damage: int, enemy_data: Resource) -> int:
+# def_reduction（armor_break・P3-D107）で実効 DEF を下げてから計算する。
+func _apply_enemy_defense(damage: int, enemy_data: Resource, def_reduction: float = 0.0) -> int:
 	if enemy_data == null or damage <= 0:
 		return damage
-	var def: int = int(enemy_data.defense)
-	if def <= 0:
+	var def: float = float(enemy_data.defense)
+	if def_reduction > 0.0:
+		def *= (1.0 - clampf(def_reduction, 0.0, 0.95))
+	if def <= 0.0:
 		return damage
-	var mult: float = DEFENSE_MITIGATION_K / (DEFENSE_MITIGATION_K + float(def))
+	var mult: float = DEFENSE_MITIGATION_K / (DEFENSE_MITIGATION_K + def)
 	return maxi(1, int(round(float(damage) * mult)))
 
 func _calc_attack_base(member_index: int = -1) -> Dictionary:
@@ -1312,26 +1583,135 @@ func _active_enemy_sprite() -> AnimatedSprite2D:
 
 # VFX/ドロップの発生位置に使うアクティブ敵のグローバル座標。
 func _active_enemy_pos() -> Vector2:
+	return _enemy_slot_pos($CombatController.active_enemy_index)
+
+func _enemy_slot_pos(slot: int) -> Vector2:
+	if slot >= 0 and slot < _swarm_sprites.size() and _swarm_sprites[slot].visible:
+		return _swarm_sprites[slot].global_position
 	return _active_enemy_sprite().global_position
+
+func _member_target_tag(member_idx: int) -> String:
+	if $CombatController.living_enemy_count() <= 1:
+		return ""
+	var slot: int = $CombatController.get_member_target_slot(member_idx)
+	var data: Resource = $CombatController.get_enemy_data_at(slot)
+	if data == null:
+		return ""
+	return " → %s" % data.display_name
+
+func _member_has_living_target(member_idx: int) -> bool:
+	return $CombatController.is_enemy_slot_alive($CombatController.get_member_target_slot(member_idx))
+
+# 味方攻撃ダメージをメンバー個別ターゲットへ適用。撃破時は true（全滅で戦闘終了）。
+func _deal_member_damage_to_enemy(member_idx: int, damage: int, target_slot: int = -1) -> bool:
+	if target_slot < 0:
+		target_slot = $CombatController.get_member_target_slot(member_idx)
+	if not $CombatController.is_enemy_slot_alive(target_slot):
+		return false
+	$CombatController.apply_damage_to_enemy_slot(target_slot, damage)
+	$CombatController.add_threat(member_idx, float(damage) * CombatController.THREAT_DAMAGE_K)
+	_check_boss_phase_transition(target_slot)
+	if damage > 0:
+		_fire_member_relic_triggers(
+			member_idx, "on_attack", {"damage": damage, "target_slot": target_slot}
+		)
+	if $CombatController.get_enemy_hp_at(target_slot) <= 0:
+		return _on_enemy_slot_killed(target_slot)
+	return false
+
+func _apply_status_to_member_target(
+	member_idx: int,
+	effect_id: String,
+	stacks: int = 1,
+	source_attack: int = 0
+) -> bool:
+	var slot: int = $CombatController.get_member_target_slot(member_idx)
+	var applied: bool = $CombatController.apply_status_to_enemy_slot(slot, effect_id, stacks, source_attack)
+	if applied and CombatLinks.is_debuff_mark_status(effect_id):
+		_debuff_marks[slot] = member_idx
+	return applied
 
 # ボス/エリートのスキル発動を試行。発動したら true（通常攻撃をスキップ）。
 func _try_enemy_skill() -> bool:
 	var enemy_data: Resource = $CombatController.current_enemy_data
 	if enemy_data == null or enemy_data.skill_ids.is_empty():
 		return false
-	if enemy_data.skill_use_chance <= 0.0 or randf() > enemy_data.skill_use_chance:
+	var slot: int = $CombatController.active_enemy_index
+	var enemy_id: String = $CombatController.get_enemy_id_at(slot)
+	var phase_idx: int = $CombatController.get_enemy_phase_index(slot)
+	var use_chance: float = CombatBossPhases.skill_use_chance(
+		enemy_id, phase_idx, float(enemy_data.skill_use_chance)
+	)
+	if use_chance <= 0.0 or randf() > use_chance:
 		return false
-	var castable: Array = []
+	var phase_def: Dictionary = CombatBossPhases.phase_def(enemy_id, phase_idx)
+	var skill: Resource = _pick_enemy_skill(enemy_data, phase_def)
+	if skill == null:
+		return false
+	return _try_cast_enemy_skill(slot, skill)
+
+func _pick_enemy_skill(enemy_data: Resource, phase_def: Dictionary) -> Resource:
+	var weights: Dictionary = phase_def.get("skill_weight", {})
+	var pool: Array = []
+	var total: float = 0.0
 	for sid in enemy_data.skill_ids:
 		var sd: Resource = DataRegistry.get_skill_data(str(sid))
 		if sd == null:
 			continue
-		if _skill_executor.can_cast(sd, "enemy:%s" % sd.id):
-			castable.append(sd)
-	if castable.is_empty():
+		if not _skill_executor.can_cast(sd, "enemy:%s" % sd.id):
+			continue
+		var w: float = float(weights.get(str(sid), 1.0))
+		pool.append({"skill": sd, "weight": w})
+		total += w
+	if pool.is_empty():
+		return null
+	var roll: float = randf() * total
+	var acc: float = 0.0
+	for item: Dictionary in pool:
+		acc += float(item["weight"])
+		if roll <= acc:
+			return item["skill"]
+	return pool[pool.size() - 1]["skill"]
+
+# 敵スキルの詠唱開始または即時発動（P3-D112）。
+func _try_cast_enemy_skill(slot: int, skill: Resource) -> bool:
+	if skill == null:
 		return false
-	var skill: Resource = castable[randi() % castable.size()]
-	return _execute_enemy_skill(skill)
+	var cast_time: float = float(skill.cast_time)
+	if cast_time <= 0.0:
+		return _execute_enemy_skill(skill)
+	var cd_key: String = "enemy:%s" % skill.id
+	if not _skill_executor.can_cast(skill, cd_key):
+		return false
+	var turns: int = int(ceil(cast_time))
+	$CombatController.begin_enemy_cast(slot, skill.id, turns)
+	_play_enemy_slot_animation(slot, "attack")
+	_spawn_enemy_cast_name(skill.display_name, slot)
+	_append_log("敵が【%s】を詠唱している" % skill.display_name)
+	return true
+
+func _advance_enemy_cast(slot: int) -> void:
+	if $CombatController.should_enemy_skip_action_at(slot):
+		var skip_label: String = $CombatController.get_enemy_skip_action_label_at(slot)
+		if skip_label.is_empty():
+			skip_label = "鈍化"
+		_append_log("[%s] 敵の詠唱が中断された" % skip_label)
+		return
+	var pending: Dictionary = $CombatController.get_pending_cast("enemy", slot)
+	if pending.is_empty():
+		return
+	var skill: Resource = DataRegistry.get_skill_data(str(pending.get("skill_id", "")))
+	if skill == null:
+		$CombatController.clear_pending_cast("enemy", slot)
+		return
+	var state: String = $CombatController.advance_pending_cast("enemy", slot)
+	if state == "chant":
+		_play_enemy_slot_animation(slot, "attack")
+		_spawn_enemy_cast_name(skill.display_name, slot)
+		_append_log("敵の【%s】詠唱中…" % skill.display_name)
+		return
+	$CombatController.clear_pending_cast("enemy", slot)
+	_execute_enemy_skill(skill)
 
 func _execute_enemy_skill(skill: Resource) -> bool:
 	var res: Dictionary = _skill_executor.execute_support_skill(skill, "enemy:%s" % skill.id)
@@ -1352,7 +1732,7 @@ func _execute_enemy_buff(skill: Resource) -> void:
 	_spawn_enemy_skill_name(skill.display_name)
 	var label: String = skill.display_name
 	if not skill.apply_status_id.is_empty():
-		$CombatController.apply_status("enemy", skill.apply_status_id, 1, 0)
+		$CombatController.apply_status_to_active_enemy(skill.apply_status_id, 1, 0)
 		var eff: Resource = DataRegistry.get_status_effect(skill.apply_status_id)
 		if eff != null:
 			label = eff.display_name
@@ -1375,7 +1755,8 @@ func _execute_enemy_damage(skill: Resource) -> void:
 		return
 	var lines: PackedStringArray = []
 	for ti in targets:
-		var dmg: int = _calc_enemy_damage_to_member(ti, skill.power_multiplier)["final"]
+		var atk_slot: int = $CombatController.active_enemy_index
+		var dmg: int = _calc_enemy_damage_to_member(ti, skill.power_multiplier, -1, atk_slot)["final"]
 		$CombatController.apply_damage_to_member(ti, dmg)
 		$CombatController.add_threat(ti, float(dmg) * CombatController.THREAT_TAKEN_K)
 		_play_chr_hurt(ti)
@@ -1431,6 +1812,41 @@ func _spawn_enemy_skill_name(skill_name: String) -> void:
 	tw.tween_property(lbl, "modulate:a", 0.0, 0.5).set_delay(0.35)
 	tw.chain().tween_callback(lbl.queue_free)
 
+# 敵の詠唱中ポップ（P3-D112・紫系で通常スキル名と差別化）
+func _spawn_enemy_cast_name(skill_name: String, slot: int) -> void:
+	if skill_name.is_empty():
+		return
+	if slot < 0 or slot >= _swarm_sprites.size():
+		_spawn_enemy_skill_name(skill_name)
+		return
+	var spr: AnimatedSprite2D = _swarm_sprites[slot]
+	if not spr.visible:
+		_spawn_enemy_skill_name(skill_name)
+		return
+	const CAST_FONT_SIZE: int = 22
+	var lbl := Label.new()
+	lbl.text = "◆ %s" % skill_name
+	var af: Font = _get_accent_font()
+	if af != null:
+		lbl.add_theme_font_override("font", af)
+	lbl.add_theme_font_size_override("font_size", CAST_FONT_SIZE)
+	lbl.add_theme_color_override("font_color", Color(0.75, 0.55, 1.0))
+	lbl.add_theme_color_override("font_outline_color", Color(0.08, 0.0, 0.12, 0.95))
+	lbl.add_theme_constant_override("outline_size", 6)
+	var base_y: float = spr.global_position.y - 130.0
+	lbl.position = Vector2(
+		spr.global_position.x - float(lbl.text.length()) * CAST_FONT_SIZE * 0.28,
+		base_y
+	)
+	lbl.modulate.a = 0.0
+	_damage_numbers_layer.add_child(lbl)
+	var tw: Tween = create_tween()
+	tw.tween_property(lbl, "modulate:a", 1.0, 0.12)
+	tw.chain().set_parallel(true)
+	tw.tween_property(lbl, "position:y", base_y - 18.0, 0.55)
+	tw.tween_property(lbl, "modulate:a", 0.0, 0.4).set_delay(0.25)
+	tw.chain().tween_callback(lbl.queue_free)
+
 func _do_enemy_attack(slot: int = -1) -> void:
 	if $CombatController.current_enemy_data == null:
 		return
@@ -1442,7 +1858,7 @@ func _do_enemy_attack(slot: int = -1) -> void:
 	else:
 		_play_active_enemy_animation("attack")
 	var attacker_atk: int = $CombatController.get_enemy_attack_at(slot) if slot >= 0 else -1
-	var enemy_result: Dictionary = _calc_enemy_damage_to_member(target_idx, 1.0, attacker_atk)
+	var enemy_result: Dictionary = _calc_enemy_damage_to_member(target_idx, 1.0, attacker_atk, slot)
 	$CombatController.apply_damage_to_member(target_idx, enemy_result["final"])
 	$CombatController.add_threat(target_idx, float(enemy_result["final"]) * CombatController.THREAT_TAKEN_K)
 	_play_chr_hurt(target_idx)
@@ -1458,7 +1874,7 @@ func _do_enemy_attack(slot: int = -1) -> void:
 		guard_prefix = "[前衛] "
 	var resist_tag: String = ""
 	if enemy_result.get("elem_resisted", false):
-		resist_tag = "  [耐性:%s]" % ElementResolverScript.get_display_name(_active_enemy_attack_element())
+		resist_tag = "  [耐性:%s]" % ElementResolverScript.get_display_name(_enemy_attack_element_at(slot))
 	var log_text: String
 	if enemy_result["mitigated"] > 0:
 		log_text = "敵の攻撃: %s%s に %dダメージ（軽減%d）%s" % [guard_prefix, member_name, enemy_result["final"], enemy_result["mitigated"], resist_tag]
@@ -1468,10 +1884,11 @@ func _do_enemy_attack(slot: int = -1) -> void:
 		log_text += "\n%s が倒れた！" % member_name
 	_append_log(log_text)
 	_on_member_damaged(target_idx)
-	_try_apply_enemy_hit_status(target_idx)
+	_try_apply_enemy_hit_status(target_idx, slot)
 
-func _try_apply_enemy_hit_status(target_idx: int) -> void:
-	var enemy_data: Resource = $CombatController.current_enemy_data
+func _try_apply_enemy_hit_status(target_idx: int, attacker_slot: int = -1) -> void:
+	var slot: int = attacker_slot if attacker_slot >= 0 else $CombatController.active_enemy_index
+	var enemy_data: Resource = $CombatController.get_enemy_data_at(slot)
 	if enemy_data == null or enemy_data.on_hit_status_id.is_empty():
 		return
 	if enemy_data.on_hit_status_id == "curse":
@@ -1485,7 +1902,7 @@ func _try_apply_enemy_hit_status(target_idx: int) -> void:
 	if enemy_data.on_hit_status_chance <= 0.0 or randf() > enemy_data.on_hit_status_chance:
 		return
 	var unit_id: String = "party_%d" % target_idx
-	var source_atk: int = $CombatController.get_enemy_attack()
+	var source_atk: int = $CombatController.get_enemy_attack_at(slot)
 	if not $CombatController.apply_status(unit_id, enemy_data.on_hit_status_id, 1, source_atk):
 		return
 	var effect: Resource = DataRegistry.get_status_effect(enemy_data.on_hit_status_id)
@@ -1496,7 +1913,9 @@ func _try_apply_enemy_hit_status(target_idx: int) -> void:
 	var member_name: String = hit_target.display_name if hit_target != null else "?"
 	_append_log("[%s] %s に付与" % [label, member_name])
 
-func _calc_damage(member_index: int = -1) -> Dictionary:
+func _calc_damage(member_index: int = -1, target_slot: int = -1) -> Dictionary:
+	if target_slot < 0 and member_index >= 0:
+		target_slot = $CombatController.get_member_target_slot(member_index)
 	var base_info: Dictionary = _calc_attack_base(member_index)
 	var is_critical: bool = randf() < base_info["crit_rate"]
 	var damage: int = base_info["base_damage"]
@@ -1504,19 +1923,38 @@ func _calc_damage(member_index: int = -1) -> Dictionary:
 		damage = int(damage * CRITICAL_MULTIPLIER)
 	damage = int(damage * $DungeonController.run_damage_multiplier)
 	damage = maxi(1, int(float(damage) * $CombatController.get_member_outgoing_damage_multiplier(member_index)))
-	var elem_result: Dictionary = _apply_enemy_mitigation(damage, _get_weapon_element(member_index), member_index)
+	var elem_result: Dictionary = _apply_enemy_mitigation(
+		damage, _get_weapon_element(member_index), member_index, target_slot
+	)
 	damage = elem_result["damage"]
-	damage = maxi(1, int(float(damage) * $CombatController.get_enemy_incoming_damage_multiplier()))
+	if target_slot < 0:
+		target_slot = $CombatController.active_enemy_index
+	damage = maxi(
+		1,
+		int(float(damage) * $CombatController.get_enemy_incoming_damage_multiplier_at(target_slot))
+	)
 	return {
 		"damage": damage,
 		"is_critical": is_critical,
 		"element_tag": elem_result["element_tag"],
+		"target_slot": target_slot,
 	}
 
-func _calc_enemy_damage_to_member(target_index: int, power_multiplier: float = 1.0, attacker_atk: int = -1) -> Dictionary:
+func _calc_enemy_damage_to_member(
+	target_index: int,
+	power_multiplier: float = 1.0,
+	attacker_atk: int = -1,
+	attacker_slot: int = -1
+) -> Dictionary:
 	var atk: int = attacker_atk if attacker_atk >= 0 else $CombatController.get_enemy_attack()
 	var base_dmg: int = int(float(atk) * power_multiplier)
-	base_dmg = maxi(1, int(float(base_dmg) * $CombatController.get_enemy_outgoing_damage_multiplier()))
+	var out_slot: int = attacker_slot if attacker_slot >= 0 else $CombatController.active_enemy_index
+	var enemy_id: String = $CombatController.get_enemy_id_at(out_slot)
+	var phase_mult: float = CombatBossPhases.attack_mult(
+		enemy_id, $CombatController.get_enemy_phase_index(out_slot)
+	)
+	base_dmg = maxi(1, int(round(float(base_dmg) * phase_mult)))
+	base_dmg = maxi(1, int(float(base_dmg) * $CombatController.get_enemy_outgoing_damage_multiplier_at(out_slot)))
 	var defense: int = 0
 	var armor: Resource = GameState.get_member_equipped_armor(target_index)
 	if armor != null:
@@ -1540,7 +1978,8 @@ func _calc_enemy_damage_to_member(target_index: int, power_multiplier: float = 1
 		final_dmg = maxi(0, int(round(float(final_dmg) * incoming_mult)))
 	# 防具の属性耐性（P3-D103）: 敵攻撃属性が防具 resist_elements と一致なら軽減。
 	var elem_resisted: bool = false
-	if _member_resists_element(target_index, _active_enemy_attack_element()):
+	var atk_elem: String = _enemy_attack_element_at(out_slot)
+	if _member_resists_element(target_index, atk_elem):
 		final_dmg = maxi(0, int(round(float(final_dmg) * ARMOR_RESIST_MULTIPLIER)))
 		elem_resisted = true
 	var mitigated: int = base_dmg - final_dmg
@@ -1550,7 +1989,10 @@ func _calc_enemy_damage_to_member(target_index: int, power_multiplier: float = 1
 const ARMOR_RESIST_MULTIPLIER: float = 0.75
 
 func _active_enemy_attack_element() -> String:
-	var ed: Resource = $CombatController.current_enemy_data
+	return _enemy_attack_element_at($CombatController.active_enemy_index)
+
+func _enemy_attack_element_at(slot: int) -> String:
+	var ed: Resource = $CombatController.get_enemy_data_at(slot)
 	return str(ed.attack_element) if ed != null else ""
 
 func _member_resists_element(target_index: int, attack_element: String) -> bool:
@@ -1584,13 +2026,12 @@ func _roll_ecology_material_drops(enemy_data: Resource, log_lines: PackedStringA
 		log_lines.append("採取: %s" % _format_material_reward_log(mat_id, amount, ""))
 		_try_register_discovery("material", mat_id)
 
-# アクティブ敵 1体の撃破ブックキーピング（P3-D082/D083）。報酬/キル/ドロップ/死亡演出を行う。
-# タイマー制御・繰り上げ・戦闘終了は呼び出し側（_on_active_enemy_killed）が担う。
-func _award_enemy_kill() -> void:
+# アクティブ敵 1体の撃破ブックキーピング（P3-D082/D083/D111）。
+func _award_enemy_kill_at(killed_slot: int) -> void:
 	var room_type: int = $DungeonController.current_room_type
-	var killed_slot: int = $CombatController.active_enemy_index
-	$CombatController.capture_rewards()
-	var defeated_enemy: Resource = $CombatController.current_enemy_data
+	$CombatController.clear_enemy_slot_status(killed_slot)
+	$CombatController.capture_rewards_at(killed_slot)
+	var defeated_enemy: Resource = $CombatController.get_enemy_data_at(killed_slot)
 	if defeated_enemy != null:
 		GameState.add_enemy_kill(defeated_enemy.id)
 		# 探索方針（図鑑優先）撃破1回につき図鑑進捗を加速（P3-D098）
@@ -1617,7 +2058,7 @@ func _award_enemy_kill() -> void:
 	if not dropped_weapon.is_empty():
 		GameState.last_run_weapon_dropped = dropped_weapon
 		log_lines.append("武器ドロップ: %s" % DataRegistry.get_weapon_name(dropped_weapon))
-		_spawn_weapon_drop(dropped_weapon, _active_enemy_pos())
+		_spawn_weapon_drop(dropped_weapon, _enemy_slot_pos(killed_slot))
 	if room_type == Enums.RoomType.ELITE:
 		var elite_bonus: Dictionary = $DungeonController.apply_elite_bonus_loot()
 		if not (elite_bonus["armor_id"] as String).is_empty():
@@ -1632,19 +2073,26 @@ func _award_enemy_kill() -> void:
 		log_lines.append("遺物入手: %s" % CombatRelics.display_name(dropped_relic))
 	_append_log("\n".join(log_lines))
 
-# アクティブ敵撃破時に呼ぶ（P3-D083）。撃破処理後、群れに生存敵が残れば繰り上げて false、
-# 全滅なら戦闘を終了して true を返す（true のとき呼び出し側は処理を打ち切る）。
+# 敵スロット撃破時。全滅なら true（戦闘終了済み）。
+func _on_enemy_slot_killed(killed_slot: int) -> bool:
+	$CombatController.clear_pending_cast("enemy", killed_slot)
+	_debuff_marks.erase(killed_slot)
+	_award_enemy_kill_at(killed_slot)
+	if killed_slot == $CombatController.active_enemy_index:
+		$CombatController.advance_active_enemy()
+	elif not $CombatController.is_enemy_slot_alive($CombatController.active_enemy_index):
+		$CombatController.advance_active_enemy()
+	if $CombatController.living_enemy_count() == 0:
+		_finalize_combat_cleared()
+		return true
+	_append_log("残り %d 体" % $CombatController.living_enemy_count())
+	_update_status_labels()
+	_update_hp_bars()
+	_update_turn_order_ui($CombatController.get_ct_order())
+	return false
+
 func _on_active_enemy_killed() -> bool:
-	_award_enemy_kill()
-	var next_idx: int = $CombatController.advance_active_enemy()
-	if next_idx >= 0:
-		_append_log("残り %d 体" % $CombatController.living_enemy_count())
-		_update_status_labels()
-		_update_hp_bars()
-		_update_turn_order_ui($CombatController.get_ct_order())
-		return false
-	_finalize_combat_cleared()
-	return true
+	return _on_enemy_slot_killed($CombatController.active_enemy_index)
 
 # 群れ全滅で戦闘を終了する（P3-D083）。
 func _finalize_combat_cleared() -> void:
@@ -1666,9 +2114,12 @@ func _finalize_combat_cleared() -> void:
 func _do_member_turn(member_idx: int) -> void:
 	if not $CombatController.is_member_alive(member_idx):
 		return
+	if $CombatController.has_pending_cast("party", member_idx):
+		_advance_member_cast(member_idx)
+		return
 	var member: Resource = GameState.get_combatant(member_idx)
 	var tactics_id: String = GameState.get_member_tactics_id(member)
-	_apply_focus_target(tactics_id)
+	$CombatController.resolve_member_target(member_idx, CombatTactics.get_target_rule(tactics_id))
 	var ctx: Dictionary = _build_tactics_context(member_idx)
 	for rule: Dictionary in CombatTactics.get_slot_plan(tactics_id):
 		if not CombatTactics.condition_met(rule, ctx):
@@ -1689,14 +2140,8 @@ func _do_member_turn(member_idx: int) -> void:
 	# 安全フォールバック（プランが空/全不発の場合）
 	_do_member_basic_attack(member_idx)
 
-# パーティ・フォーカス対象を戦術 target ルールで設定（P3-D100）。
-# 群れ(2体以上)時のみ作用。状態異常付き敵からは切替えない（単一スロット状態の転移防止）。
-func _apply_focus_target(tactics_id: String) -> void:
-	if $CombatController.living_enemy_count() <= 1:
-		return
-	if not $CombatController.get_enemy_status_list().is_empty():
-		return
-	$CombatController.set_focus_by_rule(CombatTactics.get_target_rule(tactics_id))
+# 群れ(2体以上)時のみ作用（P3-D110: 敵別状態スロットで個体ごと保持・切替可）。
+# 廃止（P3-D111）: パーティ一括フォーカス → メンバー個別ターゲットへ移行。
 
 # 戦術条件の評価に使う戦闘コンテキスト。
 func _build_tactics_context(member_idx: int) -> Dictionary:
@@ -1711,25 +2156,52 @@ func _build_tactics_context(member_idx: int) -> Dictionary:
 		if not $CombatController.is_member_alive(i):
 			ally_dead = true
 			break
+	var target_slot: int = $CombatController.get_member_target_slot(member_idx)
 	return {
 		"self_hp_ratio": hp_ratio,
 		"enemy_is_boss": room_type == Enums.RoomType.BOSS,
 		"enemy_is_elite": room_type == Enums.RoomType.ELITE,
 		"enemy_count": $CombatController.living_enemy_count(),
 		"ally_dead": ally_dead,
+		"enemy_has_bleed": $CombatController.get_enemy_status_stacks_at(target_slot, "bleed") > 0,
+		"enemy_has_poison": $CombatController.get_enemy_status_stacks_at(target_slot, "poison") > 0,
+		"ultimate_ready": _is_member_ultimate_ready(member_idx),
+		"self_range": _member_combat_range(member_idx),
+		"ally_injured": $CombatController.get_most_injured_member_index() >= 0,
 	}
+
+# 必殺技が CT/CD 待ちなしで撃てるか（P3-D108 ultimate_ready）。
+func _is_member_ultimate_ready(member_idx: int) -> bool:
+	var ult: Resource = _get_member_ultimate_skill(member_idx)
+	if ult == null:
+		return false
+	return _skill_executor.can_cast(ult, "%d:%s" % [member_idx, ult.id])
+
+# 戦術「距離」判定用。装備スキル range_type / ranged タグ → 武器種(bow/staff) → 既定 melee。
+func _member_combat_range(member_idx: int) -> String:
+	var member: Resource = GameState.get_combatant(member_idx)
+	if member != null:
+		for sid: String in GameState.get_equipped_skill_ids(member):
+			var sd: Resource = DataRegistry.get_skill_data(sid)
+			if sd == null:
+				continue
+			if str(sd.range_type) in ["long", "global"]:
+				return "long"
+			if "ranged" in sd.tags:
+				return "long"
+	var winst: Resource = GameState.get_member_equipped_weapon(member_idx)
+	if winst != null and not str(winst.weapon_id).is_empty():
+		var wd: Resource = DataRegistry.get_weapon_data(winst.weapon_id)
+		if wd != null and str(wd.weapon_type) in ["bow", "staff"]:
+			return "long"
+	return "melee"
 
 # 必殺技スロット（長CD・高威力）。発動できたら true。
 func _try_member_ultimate(member_idx: int) -> bool:
 	var ult: Resource = _get_member_ultimate_skill(member_idx)
 	if ult == null:
 		return false
-	var log_text: String = _execute_member_skill(member_idx, ult, 0).strip_edges()
-	if log_text.is_empty():
-		return false
-	_append_log("【必殺】" + log_text.trim_prefix("【スキル】"))
-	_update_hp_bars()
-	return true
+	return _try_cast_member_skill(member_idx, ult, true)
 
 # 防御スロット（被ダメ減バフを自身に付与）。発動条件は戦術プラン側で判定する。
 # 既に guard 中なら不発（毎行動の重ね掛けで硬直しないようガード）。付与できたら true。
@@ -1740,6 +2212,7 @@ func _do_member_defend_slot(member_idx: int) -> bool:
 		return false
 	# 防御＝挑発（Threat スパイク・P3-D104）。身を固めて敵の attention を引く。
 	$CombatController.apply_taunt(member_idx)
+	_activate_taunt_link(member_idx)
 	_update_status_icons()
 	_clear_member_skill_labels(member_idx)
 	_spawn_skill_name("防御", member_idx, 0.0)
@@ -1748,46 +2221,120 @@ func _do_member_defend_slot(member_idx: int) -> bool:
 	_append_log("[防御] %s は身を固めた" % nm)
 	return true
 
-# スキル①②スロット（装備スキル）。最初に発動可能な 1 つだけ撃つ。発動したら true。
+# スキル①②スロット（装備スキル）。ローテ＋温存を考慮し発動可能な1つを撃つ（P3-D113）。
 func _try_member_equipped_skill(member_idx: int) -> bool:
 	var member: Resource = GameState.get_combatant(member_idx)
 	if member == null:
 		return false
-	for sid: String in GameState.get_equipped_skill_ids(member):
-		var sd: Resource = DataRegistry.get_skill_data(sid)
+	var ids: Array[String] = GameState.get_equipped_skill_ids(member)
+	if ids.is_empty():
+		return false
+	var ctx: Dictionary = _build_tactics_context(member_idx)
+	var start: int = $CombatController.get_skill_rotation_index(member_idx) % ids.size()
+	for attempt: int in ids.size():
+		var pick: int = (start + attempt) % ids.size()
+		var sd: Resource = DataRegistry.get_skill_data(ids[pick])
 		if sd == null:
 			continue
-		var log_text: String = _execute_member_skill(member_idx, sd, 0).strip_edges()
-		if not log_text.is_empty():
-			_append_log(log_text)
-			_update_hp_bars()
+		if not CombatTactics.skill_reserve_met(sd, ctx):
+			continue
+		if _try_cast_member_skill(member_idx, sd, false):
+			$CombatController.set_skill_rotation_after_cast(member_idx, pick, ids.size())
 			return true
 	return false
 
+# スキル詠唱開始または即時発動（P3-D112）。Action Lock 中は _do_member_turn がここを経由しない。
+func _try_cast_member_skill(member_idx: int, skill_data: Resource, is_ultimate: bool) -> bool:
+	if skill_data == null:
+		return false
+	var cd_key: String = "%d:%s" % [member_idx, skill_data.id]
+	if not _skill_executor.can_cast(skill_data, cd_key):
+		return false
+	match skill_data.effect_type:
+		"heal":
+			if $CombatController.get_most_injured_member_index() < 0:
+				return false
+		"damage":
+			if not _member_has_living_target(member_idx):
+				return false
+	var cast_time: float = float(skill_data.cast_time)
+	if cast_time <= 0.0:
+		var log_text: String = _execute_member_skill(member_idx, skill_data, 0).strip_edges()
+		if log_text.is_empty():
+			return false
+		if is_ultimate:
+			_append_log("【必殺】" + log_text.trim_prefix("【スキル】"))
+		else:
+			_append_log(log_text)
+		_update_hp_bars()
+		return true
+	var target_slot: int = $CombatController.get_member_target_slot(member_idx)
+	var turns: int = int(ceil(cast_time))
+	$CombatController.begin_party_cast(member_idx, skill_data.id, target_slot, turns)
+	var member: Resource = GameState.get_combatant(member_idx)
+	var mname: String = member.display_name if member != null else "?"
+	_append_log("[詠唱] %s が%sを唱え始めた" % [mname, skill_data.display_name])
+	_spawn_cast_chant_label(skill_data.display_name, member_idx)
+	return true
+
+func _advance_member_cast(member_idx: int) -> void:
+	var pending: Dictionary = $CombatController.get_pending_cast("party", member_idx)
+	if pending.is_empty():
+		return
+	var skill_data: Resource = DataRegistry.get_skill_data(str(pending.get("skill_id", "")))
+	if skill_data == null:
+		$CombatController.clear_pending_cast("party", member_idx)
+		return
+	var state: String = $CombatController.advance_pending_cast("party", member_idx)
+	if state == "chant":
+		_append_log("[詠唱] %s…" % skill_data.display_name)
+		_spawn_cast_chant_label(skill_data.display_name, member_idx)
+		return
+	$CombatController.clear_pending_cast("party", member_idx)
+	if pending.has("target_slot"):
+		var frozen: int = int(pending["target_slot"])
+		if member_idx >= 0 and member_idx < $CombatController.member_target_slot.size():
+			$CombatController.member_target_slot[member_idx] = frozen
+	var log_text: String = _execute_member_skill(member_idx, skill_data, 0).strip_edges()
+	if log_text.is_empty():
+		return
+	if str(skill_data.slot_type) == "ultimate":
+		_append_log("【必殺】" + log_text.trim_prefix("【スキル】"))
+	else:
+		_append_log(log_text)
+	_update_hp_bars()
+
 # 通常攻撃スロット（武器ベース）。
 func _do_member_basic_attack(member_idx: int) -> void:
-	var result: Dictionary = _calc_damage(member_idx)
-	result["damage"] = int(result["damage"]) + _consume_enemy_combo_bonus(member_idx, int(result["damage"]), _member_action_tags(member_idx))
-	$CombatController.apply_damage_to_enemy(result["damage"])
-	$CombatController.add_threat(member_idx, float(result["damage"]) * CombatController.THREAT_DAMAGE_K)
-	_try_apply_affix_statuses(member_idx)
-	_update_hp_bars()
+	if not _member_has_living_target(member_idx):
+		return
+	var target_slot: int = $CombatController.get_member_target_slot(member_idx)
+	var result: Dictionary = _calc_damage(member_idx, target_slot)
+	result["damage"] = int(result["damage"]) + _consume_combo_bonus(
+		member_idx, int(result["damage"]), _member_action_tags(member_idx), null, target_slot
+	)
 	var member: Resource = GameState.get_combatant(member_idx)
 	var mname: String = member.display_name if member != null else "?"
 	var crit_tag: String = "  CRITICAL!" if result["is_critical"] else ""
 	var elem_tag: String = result.get("element_tag", "")
-	_append_log("%s の攻撃: %dダメージ%s%s" % [mname, result["damage"], crit_tag, elem_tag])
-	if result["damage"] > 0:
+	var tgt_tag: String = _member_target_tag(member_idx)
+	var dmg: int = int(result["damage"])
+	if dmg > 0:
 		_play_hit_vfx(_get_weapon_element(member_idx))
 		_play_chr_attack_one(member_idx)
-		if $CombatController.current_enemy_hp > 0:
-			_play_active_enemy_animation("hurt")
 		_spawn_damage_number(
-			str(result["damage"]),
-			_active_enemy_pos(),
+			str(dmg),
+			_enemy_slot_pos(target_slot),
 			Color(1.0, 0.9, 0.0),
 			1.25 if result["is_critical"] else 1.0
 		)
+	_append_log("%s の攻撃: %dダメージ%s%s%s" % [mname, dmg, crit_tag, elem_tag, tgt_tag])
+	if _deal_member_damage_to_enemy(member_idx, dmg, target_slot):
+		return
+	if $CombatController.is_enemy_slot_alive(target_slot):
+		_play_enemy_slot_animation(target_slot, "hurt")
+	_try_apply_affix_statuses(member_idx)
+	_update_hp_bars()
 
 # 必殺技スロットのスキル（ジョブ ultimate_skill_id → 既定 ultimate_strike）。
 func _get_member_ultimate_skill(member_idx: int) -> Resource:
@@ -1814,6 +2361,8 @@ func _member_has_status(member_idx: int, effect_id: String) -> bool:
 func _tick_passive_cd(delta: float) -> void:
 	for k in _passive_cd.keys():
 		_passive_cd[k] = maxf(0.0, float(_passive_cd[k]) - delta)
+	for k in _relic_cd.keys():
+		_relic_cd[k] = maxf(0.0, float(_relic_cd[k]) - delta)
 
 # 戦闘開始時パッシブを生存メンバーで発火。
 func _fire_combat_start_passives() -> void:
@@ -1825,12 +2374,15 @@ func _fire_combat_start_passives() -> void:
 func _on_member_damaged(target_idx: int) -> void:
 	if $CombatController.is_member_alive(target_idx):
 		_fire_member_passives(target_idx, "on_hit_taken")
+		_fire_member_relic_triggers(target_idx, "on_hit_taken")
 		return
+	$CombatController.clear_pending_cast("party", target_idx)
 	for i: int in GameState.party_members.size():
 		if i == target_idx:
 			continue
 		if $CombatController.is_member_alive(i):
 			_fire_member_passives(i, "on_ally_death")
+			_fire_member_relic_triggers(i, "on_ally_death")
 
 # 指定メンバーの該当 trigger パッシブを順に試行。
 func _fire_member_passives(member_idx: int, trigger: String) -> void:
@@ -1883,6 +2435,149 @@ func _try_fire_passive(member_idx: int, p: Dictionary) -> void:
 	_clear_member_skill_labels(member_idx)
 	_spawn_skill_name("◇" + str(p.get("display_name", "")), member_idx, 0.0)
 	_append_log("[パッシブ] %s 発動" % str(p.get("display_name", "")))
+
+# ---- 遺物発火（P3-D114） ----
+
+func _fire_member_relic_triggers(member_idx: int, trigger: String, ctx: Dictionary = {}) -> void:
+	var member: Resource = GameState.get_combatant(member_idx)
+	if member == null:
+		return
+	var def: Dictionary = CombatRelics.trigger_def(GameState.get_member_relic_id(member))
+	if def.is_empty() or str(def.get("trigger", "")) != trigger:
+		return
+	if trigger == "on_attack":
+		var every_n: int = int(def.get("every_n", 0))
+		if every_n > 0:
+			var hits: int = int(_relic_attack_hits.get(member_idx, 0)) + 1
+			_relic_attack_hits[member_idx] = hits
+			if hits % every_n != 0:
+				return
+	_try_fire_relic_trigger(member_idx, def, ctx)
+
+func _try_fire_relic_trigger(member_idx: int, def: Dictionary, ctx: Dictionary = {}) -> void:
+	var rid: String = str(def.get("id", ""))
+	var key: String = "%d:%s" % [member_idx, rid]
+	if float(_relic_cd.get(key, 0.0)) > 0.0:
+		return
+	if str(def.get("condition", "always")) == "self_hp_below":
+		var ratio: float = 1.0
+		if member_idx < $CombatController.party_max_hp.size():
+			var maxhp: int = $CombatController.party_max_hp[member_idx]
+			if maxhp > 0:
+				ratio = float($CombatController.party_combat_hp[member_idx]) / float(maxhp)
+		if ratio >= float(def.get("value", 0.0)):
+			return
+	var applied: bool = false
+	match str(def.get("effect", "")):
+		"apply_status":
+			var sid: String = str(def.get("status_id", ""))
+			if sid.is_empty():
+				return
+			if str(def.get("target", "self")) == "party":
+				for i: int in GameState.party_members.size():
+					if $CombatController.is_member_alive(i):
+						applied = $CombatController.apply_status("party_%d" % i, sid, 1, 0) or applied
+			else:
+				applied = $CombatController.apply_status("party_%d" % member_idx, sid, 1, 0)
+			_update_status_icons()
+		"bonus_damage":
+			var slot: int = int(ctx.get("target_slot", -1))
+			var base_dmg: int = int(ctx.get("damage", 0))
+			var frac: float = float(def.get("bonus_fraction", 0.25))
+			var bonus: int = maxi(1, int(round(float(base_dmg) * frac))) if base_dmg > 0 else 0
+			if slot >= 0 and bonus > 0 and $CombatController.is_enemy_slot_alive(slot):
+				$CombatController.apply_damage_to_enemy_slot(slot, bonus)
+				$CombatController.add_threat(member_idx, float(bonus) * CombatController.THREAT_DAMAGE_K)
+				_update_hp_bars()
+				applied = true
+				_check_boss_phase_transition(slot)
+				if $CombatController.get_enemy_hp_at(slot) <= 0:
+					_on_enemy_slot_killed(slot)
+	if not applied:
+		return
+	var cd: float = float(def.get("cooldown", 0.0))
+	if cd > 0.0:
+		_relic_cd[key] = cd
+	_clear_member_skill_labels(member_idx)
+	_spawn_skill_name("◈" + str(def.get("display_name", "")), member_idx, 0.0)
+	_append_log("[遺物] %s 発動" % str(def.get("display_name", "")))
+
+# ---- パーティ連携連鎖（P3-D115） ----
+
+func _clear_party_links() -> void:
+	_taunt_link_source = -1
+	_taunt_link_charges = 0
+	_debuff_marks.clear()
+	_heal_rally_member = -1
+
+func _activate_taunt_link(source_idx: int) -> void:
+	_taunt_link_source = source_idx
+	_taunt_link_charges = CombatLinks.taunt_max_charges()
+
+func _set_heal_rally(member_idx: int) -> void:
+	if member_idx >= 0 and $CombatController.is_member_alive(member_idx):
+		_heal_rally_member = member_idx
+
+func _consume_link_bonus(member_idx: int, hit_damage: int, target_slot: int = -1) -> int:
+	if hit_damage <= 0:
+		return 0
+	if target_slot < 0:
+		target_slot = $CombatController.get_member_target_slot(member_idx)
+	if not $CombatController.is_enemy_slot_alive(target_slot):
+		return 0
+	if _heal_rally_member == member_idx:
+		var rally_bonus: int = CombatLinks.bonus_for("heal_rally", hit_damage)
+		if rally_bonus > 0:
+			_heal_rally_member = -1
+			_report_link_bonus("heal_rally", rally_bonus, member_idx, target_slot)
+			return rally_bonus
+	if _debuff_marks.has(target_slot):
+		var applier: int = int(_debuff_marks[target_slot])
+		if applier != member_idx:
+			var mark_bonus: int = CombatLinks.bonus_for("debuff_mark", hit_damage)
+			if mark_bonus > 0:
+				_debuff_marks.erase(target_slot)
+				_report_link_bonus("debuff_mark", mark_bonus, member_idx, target_slot)
+				return mark_bonus
+	if _taunt_link_charges > 0 and member_idx != _taunt_link_source:
+		var taunt_bonus: int = CombatLinks.bonus_for("taunt_link", hit_damage)
+		if taunt_bonus > 0:
+			_taunt_link_charges -= 1
+			if _taunt_link_charges <= 0:
+				_taunt_link_source = -1
+			_report_link_bonus("taunt_link", taunt_bonus, member_idx, target_slot)
+			return taunt_bonus
+	return 0
+
+# ---- ボスフェーズ移行（P3-D116） ----
+
+func _check_boss_phase_transition(slot: int) -> void:
+	if not $CombatController.is_enemy_slot_alive(slot):
+		return
+	var enemy_id: String = $CombatController.get_enemy_id_at(slot)
+	if not CombatBossPhases.has_phases(enemy_id):
+		return
+	var ratio: float = $CombatController.get_enemy_hp_ratio_at(slot)
+	var new_idx: int = CombatBossPhases.resolve_phase_index(enemy_id, ratio)
+	var cur_idx: int = $CombatController.get_enemy_phase_index(slot)
+	if new_idx <= cur_idx:
+		return
+	$CombatController.set_enemy_phase_index(slot, new_idx)
+	var phase: Dictionary = CombatBossPhases.phase_def(enemy_id, new_idx)
+	var log_line: String = str(phase.get("log", ""))
+	if log_line.is_empty():
+		log_line = "【フェーズ移行】%s" % str(phase.get("label", ""))
+	_append_log(log_line)
+	GameState.mark_boss_phase_seen(enemy_id, new_idx)
+	if slot == $CombatController.active_enemy_index:
+		_play_boss_animation("attack")
+		_spawn_enemy_skill_name(str(phase.get("label", "")))
+
+func _report_link_bonus(link_id: String, bonus: int, member_idx: int, target_slot: int) -> void:
+	var label: String = CombatLinks.label_for(link_id)
+	var pos: Vector2 = _enemy_slot_pos(target_slot)
+	_spawn_damage_number("%s +%d" % [label, bonus], pos + Vector2(0.0, -62.0), Color(0.45, 0.9, 1.0), 1.18)
+	_append_log("[連携] %s +%d" % [label, bonus])
 
 func _play_chr_attack_one(idx: int) -> void:
 	if idx < 0 or idx >= _chr_sprites.size():
@@ -2160,9 +2855,13 @@ func _clear_swarm_slots() -> void:
 	for i in range(1, _swarm_nameplates.size()):
 		if is_instance_valid(_swarm_nameplates[i]):
 			_swarm_nameplates[i].queue_free()
+	for i in range(_status_icon_swarm_rows.size()):
+		if is_instance_valid(_status_icon_swarm_rows[i]):
+			_status_icon_swarm_rows[i].queue_free()
 	_swarm_sprites.clear()
 	_swarm_hp_bars.clear()
 	_swarm_nameplates.clear()
+	_status_icon_swarm_rows.clear()
 
 # 必要なスロット数を確保する。slot0 は既存ノードを流用、追加分は duplicate で生成。
 func _ensure_swarm_slots(n: int) -> void:
@@ -2185,6 +2884,16 @@ func _ensure_swarm_slots(n: int) -> void:
 		_swarm_sprites.append(spr)
 		_swarm_hp_bars.append(bar)
 		_swarm_nameplates.append(np)
+	_ensure_swarm_status_icon_rows(n)
+
+func _enemy_group_is_mixed(group: Array) -> bool:
+	if group.size() < 2:
+		return false
+	var lead_id: String = str(group[0].id)
+	for i in range(1, group.size()):
+		if str(group[i].id) != lead_id:
+			return true
+	return false
 
 # 群れ（または単体）の敵スプライトを横並びで表示する。ボス戦は BossSprite を使うため対象外。
 func _show_enemy_swarm(enemy_ids: Array) -> void:
@@ -2657,6 +3366,35 @@ func _spawn_skill_name(skill_name: String, member_idx: int, stack_offset: float 
 			_chr_skill_labels[member_idx].erase(lbl)
 		lbl.queue_free()
 	)
+
+# 味方の詠唱中ポップ（P3-D112）
+func _spawn_cast_chant_label(skill_name: String, member_idx: int) -> void:
+	if skill_name.is_empty() or member_idx < 0 or member_idx >= _chr_sprites.size():
+		return
+	var sprite: AnimatedSprite2D = _chr_sprites[member_idx]
+	if not sprite.visible:
+		return
+	const CAST_FONT_SIZE: int = 20
+	var lbl := Label.new()
+	lbl.text = "◆ %s" % skill_name
+	var af: Font = _get_accent_font()
+	if af != null:
+		lbl.add_theme_font_override("font", af)
+	lbl.add_theme_font_size_override("font_size", CAST_FONT_SIZE)
+	lbl.add_theme_color_override("font_color", Color(0.78, 0.62, 1.0))
+	lbl.add_theme_color_override("font_outline_color", Color(0.08, 0.0, 0.14, 0.95))
+	lbl.add_theme_constant_override("outline_size", 6)
+	var head_top: float = sprite.global_position.y - CHR_BODY_TARGET_PX - 52.0
+	var base_x: float = sprite.global_position.x - float(lbl.text.length()) * CAST_FONT_SIZE * 0.28
+	lbl.position = Vector2(base_x, head_top)
+	lbl.modulate.a = 0.0
+	_damage_numbers_layer.add_child(lbl)
+	var tw: Tween = create_tween()
+	tw.tween_property(lbl, "modulate:a", 1.0, 0.1)
+	tw.chain().set_parallel(true)
+	tw.tween_property(lbl, "position:y", head_top - 20.0, 0.5)
+	tw.tween_property(lbl, "modulate:a", 0.0, 0.35).set_delay(0.2)
+	tw.chain().tween_callback(lbl.queue_free)
 
 # メンバーの表示中スキル名ラベルを即時除去（新しい tick の発動で旧ラベルを置換する）
 func _clear_member_skill_labels(member_idx: int) -> void:

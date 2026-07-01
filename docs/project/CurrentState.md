@@ -4,6 +4,32 @@
 
 ## Last Update
 
+2026-07-01（**P3-D119 Combat System v1.0 Closeout**: 残ロードマップ 15/15 完了宣言。`CODEMAP.md` に combat モジュール群（P3-D103〜118）・状態14種・探索/周回配線を同期。Decision Log P3-D119 追記。**次=Phase 3-A ポリッシュ / P3-D103〜118 実機一括確認**）
+
+2026-07-01（**P3-D118 高速周回・戦闘スキップ MVP（フェーズE-15）**: `CombatFastRun`・クリア済みDGのみ「周回」トグル。COMBATのみ即撃破・報酬通常通り。ON時x2自動。ログ`[周回]`。headless import 検証済 / 実機未確認 / 未コミット。**Combat System v1.0 残ロードマップ 全15項目完了**）
+
+2026-07-01（**P3-D117 探索スキル群 MVP（フェーズE-14）**: `ExplorationSkills`5種=採取/採掘/鍵開け/解読/罠解除。ロール連動自動発動(EVENT/TREASURE/COMBAT/ELITE)。罠20%×8ダメ。ログ`[探索]`+装備タブ表示。headless import 検証済 / 実機未確認 / 未コミット。次=フェーズE-15 高速周回）
+
+2026-07-01（**P3-D116 ボスフェーズ移行 MVP（フェーズE-13）**: `CombatBossPhases`静的3段(serdion HP50/25%)。`enemy_phase_index`+移行チェック(与ダメ/DoT)。フェーズでskill率/攻撃力/断罪重み。図鑑=`phases_seen`目撃開示。headless import 検証済 / 実機未確認 / 未コミット。次=フェーズE-14 探索スキル群）
+
+2026-07-01（**P3-D115 パーティシナジー連鎖＋キャラ連携 MVP（フェーズD-12）**: `CombatLinks`3連鎖=挑発連携(防御後他員+25%×3)/デバフ追撃(他員+20%)/治癒連携(回復対象次攻+15%)。`_consume_link_bonus`をコンボ末尾で併用。ログ`[連携]`+装備タブhint。headless import 検証済 / 実機未確認 / 未コミット。**フェーズD完了**→次=フェーズE-13 ボスフェーズ移行）
+
+2026-07-01（**P3-D114 遺物発火型＋種類拡充 MVP（フェーズD-11）**: `CombatRelics`にtrigger定義+`has_trigger/trigger_def`。配線=`DungeonScene._fire_member_relic_triggers`(on_attack every_n/on_hit_taken/on_ally_death)・CD/攻撃カウント。新遺物4種=狩人の印/反応の盾片/弔鐘の指輪/斥候の片眼。ログ`[遺物]`・◈ラベル。headless import 検証済 / 実機未確認 / 未コミット。次=フェーズD-12 パーティシナジー連鎖）
+
+2026-07-01（**P3-D113 スキル予約＋ローテーション MVP（フェーズD-10）**: 装備スキル①②を`member_skill_rot_idx`でローテ（成功時次スキルへ）。温存=`SkillData.reserve_condition/value`+`CombatTactics.skill_reserve_met`（新条件ally_injured）。mend=負傷時のみ/hex_bolt=Elite時のみ。headless import 検証済 / 実機未確認 / 未コミット。次=フェーズD-11 遺物発火型）
+
+2026-07-01（**P3-D112 詠唱＋Action Lock MVP（フェーズD-9）**: `SkillData.cast_time`(0=即時・>0=自分番ロック)。`CombatController._pending_casts`+`_try/_advance_*_cast`で詠唱中は戦術再評価なし(Action Lock)。CDは発動時のみ。ターゲット凍結(D111)。中断=死亡/撃破クリア・敵stun/fearは進行停止。キャリア=ultimate/hex_bolt/mend/boss_decree_waveにcast_time1.0。紫系◆ラベル+ログ。headless import 検証済 / 実機未確認 / 未コミット。次=フェーズD-10 スキル予約/ローテ）
+
+2026-07-01（**P3-D111 個別ターゲット MVP（フェーズC-8）**: D100一括フォーカス廃止→`member_target_slot`+`resolve_member_target`でメンバーごとに戦術target解決。新ルール=enemy_with_status/back（cautious→back/sweep→enemy_with_status）。配線=通常/スキル/状態/コンボ/Threatを`_deal_member_damage_to_enemy`/`_apply_status_to_member_target`経由でスロット別。撃破=非アクティブも`_on_enemy_slot_killed`。ログ群れ時`→敵名`。`CombatController`に`class_name`追加。headless import 検証済 / 実機未確認 / 未コミット。**フェーズC完了**→次=フェーズD-9 詠唱/Action Lock）
+
+2026-06-30（**P3-D110 混成エンカウント＋敵別状態スロット MVP（フェーズC-7）**: 混成=SWARM抽選後追加枠50%で別種(can_swarm池)・ログ【混成】。敵状態=`enemy_<slot>`単位(StatusResolver)・撃破時のみクリア・フォーカス切替可(D100非切替ガード撤去)。配線=CombatController slot API+DoT/バッジ/スキル付与をスロット対応。headless import 検証済 / 実機未確認 / 未コミット）
+
+2026-06-30（**P3-D109 シナジータグ残＋コンボ MVP（フェーズB-6）**: `CombatTags`にshield/heal追加。スキルタグ付与=empower→buff/mend→heal/guard_strike→shield/hex_bolt→debuff。味方バフコンボ=empower+ultimateタグ→「鼓舞必殺」(hit×0.35・empower消費)・1ヒット1コンボは敵側優先。`CombatCombos._ALLY_RULES`+`get/consume_member_status`+`_consume_combo_bonus`配線。headless import 検証済 / 実機未確認 / 未コミット。**フェーズB完了**→次=フェーズC-7 混成エンカウント）
+
+2026-06-30（**P3-D108 Condition拡充 MVP（フェーズB-5）**: 戦術発動条件4種追加＝`enemy_has_bleed`/`enemy_has_poison`/`ultimate_ready`(必殺CT/CD準備完了)/`self_range`(melee|long・装備スキルrange_type/rangedタグ→bow/staff武器種→既定melee)。`_build_tactics_context`に4キー供給。プリセット最小調整=balanced/aggressive/survival必殺→ultimate_ready・aggressive出血時スキル優先・cautious遠隔スキル優先・sweep毒時スキル優先。headless import 検証済 / 実機未確認 / 未コミット。残=フェーズB-6 タグ残＋コンボ）
+
+2026-06-30（**P3-D107 状態異常拡充 MVP（フェーズB-4）**: Control/Debuff 3状態追加＝恐怖fear(行動失敗50%/2t)・脆弱vulnerable(被ダメ×1.25/3t)・防御DOWN armor_break(敵DEF半減/3t)。新field`StatusEffectData.defense_reduction`で防御DOWNを脆弱と作用点分離(DEF逓減前にDEF×(1−r)・上限0.95乗算合成)。`SkillData.apply_status_id2/chance2`(副次状態・主と独立判定)を追加しキャリア＝既存スキル流用: guard_strike+恐怖0.4/hex_bolt+脆弱0.45(主stun/curse温存)・aimed_shot=防御DOWN0.45(空スロット)。頭上バッジ恐/脆/破＋`[防御DOWN]`ログ。headless import 検証済(新規parse error 0・既存CombatController reload警告6件はベースライン同一の良性) / 実機未確認 / 未コミット。残=フェーズB-5 Condition拡充）
+
 2026-06-30（**戦闘システム v1.0 MVP縦切り①②③: P3-D084 CT/ATB ＋ P3-D085 5スロット/防御/必殺 ＋ P3-D086 AI設定(戦術)**。①CT/ATB=各ユニット個別CT・速度で行動回数差・1パルス1行動・上部UIをCTプレビュー化。②1行動=5スロットから1手(通常/防御/スキル①②/必殺)・必殺=汎用`ultimate_strike`(×3/CD30)・防御=`guard`(被ダメ0.5/2tick)でメンバー被ダメ補正を実配線。③メンバー単位の戦術プリセット6種(バランス/積極/慎重/生存/ボス集中/掃討)でスロット選択を優先度＋発動条件(always/HP%/Boss/Elite/敵数/味方死亡)駆動に。`CombatTactics`静的＋`Adventurer.tactics_id`セーブ永続＋キャラ管理スキルタブに戦術セレクタ。Target層(敵個体狙い分け)は現行フォーカス撃破で無効のため別Decisionへ分離。headless import 検証済 / 実機未確認 / 未コミット）
 
 2026-06-29（**Phase 3-A UI/バランス ポリッシュ**: ホーム(BaseScene)モック準拠リニューアル＋タイトル背景アート導入(P3-A-UI-007)・ダンジョン選択画面新設(P3-D080)・序盤バランス調整(P3-BAL-001)・死にステ解消=敵DEF/耐性を与ダメ計算へ統合(P3-BAL-002)・スキル名 世界観リネーム(P3-W-024)。鑑定ワード一掃は現行spec/player向けへ反映済）
@@ -120,6 +146,19 @@ ProjectDocs **v3.6.0**
 | P3-BAL-002 | 死にステ解消（敵DEF逓減軽減 `K/(K+DEF)` K=100＋属性耐性0.75x を与ダメ計算 `_apply_enemy_mitigation` へ統合） | ✅ 完了（HQ実装・要実機確認） |
 | P3-W-024 | スキル名 世界観リネーム（ハイブリッド: 基本=和名/属性技・弓・杖=カタカナ・hex_bolt→アンブラボルト＋説明文を闇エルダ整合） | ✅ 完了（HQ実装） |
 | P3-A-UI-007 | ホーム(BaseScene)モック準拠リニューアル＋タイトル背景アート(`UI_BG_Title.png`)導入（上部通貨バー/左メニュー/下部タブナビ・中央ロゴのみ・浮遊CTA/肖像撤去・通貨=gold/gacha_token） | ✅ 完了（HQ実装・要実機確認） |
+| P3-D119 | Combat System v1.0 Closeout（CODEMAP 同期・15/15 完了宣言・Decision Log） | ✅ 完了 |
+| P3-D118 | 高速周回・戦闘スキップ MVP（残ロードマップ フェーズE-15）。`CombatFastRun`・クリア済みDGで「周回」トグル・COMBATのみ即撃破（報酬通常）。ON時x2自動。配線=`_try/_execute_combat_skip` | ✅ 完了（HQ実装・headless検証・要実機確認） |
+| P3-D117 | 探索スキル群 MVP（残ロードマップ フェーズE-14）。`ExplorationSkills`5種=採取/採掘/鍵開け/解読/罠解除。ロール連動自動発動(EVENT/TREASURE/COMBAT/ELITE)。罠20%×8ダメ・解除で無効。配線=`_apply_exploration_*`/`_try_exploration_trap` | ✅ 完了（HQ実装・headless検証・要実機確認） |
+| P3-D116 | ボスフェーズ移行 MVP（残ロードマップ フェーズE-13）。`CombatBossPhases`静的SSOT(serdion3段・HP50/25%)。`enemy_phase_index`+`_check_boss_phase_transition`(与ダメ/DoT)。フェーズでskill率/attack_mult/断罪重み2。図鑑=`phases_seen`目撃開示(stage5) | ✅ 完了（HQ実装・headless検証・要実機確認） |
+| P3-D115 | パーティシナジー連鎖＋キャラ連携 MVP（残ロードマップ フェーズD-12）。`CombatLinks`3連鎖=挑発連携(防御後他員+25%×3)/デバフ追撃(他員+20%)/治癒連携(回復次攻+15%)。配線=`_consume_link_bonus`をコンボ末尾・防御/デバフ付与/回復フック。可視化=`[連携]`+装備hint | ✅ 完了（HQ実装・headless検証・要実機確認） |
+| P3-D114 | 遺物発火型＋種類拡充 MVP（残ロードマップ フェーズD-11）。`CombatRelics`にtrigger/condition/effect/cooldown+`has_trigger/trigger_def`。配線=`_relic_cd`/`_relic_attack_hits`+`_fire_member_relic_triggers`(on_attack every_n/on_hit_taken/on_ally_death)。新4種=狩人の印(4回追撃30%)/反応の盾片(HP50%未満防御CD8)/弔鐘の指輪(味方戦闘不能鼓舞)/斥候の片眼(速度+5%与+5%)。既存4種+ドロップ`all_ids`追従 | ✅ 完了（HQ実装・headless検証・要実機確認） |
+| P3-D113 | スキル予約＋ローテーション MVP（残ロードマップ フェーズD-10）。ローテ=`member_skill_rot_idx`で装備スキル巡回・成功時次へ。温存=`reserve_condition/value`+`skill_reserve_met`（ally_injured新設）。mend=ally_injured/hex_bolt=enemy_is_elite | ✅ 完了（HQ実装・headless検証・要実機確認） |
+| P3-D112 | 詠唱＋Action Lock MVP（残ロードマップ フェーズD-9）。`SkillData.cast_time`(ceil=詠唱自分番数・CDは発動時)。`CombatController._pending_casts`+味方/敵`_try/_advance_*_cast`でAction Lock(戦術再評価スキップ)。ターゲット凍結・死亡/撃破クリア・敵stun/fearで進行停止。キャリア=ultimate/hex_bolt/mend/boss_decree_wave=1.0 | ✅ 完了（HQ実装・headless検証・要実機確認） |
+| P3-D111 | 個別ターゲット MVP（残ロードマップ フェーズC-8・D110依存）。D100一括フォーカス廃止→`member_target_slot`+`resolve_member_target`（行動開始時戦術target）。新ルール=enemy_with_status/back（cautious→back/sweep→enemy_with_status）。配線=通常/スキル/状態/コンボ/Threatをスロット別（`_deal_member_damage_to_enemy`/`_apply_status_to_member_target`）。撃破=非アクティブも`_on_enemy_slot_killed`・DoT同。ログ群れ時`→敵名` | ✅ 完了（HQ実装・headless検証・要実機確認） |
+| P3-D110 | 混成エンカウント＋敵別状態スロット MVP（残ロードマップ フェーズC-7）。混成=複数体抽選時`MIXED_SWARM_CHANCE0.5`で追加枠を別種(can_swarm池)・【混成】ログ。敵状態=`enemy_<slot>`(CT整合)・個体保持/撃破時クリア・フォーカス切替可。配線=`apply_status_to_active_enemy`/`get_enemy_status_*_at`/DoTスロット別/頭上バッジ`_status_icon_swarm_rows` | ✅ 完了（HQ実装・headless検証・要実機確認） |
+| P3-D109 | シナジータグ残＋コンボ MVP（残ロードマップ フェーズB-6・B-4/5依存）。`CombatTags`にshield/heal追加(buff/debuff既存)。スキルタグ=empower/buff・mend/heal・guard_strike/shield・hex_bolt/debuff。味方バフコンボ=`CombatCombos._ALLY_RULES` empower+`ultimate`タグ→鼓舞必殺(hit×0.35・empower消費)・1ヒット1コンボは敵側優先。配線=`get/consume_member_status`+`_consume_combo_bonus`(必殺`slot_type`のみ味方評価) | ✅ 完了（HQ実装・headless検証・要実機確認） |
+| P3-D108 | Condition拡充 MVP（残ロードマップ フェーズB-5・B-4依存）。戦術AI発動条件4種=`enemy_has_bleed`/`enemy_has_poison`/`ultimate_ready`(必殺`SkillExecutor.can_cast`) /`self_range`+value melee|long(`_member_combat_range`: skill range_type/rangedタグ→bow/staff→melee)。ctx=`_build_tactics_context`拡張。プリセット調整=balanced/aggressive/survival必殺→ultimate_ready・aggressive出血/sweep毒/cautious遠隔でスキル優先。距離は装備メタ代理(本格射程は後続) | ✅ 完了（HQ実装・headless検証・要実機確認） |
+| P3-D107 | 状態異常拡充 MVP（残ロードマップ フェーズB-4）。Control/Debuff 方向へ3状態追加(敵単一スロット維持)。恐怖fear(`skip_action_chance0.5`/2t)・脆弱vulnerable(`incoming×1.25`/3t)・防御DOWN armor_break(`defense_reduction0.5`/3t)。防御DOWNは新field`StatusEffectData.defense_reduction`(0..1・後方互換)で`_apply_enemy_defense`の実効DEFを×(1−r)＝脆弱(最終乗算)と作用点分離(`StatusResolver.get_defense_reduction`→`CombatController.get_enemy_defense_reduction`・乗算合成上限0.95)。キャリア=既存スキル流用＋`SkillData.apply_status_id2/chance2`(副次・独立判定`_apply_skill_secondary_status`)。配分=guard_strike+恐怖0.4/hex_bolt+脆弱0.45(主stun/curse併存)・aimed_shot=防御DOWN0.45(空スロット主付与)。可視化=頭上バッジ恐/脆/破＋`[防御DOWN]`ログ。延長=再付与リセット流用。マーキング/延長機構/敵別スロットは後続 | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D106 | 陣形(前列/後列)MVP（残ロードマップ フェーズA-3）。4人編成(D105)に2列モデル導入・A-2 Threatと直結。行=`Adventurer.formation_row`(0前/1後)・GameState get/set＋プリセット(前衛/均衡=最後尾1後列/後衛=後ろ2後列)・SaveManager直列化。効果=後列:被ダメ×0.85(`FORMATION_BACK_INCOMING`)＋Threat基礎×0.6(`FORMATION_BACK_THREAT`)/前列:等倍＋`war_banner`与ダメ+10%を前列限定に整合。配線=被ダメ`get_member_incoming...`×`formation_incoming_multiplier`/Threat`_job_threat_base`×`formation_threat_multiplier`/war_banner`_member_relic_effects`で後列outgoing無効。UI=スキルタブに陣形行(前列/後列トグル＋プリセット3ボタン)。射程連動近接ペナルティ/AoE列範囲/散開密集は後続 | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D105 | 4人編成化（A-3前段）。陣形2×2(前2後2)に合わせアクティブ編成3→4。`GameState.ACTIVE_PARTY_SIZE`3→4(ロスター/装備/戦闘表示はsize駆動で自動追従・装備画面に`ButtonMember3`追加)。助っ人衝突解決=`COMBAT_SLOT_MAX=4`＋`_helper_active()`で満員時はevent_helperを戦闘除外(5体目=枠不足防止・get_combatants系が参照)。Threat(D104)/陣形(A-3)/状態UI/ターンオーダーはsize駆動で非改修。スプライト/HPバーは.tscnに4枠既設。リバランス(アタッカー+1)/レイアウト微調整は実機後 | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D104 | Aggro/Threat基盤 MVP（残ロードマップ フェーズA-2）。旧簡易ヘイト(ジョブ優先)を本格Threat値へ置換。`CombatController.party_threat`を各員保持・戦闘開始時ジョブ基礎値で初期化(vanguard4.0/swordsman2.0/他1.0)。敵は最大Threatを狙う(`pick_enemy_target_member_index`書換・助っ人除外維持・同値index昇順)。増加=与ダメ×0.10(`THREAT_DAMAGE_K`)/被ダメ×0.15(`THREAT_TAKEN_K`)/防御スロット=挑発スパイク+40(`apply_taunt`)。減衰=status tickごと基礎値へ×0.90(`decay_threat`)で挑発が時間で薄れる。挑発専用スキル/遺物・Threat可視化・敵別Threatテーブル・キャラ連携は後続 | ✅ 完了（HQ実装・headless検証・要実機確認） |
@@ -148,36 +187,38 @@ ProjectDocs **v3.6.0**
 | P3-D081 | 敵レベル制MVP（`DungeonData.enemy_level`でDG単位固定・戦闘開始時確定/DG中不変・HP/ATK×(1+0.10×(Lv−1))/DEF据置・EXP×(1+0.15×(Lv−1))・共有Resource不汚染=CombatControllerの派生スケール値・ネームプレート`Lv{n} 名前`） | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D080 | ダンジョン選択画面新設（ホーム「ダンジョン」→`DungeonSelectScene`→ラン。カード=ボス絵/★(difficulty)/推奨Lv/主なドロップ/CLEARバッジ・難易度タブ(ロック表示)・ロック行3件(仮名)・下部ナビ。`DungeonData.recommended_level`追加・`GameState.mark/is_dungeon_cleared`・完走時マーク） | ✅ 完了（HQ実装・要実機確認） |
 
-### Combat System v1.0 残実装ロードマップ（2026-06-30 確定 / オーナー承認）
+### Combat System v1.0 残実装ロードマップ — **完了**（2026-06-30 確定 / 2026-07-01 Closeout P3-D119）
 
-> 提案「Crownfall Combat System v1.0」の未実装/部分要素を、依存関係と費用対効果で並べた実装順序。原則＝土台先行・小さく効くもの先行・大物後段。採番は着手時に P3-Dxxx を付与。
+> 提案「Crownfall Combat System v1.0」の未実装/部分要素を、依存関係と費用対効果で並べた実装順序。原則＝土台先行・小さく効くもの先行・大物後段。採番は着手時に P3-Dxxx を付与。**全15項目 = P3-D103〜118 完了。**
 
 **フェーズA：防御と編成の土台（タンクを機能させる）**
-1. 防具の属性耐性（小・即効・依存なし）← 推奨着手点
-2. Aggro / Threat 基盤（中・挑発/誘導/連携/陣形の前提）
-3. 陣形 2×2 前後列（中・射程/前列ボーナス/後衛保護の前提・2とセット）
+1. ✅ 防具の属性耐性 — **P3-D103**
+2. ✅ Aggro / Threat 基盤 — **P3-D104**
+3. ✅ 陣形 2×2 前後列 — **P3-D106**（4人編成 P3-D105）
 
 **フェーズB：状態異常と条件の解像度**
-4. 状態異常拡充（中・Control[スタン/恐怖]＋Debuff[脆弱/マーキング/防御DOWN]＋延長）
-5. Condition 拡充（小〜中・出血中/毒中/CT準備完了/距離・4依存）
-6. シナジータグ残＋コンボ追加（小・Shield/Heal/Buff、バフ→必殺）
+4. ✅ 状態異常拡充 — **P3-D107**
+5. ✅ Condition 拡充 — **P3-D108**
+6. ✅ シナジータグ残＋コンボ追加 — **P3-D109**
 
 **フェーズC：戦闘の多様性（Target 本格化）**
-7. 混成エンカウント＋敵別状態異常スロット（大・D100本格化/単一スロット制約解消）
-8. 個別ターゲット＋Target 条件拡充（中・7依存）
+7. ✅ 混成エンカウント＋敵別状態異常スロット — **P3-D110**
+8. ✅ 個別ターゲット＋Target 条件拡充 — **P3-D111**
 
 **フェーズD：テンポ・AI深化**
-9. Cast/詠唱＋Action Lock（中）
-10. スキル予約／ローテーション（中）
-11. 遺物：発火型＋種類拡充（中・D096本格版）
-12. パーティシナジー連鎖＋キャラ連携（中・Aggro[2]前提）
+9. ✅ Cast/詠唱＋Action Lock — **P3-D112**
+10. ✅ スキル予約／ローテーション — **P3-D113**
+11. ✅ 遺物：発火型＋種類拡充 — **P3-D114**
+12. ✅ パーティシナジー連鎖＋キャラ連携 — **P3-D115**
 
 **フェーズE：コンテンツ・周回**
-13. ボスのフェーズ移行（中〜大・図鑑フェーズ判明と接続）
-14. 探索スキル群（採取/採掘/鍵/解読/罠）（大・別ピラー）
-15. 高速周回（戦闘スキップ）（小・周回QoL）
+13. ✅ ボスのフェーズ移行 — **P3-D116**
+14. ✅ 探索スキル群 — **P3-D117**
+15. ✅ 高速周回（戦闘スキップ） — **P3-D118**
 
-依存固定: 2→3→12 / 4→5→6 / 7→8。単発で軽量＝1・6・15（隙間差し込み可）。
+依存固定: 2→3→12 / 4→5→6 / 7→8 — すべて充足。
+
+**Closeout 後の Defer（各 Task スコープ外の集約）:** 本格射程/AoE列範囲・敵別 Threat テーブル・マーキング状態・探索スキル手動発動/CD・ELITE スキップ・戦闘スキップ敗北シミュ・`CombatWeather` 配線・複数 DG 本格コンテンツ。
 
 ---
 

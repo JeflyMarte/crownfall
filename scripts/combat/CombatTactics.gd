@@ -8,25 +8,28 @@ extends RefCounted
 ## slot: "ultimate" | "defend" | "skill" | "attack"
 ## condition: "always" | "self_hp_below" | "enemy_is_boss" | "enemy_is_elite"
 ##          | "enemy_count_gte" | "ally_dead"
-## value: 条件の閾値（self_hp_below=HP割合 / enemy_count_gte=体数）。
+##          | "enemy_has_bleed" | "enemy_has_poison" | "ultimate_ready"
+##          | "self_range"（P3-D108・フェーズB-5）
+##          | "ally_injured"（P3-D113・味方に負傷者がいる）
+## value: 条件の閾値（self_hp_below=HP割合 / enemy_count_gte=体数 / self_range=melee|long）。
 ##
 ## plan は優先度順（Very High → Low）。DungeonScene は先頭から評価し、
 ## 条件成立かつ実際に発動できた最初のスロットで行動を確定する。
-## Target 層（敵個体の狙い分け・P3-D100）: 各戦術に target ルールを持たせ、
-## 戦闘ステップ開始時に隊長の戦術 target で生存敵からフォーカス1体を選び全員集中する。
-## ルール: "front"（先頭＝従来）| "lowest_hp" | "highest_hp" | "highest_atk"。
-## 個別ターゲット/混成エンカウント/敵別状態異常は後続（P3-D100-2）。
+## Target 層（P3-D100/D111）: 各メンバーが戦術 target で個別に狙う（混成時に分散可能）。
+## ルール: front | lowest_hp | highest_hp | highest_atk | enemy_with_status | back
 
 const DEFAULT_TACTICS_ID: String = "balanced"
 const DEFAULT_TARGET: String = "front"
-const TARGET_RULES: Array[String] = ["front", "lowest_hp", "highest_hp", "highest_atk"]
+const TARGET_RULES: Array[String] = [
+	"front", "lowest_hp", "highest_hp", "highest_atk", "enemy_with_status", "back",
+]
 
 const _DEFS: Dictionary = {
 	"balanced": {
 		"display_name": "バランス",
 		"target": "front",
 		"plan": [
-			{"slot": "ultimate", "condition": "always"},
+			{"slot": "ultimate", "condition": "ultimate_ready"},
 			{"slot": "defend", "condition": "self_hp_below", "value": 0.30},
 			{"slot": "skill", "condition": "always"},
 			{"slot": "attack", "condition": "always"},
@@ -36,17 +39,19 @@ const _DEFS: Dictionary = {
 		"display_name": "積極攻撃",
 		"target": "lowest_hp",
 		"plan": [
-			{"slot": "ultimate", "condition": "always"},
+			{"slot": "ultimate", "condition": "ultimate_ready"},
+			{"slot": "skill", "condition": "enemy_has_bleed"},
 			{"slot": "skill", "condition": "always"},
 			{"slot": "attack", "condition": "always"},
 		],
 	},
 	"cautious": {
 		"display_name": "慎重",
-		"target": "front",
+		"target": "back",
 		"plan": [
 			{"slot": "defend", "condition": "self_hp_below", "value": 0.50},
-			{"slot": "ultimate", "condition": "always"},
+			{"slot": "ultimate", "condition": "ultimate_ready"},
+			{"slot": "skill", "condition": "self_range", "value": "long"},
 			{"slot": "skill", "condition": "always"},
 			{"slot": "attack", "condition": "always"},
 		],
@@ -57,7 +62,7 @@ const _DEFS: Dictionary = {
 		"plan": [
 			{"slot": "defend", "condition": "self_hp_below", "value": 0.60},
 			{"slot": "skill", "condition": "always"},
-			{"slot": "ultimate", "condition": "always"},
+			{"slot": "ultimate", "condition": "ultimate_ready"},
 			{"slot": "attack", "condition": "always"},
 		],
 	},
@@ -74,9 +79,10 @@ const _DEFS: Dictionary = {
 	},
 	"sweep": {
 		"display_name": "雑魚掃討",
-		"target": "lowest_hp",
+		"target": "enemy_with_status",
 		"plan": [
 			{"slot": "ultimate", "condition": "enemy_count_gte", "value": 2},
+			{"slot": "skill", "condition": "enemy_has_poison"},
 			{"slot": "skill", "condition": "always"},
 			{"slot": "attack", "condition": "always"},
 		],
@@ -113,7 +119,9 @@ static func get_slot_plan(tactics_id: String) -> Array:
 
 # 1 ルールの条件が戦闘コンテキストで成立するか。
 # ctx: {self_hp_ratio:float, enemy_is_boss:bool, enemy_is_elite:bool,
-#       enemy_count:int, ally_dead:bool}
+#       enemy_count:int, ally_dead:bool,
+#       enemy_has_bleed:bool, enemy_has_poison:bool, ultimate_ready:bool,
+#       self_range:String, ally_injured:bool}  # P3-D108 / P3-D113
 static func condition_met(rule: Dictionary, ctx: Dictionary) -> bool:
 	match str(rule.get("condition", "always")):
 		"always":
@@ -128,4 +136,33 @@ static func condition_met(rule: Dictionary, ctx: Dictionary) -> bool:
 			return int(ctx.get("enemy_count", 1)) >= int(rule.get("value", 1))
 		"ally_dead":
 			return bool(ctx.get("ally_dead", false))
+		"enemy_has_bleed":
+			return bool(ctx.get("enemy_has_bleed", false))
+		"enemy_has_poison":
+			return bool(ctx.get("enemy_has_poison", false))
+		"ultimate_ready":
+			return bool(ctx.get("ultimate_ready", false))
+		"self_range":
+			return str(ctx.get("self_range", "melee")) == str(rule.get("value", "melee"))
+		"ally_injured":
+			return bool(ctx.get("ally_injured", false))
 	return false
+
+# スキル温存（P3-D113）。reserve_condition 空なら常に使用可。
+static func skill_reserve_met(skill_data: Resource, ctx: Dictionary) -> bool:
+	if skill_data == null:
+		return true
+	var cond: String = ""
+	if "reserve_condition" in skill_data:
+		cond = str(skill_data.reserve_condition)
+	if cond.is_empty():
+		return true
+	var rule: Dictionary = {"condition": cond}
+	if "reserve_value" in skill_data:
+		var raw_val: String = str(skill_data.reserve_value)
+		if not raw_val.is_empty():
+			if raw_val.is_valid_float():
+				rule["value"] = float(raw_val)
+			else:
+				rule["value"] = raw_val
+	return condition_met(rule, ctx)

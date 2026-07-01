@@ -494,6 +494,20 @@ func add_enemy_kill(enemy_id: String) -> void:
 		enemy_codex[enemy_id]["seen"] = true
 		enemy_codex[enemy_id]["kills"] = int(enemy_codex[enemy_id].get("kills", 0)) + 1
 
+func mark_boss_phase_seen(enemy_id: String, phase_index: int) -> void:
+	if enemy_id.is_empty() or phase_index < 0:
+		return
+	mark_enemy_seen(enemy_id)
+	var seen: Array = enemy_codex[enemy_id].get("phases_seen", [])
+	if phase_index not in seen:
+		seen.append(phase_index)
+	enemy_codex[enemy_id]["phases_seen"] = seen
+
+func get_boss_phases_seen(enemy_id: String) -> Array:
+	if not enemy_codex.has(enemy_id):
+		return []
+	return (enemy_codex[enemy_id].get("phases_seen", []) as Array).duplicate()
+
 func get_enemy_stage(enemy_id: String) -> int:
 	if not enemy_codex.has(enemy_id):
 		return 1

@@ -47,6 +47,7 @@ func _serialize_enemy_codex() -> Dictionary:
 		out[enemy_id] = {
 			"seen": bool(entry.get("seen", false)),
 			"kills": int(entry.get("kills", 0)),
+			"phases_seen": (entry.get("phases_seen", []) as Array).duplicate(),
 		}
 	return out
 
@@ -146,9 +147,14 @@ func _apply_save_data(data: Dictionary) -> void:
 		for enemy_id in data["enemy_codex"]:
 			var entry = data["enemy_codex"][enemy_id]
 			if entry is Dictionary:
+				var phases_seen: Array = []
+				if entry.get("phases_seen", []) is Array:
+					for p in entry["phases_seen"]:
+						phases_seen.append(int(p))
 				codex[str(enemy_id)] = {
 					"seen": bool(entry.get("seen", false)),
 					"kills": int(entry.get("kills", 0)),
+					"phases_seen": phases_seen,
 				}
 		GameState.enemy_codex = codex
 	if data.has("combat_presets") and data["combat_presets"] is Array:

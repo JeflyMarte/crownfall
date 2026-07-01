@@ -151,6 +151,20 @@ func get_incoming_damage_multiplier(unit_id: String) -> float:
 			mult *= effect.incoming_damage_multiplier
 	return mult
 
+# 対象に乗った状態異常の DEF 減少率（armor_break 等・P3-D107）。
+# 複数あれば乗算合成（1 - Π(1 - r)）。0.0=なし / 上限 0.95。
+func get_defense_reduction(unit_id: String) -> float:
+	if not _active.has(unit_id):
+		return 0.0
+	var remain: float = 1.0
+	for inst: StatusInstance in _active[unit_id]:
+		var effect: Resource = DataRegistry.get_status_effect(inst.effect_id)
+		if effect == null:
+			continue
+		if effect.defense_reduction > 0.0:
+			remain *= (1.0 - clampf(effect.defense_reduction, 0.0, 1.0))
+	return clampf(1.0 - remain, 0.0, 0.95)
+
 func should_skip_enemy_action(unit_id: String = "enemy") -> bool:
 	return should_skip_action(unit_id)
 
