@@ -2,9 +2,27 @@ class_name EquipmentUiHelper
 extends RefCounted
 
 const RARITY_GEMS: Array[String] = ["◇", "◆", "✦", "★"]
+const LEVEL_CAP: int = 20
+
+const SORT_LABELS: Dictionary = {
+	"rarity": "レアリティ",
+	"name": "名前",
+}
+
+const EQUIPPED_FILTER_LABELS: Dictionary = {
+	"all": "すべて",
+	"equipped": "装備中",
+	"unequipped": "未装備",
+}
 
 static func rarity_gem(rarity: int) -> String:
 	return RARITY_GEMS[clampi(rarity, 0, RARITY_GEMS.size() - 1)]
+
+static func stars_text(rarity: int) -> String:
+	return RosterUiHelper.stars_text(clampi(rarity, 1, 5))
+
+static func level_line(level: int, max_level: int = LEVEL_CAP) -> String:
+	return "Lv.%d / %d" % [clampi(level, 1, max_level), max_level]
 
 static func enhance_badge(item: Resource, category: String) -> String:
 	if category != "weapon" or item == null:
@@ -14,8 +32,50 @@ static func enhance_badge(item: Resource, category: String) -> String:
 		return ""
 	return "+%d" % level
 
-static func sort_inventory_entries(entries: Array) -> Array:
+static func equipped_member_index(item: Resource) -> int:
+	if item == null:
+		return -1
+	return GameState.find_item_equipped_member_index(item)
+
+static func equipped_owner_job_id(item: Resource) -> String:
+	var idx: int = equipped_member_index(item)
+	if idx < 0:
+		return ""
+	var member: Resource = GameState.get_member(idx)
+	if member == null:
+		return ""
+	return str(member.job_id)
+
+static func filter_by_equipped_state(
+	entries: Array,
+	state: String,
+	member_index: int
+) -> Array:
+	if state == "all":
+		return entries
+	var out: Array = []
+	for entry in entries:
+		if entry is not Dictionary:
+			continue
+		var item: Resource = entry.get("item")
+		var owner: int = equipped_member_index(item)
+		var on_self: bool = owner == member_index
+		if state == "equipped" and owner >= 0:
+			out.append(entry)
+		elif state == "unequipped" and owner < 0:
+			out.append(entry)
+		elif state == "equipped_self" and on_self:
+			out.append(entry)
+	return out
+
+static func sort_inventory_entries(entries: Array, sort_by: String = "rarity") -> Array:
 	var sorted: Array = entries.duplicate()
+	if sort_by == "name":
+		sorted.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+			return _entry_sort_name(a.get("item"), str(a.get("category", ""))) < \
+				_entry_sort_name(b.get("item"), str(b.get("category", "")))
+		)
+		return sorted
 	sorted.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		var item_a: Resource = a.get("item")
 		var item_b: Resource = b.get("item")
