@@ -183,11 +183,13 @@ func _craft_button_label(craft: Resource, can_craft: bool) -> String:
 	return "素材不足"
 
 func _can_craft(craft: Resource) -> bool:
-	if craft.output_id.is_empty() or not _craft_output_exists(craft):
-		return false
-	if GameState.gold < craft.gold_cost:
-		return false
-	return _has_enough_materials(craft.required_materials)
+	return CraftHelper.can_craft(craft)
+
+func _craft_output_exists(craft: Resource) -> bool:
+	return CraftHelper.craft_output_exists(craft)
+
+func _has_enough_materials(required: Dictionary) -> bool:
+	return CraftHelper.has_enough_materials(required)
 
 func _on_craft_pressed(craft: Resource) -> void:
 	if craft.output_type != "armor" and craft.output_type != "accessory" and craft.output_type != "weapon":
@@ -208,21 +210,6 @@ func _on_craft_pressed(craft: Resource) -> void:
 	SaveManager.save_game()
 	_log_craft("作成完了: %s" % DataRegistry.get_item_name(craft.output_id, craft.output_type))
 	_build_craft_ui()
-
-func _craft_output_exists(craft: Resource) -> bool:
-	if craft.output_type == "armor":
-		return DataRegistry.get_armor_data(craft.output_id) != null
-	if craft.output_type == "accessory":
-		return DataRegistry.get_accessory_data(craft.output_id) != null
-	if craft.output_type == "weapon":
-		return DataRegistry.get_weapon_data(craft.output_id) != null
-	return false
-
-func _has_enough_materials(required: Dictionary) -> bool:
-	for mat_id in required:
-		if GameState.get_material_quantity(mat_id) < int(required[mat_id]):
-			return false
-	return true
 
 # 鑑定機能オミットに伴い、クラフト品も生成時に鑑定済み＋Affix自動付与（P3-D072 / 直ドロップと整合）
 func _auto_appraise(instance: Resource, category: String, rarity: int) -> void:
