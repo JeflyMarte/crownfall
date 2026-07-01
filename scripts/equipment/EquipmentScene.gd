@@ -1,5 +1,11 @@
 extends Control
 
+const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
+const ROSTER_SCENE: String = "res://scenes/roster/RosterScene.tscn"
+const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
+const CODEX_SCENE: String = "res://scenes/codex/CodexScene.tscn"
+const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
+
 const _AffixDisplayFormatter = preload("res://scripts/equipment/AffixDisplayFormatter.gd")
 const _JobStatCalculator = preload("res://scripts/equipment/JobStatCalculator.gd")
 const _AffixStatCalculator = preload("res://scripts/equipment/AffixStatCalculator.gd")
@@ -38,8 +44,11 @@ const EFFECT_GLYPHS: Dictionary = {
 }
 const SLOT_GLYPHS: Dictionary = {"weapon": "⚔", "armor": "🛡", "accessory": "💍"}
 
-@onready var _button_back: Button = $VBoxContainer/HeaderRow/ButtonBack
-@onready var _label_gold: Label = $VBoxContainer/HeaderRow/LabelGold
+@onready var _button_back: Button = $Header/HeaderRow/ButtonBack
+@onready var _label_gold: Label = $Header/HeaderRow/GoldChip/GoldRow/LabelGold
+@onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
+@onready var _btn_member_prev: Button = $VBoxContainer/CharacterCard/CardRow/BtnMemberPrev
+@onready var _btn_member_next: Button = $VBoxContainer/CharacterCard/CardRow/BtnMemberNext
 @onready var _member_row: HBoxContainer = $VBoxContainer/MemberSelectRow
 @onready var _label_stars: Label = $VBoxContainer/CharacterCard/CardRow/PortraitBox/LabelStars
 @onready var _portrait_art: TextureRect = $VBoxContainer/CharacterCard/CardRow/PortraitBox/Portrait/PortraitArt
@@ -92,9 +101,15 @@ var _tag_info_label: Label = null
 func _ready() -> void:
 	_tabs.set_tab_title(0, "装備")
 	_tabs.set_tab_title(1, "戦術・スキル")
-	$VBoxContainer/HeaderRow/LabelTitle.text = "英雄管理"
 	_ensure_combat_setup_panel()
 	_button_back.pressed.connect(_on_back_pressed)
+	_btn_member_prev.pressed.connect(_on_member_prev_pressed)
+	_btn_member_next.pressed.connect(_on_member_next_pressed)
+	$BottomNav/NavRow/NavHome.pressed.connect(_go_to.bind(HOME_SCENE))
+	$BottomNav/NavRow/NavParty.pressed.connect(_go_to.bind(ROSTER_SCENE))
+	$BottomNav/NavRow/NavForge.pressed.connect(_go_to.bind(BLACKSMITH_SCENE))
+	$BottomNav/NavRow/NavCodex.pressed.connect(_go_to.bind(CODEX_SCENE))
+	$BottomNav/NavRow/NavShop.pressed.connect(_go_to.bind(GACHA_SCENE))
 	_button_unequip_all.pressed.connect(_on_unequip_all_pressed)
 	for i in GameState.ACTIVE_PARTY_SIZE:
 		var btn: Button = _member_row.get_node("ButtonMember%d" % i) as Button
@@ -151,6 +166,19 @@ func _on_member_selected(member_index: int) -> void:
 	_refresh_member_buttons()
 	_refresh_display()
 
+func _on_member_prev_pressed() -> void:
+	_cycle_member(-1)
+
+func _on_member_next_pressed() -> void:
+	_cycle_member(1)
+
+func _cycle_member(delta: int) -> void:
+	var count: int = GameState.party_members.size()
+	if count <= 0:
+		return
+	var next_index: int = (_selected_member_index + delta + count) % count
+	_on_member_selected(next_index)
+
 func _refresh_member_buttons() -> void:
 	for i in GameState.ACTIVE_PARTY_SIZE:
 		var btn: Button = _member_row.get_node("ButtonMember%d" % i) as Button
@@ -181,7 +209,8 @@ func _refresh_display() -> void:
 	_rebuild_skill_tab()
 
 func _update_header() -> void:
-	_label_gold.text = "🪙 %d" % GameState.gold
+	_label_gold.text = "%d" % GameState.gold
+	_label_token.text = "%d" % GameState.gacha_token
 
 # ---- キャラクターカード ----
 func _update_character_card() -> void:
@@ -1378,4 +1407,8 @@ func _on_skill_toggle_pressed(skill_id: String) -> void:
 
 func _on_back_pressed() -> void:
 	SaveManager.save_game()
-	SceneRouter.change_scene("res://scenes/base/BaseScene.tscn")
+	_go_to(HOME_SCENE)
+
+func _go_to(scene_path: String) -> void:
+	SaveManager.save_game()
+	SceneRouter.change_scene(scene_path)
