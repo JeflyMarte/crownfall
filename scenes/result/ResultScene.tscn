@@ -101,6 +101,25 @@ layout_mode = 2
 theme_override_constants/separation = 8
 alignment = 1
 
+[node name="MaterialPanel" type="PanelContainer" parent="Scroll/Margin/Main"]
+layout_mode = 2
+
+[node name="MaterialVBox" type="VBoxContainer" parent="Scroll/Margin/Main/MaterialPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="LabelMaterialTitle" type="Label" parent="Scroll/Margin/Main/MaterialPanel/MaterialVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.85, 0.74, 0.45, 1)
+text = "採取素材"
+horizontal_alignment = 1
+
+[node name="MaterialRow" type="HBoxContainer" parent="Scroll/Margin/Main/MaterialPanel/MaterialVBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
 [node name="RarePanel" type="PanelContainer" parent="Scroll/Margin/Main"]
 layout_mode = 2
 
