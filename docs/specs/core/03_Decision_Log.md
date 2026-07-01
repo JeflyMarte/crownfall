@@ -1956,3 +1956,5 @@
 | P3-UI2-019-4 | **スコープ外** — 6装備枠・足具タブ・ソート/フィルタ UI・ステ詳細ポップアップ | 段階2以降 |
 
 **P3-UI2-019a Closeout（2026-07-01）:** Header/BottomNav/メンバー矢印。headless smoke PASS。
+
+**P3-UI2-019b Closeout（2026-07-01）:** 装備枠をキャラカード内縦配置・炉研ぎ+Nバッジ・装備一覧ヘッダ・レアリティソート・`MemberSelectRow` 修復。headless smoke PASS。

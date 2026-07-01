@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-01（**P3-UI2-019b 装備画面 polish**: 装備枠カード内配置・+Nバッジ・装備一覧。headless smoke PASS）
+
 2026-07-01（**P3-UI2-019a 装備画面モック寄せ**: Header/BottomNav・キャラ◀▶切替。headless smoke PASS）
 
 2026-07-01（**P3-UI2-018 鍛冶屋モック寄せ**: Master-Detail 生産/強化・分解ロック・BottomNav。headless smoke PASS）

@@ -186,9 +186,11 @@ offset_bottom = -52.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 6
+
+[node name="MemberSelectRow" type="HBoxContainer" parent="VBoxContainer"]
 layout_mode = 2
 alignment = 1
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 
 [node name="ButtonMember0" type="Button" parent="VBoxContainer/MemberSelectRow"]
 layout_mode = 2
@@ -280,16 +282,20 @@ theme_override_constants/separation = 8
 layout_mode = 2
 text = "一括解除"
 
-[node name="LabelSlotsTitle" type="Label" parent="VBoxContainer"]
+[node name="SlotsPanel" type="VBoxContainer" parent="VBoxContainer/CharacterCard/CardRow"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="LabelSlotsTitle" type="Label" parent="VBoxContainer/CharacterCard/CardRow/SlotsPanel"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.86, 0.74, 0.45, 1)
-theme_override_font_sizes/font_size = 18
-text = "◆ 装備スロット ◆"
+theme_override_font_sizes/font_size = 12
+text = "装備枠"
 horizontal_alignment = 1
 
-[node name="EquipSlotsRow" type="HBoxContainer" parent="VBoxContainer"]
+[node name="EquipSlotsGrid" type="VBoxContainer" parent="VBoxContainer/CharacterCard/CardRow/SlotsPanel"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 4
 
 [node name="TabContainer" type="TabContainer" parent="VBoxContainer"]
 layout_mode = 2
@@ -317,7 +323,7 @@ theme_override_constants/separation = 8
 layout_mode = 2
 theme_override_colors/font_color = Color(0.86, 0.74, 0.45, 1)
 theme_override_font_sizes/font_size = 16
-text = "◆ 装備中の効果 ◆"
+text = "装備中の効果"
 horizontal_alignment = 1
 
 [node name="EffectsGrid" type="GridContainer" parent="VBoxContainer/TabContainer/TabEquip/EquipContent"]
@@ -325,6 +331,13 @@ layout_mode = 2
 theme_override_constants/h_separation = 14
 theme_override_constants/v_separation = 2
 columns = 4
+
+[node name="LabelInventoryTitle" type="Label" parent="VBoxContainer/TabContainer/TabEquip/EquipContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.74, 0.62, 1)
+theme_override_font_sizes/font_size = 14
+text = "装備一覧"
+horizontal_alignment = 1
 
 [node name="CategoryRow" type="HBoxContainer" parent="VBoxContainer/TabContainer/TabEquip/EquipContent"]
 layout_mode = 2
@@ -348,7 +361,7 @@ text = "防具"
 [node name="ButtonCatAccessory" type="Button" parent="VBoxContainer/TabContainer/TabEquip/EquipContent/CategoryRow"]
 layout_mode = 2
 toggle_mode = true
-text = "装飾品"
+text = "装飾"
 
 [node name="InventoryGrid" type="GridContainer" parent="VBoxContainer/TabContainer/TabEquip/EquipContent"]
 layout_mode = 2
