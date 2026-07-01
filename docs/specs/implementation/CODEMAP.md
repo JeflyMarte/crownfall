@@ -78,7 +78,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 - `ContentVBox/BuildChipRow` — 同上 + `LabelBuildSummary`（Task037）
 - スキルタブ — 戦術プリセット・陣形行（前列/後列・P3-D106）・探索スキル一覧（P3-D117）・連携 hint（P3-D115）・ガンビット（P3-D122）
 
-**DungeonSelectScene** — `scenes/dungeon/DungeonSelectScene.tscn` / `scripts/dungeon/DungeonSelectScene.gd`（P3-D080・**P3-UI2-021** フィーチャー+挑戦・**P3-UI2-028** 階層カード密度）
+**DungeonSelectScene** — `scenes/dungeon/DungeonSelectScene.tscn` / `scripts/dungeon/DungeonSelectScene.gd`（P3-D080・**P3-UI2-021** フィーチャー+挑戦・**P3-UI2-028** 階層カード密度・**P3-UI2-029** 下部3枠占位+スタミナチップ）
 
 **GuildScene** — `scenes/guild/GuildScene.tscn` / `scripts/guild/GuildScene.gd`（P3-D052 手動認定・**P3-UI2-024** Header/BottomNav・認定カードリスト）
 
