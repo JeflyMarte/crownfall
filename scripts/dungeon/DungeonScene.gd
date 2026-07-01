@@ -148,6 +148,7 @@ var _request_scroll_to_bottom: bool = false
 @onready var _chr_sprite_2: AnimatedSprite2D = $ChrSprite2
 @onready var _chr_sprite_3: AnimatedSprite2D = $ChrSprite3
 
+@onready var _battle_log_panel: PanelContainer = $MainVBox/BattleLogPanel
 @onready var _battle_log_scroll: ScrollContainer = $MainVBox/BattleLogPanel/BattleLogScroll
 @onready var _battle_log_content: VBoxContainer = $MainVBox/BattleLogPanel/BattleLogScroll/BattleLogContent
 @onready var _party_status_panel: PanelContainer = $MainVBox/PartyStatusPanel
@@ -192,6 +193,8 @@ var _party_card_ct_bars: Array[ProgressBar] = []
 var _party_card_portraits: Array[TextureRect] = []
 var _party_card_roots: Array[PanelContainer] = []
 var _party_card_active_turn: int = -1
+var _combat_tier_vignette: ColorRect
+var _tier_frame_pulse_tween: Tween
 var _status_icon_swarm_rows: Array[HBoxContainer] = []
 var _status_icon_chr_rows: Array[HBoxContainer] = []
 
@@ -277,7 +280,7 @@ func _ready() -> void:
 				_boss_sprite.play("idle")
 	)
 	_style_hp_bars()
-	_style_party_status_panel()
+	_style_combat_ui_panels()
 	var dungeon_id: String = GameState.get_active_dungeon_id()
 	$DungeonController.start_dungeon(dungeon_id)
 	$CombatController.reset_party_hp_for_run()
@@ -3053,31 +3056,23 @@ func _update_combat_visibility() -> void:
 	_update_combat_tier_frame()
 
 func _update_combat_tier_frame() -> void:
+	_stop_tier_frame_pulse()
 	var show: bool = false
-	var tier_text: String = ""
-	var border_color: Color = Color.WHITE
+	var tier: String = CombatUiFrames.TIER_NORMAL
 	if $CombatController.is_in_combat:
-		match $DungeonController.current_room_type:
-			Enums.RoomType.ELITE:
-				show = true
-				tier_text = "⚔ エリート戦"
-				border_color = Color(1.0, 0.7, 0.2)
-			Enums.RoomType.BOSS:
-				show = true
-				tier_text = "⚔ ボス戦"
-				border_color = Color(1.0, 0.25, 0.25)
+		tier = CombatUiFrames.tier_from_room_type($DungeonController.current_room_type)
+		show = tier == CombatUiFrames.TIER_ELITE or tier == CombatUiFrames.TIER_BOSS
 	_combat_tier_frame.visible = show
 	if not show:
+		if _combat_tier_vignette != null:
+			_combat_tier_vignette.color = Color(0, 0, 0, 0)
 		return
-	# 「⚔ ボス戦/エリート戦」テキストはドット絵と重なるため非表示。種別は枠色で表現する。
-	_label_combat_tier.text = ""
-	_label_combat_tier.visible = false
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(border_color.r, border_color.g, border_color.b, 0.1)
-	style.border_color = border_color
-	style.set_border_width_all(4)
-	style.set_corner_radius_all(8)
-	_combat_tier_frame.add_theme_stylebox_override("panel", style)
+	_ensure_combat_tier_vignette()
+	_combat_tier_frame.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(tier))
+	_combat_tier_vignette.color = CombatUiFrames.vignette_color(tier)
+	_combat_tier_frame.modulate = Color.WHITE
+	if tier == CombatUiFrames.TIER_BOSS:
+		_start_tier_frame_pulse()
 
 func _start_auto_progress() -> void:
 	if _is_paused:
@@ -3494,27 +3489,46 @@ func _party_card_short_name(display_name: String) -> String:
 		return display_name.substr(0, paren)
 	return display_name
 
-func _make_party_card_panel_style(active: bool) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.10, 0.10, 0.13, 0.92)
-	style.border_color = Color(0.90, 0.72, 0.35, 1.0) if active else Color(0.33, 0.29, 0.23, 1.0)
-	style.set_border_width_all(2 if active else 1)
-	style.set_corner_radius_all(6)
-	style.content_margin_left = 6
-	style.content_margin_top = 6
-	style.content_margin_right = 6
-	style.content_margin_bottom = 6
-	return style
+func _make_party_card_panel_style(active: bool) -> StyleBoxTexture:
+	return CombatUiFrames.panel_style(
+		CombatUiFrames.TIER_CARD_ACTIVE if active else CombatUiFrames.TIER_CARD
+	)
+
+func _style_combat_ui_panels() -> void:
+	_battle_log_panel.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_NORMAL))
+	_party_status_panel.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_NORMAL))
+	_init_combat_tier_decoration()
+
+func _init_combat_tier_decoration() -> void:
+	_ensure_combat_tier_vignette()
+
+func _ensure_combat_tier_vignette() -> void:
+	if _combat_tier_vignette != null and is_instance_valid(_combat_tier_vignette):
+		return
+	_combat_tier_vignette = ColorRect.new()
+	_combat_tier_vignette.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_combat_tier_vignette.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_combat_tier_vignette.grow_vertical = Control.GROW_DIRECTION_BOTH
+	_combat_tier_vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_combat_tier_vignette.color = Color(0, 0, 0, 0)
+	_combat_tier_frame.add_child(_combat_tier_vignette)
+	_combat_tier_frame.move_child(_combat_tier_vignette, 0)
+
+func _start_tier_frame_pulse() -> void:
+	_stop_tier_frame_pulse()
+	_tier_frame_pulse_tween = create_tween().set_loops()
+	_tier_frame_pulse_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_tier_frame_pulse_tween.tween_property(_combat_tier_frame, "modulate", Color(1.08, 0.92, 0.88), 0.95)
+	_tier_frame_pulse_tween.tween_property(_combat_tier_frame, "modulate", Color.WHITE, 0.95)
+
+func _stop_tier_frame_pulse() -> void:
+	if _tier_frame_pulse_tween != null and is_instance_valid(_tier_frame_pulse_tween):
+		_tier_frame_pulse_tween.kill()
+	_tier_frame_pulse_tween = null
+	_combat_tier_frame.modulate = Color.WHITE
 
 func _style_party_status_panel() -> void:
-	var panel_style := StyleBoxFlat.new()
-	panel_style.bg_color = Color(0.06, 0.06, 0.08, 0.55)
-	panel_style.set_corner_radius_all(4)
-	panel_style.content_margin_left = 8
-	panel_style.content_margin_top = 6
-	panel_style.content_margin_right = 8
-	panel_style.content_margin_bottom = 8
-	_party_status_panel.add_theme_stylebox_override("panel", panel_style)
+	_party_status_panel.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_NORMAL))
 
 func _style_party_card_ct_bar(bar: ProgressBar) -> void:
 	_style_hp_bar_readable(bar, PARTY_CARD_CT_FILL)
@@ -3523,7 +3537,7 @@ func _style_party_card_ct_bar(bar: ProgressBar) -> void:
 func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
 	var card := PanelContainer.new()
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	card.add_theme_stylebox_override("panel", _make_party_card_panel_style(false))
+	card.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD))
 	var root := VBoxContainer.new()
 	root.add_theme_constant_override("separation", 4)
 	card.add_child(root)
@@ -3596,7 +3610,7 @@ func _make_empty_party_card() -> Control:
 	var card := PanelContainer.new()
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	card.modulate = PARTY_CARD_EMPTY_MODULATE
-	card.add_theme_stylebox_override("panel", _make_party_card_panel_style(false))
+	card.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD))
 	var root := VBoxContainer.new()
 	root.add_theme_constant_override("separation", 4)
 	card.add_child(root)
@@ -3660,17 +3674,10 @@ func _get_enemy_icon_texture(enemy_id: String) -> Texture2D:
 		return null
 	return frames.get_frame_texture("idle", 0)
 
-func _make_turn_order_frame_style(active: bool) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.06, 0.05, 0.04, 0.94)
-	style.border_color = Color(0.95, 0.78, 0.35, 1.0) if active else Color(0.55, 0.48, 0.32, 1.0)
-	style.set_border_width_all(3 if active else 2)
-	style.set_corner_radius_all(8)
-	style.content_margin_left = TURN_ORDER_FRAME_PAD
-	style.content_margin_top = TURN_ORDER_FRAME_PAD
-	style.content_margin_right = TURN_ORDER_FRAME_PAD
-	style.content_margin_bottom = TURN_ORDER_FRAME_PAD
-	return style
+func _make_turn_order_frame_style(active: bool) -> StyleBoxTexture:
+	return CombatUiFrames.panel_style(
+		CombatUiFrames.TIER_CARD_ACTIVE if active else CombatUiFrames.TIER_CARD
+	)
 
 func _turn_order_cell_size() -> float:
 	return TURN_ORDER_ICON_PX + TURN_ORDER_FRAME_PAD * 2.0
