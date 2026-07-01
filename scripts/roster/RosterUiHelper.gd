@@ -91,6 +91,16 @@ static func stars_text(rarity: int) -> String:
 		out += "★"
 	return out
 
+static func get_member_portrait_texture(member: Resource) -> Texture2D:
+	if member == null:
+		return null
+	var member_id: String = str(member.id)
+	if member_id.begins_with("gacha_"):
+		var helper: Resource = DataRegistry.get_gacha_helper_data(member_id.trim_prefix("gacha_"))
+		if helper != null:
+			return helper.get_portrait_texture()
+	return IconPaths.get_icon_texture(str(member.job_id), "chr")
+
 static func compute_combat_power(members: Array) -> int:
 	var total: int = 0
 	for member in members:

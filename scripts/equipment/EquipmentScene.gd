@@ -254,7 +254,7 @@ func _update_character_card() -> void:
 	_label_level.text = EquipmentUiHelper.level_line(int(member.level))
 	_label_job.text = job_name
 	_job_icon.texture = IconPaths.get_icon_texture(str(member.job_id), "chr")
-	var chr_tex: Texture2D = IconPaths.get_icon_texture(str(member.job_id), "chr")
+	var chr_tex: Texture2D = RosterUiHelper.get_member_portrait_texture(member)
 	_portrait_art.texture = chr_tex
 	_portrait_glyph.text = "" if chr_tex != null else member.display_name.substr(0, 1)
 	_label_stars.text = EquipmentUiHelper.stars_text(int(member.rarity))

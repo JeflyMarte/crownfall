@@ -101,7 +101,7 @@ func _make_lineup_row(helper: Resource) -> PanelContainer:
 
 	var icon_box := PanelContainer.new()
 	icon_box.custom_minimum_size = Vector2(LINEUP_ICON_PX, LINEUP_ICON_PX)
-	var icon_tex: Texture2D = IconPaths.get_icon_texture(str(helper.job_id), "chr")
+	var icon_tex: Texture2D = helper.get_portrait_texture()
 	if icon_tex != null:
 		var icon := TextureRect.new()
 		icon.texture = icon_tex
@@ -182,7 +182,7 @@ func _play_summon_reveal(result: Dictionary) -> void:
 	var helper_data: Resource = DataRegistry.get_gacha_helper_data(helper_id)
 	var name_str: String = helper_id if helper_data == null else str(helper_data.display_name)
 	var job_id: String = str(helper_data.job_id) if helper_data != null else ""
-	var portrait_tex: Texture2D = IconPaths.get_icon_texture(job_id, "chr")
+	var portrait_tex: Texture2D = helper_data.get_portrait_texture() if helper_data != null else IconPaths.get_icon_texture(job_id, "chr")
 
 	if is_new:
 		_label_banner.text = "NEW!"

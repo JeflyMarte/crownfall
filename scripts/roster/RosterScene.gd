@@ -183,7 +183,7 @@ func _make_active_party_card(slot_index: int) -> Control:
 		vbox.add_child(empty)
 		panel.gui_input.connect(_on_active_card_input.bind(slot_index))
 		return panel
-	var portrait_tex: Texture2D = IconPaths.get_icon_texture(str(member.job_id), "chr")
+	var portrait_tex: Texture2D = RosterUiHelper.get_member_portrait_texture(member)
 	if portrait_tex != null:
 		var portrait := TextureRect.new()
 		portrait.texture = portrait_tex
@@ -391,7 +391,7 @@ func _make_roster_grid_card(adv: Resource) -> Control:
 	vbox.add_theme_constant_override("separation", 2)
 	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	btn.add_child(vbox)
-	var tex: Texture2D = IconPaths.get_icon_texture(str(adv.job_id), "chr")
+	var tex: Texture2D = RosterUiHelper.get_member_portrait_texture(adv)
 	if tex != null:
 		var icon := TextureRect.new()
 		icon.texture = tex
@@ -624,7 +624,7 @@ func _refresh_formation_grid() -> void:
 		vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
 		vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 		vbox.add_theme_constant_override("separation", 3)
-		var icon_tex: Texture2D = IconPaths.get_icon_texture(str(member.job_id), "chr")
+		var icon_tex: Texture2D = RosterUiHelper.get_member_portrait_texture(member)
 		if icon_tex != null:
 			var portrait := TextureRect.new()
 			portrait.texture = icon_tex

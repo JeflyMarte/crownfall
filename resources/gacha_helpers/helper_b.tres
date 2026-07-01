@@ -10,3 +10,4 @@ job_id = "ranger"
 origin_note = "北方辺境の狩人。未踏査域の地図化に長ける"
 rarity = 3
 sprite_resource_path = ""
+portrait_resource_path = "res://assets/gacha/portraits/ART_HELPER_helper_b.png"
