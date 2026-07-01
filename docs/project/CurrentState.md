@@ -4,6 +4,10 @@
 
 ## Last Update
 
+2026-07-01（**P3-UI2-018 鍛冶屋モック寄せ**: Master-Detail 生産/強化・分解ロック・BottomNav。headless smoke PASS）
+
+2026-07-01（**P3-UI2-017 編成画面モック寄せ Closeout**: Header/BottomNav・4カード編成・陣形ポップアップ。headless smoke PASS）
+
 2026-07-01（**Combat Polish バンドル**: 基本5人固有名・★3固定・キャラ固有パッシブ・職別必殺・敵スキル・スキル名頭上表示・回復/バフVFX・必殺派手演出。`6696ac7` smoke PASS）
 
 2026-07-01（**P3-D145 敵別Threatターゲット**: `threat_target_bias`・遠隔/ネズミ偏重。headless smoke PASS）
