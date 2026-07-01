@@ -71,6 +71,8 @@ var _gambit_slot_opts: Array[OptionButton] = []
 var _gambit_cond_opts: Array[OptionButton] = []
 var _gambit_value_edits: Array[LineEdit] = []
 var _gambit_range_opts: Array[OptionButton] = []
+var _gambit_move_up_btns: Array[Button] = []
+var _gambit_move_down_btns: Array[Button] = []
 var _gambit_ui_syncing: bool = false
 var _relic_option: OptionButton = null
 var _relic_ids: Array[String] = []
@@ -745,6 +747,8 @@ func _ensure_gambit_ui() -> void:
 	_gambit_cond_opts.clear()
 	_gambit_value_edits.clear()
 	_gambit_range_opts.clear()
+	_gambit_move_up_btns.clear()
+	_gambit_move_down_btns.clear()
 	for i in CombatGambit.plan_row_count():
 		var plan_row := HBoxContainer.new()
 		plan_row.name = "GambitPlanRow%d" % i
@@ -776,13 +780,28 @@ func _ensure_gambit_ui() -> void:
 		range_opt.item_selected.connect(_on_gambit_row_changed)
 		range_opt.visible = false
 		plan_row.add_child(range_opt)
+		var move_col := VBoxContainer.new()
+		move_col.add_theme_constant_override("separation", 0)
+		var btn_up := Button.new()
+		btn_up.text = "↑"
+		btn_up.custom_minimum_size = Vector2(30, 22)
+		btn_up.pressed.connect(_on_gambit_move_row.bind(i, -1))
+		move_col.add_child(btn_up)
+		var btn_down := Button.new()
+		btn_down.text = "↓"
+		btn_down.custom_minimum_size = Vector2(30, 22)
+		btn_down.pressed.connect(_on_gambit_move_row.bind(i, 1))
+		move_col.add_child(btn_down)
+		plan_row.add_child(move_col)
 		_gambit_custom_box.add_child(plan_row)
 		_gambit_slot_opts.append(slot_opt)
 		_gambit_cond_opts.append(cond_opt)
 		_gambit_value_edits.append(value_edit)
 		_gambit_range_opts.append(range_opt)
+		_gambit_move_up_btns.append(btn_up)
+		_gambit_move_down_btns.append(btn_down)
 	var gambit_hint := Label.new()
-	gambit_hint.text = "上から優先。条件成立かつ発動可の最初の行動を実行"
+	gambit_hint.text = "上から優先。↑↓で並替。条件成立かつ発動可の最初の行動を実行"
 	gambit_hint.autowrap_mode = TextServer.AUTOWRAP_WORD
 	gambit_hint.add_theme_color_override("font_color", COLOR_SUB)
 	gambit_hint.add_theme_font_size_override("font_size", 12)
@@ -819,7 +838,16 @@ func _refresh_gambit_ui(member: Resource) -> void:
 		_gambit_slot_opts[i].select(slot_idx if slot_idx >= 0 else 0)
 		_gambit_cond_opts[i].select(cond_idx if cond_idx >= 0 else 0)
 		_update_gambit_row_value_widgets(i, cond_id, rule)
+	_update_gambit_move_buttons()
 	_gambit_ui_syncing = false
+
+func _update_gambit_move_buttons() -> void:
+	var row_count: int = CombatGambit.plan_row_count()
+	for i in row_count:
+		if i < _gambit_move_up_btns.size():
+			_gambit_move_up_btns[i].disabled = i <= 0
+		if i < _gambit_move_down_btns.size():
+			_gambit_move_down_btns[i].disabled = i >= row_count - 1
 
 func _update_gambit_row_value_widgets(row: int, cond_id: String, rule: Dictionary = {}) -> void:
 	var needs_value: bool = CombatGambit.condition_needs_value(cond_id)
@@ -905,6 +933,24 @@ func _on_gambit_row_changed(_unused: Variant = null) -> void:
 		var cond_id: String = CombatGambit.CONDITION_IDS[cond_idx] if cond_idx >= 0 else "always"
 		_update_gambit_row_value_widgets(i, cond_id)
 	_persist_gambit_plan(member)
+
+func _on_gambit_move_row(row: int, delta: int) -> void:
+	if _gambit_ui_syncing:
+		return
+	var member: Resource = GameState.get_member(_selected_member_index)
+	if member == null:
+		return
+	var other: int = row + delta
+	if other < 0 or other >= CombatGambit.plan_row_count():
+		return
+	var plan: Array = _collect_gambit_plan_from_ui()
+	if plan.size() < CombatGambit.plan_row_count():
+		return
+	var tmp: Dictionary = plan[row]
+	plan[row] = plan[other]
+	plan[other] = tmp
+	GameState.set_member_tactics_custom_plan(member, plan)
+	_refresh_gambit_ui(member)
 
 func _refresh_tactics_ui(member: Resource) -> void:
 	if _tactics_option == null:
