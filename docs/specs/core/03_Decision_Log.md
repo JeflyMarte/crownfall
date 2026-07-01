@@ -1720,3 +1720,22 @@
 |---|---|---|
 | P3-D132-1 | **`DungeonSelectScene`** の選択可能 DG カードに `探索方針: ◯◯`（方針なしは非表示） | P3-D129 ヒントは装備画面のみだったギャップを補完 |
 | P3-D132-2 | **スコープ外**: 選択画面での方針変更 UI | 方針変更は装備画面（P3-D098）のまま |
+
+## Result 天候表示（2026-07-01 — P3-D133）
+
+> P3-D130 の探索方針表示に続き、run 固定の天候（P3-D101）も Result で振り返れるようにする。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D133-1 | **`last_run_weather`** — `snapshot_last_run_context()` で `current_weather` を保存（晴れ=空は非表示） | 探索方針と同型のラン揮発メタ |
+| P3-D133-2 | **Result 情報行**に「天候」表示（`CombatWeather.label`） | DG 中 HUD と整合 |
+
+## Alpha Combat Formation ブランチ Closeout（2026-07-01 — P3-ALPHA-005）
+
+> `cursor/alpha-combat-formation-ui` に集約した D120〜133・リタイア/Result/ポリッシュ一式を `main` へ統合。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-ALPHA-005-1 | **`main` へマージ** — Alpha 戦術/探索拡張レーン完了。実機 GO/NO-GO は P3-ALPHA-003b のとおり Defer 維持 | 長期フィーチャーブランチの統合。開発の正を main に戻す |
+| P3-ALPHA-005-2 | **受理**＝`tools/smoke_test.sh` PASS | 実機代替ゲート |
+| P3-ALPHA-005-3 | **次**＝Phase 3-A Visual（オーナー作画）/ Backlog（Decision 要） | コードレーンの Alpha 拡張は一区切り |
