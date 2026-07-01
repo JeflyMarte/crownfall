@@ -4,6 +4,12 @@
 
 ## Last Update
 
+2026-07-01（**P3-D128 図鑑調査実利報酬（D2）**: P3-D067 生態素材ドロップ配線復元・図鑑方針×未完了敵でEXP+10%/素材率×1.5・ログ`[図鑑調査]`。headless import 検証済 / 実機未確認 / コミット済。**次=P3-ALPHA-003 実機**）
+
+2026-07-01（**P3-D127 ターゲット条件拡張（A2）**: 条件4種（stun/vulnerable/armor_break/fear）・標的`enemy_with_debuff`・cautious/sweep プリセット反映。headless import 検証済 / 実機未確認 / コミット済）
+
+2026-07-01（**ポリッシュ**: 全滅2秒待機復元・モーンゲートDGサムネイル。コミット済）
+
 2026-07-01（**P3-D125 陣形 B レーン Closeout** + **P3-D126 `cautious`→`self_range=mid`**: B-1〜5 完了宣言・Decision Log 追記。headless import 検証済 / 実機未確認 / コミット済。**次=P3-ALPHA-003 実機**）
 
 2026-07-01（**P3-D124 作戦プリセット名リネーム**: `rename_combat_preset`・装備画面名称入力/名前変更・保存時名称反映。headless import 検証済 / 実機未確認 / コミット済）

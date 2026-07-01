@@ -2110,10 +2110,16 @@ func _member_resists_element(target_index: int, attack_element: String) -> bool:
 
 # 敵の codex_materials を rarity 別確率で実ドロップ（P3-D067 / 図鑑↔経済の一本化）
 const ECOLOGY_DROP_CHANCE: Dictionary = {0: 0.6, 1: 0.3, 2: 0.12, 3: 0.05}
+const CODEX_INVESTIGATION_EXP_BONUS: float = 1.10
+const CODEX_INVESTIGATION_MATERIAL_MULT: float = 1.50
 
 func _roll_ecology_material_drops(enemy_data: Resource, log_lines: PackedStringArray) -> void:
 	if enemy_data == null:
 		return
+	var codex_boost: bool = (
+		GameState.get_exploration_policy() == "codex"
+		and GameState.get_enemy_stage(str(enemy_data.id)) < 5
+	)
 	for raw_mat_id in enemy_data.codex_materials:
 		var mat_id: String = str(raw_mat_id)
 		if mat_id.is_empty():
@@ -2121,6 +2127,8 @@ func _roll_ecology_material_drops(enemy_data: Resource, log_lines: PackedStringA
 		var mat_data: Resource = DataRegistry.get_material_data(mat_id)
 		var rarity: int = 0 if mat_data == null else int(mat_data.rarity)
 		var chance: float = float(ECOLOGY_DROP_CHANCE.get(rarity, 0.05))
+		if codex_boost:
+			chance = minf(chance * CODEX_INVESTIGATION_MATERIAL_MULT, 1.0)
 		if randf() > chance:
 			continue
 		var amount: int = _apply_material_bonus(1)
@@ -2134,7 +2142,12 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 	$CombatController.clear_enemy_slot_status(killed_slot)
 	$CombatController.capture_rewards_at(killed_slot)
 	var defeated_enemy: Resource = $CombatController.get_enemy_data_at(killed_slot)
+	var codex_investigation: bool = false
 	if defeated_enemy != null:
+		codex_investigation = (
+			GameState.get_exploration_policy() == "codex"
+			and GameState.get_enemy_stage(str(defeated_enemy.id)) < 5
+		)
 		GameState.add_enemy_kill(defeated_enemy.id)
 		# 探索方針（図鑑優先）撃破1回につき図鑑進捗を加速（P3-D098）
 		if GameState.get_exploration_policy() == "codex":
@@ -2142,6 +2155,8 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 	var mult: float = $DungeonController.get_reward_multiplier()
 	var final_exp: int = int($CombatController.last_exp_reward * mult)
 	var final_gold: int = int($CombatController.last_gold_reward * mult)
+	if codex_investigation:
+		final_exp = int(round(float(final_exp) * CODEX_INVESTIGATION_EXP_BONUS))
 	$DungeonController.accumulate_rewards(final_exp, final_gold)
 	if room_type == Enums.RoomType.BOSS:
 		$DungeonController.update_discovery($DungeonController.DISCOVERY_BOSS_BONUS)
@@ -2152,9 +2167,13 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 			_swarm_hp_bars[killed_slot].visible = false
 			_swarm_nameplates[killed_slot].visible = false
 	var bonus_tag: String = " (x%.1f)" % mult if mult > 1.0 else ""
+	if codex_investigation:
+		bonus_tag += " [図鑑調査]"
 	var log_lines: PackedStringArray = [
 		"撃破!  EXP +%d  Gold +%d%s" % [final_exp, final_gold, bonus_tag],
 	]
+	if room_type == Enums.RoomType.COMBAT and defeated_enemy != null:
+		_roll_ecology_material_drops(defeated_enemy, log_lines)
 	# P3-D074/D082: 撃破ごとの武器直ドロップ（各敵個別判定）
 	var dropped_weapon: String = $DungeonController.roll_kill_weapon_drop(room_type)
 	if not dropped_weapon.is_empty():
@@ -2267,6 +2286,10 @@ func _build_tactics_context(member_idx: int) -> Dictionary:
 		"enemy_has_bleed": $CombatController.get_enemy_status_stacks_at(target_slot, "bleed") > 0,
 		"enemy_has_poison": $CombatController.get_enemy_status_stacks_at(target_slot, "poison") > 0,
 		"enemy_has_mark": _any_enemy_has_status("mark"),
+		"enemy_has_stun": _any_enemy_has_status("stun"),
+		"enemy_has_vulnerable": _any_enemy_has_status("vulnerable"),
+		"enemy_has_armor_break": _any_enemy_has_status("armor_break"),
+		"enemy_has_fear": _any_enemy_has_status("fear"),
 		"ultimate_ready": _is_member_ultimate_ready(member_idx),
 		"self_range": _member_combat_range(member_idx),
 		"ally_injured": $CombatController.get_most_injured_member_index() >= 0,
