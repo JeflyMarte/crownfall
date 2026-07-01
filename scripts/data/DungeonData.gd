@@ -21,3 +21,5 @@ extends Resource
 ## Biome 属性相性（P3-D099）。この地形で有利な属性 id（fire/ice/lightning/holy/dark 等）。
 ## 味方攻撃の属性が一致すると与ダメに BIOME_FAVORED_BONUS を乗算。空＝補正なし。
 @export var favored_element: String = ""
+## フレーバーテキスト（ダンジョン選択フィーチャー表示 / P3-UI2-028）。
+@export var flavor_text: String = ""
