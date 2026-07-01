@@ -61,6 +61,7 @@ const THREAT_DAMAGE_K: float = 0.10   # 与ダメ1あたりの加算
 const THREAT_TAKEN_K: float = 0.15    # 被ダメ1あたりの加算（タンクが矢面で稼ぐ）
 const THREAT_TAUNT: float = 40.0      # 挑発（防御スロット）スパイク
 const THREAT_DECAY: float = 0.90      # status tick ごとの減衰率（基礎値へ寄せる）
+const MELEE_ATTACK_RANGE_MAX: float = 2.5  # これ以下＝前列優先ターゲット（P3-D106d）
 
 # ジョブ別の基礎 Threat 重み（タンクが引きやすい）。
 func _job_threat_base(member_index: int) -> float:
@@ -422,18 +423,46 @@ func get_most_injured_member_index() -> int:
 	return best
 
 func pick_enemy_target_member_index() -> int:
-	# 助っ人(event_helper)は敵のターゲット対象外。狙われてダメージを肩代わりし
-	# 全滅判定外＝無敵タンク化するのを防ぐ（メイン編成のみ狙う）。
+	return pick_enemy_target_from_indices(_eligible_enemy_targets(false, false))
+
+func pick_enemy_target_for_melee_attack(attacker_slot: int = -1) -> int:
+	if _is_enemy_ranged_at(attacker_slot):
+		return pick_enemy_target_member_index()
+	var front: Array[int] = _eligible_enemy_targets(true, false)
+	if not front.is_empty():
+		return pick_enemy_target_from_indices(front)
+	return pick_enemy_target_from_indices(_eligible_enemy_targets(false, true))
+
+func get_member_threat(member_index: int) -> float:
+	return _threat_of(member_index)
+
+func _is_enemy_ranged_at(slot: int) -> bool:
+	var data: Resource = get_enemy_data_at(slot) if slot >= 0 else current_enemy_data
+	if data == null:
+		return false
+	return float(data.attack_range) > MELEE_ATTACK_RANGE_MAX
+
+func _eligible_enemy_targets(front_only: bool, back_only: bool) -> Array[int]:
 	var alive: Array[int] = []
 	for i in party_combat_hp.size():
-		if is_member_alive(i) and not GameState.is_helper_combatant(i):
-			alive.append(i)
-	if alive.is_empty():
+		if not is_member_alive(i) or GameState.is_helper_combatant(i):
+			continue
+		var back: bool = GameState.is_member_back_row(i)
+		if front_only and back:
+			continue
+		if back_only and not back:
+			continue
+		alive.append(i)
+	return alive
+
+func pick_enemy_target_from_indices(indices: Array[int]) -> int:
+	if indices.is_empty():
 		return -1
-	# Threat 最大を狙う（P3-D104）。同値はジョブ優先→index 昇順で安定化。
-	var best: int = alive[0]
-	for i in alive:
+	var best: int = indices[0]
+	for i in indices:
 		if _threat_of(i) > _threat_of(best):
+			best = i
+		elif is_equal_approx(_threat_of(i), _threat_of(best)) and i < best:
 			best = i
 	return best
 
@@ -561,12 +590,13 @@ func _member_relic_effects(member_index: int) -> Dictionary:
 		eff["outgoing_mult"] = 1.0
 	return eff
 
-func get_member_outgoing_damage_multiplier(member_index: int) -> float:
+func get_member_outgoing_damage_multiplier(member_index: int, action_range: String = "") -> float:
 	var mult: float = _status_resolver.get_outgoing_damage_multiplier("party_%d" % member_index)
 	mult *= float(_member_relic_effects(member_index).get("outgoing_mult", 1.0))
-	# 物理タグシナジー＋ロール（攻勢）ボーナス（P3-D097・party 全体）
 	mult *= 1.0 + CombatSynergy.compute_physical_bonus(GameState.party_members)
 	mult *= float(CombatSynergy.compute_role_bonuses(GameState.party_members).get("outgoing_mult", 1.0))
+	if not action_range.is_empty():
+		mult *= GameState.formation_range_outgoing_multiplier(member_index, action_range)
 	return mult
 
 # 被ダメ補正（防御=guard 等）。1.0=等倍。P3-D085 で配線。遺物 incoming_mult も乗算（P3-D090）。

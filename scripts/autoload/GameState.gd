@@ -159,6 +159,9 @@ const FORMATION_FRONT: int = 0
 const FORMATION_BACK: int = 1
 const FORMATION_BACK_INCOMING: float = 0.85  # 後列の被ダメ倍率
 const FORMATION_BACK_THREAT: float = 0.6     # 後列の Threat 基礎倍率
+const FORMATION_MELEE_BACK_OUTGOING: float = 0.85
+const FORMATION_LONG_FRONT_OUTGOING: float = 0.85
+const FORMATION_MID_BACK_OUTGOING: float = 0.92
 
 func get_member_formation_row(member: Resource) -> int:
 	if member != null and "formation_row" in member:
@@ -214,6 +217,32 @@ func formation_incoming_multiplier(member_index: int) -> float:
 # 行の Threat 基礎倍率（後列は狙われにくい）。
 func formation_threat_multiplier(member_index: int) -> float:
 	return FORMATION_BACK_THREAT if is_member_back_row(member_index) else 1.0
+
+# 陣形×射程の与ダメ倍率（P3-D106b）。
+func formation_range_outgoing_multiplier(member_index: int, range_cat: String) -> float:
+	var back := is_member_back_row(member_index)
+	match range_cat:
+		"melee":
+			return FORMATION_MELEE_BACK_OUTGOING if back else 1.0
+		"long", "global":
+			return FORMATION_LONG_FRONT_OUTGOING if not back else 1.0
+		"mid":
+			return FORMATION_MID_BACK_OUTGOING if back else 1.0
+		_:
+			return 1.0
+
+func formation_range_log_tag(member_index: int, range_cat: String) -> String:
+	if formation_range_outgoing_multiplier(member_index, range_cat) >= 1.0:
+		return ""
+	match range_cat:
+		"melee":
+			return "  [陣形:近接不利]"
+		"long", "global":
+			return "  [陣形:遠隔不利]"
+		"mid":
+			return "  [陣形:中距離不利]"
+		_:
+			return ""
 
 # 陣形プリセット適用（前から row 数だけ前列、残りを後列）。preset: "balanced"/"front"/"back"
 func apply_formation_preset(preset: String) -> void:

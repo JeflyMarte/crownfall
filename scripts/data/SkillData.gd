@@ -11,6 +11,7 @@ extends Resource
 @export_multiline var description: String = ""
 @export var skill_type: String = "player"
 @export var target_type: String = "enemy"
+## 味方対象（敵スキル・P3-D106c）: "party"(単体) | "all_party" | "party_front" | "party_back"。
 @export var power_multiplier: float = 1.0
 @export var cooldown: float = 5.0
 @export var trigger_type: String = "cooldown"
