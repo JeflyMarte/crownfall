@@ -23,13 +23,16 @@ Alpha Combat Formation 拡張（P3-D120〜133）を `main` に統合。Combat v1
 
 ---
 
-## 3. 次候補
+## 3. 次候補（実装順序 HQ 確定）
 
-| 優先 | 内容 |
+`CurrentState.md` → **Next Implementation Queue** 参照。
+
+| 順 | 内容 |
 |---|---|
-| 1 | Phase 3-A Visual（オーナー作画: vanguard/beast_tamer 等） |
-| 2 | Backlog 小タスク（Decision 要） |
-| — | 実機プレイ可能時: `AlphaPlaytest_Checklist.md` v2.1 |
+| 0 | 実機チェック（可能時） |
+| 1–2 | vanguard / beast_tamer スプライト |
+| 3–5 | D134 競合トースト → D135 Result素材UI → D136 鍛冶復活 |
+| 6–8 | ranger/alchemist 作画 → ガンビット UI 1点 → 環境アート |
 
 ---
 

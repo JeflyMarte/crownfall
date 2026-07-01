@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-01（**実装順序 HQ 確定** — 下記 `Next Implementation Queue`）
+
 2026-07-01（**P3-ALPHA-005 Alpha Combat Formation ブランチ Closeout**: `cursor/alpha-combat-formation-ui` → `main` マージ。D120〜133 + headless Closeout 一式。smoke PASS）
 
 2026-07-01（**P3-D133 Result 天候表示**: `last_run_weather` スナップショット・Result 情報行）
@@ -73,6 +75,26 @@
 2026-06-29（**Phase 3-A UI/バランス ポリッシュ**: ホーム(BaseScene)モック準拠リニューアル＋タイトル背景アート導入(P3-A-UI-007)・ダンジョン選択画面新設(P3-D080)・序盤バランス調整(P3-BAL-001)・死にステ解消=敵DEF/耐性を与ダメ計算へ統合(P3-BAL-002)・スキル名 世界観リネーム(P3-W-024)。鑑定ワード一掃は現行spec/player向けへ反映済）
 
 2026-06-28（**Phase 3-B' システム実装 ほぼ完了**: ガチャ/ロスター・ジョブ進化・スプライト取り込み・ダンジョン全自動化(P3-D053)・中ボス廃止(P3-D054)・敵アニメ配線・助っ人targeting修正・graveyard残骸一掃(P3-Cleanup-001)・残り2ジョブ スキル(P3-D066)・Codex5段階監査・武器クラフト実機能化(P3-D067)。→ Phase 3-A ポリッシュへ）
+
+---
+
+## Next Implementation Queue（HQ 確定 2026-07-01）
+
+> Alpha 戦術/探索拡張（D120〜133）完了後の順序。原則＝**準備ループの穴埋め → 経済ループ接続 → 作画取り込み → 大物は Decision 待ち**。
+
+| 順 | ID（案） | 内容 | レーン | 理由 |
+|---|---|---|---|---|
+| 0 | P3-ALPHA-003 | 実機チェックリスト v2.1（GO/NO-GO） | オーナー（可能時） | 品質の正。不可なら Defer 維持 |
+| 1 | P3-ART-002 | vanguard 戦闘スプライト取り込み | オーナー作画→Impl | Known Issue・4人編成の見た目 |
+| 2 | P3-ART-003 | beast_tamer 戦闘スプライト取り込み | 同上 | 同上 |
+| 3 | P3-D134 | 作戦プリセット装備競合トースト | Impl | E1 スコープ外・準備ループの最後の UX 穴 |
+| 4 | P3-D135 | Result 素材アイコン行（D131 拡張） | Impl | 図鑑/経済ループの帰還フィードバック |
+| 5 | P3-D136 | 鍛冶屋復活 MVP（D075 逆・導線のみ） | Impl+Decision | D067/D128 で素材が回るようになった |
+| 6 | P3-ART-004 | ranger / alchemist 本番差替 | オーナー→Impl | swordsman 次の優先作画 |
+| 7 | P3-D137 | ガンビット UI 改善（並替 or 条件プレビュー 1 点） | Impl | A1 スコープ外のうち最小1機能 |
+| 8 | P3-A-ENV-001 | mourngate 環境アート差替（タイル/オブジェ） | オーナー→Impl | Phase 3-A Visual |
+
+**Backlog（単独 Decision まで着手しない）:** 敵別 Threat テーブル / 探索手動+CD / ELITE スキップ / 周回敗北シミュ / 天候本格 / 位置AI / 複数DG / Affix本格 / ラン中方針切替 / Biome-02 以降。
 
 ---
 
