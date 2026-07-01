@@ -72,39 +72,115 @@ grow_vertical = 2
 expand_mode = 1
 stretch_mode = 6
 
-[node name="CenterBox" type="VBoxContainer" parent="."]
+[node name="TitlePanel" type="PanelContainer" parent="."]
 layout_mode = 1
 anchor_left = 0.5
 anchor_top = 0.0
 anchor_right = 0.5
 anchor_bottom = 0.0
-offset_left = -190.0
-offset_top = 72.0
-offset_right = 190.0
+offset_left = -200.0
+offset_top = 52.0
+offset_right = 200.0
+offset_bottom = 148.0
 grow_horizontal = 2
-grow_vertical = 1
-theme_override_constants/separation = 6
 
-[node name="LabelLogo" type="Label" parent="CenterBox"]
+[node name="TitleVBox" type="VBoxContainer" parent="TitlePanel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="LabelLogo" type="Label" parent="TitlePanel/TitleVBox"]
 layout_mode = 2
 text = "♛"
 horizontal_alignment = 1
 theme_override_colors/font_color = Color(0.92, 0.78, 0.28, 1)
-theme_override_font_sizes/font_size = 40
+theme_override_font_sizes/font_size = 36
 
-[node name="LabelTitle" type="Label" parent="CenterBox"]
+[node name="LabelTitle" type="Label" parent="TitlePanel/TitleVBox"]
 layout_mode = 2
 text = "CROWNFALL"
 horizontal_alignment = 1
 theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
-theme_override_font_sizes/font_size = 44
+theme_override_font_sizes/font_size = 36
 
-[node name="LabelSubtitle" type="Label" parent="CenterBox"]
+[node name="LabelSubtitle" type="Label" parent="TitlePanel/TitleVBox"]
 layout_mode = 2
 text = "九王の遺産を巡る自動探索RPG"
 horizontal_alignment = 1
 theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 14
+
+[node name="SpotlightPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_right = 1.0
+offset_left = 212.0
+offset_top = 156.0
+offset_right = -12.0
+offset_bottom = 276.0
+grow_horizontal = 2
+
+[node name="SpotlightVBox" type="VBoxContainer" parent="SpotlightPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SpotlightRow" type="HBoxContainer" parent="SpotlightPanel/SpotlightVBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="IconFrame" type="PanelContainer" parent="SpotlightPanel/SpotlightVBox/SpotlightRow"]
+custom_minimum_size = Vector2(88, 88)
+layout_mode = 2
+
+[node name="SpotlightIcon" type="TextureRect" parent="SpotlightPanel/SpotlightVBox/SpotlightRow/IconFrame"]
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SpotlightGlyph" type="Label" parent="SpotlightPanel/SpotlightVBox/SpotlightRow/IconFrame"]
+layout_mode = 2
+text = "城"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
+theme_override_font_sizes/font_size = 28
+
+[node name="InfoCol" type="VBoxContainer" parent="SpotlightPanel/SpotlightVBox/SpotlightRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="LabelDungeonName" type="Label" parent="SpotlightPanel/SpotlightVBox/SpotlightRow/InfoCol"]
+layout_mode = 2
+text = "—"
+theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
+theme_override_font_sizes/font_size = 17
+
+[node name="LabelDungeonMeta" type="Label" parent="SpotlightPanel/SpotlightVBox/SpotlightRow/InfoCol"]
+layout_mode = 2
+text = "発見率 0% ｜ 難易度 1"
+theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
+theme_override_font_sizes/font_size = 13
+
+[node name="ButtonChallenge" type="Button" parent="SpotlightPanel/SpotlightVBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "挑戦"
+
+[node name="FeaturePanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 212.0
+offset_top = 286.0
+offset_right = -12.0
+offset_bottom = -58.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="FeatureGrid" type="GridContainer" parent="FeaturePanel"]
+layout_mode = 2
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 3
 
 [node name="TopBar" type="PanelContainer" parent="."]
 layout_mode = 1
@@ -186,11 +262,12 @@ theme_override_font_sizes/font_size = 18
 [node name="LeftMenuPanel" type="PanelContainer" parent="."]
 layout_mode = 1
 anchor_top = 0.0
-anchor_bottom = 0.0
+anchor_bottom = 1.0
 offset_left = 12.0
 offset_top = 60.0
-offset_right = 196.0
-grow_vertical = 1
+offset_right = 200.0
+offset_bottom = -58.0
+grow_vertical = 2
 theme_override_styles/panel = SubResource("SB_LeftPanel")
 
 [node name="MenuVBox" type="VBoxContainer" parent="LeftMenuPanel"]
@@ -205,41 +282,6 @@ theme_override_font_sizes/font_size = 14
 
 [node name="SepMenu" type="HSeparator" parent="LeftMenuPanel/MenuVBox"]
 layout_mode = 2
-
-[node name="ButtonAdventure" type="Button" parent="LeftMenuPanel/MenuVBox"]
-layout_mode = 2
-text = "▶  冒険"
-alignment = 0
-
-[node name="ButtonEquipment" type="Button" parent="LeftMenuPanel/MenuVBox"]
-layout_mode = 2
-text = "▶  英雄管理"
-alignment = 0
-
-[node name="ButtonBlacksmith" type="Button" parent="LeftMenuPanel/MenuVBox"]
-layout_mode = 2
-text = "▶  赤鉄の工房"
-alignment = 0
-
-[node name="ButtonRoster" type="Button" parent="LeftMenuPanel/MenuVBox"]
-layout_mode = 2
-text = "▶  編成"
-alignment = 0
-
-[node name="ButtonCodex" type="Button" parent="LeftMenuPanel/MenuVBox"]
-layout_mode = 2
-text = "▶  図鑑"
-alignment = 0
-
-[node name="ButtonGacha" type="Button" parent="LeftMenuPanel/MenuVBox"]
-layout_mode = 2
-text = "▶  召喚"
-alignment = 0
-
-[node name="ButtonGuild" type="Button" parent="LeftMenuPanel/MenuVBox"]
-layout_mode = 2
-text = "▶  ギルド認定"
-alignment = 0
 
 [node name="BottomNav" type="PanelContainer" parent="."]
 layout_mode = 1

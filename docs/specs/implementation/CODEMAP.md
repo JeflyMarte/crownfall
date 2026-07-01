@@ -65,6 +65,8 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 
 **BaseScene ノード（UI-2+）:**
 - `TopBar` 素材チップ（P3-D138）・`BottomNav` 冒険/召喚統一・`NavHome` ハイライト（**P3-UI2-025**）
+- `TitlePanel` / `SpotlightPanel`（選択DG・発見率・挑戦CTA）/ `FeaturePanel` 3列グリッド（**P3-UI2-027**）
+- `LeftMenuPanel` 動的メニューカード7件（アイコン+サブタイトル）
 
 **EquipmentScene ノード（UI-2+ / Combat v1.0）:**
 - `CharacterCard` — 肖像◀▶（`MemberSelectRow` 非表示）・★/Lv/職アイコン・`StatsGrid` 2列・`EquipSlotsGrid` 2×2+足具🔒（P3-UI2-019c）
@@ -100,7 +102,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 |---|---|
 | `discovery/` | `DiscoveryRegistry.gd`（`get_display_label` / `get_category_label` — P3-UI2-015） |
 | `appraisal/` | `AppraisalController.gd`, `AppraisalScene.gd` |
-| `base/` | `BaseScene.gd`（TopBar 素材チップ P3-D138・**P3-UI2-025** BottomNav 表記統一） |
+| `base/` | `BaseScene.gd`（TopBar 素材チップ P3-D138・**P3-UI2-025** BottomNav・**P3-UI2-027** Spotlight/FeatureGrid/メニューカード） |
 | `boot/` | `BootScene.gd` |
 | `combat/` | **コア:** `CombatController.gd`（`class_name`・CT/ATB・Threat・群れ/混成・個別ターゲット・詠唱・ボスフェーズ index）, `SkillExecutor.gd`, `StatusResolver.gd`, `StatusInstance.gd`, `ElementResolver.gd` |
 | | **戦術/AI:** `CombatTactics.gd`（プリセット6・発動条件・温存・P3-D086/108/113/127）, `CombatGambit.gd`（カスタム戦術5行・P3-D122/127） |

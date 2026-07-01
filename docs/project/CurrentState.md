@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-01（**P3-UI2-027 拠点モック第2段**: TitlePanel/Spotlight/FeatureGrid・左メニューカード化・7機能グリッド。smoke PASS）
+
 2026-07-01（**P3-GACHA-002 ガチャ助っ人コンテンツ**: ヴァルデン/イヴァル/セリン・来歴行・セーブ同期。smoke PASS）
 
 2026-07-01（**P3-UI2-025 拠点 BottomNav 統一**: 冒険/召喚表記・NavHomeハイライト・装備/鍛冶/編成のNavShop統一。smoke PASS）
