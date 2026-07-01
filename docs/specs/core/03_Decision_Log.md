@@ -1679,3 +1679,25 @@
 | P3-ALPHA-004-1 | **`AlphaPlaytest_Checklist.md` v2.1** — ステップ1 DGサムネ / ステップ2 作戦・方針・ガンビット / ステップ3-K Alpha拡張 | 一括実機で新機能を取りこぼさない |
 | P3-ALPHA-004-2 | **総合判定表**に「Alpha 拡張」行を追加 | GO/NO-GO 記録の粒度向上 |
 | P3-ALPHA-004-3 | **次**＝オーナー実機（P3-ALPHA-003 本体） | HQ は文書発行まで |
+
+## Alpha 実機確認 Closeout — headless 暫定（2026-07-01 — P3-ALPHA-003b）
+
+> オーナーが帰宅後も実機プレイ不可のため、P3-ALPHA-003 の **実機 GO/NO-GO は Defer**。開発ブロックを解除する。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-ALPHA-003b-1 | **実機一括確認を Defer**（記録欄は未記入のまま）。`AlphaPlaytest_Checklist.md` v2.1 は将来オーナー実施時の SSOT として維持 | オーナーレーン不可が継続。HQ/Impl は headless で継続 |
+| P3-ALPHA-003b-2 | **暫定受理ゲート**＝`tools/smoke_test.sh`（import + 120f smoke）PASS。Task Closeout の「headless 検証済」で代替 | クラッシュ/パースエラーの回帰検知は維持 |
+| P3-ALPHA-003b-3 | **既知リスク**: 戦闘体感・UI 視認性・テンポは未検証のまま。P1 発見時は実機可能になった時点で P3-FIX-### 化 | 品質リスクは明示して先送り |
+| P3-ALPHA-003b-4 | **次焦点**＝Phase 3-A ポリッシュ / Backlog 小タスク（実装可能な範囲） | Alpha 戦術/探索拡張レーンは D120〜130 まで消化 |
+
+## Result 探索方針表示（2026-07-01 — P3-D130）
+
+> 帰還 Result に run 中の探索方針を記録表示。作戦プリセットサマリーも拡張。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D130-1 | **`last_run_exploration_policy`** — 完走/リタイア/全滅の Result 遷移直前に `snapshot_last_run_context()` で保存（ラン揮発） | D098/D128 の方針効果を帰還後に振り返れる |
+| P3-D130-2 | **Result 情報行**に「探索方針」表示（空は非表示） | P3-D123 帰還種別と並列 |
+| P3-D130-3 | **`get_combat_preset_summary`** にカスタム戦術ON人数（`カスタムN`）を追加 | P3-D122 のプリセット一覧可読性 |
+| P3-D130-4 | **スコープ外**: ラン中獲得素材の Result 一覧 | インベントリ差分追跡は別 Task |
