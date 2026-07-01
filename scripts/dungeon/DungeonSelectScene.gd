@@ -70,7 +70,7 @@ func _make_dungeon_card(data: Resource) -> PanelContainer:
 	row.add_theme_constant_override("separation", 12)
 	card.add_child(row)
 
-	row.add_child(_make_thumb(IconPaths.get_icon_texture(str(data.boss_id), "enemy"), "♛"))
+	row.add_child(_make_thumb(_get_dungeon_thumb_texture(dungeon_id), "♛"))
 
 	var info := VBoxContainer.new()
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -114,6 +114,15 @@ func _make_dungeon_card(data: Resource) -> PanelContainer:
 	select_btn.pressed.connect(_on_select_pressed.bind(dungeon_id))
 	action.add_child(select_btn)
 	return card
+
+func _get_dungeon_thumb_texture(dungeon_id: String) -> Texture2D:
+	var tex: Texture2D = IconPaths.get_icon_texture(dungeon_id, "dungeon")
+	if tex != null:
+		return tex
+	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
+	if data == null:
+		return null
+	return IconPaths.get_icon_texture(str(data.boss_id), "enemy")
 
 func _make_locked_card(dungeon_name: String, level: int) -> PanelContainer:
 	var card := PanelContainer.new()

@@ -37,6 +37,7 @@ const ICON_MAP: Dictionary = {
 	"enemy:crown_eater_rat":       "res://assets/codex/enemies/ART_ENM_CrownEaterRat.png",
 	"enemy:clock_moth":            "res://assets/codex/enemies/ART_ENM_ClockMoth.png",
 	"enemy:serdion":               "res://assets/codex/enemies/ART_BOSS_Serdion.png",
+	"dungeon:mourngate":           "res://assets/dungeon/mourngate/ICO_DG_Mourngate.png",
 }
 
 static func get_icon_texture(id: String, category: String) -> Texture2D:
