@@ -49,11 +49,15 @@ layout_mode = 2
 text = "Gold: 0"
 horizontal_alignment = 1
 
-[node name="LabelMaterials" type="Label" parent="VBoxContainer"]
+[node name="MaterialScroll" type="ScrollContainer" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-text = "素材: なし"
-horizontal_alignment = 0
-autowrap_mode = 3
+horizontal_scroll_mode = 2
+vertical_scroll_mode = 0
+
+[node name="MaterialInventoryRow" type="HBoxContainer" parent="VBoxContainer/MaterialScroll"]
+layout_mode = 2
+theme_override_constants/separation = 6
 
 [node name="LabelCraftHeader" type="Label" parent="VBoxContainer"]
 layout_mode = 2
