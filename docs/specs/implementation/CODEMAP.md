@@ -107,8 +107,8 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `dungeon/` | `DungeonController.gd`, `DungeonScene.gd`（生態素材ドロップ・図鑑方針ボーナス P3-D128） |
 | `equipment/` | `EquipmentController.gd`, `EquipmentScene.gd`, **`EquipmentUiHelper.gd`**（P3-UI2-019）, **`BuildTagHelper.gd`**（P3-UI2-016）, **`AffixRoller.gd`**, **`AffixStatCalculator.gd`**, **`AffixDisplayFormatter.gd`**, **`JobStatCalculator.gd`** |
 | `blacksmith/` | `BlacksmithScene.gd`（P3-UI2-018 Master-Detail UI）・`BlacksmithUiHelper.gd`（レシピ表示ヘルパ） |
-| `crafting/` | **`CraftHelper.gd`**（`can_craft` / `get_craftable_recipes` — P3-D141） |
-| `codex/` | **`CatalogHelper.gd`**（P2-Task046/049 — Bible parse + Entry）, **`CodexScene.gd`**（P2-Task047/048/049 — Detail + Bible fields） |
+| `gacha/` | **`GachaScene.gd`**（P3-UI2-020 Header/BottomNav・排出カード行） |
+| `codex/` | **`CatalogHelper.gd`**（P2-Task046/049 — Bible parse + Entry）, **`CodexScene.gd`**（P2-Task047/048/049 — Detail + Bible fields・**P3-UI2-020** Header/BottomNav） |
 | `result/` | `ResultScene.gd`（素材アイコン P3-D135・作成可能レシピ P3-D141） |
 | `save/` | `SaveManager.gd` |
 | `ui/` | **`IconPaths.gd`**（Phase3-A — static class、ICON_MAP による `category:id` → `ICO_*.png` 解決）・**`CurrencyHelper.gd`**（魔晶石表示 SSOT） |
