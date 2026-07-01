@@ -114,7 +114,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `dungeon/` | `DungeonController.gd`, `DungeonScene.gd`（生態素材ドロップ・図鑑方針ボーナス P3-D128） |
 | `equipment/` | `EquipmentController.gd`, `EquipmentScene.gd`, **`EquipmentUiHelper.gd`**（P3-UI2-019）, **`BuildTagHelper.gd`**（P3-UI2-016）, **`AffixRoller.gd`**, **`AffixStatCalculator.gd`**, **`AffixDisplayFormatter.gd`**, **`JobStatCalculator.gd`** |
 | `blacksmith/` | `BlacksmithScene.gd`（P3-UI2-018 Master-Detail UI）・`BlacksmithUiHelper.gd`（レシピ表示ヘルパ） |
-| `gacha/` | **`GachaSystem.gd`**（P3-D036b 単発/天井/還元・**P3-GACHA-001** ★4=20%・**P3-GACHA-004** 動的プール5体）・**`GachaScene.gd`**（P3-UI2-020 Header/BottomNav・**P3-GACHA-002** 固有名/来歴・**P3-GACHA-003** 立ち絵） |
+| `gacha/` | **`GachaSystem.gd`**（**P3-GACHA-005** ★1〜4排出・`GachaRarityConfig`）・**`GachaRarityConfig.gd`**・**`GachaScene.gd`**（P3-UI2-020・**P3-GACHA-002/003**） |
 | `guild/` | **`GuildScene.gd`**（P3-D052 ジョブ認定・**P3-UI2-024** 認定カードリスト polish） |
 | `crafting/` | **`CraftHelper.gd`**（`can_craft` / `get_craftable_recipes` — P3-D141） |
 | `codex/` | **`CatalogHelper.gd`**（P2-Task046/049 — Bible parse + Entry）, **`CodexScene.gd`**（P2-Task047/048/049 — Detail + Bible fields・**P3-UI2-020** Header/BottomNav） |

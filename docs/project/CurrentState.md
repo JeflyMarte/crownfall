@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-02（**P3-GACHA-005 ガチャ★1〜4**: パッシブ+初期ステ差別化・スターター5職はガチャ除外。smoke PASS）
+
 2026-07-02（**P3-GACHA-004 ガチャ助っ人+2**: レオン/ミラ・5職カバー・プール動的化。smoke PASS）
 
 2026-07-02（**P3-BETA-001b**: スタミナ Beta 除外。Beta最小=B1(2本目DG)のみ）
@@ -160,7 +162,8 @@
 |---|---|---|---|---|
 | 0 | P3-ALPHA-003 | 実機チェックリスト v2.1（GO/NO-GO） | オーナー（可能時） | Defer |
 | — | P3-ART-002〜004 / P3-A-ENV-001 | 5職ドット / env / 助っ人本番立ち絵 | オーナー→Impl | **並行** |
-| — | P3-GACHA-004 | ガチャ助っ人+2（swordsman/beast_tamer） | Impl | ✅ **Closeout** |
+| — | P3-GACHA-005 | ガチャ★1〜4・パッシブ/初期ステ差別化 | Impl | ✅ **Closeout** |
+| — | P3-GACHA-004 | ガチャ助っ人+2 | Impl | ✅ **Closeout** |
 | **1** | **P3-BETA-001 設計** | 2本目DG 具体（Biome/敵/イベント） | HQ+オーナー | **次** |
 | 2 | P3-BETA-B1 | 2本目 DG 実装 | Impl | Beta |
 | — | P3-DAILY-B | 日課 UI polish | Impl | 任意 |

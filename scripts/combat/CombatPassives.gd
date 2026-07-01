@@ -76,6 +76,42 @@ const _DEFS: Dictionary = {
 		"effect": "apply_status", "status_id": "empower", "target": "party",
 		"cooldown": 0.0,
 	},
+	# ---- ガチャ助っ人固有（P3-GACHA-005） ----
+	"leon_sword_focus": {
+		"display_name": "剣勢の集中",
+		"trigger": "on_combat_start",
+		"condition": "always",
+		"effect": "apply_status", "status_id": "empower", "target": "self",
+		"cooldown": 0.0,
+	},
+	"ivar_trail_sight": {
+		"display_name": "狩場の目",
+		"trigger": "on_combat_start",
+		"condition": "always",
+		"effect": "apply_status", "status_id": "empower", "target": "self",
+		"cooldown": 0.0,
+	},
+	"serin_quick_mend": {
+		"display_name": "応急調合",
+		"trigger": "on_ally_death",
+		"condition": "always",
+		"effect": "heal", "target": "party", "value": 14,
+		"cooldown": 0.0,
+	},
+	"mira_beast_call": {
+		"display_name": "獣呼びの絆",
+		"trigger": "on_ally_death",
+		"condition": "always",
+		"effect": "apply_status", "status_id": "empower", "target": "party",
+		"cooldown": 0.0,
+	},
+	"valden_iron_oath": {
+		"display_name": "鉄誓の守護",
+		"trigger": "on_hit_taken",
+		"condition": "self_hp_below", "value": 0.5,
+		"effect": "apply_status", "status_id": "guard", "target": "self",
+		"cooldown": 5.0,
+	},
 }
 
 # 基本5職ロスター adventurer_id → キャラ固有パッシブ id
@@ -103,7 +139,7 @@ static func _def_with_id(passive_id: String) -> Dictionary:
 	def["id"] = passive_id
 	return def
 
-# 指定メンバーのパッシブ定義一覧（基本ロスターはキャラ固有を優先）。
+# 指定メンバーのパッシブ定義一覧（スターターはキャラ固有、ガチャは helper.passive_id、他はジョブ）。
 static func for_member(member: Resource) -> Array:
 	if member == null:
 		return []
@@ -112,6 +148,12 @@ static func for_member(member: Resource) -> Array:
 		var char_def: Dictionary = _def_with_id(str(_BASE_ROSTER_PASSIVES[adv_id]))
 		if not char_def.is_empty():
 			return [char_def]
+	if adv_id.begins_with("gacha_"):
+		var helper: Resource = DataRegistry.get_gacha_helper_data(adv_id.trim_prefix("gacha_"))
+		if helper != null and not str(helper.passive_id).is_empty():
+			var helper_def: Dictionary = _def_with_id(str(helper.passive_id))
+			if not helper_def.is_empty():
+				return [helper_def]
 	return for_job(str(member.job_id))
 
 # 指定ジョブのパッシブ定義一覧（id 込み）を返す。

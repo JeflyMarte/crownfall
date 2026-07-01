@@ -315,7 +315,9 @@ func _sync_gacha_roster_metadata() -> void:
 			continue
 		if not str(helper.display_name).is_empty():
 			adv.display_name = str(helper.display_name)
-		adv.rarity = clampi(int(helper.rarity), 1, 5)
+		adv.rarity = GachaRarityConfig.clamp_rarity(int(helper.rarity))
+		var base_hp: int = CombatController.BASE_MEMBER_HP
+		GachaRarityConfig.apply_base_stats_to_adventurer(adv, adv.rarity, base_hp)
 
 func _restore_active_party(data: Dictionary) -> void:
 	var active: Array = []
