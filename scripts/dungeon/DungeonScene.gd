@@ -2219,10 +2219,9 @@ func _do_member_turn(member_idx: int) -> void:
 		_advance_member_cast(member_idx)
 		return
 	var member: Resource = GameState.get_combatant(member_idx)
-	var tactics_id: String = GameState.get_member_tactics_id(member)
-	$CombatController.resolve_member_target(member_idx, CombatTactics.get_target_rule(tactics_id))
+	$CombatController.resolve_member_target(member_idx, CombatGambit.target_from_member(member))
 	var ctx: Dictionary = _build_tactics_context(member_idx)
-	for rule: Dictionary in CombatTactics.get_slot_plan(tactics_id):
+	for rule: Dictionary in CombatGambit.plan_from_member(member):
 		if not CombatTactics.condition_met(rule, ctx):
 			continue
 		var fired: bool = false
