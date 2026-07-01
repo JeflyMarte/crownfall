@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-01（**P3-D139 鍛冶屋軽 UX**: 所持/レシピ素材アイコン・作成可能優先ソート・出力アイコン行。headless smoke PASS）
+
 2026-07-01（**P3-D138 拠点素材可視化**: BaseScene TopBar 素材チップ（最大3種+overflow・ツールチップ・タップで鍛冶）。headless smoke PASS）
 
 2026-07-01（**P3-D137 ガンビット行並替**: 装備画面カスタム戦術5行に↑↓・優先度入替・セーブ連動。headless smoke PASS）
@@ -102,7 +104,8 @@
 | 5 | P3-D136 | 鍛冶屋復活 MVP | Impl | ✅ |
 | 6 | P3-D137 | ガンビット UI 改善（行並替 ↑↓） | Impl | ✅ |
 | 7 | P3-D138 | 拠点素材可視化（TopBar 等） | Impl | ✅ |
-| 8 | P3-D139 | 鍛冶屋軽 UX（素材アイコン・ソート） | Impl | **次** |
+| 8 | P3-D139 | 鍛冶屋軽 UX（素材アイコン・ソート） | Impl | ✅ |
+| 9 | — | 経済ループ Closeout（D134〜139）／Backlog 小タスク | HQ | **次** |
 
 **Backlog（単独 Decision まで着手しない）:** 敵別 Threat テーブル / 探索手動+CD / ELITE スキップ / 周回敗北シミュ / 天候本格 / 位置AI / 複数DG / Affix本格 / ラン中方針切替 / Biome-02 以降。
 
