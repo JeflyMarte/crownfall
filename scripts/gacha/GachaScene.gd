@@ -1,26 +1,28 @@
 extends Control
 
-@onready var _label_token: Label = $VBoxContainer/LabelToken
+@onready var _label_crystal: Label = $VBoxContainer/CurrencyRow/LabelCrystal
 @onready var _label_gold: Label = $VBoxContainer/LabelGold
 @onready var _label_pity: Label = $VBoxContainer/LabelPity
 @onready var _lineup_container: VBoxContainer = $VBoxContainer/LineupScrollContainer/LineupContainer
 @onready var _label_result: Label = $VBoxContainer/LabelResult
 @onready var _button_pull: Button = $VBoxContainer/ButtonPull
-@onready var _button_buy_token: Button = $VBoxContainer/ButtonBuyToken
+@onready var _button_buy_crystal: Button = $VBoxContainer/ButtonBuyCrystal
 
 func _ready() -> void:
 	$VBoxContainer/ButtonBack.pressed.connect(_on_back_pressed)
 	_button_pull.pressed.connect(_on_pull_pressed)
-	_button_buy_token.pressed.connect(_on_buy_token_pressed)
+	_button_buy_crystal.pressed.connect(_on_buy_crystal_pressed)
 	_refresh()
 
 func _refresh() -> void:
-	_label_token.text = "Token: %d" % GameState.gacha_token
-	_label_gold.text = "Gold: %d" % GameState.gold
+	_label_crystal.text = "%s %s" % [CurrencyHelper.DISPLAY_NAME, CurrencyHelper.format_amount()]
+	_label_gold.text = "ゴールド %d" % GameState.gold
 	var remaining: int = GachaSystem.HARD_PITY - GameState.gacha_pity
 	_label_pity.text = "次の確定まで %d 連" % remaining
 	_button_pull.disabled = not GachaSystem.can_pull()
-	_button_buy_token.disabled = GameState.gold < GachaSystem.TOKEN_PURCHASE_GOLD
+	_button_buy_crystal.disabled = GameState.gold < GachaSystem.TOKEN_PURCHASE_GOLD
+	_button_pull.text = "単発を引く（%s 1）" % CurrencyHelper.DISPLAY_NAME
+	_button_buy_crystal.text = "%s購入（%dG）" % [CurrencyHelper.DISPLAY_NAME, GachaSystem.TOKEN_PURCHASE_GOLD]
 	_rebuild_lineup()
 
 func _rebuild_lineup() -> void:
@@ -48,7 +50,7 @@ func _on_pull_pressed() -> void:
 	if not bool(result.get("ok", false)):
 		var reason: String = str(result.get("reason", ""))
 		if reason == "no_token":
-			_label_result.text = "token不足です。"
+			_label_result.text = "%sが足りません。" % CurrencyHelper.DISPLAY_NAME
 		else:
 			_label_result.text = "ガチャに失敗しました（%s）。" % reason
 		_refresh()
@@ -62,16 +64,18 @@ func _on_pull_pressed() -> void:
 	if is_new:
 		_label_result.text = "NEW! ★%d  %s を獲得！" % [rarity, name_str]
 	else:
-		_label_result.text = "★%d  %s（重複） → %d token 還元" % [rarity, name_str, refund]
+		_label_result.text = "★%d  %s（重複） → %s %d 還元" % [
+			rarity, name_str, CurrencyHelper.DISPLAY_NAME, refund,
+		]
 	_refresh()
 
-func _on_buy_token_pressed() -> void:
+func _on_buy_crystal_pressed() -> void:
 	var success: bool = GachaSystem.buy_token()
 	SaveManager.save_game()
 	if success:
-		_label_result.text = "token を1枚購入しました。"
+		_label_result.text = "%sを1個購入しました。" % CurrencyHelper.DISPLAY_NAME
 	else:
-		_label_result.text = "Gold不足です。"
+		_label_result.text = "ゴールドが足りません。"
 	_refresh()
 
 func _on_back_pressed() -> void:

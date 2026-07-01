@@ -1,8 +1,10 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/gacha/GachaScene.gd" id="1"]
 [ext_resource type="Theme" path="res://assets/ui/production_theme.tres" id="2"]
 [ext_resource type="Texture2D" path="res://assets/ui/batch1/UI_BG_Dark.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/ui/batch2/ICO_Currency_Arcanite.png" id="4"]
+[ext_resource type="Texture2D" path="res://assets/ui/batch2/ICO_Gold.png" id="5"]
 
 [node name="GachaScene" type="Control"]
 layout_mode = 3
@@ -41,17 +43,32 @@ theme_override_constants/separation = 8
 
 [node name="LabelTitle" type="Label" parent="VBoxContainer"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
+theme_override_font_sizes/font_size = 22
 text = "助っ人ガチャ"
 horizontal_alignment = 1
 
-[node name="LabelToken" type="Label" parent="VBoxContainer"]
+[node name="CurrencyRow" type="HBoxContainer" parent="VBoxContainer"]
 layout_mode = 2
-text = "Token: 0"
-horizontal_alignment = 1
+alignment = 1
+theme_override_constants/separation = 8
+
+[node name="CrystalIcon" type="TextureRect" parent="VBoxContainer/CurrencyRow"]
+custom_minimum_size = Vector2(22, 22)
+layout_mode = 2
+texture = ExtResource("4")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LabelCrystal" type="Label" parent="VBoxContainer/CurrencyRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.85, 0.98, 1)
+theme_override_font_sizes/font_size = 18
+text = "魔晶石 0"
 
 [node name="LabelGold" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-text = "Gold: 0"
+text = "ゴールド 0"
 horizontal_alignment = 1
 
 [node name="LabelPity" type="Label" parent="VBoxContainer"]
@@ -61,14 +78,14 @@ horizontal_alignment = 1
 
 [node name="LabelLineupHeader" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-text = "--- 排出ラインナップ ---"
+text = "排出ラインナップ"
 horizontal_alignment = 1
 
 [node name="LineupScrollContainer" type="ScrollContainer" parent="VBoxContainer"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 160)
 
-[node name="LineupContainer" type="VBoxContainer" parent="LineupScrollContainer"]
+[node name="LineupContainer" type="VBoxContainer" parent="VBoxContainer/LineupScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
@@ -81,11 +98,11 @@ autowrap_mode = 3
 
 [node name="ButtonPull" type="Button" parent="VBoxContainer"]
 layout_mode = 2
-text = "単発を引く（1 token）"
+text = "単発を引く（魔晶石 1）"
 
-[node name="ButtonBuyToken" type="Button" parent="VBoxContainer"]
+[node name="ButtonBuyCrystal" type="Button" parent="VBoxContainer"]
 layout_mode = 2
-text = "token購入（100G）"
+text = "魔晶石購入（100G）"
 
 [node name="ButtonBack" type="Button" parent="VBoxContainer"]
 layout_mode = 2

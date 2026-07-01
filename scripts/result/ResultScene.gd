@@ -101,7 +101,10 @@ func _build_rewards() -> void:
 	var gold_icon: Texture2D = _try_load("res://assets/ui/batch2/ICO_Gold.png")
 	_reward_row.add_child(_make_reward_cell(gold_icon, "G", "ゴールド", str(GameState.last_run_gold_reward)))
 	if GameState.last_run_token_reward > 0:
-		_reward_row.add_child(_make_reward_cell(null, "◆", "トークン", str(GameState.last_run_token_reward)))
+		_reward_row.add_child(_make_reward_cell(
+			CurrencyHelper.get_icon_texture(), "", CurrencyHelper.DISPLAY_NAME,
+			str(GameState.last_run_token_reward)
+		))
 	var weapon: String = GameState.last_run_weapon_dropped
 	if not weapon.is_empty():
 		_reward_row.add_child(_make_reward_cell(
@@ -275,7 +278,7 @@ func _build_info() -> void:
 	_add_info_pair("入手経験値", "%d EXP" % GameState.last_run_exp_reward)
 	_add_info_pair("入手ゴールド", "%d G" % GameState.last_run_gold_reward)
 	if GameState.last_run_token_reward > 0:
-		_add_info_pair("入手トークン", "◆ %d" % GameState.last_run_token_reward)
+		_add_info_pair("入手%s" % CurrencyHelper.DISPLAY_NAME, "%d" % GameState.last_run_token_reward)
 
 func _add_info_pair(key: String, value: String) -> void:
 	var key_label: Label = Label.new()

@@ -49,7 +49,7 @@ func _ready() -> void:
 
 func _update_currency() -> void:
 	_label_gold.text = "%d" % GameState.gold
-	_label_token.text = "%d" % GameState.gacha_token
+	_label_token.text = CurrencyHelper.format_amount()
 
 func _build_list() -> void:
 	for child in _list.get_children():

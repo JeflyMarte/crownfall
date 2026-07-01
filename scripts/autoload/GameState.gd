@@ -10,7 +10,7 @@ var party_members: Array = []
 var roster: Array = []
 
 # ガチャ通貨（無償のみ） — P3-D036b
-var gacha_token: int = 0
+var gacha_token: int = 0  ## 魔晶石（ガチャ通貨・表示名は CurrencyHelper）
 ## EquipmentScene 起動時に選択するメンバー index（-1=先頭）。RosterScene 詳細ボタン用（P3-UI2-017）。
 var equipment_focus_member_index: int = -1
 # ガチャ所持数 { helper_id: count }（重複＝凸用カウント。MVP は還元のみ）
@@ -38,7 +38,7 @@ var accessory_inventory: Array = []
 
 var last_run_exp_reward: int = 0
 var last_run_gold_reward: int = 0
-# 直近ランで獲得したガチャ token（成功時のみ >0） — P3-D036b-D
+# 直近ランで獲得した魔晶石（成功時のみ >0） — P3-D036b-D
 var last_run_token_reward: int = 0
 var last_run_weapon_dropped: String = ""
 var last_run_armor_dropped: String = ""

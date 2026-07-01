@@ -91,7 +91,7 @@ func _refresh_all() -> void:
 
 func _update_currency() -> void:
 	_label_gold.text = "%d" % GameState.gold
-	_label_token.text = "%d" % GameState.gacha_token
+	_label_token.text = CurrencyHelper.format_amount()
 
 func _refresh_power_label() -> void:
 	var members: Array = _active_members_in_slot_order()

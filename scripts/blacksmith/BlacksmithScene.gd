@@ -89,7 +89,7 @@ func _refresh_all() -> void:
 
 func _update_currency() -> void:
 	_label_gold.text = "%d" % GameState.gold
-	_label_token.text = "%d" % GameState.gacha_token
+	_label_token.text = CurrencyHelper.format_amount()
 
 func _update_mode_tab_dots() -> void:
 	var craftable: bool = BlacksmithUiHelper.has_craftable_recipes()

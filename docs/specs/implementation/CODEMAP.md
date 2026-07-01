@@ -108,7 +108,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `codex/` | **`CatalogHelper.gd`**（P2-Task046/049 — Bible parse + Entry）, **`CodexScene.gd`**（P2-Task047/048/049 — Detail + Bible fields） |
 | `result/` | `ResultScene.gd`（素材アイコン P3-D135・作成可能レシピ P3-D141） |
 | `save/` | `SaveManager.gd` |
-| `ui/` | **`IconPaths.gd`**（Phase3-A — static class、ICON_MAP による `category:id` → `ICO_*.png` 解決） |
+| `ui/` | **`IconPaths.gd`**（Phase3-A — static class、ICON_MAP による `category:id` → `ICO_*.png` 解決）・**`CurrencyHelper.gd`**（魔晶石表示 SSOT） |
 
 ### プレースホルダのみ（.gitkeep、コードなし）
 `scripts/loot/`
@@ -192,6 +192,7 @@ Task 明示指示がない限り作成しない:
 | `assets/ui/batch2/ICO_ACC_SilverRing.png` | 装飾品アイコン 64×64 | ✅ |
 | `assets/ui/batch2/ICO_ACC_Unidentified.png` | 装飾品未識別 64×64 | ✅ |
 | `assets/ui/batch2/ICO_Gold.png` | Gold アイコン 32×32 | ✅ |
+| `assets/ui/batch2/ICO_Currency_Arcanite.png` | 魔晶石（ガチャ通貨）アイコン 64×64 | ✅ |
 | `assets/ui/batch2/ICO_HP.png` | HP アイコン 32×32 | ✅ |
 | `assets/ui/batch2/ICO_MAT_RelicShard.png` | 素材アイコン 64×64 | ✅ |
 
