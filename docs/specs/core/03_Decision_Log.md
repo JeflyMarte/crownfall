@@ -1926,3 +1926,5 @@
 | P3-UI2-017-5 | **陣形＝ポップアップ2×2**（別タブ廃止） | 既存 swap ロジック温存 |
 | P3-UI2-017-6 | **詳細** → `EquipmentScene`（`equipment_focus_member_index`） | 装備導線 |
 | P3-UI2-017-7 | **スコープ外** — リーダースキル効果・Party複数・本格フィルタ UI | 段階2以降 |
+
+**P3-UI2-017b Closeout（2026-07-01）:** リーダー帯（♛+パッシブ説明）・CombatUiFrames 枠・グリッド名/職/編成中バッジ・ロールフィルタ・攻撃力/防御力/HP 表記。headless smoke PASS。
