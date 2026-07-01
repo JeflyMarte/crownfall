@@ -297,7 +297,21 @@ func _apply_roster_save(data: Dictionary) -> void:
 	# 旧セーブの基本職名/職IDを現行定義へ正規化（戦士/盗賊/魔術師 等の残存を解消）
 	GameState.normalize_base_roster()
 	GameState.normalize_roster_rarity()
+	_sync_gacha_roster_metadata()
 	_restore_active_party(data)
+
+func _sync_gacha_roster_metadata() -> void:
+	for adv in GameState.roster:
+		var adv_id: String = str(adv.id)
+		if not adv_id.begins_with("gacha_"):
+			continue
+		var helper_id: String = adv_id.trim_prefix("gacha_")
+		var helper: Resource = DataRegistry.get_gacha_helper_data(helper_id)
+		if helper == null:
+			continue
+		if not str(helper.display_name).is_empty():
+			adv.display_name = str(helper.display_name)
+		adv.rarity = clampi(int(helper.rarity), 1, 5)
 
 func _restore_active_party(data: Dictionary) -> void:
 	var active: Array = []

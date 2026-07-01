@@ -2015,6 +2015,19 @@
 
 **P3-UI2-025 Closeout（2026-07-01）:** BottomNav 表記統一。headless smoke PASS。
 
+## ガチャ助っ人コンテンツ（2026-07-01 — P3-GACHA-002）
+
+> P3-W-012 / D036b-7 の仮名を HQ 暫定固有名へ差替。作画・専用立ち絵は対象外。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-GACHA-002-1 | **固有名（HQ暫定）** — A=ヴァルデン（Valden）/ B=イヴァル（Ivar）/ C=セリン（Serin） | 基本5職と重複回避・08 §14 背景整合 |
+| P3-GACHA-002-2 | **来歴行** — `GachaHelperData.origin_note`・排出ラインナップに表示 | 可読性 |
+| P3-GACHA-002-3 | **セーブ同期** — ロード時 `gacha_*` の display_name/rarity を helper 定義へ追従 | 旧仮名セーブ救済 |
+| P3-GACHA-002-4 | **スコープ外** — 専用スプライト・台詞・オーナー最終名の強制 | 差替可 |
+
+**P3-GACHA-002 Closeout（2026-07-01）:** `helper_a/b/c.tres` + world 同期。headless smoke PASS。
+
 ## ガチャ仕様整合（2026-07-01 — P3-GACHA-001）
 
 > P3-D036b の実装差分を解消。UI 演出・10連・有償通貨は対象外。

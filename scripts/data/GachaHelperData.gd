@@ -7,6 +7,8 @@ extends Resource
 @export var id: String = ""
 @export var display_name: String = ""
 @export var job_id: String = ""
+## 来歴一行（排出ラインナップ等の表示用 / P3-GACHA-002）。
+@export var origin_note: String = ""
 ## レアリティ（★表示・排出率・重複還元に使用。プール=★4×1+★3×2 / P3-D036b）。
 @export var rarity: int = 3
 ## 専用スプライト animation resource パス（空なら job 既定）。
