@@ -1,9 +1,10 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/dungeon/DungeonSelectScene.gd" id="1"]
 [ext_resource type="Theme" path="res://assets/ui/production_theme.tres" id="2"]
 [ext_resource type="Texture2D" path="res://assets/ui/batch1/UI_BG_Dark.png" id="3"]
 [ext_resource type="Texture2D" path="res://assets/ui/batch2/ICO_Gold.png" id="4"]
+[ext_resource type="Texture2D" path="res://assets/ui/batch2/ICO_Currency_Arcanite.png" id="5"]
 
 [sub_resource type="StyleBoxFlat" id="SB_Header"]
 bg_color = Color(0.04, 0.04, 0.1, 0.9)
@@ -118,12 +119,13 @@ theme_override_styles/panel = SubResource("SB_Chip")
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="TokenGlyph" type="Label" parent="Header/HeaderRow/TokenChip/TokenRow"]
+[node name="TokenIcon" type="TextureRect" parent="Header/HeaderRow/TokenChip/TokenRow"]
+custom_minimum_size = Vector2(18, 18)
 layout_mode = 2
 size_flags_vertical = 4
-text = "◆"
-theme_override_colors/font_color = Color(0.45, 0.72, 0.95, 1)
-theme_override_font_sizes/font_size = 18
+texture = ExtResource("5")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="LabelToken" type="Label" parent="Header/HeaderRow/TokenChip/TokenRow"]
 layout_mode = 2

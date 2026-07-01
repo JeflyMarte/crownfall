@@ -58,7 +58,8 @@ func _update_display() -> void:
 
 func _update_currency() -> void:
 	_label_gold.text = "%d" % GameState.gold
-	_label_token.text = "%d" % GameState.gacha_token
+	_label_token.text = CurrencyHelper.format_amount()
+	$TopBar/TopBarRow/TokenChip.tooltip_text = CurrencyHelper.DISPLAY_NAME
 
 func _update_materials() -> void:
 	for child in _material_icons.get_children():

@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-01（**P3-ECO-002 魔晶石通貨**: 表示名・アイコン・UI統一。`gacha_token` セーブ互換。smoke PASS）
+
 2026-07-01（**P3-UI2-019b 装備画面 polish**: 装備枠カード内配置・+Nバッジ・装備一覧。headless smoke PASS）
 
 2026-07-01（**P3-UI2-019a 装備画面モック寄せ**: Header/BottomNav・キャラ◀▶切替。headless smoke PASS）

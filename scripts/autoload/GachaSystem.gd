@@ -1,7 +1,7 @@
 extends Node
 
-## 助っ人ガチャ（P3-D036b）。通貨 gacha_token を消費して単発抽選。
-## キャラ★は全員★3固定。未所持優先、ハード天井30連。重複は token 還元。
+## 助っ人ガチャ（P3-D036b）。通貨=魔晶石（`GameState.gacha_token`）を消費して単発抽選。
+## キャラ★は全員★3固定。未所持優先、ハード天井30連。重複は魔晶石還元。
 
 const PULL_COST: int = 1
 const TOKEN_PURCHASE_GOLD: int = 100
@@ -22,7 +22,7 @@ func add_tokens(n: int) -> void:
 	if n > 0:
 		GameState.gacha_token += n
 
-# Gold で token を1枚購入。成功で true。
+# Gold で魔晶石を1個購入。成功で true。
 func buy_token() -> bool:
 	if GameState.gold < TOKEN_PURCHASE_GOLD:
 		return false

@@ -1958,3 +1958,15 @@
 **P3-UI2-019a Closeout（2026-07-01）:** Header/BottomNav/メンバー矢印。headless smoke PASS。
 
 **P3-UI2-019b Closeout（2026-07-01）:** 装備枠をキャラカード内縦配置・炉研ぎ+Nバッジ・装備一覧ヘッダ・レアリティソート・`MemberSelectRow` 修復。headless smoke PASS。
+
+## ガチャ通貨「魔晶石」（2026-07-01 — P3-ECO-002）
+
+> 仮称 `gacha_token` / ◆ 表示を正式名称・アイコンへ統一。セーブキー `gacha_token` は互換維持。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-ECO-002-1 | **表示名＝魔晶石**。内部 `GameState.gacha_token`・`CurrencyHelper` SSOT | D036b 通貨の世界観化 |
+| P3-ECO-002-2 | **アイコン** `ICO_Currency_Arcanite.png`（紫晶・003 モック準拠） | Header/Result/Gacha 共通 |
+| P3-ECO-002-3 | **ロジック不変** — 単発1・100G購入・ラン成功1〜2・重複還元 | D036b 温存 |
+
+**Closeout（2026-07-01）:** headless smoke PASS。
