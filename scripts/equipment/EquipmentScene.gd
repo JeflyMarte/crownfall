@@ -102,6 +102,13 @@ func _ready() -> void:
 	_connect_category_buttons()
 	_inventory_grid.columns = GRID_COLUMNS
 	_decorate_portrait()
+	if GameState.equipment_focus_member_index >= 0:
+		_selected_member_index = clampi(
+			GameState.equipment_focus_member_index,
+			0,
+			maxi(0, GameState.party_members.size() - 1)
+		)
+		GameState.equipment_focus_member_index = -1
 	_refresh_member_buttons()
 	_refresh_display()
 

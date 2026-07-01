@@ -1,8 +1,59 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/roster/RosterScene.gd" id="1"]
 [ext_resource type="Theme" path="res://assets/ui/production_theme.tres" id="2"]
 [ext_resource type="Texture2D" path="res://assets/ui/batch1/UI_BG_Dark.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/ui/batch2/ICO_Gold.png" id="4"]
+
+[sub_resource type="StyleBoxFlat" id="SB_Header"]
+bg_color = Color(0.04, 0.04, 0.1, 0.9)
+border_width_bottom = 1
+border_color = Color(0.55, 0.45, 0.18, 0.6)
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="SB_Chip"]
+bg_color = Color(0.1, 0.09, 0.05, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.55, 0.45, 0.18, 0.5)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+content_margin_left = 10.0
+content_margin_top = 4.0
+content_margin_right = 10.0
+content_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxFlat" id="SB_BottomNav"]
+bg_color = Color(0.04, 0.04, 0.1, 0.92)
+border_width_top = 1
+border_color = Color(0.55, 0.45, 0.18, 0.6)
+content_margin_left = 8.0
+content_margin_top = 6.0
+content_margin_right = 8.0
+content_margin_bottom = 6.0
+
+[sub_resource type="StyleBoxFlat" id="SB_Save"]
+bg_color = Color(0.42, 0.32, 0.08, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.85, 0.72, 0.28, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
 
 [node name="RosterScene" type="Control"]
 layout_mode = 3
@@ -21,101 +72,287 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-stretch_mode = 1
 texture = ExtResource("3")
+expand_mode = 1
+stretch_mode = 6
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="Header" type="PanelContainer" parent="."]
 layout_mode = 1
+anchor_right = 1.0
+offset_bottom = 46.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("SB_Header")
+
+[node name="HeaderRow" type="HBoxContainer" parent="Header"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ButtonBack" type="Button" parent="Header/HeaderRow"]
+layout_mode = 2
+size_flags_vertical = 4
+text = "←"
+
+[node name="LabelTitle" type="Label" parent="Header/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
+theme_override_font_sizes/font_size = 18
+text = "パーティ編成"
+horizontal_alignment = 1
+
+[node name="GoldChip" type="PanelContainer" parent="Header/HeaderRow"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("SB_Chip")
+
+[node name="GoldRow" type="HBoxContainer" parent="Header/HeaderRow/GoldChip"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="GoldIcon" type="TextureRect" parent="Header/HeaderRow/GoldChip/GoldRow"]
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("4")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LabelGold" type="Label" parent="Header/HeaderRow/GoldChip/GoldRow"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.95, 0.82, 0.35, 1)
+theme_override_font_sizes/font_size = 18
+text = "0"
+
+[node name="TokenChip" type="PanelContainer" parent="Header/HeaderRow"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("SB_Chip")
+
+[node name="TokenRow" type="HBoxContainer" parent="Header/HeaderRow/TokenChip"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TokenGlyph" type="Label" parent="Header/HeaderRow/TokenChip/TokenRow"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.45, 0.72, 0.95, 1)
+theme_override_font_sizes/font_size = 18
+text = "◆"
+
+[node name="LabelToken" type="Label" parent="Header/HeaderRow/TokenChip/TokenRow"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.72, 0.85, 0.98, 1)
+theme_override_font_sizes/font_size = 18
+text = "0"
+
+[node name="MainScroll" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 50.0
+offset_bottom = -104.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="MainVBox" type="VBoxContainer" parent="MainScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="PowerRow" type="HBoxContainer" parent="MainScroll/MainVBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LabelPower" type="Label" parent="MainScroll/MainVBox/PowerRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
+theme_override_font_sizes/font_size = 16
+text = "総合戦力 0"
+
+[node name="ButtonRecommend" type="Button" parent="MainScroll/MainVBox/PowerRow"]
+layout_mode = 2
+text = "おすすめ編成"
+
+[node name="ButtonFormation" type="Button" parent="MainScroll/MainVBox/PowerRow"]
+layout_mode = 2
+text = "陣形"
+
+[node name="ActivePartyScroll" type="ScrollContainer" parent="MainScroll/MainVBox"]
+custom_minimum_size = Vector2(0, 210)
+layout_mode = 2
+horizontal_scroll_mode = 2
+vertical_scroll_mode = 0
+
+[node name="ActivePartyRow" type="HBoxContainer" parent="MainScroll/MainVBox/ActivePartyScroll"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LeaderStrip" type="PanelContainer" parent="MainScroll/MainVBox"]
+layout_mode = 2
+
+[node name="LeaderLabel" type="Label" parent="MainScroll/MainVBox/LeaderStrip"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.82, 0.84, 0.9, 1)
+theme_override_font_sizes/font_size = 14
+text = "リーダー: —"
+autowrap_mode = 3
+
+[node name="ListHeader" type="HBoxContainer" parent="MainScroll/MainVBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LabelListTitle" type="Label" parent="MainScroll/MainVBox/ListHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 15
+text = "キャラクター一覧"
+
+[node name="ButtonSort" type="Button" parent="MainScroll/MainVBox/ListHeader"]
+layout_mode = 2
+text = "レアリティ順"
+
+[node name="RosterGrid" type="GridContainer" parent="MainScroll/MainVBox"]
+layout_mode = 2
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 4
+
+[node name="LabelStatus" type="Label" parent="MainScroll/MainVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.69, 0.62, 1)
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="FooterRow" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -104.0
+offset_bottom = -56.0
+grow_horizontal = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="ButtonReset" type="Button" parent="FooterRow"]
+layout_mode = 2
+text = "パーティ解除"
+
+[node name="ButtonSave" type="Button" parent="FooterRow"]
+layout_mode = 2
+theme_override_styles/normal = SubResource("SB_Save")
+theme_override_colors/font_color = Color(0.98, 0.92, 0.62, 1)
+text = "保存"
+
+[node name="BottomNav" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -52.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("SB_BottomNav")
+
+[node name="NavRow" type="HBoxContainer" parent="BottomNav"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="NavHome" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ホーム"
+
+[node name="NavAdventure" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "冒険"
+
+[node name="NavParty" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+button_pressed = true
+text = "パーティ"
+
+[node name="NavCodex" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "図鑑"
+
+[node name="NavShop" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ショップ"
+
+[node name="FormationOverlay" type="CanvasLayer" parent="."]
+visible = false
+
+[node name="Dim" type="ColorRect" parent="FormationOverlay"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 16.0
-offset_top = 16.0
-offset_right = -16.0
-offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 2
+color = Color(0, 0, 0, 0.55)
+
+[node name="FormationPanel" type="PanelContainer" parent="FormationOverlay"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -170.0
+offset_top = -180.0
+offset_right = 170.0
+offset_bottom = 180.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="FormationVBox" type="VBoxContainer" parent="FormationOverlay/FormationPanel"]
+layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="LabelTitle" type="Label" parent="VBoxContainer"]
+[node name="LabelFormationTitle" type="Label" parent="FormationOverlay/FormationPanel/FormationVBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.86, 0.74, 0.45, 1)
-theme_override_font_sizes/font_size = 24
-text = "編成・陣形"
+theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
+theme_override_font_sizes/font_size = 16
+text = "陣形配置"
 horizontal_alignment = 1
 
-[node name="TabContainer" type="TabContainer" parent="VBoxContainer"]
+[node name="LabelFormationHint" type="Label" parent="FormationOverlay/FormationPanel/FormationVBox"]
 layout_mode = 2
-size_flags_vertical = 3
-
-[node name="TabRoster" type="VBoxContainer" parent="VBoxContainer/TabContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-theme_override_constants/separation = 8
-
-[node name="LabelInfo" type="Label" parent="VBoxContainer/TabContainer/TabRoster"]
-layout_mode = 2
-text = "1〜4名を選択してください（☆で編成に加える）"
+text = "マスをタップして入れ替え。上段=前列／下段=後列"
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer/TabContainer/TabRoster"]
+[node name="FormationBoard" type="VBoxContainer" parent="FormationOverlay/FormationPanel/FormationVBox"]
 layout_mode = 2
-size_flags_vertical = 3
-horizontal_scroll_mode = 0
+alignment = 1
+theme_override_constants/separation = 8
 
-[node name="RosterListContainer" type="VBoxContainer" parent="VBoxContainer/TabContainer/TabRoster/ScrollContainer"]
+[node name="FormationPresetRow" type="HBoxContainer" parent="FormationOverlay/FormationPanel/FormationVBox"]
 layout_mode = 2
-size_flags_horizontal = 3
+alignment = 1
 theme_override_constants/separation = 6
 
-[node name="TabFormation" type="VBoxContainer" parent="VBoxContainer/TabContainer"]
-visible = false
+[node name="ButtonPresetFront" type="Button" parent="FormationOverlay/FormationPanel/FormationVBox/FormationPresetRow"]
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-theme_override_constants/separation = 10
+text = "前衛"
 
-[node name="LabelFormationHint" type="Label" parent="VBoxContainer/TabContainer/TabFormation"]
+[node name="ButtonPresetBalanced" type="Button" parent="FormationOverlay/FormationPanel/FormationVBox/FormationPresetRow"]
 layout_mode = 2
-text = "マスをタップして入れ替え。上段=前列（被ダメ通常）／下段=後列（被ダメ-15%）"
-horizontal_alignment = 1
-autowrap_mode = 3
+text = "均衡"
 
-[node name="FormationBoard" type="VBoxContainer" parent="VBoxContainer/TabContainer/TabFormation"]
+[node name="ButtonPresetBack" type="Button" parent="FormationOverlay/FormationPanel/FormationVBox/FormationPresetRow"]
 layout_mode = 2
-size_flags_vertical = 3
-alignment = 1
-theme_override_constants/separation = 8
+text = "後衛"
 
-[node name="PresetRow" type="HBoxContainer" parent="VBoxContainer/TabContainer/TabFormation"]
+[node name="ButtonFormationClose" type="Button" parent="FormationOverlay/FormationPanel/FormationVBox"]
 layout_mode = 2
-alignment = 1
-theme_override_constants/separation = 8
-
-[node name="ButtonPresetFront" type="Button" parent="VBoxContainer/TabContainer/TabFormation/PresetRow"]
-layout_mode = 2
-text = "前衛配置"
-
-[node name="ButtonPresetBalanced" type="Button" parent="VBoxContainer/TabContainer/TabFormation/PresetRow"]
-layout_mode = 2
-text = "均衡配置"
-
-[node name="ButtonPresetBack" type="Button" parent="VBoxContainer/TabContainer/TabFormation/PresetRow"]
-layout_mode = 2
-text = "後衛配置"
-
-[node name="LabelStatus" type="Label" parent="VBoxContainer"]
-layout_mode = 2
-text = ""
-horizontal_alignment = 1
-autowrap_mode = 3
-
-[node name="ButtonConfirm" type="Button" parent="VBoxContainer"]
-layout_mode = 2
-text = "編成・陣形を確定"
-
-[node name="ButtonBack" type="Button" parent="VBoxContainer"]
-layout_mode = 2
-text = "拠点へ戻る"
+text = "閉じる"

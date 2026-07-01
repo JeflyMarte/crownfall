@@ -1,9 +1,15 @@
 extends Control
 
-const _JobStatCalculator = preload("res://scripts/equipment/JobStatCalculator.gd")
+const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
+const DUNGEON_SCENE: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
+const EQUIPMENT_SCENE: String = "res://scenes/equipment/EquipmentScene.tscn"
+const CODEX_SCENE: String = "res://scenes/codex/CodexScene.tscn"
+const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
 
 const FORMATION_SLOT_COUNT: int = 4
-const FORMATION_CELL_PX: int = 148
+const FORMATION_CELL_PX: int = 132
+const ACTIVE_CARD_WIDTH: int = 158
+const GRID_COLUMNS: int = 4
 
 const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45)
 const COLOR_SUB: Color = Color(0.72, 0.69, 0.62)
@@ -12,48 +18,96 @@ const COLOR_BACK: Color = Color(0.65, 0.85, 0.55)
 const COLOR_EMPTY: Color = Color(0.35, 0.33, 0.30)
 const COLOR_PICK: Color = Color(0.95, 0.78, 0.35)
 
+const _FRONT_JOB_IDS: Array[String] = ["swordsman", "vanguard"]
+const _RECOMMENDED_JOB_ORDER: Array[String] = [
+	"vanguard", "swordsman", "ranger", "alchemist", "beast_tamer",
+]
+
 var _selected: Array = []
 var _formation_slots: Array = [null, null, null, null]
 var _formation_pick_slot: int = -1
+var _active_pick_slot: int = -1
+var _sort_by_rarity: bool = true
 var _formation_cells: Array[PanelContainer] = []
 
-@onready var _tab_container: TabContainer = $VBoxContainer/TabContainer
-@onready var _formation_board: VBoxContainer = $VBoxContainer/TabContainer/TabFormation/FormationBoard
-@onready var _label_status: Label = $VBoxContainer/LabelStatus
-@onready var _button_confirm: Button = $VBoxContainer/ButtonConfirm
+@onready var _label_gold: Label = $Header/HeaderRow/GoldChip/GoldRow/LabelGold
+@onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
+@onready var _label_power: Label = $MainScroll/MainVBox/PowerRow/LabelPower
+@onready var _active_party_row: HBoxContainer = $MainScroll/MainVBox/ActivePartyScroll/ActivePartyRow
+@onready var _leader_label: Label = $MainScroll/MainVBox/LeaderStrip/LeaderLabel
+@onready var _roster_grid: GridContainer = $MainScroll/MainVBox/RosterGrid
+@onready var _label_status: Label = $MainScroll/MainVBox/LabelStatus
+@onready var _formation_overlay: CanvasLayer = $FormationOverlay
+@onready var _formation_board: VBoxContainer = $FormationOverlay/FormationPanel/FormationVBox/FormationBoard
+@onready var _button_save: Button = $FooterRow/ButtonSave
 
 func _ready() -> void:
-	_tab_container.set_tab_title(0, "編成")
-	_tab_container.set_tab_title(1, "陣形")
-	_tab_container.tab_changed.connect(_on_tab_changed)
-	$VBoxContainer/ButtonConfirm.pressed.connect(_on_confirm_pressed)
-	$VBoxContainer/ButtonBack.pressed.connect(_on_back_pressed)
-	$VBoxContainer/TabContainer/TabFormation/PresetRow/ButtonPresetFront.pressed.connect(
+	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)
+	$MainScroll/MainVBox/PowerRow/ButtonRecommend.pressed.connect(_on_recommend_pressed)
+	$MainScroll/MainVBox/PowerRow/ButtonFormation.pressed.connect(_open_formation_overlay)
+	$MainScroll/MainVBox/ListHeader/ButtonSort.pressed.connect(_on_sort_pressed)
+	$FooterRow/ButtonReset.pressed.connect(_on_reset_pressed)
+	$FooterRow/ButtonSave.pressed.connect(_on_save_pressed)
+	$BottomNav/NavRow/NavHome.pressed.connect(_go_home)
+	$BottomNav/NavRow/NavAdventure.pressed.connect(_go_to.bind(DUNGEON_SCENE))
+	$BottomNav/NavRow/NavCodex.pressed.connect(_go_to.bind(CODEX_SCENE))
+	$BottomNav/NavRow/NavShop.pressed.connect(_go_to.bind(GACHA_SCENE))
+	$FormationOverlay/Dim.gui_input.connect(_on_formation_dim_input)
+	$FormationOverlay/FormationPanel/FormationVBox/ButtonFormationClose.pressed.connect(_close_formation_overlay)
+	$FormationOverlay/FormationPanel/FormationVBox/FormationPresetRow/ButtonPresetFront.pressed.connect(
 		_on_formation_preset_pressed.bind("front")
 	)
-	$VBoxContainer/TabContainer/TabFormation/PresetRow/ButtonPresetBalanced.pressed.connect(
+	$FormationOverlay/FormationPanel/FormationVBox/FormationPresetRow/ButtonPresetBalanced.pressed.connect(
 		_on_formation_preset_pressed.bind("balanced")
 	)
-	$VBoxContainer/TabContainer/TabFormation/PresetRow/ButtonPresetBack.pressed.connect(
+	$FormationOverlay/FormationPanel/FormationVBox/FormationPresetRow/ButtonPresetBack.pressed.connect(
 		_on_formation_preset_pressed.bind("back")
 	)
 	_selected = GameState.party_members.duplicate()
 	_init_formation_slots_from_party()
 	_build_formation_grid()
-	_rebuild_roster_list()
-	_refresh_formation_grid()
-	_update_confirm_button()
+	_refresh_all()
 
-func _on_tab_changed(tab: int) -> void:
-	if tab == 1:
-		_sync_formation_slots_from_selection()
-		_refresh_formation_grid()
+func _refresh_all() -> void:
+	_update_currency()
+	_refresh_power_label()
+	_rebuild_active_party_row()
+	_refresh_leader_strip()
+	_rebuild_roster_grid()
+	_refresh_formation_grid()
+	_update_save_button()
+
+func _update_currency() -> void:
+	_label_gold.text = "%d" % GameState.gold
+	_label_token.text = "%d" % GameState.gacha_token
+
+func _refresh_power_label() -> void:
+	var members: Array = _active_members_in_slot_order()
+	_label_power.text = "総合戦力 %s" % _format_number(RosterUiHelper.compute_combat_power(members))
+
+func _format_number(value: int) -> String:
+	var text: String = str(value)
+	if text.length() <= 3:
+		return text
+	var out: String = ""
+	while text.length() > 3:
+		out = "," + text.substr(text.length() - 3, 3) + out
+		text = text.substr(0, text.length() - 3)
+	return text + out
 
 func _init_formation_slots_from_party() -> void:
 	for i in FORMATION_SLOT_COUNT:
 		_formation_slots[i] = null
+	for member in GameState.party_members:
+		if member == null:
+			continue
+		var slot: int = GameState.get_member_formation_slot(member)
+		if slot < 0 or slot >= FORMATION_SLOT_COUNT or _formation_slots[slot] != null:
+			continue
+		_formation_slots[slot] = member
 	for i in mini(FORMATION_SLOT_COUNT, GameState.party_members.size()):
-		_formation_slots[i] = GameState.party_members[i]
+		if _formation_slots[i] == null:
+			_formation_slots[i] = GameState.party_members[i]
 
 func _sync_formation_slots_from_selection() -> void:
 	var kept: Array = []
@@ -69,6 +123,313 @@ func _sync_formation_slots_from_selection() -> void:
 		_formation_slots[i] = kept[i] if i < kept.size() else null
 	_apply_formation_rows_from_slots()
 
+func _active_members_in_slot_order() -> Array:
+	var members: Array = []
+	for i in FORMATION_SLOT_COUNT:
+		var member: Resource = _formation_slots[i]
+		if member != null and _selected.has(member):
+			members.append(member)
+	return members
+
+func _party_index_for_member(member: Resource) -> int:
+	for i in _selected.size():
+		if _selected[i] == member:
+			return i
+	return -1
+
+func _rebuild_active_party_row() -> void:
+	for child in _active_party_row.get_children():
+		child.queue_free()
+	for slot_index in FORMATION_SLOT_COUNT:
+		_active_party_row.add_child(_make_active_party_card(slot_index))
+
+func _make_active_party_card(slot_index: int) -> Control:
+	var member: Resource = _formation_slots[slot_index]
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(ACTIVE_CARD_WIDTH, 0)
+	panel.add_theme_stylebox_override(
+		"panel",
+		RosterUiHelper.card_panel_style(member != null, slot_index == 0)
+	)
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 4)
+	panel.add_child(vbox)
+	if slot_index == 0:
+		var leader := Label.new()
+		leader.text = "リーダー"
+		leader.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		leader.add_theme_font_size_override("font_size", 11)
+		leader.add_theme_color_override("font_color", COLOR_GOLD)
+		vbox.add_child(leader)
+	if member == null:
+		var empty := Label.new()
+		empty.text = "空き"
+		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		empty.custom_minimum_size = Vector2(ACTIVE_CARD_WIDTH - 16, 160)
+		empty.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		empty.add_theme_color_override("font_color", COLOR_EMPTY)
+		vbox.add_child(empty)
+		panel.gui_input.connect(_on_active_card_input.bind(slot_index))
+		return panel
+	var portrait_tex: Texture2D = IconPaths.get_icon_texture(str(member.job_id), "chr")
+	if portrait_tex != null:
+		var portrait := TextureRect.new()
+		portrait.texture = portrait_tex
+		portrait.custom_minimum_size = Vector2(88, 88)
+		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		portrait.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		vbox.add_child(portrait)
+	var name_lbl := Label.new()
+	name_lbl.text = RosterUiHelper.short_display_name(str(member.display_name))
+	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_lbl.add_theme_font_size_override("font_size", 14)
+	vbox.add_child(name_lbl)
+	var stars := Label.new()
+	stars.text = "%s  Lv%d" % [RosterUiHelper.stars_text(int(member.rarity)), int(member.level)]
+	stars.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stars.add_theme_font_size_override("font_size", 12)
+	stars.add_theme_color_override("font_color", COLOR_SUB)
+	vbox.add_child(stars)
+	var mods: Dictionary = JobStatCalculator.get_member_modifiers(member)
+	var role: String = str(mods.get("role", ""))
+	var role_lbl := Label.new()
+	role_lbl.text = "%s %s" % [RosterUiHelper.role_glyph(role), RosterUiHelper.role_label(role)]
+	role_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	role_lbl.add_theme_font_size_override("font_size", 12)
+	vbox.add_child(role_lbl)
+	var stats: Dictionary = RosterUiHelper.compute_member_stats(member, _party_index_for_member(member))
+	var stat_lbl := Label.new()
+	stat_lbl.text = "攻撃 %d\n防御 %d\nHP %d" % [
+		int(stats.get("attack", 0)), int(stats.get("defense", 0)), int(stats.get("hp", 0)),
+	]
+	stat_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stat_lbl.add_theme_font_size_override("font_size", 11)
+	stat_lbl.add_theme_color_override("font_color", COLOR_SUB)
+	vbox.add_child(stat_lbl)
+	var row_lbl := Label.new()
+	var is_back: bool = GameState.get_member_formation_row(member) == GameState.FORMATION_BACK
+	row_lbl.text = "後列" if is_back else "前列"
+	row_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	row_lbl.add_theme_font_size_override("font_size", 11)
+	row_lbl.add_theme_color_override("font_color", COLOR_BACK if is_back else COLOR_FRONT)
+	vbox.add_child(row_lbl)
+	var detail := Button.new()
+	detail.text = "詳細"
+	detail.pressed.connect(_on_detail_pressed.bind(member))
+	vbox.add_child(detail)
+	panel.gui_input.connect(_on_active_card_input.bind(slot_index))
+	if _active_pick_slot == slot_index:
+		panel.add_theme_stylebox_override("panel", _pick_style())
+	return panel
+
+func _pick_style() -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.08, 0.07, 0.05, 0.94)
+	style.border_color = COLOR_PICK
+	style.set_border_width_all(3)
+	style.set_corner_radius_all(10)
+	style.content_margin_left = 8
+	style.content_margin_top = 8
+	style.content_margin_right = 8
+	style.content_margin_bottom = 8
+	return style
+
+func _on_active_card_input(event: InputEvent, slot_index: int) -> void:
+	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
+		return
+	if _formation_slots[slot_index] == null:
+		return
+	if _active_pick_slot < 0:
+		_active_pick_slot = slot_index
+	else:
+		if _active_pick_slot != slot_index:
+			var tmp = _formation_slots[_active_pick_slot]
+			_formation_slots[_active_pick_slot] = _formation_slots[slot_index]
+			_formation_slots[slot_index] = tmp
+			_apply_formation_rows_from_slots()
+		_active_pick_slot = -1
+	_rebuild_active_party_row()
+
+func _on_detail_pressed(member: Resource) -> void:
+	var party: Array = _ordered_party_from_formation()
+	if not GameState.set_active_party(party):
+		_label_status.text = "詳細を開くには有効な編成が必要です"
+		return
+	var idx: int = GameState.party_members.find(member)
+	if idx < 0:
+		idx = 0
+	GameState.equipment_focus_member_index = idx
+	SceneRouter.change_scene(EQUIPMENT_SCENE)
+
+func _refresh_leader_strip() -> void:
+	var leader: Resource = _formation_slots[0]
+	if leader == null:
+		_leader_label.text = "リーダー: —"
+		return
+	var mods: Dictionary = JobStatCalculator.get_member_modifiers(leader)
+	var job_name: String = str(mods.get("display_name", leader.job_id))
+	_leader_label.text = "リーダー: %s — %s" % [
+		RosterUiHelper.short_display_name(str(leader.display_name)), job_name,
+	]
+
+func _rebuild_roster_grid() -> void:
+	for child in _roster_grid.get_children():
+		child.queue_free()
+	var roster: Array = GameState.get_roster().duplicate()
+	roster.sort_custom(func(a: Resource, b: Resource) -> bool: return _sort_roster_cmp(a, b))
+	for adv in roster:
+		_roster_grid.add_child(_make_roster_grid_card(adv))
+
+func _sort_roster_cmp(a: Resource, b: Resource) -> bool:
+	if _sort_by_rarity:
+		if int(a.rarity) != int(b.rarity):
+			return int(a.rarity) > int(b.rarity)
+		if int(a.level) != int(b.level):
+			return int(a.level) > int(b.level)
+	else:
+		if int(a.level) != int(b.level):
+			return int(a.level) > int(b.level)
+		if int(a.rarity) != int(b.rarity):
+			return int(a.rarity) > int(b.rarity)
+	return str(a.display_name) < str(b.display_name)
+
+func _make_roster_grid_card(adv: Resource) -> Control:
+	var in_party: bool = _selected.has(adv)
+	var btn := Button.new()
+	btn.toggle_mode = false
+	btn.custom_minimum_size = Vector2(78, 108)
+	btn.add_theme_stylebox_override("normal", RosterUiHelper.card_panel_style(in_party, false))
+	btn.add_theme_stylebox_override("hover", RosterUiHelper.card_panel_style(in_party, false))
+	btn.add_theme_stylebox_override("pressed", RosterUiHelper.card_panel_style(true, false))
+	btn.pressed.connect(_toggle_selection.bind(adv))
+	var vbox := VBoxContainer.new()
+	vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_theme_constant_override("separation", 2)
+	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	btn.add_child(vbox)
+	var tex: Texture2D = IconPaths.get_icon_texture(str(adv.job_id), "chr")
+	if tex != null:
+		var icon := TextureRect.new()
+		icon.texture = tex
+		icon.custom_minimum_size = Vector2(52, 52)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		if in_party:
+			icon.modulate = Color(1, 1, 1, 0.72)
+		vbox.add_child(icon)
+	var mods: Dictionary = JobStatCalculator.get_member_modifiers(adv)
+	var role: String = str(mods.get("role", ""))
+	var role_lbl := Label.new()
+	role_lbl.text = RosterUiHelper.role_glyph(role)
+	role_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(role_lbl)
+	var lv_lbl := Label.new()
+	lv_lbl.text = "Lv%d" % int(adv.level)
+	lv_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lv_lbl.add_theme_font_size_override("font_size", 11)
+	vbox.add_child(lv_lbl)
+	var star_lbl := Label.new()
+	star_lbl.text = RosterUiHelper.stars_text(int(adv.rarity))
+	star_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	star_lbl.add_theme_font_size_override("font_size", 10)
+	star_lbl.add_theme_color_override("font_color", COLOR_GOLD)
+	vbox.add_child(star_lbl)
+	return btn
+
+func _toggle_selection(adv: Resource) -> void:
+	if _selected.has(adv):
+		if _selected.size() > 1:
+			_selected.erase(adv)
+	else:
+		if _selected.size() < GameState.ACTIVE_PARTY_SIZE:
+			_selected.append(adv)
+	_sync_formation_slots_from_selection()
+	_active_pick_slot = -1
+	_refresh_all()
+
+func _on_recommend_pressed() -> void:
+	var roster: Array = GameState.get_roster()
+	var picked: Array = []
+	for job_id in _RECOMMENDED_JOB_ORDER:
+		for adv in roster:
+			if str(adv.job_id) == job_id and adv not in picked:
+				picked.append(adv)
+				break
+	for adv in roster:
+		if adv not in picked:
+			picked.append(adv)
+		if picked.size() >= GameState.ACTIVE_PARTY_SIZE:
+			break
+	_selected = picked.slice(0, mini(GameState.ACTIVE_PARTY_SIZE, picked.size()))
+	_assign_formation_by_role(_selected, true)
+	_active_pick_slot = -1
+	_formation_pick_slot = -1
+	_label_status.text = "おすすめ編成を適用しました"
+	_refresh_all()
+
+func _on_reset_pressed() -> void:
+	var roster: Array = GameState.get_roster()
+	_selected = []
+	for i in mini(GameState.ACTIVE_PARTY_SIZE, roster.size()):
+		_selected.append(roster[i])
+	_place_members_in_slots(_selected, [0, 1, 2, 3])
+	_apply_formation_rows_from_slots()
+	_active_pick_slot = -1
+	_formation_pick_slot = -1
+	_label_status.text = "編成を初期状態に戻しました"
+	_refresh_all()
+
+func _on_sort_pressed() -> void:
+	_sort_by_rarity = not _sort_by_rarity
+	$MainScroll/MainVBox/ListHeader/ButtonSort.text = "レアリティ順" if _sort_by_rarity else "レベル順"
+	_rebuild_roster_grid()
+
+func _on_save_pressed() -> void:
+	_sync_formation_slots_from_selection()
+	_apply_formation_rows_from_slots()
+	var party: Array = _ordered_party_from_formation()
+	if not GameState.set_active_party(party):
+		_label_status.text = "編成の変更に失敗しました（1〜%d名・重複不可）" % GameState.ACTIVE_PARTY_SIZE
+		return
+	SaveManager.save_game()
+	_label_status.text = "編成を保存しました"
+
+func _ordered_party_from_formation() -> Array:
+	var ordered: Array = []
+	for i in FORMATION_SLOT_COUNT:
+		var member: Resource = _formation_slots[i]
+		if member != null and _selected.has(member) and not ordered.has(member):
+			ordered.append(member)
+	for adv in _selected:
+		if not ordered.has(adv):
+			ordered.append(adv)
+	return ordered
+
+func _update_save_button() -> void:
+	var count: int = _selected.size()
+	_button_save.disabled = count < 1 or count > GameState.ACTIVE_PARTY_SIZE
+
+func _open_formation_overlay() -> void:
+	_sync_formation_slots_from_selection()
+	_formation_pick_slot = -1
+	_refresh_formation_grid()
+	_formation_overlay.visible = true
+
+func _close_formation_overlay() -> void:
+	_formation_overlay.visible = false
+	_formation_pick_slot = -1
+	_refresh_formation_grid()
+	_rebuild_active_party_row()
+	_refresh_leader_strip()
+	_refresh_power_label()
+
+func _on_formation_dim_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_close_formation_overlay()
+
 func _build_formation_grid() -> void:
 	for child in _formation_board.get_children():
 		child.queue_free()
@@ -83,13 +444,13 @@ func _add_formation_row_label(text: String, color: Color) -> void:
 	label.text = text
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.add_theme_color_override("font_color", color)
-	label.add_theme_font_size_override("font_size", 15)
+	label.add_theme_font_size_override("font_size", 14)
 	_formation_board.add_child(label)
 
 func _make_formation_row(slot_a: int, slot_b: int) -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 14)
+	row.add_theme_constant_override("separation", 12)
 	row.add_child(_make_formation_cell(slot_a))
 	row.add_child(_make_formation_cell(slot_b))
 	return row
@@ -97,14 +458,13 @@ func _make_formation_row(slot_a: int, slot_b: int) -> HBoxContainer:
 func _make_formation_cell(slot_index: int) -> PanelContainer:
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(FORMATION_CELL_PX, FORMATION_CELL_PX)
-	panel.add_theme_stylebox_override("panel", _cell_style(false, false))
+	panel.add_theme_stylebox_override("panel", _formation_cell_style(false, false))
 	panel.gui_input.connect(_on_formation_cell_input.bind(slot_index))
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	panel.name = "FormationCell%d" % slot_index
 	_formation_cells.append(panel)
 	return panel
 
-func _cell_style(active: bool, picked: bool) -> StyleBoxFlat:
+func _formation_cell_style(active: bool, picked: bool) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.08, 0.07, 0.05, 0.94)
 	if picked:
@@ -112,15 +472,15 @@ func _cell_style(active: bool, picked: bool) -> StyleBoxFlat:
 		style.set_border_width_all(3)
 	elif active:
 		style.border_color = COLOR_GOLD
-		style.set_border_width_all(3)
+		style.set_border_width_all(2)
 	else:
 		style.border_color = Color(0.45, 0.40, 0.32)
 		style.set_border_width_all(2)
 	style.set_corner_radius_all(10)
-	style.content_margin_left = 8
-	style.content_margin_top = 8
-	style.content_margin_right = 8
-	style.content_margin_bottom = 8
+	style.content_margin_left = 6
+	style.content_margin_top = 6
+	style.content_margin_right = 6
+	style.content_margin_bottom = 6
 	return style
 
 func _on_formation_cell_input(event: InputEvent, slot_index: int) -> void:
@@ -146,9 +506,8 @@ func _refresh_formation_grid() -> void:
 		var panel: PanelContainer = _formation_cells[i]
 		for child in panel.get_children():
 			child.queue_free()
-		var is_front: bool = i < 2
 		panel.add_theme_stylebox_override(
-			"panel", _cell_style(is_front, _formation_pick_slot == i)
+			"panel", _formation_cell_style(i < 2, _formation_pick_slot == i)
 		)
 		var member: Resource = _formation_slots[i]
 		if member == null:
@@ -163,30 +522,22 @@ func _refresh_formation_grid() -> void:
 		var vbox := VBoxContainer.new()
 		vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
 		vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-		vbox.add_theme_constant_override("separation", 4)
+		vbox.add_theme_constant_override("separation", 3)
 		var icon_tex: Texture2D = IconPaths.get_icon_texture(str(member.job_id), "chr")
 		if icon_tex != null:
 			var portrait := TextureRect.new()
 			portrait.texture = icon_tex
-			portrait.custom_minimum_size = Vector2(72, 72)
+			portrait.custom_minimum_size = Vector2(64, 64)
 			portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			portrait.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 			vbox.add_child(portrait)
 		var name_lbl := Label.new()
-		name_lbl.text = member.display_name
+		name_lbl.text = RosterUiHelper.short_display_name(str(member.display_name))
 		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		name_lbl.add_theme_font_size_override("font_size", 13)
+		name_lbl.add_theme_font_size_override("font_size", 12)
 		name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
 		vbox.add_child(name_lbl)
-		var row_lbl := Label.new()
-		row_lbl.text = "後列" if GameState.get_member_formation_row(member) == GameState.FORMATION_BACK else "前列"
-		row_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		row_lbl.add_theme_font_size_override("font_size", 11)
-		row_lbl.add_theme_color_override(
-			"font_color", COLOR_BACK if GameState.get_member_formation_row(member) == GameState.FORMATION_BACK else COLOR_FRONT
-		)
-		vbox.add_child(row_lbl)
 		panel.add_child(vbox)
 
 func _slot_row_for_index(slot_index: int) -> int:
@@ -203,7 +554,7 @@ func _apply_formation_rows_from_slots() -> void:
 func _on_formation_preset_pressed(preset: String) -> void:
 	var members: Array = _collect_selected_members_for_formation()
 	if members.is_empty():
-		_label_status.text = "先に編成タブでメンバーを選んでください"
+		_label_status.text = "編成メンバーがいません"
 		return
 	match preset:
 		"front":
@@ -215,6 +566,7 @@ func _on_formation_preset_pressed(preset: String) -> void:
 	_apply_formation_rows_from_slots()
 	_formation_pick_slot = -1
 	_refresh_formation_grid()
+	_rebuild_active_party_row()
 
 func _collect_selected_members_for_formation() -> Array:
 	var members: Array = []
@@ -224,8 +576,6 @@ func _collect_selected_members_for_formation() -> Array:
 	if members.is_empty():
 		members = _selected.duplicate()
 	return members
-
-const _FRONT_JOB_IDS: Array[String] = ["swordsman", "vanguard"]
 
 func _assign_formation_by_role(members: Array, tanks_to_front_slots: bool) -> void:
 	var tanks: Array = []
@@ -263,84 +613,11 @@ func _place_members_in_slots(members: Array, slot_order: Array) -> void:
 	for i in mini(members.size(), slot_order.size()):
 		_formation_slots[int(slot_order[i])] = members[i]
 
-func _rebuild_roster_list() -> void:
-	var container: VBoxContainer = $VBoxContainer/TabContainer/TabRoster/ScrollContainer/RosterListContainer
-	for child in container.get_children():
-		child.queue_free()
-	for adv in GameState.get_roster():
-		_add_roster_row(container, adv)
-
-func _add_roster_row(container: VBoxContainer, adv: Resource) -> void:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
-	var btn := Button.new()
-	btn.text = "★" if _selected.has(adv) else "☆"
-	btn.pressed.connect(func(): _toggle_selection(adv))
-	row.add_child(btn)
-	var icon_tex: Texture2D = IconPaths.get_icon_texture(str(adv.job_id), "chr")
-	if icon_tex != null:
-		var portrait := TextureRect.new()
-		portrait.texture = icon_tex
-		portrait.custom_minimum_size = Vector2(48, 48)
-		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		row.add_child(portrait)
-	var lbl := Label.new()
-	lbl.text = _format_roster_member(adv)
-	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(lbl)
-	container.add_child(row)
-
-func _toggle_selection(adv: Resource) -> void:
-	if _selected.has(adv):
-		if _selected.size() > 1:
-			_selected.erase(adv)
-	else:
-		if _selected.size() < GameState.ACTIVE_PARTY_SIZE:
-			_selected.append(adv)
-	_sync_formation_slots_from_selection()
-	_rebuild_roster_list()
-	_refresh_formation_grid()
-	_update_confirm_button()
-
-func _ordered_party_from_formation() -> Array:
-	var ordered: Array = []
-	for i in FORMATION_SLOT_COUNT:
-		var member: Resource = _formation_slots[i]
-		if member != null and _selected.has(member):
-			ordered.append(member)
-	for adv in _selected:
-		if not ordered.has(adv):
-			ordered.append(adv)
-	return ordered
-
-func _update_confirm_button() -> void:
-	var count: int = _selected.size()
-	_button_confirm.disabled = count < 1 or count > GameState.ACTIVE_PARTY_SIZE
-
-func _on_confirm_pressed() -> void:
-	_sync_formation_slots_from_selection()
-	_apply_formation_rows_from_slots()
-	var party: Array = _ordered_party_from_formation()
-	if not GameState.set_active_party(party):
-		_label_status.text = "編成の変更に失敗しました（1〜%d名・重複不可）" % GameState.ACTIVE_PARTY_SIZE
-		return
-	SaveManager.save_game()
-	_label_status.text = "編成・陣形を保存しました"
-
-func _format_roster_member(adv: Resource) -> String:
-	var mods: Dictionary = _JobStatCalculator.get_member_modifiers(adv)
-	var job_display: String = mods.get("display_name", str(adv.job_id))
-	if job_display.is_empty():
-		job_display = str(adv.job_id)
-	var role: String = mods.get("role", "")
-	var level: int = int(adv.level)
-	var prefix: String = "[編成] " if _selected.has(adv) else "       "
-	var line: String = "%s★%d %s Lv%d / %s" % [prefix, int(adv.rarity), adv.display_name, level, job_display]
-	if not role.is_empty():
-		line += " / %s" % role
-	return line
-
 func _on_back_pressed() -> void:
-	SceneRouter.change_scene("res://scenes/base/BaseScene.tscn")
+	SceneRouter.change_scene(HOME_SCENE)
+
+func _go_home() -> void:
+	SceneRouter.change_scene(HOME_SCENE)
+
+func _go_to(path: String) -> void:
+	SceneRouter.change_scene(path)
