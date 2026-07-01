@@ -4,7 +4,11 @@
 
 ## Last Update
 
-2026-07-01（**P3-D106f 陣形 B レーン（B-5）本格射程**: `WeaponInstance`/`WeaponData.base_attack_range`→`CombatRange`（≤1.5 melee/≤2.5 mid/超 long）。スキル range_type 優先維持。`glacier_staff` 2.5 修正。headless import 検証済 / 実機未確認 / 未コミット）
+2026-07-01（**P3-D120 マーキング状態 MVP（A3 Closeout）**: `mark`（被ダメ×1.15・3tick）・`aimed_shot`副次付与・`enemy_marked`/`enemy_has_mark`・プリセット反映（aggressive/sweep）・`CombatLinks`先頭登録。headless import 検証済 / 実機未確認 / コミット済。**次=E1 装備プリセット**）
+
+2026-07-01（**未コミット整理**: リタイア・A3・CombatGambit を3コミット分割。B-5 コミット済）
+
+2026-07-01（**P3-D106f 陣形 B レーン（B-5）本格射程**: `WeaponInstance`/`WeaponData.base_attack_range`→`CombatRange`（≤1.5 melee/≤2.5 mid/超 long）。スキル range_type 優先維持。`glacier_staff` 2.5 修正。headless import 検証済 / 実機未確認 / コミット済）
 
 2026-07-01（**P3-D106b〜e 陣形 B レーン（B-1〜4）**: 射程×陣形与ダメ/敵AoE列/Threat按分/散開密集。headless import 検証済 / 実機未確認 / コミット済）
 
@@ -154,6 +158,7 @@ ProjectDocs **v3.6.0**
 | P3-A-UI-007 | ホーム(BaseScene)モック準拠リニューアル＋タイトル背景アート(`UI_BG_Title.png`)導入（上部通貨バー/左メニュー/下部タブナビ・中央ロゴのみ・浮遊CTA/肖像撤去・通貨=gold/gacha_token） | ✅ 完了（HQ実装・要実機確認） |
 | P3-ALPHA-003 | Combat v1.0 実機一括確認チェックリスト（`AlphaPlaytest_Checklist.md` v2.0） | ✅ 文書完了（**要オーナー実機実施**） |
 | P3-D119 | Combat System v1.0 Closeout（CODEMAP 同期・15/15 完了宣言・Decision Log） | ✅ 完了 |
+| P3-D120 | マーキング状態 MVP（A3 Closeout） | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D118 | 高速周回・戦闘スキップ MVP（残ロードマップ フェーズE-15）。`CombatFastRun`・クリア済みDGで「周回」トグル・COMBATのみ即撃破（報酬通常）。ON時x2自動。配線=`_try/_execute_combat_skip` | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D117 | 探索スキル群 MVP（残ロードマップ フェーズE-14）。`ExplorationSkills`5種=採取/採掘/鍵開け/解読/罠解除。ロール連動自動発動(EVENT/TREASURE/COMBAT/ELITE)。罠20%×8ダメ・解除で無効。配線=`_apply_exploration_*`/`_try_exploration_trap` | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D116 | ボスフェーズ移行 MVP（残ロードマップ フェーズE-13）。`CombatBossPhases`静的SSOT(serdion3段・HP50/25%)。`enemy_phase_index`+`_check_boss_phase_transition`(与ダメ/DoT)。フェーズでskill率/attack_mult/断罪重み2。図鑑=`phases_seen`目撃開示(stage5) | ✅ 完了（HQ実装・headless検証・要実機確認） |
@@ -225,7 +230,7 @@ ProjectDocs **v3.6.0**
 
 依存固定: 2→3→12 / 4→5→6 / 7→8 — すべて充足。
 
-**Closeout 後の Defer（各 Task スコープ外の集約）:** 本格射程/AoE列範囲・敵別 Threat テーブル・マーキング状態・探索スキル手動発動/CD・ELITE スキップ・戦闘スキップ敗北シミュ・`CombatWeather` 配線・複数 DG 本格コンテンツ。
+**Closeout 後の Defer（各 Task スコープ外の集約）:** 本格射程/AoE列範囲（B-5 完了）・敵別 Threat テーブル・探索スキル手動発動/CD・ELITE スキップ・戦闘スキップ敗北シミュ・`CombatWeather` 本格配線・複数 DG 本格コンテンツ。※マーキングは **P3-D120 完了**。
 
 ---
 

@@ -98,7 +98,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `base/` | `BaseScene.gd` |
 | `boot/` | `BootScene.gd` |
 | `combat/` | **コア:** `CombatController.gd`（`class_name`・CT/ATB・Threat・群れ/混成・個別ターゲット・詠唱・ボスフェーズ index）, `SkillExecutor.gd`, `StatusResolver.gd`, `StatusInstance.gd`, `ElementResolver.gd` |
-| | **戦術/AI:** `CombatTactics.gd`（プリセット6・発動条件・温存・P3-D086/108/113） |
+| | **戦術/AI:** `CombatTactics.gd`（プリセット6・発動条件・温存・P3-D086/108/113）, `CombatGambit.gd`（カスタム戦術正規化・A1前段） |
 | | **パッシブ/シナジー:** `CombatPassives.gd`, `CombatSynergy.gd`, `CombatTags.gd`, `CombatCombos.gd`（P3-D109） |
 | | **メタ/周回:** `CombatRelics.gd`（静的定義+トリガ・P3-D114）, `CombatLinks.gd`（連鎖3種・P3-D115）, `CombatBossPhases.gd`（P3-D116）, `ExplorationSkills.gd`（P3-D117）, `CombatFastRun.gd`（P3-D118）, `CombatWeather.gd`（将来用・未配線） |
 | `dungeon/` | `DungeonController.gd`, `DungeonScene.gd` |
@@ -144,7 +144,7 @@ Task 明示指示がない限り作成しない:
 | 敵 | 王都跡 5 + 白骸墓地 6（`resources/enemies/`） |
 | ダンジョン | `resources/dungeons/royal_ruins.tres`, `graveyard.tres` |
 | スキル | `resources/skills/` — slash_attack, aimed_shot, guard_strike, snare_shot, hex_bolt, mend, empower, ultimate_strike, kindling_strike, rime_touch, static_strike, boss_enrage, boss_decree_wave |
-| 状態異常 | `resources/status/` — bleed, poison, stun, chill, ignite, shock, slow, curse, guard, empower, enrage, **fear**, **vulnerable**, **armor_break**（P3-D107） |
+| 状態異常 | `resources/status/` — bleed, poison, stun, chill, ignite, shock, slow, curse, guard, empower, enrage, **fear**, **vulnerable**, **armor_break**（P3-D107）, **mark**（P3-D120） |
 | 素材 | `resources/materials/` — relic_shard, elite_relic_shard, ancient_bone, cursed_iron, leather |
 | Affix | `resources/affixes/` — 7 サンプル + **AffixRoller** |
 | ジョブ | `resources/jobs/` — warrior, guardian, scout |

@@ -40,6 +40,7 @@ const _DEFS: Dictionary = {
 		"target": "lowest_hp",
 		"plan": [
 			{"slot": "ultimate", "condition": "ultimate_ready"},
+			{"slot": "skill", "condition": "enemy_has_mark"},
 			{"slot": "skill", "condition": "enemy_has_bleed"},
 			{"slot": "skill", "condition": "always"},
 			{"slot": "attack", "condition": "always"},
@@ -79,9 +80,10 @@ const _DEFS: Dictionary = {
 	},
 	"sweep": {
 		"display_name": "雑魚掃討",
-		"target": "enemy_with_status",
+		"target": "enemy_marked",
 		"plan": [
 			{"slot": "ultimate", "condition": "enemy_count_gte", "value": 2},
+			{"slot": "skill", "condition": "enemy_has_mark"},
 			{"slot": "skill", "condition": "enemy_has_poison"},
 			{"slot": "skill", "condition": "always"},
 			{"slot": "attack", "condition": "always"},
@@ -120,7 +122,7 @@ static func get_slot_plan(tactics_id: String) -> Array:
 # 1 ルールの条件が戦闘コンテキストで成立するか。
 # ctx: {self_hp_ratio:float, enemy_is_boss:bool, enemy_is_elite:bool,
 #       enemy_count:int, ally_dead:bool,
-#       enemy_has_bleed:bool, enemy_has_poison:bool, ultimate_ready:bool,
+#       enemy_has_bleed:bool, enemy_has_poison:bool, enemy_has_mark:bool, ultimate_ready:bool,
 #       self_range:String, ally_injured:bool}  # P3-D108 / P3-D113
 static func condition_met(rule: Dictionary, ctx: Dictionary) -> bool:
 	match str(rule.get("condition", "always")):

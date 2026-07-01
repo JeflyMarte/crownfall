@@ -1537,7 +1537,20 @@
 | P3-D119-1 | **完了宣言**: Combat System v1.0 残ロードマップ **15/15 完了**（P3-D103〜118） | 2026-06-30 オーナー承認順序の全消化 |
 | P3-D119-2 | **`CODEMAP.md` 同期**: `scripts/combat/` 16 モジュール・状態14種・DungeonScene 戦闘配線・EquipmentScene 探索/連携表示を反映 | 実装の正を現行コードへ |
 | P3-D119-3 | **次焦点**: Phase 3-A Visual Production（本番 UI/ドット絵）＋ **P3-D103〜118 実機一括確認**（`AlphaPlaytest_Checklist.md`） | headless のみ検証済。未コミット塊はオーナー判断で分割コミット |
-| P3-D119-4 | **Defer 集約**（各 Task スコープ外）: 本格射程/AoE・敵別 Threat テーブル・マーキング・探索手動/CD・ELITE スキップ・敗北シミュ・`CombatWeather`・複数 DG 本格化 | Backlog 候補。単独 Decision まで実装しない |
+| P3-D119-4 | **Defer 集約**（各 Task スコープ外）: 敵別 Threat テーブル・探索手動/CD・ELITE スキップ・敗北シミュ・`CombatWeather` 本格・複数 DG 本格化。※本格射程/AoE＝P3-D106f 完了・**マーキング＝P3-D120 完了** | Backlog 候補。単独 Decision まで実装しない |
+
+## マーキング状態 MVP（2026-07-01 — P3-D120）
+
+> P3-D119 Defer「マーキング」を Alpha 必要項目として最小実装。A3 Closeout。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D120-1 | **状態 `mark`（標的）**: 被ダメ×1.15・3tick・max_stacks=1。`resources/status/mark.tres` | P3-D107 で除外したマーキングを個別ターゲット(D111)+連携(D115)土台の上で復活 |
+| P3-D120-2 | **付与経路**: `aimed_shot` の `apply_status_id2=mark` / `chance2=0.4`（主=armor_break 維持） | レンジャー/ビーストテイマーの狩猟弓既定スキルで自然に発火 |
+| P3-D120-3 | **ターゲット/条件**: `enemy_marked`（mark 付き敵を HP 低優先）・`enemy_has_mark`（戦術発動条件） | `CombatController`/`CombatTactics`/`DungeonScene` ctx 配線 |
+| P3-D120-4 | **プリセット**: `sweep`→`target: enemy_marked`＋`enemy_has_mark`スキル優先／`aggressive`→`enemy_has_mark`スキル優先（出血の前） | 集火の体感を戦術プリセットで明示 |
+| P3-D120-5 | **連携**: `CombatLinks.DEBUFF_MARK_STATUSES` 先頭に `mark` | 標的付与→他員追撃+20%（debuff_mark）と整合 |
+| P3-D120-6 | **スコープ外**: マーク専用 UI ハイライト・複数マーク種・敵→味方マーク・図鑑追記 | MVP最小化。実機確認は P3-ALPHA-003 |
 
 ## Alpha 実機一括確認（2026-07-01 — P3-ALPHA-003）
 
