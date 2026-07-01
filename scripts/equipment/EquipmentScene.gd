@@ -78,6 +78,7 @@ var _preset_option: OptionButton = null
 var _preset_name_edit: LineEdit = null
 var _preset_rename_btn: Button = null
 var _policy_option: OptionButton = null
+var _policy_hint_label: Label = null
 const _POLICY_IDS: Array = ["", "safe", "material", "relic", "codex"]
 var _tag_info_label: Label = null
 
@@ -1028,6 +1029,14 @@ func _ensure_preset_ui() -> void:
 	_skill_content.add_child(policy_row)
 	_skill_content.move_child(policy_row, 2)
 	_policy_option = policy_opt
+	var policy_hint := Label.new()
+	policy_hint.name = "PolicyHint"
+	policy_hint.autowrap_mode = TextServer.AUTOWRAP_WORD
+	policy_hint.add_theme_color_override("font_color", COLOR_SUB)
+	policy_hint.add_theme_font_size_override("font_size", 12)
+	_skill_content.add_child(policy_hint)
+	_skill_content.move_child(policy_hint, 3)
+	_policy_hint_label = policy_hint
 
 func _refresh_preset_ui() -> void:
 	if _preset_option == null:
@@ -1087,11 +1096,19 @@ func _sync_policy_option() -> void:
 		return
 	var idx: int = _POLICY_IDS.find(GameState.get_exploration_policy())
 	_policy_option.select(idx if idx >= 0 else 0)
+	_sync_policy_hint()
+
+func _sync_policy_hint() -> void:
+	if _policy_hint_label == null:
+		return
+	var policy: String = GameState.get_exploration_policy()
+	_policy_hint_label.text = GameState.exploration_policy_hint(policy)
 
 func _on_policy_selected(index: int) -> void:
 	if index < 0 or index >= _POLICY_IDS.size():
 		return
 	GameState.set_exploration_policy(str(_POLICY_IDS[index]))
+	_sync_policy_hint()
 
 func _on_preset_apply_pressed() -> void:
 	if _preset_option == null:

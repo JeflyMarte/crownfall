@@ -366,6 +366,14 @@ static func exploration_policy_label(policy: String) -> String:
 		"codex": return "図鑑優先"
 		_: return "なし"
 
+static func exploration_policy_hint(policy: String) -> String:
+	match policy:
+		"safe": return "被ダメ×0.92・群れ出現率半減"
+		"material": return "Gold+15%・ELITE素材率UP"
+		"relic": return "ELITE遺物率UP（ボス据置）"
+		"codex": return "図鑑進捗2倍・未完了敵はEXP+10%・素材率UP"
+		_: return "方針なし（通常報酬）"
+
 # 安全優先＝被ダメ軽減倍率（CombatController が乗算）。
 func exploration_incoming_multiplier() -> float:
 	return 0.92 if current_exploration_policy == "safe" else 1.0
