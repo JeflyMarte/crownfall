@@ -289,8 +289,8 @@ func pick_combat_enemy_data() -> Resource:
 		_:
 			return pick_enemy_data()
 
-# COMBAT 部屋で群れ出現を抽選する確率（P3-D082）。
-const SWARM_CHANCE: float = 0.20
+# COMBAT 部屋で群れ出現を抽選する確率（P3-D082）。4人編成リバランスで微増（P3-BAL-003）。
+const SWARM_CHANCE: float = 0.24
 # 複数体出現時、追加枠を別種にする確率（P3-D110・混成エンカウント）。
 const MIXED_SWARM_CHANCE: float = 0.50
 

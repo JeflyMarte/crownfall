@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-01（**P3-BAL-003 4人編成リバランス（G1 Closeout）**: `CombatController` 人数補正（HP×1.28/ATK×1.13 @4人）・群れ率 20%→24%。EXP/ゴールド据置。headless import 検証済 / 実機未確認 / コミット済。**次=P3-ALPHA-003 実機**）
+
 2026-07-01（**P3-D121 作戦プリセット装備セット保存（E1 Closeout）**: `weapon/armor/accessory_instance_id` 保存・適用・競合/欠落スキップ・`find_*_instance`・UIサマリー表示。headless import 検証済 / 実機未確認 / コミット済。**次=P3-ALPHA-003 実機 or G1 バランス**）
 
 2026-07-01（**P3-D120 マーキング状態 MVP（A3 Closeout）**: `mark`（被ダメ×1.15・3tick）・`aimed_shot`副次付与・`enemy_marked`/`enemy_has_mark`・プリセット反映（aggressive/sweep）・`CombatLinks`先頭登録。headless import 検証済 / 実機未確認 / コミット済。**次=E1 装備プリセット**）
@@ -156,6 +158,7 @@ ProjectDocs **v3.6.0**
 | OD-UI-003 | レベル制 | **完了**（P3-D035a） |
 | P3-BAL-001 | 序盤バランス（武器世界観改名＋レアリティ調整・レア度重み付きドロップ・hunting_bow/apprentice_staff/bone_armor をドロップ追加） | ✅ 完了（HQ実装・要実機確認） |
 | P3-BAL-002 | 死にステ解消（敵DEF逓減軽減 `K/(K+DEF)` K=100＋属性耐性0.75x を与ダメ計算 `_apply_enemy_mitigation` へ統合） | ✅ 完了（HQ実装・要実機確認） |
+| P3-BAL-003 | 4人編成リバランス（G1）— 敵HP/ATK 人数補正・群れ率微増 | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-W-024 | スキル名 世界観リネーム（ハイブリッド: 基本=和名/属性技・弓・杖=カタカナ・hex_bolt→アンブラボルト＋説明文を闇エルダ整合） | ✅ 完了（HQ実装） |
 | P3-A-UI-007 | ホーム(BaseScene)モック準拠リニューアル＋タイトル背景アート(`UI_BG_Title.png`)導入（上部通貨バー/左メニュー/下部タブナビ・中央ロゴのみ・浮遊CTA/肖像撤去・通貨=gold/gacha_token） | ✅ 完了（HQ実装・要実機確認） |
 | P3-ALPHA-003 | Combat v1.0 実機一括確認チェックリスト（`AlphaPlaytest_Checklist.md` v2.0） | ✅ 文書完了（**要オーナー実機実施**） |

@@ -17,6 +17,11 @@ var last_gold_reward: int = 0
 const ENEMY_LEVEL_HP_K: float = 0.10
 const ENEMY_LEVEL_ATK_K: float = 0.10
 const ENEMY_LEVEL_EXP_K: float = 0.15
+# 4人編成リバランス（P3-BAL-003 / G1）。敵データは3人編成前提で調整済みのため、
+# 現行 party 人数に応じて HP/ATK を中央補正する（EXP/ゴールドは据置）。
+const PARTY_BALANCE_BASE_SIZE: int = 3
+const PARTY_BALANCE_HP_SHARE: float = 0.85
+const PARTY_BALANCE_ATK_SHARE: float = 0.40
 var enemy_level: int = 1
 var _scaled_max_hp: int = 0
 var _scaled_attack: int = 0
@@ -94,8 +99,10 @@ func start_combat_group(enemies: Array, level: int = 1) -> void:
 	for e in enemies:
 		if e == null:
 			continue
-		var hp: int = maxi(1, int(round(float(e.max_hp) * (1.0 + ENEMY_LEVEL_HP_K * lf))))
-		var atk: int = maxi(1, int(round(float(e.attack) * (1.0 + ENEMY_LEVEL_ATK_K * lf))))
+		var party_hp_mult: float = _party_size_balance_multiplier(PARTY_BALANCE_HP_SHARE)
+		var party_atk_mult: float = _party_size_balance_multiplier(PARTY_BALANCE_ATK_SHARE)
+		var hp: int = maxi(1, int(round(float(e.max_hp) * (1.0 + ENEMY_LEVEL_HP_K * lf) * party_hp_mult)))
+		var atk: int = maxi(1, int(round(float(e.attack) * (1.0 + ENEMY_LEVEL_ATK_K * lf) * party_atk_mult)))
 		var df: int = maxi(0, int(e.defense))
 		var xp: int = maxi(0, int(round(float(e.exp_reward) * (1.0 + ENEMY_LEVEL_EXP_K * lf))))
 		swarm_data.append(e)
@@ -114,6 +121,14 @@ func start_combat_group(enemies: Array, level: int = 1) -> void:
 	_init_member_targets()
 	_init_member_skill_rotation()
 	init_ct()
+
+# 現行編成人数に対する敵ステ補正倍率（base=3人前提）。
+static func _party_size_balance_multiplier(share: float) -> float:
+	var n: int = maxi(1, GameState.ACTIVE_PARTY_SIZE)
+	if n <= PARTY_BALANCE_BASE_SIZE:
+		return 1.0
+	var ratio: float = float(n) / float(PARTY_BALANCE_BASE_SIZE) - 1.0
+	return 1.0 + ratio * share
 
 # current_enemy_* / _scaled_* をアクティブ敵スロットに同期する。
 func _sync_active_enemy() -> void:
