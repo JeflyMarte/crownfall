@@ -24,6 +24,8 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | DataRegistry | `scripts/autoload/DataRegistry.gd` |
 | SceneRouter | `scripts/autoload/SceneRouter.gd` |
 | EventBus | `scripts/autoload/EventBus.gd` |
+| DailyMissionSystem | `scripts/autoload/DailyMissionSystem.gd`（**P3-DAILY** 日課3件/日） |
+| GachaSystem | `scripts/autoload/GachaSystem.gd` |
 
 ---
 

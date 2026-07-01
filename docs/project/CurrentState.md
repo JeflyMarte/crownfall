@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-02（**P3-ALPHA-006 / P3-BETA-001**: Alpha Closeout=案A・Beta最小=B1(2本目DG)+B2(スタミナ)・次Impl=P3-UI2-029）
+
 2026-07-02（**P3-DAILY ギルド日課**: 固定3件/日・5:00 JST リセット・BaseScene パネル・進捗フック。smoke PASS）
 
 2026-07-02（**P3-UI2-028 DG選択モック第3段**: フレーバーテキスト・B1〜B7階層カード・敵/戦力/CLEARリボン。smoke PASS）
@@ -144,23 +146,22 @@
 
 ---
 
-## Next Implementation Queue（HQ 確定 2026-07-01 / 更新 2026-07-01）
+## Next Implementation Queue（HQ 確定 2026-07-02 — P3-ALPHA-006 / P3-BETA-001）
 
-> **準備+経済ループ（D134〜141 / ECO-001）完了。** 作画 Defer。次はバランス調整 or Backlog（Decision 要）。
+> **Alpha Closeout=案A**（smoke PASS + 029占位でコード完了可）。**Beta最小=B1(2本目DG)+B2(スタミナ)**。作画・実機はオーナーレーン並行。
 
-| 順 | ID（案） | 内容 | レーン | 状態 |
+| 順 | ID | 内容 | レーン | 状態 |
 |---|---|---|---|---|
 | 0 | P3-ALPHA-003 | 実機チェックリスト v2.1（GO/NO-GO） | オーナー（可能時） | Defer |
-| — | P3-ART-002〜004 / P3-A-ENV-001 | 作画取り込み | オーナー→Impl | **Defer** |
-| — | P3-D134〜141 / P3-ECO-001 | 準備+経済ループ | Impl/HQ | ✅ **Closeout** |
-| 1 | P3-BAL-004 | 経済バランス調整（ドロップ率/レシピコスト） | Impl+HQ | ✅ **Closeout** |
-| 2 | P3-D142 | 周回 ELITE スキップ拡張 | Impl+HQ | ✅ **Closeout** |
-| 3 | P3-FIX-004 | HP 持ち越し（戦闘間フル回復バグ修正） | Impl | ✅ **Closeout** |
-| 4 | **P3-D151** | **罠部屋 MVP**（`RoomType.TRAP`） | Impl | ✅ **Closeout** |
-| 5 | P3-D145 | 敵別 Threat ターゲット偏重 | Impl | ✅ **Closeout** |
-| 6 | — | Backlog 大物（天候本格/複数DG 等） | Decision 待ち | **次候補** |
+| — | P3-ART-002〜004 / P3-A-ENV-001 | 5職ドット / env / 助っ人本番立ち絵 | オーナー→Impl | **並行** |
+| **1** | **P3-UI2-029** | **DG下部パネル占位**（ダミー表示・スタミナロジックなし） | Impl | **次** |
+| 2 | P3-BETA-001 設計 | B1=2本目DG 具体（Biome/敵/イベント）+ B2=スタミナ仕様 | HQ+オーナー | 029 後 |
+| 3 | P3-BETA-B1 | 2本目 DG 実装 | Impl | Beta |
+| 4 | P3-BETA-B2 | スタミナ実装 | Impl | Beta |
+| — | P3-DAILY-B | 日課 UI polish | Impl | 任意（Beta 可） |
+| — | P3-UI2-026 | 召喚 SE/パーティクル | Impl | Defer（音源なし） |
 
-**Backlog（単独 Decision まで着手しない）:** 探索手動+CD / 周回敗北シミュ / 天候本格 / 位置AI / 複数DG / Affix本格 / ラン中方針切替 / Biome-02 以降。
+**凍結（Decision まで着手しない）:** 天候本格 / 週間日課 / 10連ガチャ / 6装備枠 / Affix本格 / 位置AI本格 / 探索手動+CD。
 
 ---
 
@@ -172,9 +173,9 @@ ProjectDocs **v3.6.0**
 
 ## Current Phase
 
-**Phase3-A — Visual Production 着手**（P3-D069 = 純ポリッシュ/gameplay不変）。Phase 3-B' システム完成リストは全消化（P3-D053〜068）。
-- 3-A スコープ: 人数3＋助っ人1 / 装備3枠 / メタ無し は据置（4人・6枠・メタは Beta）
-- 起点 A1: BaseScene を 003_01 へ寄せる（テーマ基準づくり）
+**Phase3-A — Alpha Closeout（案A）** — コードレーン最終=**P3-UI2-029**。受理ゲート=`smoke_test.sh` PASS（P3-ALPHA-003b）。Phase 3-B' システム完成済。
+- **Beta 計画確定（P3-BETA-001）:** B1=2本目DG / B2=スタミナ（029 Closeout 後に設計 Decision）
+- 作画・実機はオーナーレーン並行（プレースホルダのまま Alpha Close 可）
 
 ---
 

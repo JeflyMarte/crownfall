@@ -86,6 +86,22 @@ horizontal_alignment = 1
 theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
 theme_override_font_sizes/font_size = 18
 
+[node name="StaminaChip" type="PanelContainer" parent="Header/HeaderRow"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("SB_Chip")
+
+[node name="StaminaRow" type="HBoxContainer" parent="Header/HeaderRow/StaminaChip"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="LabelStamina" type="Label" parent="Header/HeaderRow/StaminaChip/StaminaRow"]
+layout_mode = 2
+size_flags_vertical = 4
+text = "⚡ 120/120"
+theme_override_colors/font_color = Color(0.55, 0.92, 0.62, 1)
+theme_override_font_sizes/font_size = 16
+
 [node name="GoldChip" type="PanelContainer" parent="Header/HeaderRow"]
 layout_mode = 2
 size_flags_vertical = 4
@@ -232,7 +248,7 @@ layout_mode = 1
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_top = 296.0
-offset_bottom = -52.0
+offset_bottom = -140.0
 grow_horizontal = 2
 grow_vertical = 2
 horizontal_scroll_mode = 0
@@ -241,6 +257,96 @@ horizontal_scroll_mode = 0
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
+
+[node name="FooterPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = -140.0
+offset_right = -8.0
+offset_bottom = -54.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="FooterRow" type="HBoxContainer" parent="FooterPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="DailyCol" type="VBoxContainer" parent="FooterPanel/FooterRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="LabelDailyTitle" type="Label" parent="FooterPanel/FooterRow/DailyCol"]
+layout_mode = 2
+text = "本日の挑戦回数"
+theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
+theme_override_font_sizes/font_size = 10
+
+[node name="LabelDailyValue" type="Label" parent="FooterPanel/FooterRow/DailyCol"]
+layout_mode = 2
+text = "3/3"
+theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
+theme_override_font_sizes/font_size = 14
+
+[node name="LabelDailyReset" type="Label" parent="FooterPanel/FooterRow/DailyCol"]
+layout_mode = 2
+text = "5:00にリセット"
+theme_override_colors/font_color = Color(0.62, 0.6, 0.52, 1)
+theme_override_font_sizes/font_size = 9
+
+[node name="BonusCol" type="VBoxContainer" parent="FooterPanel/FooterRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="LabelBonusTitle" type="Label" parent="FooterPanel/FooterRow/BonusCol"]
+layout_mode = 2
+text = "ダンジョンボーナス"
+theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
+theme_override_font_sizes/font_size = 10
+
+[node name="LabelBonusValue" type="Label" parent="FooterPanel/FooterRow/BonusCol"]
+layout_mode = 2
+text = "闇属性+20%"
+theme_override_colors/font_color = Color(0.72, 0.58, 0.95, 1)
+theme_override_font_sizes/font_size = 12
+
+[node name="LabelBonusTimer" type="Label" parent="FooterPanel/FooterRow/BonusCol"]
+layout_mode = 2
+text = "残り2時間35分"
+theme_override_colors/font_color = Color(0.62, 0.6, 0.52, 1)
+theme_override_font_sizes/font_size = 9
+
+[node name="SpecialCol" type="VBoxContainer" parent="FooterPanel/FooterRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="SpecialRow" type="VBoxContainer" parent="FooterPanel/FooterRow/SpecialCol"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="LabelSpecialProgress" type="Label" parent="FooterPanel/FooterRow/SpecialCol/SpecialRow"]
+layout_mode = 2
+text = "特別報酬まであと 2/5"
+theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
+theme_override_font_sizes/font_size = 9
+
+[node name="SpecialProgressBar" type="ProgressBar" parent="FooterPanel/FooterRow/SpecialCol/SpecialRow"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+max_value = 5.0
+value = 2.0
+show_percentage = false
+
+[node name="BtnRewardList" type="Button" parent="FooterPanel/FooterRow/SpecialCol"]
+layout_mode = 2
+text = "報酬一覧"
+theme_override_font_sizes/font_size = 10
 
 [node name="BottomNav" type="PanelContainer" parent="."]
 layout_mode = 1
