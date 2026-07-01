@@ -1,6 +1,7 @@
 extends Control
 
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
+const DUNGEON_SELECT_SCENE: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
 const DUNGEON_SCENE: String = "res://scenes/dungeon/DungeonScene.tscn"
 const ROSTER_SCENE: String = "res://scenes/roster/RosterScene.tscn"
 const CODEX_SCENE: String = "res://scenes/codex/CodexScene.tscn"
@@ -12,7 +13,6 @@ const THUMB_SIZE: Vector2 = Vector2(68, 68)
 const DROP_ICON_SIZE: Vector2 = Vector2(28, 28)
 const MAX_STARS: int = 3
 
-# ダンジョン別の代表ドロップ（主なドロップ報酬プレビュー） [category, id]
 const DROP_PREVIEW: Dictionary = {
 	"mourngate": [
 		["weapon", "iron_sword"],
@@ -22,7 +22,6 @@ const DROP_PREVIEW: Dictionary = {
 	],
 }
 
-# 近日追加のロック行（名称は仮）
 const LOCKED_DUNGEONS: Array = [
 	{"name": "崩落坑道", "level": 10},
 	{"name": "水晶回廊", "level": 20},
@@ -32,30 +31,120 @@ const LOCKED_DUNGEONS: Array = [
 @onready var _btn_back: Button = $Header/HeaderRow/ButtonBack
 @onready var _label_gold: Label = $Header/HeaderRow/GoldChip/GoldRow/LabelGold
 @onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
+@onready var _featured_panel: PanelContainer = $FeaturedPanel
+@onready var _featured_thumb_art: TextureRect = $FeaturedPanel/FeaturedRow/FeaturedThumb/FeaturedThumbArt
+@onready var _label_featured_name: Label = $FeaturedPanel/FeaturedRow/FeaturedInfo/LabelFeaturedName
+@onready var _label_featured_meta: Label = $FeaturedPanel/FeaturedRow/FeaturedInfo/LabelFeaturedMeta
+@onready var _label_featured_discovery: Label = $FeaturedPanel/FeaturedRow/FeaturedInfo/LabelFeaturedDiscovery
+@onready var _featured_drop_row: HBoxContainer = $FeaturedPanel/FeaturedRow/FeaturedInfo/FeaturedDropRow
+@onready var _btn_featured_challenge: Button = $FeaturedPanel/FeaturedRow/BtnFeaturedChallenge
 @onready var _list: VBoxContainer = $ScrollList/ListVBox
 @onready var _nav_home: Button = $BottomNav/NavRow/NavHome
 @onready var _nav_party: Button = $BottomNav/NavRow/NavParty
 @onready var _nav_codex: Button = $BottomNav/NavRow/NavCodex
 @onready var _nav_shop: Button = $BottomNav/NavRow/NavShop
 
+var _featured_dungeon_id: String = ""
+
 func _ready() -> void:
 	_btn_back.pressed.connect(_go_home)
+	_btn_featured_challenge.pressed.connect(_on_featured_challenge_pressed)
 	_nav_home.pressed.connect(_go_home)
 	_nav_party.pressed.connect(_go_to.bind(ROSTER_SCENE))
 	_nav_codex.pressed.connect(_go_to.bind(CODEX_SCENE))
 	_nav_shop.pressed.connect(_go_to.bind(GACHA_SCENE))
+	_featured_panel.add_theme_stylebox_override(
+		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
+	)
+	$FeaturedPanel/FeaturedRow/FeaturedThumb.add_theme_stylebox_override(
+		"panel", _thumb_frame_style()
+	)
+	_refresh_all()
+
+func _refresh_all() -> void:
 	_update_currency()
+	_refresh_featured()
 	_build_list()
 
 func _update_currency() -> void:
 	_label_gold.text = "%d" % GameState.gold
 	_label_token.text = CurrencyHelper.format_amount()
 
+func _refresh_featured() -> void:
+	_featured_dungeon_id = _resolve_featured_dungeon_id()
+	var data: Resource = DataRegistry.get_dungeon_data(_featured_dungeon_id)
+	if data == null:
+		_featured_panel.visible = false
+		return
+	_featured_panel.visible = true
+	_label_featured_name.text = str(data.display_name)
+	_featured_thumb_art.texture = _get_dungeon_thumb_texture(_featured_dungeon_id)
+
+	var meta_parts: Array[String] = []
+	if int(data.recommended_level) > 0:
+		meta_parts.append("推奨Lv %d〜" % int(data.recommended_level))
+	meta_parts.append(_make_stars_text(int(data.difficulty)))
+	if not str(data.favored_element).is_empty():
+		meta_parts.append("%s 有利" % _ElementResolver.get_display_name(str(data.favored_element)))
+	var policy: String = GameState.get_exploration_policy()
+	if not policy.is_empty():
+		meta_parts.append("方針:%s" % GameState.exploration_policy_label(policy))
+	_label_featured_meta.text = " · ".join(meta_parts)
+
+	var discovery_pct: int = _discovery_percent(_featured_dungeon_id)
+	_label_featured_discovery.text = "発見率 %d%%" % discovery_pct
+	if GameState.is_dungeon_cleared(_featured_dungeon_id):
+		_label_featured_discovery.text += " · CLEAR済"
+
+	_populate_drop_row(_featured_drop_row, _featured_dungeon_id)
+	_btn_featured_challenge.text = "挑戦"
+
+func _resolve_featured_dungeon_id() -> String:
+	var active_id: String = GameState.get_active_dungeon_id()
+	if DataRegistry.get_dungeon_data(active_id) != null:
+		return active_id
+	for data in DataRegistry.get_all_dungeon_data():
+		if data != null:
+			return str(data.id)
+	return ""
+
+func _discovery_percent(dungeon_id: String) -> int:
+	var prog: Dictionary = GameState.dungeon_progress.get(dungeon_id, {})
+	return int(round(float(prog.get("discovery", 0.0)) * 100.0))
+
+func _populate_drop_row(row: HBoxContainer, dungeon_id: String) -> void:
+	for child in row.get_children():
+		child.queue_free()
+	var caption := Label.new()
+	caption.text = "主なドロップ"
+	caption.add_theme_font_size_override("font_size", 13)
+	caption.add_theme_color_override("font_color", Color(0.7, 0.68, 0.6))
+	row.add_child(caption)
+	var preview: Array = DROP_PREVIEW.get(dungeon_id, [])
+	for pair in preview:
+		var tex: Texture2D = IconPaths.get_icon_texture(str(pair[1]), str(pair[0]))
+		if tex == null:
+			continue
+		var icon := TextureRect.new()
+		icon.texture = tex
+		icon.custom_minimum_size = DROP_ICON_SIZE
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		row.add_child(icon)
+
 func _build_list() -> void:
 	for child in _list.get_children():
 		child.queue_free()
+	var header := Label.new()
+	header.text = "その他のダンジョン"
+	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	header.add_theme_color_override("font_color", Color(0.78, 0.7, 0.5))
+	header.add_theme_font_size_override("font_size", 15)
+	_list.add_child(header)
 	for data in DataRegistry.get_all_dungeon_data():
 		if data == null:
+			continue
+		if str(data.id) == _featured_dungeon_id:
 			continue
 		_list.add_child(_make_dungeon_card(data))
 	for entry in LOCKED_DUNGEONS:
@@ -65,12 +154,12 @@ func _make_dungeon_card(data: Resource) -> PanelContainer:
 	var dungeon_id: String = str(data.id)
 	var cleared: bool = GameState.is_dungeon_cleared(dungeon_id)
 	var card := PanelContainer.new()
-	card.add_theme_stylebox_override("panel", _card_style(true))
+	card.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_NORMAL))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 12)
 	card.add_child(row)
 
-	row.add_child(_make_thumb(_get_dungeon_thumb_texture(dungeon_id), "♛"))
+	row.add_child(_make_thumb(_get_dungeon_thumb_texture(dungeon_id), "♛", THUMB_SIZE))
 
 	var info := VBoxContainer.new()
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -111,13 +200,19 @@ func _make_dungeon_card(data: Resource) -> PanelContainer:
 		policy_label.add_theme_color_override("font_color", Color(0.72, 0.78, 0.9))
 		info.add_child(policy_label)
 
+	var discovery := Label.new()
+	discovery.text = "発見率 %d%%" % _discovery_percent(dungeon_id)
+	discovery.add_theme_font_size_override("font_size", 14)
+	discovery.add_theme_color_override("font_color", Color(0.6, 0.82, 0.78))
+	info.add_child(discovery)
+
 	info.add_child(_make_drop_row(dungeon_id))
 
 	var action := VBoxContainer.new()
 	action.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_child(action)
 	var select_btn := Button.new()
-	select_btn.text = "選択"
+	select_btn.text = "挑戦"
 	select_btn.custom_minimum_size = Vector2(88, 40)
 	select_btn.pressed.connect(_on_select_pressed.bind(dungeon_id))
 	action.add_child(select_btn)
@@ -134,13 +229,13 @@ func _get_dungeon_thumb_texture(dungeon_id: String) -> Texture2D:
 
 func _make_locked_card(dungeon_name: String, level: int) -> PanelContainer:
 	var card := PanelContainer.new()
-	card.add_theme_stylebox_override("panel", _card_style(false))
+	card.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_NORMAL))
 	card.modulate = Color(0.75, 0.75, 0.78, 1.0)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 12)
 	card.add_child(row)
 
-	row.add_child(_make_thumb(null, "未"))
+	row.add_child(_make_thumb(null, "🔒", THUMB_SIZE))
 
 	var info := VBoxContainer.new()
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -160,21 +255,16 @@ func _make_locked_card(dungeon_name: String, level: int) -> PanelContainer:
 	action.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_child(action)
 	var locked_btn := Button.new()
-	locked_btn.text = "ロック中"
+	locked_btn.text = "🔒"
 	locked_btn.disabled = true
 	locked_btn.custom_minimum_size = Vector2(88, 40)
 	action.add_child(locked_btn)
 	return card
 
-func _make_thumb(tex: Texture2D, fallback_glyph: String) -> PanelContainer:
+func _make_thumb(tex: Texture2D, fallback_glyph: String, size: Vector2 = THUMB_SIZE) -> PanelContainer:
 	var box := PanelContainer.new()
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.08, 0.07, 0.13, 0.9)
-	style.set_border_width_all(1)
-	style.border_color = Color(0.45, 0.38, 0.2, 0.7)
-	style.set_corner_radius_all(6)
-	box.add_theme_stylebox_override("panel", style)
-	box.custom_minimum_size = THUMB_SIZE
+	box.add_theme_stylebox_override("panel", _thumb_frame_style())
+	box.custom_minimum_size = size
 	if tex != null:
 		var icon := TextureRect.new()
 		icon.texture = tex
@@ -190,13 +280,24 @@ func _make_thumb(tex: Texture2D, fallback_glyph: String) -> PanelContainer:
 		box.add_child(glyph)
 	return box
 
-func _make_stars_label(difficulty: int) -> Label:
+func _thumb_frame_style() -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.08, 0.07, 0.13, 0.9)
+	style.set_border_width_all(1)
+	style.border_color = Color(0.45, 0.38, 0.2, 0.7)
+	style.set_corner_radius_all(6)
+	return style
+
+func _make_stars_text(difficulty: int) -> String:
 	var filled: int = clampi(difficulty, 1, MAX_STARS)
 	var text: String = ""
 	for i in MAX_STARS:
 		text += "★" if i < filled else "☆"
+	return text
+
+func _make_stars_label(difficulty: int) -> Label:
 	var label := Label.new()
-	label.text = text
+	label.text = _make_stars_text(difficulty)
 	label.add_theme_color_override("font_color", Color(0.95, 0.78, 0.3))
 	label.add_theme_font_size_override("font_size", 15)
 	return label
@@ -241,17 +342,8 @@ func _make_drop_row(dungeon_id: String) -> HBoxContainer:
 		row.add_child(icon)
 	return row
 
-func _card_style(active: bool) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.06, 0.06, 0.12, 0.85) if active else Color(0.05, 0.05, 0.08, 0.8)
-	style.set_border_width_all(1)
-	style.border_color = Color(0.55, 0.45, 0.18, 0.6) if active else Color(0.3, 0.3, 0.35, 0.5)
-	style.set_corner_radius_all(8)
-	style.content_margin_left = 12.0
-	style.content_margin_right = 12.0
-	style.content_margin_top = 10.0
-	style.content_margin_bottom = 10.0
-	return style
+func _on_featured_challenge_pressed() -> void:
+	_on_select_pressed(_featured_dungeon_id)
 
 func _on_select_pressed(dungeon_id: String) -> void:
 	if DataRegistry.get_dungeon_data(dungeon_id) == null:
@@ -263,5 +355,7 @@ func _go_home() -> void:
 	SceneRouter.change_scene(HOME_SCENE)
 
 func _go_to(path: String) -> void:
+	if path == DUNGEON_SELECT_SCENE:
+		return
 	if ResourceLoader.exists(path):
 		SceneRouter.change_scene(path)
