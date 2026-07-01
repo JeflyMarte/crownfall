@@ -23,12 +23,16 @@ const COLOR_RETIRE: Color = Color(0.72, 0.8, 0.95, 1)
 @onready var _info_grid: GridContainer = $Scroll/Margin/Main/InfoPanel/InfoVBox/InfoGrid
 @onready var _levelup_panel: PanelContainer = $Scroll/Margin/Main/LevelUpPanel
 @onready var _label_levelup: Label = $Scroll/Margin/Main/LevelUpPanel/LabelLevelUp
-@onready var _button_retry: Button = $Scroll/Margin/Main/Footer/ButtonRetry
-@onready var _button_home: Button = $Scroll/Margin/Main/Footer/ButtonHome
+@onready var _button_retry: Button = $FooterRow/Footer/ButtonRetry
+@onready var _button_home: Button = $FooterRow/Footer/ButtonHome
+@onready var _header_panel: PanelContainer = $Scroll/Margin/Main/HeaderPanel
+@onready var _reward_panel: PanelContainer = $Scroll/Margin/Main/RewardPanel
+@onready var _info_panel: PanelContainer = $Scroll/Margin/Main/InfoPanel
 
 var _rewards_banked: bool = false
 
 func _ready() -> void:
+	_apply_panel_styles()
 	_bank_rewards()
 	_build_header()
 	_build_rewards()
@@ -38,6 +42,15 @@ func _ready() -> void:
 	_build_levelup()
 	_button_retry.pressed.connect(_on_retry_pressed)
 	_button_home.pressed.connect(_on_home_pressed)
+
+func _apply_panel_styles() -> void:
+	_header_panel.add_theme_stylebox_override(
+		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
+	)
+	for panel in [_reward_panel, _material_panel, _rare_panel, _info_panel, _levelup_panel]:
+		panel.add_theme_stylebox_override(
+			"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_NORMAL)
+		)
 
 func _bank_rewards() -> void:
 	if _rewards_banked:
@@ -67,7 +80,7 @@ func _apply_outcome_banner() -> void:
 	var outcome: String = GameState.last_run_outcome
 	if outcome.is_empty():
 		outcome = GameState.RUN_OUTCOME_CLEAR
-	_label_title.text = "✧ 探索結果 ✧"
+	_label_title.text = "探索結果"
 	match outcome:
 		GameState.RUN_OUTCOME_RETIRE:
 			_label_outcome.text = "リタイア帰還"
@@ -98,7 +111,7 @@ func _build_rewards() -> void:
 	for child in _reward_row.get_children():
 		child.queue_free()
 	_reward_row.add_child(_make_reward_cell(null, "EXP", "EXP", str(GameState.last_run_exp_reward)))
-	var gold_icon: Texture2D = _try_load("res://assets/ui/batch2/ICO_Gold.png")
+	var gold_icon: Texture2D = load("res://assets/ui/batch2/ICO_Gold.png") as Texture2D
 	_reward_row.add_child(_make_reward_cell(gold_icon, "G", "ゴールド", str(GameState.last_run_gold_reward)))
 	if GameState.last_run_token_reward > 0:
 		_reward_row.add_child(_make_reward_cell(
@@ -129,7 +142,7 @@ func _make_reward_cell(texture: Texture2D, glyph: String, name_text: String, val
 	var frame: PanelContainer = PanelContainer.new()
 	frame.custom_minimum_size = Vector2(64, 64)
 	frame.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	frame.add_theme_stylebox_override("panel", _cell_style())
+	frame.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD))
 	if texture != null:
 		var icon: TextureRect = TextureRect.new()
 		icon.texture = texture
@@ -275,6 +288,10 @@ func _build_info() -> void:
 	var run_weather: String = GameState.last_run_weather
 	if not run_weather.is_empty():
 		_add_info_pair("天候", CombatWeather.label(run_weather))
+	var dungeon_id: String = GameState.get_active_dungeon_id()
+	var prog: Dictionary = GameState.dungeon_progress.get(dungeon_id, {})
+	var discovery_pct: int = int(round(float(prog.get("discovery", 0.0)) * 100.0))
+	_add_info_pair("発見率", "%d%%" % discovery_pct)
 	_add_info_pair("入手経験値", "%d EXP" % GameState.last_run_exp_reward)
 	_add_info_pair("入手ゴールド", "%d G" % GameState.last_run_gold_reward)
 	if GameState.last_run_token_reward > 0:
@@ -309,26 +326,14 @@ func _build_levelup() -> void:
 	_levelup_panel.visible = true
 	_label_levelup.text = "レベルアップ!  " + "  /  ".join(parts)
 
-func _cell_style() -> StyleBoxFlat:
-	var sb: StyleBoxFlat = StyleBoxFlat.new()
-	sb.bg_color = Color(0.07, 0.07, 0.1, 0.9)
-	sb.border_color = COLOR_GOLD
-	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(6)
-	sb.set_content_margin_all(4)
-	return sb
-
-func _try_load(path: String) -> Texture2D:
-	if ResourceLoader.exists(path):
-		return load(path) as Texture2D
-	return null
-
 func _on_retry_pressed() -> void:
 	_set_buttons_disabled(true)
+	SaveManager.save_game()
 	SceneRouter.change_scene(DUNGEON_SCENE)
 
 func _on_home_pressed() -> void:
 	_set_buttons_disabled(true)
+	SaveManager.save_game()
 	SceneRouter.change_scene(HOME_SCENE)
 
 func _set_buttons_disabled(value: bool) -> void:

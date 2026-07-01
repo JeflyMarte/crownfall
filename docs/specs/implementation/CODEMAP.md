@@ -110,7 +110,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `gacha/` | **`GachaScene.gd`**（P3-UI2-020 Header/BottomNav・排出カード行・**P3-UI2-022** 召喚リビール演出） |
 | `crafting/` | **`CraftHelper.gd`**（`can_craft` / `get_craftable_recipes` — P3-D141） |
 | `codex/` | **`CatalogHelper.gd`**（P2-Task046/049 — Bible parse + Entry）, **`CodexScene.gd`**（P2-Task047/048/049 — Detail + Bible fields・**P3-UI2-020** Header/BottomNav） |
-| `result/` | `ResultScene.gd`（素材アイコン P3-D135・作成可能レシピ P3-D141） |
+| `result/` | `ResultScene.gd`（素材アイコン P3-D135・作成可能レシピ P3-D141・**P3-UI2-023** パネル/フッター polish） |
 | `save/` | `SaveManager.gd` |
 | `ui/` | **`IconPaths.gd`**（Phase3-A — static class、ICON_MAP による `category:id` → `ICO_*.png` 解決）・**`CurrencyHelper.gd`**（魔晶石表示 SSOT） |
 

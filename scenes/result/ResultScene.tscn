@@ -1,34 +1,77 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/result/ResultScene.gd" id="1"]
 [ext_resource type="Theme" path="res://assets/ui/production_theme.tres" id="2"]
 [ext_resource type="Texture2D" path="res://assets/ui/UI_BG_Result.png" id="3"]
 
-[sub_resource type="StyleBoxEmpty" id="EmptyHeader"]
+[sub_resource type="StyleBoxFlat" id="SB_Footer"]
+bg_color = Color(0.04, 0.04, 0.1, 0.92)
+border_width_top = 1
+border_color = Color(0.55, 0.45, 0.18, 0.6)
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="SB_PrimaryBtn"]
+bg_color = Color(0.42, 0.32, 0.08, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.85, 0.72, 0.28, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="SB_SecondaryBtn"]
+bg_color = Color(0.08, 0.08, 0.12, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.45, 0.38, 0.2, 0.8)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
 
 [node name="ResultScene" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 theme = ExtResource("2")
 script = ExtResource("1")
 
 [node name="BgTexture" type="TextureRect" parent="."]
-texture = ExtResource("3")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-stretch_mode = 1
+texture = ExtResource("3")
+expand_mode = 1
+stretch_mode = 6
 
 [node name="Scroll" type="ScrollContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_bottom = -72.0
 grow_horizontal = 2
 grow_vertical = 2
 horizontal_scroll_mode = 0
@@ -37,19 +80,18 @@ horizontal_scroll_mode = 0
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 16
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 12
 
 [node name="Main" type="VBoxContainer" parent="Scroll/Margin"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 16
+theme_override_constants/separation = 14
 
 [node name="HeaderPanel" type="PanelContainer" parent="Scroll/Margin/Main"]
 layout_mode = 2
-theme_override_styles/panel = SubResource("EmptyHeader")
 
 [node name="HeaderVBox" type="VBoxContainer" parent="Scroll/Margin/Main/HeaderPanel"]
 layout_mode = 2
@@ -58,22 +100,22 @@ alignment = 1
 
 [node name="LabelTitle" type="Label" parent="Scroll/Margin/Main/HeaderPanel/HeaderVBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 26
 theme_override_colors/font_color = Color(0.85, 0.74, 0.45, 1)
-text = "✧ 探索結果 ✧"
+theme_override_font_sizes/font_size = 24
+text = "探索結果"
 horizontal_alignment = 1
 
 [node name="LabelDungeon" type="Label" parent="Scroll/Margin/Main/HeaderPanel/HeaderVBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
 theme_override_colors/font_color = Color(0.78, 0.8, 0.86, 1)
+theme_override_font_sizes/font_size = 17
 text = "ダンジョン"
 horizontal_alignment = 1
 
 [node name="LabelClear" type="Label" parent="Scroll/Margin/Main/HeaderPanel/HeaderVBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 56
 theme_override_colors/font_color = Color(0.96, 0.84, 0.42, 1)
+theme_override_font_sizes/font_size = 56
 text = "CLEAR"
 horizontal_alignment = 1
 
@@ -91,8 +133,8 @@ theme_override_constants/separation = 10
 
 [node name="LabelRewardTitle" type="Label" parent="Scroll/Margin/Main/RewardPanel/RewardVBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(0.85, 0.74, 0.45, 1)
+theme_override_font_sizes/font_size = 18
 text = "獲得報酬"
 horizontal_alignment = 1
 
@@ -110,8 +152,8 @@ theme_override_constants/separation = 10
 
 [node name="LabelMaterialTitle" type="Label" parent="Scroll/Margin/Main/MaterialPanel/MaterialVBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(0.85, 0.74, 0.45, 1)
+theme_override_font_sizes/font_size = 18
 text = "採取素材"
 horizontal_alignment = 1
 
@@ -122,8 +164,8 @@ alignment = 1
 
 [node name="LabelCraftable" type="Label" parent="Scroll/Margin/Main/MaterialPanel/MaterialVBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.7, 0.92, 0.6, 1)
+theme_override_font_sizes/font_size = 14
 text = ""
 horizontal_alignment = 1
 autowrap_mode = 3
@@ -137,9 +179,9 @@ theme_override_constants/separation = 8
 
 [node name="LabelRareTitle" type="Label" parent="Scroll/Margin/Main/RarePanel/RareVBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(0.85, 0.74, 0.45, 1)
-text = "入手したレアアイテム"
+theme_override_font_sizes/font_size = 18
+text = "レア入手"
 horizontal_alignment = 1
 
 [node name="RareList" type="VBoxContainer" parent="Scroll/Margin/Main/RarePanel/RareVBox"]
@@ -155,8 +197,8 @@ theme_override_constants/separation = 8
 
 [node name="LabelInfoTitle" type="Label" parent="Scroll/Margin/Main/InfoPanel/InfoVBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(0.85, 0.74, 0.45, 1)
+theme_override_font_sizes/font_size = 18
 text = "探索情報"
 horizontal_alignment = 1
 
@@ -172,23 +214,36 @@ layout_mode = 2
 [node name="LabelLevelUp" type="Label" parent="Scroll/Margin/Main/LevelUpPanel"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.92, 0.6, 1)
+theme_override_font_sizes/font_size = 15
 text = ""
 horizontal_alignment = 1
-autowrap_mode = 2
+autowrap_mode = 3
 
-[node name="Footer" type="HBoxContainer" parent="Scroll/Margin/Main"]
+[node name="FooterRow" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -72.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("SB_Footer")
+
+[node name="Footer" type="HBoxContainer" parent="FooterRow"]
 layout_mode = 2
-theme_override_constants/separation = 16
-alignment = 1
+theme_override_constants/separation = 12
 
-[node name="ButtonRetry" type="Button" parent="Scroll/Margin/Main/Footer"]
+[node name="ButtonRetry" type="Button" parent="FooterRow/Footer"]
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 56)
-text = "再挑戦する"
+custom_minimum_size = Vector2(0, 48)
+theme_override_styles/normal = SubResource("SB_SecondaryBtn")
+text = "再挑戦"
 
-[node name="ButtonHome" type="Button" parent="Scroll/Margin/Main/Footer"]
+[node name="ButtonHome" type="Button" parent="FooterRow/Footer"]
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 56)
-text = "拠点へ戻る"
+custom_minimum_size = Vector2(0, 48)
+theme_override_styles/normal = SubResource("SB_PrimaryBtn")
+theme_override_colors/font_color = Color(0.98, 0.92, 0.62, 1)
+text = "拠点へ"
