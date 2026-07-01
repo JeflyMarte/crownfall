@@ -1989,6 +1989,20 @@
 
 **P3-UI2-020 Closeout（2026-07-01）:** `GachaScene` / `CodexScene` Header+BottomNav。headless smoke PASS。
 
+## ダンジョン選択モック寄せ（2026-07-01 — P3-UI2-021）
+
+> `UI_Reference_003_05_Dungeon` / `003_06_Dungeon_List` 骨格の第2段。スタミナ・週間ボーナスは Defer。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UI2-021-1 | **フィーチャーカード** — 選択中DGを大サムネ+メタ+発見率+「挑戦」CTA | 003_05 |
+| P3-UI2-021-2 | **難易度タブ** — ノーマルのみ有効、ハード/ナイトメア🔒 | 003_05 / Alpha 1DG |
+| P3-UI2-021-3 | **一覧** — フィーチャー除外・ロック行🔒・発見率表示 | 003_06 |
+| P3-UI2-021-4 | **BottomNav** — `NavAdventure` ハイライト・「召喚」表記統一 | 017〜020 統一 |
+| P3-UI2-021-5 | **スコープ外** — スタミナ・週間ボーナス・複数DG本格 | Beta |
+
+**P3-UI2-021 Closeout（2026-07-01）:** `DungeonSelectScene` フィーチャー+挑戦。headless smoke PASS。
+
 ## ガチャ通貨「魔晶石」（2026-07-01 — P3-ECO-002）
 
 > 仮称 `gacha_token` / ◆ 表示を正式名称・アイコンへ統一。セーブキー `gacha_token` は互換維持。
