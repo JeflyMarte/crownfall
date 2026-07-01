@@ -102,7 +102,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | | **パッシブ/シナジー:** `CombatPassives.gd`, `CombatSynergy.gd`, `CombatTags.gd`, `CombatCombos.gd`（P3-D109） |
 | | **メタ/周回:** `CombatRelics.gd`（静的定義+トリガ・P3-D114）, `CombatLinks.gd`（連鎖3種・P3-D115）, `CombatBossPhases.gd`（P3-D116）, `ExplorationSkills.gd`（P3-D117）, `CombatFastRun.gd`（P3-D118）, `CombatWeather.gd`（天候・P3-D101） |
 | `dungeon/` | `DungeonController.gd`, `DungeonScene.gd`（生態素材ドロップ・図鑑方針ボーナス P3-D128） |
-| `equipment/` | `EquipmentController.gd`, `EquipmentScene.gd`, **`BuildTagHelper.gd`**（P3-UI2-016）, **`AffixRoller.gd`**, **`AffixStatCalculator.gd`**, **`AffixDisplayFormatter.gd`**, **`JobStatCalculator.gd`** |
+| `equipment/` | `EquipmentController.gd`, `EquipmentScene.gd`, **`EquipmentUiHelper.gd`**（P3-UI2-019）, **`BuildTagHelper.gd`**（P3-UI2-016）, **`AffixRoller.gd`**, **`AffixStatCalculator.gd`**, **`AffixDisplayFormatter.gd`**, **`JobStatCalculator.gd`** |
 | `blacksmith/` | `BlacksmithScene.gd`（P3-UI2-018 Master-Detail UI）・`BlacksmithUiHelper.gd`（レシピ表示ヘルパ） |
 | `crafting/` | **`CraftHelper.gd`**（`can_craft` / `get_craftable_recipes` — P3-D141） |
 | `codex/` | **`CatalogHelper.gd`**（P2-Task046/049 — Bible parse + Entry）, **`CodexScene.gd`**（P2-Task047/048/049 — Detail + Bible fields） |
