@@ -140,6 +140,51 @@ func set_member_tactics(member: Resource, tactics_id: String) -> void:
 		return
 	member.tactics_id = CombatTactics.normalize_id(tactics_id)
 
+# ---- カスタム戦術（ガンビット・A1） ----
+func get_member_tactics_custom_enabled(member: Resource) -> bool:
+	if member != null and "tactics_custom_enabled" in member:
+		return bool(member.tactics_custom_enabled)
+	return false
+
+func set_member_tactics_custom_enabled(member: Resource, enabled: bool) -> void:
+	if member == null:
+		return
+	member.tactics_custom_enabled = enabled
+
+func get_member_tactics_custom_target(member: Resource) -> String:
+	if member == null:
+		return CombatTactics.DEFAULT_TARGET
+	if "tactics_custom_target" in member:
+		var target: String = str(member.tactics_custom_target)
+		if target in CombatTactics.TARGET_RULES:
+			return target
+	return CombatTactics.DEFAULT_TARGET
+
+func set_member_tactics_custom_target(member: Resource, target: String) -> void:
+	if member == null:
+		return
+	member.tactics_custom_target = target if target in CombatTactics.TARGET_RULES else CombatTactics.DEFAULT_TARGET
+
+func get_member_tactics_custom_plan(member: Resource) -> Array:
+	if member == null:
+		return []
+	if "tactics_custom_plan" in member and member.tactics_custom_plan is Array:
+		return CombatGambit.normalize_plan(member.tactics_custom_plan)
+	return []
+
+func set_member_tactics_custom_plan(member: Resource, plan: Array) -> void:
+	if member == null:
+		return
+	member.tactics_custom_plan = CombatGambit.normalize_plan(plan)
+
+func copy_member_tactics_preset_to_custom(member: Resource) -> void:
+	if member == null:
+		return
+	var tid: String = get_member_tactics_id(member)
+	member.tactics_custom_target = CombatTactics.get_target_rule(tid)
+	member.tactics_custom_plan = CombatTactics.get_slot_plan(tid).duplicate(true)
+	member.tactics_custom_enabled = true
+
 # ---- 遺物（Relics・P3-D090） ----
 # メンバーの遺物 id（未設定/無効なら "" = なし）。
 func get_member_relic_id(member: Resource) -> String:
@@ -394,6 +439,9 @@ func save_combat_preset(slot: int, preset_name: String = "") -> void:
 		settings[str(member.id)] = {
 			"tactics_id": get_member_tactics_id(member),
 			"relic_id": get_member_relic_id(member),
+			"tactics_custom_enabled": get_member_tactics_custom_enabled(member),
+			"tactics_custom_target": get_member_tactics_custom_target(member),
+			"tactics_custom_plan": get_member_tactics_custom_plan(member).duplicate(true),
 			"weapon_instance_id": _equipped_instance_id(member.equipped_weapon),
 			"armor_instance_id": _equipped_instance_id(member.equipped_armor),
 			"accessory_instance_id": _equipped_instance_id(member.equipped_accessory),
@@ -426,6 +474,12 @@ func apply_combat_preset(slot: int) -> bool:
 		var entry: Dictionary = s as Dictionary
 		set_member_tactics(member, str(entry.get("tactics_id", "")))
 		set_member_relic(member, str(entry.get("relic_id", "")))
+		if entry.has("tactics_custom_enabled"):
+			set_member_tactics_custom_enabled(member, bool(entry.get("tactics_custom_enabled", false)))
+		if entry.has("tactics_custom_target"):
+			set_member_tactics_custom_target(member, str(entry.get("tactics_custom_target", "")))
+		if entry.has("tactics_custom_plan") and entry.get("tactics_custom_plan") is Array:
+			set_member_tactics_custom_plan(member, entry.get("tactics_custom_plan"))
 		_apply_preset_equipment(member, i, entry, claimed_items)
 	set_exploration_policy(str((combat_presets[slot] as Dictionary).get("exploration_policy", "")))
 	return true

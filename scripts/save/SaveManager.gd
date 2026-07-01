@@ -87,6 +87,9 @@ func _serialize_adventurer(adv: Resource) -> Dictionary:
 		"equipped_accessory": accessory_instance_id,
 		"equipped_skills": adv.equipped_skill_ids.duplicate(),
 		"tactics_id": adv.tactics_id,
+		"tactics_custom_enabled": adv.tactics_custom_enabled,
+		"tactics_custom_target": adv.tactics_custom_target,
+		"tactics_custom_plan": _serialize_gambit_plan(adv.tactics_custom_plan),
 		"relic_id": adv.relic_id,
 		"formation_row": adv.formation_row,
 		"formation_slot": adv.formation_slot,
@@ -104,6 +107,27 @@ func _serialize_stats(stats: Resource) -> Dictionary:
 		"crit_damage": stats.crit_damage,
 		"discovery": stats.discovery,
 	}
+
+func _serialize_gambit_plan(plan: Array) -> Array:
+	var out: Array = []
+	for entry in CombatGambit.normalize_plan(plan):
+		if not entry is Dictionary:
+			continue
+		var row: Dictionary = {
+			"slot": str(entry.get("slot", "")),
+			"condition": str(entry.get("condition", "always")),
+		}
+		if entry.has("value"):
+			row["value"] = entry.get("value")
+		out.append(row)
+	return out
+
+func _deserialize_gambit_plan(plan_data: Array) -> Array:
+	var raw: Array = []
+	for entry in plan_data:
+		if entry is Dictionary:
+			raw.append((entry as Dictionary).duplicate(true))
+	return CombatGambit.normalize_plan(raw)
 
 func _serialize_inventory() -> Array:
 	var out: Array = []
@@ -224,6 +248,9 @@ func _deserialize_party(party_data: Array) -> Dictionary:
 			skill_ids.append(str(sid))
 		adv.equipped_skill_ids = skill_ids
 		adv.tactics_id = str(entry.get("tactics_id", ""))
+		adv.tactics_custom_enabled = bool(entry.get("tactics_custom_enabled", false))
+		adv.tactics_custom_target = str(entry.get("tactics_custom_target", ""))
+		adv.tactics_custom_plan = _deserialize_gambit_plan(entry.get("tactics_custom_plan", []))
 		adv.relic_id = str(entry.get("relic_id", ""))
 		adv.formation_row = int(entry.get("formation_row", 0))
 		if entry.has("formation_slot"):

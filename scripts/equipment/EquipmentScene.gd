@@ -63,6 +63,15 @@ var _inventory_filter: String = "all"
 # 戦術セレクタ（P3-D086・スキルタブ上部に動的生成）
 var _tactics_option: OptionButton = null
 var _tactics_ids: Array[String] = []
+var _gambit_custom_check: CheckBox = null
+var _gambit_custom_box: VBoxContainer = null
+var _gambit_target_option: OptionButton = null
+var _gambit_target_ids: Array[String] = []
+var _gambit_slot_opts: Array[OptionButton] = []
+var _gambit_cond_opts: Array[OptionButton] = []
+var _gambit_value_edits: Array[LineEdit] = []
+var _gambit_range_opts: Array[OptionButton] = []
+var _gambit_ui_syncing: bool = false
 var _relic_option: OptionButton = null
 var _relic_ids: Array[String] = []
 var _preset_option: OptionButton = null
@@ -691,6 +700,205 @@ func _ensure_tactics_ui() -> void:
 	_combat_setup_content.add_child(row)
 	_combat_setup_content.move_child(row, 0)
 	_tactics_option = opt
+	_ensure_gambit_ui()
+
+func _ensure_gambit_ui() -> void:
+	if _gambit_custom_check != null and is_instance_valid(_gambit_custom_check):
+		return
+	_ensure_combat_setup_panel()
+	var check_row := HBoxContainer.new()
+	check_row.name = "GambitCheckRow"
+	_gambit_custom_check = CheckBox.new()
+	_gambit_custom_check.text = "カスタム戦術（ガンビット）"
+	_gambit_custom_check.toggled.connect(_on_gambit_custom_toggled)
+	check_row.add_child(_gambit_custom_check)
+	_combat_setup_content.add_child(check_row)
+	_combat_setup_content.move_child(check_row, 1)
+	_gambit_custom_box = VBoxContainer.new()
+	_gambit_custom_box.name = "GambitCustomBox"
+	_gambit_custom_box.add_theme_constant_override("separation", 4)
+	_gambit_custom_box.visible = false
+	var target_row := HBoxContainer.new()
+	var target_label := Label.new()
+	target_label.text = "標的:"
+	target_row.add_child(target_label)
+	_gambit_target_option = OptionButton.new()
+	_gambit_target_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_gambit_target_ids.clear()
+	for target_id: String in CombatTactics.TARGET_RULES:
+		_gambit_target_option.add_item(CombatGambit.target_label(target_id))
+		_gambit_target_ids.append(target_id)
+	_gambit_target_option.item_selected.connect(_on_gambit_target_selected)
+	target_row.add_child(_gambit_target_option)
+	_gambit_custom_box.add_child(target_row)
+	var copy_btn := Button.new()
+	copy_btn.text = "プリセットから複製"
+	copy_btn.pressed.connect(_on_gambit_copy_preset_pressed)
+	_gambit_custom_box.add_child(copy_btn)
+	_gambit_slot_opts.clear()
+	_gambit_cond_opts.clear()
+	_gambit_value_edits.clear()
+	_gambit_range_opts.clear()
+	for i in CombatGambit.plan_row_count():
+		var plan_row := HBoxContainer.new()
+		plan_row.name = "GambitPlanRow%d" % i
+		var pri := Label.new()
+		pri.text = "%d." % (i + 1)
+		pri.custom_minimum_size.x = 18.0
+		plan_row.add_child(pri)
+		var slot_opt := OptionButton.new()
+		slot_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		for slot_id: String in CombatGambit.SLOT_IDS:
+			slot_opt.add_item(CombatGambit.slot_label(slot_id))
+		slot_opt.item_selected.connect(_on_gambit_row_changed)
+		plan_row.add_child(slot_opt)
+		var cond_opt := OptionButton.new()
+		cond_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		for cond_id: String in CombatGambit.CONDITION_IDS:
+			cond_opt.add_item(CombatGambit.condition_label(cond_id))
+		cond_opt.item_selected.connect(_on_gambit_row_changed)
+		plan_row.add_child(cond_opt)
+		var value_edit := LineEdit.new()
+		value_edit.custom_minimum_size.x = 52.0
+		value_edit.placeholder_text = "値"
+		value_edit.text_changed.connect(_on_gambit_row_changed)
+		plan_row.add_child(value_edit)
+		var range_opt := OptionButton.new()
+		range_opt.custom_minimum_size.x = 72.0
+		for range_id: String in CombatGambit.RANGE_VALUE_IDS:
+			range_opt.add_item(range_id)
+		range_opt.item_selected.connect(_on_gambit_row_changed)
+		range_opt.visible = false
+		plan_row.add_child(range_opt)
+		_gambit_custom_box.add_child(plan_row)
+		_gambit_slot_opts.append(slot_opt)
+		_gambit_cond_opts.append(cond_opt)
+		_gambit_value_edits.append(value_edit)
+		_gambit_range_opts.append(range_opt)
+	var gambit_hint := Label.new()
+	gambit_hint.text = "上から優先。条件成立かつ発動可の最初の行動を実行"
+	gambit_hint.autowrap_mode = TextServer.AUTOWRAP_WORD
+	gambit_hint.add_theme_color_override("font_color", COLOR_SUB)
+	gambit_hint.add_theme_font_size_override("font_size", 12)
+	_gambit_custom_box.add_child(gambit_hint)
+	_combat_setup_content.add_child(_gambit_custom_box)
+	_combat_setup_content.move_child(_gambit_custom_box, 2)
+
+func _refresh_gambit_ui(member: Resource) -> void:
+	if _gambit_custom_check == null:
+		return
+	_gambit_ui_syncing = true
+	if member == null:
+		_gambit_custom_check.disabled = true
+		_gambit_custom_box.visible = false
+		_gambit_ui_syncing = false
+		return
+	_gambit_custom_check.disabled = false
+	var custom_on: bool = GameState.get_member_tactics_custom_enabled(member)
+	_gambit_custom_check.button_pressed = custom_on
+	_gambit_custom_box.visible = custom_on
+	if _tactics_option != null:
+		_tactics_option.disabled = custom_on
+	var target: String = GameState.get_member_tactics_custom_target(member)
+	var target_idx: int = _gambit_target_ids.find(target)
+	if _gambit_target_option != null:
+		_gambit_target_option.select(target_idx if target_idx >= 0 else 0)
+	var plan: Array = GameState.get_member_tactics_custom_plan(member)
+	for i in CombatGambit.plan_row_count():
+		var rule: Dictionary = plan[i] if i < plan.size() else CombatGambit.default_plan_row(i)
+		var slot_id: String = str(rule.get("slot", "attack"))
+		var cond_id: String = str(rule.get("condition", "always"))
+		var slot_idx: int = CombatGambit.SLOT_IDS.find(slot_id)
+		var cond_idx: int = CombatGambit.CONDITION_IDS.find(cond_id)
+		_gambit_slot_opts[i].select(slot_idx if slot_idx >= 0 else 0)
+		_gambit_cond_opts[i].select(cond_idx if cond_idx >= 0 else 0)
+		_update_gambit_row_value_widgets(i, cond_id, rule)
+	_gambit_ui_syncing = false
+
+func _update_gambit_row_value_widgets(row: int, cond_id: String, rule: Dictionary = {}) -> void:
+	var needs_value: bool = CombatGambit.condition_needs_value(cond_id)
+	var is_range: bool = cond_id == "self_range"
+	_gambit_value_edits[row].visible = needs_value and not is_range
+	_gambit_range_opts[row].visible = needs_value and is_range
+	if not needs_value:
+		return
+	var raw_val: String = str(rule.get("value", CombatGambit.default_value_for(cond_id)))
+	if is_range:
+		var range_idx: int = CombatGambit.RANGE_VALUE_IDS.find(raw_val)
+		_gambit_range_opts[row].select(range_idx if range_idx >= 0 else 0)
+	else:
+		_gambit_value_edits[row].text = raw_val
+
+func _collect_gambit_plan_from_ui() -> Array:
+	var out: Array = []
+	for i in CombatGambit.plan_row_count():
+		var slot_idx: int = _gambit_slot_opts[i].selected
+		var cond_idx: int = _gambit_cond_opts[i].selected
+		if slot_idx < 0 or slot_idx >= CombatGambit.SLOT_IDS.size():
+			continue
+		if cond_idx < 0 or cond_idx >= CombatGambit.CONDITION_IDS.size():
+			continue
+		var cond_id: String = CombatGambit.CONDITION_IDS[cond_idx]
+		var rule: Dictionary = {
+			"slot": CombatGambit.SLOT_IDS[slot_idx],
+			"condition": cond_id,
+		}
+		if CombatGambit.condition_needs_value(cond_id):
+			if cond_id == "self_range":
+				var range_idx: int = _gambit_range_opts[i].selected
+				if range_idx >= 0 and range_idx < CombatGambit.RANGE_VALUE_IDS.size():
+					rule["value"] = CombatGambit.RANGE_VALUE_IDS[range_idx]
+			else:
+				rule["value"] = _gambit_value_edits[i].text
+		out.append(rule)
+	return out
+
+func _persist_gambit_plan(member: Resource) -> void:
+	if member == null or _gambit_ui_syncing:
+		return
+	GameState.set_member_tactics_custom_plan(member, _collect_gambit_plan_from_ui())
+
+func _on_gambit_custom_toggled(enabled: bool) -> void:
+	if _gambit_ui_syncing:
+		return
+	var member: Resource = GameState.get_member(_selected_member_index)
+	if member == null:
+		return
+	if enabled and GameState.get_member_tactics_custom_plan(member).is_empty():
+		GameState.copy_member_tactics_preset_to_custom(member)
+	else:
+		GameState.set_member_tactics_custom_enabled(member, enabled)
+	_refresh_gambit_ui(member)
+
+func _on_gambit_copy_preset_pressed() -> void:
+	var member: Resource = GameState.get_member(_selected_member_index)
+	if member == null:
+		return
+	GameState.copy_member_tactics_preset_to_custom(member)
+	_refresh_gambit_ui(member)
+
+func _on_gambit_target_selected(_index: int) -> void:
+	if _gambit_ui_syncing:
+		return
+	var member: Resource = GameState.get_member(_selected_member_index)
+	if member == null or _gambit_target_option == null:
+		return
+	var idx: int = _gambit_target_option.selected
+	if idx < 0 or idx >= _gambit_target_ids.size():
+		return
+	GameState.set_member_tactics_custom_target(member, _gambit_target_ids[idx])
+
+func _on_gambit_row_changed(_unused: Variant = null) -> void:
+	if _gambit_ui_syncing:
+		return
+	var member: Resource = GameState.get_member(_selected_member_index)
+	if member == null:
+		return
+	for i in CombatGambit.plan_row_count():
+		var cond_idx: int = _gambit_cond_opts[i].selected
+		var cond_id: String = CombatGambit.CONDITION_IDS[cond_idx] if cond_idx >= 0 else "always"
+		_update_gambit_row_value_widgets(i, cond_id)
+	_persist_gambit_plan(member)
 
 func _refresh_tactics_ui(member: Resource) -> void:
 	if _tactics_option == null:
@@ -702,6 +910,7 @@ func _refresh_tactics_ui(member: Resource) -> void:
 	var current: String = GameState.get_member_tactics_id(member)
 	var idx: int = _tactics_ids.find(current)
 	_tactics_option.select(idx if idx >= 0 else 0)
+	_refresh_gambit_ui(member)
 
 func _on_tactics_selected(index: int) -> void:
 	if index < 0 or index >= _tactics_ids.size():
@@ -841,6 +1050,7 @@ func _on_preset_apply_pressed() -> void:
 	_refresh_display()
 	var member: Resource = GameState.get_member(_selected_member_index)
 	_refresh_tactics_ui(member)
+	_refresh_gambit_ui(member)
 	_refresh_relic_ui(member)
 	_sync_policy_option()
 

@@ -15,6 +15,11 @@ extends Resource
 @export var equipped_skill_ids: Array[String] = []
 ## 戦術プリセット id（P3-D086・AI最上位設定）。空なら "balanced"。スロット選択優先度を決める。
 @export var tactics_id: String = ""
+## カスタム戦術（ガンビット・A1）。ON 時は tactics_custom_* を CombatGambit が優先する。
+@export var tactics_custom_enabled: bool = false
+@export var tactics_custom_target: String = ""
+## 優先度順のルール配列。各要素は {slot, condition, value?}。
+@export var tactics_custom_plan: Array = []
 ## 遺物 id（P3-D090・第3装備枠）。空＝なし。与ダメ/被ダメ/行動速度の常時倍率を与える。
 @export var relic_id: String = ""
 

@@ -4,6 +4,7 @@ extends RefCounted
 ## カスタム戦術（ガンビット）のメタデータ（A1）。
 
 const PLAN_ROW_COUNT: int = 5
+const RANGE_VALUE_IDS: Array[String] = ["melee", "mid", "long"]
 
 const SLOT_IDS: Array[String] = ["ultimate", "defend", "skill", "attack"]
 const CONDITION_IDS: Array[String] = [
@@ -57,6 +58,22 @@ static func default_value_for(condition_id: String) -> String:
 			return "long"
 		_:
 			return ""
+
+static func default_plan_row(index: int) -> Dictionary:
+	match index:
+		0:
+			return {"slot": "ultimate", "condition": "ultimate_ready"}
+		1:
+			return {"slot": "defend", "condition": "self_hp_below", "value": 0.30}
+		2:
+			return {"slot": "skill", "condition": "always"}
+		3:
+			return {"slot": "attack", "condition": "always"}
+		_:
+			return {"slot": "attack", "condition": "always"}
+
+static func plan_row_count() -> int:
+	return PLAN_ROW_COUNT
 
 static func normalize_plan(raw_plan: Array) -> Array:
 	var out: Array = []
