@@ -244,6 +244,19 @@ func get_member_target_slot(member_index: int) -> int:
 	return pick_enemy_slot_by_rule(CombatTactics.DEFAULT_TARGET)
 
 # 生存敵から target ルールで1体選ぶ（P3-D100/D111）。
+const DEBUFF_STATUS_IDS: Array[String] = [
+	"stun", "fear", "poison", "bleed", "vulnerable", "armor_break", "curse", "chill", "slow", "mark",
+]
+
+func _pick_debuff_priority_slots(living: Array[int]) -> Array[int]:
+	var out: Array[int] = []
+	for i: int in living:
+		for status_id: String in DEBUFF_STATUS_IDS:
+			if get_enemy_status_stacks_at(i, status_id) > 0:
+				out.append(i)
+				break
+	return out
+
 func _pick_status_priority_slots(living: Array[int], priority_status: String) -> Array[int]:
 	var out: Array[int] = []
 	for i: int in living:
@@ -288,6 +301,14 @@ func pick_enemy_slot_by_rule(rule: String) -> int:
 				return living[0]
 			best = marked[0]
 			for i: int in marked:
+				if swarm_hp[i] < swarm_hp[best]:
+					best = i
+		"enemy_with_debuff":
+			var debuffed: Array[int] = _pick_debuff_priority_slots(living)
+			if debuffed.is_empty():
+				return living[0]
+			best = debuffed[0]
+			for i: int in debuffed:
 				if swarm_hp[i] < swarm_hp[best]:
 					best = i
 		"back":

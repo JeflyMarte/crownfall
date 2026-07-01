@@ -10,6 +10,7 @@ const SLOT_IDS: Array[String] = ["ultimate", "defend", "skill", "attack"]
 const CONDITION_IDS: Array[String] = [
 	"always", "self_hp_below", "enemy_is_boss", "enemy_is_elite", "enemy_count_gte",
 	"ally_dead", "enemy_has_bleed", "enemy_has_poison", "enemy_has_mark",
+	"enemy_has_stun", "enemy_has_vulnerable", "enemy_has_armor_break", "enemy_has_fear",
 	"ultimate_ready", "self_range", "ally_injured",
 ]
 
@@ -26,6 +27,10 @@ const _CONDITION_NAMES: Dictionary = {
 	"enemy_has_bleed": "敵が出血",
 	"enemy_has_poison": "敵が毒",
 	"enemy_has_mark": "敵が標的",
+	"enemy_has_stun": "敵がスタン",
+	"enemy_has_vulnerable": "敵が脆弱",
+	"enemy_has_armor_break": "敵が防御DOWN",
+	"enemy_has_fear": "敵が恐怖",
 	"ultimate_ready": "必殺準備完了",
 	"self_range": "射程が",
 	"ally_injured": "味方負傷",
@@ -33,7 +38,7 @@ const _CONDITION_NAMES: Dictionary = {
 const _TARGET_NAMES: Dictionary = {
 	"front": "前衛優先", "lowest_hp": "HP最低", "highest_hp": "HP最高",
 	"highest_atk": "攻撃最高", "enemy_with_status": "状態異常優先",
-	"enemy_marked": "標的優先", "back": "後衛優先",
+	"enemy_marked": "標的優先", "enemy_with_debuff": "デバフ優先", "back": "後衛優先",
 }
 
 static func slot_label(slot_id: String) -> String:

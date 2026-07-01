@@ -9,6 +9,7 @@ extends RefCounted
 ## condition: "always" | "self_hp_below" | "enemy_is_boss" | "enemy_is_elite"
 ##          | "enemy_count_gte" | "ally_dead"
 ##          | "enemy_has_bleed" | "enemy_has_poison" | "enemy_has_mark" | "ultimate_ready"
+##          | "enemy_has_stun" | "enemy_has_vulnerable" | "enemy_has_armor_break" | "enemy_has_fear"（P3-D127）
 ##          | "self_range"（P3-D108・フェーズB-5）
 ##          | "ally_injured"（P3-D113・味方に負傷者がいる）
 ## value: 条件の閾値（self_hp_below=HP割合 / enemy_count_gte=体数 / self_range=melee|mid|long）。
@@ -16,12 +17,12 @@ extends RefCounted
 ## plan は優先度順（Very High → Low）。DungeonScene は先頭から評価し、
 ## 条件成立かつ実際に発動できた最初のスロットで行動を確定する。
 ## Target 層（P3-D100/D111）: 各メンバーが戦術 target で個別に狙う（混成時に分散可能）。
-## ルール: front | lowest_hp | highest_hp | highest_atk | enemy_with_status | enemy_marked | back
+## ルール: front | lowest_hp | highest_hp | highest_atk | enemy_with_status | enemy_marked | enemy_with_debuff | back
 
 const DEFAULT_TACTICS_ID: String = "balanced"
 const DEFAULT_TARGET: String = "front"
 const TARGET_RULES: Array[String] = [
-	"front", "lowest_hp", "highest_hp", "highest_atk", "enemy_with_status", "enemy_marked", "back",
+	"front", "lowest_hp", "highest_hp", "highest_atk", "enemy_with_status", "enemy_marked", "enemy_with_debuff", "back",
 ]
 
 const _DEFS: Dictionary = {
@@ -52,8 +53,8 @@ const _DEFS: Dictionary = {
 		"plan": [
 			{"slot": "defend", "condition": "self_hp_below", "value": 0.50},
 			{"slot": "ultimate", "condition": "ultimate_ready"},
+			{"slot": "skill", "condition": "enemy_has_stun"},
 			{"slot": "skill", "condition": "self_range", "value": "mid"},
-			{"slot": "skill", "condition": "always"},
 			{"slot": "attack", "condition": "always"},
 		],
 	},
@@ -80,12 +81,12 @@ const _DEFS: Dictionary = {
 	},
 	"sweep": {
 		"display_name": "雑魚掃討",
-		"target": "enemy_marked",
+		"target": "enemy_with_debuff",
 		"plan": [
 			{"slot": "ultimate", "condition": "enemy_count_gte", "value": 2},
 			{"slot": "skill", "condition": "enemy_has_mark"},
+			{"slot": "skill", "condition": "enemy_has_vulnerable"},
 			{"slot": "skill", "condition": "enemy_has_poison"},
-			{"slot": "skill", "condition": "always"},
 			{"slot": "attack", "condition": "always"},
 		],
 	},
@@ -122,7 +123,9 @@ static func get_slot_plan(tactics_id: String) -> Array:
 # 1 ルールの条件が戦闘コンテキストで成立するか。
 # ctx: {self_hp_ratio:float, enemy_is_boss:bool, enemy_is_elite:bool,
 #       enemy_count:int, ally_dead:bool,
-#       enemy_has_bleed:bool, enemy_has_poison:bool, enemy_has_mark:bool, ultimate_ready:bool,
+#       enemy_has_bleed:bool, enemy_has_poison:bool, enemy_has_mark:bool,
+#       enemy_has_stun:bool, enemy_has_vulnerable:bool, enemy_has_armor_break:bool, enemy_has_fear:bool,
+#       ultimate_ready:bool,
 #       self_range:String, ally_injured:bool}  # P3-D108 / P3-D113
 static func condition_met(rule: Dictionary, ctx: Dictionary) -> bool:
 	match str(rule.get("condition", "always")):
@@ -144,6 +147,14 @@ static func condition_met(rule: Dictionary, ctx: Dictionary) -> bool:
 			return bool(ctx.get("enemy_has_poison", false))
 		"enemy_has_mark":
 			return bool(ctx.get("enemy_has_mark", false))
+		"enemy_has_stun":
+			return bool(ctx.get("enemy_has_stun", false))
+		"enemy_has_vulnerable":
+			return bool(ctx.get("enemy_has_vulnerable", false))
+		"enemy_has_armor_break":
+			return bool(ctx.get("enemy_has_armor_break", false))
+		"enemy_has_fear":
+			return bool(ctx.get("enemy_has_fear", false))
 		"ultimate_ready":
 			return bool(ctx.get("ultimate_ready", false))
 		"self_range":
