@@ -299,4 +299,4 @@ text = "図鑑"
 [node name="NavShop" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "ショップ"
+text = "召喚"
