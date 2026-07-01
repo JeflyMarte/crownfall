@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-01（**P3-D137 ガンビット行並替**: 装備画面カスタム戦術5行に↑↓・優先度入替・セーブ連動。headless smoke PASS）
+
 2026-07-01（**P3-D136 鍛冶屋復活 MVP**: 赤鉄の工房導線復帰・全6レシピ・古き骨=セピアハウンドドロップ追加。headless smoke PASS）
 
 2026-07-01（**P3-D135 Result 採取素材アイコン行**: `MaterialPanel`+`IconPaths` material セル・InfoGrid テキスト重複除去。headless smoke PASS）
@@ -84,21 +86,21 @@
 
 ---
 
-## Next Implementation Queue（HQ 確定 2026-07-01）
+## Next Implementation Queue（HQ 確定 2026-07-01 / 更新 2026-07-01）
 
-> Alpha 戦術/探索拡張（D120〜133）完了後の順序。原則＝**準備ループの穴埋め → 経済ループ接続 → 作画取り込み → 大物は Decision 待ち**。
+> 原則＝**準備ループの穴埋め → 経済可視化 → 作画は Defer**。キャラ/環境ドット絵はオーナー指示で後回し。
 
-| 順 | ID（案） | 内容 | レーン | 理由 |
+| 順 | ID（案） | 内容 | レーン | 状態 |
 |---|---|---|---|---|
-| 0 | P3-ALPHA-003 | 実機チェックリスト v2.1（GO/NO-GO） | オーナー（可能時） | 品質の正。不可なら Defer 維持 |
-| 1 | P3-ART-002 | vanguard 戦闘スプライト取り込み | オーナー作画→Impl | Known Issue・4人編成の見た目 |
-| 2 | P3-ART-003 | beast_tamer 戦闘スプライト取り込み | 同上 | 同上 |
-| 3 | P3-D134 | 作戦プリセット装備競合トースト | Impl | ✅ 完了 |
-| 4 | P3-D135 | Result 素材アイコン行（D131 拡張） | Impl | ✅ 完了 |
-| 5 | P3-D136 | 鍛冶屋復活 MVP（D075 逆・導線のみ） | Impl+Decision | ✅ 完了 |
-| 6 | P3-ART-004 | ranger / alchemist 本番差替 | オーナー→Impl | **次** |
-| 7 | P3-D137 | ガンビット UI 改善（並替 or 条件プレビュー 1 点） | Impl | A1 スコープ外のうち最小1機能 |
-| 8 | P3-A-ENV-001 | mourngate 環境アート差替（タイル/オブジェ） | オーナー→Impl | Phase 3-A Visual |
+| 0 | P3-ALPHA-003 | 実機チェックリスト v2.1（GO/NO-GO） | オーナー（可能時） | Defer |
+| — | P3-ART-002〜004 | 戦闘スプライト取り込み | オーナー作画→Impl | **Defer** |
+| — | P3-A-ENV-001 | mourngate 環境アート | オーナー→Impl | **Defer** |
+| 3 | P3-D134 | 作戦プリセット装備競合トースト | Impl | ✅ |
+| 4 | P3-D135 | Result 素材アイコン行 | Impl | ✅ |
+| 5 | P3-D136 | 鍛冶屋復活 MVP | Impl | ✅ |
+| 6 | P3-D137 | ガンビット UI 改善（行並替 ↑↓） | Impl | ✅ |
+| 7 | P3-D138 | 拠点素材可視化（TopBar 等） | Impl | **次** |
+| 8 | P3-D139 | 鍛冶屋軽 UX（素材アイコン・ソート） | Impl | 予定 |
 
 **Backlog（単独 Decision まで着手しない）:** 敵別 Threat テーブル / 探索手動+CD / ELITE スキップ / 周回敗北シミュ / 天候本格 / 位置AI / 複数DG / Affix本格 / ラン中方針切替 / Biome-02 以降。
 
