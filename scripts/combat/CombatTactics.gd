@@ -52,7 +52,7 @@ const _DEFS: Dictionary = {
 		"plan": [
 			{"slot": "defend", "condition": "self_hp_below", "value": 0.50},
 			{"slot": "ultimate", "condition": "ultimate_ready"},
-			{"slot": "skill", "condition": "self_range", "value": "long"},
+			{"slot": "skill", "condition": "self_range", "value": "mid"},
 			{"slot": "skill", "condition": "always"},
 			{"slot": "attack", "condition": "always"},
 		],

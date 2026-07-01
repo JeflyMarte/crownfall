@@ -1382,6 +1382,25 @@
 | P3-D106f-5 | **データ整合**: 杖 `base_attack_range=2.5`（`glacier_staff` 修正）。弓=3.0・剣系≈1.0 は既存維持 | 中距離カテゴリを杖で実戦投入 |
 | P3-D106f-6 | **スコープ外**: リアルタイム位置 AI・隊列移動・射程 UI 表示 | Combat Vision 本格は後続 |
 
+## 陣形 B レーン Closeout（2026-07-01 — P3-D125）
+
+> Combat Vision 陣形サブレーン B-1〜B-5（P3-D106b〜f）の完了宣言。コードはコミット済（`aa1b187` / `1081d97`）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D125-1 | **完了宣言**: 陣形 B レーン **5/5 完了** — B-1 射程×与ダメ／B-2 敵 AoE 列／B-3 Threat 按分・近接前列／B-4 散開密集／B-5 本格射程（`WeaponData.base_attack_range`） | P3-D106 スコープ外だった射程連動を消化 |
+| P3-D125-2 | **SSOT 整理**: 射程カテゴリ=`CombatRange`・陣形効果=`CombatFormation`+`GameState.formation_*`・戦術距離=`CombatTactics.self_range` | CODEMAP / DungeonScene 配線と一致 |
+| P3-D125-3 | **残 Defer**: 位置 AI・理想距離移動・射程 HUD・列座標距離の与ダメ | Combat Vision 本格は Backlog |
+| P3-D125-4 | **実機**: headless import 済。体感は P3-ALPHA-003 | オーナー帰宅後 |
+
+## 戦術プリセット微調整（2026-07-01 — P3-D126）
+
+> B-5 本格射程（mid カテゴリ実用化）後のプリセット追随。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-D126-1 | **`cautious` プリセット**: `self_range` 条件値 `long`→`mid` | 杖2.5・中距離スキルが「遠隔のみ優先」にならないよう調整。後列+mid 与ダメ補正（B-1）と整合 |
+
 ## 状態異常拡充 MVP（2026-06-30 — P3-D107・残ロードマップ フェーズB-4）
 
 > 攻撃偏重だった状態異常を Control / Debuff 方向へ拡充。敵単一スロット制約（D082）は維持し、既存中央フックに相乗りで配線。
