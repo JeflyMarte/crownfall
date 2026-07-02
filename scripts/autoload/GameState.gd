@@ -256,8 +256,8 @@ func set_member_relic(member: Resource, relic_id: String) -> void:
 # ---- 陣形（前列/後列・P3-D106） ----
 const FORMATION_FRONT: int = 0
 const FORMATION_BACK: int = 1
-const FORMATION_BACK_INCOMING: float = 0.85  # 後列の被ダメ倍率
-const FORMATION_BACK_THREAT: float = 0.6     # 後列の Threat 基礎倍率
+const FORMATION_BACK_INCOMING: float = BalanceConfig.FORMATION_BACK_INCOMING  # 後列の被ダメ倍率
+const FORMATION_BACK_THREAT: float = BalanceConfig.FORMATION_BACK_THREAT     # 後列の Threat 基礎倍率
 const FORMATION_MELEE_BACK_OUTGOING: float = 0.85
 const FORMATION_LONG_FRONT_OUTGOING: float = 0.85
 const FORMATION_MID_BACK_OUTGOING: float = 0.92

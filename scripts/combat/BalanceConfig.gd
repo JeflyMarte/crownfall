@@ -14,3 +14,31 @@ const DEFENSE_MITIGATION_K: float = 100.0
 const BIOME_FAVORED_BONUS: float = 1.15
 ## 防具属性耐性 被ダメ倍率（P3-D103）
 const ARMOR_RESIST_MULTIPLIER: float = 0.75
+
+# ── 味方基礎（旧 CombatController 定数） ──────────────────────────────────
+const BASE_MEMBER_HP: int = 30
+
+# ── 敵レベルスケール（P3-D081） ──────────────────────────────────────────
+const ENEMY_LEVEL_HP_K: float = 0.10
+const ENEMY_LEVEL_ATK_K: float = 0.10
+const ENEMY_LEVEL_EXP_K: float = 0.15
+
+# ── 編成人数補正（P3-BAL-003・base=3人） ─────────────────────────────────
+const PARTY_BALANCE_HP_SHARE: float = 0.85
+const PARTY_BALANCE_ATK_SHARE: float = 0.40
+
+# ── Threat（P3-D104） ────────────────────────────────────────────────────
+const THREAT_DAMAGE_K: float = 0.10   # 与ダメ1あたりの加算
+const THREAT_TAKEN_K: float = 0.15    # 被ダメ1あたりの加算
+const THREAT_TAUNT: float = 40.0      # 挑発（防御スロット）スパイク
+const THREAT_DECAY: float = 0.90
+
+# ── 陣形（P3-D106） ──────────────────────────────────────────────────────
+const FORMATION_BACK_INCOMING: float = 0.85  # 後列の被ダメ倍率
+const FORMATION_BACK_THREAT: float = 0.6     # 後列の Threat 基礎倍率
+const DENSE_ROW_INCOMING: float = 1.08       # 密集列 被ダメ倍率
+const SPREAD_ROW_INCOMING: float = 0.94      # 散開列 被ダメ倍率
+
+# ── エンカウント（P3-D082/D110） ─────────────────────────────────────────
+const SWARM_CHANCE: float = 0.24        # COMBAT 部屋の群れ出現率
+const MIXED_SWARM_CHANCE: float = 0.50  # 群れ時に別種を混ぜる確率
