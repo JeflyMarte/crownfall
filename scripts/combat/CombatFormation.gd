@@ -7,8 +7,8 @@ const TARGET_ALL_PARTY: String = "all_party"
 const TARGET_PARTY_FRONT: String = "party_front"
 const TARGET_PARTY_BACK: String = "party_back"
 
-const DENSE_ROW_INCOMING: float = 1.08
-const SPREAD_ROW_INCOMING: float = 0.94
+const DENSE_ROW_INCOMING: float = BalanceConfig.DENSE_ROW_INCOMING
+const SPREAD_ROW_INCOMING: float = BalanceConfig.SPREAD_ROW_INCOMING
 const DENSE_ROW_MIN_COUNT: int = 2
 
 static func get_column_member_indices(

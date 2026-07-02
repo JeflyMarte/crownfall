@@ -1,7 +1,8 @@
 class_name CombatController
 extends Node
 
-const BASE_MEMBER_HP: int = 30
+# バランス値は BalanceConfig（SSOT・P3-BAL-005）を参照。ここはエイリアス。
+const BASE_MEMBER_HP: int = BalanceConfig.BASE_MEMBER_HP
 const _AffixStatCalculator = preload("res://scripts/equipment/AffixStatCalculator.gd")
 const _JobStatCalculator = preload("res://scripts/equipment/JobStatCalculator.gd")
 const _StatusResolver = preload("res://scripts/combat/StatusResolver.gd")
@@ -14,14 +15,14 @@ var last_gold_reward: int = 0
 
 # 敵レベル（P3-D081）。start_combat で決定し、ダンジョン中は不変。
 # Lv1＝tres 基準値。HP/ATK は乗算スケール、DEF は据置、EXP は別係数で増加。
-const ENEMY_LEVEL_HP_K: float = 0.10
-const ENEMY_LEVEL_ATK_K: float = 0.10
-const ENEMY_LEVEL_EXP_K: float = 0.15
+const ENEMY_LEVEL_HP_K: float = BalanceConfig.ENEMY_LEVEL_HP_K
+const ENEMY_LEVEL_ATK_K: float = BalanceConfig.ENEMY_LEVEL_ATK_K
+const ENEMY_LEVEL_EXP_K: float = BalanceConfig.ENEMY_LEVEL_EXP_K
 # 4人編成リバランス（P3-BAL-003 / G1）。敵データは3人編成前提で調整済みのため、
 # 現行 party 人数に応じて HP/ATK を中央補正する（EXP/ゴールドは据置）。
 const PARTY_BALANCE_BASE_SIZE: int = 3
-const PARTY_BALANCE_HP_SHARE: float = 0.85
-const PARTY_BALANCE_ATK_SHARE: float = 0.40
+const PARTY_BALANCE_HP_SHARE: float = BalanceConfig.PARTY_BALANCE_HP_SHARE
+const PARTY_BALANCE_ATK_SHARE: float = BalanceConfig.PARTY_BALANCE_ATK_SHARE
 var enemy_level: int = 1
 var _scaled_max_hp: int = 0
 var _scaled_attack: int = 0
@@ -62,10 +63,10 @@ var _status_resolver: RefCounted = _StatusResolver.new()
 # ── Threat / Aggro 基盤（P3-D104・ロードマップ フェーズA-2）──
 # 敵は最大 Threat のメンバーを狙う。Threat は被ダメ肩代わり・与ダメ・挑発で増え、毎tick減衰。
 var party_threat: Array[float] = []
-const THREAT_DAMAGE_K: float = 0.10   # 与ダメ1あたりの加算
-const THREAT_TAKEN_K: float = 0.15    # 被ダメ1あたりの加算（タンクが矢面で稼ぐ）
-const THREAT_TAUNT: float = 40.0      # 挑発（防御スロット）スパイク
-const THREAT_DECAY: float = 0.90
+const THREAT_DAMAGE_K: float = BalanceConfig.THREAT_DAMAGE_K
+const THREAT_TAKEN_K: float = BalanceConfig.THREAT_TAKEN_K
+const THREAT_TAUNT: float = BalanceConfig.THREAT_TAUNT
+const THREAT_DECAY: float = BalanceConfig.THREAT_DECAY
 const THREAT_TARGET_BIAS_MAX: String = "max_threat"
 const THREAT_TARGET_BIAS_LOWEST_HP: String = "lowest_hp"
 const THREAT_TARGET_BIAS_BACK_ROW: String = "back_row"
