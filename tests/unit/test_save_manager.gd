@@ -175,3 +175,26 @@ func test_load_partial_keys_applies_only_present() -> void:
 	SaveManager.load_game()
 	assert_eq(GameState.gold, 500, "存在するキーは適用")
 	assert_eq(GameState.gacha_token, 99, "欠損キーは既存値を維持")
+
+# ── e) save_version スキーマバージョン ───────────────────────────────────────
+
+func test_save_writes_current_save_version() -> void:
+	SaveManager.save_game()
+	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.READ)
+	var data: Dictionary = JSON.parse_string(file.get_as_text())
+	file.close()
+	assert_eq(int(data.get("save_version", -1)), SaveManager.SAVE_VERSION, "セーブに save_version が書かれること")
+
+func test_load_legacy_save_without_version() -> void:
+	_write_raw_save(JSON.stringify({"gold": 321}))
+	SaveManager.load_game()
+	assert_eq(GameState.gold, 321, "save_version 無しの旧セーブ（v0）もロードできること")
+
+func test_migrate_save_data_stamps_current_version() -> void:
+	var migrated: Dictionary = SaveManager._migrate_save_data({"gold": 1})
+	assert_eq(int(migrated["save_version"]), SaveManager.SAVE_VERSION, "マイグレーション後は現行バージョンが刻印されること")
+
+func test_load_future_version_is_best_effort() -> void:
+	_write_raw_save(JSON.stringify({"save_version": 999, "gold": 654}))
+	SaveManager.load_game()
+	assert_eq(GameState.gold, 654, "将来バージョンのセーブも best-effort でロードすること")
