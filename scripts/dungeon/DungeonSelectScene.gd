@@ -19,12 +19,9 @@ const COLOR_GOLD: Color = Color(0.95, 0.84, 0.4, 1)
 const COLOR_SUB: Color = Color(0.78, 0.74, 0.6, 1)
 const COLOR_CLEAR: Color = Color(0.45, 0.92, 0.55, 1)
 const COLOR_TEAL: Color = Color(0.6, 0.82, 0.78, 1)
-const COLOR_STAMINA: Color = Color(0.55, 0.92, 0.62, 1)
 
 ## P3-UI2-029 — 占位表示のみ（Beta B2 で実ロジック化）
-const PLACEHOLDER_STAMINA_CURRENT: int = 120
-const PLACEHOLDER_STAMINA_MAX: int = 120
-const PLACEHOLDER_STAMINA_COST: int = 20
+## スタミナは P3-BETA-001b で撤回済み（占位含め表示しない）
 const PLACEHOLDER_DAILY_CHALLENGES: String = "3/3"
 const PLACEHOLDER_BONUS_PERCENT: int = 20
 const PLACEHOLDER_BONUS_REMAINING: String = "残り2時間35分"
@@ -41,7 +38,6 @@ const DROP_PREVIEW: Dictionary = {
 }
 
 @onready var _btn_back: Button = $Header/HeaderRow/ButtonBack
-@onready var _label_stamina: Label = $Header/HeaderRow/StaminaChip/StaminaRow/LabelStamina
 @onready var _label_gold: Label = $Header/HeaderRow/GoldChip/GoldRow/LabelGold
 @onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
 @onready var _featured_panel: PanelContainer = $FeaturedPanel
@@ -60,20 +56,13 @@ const DROP_PREVIEW: Dictionary = {
 @onready var _label_special_progress: Label = $FooterPanel/FooterRow/SpecialCol/SpecialRow/LabelSpecialProgress
 @onready var _special_progress_bar: ProgressBar = $FooterPanel/FooterRow/SpecialCol/SpecialRow/SpecialProgressBar
 @onready var _btn_reward_list: Button = $FooterPanel/FooterRow/SpecialCol/BtnRewardList
-@onready var _nav_home: Button = $BottomNav/NavRow/NavHome
-@onready var _nav_party: Button = $BottomNav/NavRow/NavParty
-@onready var _nav_codex: Button = $BottomNav/NavRow/NavCodex
-@onready var _nav_shop: Button = $BottomNav/NavRow/NavShop
 
 var _featured_dungeon_id: String = ""
 
 func _ready() -> void:
+	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.ADVENTURE)
 	_btn_back.pressed.connect(_go_home)
 	_btn_featured_challenge.pressed.connect(_on_featured_challenge_pressed)
-	_nav_home.pressed.connect(_go_home)
-	_nav_party.pressed.connect(_go_to.bind(ROSTER_SCENE))
-	_nav_codex.pressed.connect(_go_to.bind(CODEX_SCENE))
-	_nav_shop.pressed.connect(_go_to.bind(GACHA_SCENE))
 	_featured_panel.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD_ACTIVE)
 	)
@@ -85,17 +74,29 @@ func _ready() -> void:
 	)
 	_btn_reward_list.disabled = true
 	_btn_reward_list.tooltip_text = "準備中（Beta）"
+	_apply_typography()
 	_refresh_all()
+
+func _apply_typography() -> void:
+	UiTypography.apply_button(_btn_back, false)
+	UiTypography.apply_button(_btn_featured_challenge)
+	UiTypography.apply_button(_btn_reward_list, false)
+	UiTypography.apply_body(_label_gold, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	UiTypography.apply_body(_label_token, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	UiTypography.apply_display(_label_featured_name, UiTypography.SIZE_DISPLAY)
+	UiTypography.apply_body(_label_featured_flavor, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_SUB)
+	UiTypography.apply_body(_label_featured_meta, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
+	UiTypography.apply_body(_label_featured_discovery, UiTypography.SIZE_BODY_SMALL, COLOR_CLEAR)
+	UiTypography.apply_body(_label_daily_challenges, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	UiTypography.apply_body(_label_dungeon_bonus, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	UiTypography.apply_caption(_label_bonus_timer)
+	UiTypography.apply_body(_label_special_progress, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
 
 func _refresh_all() -> void:
 	_update_currency()
-	_refresh_stamina_placeholder()
 	_refresh_featured()
 	_refresh_footer_placeholder()
 	_build_list()
-
-func _refresh_stamina_placeholder() -> void:
-	_label_stamina.text = "⚡ %d/%d" % [PLACEHOLDER_STAMINA_CURRENT, PLACEHOLDER_STAMINA_MAX]
 
 func _refresh_footer_placeholder() -> void:
 	_label_daily_challenges.text = PLACEHOLDER_DAILY_CHALLENGES
@@ -133,7 +134,6 @@ func _refresh_featured() -> void:
 	meta_parts.append(_make_stars_text(int(data.difficulty)))
 	if not str(data.favored_element).is_empty():
 		meta_parts.append("%s 有利" % _ElementResolver.get_display_name(str(data.favored_element)))
-	meta_parts.append("スタミナ消費 ⚡%d" % PLACEHOLDER_STAMINA_COST)
 	var policy: String = GameState.get_exploration_policy()
 	if not policy.is_empty():
 		meta_parts.append("方針:%s" % GameState.exploration_policy_label(policy))
@@ -145,7 +145,7 @@ func _refresh_featured() -> void:
 		_label_featured_discovery.text += " · CLEAR済"
 
 	_populate_drop_row(_featured_drop_row, _featured_dungeon_id, 4)
-	_btn_featured_challenge.text = "挑戦\n⚡%d" % PLACEHOLDER_STAMINA_COST
+	_btn_featured_challenge.text = "挑戦"
 
 func _resolve_featured_dungeon_id() -> String:
 	var active_id: String = GameState.get_active_dungeon_id()
@@ -165,8 +165,7 @@ func _populate_drop_row(row: HBoxContainer, dungeon_id: String, max_icons: int =
 		child.queue_free()
 	var caption := Label.new()
 	caption.text = DROP_CAPTION
-	caption.add_theme_font_size_override("font_size", 12)
-	caption.add_theme_color_override("font_color", COLOR_SUB)
+	UiTypography.apply_caption(caption)
 	row.add_child(caption)
 	var preview: Array = DROP_PREVIEW.get(dungeon_id, [])
 	var shown: int = 0
@@ -188,8 +187,7 @@ func _build_list() -> void:
 	var header := Label.new()
 	header.text = "階層一覧"
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	header.add_theme_color_override("font_color", Color(0.78, 0.7, 0.5))
-	header.add_theme_font_size_override("font_size", 15)
+	UiTypography.apply_display(header, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	_list.add_child(header)
 	var floor_total: int = maxi(1, int(data.floor_count))
 	for floor in range(1, floor_total + 1):
@@ -223,24 +221,25 @@ func _make_floor_card(data: Resource, floor: int, unlocked: bool) -> PanelContai
 	var title := Label.new()
 	title.text = "%s B%dF" % [str(data.display_name), floor]
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.add_theme_font_size_override("font_size", 14)
-	title.add_theme_color_override("font_color", COLOR_GOLD if unlocked else COLOR_SUB)
+	UiTypography.apply_display(
+		title,
+		UiTypography.SIZE_BODY_SMALL,
+		UiTypography.COLOR_GOLD if unlocked else UiTypography.COLOR_SUB
+	)
 	title_row.add_child(title)
 
 	if int(data.recommended_level) > 0:
 		var lv := Label.new()
 		var floor_lv: int = int(data.recommended_level) + floor - 1
 		lv.text = "推奨Lv.%d〜" % floor_lv
-		lv.add_theme_font_size_override("font_size", 12)
-		lv.add_theme_color_override("font_color", COLOR_SUB)
+		UiTypography.apply_caption(lv)
 		info.add_child(lv)
 
 	var flavor := Label.new()
 	flavor.text = _floor_flavor_text(data, floor)
 	flavor.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	flavor.max_lines_visible = 2
-	flavor.add_theme_font_size_override("font_size", 11)
-	flavor.add_theme_color_override("font_color", Color(0.68, 0.66, 0.58))
+	UiTypography.apply_caption(flavor, UiTypography.COLOR_MUTED)
 	info.add_child(flavor)
 
 	info.add_child(_make_enemy_icon_row(data, floor))
@@ -263,15 +262,15 @@ func _make_floor_card(data: Resource, floor: int, unlocked: bool) -> PanelContai
 	var power := Label.new()
 	power.text = "推奨戦力\n%d" % _recommended_combat_power(data, floor)
 	power.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	power.add_theme_font_size_override("font_size", 11)
-	power.add_theme_color_override("font_color", COLOR_TEAL)
+	UiTypography.apply_body(power, UiTypography.SIZE_CAPTION, COLOR_TEAL)
 	action.add_child(power)
 	action.add_child(_make_stars_label(int(data.difficulty)))
 
 	var btn := Button.new()
-	btn.custom_minimum_size = Vector2(80, 36)
+	btn.custom_minimum_size = Vector2(88, 40)
 	if unlocked:
-		btn.text = "挑戦\n⚡%d" % PLACEHOLDER_STAMINA_COST
+		btn.text = "挑戦"
+		UiTypography.apply_button(btn)
 		btn.pressed.connect(_on_select_pressed.bind(dungeon_id))
 	else:
 		btn.text = "ロック中"
@@ -389,8 +388,7 @@ func _make_clear_ribbon() -> PanelContainer:
 	ribbon.add_theme_stylebox_override("panel", style)
 	var label := Label.new()
 	label.text = "CLEAR"
-	label.add_theme_font_size_override("font_size", 9)
-	label.add_theme_color_override("font_color", COLOR_CLEAR)
+	UiTypography.apply_caption(label, COLOR_CLEAR)
 	ribbon.add_child(label)
 	return ribbon
 
@@ -440,8 +438,7 @@ func _make_stars_label(difficulty: int) -> Label:
 	var label := Label.new()
 	label.text = _make_stars_text(difficulty)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.add_theme_color_override("font_color", Color(0.95, 0.78, 0.3))
-	label.add_theme_font_size_override("font_size", 12)
+	UiTypography.apply_body(label, UiTypography.SIZE_CAPTION, Color(0.95, 0.78, 0.3))
 	return label
 
 func _on_featured_challenge_pressed() -> void:

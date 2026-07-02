@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "menace_strike"
+display_name = "威嚇斬"
+description = "威圧的な一撃で敵の戦意を削ぐ。怯ませて味方を守る。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 1.05
+cooldown = 3.5
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["melee", "guard", "shield"])
+element = ""
+apply_status_id = "fear"
+apply_status_chance = 0.45
+apply_status_id2 = ""
+apply_status_chance2 = 0.0
+slot_type = "skill"
+range_type = "melee"

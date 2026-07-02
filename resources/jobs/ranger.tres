@@ -14,7 +14,38 @@ base_defense_modifier = 0.9
 base_initiative_modifier = 1.2
 preferred_weapon_types = Array[String](["bow"])
 starting_skill_ids = Array[String]([])
-learnable_skill_ids = Array[String](["aimed_shot", "snare_shot", "hex_bolt"])
+skill_unlocks = Array[Dictionary]([{
+"skill_id": "aimed_shot",
+"level": 1
+}, {
+"skill_id": "quick_shot",
+"level": 6
+}, {
+"skill_id": "snare_shot",
+"level": 12
+}, {
+"skill_id": "power_shot",
+"level": 18
+}, {
+"skill_id": "hunter_mark",
+"level": 24
+}, {
+"skill_id": "mark_pursuit",
+"level": 30
+}, {
+"skill_id": "hex_bolt",
+"level": 36
+}, {
+"skill_id": "break_arrow",
+"level": 42
+}, {
+"skill_id": "vital_shot",
+"level": 48
+}, {
+"skill_id": "apex_shot",
+"level": 50
+}])
+learnable_skill_ids = Array[String](["aimed_shot", "quick_shot", "snare_shot", "power_shot", "hunter_mark", "mark_pursuit", "hex_bolt", "break_arrow", "vital_shot", "apex_shot"])
 passive_tag_ids = Array[String](["recon"])
 ultimate_skill_id = "dead_eye"
 evolved_display_name = "スナイパー"

@@ -29,7 +29,7 @@ script = ExtResource("2")
 script = ExtResource("3")
 
 [node name="CombatTimer" type="Timer" parent="."]
-wait_time = 0.55
+wait_time = 0.75
 one_shot = false
 autostart = false
 
@@ -138,6 +138,7 @@ visible = false
 [node name="BattleLogScroll" type="ScrollContainer" parent="MainVBox/BattleLogPanel"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 200)
+horizontal_scroll_mode = 0
 
 [node name="BattleLogContent" type="VBoxContainer" parent="MainVBox/BattleLogPanel/BattleLogScroll"]
 layout_mode = 2

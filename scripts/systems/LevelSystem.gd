@@ -5,7 +5,7 @@ extends RefCounted
 ## EXP はラン成功時にパーティ全員へ付与。レベルアップで HP/ATK が成長する。
 ## 成長は CombatController（HP）/ DungeonScene（ATK）の flat 加算点で参照される。
 
-const MAX_LEVEL: int = 20
+const MAX_LEVEL: int = 50
 const HP_PER_LEVEL: int = 6
 const ATTACK_PER_LEVEL: int = 2
 

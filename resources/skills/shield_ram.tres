@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "shield_ram"
+display_name = "盾殴り"
+description = "盾で叩きつけ敵の装甲を砕く。硬い敵への切り札。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 1.4
+cooldown = 4.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["melee", "guard", "shield", "blunt"])
+element = ""
+apply_status_id = "armor_break"
+apply_status_chance = 0.4
+apply_status_id2 = ""
+apply_status_chance2 = 0.0
+slot_type = "skill"
+range_type = "melee"

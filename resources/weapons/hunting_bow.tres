@@ -6,7 +6,6 @@
 script = ExtResource("1")
 id = "hunting_bow"
 display_name = "斥候の猟弓"
-fixed_skill_id = "aimed_shot"
 base_attack = 9
 rarity = 0
 base_attack_speed = 1.2

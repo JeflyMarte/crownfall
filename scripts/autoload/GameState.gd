@@ -13,6 +13,8 @@ var roster: Array = []
 var gacha_token: int = 0  ## 魔晶石（ガチャ通貨・表示名は CurrencyHelper）
 ## EquipmentScene 起動時に選択するメンバー index（-1=先頭）。RosterScene 詳細ボタン用（P3-UI2-017）。
 var equipment_focus_member_index: int = -1
+## BaseScene 起動時ビュー: "hub" | "menu_grid"（下ナビ「メニュー」用・P3-UI-Base-A）。
+var base_initial_view: String = "hub"
 # ガチャ所持数 { helper_id: count }（重複＝凸用カウント。MVP は還元のみ）
 var owned_helpers: Dictionary = {}
 # 天井カウンタ（未所持が出ていない連続抽選回数）
@@ -138,31 +140,32 @@ func get_member_equipped_accessory(member_index: int) -> Resource:
 		return null
 	return member.equipped_accessory
 
-# ---- 装備スキル（P3-D077） ----
-# ジョブ learnable_skill_ids の先頭 MAX_EQUIPPED_SKILLS 個を既定装備とする。
+# ---- 装備スキル（P3-D077 / P3-SKILL-001） ----
+# 解放済みジョブスキルの先頭 MAX_EQUIPPED_SKILLS 個を既定装備とする。
 func get_default_skill_ids(member: Resource) -> Array[String]:
 	var out: Array[String] = []
-	if member == null or str(member.job_id).is_empty():
+	if member == null:
 		return out
-	var job: Resource = DataRegistry.get_job_data(member.job_id)
-	if job == null:
-		return out
-	var pool: Array = job.learnable_skill_ids
-	for i in mini(Constants.MAX_EQUIPPED_SKILLS, pool.size()):
-		out.append(str(pool[i]))
+	for sid in SkillProgression.get_unlocked_job_skill_ids(member):
+		if out.size() >= Constants.MAX_EQUIPPED_SKILLS:
+			break
+		out.append(sid)
 	return out
 
-# 現在の装備スキル。未設定（空）ならジョブ既定にフォールバック。
+# 現在の装備スキル。未設定（空）なら解放済み既定にフォールバック。
 func get_equipped_skill_ids(member: Resource) -> Array[String]:
 	if member == null:
 		return [] as Array[String]
+	SkillProgression.normalize_equipped_skills(member)
 	if "equipped_skill_ids" in member and not member.equipped_skill_ids.is_empty():
 		return member.equipped_skill_ids
 	return get_default_skill_ids(member)
 
-# スキルの装備/解除トグル（最大 MAX_EQUIPPED_SKILLS）。
+# スキルの装備/解除トグル（最大 MAX_EQUIPPED_SKILLS）。未解放は不可。
 func toggle_member_skill(member: Resource, skill_id: String) -> void:
 	if member == null or skill_id.is_empty():
+		return
+	if not SkillProgression.can_equip_job_skill(member, skill_id):
 		return
 	var ids: Array[String] = get_equipped_skill_ids(member).duplicate()
 	if ids.has(skill_id):
@@ -172,6 +175,10 @@ func toggle_member_skill(member: Resource, skill_id: String) -> void:
 	else:
 		return
 	member.equipped_skill_ids = ids
+
+func normalize_all_equipped_skills() -> void:
+	for member in roster:
+		SkillProgression.normalize_equipped_skills(member)
 
 # ---- 戦術（AI設定・P3-D086） ----
 # メンバーの戦術 id（未設定/無効なら既定 "balanced"）。
@@ -718,6 +725,7 @@ func _init_party() -> void:
 		party_members.append(roster[i])
 	normalize_roster_rarity()
 	_grant_starting_equipment()
+	normalize_all_equipped_skills()
 
 func _create_base_adventurer(def: Dictionary) -> Resource:
 	var adventurer_class = load("res://scripts/domain/Adventurer.gd")

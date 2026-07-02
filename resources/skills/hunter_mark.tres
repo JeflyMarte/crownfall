@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "hunter_mark"
+display_name = "狩人の標"
+description = "獲物の急所を見定め標的を付ける。味方の集中砲火を誘導する。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 1.1
+cooldown = 4.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["ranged", "debuff"])
+element = ""
+apply_status_id = "mark"
+apply_status_chance = 0.5
+apply_status_id2 = ""
+apply_status_chance2 = 0.0
+slot_type = "skill"
+range_type = "long"

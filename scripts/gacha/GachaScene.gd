@@ -37,11 +37,8 @@ var _summon_can_dismiss: bool = false
 var _summon_tween: Tween = null
 
 func _ready() -> void:
+	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.SHOP)
 	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)
-	$BottomNav/NavRow/NavHome.pressed.connect(_go_to.bind(HOME_SCENE))
-	$BottomNav/NavRow/NavAdventure.pressed.connect(_go_to.bind(DUNGEON_SCENE))
-	$BottomNav/NavRow/NavParty.pressed.connect(_go_to.bind(ROSTER_SCENE))
-	$BottomNav/NavRow/NavCodex.pressed.connect(_go_to.bind(CODEX_SCENE))
 	_button_pull.pressed.connect(_on_pull_pressed)
 	_button_buy_crystal.pressed.connect(_on_buy_crystal_pressed)
 	_summon_dim.gui_input.connect(_on_summon_overlay_input)

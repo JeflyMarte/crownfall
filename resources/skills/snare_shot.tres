@@ -15,5 +15,7 @@ trigger_type = "cooldown"
 effect_type = "damage"
 tags = Array[String](["ranged", "debuff"])
 element = ""
+slot_type = "skill"
+range_type = "long"
 apply_status_id = "chill"
 apply_status_chance = 0.5

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "plague_bolt"
+display_name = "疫呪弾"
+description = "呪いと蝕みを込めた強力な魔力弾。敵を呪詛し弱点を突く。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 1.6
+cooldown = 4.5
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["magic", "debuff", "blunt"])
+element = "dark"
+apply_status_id = "curse"
+apply_status_chance = 0.45
+apply_status_id2 = "vulnerable"
+apply_status_chance2 = 0.35
+slot_type = "skill"
+range_type = "mid"

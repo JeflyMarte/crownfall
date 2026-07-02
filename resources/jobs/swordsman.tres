@@ -14,7 +14,38 @@ base_defense_modifier = 1.05
 base_initiative_modifier = 1.0
 preferred_weapon_types = Array[String](["sword", "greatsword", "dual_blades"])
 starting_skill_ids = Array[String](["slash_attack"])
-learnable_skill_ids = Array[String](["slash_attack", "kindling_strike", "static_strike", "rime_touch"])
+skill_unlocks = Array[Dictionary]([{
+"skill_id": "slash_attack",
+"level": 1
+}, {
+"skill_id": "rend_slash",
+"level": 6
+}, {
+"skill_id": "swift_slash",
+"level": 12
+}, {
+"skill_id": "fierce_slash",
+"level": 18
+}, {
+"skill_id": "focus_mark",
+"level": 24
+}, {
+"skill_id": "hamstring_slash",
+"level": 30
+}, {
+"skill_id": "chain_slash",
+"level": 36
+}, {
+"skill_id": "armor_cleave",
+"level": 42
+}, {
+"skill_id": "pierce_line",
+"level": 48
+}, {
+"skill_id": "apex_slash",
+"level": 50
+}])
+learnable_skill_ids = Array[String](["slash_attack", "rend_slash", "swift_slash", "fierce_slash", "focus_mark", "hamstring_slash", "chain_slash", "armor_cleave", "pierce_line", "apex_slash"])
 passive_tag_ids = Array[String](["frontline"])
 ultimate_skill_id = "ouga_retsudan"
 evolved_display_name = "ソードセイバー"

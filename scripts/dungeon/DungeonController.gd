@@ -33,6 +33,7 @@ const TRAP_ROOM_NARRATIVES: Array[String] = [
 	"崩れた床から棘が飛び出した",
 	"古いワイヤーが足元を締め付けた",
 ]
+const TREASURE_GOLD: int = 30
 const TREASURE_ACCESSORY_CHANCE: float = 0.2
 const ELITE_REWARD_MULTIPLIER: float = 1.5
 const ELITE_ARMOR_CHANCE: float = 0.35
@@ -172,14 +173,15 @@ func get_total_rooms() -> int:
 # floor_count <= 0: 従来固定列（ROOM_SEQUENCE を room_count で切り詰め）
 func _build_room_sequence(dungeon: DungeonData) -> Array[int]:
 	if dungeon.floor_count > 0:
-		return _generate_random_sequence(dungeon.floor_count)
+		return _generate_random_sequence(dungeon)
 	var legacy: Array[int] = []
 	var n: int = dungeon.room_count if dungeon.room_count > 0 else ROOM_SEQUENCE.size()
 	for i in mini(n, ROOM_SEQUENCE.size()):
 		legacy.append(ROOM_SEQUENCE[i])
 	return legacy
 
-func _generate_random_sequence(floor_count: int) -> Array[int]:
+func _generate_random_sequence(dungeon: DungeonData) -> Array[int]:
+	var floor_count: int = dungeon.floor_count
 	var fc: int = maxi(floor_count, 3)
 	var seq: Array[int] = []
 	seq.append(Enums.RoomType.START)            # F1: 入口
@@ -190,7 +192,7 @@ func _generate_random_sequence(floor_count: int) -> Array[int]:
 	var elite_count: int = 0
 	var prev: int = Enums.RoomType.COMBAT
 	for _i in middle_count:
-		var rt: int = _roll_room_type()
+		var rt: int = _roll_room_type(dungeon)
 		if rt == Enums.RoomType.ELITE and (elite_count >= ROOM_MAX_ELITE or prev == Enums.RoomType.ELITE):
 			rt = Enums.RoomType.COMBAT
 		if rt == Enums.RoomType.ELITE:
@@ -199,21 +201,65 @@ func _generate_random_sequence(floor_count: int) -> Array[int]:
 		prev = rt
 	seq.append(Enums.RoomType.BOSS)             # F(fc): ボス
 	_enforce_min_combat(seq)
+	_enforce_min_event(seq, dungeon, middle_count)
 	seq.append(Enums.RoomType.EXIT)             # 脱出ゲート（フロア番号外）
 	return seq
 
-func _roll_room_type() -> int:
+func _resolve_event_room_weight(dungeon: DungeonData) -> int:
+	if dungeon != null and dungeon.event_room_weight > 0:
+		return mini(dungeon.event_room_weight, 40)
+	return ROOM_WEIGHT_EVENT
+
+func _resolve_room_weights(dungeon: DungeonData) -> Dictionary:
+	var event_w: int = _resolve_event_room_weight(dungeon)
+	var combat_w: int = clampi(ROOM_WEIGHT_COMBAT - (event_w - ROOM_WEIGHT_EVENT), 35, 70)
+	return {
+		"combat": combat_w,
+		"event": event_w,
+		"treasure": ROOM_WEIGHT_TREASURE,
+		"trap": ROOM_WEIGHT_TRAP,
+		"elite": ROOM_WEIGHT_ELITE,
+	}
+
+func _required_min_event_rooms(dungeon: DungeonData, middle_count: int) -> int:
+	if dungeon != null and dungeon.min_event_rooms > 0:
+		return dungeon.min_event_rooms
+	if middle_count >= 3 and _resolve_event_room_weight(dungeon) > 0:
+		return 1
+	return 0
+
+func _enforce_min_event(seq: Array[int], dungeon: DungeonData, middle_count: int) -> void:
+	var required: int = _required_min_event_rooms(dungeon, middle_count)
+	if required <= 0:
+		return
+	var event_count: int = 0
+	for i in range(1, seq.size() - 1):
+		if seq[i] == Enums.RoomType.EVENT:
+			event_count += 1
+	while event_count < required:
+		var converted: bool = false
+		for i in range(1, seq.size() - 1):
+			if seq[i] == Enums.RoomType.TREASURE or seq[i] == Enums.RoomType.TRAP:
+				seq[i] = Enums.RoomType.EVENT
+				event_count += 1
+				converted = true
+				break
+		if not converted:
+			break
+
+func _roll_room_type(dungeon: DungeonData) -> int:
+	var weights: Dictionary = _resolve_room_weights(dungeon)
 	var r: int = randi() % 100
-	if r < ROOM_WEIGHT_COMBAT:
+	if r < int(weights["combat"]):
 		return Enums.RoomType.COMBAT
-	r -= ROOM_WEIGHT_COMBAT
-	if r < ROOM_WEIGHT_EVENT:
+	r -= int(weights["combat"])
+	if r < int(weights["event"]):
 		return Enums.RoomType.EVENT
-	r -= ROOM_WEIGHT_EVENT
-	if r < ROOM_WEIGHT_TREASURE:
+	r -= int(weights["event"])
+	if r < int(weights["treasure"]):
 		return Enums.RoomType.TREASURE
-	r -= ROOM_WEIGHT_TREASURE
-	if r < ROOM_WEIGHT_TRAP:
+	r -= int(weights["treasure"])
+	if r < int(weights["trap"]):
 		return Enums.RoomType.TRAP
 	return Enums.RoomType.ELITE
 

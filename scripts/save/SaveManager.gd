@@ -301,6 +301,7 @@ func _apply_roster_save(data: Dictionary) -> void:
 	# 旧セーブの基本職名/職IDを現行定義へ正規化（戦士/盗賊/魔術師 等の残存を解消）
 	GameState.normalize_base_roster()
 	GameState.normalize_roster_rarity()
+	GameState.normalize_all_equipped_skills()
 	_sync_gacha_roster_metadata()
 	_restore_active_party(data)
 

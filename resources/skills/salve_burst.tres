@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "salve_burst"
+display_name = "大治癒"
+description = "濃縮した薬液で最も負傷した味方を大きく回復する。"
+skill_type = "player"
+target_type = "ally"
+power_multiplier = 1.35
+cooldown = 5.5
+trigger_type = "cooldown"
+effect_type = "heal"
+tags = Array[String](["support", "heal"])
+element = ""
+apply_status_id = ""
+apply_status_chance = 0.0
+slot_type = "skill"
+range_type = "mid"
+cast_time = 1.0
+reserve_condition = "ally_injured"
+reserve_value = ""

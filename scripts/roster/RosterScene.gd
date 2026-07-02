@@ -44,6 +44,7 @@ var _formation_cells: Array[PanelContainer] = []
 @onready var _button_save: Button = $FooterRow/ButtonSave
 
 func _ready() -> void:
+	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.PARTY)
 	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)
 	$MainScroll/MainVBox/PowerRow/ButtonRecommend.pressed.connect(_on_recommend_pressed)
 	$MainScroll/MainVBox/PowerRow/ButtonFormation.pressed.connect(_open_formation_overlay)
@@ -51,10 +52,6 @@ func _ready() -> void:
 	$MainScroll/MainVBox/ListHeader/ButtonRoleFilter.pressed.connect(_on_role_filter_pressed)
 	$FooterRow/ButtonReset.pressed.connect(_on_reset_pressed)
 	$FooterRow/ButtonSave.pressed.connect(_on_save_pressed)
-	$BottomNav/NavRow/NavHome.pressed.connect(_go_home)
-	$BottomNav/NavRow/NavAdventure.pressed.connect(_go_to.bind(DUNGEON_SCENE))
-	$BottomNav/NavRow/NavCodex.pressed.connect(_go_to.bind(CODEX_SCENE))
-	$BottomNav/NavRow/NavShop.pressed.connect(_go_to.bind(GACHA_SCENE))
 	$FormationOverlay/Dim.gui_input.connect(_on_formation_dim_input)
 	$FormationOverlay/FormationPanel/FormationVBox/ButtonFormationClose.pressed.connect(_close_formation_overlay)
 	$FormationOverlay/FormationPanel/FormationVBox/FormationPresetRow/ButtonPresetFront.pressed.connect(
@@ -270,10 +267,11 @@ func _on_detail_pressed(member: Resource) -> void:
 	if not GameState.set_active_party(party):
 		_label_status.text = "詳細を開くには有効な編成が必要です"
 		return
-	var idx: int = GameState.party_members.find(member)
-	if idx < 0:
-		idx = 0
-	GameState.equipment_focus_member_index = idx
+	var roster: Array = GameState.get_roster()
+	var roster_idx: int = roster.find(member)
+	if roster_idx < 0:
+		roster_idx = 0
+	GameState.equipment_focus_member_index = roster_idx
 	SceneRouter.change_scene(EQUIPMENT_SCENE)
 
 func _refresh_leader_strip() -> void:

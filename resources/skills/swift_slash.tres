@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "swift_slash"
+display_name = "疾風斬"
+description = "素早い一閃で間合いを保ちながら切り込む。短い間隔で何度も放てる。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 1.2
+cooldown = 2.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["melee", "slash"])
+element = ""
+apply_status_id = ""
+apply_status_chance = 0.0
+slot_type = "skill"
+range_type = "melee"

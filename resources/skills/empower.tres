@@ -15,5 +15,7 @@ trigger_type = "cooldown"
 effect_type = "buff"
 tags = Array[String](["support", "buff"])
 element = ""
+slot_type = "skill"
+range_type = "mid"
 apply_status_id = "empower"
 apply_status_chance = 1.0

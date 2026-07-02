@@ -23,3 +23,9 @@ extends Resource
 @export var favored_element: String = ""
 ## フレーバーテキスト（ダンジョン選択フィーチャー表示 / P3-UI2-028）。
 @export var flavor_text: String = ""
+## メイン=main / 寄り道=side（P3-D5DG-002）。表示・floor_count 目安帯の参照用。
+@export var route_type: String = "main"
+## 中間部屋抽選の EVENT 重み（0=グローバル既定15）。増分は COMBAT から差し引く（P3-D5DG-003）。
+@export var event_room_weight: int = 0
+## 中間部屋の EVENT 最低数（0=自動: 中間≥3かつ event 重み>0 なら1）。
+@export var min_event_rooms: int = 0

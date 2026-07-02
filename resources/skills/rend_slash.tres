@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "rend_slash"
+display_name = "裂傷斬"
+description = "刃で深く切り込み、敵に出血を負わせる。斬撃連携の起点となる。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 1.35
+cooldown = 3.5
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["melee", "slash"])
+element = ""
+apply_status_id = "bleed"
+apply_status_chance = 0.4
+apply_status_id2 = ""
+apply_status_chance2 = 0.0
+slot_type = "skill"
+range_type = "melee"

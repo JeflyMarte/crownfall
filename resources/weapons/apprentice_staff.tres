@@ -6,7 +6,6 @@
 script = ExtResource("1")
 id = "apprentice_staff"
 display_name = "書記官の呪杖"
-fixed_skill_id = "hex_bolt"
 base_attack = 11
 rarity = 1
 base_attack_speed = 0.9

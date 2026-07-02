@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "entangle"
+display_name = "絡みつき"
+description = "生物の糸や蔓の如く敵の動きを封じ、冷却状態を付与する。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 1.15
+cooldown = 4.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["ranged", "debuff"])
+element = ""
+apply_status_id = "chill"
+apply_status_chance = 0.55
+apply_status_id2 = ""
+apply_status_chance2 = 0.0
+slot_type = "skill"
+range_type = "long"

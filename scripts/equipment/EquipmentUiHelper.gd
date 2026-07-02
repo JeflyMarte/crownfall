@@ -2,7 +2,7 @@ class_name EquipmentUiHelper
 extends RefCounted
 
 const RARITY_GEMS: Array[String] = ["◇", "◆", "✦", "★"]
-const LEVEL_CAP: int = 20
+const LEVEL_CAP: int = LevelSystem.MAX_LEVEL
 
 const SORT_LABELS: Dictionary = {
 	"rarity": "レアリティ",

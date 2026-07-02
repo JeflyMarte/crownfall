@@ -1,18 +1,19 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/base/BaseScene.gd" id="1"]
 [ext_resource type="Theme" path="res://assets/ui/production_theme.tres" id="2"]
 [ext_resource type="Texture2D" path="res://assets/ui/UI_BG_Title.png" id="3"]
 [ext_resource type="Texture2D" path="res://assets/ui/batch2/ICO_Gold.png" id="4"]
 [ext_resource type="Texture2D" path="res://assets/ui/batch2/ICO_Currency_Arcanite.png" id="5"]
+[ext_resource type="Texture2D" path="res://assets/ui/UI_Title_Logo.png" id="6"]
 
 [sub_resource type="StyleBoxFlat" id="SB_TopBar"]
 bg_color = Color(0.04, 0.04, 0.1, 0.85)
 border_width_bottom = 1
 border_color = Color(0.55, 0.45, 0.18, 0.6)
-content_margin_left = 16.0
+content_margin_left = 12.0
 content_margin_top = 8.0
-content_margin_right = 16.0
+content_margin_right = 12.0
 content_margin_bottom = 8.0
 
 [sub_resource type="StyleBoxFlat" id="SB_LeftPanel"]
@@ -21,10 +22,10 @@ border_width_right = 1
 border_color = Color(0.55, 0.45, 0.18, 0.6)
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
-content_margin_left = 10.0
-content_margin_top = 10.0
-content_margin_right = 10.0
-content_margin_bottom = 10.0
+content_margin_left = 8.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
 
 [sub_resource type="StyleBoxFlat" id="SB_BottomNav"]
 bg_color = Color(0.04, 0.04, 0.1, 0.92)
@@ -46,9 +47,9 @@ corner_radius_top_left = 12
 corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
-content_margin_left = 10.0
+content_margin_left = 8.0
 content_margin_top = 4.0
-content_margin_right = 10.0
+content_margin_right = 8.0
 content_margin_bottom = 4.0
 
 [node name="BaseScene" type="Control"]
@@ -62,165 +63,130 @@ theme = ExtResource("2")
 script = ExtResource("1")
 
 [node name="BgTexture" type="TextureRect" parent="."]
-texture = ExtResource("3")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+texture = ExtResource("3")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="TitlePanel" type="PanelContainer" parent="."]
+[node name="HubView" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = -52.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TitlePanel" type="Control" parent="HubView"]
 layout_mode = 1
 anchor_left = 0.5
 anchor_top = 0.0
 anchor_right = 0.5
 anchor_bottom = 0.0
-offset_left = -200.0
-offset_top = 52.0
-offset_right = 200.0
-offset_bottom = 148.0
+offset_left = -260.0
+offset_top = 88.0
+offset_right = 260.0
+offset_bottom = 218.0
 grow_horizontal = 2
+mouse_filter = 2
 
-[node name="TitleVBox" type="VBoxContainer" parent="TitlePanel"]
-layout_mode = 2
+[node name="TitleVBox" type="VBoxContainer" parent="HubView/TitlePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_constants/separation = 4
+mouse_filter = 2
 
-[node name="LabelLogo" type="Label" parent="TitlePanel/TitleVBox"]
+[node name="TitleLogo" type="TextureRect" parent="HubView/TitlePanel/TitleVBox"]
+custom_minimum_size = Vector2(480, 110)
 layout_mode = 2
-text = "♛"
-horizontal_alignment = 1
-theme_override_colors/font_color = Color(0.92, 0.78, 0.28, 1)
-theme_override_font_sizes/font_size = 36
+texture = ExtResource("6")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="LabelTitle" type="Label" parent="TitlePanel/TitleVBox"]
-layout_mode = 2
-text = "CROWNFALL"
-horizontal_alignment = 1
-theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
-theme_override_font_sizes/font_size = 36
-
-[node name="LabelSubtitle" type="Label" parent="TitlePanel/TitleVBox"]
+[node name="LabelSubtitle" type="Label" parent="HubView/TitlePanel/TitleVBox"]
 layout_mode = 2
 text = "九王の遺産を巡る自動探索RPG"
 horizontal_alignment = 1
 theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 13
 
-[node name="SpotlightPanel" type="PanelContainer" parent="."]
+[node name="TopBar" type="PanelContainer" parent="HubView"]
 layout_mode = 1
 anchor_right = 1.0
-offset_left = 212.0
-offset_top = 156.0
-offset_right = -12.0
-offset_bottom = 276.0
+offset_bottom = 88.0
 grow_horizontal = 2
+theme_override_styles/panel = SubResource("SB_TopBar")
 
-[node name="SpotlightVBox" type="VBoxContainer" parent="SpotlightPanel"]
+[node name="TopBarRow" type="HBoxContainer" parent="HubView/TopBar"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="SpotlightRow" type="HBoxContainer" parent="SpotlightPanel/SpotlightVBox"]
+[node name="PlayerCard" type="PanelContainer" parent="HubView/TopBar/TopBarRow"]
+custom_minimum_size = Vector2(168, 64)
 layout_mode = 2
-theme_override_constants/separation = 12
+size_flags_vertical = 4
 
-[node name="IconFrame" type="PanelContainer" parent="SpotlightPanel/SpotlightVBox/SpotlightRow"]
-custom_minimum_size = Vector2(88, 88)
+[node name="PlayerRow" type="HBoxContainer" parent="HubView/TopBar/TopBarRow/PlayerCard"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PortraitFrame" type="PanelContainer" parent="HubView/TopBar/TopBarRow/PlayerCard/PlayerRow"]
+custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
 
-[node name="SpotlightIcon" type="TextureRect" parent="SpotlightPanel/SpotlightVBox/SpotlightRow/IconFrame"]
+[node name="PortraitArt" type="TextureRect" parent="HubView/TopBar/TopBarRow/PlayerCard/PlayerRow/PortraitFrame"]
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="SpotlightGlyph" type="Label" parent="SpotlightPanel/SpotlightVBox/SpotlightRow/IconFrame"]
+[node name="PortraitGlyph" type="Label" parent="HubView/TopBar/TopBarRow/PlayerCard/PlayerRow/PortraitFrame"]
 layout_mode = 2
-text = "城"
+text = "英"
 horizontal_alignment = 1
 vertical_alignment = 1
 theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 18
 
-[node name="InfoCol" type="VBoxContainer" parent="SpotlightPanel/SpotlightVBox/SpotlightRow"]
+[node name="PlayerInfo" type="VBoxContainer" parent="HubView/TopBar/TopBarRow/PlayerCard/PlayerRow"]
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 0
 
-[node name="LabelDungeonName" type="Label" parent="SpotlightPanel/SpotlightVBox/SpotlightRow/InfoCol"]
+[node name="LabelPlayerName" type="Label" parent="HubView/TopBar/TopBarRow/PlayerCard/PlayerRow/PlayerInfo"]
 layout_mode = 2
-text = "—"
+text = "指揮官"
 theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 14
 
-[node name="LabelDungeonMeta" type="Label" parent="SpotlightPanel/SpotlightVBox/SpotlightRow/InfoCol"]
+[node name="LabelPlayerLevel" type="Label" parent="HubView/TopBar/TopBarRow/PlayerCard/PlayerRow/PlayerInfo"]
 layout_mode = 2
-text = "発見率 0% ｜ 難易度 1"
+text = "Lv.1"
 theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 12
 
-[node name="ButtonChallenge" type="Button" parent="SpotlightPanel/SpotlightVBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "挑戦"
-
-[node name="FeaturePanel" type="PanelContainer" parent="."]
-layout_mode = 1
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 212.0
-offset_top = 286.0
-offset_right = -12.0
-offset_bottom = -58.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="FeatureGrid" type="GridContainer" parent="FeaturePanel"]
-layout_mode = 2
-theme_override_constants/h_separation = 8
-theme_override_constants/v_separation = 8
-columns = 3
-
-[node name="TopBar" type="PanelContainer" parent="."]
-layout_mode = 1
-anchor_right = 1.0
-offset_bottom = 44.0
-grow_horizontal = 2
-theme_override_styles/panel = SubResource("SB_TopBar")
-
-[node name="TopBarRow" type="HBoxContainer" parent="TopBar"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="MaterialChip" type="PanelContainer" parent="TopBar/TopBarRow"]
-layout_mode = 2
-size_flags_vertical = 4
-mouse_filter = 0
-theme_override_styles/panel = SubResource("SB_Chip")
-
-[node name="MaterialRow" type="HBoxContainer" parent="TopBar/TopBarRow/MaterialChip"]
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="MaterialIcons" type="HBoxContainer" parent="TopBar/TopBarRow/MaterialChip/MaterialRow"]
-layout_mode = 2
-theme_override_constants/separation = 2
-
-[node name="Spacer" type="Control" parent="TopBar/TopBarRow"]
+[node name="Spacer" type="Control" parent="HubView/TopBar/TopBarRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="GoldChip" type="PanelContainer" parent="TopBar/TopBarRow"]
+[node name="GoldChip" type="PanelContainer" parent="HubView/TopBar/TopBarRow"]
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_styles/panel = SubResource("SB_Chip")
 
-[node name="GoldRow" type="HBoxContainer" parent="TopBar/TopBarRow/GoldChip"]
+[node name="GoldRow" type="HBoxContainer" parent="HubView/TopBar/TopBarRow/GoldChip"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="GoldIcon" type="TextureRect" parent="TopBar/TopBarRow/GoldChip/GoldRow"]
+[node name="GoldIcon" type="TextureRect" parent="HubView/TopBar/TopBarRow/GoldChip/GoldRow"]
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
 size_flags_vertical = 4
@@ -228,23 +194,23 @@ texture = ExtResource("4")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="LabelGold" type="Label" parent="TopBar/TopBarRow/GoldChip/GoldRow"]
+[node name="LabelGold" type="Label" parent="HubView/TopBar/TopBarRow/GoldChip/GoldRow"]
 layout_mode = 2
 size_flags_vertical = 4
 text = "0"
 theme_override_colors/font_color = Color(0.95, 0.82, 0.35, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 
-[node name="TokenChip" type="PanelContainer" parent="TopBar/TopBarRow"]
+[node name="TokenChip" type="PanelContainer" parent="HubView/TopBar/TopBarRow"]
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_styles/panel = SubResource("SB_Chip")
 
-[node name="TokenRow" type="HBoxContainer" parent="TopBar/TopBarRow/TokenChip"]
+[node name="TokenRow" type="HBoxContainer" parent="HubView/TopBar/TopBarRow/TokenChip"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="TokenIcon" type="TextureRect" parent="TopBar/TopBarRow/TokenChip/TokenRow"]
+[node name="TokenIcon" type="TextureRect" parent="HubView/TopBar/TopBarRow/TokenChip/TokenRow"]
 custom_minimum_size = Vector2(18, 18)
 layout_mode = 2
 size_flags_vertical = 4
@@ -252,71 +218,169 @@ texture = ExtResource("5")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="LabelToken" type="Label" parent="TopBar/TopBarRow/TokenChip/TokenRow"]
+[node name="LabelToken" type="Label" parent="HubView/TopBar/TopBarRow/TokenChip/TokenRow"]
 layout_mode = 2
 size_flags_vertical = 4
 text = "0"
 theme_override_colors/font_color = Color(0.72, 0.85, 0.98, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 
-[node name="LeftMenuPanel" type="PanelContainer" parent="."]
+[node name="LeftMenuPanel" type="PanelContainer" parent="HubView"]
+z_index = 10
 layout_mode = 1
-anchor_top = 0.0
-anchor_bottom = 1.0
 offset_left = 12.0
-offset_top = 60.0
+offset_top = 96.0
 offset_right = 200.0
-offset_bottom = -204.0
-grow_vertical = 2
+offset_bottom = 720.0
 theme_override_styles/panel = SubResource("SB_LeftPanel")
 
-[node name="DailyMissionPanel" type="PanelContainer" parent="."]
-layout_mode = 1
-anchor_bottom = 1.0
-offset_left = 12.0
-offset_top = -198.0
-offset_right = 200.0
-offset_bottom = -58.0
-grow_vertical = 0
-
-[node name="DailyVBox" type="VBoxContainer" parent="DailyMissionPanel"]
+[node name="MenuScroll" type="ScrollContainer" parent="HubView/LeftMenuPanel"]
 layout_mode = 2
-theme_override_constants/separation = 4
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
 
-[node name="LabelDailyTitle" type="Label" parent="DailyMissionPanel/DailyVBox"]
+[node name="MenuVBox" type="VBoxContainer" parent="HubView/LeftMenuPanel/MenuScroll"]
 layout_mode = 2
-text = "ギルド日課"
-theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
-theme_override_font_sizes/font_size = 13
-
-[node name="LabelDailyReset" type="Label" parent="DailyMissionPanel/DailyVBox"]
-layout_mode = 2
-text = "リセットまで —"
-theme_override_colors/font_color = Color(0.68, 0.66, 0.58, 1)
-theme_override_font_sizes/font_size = 10
-
-[node name="MissionList" type="VBoxContainer" parent="DailyMissionPanel/DailyVBox"]
-layout_mode = 2
-theme_override_constants/separation = 3
-
-[node name="ResetTimer" type="Timer" parent="."]
-wait_time = 30.0
-autostart = true
-
-[node name="MenuVBox" type="VBoxContainer" parent="LeftMenuPanel"]
-layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(168, 0)
 theme_override_constants/separation = 6
 
-[node name="LabelMenuTitle" type="Label" parent="LeftMenuPanel/MenuVBox"]
+[node name="LabelMenuTitle" type="Label" parent="HubView/LeftMenuPanel/MenuScroll/MenuVBox"]
 layout_mode = 2
 text = "メニュー"
 theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 13
 
-[node name="SepMenu" type="HSeparator" parent="LeftMenuPanel/MenuVBox"]
+[node name="SepMenu" type="HSeparator" parent="HubView/LeftMenuPanel/MenuScroll/MenuVBox"]
 layout_mode = 2
 
+[node name="EventBanner" type="PanelContainer" parent="HubView"]
+layout_mode = 1
+offset_left = 212.0
+offset_top = 720.0
+offset_right = 708.0
+offset_bottom = 860.0
+
+[node name="EventVBox" type="HBoxContainer" parent="HubView/EventBanner"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="EventTextCol" type="VBoxContainer" parent="HubView/EventBanner/EventVBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="LabelEventTag" type="Label" parent="HubView/EventBanner/EventVBox/EventTextCol"]
+layout_mode = 2
+text = "新イベント開催中！"
+theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
+theme_override_font_sizes/font_size = 12
+
+[node name="LabelEventTitle" type="Label" parent="HubView/EventBanner/EventVBox/EventTextCol"]
+layout_mode = 2
+text = "深淵の回廊"
+theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
+theme_override_font_sizes/font_size = 18
+
+[node name="LabelEventDesc" type="Label" parent="HubView/EventBanner/EventVBox/EventTextCol"]
+layout_mode = 2
+text = "準備中 — 近日公開"
+theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
+theme_override_font_sizes/font_size = 11
+
+[node name="LabelEventTimer" type="Label" parent="HubView/EventBanner/EventVBox"]
+layout_mode = 2
+size_flags_vertical = 0
+text = "残り —"
+theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
+theme_override_font_sizes/font_size = 11
+
+[node name="CurrencyStrip" type="PanelContainer" parent="HubView"]
+layout_mode = 1
+offset_left = 12.0
+offset_top = 868.0
+offset_right = 708.0
+offset_bottom = 948.0
+
+[node name="CurrencyRow" type="HBoxContainer" parent="HubView/CurrencyStrip"]
+layout_mode = 2
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="DailyMissionPanel" type="PanelContainer" parent="HubView"]
+layout_mode = 1
+offset_left = 12.0
+offset_top = 956.0
+offset_right = 708.0
+offset_bottom = 1228.0
+
+[node name="DailyVBox" type="VBoxContainer" parent="HubView/DailyMissionPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="DailyHeader" type="HBoxContainer" parent="HubView/DailyMissionPanel/DailyVBox"]
+layout_mode = 2
+
+[node name="LabelDailyTitle" type="Label" parent="HubView/DailyMissionPanel/DailyVBox/DailyHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "デイリーミッション"
+theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
+theme_override_font_sizes/font_size = 14
+
+[node name="LabelDailyReset" type="Label" parent="HubView/DailyMissionPanel/DailyVBox/DailyHeader"]
+layout_mode = 2
+text = "リセットまで —"
+theme_override_colors/font_color = Color(0.68, 0.66, 0.58, 1)
+theme_override_font_sizes/font_size = 11
+
+[node name="MissionList" type="VBoxContainer" parent="HubView/DailyMissionPanel/DailyVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="MenuGridView" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 88.0
+offset_bottom = -52.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MenuGridPanel" type="PanelContainer" parent="MenuGridView"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 8.0
+offset_right = -12.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MenuGridVBox" type="VBoxContainer" parent="MenuGridView/MenuGridPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LabelGridTitle" type="Label" parent="MenuGridView/MenuGridPanel/MenuGridVBox"]
+layout_mode = 2
+text = "メニュー"
+theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
+theme_override_font_sizes/font_size = 16
+
+[node name="FeatureGrid" type="GridContainer" parent="MenuGridView/MenuGridPanel/MenuGridVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 3
+
 [node name="BottomNav" type="PanelContainer" parent="."]
+z_index = 20
 layout_mode = 1
 anchor_top = 1.0
 anchor_right = 1.0
@@ -333,39 +397,33 @@ theme_override_constants/separation = 4
 [node name="NavHome" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-toggle_mode = true
-button_pressed = true
 text = "ホーム"
-
-[node name="NavAdventure" type="Button" parent="BottomNav/NavRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "冒険"
 
 [node name="NavParty" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "パーティ"
 
-[node name="NavCodex" type="Button" parent="BottomNav/NavRow"]
+[node name="NavAdventure" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "図鑑"
+text = "冒険"
+
+[node name="NavForge" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "強化"
 
 [node name="NavShop" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "召喚"
+text = "ショップ"
 
-[node name="HiddenLabels" type="Control" parent="."]
-layout_mode = 1
-visible = false
-
-[node name="LabelEquipped" type="Label" parent="HiddenLabels"]
+[node name="NavMenu" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
+size_flags_horizontal = 3
+text = "メニュー"
 
-[node name="LabelArmorEquipped" type="Label" parent="HiddenLabels"]
-layout_mode = 2
-
-[node name="LabelAccessoryEquipped" type="Label" parent="HiddenLabels"]
-layout_mode = 2
+[node name="ResetTimer" type="Timer" parent="."]
+wait_time = 30.0
+autostart = true

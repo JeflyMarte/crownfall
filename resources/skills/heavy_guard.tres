@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "heavy_guard"
+display_name = "重装斬"
+description = "重装備の重みを乗せた強打。ヴァンガードの主力攻撃。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 1.55
+cooldown = 4.5
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["melee", "guard", "shield", "blunt"])
+element = ""
+apply_status_id = ""
+apply_status_chance = 0.0
+slot_type = "skill"
+range_type = "melee"

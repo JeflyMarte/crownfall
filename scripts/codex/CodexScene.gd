@@ -60,12 +60,9 @@ var _entry_rows: Array = []
 @onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
 
 func _ready() -> void:
+	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.MENU)
 	_decorate_static()
 	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)
-	$BottomNav/NavRow/NavHome.pressed.connect(_go_to.bind(HOME_SCENE))
-	$BottomNav/NavRow/NavAdventure.pressed.connect(_go_to.bind(DUNGEON_SCENE))
-	$BottomNav/NavRow/NavParty.pressed.connect(_go_to.bind(ROSTER_SCENE))
-	$BottomNav/NavRow/NavShop.pressed.connect(_go_to.bind(GACHA_SCENE))
 	$MainScroll/MainVBox/TabRow/ButtonTabEnemy.pressed.connect(func(): _select_category("enemy"))
 	$MainScroll/MainVBox/TabRow/ButtonTabDungeon.pressed.connect(func(): _select_category("dungeon"))
 	$MainScroll/MainVBox/TabRow/ButtonTabMaterial.pressed.connect(func(): _select_category("material"))
