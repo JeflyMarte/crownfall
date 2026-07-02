@@ -33,5 +33,5 @@ codex_danger = 5
 codex_habitat = "囁きの森・最深部"
 codex_research_note = "古代巨熊を祖先とし、森そのものと共生一体化した頂点捕食者。体表から根と蔓が伸び、傷は周囲の植生から養分を得て塞がる。討伐には森の再生より速い火力が要ると記録されている。"
 codex_materials = Array[String]([])
-skill_ids = Array[String]([])
-skill_use_chance = 0.0
+skill_ids = Array[String](["boss_enrage", "enemy_granvel_verdant_wave", "enemy_granvel_bramble_crush"])
+skill_use_chance = 0.4

@@ -1,19 +1,9 @@
 class_name NavIconHelper
 extends RefCounted
 
-## 拠点・各画面 BottomNav / メニューカード用アイコン適用（003_01 モック準拠）。
+## 拠点・各画面 BottomNav / メニューカード用アイコン適用。
 
-const ICON_SIZE_MENU: int = 36
-const ICON_SIZE_NAV: int = 28
-
-const BOTTOM_NAV_ICONS: Dictionary = {
-	"NavHome": {"category": "ui", "id": "home"},
-	"NavParty": {"category": "ui", "id": "party"},
-	"NavAdventure": {"category": "ui", "id": "adventure"},
-	"NavForge": {"category": "ui", "id": "blacksmith"},
-	"NavShop": {"category": "ui", "id": "gacha"},
-	"NavMenu": {"category": "ui", "id": "menu"},
-}
+const ICON_SIZE_MENU: int = NavUiTokens.SIDE_MENU_ICON
 
 static func apply_texture_to_button(btn: Button, category: String, icon_id: String, size_px: int) -> bool:
 	var tex: Texture2D = IconPaths.get_icon_texture(icon_id, category)
@@ -25,17 +15,24 @@ static func apply_texture_to_button(btn: Button, category: String, icon_id: Stri
 	btn.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
 	return true
 
-static func decorate_bottom_nav_row(nav_row: HBoxContainer, icon_size: int = ICON_SIZE_NAV) -> void:
+static func decorate_bottom_nav_row(nav_row: HBoxContainer) -> void:
 	if nav_row == null:
 		return
-	for child in nav_row.get_children():
-		if not child is Button:
+	for entry in BottomNavHelper.BOTTOM_NAV_ENTRIES:
+		var btn: Button = nav_row.get_node_or_null(str(entry["node"])) as Button
+		if btn == null:
 			continue
-		var spec: Variant = BOTTOM_NAV_ICONS.get(child.name, null)
-		if spec is Dictionary:
-			apply_texture_to_button(
-				child as Button,
-				str(spec["category"]),
-				str(spec["id"]),
-				icon_size
-			)
+		NavUiTokens.set_bottom_nav_icon(
+			btn,
+			str(entry["icon_category"]),
+			str(entry["icon_id"])
+		)
+
+static func decorate_menu_button(btn: Button, entry: Dictionary, icon_size: int = ICON_SIZE_MENU) -> void:
+	if btn == null:
+		return
+	var category: String = str(entry.get("icon_category", ""))
+	var icon_id: String = str(entry.get("icon_id", ""))
+	if category.is_empty() or icon_id.is_empty():
+		return
+	apply_texture_to_button(btn, category, icon_id, icon_size)

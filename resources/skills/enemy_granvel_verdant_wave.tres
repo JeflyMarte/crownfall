@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_granvel_verdant_wave"
+display_name = "萌芽の波動"
+description = "体表の根と蔓が脈打ち、胞子混じりの衝撃波が探索隊全体を襲う。"
+skill_type = "boss"
+target_type = "all_party"
+power_multiplier = 0.45
+cooldown = 8.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["boss"])
+element = ""
+apply_status_id = "poison"
+apply_status_chance = 0.25
+cast_time = 1.0

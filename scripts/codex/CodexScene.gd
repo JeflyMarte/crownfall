@@ -60,7 +60,7 @@ var _entry_rows: Array = []
 @onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
 
 func _ready() -> void:
-	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.MENU)
+	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.CODEX)
 	_decorate_static()
 	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)
 	$MainScroll/MainVBox/TabRow/ButtonTabEnemy.pressed.connect(func(): _select_category("enemy"))

@@ -4,17 +4,16 @@
 
 [resource]
 script = ExtResource("1")
-id = "umbral_fang"
-display_name = "影喰みの短刃"
-fixed_skill_id = "hex_bolt"
-base_attack = 11
-rarity = 2
-base_attack_speed = 1.1
+id = "bark_render"
+display_name = "樹皮剥ぎの双刃"
+base_attack = 14
+rarity = 0
+base_attack_speed = 1.15
 base_critical_rate = 0.08
-base_knockback = 0.3
-base_stagger_power = 0.15
+base_knockback = 0.2
+base_stagger_power = 0.1
 base_attack_range = 1.0
-weight = 0.9
-element = "dark"
+weight = 0.8
+element = ""
 weapon_type = "dual_blades"
-tags = Array[String](["pierce", "dark"])
+tags = Array[String](["slash"])
