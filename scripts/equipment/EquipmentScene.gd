@@ -16,8 +16,8 @@ const _ElementResolver = preload("res://scripts/combat/ElementResolver.gd")
 
 # CombatController.BASE_MEMBER_HP と同値（表示用の素HP）。
 const BASE_MEMBER_HP: int = 30
-# クリティカルダメージ倍率（DungeonScene.CRITICAL_MULTIPLIER と同値）。
-const CRIT_DAMAGE_MULT: float = 1.5
+# クリティカルダメージ倍率（BalanceConfig 準拠）。
+const CRIT_DAMAGE_MULT: float = BalanceConfig.CRITICAL_MULTIPLIER
 const GRID_COLUMNS: int = 6
 const CELL_SIZE: Vector2 = Vector2(72, 72)
 const SLOT_CELL_SIZE: Vector2 = Vector2(58, 58)
