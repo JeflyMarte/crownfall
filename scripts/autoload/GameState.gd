@@ -58,6 +58,22 @@ var last_run_exploration_policy: String = ""
 var run_material_start: Dictionary = {}
 var last_run_material_gains: Dictionary = {}
 var last_run_weather: String = ""
+# 直近ランで発動した戦闘補正の回数 { 表示ラベル: 回数 }（P3-UX-001 戦闘可読性）。
+# DungeonScene のログ経路で集計し、Result で上位を「効いた戦闘要素」として表示する。
+var last_run_modifier_counts: Dictionary = {}
+
+func record_run_modifier(label: String) -> void:
+	if label.is_empty():
+		return
+	last_run_modifier_counts[label] = int(last_run_modifier_counts.get(label, 0)) + 1
+
+## 発動回数の多い順に上位 limit 件を [{label, count}] で返す。
+func top_run_modifiers(limit: int = 3) -> Array:
+	var entries: Array = []
+	for label in last_run_modifier_counts:
+		entries.append({"label": str(label), "count": int(last_run_modifier_counts[label])})
+	entries.sort_custom(func(a, b): return int(a["count"]) > int(b["count"]))
+	return entries.slice(0, limit)
 
 # ギルド日課（P3-DAILY）— SaveManager が永続化。
 var daily_mission_state: Dictionary = {}

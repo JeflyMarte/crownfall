@@ -287,6 +287,7 @@ func _ready() -> void:
 	GameState.last_run_relic_dropped = ""
 	GameState.last_run_outcome = ""
 	GameState.last_run_exploration_policy = ""
+	GameState.last_run_modifier_counts = {}
 	GameState.begin_run_material_tracking()
 	_update_room_label()
 	_update_room_art()
@@ -367,10 +368,32 @@ func _process(delta: float) -> void:
 func _set_narrative(text: String) -> void:
 	_label_narrative.text = text
 
+# 戦闘可読性（P3-UX-001）: ログ行に現れる補正マーカーをラン単位で集計する。
+# Result の「効いた戦闘要素」の材料。キー=ログ内マーカー / 値=表示ラベル。
+const RUN_MODIFIER_MARKERS: Dictionary = {
+	"[弱点:": "弱点属性",
+	"[特効:": "生態特効",
+	"[シナジー:": "属性シナジー",
+	"[地形:": "地形相性",
+	"[天候:": "天候補正",
+	"[防御DOWN]": "防御DOWN",
+	"[コンボ]": "状態コンボ",
+	"[連携]": "パーティ連携",
+	"[パッシブ]": "パッシブ",
+	"[遺物]": "遺物",
+	"【必殺】": "必殺技",
+}
+
+func _record_run_modifiers(line: String) -> void:
+	for marker: String in RUN_MODIFIER_MARKERS:
+		if line.contains(marker):
+			GameState.record_run_modifier(RUN_MODIFIER_MARKERS[marker])
+
 func _append_log(text: String) -> void:
 	for line: String in text.split("\n"):
 		if line.is_empty():
 			continue
+		_record_run_modifiers(line)
 		var entry := RichTextLabel.new()
 		entry.bbcode_enabled = true
 		entry.fit_content = true
