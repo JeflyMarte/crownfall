@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-03（**P3-BETA-001 / P3-D154 ② ウィスパーウッド一式**: 敵6体（グランヴェル3フェーズ＋専用スキル）・whisperwood.tres（推奨Lv12/敵Lv10/fire有利）・装備20点（★2=シルヴァリア誓剣/ヴェルド枝杖・アイコンは流用placeholder）・ドロップのダンジョン別プール化（`DungeonData.weapon/armor/accessory_pool`・①現行維持）・既存属性武器7本を✦へ再ティア（①の★=聖別刃/祝聖の大槌）・ダンジョン切替UI。ハーネス検証: ②Lv9=40%/Lv12=71〜76%/Lv17=97%・①回帰なし（Lv3=74%）。unit 34 PASS・smoke PASS。**残**: ②敵/装備の本番アート、ダンジョン解放条件、実機確認）
+
 2026-07-02（**P3-BAL-006 / P3-D153 モーンゲート難易度カーブ調整**: バランスハーネス v2（スキル/回復/CD・敵倍率 what-if・成長スイープ）→ セルディオン HP620→250/ATK38→15・Elite/雑魚≈×0.9・`recommended_level` 1→3。成長式は現行維持で正を `BalanceConfig` へ移設。検証: Lv1=22%/Lv3=75%/Lv6+=100%（目標帯合致）。unit 34 PASS・smoke PASS。Known Issue: 決定論戦闘のブレークポイント体質＝P3-D153-4）
 
 2026-07-02（**外部レビュー対応バンド**: P3-SAVE-001 save_version / P3-REF-001 DamageCalculator 分離 / P3-BAL-005 BalanceConfig+バランスシミュ `tools/balance_sim.sh` / P3-UX-001 Result「効いた戦闘要素」。GUT/CI/未コミット分もコミット整理。unit 34 PASS・smoke PASS）
