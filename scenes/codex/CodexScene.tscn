@@ -139,7 +139,7 @@ layout_mode = 1
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_top = 46.0
-offset_bottom = -52.0
+offset_bottom = -68.0
 grow_horizontal = 2
 grow_vertical = 2
 horizontal_scroll_mode = 0
@@ -303,7 +303,7 @@ layout_mode = 1
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -52.0
+offset_top = -68.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_styles/panel = SubResource("SB_BottomNav")
@@ -317,27 +317,33 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "ホーム"
 
-[node name="NavParty" type="Button" parent="BottomNav/NavRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "パーティ"
-
 [node name="NavAdventure" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "冒険"
+text = "冒険に出る"
+
+[node name="NavCharacter" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "キャラ管理"
+
+[node name="NavParty" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "パーティー編成"
 
 [node name="NavForge" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "強化"
+text = "鍛冶屋"
 
-[node name="NavShop" type="Button" parent="BottomNav/NavRow"]
+[node name="NavGacha" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "ショップ"
+text = "ガチャ"
 
-[node name="NavMenu" type="Button" parent="BottomNav/NavRow"]
+[node name="NavCodex" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "メニュー"
+text = "図鑑"
+

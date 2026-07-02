@@ -1,10 +1,9 @@
 extends SceneTree
 
-## P3-UI-Base-A — BaseScene 拠点ハブ headless 検証（CI / smoke 補助）。
+## BaseScene 拠点ハブ headless 検証。
 
 const EXPECTED_LEFT_MENU: int = 7
-const EXPECTED_GRID_MENU: int = 9
-const EXPECTED_NAV_BUTTONS: int = 6
+const EXPECTED_NAV_BUTTONS: int = 7
 
 func _init() -> void:
 	call_deferred("_run")
@@ -52,23 +51,33 @@ func _verify(root: Control) -> PackedStringArray:
 				dynamic += 1
 		if dynamic != EXPECTED_LEFT_MENU:
 			failures.append("Left menu count=%d expected=%d" % [dynamic, EXPECTED_LEFT_MENU])
-	var grid: GridContainer = root.get_node_or_null(
-		"MenuGridView/MenuGridPanel/MenuGridVBox/FeatureGrid"
-	) as GridContainer
-	if grid == null:
-		failures.append("FeatureGrid missing")
-	elif grid.get_child_count() != EXPECTED_GRID_MENU:
-		failures.append("Grid menu count=%d expected=%d" % [grid.get_child_count(), EXPECTED_GRID_MENU])
+		for entry in BottomNavHelper.SIDE_MENU_ENTRIES:
+			var found: bool = _node_tree_has_label(menu_vbox, str(entry["title"]))
+			if not found:
+				failures.append("Left menu missing: %s" % str(entry["title"]))
 	var nav_row: HBoxContainer = root.get_node_or_null("BottomNav/NavRow") as HBoxContainer
 	if nav_row == null:
 		failures.append("BottomNav/NavRow missing")
 	else:
 		if nav_row.get_child_count() != EXPECTED_NAV_BUTTONS:
-			failures.append("Nav button count=%d expected=%d" % [nav_row.get_child_count(), EXPECTED_NAV_BUTTONS])
-		for node_name in ["NavHome", "NavParty", "NavAdventure", "NavForge", "NavShop", "NavMenu"]:
-			var btn: Button = nav_row.get_node_or_null(node_name) as Button
+			failures.append(
+				"Nav button count=%d expected=%d" % [nav_row.get_child_count(), EXPECTED_NAV_BUTTONS]
+			)
+		for entry in BottomNavHelper.BOTTOM_NAV_ENTRIES:
+			var btn: Button = nav_row.get_node_or_null(str(entry["node"])) as Button
 			if btn == null:
-				failures.append("Missing nav button: %s" % node_name)
-			elif btn.pressed.get_connections().is_empty():
-				failures.append("Nav button not wired: %s" % node_name)
+				failures.append("Missing nav button: %s" % str(entry["node"]))
+			elif btn.name == "NavHome":
+				if not btn.disabled:
+					failures.append("NavHome should be disabled on BaseScene")
+			elif not bool(entry.get("locked", false)) and btn.pressed.get_connections().is_empty():
+				failures.append("Nav button not wired: %s" % str(entry["node"]))
 	return failures
+
+func _node_tree_has_label(root: Node, text: String) -> bool:
+	if root is Label and (root as Label).text == text:
+		return true
+	for child in root.get_children():
+		if _node_tree_has_label(child, text):
+			return true
+	return false

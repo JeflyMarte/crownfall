@@ -154,8 +154,10 @@ text = "0"
 layout_mode = 1
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 50.0
-offset_bottom = -104.0
+offset_left = 12.0
+offset_top = 46.0
+offset_right = -12.0
+offset_bottom = -128.0
 grow_horizontal = 2
 grow_vertical = 2
 horizontal_scroll_mode = 0
@@ -163,94 +165,113 @@ horizontal_scroll_mode = 0
 [node name="MainVBox" type="VBoxContainer" parent="MainScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 10
+theme_override_constants/separation = 4
 
 [node name="PowerRow" type="HBoxContainer" parent="MainScroll/MainVBox"]
 layout_mode = 2
-theme_override_constants/separation = 8
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
 
 [node name="LabelPower" type="Label" parent="MainScroll/MainVBox/PowerRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
-theme_override_font_sizes/font_size = 16
+size_flags_stretch_ratio = 1.0
 text = "総合戦力 0"
+clip_text = true
+text_overrun_behavior = 3
 
 [node name="ButtonRecommend" type="Button" parent="MainScroll/MainVBox/PowerRow"]
+custom_minimum_size = Vector2(108, 38)
 layout_mode = 2
+size_flags_horizontal = 0
 text = "おすすめ編成"
 
 [node name="ButtonFormation" type="Button" parent="MainScroll/MainVBox/PowerRow"]
+custom_minimum_size = Vector2(64, 38)
 layout_mode = 2
+size_flags_horizontal = 0
 text = "陣形"
 
-[node name="ActivePartyScroll" type="ScrollContainer" parent="MainScroll/MainVBox"]
-custom_minimum_size = Vector2(0, 210)
+[node name="ActivePartyRow" type="HBoxContainer" parent="MainScroll/MainVBox"]
+custom_minimum_size = Vector2(0, 280)
 layout_mode = 2
-horizontal_scroll_mode = 2
-vertical_scroll_mode = 0
-
-[node name="ActivePartyRow" type="HBoxContainer" parent="MainScroll/MainVBox/ActivePartyScroll"]
-layout_mode = 2
-theme_override_constants/separation = 8
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
 
 [node name="LeaderStrip" type="PanelContainer" parent="MainScroll/MainVBox"]
 layout_mode = 2
 
 [node name="LeaderLabel" type="Label" parent="MainScroll/MainVBox/LeaderStrip"]
+visible = false
 layout_mode = 2
-theme_override_colors/font_color = Color(0.82, 0.84, 0.9, 1)
-theme_override_font_sizes/font_size = 14
 text = "リーダー: —"
 autowrap_mode = 3
 
-[node name="ListHeader" type="HBoxContainer" parent="MainScroll/MainVBox"]
+[node name="ListHeader" type="VBoxContainer" parent="MainScroll/MainVBox"]
 layout_mode = 2
-theme_override_constants/separation = 8
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
 
 [node name="LabelListTitle" type="Label" parent="MainScroll/MainVBox/ListHeader"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 15
 text = "キャラクター一覧"
 
-[node name="ButtonSort" type="Button" parent="MainScroll/MainVBox/ListHeader"]
+[node name="ListHeaderButtons" type="HBoxContainer" parent="MainScroll/MainVBox/ListHeader"]
 layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="ButtonSort" type="Button" parent="MainScroll/MainVBox/ListHeader/ListHeaderButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.0
 text = "レアリティ順"
 
-[node name="ButtonRoleFilter" type="Button" parent="MainScroll/MainVBox/ListHeader"]
+[node name="ButtonRoleFilter" type="Button" parent="MainScroll/MainVBox/ListHeader/ListHeaderButtons"]
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.0
 text = "全職"
 
 [node name="RosterGrid" type="GridContainer" parent="MainScroll/MainVBox"]
 layout_mode = 2
-theme_override_constants/h_separation = 8
-theme_override_constants/v_separation = 8
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 6
 columns = 4
 
 [node name="LabelStatus" type="Label" parent="MainScroll/MainVBox"]
+visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0.72, 0.69, 0.62, 1)
 horizontal_alignment = 1
 autowrap_mode = 3
 
 [node name="FooterRow" type="HBoxContainer" parent="."]
+z_index = 10
 layout_mode = 1
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -104.0
-offset_bottom = -56.0
+offset_left = 12.0
+offset_top = -128.0
+offset_right = -12.0
+offset_bottom = -68.0
 grow_horizontal = 2
 theme_override_constants/separation = 12
 alignment = 1
 
 [node name="ButtonReset" type="Button" parent="FooterRow"]
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
+size_flags_horizontal = 3
 text = "パーティ解除"
 
 [node name="ButtonSave" type="Button" parent="FooterRow"]
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_styles/normal = SubResource("SB_Save")
 theme_override_colors/font_color = Color(0.98, 0.92, 0.62, 1)
 text = "保存"
@@ -261,7 +282,7 @@ layout_mode = 1
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -52.0
+offset_top = -68.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_styles/panel = SubResource("SB_BottomNav")
@@ -275,30 +296,36 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "ホーム"
 
-[node name="NavParty" type="Button" parent="BottomNav/NavRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "パーティ"
-
 [node name="NavAdventure" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "冒険"
+text = "冒険に出る"
+
+[node name="NavCharacter" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "キャラ管理"
+
+[node name="NavParty" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "パーティー編成"
 
 [node name="NavForge" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "強化"
+text = "鍛冶屋"
 
-[node name="NavShop" type="Button" parent="BottomNav/NavRow"]
+[node name="NavGacha" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "ショップ"
+text = "ガチャ"
 
-[node name="NavMenu" type="Button" parent="BottomNav/NavRow"]
+[node name="NavCodex" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "メニュー"
+text = "図鑑"
+
 
 [node name="FormationOverlay" type="CanvasLayer" parent="."]
 visible = false
