@@ -113,6 +113,69 @@ const EVENTS_MOURNGATE: Array = [
 	},
 ]
 
+const EVENTS_WHISPERWOOD: Array = [
+	{
+		"id": "whisperwood_moss_spring",
+		"description": "苔むした岩の間に澄んだ湧水を見つけ、傷を洗った。",
+		"outcome": {"type": "heal", "amount": 10},
+	},
+	{
+		"id": "whisperwood_hollow_cache",
+		"description": "大樹の木洞に、先行した探索者の備蓄が手つかずで残されていた。",
+		"outcome": {"type": "gold", "amount": 30},
+	},
+	{
+		"id": "whisperwood_symbiont_bloom",
+		"description": "共生花の群落が放つ香気を浴び、身体が軽くなった。",
+		"outcome": {"type": "buff", "multiplier": 1.12},
+	},
+	{
+		"id": "whisperwood_warden_carving",
+		"description": "森番が幹に刻んだ古い標を見つけ、書き写した。",
+		"outcome": {"type": "lore", "label": "森番の刻印", "discovery_id": "whisperwood_warden_carving"},
+	},
+	{
+		"id": "whisperwood_canopy_whisper",
+		"description": "梢のざわめきから方角を読む口伝を思い出し、書き留めた。",
+		"outcome": {"type": "lore", "label": "梢のささやき", "discovery_id": "whisperwood_canopy_whisper"},
+	},
+]
+
+const EVENTS_MISTFEN: Array = [
+	{
+		"id": "mistfen_dry_islet",
+		"description": "乾いた中州を見つけ、泥を落として小休止した。",
+		"outcome": {"type": "heal", "amount": 12},
+	},
+	{
+		"id": "mistfen_sunken_satchel",
+		"description": "泥中から沈んだ革鞄を引き上げた。中身はまだ使える。",
+		"outcome": {"type": "material", "label": "遺跡の欠片", "material_id": "relic_shard", "discovery_id": "relic_shard", "amount": 1},
+	},
+	{
+		"id": "mistfen_marsh_light",
+		"description": "沼灯りの揺れを追って安全な浅瀬を渡り、時間を稼いだ。",
+		"outcome": {"type": "gold", "amount": 34},
+	},
+	{
+		"id": "mistfen_libris_seal",
+		"description": "沈没書庫の残骸から封蝋の欠片を拾い、紋様を記録した。",
+		"outcome": {"type": "lore", "label": "封緘の蝋印", "discovery_id": "mistfen_libris_seal"},
+	},
+	{
+		"id": "mistfen_drowned_ledger",
+		"description": "水浸しの台帳が浅瀬に沈んでいた。読める頁を書き写した。",
+		"outcome": {"type": "lore", "label": "水浸しの台帳", "discovery_id": "mistfen_drowned_ledger"},
+	},
+]
+
+# ダンジョン別イベント（P3-EVT-001）。id 一致で EVENTS へ加算。
+const DUNGEON_EVENTS: Dictionary = {
+	"mourngate": EVENTS_MOURNGATE,
+	"whisperwood": EVENTS_WHISPERWOOD,
+	"mistfen": EVENTS_MISTFEN,
+}
+
 var current_dungeon_data: Resource = null
 var current_room_index: int = 0
 var room_sequence: Array[int] = []
@@ -411,8 +474,7 @@ func _get_event_pool() -> Array:
 		return EVENTS
 	var combined: Array = []
 	combined.append_array(EVENTS)
-	if current_dungeon_data.id == "mourngate":
-		combined.append_array(EVENTS_MOURNGATE)
+	combined.append_array(DUNGEON_EVENTS.get(str(current_dungeon_data.id), []))
 	return combined
 
 func auto_resolve_event() -> Dictionary:

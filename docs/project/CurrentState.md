@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-03（**P3-EVT-001 ダンジョン別イベント拡充**: ②5件・③5件の Biome 専用イベント（実利3+ロア2 の①型）＋ LF 断章4件（`world/12` v1.2）。`_get_event_pool` を `DUNGEON_EVENTS` 辞書化（④⑤はデータ追加のみ）。unit 50 PASS・smoke PASS）
+
 2026-07-03（**P3-D157 ダンジョン解放条件**: メインは難易度順の直列解放（`GameState.is_dungeon_unlocked`・①常時→②は①クリア→③は②クリア）。サブルートは `DungeonData.unlock_after_dungeon_id` で個別指定（空=常時）。切替UIの未解放は🔒 disabled・未解放選択時はフォールバック。unit 47 PASS・smoke PASS）
 
 2026-07-03（**P3-BAL-008 / P3-D158 ダメージ±乱数**: 最終ダメージ×[0.9,1.1] 一様乱数（`BalanceConfig.DAMAGE_VARIANCE=0.10`）。適用は中央2箇所のみ（味方→敵=`enemy_mitigation` 最終段・敵→味方=`enemy_damage_to_member` 最終段・rng注入可）。再検証: ①Lv3=72%/②Lv12=74%/③Lv22=80% で3ダンジョン目標帯維持。Known Issue「ブレークポイント体質」解消。unit 43 PASS・smoke PASS）
