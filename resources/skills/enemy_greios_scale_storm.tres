@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_greios_scale_storm"
+display_name = "鱗粉の白嵐"
+description = "翼を打ち鳴らし、視界を奪う鱗粉と氷片が探索隊全体を襲う。"
+skill_type = "enemy"
+target_type = "all_party"
+power_multiplier = 0.4
+cooldown = 6.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["aoe"])
+element = "ice"
+apply_status_id = "chill"
+apply_status_chance = 0.25

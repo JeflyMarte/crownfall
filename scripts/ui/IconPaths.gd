@@ -60,6 +60,19 @@ const ICON_MAP: Dictionary = {
 	"weapon:beacon_needle":        "res://assets/ui/batch2/ICO_WPN_HuntingBow.png",
 	"weapon:nereidas_tideblade":   "res://assets/ui/batch2/ICO_WPN_SanctifiedDagger.png",
 	"weapon:pharoslight_staff":    "res://assets/ui/batch2/ICO_WPN_FrostBlade.png",
+	# ⑤ フロストリッジ武器（暫定流用 / P3-BETA-004）
+	"weapon:ridge_cleaver":        "res://assets/ui/batch2/ICO_WPN_IronSword.png",
+	"weapon:frostclaw_blades":     "res://assets/ui/batch2/ICO_WPN_BoltKnife.png",
+	"weapon:snowline_longbow":     "res://assets/ui/batch2/ICO_WPN_HuntingBow.png",
+	"weapon:cairn_staff":          "res://assets/ui/batch2/ICO_WPN_ApprenticeStaff.png",
+	"weapon:glacier_greatsword":   "res://assets/ui/batch2/ICO_WPN_FrostBlade.png",
+	"weapon:rime_bow":             "res://assets/ui/batch2/ICO_WPN_HuntingBow.png",
+	"weapon:aurora_staff":         "res://assets/ui/batch2/ICO_WPN_FrostBlade.png",
+	"weapon:shadow_fang_saw":      "res://assets/ui/batch2/ICO_WPN_BoltKnife.png",
+	"weapon:permafrost_edge":      "res://assets/ui/batch2/ICO_WPN_FrostBlade.png",
+	"weapon:white_needle":         "res://assets/ui/batch2/ICO_WPN_HuntingBow.png",
+	"weapon:eldion_frostbrand":    "res://assets/ui/batch2/ICO_WPN_SanctifiedDagger.png",
+	"weapon:umbra_terminus_staff": "res://assets/ui/batch2/ICO_WPN_ApprenticeStaff.png",
 	"armor:leather_armor":         "res://assets/ui/batch2/ICO_ARM_LeatherArmor.png",
 	"armor:bone_armor":            "res://assets/ui/batch7/ICO_ARM_BoneArmor.png",
 	# ② ウィスパーウッド防具（暫定流用 / P3-D154）
@@ -80,6 +93,12 @@ const ICON_MAP: Dictionary = {
 	"armor:kelp_weave_cloak":      "res://assets/ui/batch2/ICO_ARM_LeatherArmor.png",
 	"armor:whalebone_plate":       "res://assets/ui/batch7/ICO_ARM_BoneArmor.png",
 	"armor:votive_vestment":       "res://assets/ui/batch2/ICO_ARM_LeatherArmor.png",
+	# ⑤ フロストリッジ防具（暫定流用 / P3-BETA-004）
+	"armor:furline_garb":          "res://assets/ui/batch2/ICO_ARM_LeatherArmor.png",
+	"armor:glacier_plate":         "res://assets/ui/batch7/ICO_ARM_BoneArmor.png",
+	"armor:snowdrift_cloak":       "res://assets/ui/batch2/ICO_ARM_LeatherArmor.png",
+	"armor:dragon_scale_aegis":    "res://assets/ui/batch7/ICO_ARM_BoneArmor.png",
+	"armor:aurora_vestment":       "res://assets/ui/batch2/ICO_ARM_LeatherArmor.png",
 	"armor:unidentified":          "res://assets/ui/batch2/ICO_ARM_Unidentified.png",
 	"accessory:silver_ring":       "res://assets/ui/batch2/ICO_ACC_SilverRing.png",
 	# ② ウィスパーウッド装飾品（暫定流用 / P3-D154）
@@ -94,6 +113,10 @@ const ICON_MAP: Dictionary = {
 	"accessory:black_pearl_ring":  "res://assets/ui/batch2/ICO_ACC_SilverRing.png",
 	"accessory:barnacle_charm":    "res://assets/ui/batch2/ICO_ACC_SilverRing.png",
 	"accessory:nereion_song_talisman": "res://assets/ui/batch2/ICO_ACC_SilverRing.png",
+	# ⑤ フロストリッジ装飾品（暫定流用 / P3-BETA-004）
+	"accessory:ice_crystal_ring":  "res://assets/ui/batch2/ICO_ACC_SilverRing.png",
+	"accessory:frost_fang_charm":  "res://assets/ui/batch2/ICO_ACC_SilverRing.png",
+	"accessory:eldion_heart_talisman": "res://assets/ui/batch2/ICO_ACC_SilverRing.png",
 	"accessory:unidentified":      "res://assets/ui/batch2/ICO_ACC_Unidentified.png",
 	"material:relic_shard":        "res://assets/ui/batch2/ICO_MAT_RelicShard.png",
 	"material:elite_relic_shard":  "res://assets/ui/batch7/ICO_MAT_EliteRelicShard.png",

@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "vergaron"
+display_name = "ヴェルガロン"
+max_hp = 78
+attack = 17
+defense = 7
+attack_speed = 1.1
+critical_rate = 0.1
+move_speed = 1.25
+threat_target_bias = "max_threat"
+detection_range = 8.0
+attack_range = 1.0
+enemy_type = 0
+ai_type = "default"
+exp_reward = 19
+gold_reward = 72
+drop_table_id = "vergaron_drops"
+element_weakness = Array[String](["ice"])
+element_resist = Array[String]([])
+attack_element = "ice"
+on_hit_status_id = "chill"
+on_hit_status_chance = 0.25
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "獣類"
+codex_danger = 4
+codex_habitat = "最果て氷裂・吹雪帯"
+codex_research_note = "狼を祖先とし、極寒の風を厚毛に纏って狩る大型狼。吐息が獲物の体温を奪い、動きが鈍ったところを群れが仕留める。遠吠えは吹雪の夜にだけ聞こえる。"
+codex_materials = Array[String]([])
+skill_ids = Array[String]([])
+skill_use_chance = 0.0

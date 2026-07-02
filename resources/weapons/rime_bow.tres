@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "rime_bow"
+display_name = "霧氷の弓"
+fixed_skill_id = "rime_touch"
+base_attack = 48
+rarity = 1
+base_attack_speed = 1.2
+base_critical_rate = 0.1
+base_knockback = 0.1
+base_stagger_power = 0.1
+base_attack_range = 3.0
+weight = 0.7
+element = "ice"
+weapon_type = "bow"
+tags = Array[String](["pierce", "ice"])

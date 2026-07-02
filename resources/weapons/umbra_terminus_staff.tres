@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "umbra_terminus_staff"
+display_name = "終末の闇杖ウンブラ・テルミナス"
+fixed_skill_id = "umbral_strike"
+base_attack = 60
+rarity = 3
+base_attack_speed = 0.9
+base_critical_rate = 0.05
+base_knockback = 0.1
+base_stagger_power = 0.1
+base_attack_range = 2.5
+weight = 0.9
+element = "dark"
+weapon_type = "staff"
+tags = Array[String](["dark"])
+bane_class = "古代種"
+bane_multiplier = 1.3

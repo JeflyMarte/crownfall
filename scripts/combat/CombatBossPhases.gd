@@ -97,6 +97,29 @@ const _DEFS: Dictionary = {
 			"skill_weight": {"enemy_nereion_tidal_wail": 2.0, "enemy_nereion_breach": 2.0},
 		},
 	],
+	"eldion": [
+		{
+			"threshold": 1.0,
+			"label": "第1形態",
+			"skill_use_chance": 0.40,
+			"attack_mult": 1.0,
+		},
+		{
+			"threshold": 0.50,
+			"label": "第2形態・白闇",
+			"skill_use_chance": 0.55,
+			"attack_mult": 1.10,
+			"log": "【フェーズ移行】エルディオンの翼が吹雪を呼び、視界が白闇に沈む！",
+		},
+		{
+			"threshold": 0.25,
+			"label": "第3形態・始祖の竜",
+			"skill_use_chance": 0.70,
+			"attack_mult": 1.25,
+			"log": "【フェーズ移行】体内の氷河晶が輝き、始祖の竜が真の力を解き放つ！",
+			"skill_weight": {"enemy_eldion_glacial_breath": 2.0, "enemy_eldion_crevasse": 2.0},
+		},
+	],
 }
 
 static func has_phases(enemy_id: String) -> bool:

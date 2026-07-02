@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "eldion"
+display_name = "始祖の竜 エルディオン"
+max_hp = 300
+attack = 21
+defense = 26
+attack_speed = 0.9
+critical_rate = 0.1
+move_speed = 0.8
+threat_target_bias = "max_threat"
+detection_range = 10.0
+attack_range = 2.5
+enemy_type = 2
+ai_type = "default"
+exp_reward = 210
+gold_reward = 300
+drop_table_id = "eldion_drops"
+element_weakness = Array[String](["ice", "fire"])
+element_resist = Array[String](["dark", "thunder"])
+attack_element = "ice"
+on_hit_status_id = "chill"
+on_hit_status_chance = 0.25
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "古代種"
+codex_danger = 5
+codex_habitat = "最果て氷裂・氷河最深部"
+codex_research_note = "竜を祖先とする古龍種の頂点個体。体内に氷河晶を宿し、吐息は空気ごと凍らせる。開拓王の名は後世の俗称であり、王との関わりは確認されていない。不死者ではない。"
+codex_materials = Array[String]([])
+skill_ids = Array[String](["boss_enrage", "enemy_eldion_glacial_breath", "enemy_eldion_crevasse"])
+skill_use_chance = 0.4

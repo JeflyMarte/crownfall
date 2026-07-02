@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "eldion_heart_talisman"
+display_name = "始祖竜の心晶"
+rarity = 2
+icon = ""
+description = "エルディオンの体内で育つという氷河晶の複製。持ち主の一撃に古龍の重みを与える。"
+hp_bonus = 0
+attack_bonus = 10
+defense_bonus = 0
+crit_rate_bonus = 0.04
+luck_bonus = 0.0
