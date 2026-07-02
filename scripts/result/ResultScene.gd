@@ -288,6 +288,13 @@ func _build_info() -> void:
 	var run_weather: String = GameState.last_run_weather
 	if not run_weather.is_empty():
 		_add_info_pair("天候", CombatWeather.label(run_weather))
+	# 効いた戦闘要素 上位3（P3-UX-001 戦闘可読性）
+	var top_mods: Array = GameState.top_run_modifiers(3)
+	if not top_mods.is_empty():
+		var parts: PackedStringArray = []
+		for m in top_mods:
+			parts.append("%s×%d" % [str(m["label"]), int(m["count"])])
+		_add_info_pair("効いた戦闘要素", " / ".join(parts))
 	var dungeon_id: String = GameState.get_active_dungeon_id()
 	var prog: Dictionary = GameState.dungeon_progress.get(dungeon_id, {})
 	var discovery_pct: int = int(round(float(prog.get("discovery", 0.0)) * 100.0))
