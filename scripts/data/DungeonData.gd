@@ -29,3 +29,8 @@ extends Resource
 @export var event_room_weight: int = 0
 ## 中間部屋の EVENT 最低数（0=自動: 中間≥3かつ event 重み>0 なら1）。
 @export var min_event_rooms: int = 0
+## ダンジョン別ドロップ・プール（P3-D154）。空＝グローバル既定
+## （武器=DungeonController.WEAPON_POOL / 防具=革70%骨30% / 装飾=silver_ring）へフォールバック。
+@export var weapon_pool: Array[String] = []
+@export var armor_pool: Array[String] = []
+@export var accessory_pool: Array[String] = []

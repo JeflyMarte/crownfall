@@ -78,6 +78,12 @@ static func short_display_name(full_name: String) -> String:
 		return text.substr(0, idx)
 	return text
 
+static func job_display_name(member: Resource) -> String:
+	if member == null:
+		return "—"
+	var mods: Dictionary = _JobStatCalculator.get_member_modifiers(member)
+	return str(mods.get("display_name", member.job_id))
+
 static func role_label(role: String) -> String:
 	return str(ROLE_LABELS.get(role, role))
 

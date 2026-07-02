@@ -35,6 +35,11 @@ const DROP_PREVIEW: Dictionary = {
 		["accessory", "silver_ring"],
 		["material", "relic_shard"],
 	],
+	"whisperwood": [
+		["weapon", "pyre_greatsword"],
+		["armor", "moss_weave_garb"],
+		["accessory", "verdant_ring"],
+	],
 }
 
 @onready var _btn_back: Button = $Header/HeaderRow/ButtonBack
@@ -184,6 +189,7 @@ func _build_list() -> void:
 	var data: Resource = DataRegistry.get_dungeon_data(_featured_dungeon_id)
 	if data == null:
 		return
+	_append_dungeon_switcher()
 	var header := Label.new()
 	header.text = "階層一覧"
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -277,6 +283,35 @@ func _make_floor_card(data: Resource, floor: int, unlocked: bool) -> PanelContai
 		btn.disabled = true
 	action.add_child(btn)
 	return card
+
+# 複数ダンジョンの切替行（P3-D154）。メインルートのみ表示し、選択中は無効化。
+func _append_dungeon_switcher() -> void:
+	var mains: Array = []
+	for d in DataRegistry.get_all_dungeon_data():
+		if d != null and str(d.route_type) == "main":
+			mains.append(d)
+	if mains.size() < 2:
+		return
+	mains.sort_custom(func(a, b): return int(a.difficulty) < int(b.difficulty))
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 8)
+	for d in mains:
+		var did: String = str(d.id)
+		var btn := Button.new()
+		btn.text = str(d.display_name)
+		btn.custom_minimum_size = Vector2(0, 36)
+		UiTypography.apply_button(btn, did != _featured_dungeon_id)
+		if did == _featured_dungeon_id:
+			btn.disabled = true
+		else:
+			btn.pressed.connect(_on_switch_dungeon.bind(did))
+		row.add_child(btn)
+	_list.add_child(row)
+
+func _on_switch_dungeon(dungeon_id: String) -> void:
+	GameState.current_dungeon_id = dungeon_id
+	_refresh_all()
 
 func _floor_flavor_text(data: Resource, floor: int) -> String:
 	var floors: int = maxi(1, int(data.floor_count))

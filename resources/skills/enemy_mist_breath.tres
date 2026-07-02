@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_mist_breath"
+display_name = "凍霧の吐息"
+description = "翼膜に凝らせた冷たい霧を前列へ吹き付け、氷属性ダメージを与える。"
+skill_type = "enemy"
+target_type = "party_front"
+power_multiplier = 0.55
+cooldown = 5.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["aoe"])
+element = "ice"
+apply_status_id = "chill"
+apply_status_chance = 0.2

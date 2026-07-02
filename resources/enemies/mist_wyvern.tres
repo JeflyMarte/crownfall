@@ -33,5 +33,5 @@ codex_danger = 4
 codex_habitat = "囁きの森・霧の谷"
 codex_research_note = "飛竜を祖先とし、翼膜に霧を凝結させる腺を持つ大型個体。自ら霧幕を張って接近し、冷気を帯びた爪撃で獲物の動きを鈍らせる。霧の濃い日は行動圏が広がる。"
 codex_materials = Array[String]([])
-skill_ids = Array[String]([])
-skill_use_chance = 0.0
+skill_ids = Array[String](["enemy_mist_breath"])
+skill_use_chance = 0.35

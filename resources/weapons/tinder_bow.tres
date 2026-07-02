@@ -4,17 +4,17 @@
 
 [resource]
 script = ExtResource("1")
-id = "ember_fang"
-display_name = "燻る炎牙"
+id = "tinder_bow"
+display_name = "火種の猟弓"
 fixed_skill_id = "kindling_strike"
-base_attack = 11
-rarity = 2
-base_attack_speed = 1.1
+base_attack = 16
+rarity = 1
+base_attack_speed = 1.2
 base_critical_rate = 0.08
-base_knockback = 0.3
-base_stagger_power = 0.15
-base_attack_range = 1.0
-weight = 0.9
+base_knockback = 0.1
+base_stagger_power = 0.1
+base_attack_range = 3.0
+weight = 0.7
 element = "fire"
-weapon_type = "dual_blades"
+weapon_type = "bow"
 tags = Array[String](["pierce", "fire"])

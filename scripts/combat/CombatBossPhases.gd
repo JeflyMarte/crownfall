@@ -28,6 +28,29 @@ const _DEFS: Dictionary = {
 			"skill_weight": {"boss_decree_wave": 2.0, "enemy_serdion_roar": 2.0},
 		},
 	],
+	"granvel": [
+		{
+			"threshold": 1.0,
+			"label": "第1形態",
+			"skill_use_chance": 0.40,
+			"attack_mult": 1.0,
+		},
+		{
+			"threshold": 0.50,
+			"label": "第2形態・森の怒り",
+			"skill_use_chance": 0.55,
+			"attack_mult": 1.10,
+			"log": "【フェーズ移行】グランヴェルの体表で根と蔓が荒れ狂う！",
+		},
+		{
+			"threshold": 0.25,
+			"label": "第3形態・大森の化身",
+			"skill_use_chance": 0.70,
+			"attack_mult": 1.25,
+			"log": "【フェーズ移行】森そのものがグランヴェルに力を注ぐ！",
+			"skill_weight": {"enemy_granvel_verdant_wave": 2.0, "enemy_granvel_bramble_crush": 2.0},
+		},
+	],
 }
 
 static func has_phases(enemy_id: String) -> bool:

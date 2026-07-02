@@ -7,11 +7,12 @@ const BODY_FONT_PATH: String = "res://assets/fonts/NotoSansJP-VariableFont_wght.
 const DISPLAY_FONT_PATH: String = "res://assets/fonts/DelaGothicOne-Regular.ttf"
 
 const SIZE_BODY: int = 26
-const SIZE_BODY_SMALL: int = 20
-const SIZE_CAPTION: int = 16
+const SIZE_BODY_SMALL: int = 22
+const SIZE_CAPTION: int = 18
 const SIZE_DISPLAY: int = 24
 const SIZE_DISPLAY_TITLE: int = 28
 const SIZE_BUTTON: int = 24
+const SIZE_NAV: int = 13
 const SIZE_LOG: int = 22
 
 const COLOR_BODY: Color = Color(0.95, 0.92, 0.86, 1.0)
@@ -23,6 +24,7 @@ const COLOR_LOCKED: Color = Color(0.58, 0.56, 0.52, 1.0)
 
 const OUTLINE_BODY: int = 2
 const OUTLINE_DISPLAY: int = 4
+const OUTLINE_MENU: int = 2
 const OUTLINE_STRONG: int = 5
 
 static var _body_font: Font
@@ -42,6 +44,9 @@ static func display_font() -> Font:
 	if _display_font == null and ResourceLoader.exists(DISPLAY_FONT_PATH):
 		_display_font = load(DISPLAY_FONT_PATH) as Font
 	return _display_font
+
+static func menu_font() -> Font:
+	return display_font()
 
 static func _apply_outline(node: Control, outline_size: int) -> void:
 	if outline_size <= 0:
@@ -78,12 +83,40 @@ static func apply_display(
 static func apply_caption(label: Label, color: Color = COLOR_SUB) -> void:
 	apply_body(label, SIZE_CAPTION, color, OUTLINE_BODY)
 
-static func apply_button(button: BaseButton, display: bool = true) -> void:
-	var font: Font = display_font() if display else body_font()
+static func apply_menu_label(
+	label: Label,
+	size: int,
+	color: Color = COLOR_BODY,
+	outline_size: int = OUTLINE_MENU
+) -> void:
+	var font: Font = menu_font()
+	if font != null:
+		label.add_theme_font_override("font", font)
+	label.add_theme_font_size_override("font_size", size)
+	label.add_theme_color_override("font_color", color)
+	_apply_outline(label, outline_size)
+
+static func apply_button(button: BaseButton, locked: bool = false) -> void:
+	apply_menu_button(button, locked)
+
+static func apply_menu_button(button: BaseButton, locked: bool = false) -> void:
+	var font: Font = body_font()
 	if font != null:
 		button.add_theme_font_override("font", font)
-	button.add_theme_font_size_override("font_size", SIZE_BUTTON)
-	_apply_outline(button, OUTLINE_BODY if display else 0)
+	button.add_theme_font_size_override("font_size", SIZE_BODY_SMALL)
+	var color: Color = COLOR_LOCKED if locked else COLOR_BODY
+	button.add_theme_color_override("font_color", color)
+	button.add_theme_color_override("font_disabled_color", COLOR_LOCKED)
+	_apply_outline(button, OUTLINE_BODY)
+
+static func apply_nav_button(button: BaseButton, size: int = SIZE_NAV) -> void:
+	var font: Font = menu_font()
+	if font != null:
+		button.add_theme_font_override("font", font)
+	button.add_theme_font_size_override("font_size", size)
+	button.add_theme_color_override("font_color", COLOR_BODY)
+	button.add_theme_color_override("font_disabled_color", COLOR_LOCKED)
+	_apply_outline(button, OUTLINE_MENU)
 
 static func apply_log_rich(entry: RichTextLabel, size: int = SIZE_LOG, color: Color = COLOR_LOG) -> void:
 	var font: Font = body_font()
