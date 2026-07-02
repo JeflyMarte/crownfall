@@ -6,8 +6,8 @@
 script = ExtResource("1")
 id = "crystal_hedgehog"
 display_name = "水晶ハリネズミ"
-max_hp = 64
-attack = 15
+max_hp = 58
+attack = 14
 defense = 5
 attack_speed = 1.0
 critical_rate = 0.08

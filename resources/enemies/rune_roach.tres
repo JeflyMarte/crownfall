@@ -6,8 +6,8 @@
 script = ExtResource("1")
 id = "rune_roach"
 display_name = "ルーンローチ"
-max_hp = 96
-attack = 11
+max_hp = 86
+attack = 10
 defense = 8
 attack_speed = 0.9
 critical_rate = 0.0
