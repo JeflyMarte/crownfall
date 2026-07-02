@@ -4,15 +4,15 @@
 
 > **警告:** `02_ディレクトリ構成.md` や `05_実装ロードマップ.md` は将来/target 構成を含む。Task が明示的に要求しない限り、そこに記載された未実装ファイルを**作成・参照してはならない**。本ファイルが現行実装の正。
 
-**最終確認:** 2026-07-01（ProjectDocs v3.6.0 — Combat System v1.0 Closeout P3-D119）
+**最終確認:** 2026-07-02（ProjectDocs v3.6.0 — **P3-SKILL Closeout** P3-SKILL-001〜006）
 
-> **SSOT 注記:** Phase EQ-1 **完了**（P3-D020）。Phase3-B-M2 **完了**（P3-D023）。Phase UI-2 **Closeout**（P3-D015）。**UI-2+ Closeout**（P3-UI2-013〜016）。**Combat System v1.0 Closeout**（P3-D119 — P3-D103〜118）。
+> **SSOT 注記:** … **P3-SKILL Closeout**（基本5職 Lv50 習得10・`skill_unlocks`・レジェンド武器スキル・P3-SKILL-001〜006）。
 
 ---
 
 ## フェーズ
 
-Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat System v1.0**（残ロードマップ 15 項目）**完了**（P3-D119）。次焦点 = Phase 3-A Visual Production / Alpha 実機確認。詳細は `docs/project/CurrentState.md`。
+Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat System v1.0** **完了**（P3-D119）。**P3-SKILL**（基本5職 Lv50 習得10）**完了**（P3-SKILL-001〜006）。次焦点 = **P3-BETA-001**（2本目DG 設計）/ Alpha 実機確認。詳細は `docs/project/CurrentState.md`。
 
 ---
 
@@ -65,18 +65,18 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 
 - 状態異常アイコン: ルート直下 HBox（敵 + Chr0〜2 + 群れ行）— HP バー上に追従（P3-UI2-013 / P3-D110 群れ行）。`StatusResolver.get_active_status_list()`
 
-**BaseScene ノード（UI-2+）:**
-- `TopBar` 素材チップ（P3-D138）・`BottomNav` 冒険/召喚統一・`NavHome` ハイライト（**P3-UI2-025**）
-- `TitlePanel` / `SpotlightPanel`（選択DG・発見率・挑戦CTA）/ `FeaturePanel` 3列グリッド（**P3-UI2-027**）
-- `LeftMenuPanel` 動的メニューカード7件（アイコン+サブタイトル）
-- `DailyMissionPanel` ギルド日課3件・受取・リセット表示（**P3-DAILY**）
+**BaseScene ノード（P3-UI-Base-A / 003_01 Phase A）:**
+- `HubView` — 城背景・`TopBar`（プレイヤーカード+Gold/魔晶石）・`LeftMenuPanel` 7項目・`EventBanner`（占位）・`CurrencyStrip`・`DailyMissionPanel`
+- `MenuGridView` — 003_02 系 3×3 メニュー（下ナビ「メニュー」で切替）
+- `BottomNav` — 6タブ（ホーム/パーティ/冒険/強化/ショップ/メニュー）・`BottomNavHelper` + `NavIconHelper`
+- 検証: `tools/verify_base_hub.gd` / `tools/verify_bottom_nav.gd`
 
 **EquipmentScene ノード（UI-2+ / Combat v1.0）:**
 - `CharacterCard` — 肖像◀▶（`MemberSelectRow` 非表示）・★/Lv/職アイコン・`StatsGrid` 2列・`EquipSlotsGrid` 2×2+足具🔒（P3-UI2-019c）
 - `TabEquip/InventoryHeaderRow` — ソート・装備状態フィルタ（P3-UI2-019d）・一覧は全装備+装備者ミニアイコン
 - `TabAwaken` / `TabProfile` — disabled+準備中（P3-UI2-019e）
 - `ContentVBox/BuildChipRow` — 同上 + `LabelBuildSummary`（Task037）
-- スキルタブ — 戦術プリセット・陣形行（前列/後列・P3-D106）・探索スキル一覧（P3-D117）・連携 hint（P3-D115）・ガンビット（P3-D122）
+- スキルタブ — 戦術プリセット・陣形行・**🔒Lv解放表示**（P3-SKILL-001）・武器スキル行（P3-SKILL-004）・探索スキル一覧（P3-D117）・連携 hint（P3-D115）・ガンビット（P3-D122）
 
 **DungeonSelectScene** — `scenes/dungeon/DungeonSelectScene.tscn` / `scripts/dungeon/DungeonSelectScene.gd`（P3-D080・**P3-UI2-021** フィーチャー+挑戦・**P3-UI2-028** 階層カード密度・**P3-UI2-029** 下部3枠占位+スタミナチップ）
 
@@ -95,7 +95,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 `Constants.gd`（RESOURCE_*_PATH 含む）, `Enums.gd`
 
 ### data/
-`WeaponData.gd`, `ArmorData.gd`, `AccessoryData.gd`, `EnemyData.gd`, `DungeonData.gd`, `SkillData.gd`, **`StatusEffectData.gd`**（`defense_reduction` 等・P3-D107）, `MaterialData.gd`, `JobData.gd`, `AffixData.gd`, `CraftData.gd`, `RecipeData.gd`, `MaterialShopData.gd`, **`GachaHelperData.gd`**（`portrait_resource_path` P3-GACHA-003）, **`DailyMissionData.gd`**（P3-DAILY）
+`WeaponData.gd`, `ArmorData.gd`, `AccessoryData.gd`, `EnemyData.gd`, `DungeonData.gd`, `SkillData.gd`, **`StatusEffectData.gd`**（`defense_reduction` 等・P3-D107）, `MaterialData.gd`, **`JobData.gd`**（**`skill_unlocks`** P3-SKILL-001）, `AffixData.gd`, `CraftData.gd`, `RecipeData.gd`, `MaterialShopData.gd`, **`GachaHelperData.gd`**（`portrait_resource_path` P3-GACHA-003）, **`DailyMissionData.gd`**（P3-DAILY）
 
 ### domain/
 `Adventurer.gd`（**equipped_weapon/armor/accessory**）, `Stats.gd`, `WeaponData.gd`, `ArmorInstance.gd`, `AccessoryInstance.gd`, **`StatusInstance.gd`**
@@ -105,7 +105,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 |---|---|
 | `discovery/` | `DiscoveryRegistry.gd`（`get_display_label` / `get_category_label` — P3-UI2-015） |
 | `appraisal/` | `AppraisalController.gd`, `AppraisalScene.gd` |
-| `base/` | `BaseScene.gd`（TopBar 素材チップ P3-D138・**P3-UI2-025** BottomNav・**P3-UI2-027** Spotlight/FeatureGrid・**P3-DAILY** 日課パネル） |
+| `base/` | `BaseScene.gd`（**P3-UI-Base-A** Hub/MenuGrid・日課報酬表示・`GameState.base_initial_view`） |
 | `boot/` | `BootScene.gd` |
 | `combat/` | **コア:** `CombatController.gd`（`class_name`・CT/ATB・Threat・群れ/混成・個別ターゲット・詠唱・ボスフェーズ index）, `SkillExecutor.gd`, `StatusResolver.gd`, `StatusInstance.gd`, `ElementResolver.gd` |
 | | **戦術/AI:** `CombatTactics.gd`（プリセット6・発動条件・温存・P3-D086/108/113/127）, `CombatGambit.gd`（カスタム戦術5行・P3-D122/127） |
@@ -120,10 +120,24 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `codex/` | **`CatalogHelper.gd`**（P2-Task046/049 — Bible parse + Entry）, **`CodexScene.gd`**（P2-Task047/048/049 — Detail + Bible fields・**P3-UI2-020** Header/BottomNav） |
 | `result/` | `ResultScene.gd`（素材アイコン P3-D135・作成可能レシピ P3-D141・**P3-UI2-023** パネル/フッター polish） |
 | `save/` | `SaveManager.gd` |
-| `ui/` | **`IconPaths.gd`**（Phase3-A — static class、ICON_MAP による `category:id` → `ICO_*.png` 解決）・**`CurrencyHelper.gd`**（魔晶石表示 SSOT） |
+| `systems/` | **`LevelSystem.gd`**（Lv50上限 P3-SKILL-001）・**`SkillProgression.gd`**（`skill_unlocks` 解放・装備正規化）・**`WeaponSkillHelper.gd`**（レジェンド武器スキル）・`JobEvolution.gd` |
+| `ui/` | **`IconPaths.gd`** …（Phase3-A — static class、ICON_MAP による `category:id` → `ICO_*.png` 解決）・**`CurrencyHelper.gd`**（魔晶石表示 SSOT）・**`BottomNavHelper.gd`**（全拠点系6タブ遷移・**P3-UI-Base-A**）・**`NavIconHelper.gd`**（下ナビ/左メニューアイコン）・**`UiTypography.gd`** |
 
 ### プレースホルダのみ（.gitkeep、コードなし）
 `scripts/loot/`
+
+---
+
+## テスト / CI（P3-TEST-001）
+
+| パス | 内容 |
+|---|---|
+| `addons/gut/` | GUT 9.7.0（ユニットテストフレームワーク・`project.godot` の `[editor_plugins]` に登録） |
+| `.gutconfig.json` | GUT 既定設定（`res://tests/unit`・prefix `test_`） |
+| `tests/unit/test_save_manager.gd` | SaveManager テスト（ラウンドトリップ / job・dungeon マイグレーション / 破損セーブ耐性。実セーブは before_all/after_all で退避・復元） |
+| `tools/run_tests.sh` | headless GUT 実行（バイナリ検出は `smoke_test.sh` と同一・exit code 伝播） |
+| `tools/smoke_test.sh` | 既存受理ゲート（import + 120frame 起動） |
+| `.github/workflows/ci.yml` | GitHub Actions: Godot 4.6.3 linux headless で `smoke_test.sh` → `run_tests.sh` |
 
 ---
 
@@ -156,11 +170,11 @@ Task 明示指示がない限り作成しない:
 | 装飾品 | `resources/accessories/silver_ring.tres` |
 | 敵 | 王都跡 5 + 白骸墓地 6（`resources/enemies/`） |
 | ダンジョン | `resources/dungeons/royal_ruins.tres`, `graveyard.tres` |
-| スキル | `resources/skills/` — slash_attack, aimed_shot, guard_strike, snare_shot, hex_bolt, mend, empower, ultimate_strike, kindling_strike, rime_touch, static_strike, boss_enrage, boss_decree_wave |
+| スキル | `resources/skills/` — プレイヤー約50+（基本5職×習得10 + 必殺5 + 属性/敵/ボス）。代表: slash_attack, guard_strike, aimed_shot, hex_bolt, mend, empower + P3-SKILL-002〜006 新規（`rend_slash`〜`apex_tame` 等） |
+| ジョブ | `resources/jobs/` — 5職。各 **`skill_unlocks` Lv1/6/12/…/50 で習得10**（P3-SKILL-002〜006） |
 | 状態異常 | `resources/status/` — bleed, poison, stun, chill, ignite, shock, slow, curse, guard, empower, enrage, **fear**, **vulnerable**, **armor_break**（P3-D107）, **mark**（P3-D120） |
 | 素材 | `resources/materials/` — relic_shard, elite_relic_shard, ancient_bone, cursed_iron, leather |
 | Affix | `resources/affixes/` — 7 サンプル + **AffixRoller** |
-| ジョブ | `resources/jobs/` — warrior, guardian, scout |
 | クラフト | `resources/crafting/` — 6レシピ（武器3/防具2/装飾1・P3-D067/D136） |
 | レシピ | `resources/recipes/` — recipe_leather_armor, recipe_bone_armor, recipe_silver_ring |
 | 素材ショップ | `resources/material_shop/` — relic_shard, ancient_bone |

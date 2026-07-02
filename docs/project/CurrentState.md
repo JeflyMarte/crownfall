@@ -4,6 +4,30 @@
 
 ## Last Update
 
+2026-07-02（**P3-UI-Base-A Closeout**: 003_01 Phase A・下ナビ8画面統一・nav/UIフレーム art はオーナー Close）
+
+2026-07-02（**P3-D5DG-004c**: ③〜⑤敵名称・idオーナー確定）
+
+2026-07-02（**P3-D5DG-004**: 5Biome敵MVP確定）
+
+2026-07-02（**P3-D5DG-003**: floor_count個別・event_room_weight・mourngate=20%）
+
+2026-07-02（**P3-D5DG-002**: メイン5＋寄り道Biome・周回3〜6で次メイン想定）
+
+2026-07-02（**P3-D5DG-001**: 5 Biome ロードマップ確定。③＝ミストフェン沼・鍛冶は⑥以降）
+
+2026-07-02（**P3-SKILL Closeout**: 基本5職 Lv50 習得10 完遂・CODEMAP 同期）
+
+2026-07-02（**P3-SKILL-005/006 ヴァンガード・ビーストテイマー習得10**: 各新規7スキル。基本5職スキル習得完遂。smoke PASS）
+
+2026-07-02（**P3-SKILL-004 アルケミスト習得10**: 新規7スキル+skill_unlocks。smoke PASS）
+
+2026-07-02（**P3-SKILL-003 レンジャー習得10**: 新規7スキル+skill_unlocks。smoke PASS）
+
+2026-07-02（**P3-SKILL-002 ソードマン習得10**: 新規9スキル+skill_unlocks。smoke PASS）
+
+2026-07-02（**P3-SKILL-001 スキル習得+武器スキル**: Lv上限50・skill_unlocks・レジェンド武器スキル・属性斬撃は武器専用。smoke PASS）
+
 2026-07-02（**P3-GACHA-005 ガチャ★1〜4**: パッシブ+初期ステ差別化・スターター5職はガチャ除外。smoke PASS）
 
 2026-07-02（**P3-GACHA-004 ガチャ助っ人+2**: レオン/ミラ・5職カバー・プール動的化。smoke PASS）
@@ -164,6 +188,7 @@
 | — | P3-ART-002〜004 / P3-A-ENV-001 | 5職ドット / env / 助っ人本番立ち絵 | オーナー→Impl | **並行** |
 | — | P3-GACHA-005 | ガチャ★1〜4・パッシブ/初期ステ差別化 | Impl | ✅ **Closeout** |
 | — | P3-GACHA-004 | ガチャ助っ人+2 | Impl | ✅ **Closeout** |
+| — | **P3-SKILL-001〜006** | 基本5職 Lv50 習得10 + 武器スキル | Impl | ✅ **Closeout** |
 | **1** | **P3-BETA-001 設計** | 2本目DG 具体（Biome/敵/イベント） | HQ+オーナー | **次** |
 | 2 | P3-BETA-B1 | 2本目 DG 実装 | Impl | Beta |
 | — | P3-DAILY-B | 日課 UI polish | Impl | 任意 |
@@ -243,7 +268,7 @@ ProjectDocs **v3.6.0**
 | P3-B-004 | 地下工廠プレイアブル追加 | **完了**（オーナー GO） |
 | P3-B-005 | 地下工廠バランス初調整 | **完了**（オーナー GO） |
 | P3-D026〜033 | 世界観刷新 Postwar Ecology（文書反映） | **完了**（Bible 29〜36 新設・既存 spec 同期） |
-| P3-D035a | レベル制（共有EXP/Lv20/HP+ATK成長/セーブ） | **完了** |
+| P3-D035a | レベル制（共有EXP/Lv50/HP+ATK成長/セーブ） | **完了** |
 | P3-D036a | 助っ人（戦闘 編成3+助っ人固定枠1 / イベント助っ人） | **完了** |
 | P3-D036b | 助っ人ガチャ/ロスター（A〜D・gacha_token・天井・編成入替） | **完了**（smoke PASS） |
 | P3-D037/052 | ジョブ進化（is_evolved・ギルド認定Lv10・専門深化×1.3） | **完了** |
@@ -259,6 +284,7 @@ ProjectDocs **v3.6.0**
 | P3-D068 | 装備ドロップを直ドロップ化（鑑定済み100%・Affix自動付与・鑑定システムは温存） | **完了**（Claude実装・HQ diff承認 `fed5ffd`） |
 | P3-D069 | Phase 3-A スコープ確定（純ポリッシュ・人数3/装備3枠/メタ無し据置） | **確定** |
 | P3-A-UI-001 | 拠点(BaseScene) を 003_01 へ寄せる（テーマ基準づくり） | ✅ 完了 |
+| P3-UI-Base-A | 拠点 003_01 Phase A（Hub/MenuGrid・左7・下ナビ6・8画面統一・verify PASS） | ✅ **Closeout**（nav/UIフレーム art Close） |
 | P3-A-UI-002 | 装備画面をタブ分割（現在の装備／所持一覧） | ✅ 完了 |
 | P3-A-UI-003 | 装備名のUI表示をID→display_name（日本語名）へ統一（全画面） | ✅ 完了（Claude実装・HQ承認） |
 | P3-D070 | ダンジョン完全フルオート化（商人削除・イベント無選択化・全部屋自動進行） | ✅ 完了（Claude実装・HQ承認） |
@@ -274,6 +300,13 @@ ProjectDocs **v3.6.0**
 | P3-FIX-001 | 味方CHRサイズ不揃い修正（フレーム高基準→α実体高基準のfloat正規化・実体140px統一・足元bbox下端整列） | ✅ 完了（HQ実装・要実機確認） |
 | P3-D076 | 部屋抽選ランダム化（中間=重み付き戦闘多め60/15/13/12・両端固定・ガード全適用ELITE≤2/連続禁止/COMBAT≥3）＋ダンジョン別`floor_count`（mourngate=7） | ✅ 完了（HQ実装・headless2万試行検証・要実機確認） |
 | P3-D077 | スキル装備システム（メニュー「キャラ管理」改称・2スロット・ジョブ別プール・全員が装備スキルのみ発動・武器自動付与廃止・キャラ管理スキルタブ） | ✅ 完了（HQ実装・要実機確認） |
+| P3-SKILL-001 | スキル習得+武器スキル（Lv上限50・`skill_unlocks` Lv解放・レジェンド武器`fixed_skill_id`自動・属性斬撃は武器専用・スキルタブ🔒表示） | ✅ 完了（HQ実装・smoke PASS） |
+| P3-SKILL-002 | ソードマン習得10（Lv1/6/12/…/50・新規9 SkillData・連刃=出血温存） | ✅ 完了（HQ実装・smoke PASS） |
+| P3-SKILL-003 | レンジャー習得10（Lv1/6/12/…/50・新規7 SkillData・追標射=標的温存） | ✅ 完了（HQ実装・smoke PASS） |
+| P3-SKILL-004 | アルケミスト習得10（Lv1/6/12/…/50・新規7 SkillData・崩呪=脆弱温存） | ✅ 完了（HQ実装・smoke PASS） |
+| P3-SKILL-005 | ヴァンガード習得10（タンク軸・恐怖追撃=恐怖温存） | ✅ 完了（HQ実装・smoke PASS） |
+| P3-SKILL-006 | ビーストテイマー習得10（生態軸・猛毒噴射=毒温存） | ✅ 完了（HQ実装・smoke PASS） |
+| P3-SKILL-007 | スキル習得バンド Closeout（5職×10・CODEMAP/06 同期） | ✅ 完了 |
 | P3-D072-LORE | 断片ロア実機配信（碑文イベント本文表示＋Codex「記録」カテゴリ・`world/12` LFブロック解析・mourngate碑文イベント拡充） | ✅ 完了（HQクローズ 2026-06-29: LFブロック6件↔碑文イベントID一致・パーサ/表示/Codex記録 配線確認済） |
 | P3-D078 | 回復/バフスキルMVP（SkillExecutor heal/buff解禁・`mend`治癒=最負傷者単体回復・`empower`鼓舞=味方与ダメ+30%/3tick・alchemistに付与・回復+/攻アイコン演出） | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D079 | ボススキルMVP（EnemyData `skill_ids`/`skill_use_chance`追加・敵ターンでCD付きスキル発動・Serdionに激昂(自己与ダメ+40%)＋断罪の波動(全体AoE attack×0.7)・赤スキル名ポップ演出） | ✅ 完了（HQ実装・headless検証・要実機確認） |

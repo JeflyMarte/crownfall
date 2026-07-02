@@ -32,7 +32,7 @@
 - ProjectDocs v3.6.0 / Decision P3-D034〜039
 - アルケミスト: MVP は回復/バフ無し（魔法ダメージ+デバフ=呪い）
 - ドット絵はオーナー作画（C案・高解像度 P3-D039 / `docs/art/Sprite_Production_Spec.md`）。コードのみ着手
-- **レベル制 実装済（P3-D035a）**: 共有EXP・Lv20上限・+6HP/+2ATK/Lv・セーブ永続・拠点/Result表示
+- **レベル制 実装済（P3-D035a / P3-SKILL-001）**: 共有EXP・**Lv50**上限・+6HP/+2ATK/Lv・セーブ永続・拠点/Result表示
 - 将来システム登録（残）: 助っ人(P3-D036 — **a=戦闘「編成3+助っ人固定枠1」+イベント助っ人 ✅完了**, **b=ガチャ/ロスター A〜D ✅完了/smoke PASS**) / ジョブ進化(P3-D037)
   - P3-D036b: 基本5職初期所持・ロスター編成3選択・gacha_token(★4=20/★3=80・天井30・重複還元)・GachaScene/RosterScene・ラン成功 1〜2 token。セーブ永続化済
   - 助っ人 Known Issue ✅解消: event_helper を敵ターゲティングから完全除外（CombatController.pick_enemy_target_member_index）
