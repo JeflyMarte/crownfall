@@ -18,6 +18,13 @@ const ARMOR_RESIST_MULTIPLIER: float = 0.75
 # ── 味方基礎（旧 CombatController 定数） ──────────────────────────────────
 const BASE_MEMBER_HP: int = 30
 
+# ── レベル成長（P3-D035 / P3-BAL-006 で調整） ────────────────────────────
+const HP_PER_LEVEL: int = 6
+const ATTACK_PER_LEVEL: int = 2
+
+# ── 回復スキル基準値（旧 DungeonScene 定数） ─────────────────────────────
+const HEAL_SKILL_BASE: int = 14
+
 # ── 敵レベルスケール（P3-D081） ──────────────────────────────────────────
 const ENEMY_LEVEL_HP_K: float = 0.10
 const ENEMY_LEVEL_ATK_K: float = 0.10

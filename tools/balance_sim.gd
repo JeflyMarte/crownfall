@@ -6,9 +6,12 @@ extends SceneTree
 ## CT/Threat/陣形/人数補正・DamageCalculator のダメージ式・天候ロール）を使い、
 ## ダンジョン周回を N 回一括シミュレートして 勝率 / 全滅箇所 / TTK / 与ダメ内訳 を出す。
 ##
-## 【近似の範囲】通常攻撃のみで解決する（スキル・戦術ガンビット・パッシブ・遺物・
-## 状態異常・コンボ・連携・ボスフェーズは未シミュレート）。実プレイより辛めの
-## ベースライン＝「素の武器と編成だけで成立するか」の下限指標として読むこと。
+## 【近似の範囲・v2】通常攻撃＋装備スキル①②（damage/heal・CD準拠・詠唱無視）を
+## シミュレートする。未シミュレート＝必殺技・buff/状態異常付与・戦術ガンビット・
+## パッシブ・遺物・コンボ・連携・ボスフェーズ。実プレイよりやや辛めの指標として読む。
+##
+## --sweep モードはレベル成長値（LevelSystem.hp_per_level / attack_per_level）の
+## 組合せを掃引し、レベル帯ごとのクリア率グリッドを出力する（P3-BAL-006）。
 ##
 ## 【実装注意】`-s` 実行ではスクリプト起動時コンパイルの時点で autoload が未登録の
 ## ため、GameState 等を参照するゲームクラスをコンパイル時識別子で参照すると
@@ -19,10 +22,24 @@ extends SceneTree
 ##   （tools/balance_sim.sh 経由推奨）
 
 const BATTLE_ACTION_CAP: int = 600
+## 回復スキル使用の HP しきい値（最負傷者がこの割合未満なら回復を優先）
+const HEAL_HP_THRESHOLD: float = 0.6
 
 var _runs: int = 300
 var _dungeon_id: String = ""
 var _party_level: int = 1
+var _sweep: bool = false
+## 敵ステータス一括倍率（探索用・ゲーム本体には影響しない）
+var _enemy_scale: float = 1.0
+## ボス部屋のみの倍率（探索用）
+var _boss_scale: float = 1.0
+## 成長値の一時上書き（<0 なら BalanceConfig の現行値）
+var _hp_per_level_override: int = -1
+var _atk_per_level_override: int = -1
+
+# 戦闘中スキル CD 管理（battle CT クロック基準）: "midx:skill_id" → 次回使用可能 CT
+var _battle_ct: float = 0.0
+var _skill_ready_at: Dictionary = {}
 
 # 実行時ロード（コンパイル時識別子は使わない — ヘッダ注意書き参照）
 var _gs: Node = null
@@ -51,14 +68,50 @@ func _main() -> void:
 	_parse_args()
 	if _dungeon_id.is_empty():
 		_dungeon_id = load("res://scripts/core/Constants.gd").DEFAULT_DUNGEON_ID
+	if _sweep:
+		_run_sweep()
+		quit(0)
+		return
+	if _hp_per_level_override >= 0:
+		_level_system.hp_per_level = _hp_per_level_override
+	if _atk_per_level_override >= 0:
+		_level_system.attack_per_level = _atk_per_level_override
 	print("=== Crownfall Balance Sim ===")
-	print("dungeon=%s runs=%d party_level=%d party_size=%d" % [
-		_dungeon_id, _runs, _party_level, _gs.ACTIVE_PARTY_SIZE
+	print("dungeon=%s runs=%d party_level=%d party_size=%d hp/Lv=%d atk/Lv=%d enemy_scale=%.2f" % [
+		_dungeon_id, _runs, _party_level, _gs.ACTIVE_PARTY_SIZE,
+		_level_system.hp_per_level, _level_system.attack_per_level, _enemy_scale
 	])
 	_apply_party_level()
 	var stats: Dictionary = _simulate_all()
 	_report(stats)
 	quit(0)
+
+## 成長値 sweep（P3-BAL-006）。hp/atk per Lv の組合せ × レベル帯でクリア率グリッドを出す。
+const SWEEP_HP_VALUES: Array[int] = [3, 4, 5, 6]
+const SWEEP_ATK_VALUES: Array[int] = [1, 2]
+const SWEEP_LEVELS: Array[int] = [1, 3, 6, 10, 13, 16, 20]
+
+func _run_sweep() -> void:
+	print("=== Crownfall Balance Sweep (dungeon=%s runs=%d/cell) ===" % [_dungeon_id, _runs])
+	var header: String = "hp/atk per Lv |"
+	for lv in SWEEP_LEVELS:
+		header += " Lv%-3d" % lv
+	print(header)
+	for hp_v in SWEEP_HP_VALUES:
+		for atk_v in SWEEP_ATK_VALUES:
+			_level_system.hp_per_level = hp_v
+			_level_system.attack_per_level = atk_v
+			var row: String = "HP+%d / ATK+%d  |" % [hp_v, atk_v]
+			for lv in SWEEP_LEVELS:
+				_party_level = lv
+				_apply_party_level()
+				var stats: Dictionary = _simulate_all()
+				row += " %4.0f%%" % [100.0 * int(stats["clears"]) / _runs]
+			print(row)
+	# 現行値へ復元
+	_level_system.hp_per_level = _balance.HP_PER_LEVEL
+	_level_system.attack_per_level = _balance.ATTACK_PER_LEVEL
+	print("BALANCE_SWEEP: DONE")
 
 func _parse_args() -> void:
 	for arg in OS.get_cmdline_user_args():
@@ -73,6 +126,20 @@ func _parse_args() -> void:
 			"--party-level":
 				if parts.size() > 1:
 					_party_level = clampi(int(parts[1]), 1, 50)
+			"--sweep":
+				_sweep = true
+			"--enemy-scale":
+				if parts.size() > 1:
+					_enemy_scale = clampf(float(parts[1]), 0.1, 3.0)
+			"--boss-scale":
+				if parts.size() > 1:
+					_boss_scale = clampf(float(parts[1]), 0.1, 3.0)
+			"--hp-per-level":
+				if parts.size() > 1:
+					_hp_per_level_override = clampi(int(parts[1]), 0, 20)
+			"--atk-per-level":
+				if parts.size() > 1:
+					_atk_per_level_override = clampi(int(parts[1]), 0, 10)
 
 func _apply_party_level() -> void:
 	for member in _gs.roster:
@@ -92,6 +159,8 @@ func _simulate_all() -> Dictionary:
 		"member_damage": {},           # member_id → 累計与ダメ
 		"exp_sum": 0,
 		"gold_sum": 0,
+		"skill_casts": 0,              # damage スキル使用回数
+		"heal_casts": 0,               # heal スキル使用回数
 	}
 	for run_i in _runs:
 		_simulate_run(stats)
@@ -145,9 +214,13 @@ func _room_kind(rt: int) -> String:
 		return "elite"
 	return "normal"
 
-## 通常攻撃のみの CT 駆動バトル。戻り値 {wiped, stalemate, actions}
+## 通常攻撃＋装備スキル①②の CT 駆動バトル（v2）。戻り値 {wiped, stalemate, actions}
 func _simulate_battle(cc: Node, dc: Node, group: Array, stats: Dictionary) -> Dictionary:
 	cc.start_combat_group(group, dc.get_enemy_level())
+	var is_boss_room: bool = dc.current_room_type == _enums.RoomType.BOSS
+	_apply_enemy_scale(cc, _boss_scale if is_boss_room else _enemy_scale)
+	_battle_ct = 0.0
+	_skill_ready_at.clear()
 	var actions: int = 0
 	while not cc.is_combat_cleared() and not cc.is_party_wiped():
 		actions += 1
@@ -157,8 +230,9 @@ func _simulate_battle(cc: Node, dc: Node, group: Array, stats: Dictionary) -> Di
 		var actor: Dictionary = cc.advance_to_next_actor()
 		if actor.is_empty():
 			break
+		_battle_ct += float(cc.consume_last_ct_step())
 		if actor["kind"] == "party":
-			_do_member_attack(cc, dc, int(actor["index"]), stats)
+			_do_member_turn(cc, dc, int(actor["index"]), stats)
 		else:
 			_do_enemy_attack(cc, int(actor["index"]))
 		cc.decay_threat()
@@ -166,7 +240,74 @@ func _simulate_battle(cc: Node, dc: Node, group: Array, stats: Dictionary) -> Di
 	cc.end_combat()
 	return {"wiped": wiped, "stalemate": false, "actions": actions}
 
-func _do_member_attack(cc: Node, dc: Node, member_idx: int, stats: Dictionary) -> void:
+## --enemy-scale / --boss-scale: 敵 HP/ATK を一括倍率で調整（探索専用の what-if）。
+func _apply_enemy_scale(cc: Node, scale: float) -> void:
+	if is_equal_approx(scale, 1.0):
+		return
+	for i in cc.swarm_hp.size():
+		cc.swarm_hp[i] = maxi(1, int(round(float(cc.swarm_hp[i]) * scale)))
+		cc.swarm_max_hp[i] = maxi(1, int(round(float(cc.swarm_max_hp[i]) * scale)))
+		cc.swarm_atk[i] = maxi(1, int(round(float(cc.swarm_atk[i]) * scale)))
+	cc._sync_active_enemy()
+
+## 1 行動: 回復スキル（味方負傷時）→ ダメージスキル → 通常攻撃 の優先で 1 手だけ。
+func _do_member_turn(cc: Node, dc: Node, member_idx: int, stats: Dictionary) -> void:
+	if not cc.is_member_alive(member_idx):
+		return
+	var skill: Resource = _pick_ready_skill(cc, member_idx)
+	if skill != null:
+		if str(skill.effect_type) == "heal":
+			stats["heal_casts"] = int(stats["heal_casts"]) + 1
+			_do_member_heal(cc, member_idx, skill)
+			return
+		stats["skill_casts"] = int(stats["skill_casts"]) + 1
+		_do_member_attack(cc, dc, member_idx, stats, skill)
+		return
+	_do_member_attack(cc, dc, member_idx, stats)
+
+## 装備スキル①②から使用可能な 1 つを選ぶ（heal は負傷者がいる時のみ・CD は battle CT 基準）。
+func _pick_ready_skill(cc: Node, member_idx: int) -> Resource:
+	var combatants: Array = _gs.get_combatants()
+	if member_idx < 0 or member_idx >= combatants.size():
+		return null
+	var member: Resource = combatants[member_idx]
+	if member == null:
+		return null
+	for sid in _gs.get_equipped_skill_ids(member):
+		var skill_id: String = str(sid)
+		if skill_id.is_empty():
+			continue
+		var skill: Resource = _dr().get_skill_data(skill_id)
+		if skill == null:
+			continue
+		var effect: String = str(skill.effect_type)
+		if effect != "damage" and effect != "heal":
+			continue
+		var key: String = "%d:%s" % [member_idx, skill_id]
+		if _battle_ct < float(_skill_ready_at.get(key, 0.0)):
+			continue
+		if effect == "heal":
+			var injured: int = cc.get_most_injured_member_index()
+			if injured < 0:
+				continue
+			var ratio: float = float(cc.party_combat_hp[injured]) / maxf(1.0, float(cc.party_max_hp[injured]))
+			if ratio >= HEAL_HP_THRESHOLD:
+				continue
+		_skill_ready_at[key] = _battle_ct + maxf(0.0, float(skill.cooldown))
+		return skill
+	return null
+
+func _do_member_heal(cc: Node, member_idx: int, skill: Resource) -> void:
+	var target: int = cc.get_most_injured_member_index()
+	if target < 0:
+		return
+	var amount: int = int(round(float(skill.power_multiplier) * float(_balance.HEAL_SKILL_BASE)))
+	amount = int(round(float(amount) * float(cc.get_party_role_heal_multiplier())))
+	cc.heal_member(target, amount)
+
+func _do_member_attack(
+	cc: Node, dc: Node, member_idx: int, stats: Dictionary, skill: Resource = null
+) -> void:
 	if not cc.is_member_alive(member_idx):
 		return
 	var slot: int = cc.resolve_member_target(member_idx, "front")
@@ -176,6 +317,9 @@ func _do_member_attack(cc: Node, dc: Node, member_idx: int, stats: Dictionary) -
 		cc, dc.current_dungeon_data, dc.run_damage_multiplier, member_idx, slot
 	)
 	var dmg: int = int(result["damage"])
+	# ダメージスキル: 通常攻撃値 × power_multiplier の近似（属性/軽減は上で反映済み）
+	if skill != null and str(skill.effect_type) == "damage":
+		dmg = maxi(1, int(round(float(dmg) * float(skill.power_multiplier))))
 	cc.apply_damage_to_enemy_slot(slot, dmg)
 	cc.add_threat(member_idx, float(dmg) * _balance.THREAT_DAMAGE_K)
 	_track_member_damage(stats, member_idx, dmg)
@@ -186,6 +330,9 @@ func _do_member_attack(cc: Node, dc: Node, member_idx: int, stats: Dictionary) -
 			int(round(cc.last_exp_reward * mult)),
 			int(round(cc.last_gold_reward * mult))
 		)
+
+func _dr() -> Node:
+	return get_root().get_node("DataRegistry")
 
 func _do_enemy_attack(cc: Node, slot: int) -> void:
 	if not cc.is_enemy_slot_alive(slot):
@@ -240,6 +387,9 @@ func _report(stats: Dictionary) -> void:
 	if clears > 0:
 		print("クリア時 残HP: %5.1f%%" % [100.0 * float(stats["end_hp_ratio_sum"]) / clears])
 	print("平均戦闘不能: %.2f 人/ラン" % [float(stats["deaths_sum"]) / _runs])
+	print("スキル使用  : 攻撃 %.1f 回/ラン ／ 回復 %.1f 回/ラン" % [
+		float(stats["skill_casts"]) / _runs, float(stats["heal_casts"]) / _runs
+	])
 	print("平均EXP/ラン: %.0f ／ 平均Gold/ラン: %.0f" % [
 		float(stats["exp_sum"]) / _runs, float(stats["gold_sum"]) / _runs
 	])
