@@ -2731,12 +2731,18 @@ func _try_fire_passive(member_idx: int, p: Dictionary) -> void:
 					_spawn_member_buff_vfx(member_idx, sid)
 			_update_status_icons()
 		"heal":
-			var amount: int = _apply_healing_bonus(int(p.get("value", 10)))
-			$CombatController.heal_party(amount)
-			_update_hp_bars()
-			for i: int in GameState.party_members.size():
-				if $CombatController.is_member_alive(i):
-					_spawn_member_heal_vfx(i)
+			# heal_value: condition 閾値の "value" と衝突する場合の回復量キー（P3-D155）
+			var amount: int = _apply_healing_bonus(int(p.get("heal_value", p.get("value", 10))))
+			if str(p.get("target", "party")) == "self":
+				$CombatController.heal_member(member_idx, amount)
+				_update_hp_bars()
+				_spawn_member_heal_vfx(member_idx)
+			else:
+				$CombatController.heal_party(amount)
+				_update_hp_bars()
+				for i: int in GameState.party_members.size():
+					if $CombatController.is_member_alive(i):
+						_spawn_member_heal_vfx(i)
 			applied = true
 	if not applied:
 		return

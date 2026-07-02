@@ -112,6 +112,86 @@ const _DEFS: Dictionary = {
 		"effect": "apply_status", "status_id": "guard", "target": "self",
 		"cooldown": 5.0,
 	},
+	# ---- ジョブフォールバック補完（P3-D155） ----
+	"foresight": {
+		"display_name": "先読み",
+		"trigger": "on_combat_start",
+		"condition": "always",
+		"effect": "apply_status", "status_id": "guard", "target": "self",
+		"cooldown": 0.0,
+	},
+	# ---- ★3 職固有（P3-D155 / P3-GACHA-006） ----
+	"sword_charge": {
+		"display_name": "剣気充填",
+		"trigger": "on_combat_start",
+		"condition": "always",
+		"effect": "apply_status", "status_id": "empower", "target": "self",
+		"cooldown": 0.0,
+	},
+	"wind_reading": {
+		"display_name": "風読み",
+		"trigger": "on_hit_taken",
+		"condition": "self_hp_below", "value": 0.5,
+		"effect": "apply_status", "status_id": "guard", "target": "self",
+		"cooldown": 8.0,
+	},
+	"spare_vial": {
+		"display_name": "予備薬瓶",
+		"trigger": "on_hit_taken",
+		"condition": "self_hp_below", "value": 0.5,
+		"effect": "heal", "target": "self", "heal_value": 12,
+		"cooldown": 10.0,
+	},
+	"unyielding_stance": {
+		"display_name": "不屈の構え",
+		"trigger": "on_hit_taken",
+		"condition": "self_hp_below", "value": 0.35,
+		"effect": "apply_status", "status_id": "guard", "target": "self",
+		"cooldown": 6.0,
+	},
+	"tamer_whistle": {
+		"display_name": "手懐けの笛",
+		"trigger": "on_combat_start",
+		"condition": "always",
+		"effect": "apply_status", "status_id": "empower", "target": "self",
+		"cooldown": 0.0,
+	},
+	# ---- ★4 職固有（P3-D155 / P3-GACHA-006） ----
+	"royal_sword_doctrine": {
+		"display_name": "王軍剣範",
+		"trigger": "on_combat_start",
+		"condition": "always",
+		"effect": "apply_status", "status_id": "empower", "target": "party",
+		"cooldown": 0.0,
+	},
+	"formation_eye": {
+		"display_name": "隊列の眼",
+		"trigger": "on_ally_death",
+		"condition": "always",
+		"effect": "apply_status", "status_id": "empower", "target": "party",
+		"cooldown": 0.0,
+	},
+	"panacea_gift": {
+		"display_name": "万能薬進呈",
+		"trigger": "on_ally_death",
+		"condition": "always",
+		"effect": "heal", "target": "party", "value": 20,
+		"cooldown": 0.0,
+	},
+	"greatshield_order": {
+		"display_name": "大盾の号令",
+		"trigger": "on_hit_taken",
+		"condition": "self_hp_below", "value": 0.5,
+		"effect": "apply_status", "status_id": "guard", "target": "party",
+		"cooldown": 12.0,
+	},
+	"herd_king_roar": {
+		"display_name": "群王の咆哮",
+		"trigger": "on_combat_start",
+		"condition": "always",
+		"effect": "apply_status", "status_id": "empower", "target": "party",
+		"cooldown": 0.0,
+	},
 }
 
 # 基本5職ロスター adventurer_id → キャラ固有パッシブ id
@@ -127,10 +207,35 @@ const _BASE_ROSTER_PASSIVES: Dictionary = {
 const _JOB_PASSIVES: Dictionary = {
 	"vanguard": ["bulwark"],
 	"swordsman": ["battle_fervor"],
-	"ranger": ["battle_fervor"],
+	"ranger": ["foresight"],
 	"alchemist": ["field_medic"],
 	"beast_tamer": ["pack_instinct"],
 }
+
+# ★3 / ★4 ガチャ冒険者の職固有パッシブ（P3-D155 / P3-GACHA-006）。
+# ★1〜2 は付与なし（初期ステ差のみ）。★4 は ★4 定義のみ（★3 と重複付与しない）。
+const _STAR3_JOB_PASSIVES: Dictionary = {
+	"swordsman": "sword_charge",
+	"ranger": "wind_reading",
+	"alchemist": "spare_vial",
+	"vanguard": "unyielding_stance",
+	"beast_tamer": "tamer_whistle",
+}
+const _STAR4_JOB_PASSIVES: Dictionary = {
+	"swordsman": "royal_sword_doctrine",
+	"ranger": "formation_eye",
+	"alchemist": "panacea_gift",
+	"vanguard": "greatshield_order",
+	"beast_tamer": "herd_king_roar",
+}
+
+# レア度に応じた職固有ティアパッシブ定義（該当なしは空 Dictionary）。
+static func tier_def_for(job_id: String, rarity: int) -> Dictionary:
+	if rarity >= 4:
+		return _def_with_id(str(_STAR4_JOB_PASSIVES.get(job_id, "")))
+	if rarity == 3:
+		return _def_with_id(str(_STAR3_JOB_PASSIVES.get(job_id, "")))
+	return {}
 
 static func _def_with_id(passive_id: String) -> Dictionary:
 	var def: Dictionary = _DEFS.get(passive_id, {}).duplicate()
@@ -140,6 +245,7 @@ static func _def_with_id(passive_id: String) -> Dictionary:
 	return def
 
 # 指定メンバーのパッシブ定義一覧（スターターはキャラ固有、ガチャは helper.passive_id、他はジョブ）。
+# ガチャ冒険者は ★3/★4 で職固有ティアパッシブを追加付与する（P3-D155 / P3-GACHA-006）。
 static func for_member(member: Resource) -> Array:
 	if member == null:
 		return []
@@ -148,13 +254,20 @@ static func for_member(member: Resource) -> Array:
 		var char_def: Dictionary = _def_with_id(str(_BASE_ROSTER_PASSIVES[adv_id]))
 		if not char_def.is_empty():
 			return [char_def]
+	var out: Array = []
 	if adv_id.begins_with("gacha_"):
 		var helper: Resource = DataRegistry.get_gacha_helper_data(adv_id.trim_prefix("gacha_"))
 		if helper != null and not str(helper.passive_id).is_empty():
 			var helper_def: Dictionary = _def_with_id(str(helper.passive_id))
 			if not helper_def.is_empty():
-				return [helper_def]
-	return for_job(str(member.job_id))
+				out.append(helper_def)
+	if out.is_empty():
+		out = for_job(str(member.job_id))
+	var rarity: int = int(member.rarity) if "rarity" in member else 0
+	var tier_def: Dictionary = tier_def_for(str(member.job_id), rarity)
+	if not tier_def.is_empty():
+		out.append(tier_def)
+	return out
 
 # 指定ジョブのパッシブ定義一覧（id 込み）を返す。
 static func for_job(job_id: String) -> Array:
