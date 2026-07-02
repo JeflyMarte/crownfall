@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "black_pearl_ring"
+display_name = "黒真珠の指輪"
+rarity = 0
+icon = ""
+description = "黒砂の干潟で育つ大粒の黒真珠。潮の満ち引きのように生命力を保つ。"
+hp_bonus = 27
+attack_bonus = 0
+defense_bonus = 0
+crit_rate_bonus = 0.0
+luck_bonus = 0.0

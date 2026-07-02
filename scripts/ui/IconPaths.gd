@@ -47,6 +47,19 @@ const ICON_MAP: Dictionary = {
 	"weapon:volt_needle":          "res://assets/ui/batch2/ICO_WPN_HuntingBow.png",
 	"weapon:volgrave_thunderblade": "res://assets/ui/batch2/ICO_WPN_SanctifiedDagger.png",
 	"weapon:seradion_storm_staff": "res://assets/ui/batch2/ICO_WPN_FrostBlade.png",
+	# ④ ブラックショア武器（暫定流用 / P3-BETA-003）
+	"weapon:black_sand_cleaver":   "res://assets/ui/batch2/ICO_WPN_IronSword.png",
+	"weapon:wreck_hook_blades":    "res://assets/ui/batch2/ICO_WPN_BoltKnife.png",
+	"weapon:tidewood_longbow":     "res://assets/ui/batch2/ICO_WPN_HuntingBow.png",
+	"weapon:brine_lantern_staff":  "res://assets/ui/batch2/ICO_WPN_ApprenticeStaff.png",
+	"weapon:lighthouse_greatsword": "res://assets/ui/batch2/ICO_WPN_HeaterBlade.png",
+	"weapon:pharos_bow":           "res://assets/ui/batch2/ICO_WPN_HuntingBow.png",
+	"weapon:votive_staff":         "res://assets/ui/batch2/ICO_WPN_ApprenticeStaff.png",
+	"weapon:barnacle_saw":         "res://assets/ui/batch2/ICO_WPN_BoltKnife.png",
+	"weapon:sanctum_tide_edge":    "res://assets/ui/batch2/ICO_WPN_HeaterBlade.png",
+	"weapon:beacon_needle":        "res://assets/ui/batch2/ICO_WPN_HuntingBow.png",
+	"weapon:nereidas_tideblade":   "res://assets/ui/batch2/ICO_WPN_SanctifiedDagger.png",
+	"weapon:pharoslight_staff":    "res://assets/ui/batch2/ICO_WPN_FrostBlade.png",
 	"armor:leather_armor":         "res://assets/ui/batch2/ICO_ARM_LeatherArmor.png",
 	"armor:bone_armor":            "res://assets/ui/batch7/ICO_ARM_BoneArmor.png",
 	# ② ウィスパーウッド防具（暫定流用 / P3-D154）
@@ -61,6 +74,12 @@ const ICON_MAP: Dictionary = {
 	"armor:bog_strider_cloak":     "res://assets/ui/batch2/ICO_ARM_LeatherArmor.png",
 	"armor:moldgar_scale_mail":    "res://assets/ui/batch7/ICO_ARM_BoneArmor.png",
 	"armor:libris_ward_robe":      "res://assets/ui/batch2/ICO_ARM_LeatherArmor.png",
+	# ④ ブラックショア防具（暫定流用 / P3-BETA-003）
+	"armor:tidecloth_garb":        "res://assets/ui/batch2/ICO_ARM_LeatherArmor.png",
+	"armor:shipplate_mail":        "res://assets/ui/batch7/ICO_ARM_BoneArmor.png",
+	"armor:kelp_weave_cloak":      "res://assets/ui/batch2/ICO_ARM_LeatherArmor.png",
+	"armor:whalebone_plate":       "res://assets/ui/batch7/ICO_ARM_BoneArmor.png",
+	"armor:votive_vestment":       "res://assets/ui/batch2/ICO_ARM_LeatherArmor.png",
 	"armor:unidentified":          "res://assets/ui/batch2/ICO_ARM_Unidentified.png",
 	"accessory:silver_ring":       "res://assets/ui/batch2/ICO_ACC_SilverRing.png",
 	# ② ウィスパーウッド装飾品（暫定流用 / P3-D154）
@@ -71,6 +90,10 @@ const ICON_MAP: Dictionary = {
 	"accessory:marsh_pearl_ring":  "res://assets/ui/batch2/ICO_ACC_SilverRing.png",
 	"accessory:leech_oil_charm":   "res://assets/ui/batch2/ICO_ACC_SilverRing.png",
 	"accessory:moldgar_eye_talisman": "res://assets/ui/batch2/ICO_ACC_SilverRing.png",
+	# ④ ブラックショア装飾品（暫定流用 / P3-BETA-003）
+	"accessory:black_pearl_ring":  "res://assets/ui/batch2/ICO_ACC_SilverRing.png",
+	"accessory:barnacle_charm":    "res://assets/ui/batch2/ICO_ACC_SilverRing.png",
+	"accessory:nereion_song_talisman": "res://assets/ui/batch2/ICO_ACC_SilverRing.png",
 	"accessory:unidentified":      "res://assets/ui/batch2/ICO_ACC_Unidentified.png",
 	"material:relic_shard":        "res://assets/ui/batch2/ICO_MAT_RelicShard.png",
 	"material:elite_relic_shard":  "res://assets/ui/batch7/ICO_MAT_EliteRelicShard.png",

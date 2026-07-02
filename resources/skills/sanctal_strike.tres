@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "sanctal_strike"
+display_name = "サンクトエッジ"
+description = "武器の属性ダメージとは別に、聖光の一撃で敵の守りを崩す。スキル自体は無属性。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 1.35
+cooldown = 3.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["melee"])
+element = ""
+apply_status_id = "armor_break"
+apply_status_chance = 0.35

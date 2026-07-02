@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="DungeonData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "blackshore"
+display_name = "沈没航路ブラックショア"
+difficulty = 4
+recommended_level = 34
+enemy_level = 32
+room_count = 10
+floor_count = 9
+enemy_pool = Array[String](["ship_eater_crab", "skull_turtle", "undertaker_shark", "samurai_fish"])
+boss_id = "nereion"
+drop_table_id = "blackshore_drops"
+discovery_unlocks = {"hidden_room": 0.3, "special_event": 0.6, "hidden_boss": 1.0}
+elite_pool = Array[String](["ninja_octopus"])
+favored_element = "holy"
+route_type = "main"
+event_room_weight = 18
+min_event_rooms = 1
+weapon_pool = Array[String](["black_sand_cleaver", "wreck_hook_blades", "tidewood_longbow", "brine_lantern_staff", "lighthouse_greatsword", "pharos_bow", "votive_staff", "barnacle_saw", "sanctum_tide_edge", "beacon_needle", "nereidas_tideblade", "pharoslight_staff"])
+armor_pool = Array[String](["tidecloth_garb", "shipplate_mail", "kelp_weave_cloak", "whalebone_plate", "votive_vestment"])
+accessory_pool = Array[String](["black_pearl_ring", "barnacle_charm", "nereion_song_talisman"])
+flavor_text = "大陸西海岸の黒砂に、座礁船団が骨のように連なる潮間帯。\n海統王の古防波堤が、満ち引きのたびに姿を現す。"

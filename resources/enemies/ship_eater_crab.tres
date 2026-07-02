@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "ship_eater_crab"
+display_name = "船喰らい"
+max_hp = 76
+attack = 16
+defense = 9
+attack_speed = 1.1
+critical_rate = 0.05
+move_speed = 1.0
+threat_target_bias = "max_threat"
+detection_range = 6.0
+attack_range = 1.0
+enemy_type = 0
+ai_type = "default"
+exp_reward = 15
+gold_reward = 58
+drop_table_id = "ship_eater_crab_drops"
+element_weakness = Array[String](["holy"])
+element_resist = Array[String]([])
+attack_element = ""
+on_hit_status_id = ""
+on_hit_status_chance = 0.0
+can_swarm = true
+swarm_min = 2
+swarm_max = 3
+codex_class = "甲殻類"
+codex_danger = 3
+codex_habitat = "沈没航路・座礁船団"
+codex_research_note = "蟹を祖先とし、座礁船の船体を齧って巣穴にする潮間帯の蟹。塩に灼けた鋏は船釘ごと木材を断つ。群れが通った船骨は一晩で骨組みだけになる。"
+codex_materials = Array[String]([])
+skill_ids = Array[String]([])
+skill_use_chance = 0.0

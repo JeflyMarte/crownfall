@@ -74,6 +74,29 @@ const _DEFS: Dictionary = {
 			"skill_weight": {"enemy_moldgar_mire_maw": 2.0, "enemy_moldgar_abyss_surge": 2.0},
 		},
 	],
+	"nereion": [
+		{
+			"threshold": 1.0,
+			"label": "第1形態",
+			"skill_use_chance": 0.40,
+			"attack_mult": 1.0,
+		},
+		{
+			"threshold": 0.50,
+			"label": "第2形態・満ち潮",
+			"skill_use_chance": 0.55,
+			"attack_mult": 1.10,
+			"log": "【フェーズ移行】ネレイオンの鳴音が高まり、潮が満ちはじめる！",
+		},
+		{
+			"threshold": 0.25,
+			"label": "第3形態・潮鳴りの主",
+			"skill_use_chance": 0.70,
+			"attack_mult": 1.25,
+			"log": "【フェーズ移行】座礁船団が軋み、大潮がネレイオンとともに牙を剥く！",
+			"skill_weight": {"enemy_nereion_tidal_wail": 2.0, "enemy_nereion_breach": 2.0},
+		},
+	],
 }
 
 static func has_phases(enemy_id: String) -> bool:

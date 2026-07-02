@@ -168,11 +168,11 @@ Task 明示指示がない限り作成しない:
 
 | 種別 | パス |
 |---|---|
-| 武器 | `resources/weapons/` — 37本（① 13 + ② 12 + ③ 12。★=聖別刃/祝聖の大槌/シルヴァリア誓剣/ヴェルド枝杖/ヴォルグレイヴ雷剣/セラディオン雷杖・P3-D154/D156） |
-| 防具 | `resources/armors/` — 12（① leather/bone + ② 5 + ③ 5・P3-D154/D156） |
-| 装飾品 | `resources/accessories/` — 7（① silver_ring + ② 3 + ③ 3・P3-D154/D156） |
-| 敵 | `resources/enemies/` — ① モーンゲート6 + ② ウィスパーウッド6 + ③ ミストフェン6（P3-D154/D156） |
-| ダンジョン | `resources/dungeons/mourngate.tres`, `whisperwood.tres`, `mistfen.tres` + 寄り道 `broken_marsh.tres`（ドロップ・プールは `DungeonData.weapon/armor/accessory_pool`・P3-D154。解放条件は `unlock_after_dungeon_id`/メイン直列・P3-D157） |
+| 武器 | `resources/weapons/` — 49本（① 13 + ② 12 + ③ 12 + ④ 12。★は各難易度2・P3-D154/D156/D160） |
+| 防具 | `resources/armors/` — 17（① 2 + ②〜④ 各5・P3-D154/D156/D160） |
+| 装飾品 | `resources/accessories/` — 10（① silver_ring + ②〜④ 各3・P3-D154/D156/D160） |
+| 敵 | `resources/enemies/` — ①〜④ 各6（モーンゲート/ウィスパーウッド/ミストフェン/ブラックショア・P3-D154/D156/D160） |
+| ダンジョン | `resources/dungeons/mourngate.tres`, `whisperwood.tres`, `mistfen.tres`, `blackshore.tres` + 寄り道 `broken_marsh.tres`（ドロップ・プールは `DungeonData.weapon/armor/accessory_pool`・P3-D154。解放条件は `unlock_after_dungeon_id`/メイン直列・P3-D157） |
 | スキル | `resources/skills/` — プレイヤー約50+（基本5職×習得10 + 必殺5 + 属性/敵/ボス）。代表: slash_attack, guard_strike, aimed_shot, hex_bolt, mend, empower + P3-SKILL-002〜006 新規（`rend_slash`〜`apex_tame` 等） |
 | ジョブ | `resources/jobs/` — 5職。各 **`skill_unlocks` Lv1/6/12/…/50 で習得10**（P3-SKILL-002〜006） |
 | 状態異常 | `resources/status/` — bleed, poison, stun, chill, ignite, shock, slow, curse, guard, empower, enrage, **fear**, **vulnerable**, **armor_break**（P3-D107）, **mark**（P3-D120） |

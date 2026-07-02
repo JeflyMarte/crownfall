@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ArmorData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ArmorData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+armor_id = "kelp_weave_cloak"
+display_name = "海藻編みの外套"
+base_defense = 20
+base_hp_bonus = 54
+base_resistance = 0.0
+resist_elements = Array[String]([])
+weight = 0.7
+rarity = 1

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "nereion_song_talisman"
+display_name = "潮鳴りの歌片"
+rarity = 2
+icon = ""
+description = "ネレイオンの鳴音を留めたという結晶片。潮目を読む者の耳に獲物の急所を囁く。"
+hp_bonus = 0
+attack_bonus = 7
+defense_bonus = 0
+crit_rate_bonus = 0.04
+luck_bonus = 0.0

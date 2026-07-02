@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "nereion"
+display_name = "潮鳴王 ネレイオン"
+max_hp = 347
+attack = 23
+defense = 22
+attack_speed = 0.9
+critical_rate = 0.1
+move_speed = 0.75
+threat_target_bias = "max_threat"
+detection_range = 9.0
+attack_range = 2.5
+enemy_type = 2
+ai_type = "default"
+exp_reward = 185
+gold_reward = 260
+drop_table_id = "nereion_drops"
+element_weakness = Array[String](["holy", "thunder"])
+element_resist = Array[String](["fire"])
+attack_element = ""
+on_hit_status_id = "chill"
+on_hit_status_chance = 0.2
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "古代種"
+codex_danger = 5
+codex_habitat = "沈没航路・潮境の深み"
+codex_research_note = "鯨を祖先とする潮境の巨鯨と、船骨に着生した潮藻の複合体。潮の満ち引きに合わせて低く鳴く声から、海統王の名を民間が付けた。王そのものではない、と記録部は明記している。"
+codex_materials = Array[String]([])
+skill_ids = Array[String](["boss_enrage", "enemy_nereion_tidal_wail", "enemy_nereion_breach"])
+skill_use_chance = 0.4

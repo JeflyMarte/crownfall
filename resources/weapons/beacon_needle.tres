@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "beacon_needle"
+display_name = "穿光弓ビーコンニードル"
+fixed_skill_id = "sanctal_strike"
+base_attack = 40
+rarity = 2
+base_attack_speed = 1.2
+base_critical_rate = 0.1
+base_knockback = 0.1
+base_stagger_power = 0.1
+base_attack_range = 3.0
+weight = 0.7
+element = "holy"
+weapon_type = "bow"
+tags = Array[String](["pierce", "holy"])
+bane_class = "魚類"
+bane_multiplier = 1.3

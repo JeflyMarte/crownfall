@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_ink_veil"
+display_name = "墨煙の帳"
+description = "煙幕のような墨を吐き、探索隊全体の視界を奪って標的を刻む。"
+skill_type = "enemy"
+target_type = "all_party"
+power_multiplier = 0.4
+cooldown = 6.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["aoe"])
+element = ""
+apply_status_id = "mark"
+apply_status_chance = 0.25

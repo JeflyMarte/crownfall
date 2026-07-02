@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ArmorData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ArmorData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+armor_id = "votive_vestment"
+display_name = "潮見の祭衣"
+base_defense = 24
+base_hp_bonus = 67
+base_resistance = 0.0
+resist_elements = Array[String](["dark"])
+weight = 0.9
+rarity = 2

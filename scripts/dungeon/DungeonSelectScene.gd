@@ -50,6 +50,11 @@ const DROP_PREVIEW: Dictionary = {
 		["armor", "bog_strider_cloak"],
 		["accessory", "leech_oil_charm"],
 	],
+	"blackshore": [
+		["weapon", "lighthouse_greatsword"],
+		["armor", "tidecloth_garb"],
+		["accessory", "black_pearl_ring"],
+	],
 }
 
 @onready var _btn_back: Button = $Header/HeaderRow/ButtonBack

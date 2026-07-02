@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "skull_turtle"
+display_name = "スカルタートル"
+max_hp = 119
+attack = 13
+defense = 18
+attack_speed = 0.85
+critical_rate = 0.05
+move_speed = 0.7
+threat_target_bias = "max_threat"
+detection_range = 5.0
+attack_range = 1.0
+enemy_type = 0
+ai_type = "default"
+exp_reward = 16
+gold_reward = 60
+drop_table_id = "skull_turtle_drops"
+element_weakness = Array[String](["holy"])
+element_resist = Array[String]([])
+attack_element = ""
+on_hit_status_id = ""
+on_hit_status_chance = 0.0
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "爬虫類"
+codex_danger = 3
+codex_habitat = "沈没航路・干潟"
+codex_research_note = "亀を祖先とし、沈没船の白骨に擬態した硬甲の亀。甲羅には塩結晶と藤壺が析出し、並の刃を弾く。動かぬ骨だと思って踏んだ探索者の記録が複数残る。"
+codex_materials = Array[String]([])
+skill_ids = Array[String]([])
+skill_use_chance = 0.0

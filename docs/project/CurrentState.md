@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-03（**P3-BETA-003 / P3-D160 ④ ブラックショア一式**: 敵6体（ネレイオン3フェーズ＋専用2種・墨煙・潮穿ち=敵スキル+4）・blackshore.tres（推奨Lv34/敵Lv32/holy有利/difficulty=4）・装備20点（★2=ネレイダス潮汐刃/ファロスライト聖杖・**聖固定スキル sanctal_strike 新設**=P3-D155-1の+1）・④専用プール。検証（装備ATK34/DEF22/HP44）: Lv31=67%/Lv34=78.5%/Lv39=86.5%（高Lv帯は成長相対減で曲線平坦化を容認）。unit 50 PASS・smoke PASS）
+
 2026-07-03（**P3-SUB-001 / P3-D159 寄り道ダンジョン パイロット**: broken_marsh（崩落街道橋・side/推奨Lv16/敵Lv15/floor6/thunder有利）。敵=③雑魚3種+大爪刀ボス転用（新規アセット0）・ドロップ=③◇◆帯のみ・解放=②クリア（unlock_after_dungeon_id）。切替UIを main+side 表示へ拡張（「寄」印）。検証: Lv13=81.5%/Lv16=91%（寄り道帯=推奨−3≈80%/推奨≈90% を新定義）。unit 50 PASS・smoke PASS）
 
 2026-07-03（**P3-EVT-001 ダンジョン別イベント拡充**: ②5件・③5件の Biome 専用イベント（実利3+ロア2 の①型）＋ LF 断章4件（`world/12` v1.2）。`_get_event_pool` を `DUNGEON_EVENTS` 辞書化（④⑤はデータ追加のみ）。unit 50 PASS・smoke PASS）

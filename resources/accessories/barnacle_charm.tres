@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "barnacle_charm"
+display_name = "藤壺の護符"
+rarity = 1
+icon = ""
+description = "古防波堤の藤壺を封じた護符。潮に磨かれた殻が刃を受け流す。"
+hp_bonus = 0
+attack_bonus = 0
+defense_bonus = 7
+crit_rate_bonus = 0.0
+luck_bonus = 0.02

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_nereion_breach"
+display_name = "ブリーチング"
+description = "巨体が宙へ跳ね、狙った一人めがけて叩きつけられる。"
+skill_type = "boss"
+target_type = "party"
+power_multiplier = 1.25
+cooldown = 6.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["boss", "single"])
+element = ""
+apply_status_id = "stun"
+apply_status_chance = 0.25
