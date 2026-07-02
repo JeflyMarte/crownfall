@@ -40,16 +40,13 @@ var _selected_craft: Resource = null
 var _selected_weapon: Resource = null
 
 func _ready() -> void:
+	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.FORGE)
 	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)
 	_btn_produce.pressed.connect(func(): _set_mode("produce"))
 	_btn_enhance.pressed.connect(func(): _set_mode("enhance"))
 	_btn_cat_weapon.pressed.connect(func(): _set_category("weapon"))
 	_btn_cat_armor.pressed.connect(func(): _set_category("armor"))
 	_btn_cat_accessory.pressed.connect(func(): _set_category("accessory"))
-	$BottomNav/NavRow/NavHome.pressed.connect(_go_to.bind(HOME_SCENE))
-	$BottomNav/NavRow/NavParty.pressed.connect(_go_to.bind(ROSTER_SCENE))
-	$BottomNav/NavRow/NavCodex.pressed.connect(_go_to.bind(CODEX_SCENE))
-	$BottomNav/NavRow/NavShop.pressed.connect(_go_to.bind(GACHA_SCENE))
 	_detail_panel.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_NORMAL)
 	)

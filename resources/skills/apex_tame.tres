@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "apex_tame"
+display_name = "極意調教"
+description = "生態の頂点を極めた一撃。ビーストテイマーが到達できる最高の狩り。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 2.1
+cooldown = 5.5
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["ranged", "pierce"])
+element = ""
+apply_status_id = ""
+apply_status_chance = 0.0
+slot_type = "skill"
+range_type = "long"

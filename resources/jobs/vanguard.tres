@@ -14,7 +14,38 @@ base_defense_modifier = 1.2
 base_initiative_modifier = 0.9
 preferred_weapon_types = Array[String](["sword", "greatsword", "dual_blades"])
 starting_skill_ids = Array[String](["guard_strike"])
-learnable_skill_ids = Array[String](["guard_strike", "slash_attack", "kindling_strike", "rime_touch"])
+skill_unlocks = Array[Dictionary]([{
+"skill_id": "guard_strike",
+"level": 1
+}, {
+"skill_id": "iron_guard",
+"level": 6
+}, {
+"skill_id": "menace_strike",
+"level": 12
+}, {
+"skill_id": "heavy_guard",
+"level": 18
+}, {
+"skill_id": "slash_attack",
+"level": 24
+}, {
+"skill_id": "stunning_blow",
+"level": 30
+}, {
+"skill_id": "fear_chain",
+"level": 36
+}, {
+"skill_id": "shield_ram",
+"level": 42
+}, {
+"skill_id": "break_stance",
+"level": 48
+}, {
+"skill_id": "apex_guard",
+"level": 50
+}])
+learnable_skill_ids = Array[String](["guard_strike", "iron_guard", "menace_strike", "heavy_guard", "slash_attack", "stunning_blow", "fear_chain", "shield_ram", "break_stance", "apex_guard"])
 passive_tag_ids = Array[String](["frontline", "guard"])
 ultimate_skill_id = "titan_roar"
 evolved_display_name = "パラディン"

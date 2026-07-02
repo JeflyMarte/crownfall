@@ -18,7 +18,9 @@ extends Resource
 @export var base_initiative_modifier: float = 1.0
 @export var preferred_weapon_types: Array[String] = []
 @export var starting_skill_ids: Array[String] = []
-## このジョブが装備可能なスキル id プール（先頭から既定装備に採用）。P3-D077。
+## レベルごとのジョブスキル解放（P3-SKILL-001）。`{skill_id, level}` の配列。
+@export var skill_unlocks: Array[Dictionary] = []
+## このジョブが装備可能なスキル id プール（skill_unlocks 未設定時のフォールバック）。
 @export var learnable_skill_ids: Array[String] = []
 ## 必殺技スロットのスキル id（P3-D085）。空なら Constants.DEFAULT_ULTIMATE_SKILL_ID にフォールバック。
 @export var ultimate_skill_id: String = ""

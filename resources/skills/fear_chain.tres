@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "fear_chain"
+display_name = "恐怖追撃"
+description = "恐怖した敵に追い打ちを入れる。威嚇斬の後に真価を発揮する。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 1.45
+cooldown = 4.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["melee", "guard", "shield"])
+element = ""
+apply_status_id = ""
+apply_status_chance = 0.0
+slot_type = "skill"
+range_type = "melee"
+reserve_condition = "enemy_has_fear"
+reserve_value = ""

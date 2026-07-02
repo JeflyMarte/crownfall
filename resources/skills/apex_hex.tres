@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "apex_hex"
+display_name = "極意呪"
+description = "錬金術の極意を込めた一撃。アルケミストが到達できる最高の呪弾。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 2.1
+cooldown = 5.5
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["magic", "blunt"])
+element = "dark"
+apply_status_id = ""
+apply_status_chance = 0.0
+slot_type = "skill"
+range_type = "mid"

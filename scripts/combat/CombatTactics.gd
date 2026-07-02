@@ -26,11 +26,15 @@ const TARGET_RULES: Array[String] = [
 ]
 
 const _DEFS: Dictionary = {
+	# P3-FIX-006: 必殺の乱発抑制。ultimate_ready（CD明けで常時発動）は毎戦闘の初手が
+	# 必殺になるため、汎用プリセットは「ボス/エリート（積極のみ+群れ）」に限定する。
+	# ultimate_ready 条件自体はカスタム戦術（ガンビット）用に温存。
 	"balanced": {
 		"display_name": "バランス",
 		"target": "front",
 		"plan": [
-			{"slot": "ultimate", "condition": "ultimate_ready"},
+			{"slot": "ultimate", "condition": "enemy_is_boss"},
+			{"slot": "ultimate", "condition": "enemy_is_elite"},
 			{"slot": "defend", "condition": "self_hp_below", "value": 0.30},
 			{"slot": "skill", "condition": "always"},
 			{"slot": "attack", "condition": "always"},
@@ -40,7 +44,9 @@ const _DEFS: Dictionary = {
 		"display_name": "積極攻撃",
 		"target": "lowest_hp",
 		"plan": [
-			{"slot": "ultimate", "condition": "ultimate_ready"},
+			{"slot": "ultimate", "condition": "enemy_is_boss"},
+			{"slot": "ultimate", "condition": "enemy_is_elite"},
+			{"slot": "ultimate", "condition": "enemy_count_gte", "value": 2},
 			{"slot": "skill", "condition": "enemy_has_mark"},
 			{"slot": "skill", "condition": "enemy_has_bleed"},
 			{"slot": "skill", "condition": "always"},
@@ -52,7 +58,8 @@ const _DEFS: Dictionary = {
 		"target": "back",
 		"plan": [
 			{"slot": "defend", "condition": "self_hp_below", "value": 0.50},
-			{"slot": "ultimate", "condition": "ultimate_ready"},
+			{"slot": "ultimate", "condition": "enemy_is_boss"},
+			{"slot": "ultimate", "condition": "enemy_is_elite"},
 			{"slot": "skill", "condition": "enemy_has_stun"},
 			{"slot": "skill", "condition": "self_range", "value": "mid"},
 			{"slot": "attack", "condition": "always"},
@@ -63,8 +70,9 @@ const _DEFS: Dictionary = {
 		"target": "lowest_hp",
 		"plan": [
 			{"slot": "defend", "condition": "self_hp_below", "value": 0.60},
+			{"slot": "ultimate", "condition": "enemy_is_boss"},
+			{"slot": "ultimate", "condition": "enemy_is_elite"},
 			{"slot": "skill", "condition": "always"},
-			{"slot": "ultimate", "condition": "ultimate_ready"},
 			{"slot": "attack", "condition": "always"},
 		],
 	},

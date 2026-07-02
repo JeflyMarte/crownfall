@@ -22,6 +22,12 @@ func can_cast(skill_data: Resource, cooldown_key: String = "") -> bool:
 	var key: String = cooldown_key if not cooldown_key.is_empty() else skill_data.id
 	return _cooldown_remaining.get(key, 0.0) <= 0.0
 
+## 残りCD秒（0=使用可）。パーティカード表示用（P3-FIX-008）。
+func get_cooldown_remaining(cooldown_key: String) -> float:
+	if cooldown_key.is_empty():
+		return 0.0
+	return maxf(0.0, float(_cooldown_remaining.get(cooldown_key, 0.0)))
+
 func calculate_damage(
 	skill_data: Resource,
 	base_damage: int,

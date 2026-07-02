@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "break_arrow"
+display_name = "甲穿ち矢"
+description = "装甲の隙を狙い貫く矢。敵の防御を崩す。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 1.55
+cooldown = 4.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["ranged", "pierce"])
+element = ""
+apply_status_id = "armor_break"
+apply_status_chance = 0.45
+apply_status_id2 = ""
+apply_status_chance2 = 0.0
+slot_type = "skill"
+range_type = "long"

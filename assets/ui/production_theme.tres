@@ -1,9 +1,16 @@
-[gd_resource type="Theme" load_steps=10 format=3]
+[gd_resource type="Theme" load_steps=11 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/ui/batch1/UI_Btn_Normal.png" id="1_BtnNormal"]
 [ext_resource type="Texture2D" path="res://assets/ui/batch1/UI_Btn_Pressed.png" id="2_BtnPressed"]
 [ext_resource type="Texture2D" path="res://assets/ui/batch1/UI_Frame_Panel_Base.png" id="3_Panel"]
 [ext_resource type="FontFile" path="res://assets/fonts/NotoSansJP-VariableFont_wght.ttf" id="4_BodyFont"]
+[ext_resource type="FontFile" path="res://assets/fonts/DelaGothicOne-Regular.ttf" id="5_DisplayFont"]
+
+[sub_resource type="FontVariation" id="BodyFontVar"]
+base_font = ExtResource("4_BodyFont")
+variation_opentype = {
+"wght": 600.0
+}
 
 [sub_resource type="StyleBoxTexture" id="SB_BtnNormal"]
 texture = ExtResource("1_BtnNormal")
@@ -63,16 +70,22 @@ content_margin_right = 8.0
 content_margin_bottom = 8.0
 
 [resource]
-default_font = ExtResource("4_BodyFont")
-default_font_size = 22
+default_font = SubResource("BodyFontVar")
+default_font_size = 26
+Button/fonts/font = ExtResource("5_DisplayFont")
+Button/font_sizes/font_size = 24
 Button/styles/normal = SubResource("SB_BtnNormal")
 Button/styles/hover = SubResource("SB_BtnHover")
 Button/styles/pressed = SubResource("SB_BtnPressed")
 Button/styles/disabled = SubResource("SB_BtnDisabled")
-Button/colors/font_color = Color(0.87, 0.83, 0.72, 1)
-Button/colors/font_hover_color = Color(1, 0.95, 0.68, 1)
-Button/colors/font_pressed_color = Color(0.7, 0.67, 0.63, 1)
-Button/colors/font_disabled_color = Color(0.4, 0.4, 0.4, 1)
-Label/colors/font_color = Color(0.85, 0.81, 0.72, 1)
+Button/colors/font_color = Color(0.95, 0.9, 0.78, 1)
+Button/colors/font_hover_color = Color(1, 0.97, 0.72, 1)
+Button/colors/font_pressed_color = Color(0.78, 0.74, 0.68, 1)
+Button/colors/font_disabled_color = Color(0.48, 0.48, 0.48, 1)
+Button/constants/outline_size = 2
+Button/colors/font_outline_color = Color(0, 0, 0, 0.9)
+Label/colors/font_color = Color(0.95, 0.92, 0.86, 1)
+Label/constants/outline_size = 2
+Label/colors/font_outline_color = Color(0, 0, 0, 0.9)
 Panel/styles/panel = SubResource("SB_Panel")
 PanelContainer/styles/panel = SubResource("SB_Panel")

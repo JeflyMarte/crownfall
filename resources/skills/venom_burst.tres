@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "venom_burst"
+display_name = "猛毒噴射"
+description = "毒を浴びせ敵の弱点を突く。毒矢の後に真価を発揮する。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 1.5
+cooldown = 4.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["ranged", "debuff", "poison"])
+element = ""
+apply_status_id = "vulnerable"
+apply_status_chance = 0.3
+apply_status_id2 = ""
+apply_status_chance2 = 0.0
+slot_type = "skill"
+range_type = "long"
+reserve_condition = "enemy_has_poison"
+reserve_value = ""

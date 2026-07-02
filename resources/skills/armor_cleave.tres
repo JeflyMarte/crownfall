@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "armor_cleave"
+display_name = "甲砕斬"
+description = "装甲の継ぎ目を叩き砕き、敵の防御を崩す。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 1.55
+cooldown = 4.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["melee", "slash"])
+element = ""
+apply_status_id = "armor_break"
+apply_status_chance = 0.4
+apply_status_id2 = ""
+apply_status_chance2 = 0.0
+slot_type = "skill"
+range_type = "melee"

@@ -39,6 +39,24 @@ const ICON_MAP: Dictionary = {
 	"enemy:serdion":               "res://assets/codex/enemies/ART_BOSS_Serdion.png",
 	"dungeon:mourngate":           "res://assets/dungeon/mourngate/ICO_DG_Mourngate.png",
 	"currency:arcane_crystal":     "res://assets/ui/batch2/ICO_Currency_Arcanite.png",
+	# UI メニュー / BottomNav（003_01 モック準拠）
+	"ui:adventure":                "res://assets/ui/batch2/ICO_WPN_IronSword.png",
+	"ui:hero":                     "res://assets/ui/chr_icons/ICO_CHR_Vanguard.png",
+	"ui:blacksmith":               "res://assets/ui/batch7/ICO_CRT.png",
+	"ui:roster":                   "res://assets/ui/chr_icons/ICO_CHR_Ranger.png",
+	"ui:codex":                    "res://assets/ui/batch7/ICO_MAT_EliteRelicShard.png",
+	"ui:gacha":                    "res://assets/ui/batch2/ICO_Currency_Arcanite.png",
+	"ui:merchant":                 "res://assets/ui/batch2/ICO_Gold.png",
+	"ui:gold":                     "res://assets/ui/batch2/ICO_Gold.png",
+	"ui:legacy":                   "res://assets/ui/batch2/ICO_MAT_RelicShard.png",
+	"ui:settings":                 "res://assets/ui/batch7/ICO_DEF.png",
+	"ui:menu":                     "res://assets/ui/batch7/ICO_ATK.png",
+	"ui:home":                     "res://assets/ui/batch2/ICO_MAT_RelicShard.png",
+	"ui:party":                    "res://assets/ui/chr_icons/ICO_CHR_Swordsman.png",
+	"ui:dungeon":                  "res://assets/dungeon/mourngate/ICO_DG_Mourngate.png",
+	"ui:arena":                    "res://assets/ui/batch7/ICO_ATK.png",
+	"ui:guild":                    "res://assets/ui/batch7/ICO_DEF.png",
+	"ui:missions":                 "res://assets/ui/batch2/ICO_MAT_RelicShard.png",
 }
 
 static func get_icon_texture(id: String, category: String) -> Texture2D:

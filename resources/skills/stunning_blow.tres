@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "stunning_blow"
+display_name = "叩き伏せ"
+description = "強打で敵の体勢を崩し、スタンを狙う。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 1.2
+cooldown = 4.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["melee", "guard", "shield", "blunt"])
+element = ""
+apply_status_id = "stun"
+apply_status_chance = 0.4
+apply_status_id2 = ""
+apply_status_chance2 = 0.0
+slot_type = "skill"
+range_type = "melee"

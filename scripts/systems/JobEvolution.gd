@@ -1,7 +1,7 @@
 class_name JobEvolution
 extends RefCounted
 
-## ジョブ進化（到達形）— 手動ギルド認定（P3-D037 / P3-D052）。
+## ジョブ進化（到達形）— 英雄管理画面で手動昇格（P3-D037 / P3-D052）。
 ## Lv到達後、認定で Adventurer.is_evolved = true。補正深化と到達形名は
 ## JobStatCalculator が is_evolved を見て反映する（job_id は不変）。
 

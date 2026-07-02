@@ -66,6 +66,10 @@ func get_entries() -> Array[Dictionary]:
 		entry["claimed"] = bool(entry.get("claimed", false))
 		entry["complete"] = progress >= target
 		entry["can_claim"] = entry["complete"] and not entry["claimed"]
+		entry["reward_gold"] = int(mission.reward_gold)
+		entry["reward_gacha_token"] = int(mission.reward_gacha_token)
+		entry["reward_material_id"] = str(mission.reward_material_id)
+		entry["reward_material_qty"] = int(mission.reward_material_qty)
 		out.append(entry)
 	return out
 

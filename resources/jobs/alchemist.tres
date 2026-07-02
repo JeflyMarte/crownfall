@@ -14,7 +14,38 @@ base_defense_modifier = 0.9
 base_initiative_modifier = 1.0
 preferred_weapon_types = Array[String](["staff"])
 starting_skill_ids = Array[String]([])
-learnable_skill_ids = Array[String](["hex_bolt", "mend", "empower", "static_strike", "kindling_strike", "rime_touch"])
+skill_unlocks = Array[Dictionary]([{
+"skill_id": "hex_bolt",
+"level": 1
+}, {
+"skill_id": "arc_bolt",
+"level": 6
+}, {
+"skill_id": "curse_sigil",
+"level": 12
+}, {
+"skill_id": "mend",
+"level": 18
+}, {
+"skill_id": "frail_dust",
+"level": 24
+}, {
+"skill_id": "empower",
+"level": 30
+}, {
+"skill_id": "vulnerable_surge",
+"level": 36
+}, {
+"skill_id": "salve_burst",
+"level": 42
+}, {
+"skill_id": "plague_bolt",
+"level": 48
+}, {
+"skill_id": "apex_hex",
+"level": 50
+}])
+learnable_skill_ids = Array[String](["hex_bolt", "arc_bolt", "curse_sigil", "mend", "frail_dust", "empower", "vulnerable_surge", "salve_burst", "plague_bolt", "apex_hex"])
 passive_tag_ids = Array[String](["caster"])
 ultimate_skill_id = "grand_elixir"
 evolved_display_name = "セージ"

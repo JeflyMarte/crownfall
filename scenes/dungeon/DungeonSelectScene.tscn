@@ -86,22 +86,6 @@ horizontal_alignment = 1
 theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
 theme_override_font_sizes/font_size = 18
 
-[node name="StaminaChip" type="PanelContainer" parent="Header/HeaderRow"]
-layout_mode = 2
-size_flags_vertical = 4
-theme_override_styles/panel = SubResource("SB_Chip")
-
-[node name="StaminaRow" type="HBoxContainer" parent="Header/HeaderRow/StaminaChip"]
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="LabelStamina" type="Label" parent="Header/HeaderRow/StaminaChip/StaminaRow"]
-layout_mode = 2
-size_flags_vertical = 4
-text = "⚡ 120/120"
-theme_override_colors/font_color = Color(0.55, 0.92, 0.62, 1)
-theme_override_font_sizes/font_size = 16
-
 [node name="GoldChip" type="PanelContainer" parent="Header/HeaderRow"]
 layout_mode = 2
 size_flags_vertical = 4
@@ -349,6 +333,7 @@ text = "報酬一覧"
 theme_override_font_sizes/font_size = 10
 
 [node name="BottomNav" type="PanelContainer" parent="."]
+z_index = 20
 layout_mode = 1
 anchor_top = 1.0
 anchor_right = 1.0
@@ -367,24 +352,27 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "ホーム"
 
-[node name="NavAdventure" type="Button" parent="BottomNav/NavRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-toggle_mode = true
-button_pressed = true
-text = "冒険"
-
 [node name="NavParty" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "パーティ"
 
-[node name="NavCodex" type="Button" parent="BottomNav/NavRow"]
+[node name="NavAdventure" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "図鑑"
+text = "冒険"
+
+[node name="NavForge" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "強化"
 
 [node name="NavShop" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "召喚"
+text = "ショップ"
+
+[node name="NavMenu" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "メニュー"

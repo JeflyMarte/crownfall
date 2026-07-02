@@ -21,12 +21,8 @@ const COLOR_ACCENT: Color = Color(0.75, 0.82, 0.95, 1)
 @onready var _label_status: Label = $MainScroll/MainVBox/LabelStatus
 
 func _ready() -> void:
+	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.MENU)
 	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)
-	$BottomNav/NavRow/NavHome.pressed.connect(_go_to.bind(HOME_SCENE))
-	$BottomNav/NavRow/NavAdventure.pressed.connect(_go_to.bind(DUNGEON_SCENE))
-	$BottomNav/NavRow/NavParty.pressed.connect(_go_to.bind(ROSTER_SCENE))
-	$BottomNav/NavRow/NavCodex.pressed.connect(_go_to.bind(CODEX_SCENE))
-	$BottomNav/NavRow/NavShop.pressed.connect(_go_to.bind(GACHA_SCENE))
 	_info_panel.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_NORMAL)
 	)

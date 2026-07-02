@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "quick_shot"
+display_name = "クイックショット"
+description = "素早く矢を放つ基本連射。短い間隔で何度も撃てる。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 1.15
+cooldown = 2.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["ranged"])
+element = ""
+apply_status_id = ""
+apply_status_chance = 0.0
+slot_type = "skill"
+range_type = "long"

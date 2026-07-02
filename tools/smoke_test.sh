@@ -91,8 +91,18 @@ fi
 
 echo "=== Step 2: Smoke Test (120 frames) ==="
 SMOKE_EXIT=0
-"$GODOT" --headless --quit-after 120 2>&1 || SMOKE_EXIT=$?
+SMOKE_OUTPUT="$("$GODOT" --headless --quit-after 120 2>&1)" || SMOKE_EXIT=$?
+echo "$SMOKE_OUTPUT"
 echo ""
+
+# SCRIPT ERROR はゲート失敗（P3-FIX-005）。
+# exit 0 でも Parse/Compile エラーを見逃していた穴を塞ぐ。
+SCRIPT_ERROR_COUNT=$(echo "$SMOKE_OUTPUT" | grep -c "SCRIPT ERROR" || true)
+if [[ $SMOKE_EXIT -eq 0 && $SCRIPT_ERROR_COUNT -gt 0 ]]; then
+    SMOKE_EXIT=1
+    echo "SCRIPT ERROR detected: $SCRIPT_ERROR_COUNT line(s) — treating as FAIL"
+    echo ""
+fi
 
 echo "=== Result ==="
 if [[ $SMOKE_EXIT -eq 0 ]]; then

@@ -8,6 +8,7 @@ const CODEX_SCENE: String = "res://scenes/codex/CodexScene.tscn"
 const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
 
 const _AffixDisplayFormatter = preload("res://scripts/equipment/AffixDisplayFormatter.gd")
+const _JobEvolution = preload("res://scripts/systems/JobEvolution.gd")
 const _JobStatCalculator = preload("res://scripts/equipment/JobStatCalculator.gd")
 const _AffixStatCalculator = preload("res://scripts/equipment/AffixStatCalculator.gd")
 const _EquipmentEnhancer = preload("res://scripts/equipment/EquipmentEnhancer.gd")
@@ -60,6 +61,9 @@ const SLOT_GLYPHS: Dictionary = {"weapon": "⚔", "armor": "🛡", "accessory": 
 @onready var _label_level: Label = $VBoxContainer/CharacterCard/CardRow/InfoBox/LabelLevel
 @onready var _job_icon: TextureRect = $VBoxContainer/CharacterCard/CardRow/InfoBox/JobRow/JobIcon
 @onready var _label_job: Label = $VBoxContainer/CharacterCard/CardRow/InfoBox/JobRow/LabelJob
+@onready var _evolution_row: HBoxContainer = $VBoxContainer/CharacterCard/CardRow/InfoBox/EvolutionRow
+@onready var _btn_promote: Button = $VBoxContainer/CharacterCard/CardRow/InfoBox/EvolutionRow/BtnPromote
+@onready var _label_evolution: Label = $VBoxContainer/CharacterCard/CardRow/InfoBox/EvolutionRow/LabelEvolution
 @onready var _stats_grid: GridContainer = $VBoxContainer/CharacterCard/CardRow/InfoBox/StatsGrid
 @onready var _button_unequip_all: Button = $VBoxContainer/CharacterCard/CardRow/SlotsPanel/ButtonUnequipAll
 @onready var _slots_row: GridContainer = $VBoxContainer/CharacterCard/CardRow/SlotsPanel/EquipSlotsGrid
@@ -109,6 +113,7 @@ const _POLICY_IDS: Array = ["", "safe", "material", "relic", "codex"]
 var _tag_info_label: Label = null
 
 func _ready() -> void:
+	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.MENU)
 	_tabs.set_tab_title(0, "装備")
 	_tabs.set_tab_title(1, "スキル")
 	_tabs.set_tab_title(2, "覚醒 🔒")
@@ -120,12 +125,7 @@ func _ready() -> void:
 	_button_back.pressed.connect(_on_back_pressed)
 	_btn_member_prev.pressed.connect(_on_member_prev_pressed)
 	_btn_member_next.pressed.connect(_on_member_next_pressed)
-	$BottomNav/NavRow/NavHome.pressed.connect(_go_to.bind(HOME_SCENE))
-	$BottomNav/NavRow/NavParty.pressed.connect(_go_to.bind(ROSTER_SCENE))
-	$BottomNav/NavRow/NavAdventure.pressed.connect(_go_to.bind(DUNGEON_SCENE))
-	$BottomNav/NavRow/NavForge.pressed.connect(_go_to.bind(BLACKSMITH_SCENE))
-	$BottomNav/NavRow/NavCodex.pressed.connect(_go_to.bind(CODEX_SCENE))
-	$BottomNav/NavRow/NavShop.pressed.connect(_go_to.bind(GACHA_SCENE))
+	_btn_promote.pressed.connect(_on_promote_pressed)
 	_button_unequip_all.pressed.connect(_on_unequip_all_pressed)
 	_btn_sort.pressed.connect(_on_sort_pressed)
 	_btn_filter.pressed.connect(_on_filter_pressed)
@@ -134,11 +134,7 @@ func _ready() -> void:
 	_apply_panel_styles()
 	_decorate_portrait()
 	if GameState.equipment_focus_member_index >= 0:
-		_selected_member_index = clampi(
-			GameState.equipment_focus_member_index,
-			0,
-			maxi(0, GameState.party_members.size() - 1)
-		)
+		_selected_member_index = _clamp_roster_index(GameState.equipment_focus_member_index)
 		GameState.equipment_focus_member_index = -1
 	_refresh_display()
 
@@ -214,11 +210,39 @@ func _on_member_next_pressed() -> void:
 	_cycle_member(1)
 
 func _cycle_member(delta: int) -> void:
-	var count: int = GameState.party_members.size()
+	var count: int = GameState.get_roster().size()
 	if count <= 0:
 		return
 	var next_index: int = (_selected_member_index + delta + count) % count
 	_on_member_selected(next_index)
+
+func _clamp_roster_index(index: int) -> int:
+	var roster: Array = GameState.get_roster()
+	if roster.is_empty():
+		return 0
+	if index >= 0 and index < roster.size():
+		return index
+	var party_idx: int = clampi(index, 0, maxi(0, GameState.party_members.size() - 1))
+	if party_idx < GameState.party_members.size():
+		var adv: Resource = GameState.party_members[party_idx]
+		var roster_idx: int = roster.find(adv)
+		if roster_idx >= 0:
+			return roster_idx
+	return clampi(index, 0, roster.size() - 1)
+
+func _get_view_adventurer() -> Resource:
+	var roster: Array = GameState.get_roster()
+	if _selected_member_index < 0 or _selected_member_index >= roster.size():
+		return null
+	return roster[_selected_member_index]
+
+func _party_index_for(adv: Resource) -> int:
+	if adv == null:
+		return -1
+	return GameState.party_members.find(adv)
+
+func _party_index_for_view() -> int:
+	return _party_index_for(_get_view_adventurer())
 
 func _refresh_display() -> void:
 	_update_header()
@@ -232,7 +256,7 @@ func _refresh_display() -> void:
 	_update_forge_nav_dot()
 
 func _update_forge_nav_dot() -> void:
-	_nav_forge.text = "鍛冶 ●" if BlacksmithUiHelper.has_craftable_recipes() else "鍛冶"
+	_nav_forge.text = "強化 ●" if BlacksmithUiHelper.has_craftable_recipes() else "強化"
 
 func _update_header() -> void:
 	_label_gold.text = "%d" % GameState.gold
@@ -240,13 +264,14 @@ func _update_header() -> void:
 
 # ---- キャラクターカード ----
 func _update_character_card() -> void:
-	var member: Resource = GameState.get_member(_selected_member_index)
+	var member: Resource = _get_view_adventurer()
 	if member == null:
 		_label_name.text = "—"
 		_label_level.text = ""
 		_label_job.text = ""
 		_job_icon.texture = null
 		_portrait_glyph.text = "?"
+		_evolution_row.visible = false
 		return
 	_label_name.text = member.display_name
 	var job_mods: Dictionary = _JobStatCalculator.get_member_modifiers(member)
@@ -258,8 +283,42 @@ func _update_character_card() -> void:
 	_portrait_art.texture = chr_tex
 	_portrait_glyph.text = "" if chr_tex != null else member.display_name.substr(0, 1)
 	_label_stars.text = EquipmentUiHelper.stars_text(int(member.rarity))
-	var stats: Dictionary = _compute_member_stats(_selected_member_index)
+	_update_evolution_row(member)
+	var party_idx: int = _party_index_for(member)
+	var stats: Dictionary = _compute_member_stats(party_idx if party_idx >= 0 else -1, member)
 	_populate_stat_grid(stats)
+
+func _update_evolution_row(member: Resource) -> void:
+	var target_name: String = _JobEvolution.get_evolved_name(member)
+	if target_name.is_empty():
+		_evolution_row.visible = false
+		return
+	_evolution_row.visible = true
+	var evolved: bool = bool(member.is_evolved)
+	var can_promote: bool = _JobEvolution.can_evolve(member)
+	if evolved:
+		_label_evolution.text = "昇格済 — %s" % target_name
+		_label_evolution.add_theme_color_override("font_color", COLOR_POS)
+		_btn_promote.text = "昇格済"
+		_btn_promote.disabled = true
+	elif can_promote:
+		_label_evolution.text = "→ %s" % target_name
+		_label_evolution.add_theme_color_override("font_color", COLOR_SUB)
+		_btn_promote.text = "昇格する"
+		_btn_promote.disabled = false
+	else:
+		var req: int = _JobEvolution.required_level(member)
+		_label_evolution.text = "→ %s" % target_name
+		_label_evolution.add_theme_color_override("font_color", COLOR_SUB)
+		_btn_promote.text = "Lv%d必要" % req if req > 0 else "対象外"
+		_btn_promote.disabled = true
+
+func _on_promote_pressed() -> void:
+	var member: Resource = _get_view_adventurer()
+	if member == null or not _JobEvolution.evolve(member):
+		return
+	SaveManager.save_game()
+	_refresh_display()
 
 func _populate_stat_grid(stats: Dictionary) -> void:
 	for child in _stats_grid.get_children():
@@ -300,10 +359,14 @@ func _make_pos_label(text: String) -> Label:
 func _rebuild_effects() -> void:
 	for child in _effects_grid.get_children():
 		child.queue_free()
-	var idx: int = _selected_member_index
-	var armor: Resource = GameState.get_member_equipped_armor(idx)
-	var acc_data: Resource = _accessory_data(GameState.get_member_equipped_accessory(idx))
-	var affix: Dictionary = _AffixStatCalculator.get_bonuses(idx)
+	var member: Resource = _get_view_adventurer()
+	if member == null:
+		_effects_grid.add_child(_make_dim_label("（装備ボーナスなし）"))
+		return
+	var party_idx: int = _party_index_for(member)
+	var armor: Resource = member.equipped_armor
+	var acc_data: Resource = _accessory_data(member.equipped_accessory)
+	var affix: Dictionary = _AffixStatCalculator.get_bonuses(party_idx) if party_idx >= 0 else {}
 	var atk_bonus: int = int(affix.get("attack_flat", 0)) + (acc_data.attack_bonus if acc_data != null else 0)
 	var def_bonus: int = int(affix.get("defense_flat", 0)) + (acc_data.defense_bonus if acc_data != null else 0)
 	if armor != null:
@@ -333,10 +396,14 @@ func _rebuild_effects() -> void:
 func _rebuild_equip_slots() -> void:
 	for child in _slots_row.get_children():
 		child.queue_free()
-	var idx: int = _selected_member_index
-	_slots_row.add_child(_make_slot("武器", "weapon", GameState.get_member_equipped_weapon(idx)))
-	_slots_row.add_child(_make_slot("防具", "armor", GameState.get_member_equipped_armor(idx)))
-	_slots_row.add_child(_make_slot("装飾", "accessory", GameState.get_member_equipped_accessory(idx)))
+	var member: Resource = _get_view_adventurer()
+	var can_equip: bool = _party_index_for(member) >= 0
+	_button_unequip_all.disabled = not can_equip
+	if member == null:
+		return
+	_slots_row.add_child(_make_slot("武器", "weapon", member.equipped_weapon, can_equip))
+	_slots_row.add_child(_make_slot("防具", "armor", member.equipped_armor, can_equip))
+	_slots_row.add_child(_make_slot("装飾", "accessory", member.equipped_accessory, can_equip))
 	_slots_row.add_child(_make_locked_slot("足具"))
 
 func _make_locked_slot(label: String) -> Control:
@@ -361,7 +428,7 @@ func _make_locked_slot(label: String) -> Control:
 	box.add_child(btn)
 	return box
 
-func _make_slot(slot_label: String, category: String, item: Resource) -> Control:
+func _make_slot(slot_label: String, category: String, item: Resource, can_equip: bool = true) -> Control:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 2)
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -392,6 +459,7 @@ func _make_slot(slot_label: String, category: String, item: Resource) -> Control
 		btn.add_theme_stylebox_override("normal", empty_box)
 		btn.add_theme_stylebox_override("hover", _framed_box(COLOR_GOLD, 2, Color(0.13, 0.11, 0.08, 1.0)))
 	btn.pressed.connect(_on_slot_pressed.bind(category))
+	btn.disabled = not can_equip
 	box.add_child(btn)
 	return box
 
@@ -416,7 +484,7 @@ func _rebuild_inventory_grid() -> void:
 		for it in $EquipmentController.get_appraised_accessories():
 			entries.append({"item": it, "category": "accessory"})
 	entries = EquipmentUiHelper.filter_by_equipped_state(
-		entries, _inventory_equipped_filter, _selected_member_index
+		entries, _inventory_equipped_filter, _party_index_for_view()
 	)
 	if entries.is_empty():
 		_inventory_grid.add_child(_make_dim_label("該当する装備がありません"))
@@ -433,7 +501,8 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 		btn.expand_icon = true
 	var rarity: int = _item_rarity(item, category)
 	var owner_idx: int = EquipmentUiHelper.equipped_member_index(item)
-	var is_on_self: bool = owner_idx == _selected_member_index
+	var party_idx: int = _party_index_for_view()
+	var is_on_self: bool = party_idx >= 0 and owner_idx == party_idx
 	btn.tooltip_text = "%s  %s" % [_item_label(item, category), _compare_text(item, category)]
 	if owner_idx >= 0 and not is_on_self:
 		var owner: Resource = GameState.get_member(owner_idx)
@@ -470,19 +539,25 @@ func _add_owner_portrait_badge(btn: Button, owner_idx: int) -> void:
 	btn.add_child(icon)
 
 func _on_cell_pressed(item: Resource, category: String) -> void:
+	var party_idx: int = _party_index_for_view()
+	if party_idx < 0:
+		return
 	match category:
 		"weapon":
-			$EquipmentController.equip_weapon(item, _selected_member_index)
+			$EquipmentController.equip_weapon(item, party_idx)
 		"armor":
-			$EquipmentController.equip_armor(item, _selected_member_index)
+			$EquipmentController.equip_armor(item, party_idx)
 		"accessory":
-			$EquipmentController.equip_accessory(item, _selected_member_index)
+			$EquipmentController.equip_accessory(item, party_idx)
 	_refresh_display()
 
 func _on_unequip_all_pressed() -> void:
-	$EquipmentController.unequip_weapon(_selected_member_index)
-	$EquipmentController.unequip_armor(_selected_member_index)
-	$EquipmentController.unequip_accessory(_selected_member_index)
+	var party_idx: int = _party_index_for_view()
+	if party_idx < 0:
+		return
+	$EquipmentController.unequip_weapon(party_idx)
+	$EquipmentController.unequip_armor(party_idx)
+	$EquipmentController.unequip_accessory(party_idx)
 	_refresh_display()
 
 # ---- レア度枠スタイル ----
@@ -551,13 +626,16 @@ func _add_corner_badge(
 
 # ---- アイテム情報ヘルパー ----
 func _equipped_for_category(category: String) -> Resource:
+	var member: Resource = _get_view_adventurer()
+	if member == null:
+		return null
 	match category:
 		"weapon":
-			return GameState.get_member_equipped_weapon(_selected_member_index)
+			return member.equipped_weapon
 		"armor":
-			return GameState.get_member_equipped_armor(_selected_member_index)
+			return member.equipped_armor
 		"accessory":
-			return GameState.get_member_equipped_accessory(_selected_member_index)
+			return member.equipped_accessory
 	return null
 
 func _item_data(item: Resource, category: String) -> Resource:
@@ -701,12 +779,13 @@ func _accessory_compare(candidate: Resource, equipped: Resource) -> String:
 	return "[%s]" % " | ".join(parts)
 
 # ---- ステータス計算（戦闘式と整合する表示用集計） ----
-func _compute_member_stats(idx: int) -> Dictionary:
-	var member: Resource = GameState.get_member(idx)
-	var weapon: Resource = GameState.get_member_equipped_weapon(idx)
-	var armor: Resource = GameState.get_member_equipped_armor(idx)
-	var acc_data: Resource = _accessory_data(GameState.get_member_equipped_accessory(idx))
-	var affix: Dictionary = _AffixStatCalculator.get_bonuses(idx)
+func _compute_member_stats(idx: int, member_override: Resource = null) -> Dictionary:
+	var member: Resource = member_override if member_override != null else GameState.get_member(idx)
+	var weapon: Resource = member.equipped_weapon if member != null else null
+	var armor: Resource = member.equipped_armor if member != null else null
+	var accessory: Resource = member.equipped_accessory if member != null else null
+	var acc_data: Resource = _accessory_data(accessory)
+	var affix: Dictionary = _AffixStatCalculator.get_bonuses(idx) if idx >= 0 else {}
 	var job: Dictionary = _JobStatCalculator.get_member_modifiers(member)
 	var level: int = int(member.level) if member != null else 1
 	var hp: int = BASE_MEMBER_HP
@@ -757,7 +836,7 @@ func _compute_member_stats(idx: int) -> Dictionary:
 
 # ---- スキルタブ（P3-D077） ----
 func _rebuild_skill_tab() -> void:
-	var member: Resource = GameState.get_member(_selected_member_index)
+	var member: Resource = _get_view_adventurer()
 	_ensure_tactics_ui()
 	_refresh_tactics_ui(member)
 	_ensure_relic_ui()
@@ -782,24 +861,50 @@ func _rebuild_skill_tab() -> void:
 	var job: Resource = DataRegistry.get_job_data(member.job_id)
 	if job == null:
 		return
-	for raw_sid in job.learnable_skill_ids:
-		var sid: String = str(raw_sid)
+	for entry in SkillProgression.get_unlock_entries(job):
+		if not entry is Dictionary:
+			continue
+		var sid: String = str(entry.get("skill_id", ""))
 		var skill_data: Resource = DataRegistry.get_skill_data(sid)
 		if skill_data == null:
 			continue
+		var req_lv: int = maxi(1, int(entry.get("level", 1)))
+		var unlocked: bool = SkillProgression.is_job_skill_unlocked(member, sid)
 		var is_equipped: bool = equipped.has(sid)
 		var row := HBoxContainer.new()
 		var info := Label.new()
-		info.text = _skill_info_text(skill_data)
+		var info_text: String = _skill_info_text(skill_data)
+		if not unlocked:
+			info_text = "🔒 Lv%d  %s" % [req_lv, info_text]
+		info.text = info_text
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		info.autowrap_mode = TextServer.AUTOWRAP_WORD
+		if not unlocked:
+			info.modulate = Color(0.65, 0.65, 0.65)
 		row.add_child(info)
 		var btn := Button.new()
 		btn.text = "解除" if is_equipped else "装備"
-		btn.disabled = (not is_equipped) and equipped.size() >= Constants.MAX_EQUIPPED_SKILLS
+		btn.disabled = not unlocked or ((not is_equipped) and equipped.size() >= Constants.MAX_EQUIPPED_SKILLS)
 		btn.pressed.connect(_on_skill_toggle_pressed.bind(sid))
 		row.add_child(btn)
 		list.add_child(row)
+	var weapon_skill: Dictionary = WeaponSkillHelper.get_weapon_skill_display(member)
+	if not str(weapon_skill.get("skill_id", "")).is_empty():
+		var ws_row := HBoxContainer.new()
+		var ws_info := Label.new()
+		ws_info.text = "⚔ 武器スキル: %s（%s）" % [
+			str(weapon_skill.get("skill_name", "")),
+			str(weapon_skill.get("weapon_name", "")),
+		]
+		ws_info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		ws_info.autowrap_mode = TextServer.AUTOWRAP_WORD
+		ws_info.modulate = Color(0.85, 0.75, 1.0)
+		ws_row.add_child(ws_info)
+		var ws_tag := Label.new()
+		ws_tag.text = "自動"
+		ws_tag.modulate = Color(0.7, 0.7, 0.7)
+		ws_row.add_child(ws_tag)
+		list.add_child(ws_row)
 
 # 戦術・陣形はタブ外の常時表示パネル（P3-ALPHA-003 フィードバック）。
 func _ensure_combat_setup_panel() -> void:
@@ -1067,7 +1172,7 @@ func _persist_gambit_plan(member: Resource) -> void:
 func _on_gambit_custom_toggled(enabled: bool) -> void:
 	if _gambit_ui_syncing:
 		return
-	var member: Resource = GameState.get_member(_selected_member_index)
+	var member: Resource = _get_view_adventurer()
 	if member == null:
 		return
 	if enabled and GameState.get_member_tactics_custom_plan(member).is_empty():
@@ -1077,7 +1182,7 @@ func _on_gambit_custom_toggled(enabled: bool) -> void:
 	_refresh_gambit_ui(member)
 
 func _on_gambit_copy_preset_pressed() -> void:
-	var member: Resource = GameState.get_member(_selected_member_index)
+	var member: Resource = _get_view_adventurer()
 	if member == null:
 		return
 	GameState.copy_member_tactics_preset_to_custom(member)
@@ -1086,7 +1191,7 @@ func _on_gambit_copy_preset_pressed() -> void:
 func _on_gambit_target_selected(_index: int) -> void:
 	if _gambit_ui_syncing:
 		return
-	var member: Resource = GameState.get_member(_selected_member_index)
+	var member: Resource = _get_view_adventurer()
 	if member == null or _gambit_target_option == null:
 		return
 	var idx: int = _gambit_target_option.selected
@@ -1097,7 +1202,7 @@ func _on_gambit_target_selected(_index: int) -> void:
 func _on_gambit_row_changed(_unused: Variant = null) -> void:
 	if _gambit_ui_syncing:
 		return
-	var member: Resource = GameState.get_member(_selected_member_index)
+	var member: Resource = _get_view_adventurer()
 	if member == null:
 		return
 	for i in CombatGambit.plan_row_count():
@@ -1110,7 +1215,7 @@ func _on_gambit_row_changed(_unused: Variant = null) -> void:
 func _on_gambit_move_row(row: int, delta: int) -> void:
 	if _gambit_ui_syncing:
 		return
-	var member: Resource = GameState.get_member(_selected_member_index)
+	var member: Resource = _get_view_adventurer()
 	if member == null:
 		return
 	var other: int = row + delta
@@ -1140,7 +1245,7 @@ func _refresh_tactics_ui(member: Resource) -> void:
 func _on_tactics_selected(index: int) -> void:
 	if index < 0 or index >= _tactics_ids.size():
 		return
-	var member: Resource = GameState.get_member(_selected_member_index)
+	var member: Resource = _get_view_adventurer()
 	if member == null:
 		return
 	GameState.set_member_tactics(member, _tactics_ids[index])
@@ -1189,7 +1294,7 @@ func _refresh_relic_ui(member: Resource) -> void:
 func _on_relic_selected(index: int) -> void:
 	if index < 0 or index >= _relic_ids.size():
 		return
-	var member: Resource = GameState.get_member(_selected_member_index)
+	var member: Resource = _get_view_adventurer()
 	if member == null:
 		return
 	GameState.set_member_relic(member, _relic_ids[index])
@@ -1344,7 +1449,7 @@ func _on_preset_apply_pressed() -> void:
 		_show_preset_apply_feedback(skipped)
 	SaveManager.save_game()
 	_refresh_display()
-	var member: Resource = GameState.get_member(_selected_member_index)
+	var member: Resource = _get_view_adventurer()
 	_refresh_tactics_ui(member)
 	_refresh_gambit_ui(member)
 	_refresh_relic_ui(member)
@@ -1505,7 +1610,7 @@ func _skill_info_text(skill_data: Resource) -> String:
 	return "  ".join(parts)
 
 func _on_skill_toggle_pressed(skill_id: String) -> void:
-	var member: Resource = GameState.get_member(_selected_member_index)
+	var member: Resource = _get_view_adventurer()
 	if member == null:
 		return
 	GameState.toggle_member_skill(member, skill_id)

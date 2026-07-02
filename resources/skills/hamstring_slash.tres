@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "hamstring_slash"
+display_name = "足払斬"
+description = "下段を斬りつけ敵の足を止める。前線で相手の動きを封じる。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 1.1
+cooldown = 4.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["melee", "slash"])
+element = ""
+apply_status_id = "slow"
+apply_status_chance = 0.4
+apply_status_id2 = ""
+apply_status_chance2 = 0.0
+slot_type = "skill"
+range_type = "melee"

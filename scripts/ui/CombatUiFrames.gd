@@ -28,12 +28,15 @@ static func panel_style(tier: String) -> StyleBoxTexture:
 	style.texture_margin_bottom = 4.0
 	match tier:
 		TIER_ELITE:
+			# 全画面戦闘枠専用: 中央を塗ると RoomTileBg（戦闘背景）を覆い隠すため枠線のみ描画（P3-FIX-006）
+			style.draw_center = false
 			style.modulate_color = Color(1.12, 0.94, 0.52, 1.0)
 			style.content_margin_left = 12.0
 			style.content_margin_top = 12.0
 			style.content_margin_right = 12.0
 			style.content_margin_bottom = 12.0
 		TIER_BOSS:
+			style.draw_center = false
 			style.modulate_color = Color(1.15, 0.52, 0.42, 1.0)
 			style.content_margin_left = 14.0
 			style.content_margin_top = 14.0

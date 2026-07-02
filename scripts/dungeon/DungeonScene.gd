@@ -1,9 +1,6 @@
 extends Control
 
-# 戦闘演出用アクセントフォント（重厚ゴシック）。ダメージ数値/スキル名のインパクト用。
-# preload だと未インポート時にスクリプト全体のロードが失敗するため、ランタイム load＋null許容にする。
-const ACCENT_FONT_PATH: String = "res://assets/fonts/DelaGothicOne-Regular.ttf"
-var _accent_font: Font = null
+# 戦闘演出用アクセントフォントは UiTypography.display_font() に統一（P3-UI-TYPE-001）。
 
 const FALLBACK_ATTACK: int = 10
 const CRITICAL_MULTIPLIER: float = 1.5
@@ -13,7 +10,8 @@ const DEFENSE_MITIGATION_K: float = 100.0
 const BIOME_FAVORED_BONUS: float = 1.15
 const HEAL_AMOUNT: int = 10
 # P3-D084: CT/ATB の 1 パルス（1 行動）間隔。x1=通常 / x2=倍速。
-const SPEED_X1: float = 0.55
+# P3-FIX-006: x1 は行動を目で追える速度に（0.55→0.75）。x2/周回は据置。
+const SPEED_X1: float = 0.75
 const SPEED_X2: float = 0.28
 const AUTO_DELAY_X1: float = 1.2
 const AUTO_DELAY_X2: float = 0.6
@@ -70,7 +68,7 @@ const ULTIMATE_GOLD: Color = Color(1.0, 0.78, 0.22)
 const ULTIMATE_FLASH_DAMAGE: Color = Color(1.0, 0.88, 0.45)
 const ULTIMATE_FLASH_HEAL: Color = Color(0.55, 1.0, 0.72)
 # バトルログ BBCode 色（モック準拠・P3-UI2 拡張）
-const LOG_MUTED: Color = Color("#B8B8C0")
+const LOG_MUTED: Color = UiTypography.COLOR_LOG
 const LOG_TAG: Color = Color("#C9A0FF")
 const LOG_DAMAGE_OUT: Color = Color("#FFD700")
 const LOG_DAMAGE_CRIT: Color = Color("#FFF176")
@@ -189,7 +187,9 @@ const SKILL_LABEL_STACK_GAP: float = 34.0
 var _chr_hp_bars: Array[ProgressBar] = []
 var _party_card_hp_bars: Array[ProgressBar] = []
 var _party_card_hp_labels: Array[Label] = []
-var _party_card_ct_bars: Array[ProgressBar] = []
+var _party_card_skill_cd_bars: Array = []
+var _skill_cd_visual_rem: Dictionary = {}
+var _last_ct_step_ui: float = 0.0
 var _party_card_portraits: Array[TextureRect] = []
 var _party_card_roots: Array[PanelContainer] = []
 var _party_card_active_turn: int = -1
@@ -218,9 +218,11 @@ const PARTY_CARD_SLOT_COUNT: int = 4
 const PARTY_CARD_ICON_PX: float = 72.0
 const PARTY_CARD_WEAPON_ICON_PX: float = 24.0
 const PARTY_CARD_HP_HEIGHT: float = 14.0
-const PARTY_CARD_CT_HEIGHT: float = 6.0
+const PARTY_CARD_CD_HEIGHT: float = 5.0
+const SKILL_CD_LERP_RATE: float = 14.0
 const PARTY_CARD_HP_FILL: Color = Color("#41D16A")
-const PARTY_CARD_CT_FILL: Color = Color("#5B9BD5")
+const PARTY_CARD_SKILL_CD_READY: Color = Color(0.55, 0.82, 0.55, 1.0)
+const PARTY_CARD_SKILL_CD_WAIT: Color = Color(0.95, 0.72, 0.35, 1.0)
 const PARTY_CARD_EMPTY_MODULATE: Color = Color(0.45, 0.45, 0.5, 0.55)
 const PARTY_CARD_DEAD_MODULATE: Color = Color(0.55, 0.55, 0.55, 0.75)
 const UI_TEXT_PRIMARY: Color = Color(0.98, 0.96, 0.92, 1.0)
@@ -239,7 +241,7 @@ const TURN_ORDER_ICON_PX: float = 72.0
 const TURN_ORDER_FRAME_PAD: float = 6.0
 const TURN_ORDER_GAP: float = 10.0
 const TURN_ORDER_CENTER_X: float = 360.0
-const TURN_ORDER_Y: float = 52.0
+const TURN_ORDER_Y: float = 32.0
 
 func _ready() -> void:
 	_btn_next_room.pressed.connect(_on_next_room_pressed)
@@ -281,6 +283,7 @@ func _ready() -> void:
 	)
 	_style_hp_bars()
 	_style_combat_ui_panels()
+	_apply_scene_typography()
 	var dungeon_id: String = GameState.get_active_dungeon_id()
 	$DungeonController.start_dungeon(dungeon_id)
 	$CombatController.reset_party_hp_for_run()
@@ -359,10 +362,11 @@ func _make_raindrop_texture() -> Texture2D:
 	img.fill(Color(0.8, 0.86, 1.0, 0.55))
 	return ImageTexture.create_from_image(img)
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if _request_scroll_to_bottom:
 		_request_scroll_to_bottom = false
 		_battle_log_scroll.scroll_vertical = _battle_log_scroll.get_v_scroll_bar().max_value
+	_update_party_skill_cd_bars_smooth(delta)
 
 func _set_narrative(text: String) -> void:
 	_label_narrative.text = text
@@ -375,10 +379,10 @@ func _append_log(text: String) -> void:
 		entry.bbcode_enabled = true
 		entry.fit_content = true
 		entry.scroll_active = false
-		entry.autowrap_mode = TextServer.AUTOWRAP_WORD
+		# 日本語は単語境界がなく AUTOWRAP_WORD では折り返せない行が出る（はみ出しの原因）
+		entry.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		entry.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		entry.add_theme_font_size_override("normal_font_size", 24)
-		entry.add_theme_color_override("default_color", LOG_MUTED)
+		UiTypography.apply_log_rich(entry)
 		entry.text = _format_log_line_bbcode(line)
 		_battle_log_content.add_child(entry)
 	# 上限超過分を間引く。queue_free() は遅延削除で get_child_count() が即座に減らず
@@ -531,13 +535,28 @@ func _style_hp_bar_readable(bar: ProgressBar, fill_color: Color) -> void:
 	bg_style.set_corner_radius_all(2)
 	bar.add_theme_stylebox_override("background", bg_style)
 
-func _style_readable_label(label: Label, color: Color, outline_size: int = 3) -> void:
-	label.add_theme_color_override("font_color", color)
-	label.add_theme_constant_override("outline_size", outline_size)
-	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.95))
+func _style_readable_label(label: Label, color: Color, outline_size: int = UiTypography.OUTLINE_BODY) -> void:
+	UiTypography.apply_body(label, UiTypography.SIZE_BODY_SMALL, color, outline_size)
 
 func _style_enemy_nameplate(label: Label) -> void:
-	_style_readable_label(label, Color(1.0, 0.97, 0.88, 1.0), 5)
+	UiTypography.apply_display(label, UiTypography.SIZE_BODY_SMALL, Color(1.0, 0.97, 0.88, 1.0), UiTypography.OUTLINE_STRONG)
+
+func _apply_scene_typography() -> void:
+	UiTypography.apply_display(_label_dungeon_name, UiTypography.SIZE_DISPLAY)
+	UiTypography.apply_body(_label_room, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	UiTypography.apply_body(_label_narrative, UiTypography.SIZE_BODY_SMALL)
+	UiTypography.apply_display(_label_combat_tier, UiTypography.SIZE_DISPLAY_TITLE)
+	UiTypography.apply_body(_label_enemy, UiTypography.SIZE_BODY_SMALL)
+	UiTypography.apply_body(_label_status_enemy, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
+	UiTypography.apply_body(_label_status_party, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
+	UiTypography.apply_display(_label_transition, UiTypography.SIZE_DISPLAY_TITLE)
+	UiTypography.apply_display(_label_discovery_text, UiTypography.SIZE_BODY_SMALL)
+	UiTypography.apply_button($MainVBox/HeaderBar/ButtonMenu, false)
+	UiTypography.apply_button($MainVBox/HeaderBar/ButtonSpeedX1, false)
+	UiTypography.apply_button($MainVBox/HeaderBar/ButtonSpeedX2, false)
+	UiTypography.apply_button($MainVBox/HeaderBar/ButtonStop, false)
+	UiTypography.apply_button($MainVBox/PartyStatusPanel/PartyStatusVBox/AutoCombatRow/ButtonPause, false)
+	_style_enemy_nameplate(_enemy_nameplate)
 
 func _update_hp_bars() -> void:
 	var in_combat: bool = $CombatController.is_in_combat
@@ -615,33 +634,34 @@ func _sprite_top_y(sprite: AnimatedSprite2D) -> float:
 # 敵HPバー＋頭上ネームプレートを、スプライト実上端の上に積んで配置（重なり回避）。
 # 小型敵は従来位置を下限に維持し、大型(ボス)時のみ上方向へ押し上げる。
 func _position_enemy_overlays(sprite: AnimatedSprite2D) -> void:
-	const BAR_HALF_W: float = 40.0
-	const BAR_HEIGHT: float = 10.0
-	const NAME_HALF_W: float = 120.0
-	const NAME_HEIGHT: float = 30.0
+	var is_boss: bool = _boss_sprite.visible
+	var bar_half_w: float = 40.0
+	var bar_height: float = 10.0
+	var name_half_w: float = 150.0 if is_boss else 120.0
+	var name_height: float = 36.0 if is_boss else 30.0
+	var name_font: int = UiTypography.SIZE_DISPLAY_TITLE + 6 if is_boss else UiTypography.SIZE_DISPLAY
 	const GAP_ABOVE_SPRITE: float = 12.0
 	const GAP_BAR_NAME: float = 6.0
 	var center: Vector2 = _sprite_visual_center(sprite)
 	var cx: float = center.x
 	var top_y: float = _sprite_top_y(sprite)
-	# HPバー: 従来 -50 を下限に、スプライト上端より上に来るよう調整
-	var bar_ty: float = minf(center.y - 50.0, top_y - GAP_ABOVE_SPRITE - BAR_HEIGHT)
-	_hp_bar_enemy.offset_left = cx - BAR_HALF_W
+	var bar_ty: float = minf(center.y - 50.0, top_y - GAP_ABOVE_SPRITE - bar_height)
+	_hp_bar_enemy.offset_left = cx - bar_half_w
 	_hp_bar_enemy.offset_top = bar_ty
-	_hp_bar_enemy.offset_right = cx + BAR_HALF_W
-	_hp_bar_enemy.offset_bottom = bar_ty + BAR_HEIGHT
+	_hp_bar_enemy.offset_right = cx + bar_half_w
+	_hp_bar_enemy.offset_bottom = bar_ty + bar_height
 	var enemy_data: Resource = $CombatController.current_enemy_data
 	if enemy_data == null:
 		_enemy_nameplate.visible = false
 		return
 	var lv: int = $CombatController.enemy_level
 	_enemy_nameplate.text = "Lv%d %s" % [lv, enemy_data.display_name]
-	# 名前は HPバーのさらに上
-	var name_ty: float = bar_ty - GAP_BAR_NAME - NAME_HEIGHT
-	_enemy_nameplate.offset_left = cx - NAME_HALF_W
+	_enemy_nameplate.add_theme_font_size_override("font_size", name_font)
+	var name_ty: float = bar_ty - GAP_BAR_NAME - name_height
+	_enemy_nameplate.offset_left = cx - name_half_w
 	_enemy_nameplate.offset_top = name_ty
-	_enemy_nameplate.offset_right = cx + NAME_HALF_W
-	_enemy_nameplate.offset_bottom = name_ty + NAME_HEIGHT
+	_enemy_nameplate.offset_right = cx + name_half_w
+	_enemy_nameplate.offset_bottom = name_ty + name_height
 	_enemy_nameplate.visible = true
 
 func _init_status_icon_rows() -> void:
@@ -799,6 +819,7 @@ func _advance_to_next_room() -> void:
 			$CombatController.start_combat_group(group, $DungeonController.get_enemy_level())
 			_try_exploration_trap()
 			_skill_executor.reset()
+			_skill_cd_visual_rem.clear()
 			_round_active = false
 			_ct_status_accum = 0.0
 			_passive_cd.clear()
@@ -1193,6 +1214,7 @@ func _run_combat_step() -> void:
 		return
 	var actor: Dictionary = $CombatController.advance_to_next_actor()
 	var delta: float = $CombatController.consume_last_ct_step()
+	_last_ct_step_ui = delta
 	# スキルCD・パッシブCDは進行した CT 量だけ進める
 	if delta > 0.0:
 		_skill_executor.tick(delta)
@@ -1339,16 +1361,22 @@ func _try_apply_affix_statuses(member_index: int) -> void:
 
 # 単一スキルの発動（ダメージ＋状態異常付与）。CDはメンバー×スキルで独立管理。
 # cast_index: この tick でそのメンバーが発動した順番（0始まり）。ラベル段組みに使用。
-func _execute_member_skill(member_idx: int, skill_data: Resource, cast_index: int = 0) -> String:
-	if not _member_has_living_target(member_idx):
-		return ""
+# suppress_resolve_label: 詠唱完了後の再表示を抑止（詠唱中ラベルは呼び出し側で除去済み）。
+func _execute_member_skill(
+	member_idx: int,
+	skill_data: Resource,
+	cast_index: int = 0,
+	suppress_resolve_label: bool = false
+) -> String:
 	match skill_data.effect_type:
 		"heal":
-			return _execute_member_heal(member_idx, skill_data, cast_index)
+			return _execute_member_heal(member_idx, skill_data, cast_index, suppress_resolve_label)
 		"buff":
-			return _execute_member_buff(member_idx, skill_data, cast_index)
+			return _execute_member_buff(member_idx, skill_data, cast_index, suppress_resolve_label)
+	if not _member_has_living_target(member_idx):
+		return ""
 	var target_slot: int = $CombatController.get_member_target_slot(member_idx)
-	var cd_key: String = "%d:%s" % [member_idx, skill_data.id]
+	var cd_key: String = _member_skill_cd_key(member_idx, skill_data)
 	var base_info: Dictionary = _calc_attack_base(member_idx)
 	var is_critical: bool = randf() < base_info["crit_rate"]
 	var run_mult: float = $DungeonController.run_damage_multiplier
@@ -1381,11 +1409,12 @@ func _execute_member_skill(member_idx: int, skill_data: Resource, cast_index: in
 	var spawn_pos: Vector2 = _enemy_slot_pos(target_slot)
 	var is_ultimate: bool = _is_ultimate_skill(skill_data)
 	if is_ultimate:
-		if cast_index == 0:
-			_clear_member_skill_labels(member_idx)
+		if not suppress_resolve_label:
+			if cast_index == 0:
+				_clear_member_skill_labels(member_idx)
+			_spawn_ultimate_skill_name(result["display_name"], member_idx, attack_element)
 		_play_ultimate_resolve_vfx(member_idx, skill_data, spawn_pos, attack_element)
 		_play_chr_attack_one(member_idx)
-		_spawn_ultimate_skill_name(result["display_name"], member_idx, attack_element)
 		var ult_dmg_scale: float = 1.65 if skill_is_crit else 1.4
 		_spawn_damage_number(
 			str(final_dmg), spawn_pos + Vector2(12.0, 0.0), ULTIMATE_GOLD, ult_dmg_scale
@@ -1397,7 +1426,8 @@ func _execute_member_skill(member_idx: int, skill_data: Resource, cast_index: in
 		)
 		if cast_index == 0:
 			_clear_member_skill_labels(member_idx)
-		_spawn_skill_name(result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP, attack_element)
+		if not suppress_resolve_label:
+			_spawn_skill_name(result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP, attack_element)
 	var crit_tag: String = "  CRITICAL!" if skill_is_crit else ""
 	var tgt_tag: String = _member_target_tag(member_idx)
 	var log_line: String = "\n【スキル】%s: %dダメージ%s%s%s%s" % [
@@ -1445,11 +1475,16 @@ func _apply_skill_secondary_status(member_idx: int, skill_data: Resource) -> voi
 	_append_log("[%s] 付与" % label2)
 
 # 回復スキル: 最も負傷した生存メンバーを回復する。負傷者が居なければCDを消費せず発動しない。
-func _execute_member_heal(member_idx: int, skill_data: Resource, cast_index: int = 0) -> String:
+func _execute_member_heal(
+	member_idx: int,
+	skill_data: Resource,
+	cast_index: int = 0,
+	suppress_resolve_label: bool = false
+) -> String:
 	var target_idx: int = $CombatController.get_most_injured_member_index()
 	if target_idx < 0:
 		return ""
-	var cd_key: String = "%d:%s" % [member_idx, skill_data.id]
+	var cd_key: String = _member_skill_cd_key(member_idx, skill_data)
 	var result: Dictionary = _skill_executor.execute_support_skill(skill_data, cd_key)
 	if not result.get("executed", false):
 		return ""
@@ -1459,15 +1494,17 @@ func _execute_member_heal(member_idx: int, skill_data: Resource, cast_index: int
 	_update_hp_bars()
 	var is_ultimate: bool = _is_ultimate_skill(skill_data)
 	if is_ultimate:
-		if cast_index == 0:
-			_clear_member_skill_labels(member_idx)
 		var focus_pos: Vector2 = _member_sprite_world_pos(target_idx, 0.5)
 		_play_ultimate_resolve_vfx(member_idx, skill_data, focus_pos, "")
-		_spawn_ultimate_skill_name(result["display_name"], member_idx, "")
+		if not suppress_resolve_label:
+			if cast_index == 0:
+				_clear_member_skill_labels(member_idx)
+			_spawn_ultimate_skill_name(result["display_name"], member_idx, "")
 	else:
 		if cast_index == 0:
 			_clear_member_skill_labels(member_idx)
-		_spawn_skill_name(result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP)
+		if not suppress_resolve_label:
+			_spawn_skill_name(result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP)
 	if healed > 0:
 		_spawn_member_heal_vfx(target_idx)
 		if target_idx >= 0 and target_idx < _chr_sprites.size() and _chr_sprites[target_idx].visible:
@@ -1482,10 +1519,15 @@ func _execute_member_heal(member_idx: int, skill_data: Resource, cast_index: int
 	return "\n【スキル】%s: %s を %d回復" % [result["display_name"], target_name, healed]
 
 # バフスキル: 生存中のメイン編成全員に apply_status_id（鼓舞=与ダメ上昇）を付与する。
-func _execute_member_buff(member_idx: int, skill_data: Resource, cast_index: int = 0) -> String:
+func _execute_member_buff(
+	member_idx: int,
+	skill_data: Resource,
+	cast_index: int = 0,
+	suppress_resolve_label: bool = false
+) -> String:
 	if skill_data.apply_status_id.is_empty():
 		return ""
-	var cd_key: String = "%d:%s" % [member_idx, skill_data.id]
+	var cd_key: String = _member_skill_cd_key(member_idx, skill_data)
 	var result: Dictionary = _skill_executor.execute_support_skill(skill_data, cd_key)
 	if not result.get("executed", false):
 		return ""
@@ -1500,7 +1542,8 @@ func _execute_member_buff(member_idx: int, skill_data: Resource, cast_index: int
 	_update_status_icons()
 	if cast_index == 0:
 		_clear_member_skill_labels(member_idx)
-	_spawn_skill_name(result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP)
+	if not suppress_resolve_label:
+		_spawn_skill_name(result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP)
 	var effect: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id)
 	var label: String = skill_data.apply_status_id
 	if effect != null:
@@ -1509,15 +1552,23 @@ func _execute_member_buff(member_idx: int, skill_data: Resource, cast_index: int
 
 func _get_player_skill_data(member_index: int = -1) -> Resource:
 	var skill_id: String = Constants.DEFAULT_PLAYER_SKILL_ID
-	var weapon: Resource = GameState.get_member_equipped_weapon(member_index)
-	if weapon != null and not weapon.weapon_id.is_empty():
-		var weapon_data: Resource = DataRegistry.get_weapon_data(weapon.weapon_id)
-		if weapon_data != null and not weapon_data.fixed_skill_id.is_empty():
-			skill_id = weapon_data.fixed_skill_id
+	var member: Resource = GameState.get_combatant(member_index)
+	if member != null:
+		var weapon_skill_id: String = WeaponSkillHelper.get_weapon_skill_id(member)
+		if not weapon_skill_id.is_empty():
+			skill_id = weapon_skill_id
 	var skill_data: Resource = DataRegistry.get_skill_data(skill_id)
 	if skill_data != null:
 		return skill_data
 	return DataRegistry.get_skill_data(Constants.DEFAULT_PLAYER_SKILL_ID)
+
+func _member_skill_cd_key(member_idx: int, skill_data: Resource) -> String:
+	if skill_data == null:
+		return ""
+	var member: Resource = GameState.get_combatant(member_idx)
+	if member != null and WeaponSkillHelper.get_weapon_skill_id(member) == skill_data.id:
+		return WeaponSkillHelper.cooldown_key(member_idx, skill_data.id)
+	return "%d:%s" % [member_idx, skill_data.id]
 
 func _get_equipped_weapon_display_name(member_index: int = -1) -> String:
 	var weapon: Resource = GameState.get_member_equipped_weapon(member_index)
@@ -2132,7 +2183,7 @@ func _spawn_enemy_skill_name(skill_name: String) -> void:
 	const ENEMY_SKILL_FONT_SIZE: int = 26
 	var lbl := Label.new()
 	lbl.text = skill_name
-	var af: Font = _get_accent_font()
+	var af: Font = UiTypography.display_font()
 	if af != null:
 		lbl.add_theme_font_override("font", af)
 	lbl.add_theme_font_size_override("font_size", ENEMY_SKILL_FONT_SIZE)
@@ -2174,7 +2225,7 @@ func _spawn_enemy_cast_name(skill_name: String, slot: int) -> void:
 	const CAST_FONT_SIZE: int = 22
 	var lbl := Label.new()
 	lbl.text = "◆ %s" % skill_name
-	var af: Font = _get_accent_font()
+	var af: Font = UiTypography.display_font()
 	if af != null:
 		lbl.add_theme_font_override("font", af)
 	lbl.add_theme_font_size_override("font_size", CAST_FONT_SIZE)
@@ -2507,6 +2558,8 @@ func _do_member_turn(member_idx: int) -> void:
 				fired = _do_member_defend_slot(member_idx)
 			"skill":
 				fired = _try_member_equipped_skill(member_idx)
+				if not fired:
+					fired = _try_member_weapon_skill(member_idx)
 			"attack":
 				_do_member_basic_attack(member_idx)
 				fired = true
@@ -2614,11 +2667,27 @@ func _try_member_equipped_skill(member_idx: int) -> bool:
 			return true
 	return false
 
+# レジェンド武器の固有スキル（装備枠外・P3-SKILL-004）。
+func _try_member_weapon_skill(member_idx: int) -> bool:
+	var member: Resource = GameState.get_combatant(member_idx)
+	if member == null:
+		return false
+	var skill_id: String = WeaponSkillHelper.get_weapon_skill_id(member)
+	if skill_id.is_empty():
+		return false
+	var sd: Resource = DataRegistry.get_skill_data(skill_id)
+	if sd == null:
+		return false
+	var ctx: Dictionary = _build_tactics_context(member_idx)
+	if not CombatTactics.skill_reserve_met(sd, ctx):
+		return false
+	return _try_cast_member_skill(member_idx, sd, false)
+
 # スキル詠唱開始または即時発動（P3-D112）。Action Lock 中は _do_member_turn がここを経由しない。
 func _try_cast_member_skill(member_idx: int, skill_data: Resource, is_ultimate: bool) -> bool:
 	if skill_data == null:
 		return false
-	var cd_key: String = "%d:%s" % [member_idx, skill_data.id]
+	var cd_key: String = _member_skill_cd_key(member_idx, skill_data)
 	if not _skill_executor.can_cast(skill_data, cd_key):
 		return false
 	match skill_data.effect_type:
@@ -2671,17 +2740,19 @@ func _advance_member_cast(member_idx: int) -> void:
 	var skill_data: Resource = DataRegistry.get_skill_data(str(pending.get("skill_id", "")))
 	if skill_data == null:
 		$CombatController.clear_pending_cast("party", member_idx)
+		_clear_member_skill_labels(member_idx)
 		return
 	var state: String = $CombatController.advance_pending_cast("party", member_idx)
 	if state == "chant":
 		_append_log("[詠唱] %s…" % skill_data.display_name)
 		return
 	$CombatController.clear_pending_cast("party", member_idx)
+	_clear_member_skill_labels(member_idx)
 	if pending.has("target_slot"):
 		var frozen: int = int(pending["target_slot"])
 		if member_idx >= 0 and member_idx < $CombatController.member_target_slot.size():
 			$CombatController.member_target_slot[member_idx] = frozen
-	var log_text: String = _execute_member_skill(member_idx, skill_data, 0).strip_edges()
+	var log_text: String = _execute_member_skill(member_idx, skill_data, 0, true).strip_edges()
 	if log_text.is_empty():
 		return
 	if str(skill_data.slot_type) == "ultimate":
@@ -2764,6 +2835,7 @@ func _on_member_damaged(target_idx: int) -> void:
 		_fire_member_relic_triggers(target_idx, "on_hit_taken")
 		return
 	$CombatController.clear_pending_cast("party", target_idx)
+	_clear_member_skill_labels(target_idx)
 	for i: int in GameState.party_members.size():
 		if i == target_idx:
 			continue
@@ -3428,11 +3500,18 @@ func _show_chr_sprites() -> void:
 		var slot: int = _formation_slot_for_combat_index(i)
 		if slot < FORMATION_SLOT_POSITIONS.size():
 			sprite.position = FORMATION_SLOT_POSITIONS[slot]
-			sprite.z_index = 12 if slot < 2 else 10
+			# 深度は画面Y（足元）基準: 下＝手前＝前面。行（前衛/後衛）固定の 12/10 は
+			# 奥の前衛が手前の後衛を覆う逆転を起こすため廃止（P3-FIX-006）。
+			sprite.z_index = _chr_depth_z_index(sprite.position.y)
 		sprite.play("idle")
 		sprite.visible = true
 		_setup_chr_idle_motion(i, sprite, frames)
 	_rebuild_party_cards()
+
+# 足元Yから深度 z_index を算出（下＝手前＝大）。味方4スロット（y≈668〜748）を
+# 10〜14 に収め、PauseOverlay(z=15) より下・従来帯(10〜12)と互換の範囲に留める。
+func _chr_depth_z_index(foot_y: float) -> int:
+	return clampi(10 + roundi((foot_y - 660.0) / 25.0), 10, 14)
 
 # idle が1フレームのみの素材は SpriteFrames でフレーム送りできず静止する。
 # その場合のみ offset を上下させる「呼吸」idle をコードで付与する（HPバー等は position 基準のため非干渉）。
@@ -3461,7 +3540,7 @@ func _rebuild_party_cards() -> void:
 		c.queue_free()
 	_party_card_hp_bars.clear()
 	_party_card_hp_labels.clear()
-	_party_card_ct_bars.clear()
+	_party_card_skill_cd_bars.clear()
 	_party_card_portraits.clear()
 	_party_card_roots.clear()
 	for slot in PARTY_CARD_SLOT_COUNT:
@@ -3474,12 +3553,13 @@ func _rebuild_party_cards() -> void:
 			_party_cards_row.add_child(built["card"])
 			_party_card_hp_bars.append(built["hp_bar"])
 			_party_card_hp_labels.append(built["hp_label"])
-			_party_card_ct_bars.append(built["ct_bar"])
+			_party_card_skill_cd_bars.append(built["skill_cd_bars"])
 			_party_card_portraits.append(built["portrait"])
 			_party_card_roots.append(built["card"])
 		else:
 			_party_cards_row.add_child(_make_empty_party_card())
 	_update_party_cards_hp()
+	_update_party_skill_cd_bars_smooth(1.0)
 
 func _party_card_short_name(display_name: String) -> String:
 	var paren: int = display_name.find("（")
@@ -3529,9 +3609,110 @@ func _stop_tier_frame_pulse() -> void:
 	_combat_tier_frame.modulate = Color.WHITE
 
 
-func _style_party_card_ct_bar(bar: ProgressBar) -> void:
-	_style_hp_bar_readable(bar, PARTY_CARD_CT_FILL)
-	bar.custom_minimum_size = Vector2(0, PARTY_CARD_CT_HEIGHT)
+func _style_party_card_skill_cd_bar(bar: ProgressBar) -> void:
+	_style_hp_bar_readable(bar, PARTY_CARD_SKILL_CD_WAIT)
+	bar.custom_minimum_size = Vector2(0, PARTY_CARD_CD_HEIGHT)
+
+# 装備スキル①②のCD表示（CTとは別。満タン=使用可・≠自動発動）（P3-FIX-008）。
+func _make_skill_cd_row() -> Dictionary:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 4)
+	var header := Label.new()
+	header.text = "CD"
+	UiTypography.apply_caption(header, PARTY_CARD_SKILL_CD_WAIT)
+	header.tooltip_text = "スキル再使用までの待ち時間（使用可になっても自動では発動しません）"
+	header.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(header)
+	var bars: Array[ProgressBar] = []
+	for slot_num in [1, 2]:
+		var slot_col := HBoxContainer.new()
+		slot_col.add_theme_constant_override("separation", 2)
+		slot_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var tag := Label.new()
+		tag.text = "①" if slot_num == 1 else "②"
+		UiTypography.apply_caption(tag, PARTY_CARD_SKILL_CD_READY)
+		tag.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		slot_col.add_child(tag)
+		var bar := ProgressBar.new()
+		bar.show_percentage = false
+		bar.max_value = 1.0
+		bar.value = 1.0
+		bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		_style_party_card_skill_cd_bar(bar)
+		slot_col.add_child(bar)
+		row.add_child(slot_col)
+		bars.append(bar)
+	return {"row": row, "bars": bars}
+
+func _party_card_skill_cd_info(member_idx: int, skill_slot: int) -> Dictionary:
+	var member: Resource = GameState.get_combatant(member_idx)
+	if member == null:
+		return {"cd_key": "", "max_cd": 0.0, "ready": true, "has_skill": false}
+	var ids: Array[String] = GameState.get_equipped_skill_ids(member)
+	if skill_slot >= ids.size() or str(ids[skill_slot]).is_empty():
+		return {"cd_key": "", "max_cd": 0.0, "ready": true, "has_skill": false}
+	var skill_data: Resource = DataRegistry.get_skill_data(str(ids[skill_slot]))
+	if skill_data == null or float(skill_data.cooldown) <= 0.0:
+		return {"cd_key": "", "max_cd": 0.0, "ready": true, "has_skill": true}
+	var cd_key: String = _member_skill_cd_key(member_idx, skill_data)
+	var max_cd: float = float(skill_data.cooldown)
+	var rem: float = _skill_executor.get_cooldown_remaining(cd_key)
+	return {
+		"cd_key": cd_key,
+		"max_cd": max_cd,
+		"ready": rem <= 0.05,
+		"has_skill": true,
+	}
+
+func _update_party_skill_cd_bars_smooth(delta: float) -> void:
+	if not $CombatController.is_in_combat:
+		return
+	var blend: float = minf(1.0, SKILL_CD_LERP_RATE * delta)
+	var pulse_frac: float = 0.0
+	if not $CombatTimer.is_stopped() and $CombatTimer.wait_time > 0.0:
+		pulse_frac = clampf(
+			1.0 - ($CombatTimer.time_left / $CombatTimer.wait_time),
+			0.0,
+			1.0
+		)
+	for i in _party_card_skill_cd_bars.size():
+		if i >= $CombatController.party_max_hp.size():
+			continue
+		var cd_bars: Array = _party_card_skill_cd_bars[i]
+		var alive: bool = $CombatController.is_member_alive(i)
+		for s in mini(2, cd_bars.size()):
+			var bar: ProgressBar = cd_bars[s]
+			if not alive:
+				bar.value = 0.0
+				_style_party_card_skill_cd_bar(bar)
+				continue
+			var info: Dictionary = _party_card_skill_cd_info(i, s)
+			if not bool(info.get("has_skill", false)):
+				bar.value = 0.0
+				_style_party_card_skill_cd_bar(bar)
+				continue
+			var cd_key: String = str(info.get("cd_key", ""))
+			if cd_key.is_empty():
+				bar.value = 1.0
+				_style_hp_bar_readable(bar, PARTY_CARD_SKILL_CD_READY)
+				continue
+			var max_cd: float = float(info.get("max_cd", 1.0))
+			var actual_rem: float = _skill_executor.get_cooldown_remaining(cd_key)
+			var target_rem: float = actual_rem
+			if _last_ct_step_ui > 0.0 and pulse_frac > 0.0 and actual_rem > 0.05:
+				target_rem = maxf(0.0, actual_rem - _last_ct_step_ui * pulse_frac)
+			var visual_rem: float = float(_skill_cd_visual_rem.get(cd_key, target_rem))
+			if actual_rem > visual_rem + max_cd * 0.5:
+				visual_rem = actual_rem
+			visual_rem = lerpf(visual_rem, target_rem, blend)
+			_skill_cd_visual_rem[cd_key] = visual_rem
+			var ready: bool = visual_rem <= 0.05
+			bar.value = 1.0 if ready else clampf(1.0 - visual_rem / maxf(max_cd, 0.001), 0.0, 1.0)
+			_style_hp_bar_readable(
+				bar,
+				PARTY_CARD_SKILL_CD_READY if ready else PARTY_CARD_SKILL_CD_WAIT
+			)
 
 func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
 	var card := PanelContainer.new()
@@ -3562,8 +3743,7 @@ func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	name_label.clip_text = true
 	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	name_label.add_theme_font_size_override("font_size", 16)
-	_style_readable_label(name_label, _party_log_color(member), 4)
+	UiTypography.apply_display(name_label, UiTypography.SIZE_BODY_SMALL, _party_log_color(member), UiTypography.OUTLINE_BODY)
 	name_col.add_child(name_label)
 	var weapon_icon := TextureRect.new()
 	weapon_icon.custom_minimum_size = Vector2(PARTY_CARD_WEAPON_ICON_PX, PARTY_CARD_WEAPON_ICON_PX)
@@ -3589,19 +3769,15 @@ func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
 	var hp_label := Label.new()
 	hp_label.custom_minimum_size = Vector2(56, 0)
 	hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	hp_label.add_theme_font_size_override("font_size", 12)
-	_style_readable_label(hp_label, UI_TEXT_PRIMARY, 3)
+	UiTypography.apply_body(hp_label, UiTypography.SIZE_CAPTION, UI_TEXT_PRIMARY, UiTypography.OUTLINE_BODY)
 	hp_row.add_child(hp_label)
-	var ct_bar := ProgressBar.new()
-	ct_bar.show_percentage = false
-	ct_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_style_party_card_ct_bar(ct_bar)
-	root.add_child(ct_bar)
+	var skill_cd: Dictionary = _make_skill_cd_row()
+	root.add_child(skill_cd["row"])
 	return {
 		"card": card,
 		"hp_bar": hp_bar,
 		"hp_label": hp_label,
-		"ct_bar": ct_bar,
+		"skill_cd_bars": skill_cd["bars"],
 		"portrait": portrait,
 	}
 
@@ -3627,8 +3803,7 @@ func _make_empty_party_card() -> Control:
 		var label := Label.new()
 		label.text = line
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		label.add_theme_font_size_override("font_size", 13)
-		label.add_theme_color_override("font_color", Color(0.55, 0.54, 0.5, 0.8))
+		UiTypography.apply_caption(label, UiTypography.COLOR_MUTED)
 		info.add_child(label)
 	top_row.add_child(info)
 	var hp_bar := ProgressBar.new()
@@ -3636,10 +3811,6 @@ func _make_empty_party_card() -> Control:
 	hp_bar.custom_minimum_size = Vector2(0, PARTY_CARD_HP_HEIGHT)
 	_style_hp_bar_readable(hp_bar, PARTY_CARD_HP_FILL)
 	root.add_child(hp_bar)
-	var ct_bar := ProgressBar.new()
-	ct_bar.show_percentage = false
-	_style_party_card_ct_bar(ct_bar)
-	root.add_child(ct_bar)
 	return card
 
 func _get_member_job_display_name(member: Resource) -> String:
@@ -3771,10 +3942,6 @@ func _update_party_cards_hp() -> void:
 		_party_card_hp_labels[i].text = "%d/%d" % [
 			$CombatController.party_combat_hp[i], $CombatController.party_max_hp[i],
 		]
-		if i < _party_card_ct_bars.size():
-			var ct_bar: ProgressBar = _party_card_ct_bars[i]
-			ct_bar.max_value = 1.0
-			ct_bar.value = $CombatController.get_unit_ct_readiness("party", i) if alive else 0.0
 		if i < _party_card_portraits.size():
 			_party_card_portraits[i].modulate = Color.WHITE if alive else Color(0.55, 0.55, 0.55, 0.65)
 		if i < _party_card_roots.size():
@@ -3877,12 +4044,6 @@ func _spawn_hit_vfx(world_pos: Vector2, element: String = "", scale_mult: float 
 	spr.play("default")
 	spr.animation_finished.connect(func() -> void: spr.queue_free())
 
-# アクセントフォントを遅延ロード（未インポートなら null のまま＝既定フォントで描画）
-func _get_accent_font() -> Font:
-	if _accent_font == null and ResourceLoader.exists(ACCENT_FONT_PATH):
-		_accent_font = load(ACCENT_FONT_PATH) as Font
-	return _accent_font
-
 func _spawn_damage_number(text: String, world_pos: Vector2, color: Color = Color.WHITE, scale: float = 1.0) -> void:
 	const DMG_FONT_SIZE: int = 40
 	const DMG_OUTLINE_SIZE: int = 10
@@ -3890,7 +4051,7 @@ func _spawn_damage_number(text: String, world_pos: Vector2, color: Color = Color
 	var lbl := Label.new()
 	lbl.text = text
 	# ゲームらしい打撃感: 重厚ゴシック体＋太い黒縁＋ドロップシャドウ
-	var af: Font = _get_accent_font()
+	var af: Font = UiTypography.display_font()
 	if af != null:
 		lbl.add_theme_font_override("font", af)
 	lbl.add_theme_font_size_override("font_size", DMG_FONT_SIZE)
@@ -4036,7 +4197,7 @@ func _spawn_ultimate_skill_name(
 	title.text = "必殺技"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var af: Font = _get_accent_font()
+	var af: Font = UiTypography.display_font()
 	if af != null:
 		title.add_theme_font_override("font", af)
 		title.add_theme_font_size_override("font_size", TITLE_FONT_SIZE)
@@ -4085,7 +4246,8 @@ func _spawn_ultimate_skill_name(
 	tw.chain().tween_callback(func() -> void:
 		if member_idx < _chr_skill_labels.size():
 			_chr_skill_labels[member_idx].erase(wrap)
-		wrap.queue_free()
+		if is_instance_valid(wrap):
+			wrap.queue_free()
 	)
 
 # スキル発動時、発動者(ドット絵)の頭上にスキル名をポップ表示する。
@@ -4109,7 +4271,7 @@ func _spawn_skill_name(
 	lbl.text = skill_name
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var af: Font = _get_accent_font()
+	var af: Font = UiTypography.display_font()
 	if af != null:
 		lbl.add_theme_font_override("font", af)
 	lbl.add_theme_font_size_override("font_size", SKILL_FONT_SIZE)
@@ -4145,7 +4307,8 @@ func _spawn_skill_name(
 	tw.chain().tween_callback(func() -> void:
 		if member_idx < _chr_skill_labels.size():
 			_chr_skill_labels[member_idx].erase(lbl)
-		lbl.queue_free()
+		if is_instance_valid(lbl):
+			lbl.queue_free()
 	)
 
 # 味方の詠唱中ポップ（P3-D112）— 互換のため残すが、通常は _spawn_skill_name(persist=true) を使用。
@@ -4158,7 +4321,7 @@ func _clear_member_skill_labels(member_idx: int) -> void:
 		return
 	for lbl in _chr_skill_labels[member_idx]:
 		if is_instance_valid(lbl):
-			lbl.queue_free()
+			lbl.free()
 	_chr_skill_labels[member_idx] = []
 
 # P3-D074: 撃破→敵が消えた後にドロップ武器アイコンをポップさせ、入手アニメで吸い込む
