@@ -139,7 +139,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `tests/unit/test_run_modifiers.gd` | ラン補正カウンタ（Result「効いた戦闘要素」— P3-UX-001） |
 | `tools/run_tests.sh` | headless GUT 実行（バイナリ検出は `smoke_test.sh` と同一・exit code 伝播） |
 | `tools/smoke_test.sh` | 既存受理ゲート（import + 120frame 起動） |
-| `tools/balance_sim.sh` / `tools/balance_sim.gd` | **バランスシミュレーションハーネス**（P3-BAL-005）。実データで N ラン一括シミュ→勝率/全滅箇所/TTK/与ダメ内訳。通常攻撃のみの下限指標。`--runs= --dungeon= --party-level=` |
+| `tools/balance_sim.sh` / `tools/balance_sim.gd` | **バランスシミュレーションハーネス v2**（P3-BAL-005/006）。実データで N ラン一括シミュ→勝率/全滅箇所/TTK/与ダメ内訳。通常攻撃＋装備スキル①②（damage/heal・CD準拠）。`--runs= --dungeon= --party-level= --sweep --enemy-scale= --boss-scale= --hp-per-level= --atk-per-level= --gear-atk= --gear-def= --gear-hp=` |
 | `.github/workflows/ci.yml` | GitHub Actions: Godot 4.6.3 linux headless で `smoke_test.sh` → `run_tests.sh` |
 
 ---
@@ -168,11 +168,11 @@ Task 明示指示がない限り作成しない:
 
 | 種別 | パス |
 |---|---|
-| 武器 | `resources/weapons/iron_sword.tres`, `rusted_blade.tres` |
-| 防具 | `resources/armors/leather_armor.tres`, `bone_armor.tres` |
-| 装飾品 | `resources/accessories/silver_ring.tres` |
-| 敵 | 王都跡 5 + 白骸墓地 6（`resources/enemies/`） |
-| ダンジョン | `resources/dungeons/royal_ruins.tres`, `graveyard.tres` |
+| 武器 | `resources/weapons/` — 25本（① 13 + ② 12。★=聖別刃/祝聖の大槌/シルヴァリア誓剣/ヴェルド枝杖・P3-D154） |
+| 防具 | `resources/armors/` — 7（① leather/bone + ② 5・P3-D154） |
+| 装飾品 | `resources/accessories/` — 4（① silver_ring + ② 3・P3-D154） |
+| 敵 | `resources/enemies/` — ① モーンゲート6 + ② ウィスパーウッド6（P3-D154） |
+| ダンジョン | `resources/dungeons/mourngate.tres`, `whisperwood.tres`（ドロップ・プールは `DungeonData.weapon/armor/accessory_pool`・P3-D154） |
 | スキル | `resources/skills/` — プレイヤー約50+（基本5職×習得10 + 必殺5 + 属性/敵/ボス）。代表: slash_attack, guard_strike, aimed_shot, hex_bolt, mend, empower + P3-SKILL-002〜006 新規（`rend_slash`〜`apex_tame` 等） |
 | ジョブ | `resources/jobs/` — 5職。各 **`skill_unlocks` Lv1/6/12/…/50 で習得10**（P3-SKILL-002〜006） |
 | 状態異常 | `resources/status/` — bleed, poison, stun, chill, ignite, shock, slow, curse, guard, empower, enrage, **fear**, **vulnerable**, **armor_break**（P3-D107）, **mark**（P3-D120） |
