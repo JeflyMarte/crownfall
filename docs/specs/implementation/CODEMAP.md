@@ -107,7 +107,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `appraisal/` | `AppraisalController.gd`, `AppraisalScene.gd` |
 | `base/` | `BaseScene.gd`（**P3-UI-Base-A** Hub/MenuGrid・日課報酬表示・`GameState.base_initial_view`） |
 | `boot/` | `BootScene.gd` |
-| `combat/` | **コア:** `CombatController.gd`（`class_name`・CT/ATB・Threat・群れ/混成・個別ターゲット・詠唱・ボスフェーズ index）, `SkillExecutor.gd`, `StatusResolver.gd`, `StatusInstance.gd`, `ElementResolver.gd` |
+| `combat/` | **コア:** `CombatController.gd`（`class_name`・CT/ATB・Threat・群れ/混成・個別ターゲット・詠唱・ボスフェーズ index）, `SkillExecutor.gd`, `StatusResolver.gd`, `StatusInstance.gd`, `ElementResolver.gd`, **`DamageCalculator.gd`**（ダメージ式 SSOT・シーン非依存 static・P3-REF-001）, **`BalanceConfig.gd`**（グローバルバランス定数 SSOT・P3-BAL-005） |
 | | **戦術/AI:** `CombatTactics.gd`（プリセット6・発動条件・温存・P3-D086/108/113/127）, `CombatGambit.gd`（カスタム戦術5行・P3-D122/127） |
 | | **パッシブ/シナジー:** `CombatPassives.gd`, `CombatSynergy.gd`, `CombatTags.gd`, `CombatCombos.gd`（P3-D109） |
 | | **メタ/周回:** `CombatRelics.gd`（静的定義+トリガ・P3-D114）, `CombatLinks.gd`（連鎖3種・P3-D115）, `CombatBossPhases.gd`（P3-D116）, `ExplorationSkills.gd`（P3-D117）, `CombatFastRun.gd`（P3-D118）, `CombatWeather.gd`（天候・P3-D101） |
@@ -134,9 +134,12 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 |---|---|
 | `addons/gut/` | GUT 9.7.0（ユニットテストフレームワーク・`project.godot` の `[editor_plugins]` に登録） |
 | `.gutconfig.json` | GUT 既定設定（`res://tests/unit`・prefix `test_`） |
-| `tests/unit/test_save_manager.gd` | SaveManager テスト（ラウンドトリップ / job・dungeon マイグレーション / 破損セーブ耐性。実セーブは before_all/after_all で退避・復元） |
+| `tests/unit/test_save_manager.gd` | SaveManager テスト（ラウンドトリップ / job・dungeon マイグレーション / 破損セーブ耐性 / **save_version**（P3-SAVE-001）。実セーブは before_all/after_all で退避・復元） |
+| `tests/unit/test_damage_calculator.gd` | DamageCalculator 純粋関数テスト（防御逓減・Biome相性・属性解決 — P3-REF-001） |
+| `tests/unit/test_run_modifiers.gd` | ラン補正カウンタ（Result「効いた戦闘要素」— P3-UX-001） |
 | `tools/run_tests.sh` | headless GUT 実行（バイナリ検出は `smoke_test.sh` と同一・exit code 伝播） |
 | `tools/smoke_test.sh` | 既存受理ゲート（import + 120frame 起動） |
+| `tools/balance_sim.sh` / `tools/balance_sim.gd` | **バランスシミュレーションハーネス**（P3-BAL-005）。実データで N ラン一括シミュ→勝率/全滅箇所/TTK/与ダメ内訳。通常攻撃のみの下限指標。`--runs= --dungeon= --party-level=` |
 | `.github/workflows/ci.yml` | GitHub Actions: Godot 4.6.3 linux headless で `smoke_test.sh` → `run_tests.sh` |
 
 ---
