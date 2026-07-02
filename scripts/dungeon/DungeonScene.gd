@@ -2,12 +2,8 @@ extends Control
 
 # 戦闘演出用アクセントフォントは UiTypography.display_font() に統一（P3-UI-TYPE-001）。
 
-const FALLBACK_ATTACK: int = 10
-const CRITICAL_MULTIPLIER: float = 1.5
-# 敵DEFの逓減軽減係数。軽減率 = K/(K+DEF)。flat減算は小ダメージ多段で0化するため割合式を採用。
-const DEFENSE_MITIGATION_K: float = 100.0
-## Biome 属性相性（P3-D099）。有利属性一致時の与ダメ倍率。
-const BIOME_FAVORED_BONUS: float = 1.15
+# ダメージ計算のグローバル倍率は BalanceConfig に集約（P3-BAL-005）。
+const CRITICAL_MULTIPLIER: float = BalanceConfig.CRITICAL_MULTIPLIER
 const HEAL_AMOUNT: int = 10
 # P3-D084: CT/ATB の 1 パルス（1 行動）間隔。x1=通常 / x2=倍速。
 # P3-FIX-006: x1 は行動を目で追える速度に（0.55→0.75）。x2/周回は据置。
@@ -1694,27 +1690,15 @@ func _try_cast_secondary_skill(primary_skill_id: String) -> String:
 	]
 
 func _get_weapon_element(member_index: int = -1) -> String:
-	var weapon: Resource = GameState.get_member_equipped_weapon(member_index)
-	if weapon != null and not weapon.weapon_id.is_empty():
-		var weapon_data: Resource = DataRegistry.get_weapon_data(weapon.weapon_id)
-		if weapon_data != null and not weapon_data.element.is_empty():
-			return weapon_data.element
-	return ""
+	return DamageCalculator.weapon_element(member_index)
 
 func _resolve_skill_element(skill_data: Resource, member_index: int = -1) -> String:
-	if skill_data != null and not skill_data.element.is_empty():
-		return skill_data.element
-	return _get_weapon_element(member_index)
+	return DamageCalculator.resolve_skill_element(skill_data, member_index)
 
-# 敵の属性(弱点×1.25 / 耐性×0.75)と防御(逓減軽減)を与ダメージへ反映する
-# Biome 属性相性（P3-D099）。現在ダンジョンの favored_element と攻撃属性が一致するか。
+# ── ダメージ計算は DamageCalculator へ分離（P3-REF-001）。以下は薄い委譲。 ──
+
 func _is_biome_favored(attack_element: String) -> bool:
-	if attack_element.is_empty():
-		return false
-	var dungeon: Resource = $DungeonController.current_dungeon_data
-	if dungeon == null:
-		return false
-	return str(dungeon.favored_element) == attack_element
+	return DamageCalculator.is_biome_favored(attack_element, $DungeonController.current_dungeon_data)
 
 func _apply_enemy_mitigation(
 	damage: int,
@@ -1722,54 +1706,10 @@ func _apply_enemy_mitigation(
 	member_index: int = -1,
 	target_slot: int = -1
 ) -> Dictionary:
-	var element_tag: String = ""
-	if target_slot < 0:
-		target_slot = $CombatController.get_member_target_slot(member_index) if member_index >= 0 else $CombatController.active_enemy_index
-	var enemy_data: Resource = $CombatController.get_enemy_data_at(target_slot)
-	if enemy_data == null or damage <= 0:
-		return {"damage": damage, "element_tag": element_tag}
-	var elem_mult: float = ElementResolverScript.get_damage_multiplier(
-		attack_element,
-		enemy_data.element_weakness,
-		enemy_data.element_resist
+	return DamageCalculator.enemy_mitigation(
+		$CombatController, $DungeonController.current_dungeon_data,
+		damage, attack_element, member_index, target_slot
 	)
-	var elem_name: String = ElementResolverScript.get_display_name(attack_element)
-	if elem_mult > 1.0:
-		damage = maxi(1, int(float(damage) * elem_mult))
-		if not elem_name.is_empty():
-			element_tag = "  [弱点:%s]" % elem_name
-	elif elem_mult < 1.0:
-		damage = maxi(1, int(float(damage) * elem_mult))
-		if not elem_name.is_empty():
-			element_tag = "  [耐性:%s]" % elem_name
-	# 生態特効（P3-D087）: 武器 bane_class が敵 codex_class と一致で増幅。属性と乗算。
-	if member_index >= 0:
-		var bane: Dictionary = _get_weapon_bane(member_index)
-		var bane_class: String = str(bane.get("class", ""))
-		if not bane_class.is_empty() and bane_class == str(enemy_data.codex_class):
-			damage = maxi(1, int(round(float(damage) * float(bane.get("mult", 1.0)))))
-			element_tag += "  [特効:%s]" % bane_class
-	# 同系統タグ・シナジー（P3-D095）: 属性をパーティで複数人共有なら、その属性の与ダメ増幅。
-	var synergy: float = $CombatController.get_element_synergy_bonus(attack_element)
-	if synergy > 0.0:
-		damage = maxi(1, int(round(float(damage) * (1.0 + synergy))))
-		element_tag += "  [シナジー:%s]" % ElementResolverScript.get_display_name(attack_element)
-	# Biome 属性相性（P3-D099）: ダンジョンの有利属性と一致なら与ダメ増幅。
-	if _is_biome_favored(attack_element):
-		damage = maxi(1, int(round(float(damage) * BIOME_FAVORED_BONUS)))
-		element_tag += "  [地形:%s]" % ElementResolverScript.get_display_name(attack_element)
-	# 天候（環境変化・P3-D101）: 属性別補正＋全体与ダメ補正。
-	var weather: String = GameState.get_weather()
-	var weather_mult: float = CombatWeather.element_multiplier(weather, attack_element) * CombatWeather.outgoing_multiplier(weather)
-	if weather_mult != 1.0:
-		damage = maxi(1, int(round(float(damage) * weather_mult)))
-		element_tag += "  [天候:%s]" % CombatWeather.label(weather)
-	# 防御DOWN（armor_break・P3-D107）: 敵 DEF を減少率ぶん下げてから逓減軽減。
-	var def_reduction: float = $CombatController.get_enemy_defense_reduction_at(target_slot)
-	if def_reduction > 0.0:
-		element_tag += "  [防御DOWN]"
-	damage = _apply_enemy_defense(damage, enemy_data, def_reduction)
-	return {"damage": damage, "element_tag": element_tag}
 
 # 状態異常コンボ起爆（P3-D089）。味方の攻撃ヒット時、アクティブ敵に前提状態が
 # 乗っていれば 1 つだけ起爆し、追加ダメージを返してその状態を消費する。
@@ -1862,65 +1802,17 @@ func _member_action_tags(member_idx: int, skill_data: Resource = null) -> Array:
 				tags.append(str(t))
 	return tags
 
-# 装備武器の生態特効（{class, mult}）。特効なしは class="" / mult=1.0。
 func _get_weapon_bane(member_index: int) -> Dictionary:
-	var weapon: Resource = GameState.get_member_equipped_weapon(member_index)
-	if weapon != null and not weapon.weapon_id.is_empty():
-		var wd: Resource = DataRegistry.get_weapon_data(weapon.weapon_id)
-		if wd != null and "bane_class" in wd and not str(wd.bane_class).is_empty():
-			return {"class": str(wd.bane_class), "mult": float(wd.bane_multiplier)}
-	return {"class": "", "mult": 1.0}
+	return DamageCalculator.weapon_bane(member_index)
 
-# 敵DEFによる逓減軽減: damage × K/(K+DEF)。最低1。
-# def_reduction（armor_break・P3-D107）で実効 DEF を下げてから計算する。
 func _apply_enemy_defense(damage: int, enemy_data: Resource, def_reduction: float = 0.0) -> int:
-	if enemy_data == null or damage <= 0:
-		return damage
-	var def: float = float(enemy_data.defense)
-	if def_reduction > 0.0:
-		def *= (1.0 - clampf(def_reduction, 0.0, 0.95))
-	if def <= 0.0:
-		return damage
-	var mult: float = DEFENSE_MITIGATION_K / (DEFENSE_MITIGATION_K + def)
-	return maxi(1, int(round(float(damage) * mult)))
+	return DamageCalculator.apply_enemy_defense(damage, enemy_data, def_reduction)
 
 func _calc_attack_base(member_index: int = -1) -> Dictionary:
-	var damage: int = FALLBACK_ATTACK
-	var crit_rate: float = 0.0
-	var weapon: Resource = GameState.get_member_equipped_weapon(member_index)
-	if weapon != null:
-		damage = EquipmentEnhancer.get_effective_attack(weapon)
-		crit_rate = weapon.critical_rate
-	var acc: Resource = GameState.get_member_equipped_accessory(member_index)
-	if acc != null:
-		var acc_data: Resource = load("res://resources/accessories/" + acc.accessory_id + ".tres")
-		if acc_data != null:
-			damage += acc_data.attack_bonus
-			crit_rate += acc_data.crit_rate_bonus
-	var affix_bonuses: Dictionary = AffixStatCalculatorScript.get_bonuses(member_index)
-	damage += int(affix_bonuses.get("attack_flat", 0))
-	crit_rate += float(affix_bonuses.get("crit_rate_add", 0.0))
-	# ロール編成ボーナス（scout×2=会心+8%・P3-D097）
-	crit_rate += $CombatController.get_party_role_crit_add()
-	if member_index >= 0 and member_index < GameState.party_members.size():
-		damage += LevelSystem.level_attack_bonus(GameState.party_members[member_index].level)
-		var member: Resource = GameState.party_members[member_index]
-		if member.base_stats != null:
-			damage += int(member.base_stats.attack)
-	damage = _apply_job_attack_multiplier(damage, member_index)
-	return {"base_damage": damage, "crit_rate": crit_rate}
+	return DamageCalculator.attack_base($CombatController, member_index)
 
 func _apply_job_attack_multiplier(base_damage: int, member_index: int) -> int:
-	if base_damage <= 0 or member_index < 0 or member_index >= GameState.party_members.size():
-		return base_damage
-	var member: Resource = GameState.party_members[member_index]
-	var job_mods: Dictionary = JobStatCalculatorScript.get_member_modifiers(member)
-	var atk_mult: float = float(job_mods.get("attack_multiplier", JobStatCalculator.DEFAULT_MULTIPLIER))
-	var weapon_inst: Resource = GameState.get_member_equipped_weapon(member_index)
-	if weapon_inst != null and not weapon_inst.weapon_id.is_empty():
-		var weapon_data: Resource = DataRegistry.get_weapon_data(weapon_inst.weapon_id)
-		atk_mult *= JobStatCalculatorScript.get_preferred_weapon_multiplier(member, weapon_data)
-	return maxi(0, int(round(float(base_damage) * atk_mult)))
+	return DamageCalculator.apply_job_attack_multiplier(base_damage, member_index)
 
 func _first_alive_member_index() -> int:
 	for i in GameState.party_members.size():
@@ -2318,33 +2210,10 @@ func _try_apply_enemy_hit_status(target_idx: int, attacker_slot: int = -1) -> vo
 	_append_log("[%s] %s に付与" % [label, member_name])
 
 func _calc_damage(member_index: int = -1, target_slot: int = -1) -> Dictionary:
-	if target_slot < 0 and member_index >= 0:
-		target_slot = $CombatController.get_member_target_slot(member_index)
-	var base_info: Dictionary = _calc_attack_base(member_index)
-	var is_critical: bool = randf() < base_info["crit_rate"]
-	var damage: int = base_info["base_damage"]
-	if is_critical:
-		damage = int(damage * CRITICAL_MULTIPLIER)
-	damage = int(damage * $DungeonController.run_damage_multiplier)
-	var action_range: String = CombatRange.resolve_for_action(member_index)
-	damage = maxi(1, int(float(damage) * $CombatController.get_member_outgoing_damage_multiplier(member_index, action_range)))
-	var elem_result: Dictionary = _apply_enemy_mitigation(
-		damage, _get_weapon_element(member_index), member_index, target_slot
+	return DamageCalculator.member_attack_damage(
+		$CombatController, $DungeonController.current_dungeon_data,
+		$DungeonController.run_damage_multiplier, member_index, target_slot
 	)
-	damage = elem_result["damage"]
-	if target_slot < 0:
-		target_slot = $CombatController.active_enemy_index
-	damage = maxi(
-		1,
-		int(float(damage) * $CombatController.get_enemy_incoming_damage_multiplier_at(target_slot))
-	)
-	return {
-		"damage": damage,
-		"is_critical": is_critical,
-		"element_tag": elem_result["element_tag"],
-		"formation_tag": GameState.formation_range_log_tag(member_index, action_range),
-		"target_slot": target_slot,
-	}
 
 func _calc_enemy_damage_to_member(
 	target_index: int,
@@ -2352,66 +2221,18 @@ func _calc_enemy_damage_to_member(
 	attacker_atk: int = -1,
 	attacker_slot: int = -1
 ) -> Dictionary:
-	var atk: int = attacker_atk if attacker_atk >= 0 else $CombatController.get_enemy_attack()
-	var base_dmg: int = int(float(atk) * power_multiplier)
-	var out_slot: int = attacker_slot if attacker_slot >= 0 else $CombatController.active_enemy_index
-	var enemy_id: String = $CombatController.get_enemy_id_at(out_slot)
-	var phase_mult: float = CombatBossPhases.attack_mult(
-		enemy_id, $CombatController.get_enemy_phase_index(out_slot)
+	return DamageCalculator.enemy_damage_to_member(
+		$CombatController, target_index, power_multiplier, attacker_atk, attacker_slot
 	)
-	base_dmg = maxi(1, int(round(float(base_dmg) * phase_mult)))
-	base_dmg = maxi(1, int(float(base_dmg) * $CombatController.get_enemy_outgoing_damage_multiplier_at(out_slot)))
-	var defense: int = 0
-	var armor: Resource = GameState.get_member_equipped_armor(target_index)
-	if armor != null:
-		defense = armor.rolled_defense
-	var acc: Resource = GameState.get_member_equipped_accessory(target_index)
-	if acc != null:
-		var acc_data: Resource = load("res://resources/accessories/" + acc.accessory_id + ".tres")
-		if acc_data != null:
-			defense += acc_data.defense_bonus
-	defense += int(AffixStatCalculatorScript.get_bonuses(target_index).get("defense_flat", 0))
-	if target_index >= 0 and target_index < GameState.party_members.size():
-		var member: Resource = GameState.party_members[target_index]
-		if member.base_stats != null:
-			defense += int(member.base_stats.defense)
-		var job_mods: Dictionary = JobStatCalculatorScript.get_member_modifiers(member)
-		var def_mult: float = float(job_mods.get("defense_multiplier", JobStatCalculator.DEFAULT_MULTIPLIER))
-		defense = maxi(0, int(round(float(defense) * def_mult)))
-	var final_dmg: int = max(1, base_dmg - defense)
-	# 防御(guard)等の被ダメ補正（P3-D085）。
-	var incoming_mult: float = $CombatController.get_member_incoming_damage_multiplier(target_index)
-	if not is_equal_approx(incoming_mult, 1.0):
-		final_dmg = maxi(0, int(round(float(final_dmg) * incoming_mult)))
-	# 防具の属性耐性（P3-D103）: 敵攻撃属性が防具 resist_elements と一致なら軽減。
-	var elem_resisted: bool = false
-	var atk_elem: String = _enemy_attack_element_at(out_slot)
-	if _member_resists_element(target_index, atk_elem):
-		final_dmg = maxi(0, int(round(float(final_dmg) * ARMOR_RESIST_MULTIPLIER)))
-		elem_resisted = true
-	var mitigated: int = base_dmg - final_dmg
-	return {"final": final_dmg, "base": base_dmg, "mitigated": mitigated, "elem_resisted": elem_resisted}
-
-# 防御側属性耐性（P3-D103）。被ダメ軽減倍率。
-const ARMOR_RESIST_MULTIPLIER: float = 0.75
 
 func _active_enemy_attack_element() -> String:
 	return _enemy_attack_element_at($CombatController.active_enemy_index)
 
 func _enemy_attack_element_at(slot: int) -> String:
-	var ed: Resource = $CombatController.get_enemy_data_at(slot)
-	return str(ed.attack_element) if ed != null else ""
+	return DamageCalculator.enemy_attack_element_at($CombatController, slot)
 
 func _member_resists_element(target_index: int, attack_element: String) -> bool:
-	if attack_element.is_empty():
-		return false
-	var armor: Resource = GameState.get_member_equipped_armor(target_index)
-	if armor == null:
-		return false
-	var armor_data: Resource = load("res://resources/armors/" + str(armor.armor_id) + ".tres")
-	if armor_data == null or not ("resist_elements" in armor_data):
-		return false
-	return attack_element in armor_data.resist_elements
+	return DamageCalculator.member_resists_element(target_index, attack_element)
 
 # 敵の codex_materials を rarity 別確率で実ドロップ（P3-D067 / 図鑑↔経済の一本化）
 const ECOLOGY_DROP_CHANCE: Dictionary = {0: 0.65, 1: 0.35, 2: 0.12, 3: 0.05}
