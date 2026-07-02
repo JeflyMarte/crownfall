@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-02（**外部レビュー対応バンド**: P3-SAVE-001 save_version / P3-REF-001 DamageCalculator 分離 / P3-BAL-005 BalanceConfig+バランスシミュ `tools/balance_sim.sh` / P3-UX-001 Result「効いた戦闘要素」。GUT/CI/未コミット分もコミット整理。unit 34 PASS・smoke PASS）
+
 2026-07-02（**P3-UI-Base-A Closeout**: 003_01 Phase A・下ナビ8画面統一・nav/UIフレーム art はオーナー Close）
 
 2026-07-02（**P3-D5DG-004c**: ③〜⑤敵名称・idオーナー確定）
