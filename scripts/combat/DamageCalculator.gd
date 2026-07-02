@@ -54,6 +54,16 @@ static func apply_enemy_defense(damage: int, enemy_data: Resource, def_reduction
 	var mult: float = BalanceConfig.DEFENSE_MITIGATION_K / (BalanceConfig.DEFENSE_MITIGATION_K + def)
 	return maxi(1, int(round(float(damage) * mult)))
 
+# ── ダメージ±乱数（P3-D158） ────────────────────────────────────────────
+
+## 最終ダメージへ ±DAMAGE_VARIANCE の一様乱数を掛ける（ブレークポイント緩和）。
+## rng 省略時はグローバル randf（実プレイ）。テスト/シミュは注入可。
+static func apply_variance(damage: int, rng: RandomNumberGenerator = null) -> int:
+	if damage <= 0 or BalanceConfig.DAMAGE_VARIANCE <= 0.0:
+		return damage
+	var roll: float = (rng.randf() if rng != null else randf()) * 2.0 - 1.0
+	return maxi(1, int(round(float(damage) * (1.0 + roll * BalanceConfig.DAMAGE_VARIANCE))))
+
 # ── 味方与ダメ（基礎値・ジョブ補正） ─────────────────────────────────────
 
 static func attack_base(combat: CombatController, member_index: int = -1) -> Dictionary:
@@ -105,7 +115,8 @@ static func enemy_mitigation(
 	damage: int,
 	attack_element: String,
 	member_index: int = -1,
-	target_slot: int = -1
+	target_slot: int = -1,
+	rng: RandomNumberGenerator = null
 ) -> Dictionary:
 	var element_tag: String = ""
 	if target_slot < 0:
@@ -154,6 +165,8 @@ static func enemy_mitigation(
 	if def_reduction > 0.0:
 		element_tag += "  [防御DOWN]"
 	damage = apply_enemy_defense(damage, enemy_data, def_reduction)
+	# ±乱数（P3-D158）: 味方→敵の全経路（通常/スキル/必殺）の最終段で1回だけ適用。
+	damage = apply_variance(damage, rng)
 	return {"damage": damage, "element_tag": element_tag}
 
 # ── 味方通常攻撃 最終ダメージ ────────────────────────────────────────────
@@ -180,7 +193,7 @@ static func member_attack_damage(
 	var action_range: String = CombatRange.resolve_for_action(member_index)
 	damage = maxi(1, int(float(damage) * combat.get_member_outgoing_damage_multiplier(member_index, action_range)))
 	var elem_result: Dictionary = enemy_mitigation(
-		combat, dungeon_data, damage, weapon_element(member_index), member_index, target_slot
+		combat, dungeon_data, damage, weapon_element(member_index), member_index, target_slot, rng
 	)
 	damage = elem_result["damage"]
 	if target_slot < 0:
@@ -205,7 +218,8 @@ static func enemy_damage_to_member(
 	target_index: int,
 	power_multiplier: float = 1.0,
 	attacker_atk: int = -1,
-	attacker_slot: int = -1
+	attacker_slot: int = -1,
+	rng: RandomNumberGenerator = null
 ) -> Dictionary:
 	var atk: int = attacker_atk if attacker_atk >= 0 else combat.get_enemy_attack()
 	var base_dmg: int = int(float(atk) * power_multiplier)
@@ -244,6 +258,9 @@ static func enemy_damage_to_member(
 	if member_resists_element(target_index, atk_elem):
 		final_dmg = maxi(0, int(round(float(final_dmg) * BalanceConfig.ARMOR_RESIST_MULTIPLIER)))
 		elem_resisted = true
+	# ±乱数（P3-D158）: 敵→味方（通常/スキル）の最終段で1回だけ適用。
+	if final_dmg > 0:
+		final_dmg = apply_variance(final_dmg, rng)
 	var mitigated: int = base_dmg - final_dmg
 	return {"final": final_dmg, "base": base_dmg, "mitigated": mitigated, "elem_resisted": elem_resisted}
 

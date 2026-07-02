@@ -14,6 +14,8 @@ const DEFENSE_MITIGATION_K: float = 100.0
 const BIOME_FAVORED_BONUS: float = 1.15
 ## 防具属性耐性 被ダメ倍率（P3-D103）
 const ARMOR_RESIST_MULTIPLIER: float = 0.75
+## ダメージ±乱数（P3-D158）。最終ダメージ × [1−v, 1+v] の一様乱数。0で無効。
+const DAMAGE_VARIANCE: float = 0.10
 
 # ── 味方基礎（旧 CombatController 定数） ──────────────────────────────────
 const BASE_MEMBER_HP: int = 30

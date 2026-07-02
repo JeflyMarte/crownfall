@@ -51,6 +51,27 @@ func test_biome_favored_empty_or_null() -> void:
 	assert_false(DamageCalculator.is_biome_favored("", DungeonDataScript.new()), "無属性は false")
 	assert_false(DamageCalculator.is_biome_favored("dark", null), "ダンジョン null は false")
 
+# ── ダメージ±乱数（P3-D158） ────────────────────────────────────────────
+
+func test_variance_within_bounds() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 12345
+	var v: float = BalanceConfig.DAMAGE_VARIANCE
+	var lo: int = int(round(100.0 * (1.0 - v)))
+	var hi: int = int(round(100.0 * (1.0 + v)))
+	for i: int in 200:
+		var d: int = DamageCalculator.apply_variance(100, rng)
+		assert_between(d, lo, hi, "±%.0f%% の範囲内" % (v * 100.0))
+
+func test_variance_zero_damage_passthrough() -> void:
+	assert_eq(DamageCalculator.apply_variance(0), 0, "0ダメージは素通し")
+
+func test_variance_never_below_one() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	for i: int in 100:
+		assert_gt(DamageCalculator.apply_variance(1, rng), 0, "正のダメージは最低1を維持")
+
 # ── スキル属性解決 ───────────────────────────────────────────────────────
 
 func test_skill_element_overrides_weapon() -> void:
