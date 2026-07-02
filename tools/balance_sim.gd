@@ -36,6 +36,10 @@ var _boss_scale: float = 1.0
 ## 成長値の一時上書き（<0 なら BalanceConfig の現行値）
 var _hp_per_level_override: int = -1
 var _atk_per_level_override: int = -1
+## 想定装備ティア（<0 なら初期装備のまま）: 武器実効ATK / 防具DEF / 防具HPボーナス
+var _gear_atk: int = -1
+var _gear_def: int = -1
+var _gear_hp: int = -1
 
 # 戦闘中スキル CD 管理（battle CT クロック基準）: "midx:skill_id" → 次回使用可能 CT
 var _battle_ct: float = 0.0
@@ -140,11 +144,40 @@ func _parse_args() -> void:
 			"--atk-per-level":
 				if parts.size() > 1:
 					_atk_per_level_override = clampi(int(parts[1]), 0, 10)
+			"--gear-atk":
+				if parts.size() > 1:
+					_gear_atk = maxi(0, int(parts[1]))
+			"--gear-def":
+				if parts.size() > 1:
+					_gear_def = maxi(0, int(parts[1]))
+			"--gear-hp":
+				if parts.size() > 1:
+					_gear_hp = maxi(0, int(parts[1]))
 
 func _apply_party_level() -> void:
 	for member in _gs.roster:
 		member.level = _party_level
 		member.exp = 0
+	_apply_gear_tier()
+
+## --gear-atk/--gear-def/--gear-hp: 想定装備ティアを合成装備で再現する。
+## 武器は初期装備の rolled_attack を上書き（属性/武器種は維持）、防具は合成インスタンスを装着。
+func _apply_gear_tier() -> void:
+	if _gear_atk < 0 and _gear_def < 0 and _gear_hp < 0:
+		return
+	var armor_class = load("res://scripts/domain/ArmorInstance.gd")
+	for member in _gs.roster:
+		if _gear_atk >= 0 and member.equipped_weapon != null:
+			member.equipped_weapon.rolled_attack = _gear_atk
+			member.equipped_weapon.enhance_level = 0
+		if _gear_def >= 0 or _gear_hp >= 0:
+			var armor = armor_class.new()
+			armor.instance_id = "sim_armor_" + str(member.id)
+			armor.armor_id = ""
+			armor.rolled_defense = maxi(0, _gear_def)
+			armor.hp_bonus = maxi(0, _gear_hp)
+			armor.is_appraised = true
+			member.equipped_armor = armor
 
 func _simulate_all() -> Dictionary:
 	var stats: Dictionary = {
