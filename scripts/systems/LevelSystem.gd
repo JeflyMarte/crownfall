@@ -6,8 +6,10 @@ extends RefCounted
 ## 成長は CombatController（HP）/ DungeonScene（ATK）の flat 加算点で参照される。
 
 const MAX_LEVEL: int = 50
-const HP_PER_LEVEL: int = 6
-const ATTACK_PER_LEVEL: int = 2
+## 成長値の正は BalanceConfig。static var なのはバランスシミュ（tools/balance_sim.gd）の
+## sweep 検証で一時上書きするため。ゲーム本体からは書き換えない。
+static var hp_per_level: int = BalanceConfig.HP_PER_LEVEL
+static var attack_per_level: int = BalanceConfig.ATTACK_PER_LEVEL
 
 ## level → level+1 に必要な EXP。
 static func exp_to_next(level: int) -> int:
@@ -15,11 +17,11 @@ static func exp_to_next(level: int) -> int:
 
 ## 現在レベルでの累積 HP 成長ボーナス（Lv1 = 0）。
 static func level_hp_bonus(level: int) -> int:
-	return HP_PER_LEVEL * maxi(0, level - 1)
+	return hp_per_level * maxi(0, level - 1)
 
 ## 現在レベルでの累積 ATK 成長ボーナス（Lv1 = 0）。
 static func level_attack_bonus(level: int) -> int:
-	return ATTACK_PER_LEVEL * maxi(0, level - 1)
+	return attack_per_level * maxi(0, level - 1)
 
 ## 単体に EXP を付与しレベルアップ処理。獲得レベル数を返す。
 static func grant_exp(adventurer: Resource, amount: int) -> int:

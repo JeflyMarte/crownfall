@@ -49,7 +49,7 @@ const STATUS_ICON_DEF: Dictionary = {
 	"empower": {"abbrev": "攻", "color": Color(0.95, 0.55, 0.2)},
 	"guard": {"abbrev": "防", "color": Color(0.4, 0.55, 0.85)},
 }
-const HEAL_SKILL_BASE: int = 14
+const HEAL_SKILL_BASE: int = BalanceConfig.HEAL_SKILL_BASE
 const STATUS_ICON_SIZE: float = 26.0
 const STATUS_ICON_GAP: float = 3.0
 const VFX_HIT_PATH: String = "res://resources/animation/FX_Hit_Normal.tres"
