@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "galvanic_bow"
+display_name = "帯電雷弓ガルヴァ"
+fixed_skill_id = "static_strike"
+base_attack = 23
+rarity = 1
+base_attack_speed = 1.2
+base_critical_rate = 0.1
+base_knockback = 0.1
+base_stagger_power = 0.1
+base_attack_range = 3.0
+weight = 0.7
+element = "thunder"
+weapon_type = "bow"
+tags = Array[String](["pierce", "lightning"])

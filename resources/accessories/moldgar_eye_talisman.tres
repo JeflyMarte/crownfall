@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "moldgar_eye_talisman"
+display_name = "沼王の眼晶"
+rarity = 2
+icon = ""
+description = "モルドガルの眼を模した結晶。獲物の急所が霧越しでも透けて見えるという。"
+hp_bonus = 0
+attack_bonus = 5
+defense_bonus = 0
+crit_rate_bonus = 0.04
+luck_bonus = 0.0

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "carapace_saw"
+display_name = "甲殻鋸の双刃"
+base_attack = 23
+rarity = 1
+base_attack_speed = 1.15
+base_critical_rate = 0.1
+base_knockback = 0.2
+base_stagger_power = 0.1
+base_attack_range = 1.0
+weight = 0.8
+element = ""
+weapon_type = "dual_blades"
+tags = Array[String](["slash"])
+bane_class = "甲殻類"
+bane_multiplier = 1.3

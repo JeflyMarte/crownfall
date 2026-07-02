@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ArmorData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ArmorData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+armor_id = "libris_ward_robe"
+display_name = "封緘司書の法衣"
+base_defense = 16
+base_hp_bonus = 45
+base_resistance = 0.0
+resist_elements = Array[String](["fire"])
+weight = 0.9
+rarity = 2

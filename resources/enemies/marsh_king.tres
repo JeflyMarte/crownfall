@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "marsh_king"
+display_name = "沼地の王"
+max_hp = 115
+attack = 14
+defense = 12
+attack_speed = 0.85
+critical_rate = 0.05
+move_speed = 0.8
+threat_target_bias = "max_threat"
+detection_range = 5.0
+attack_range = 1.0
+enemy_type = 0
+ai_type = "default"
+exp_reward = 14
+gold_reward = 54
+drop_table_id = "marsh_king_drops"
+element_weakness = Array[String](["thunder"])
+element_resist = Array[String]([])
+on_hit_status_id = "poison"
+on_hit_status_chance = 0.2
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "両生類"
+codex_danger = 3
+codex_habitat = "霧沼・軟泥帯"
+codex_research_note = "オオサンショウウオを祖先とし、腐植泥そのものに擬態する巨大両生類。動かぬこと数日、獲物が踏み込んだ瞬間だけ泥ごと呑み込む。土地の古い呼び名から沼の小さな王と綽名された。"
+codex_materials = Array[String]([])
+skill_ids = Array[String](["enemy_bog_spray"])
+skill_use_chance = 0.25

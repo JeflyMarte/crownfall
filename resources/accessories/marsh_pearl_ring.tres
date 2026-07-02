@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "marsh_pearl_ring"
+display_name = "沼真珠の指輪"
+rarity = 0
+icon = ""
+description = "霧沼の底で稀に育つ黒真珠の指輪。持ち主の生命力を静かに底上げする。"
+hp_bonus = 18
+attack_bonus = 0
+defense_bonus = 0
+crit_rate_bonus = 0.0
+luck_bonus = 0.0

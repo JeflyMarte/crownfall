@@ -51,6 +51,29 @@ const _DEFS: Dictionary = {
 			"skill_weight": {"enemy_granvel_verdant_wave": 2.0, "enemy_granvel_bramble_crush": 2.0},
 		},
 	],
+	"moldgar": [
+		{
+			"threshold": 1.0,
+			"label": "第1形態",
+			"skill_use_chance": 0.40,
+			"attack_mult": 1.0,
+		},
+		{
+			"threshold": 0.50,
+			"label": "第2形態・泥塘の主",
+			"skill_use_chance": 0.55,
+			"attack_mult": 1.10,
+			"log": "【フェーズ移行】モルドガルが泥塘の底へ半身を沈め、うねりが激しくなる！",
+		},
+		{
+			"threshold": 0.25,
+			"label": "第3形態・底なしの王",
+			"skill_use_chance": 0.70,
+			"attack_mult": 1.25,
+			"log": "【フェーズ移行】底なし沼そのものがモルドガルとともに牙を剥く！",
+			"skill_weight": {"enemy_moldgar_mire_maw": 2.0, "enemy_moldgar_abyss_surge": 2.0},
+		},
+	],
 }
 
 static func has_phases(enemy_id: String) -> bool:

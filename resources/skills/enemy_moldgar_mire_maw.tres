@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_moldgar_mire_maw"
+display_name = "底なしの顎"
+description = "泥ごと獲物を呑み込む必殺の顎撃。喰らった者は沼毒に蝕まれる。"
+skill_type = "boss"
+target_type = "party"
+power_multiplier = 1.2
+cooldown = 6.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["boss", "single"])
+element = ""
+apply_status_id = "poison"
+apply_status_chance = 0.35

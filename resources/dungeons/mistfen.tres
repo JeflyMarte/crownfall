@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="DungeonData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "mistfen"
+display_name = "霧沼ミストフェン"
+difficulty = 3
+recommended_level = 22
+enemy_level = 20
+room_count = 10
+floor_count = 8
+enemy_pool = Array[String](["blood_leech", "dead_poison_frog", "mist_mantis", "marsh_king"])
+boss_id = "moldgar"
+drop_table_id = "mistfen_drops"
+discovery_unlocks = {"hidden_room": 0.3, "special_event": 0.6, "hidden_boss": 1.0}
+elite_pool = Array[String](["great_claw"])
+favored_element = "thunder"
+route_type = "main"
+event_room_weight = 22
+min_event_rooms = 1
+weapon_pool = Array[String](["bog_cleaver", "leech_fang_blades", "mire_longbow", "driftwood_staff", "storm_carver", "galvanic_bow", "fen_lantern_staff", "carapace_saw", "thunderfen_edge", "volt_needle", "volgrave_thunderblade", "seradion_storm_staff"])
+armor_pool = Array[String](["mire_hide_garb", "chitin_plate", "bog_strider_cloak", "moldgar_scale_mail", "libris_ward_robe"])
+accessory_pool = Array[String](["marsh_pearl_ring", "leech_oil_charm", "moldgar_eye_talisman"])
+flavor_text = "大陸南岸の沈没封緘区に広がる霧の沼。足元は底なしの泥、\n頭上は方角を隠す濃霧。学識王の沈んだ書庫が今も眠るという。"

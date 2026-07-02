@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "moldgar"
+display_name = "底なしの王 モルドガル"
+max_hp = 300
+attack = 21
+defense = 20
+attack_speed = 0.95
+critical_rate = 0.1
+move_speed = 0.8
+threat_target_bias = "max_threat"
+detection_range = 8.0
+attack_range = 2.0
+enemy_type = 2
+ai_type = "default"
+exp_reward = 170
+gold_reward = 230
+drop_table_id = "moldgar_drops"
+element_weakness = Array[String](["thunder", "fire"])
+element_resist = Array[String](["dark"])
+on_hit_status_id = "poison"
+on_hit_status_chance = 0.2
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "古代種"
+codex_danger = 5
+codex_habitat = "霧沼・底なし泥塘"
+codex_research_note = "ワニを祖先とする古代型の頂点捕食者。沈没書庫跡を縄張りとし、腐生環境に完全適応した。底なしと呼ばれる泥塘の主だが不死者ではない。呑み込んだ書庫の錠前が腹中から見つかった例があり、何を封じた錠だったのかは判明していない。"
+codex_materials = Array[String]([])
+skill_ids = Array[String](["boss_enrage", "enemy_moldgar_mire_maw", "enemy_moldgar_abyss_surge"])
+skill_use_chance = 0.4

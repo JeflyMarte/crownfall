@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_claw_guillotine"
+display_name = "大爪の断頭刃"
+description = "刃状の大爪を振り下ろし、狙った一人を深々と斬り裂く。"
+skill_type = "enemy"
+target_type = "party"
+power_multiplier = 1.1
+cooldown = 5.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["single"])
+element = ""
+apply_status_id = "bleed"
+apply_status_chance = 0.35

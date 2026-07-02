@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ArmorData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ArmorData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+armor_id = "moldgar_scale_mail"
+display_name = "沼王鱗の重鎧"
+base_defense = 21
+base_hp_bonus = 30
+base_resistance = 0.0
+resist_elements = Array[String](["dark"])
+weight = 1.2
+rarity = 2
