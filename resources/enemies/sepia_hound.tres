@@ -6,8 +6,8 @@
 script = ExtResource("1")
 id = "sepia_hound"
 display_name = "セピアハウンド"
-max_hp = 72
-attack = 13
+max_hp = 65
+attack = 12
 defense = 4
 attack_speed = 1.1
 critical_rate = 0.05

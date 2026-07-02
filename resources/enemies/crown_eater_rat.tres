@@ -6,8 +6,8 @@
 script = ExtResource("1")
 id = "crown_eater_rat"
 display_name = "冠喰いネズミ"
-max_hp = 58
-attack = 12
+max_hp = 52
+attack = 11
 defense = 3
 attack_speed = 1.2
 critical_rate = 0.05
