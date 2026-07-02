@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-03（**P3-SUB-001 / P3-D159 寄り道ダンジョン パイロット**: broken_marsh（崩落街道橋・side/推奨Lv16/敵Lv15/floor6/thunder有利）。敵=③雑魚3種+大爪刀ボス転用（新規アセット0）・ドロップ=③◇◆帯のみ・解放=②クリア（unlock_after_dungeon_id）。切替UIを main+side 表示へ拡張（「寄」印）。検証: Lv13=81.5%/Lv16=91%（寄り道帯=推奨−3≈80%/推奨≈90% を新定義）。unit 50 PASS・smoke PASS）
+
 2026-07-03（**P3-EVT-001 ダンジョン別イベント拡充**: ②5件・③5件の Biome 専用イベント（実利3+ロア2 の①型）＋ LF 断章4件（`world/12` v1.2）。`_get_event_pool` を `DUNGEON_EVENTS` 辞書化（④⑤はデータ追加のみ）。unit 50 PASS・smoke PASS）
 
 2026-07-03（**P3-D157 ダンジョン解放条件**: メインは難易度順の直列解放（`GameState.is_dungeon_unlocked`・①常時→②は①クリア→③は②クリア）。サブルートは `DungeonData.unlock_after_dungeon_id` で個別指定（空=常時）。切替UIの未解放は🔒 disabled・未解放選択時はフォールバック。unit 47 PASS・smoke PASS）

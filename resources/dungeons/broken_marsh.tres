@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="DungeonData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "broken_marsh"
+display_name = "崩落街道橋ブロークンマーシュ"
+difficulty = 2
+recommended_level = 16
+enemy_level = 15
+room_count = 8
+floor_count = 6
+enemy_pool = Array[String](["blood_leech", "dead_poison_frog", "mist_mantis"])
+boss_id = "great_claw"
+drop_table_id = "broken_marsh_drops"
+discovery_unlocks = {"hidden_room": 0.3, "special_event": 0.6, "hidden_boss": 1.0}
+elite_pool = Array[String]([])
+favored_element = "thunder"
+route_type = "side"
+event_room_weight = 25
+min_event_rooms = 1
+weapon_pool = Array[String](["bog_cleaver", "leech_fang_blades", "mire_longbow", "driftwood_staff", "storm_carver", "galvanic_bow", "fen_lantern_staff", "carapace_saw"])
+armor_pool = Array[String](["mire_hide_garb", "chitin_plate", "bog_strider_cloak"])
+accessory_pool = Array[String](["marsh_pearl_ring", "leech_oil_charm"])
+unlock_after_dungeon_id = "whisperwood"
+flavor_text = "巡礼街道の橋が沼へ崩れ落ちた寄り道の短編。霧沼の縁で\n雷素材と装備を整え、深部へ挑む前の足場とする。"

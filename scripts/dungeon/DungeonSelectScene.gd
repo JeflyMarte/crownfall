@@ -45,6 +45,11 @@ const DROP_PREVIEW: Dictionary = {
 		["armor", "mire_hide_garb"],
 		["accessory", "marsh_pearl_ring"],
 	],
+	"broken_marsh": [
+		["weapon", "galvanic_bow"],
+		["armor", "bog_strider_cloak"],
+		["accessory", "leech_oil_charm"],
+	],
 }
 
 @onready var _btn_back: Button = $Header/HeaderRow/ButtonBack
@@ -293,30 +298,40 @@ func _make_floor_card(data: Resource, floor: int, unlocked: bool) -> PanelContai
 	action.add_child(btn)
 	return card
 
-# 複数ダンジョンの切替行（P3-D154）。メインルートのみ表示し、選択中は無効化。
+# 複数ダンジョンの切替行（P3-D154 / 寄り道対応 P3-SUB-001）。
+# メイン（難易度順）→寄り道（難易度順・「寄」印）の順に表示し、選択中は無効化。
 func _append_dungeon_switcher() -> void:
 	var mains: Array = []
+	var sides: Array = []
 	for d in DataRegistry.get_all_dungeon_data():
-		if d != null and str(d.route_type) == "main":
+		if d == null:
+			continue
+		if str(d.route_type) == "main":
 			mains.append(d)
-	if mains.size() < 2:
+		elif str(d.route_type) == "side":
+			sides.append(d)
+	if mains.size() + sides.size() < 2:
 		return
-	mains.sort_custom(func(a, b): return int(a.difficulty) < int(b.difficulty))
+	var by_difficulty := func(a, b): return int(a.difficulty) < int(b.difficulty)
+	mains.sort_custom(by_difficulty)
+	sides.sort_custom(by_difficulty)
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 8)
-	for d in mains:
+	for d in mains + sides:
 		var did: String = str(d.id)
+		var is_side: bool = str(d.route_type) == "side"
+		var name_text: String = ("寄 %s" if is_side else "%s") % str(d.display_name)
 		var btn := Button.new()
 		btn.custom_minimum_size = Vector2(0, 36)
 		# 解放条件（P3-D157）: 未解放はロック表示・選択不可。
 		if not GameState.is_dungeon_unlocked(did):
-			btn.text = "🔒 %s" % str(d.display_name)
+			btn.text = "🔒 %s" % name_text
 			btn.disabled = true
 			btn.tooltip_text = "前のダンジョンをクリアで解放"
 			UiTypography.apply_button(btn, false)
 		else:
-			btn.text = str(d.display_name)
+			btn.text = name_text
 			UiTypography.apply_button(btn, did != _featured_dungeon_id)
 			if did == _featured_dungeon_id:
 				btn.disabled = true

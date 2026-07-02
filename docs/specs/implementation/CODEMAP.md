@@ -172,7 +172,7 @@ Task 明示指示がない限り作成しない:
 | 防具 | `resources/armors/` — 12（① leather/bone + ② 5 + ③ 5・P3-D154/D156） |
 | 装飾品 | `resources/accessories/` — 7（① silver_ring + ② 3 + ③ 3・P3-D154/D156） |
 | 敵 | `resources/enemies/` — ① モーンゲート6 + ② ウィスパーウッド6 + ③ ミストフェン6（P3-D154/D156） |
-| ダンジョン | `resources/dungeons/mourngate.tres`, `whisperwood.tres`, `mistfen.tres`（ドロップ・プールは `DungeonData.weapon/armor/accessory_pool`・P3-D154） |
+| ダンジョン | `resources/dungeons/mourngate.tres`, `whisperwood.tres`, `mistfen.tres` + 寄り道 `broken_marsh.tres`（ドロップ・プールは `DungeonData.weapon/armor/accessory_pool`・P3-D154。解放条件は `unlock_after_dungeon_id`/メイン直列・P3-D157） |
 | スキル | `resources/skills/` — プレイヤー約50+（基本5職×習得10 + 必殺5 + 属性/敵/ボス）。代表: slash_attack, guard_strike, aimed_shot, hex_bolt, mend, empower + P3-SKILL-002〜006 新規（`rend_slash`〜`apex_tame` 等） |
 | ジョブ | `resources/jobs/` — 5職。各 **`skill_unlocks` Lv1/6/12/…/50 で習得10**（P3-SKILL-002〜006） |
 | 状態異常 | `resources/status/` — bleed, poison, stun, chill, ignite, shock, slow, curse, guard, empower, enrage, **fear**, **vulnerable**, **armor_break**（P3-D107）, **mark**（P3-D120） |

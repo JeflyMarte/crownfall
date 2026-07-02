@@ -170,10 +170,12 @@ const EVENTS_MISTFEN: Array = [
 ]
 
 # ダンジョン別イベント（P3-EVT-001）。id 一致で EVENTS へ加算。
+# broken_marsh（寄り道・P3-SUB-001）は同じ霧沼帯のため③プールを共用。
 const DUNGEON_EVENTS: Dictionary = {
 	"mourngate": EVENTS_MOURNGATE,
 	"whisperwood": EVENTS_WHISPERWOOD,
 	"mistfen": EVENTS_MISTFEN,
+	"broken_marsh": EVENTS_MISTFEN,
 }
 
 var current_dungeon_data: Resource = null
