@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "moss_shell"
+display_name = "モスシェル"
+max_hp = 104
+attack = 12
+defense = 12
+attack_speed = 0.85
+critical_rate = 0.0
+move_speed = 0.8
+threat_target_bias = "max_threat"
+detection_range = 5.0
+attack_range = 1.0
+enemy_type = 0
+ai_type = "default"
+exp_reward = 11
+gold_reward = 40
+drop_table_id = "moss_shell_drops"
+element_weakness = Array[String](["fire"])
+element_resist = Array[String]([])
+on_hit_status_id = ""
+on_hit_status_chance = 0.0
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "昆虫類"
+codex_danger = 2
+codex_habitat = "囁きの森・倒木帯"
+codex_research_note = "甲虫を祖先とし、外殻表面に苔を育てて擬態する硬殻種。静止時は苔むした岩と見分けがつかない。殻は刃を滑らせるが、乾燥と炎に極端に弱い。"
+codex_materials = Array[String]([])
+skill_ids = Array[String]([])
+skill_use_chance = 0.0

@@ -4,17 +4,17 @@
 
 [resource]
 script = ExtResource("1")
-id = "glacier_staff"
-display_name = "氷霜の杖"
-fixed_skill_id = "rime_touch"
-base_attack = 11
-rarity = 2
+id = "veld_branch_staff"
+display_name = "翠杖ヴェルドの枝"
+fixed_skill_id = "kindling_strike"
+base_attack = 21
+rarity = 3
 base_attack_speed = 0.95
-base_critical_rate = 0.05
-base_knockback = 0.3
-base_stagger_power = 0.15
+base_critical_rate = 0.06
+base_knockback = 0.1
+base_stagger_power = 0.1
 base_attack_range = 2.5
 weight = 0.9
-element = "ice"
+element = "fire"
 weapon_type = "staff"
-tags = Array[String](["blunt", "ice"])
+tags = Array[String](["fire"])

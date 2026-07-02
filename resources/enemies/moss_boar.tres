@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "moss_boar"
+display_name = "モスボア"
+max_hp = 75
+attack = 16
+defense = 4
+attack_speed = 1.15
+critical_rate = 0.05
+move_speed = 1.25
+threat_target_bias = "max_threat"
+detection_range = 6.0
+attack_range = 1.0
+enemy_type = 0
+ai_type = "default"
+exp_reward = 10
+gold_reward = 38
+drop_table_id = "moss_boar_drops"
+element_weakness = Array[String](["fire"])
+element_resist = Array[String]([])
+on_hit_status_id = ""
+on_hit_status_chance = 0.0
+can_swarm = true
+swarm_min = 2
+swarm_max = 3
+codex_class = "獣類"
+codex_danger = 2
+codex_habitat = "囁きの森・林床"
+codex_research_note = "猪を祖先とし、背に厚い苔と地衣を共生させた森猪。苔層は外傷と日射を防ぐ生きた鎧であり、群れで直進する突進は倒木ごと下生えを砕く。"
+codex_materials = Array[String]([])
+skill_ids = Array[String]([])
+skill_use_chance = 0.0

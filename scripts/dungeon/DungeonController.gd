@@ -528,25 +528,32 @@ func roll_kill_relic_drop(room_type: int) -> String:
 		return relic_id
 	return ""
 
-# WEAPON_POOL からレア度重みで1本抽選
+# ダンジョン別武器プール（P3-D154）。未設定はグローバル既定 WEAPON_POOL。
+func _active_weapon_pool() -> Array:
+	if current_dungeon_data != null and not current_dungeon_data.weapon_pool.is_empty():
+		return current_dungeon_data.weapon_pool
+	return WEAPON_POOL
+
+# 武器プールからレア度重みで1本抽選
 func _pick_weighted_weapon() -> String:
+	var pool: Array = _active_weapon_pool()
 	var weights: Array[int] = []
 	var total: int = 0
-	for wid in WEAPON_POOL:
-		var wdata: Resource = DataRegistry.get_weapon_data(wid)
+	for wid in pool:
+		var wdata: Resource = DataRegistry.get_weapon_data(str(wid))
 		var r: int = 0 if wdata == null else int(wdata.rarity)
 		var w: int = int(RARITY_DROP_WEIGHT.get(r, 1))
 		weights.append(w)
 		total += w
 	if total <= 0:
-		return WEAPON_POOL[randi() % WEAPON_POOL.size()]
+		return str(pool[randi() % pool.size()])
 	var roll: int = randi() % total
 	var cumulative: int = 0
-	for i in WEAPON_POOL.size():
+	for i in pool.size():
 		cumulative += weights[i]
 		if roll < cumulative:
-			return WEAPON_POOL[i]
-	return WEAPON_POOL[WEAPON_POOL.size() - 1]
+			return str(pool[i])
+	return str(pool[pool.size() - 1])
 
 func _auto_appraise(instance: Resource, category: String, rarity: int) -> void:
 	instance.is_appraised = true
@@ -587,9 +594,36 @@ func _spawn_weapon(weapon_id: String) -> void:
 	EventBus.weapon_obtained.emit(weapon_id)
 
 func _generate_armor_loot() -> void:
-	# 革(rarity0/HP寄り) 70% / 骨(rarity1/DEF寄り) 30% でレア度感を維持
+	# ダンジョン別プール（P3-D154）。未設定は従来: 革(rarity0)70% / 骨(rarity1)30%
+	if current_dungeon_data != null and not current_dungeon_data.armor_pool.is_empty():
+		_spawn_armor(_pick_rarity_weighted(current_dungeon_data.armor_pool, "armor"))
+		return
 	var armor_id: String = "bone_armor" if randf() < 0.3 else "leather_armor"
 	_spawn_armor(armor_id)
+
+# プールからレア度重み（RARITY_DROP_WEIGHT）で1件抽選する（armor/accessory 共用）。
+func _pick_rarity_weighted(pool: Array, category: String) -> String:
+	var weights: Array[int] = []
+	var total: int = 0
+	for iid in pool:
+		var data: Resource = null
+		if category == "armor":
+			data = DataRegistry.get_armor_data(str(iid))
+		else:
+			data = DataRegistry.get_accessory_data(str(iid))
+		var r: int = 0 if data == null else int(data.rarity)
+		var w: int = int(RARITY_DROP_WEIGHT.get(r, 1))
+		weights.append(w)
+		total += w
+	if total <= 0:
+		return str(pool[randi() % pool.size()])
+	var roll: int = randi() % total
+	var cumulative: int = 0
+	for i in pool.size():
+		cumulative += weights[i]
+		if roll < cumulative:
+			return str(pool[i])
+	return str(pool[pool.size() - 1])
 
 func _spawn_armor(armor_id: String) -> void:
 	var armor_data = load("res://resources/armors/" + armor_id + ".tres")
@@ -611,6 +645,10 @@ func _spawn_armor(armor_id: String) -> void:
 	last_armor_dropped = armor_id
 
 func _generate_accessory_loot() -> void:
+	# ダンジョン別プール（P3-D154）。未設定は従来: silver_ring のみ
+	if current_dungeon_data != null and not current_dungeon_data.accessory_pool.is_empty():
+		_spawn_accessory(_pick_rarity_weighted(current_dungeon_data.accessory_pool, "accessory"))
+		return
 	const ACCESSORY_POOL: Array[String] = ["silver_ring"]
 	_spawn_accessory(ACCESSORY_POOL[randi() % ACCESSORY_POOL.size()])
 

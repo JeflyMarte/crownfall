@@ -113,7 +113,7 @@ const _POLICY_IDS: Array = ["", "safe", "material", "relic", "codex"]
 var _tag_info_label: Label = null
 
 func _ready() -> void:
-	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.MENU)
+	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.CHARACTER)
 	_tabs.set_tab_title(0, "装備")
 	_tabs.set_tab_title(1, "スキル")
 	_tabs.set_tab_title(2, "覚醒 🔒")
@@ -256,7 +256,10 @@ func _refresh_display() -> void:
 	_update_forge_nav_dot()
 
 func _update_forge_nav_dot() -> void:
-	_nav_forge.text = "強化 ●" if BlacksmithUiHelper.has_craftable_recipes() else "強化"
+	NavUiTokens.set_bottom_nav_text(
+		_nav_forge,
+		"鍛冶屋 ●" if BlacksmithUiHelper.has_craftable_recipes() else "鍛冶屋"
+	)
 
 func _update_header() -> void:
 	_label_gold.text = "%d" % GameState.gold

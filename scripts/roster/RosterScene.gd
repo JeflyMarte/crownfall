@@ -8,8 +8,12 @@ const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
 
 const FORMATION_SLOT_COUNT: int = 4
 const FORMATION_CELL_PX: int = 132
-const ACTIVE_CARD_WIDTH: int = 158
 const GRID_COLUMNS: int = 4
+const GRID_H_SEPARATION: int = 6
+const SLOT_H_SEPARATION: int = 6
+const LEADER_BADGE_HEIGHT: int = 22
+const FOOTER_HEIGHT: int = 60
+const TOOLBAR_BTN_H: int = 38
 
 const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45)
 const COLOR_SUB: Color = Color(0.72, 0.69, 0.62)
@@ -32,10 +36,12 @@ var _sort_by_rarity: bool = true
 var _role_filter_index: int = 0
 var _formation_cells: Array[PanelContainer] = []
 
+@onready var _main_vbox: VBoxContainer = $MainScroll/MainVBox
+@onready var _main_scroll: ScrollContainer = $MainScroll
 @onready var _label_gold: Label = $Header/HeaderRow/GoldChip/GoldRow/LabelGold
 @onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
 @onready var _label_power: Label = $MainScroll/MainVBox/PowerRow/LabelPower
-@onready var _active_party_row: HBoxContainer = $MainScroll/MainVBox/ActivePartyScroll/ActivePartyRow
+@onready var _active_party_row: HBoxContainer = $MainScroll/MainVBox/ActivePartyRow
 @onready var _leader_strip: PanelContainer = $MainScroll/MainVBox/LeaderStrip
 @onready var _roster_grid: GridContainer = $MainScroll/MainVBox/RosterGrid
 @onready var _label_status: Label = $MainScroll/MainVBox/LabelStatus
@@ -48,8 +54,8 @@ func _ready() -> void:
 	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)
 	$MainScroll/MainVBox/PowerRow/ButtonRecommend.pressed.connect(_on_recommend_pressed)
 	$MainScroll/MainVBox/PowerRow/ButtonFormation.pressed.connect(_open_formation_overlay)
-	$MainScroll/MainVBox/ListHeader/ButtonSort.pressed.connect(_on_sort_pressed)
-	$MainScroll/MainVBox/ListHeader/ButtonRoleFilter.pressed.connect(_on_role_filter_pressed)
+	$MainScroll/MainVBox/ListHeader/ListHeaderButtons/ButtonSort.pressed.connect(_on_sort_pressed)
+	$MainScroll/MainVBox/ListHeader/ListHeaderButtons/ButtonRoleFilter.pressed.connect(_on_role_filter_pressed)
 	$FooterRow/ButtonReset.pressed.connect(_on_reset_pressed)
 	$FooterRow/ButtonSave.pressed.connect(_on_save_pressed)
 	$FormationOverlay/Dim.gui_input.connect(_on_formation_dim_input)
@@ -66,8 +72,124 @@ func _ready() -> void:
 	_selected = GameState.party_members.duplicate()
 	_init_formation_slots_from_party()
 	_apply_panel_styles()
+	_configure_layout()
+	_apply_typography()
+	_apply_toolbar_buttons()
 	_build_formation_grid()
 	_refresh_all()
+	call_deferred("_refresh_layout")
+
+func _refresh_layout() -> void:
+	_configure_layout()
+	_rebuild_active_party_row()
+	_rebuild_roster_grid()
+
+func _configure_layout() -> void:
+	HubLayoutHelper.apply_horizontal_insets(_main_scroll)
+	var footer_top: float = HubLayoutHelper.stack_bottom_offset(float(FOOTER_HEIGHT))
+	_main_scroll.offset_bottom = footer_top
+	var footer_row: Control = $FooterRow
+	footer_row.offset_top = footer_top
+	footer_row.offset_bottom = -NavUiTokens.BOTTOM_NAV_HEIGHT
+	footer_row.z_index = 15
+	_main_vbox.add_theme_constant_override("separation", 4)
+	_roster_grid.add_theme_constant_override("h_separation", GRID_H_SEPARATION)
+	_roster_grid.add_theme_constant_override("v_separation", GRID_H_SEPARATION)
+	_active_party_row.add_theme_constant_override("separation", SLOT_H_SEPARATION)
+	_main_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_roster_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_active_party_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_active_party_row.custom_minimum_size = Vector2(0, _active_card_min_height())
+
+func _apply_typography() -> void:
+	UiTypography.apply_display(
+		$Header/HeaderRow/LabelTitle,
+		UiTypography.SIZE_BODY_SMALL,
+		UiTypography.COLOR_GOLD
+	)
+	UiTypography.apply_body(_label_gold, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	UiTypography.apply_body(_label_token, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	UiTypography.apply_display(_label_power, UiTypography.SIZE_BODY_SMALL)
+	_label_power.clip_text = true
+	_label_power.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	UiTypography.apply_body(
+		$MainScroll/MainVBox/ListHeader/LabelListTitle,
+		UiTypography.SIZE_CAPTION
+	)
+	UiTypography.apply_menu_button($FooterRow/ButtonReset, false)
+	UiTypography.apply_menu_button($FooterRow/ButtonSave, false)
+	$FooterRow/ButtonReset.custom_minimum_size = Vector2(0, 48)
+	$FooterRow/ButtonSave.custom_minimum_size = Vector2(0, 48)
+
+func _apply_toolbar_buttons() -> void:
+	var compact := _compact_toolbar_style()
+	var specs: Array[Dictionary] = [
+		{
+			"path": "MainScroll/MainVBox/PowerRow/ButtonRecommend",
+			"min": Vector2(108, TOOLBAR_BTN_H),
+		},
+		{
+			"path": "MainScroll/MainVBox/PowerRow/ButtonFormation",
+			"min": Vector2(64, TOOLBAR_BTN_H),
+		},
+		{
+			"path": "MainScroll/MainVBox/ListHeader/ListHeaderButtons/ButtonSort",
+			"min": Vector2(0, TOOLBAR_BTN_H),
+			"expand": true,
+		},
+		{
+			"path": "MainScroll/MainVBox/ListHeader/ListHeaderButtons/ButtonRoleFilter",
+			"min": Vector2(0, TOOLBAR_BTN_H),
+			"expand": true,
+		},
+	]
+	for spec in specs:
+		var btn: Button = get_node(str(spec["path"]))
+		UiTypography.apply_menu_button(btn, false)
+		btn.add_theme_font_size_override("font_size", UiTypography.SIZE_CAPTION)
+		btn.clip_text = false
+		btn.custom_minimum_size = spec["min"]
+		btn.size_flags_horizontal = (
+			Control.SIZE_EXPAND_FILL if bool(spec.get("expand", false))
+			else Control.SIZE_SHRINK_BEGIN
+		)
+		for state in ["normal", "hover", "pressed", "disabled", "focus"]:
+			btn.add_theme_stylebox_override(state, compact)
+
+func _compact_toolbar_style() -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.1, 0.09, 0.05, 0.92)
+	style.border_color = Color(0.55, 0.45, 0.18, 0.65)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(6)
+	style.content_margin_left = 8
+	style.content_margin_right = 8
+	style.content_margin_top = 4
+	style.content_margin_bottom = 4
+	return style
+
+func _layout_content_width() -> float:
+	return HubLayoutHelper.scroll_content_width(_main_scroll)
+
+func _slot_card_width() -> int:
+	return HubLayoutHelper.column_width(
+		_layout_content_width(),
+		FORMATION_SLOT_COUNT,
+		SLOT_H_SEPARATION
+	)
+
+func _grid_cell_width() -> int:
+	return HubLayoutHelper.column_width(
+		_layout_content_width(),
+		GRID_COLUMNS,
+		GRID_H_SEPARATION
+	)
+
+func _grid_cell_height() -> int:
+	return _grid_cell_width()
+
+func _active_card_min_height() -> int:
+	return int(float(_slot_card_width()) * 1.62)
 
 func _apply_panel_styles() -> void:
 	_leader_strip.add_theme_stylebox_override(
@@ -76,6 +198,12 @@ func _apply_panel_styles() -> void:
 	$FormationOverlay/FormationPanel.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_NORMAL)
 	)
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED and is_node_ready():
+		_configure_layout()
+		_rebuild_active_party_row()
+		_rebuild_roster_grid()
 
 func _refresh_all() -> void:
 	_update_currency()
@@ -154,37 +282,36 @@ func _rebuild_active_party_row() -> void:
 
 func _make_active_party_card(slot_index: int) -> Control:
 	var member: Resource = _formation_slots[slot_index]
+	var card_w: int = _slot_card_width()
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(ACTIVE_CARD_WIDTH, 0)
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.size_flags_stretch_ratio = 1.0
 	panel.add_theme_stylebox_override(
 		"panel",
 		RosterUiHelper.card_panel_style(member != null, slot_index == 0)
 	)
 	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 4)
+	vbox.add_theme_constant_override("separation", 3)
 	panel.add_child(vbox)
-	if slot_index == 0:
-		var leader := Label.new()
-		leader.text = "リーダー"
-		leader.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		leader.add_theme_font_size_override("font_size", 11)
-		leader.add_theme_color_override("font_color", COLOR_GOLD)
-		vbox.add_child(leader)
+	vbox.add_child(_make_leader_badge_row(slot_index == 0))
 	if member == null:
 		var empty := Label.new()
 		empty.text = "空き"
 		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		empty.custom_minimum_size = Vector2(ACTIVE_CARD_WIDTH - 16, 160)
+		empty.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		empty.custom_minimum_size = Vector2(0, _active_card_min_height() - 24)
 		empty.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		empty.add_theme_color_override("font_color", COLOR_EMPTY)
+		UiTypography.apply_body(empty, UiTypography.SIZE_CAPTION, COLOR_EMPTY)
 		vbox.add_child(empty)
 		panel.gui_input.connect(_on_active_card_input.bind(slot_index))
 		return panel
 	var portrait_tex: Texture2D = RosterUiHelper.get_member_portrait_texture(member)
+	var portrait_px: int = clampi(card_w - 12, 48, 72)
 	if portrait_tex != null:
 		var portrait := TextureRect.new()
 		portrait.texture = portrait_tex
-		portrait.custom_minimum_size = Vector2(88, 88)
+		portrait.custom_minimum_size = Vector2(portrait_px, portrait_px)
 		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		portrait.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -192,21 +319,18 @@ func _make_active_party_card(slot_index: int) -> Control:
 	var name_lbl := Label.new()
 	name_lbl.text = RosterUiHelper.short_display_name(str(member.display_name))
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_lbl.add_theme_font_size_override("font_size", 14)
+	UiTypography.apply_body(name_lbl, UiTypography.SIZE_CAPTION, UiTypography.COLOR_BODY)
 	vbox.add_child(name_lbl)
 	var stars := Label.new()
 	stars.text = "%s  Lv%d" % [RosterUiHelper.stars_text(int(member.rarity)), int(member.level)]
 	stars.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	stars.add_theme_font_size_override("font_size", 12)
-	stars.add_theme_color_override("font_color", COLOR_SUB)
+	UiTypography.apply_body(stars, UiTypography.SIZE_CAPTION, COLOR_SUB)
 	vbox.add_child(stars)
-	var mods: Dictionary = JobStatCalculator.get_member_modifiers(member)
-	var role: String = str(mods.get("role", ""))
-	var role_lbl := Label.new()
-	role_lbl.text = "%s %s" % [RosterUiHelper.role_glyph(role), RosterUiHelper.role_label(role)]
-	role_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	role_lbl.add_theme_font_size_override("font_size", 12)
-	vbox.add_child(role_lbl)
+	var job_lbl := Label.new()
+	job_lbl.text = RosterUiHelper.job_display_name(member)
+	job_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_body(job_lbl, UiTypography.SIZE_CAPTION)
+	vbox.add_child(job_lbl)
 	var stats: Dictionary = RosterUiHelper.compute_member_stats(member, _party_index_for_member(member))
 	var stat_lbl := Label.new()
 	stat_lbl.text = "%s\n%s\n%s" % [
@@ -215,24 +339,35 @@ func _make_active_party_card(slot_index: int) -> Control:
 		RosterUiHelper.stat_line("HP", int(stats.get("hp", 0))),
 	]
 	stat_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	stat_lbl.add_theme_font_size_override("font_size", 11)
-	stat_lbl.add_theme_color_override("font_color", COLOR_SUB)
+	UiTypography.apply_body(stat_lbl, UiTypography.SIZE_CAPTION, COLOR_SUB)
 	vbox.add_child(stat_lbl)
 	var row_lbl := Label.new()
 	var is_back: bool = GameState.get_member_formation_row(member) == GameState.FORMATION_BACK
 	row_lbl.text = "後列" if is_back else "前列"
 	row_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	row_lbl.add_theme_font_size_override("font_size", 11)
-	row_lbl.add_theme_color_override("font_color", COLOR_BACK if is_back else COLOR_FRONT)
+	UiTypography.apply_caption(row_lbl, COLOR_BACK if is_back else COLOR_FRONT)
 	vbox.add_child(row_lbl)
 	var detail := Button.new()
 	detail.text = "詳細"
+	UiTypography.apply_menu_button(detail, false)
+	detail.add_theme_font_size_override("font_size", UiTypography.SIZE_CAPTION)
 	detail.pressed.connect(_on_detail_pressed.bind(member))
 	vbox.add_child(detail)
 	panel.gui_input.connect(_on_active_card_input.bind(slot_index))
 	if _active_pick_slot == slot_index:
 		panel.add_theme_stylebox_override("panel", _pick_style())
 	return panel
+
+func _make_leader_badge_row(is_leader: bool) -> Control:
+	var row := CenterContainer.new()
+	row.custom_minimum_size = Vector2(0, LEADER_BADGE_HEIGHT)
+	if is_leader:
+		var leader := Label.new()
+		leader.text = "リーダー"
+		leader.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		UiTypography.apply_caption(leader, COLOR_GOLD)
+		row.add_child(leader)
+	return row
 
 func _pick_style() -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
@@ -282,7 +417,7 @@ func _refresh_leader_strip() -> void:
 	_leader_strip.add_child(row)
 	var crown := Label.new()
 	crown.text = "♛"
-	crown.add_theme_font_size_override("font_size", 28)
+	crown.add_theme_font_size_override("font_size", 34)
 	crown.add_theme_color_override("font_color", COLOR_GOLD)
 	crown.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	row.add_child(crown)
@@ -294,14 +429,12 @@ func _refresh_leader_strip() -> void:
 	if leader == null:
 		var empty_title := Label.new()
 		empty_title.text = "リーダー未設定"
-		empty_title.add_theme_font_size_override("font_size", 14)
-		empty_title.add_theme_color_override("font_color", COLOR_GOLD)
+		UiTypography.apply_body(empty_title, UiTypography.SIZE_CAPTION, COLOR_GOLD)
 		info.add_child(empty_title)
 		var empty_desc := Label.new()
 		empty_desc.text = "編成の先頭スロットにキャラを配置してください。"
 		empty_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		empty_desc.add_theme_font_size_override("font_size", 12)
-		empty_desc.add_theme_color_override("font_color", COLOR_SUB)
+		UiTypography.apply_body(empty_desc, UiTypography.SIZE_CAPTION, COLOR_SUB)
 		info.add_child(empty_desc)
 		return
 	var skill: Dictionary = RosterUiHelper.leader_skill_display(leader)
@@ -310,21 +443,13 @@ func _refresh_leader_strip() -> void:
 		RosterUiHelper.short_display_name(str(leader.display_name)),
 		str(skill.get("name", "—")),
 	]
-	title.add_theme_font_size_override("font_size", 14)
-	title.add_theme_color_override("font_color", COLOR_GOLD)
+	UiTypography.apply_body(title, UiTypography.SIZE_CAPTION, COLOR_GOLD)
 	info.add_child(title)
 	var desc := Label.new()
 	desc.text = str(skill.get("description", ""))
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc.add_theme_font_size_override("font_size", 12)
-	desc.add_theme_color_override("font_color", COLOR_SUB)
+	UiTypography.apply_body(desc, UiTypography.SIZE_CAPTION, COLOR_SUB)
 	info.add_child(desc)
-	var hint := Label.new()
-	hint.text = "※戦闘効果はパッシブとして既存配線。先頭スロット入替でリーダー変更。"
-	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	hint.add_theme_font_size_override("font_size", 10)
-	hint.add_theme_color_override("font_color", Color(0.5, 0.48, 0.42))
-	info.add_child(hint)
 
 func _rebuild_roster_grid() -> void:
 	for child in _roster_grid.get_children():
@@ -351,7 +476,7 @@ func _passes_role_filter(adv: Resource) -> bool:
 func _on_role_filter_pressed() -> void:
 	_role_filter_index = (_role_filter_index + 1) % _ROLE_FILTER_ORDER.size()
 	var filter_id: String = _ROLE_FILTER_ORDER[_role_filter_index]
-	$MainScroll/MainVBox/ListHeader/ButtonRoleFilter.text = str(
+	$MainScroll/MainVBox/ListHeader/ListHeaderButtons/ButtonRoleFilter.text = str(
 		RosterUiHelper.ROLE_FILTER_LABELS.get(filter_id, filter_id)
 	)
 	_rebuild_roster_grid()
@@ -371,71 +496,78 @@ func _sort_roster_cmp(a: Resource, b: Resource) -> bool:
 
 func _make_roster_grid_card(adv: Resource) -> Control:
 	var in_party: bool = _selected.has(adv)
+	var cell_h: int = _grid_cell_height()
 	var wrapper := PanelContainer.new()
-	wrapper.custom_minimum_size = Vector2(78, 118)
+	wrapper.custom_minimum_size = Vector2(0, cell_h)
+	wrapper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	wrapper.add_theme_stylebox_override("panel", RosterUiHelper.card_panel_style(in_party, false))
+	if in_party:
+		wrapper.modulate = Color(0.42, 0.42, 0.42, 1.0)
 	var btn := Button.new()
 	btn.flat = true
-	btn.set_anchors_preset(Control.PRESET_FULL_RECT)
+	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	btn.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	btn.custom_minimum_size = Vector2(0, cell_h)
 	btn.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
 	btn.add_theme_stylebox_override("hover", StyleBoxEmpty.new())
 	btn.add_theme_stylebox_override("pressed", StyleBoxEmpty.new())
 	btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	btn.pressed.connect(_toggle_selection.bind(adv))
 	wrapper.add_child(btn)
+	var margin := MarginContainer.new()
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 4)
+	margin.add_theme_constant_override("margin_top", 4)
+	margin.add_theme_constant_override("margin_right", 4)
+	margin.add_theme_constant_override("margin_bottom", 4)
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	btn.add_child(margin)
 	var vbox := VBoxContainer.new()
-	vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
-	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_theme_constant_override("separation", 2)
+	vbox.add_theme_constant_override("separation", 0)
+	vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	btn.add_child(vbox)
+	margin.add_child(vbox)
 	var tex: Texture2D = RosterUiHelper.get_member_portrait_texture(adv)
+	var icon_area := Control.new()
+	icon_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	icon_area.custom_minimum_size = Vector2(0, cell_h - 34)
+	icon_area.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.add_child(icon_area)
 	if tex != null:
 		var icon := TextureRect.new()
 		icon.texture = tex
-		icon.custom_minimum_size = Vector2(52, 52)
+		icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		if in_party:
-			icon.modulate = Color(1, 1, 1, 0.78)
-		vbox.add_child(icon)
-	var name_lbl := Label.new()
-	name_lbl.text = RosterUiHelper.short_display_name(str(adv.display_name))
-	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_lbl.add_theme_font_size_override("font_size", 10)
-	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vbox.add_child(name_lbl)
-	var mods: Dictionary = JobStatCalculator.get_member_modifiers(adv)
-	var role: String = str(mods.get("role", ""))
-	var role_lbl := Label.new()
-	role_lbl.text = "%s %s" % [RosterUiHelper.role_glyph(role), RosterUiHelper.role_label(role)]
-	role_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	role_lbl.add_theme_font_size_override("font_size", 10)
-	role_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vbox.add_child(role_lbl)
+		icon_area.add_child(icon)
+	var bottom_bar := PanelContainer.new()
+	bottom_bar.custom_minimum_size = Vector2(0, 24)
+	bottom_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var bar_style := StyleBoxFlat.new()
+	bar_style.bg_color = Color(0.04, 0.03, 0.02, 0.82)
+	bar_style.content_margin_left = 4
+	bar_style.content_margin_top = 1
+	bar_style.content_margin_right = 4
+	bar_style.content_margin_bottom = 1
+	bottom_bar.add_theme_stylebox_override("panel", bar_style)
+	vbox.add_child(bottom_bar)
+	var info_row := HBoxContainer.new()
+	info_row.add_theme_constant_override("separation", 4)
+	info_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bottom_bar.add_child(info_row)
 	var lv_lbl := Label.new()
-	lv_lbl.text = "Lv%d" % int(adv.level)
-	lv_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lv_lbl.add_theme_font_size_override("font_size", 10)
+	lv_lbl.text = "Lv.%d" % int(adv.level)
+	lv_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_caption(lv_lbl)
 	lv_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vbox.add_child(lv_lbl)
+	info_row.add_child(lv_lbl)
 	var star_lbl := Label.new()
 	star_lbl.text = RosterUiHelper.stars_text(int(adv.rarity))
-	star_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	star_lbl.add_theme_font_size_override("font_size", 9)
-	star_lbl.add_theme_color_override("font_color", COLOR_GOLD)
+	star_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	UiTypography.apply_caption(star_lbl, COLOR_GOLD)
 	star_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vbox.add_child(star_lbl)
-	if in_party:
-		var badge := Label.new()
-		badge.text = "編成中"
-		badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		badge.add_theme_font_size_override("font_size", 9)
-		badge.add_theme_color_override("font_color", COLOR_GOLD)
-		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		vbox.add_child(badge)
+	info_row.add_child(star_lbl)
 	return wrapper
 
 func _toggle_selection(adv: Resource) -> void:
@@ -483,7 +615,7 @@ func _on_reset_pressed() -> void:
 
 func _on_sort_pressed() -> void:
 	_sort_by_rarity = not _sort_by_rarity
-	$MainScroll/MainVBox/ListHeader/ButtonSort.text = "レアリティ順" if _sort_by_rarity else "レベル順"
+	$MainScroll/MainVBox/ListHeader/ListHeaderButtons/ButtonSort.text = "レアリティ順" if _sort_by_rarity else "レベル順"
 	_rebuild_roster_grid()
 
 func _on_save_pressed() -> void:
