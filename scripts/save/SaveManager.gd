@@ -2,8 +2,15 @@ extends Node
 
 const SAVE_PATH: String = "user://save_data.json"
 
+## セーブスキーマバージョン。構造変更時にインクリメントし、
+## `_migrate_save_data` に v(n)→v(n+1) の段階マイグレーションを追加する。
+## v0 = バージョンフィールド無しの旧セーブ（レガシー party/equipment/job/dungeon id を含む）
+## v1 = save_version フィールド導入（2026-07-02）
+const SAVE_VERSION: int = 1
+
 func save_game() -> void:
 	var data: Dictionary = {
+		"save_version": SAVE_VERSION,
 		"gold": GameState.gold,
 		"roster": _serialize_roster(),
 		"active_party_ids": _serialize_active_party_ids(),
@@ -39,8 +46,18 @@ func load_game() -> void:
 	var result = JSON.parse_string(text)
 	if not result is Dictionary:
 		return
-	_apply_save_data(result)
+	_apply_save_data(_migrate_save_data(result))
 	DailyMissionSystem.ensure_refreshed()
+
+## 段階マイグレーション。v0（バージョン無し）の互換吸収は _apply_save_data 内の
+## 既存レガシー処理（party キー / equipment / _migrate_job_id / _migrate_dungeon_id）が担う。
+## 以後の構造変更は「if version < N: 変換」を本関数へ追記する。
+func _migrate_save_data(data: Dictionary) -> Dictionary:
+	var version: int = int(data.get("save_version", 0))
+	if version > SAVE_VERSION:
+		push_warning("SaveManager: save_version %d is newer than supported %d — loading best-effort" % [version, SAVE_VERSION])
+	data["save_version"] = SAVE_VERSION
+	return data
 
 func _serialize_enemy_codex() -> Dictionary:
 	var out: Dictionary = {}
