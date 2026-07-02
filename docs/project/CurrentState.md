@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-03（**P3-D157 ダンジョン解放条件**: メインは難易度順の直列解放（`GameState.is_dungeon_unlocked`・①常時→②は①クリア→③は②クリア）。サブルートは `DungeonData.unlock_after_dungeon_id` で個別指定（空=常時）。切替UIの未解放は🔒 disabled・未解放選択時はフォールバック。unit 47 PASS・smoke PASS）
+
 2026-07-03（**P3-BAL-008 / P3-D158 ダメージ±乱数**: 最終ダメージ×[0.9,1.1] 一様乱数（`BalanceConfig.DAMAGE_VARIANCE=0.10`）。適用は中央2箇所のみ（味方→敵=`enemy_mitigation` 最終段・敵→味方=`enemy_damage_to_member` 最終段・rng注入可）。再検証: ①Lv3=72%/②Lv12=74%/③Lv22=80% で3ダンジョン目標帯維持。Known Issue「ブレークポイント体質」解消。unit 43 PASS・smoke PASS）
 
 2026-07-03（**P3-BETA-002 / P3-D156 ③ ミストフェン一式**: 敵6体（モルドガル3フェーズ＋専用スキル2種・大爪刀断頭刃・雑魚共用沼毒=敵スキル+4）・mistfen.tres（推奨Lv22/敵Lv20/thunder有利/difficulty=3）・装備20点（★2=ヴォルグレイヴ雷剣/セラディオン雷杖・雷武器=static_strike・アイコン流用placeholder）・③専用ドロッププール・切替UIは自動追従。ハーネス検証（想定装備 ATK23/DEF15/HP29）: Lv19=50%/Lv22=77.7%/Lv27=93%。unit 40 PASS・smoke PASS。**残**: ③敵/装備の本番アート、実機確認）
@@ -207,7 +209,7 @@
 | **1** | **P3-BETA-003/004** | ④沈没航路ブラックショア・⑤最果て氷裂フロストリッジ 一式 | HQ+Impl | **次** |
 | — | P3-GACHA-006 | ★3/★4 職固有パッシブ（P3-D155-3） | Impl | ✅ **Closeout** |
 | 2 | P3-BAL-007 | ① 装備数量補充（防具+3/装飾+2 で各難易度クォータ充足） | Impl | 未着手 |
-| 3 | P3-D157 候補 | ダンジョン解放条件（①クリア→②解放 等） | HQ+オーナー | Decision 待ち |
+| — | P3-D157 | ダンジョン解放条件（①クリア→②解放 等） | Impl | ✅ **Closeout** |
 | — | P3-D158 | ダメージ±乱数（ブレークポイント緩和・P3-D153-4） | Impl | ✅ **Closeout（P3-BAL-008）** |
 | — | P3-DAILY-B | 日課 UI polish | Impl | 任意 |
 | — | P3-UI2-026 | 召喚 SE/パーティクル | Impl | Defer（音源なし） |

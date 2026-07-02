@@ -159,8 +159,12 @@ func _refresh_featured() -> void:
 
 func _resolve_featured_dungeon_id() -> String:
 	var active_id: String = GameState.get_active_dungeon_id()
-	if DataRegistry.get_dungeon_data(active_id) != null:
+	if DataRegistry.get_dungeon_data(active_id) != null and GameState.is_dungeon_unlocked(active_id):
 		return active_id
+	# 未解放/不明を指していたら解放済みの先頭メインへフォールバック（P3-D157）。
+	for data in DataRegistry.get_all_dungeon_data():
+		if data != null and GameState.is_dungeon_unlocked(str(data.id)):
+			return str(data.id)
 	for data in DataRegistry.get_all_dungeon_data():
 		if data != null:
 			return str(data.id)
@@ -304,13 +308,20 @@ func _append_dungeon_switcher() -> void:
 	for d in mains:
 		var did: String = str(d.id)
 		var btn := Button.new()
-		btn.text = str(d.display_name)
 		btn.custom_minimum_size = Vector2(0, 36)
-		UiTypography.apply_button(btn, did != _featured_dungeon_id)
-		if did == _featured_dungeon_id:
+		# 解放条件（P3-D157）: 未解放はロック表示・選択不可。
+		if not GameState.is_dungeon_unlocked(did):
+			btn.text = "🔒 %s" % str(d.display_name)
 			btn.disabled = true
+			btn.tooltip_text = "前のダンジョンをクリアで解放"
+			UiTypography.apply_button(btn, false)
 		else:
-			btn.pressed.connect(_on_switch_dungeon.bind(did))
+			btn.text = str(d.display_name)
+			UiTypography.apply_button(btn, did != _featured_dungeon_id)
+			if did == _featured_dungeon_id:
+				btn.disabled = true
+			else:
+				btn.pressed.connect(_on_switch_dungeon.bind(did))
 		row.add_child(btn)
 	_list.add_child(row)
 

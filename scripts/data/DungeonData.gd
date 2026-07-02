@@ -34,3 +34,6 @@ extends Resource
 @export var weapon_pool: Array[String] = []
 @export var armor_pool: Array[String] = []
 @export var accessory_pool: Array[String] = []
+## 解放条件（P3-D157）。メインルートは難易度順の直列解放（このフィールド不使用）。
+## サブルート等はここに指定したダンジョンのクリアで解放（空＝常時解放）。
+@export var unlock_after_dungeon_id: String = ""

@@ -133,6 +133,30 @@ func is_dungeon_cleared(dungeon_id: String) -> bool:
 	var progress: Dictionary = dungeon_progress.get(dungeon_id, {})
 	return bool(progress.get("cleared", false))
 
+# ダンジョン解放判定（P3-D157）。メインルートは難易度順の直列解放
+# （difficulty=1 は常時解放・以降は直前難易度のメインをクリアで解放）。
+# メイン以外（サブルート等）は当面 unlock_after_dungeon_id（空=常時解放）で判定する。
+func is_dungeon_unlocked(dungeon_id: String) -> bool:
+	if dungeon_id.is_empty() or not ResourceLoader.exists(Constants.RESOURCE_DUNGEONS_PATH + dungeon_id + ".tres"):
+		return false
+	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
+	if data == null:
+		return false
+	if str(data.route_type) != "main":
+		var req: String = str(data.unlock_after_dungeon_id) if "unlock_after_dungeon_id" in data else ""
+		return req.is_empty() or is_dungeon_cleared(req)
+	var mains: Array = []
+	for d in DataRegistry.get_all_dungeon_data():
+		if d != null and str(d.route_type) == "main":
+			mains.append(d)
+	mains.sort_custom(func(a, b): return int(a.difficulty) < int(b.difficulty))
+	var prev_id: String = ""
+	for d in mains:
+		if str(d.id) == dungeon_id:
+			return prev_id.is_empty() or is_dungeon_cleared(prev_id)
+		prev_id = str(d.id)
+	return false
+
 func get_member(member_index: int) -> Resource:
 	if member_index < 0 or member_index >= party_members.size():
 		return null
