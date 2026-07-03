@@ -37,6 +37,7 @@ var _summon_can_dismiss: bool = false
 var _summon_tween: Tween = null
 
 func _ready() -> void:
+	UiTypography.apply_screen_title($Header/HeaderRow/LabelTitle)
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.GACHA)
 	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)
 	_button_pull.pressed.connect(_on_pull_pressed)

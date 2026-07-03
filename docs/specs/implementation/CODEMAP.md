@@ -139,6 +139,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `tests/unit/test_run_modifiers.gd` | ラン補正カウンタ（Result「効いた戦闘要素」— P3-UX-001） |
 | `tools/run_tests.sh` | headless GUT 実行（バイナリ検出は `smoke_test.sh` と同一・exit code 伝播） |
 | `tools/smoke_test.sh` | 既存受理ゲート（import + 120frame 起動） |
+| `tools/ui_audit.gd` | **UI 監査**（P3-UI3-001）。実レンダリングでハブ7画面を順にロードしスクショ保存（`user://ui_audit/`）。ヘッドレス不可 |
 | `tools/balance_sim.sh` / `tools/balance_sim.gd` | **バランスシミュレーションハーネス v2**（P3-BAL-005/006）。実データで N ラン一括シミュ→勝率/全滅箇所/TTK/与ダメ内訳。通常攻撃＋装備スキル①②（damage/heal・CD準拠）。`--runs= --dungeon= --party-level= --sweep --enemy-scale= --boss-scale= --hp-per-level= --atk-per-level= --gear-atk= --gear-def= --gear-hp=` |
 | `.github/workflows/ci.yml` | GitHub Actions: Godot 4.6.3 linux headless で `smoke_test.sh` → `run_tests.sh` |
 
@@ -224,6 +225,22 @@ Task 明示指示がない限り作成しない:
 | `assets/ui/batch2/ICO_Currency_Arcanite.png` | 魔晶石（ガチャ通貨）アイコン 64×64 | ✅ |
 | `assets/ui/batch2/ICO_HP.png` | HP アイコン 32×32 | ✅ |
 | `assets/ui/batch2/ICO_MAT_RelicShard.png` | 素材アイコン 64×64 | ✅ |
+| `assets/ui/nav/ICO_NAV_*.png` | 下ナビ/サイドメニュー金アイコン 128×128 ×8（Home/Adventure/Character/Party/Forge/Gacha/Codex/Settings — P3-UI3-001 で AI 生成・ソース復旧） | ✅ |
+| `assets/ui/UI_BG_Forge.png` | 鍛冶屋背景 720×1280（P3-UI3-001） | ✅ |
+| `assets/ui/UI_BG_Summon.png` | 召喚所背景 720×1280（P3-UI3-001） | ✅ |
+| `assets/ui/UI_BG_Codex.png` | 図鑑背景 720×1280（P3-UI3-001） | ✅ |
+
+### assets/fonts/
+
+| パス | 内容 |
+|---|---|
+| `NotoSansJP-VariableFont_wght.ttf` | 本文フォント（wght=600 variation） |
+| `ShipporiMinchoB1-Bold.ttf` | 見出し・タイトル（OFL、`ShipporiMinchoB1-OFL.txt` 同梱 — P3-UI3-001） |
+| `DelaGothicOne-Regular.ttf` | 戦闘数字・強調（`UiTypography.impact_font()`） |
+
+### assets/dungeon/（サムネイル — P3-UI3-001）
+
+`whisperwood/ICO_DG_Whisperwood.png`・`mistfen/ICO_DG_Mistfen.png`・`broken_marsh/ICO_DG_BrokenMarsh.png`・`blackshore/ICO_DG_Blackshore.png`・`frostridge/ICO_DG_Frostridge.png`（各 1024×1024・IconPaths `dungeon:` 登録済）
 
 ### assets/dungeon/royal_ruins/
 

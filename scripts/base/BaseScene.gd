@@ -66,6 +66,9 @@ func _decorate_panels() -> void:
 	$HubView/DailyMissionPanel.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
 	)
+	$HubView/CurrencyStrip.add_theme_stylebox_override(
+		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
+	)
 	$HubView/TopBar/TopBarRow/PlayerCard/PlayerRow/PortraitFrame.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_NORMAL)
 	)
@@ -117,6 +120,47 @@ func _is_dungeon_available(dungeon_id: String) -> bool:
 func _update_display() -> void:
 	_update_currency()
 	_update_player_card()
+	_populate_currency_strip()
+
+## ホーム中段のリソース帯（モックの5列ステータス行 / P3-UI3-001）。
+## 空パネルのまま表示されていた CurrencyStrip を実データで埋める。
+func _populate_currency_strip() -> void:
+	var row: HBoxContainer = $HubView/CurrencyStrip/CurrencyRow
+	for child in row.get_children():
+		child.queue_free()
+	var cleared: int = 0
+	var total_dungeons: int = 0
+	for d in DataRegistry.get_all_dungeon_data():
+		if d == null:
+			continue
+		total_dungeons += 1
+		if GameState.is_dungeon_cleared(str(d.id)):
+			cleared += 1
+	var stats: Array = [
+		["%d" % GameState.gold, "ゴールド"],
+		[CurrencyHelper.format_amount(), CurrencyHelper.DISPLAY_NAME],
+		["%d人" % GameState.roster.size(), "冒険者"],
+		["%d/%d" % [cleared, total_dungeons], "踏破"],
+		["%d" % GameState.discovery_registry.size(), "発見"],
+	]
+	for pair in stats:
+		var col := VBoxContainer.new()
+		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		col.alignment = BoxContainer.ALIGNMENT_CENTER
+		var value := Label.new()
+		value.text = str(pair[0])
+		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		value.clip_text = true
+		value.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		UiTypography.apply_body(value, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+		col.add_child(value)
+		var caption := Label.new()
+		caption.text = str(pair[1])
+		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		caption.clip_text = true
+		UiTypography.apply_caption(caption)
+		col.add_child(caption)
+		row.add_child(col)
 
 func _update_currency() -> void:
 	_label_gold.text = "%d" % GameState.gold

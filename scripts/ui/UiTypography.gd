@@ -1,10 +1,17 @@
 class_name UiTypography
 extends RefCounted
 
-## 二層フォント（P3-UI-TYPE-001）— 本文 Noto Sans JP / 見出し・戦闘 DelaGothicOne。
+## 三層フォント（P3-UI-TYPE-001 / P3-UI3-001）
+## — 本文 Noto Sans JP / 見出し・タイトル Shippori Mincho B1（金セリフ・モック準拠）
+## / 戦闘・数字インパクト DelaGothicOne。
 
 const BODY_FONT_PATH: String = "res://assets/fonts/NotoSansJP-VariableFont_wght.ttf"
-const DISPLAY_FONT_PATH: String = "res://assets/fonts/DelaGothicOne-Regular.ttf"
+const DISPLAY_FONT_PATH: String = "res://assets/fonts/ShipporiMinchoB1-Bold.ttf"
+const IMPACT_FONT_PATH: String = "res://assets/fonts/DelaGothicOne-Regular.ttf"
+
+## 画面タイトルの飾り（モックの「✦〜✦」金飾 / P3-UI3-001）。
+const TITLE_ORNAMENT_LEFT: String = "✦ "
+const TITLE_ORNAMENT_RIGHT: String = " ✦"
 
 const SIZE_BODY: int = 26
 const SIZE_BODY_SMALL: int = 22
@@ -29,6 +36,7 @@ const OUTLINE_STRONG: int = 5
 
 static var _body_font: Font
 static var _display_font: Font
+static var _impact_font: Font
 
 static func body_font() -> Font:
 	if _body_font == null and ResourceLoader.exists(BODY_FONT_PATH):
@@ -43,10 +51,29 @@ static func body_font() -> Font:
 static func display_font() -> Font:
 	if _display_font == null and ResourceLoader.exists(DISPLAY_FONT_PATH):
 		_display_font = load(DISPLAY_FONT_PATH) as Font
+	if _display_font == null:
+		return impact_font()
 	return _display_font
+
+## 戦闘ダメージ数字・強調用（旧 display）。
+static func impact_font() -> Font:
+	if _impact_font == null and ResourceLoader.exists(IMPACT_FONT_PATH):
+		_impact_font = load(IMPACT_FONT_PATH) as Font
+	return _impact_font
 
 static func menu_font() -> Font:
 	return display_font()
+
+## 画面タイトル用の「✦ 〜 ✦」金飾（多重適用は防止）。
+static func decorate_title_text(text: String) -> String:
+	if text.begins_with(TITLE_ORNAMENT_LEFT):
+		return text
+	return TITLE_ORNAMENT_LEFT + text + TITLE_ORNAMENT_RIGHT
+
+## 画面ヘッダーのタイトルへ 金セリフ＋✦飾り を一括適用（P3-UI3-001）。
+static func apply_screen_title(label: Label, size: int = SIZE_DISPLAY) -> void:
+	label.text = decorate_title_text(label.text)
+	apply_display(label, size, COLOR_GOLD)
 
 static func _apply_outline(node: Control, outline_size: int) -> void:
 	if outline_size <= 0:

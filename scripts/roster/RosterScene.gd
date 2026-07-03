@@ -41,7 +41,7 @@ var _formation_cells: Array[PanelContainer] = []
 @onready var _label_gold: Label = $Header/HeaderRow/GoldChip/GoldRow/LabelGold
 @onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
 @onready var _label_power: Label = $MainScroll/MainVBox/PowerRow/LabelPower
-@onready var _active_party_row: HBoxContainer = $MainScroll/MainVBox/ActivePartyRow
+@onready var _active_party_row: HBoxContainer = $MainScroll/MainVBox/ActivePartyScroll/ActivePartyRow
 @onready var _leader_strip: PanelContainer = $MainScroll/MainVBox/LeaderStrip
 @onready var _roster_grid: GridContainer = $MainScroll/MainVBox/RosterGrid
 @onready var _label_status: Label = $MainScroll/MainVBox/LabelStatus
@@ -54,8 +54,8 @@ func _ready() -> void:
 	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)
 	$MainScroll/MainVBox/PowerRow/ButtonRecommend.pressed.connect(_on_recommend_pressed)
 	$MainScroll/MainVBox/PowerRow/ButtonFormation.pressed.connect(_open_formation_overlay)
-	$MainScroll/MainVBox/ListHeader/ListHeaderButtons/ButtonSort.pressed.connect(_on_sort_pressed)
-	$MainScroll/MainVBox/ListHeader/ListHeaderButtons/ButtonRoleFilter.pressed.connect(_on_role_filter_pressed)
+	$MainScroll/MainVBox/ListHeader/ButtonSort.pressed.connect(_on_sort_pressed)
+	$MainScroll/MainVBox/ListHeader/ButtonRoleFilter.pressed.connect(_on_role_filter_pressed)
 	$FooterRow/ButtonReset.pressed.connect(_on_reset_pressed)
 	$FooterRow/ButtonSave.pressed.connect(_on_save_pressed)
 	$FormationOverlay/Dim.gui_input.connect(_on_formation_dim_input)
@@ -86,11 +86,13 @@ func _refresh_layout() -> void:
 
 func _configure_layout() -> void:
 	HubLayoutHelper.apply_horizontal_insets(_main_scroll)
-	var footer_top: float = HubLayoutHelper.stack_bottom_offset(float(FOOTER_HEIGHT))
+	# 実測ナビ高（パネル余白込み）でフッターを配置し、下ナビとの重なりを防ぐ（P3-UI3-001）
+	var nav_h: float = maxf(NavUiTokens.BOTTOM_NAV_HEIGHT, $BottomNav.size.y) + 8.0
+	var footer_top: float = -(nav_h + float(FOOTER_HEIGHT))
 	_main_scroll.offset_bottom = footer_top
 	var footer_row: Control = $FooterRow
 	footer_row.offset_top = footer_top
-	footer_row.offset_bottom = -NavUiTokens.BOTTOM_NAV_HEIGHT
+	footer_row.offset_bottom = -nav_h
 	footer_row.z_index = 15
 	_main_vbox.add_theme_constant_override("separation", 4)
 	_roster_grid.add_theme_constant_override("h_separation", GRID_H_SEPARATION)
@@ -102,11 +104,7 @@ func _configure_layout() -> void:
 	_active_party_row.custom_minimum_size = Vector2(0, _active_card_min_height())
 
 func _apply_typography() -> void:
-	UiTypography.apply_display(
-		$Header/HeaderRow/LabelTitle,
-		UiTypography.SIZE_BODY_SMALL,
-		UiTypography.COLOR_GOLD
-	)
+	UiTypography.apply_screen_title($Header/HeaderRow/LabelTitle, UiTypography.SIZE_BODY_SMALL)
 	UiTypography.apply_body(_label_gold, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_body(_label_token, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_display(_label_power, UiTypography.SIZE_BODY_SMALL)
@@ -133,12 +131,12 @@ func _apply_toolbar_buttons() -> void:
 			"min": Vector2(64, TOOLBAR_BTN_H),
 		},
 		{
-			"path": "MainScroll/MainVBox/ListHeader/ListHeaderButtons/ButtonSort",
+			"path": "MainScroll/MainVBox/ListHeader/ButtonSort",
 			"min": Vector2(0, TOOLBAR_BTN_H),
 			"expand": true,
 		},
 		{
-			"path": "MainScroll/MainVBox/ListHeader/ListHeaderButtons/ButtonRoleFilter",
+			"path": "MainScroll/MainVBox/ListHeader/ButtonRoleFilter",
 			"min": Vector2(0, TOOLBAR_BTN_H),
 			"expand": true,
 		},
@@ -476,7 +474,7 @@ func _passes_role_filter(adv: Resource) -> bool:
 func _on_role_filter_pressed() -> void:
 	_role_filter_index = (_role_filter_index + 1) % _ROLE_FILTER_ORDER.size()
 	var filter_id: String = _ROLE_FILTER_ORDER[_role_filter_index]
-	$MainScroll/MainVBox/ListHeader/ListHeaderButtons/ButtonRoleFilter.text = str(
+	$MainScroll/MainVBox/ListHeader/ButtonRoleFilter.text = str(
 		RosterUiHelper.ROLE_FILTER_LABELS.get(filter_id, filter_id)
 	)
 	_rebuild_roster_grid()
@@ -615,7 +613,7 @@ func _on_reset_pressed() -> void:
 
 func _on_sort_pressed() -> void:
 	_sort_by_rarity = not _sort_by_rarity
-	$MainScroll/MainVBox/ListHeader/ListHeaderButtons/ButtonSort.text = "レアリティ順" if _sort_by_rarity else "レベル順"
+	$MainScroll/MainVBox/ListHeader/ButtonSort.text = "レアリティ順" if _sort_by_rarity else "レベル順"
 	_rebuild_roster_grid()
 
 func _on_save_pressed() -> void:

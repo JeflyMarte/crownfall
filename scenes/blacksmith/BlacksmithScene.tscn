@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/blacksmith/BlacksmithScene.gd" id="1"]
 [ext_resource type="Theme" path="res://assets/ui/production_theme.tres" id="2"]
-[ext_resource type="Texture2D" path="res://assets/ui/batch1/UI_BG_Dark.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/ui/UI_BG_Forge.png" id="3"]
 [ext_resource type="Texture2D" path="res://assets/ui/batch2/ICO_Gold.png" id="4"]
 [ext_resource type="Texture2D" path="res://assets/ui/batch2/ICO_Currency_Arcanite.png" id="5"]
 
@@ -137,8 +137,8 @@ text = "0"
 [node name="ModeTabs" type="HBoxContainer" parent="."]
 layout_mode = 1
 anchor_right = 1.0
-offset_top = 50.0
-offset_bottom = 84.0
+offset_top = 54.0
+offset_bottom = 100.0
 grow_horizontal = 2
 theme_override_constants/separation = 6
 
@@ -164,8 +164,8 @@ text = "分解 🔒"
 [node name="CategoryRow" type="HBoxContainer" parent="."]
 layout_mode = 1
 anchor_right = 1.0
-offset_top = 88.0
-offset_bottom = 122.0
+offset_top = 106.0
+offset_bottom = 152.0
 grow_horizontal = 2
 theme_override_constants/separation = 6
 
@@ -193,9 +193,9 @@ layout_mode = 1
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 8.0
-offset_top = 128.0
+offset_top = 160.0
 offset_right = -8.0
-offset_bottom = -120.0
+offset_bottom = -152.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 8
@@ -226,9 +226,9 @@ layout_mode = 1
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 8.0
-offset_top = -116.0
+offset_top = -148.0
 offset_right = -8.0
-offset_bottom = -56.0
+offset_bottom = -88.0
 grow_horizontal = 2
 theme_override_constants/separation = 4
 

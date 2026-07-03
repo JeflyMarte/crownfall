@@ -60,6 +60,7 @@ var _entry_rows: Array = []
 @onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
 
 func _ready() -> void:
+	UiTypography.apply_screen_title($Header/HeaderRow/LabelTitle)
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.CODEX)
 	_decorate_static()
 	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)

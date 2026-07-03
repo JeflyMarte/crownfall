@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/codex/CodexScene.gd" id="1"]
 [ext_resource type="Theme" path="res://assets/ui/production_theme.tres" id="2"]
-[ext_resource type="Texture2D" path="res://assets/ui/batch1/UI_BG_Dark.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/ui/UI_BG_Codex.png" id="3"]
 [ext_resource type="Texture2D" path="res://assets/ui/batch2/ICO_Gold.png" id="4"]
 [ext_resource type="Texture2D" path="res://assets/ui/batch2/ICO_Currency_Arcanite.png" id="5"]
 
@@ -139,7 +139,7 @@ layout_mode = 1
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_top = 46.0
-offset_bottom = -52.0
+offset_bottom = -84.0
 grow_horizontal = 2
 grow_vertical = 2
 horizontal_scroll_mode = 0
@@ -189,7 +189,7 @@ text = "─── 一覧 ───"
 horizontal_alignment = 1
 
 [node name="EntryListScroll" type="ScrollContainer" parent="MainScroll/MainVBox"]
-custom_minimum_size = Vector2(0, 200)
+custom_minimum_size = Vector2(0, 214)
 layout_mode = 2
 horizontal_scroll_mode = 0
 

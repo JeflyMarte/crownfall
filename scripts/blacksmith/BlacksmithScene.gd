@@ -40,6 +40,7 @@ var _selected_craft: Resource = null
 var _selected_weapon: Resource = null
 
 func _ready() -> void:
+	UiTypography.apply_screen_title($Header/HeaderRow/LabelTitle)
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.FORGE)
 	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)
 	_btn_produce.pressed.connect(func(): _set_mode("produce"))

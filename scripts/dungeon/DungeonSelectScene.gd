@@ -85,6 +85,7 @@ const DROP_PREVIEW: Dictionary = {
 var _featured_dungeon_id: String = ""
 
 func _ready() -> void:
+	UiTypography.apply_screen_title($Header/HeaderRow/LabelTitle)
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.ADVENTURE)
 	_btn_back.pressed.connect(_go_home)
 	_btn_featured_challenge.pressed.connect(_on_featured_challenge_pressed)
@@ -325,9 +326,12 @@ func _append_dungeon_switcher() -> void:
 	var by_difficulty := func(a, b): return int(a.difficulty) < int(b.difficulty)
 	mains.sort_custom(by_difficulty)
 	sides.sort_custom(by_difficulty)
-	var row := HBoxContainer.new()
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 8)
+	# HFlowContainer で折返し（6ダンジョンで横幅がビューポートを超えリスト全体を
+	# 押し広げていたはみ出しの修正 / P3-UI3-001）。
+	var row := HFlowContainer.new()
+	row.alignment = FlowContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("h_separation", 8)
+	row.add_theme_constant_override("v_separation", 6)
 	for d in mains + sides:
 		var did: String = str(d.id)
 		var is_side: bool = str(d.route_type) == "side"

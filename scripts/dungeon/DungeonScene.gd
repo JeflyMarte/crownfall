@@ -1,6 +1,6 @@
 extends Control
 
-# 戦闘演出用アクセントフォントは UiTypography.display_font() に統一（P3-UI-TYPE-001）。
+# 戦闘演出用アクセントフォントは UiTypography.impact_font() に統一（P3-UI-TYPE-001）。
 
 # ダメージ計算のグローバル倍率は BalanceConfig に集約（P3-BAL-005）。
 const CRITICAL_MULTIPLIER: float = BalanceConfig.CRITICAL_MULTIPLIER
@@ -2098,7 +2098,7 @@ func _spawn_enemy_skill_name(skill_name: String) -> void:
 	const ENEMY_SKILL_FONT_SIZE: int = 26
 	var lbl := Label.new()
 	lbl.text = skill_name
-	var af: Font = UiTypography.display_font()
+	var af: Font = UiTypography.impact_font()
 	if af != null:
 		lbl.add_theme_font_override("font", af)
 	lbl.add_theme_font_size_override("font_size", ENEMY_SKILL_FONT_SIZE)
@@ -2140,7 +2140,7 @@ func _spawn_enemy_cast_name(skill_name: String, slot: int) -> void:
 	const CAST_FONT_SIZE: int = 22
 	var lbl := Label.new()
 	lbl.text = "◆ %s" % skill_name
-	var af: Font = UiTypography.display_font()
+	var af: Font = UiTypography.impact_font()
 	if af != null:
 		lbl.add_theme_font_override("font", af)
 	lbl.add_theme_font_size_override("font_size", CAST_FONT_SIZE)
@@ -3901,7 +3901,7 @@ func _spawn_damage_number(text: String, world_pos: Vector2, color: Color = Color
 	var lbl := Label.new()
 	lbl.text = text
 	# ゲームらしい打撃感: 重厚ゴシック体＋太い黒縁＋ドロップシャドウ
-	var af: Font = UiTypography.display_font()
+	var af: Font = UiTypography.impact_font()
 	if af != null:
 		lbl.add_theme_font_override("font", af)
 	lbl.add_theme_font_size_override("font_size", DMG_FONT_SIZE)
@@ -4047,7 +4047,7 @@ func _spawn_ultimate_skill_name(
 	title.text = "必殺技"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var af: Font = UiTypography.display_font()
+	var af: Font = UiTypography.impact_font()
 	if af != null:
 		title.add_theme_font_override("font", af)
 		title.add_theme_font_size_override("font_size", TITLE_FONT_SIZE)
@@ -4121,7 +4121,7 @@ func _spawn_skill_name(
 	lbl.text = skill_name
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var af: Font = UiTypography.display_font()
+	var af: Font = UiTypography.impact_font()
 	if af != null:
 		lbl.add_theme_font_override("font", af)
 	lbl.add_theme_font_size_override("font_size", SKILL_FONT_SIZE)

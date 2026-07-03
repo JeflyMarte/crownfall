@@ -130,6 +130,11 @@ const ICON_MAP: Dictionary = {
 	"enemy:clock_moth":            "res://assets/codex/enemies/ART_ENM_ClockMoth.png",
 	"enemy:serdion":               "res://assets/codex/enemies/ART_BOSS_Serdion.png",
 	"dungeon:mourngate":           "res://assets/dungeon/mourngate/ICO_DG_Mourngate.png",
+	"dungeon:whisperwood":         "res://assets/dungeon/whisperwood/ICO_DG_Whisperwood.png",
+	"dungeon:mistfen":             "res://assets/dungeon/mistfen/ICO_DG_Mistfen.png",
+	"dungeon:broken_marsh":        "res://assets/dungeon/broken_marsh/ICO_DG_BrokenMarsh.png",
+	"dungeon:blackshore":          "res://assets/dungeon/blackshore/ICO_DG_Blackshore.png",
+	"dungeon:frostridge":          "res://assets/dungeon/frostridge/ICO_DG_Frostridge.png",
 	"currency:arcane_crystal":     "res://assets/ui/batch2/ICO_Currency_Arcanite.png",
 	# 下ナビ専用（64x64・余白統一）
 	"nav:home":                    "res://assets/ui/nav/ICO_NAV_Home.png",
@@ -139,6 +144,7 @@ const ICON_MAP: Dictionary = {
 	"nav:forge":                   "res://assets/ui/nav/ICO_NAV_Forge.png",
 	"nav:gacha":                   "res://assets/ui/nav/ICO_NAV_Gacha.png",
 	"nav:codex":                   "res://assets/ui/nav/ICO_NAV_Codex.png",
+	"nav:settings":                "res://assets/ui/nav/ICO_NAV_Settings.png",
 	# UI メニュー / 左サイド（003_01 モック準拠）
 	"ui:adventure":                "res://assets/ui/batch2/ICO_WPN_IronSword.png",
 	"ui:hero":                     "res://assets/ui/chr_icons/ICO_CHR_Vanguard.png",

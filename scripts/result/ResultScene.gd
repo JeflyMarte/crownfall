@@ -80,7 +80,7 @@ func _apply_outcome_banner() -> void:
 	var outcome: String = GameState.last_run_outcome
 	if outcome.is_empty():
 		outcome = GameState.RUN_OUTCOME_CLEAR
-	_label_title.text = "探索結果"
+	_label_title.text = UiTypography.decorate_title_text("探索結果")
 	match outcome:
 		GameState.RUN_OUTCOME_RETIRE:
 			_label_outcome.text = "リタイア帰還"

@@ -2508,3 +2508,16 @@
 | P3-D162-1 | **新helper 5体** — カイダ（swordsman★2/闘技場崩れ）・シルヴィ（ranger★4/森縁の名射手）・ドランテ（alchemist★1/行商薬師）・ガルム（vanguard★2/元隊商護衛）・ユナ（beast_tamer★4/古龍種調査者・ノースリーチ帰り）。来歴は既存ロア（シーゲート/ウィスパーウッド/ノースリーチ）と接続 | 全5職×2体・レア分布 ★1×2/★2×3/★3×2/★4×3 |
 | P3-D162-2 | **固有 passive_id は付けない**（空=ジョブフォールバック＋レア帯パッシブ P3-GACHA-006 が自動適用） | P3-D155 の総スキル数キャップ（パッシブ25）を維持 |
 | P3-D162-3 | **立ち絵5枚 AI 生成**（既存 ART_HELPER と同スタイル: 金枠・紺放射背景・ピクセル調バスト・1254px）。プールは `gacha_helpers/` ディレクトリ駆動のためコード変更なし | 機構変更ゼロのデータ+アセット追加 |
+
+## UI ビジュアル強化・はみ出し修正（2026-07-03 — P3-UI3-001）
+
+> モック準拠のフォント・金飾・アイコン・背景を適用し、`tools/ui_audit.gd`（実レンダリングでの自動スクリーンショット監査）で全ハブ7画面のはみ出しを検出・修正。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UI3-001-1 | **見出しフォントを Shippori Mincho B1 Bold（OFL）に変更**。三層構成: 本文 Noto Sans JP / 見出し・タイトル Shippori Mincho / 戦闘数字 DelaGothicOne（`UiTypography.impact_font()` 新設） | モックの金セリフ見出しに一致。戦闘演出のインパクトは Dela Gothic を維持 |
+| P3-UI3-001-2 | **画面タイトルに「✦ 〜 ✦」金飾**（`UiTypography.apply_screen_title` / `decorate_title_text`）。ハブ6画面＋リザルトに適用 | モックのヘッダー装飾を再現。多重適用ガードあり |
+| P3-UI3-001-3 | **下ナビ実体化** — `BOTTOM_NAV_ENTRIES` を実シーンノード（NavHome/NavParty/NavAdventure/NavForge/NavShop/NavMenu）と 1:1 化（NavShop=召喚所・NavMenu=図鑑）。金アイコン8種（ナビ7+設定）を AI 生成し `assets/ui/nav/` に復旧（旧 PNG はソース欠損） | 旧定義は不在ノード参照で NavShop/NavMenu が未配線・無装飾だった |
+| P3-UI3-001-4 | **はみ出し修正**: ①ダンジョン切替行を HFlowContainer 化（6ダンジョンで横幅超過しリスト全体が画面外へ広がる致命バグ）②Roster スクリプトのノードパス不整合修正（ActivePartyScroll/ListHeader — 画面が全損状態だった）③下部コンテンツのナビ重なり解消（実ナビ高 ~76px に対し余白 52px しかなかった全6画面 + ホームのデイリーパネル）④鍛冶屋タブ行の行高不足による重なり解消 ⑤図鑑/召喚所リストの端数行切れ調整 | `tools/ui_audit.gd` のスクリーンショットで実測検証 |
+| P3-UI3-001-5 | **背景3枚生成**（鍛冶屋=UI_BG_Forge・召喚所=UI_BG_Summon・図鑑=UI_BG_Codex、720x1280・暗トーン）、**ダンジョンサムネ5枚生成**（whisperwood/mistfen/broken_marsh/blackshore/frostridge — mourngate と同スタイル）し IconPaths `dungeon:` に登録 | ②〜⑤とサイドはサムネ未設定でボスアイコン代用だった |
+| P3-UI3-001-6 | **ホーム CurrencyStrip を実データ5列で実装**（ゴールド/魔晶石/冒険者/踏破/発見） | 空 PanelContainer が無内容のまま描画されていた |

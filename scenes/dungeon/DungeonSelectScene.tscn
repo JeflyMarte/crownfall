@@ -169,7 +169,7 @@ anchor_right = 1.0
 offset_left = 12.0
 offset_top = 94.0
 offset_right = -12.0
-offset_bottom = 288.0
+offset_bottom = 322.0
 grow_horizontal = 2
 
 [node name="FeaturedRow" type="HBoxContainer" parent="FeaturedPanel"]
@@ -231,8 +231,8 @@ text = "挑戦"
 layout_mode = 1
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 296.0
-offset_bottom = -140.0
+offset_top = 330.0
+offset_bottom = -176.0
 grow_horizontal = 2
 grow_vertical = 2
 horizontal_scroll_mode = 0
@@ -249,9 +249,9 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 8.0
-offset_top = -140.0
+offset_top = -172.0
 offset_right = -8.0
-offset_bottom = -54.0
+offset_bottom = -88.0
 grow_horizontal = 2
 grow_vertical = 0
 

@@ -113,6 +113,7 @@ const _POLICY_IDS: Array = ["", "safe", "material", "relic", "codex"]
 var _tag_info_label: Label = null
 
 func _ready() -> void:
+	UiTypography.apply_screen_title($Header/HeaderRow/LabelTitle)
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.CHARACTER)
 	_tabs.set_tab_title(0, "装備")
 	_tabs.set_tab_title(1, "スキル")
