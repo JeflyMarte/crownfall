@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-03（**P3-UI3-002 UI 監査 戦闘・リザルト編**: `tools/ui_audit_run.gd` 新設（DungeonScene 実走スクショ4時点＋ResultScene clear/wipe）。戦闘ヘッダーの LabelDungeonName/LabelRoom に clip+ellipsis — 長ダンジョン名でヘッダー最小幅 763px>720px となり戦闘UI全体が左右はみ出しする根本原因を解消（MainVBox min 763→510）。リザルト両系統は問題なし。unit 50 PASS・smoke PASS）
+
 2026-07-03（**P3-UI3-001 UI ビジュアル強化・はみ出し修正**: 見出しフォント Shippori Mincho B1 Bold（OFL）導入（三層: 本文 Noto / 見出し Mincho / 戦闘数字 DelaGothic=`impact_font`）・画面タイトル「✦〜✦」金飾・下ナビ実体化（実ノード NavShop=召喚所/NavMenu=図鑑 と 1:1、金アイコン8種 AI 生成で `assets/ui/nav/` ソース欠損復旧）・ダンジョンサムネ5枚＋画面背景3枚（鍛冶屋/召喚所/図鑑）AI 生成・ホーム CurrencyStrip 実装。はみ出し修正: ダンジョン切替行 HFlow 化（リスト全損バグ）・Roster ノードパス不整合（画面全損）・全6画面のナビ重なり（余白52→84px）・鍛冶屋タブ行高・図鑑/召喚所リスト端数行。検証は新設 `tools/ui_audit.gd`（実レンダのスクショ監査）。unit 50 PASS・smoke PASS）
 
 2026-07-03（**P3-GACHA-007 / P3-D162 ガチャキャラ拡充**: 助っ人 5→10体（全5職×2体・★1×2/★2×3/★3×2/★4×3）。新規=カイダ★2/シルヴィ★4/ドランテ★1/ガルム★2/ユナ★4（固有パッシブなし=ジョブ+レア帯パッシブ自動適用で P3-D155 キャップ維持）。立ち絵5枚を既存スタイルで AI 生成（オーナー許可済）。プールはディレクトリ駆動でコード変更なし。smoke PASS）

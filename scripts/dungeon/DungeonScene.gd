@@ -562,7 +562,14 @@ func _style_enemy_nameplate(label: Label) -> void:
 
 func _apply_scene_typography() -> void:
 	UiTypography.apply_display(_label_dungeon_name, UiTypography.SIZE_DISPLAY)
+	# ヘッダー2ラベルは長名時にヘッダー最小幅がビューポート(720)を超え、
+	# 全戦闘UIが左右にはみ出す起点だった。clip+ellipsis で最小幅を抑える（P3-UI3-002）。
+	_label_dungeon_name.clip_text = true
+	_label_dungeon_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	UiTypography.apply_body(_label_room, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	_label_room.clip_text = true
+	_label_room.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_label_room.custom_minimum_size = Vector2(150, 0)
 	UiTypography.apply_body(_label_narrative, UiTypography.SIZE_BODY_SMALL)
 	UiTypography.apply_display(_label_combat_tier, UiTypography.SIZE_DISPLAY_TITLE)
 	UiTypography.apply_body(_label_enemy, UiTypography.SIZE_BODY_SMALL)

@@ -2521,3 +2521,12 @@
 | P3-UI3-001-4 | **はみ出し修正**: ①ダンジョン切替行を HFlowContainer 化（6ダンジョンで横幅超過しリスト全体が画面外へ広がる致命バグ）②Roster スクリプトのノードパス不整合修正（ActivePartyScroll/ListHeader — 画面が全損状態だった）③下部コンテンツのナビ重なり解消（実ナビ高 ~76px に対し余白 52px しかなかった全6画面 + ホームのデイリーパネル）④鍛冶屋タブ行の行高不足による重なり解消 ⑤図鑑/召喚所リストの端数行切れ調整 | `tools/ui_audit.gd` のスクリーンショットで実測検証 |
 | P3-UI3-001-5 | **背景3枚生成**（鍛冶屋=UI_BG_Forge・召喚所=UI_BG_Summon・図鑑=UI_BG_Codex、720x1280・暗トーン）、**ダンジョンサムネ5枚生成**（whisperwood/mistfen/broken_marsh/blackshore/frostridge — mourngate と同スタイル）し IconPaths `dungeon:` に登録 | ②〜⑤とサイドはサムネ未設定でボスアイコン代用だった |
 | P3-UI3-001-6 | **ホーム CurrencyStrip を実データ5列で実装**（ゴールド/魔晶石/冒険者/踏破/発見） | 空 PanelContainer が無内容のまま描画されていた |
+
+## UI 監査 — 戦闘・リザルト編（2026-07-03 — P3-UI3-002）
+
+> `tools/ui_audit_run.gd` 新設: DungeonScene を実走し複数時点（intro/early/mid/late）でスクショ、`last_run_*` を投入して ResultScene（clear/wipe 両方）を撮影。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UI3-002-1 | **戦闘ヘッダー2ラベルに clip+ellipsis**（LabelDungeonName / LabelRoom）。長ダンジョン名でヘッダー最小幅が 763px と 720px を超過し、**戦闘UI全体（ログ・パーティカード・一時停止）が左右にはみ出す**根本原因だった | 実測: MainVBox min 763→510。「王都地下モーンゲート」+ 天候サフィックスで Mincho 化後に顕在化 |
+| P3-UI3-002-2 | リザルト（clear/wipe）は監査で問題なし。✦金飾タイトルは `decorate_title_text` 適用済み | — |
