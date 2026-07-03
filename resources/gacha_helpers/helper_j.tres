@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="GachaHelperData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/GachaHelperData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "helper_j"
+display_name = "ユナ（Yuna）"
+job_id = "beast_tamer"
+origin_note = "ノースリーチ帰りの古龍種調査者。氷竜の幼体を連れ歩く"
+rarity = 4
+passive_id = ""
+sprite_resource_path = ""
+portrait_resource_path = "res://assets/gacha/portraits/ART_HELPER_helper_j.png"

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="GachaHelperData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/GachaHelperData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "helper_f"
+display_name = "カイダ（Kaida）"
+job_id = "swordsman"
+origin_note = "シーゲートの闘技場崩れ。賞金より広い世界を選んだ剣士"
+rarity = 2
+passive_id = ""
+sprite_resource_path = ""
+portrait_resource_path = "res://assets/gacha/portraits/ART_HELPER_helper_f.png"
