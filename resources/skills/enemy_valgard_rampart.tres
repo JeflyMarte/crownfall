@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_valgard_rampart"
+display_name = "境界の城壁"
+description = "岩鉄の城壁が隆起し、聖別の衝撃波が探索隊全体を押し返す。"
+skill_type = "boss"
+target_type = "all_party"
+power_multiplier = 0.52
+cooldown = 9.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["boss", "aoe"])
+element = "holy"
+apply_status_id = "armor_break"
+apply_status_chance = 0.3
+cast_time = 1.0

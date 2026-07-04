@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="DungeonData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "red_forge_depths"
+display_name = "星炉廃坑レッドフォージ・デプス"
+difficulty = 5
+recommended_level = 48
+enemy_level = 47
+room_count = 8
+floor_count = 9
+enemy_pool = Array[String](["frost_claw_raptor", "vergaron", "storm_joe"])
+boss_id = "forgedormient"
+drop_table_id = "red_forge_depths_drops"
+discovery_unlocks = {"hidden_room": 0.3, "special_event": 0.6, "hidden_boss": 1.0}
+elite_pool = Array[String]([])
+favored_element = "ice"
+route_type = "apex"
+event_room_weight = 25
+min_event_rooms = 1
+weapon_pool = Array[String](["ridge_cleaver", "frostclaw_blades", "snowline_longbow", "cairn_staff", "glacier_greatsword", "rime_bow", "aurora_staff", "shadow_fang_saw", "permafrost_edge", "white_needle", "eldion_frostbrand", "umbra_terminus_staff"])
+armor_pool = Array[String](["furline_garb", "glacier_plate", "snowdrift_cloak", "dragon_scale_aegis", "aurora_vestment"])
+accessory_pool = Array[String](["ice_crystal_ring", "frost_fang_charm", "eldion_heart_talisman"])
+unlock_after_dungeon_id = "frostridge"
+flavor_text = "レッドフォージ星炉の廃坑深部。炉心の残熱に寝主が居座り、\n星炉の廃坑で、炉壁そのものが寝息を吐く。"

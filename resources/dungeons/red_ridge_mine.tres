@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="DungeonData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "red_ridge_mine"
+display_name = "レッドリッジ廃坑"
+difficulty = 3
+recommended_level = 18
+enemy_level = 17
+room_count = 8
+floor_count = 7
+enemy_pool = Array[String](["moss_boar", "spore_widow", "mist_wyvern"])
+boss_id = "skarpedion"
+drop_table_id = "red_ridge_mine_drops"
+discovery_unlocks = {"hidden_room": 0.3, "special_event": 0.6, "hidden_boss": 1.0}
+elite_pool = Array[String]([])
+favored_element = "thunder"
+route_type = "apex"
+event_room_weight = 25
+min_event_rooms = 1
+weapon_pool = Array[String](["verdant_cleaver", "bark_render", "verdia_longbow", "moss_staff", "pyre_greatsword", "tinder_bow", "willow_ember_staff", "venom_fang_blades", "symbiont_edge", "mist_piercer", "silvaria_oathblade", "veld_branch_staff"])
+armor_pool = Array[String](["moss_weave_garb", "barkplate_mail", "mycel_cloak", "wyvern_scale_plate", "warden_vestment"])
+accessory_pool = Array[String](["verdant_ring", "spore_charm", "granvel_fang_talisman"])
+unlock_after_dungeon_id = "whisperwood"
+flavor_text = "レッドリッジの放棄坑道。酸素薄い鉱脈に鉄殻の長が寝ており、\n鉄殻の長が、鍛冶王の名残る坑道の奥で眠る。"

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_karna_magma_lance"
+display_name = "溶岩槍"
+description = "地割れから溶岩の槍が噴き、狙った一人を貫く。"
+skill_type = "boss"
+target_type = "party"
+power_multiplier = 0.65
+cooldown = 7.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["boss", "single"])
+element = "fire"
+apply_status_id = "ignite"
+apply_status_chance = 0.35

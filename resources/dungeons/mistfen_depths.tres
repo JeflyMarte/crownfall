@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="DungeonData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "mistfen_depths"
+display_name = "封緘書庫下ミストフェン・デプス"
+difficulty = 3
+recommended_level = 22
+enemy_level = 21
+room_count = 8
+floor_count = 8
+enemy_pool = Array[String](["blood_leech", "dead_poison_frog", "mist_mantis"])
+boss_id = "mycolga_ancient"
+drop_table_id = "mistfen_depths_drops"
+discovery_unlocks = {"hidden_room": 0.3, "special_event": 0.6, "hidden_boss": 1.0}
+elite_pool = Array[String]([])
+favored_element = "fire"
+route_type = "apex"
+event_room_weight = 25
+min_event_rooms = 1
+weapon_pool = Array[String](["bog_cleaver", "leech_fang_blades", "mire_longbow", "driftwood_staff", "storm_carver", "galvanic_bow", "fen_lantern_staff", "carapace_saw", "thunderfen_edge", "volt_needle", "volgrave_thunderblade", "seradion_storm_staff"])
+armor_pool = Array[String](["mire_hide_garb", "chitin_plate", "bog_strider_cloak", "moldgar_scale_mail", "libris_ward_robe"])
+accessory_pool = Array[String](["marsh_pearl_ring", "leech_oil_charm", "moldgar_eye_talisman"])
+unlock_after_dungeon_id = "mistfen"
+flavor_text = "封緘書庫の地下室層。根と胞子が通路を塞ぎ、\n封緘書庫の下で、単一の菌糸が書庫ごと呼吸している。"

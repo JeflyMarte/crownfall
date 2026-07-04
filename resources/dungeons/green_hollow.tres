@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="DungeonData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "green_hollow"
+display_name = "翠の湿地グリーンホロウ"
+difficulty = 2
+recommended_level = 9
+enemy_level = 8
+room_count = 8
+floor_count = 6
+enemy_pool = Array[String](["moss_boar", "moss_shell", "bloom_serpent"])
+boss_id = "mist_wyvern"
+drop_table_id = "green_hollow_drops"
+discovery_unlocks = {"hidden_room": 0.3, "special_event": 0.6, "hidden_boss": 1.0}
+elite_pool = Array[String]([])
+favored_element = "fire"
+route_type = "side"
+event_room_weight = 25
+min_event_rooms = 1
+weapon_pool = Array[String](["verdant_cleaver", "bark_render", "verdia_longbow", "moss_staff", "pyre_greatsword", "tinder_bow", "willow_ember_staff", "venom_fang_blades"])
+armor_pool = Array[String](["moss_weave_garb", "mycel_cloak", "barkplate_mail", "wyvern_scale_plate", "warden_vestment"])
+accessory_pool = Array[String](["verdant_ring", "spore_charm", "granvel_fang_talisman"])
+unlock_after_dungeon_id = "mourngate"
+flavor_text = "グリーンホロウ近郊の浅い湿地帯。毒胞子と炎の試練で\n囁きの森へ踏み込む前に、耐性装備を揃える寄り道。"

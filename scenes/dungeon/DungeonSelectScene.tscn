@@ -154,14 +154,14 @@ text = "ノーマル"
 [node name="ButtonHard" type="Button" parent="TabsRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-disabled = true
-text = "ハード 🔒"
+toggle_mode = true
+text = "ハード"
 
 [node name="ButtonNightmare" type="Button" parent="TabsRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-disabled = true
-text = "ナイトメア 🔒"
+toggle_mode = true
+text = "ナイトメア"
 
 [node name="FeaturedPanel" type="PanelContainer" parent="."]
 layout_mode = 1
@@ -169,70 +169,72 @@ anchor_right = 1.0
 offset_left = 12.0
 offset_top = 94.0
 offset_right = -12.0
-offset_bottom = 322.0
+offset_bottom = 318.0
 grow_horizontal = 2
 
-[node name="FeaturedRow" type="HBoxContainer" parent="FeaturedPanel"]
+[node name="FeaturedVBox" type="VBoxContainer" parent="FeaturedPanel"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 8
 
-[node name="FeaturedThumb" type="PanelContainer" parent="FeaturedPanel/FeaturedRow"]
-custom_minimum_size = Vector2(96, 96)
+[node name="FeaturedBanner" type="PanelContainer" parent="FeaturedPanel/FeaturedVBox"]
+custom_minimum_size = Vector2(0, 112)
 layout_mode = 2
 
-[node name="FeaturedThumbArt" type="TextureRect" parent="FeaturedPanel/FeaturedRow/FeaturedThumb"]
+[node name="FeaturedBannerArt" type="TextureRect" parent="FeaturedPanel/FeaturedVBox/FeaturedBanner"]
 layout_mode = 2
 expand_mode = 1
-stretch_mode = 5
+stretch_mode = 6
 
-[node name="FeaturedInfo" type="VBoxContainer" parent="FeaturedPanel/FeaturedRow"]
+[node name="FeaturedInfo" type="VBoxContainer" parent="FeaturedPanel/FeaturedVBox"]
 layout_mode = 2
-size_flags_horizontal = 3
 theme_override_constants/separation = 4
 
-[node name="LabelFeaturedName" type="Label" parent="FeaturedPanel/FeaturedRow/FeaturedInfo"]
+[node name="LabelFeaturedName" type="Label" parent="FeaturedPanel/FeaturedVBox/FeaturedInfo"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
 theme_override_font_sizes/font_size = 17
 text = "—"
 
-[node name="LabelFeaturedFlavor" type="Label" parent="FeaturedPanel/FeaturedRow/FeaturedInfo"]
+[node name="LabelFeaturedFlavor" type="Label" parent="FeaturedPanel/FeaturedVBox/FeaturedInfo"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.72, 0.7, 0.62, 1)
 theme_override_font_sizes/font_size = 12
 text = ""
 autowrap_mode = 3
-max_lines_visible = 2
+max_lines_visible = +2
 
-[node name="LabelFeaturedMeta" type="Label" parent="FeaturedPanel/FeaturedRow/FeaturedInfo"]
+[node name="LabelFeaturedMeta" type="Label" parent="FeaturedPanel/FeaturedVBox/FeaturedInfo"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
 theme_override_font_sizes/font_size = 14
 text = "推奨Lv —"
 autowrap_mode = 3
 
-[node name="LabelFeaturedDiscovery" type="Label" parent="FeaturedPanel/FeaturedRow/FeaturedInfo"]
+[node name="LabelFeaturedDiscovery" type="Label" parent="FeaturedPanel/FeaturedVBox/FeaturedInfo"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.82, 0.78, 1)
 theme_override_font_sizes/font_size = 14
 text = "発見率 0%"
 
-[node name="FeaturedDropRow" type="HBoxContainer" parent="FeaturedPanel/FeaturedRow/FeaturedInfo"]
+[node name="FeaturedDropRow" type="HBoxContainer" parent="FeaturedPanel/FeaturedVBox"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="BtnFeaturedChallenge" type="Button" parent="FeaturedPanel/FeaturedRow"]
+[node name="FeaturedActionRow" type="HBoxContainer" parent="FeaturedPanel/FeaturedVBox"]
 layout_mode = 2
-size_flags_vertical = 4
-custom_minimum_size = Vector2(92, 48)
-text = "挑戦"
+alignment = 2
+
+[node name="BtnFeaturedSelect" type="Button" parent="FeaturedPanel/FeaturedVBox/FeaturedActionRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(132, 40)
+text = "選択して出発"
 
 [node name="ScrollList" type="ScrollContainer" parent="."]
 layout_mode = 1
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 330.0
-offset_bottom = -176.0
+offset_top = 326.0
+offset_bottom = -108.0
 grow_horizontal = 2
 grow_vertical = 2
 horizontal_scroll_mode = 0
@@ -249,9 +251,9 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 8.0
-offset_top = -172.0
+offset_top = -104.0
 offset_right = -8.0
-offset_bottom = -88.0
+offset_bottom = -52.0
 grow_horizontal = 2
 grow_vertical = 0
 
@@ -260,6 +262,7 @@ layout_mode = 2
 theme_override_constants/separation = 6
 
 [node name="DailyCol" type="VBoxContainer" parent="FooterPanel/FooterRow"]
+visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 2
@@ -267,20 +270,14 @@ theme_override_constants/separation = 2
 [node name="LabelDailyTitle" type="Label" parent="FooterPanel/FooterRow/DailyCol"]
 layout_mode = 2
 text = "本日の挑戦回数"
-theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
-theme_override_font_sizes/font_size = 10
 
 [node name="LabelDailyValue" type="Label" parent="FooterPanel/FooterRow/DailyCol"]
 layout_mode = 2
 text = "3/3"
-theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
-theme_override_font_sizes/font_size = 14
 
 [node name="LabelDailyReset" type="Label" parent="FooterPanel/FooterRow/DailyCol"]
 layout_mode = 2
 text = "5:00にリセット"
-theme_override_colors/font_color = Color(0.62, 0.6, 0.52, 1)
-theme_override_font_sizes/font_size = 9
 
 [node name="BonusCol" type="VBoxContainer" parent="FooterPanel/FooterRow"]
 layout_mode = 2
@@ -289,23 +286,24 @@ theme_override_constants/separation = 2
 
 [node name="LabelBonusTitle" type="Label" parent="FooterPanel/FooterRow/BonusCol"]
 layout_mode = 2
-text = "ダンジョンボーナス"
+text = "期間イベント"
 theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
 theme_override_font_sizes/font_size = 10
 
 [node name="LabelBonusValue" type="Label" parent="FooterPanel/FooterRow/BonusCol"]
 layout_mode = 2
-text = "闇属性+20%"
+text = "—"
 theme_override_colors/font_color = Color(0.72, 0.58, 0.95, 1)
 theme_override_font_sizes/font_size = 12
 
 [node name="LabelBonusTimer" type="Label" parent="FooterPanel/FooterRow/BonusCol"]
 layout_mode = 2
-text = "残り2時間35分"
+text = "—"
 theme_override_colors/font_color = Color(0.62, 0.6, 0.52, 1)
 theme_override_font_sizes/font_size = 9
 
 [node name="SpecialCol" type="VBoxContainer" parent="FooterPanel/FooterRow"]
+visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 2
@@ -317,8 +315,6 @@ theme_override_constants/separation = 2
 [node name="LabelSpecialProgress" type="Label" parent="FooterPanel/FooterRow/SpecialCol/SpecialRow"]
 layout_mode = 2
 text = "特別報酬まであと 2/5"
-theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
-theme_override_font_sizes/font_size = 9
 
 [node name="SpecialProgressBar" type="ProgressBar" parent="FooterPanel/FooterRow/SpecialCol/SpecialRow"]
 custom_minimum_size = Vector2(0, 10)
@@ -330,7 +326,6 @@ show_percentage = false
 [node name="BtnRewardList" type="Button" parent="FooterPanel/FooterRow/SpecialCol"]
 layout_mode = 2
 text = "報酬一覧"
-theme_override_font_sizes/font_size = 10
 
 [node name="BottomNav" type="PanelContainer" parent="."]
 z_index = 20

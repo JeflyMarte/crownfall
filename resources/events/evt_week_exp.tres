@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EventData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EventData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "evt_week_exp"
+title = "経験値ブースト週間"
+tag_text = "期間限定イベント"
+banner_desc = "戦闘EXP ×1.5"
+description = "調査局指定の強化週間。探索中の戦闘で得られる経験値が1.5倍になる。"
+modifier_type = "exp"
+modifier_mult = 1.5
+start_date_jst = "2026-07-01"
+end_date_jst = "2026-07-08"

@@ -8,6 +8,7 @@ const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
 
 const _JobStatCalculator = preload("res://scripts/equipment/JobStatCalculator.gd")
 const _JobEvolution = preload("res://scripts/systems/JobEvolution.gd")
+const _EvolutionTraits = preload("res://scripts/systems/EvolutionTraits.gd")
 
 const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45)
 const COLOR_SUB: Color = Color(0.72, 0.69, 0.62)
@@ -110,6 +111,18 @@ func _make_member_card(adv: Resource) -> PanelContainer:
 			evolve_lbl.add_theme_color_override("font_color", COLOR_SUB)
 		evolve_lbl.add_theme_font_size_override("font_size", 12)
 		info.add_child(evolve_lbl)
+	var trait_lines: PackedStringArray = (
+		_EvolutionTraits.trait_summary_lines(adv)
+		if evolved
+		else _EvolutionTraits.preview_summary_lines(str(adv.job_id))
+	)
+	if not trait_lines.is_empty():
+		var trait_lbl := Label.new()
+		trait_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		trait_lbl.text = "• %s" % "\n• ".join(trait_lines)
+		trait_lbl.add_theme_font_size_override("font_size", 11)
+		trait_lbl.add_theme_color_override("font_color", COLOR_OK if evolved else COLOR_SUB)
+		info.add_child(trait_lbl)
 	row.add_child(_make_action_column(adv, can_certify, evolved))
 	return card
 

@@ -4,7 +4,7 @@
 
 > **警告:** `02_ディレクトリ構成.md` や `05_実装ロードマップ.md` は将来/target 構成を含む。Task が明示的に要求しない限り、そこに記載された未実装ファイルを**作成・参照してはならない**。本ファイルが現行実装の正。
 
-**最終確認:** 2026-07-02（ProjectDocs v3.6.0 — **P3-SKILL Closeout** P3-SKILL-001〜006）
+**最終確認:** 2026-07-03（**P3-EVT-HUB Closeout** — 週次バフイベント・端末日付スケジュール）
 
 > **SSOT 注記:** … **P3-SKILL Closeout**（基本5職 Lv50 習得10・`skill_unlocks`・レジェンド武器スキル・P3-SKILL-001〜006）。
 
@@ -25,7 +25,10 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | SceneRouter | `scripts/autoload/SceneRouter.gd` |
 | EventBus | `scripts/autoload/EventBus.gd` |
 | DailyMissionSystem | `scripts/autoload/DailyMissionSystem.gd`（**P3-DAILY** 日課3件/日） |
+| EventSystem | `scripts/autoload/EventSystem.gd`（**P3-EVT-HUB** 週次バフ・端末日付 JST 5:00） |
 | GachaSystem | `scripts/autoload/GachaSystem.gd` |
+
+**危険度ティア（P3-DG-TIER）:** `DungeonTierConfig.gd` — `GameState.current_dungeon_tier` / `dungeon_tier_cleared`。戦闘=敵Lv補正・レア重み・報酬倍率。UI=`DungeonSelectScene` TabsRow。
 
 ---
 
@@ -42,6 +45,8 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | EquipmentScene | `scenes/equipment/EquipmentScene.tscn` | `scripts/equipment/EquipmentScene.gd` |
 | BlacksmithScene | `scenes/blacksmith/BlacksmithScene.tscn` | `scripts/blacksmith/BlacksmithScene.gd` |
 | CodexScene | `scenes/codex/CodexScene.tscn` | `scripts/codex/CodexScene.gd` |
+| GachaScene | `scenes/gacha/GachaScene.tscn` | `scripts/gacha/GachaScene.gd` |
+| EventScene | `scenes/event/EventScene.tscn` | `scripts/event/EventScene.gd`（**P3-EVT-HUB** バフ詳細） |
 
 **遷移:** Boot → Base → Dungeon → Result →（Appraisal / Equipment / **Blacksmith** / **Codex**）→ Base
 
@@ -66,7 +71,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 - 状態異常アイコン: ルート直下 HBox（敵 + Chr0〜2 + 群れ行）— HP バー上に追従（P3-UI2-013 / P3-D110 群れ行）。`StatusResolver.get_active_status_list()`
 
 **BaseScene ノード（P3-UI-Base-A / 003_01 Phase A）:**
-- `HubView` — 城背景・`TopBar`（プレイヤーカード+Gold/魔晶石）・`LeftMenuPanel` 7項目・`EventBanner`（占位）・`CurrencyStrip`・`DailyMissionPanel`
+- `HubView` — 城背景・`TopBar`（プレイヤーカード+Gold/魔晶石）・`LeftMenuPanel` 7項目・`EventBanner`（**P3-EVT-HUB** 週次バフ告知・タップで EventScene）・`CurrencyStrip`・`DailyMissionPanel`
 - `MenuGridView` — 003_02 系 3×3 メニュー（下ナビ「メニュー」で切替）
 - `BottomNav` — 6タブ（ホーム/パーティ/冒険/強化/ショップ/メニュー）・`BottomNavHelper` + `NavIconHelper`
 - 検証: `tools/verify_base_hub.gd` / `tools/verify_bottom_nav.gd`
@@ -78,7 +83,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 - `ContentVBox/BuildChipRow` — 同上 + `LabelBuildSummary`（Task037）
 - スキルタブ — 戦術プリセット・陣形行・**🔒Lv解放表示**（P3-SKILL-001）・武器スキル行（P3-SKILL-004）・探索スキル一覧（P3-D117）・連携 hint（P3-D115）・ガンビット（P3-D122）
 
-**DungeonSelectScene** — `scenes/dungeon/DungeonSelectScene.tscn` / `scripts/dungeon/DungeonSelectScene.gd`（P3-D080・**P3-UI2-021** フィーチャー+挑戦・**P3-UI2-028** 階層カード密度・**P3-UI2-029** 下部3枠占位+スタミナチップ）
+**DungeonSelectScene** — `scenes/dungeon/DungeonSelectScene.tscn` / `scripts/dungeon/DungeonSelectScene.gd`（P3-D080・**P3-UI-DG-001** Featuredバナー+Biome直列カード+Event Footer・**P3-DG-TIER** TabsRow）
 
 **GuildScene** — `scenes/guild/GuildScene.tscn` / `scripts/guild/GuildScene.gd`（P3-D052 手動認定・**P3-UI2-024** Header/BottomNav・認定カードリスト）
 
@@ -95,7 +100,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 `Constants.gd`（RESOURCE_*_PATH 含む）, `Enums.gd`
 
 ### data/
-`WeaponData.gd`, `ArmorData.gd`, `AccessoryData.gd`, `EnemyData.gd`, `DungeonData.gd`, `SkillData.gd`, **`StatusEffectData.gd`**（`defense_reduction` 等・P3-D107）, `MaterialData.gd`, **`JobData.gd`**（**`skill_unlocks`** P3-SKILL-001）, `AffixData.gd`, `CraftData.gd`, `RecipeData.gd`, `MaterialShopData.gd`, **`GachaHelperData.gd`**（`portrait_resource_path` P3-GACHA-003）, **`DailyMissionData.gd`**（P3-DAILY）
+`WeaponData.gd`, …, **`DailyMissionData.gd`**（P3-DAILY）, **`EventData.gd`**（P3-EVT-HUB — `modifier_type` / 日付境界）
 
 ### domain/
 `Adventurer.gd`（**equipped_weapon/armor/accessory**）, `Stats.gd`, `WeaponData.gd`, `ArmorInstance.gd`, `AccessoryInstance.gd`, **`StatusInstance.gd`**
@@ -105,13 +110,14 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 |---|---|
 | `discovery/` | `DiscoveryRegistry.gd`（`get_display_label` / `get_category_label` — P3-UI2-015） |
 | `appraisal/` | `AppraisalController.gd`, `AppraisalScene.gd` |
-| `base/` | `BaseScene.gd`（**P3-UI-Base-A** Hub/MenuGrid・日課報酬表示・`GameState.base_initial_view`） |
+| `base/` | `BaseScene.gd`（**P3-UI-Base-A** Hub/MenuGrid・日課報酬表示・**EventBanner** P3-EVT-HUB） |
+| `event/` | **`EventScene.gd`**・**`EventScheduleHelper.gd`**（JST 日付境界） |
 | `boot/` | `BootScene.gd` |
 | `combat/` | **コア:** `CombatController.gd`（`class_name`・CT/ATB・Threat・群れ/混成・個別ターゲット・詠唱・ボスフェーズ index）, `SkillExecutor.gd`, `StatusResolver.gd`, `StatusInstance.gd`, `ElementResolver.gd`, **`DamageCalculator.gd`**（ダメージ式 SSOT・シーン非依存 static・P3-REF-001）, **`BalanceConfig.gd`**（グローバルバランス定数 SSOT・P3-BAL-005） |
 | | **戦術/AI:** `CombatTactics.gd`（プリセット6・発動条件・温存・P3-D086/108/113/127）, `CombatGambit.gd`（カスタム戦術5行・P3-D122/127） |
 | | **パッシブ/シナジー:** `CombatPassives.gd`, `CombatSynergy.gd`, `CombatTags.gd`, `CombatCombos.gd`（P3-D109） |
 | | **メタ/周回:** `CombatRelics.gd`（静的定義+トリガ・P3-D114）, `CombatLinks.gd`（連鎖3種・P3-D115）, `CombatBossPhases.gd`（P3-D116）, `ExplorationSkills.gd`（P3-D117）, `CombatFastRun.gd`（P3-D118）, `CombatWeather.gd`（天候・P3-D101） |
-| `dungeon/` | `DungeonController.gd`, `DungeonScene.gd`（生態素材ドロップ・図鑑方針ボーナス P3-D128） |
+| `dungeon/` | `DungeonController.gd`, `DungeonScene.gd`（生態素材ドロップ・図鑑方針ボーナス P3-D128）・**`DungeonTierConfig.gd`**（危険度ティア P3-D164）・**`WanderingEnemyConfig.gd`**（遍在希少種 P3-D166） |
 | `equipment/` | `EquipmentController.gd`, `EquipmentScene.gd`, **`EquipmentUiHelper.gd`**（P3-UI2-019）, **`BuildTagHelper.gd`**（P3-UI2-016）, **`AffixRoller.gd`**, **`AffixStatCalculator.gd`**, **`AffixDisplayFormatter.gd`**, **`JobStatCalculator.gd`** |
 | `blacksmith/` | `BlacksmithScene.gd`（P3-UI2-018 Master-Detail UI）・`BlacksmithUiHelper.gd`（レシピ表示ヘルパ） |
 | `gacha/` | **`GachaSystem.gd`**（**P3-GACHA-005** ★1〜4排出・`GachaRarityConfig`）・**`GachaRarityConfig.gd`**・**`GachaScene.gd`**（P3-UI2-020・**P3-GACHA-002/003**） |
@@ -120,7 +126,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `codex/` | **`CatalogHelper.gd`**（P2-Task046/049 — Bible parse + Entry）, **`CodexScene.gd`**（P2-Task047/048/049 — Detail + Bible fields・**P3-UI2-020** Header/BottomNav） |
 | `result/` | `ResultScene.gd`（素材アイコン P3-D135・作成可能レシピ P3-D141・**P3-UI2-023** パネル/フッター polish） |
 | `save/` | `SaveManager.gd` |
-| `systems/` | **`LevelSystem.gd`**（Lv50上限 P3-SKILL-001）・**`SkillProgression.gd`**（`skill_unlocks` 解放・装備正規化）・**`WeaponSkillHelper.gd`**（レジェンド武器スキル）・`JobEvolution.gd` |
+| `systems/` | **`LevelSystem.gd`**（**Lv99上限** P3-LV-099・Lv51+逓減成長）・**`SkillProgression.gd`**・**`WeaponSkillHelper.gd`**・`JobEvolution.gd`・**`EvolutionTraits.gd`**（昇格特質 P3-D167） |
 | `ui/` | **`IconPaths.gd`** …（Phase3-A — static class、ICON_MAP による `category:id` → `ICO_*.png` 解決）・**`CurrencyHelper.gd`**（魔晶石表示 SSOT）・**`BottomNavHelper.gd`**（全拠点系6タブ遷移・**P3-UI-Base-A**）・**`NavIconHelper.gd`**（下ナビ/左メニューアイコン）・**`UiTypography.gd`** |
 
 ### プレースホルダのみ（.gitkeep、コードなし）
@@ -137,10 +143,16 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `tests/unit/test_save_manager.gd` | SaveManager テスト（ラウンドトリップ / job・dungeon マイグレーション / 破損セーブ耐性 / **save_version**（P3-SAVE-001）。実セーブは before_all/after_all で退避・復元） |
 | `tests/unit/test_damage_calculator.gd` | DamageCalculator 純粋関数テスト（防御逓減・Biome相性・属性解決 — P3-REF-001） |
 | `tests/unit/test_run_modifiers.gd` | ラン補正カウンタ（Result「効いた戦闘要素」— P3-UX-001） |
+| `tests/unit/test_event_system.gd` | 期間バフイベント（日付境界・週次ローテ — P3-EVT-HUB） |
+| `tests/unit/test_dungeon_tier.gd` | 危険度ティア解放・敵Lv/レア補正（P3-DG-TIER） |
+| `tests/unit/test_level_system.gd` | Lv99上限・逓減成長・スキル習得据置（P3-LV-099） |
 | `tools/run_tests.sh` | headless GUT 実行（バイナリ検出は `smoke_test.sh` と同一・exit code 伝播） |
 | `tools/smoke_test.sh` | 既存受理ゲート（import + 120frame 起動） |
-| `tools/ui_audit.gd` | **UI 監査**（P3-UI3-001）。実レンダリングでハブ7画面を順にロードしスクショ保存（`user://ui_audit/`）。ヘッドレス不可 |
+| `tools/ui_audit.gd` | **UI 監査**（P3-UI3-001/003）。ハブ7画面＋図鑑7タブを実レンダでスクショ（`user://ui_audit/`）。ヘッドレス不可 |
 | `tools/ui_audit_run.gd` | **UI 監査 戦闘・リザルト編**（P3-UI3-002）。DungeonScene 実走4時点＋ResultScene clear/wipe を撮影。ヘッドレス不可 |
+| `tools/generate_enemy_battle_assets.py` | 図鑑肖像→戦闘シート96×14＋`SpriteFrames` `.tres`＋`DungeonScene.gd` マップ自動更新 |
+| `tools/generate_all_skill_icons.py` | 全スキル `.tres` からプロシージャルアイコン生成＋`IconPaths` 一括更新 |
+| `tools/verify_icon_paths.py` | `IconPaths.gd` と resources/実ファイルの整合検証 |
 | `tools/balance_sim.sh` / `tools/balance_sim.gd` | **バランスシミュレーションハーネス v2**（P3-BAL-005/006）。実データで N ラン一括シミュ→勝率/全滅箇所/TTK/与ダメ内訳。通常攻撃＋装備スキル①②（damage/heal・CD準拠）。`--runs= --dungeon= --party-level= --sweep --enemy-scale= --boss-scale= --hp-per-level= --atk-per-level= --gear-atk= --gear-def= --gear-hp=` |
 | `.github/workflows/ci.yml` | GitHub Actions: Godot 4.6.3 linux headless で `smoke_test.sh` → `run_tests.sh` |
 
@@ -171,10 +183,10 @@ Task 明示指示がない限り作成しない:
 | 種別 | パス |
 |---|---|
 | 武器 | `resources/weapons/` — 61本（①〜⑤ = 13+12×4。★は各難易度2・P3-D154/D156/D160/D161） |
-| 防具 | `resources/armors/` — 22（① 2 + ②〜⑤ 各5） |
-| 装飾品 | `resources/accessories/` — 13（① silver_ring + ②〜⑤ 各3） |
-| 敵 | `resources/enemies/` — ①〜⑤ 各6（モーンゲート/ウィスパーウッド/ミストフェン/ブラックショア/フロストリッジ） |
-| ダンジョン | `resources/dungeons/` — メイン5本（mourngate/whisperwood/mistfen/blackshore/frostridge）+ 寄り道 `broken_marsh.tres`（ドロップ・プールは `DungeonData.weapon/armor/accessory_pool`・P3-D154。解放条件は `unlock_after_dungeon_id`/メイン直列・P3-D157） |
+| 防具 | `resources/armors/` — 28（① 2 + ②〜⑤ 各5 + 寄り道3） |
+| 装飾品 | `resources/accessories/` — 17（① + ②〜⑤ 各3 + 寄り道2） |
+| 敵 | `resources/enemies/` — メイン30（5 Biome×6）+ 征討 Boss 8（chronos_wave / valgard / skarpedion / mycolga_ancient / karna_smoke / nereion_depths / forgedormient / albark）+ 遍在希少種2（P3-WANDER-001） |
+| ダンジョン | `resources/dungeons/` — **18本**: メイン5 + 寄り道5（astoria_ruins / green_hollow / broken_marsh / westbay_flats / frostwall_path）+ 征討8（`*_deep` / `storm_crown_ruins` / `red_ridge_mine` / `mistfen_depths` / `thunder_peak` / `blackshore_abyss` / `red_forge_depths` / `north_reach`）。`route_type`: main/side/apex。解放=`unlock_after_dungeon_id`+メイン直列（P3-D157） |
 | スキル | `resources/skills/` — プレイヤー約50+（基本5職×習得10 + 必殺5 + 属性/敵/ボス）。代表: slash_attack, guard_strike, aimed_shot, hex_bolt, mend, empower + P3-SKILL-002〜006 新規（`rend_slash`〜`apex_tame` 等） |
 | ジョブ | `resources/jobs/` — 5職。各 **`skill_unlocks` Lv1/6/12/…/50 で習得10**（P3-SKILL-002〜006） |
 | 状態異常 | `resources/status/` — bleed, poison, stun, chill, ignite, shock, slow, curse, guard, empower, enrage, **fear**, **vulnerable**, **armor_break**（P3-D107）, **mark**（P3-D120） |
@@ -183,6 +195,8 @@ Task 明示指示がない限り作成しない:
 | クラフト | `resources/crafting/` — 6レシピ（武器3/防具2/装飾1・P3-D067/D136） |
 | レシピ | `resources/recipes/` — recipe_leather_armor, recipe_bone_armor, recipe_silver_ring |
 | 素材ショップ | `resources/material_shop/` — relic_shard, ancient_bone |
+| 日課 | `resources/daily_missions/` — daily_clear_run / daily_combat_win / daily_craft_item（P3-DAILY） |
+| 期間イベント | `resources/events/` — `evt_week_exp` / `evt_week_gold` / `evt_week_weapon`（各7日・P3-D163） |
 
 ### animation/（Phase3-A — SpriteFrames）
 

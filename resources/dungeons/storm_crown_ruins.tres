@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="DungeonData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "storm_crown_ruins"
+display_name = "境界遺構ストームクラウン"
+difficulty = 2
+recommended_level = 10
+enemy_level = 9
+room_count = 8
+floor_count = 7
+enemy_pool = Array[String](["sepia_hound", "crown_eater_rat"])
+boss_id = "valgard"
+drop_table_id = "storm_crown_ruins_drops"
+discovery_unlocks = {"hidden_room": 0.3, "special_event": 0.6, "hidden_boss": 1.0}
+elite_pool = Array[String]([])
+favored_element = "holy"
+route_type = "apex"
+event_room_weight = 25
+min_event_rooms = 1
+weapon_pool = Array[String](["iron_sword", "rusted_blade", "hunting_bow", "apprentice_staff", "heater_blade", "frost_blade", "bolt_knife", "ember_fang", "glacier_staff", "storm_edge", "sanctified_dagger", "consecrated_maul"])
+armor_pool = Array[String](["crypt_weave_cloak", "sepia_hide_vest", "rune_linen_garb", "lament_guard_mail", "mourngate_plate"])
+accessory_pool = Array[String](["clockwing_brooch", "mourngate_sigil", "pilgrim_lantern_charm"])
+unlock_after_dungeon_id = "mourngate"
+flavor_text = "王都近郊に沈む王冠遺構。崩落した境界壁に番が立ち、\n境界の番が、崩れた門の内と外を同時に守る。"

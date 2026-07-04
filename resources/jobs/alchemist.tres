@@ -49,4 +49,4 @@ learnable_skill_ids = Array[String](["hex_bolt", "arc_bolt", "curse_sigil", "men
 passive_tag_ids = Array[String](["caster"])
 ultimate_skill_id = "grand_elixir"
 evolved_display_name = "セージ"
-evolution_level = 10
+evolution_level = 30

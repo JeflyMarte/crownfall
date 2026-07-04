@@ -3,11 +3,9 @@ extends Control
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const DUNGEON_SELECT_SCENE: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
 const DUNGEON_SCENE: String = "res://scenes/dungeon/DungeonScene.tscn"
-const ROSTER_SCENE: String = "res://scenes/roster/RosterScene.tscn"
-const CODEX_SCENE: String = "res://scenes/codex/CodexScene.tscn"
-const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
 
 const _ElementResolver: Script = preload("res://scripts/combat/ElementResolver.gd")
+const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 
 const THUMB_SIZE: Vector2 = Vector2(72, 72)
 const ENEMY_ICON_PX: int = 26
@@ -20,14 +18,6 @@ const COLOR_SUB: Color = Color(0.78, 0.74, 0.6, 1)
 const COLOR_CLEAR: Color = Color(0.45, 0.92, 0.55, 1)
 const COLOR_TEAL: Color = Color(0.6, 0.82, 0.78, 1)
 
-## P3-UI2-029 — 占位表示のみ（Beta B2 で実ロジック化）
-## スタミナは P3-BETA-001b で撤回済み（占位含め表示しない）
-const PLACEHOLDER_DAILY_CHALLENGES: String = "3/3"
-const PLACEHOLDER_BONUS_PERCENT: int = 20
-const PLACEHOLDER_BONUS_REMAINING: String = "残り2時間35分"
-const PLACEHOLDER_SPECIAL_CURRENT: int = 2
-const PLACEHOLDER_SPECIAL_TOTAL: int = 5
-
 const DROP_PREVIEW: Dictionary = {
 	"mourngate": [
 		["weapon", "iron_sword"],
@@ -35,10 +25,21 @@ const DROP_PREVIEW: Dictionary = {
 		["accessory", "silver_ring"],
 		["material", "relic_shard"],
 	],
+	"astoria_ruins": [
+		["weapon", "heater_blade"],
+		["armor", "bone_armor"],
+		["accessory", "mourngate_sigil"],
+		["material", "relic_shard"],
+	],
 	"whisperwood": [
 		["weapon", "pyre_greatsword"],
 		["armor", "moss_weave_garb"],
 		["accessory", "verdant_ring"],
+	],
+	"green_hollow": [
+		["weapon", "venom_fang_blades"],
+		["armor", "mycel_cloak"],
+		["accessory", "spore_charm"],
 	],
 	"mistfen": [
 		["weapon", "storm_carver"],
@@ -55,32 +56,82 @@ const DROP_PREVIEW: Dictionary = {
 		["armor", "tidecloth_garb"],
 		["accessory", "black_pearl_ring"],
 	],
+	"westbay_flats": [
+		["weapon", "pharos_bow"],
+		["armor", "kelp_weave_cloak"],
+		["accessory", "barnacle_charm"],
+	],
 	"frostridge": [
 		["weapon", "glacier_greatsword"],
 		["armor", "furline_garb"],
 		["accessory", "ice_crystal_ring"],
 	],
+	"frostwall_path": [
+		["weapon", "rime_bow"],
+		["armor", "snowdrift_cloak"],
+		["accessory", "frost_fang_charm"],
+	],
+	"mourngate_deep": [
+		["weapon", "storm_edge"],
+		["armor", "mourngate_plate"],
+		["accessory", "clockwing_brooch"],
+	],
+	"storm_crown_ruins": [
+		["weapon", "consecrated_maul"],
+		["armor", "lament_guard_mail"],
+		["accessory", "pilgrim_lantern_charm"],
+	],
+	"red_ridge_mine": [
+		["weapon", "symbiont_edge"],
+		["armor", "mycel_cloak"],
+		["accessory", "granvel_fang_talisman"],
+	],
+	"mistfen_depths": [
+		["weapon", "volgrave_thunderblade"],
+		["armor", "chitin_plate"],
+		["accessory", "moldgar_eye_talisman"],
+	],
+	"thunder_peak": [
+		["weapon", "thunderfen_edge"],
+		["armor", "bog_strider_cloak"],
+		["accessory", "leech_oil_charm"],
+	],
+	"blackshore_abyss": [
+		["weapon", "nereidas_tideblade"],
+		["armor", "tidecloth_garb"],
+		["accessory", "nereion_song_talisman"],
+	],
+	"red_forge_depths": [
+		["weapon", "eldion_frostbrand"],
+		["armor", "dragon_scale_aegis"],
+		["accessory", "eldion_heart_talisman"],
+	],
+	"north_reach": [
+		["weapon", "umbra_terminus_staff"],
+		["armor", "aurora_vestment"],
+		["accessory", "eldion_heart_talisman"],
+	],
 }
 
 @onready var _btn_back: Button = $Header/HeaderRow/ButtonBack
+@onready var _btn_tier_normal: Button = $TabsRow/ButtonNormal
+@onready var _btn_tier_hard: Button = $TabsRow/ButtonHard
+@onready var _btn_tier_nightmare: Button = $TabsRow/ButtonNightmare
 @onready var _label_gold: Label = $Header/HeaderRow/GoldChip/GoldRow/LabelGold
 @onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
 @onready var _featured_panel: PanelContainer = $FeaturedPanel
-@onready var _featured_thumb_art: TextureRect = $FeaturedPanel/FeaturedRow/FeaturedThumb/FeaturedThumbArt
-@onready var _label_featured_name: Label = $FeaturedPanel/FeaturedRow/FeaturedInfo/LabelFeaturedName
-@onready var _label_featured_flavor: Label = $FeaturedPanel/FeaturedRow/FeaturedInfo/LabelFeaturedFlavor
-@onready var _label_featured_meta: Label = $FeaturedPanel/FeaturedRow/FeaturedInfo/LabelFeaturedMeta
-@onready var _label_featured_discovery: Label = $FeaturedPanel/FeaturedRow/FeaturedInfo/LabelFeaturedDiscovery
-@onready var _featured_drop_row: HBoxContainer = $FeaturedPanel/FeaturedRow/FeaturedInfo/FeaturedDropRow
-@onready var _btn_featured_challenge: Button = $FeaturedPanel/FeaturedRow/BtnFeaturedChallenge
+@onready var _featured_banner: PanelContainer = $FeaturedPanel/FeaturedVBox/FeaturedBanner
+@onready var _featured_banner_art: TextureRect = $FeaturedPanel/FeaturedVBox/FeaturedBanner/FeaturedBannerArt
+@onready var _label_featured_name: Label = $FeaturedPanel/FeaturedVBox/FeaturedInfo/LabelFeaturedName
+@onready var _label_featured_flavor: Label = $FeaturedPanel/FeaturedVBox/FeaturedInfo/LabelFeaturedFlavor
+@onready var _label_featured_meta: Label = $FeaturedPanel/FeaturedVBox/FeaturedInfo/LabelFeaturedMeta
+@onready var _label_featured_discovery: Label = $FeaturedPanel/FeaturedVBox/FeaturedInfo/LabelFeaturedDiscovery
+@onready var _featured_drop_row: HBoxContainer = $FeaturedPanel/FeaturedVBox/FeaturedDropRow
+@onready var _btn_featured_select: Button = $FeaturedPanel/FeaturedVBox/FeaturedActionRow/BtnFeaturedSelect
 @onready var _list: VBoxContainer = $ScrollList/ListVBox
 @onready var _footer_panel: PanelContainer = $FooterPanel
-@onready var _label_daily_challenges: Label = $FooterPanel/FooterRow/DailyCol/LabelDailyValue
-@onready var _label_dungeon_bonus: Label = $FooterPanel/FooterRow/BonusCol/LabelBonusValue
+@onready var _label_bonus_value: Label = $FooterPanel/FooterRow/BonusCol/LabelBonusValue
 @onready var _label_bonus_timer: Label = $FooterPanel/FooterRow/BonusCol/LabelBonusTimer
-@onready var _label_special_progress: Label = $FooterPanel/FooterRow/SpecialCol/SpecialRow/LabelSpecialProgress
-@onready var _special_progress_bar: ProgressBar = $FooterPanel/FooterRow/SpecialCol/SpecialRow/SpecialProgressBar
-@onready var _btn_reward_list: Button = $FooterPanel/FooterRow/SpecialCol/BtnRewardList
 
 var _featured_dungeon_id: String = ""
 
@@ -88,73 +139,112 @@ func _ready() -> void:
 	UiTypography.apply_screen_title($Header/HeaderRow/LabelTitle)
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.ADVENTURE)
 	_btn_back.pressed.connect(_go_home)
-	_btn_featured_challenge.pressed.connect(_on_featured_challenge_pressed)
+	_btn_featured_select.pressed.connect(_on_featured_select_pressed)
+	_btn_tier_normal.pressed.connect(_on_tier_pressed.bind(_DungeonTierConfig.TIER_NORMAL))
+	_btn_tier_hard.pressed.connect(_on_tier_pressed.bind(_DungeonTierConfig.TIER_HARD))
+	_btn_tier_nightmare.pressed.connect(_on_tier_pressed.bind(_DungeonTierConfig.TIER_NIGHTMARE))
+	if EventSystem.has_signal("event_updated"):
+		EventSystem.event_updated.connect(_refresh_event_footer)
 	_featured_panel.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD_ACTIVE)
 	)
 	_footer_panel.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
 	)
-	$FeaturedPanel/FeaturedRow/FeaturedThumb.add_theme_stylebox_override(
-		"panel", _thumb_frame_style()
-	)
-	_btn_reward_list.disabled = true
-	_btn_reward_list.tooltip_text = "準備中（Beta）"
+	_featured_banner.add_theme_stylebox_override("panel", _banner_frame_style())
 	_apply_typography()
 	_refresh_all()
 
 func _apply_typography() -> void:
 	UiTypography.apply_button(_btn_back, false)
-	UiTypography.apply_button(_btn_featured_challenge)
-	UiTypography.apply_button(_btn_reward_list, false)
+	UiTypography.apply_button(_btn_featured_select)
 	UiTypography.apply_body(_label_gold, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_body(_label_token, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_display(_label_featured_name, UiTypography.SIZE_DISPLAY)
 	UiTypography.apply_body(_label_featured_flavor, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_SUB)
 	UiTypography.apply_body(_label_featured_meta, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
 	UiTypography.apply_body(_label_featured_discovery, UiTypography.SIZE_BODY_SMALL, COLOR_CLEAR)
-	UiTypography.apply_body(_label_daily_challenges, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
-	UiTypography.apply_body(_label_dungeon_bonus, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	UiTypography.apply_body(_label_bonus_value, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_caption(_label_bonus_timer)
-	UiTypography.apply_body(_label_special_progress, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
 
 func _refresh_all() -> void:
+	_featured_dungeon_id = _resolve_featured_dungeon_id()
+	_clamp_selected_tier()
 	_update_currency()
+	_refresh_tier_tabs()
 	_refresh_featured()
-	_refresh_footer_placeholder()
+	_refresh_event_footer()
 	_build_list()
 
-func _refresh_footer_placeholder() -> void:
-	_label_daily_challenges.text = PLACEHOLDER_DAILY_CHALLENGES
-	var data: Resource = DataRegistry.get_dungeon_data(_featured_dungeon_id)
-	var element_name: String = "闇"
-	if data != null and not str(data.favored_element).is_empty():
-		element_name = _ElementResolver.get_display_name(str(data.favored_element))
-	_label_dungeon_bonus.text = "%s属性+%d%%" % [element_name, PLACEHOLDER_BONUS_PERCENT]
-	_label_bonus_timer.text = PLACEHOLDER_BONUS_REMAINING
-	_label_special_progress.text = "特別報酬まであと %d/%d" % [
-		PLACEHOLDER_SPECIAL_CURRENT, PLACEHOLDER_SPECIAL_TOTAL
-	]
-	_special_progress_bar.max_value = float(PLACEHOLDER_SPECIAL_TOTAL)
-	_special_progress_bar.value = float(PLACEHOLDER_SPECIAL_CURRENT)
+func _clamp_selected_tier() -> void:
+	if _featured_dungeon_id.is_empty():
+		_featured_dungeon_id = _resolve_featured_dungeon_id()
+	var dungeon_id: String = _featured_dungeon_id
+	if dungeon_id.is_empty():
+		return
+	var tier: int = _DungeonTierConfig.clamp_tier(GameState.current_dungeon_tier)
+	while tier > _DungeonTierConfig.TIER_NORMAL and not GameState.is_dungeon_tier_unlocked(dungeon_id, tier):
+		tier -= 1
+	GameState.current_dungeon_tier = tier
+
+func _refresh_tier_tabs() -> void:
+	var dungeon_id: String = _featured_dungeon_id
+	var buttons: Array[Button] = [_btn_tier_normal, _btn_tier_hard, _btn_tier_nightmare]
+	for tier in _DungeonTierConfig.TIER_COUNT:
+		var btn: Button = buttons[tier]
+		var unlocked: bool = GameState.is_dungeon_tier_unlocked(dungeon_id, tier)
+		var selected: bool = GameState.current_dungeon_tier == tier
+		btn.disabled = not unlocked
+		btn.button_pressed = selected
+		var label: String = _DungeonTierConfig.display_name(tier)
+		if not unlocked:
+			btn.text = "%s 🔒" % label
+		elif GameState.is_dungeon_tier_cleared(dungeon_id, tier):
+			btn.text = "%s ✓" % label
+		else:
+			btn.text = label
+		UiTypography.apply_button(btn, selected)
+
+func _on_tier_pressed(tier: int) -> void:
+	var dungeon_id: String = _featured_dungeon_id
+	if not GameState.is_dungeon_tier_unlocked(dungeon_id, tier):
+		return
+	GameState.current_dungeon_tier = _DungeonTierConfig.clamp_tier(tier)
+	_refresh_tier_tabs()
+	_refresh_featured()
+	_build_list()
+
+func _refresh_event_footer() -> void:
+	var event_data: Resource = EventSystem.get_active_event()
+	if event_data == null:
+		_footer_panel.visible = false
+		return
+	_footer_panel.visible = true
+	var summary: String = EventSystem.active_modifier_summary()
+	_label_bonus_value.text = summary if not summary.is_empty() else str(event_data.title)
+	_label_bonus_timer.text = "残り %s" % EventSystem.countdown_text()
 
 func _update_currency() -> void:
 	_label_gold.text = "%d" % GameState.gold
 	_label_token.text = CurrencyHelper.format_amount()
 
 func _refresh_featured() -> void:
-	_featured_dungeon_id = _resolve_featured_dungeon_id()
 	var data: Resource = DataRegistry.get_dungeon_data(_featured_dungeon_id)
 	if data == null:
 		_featured_panel.visible = false
+		_btn_featured_select.disabled = true
 		return
 	_featured_panel.visible = true
 	_label_featured_name.text = str(data.display_name)
 	_label_featured_flavor.text = str(data.flavor_text)
 	_label_featured_flavor.visible = not str(data.flavor_text).is_empty()
-	_featured_thumb_art.texture = _get_dungeon_thumb_texture(_featured_dungeon_id)
+	_featured_banner_art.texture = _get_dungeon_thumb_texture(_featured_dungeon_id)
 
 	var meta_parts: Array[String] = []
+	meta_parts.append(_DungeonTierConfig.display_name(GameState.current_dungeon_tier))
+	var tier_summary: String = _DungeonTierConfig.summary_text(GameState.current_dungeon_tier)
+	if not tier_summary.is_empty():
+		meta_parts.append(tier_summary)
 	if int(data.recommended_level) > 0:
 		meta_parts.append("推奨Lv.%d〜" % int(data.recommended_level))
 	meta_parts.append(_make_stars_text(int(data.difficulty)))
@@ -167,17 +257,29 @@ func _refresh_featured() -> void:
 
 	var discovery_pct: int = _discovery_percent(_featured_dungeon_id)
 	_label_featured_discovery.text = "発見率 %d%%" % discovery_pct
-	if GameState.is_dungeon_cleared(_featured_dungeon_id):
-		_label_featured_discovery.text += " · CLEAR済"
+	if GameState.is_dungeon_tier_cleared(_featured_dungeon_id, GameState.current_dungeon_tier):
+		_label_featured_discovery.text += " · %s CLEAR済" % _DungeonTierConfig.display_name(
+			GameState.current_dungeon_tier
+		)
+	elif GameState.is_dungeon_cleared(_featured_dungeon_id):
+		_label_featured_discovery.text += " · ノーマル CLEAR済"
 
 	_populate_drop_row(_featured_drop_row, _featured_dungeon_id, 4)
-	_btn_featured_challenge.text = "挑戦"
+	var unlocked: bool = GameState.is_dungeon_unlocked(_featured_dungeon_id)
+	_btn_featured_select.text = "選択して出発"
+	_btn_featured_select.disabled = not unlocked
 
 func _resolve_featured_dungeon_id() -> String:
+	if not _featured_dungeon_id.is_empty():
+		var current: Resource = DataRegistry.get_dungeon_data(_featured_dungeon_id)
+		if current != null and GameState.is_dungeon_unlocked(_featured_dungeon_id):
+			return _featured_dungeon_id
 	var active_id: String = GameState.get_active_dungeon_id()
 	if DataRegistry.get_dungeon_data(active_id) != null and GameState.is_dungeon_unlocked(active_id):
 		return active_id
-	# 未解放/不明を指していたら解放済みの先頭メインへフォールバック（P3-D157）。
+	for data in DataRegistry.get_all_dungeon_data():
+		if data != null and str(data.route_type) == "main" and GameState.is_dungeon_unlocked(str(data.id)):
+			return str(data.id)
 	for data in DataRegistry.get_all_dungeon_data():
 		if data != null and GameState.is_dungeon_unlocked(str(data.id)):
 			return str(data.id)
@@ -185,6 +287,16 @@ func _resolve_featured_dungeon_id() -> String:
 		if data != null:
 			return str(data.id)
 	return ""
+
+func _set_featured_dungeon(dungeon_id: String) -> void:
+	if dungeon_id.is_empty() or DataRegistry.get_dungeon_data(dungeon_id) == null:
+		return
+	_featured_dungeon_id = dungeon_id
+	GameState.current_dungeon_id = dungeon_id
+	_clamp_selected_tier()
+	_refresh_tier_tabs()
+	_refresh_featured()
+	_build_list()
 
 func _discovery_percent(dungeon_id: String) -> int:
 	var prog: Dictionary = GameState.dungeon_progress.get(dungeon_id, {})
@@ -211,26 +323,57 @@ func _populate_drop_row(row: HBoxContainer, dungeon_id: String, max_icons: int =
 func _build_list() -> void:
 	for child in _list.get_children():
 		child.queue_free()
-	var data: Resource = DataRegistry.get_dungeon_data(_featured_dungeon_id)
-	if data == null:
+	var mains: Array = _sorted_dungeons("main")
+	var sides: Array = _sorted_dungeons("side")
+	var apexes: Array = _sorted_dungeons("apex")
+	if mains.is_empty() and sides.is_empty() and apexes.is_empty():
 		return
-	_append_dungeon_switcher()
+	if not mains.is_empty():
+		_list.add_child(_make_section_header("メインルート"))
+		for data in mains:
+			_list.add_child(_make_biome_card(data))
+	if not sides.is_empty():
+		_list.add_child(_make_section_header("寄り道"))
+		for data in sides:
+			_list.add_child(_make_biome_card(data))
+	if not apexes.is_empty():
+		_list.add_child(_make_section_header("最果て"))
+		for data in apexes:
+			_list.add_child(_make_biome_card(data))
+
+func _sorted_dungeons(route_type: String) -> Array:
+	var out: Array = []
+	for data in DataRegistry.get_all_dungeon_data():
+		if data == null or str(data.route_type) != route_type:
+			continue
+		out.append(data)
+	out.sort_custom(func(a, b): return int(a.difficulty) < int(b.difficulty))
+	return out
+
+func _make_section_header(title: String) -> Label:
 	var header := Label.new()
-	header.text = "階層一覧"
+	header.text = title
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_display(header, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
-	_list.add_child(header)
-	var floor_total: int = maxi(1, int(data.floor_count))
-	for floor in range(1, floor_total + 1):
-		var unlocked: bool = floor == 1
-		_list.add_child(_make_floor_card(data, floor, unlocked))
+	return header
 
-func _make_floor_card(data: Resource, floor: int, unlocked: bool) -> PanelContainer:
+func _make_biome_card(data: Resource) -> PanelContainer:
 	var dungeon_id: String = str(data.id)
-	var cleared: bool = unlocked and GameState.is_dungeon_cleared(dungeon_id)
+	var unlocked: bool = GameState.is_dungeon_unlocked(dungeon_id)
+	var is_featured: bool = dungeon_id == _featured_dungeon_id
+	var cleared: bool = unlocked and (
+		GameState.is_dungeon_tier_cleared(dungeon_id, GameState.current_dungeon_tier)
+		or (
+			GameState.current_dungeon_tier == _DungeonTierConfig.TIER_NORMAL
+			and GameState.is_dungeon_cleared(dungeon_id)
+		)
+	)
 	var card := PanelContainer.new()
 	card.add_theme_stylebox_override(
-		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
+		"panel",
+		CombatUiFrames.panel_style(
+			CombatUiFrames.TIER_CARD_ACTIVE if is_featured else CombatUiFrames.TIER_CARD
+		)
 	)
 	if not unlocked:
 		card.modulate = Color(0.72, 0.72, 0.76, 1.0)
@@ -239,41 +382,41 @@ func _make_floor_card(data: Resource, floor: int, unlocked: bool) -> PanelContai
 	card.add_child(row)
 
 	var thumb_tex: Texture2D = _get_dungeon_thumb_texture(dungeon_id)
-	row.add_child(_make_thumb_with_ribbon(thumb_tex, cleared, not unlocked))
+	var thumb_wrap := _make_thumb_with_ribbon(thumb_tex, cleared, not unlocked)
+	thumb_wrap.gui_input.connect(_on_card_preview_input.bind(dungeon_id, unlocked))
+	row.add_child(thumb_wrap)
 
 	var info := VBoxContainer.new()
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	info.add_theme_constant_override("separation", 3)
+	info.gui_input.connect(_on_card_preview_input.bind(dungeon_id, unlocked))
 	row.add_child(info)
 
-	var title_row := HBoxContainer.new()
-	title_row.add_theme_constant_override("separation", 6)
-	info.add_child(title_row)
 	var title := Label.new()
-	title.text = "%s B%dF" % [str(data.display_name), floor]
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.text = _dungeon_card_title(data)
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UiTypography.apply_display(
 		title,
 		UiTypography.SIZE_BODY_SMALL,
 		UiTypography.COLOR_GOLD if unlocked else UiTypography.COLOR_SUB
 	)
-	title_row.add_child(title)
+	info.add_child(title)
 
 	if int(data.recommended_level) > 0:
 		var lv := Label.new()
-		var floor_lv: int = int(data.recommended_level) + floor - 1
-		lv.text = "推奨Lv.%d〜" % floor_lv
+		lv.text = "推奨Lv.%d〜" % int(data.recommended_level)
 		UiTypography.apply_caption(lv)
 		info.add_child(lv)
 
-	var flavor := Label.new()
-	flavor.text = _floor_flavor_text(data, floor)
-	flavor.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	flavor.max_lines_visible = 2
-	UiTypography.apply_caption(flavor, UiTypography.COLOR_MUTED)
-	info.add_child(flavor)
+	if not str(data.flavor_text).is_empty():
+		var flavor := Label.new()
+		flavor.text = str(data.flavor_text)
+		flavor.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		flavor.max_lines_visible = 2
+		UiTypography.apply_caption(flavor, UiTypography.COLOR_MUTED)
+		info.add_child(flavor)
 
-	info.add_child(_make_enemy_icon_row(data, floor))
+	info.add_child(_make_enemy_icon_row(data, 1))
 
 	var drop_row := HBoxContainer.new()
 	drop_row.add_theme_constant_override("separation", 4)
@@ -291,7 +434,7 @@ func _make_floor_card(data: Resource, floor: int, unlocked: bool) -> PanelContai
 	row.add_child(action)
 
 	var power := Label.new()
-	power.text = "推奨戦力\n%d" % _recommended_combat_power(data, floor)
+	power.text = "推奨戦力\n%d" % _recommended_combat_power(data, 1)
 	power.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_body(power, UiTypography.SIZE_CAPTION, COLOR_TEAL)
 	action.add_child(power)
@@ -300,8 +443,8 @@ func _make_floor_card(data: Resource, floor: int, unlocked: bool) -> PanelContai
 	var btn := Button.new()
 	btn.custom_minimum_size = Vector2(88, 40)
 	if unlocked:
-		btn.text = "挑戦"
-		UiTypography.apply_button(btn)
+		btn.text = "選択"
+		UiTypography.apply_button(btn, is_featured)
 		btn.pressed.connect(_on_select_pressed.bind(dungeon_id))
 	else:
 		btn.text = "ロック中"
@@ -309,60 +452,19 @@ func _make_floor_card(data: Resource, floor: int, unlocked: bool) -> PanelContai
 	action.add_child(btn)
 	return card
 
-# 複数ダンジョンの切替行（P3-D154 / 寄り道対応 P3-SUB-001）。
-# メイン（難易度順）→寄り道（難易度順・「寄」印）の順に表示し、選択中は無効化。
-func _append_dungeon_switcher() -> void:
-	var mains: Array = []
-	var sides: Array = []
-	for d in DataRegistry.get_all_dungeon_data():
-		if d == null:
-			continue
-		if str(d.route_type) == "main":
-			mains.append(d)
-		elif str(d.route_type) == "side":
-			sides.append(d)
-	if mains.size() + sides.size() < 2:
+func _dungeon_card_title(data: Resource) -> String:
+	var route: String = str(data.route_type)
+	if route == "side":
+		return "寄 %s" % str(data.display_name)
+	if route == "apex":
+		return "征 %s" % str(data.display_name)
+	return str(data.display_name)
+
+func _on_card_preview_input(event: InputEvent, dungeon_id: String, unlocked: bool) -> void:
+	if not unlocked:
 		return
-	var by_difficulty := func(a, b): return int(a.difficulty) < int(b.difficulty)
-	mains.sort_custom(by_difficulty)
-	sides.sort_custom(by_difficulty)
-	# HFlowContainer で折返し（6ダンジョンで横幅がビューポートを超えリスト全体を
-	# 押し広げていたはみ出しの修正 / P3-UI3-001）。
-	var row := HFlowContainer.new()
-	row.alignment = FlowContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("h_separation", 8)
-	row.add_theme_constant_override("v_separation", 6)
-	for d in mains + sides:
-		var did: String = str(d.id)
-		var is_side: bool = str(d.route_type) == "side"
-		var name_text: String = ("寄 %s" if is_side else "%s") % str(d.display_name)
-		var btn := Button.new()
-		btn.custom_minimum_size = Vector2(0, 36)
-		# 解放条件（P3-D157）: 未解放はロック表示・選択不可。
-		if not GameState.is_dungeon_unlocked(did):
-			btn.text = "🔒 %s" % name_text
-			btn.disabled = true
-			btn.tooltip_text = "前のダンジョンをクリアで解放"
-			UiTypography.apply_button(btn, false)
-		else:
-			btn.text = name_text
-			UiTypography.apply_button(btn, did != _featured_dungeon_id)
-			if did == _featured_dungeon_id:
-				btn.disabled = true
-			else:
-				btn.pressed.connect(_on_switch_dungeon.bind(did))
-		row.add_child(btn)
-	_list.add_child(row)
-
-func _on_switch_dungeon(dungeon_id: String) -> void:
-	GameState.current_dungeon_id = dungeon_id
-	_refresh_all()
-
-func _floor_flavor_text(data: Resource, floor: int) -> String:
-	var floors: int = maxi(1, int(data.floor_count))
-	if floor >= floors:
-		return "最深部。ボスの気配が近い。"
-	return "地下第%d層。魔術の残滓が濃くなる。" % floor
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_set_featured_dungeon(dungeon_id)
 
 func _recommended_combat_power(data: Resource, floor: int) -> int:
 	var base_lv: int = maxi(1, int(data.recommended_level))
@@ -425,6 +527,14 @@ func _enemy_icon_frame_style() -> StyleBoxFlat:
 	style.set_border_width_all(1)
 	style.border_color = Color(0.45, 0.38, 0.22, 0.65)
 	style.set_corner_radius_all(ENEMY_ICON_PX / 2)
+	return style
+
+func _banner_frame_style() -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.06, 0.05, 0.12, 0.95)
+	style.set_border_width_all(1)
+	style.border_color = Color(0.45, 0.38, 0.2, 0.7)
+	style.set_corner_radius_all(8)
 	return style
 
 func _get_dungeon_thumb_texture(dungeon_id: String) -> Texture2D:
@@ -521,20 +631,18 @@ func _make_stars_label(difficulty: int) -> Label:
 	UiTypography.apply_body(label, UiTypography.SIZE_CAPTION, Color(0.95, 0.78, 0.3))
 	return label
 
-func _on_featured_challenge_pressed() -> void:
+func _on_featured_select_pressed() -> void:
 	_on_select_pressed(_featured_dungeon_id)
 
 func _on_select_pressed(dungeon_id: String) -> void:
 	if DataRegistry.get_dungeon_data(dungeon_id) == null:
 		return
+	if not GameState.is_dungeon_unlocked(dungeon_id):
+		return
 	GameState.current_dungeon_id = dungeon_id
+	_featured_dungeon_id = dungeon_id
+	_clamp_selected_tier()
 	SceneRouter.change_scene(DUNGEON_SCENE)
 
 func _go_home() -> void:
 	SceneRouter.change_scene(HOME_SCENE)
-
-func _go_to(path: String) -> void:
-	if path == DUNGEON_SELECT_SCENE:
-		return
-	if ResourceLoader.exists(path):
-		SceneRouter.change_scene(path)

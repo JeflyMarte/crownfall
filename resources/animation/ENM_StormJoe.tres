@@ -1,0 +1,62 @@
+[gd_resource type="SpriteFrames" load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/battle/enemies/ENM_StormJoe_Sheet.png" id="1_sheet"]
+
+[sub_resource type="AtlasTexture" id="i0"]
+atlas = ExtResource("1_sheet")
+region = Rect2(0, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="i1"]
+atlas = ExtResource("1_sheet")
+region = Rect2(96, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="i2"]
+atlas = ExtResource("1_sheet")
+region = Rect2(192, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="i3"]
+atlas = ExtResource("1_sheet")
+region = Rect2(288, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="i4"]
+atlas = ExtResource("1_sheet")
+region = Rect2(384, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="i5"]
+atlas = ExtResource("1_sheet")
+region = Rect2(480, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="i6"]
+atlas = ExtResource("1_sheet")
+region = Rect2(576, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="i7"]
+atlas = ExtResource("1_sheet")
+region = Rect2(672, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="i8"]
+atlas = ExtResource("1_sheet")
+region = Rect2(768, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="i9"]
+atlas = ExtResource("1_sheet")
+region = Rect2(864, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="i10"]
+atlas = ExtResource("1_sheet")
+region = Rect2(960, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="i11"]
+atlas = ExtResource("1_sheet")
+region = Rect2(1056, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="i12"]
+atlas = ExtResource("1_sheet")
+region = Rect2(1152, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="i13"]
+atlas = ExtResource("1_sheet")
+region = Rect2(1248, 0, 96, 96)
+
+[resource]
+animations = [{"frames": [{"duration": 1.0, "texture": SubResource("i0") }, {"duration": 1.0, "texture": SubResource("i1") }, {"duration": 1.0, "texture": SubResource("i2") }, {"duration": 1.0, "texture": SubResource("i3") }], "loop": true, "name": &"idle", "speed": 6.0}, {"frames": [{"duration": 1.0, "texture": SubResource("i4") }, {"duration": 1.0, "texture": SubResource("i5") }, {"duration": 1.0, "texture": SubResource("i6") }, {"duration": 1.0, "texture": SubResource("i7") }], "loop": false, "name": &"attack", "speed": 10.0}, {"frames": [{"duration": 1.0, "texture": SubResource("i8") }, {"duration": 1.0, "texture": SubResource("i9") }], "loop": false, "name": &"hurt", "speed": 8.0}, {"frames": [{"duration": 1.0, "texture": SubResource("i10") }, {"duration": 1.0, "texture": SubResource("i11") }, {"duration": 1.0, "texture": SubResource("i12") }, {"duration": 1.0, "texture": SubResource("i13") }], "loop": false, "name": &"death", "speed": 6.0}]

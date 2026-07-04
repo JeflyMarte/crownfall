@@ -9,9 +9,11 @@ const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
 
 const _AffixDisplayFormatter = preload("res://scripts/equipment/AffixDisplayFormatter.gd")
 const _JobEvolution = preload("res://scripts/systems/JobEvolution.gd")
+const _EvolutionTraits = preload("res://scripts/systems/EvolutionTraits.gd")
 const _JobStatCalculator = preload("res://scripts/equipment/JobStatCalculator.gd")
 const _AffixStatCalculator = preload("res://scripts/equipment/AffixStatCalculator.gd")
 const _EquipmentEnhancer = preload("res://scripts/equipment/EquipmentEnhancer.gd")
+const _WeaponFlavorHelper = preload("res://scripts/systems/WeaponFlavorHelper.gd")
 const _ElementResolver = preload("res://scripts/combat/ElementResolver.gd")
 
 # CombatController.BASE_MEMBER_HP と同値（表示用の素HP）。
@@ -64,6 +66,7 @@ const SLOT_GLYPHS: Dictionary = {"weapon": "⚔", "armor": "🛡", "accessory": 
 @onready var _evolution_row: HBoxContainer = $VBoxContainer/CharacterCard/CardRow/InfoBox/EvolutionRow
 @onready var _btn_promote: Button = $VBoxContainer/CharacterCard/CardRow/InfoBox/EvolutionRow/BtnPromote
 @onready var _label_evolution: Label = $VBoxContainer/CharacterCard/CardRow/InfoBox/EvolutionRow/LabelEvolution
+var _label_evolution_traits: Label = null
 @onready var _stats_grid: GridContainer = $VBoxContainer/CharacterCard/CardRow/InfoBox/StatsGrid
 @onready var _button_unequip_all: Button = $VBoxContainer/CharacterCard/CardRow/SlotsPanel/ButtonUnequipAll
 @onready var _slots_row: GridContainer = $VBoxContainer/CharacterCard/CardRow/SlotsPanel/EquipSlotsGrid
@@ -100,6 +103,7 @@ var _gambit_move_down_btns: Array[Button] = []
 var _gambit_cond_hint_labels: Array[Label] = []
 var _gambit_ui_syncing: bool = false
 var _relic_option: OptionButton = null
+var _relic_icon: TextureRect = null
 var _relic_ids: Array[String] = []
 var _preset_option: OptionButton = null
 var _preset_name_edit: LineEdit = null
@@ -316,6 +320,38 @@ func _update_evolution_row(member: Resource) -> void:
 		_label_evolution.add_theme_color_override("font_color", COLOR_SUB)
 		_btn_promote.text = "Lv%d必要" % req if req > 0 else "対象外"
 		_btn_promote.disabled = true
+	_update_evolution_traits_label(member)
+
+func _ensure_evolution_traits_label() -> void:
+	if _label_evolution_traits != null:
+		return
+	_label_evolution_traits = Label.new()
+	_label_evolution_traits.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_label_evolution_traits.add_theme_font_size_override("font_size", 11)
+	var info_box: Node = _evolution_row.get_parent()
+	info_box.add_child(_label_evolution_traits)
+	info_box.move_child(_label_evolution_traits, _evolution_row.get_index() + 1)
+
+func _update_evolution_traits_label(member: Resource) -> void:
+	if member == null or _JobEvolution.get_evolved_name(member).is_empty():
+		if _label_evolution_traits != null:
+			_label_evolution_traits.visible = false
+		return
+	_ensure_evolution_traits_label()
+	var lines: PackedStringArray = (
+		_EvolutionTraits.trait_summary_lines(member)
+		if bool(member.is_evolved)
+		else _EvolutionTraits.preview_summary_lines(str(member.job_id))
+	)
+	if lines.is_empty():
+		_label_evolution_traits.visible = false
+		return
+	var prefix: String = "昇格特質" if bool(member.is_evolved) else "昇格で解放"
+	_label_evolution_traits.text = "%s:\n• %s" % [prefix, "\n• ".join(lines)]
+	_label_evolution_traits.visible = true
+	_label_evolution_traits.add_theme_color_override(
+		"font_color", COLOR_POS if bool(member.is_evolved) else COLOR_SUB
+	)
 
 func _on_promote_pressed() -> void:
 	var member: Resource = _get_view_adventurer()
@@ -684,7 +720,11 @@ func _item_label(item: Resource, category: String) -> String:
 				item.attack_speed,
 				item.critical_rate * 100.0,
 			]
-			return _AffixDisplayFormatter.append_to_text(wt, item)
+			wt = _AffixDisplayFormatter.append_to_text(wt, item)
+			var flavor: String = _WeaponFlavorHelper.get_flavor_text_for_item(item)
+			if not flavor.is_empty():
+				wt += "\n「%s」" % flavor
+			return wt
 		"armor":
 			var at: String = "%s  DEF %d  HP+%d  WGT %.1f" % [
 				DataRegistry.get_armor_name(item.armor_id), item.rolled_defense, item.hp_bonus, item.weight
@@ -876,6 +916,10 @@ func _rebuild_skill_tab() -> void:
 		var unlocked: bool = SkillProgression.is_job_skill_unlocked(member, sid)
 		var is_equipped: bool = equipped.has(sid)
 		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		var skill_icon := _make_skill_icon(sid)
+		if skill_icon != null:
+			row.add_child(skill_icon)
 		var info := Label.new()
 		var info_text: String = _skill_info_text(skill_data)
 		if not unlocked:
@@ -895,6 +939,11 @@ func _rebuild_skill_tab() -> void:
 	var weapon_skill: Dictionary = WeaponSkillHelper.get_weapon_skill_display(member)
 	if not str(weapon_skill.get("skill_id", "")).is_empty():
 		var ws_row := HBoxContainer.new()
+		ws_row.add_theme_constant_override("separation", 8)
+		var ws_sid: String = str(weapon_skill.get("skill_id", ""))
+		var ws_icon := _make_skill_icon(ws_sid)
+		if ws_icon != null:
+			ws_row.add_child(ws_icon)
 		var ws_info := Label.new()
 		ws_info.text = "⚔ 武器スキル: %s（%s）" % [
 			str(weapon_skill.get("skill_name", "")),
@@ -1263,6 +1312,12 @@ func _ensure_relic_ui() -> void:
 	var label := Label.new()
 	label.text = "遺物:"
 	row.add_child(label)
+	_relic_icon = TextureRect.new()
+	_relic_icon.custom_minimum_size = Vector2(28, 28)
+	_relic_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_relic_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_relic_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(_relic_icon)
 	var opt := OptionButton.new()
 	opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	opt.item_selected.connect(_on_relic_selected)
@@ -1279,10 +1334,13 @@ func _refresh_relic_ui(member: Resource) -> void:
 	_relic_ids.clear()
 	_relic_option.add_item("なし")
 	_relic_ids.append("")
+	_relic_option.set_item_icon(0, null)
 	for rid: String in CombatRelics.all_ids():
 		if GameState.has_relic(rid):
+			var idx: int = _relic_option.item_count
 			_relic_option.add_item(CombatRelics.display_name(rid))
 			_relic_ids.append(rid)
+			_relic_option.set_item_icon(idx, IconPaths.get_icon_texture(rid, "relic"))
 	if member == null:
 		_relic_option.disabled = true
 		_relic_option.select(0)
@@ -1290,10 +1348,14 @@ func _refresh_relic_ui(member: Resource) -> void:
 	_relic_option.disabled = false
 	var current: String = GameState.get_member_relic_id(member)
 	if not current.is_empty() and current not in _relic_ids:
+		var ghost_idx: int = _relic_option.item_count
 		_relic_option.add_item("%s (未所持)" % CombatRelics.display_name(current))
 		_relic_ids.append(current)
+		_relic_option.set_item_icon(ghost_idx, IconPaths.get_icon_texture(current, "relic"))
 	var idx: int = _relic_ids.find(current)
 	_relic_option.select(idx if idx >= 0 else 0)
+	if _relic_icon != null:
+		_relic_icon.texture = IconPaths.get_icon_texture(current, "relic") if not current.is_empty() else null
 
 func _on_relic_selected(index: int) -> void:
 	if index < 0 or index >= _relic_ids.size():
@@ -1302,6 +1364,9 @@ func _on_relic_selected(index: int) -> void:
 	if member == null:
 		return
 	GameState.set_member_relic(member, _relic_ids[index])
+	if _relic_icon != null:
+		var rid: String = _relic_ids[index]
+		_relic_icon.texture = IconPaths.get_icon_texture(rid, "relic") if not rid.is_empty() else null
 
 # 作戦プリセット（P3-D091 / P3-D121）。スキルタブ最上部に「作戦 [▼] [適用] [保存]」を 1 度だけ生成。
 # プリセット＝party 全員の戦術＋遺物＋装備＋探索方針。適用で全員へ一括反映する。
@@ -1583,6 +1648,18 @@ func _skill_label_name(skill_id: String) -> String:
 	if sd != null and not sd.display_name.is_empty():
 		return sd.display_name
 	return skill_id
+
+func _make_skill_icon(skill_id: String) -> TextureRect:
+	var tex: Texture2D = IconPaths.get_icon_texture(skill_id, "skill")
+	if tex == null:
+		return null
+	var icon := TextureRect.new()
+	icon.texture = tex
+	icon.custom_minimum_size = Vector2(36, 36)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return icon
 
 func _skill_info_text(skill_data: Resource) -> String:
 	match skill_data.effect_type:

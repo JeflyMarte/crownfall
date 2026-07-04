@@ -1,0 +1,124 @@
+{
+  "skills": [
+    {
+      "id": "slash_attack",
+      "file": "ICO_SKILL_SlashAttack.png",
+      "rarity": 0,
+      "kind": "slash"
+    },
+    {
+      "id": "mend",
+      "file": "ICO_SKILL_Mend.png",
+      "rarity": 0,
+      "kind": "heal"
+    },
+    {
+      "id": "empower",
+      "file": "ICO_SKILL_Empower.png",
+      "rarity": 1,
+      "kind": "buff"
+    },
+    {
+      "id": "guard_strike",
+      "file": "ICO_SKILL_GuardStrike.png",
+      "rarity": 0,
+      "kind": "guard"
+    },
+    {
+      "id": "aimed_shot",
+      "file": "ICO_SKILL_AimedShot.png",
+      "rarity": 1,
+      "kind": "ranged"
+    },
+    {
+      "id": "hex_bolt",
+      "file": "ICO_SKILL_HexBolt.png",
+      "rarity": 1,
+      "kind": "dark"
+    },
+    {
+      "id": "arc_bolt",
+      "file": "ICO_SKILL_ArcBolt.png",
+      "rarity": 1,
+      "kind": "thunder"
+    },
+    {
+      "id": "venom_burst",
+      "file": "ICO_SKILL_VenomBurst.png",
+      "rarity": 2,
+      "kind": "poison"
+    },
+    {
+      "id": "iron_guard",
+      "file": "ICO_SKILL_IronGuard.png",
+      "rarity": 0,
+      "kind": "defense"
+    },
+    {
+      "id": "hunter_mark",
+      "file": "ICO_SKILL_HunterMark.png",
+      "rarity": 1,
+      "kind": "mark"
+    },
+    {
+      "id": "kindling_strike",
+      "file": "ICO_SKILL_KindlingStrike.png",
+      "rarity": 1,
+      "kind": "fire"
+    },
+    {
+      "id": "rime_touch",
+      "file": "ICO_SKILL_RimeTouch.png",
+      "rarity": 1,
+      "kind": "ice"
+    },
+    {
+      "id": "static_strike",
+      "file": "ICO_SKILL_StaticStrike.png",
+      "rarity": 1,
+      "kind": "thunder"
+    },
+    {
+      "id": "sanctal_strike",
+      "file": "ICO_SKILL_SanctalStrike.png",
+      "rarity": 2,
+      "kind": "holy"
+    },
+    {
+      "id": "umbral_strike",
+      "file": "ICO_SKILL_UmbralStrike.png",
+      "rarity": 2,
+      "kind": "dark"
+    },
+    {
+      "id": "titan_roar",
+      "file": "ICO_SKILL_TitanRoar.png",
+      "rarity": 3,
+      "kind": "ultimate"
+    },
+    {
+      "id": "ouga_retsudan",
+      "file": "ICO_SKILL_OugaRetsudan.png",
+      "rarity": 3,
+      "kind": "ultimate"
+    },
+    {
+      "id": "dead_eye",
+      "file": "ICO_SKILL_DeadEye.png",
+      "rarity": 3,
+      "kind": "ultimate"
+    },
+    {
+      "id": "beast_dominion",
+      "file": "ICO_SKILL_BeastDominion.png",
+      "rarity": 3,
+      "kind": "ultimate"
+    },
+    {
+      "id": "grand_elixir",
+      "file": "ICO_SKILL_GrandElixir.png",
+      "rarity": 3,
+      "kind": "ultimate"
+    }
+  ]
+}

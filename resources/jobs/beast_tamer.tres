@@ -49,4 +49,4 @@ learnable_skill_ids = Array[String](["snare_shot", "beast_bite", "toxin_dart", "
 passive_tag_ids = Array[String](["tamer"])
 ultimate_skill_id = "beast_dominion"
 evolved_display_name = "ビーストロード"
-evolution_level = 10
+evolution_level = 30

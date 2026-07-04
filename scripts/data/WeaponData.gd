@@ -22,3 +22,5 @@ extends Resource
 ## 空なら特効なし。属性弱点/耐性とは乗算で併用。
 @export var bane_class: String = ""
 @export var bane_multiplier: float = 1.3
+## 公開断片フレーバー（P3-LORE-002）。空なら `WeaponFlavorHelper` の既定文案を参照。
+@export_multiline var flavor_text: String = ""

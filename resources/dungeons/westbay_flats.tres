@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="DungeonData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "westbay_flats"
+display_name = "ウェストベイ干潟"
+difficulty = 4
+recommended_level = 28
+enemy_level = 26
+room_count = 8
+floor_count = 6
+enemy_pool = Array[String](["ship_eater_crab", "skull_turtle", "undertaker_shark"])
+boss_id = "ninja_octopus"
+drop_table_id = "westbay_flats_drops"
+discovery_unlocks = {"hidden_room": 0.3, "special_event": 0.6, "hidden_boss": 1.0}
+elite_pool = Array[String]([])
+favored_element = "holy"
+route_type = "side"
+event_room_weight = 25
+min_event_rooms = 1
+weapon_pool = Array[String](["black_sand_cleaver", "wreck_hook_blades", "tidewood_longbow", "brine_lantern_staff", "lighthouse_greatsword", "pharos_bow", "votive_staff", "barnacle_saw"])
+armor_pool = Array[String](["tidecloth_garb", "kelp_weave_cloak", "shipplate_mail", "whalebone_plate", "votive_vestment"])
+accessory_pool = Array[String](["black_pearl_ring", "barnacle_charm", "nereion_song_talisman"])
+unlock_after_dungeon_id = "mistfen"
+flavor_text = "ウェストベイの干潟に広がる潮間帯の短編。聖別の潮流と潮素材を\n沈没航路へ挑む前に集める寄り道。"

@@ -1,0 +1,159 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/event/EventScene.gd" id="1"]
+[ext_resource type="Theme" path="res://assets/ui/production_theme.tres" id="2"]
+
+[sub_resource type="StyleBoxFlat" id="SB_Header"]
+bg_color = Color(0.04, 0.04, 0.1, 0.9)
+border_width_bottom = 1
+border_color = Color(0.55, 0.45, 0.18, 0.6)
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="SB_BottomNav"]
+bg_color = Color(0.04, 0.04, 0.1, 0.92)
+border_width_top = 1
+border_color = Color(0.55, 0.45, 0.18, 0.6)
+content_margin_left = 8.0
+content_margin_top = 6.0
+content_margin_right = 8.0
+content_margin_bottom = 6.0
+
+[node name="EventScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2")
+script = ExtResource("1")
+
+[node name="Header" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_right = 1.0
+offset_bottom = 46.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("SB_Header")
+
+[node name="HeaderRow" type="HBoxContainer" parent="Header"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ButtonBack" type="Button" parent="Header/HeaderRow"]
+layout_mode = 2
+size_flags_vertical = 4
+text = "←"
+
+[node name="LabelTitle" type="Label" parent="Header/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
+theme_override_font_sizes/font_size = 18
+text = "イベント"
+horizontal_alignment = 1
+
+[node name="MainScroll" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 46.0
+offset_bottom = -52.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="MainVBox" type="VBoxContainer" parent="MainScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="ModifierPanel" type="PanelContainer" parent="MainScroll/MainVBox"]
+layout_mode = 2
+
+[node name="ModifierVBox" type="VBoxContainer" parent="MainScroll/MainVBox/ModifierPanel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="LabelModifierHeader" type="Label" parent="MainScroll/MainVBox/ModifierPanel/ModifierVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.74, 0.45, 1)
+theme_override_font_sizes/font_size = 16
+text = "今週の効果"
+horizontal_alignment = 1
+
+[node name="LabelModifier" type="Label" parent="MainScroll/MainVBox/ModifierPanel/ModifierVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
+theme_override_font_sizes/font_size = 22
+text = "—"
+horizontal_alignment = 1
+
+[node name="LabelTimer" type="Label" parent="MainScroll/MainVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
+theme_override_font_sizes/font_size = 13
+text = "残り —"
+horizontal_alignment = 1
+
+[node name="LabelSchedule" type="Label" parent="MainScroll/MainVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.69, 0.62, 1)
+theme_override_font_sizes/font_size = 12
+text = "開催期間: —"
+horizontal_alignment = 1
+
+[node name="LabelDesc" type="Label" parent="MainScroll/MainVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.69, 0.62, 1)
+theme_override_font_sizes/font_size = 13
+text = "—"
+autowrap_mode = 3
+
+[node name="BottomNav" type="PanelContainer" parent="."]
+z_index = 20
+layout_mode = 1
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -52.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("SB_BottomNav")
+
+[node name="NavRow" type="HBoxContainer" parent="BottomNav"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="NavHome" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ホーム"
+
+[node name="NavParty" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "パーティ"
+
+[node name="NavAdventure" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "冒険"
+
+[node name="NavForge" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "強化"
+
+[node name="NavShop" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ショップ"
+
+[node name="NavMenu" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "メニュー"

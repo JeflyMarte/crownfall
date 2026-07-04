@@ -85,6 +85,7 @@ static func attack_base(combat: CombatController, member_index: int = -1) -> Dic
 	# ロール編成ボーナス（scout×2=会心+8%・P3-D097）
 	if combat != null:
 		crit_rate += combat.get_party_role_crit_add()
+	crit_rate += EvolutionTraits.member_crit_add(member_index)
 	if member_index >= 0 and member_index < GameState.party_members.size():
 		damage += LevelSystem.level_attack_bonus(GameState.party_members[member_index].level)
 		var member: Resource = GameState.party_members[member_index]
@@ -132,6 +133,7 @@ static func enemy_mitigation(
 	var elem_name: String = ElementResolver.get_display_name(attack_element)
 	if elem_mult > 1.0:
 		damage = maxi(1, int(float(damage) * elem_mult))
+		damage = maxi(1, int(round(float(damage) * EvolutionTraits.member_weakness_mult(member_index, elem_mult))))
 		if not elem_name.is_empty():
 			element_tag = "  [弱点:%s]" % elem_name
 	elif elem_mult < 1.0:
@@ -191,7 +193,9 @@ static func member_attack_damage(
 		damage = int(damage * BalanceConfig.CRITICAL_MULTIPLIER)
 	damage = int(damage * run_damage_multiplier)
 	var action_range: String = CombatRange.resolve_for_action(member_index)
-	damage = maxi(1, int(float(damage) * combat.get_member_outgoing_damage_multiplier(member_index, action_range)))
+	damage = maxi(1, int(float(damage) * combat.get_member_outgoing_damage_multiplier(
+		member_index, action_range, false, weapon_element(member_index)
+	)))
 	var elem_result: Dictionary = enemy_mitigation(
 		combat, dungeon_data, damage, weapon_element(member_index), member_index, target_slot, rng
 	)

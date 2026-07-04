@@ -112,13 +112,6 @@ texture = ExtResource("6")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="LabelSubtitle" type="Label" parent="HubView/TitlePanel/TitleVBox"]
-layout_mode = 2
-text = "九王の遺産を巡る自動探索RPG"
-horizontal_alignment = 1
-theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
-theme_override_font_sizes/font_size = 13
-
 [node name="TopBar" type="PanelContainer" parent="HubView"]
 layout_mode = 1
 anchor_right = 1.0

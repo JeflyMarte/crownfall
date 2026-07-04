@@ -1,6 +1,8 @@
 class_name BottomNavHelper
 extends RefCounted
 
+const _HubNpcHelper := preload("res://scripts/ui/HubNpcHelper.gd")
+
 ## 拠点系画面の左メニュー / 下ナビ共通定義。
 
 const SCENE_HOME: String = "res://scenes/base/BaseScene.tscn"
@@ -149,6 +151,7 @@ static func setup(nav_row: HBoxContainer, active_tab: Tab) -> void:
 	NavIconHelper.decorate_bottom_nav_row(nav_row)
 	highlight_tab(nav_row, active_tab)
 	_wire_nav_row(nav_row, active_tab)
+	_HubNpcHelper.show_pending_banner(_scene_root(nav_row))
 
 static func highlight_tab(nav_row: HBoxContainer, active_tab: Tab) -> void:
 	_set_active_tab(nav_row, active_tab)
@@ -249,9 +252,18 @@ static func _go_codex() -> void:
 		_change_scene(SCENE_CODEX)
 
 static func _change_scene(path: String) -> void:
+	_HubNpcHelper.queue_hint_for_scene(path)
 	var tree: SceneTree = Engine.get_main_loop() as SceneTree
 	if tree == null:
 		return
 	var router: Node = tree.root.get_node_or_null("/root/SceneRouter")
 	if router != null and router.has_method("change_scene"):
 		router.call("change_scene", path)
+
+static func _scene_root(nav_row: HBoxContainer) -> Control:
+	var node: Node = nav_row
+	while node != null:
+		if node.get_parent() == null or str(node.get_parent().name) == "root":
+			return node as Control
+		node = node.get_parent()
+	return nav_row.get_parent() as Control

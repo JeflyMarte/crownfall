@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "clockwing_brooch"
+display_name = "翅時計の胸針"
+rarity = 1
+icon = ""
+description = "クロックモスの翅粉を封じた胸針。微かな共鳴が急所を捉える感覚を研ぐ。"
+hp_bonus = 8
+attack_bonus = 0
+defense_bonus = 0
+crit_rate_bonus = 0.03
+luck_bonus = 0.0

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EventData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EventData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "evt_week_gold"
+title = "黄金週間"
+tag_text = "期間限定イベント"
+banner_desc = "戦闘Gold ×1.5"
+description = "調査局指定の強化週間。探索中の戦闘で得られるゴールドが1.5倍になる。"
+modifier_type = "gold"
+modifier_mult = 1.5
+start_date_jst = "2026-07-08"
+end_date_jst = "2026-07-15"

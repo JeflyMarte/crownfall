@@ -49,4 +49,4 @@ learnable_skill_ids = Array[String](["slash_attack", "rend_slash", "swift_slash"
 passive_tag_ids = Array[String](["frontline"])
 ultimate_skill_id = "ouga_retsudan"
 evolved_display_name = "ソードセイバー"
-evolution_level = 10
+evolution_level = 30

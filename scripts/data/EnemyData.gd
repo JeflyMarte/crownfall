@@ -38,3 +38,11 @@ extends Resource
 @export var codex_materials: Array[String] = []
 ## 味方狙いの偏重（P3-D145）。max_threat=最大Threat / lowest_hp=低HP優先 / back_row=後列優先 / lowest_threat=最小Threat
 @export var threat_target_bias: String = "max_threat"
+## 遍在希少種（放浪個体 / P3-WANDER-001）。全 Biome の COMBAT に低確率差し込み。
+@export var is_wandering: bool = false
+## 放浪個体の逃走。0=逃走なし。N=自身の行動 N 回後に逃走（遠旅スズメ=3）。
+@export var wander_flee_after_turns: int = 0
+## 撃破時武器ドロップ率。-1=部屋種別既定 / 0〜1=上書き（聖遺甲虫=0.85）。
+@export var weapon_drop_chance: float = -1.0
+## 武器レア度重み上書き（空=既定 RARITY_DROP_WEIGHT）。キー=Enums.Rarity 値。
+@export var weapon_rarity_weights: Dictionary = {}

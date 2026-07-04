@@ -1,11 +1,14 @@
 extends Control
 
+const _HubNpcHelper := preload("res://scripts/ui/HubNpcHelper.gd")
+
 const DUNGEON_SELECT_SCENE: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
 const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
 const EQUIPMENT_SCENE: String = "res://scenes/equipment/EquipmentScene.tscn"
 const ROSTER_SCENE: String = "res://scenes/roster/RosterScene.tscn"
 const CODEX_SCENE: String = "res://scenes/codex/CodexScene.tscn"
 const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
+const EVENT_SCENE: String = "res://scenes/event/EventScene.tscn"
 
 @onready var _menu_vbox: VBoxContainer = $HubView/LeftMenuPanel/MenuScroll/MenuVBox
 @onready var _label_gold: Label = $HubView/TopBar/TopBarRow/GoldChip/GoldRow/LabelGold
@@ -23,18 +26,24 @@ const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
 @onready var _label_event_title: Label = $HubView/EventBanner/EventVBox/EventTextCol/LabelEventTitle
 @onready var _label_event_desc: Label = $HubView/EventBanner/EventVBox/EventTextCol/LabelEventDesc
 @onready var _label_event_timer: Label = $HubView/EventBanner/EventVBox/LabelEventTimer
-@onready var _label_subtitle: Label = $HubView/TitlePanel/TitleVBox/LabelSubtitle
+@onready var _event_banner: PanelContainer = $HubView/EventBanner
 
 func _ready() -> void:
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.HOME)
 	_decorate_panels()
 	_build_left_menu()
 	DailyMissionSystem.missions_updated.connect(_refresh_daily_missions)
+	EventSystem.event_updated.connect(_refresh_event_banner)
 	$ResetTimer.timeout.connect(_update_daily_reset_label)
+	$ResetTimer.timeout.connect(_refresh_event_banner)
+	_event_banner.gui_input.connect(_on_event_banner_input)
+	_event_banner.mouse_filter = Control.MOUSE_FILTER_STOP
 	_ensure_valid_dungeon_selection()
 	DailyMissionSystem.ensure_refreshed()
+	EventSystem.ensure_active()
 	_update_display()
 	_refresh_daily_missions()
+	_refresh_event_banner()
 	_apply_typography()
 	GameState.base_initial_view = "hub"
 
@@ -46,7 +55,6 @@ func _apply_typography() -> void:
 	UiTypography.apply_display(_label_daily_title, UiTypography.SIZE_BODY_SMALL)
 	UiTypography.apply_caption(_label_daily_reset)
 	UiTypography.apply_display(_portrait_glyph, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
-	UiTypography.apply_body(_label_subtitle, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_SUB)
 	UiTypography.apply_body(_label_menu_title, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_SUB)
 	UiTypography.apply_caption(_label_event_tag, UiTypography.COLOR_GOLD)
 	UiTypography.apply_display(_label_event_title, UiTypography.SIZE_BODY_SMALL)
@@ -94,6 +102,7 @@ func _find_side_menu_button(card: Control) -> Button:
 	return null
 
 func _on_menu_entry_pressed(entry_id: String) -> void:
+	_HubNpcHelper.queue_hint(entry_id)
 	match entry_id:
 		"adventure":
 			_on_dungeon_button_pressed()
@@ -186,6 +195,25 @@ func _update_player_card() -> void:
 	_portrait_glyph.visible = tex == null
 	if tex == null:
 		_portrait_glyph.text = "英"
+
+func _refresh_event_banner() -> void:
+	var event_data: Resource = EventSystem.get_active_event()
+	_event_banner.visible = event_data != null
+	if event_data == null:
+		return
+	_label_event_tag.text = str(event_data.tag_text)
+	_label_event_title.text = str(event_data.title)
+	_label_event_desc.text = EventSystem.active_modifier_summary()
+	_label_event_timer.text = EventSystem.countdown_text()
+
+func _on_event_banner_input(event: InputEvent) -> void:
+	if not EventSystem.is_event_running():
+		return
+	if event is InputEventMouseButton:
+		var mb: InputEventMouseButton = event as InputEventMouseButton
+		if mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
+			if ResourceLoader.exists(EVENT_SCENE):
+				SceneRouter.change_scene(EVENT_SCENE)
 
 func _refresh_daily_missions() -> void:
 	_update_daily_reset_label()

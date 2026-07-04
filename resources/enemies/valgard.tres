@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "valgard"
+display_name = "境界の番ヴァルガード"
+max_hp = 300
+attack = 18
+defense = 22
+attack_speed = 0.9
+critical_rate = 0.1
+move_speed = 0.8
+threat_target_bias = "max_threat"
+detection_range = 8.0
+attack_range = 2.5
+enemy_type = 2
+ai_type = "default"
+exp_reward = 170
+gold_reward = 240
+drop_table_id = "valgard_drops"
+element_weakness = Array[String](["holy", "thunder"])
+element_resist = Array[String](["dark"])
+attack_element = "holy"
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "古代種"
+codex_danger = 5
+codex_habitat = "ストームクラウン遺構・境界回廊"
+codex_research_note = "境界石や崩落城壁の残滓に着生した岩鉄生物の頂点個体。槍状の突起で侵入者を押し返す。境界の番の名は民間が付けた通称で、王そのものではない。不死者ではない。"
+codex_materials = Array[String]([])
+skill_ids = Array[String](["boss_enrage", "enemy_valgard_rampart", "enemy_valgard_boundary_spear"])
+skill_use_chance = 0.4

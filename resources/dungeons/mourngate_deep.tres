@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="DungeonData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "mourngate_deep"
+display_name = "未踏査層モーンゲート・ディープ"
+difficulty = 2
+recommended_level = 8
+enemy_level = 7
+room_count = 8
+floor_count = 7
+enemy_pool = Array[String](["sepia_hound", "rune_roach", "crystal_hedgehog"])
+boss_id = "chronos_wave"
+drop_table_id = "mourngate_deep_drops"
+discovery_unlocks = {"hidden_room": 0.3, "special_event": 0.6, "hidden_boss": 1.0}
+elite_pool = Array[String](["clock_moth"])
+favored_element = "thunder"
+route_type = "apex"
+event_room_weight = 25
+min_event_rooms = 1
+weapon_pool = Array[String](["iron_sword", "rusted_blade", "hunting_bow", "apprentice_staff", "heater_blade", "frost_blade", "bolt_knife", "ember_fang", "glacier_staff", "storm_edge", "sanctified_dagger", "consecrated_maul"])
+armor_pool = Array[String](["crypt_weave_cloak", "sepia_hide_vest", "rune_linen_garb", "lament_guard_mail", "mourngate_plate"])
+accessory_pool = Array[String](["clockwing_brooch", "mourngate_sigil", "pilgrim_lantern_charm"])
+unlock_after_dungeon_id = "mourngate"
+flavor_text = "モーンゲート最深の未踏査層。歯車と時環の共鳴が方角を狂わせ、\n時環の共鳴体が、未踏査層の時間感覚ごと飲み込む。"

@@ -1,6 +1,8 @@
 class_name CatalogHelper
 extends RefCounted
 
+const _CodexContent := preload("res://scripts/codex/CodexContentHelper.gd")
+
 ## M9 Codex カタログ取得（P2-Task046〜049）。
 
 const UNKNOWN_DISPLAY: String = "???"
@@ -143,8 +145,8 @@ func _build_dungeon_entries() -> Array:
 		var display_name: String = str(bible.get("name", ""))
 		if display_name.is_empty():
 			display_name = data.display_name
-		var overview: String = str(bible.get("overview", ""))
-		entries.append(_make_dungeon_entry(data.id, display_name, overview, bible))
+		var overview: String = _CodexContent.build_dungeon_overview(data, str(bible.get("overview", "")))
+		entries.append(_make_dungeon_entry(data.id, display_name, overview, bible, data))
 	return entries
 
 func _build_material_entries() -> Array:
@@ -152,11 +154,15 @@ func _build_material_entries() -> Array:
 	for data in DataRegistry.get_all_material_data():
 		if data == null or data.id.is_empty():
 			continue
+		var description: String = str(data.description)
+		var lore_id: String = str(data.lore_id)
+		if not lore_id.is_empty():
+			description += "\n\n関連歴史: %s" % _history_title(lore_id)
 		entries.append(_make_entry(
 			data.id,
 			data.display_name,
 			str(data.icon),
-			str(data.description),
+			description,
 			"material"
 		))
 	return entries
@@ -166,11 +172,12 @@ func _build_weapon_entries() -> Array:
 	for data in DataRegistry.get_all_weapon_data():
 		if data == null or data.id.is_empty():
 			continue
+		var description: String = _CodexContent.build_weapon_description(data)
 		entries.append(_make_entry(
 			data.id,
 			data.display_name,
 			"",
-			"",
+			description,
 			"weapon"
 		))
 	return entries
@@ -255,16 +262,25 @@ func _make_history_entry(raw: Dictionary) -> Dictionary:
 	entry["related_entries"] = raw.get("related_entries", []).duplicate()
 	return entry
 
-func _make_dungeon_entry(entry_id: String, display_name: String, overview: String, bible: Dictionary) -> Dictionary:
+func _make_dungeon_entry(entry_id: String, display_name: String, overview: String, bible: Dictionary, dungeon_data: Resource = null) -> Dictionary:
 	var entry: Dictionary = _make_entry(entry_id, display_name, "", overview, "dungeon")
 	if not bool(entry.get("discovered", false)):
 		entry["location"] = ""
 		entry["exploration_theme"] = ""
 		entry["related_history"] = []
 		return entry
-	entry["location"] = str(bible.get("location", ""))
-	entry["exploration_theme"] = str(bible.get("exploration_theme", ""))
-	entry["related_history"] = bible.get("related_history", []).duplicate()
+	var location: String = str(bible.get("location", ""))
+	if location.is_empty():
+		location = _CodexContent.dungeon_location(entry_id, display_name)
+	entry["location"] = location
+	var theme: String = str(bible.get("exploration_theme", ""))
+	if theme.is_empty() and dungeon_data != null:
+		theme = _CodexContent.dungeon_exploration_theme(dungeon_data)
+	entry["exploration_theme"] = theme
+	var related: Array = bible.get("related_history", []).duplicate()
+	if related.is_empty():
+		related = _CodexContent.dungeon_related_history(entry_id)
+	entry["related_history"] = related
 	return entry
 
 func _load_history_bible_entries() -> Array:
@@ -359,6 +375,16 @@ func _collect_markdown_sections(
 		i += 1
 	sections["next_index"] = i
 	return sections
+
+func _history_title(he_id: String) -> String:
+	for raw in _load_history_bible_entries():
+		if str(raw.get("id", "")) == he_id:
+			var title: String = str(raw.get("title", ""))
+			if title.is_empty():
+				return he_id
+			return "%s %s" % [he_id, title]
+	return he_id
+
 
 func _parse_related_ids(section_body: String) -> Array[String]:
 	var ids: Array[String] = []

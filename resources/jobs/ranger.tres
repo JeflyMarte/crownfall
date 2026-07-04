@@ -49,4 +49,4 @@ learnable_skill_ids = Array[String](["aimed_shot", "quick_shot", "snare_shot", "
 passive_tag_ids = Array[String](["recon"])
 ultimate_skill_id = "dead_eye"
 evolved_display_name = "スナイパー"
-evolution_level = 10
+evolution_level = 30

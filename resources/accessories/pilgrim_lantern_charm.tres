@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "pilgrim_lantern_charm"
+display_name = "巡礼灯の護符"
+rarity = 0
+icon = ""
+description = "旧王の大街道で見つかる小さな灯籠型の護符。闇の中で僅かに足元を照らす。"
+hp_bonus = 10
+attack_bonus = 2
+defense_bonus = 0
+crit_rate_bonus = 0.0
+luck_bonus = 0.0

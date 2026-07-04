@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "albark"
+display_name = "白甲の古龍アルバーク"
+max_hp = 480
+attack = 28
+defense = 30
+attack_speed = 0.9
+critical_rate = 0.1
+move_speed = 0.8
+threat_target_bias = "max_threat"
+detection_range = 10.0
+attack_range = 2.5
+enemy_type = 2
+ai_type = "default"
+exp_reward = 230
+gold_reward = 340
+drop_table_id = "albark_drops"
+element_weakness = Array[String](["ice", "fire"])
+element_resist = Array[String](["dark", "thunder"])
+attack_element = "ice"
+on_hit_status_id = "chill"
+on_hit_status_chance = 0.3
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "古代種"
+codex_danger = 5
+codex_habitat = "ノースリーチ・地図の余白"
+codex_research_note = "白甲を持つ古龍種の頂点個体。地図の空白地帯を縄とし、氷と静寂で侵食者を消す。白甲の古龍の名は開拓者の俗称であり、開拓王との関わりは確認されていない。不死者ではない。"
+codex_materials = Array[String]([])
+skill_ids = Array[String](["boss_enrage", "enemy_albark_white_silence", "enemy_albark_mapless_charge"])
+skill_use_chance = 0.4

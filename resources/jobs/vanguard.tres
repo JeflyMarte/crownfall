@@ -49,4 +49,4 @@ learnable_skill_ids = Array[String](["guard_strike", "iron_guard", "menace_strik
 passive_tag_ids = Array[String](["frontline", "guard"])
 ultimate_skill_id = "titan_roar"
 evolved_display_name = "パラディン"
-evolution_level = 10
+evolution_level = 30

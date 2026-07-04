@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_karna_ash_veil"
+display_name = "灰の帳"
+description = "火口の灰雲が視界を奪い、灼熱の粒子が探索隊全体を襲う。"
+skill_type = "boss"
+target_type = "all_party"
+power_multiplier = 0.53
+cooldown = 8.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["boss", "aoe"])
+element = "fire"
+apply_status_id = "bleed"
+apply_status_chance = 0.3
+cast_time = 1.0

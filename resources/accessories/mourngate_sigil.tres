@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "mourngate_sigil"
+display_name = "嘆門の印環"
+rarity = 0
+icon = ""
+description = "排水門に刻まれた印の環。地下の湿気から身を守るとされる。"
+hp_bonus = 8
+attack_bonus = 0
+defense_bonus = 0
+crit_rate_bonus = 0.0
+luck_bonus = 0.0

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_dust_flutter"
+display_name = "羽粉乱舞"
+description = "古い探索記録の粉を舞わせ、命中感覚を鈍らせる。"
+skill_type = "enemy"
+target_type = "party"
+power_multiplier = 0.22
+cooldown = 4.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["aoe"])
+element = ""
+apply_status_id = "chill"
+apply_status_chance = 0.35

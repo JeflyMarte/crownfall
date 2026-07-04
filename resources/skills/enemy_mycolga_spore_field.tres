@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_mycolga_spore_field"
+display_name = "胞子の野"
+description = "封緘書庫の腐敗胞子が広がり、探索隊全体を瘴気に呑み込む。"
+skill_type = "boss"
+target_type = "all_party"
+power_multiplier = 0.5
+cooldown = 8.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["boss", "aoe"])
+element = "dark"
+apply_status_id = "poison"
+apply_status_chance = 0.4
+cast_time = 1.0

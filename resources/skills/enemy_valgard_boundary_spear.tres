@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_valgard_boundary_spear"
+display_name = "境界槍"
+description = "境界石から伸びた槍が、狙った一人の防線を貫く。"
+skill_type = "boss"
+target_type = "party"
+power_multiplier = 0.58
+cooldown = 7.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["boss", "single"])
+element = "holy"
+apply_status_id = "mark"
+apply_status_chance = 0.3

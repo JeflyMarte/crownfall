@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EventData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EventData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "evt_week_weapon"
+title = "武具降臨"
+tag_text = "期間限定イベント"
+banner_desc = "武器ドロップ率 ×1.5"
+description = "調査局指定の強化週間。敵撃破時の武器直ドロップ率が1.5倍になる。"
+modifier_type = "weapon_drop"
+modifier_mult = 1.5
+start_date_jst = "2026-07-15"
+end_date_jst = "2026-07-22"

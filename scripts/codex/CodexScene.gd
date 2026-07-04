@@ -75,6 +75,8 @@ func _ready() -> void:
 		_show_detail(0)
 	)
 	_update_currency()
+	_label_detail_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_label_detail_name.clip_text = true
 	_select_category("enemy")
 
 func _update_currency() -> void:
@@ -208,6 +210,7 @@ func _rebuild_entry_list() -> void:
 		if tex != null:
 			btn.icon = tex
 			btn.expand_icon = true
+			btn.add_theme_constant_override("icon_max_width", 40)
 		var chevron := Label.new()
 		chevron.text = "›"
 		chevron.add_theme_color_override("font_color", COLOR_GOLD)

@@ -20,9 +20,14 @@ const DAMAGE_VARIANCE: float = 0.10
 # ── 味方基礎（旧 CombatController 定数） ──────────────────────────────────
 const BASE_MEMBER_HP: int = 30
 
-# ── レベル成長（P3-D035 / P3-BAL-006 で調整） ────────────────────────────
+# ── レベル成長（P3-D035 / P3-BAL-006 / P3-LV-099） ───────────────────────
+const MAX_PLAYER_LEVEL: int = 99
+const SOFT_CAP_LEVEL: int = 50
 const HP_PER_LEVEL: int = 6
 const ATTACK_PER_LEVEL: int = 2
+## Lv51〜99 の逓減成長（新スキル習得なし）
+const HP_PER_LEVEL_MASTER: int = 3
+const ATTACK_PER_LEVEL_MASTER: int = 1
 
 # ── 回復スキル基準値（旧 DungeonScene 定数） ─────────────────────────────
 const HEAL_SKILL_BASE: int = 14

@@ -1,5 +1,7 @@
 extends Node
 
+const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
+
 const SAVE_PATH: String = "user://save_data.json"
 
 ## セーブスキーマバージョン。構造変更時にインクリメントし、
@@ -28,6 +30,8 @@ func save_game() -> void:
 		"combat_presets": GameState.combat_presets.duplicate(true),
 		"owned_relics": GameState.owned_relics.duplicate(),
 		"daily_mission_state": GameState.daily_mission_state.duplicate(true),
+		"current_dungeon_tier": GameState.current_dungeon_tier,
+		"dungeon_tier_cleared": GameState.dungeon_tier_cleared.duplicate(true),
 	}
 	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file == null:
@@ -48,6 +52,7 @@ func load_game() -> void:
 		return
 	_apply_save_data(_migrate_save_data(result))
 	DailyMissionSystem.ensure_refreshed()
+	EventSystem.ensure_active()
 
 ## 段階マイグレーション。v0（バージョン無し）の互換吸収は _apply_save_data 内の
 ## 既存レガシー処理（party キー / equipment / _migrate_job_id / _migrate_dungeon_id）が担う。
@@ -176,6 +181,10 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.dungeon_progress = data["dungeon_progress"]
 	if data.has("current_dungeon_id"):
 		GameState.current_dungeon_id = _migrate_dungeon_id(str(data["current_dungeon_id"]))
+	if data.has("current_dungeon_tier"):
+		GameState.current_dungeon_tier = _DungeonTierConfig.clamp_tier(int(data["current_dungeon_tier"]))
+	if data.has("dungeon_tier_cleared") and data["dungeon_tier_cleared"] is Dictionary:
+		GameState.dungeon_tier_cleared = (data["dungeon_tier_cleared"] as Dictionary).duplicate(true)
 	if data.has("discovery_registry") and data["discovery_registry"] is Dictionary:
 		GameState.discovery_registry = data["discovery_registry"]
 	if data.has("material_inventory") and data["material_inventory"] is Dictionary:
@@ -221,10 +230,22 @@ const _DUNGEON_MIGRATION: Dictionary = {
 	"graveyard": Constants.MOURNGATE_DUNGEON_ID,
 	"underground_factory": Constants.MOURNGATE_DUNGEON_ID,
 }
-const _VALID_DUNGEON_IDS: PackedStringArray = [Constants.MOURNGATE_DUNGEON_ID]
+
+func _valid_dungeon_ids() -> PackedStringArray:
+	var ids: PackedStringArray = []
+	for data: Resource in DataRegistry.get_all_dungeon_data():
+		if data == null or not ("id" in data):
+			continue
+		var id: String = str(data.id)
+		if id.is_empty() or id in ids:
+			continue
+		ids.append(id)
+	if Constants.MOURNGATE_DUNGEON_ID not in ids:
+		ids.append(Constants.MOURNGATE_DUNGEON_ID)
+	return ids
 
 func _migrate_dungeon_id(raw_id: String) -> String:
-	if raw_id in _VALID_DUNGEON_IDS:
+	if raw_id in _valid_dungeon_ids():
 		return raw_id
 	var migrated: String = _DUNGEON_MIGRATION.get(raw_id, "")
 	return migrated if not migrated.is_empty() else Constants.MOURNGATE_DUNGEON_ID
@@ -341,6 +362,8 @@ func _restore_active_party(data: Dictionary) -> void:
 	var active: Array = []
 	if data.has("active_party_ids") and data["active_party_ids"] is Array:
 		for raw_id in data["active_party_ids"]:
+			if active.size() >= GameState.ACTIVE_PARTY_SIZE:
+				break
 			var m: Resource = GameState.find_roster_member_by_id(str(raw_id))
 			if m != null and not active.has(m):
 				active.append(m)
@@ -348,8 +371,12 @@ func _restore_active_party(data: Dictionary) -> void:
 		var limit: int = mini(GameState.ACTIVE_PARTY_SIZE, GameState.roster.size())
 		for i in limit:
 			active.append(GameState.roster[i])
-	GameState.party_members = active
-	GameState.migrate_formation_slots_if_needed()
+	if not GameState.set_active_party(active):
+		var fallback: Array = []
+		var fb_limit: int = mini(GameState.ACTIVE_PARTY_SIZE, GameState.roster.size())
+		for i in fb_limit:
+			fallback.append(GameState.roster[i])
+		GameState.set_active_party(fallback)
 
 func _apply_gacha_save(data: Dictionary) -> void:
 	if data.has("gacha_token"):

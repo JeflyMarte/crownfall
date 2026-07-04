@@ -280,6 +280,70 @@
 
 ---
 
+# LF blackshore_pharos_echo 灯台の残響
+
+## Body
+
+灯台の芯石に刻まれた一行だけが読める。──「潮が引くとき灯を上げ、満ちるとき火を継げ」。誰が守灯者に託したのか、残響だけが答えない。
+
+## Medium
+
+碑文
+
+## Source
+
+ブラックショア・崩れた灯台の芯石
+
+---
+
+# LF blackshore_tide_chart 潮見表の断片
+
+## Body
+
+海統王の潮見表とされる断片。満ち干の刻は塩で滲み、大半は読めない。端の走り書きだけ残る。──「失われた航路は、潮が覚えている」。
+
+## Medium
+
+古記録
+
+## Source
+
+ブラックショア・座礁船の書庫残骸
+
+---
+
+# LF frostridge_boundary_marker 北境の境界標
+
+## Body
+
+北境の境界標に刻まれた一行。──「ここより先、地図なし」。開拓王の名は風雪に削られ、針の方角だけが残っている。
+
+## Medium
+
+碑文
+
+## Source
+
+フロストリッジ・開拓王の境界標
+
+---
+
+# LF frostridge_blizzard_note 吹雪の記録
+
+## Body
+
+吹雪の合間に残された開拓記録。「北へ一里、標は見えず。隊は戻るべきか──」。署名の欄は空白のまま、雪に閉じられた。
+
+## Medium
+
+古記録
+
+## Source
+
+フロストリッジ・雪庇の隠し倉
+
+---
+
 ## 8. 整合メモ（執筆者向け）
 
 - 本書の断片は `02_Relics §3` の伝説武器フラグメント、§4 中核の謎、`01_History` HE と **重複・矛盾しない**範囲で執筆した。
@@ -296,3 +360,4 @@
 | 2026-06-28 | v1.0 | **P3-W-022** — 初版。中核6謎ごとに公開断片を執筆（継承4／第十の王4／同一紋様3／九王戦争4／灯火3／世界樹3＝計21点）。媒体タグ・出自付き。CANON_INTERNAL 非転記・所在伝承と整合 |
 | 2026-06-28 | v1.1 | **P3-D072** — §7 機械可読ブロック（`# LF <discovery_id>` / `## Body`/`## Medium`/`## Source`）を追加。LF 6件（ancient_record / mourngate_rune_shell / pilgrim_marker / record_margin / forge_brand / lamp_relief）を定義し碑文イベント本文・Codex「記録」カテゴリの実機配信の解析源とする。整合メモを §8 へ繰下げ |
 | 2026-07-03 | v1.2 | **P3-EVT-001** — ②③向け LF 4件追加（whisperwood_warden_carving / canopy_whisper / mistfen_libris_seal / drowned_ledger）。②は森番・口伝、③は封緘書庫（学識王セラディス）系。真相非開示を維持 |
+| 2026-07-03 | v1.3 | **P3-LORE-001** — ④⑤向け LF 4件追加（blackshore_pharos_echo / tide_chart / frostridge_boundary_marker / blizzard_note）。海統王・開拓王ゆかりの公開断片。真相非開示を維持 |

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="DungeonData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "frostwall_path"
+display_name = "フロストウォール雪道"
+difficulty = 5
+recommended_level = 41
+enemy_level = 39
+room_count = 8
+floor_count = 6
+enemy_pool = Array[String](["frost_claw_raptor", "vergaron", "storm_joe"])
+boss_id = "greios"
+drop_table_id = "frostwall_path_drops"
+discovery_unlocks = {"hidden_room": 0.3, "special_event": 0.6, "hidden_boss": 1.0}
+elite_pool = Array[String]([])
+favored_element = "ice"
+route_type = "side"
+event_room_weight = 25
+min_event_rooms = 1
+weapon_pool = Array[String](["ridge_cleaver", "frostclaw_blades", "snowline_longbow", "cairn_staff", "glacier_greatsword", "rime_bow", "aurora_staff", "shadow_fang_saw"])
+armor_pool = Array[String](["furline_garb", "snowdrift_cloak", "glacier_plate", "dragon_scale_aegis", "aurora_vestment"])
+accessory_pool = Array[String](["ice_crystal_ring", "frost_fang_charm", "eldion_heart_talisman"])
+unlock_after_dungeon_id = "blackshore"
+flavor_text = "フロストウォールの外縁を抜ける雪道の短編。氷結素材と装備を\n最果て氷裂へ踏み込む前に揃える寄り道。"

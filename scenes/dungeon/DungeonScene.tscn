@@ -137,7 +137,8 @@ visible = false
 
 [node name="BattleLogScroll" type="ScrollContainer" parent="MainVBox/BattleLogPanel"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 200)
+custom_minimum_size = Vector2(0, 96)
+size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
 [node name="BattleLogContent" type="VBoxContainer" parent="MainVBox/BattleLogPanel/BattleLogScroll"]
@@ -270,6 +271,10 @@ visible = false
 position = Vector2(425, 700)
 visible = false
 
+[node name="ChrSprite4" type="AnimatedSprite2D" parent="."]
+position = Vector2(395, 768)
+visible = false
+
 [node name="MenuOverlay" type="PanelContainer" parent="."]
 layout_mode = 1
 anchors_preset = 8
@@ -385,6 +390,16 @@ offset_left = 780.0
 offset_top = 320.0
 offset_right = 860.0
 offset_bottom = 328.0
+show_percentage = false
+value = 100.0
+visible = false
+
+[node name="HpBarChr4" type="ProgressBar" parent="."]
+layout_mode = 1
+offset_left = 780.0
+offset_top = 340.0
+offset_right = 860.0
+offset_bottom = 348.0
 show_percentage = false
 value = 100.0
 visible = false

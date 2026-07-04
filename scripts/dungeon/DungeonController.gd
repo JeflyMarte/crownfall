@@ -2,6 +2,9 @@ extends Node
 
 const _AffixStatCalculator = preload("res://scripts/equipment/AffixStatCalculator.gd")
 const _AffixRoller = preload("res://scripts/equipment/AffixRoller.gd")
+const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
+const _WanderingEnemyConfig = preload("res://scripts/dungeon/WanderingEnemyConfig.gd")
+const _EvolutionTraits = preload("res://scripts/systems/EvolutionTraits.gd")
 
 const ROOM_SEQUENCE: Array[int] = [
 	Enums.RoomType.START,
@@ -169,13 +172,134 @@ const EVENTS_MISTFEN: Array = [
 	},
 ]
 
+const EVENTS_ASTORIA_RUINS: Array = [
+	{
+		"id": "astoria_crown_bridge_rubble",
+		"description": "王冠橋の落石を避けながら、崩落前の街道標識を書き写した。",
+		"outcome": {"type": "lore", "label": "落橋の標識", "discovery_id": "mourngate_pilgrim_marker"},
+	},
+	{
+		"id": "astoria_bleeding_wall",
+		"description": "壁の裂け目から滲む赤い鉱脈を採取し、持ち帰った。",
+		"outcome": {"type": "material", "label": "遺跡の欠片", "material_id": "relic_shard", "discovery_id": "relic_shard", "amount": 1},
+	},
+]
+
+const EVENTS_GREEN_HOLLOW: Array = [
+	{
+		"id": "green_hollow_bog_fire",
+		"description": "湿地の沼気に火を当て、毒霧を一時的に払った。",
+		"outcome": {"type": "buff", "multiplier": 1.1},
+	},
+	{
+		"id": "green_hollow_poison_sample",
+		"description": "毒胞子の塊を採取し、耐性試料として持ち帰った。",
+		"outcome": {"type": "material", "label": "遺跡の欠片", "material_id": "relic_shard", "discovery_id": "relic_shard", "amount": 1},
+	},
+]
+
+const EVENTS_BLACKSHORE: Array = [
+	{
+		"id": "blackshore_tidal_pool",
+		"description": "干潮の潮溜まりで聖別の残光を掬い、傷を癒した。",
+		"outcome": {"type": "heal", "amount": 14},
+	},
+	{
+		"id": "blackshore_wreck_cache",
+		"description": "座礁船の貨物室から、まだ使える備蓄を回収した。",
+		"outcome": {"type": "gold", "amount": 38},
+	},
+	{
+		"id": "blackshore_pharos_echo",
+		"description": "灯台の残響を聞き、潮位の変化を記録した。",
+		"outcome": {"type": "lore", "label": "灯台の残響", "discovery_id": "blackshore_pharos_echo"},
+	},
+	{
+		"id": "blackshore_tide_chart",
+		"description": "海統王の潮見表の断片を見つけ、書き写した。",
+		"outcome": {"type": "lore", "label": "潮見表の断片", "discovery_id": "blackshore_tide_chart"},
+	},
+	{
+		"id": "blackshore_salt_blessing",
+		"description": "潮の聖別を浴び、次の一戦に備えた。",
+		"outcome": {"type": "buff", "multiplier": 1.12},
+	},
+]
+
+const EVENTS_WESTBAY_FLATS: Array = [
+	{
+		"id": "westbay_shell_line",
+		"description": "干潟の貝殻線を辿り、安全な渡し場を見つけた。",
+		"outcome": {"type": "gold", "amount": 32},
+	},
+	{
+		"id": "westbay_holy_spring",
+		"description": "干潟の湧きから聖水を汲み、持ち帰った。",
+		"outcome": {"type": "heal", "amount": 12},
+	},
+]
+
+const EVENTS_FROSTRIDGE: Array = [
+	{
+		"id": "frostridge_snow_shelter",
+		"description": "雪庇の下で体を温め、凍傷を防いだ。",
+		"outcome": {"type": "heal", "amount": 16},
+	},
+	{
+		"id": "frostridge_ice_cache",
+		"description": "開拓隊の隠し倉から凍結保存された備蓄を見つけた。",
+		"outcome": {"type": "gold", "amount": 42},
+	},
+	{
+		"id": "frostridge_boundary_marker",
+		"description": "北境の境界標を発見し、刻印を書き写した。",
+		"outcome": {"type": "lore", "label": "北境の境界標", "discovery_id": "frostridge_boundary_marker"},
+	},
+	{
+		"id": "frostridge_blizzard_note",
+		"description": "吹雪の合間に残された開拓記録を読み、記録した。",
+		"outcome": {"type": "lore", "label": "吹雪の記録", "discovery_id": "frostridge_blizzard_note"},
+	},
+	{
+		"id": "frostridge_aurora_gleam",
+		"description": "極光の残光が氷壁を照らし、一時的に視界が開けた。",
+		"outcome": {"type": "buff", "multiplier": 1.12},
+	},
+]
+
+const EVENTS_FROSTWALL_PATH: Array = [
+	{
+		"id": "frostwall_packed_snow",
+		"description": "固まった雪道を整え、進路を確保した。",
+		"outcome": {"type": "buff", "multiplier": 1.1},
+	},
+	{
+		"id": "frostwall_ice_shard",
+		"description": "壁沿いの氷柱を採取し、持ち帰った。",
+		"outcome": {"type": "material", "label": "遺跡の欠片", "material_id": "relic_shard", "discovery_id": "relic_shard", "amount": 1},
+	},
+]
+
 # ダンジョン別イベント（P3-EVT-001）。id 一致で EVENTS へ加算。
-# broken_marsh（寄り道・P3-SUB-001）は同じ霧沼帯のため③プールを共用。
 const DUNGEON_EVENTS: Dictionary = {
 	"mourngate": EVENTS_MOURNGATE,
+	"astoria_ruins": EVENTS_MOURNGATE + EVENTS_ASTORIA_RUINS,
 	"whisperwood": EVENTS_WHISPERWOOD,
+	"green_hollow": EVENTS_WHISPERWOOD + EVENTS_GREEN_HOLLOW,
 	"mistfen": EVENTS_MISTFEN,
 	"broken_marsh": EVENTS_MISTFEN,
+	"blackshore": EVENTS_BLACKSHORE,
+	"westbay_flats": EVENTS_BLACKSHORE + EVENTS_WESTBAY_FLATS,
+	"frostridge": EVENTS_FROSTRIDGE,
+	"frostwall_path": EVENTS_FROSTRIDGE + EVENTS_FROSTWALL_PATH,
+	"mourngate_deep": EVENTS_MOURNGATE,
+	"storm_crown_ruins": EVENTS_MOURNGATE,
+	"red_ridge_mine": EVENTS_WHISPERWOOD,
+	"mistfen_depths": EVENTS_MISTFEN,
+	"thunder_peak": EVENTS_MISTFEN,
+	"blackshore_abyss": EVENTS_BLACKSHORE,
+	"red_forge_depths": EVENTS_FROSTRIDGE,
+	"north_reach": EVENTS_FROSTRIDGE,
 }
 
 var current_dungeon_data: Resource = null
@@ -366,7 +490,12 @@ func accumulate_rewards(exp: int, gold: int) -> void:
 func get_enemy_level() -> int:
 	if current_dungeon_data == null:
 		return 1
-	return maxi(1, int(current_dungeon_data.enemy_level))
+	var base: int = maxi(1, int(current_dungeon_data.enemy_level))
+	return base + _DungeonTierConfig.enemy_level_bonus(GameState.current_dungeon_tier)
+
+func get_tier_rarity_weight(base_weight: int) -> int:
+	var mult: float = _DungeonTierConfig.rarity_weight_mult(GameState.current_dungeon_tier)
+	return maxi(1, int(round(float(base_weight) * mult)))
 
 func get_reward_multiplier() -> float:
 	if current_room_type == Enums.RoomType.ELITE:
@@ -428,10 +557,15 @@ func _swarm_capable_enemies() -> Array[Resource]:
 		out.append(ed)
 	return out
 
-# 戦闘の敵編成を返す（P3-D082 + P3-D110 混成）。
-# BOSS/ELITE は常に単体。COMBAT は can_swarm 敵なら SWARM_CHANCE で複数体（同種 or 混成）。
+# 戦闘の敵編成を返す（P3-D082 + P3-D110 混成 + P3-WANDER-001 放浪差し込み）。
+# BOSS/ELITE は常に単体。COMBAT は放浪抽選→群れ抽選の順。
 func pick_combat_enemy_group() -> Array[Resource]:
 	var group: Array[Resource] = []
+	if current_room_type == Enums.RoomType.COMBAT:
+		var wander: Resource = try_pick_wandering_enemy()
+		if wander != null:
+			group.append(wander)
+			return group
 	var base: Resource = pick_combat_enemy_data()
 	if base == null:
 		return group
@@ -463,6 +597,14 @@ func pick_combat_enemy_group() -> Array[Resource]:
 		else:
 			group.append(base)
 	return group
+
+func try_pick_wandering_enemy(rng: RandomNumberGenerator = null) -> Resource:
+	if current_room_type != Enums.RoomType.COMBAT:
+		return null
+	var wander_id: String = _WanderingEnemyConfig.try_roll_wandering_id(rng)
+	if wander_id.is_empty():
+		return null
+	return DataRegistry.get_enemy_data(wander_id)
 
 func pick_event() -> Dictionary:
 	var pool: Array = _get_event_pool()
@@ -559,18 +701,31 @@ func generate_run_loot() -> void:
 	if randf() < 0.2:
 		_generate_accessory_loot()
 
-# P3-D074: 撃破時の武器直ドロップ。確率はボス/エリートで上昇。戻り値はドロップ weapon_id（無しは空）。
-func roll_kill_weapon_drop(room_type: int) -> String:
+# P3-D074: 撃破時の武器直ドロップ。確率はボス/エリート/放浪個体で上書き可。
+func roll_kill_weapon_drop(room_type: int, enemy_data: Resource = null) -> String:
+	var chance: float = _resolve_weapon_drop_chance(room_type, enemy_data)
+	if chance <= 0.0:
+		return ""
+	if randf() > chance:
+		return ""
+	var weapon_id: String = _pick_weighted_weapon(enemy_data)
+	_spawn_weapon(weapon_id)
+	return weapon_id
+
+func _resolve_weapon_drop_chance(room_type: int, enemy_data: Resource) -> float:
+	if enemy_data != null and float(enemy_data.weapon_drop_chance) >= 0.0:
+		return minf(
+			1.0,
+			float(enemy_data.weapon_drop_chance)
+			* EventSystem.get_modifier_mult(EventSystem.MOD_WEAPON_DROP)
+			* _EvolutionTraits.party_weapon_drop_mult()
+		)
 	var chance: float = 0.25
 	if room_type == Enums.RoomType.BOSS:
 		chance = 1.0
 	elif room_type == Enums.RoomType.ELITE:
 		chance = 0.6
-	if randf() > chance:
-		return ""
-	var weapon_id: String = _pick_weighted_weapon()
-	_spawn_weapon(weapon_id)
-	return weapon_id
+	return minf(1.0, chance * EventSystem.get_modifier_mult(EventSystem.MOD_WEAPON_DROP) * _EvolutionTraits.party_weapon_drop_mult())
 
 # P3-D093: 撃破時の遺物ドロップ（解放型）。未所持の遺物から1つ解放する。
 # ボス=未所持があれば確定 / エリート=15% / それ以外=なし。全所持済は ""。戻り値=解放した遺物id。
@@ -598,15 +753,15 @@ func _active_weapon_pool() -> Array:
 		return current_dungeon_data.weapon_pool
 	return WEAPON_POOL
 
-# 武器プールからレア度重みで1本抽選
-func _pick_weighted_weapon() -> String:
+# 武器プールからレア度重みで1本抽選（放浪個体は weapon_rarity_weights で上書き可）。
+func _pick_weighted_weapon(enemy_data: Resource = null) -> String:
 	var pool: Array = _active_weapon_pool()
 	var weights: Array[int] = []
 	var total: int = 0
 	for wid in pool:
 		var wdata: Resource = DataRegistry.get_weapon_data(str(wid))
 		var r: int = 0 if wdata == null else int(wdata.rarity)
-		var w: int = int(RARITY_DROP_WEIGHT.get(r, 1))
+		var w: int = get_tier_rarity_weight(_rarity_drop_weight_for(r, enemy_data))
 		weights.append(w)
 		total += w
 	if total <= 0:
@@ -618,6 +773,16 @@ func _pick_weighted_weapon() -> String:
 		if roll < cumulative:
 			return str(pool[i])
 	return str(pool[pool.size() - 1])
+
+func _rarity_drop_weight_for(rarity: int, enemy_data: Resource) -> int:
+	if enemy_data != null and not enemy_data.weapon_rarity_weights.is_empty():
+		var custom: Dictionary = enemy_data.weapon_rarity_weights
+		if custom.has(rarity):
+			return int(custom[rarity])
+		var key: String = str(rarity)
+		if custom.has(key):
+			return int(custom[key])
+	return int(RARITY_DROP_WEIGHT.get(rarity, 1))
 
 func _auto_appraise(instance: Resource, category: String, rarity: int) -> void:
 	instance.is_appraised = true
@@ -676,7 +841,7 @@ func _pick_rarity_weighted(pool: Array, category: String) -> String:
 		else:
 			data = DataRegistry.get_accessory_data(str(iid))
 		var r: int = 0 if data == null else int(data.rarity)
-		var w: int = int(RARITY_DROP_WEIGHT.get(r, 1))
+		var w: int = get_tier_rarity_weight(int(RARITY_DROP_WEIGHT.get(r, 1)))
 		weights.append(w)
 		total += w
 	if total <= 0:

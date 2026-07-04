@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_skarpedion_iron_molt"
+display_name = "鉄殻脱皮"
+description = "古い鉄殻を振り払い、鋭い破片が探索隊全体を切り裂く。"
+skill_type = "boss"
+target_type = "all_party"
+power_multiplier = 0.48
+cooldown = 8.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["boss", "aoe"])
+element = ""
+apply_status_id = "bleed"
+apply_status_chance = 0.35
+cast_time = 1.0

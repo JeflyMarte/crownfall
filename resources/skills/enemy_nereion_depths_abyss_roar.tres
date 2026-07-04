@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_nereion_depths_abyss_roar"
+display_name = "外洋の慟哭"
+description = "沈没旗艦の下で巨躯が低く鳴き、深淵の圧力が全体を呑み込む。"
+skill_type = "boss"
+target_type = "all_party"
+power_multiplier = 0.58
+cooldown = 9.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["boss", "aoe"])
+element = ""
+apply_status_id = "stun"
+apply_status_chance = 0.2
+cast_time = 1.0

@@ -129,7 +129,7 @@ func _parse_args() -> void:
 					_dungeon_id = parts[1]
 			"--party-level":
 				if parts.size() > 1:
-					_party_level = clampi(int(parts[1]), 1, 50)
+					_party_level = clampi(int(parts[1]), 1, LevelSystem.MAX_LEVEL)
 			"--sweep":
 				_sweep = true
 			"--enemy-scale":

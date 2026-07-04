@@ -149,37 +149,44 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
-[node name="TabRow" type="HBoxContainer" parent="MainScroll/MainVBox"]
+[node name="TabRow" type="HFlowContainer" parent="MainScroll/MainVBox"]
 layout_mode = 2
 alignment = 1
 theme_override_constants/separation = 4
 
 [node name="ButtonTabEnemy" type="Button" parent="MainScroll/MainVBox/TabRow"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 13
 text = "敵"
 
 [node name="ButtonTabDungeon" type="Button" parent="MainScroll/MainVBox/TabRow"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 13
 text = "ダンジョン"
 
 [node name="ButtonTabMaterial" type="Button" parent="MainScroll/MainVBox/TabRow"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 13
 text = "素材"
 
 [node name="ButtonTabWeapon" type="Button" parent="MainScroll/MainVBox/TabRow"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 13
 text = "武器"
 
 [node name="ButtonTabHistory" type="Button" parent="MainScroll/MainVBox/TabRow"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 13
 text = "歴史"
 
 [node name="ButtonTabLore" type="Button" parent="MainScroll/MainVBox/TabRow"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 13
 text = "記録"
 
 [node name="ButtonTabGuide" type="Button" parent="MainScroll/MainVBox/TabRow"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 13
 text = "手引き"
 
 [node name="LabelListHeader" type="Label" parent="MainScroll/MainVBox"]

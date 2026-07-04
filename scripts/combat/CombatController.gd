@@ -6,6 +6,7 @@ const BASE_MEMBER_HP: int = BalanceConfig.BASE_MEMBER_HP
 const _AffixStatCalculator = preload("res://scripts/equipment/AffixStatCalculator.gd")
 const _JobStatCalculator = preload("res://scripts/equipment/JobStatCalculator.gd")
 const _StatusResolver = preload("res://scripts/combat/StatusResolver.gd")
+const _EvolutionTraits = preload("res://scripts/systems/EvolutionTraits.gd")
 
 var is_in_combat: bool = false
 var current_enemy_data: Resource = null
@@ -38,6 +39,8 @@ var swarm_atk: Array[int] = []
 var swarm_def: Array[int] = []
 var swarm_exp: Array[int] = []
 var enemy_phase_index: Array[int] = []
+## 放浪個体の行動回数（逃走判定用 / P3-WANDER-001）。
+var wander_action_counts: Array[int] = []
 var active_enemy_index: int = 0
 # メンバー個別の攻撃対象スロット（P3-D111）。member_target_slot[i]=敵 swarm インデックス。
 var member_target_slot: Array[int] = []
@@ -101,6 +104,7 @@ func start_combat_group(enemies: Array, level: int = 1) -> void:
 	swarm_def.clear()
 	swarm_exp.clear()
 	enemy_phase_index.clear()
+	wander_action_counts.clear()
 	for e in enemies:
 		if e == null:
 			continue
@@ -117,6 +121,7 @@ func start_combat_group(enemies: Array, level: int = 1) -> void:
 		swarm_def.append(df)
 		swarm_exp.append(xp)
 		enemy_phase_index.append(0)
+		wander_action_counts.append(0)
 		GameState.mark_enemy_seen(e.id)
 	active_enemy_index = 0
 	_sync_active_enemy()
@@ -350,6 +355,29 @@ func get_enemy_attack() -> int:
 func get_enemy_defense() -> int:
 	return _scaled_defense
 
+func get_wander_flee_after_turns(slot: int) -> int:
+	var data: Resource = get_enemy_data_at(slot)
+	if data == null or not bool(data.is_wandering):
+		return 0
+	return maxi(0, int(data.wander_flee_after_turns))
+
+func get_wander_action_count(slot: int) -> int:
+	if slot < 0 or slot >= wander_action_counts.size():
+		return 0
+	return wander_action_counts[slot]
+
+func increment_wander_action_count(slot: int) -> void:
+	if slot < 0 or slot >= wander_action_counts.size():
+		return
+	wander_action_counts[slot] += 1
+
+func flee_enemy_slot(slot: int) -> void:
+	if slot < 0 or slot >= swarm_hp.size():
+		return
+	swarm_hp[slot] = 0
+	if slot == active_enemy_index:
+		current_enemy_hp = 0
+
 func end_combat() -> void:
 	is_in_combat = false
 	current_enemy_data = null
@@ -366,6 +394,7 @@ func end_combat() -> void:
 	swarm_def.clear()
 	swarm_exp.clear()
 	enemy_phase_index.clear()
+	wander_action_counts.clear()
 	active_enemy_index = 0
 	member_target_slot.clear()
 	member_skill_rot_idx.clear()
@@ -677,6 +706,16 @@ func get_enemy_skip_action_label_at(slot: int) -> String:
 func get_enemy_skip_action_label() -> String:
 	return get_enemy_skip_action_label_at(active_enemy_index)
 
+func should_member_skip_action_at(member_index: int) -> bool:
+	if member_index < 0 or member_index >= party_combat_hp.size():
+		return false
+	return _status_resolver.should_skip_action("party_%d" % member_index)
+
+func get_member_skip_action_label_at(member_index: int) -> String:
+	if member_index < 0 or member_index >= party_combat_hp.size():
+		return ""
+	return _status_resolver.get_skip_action_label("party_%d" % member_index)
+
 # メンバーの遺物効果倍率（P3-D090）。メイン編成のみ（助っ人は遺物なし）。
 func _member_relic_effects(member_index: int) -> Dictionary:
 	if member_index < 0 or member_index >= GameState.party_members.size():
@@ -692,13 +731,19 @@ func _member_relic_effects(member_index: int) -> Dictionary:
 		eff["outgoing_mult"] = 1.0
 	return eff
 
-func get_member_outgoing_damage_multiplier(member_index: int, action_range: String = "") -> float:
+func get_member_outgoing_damage_multiplier(
+	member_index: int,
+	action_range: String = "",
+	is_skill: bool = false,
+	attack_element: String = ""
+) -> float:
 	var mult: float = _status_resolver.get_outgoing_damage_multiplier("party_%d" % member_index)
 	mult *= float(_member_relic_effects(member_index).get("outgoing_mult", 1.0))
 	mult *= 1.0 + CombatSynergy.compute_physical_bonus(GameState.party_members)
 	mult *= float(CombatSynergy.compute_role_bonuses(GameState.party_members).get("outgoing_mult", 1.0))
 	if not action_range.is_empty():
 		mult *= GameState.formation_range_outgoing_multiplier(member_index, action_range)
+	mult *= _EvolutionTraits.member_outgoing_mult(member_index, is_skill, attack_element)
 	return mult
 
 # 被ダメ補正（防御=guard 等）。1.0=等倍。P3-D085 で配線。遺物 incoming_mult も乗算（P3-D090）。
@@ -717,6 +762,7 @@ func get_member_incoming_damage_multiplier(member_index: int) -> float:
 	mult *= CombatFormation.density_incoming_multiplier(
 		member_index, party_combat_hp.size(), Callable(self, "is_member_alive")
 	)
+	mult *= _EvolutionTraits.member_incoming_mult(member_index)
 	return mult
 
 func get_density_log_tag(member_index: int) -> String:

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_forgedormient_furnace_quake"
+display_name = "炉床震動"
+description = "星炉の炉床が揺れ、熱と岩片が探索隊全体を襲う。"
+skill_type = "boss"
+target_type = "all_party"
+power_multiplier = 0.6
+cooldown = 9.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["boss", "aoe"])
+element = "fire"
+apply_status_id = "armor_break"
+apply_status_chance = 0.3
+cast_time = 1.0

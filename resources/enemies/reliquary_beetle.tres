@@ -1,0 +1,44 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "reliquary_beetle"
+display_name = "聖遺甲虫"
+max_hp = 135
+attack = 22
+defense = 14
+attack_speed = 0.95
+critical_rate = 0.08
+move_speed = 0.9
+detection_range = 5.0
+attack_range = 1.2
+enemy_type = 0
+ai_type = "default"
+threat_target_bias = "max_threat"
+exp_reward = 28
+gold_reward = 55
+drop_table_id = ""
+element_weakness = Array[String](["thunder"])
+element_resist = Array[String]([])
+attack_element = ""
+on_hit_status_id = ""
+on_hit_status_chance = 0.0
+can_swarm = false
+codex_class = "昆虫類"
+codex_danger = 4
+codex_habitat = "戦場跡・遺構（遍在）"
+codex_research_note = "カブトムシを祖先とする大型甲虫。武具の破片を甲殻に取り込み、鉄分の濃い場所を嗅ぎ分けて移動する。攻撃的だが、倒せば甲殻の破片は良質な鍛冶素材になる。ギルドの武具部は「聖遺甲虫の角＝幸運の鍛冶材」と半ば迷信している。"
+codex_materials = Array[String]([])
+skill_ids = Array[String](["enemy_shrapnel_slam"])
+skill_use_chance = 0.32
+is_wandering = true
+wander_flee_after_turns = 0
+weapon_drop_chance = 0.85
+weapon_rarity_weights = {
+0: 10,
+1: 20,
+2: 45,
+3: 25
+}

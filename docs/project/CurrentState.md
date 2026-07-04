@@ -4,6 +4,22 @@
 
 ## Last Update
 
+2026-07-04（**P3-UI-DG-001 ダンジョン選択モック再構成**: 案C=Featured全幅バナー+Biome直列カード（メイン/寄り道）・HFlow/階層一覧撤去・Footer=EventSystemのみ・Headerスタミナなし。unit 86 PASS・smoke PASS）
+
+2026-07-03（**P3-EVO-TRAIT-001 昇格特質**: 進化Lv30・職ごと常時パッシブ2つ（遠旅/聖遺甲虫と別系統）。`EvolutionTraits`・中央倍率フック10本。unit 86 PASS・smoke PASS）
+
+2026-07-03（**P3-WANDER-001 遍在希少種**: 遠旅スズメ（EXP8倍相当・3行動後逃走・武器0%）・聖遺甲虫（ELITE級・武器85%・★2〜3重み寄り）。COMBAT 2.5%/1.5% 差し込み・`WanderingEnemyConfig`・撃破時武器率上書き。unit 78 PASS・smoke PASS）
+
+2026-07-03（**P3-LV-099-001 レベル上限99**: Lv1〜50=+6HP/+2ATK据置・Lv51〜99=+3HP/+1ATK逓減・スキル習得はLv50まで不変。unit 69 PASS・smoke PASS）
+
+2026-07-03（**P3-DG-TIER-001 危険度ティア**: 同一DGでノーマル/ハード/ナイトメア3段。前ティアクリアで解放・敵Lv+3/+6・レア重み×1.3/×1.6・報酬×1.2/×1.4。Biome解放はノーマルクリアのみ。unit 65 PASS・smoke PASS）
+
+2026-07-03（**P3-EVT-HUB 期間限定バフイベント**: 端末日付+JST 5:00 境界で週次ローテ（EXP/Gold/武器ドロップ ×1.5）。`EventSystem` autoload・`EventBanner`/`EventScene`・戦闘報酬/直ドロップへ配線。デイリーミッションとは独立（進捗セーブなし）。第1弾=7/1〜7/22 の3週。unit 60 PASS・smoke PASS）
+
+2026-07-03（**P3-UI3-003 UI 監査 拠点画面編**: 図鑑タブ行を HFlow+13px に折返し（歴史/記録/手引きが画面外に消える不具合解消）・詳細名 clip+ellipsis・DG選択のスタミナ占位 FooterPanel 非表示＋階層リスト領域拡大・召喚所の単発/購入ボタンを固定アクションバー化（ラインナップと重ならない）・`ui_audit.gd` に図鑑7タブ個別スクショ追加。unit 54 PASS・smoke PASS）
+
+2026-07-03（**P3-BAL-007 + アセット配線バンドル**: 装備クォータ5件（crypt_weave/sepia_hide/lament_guard/clockwing_brooch/pilgrim_lantern）・mourngate/astoria プール更新・アイコン生成。敵戦闘スプライト25+ボス5（`generate_enemy_battle_assets.py`→`ENEMY/BOSS_SPRITE_MAP`）。スキルアイコン81枚（`generate_all_skill_icons.py`）。`verify_icon_paths.py` OK・`05_ダンジョン.md` P3-D070 同期。unit 54 PASS・smoke PASS）
+
 2026-07-03（**P3-UI3-002 UI 監査 戦闘・リザルト編**: `tools/ui_audit_run.gd` 新設（DungeonScene 実走スクショ4時点＋ResultScene clear/wipe）。戦闘ヘッダーの LabelDungeonName/LabelRoom に clip+ellipsis — 長ダンジョン名でヘッダー最小幅 763px>720px となり戦闘UI全体が左右はみ出しする根本原因を解消（MainVBox min 763→510）。リザルト両系統は問題なし。unit 50 PASS・smoke PASS）
 
 2026-07-03（**P3-UI3-001 UI ビジュアル強化・はみ出し修正**: 見出しフォント Shippori Mincho B1 Bold（OFL）導入（三層: 本文 Noto / 見出し Mincho / 戦闘数字 DelaGothic=`impact_font`）・画面タイトル「✦〜✦」金飾・下ナビ実体化（実ノード NavShop=召喚所/NavMenu=図鑑 と 1:1、金アイコン8種 AI 生成で `assets/ui/nav/` ソース欠損復旧）・ダンジョンサムネ5枚＋画面背景3枚（鍛冶屋/召喚所/図鑑）AI 生成・ホーム CurrencyStrip 実装。はみ出し修正: ダンジョン切替行 HFlow 化（リスト全損バグ）・Roster ノードパス不整合（画面全損）・全6画面のナビ重なり（余白52→84px）・鍛冶屋タブ行高・図鑑/召喚所リスト端数行。検証は新設 `tools/ui_audit.gd`（実レンダのスクショ監査）。unit 50 PASS・smoke PASS）
@@ -225,7 +241,14 @@
 | — | P3-SUB-001 | 寄り道 broken_marsh パイロット（P3-D159） | Impl | ✅ **Closeout（実機未確認）** |
 | — | P3-GACHA-006 | ★3/★4 職固有パッシブ（P3-D155-3） | Impl | ✅ **Closeout** |
 | — | P3-GACHA-007 | 助っ人 5→10体＋立ち絵 AI 生成（P3-D162） | Impl | ✅ **Closeout（実機未確認）** |
-| **1** | **P3-BAL-007** | ① 装備数量補充（防具+3/装飾+2 で各難易度クォータ充足） | Impl | **次** |
+| **1** | **P3-UI3-003** | UI監査 拠点画面（図鑑タブ/DG選択/召喚所） | Impl | ✅ **Closeout** |
+| — | **P3-BAL-007** | 装備数量補充 + アセット配線バンドル | Impl | ✅ **Closeout** |
+| — | **P3-EVT-HUB** | 期間限定バフイベント（週次ローテ・端末日付） | Impl | ✅ **Closeout** |
+| — | **P3-DG-TIER-001** | 危険度ティア（ノーマル/ハード/ナイトメア） | Impl | ✅ **Closeout** |
+| — | **P3-LV-099-001** | Lv上限99（51〜99ステ逓減） | Impl | ✅ **Closeout** |
+| — | **P3-WANDER-001** | 遍在希少種（遠旅スズメ/聖遺甲虫） | Impl | ✅ **Closeout** |
+| — | **P3-EVO-TRAIT-001** | 昇格特質×2 + 進化Lv30 | Impl | ✅ **Closeout** |
+| — | **P3-UI-DG-001** | ダンジョン選択モック再構成（案C） | Impl | ✅ **Closeout** |
 | — | P3-D157 | ダンジョン解放条件（①クリア→②解放 等） | Impl | ✅ **Closeout** |
 | — | P3-D158 | ダメージ±乱数（ブレークポイント緩和・P3-D153-4） | Impl | ✅ **Closeout（P3-BAL-008）** |
 | — | P3-DAILY-B | 日課 UI polish | Impl | 任意 |
@@ -308,7 +331,7 @@ ProjectDocs **v3.6.0**
 | P3-D035a | レベル制（共有EXP/Lv50/HP+ATK成長/セーブ） | **完了** |
 | P3-D036a | 助っ人（戦闘 編成3+助っ人固定枠1 / イベント助っ人） | **完了** |
 | P3-D036b | 助っ人ガチャ/ロスター（A〜D・gacha_token・天井・編成入替） | **完了**（smoke PASS） |
-| P3-D037/052 | ジョブ進化（is_evolved・ギルド認定Lv10・専門深化×1.3） | **完了** |
+| P3-D037/052 | ジョブ進化（is_evolved・ギルド認定**Lv30**・専門深化×1.3・**昇格特質×2**） | **完了** |
 | — | 敵6体＋主人公(swordsman)スプライト取り込み（96px/14コマ・LANCZOS） | **完了** |
 | P3-D053 | ダンジョン進行 全自動化（分岐撤廃・自動進行・x1/x2/pause・EXIT自動リザルト） | **完了**（承認済） |
 | P3-D054 | 中ボス(MID_BOSS)廃止（ROOM_SEQUENCE[7]=COMBAT・列挙値温存） | **完了**（承認済） |
@@ -375,7 +398,7 @@ ProjectDocs **v3.6.0**
 | P3-D108 | Condition拡充 MVP（残ロードマップ フェーズB-5・B-4依存）。戦術AI発動条件4種=`enemy_has_bleed`/`enemy_has_poison`/`ultimate_ready`(必殺`SkillExecutor.can_cast`) /`self_range`+value melee|long(`_member_combat_range`: skill range_type/rangedタグ→bow/staff→melee)。ctx=`_build_tactics_context`拡張。プリセット調整=balanced/aggressive/survival必殺→ultimate_ready・aggressive出血/sweep毒/cautious遠隔でスキル優先。距離は装備メタ代理(本格射程は後続) | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D107 | 状態異常拡充 MVP（残ロードマップ フェーズB-4）。Control/Debuff 方向へ3状態追加(敵単一スロット維持)。恐怖fear(`skip_action_chance0.5`/2t)・脆弱vulnerable(`incoming×1.25`/3t)・防御DOWN armor_break(`defense_reduction0.5`/3t)。防御DOWNは新field`StatusEffectData.defense_reduction`(0..1・後方互換)で`_apply_enemy_defense`の実効DEFを×(1−r)＝脆弱(最終乗算)と作用点分離(`StatusResolver.get_defense_reduction`→`CombatController.get_enemy_defense_reduction`・乗算合成上限0.95)。キャリア=既存スキル流用＋`SkillData.apply_status_id2/chance2`(副次・独立判定`_apply_skill_secondary_status`)。配分=guard_strike+恐怖0.4/hex_bolt+脆弱0.45(主stun/curse併存)・aimed_shot=防御DOWN0.45(空スロット主付与)。可視化=頭上バッジ恐/脆/破＋`[防御DOWN]`ログ。延長=再付与リセット流用。マーキング/延長機構/敵別スロットは後続 | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D106 | 陣形(前列/後列)MVP（残ロードマップ フェーズA-3）。4人編成(D105)に2列モデル導入・A-2 Threatと直結。行=`Adventurer.formation_row`(0前/1後)・GameState get/set＋プリセット(前衛/均衡=最後尾1後列/後衛=後ろ2後列)・SaveManager直列化。効果=後列:被ダメ×0.85(`FORMATION_BACK_INCOMING`)＋Threat基礎×0.6(`FORMATION_BACK_THREAT`)/前列:等倍＋`war_banner`与ダメ+10%を前列限定に整合。配線=被ダメ`get_member_incoming...`×`formation_incoming_multiplier`/Threat`_job_threat_base`×`formation_threat_multiplier`/war_banner`_member_relic_effects`で後列outgoing無効。UI=スキルタブに陣形行(前列/後列トグル＋プリセット3ボタン)。射程連動近接ペナルティ/AoE列範囲/散開密集は後続 | ✅ 完了（HQ実装・headless検証・要実機確認） |
-| P3-D105 | 4人編成化（A-3前段）。陣形2×2(前2後2)に合わせアクティブ編成3→4。`GameState.ACTIVE_PARTY_SIZE`3→4(ロスター/装備/戦闘表示はsize駆動で自動追従・装備画面に`ButtonMember3`追加)。助っ人衝突解決=`COMBAT_SLOT_MAX=4`＋`_helper_active()`で満員時はevent_helperを戦闘除外(5体目=枠不足防止・get_combatants系が参照)。Threat(D104)/陣形(A-3)/状態UI/ターンオーダーはsize駆動で非改修。スプライト/HPバーは.tscnに4枠既設。リバランス(アタッカー+1)/レイアウト微調整は実機後 | ✅ 完了（HQ実装・headless検証・要実機確認） |
+| P3-D105 | 4人編成化（A-3前段）。陣形2×2(前2後2)に合わせアクティブ編成3→4。`GameState.ACTIVE_PARTY_SIZE`3→4。助っ人=`COMBAT_SLOT_MAX=4`（メイン上限）＋`_helper_active()`＝`event_helper != null`（**P3-D105-2r**: 満編成でも参加・5体目 UI 追加）。Threat/陣形/状態UI/ターンオーダーはsize駆動で非改修 | ✅ 完了（P1-4 で助っ人再参加・要実機確認） |
 | P3-D104 | Aggro/Threat基盤 MVP（残ロードマップ フェーズA-2）。旧簡易ヘイト(ジョブ優先)を本格Threat値へ置換。`CombatController.party_threat`を各員保持・戦闘開始時ジョブ基礎値で初期化(vanguard4.0/swordsman2.0/他1.0)。敵は最大Threatを狙う(`pick_enemy_target_member_index`書換・助っ人除外維持・同値index昇順)。増加=与ダメ×0.10(`THREAT_DAMAGE_K`)/被ダメ×0.15(`THREAT_TAKEN_K`)/防御スロット=挑発スパイク+40(`apply_taunt`)。減衰=status tickごと基礎値へ×0.90(`decay_threat`)で挑発が時間で薄れる。挑発専用スキル/遺物・Threat可視化・敵別Threatテーブル・キャラ連携は後続 | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D103 | 防具の属性耐性 MVP（残ロードマップ フェーズA-1）。攻撃偏重の属性を防御側へ拡張。データ=`ArmorData.resist_elements`/`EnemyData.attack_element`追加(旧base_resistance予約)。効果=敵攻撃属性が防具耐性と一致で被ダメ×0.75(`ARMOR_RESIST_MULTIPLIER`・弱点/耐性と同値)。配線=`_calc_enemy_damage_to_member`に1フック(incoming後・`_member_resists_element`・`[耐性:◯]`ログ)。初期=bone_armor闇/leather_armor氷耐性・crystal_hedgehog氷攻撃/clock_moth雷/serdion闇攻撃・装備一覧に「耐性:◯」表示。数値レア/多段階(半減/無効)/敵スキル別属性は後続 | ✅ 完了（HQ実装・headless検証・要実機確認） |
 | P3-D100 | AIターゲット選択(パーティ・フォーカス方針)MVP。D086保留のTarget層をフォーカス撃破モデル非破壊で導入。targetルールを`CombatTactics`に追加(front/lowest_hp/highest_hp/highest_atk・balanced/cautious=front・aggressive/survival/sweep=lowest_hp・boss_focus=highest_hp)。選択=単一アクティブの付け替え(`CombatController.set_focus_by_rule`・生存敵からルールで1体選びactiveに設定・全員集中)で既存の被ダメ/状態異常/コンボ/HPバー処理を不変。配線=`_do_member_turn`冒頭で行動メンバーのtarget適用(`_apply_focus_target`・群れ2体以上時のみ＋アクティブ敵に状態異常がある間は非切替＝単一スロット状態の転移防止)。混成エンカウント/敵別状態異常/個別ターゲット/Target条件9種は後続(大物) | ✅ 完了（HQ実装・headless検証・要実機確認） |

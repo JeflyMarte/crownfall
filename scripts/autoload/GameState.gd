@@ -1,5 +1,7 @@
 extends Node
 
+const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
+
 # 所持ゴールド（永続）
 var gold: int = 0
 
@@ -15,6 +17,8 @@ var gacha_token: int = 0  ## 魔晶石（ガチャ通貨・表示名は Currency
 var equipment_focus_member_index: int = -1
 ## BaseScene 起動時ビュー: "hub" | "menu_grid"（下ナビ「メニュー」用・P3-UI-Base-A）。
 var base_initial_view: String = "hub"
+## 拠点機能遷移時の NPC 1行台詞（P3-LORE-003）。{ npc, line }。
+var hub_npc_hint: Dictionary = {}
 # ガチャ所持数 { helper_id: count }（重複＝凸用カウント。MVP は還元のみ）
 var owned_helpers: Dictionary = {}
 # 天井カウンタ（未所持が出ていない連続抽選回数）
@@ -25,6 +29,12 @@ var inventory: Array = []
 
 # 現在選択中のダンジョンID
 var current_dungeon_id: String = ""
+
+## 選択中の危険度ティア（0=ノーマル / 1=ハード / 2=ナイトメア — P3-DG-TIER）。
+var current_dungeon_tier: int = 0
+
+## ダンジョン別ティアクリア { dungeon_id: { "0": true, "1": true } }。
+var dungeon_tier_cleared: Dictionary = {}
 
 # ダンジョン別の発見度・解放状態 { dungeon_id: { discovery: float, hidden_room: bool, hidden_boss: bool } }
 var dungeon_progress: Dictionary = {}
@@ -133,8 +143,31 @@ func is_dungeon_cleared(dungeon_id: String) -> bool:
 	var progress: Dictionary = dungeon_progress.get(dungeon_id, {})
 	return bool(progress.get("cleared", false))
 
+func is_dungeon_tier_cleared(dungeon_id: String, tier: int) -> bool:
+	if dungeon_id.is_empty():
+		return false
+	var per_dungeon: Variant = dungeon_tier_cleared.get(dungeon_id, {})
+	if not per_dungeon is Dictionary:
+		return false
+	return bool((per_dungeon as Dictionary).get(str(_DungeonTierConfig.clamp_tier(tier)), false))
+
+func is_dungeon_tier_unlocked(dungeon_id: String, tier: int) -> bool:
+	var t: int = _DungeonTierConfig.clamp_tier(tier)
+	if t == _DungeonTierConfig.TIER_NORMAL:
+		return true
+	return is_dungeon_tier_cleared(dungeon_id, t - 1)
+
+func mark_dungeon_tier_cleared(dungeon_id: String, tier: int) -> void:
+	if dungeon_id.is_empty():
+		return
+	var t: int = _DungeonTierConfig.clamp_tier(tier)
+	if not dungeon_tier_cleared.has(dungeon_id):
+		dungeon_tier_cleared[dungeon_id] = {}
+	var per_dungeon: Dictionary = dungeon_tier_cleared[dungeon_id]
+	per_dungeon[str(t)] = true
+	dungeon_tier_cleared[dungeon_id] = per_dungeon
+
 # ダンジョン解放判定（P3-D157）。メインルートは難易度順の直列解放
-# （difficulty=1 は常時解放・以降は直前難易度のメインをクリアで解放）。
 # メイン以外（サブルート等）は当面 unlock_after_dungeon_id（空=常時解放）で判定する。
 func is_dungeon_unlocked(dungeon_id: String) -> bool:
 	if dungeon_id.is_empty() or not ResourceLoader.exists(Constants.RESOURCE_DUNGEONS_PATH + dungeon_id + ".tres"):
@@ -860,10 +893,9 @@ func _create_starting_weapon(member_id: String, weapon_id: String) -> Resource:
 # ラン内一時参加。party_members に含めない（Save/EXP/装備/全滅判定対象外）。
 var event_helper: Resource = null
 
-# 助っ人が実際に戦闘参加するか（P3-D105）。戦闘スロットは COMBAT_SLOT_MAX。
-# 編成が満員（4人）の場合は助っ人を出さない（5体目＝スプライト枠不足を防止）。
+# 助っ人が実際に戦闘参加するか。event_helper 設定中は常に参加（5体目 UI は DungeonScene 側）。
 func _helper_active() -> bool:
-	return event_helper != null and party_members.size() < COMBAT_SLOT_MAX
+	return event_helper != null
 
 func get_combatants() -> Array:
 	if _helper_active():

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_chronos_wave_gear_crush"
+display_name = "歯車の圧砕"
+description = "巨大歯車が回転し、狙った一人を刻限ごと押し潰す。"
+skill_type = "boss"
+target_type = "party"
+power_multiplier = 0.62
+cooldown = 7.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["boss", "single"])
+element = "thunder"
+apply_status_id = "stun"
+apply_status_chance = 0.25

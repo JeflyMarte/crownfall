@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_forgedormient_slag_breath"
+display_name = "スラグの吐息"
+description = "炉心の残熱を吐き、熔渣の熱風が探索隊全体を焼き尽くす。"
+skill_type = "boss"
+target_type = "all_party"
+power_multiplier = 0.54
+cooldown = 8.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["boss", "aoe"])
+element = "fire"
+apply_status_id = "ignite"
+apply_status_chance = 0.35
+cast_time = 1.0

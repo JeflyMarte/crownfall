@@ -126,6 +126,7 @@ func test_migrate_dungeon_id_legacy_names() -> void:
 
 func test_migrate_dungeon_id_passthrough_and_fallback() -> void:
 	assert_eq(SaveManager._migrate_dungeon_id(Constants.MOURNGATE_DUNGEON_ID), Constants.MOURNGATE_DUNGEON_ID, "現行 id はそのまま")
+	assert_eq(SaveManager._migrate_dungeon_id("frostridge"), "frostridge", "登録済み DL id はそのまま")
 	assert_eq(SaveManager._migrate_dungeon_id("nonexistent_dg"), Constants.MOURNGATE_DUNGEON_ID, "未知 id は mourngate へフォールバック")
 
 func test_load_migrates_legacy_dungeon_id_in_save_file() -> void:
@@ -198,3 +199,11 @@ func test_load_future_version_is_best_effort() -> void:
 	_write_raw_save(JSON.stringify({"save_version": 999, "gold": 654}))
 	SaveManager.load_game()
 	assert_eq(GameState.gold, 654, "将来バージョンのセーブも best-effort でロードすること")
+
+func test_load_clamps_oversized_active_party() -> void:
+	var ids: Array = []
+	for m in GameState.roster:
+		ids.append(str(m.id))
+	_write_raw_save(JSON.stringify({"active_party_ids": ids}))
+	SaveManager.load_game()
+	assert_eq(GameState.party_members.size(), GameState.ACTIVE_PARTY_SIZE, "先頭 ACTIVE_PARTY_SIZE 人のみ採用")

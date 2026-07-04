@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ArmorData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ArmorData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+armor_id = "crypt_weave_cloak"
+display_name = "墓所織りの外套"
+base_defense = 6
+base_hp_bonus = 18
+base_resistance = 0.0
+resist_elements = Array[String](["dark"])
+weight = 0.7
+rarity = 0

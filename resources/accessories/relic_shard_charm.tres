@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "relic_shard_charm"
+display_name = "遺物片の護符"
+rarity = 1
+icon = ""
+description = "王遺産の欠片を嵌めた護符。結晶の微光が急所を照らす。"
+hp_bonus = 0
+attack_bonus = 0
+defense_bonus = 2
+crit_rate_bonus = 0.02
+luck_bonus = 0.0

@@ -16,14 +16,61 @@ const CHR_BODY_TARGET_PX: float = 140.0
 const _LOG_MAX: int = 60
 
 const ENEMY_SPRITE_MAP: Dictionary = {
-	"sepia_hound": "res://resources/animation/ENM_SepiaHound.tres",
-	"rune_roach": "res://resources/animation/ENM_RuneRoach.tres",
-	"crystal_hedgehog": "res://resources/animation/ENM_CrystalHedgehog.tres",
-	"crown_eater_rat": "res://resources/animation/ENM_CrownEaterRat.tres",
+	"blood_leech": "res://resources/animation/ENM_BloodLeech.tres",
+	"bloom_serpent": "res://resources/animation/ENM_BloomSerpent.tres",
 	"clock_moth": "res://resources/animation/ENM_ClockMoth.tres",
+	"crown_eater_rat": "res://resources/animation/ENM_CrownEaterRat.tres",
+	"crystal_hedgehog": "res://resources/animation/ENM_CrystalHedgehog.tres",
+	"dead_poison_frog": "res://resources/animation/ENM_DeadPoisonFrog.tres",
+	"frost_claw_raptor": "res://resources/animation/ENM_FrostClawRaptor.tres",
+	"great_claw": "res://resources/animation/ENM_GreatClaw.tres",
+	"greios": "res://resources/animation/ENM_Greios.tres",
+	"marsh_king": "res://resources/animation/ENM_MarshKing.tres",
+	"mist_mantis": "res://resources/animation/ENM_MistMantis.tres",
+	"mist_wyvern": "res://resources/animation/ENM_MistWyvern.tres",
+	"moss_boar": "res://resources/animation/ENM_MossBoar.tres",
+	"moss_shell": "res://resources/animation/ENM_MossShell.tres",
+	"ninja_octopus": "res://resources/animation/ENM_NinjaOctopus.tres",
+	"oldrex": "res://resources/animation/ENM_Oldrex.tres",
+	"rune_roach": "res://resources/animation/ENM_RuneRoach.tres",
+	"samurai_fish": "res://resources/animation/ENM_SamuraiFish.tres",
+	"sepia_hound": "res://resources/animation/ENM_SepiaHound.tres",
+	"ship_eater_crab": "res://resources/animation/ENM_ShipEaterCrab.tres",
+	"skull_turtle": "res://resources/animation/ENM_SkullTurtle.tres",
+	"spore_widow": "res://resources/animation/ENM_SporeWidow.tres",
+	"storm_joe": "res://resources/animation/ENM_StormJoe.tres",
+	"undertaker_shark": "res://resources/animation/ENM_UndertakerShark.tres",
+	"vergaron": "res://resources/animation/ENM_Vergaron.tres",
+	"wayfarer_sparrow": "res://resources/animation/ENM_MistWyvern.tres",
+	"reliquary_beetle": "res://resources/animation/ENM_MossShell.tres",
+}
+const BOSS_ENEMY_SPRITE_MAP: Dictionary = {
+	"serdion": "res://resources/animation/BOSS_Serdion.tres",
+	"granvel": "res://resources/animation/BOSS_Granvel.tres",
+	"moldgar": "res://resources/animation/BOSS_Moldgar.tres",
+	"nereion": "res://resources/animation/BOSS_Nereion.tres",
+	"nereion_depths": "res://resources/animation/BOSS_Nereion.tres",
+	"eldion": "res://resources/animation/BOSS_Eldion.tres",
 }
 const BOSS_SPRITE_MAP: Dictionary = {
+	"astoria_ruins": "res://resources/animation/ENM_ClockMoth.tres",
+	"blackshore": "res://resources/animation/BOSS_Nereion.tres",
+	"broken_marsh": "res://resources/animation/ENM_GreatClaw.tres",
+	"frostridge": "res://resources/animation/BOSS_Eldion.tres",
+	"frostwall_path": "res://resources/animation/ENM_FrostClawRaptor.tres",
+	"green_hollow": "res://resources/animation/ENM_MossBoar.tres",
+	"mistfen": "res://resources/animation/BOSS_Moldgar.tres",
 	"mourngate": "res://resources/animation/BOSS_Serdion.tres",
+	"westbay_flats": "res://resources/animation/ENM_ShipEaterCrab.tres",
+	"whisperwood": "res://resources/animation/BOSS_Granvel.tres",
+	"mourngate_deep": "res://resources/animation/BOSS_Serdion.tres",
+	"storm_crown_ruins": "res://resources/animation/BOSS_Serdion.tres",
+	"red_ridge_mine": "res://resources/animation/BOSS_Granvel.tres",
+	"mistfen_depths": "res://resources/animation/BOSS_Moldgar.tres",
+	"thunder_peak": "res://resources/animation/BOSS_Moldgar.tres",
+	"blackshore_abyss": "res://resources/animation/BOSS_Nereion.tres",
+	"red_forge_depths": "res://resources/animation/BOSS_Eldion.tres",
+	"north_reach": "res://resources/animation/BOSS_Eldion.tres",
 }
 const CHR_SPRITE_MAP: Dictionary = {
 	"swordsman": "res://resources/animation/CHR_Swordsman.tres",
@@ -34,7 +81,88 @@ const CHR_SPRITE_MAP: Dictionary = {
 }
 const BATTLE_BG_MAP: Dictionary = {
 	"mourngate": "res://assets/dungeon/mourngate/env/BG_Battle_Mourngate.png",
+	"astoria_ruins": "res://assets/dungeon/astoria_ruins/env/BG_Battle_AstoriaRuins.png",
+	"whisperwood": "res://assets/dungeon/whisperwood/env/BG_Battle_Whisperwood.png",
+	"green_hollow": "res://assets/dungeon/green_hollow/env/BG_Battle_GreenHollow.png",
+	"mistfen": "res://assets/dungeon/mistfen/env/BG_Battle_Mistfen.png",
+	"broken_marsh": "res://assets/dungeon/broken_marsh/env/BG_Battle_BrokenMarsh.png",
+	"blackshore": "res://assets/dungeon/blackshore/env/BG_Battle_Blackshore.png",
+	"westbay_flats": "res://assets/dungeon/westbay_flats/env/BG_Battle_WestbayFlats.png",
+	"frostridge": "res://assets/dungeon/frostridge/env/BG_Battle_Frostridge.png",
+	"frostwall_path": "res://assets/dungeon/frostwall_path/env/BG_Battle_FrostwallPath.png",
+	"mourngate_deep": "res://assets/dungeon/mourngate/env/BG_Battle_Mourngate.png",
+	"storm_crown_ruins": "res://assets/dungeon/astoria_ruins/env/BG_Battle_AstoriaRuins.png",
+	"red_ridge_mine": "res://assets/dungeon/whisperwood/env/BG_Battle_Whisperwood.png",
+	"mistfen_depths": "res://assets/dungeon/mistfen/env/BG_Battle_Mistfen.png",
+	"thunder_peak": "res://assets/dungeon/broken_marsh/env/BG_Battle_BrokenMarsh.png",
+	"blackshore_abyss": "res://assets/dungeon/blackshore/env/BG_Battle_Blackshore.png",
+	"red_forge_depths": "res://assets/dungeon/frostridge/env/BG_Battle_Frostridge.png",
+	"north_reach": "res://assets/dungeon/frostridge/env/BG_Battle_Frostridge.png",
 }
+const TREASURE_OBJ_MAP: Dictionary = {
+	"mourngate": "res://assets/dungeon/mourngate/env/OBJ_TreasureChest_Open.png",
+	"astoria_ruins": "res://assets/dungeon/astoria_ruins/env/OBJ_TreasureChest_Open.png",
+	"whisperwood": "res://assets/dungeon/whisperwood/env/OBJ_TreasureChest_Open.png",
+	"green_hollow": "res://assets/dungeon/green_hollow/env/OBJ_TreasureChest_Open.png",
+	"mistfen": "res://assets/dungeon/mistfen/env/OBJ_TreasureChest_Open.png",
+	"broken_marsh": "res://assets/dungeon/broken_marsh/env/OBJ_TreasureChest_Open.png",
+	"blackshore": "res://assets/dungeon/blackshore/env/OBJ_TreasureChest_Open.png",
+	"westbay_flats": "res://assets/dungeon/westbay_flats/env/OBJ_TreasureChest_Open.png",
+	"frostridge": "res://assets/dungeon/frostridge/env/OBJ_TreasureChest_Open.png",
+	"frostwall_path": "res://assets/dungeon/frostwall_path/env/OBJ_TreasureChest_Open.png",
+	"mourngate_deep": "res://assets/dungeon/mourngate/env/OBJ_TreasureChest_Open.png",
+	"storm_crown_ruins": "res://assets/dungeon/astoria_ruins/env/OBJ_TreasureChest_Open.png",
+	"red_ridge_mine": "res://assets/dungeon/whisperwood/env/OBJ_TreasureChest_Open.png",
+	"mistfen_depths": "res://assets/dungeon/mistfen/env/OBJ_TreasureChest_Open.png",
+	"thunder_peak": "res://assets/dungeon/broken_marsh/env/OBJ_TreasureChest_Open.png",
+	"blackshore_abyss": "res://assets/dungeon/blackshore/env/OBJ_TreasureChest_Open.png",
+	"red_forge_depths": "res://assets/dungeon/frostridge/env/OBJ_TreasureChest_Open.png",
+	"north_reach": "res://assets/dungeon/frostridge/env/OBJ_TreasureChest_Open.png",
+}
+const EXIT_OBJ_MAP: Dictionary = {
+	"mourngate": "res://assets/dungeon/mourngate/env/OBJ_ExitGate_Mourngate.png",
+	"astoria_ruins": "res://assets/dungeon/astoria_ruins/env/OBJ_ExitGate_AstoriaRuins.png",
+	"whisperwood": "res://assets/dungeon/whisperwood/env/OBJ_ExitGate_Whisperwood.png",
+	"green_hollow": "res://assets/dungeon/green_hollow/env/OBJ_ExitGate_GreenHollow.png",
+	"mistfen": "res://assets/dungeon/mistfen/env/OBJ_ExitGate_Mistfen.png",
+	"broken_marsh": "res://assets/dungeon/broken_marsh/env/OBJ_ExitGate_BrokenMarsh.png",
+	"blackshore": "res://assets/dungeon/blackshore/env/OBJ_ExitGate_Blackshore.png",
+	"westbay_flats": "res://assets/dungeon/westbay_flats/env/OBJ_ExitGate_WestbayFlats.png",
+	"frostridge": "res://assets/dungeon/frostridge/env/OBJ_ExitGate_Frostridge.png",
+	"frostwall_path": "res://assets/dungeon/frostwall_path/env/OBJ_ExitGate_FrostwallPath.png",
+	"mourngate_deep": "res://assets/dungeon/mourngate/env/OBJ_ExitGate_Mourngate.png",
+	"storm_crown_ruins": "res://assets/dungeon/astoria_ruins/env/OBJ_ExitGate_AstoriaRuins.png",
+	"red_ridge_mine": "res://assets/dungeon/whisperwood/env/OBJ_ExitGate_Whisperwood.png",
+	"mistfen_depths": "res://assets/dungeon/mistfen/env/OBJ_ExitGate_Mistfen.png",
+	"thunder_peak": "res://assets/dungeon/broken_marsh/env/OBJ_ExitGate_BrokenMarsh.png",
+	"blackshore_abyss": "res://assets/dungeon/blackshore/env/OBJ_ExitGate_Blackshore.png",
+	"red_forge_depths": "res://assets/dungeon/frostridge/env/OBJ_ExitGate_Frostridge.png",
+	"north_reach": "res://assets/dungeon/frostridge/env/OBJ_ExitGate_Frostridge.png",
+}
+const FLOOR_TILE_MAP: Dictionary = {
+	"mourngate": "res://assets/dungeon/mourngate/env/TILE_Floor.png",
+	"astoria_ruins": "res://assets/dungeon/astoria_ruins/env/TILE_Floor.png",
+	"whisperwood": "res://assets/dungeon/whisperwood/env/TILE_Floor.png",
+	"green_hollow": "res://assets/dungeon/green_hollow/env/TILE_Floor.png",
+	"mistfen": "res://assets/dungeon/mistfen/env/TILE_Floor.png",
+	"broken_marsh": "res://assets/dungeon/broken_marsh/env/TILE_Floor.png",
+	"blackshore": "res://assets/dungeon/blackshore/env/TILE_Floor.png",
+	"westbay_flats": "res://assets/dungeon/westbay_flats/env/TILE_Floor.png",
+	"frostridge": "res://assets/dungeon/frostridge/env/TILE_Floor.png",
+	"frostwall_path": "res://assets/dungeon/frostwall_path/env/TILE_Floor.png",
+	"mourngate_deep": "res://assets/dungeon/mourngate/env/TILE_Floor.png",
+	"storm_crown_ruins": "res://assets/dungeon/astoria_ruins/env/TILE_Floor.png",
+	"red_ridge_mine": "res://assets/dungeon/whisperwood/env/TILE_Floor.png",
+	"mistfen_depths": "res://assets/dungeon/mistfen/env/TILE_Floor.png",
+	"thunder_peak": "res://assets/dungeon/broken_marsh/env/TILE_Floor.png",
+	"blackshore_abyss": "res://assets/dungeon/blackshore/env/TILE_Floor.png",
+	"red_forge_depths": "res://assets/dungeon/frostridge/env/TILE_Floor.png",
+	"north_reach": "res://assets/dungeon/frostridge/env/TILE_Floor.png",
+}
+const _FLOOR_ROOM_TYPES: Array[int] = [
+	Enums.RoomType.EXIT,
+	Enums.RoomType.HEAL,
+]
 const STATUS_ICON_DEF: Dictionary = {
 	"poison": {"abbrev": "毒", "color": Color(0.25, 0.75, 0.3)},
 	"chill": {"abbrev": "冷", "color": Color(0.35, 0.65, 0.95)},
@@ -53,6 +181,7 @@ const HEAL_SKILL_BASE: int = BalanceConfig.HEAL_SKILL_BASE
 const STATUS_ICON_SIZE: float = 26.0
 const STATUS_ICON_GAP: float = 3.0
 const VFX_HIT_PATH: String = "res://resources/animation/FX_Hit_Normal.tres"
+const VFX_CRIT_PATH: String = "res://resources/animation/FX_Hit_Critical.tres"
 const VFX_HEAL_PATH: String = "res://resources/animation/FX_Heal.tres"
 const SUPPORT_VFX_TINT: Dictionary = {
 	"heal": Color(0.5, 1.0, 0.55, 1.0),
@@ -90,6 +219,18 @@ const LOG_PARTY_COLOR_BY_JOB: Dictionary = {
 const LOG_ENEMY_TIER_BY_ID: Dictionary = {
 	"clock_moth": "elite",
 	"serdion": "boss",
+	"granvel": "boss",
+	"moldgar": "boss",
+	"nereion": "boss",
+	"eldion": "boss",
+	"chronos_wave": "boss",
+	"valgard": "boss",
+	"skarpedion": "boss",
+	"mycolga_ancient": "boss",
+	"karna_smoke": "boss",
+	"nereion_depths": "boss",
+	"forgedormient": "boss",
+	"albark": "boss",
 }
 const LOG_BRACKET_TAGS: PackedStringArray = [
 	"【必殺】", "【スキル】", "【エリート】", "【ボス】", "【混成】", "【フェーズ移行】",
@@ -117,6 +258,7 @@ const SkillExecutorScript: Script = preload("res://scripts/combat/SkillExecutor.
 const ElementResolverScript: Script = preload("res://scripts/combat/ElementResolver.gd")
 const AffixStatCalculatorScript: Script = preload("res://scripts/equipment/AffixStatCalculator.gd")
 const JobStatCalculatorScript: Script = preload("res://scripts/equipment/JobStatCalculator.gd")
+const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 
 var _auto_delay: float = AUTO_DELAY_X1
 var _auto_progress_paused_remaining: float = 0.0
@@ -137,10 +279,12 @@ var _request_scroll_to_bottom: bool = false
 @onready var _damage_numbers_layer: CanvasLayer = $DamageNumbers
 @onready var _discovery_toast: PanelContainer = $DiscoveryToastLayer/DiscoveryToast
 @onready var _label_discovery_text: Label = $DiscoveryToastLayer/DiscoveryToast/LabelDiscoveryText
+@onready var _bg_texture: TextureRect = $BgTexture
 @onready var _chr_sprite_0: AnimatedSprite2D = $ChrSprite0
 @onready var _chr_sprite_1: AnimatedSprite2D = $ChrSprite1
 @onready var _chr_sprite_2: AnimatedSprite2D = $ChrSprite2
 @onready var _chr_sprite_3: AnimatedSprite2D = $ChrSprite3
+@onready var _chr_sprite_4: AnimatedSprite2D = $ChrSprite4
 
 @onready var _battle_log_panel: PanelContainer = $MainVBox/BattleLogPanel
 @onready var _battle_log_scroll: ScrollContainer = $MainVBox/BattleLogPanel/BattleLogScroll
@@ -168,6 +312,7 @@ var _request_scroll_to_bottom: bool = false
 @onready var _hp_bar_chr1: ProgressBar = $HpBarChr1
 @onready var _hp_bar_chr2: ProgressBar = $HpBarChr2
 @onready var _hp_bar_chr3: ProgressBar = $HpBarChr3
+@onready var _hp_bar_chr4: ProgressBar = $HpBarChr4
 @onready var _hp_bar_enemy: ProgressBar = $HpBarEnemy
 @onready var _enemy_nameplate: Label = $EnemyNamePlate
 @onready var _transition_overlay: ColorRect = $TransitionLayer/TransitionOverlay
@@ -175,9 +320,9 @@ var _request_scroll_to_bottom: bool = false
 
 var _chr_sprites: Array[AnimatedSprite2D] = []
 # 1フレームのみの idle 素材（Ranger/Alchemist 等）向けのコード擬似 idle（呼吸）tween 保持
-var _chr_idle_tweens: Array = [null, null, null, null]
+var _chr_idle_tweens: Array = [null, null, null, null, null]
 # メンバーごとの表示中スキル名ラベル（重なり防止のため tick 毎に置換・段組み）
-var _chr_skill_labels: Array = [[], [], [], []]
+var _chr_skill_labels: Array = [[], [], [], [], []]
 # 同一メンバーが同 tick に複数スキルを発動した際、ラベルを縦にずらす間隔(px)
 const SKILL_LABEL_STACK_GAP: float = 34.0
 var _chr_hp_bars: Array[ProgressBar] = []
@@ -209,8 +354,9 @@ const FORMATION_SLOT_POSITIONS: Array[Vector2] = [
 	Vector2(395, 718),  # 1 前衛右（敵寄り）
 	Vector2(125, 728),  # 2 後衛左（奥）
 	Vector2(265, 748),  # 3 後衛右
+	Vector2(395, 768),  # 4 助っ人（満編成時の5体目）
 ]
-const PARTY_CARD_SLOT_COUNT: int = 4
+const PARTY_CARD_SLOT_COUNT: int = 5
 const PARTY_CARD_ICON_PX: float = 72.0
 const PARTY_CARD_WEAPON_ICON_PX: float = 24.0
 const PARTY_CARD_HP_HEIGHT: float = 14.0
@@ -224,8 +370,8 @@ const PARTY_CARD_DEAD_MODULATE: Color = Color(0.55, 0.55, 0.55, 0.75)
 const UI_TEXT_PRIMARY: Color = Color(0.98, 0.96, 0.92, 1.0)
 const UI_TEXT_SECONDARY: Color = Color(0.92, 0.90, 0.84, 1.0)
 const UI_TEXT_WEAPON: Color = Color(0.95, 0.91, 0.82, 1.0)
-const CHR_HP_BAR_FRONT_Y_OFFSET: float = 50.0
-const CHR_HP_BAR_BACK_Y_OFFSET: float = -50.0
+const CHR_HP_BAR_FRONT_Y_OFFSET: float = 0.0
+const CHR_HP_BAR_BACK_Y_OFFSET: float = 0.0
 const CHR_HP_BAR_GAP_ABOVE_SPRITE: float = 12.0
 const CHR_HP_BAR_HEIGHT: float = 8.0
 const CHR_STATUS_GAP_ABOVE_BAR: float = 4.0
@@ -257,8 +403,8 @@ func _ready() -> void:
 	EventBus.weapon_obtained.connect(_on_weapon_obtained)
 	_hit_vfx_sprite.animation_finished.connect(func(): _hit_vfx_sprite.visible = false)
 	_heal_vfx_sprite.animation_finished.connect(func(): _heal_vfx_sprite.visible = false)
-	_chr_sprites = [_chr_sprite_0, _chr_sprite_1, _chr_sprite_2, _chr_sprite_3]
-	_chr_hp_bars = [_hp_bar_chr0, _hp_bar_chr1, _hp_bar_chr2, _hp_bar_chr3]
+	_chr_sprites = [_chr_sprite_0, _chr_sprite_1, _chr_sprite_2, _chr_sprite_3, _chr_sprite_4]
+	_chr_hp_bars = [_hp_bar_chr0, _hp_bar_chr1, _hp_bar_chr2, _hp_bar_chr3, _hp_bar_chr4]
 	_init_status_icon_rows()
 	_init_turn_order_row()
 	for sprite: AnimatedSprite2D in _chr_sprites:
@@ -364,6 +510,8 @@ func _process(delta: float) -> void:
 		_request_scroll_to_bottom = false
 		_battle_log_scroll.scroll_vertical = _battle_log_scroll.get_v_scroll_bar().max_value
 	_update_party_skill_cd_bars_smooth(delta)
+	if $DungeonController.is_combat_room():
+		_update_chr_hp_bar_positions()
 
 func _set_narrative(text: String) -> void:
 	_label_narrative.text = text
@@ -403,6 +551,7 @@ func _append_log(text: String) -> void:
 		entry.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		UiTypography.apply_log_rich(entry)
 		entry.text = _format_log_line_bbcode(line)
+		entry.add_theme_constant_override("line_separation", 2)
 		_battle_log_content.add_child(entry)
 	# 上限超過分を間引く。queue_free() は遅延削除で get_child_count() が即座に減らず
 	# while が無限ループ→フリーズするため、remove_child() で即時 detach してから解放する。
@@ -621,6 +770,14 @@ func _update_hp_bars() -> void:
 			_set_hp_bar_above_sprite(bar, sprite, _formation_slot_for_combat_index(i))
 	_update_party_cards_hp()
 
+func _update_chr_hp_bar_positions() -> void:
+	for i: int in _chr_hp_bars.size():
+		var bar: ProgressBar = _chr_hp_bars[i]
+		var sprite: AnimatedSprite2D = _chr_sprites[i]
+		if not bar.visible or not sprite.visible:
+			continue
+		_set_hp_bar_above_sprite(bar, sprite, _formation_slot_for_combat_index(i))
+
 func _chr_hp_bar_row_y_offset(formation_slot: int) -> float:
 	if formation_slot <= 1:
 		return CHR_HP_BAR_FRONT_Y_OFFSET
@@ -632,7 +789,23 @@ func _chr_hp_bar_top_y(sprite: AnimatedSprite2D, formation_slot: int) -> float:
 	return _sprite_top_y(sprite) - CHR_HP_BAR_GAP_ABOVE_SPRITE - CHR_HP_BAR_HEIGHT + _chr_hp_bar_row_y_offset(formation_slot)
 
 func _sprite_visual_center(sprite: AnimatedSprite2D) -> Vector2:
+	return sprite.position + sprite.offset
+
+func _sprite_visual_center_global(sprite: AnimatedSprite2D) -> Vector2:
 	return sprite.global_position + sprite.offset
+
+func _sprite_top_y_global(sprite: AnimatedSprite2D) -> float:
+	if sprite.sprite_frames != null:
+		var anim: String = sprite.animation
+		if not sprite.sprite_frames.has_animation(anim):
+			anim = "idle"
+		if sprite.sprite_frames.has_animation(anim):
+			var tex: Texture2D = sprite.sprite_frames.get_frame_texture(anim, 0)
+			if tex != null:
+				var frame_h: float = float(tex.get_height()) * absf(sprite.scale.y)
+				var center_y: float = _sprite_visual_center_global(sprite).y
+				return center_y - frame_h * 0.5
+	return sprite.global_position.y
 
 func _set_hp_bar_above_sprite(bar: ProgressBar, sprite: AnimatedSprite2D, formation_slot: int = 0) -> void:
 	const BAR_HALF_W: float = 40.0
@@ -712,28 +885,50 @@ func _build_status_icon(entry: Dictionary) -> PanelContainer:
 	var effect_id: String = entry.get("effect_id", "")
 	var def: Dictionary = STATUS_ICON_DEF.get(effect_id, {"abbrev": "?", "color": Color(0.45, 0.45, 0.45)})
 	var stacks: int = int(entry.get("stacks", 1))
-	var abbrev: String = def["abbrev"]
-	if stacks > 1:
-		abbrev += str(stacks)
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
-	var style := StyleBoxFlat.new()
-	style.bg_color = def["color"]
-	style.set_corner_radius_all(4)
-	style.set_border_width_all(1)
-	style.border_color = Color(0, 0, 0, 0.85)
-	panel.add_theme_stylebox_override("panel", style)
-	var label := Label.new()
-	label.text = abbrev
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", 14)
-	label.add_theme_color_override("font_color", Color.WHITE)
-	label.add_theme_constant_override("outline_size", 2)
-	label.add_theme_color_override("font_outline_color", Color.BLACK)
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	panel.add_child(label)
+	var icon_tex: Texture2D = IconPaths.get_icon_texture(effect_id, "status")
+	if icon_tex != null:
+		var style := StyleBoxEmpty.new()
+		panel.add_theme_stylebox_override("panel", style)
+		var icon := TextureRect.new()
+		icon.texture = icon_tex
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.custom_minimum_size = Vector2(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		panel.add_child(icon)
+	else:
+		var abbrev: String = def["abbrev"]
+		if stacks > 1:
+			abbrev += str(stacks)
+		var style := StyleBoxFlat.new()
+		style.bg_color = def["color"]
+		style.set_corner_radius_all(4)
+		style.set_border_width_all(1)
+		style.border_color = Color(0, 0, 0, 0.85)
+		panel.add_theme_stylebox_override("panel", style)
+		var label := Label.new()
+		label.text = abbrev
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.add_theme_font_size_override("font_size", 14)
+		label.add_theme_color_override("font_color", Color.WHITE)
+		label.add_theme_constant_override("outline_size", 2)
+		label.add_theme_color_override("font_outline_color", Color.BLACK)
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		panel.add_child(label)
+	if stacks > 1:
+		var stack_lbl := Label.new()
+		stack_lbl.text = str(stacks)
+		stack_lbl.add_theme_font_size_override("font_size", 10)
+		stack_lbl.add_theme_color_override("font_color", Color.WHITE)
+		stack_lbl.add_theme_constant_override("outline_size", 1)
+		stack_lbl.add_theme_color_override("font_outline_color", Color.BLACK)
+		stack_lbl.position = Vector2(STATUS_ICON_SIZE - 12.0, 0.0)
+		stack_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		panel.add_child(stack_lbl)
 	var display_name: String = entry.get("display_name", effect_id)
 	var tooltip: String = display_name
 	if stacks > 1:
@@ -822,7 +1017,10 @@ func _update_room_label() -> void:
 		return
 	var idx: int = $DungeonController.current_room_index + 1
 	var total: int = $DungeonController.get_total_rooms()
-	_label_room.text = "B1 — 部屋 %d/%d [%s]" % [idx, total, _get_room_type_name()]
+	var prefix: String = "B1"
+	if GameState.current_dungeon_tier != _DungeonTierConfig.TIER_NORMAL:
+		prefix = _DungeonTierConfig.display_name(GameState.current_dungeon_tier)
+	_label_room.text = "%s — 部屋 %d/%d [%s]" % [prefix, idx, total, _get_room_type_name()]
 	var badge_color: Color = Color.WHITE
 	match $DungeonController.current_room_type:
 		Enums.RoomType.ELITE: badge_color = Color(1.0, 0.7, 0.2)
@@ -870,6 +1068,8 @@ func _advance_to_next_room() -> void:
 					_append_log("【混成】%s" % " / ".join(names))
 				else:
 					_append_log("%s の群れ（%d体）があらわれた" % [lead.display_name, group.size()])
+			elif bool(lead.is_wandering):
+				_append_log("【放浪】%s があらわれた" % lead.display_name)
 			else:
 				_append_log("%s があらわれた" % lead.display_name)
 			_update_turn_order_ui($CombatController.get_ct_order())
@@ -1086,6 +1286,7 @@ func _try_combat_skip() -> bool:
 func _execute_combat_skip() -> void:
 	_append_log(CombatFastRun.skip_log_message($DungeonController.current_room_type))
 	$CombatTimer.stop()
+	_clear_all_member_skill_labels()
 	var slots: Array[int] = []
 	for i: int in $CombatController.swarm_hp.size():
 		if $CombatController.is_enemy_slot_alive(i):
@@ -1281,6 +1482,10 @@ func _run_combat_step() -> void:
 # 敵スロット1体の行動（P3-D083）。アクティブ敵のみ 鈍化判定＋ボス/エリートのスキル発動を行い、
 # それ以外は通常攻撃。状態異常/スキルはアクティブ敵のみに作用（P3-D082）。
 func _do_enemy_turn(slot: int) -> void:
+	if $CombatController.get_wander_flee_after_turns(slot) > 0:
+		if $CombatController.get_wander_action_count(slot) >= $CombatController.get_wander_flee_after_turns(slot):
+			_on_enemy_wander_fled(slot)
+			return
 	if $CombatController.has_pending_cast("enemy", slot):
 		_advance_enemy_cast(slot)
 		return
@@ -1292,8 +1497,34 @@ func _do_enemy_turn(slot: int) -> void:
 		return
 	if slot == $CombatController.active_enemy_index:
 		if _try_enemy_skill():
+			_record_wander_enemy_action(slot)
 			return
 	_do_enemy_attack(slot)
+	_record_wander_enemy_action(slot)
+
+func _record_wander_enemy_action(slot: int) -> void:
+	if $CombatController.get_wander_flee_after_turns(slot) > 0:
+		$CombatController.increment_wander_action_count(slot)
+
+func _on_enemy_wander_fled(slot: int) -> void:
+	var enemy_data: Resource = $CombatController.get_enemy_data_at(slot)
+	var name: String = enemy_data.display_name if enemy_data != null else "放浪個体"
+	$CombatController.clear_pending_cast("enemy", slot)
+	$CombatController.flee_enemy_slot(slot)
+	_debuff_marks.erase(slot)
+	if slot < _swarm_sprites.size() and _swarm_sprites[slot].visible:
+		_swarm_sprites[slot].visible = false
+	if slot < _swarm_hp_bars.size():
+		_swarm_hp_bars[slot].visible = false
+	if slot < _swarm_nameplates.size():
+		_swarm_nameplates[slot].visible = false
+	_append_log("[放浪] %s は気流に乗って消えた" % name)
+	if $CombatController.living_enemy_count() == 0:
+		_finalize_combat_fled()
+		return
+	_update_status_labels()
+	_update_hp_bars()
+	_update_turn_order_ui($CombatController.get_ct_order())
 
 func _process_status_ticks() -> void:
 	$CombatController.decay_threat()
@@ -1327,7 +1558,7 @@ func _try_apply_skill_status() -> void:
 	var skill_data: Resource = _get_player_skill_data(member_idx)
 	if skill_data == null or skill_data.apply_status_id.is_empty():
 		return
-	if skill_data.apply_status_chance <= 0.0 or randf() > skill_data.apply_status_chance:
+	if skill_data.apply_status_chance <= 0.0 or randf() > EvolutionTraits.effective_status_chance(member_idx, skill_data.apply_status_chance):
 		return
 	var base_info: Dictionary = _calc_attack_base(member_idx)
 	if not $CombatController.apply_status_to_active_enemy(
@@ -1352,7 +1583,7 @@ func _try_apply_secondary_skill_status() -> void:
 	var primary: Resource = _get_player_skill_data(member_idx)
 	if primary != null and skill_data.id == primary.id:
 		return
-	if skill_data.apply_status_chance <= 0.0 or randf() > skill_data.apply_status_chance:
+	if skill_data.apply_status_chance <= 0.0 or randf() > EvolutionTraits.effective_status_chance(member_idx, skill_data.apply_status_chance):
 		return
 	var base_info: Dictionary = _calc_attack_base(member_idx)
 	if not $CombatController.apply_status_to_active_enemy(
@@ -1421,7 +1652,9 @@ func _execute_member_skill(
 	var form_tag: String = GameState.formation_range_log_tag(member_idx, action_range)
 	var skill_dmg: int = maxi(
 		1,
-		int(float(result["damage"]) * $CombatController.get_member_outgoing_damage_multiplier(member_idx, action_range))
+		int(float(result["damage"]) * $CombatController.get_member_outgoing_damage_multiplier(
+			member_idx, action_range, true, attack_element
+		))
 	)
 	var elem_result: Dictionary = _apply_enemy_mitigation(skill_dmg, attack_element, member_idx, target_slot)
 	var final_dmg: int = maxi(
@@ -1446,7 +1679,7 @@ func _execute_member_skill(
 			str(final_dmg), spawn_pos + Vector2(12.0, 0.0), ULTIMATE_GOLD, ult_dmg_scale
 		)
 	else:
-		_spawn_hit_vfx(spawn_pos, attack_element)
+		_spawn_hit_vfx(spawn_pos, attack_element, 1.0, skill_is_crit)
 		_spawn_damage_number(
 			str(final_dmg), spawn_pos + Vector2(12.0, 0.0), Color(1.0, 0.9, 0.0), 1.25 if skill_is_crit else 1.0
 		)
@@ -1471,7 +1704,7 @@ func _apply_skill_status(member_idx: int, skill_data: Resource) -> void:
 		return
 	if skill_data == null or skill_data.apply_status_id.is_empty():
 		return
-	if skill_data.apply_status_chance <= 0.0 or randf() > skill_data.apply_status_chance:
+	if skill_data.apply_status_chance <= 0.0 or randf() > EvolutionTraits.effective_status_chance(member_idx, skill_data.apply_status_chance):
 		return
 	var base_info: Dictionary = _calc_attack_base(member_idx)
 	if not _apply_status_to_member_target(member_idx, skill_data.apply_status_id, 1, base_info["base_damage"]):
@@ -1489,7 +1722,7 @@ func _apply_skill_secondary_status(member_idx: int, skill_data: Resource) -> voi
 		return
 	if skill_data == null or skill_data.apply_status_id2.is_empty():
 		return
-	if skill_data.apply_status_chance2 <= 0.0 or randf() > skill_data.apply_status_chance2:
+	if skill_data.apply_status_chance2 <= 0.0 or randf() > EvolutionTraits.effective_status_chance(member_idx, skill_data.apply_status_chance2):
 		return
 	var base_info: Dictionary = _calc_attack_base(member_idx)
 	if not _apply_status_to_member_target(member_idx, skill_data.apply_status_id2, 1, base_info["base_damage"]):
@@ -1514,7 +1747,7 @@ func _execute_member_heal(
 	var result: Dictionary = _skill_executor.execute_support_skill(skill_data, cd_key)
 	if not result.get("executed", false):
 		return ""
-	var heal_amount: int = _apply_healing_bonus(int(round(skill_data.power_multiplier * float(HEAL_SKILL_BASE))))
+	var heal_amount: int = _apply_healing_bonus(int(round(skill_data.power_multiplier * float(HEAL_SKILL_BASE))), member_idx)
 	var healed: int = $CombatController.heal_member(target_idx, heal_amount)
 	_set_heal_rally(target_idx)
 	_update_hp_bars()
@@ -1624,7 +1857,9 @@ func _try_cast_player_skill() -> String:
 	var form_tag: String = GameState.formation_range_log_tag(member_idx, action_range)
 	var skill_dmg: int = maxi(
 		1,
-		int(float(result["damage"]) * $CombatController.get_member_outgoing_damage_multiplier(member_idx, action_range))
+		int(float(result["damage"]) * $CombatController.get_member_outgoing_damage_multiplier(
+			member_idx, action_range, true, attack_element
+		))
 	)
 	var elem_result: Dictionary = _apply_enemy_mitigation(skill_dmg, attack_element)
 	var final_dmg: int = maxi(
@@ -1639,7 +1874,7 @@ func _try_cast_player_skill() -> String:
 	$CombatController.add_threat(member_idx, float(final_dmg) * CombatController.THREAT_DAMAGE_K)
 	var skill_is_crit: bool = result.get("is_critical", false)
 	var skill_spawn_pos: Vector2 = _active_enemy_pos()
-	_spawn_hit_vfx(skill_spawn_pos, attack_element)
+	_spawn_hit_vfx(skill_spawn_pos, attack_element, 1.0, skill_is_crit)
 	_spawn_damage_number(str(final_dmg), skill_spawn_pos + Vector2(12.0, 0.0), Color(1.0, 0.9, 0.0), 1.25 if skill_is_crit else 1.0)
 	_spawn_skill_name(result["display_name"], member_idx, 0.0, attack_element)
 	var skill_crit_tag: String = "  CRITICAL!" if skill_is_crit else ""
@@ -1692,7 +1927,9 @@ func _try_cast_secondary_skill(primary_skill_id: String) -> String:
 	var form_tag: String = GameState.formation_range_log_tag(member_idx, action_range)
 	var skill_dmg: int = maxi(
 		1,
-		int(float(result["damage"]) * $CombatController.get_member_outgoing_damage_multiplier(member_idx, action_range))
+		int(float(result["damage"]) * $CombatController.get_member_outgoing_damage_multiplier(
+			member_idx, action_range, true, attack_element
+		))
 	)
 	var elem_result: Dictionary = _apply_enemy_mitigation(skill_dmg, attack_element)
 	var final_dmg: int = maxi(
@@ -1707,7 +1944,7 @@ func _try_cast_secondary_skill(primary_skill_id: String) -> String:
 	$CombatController.add_threat(member_idx, float(final_dmg) * CombatController.THREAT_DAMAGE_K)
 	var sec_is_crit: bool = result.get("is_critical", false)
 	var sec_spawn_pos: Vector2 = _active_enemy_pos()
-	_spawn_hit_vfx(sec_spawn_pos, attack_element)
+	_spawn_hit_vfx(sec_spawn_pos, attack_element, 1.0, sec_is_crit)
 	_spawn_damage_number(str(final_dmg), sec_spawn_pos + Vector2(-12.0, 8.0), Color(1.0, 0.9, 0.0), 1.25 if sec_is_crit else 1.0)
 	_spawn_skill_name(result["display_name"], member_idx, 34.0, attack_element)
 	var skill_crit_tag: String = "  CRITICAL!" if sec_is_crit else ""
@@ -1973,6 +2210,7 @@ func _advance_enemy_cast(slot: int) -> void:
 		var skip_label: String = $CombatController.get_enemy_skip_action_label_at(slot)
 		if skip_label.is_empty():
 			skip_label = "鈍化"
+		$CombatController.clear_pending_cast("enemy", slot)
 		_append_log("[%s] 敵の詠唱が中断された" % skip_label)
 		return
 	var pending: Dictionary = $CombatController.get_pending_cast("enemy", slot)
@@ -2309,8 +2547,12 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 		if GameState.get_exploration_policy() == "codex":
 			GameState.add_enemy_kill(defeated_enemy.id)
 	var mult: float = $DungeonController.get_reward_multiplier()
-	var final_exp: int = int($CombatController.last_exp_reward * mult)
-	var final_gold: int = int($CombatController.last_gold_reward * mult)
+	var exp_event_mult: float = EventSystem.get_modifier_mult(EventSystem.MOD_EXP)
+	var gold_event_mult: float = EventSystem.get_modifier_mult(EventSystem.MOD_GOLD)
+	var tier_reward_mult: float = _DungeonTierConfig.reward_mult(GameState.current_dungeon_tier)
+	var evo_exp_mult: float = EvolutionTraits.party_exp_mult()
+	var final_exp: int = int($CombatController.last_exp_reward * mult * exp_event_mult * tier_reward_mult * evo_exp_mult)
+	var final_gold: int = int($CombatController.last_gold_reward * mult * gold_event_mult * tier_reward_mult)
 	if codex_investigation:
 		final_exp = int(round(float(final_exp) * CODEX_INVESTIGATION_EXP_BONUS))
 	$DungeonController.accumulate_rewards(final_exp, final_gold)
@@ -2323,6 +2565,10 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 			_swarm_hp_bars[killed_slot].visible = false
 			_swarm_nameplates[killed_slot].visible = false
 	var bonus_tag: String = " (x%.1f)" % mult if mult > 1.0 else ""
+	if exp_event_mult > 1.0 or gold_event_mult > 1.0:
+		bonus_tag += " [イベント]"
+	if tier_reward_mult > 1.0:
+		bonus_tag += " [%s]" % _DungeonTierConfig.display_name(GameState.current_dungeon_tier)
 	if codex_investigation:
 		bonus_tag += " [図鑑調査]"
 	var log_lines: PackedStringArray = [
@@ -2331,7 +2577,7 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 	if room_type == Enums.RoomType.COMBAT and defeated_enemy != null:
 		_roll_ecology_material_drops(defeated_enemy, log_lines)
 	# P3-D074/D082: 撃破ごとの武器直ドロップ（各敵個別判定）
-	var dropped_weapon: String = $DungeonController.roll_kill_weapon_drop(room_type)
+	var dropped_weapon: String = $DungeonController.roll_kill_weapon_drop(room_type, defeated_enemy)
 	if not dropped_weapon.is_empty():
 		GameState.last_run_weapon_dropped = dropped_weapon
 		log_lines.append("武器ドロップ: %s" % DataRegistry.get_weapon_name(dropped_weapon))
@@ -2375,6 +2621,7 @@ func _on_active_enemy_killed() -> bool:
 func _finalize_combat_cleared() -> void:
 	$CombatTimer.stop()
 	$CombatController.end_combat()
+	_clear_all_member_skill_labels()
 	_update_status_labels()
 	_clear_turn_order_ui()
 	DailyMissionSystem.report_progress("combat_win")
@@ -2387,6 +2634,19 @@ func _finalize_combat_cleared() -> void:
 	_update_next_room_button()
 	_start_auto_progress()
 
+# 放浪個体が逃走して戦闘が空になった場合（報酬・日課なし）。
+func _finalize_combat_fled() -> void:
+	$CombatTimer.stop()
+	$CombatController.end_combat()
+	_clear_all_member_skill_labels()
+	_update_status_labels()
+	_clear_turn_order_ui()
+	_append_log("放浪個体は去った…")
+	_update_enemy_label()
+	_update_hp_bars()
+	_update_next_room_button()
+	_start_auto_progress()
+
 # 単体メンバーの 1 行動（P3-D086）。戦術プラン（優先度＋発動条件）に従い、
 # 条件成立かつ実際に発動できた最初のスロットで行動を確定する。
 func _do_member_turn(member_idx: int) -> void:
@@ -2394,6 +2654,14 @@ func _do_member_turn(member_idx: int) -> void:
 		return
 	if $CombatController.has_pending_cast("party", member_idx):
 		_advance_member_cast(member_idx)
+		return
+	if $CombatController.should_member_skip_action_at(member_idx):
+		var skip_member: Resource = GameState.get_combatant(member_idx)
+		var skip_label: String = $CombatController.get_member_skip_action_label_at(member_idx)
+		if skip_label.is_empty():
+			skip_label = "鈍化"
+		var mname: String = skip_member.display_name if skip_member != null else "?"
+		_append_log("[%s] %s は行動できなかった" % [skip_label, mname])
 		return
 	var member: Resource = GameState.get_combatant(member_idx)
 	$CombatController.resolve_member_target(member_idx, CombatGambit.target_from_member(member))
@@ -2585,6 +2853,12 @@ func _try_cast_member_skill(member_idx: int, skill_data: Resource, is_ultimate: 
 	return true
 
 func _advance_member_cast(member_idx: int) -> void:
+	if $CombatController.should_member_skip_action_at(member_idx):
+		var skip_label: String = $CombatController.get_member_skip_action_label_at(member_idx)
+		if skip_label.is_empty():
+			skip_label = "鈍化"
+		_append_log("[%s] 詠唱が中断された" % skip_label)
+		return
 	var pending: Dictionary = $CombatController.get_pending_cast("party", member_idx)
 	if pending.is_empty():
 		return
@@ -2629,7 +2903,7 @@ func _do_member_basic_attack(member_idx: int) -> void:
 	var tgt_tag: String = _member_target_tag(member_idx)
 	var dmg: int = int(result["damage"])
 	if dmg > 0:
-		_play_hit_vfx(_get_weapon_element(member_idx))
+		_play_hit_vfx(_get_weapon_element(member_idx), result["is_critical"])
 		_play_chr_attack_one(member_idx)
 		_spawn_damage_number(
 			str(dmg),
@@ -2739,7 +3013,7 @@ func _try_fire_passive(member_idx: int, p: Dictionary) -> void:
 			_update_status_icons()
 		"heal":
 			# heal_value: condition 閾値の "value" と衝突する場合の回復量キー（P3-D155）
-			var amount: int = _apply_healing_bonus(int(p.get("heal_value", p.get("value", 10))))
+			var amount: int = _apply_healing_bonus(int(p.get("heal_value", p.get("value", 10))), member_idx)
 			if str(p.get("target", "party")) == "self":
 				$CombatController.heal_member(member_idx, amount)
 				_update_hp_bars()
@@ -2918,6 +3192,7 @@ func _handle_party_wipe() -> void:
 	# 勝利した敵はその場に残す（撃破ではなく味方全滅の演出）
 	_play_active_enemy_animation("idle")
 	_hide_chr_sprites()
+	_clear_damage_numbers_layer()
 	_update_combat_visibility()
 	_non_combat_zone.visible = false
 	_append_log("全員が倒れた... 探索失敗")
@@ -2936,10 +3211,11 @@ func _handle_party_wipe() -> void:
 	GameState.clear_event_helper()
 	SceneRouter.change_scene("res://scenes/result/ResultScene.tscn")
 
-func _apply_healing_bonus(base_amount: int) -> int:
+func _apply_healing_bonus(base_amount: int, member_idx: int = -1) -> int:
 	var amount: int = AffixStatCalculatorScript.apply_healing_bonus(base_amount)
-	# ロール編成ボーナス（support×2=治癒+20%・P3-D097）
 	var heal_mult: float = $CombatController.get_party_role_heal_multiplier()
+	if member_idx >= 0:
+		heal_mult *= EvolutionTraits.member_heal_mult(member_idx)
 	return maxi(0, int(round(float(amount) * heal_mult)))
 
 func _apply_material_bonus(base_amount: int) -> int:
@@ -2993,6 +3269,7 @@ func _update_combat_tier_frame() -> void:
 		show = tier == CombatUiFrames.TIER_ELITE or tier == CombatUiFrames.TIER_BOSS
 	_combat_tier_frame.visible = show
 	if not show:
+		_label_combat_tier.text = ""
 		if _combat_tier_vignette != null:
 			_combat_tier_vignette.color = Color(0, 0, 0, 0)
 		return
@@ -3000,8 +3277,22 @@ func _update_combat_tier_frame() -> void:
 	_combat_tier_frame.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(tier))
 	_combat_tier_vignette.color = CombatUiFrames.vignette_color(tier)
 	_combat_tier_frame.modulate = Color.WHITE
+	_label_combat_tier.text = _combat_tier_banner_text(tier)
+	if tier == CombatUiFrames.TIER_ELITE:
+		UiTypography.apply_display(_label_combat_tier, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	elif tier == CombatUiFrames.TIER_BOSS:
+		UiTypography.apply_display(_label_combat_tier, UiTypography.SIZE_BODY_SMALL, Color(1.0, 0.45, 0.4))
 	if tier == CombatUiFrames.TIER_BOSS:
 		_start_tier_frame_pulse()
+
+func _combat_tier_banner_text(tier: String) -> String:
+	match tier:
+		CombatUiFrames.TIER_ELITE:
+			return "【エリート】"
+		CombatUiFrames.TIER_BOSS:
+			return "【ボス】"
+		_:
+			return ""
 
 func _start_auto_progress() -> void:
 	if _is_paused:
@@ -3032,6 +3323,8 @@ func _advance_with_caption() -> void:
 func _on_finish_button_pressed() -> void:
 	_btn_finish.disabled = true
 	$CombatTimer.stop()
+	_clear_all_member_skill_labels()
+	_clear_turn_order_ui()
 	$CombatController.end_combat()
 	$DungeonController.generate_run_loot()
 	GameState.last_run_exp_reward = $DungeonController.run_exp_reward
@@ -3042,8 +3335,12 @@ func _on_finish_button_pressed() -> void:
 	GameState.last_run_armor_dropped = $DungeonController.last_armor_dropped
 	if not $DungeonController.last_accessory_dropped.is_empty():
 		GameState.last_run_accessory_dropped = $DungeonController.last_accessory_dropped
-	GameState.mark_dungeon_cleared(GameState.get_active_dungeon_id())
-	DailyMissionSystem.report_progress("dungeon_clear", GameState.get_active_dungeon_id())
+	var dungeon_id: String = GameState.get_active_dungeon_id()
+	var tier: int = GameState.current_dungeon_tier
+	GameState.mark_dungeon_tier_cleared(dungeon_id, tier)
+	if tier == _DungeonTierConfig.TIER_NORMAL:
+		GameState.mark_dungeon_cleared(dungeon_id)
+	DailyMissionSystem.report_progress("dungeon_clear", dungeon_id)
 	GameState.last_run_outcome = GameState.RUN_OUTCOME_CLEAR
 	GameState.snapshot_last_run_context()
 	GameState.clear_event_helper()
@@ -3057,25 +3354,36 @@ func _on_menu_button_pressed() -> void:
 func _on_close_menu_pressed() -> void:
 	_menu_overlay.visible = false
 
+func _can_finish_dungeon_run() -> bool:
+	return $DungeonController.current_room_type == Enums.RoomType.EXIT
+
 func _on_menu_finish_pressed() -> void:
 	_menu_overlay.visible = false
+	if $CombatController.is_in_combat:
+		_retire_from_dungeon()
+		return
+	if not _can_finish_dungeon_run():
+		_set_narrative("脱出口に到着するまで探索を続ける")
+		return
 	_on_finish_button_pressed()
 
 # ---- Speed / Pause ----
 
 func _on_speed_x1_pressed() -> void:
-	_set_paused(false)
 	_auto_delay = AUTO_DELAY_X1
 	$CombatTimer.wait_time = SPEED_X1
+	if _is_paused:
+		return
 	if $CombatController.is_in_combat:
 		$CombatTimer.start()
 	if $AutoProgressTimer.time_left > 0:
 		$AutoProgressTimer.start(_auto_delay)
 
 func _on_speed_x2_pressed() -> void:
-	_set_paused(false)
 	_auto_delay = AUTO_DELAY_X2
 	$CombatTimer.wait_time = SPEED_X2
+	if _is_paused:
+		return
 	if $CombatController.is_in_combat:
 		$CombatTimer.start()
 	if $AutoProgressTimer.time_left > 0:
@@ -3119,6 +3427,8 @@ func _retire_from_dungeon() -> void:
 	_is_paused = false
 	$CombatTimer.stop()
 	$AutoProgressTimer.stop()
+	_clear_all_member_skill_labels()
+	_clear_turn_order_ui()
 	if $CombatController.is_in_combat:
 		$CombatController.end_combat()
 	_append_log("リタイアして帰還した")
@@ -3433,9 +3743,31 @@ func _make_party_card_panel_style(active: bool) -> StyleBoxTexture:
 	)
 
 func _style_combat_ui_panels() -> void:
-	_battle_log_panel.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_NORMAL))
+	_battle_log_panel.add_theme_stylebox_override("panel", _battle_log_panel_style())
 	_party_status_panel.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_NORMAL))
+	_configure_battle_log_layout()
 	_init_combat_tier_decoration()
+
+func _battle_log_panel_style() -> StyleBoxTexture:
+	var style: StyleBoxTexture = CombatUiFrames.panel_style(CombatUiFrames.TIER_NORMAL)
+	style.content_margin_left = 6.0
+	style.content_margin_top = 4.0
+	style.content_margin_right = 6.0
+	style.content_margin_bottom = 4.0
+	return style
+
+func _configure_battle_log_layout() -> void:
+	var battlefield: Control = $MainVBox/BattlefieldArea
+	battlefield.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	battlefield.size_flags_stretch_ratio = 2.0
+	_battle_log_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_battle_log_panel.size_flags_stretch_ratio = 1.0
+	_party_status_panel.size_flags_vertical = Control.SIZE_SHRINK_END
+	_battle_log_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_battle_log_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_battle_log_scroll.custom_minimum_size = Vector2(0, 96)
+	_battle_log_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_battle_log_content.add_theme_constant_override("separation", 3)
 
 func _init_combat_tier_decoration() -> void:
 	_ensure_combat_tier_vignette()
@@ -3523,16 +3855,12 @@ func _party_card_skill_cd_info(member_idx: int, skill_slot: int) -> Dictionary:
 	}
 
 func _update_party_skill_cd_bars_smooth(delta: float) -> void:
-	if not $CombatController.is_in_combat:
+	if not $DungeonController.is_combat_room():
 		return
+	var ct_rate: float = 0.0
+	if not $CombatTimer.is_stopped() and $CombatTimer.wait_time > 0.0 and _last_ct_step_ui > 0.0:
+		ct_rate = _last_ct_step_ui / $CombatTimer.wait_time
 	var blend: float = minf(1.0, SKILL_CD_LERP_RATE * delta)
-	var pulse_frac: float = 0.0
-	if not $CombatTimer.is_stopped() and $CombatTimer.wait_time > 0.0:
-		pulse_frac = clampf(
-			1.0 - ($CombatTimer.time_left / $CombatTimer.wait_time),
-			0.0,
-			1.0
-		)
 	for i in _party_card_skill_cd_bars.size():
 		if i >= $CombatController.party_max_hp.size():
 			continue
@@ -3556,13 +3884,13 @@ func _update_party_skill_cd_bars_smooth(delta: float) -> void:
 				continue
 			var max_cd: float = float(info.get("max_cd", 1.0))
 			var actual_rem: float = _skill_executor.get_cooldown_remaining(cd_key)
-			var target_rem: float = actual_rem
-			if _last_ct_step_ui > 0.0 and pulse_frac > 0.0 and actual_rem > 0.05:
-				target_rem = maxf(0.0, actual_rem - _last_ct_step_ui * pulse_frac)
-			var visual_rem: float = float(_skill_cd_visual_rem.get(cd_key, target_rem))
-			if actual_rem > visual_rem + max_cd * 0.5:
+			var visual_rem: float = float(_skill_cd_visual_rem.get(cd_key, actual_rem))
+			if actual_rem > visual_rem + 0.05:
 				visual_rem = actual_rem
-			visual_rem = lerpf(visual_rem, target_rem, blend)
+			elif actual_rem + 0.05 < visual_rem and ct_rate > 0.0:
+				visual_rem = maxf(actual_rem, visual_rem - ct_rate * delta)
+			else:
+				visual_rem = lerpf(visual_rem, actual_rem, blend)
 			_skill_cd_visual_rem[cd_key] = visual_rem
 			var ready: bool = visual_rem <= 0.05
 			bar.value = 1.0 if ready else clampf(1.0 - visual_rem / maxf(max_cd, 0.001), 0.0, 1.0)
@@ -3688,18 +4016,19 @@ func _get_chr_icon_texture(job_id: String) -> Texture2D:
 	return frames.get_frame_texture("idle", 0)
 
 func _get_enemy_icon_texture(enemy_id: String) -> Texture2D:
+	var path: String = ENEMY_SPRITE_MAP.get(enemy_id, "")
+	if path.is_empty():
+		path = BOSS_ENEMY_SPRITE_MAP.get(enemy_id, "")
+	if path.is_empty() and $DungeonController.current_dungeon_data != null:
+		path = BOSS_SPRITE_MAP.get($DungeonController.current_dungeon_data.id, "")
+	if not path.is_empty() and ResourceLoader.exists(path):
+		var frames: SpriteFrames = load(path) as SpriteFrames
+		if frames != null and frames.has_animation("idle"):
+			return frames.get_frame_texture("idle", 0)
 	var icon: Texture2D = IconPaths.get_icon_texture(enemy_id, "enemy")
 	if icon != null:
 		return icon
-	var path: String = ENEMY_SPRITE_MAP.get(enemy_id, "")
-	if path.is_empty() and $DungeonController.current_dungeon_data != null:
-		path = BOSS_SPRITE_MAP.get($DungeonController.current_dungeon_data.id, "")
-	if path.is_empty() or not ResourceLoader.exists(path):
-		return null
-	var frames: SpriteFrames = load(path) as SpriteFrames
-	if frames == null or not frames.has_animation("idle"):
-		return null
-	return frames.get_frame_texture("idle", 0)
+	return null
 
 func _make_turn_order_frame_style(active: bool) -> StyleBoxTexture:
 	return CombatUiFrames.panel_style(
@@ -3839,6 +4168,8 @@ func _is_event_helper_combat_index(member_index: int) -> bool:
 
 func _formation_slot_for_combat_index(combat_index: int) -> int:
 	if _is_event_helper_combat_index(combat_index):
+		if GameState.party_members.size() >= GameState.COMBAT_SLOT_MAX:
+			return 4
 		return clampi(GameState.party_members.size(), 0, 3)
 	return GameState.get_combatant_formation_slot(combat_index)
 
@@ -3867,17 +4198,29 @@ func _play_chr_hurt(member_idx: int) -> void:
 
 # ---- VFX ----
 
-func _play_hit_vfx(element: String = "") -> void:
+func _play_hit_vfx(element: String = "", is_critical: bool = false) -> void:
 	# 後方互換: 引数なし呼び出しは敵スプライト位置で発火
 	if not _enemy_sprite.visible and not _boss_sprite.visible:
 		return
 	var enemy_pos: Vector2 = _active_enemy_pos()
-	_spawn_hit_vfx(enemy_pos, element)
+	_spawn_hit_vfx(enemy_pos, element, 1.0, is_critical)
 
 # 命中ごとに使い捨ての Hit VFX を生成（敵味方両対応・同一tick内の複数ヒットも個別表示）。
 # 属性専用VFX(ELEMENT_VFX_PATH)があればそれを無着色で再生、無ければ
 # FX_Hit_Normal を ELEMENT_COLOR でティント着色してフォールバックする。
-func _spawn_hit_vfx(world_pos: Vector2, element: String = "", scale_mult: float = 1.0) -> void:
+func _spawn_hit_vfx(world_pos: Vector2, element: String = "", scale_mult: float = 1.0, is_critical: bool = false) -> void:
+	if is_critical and ResourceLoader.exists(VFX_CRIT_PATH):
+		var crit_frames: SpriteFrames = load(VFX_CRIT_PATH) as SpriteFrames
+		if crit_frames != null:
+			var crit_spr := AnimatedSprite2D.new()
+			crit_spr.sprite_frames = crit_frames
+			crit_spr.scale = _hit_vfx_sprite.scale * maxf(scale_mult, 1.15)
+			crit_spr.global_position = world_pos
+			crit_spr.modulate = Color.WHITE
+			add_child(crit_spr)
+			crit_spr.play("default")
+			crit_spr.animation_finished.connect(func() -> void: crit_spr.queue_free())
+			return
 	var elem_path: String = str(ELEMENT_VFX_PATH.get(element, ""))
 	var use_dedicated: bool = not elem_path.is_empty() and ResourceLoader.exists(elem_path)
 	var frames: SpriteFrames = null
@@ -4080,8 +4423,9 @@ func _spawn_ultimate_skill_name(
 	var wrap_w: float = maxf(float(skill_name.length()) * 26.0, 120.0)
 	var wrap_h: float = float(TITLE_FONT_SIZE + NAME_FONT_SIZE + 10)
 	wrap.custom_minimum_size = Vector2(wrap_w, wrap_h)
-	var head_top: float = sprite.global_position.y - CHR_BODY_TARGET_PX - 72.0
-	var base_x: float = sprite.global_position.x
+	var head_center: Vector2 = _sprite_visual_center_global(sprite)
+	var head_top: float = _sprite_top_y_global(sprite) - 72.0
+	var base_x: float = head_center.x
 	wrap.position = Vector2(base_x - wrap_w * 0.5, head_top)
 	wrap.pivot_offset = Vector2(wrap_w * 0.5, wrap_h * 0.5)
 	wrap.scale = Vector2(0.25, 0.25)
@@ -4140,8 +4484,9 @@ func _spawn_skill_name(
 	lbl.add_theme_constant_override("shadow_offset_y", 3)
 	lbl.reset_size()
 	var text_w: float = maxf(lbl.size.x, float(skill_name.length()) * float(SKILL_FONT_SIZE) * 0.55)
-	var head_top: float = sprite.global_position.y - CHR_BODY_TARGET_PX - 44.0 + stack_offset
-	var base_x: float = sprite.global_position.x - text_w * 0.5
+	var head_center: Vector2 = _sprite_visual_center_global(sprite)
+	var head_top: float = _sprite_top_y_global(sprite) - 44.0 + stack_offset
+	var base_x: float = head_center.x - text_w * 0.5
 	lbl.custom_minimum_size = Vector2(text_w, lbl.size.y)
 	lbl.pivot_offset = Vector2(text_w * 0.5, lbl.size.y * 0.5)
 	lbl.position = Vector2(base_x - 18.0, head_top)
@@ -4180,6 +4525,14 @@ func _clear_member_skill_labels(member_idx: int) -> void:
 		if is_instance_valid(lbl):
 			lbl.free()
 	_chr_skill_labels[member_idx] = []
+
+func _clear_all_member_skill_labels() -> void:
+	for i in _chr_skill_labels.size():
+		_clear_member_skill_labels(i)
+
+func _clear_damage_numbers_layer() -> void:
+	for child in _damage_numbers_layer.get_children():
+		child.queue_free()
 
 # P3-D074: 撃破→敵が消えた後にドロップ武器アイコンをポップさせ、入手アニメで吸い込む
 func _spawn_weapon_drop(weapon_id: String, world_pos: Vector2) -> void:
@@ -4261,6 +4614,20 @@ func _play_heal_vfx() -> void:
 
 # ---- Boss Sprite ----
 
+func _resolve_boss_sprite_path(enemy_id: String, dungeon_id: String) -> String:
+	if not enemy_id.is_empty():
+		var by_enemy: String = BOSS_ENEMY_SPRITE_MAP.get(enemy_id, "")
+		if not by_enemy.is_empty() and ResourceLoader.exists(by_enemy):
+			return by_enemy
+		var enm_path: String = ENEMY_SPRITE_MAP.get(enemy_id, "")
+		if not enm_path.is_empty() and ResourceLoader.exists(enm_path):
+			return enm_path
+	if not dungeon_id.is_empty():
+		var by_dungeon: String = BOSS_SPRITE_MAP.get(dungeon_id, "")
+		if not by_dungeon.is_empty() and ResourceLoader.exists(by_dungeon):
+			return by_dungeon
+	return ""
+
 func _update_boss_sprite_visibility() -> void:
 	var is_boss_room: bool = $DungeonController.current_room_type == Enums.RoomType.BOSS
 	if not is_boss_room:
@@ -4269,8 +4636,12 @@ func _update_boss_sprite_visibility() -> void:
 	var dungeon_id: String = ""
 	if $DungeonController.current_dungeon_data != null:
 		dungeon_id = $DungeonController.current_dungeon_data.id
-	var path: String = BOSS_SPRITE_MAP.get(dungeon_id, "")
-	if path.is_empty() or not ResourceLoader.exists(path):
+	var enemy_id: String = ""
+	var boss_data: Resource = $DungeonController.pick_boss_enemy_data()
+	if boss_data != null:
+		enemy_id = str(boss_data.id)
+	var path: String = _resolve_boss_sprite_path(enemy_id, dungeon_id)
+	if path.is_empty():
 		_boss_sprite.visible = false
 		return
 	var frames: SpriteFrames = load(path) as SpriteFrames
@@ -4278,6 +4649,9 @@ func _update_boss_sprite_visibility() -> void:
 		_boss_sprite.visible = false
 		return
 	_boss_sprite.sprite_frames = frames
+	_normalize_enemy_scale(_boss_sprite, frames)
+	_boss_sprite.position = Vector2(SWARM_BASE_X, SWARM_BASE_Y)
+	_boss_sprite.z_index = 8
 	_boss_sprite.play("idle")
 	_boss_sprite.visible = true
 
@@ -4289,21 +4663,46 @@ func _play_boss_animation(anim: String) -> void:
 
 # ---- Room Art ----
 
-const _MG_ENV: String = "res://assets/dungeon/mourngate/env/"
+func _dungeon_env_obj_path(dungeon_id: String, room_type: int) -> String:
+	var fallback_id: String = Constants.MOURNGATE_DUNGEON_ID
+	if room_type == Enums.RoomType.TREASURE:
+		return TREASURE_OBJ_MAP.get(dungeon_id, TREASURE_OBJ_MAP[fallback_id])
+	if room_type == Enums.RoomType.EXIT:
+		return EXIT_OBJ_MAP.get(dungeon_id, EXIT_OBJ_MAP[fallback_id])
+	return ""
+
+func _dungeon_battle_bg_path(dungeon_id: String) -> String:
+	var fallback_id: String = Constants.MOURNGATE_DUNGEON_ID
+	return BATTLE_BG_MAP.get(dungeon_id, BATTLE_BG_MAP[fallback_id])
 
 func _update_room_art() -> void:
 	var room_type: int = $DungeonController.current_room_type
 	var dungeon_id: String = ""
 	if $DungeonController.current_dungeon_data != null:
 		dungeon_id = $DungeonController.current_dungeon_data.id
-	var bg_path: String = BATTLE_BG_MAP.get(dungeon_id, BATTLE_BG_MAP[Constants.MOURNGATE_DUNGEON_ID])
-	_set_room_texture(_room_tile_bg, bg_path)
-	var obj_path: String = ""
-	if room_type == Enums.RoomType.TREASURE:
-		obj_path = _MG_ENV + "OBJ_TreasureChest_Open.png"
-	elif room_type == Enums.RoomType.EXIT:
-		obj_path = _MG_ENV + "OBJ_ExitGate_Mourngate.png"
+	var fallback_id: String = Constants.MOURNGATE_DUNGEON_ID
+	var battle_bg_path: String = _dungeon_battle_bg_path(dungeon_id)
+	_set_room_texture(_bg_texture, battle_bg_path)
+	if room_type in _FLOOR_ROOM_TYPES:
+		var floor_path: String = FLOOR_TILE_MAP.get(dungeon_id, FLOOR_TILE_MAP[fallback_id])
+		if floor_path.is_empty() or not ResourceLoader.exists(floor_path):
+			_set_room_texture(_room_tile_bg, battle_bg_path)
+		else:
+			_set_room_texture_tiled(_room_tile_bg, floor_path)
+	else:
+		_set_room_texture(_room_tile_bg, battle_bg_path)
+	var obj_path: String = _dungeon_env_obj_path(dungeon_id, room_type)
 	_set_room_texture(_room_object, obj_path)
+
+func _set_room_texture_tiled(node: TextureRect, path: String) -> void:
+	if path.is_empty() or not ResourceLoader.exists(path):
+		node.texture = null
+		node.visible = false
+		return
+	node.texture = load(path) as Texture2D
+	node.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+	node.stretch_mode = TextureRect.STRETCH_TILE
+	node.visible = true
 
 func _set_room_texture(node: TextureRect, path: String) -> void:
 	if path.is_empty() or not ResourceLoader.exists(path):
@@ -4311,4 +4710,6 @@ func _set_room_texture(node: TextureRect, path: String) -> void:
 		node.visible = false
 		return
 	node.texture = load(path) as Texture2D
+	node.texture_repeat = CanvasItem.TEXTURE_REPEAT_DISABLED
+	node.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	node.visible = true

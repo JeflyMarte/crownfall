@@ -25,6 +25,7 @@ SceneRouter="*res://scripts/autoload/SceneRouter.gd"
 EventBus="*res://scripts/autoload/EventBus.gd"
 SaveManager="*res://scripts/save/SaveManager.gd"
 DailyMissionSystem="*res://scripts/autoload/DailyMissionSystem.gd"
+EventSystem="*res://scripts/autoload/EventSystem.gd"
 
 [display]
 

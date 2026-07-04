@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="DungeonData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "blackshore_abyss"
+display_name = "外洋沈没旗艦下ブラックショア・アビス"
+difficulty = 4
+recommended_level = 38
+enemy_level = 37
+room_count = 8
+floor_count = 9
+enemy_pool = Array[String](["ship_eater_crab", "samurai_fish", "undertaker_shark"])
+boss_id = "nereion_depths"
+drop_table_id = "blackshore_abyss_drops"
+discovery_unlocks = {"hidden_room": 0.3, "special_event": 0.6, "hidden_boss": 1.0}
+elite_pool = Array[String](["ninja_octopus"])
+favored_element = "holy"
+route_type = "apex"
+event_room_weight = 25
+min_event_rooms = 1
+weapon_pool = Array[String](["black_sand_cleaver", "wreck_hook_blades", "tidewood_longbow", "brine_lantern_staff", "lighthouse_greatsword", "pharos_bow", "votive_staff", "barnacle_saw", "sanctum_tide_edge", "beacon_needle", "nereidas_tideblade", "pharoslight_staff"])
+armor_pool = Array[String](["tidecloth_garb", "shipplate_mail", "kelp_weave_cloak", "whalebone_plate", "votive_vestment"])
+accessory_pool = Array[String](["black_pearl_ring", "barnacle_charm", "nereion_song_talisman"])
+unlock_after_dungeon_id = "blackshore"
+flavor_text = "ブラックショア外洋、沈没旗艦の下。潮脈が船骨を揺らし、\n沈没旗艦の下で、潮脈が船骨と一体化した巨体が眠る。"
