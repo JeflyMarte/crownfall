@@ -450,10 +450,6 @@ func _init_party_hp() -> void:
 		party_combat_hp.append(max_hp)
 		party_max_hp.append(max_hp)
 		party_threat.append(_job_threat_base(i))
-		print(
-			"[JobCombat] HP member=%s job=%s mult=%.2f max_hp=%d"
-			% [member.display_name, job_mods.get("job_id", ""), hp_mult, max_hp]
-		)
 
 func is_member_alive(index: int) -> bool:
 	if index < 0 or index >= party_combat_hp.size():

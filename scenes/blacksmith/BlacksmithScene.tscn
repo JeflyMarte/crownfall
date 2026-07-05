@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/blacksmith/BlacksmithScene.gd" id="1"]
 [ext_resource type="Theme" path="res://assets/ui/production_theme.tres" id="2"]
@@ -40,6 +40,22 @@ content_margin_top = 6.0
 content_margin_right = 8.0
 content_margin_bottom = 6.0
 
+[sub_resource type="StyleBoxFlat" id="SB_PrimaryBtn"]
+bg_color = Color(0.42, 0.32, 0.08, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.85, 0.72, 0.28, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 10.0
+
 [node name="BlacksmithScene" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -57,9 +73,69 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 texture = ExtResource("3")
 expand_mode = 1
 stretch_mode = 6
+
+[node name="BgOverlay" type="Control" parent="."]
+z_index = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="HeatGlow" type="ColorRect" parent="BgOverlay"]
+layout_mode = 1
+anchor_top = 0.52
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.55, 0.22, 0.05, 0.24)
+
+[node name="VignetteTop" type="ColorRect" parent="BgOverlay"]
+layout_mode = 1
+anchor_right = 1.0
+anchor_bottom = 0.28
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.01, 0.01, 0.02, 0.38)
+
+[node name="VignetteBottom" type="ColorRect" parent="BgOverlay"]
+layout_mode = 1
+anchor_top = 0.72
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.42)
+
+[node name="FxLayer" type="Control" parent="."]
+z_index = 12
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="FlashOverlay" type="ColorRect" parent="FxLayer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 0.78, 0.35, 0)
 
 [node name="Header" type="PanelContainer" parent="."]
 layout_mode = 1
@@ -83,7 +159,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 4
 theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
 theme_override_font_sizes/font_size = 18
-text = "赤鉄の工房"
+text = "鍛冶屋"
 horizontal_alignment = 1
 
 [node name="GoldChip" type="PanelContainer" parent="Header/HeaderRow"]
@@ -149,6 +225,19 @@ toggle_mode = true
 button_pressed = true
 text = "生産"
 
+[node name="NotifyDot" type="PanelContainer" parent="ModeTabs/BtnProduce"]
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -14.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = 14.0
+grow_vertical = 0
+mouse_filter = 2
+
 [node name="BtnEnhance" type="Button" parent="ModeTabs"]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -195,13 +284,13 @@ anchor_bottom = 1.0
 offset_left = 8.0
 offset_top = 160.0
 offset_right = -8.0
-offset_bottom = -152.0
+offset_bottom = -188.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 8
 
 [node name="LeftScroll" type="ScrollContainer" parent="MainSplit"]
-custom_minimum_size = Vector2(168, 0)
+custom_minimum_size = Vector2(196, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.38
@@ -219,34 +308,127 @@ size_flags_stretch_ratio = 0.62
 
 [node name="DetailVBox" type="VBoxContainer" parent="MainSplit/DetailPanel"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
+
+[node name="HeroPanel" type="CenterContainer" parent="MainSplit/DetailPanel/DetailVBox"]
+custom_minimum_size = Vector2(0, 140)
+layout_mode = 2
+
+[node name="HeroFrame" type="PanelContainer" parent="MainSplit/DetailPanel/DetailVBox/HeroPanel"]
+custom_minimum_size = Vector2(132, 132)
+layout_mode = 2
+
+[node name="HeroIconSlot" type="CenterContainer" parent="MainSplit/DetailPanel/DetailVBox/HeroPanel/HeroFrame"]
+custom_minimum_size = Vector2(120, 120)
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="MainSplit/DetailPanel/DetailVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.94, 0.86, 1)
+theme_override_font_sizes/font_size = 26
+horizontal_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="MainSplit/DetailPanel/DetailVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.86, 0.78, 1)
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
+
+[node name="StatsGrid" type="GridContainer" parent="MainSplit/DetailPanel/DetailVBox"]
+layout_mode = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 6
+columns = 2
+
+[node name="UniquePanel" type="PanelContainer" parent="MainSplit/DetailPanel/DetailVBox"]
+visible = false
+layout_mode = 2
+
+[node name="UniqueLabel" type="Label" parent="MainSplit/DetailPanel/DetailVBox/UniquePanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.9, 0.55, 1)
+theme_override_font_sizes/font_size = 18
+autowrap_mode = 3
+
+[node name="CostPanel" type="PanelContainer" parent="MainSplit/DetailPanel/DetailVBox"]
+layout_mode = 2
+
+[node name="CostVBox" type="VBoxContainer" parent="MainSplit/DetailPanel/DetailVBox/CostPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="CostHeaderLabel" type="Label" parent="MainSplit/DetailPanel/DetailVBox/CostPanel/CostVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.88, 0.58, 1)
+theme_override_font_sizes/font_size = 18
+text = "必要素材"
+
+[node name="MaterialsRow" type="HBoxContainer" parent="MainSplit/DetailPanel/DetailVBox/CostPanel/CostVBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="GoldRow" type="HBoxContainer" parent="MainSplit/DetailPanel/DetailVBox/CostPanel/CostVBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="GoldCostIcon" type="TextureRect" parent="MainSplit/DetailPanel/DetailVBox/CostPanel/CostVBox/GoldRow"]
+custom_minimum_size = Vector2(22, 22)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("4")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="GoldCostLabel" type="Label" parent="MainSplit/DetailPanel/DetailVBox/CostPanel/CostVBox/GoldRow"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 22
+
+[node name="CraftButton" type="Button" parent="MainSplit/DetailPanel/DetailVBox"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.98, 0.92, 0.72, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("SB_PrimaryBtn")
+text = "生産する"
+
+[node name="ReasonLabel" type="Label" parent="MainSplit/DetailPanel/DetailVBox"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.82, 0.45, 0.42, 1)
+theme_override_font_sizes/font_size = 13
+horizontal_alignment = 1
 
 [node name="CraftablePanel" type="VBoxContainer" parent="."]
 layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 8.0
-offset_top = -148.0
+offset_top = -188.0
 offset_right = -8.0
 offset_bottom = -88.0
 grow_horizontal = 2
+mouse_filter = 2
 theme_override_constants/separation = 4
 
 [node name="LabelCraftableHeader" type="Label" parent="CraftablePanel"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.78, 0.74, 0.62, 1)
-theme_override_font_sizes/font_size = 12
-text = "製作可能"
+theme_override_colors/font_color = Color(0.95, 0.92, 0.84, 1)
+theme_override_font_sizes/font_size = 16
+text = "製作可能レシピ"
 
 [node name="CraftableScroll" type="ScrollContainer" parent="CraftablePanel"]
-custom_minimum_size = Vector2(0, 52)
+custom_minimum_size = Vector2(0, 96)
 layout_mode = 2
 horizontal_scroll_mode = 2
 vertical_scroll_mode = 0
 
 [node name="CraftableRow" type="HBoxContainer" parent="CraftablePanel/CraftableScroll"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
 
 [node name="LabelStatus" type="Label" parent="."]
 visible = false

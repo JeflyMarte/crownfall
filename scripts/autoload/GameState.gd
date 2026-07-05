@@ -360,24 +360,44 @@ func get_combatant_formation_slot(member_index: int) -> int:
 
 # formation_slot 未保存の旧データ向け。formation_row から空きスロットへ割当。
 func migrate_formation_slots_if_needed() -> void:
-	var needs: bool = false
+	var needs_unset: bool = false
 	for m in party_members:
 		if m != null and int(m.formation_slot) < 0:
-			needs = true
+			needs_unset = true
 			break
-	if not needs:
-		return
-	var front_fill: int = 0
-	var back_fill: int = 0
+	if needs_unset:
+		var front_fill: int = 0
+		var back_fill: int = 0
+		for m in party_members:
+			if m == null or int(m.formation_slot) >= 0:
+				continue
+			if get_member_formation_row(m) == FORMATION_BACK:
+				m.formation_slot = 2 + (back_fill % 2)
+				back_fill += 1
+			else:
+				m.formation_slot = front_fill % 2
+				front_fill += 1
+	_dedupe_formation_slots()
+
+# 初期編成などで formation_slot が全員 0 のまま重なると、戦闘場で1体しか見えない。
+func _dedupe_formation_slots() -> void:
+	var used: Dictionary = {}
+	var overflow: Array = []
 	for m in party_members:
-		if m == null or int(m.formation_slot) >= 0:
+		if m == null:
 			continue
-		if get_member_formation_row(m) == FORMATION_BACK:
-			m.formation_slot = 2 + (back_fill % 2)
-			back_fill += 1
+		var slot: int = clampi(int(m.formation_slot), 0, 3)
+		if not used.has(slot):
+			m.formation_slot = slot
+			used[slot] = m
 		else:
-			m.formation_slot = front_fill % 2
-			front_fill += 1
+			overflow.append(m)
+	for m in overflow:
+		for candidate in range(4):
+			if not used.has(candidate):
+				m.formation_slot = candidate
+				used[candidate] = m
+				break
 
 func is_member_back_row(member_index: int) -> bool:
 	return get_member_formation_row(get_combatant(member_index)) == FORMATION_BACK
@@ -796,6 +816,7 @@ func _init_party() -> void:
 	party_members = []
 	for i in mini(ACTIVE_PARTY_SIZE, roster.size()):
 		party_members.append(roster[i])
+	migrate_formation_slots_if_needed()
 	normalize_roster_rarity()
 	_grant_starting_equipment()
 	normalize_all_equipped_skills()

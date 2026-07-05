@@ -101,21 +101,21 @@ alignment = 1
 [node name="LabelTitle" type="Label" parent="Scroll/Margin/Main/HeaderPanel/HeaderVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.74, 0.45, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 30
 text = "探索結果"
 horizontal_alignment = 1
 
 [node name="LabelDungeon" type="Label" parent="Scroll/Margin/Main/HeaderPanel/HeaderVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.78, 0.8, 0.86, 1)
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 22
 text = "ダンジョン"
 horizontal_alignment = 1
 
 [node name="LabelClear" type="Label" parent="Scroll/Margin/Main/HeaderPanel/HeaderVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.96, 0.84, 0.42, 1)
-theme_override_font_sizes/font_size = 56
+theme_override_font_sizes/font_size = 68
 text = "CLEAR"
 horizontal_alignment = 1
 
@@ -134,7 +134,7 @@ theme_override_constants/separation = 10
 [node name="LabelRewardTitle" type="Label" parent="Scroll/Margin/Main/RewardPanel/RewardVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.74, 0.45, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 24
 text = "獲得報酬"
 horizontal_alignment = 1
 
@@ -153,7 +153,7 @@ theme_override_constants/separation = 10
 [node name="LabelMaterialTitle" type="Label" parent="Scroll/Margin/Main/MaterialPanel/MaterialVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.74, 0.45, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 24
 text = "採取素材"
 horizontal_alignment = 1
 
@@ -165,7 +165,7 @@ alignment = 1
 [node name="LabelCraftable" type="Label" parent="Scroll/Margin/Main/MaterialPanel/MaterialVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.92, 0.6, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 19
 text = ""
 horizontal_alignment = 1
 autowrap_mode = 3
@@ -180,7 +180,7 @@ theme_override_constants/separation = 8
 [node name="LabelRareTitle" type="Label" parent="Scroll/Margin/Main/RarePanel/RareVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.74, 0.45, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 24
 text = "レア入手"
 horizontal_alignment = 1
 
@@ -198,7 +198,7 @@ theme_override_constants/separation = 8
 [node name="LabelInfoTitle" type="Label" parent="Scroll/Margin/Main/InfoPanel/InfoVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.74, 0.45, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 24
 text = "探索情報"
 horizontal_alignment = 1
 
@@ -214,7 +214,7 @@ layout_mode = 2
 [node name="LabelLevelUp" type="Label" parent="Scroll/Margin/Main/LevelUpPanel"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.92, 0.6, 1)
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 20
 text = ""
 horizontal_alignment = 1
 autowrap_mode = 3

@@ -5,7 +5,8 @@ extends RefCounted
 ## 戦闘スキルとは別枠。ロール判定は CombatSynergy と同型（1人以上で発動可）。
 
 const TRAP_CHANCE: float = 0.20
-const TRAP_DAMAGE: int = 8
+const TRAP_DAMAGE_COMBAT: int = 10
+const TRAP_DAMAGE_ROOM: int = 15
 
 const _SKILLS: Dictionary = {
 	"gather": {
@@ -60,7 +61,10 @@ static func should_roll_trap() -> bool:
 	return randf() < TRAP_CHANCE
 
 static func trap_damage() -> int:
-	return TRAP_DAMAGE
+	return TRAP_DAMAGE_COMBAT
+
+static func trap_damage_room() -> int:
+	return TRAP_DAMAGE_ROOM
 
 # 装備画面用：編成で使える探索スキル一覧。
 static func active_labels(members: Array) -> PackedStringArray:

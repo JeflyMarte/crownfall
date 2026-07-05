@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/dungeon/DungeonSelectScene.gd" id="1"]
 [ext_resource type="Theme" path="res://assets/ui/production_theme.tres" id="2"]
@@ -61,23 +61,34 @@ grow_vertical = 2
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Header" type="PanelContainer" parent="."]
+[node name="MainColumn" type="VBoxContainer" parent="."]
 layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
-offset_bottom = 46.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 0.0
+offset_right = -8.0
+offset_bottom = -108.0
 grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 6
+
+[node name="Header" type="PanelContainer" parent="MainColumn"]
+layout_mode = 2
+size_flags_vertical = 0
 theme_override_styles/panel = SubResource("SB_Header")
 
-[node name="HeaderRow" type="HBoxContainer" parent="Header"]
+[node name="HeaderRow" type="HBoxContainer" parent="MainColumn/Header"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="ButtonBack" type="Button" parent="Header/HeaderRow"]
+[node name="ButtonBack" type="Button" parent="MainColumn/Header/HeaderRow"]
 layout_mode = 2
 size_flags_vertical = 4
 text = "←"
 
-[node name="LabelTitle" type="Label" parent="Header/HeaderRow"]
+[node name="LabelTitle" type="Label" parent="MainColumn/Header/HeaderRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
@@ -86,16 +97,16 @@ horizontal_alignment = 1
 theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
 theme_override_font_sizes/font_size = 18
 
-[node name="GoldChip" type="PanelContainer" parent="Header/HeaderRow"]
+[node name="GoldChip" type="PanelContainer" parent="MainColumn/Header/HeaderRow"]
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_styles/panel = SubResource("SB_Chip")
 
-[node name="GoldRow" type="HBoxContainer" parent="Header/HeaderRow/GoldChip"]
+[node name="GoldRow" type="HBoxContainer" parent="MainColumn/Header/HeaderRow/GoldChip"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="GoldIcon" type="TextureRect" parent="Header/HeaderRow/GoldChip/GoldRow"]
+[node name="GoldIcon" type="TextureRect" parent="MainColumn/Header/HeaderRow/GoldChip/GoldRow"]
 custom_minimum_size = Vector2(18, 18)
 layout_mode = 2
 size_flags_vertical = 4
@@ -103,23 +114,23 @@ texture = ExtResource("4")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="LabelGold" type="Label" parent="Header/HeaderRow/GoldChip/GoldRow"]
+[node name="LabelGold" type="Label" parent="MainColumn/Header/HeaderRow/GoldChip/GoldRow"]
 layout_mode = 2
 size_flags_vertical = 4
 text = "0"
 theme_override_colors/font_color = Color(0.95, 0.82, 0.35, 1)
 theme_override_font_sizes/font_size = 18
 
-[node name="TokenChip" type="PanelContainer" parent="Header/HeaderRow"]
+[node name="TokenChip" type="PanelContainer" parent="MainColumn/Header/HeaderRow"]
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_styles/panel = SubResource("SB_Chip")
 
-[node name="TokenRow" type="HBoxContainer" parent="Header/HeaderRow/TokenChip"]
+[node name="TokenRow" type="HBoxContainer" parent="MainColumn/Header/HeaderRow/TokenChip"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="TokenIcon" type="TextureRect" parent="Header/HeaderRow/TokenChip/TokenRow"]
+[node name="TokenIcon" type="TextureRect" parent="MainColumn/Header/HeaderRow/TokenChip/TokenRow"]
 custom_minimum_size = Vector2(18, 18)
 layout_mode = 2
 size_flags_vertical = 4
@@ -127,121 +138,103 @@ texture = ExtResource("5")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="LabelToken" type="Label" parent="Header/HeaderRow/TokenChip/TokenRow"]
+[node name="LabelToken" type="Label" parent="MainColumn/Header/HeaderRow/TokenChip/TokenRow"]
 layout_mode = 2
 size_flags_vertical = 4
 text = "0"
 theme_override_colors/font_color = Color(0.72, 0.85, 0.98, 1)
 theme_override_font_sizes/font_size = 18
 
-[node name="TabsRow" type="HBoxContainer" parent="."]
-layout_mode = 1
-anchor_right = 1.0
-offset_left = 12.0
-offset_top = 52.0
-offset_right = -12.0
-offset_bottom = 86.0
-grow_horizontal = 2
+[node name="TabsRow" type="HBoxContainer" parent="MainColumn"]
+layout_mode = 2
+size_flags_vertical = 0
 theme_override_constants/separation = 6
 
-[node name="ButtonNormal" type="Button" parent="TabsRow"]
+[node name="ButtonNormal" type="Button" parent="MainColumn/TabsRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 toggle_mode = true
 button_pressed = true
 text = "ノーマル"
 
-[node name="ButtonHard" type="Button" parent="TabsRow"]
+[node name="ButtonHard" type="Button" parent="MainColumn/TabsRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 toggle_mode = true
 text = "ハード"
 
-[node name="ButtonNightmare" type="Button" parent="TabsRow"]
+[node name="ButtonNightmare" type="Button" parent="MainColumn/TabsRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 toggle_mode = true
 text = "ナイトメア"
 
-[node name="FeaturedPanel" type="PanelContainer" parent="."]
-layout_mode = 1
-anchor_right = 1.0
-offset_left = 12.0
-offset_top = 94.0
-offset_right = -12.0
-offset_bottom = 318.0
-grow_horizontal = 2
-
-[node name="FeaturedVBox" type="VBoxContainer" parent="FeaturedPanel"]
+[node name="FeaturedPanel" type="PanelContainer" parent="MainColumn"]
 layout_mode = 2
-theme_override_constants/separation = 8
+size_flags_vertical = 0
+clip_contents = true
 
-[node name="FeaturedBanner" type="PanelContainer" parent="FeaturedPanel/FeaturedVBox"]
-custom_minimum_size = Vector2(0, 112)
-layout_mode = 2
-
-[node name="FeaturedBannerArt" type="TextureRect" parent="FeaturedPanel/FeaturedVBox/FeaturedBanner"]
-layout_mode = 2
-expand_mode = 1
-stretch_mode = 6
-
-[node name="FeaturedInfo" type="VBoxContainer" parent="FeaturedPanel/FeaturedVBox"]
+[node name="FeaturedVBox" type="VBoxContainer" parent="MainColumn/FeaturedPanel"]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="LabelFeaturedName" type="Label" parent="FeaturedPanel/FeaturedVBox/FeaturedInfo"]
+[node name="FeaturedInfo" type="VBoxContainer" parent="MainColumn/FeaturedPanel/FeaturedVBox"]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="LabelFeaturedName" type="Label" parent="MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
 theme_override_font_sizes/font_size = 17
 text = "—"
+autowrap_mode = 3
+max_lines_visible = 1
 
-[node name="LabelFeaturedFlavor" type="Label" parent="FeaturedPanel/FeaturedVBox/FeaturedInfo"]
+[node name="LabelFeaturedFlavor" type="Label" parent="MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.72, 0.7, 0.62, 1)
 theme_override_font_sizes/font_size = 12
 text = ""
 autowrap_mode = 3
-max_lines_visible = +2
+max_lines_visible = 2
 
-[node name="LabelFeaturedMeta" type="Label" parent="FeaturedPanel/FeaturedVBox/FeaturedInfo"]
+[node name="LabelFeaturedMeta" type="Label" parent="MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
 theme_override_font_sizes/font_size = 14
 text = "推奨Lv —"
 autowrap_mode = 3
+max_lines_visible = 2
 
-[node name="LabelFeaturedDiscovery" type="Label" parent="FeaturedPanel/FeaturedVBox/FeaturedInfo"]
+[node name="LabelFeaturedDiscovery" type="Label" parent="MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.82, 0.78, 1)
 theme_override_font_sizes/font_size = 14
 text = "発見率 0%"
 
-[node name="FeaturedDropRow" type="HBoxContainer" parent="FeaturedPanel/FeaturedVBox"]
+[node name="FeaturedDropRow" type="HBoxContainer" parent="MainColumn/FeaturedPanel/FeaturedVBox"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="FeaturedActionRow" type="HBoxContainer" parent="FeaturedPanel/FeaturedVBox"]
+[node name="FeaturedActionRow" type="HBoxContainer" parent="MainColumn/FeaturedPanel/FeaturedVBox"]
 layout_mode = 2
 alignment = 2
 
-[node name="BtnFeaturedSelect" type="Button" parent="FeaturedPanel/FeaturedVBox/FeaturedActionRow"]
+[node name="BtnFeaturedSelect" type="Button" parent="MainColumn/FeaturedPanel/FeaturedVBox/FeaturedActionRow"]
 layout_mode = 2
 custom_minimum_size = Vector2(132, 40)
 text = "選択して出発"
 
-[node name="ScrollList" type="ScrollContainer" parent="."]
-layout_mode = 1
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = 326.0
-offset_bottom = -108.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="ScrollList" type="ScrollContainer" parent="MainColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 120)
 horizontal_scroll_mode = 0
 
-[node name="ListVBox" type="VBoxContainer" parent="ScrollList"]
+[node name="ListVBox" type="VBoxContainer" parent="MainColumn/ScrollList"]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 0
 theme_override_constants/separation = 10
 
 [node name="FooterPanel" type="PanelContainer" parent="."]

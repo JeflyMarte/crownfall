@@ -13,6 +13,20 @@ const DROP_ICON_SIZE: Vector2 = Vector2(24, 24)
 const MAX_STARS: int = 3
 const DROP_CAPTION: String = "主なドロップ報酬"
 
+const DUNGEON_ICON_PATHS: Dictionary = {
+	"mourngate": "res://assets/dungeon/mourngate/ICO_DG_Mourngate.png",
+	"astoria_ruins": "res://assets/dungeon/astoria_ruins/ICO_DG_AstoriaRuins.png",
+	"whisperwood": "res://assets/dungeon/whisperwood/ICO_DG_Whisperwood.png",
+	"green_hollow": "res://assets/dungeon/green_hollow/ICO_DG_GreenHollow.png",
+	"mistfen": "res://assets/dungeon/mistfen/ICO_DG_Mistfen.png",
+	"broken_marsh": "res://assets/dungeon/broken_marsh/ICO_DG_BrokenMarsh.png",
+	"blackshore": "res://assets/dungeon/blackshore/ICO_DG_Blackshore.png",
+	"westbay_flats": "res://assets/dungeon/westbay_flats/ICO_DG_WestbayFlats.png",
+	"frostridge": "res://assets/dungeon/frostridge/ICO_DG_Frostridge.png",
+	"frostwall_path": "res://assets/dungeon/frostwall_path/ICO_DG_FrostwallPath.png",
+	"mourngate_deep": "res://assets/dungeon/mourngate/ICO_DG_Mourngate.png",
+}
+
 const COLOR_GOLD: Color = Color(0.95, 0.84, 0.4, 1)
 const COLOR_SUB: Color = Color(0.78, 0.74, 0.6, 1)
 const COLOR_CLEAR: Color = Color(0.45, 0.92, 0.55, 1)
@@ -113,22 +127,21 @@ const DROP_PREVIEW: Dictionary = {
 	],
 }
 
-@onready var _btn_back: Button = $Header/HeaderRow/ButtonBack
-@onready var _btn_tier_normal: Button = $TabsRow/ButtonNormal
-@onready var _btn_tier_hard: Button = $TabsRow/ButtonHard
-@onready var _btn_tier_nightmare: Button = $TabsRow/ButtonNightmare
-@onready var _label_gold: Label = $Header/HeaderRow/GoldChip/GoldRow/LabelGold
-@onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
-@onready var _featured_panel: PanelContainer = $FeaturedPanel
-@onready var _featured_banner: PanelContainer = $FeaturedPanel/FeaturedVBox/FeaturedBanner
-@onready var _featured_banner_art: TextureRect = $FeaturedPanel/FeaturedVBox/FeaturedBanner/FeaturedBannerArt
-@onready var _label_featured_name: Label = $FeaturedPanel/FeaturedVBox/FeaturedInfo/LabelFeaturedName
-@onready var _label_featured_flavor: Label = $FeaturedPanel/FeaturedVBox/FeaturedInfo/LabelFeaturedFlavor
-@onready var _label_featured_meta: Label = $FeaturedPanel/FeaturedVBox/FeaturedInfo/LabelFeaturedMeta
-@onready var _label_featured_discovery: Label = $FeaturedPanel/FeaturedVBox/FeaturedInfo/LabelFeaturedDiscovery
-@onready var _featured_drop_row: HBoxContainer = $FeaturedPanel/FeaturedVBox/FeaturedDropRow
-@onready var _btn_featured_select: Button = $FeaturedPanel/FeaturedVBox/FeaturedActionRow/BtnFeaturedSelect
-@onready var _list: VBoxContainer = $ScrollList/ListVBox
+@onready var _btn_back: Button = $MainColumn/Header/HeaderRow/ButtonBack
+@onready var _btn_tier_normal: Button = $MainColumn/TabsRow/ButtonNormal
+@onready var _btn_tier_hard: Button = $MainColumn/TabsRow/ButtonHard
+@onready var _btn_tier_nightmare: Button = $MainColumn/TabsRow/ButtonNightmare
+@onready var _label_gold: Label = $MainColumn/Header/HeaderRow/GoldChip/GoldRow/LabelGold
+@onready var _label_token: Label = $MainColumn/Header/HeaderRow/TokenChip/TokenRow/LabelToken
+@onready var _featured_panel: PanelContainer = $MainColumn/FeaturedPanel
+@onready var _label_featured_name: Label = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo/LabelFeaturedName
+@onready var _label_featured_flavor: Label = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo/LabelFeaturedFlavor
+@onready var _label_featured_meta: Label = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo/LabelFeaturedMeta
+@onready var _label_featured_discovery: Label = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo/LabelFeaturedDiscovery
+@onready var _featured_drop_row: HBoxContainer = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedDropRow
+@onready var _btn_featured_select: Button = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedActionRow/BtnFeaturedSelect
+@onready var _scroll_list: ScrollContainer = $MainColumn/ScrollList
+@onready var _list: VBoxContainer = $MainColumn/ScrollList/ListVBox
 @onready var _footer_panel: PanelContainer = $FooterPanel
 @onready var _label_bonus_value: Label = $FooterPanel/FooterRow/BonusCol/LabelBonusValue
 @onready var _label_bonus_timer: Label = $FooterPanel/FooterRow/BonusCol/LabelBonusTimer
@@ -136,7 +149,7 @@ const DROP_PREVIEW: Dictionary = {
 var _featured_dungeon_id: String = ""
 
 func _ready() -> void:
-	UiTypography.apply_screen_title($Header/HeaderRow/LabelTitle)
+	UiTypography.apply_screen_title($MainColumn/Header/HeaderRow/LabelTitle)
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.ADVENTURE)
 	_btn_back.pressed.connect(_go_home)
 	_btn_featured_select.pressed.connect(_on_featured_select_pressed)
@@ -148,10 +161,10 @@ func _ready() -> void:
 	_featured_panel.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD_ACTIVE)
 	)
+	_featured_panel.clip_contents = true
 	_footer_panel.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
 	)
-	_featured_banner.add_theme_stylebox_override("panel", _banner_frame_style())
 	_apply_typography()
 	_refresh_all()
 
@@ -160,7 +173,7 @@ func _apply_typography() -> void:
 	UiTypography.apply_button(_btn_featured_select)
 	UiTypography.apply_body(_label_gold, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_body(_label_token, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
-	UiTypography.apply_display(_label_featured_name, UiTypography.SIZE_DISPLAY)
+	UiTypography.apply_display(_label_featured_name, UiTypography.SIZE_BODY_SMALL)
 	UiTypography.apply_body(_label_featured_flavor, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_SUB)
 	UiTypography.apply_body(_label_featured_meta, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
 	UiTypography.apply_body(_label_featured_discovery, UiTypography.SIZE_BODY_SMALL, COLOR_CLEAR)
@@ -175,6 +188,7 @@ func _refresh_all() -> void:
 	_refresh_featured()
 	_refresh_event_footer()
 	_build_list()
+	call_deferred("_reset_scroll_list_top")
 
 func _clamp_selected_tier() -> void:
 	if _featured_dungeon_id.is_empty():
@@ -238,7 +252,6 @@ func _refresh_featured() -> void:
 	_label_featured_name.text = str(data.display_name)
 	_label_featured_flavor.text = str(data.flavor_text)
 	_label_featured_flavor.visible = not str(data.flavor_text).is_empty()
-	_featured_banner_art.texture = _get_dungeon_thumb_texture(_featured_dungeon_id)
 
 	var meta_parts: Array[String] = []
 	meta_parts.append(_DungeonTierConfig.display_name(GameState.current_dungeon_tier))
@@ -350,12 +363,20 @@ func _sorted_dungeons(route_type: String) -> Array:
 	out.sort_custom(func(a, b): return int(a.difficulty) < int(b.difficulty))
 	return out
 
-func _make_section_header(title: String) -> Label:
+func _make_section_header(title: String) -> Control:
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_bottom", 4)
+	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	margin.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	var header := Label.new()
 	header.text = title
+	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_display(header, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
-	return header
+	margin.add_child(header)
+	return margin
 
 func _make_biome_card(data: Resource) -> PanelContainer:
 	var dungeon_id: String = str(data.id)
@@ -369,6 +390,8 @@ func _make_biome_card(data: Resource) -> PanelContainer:
 		)
 	)
 	var card := PanelContainer.new()
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	card.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	card.add_theme_stylebox_override(
 		"panel",
 		CombatUiFrames.panel_style(
@@ -529,22 +552,30 @@ func _enemy_icon_frame_style() -> StyleBoxFlat:
 	style.set_corner_radius_all(ENEMY_ICON_PX / 2)
 	return style
 
-func _banner_frame_style() -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.06, 0.05, 0.12, 0.95)
-	style.set_border_width_all(1)
-	style.border_color = Color(0.45, 0.38, 0.2, 0.7)
-	style.set_corner_radius_all(8)
-	return style
+func _reset_scroll_list_top() -> void:
+	if _scroll_list != null:
+		_scroll_list.scroll_vertical = 0
 
 func _get_dungeon_thumb_texture(dungeon_id: String) -> Texture2D:
 	var tex: Texture2D = IconPaths.get_icon_texture(dungeon_id, "dungeon")
 	if tex != null:
 		return tex
-	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
-	if data == null:
+	var path: String = str(DUNGEON_ICON_PATHS.get(dungeon_id, ""))
+	if path.is_empty():
+		path = IconPaths.ICON_MAP.get("dungeon:%s" % dungeon_id, "")
+	return _load_texture_flexible(path)
+
+func _load_texture_flexible(path: String) -> Texture2D:
+	if path.is_empty():
 		return null
-	return IconPaths.get_icon_texture(str(data.boss_id), "enemy")
+	if ResourceLoader.exists(path):
+		var loaded: Texture2D = load(path) as Texture2D
+		if loaded != null:
+			return loaded
+	var image := Image.new()
+	if image.load(path) != OK or image.is_empty():
+		return null
+	return ImageTexture.create_from_image(image)
 
 func _make_thumb_with_ribbon(tex: Texture2D, show_clear: bool, locked: bool) -> Control:
 	var wrap := Control.new()
@@ -589,6 +620,9 @@ func _make_thumb(tex: Texture2D, fallback_glyph: String, size: Vector2 = THUMB_S
 	if tex != null:
 		var icon := TextureRect.new()
 		icon.texture = tex
+		icon.custom_minimum_size = size
+		icon.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		icon.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		box.add_child(icon)

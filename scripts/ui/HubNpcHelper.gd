@@ -4,18 +4,10 @@ extends RefCounted
 ## 拠点 NPC 最小台詞（P3-LORE-003）。`world/08_SeekersGuild §14` に基づく1行表示。
 
 const HINT_BY_ENTRY: Dictionary = {
-	"adventure": {"npc": "オーレン", "line": "急ぐな。持ち帰るべきは遺産ではなく、記録だ。"},
-	"equipment": {"npc": "セルマ", "line": "良い目利きは、値段より来歴を見るものさ。"},
-	"roster": {"npc": "トビアス", "line": "灯を消さずに帰ってきてくれ。編成はここで整えよう。"},
-	"gacha": {"npc": "セルマ", "line": "噂の来歴を確かめてから、契約を結べ。"},
 	"codex": {"npc": "ニーナ", "line": "新しい発見があるなら、図鑑の空白を埋めてくれ。"},
 }
 
 const SCENE_TO_ENTRY: Dictionary = {
-	"res://scenes/dungeon/DungeonSelectScene.tscn": "adventure",
-	"res://scenes/equipment/EquipmentScene.tscn": "equipment",
-	"res://scenes/roster/RosterScene.tscn": "roster",
-	"res://scenes/gacha/GachaScene.tscn": "gacha",
 	"res://scenes/codex/CodexScene.tscn": "codex",
 }
 

@@ -377,7 +377,7 @@ const ICON_MAP: Dictionary = {
 	"ui:menu":                     "res://assets/ui/menu/ICO_UI_Menu.png",
 	"ui:home":                     "res://assets/ui/nav/ICO_NAV_Home.png",
 	"ui:party":                    "res://assets/ui/nav/ICO_NAV_Party.png",
-	"ui:dungeon":                  "res://assets/ui/menu/ICO_UI_Dungeon.png",
+	"ui:dungeon":                  "res://assets/dungeon/mourngate/ICO_DG_Mourngate.png",
 	"ui:arena":                    "res://assets/ui/menu/ICO_UI_Arena.png",
 	"ui:guild":                    "res://assets/ui/menu/ICO_UI_Guild.png",
 	"ui:missions":                 "res://assets/ui/menu/ICO_UI_Missions.png",

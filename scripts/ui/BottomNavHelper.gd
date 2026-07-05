@@ -197,7 +197,16 @@ static func _wire_nav_row(nav_row: HBoxContainer, active_tab: Tab) -> void:
 			_connect_if_needed(home_btn, _go_home)
 	_connect_if_needed(nav_row.get_node_or_null("NavAdventure") as Button, _go_adventure)
 	_connect_if_needed(nav_row.get_node_or_null("NavParty") as Button, _go_party)
-	_connect_if_needed(nav_row.get_node_or_null("NavForge") as Button, _go_forge)
+	var forge_btn: Button = nav_row.get_node_or_null("NavForge") as Button
+	if forge_btn != null:
+		if active_tab == Tab.FORGE:
+			forge_btn.disabled = true
+			forge_btn.tooltip_text = "鍛冶屋"
+			NavUiTokens.set_bottom_nav_text_color(forge_btn, COLOR_NAV_ACTIVE)
+		else:
+			forge_btn.disabled = false
+			NavUiTokens.set_bottom_nav_disabled_style(forge_btn, false)
+			_connect_if_needed(forge_btn, _go_forge)
 	_connect_if_needed(nav_row.get_node_or_null("NavShop") as Button, _go_gacha)
 	_connect_if_needed(nav_row.get_node_or_null("NavMenu") as Button, _go_codex)
 
@@ -253,12 +262,7 @@ static func _go_codex() -> void:
 
 static func _change_scene(path: String) -> void:
 	_HubNpcHelper.queue_hint_for_scene(path)
-	var tree: SceneTree = Engine.get_main_loop() as SceneTree
-	if tree == null:
-		return
-	var router: Node = tree.root.get_node_or_null("/root/SceneRouter")
-	if router != null and router.has_method("change_scene"):
-		router.call("change_scene", path)
+	SceneRouter.change_scene(path)
 
 static func _scene_root(nav_row: HBoxContainer) -> Control:
 	var node: Node = nav_row

@@ -10,6 +10,23 @@ const COLOR_SUB: Color = Color(0.6, 0.62, 0.7, 1)
 const COLOR_FAIL: Color = Color(0.82, 0.45, 0.42, 1)
 const COLOR_RETIRE: Color = Color(0.72, 0.8, 0.95, 1)
 
+const FS_TITLE: int = 30
+const FS_SECTION: int = 24
+const FS_DUNGEON: int = 22
+const FS_OUTCOME_CLEAR: int = 68
+const FS_OUTCOME_ALT: int = 52
+const FS_STAR: int = 36
+const FS_REWARD_NAME: int = 18
+const FS_REWARD_VALUE: int = 22
+const FS_REWARD_GLYPH: int = 28
+const FS_INFO: int = 20
+const FS_RARE_NAME: int = 21
+const FS_RARE_DESC: int = 17
+const FS_RARE_STAR: int = 26
+const FS_LEVELUP: int = 20
+const FS_CRAFTABLE: int = 19
+const FS_BUTTON: int = 24
+
 @onready var _label_title: Label = $Scroll/Margin/Main/HeaderPanel/HeaderVBox/LabelTitle
 @onready var _label_dungeon: Label = $Scroll/Margin/Main/HeaderPanel/HeaderVBox/LabelDungeon
 @onready var _label_outcome: Label = $Scroll/Margin/Main/HeaderPanel/HeaderVBox/LabelClear
@@ -28,10 +45,15 @@ const COLOR_RETIRE: Color = Color(0.72, 0.8, 0.95, 1)
 @onready var _header_panel: PanelContainer = $Scroll/Margin/Main/HeaderPanel
 @onready var _reward_panel: PanelContainer = $Scroll/Margin/Main/RewardPanel
 @onready var _info_panel: PanelContainer = $Scroll/Margin/Main/InfoPanel
+@onready var _label_reward_title: Label = $Scroll/Margin/Main/RewardPanel/RewardVBox/LabelRewardTitle
+@onready var _label_material_title: Label = $Scroll/Margin/Main/MaterialPanel/MaterialVBox/LabelMaterialTitle
+@onready var _label_rare_title: Label = $Scroll/Margin/Main/RarePanel/RareVBox/LabelRareTitle
+@onready var _label_info_title: Label = $Scroll/Margin/Main/InfoPanel/InfoVBox/LabelInfoTitle
 
 var _rewards_banked: bool = false
 
 func _ready() -> void:
+	_apply_typography()
 	_apply_panel_styles()
 	_bank_rewards()
 	_build_header()
@@ -42,6 +64,18 @@ func _ready() -> void:
 	_build_levelup()
 	_button_retry.pressed.connect(_on_retry_pressed)
 	_button_home.pressed.connect(_on_home_pressed)
+
+func _apply_typography() -> void:
+	UiTypography.apply_display(_label_title, FS_TITLE, COLOR_GOLD)
+	UiTypography.apply_body(_label_dungeon, FS_DUNGEON, COLOR_TEXT)
+	UiTypography.apply_display(_label_outcome, FS_OUTCOME_CLEAR, COLOR_GOLD)
+	for title in [_label_reward_title, _label_material_title, _label_rare_title, _label_info_title]:
+		UiTypography.apply_display(title, FS_SECTION, COLOR_GOLD)
+	UiTypography.apply_body(_label_craftable, FS_CRAFTABLE, Color(0.7, 0.92, 0.6))
+	UiTypography.apply_body(_label_levelup, FS_LEVELUP, Color(0.7, 0.92, 0.6))
+	for btn in [_button_retry, _button_home]:
+		UiTypography.apply_button(btn)
+		btn.add_theme_font_size_override("font_size", FS_BUTTON)
 
 func _apply_panel_styles() -> void:
 	_header_panel.add_theme_stylebox_override(
@@ -84,16 +118,13 @@ func _apply_outcome_banner() -> void:
 	match outcome:
 		GameState.RUN_OUTCOME_RETIRE:
 			_label_outcome.text = "リタイア帰還"
-			_label_outcome.add_theme_font_size_override("font_size", 44)
-			_label_outcome.add_theme_color_override("font_color", COLOR_RETIRE)
+			UiTypography.apply_display(_label_outcome, FS_OUTCOME_ALT, COLOR_RETIRE)
 		GameState.RUN_OUTCOME_WIPE:
 			_label_outcome.text = "探索失敗"
-			_label_outcome.add_theme_font_size_override("font_size", 44)
-			_label_outcome.add_theme_color_override("font_color", COLOR_FAIL)
+			UiTypography.apply_display(_label_outcome, FS_OUTCOME_ALT, COLOR_FAIL)
 		_:
 			_label_outcome.text = "CLEAR"
-			_label_outcome.add_theme_font_size_override("font_size", 56)
-			_label_outcome.add_theme_color_override("font_color", COLOR_GOLD)
+			UiTypography.apply_display(_label_outcome, FS_OUTCOME_CLEAR, COLOR_GOLD)
 
 func _build_stars(filled: int) -> void:
 	for child in _stars_row.get_children():
@@ -103,7 +134,7 @@ func _build_stars(filled: int) -> void:
 	for i in range(total):
 		var star: Label = Label.new()
 		star.text = "★" if i < n else "☆"
-		star.add_theme_font_size_override("font_size", 28)
+		star.add_theme_font_size_override("font_size", FS_STAR)
 		star.add_theme_color_override("font_color", COLOR_GOLD if i < n else COLOR_SUB)
 		_stars_row.add_child(star)
 
@@ -137,7 +168,7 @@ func _build_rewards() -> void:
 
 func _make_reward_cell(texture: Texture2D, glyph: String, name_text: String, value_text: String) -> Control:
 	var cell: VBoxContainer = VBoxContainer.new()
-	cell.custom_minimum_size = Vector2(86, 0)
+	cell.custom_minimum_size = Vector2(96, 0)
 	cell.alignment = BoxContainer.ALIGNMENT_BEGIN
 	var frame: PanelContainer = PanelContainer.new()
 	frame.custom_minimum_size = Vector2(64, 64)
@@ -149,11 +180,12 @@ func _make_reward_cell(texture: Texture2D, glyph: String, name_text: String, val
 		icon.custom_minimum_size = Vector2(56, 56)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		frame.add_child(icon)
 	else:
 		var glyph_label: Label = Label.new()
 		glyph_label.text = glyph
-		glyph_label.add_theme_font_size_override("font_size", 22)
+		glyph_label.add_theme_font_size_override("font_size", FS_REWARD_GLYPH)
 		glyph_label.add_theme_color_override("font_color", COLOR_GOLD)
 		glyph_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		glyph_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -161,14 +193,14 @@ func _make_reward_cell(texture: Texture2D, glyph: String, name_text: String, val
 	cell.add_child(frame)
 	var name_label: Label = Label.new()
 	name_label.text = name_text
-	name_label.add_theme_font_size_override("font_size", 13)
+	name_label.add_theme_font_size_override("font_size", FS_REWARD_NAME)
 	name_label.add_theme_color_override("font_color", COLOR_SUB)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	cell.add_child(name_label)
 	var value_label: Label = Label.new()
 	value_label.text = value_text
-	value_label.add_theme_font_size_override("font_size", 17)
+	value_label.add_theme_font_size_override("font_size", FS_REWARD_VALUE)
 	value_label.add_theme_color_override("font_color", COLOR_TEXT)
 	value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	cell.add_child(value_label)
@@ -256,20 +288,20 @@ func _add_rare_row(item_id: String, category: String) -> int:
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var name_label: Label = Label.new()
 	name_label.text = item_name
-	name_label.add_theme_font_size_override("font_size", 16)
+	name_label.add_theme_font_size_override("font_size", FS_RARE_NAME)
 	name_label.add_theme_color_override("font_color", COLOR_TEXT)
 	col.add_child(name_label)
 	if not desc.is_empty():
 		var desc_label: Label = Label.new()
 		desc_label.text = desc
-		desc_label.add_theme_font_size_override("font_size", 12)
+		desc_label.add_theme_font_size_override("font_size", FS_RARE_DESC)
 		desc_label.add_theme_color_override("font_color", COLOR_SUB)
 		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		col.add_child(desc_label)
 	row.add_child(col)
 	var star: Label = Label.new()
 	star.text = "★"
-	star.add_theme_font_size_override("font_size", 20)
+	star.add_theme_font_size_override("font_size", FS_RARE_STAR)
 	star.add_theme_color_override("font_color", COLOR_GOLD)
 	star.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(star)
@@ -307,12 +339,12 @@ func _build_info() -> void:
 func _add_info_pair(key: String, value: String) -> void:
 	var key_label: Label = Label.new()
 	key_label.text = key
-	key_label.add_theme_font_size_override("font_size", 15)
+	key_label.add_theme_font_size_override("font_size", FS_INFO)
 	key_label.add_theme_color_override("font_color", COLOR_SUB)
 	_info_grid.add_child(key_label)
 	var value_label: Label = Label.new()
 	value_label.text = value
-	value_label.add_theme_font_size_override("font_size", 15)
+	value_label.add_theme_font_size_override("font_size", FS_INFO)
 	value_label.add_theme_color_override("font_color", COLOR_TEXT)
 	value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	value_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL

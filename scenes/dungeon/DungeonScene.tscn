@@ -138,7 +138,7 @@ visible = false
 [node name="BattleLogScroll" type="ScrollContainer" parent="MainVBox/BattleLogPanel"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 96)
-size_flags_vertical = 3
+size_flags_vertical = 0
 horizontal_scroll_mode = 0
 
 [node name="BattleLogContent" type="VBoxContainer" parent="MainVBox/BattleLogPanel/BattleLogScroll"]
@@ -236,7 +236,7 @@ text = "探索終了"
 [node name="BossSprite" type="AnimatedSprite2D" parent="."]
 texture_filter = 1
 position = Vector2(495, 470)
-scale = Vector2(3, 3)
+scale = Vector2(4.5, 4.5)
 visible = false
 
 [node name="EnemySprite" type="AnimatedSprite2D" parent="."]
