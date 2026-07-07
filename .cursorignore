@@ -1,0 +1,29 @@
+# 古い Proposal（SSOT ではない）
+docs/archives/
+
+# バイナリアセット（インデックス不要）
+assets/**/*.png
+assets/**/*.jpg
+assets/**/*.jpeg
+assets/**/*.webp
+assets/**/*.wav
+assets/**/*.ogg
+assets/**/*.mp3
+assets/**/*.ttf
+assets/**/*.otf
+assets/**/*.fnt
+
+# Godot 生成物
+.godot/
+*.import
+*.uid
+
+# サードパーティ addon（編集対象外）
+addons/gut/
+addons/agent_tools/
+
+# ビルド・一時
+wiki/site/
+.tmp_pl/
+saves/
+tools/godot/

@@ -1,0 +1,63 @@
+---
+description: Godot 4.6.3 GDScript コーディング規約（Crownfall）
+globs: ["**/*.gd", "**/*.tscn", "**/*.tres"]
+alwaysApply: false
+---
+
+# GDScript / Godot 4.6.3 規約
+
+Crownfall（2D見下ろし型・自動探索ハクスラRPG）向け。Godot 4.6.3 / GDScript のみ。
+
+## 構文（Godot 4 のみ）
+
+- `yield()` 禁止 → `await` を使う
+- `onready var` 禁止 → `@onready var` を使う
+- `export` 禁止 → `@export` を使う
+- `KinematicBody2D` / `yield(get_tree()...)` 等 Godot 3 API 禁止
+- シグナル接続は `signal_name.connect(callable)`（文字列 connect 禁止）
+- 型注釈を付ける（`: int`, `: String`, `-> void` 等）
+
+## 命名
+
+| 対象 | 規則 | 例 |
+|---|---|---|
+| スクリプトファイル | PascalCase | `GameState.gd`, `DungeonController.gd` |
+| 変数 | snake_case | `current_hp`, `target_enemy` |
+| 定数 | UPPER_SNAKE_CASE | `MAX_PARTY_SIZE` |
+| ノード名（シーン内） | PascalCase | `LabelDetailName` |
+| `class_name` | PascalCase | `AffixDisplayFormatter` |
+
+## アーキテクチャ
+
+- データは **Resource**（`WeaponData`, `DungeonData` 等）
+- 永続状態は **GameState** Autoload
+- マスタ参照は **DataRegistry**（`get_weapon_data()` 等）。直接 `.tres` を散在ロードしない
+- シーン遷移は **SceneRouter** 経由
+- グローバル通知は **EventBus** シグナルバス
+- UI とゲームロジックを分離。UI から直接 GameState を大規模変更しない
+- Controller 分離。1 ファイル 1000 行超え禁止
+
+## ノード参照
+
+- `$Node/Path` の直書き乱用禁止
+- `@onready var _label: Label = $MainScroll/...` パターンを使う
+- 動的生成ノードは `get_node_or_null()` で null チェック
+
+## 禁止
+
+- マジックナンバー（定数化する）
+- 仕様にない機能の勝手な追加
+- 巨大 Singleton の新設
+- `.tscn` / `.tres` / `project.godot` の手編集（Agent Tools MCP が使える場合は API 経由）
+
+## テスト
+
+- ロジック変更時は `res://tests/unit/` に GUT テストを追加・更新
+- 検証: `bash tools/run_tests.sh` / `bash tools/smoke_test.sh`
+
+## 参照 SSOT
+
+- 実装マップ: `docs/specs/implementation/CODEMAP.md`
+- コーディングルール: `docs/specs/implementation/07_コーディングルール.md`
+- アーキテクチャ: `docs/specs/implementation/01_Godotアーキテクチャ.md`
+- `docs/archives/` は Proposal。実装根拠にしない

@@ -1,0 +1,8 @@
+{
+  "name": "Crownfall (Godot 4.6.3)",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "install": "bash .cursor/cloud-agent-install.sh"
+}
