@@ -1,0 +1,14 @@
+{
+  "[gdscript]": {
+    "editor.defaultFormatter": "geequlim.godot-tools",
+    "editor.formatOnSave": true
+  },
+  "godotTools.editorPath.godot4": "/Users/marte/Applications/Godot.app/Contents/MacOS/Godot",
+  "godotTools.lsp.headless": true,
+  "files.associations": {
+    "*.gd": "gdscript",
+    "*.gdshader": "gdshader",
+    "*.tscn": "gdresource",
+    "*.tres": "gdresource"
+  }
+}

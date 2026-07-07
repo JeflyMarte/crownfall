@@ -18,7 +18,11 @@ export_presets.cfg
 ._*
 
 # Editor
-.vscode/
+.vscode/*
+!.vscode/tasks.json
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
 .cursor/mcp.json
 .idea/
 tools/godot/

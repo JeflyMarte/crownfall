@@ -1,0 +1,35 @@
+---
+description: ProjectDocs（docs/specs）編集規約（Crownfall）
+globs: ["docs/specs/**"]
+alwaysApply: false
+---
+
+# Spec 編集規約
+
+## SSOT
+
+- 正式仕様は **`docs/specs/` のみ**
+- `docs/archives/` は Proposal。実装根拠にしない・承認前は編集しない
+
+## 編集権限
+
+- **Impl セッション**: spec の独断変更禁止。仕様不足は質問
+- **HQ セッション**: Decision 承認後に spec / Decision Log を更新
+
+## 更新時の整合
+
+spec 変更時は以下も確認:
+
+- `docs/specs/implementation/CODEMAP.md` — 現行コードとの一致
+- `docs/specs/core/03_Decision_Log.md` — 設計判断の記録
+- `docs/project/CurrentState.md` / `CurrentSprint.md` — HQ が Closeout 時に更新
+
+## 読み込み
+
+- Task 種別ごとの Bundle: `docs/specs/implementation/10_Claude依頼テンプレート.md`
+- 全文ロード禁止。Task に必要なファイルのみ
+
+## 文体
+
+- 日本語。表・箇条書きで構造化
+- 完了済み Task の詳細は `docs/archives/` へ移す（新規は specs に残さない）

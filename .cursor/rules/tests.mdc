@@ -1,0 +1,37 @@
+---
+description: GUT ユニットテスト規約（Crownfall）
+globs: ["tests/**/*.gd"]
+alwaysApply: false
+---
+
+# GUT テスト規約
+
+## 基本
+
+- `extends GutTest`
+- ファイル名: `test_<subject>.gd`（`tests/unit/` 配下）
+- テスト関数: `func test_<behavior>()` — snake_case
+- 設定: `.gutconfig.json`（dir=`res://tests/unit`, prefix=`test_`）
+
+## 実行
+
+```bash
+bash tools/run_tests.sh
+```
+
+## パターン
+
+- Autoload（GameState 等）を触るテストは `before_each` / `after_each` で状態をリセット
+- 実セーブ（`user://`）を使う場合は `before_all` / `after_all` で退避・復元（`test_save_manager.gd` 参照）
+- `preload` でテスト対象や定数クラスを読み込む
+- アサーション: `assert_eq`, `assert_true`, `assert_false`, `assert_null` 等（GUT 標準）
+
+## 追加タイミング
+
+- ロジック変更時は対応する unit test を追加・更新する
+- UI のみの変更でロジック不変ならテスト不要な場合あり
+
+## 禁止
+
+- テストなしの複雑なロジック変更（HQ 承認 Task を除く）
+- 他テストの副作用を残すグローバル状態汚染

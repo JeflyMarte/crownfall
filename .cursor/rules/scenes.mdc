@@ -1,0 +1,35 @@
+---
+description: Godot シーンファイル編集規約（Crownfall）
+globs: ["scenes/**/*.tscn", "scenes/**/*.tres"]
+alwaysApply: false
+---
+
+# シーン編集規約
+
+## 原則
+
+- `.tscn` / `.tres` の **手編集は避ける**（UID・sub_resource ID の破損リスク）
+- Godot エディタまたは **Agent Tools MCP**（`scene_*`, `signal_*`, `resource_*`）経由で編集
+
+## Agent Tools が使える場合
+
+1. Godot エディタ起動 + `agent_tools` プラグイン有効
+2. MCP `godot-agent-tools` 接続済み
+3. シーン操作は `scene_add_node`, `scene_set_property`, `signal_connect` 等を使用
+4. 変更後 `refs_validate_project` で検証
+
+## 手編集が必要な場合
+
+- 差分は最小限にする
+- `[node]` / `[sub_resource]` / `[connection]` ブロックの ID を既存と重複させない
+- `uid://` 参照を壊さない
+
+## 命名
+
+- シーン内ノード名: PascalCase（`LabelDetailName`）
+- スクリプトパス: `res://scripts/<domain>/<SceneName>.gd`
+
+## レイアウト
+
+- UI シーンは `CombatUiFrames` / 各 `*UiHelper` / `*UiTokens` パターンに従う
+- 新規 UI は既存シーンのノード構造・Theme 運用を踏襲
