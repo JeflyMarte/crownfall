@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "leg_nereidas_tideblade"
+display_name = "潮汐刃・網引き斬"
+description = "【レジェンド】海統王の潮汐で敵を網引きし、潮の刃で出血させる。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 1.4
+cooldown = 3.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["melee", "slash"])
+element = "holy"
+slot_type = "skill"
+range_type = "melee"
+apply_status_id = "bleed"
+apply_status_chance = 0.4
+apply_status_id2 = ""
+apply_status_chance2 = 0.0

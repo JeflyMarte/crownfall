@@ -6,7 +6,8 @@
 script = ExtResource("1")
 id = "sanctified_dagger"
 display_name = "霊廟の聖別刃"
-fixed_skill_id = "slash_attack"
+fixed_skill_id = ""
+fixed_passive_id = "eq_wpn_sanctified_dagger"
 base_attack = 14
 rarity = 3
 base_attack_speed = 1.1

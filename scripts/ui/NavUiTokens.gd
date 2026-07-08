@@ -9,7 +9,7 @@ const BOTTOM_NAV_HEIGHT: float = 68.0
 const BOTTOM_NAV_ICON_RATIO: float = 0.8
 const BOTTOM_NAV_TEXT_RATIO: float = 0.2
 const BOTTOM_NAV_SEPARATION: int = 0
-const BOTTOM_NAV_ITEM_COUNT: int = 7
+const BOTTOM_NAV_ITEM_COUNT: int = 8
 
 const SIDE_MENU_WIDTH: float = 176.0
 const SIDE_MENU_HEIGHT: float = 48.0
@@ -22,6 +22,8 @@ const SIDE_MENU_ICON_TEXT_GAP: int = 6
 const BOTTOM_NAV_LABELS: Dictionary = {
 	"冒険に出る": "冒険\n出る",
 	"パーティー編成": "パーティ\n編成",
+	"キャラ管理": "キャラ\n管理",
+	"装備一覧": "装備\n一覧",
 }
 
 static func bottom_nav_item_width() -> float:

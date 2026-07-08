@@ -5,7 +5,7 @@
 | # | 決定事項 | 詳細 |
 |---|---|---|
 | D-001 | 自動探索採用 | プレイヤーは隊を直接操作しない。方針選択のみ |
-| D-002 | 5分周回採用 | 通常ダンジョン1周を4〜6分に設計 |
+| D-002 | 5分周回採用 | 通常ダンジョン1周を4〜6分に設計。**→ P3-DG-STG-001 でメイン章（1-1 等）5〜10分に上書き** |
 | D-003 | 武器主軸 | 戦力寄与60%を武器が担う |
 | D-004 | 装備枠（MVP3枠・正式版4枠） | MVP：武器・防具・装飾品。正式版で王遺産を追加 |
 | D-005 | MVPは仮アート | MVP期間中はSprite不使用。UIは最低限テキストベース |
@@ -2630,3 +2630,552 @@
 | P3-LORE-006-6 | **白王の神殿** — 調査型候補。討伐 Boss 非推奨（Tier E #15） | 信仰・先王時代は「問い」として温存 |
 
 **スコープ外:** 候補16件の一括実装・Biome-06 生態詳細・新 id 確定 — 個別 Task で Decision 後に着手。
+
+## 戦闘可読性 UX 段1（2026-07-06 — P3-UX-002）
+
+> オーナー承認: 提案バンドル **E+F+G**（D 演出横展開は後続）。Alpha=観察ゲームのまま「今・次・なぜ」を補う。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-002-1 | **E — Now Playing 帯** — 戦闘フロア中 `NarrativePanel` を 1 行サマリーに転用（味方=◆ / 敵=⚠・詠唱残 tick 表示）。非戦闘は従来ナラティブ | 「戦闘中何をしているか分からない」への直接対応。新規 UI ノードなし |
+| P3-UX-002-2 | **F — 戦術ログ** — 味方行動時 `[戦術] 条件 → スロット`（`CombatGambit.condition_summary`）。全不発=「不発→通常攻撃」/ 条件0件=「条件未達→通常攻撃」 | 戦術プランが裏側のみだったギャップ解消 |
+| P3-UX-002-3 | **G — ターン順バッジ** — CT 順アイコン下に 攻/技/必/防/詠n（pending cast・戦術プレビュー） | 次行动者の行動種別をログ不要で把握 |
+| P3-UX-002-4 | **スコープ外（段2以降）** — I ログ束ね / J 状態レーン / K スマート速度 | 段1 実機評価後に Task 化 |
+| P3-UX-002-D | **演出横展開（D）** — 敵詠唱=ThreatBanner+vignette+pulse・開始時 flash/shake / 味方 HP≤25%=赤枠+「瀕死」pulse / 必殺 ready=金枠+「必殺」バッジ / CRITICAL・大ダメ(≥100)=画面 shake+flash（クールダウン付） | 段1と同バンドルでオーナー GO。新規アセット0 |
+
+## 潜入演出（2026-07-06 — P3-UX-003）
+
+> オーナー承認: A〜E 全件・順次実装。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-003-A | **潜入イントロ** — DG開始時1回: 暗転→サムネ+名称+メタ+「探索開始」。`_start_auto_progress` は完了まで停止。タップ/クリックでスキップ可 | 入場の「一幕」 |
+| P3-UX-003-B | **部屋種別トランジション** — フェード→`_advance_to_next_room`→種別FX（戦闘=剪影/宝箱=金粒子/罠=赤/回復=緑/出口=青/ボス=枠pulse）→部屋名キャプション | 毎フロアの変化 |
+| P3-UX-003-C | **Biome 入場** — A に `flavor_text`+パーティアイコン列フェードインを同梱（`DungeonData` SSOT） | 選択画面 Featured と整合 |
+| P3-UX-003-D | **パーティ登場** — 戦闘開始 `_show_chr_sprites(true)`: 前衛即/後衛遅延スライド+fade。ELITE/BOSS=軽 shake | 戦闘開始の体感 |
+| P3-UX-003-E | **ランHUD** — Header 下に 部屋 n/N バー + 種別チップ + 発見率%。図鑑登録で更新 | 探索進行の常時可視化 |
+
+## ボス登場演出（2026-07-06 — P3-UX-004）
+
+> オーナー承認: 毎回フル / 表記 `WARNING` / 周回は短縮版。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-004-1 | **毎回フル** — ボス戦開始: 赤 `WARNING` テロップ → 画面 shake+flash → Biome 色落石 → ボス pop（scale+fade）→ ログ → `CombatTimer` 開始。演出中 `_boss_intro_active` で自動進行停止 | ボス戦の特別感 |
+| P3-UX-004-2 | **表記 `WARNING`** — `BOSS_INTRO_WARNING_TEXT` 固定。`UiTypography` 赤+強アウトライン | オーナー指定 |
+| P3-UX-004-3 | **周回短縮** — `_fast_run_enabled` 時 `_boss_intro_timings(true)`: 表示時間・粒子数・shake 弱体化。スキップ不可（段1） | 周回テンポ維持 |
+
+## エリート登場演出（2026-07-06 — P3-UX-005）
+
+> オーナー承認: 案 D（ELITE 短テロップ + 枠 pulse + 敵スライド）/ 表記 `ELITE` / 周回短縮。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-005-1 | **案 D** — 金 `ELITE` テロップ → amber flash+shake → 敵スライドイン → `【エリート】` ログ → `CombatTimer`。戦闘中 ELITE 枠常時表示 + 開始時 1 回 pulse | ボスより短く（~0.7s）。1ラン最大2回 |
+| P3-UX-005-2 | **部屋トランジション** — ELITE 専用: 金粒子 + 橙オーバーレイ（BOSS 赤と分離） | 入場から差別化 |
+| P3-UX-005-3 | **周回短縮** — `_fast_run_enabled` 時 `_elite_intro_timings(true)`。撃破スキップ（P3-D142）は演出後に実行 | ボス同型 |
+
+## 宝箱開封演出（2026-07-06 — P3-UX-006）
+
+> オーナー承認: 案 B（Closed→Open 差し替え + 金粒子）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-006-1 | **2枚差し替え** — 入室=`OBJ_TreasureChest_Closed` → shake → `Open` 切替 + 金粒子 + scale pop → 報酬ナラティブ → 自動進行 | 開封の体感。`_treasure_presentation_active` で AutoProgress 停止 |
+| P3-UX-006-2 | **アセット** — `tools/generate_env_and_vfx.py` で Biome 別 Closed/Open 生成（母版=mourngate Closed + `derive_open_chest`） | 全 DG 統一 |
+| P3-UX-006-3 | **装飾品時** — 粒子数増（56 vs 36） | レア感の最小差 |
+
+## イベント改善 A+B+D（2026-07-06 — P3-EVT-002）
+
+> オーナー承認: 推奨値で一括（A 演出 ~0.6s 固定 / B ラン内去重+枯渇フォールバック / D ①生態素材+②〜⑤文言）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EVT-002-A | **outcome 演出** — description 表示 → shake+flash+粒子（heal/gold/buff/material/lore 色分け）→ 報酬適用。`_event_presentation_active` で AutoProgress 停止。計 ~0.6s | 宝箱/ELITE と体験整合 |
+| P3-EVT-002-B | **ラン内去重** — `_seen_event_ids` で `pick_event` フィルタ。枯渇時はフルプールにフォールバック | 同一イベント連続を抑制 |
+| P3-EVT-002-D | **素材多様化** — ①帯（mourngate/astoria 等）の material+relic_shard を `MOURNGATE_EVENT_MATERIAL_POOL` へ差し替え。②〜⑤ material は `relic_shard` 維持・label のみ Biome 化 | codex 未整備 Biome は文言改善のみ（D-2 は別 Task） |
+
+## メイン Biome サブステージ（2026-07-06 — P3-DG-STG-001）
+
+> オーナー GO: 案 B（`DungeonStage` スキーマ）・章ごと拠点戻り・**1 章 5〜10 分**・最終章は多フロア＋末尾 Boss。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-STG-001-1 | **メイン Biome を 5 章** — 表示 `{biome}-{stage}`（例: モーンゲート **1-1〜1-5**）。②以降も **2-1〜2-5** 同型 | 進行の可視化・難易度段階設計 |
+| P3-DG-STG-001-2 | **1 章（= サブステージ 1-1 / 1-2 等）= 1 ラン = 1 ダンジョン単位**。当該章の EXIT 到達で **拠点戻り** → Result → 次章選択。**フロア単位・Biome 通し突入はなし** | オーナー指定「1-1 などダンジョン単位で戻る」 |
+| P3-DG-STG-001-3 | **プレイ時間** — **1 章あたり 5〜10 分**（旧 D-002「1 Biome 4〜6 分」を **上書き**）。`floor_count`・戦闘比率・自動進行速度で調整 | 初期案からの時間目標変更 |
+| P3-DG-STG-001-4 | **1-1〜1-4** — `floor_count` **章ごと可変**（バラバラ可）。`enemy_level` **段階上昇**。Boss **なし**（EXIT=章クリア） | 例: 1-1=浅い4F / 1-4=6F+ELITE |
+| P3-DG-STG-001-5 | **最終章（1-5）** — **Boss 専用短編にしない**。例: **floor_count≈10**・通常中間部屋（戦闘/EVENT/宝箱等）の後 **最終フロアで Boss** | オーナー指定「10F 作って最後にボス」 |
+| P3-DG-STG-001-6 | **解放** — **1-5 Boss 初回討伐（ノーマル）** → 次メイン Biome **第1章** 解放（P3-D5DG-002 / P3-D157 維持）。Biome 全体クリア＝最終章 Boss 討伐 | 既存直列解放を章構造に載せ替え |
+| P3-DG-STG-001-7 | **実装** — データ=`DungeonStage`（案 B）。**PoC=mourngate 1-1〜1-5 のみ**。寄り道・危険度ティア×章の詳細は別 Decision | 段階移行。旧 `floor_count` 単体 DG は PoC 後に置換 |
+| P3-DG-STG-001-8 | **周回** — クリア済み章は **周回トグル**（P3-D118/D142）で再挑戦可。標準プレイ＝**複数章＋最終章 Boss**（旧「同一 DG 3〜6 周」の意味は **章横断ファーム** に再定義） | P3-D5DG-002 との整合 |
+
+## サブステージ階層表（2026-07-06 — P3-DG-STG-002）
+
+> **オーナー承認（2026-07-06）** — 下表を SSOT とする。**Impl は保留**（P3-DG-STG-001 PoC 着手前）。
+
+**共通ルール**
+
+| ルール | 内容 |
+|---|---|
+| floor_count | 下表の数値を `DungeonStage.floor_count` にそのまま使用（Impl 時。1-4 は Boss なし列を別生成） |
+| x-1〜x-4 | **EXIT 締め**・Boss なし。**x-4 は ELITE 1 回必須** |
+| x-5 | 中間部屋あり・**最終F = Boss**（floor_count=10） |
+| enemy_level | 章内固定。x-5 は表の Boss 戦 Lv |
+| 解放 | x-5 Boss 初回討伐 → 次 Biome **(N+1)-1** |
+
+### ① 王都地下モーンゲート（`mourngate` / Boss: セルディオン `serdion`）
+
+| 章 | floor_count | enemy_level | 推奨Lv | 締め |
+|---|---|---|---|---|
+| 1-1 | **6** | 1 | 3 | EXIT |
+| 1-2 | **7** | 2 | 4 | EXIT |
+| 1-3 | **7** | 3 | 5 | EXIT |
+| 1-4 | **8** | 4 | 6 | EXIT + ELITE |
+| 1-5 | **10** | 5 | 7 | **serdion** |
+
+### ② 囁きの森ウィスパーウッド（`whisperwood` / Boss: グランヴェル `granvel`）
+
+| 章 | floor_count | enemy_level | 推奨Lv | 締め |
+|---|---|---|---|---|
+| 2-1 | **6** | 10 | 12 | EXIT |
+| 2-2 | **7** | 11 | 13 | EXIT |
+| 2-3 | **8** | 12 | 14 | EXIT |
+| 2-4 | **8** | 13 | 15 | EXIT + ELITE |
+| 2-5 | **10** | 14 | 16 | **granvel** |
+
+### ③ 霧沼ミストフェン（`mistfen` / Boss: モルドガル `moldgar`）
+
+| 章 | floor_count | enemy_level | 推奨Lv | 締め |
+|---|---|---|---|---|
+| 3-1 | **7** | 20 | 22 | EXIT |
+| 3-2 | **7** | 21 | 23 | EXIT |
+| 3-3 | **8** | 22 | 24 | EXIT |
+| 3-4 | **9** | 23 | 25 | EXIT + ELITE |
+| 3-5 | **10** | 24 | 26 | **moldgar** |
+
+### ④ 沈没航路ブラックショア（`blackshore` / Boss: ネレイオン `nereion`）
+
+| 章 | floor_count | enemy_level | 推奨Lv | 締め |
+|---|---|---|---|---|
+| 4-1 | **7** | 32 | 34 | EXIT |
+| 4-2 | **8** | 33 | 35 | EXIT |
+| 4-3 | **8** | 34 | 36 | EXIT |
+| 4-4 | **9** | 35 | 37 | EXIT + ELITE |
+| 4-5 | **10** | 36 | 38 | **nereion** |
+
+### ⑤ 最果て氷裂フロストリッジ（`frostridge` / Boss: エルディオン `eldion`）
+
+| 章 | floor_count | enemy_level | 推奨Lv | 締め |
+|---|---|---|---|---|
+| 5-1 | **7** | 45 | 47 | EXIT |
+| 5-2 | **8** | 46 | 48 | EXIT |
+| 5-3 | **9** | 47 | 49 | EXIT |
+| 5-4 | **9** | 48 | 50 | EXIT + ELITE |
+| 5-5 | **10** | 49 | 50 | **eldion** |
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-STG-002-1 | 上表を **メイン5 Biome × 5 章** の floor / enemy_level **SSOT（設計）** とする | 旧1本 DG（7〜10F）を5分割。Biome 合計 **38〜43F** |
+| P3-DG-STG-002-2 | **①②は x-1=6F**（序盤短め）・**③〜⑤は x-1=7F**（中盤以降やや深い） | 5〜10 分/章のバランス |
+| P3-DG-STG-002-3 | **x-5 は全 Biome floor_count=10 統一**・末尾 Boss | オーナー「10F＋最後にボス」 |
+| P3-DG-STG-002-4 | **Impl 前 PoC** — 数値は mourngate **1-1〜1-5** で実機 5〜10 分を確認後に微調整可 | バランスハーネス/実機 |
+
+## サブステージ表示名 — メイン5 Biome（2026-07-06 — P3-DG-STG-003）
+
+> **オーナー GO（2026-07-06）** — 案A（`world/05_Biomes` 探索縦軸＋敵 `codex_habitat` ベース）。Impl=`DungeonStage.display_name`（PoC=mourngate 1-1〜1-5）。
+
+**UI 表示例:** `2-3 花蔓帯` / バナー `ウィスパーウッド — 花蔓帯`（Biome 短名＋章名）。
+
+### ① 王都地下モーンゲート（`mourngate` / 縦軸＝降下）
+
+| 章 | `stage_id` | **display_name** | 対応層位 | floor | enemy_level | 締め |
+|:---:|---|---|---|---:|---:|---|
+| 1-1 | `mourngate_1_1` | **崩れた地下水路** | L0〜L1 | 6 | 1 | EXIT |
+| 1-2 | `mourngate_1_2` | **忘れられた納骨堂** | L1〜L2 | 7 | 2 | EXIT |
+| 1-3 | `mourngate_1_3` | **王墓の回廊** | L2〜L3 | 7 | 3 | EXIT |
+| 1-4 | `mourngate_1_4` | **封鎖監獄** | L4〜L5 | 8 | 4 | EXIT + ELITE |
+| 1-5 | `mourngate_1_5` | **王座の深淵** | L6〜L7 | 10 | 5 | **serdion** |
+
+### ② 囁きの森ウィスパーウッド（`whisperwood` / 縦軸＝深森）
+
+| 章 | `stage_id` | **display_name** | 対応区域 | floor | enemy_level | 締め |
+|:---:|---|---|---|---:|---:|---|
+| 2-1 | `whisperwood_2_1` | **盟約の森縁** | ヴェルディア外縁・盟約国遺構 | 6 | 10 | EXIT |
+| 2-2 | `whisperwood_2_2` | **苔むす林床** | 林床 | 7 | 11 | EXIT |
+| 2-3 | `whisperwood_2_3` | **花蔓帯** | 花蔓回廊 | 8 | 12 | EXIT |
+| 2-4 | `whisperwood_2_4` | **霧谷の樹冠** | 樹冠＋霧の谷 | 8 | 13 | EXIT + ELITE |
+| 2-5 | `whisperwood_2_5` | **深森の王座** | 最深部 | 10 | 14 | **granvel** |
+
+### ③ 霧沼ミストフェン（`mistfen` / 縦軸＝沈下）
+
+| 章 | `stage_id` | **display_name** | 対応区域 | floor | enemy_level | 締め |
+|:---:|---|---|---|---:|---:|---|
+| 3-1 | `mistfen_3_1` | **沈没封緘の門** | 沈没封緘区・踏査起点 | 7 | 20 | EXIT |
+| 3-2 | `mistfen_3_2` | **腐水の停滞池** | 停滞池・腐水域 | 7 | 21 | EXIT |
+| 3-3 | `mistfen_3_3` | **軟泥の倒木帯** | 軟泥帯・倒木 | 8 | 22 | EXIT |
+| 3-4 | `mistfen_3_4` | **沈没街道橋** | 崩落街道・半没遺構 | 9 | 23 | EXIT + ELITE |
+| 3-5 | `mistfen_3_5` | **底なし泥塘** | 底なし沼・最深部 | 10 | 24 | **moldgar** |
+
+### ④ 沈没航路ブラックショア（`blackshore` / 縦軸＝离岸）
+
+| 章 | `stage_id` | **display_name** | 対応区域 | floor | enemy_level | 締め |
+|:---:|---|---|---|---:|---:|---|
+| 4-1 | `blackshore_4_1` | **黒砂の干潟** | 潮間帯・干潟 | 7 | 32 | EXIT |
+| 4-2 | `blackshore_4_2` | **座礁船団** | 座礁船骨群 | 8 | 33 | EXIT |
+| 4-3 | `blackshore_4_3` | **潮境の浅瀬** | 浅瀬・潮境 | 8 | 34 | EXIT |
+| 4-4 | `blackshore_4_4` | **古防波堤** | 海統王ゆかりの防波堤 | 9 | 35 | EXIT + ELITE |
+| 4-5 | `blackshore_4_5` | **潮鳴の深境** | 潮境の深み | 10 | 36 | **nereion** |
+
+### ⑤ 最果て氷裂フロストリッジ（`frostridge` / 縦軸＝極寒）
+
+| 章 | `stage_id` | **display_name** | 対応区域 | floor | enemy_level | 締め |
+|:---:|---|---|---|---:|---:|---|
+| 5-1 | `frostridge_5_1` | **境界標の雪原** | フロストウォール北・雪原 | 7 | 45 | EXIT |
+| 5-2 | `frostridge_5_2` | **吹雪の裂け目** | 吹雪帯 | 8 | 46 | EXIT |
+| 5-3 | `frostridge_5_3` | **氷河縁の遺構** | 氷河縁・遺構帯 | 9 | 47 | EXIT |
+| 5-4 | `frostridge_5_4` | **白嵐の棲巣** | 裂け目上空 | 9 | 48 | EXIT + ELITE |
+| 5-5 | `frostridge_5_5` | **氷河最深部** | 氷河の果て | 10 | 49 | **eldion** |
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-STG-003-1 | 上表 **全25章** を `DungeonStage.display_name` **SSOT** とする | P3-DG-STG-002 数値と整合 |
+| P3-DG-STG-003-2 | ①は層位圧縮（L0〜L7）。②〜⑤は **探索縦軸**（深森／沈下／离岸／極寒）＋ `codex_habitat` で5章割当。厳密1:1フロア対応は不要 | `05_Biomes` 探索ナラティブ |
+| P3-DG-STG-003-3 | **`stage_id`** — `{biome_id}_{N}_{1〜5}`（例: `whisperwood_2_3`） | P3-DG-STG-001 案 B |
+| P3-DG-STG-003-4 | x-5 章名は **区域名**（Boss 固有名と分離）。例: 1-5=王座の深淵／2-5=深森の王座／3-5=底なし泥塘 | ①「王座の深淵＝区域、Boss＝セルディオン」と同型 |
+| P3-DG-STG-003-5 | ②〜⑤ — **2026-07-06 オーナー承認**（本 Decision で確定） | P3-DG-STG-003-4（旧「別 Decision」）を置換 |
+
+## サブダンジョン・サブステージ一旦オミット（2026-07-06 — P3-DG-OMIT-001）
+
+> **オーナー指示（2026-07-06）** — モーンゲート完成優先。**side/apex のプレイ対象除外**＋**1-1 分割 Impl も保留**。設計 SSOT（P3-DG-STG-002/003・P3-ENEMY-001）は温存。
+
+| 対象 | 扱い |
+|---|---|
+| **寄り道（`route_type=side`）** | UI 非表示・`is_dungeon_unlocked`=false。`.tres` は削除しない |
+| **征討（`route_type=apex`）** | 同上 |
+| **サブステージ（1-1〜1-5 分割）** | Impl オミット。現行=**メイン Biome×1DG**（`mourngate.tres` 等） |
+| **P3-DG-STG-002/003 章名・floor 表** | 設計 SSOT として残置（再開時に使用） |
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-OMIT-001-1 | **`Constants.SUB_DUNGEONS_PLAYABLE=false`** — side/apex を選択・出発不可 | 一旦スコープ外 |
+| P3-DG-OMIT-001-2 | **`Constants.SUB_STAGES_PLAYABLE=false`** — DungeonStage PoC 着手しない | 単体 mourngate 完成優先 |
+| P3-DG-OMIT-001-3 | 再有効化は **別 Decision + GO** でフラグを true に | 段階移行 |
+
+## メイン Biome 敵プール拡充・章別危険度 spawn（2026-07-06 — P3-ENEMY-001）
+
+> **オーナー GO（2026-07-06）** — 章別需要・危険度一覧・奥行き spawn 重みを SSOT 化。**新種アート/データ追加は別 Task**。**spawn 重み Impl は P3-DG-STG PoC（mourngate 1-1〜1-5）に同梱**。
+
+### 背景・需要（現行部屋生成＋P3-DG-STG-002 想定）
+
+| 粒度 | COMBAT | ELITE | BOSS | 戦闘計 |
+|---|---:|---:|---:|---:|
+| 1-1（fc=6） | ~3.1 | ~0.3 | — | **~3.4** |
+| 1-2（fc=7） | ~3.3 | ~0.4 | — | **~3.8** |
+| 1-3（fc=7） | ~3.3 | ~0.4 | — | **~3.8** |
+| 1-4（fc=8） | ~3.6 | **1.1** | — | **~4.7** |
+| 1-5（fc=10） | ~4.5 | ~0.7 | 1.0 | **~6.2** |
+| **1 Biome 計（5章）** | **~19** | **~3** | **1** | **~22** |
+| **全25章** | **~95** | **~25** | **5** | **~110** |
+
+均等抽選・雑魚4種の現状 → **~4.7 回/種/Biome**（単調化）。目標 **2〜3 回/種** → 雑魚 **6〜7 種/Biome**（現4 → **+2〜3**）。
+
+### 三軸の役割分担（二重強化禁止）
+
+| 軸 | 役割 | SSOT |
+|---|---|---|
+| 章 `enemy_level` | 絶対ステ補正 | P3-DG-STG-002 |
+| `codex_danger` (1〜5) | **同章内** spawn 重み | 本 Decision |
+| 危険度ティア T0/T1/T2 | 周回再挑戦 | P3-D164 |
+
+**禁止:** D5 を雑魚プールに混ぜる / `codex_danger` で章間 `enemy_level` を代替 / ティアと混同。
+
+### 現行メイン6種×5 Biome（危険度）
+
+| Biome | 雑魚×4（危険度） | Elite | Boss |
+|---|---|---|---|
+| ① mourngate | crown_eater_rat **1** / sepia·rune·crystal **2** | clock_moth **3** | serdion **5** |
+| ② whisperwood | moss_boar·shell·serpent **2** / spore_widow **3** | mist_wyvern **4** | granvel **5** |
+| ③ mistfen | 4種すべて **3** | great_claw **4** | moldgar **5** |
+| ④ blackshore | 4種すべて **3** | ninja_octopus **4** | nereion **5** |
+| ⑤ frostridge | 4種すべて **4** | greios **5** | eldion **5** |
+
+**ギャップ:** ③④=雑魚が全D3で章内差なし。⑤=全D4。①のみ D1/D2 幅あり。
+
+### 拡充目標
+
+| 項目 | 現状 | 目標 | 追加 |
+|---|---:|---:|---:|
+| 雑魚/Biome | 4 | **6〜7** | **+2〜3** |
+| Elite/Biome | 1 | 1（据置） | 0 |
+| Boss/Biome | 1 | 1（据置） | 0 |
+| **メイン計** | 30 | **38〜42** | **+8〜12 雑魚** |
+
+**制作優先:** ① → ③ → ④ → ② → ⑤（危険度幅の欠如が大きい順）。
+
+**新種スロット（命名・生態は別 Task / world 整合必須）:**
+
+| Biome | 追加危険度帯 | 目安 |
+|---|---|---|
+| ① | D1×1, D2×1〜2 | 浅層・中深層 |
+| ② | D2×1, D3×1 | 序章用・深層用 |
+| ③④ | D2×1, D4×1 | 序章/深層（現全D3を解消） |
+| ⑤ | D3×1, D4×1 | 序章/深層（現全D4を解消） |
+
+### 章別 spawn 重み SSOT（雑魚 COMBAT のみ・%）
+
+ELITE/BOSS/遍在希少種（P3-D166）は別枠。重みは **当該 Biome 雑魚プール内** の `codex_danger` 一致種へ按分。
+
+**① モーンゲート（D1/D2/[D3 trash 追加後]）**
+
+| 章 | D1 | D2 | D3 |
+|---|---:|---:|---:|
+| 1-1 | 60 | 40 | 0 |
+| 1-2 | 45 | 55 | 0 |
+| 1-3 | 30 | 70 | 0 |
+| 1-4 | 15 | 75 | 10 |
+| 1-5 | 0 | 60 | 40 |
+
+**② ウィスパーウッド（D2/D3）**
+
+| 章 | D2 | D3 |
+|---|---:|---:|
+| 2-1 | 70 | 30 |
+| 2-2 | 55 | 45 |
+| 2-3 | 40 | 60 |
+| 2-4 | 25 | 75 |
+| 2-5 | 10 | 90 |
+
+**③ ミストフェン（D2/D3/D4 trash）**
+
+| 章 | D2 | D3 | D4 |
+|---|---:|---:|---:|
+| 3-1 | 50 | 50 | 0 |
+| 3-2 | 35 | 65 | 0 |
+| 3-3 | 20 | 70 | 10 |
+| 3-4 | 10 | 60 | 30 |
+| 3-5 | 0 | 45 | 55 |
+
+**④ ブラックショア（D2/D3/D4 trash）** — ③と同型
+
+| 章 | D2 | D3 | D4 |
+|---|---:|---:|---:|
+| 4-1 | 50 | 50 | 0 |
+| 4-2 | 35 | 65 | 0 |
+| 4-3 | 20 | 70 | 10 |
+| 4-4 | 10 | 60 | 30 |
+| 4-5 | 0 | 45 | 55 |
+
+**⑤ フロストリッジ（D3/D4）**
+
+| 章 | D3 | D4 |
+|---|---:|---:|
+| 5-1 | 50 | 50 |
+| 5-2 | 35 | 65 |
+| 5-3 | 20 | 80 |
+| 5-4 | 10 | 90 |
+| 5-5 | 0 | 100 |
+
+> ⑤に D4 trash 追加後も最終章 100% D4 は「最高危険度雑魚のみ」意図。D3 種は 5-1〜5-4 の序盤寄与に限定。
+
+### 実装スキーマ（P3-DG-STG PoC 同梱）
+
+| 項目 | 方針 |
+|---|---|
+| データ | `DungeonStage.spawn_weights: Dictionary` — キー=`codex_danger` 文字列 `"1"`〜`"5"`、値=整数重み |
+| 抽選 | COMBAT 雑魚: `enemy_pool` ∩ 重み>0 の danger 帯で重み付き抽選。プールに該当 danger が無い帯は **同帯内既存種へフォールバック**（PoC 期間） |
+| ELITE | `elite_pool` 均等（変更なし）。x-4 必須 ELITE は P3-DG-STG-002 維持 |
+| BOSS | `boss_id`（変更なし） |
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-ENEMY-001-1 | 雑魚 **6〜7 種/Biome**（+2〜3）。Elite/Boss 据置 | ~2〜3 回/種/Biome |
+| P3-ENEMY-001-2 | **`codex_danger`＝章内 spawn 重み SSOT**。章 `enemy_level` は P3-DG-STG-002 据置 | 二重強化回避 |
+| P3-ENEMY-001-3 | 上表を **5 Biome × 5 章** spawn 重み SSOT とする | 奥の章ほど高危険度比率 UP |
+| P3-ENEMY-001-4 | **`DungeonStage.spawn_weights`** を P3-DG-STG PoC（mourngate）で実装 | 均等 pool だけでは効果不足 |
+| P3-ENEMY-001-5 | 新種 **+8〜12** は **①→③→④→②→⑤** で Task 化（命名・world 後） | ギャップ優先 |
+| P3-ENEMY-001-6 | 遍在希少種・apex Boss・side DG は **本 Decision スコープ外** | P3-D166 / apex 既存 |
+
+## 召喚所モック寄せ（2026-07-06 — P3-UI-GACHA / D-GACHA-1〜7）
+
+> モック準拠の chrome・演出 polish。`GachaSystem.pull()` 単発のみ・天井30・10連本体は凍結のまま。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| D-GACHA-1 | 画面タイトル **「英雄召喚」**。下ナビ表記（召喚所）は現行維持 | モック整合・P3-UI2-025 温存 |
+| D-GACHA-2 | 排出 **★1〜4 表記維持**（`GachaRarityConfig.rate_display_text`） | 現行ロジック SSOT |
+| D-GACHA-3 | **3タブ見た目のみ**（ピックアップ/プレミアム=disabled、ノーマルのみ有効） | 将来プール差し替え用の占位 |
+| D-GACHA-4 | **10連ボタン配置＋SRリボン**（「★3以上1体確定」文言・押下不可） | モック見た目・10連ロジックは凍結 |
+| D-GACHA-5 | **マイルストーン行は非表示**（天井バーのみ） | モックに無い要素を排除 |
+| D-GACHA-6 | 通貨チップは現行データ・ラインナップは **横スクロールカルーセル**＋確率詳細オーバーレイ | P3-UI3-003 SummonActionBar と両立 |
+| D-GACHA-7 | chrome は **`tools/generate_gacha_ui_assets.py`** で PIL 生成（17枚） | オーナー作画待ちの暫定アセット |
+
+**P3-UI-GACHA Closeout（2026-07-06）:** Phase1〜5 完了。`GachaUiTokens`/`GachaUiHelper`・Reveal `UiTypography`・`ui_audit` gacha_detail/gacha_reveal。unit 151 PASS・smoke PASS。
+
+## 防具・装飾品レジェンド（2026-07-07 — P3-EQ-LEG-001）
+
+> **オーナー GO（2026-07-07）** — 案C（ボス初回確定★）+ パターンβ（`fixed_passive_id`）。①モーンゲート PoC 先行、②〜⑤は横展開 Task。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-LEG-001-1 | **入手= x-5 初回ボス討伐（ノーマル）確定**。通常 `armor_pool`/`accessory_pool` は ◇〜✦ のまま（レジェンドはプール外） | ドロップインフレ抑制・「Biome 極め」の証 |
+| P3-EQ-LEG-001-2 | **各 Biome 防具★1 + 装飾★1**（計10+10）。①= `serdion_ward_plate` / `mourngate_royal_seal` | 武器★2と同型のブランド装備 |
+| P3-EQ-LEG-001-3 | **`fixed_passive_id`** を `ArmorData` / `AccessoryData` に追加。`CombatPassives` SSOT で発火（武器 `fixed_skill_id` と同型） | スキル枠を増やさず個性付与 |
+| P3-EQ-LEG-001-4 | **ステ目安** — ✦比 DEF/HP +25% 前後・装飾 crit +1段階。バランスハーネスで各 Biome 目標帯維持 | P3-D154 帯規則踏襲 |
+| P3-EQ-LEG-001-5 | **データ** — `DungeonStage.legendary_armor_id` / `legendary_accessory_id`（x-5 のみ）。`DungeonController.apply_boss_legendary_loot` | 章構造（P3-DG-STG）と整合 |
+| P3-EQ-LEG-001-6 | **②〜⑤横展開** — ① PoC Closeout 後に Biome 別 Task（命名・passive・ステ一括） | 段階移行 |
+| P3-EQ-LEG-001-7 | **スコープ外** — セットボーナス（案γ）/ COMBAT 抽選への★混入 / Affix 本格化 | 別 Decision |
+
+## 装備レベル（2026-07-07 — P3-EQ-LVL-001）
+
+> **オーナー GO（2026-07-07）** — 案B（全装備 equip_level）+ Biome 連動ドロップLv。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-LVL-001-1 | **全装備**（武器・防具・装飾）に `equip_level`（1〜99）+ `equip_exp` | 序盤レジェンドの後半退役を緩和 |
+| P3-EQ-LVL-001-2 | **成長式** — `effective = base + floor(base × k × (Lv−1))`。k=0.04、★は ×1.25 | 案B。炉研ぎ（+ATK）と併用 |
+| P3-EQ-LVL-001-3 | **ドロップLv** — `stage.enemy_level`（無ければ `dungeon.enemy_level`）±1 | Biome/章帯で自然に変動 |
+| P3-EQ-LVL-001-4 | **装備EXP** — 戦闘勝利時、装備中アイテムへ `max(1, enemy_level/2)`。上限=装着者キャラLv | 育成ループ |
+| P3-EQ-LVL-001-5 | **SSOT** — `EquipmentEnhancer.gd`（装備レベル節）。戦闘/UI/セーブ配線 | P3-D152 炉研ぎは上乗せ枠として維持 |
+| P3-EQ-LVL-001-6 | **旧セーブ** — 未設定時 `equip_level=1` | 互換 |
+
+## レジェンド武器固有スキル（2026-07-07 — P3-SKILL-LEG-001）
+
+> **オーナー GO（2026-07-07）** — 10本それぞれ `leg_*` 固有スキル。汎用属性斬撃は非レジェンド武器専用のまま維持。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-SKILL-LEG-001-1 | **1武器1スキル** — `skill_id=leg_<weapon_id>`、表示名は武器固有名詞＋技名 | レジェンド識別・収集動機 |
+| P3-SKILL-LEG-001-2 | **数値枠** — 単体火力 1.45〜1.55 / デバフ特化 1.30〜1.40 / 複合デバフ・詠唱 1.25〜1.35 | 既存ジョブスキルと差別化 |
+| P3-SKILL-LEG-001-3 | **奇抜枠（Phase1）** — エルディオン=冷却+炎上二重 / ウンブラ=呪い+恐怖+エリート温存 | 既存 `SkillData` フィールドのみ |
+| P3-SKILL-LEG-001-4 | **汎用スキル維持** — `kindling_strike` 等は ★2〜✦ 武器用 | P3-SKILL-001-4 継続 |
+| P3-SKILL-LEG-001-5 | **アイコン** — `IconPaths` で既存属性スキルアイコン流用 | アセット新規0 |
+| P3-SKILL-LEG-001-6 | **Phase2 保留** — on_kill・AOE 等は `P3-SKILL-LEG-003` | スコープ分離 |
+
+## 状態異常・属性 VFX（2026-07-07 — P3-VFX-STATUS-001）
+
+> **オーナー GO（2026-07-07）** — Phase B（付与バースト + 常駐オーラ + DoT tick）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-VFX-STATUS-001-1 | **`CombatVfxManager.gd`** — 状態付与=ワンショット `CPUParticles2D`、常駐=スプライト子オーラ | `DungeonScene` 肥大化抑制 |
+| P3-VFX-STATUS-001-2 | **オーラ対象** — poison/chill/shock/ignite/curse/bleed/stun/fear（8種） | 視認性の高いデバフ |
+| P3-VFX-STATUS-001-3 | **付与時** — パーティクルバースト + 属性系は既存 `_spawn_hit_vfx` 連動 | 属性ヒット資産を再利用 |
+| P3-VFX-STATUS-001-4 | **DoT tick** — ミニバースト + 既存ダメージ数字 | tick ごとの手触り |
+| P3-VFX-STATUS-001-5 | **スコープ外** — 専用 `.tscn` アセット / シェーダーグロー / レジェンドスキル専用 VFX | Phase C へ |
+
+## 罠部屋ヒット演出（2026-07-07 — P3-UX-TRAP-001）
+
+> **オーナー GO（2026-07-07）** — 赤点滅 + ダメージ浮遊 + `_begin_trap_hit_presentation` 配線。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-TRAP-001-1 | **罠部屋** — 点滅3回（周回2）・ダメージ scale 1.35・軽シェイク・スプライト頭上数字 | 被弾体感 |
+| P3-UX-TRAP-001-2 | **探索中罠** — 点滅2回・scale 1.2・シェイクなし | 戦闘テンポ維持 |
+| P3-UX-TRAP-001-3 | **`TrapPresentation.gd`** — パルス数/alpha/scale SSOT | テスト可能化 |
+| P3-UX-TRAP-001-4 | **`_begin_trap_hit_presentation` 配線** + AutoProgress 停止 | 未接続 UI を有効化 |
+| P3-UX-TRAP-001-5 | **解除成功** — 演出なし | MVP |
+| P3-UX-TRAP-001-6 | **スコープ外** — 専用 SE・罠スプライト・画面中央大数字 | Phase2 |
+
+## イベント部屋テロップ演出（2026-07-07 — P3-UX-EVENT-001）
+
+> **オーナー GO（2026-07-07）** — 案 A: 中央2段テロップ + 既存 flash/粒子。回復=緑・ダメージ=赤を共通色 SSOT 化。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-EVENT-001-1 | **2段テロップ** — 1段目=情景 `description`、2段目=結果短文（HP/Gold/攻撃UP/素材/碑文） | イベント結果の即時可読性 |
+| P3-UX-EVENT-001-2 | **`EventPresentation.gd`** — 色・タイミング・文言フォーマット SSOT。回復=緑・ダメージ=赤 | 罠/戦闘数字と色言語統一 |
+| P3-UX-EVENT-001-3 | **演出** — 暗転オーバーレイ + 中央フェード + 既存粒子/flash/shake。報酬適用は2段目表示と同期 | ボス/宝箱より短尺（~1.0s） |
+| P3-UX-EVENT-001-4 | **周回短縮** — `_fast_run_enabled` で hold/shake/粒子弱体化 | ボス/エリート同型 |
+| P3-UX-EVENT-001-5 | **lore** — テロップはタイトルのみ。本文はログ+Codex | 長文テロップ禁止 |
+| P3-UX-EVENT-001-6 | **種別 BG** — `assets/dungeon/common/event/BG_Event_*.png`（6枚）を演出中に `TransitionLayer` へ重ね表示 | テロップ可読性 + 結果の視覚差別化 |
+| P3-UX-EVENT-001-7 | **スコープ外** — Biome 別イベント BG・種別 SE | Phase2 |
+
+## 結果画面ウィザード（2026-07-07 — P3-UX-RESULT-001〜004）
+
+> **オーナー GO（2026-07-07）** — 報酬→レベルアップ→MVP の3ステップ・各30秒自動遷移・EXPバーアニメ・MVP統計。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-RESULT-001-1 | **3ステップ** — 報酬→LvUP→MVP。`次へ`+30秒/ステップ。MVPのみリトライ/拠点 | オーナー指定フロー |
+| P3-UX-RESULT-001-2 | **全滅** — LvUPスキップ→MVPは表示（統計0なら「活躍データなし」） | D2 推奨値 |
+| P3-UX-RESULT-002-1 | **EXP付与を LvUP アニメ後に遅延** — `ExpRunSnapshot` で付与前状態を保存 | ポケモン風バー演出 |
+| P3-UX-RESULT-002-2 | **1人ずつ順番**にバー加算・Lv UP フラッシュ | D3 推奨値 |
+| P3-UX-RESULT-003-1 | **`RunCombatStats`** — 与ダメ/最大ヒット/スキル名/回復をラン中集計 | MVP 前提データ |
+| P3-UX-RESULT-004-1 | **MVP score** = damage + heal×0.5。同点=最大ヒット→与ダメ | D4 推奨値 |
+
+## 行動ルールUI可読化（2026-07-07 — P3-UX-GAMBIT-001）
+
+> **オーナー GO（2026-07-07）** — 「ガンビット」UI非表示・プリセット常時＋アコーディオン・戦闘ログ同型プレビュー。長文ヒントは廃止し `UiTypography` で可読サイズ維持。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-GAMBIT-001-1 | **表示名** — UIから「ガンビット」削除。「行動ルールを自分で設定」+ アコーディオン「行動ルールを編集」 | 初見で意味が伝わる |
+| P3-UX-GAMBIT-001-2 | **プリセット一行サマリー** — `CombatGambit.preset_summary_line` を戦術 Option 直下に表示 | 編集なしでも戦術の中身が分かる |
+| P3-UX-GAMBIT-001-3 | **行プレビュー** — `rule_preview`（`condition_summary → slot`）を各行下に金文字・BODY_SMALL | 戦闘 `[戦術]` ログと同型 |
+| P3-UX-GAMBIT-001-4 | **入力** — HP=整数%表示、射程=近/中/遠。列見出し=順/行動/条件/値 | 0.30・melee 直感を排除 |
+| P3-UX-GAMBIT-001-5 | **コピー** — 「今の戦術をコピーして編集」。適用中はアコーディオンに（適用中） | D122 導線の明確化 |
+## 行動ルールUI可読化（2026-07-07 — P3-UX-GAMBIT-002）
+
+> **オーナー GO（2026-07-07）** — 左=使う技（スキル名）/ 右=いつ使うか。防御含む。`skill_index` で装備①②を個別指定。未装備スキルは選択肢非表示。武器スキルはスコープ外。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-GAMBIT-002-1 | **UI列** — 優先 / 使う技 / いつ使うか。ドロップダウン=必殺・防御・装備スキル名・通常攻撃 | ユーザー案の2列表 |
+| P3-UX-GAMBIT-002-2 | **データ** — `skill_index`(0/1) を custom plan に追加。プリセットの汎用 `skill` はローテ維持 | 後方互換 |
+| P3-UX-GAMBIT-002-3 | **戦闘** — `_try_member_equipped_skill_at` で指定枠のみ発動 | 個別スキル条件 |
+| P3-UX-GAMBIT-002-4 | **コピー** — `assign_skill_indices_for_copy` で複数 skill 行を 0/1 交互割当 | プリセット複製の初期値 |
+| P3-UX-GAMBIT-002-5 | **ログ** — `[戦術]` にスキル表示名（`action_label`） | UX-001 プレビューと同型 |
+
+## 装備ステータス定義（2026-07-08 — P3-EQ-STAT-001）
+
+> **オーナー指示（2026-07-08）** — ステータス SSOT 整備。射程は使用状況に応じてオミット。幸運は3分割。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-STAT-001-1 | **SSOT** — `docs/specs/game/30_装備ステータス定義.md` | ディアブロ型ランダム化の前提資料 |
+| P3-EQ-STAT-001-2 | **射程** — 戦闘内部で `base_attack_range`→`range_category`(melee/mid/long) は**使用中**（P3-D106f）。装備ステータス定義・ロール対象から**数値射程はオミット**（固定メタのみ） | プレイヤー向け stat ではない |
+| P3-EQ-STAT-001-3 | **`luck` 廃止** — `exp_gain_rate` / `gold_gain_rate` / `rare_drop_rate` に3分割。宝箱品質・イベント成功率は装備 stat 外 | 効果の粒度を明確化 |
+| P3-EQ-STAT-001-4 | **会心ダメ** — `critical_damage` を装備ロール対象として新設（現状全員 1.5 固定） | ディアブロ型拡張の柱 |
+| P3-EQ-STAT-001-5 | **コード移行（P3-EQ-STAT-002）** — `AccessoryData.luck_bonus` 廃止→3率。`AffixStatCalculator` 配線。Affix `scholarly`/`treasure_hunter` 追加 | 定義→実装完了 |
+
+## 武器ロール再定義（2026-07-08 — P3-EQ-STAT-003）
+
+> **オーナー指示（2026-07-08）** — 属性・生態特効も変動値。SPD/CRT/会心ダメは必須外・デフォルトあり。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-STAT-003-1 | **必須ロール** — 攻撃力 / 属性 / 生態特効（`bane_class`+倍率）。全ドロップ武器に必ず付与 | ディアブロ型の個体差の柱 |
+| P3-EQ-STAT-003-2 | **属性プール** — `ElementResolver` 5属性 + 無属性（`""`） | 既存弱点/耐性と整合 |
+| P3-EQ-STAT-003-3 | **生態特効プール** — 敵 `codex_class` 分類 + 特効なし（`""`） | P3-D087 流用 |
+| P3-EQ-STAT-003-4 | **任意ロール** — 攻撃速度 / 会心率 / 会心ダメは必須外。未設定時デフォルト: SPD=1.0 / CRT=0.05 / 会心ダメ=1.5 | 全武器に必ず付けない |
+| P3-EQ-STAT-003-5 | **コード未実装** — `WeaponInstance` への `rolled_element` 等追加は別 Task | → P3-EQ-STAT-005 で実装 |
+
+## 武器必須項目・属性値（2026-07-08 — P3-EQ-STAT-004 / P3-EQ-STAT-005）
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-STAT-004-1 | **必須ロール=攻撃力のみ**。属性/生態特効は任意（未設定=無属性/なし） | オーナー指示 |
+| P3-EQ-STAT-005-1 | **属性値案A実装** — `damage × (1 + element_power × 0.01)`。無属性時無視 | オーナー GO |
+| P3-EQ-STAT-005-2 | **`WeaponStatResolver`** — ドロップ/解決/セーブ移行 SSOT | 単一責務 |
+
+## レリック統合（2026-07-08 — P3-RELIC-PASSIVE 案A）
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-RELIC-PASSIVE-1 | **案A** — 遺物タブ廃止。レリック=`CombatPassives` の `category:"relic"`。枠=キャラパッシブ1+レリック1 | オーナー GO |
+| P3-RELIC-PASSIVE-2 | **id** — `relic_*`（旧 `war_banner` 等はマイグレーション） | パッシブ命名統一 |
+| P3-RELIC-PASSIVE-3 | **所持** — `owned_relics` 解放型維持。装備は `equipped_passive_ids` 末尾 | 既存ドロップ継続 |
+| P3-RELIC-PASSIVE-4 | **セーブ v4** — `relic_id` 廃止・`equipped_passives` へ統合 | スキーマ正規化 |
+| P3-RELIC-PASSIVE-5 | **`CombatRelics`** — 表示/互換ファサード。定義 SSOT=`CombatPassives` | P3-D114 発火型と同居 |
+## レジェンド武器固有効果（2026-07-08 — P3-WPN-LEG-EFFECT）
+
+> **オーナー GO** — `fixed_passive_id` + `CombatPassives.eq_wpn_*`。`leg_*` 自動スキル廃止。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-WPN-LEG-EFFECT-1 | **データ** — `WeaponData.fixed_passive_id` → `CombatPassives`（category=weapon） | 防具レジェンド同型 |
+| P3-WPN-LEG-EFFECT-2 | **10本** — オーナー定義効果を数値確定して実装（下表） | 個性はオーナー、数値はHQ確定 |
+| P3-WPN-LEG-EFFECT-3 | **重複** — 装備者ごとに独立発火（案A） | 前回GO |
+| P3-WPN-LEG-EFFECT-4 | **`leg_*` 廃止** — 第3系統武器スキルはレジェンドから外す | 固有効果へ移行 |
+

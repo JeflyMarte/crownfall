@@ -11,3 +11,5 @@ extends Resource
 @export var resist_elements: Array[String] = []
 @export var weight: float = 1.0
 @export var rarity: int = 0
+## レジェンド防具の固有パッシブ id（`CombatPassives` SSOT / 空ならなし）。
+@export var fixed_passive_id: String = ""

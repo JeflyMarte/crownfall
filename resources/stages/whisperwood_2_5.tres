@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="DungeonStageData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonStageData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "whisperwood_2_5"
+biome_id = "whisperwood"
+biome_index = 2
+chapter_index = 5
+display_name = "深森の王座"
+floor_count = 10
+enemy_level = 14
+recommended_level = 16
+closing_type = "boss"
+boss_id = "granvel"
+requires_elite = false
+spawn_weights = {
+"2": 10,
+"3": 90
+}
+event_room_weight = 18
+min_event_rooms = 1

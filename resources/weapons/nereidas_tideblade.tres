@@ -6,7 +6,8 @@
 script = ExtResource("1")
 id = "nereidas_tideblade"
 display_name = "海統王の潮汐刃ネレイダス"
-fixed_skill_id = "sanctal_strike"
+fixed_skill_id = ""
+fixed_passive_id = "eq_wpn_nereidas_tideblade"
 base_attack = 44
 rarity = 3
 base_attack_speed = 1.0

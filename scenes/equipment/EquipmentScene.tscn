@@ -3,12 +3,12 @@
 [ext_resource type="Script" path="res://scripts/equipment/EquipmentScene.gd" id="1"]
 [ext_resource type="Theme" path="res://assets/ui/production_theme.tres" id="2"]
 [ext_resource type="Script" path="res://scripts/equipment/EquipmentController.gd" id="3"]
-[ext_resource type="Texture2D" path="res://assets/ui/batch1/UI_BG_Dark.png" id="4"]
+[ext_resource type="Texture2D" path="res://assets/ui/equipment_ui/UI_BG_Equipment.png" id="4"]
 [ext_resource type="Texture2D" path="res://assets/ui/batch2/ICO_Gold.png" id="5"]
 [ext_resource type="Texture2D" path="res://assets/ui/batch2/ICO_Currency_Arcanite.png" id="6"]
 
 [sub_resource type="StyleBoxFlat" id="SB_Header"]
-bg_color = Color(0.04, 0.04, 0.1, 0.9)
+bg_color = Color(0.04, 0.04, 0.1, 0.74)
 border_width_bottom = 1
 border_color = Color(0.55, 0.45, 0.18, 0.6)
 content_margin_left = 12.0
@@ -17,7 +17,7 @@ content_margin_right = 12.0
 content_margin_bottom = 8.0
 
 [sub_resource type="StyleBoxFlat" id="SB_Chip"]
-bg_color = Color(0.1, 0.09, 0.05, 0.85)
+bg_color = Color(0.1, 0.09, 0.05, 0.7)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
@@ -33,7 +33,7 @@ content_margin_right = 10.0
 content_margin_bottom = 4.0
 
 [sub_resource type="StyleBoxFlat" id="SB_BottomNav"]
-bg_color = Color(0.04, 0.04, 0.1, 0.92)
+bg_color = Color(0.04, 0.04, 0.1, 0.76)
 border_width_top = 1
 border_color = Color(0.55, 0.45, 0.18, 0.6)
 content_margin_left = 8.0
@@ -42,7 +42,7 @@ content_margin_right = 8.0
 content_margin_bottom = 6.0
 
 [sub_resource type="StyleBoxFlat" id="SB_TabSelected"]
-bg_color = Color(0.22, 0.19, 0.15, 1)
+bg_color = Color(0.22, 0.19, 0.15, 0.88)
 border_width_bottom = 2
 border_color = Color(0.83137, 0.79608, 0.72157, 0.9)
 content_margin_left = 12.0
@@ -51,21 +51,21 @@ content_margin_right = 12.0
 content_margin_bottom = 6.0
 
 [sub_resource type="StyleBoxFlat" id="SB_TabUnselected"]
-bg_color = Color(0.10, 0.09, 0.07, 1)
+bg_color = Color(0.10, 0.09, 0.07, 0.8)
 content_margin_left = 12.0
 content_margin_top = 6.0
 content_margin_right = 12.0
 content_margin_bottom = 6.0
 
 [sub_resource type="StyleBoxFlat" id="SB_TabPanel"]
-bg_color = Color(0.08, 0.07, 0.05, 0.85)
+bg_color = Color(0.08, 0.07, 0.05, 0.5)
 content_margin_left = 4.0
 content_margin_top = 4.0
 content_margin_right = 4.0
 content_margin_bottom = 4.0
 
 [sub_resource type="StyleBoxFlat" id="SB_Card"]
-bg_color = Color(0.12, 0.10, 0.08, 0.95)
+bg_color = Color(0.12, 0.10, 0.08, 0.62)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
@@ -97,7 +97,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-stretch_mode = 1
+expand_mode = 1
+stretch_mode = 6
 texture = ExtResource("4")
 
 [node name="EquipmentController" type="Node" parent="."]
@@ -127,6 +128,11 @@ theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
 theme_override_font_sizes/font_size = 18
 text = "キャラクター装備"
 horizontal_alignment = 1
+
+[node name="BtnCatalog" type="Button" parent="Header/HeaderRow"]
+layout_mode = 2
+size_flags_vertical = 4
+text = "一覧"
 
 [node name="GoldChip" type="PanelContainer" parent="Header/HeaderRow"]
 layout_mode = 2
@@ -224,6 +230,7 @@ layout_mode = 2
 theme_override_constants/separation = 4
 
 [node name="LabelStars" type="Label" parent="VBoxContainer/CharacterCard/CardRow/PortraitBox"]
+visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0.96, 0.82, 0.35, 1)
 theme_override_font_sizes/font_size = 14
@@ -233,23 +240,48 @@ horizontal_alignment = 1
 [node name="PortraitNavRow" type="HBoxContainer" parent="VBoxContainer/CharacterCard/CardRow/PortraitBox"]
 layout_mode = 2
 alignment = 1
-theme_override_constants/separation = 4
+theme_override_constants/separation = 2
 
 [node name="BtnMemberPrev" type="Button" parent="VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow"]
 layout_mode = 2
 size_flags_vertical = 4
 text = "◀"
 
-[node name="Portrait" type="PanelContainer" parent="VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow"]
-custom_minimum_size = Vector2(80, 80)
+[node name="PortraitStack" type="Control" parent="VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow"]
+custom_minimum_size = Vector2(108, 120)
 layout_mode = 2
 
-[node name="PortraitArt" type="TextureRect" parent="VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/Portrait"]
+[node name="PedestalBg" type="TextureRect" parent="VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/PortraitStack"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Portrait" type="PanelContainer" parent="VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/PortraitStack"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -48.0
+offset_top = -58.0
+offset_right = 48.0
+offset_bottom = 38.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PortraitArt" type="TextureRect" parent="VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/PortraitStack/Portrait"]
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="PortraitGlyph" type="Label" parent="VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/Portrait"]
+[node name="PortraitGlyph" type="Label" parent="VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/PortraitStack/Portrait"]
 layout_mode = 2
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -268,13 +300,13 @@ theme_override_constants/separation = 3
 [node name="LabelName" type="Label" parent="VBoxContainer/CharacterCard/CardRow/InfoBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.93, 0.86, 0.66, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 26
 text = "—"
 
 [node name="LabelLevel" type="Label" parent="VBoxContainer/CharacterCard/CardRow/InfoBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.66, 0.58, 1)
-theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.88, 0.84, 0.76, 1)
+theme_override_font_sizes/font_size = 22
 text = "Lv.1 / 20"
 
 [node name="JobRow" type="HBoxContainer" parent="VBoxContainer/CharacterCard/CardRow/InfoBox"]
@@ -290,11 +322,12 @@ stretch_mode = 5
 [node name="LabelJob" type="Label" parent="VBoxContainer/CharacterCard/CardRow/InfoBox/JobRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.78, 0.74, 0.62, 1)
-theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.88, 0.84, 0.76, 1)
+theme_override_font_sizes/font_size = 22
 text = "—"
 
 [node name="EvolutionRow" type="HBoxContainer" parent="VBoxContainer/CharacterCard/CardRow/InfoBox"]
+visible = false
 layout_mode = 2
 theme_override_constants/separation = 8
 
@@ -317,19 +350,20 @@ theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 1
 columns = 2
 
+[node name="BtnStatDetail" type="Button" parent="VBoxContainer/CharacterCard/CardRow/InfoBox"]
+visible = false
+layout_mode = 2
+disabled = true
+text = "ステータス詳細"
+
 [node name="SlotsPanel" type="VBoxContainer" parent="VBoxContainer/CharacterCard/CardRow"]
+custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="LabelSlotsTitle" type="Label" parent="VBoxContainer/CharacterCard/CardRow/SlotsPanel"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.86, 0.74, 0.45, 1)
-theme_override_font_sizes/font_size = 12
-text = "装備枠"
-horizontal_alignment = 1
-
 [node name="EquipSlotsGrid" type="GridContainer" parent="VBoxContainer/CharacterCard/CardRow/SlotsPanel"]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/h_separation = 4
 theme_override_constants/v_separation = 4
 columns = 2
@@ -337,6 +371,10 @@ columns = 2
 [node name="ButtonUnequipAll" type="Button" parent="VBoxContainer/CharacterCard/CardRow/SlotsPanel"]
 layout_mode = 2
 text = "一括解除"
+
+[node name="TabRow" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 4
 
 [node name="TabContainer" type="TabContainer" parent="VBoxContainer"]
 layout_mode = 2
@@ -360,18 +398,33 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
-[node name="LabelEffectsTitle" type="Label" parent="VBoxContainer/TabContainer/TabEquip/EquipContent"]
+[node name="EffectsPanel" type="PanelContainer" parent="VBoxContainer/TabContainer/TabEquip/EquipContent"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EffectsVBox" type="VBoxContainer" parent="VBoxContainer/TabContainer/TabEquip/EquipContent/EffectsPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="LabelEffectsTitle" type="Label" parent="VBoxContainer/TabContainer/TabEquip/EquipContent/EffectsPanel/EffectsVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.86, 0.74, 0.45, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 20
 text = "装備中の効果"
 horizontal_alignment = 1
 
-[node name="EffectsGrid" type="GridContainer" parent="VBoxContainer/TabContainer/TabEquip/EquipContent"]
+[node name="EffectsRule" type="TextureRect" parent="VBoxContainer/TabContainer/TabEquip/EquipContent/EffectsPanel/EffectsVBox"]
+custom_minimum_size = Vector2(0, 12)
 layout_mode = 2
-theme_override_constants/h_separation = 14
-theme_override_constants/v_separation = 2
-columns = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="EffectsGrid" type="GridContainer" parent="VBoxContainer/TabContainer/TabEquip/EquipContent/EffectsPanel/EffectsVBox"]
+layout_mode = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 4
+columns = 4
 
 [node name="InventoryHeaderRow" type="HBoxContainer" parent="VBoxContainer/TabContainer/TabEquip/EquipContent"]
 layout_mode = 2
@@ -421,11 +474,30 @@ layout_mode = 2
 disabled = true
 text = "足具 🔒"
 
-[node name="InventoryGrid" type="GridContainer" parent="VBoxContainer/TabContainer/TabEquip/EquipContent"]
+[node name="InventoryScroll" type="ScrollContainer" parent="VBoxContainer/TabContainer/TabEquip/EquipContent"]
 layout_mode = 2
-theme_override_constants/h_separation = 6
-theme_override_constants/v_separation = 6
+size_flags_horizontal = 3
+size_flags_vertical = 0
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
+
+[node name="InventoryGrid" type="GridContainer" parent="VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 4
+theme_override_constants/v_separation = 4
 columns = 6
+
+[node name="TabRelic" type="ScrollContainer" parent="VBoxContainer/TabContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="RelicContent" type="VBoxContainer" parent="VBoxContainer/TabContainer/TabRelic"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
 
 [node name="TabSkill" type="ScrollContainer" parent="VBoxContainer/TabContainer"]
 layout_mode = 2
@@ -438,11 +510,14 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
-[node name="LabelSkillSlots" type="Label" parent="VBoxContainer/TabContainer/TabSkill/SkillContent"]
+[node name="LabelSkillSlots" type="RichTextLabel" parent="VBoxContainer/TabContainer/TabSkill/SkillContent"]
 layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+autowrap_mode = 3
 text = "装備中スキル: —"
 horizontal_alignment = 1
-autowrap_mode = 3
 
 [node name="LabelSkillHint" type="Label" parent="VBoxContainer/TabContainer/TabSkill/SkillContent"]
 layout_mode = 2
@@ -453,49 +528,47 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="TabAwaken" type="Control" parent="VBoxContainer/TabContainer"]
+[node name="TabUltimate" type="ScrollContainer" parent="VBoxContainer/TabContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
 
-[node name="LabelAwakenLocked" type="Label" parent="VBoxContainer/TabContainer/TabAwaken"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -80.0
-offset_top = -12.0
-offset_right = 80.0
-offset_bottom = 12.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_color = Color(0.55, 0.52, 0.48, 1)
-text = "覚醒（準備中）"
-horizontal_alignment = 1
+[node name="UltimateContent" type="VBoxContainer" parent="VBoxContainer/TabContainer/TabUltimate"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
 
-[node name="TabProfile" type="Control" parent="VBoxContainer/TabContainer"]
+[node name="UltimateHost" type="VBoxContainer" parent="VBoxContainer/TabContainer/TabUltimate/UltimateContent"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="TabPassive" type="ScrollContainer" parent="VBoxContainer/TabContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
 
-[node name="LabelProfileLocked" type="Label" parent="VBoxContainer/TabContainer/TabProfile"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -100.0
-offset_top = -12.0
-offset_right = 100.0
-offset_bottom = 12.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_color = Color(0.55, 0.52, 0.48, 1)
-text = "プロフィール（準備中）"
-horizontal_alignment = 1
+[node name="PassiveContent" type="VBoxContainer" parent="VBoxContainer/TabContainer/TabPassive"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="PassiveList" type="VBoxContainer" parent="VBoxContainer/TabContainer/TabPassive/PassiveContent"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TabTactics" type="ScrollContainer" parent="VBoxContainer/TabContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="TacticsContent" type="VBoxContainer" parent="VBoxContainer/TabContainer/TabTactics"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
 
 [node name="BottomNav" type="PanelContainer" parent="."]
 z_index = 20
@@ -503,7 +576,7 @@ layout_mode = 1
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -52.0
+offset_top = -84.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_styles/panel = SubResource("SB_BottomNav")
@@ -521,6 +594,16 @@ text = "ホーム"
 layout_mode = 2
 size_flags_horizontal = 3
 text = "パーティ"
+
+[node name="NavCharacter" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "キャラ管理"
+
+[node name="NavEquipmentCatalog" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "装備一覧"
 
 [node name="NavAdventure" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2

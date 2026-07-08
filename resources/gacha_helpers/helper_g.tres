@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "helper_g"
-display_name = "シルヴィ（Sylvie）"
+display_name = "シルヴィ"
 job_id = "ranger"
 origin_note = "名を明かさぬ森縁の名射手。梢のささやきを読むという"
 rarity = 4

@@ -5,10 +5,33 @@ extends RefCounted
 
 const PERCENT_STAT_TYPES: Array[String] = [
 	"Gold Gain",
+	"EXP Gain",
+	"Rare Drop",
 	"Critical",
 	"Attack Speed",
 	"Rare Drop Rate",
+	"Chill",
+	"Shock",
+	"Poison",
+	"Ignite",
 ]
+
+const STAT_TYPE_LABELS: Dictionary = {
+	"Attack": "攻撃",
+	"Defense": "防御",
+	"HP": "HP",
+	"Chill": "冷却付与",
+	"Shock": "感電付与",
+	"Poison": "毒付与",
+	"Ignite": "炎上付与",
+	"Attack Speed": "攻撃速度",
+	"Critical": "クリティカル率",
+	"Gold Gain": "ゴールド獲得",
+	"EXP Gain": "経験値獲得",
+	"Healing": "回復量",
+	"Material Gain": "素材獲得",
+	"Rare Drop": "レアドロップ",
+}
 
 static func format_for_instance(item: Resource) -> String:
 	if item == null or not item.is_appraised:
@@ -18,19 +41,16 @@ static func format_for_instance(item: Resource) -> String:
 	return format_affix_block(prefix_ids, suffix_ids)
 
 static func format_affix_block(prefix_ids: Array, suffix_ids: Array) -> String:
-	var names: String = _format_name_line(prefix_ids, suffix_ids)
-	if names.is_empty():
-		return ""
 	var effects: String = _format_effect_line(prefix_ids, suffix_ids)
 	if effects.is_empty():
-		return "Affix: %s" % names
-	return "Affix: %s\n%s" % [names, effects]
+		return ""
+	return "追加効果: %s" % effects
 
 static func format_reveal(prefix_ids: Array, suffix_ids: Array) -> String:
 	var names: String = _format_name_line(prefix_ids, suffix_ids)
 	if names.is_empty():
 		return ""
-	return "【Affix】" + names
+	return "【追加効果】" + names.replace(" / ", "・")
 
 static func _format_name_line(prefix_ids: Array, suffix_ids: Array) -> String:
 	var labels: PackedStringArray = []
@@ -54,10 +74,14 @@ static func _append_effect_label(target: PackedStringArray, affix_id: String) ->
 	var affix_data: Resource = DataRegistry.get_affix_data(affix_id)
 	if affix_data == null or affix_data.stat_type.is_empty():
 		return
-	target.append("%s %s" % [affix_data.stat_type, _format_effect_value(
-		affix_data.stat_type,
+	var label: String = _stat_type_label(str(affix_data.stat_type))
+	target.append("%s%s" % [label, _format_effect_value(
+		str(affix_data.stat_type),
 		float(affix_data.value)
 	)])
+
+static func _stat_type_label(stat_type: String) -> String:
+	return str(STAT_TYPE_LABELS.get(stat_type, stat_type))
 
 static func _affix_display_name(affix_id: String) -> String:
 	if affix_id.is_empty():

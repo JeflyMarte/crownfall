@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "helper_b"
-display_name = "イヴァル（Ivar）"
+display_name = "イヴァル"
 job_id = "ranger"
 origin_note = "北方辺境の狩人。未踏査域の地図化に長ける"
 rarity = 2

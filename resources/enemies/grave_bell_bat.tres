@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "grave_bell_bat"
+display_name = "墓鐘バット"
+max_hp = 50
+attack = 10
+defense = 2
+attack_speed = 1.25
+critical_rate = 0.06
+move_speed = 1.35
+threat_target_bias = "back_row"
+detection_range = 7.0
+attack_range = 2.5
+enemy_type = 0
+ai_type = "default"
+exp_reward = 8
+gold_reward = 28
+drop_table_id = "grave_bell_bat_drops"
+element_weakness = Array[String](["thunder"])
+element_resist = Array[String]([])
+attack_element = "dark"
+on_hit_status_id = ""
+on_hit_status_chance = 0.0
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "獣類"
+codex_danger = 1
+codex_habitat = "嘆きの門・旧霊廟区"
+codex_research_note = "コウモリを祖先とし、王都崩落後の霊廟区に巣を構えた巨大種。胸骨が中空の鐘腔を持ち、羽音と共鳴して低い鳴りを響かせる。この鳴動は探索者の平衡感覚を乱し、古い埋葬記録によれば「鐘が呼ぶ前に跪け」と戒められている。単独で後方から襲い、明るい炎と雷光を嫌う。"
+codex_materials = Array[String](["ancient_bone", "chrono_dust"])
+skill_ids = Array[String](["enemy_grave_bell_peal"])
+skill_use_chance = 0.26

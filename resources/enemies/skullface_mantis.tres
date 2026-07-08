@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "skullface_mantis"
+display_name = "骸面マンティス"
+max_hp = 74
+attack = 16
+defense = 6
+attack_speed = 1.05
+critical_rate = 0.1
+move_speed = 1.1
+threat_target_bias = "back_row"
+detection_range = 7.0
+attack_range = 2.0
+enemy_type = 0
+ai_type = "default"
+exp_reward = 13
+gold_reward = 40
+drop_table_id = "skullface_mantis_drops"
+element_weakness = Array[String](["fire"])
+element_resist = Array[String]([])
+attack_element = ""
+on_hit_status_id = "bleed"
+on_hit_status_chance = 0.22
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "昆虫類"
+codex_danger = 3
+codex_habitat = "王家霊廟連絡路"
+codex_research_note = "カマキリを祖先とし、霊廟の湿気に適応した大型捕食者。脱皮殻の胸板模様が人の顔に似るため「骸面」と呼ばれる。新しい殻を被るたび模様が変わり、古い殻は祭礼の廃材として通路に積まれる。後列を狙い、鎌の一振りで致命傷を与える。火を嫌うが、炎の光に引き寄せられる個体も記録されている。"
+codex_materials = Array[String](["engraved_carapace", "ancient_bone"])
+skill_ids = Array[String](["enemy_skullface_reap"])
+skill_use_chance = 0.28

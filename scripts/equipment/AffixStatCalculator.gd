@@ -1,7 +1,10 @@
 class_name AffixStatCalculator
 extends RefCounted
 
-## M6 Affix stat 集計（P2-Task031）。装備の prefix/suffix のみ反映。
+const _ArmorStatResolver = preload("res://scripts/equipment/ArmorStatResolver.gd")
+const _AccessoryStatResolver = preload("res://scripts/equipment/AccessoryStatResolver.gd")
+
+## M6 Affix stat 集計（P2-Task031）。装備の prefix/suffix + 装飾ベース報酬率。
 ## P3-EQ-002: member_index >= 0 はそのメンバーの装備のみ。-1 は全員分を合算（Gold/Healing 等）。
 
 const STAT_ATTACK: String = "Attack"
@@ -9,6 +12,8 @@ const STAT_DEFENSE: String = "Defense"
 const STAT_HP: String = "HP"
 const STAT_CRITICAL: String = "Critical"
 const STAT_GOLD_GAIN: String = "Gold Gain"
+const STAT_EXP_GAIN: String = "EXP Gain"
+const STAT_RARE_DROP: String = "Rare Drop"
 const STAT_MATERIAL_GAIN: String = "Material Gain"
 const STAT_HEALING: String = "Healing"
 const STAT_SHOCK: String = "Shock"
@@ -26,6 +31,21 @@ static func apply_gold_bonus(base_gold: int) -> int:
 		return base_gold
 	var mult: float = float(get_bonuses().get("gold_gain_mult", 1.0))
 	return maxi(0, int(round(float(base_gold) * mult)))
+
+static func apply_exp_bonus(base_exp: int) -> int:
+	if base_exp <= 0:
+		return base_exp
+	var mult: float = float(get_bonuses().get("exp_gain_mult", 1.0))
+	return maxi(0, int(round(float(base_exp) * mult)))
+
+static func apply_rarity_drop_weight(base_weight: int, rarity: int) -> int:
+	if base_weight <= 0:
+		return base_weight
+	var add: float = float(get_bonuses().get("rare_drop_add", 0.0))
+	if is_zero_approx(add):
+		return base_weight
+	var tier: float = float(clampi(rarity, Enums.Rarity.COMMON, Enums.Rarity.LEGENDARY))
+	return maxi(1, int(round(float(base_weight) * (1.0 + add * tier))))
 
 static func apply_healing_bonus(base_amount: int) -> int:
 	if base_amount <= 0:
@@ -46,6 +66,8 @@ func _compute_bonuses(member_index: int = -1) -> Dictionary:
 		"hp_flat": 0,
 		"crit_rate_add": 0.0,
 		"gold_gain_mult": 1.0,
+		"exp_gain_mult": 1.0,
+		"rare_drop_add": 0.0,
 		"material_gain_bonus": 0,
 		"healing_bonus": 0,
 		"shock_chance": 0.0,
@@ -54,9 +76,39 @@ func _compute_bonuses(member_index: int = -1) -> Dictionary:
 		"poison_chance": 0.0,
 		"attack_speed_mult_add": 0.0,
 	}
-	for affix_data: Resource in _collect_equipped_affix_data(member_index):
-		_apply_affix_to_bonuses(affix_data, bonuses)
+	if member_index >= 0:
+		var member: Resource = GameState.get_member(member_index)
+		if member != null:
+			_apply_accessory_base_rates(member, bonuses)
+			_apply_armor_base_rates(member, bonuses)
+			for affix_data: Resource in _affixes_from_member(member):
+				_apply_affix_to_bonuses(affix_data, bonuses)
+		return bonuses
+	for i in GameState.party_members.size():
+		var member_all: Resource = GameState.party_members[i]
+		if member_all == null:
+			continue
+		_apply_accessory_base_rates(member_all, bonuses)
+		_apply_armor_base_rates(member_all, bonuses)
+		for affix_data: Resource in _affixes_from_member(member_all):
+			_apply_affix_to_bonuses(affix_data, bonuses)
 	return bonuses
+
+func _apply_accessory_base_rates(member: Resource, bonuses: Dictionary) -> void:
+	var accessory: Resource = member.equipped_accessory if "equipped_accessory" in member else null
+	if accessory == null:
+		return
+	bonuses["gold_gain_mult"] += _AccessoryStatResolver.resolve_gold_gain_rate(accessory)
+	bonuses["exp_gain_mult"] += _AccessoryStatResolver.resolve_exp_gain_rate(accessory)
+	bonuses["rare_drop_add"] += _AccessoryStatResolver.resolve_rare_drop_rate(accessory)
+
+func _apply_armor_base_rates(member: Resource, bonuses: Dictionary) -> void:
+	var armor: Resource = member.equipped_armor if "equipped_armor" in member else null
+	if armor == null:
+		return
+	bonuses["gold_gain_mult"] += _ArmorStatResolver.resolve_gold_gain_rate(armor)
+	bonuses["exp_gain_mult"] += _ArmorStatResolver.resolve_exp_gain_rate(armor)
+	bonuses["rare_drop_add"] += _ArmorStatResolver.resolve_rare_drop_rate(armor)
 
 func _collect_equipped_affix_data(member_index: int = -1) -> Array[Resource]:
 	var affixes: Array[Resource] = []
@@ -114,6 +166,10 @@ func _apply_affix_to_bonuses(affix_data: Resource, bonuses: Dictionary) -> void:
 			bonuses["crit_rate_add"] += float(affix_data.value)
 		STAT_GOLD_GAIN:
 			bonuses["gold_gain_mult"] += float(affix_data.value)
+		STAT_EXP_GAIN:
+			bonuses["exp_gain_mult"] += float(affix_data.value)
+		STAT_RARE_DROP:
+			bonuses["rare_drop_add"] += float(affix_data.value)
 		STAT_MATERIAL_GAIN:
 			bonuses["material_gain_bonus"] += int(affix_data.value)
 		STAT_HEALING:

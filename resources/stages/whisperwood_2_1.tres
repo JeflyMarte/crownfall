@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="DungeonStageData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonStageData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "whisperwood_2_1"
+biome_id = "whisperwood"
+biome_index = 2
+chapter_index = 1
+display_name = "盟約の森縁"
+floor_count = 6
+enemy_level = 10
+recommended_level = 12
+closing_type = "exit"
+requires_elite = false
+spawn_weights = {
+"2": 70,
+"3": 30
+}
+event_room_weight = 18
+min_event_rooms = 1

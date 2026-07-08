@@ -4,9 +4,9 @@ extends RefCounted
 const RARITY_GEMS: Array[String] = ["◇", "◆", "✦", "★"]
 const RARITY_SHORT: Array[String] = ["N", "R", "SR", "SSR"]
 
-const LIST_CARD_MIN_HEIGHT: int = 84
-const CRAFTABLE_CHIP_WIDTH: int = 96
-const CRAFTABLE_CHIP_HEIGHT: int = 92
+const LIST_CARD_MIN_HEIGHT: int = 124
+const CRAFTABLE_CHIP_WIDTH: int = 120
+const CRAFTABLE_CHIP_HEIGHT: int = 136
 
 const RARITY_COLORS: Array[Color] = [
 	Color(0.60, 0.60, 0.60),
@@ -80,10 +80,13 @@ static func preview_lines(craft: Resource) -> PackedStringArray:
 			lines.append("会心率 %.0f%%" % (float(wd.base_critical_rate) * 100.0))
 			if not str(wd.weapon_type).is_empty():
 				lines.append("種別 %s" % str(wd.weapon_type))
-			if not str(wd.fixed_skill_id).is_empty():
+			var effect_text: String = EquipmentItemDetailHelper.weapon_legendary_effect_text_from_data(wd)
+			if not effect_text.is_empty():
+				lines.append("固有効果 %s" % effect_text)
+			elif not str(wd.fixed_skill_id).is_empty():
 				var skill: Resource = DataRegistry.get_skill_data(str(wd.fixed_skill_id))
 				var skill_name: String = str(skill.display_name) if skill != null else str(wd.fixed_skill_id)
-				lines.append("固有スキル %s" % skill_name)
+				lines.append("武器スキル %s" % skill_name)
 		"armor":
 			var ad: Resource = DataRegistry.get_armor_data(str(craft.output_id))
 			if ad == null:
@@ -111,21 +114,20 @@ static func card_style(selected: bool, craftable: bool = false) -> StyleBox:
 		return list_card_style(false, true, 0)
 	return CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
 
-static func list_card_style(selected: bool, craftable: bool, rarity: int) -> StyleBoxFlat:
+static func list_card_style(selected: bool, craftable: bool, rarity: int) -> StyleBox:
+	if selected:
+		var selected_sb: StyleBox = ForgeUiTokens.list_card_selected_style()
+		if _texture_style_ok(selected_sb):
+			return selected_sb
+	else:
+		var normal_sb: StyleBox = ForgeUiTokens.list_card_normal_style()
+		if _texture_style_ok(normal_sb):
+			return normal_sb
 	var sb := StyleBoxFlat.new()
 	var rarity_col: Color = rarity_color(rarity)
 	sb.set_corner_radius_all(6)
 	sb.set_content_margin_all(6)
-	if selected:
-		sb.bg_color = Color(0.16, 0.13, 0.08, 0.96)
-		sb.border_width_left = 4
-		sb.border_width_top = 2
-		sb.border_width_right = 2
-		sb.border_width_bottom = 2
-		sb.border_color = Color(0.95, 0.78, 0.28, 1.0)
-		sb.shadow_color = Color(0.95, 0.78, 0.28, 0.25)
-		sb.shadow_size = 3
-	elif craftable:
+	if craftable:
 		sb.bg_color = Color(0.10, 0.14, 0.09, 0.94)
 		sb.set_border_width_all(2)
 		sb.border_color = Color(0.42, 0.82, 0.38, 0.85)
@@ -135,7 +137,10 @@ static func list_card_style(selected: bool, craftable: bool, rarity: int) -> Sty
 		sb.border_color = rarity_col.lerp(Color(0.28, 0.26, 0.24), 0.55)
 	return sb
 
-static func craftable_strip_style(selected: bool) -> StyleBoxFlat:
+static func craftable_strip_style(selected: bool) -> StyleBox:
+	var textured: StyleBox = ForgeUiTokens.craft_chip_style(selected)
+	if _texture_style_ok(textured):
+		return textured
 	var sb := StyleBoxFlat.new()
 	sb.set_corner_radius_all(8)
 	sb.set_content_margin_all(6)
@@ -151,7 +156,14 @@ static func craftable_strip_style(selected: bool) -> StyleBoxFlat:
 		sb.border_color = Color(0.48, 0.86, 0.42, 0.9)
 	return sb
 
-static func material_chip_style(sufficient: bool) -> StyleBoxFlat:
+static func material_chip_style(sufficient: bool) -> StyleBox:
+	var textured: StyleBox = ForgeUiTokens.material_cell_style()
+	if _texture_style_ok(textured):
+		if not sufficient and textured is StyleBoxTexture:
+			var tinted: StyleBoxTexture = (textured as StyleBoxTexture).duplicate() as StyleBoxTexture
+			tinted.modulate_color = Color(1.0, 0.55, 0.5, 1.0)
+			return tinted
+		return textured
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.08, 0.07, 0.06, 0.92)
 	sb.set_border_width_all(2)
@@ -196,10 +208,61 @@ static func recipes_for_category(category: String) -> Array:
 static func has_craftable_recipes() -> bool:
 	return not CraftHelper.get_craftable_recipes().is_empty()
 
+static func list_cell_px() -> int:
+	return EquipmentUiTokens.INV_CELL_PX
+
+static func attach_item_icon(host: Control, item_id: String, category: String, cell_px: int) -> void:
+	for child in host.get_children():
+		child.queue_free()
+	var tex: Texture2D = IconPaths.get_icon_texture(item_id, category)
+	if tex == null:
+		var glyph := Label.new()
+		glyph.text = "?"
+		glyph.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		glyph.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		glyph.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		host.add_child(glyph)
+		return
+	var inset: int = EquipmentUiTokens.icon_inset_px(cell_px, EquipmentUiTokens.INV_CELL_DESIGN_PX)
+	var icon := TextureRect.new()
+	icon.texture = tex
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	icon.offset_left = inset
+	icon.offset_top = inset
+	icon.offset_right = -inset
+	icon.offset_bottom = -inset
+	host.add_child(icon)
+
+static func make_item_icon_cell(
+	item_id: String,
+	category: String,
+	rarity: int,
+	cell_px: int = -1,
+	highlight: bool = false
+) -> PanelContainer:
+	var px: int = cell_px if cell_px > 0 else list_cell_px()
+	var frame := PanelContainer.new()
+	frame.custom_minimum_size = Vector2(px, px)
+	frame.add_theme_stylebox_override(
+		"panel", EquipmentUiTokens.rarity_slot_style(rarity, highlight, px)
+	)
+	var host := Control.new()
+	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.add_child(host)
+	host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	attach_item_icon(host, item_id, category, px)
+	return frame
+
 static func rarity_color(rarity: int) -> Color:
 	return RARITY_COLORS[clampi(rarity, 0, RARITY_COLORS.size() - 1)]
 
-static func rarity_box(rarity: int, highlight: bool = true) -> StyleBoxFlat:
+static func rarity_box(rarity: int, highlight: bool = true) -> StyleBox:
+	var textured: StyleBox = ForgeUiTokens.item_cell_style(rarity, highlight)
+	if _texture_style_ok(textured):
+		return textured
 	var sb := StyleBoxFlat.new()
 	var col: Color = rarity_color(rarity)
 	sb.bg_color = Color(0.08, 0.07, 0.05, 0.92) if not highlight else Color(0.14, 0.12, 0.08, 1.0)
@@ -213,7 +276,7 @@ static func rarity_box(rarity: int, highlight: bool = true) -> StyleBoxFlat:
 	return sb
 
 static func cost_panel_style() -> StyleBox:
-	return CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
+	return StyleBoxEmpty.new()
 
 static func unique_panel_style() -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
@@ -249,9 +312,15 @@ static func primary_button_disabled() -> StyleBoxFlat:
 	return sb
 
 static func apply_primary_button(btn: Button) -> void:
-	btn.add_theme_stylebox_override("normal", primary_button_normal())
-	btn.add_theme_stylebox_override("hover", primary_button_hover())
-	btn.add_theme_stylebox_override("pressed", primary_button_hover())
+	var styled: StyleBox = ForgeUiTokens.produce_button_style()
+	if styled is StyleBoxTexture and (styled as StyleBoxTexture).texture != null:
+		btn.add_theme_stylebox_override("normal", styled)
+		btn.add_theme_stylebox_override("hover", styled)
+		btn.add_theme_stylebox_override("pressed", styled)
+	else:
+		btn.add_theme_stylebox_override("normal", primary_button_normal())
+		btn.add_theme_stylebox_override("hover", primary_button_hover())
+		btn.add_theme_stylebox_override("pressed", primary_button_hover())
 	btn.add_theme_stylebox_override("disabled", primary_button_disabled())
 	btn.add_theme_color_override("font_color", Color(0.98, 0.92, 0.72, 1.0))
 	btn.add_theme_color_override("font_disabled_color", Color(0.55, 0.52, 0.48, 1.0))
@@ -292,15 +361,84 @@ static func notify_dot_style() -> StyleBoxFlat:
 	return sb
 
 static func apply_mode_tab(btn: Button, active: bool) -> void:
-	var style := mode_tab_style(active)
+	var style: StyleBox = ForgeUiTokens.tab_active_style() if active else mode_tab_style(false)
 	btn.add_theme_stylebox_override("normal", style)
 	btn.add_theme_stylebox_override("hover", style)
 	btn.add_theme_stylebox_override("pressed", style)
-	btn.add_theme_font_size_override("font_size", 16 if active else 15)
+	btn.add_theme_font_size_override("font_size", 17 if active else 16)
+	var tab_font: Font = UiTypography.display_font()
+	if tab_font != null:
+		btn.add_theme_font_override("font", tab_font)
+	btn.add_theme_constant_override("outline_size", 3)
+	btn.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	btn.add_theme_color_override(
 		"font_color",
-		Color(0.98, 0.88, 0.48, 1.0) if active else Color(0.78, 0.74, 0.68, 1.0)
+		Color(0.98, 0.88, 0.48, 1.0) if active else Color(0.88, 0.84, 0.78, 1.0)
 	)
+
+static func output_subtitle(craft: Resource) -> String:
+	if craft == null:
+		return ""
+	match str(craft.output_type):
+		"weapon":
+			var wd: Resource = DataRegistry.get_weapon_data(str(craft.output_id))
+			if wd == null:
+				return ""
+			return "装備種別: %s" % CodexContentHelper.weapon_type_label(str(wd.weapon_type))
+		"armor":
+			return "装備種別: 防具"
+		"accessory":
+			return "装備種別: 装飾品"
+	return ""
+
+static func craft_stat_entries(craft: Resource) -> Array:
+	var entries: Array = []
+	if craft == null:
+		return entries
+	match str(craft.output_type):
+		"weapon":
+			var wd: Resource = DataRegistry.get_weapon_data(str(craft.output_id))
+			if wd == null:
+				return entries
+			entries.append({"key": "atk", "label": "攻撃力", "value": str(int(wd.base_attack))})
+			if float(wd.base_critical_rate) > 0.0:
+				entries.append({
+					"label": "クリティカル率",
+					"key": "crit",
+					"value": "%.0f%%" % (float(wd.base_critical_rate) * 100.0),
+				})
+			var effect_text: String = EquipmentItemDetailHelper.weapon_legendary_effect_text_from_data(wd)
+			if not effect_text.is_empty():
+				entries.append({
+					"key": "weapon_passive",
+					"label": "固有効果",
+					"value": effect_text,
+				})
+		"armor":
+			var ad: Resource = DataRegistry.get_armor_data(str(craft.output_id))
+			if ad == null:
+				return entries
+			entries.append({"key": "def", "label": "物理防御", "value": str(int(ad.base_defense))})
+			if int(ad.base_hp_bonus) > 0:
+				entries.append({"key": "hp", "label": "HP", "value": "+%d" % int(ad.base_hp_bonus)})
+		"accessory":
+			var ac: Resource = DataRegistry.get_accessory_data(str(craft.output_id))
+			if ac == null:
+				return entries
+			if int(ac.hp_bonus) > 0:
+				entries.append({"key": "hp", "label": "HP", "value": "+%d" % int(ac.hp_bonus)})
+			if int(ac.attack_bonus) > 0:
+				entries.append({"key": "atk", "label": "攻撃力", "value": "+%d" % int(ac.attack_bonus)})
+			if float(ac.crit_rate_bonus) > 0.0:
+				entries.append({
+					"key": "crit",
+					"label": "クリティカル率",
+					"value": "+%.0f%%" % (float(ac.crit_rate_bonus) * 100.0),
+				})
+	return entries
+
+static func _texture_style_ok(sb: StyleBox) -> bool:
+	return sb is StyleBoxTexture and (sb as StyleBoxTexture).texture != null
 
 static func apply_category_tab(btn: Button, active: bool) -> void:
 	var style := category_tab_style(active)

@@ -310,7 +310,7 @@ layout_mode = 1
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -52.0
+offset_top = -84.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_styles/panel = SubResource("SB_BottomNav")
@@ -328,6 +328,16 @@ text = "ホーム"
 layout_mode = 2
 size_flags_horizontal = 3
 text = "パーティ"
+
+[node name="NavCharacter" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "キャラ管理"
+
+[node name="NavEquipmentCatalog" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "装備一覧"
 
 [node name="NavAdventure" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2

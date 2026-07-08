@@ -1,6 +1,9 @@
 extends Node
 
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
+const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
+const _ArmorStatResolver = preload("res://scripts/equipment/ArmorStatResolver.gd")
+const _AccessoryStatResolver = preload("res://scripts/equipment/AccessoryStatResolver.gd")
 
 const SAVE_PATH: String = "user://save_data.json"
 
@@ -8,7 +11,7 @@ const SAVE_PATH: String = "user://save_data.json"
 ## `_migrate_save_data` に v(n)→v(n+1) の段階マイグレーションを追加する。
 ## v0 = バージョンフィールド無しの旧セーブ（レガシー party/equipment/job/dungeon id を含む）
 ## v1 = save_version フィールド導入（2026-07-02）
-const SAVE_VERSION: int = 1
+const SAVE_VERSION: int = 4
 
 func save_game() -> void:
 	var data: Dictionary = {
@@ -32,6 +35,8 @@ func save_game() -> void:
 		"daily_mission_state": GameState.daily_mission_state.duplicate(true),
 		"current_dungeon_tier": GameState.current_dungeon_tier,
 		"dungeon_tier_cleared": GameState.dungeon_tier_cleared.duplicate(true),
+		"current_stage_id": GameState.current_stage_id,
+		"stage_progress": GameState.stage_progress.duplicate(true),
 	}
 	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file == null:
@@ -61,7 +66,108 @@ func _migrate_save_data(data: Dictionary) -> Dictionary:
 	var version: int = int(data.get("save_version", 0))
 	if version > SAVE_VERSION:
 		push_warning("SaveManager: save_version %d is newer than supported %d — loading best-effort" % [version, SAVE_VERSION])
+	if version < 2:
+		data = _migrate_save_v1_to_v2(data)
+	if version < 3:
+		data = _migrate_save_v2_to_v3(data)
+	if version < 4:
+		data = _migrate_save_v3_to_v4(data)
 	data["save_version"] = SAVE_VERSION
+	return data
+
+func _migrate_save_v3_to_v4(data: Dictionary) -> Dictionary:
+	if data.has("owned_relics") and data["owned_relics"] is Array:
+		var relics: Array = []
+		for rid in data["owned_relics"]:
+			var norm: String = CombatPassives.migrate_relic_passive_id(str(rid))
+			if not norm.is_empty() and norm not in relics:
+				relics.append(norm)
+		data["owned_relics"] = relics
+	var roster_key: String = ""
+	if data.has("roster") and data["roster"] is Array:
+		roster_key = "roster"
+	elif data.has("party") and data["party"] is Array:
+		roster_key = "party"
+	if not roster_key.is_empty():
+		var roster: Array = []
+		for entry in data[roster_key]:
+			if not entry is Dictionary:
+				continue
+			var e: Dictionary = (entry as Dictionary).duplicate(true)
+			var relic_from_field: String = CombatPassives.migrate_relic_passive_id(str(e.get("relic_id", "")))
+			var passives: Array = e.get("equipped_passives", [])
+			if not passives is Array:
+				passives = []
+			var char_passives: Array = []
+			var relic_id: String = ""
+			for raw_pid in passives:
+				var pid: String = str(raw_pid)
+				if pid.is_empty():
+					continue
+				var migrated: String = CombatPassives.migrate_relic_passive_id(pid)
+				if CombatPassives.is_relic_passive(migrated):
+					if relic_id.is_empty():
+						relic_id = migrated
+					continue
+				char_passives.append(migrated if not migrated.is_empty() else pid)
+			if not relic_from_field.is_empty() and relic_id.is_empty():
+				relic_id = relic_from_field
+			var merged: Array = char_passives.duplicate()
+			if not relic_id.is_empty():
+				merged.append(relic_id)
+			e["equipped_passives"] = merged
+			e.erase("relic_id")
+			roster.append(e)
+		data[roster_key] = roster
+	if data.has("combat_presets") and data["combat_presets"] is Array:
+		var presets: Array = []
+		for preset in data["combat_presets"]:
+			if not preset is Dictionary:
+				continue
+			var p: Dictionary = (preset as Dictionary).duplicate(true)
+			if p.has("settings") and p["settings"] is Dictionary:
+				var settings: Dictionary = (p["settings"] as Dictionary).duplicate(true)
+				for mid in settings.keys():
+					var s = settings[mid]
+					if not s is Dictionary:
+						continue
+					var sd: Dictionary = (s as Dictionary).duplicate(true)
+					var relic_raw: String = str(sd.get("relic_passive_id", sd.get("relic_id", "")))
+					if not relic_raw.is_empty():
+						sd["relic_passive_id"] = CombatPassives.migrate_relic_passive_id(relic_raw)
+					sd.erase("relic_id")
+					settings[mid] = sd
+				p["settings"] = settings
+			presets.append(p)
+		data["combat_presets"] = presets
+	return data
+
+func _migrate_save_v2_to_v3(data: Dictionary) -> Dictionary:
+	if not data.has("stage_progress") or not data["stage_progress"] is Dictionary:
+		return data
+	var stage_progress: Dictionary = (data["stage_progress"] as Dictionary).duplicate(true)
+	for stage_id in stage_progress.keys():
+		var prog: Dictionary = stage_progress[stage_id]
+		if not prog is Dictionary:
+			continue
+		if bool(prog.get("cleared", false)) and not prog.has("tiers"):
+			prog["tiers"] = {str(_DungeonTierConfig.TIER_NORMAL): true}
+			stage_progress[stage_id] = prog
+	data["stage_progress"] = stage_progress
+	return data
+
+func _migrate_save_v1_to_v2(data: Dictionary) -> Dictionary:
+	var stage_progress: Dictionary = {}
+	if data.has("dungeon_progress") and data["dungeon_progress"] is Dictionary:
+		for dungeon_id in data["dungeon_progress"]:
+			var prog: Dictionary = data["dungeon_progress"][dungeon_id]
+			if not bool(prog.get("cleared", false)):
+				continue
+			var final_stage: Resource = DataRegistry.get_stage_by_chapter(str(dungeon_id), 5)
+			if final_stage != null:
+				stage_progress[str(final_stage.id)] = {"cleared": true}
+	if not stage_progress.is_empty():
+		data["stage_progress"] = stage_progress
 	return data
 
 func _serialize_enemy_codex() -> Dictionary:
@@ -111,11 +217,12 @@ func _serialize_adventurer(adv: Resource) -> Dictionary:
 		"equipped_armor": armor_instance_id,
 		"equipped_accessory": accessory_instance_id,
 		"equipped_skills": adv.equipped_skill_ids.duplicate(),
+		"equipped_passives": adv.equipped_passive_ids.duplicate(),
+		"passive_slots_customized": adv.passive_slots_customized,
 		"tactics_id": adv.tactics_id,
 		"tactics_custom_enabled": adv.tactics_custom_enabled,
 		"tactics_custom_target": adv.tactics_custom_target,
 		"tactics_custom_plan": _serialize_gambit_plan(adv.tactics_custom_plan),
-		"relic_id": adv.relic_id,
 		"formation_row": adv.formation_row,
 		"formation_slot": adv.formation_slot,
 	}
@@ -162,8 +269,15 @@ func _serialize_inventory() -> Array:
 			"weapon_id": item.weapon_id,
 			"is_appraised": item.is_appraised,
 			"rolled_attack": item.rolled_attack,
+			"element": str(item.element) if "element" in item else "",
+			"element_power": int(item.element_power) if "element_power" in item else -1,
+			"bane_class": str(item.bane_class) if "bane_class" in item else "",
+			"bane_multiplier": float(item.bane_multiplier) if "bane_multiplier" in item else 0.0,
 			"attack_speed": item.attack_speed,
 			"critical_rate": item.critical_rate,
+			"critical_damage": float(item.critical_damage) if "critical_damage" in item else 0.0,
+			"on_hit_status_id": str(item.on_hit_status_id) if "on_hit_status_id" in item else "",
+			"on_hit_status_chance": float(item.on_hit_status_chance) if "on_hit_status_chance" in item else 0.0,
 			"knockback": item.knockback,
 			"stagger_power": item.stagger_power,
 			"attack_range": item.attack_range,
@@ -171,6 +285,12 @@ func _serialize_inventory() -> Array:
 			"prefix_ids": _serialize_affix_ids(item.prefix_ids),
 			"suffix_ids": _serialize_affix_ids(item.suffix_ids),
 			"enhance_level": int(item.enhance_level),
+			"equip_level": EquipmentEnhancer.get_equip_level(item),
+			"equip_exp": EquipmentEnhancer.get_equip_exp(item),
+			"rolled_bonus_stats": _serialize_affix_ids(
+				item.rolled_bonus_stats if "rolled_bonus_stats" in item else []
+			),
+			"perfect_roll_count": int(item.perfect_roll_count) if "perfect_roll_count" in item else 0,
 		})
 	return out
 
@@ -185,6 +305,12 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.current_dungeon_tier = _DungeonTierConfig.clamp_tier(int(data["current_dungeon_tier"]))
 	if data.has("dungeon_tier_cleared") and data["dungeon_tier_cleared"] is Dictionary:
 		GameState.dungeon_tier_cleared = (data["dungeon_tier_cleared"] as Dictionary).duplicate(true)
+	if data.has("current_stage_id"):
+		GameState.current_stage_id = str(data["current_stage_id"])
+	if data.has("stage_progress") and data["stage_progress"] is Dictionary:
+		GameState.stage_progress = (data["stage_progress"] as Dictionary).duplicate(true)
+	GameState.sync_progress_from_stages()
+	GameState.sanitize_current_stage_id()
 	if data.has("discovery_registry") and data["discovery_registry"] is Dictionary:
 		GameState.discovery_registry = data["discovery_registry"]
 	if data.has("material_inventory") and data["material_inventory"] is Dictionary:
@@ -292,6 +418,12 @@ func _deserialize_party(party_data: Array) -> Dictionary:
 		for sid in saved_skills:
 			skill_ids.append(str(sid))
 		adv.equipped_skill_ids = skill_ids
+		var saved_passives: Array = entry.get("equipped_passives", [])
+		var passive_ids: Array[String] = []
+		for pid in saved_passives:
+			passive_ids.append(str(pid))
+		adv.equipped_passive_ids = passive_ids
+		adv.passive_slots_customized = bool(entry.get("passive_slots_customized", not passive_ids.is_empty()))
 		adv.tactics_id = str(entry.get("tactics_id", ""))
 		adv.tactics_custom_enabled = bool(entry.get("tactics_custom_enabled", false))
 		adv.tactics_custom_target = str(entry.get("tactics_custom_target", ""))
@@ -340,6 +472,7 @@ func _apply_roster_save(data: Dictionary) -> void:
 	GameState.normalize_base_roster()
 	GameState.normalize_roster_rarity()
 	GameState.normalize_all_equipped_skills()
+	GameState.normalize_all_equipped_passives()
 	_sync_gacha_roster_metadata()
 	_restore_active_party(data)
 
@@ -469,7 +602,19 @@ func _deserialize_inventory(inv_data: Array) -> Array:
 		item.weapon_id = entry.get("weapon_id", "")
 		item.is_appraised = bool(entry.get("is_appraised", false))
 		item.rolled_attack = int(entry.get("rolled_attack", 0))
-		item.attack_speed = float(entry.get("attack_speed", 1.0))
+		if entry.has("element"):
+			item.element = str(entry.get("element", ""))
+			item.element_power = int(entry.get("element_power", -1))
+			item.bane_class = str(entry.get("bane_class", ""))
+			item.bane_multiplier = float(entry.get("bane_multiplier", 0.0))
+			item.critical_damage = float(entry.get("critical_damage", 0.0))
+			if entry.has("on_hit_status_id"):
+				item.on_hit_status_id = str(entry.get("on_hit_status_id", ""))
+			if entry.has("on_hit_status_chance"):
+				item.on_hit_status_chance = float(entry.get("on_hit_status_chance", 0.0))
+		else:
+			_WeaponStatResolver.backfill_from_master(item)
+		item.attack_speed = float(entry.get("attack_speed", 0.0))
 		item.critical_rate = float(entry.get("critical_rate", 0.0))
 		item.knockback = float(entry.get("knockback", 0.0))
 		item.stagger_power = float(entry.get("stagger_power", entry.get("stun_power", 0.0)))
@@ -478,6 +623,12 @@ func _deserialize_inventory(inv_data: Array) -> Array:
 		item.prefix_ids = _deserialize_affix_ids(entry.get("prefix_ids", []))
 		item.suffix_ids = _deserialize_affix_ids(entry.get("suffix_ids", []))
 		item.enhance_level = int(entry.get("enhance_level", 0))
+		item.equip_level = int(entry.get("equip_level", 1))
+		item.equip_exp = int(entry.get("equip_exp", 0))
+		if entry.has("rolled_bonus_stats"):
+			item.rolled_bonus_stats = _deserialize_affix_ids(entry.get("rolled_bonus_stats", []))
+		if entry.has("perfect_roll_count"):
+			item.perfect_roll_count = int(entry.get("perfect_roll_count", 0))
 		items.append(item)
 	return items
 
@@ -489,12 +640,25 @@ func _serialize_armor_inventory() -> Array:
 			"armor_id": item.armor_id,
 			"rolled_defense": item.rolled_defense,
 			"hp_bonus": item.hp_bonus,
+			"resist_elements": item.resist_elements.duplicate() if "resist_elements" in item else [],
+			"resist_multiplier": float(item.resist_multiplier) if "resist_multiplier" in item else 0.0,
+			"exp_gain_rate": float(item.exp_gain_rate) if "exp_gain_rate" in item else 0.0,
+			"gold_gain_rate": float(item.gold_gain_rate) if "gold_gain_rate" in item else 0.0,
+			"rare_drop_rate": float(item.rare_drop_rate) if "rare_drop_rate" in item else 0.0,
+			"evasion_rate": float(item.evasion_rate) if "evasion_rate" in item else 0.0,
+			"status_immunities": item.status_immunities.duplicate() if "status_immunities" in item else [],
 			"resistance": item.resistance,
 			"weight": item.weight,
 			"rarity": item.rarity,
 			"is_appraised": item.is_appraised,
 			"prefix_ids": _serialize_affix_ids(item.prefix_ids),
 			"suffix_ids": _serialize_affix_ids(item.suffix_ids),
+			"equip_level": EquipmentEnhancer.get_equip_level(item),
+			"equip_exp": EquipmentEnhancer.get_equip_exp(item),
+			"rolled_bonus_stats": _serialize_affix_ids(
+				item.rolled_bonus_stats if "rolled_bonus_stats" in item else []
+			),
+			"perfect_roll_count": int(item.perfect_roll_count) if "perfect_roll_count" in item else 0,
 		})
 	return out
 
@@ -511,12 +675,34 @@ func _deserialize_armor_inventory(inv_data: Array) -> Array:
 		item.armor_id = entry.get("armor_id", "")
 		item.rolled_defense = int(entry.get("rolled_defense", 0))
 		item.hp_bonus = int(entry.get("hp_bonus", 0))
+		if entry.has("resist_elements"):
+			item.resist_elements = _deserialize_affix_ids(entry.get("resist_elements", []))
+		if entry.has("resist_multiplier"):
+			item.resist_multiplier = float(entry.get("resist_multiplier", 0.0))
+		if entry.has("exp_gain_rate"):
+			item.exp_gain_rate = float(entry.get("exp_gain_rate", 0.0))
+		if entry.has("gold_gain_rate"):
+			item.gold_gain_rate = float(entry.get("gold_gain_rate", 0.0))
+		if entry.has("rare_drop_rate"):
+			item.rare_drop_rate = float(entry.get("rare_drop_rate", 0.0))
+		if entry.has("evasion_rate"):
+			item.evasion_rate = float(entry.get("evasion_rate", 0.0))
+		if entry.has("status_immunities"):
+			item.status_immunities = _deserialize_affix_ids(entry.get("status_immunities", []))
+		if not entry.has("resist_elements"):
+			_ArmorStatResolver.backfill_from_master(item)
 		item.resistance = float(entry.get("resistance", 0.0))
 		item.weight = float(entry.get("weight", 1.0))
 		item.rarity = int(entry.get("rarity", 0))
 		item.is_appraised = bool(entry.get("is_appraised", false))
 		item.prefix_ids = _deserialize_affix_ids(entry.get("prefix_ids", []))
 		item.suffix_ids = _deserialize_affix_ids(entry.get("suffix_ids", []))
+		item.equip_level = int(entry.get("equip_level", 1))
+		item.equip_exp = int(entry.get("equip_exp", 0))
+		if entry.has("rolled_bonus_stats"):
+			item.rolled_bonus_stats = _deserialize_affix_ids(entry.get("rolled_bonus_stats", []))
+		if entry.has("perfect_roll_count"):
+			item.perfect_roll_count = int(entry.get("perfect_roll_count", 0))
 		items.append(item)
 	return items
 
@@ -526,9 +712,23 @@ func _serialize_accessory_inventory() -> Array:
 		out.append({
 			"instance_id": item.instance_id,
 			"accessory_id": item.accessory_id,
+			"hp_bonus": int(item.hp_bonus) if "hp_bonus" in item else 0,
+			"attack_bonus": int(item.attack_bonus) if "attack_bonus" in item else 0,
+			"defense_bonus": int(item.defense_bonus) if "defense_bonus" in item else 0,
+			"crit_rate_bonus": float(item.crit_rate_bonus) if "crit_rate_bonus" in item else 0.0,
+			"evasion_rate": float(item.evasion_rate) if "evasion_rate" in item else 0.0,
+			"exp_gain_rate": float(item.exp_gain_rate) if "exp_gain_rate" in item else 0.0,
+			"gold_gain_rate": float(item.gold_gain_rate) if "gold_gain_rate" in item else 0.0,
+			"rare_drop_rate": float(item.rare_drop_rate) if "rare_drop_rate" in item else 0.0,
 			"is_appraised": item.is_appraised,
 			"prefix_ids": _serialize_affix_ids(item.prefix_ids),
 			"suffix_ids": _serialize_affix_ids(item.suffix_ids),
+			"equip_level": EquipmentEnhancer.get_equip_level(item),
+			"equip_exp": EquipmentEnhancer.get_equip_exp(item),
+			"rolled_bonus_stats": _serialize_affix_ids(
+				item.rolled_bonus_stats if "rolled_bonus_stats" in item else []
+			),
+			"perfect_roll_count": int(item.perfect_roll_count) if "perfect_roll_count" in item else 0,
 		})
 	return out
 
@@ -543,9 +743,26 @@ func _deserialize_accessory_inventory(inv_data: Array) -> Array:
 		var item = instance_class.new()
 		item.instance_id = entry.get("instance_id", "")
 		item.accessory_id = entry.get("accessory_id", "")
+		if entry.has("hp_bonus"):
+			item.hp_bonus = int(entry.get("hp_bonus", 0))
+			item.attack_bonus = int(entry.get("attack_bonus", 0))
+			item.defense_bonus = int(entry.get("defense_bonus", 0))
+			item.crit_rate_bonus = float(entry.get("crit_rate_bonus", 0.0))
+			item.evasion_rate = float(entry.get("evasion_rate", 0.0))
+			item.exp_gain_rate = float(entry.get("exp_gain_rate", 0.0))
+			item.gold_gain_rate = float(entry.get("gold_gain_rate", 0.0))
+			item.rare_drop_rate = float(entry.get("rare_drop_rate", 0.0))
+		else:
+			_AccessoryStatResolver.backfill_from_master(item)
 		item.is_appraised = bool(entry.get("is_appraised", false))
 		item.prefix_ids = _deserialize_affix_ids(entry.get("prefix_ids", []))
 		item.suffix_ids = _deserialize_affix_ids(entry.get("suffix_ids", []))
+		item.equip_level = int(entry.get("equip_level", 1))
+		item.equip_exp = int(entry.get("equip_exp", 0))
+		if entry.has("rolled_bonus_stats"):
+			item.rolled_bonus_stats = _deserialize_affix_ids(entry.get("rolled_bonus_stats", []))
+		if entry.has("perfect_roll_count"):
+			item.perfect_roll_count = int(entry.get("perfect_roll_count", 0))
 		items.append(item)
 	return items
 

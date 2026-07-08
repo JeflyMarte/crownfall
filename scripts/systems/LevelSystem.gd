@@ -46,8 +46,17 @@ static func grant_exp(adventurer: Resource, amount: int) -> int:
 	if adventurer.level >= MAX_LEVEL:
 		adventurer.exp = 0
 		return 0
+	var exp_mult: float = 1.0
+	for member in GameState.party_members:
+		if member == adventurer:
+			var idx: int = GameState.party_members.find(member)
+			if idx >= 0:
+				var mods: Dictionary = CombatPassives.skill_stat_modifiers_for_member(idx)
+				exp_mult = float(mods.get("exp_gain_mult", 1.0))
+			break
+	exp_mult *= CombatPassives.party_exp_mult()
 	var gained: int = 0
-	adventurer.exp += amount
+	adventurer.exp += maxi(0, int(round(float(amount) * exp_mult)))
 	while adventurer.level < MAX_LEVEL and adventurer.exp >= exp_to_next(adventurer.level):
 		adventurer.exp -= exp_to_next(adventurer.level)
 		adventurer.level += 1

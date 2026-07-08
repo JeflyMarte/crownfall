@@ -6,7 +6,8 @@
 script = ExtResource("1")
 id = "eldion_frostbrand"
 display_name = "始祖竜の氷焔剣エルディオン・ブランド"
-fixed_skill_id = "rime_touch"
+fixed_skill_id = ""
+fixed_passive_id = "eq_wpn_eldion_frostbrand"
 base_attack = 62
 rarity = 3
 base_attack_speed = 1.0

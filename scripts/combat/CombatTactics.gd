@@ -31,6 +31,7 @@ const _DEFS: Dictionary = {
 	# ultimate_ready 条件自体はカスタム戦術（ガンビット）用に温存。
 	"balanced": {
 		"display_name": "バランス",
+		"summary_hint": "標準立ち回り。ボス・エリートで必殺、ピンチで防御。",
 		"target": "front",
 		"plan": [
 			{"slot": "ultimate", "condition": "enemy_is_boss"},
@@ -42,6 +43,7 @@ const _DEFS: Dictionary = {
 	},
 	"aggressive": {
 		"display_name": "積極攻撃",
+		"summary_hint": "火力優先。弱った敵を狙い、スキルを積極的に使う。",
 		"target": "lowest_hp",
 		"plan": [
 			{"slot": "ultimate", "condition": "enemy_is_boss"},
@@ -55,6 +57,7 @@ const _DEFS: Dictionary = {
 	},
 	"cautious": {
 		"display_name": "慎重",
+		"summary_hint": "生存寄り。早めに防御し、後衛の敵を狙う。",
 		"target": "back",
 		"plan": [
 			{"slot": "defend", "condition": "self_hp_below", "value": 0.50},
@@ -67,6 +70,7 @@ const _DEFS: Dictionary = {
 	},
 	"survival": {
 		"display_name": "生存優先",
+		"summary_hint": "とにかく耐える。危なくなったら防御を優先。",
 		"target": "lowest_hp",
 		"plan": [
 			{"slot": "defend", "condition": "self_hp_below", "value": 0.60},
@@ -78,6 +82,7 @@ const _DEFS: Dictionary = {
 	},
 	"boss_focus": {
 		"display_name": "ボス集中",
+		"summary_hint": "強敵に火力集中。HPの高い敵を優先。",
 		"target": "highest_hp",
 		"plan": [
 			{"slot": "ultimate", "condition": "enemy_is_boss"},
@@ -89,6 +94,7 @@ const _DEFS: Dictionary = {
 	},
 	"sweep": {
 		"display_name": "雑魚掃討",
+		"summary_hint": "複数敵・デバフ中の敵を優先して処理。",
 		"target": "enemy_with_debuff",
 		"plan": [
 			{"slot": "ultimate", "condition": "enemy_count_gte", "value": 2},
@@ -123,6 +129,9 @@ static func normalize_id(tactics_id: String) -> String:
 
 static func display_name(tactics_id: String) -> String:
 	return str(_DEFS[normalize_id(tactics_id)]["display_name"])
+
+static func summary_hint(tactics_id: String) -> String:
+	return str(_DEFS[normalize_id(tactics_id)].get("summary_hint", ""))
 
 # 優先度順のスロット計画を返す。
 static func get_slot_plan(tactics_id: String) -> Array:

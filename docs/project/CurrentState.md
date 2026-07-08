@@ -4,6 +4,50 @@
 
 ## Last Update
 
+2026-07-08（**P3-WPN-LEG-EFFECT**: レジェンド武器10本→`fixed_passive_id`固有効果・`leg_*`廃止）
+
+2026-07-08（**P3-RELIC-PASSIVE 案A**: 遺物→レリックパッシブ統合・パッシブタブ2枠・Save v4・`CombatPassives` SSOT）
+
+2026-07-07（**P3-UX-GAMBIT-002 行動ルールUI スキル名表示**: 使う技/いつ使うか・skill_index・個別発動・防御含む）
+
+2026-07-07（**P3-UX-GAMBIT-001 行動ルールUI**: ガンビット非表示・アコーディオン・プリセット一行サマリー・行プレビュー・HP%・射程日本語）
+
+2026-07-07（**P3-UX-RESULT-001〜004 結果ウィザード**: 報酬→LvUPバー→MVP・30秒遷移・戦闘統計）
+
+2026-07-07（**P3-VFX-STATUS-001 状態異常VFX**: `CombatVfxManager`・付与バースト/常駐オーラ8種/DoT tick・`DungeonScene` 配線）
+
+2026-07-07（**P3-SKILL-LEG-001 レジェンド武器固有スキル**: 10本 `leg_*` 新設・武器 `fixed_skill_id` 差替・汎用属性斬撃は非レジェンド維持）
+
+2026-07-07（**P3-EQ-LVL-001 装備レベル**: 案B全装備 equip_level・Biome連動ドロップ±1・戦闘勝利で装備EXP・`EquipmentEnhancer`）
+
+2026-07-07（**P3-EQ-LEG-001 防具・装飾レジェンド**: 案C= x-5 初回ボス（ノーマル）確定★ + `fixed_passive_id`/`CombatPassives` 配線。①PoC=`serdion_ward_plate`/`mourngate_royal_seal`・`mourngate_1_5` 登録。②〜⑤横展開は次 Task）
+
+2026-07-06（**P3-UI-GACHA 召喚所モック寄せ Closeout**: D-GACHA-1〜7 — タイトル「英雄召喚」・3タブ chrome（ノーマルのみ有効）・HeroBanner/Pity/カルーセル/SummonActionBar・10連リボン「★3以上1体確定」（押下不可）・確率詳細オーバーレイ・Reveal `UiTypography` polish・`GachaUiTokens`/`GachaUiHelper`・`generate_gacha_ui_assets.py` 17枚・`ui_audit` gacha_detail/gacha_reveal。ロジック不変（単発のみ・天井30）。unit 151 PASS・smoke PASS）
+
+2026-07-06（**P3-DG-STG-003 全25章名**: ②〜⑤ 章名確定 — **オーナー承認**。SSOT=`03`/`05_Biomes`/`game/05`。Impl **保留**（P3-DG-OMIT-001））
+
+2026-07-06（**P3-DG-OMIT-001**: side/apex・サブステージ(1-1分割)を一旦オミット — `SUB_DUNGEONS_PLAYABLE=false`）
+
+2026-07-06（**P3-DG-STG-003 ①章名**: 1-1崩れた地下水路〜1-5王座の深淵 — **GO**。Impl **保留**（P3-DG-OMIT-001））
+
+2026-07-06（**P3-ENEMY-001 敵プール拡充・章別 spawn 重み**: 雑魚6〜7種/Biome・`codex_danger`重み SSOT・5Biome×5章表 — **オーナー GO**。spawn Impl=P3-DG-STG PoC 同梱・新種+8〜12は別 Task）
+
+2026-07-06（**P3-DG-STG-002 階層表**: メイン5Biome×5章 floor/enemy_level — **オーナー承認**。Impl 保留）
+
+2026-07-06（**P3-EVT-002 イベント A+B+D**: outcome 演出~0.6s / ラン内去重 / ①生態素材差し替え+②〜⑤ label Biome 化。Decision P3-EVT-002。unit 91 PASS）
+
+2026-07-06（**P3-UX-006 宝箱開封演出**: Closed→Open 差し替え+shake+金粒子。`generate_env_and_vfx.py` Biome別 Closed/Open。Decision P3-UX-006。unit 88 PASS）
+
+2026-07-06（**P3-UX-005 エリート登場演出**: 案D=金 `ELITE` テロップ+枠pulse+敵スライド。部屋トランジション金粒子。周回短縮。Decision P3-UX-005。unit 88 PASS）
+
+2026-07-06（**P3-UX-004 ボス登場演出**: 毎回フル `WARNING` 赤テロップ+shake+落石+pop。周回 `_fast_run_enabled` は短縮版。Decision P3-UX-004。unit 88 PASS）
+
+2026-07-06（**P3-UX-003 潜入演出 A〜E**: イントロ+Biomeバナー / 部屋種別トランジション / パーティ登場 / ランHUD。Decision P3-UX-003。unit 88 PASS）
+
+2026-07-06（**P3-UX-002-D 戦闘演出横展開**: 敵詠唱ThreatBanner / 瀕死赤枠 / 必殺ready金枠 / CRITICAL・大ダメ shake+flash。`CombatUiFrames` 枠3種追加。unit 88 PASS）
+
+2026-07-06（**P3-UX-002 戦闘可読性 段1**: E=Now Playing 帯 / F=[戦術]ログ / G=ターン順バッジ（攻技必防詠）。`CombatGambit.condition_summary`・Decision P3-UX-002。unit 88 PASS）
+
 2026-07-04（**P3-UI-DG-001 ダンジョン選択モック再構成**: 案C=Featured全幅バナー+Biome直列カード（メイン/寄り道）・HFlow/階層一覧撤去・Footer=EventSystemのみ・Headerスタミナなし。unit 86 PASS・smoke PASS）
 
 2026-07-03（**P3-EVO-TRAIT-001 昇格特質**: 進化Lv30・職ごと常時パッシブ2つ（遠旅/聖遺甲虫と別系統）。`EvolutionTraits`・中央倍率フック10本。unit 86 PASS・smoke PASS）
@@ -249,11 +293,16 @@
 | — | **P3-WANDER-001** | 遍在希少種（遠旅スズメ/聖遺甲虫） | Impl | ✅ **Closeout** |
 | — | **P3-EVO-TRAIT-001** | 昇格特質×2 + 進化Lv30 | Impl | ✅ **Closeout** |
 | — | **P3-UI-DG-001** | ダンジョン選択モック再構成（案C） | Impl | ✅ **Closeout** |
+| — | **P3-UI-GACHA** | 召喚所モック寄せ（chrome+Reveal+監査） | Impl | ✅ **Closeout** |
 | — | P3-D157 | ダンジョン解放条件（①クリア→②解放 等） | Impl | ✅ **Closeout** |
 | — | P3-D158 | ダメージ±乱数（ブレークポイント緩和・P3-D153-4） | Impl | ✅ **Closeout（P3-BAL-008）** |
 | — | P3-DAILY-B | 日課 UI polish | Impl | 任意 |
 | — | P3-UI2-026 | 召喚 SE/パーティクル | Impl | Defer（音源なし） |
 | — | 029 占位整理 | ⚡/挑戦回数 UI 削除（任意） | Impl | 未計画 |
+| **2** | **P3-DG-STG-001** | サブステージ PoC（mourngate 1-1〜1-5）+ `spawn_weights` | Impl | **P3-DG-OMIT-001 で保留** |
+| **3** | **P3-EQ-LVL-001** | 装備レベル（全装備・BiomeドロップLv） | Impl | ✅ **Closeout** |
+| **4** | **P3-EQ-LEG-002** | 防具・装飾★ ②〜⑤横展開 | Impl | 未着手 |
+| **5** | **P3-ENEMY-002** | 新雑魚 +8〜12 | HQ+Impl | **Decision済・未着手** |
 
 **凍結（Decision まで着手しない）:** 天候本格 / 週間日課 / 10連ガチャ / 6装備枠 / Affix本格 / 位置AI本格 / 探索手動+CD。
 

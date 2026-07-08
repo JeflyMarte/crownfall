@@ -40,9 +40,8 @@ var _formation_cells: Array[PanelContainer] = []
 @onready var _main_scroll: ScrollContainer = $MainScroll
 @onready var _label_gold: Label = $Header/HeaderRow/GoldChip/GoldRow/LabelGold
 @onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
-@onready var _label_power: Label = $MainScroll/MainVBox/PowerRow/LabelPower
+@onready var _label_power: Label = $MainScroll/MainVBox/PowerSection/LabelPower
 @onready var _active_party_row: HBoxContainer = $MainScroll/MainVBox/ActivePartyScroll/ActivePartyRow
-@onready var _leader_strip: PanelContainer = $MainScroll/MainVBox/LeaderStrip
 @onready var _roster_grid: GridContainer = $MainScroll/MainVBox/RosterGrid
 @onready var _label_status: Label = $MainScroll/MainVBox/LabelStatus
 @onready var _formation_overlay: CanvasLayer = $FormationOverlay
@@ -52,8 +51,8 @@ var _formation_cells: Array[PanelContainer] = []
 func _ready() -> void:
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.PARTY)
 	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)
-	$MainScroll/MainVBox/PowerRow/ButtonRecommend.pressed.connect(_on_recommend_pressed)
-	$MainScroll/MainVBox/PowerRow/ButtonFormation.pressed.connect(_open_formation_overlay)
+	$MainScroll/MainVBox/PowerSection/PowerButtonRow/ButtonRecommend.pressed.connect(_on_recommend_pressed)
+	$MainScroll/MainVBox/PowerSection/PowerButtonRow/ButtonFormation.pressed.connect(_open_formation_overlay)
 	$MainScroll/MainVBox/ListHeader/ButtonSort.pressed.connect(_on_sort_pressed)
 	$MainScroll/MainVBox/ListHeader/ButtonRoleFilter.pressed.connect(_on_role_filter_pressed)
 	$FooterRow/ButtonReset.pressed.connect(_on_reset_pressed)
@@ -99,12 +98,15 @@ func _configure_layout() -> void:
 	_roster_grid.add_theme_constant_override("v_separation", GRID_H_SEPARATION)
 	_active_party_row.add_theme_constant_override("separation", SLOT_H_SEPARATION)
 	_main_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var content_w: float = _layout_content_width()
+	if content_w > 1.0:
+		_main_vbox.custom_minimum_size.x = content_w
 	_roster_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_active_party_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_active_party_row.custom_minimum_size = Vector2(0, _active_card_min_height())
 
 func _apply_typography() -> void:
-	UiTypography.apply_screen_title($Header/HeaderRow/LabelTitle, UiTypography.SIZE_BODY_SMALL)
+	$Header/HeaderRow/LabelTitle.text = ""
 	UiTypography.apply_body(_label_gold, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_body(_label_token, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_display(_label_power, UiTypography.SIZE_BODY_SMALL)
@@ -123,12 +125,14 @@ func _apply_toolbar_buttons() -> void:
 	var compact := _compact_toolbar_style()
 	var specs: Array[Dictionary] = [
 		{
-			"path": "MainScroll/MainVBox/PowerRow/ButtonRecommend",
-			"min": Vector2(108, TOOLBAR_BTN_H),
+			"path": "MainScroll/MainVBox/PowerSection/PowerButtonRow/ButtonRecommend",
+			"min": Vector2(0, TOOLBAR_BTN_H),
+			"expand": true,
 		},
 		{
-			"path": "MainScroll/MainVBox/PowerRow/ButtonFormation",
-			"min": Vector2(64, TOOLBAR_BTN_H),
+			"path": "MainScroll/MainVBox/PowerSection/PowerButtonRow/ButtonFormation",
+			"min": Vector2(0, TOOLBAR_BTN_H),
+			"expand": true,
 		},
 		{
 			"path": "MainScroll/MainVBox/ListHeader/ButtonSort",
@@ -145,7 +149,7 @@ func _apply_toolbar_buttons() -> void:
 		var btn: Button = get_node(str(spec["path"]))
 		UiTypography.apply_menu_button(btn, false)
 		btn.add_theme_font_size_override("font_size", UiTypography.SIZE_CAPTION)
-		btn.clip_text = false
+		btn.clip_text = true
 		btn.custom_minimum_size = spec["min"]
 		btn.size_flags_horizontal = (
 			Control.SIZE_EXPAND_FILL if bool(spec.get("expand", false))
@@ -190,9 +194,6 @@ func _active_card_min_height() -> int:
 	return int(float(_slot_card_width()) * 1.62)
 
 func _apply_panel_styles() -> void:
-	_leader_strip.add_theme_stylebox_override(
-		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
-	)
 	$FormationOverlay/FormationPanel.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_NORMAL)
 	)
@@ -207,7 +208,6 @@ func _refresh_all() -> void:
 	_update_currency()
 	_refresh_power_label()
 	_rebuild_active_party_row()
-	_refresh_leader_strip()
 	_rebuild_roster_grid()
 	_refresh_formation_grid()
 	_update_save_button()
@@ -330,15 +330,9 @@ func _make_active_party_card(slot_index: int) -> Control:
 	UiTypography.apply_body(job_lbl, UiTypography.SIZE_CAPTION)
 	vbox.add_child(job_lbl)
 	var stats: Dictionary = RosterUiHelper.compute_member_stats(member, _party_index_for_member(member))
-	var stat_lbl := Label.new()
-	stat_lbl.text = "%s\n%s\n%s" % [
-		RosterUiHelper.stat_line("攻撃力", int(stats.get("attack", 0))),
-		RosterUiHelper.stat_line("防御力", int(stats.get("defense", 0))),
-		RosterUiHelper.stat_line("HP", int(stats.get("hp", 0))),
-	]
-	stat_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UiTypography.apply_body(stat_lbl, UiTypography.SIZE_CAPTION, COLOR_SUB)
-	vbox.add_child(stat_lbl)
+	vbox.add_child(_make_card_stat_row("attack", "攻撃力", int(stats.get("attack", 0))))
+	vbox.add_child(_make_card_stat_row("defense", "防御力", int(stats.get("defense", 0))))
+	vbox.add_child(_make_card_stat_row("hp", "HP", int(stats.get("hp", 0))))
 	var row_lbl := Label.new()
 	var is_back: bool = GameState.get_member_formation_row(member) == GameState.FORMATION_BACK
 	row_lbl.text = "後列" if is_back else "前列"
@@ -355,6 +349,32 @@ func _make_active_party_card(slot_index: int) -> Control:
 	if _active_pick_slot == slot_index:
 		panel.add_theme_stylebox_override("panel", _pick_style())
 	return panel
+
+func _make_card_stat_row(stat_key: String, label_text: String, value: int) -> Control:
+	const CARD_STAT_ICON_PX: int = 16
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 4)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var tex: Texture2D = EquipmentUiTokens.stat_icon(stat_key)
+	if tex != null:
+		var icon := TextureRect.new()
+		icon.texture = tex
+		icon.custom_minimum_size = Vector2(CARD_STAT_ICON_PX, CARD_STAT_ICON_PX)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(icon)
+	var name_lbl := Label.new()
+	name_lbl.text = label_text
+	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_body(name_lbl, UiTypography.SIZE_CAPTION, COLOR_SUB)
+	row.add_child(name_lbl)
+	var val_lbl := Label.new()
+	val_lbl.text = str(value)
+	val_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	UiTypography.apply_body(val_lbl, UiTypography.SIZE_CAPTION, UiTypography.COLOR_BODY)
+	row.add_child(val_lbl)
+	return row
 
 func _make_leader_badge_row(is_leader: bool) -> Control:
 	var row := CenterContainer.new()
@@ -406,48 +426,6 @@ func _on_detail_pressed(member: Resource) -> void:
 		roster_idx = 0
 	GameState.equipment_focus_member_index = roster_idx
 	SceneRouter.change_scene(EQUIPMENT_SCENE)
-
-func _refresh_leader_strip() -> void:
-	for child in _leader_strip.get_children():
-		child.queue_free()
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 10)
-	_leader_strip.add_child(row)
-	var crown := Label.new()
-	crown.text = "♛"
-	crown.add_theme_font_size_override("font_size", 34)
-	crown.add_theme_color_override("font_color", COLOR_GOLD)
-	crown.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	row.add_child(crown)
-	var info := VBoxContainer.new()
-	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	info.add_theme_constant_override("separation", 2)
-	row.add_child(info)
-	var leader: Resource = _formation_slots[0]
-	if leader == null:
-		var empty_title := Label.new()
-		empty_title.text = "リーダー未設定"
-		UiTypography.apply_body(empty_title, UiTypography.SIZE_CAPTION, COLOR_GOLD)
-		info.add_child(empty_title)
-		var empty_desc := Label.new()
-		empty_desc.text = "編成の先頭スロットにキャラを配置してください。"
-		empty_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		UiTypography.apply_body(empty_desc, UiTypography.SIZE_CAPTION, COLOR_SUB)
-		info.add_child(empty_desc)
-		return
-	var skill: Dictionary = RosterUiHelper.leader_skill_display(leader)
-	var title := Label.new()
-	title.text = "%s — %s" % [
-		RosterUiHelper.short_display_name(str(leader.display_name)),
-		str(skill.get("name", "—")),
-	]
-	UiTypography.apply_body(title, UiTypography.SIZE_CAPTION, COLOR_GOLD)
-	info.add_child(title)
-	var desc := Label.new()
-	desc.text = str(skill.get("description", ""))
-	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	UiTypography.apply_body(desc, UiTypography.SIZE_CAPTION, COLOR_SUB)
-	info.add_child(desc)
 
 func _rebuild_roster_grid() -> void:
 	for child in _roster_grid.get_children():
@@ -652,7 +630,6 @@ func _close_formation_overlay() -> void:
 	_formation_pick_slot = -1
 	_refresh_formation_grid()
 	_rebuild_active_party_row()
-	_refresh_leader_strip()
 	_refresh_power_label()
 
 func _on_formation_dim_input(event: InputEvent) -> void:

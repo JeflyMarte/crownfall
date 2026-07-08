@@ -114,7 +114,10 @@ static func build_weapon_description(data: Resource) -> String:
 	lines.append(" ｜ ".join(stats))
 
 	var skill_id: String = str(data.fixed_skill_id)
-	if not skill_id.is_empty():
+	var passive_text: String = EquipmentItemDetailHelper.weapon_legendary_effect_text_from_data(data)
+	if not passive_text.is_empty():
+		lines.append("固有効果: %s" % passive_text)
+	elif not skill_id.is_empty():
 		var skill_data: Resource = DataRegistry.get_skill_data(skill_id)
 		var skill_name: String = skill_id
 		if skill_data != null and not skill_data.display_name.is_empty():

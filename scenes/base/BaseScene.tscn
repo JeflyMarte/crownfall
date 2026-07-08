@@ -78,7 +78,7 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_bottom = -52.0
+offset_bottom = -84.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -247,47 +247,6 @@ theme_override_font_sizes/font_size = 13
 [node name="SepMenu" type="HSeparator" parent="HubView/LeftMenuPanel/MenuScroll/MenuVBox"]
 layout_mode = 2
 
-[node name="EventBanner" type="PanelContainer" parent="HubView"]
-layout_mode = 1
-offset_left = 212.0
-offset_top = 720.0
-offset_right = 708.0
-offset_bottom = 860.0
-
-[node name="EventVBox" type="HBoxContainer" parent="HubView/EventBanner"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="EventTextCol" type="VBoxContainer" parent="HubView/EventBanner/EventVBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 4
-
-[node name="LabelEventTag" type="Label" parent="HubView/EventBanner/EventVBox/EventTextCol"]
-layout_mode = 2
-text = "新イベント開催中！"
-theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
-theme_override_font_sizes/font_size = 12
-
-[node name="LabelEventTitle" type="Label" parent="HubView/EventBanner/EventVBox/EventTextCol"]
-layout_mode = 2
-text = "深淵の回廊"
-theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
-theme_override_font_sizes/font_size = 18
-
-[node name="LabelEventDesc" type="Label" parent="HubView/EventBanner/EventVBox/EventTextCol"]
-layout_mode = 2
-text = "準備中 — 近日公開"
-theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
-theme_override_font_sizes/font_size = 11
-
-[node name="LabelEventTimer" type="Label" parent="HubView/EventBanner/EventVBox"]
-layout_mode = 2
-size_flags_vertical = 0
-text = "残り —"
-theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
-theme_override_font_sizes/font_size = 11
-
 [node name="CurrencyStrip" type="PanelContainer" parent="HubView"]
 layout_mode = 1
 offset_left = 12.0
@@ -339,7 +298,7 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_top = 88.0
-offset_bottom = -52.0
+offset_bottom = -84.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -378,7 +337,7 @@ layout_mode = 1
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -52.0
+offset_top = -84.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_styles/panel = SubResource("SB_BottomNav")
@@ -396,6 +355,16 @@ text = "ホーム"
 layout_mode = 2
 size_flags_horizontal = 3
 text = "パーティ"
+
+[node name="NavCharacter" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "キャラ管理"
+
+[node name="NavEquipmentCatalog" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "装備一覧"
 
 [node name="NavAdventure" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2

@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "helper_e"
-display_name = "ミラ（Mira）"
+display_name = "ミラ"
 job_id = "beast_tamer"
 origin_note = "翠の盟約の系譜を継ぐ獣使い。ヴェルディアの集落出身"
 rarity = 3

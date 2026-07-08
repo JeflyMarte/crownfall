@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "helper_j"
-display_name = "ユナ（Yuna）"
+display_name = "ユナ"
 job_id = "beast_tamer"
 origin_note = "ノースリーチ帰りの古龍種調査者。氷竜の幼体を連れ歩く"
 rarity = 4

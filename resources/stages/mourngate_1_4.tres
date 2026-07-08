@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="DungeonStageData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonStageData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "mourngate_1_4"
+biome_id = "mourngate"
+biome_index = 1
+chapter_index = 4
+display_name = "封鎖監獄"
+floor_count = 8
+enemy_level = 4
+recommended_level = 6
+closing_type = "exit"
+requires_elite = true
+spawn_weights = {
+"1": 15,
+"2": 75,
+"3": 10
+}
+event_room_weight = 20
+min_event_rooms = 1

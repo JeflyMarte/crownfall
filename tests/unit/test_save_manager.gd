@@ -7,6 +7,7 @@ extends GutTest
 
 const SAVE_PATH: String = "user://save_data.json"
 const BACKUP_PATH: String = "user://save_data.json.p3test_bak"
+const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 
 var _had_real_save: bool = false
 
@@ -39,7 +40,8 @@ func _reset_game_state() -> void:
 	GameState.owned_helpers = {}
 	GameState.owned_relics = []
 	GameState.current_dungeon_id = Constants.DEFAULT_DUNGEON_ID
-
+	GameState.current_stage_id = ""
+	GameState.stage_progress = {}
 func _write_raw_save(text: String) -> void:
 	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	assert_not_null(file, "テスト用セーブファイルを開けること")
@@ -176,6 +178,27 @@ func test_load_partial_keys_applies_only_present() -> void:
 	SaveManager.load_game()
 	assert_eq(GameState.gold, 500, "存在するキーは適用")
 	assert_eq(GameState.gacha_token, 99, "欠損キーは既存値を維持")
+
+func test_roundtrip_restores_stage_progress() -> void:
+	GameState.mark_stage_cleared("mourngate_1_1")
+	GameState.stage_progress["mourngate_1_2"] = {"cleared": true, "tiers": {"0": true}}
+	GameState.current_stage_id = "mourngate_1_2"
+	SaveManager.save_game()
+	GameState.stage_progress = {}
+	GameState.current_stage_id = ""
+	SaveManager.load_game()
+	assert_true(GameState.is_stage_cleared("mourngate_1_2"))
+	assert_eq(GameState.current_stage_id, "mourngate_1_2")
+
+func test_migrate_v2_stage_progress_adds_tiers() -> void:
+	var migrated: Dictionary = SaveManager._migrate_save_data({
+		"save_version": 2,
+		"stage_progress": {
+			"mourngate_1_1": {"cleared": true},
+		},
+	})
+	var prog: Dictionary = migrated["stage_progress"]["mourngate_1_1"]
+	assert_true(bool(prog["tiers"][str(_DungeonTierConfig.TIER_NORMAL)]))
 
 # ── e) save_version スキーマバージョン ───────────────────────────────────────
 

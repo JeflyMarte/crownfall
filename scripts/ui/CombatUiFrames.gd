@@ -11,6 +11,9 @@ const TIER_ELITE: String = "elite"
 const TIER_BOSS: String = "boss"
 const TIER_CARD: String = "card"
 const TIER_CARD_ACTIVE: String = "card_active"
+const TIER_CARD_CRITICAL: String = "card_critical"
+const TIER_CARD_ULTIMATE: String = "card_ultimate"
+const TIER_THREAT: String = "threat"
 
 static func _frame_texture() -> Texture2D:
 	if not ResourceLoader.exists(FRAME_TEXTURE_PATH):
@@ -48,6 +51,24 @@ static func panel_style(tier: String) -> StyleBoxTexture:
 			style.content_margin_top = 8.0
 			style.content_margin_right = 8.0
 			style.content_margin_bottom = 8.0
+		TIER_CARD_CRITICAL:
+			style.modulate_color = Color(1.18, 0.38, 0.32, 1.0)
+			style.content_margin_left = 8.0
+			style.content_margin_top = 8.0
+			style.content_margin_right = 8.0
+			style.content_margin_bottom = 8.0
+		TIER_CARD_ULTIMATE:
+			style.modulate_color = Color(1.14, 0.92, 0.34, 1.0)
+			style.content_margin_left = 8.0
+			style.content_margin_top = 8.0
+			style.content_margin_right = 8.0
+			style.content_margin_bottom = 8.0
+		TIER_THREAT:
+			style.modulate_color = Color(1.05, 0.42, 0.36, 0.96)
+			style.content_margin_left = 10.0
+			style.content_margin_top = 6.0
+			style.content_margin_right = 10.0
+			style.content_margin_bottom = 6.0
 		TIER_CARD:
 			style.modulate_color = Color(0.82, 0.74, 0.58, 0.98)
 			style.content_margin_left = 8.0
@@ -68,6 +89,8 @@ static func vignette_color(tier: String) -> Color:
 			return Color(0.08, 0.05, 0.02, 0.22)
 		TIER_BOSS:
 			return Color(0.12, 0.02, 0.02, 0.28)
+		TIER_THREAT:
+			return Color(0.14, 0.02, 0.02, 0.24)
 		_:
 			return Color(0.0, 0.0, 0.0, 0.0)
 

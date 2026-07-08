@@ -22,6 +22,29 @@ func get_skill_data(skill_id: String) -> Resource:
 func get_dungeon_data(dungeon_id: String) -> Resource:
 	return load(Constants.RESOURCE_DUNGEONS_PATH + dungeon_id + ".tres")
 
+func get_stage_data(stage_id: String) -> Resource:
+	var path: String = Constants.RESOURCE_STAGES_PATH + stage_id + ".tres"
+	if not ResourceLoader.exists(path):
+		return null
+	return load(path)
+
+func get_stages_for_biome(biome_id: String) -> Array:
+	var result: Array = []
+	for stage in get_all_stage_data():
+		if stage != null and str(stage.biome_id) == biome_id:
+			result.append(stage)
+	result.sort_custom(func(a, b): return int(a.chapter_index) < int(b.chapter_index))
+	return result
+
+func get_stage_by_chapter(biome_id: String, chapter_index: int) -> Resource:
+	for stage in get_stages_for_biome(biome_id):
+		if int(stage.chapter_index) == chapter_index:
+			return stage
+	return null
+
+func get_all_stage_data() -> Array:
+	return _load_all_resources(Constants.RESOURCE_STAGES_PATH)
+
 func get_material_data(material_id: String) -> Resource:
 	return load(Constants.RESOURCE_MATERIALS_PATH + material_id + ".tres")
 

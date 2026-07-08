@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "helper_d"
-display_name = "レオン（Leon）"
+display_name = "レオン"
 job_id = "swordsman"
 origin_note = "旧王都の実戦剣士。落ち武者ギルドで後進を導く"
 rarity = 1

@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "helper_i"
-display_name = "ガルム（Garm）"
+display_name = "ガルム"
 job_id = "vanguard"
 origin_note = "元隊商護衛の古強者。大盾の凹み一つごとに逸話がある"
 rarity = 2

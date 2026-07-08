@@ -18,6 +18,8 @@ const AFFIX_POOL: Array[String] = [
 	"heavy",
 	"blessed",
 	"fortune",
+	"scholarly",
+	"treasure_hunter",
 	"protection",
 	"of_might",
 	"shocking",

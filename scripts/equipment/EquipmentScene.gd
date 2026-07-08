@@ -1,6 +1,7 @@
 extends Control
 
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
+const CATALOG_SCENE: String = "res://scenes/equipment/EquipmentCatalogScene.tscn"
 const ROSTER_SCENE: String = "res://scenes/roster/RosterScene.tscn"
 const DUNGEON_SCENE: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
 const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
@@ -15,14 +16,27 @@ const _AffixStatCalculator = preload("res://scripts/equipment/AffixStatCalculato
 const _EquipmentEnhancer = preload("res://scripts/equipment/EquipmentEnhancer.gd")
 const _WeaponFlavorHelper = preload("res://scripts/systems/WeaponFlavorHelper.gd")
 const _ElementResolver = preload("res://scripts/combat/ElementResolver.gd")
+const _SkillIconHelper = preload("res://scripts/ui/SkillIconHelper.gd")
 
 # CombatController.BASE_MEMBER_HP と同値（表示用の素HP）。
 const BASE_MEMBER_HP: int = 30
 # クリティカルダメージ倍率（BalanceConfig 準拠）。
 const CRIT_DAMAGE_MULT: float = BalanceConfig.CRITICAL_MULTIPLIER
 const GRID_COLUMNS: int = 6
-const CELL_SIZE: Vector2 = Vector2(72, 72)
-const SLOT_CELL_SIZE: Vector2 = Vector2(58, 58)
+const SLOT_COLUMNS: int = 2
+const INV_VISIBLE_ROWS: int = 3
+const STAT_VALUE_FONT_SIZE: int = 24
+const STAT_LABEL_FONT_SIZE: int = 20
+
+const SKILL_COLOR_ATTACK: Color = Color(0.95, 0.45, 0.42)
+const SKILL_COLOR_DEFENSE: Color = Color(0.55, 0.78, 0.98)
+const SKILL_COLOR_SUPPORT: Color = Color(0.96, 0.82, 0.35)
+const SKILL_NAME_FONT_SIZE: int = 22
+const TAB_EQUIP: int = 0
+const TAB_SKILL: int = 1
+const TAB_ULTIMATE: int = 2
+const TAB_PASSIVE: int = 3
+const TAB_TACTICS: int = 4
 
 # レア度別の枠色（COMMON/RARE/EPIC/LEGENDARY）。
 const RARITY_COLORS: Array[Color] = [
@@ -40,25 +54,20 @@ const COLOR_VALUE: Color = Color(0.94, 0.91, 0.83)
 const COLOR_POS: Color = Color(0.55, 0.88, 0.5)
 const COLOR_ACCENT: Color = Color(0.75, 0.82, 0.95, 1)
 
-# ステータス／スロットのグリフ装飾。
-const STAT_GLYPHS: Dictionary = {
-	"hp": "❤", "attack": "⚔", "defense": "🛡",
-	"speed": "💨", "crit_rate": "🎯", "crit_damage": "💥",
-}
-const EFFECT_GLYPHS: Dictionary = {
-	"攻撃力": "⚔", "防御力": "🛡", "HP": "❤", "クリティカル率": "🎯",
-}
-const SLOT_GLYPHS: Dictionary = {"weapon": "⚔", "armor": "🛡", "accessory": "💍"}
+# スロット空表示用グリフ（テクスチャ未取得時のフォールバック）。
+const SLOT_GLYPHS: Dictionary = {"weapon": "⚔", "armor": "🛡", "accessory": "💍", "relic": "✦"}
 
 @onready var _button_back: Button = $Header/HeaderRow/ButtonBack
+@onready var _btn_catalog: Button = $Header/HeaderRow/BtnCatalog
 @onready var _label_gold: Label = $Header/HeaderRow/GoldChip/GoldRow/LabelGold
 @onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
 @onready var _btn_member_prev: Button = $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/BtnMemberPrev
 @onready var _btn_member_next: Button = $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/BtnMemberNext
+@onready var _pedestal_bg: TextureRect = $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/PortraitStack/PedestalBg
 @onready var _member_row: HBoxContainer = $VBoxContainer/MemberSelectRow
 @onready var _label_stars: Label = $VBoxContainer/CharacterCard/CardRow/PortraitBox/LabelStars
-@onready var _portrait_art: TextureRect = $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/Portrait/PortraitArt
-@onready var _portrait_glyph: Label = $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/Portrait/PortraitGlyph
+@onready var _portrait_art: TextureRect = $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/PortraitStack/Portrait/PortraitArt
+@onready var _portrait_glyph: Label = $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/PortraitStack/Portrait/PortraitGlyph
 @onready var _label_name: Label = $VBoxContainer/CharacterCard/CardRow/InfoBox/LabelName
 @onready var _label_level: Label = $VBoxContainer/CharacterCard/CardRow/InfoBox/LabelLevel
 @onready var _job_icon: TextureRect = $VBoxContainer/CharacterCard/CardRow/InfoBox/JobRow/JobIcon
@@ -68,17 +77,29 @@ const SLOT_GLYPHS: Dictionary = {"weapon": "⚔", "armor": "🛡", "accessory": 
 @onready var _label_evolution: Label = $VBoxContainer/CharacterCard/CardRow/InfoBox/EvolutionRow/LabelEvolution
 var _label_evolution_traits: Label = null
 @onready var _stats_grid: GridContainer = $VBoxContainer/CharacterCard/CardRow/InfoBox/StatsGrid
+@onready var _btn_stat_detail: Button = $VBoxContainer/CharacterCard/CardRow/InfoBox/BtnStatDetail
 @onready var _button_unequip_all: Button = $VBoxContainer/CharacterCard/CardRow/SlotsPanel/ButtonUnequipAll
+@onready var _slots_panel: VBoxContainer = $VBoxContainer/CharacterCard/CardRow/SlotsPanel
 @onready var _slots_row: GridContainer = $VBoxContainer/CharacterCard/CardRow/SlotsPanel/EquipSlotsGrid
+@onready var _equip_content: VBoxContainer = $VBoxContainer/TabContainer/TabEquip/EquipContent
+@onready var _effects_panel: PanelContainer = $VBoxContainer/TabContainer/TabEquip/EquipContent/EffectsPanel
+@onready var _effects_rule: TextureRect = $VBoxContainer/TabContainer/TabEquip/EquipContent/EffectsPanel/EffectsVBox/EffectsRule
+@onready var _effects_grid: GridContainer = $VBoxContainer/TabContainer/TabEquip/EquipContent/EffectsPanel/EffectsVBox/EffectsGrid
+@onready var _inventory_scroll: ScrollContainer = $VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryScroll
+@onready var _tab_row: HBoxContainer = $VBoxContainer/TabRow
 @onready var _btn_sort: Button = $VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryHeaderRow/ButtonSort
 @onready var _btn_filter: Button = $VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryHeaderRow/ButtonFilter
 @onready var _nav_forge: Button = $BottomNav/NavRow/NavForge
 @onready var _character_card: PanelContainer = $VBoxContainer/CharacterCard
 @onready var _tabs: TabContainer = $VBoxContainer/TabContainer
-@onready var _effects_grid: GridContainer = $VBoxContainer/TabContainer/TabEquip/EquipContent/EffectsGrid
+@onready var _tactics_content: VBoxContainer = $VBoxContainer/TabContainer/TabTactics/TacticsContent
 @onready var _category_row: HBoxContainer = $VBoxContainer/TabContainer/TabEquip/EquipContent/CategoryRow
-@onready var _inventory_grid: GridContainer = $VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryGrid
+@onready var _inventory_grid: GridContainer = (
+	$VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryScroll/InventoryGrid
+)
 @onready var _skill_content: VBoxContainer = $VBoxContainer/TabContainer/TabSkill/SkillContent
+@onready var _ultimate_content: VBoxContainer = $VBoxContainer/TabContainer/TabUltimate/UltimateContent
+@onready var _passive_content: VBoxContainer = $VBoxContainer/TabContainer/TabPassive/PassiveContent
 
 var _combat_setup_panel: PanelContainer = null
 var _combat_setup_content: VBoxContainer = null
@@ -90,58 +111,217 @@ var _inventory_equipped_filter: String = "all"
 # 戦術セレクタ（P3-D086・スキルタブ上部に動的生成）
 var _tactics_option: OptionButton = null
 var _tactics_ids: Array[String] = []
+var _tactics_summary_label: Label = null
+var _gambit_accordion_btn: Button = null
+var _gambit_accordion_expanded: bool = false
 var _gambit_custom_check: CheckBox = null
 var _gambit_custom_box: VBoxContainer = null
 var _gambit_target_option: OptionButton = null
 var _gambit_target_ids: Array[String] = []
-var _gambit_slot_opts: Array[OptionButton] = []
+var _gambit_action_opts: Array[OptionButton] = []
+var _gambit_action_keys: Array = []
 var _gambit_cond_opts: Array[OptionButton] = []
 var _gambit_value_edits: Array[LineEdit] = []
 var _gambit_range_opts: Array[OptionButton] = []
 var _gambit_move_up_btns: Array[Button] = []
 var _gambit_move_down_btns: Array[Button] = []
-var _gambit_cond_hint_labels: Array[Label] = []
+var _gambit_row_preview_labels: Array[Label] = []
 var _gambit_ui_syncing: bool = false
-var _relic_option: OptionButton = null
-var _relic_icon: TextureRect = null
-var _relic_ids: Array[String] = []
-var _preset_option: OptionButton = null
-var _preset_name_edit: LineEdit = null
-var _preset_rename_btn: Button = null
 var _policy_option: OptionButton = null
 var _policy_hint_label: Label = null
-var _preset_feedback_panel: PanelContainer = null
-var _preset_feedback_label: Label = null
-var _preset_feedback_tween: Tween = null
 const _POLICY_IDS: Array = ["", "safe", "material", "relic", "codex"]
-var _tag_info_label: Label = null
+var _tab_buttons: Array[Button] = []
+var _category_panels: Dictionary = {}
+var _active_tab: int = 0
+
+const _TAB_LABELS: Array[String] = ["装備", "スキル", "必殺技", "パッシブ", "戦術"]
+const _TAB_CONTAINER_INDICES: Array[int] = [0, 2, 3, 4, 5]
+const _TAB_LOCKED: Array[bool] = [false, false, false, false, false]
+
+var _inv_cell_size: Vector2 = Vector2(EquipmentUiTokens.INV_CELL_PX, EquipmentUiTokens.INV_CELL_PX)
+var _slot_cell_size: Vector2 = Vector2(EquipmentUiTokens.SLOT_PX, EquipmentUiTokens.SLOT_PX)
+var _detail_overlay: Control = null
+var _detail_host: VBoxContainer = null
+var _detail_title: Label = null
+var _detail_equip_btn: Button = null
+var _overlay_item: Resource = null
+var _overlay_category: String = ""
+var _overlay_relic_id: String = ""
+var _overlay_skill_id: String = ""
 
 func _ready() -> void:
-	UiTypography.apply_screen_title($Header/HeaderRow/LabelTitle)
+	$Header/HeaderRow/LabelTitle.text = ""
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.CHARACTER)
-	_tabs.set_tab_title(0, "装備")
-	_tabs.set_tab_title(1, "スキル")
-	_tabs.set_tab_title(2, "覚醒 🔒")
-	_tabs.set_tab_title(3, "プロフィール 🔒")
-	_tabs.get_tab_bar().set_tab_disabled(2, true)
-	_tabs.get_tab_bar().set_tab_disabled(3, true)
+	_tabs.tabs_visible = false
+	_build_tab_row()
 	_member_row.visible = false
 	_ensure_combat_setup_panel()
 	_button_back.pressed.connect(_on_back_pressed)
+	_btn_catalog.pressed.connect(_on_catalog_pressed)
+	UiTypography.apply_menu_button(_btn_catalog)
+	_ensure_item_detail_overlay()
 	_btn_member_prev.pressed.connect(_on_member_prev_pressed)
 	_btn_member_next.pressed.connect(_on_member_next_pressed)
 	_btn_promote.pressed.connect(_on_promote_pressed)
 	_button_unequip_all.pressed.connect(_on_unequip_all_pressed)
 	_btn_sort.pressed.connect(_on_sort_pressed)
 	_btn_filter.pressed.connect(_on_filter_pressed)
-	_connect_category_buttons()
 	_inventory_grid.columns = GRID_COLUMNS
+	_inventory_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_inventory_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_inventory_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	_setup_equipment_chrome()
+	_build_category_chips()
 	_apply_panel_styles()
 	_decorate_portrait()
 	if GameState.equipment_focus_member_index >= 0:
 		_selected_member_index = _clamp_roster_index(GameState.equipment_focus_member_index)
 		GameState.equipment_focus_member_index = -1
+	call_deferred("_handle_layout_resized")
 	_refresh_display()
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED:
+		call_deferred("_handle_layout_resized")
+
+func _handle_layout_resized() -> void:
+	if not is_node_ready():
+		return
+	var old_inv: Vector2 = _inv_cell_size
+	var old_slot: Vector2 = _slot_cell_size
+	_sync_cell_sizes()
+	if old_inv.is_equal_approx(_inv_cell_size) and old_slot.is_equal_approx(_slot_cell_size):
+		return
+	if not old_inv.is_equal_approx(_inv_cell_size):
+		_rebuild_inventory_grid()
+	if not old_slot.is_equal_approx(_slot_cell_size):
+		_rebuild_equip_slots()
+
+func _setup_equipment_chrome() -> void:
+	EquipmentUiTokens.apply_tooltip_theme(self)
+	var back_tex: Texture2D = EquipmentUiTokens.back_icon()
+	if back_tex != null:
+		_button_back.text = ""
+		_button_back.icon = back_tex
+		_button_back.expand_icon = true
+		_button_back.custom_minimum_size = Vector2(40, 40)
+	var pedestal_tex: Texture2D = EquipmentUiTokens.load_tex(EquipmentUiTokens.PORTRAIT_PEDESTAL)
+	if pedestal_tex != null:
+		_pedestal_bg.texture = pedestal_tex
+	var rule_tex: Texture2D = EquipmentUiTokens.load_tex(EquipmentUiTokens.SECTION_RULE)
+	if rule_tex != null:
+		_effects_rule.texture = rule_tex
+	var filter_tex: Texture2D = EquipmentUiTokens.filter_icon()
+	if filter_tex != null:
+		_btn_filter.icon = filter_tex
+		_btn_filter.expand_icon = true
+	_btn_stat_detail.custom_minimum_size = Vector2(0, 34)
+	_btn_stat_detail.add_theme_stylebox_override("disabled", EquipmentUiTokens.stat_detail_button_style())
+	_btn_stat_detail.add_theme_color_override("font_disabled_color", Color(0.62, 0.58, 0.52, 1.0))
+	_evolution_row.add_theme_constant_override("separation", 4)
+	_apply_button_style(_button_unequip_all, EquipmentUiTokens.unequip_button_style())
+	UiTypography.apply_display(_label_name, UiTypography.SIZE_DISPLAY_TITLE, UiTypography.COLOR_GOLD)
+	UiTypography.apply_body(_label_level, UiTypography.SIZE_BODY, UiTypography.COLOR_BODY)
+	UiTypography.apply_body(_label_job, UiTypography.SIZE_BODY, UiTypography.COLOR_BODY)
+	UiTypography.apply_caption(
+		$VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryHeaderRow/LabelInventoryTitle,
+		UiTypography.COLOR_BODY
+	)
+	UiTypography.apply_body(
+		$VBoxContainer/TabContainer/TabEquip/EquipContent/EffectsPanel/EffectsVBox/LabelEffectsTitle,
+		UiTypography.SIZE_BODY_SMALL,
+		UiTypography.COLOR_GOLD
+	)
+	_effects_panel.add_theme_stylebox_override(
+		"panel", _framed_box(COLOR_GOLD, 1, Color(0.08, 0.07, 0.05, 0.88))
+	)
+	_evolution_row.visible = false
+	_btn_stat_detail.visible = false
+	_label_stars.visible = false
+	_slots_panel.custom_minimum_size.x = EquipmentUiTokens.SLOT_PANEL_MIN_W
+	_slots_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_equip_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+func _apply_button_style(btn: Button, style: StyleBox) -> void:
+	if style is StyleBoxTexture and (style as StyleBoxTexture).texture != null:
+		btn.add_theme_stylebox_override("normal", style)
+		btn.add_theme_stylebox_override("hover", style)
+		btn.add_theme_stylebox_override("pressed", style)
+		btn.add_theme_color_override("font_color", Color(0.98, 0.92, 0.72, 1.0))
+
+func _build_tab_row() -> void:
+	for child in _tab_row.get_children():
+		child.queue_free()
+	_tab_buttons.clear()
+	for i in _TAB_LABELS.size():
+		var btn := Button.new()
+		btn.text = _TAB_LABELS[i] + (" 🔒" if _TAB_LOCKED[i] else "")
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn.custom_minimum_size = Vector2(0, 40)
+		btn.focus_mode = Control.FOCUS_NONE
+		var tab_idx: int = i
+		btn.pressed.connect(func(): _set_active_tab(tab_idx))
+		_tab_row.add_child(btn)
+		_tab_buttons.append(btn)
+		UiTypography.apply_menu_button(btn)
+	_set_active_tab(0)
+
+func _set_active_tab(tab_idx: int) -> void:
+	if tab_idx < 0 or tab_idx >= _TAB_LABELS.size():
+		return
+	if _TAB_LOCKED[tab_idx]:
+		return
+	_active_tab = tab_idx
+	_tabs.current_tab = _TAB_CONTAINER_INDICES[tab_idx]
+	_update_tab_styles()
+
+func _update_tab_styles() -> void:
+	for i in _tab_buttons.size():
+		EquipmentUiTokens.apply_tab_button(_tab_buttons[i], i == _active_tab, _TAB_LOCKED[i])
+		if not _TAB_LOCKED[i]:
+			_tab_buttons[i].add_theme_font_size_override("font_size", 16 if i == _active_tab else 15)
+
+func _build_category_chips() -> void:
+	for child in _category_row.get_children():
+		child.queue_free()
+	_category_panels.clear()
+	for cat in ["all", "weapon", "armor", "accessory", "relic"]:
+		var wrap := PanelContainer.new()
+		wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		wrap.custom_minimum_size = EquipmentUiTokens.CATEGORY_MIN_SIZE
+		wrap.add_theme_stylebox_override(
+			"panel", EquipmentUiTokens.category_tab_style(_inventory_filter == cat)
+		)
+		_category_row.add_child(wrap)
+		_category_panels[cat] = wrap
+		var col := VBoxContainer.new()
+		col.set_anchors_preset(Control.PRESET_FULL_RECT)
+		col.offset_left = 2
+		col.offset_top = 2
+		col.offset_right = -2
+		col.offset_bottom = -2
+		col.add_theme_constant_override("separation", 0)
+		col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		wrap.add_child(col)
+		var icon := TextureRect.new()
+		icon.custom_minimum_size = Vector2(40, 40)
+		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.texture = EquipmentUiTokens.category_icon(cat)
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		col.add_child(icon)
+		var lbl := Label.new()
+		lbl.text = EquipmentUiHelper.category_label(cat)
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		UiTypography.apply_caption(lbl)
+		col.add_child(lbl)
+		var btn := Button.new()
+		btn.set_anchors_preset(Control.PRESET_FULL_RECT)
+		btn.flat = true
+		btn.pressed.connect(func(): _on_category_selected(cat))
+		wrap.add_child(btn)
 
 func _on_sort_pressed() -> void:
 	_inventory_sort = "name" if _inventory_sort == "rarity" else "rarity"
@@ -166,27 +346,15 @@ func _refresh_inventory_tools() -> void:
 	)
 
 func _apply_panel_styles() -> void:
-	_character_card.add_theme_stylebox_override(
-		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
-	)
+	_character_card.add_theme_stylebox_override("panel", EquipmentUiTokens.char_card_style())
 
 func _decorate_portrait() -> void:
-	var p := $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/Portrait as PanelContainer
+	var p := $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/PortraitStack/Portrait as PanelContainer
 	if p != null:
-		p.add_theme_stylebox_override("panel", _framed_box(COLOR_GOLD, 2, Color(0.06, 0.05, 0.04, 1.0)))
-	_portrait_glyph.add_theme_font_size_override("font_size", 40)
+		p.add_theme_stylebox_override("panel", _framed_box(COLOR_GOLD, 2, Color(0.06, 0.05, 0.04, 0.85)))
+	_portrait_art.custom_minimum_size = Vector2(EquipmentUiTokens.PORTRAIT_PX, EquipmentUiTokens.PORTRAIT_PX)
+	_portrait_glyph.add_theme_font_size_override("font_size", 36)
 	_portrait_glyph.add_theme_color_override("font_color", COLOR_GOLD)
-
-func _connect_category_buttons() -> void:
-	var defs: Array = [
-		["ButtonCatAll", "all"],
-		["ButtonCatWeapon", "weapon"],
-		["ButtonCatArmor", "armor"],
-		["ButtonCatAccessory", "accessory"],
-	]
-	for d in defs:
-		var btn: Button = _category_row.get_node(d[0]) as Button
-		btn.pressed.connect(_on_category_selected.bind(str(d[1])))
 
 func _on_category_selected(filter_id: String) -> void:
 	_inventory_filter = filter_id
@@ -194,15 +362,12 @@ func _on_category_selected(filter_id: String) -> void:
 	_rebuild_inventory_grid()
 
 func _refresh_category_buttons() -> void:
-	var map: Dictionary = {
-		"ButtonCatAll": "all",
-		"ButtonCatWeapon": "weapon",
-		"ButtonCatArmor": "armor",
-		"ButtonCatAccessory": "accessory",
-	}
-	for node_name in map:
-		var btn: Button = _category_row.get_node(node_name) as Button
-		btn.button_pressed = (map[node_name] == _inventory_filter)
+	for cat in _category_panels.keys():
+		var panel: PanelContainer = _category_panels[cat]
+		if panel != null:
+			panel.add_theme_stylebox_override(
+				"panel", EquipmentUiTokens.category_tab_style(_inventory_filter == str(cat))
+			)
 
 func _on_member_selected(member_index: int) -> void:
 	_selected_member_index = member_index
@@ -258,6 +423,9 @@ func _refresh_display() -> void:
 	_refresh_inventory_tools()
 	_rebuild_inventory_grid()
 	_rebuild_skill_tab()
+	_rebuild_ultimate_tab()
+	_rebuild_passive_tab()
+	_rebuild_tactics_tab()
 	_update_forge_nav_dot()
 
 func _update_forge_nav_dot() -> void:
@@ -282,16 +450,18 @@ func _update_character_card() -> void:
 		_evolution_row.visible = false
 		return
 	_label_name.text = member.display_name
+	_label_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_label_name.max_lines_visible = 1
 	var job_mods: Dictionary = _JobStatCalculator.get_member_modifiers(member)
 	var job_name: String = str(job_mods.get("display_name", member.job_id))
 	_label_level.text = EquipmentUiHelper.level_line(int(member.level))
 	_label_job.text = job_name
+	_label_job.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_label_job.max_lines_visible = 1
 	_job_icon.texture = IconPaths.get_icon_texture(str(member.job_id), "chr")
 	var chr_tex: Texture2D = RosterUiHelper.get_member_portrait_texture(member)
 	_portrait_art.texture = chr_tex
 	_portrait_glyph.text = "" if chr_tex != null else member.display_name.substr(0, 1)
-	_label_stars.text = EquipmentUiHelper.stars_text(int(member.rarity))
-	_update_evolution_row(member)
 	var party_idx: int = _party_index_for(member)
 	var stats: Dictionary = _compute_member_stats(party_idx if party_idx >= 0 else -1, member)
 	_populate_stat_grid(stats)
@@ -320,6 +490,10 @@ func _update_evolution_row(member: Resource) -> void:
 		_label_evolution.add_theme_color_override("font_color", COLOR_SUB)
 		_btn_promote.text = "Lv%d必要" % req if req > 0 else "対象外"
 		_btn_promote.disabled = true
+	_label_evolution.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_label_evolution.max_lines_visible = 1
+	_label_evolution.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_label_evolution.clip_text = true
 	_update_evolution_traits_label(member)
 
 func _ensure_evolution_traits_label() -> void:
@@ -327,6 +501,8 @@ func _ensure_evolution_traits_label() -> void:
 		return
 	_label_evolution_traits = Label.new()
 	_label_evolution_traits.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_label_evolution_traits.max_lines_visible = 2
+	_label_evolution_traits.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_label_evolution_traits.add_theme_font_size_override("font_size", 11)
 	var info_box: Node = _evolution_row.get_parent()
 	info_box.add_child(_label_evolution_traits)
@@ -371,28 +547,49 @@ func _populate_stat_grid(stats: Dictionary) -> void:
 		["crit_rate", "会心率", "%.0f%%" % (stats["crit_rate"] * 100.0)],
 		["crit_damage", "会心ダメ", "%.0f%%" % (stats["crit_damage"] * 100.0)],
 	]
+	_stats_grid.add_theme_constant_override("v_separation", 4)
+	_stats_grid.add_theme_constant_override("h_separation", 10)
 	for r in rows:
-		_stats_grid.add_child(_make_dim_label(str(r[1])))
+		_stats_grid.add_child(_make_stat_label_row(str(r[0]), str(r[1])))
 		_stats_grid.add_child(_make_value_label(str(r[2])))
+
+func _make_stat_label_row(stat_key: String, label_text: String) -> Control:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 4)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var stat_tex: Texture2D = EquipmentUiTokens.stat_icon(stat_key)
+	if stat_tex != null:
+		var icon := TextureRect.new()
+		icon.texture = stat_tex
+		icon.custom_minimum_size = Vector2(
+			EquipmentUiTokens.STAT_ICON_PX, EquipmentUiTokens.STAT_ICON_PX
+		)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(icon)
+	var lbl := _make_dim_label(label_text)
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(lbl)
+	return row
 
 func _make_dim_label(text: String) -> Label:
 	var l := Label.new()
 	l.text = text
-	l.add_theme_color_override("font_color", COLOR_SUB)
+	UiTypography.apply_body(l, STAT_LABEL_FONT_SIZE, COLOR_SUB)
 	return l
 
 func _make_value_label(text: String) -> Label:
 	var l := Label.new()
 	l.text = text
-	l.add_theme_color_override("font_color", COLOR_VALUE)
-	l.add_theme_font_size_override("font_size", 15)
+	UiTypography.apply_body(l, STAT_VALUE_FONT_SIZE, COLOR_VALUE, UiTypography.OUTLINE_STRONG)
 	return l
 
 func _make_pos_label(text: String) -> Label:
 	var l := Label.new()
 	l.text = text
-	l.add_theme_color_override("font_color", COLOR_POS)
-	l.add_theme_font_size_override("font_size", 15)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	UiTypography.apply_body(l, STAT_VALUE_FONT_SIZE, COLOR_POS, UiTypography.OUTLINE_STRONG)
 	return l
 
 # ---- 装備中の効果（装備品由来のボーナス集計） ----
@@ -400,40 +597,93 @@ func _rebuild_effects() -> void:
 	for child in _effects_grid.get_children():
 		child.queue_free()
 	var member: Resource = _get_view_adventurer()
+	var bonuses: Dictionary = _compute_equipment_effect_bonuses(member)
+	_add_effects_row(
+		"攻撃力", "attack", _format_effect_int(int(bonuses.get("attack", 0))),
+		"クリティカル率", "crit_rate", _format_effect_percent(float(bonuses.get("crit_rate", 0.0)))
+	)
+	_add_effects_row(
+		"防御力", "defense", _format_effect_int(int(bonuses.get("defense", 0))),
+		"クリティカルダメージ", "crit_damage", _format_effect_percent(float(bonuses.get("crit_damage", 0.0)))
+	)
+	_add_effects_row(
+		"HP", "hp", _format_effect_int(int(bonuses.get("hp", 0))),
+		"攻撃速度", "speed", _format_effect_speed(float(bonuses.get("attack_speed", 0.0)))
+	)
+
+func _compute_equipment_effect_bonuses(member: Resource) -> Dictionary:
+	var result: Dictionary = {
+		"attack": 0,
+		"defense": 0,
+		"hp": 0,
+		"crit_rate": 0.0,
+		"crit_damage": 0.0,
+		"attack_speed": 0.0,
+	}
 	if member == null:
-		_effects_grid.add_child(_make_dim_label("（装備ボーナスなし）"))
-		return
+		return result
 	var party_idx: int = _party_index_for(member)
 	var armor: Resource = member.equipped_armor
+	var weapon: Resource = member.equipped_weapon
 	var acc_data: Resource = _accessory_data(member.equipped_accessory)
 	var affix: Dictionary = _AffixStatCalculator.get_bonuses(party_idx) if party_idx >= 0 else {}
-	var atk_bonus: int = int(affix.get("attack_flat", 0)) + (acc_data.attack_bonus if acc_data != null else 0)
-	var def_bonus: int = int(affix.get("defense_flat", 0)) + (acc_data.defense_bonus if acc_data != null else 0)
+	result["attack"] = int(affix.get("attack_flat", 0))
+	if acc_data != null and member.equipped_accessory != null:
+		result["attack"] += EquipmentEnhancer.effective_accessory_int_bonus(
+			member.equipped_accessory, "attack_bonus", acc_data
+		)
+	result["defense"] = int(affix.get("defense_flat", 0))
+	if acc_data != null and member.equipped_accessory != null:
+		result["defense"] += EquipmentEnhancer.effective_accessory_int_bonus(
+			member.equipped_accessory, "defense_bonus", acc_data
+		)
 	if armor != null:
-		def_bonus += armor.rolled_defense
-	var hp_bonus: int = int(affix.get("hp_flat", 0)) + (acc_data.hp_bonus if acc_data != null else 0)
+		result["defense"] += EquipmentEnhancer.effective_armor_defense(armor)
+	result["hp"] = int(affix.get("hp_flat", 0))
+	if acc_data != null and member.equipped_accessory != null:
+		result["hp"] += EquipmentEnhancer.effective_accessory_int_bonus(
+			member.equipped_accessory, "hp_bonus", acc_data
+		)
 	if armor != null:
-		hp_bonus += armor.hp_bonus
-	var crit_bonus: float = float(affix.get("crit_rate_add", 0.0)) + (acc_data.crit_rate_bonus if acc_data != null else 0.0)
-	var rows: Array = []
-	if atk_bonus != 0:
-		rows.append(["攻撃力", "+%d" % atk_bonus])
-	if def_bonus != 0:
-		rows.append(["防御力", "+%d" % def_bonus])
-	if hp_bonus != 0:
-		rows.append(["HP", "+%d" % hp_bonus])
-	if not is_zero_approx(crit_bonus):
-		rows.append(["クリティカル率", "+%.0f%%" % (crit_bonus * 100.0)])
-	if rows.is_empty():
-		_effects_grid.add_child(_make_dim_label("（装備ボーナスなし）"))
-		return
-	for r in rows:
-		var glyph: String = str(EFFECT_GLYPHS.get(str(r[0]), "・"))
-		_effects_grid.add_child(_make_dim_label("%s %s" % [glyph, r[0]]))
-		_effects_grid.add_child(_make_pos_label(str(r[1])))
+		result["hp"] += EquipmentEnhancer.effective_armor_hp(armor)
+	result["crit_rate"] = float(affix.get("crit_rate_add", 0.0))
+	if acc_data != null and member.equipped_accessory != null:
+		result["crit_rate"] += EquipmentEnhancer.effective_accessory_float_bonus(
+			member.equipped_accessory, "crit_rate_bonus", acc_data
+		)
+	if weapon != null:
+		result["crit_rate"] += float(weapon.critical_rate)
+		result["attack_speed"] = maxf(0.0, float(weapon.attack_speed) - 1.0)
+	result["attack_speed"] += float(affix.get("attack_speed_mult_add", 0.0))
+	return result
+
+func _add_effects_row(
+	left_label: String,
+	left_key: String,
+	left_value: String,
+	right_label: String,
+	right_key: String,
+	right_value: String
+) -> void:
+	_effects_grid.add_child(_make_stat_label_row(left_key, left_label))
+	_effects_grid.add_child(_make_pos_label(left_value))
+	_effects_grid.add_child(_make_stat_label_row(right_key, right_label))
+	_effects_grid.add_child(_make_pos_label(right_value))
+
+func _format_effect_int(value: int) -> String:
+	return "+%d" % value
+
+func _format_effect_percent(value: float) -> String:
+	return "+%.0f%%" % (value * 100.0)
+
+func _format_effect_speed(value: float) -> String:
+	if is_zero_approx(value):
+		return "+0"
+	return "+%.1f" % value
 
 # ---- 装備スロット ----
 func _rebuild_equip_slots() -> void:
+	_sync_slot_cell_size()
 	for child in _slots_row.get_children():
 		child.queue_free()
 	var member: Resource = _get_view_adventurer()
@@ -441,12 +691,58 @@ func _rebuild_equip_slots() -> void:
 	_button_unequip_all.disabled = not can_equip
 	if member == null:
 		return
-	_slots_row.add_child(_make_slot("武器", "weapon", member.equipped_weapon, can_equip))
-	_slots_row.add_child(_make_slot("防具", "armor", member.equipped_armor, can_equip))
-	_slots_row.add_child(_make_slot("装飾", "accessory", member.equipped_accessory, can_equip))
-	_slots_row.add_child(_make_locked_slot("足具"))
+	var cell_size: Vector2 = _slot_cell_size_vec()
+	_slots_row.add_child(_make_slot("武器", "weapon", member.equipped_weapon, can_equip, cell_size))
+	_slots_row.add_child(_make_slot("防具", "armor", member.equipped_armor, can_equip, cell_size))
+	_slots_row.add_child(_make_slot("装飾", "accessory", member.equipped_accessory, can_equip, cell_size))
+	_slots_row.add_child(_make_relic_slot(cell_size, member, can_equip))
 
-func _make_locked_slot(label: String) -> Control:
+func _make_relic_slot(cell_size: Vector2, member: Resource, can_equip: bool) -> Control:
+	var cell_px: int = int(cell_size.x)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 2)
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	var cap := Label.new()
+	cap.text = "レリック"
+	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cap.add_theme_color_override("font_color", COLOR_SUB)
+	cap.add_theme_font_size_override("font_size", 11)
+	box.add_child(cap)
+	var btn := Button.new()
+	btn.custom_minimum_size = cell_size
+	btn.flat = false
+	btn.focus_mode = Control.FOCUS_NONE
+	var relic_id: String = GameState.get_equipped_relic_passive_id(member) if member != null else ""
+	var icon_key: String = CombatPassives.relic_icon_key(relic_id)
+	var relic_tex: Texture2D = (
+		IconPaths.get_icon_texture(icon_key, "relic") if not icon_key.is_empty() else null
+	)
+	if relic_tex != null:
+		_attach_item_icon(btn, relic_tex, cell_px, EquipmentUiTokens.SLOT_DESIGN_PX)
+		btn.tooltip_text = "%s\n%s" % [
+			CombatPassives.relic_display_name(relic_id),
+			CombatPassives.relic_description(relic_id),
+		]
+		_apply_item_cell_styles(btn, 0, cell_px)
+	else:
+		btn.text = str(SLOT_GLYPHS.get("relic", "✦"))
+		btn.add_theme_font_size_override("font_size", maxi(18, int(float(cell_px) * 0.34)))
+		btn.add_theme_color_override("font_color", Color(0.5, 0.45, 0.35, 0.7))
+		btn.add_theme_color_override("font_hover_color", COLOR_GOLD)
+		_apply_item_cell_styles(btn, 0, cell_px)
+	btn.pressed.connect(_on_relic_slot_pressed)
+	btn.disabled = not can_equip
+	box.add_child(btn)
+	return box
+
+func _on_relic_slot_pressed() -> void:
+	_inventory_filter = "relic"
+	_refresh_category_buttons()
+	_rebuild_inventory_grid()
+	_set_active_tab(0)
+
+func _make_locked_slot(label: String, cell_size: Vector2) -> Control:
+	var cell_px: int = int(cell_size.x)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 2)
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -457,18 +753,23 @@ func _make_locked_slot(label: String) -> Control:
 	cap.add_theme_font_size_override("font_size", 11)
 	box.add_child(cap)
 	var btn := Button.new()
-	btn.custom_minimum_size = SLOT_CELL_SIZE
+	btn.custom_minimum_size = cell_size
+	btn.flat = false
+	btn.focus_mode = Control.FOCUS_NONE
 	btn.disabled = true
-	btn.text = "🔒"
-	btn.add_theme_font_size_override("font_size", 18)
-	btn.add_theme_stylebox_override(
-		"disabled",
-		_framed_box(Color(0.35, 0.33, 0.3, 0.55), 1, Color(0.08, 0.07, 0.05, 0.9))
-	)
+	btn.text = ""
+	btn.add_theme_stylebox_override("disabled", EquipmentUiTokens.slot_locked_style(cell_px))
 	box.add_child(btn)
 	return box
 
-func _make_slot(slot_label: String, category: String, item: Resource, can_equip: bool = true) -> Control:
+func _make_slot(
+	slot_label: String,
+	category: String,
+	item: Resource,
+	can_equip: bool = true,
+	cell_size: Vector2 = _slot_cell_size_vec()
+) -> Control:
+	var cell_px: int = int(cell_size.x)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 2)
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -479,25 +780,22 @@ func _make_slot(slot_label: String, category: String, item: Resource, can_equip:
 	cap.add_theme_font_size_override("font_size", 11)
 	box.add_child(cap)
 	var btn := Button.new()
-	btn.custom_minimum_size = SLOT_CELL_SIZE
+	btn.custom_minimum_size = cell_size
+	btn.flat = false
+	btn.focus_mode = Control.FOCUS_NONE
 	if item != null:
 		var icon: Texture2D = _item_icon(item, category)
-		if icon != null:
-			btn.icon = icon
-			btn.expand_icon = true
+		_attach_item_icon(btn, icon, cell_px, EquipmentUiTokens.SLOT_DESIGN_PX)
 		btn.tooltip_text = _item_label(item, category)
 		var rarity: int = _item_rarity(item, category)
-		btn.add_theme_stylebox_override("normal", _rarity_box(rarity, false))
-		btn.add_theme_stylebox_override("hover", _rarity_box(rarity, true))
-		_apply_item_badges(btn, item, category, SLOT_CELL_SIZE, true)
+		_apply_item_cell_styles(btn, rarity, cell_px)
+		_apply_item_badges(btn, item, category, cell_size, true)
 	else:
 		btn.text = str(SLOT_GLYPHS.get(category, "+"))
-		btn.add_theme_font_size_override("font_size", 24)
+		btn.add_theme_font_size_override("font_size", maxi(18, int(float(cell_px) * 0.34)))
 		btn.add_theme_color_override("font_color", Color(0.5, 0.45, 0.35, 0.7))
 		btn.add_theme_color_override("font_hover_color", COLOR_GOLD)
-		var empty_box: StyleBoxFlat = _framed_box(Color(0.45, 0.4, 0.3, 0.55), 1, Color(0.08, 0.07, 0.05, 0.9))
-		btn.add_theme_stylebox_override("normal", empty_box)
-		btn.add_theme_stylebox_override("hover", _framed_box(COLOR_GOLD, 2, Color(0.13, 0.11, 0.08, 1.0)))
+		_apply_item_cell_styles(btn, 0, cell_px)
 	btn.pressed.connect(_on_slot_pressed.bind(category))
 	btn.disabled = not can_equip
 	box.add_child(btn)
@@ -507,10 +805,80 @@ func _on_slot_pressed(category: String) -> void:
 	_inventory_filter = category
 	_refresh_category_buttons()
 	_rebuild_inventory_grid()
-	_tabs.current_tab = 0
+	_set_active_tab(0)
+
+func _sync_cell_sizes() -> void:
+	_sync_inventory_cell_size()
+	_sync_slot_cell_size()
+
+func _inventory_grid_width() -> float:
+	var scroll: ScrollContainer = $VBoxContainer/TabContainer/TabEquip as ScrollContainer
+	if scroll != null and scroll.size.x >= 100.0:
+		return scroll.size.x
+	if _inventory_grid.size.x >= 100.0:
+		return _inventory_grid.size.x
+	if _equip_content.size.x >= 100.0:
+		return _equip_content.size.x
+	return maxf(100.0, size.x - 16.0)
+
+func _sync_inventory_cell_size() -> void:
+	var sep: int = _inventory_grid.get_theme_constant("h_separation", "GridContainer")
+	var cell_px: int = EquipmentUiTokens.cell_px_for_grid_width(
+		_inventory_grid_width(),
+		GRID_COLUMNS,
+		sep
+	)
+	_inv_cell_size = Vector2(cell_px, cell_px)
+	_update_inventory_viewport_height()
+
+func _update_inventory_viewport_height() -> void:
+	var cell_size: Vector2 = _inv_cell_size_vec()
+	var v_sep: int = _inventory_grid.get_theme_constant("v_separation", "GridContainer")
+	var height: float = cell_size.y * float(INV_VISIBLE_ROWS) + float(v_sep * maxi(0, INV_VISIBLE_ROWS - 1))
+	_inventory_scroll.custom_minimum_size.y = height
+	_inventory_scroll.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+
+func _slot_panel_width() -> float:
+	var panel_w: float = maxf(_slots_panel.size.x, _slots_row.size.x)
+	if panel_w >= 120.0:
+		return panel_w
+	return float(EquipmentUiTokens.SLOT_PANEL_MIN_W)
+
+func _sync_slot_cell_size() -> void:
+	var sep: int = _slots_row.get_theme_constant("h_separation", "GridContainer")
+	var cell_px: int = EquipmentUiTokens.cell_px_for_slot_panel(
+		_slot_panel_width(),
+		SLOT_COLUMNS,
+		sep
+	)
+	_slot_cell_size = Vector2(cell_px, cell_px)
+
+func _inv_cell_size_vec() -> Vector2:
+	return _inv_cell_size
+
+func _slot_cell_size_vec() -> Vector2:
+	return _slot_cell_size
+
+func _attach_item_icon(btn: Button, icon: Texture2D, cell_px: int, design_px: int) -> void:
+	if icon == null:
+		return
+	var inset: int = EquipmentUiTokens.icon_inset_px(cell_px, design_px)
+	var tex_rect := TextureRect.new()
+	tex_rect.name = "ItemIcon"
+	tex_rect.texture = icon
+	tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	tex_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tex_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	tex_rect.offset_left = inset
+	tex_rect.offset_top = inset
+	tex_rect.offset_right = -inset
+	tex_rect.offset_bottom = -inset
+	btn.add_child(tex_rect)
 
 # ---- 所持一覧グリッド ----
 func _rebuild_inventory_grid() -> void:
+	_sync_inventory_cell_size()
 	for child in _inventory_grid.get_children():
 		child.queue_free()
 	var entries: Array = []
@@ -523,46 +891,116 @@ func _rebuild_inventory_grid() -> void:
 	if _inventory_filter == "all" or _inventory_filter == "accessory":
 		for it in $EquipmentController.get_appraised_accessories():
 			entries.append({"item": it, "category": "accessory"})
+	if _inventory_filter == "relic":
+		for rid in GameState.owned_relics:
+			var relic_id: String = str(rid)
+			if relic_id.is_empty():
+				continue
+			entries.append({"relic_id": relic_id, "category": "relic"})
 	entries = EquipmentUiHelper.filter_by_equipped_state(
 		entries, _inventory_equipped_filter, _party_index_for_view()
 	)
 	if entries.is_empty():
-		_inventory_grid.add_child(_make_dim_label("該当する装備がありません"))
+		var empty_msg: String = "該当する装備がありません"
+		if _inventory_filter == "relic":
+			empty_msg = "所持しているレリックがありません"
+		_inventory_grid.add_child(_make_dim_label(empty_msg))
 		return
 	for e in EquipmentUiHelper.sort_inventory_entries(entries, _inventory_sort):
-		_inventory_grid.add_child(_make_item_cell(e["item"], str(e["category"])))
+		if str(e.get("category", "")) == "relic":
+			_inventory_grid.add_child(_make_relic_cell(str(e.get("relic_id", ""))))
+		else:
+			_inventory_grid.add_child(_make_item_cell(e["item"], str(e["category"])))
 
 func _make_item_cell(item: Resource, category: String) -> Button:
+	var cell_size: Vector2 = _inv_cell_size_vec()
+	var cell_px: int = int(cell_size.x)
 	var btn := Button.new()
-	btn.custom_minimum_size = CELL_SIZE
+	btn.custom_minimum_size = cell_size
+	btn.flat = false
+	btn.focus_mode = Control.FOCUS_NONE
 	var icon: Texture2D = _item_icon(item, category)
-	if icon != null:
-		btn.icon = icon
-		btn.expand_icon = true
+	_attach_item_icon(btn, icon, cell_px, EquipmentUiTokens.INV_CELL_DESIGN_PX)
 	var rarity: int = _item_rarity(item, category)
 	var owner_idx: int = EquipmentUiHelper.equipped_member_index(item)
 	var party_idx: int = _party_index_for_view()
 	var is_on_self: bool = party_idx >= 0 and owner_idx == party_idx
-	btn.tooltip_text = "%s  %s" % [_item_label(item, category), _compare_text(item, category)]
+	btn.tooltip_text = EquipmentItemDetailHelper.short_name(item, category)
 	if owner_idx >= 0 and not is_on_self:
 		var owner: Resource = GameState.get_member(owner_idx)
 		if owner != null:
-			btn.tooltip_text += "（%s装備中）" % str(owner.display_name)
-	btn.pressed.connect(_on_cell_pressed.bind(item, category))
+			btn.tooltip_text += "（%s）" % str(owner.display_name)
+	btn.pressed.connect(_on_cell_tapped.bind(item, category))
 	if is_on_self:
-		btn.disabled = true
-		btn.focus_mode = Control.FOCUS_NONE
 		btn.modulate = Color(0.72, 0.72, 0.72, 0.85)
-		btn.add_theme_stylebox_override("disabled", _rarity_box(rarity, true))
+		_apply_item_cell_styles(btn, rarity, cell_px, true)
 	else:
-		btn.add_theme_stylebox_override("normal", _rarity_box(rarity, false))
-		btn.add_theme_stylebox_override("hover", _rarity_box(rarity, true))
-	_apply_item_badges(btn, item, category, CELL_SIZE, is_on_self)
+		_apply_item_cell_styles(btn, rarity, cell_px)
+	_apply_item_badges(btn, item, category, cell_size, is_on_self)
 	if owner_idx >= 0:
-		_add_owner_portrait_badge(btn, owner_idx)
+		_add_owner_portrait_badge(btn, owner_idx, cell_size)
 	return btn
 
-func _add_owner_portrait_badge(btn: Button, owner_idx: int) -> void:
+func _make_relic_cell(relic_id: String) -> Button:
+	var cell_size: Vector2 = _inv_cell_size_vec()
+	var cell_px: int = int(cell_size.x)
+	var btn := Button.new()
+	btn.custom_minimum_size = cell_size
+	btn.flat = false
+	btn.focus_mode = Control.FOCUS_NONE
+	var icon_key: String = CombatPassives.relic_icon_key(relic_id)
+	var tex: Texture2D = IconPaths.get_icon_texture(icon_key, "relic")
+	_attach_item_icon(btn, tex, cell_px, EquipmentUiTokens.INV_CELL_DESIGN_PX)
+	var owner_idx: int = EquipmentUiHelper.relic_equipped_member_index(relic_id)
+	var party_idx: int = _party_index_for_view()
+	var is_on_self: bool = party_idx >= 0 and owner_idx == party_idx
+	btn.tooltip_text = CombatPassives.relic_display_name(relic_id)
+	if owner_idx >= 0 and not is_on_self:
+		var owner: Resource = GameState.get_member(owner_idx)
+		if owner != null:
+			btn.tooltip_text += "（%s）" % str(owner.display_name)
+	btn.pressed.connect(_on_relic_cell_tapped.bind(relic_id))
+	if is_on_self:
+		btn.modulate = Color(0.72, 0.72, 0.72, 0.85)
+		_apply_item_cell_styles(btn, 2, cell_px, true)
+	else:
+		_apply_item_cell_styles(btn, 2, cell_px)
+	if owner_idx >= 0:
+		_add_owner_portrait_badge(btn, owner_idx, cell_size)
+	return btn
+
+func _on_relic_cell_tapped(relic_id: String) -> void:
+	_show_relic_stats_overlay(relic_id)
+
+func _show_relic_stats_overlay(relic_id: String) -> void:
+	_ensure_item_detail_overlay()
+	_overlay_item = null
+	_overlay_category = "relic"
+	_overlay_relic_id = relic_id
+	_overlay_skill_id = ""
+	if _detail_title != null:
+		_detail_title.text = "遺物詳細"
+	for child in _detail_host.get_children():
+		child.queue_free()
+	var title := Label.new()
+	title.text = CombatPassives.relic_display_name(relic_id)
+	UiTypography.apply_body(title, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
+	_detail_host.add_child(title)
+	var desc := Label.new()
+	desc.text = CombatPassives.relic_description(relic_id)
+	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_body(desc, UiTypography.SIZE_CAPTION, UiTypography.COLOR_BODY)
+	_detail_host.add_child(desc)
+	var owner_idx: int = EquipmentUiHelper.relic_equipped_member_index(relic_id)
+	var party_idx: int = _party_index_for_view()
+	var is_on_self: bool = party_idx >= 0 and owner_idx == party_idx
+	_detail_equip_btn.text = "外す" if is_on_self else "装備する"
+	_detail_equip_btn.visible = party_idx >= 0
+	_detail_equip_btn.disabled = party_idx < 0 or (owner_idx >= 0 and not is_on_self)
+	_detail_overlay.visible = true
+
+func _add_owner_portrait_badge(btn: Button, owner_idx: int, cell_size: Vector2) -> void:
 	var member: Resource = GameState.get_member(owner_idx)
 	if member == null:
 		return
@@ -571,12 +1009,137 @@ func _add_owner_portrait_badge(btn: Button, owner_idx: int) -> void:
 		return
 	var icon := TextureRect.new()
 	icon.texture = tex
-	icon.custom_minimum_size = Vector2(16, 16)
+	icon.custom_minimum_size = Vector2(18, 18)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	icon.position = Vector2(CELL_SIZE.x - 18.0, 2.0)
+	icon.position = Vector2(cell_size.x - 18.0, 2.0)
 	btn.add_child(icon)
+
+func _on_cell_tapped(item: Resource, category: String) -> void:
+	_show_item_stats_overlay(item, category)
+
+func _ensure_item_detail_overlay() -> void:
+	if _detail_overlay != null:
+		return
+	_detail_overlay = Control.new()
+	_detail_overlay.name = "ItemDetailOverlay"
+	_detail_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_detail_overlay.visible = false
+	_detail_overlay.z_index = 60
+	_detail_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(_detail_overlay)
+	var dim := ColorRect.new()
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0.0, 0.0, 0.0, 0.58)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	dim.gui_input.connect(_on_item_detail_dim_input)
+	_detail_overlay.add_child(dim)
+	var panel := PanelContainer.new()
+	panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	panel.offset_top = -360.0
+	panel.add_theme_stylebox_override("panel", EquipmentUiTokens.tooltip_panel_style())
+	_detail_overlay.add_child(panel)
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 12)
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_right", 12)
+	margin.add_theme_constant_override("margin_bottom", 12)
+	panel.add_child(margin)
+	var outer := VBoxContainer.new()
+	outer.add_theme_constant_override("separation", 8)
+	margin.add_child(outer)
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 8)
+	outer.add_child(header)
+	var title := Label.new()
+	title.text = "装備性能"
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_display(title, UiTypography.SIZE_BODY_SMALL)
+	header.add_child(title)
+	_detail_title = title
+	var close_btn := Button.new()
+	close_btn.text = "閉じる"
+	UiTypography.apply_menu_button(close_btn)
+	close_btn.pressed.connect(_hide_item_detail_overlay)
+	header.add_child(close_btn)
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	outer.add_child(scroll)
+	_detail_host = VBoxContainer.new()
+	_detail_host.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(_detail_host)
+	var action_row := HBoxContainer.new()
+	action_row.add_theme_constant_override("separation", 8)
+	action_row.alignment = BoxContainer.ALIGNMENT_END
+	outer.add_child(action_row)
+	_detail_equip_btn = Button.new()
+	_detail_equip_btn.text = "装備する"
+	UiTypography.apply_menu_button(_detail_equip_btn)
+	_detail_equip_btn.pressed.connect(_on_detail_equip_pressed)
+	action_row.add_child(_detail_equip_btn)
+
+func _show_item_stats_overlay(item: Resource, category: String) -> void:
+	_ensure_item_detail_overlay()
+	_overlay_item = item
+	_overlay_category = category
+	_overlay_skill_id = ""
+	if _detail_title != null:
+		_detail_title.text = "装備性能"
+	EquipmentItemDetailHelper.populate_stats_panel(_detail_host, item, category)
+	var party_idx: int = _party_index_for_view()
+	var owner_idx: int = EquipmentUiHelper.equipped_member_index(item)
+	var can_equip: bool = party_idx >= 0 and owner_idx != party_idx
+	_detail_equip_btn.visible = can_equip
+	_detail_equip_btn.disabled = not can_equip
+	_detail_overlay.visible = true
+
+func _on_detail_equip_pressed() -> void:
+	if _overlay_category == "skill":
+		if not _overlay_skill_id.is_empty():
+			_on_skill_toggle_pressed(_overlay_skill_id)
+		_hide_item_detail_overlay()
+		return
+	if _overlay_category == "relic":
+		if not _overlay_relic_id.is_empty():
+			_on_relic_equip_pressed(_overlay_relic_id)
+		_hide_item_detail_overlay()
+		return
+	if _overlay_item == null or _overlay_category.is_empty():
+		return
+	_on_cell_pressed(_overlay_item, _overlay_category)
+	_hide_item_detail_overlay()
+
+func _on_relic_equip_pressed(relic_id: String) -> void:
+	var party_idx: int = _party_index_for_view()
+	if party_idx < 0:
+		return
+	var member: Resource = GameState.get_member(party_idx)
+	if member == null:
+		return
+	var pid: String = CombatPassives.migrate_relic_passive_id(relic_id)
+	if GameState.get_equipped_relic_passive_id(member) == pid:
+		GameState.set_member_relic(member, "")
+	else:
+		GameState.set_member_relic(member, relic_id)
+	_refresh_display()
+
+func _hide_item_detail_overlay() -> void:
+	if _detail_overlay != null:
+		_detail_overlay.visible = false
+	_overlay_item = null
+	_overlay_category = ""
+	_overlay_relic_id = ""
+	_overlay_skill_id = ""
+
+func _on_item_detail_dim_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_hide_item_detail_overlay()
+
+func _on_catalog_pressed() -> void:
+	if ResourceLoader.exists(CATALOG_SCENE):
+		SceneRouter.change_scene(CATALOG_SCENE)
 
 func _on_cell_pressed(item: Resource, category: String) -> void:
 	var party_idx: int = _party_index_for_view()
@@ -598,21 +1161,23 @@ func _on_unequip_all_pressed() -> void:
 	$EquipmentController.unequip_weapon(party_idx)
 	$EquipmentController.unequip_armor(party_idx)
 	$EquipmentController.unequip_accessory(party_idx)
+	var member: Resource = GameState.get_member(party_idx)
+	if member != null:
+		GameState.set_member_relic(member, "")
 	_refresh_display()
 
 # ---- レア度枠スタイル ----
-func _rarity_box(rarity: int, highlight: bool) -> StyleBoxFlat:
-	var sb := StyleBoxFlat.new()
-	var col: Color = RARITY_COLORS[clampi(rarity, 0, RARITY_COLORS.size() - 1)]
-	sb.bg_color = Color(0.10, 0.09, 0.07, 0.95) if not highlight else Color(0.20, 0.18, 0.13, 1.0)
-	sb.set_border_width_all(3 if highlight else 2)
-	sb.border_color = col if not highlight else col.lerp(Color.WHITE, 0.25)
-	sb.set_corner_radius_all(8)
-	sb.set_content_margin_all(4.0)
-	if highlight:
-		sb.shadow_color = Color(col.r, col.g, col.b, 0.5)
-		sb.shadow_size = 4
-	return sb
+func _rarity_box(rarity: int, highlight: bool, cell_px: int) -> StyleBox:
+	return EquipmentUiTokens.rarity_slot_style(rarity, highlight, cell_px)
+
+func _apply_item_cell_styles(btn: Button, rarity: int, cell_px: int, disabled_highlight: bool = false) -> void:
+	var normal: StyleBox = _rarity_box(rarity, false, cell_px)
+	var hover: StyleBox = _rarity_box(rarity, true, cell_px)
+	btn.add_theme_stylebox_override("normal", normal)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_stylebox_override("pressed", hover)
+	btn.add_theme_stylebox_override("focus", normal)
+	btn.add_theme_stylebox_override("disabled", _rarity_box(rarity, disabled_highlight, cell_px))
 
 # 汎用の額縁スタイル（枠色・枠幅・地色を指定）。
 func _framed_box(border: Color, width: int, bg: Color) -> StyleBoxFlat:
@@ -624,7 +1189,7 @@ func _framed_box(border: Color, width: int, bg: Color) -> StyleBoxFlat:
 	sb.set_content_margin_all(4.0)
 	return sb
 
-# ボタン隅にバッジ（レアリティ / 装備中 / 炉研ぎ）を重ねる。
+# ボタン隅にバッジ（レアリティ星 / 炉研ぎ / 装備中）を重ねる。
 func _apply_item_badges(
 	btn: Button,
 	item: Resource,
@@ -633,18 +1198,19 @@ func _apply_item_badges(
 	is_equipped: bool
 ) -> void:
 	var rarity: int = _item_rarity(item, category)
-	var rarity_col: Color = RARITY_COLORS[clampi(rarity, 0, RARITY_COLORS.size() - 1)]
+	var star_font: int = maxi(11, int(size.y * 0.17))
 	_add_corner_badge(
 		btn,
-		EquipmentUiHelper.rarity_gem(rarity),
-		rarity_col,
-		Vector2(2.0, 1.0)
+		EquipmentUiHelper.rarity_stars_text(rarity),
+		Color(0.96, 0.82, 0.35, 1.0),
+		Vector2(3.0, 2.0),
+		star_font
 	)
-	var enhance_text: String = EquipmentUiHelper.enhance_badge(item, category)
-	if not enhance_text.is_empty():
-		_add_corner_badge(btn, enhance_text, COLOR_GOLD, Vector2(size.x - 26.0, size.y - 18.0), 11)
+	if category == "weapon":
+		EquipmentUiHelper.apply_enhance_badge(btn, item, category, size, COLOR_GOLD)
 	if is_equipped:
-		_add_corner_badge(btn, "装", COLOR_ACCENT, Vector2(2.0, size.y - 18.0), 11)
+		var eq_font: int = maxi(10, int(size.y * 0.14))
+		_add_corner_badge(btn, "装", COLOR_ACCENT, Vector2(3.0, size.y - float(eq_font) - 4.0), eq_font)
 
 # ボタン隅にバッジ（レアリティ宝石 / 装備中マーク）を重ねる。
 func _add_corner_badge(
@@ -790,10 +1356,15 @@ func _armor_resist_suffix(item: Resource) -> String:
 
 func _armor_compare(candidate: Resource, equipped: Resource) -> String:
 	var parts: PackedStringArray = []
-	var def_diff: int = candidate.rolled_defense - equipped.rolled_defense
+	var def_diff: int = (
+		EquipmentEnhancer.effective_armor_defense(candidate)
+		- EquipmentEnhancer.effective_armor_defense(equipped)
+	)
 	if def_diff != 0:
 		parts.append("DEF %s%d" % ["+" if def_diff >= 0 else "", def_diff])
-	var hp_diff: int = candidate.hp_bonus - equipped.hp_bonus
+	var hp_diff: int = (
+		EquipmentEnhancer.effective_armor_hp(candidate) - EquipmentEnhancer.effective_armor_hp(equipped)
+	)
 	if hp_diff != 0:
 		parts.append("HP %s%d" % ["+" if hp_diff >= 0 else "", hp_diff])
 	if parts.is_empty():
@@ -836,17 +1407,17 @@ func _compute_member_stats(idx: int, member_override: Resource = null) -> Dictio
 	if member != null and member.base_stats != null and int(member.base_stats.hp) > 0:
 		hp = int(member.base_stats.hp)
 	if armor != null:
-		hp += armor.hp_bonus
-	if acc_data != null:
-		hp += acc_data.hp_bonus
+		hp += EquipmentEnhancer.effective_armor_hp(armor)
+	if acc_data != null and accessory != null:
+		hp += EquipmentEnhancer.effective_accessory_int_bonus(accessory, "hp_bonus", acc_data)
 	hp += int(affix.get("hp_flat", 0))
 	hp += LevelSystem.level_hp_bonus(level)
 	hp = int(round(float(hp) * float(job.get("hp_multiplier", 1.0))))
 	var attack: int = 0
 	if weapon != null:
 		attack = _EquipmentEnhancer.get_effective_attack(weapon)
-	if acc_data != null:
-		attack += acc_data.attack_bonus
+	if acc_data != null and accessory != null:
+		attack += EquipmentEnhancer.effective_accessory_int_bonus(accessory, "attack_bonus", acc_data)
 	attack += int(affix.get("attack_flat", 0))
 	attack += LevelSystem.level_attack_bonus(level)
 	if member != null and member.base_stats != null:
@@ -857,9 +1428,9 @@ func _compute_member_stats(idx: int, member_override: Resource = null) -> Dictio
 	attack = int(round(float(attack) * atk_mult))
 	var defense: int = 0
 	if armor != null:
-		defense = armor.rolled_defense
-	if acc_data != null:
-		defense += acc_data.defense_bonus
+		defense = EquipmentEnhancer.effective_armor_defense(armor)
+	if acc_data != null and accessory != null:
+		defense += EquipmentEnhancer.effective_accessory_int_bonus(accessory, "defense_bonus", acc_data)
 	defense += int(affix.get("defense_flat", 0))
 	if member != null and member.base_stats != null:
 		defense += int(member.base_stats.defense)
@@ -881,15 +1452,8 @@ func _compute_member_stats(idx: int, member_override: Resource = null) -> Dictio
 # ---- スキルタブ（P3-D077） ----
 func _rebuild_skill_tab() -> void:
 	var member: Resource = _get_view_adventurer()
-	_ensure_tactics_ui()
-	_refresh_tactics_ui(member)
-	_ensure_relic_ui()
-	_refresh_relic_ui(member)
-	_ensure_preset_ui()
-	_refresh_preset_ui()
-	_ensure_tag_info_ui()
-	_refresh_tag_info(member)
-	var slots_label: Label = _skill_content.get_node("LabelSkillSlots") as Label
+	var slots_label: RichTextLabel = _skill_content.get_node("LabelSkillSlots") as RichTextLabel
+	var hint_label: Label = _skill_content.get_node("LabelSkillHint") as Label
 	var list: Node = _skill_content.get_node("SkillList")
 	for child in list.get_children():
 		child.queue_free()
@@ -899,9 +1463,12 @@ func _rebuild_skill_tab() -> void:
 	var equipped: Array[String] = GameState.get_equipped_skill_ids(member)
 	var equipped_names: PackedStringArray = []
 	for sid in equipped:
-		equipped_names.append(_skill_label_name(sid))
+		equipped_names.append(_skill_bbcode_name(sid))
 	var shown: String = " / ".join(equipped_names) if not equipped_names.is_empty() else "なし"
-	slots_label.text = "装備中スキル (%d/%d): %s" % [equipped.size(), Constants.MAX_EQUIPPED_SKILLS, shown]
+	slots_label.text = "[center]装備中スキル (%d/%d): %s[/center]" % [
+		equipped.size(), Constants.MAX_EQUIPPED_SKILLS, shown
+	]
+	hint_label.text = "習得スキル（タップで詳細 / 右ボタンで装備）"
 	var job: Resource = DataRegistry.get_job_data(member.job_id)
 	if job == null:
 		return
@@ -915,82 +1482,442 @@ func _rebuild_skill_tab() -> void:
 		var req_lv: int = maxi(1, int(entry.get("level", 1)))
 		var unlocked: bool = SkillProgression.is_job_skill_unlocked(member, sid)
 		var is_equipped: bool = equipped.has(sid)
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 8)
-		var skill_icon := _make_skill_icon(sid)
-		if skill_icon != null:
-			row.add_child(skill_icon)
-		var info := Label.new()
-		var info_text: String = _skill_info_text(skill_data)
-		if not unlocked:
-			info_text = "🔒 Lv%d  %s" % [req_lv, info_text]
-		info.text = info_text
-		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		info.autowrap_mode = TextServer.AUTOWRAP_WORD
-		if not unlocked:
-			info.modulate = Color(0.65, 0.65, 0.65)
-		row.add_child(info)
-		var btn := Button.new()
-		btn.text = "解除" if is_equipped else "装備"
-		btn.disabled = not unlocked or ((not is_equipped) and equipped.size() >= Constants.MAX_EQUIPPED_SKILLS)
-		btn.pressed.connect(_on_skill_toggle_pressed.bind(sid))
-		row.add_child(btn)
-		list.add_child(row)
+		list.add_child(_make_skill_list_row(
+			sid, skill_data, member, unlocked, req_lv, is_equipped, equipped.size()
+		))
 	var weapon_skill: Dictionary = WeaponSkillHelper.get_weapon_skill_display(member)
 	if not str(weapon_skill.get("skill_id", "")).is_empty():
-		var ws_row := HBoxContainer.new()
-		ws_row.add_theme_constant_override("separation", 8)
-		var ws_sid: String = str(weapon_skill.get("skill_id", ""))
-		var ws_icon := _make_skill_icon(ws_sid)
-		if ws_icon != null:
-			ws_row.add_child(ws_icon)
-		var ws_info := Label.new()
-		ws_info.text = "⚔ 武器スキル: %s（%s）" % [
-			str(weapon_skill.get("skill_name", "")),
-			str(weapon_skill.get("weapon_name", "")),
-		]
-		ws_info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		ws_info.autowrap_mode = TextServer.AUTOWRAP_WORD
-		ws_info.modulate = Color(0.85, 0.75, 1.0)
-		ws_row.add_child(ws_info)
-		var ws_tag := Label.new()
-		ws_tag.text = "自動"
-		ws_tag.modulate = Color(0.7, 0.7, 0.7)
-		ws_row.add_child(ws_tag)
-		list.add_child(ws_row)
+		list.add_child(_make_weapon_skill_list_row(member, weapon_skill))
 
-# 戦術・陣形はタブ外の常時表示パネル（P3-ALPHA-003 フィードバック）。
+func _make_skill_list_row(
+	skill_id: String,
+	skill_data: Resource,
+	member: Resource,
+	unlocked: bool,
+	req_lv: int,
+	is_equipped: bool,
+	equipped_count: int
+) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 4)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.custom_minimum_size.y = float(PASSIVE_ROW_ICON_PX)
+	row.add_child(_skill_row_icon(skill_id, member))
+	row.add_child(_make_skill_row_body(skill_id, skill_data, unlocked, req_lv, is_equipped))
+	var equip_btn := Button.new()
+	equip_btn.text = "解除" if is_equipped else "装備"
+	equip_btn.custom_minimum_size.x = PASSIVE_ROW_BTN_W
+	equip_btn.disabled = (
+		not unlocked or ((not is_equipped) and equipped_count >= Constants.MAX_EQUIPPED_SKILLS)
+	)
+	equip_btn.pressed.connect(_on_skill_toggle_pressed.bind(skill_id))
+	row.add_child(equip_btn)
+	if not unlocked:
+		row.modulate = Color(0.78, 0.78, 0.78, 1.0)
+	return row
+
+func _make_weapon_skill_list_row(member: Resource, weapon_skill: Dictionary) -> HBoxContainer:
+	var ws_sid: String = str(weapon_skill.get("skill_id", ""))
+	var ws_skill_data: Resource = DataRegistry.get_skill_data(ws_sid)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 4)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.custom_minimum_size.y = float(PASSIVE_ROW_ICON_PX)
+	row.add_child(_skill_row_icon(ws_sid, member))
+	var body := PanelContainer.new()
+	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.mouse_filter = Control.MOUSE_FILTER_STOP
+	body.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	body.gui_input.connect(_on_skill_row_gui_input.bind(ws_sid, true, 1, false))
+	var body_row := HBoxContainer.new()
+	body_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	body_row.add_theme_constant_override("separation", 0)
+	body.add_child(body_row)
+	if ws_skill_data != null:
+		body_row.add_child(_make_skill_name_label(ws_skill_data))
+	else:
+		var ws_name := Label.new()
+		ws_name.text = "『%s』" % str(weapon_skill.get("skill_name", ""))
+		ws_name.custom_minimum_size.x = SKILL_ROW_NAME_MIN_W
+		ws_name.clip_text = true
+		ws_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		ws_name.add_theme_color_override("font_color", SKILL_COLOR_ATTACK)
+		UiTypography.apply_body(ws_name, UiTypography.SIZE_CAPTION)
+		body_row.add_child(ws_name)
+	body_row.add_child(_passive_row_sep())
+	var ws_desc := _make_skill_desc_label(
+		_skill_summary_text(ws_skill_data, true, 1) if ws_skill_data != null else "武器スキルとして自動発動",
+		true
+	)
+	body_row.add_child(ws_desc)
+	row.add_child(body)
+	var ws_tag := Label.new()
+	ws_tag.text = "自動"
+	ws_tag.custom_minimum_size.x = PASSIVE_ROW_BTN_W
+	ws_tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	ws_tag.add_theme_color_override("font_color", COLOR_SUB)
+	UiTypography.apply_caption(ws_tag)
+	row.add_child(ws_tag)
+	return row
+
+const SKILL_ROW_NAME_MIN_W: float = 132.0
+
+func _skill_row_icon(skill_id: String, member: Resource) -> Control:
+	var icon: Control = _make_skill_icon(skill_id, member)
+	if icon != null:
+		icon.custom_minimum_size = Vector2(PASSIVE_ROW_ICON_PX, PASSIVE_ROW_ICON_PX)
+		return icon
+	return _passive_row_icon_placeholder()
+
+func _make_skill_row_body(
+	skill_id: String,
+	skill_data: Resource,
+	unlocked: bool,
+	req_lv: int,
+	is_equipped: bool
+) -> PanelContainer:
+	var body := PanelContainer.new()
+	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.mouse_filter = Control.MOUSE_FILTER_STOP
+	body.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	body.gui_input.connect(_on_skill_row_gui_input.bind(skill_id, unlocked, req_lv, is_equipped))
+	var body_row := HBoxContainer.new()
+	body_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	body_row.add_theme_constant_override("separation", 0)
+	body.add_child(body_row)
+	body_row.add_child(_make_skill_name_label(skill_data))
+	body_row.add_child(_passive_row_sep())
+	body_row.add_child(_make_skill_desc_label(_skill_summary_text(skill_data, unlocked, req_lv), unlocked))
+	return body
+
+func _make_skill_name_label(skill_data: Resource) -> Label:
+	var name_lbl := Label.new()
+	name_lbl.text = _skill_wrapped_name(skill_data)
+	_apply_skill_name_style(name_lbl, skill_data)
+	name_lbl.custom_minimum_size.x = SKILL_ROW_NAME_MIN_W
+	name_lbl.clip_text = true
+	name_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return name_lbl
+
+func _make_skill_desc_label(text: String, unlocked: bool) -> Label:
+	var desc_lbl := Label.new()
+	desc_lbl.text = text
+	desc_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	desc_lbl.clip_text = true
+	desc_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	desc_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	desc_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	desc_lbl.add_theme_color_override(
+		"font_color", COLOR_VALUE if unlocked else Color(0.55, 0.55, 0.55)
+	)
+	UiTypography.apply_body(desc_lbl, UiTypography.SIZE_CAPTION)
+	return desc_lbl
+
+func _on_skill_row_gui_input(
+	event: InputEvent,
+	skill_id: String,
+	unlocked: bool,
+	req_lv: int,
+	is_equipped: bool
+) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_show_skill_detail_overlay(skill_id, unlocked, req_lv, is_equipped)
+
+# ---- 必殺技タブ ----
+const ULTIMATE_ICON_PX: int = 96
+
+func _rebuild_ultimate_tab() -> void:
+	var host: VBoxContainer = _ultimate_content.get_node("UltimateHost") as VBoxContainer
+	for child in host.get_children():
+		child.queue_free()
+	var member: Resource = _get_view_adventurer()
+	if member == null:
+		return
+	var skill_data: Resource = _get_member_ultimate_skill_data(member)
+	if skill_data == null:
+		var empty := Label.new()
+		empty.text = "必殺技がありません"
+		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		UiTypography.apply_body(empty, UiTypography.SIZE_BODY_SMALL, COLOR_SUB)
+		host.add_child(empty)
+		return
+	var skill_id: String = str(skill_data.id)
+	var panel := PanelContainer.new()
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.add_theme_stylebox_override(
+		"panel", _framed_box(COLOR_GOLD, 2, Color(0.08, 0.07, 0.05, 0.92))
+	)
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 16)
+	margin.add_theme_constant_override("margin_top", 16)
+	margin.add_theme_constant_override("margin_right", 16)
+	margin.add_theme_constant_override("margin_bottom", 16)
+	panel.add_child(margin)
+	var outer := VBoxContainer.new()
+	outer.add_theme_constant_override("separation", 14)
+	outer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	margin.add_child(outer)
+	var icon_row := CenterContainer.new()
+	icon_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var icon := _make_ultimate_skill_icon(skill_id, member, Vector2(ULTIMATE_ICON_PX, ULTIMATE_ICON_PX))
+	if icon != null:
+		icon_row.add_child(icon)
+	else:
+		var ph := Control.new()
+		ph.custom_minimum_size = Vector2(ULTIMATE_ICON_PX, ULTIMATE_ICON_PX)
+		icon_row.add_child(ph)
+	outer.add_child(icon_row)
+	var title_row := HBoxContainer.new()
+	title_row.add_theme_constant_override("separation", 6)
+	title_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	outer.add_child(title_row)
+	var name_lbl := Label.new()
+	name_lbl.text = _skill_wrapped_name(skill_data)
+	var name_font: Font = UiTypography.display_font()
+	if name_font != null:
+		name_lbl.add_theme_font_override("font", name_font)
+	name_lbl.add_theme_font_size_override("font_size", UiTypography.SIZE_DISPLAY_TITLE)
+	name_lbl.add_theme_color_override("font_color", COLOR_GOLD)
+	name_lbl.add_theme_constant_override("outline_size", 3)
+	name_lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	title_row.add_child(name_lbl)
+	var ell := Label.new()
+	ell.text = "…"
+	ell.add_theme_color_override("font_color", COLOR_SUB)
+	UiTypography.apply_body(ell, UiTypography.SIZE_BODY_SMALL)
+	title_row.add_child(ell)
+	var desc_lbl := Label.new()
+	desc_lbl.text = _skill_summary_text(skill_data, true, 1)
+	desc_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc_lbl.add_theme_color_override("font_color", COLOR_VALUE)
+	UiTypography.apply_body(desc_lbl, UiTypography.SIZE_BODY_SMALL)
+	title_row.add_child(desc_lbl)
+	var fx_title := Label.new()
+	fx_title.text = "効果"
+	UiTypography.apply_body(fx_title, UiTypography.SIZE_BODY, COLOR_GOLD)
+	outer.add_child(fx_title)
+	for line in _skill_stats_detail_lines(skill_data, true, 1):
+		var stat_lbl := Label.new()
+		stat_lbl.text = "・%s" % line
+		stat_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		stat_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		UiTypography.apply_body(stat_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_VALUE)
+		outer.add_child(stat_lbl)
+	host.add_child(panel)
+
+func _get_member_ultimate_skill_data(member: Resource) -> Resource:
+	if member == null:
+		return null
+	var ult_id: String = Constants.DEFAULT_ULTIMATE_SKILL_ID
+	if not str(member.job_id).is_empty():
+		var job: Resource = DataRegistry.get_job_data(member.job_id)
+		if job != null and not str(job.ultimate_skill_id).is_empty():
+			ult_id = str(job.ultimate_skill_id)
+	if ult_id.is_empty():
+		return null
+	return DataRegistry.get_skill_data(ult_id)
+
+# ---- パッシブタブ ----
+const PASSIVE_ROW_ICON_PX: int = 56
+const PASSIVE_ROW_BTN_W: int = 64
+const PASSIVE_ROW_NAME_MIN_W: int = 120
+
+func _rebuild_passive_tab() -> void:
+	_sync_slot_cell_size()
+	var member: Resource = _get_view_adventurer()
+	var list: Node = _passive_content.get_node("PassiveList")
+	for child in list.get_children():
+		child.queue_free()
+	if member == null:
+		return
+	var char_ids: Array[String] = GameState.get_equipped_character_passive_ids(member)
+	for pid in CombatPassives.selectable_passive_ids(member):
+		var def: Dictionary = CombatPassives.get_def(pid)
+		if def.is_empty():
+			continue
+		list.add_child(_make_passive_equip_row(def, char_ids.has(pid)))
+	for eq_def: Dictionary in CombatPassives.equipment_passives_for_member(member):
+		list.add_child(_make_passive_info_row(eq_def, "装備固定"))
+
+func _make_passive_equip_row(def: Dictionary, is_equipped: bool) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.custom_minimum_size.y = float(PASSIVE_ROW_ICON_PX)
+	var pid: String = str(def.get("id", ""))
+	row.add_child(_passive_row_icon(pid))
+	row.add_child(_passive_row_sep())
+	var name_lbl := _passive_row_label(
+		str(def.get("display_name", "—")), SKILL_COLOR_SUPPORT, PASSIVE_ROW_NAME_MIN_W, true
+	)
+	row.add_child(name_lbl)
+	row.add_child(_passive_row_sep())
+	var effect_lbl := _passive_row_label(_passive_effect_text(def), COLOR_VALUE, 0, false)
+	effect_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(effect_lbl)
+	row.add_child(_passive_row_sep())
+	var btn := Button.new()
+	btn.custom_minimum_size.x = PASSIVE_ROW_BTN_W
+	btn.text = "解除" if is_equipped else "装備"
+	btn.pressed.connect(_on_passive_toggle_pressed.bind(pid))
+	row.add_child(btn)
+	return row
+
+func _make_passive_info_row(def: Dictionary, tag_text: String) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.custom_minimum_size.y = float(PASSIVE_ROW_ICON_PX)
+	var pid: String = str(def.get("id", ""))
+	row.add_child(_passive_row_icon(pid))
+	row.add_child(_passive_row_sep())
+	var name_lbl := _passive_row_label(
+		str(def.get("display_name", "—")), SKILL_COLOR_SUPPORT, PASSIVE_ROW_NAME_MIN_W, true
+	)
+	row.add_child(name_lbl)
+	row.add_child(_passive_row_sep())
+	var effect_lbl := _passive_row_label(_passive_effect_text(def), COLOR_VALUE, 0, false)
+	effect_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(effect_lbl)
+	row.add_child(_passive_row_sep())
+	var tag_lbl := _passive_row_label(tag_text, COLOR_SUB, PASSIVE_ROW_BTN_W)
+	tag_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	row.add_child(tag_lbl)
+	return row
+
+func _make_relic_passive_row(def: Dictionary, is_equipped: bool) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.custom_minimum_size.y = float(PASSIVE_ROW_ICON_PX)
+	var pid: String = str(def.get("id", ""))
+	var relic_icon := _make_relic_passive_icon(pid)
+	if relic_icon != null:
+		relic_icon.custom_minimum_size = Vector2(PASSIVE_ROW_ICON_PX, PASSIVE_ROW_ICON_PX)
+		row.add_child(relic_icon)
+	else:
+		row.add_child(_passive_row_icon_placeholder())
+	row.add_child(_passive_row_sep())
+	var name_lbl := _passive_row_label(
+		str(def.get("display_name", "—")), COLOR_ACCENT, PASSIVE_ROW_NAME_MIN_W, true
+	)
+	row.add_child(name_lbl)
+	row.add_child(_passive_row_sep())
+	var effect_lbl := _passive_row_label(CombatPassives.relic_description(pid), COLOR_VALUE, 0, false)
+	effect_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(effect_lbl)
+	row.add_child(_passive_row_sep())
+	var btn := Button.new()
+	btn.custom_minimum_size.x = PASSIVE_ROW_BTN_W
+	btn.text = "解除" if is_equipped else "装備"
+	btn.pressed.connect(_on_relic_passive_toggle_pressed.bind(pid))
+	row.add_child(btn)
+	return row
+
+func _passive_row_icon(passive_id: String) -> Control:
+	var icon: Control = _make_passive_icon(passive_id)
+	if icon != null:
+		icon.custom_minimum_size = Vector2(PASSIVE_ROW_ICON_PX, PASSIVE_ROW_ICON_PX)
+		return icon
+	return _passive_row_icon_placeholder()
+
+func _passive_row_icon_placeholder() -> Control:
+	var box := Control.new()
+	box.custom_minimum_size = Vector2(PASSIVE_ROW_ICON_PX, PASSIVE_ROW_ICON_PX)
+	return box
+
+func _passive_row_sep() -> Label:
+	var sep := Label.new()
+	sep.text = "："
+	sep.add_theme_color_override("font_color", COLOR_SUB)
+	UiTypography.apply_body(sep, UiTypography.SIZE_BODY_SMALL)
+	return sep
+
+func _passive_row_label(
+	text: String, color: Color, min_width: int, is_name: bool = false
+) -> Label:
+	var lbl := Label.new()
+	lbl.text = text
+	lbl.add_theme_color_override("font_color", color)
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	if is_name:
+		lbl.clip_text = true
+		lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	else:
+		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if min_width > 0:
+		lbl.custom_minimum_size.x = float(min_width)
+	UiTypography.apply_body(lbl, UiTypography.SIZE_BODY_SMALL)
+	return lbl
+
+func _passive_effect_text(def: Dictionary) -> String:
+	return RosterUiHelper.passive_description(def)
+
+func _make_relic_passive_icon(passive_id: String) -> TextureRect:
+	var icon_key: String = CombatPassives.relic_icon_key(passive_id)
+	var tex: Texture2D = IconPaths.get_icon_texture(icon_key, "relic") if not icon_key.is_empty() else null
+	if tex == null:
+		return null
+	var icon := TextureRect.new()
+	icon.texture = tex
+	icon.custom_minimum_size = Vector2(PASSIVE_ROW_ICON_PX, PASSIVE_ROW_ICON_PX)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return icon
+
+func _on_passive_toggle_pressed(passive_id: String) -> void:
+	var member: Resource = _get_view_adventurer()
+	if member == null:
+		return
+	GameState.toggle_member_passive(member, passive_id)
+	_rebuild_passive_tab()
+	_rebuild_equip_slots()
+
+func _on_relic_passive_toggle_pressed(passive_id: String) -> void:
+	var member: Resource = _get_view_adventurer()
+	if member == null:
+		return
+	if GameState.get_equipped_relic_passive_id(member) == passive_id:
+		GameState.toggle_member_relic_passive(member, "")
+	else:
+		GameState.toggle_member_relic_passive(member, passive_id)
+	_rebuild_passive_tab()
+	_rebuild_equip_slots()
+
+# ---- 戦術タブ（P3-D086 戦術・ガンビット） ----
+func _rebuild_tactics_tab() -> void:
+	var member: Resource = _get_view_adventurer()
+	_ensure_exploration_policy_ui()
+	_sync_policy_option()
+	_ensure_tactics_ui()
+	_refresh_tactics_ui(member)
+
 func _ensure_combat_setup_panel() -> void:
 	if _combat_setup_panel != null and is_instance_valid(_combat_setup_panel):
 		return
-	var vbox: VBoxContainer = $VBoxContainer
 	_combat_setup_panel = PanelContainer.new()
 	_combat_setup_panel.name = "CombatSetupPanel"
+	_combat_setup_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_combat_setup_panel.add_theme_stylebox_override(
 		"panel", _framed_box(COLOR_GOLD, 2, Color(0.08, 0.07, 0.05, 0.92))
 	)
 	var outer := VBoxContainer.new()
-	outer.add_theme_constant_override("separation", 6)
-	var title := Label.new()
-	title.text = "◆ 戦術 ◆"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_color_override("font_color", COLOR_GOLD)
-	title.add_theme_font_size_override("font_size", 16)
-	outer.add_child(title)
+	outer.add_theme_constant_override("separation", 8)
 	var hint := Label.new()
 	hint.text = "陣形は拠点 → 編成 → 陣形タブで設定"
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hint.add_theme_color_override("font_color", COLOR_SUB)
-	hint.add_theme_font_size_override("font_size", 12)
+	UiTypography.apply_caption(hint)
 	outer.add_child(hint)
 	_combat_setup_content = VBoxContainer.new()
 	_combat_setup_content.name = "CombatSetupContent"
-	_combat_setup_content.add_theme_constant_override("separation", 6)
+	_combat_setup_content.add_theme_constant_override("separation", 8)
 	outer.add_child(_combat_setup_content)
 	_combat_setup_panel.add_child(outer)
-	vbox.add_child(_combat_setup_panel)
-	var tab_idx: int = vbox.get_node("TabContainer").get_index()
-	vbox.move_child(_combat_setup_panel, tab_idx)
+	_tactics_content.add_child(_combat_setup_panel)
 
 # 戦術セレクタ（P3-D086）。常時表示パネル最上部。
 func _ensure_tactics_ui() -> void:
@@ -1001,6 +1928,7 @@ func _ensure_tactics_ui() -> void:
 	row.name = "TacticsRow"
 	var label := Label.new()
 	label.text = "戦術:"
+	UiTypography.apply_body(label, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	row.add_child(label)
 	var opt := OptionButton.new()
 	opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -1013,27 +1941,52 @@ func _ensure_tactics_ui() -> void:
 	_combat_setup_content.add_child(row)
 	_combat_setup_content.move_child(row, 0)
 	_tactics_option = opt
+	var summary := Label.new()
+	summary.name = "TacticsSummaryLabel"
+	summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	summary.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_body(summary, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	_combat_setup_content.add_child(summary)
+	_combat_setup_content.move_child(summary, 1)
+	_tactics_summary_label = summary
 	_ensure_gambit_ui()
 
 func _ensure_gambit_ui() -> void:
-	if _gambit_custom_check != null and is_instance_valid(_gambit_custom_check):
+	if _gambit_accordion_btn != null and is_instance_valid(_gambit_accordion_btn):
 		return
 	_ensure_combat_setup_panel()
+	var accordion_row := HBoxContainer.new()
+	accordion_row.name = "GambitAccordionRow"
+	_gambit_accordion_btn = Button.new()
+	_gambit_accordion_btn.text = "▶ 行動ルールを編集"
+	_gambit_accordion_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_menu_button(_gambit_accordion_btn)
+	_gambit_accordion_btn.pressed.connect(_on_gambit_accordion_pressed)
+	accordion_row.add_child(_gambit_accordion_btn)
+	_combat_setup_content.add_child(accordion_row)
+	_combat_setup_content.move_child(accordion_row, 2)
+	_gambit_custom_box = VBoxContainer.new()
+	_gambit_custom_box.name = "GambitCustomBox"
+	_gambit_custom_box.add_theme_constant_override("separation", 6)
+	_gambit_custom_box.visible = false
+	var intro := Label.new()
+	intro.text = "このキャラだけ、行動の優先順を上書きします。"
+	intro.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	intro.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_body(intro, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
+	_gambit_custom_box.add_child(intro)
 	var check_row := HBoxContainer.new()
 	check_row.name = "GambitCheckRow"
 	_gambit_custom_check = CheckBox.new()
-	_gambit_custom_check.text = "カスタム戦術（ガンビット）"
+	_gambit_custom_check.text = "行動ルールを自分で設定"
+	UiTypography.apply_menu_button(_gambit_custom_check)
 	_gambit_custom_check.toggled.connect(_on_gambit_custom_toggled)
 	check_row.add_child(_gambit_custom_check)
-	_combat_setup_content.add_child(check_row)
-	_combat_setup_content.move_child(check_row, 1)
-	_gambit_custom_box = VBoxContainer.new()
-	_gambit_custom_box.name = "GambitCustomBox"
-	_gambit_custom_box.add_theme_constant_override("separation", 4)
-	_gambit_custom_box.visible = false
+	_gambit_custom_box.add_child(check_row)
 	var target_row := HBoxContainer.new()
 	var target_label := Label.new()
-	target_label.text = "標的:"
+	target_label.text = "狙う敵:"
+	UiTypography.apply_body(target_label, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	target_row.add_child(target_label)
 	_gambit_target_option = OptionButton.new()
 	_gambit_target_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -1045,16 +1998,46 @@ func _ensure_gambit_ui() -> void:
 	target_row.add_child(_gambit_target_option)
 	_gambit_custom_box.add_child(target_row)
 	var copy_btn := Button.new()
-	copy_btn.text = "プリセットから複製"
+	copy_btn.text = "今の戦術をコピーして編集"
+	UiTypography.apply_menu_button(copy_btn)
 	copy_btn.pressed.connect(_on_gambit_copy_preset_pressed)
 	_gambit_custom_box.add_child(copy_btn)
-	_gambit_slot_opts.clear()
+	var header_row := HBoxContainer.new()
+	header_row.add_theme_constant_override("separation", 4)
+	var h_pri := Label.new()
+	h_pri.text = "順"
+	h_pri.custom_minimum_size.x = 18.0
+	UiTypography.apply_body(h_pri, UiTypography.SIZE_CAPTION, UiTypography.COLOR_GOLD)
+	header_row.add_child(h_pri)
+	var h_slot := Label.new()
+	h_slot.text = "使う技"
+	h_slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_body(h_slot, UiTypography.SIZE_CAPTION, UiTypography.COLOR_GOLD)
+	header_row.add_child(h_slot)
+	var h_cond := Label.new()
+	h_cond.text = "いつ使うか"
+	h_cond.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_body(h_cond, UiTypography.SIZE_CAPTION, UiTypography.COLOR_GOLD)
+	header_row.add_child(h_cond)
+	var h_val := Label.new()
+	h_val.text = "値"
+	h_val.custom_minimum_size.x = 52.0
+	UiTypography.apply_body(h_val, UiTypography.SIZE_CAPTION, UiTypography.COLOR_GOLD)
+	header_row.add_child(h_val)
+	var h_move := Label.new()
+	h_move.text = "並替"
+	h_move.custom_minimum_size.x = 30.0
+	UiTypography.apply_body(h_move, UiTypography.SIZE_CAPTION, UiTypography.COLOR_GOLD)
+	header_row.add_child(h_move)
+	_gambit_custom_box.add_child(header_row)
+	_gambit_action_opts.clear()
+	_gambit_action_keys.clear()
 	_gambit_cond_opts.clear()
 	_gambit_value_edits.clear()
 	_gambit_range_opts.clear()
 	_gambit_move_up_btns.clear()
 	_gambit_move_down_btns.clear()
-	_gambit_cond_hint_labels.clear()
+	_gambit_row_preview_labels.clear()
 	for i in CombatGambit.plan_row_count():
 		var row_wrap := VBoxContainer.new()
 		row_wrap.name = "GambitPlanWrap%d" % i
@@ -1062,15 +2045,14 @@ func _ensure_gambit_ui() -> void:
 		var plan_row := HBoxContainer.new()
 		plan_row.name = "GambitPlanRow%d" % i
 		var pri := Label.new()
-		pri.text = "%d." % (i + 1)
+		pri.text = "%d" % (i + 1)
 		pri.custom_minimum_size.x = 18.0
+		UiTypography.apply_body(pri, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 		plan_row.add_child(pri)
-		var slot_opt := OptionButton.new()
-		slot_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		for slot_id: String in CombatGambit.SLOT_IDS:
-			slot_opt.add_item(CombatGambit.slot_label(slot_id))
-		slot_opt.item_selected.connect(_on_gambit_row_changed)
-		plan_row.add_child(slot_opt)
+		var action_opt := OptionButton.new()
+		action_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		action_opt.item_selected.connect(_on_gambit_row_changed)
+		plan_row.add_child(action_opt)
 		var cond_opt := OptionButton.new()
 		cond_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		for cond_id: String in CombatGambit.CONDITION_IDS:
@@ -1079,13 +2061,13 @@ func _ensure_gambit_ui() -> void:
 		plan_row.add_child(cond_opt)
 		var value_edit := LineEdit.new()
 		value_edit.custom_minimum_size.x = 52.0
-		value_edit.placeholder_text = "値"
+		value_edit.placeholder_text = "%"
 		value_edit.text_changed.connect(_on_gambit_row_changed)
 		plan_row.add_child(value_edit)
 		var range_opt := OptionButton.new()
 		range_opt.custom_minimum_size.x = 72.0
 		for range_id: String in CombatGambit.RANGE_VALUE_IDS:
-			range_opt.add_item(range_id)
+			range_opt.add_item(CombatGambit.range_label(range_id))
 		range_opt.item_selected.connect(_on_gambit_row_changed)
 		range_opt.visible = false
 		plan_row.add_child(range_opt)
@@ -1103,28 +2085,29 @@ func _ensure_gambit_ui() -> void:
 		move_col.add_child(btn_down)
 		plan_row.add_child(move_col)
 		row_wrap.add_child(plan_row)
-		var cond_hint := Label.new()
-		cond_hint.text = ""
-		cond_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		cond_hint.add_theme_color_override("font_color", COLOR_SUB)
-		cond_hint.add_theme_font_size_override("font_size", 11)
-		row_wrap.add_child(cond_hint)
+		var row_preview := Label.new()
+		row_preview.text = ""
+		row_preview.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		row_preview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		UiTypography.apply_body(row_preview, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+		row_wrap.add_child(row_preview)
 		_gambit_custom_box.add_child(row_wrap)
-		_gambit_slot_opts.append(slot_opt)
+		_gambit_action_opts.append(action_opt)
+		_gambit_action_keys.append([])
 		_gambit_cond_opts.append(cond_opt)
 		_gambit_value_edits.append(value_edit)
 		_gambit_range_opts.append(range_opt)
 		_gambit_move_up_btns.append(btn_up)
 		_gambit_move_down_btns.append(btn_down)
-		_gambit_cond_hint_labels.append(cond_hint)
+		_gambit_row_preview_labels.append(row_preview)
 	var gambit_hint := Label.new()
-	gambit_hint.text = "上から優先。↑↓で並替。条件成立かつ発動可の最初の行動を実行"
-	gambit_hint.autowrap_mode = TextServer.AUTOWRAP_WORD
-	gambit_hint.add_theme_color_override("font_color", COLOR_SUB)
-	gambit_hint.add_theme_font_size_override("font_size", 12)
+	gambit_hint.text = "上から優先。戦闘ログに [戦術] と表示されます。"
+	gambit_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	gambit_hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_body(gambit_hint, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
 	_gambit_custom_box.add_child(gambit_hint)
 	_combat_setup_content.add_child(_gambit_custom_box)
-	_combat_setup_content.move_child(_gambit_custom_box, 2)
+	_combat_setup_content.move_child(_gambit_custom_box, 3)
 
 func _refresh_gambit_ui(member: Resource) -> void:
 	if _gambit_custom_check == null:
@@ -1133,12 +2116,16 @@ func _refresh_gambit_ui(member: Resource) -> void:
 	if member == null:
 		_gambit_custom_check.disabled = true
 		_gambit_custom_box.visible = false
+		_sync_gambit_accordion_btn(false, false)
 		_gambit_ui_syncing = false
 		return
 	_gambit_custom_check.disabled = false
 	var custom_on: bool = GameState.get_member_tactics_custom_enabled(member)
 	_gambit_custom_check.button_pressed = custom_on
-	_gambit_custom_box.visible = custom_on
+	if custom_on:
+		_gambit_accordion_expanded = true
+	_sync_gambit_accordion_btn(_gambit_accordion_expanded, custom_on)
+	_gambit_custom_box.visible = _gambit_accordion_expanded
 	if _tactics_option != null:
 		_tactics_option.disabled = custom_on
 	var target: String = GameState.get_member_tactics_custom_target(member)
@@ -1148,28 +2135,101 @@ func _refresh_gambit_ui(member: Resource) -> void:
 	var plan: Array = GameState.get_member_tactics_custom_plan(member)
 	for i in CombatGambit.plan_row_count():
 		var rule: Dictionary = plan[i] if i < plan.size() else CombatGambit.default_plan_row(i)
-		var slot_id: String = str(rule.get("slot", "attack"))
+		_sync_gambit_action_option(i, member, rule)
 		var cond_id: String = str(rule.get("condition", "always"))
-		var slot_idx: int = CombatGambit.SLOT_IDS.find(slot_id)
 		var cond_idx: int = CombatGambit.CONDITION_IDS.find(cond_id)
-		_gambit_slot_opts[i].select(slot_idx if slot_idx >= 0 else 0)
 		_gambit_cond_opts[i].select(cond_idx if cond_idx >= 0 else 0)
 		_update_gambit_row_value_widgets(i, cond_id, rule)
 	_update_gambit_move_buttons()
-	_update_gambit_condition_hints()
+	_update_gambit_row_previews()
+	_set_gambit_editor_interactive(custom_on)
 	_gambit_ui_syncing = false
 
-func _update_gambit_condition_hints() -> void:
+func _set_gambit_editor_interactive(enabled: bool) -> void:
+	if _gambit_target_option != null:
+		_gambit_target_option.disabled = not enabled
 	for i in CombatGambit.plan_row_count():
-		if i >= _gambit_cond_opts.size() or i >= _gambit_cond_hint_labels.size():
+		if i < _gambit_action_opts.size():
+			_gambit_action_opts[i].disabled = not enabled
+		if i < _gambit_cond_opts.size():
+			_gambit_cond_opts[i].disabled = not enabled
+		if i < _gambit_value_edits.size():
+			_gambit_value_edits[i].editable = enabled
+		if i < _gambit_range_opts.size():
+			_gambit_range_opts[i].disabled = not enabled
+	_update_gambit_move_buttons()
+	if not enabled:
+		for i in CombatGambit.plan_row_count():
+			if i < _gambit_move_up_btns.size():
+				_gambit_move_up_btns[i].disabled = true
+			if i < _gambit_move_down_btns.size():
+				_gambit_move_down_btns[i].disabled = true
+
+func _sync_gambit_accordion_btn(expanded: bool, custom_on: bool) -> void:
+	if _gambit_accordion_btn == null:
+		return
+	var prefix: String = "▼" if expanded else "▶"
+	var suffix: String = "（適用中）" if custom_on else ""
+	_gambit_accordion_btn.text = "%s 行動ルールを編集%s" % [prefix, suffix]
+
+func _on_gambit_accordion_pressed() -> void:
+	_gambit_accordion_expanded = not _gambit_accordion_expanded
+	var custom_on: bool = false
+	var member: Resource = _get_view_adventurer()
+	if member != null:
+		custom_on = GameState.get_member_tactics_custom_enabled(member)
+	_sync_gambit_accordion_btn(_gambit_accordion_expanded, custom_on)
+	if _gambit_custom_box != null:
+		_gambit_custom_box.visible = _gambit_accordion_expanded
+
+func _update_gambit_row_previews() -> void:
+	var member: Resource = _get_view_adventurer()
+	for i in CombatGambit.plan_row_count():
+		if i >= _gambit_cond_opts.size() or i >= _gambit_row_preview_labels.size():
 			continue
-		var cond_idx: int = _gambit_cond_opts[i].selected
-		var cond_id: String = "always"
-		if cond_idx >= 0 and cond_idx < CombatGambit.CONDITION_IDS.size():
-			cond_id = CombatGambit.CONDITION_IDS[cond_idx]
-		var hint: String = CombatGambit.condition_hint(cond_id)
-		_gambit_cond_hint_labels[i].text = hint
-		_gambit_cond_hint_labels[i].visible = not hint.is_empty()
+		var rule: Dictionary = _gambit_rule_from_row(i)
+		_gambit_row_preview_labels[i].text = CombatGambit.rule_preview(rule, member)
+
+func _sync_gambit_action_option(row: int, member: Resource, rule: Dictionary) -> void:
+	if row < 0 or row >= _gambit_action_opts.size():
+		return
+	var opt: OptionButton = _gambit_action_opts[row]
+	opt.clear()
+	var keys: Array[String] = []
+	for entry in CombatGambit.action_options_for_member(member):
+		if not entry is Dictionary:
+			continue
+		var key: String = str(entry.get("key", ""))
+		var label: String = str(entry.get("label", key))
+		opt.add_item(label)
+		keys.append(key)
+	_gambit_action_keys[row] = keys
+	var want_key: String = CombatGambit.action_key_from_rule(rule)
+	var pick_idx: int = keys.find(want_key)
+	if pick_idx < 0:
+		pick_idx = keys.find("attack")
+	opt.select(pick_idx if pick_idx >= 0 else 0)
+
+func _gambit_rule_from_row(row: int) -> Dictionary:
+	var cond_idx: int = _gambit_cond_opts[row].selected
+	var cond_id: String = CombatGambit.CONDITION_IDS[cond_idx] if cond_idx >= 0 else "always"
+	var keys: Array = _gambit_action_keys[row] if row < _gambit_action_keys.size() else []
+	var action_idx: int = _gambit_action_opts[row].selected
+	var action_key: String = "attack"
+	if action_idx >= 0 and action_idx < keys.size():
+		action_key = str(keys[action_idx])
+	var rule: Dictionary = CombatGambit.rule_from_action_key(action_key)
+	rule["condition"] = cond_id
+	if CombatGambit.condition_needs_value(cond_id):
+		if cond_id == "self_range":
+			var range_idx: int = _gambit_range_opts[row].selected
+			if range_idx >= 0 and range_idx < CombatGambit.RANGE_VALUE_IDS.size():
+				rule["value"] = CombatGambit.RANGE_VALUE_IDS[range_idx]
+		elif cond_id == "self_hp_below":
+			rule["value"] = CombatGambit.hp_percent_storage(_gambit_value_edits[row].text)
+		else:
+			rule["value"] = _gambit_value_edits[row].text
+	return rule
 
 func _update_gambit_move_buttons() -> void:
 	var row_count: int = CombatGambit.plan_row_count()
@@ -1190,28 +2250,28 @@ func _update_gambit_row_value_widgets(row: int, cond_id: String, rule: Dictionar
 	if is_range:
 		var range_idx: int = CombatGambit.RANGE_VALUE_IDS.find(raw_val)
 		_gambit_range_opts[row].select(range_idx if range_idx >= 0 else 0)
+	elif cond_id == "self_hp_below":
+		_gambit_value_edits[row].text = CombatGambit.hp_percent_display(raw_val)
+		_gambit_value_edits[row].placeholder_text = "%"
 	else:
 		_gambit_value_edits[row].text = raw_val
+		_gambit_value_edits[row].placeholder_text = "数"
 
 func _collect_gambit_plan_from_ui() -> Array:
 	var out: Array = []
 	for i in CombatGambit.plan_row_count():
-		var slot_idx: int = _gambit_slot_opts[i].selected
 		var cond_idx: int = _gambit_cond_opts[i].selected
-		if slot_idx < 0 or slot_idx >= CombatGambit.SLOT_IDS.size():
-			continue
 		if cond_idx < 0 or cond_idx >= CombatGambit.CONDITION_IDS.size():
 			continue
-		var cond_id: String = CombatGambit.CONDITION_IDS[cond_idx]
-		var rule: Dictionary = {
-			"slot": CombatGambit.SLOT_IDS[slot_idx],
-			"condition": cond_id,
-		}
+		var rule: Dictionary = _gambit_rule_from_row(i)
+		var cond_id: String = str(rule.get("condition", "always"))
 		if CombatGambit.condition_needs_value(cond_id):
 			if cond_id == "self_range":
 				var range_idx: int = _gambit_range_opts[i].selected
 				if range_idx >= 0 and range_idx < CombatGambit.RANGE_VALUE_IDS.size():
 					rule["value"] = CombatGambit.RANGE_VALUE_IDS[range_idx]
+			elif cond_id == "self_hp_below":
+				rule["value"] = CombatGambit.hp_percent_storage(_gambit_value_edits[i].text)
 			else:
 				rule["value"] = _gambit_value_edits[i].text
 		out.append(rule)
@@ -1232,6 +2292,8 @@ func _on_gambit_custom_toggled(enabled: bool) -> void:
 		GameState.copy_member_tactics_preset_to_custom(member)
 	else:
 		GameState.set_member_tactics_custom_enabled(member, enabled)
+	if enabled:
+		_gambit_accordion_expanded = true
 	_refresh_gambit_ui(member)
 
 func _on_gambit_copy_preset_pressed() -> void:
@@ -1239,6 +2301,7 @@ func _on_gambit_copy_preset_pressed() -> void:
 	if member == null:
 		return
 	GameState.copy_member_tactics_preset_to_custom(member)
+	_gambit_accordion_expanded = true
 	_refresh_gambit_ui(member)
 
 func _on_gambit_target_selected(_index: int) -> void:
@@ -1262,7 +2325,7 @@ func _on_gambit_row_changed(_unused: Variant = null) -> void:
 		var cond_idx: int = _gambit_cond_opts[i].selected
 		var cond_id: String = CombatGambit.CONDITION_IDS[cond_idx] if cond_idx >= 0 else "always"
 		_update_gambit_row_value_widgets(i, cond_id)
-	_update_gambit_condition_hints()
+	_update_gambit_row_previews()
 	_persist_gambit_plan(member)
 
 func _on_gambit_move_row(row: int, delta: int) -> void:
@@ -1288,12 +2351,25 @@ func _refresh_tactics_ui(member: Resource) -> void:
 		return
 	if member == null:
 		_tactics_option.disabled = true
+		if _tactics_summary_label != null:
+			_tactics_summary_label.text = ""
 		return
 	_tactics_option.disabled = false
 	var current: String = GameState.get_member_tactics_id(member)
 	var idx: int = _tactics_ids.find(current)
 	_tactics_option.select(idx if idx >= 0 else 0)
+	_refresh_tactics_summary_label(current, member)
 	_refresh_gambit_ui(member)
+
+func _refresh_tactics_summary_label(tactics_id: String, member: Resource = null) -> void:
+	if _tactics_summary_label == null:
+		return
+	if member == null:
+		member = _get_view_adventurer()
+	if member != null and GameState.get_member_tactics_custom_enabled(member):
+		_tactics_summary_label.text = "行動ルールを自分で設定中"
+		return
+	_tactics_summary_label.text = CombatTactics.summary_hint(tactics_id)
 
 func _on_tactics_selected(index: int) -> void:
 	if index < 0 or index >= _tactics_ids.size():
@@ -1302,115 +2378,12 @@ func _on_tactics_selected(index: int) -> void:
 	if member == null:
 		return
 	GameState.set_member_tactics(member, _tactics_ids[index])
+	_refresh_tactics_summary_label(_tactics_ids[index], member)
 
-# 遺物セレクタ（P3-D090）。戦術行の直下に 1 度だけ生成する。
-func _ensure_relic_ui() -> void:
-	if _relic_option != null and is_instance_valid(_relic_option):
+# 探索方針（P3-D098）。戦術タブで設定。
+func _ensure_exploration_policy_ui() -> void:
+	if _policy_option != null and is_instance_valid(_policy_option):
 		return
-	var row := HBoxContainer.new()
-	row.name = "RelicRow"
-	var label := Label.new()
-	label.text = "遺物:"
-	row.add_child(label)
-	_relic_icon = TextureRect.new()
-	_relic_icon.custom_minimum_size = Vector2(28, 28)
-	_relic_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_relic_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_relic_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(_relic_icon)
-	var opt := OptionButton.new()
-	opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	opt.item_selected.connect(_on_relic_selected)
-	row.add_child(opt)
-	_skill_content.add_child(row)
-	_skill_content.move_child(row, 1)
-	_relic_option = opt
-
-# 所持遺物のみ選択可（P3-D093）。先頭=なし＋所持済み。現在装備が未所持なら参考表示。
-func _refresh_relic_ui(member: Resource) -> void:
-	if _relic_option == null:
-		return
-	_relic_option.clear()
-	_relic_ids.clear()
-	_relic_option.add_item("なし")
-	_relic_ids.append("")
-	_relic_option.set_item_icon(0, null)
-	for rid: String in CombatRelics.all_ids():
-		if GameState.has_relic(rid):
-			var idx: int = _relic_option.item_count
-			_relic_option.add_item(CombatRelics.display_name(rid))
-			_relic_ids.append(rid)
-			_relic_option.set_item_icon(idx, IconPaths.get_icon_texture(rid, "relic"))
-	if member == null:
-		_relic_option.disabled = true
-		_relic_option.select(0)
-		return
-	_relic_option.disabled = false
-	var current: String = GameState.get_member_relic_id(member)
-	if not current.is_empty() and current not in _relic_ids:
-		var ghost_idx: int = _relic_option.item_count
-		_relic_option.add_item("%s (未所持)" % CombatRelics.display_name(current))
-		_relic_ids.append(current)
-		_relic_option.set_item_icon(ghost_idx, IconPaths.get_icon_texture(current, "relic"))
-	var idx: int = _relic_ids.find(current)
-	_relic_option.select(idx if idx >= 0 else 0)
-	if _relic_icon != null:
-		_relic_icon.texture = IconPaths.get_icon_texture(current, "relic") if not current.is_empty() else null
-
-func _on_relic_selected(index: int) -> void:
-	if index < 0 or index >= _relic_ids.size():
-		return
-	var member: Resource = _get_view_adventurer()
-	if member == null:
-		return
-	GameState.set_member_relic(member, _relic_ids[index])
-	if _relic_icon != null:
-		var rid: String = _relic_ids[index]
-		_relic_icon.texture = IconPaths.get_icon_texture(rid, "relic") if not rid.is_empty() else null
-
-# 作戦プリセット（P3-D091 / P3-D121）。スキルタブ最上部に「作戦 [▼] [適用] [保存]」を 1 度だけ生成。
-# プリセット＝party 全員の戦術＋遺物＋装備＋探索方針。適用で全員へ一括反映する。
-func _ensure_preset_ui() -> void:
-	if _preset_option != null and is_instance_valid(_preset_option):
-		return
-	var row := HBoxContainer.new()
-	row.name = "PresetRow"
-	var label := Label.new()
-	label.text = "作戦:"
-	row.add_child(label)
-	var opt := OptionButton.new()
-	opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	opt.item_selected.connect(_on_preset_slot_selected)
-	row.add_child(opt)
-	var apply_btn := Button.new()
-	apply_btn.text = "適用"
-	apply_btn.pressed.connect(_on_preset_apply_pressed)
-	row.add_child(apply_btn)
-	var save_btn := Button.new()
-	save_btn.text = "保存"
-	save_btn.pressed.connect(_on_preset_save_pressed)
-	row.add_child(save_btn)
-	_skill_content.add_child(row)
-	_skill_content.move_child(row, 0)
-	_preset_option = opt
-	var name_row := HBoxContainer.new()
-	name_row.name = "PresetNameRow"
-	var name_label := Label.new()
-	name_label.text = "名称:"
-	_preset_name_edit = LineEdit.new()
-	_preset_name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_preset_name_edit.placeholder_text = "作戦1"
-	_preset_name_edit.max_length = 24
-	_preset_name_edit.text_submitted.connect(_on_preset_rename_submitted)
-	name_row.add_child(name_label)
-	name_row.add_child(_preset_name_edit)
-	_preset_rename_btn = Button.new()
-	_preset_rename_btn.text = "名前変更"
-	_preset_rename_btn.pressed.connect(_on_preset_rename_pressed)
-	name_row.add_child(_preset_rename_btn)
-	_skill_content.add_child(name_row)
-	_skill_content.move_child(name_row, 1)
-	# 探索方針セレクタ（P3-D098）。プリセットに内包され、保存時に一緒に記録される。
 	var policy_row := HBoxContainer.new()
 	policy_row.name = "PolicyRow"
 	var policy_label := Label.new()
@@ -1422,70 +2395,16 @@ func _ensure_preset_ui() -> void:
 		policy_opt.add_item(GameState.exploration_policy_label(pid))
 	policy_opt.item_selected.connect(_on_policy_selected)
 	policy_row.add_child(policy_opt)
-	_skill_content.add_child(policy_row)
-	_skill_content.move_child(policy_row, 2)
 	_policy_option = policy_opt
+	_tactics_content.add_child(policy_row)
+	_tactics_content.move_child(policy_row, 0)
 	var policy_hint := Label.new()
 	policy_hint.name = "PolicyHint"
-	policy_hint.autowrap_mode = TextServer.AUTOWRAP_WORD
-	policy_hint.add_theme_color_override("font_color", COLOR_SUB)
-	policy_hint.add_theme_font_size_override("font_size", 12)
-	_skill_content.add_child(policy_hint)
-	_skill_content.move_child(policy_hint, 3)
+	policy_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTypography.apply_body(policy_hint, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
 	_policy_hint_label = policy_hint
-
-func _refresh_preset_ui() -> void:
-	if _preset_option == null:
-		return
-	var prev: int = _preset_option.selected
-	_preset_option.clear()
-	for slot: int in GameState.COMBAT_PRESET_SLOTS:
-		var nm: String = GameState.get_combat_preset_name(slot)
-		var summary: String = GameState.get_combat_preset_summary(slot)
-		var text: String
-		if nm.is_empty():
-			text = "%d: (空)" % (slot + 1)
-		elif summary.is_empty():
-			text = "%d: %s" % [slot + 1, nm]
-		else:
-			text = "%d: %s (%s)" % [slot + 1, nm, summary]
-		_preset_option.add_item(text)
-	if _preset_option.item_count > 0:
-		_preset_option.select(clampi(prev, 0, _preset_option.item_count - 1))
-	_sync_preset_name_field(_preset_option.selected)
-	_sync_policy_option()
-
-func _sync_preset_name_field(slot: int) -> void:
-	if _preset_name_edit == null:
-		return
-	var default_name: String = GameState.default_combat_preset_name(slot)
-	if GameState.has_combat_preset(slot):
-		_preset_name_edit.text = GameState.get_combat_preset_name(slot)
-		if _preset_rename_btn != null:
-			_preset_rename_btn.disabled = false
-	else:
-		_preset_name_edit.text = default_name
-		if _preset_rename_btn != null:
-			_preset_rename_btn.disabled = true
-	_preset_name_edit.placeholder_text = default_name
-
-func _on_preset_slot_selected(index: int) -> void:
-	_sync_preset_name_field(index)
-
-func _on_preset_rename_submitted(_text: String) -> void:
-	_on_preset_rename_pressed()
-
-func _on_preset_rename_pressed() -> void:
-	if _preset_option == null or _preset_name_edit == null:
-		return
-	var slot: int = _preset_option.selected
-	if slot < 0:
-		return
-	if not GameState.rename_combat_preset(slot, _preset_name_edit.text):
-		return
-	SaveManager.save_game()
-	_refresh_preset_ui()
-	_preset_option.select(slot)
+	_tactics_content.add_child(policy_hint)
+	_tactics_content.move_child(policy_hint, 1)
 
 func _sync_policy_option() -> void:
 	if _policy_option == null:
@@ -1506,169 +2425,241 @@ func _on_policy_selected(index: int) -> void:
 	GameState.set_exploration_policy(str(_POLICY_IDS[index]))
 	_sync_policy_hint()
 
-func _on_preset_apply_pressed() -> void:
-	if _preset_option == null:
-		return
-	var slot: int = _preset_option.selected
-	var result: Dictionary = GameState.apply_combat_preset(slot)
-	if not bool(result.get("ok", false)):
-		return
-	var skipped: Array = result.get("skipped", [])
-	if not skipped.is_empty():
-		_show_preset_apply_feedback(skipped)
-	SaveManager.save_game()
-	_refresh_display()
-	var member: Resource = _get_view_adventurer()
-	_refresh_tactics_ui(member)
-	_refresh_gambit_ui(member)
-	_refresh_relic_ui(member)
-	_sync_policy_option()
-
-func _ensure_preset_feedback_ui() -> void:
-	if _preset_feedback_panel != null and is_instance_valid(_preset_feedback_panel):
-		return
-	var layer := CanvasLayer.new()
-	layer.name = "PresetFeedbackLayer"
-	layer.layer = 12
-	add_child(layer)
-	var panel := PanelContainer.new()
-	panel.name = "PresetFeedback"
-	panel.visible = false
-	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	panel.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-	panel.offset_top = -96.0
-	panel.offset_bottom = -16.0
-	panel.offset_left = 16.0
-	panel.offset_right = -16.0
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.08, 0.06, 0.05, 0.92)
-	style.border_color = COLOR_GOLD
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(6)
-	style.set_content_margin_all(10)
-	panel.add_theme_stylebox_override("panel", style)
-	layer.add_child(panel)
-	var label := Label.new()
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", 13)
-	label.add_theme_color_override("font_color", COLOR_VALUE)
-	panel.add_child(label)
-	_preset_feedback_panel = panel
-	_preset_feedback_label = label
-
-func _show_preset_apply_feedback(skipped: Array) -> void:
-	_ensure_preset_feedback_ui()
-	var parts: PackedStringArray = PackedStringArray()
-	for entry in skipped:
-		if not entry is Dictionary:
-			continue
-		var d: Dictionary = entry as Dictionary
-		var member_name: String = str(d.get("member_name", "?"))
-		var kind: String = GameState.preset_equipment_kind_label(str(d.get("kind", "")))
-		var reason: String = GameState.preset_equipment_skip_label(str(d.get("reason", "")))
-		parts.append("%s・%s（%s）" % [member_name, kind, reason])
-	if parts.is_empty():
-		return
-	_preset_feedback_label.text = "装備スキップ: " + " / ".join(parts)
-	_preset_feedback_panel.visible = true
-	_preset_feedback_panel.modulate.a = 0.0
-	if _preset_feedback_tween != null and _preset_feedback_tween.is_valid():
-		_preset_feedback_tween.kill()
-	_preset_feedback_tween = create_tween()
-	_preset_feedback_tween.tween_property(_preset_feedback_panel, "modulate:a", 1.0, 0.2)
-	_preset_feedback_tween.tween_interval(3.0)
-	_preset_feedback_tween.tween_property(_preset_feedback_panel, "modulate:a", 0.0, 0.3)
-	_preset_feedback_tween.tween_callback(func() -> void:
-		if is_instance_valid(_preset_feedback_panel):
-			_preset_feedback_panel.visible = false
-	)
-
-func _on_preset_save_pressed() -> void:
-	if _preset_option == null:
-		return
-	var slot: int = _preset_option.selected
-	if slot < 0:
-		return
-	GameState.save_combat_preset(slot, _preset_name_edit.text if _preset_name_edit != null else "")
-	SaveManager.save_game()
-	_refresh_preset_ui()
-	_preset_option.select(slot)
-
-# タグ/シナジー可視化（P3-D095）。装備武器タグ＋パーティ属性シナジーを読み取り表示。
-func _ensure_tag_info_ui() -> void:
-	if _tag_info_label != null and is_instance_valid(_tag_info_label):
-		return
-	var row := HBoxContainer.new()
-	row.name = "TagInfoRow"
-	var lbl := Label.new()
-	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
-	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	lbl.add_theme_font_size_override("font_size", 13)
-	row.add_child(lbl)
-	_skill_content.add_child(row)
-	_skill_content.move_child(row, 3)
-	_tag_info_label = lbl
-
-func _refresh_tag_info(member: Resource) -> void:
-	if _tag_info_label == null:
-		return
-	if member == null:
-		_tag_info_label.text = ""
-		return
-	var wtags: PackedStringArray = []
-	var winst: Resource = member.equipped_weapon
-	if winst != null and not str(winst.weapon_id).is_empty():
-		var wd: Resource = DataRegistry.get_weapon_data(winst.weapon_id)
-		if wd != null and "tags" in wd:
-			for t in wd.tags:
-				wtags.append(CombatTags.display_name(str(t)))
-	var tag_text: String = " / ".join(wtags) if not wtags.is_empty() else "なし"
-	var syn: Dictionary = CombatSynergy.compute_element_bonuses(GameState.party_members)
-	var syn_parts: PackedStringArray = []
-	for e: String in syn:
-		syn_parts.append("%s +%d%%" % [CombatTags.display_name(e), int(round(float(syn[e]) * 100.0))])
-	var syn_text: String = " / ".join(syn_parts) if not syn_parts.is_empty() else "なし"
-	# 物理タグシナジー＋ロール編成ボーナス（P3-D097）
-	var bonus_parts: PackedStringArray = []
-	var phys: float = CombatSynergy.compute_physical_bonus(GameState.party_members)
-	if phys > 0.0:
-		bonus_parts.append("物理連携 与ダメ+%d%%" % int(round(phys * 100.0)))
-	for lbl in CombatSynergy.compute_role_bonuses(GameState.party_members).get("labels", []):
-		bonus_parts.append(str(lbl))
-	var bonus_text: String = " / ".join(bonus_parts) if not bonus_parts.is_empty() else "なし"
-	var link_hints: PackedStringArray = CombatLinks.hint_lines()
-	var link_text: String = " / ".join(link_hints)
-	var explore_labels: PackedStringArray = ExplorationSkills.active_labels(GameState.party_members)
-	var explore_text: String = " / ".join(explore_labels) if not explore_labels.is_empty() else "なし"
-	_tag_info_label.text = "武器タグ: %s   ｜   属性シナジー: %s\n編成ボーナス: %s\n戦闘連携: %s\n探索スキル: %s" % [tag_text, syn_text, bonus_text, link_text, explore_text]
-
 func _skill_label_name(skill_id: String) -> String:
 	var sd: Resource = DataRegistry.get_skill_data(skill_id)
 	if sd != null and not sd.display_name.is_empty():
 		return sd.display_name
 	return skill_id
 
-func _make_skill_icon(skill_id: String) -> TextureRect:
-	var tex: Texture2D = IconPaths.get_icon_texture(skill_id, "skill")
-	if tex == null:
-		return null
-	var icon := TextureRect.new()
-	icon.texture = tex
-	icon.custom_minimum_size = Vector2(36, 36)
-	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return icon
+func _skill_wrapped_name(skill_data: Resource) -> String:
+	if skill_data == null or skill_data.display_name.is_empty():
+		return "『—』"
+	return "『%s』" % skill_data.display_name
 
-func _skill_info_text(skill_data: Resource) -> String:
+func _skill_name_color(skill_data: Resource) -> Color:
+	if skill_data == null:
+		return COLOR_VALUE
+	if str(skill_data.effect_type) == "heal":
+		return SKILL_COLOR_DEFENSE
+	if str(skill_data.effect_type) == "buff" or _skill_applies_status(skill_data):
+		return SKILL_COLOR_SUPPORT
+	if str(skill_data.effect_type) == "damage":
+		return SKILL_COLOR_ATTACK
+	return COLOR_VALUE
+
+func _skill_name_color_hex(skill_data: Resource) -> String:
+	return _skill_name_color(skill_data).to_html(false)
+
+func _skill_bbcode_name(skill_id: String) -> String:
+	var sd: Resource = DataRegistry.get_skill_data(skill_id)
+	if sd == null:
+		return skill_id
+	return "[font_size=%d][color=#%s]%s[/color][/font_size]" % [
+		SKILL_NAME_FONT_SIZE, _skill_name_color_hex(sd), _skill_wrapped_name(sd)
+	]
+
+func _apply_skill_name_style(label: Label, skill_data: Resource) -> void:
+	var font: Font = UiTypography.display_font()
+	if font != null:
+		label.add_theme_font_override("font", font)
+	label.add_theme_color_override("font_color", _skill_name_color(skill_data))
+	label.add_theme_font_size_override("font_size", SKILL_NAME_FONT_SIZE)
+	label.add_theme_constant_override("outline_size", 3)
+	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+
+func _skill_applies_status(skill_data: Resource) -> bool:
+	if skill_data == null:
+		return false
+	if not str(skill_data.apply_status_id).is_empty() and float(skill_data.apply_status_chance) > 0.0:
+		return true
+	return not str(skill_data.apply_status_id2).is_empty() and float(skill_data.apply_status_chance2) > 0.0
+
+func _skill_summary_text(skill_data: Resource, unlocked: bool = true, req_lv: int = 1) -> String:
+	if skill_data == null:
+		return ""
+	if not unlocked:
+		return "🔒 Lv%d で習得" % req_lv
+	var desc: String = str(skill_data.description)
+	if not desc.is_empty():
+		return desc
+	return _skill_detail_text(skill_data, unlocked, req_lv)
+
+func _skill_target_label(target_type: String) -> String:
+	match target_type:
+		"enemy":
+			return "敵1体"
+		"ally":
+			return "味方1体"
+		"party":
+			return "味方1体"
+		"all_party":
+			return "味方全体"
+		"party_front":
+			return "味方前列"
+		"party_back":
+			return "味方後列"
+		"self":
+			return "自身"
+		_:
+			return target_type
+
+func _skill_range_label(range_type: String) -> String:
+	match range_type:
+		"melee":
+			return "近距離"
+		"mid":
+			return "中距離"
+		"long":
+			return "遠距離"
+		"global":
+			return "全体"
+		_:
+			return range_type
+
+func _skill_slot_label(slot_type: String) -> String:
+	match slot_type:
+		"attack":
+			return "通常攻撃枠"
+		"defend":
+			return "防御枠"
+		"ultimate":
+			return "必殺技枠"
+		_:
+			return "スキル枠"
+
+func _skill_reserve_label(reserve_condition: String) -> String:
+	match reserve_condition:
+		"ally_injured":
+			return "味方が負傷しているとき優先"
+		"enemy_has_vulnerable":
+			return "敵が脆弱状態のとき"
+		"enemy_is_boss":
+			return "ボス戦で使用"
+		_:
+			return ""
+
+func _skill_status_line(status_id: String, chance: float) -> String:
+	if status_id.is_empty() or chance <= 0.0:
+		return ""
+	var eff: Resource = DataRegistry.get_status_effect(status_id)
+	var st_name: String = eff.display_name if eff != null else status_id
+	var pct: int = int(round(chance * 100.0))
+	if pct >= 100:
+		return "%sを付与" % st_name
+	return "%s %d%%" % [st_name, pct]
+
+func _skill_stats_detail_lines(skill_data: Resource, unlocked: bool = true, req_lv: int = 1) -> PackedStringArray:
+	var lines: PackedStringArray = PackedStringArray()
+	if skill_data == null:
+		return lines
+	if not unlocked:
+		lines.append("🔒 Lv%d で習得" % req_lv)
+		return lines
+	lines.append("対象: %s" % _skill_target_label(str(skill_data.target_type)))
+	var slot_type: String = str(skill_data.slot_type)
+	if slot_type != "skill":
+		lines.append("枠: %s" % _skill_slot_label(slot_type))
+	var range_type: String = str(skill_data.range_type)
+	if not range_type.is_empty() and range_type != "melee":
+		lines.append("射程: %s" % _skill_range_label(range_type))
 	match skill_data.effect_type:
 		"heal":
-			# HEAL_SKILL_BASE(=14) と同期。最も負傷した味方を回復。
-			var amt: int = int(round(skill_data.power_multiplier * 14.0))
-			return "%s  回復+%d  CD%.1fs" % [skill_data.display_name, amt, skill_data.cooldown]
+			var heal_amt: int = int(round(skill_data.power_multiplier * 14.0))
+			lines.append("回復量: +%d" % heal_amt)
 		"buff":
-			var parts_buff: PackedStringArray = [skill_data.display_name]
+			var eff_b: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id)
+			if eff_b != null:
+				var up: int = int(round((eff_b.outgoing_damage_multiplier - 1.0) * 100.0))
+				if up != 0:
+					lines.append("味方与ダメ: +%d%%" % up)
+				lines.append("持続: %dtick" % eff_b.duration_ticks)
+		_:
+			lines.append("威力: x%.2f" % skill_data.power_multiplier)
+			if not str(skill_data.element).is_empty():
+				lines.append("属性: %s" % str(skill_data.element))
+			for status_key: String in ["apply_status_id", "apply_status_id2"]:
+				var chance_key: String = status_key.replace("id", "chance")
+				var status_line: String = _skill_status_line(
+					str(skill_data.get(status_key)),
+					float(skill_data.get(chance_key))
+				)
+				if not status_line.is_empty():
+					lines.append("付与: %s" % status_line)
+	lines.append("再使用: %.1fs" % skill_data.cooldown)
+	if float(skill_data.cast_time) >= 1.0:
+		lines.append("詠唱: %dターン" % int(skill_data.cast_time))
+	var reserve: String = _skill_reserve_label(str(skill_data.reserve_condition))
+	if not reserve.is_empty():
+		lines.append("温存: %s" % reserve)
+	return lines
+
+func _show_skill_detail_overlay(
+	skill_id: String, unlocked: bool, req_lv: int, is_equipped: bool
+) -> void:
+	var member: Resource = _get_view_adventurer()
+	var skill_data: Resource = DataRegistry.get_skill_data(skill_id)
+	if skill_data == null:
+		return
+	_ensure_item_detail_overlay()
+	_overlay_item = null
+	_overlay_category = "skill"
+	_overlay_relic_id = ""
+	_overlay_skill_id = skill_id
+	if _detail_title != null:
+		_detail_title.text = "スキル詳細"
+	for child in _detail_host.get_children():
+		child.queue_free()
+	var header_row := HBoxContainer.new()
+	header_row.add_theme_constant_override("separation", 8)
+	var icon := _make_skill_icon(skill_id, member)
+	if icon != null:
+		header_row.add_child(icon)
+	var name_lbl := Label.new()
+	name_lbl.text = _skill_wrapped_name(skill_data)
+	_apply_skill_name_style(name_lbl, skill_data)
+	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header_row.add_child(name_lbl)
+	_detail_host.add_child(header_row)
+	var desc_lbl := Label.new()
+	desc_lbl.text = _skill_summary_text(skill_data, unlocked, req_lv)
+	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_body(desc_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_VALUE)
+	_detail_host.add_child(desc_lbl)
+	var stats_title := Label.new()
+	stats_title.text = "効果"
+	UiTypography.apply_body(stats_title, UiTypography.SIZE_CAPTION, COLOR_GOLD)
+	_detail_host.add_child(stats_title)
+	for line in _skill_stats_detail_lines(skill_data, unlocked, req_lv):
+		var stat_lbl := Label.new()
+		stat_lbl.text = "・%s" % line
+		stat_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		stat_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		UiTypography.apply_body(stat_lbl, UiTypography.SIZE_CAPTION, COLOR_SUB)
+		_detail_host.add_child(stat_lbl)
+	var equipped: Array[String] = (
+		GameState.get_equipped_skill_ids(member) if member != null else []
+	)
+	var weapon_skill: Dictionary = WeaponSkillHelper.get_weapon_skill_display(member)
+	var is_weapon_skill: bool = str(weapon_skill.get("skill_id", "")) == skill_id
+	if is_weapon_skill:
+		_detail_equip_btn.visible = false
+	else:
+		_detail_equip_btn.text = "解除" if is_equipped else "装備"
+		_detail_equip_btn.visible = unlocked
+		_detail_equip_btn.disabled = (
+			not unlocked or ((not is_equipped) and equipped.size() >= Constants.MAX_EQUIPPED_SKILLS)
+		)
+	_detail_overlay.visible = true
+
+func _skill_detail_text(skill_data: Resource, unlocked: bool = true, req_lv: int = 1) -> String:
+	var body: String = ""
+	match skill_data.effect_type:
+		"heal":
+			var amt: int = int(round(skill_data.power_multiplier * 14.0))
+			body = "回復+%d  CD%.1fs" % [amt, skill_data.cooldown]
+		"buff":
+			var parts_buff: PackedStringArray = []
 			var eff_b: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id)
 			if eff_b != null:
 				var up: int = int(round((eff_b.outgoing_damage_multiplier - 1.0) * 100.0))
@@ -1676,19 +2667,44 @@ func _skill_info_text(skill_data: Resource) -> String:
 					parts_buff.append("味方与ダメ+%d%%" % up)
 				parts_buff.append("%dtick" % eff_b.duration_ticks)
 			parts_buff.append("CD%.1fs" % skill_data.cooldown)
-			return "  ".join(parts_buff)
-	var parts: PackedStringArray = [
-		skill_data.display_name,
-		"威力x%.2f" % skill_data.power_multiplier,
-		"CD%.1fs" % skill_data.cooldown,
-	]
-	if not str(skill_data.element).is_empty():
-		parts.append("属性:%s" % skill_data.element)
-	if not str(skill_data.apply_status_id).is_empty() and skill_data.apply_status_chance > 0.0:
-		var eff: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id)
-		var st_name: String = eff.display_name if eff != null else str(skill_data.apply_status_id)
-		parts.append("%s%.0f%%" % [st_name, skill_data.apply_status_chance * 100.0])
-	return "  ".join(parts)
+			body = "  ".join(parts_buff)
+		_:
+			var parts: PackedStringArray = [
+				"威力x%.2f" % skill_data.power_multiplier,
+				"CD%.1fs" % skill_data.cooldown,
+			]
+			if not str(skill_data.element).is_empty():
+				parts.append("属性:%s" % skill_data.element)
+			if not str(skill_data.apply_status_id).is_empty() and skill_data.apply_status_chance > 0.0:
+				var eff: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id)
+				var st_name: String = eff.display_name if eff != null else str(skill_data.apply_status_id)
+				parts.append("%s%.0f%%" % [st_name, skill_data.apply_status_chance * 100.0])
+			if not str(skill_data.apply_status_id2).is_empty() and skill_data.apply_status_chance2 > 0.0:
+				var eff2: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id2)
+				var st_name2: String = eff2.display_name if eff2 != null else str(skill_data.apply_status_id2)
+				parts.append("%s%.0f%%" % [st_name2, skill_data.apply_status_chance2 * 100.0])
+			body = "  ".join(parts)
+	if not unlocked:
+		return "🔒 Lv%d  %s" % [req_lv, body]
+	return body
+
+func _skill_info_text(skill_data: Resource) -> String:
+	return "%s  %s" % [_skill_wrapped_name(skill_data), _skill_detail_text(skill_data)]
+
+func _make_ultimate_skill_icon(skill_id: String, member: Resource, display_size: Vector2) -> Control:
+	var icon: Control = SkillIconHelper.make_unique_icon(skill_id, display_size)
+	if icon != null:
+		return icon
+	return _make_skill_icon(skill_id, member, display_size)
+
+func _make_skill_icon(skill_id: String, member: Resource, display_size: Vector2 = Vector2.ZERO) -> Control:
+	var px: Vector2 = display_size
+	if px == Vector2.ZERO:
+		px = Vector2(PASSIVE_ROW_ICON_PX, PASSIVE_ROW_ICON_PX)
+	return SkillIconHelper.make_icon(skill_id, member, px)
+
+func _make_passive_icon(passive_id: String) -> Control:
+	return PassiveIconHelper.make_icon(passive_id, Vector2(PASSIVE_ROW_ICON_PX, PASSIVE_ROW_ICON_PX))
 
 func _on_skill_toggle_pressed(skill_id: String) -> void:
 	var member: Resource = _get_view_adventurer()
@@ -1696,6 +2712,7 @@ func _on_skill_toggle_pressed(skill_id: String) -> void:
 		return
 	GameState.toggle_member_skill(member, skill_id)
 	_rebuild_skill_tab()
+	_refresh_tactics_ui(member)
 
 func _on_back_pressed() -> void:
 	SaveManager.save_game()

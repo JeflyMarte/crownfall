@@ -6,7 +6,8 @@
 script = ExtResource("1")
 id = "umbra_terminus_staff"
 display_name = "終末の闇杖ウンブラ・テルミナス"
-fixed_skill_id = "umbral_strike"
+fixed_skill_id = ""
+fixed_passive_id = "eq_wpn_umbra_terminus_staff"
 base_attack = 60
 rarity = 3
 base_attack_speed = 0.9

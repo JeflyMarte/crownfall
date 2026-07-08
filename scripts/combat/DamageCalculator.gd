@@ -1,6 +1,10 @@
 class_name DamageCalculator
 extends RefCounted
 
+const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
+const _ArmorStatResolver = preload("res://scripts/equipment/ArmorStatResolver.gd")
+const _AccessoryStatResolver = preload("res://scripts/equipment/AccessoryStatResolver.gd")
+
 ## ダメージ計算コア（P3-REF-001 — DungeonScene から分離）。
 ## シーンノードへ依存しない静的関数群。CombatController / DungeonData は引数で受け取り、
 ## GameState / DataRegistry 等の autoload と静的クラスのみ参照する。
@@ -10,11 +14,22 @@ extends RefCounted
 
 static func weapon_element(member_index: int = -1) -> String:
 	var weapon: Resource = GameState.get_member_equipped_weapon(member_index)
-	if weapon != null and not weapon.weapon_id.is_empty():
-		var weapon_data: Resource = DataRegistry.get_weapon_data(weapon.weapon_id)
-		if weapon_data != null and not weapon_data.element.is_empty():
-			return weapon_data.element
-	return ""
+	return _WeaponStatResolver.resolve_element(weapon)
+
+static func weapon_element_power(member_index: int = -1) -> int:
+	var weapon: Resource = GameState.get_member_equipped_weapon(member_index)
+	return _WeaponStatResolver.resolve_element_power(weapon)
+
+static func apply_element_power_bonus(damage: int, attack_element: String, member_index: int) -> int:
+	if damage <= 0 or attack_element.is_empty() or member_index < 0:
+		return damage
+	var elem_power: int = weapon_element_power(member_index)
+	if elem_power <= 0:
+		return damage
+	return maxi(
+		1,
+		int(round(float(damage) * _WeaponStatResolver.element_power_multiplier(elem_power)))
+	)
 
 static func resolve_skill_element(skill_data: Resource, member_index: int = -1) -> String:
 	if skill_data != null and not skill_data.element.is_empty():
@@ -25,12 +40,7 @@ static func resolve_skill_element(skill_data: Resource, member_index: int = -1) 
 
 ## 装備武器の生態特効（{class, mult}）。特効なしは class="" / mult=1.0。
 static func weapon_bane(member_index: int) -> Dictionary:
-	var weapon: Resource = GameState.get_member_equipped_weapon(member_index)
-	if weapon != null and not weapon.weapon_id.is_empty():
-		var wd: Resource = DataRegistry.get_weapon_data(weapon.weapon_id)
-		if wd != null and "bane_class" in wd and not str(wd.bane_class).is_empty():
-			return {"class": str(wd.bane_class), "mult": float(wd.bane_multiplier)}
-	return {"class": "", "mult": 1.0}
+	return _WeaponStatResolver.resolve_bane(GameState.get_member_equipped_weapon(member_index))
 
 # ── Biome 属性相性（P3-D099） ────────────────────────────────────────────
 
@@ -72,13 +82,13 @@ static func attack_base(combat: CombatController, member_index: int = -1) -> Dic
 	var weapon: Resource = GameState.get_member_equipped_weapon(member_index)
 	if weapon != null:
 		damage = EquipmentEnhancer.get_effective_attack(weapon)
-		crit_rate = weapon.critical_rate
+		crit_rate = _WeaponStatResolver.resolve_critical_rate(weapon)
 	var acc: Resource = GameState.get_member_equipped_accessory(member_index)
 	if acc != null:
-		var acc_data: Resource = load("res://resources/accessories/" + acc.accessory_id + ".tres")
+		var acc_data: Resource = DataRegistry.get_accessory_data(str(acc.accessory_id))
 		if acc_data != null:
-			damage += acc_data.attack_bonus
-			crit_rate += acc_data.crit_rate_bonus
+			damage += EquipmentEnhancer.effective_accessory_int_bonus(acc, "attack_bonus", acc_data)
+			crit_rate += EquipmentEnhancer.effective_accessory_float_bonus(acc, "crit_rate_bonus", acc_data)
 	var affix_bonuses: Dictionary = AffixStatCalculator.get_bonuses(member_index)
 	damage += int(affix_bonuses.get("attack_flat", 0))
 	crit_rate += float(affix_bonuses.get("crit_rate_add", 0.0))
@@ -86,6 +96,8 @@ static func attack_base(combat: CombatController, member_index: int = -1) -> Dic
 	if combat != null:
 		crit_rate += combat.get_party_role_crit_add()
 	crit_rate += EvolutionTraits.member_crit_add(member_index)
+	if member_index >= 0:
+		crit_rate += float(CombatPassives.weapon_stat_modifiers_for_member(member_index).get("crit_rate_add", 0.0))
 	if member_index >= 0 and member_index < GameState.party_members.size():
 		damage += LevelSystem.level_attack_bonus(GameState.party_members[member_index].level)
 		var member: Resource = GameState.party_members[member_index]
@@ -140,6 +152,13 @@ static func enemy_mitigation(
 		damage = maxi(1, int(float(damage) * elem_mult))
 		if not elem_name.is_empty():
 			element_tag = "  [耐性:%s]" % elem_name
+	# 属性値（P3-EQ-STAT-005 案A）: 属性あり時 damage × (1 + power × K)
+	if member_index >= 0 and not attack_element.is_empty():
+		var elem_power: int = weapon_element_power(member_index)
+		if elem_power > 0:
+			damage = apply_element_power_bonus(damage, attack_element, member_index)
+			if not elem_name.is_empty():
+				element_tag += "  [属性値+%d]" % elem_power
 	# 生態特効（P3-D087）: 武器 bane_class が敵 codex_class と一致で増幅。属性と乗算。
 	if member_index >= 0:
 		var bane: Dictionary = weapon_bane(member_index)
@@ -190,7 +209,11 @@ static func member_attack_damage(
 	var is_critical: bool = crit_roll < base_info["crit_rate"]
 	var damage: int = base_info["base_damage"]
 	if is_critical:
-		damage = int(damage * BalanceConfig.CRITICAL_MULTIPLIER)
+		var weapon: Resource = GameState.get_member_equipped_weapon(member_index)
+		var crit_mult: float = _WeaponStatResolver.resolve_critical_damage(weapon)
+		if member_index >= 0:
+			crit_mult += float(CombatPassives.weapon_stat_modifiers_for_member(member_index).get("crit_damage_add", 0.0))
+		damage = int(round(float(damage) * crit_mult))
 	damage = int(damage * run_damage_multiplier)
 	var action_range: String = CombatRange.resolve_for_action(member_index)
 	damage = maxi(1, int(float(damage) * combat.get_member_outgoing_damage_multiplier(
@@ -216,7 +239,29 @@ static func member_attack_damage(
 
 # ── 敵 → 味方 被ダメ ─────────────────────────────────────────────────────
 
-## 戻り値: {final, base, mitigated, elem_resisted}
+## 装備合算回避率（防具+装飾品、上限 BalanceConfig.EVASION_RATE_CAP）。
+static func member_evasion_rate(member_index: int) -> float:
+	if member_index < 0:
+		return 0.0
+	var total: float = 0.0
+	var armor: Resource = GameState.get_member_equipped_armor(member_index)
+	if armor != null:
+		total += _ArmorStatResolver.resolve_evasion_rate(armor)
+	var acc: Resource = GameState.get_member_equipped_accessory(member_index)
+	if acc != null:
+		total += _AccessoryStatResolver.resolve_evasion_rate(acc)
+	total += float(CombatPassives.character_stat_modifiers_for_member(member_index).get("evasion_rate_add", 0.0))
+	return minf(BalanceConfig.EVASION_RATE_CAP, total)
+
+## true = 回避成功（被弾なし）。
+static func roll_member_evasion(member_index: int, rng: RandomNumberGenerator = null) -> bool:
+	var rate: float = member_evasion_rate(member_index)
+	if rate <= 0.0:
+		return false
+	var roll: float = rng.randf() if rng != null else randf()
+	return roll < rate
+
+## 戻り値: {final, base, mitigated, elem_resisted, missed}
 static func enemy_damage_to_member(
 	combat: CombatController,
 	target_index: int,
@@ -225,6 +270,8 @@ static func enemy_damage_to_member(
 	attacker_slot: int = -1,
 	rng: RandomNumberGenerator = null
 ) -> Dictionary:
+	if roll_member_evasion(target_index, rng):
+		return {"final": 0, "base": 0, "mitigated": 0, "elem_resisted": false, "missed": true}
 	var atk: int = attacker_atk if attacker_atk >= 0 else combat.get_enemy_attack()
 	var base_dmg: int = int(float(atk) * power_multiplier)
 	var out_slot: int = attacker_slot if attacker_slot >= 0 else combat.active_enemy_index
@@ -237,12 +284,12 @@ static func enemy_damage_to_member(
 	var defense: int = 0
 	var armor: Resource = GameState.get_member_equipped_armor(target_index)
 	if armor != null:
-		defense = armor.rolled_defense
+		defense = EquipmentEnhancer.effective_armor_defense(armor)
 	var acc: Resource = GameState.get_member_equipped_accessory(target_index)
 	if acc != null:
-		var acc_data: Resource = load("res://resources/accessories/" + acc.accessory_id + ".tres")
+		var acc_data: Resource = DataRegistry.get_accessory_data(str(acc.accessory_id))
 		if acc_data != null:
-			defense += acc_data.defense_bonus
+			defense += EquipmentEnhancer.effective_accessory_int_bonus(acc, "defense_bonus", acc_data)
 	defense += int(AffixStatCalculator.get_bonuses(target_index).get("defense_flat", 0))
 	if target_index >= 0 and target_index < GameState.party_members.size():
 		var member: Resource = GameState.party_members[target_index]
@@ -256,17 +303,30 @@ static func enemy_damage_to_member(
 	var incoming_mult: float = combat.get_member_incoming_damage_multiplier(target_index)
 	if not is_equal_approx(incoming_mult, 1.0):
 		final_dmg = maxi(0, int(round(float(final_dmg) * incoming_mult)))
+	var wpn_block: Dictionary = CombatPassives.weapon_stat_modifiers_for_member(target_index)
+	var block_chance: float = float(wpn_block.get("incoming_block_chance", 0.0))
+	if block_chance > 0.0 and final_dmg > 0:
+		var block_roll: float = rng.randf() if rng != null else randf()
+		if block_roll < block_chance:
+			final_dmg = maxi(0, int(round(float(final_dmg) * float(wpn_block.get("incoming_block_mult", 1.0)))))
 	# 防具の属性耐性（P3-D103）: 敵攻撃属性が防具 resist_elements と一致なら軽減。
 	var elem_resisted: bool = false
 	var atk_elem: String = enemy_attack_element_at(combat, out_slot)
 	if member_resists_element(target_index, atk_elem):
-		final_dmg = maxi(0, int(round(float(final_dmg) * BalanceConfig.ARMOR_RESIST_MULTIPLIER)))
+		var resist_mult: float = member_element_resist_multiplier(target_index, atk_elem)
+		final_dmg = maxi(0, int(round(float(final_dmg) * resist_mult)))
 		elem_resisted = true
 	# ±乱数（P3-D158）: 敵→味方（通常/スキル）の最終段で1回だけ適用。
 	if final_dmg > 0:
 		final_dmg = apply_variance(final_dmg, rng)
 	var mitigated: int = base_dmg - final_dmg
-	return {"final": final_dmg, "base": base_dmg, "mitigated": mitigated, "elem_resisted": elem_resisted}
+	return {
+		"final": final_dmg,
+		"base": base_dmg,
+		"mitigated": mitigated,
+		"elem_resisted": elem_resisted,
+		"missed": false,
+	}
 
 static func enemy_attack_element_at(combat: CombatController, slot: int) -> String:
 	var ed: Resource = combat.get_enemy_data_at(slot)
@@ -274,12 +334,7 @@ static func enemy_attack_element_at(combat: CombatController, slot: int) -> Stri
 
 ## 防御側属性耐性（P3-D103）。
 static func member_resists_element(target_index: int, attack_element: String) -> bool:
-	if attack_element.is_empty():
-		return false
-	var armor: Resource = GameState.get_member_equipped_armor(target_index)
-	if armor == null:
-		return false
-	var armor_data: Resource = load("res://resources/armors/" + str(armor.armor_id) + ".tres")
-	if armor_data == null or not ("resist_elements" in armor_data):
-		return false
-	return attack_element in armor_data.resist_elements
+	return _ArmorStatResolver.member_resists_element(target_index, attack_element)
+
+static func member_element_resist_multiplier(target_index: int, attack_element: String) -> float:
+	return _ArmorStatResolver.member_element_resist_multiplier(target_index, attack_element)

@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "helper_c"
-display_name = "セリン（Serin）"
+display_name = "セリン"
 job_id = "alchemist"
 origin_note = "ギルド記録部あがりの若き錬成士"
 rarity = 3

@@ -6,7 +6,8 @@
 script = ExtResource("1")
 id = "consecrated_maul"
 display_name = "祝聖の大槌"
-fixed_skill_id = "slash_attack"
+fixed_skill_id = ""
+fixed_passive_id = "eq_wpn_consecrated_maul"
 base_attack = 13
 rarity = 3
 base_attack_speed = 0.9

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "leg_silvaria_oathblade"
+display_name = "誓剣・森護の焔"
+description = "【レジェンド】森護王の誓いを焔に乗せ、敵を炎上させる。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 1.4
+cooldown = 3.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["melee", "slash"])
+element = "fire"
+slot_type = "skill"
+range_type = "melee"
+apply_status_id = "ignite"
+apply_status_chance = 0.4
+apply_status_id2 = ""
+apply_status_chance2 = 0.0

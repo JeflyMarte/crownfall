@@ -1,6 +1,9 @@
 extends Node
 
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
+const _RunCombatStats = preload("res://scripts/result/RunCombatStats.gd")
+const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
+const _PassiveProgression = preload("res://scripts/systems/PassiveProgression.gd")
 
 # 所持ゴールド（永続）
 var gold: int = 0
@@ -29,6 +32,12 @@ var inventory: Array = []
 
 # 現在選択中のダンジョンID
 var current_dungeon_id: String = ""
+
+## 選択中のサブステージ ID（P3-DG-STG）。空=Biome 単体ラン。
+var current_stage_id: String = ""
+
+## 章別クリア { stage_id: { cleared: bool } }。
+var stage_progress: Dictionary = {}
 
 ## 選択中の危険度ティア（0=ノーマル / 1=ハード / 2=ナイトメア — P3-DG-TIER）。
 var current_dungeon_tier: int = 0
@@ -59,6 +68,10 @@ var last_run_accessory_dropped: String = ""
 var last_run_relic_dropped: String = ""
 # 直近ランの獲得レベル { member_id: gained_levels } — Result 表示用（P3-D035）
 var last_run_level_ups: Dictionary = {}
+## 直近ランの EXP スナップショット { member_id: {...} } — Result LvUP アニメ用（P3-UX-RESULT-002）。
+var last_run_exp_snapshots: Dictionary = {}
+## 直近ランの戦闘統計 { member_id: {...} } — MVP 画面用（P3-UX-RESULT-003）。
+var last_run_combat_stats: Dictionary = {}
 # 直近ランの帰還種別（Result 表示用）: clear / retire / wipe
 const RUN_OUTCOME_CLEAR: String = "clear"
 const RUN_OUTCOME_RETIRE: String = "retire"
@@ -68,9 +81,38 @@ var last_run_exploration_policy: String = ""
 var run_material_start: Dictionary = {}
 var last_run_material_gains: Dictionary = {}
 var last_run_weather: String = ""
+## 直近ランのサブステージ id（Result 表示用 — P3-DG-STG）。
+var last_run_stage_id: String = ""
 # 直近ランで発動した戦闘補正の回数 { 表示ラベル: 回数 }（P3-UX-001 戦闘可読性）。
 # DungeonScene のログ経路で集計し、Result で上位を「効いた戦闘要素」として表示する。
 var last_run_modifier_counts: Dictionary = {}
+
+var _run_combat_stats: RefCounted = null
+
+func reset_run_combat_stats() -> void:
+	_run_combat_stats = _RunCombatStats.new()
+
+func get_run_combat_stats() -> RefCounted:
+	if _run_combat_stats == null:
+		_run_combat_stats = _RunCombatStats.new()
+	return _run_combat_stats
+
+func record_run_damage(
+	member_index: int,
+	amount: int,
+	skill_id: String = "",
+	skill_name: String = ""
+) -> void:
+	var member: Resource = get_combatant(member_index)
+	if member == null:
+		return
+	get_run_combat_stats().record_damage(str(member.id), amount, skill_id, skill_name)
+
+func record_run_heal(member_index: int, amount: int) -> void:
+	var member: Resource = get_combatant(member_index)
+	if member == null:
+		return
+	get_run_combat_stats().record_heal(str(member.id), amount)
 
 func record_run_modifier(label: String) -> void:
 	if label.is_empty():
@@ -129,6 +171,122 @@ func get_active_dungeon_id() -> String:
 		return Constants.DEFAULT_DUNGEON_ID
 	return current_dungeon_id
 
+func get_active_stage_id() -> String:
+	return current_stage_id
+
+func is_stage_cleared(stage_id: String, tier: int = -1) -> bool:
+	if stage_id.is_empty():
+		return false
+	var progress: Dictionary = stage_progress.get(stage_id, {})
+	if tier < 0:
+		return bool(progress.get("cleared", false))
+	var tiers: Dictionary = progress.get("tiers", {})
+	return bool(tiers.get(str(_DungeonTierConfig.clamp_tier(tier)), false))
+
+func mark_stage_cleared(stage_id: String, tier: int = -1) -> void:
+	if stage_id.is_empty():
+		return
+	var t: int = _DungeonTierConfig.clamp_tier(tier if tier >= 0 else current_dungeon_tier)
+	var progress: Dictionary = stage_progress.get(stage_id, {})
+	progress["cleared"] = true
+	var tiers: Dictionary = progress.get("tiers", {})
+	if not tiers is Dictionary:
+		tiers = {}
+	tiers[str(t)] = true
+	progress["tiers"] = tiers
+	stage_progress[stage_id] = progress
+	var stage: Resource = DataRegistry.get_stage_data(stage_id)
+	if stage == null:
+		return
+	var biome_id: String = str(stage.biome_id)
+	if bool(stage.has_boss_floor()):
+		mark_dungeon_tier_cleared(biome_id, t)
+		if t == _DungeonTierConfig.TIER_NORMAL:
+			mark_dungeon_cleared(biome_id)
+
+func count_cleared_stages(biome_id: String) -> int:
+	var count: int = 0
+	for stage in DataRegistry.get_stages_for_biome(biome_id):
+		if stage != null and is_stage_cleared(str(stage.id)):
+			count += 1
+	return count
+
+func get_stage_progress_label(biome_id: String) -> String:
+	if not Constants.SUB_STAGES_PLAYABLE:
+		return ""
+	var stages: Array = DataRegistry.get_stages_for_biome(biome_id)
+	if stages.is_empty():
+		return ""
+	return "章 %d/%d" % [count_cleared_stages(biome_id), stages.size()]
+
+func sanitize_current_stage_id() -> void:
+	if current_stage_id.is_empty():
+		return
+	var stage: Resource = DataRegistry.get_stage_data(current_stage_id)
+	if stage == null or not is_stage_unlocked(current_stage_id):
+		current_stage_id = ""
+		return
+	if not current_dungeon_id.is_empty() and str(stage.biome_id) != current_dungeon_id:
+		current_stage_id = ""
+
+func sync_progress_from_stages() -> void:
+	if not Constants.SUB_STAGES_PLAYABLE:
+		return
+	for data in DataRegistry.get_all_dungeon_data():
+		if data == null or str(data.route_type) != "main":
+			continue
+		var biome_id: String = str(data.id)
+		var final_stage: Resource = DataRegistry.get_stage_by_chapter(biome_id, 5)
+		if final_stage == null:
+			continue
+		var final_id: String = str(final_stage.id)
+		if not is_stage_cleared(final_id):
+			continue
+		var prog: Dictionary = stage_progress.get(final_id, {})
+		var tiers: Dictionary = prog.get("tiers", {})
+		if tiers.is_empty() and bool(prog.get("cleared", false)):
+			mark_dungeon_cleared(biome_id)
+			mark_dungeon_tier_cleared(biome_id, _DungeonTierConfig.TIER_NORMAL)
+			continue
+		for tier_key in tiers.keys():
+			if bool(tiers[tier_key]):
+				mark_dungeon_tier_cleared(biome_id, int(tier_key))
+		if bool(tiers.get(str(_DungeonTierConfig.TIER_NORMAL), false)):
+			mark_dungeon_cleared(biome_id)
+
+func is_stage_unlocked(stage_id: String) -> bool:
+	if stage_id.is_empty():
+		return false
+	var stage: Resource = DataRegistry.get_stage_data(stage_id)
+	if stage == null:
+		return false
+	if not is_dungeon_unlocked(str(stage.biome_id)):
+		return false
+	if int(stage.chapter_index) <= 1:
+		return true
+	var prev: Resource = DataRegistry.get_stage_by_chapter(str(stage.biome_id), int(stage.chapter_index) - 1)
+	if prev == null:
+		return true
+	return is_stage_cleared(str(prev.id))
+
+func resolve_stage_for_run(biome_id: String) -> String:
+	if not Constants.SUB_STAGES_PLAYABLE:
+		return ""
+	if not current_stage_id.is_empty():
+		var selected: Resource = DataRegistry.get_stage_data(current_stage_id)
+		if selected != null and str(selected.biome_id) == biome_id and is_stage_unlocked(current_stage_id):
+			return current_stage_id
+	var stages: Array = DataRegistry.get_stages_for_biome(biome_id)
+	if stages.is_empty():
+		return ""
+	for stage in stages:
+		if is_stage_unlocked(str(stage.id)) and not is_stage_cleared(str(stage.id)):
+			return str(stage.id)
+	for stage in stages:
+		if is_stage_unlocked(str(stage.id)):
+			return str(stage.id)
+	return str(stages[0].id)
+
 # ダンジョン選択画面の CLEAR バッジ用。ラン完走（ボス突破→EXIT 到達）時に立てる。
 func mark_dungeon_cleared(dungeon_id: String) -> void:
 	if dungeon_id.is_empty():
@@ -140,6 +298,16 @@ func mark_dungeon_cleared(dungeon_id: String) -> void:
 func is_dungeon_cleared(dungeon_id: String) -> bool:
 	if dungeon_id.is_empty():
 		return false
+	if Constants.SUB_STAGES_PLAYABLE:
+		var final_stage: Resource = DataRegistry.get_stage_by_chapter(dungeon_id, 5)
+		if final_stage != null:
+			var final_id: String = str(final_stage.id)
+			var prog: Dictionary = stage_progress.get(final_id, {})
+			var tiers: Dictionary = prog.get("tiers", {})
+			if bool(tiers.get(str(_DungeonTierConfig.TIER_NORMAL), false)):
+				return true
+			if bool(prog.get("cleared", false)) and tiers.is_empty():
+				return true
 	var progress: Dictionary = dungeon_progress.get(dungeon_id, {})
 	return bool(progress.get("cleared", false))
 
@@ -174,6 +342,8 @@ func is_dungeon_unlocked(dungeon_id: String) -> bool:
 		return false
 	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
 	if data == null:
+		return false
+	if not Constants.is_playable_dungeon_route(str(data.route_type)):
 		return false
 	if str(data.route_type) != "main":
 		var req: String = str(data.unlock_after_dungeon_id) if "unlock_after_dungeon_id" in data else ""
@@ -249,6 +419,97 @@ func toggle_member_skill(member: Resource, skill_id: String) -> void:
 		return
 	member.equipped_skill_ids = ids
 
+# ---- 装備パッシブ（P3-D088 拡張 / P3-RELIC-PASSIVE） ----
+func get_default_passive_ids(member: Resource) -> Array[String]:
+	var out: Array[String] = []
+	if member == null:
+		return out
+	for pid in CombatPassives.selectable_passive_ids(member):
+		if out.size() >= Constants.MAX_EQUIPPED_PASSIVES:
+			break
+		out.append(pid)
+	return out
+
+func get_equipped_character_passive_ids(member: Resource) -> Array[String]:
+	if member == null:
+		return [] as Array[String]
+	_PassiveProgression.normalize_equipped_passives(member)
+	var out: Array[String] = []
+	for pid: String in get_equipped_passive_ids(member):
+		if CombatPassives.is_relic_passive(pid):
+			continue
+		out.append(pid)
+	return out
+
+func get_equipped_relic_passive_id(member: Resource) -> String:
+	if member == null:
+		return ""
+	_PassiveProgression.normalize_equipped_passives(member)
+	for pid: String in get_equipped_passive_ids(member):
+		if CombatPassives.is_relic_passive(pid):
+			return pid
+	return ""
+
+func get_equipped_passive_ids(member: Resource) -> Array[String]:
+	if member == null:
+		return [] as Array[String]
+	_PassiveProgression.normalize_equipped_passives(member)
+	if _passive_slots_customized(member):
+		return member.equipped_passive_ids
+	if "equipped_passive_ids" in member and not member.equipped_passive_ids.is_empty():
+		return member.equipped_passive_ids
+	return get_default_passive_ids(member)
+
+func _passive_slots_customized(member: Resource) -> bool:
+	return "passive_slots_customized" in member and bool(member.passive_slots_customized)
+
+func toggle_member_passive(member: Resource, passive_id: String) -> void:
+	if member == null or passive_id.is_empty() or CombatPassives.is_relic_passive(passive_id):
+		return
+	if not _PassiveProgression.can_equip_passive(member, passive_id):
+		return
+	var char_ids: Array[String] = get_equipped_character_passive_ids(member).duplicate()
+	var relic_id: String = get_equipped_relic_passive_id(member)
+	if char_ids.has(passive_id):
+		char_ids.erase(passive_id)
+	else:
+		if char_ids.size() >= Constants.MAX_EQUIPPED_PASSIVES:
+			char_ids.clear()
+		char_ids.append(passive_id)
+	_set_equipped_passive_slots(member, char_ids, relic_id, true)
+
+func toggle_member_relic_passive(member: Resource, passive_id: String) -> void:
+	if member == null:
+		return
+	var char_ids: Array[String] = get_equipped_character_passive_ids(member).duplicate()
+	var relic_id: String = get_equipped_relic_passive_id(member)
+	if passive_id.is_empty():
+		relic_id = ""
+	elif not CombatPassives.is_relic_passive(passive_id) or not has_relic(passive_id):
+		return
+	elif relic_id == passive_id:
+		relic_id = ""
+	else:
+		relic_id = passive_id
+	_set_equipped_passive_slots(member, char_ids, relic_id, true)
+
+func _set_equipped_passive_slots(
+	member: Resource,
+	char_ids: Array[String],
+	relic_id: String,
+	mark_customized: bool = false,
+) -> void:
+	var merged: Array[String] = char_ids.duplicate()
+	if not relic_id.is_empty():
+		merged.append(relic_id)
+	member.equipped_passive_ids = merged
+	if mark_customized and "passive_slots_customized" in member:
+		member.passive_slots_customized = true
+
+func normalize_all_equipped_passives() -> void:
+	for member in roster:
+		_PassiveProgression.normalize_equipped_passives(member)
+
 func normalize_all_equipped_skills() -> void:
 	for member in roster:
 		SkillProgression.normalize_equipped_skills(member)
@@ -309,22 +570,27 @@ func copy_member_tactics_preset_to_custom(member: Resource) -> void:
 		return
 	var tid: String = get_member_tactics_id(member)
 	member.tactics_custom_target = CombatTactics.get_target_rule(tid)
-	member.tactics_custom_plan = CombatTactics.get_slot_plan(tid).duplicate(true)
+	var raw: Array = CombatTactics.get_slot_plan(tid).duplicate(true)
+	member.tactics_custom_plan = CombatGambit.normalize_plan(CombatGambit.assign_skill_indices_for_copy(raw))
 	member.tactics_custom_enabled = true
 
-# ---- 遺物（Relics・P3-D090） ----
-# メンバーの遺物 id（未設定/無効なら "" = なし）。
+# ---- レリック（解放型パッシブ・P3-RELIC-PASSIVE） ----
 func get_member_relic_id(member: Resource) -> String:
-	if member == null:
-		return CombatRelics.NONE_ID
-	if "relic_id" in member:
-		return CombatRelics.normalize_id(str(member.relic_id))
-	return CombatRelics.NONE_ID
+	return get_equipped_relic_passive_id(member)
 
 func set_member_relic(member: Resource, relic_id: String) -> void:
 	if member == null:
 		return
-	member.relic_id = CombatRelics.normalize_id(relic_id)
+	var pid: String = CombatPassives.migrate_relic_passive_id(relic_id)
+	if pid.is_empty():
+		toggle_member_relic_passive(member, "")
+		return
+	if not has_relic(pid):
+		return
+	for other in party_members:
+		if other != null and other != member and get_equipped_relic_passive_id(other) == pid:
+			toggle_member_relic_passive(other, "")
+	toggle_member_relic_passive(member, pid)
 
 # ---- 陣形（前列/後列・P3-D106） ----
 const FORMATION_FRONT: int = 0
@@ -447,25 +713,23 @@ func apply_formation_preset(preset: String) -> void:
 	for i in n:
 		set_member_formation_row(party_members[i], FORMATION_FRONT if i < front_count else FORMATION_BACK)
 
-# ---- 遺物 所持（解放型・P3-D093） ----
-# 入手した遺物 id の集合（解放型: 一度入手すれば恒久・全員装備可）。セーブ永続。
+# ---- レリック 所持（解放型） ----
 var owned_relics: Array = []
 
 func has_relic(relic_id: String) -> bool:
-	return relic_id in owned_relics
+	var pid: String = CombatPassives.migrate_relic_passive_id(str(relic_id))
+	return pid in owned_relics
 
-# 未所持なら解放し true。既所持/無効は false。
 func unlock_relic(relic_id: String) -> bool:
-	var rid: String = CombatRelics.normalize_id(relic_id)
+	var rid: String = CombatPassives.migrate_relic_passive_id(relic_id)
 	if rid.is_empty() or rid in owned_relics:
 		return false
 	owned_relics.append(rid)
 	return true
 
-# まだ所持していないドロップ候補遺物 id 一覧。
 func unowned_relic_ids() -> Array:
 	var out: Array = []
-	for rid: String in CombatRelics.all_ids():
+	for rid: String in CombatPassives.relic_passive_ids():
 		if rid not in owned_relics:
 			out.append(rid)
 	return out
@@ -493,7 +757,7 @@ static func exploration_policy_label(policy: String) -> String:
 	match policy:
 		"safe": return "安全優先"
 		"material": return "素材優先"
-		"relic": return "遺物優先"
+		"relic": return "レリック優先"
 		"codex": return "図鑑優先"
 		_: return "なし"
 
@@ -501,7 +765,7 @@ static func exploration_policy_hint(policy: String) -> String:
 	match policy:
 		"safe": return "被ダメ×0.92・群れ出現率半減"
 		"material": return "Gold+15%・ELITE素材率UP"
-		"relic": return "ELITE遺物率UP（ボス据置）"
+		"relic": return "ボス+5%・ELITE+5% レリック率UP"
 		"codex": return "図鑑進捗2倍・未完了敵はEXP+10%・素材率UP"
 		_: return "方針なし（通常報酬）"
 
@@ -601,7 +865,7 @@ func save_combat_preset(slot: int, preset_name: String = "") -> void:
 			continue
 		settings[str(member.id)] = {
 			"tactics_id": get_member_tactics_id(member),
-			"relic_id": get_member_relic_id(member),
+			"relic_passive_id": get_equipped_relic_passive_id(member),
 			"tactics_custom_enabled": get_member_tactics_custom_enabled(member),
 			"tactics_custom_target": get_member_tactics_custom_target(member),
 			"tactics_custom_plan": get_member_tactics_custom_plan(member).duplicate(true),
@@ -676,7 +940,8 @@ func apply_combat_preset(slot: int) -> Dictionary:
 			continue
 		var entry: Dictionary = s as Dictionary
 		set_member_tactics(member, str(entry.get("tactics_id", "")))
-		set_member_relic(member, str(entry.get("relic_id", "")))
+		var relic_raw: String = str(entry.get("relic_passive_id", entry.get("relic_id", "")))
+		set_member_relic(member, relic_raw)
 		if entry.has("tactics_custom_enabled"):
 			set_member_tactics_custom_enabled(member, bool(entry.get("tactics_custom_enabled", false)))
 		if entry.has("tactics_custom_target"):
@@ -796,11 +1061,11 @@ const _GachaRarityConfig: Script = preload("res://scripts/gacha/GachaRarityConfi
 
 # 初期ロスター（基本5職・ガチャ対象外の特別キャラ）。アクティブ編成は先頭4名（P3-D036b-9 / P3-D105）。
 const BASE_ROSTER_DEFS: Array = [
-	{"id": "adventurer_0", "name": "アルド（Ald）", "job": "swordsman"},
-	{"id": "adventurer_1", "name": "リーヴァ（Riva）", "job": "ranger"},
-	{"id": "adventurer_2", "name": "エリアス（Elias）", "job": "alchemist"},
-	{"id": "adventurer_3", "name": "ガレン（Galen）", "job": "vanguard"},
-	{"id": "adventurer_4", "name": "ミレイ（Mirei）", "job": "beast_tamer"},
+	{"id": "adventurer_0", "name": "アルド", "job": "swordsman"},
+	{"id": "adventurer_1", "name": "リーヴァ", "job": "ranger"},
+	{"id": "adventurer_2", "name": "エリアス", "job": "alchemist"},
+	{"id": "adventurer_3", "name": "ガレン", "job": "vanguard"},
+	{"id": "adventurer_4", "name": "ミレイ", "job": "beast_tamer"},
 ]
 const ACTIVE_PARTY_SIZE: int = 4
 # 戦闘スロット上限（スプライト/HPバー枠＝4）。助っ人含む同時表示の最大数（P3-D105）。
@@ -820,6 +1085,7 @@ func _init_party() -> void:
 	normalize_roster_rarity()
 	_grant_starting_equipment()
 	normalize_all_equipped_skills()
+	normalize_all_equipped_passives()
 
 func _create_base_adventurer(def: Dictionary) -> Resource:
 	var adventurer_class = load("res://scripts/domain/Adventurer.gd")
@@ -901,46 +1167,21 @@ func _create_starting_weapon(member_id: String, weapon_id: String) -> Resource:
 	instance.instance_id = "starting_" + member_id + "_" + weapon_id
 	instance.weapon_id = weapon_id
 	instance.is_appraised = true
-	instance.rolled_attack = weapon_data.base_attack
-	instance.attack_speed = weapon_data.base_attack_speed
-	instance.critical_rate = weapon_data.base_critical_rate
-	instance.knockback = weapon_data.base_knockback
-	instance.stagger_power = weapon_data.base_stagger_power
-	instance.attack_range = weapon_data.base_attack_range
-	instance.weight = weapon_data.weight
+	_WeaponStatResolver.apply_drop_stats(instance, weapon_data)
 	return instance
 
-# ---- イベント助っ人（P3-D036a） ----
-# ラン内一時参加。party_members に含めない（Save/EXP/装備/全滅判定対象外）。
-var event_helper: Resource = null
-
-# 助っ人が実際に戦闘参加するか。event_helper 設定中は常に参加（5体目 UI は DungeonScene 側）。
-func _helper_active() -> bool:
-	return event_helper != null
+# ---- 戦闘参加者（編成メンバーのみ） ----
 
 func get_combatants() -> Array:
-	if _helper_active():
-		return party_members + [event_helper]
 	return party_members
 
 func combatant_count() -> int:
-	return party_members.size() + (1 if _helper_active() else 0)
+	return party_members.size()
 
 func get_combatant(i: int) -> Resource:
-	if i < 0 or i >= combatant_count():
+	if i < 0 or i >= party_members.size():
 		return null
-	if i < party_members.size():
-		return party_members[i]
-	return event_helper
-
-func is_helper_combatant(i: int) -> bool:
-	return _helper_active() and i == party_members.size()
-
-func set_event_helper(adv: Resource) -> void:
-	event_helper = adv
-
-func clear_event_helper() -> void:
-	event_helper = null
+	return party_members[i]
 
 # ---- 生態図鑑進捗（P3-CODEX5-001） ----
 const STAGE4_KILLS: int = 3

@@ -232,7 +232,8 @@ def pick_armor_template(rarity: int) -> Path:
 
 
 def compose_icon(template_path: Path, item_id: str, element: str, rarity: int) -> Image.Image:
-    bg = rarity_bg(rarity)
+    # 背景は UI 側の枠線で表現するため、スプライトのみを透過 PNG に合成する。
+    canvas = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
     sprite = Image.open(template_path)
     sprite = remove_black_bg(sprite)
 
@@ -255,10 +256,10 @@ def compose_icon(template_path: Path, item_id: str, element: str, rarity: int) -
         glow = ImageEnhance.Brightness(glow).enhance(1.4)
         glow_layer = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
         glow_layer.paste(glow, (ox, oy), glow)
-        bg = Image.alpha_composite(bg, glow_layer)
+        canvas = Image.alpha_composite(canvas, glow_layer)
 
-    bg.paste(sprite, (ox, oy), sprite)
-    return bg
+    canvas.paste(sprite, (ox, oy), sprite)
+    return canvas
 
 
 def pick_material_template(item_id: str, category: str, rarity: int) -> Path:

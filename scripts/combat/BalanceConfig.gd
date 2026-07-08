@@ -8,12 +8,21 @@ extends RefCounted
 # ── ダメージ計算（旧 DungeonScene 定数） ──────────────────────────────────
 const FALLBACK_ATTACK: int = 10
 const CRITICAL_MULTIPLIER: float = 1.5
+## 武器デフォルト（P3-EQ-STAT-005）。個体未設定時に使用。
+const DEFAULT_WEAPON_ATTACK_SPEED: float = 1.0
+const DEFAULT_WEAPON_CRITICAL_RATE: float = 0.05
+const DEFAULT_WEAPON_CRITICAL_DAMAGE: float = CRITICAL_MULTIPLIER
+const DEFAULT_BANE_MULTIPLIER: float = 1.3
+## 属性値→与ダメ倍率: damage × (1 + element_power × K)。無属性時は適用しない。
+const ELEMENT_POWER_K: float = 0.01
 ## 敵DEF逓減軽減 K/(K+DEF)（P3-BAL-002）
 const DEFENSE_MITIGATION_K: float = 100.0
 ## Biome 有利属性 与ダメ倍率（P3-D099）
 const BIOME_FAVORED_BONUS: float = 1.15
 ## 防具属性耐性 被ダメ倍率（P3-D103）
 const ARMOR_RESIST_MULTIPLIER: float = 0.75
+## 装備合算回避率の上限（防具+装飾品）。
+const EVASION_RATE_CAP: float = 0.50
 ## ダメージ±乱数（P3-D158）。最終ダメージ × [1−v, 1+v] の一様乱数。0で無効。
 const DAMAGE_VARIANCE: float = 0.10
 

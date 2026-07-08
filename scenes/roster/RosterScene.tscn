@@ -155,7 +155,7 @@ layout_mode = 1
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_top = 50.0
-offset_bottom = -104.0
+offset_bottom = -136.0
 grow_horizontal = 2
 grow_vertical = 2
 horizontal_scroll_mode = 0
@@ -165,24 +165,33 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
-[node name="PowerRow" type="HBoxContainer" parent="MainScroll/MainVBox"]
+[node name="PowerSection" type="VBoxContainer" parent="MainScroll/MainVBox"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 4
 
-[node name="LabelPower" type="Label" parent="MainScroll/MainVBox/PowerRow"]
+[node name="LabelPower" type="Label" parent="MainScroll/MainVBox/PowerSection"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
 theme_override_font_sizes/font_size = 16
 text = "総合戦力 0"
+clip_text = true
 
-[node name="ButtonRecommend" type="Button" parent="MainScroll/MainVBox/PowerRow"]
+[node name="PowerButtonRow" type="HBoxContainer" parent="MainScroll/MainVBox/PowerSection"]
 layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ButtonRecommend" type="Button" parent="MainScroll/MainVBox/PowerSection/PowerButtonRow"]
+layout_mode = 2
+size_flags_horizontal = 3
 text = "おすすめ編成"
+clip_text = true
 
-[node name="ButtonFormation" type="Button" parent="MainScroll/MainVBox/PowerRow"]
+[node name="ButtonFormation" type="Button" parent="MainScroll/MainVBox/PowerSection/PowerButtonRow"]
 layout_mode = 2
+size_flags_horizontal = 3
 text = "陣形"
+clip_text = true
 
 [node name="ActivePartyScroll" type="ScrollContainer" parent="MainScroll/MainVBox"]
 custom_minimum_size = Vector2(0, 210)
@@ -193,16 +202,6 @@ vertical_scroll_mode = 0
 [node name="ActivePartyRow" type="HBoxContainer" parent="MainScroll/MainVBox/ActivePartyScroll"]
 layout_mode = 2
 theme_override_constants/separation = 8
-
-[node name="LeaderStrip" type="PanelContainer" parent="MainScroll/MainVBox"]
-layout_mode = 2
-
-[node name="LeaderLabel" type="Label" parent="MainScroll/MainVBox/LeaderStrip"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.82, 0.84, 0.9, 1)
-theme_override_font_sizes/font_size = 14
-text = "リーダー: —"
-autowrap_mode = 3
 
 [node name="ListHeader" type="HBoxContainer" parent="MainScroll/MainVBox"]
 layout_mode = 2
@@ -239,8 +238,8 @@ layout_mode = 1
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -104.0
-offset_bottom = -56.0
+offset_top = -136.0
+offset_bottom = -88.0
 grow_horizontal = 2
 theme_override_constants/separation = 12
 alignment = 1
@@ -261,7 +260,7 @@ layout_mode = 1
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -52.0
+offset_top = -84.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_styles/panel = SubResource("SB_BottomNav")
@@ -279,6 +278,16 @@ text = "ホーム"
 layout_mode = 2
 size_flags_horizontal = 3
 text = "パーティ"
+
+[node name="NavCharacter" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "キャラ管理"
+
+[node name="NavEquipmentCatalog" type="Button" parent="BottomNav/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "装備一覧"
 
 [node name="NavAdventure" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2

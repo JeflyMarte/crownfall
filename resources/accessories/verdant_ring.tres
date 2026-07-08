@@ -13,4 +13,6 @@ hp_bonus = 10
 attack_bonus = 0
 defense_bonus = 0
 crit_rate_bonus = 0.0
-luck_bonus = 0.0
+exp_gain_rate = 0.0
+gold_gain_rate = 0.0
+rare_drop_rate = 0.0

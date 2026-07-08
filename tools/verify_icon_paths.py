@@ -14,6 +14,7 @@ CHECKS = [
     ("weapon", "resources/weapons", "id"),
     ("material", "resources/materials", "id"),
     ("dungeon", "resources/dungeons", "id"),
+    ("stage", "resources/stages", "id"),
     ("armor", "resources/armors", "armor_id"),
     ("accessory", "resources/accessories", "id"),
     ("skill", "resources/skills", "id"),
@@ -50,7 +51,7 @@ def main() -> int:
                 errors.append(f"missing file: {key} -> {rel}")
 
     for key, path in sorted(icon_map.items()):
-        if not key.startswith(("enemy:", "weapon:", "material:", "dungeon:", "armor:", "accessory:", "skill:")):
+        if not key.startswith(("enemy:", "weapon:", "material:", "dungeon:", "stage:", "armor:", "accessory:", "skill:")):
             continue
         rel = path.replace("res://", "")
         if not (ROOT / rel).exists():

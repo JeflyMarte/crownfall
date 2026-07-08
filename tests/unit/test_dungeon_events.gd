@@ -69,3 +69,38 @@ func test_new_lore_fragments_have_bodies() -> void:
 			CatalogHelper.get_lore_body(lore_id).is_empty(),
 			"LF 本文が解析できる: %s" % lore_id
 		)
+
+func test_pick_event_deduplicates_until_pool_exhausted() -> void:
+	var dc: Node = _make_controller("whisperwood")
+	var pool_size: int = dc._get_event_pool().size()
+	var seen: Dictionary = {}
+	for _i in pool_size:
+		var ev: Dictionary = dc.pick_event()
+		var eid: String = str(ev.get("id", ""))
+		assert_false(seen.has(eid), "同一ラン内で event が重複: %s" % eid)
+		seen[eid] = true
+	var fallback: Dictionary = dc.pick_event()
+	assert_false(fallback.is_empty(), "枯渇後フォールバックで抽選できる")
+
+func test_mourngate_material_event_resolves_ecology_id() -> void:
+	var dc: Node = _make_controller("mourngate")
+	var outcome: Dictionary = dc.resolve_event_outcome({
+		"type": "material",
+		"material_id": "relic_shard",
+		"discovery_id": "relic_shard",
+		"amount": 1,
+	})
+	assert_ne(str(outcome.get("material_id", "")), "relic_shard")
+	assert_has(DungeonControllerScript.MOURNGATE_EVENT_MATERIAL_POOL, outcome.get("material_id", ""))
+
+func test_whisperwood_material_keeps_relic_shard() -> void:
+	var dc: Node = _make_controller("whisperwood")
+	var outcome: Dictionary = dc.resolve_event_outcome({
+		"type": "material",
+		"material_id": "relic_shard",
+		"discovery_id": "relic_shard",
+		"amount": 1,
+		"label": "沼澱の試料",
+	})
+	assert_eq(str(outcome.get("material_id", "")), "relic_shard")
+	assert_eq(str(outcome.get("label", "")), "沼澱の試料")

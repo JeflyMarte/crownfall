@@ -7,6 +7,7 @@ const _HubNpcHelper := preload("res://scripts/ui/HubNpcHelper.gd")
 
 const SCENE_HOME: String = "res://scenes/base/BaseScene.tscn"
 const SCENE_EQUIPMENT: String = "res://scenes/equipment/EquipmentScene.tscn"
+const SCENE_EQUIPMENT_CATALOG: String = "res://scenes/equipment/EquipmentCatalogScene.tscn"
 const SCENE_ROSTER: String = "res://scenes/roster/RosterScene.tscn"
 const SCENE_DUNGEON: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
 const SCENE_BLACKSMITH: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
@@ -31,12 +32,30 @@ const BOTTOM_NAV_ENTRIES: Array[Dictionary] = [
 		"locked": false,
 	},
 	{
+		"id": "equipment",
+		"title": "キャラ管理",
+		"node": "NavCharacter",
+		"tab": Tab.CHARACTER,
+		"icon_category": "nav",
+		"icon_id": "character",
+		"locked": false,
+	},
+	{
 		"id": "roster",
 		"title": "パーティー編成",
 		"node": "NavParty",
 		"tab": Tab.PARTY,
 		"icon_category": "nav",
 		"icon_id": "party",
+		"locked": false,
+	},
+	{
+		"id": "equipment_catalog",
+		"title": "装備一覧",
+		"node": "NavEquipmentCatalog",
+		"tab": Tab.NONE,
+		"icon_category": "nav",
+		"icon_id": "forge",
 		"locked": false,
 	},
 	{
@@ -94,6 +113,15 @@ const SIDE_MENU_ENTRIES: Array[Dictionary] = [
 		"tab": Tab.CHARACTER,
 		"icon_category": "nav",
 		"icon_id": "character",
+		"locked": false,
+	},
+	{
+		"id": "equipment_catalog",
+		"title": "装備一覧",
+		"node": "NavEquipmentCatalog",
+		"tab": Tab.NONE,
+		"icon_category": "nav",
+		"icon_id": "forge",
 		"locked": false,
 	},
 	{
@@ -195,6 +223,17 @@ static func _wire_nav_row(nav_row: HBoxContainer, active_tab: Tab) -> void:
 			home_btn.disabled = false
 			NavUiTokens.set_bottom_nav_disabled_style(home_btn, false)
 			_connect_if_needed(home_btn, _go_home)
+	var character_btn: Button = nav_row.get_node_or_null("NavCharacter") as Button
+	if character_btn != null:
+		if active_tab == Tab.CHARACTER:
+			character_btn.disabled = true
+			character_btn.tooltip_text = "キャラ管理"
+			NavUiTokens.set_bottom_nav_text_color(character_btn, COLOR_NAV_ACTIVE)
+		else:
+			character_btn.disabled = false
+			NavUiTokens.set_bottom_nav_disabled_style(character_btn, false)
+			_connect_if_needed(character_btn, _go_character)
+	_connect_if_needed(nav_row.get_node_or_null("NavEquipmentCatalog") as Button, _go_equipment_catalog)
 	_connect_if_needed(nav_row.get_node_or_null("NavAdventure") as Button, _go_adventure)
 	_connect_if_needed(nav_row.get_node_or_null("NavParty") as Button, _go_party)
 	var forge_btn: Button = nav_row.get_node_or_null("NavForge") as Button
@@ -244,6 +283,10 @@ static func _go_adventure() -> void:
 static func _go_character() -> void:
 	if ResourceLoader.exists(SCENE_EQUIPMENT):
 		_change_scene(SCENE_EQUIPMENT)
+
+static func _go_equipment_catalog() -> void:
+	if ResourceLoader.exists(SCENE_EQUIPMENT_CATALOG):
+		_change_scene(SCENE_EQUIPMENT_CATALOG)
 
 static func _go_party() -> void:
 	if ResourceLoader.exists(SCENE_ROSTER):

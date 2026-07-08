@@ -4,6 +4,8 @@ extends Resource
 @export var id: String = ""
 @export var display_name: String = ""
 @export var fixed_skill_id: String = ""
+## レジェンド固有効果 id（P3-WPN-LEG-EFFECT）。`CombatPassives` の `eq_wpn_*`。
+@export var fixed_passive_id: String = ""
 @export var base_attack: int = 0
 @export var rarity: int = 0
 @export var base_attack_speed: float = 1.0
@@ -15,6 +17,8 @@ extends Resource
 @export var weight: float = 1.0
 @export var element: String = ""
 @export var weapon_type: String = ""
+## 属性値の基準（P3-EQ-STAT-005）。ドロップ時にレア度レンジで上乗せロール。
+@export var base_element_power: int = 0
 ## シナジータグ（P3-D094）。攻撃の性質（斬撃/刺突/打撃・炎/氷/雷…）。
 ## 状態異常コンボの起爆条件（require_tag）等に用いる。CombatTags が正式定義。
 @export var tags: Array[String] = []

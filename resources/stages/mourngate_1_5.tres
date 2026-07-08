@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="DungeonStageData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonStageData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "mourngate_1_5"
+biome_id = "mourngate"
+biome_index = 1
+chapter_index = 5
+display_name = "王座の深淵"
+floor_count = 10
+enemy_level = 5
+recommended_level = 7
+closing_type = "boss"
+boss_id = "serdion"
+requires_elite = false
+legendary_armor_id = "serdion_ward_plate"
+legendary_accessory_id = "mourngate_royal_seal"
+spawn_weights = {
+"2": 60,
+"3": 40
+}
+event_room_weight = 20
+min_event_rooms = 1

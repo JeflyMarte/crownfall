@@ -21,6 +21,7 @@ assets/**/*.fnt
 # サードパーティ addon（編集対象外）
 addons/gut/
 addons/agent_tools/
+addons/godot_ai/
 
 # ビルド・一時
 wiki/site/

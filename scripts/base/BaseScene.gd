@@ -5,10 +5,10 @@ const _HubNpcHelper := preload("res://scripts/ui/HubNpcHelper.gd")
 const DUNGEON_SELECT_SCENE: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
 const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
 const EQUIPMENT_SCENE: String = "res://scenes/equipment/EquipmentScene.tscn"
+const EQUIPMENT_CATALOG_SCENE: String = "res://scenes/equipment/EquipmentCatalogScene.tscn"
 const ROSTER_SCENE: String = "res://scenes/roster/RosterScene.tscn"
 const CODEX_SCENE: String = "res://scenes/codex/CodexScene.tscn"
 const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
-const EVENT_SCENE: String = "res://scenes/event/EventScene.tscn"
 
 @onready var _menu_vbox: VBoxContainer = $HubView/LeftMenuPanel/MenuScroll/MenuVBox
 @onready var _label_gold: Label = $HubView/TopBar/TopBarRow/GoldChip/GoldRow/LabelGold
@@ -22,28 +22,17 @@ const EVENT_SCENE: String = "res://scenes/event/EventScene.tscn"
 @onready var _mission_list: VBoxContainer = $HubView/DailyMissionPanel/DailyVBox/MissionList
 @onready var _label_daily_title: Label = $HubView/DailyMissionPanel/DailyVBox/DailyHeader/LabelDailyTitle
 @onready var _label_menu_title: Label = $HubView/LeftMenuPanel/MenuScroll/MenuVBox/LabelMenuTitle
-@onready var _label_event_tag: Label = $HubView/EventBanner/EventVBox/EventTextCol/LabelEventTag
-@onready var _label_event_title: Label = $HubView/EventBanner/EventVBox/EventTextCol/LabelEventTitle
-@onready var _label_event_desc: Label = $HubView/EventBanner/EventVBox/EventTextCol/LabelEventDesc
-@onready var _label_event_timer: Label = $HubView/EventBanner/EventVBox/LabelEventTimer
-@onready var _event_banner: PanelContainer = $HubView/EventBanner
 
 func _ready() -> void:
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.HOME)
 	_decorate_panels()
 	_build_left_menu()
 	DailyMissionSystem.missions_updated.connect(_refresh_daily_missions)
-	EventSystem.event_updated.connect(_refresh_event_banner)
 	$ResetTimer.timeout.connect(_update_daily_reset_label)
-	$ResetTimer.timeout.connect(_refresh_event_banner)
-	_event_banner.gui_input.connect(_on_event_banner_input)
-	_event_banner.mouse_filter = Control.MOUSE_FILTER_STOP
 	_ensure_valid_dungeon_selection()
 	DailyMissionSystem.ensure_refreshed()
-	EventSystem.ensure_active()
 	_update_display()
 	_refresh_daily_missions()
-	_refresh_event_banner()
 	_apply_typography()
 	GameState.base_initial_view = "hub"
 
@@ -56,10 +45,6 @@ func _apply_typography() -> void:
 	UiTypography.apply_caption(_label_daily_reset)
 	UiTypography.apply_display(_portrait_glyph, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_body(_label_menu_title, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_SUB)
-	UiTypography.apply_caption(_label_event_tag, UiTypography.COLOR_GOLD)
-	UiTypography.apply_display(_label_event_title, UiTypography.SIZE_BODY_SMALL)
-	UiTypography.apply_caption(_label_event_desc)
-	UiTypography.apply_caption(_label_event_timer)
 
 func _decorate_panels() -> void:
 	_player_card.add_theme_stylebox_override(
@@ -67,9 +52,6 @@ func _decorate_panels() -> void:
 	)
 	$HubView/LeftMenuPanel.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
-	)
-	$HubView/EventBanner.add_theme_stylebox_override(
-		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD_ACTIVE)
 	)
 	$HubView/DailyMissionPanel.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
@@ -108,6 +90,8 @@ func _on_menu_entry_pressed(entry_id: String) -> void:
 			_on_dungeon_button_pressed()
 		"equipment":
 			_on_equipment_button_pressed()
+		"equipment_catalog":
+			_on_equipment_catalog_pressed()
 		"roster":
 			_on_roster_button_pressed()
 		"blacksmith":
@@ -195,25 +179,6 @@ func _update_player_card() -> void:
 	_portrait_glyph.visible = tex == null
 	if tex == null:
 		_portrait_glyph.text = "英"
-
-func _refresh_event_banner() -> void:
-	var event_data: Resource = EventSystem.get_active_event()
-	_event_banner.visible = event_data != null
-	if event_data == null:
-		return
-	_label_event_tag.text = str(event_data.tag_text)
-	_label_event_title.text = str(event_data.title)
-	_label_event_desc.text = EventSystem.active_modifier_summary()
-	_label_event_timer.text = EventSystem.countdown_text()
-
-func _on_event_banner_input(event: InputEvent) -> void:
-	if not EventSystem.is_event_running():
-		return
-	if event is InputEventMouseButton:
-		var mb: InputEventMouseButton = event as InputEventMouseButton
-		if mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
-			if ResourceLoader.exists(EVENT_SCENE):
-				SceneRouter.change_scene(EVENT_SCENE)
 
 func _refresh_daily_missions() -> void:
 	_update_daily_reset_label()
@@ -303,6 +268,10 @@ func _on_dungeon_button_pressed() -> void:
 
 func _on_equipment_button_pressed() -> void:
 	SceneRouter.change_scene(EQUIPMENT_SCENE)
+
+func _on_equipment_catalog_pressed() -> void:
+	if ResourceLoader.exists(EQUIPMENT_CATALOG_SCENE):
+		SceneRouter.change_scene(EQUIPMENT_CATALOG_SCENE)
 
 func _on_blacksmith_button_pressed() -> void:
 	SceneRouter.change_scene(BLACKSMITH_SCENE)

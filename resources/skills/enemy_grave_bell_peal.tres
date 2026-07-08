@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_grave_bell_peal"
+display_name = "墓鐘鳴鏡"
+description = "胸骨の鐘腔を叩き、低い共鳴波を全体へ放つ。平衡感覚を奪い、一瞬の硬直を生む。"
+skill_type = "enemy"
+target_type = "party"
+power_multiplier = 0.85
+cooldown = 5.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["aoe"])
+element = "dark"
+apply_status_id = "stun"
+apply_status_chance = 0.3

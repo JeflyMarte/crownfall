@@ -211,13 +211,15 @@ columns = 2
 [node name="LevelUpPanel" type="PanelContainer" parent="Scroll/Margin/Main"]
 layout_mode = 2
 
-[node name="LabelLevelUp" type="Label" parent="Scroll/Margin/Main/LevelUpPanel"]
+[node name="LabelLevelUp" type="RichTextLabel" parent="Scroll/Margin/Main/LevelUpPanel"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.92, 0.6, 1)
-theme_override_font_sizes/font_size = 20
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+theme_override_colors/default_color = Color(0.82, 0.84, 0.9, 1)
+theme_override_font_sizes/normal_font_size = 20
 text = ""
 horizontal_alignment = 1
-autowrap_mode = 3
 
 [node name="FooterRow" type="PanelContainer" parent="."]
 layout_mode = 1

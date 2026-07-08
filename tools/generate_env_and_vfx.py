@@ -24,7 +24,7 @@ DUNGEONS: list[tuple[str, str, float | None]] = [
     ("frostwall_path", "FrostwallPath", 0.56),
 ]
 
-CHEST_SRC = MG_ENV / "OBJ_TreasureChest_Open.png"
+CHEST_CLOSED_SRC = MG_ENV / "OBJ_TreasureChest_Closed.png"
 EXIT_SRC = MG_ENV / "OBJ_ExitGate_Mourngate.png"
 HIT_SRC = VFX_DIR / "FX_Hit_Normal.png"
 
@@ -39,6 +39,56 @@ def remove_black_bg(img: Image.Image, threshold: int = 24) -> Image.Image:
             if r <= threshold and g <= threshold and b <= threshold:
                 px[x, y] = (r, g, b, 0)
     return img
+
+
+def derive_open_chest(closed: Image.Image) -> Image.Image:
+    """Closed 32×32 chest → open variant (lid up + gold interior)."""
+    closed = closed.convert("RGBA")
+    w, h = closed.size
+    out = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    src = closed.load()
+    dst = out.load()
+
+    for y in range(13, h):
+        for x in range(w):
+            c = src[x, y]
+            if c[3]:
+                dst[x, y] = c
+
+    for y in range(12, 21):
+        for x in range(8, 24):
+            edge = x in (8, 23) or y in (12, 20)
+            if edge:
+                dst[x, y] = (58, 38, 24, 255)
+            else:
+                dst[x, y] = (
+                    (228, 186, 58, 255) if (x + y) % 3 else (196, 148, 36, 255)
+                )
+
+    for y in range(13, 18):
+        for x in range(w):
+            c = src[x, y]
+            if c[3] and c[0] > 140:
+                dst[x, y] = c
+
+    for y in range(2, 13):
+        for x in range(w):
+            c = src[x, y]
+            if c[3] == 0:
+                continue
+            ny = max(1, y - 6)
+            dst[x, ny] = c
+            if ny + 1 < 13:
+                dst[x, ny + 1] = (
+                    max(0, c[0] - 40),
+                    max(0, c[1] - 35),
+                    max(0, c[2] - 25),
+                    c[3],
+                )
+
+    for x, y in ((11, 15), (16, 16), (20, 14), (14, 18), (18, 17)):
+        dst[x, y] = (255, 240, 160, 255)
+    return out
 
 
 def tint_image(img: Image.Image, hue: float, sat_mult: float = 1.2) -> Image.Image:
@@ -99,35 +149,51 @@ def holy_tint(img: Image.Image) -> Image.Image:
     return img
 
 
+def _enhance_chest_pair(closed: Image.Image, dungeon_id: str) -> tuple[Image.Image, Image.Image]:
+    opened = derive_open_chest(closed)
+    if dungeon_id in ("frostridge", "frostwall_path"):
+        closed = ImageEnhance.Brightness(closed).enhance(1.08)
+        opened = ImageEnhance.Brightness(opened).enhance(1.08)
+    if dungeon_id == "blackshore":
+        closed = ImageEnhance.Color(closed).enhance(1.15)
+        opened = ImageEnhance.Color(opened).enhance(1.15)
+    return closed, opened
+
+
 def generate_dungeon_objects() -> int:
-    chest_base = remove_black_bg(Image.open(CHEST_SRC))
+    closed_base = remove_black_bg(Image.open(CHEST_CLOSED_SRC))
     exit_base = remove_black_bg(Image.open(EXIT_SRC))
     count = 0
     for dungeon_id, theme, hue in DUNGEONS:
         out_dir = ROOT / "assets/dungeon" / dungeon_id / "env"
         out_dir.mkdir(parents=True, exist_ok=True)
         if hue is None:
-            continue
-        chest = tint_image(chest_base, hue)
-        gate = tint_image(exit_base, hue)
-        if dungeon_id in ("frostridge", "frostwall_path"):
-            chest = ImageEnhance.Brightness(chest).enhance(1.08)
+            closed = closed_base.copy()
+        else:
+            closed = tint_image(closed_base, hue)
+        closed, opened = _enhance_chest_pair(closed, dungeon_id)
+        gate = tint_image(exit_base, hue) if hue is not None else exit_base.copy()
+        if dungeon_id in ("frostridge", "frostwall_path") and hue is not None:
             gate = ImageEnhance.Brightness(gate).enhance(1.08)
-        if dungeon_id == "blackshore":
-            chest = ImageEnhance.Color(chest).enhance(1.15)
-        chest.save(out_dir / "OBJ_TreasureChest_Open.png", "PNG")
-        gate.save(out_dir / f"OBJ_ExitGate_{theme}.png", "PNG")
-        count += 2
-        print(f"  {dungeon_id}: chest + exit")
+        closed.save(out_dir / "OBJ_TreasureChest_Closed.png", "PNG")
+        opened.save(out_dir / "OBJ_TreasureChest_Open.png", "PNG")
+        if hue is not None:
+            gate.save(out_dir / f"OBJ_ExitGate_{theme}.png", "PNG")
+            count += 3
+            print(f"  {dungeon_id}: chest closed/open + exit")
+        else:
+            count += 2
+            print(f"  {dungeon_id}: chest closed/open (base)")
     return count
 
 
 def generate_vfx_sheets() -> None:
-    base = Image.open(HIT_SRC).convert("RGBA")
+    base = remove_black_bg(Image.open(HIT_SRC))
     gold_tint(base).save(VFX_DIR / "FX_Hit_Critical.png", "PNG")
     purple_tint(base).save(VFX_DIR / "FX_Hit_Dark.png", "PNG")
     holy_tint(base).save(VFX_DIR / "FX_Hit_Holy.png", "PNG")
-    print("  FX_Hit_Critical/Dark/Holy.png")
+    base.save(VFX_DIR / "FX_Hit_Normal.png", "PNG")
+    print("  FX_Hit_Normal/Critical/Dark/Holy.png")
 
 
 def write_spriteframes_tres(name: str, sheet: str, speed: float = 12.0) -> None:

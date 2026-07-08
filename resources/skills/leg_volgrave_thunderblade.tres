@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "leg_volgrave_thunderblade"
+display_name = "雷剣・沼断ちの落雷"
+description = "【レジェンド】沼を断つ雷剣の一撃。落雷の如く敵を感電させる。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 1.4
+cooldown = 3.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["melee", "slash", "lightning"])
+element = "thunder"
+slot_type = "skill"
+range_type = "melee"
+apply_status_id = "shock"
+apply_status_chance = 0.4
+apply_status_id2 = ""
+apply_status_chance2 = 0.0

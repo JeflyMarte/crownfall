@@ -4,6 +4,7 @@ extends Node
 # バランス値は BalanceConfig（SSOT・P3-BAL-005）を参照。ここはエイリアス。
 const BASE_MEMBER_HP: int = BalanceConfig.BASE_MEMBER_HP
 const _AffixStatCalculator = preload("res://scripts/equipment/AffixStatCalculator.gd")
+const _ArmorStatResolver = preload("res://scripts/equipment/ArmorStatResolver.gd")
 const _JobStatCalculator = preload("res://scripts/equipment/JobStatCalculator.gd")
 const _StatusResolver = preload("res://scripts/combat/StatusResolver.gd")
 const _EvolutionTraits = preload("res://scripts/systems/EvolutionTraits.gd")
@@ -433,17 +434,16 @@ func _init_party_hp() -> void:
 			max_hp = member.base_stats.hp
 		var armor: Resource = member.equipped_armor
 		if armor != null:
-			max_hp += armor.hp_bonus
+			max_hp += EquipmentEnhancer.effective_armor_hp(armor)
 		var acc: Resource = member.equipped_accessory
 		if acc != null:
-			var acc_data: Resource = load("res://resources/accessories/" + acc.accessory_id + ".tres")
+			var acc_data: Resource = DataRegistry.get_accessory_data(str(acc.accessory_id))
 			if acc_data != null:
-				max_hp += acc_data.hp_bonus
-		# 助っ人は Affix ボーナスとレベル HP をスキップ（装備なし・EXP対象外）
-		if not GameState.is_helper_combatant(i):
-			var affix_bonuses: Dictionary = _AffixStatCalculator.get_bonuses(i)
-			max_hp += int(affix_bonuses.get("hp_flat", 0))
-			max_hp += LevelSystem.level_hp_bonus(member.level)
+				max_hp += EquipmentEnhancer.effective_accessory_int_bonus(acc, "hp_bonus", acc_data)
+		# Affix ボーナスとレベル HP
+		var affix_bonuses: Dictionary = _AffixStatCalculator.get_bonuses(i)
+		max_hp += int(affix_bonuses.get("hp_flat", 0))
+		max_hp += LevelSystem.level_hp_bonus(member.level)
 		var job_mods: Dictionary = _JobStatCalculator.get_member_modifiers(member)
 		var hp_mult: float = float(job_mods.get("hp_multiplier", _JobStatCalculator.DEFAULT_MULTIPLIER))
 		max_hp = maxi(1, int(round(float(max_hp) * hp_mult)))
@@ -544,7 +544,7 @@ func _is_enemy_ranged_at(slot: int) -> bool:
 func _eligible_enemy_targets(front_only: bool, back_only: bool) -> Array[int]:
 	var alive: Array[int] = []
 	for i in party_combat_hp.size():
-		if not is_member_alive(i) or GameState.is_helper_combatant(i):
+		if not is_member_alive(i):
 			continue
 		var back: bool = GameState.is_member_back_row(i)
 		if front_only and back:
@@ -630,6 +630,10 @@ func apply_status(
 	stacks: int = 1,
 	source_attack: int = 0
 ) -> bool:
+	if unit_id.begins_with("party_"):
+		var member_idx: int = int(unit_id.substr(6))
+		if _ArmorStatResolver.member_immune_to_status(member_idx, effect_id):
+			return false
 	return _status_resolver.apply_status(unit_id, effect_id, stacks, source_attack)
 
 func apply_status_to_active_enemy(
@@ -715,17 +719,9 @@ func get_member_skip_action_label_at(member_index: int) -> String:
 # メンバーの遺物効果倍率（P3-D090）。メイン編成のみ（助っ人は遺物なし）。
 func _member_relic_effects(member_index: int) -> Dictionary:
 	if member_index < 0 or member_index >= GameState.party_members.size():
-		return CombatRelics.effects_for(CombatRelics.NONE_ID)
+		return {"outgoing_mult": 1.0, "incoming_mult": 1.0, "speed_mult": 1.0}
 	var member: Resource = GameState.party_members[member_index]
-	var rid: String = ""
-	if member != null and "relic_id" in member:
-		rid = str(member.relic_id)
-	var eff: Dictionary = CombatRelics.effects_for(rid)
-	# 王国軍旗＝前列限定の与ダメ+10%（P3-D106）。後列では outgoing ボーナスを無効化。
-	if rid == "war_banner" and GameState.is_member_back_row(member_index):
-		eff = eff.duplicate()
-		eff["outgoing_mult"] = 1.0
-	return eff
+	return CombatPassives.stat_multipliers_for_member(member, member_index)
 
 func get_member_outgoing_damage_multiplier(
 	member_index: int,
@@ -735,17 +731,23 @@ func get_member_outgoing_damage_multiplier(
 ) -> float:
 	var mult: float = _status_resolver.get_outgoing_damage_multiplier("party_%d" % member_index)
 	mult *= float(_member_relic_effects(member_index).get("outgoing_mult", 1.0))
+	mult *= float(CombatPassives.character_stat_modifiers_for_member(member_index).get("outgoing_mult", 1.0))
 	mult *= 1.0 + CombatSynergy.compute_physical_bonus(GameState.party_members)
 	mult *= float(CombatSynergy.compute_role_bonuses(GameState.party_members).get("outgoing_mult", 1.0))
 	if not action_range.is_empty():
 		mult *= GameState.formation_range_outgoing_multiplier(member_index, action_range)
 	mult *= _EvolutionTraits.member_outgoing_mult(member_index, is_skill, attack_element)
+	if not attack_element.is_empty():
+		var elem_mults: Dictionary = CombatPassives.weapon_stat_modifiers_for_member(member_index).get("element_outgoing_mult", {})
+		if elem_mults is Dictionary and elem_mults.has(attack_element):
+			mult *= float(elem_mults[attack_element])
 	return mult
 
 # 被ダメ補正（防御=guard 等）。1.0=等倍。P3-D085 で配線。遺物 incoming_mult も乗算（P3-D090）。
 func get_member_incoming_damage_multiplier(member_index: int) -> float:
 	var mult: float = _status_resolver.get_incoming_damage_multiplier("party_%d" % member_index)
 	mult *= float(_member_relic_effects(member_index).get("incoming_mult", 1.0))
+	mult *= float(CombatPassives.character_stat_modifiers_for_member(member_index).get("incoming_mult", 1.0))
 	# ロール（堅守）ボーナス（P3-D097・party 全体）
 	mult *= float(CombatSynergy.compute_role_bonuses(GameState.party_members).get("incoming_mult", 1.0))
 	# 探索方針（安全優先）被ダメ軽減（P3-D098）

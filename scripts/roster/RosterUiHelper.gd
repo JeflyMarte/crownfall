@@ -42,11 +42,37 @@ static func leader_skill_display(member: Resource) -> Dictionary:
 	}
 
 static func passive_description(def: Dictionary) -> String:
+	if str(def.get("category", "")) == "relic":
+		return CombatPassives.relic_description(str(def.get("id", "")))
+	if def.has("description"):
+		return str(def.get("description", ""))
+	if float(def.get("evasion_rate_add", 0.0)) > 0.0:
+		return "回避率が%d%%上昇する。" % int(round(float(def["evasion_rate_add"]) * 100.0))
+	if float(def.get("first_attack_mult", 1.0)) > 1.0:
+		return "戦闘中最初の通常攻撃の威力が%.0f倍になる。" % float(def["first_attack_mult"])
+	if float(def.get("ultimate_power_mult", 1.0)) > 1.0:
+		return "必殺技の威力が%d%%上昇する。" % int(round((float(def["ultimate_power_mult"]) - 1.0) * 100.0))
+	if float(def.get("exp_gain_mult", 1.0)) > 1.0:
+		return "自身の獲得経験値が%d%%増加する。" % int(round((float(def["exp_gain_mult"]) - 1.0) * 100.0))
+	if float(def.get("party_exp_gain_mult", 1.0)) > 1.0:
+		return "編成中パーティの獲得経験値が%d%%増加する。" % int(round((float(def["party_exp_gain_mult"]) - 1.0) * 100.0))
+	if float(def.get("outgoing_mult", 1.0)) > 1.0:
+		return "与ダメージが%d%%上昇する。" % int(round((float(def["outgoing_mult"]) - 1.0) * 100.0))
+	if float(def.get("incoming_mult", 1.0)) < 1.0:
+		return "被ダメージが%d%%軽減される。" % int(round((1.0 - float(def["incoming_mult"])) * 100.0))
 	var effect: String = str(def.get("effect", ""))
 	var target: String = str(def.get("target", "self"))
 	match effect:
 		"heal":
 			return "味方が倒れたとき、パーティを回復する。"
+		"counter_attack":
+			if str(def.get("trigger", "")) == "on_ally_death":
+				return "味方が倒れたとき、反撃する。"
+			return "攻撃を受けたとき、反撃する。"
+		"bonus_damage":
+			return "一定回数の攻撃ごとに追撃する。"
+		"grant_next_attack_mult":
+			return "味方が倒れたとき、次の通常攻撃の威力が上昇する。"
 		"apply_status":
 			var status_id: String = str(def.get("status_id", ""))
 			var status_name: String = _status_label(status_id)
@@ -138,17 +164,19 @@ static func compute_member_stats(member: Resource, party_index: int = -1) -> Dic
 	if member.base_stats != null and int(member.base_stats.hp) > 0:
 		hp = int(member.base_stats.hp)
 	if armor != null:
-		hp += int(armor.hp_bonus)
-	if acc_data != null:
-		hp += int(acc_data.hp_bonus)
+		hp += EquipmentEnhancer.effective_armor_hp(armor)
+	if acc_data != null and member.equipped_accessory != null:
+		hp += EquipmentEnhancer.effective_accessory_int_bonus(member.equipped_accessory, "hp_bonus", acc_data)
 	hp += int(affix.get("hp_flat", 0))
 	hp += LevelSystem.level_hp_bonus(level)
 	hp = int(round(float(hp) * float(job.get("hp_multiplier", 1.0))))
 	var attack: int = 0
 	if weapon != null:
 		attack = _EquipmentEnhancer.get_effective_attack(weapon)
-	if acc_data != null:
-		attack += int(acc_data.attack_bonus)
+	if acc_data != null and member.equipped_accessory != null:
+		attack += EquipmentEnhancer.effective_accessory_int_bonus(
+			member.equipped_accessory, "attack_bonus", acc_data
+		)
 	attack += int(affix.get("attack_flat", 0))
 	attack += LevelSystem.level_attack_bonus(level)
 	if member.base_stats != null:
@@ -161,9 +189,11 @@ static func compute_member_stats(member: Resource, party_index: int = -1) -> Dic
 	attack = int(round(float(attack) * atk_mult))
 	var defense: int = 0
 	if armor != null:
-		defense = int(armor.rolled_defense)
-	if acc_data != null:
-		defense += int(acc_data.defense_bonus)
+		defense = EquipmentEnhancer.effective_armor_defense(armor)
+	if acc_data != null and member.equipped_accessory != null:
+		defense += EquipmentEnhancer.effective_accessory_int_bonus(
+			member.equipped_accessory, "defense_bonus", acc_data
+		)
 	defense += int(affix.get("defense_flat", 0))
 	if member.base_stats != null:
 		defense += int(member.base_stats.defense)

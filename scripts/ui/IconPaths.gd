@@ -21,7 +21,7 @@ const ICON_MAP: Dictionary = {
 	"weapon:umbral_fang":          "res://assets/ui/equipment/ICO_WPN_UmbralFang.png",
 	"weapon:consecrated_maul":     "res://assets/ui/equipment/ICO_WPN_ConsecratedMaul.png",
 	"weapon:unidentified":         "res://assets/ui/batch2/ICO_WPN_Unidentified.png",
-	# ② ウィスパーウッド武器（暫定: 既存アイコン流用・オーナー作画待ち / P3-D154）
+	# ② ウィスパーウッド — 専用 icon 9点（★2+代表7）。残11点は placeholder（P3-D154）
 	"weapon:verdant_cleaver":      "res://assets/ui/equipment/ICO_WPN_VerdantCleaver.png",
 	"weapon:bark_render":          "res://assets/ui/equipment/ICO_WPN_BarkRender.png",
 	"weapon:verdia_longbow":       "res://assets/ui/equipment/ICO_WPN_VerdiaLongbow.png",
@@ -34,7 +34,7 @@ const ICON_MAP: Dictionary = {
 	"weapon:mist_piercer":         "res://assets/ui/equipment/ICO_WPN_MistPiercer.png",
 	"weapon:silvaria_oathblade":   "res://assets/ui/equipment/ICO_WPN_SilvariaOathblade.png",
 	"weapon:veld_branch_staff":    "res://assets/ui/equipment/ICO_WPN_VeldBranchStaff.png",
-	# ③ ミストフェン武器（暫定: 既存アイコン流用・オーナー作画待ち / P3-BETA-002）
+	# ③ ミストフェン — 専用 icon 9点（★2+代表7）。残11点は placeholder（P3-D156）
 	"weapon:bog_cleaver":          "res://assets/ui/equipment/ICO_WPN_BogCleaver.png",
 	"weapon:leech_fang_blades":    "res://assets/ui/equipment/ICO_WPN_LeechFangBlades.png",
 	"weapon:mire_longbow":         "res://assets/ui/equipment/ICO_WPN_MireLongbow.png",
@@ -47,7 +47,7 @@ const ICON_MAP: Dictionary = {
 	"weapon:volt_needle":          "res://assets/ui/equipment/ICO_WPN_VoltNeedle.png",
 	"weapon:volgrave_thunderblade": "res://assets/ui/equipment/ICO_WPN_VolgraveThunderblade.png",
 	"weapon:seradion_storm_staff": "res://assets/ui/equipment/ICO_WPN_SeradionStormStaff.png",
-	# ④ ブラックショア武器（暫定流用 / P3-BETA-003）
+	# ④ ブラックショア — 専用 icon 9点（★2+代表7）。残11点は placeholder（P3-D160）
 	"weapon:black_sand_cleaver":   "res://assets/ui/equipment/ICO_WPN_BlackSandCleaver.png",
 	"weapon:wreck_hook_blades":    "res://assets/ui/equipment/ICO_WPN_WreckHookBlades.png",
 	"weapon:tidewood_longbow":     "res://assets/ui/equipment/ICO_WPN_TidewoodLongbow.png",
@@ -78,6 +78,7 @@ const ICON_MAP: Dictionary = {
 	"armor:rune_linen_garb":       "res://assets/ui/equipment/ICO_ARM_RuneLinenGarb.png",
 	"armor:crystal_vest":          "res://assets/ui/equipment/ICO_ARM_CrystalVest.png",
 	"armor:mourngate_plate":       "res://assets/ui/equipment/ICO_ARM_MourngatePlate.png",
+	"armor:serdion_ward_plate":    "res://assets/ui/equipment/ICO_ARM_MourngatePlate.png",
 	# ② ウィスパーウッド防具（暫定流用 / P3-D154）
 	"armor:moss_weave_garb":       "res://assets/ui/equipment/ICO_ARM_MossWeaveGarb.png",
 	"armor:barkplate_mail":        "res://assets/ui/equipment/ICO_ARM_BarkplateMail.png",
@@ -108,6 +109,7 @@ const ICON_MAP: Dictionary = {
 	"armor:unidentified":          "res://assets/ui/batch2/ICO_ARM_Unidentified.png",
 	"accessory:silver_ring":       "res://assets/ui/equipment/ICO_ACC_SilverRing.png",
 	"accessory:mourngate_sigil":   "res://assets/ui/equipment/ICO_ACC_MourngateSigil.png",
+	"accessory:mourngate_royal_seal": "res://assets/ui/equipment/ICO_ACC_MourngateSigil.png",
 	"accessory:relic_shard_charm": "res://assets/ui/equipment/ICO_ACC_RelicShardCharm.png",
 	# ② ウィスパーウッド装飾品（暫定流用 / P3-D154）
 	"accessory:verdant_ring":      "res://assets/ui/equipment/ICO_ACC_VerdantRing.png",
@@ -137,6 +139,9 @@ const ICON_MAP: Dictionary = {
 	"enemy:rune_roach":            "res://assets/codex/enemies/ART_ENM_RuneRoach.png",
 	"enemy:crystal_hedgehog":      "res://assets/codex/enemies/ART_ENM_CrystalHedgehog.png",
 	"enemy:crown_eater_rat":       "res://assets/codex/enemies/ART_ENM_CrownEaterRat.png",
+	"enemy:grave_bell_bat":        "res://assets/codex/enemies/ART_ENM_ClockMoth.png",
+	"enemy:crystal_scorpion":      "res://assets/codex/enemies/ART_ENM_RuneRoach.png",
+	"enemy:skullface_mantis":      "res://assets/codex/enemies/ART_ENM_MistMantis.png",
 	"enemy:clock_moth":            "res://assets/codex/enemies/ART_ENM_ClockMoth.png",
 	"enemy:wayfarer_sparrow":      "res://assets/codex/enemies/ART_ENM_ClockMoth.png",
 	"enemy:reliquary_beetle":      "res://assets/codex/enemies/ART_ENM_RuneRoach.png",
@@ -178,6 +183,17 @@ const ICON_MAP: Dictionary = {
 	"enemy:forgedormient":         "res://assets/codex/enemies/ART_BOSS_Eldion.png",
 	"enemy:albark":                "res://assets/codex/enemies/ART_BOSS_Eldion.png",
 	"dungeon:mourngate":           "res://assets/dungeon/mourngate/ICO_DG_Mourngate.png",
+	"stage:mourngate_1_1":         "res://assets/dungeon/mourngate/stages/ICO_DG_Mourngate_1_1.png",
+	"stage:mourngate_1_2":         "res://assets/dungeon/mourngate/stages/ICO_DG_Mourngate_1_2.png",
+	"stage:mourngate_1_3":         "res://assets/dungeon/mourngate/stages/ICO_DG_Mourngate_1_3.png",
+	"stage:mourngate_1_4":         "res://assets/dungeon/mourngate/stages/ICO_DG_Mourngate_1_4.png",
+	"stage:mourngate_1_5":         "res://assets/dungeon/mourngate/stages/ICO_DG_Mourngate_1_5.png",
+	# ② ウィスパーウッド — 章別 icon 5点（P3-DG-STG / WW-2）
+	"stage:whisperwood_2_1":       "res://assets/dungeon/whisperwood/stages/ICO_DG_Whisperwood_2_1.png",
+	"stage:whisperwood_2_2":       "res://assets/dungeon/whisperwood/stages/ICO_DG_Whisperwood_2_2.png",
+	"stage:whisperwood_2_3":       "res://assets/dungeon/whisperwood/stages/ICO_DG_Whisperwood_2_3.png",
+	"stage:whisperwood_2_4":       "res://assets/dungeon/whisperwood/stages/ICO_DG_Whisperwood_2_4.png",
+	"stage:whisperwood_2_5":       "res://assets/dungeon/whisperwood/stages/ICO_DG_Whisperwood_2_5.png",
 	"dungeon:astoria_ruins":       "res://assets/dungeon/astoria_ruins/ICO_DG_AstoriaRuins.png",
 	"dungeon:whisperwood":         "res://assets/dungeon/whisperwood/ICO_DG_Whisperwood.png",
 	"dungeon:green_hollow":        "res://assets/dungeon/green_hollow/ICO_DG_GreenHollow.png",
@@ -246,6 +262,9 @@ const ICON_MAP: Dictionary = {
 	"skill:enemy_chronos_wave_resonance":     "res://assets/ui/skills/ICO_SKILL_EnemyChronoResonance.png",
 	"skill:enemy_claw_guillotine":           "res://assets/ui/skills/ICO_SKILL_EnemyClawGuillotine.png",
 	"skill:enemy_crown_gnaw":           "res://assets/ui/skills/ICO_SKILL_EnemyCrownGnaw.png",
+	"skill:enemy_grave_bell_peal":      "res://assets/ui/skills/ICO_SKILL_EnemyChronoResonance.png",
+	"skill:enemy_crystal_sting":        "res://assets/ui/skills/ICO_SKILL_EnemyCrystalRain.png",
+	"skill:enemy_skullface_reap":       "res://assets/ui/skills/ICO_SKILL_EnemyClawGuillotine.png",
 	"skill:enemy_crystal_burst":           "res://assets/ui/skills/ICO_SKILL_EnemyCrystalBurst.png",
 	"skill:enemy_crystal_rain":           "res://assets/ui/skills/ICO_SKILL_EnemyCrystalRain.png",
 	"skill:enemy_eldion_crevasse":           "res://assets/ui/skills/ICO_SKILL_EnemyEldionCrevasse.png",
@@ -293,6 +312,16 @@ const ICON_MAP: Dictionary = {
 	"skill:hex_bolt":           "res://assets/ui/skills/ICO_SKILL_HexBolt.png",
 	"skill:hunter_mark":           "res://assets/ui/skills/ICO_SKILL_HunterMark.png",
 	"skill:iron_guard":           "res://assets/ui/skills/ICO_SKILL_IronGuard.png",
+	"skill:leg_consecrated_maul":      "res://assets/ui/skills/ICO_SKILL_SlashAttack.png",
+	"skill:leg_eldion_frostbrand":     "res://assets/ui/skills/ICO_SKILL_RimeTouch.png",
+	"skill:leg_nereidas_tideblade":    "res://assets/ui/skills/ICO_SKILL_SanctalStrike.png",
+	"skill:leg_pharoslight_staff":     "res://assets/ui/skills/ICO_SKILL_SanctalStrike.png",
+	"skill:leg_sanctified_dagger":     "res://assets/ui/skills/ICO_SKILL_SlashAttack.png",
+	"skill:leg_seradion_storm_staff":  "res://assets/ui/skills/ICO_SKILL_StaticStrike.png",
+	"skill:leg_silvaria_oathblade":    "res://assets/ui/skills/ICO_SKILL_KindlingStrike.png",
+	"skill:leg_umbra_terminus_staff":  "res://assets/ui/skills/ICO_SKILL_UmbralStrike.png",
+	"skill:leg_veld_branch_staff":     "res://assets/ui/skills/ICO_SKILL_KindlingStrike.png",
+	"skill:leg_volgrave_thunderblade": "res://assets/ui/skills/ICO_SKILL_StaticStrike.png",
 	"skill:kindling_strike":           "res://assets/ui/skills/ICO_SKILL_KindlingStrike.png",
 	"skill:mark_pursuit":           "res://assets/ui/skills/ICO_SKILL_MarkPursuit.png",
 	"skill:menace_strike":           "res://assets/ui/skills/ICO_SKILL_MenaceStrike.png",
@@ -381,12 +410,29 @@ const ICON_MAP: Dictionary = {
 	"ui:arena":                    "res://assets/ui/menu/ICO_UI_Arena.png",
 	"ui:guild":                    "res://assets/ui/menu/ICO_UI_Guild.png",
 	"ui:missions":                 "res://assets/ui/menu/ICO_UI_Missions.png",
+	"passive:battle_fervor":       "res://assets/ui/passives/ICO_PASSIVE_BattleFervor.png",
 }
 
 static func get_icon_texture(id: String, category: String) -> Texture2D:
 	if id.is_empty() or category.is_empty():
 		return null
 	var path: String = ICON_MAP.get("%s:%s" % [category, id], "")
+	if path.is_empty() and category == "passive":
+		path = passive_icon_path(id)
 	if path.is_empty() or not ResourceLoader.exists(path):
 		return null
 	return load(path) as Texture2D
+
+static func passive_icon_path(passive_id: String) -> String:
+	if passive_id.is_empty():
+		return ""
+	var key: String = "passive:%s" % passive_id
+	if ICON_MAP.has(key):
+		return str(ICON_MAP[key])
+	return PassiveIconHelper.icon_path(passive_id)
+
+static func get_stage_icon_texture(stage_id: String) -> Texture2D:
+	return get_icon_texture(stage_id, "stage")
+
+static func stage_icon_path(stage_id: String) -> String:
+	return ICON_MAP.get("stage:%s" % stage_id, "")

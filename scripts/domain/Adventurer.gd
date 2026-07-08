@@ -20,6 +20,10 @@ const DEFAULT_RARITY: int = 1
 @export var traits: Array[String] = []
 ## 装備中スキル id（最大 Constants.MAX_EQUIPPED_SKILLS）。空ならジョブ既定にフォールバック。P3-D077。
 @export var equipped_skill_ids: Array[String] = []
+## 装備中パッシブ id（最大 Constants.MAX_EQUIPPED_PASSIVES）。装備固定は別枠。
+@export var equipped_passive_ids: Array[String] = []
+## true なら equipped_passive_ids をそのまま使用（空=未装備）。false ならジョブ既定にフォールバック。
+@export var passive_slots_customized: bool = false
 ## 戦術プリセット id（P3-D086・AI最上位設定）。空なら "balanced"。スロット選択優先度を決める。
 @export var tactics_id: String = ""
 ## カスタム戦術（ガンビット・A1）。ON 時は tactics_custom_* を CombatGambit が優先する。
@@ -27,7 +31,7 @@ const DEFAULT_RARITY: int = 1
 @export var tactics_custom_target: String = ""
 ## 優先度順のルール配列。各要素は {slot, condition, value?}。
 @export var tactics_custom_plan: Array = []
-## 遺物 id（P3-D090・第3装備枠）。空＝なし。与ダメ/被ダメ/行動速度の常時倍率を与える。
+## レガシー: ロード時のみ参照。正は equipped_passive_ids 内の relic カテゴリ（P3-RELIC-PASSIVE）。
 @export var relic_id: String = ""
 
 ## 陣形の行（P3-D106）。0=前列 / 1=後列。後列は被ダメ/Threat 減、前列は war_banner 等の前列ボーナス対象。

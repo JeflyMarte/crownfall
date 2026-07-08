@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "leg_sanctified_dagger"
+display_name = "聖別刃・霊廟一閃"
+description = "【レジェンド】霊廟の聖別刃の一閃。標的を突き、追撃の糸口を残す。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 1.45
+cooldown = 2.8
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["melee", "slash", "pierce"])
+element = "holy"
+slot_type = "skill"
+range_type = "melee"
+apply_status_id = "mark"
+apply_status_chance = 0.35
+apply_status_id2 = ""
+apply_status_chance2 = 0.0

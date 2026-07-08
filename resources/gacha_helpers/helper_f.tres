@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "helper_f"
-display_name = "カイダ（Kaida）"
+display_name = "カイダ"
 job_id = "swordsman"
 origin_note = "シーゲートの闘技場崩れ。賞金より広い世界を選んだ剣士"
 rarity = 2

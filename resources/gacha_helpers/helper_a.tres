@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "helper_a"
-display_name = "ヴァルデン（Valden）"
+display_name = "ヴァルデン"
 job_id = "vanguard"
 origin_note = "境界守の家訓を継ぐ重装の探索者"
 rarity = 4

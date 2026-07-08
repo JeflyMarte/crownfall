@@ -6,7 +6,8 @@
 script = ExtResource("1")
 id = "volgrave_thunderblade"
 display_name = "沼王断ちの雷剣ヴォルグレイヴ"
-fixed_skill_id = "static_strike"
+fixed_skill_id = ""
+fixed_passive_id = "eq_wpn_volgrave_thunderblade"
 base_attack = 30
 rarity = 3
 base_attack_speed = 1.0

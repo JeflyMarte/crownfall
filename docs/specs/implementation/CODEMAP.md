@@ -45,7 +45,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | EquipmentScene | `scenes/equipment/EquipmentScene.tscn` | `scripts/equipment/EquipmentScene.gd` |
 | BlacksmithScene | `scenes/blacksmith/BlacksmithScene.tscn` | `scripts/blacksmith/BlacksmithScene.gd` |
 | CodexScene | `scenes/codex/CodexScene.tscn` | `scripts/codex/CodexScene.gd` |
-| GachaScene | `scenes/gacha/GachaScene.tscn` | `scripts/gacha/GachaScene.gd` |
+| GachaScene | `scenes/gacha/GachaScene.tscn` | `scripts/gacha/GachaScene.gd`（**P3-UI-GACHA** モック chrome・Reveal・DetailOverlay） |
 | EventScene | `scenes/event/EventScene.tscn` | `scripts/event/EventScene.gd`（**P3-EVT-HUB** バフ詳細） |
 
 **遷移:** Boot → Base → Dungeon → Result →（Appraisal / Equipment / **Blacksmith** / **Codex**）→ Base
@@ -116,11 +116,11 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `combat/` | **コア:** `CombatController.gd`（`class_name`・CT/ATB・Threat・群れ/混成・個別ターゲット・詠唱・ボスフェーズ index）, `SkillExecutor.gd`, `StatusResolver.gd`, `StatusInstance.gd`, `ElementResolver.gd`, **`DamageCalculator.gd`**（ダメージ式 SSOT・シーン非依存 static・P3-REF-001）, **`BalanceConfig.gd`**（グローバルバランス定数 SSOT・P3-BAL-005） |
 | | **戦術/AI:** `CombatTactics.gd`（プリセット6・発動条件・温存・P3-D086/108/113/127）, `CombatGambit.gd`（カスタム戦術5行・P3-D122/127） |
 | | **パッシブ/シナジー:** `CombatPassives.gd`, `CombatSynergy.gd`, `CombatTags.gd`, `CombatCombos.gd`（P3-D109） |
-| | **メタ/周回:** `CombatRelics.gd`（静的定義+トリガ・P3-D114）, `CombatLinks.gd`（連鎖3種・P3-D115）, `CombatBossPhases.gd`（P3-D116）, `ExplorationSkills.gd`（P3-D117）, `CombatFastRun.gd`（P3-D118）, `CombatWeather.gd`（天候・P3-D101） |
+| | **メタ/周回:** `CombatPassives.gd`（レリック定義 SSOT・P3-RELIC-PASSIVE）, `CombatRelics.gd`（表示/互換ファサード）, `CombatLinks.gd`（連鎖3種・P3-D115）, `CombatBossPhases.gd`（P3-D116）, `ExplorationSkills.gd`（P3-D117）, `CombatFastRun.gd`（P3-D118）, `CombatWeather.gd`（天候・P3-D101） |
 | `dungeon/` | `DungeonController.gd`, `DungeonScene.gd`（生態素材ドロップ・図鑑方針ボーナス P3-D128）・**`DungeonTierConfig.gd`**（危険度ティア P3-D164）・**`WanderingEnemyConfig.gd`**（遍在希少種 P3-D166） |
-| `equipment/` | `EquipmentController.gd`, `EquipmentScene.gd`, **`EquipmentUiHelper.gd`**（P3-UI2-019）, **`BuildTagHelper.gd`**（P3-UI2-016）, **`AffixRoller.gd`**, **`AffixStatCalculator.gd`**, **`AffixDisplayFormatter.gd`**, **`JobStatCalculator.gd`** |
-| `blacksmith/` | `BlacksmithScene.gd`（P3-UI2-018 Master-Detail UI）・`BlacksmithUiHelper.gd`（レシピ表示ヘルパ） |
-| `gacha/` | **`GachaSystem.gd`**（**P3-GACHA-005** ★1〜4排出・`GachaRarityConfig`）・**`GachaRarityConfig.gd`**・**`GachaScene.gd`**（P3-UI2-020・**P3-GACHA-002/003**） |
+| `equipment/` | `EquipmentController.gd`, `EquipmentScene.gd`, **`EquipmentUiHelper.gd`**（P3-UI2-019）, **`EquipmentUiTokens.gd`**（装備 chrome）, **`BuildTagHelper.gd`**（P3-UI2-016）, **`AffixRoller.gd`**, **`AffixStatCalculator.gd`**, **`AffixDisplayFormatter.gd`**, **`JobStatCalculator.gd`** |
+| `blacksmith/` | `BlacksmithScene.gd`（P3-UI2-018 Master-Detail UI）・`BlacksmithUiHelper.gd`（レシピ表示ヘルパ）・**`ForgeUiTokens.gd`**（鍛冶屋 chrome アセットパス） |
+| `gacha/` | **`GachaSystem.gd`**（**P3-GACHA-005** ★1〜4排出・`GachaRarityConfig`）・**`GachaRarityConfig.gd`**・**`GachaScene.gd`**（P3-UI2-020・**P3-GACHA-002/003**・**P3-UI-GACHA**）・**`GachaUiTokens.gd`**・**`GachaUiHelper.gd`** |
 | `guild/` | **`GuildScene.gd`**（P3-D052 ジョブ認定・**P3-UI2-024** 認定カードリスト polish） |
 | `crafting/` | **`CraftHelper.gd`**（`can_craft` / `get_craftable_recipes` — P3-D141） |
 | `codex/` | **`CatalogHelper.gd`**（P2-Task046/049 — Bible parse + Entry）, **`CodexScene.gd`**（P2-Task047/048/049 — Detail + Bible fields・**P3-UI2-020** Header/BottomNav） |
@@ -148,7 +148,10 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `tests/unit/test_level_system.gd` | Lv99上限・逓減成長・スキル習得据置（P3-LV-099） |
 | `tools/run_tests.sh` | headless GUT 実行（バイナリ検出は `smoke_test.sh` と同一・exit code 伝播） |
 | `tools/smoke_test.sh` | 既存受理ゲート（import + 120frame 起動） |
-| `tools/ui_audit.gd` | **UI 監査**（P3-UI3-001/003）。ハブ7画面＋図鑑7タブを実レンダでスクショ（`user://ui_audit/`）。ヘッドレス不可 |
+| `tools/ui_audit.gd` | **UI 監査**（P3-UI3-001/003・**P3-UI-GACHA**）。ハブ7画面＋鍛冶屋生産/強化＋図鑑7タブ＋召喚所 detail/reveal を実レンダでスクショ（`user://ui_audit/`）。ヘッドレス不可 |
+| `tools/generate_forge_ui_assets.py` | 鍛冶屋 UI chrome 14枚プロシージャル生成 → `assets/ui/forge/` |
+| `tools/generate_equipment_ui_assets.py` | 装備画面 UI chrome 生成 → `assets/ui/equipment_ui/` |
+| `tools/generate_gacha_ui_assets.py` | 召喚所 UI chrome 17枚プロシージャル生成 → `assets/ui/gacha_ui/`（**P3-UI-GACHA**） |
 | `tools/ui_audit_run.gd` | **UI 監査 戦闘・リザルト編**（P3-UI3-002）。DungeonScene 実走4時点＋ResultScene clear/wipe を撮影。ヘッドレス不可 |
 | `tools/generate_enemy_battle_assets.py` | 図鑑肖像→戦闘シート96×14＋`SpriteFrames` `.tres`＋`DungeonScene.gd` マップ自動更新 |
 | `tools/generate_all_skill_icons.py` | 全スキル `.tres` からプロシージャルアイコン生成＋`IconPaths` 一括更新 |
@@ -242,7 +245,10 @@ Task 明示指示がない限り作成しない:
 | `assets/ui/batch2/ICO_MAT_RelicShard.png` | 素材アイコン 64×64 | ✅ |
 | `assets/ui/nav/ICO_NAV_*.png` | 下ナビ/サイドメニュー金アイコン 128×128 ×8（Home/Adventure/Character/Party/Forge/Gacha/Codex/Settings — P3-UI3-001 で AI 生成・ソース復旧） | ✅ |
 | `assets/ui/UI_BG_Forge.png` | 鍛冶屋背景 720×1280（P3-UI3-001） | ✅ |
-| `assets/ui/UI_BG_Summon.png` | 召喚所背景 720×1280（P3-UI3-001） | ✅ |
+| `assets/ui/forge/` | 鍛冶屋 chrome（stat/cat/tab/anvil/hero glow 等 14枚・`ForgeUiTokens`） | ✅ |
+| `assets/ui/equipment_ui/` | 装備画面 chrome（背景/カード/タブ/スロット/一覧セル等・`EquipmentUiTokens`） | ✅ |
+| `assets/ui/gacha_ui/` | 召喚所 chrome 17枚（背景/タブ/バナー/天井バー/召喚ボタン/リボン/ラインナップセル/Reveal枠等・`GachaUiTokens` — **P3-UI-GACHA**） | ✅ |
+| `assets/ui/UI_BG_Summon.png` | 召喚所背景 720×1280（P3-UI3-001・シーンは `gacha_ui/UI_BG_Gacha.png` を優先使用） | ✅ |
 | `assets/ui/UI_BG_Codex.png` | 図鑑背景 720×1280（P3-UI3-001） | ✅ |
 
 ### assets/fonts/

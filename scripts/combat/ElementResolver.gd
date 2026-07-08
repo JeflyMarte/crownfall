@@ -14,11 +14,25 @@ const ELEMENT_NAMES: Dictionary = {
 	"holy": "聖",
 }
 
+## 武器名先頭用（「炎の」形式）。UI 表示名と戦闘内属性表示名は分離。
+const ELEMENT_WEAPON_PREFIX: Dictionary = {
+	"fire": "炎の",
+	"ice": "氷の",
+	"thunder": "雷の",
+	"dark": "闇の",
+	"holy": "聖の",
+}
+
 static func is_valid_element(element_id: String) -> bool:
 	return ELEMENT_NAMES.has(element_id)
 
 static func get_display_name(element_id: String) -> String:
 	return str(ELEMENT_NAMES.get(element_id, ""))
+
+static func get_weapon_prefix(element_id: String) -> String:
+	if element_id.is_empty() or not is_valid_element(element_id):
+		return ""
+	return str(ELEMENT_WEAPON_PREFIX.get(element_id, ""))
 
 static func get_damage_multiplier(
 	attack_element: String,

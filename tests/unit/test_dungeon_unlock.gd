@@ -13,9 +13,17 @@ func after_each() -> void:
 
 func test_first_main_always_unlocked() -> void:
 	assert_true(GameState.is_dungeon_unlocked("mourngate"), "難易度1は常時解放")
-	assert_true(GameState.is_dungeon_unlocked("astoria_ruins"), "①寄り道は常時解放")
+	if Constants.SUB_DUNGEONS_PLAYABLE:
+		assert_true(GameState.is_dungeon_unlocked("astoria_ruins"), "①寄り道は常時解放")
+	else:
+		assert_false(GameState.is_dungeon_unlocked("astoria_ruins"), "P3-DG-OMIT-001: 寄り道はオミット")
 
 func test_side_routes_unlock_after_prior_main() -> void:
+	if not Constants.SUB_DUNGEONS_PLAYABLE:
+		assert_false(GameState.is_dungeon_unlocked("green_hollow"), "P3-DG-OMIT-001")
+		GameState.mark_dungeon_cleared("mourngate")
+		assert_false(GameState.is_dungeon_unlocked("green_hollow"), "P3-DG-OMIT-001")
+		return
 	assert_false(GameState.is_dungeon_unlocked("green_hollow"), "①未クリアでは②寄り道ロック")
 	GameState.mark_dungeon_cleared("mourngate")
 	assert_true(GameState.is_dungeon_unlocked("green_hollow"), "①クリアで②寄り道解放")
@@ -41,6 +49,10 @@ func test_unknown_dungeon_locked() -> void:
 	assert_false(GameState.is_dungeon_unlocked("no_such_dungeon"), "未知IDは false")
 
 func test_apex_dungeons_unlock_after_main() -> void:
+	if not Constants.SUB_DUNGEONS_PLAYABLE:
+		GameState.mark_dungeon_cleared("mourngate")
+		assert_false(GameState.is_dungeon_unlocked("mourngate_deep"), "P3-DG-OMIT-001")
+		return
 	assert_false(GameState.is_dungeon_unlocked("mourngate_deep"), "①未クリアでは征討ロック")
 	GameState.mark_dungeon_cleared("mourngate")
 	assert_true(GameState.is_dungeon_unlocked("mourngate_deep"), "①クリアでモーンゲート深層解放")

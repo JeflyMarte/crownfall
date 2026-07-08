@@ -1,6 +1,9 @@
 extends Node
 
 ## 拠点期間限定バフイベント（P3-EVT-HUB）。端末日付・JST 5:00 境界。DailyMission とは独立。
+## 一旦オミット: PERIODIC_EVENTS_ENABLED=false で UI・バフ配線を無効化（再有効化は定数のみ）。
+
+const PERIODIC_EVENTS_ENABLED: bool = false
 
 signal event_updated
 
@@ -89,6 +92,8 @@ func _current_unix() -> int:
 	return int(Time.get_unix_time_from_system())
 
 func _resolve_active_event() -> Resource:
+	if not PERIODIC_EVENTS_ENABLED:
+		return null
 	var now_unix: int = _current_unix()
 	var best: Resource = null
 	for event_id in _list_event_ids():

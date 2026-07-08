@@ -6,7 +6,8 @@
 script = ExtResource("1")
 id = "silvaria_oathblade"
 display_name = "森護王の誓剣シルヴァリア"
-fixed_skill_id = "kindling_strike"
+fixed_skill_id = ""
+fixed_passive_id = "eq_wpn_silvaria_oathblade"
 base_attack = 22
 rarity = 3
 base_attack_speed = 1.0

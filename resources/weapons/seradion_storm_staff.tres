@@ -6,7 +6,8 @@
 script = ExtResource("1")
 id = "seradion_storm_staff"
 display_name = "学識王の雷典杖セラディオン"
-fixed_skill_id = "static_strike"
+fixed_skill_id = ""
+fixed_passive_id = "eq_wpn_seradion_storm_staff"
 base_attack = 29
 rarity = 3
 base_attack_speed = 0.9

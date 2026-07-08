@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="AffixData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AffixData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "treasure_hunter"
+display_name = "宝探し"
+description = "レア装備の出やすさを高める。"
+affix_category = "prefix"
+rarity = 0
+stat_type = "Rare Drop"
+value = 0.05
+tags = Array[String](["accessory"])
