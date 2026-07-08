@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "royal_gold_incisor"
 display_name = "王金の門歯"
-description = "冠喰いネズミの門歯。宝物庫跡の金属を齧り続け、金を帯びるほど硬く育った。"
+description = "冠喰いネズミの門歯。忘れられた納骨堂の金属を齧り続け、金を帯びるほど硬く育った。"
 rarity = 0
 icon = ""
 category = "fang"

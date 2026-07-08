@@ -12,7 +12,7 @@ const FLAVOR_BY_ID: Dictionary = {
 	"volgrave_thunderblade": "砦跡の崩れた門に残る句——「盾は退かず、槍は越えさせず」。",
 	"veld_branch_staff": "森の祠に残る詩片——「種は一つにあらず、樹もまた一つにあらず」。",
 	"silvaria_oathblade": "森護王にまつわる盟約の刻——「ここより先、森が濃い。火を絶やすな」。",
-	"sanctified_dagger": "王家霊廟の崩れた石に——「継ぐ者へ。これは終わりの剣ではない」。",
+	"sanctified_dagger": "王座の深淵の崩れた石に——「継ぐ者へ。これは終わりの剣ではない」。",
 	"consecrated_maul": "巡礼の道標に薄く残る——「迷う者あらば、弓を引け。矢の落ちる先に道がある」。",
 	"umbra_terminus_staff": "王都地下の写しの欄外——「これは九王の遺産ではない」。原本は、すでに失われている。",
 	# --- エピック（Biome テーマ短句） ---
