@@ -55,5 +55,7 @@ func test_weapon_detail_shows_legendary_effect() -> void:
 
 
 func test_generic_element_skills_remain_on_non_legendary_weapons() -> void:
-	assert_eq(heater.fixed_skill_id, "kindling_strike")
-	assert_ne(heater.rarity, Enums.Rarity.LEGENDARY)
+	var wd: Resource = DataRegistry.get_weapon_data("pyre_greatsword")
+	assert_not_null(wd)
+	assert_eq(str(wd.fixed_skill_id), "kindling_strike")
+	assert_ne(wd.rarity, Enums.Rarity.LEGENDARY)

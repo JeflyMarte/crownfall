@@ -313,8 +313,10 @@ func _apply_save_data(data: Dictionary) -> void:
 	GameState.sanitize_current_stage_id()
 	if data.has("discovery_registry") and data["discovery_registry"] is Dictionary:
 		GameState.discovery_registry = data["discovery_registry"]
+		GameState.sanitize_discovery_registry()
 	if data.has("material_inventory") and data["material_inventory"] is Dictionary:
 		GameState.material_inventory = data["material_inventory"].duplicate()
+		GameState.sanitize_material_inventory()
 	if data.has("inventory") and data["inventory"] is Array:
 		GameState.inventory = _deserialize_inventory(data["inventory"])
 	if data.has("armor_inventory") and data["armor_inventory"] is Array:

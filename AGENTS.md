@@ -54,15 +54,29 @@ Cursor AI およびその他 AI アシスタント共通の入口指示。
 - **DevelopmentHQ（Cursor HQ セッション）** が設計判断・Decision 承認を行う
 - Impl セッションは独断でゲームデザインや仕様変更を決定しない
 - 指定 Task スコープ外の実装・仕様外機能の追加をしない
-- 仕様不足・矛盾は推測せず質問する
+- 仕様不足・矛盾・曖昧な指示は推測せず確認する
+- 体験・面白さ・システムへの懸念がある指示は **STOP してオーナー確認**（詳細: `.cursor/rules/hq-response-minimal.mdc`）
 
 ---
 
-## Cursor 応答（トークン節約）
+## Cursor 応答
 
-- **詳しく書くのは 2 種のみ:** オーナー承認依頼 / Claude Code 用プロンプト
-- それ以外は最小限（判定・ブロッカー・変更パス程度）
+- **伝える:** 何をしたか／残り・推奨アクション／疑義（あれば STOP）
+- **書かない:** 修正ファイルパスの羅列、編集過程
+- 承認依頼・Impl 依頼プロンプトは詳しく書いてよい
 - 詳細: `.cursor/rules/hq-response-minimal.mdc`
+
+---
+
+## Cursor Skills（Impl 向け）
+
+Task 種別に応じて `.cursor/skills/` を使う:
+
+| Skill | 用途 |
+|---|---|
+| `spec-bundle` | Impl 開始・Task 依頼時の spec 読み込み |
+| `run-gut-tests` | GUT / smoke 実行と結果報告 |
+| `impl-closeout` | Task 完了報告の生成 |
 
 ---
 
@@ -71,13 +85,13 @@ Cursor AI およびその他 AI アシスタント共通の入口指示。
 - DevelopmentHQ 運用: `docs/specs/core/06_DevelopmentHQ_Operations.md`
 - 実装ルール: `docs/specs/implementation/06_Claude運用ルール.md`, `07_コーディングルール.md`
 - Task 依頼形式: `docs/specs/implementation/10_Claude依頼テンプレート.md`
-- Cursor ルール: `.cursor/rules/developmenthq-operations.mdc`, `.cursor/rules/hq-response-minimal.mdc`
+- Cursor ルール: `.cursor/rules/developmenthq-operations.mdc`, `.cursor/rules/hq-response-minimal.mdc`, `.cursor/rules/ui-layout.mdc`
 
 ---
 
 ## 完了報告（Impl セッション）
 
-Task 完了時は以下を報告する（ChatGPT コピペブロックは **不要**）:
+Task 完了時は以下を報告する（ChatGPT コピペブロックは **不要**）。`impl-closeout` skill を使ってよい:
 
 - 変更ファイル一覧
 - 実装要約

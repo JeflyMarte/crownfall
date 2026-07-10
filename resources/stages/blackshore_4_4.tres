@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="DungeonStageData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonStageData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "blackshore_4_4"
+biome_id = "blackshore"
+biome_index = 4
+chapter_index = 4
+display_name = "沈没航路"
+floor_count = 9
+enemy_level = 35
+recommended_level = 37
+closing_type = "exit"
+requires_elite = true
+spawn_weights = {
+"2": 30,
+"3": 70
+}
+event_room_weight = 18
+min_event_rooms = 1

@@ -368,10 +368,6 @@ theme_override_constants/h_separation = 4
 theme_override_constants/v_separation = 4
 columns = 2
 
-[node name="ButtonUnequipAll" type="Button" parent="VBoxContainer/CharacterCard/CardRow/SlotsPanel"]
-layout_mode = 2
-text = "一括解除"
-
 [node name="TabRow" type="HBoxContainer" parent="VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 4

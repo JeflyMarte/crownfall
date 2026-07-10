@@ -154,6 +154,8 @@ func _build_material_entries() -> Array:
 	for data in DataRegistry.get_all_material_data():
 		if data == null or data.id.is_empty():
 			continue
+		if not EquipmentEnhancer.is_enhancement_material(str(data.id)):
+			continue
 		var description: String = str(data.description)
 		var lore_id: String = str(data.lore_id)
 		if not lore_id.is_empty():

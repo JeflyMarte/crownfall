@@ -47,7 +47,7 @@ func _run() -> void:
 	gs.set("last_run_weapon_dropped", "iron_sword")
 	gs.set("last_run_armor_dropped", "leather_armor")
 	gs.set("last_run_accessory_dropped", "silver_ring")
-	gs.set("last_run_material_gains", {"relic_shard": 3, "crystal_spike": 1})
+	gs.set("last_run_material_gains", {"relic_shard": 3, "ancient_bone": 1})
 	gs.set("last_run_exploration_policy", "balanced")
 	change_scene_to_file("res://scenes/result/ResultScene.tscn")
 	await _wait_frames(20)

@@ -17,12 +17,7 @@ const ITEM_CELL_NORMAL: String = ROOT + "UI_Forge_ItemCell_Normal.png"
 const ITEM_CELL_SELECTED: String = ROOT + "UI_Forge_ItemCell_Selected.png"
 const BTN_PRODUCE: String = ROOT + "UI_Forge_Btn_Produce.png"
 
-const ITEM_CELLS_RARITY: Array[String] = [
-	ROOT + "UI_Forge_ItemCell_N.png",
-	ROOT + "UI_Forge_ItemCell_R.png",
-	ROOT + "UI_Forge_ItemCell_SR.png",
-	ROOT + "UI_Forge_ItemCell_SSR.png",
-]
+const ITEM_CELLS_RARITY: Array[String] = EquipmentUiTokens.INV_CELLS
 
 const STAT_ICONS: Dictionary = {
 	"atk": ROOT + "ICO_Forge_Stat_ATK.png",
@@ -38,8 +33,11 @@ const CATEGORY_ICONS: Dictionary = {
 }
 
 const CATEGORY_MIN_SIZE: Vector2 = Vector2(72, 88)
-const HERO_ICON_PX: int = 168
-const HERO_ROTATION_DEG: float = -15.0
+## 詳細ヒーロー: 魔法陣ペデスタル（背景）と素のアイコン表示サイズ
+const HERO_PEDESTAL_PX: int = 240
+const HERO_DISPLAY_PX: int = 152
+const HERO_ICON_PX: int = HERO_DISPLAY_PX
+const HERO_ROTATION_DEG: float = 0.0
 const STAT_ICON_PX: int = 36
 const ANVIL_PANEL_HEIGHT: int = 120
 const ITEM_CELL_DESIGN_PX: int = 128

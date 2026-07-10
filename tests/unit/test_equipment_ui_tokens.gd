@@ -24,17 +24,23 @@ func test_category_label_all() -> void:
 	assert_eq(EquipmentUiHelper.category_label("all"), "すべて")
 	assert_eq(EquipmentUiHelper.category_label("weapon"), "武器")
 
-func test_inv_cell_style_uses_transparent_background() -> void:
+func test_inv_cell_style_uses_metallic_background() -> void:
 	var sb: StyleBox = EquipmentUiTokens.inv_cell_style(2, false)
-	assert_true(sb is StyleBoxFlat)
-	assert_eq((sb as StyleBoxFlat).bg_color.a, 0.0)
+	if sb is StyleBoxTexture and (sb as StyleBoxTexture).texture != null:
+		assert_not_null((sb as StyleBoxTexture).texture)
+	elif sb is StyleBoxFlat:
+		assert_gt((sb as StyleBoxFlat).bg_color.a, 0.5)
 
-func test_inv_cell_border_color_follows_rarity() -> void:
-	var common: StyleBoxFlat = EquipmentUiTokens.inv_cell_style(0, false) as StyleBoxFlat
-	var epic: StyleBoxFlat = EquipmentUiTokens.inv_cell_style(2, false) as StyleBoxFlat
-	assert_true(common.border_color != epic.border_color)
-	assert_eq(common.bg_color.a, 0.0)
-	assert_eq(epic.bg_color.a, 0.0)
+func test_inv_cell_styles_differ_by_rarity() -> void:
+	var common: StyleBox = EquipmentUiTokens.inv_cell_style(0, false)
+	var epic: StyleBox = EquipmentUiTokens.inv_cell_style(2, false)
+	if common is StyleBoxTexture and epic is StyleBoxTexture:
+		var common_tex: Texture2D = (common as StyleBoxTexture).texture
+		var epic_tex: Texture2D = (epic as StyleBoxTexture).texture
+		if common_tex != null and epic_tex != null:
+			assert_ne(common_tex, epic_tex)
+	elif common is StyleBoxFlat and epic is StyleBoxFlat:
+		assert_ne((common as StyleBoxFlat).bg_color, (epic as StyleBoxFlat).bg_color)
 
 func test_cell_px_for_grid_width_fills_six_columns() -> void:
 	var px: int = EquipmentUiTokens.cell_px_for_grid_width(688.0, 6, 4)

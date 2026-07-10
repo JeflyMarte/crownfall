@@ -48,3 +48,15 @@ func test_hard_tier_skips_legendary() -> void:
 	var bonus: Dictionary = dc.apply_boss_legendary_loot(dc.current_stage_data)
 	assert_true(str(bonus["armor_id"]).is_empty())
 	assert_true(str(bonus["accessory_id"]).is_empty())
+
+
+func test_whisperwood_first_boss_clear_grants_legendary_pair() -> void:
+	GameState.stage_progress.erase("whisperwood_2_5")
+	GameState.armor_inventory.clear()
+	GameState.accessory_inventory.clear()
+	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
+	var dc: Node = _make_controller("whisperwood_2_5")
+	var bonus: Dictionary = dc.apply_boss_legendary_loot(dc.current_stage_data)
+	assert_eq(str(bonus["armor_id"]), "granvel_bark_plate")
+	assert_eq(str(bonus["accessory_id"]), "silvaria_covenant_ring")
+

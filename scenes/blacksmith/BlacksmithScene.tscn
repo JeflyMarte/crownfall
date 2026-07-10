@@ -292,16 +292,14 @@ layout_mode = 2
 theme_override_constants/separation = 10
 
 [node name="HeroPanel" type="CenterContainer" parent="MainSplit/DetailPanel/DetailVBox"]
-clip_contents = true
-custom_minimum_size = Vector2(0, 200)
+custom_minimum_size = Vector2(0, 220)
 layout_mode = 2
 
 [node name="HeroStack" type="Control" parent="MainSplit/DetailPanel/DetailVBox/HeroPanel"]
-clip_contents = true
-custom_minimum_size = Vector2(220, 190)
+custom_minimum_size = Vector2(260, 220)
 layout_mode = 2
 
-[node name="HeroGlow" type="TextureRect" parent="MainSplit/DetailPanel/DetailVBox/HeroPanel/HeroStack"]
+[node name="HeroPedestal" type="TextureRect" parent="MainSplit/DetailPanel/DetailVBox/HeroPanel/HeroStack"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -309,32 +307,37 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -120.0
-offset_top = -95.0
+offset_top = -120.0
 offset_right = 120.0
-offset_bottom = 95.0
+offset_bottom = 120.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="HeroFrame" type="PanelContainer" parent="MainSplit/DetailPanel/DetailVBox/HeroPanel/HeroStack"]
+[node name="HeroWeaponPivot" type="Control" parent="MainSplit/DetailPanel/DetailVBox/HeroPanel/HeroStack"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -84.0
-offset_top = -84.0
-offset_right = 84.0
-offset_bottom = 84.0
+offset_left = -76.0
+offset_top = -76.0
+offset_right = 76.0
+offset_bottom = 76.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="HeroIconSlot" type="Control" parent="MainSplit/DetailPanel/DetailVBox/HeroPanel/HeroStack/HeroFrame"]
-custom_minimum_size = Vector2(168, 168)
-layout_mode = 2
+[node name="HeroIconSlot" type="Control" parent="MainSplit/DetailPanel/DetailVBox/HeroPanel/HeroStack/HeroWeaponPivot"]
+custom_minimum_size = Vector2(152, 152)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="RarityTitleLabel" type="Label" parent="MainSplit/DetailPanel/DetailVBox"]
 layout_mode = 2

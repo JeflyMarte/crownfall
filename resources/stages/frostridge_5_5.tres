@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="DungeonStageData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonStageData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "frostridge_5_5"
+biome_id = "frostridge"
+biome_index = 5
+chapter_index = 5
+display_name = "エルディオンの氷裂"
+floor_count = 10
+enemy_level = 49
+recommended_level = 51
+closing_type = "boss"
+requires_elite = false
+boss_id = "eldion"
+legendary_armor_id = "eldion_glacier_aegis"
+legendary_accessory_id = "frostridge_boundary_signet"
+spawn_weights = {
+"2": 20,
+"3": 80
+}
+event_room_weight = 15
+min_event_rooms = 1

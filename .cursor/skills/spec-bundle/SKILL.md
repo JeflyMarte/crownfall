@@ -18,7 +18,7 @@ Task 実装前に、種別に応じた spec のみを読む。全文ロード禁
 **Do Not Read**
 - `docs/archives/**`
 - `docs/specs/` 全文
-- World/Lore（`docs/specs/game/29`〜`37`）— Task 明示要求時のみ
+- World/Lore（`docs/specs/world/`）— Task 明示要求時のみ
 
 ## Bundle 一覧
 

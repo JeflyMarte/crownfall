@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="DungeonStageData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonStageData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "mistfen_3_5"
+biome_id = "mistfen"
+biome_index = 3
+chapter_index = 5
+display_name = "マルグランの菌域"
+floor_count = 8
+enemy_level = 24
+recommended_level = 26
+closing_type = "boss"
+requires_elite = false
+boss_id = "moldgar"
+legendary_armor_id = "moldgar_abyss_mail"
+legendary_accessory_id = "seradis_archive_seal"
+spawn_weights = {
+"2": 20,
+"3": 80
+}
+event_room_weight = 22
+min_event_rooms = 1

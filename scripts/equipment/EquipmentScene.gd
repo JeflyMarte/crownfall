@@ -78,7 +78,6 @@ const SLOT_GLYPHS: Dictionary = {"weapon": "⚔", "armor": "🛡", "accessory": 
 var _label_evolution_traits: Label = null
 @onready var _stats_grid: GridContainer = $VBoxContainer/CharacterCard/CardRow/InfoBox/StatsGrid
 @onready var _btn_stat_detail: Button = $VBoxContainer/CharacterCard/CardRow/InfoBox/BtnStatDetail
-@onready var _button_unequip_all: Button = $VBoxContainer/CharacterCard/CardRow/SlotsPanel/ButtonUnequipAll
 @onready var _slots_panel: VBoxContainer = $VBoxContainer/CharacterCard/CardRow/SlotsPanel
 @onready var _slots_row: GridContainer = $VBoxContainer/CharacterCard/CardRow/SlotsPanel/EquipSlotsGrid
 @onready var _equip_content: VBoxContainer = $VBoxContainer/TabContainer/TabEquip/EquipContent
@@ -149,6 +148,13 @@ var _overlay_category: String = ""
 var _overlay_relic_id: String = ""
 var _overlay_skill_id: String = ""
 
+const INVENTORY_LONG_PRESS_SEC: float = 0.45
+var _inv_pointer_down: bool = false
+var _inv_long_press_fired: bool = false
+var _inv_press_timer: SceneTreeTimer = null
+var _inv_press_action: Callable = Callable()
+var _detail_pinned: bool = false
+
 func _ready() -> void:
 	$Header/HeaderRow/LabelTitle.text = ""
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.CHARACTER)
@@ -163,13 +169,13 @@ func _ready() -> void:
 	_btn_member_prev.pressed.connect(_on_member_prev_pressed)
 	_btn_member_next.pressed.connect(_on_member_next_pressed)
 	_btn_promote.pressed.connect(_on_promote_pressed)
-	_button_unequip_all.pressed.connect(_on_unequip_all_pressed)
 	_btn_sort.pressed.connect(_on_sort_pressed)
 	_btn_filter.pressed.connect(_on_filter_pressed)
 	_inventory_grid.columns = GRID_COLUMNS
 	_inventory_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_inventory_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_inventory_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	_inventory_scroll.scroll_deadzone = 12
 	_setup_equipment_chrome()
 	_build_category_chips()
 	_apply_panel_styles()
@@ -219,7 +225,6 @@ func _setup_equipment_chrome() -> void:
 	_btn_stat_detail.add_theme_stylebox_override("disabled", EquipmentUiTokens.stat_detail_button_style())
 	_btn_stat_detail.add_theme_color_override("font_disabled_color", Color(0.62, 0.58, 0.52, 1.0))
 	_evolution_row.add_theme_constant_override("separation", 4)
-	_apply_button_style(_button_unequip_all, EquipmentUiTokens.unequip_button_style())
 	UiTypography.apply_display(_label_name, UiTypography.SIZE_DISPLAY_TITLE, UiTypography.COLOR_GOLD)
 	UiTypography.apply_body(_label_level, UiTypography.SIZE_BODY, UiTypography.COLOR_BODY)
 	UiTypography.apply_body(_label_job, UiTypography.SIZE_BODY, UiTypography.COLOR_BODY)
@@ -688,7 +693,6 @@ func _rebuild_equip_slots() -> void:
 		child.queue_free()
 	var member: Resource = _get_view_adventurer()
 	var can_equip: bool = _party_index_for(member) >= 0
-	_button_unequip_all.disabled = not can_equip
 	if member == null:
 		return
 	var cell_size: Vector2 = _slot_cell_size_vec()
@@ -712,6 +716,7 @@ func _make_relic_slot(cell_size: Vector2, member: Resource, can_equip: bool) -> 
 	btn.custom_minimum_size = cell_size
 	btn.flat = false
 	btn.focus_mode = Control.FOCUS_NONE
+	btn.action_mode = BaseButton.ACTION_MODE_BUTTON_RELEASE
 	var relic_id: String = GameState.get_equipped_relic_passive_id(member) if member != null else ""
 	var icon_key: String = CombatPassives.relic_icon_key(relic_id)
 	var relic_tex: Texture2D = (
@@ -756,6 +761,7 @@ func _make_locked_slot(label: String, cell_size: Vector2) -> Control:
 	btn.custom_minimum_size = cell_size
 	btn.flat = false
 	btn.focus_mode = Control.FOCUS_NONE
+	btn.action_mode = BaseButton.ACTION_MODE_BUTTON_RELEASE
 	btn.disabled = true
 	btn.text = ""
 	btn.add_theme_stylebox_override("disabled", EquipmentUiTokens.slot_locked_style(cell_px))
@@ -783,6 +789,7 @@ func _make_slot(
 	btn.custom_minimum_size = cell_size
 	btn.flat = false
 	btn.focus_mode = Control.FOCUS_NONE
+	btn.action_mode = BaseButton.ACTION_MODE_BUTTON_RELEASE
 	if item != null:
 		var icon: Texture2D = _item_icon(item, category)
 		_attach_item_icon(btn, icon, cell_px, EquipmentUiTokens.SLOT_DESIGN_PX)
@@ -919,18 +926,21 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 	btn.custom_minimum_size = cell_size
 	btn.flat = false
 	btn.focus_mode = Control.FOCUS_NONE
+	btn.action_mode = BaseButton.ACTION_MODE_BUTTON_RELEASE
 	var icon: Texture2D = _item_icon(item, category)
 	_attach_item_icon(btn, icon, cell_px, EquipmentUiTokens.INV_CELL_DESIGN_PX)
 	var rarity: int = _item_rarity(item, category)
 	var owner_idx: int = EquipmentUiHelper.equipped_member_index(item)
 	var party_idx: int = _party_index_for_view()
 	var is_on_self: bool = party_idx >= 0 and owner_idx == party_idx
-	btn.tooltip_text = EquipmentItemDetailHelper.short_name(item, category)
-	if owner_idx >= 0 and not is_on_self:
-		var owner: Resource = GameState.get_member(owner_idx)
-		if owner != null:
-			btn.tooltip_text += "（%s）" % str(owner.display_name)
-	btn.pressed.connect(_on_cell_tapped.bind(item, category))
+	var member: Resource = _get_view_adventurer()
+	btn.tooltip_text = EquipmentItemDetailHelper.hover_summary(item, category, member)
+	var captured_item: Resource = item
+	var captured_category: String = category
+	btn.pressed.connect(func() -> void:
+		_tap_inventory_item(captured_item, captured_category)
+	)
+	btn.disabled = party_idx < 0
 	if is_on_self:
 		btn.modulate = Color(0.72, 0.72, 0.72, 0.85)
 		_apply_item_cell_styles(btn, rarity, cell_px, true)
@@ -948,18 +958,19 @@ func _make_relic_cell(relic_id: String) -> Button:
 	btn.custom_minimum_size = cell_size
 	btn.flat = false
 	btn.focus_mode = Control.FOCUS_NONE
+	btn.action_mode = BaseButton.ACTION_MODE_BUTTON_RELEASE
 	var icon_key: String = CombatPassives.relic_icon_key(relic_id)
 	var tex: Texture2D = IconPaths.get_icon_texture(icon_key, "relic")
 	_attach_item_icon(btn, tex, cell_px, EquipmentUiTokens.INV_CELL_DESIGN_PX)
 	var owner_idx: int = EquipmentUiHelper.relic_equipped_member_index(relic_id)
 	var party_idx: int = _party_index_for_view()
 	var is_on_self: bool = party_idx >= 0 and owner_idx == party_idx
-	btn.tooltip_text = CombatPassives.relic_display_name(relic_id)
-	if owner_idx >= 0 and not is_on_self:
-		var owner: Resource = GameState.get_member(owner_idx)
-		if owner != null:
-			btn.tooltip_text += "（%s）" % str(owner.display_name)
-	btn.pressed.connect(_on_relic_cell_tapped.bind(relic_id))
+	btn.tooltip_text = EquipmentItemDetailHelper.relic_hover_summary(relic_id)
+	var captured_relic_id: String = relic_id
+	btn.pressed.connect(func() -> void:
+		_on_relic_equip_pressed(captured_relic_id)
+	)
+	btn.disabled = party_idx < 0
 	if is_on_self:
 		btn.modulate = Color(0.72, 0.72, 0.72, 0.85)
 		_apply_item_cell_styles(btn, 2, cell_px, true)
@@ -969,11 +980,85 @@ func _make_relic_cell(relic_id: String) -> Button:
 		_add_owner_portrait_badge(btn, owner_idx, cell_size)
 	return btn
 
-func _on_relic_cell_tapped(relic_id: String) -> void:
-	_show_relic_stats_overlay(relic_id)
+func _bind_inventory_cell_interaction(btn: Button, action: Callable) -> void:
+	btn.gui_input.connect(_on_inventory_cell_gui_input.bind(action))
 
-func _show_relic_stats_overlay(relic_id: String) -> void:
+func _on_inventory_cell_gui_input(event: InputEvent, action: Callable) -> void:
+	if event is InputEventScreenDrag:
+		_cancel_inventory_press()
+		return
+	if not _is_inventory_pointer_event(event):
+		return
+	if event.pressed:
+		_begin_inventory_press(action)
+	else:
+		_end_inventory_press()
+	if event is InputEventMouseButton or event is InputEventScreenTouch:
+		event.accept_event()
+
+func _is_inventory_pointer_event(event: InputEvent) -> bool:
+	if event is InputEventMouseButton:
+		return event.button_index == MOUSE_BUTTON_LEFT
+	if event is InputEventScreenTouch:
+		return true
+	return false
+
+func _begin_inventory_press(action: Callable) -> void:
+	_cancel_inventory_press()
+	_inv_pointer_down = true
+	_inv_long_press_fired = false
+	_inv_press_action = action
+	_inv_press_timer = get_tree().create_timer(INVENTORY_LONG_PRESS_SEC)
+	_inv_press_timer.timeout.connect(_on_inventory_long_press_timeout)
+
+func _on_inventory_long_press_timeout() -> void:
+	if not _inv_pointer_down:
+		return
+	_inv_long_press_fired = true
+	if _inv_press_action.is_valid():
+		_inv_press_action.call(true)
+
+func _end_inventory_press() -> void:
+	if not _inv_pointer_down:
+		return
+	_inv_pointer_down = false
+	_cancel_inventory_press_timer_only()
+	if not _inv_long_press_fired and _inv_press_action.is_valid():
+		_inv_press_action.call(false)
+	_inv_press_action = Callable()
+
+func _cancel_inventory_press_timer_only() -> void:
+	if _inv_press_timer != null:
+		if _inv_press_timer.timeout.is_connected(_on_inventory_long_press_timeout):
+			_inv_press_timer.timeout.disconnect(_on_inventory_long_press_timeout)
+		_inv_press_timer = null
+
+func _cancel_inventory_press() -> void:
+	_inv_pointer_down = false
+	_inv_long_press_fired = false
+	_cancel_inventory_press_timer_only()
+	_inv_press_action = Callable()
+
+func _tap_inventory_item(item: Resource, category: String) -> void:
+	var party_idx: int = _party_index_for_view()
+	if party_idx < 0:
+		return
+	var owner_idx: int = EquipmentUiHelper.equipped_member_index(item)
+	if owner_idx == party_idx:
+		match category:
+			"weapon":
+				$EquipmentController.unequip_weapon(party_idx)
+			"armor":
+				$EquipmentController.unequip_armor(party_idx)
+			"accessory":
+				$EquipmentController.unequip_accessory(party_idx)
+		_refresh_display()
+	else:
+		_on_cell_pressed(item, category)
+
+func _show_relic_stats_overlay(relic_id: String, pinned: bool = false) -> void:
 	_ensure_item_detail_overlay()
+	_detail_pinned = pinned
 	_overlay_item = null
 	_overlay_category = "relic"
 	_overlay_relic_id = relic_id
@@ -1015,9 +1100,6 @@ func _add_owner_portrait_badge(btn: Button, owner_idx: int, cell_size: Vector2) 
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon.position = Vector2(cell_size.x - 18.0, 2.0)
 	btn.add_child(icon)
-
-func _on_cell_tapped(item: Resource, category: String) -> void:
-	_show_item_stats_overlay(item, category)
 
 func _ensure_item_detail_overlay() -> void:
 	if _detail_overlay != null:
@@ -1080,8 +1162,9 @@ func _ensure_item_detail_overlay() -> void:
 	_detail_equip_btn.pressed.connect(_on_detail_equip_pressed)
 	action_row.add_child(_detail_equip_btn)
 
-func _show_item_stats_overlay(item: Resource, category: String) -> void:
+func _show_item_stats_overlay(item: Resource, category: String, pinned: bool = false) -> void:
 	_ensure_item_detail_overlay()
+	_detail_pinned = pinned
 	_overlay_item = item
 	_overlay_category = category
 	_overlay_skill_id = ""
@@ -1128,6 +1211,7 @@ func _on_relic_equip_pressed(relic_id: String) -> void:
 func _hide_item_detail_overlay() -> void:
 	if _detail_overlay != null:
 		_detail_overlay.visible = false
+	_detail_pinned = false
 	_overlay_item = null
 	_overlay_category = ""
 	_overlay_relic_id = ""
@@ -1152,18 +1236,6 @@ func _on_cell_pressed(item: Resource, category: String) -> void:
 			$EquipmentController.equip_armor(item, party_idx)
 		"accessory":
 			$EquipmentController.equip_accessory(item, party_idx)
-	_refresh_display()
-
-func _on_unequip_all_pressed() -> void:
-	var party_idx: int = _party_index_for_view()
-	if party_idx < 0:
-		return
-	$EquipmentController.unequip_weapon(party_idx)
-	$EquipmentController.unequip_armor(party_idx)
-	$EquipmentController.unequip_accessory(party_idx)
-	var member: Resource = GameState.get_member(party_idx)
-	if member != null:
-		GameState.set_member_relic(member, "")
 	_refresh_display()
 
 # ---- レア度枠スタイル ----
@@ -1528,7 +1600,9 @@ func _make_weapon_skill_list_row(member: Resource, weapon_skill: Dictionary) -> 
 	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	body.mouse_filter = Control.MOUSE_FILTER_STOP
 	body.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
-	body.gui_input.connect(_on_skill_row_gui_input.bind(ws_sid, true, 1, false))
+	body.gui_input.connect(_on_weapon_skill_row_gui_input.bind(ws_sid))
+	if ws_skill_data != null:
+		body.tooltip_text = _skill_summary_text(ws_skill_data, true, 1)
 	var body_row := HBoxContainer.new()
 	body_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	body_row.add_theme_constant_override("separation", 0)
@@ -1581,6 +1655,7 @@ func _make_skill_row_body(
 	body.mouse_filter = Control.MOUSE_FILTER_STOP
 	body.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	body.gui_input.connect(_on_skill_row_gui_input.bind(skill_id, unlocked, req_lv, is_equipped))
+	body.tooltip_text = _skill_summary_text(skill_data, unlocked, req_lv)
 	var body_row := HBoxContainer.new()
 	body_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	body_row.add_theme_constant_override("separation", 0)
@@ -1622,8 +1697,36 @@ func _on_skill_row_gui_input(
 	req_lv: int,
 	is_equipped: bool
 ) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+	if not _is_inventory_pointer_event(event):
+		return
+	if event.pressed:
+		_begin_inventory_press(_skill_row_action.bind(skill_id, unlocked, req_lv, is_equipped))
+	else:
+		_end_inventory_press()
+
+func _on_weapon_skill_row_gui_input(event: InputEvent, skill_id: String) -> void:
+	if not _is_inventory_pointer_event(event):
+		return
+	if event.pressed:
+		_begin_inventory_press(_weapon_skill_row_action.bind(skill_id))
+	else:
+		_end_inventory_press()
+
+func _skill_row_action(
+	is_long_press: bool,
+	skill_id: String,
+	unlocked: bool,
+	req_lv: int,
+	is_equipped: bool
+) -> void:
+	if is_long_press:
 		_show_skill_detail_overlay(skill_id, unlocked, req_lv, is_equipped)
+	elif unlocked:
+		_on_skill_toggle_pressed(skill_id)
+
+func _weapon_skill_row_action(is_long_press: bool, skill_id: String) -> void:
+	if is_long_press:
+		_show_skill_detail_overlay(skill_id, true, 1, false)
 
 # ---- 必殺技タブ ----
 const ULTIMATE_ICON_PX: int = 96
@@ -2601,6 +2704,7 @@ func _show_skill_detail_overlay(
 	if skill_data == null:
 		return
 	_ensure_item_detail_overlay()
+	_detail_pinned = true
 	_overlay_item = null
 	_overlay_category = "skill"
 	_overlay_relic_id = ""
@@ -2692,16 +2796,13 @@ func _skill_info_text(skill_data: Resource) -> String:
 	return "%s  %s" % [_skill_wrapped_name(skill_data), _skill_detail_text(skill_data)]
 
 func _make_ultimate_skill_icon(skill_id: String, member: Resource, display_size: Vector2) -> Control:
-	var icon: Control = SkillIconHelper.make_unique_icon(skill_id, display_size)
-	if icon != null:
-		return icon
-	return _make_skill_icon(skill_id, member, display_size)
+	return SkillIconHelper.make_ultimate_icon(skill_id, member, display_size)
 
 func _make_skill_icon(skill_id: String, member: Resource, display_size: Vector2 = Vector2.ZERO) -> Control:
 	var px: Vector2 = display_size
 	if px == Vector2.ZERO:
 		px = Vector2(PASSIVE_ROW_ICON_PX, PASSIVE_ROW_ICON_PX)
-	return SkillIconHelper.make_icon(skill_id, member, px)
+	return SkillIconHelper.make_ally_equipped_icon(skill_id, member, px)
 
 func _make_passive_icon(passive_id: String) -> Control:
 	return PassiveIconHelper.make_icon(passive_id, Vector2(PASSIVE_ROW_ICON_PX, PASSIVE_ROW_ICON_PX))

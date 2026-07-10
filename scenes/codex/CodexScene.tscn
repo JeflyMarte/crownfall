@@ -147,161 +147,223 @@ horizontal_scroll_mode = 0
 [node name="MainVBox" type="VBoxContainer" parent="MainScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 8
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="TopSpacer" type="Control" parent="MainScroll/MainVBox"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
 
 [node name="TabRow" type="HFlowContainer" parent="MainScroll/MainVBox"]
 layout_mode = 2
 alignment = 1
-theme_override_constants/separation = 4
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
 
 [node name="ButtonTabEnemy" type="Button" parent="MainScroll/MainVBox/TabRow"]
+custom_minimum_size = Vector2(96, 52)
 layout_mode = 2
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 20
 text = "敵"
 
 [node name="ButtonTabDungeon" type="Button" parent="MainScroll/MainVBox/TabRow"]
+custom_minimum_size = Vector2(120, 52)
 layout_mode = 2
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 20
 text = "ダンジョン"
 
 [node name="ButtonTabMaterial" type="Button" parent="MainScroll/MainVBox/TabRow"]
+custom_minimum_size = Vector2(96, 52)
 layout_mode = 2
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 20
 text = "素材"
 
 [node name="ButtonTabWeapon" type="Button" parent="MainScroll/MainVBox/TabRow"]
+custom_minimum_size = Vector2(96, 52)
 layout_mode = 2
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 20
 text = "武器"
 
 [node name="ButtonTabHistory" type="Button" parent="MainScroll/MainVBox/TabRow"]
+custom_minimum_size = Vector2(96, 52)
 layout_mode = 2
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 20
 text = "歴史"
 
 [node name="ButtonTabLore" type="Button" parent="MainScroll/MainVBox/TabRow"]
+custom_minimum_size = Vector2(96, 52)
 layout_mode = 2
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 20
 text = "記録"
 
 [node name="ButtonTabGuide" type="Button" parent="MainScroll/MainVBox/TabRow"]
+custom_minimum_size = Vector2(96, 52)
 layout_mode = 2
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 20
 text = "手引き"
 
-[node name="LabelListHeader" type="Label" parent="MainScroll/MainVBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.78, 0.7, 0.5, 1)
-text = "─── 一覧 ───"
-horizontal_alignment = 1
-
 [node name="EntryListScroll" type="ScrollContainer" parent="MainScroll/MainVBox"]
-custom_minimum_size = Vector2(0, 214)
 layout_mode = 2
+size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
 [node name="EntryListContainer" type="VBoxContainer" parent="MainScroll/MainVBox/EntryListScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 4
+theme_override_constants/separation = 8
 
-[node name="LabelDetailHeader" type="Label" parent="MainScroll/MainVBox"]
+[node name="DetailOverlay" type="Control" parent="."]
+visible = false
+z_index = 50
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 46.0
+offset_bottom = -84.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+
+[node name="Dim" type="ColorRect" parent="DetailOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0.05, 0.04, 0.08, 1)
+
+[node name="DetailPanel" type="PanelContainer" parent="DetailOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 10.0
+offset_right = -12.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DetailVBox" type="VBoxContainer" parent="DetailOverlay/DetailPanel"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.78, 0.7, 0.5, 1)
-text = "─── 詳細 ───"
-horizontal_alignment = 1
+theme_override_constants/separation = 8
 
-[node name="DetailPanel" type="VBoxContainer" parent="MainScroll/MainVBox"]
+[node name="DetailHeaderRow" type="HBoxContainer" parent="DetailOverlay/DetailPanel/DetailVBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LabelDetailPopupTitle" type="Label" parent="DetailOverlay/DetailPanel/DetailVBox/DetailHeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
+theme_override_font_sizes/font_size = 20
+text = "詳細"
+vertical_alignment = 1
+
+[node name="ButtonDetailClose" type="Button" parent="DetailOverlay/DetailPanel/DetailVBox/DetailHeaderRow"]
+layout_mode = 2
+text = "閉じる"
+
+[node name="DetailScroll" type="ScrollContainer" parent="DetailOverlay/DetailPanel/DetailVBox"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 6
+horizontal_scroll_mode = 0
 
-[node name="TopRow" type="HBoxContainer" parent="MainScroll/MainVBox/DetailPanel"]
+[node name="DetailScrollInner" type="VBoxContainer" parent="DetailOverlay/DetailPanel/DetailVBox/DetailScroll"]
 layout_mode = 2
-theme_override_constants/separation = 12
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
 
-[node name="ArtFrame" type="PanelContainer" parent="MainScroll/MainVBox/DetailPanel/TopRow"]
+[node name="TopRow" type="HBoxContainer" parent="DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ArtFrame" type="PanelContainer" parent="DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow"]
 clip_contents = true
-custom_minimum_size = Vector2(180, 180)
+custom_minimum_size = Vector2(132, 132)
 layout_mode = 2
 size_flags_vertical = 0
 
-[node name="TextureIcon" type="TextureRect" parent="MainScroll/MainVBox/DetailPanel/TopRow/ArtFrame"]
+[node name="TextureIcon" type="TextureRect" parent="DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/ArtFrame"]
 visible = false
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 6
 
-[node name="IconPlaceholder" type="PanelContainer" parent="MainScroll/MainVBox/DetailPanel/TopRow/ArtFrame"]
+[node name="IconPlaceholder" type="PanelContainer" parent="DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/ArtFrame"]
 layout_mode = 2
 
-[node name="LabelIconPlaceholder" type="Label" parent="MainScroll/MainVBox/DetailPanel/TopRow/ArtFrame/IconPlaceholder"]
+[node name="LabelIconPlaceholder" type="Label" parent="DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/ArtFrame/IconPlaceholder"]
 layout_mode = 2
 text = "？"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="InfoCol" type="VBoxContainer" parent="MainScroll/MainVBox/DetailPanel/TopRow"]
+[node name="InfoCol" type="VBoxContainer" parent="DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 5
+theme_override_constants/separation = 4
 
-[node name="LabelDetailId" type="Label" parent="MainScroll/MainVBox/DetailPanel/TopRow/InfoCol"]
+[node name="LabelDetailId" type="Label" parent="DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/InfoCol"]
 visible = false
 layout_mode = 2
 text = ""
 
-[node name="LabelDetailName" type="Label" parent="MainScroll/MainVBox/DetailPanel/TopRow/InfoCol"]
+[node name="LabelDetailName" type="Label" parent="DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/InfoCol"]
 layout_mode = 2
 text = "—"
 
-[node name="LabelDetailStatus" type="Label" parent="MainScroll/MainVBox/DetailPanel/TopRow/InfoCol"]
+[node name="LabelDetailStatus" type="Label" parent="DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/InfoCol"]
 layout_mode = 2
 size_flags_horizontal = 0
 text = "—"
 
-[node name="LabelDetailCategory" type="Label" parent="MainScroll/MainVBox/DetailPanel/TopRow/InfoCol"]
+[node name="LabelDetailCategory" type="Label" parent="DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/InfoCol"]
 layout_mode = 2
 text = "種別: —"
 
-[node name="LabelDetailExtraA" type="Label" parent="MainScroll/MainVBox/DetailPanel/TopRow/InfoCol"]
+[node name="LabelDetailExtraA" type="Label" parent="DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/InfoCol"]
 visible = false
 layout_mode = 2
 text = "時代: —"
+autowrap_mode = 3
 
-[node name="LabelDetailExtraB" type="Label" parent="MainScroll/MainVBox/DetailPanel/TopRow/InfoCol"]
+[node name="LabelDetailExtraB" type="Label" parent="DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/InfoCol"]
 visible = false
 layout_mode = 2
 text = "テーマ: —"
+autowrap_mode = 3
 
-[node name="LabelDetailRelatedHeader" type="Label" parent="MainScroll/MainVBox/DetailPanel/TopRow/InfoCol"]
+[node name="LabelDetailRelatedHeader" type="Label" parent="DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/InfoCol"]
 visible = false
 layout_mode = 2
 text = "関連:"
 
-[node name="LabelDetailRelated" type="Label" parent="MainScroll/MainVBox/DetailPanel/TopRow/InfoCol"]
+[node name="LabelDetailRelated" type="Label" parent="DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/InfoCol"]
 visible = false
 layout_mode = 2
 text = ""
 autowrap_mode = 3
 
-[node name="DescBox" type="PanelContainer" parent="MainScroll/MainVBox/DetailPanel"]
-custom_minimum_size = Vector2(0, 120)
+[node name="DescBox" type="PanelContainer" parent="DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="DescInner" type="VBoxContainer" parent="MainScroll/MainVBox/DetailPanel/DescBox"]
+[node name="DescInner" type="VBoxContainer" parent="DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/DescBox"]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="LabelDetailOverviewHeader" type="Label" parent="MainScroll/MainVBox/DetailPanel/DescBox/DescInner"]
+[node name="LabelDetailOverviewHeader" type="Label" parent="DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/DescBox/DescInner"]
 layout_mode = 2
 text = "解説:"
 
-[node name="LabelDetailDescription" type="Label" parent="MainScroll/MainVBox/DetailPanel/DescBox/DescInner"]
+[node name="LabelDetailDescription" type="Label" parent="DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/DescBox/DescInner"]
 layout_mode = 2
 size_flags_vertical = 3
-text = "項目を選択してください"
+text = ""
 autowrap_mode = 3
 
 [node name="BottomNav" type="PanelContainer" parent="."]

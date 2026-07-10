@@ -166,7 +166,12 @@ const FLOOR_TILE_MAP: Dictionary = {
 }
 const _FLOOR_ROOM_TYPES: Array[int] = [
 	Enums.RoomType.EXIT,
+]
+const _PHASE_BG_ROOM_TYPES: Array[int] = [
 	Enums.RoomType.HEAL,
+	Enums.RoomType.TREASURE,
+	Enums.RoomType.EVENT,
+	Enums.RoomType.TRAP,
 ]
 const ROOM_OBJ_DISPLAY_PX: float = 64.0
 const TREASURE_OBJ_DISPLAY_PX: float = 128.0
@@ -286,6 +291,7 @@ var _btn_fast_run: Button = null
 var _round_active: bool = false
 var _request_scroll_to_bottom: bool = false
 var _trap_presentation_active: bool = false
+var _heal_presentation_active: bool = false
 var _treasure_presentation_active: bool = false
 var _event_presentation_active: bool = false
 var _combat_clear_active: bool = false
@@ -424,6 +430,9 @@ const TRAP_HIT_PAUSE_SEC: float = 0.45
 const TRAP_FEEDBACK_FLASH_COLOR: Color = Color(1.0, 0.32, 0.22)
 const TRAP_FEEDBACK_DMG_COLOR: Color = Color(1.0, 0.35, 0.35)
 const TrapPresentationScript: Script = preload("res://scripts/dungeon/TrapPresentation.gd")
+const HealRoomPresentationScript: Script = preload("res://scripts/dungeon/HealRoomPresentation.gd")
+const TreasureRoomPresentationScript: Script = preload("res://scripts/dungeon/TreasureRoomPresentation.gd")
+const LoreRoomPresentationScript: Script = preload("res://scripts/dungeon/LoreRoomPresentation.gd")
 const EventPresentationScript: Script = preload("res://scripts/dungeon/EventPresentation.gd")
 const PartyLogColorsScript: Script = preload("res://scripts/ui/PartyLogColors.gd")
 const ExpRunSnapshotScript: Script = preload("res://scripts/result/ExpRunSnapshot.gd")
@@ -2266,7 +2275,7 @@ func _get_room_type_name() -> String:
 	match $DungeonController.current_room_type:
 		Enums.RoomType.START:    return "開始"
 		Enums.RoomType.COMBAT:   return "戦闘"
-		Enums.RoomType.EVENT:    return "イベント"
+		Enums.RoomType.EVENT:    return "碑文"
 		Enums.RoomType.TREASURE: return "宝箱"
 		Enums.RoomType.ELITE:    return "エリート"
 		Enums.RoomType.TRAP:     return "罠"
@@ -2292,9 +2301,6 @@ func _advance_to_next_room() -> void:
 
 func _enter_current_room() -> void:
 	_update_room_label()
-	if $DungeonController.current_room_type == Enums.RoomType.EXIT:
-		_on_finish_button_pressed()
-		return
 	_update_room_art()
 	if $DungeonController.is_combat_room():
 		var group: Array[Resource] = $DungeonController.pick_combat_enemy_group()
@@ -2356,11 +2362,7 @@ func _enter_current_room() -> void:
 		_hide_chr_sprites()
 		match $DungeonController.current_room_type:
 			Enums.RoomType.HEAL:
-				var heal_amount: int = _apply_healing_bonus(HEAL_AMOUNT)
-				$CombatController.heal_party(heal_amount)
-				_play_heal_vfx()
-				_set_narrative("回復の部屋: 生存メンバーを%d回復" % heal_amount)
-				_finish_room_and_continue()
+				_resolve_heal_room()
 			Enums.RoomType.TREASURE:
 				_resolve_treasure_room()
 			Enums.RoomType.EVENT:
@@ -2437,22 +2439,46 @@ func _handle_event_room() -> void:
 func _handle_event_room_async() -> void:
 	_event_presentation_active = true
 	$AutoProgressTimer.stop()
+	_set_non_combat_phase_bg(LoreRoomPresentationScript.bg_path_for_phase("setup"))
+	var setup_text: String = LoreRoomPresentationScript.pick_setup_line()
+	_set_room_narrative(setup_text)
+	var setup_hold: float = float(
+		LoreRoomPresentationScript.timings(_fast_run_enabled).get("setup_hold", 1.0)
+	)
+	await get_tree().create_timer(setup_hold).timeout
+	if not LoreRoomPresentationScript.is_deciphered():
+		var fail_text: String = LoreRoomPresentationScript.pick_fail_line()
+		_set_non_combat_phase_bg(LoreRoomPresentationScript.bg_path_for_phase("fail"))
+		_set_room_narrative(fail_text, LoreRoomPresentationScript.COLOR_FAIL)
+		_append_log("[碑文] %s" % fail_text)
+		_event_presentation_active = false
+		_reset_narrative_typography()
+		_finish_room_and_continue()
+		return
 	var event: Dictionary = $DungeonController.pick_event()
 	if event.is_empty():
+		var empty_text: String = "碑文は見つからなかった"
+		_set_non_combat_phase_bg(LoreRoomPresentationScript.bg_path_for_phase("fail"))
+		_set_room_narrative(empty_text, LoreRoomPresentationScript.COLOR_FAIL)
 		_event_presentation_active = false
-		_set_narrative("イベントの部屋に入った")
+		_reset_narrative_typography()
 		_finish_room_and_continue()
 		return
 	var event_id: String = event.get("id", "")
 	if not event_id.is_empty():
 		_try_register_discovery("event", event_id)
+	_set_non_combat_phase_bg(LoreRoomPresentationScript.bg_path_for_phase("success"))
 	var outcome: Dictionary = $DungeonController.auto_resolve_event()
 	var log_text: String = await _play_event_room_presentation(event, outcome)
 	var explore_lines: PackedStringArray = _apply_exploration_event_skills(outcome)
 	for line: String in explore_lines:
 		log_text += "\n" + line
-	_set_narrative("%s\n%s" % [event["description"], log_text])
+	_set_room_narrative(
+		"%s\n%s" % [event["description"], log_text],
+		LoreRoomPresentationScript.COLOR_SUCCESS
+	)
 	_event_presentation_active = false
+	_reset_narrative_typography()
 	_finish_room_and_continue()
 
 func _ensure_event_telop_panel() -> PanelContainer:
@@ -2563,7 +2589,7 @@ func _play_event_room_presentation(event: Dictionary, outcome: Dictionary) -> St
 	var panel: PanelContainer = _ensure_event_telop_panel()
 	var timings: Dictionary = EventPresentationScript.timings(_fast_run_enabled)
 	var scene_text: String = EventPresentationScript.format_scene_line(
-		str(event.get("description", "イベントが起きた"))
+		str(event.get("description", "古い碑文を見つけた"))
 	)
 	var outcome_type: String = EventPresentationScript.outcome_type(outcome)
 	var result_text: String = EventPresentationScript.format_result_line(outcome)
@@ -2739,7 +2765,45 @@ func _apply_exploration_treasure_skills(treasure: Dictionary) -> PackedStringArr
 				)
 	return lines
 
-# ---- 宝箱開封（P3-UX-006） ----
+# ---- 回復部屋（P3-UX-HEAL-001） ----
+
+func _resolve_heal_room() -> void:
+	_resolve_heal_room_async()
+
+func _resolve_heal_room_async() -> void:
+	_heal_presentation_active = true
+	$AutoProgressTimer.stop()
+	$CombatController.ensure_party_hp_for_combat()
+	_set_non_combat_phase_bg(HealRoomPresentationScript.bg_path_for_phase("setup"))
+	var setup_text: String = HealRoomPresentationScript.pick_setup_line()
+	_set_room_narrative(setup_text)
+	var setup_hold: float = float(
+		HealRoomPresentationScript.timings(_fast_run_enabled).get("setup_hold", 1.0)
+	)
+	await get_tree().create_timer(setup_hold).timeout
+	if not HealRoomPresentationScript.is_successful():
+		var fail_text: String = HealRoomPresentationScript.pick_fail_line()
+		_set_non_combat_phase_bg(HealRoomPresentationScript.bg_path_for_phase("fail"))
+		_set_room_narrative(fail_text, HealRoomPresentationScript.COLOR_FAIL)
+		_append_log("[回復] %s" % fail_text)
+		_heal_presentation_active = false
+		_reset_narrative_typography()
+		_finish_room_and_continue()
+		return
+	var heal_amount: int = _apply_healing_bonus(HEAL_AMOUNT)
+	$CombatController.heal_party(heal_amount)
+	_play_heal_vfx()
+	_update_hp_bars()
+	_set_non_combat_phase_bg(HealRoomPresentationScript.bg_path_for_phase("success"))
+	var success_line: String = HealRoomPresentationScript.pick_success_line()
+	var narrative: String = HealRoomPresentationScript.format_success_narrative(success_line, heal_amount)
+	_set_room_narrative(narrative, HealRoomPresentationScript.COLOR_SUCCESS)
+	_append_log("[回復] %s" % success_line)
+	_heal_presentation_active = false
+	_reset_narrative_typography()
+	_finish_room_and_continue()
+
+# ---- 宝箱開封（P3-UX-006 / P3-UX-TREASURE-001） ----
 
 func _resolve_treasure_room() -> void:
 	_resolve_treasure_room_async()
@@ -2747,20 +2811,44 @@ func _resolve_treasure_room() -> void:
 func _resolve_treasure_room_async() -> void:
 	_treasure_presentation_active = true
 	$AutoProgressTimer.stop()
-	_room_object.modulate = Color.WHITE
-	_room_object.scale = Vector2.ONE
+	_set_non_combat_phase_bg(TreasureRoomPresentationScript.bg_path_for_phase("setup"))
+	var setup_text: String = TreasureRoomPresentationScript.pick_setup_line()
+	_set_room_narrative(setup_text)
+	var setup_hold: float = float(
+		TreasureRoomPresentationScript.timings(_fast_run_enabled).get("setup_hold", 1.0)
+	)
+	await get_tree().create_timer(setup_hold).timeout
+	if not TreasureRoomPresentationScript.is_successful():
+		var treasure_fail: Dictionary = $DungeonController.generate_treasure_loot_failure()
+		var fail_line: String = TreasureRoomPresentationScript.pick_fail_line()
+		var fail_text: String = TreasureRoomPresentationScript.format_fail_narrative(
+			fail_line, int(treasure_fail.get("gold", 0))
+		)
+		_set_non_combat_phase_bg(TreasureRoomPresentationScript.bg_path_for_phase("fail"))
+		_set_room_narrative(fail_text, TreasureRoomPresentationScript.COLOR_FAIL)
+		_append_log("[宝箱] %s" % fail_line)
+		_treasure_presentation_active = false
+		_reset_narrative_typography()
+		_finish_room_and_continue()
+		return
 	var treasure: Dictionary = $DungeonController.generate_treasure_loot()
 	var explore_treasure: PackedStringArray = _apply_exploration_treasure_skills(treasure)
-	var log_text: String = "宝箱を発見: Gold +%d" % treasure["gold"]
+	var accessory_name: String = ""
 	if not (treasure["accessory_id"] as String).is_empty():
-		log_text += "\n宝箱から装飾品を入手: " + DataRegistry.get_accessory_name(treasure["accessory_id"])
+		accessory_name = DataRegistry.get_accessory_name(treasure["accessory_id"])
 		GameState.last_run_accessory_dropped = treasure["accessory_id"]
+	var success_line: String = TreasureRoomPresentationScript.pick_success_line()
+	var log_text: String = TreasureRoomPresentationScript.format_success_narrative(
+		success_line, int(treasure["gold"]), accessory_name
+	)
 	for line: String in explore_treasure:
 		log_text += "\n" + line
 	var has_accessory: bool = not (treasure["accessory_id"] as String).is_empty()
+	_set_non_combat_phase_bg(TreasureRoomPresentationScript.bg_path_for_phase("success"))
 	await _play_treasure_open_presentation(has_accessory)
-	_set_narrative(log_text)
+	_set_room_narrative(log_text, TreasureRoomPresentationScript.COLOR_SUCCESS)
 	_treasure_presentation_active = false
+	_reset_narrative_typography()
 	_finish_room_and_continue()
 
 func _dungeon_treasure_open_path(dungeon_id: String) -> String:
@@ -2772,24 +2860,15 @@ func _dungeon_treasure_open_path(dungeon_id: String) -> String:
 	return closed_path
 
 func _treasure_chest_world_pos() -> Vector2:
-	if _room_object != null and _room_object.visible:
-		return _room_object.get_global_rect().get_center()
 	return get_viewport_rect().size * Vector2(0.5, 0.55)
 
 func _play_treasure_open_presentation(has_rare_loot: bool) -> void:
 	_init_dungeon_presentation_ui()
 	_request_combat_shake(TREASURE_OPEN_SHAKE)
 	await get_tree().create_timer(TREASURE_OPEN_PRE_SWAP_SEC).timeout
-	var dungeon_id: String = ""
-	if $DungeonController.current_dungeon_data != null:
-		dungeon_id = $DungeonController.current_dungeon_data.id
-	_set_room_texture(_room_object, _dungeon_treasure_open_path(dungeon_id))
 	var spark_amount: int = 56 if has_rare_loot else 36
 	_spawn_transition_sparkles(Color(1.0, 0.86, 0.28), spark_amount, _treasure_chest_world_pos())
 	_flash_battlefield(Color(1.0, 0.86, 0.38), 0.16)
-	var tw: Tween = create_tween()
-	tw.tween_property(_room_object, "scale", Vector2(1.07, 1.07), 0.1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(_room_object, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	await get_tree().create_timer(TREASURE_OPEN_HOLD_SEC).timeout
 
 func _apply_exploration_event_skills(outcome: Dictionary) -> PackedStringArray:
@@ -2848,29 +2927,43 @@ func _resolve_trap_room() -> void:
 	_resolve_trap_room_async()
 
 func _resolve_trap_room_async() -> void:
+	_trap_presentation_active = true
+	$AutoProgressTimer.stop()
 	$CombatController.ensure_party_hp_for_combat()
-	var narratives: Array = $DungeonController.TRAP_ROOM_NARRATIVES
-	var narrative: String = narratives[randi() % narratives.size()] if not narratives.is_empty() else "罠が作動した"
-	var members: Array = GameState.party_members
-	if ExplorationSkills.can_disarm_trap_room(members):
-		_set_narrative(narrative)
-		_append_log("[罠] 罠解除: パーティは無事だった")
+	_set_non_combat_phase_bg(TrapPresentationScript.bg_path_for_phase("setup"))
+	var setup_text: String = TrapPresentationScript.pick_setup_line()
+	_set_trap_setup_narrative(setup_text)
+	var setup_hold: float = float(TrapPresentationScript.timings(_fast_run_enabled).get("setup_hold", 1.0))
+	await get_tree().create_timer(setup_hold).timeout
+	if not TrapPresentationScript.is_triggered():
+		var avoid_text: String = TrapPresentationScript.pick_avoid_line()
+		_set_non_combat_phase_bg(TrapPresentationScript.bg_path_for_phase("avoid"))
+		_set_trap_avoid_narrative(avoid_text)
+		_append_log("[罠] %s" % avoid_text)
+		_trap_presentation_active = false
+		_reset_narrative_typography()
 		_finish_room_and_continue()
 		return
+	var hit_text: String = TrapPresentationScript.pick_hit_line()
 	var dmg: int = ExplorationSkills.trap_damage_room()
+	var members: Array = GameState.party_members
 	var living: Array[int] = []
 	for i: int in members.size():
 		if $CombatController.is_member_alive(i):
 			living.append(i)
 	if living.is_empty():
-		_set_narrative(narrative)
+		_set_non_combat_phase_bg(TrapPresentationScript.bg_path_for_phase("avoid"))
+		_set_trap_avoid_narrative(TrapPresentationScript.pick_avoid_line())
+		_trap_presentation_active = false
+		_reset_narrative_typography()
 		_finish_room_and_continue()
 		return
 	var target: int = living[randi() % living.size()]
 	var m: Resource = GameState.get_combatant(target)
 	var nm: String = m.display_name if m != null else "?"
+	_set_non_combat_phase_bg(TrapPresentationScript.bg_path_for_phase("hit"))
 	_begin_trap_hit_presentation()
-	_set_trap_hit_narrative(narrative, nm, dmg)
+	_set_trap_hit_narrative(hit_text, nm, dmg)
 	$CombatController.apply_damage_to_member(target, dmg)
 	_on_member_damaged(target)
 	_apply_trap_hit_feedback(target, dmg, true)
@@ -2902,9 +2995,21 @@ func _end_trap_hit_presentation() -> void:
 	_hide_chr_sprites()
 	_update_combat_visibility()
 
-func _set_trap_hit_narrative(event_text: String, member_name: String, dmg: int) -> void:
-	_label_narrative.text = "%s！\n%s に %d ダメージ！" % [event_text, member_name, dmg]
-	UiTypography.apply_body(_label_narrative, UiTypography.SIZE_BODY, TRAP_FEEDBACK_DMG_COLOR)
+func _set_trap_setup_narrative(text: String) -> void:
+	_label_narrative.text = text
+	UiTypography.apply_body(_label_narrative, UiTypography.SIZE_BODY, UiTypography.COLOR_BODY)
+
+func _set_trap_avoid_narrative(text: String) -> void:
+	_label_narrative.text = text
+	UiTypography.apply_body(_label_narrative, UiTypography.SIZE_BODY, TrapPresentationScript.COLOR_AVOID)
+
+func _set_trap_hit_narrative(hit_line: String, member_name: String, dmg: int) -> void:
+	_label_narrative.text = TrapPresentationScript.format_hit_narrative(hit_line, member_name, dmg)
+	UiTypography.apply_body(_label_narrative, UiTypography.SIZE_BODY, TrapPresentationScript.COLOR_HIT)
+
+func _set_room_narrative(text: String, accent: Color = UiTypography.COLOR_BODY) -> void:
+	_label_narrative.text = text
+	UiTypography.apply_body(_label_narrative, UiTypography.SIZE_BODY, accent)
 
 func _reset_narrative_typography() -> void:
 	UiTypography.apply_body(_label_narrative, UiTypography.SIZE_BODY_SMALL)
@@ -4188,33 +4293,31 @@ func _enemy_attack_element_at(slot: int) -> String:
 func _member_resists_element(target_index: int, attack_element: String) -> bool:
 	return DamageCalculator.member_resists_element(target_index, attack_element)
 
-# 敵の codex_materials を rarity 別確率で実ドロップ（P3-D067 / 図鑑↔経済の一本化）
-const ECOLOGY_DROP_CHANCE: Dictionary = {0: 0.65, 1: 0.35, 2: 0.12, 3: 0.05}
+# 武器強化素材のみドロップ（炉研ぎ消費素材＝P3-D152 / P3-D067 改）。
+const ENHANCEMENT_DROP_CHANCE: Dictionary = {0: 0.65, 1: 0.35, 2: 0.12, 3: 0.05}
 const CODEX_INVESTIGATION_EXP_BONUS: float = 1.10
 const CODEX_INVESTIGATION_MATERIAL_MULT: float = 1.50
 
-func _roll_ecology_material_drops(enemy_data: Resource, log_lines: PackedStringArray) -> void:
-	if enemy_data == null:
+func _roll_enhancement_material_drops(_enemy_data: Resource, log_lines: PackedStringArray) -> void:
+	var mat_id: String = EquipmentEnhancer.pick_combat_drop_material()
+	if not EquipmentEnhancer.is_enhancement_material(mat_id):
 		return
+	var mat_data: Resource = DataRegistry.get_material_data(mat_id)
+	var rarity: int = 0 if mat_data == null else int(mat_data.rarity)
+	var chance: float = float(ENHANCEMENT_DROP_CHANCE.get(rarity, 0.05))
 	var codex_boost: bool = (
 		GameState.get_exploration_policy() == "codex"
-		and GameState.get_enemy_stage(str(enemy_data.id)) < 5
+		and _enemy_data != null
+		and GameState.get_enemy_stage(str(_enemy_data.id)) < 5
 	)
-	for raw_mat_id in enemy_data.codex_materials:
-		var mat_id: String = str(raw_mat_id)
-		if mat_id.is_empty():
-			continue
-		var mat_data: Resource = DataRegistry.get_material_data(mat_id)
-		var rarity: int = 0 if mat_data == null else int(mat_data.rarity)
-		var chance: float = float(ECOLOGY_DROP_CHANCE.get(rarity, 0.05))
-		if codex_boost:
-			chance = minf(chance * CODEX_INVESTIGATION_MATERIAL_MULT, 1.0)
-		if randf() > chance:
-			continue
-		var amount: int = _apply_material_bonus(1)
-		GameState.add_material(mat_id, amount)
-		log_lines.append("採取: %s" % _format_material_reward_log(mat_id, amount, ""))
-		_try_register_discovery("material", mat_id)
+	if codex_boost:
+		chance = minf(chance * CODEX_INVESTIGATION_MATERIAL_MULT, 1.0)
+	if randf() > chance:
+		return
+	var amount: int = _apply_material_bonus(1)
+	GameState.add_material(mat_id, amount)
+	log_lines.append("採取: %s" % _format_material_reward_log(mat_id, amount, ""))
+	_try_register_discovery("material", mat_id)
 
 # アクティブ敵 1体の撃破ブックキーピング（P3-D082/D083/D111）。
 func _award_enemy_kill_at(killed_slot: int) -> void:
@@ -4261,7 +4364,7 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 		"撃破!  EXP +%d  Gold +%d%s" % [final_exp, final_gold, bonus_tag],
 	]
 	if room_type == Enums.RoomType.COMBAT and defeated_enemy != null:
-		_roll_ecology_material_drops(defeated_enemy, log_lines)
+		_roll_enhancement_material_drops(defeated_enemy, log_lines)
 	# P3-D074/D082: 撃破ごとの武器直ドロップ（各敵個別判定）
 	var dropped_weapon: String = $DungeonController.roll_kill_weapon_drop(room_type, defeated_enemy)
 	if not dropped_weapon.is_empty():
@@ -4841,7 +4944,9 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 					if $CombatController.apply_status_to_enemy_slot(slot, sid, 1, 0):
 						applied = true
 			elif target_kind == "enemy":
-				var enemy_slot: int = int(ctx.get("target_slot", $CombatController.get_member_target_slot(member_idx)))
+				var enemy_slot: int = int(
+					ctx.get("attacker_slot", ctx.get("target_slot", $CombatController.get_member_target_slot(member_idx)))
+				)
 				if enemy_slot >= 0 and $CombatController.is_enemy_slot_alive(enemy_slot):
 					applied = $CombatController.apply_status_to_enemy_slot(enemy_slot, sid, 1, 0)
 			else:
@@ -4854,7 +4959,9 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 			if pool.is_empty():
 				return
 			var rand_sid: String = str(pool[randi() % pool.size()])
-			var enemy_slot: int = int(ctx.get("target_slot", $CombatController.get_member_target_slot(member_idx)))
+			var enemy_slot: int = int(
+				ctx.get("attacker_slot", ctx.get("target_slot", $CombatController.get_member_target_slot(member_idx)))
+			)
 			if enemy_slot >= 0 and $CombatController.is_enemy_slot_alive(enemy_slot):
 				applied = $CombatController.apply_status_to_enemy_slot(enemy_slot, rand_sid, 1, 0)
 		"heal":
@@ -5153,7 +5260,7 @@ func _combat_tier_banner_text(tier: String) -> String:
 			return ""
 
 func _start_auto_progress() -> void:
-	if _is_paused or _dive_intro_active or _room_transition_busy or _boss_intro_active or _elite_intro_active or _treasure_presentation_active or _trap_presentation_active or _event_presentation_active or _combat_clear_active:
+	if _is_paused or _dive_intro_active or _room_transition_busy or _boss_intro_active or _elite_intro_active or _heal_presentation_active or _treasure_presentation_active or _trap_presentation_active or _event_presentation_active or _combat_clear_active:
 		if _is_paused:
 			_auto_progress_paused_remaining = _auto_delay
 		return
@@ -5254,7 +5361,7 @@ func _on_close_menu_pressed() -> void:
 	_menu_overlay.visible = false
 
 func _can_finish_dungeon_run() -> bool:
-	return $DungeonController.current_room_type == Enums.RoomType.EXIT
+	return $DungeonController.is_on_last_floor() and not $CombatController.is_in_combat
 
 func _on_menu_finish_pressed() -> void:
 	_menu_overlay.visible = false
@@ -5262,7 +5369,7 @@ func _on_menu_finish_pressed() -> void:
 		_retire_from_dungeon()
 		return
 	if not _can_finish_dungeon_run():
-		_set_narrative("脱出口に到着するまで探索を続ける")
+		_set_narrative("最終フロアを踏破するまで探索を続ける")
 		return
 	_on_finish_button_pressed()
 
@@ -7265,6 +7372,31 @@ func _dungeon_battle_bg_path(dungeon_id: String) -> String:
 	var fallback_id: String = Constants.MOURNGATE_DUNGEON_ID
 	return BATTLE_BG_MAP.get(dungeon_id, BATTLE_BG_MAP[fallback_id])
 
+func _phase_bg_setup_path(room_type: int) -> String:
+	match room_type:
+		Enums.RoomType.HEAL:
+			return HealRoomPresentationScript.bg_path_for_phase("setup")
+		Enums.RoomType.TREASURE:
+			return TreasureRoomPresentationScript.bg_path_for_phase("setup")
+		Enums.RoomType.EVENT:
+			return LoreRoomPresentationScript.bg_path_for_phase("setup")
+		Enums.RoomType.TRAP:
+			return TrapPresentationScript.bg_path_for_phase("setup")
+		_:
+			return ""
+
+func _uses_phase_bg(room_type: int) -> bool:
+	return room_type in _PHASE_BG_ROOM_TYPES
+
+func _set_non_combat_phase_bg(path: String) -> void:
+	if path.is_empty() or not ResourceLoader.exists(path):
+		_room_tile_bg.visible = false
+		_room_tile_bg.texture = null
+		return
+	_set_room_texture_covered(_room_tile_bg, path)
+	if _room_object != null:
+		_room_object.visible = false
+
 func _update_room_art() -> void:
 	var room_type: int = $DungeonController.current_room_type
 	var dungeon_id: String = ""
@@ -7273,7 +7405,9 @@ func _update_room_art() -> void:
 	var fallback_id: String = Constants.MOURNGATE_DUNGEON_ID
 	var battle_bg_path: String = _dungeon_battle_bg_path(dungeon_id)
 	_set_room_texture(_bg_texture, battle_bg_path)
-	if room_type in _FLOOR_ROOM_TYPES:
+	if _uses_phase_bg(room_type):
+		_set_non_combat_phase_bg(_phase_bg_setup_path(room_type))
+	elif room_type in _FLOOR_ROOM_TYPES:
 		var floor_path: String = FLOOR_TILE_MAP.get(dungeon_id, FLOOR_TILE_MAP[fallback_id])
 		if floor_path.is_empty() or not ResourceLoader.exists(floor_path):
 			_room_tile_bg.visible = false
@@ -7284,7 +7418,7 @@ func _update_room_art() -> void:
 		_room_tile_bg.visible = false
 		_room_tile_bg.texture = null
 	var obj_path: String = ""
-	if room_type != Enums.RoomType.EXIT:
+	if not _uses_phase_bg(room_type) and room_type != Enums.RoomType.EXIT:
 		obj_path = _dungeon_env_obj_path(dungeon_id, room_type)
 	_apply_room_object_layout(room_type)
 	_set_room_texture(_room_object, obj_path)
@@ -7314,4 +7448,14 @@ func _set_room_texture(node: TextureRect, path: String) -> void:
 	node.texture = load(path) as Texture2D
 	node.texture_repeat = CanvasItem.TEXTURE_REPEAT_DISABLED
 	node.stretch_mode = TextureRect.STRETCH_SCALE
+	node.visible = true
+
+func _set_room_texture_covered(node: TextureRect, path: String) -> void:
+	if path.is_empty() or not ResourceLoader.exists(path):
+		node.texture = null
+		node.visible = false
+		return
+	node.texture = load(path) as Texture2D
+	node.texture_repeat = CanvasItem.TEXTURE_REPEAT_DISABLED
+	node.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	node.visible = true

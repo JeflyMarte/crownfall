@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ArmorData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ArmorData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+armor_id = "nereion_tide_plate"
+display_name = "潮鳴王の鎧"
+base_defense = 39
+base_hp_bonus = 56
+base_resistance = 0.0
+resist_elements = Array[String](["holy"])
+weight = 1.2
+rarity = 3
+fixed_passive_id = "eq_nereion_tide"

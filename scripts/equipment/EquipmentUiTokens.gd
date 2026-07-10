@@ -66,7 +66,8 @@ const SLOT_PANEL_MIN_W: int = 200
 const SLOT_PX: int = 96
 const INV_CELL_PX: int = 112
 const INV_GRID_FALLBACK_W: float = 688.0
-## 装備セル枠線色（COMMON/RARE/EPIC/LEGENDARY）。背景は常に透明。
+const INV_CELL_MARGINS: Vector4i = Vector4i(12, 12, 12, 12)
+## 装備セル枠線色（COMMON/RARE/EPIC/LEGENDARY）。背景は INV_CELLS の金属質ティント。
 const RARITY_BORDER_COLORS: Array[Color] = [
 	Color(0.60, 0.60, 0.60),
 	Color(0.30, 0.55, 0.95),
@@ -101,7 +102,7 @@ static func scaled_content_margin(design_px: int, cell_px: int, design_margin: f
 		return design_margin
 	return maxf(2.0, design_margin * float(cell_px) / float(design_px))
 
-static func icon_inset_px(cell_px: int, design_px: int, frame_margin: int = 14) -> int:
+static func icon_inset_px(cell_px: int, design_px: int, frame_margin: int = 10) -> int:
 	var margin: int = scaled_margin(design_px, cell_px, frame_margin)
 	var content: float = scaled_content_margin(design_px, cell_px)
 	return margin + int(ceil(content))
@@ -151,7 +152,7 @@ static func tab_inactive_style() -> StyleBox:
 	return texture_stylebox(TAB_INACTIVE, Vector4i(14, 10, 14, 12))
 
 static func slot_frame_style(cell_px: int = SLOT_DESIGN_PX) -> StyleBox:
-	return _rarity_border_style(0, false, cell_px)
+	return _rarity_cell_style(0, false, cell_px)
 
 static func unequip_button_style() -> StyleBox:
 	return texture_stylebox(BTN_UNEQUIP, Vector4i(16, 12, 16, 12))
@@ -160,10 +161,19 @@ static func stat_detail_button_style() -> StyleBox:
 	return texture_stylebox(BTN_STAT_DETAIL, Vector4i(14, 10, 14, 10))
 
 static func inv_cell_style(rarity: int, highlight: bool = false, cell_px: int = INV_CELL_DESIGN_PX) -> StyleBox:
-	return _rarity_border_style(rarity, highlight, cell_px)
+	return _rarity_cell_style(rarity, highlight, cell_px)
 
 static func rarity_slot_style(rarity: int, highlight: bool, cell_px: int = INV_CELL_DESIGN_PX) -> StyleBox:
-	return _rarity_border_style(rarity, highlight, cell_px)
+	return _rarity_cell_style(rarity, highlight, cell_px)
+
+static func _rarity_cell_style(rarity: int, highlight: bool, cell_px: int = INV_CELL_DESIGN_PX) -> StyleBox:
+	var idx: int = clampi(rarity, 0, INV_CELLS.size() - 1)
+	var content_margin: float = scaled_content_margin(INV_CELL_DESIGN_PX, cell_px, 4.0)
+	var sb_tex: StyleBoxTexture = texture_stylebox(INV_CELLS[idx], INV_CELL_MARGINS, content_margin)
+	if sb_tex.texture != null:
+		sb_tex.modulate_color = Color(1.12, 1.10, 1.05, 1.0) if highlight else Color.WHITE
+		return sb_tex
+	return _rarity_border_style_fallback(rarity, highlight, cell_px)
 
 static func category_tab_style(active: bool) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
@@ -202,14 +212,26 @@ static func decorate_title(label: Label) -> void:
 	label.text = "◆ %s ◆" % text
 
 static func slot_locked_style(cell_px: int = SLOT_DESIGN_PX) -> StyleBox:
-	var sb: StyleBoxFlat = _rarity_border_style(0, false, cell_px)
+	var sb: StyleBoxFlat = _rarity_border_style_fallback(0, false, cell_px)
 	sb.border_color = Color(0.45, 0.42, 0.38, 0.7)
 	return sb
 
-static func _rarity_border_style(rarity: int, highlight: bool, cell_px: int = INV_CELL_DESIGN_PX) -> StyleBoxFlat:
+static func _rarity_tint_ratio(rarity: int) -> float:
+	return 0.08 if rarity >= 3 else 0.12
+
+static func _rarity_bg_color(rarity: int) -> Color:
+	var col: Color = RARITY_BORDER_COLORS[clampi(rarity, 0, RARITY_BORDER_COLORS.size() - 1)]
+	var base: Color = Color(0.11, 0.086, 0.063, 0.92)
+	return base.lerp(col, _rarity_tint_ratio(rarity))
+
+static func _rarity_border_style_fallback(
+	rarity: int,
+	highlight: bool,
+	cell_px: int = INV_CELL_DESIGN_PX
+) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	var col: Color = RARITY_BORDER_COLORS[clampi(rarity, 0, RARITY_BORDER_COLORS.size() - 1)]
-	sb.bg_color = Color(0, 0, 0, 0)
+	sb.bg_color = _rarity_bg_color(rarity)
 	# 枠は細め。装備・遺物スロット共通なので同一の細さに揃う。
 	var border_w: int = maxi(1, int(round(2.5 * float(cell_px) / float(INV_CELL_DESIGN_PX))))
 	if not highlight:

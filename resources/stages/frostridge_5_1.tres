@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="DungeonStageData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonStageData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "frostridge_5_1"
+biome_id = "frostridge"
+biome_index = 5
+chapter_index = 1
+display_name = "白雪平原"
+floor_count = 8
+enemy_level = 45
+recommended_level = 47
+closing_type = "exit"
+requires_elite = false
+spawn_weights = {
+"2": 70,
+"3": 30
+}
+event_room_weight = 15
+min_event_rooms = 1

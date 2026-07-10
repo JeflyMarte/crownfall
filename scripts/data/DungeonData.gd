@@ -10,7 +10,7 @@ extends Resource
 ## 同一ダンジョンの難易度調整に使用。1 以下は等倍（Lv1＝tres 基準値）。
 @export var enemy_level: int = 1
 @export var room_count: int = 0
-## フロア数（START〜BOSS を含む。EXIT は末尾に自動付与）。
+## フロア数（全フロアが room_sequence に含まれる。出口は別フロアにしない）。
 ## 1 以上で部屋ランダム抽選を有効化。0 の場合は ROOM_SEQUENCE/room_count の従来固定列。
 @export var floor_count: int = 0
 @export var enemy_pool: Array[String] = []

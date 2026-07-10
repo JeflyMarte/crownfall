@@ -41,21 +41,24 @@ var _entries: Array = []
 var _selected_index: int = -1
 var _entry_rows: Array = []
 
-@onready var _label_detail_id: Label = $MainScroll/MainVBox/DetailPanel/TopRow/InfoCol/LabelDetailId
-@onready var _label_detail_name: Label = $MainScroll/MainVBox/DetailPanel/TopRow/InfoCol/LabelDetailName
-@onready var _label_detail_status: Label = $MainScroll/MainVBox/DetailPanel/TopRow/InfoCol/LabelDetailStatus
-@onready var _label_detail_category: Label = $MainScroll/MainVBox/DetailPanel/TopRow/InfoCol/LabelDetailCategory
-@onready var _label_detail_extra_a: Label = $MainScroll/MainVBox/DetailPanel/TopRow/InfoCol/LabelDetailExtraA
-@onready var _label_detail_extra_b: Label = $MainScroll/MainVBox/DetailPanel/TopRow/InfoCol/LabelDetailExtraB
-@onready var _label_detail_overview_header: Label = $MainScroll/MainVBox/DetailPanel/DescBox/DescInner/LabelDetailOverviewHeader
-@onready var _label_detail_description: Label = $MainScroll/MainVBox/DetailPanel/DescBox/DescInner/LabelDetailDescription
-@onready var _desc_box: PanelContainer = $MainScroll/MainVBox/DetailPanel/DescBox
-@onready var _label_detail_related_header: Label = $MainScroll/MainVBox/DetailPanel/TopRow/InfoCol/LabelDetailRelatedHeader
-@onready var _label_detail_related: Label = $MainScroll/MainVBox/DetailPanel/TopRow/InfoCol/LabelDetailRelated
-@onready var _art_frame: PanelContainer = $MainScroll/MainVBox/DetailPanel/TopRow/ArtFrame
-@onready var _icon_placeholder: PanelContainer = $MainScroll/MainVBox/DetailPanel/TopRow/ArtFrame/IconPlaceholder
-@onready var _label_icon_placeholder: Label = $MainScroll/MainVBox/DetailPanel/TopRow/ArtFrame/IconPlaceholder/LabelIconPlaceholder
-@onready var _texture_icon: TextureRect = $MainScroll/MainVBox/DetailPanel/TopRow/ArtFrame/TextureIcon
+@onready var _detail_overlay: Control = $DetailOverlay
+@onready var _detail_panel: PanelContainer = $DetailOverlay/DetailPanel
+@onready var _detail_scroll: ScrollContainer = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll
+@onready var _label_detail_id: Label = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/InfoCol/LabelDetailId
+@onready var _label_detail_name: Label = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/InfoCol/LabelDetailName
+@onready var _label_detail_status: Label = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/InfoCol/LabelDetailStatus
+@onready var _label_detail_category: Label = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/InfoCol/LabelDetailCategory
+@onready var _label_detail_extra_a: Label = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/InfoCol/LabelDetailExtraA
+@onready var _label_detail_extra_b: Label = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/InfoCol/LabelDetailExtraB
+@onready var _label_detail_overview_header: Label = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/DescBox/DescInner/LabelDetailOverviewHeader
+@onready var _label_detail_description: Label = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/DescBox/DescInner/LabelDetailDescription
+@onready var _desc_box: PanelContainer = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/DescBox
+@onready var _label_detail_related_header: Label = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/InfoCol/LabelDetailRelatedHeader
+@onready var _label_detail_related: Label = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/InfoCol/LabelDetailRelated
+@onready var _art_frame: PanelContainer = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/ArtFrame
+@onready var _icon_placeholder: PanelContainer = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/ArtFrame/IconPlaceholder
+@onready var _label_icon_placeholder: Label = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/ArtFrame/IconPlaceholder/LabelIconPlaceholder
+@onready var _texture_icon: TextureRect = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/ArtFrame/TextureIcon
 @onready var _label_gold: Label = $Header/HeaderRow/GoldChip/GoldRow/LabelGold
 @onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
 
@@ -70,10 +73,10 @@ func _ready() -> void:
 	$MainScroll/MainVBox/TabRow/ButtonTabWeapon.pressed.connect(func(): _select_category("weapon"))
 	$MainScroll/MainVBox/TabRow/ButtonTabHistory.pressed.connect(func(): _select_category("history"))
 	$MainScroll/MainVBox/TabRow/ButtonTabLore.pressed.connect(func(): _select_category("lore"))
-	$MainScroll/MainVBox/TabRow/ButtonTabGuide.pressed.connect(func():
-		_select_category("guide")
-		_show_detail(0)
-	)
+	$MainScroll/MainVBox/TabRow/ButtonTabGuide.pressed.connect(func(): _select_category("guide"))
+	$DetailOverlay/Dim.gui_input.connect(_on_detail_dim_input)
+	$DetailOverlay/DetailPanel/DetailVBox/DetailHeaderRow/ButtonDetailClose.pressed.connect(_hide_detail_popup)
+	_detail_overlay.visible = false
 	_update_currency()
 	_label_detail_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_label_detail_name.clip_text = true
@@ -84,11 +87,19 @@ func _update_currency() -> void:
 	_label_token.text = CurrencyHelper.format_amount()
 
 func _decorate_static() -> void:
+	_detail_panel.add_theme_stylebox_override(
+		"panel", _framed_box(COLOR_GOLD, 2, Color(0.1, 0.08, 0.12, 1.0))
+	)
 	_art_frame.add_theme_stylebox_override("panel", _framed_box(COLOR_GOLD, 2, Color(0.05, 0.05, 0.06, 1.0)))
 	_label_detail_name.add_theme_color_override("font_color", Color(0.93, 0.86, 0.66))
 	_label_detail_name.add_theme_font_size_override("font_size", 18)
-	_desc_box.add_theme_stylebox_override("panel", _framed_box(Color(0.35, 0.3, 0.24, 0.8), 1, Color(0.09, 0.08, 0.1, 0.85)))
+	_desc_box.add_theme_stylebox_override(
+		"panel", _framed_box(Color(0.35, 0.3, 0.24, 1.0), 1, Color(0.12, 0.1, 0.14, 1.0))
+	)
 	_label_detail_overview_header.add_theme_color_override("font_color", COLOR_GOLD)
+	UiTypography.apply_menu_button(
+		$DetailOverlay/DetailPanel/DetailVBox/DetailHeaderRow/ButtonDetailClose
+	)
 
 func _framed_box(border: Color, width: int, bg: Color) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
@@ -128,10 +139,10 @@ func _pill_box(active: bool) -> StyleBoxFlat:
 	sb.set_border_width_all(1)
 	sb.border_color = COLOR_GOLD if active else Color(0.35, 0.33, 0.3, 0.7)
 	sb.set_corner_radius_all(12)
-	sb.content_margin_left = 12.0
-	sb.content_margin_right = 12.0
-	sb.content_margin_top = 6.0
-	sb.content_margin_bottom = 6.0
+	sb.content_margin_left = 14.0
+	sb.content_margin_right = 14.0
+	sb.content_margin_top = 10.0
+	sb.content_margin_bottom = 10.0
 	return sb
 
 func _select_category(category: String) -> void:
@@ -202,15 +213,16 @@ func _rebuild_entry_list() -> void:
 	for i in _entries.size():
 		var entry: Dictionary = _entries[i]
 		var btn := Button.new()
-		btn.custom_minimum_size = Vector2(0, 52)
+		btn.custom_minimum_size = Vector2(0, 68)
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		btn.clip_text = true
+		btn.add_theme_font_size_override("font_size", 20)
 		btn.text = "  " + _entry_list_name(entry)
 		var tex: Texture2D = _entry_list_icon(entry)
 		if tex != null:
 			btn.icon = tex
 			btn.expand_icon = true
-			btn.add_theme_constant_override("icon_max_width", 40)
+			btn.add_theme_constant_override("icon_max_width", 52)
 		var chevron := Label.new()
 		chevron.text = "›"
 		chevron.add_theme_color_override("font_color", COLOR_GOLD)
@@ -252,31 +264,45 @@ func _highlight_selected() -> void:
 
 func _show_detail(index: int) -> void:
 	if index < 0 or index >= _entries.size():
-		_clear_detail()
+		_hide_detail_popup()
 		return
 	_selected_index = index
 	_highlight_selected()
 	var entry: Dictionary = _entries[index]
+	$DetailOverlay/DetailPanel/DetailVBox/DetailHeaderRow/LabelDetailPopupTitle.text = _entry_list_name(entry)
 	_label_detail_category.text = "種別: %s" % _get_category_display()
 	_hide_bible_fields()
 	if _current_category == "enemy":
 		_apply_enemy_stage_fields(entry)
-		return
-	var discovered: bool = bool(entry.get("discovered", false))
-	if discovered:
-		_label_detail_id.text = "Entry ID: %s" % str(entry.get("id", ""))
-		_label_detail_name.text = "%s" % str(entry.get("display_name", ""))
-		_set_status("確認済み", true)
-		_label_detail_description.text = str(entry.get("description", ""))
-		_update_icon(IconPaths.get_icon_texture(str(entry.get("id", "")), _current_category))
-		_apply_bible_fields_discovered(entry)
 	else:
-		_label_detail_id.text = "Entry ID: %s" % UNKNOWN_DISPLAY
-		_label_detail_name.text = "%s" % UNKNOWN_DISPLAY
-		_set_status("未確認", false)
-		_label_detail_description.text = "調査中"
-		_update_icon(null)
-		_apply_bible_fields_undiscovered()
+		var discovered: bool = bool(entry.get("discovered", false))
+		if discovered:
+			_label_detail_id.text = "Entry ID: %s" % str(entry.get("id", ""))
+			_label_detail_name.text = "%s" % str(entry.get("display_name", ""))
+			_set_status("確認済み", true)
+			_label_detail_description.text = str(entry.get("description", ""))
+			_update_icon(IconPaths.get_icon_texture(str(entry.get("id", "")), _current_category))
+			_apply_bible_fields_discovered(entry)
+		else:
+			_label_detail_id.text = "Entry ID: %s" % UNKNOWN_DISPLAY
+			_label_detail_name.text = "%s" % UNKNOWN_DISPLAY
+			_set_status("未確認", false)
+			_label_detail_description.text = "調査中"
+			_update_icon(null)
+			_apply_bible_fields_undiscovered()
+	_detail_overlay.visible = true
+	_detail_scroll.scroll_vertical = 0
+
+func _hide_detail_popup() -> void:
+	_detail_overlay.visible = false
+	_selected_index = -1
+	_highlight_selected()
+
+func _on_detail_dim_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_hide_detail_popup()
+	elif event is InputEventScreenTouch and event.pressed:
+		_hide_detail_popup()
 
 func _apply_enemy_stage_fields(entry: Dictionary) -> void:
 	var enemy_id: String = str(entry.get("id", ""))
@@ -322,8 +348,11 @@ func _apply_enemy_stage_fields(entry: Dictionary) -> void:
 		if not mat_ids.is_empty():
 			var mat_parts: PackedStringArray = []
 			for mat_id in mat_ids:
-				var mat_data: Resource = DataRegistry.get_material_data(str(mat_id))
-				var mat_name: String = str(mat_id) if mat_data == null else mat_data.display_name
+				var mat_key: String = str(mat_id)
+				if not EquipmentEnhancer.is_enhancement_material(mat_key):
+					continue
+				var mat_data: Resource = DataRegistry.get_material_data(mat_key)
+				var mat_name: String = mat_key if mat_data == null else mat_data.display_name
 				if mat_data != null and int(mat_data.rarity) >= 2:
 					mat_name = "【レア】" + mat_name
 				mat_parts.append(mat_name)
@@ -467,15 +496,7 @@ func _update_icon(texture: Texture2D, _big: bool = false) -> void:
 	_icon_placeholder.visible = false
 
 func _clear_detail() -> void:
-	_label_detail_id.text = "Entry ID: —"
-	_label_detail_name.text = "—"
-	_set_status("—", false)
-	_label_detail_category.text = "種別: %s" % _get_category_display()
-	_label_detail_overview_header.text = "解説:"
-	_label_detail_overview_header.visible = true
-	_label_detail_description.text = "項目を選択してください"
-	_hide_bible_fields()
-	_update_icon(null)
+	_hide_detail_popup()
 
 func _on_back_pressed() -> void:
 	_go_to(HOME_SCENE)

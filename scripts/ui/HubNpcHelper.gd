@@ -3,13 +3,9 @@ extends RefCounted
 
 ## 拠点 NPC 最小台詞（P3-LORE-003）。`world/08_SeekersGuild §14` に基づく1行表示。
 
-const HINT_BY_ENTRY: Dictionary = {
-	"codex": {"npc": "ニーナ", "line": "新しい発見があるなら、図鑑の空白を埋めてくれ。"},
-}
+const HINT_BY_ENTRY: Dictionary = {}
 
-const SCENE_TO_ENTRY: Dictionary = {
-	"res://scenes/codex/CodexScene.tscn": "codex",
-}
+const SCENE_TO_ENTRY: Dictionary = {}
 
 static func queue_hint(entry_id: String) -> void:
 	var hint: Dictionary = HINT_BY_ENTRY.get(entry_id, {})

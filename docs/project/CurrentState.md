@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-10（**P3-DG-STG-ENABLE**: サブステージ正式承認 — メイン5 Biome×5章を `SUB_STAGES_PLAYABLE=true` で有効化。`P3-DG-OMIT-001-2` 上書き）
+
 2026-07-08（**P3-WPN-LEG-EFFECT**: レジェンド武器10本→`fixed_passive_id`固有効果・`leg_*`廃止）
 
 2026-07-08（**P3-RELIC-PASSIVE 案A**: 遺物→レリックパッシブ統合・パッシブタブ2枠・Save v4・`CombatPassives` SSOT）
@@ -24,11 +26,11 @@
 
 2026-07-06（**P3-UI-GACHA 召喚所モック寄せ Closeout**: D-GACHA-1〜7 — タイトル「英雄召喚」・3タブ chrome（ノーマルのみ有効）・HeroBanner/Pity/カルーセル/SummonActionBar・10連リボン「★3以上1体確定」（押下不可）・確率詳細オーバーレイ・Reveal `UiTypography` polish・`GachaUiTokens`/`GachaUiHelper`・`generate_gacha_ui_assets.py` 17枚・`ui_audit` gacha_detail/gacha_reveal。ロジック不変（単発のみ・天井30）。unit 151 PASS・smoke PASS）
 
-2026-07-06（**P3-DG-STG-003 全25章名**: ②〜⑤ 章名確定 — **オーナー承認**。SSOT=`03`/`05_Biomes`/`game/05`。Impl **保留**（P3-DG-OMIT-001））
+2026-07-06（**P3-DG-STG-003 全25章名**: ②〜⑤ 章名確定 — **オーナー承認**。SSOT=`03`/`05_Biomes`/`game/05`。**Impl ✅**（P3-DG-STG-ENABLE））
 
-2026-07-06（**P3-DG-OMIT-001**: side/apex・サブステージ(1-1分割)を一旦オミット — `SUB_DUNGEONS_PLAYABLE=false`）
+2026-07-06（**P3-DG-OMIT-001**: side/apex を一旦オミット — `SUB_DUNGEONS_PLAYABLE=false`。**サブステージは P3-DG-STG-ENABLE で再有効化**）
 
-2026-07-06（**P3-DG-STG-003 ①章名**: 1-1崩れた地下水路〜1-5王座の深淵 — **GO**。Impl **保留**（P3-DG-OMIT-001））
+2026-07-06（**P3-DG-STG-003 ①章名**: 1-1崩れた地下水路〜1-5王座の深淵 — **GO**。**Impl ✅**（P3-DG-STG-ENABLE））
 
 2026-07-06（**P3-ENEMY-001 敵プール拡充・章別 spawn 重み**: 雑魚6〜7種/Biome・`codex_danger`重み SSOT・5Biome×5章表 — **オーナー GO**。spawn Impl=P3-DG-STG PoC 同梱・新種+8〜12は別 Task）
 
@@ -299,7 +301,7 @@
 | — | P3-DAILY-B | 日課 UI polish | Impl | 任意 |
 | — | P3-UI2-026 | 召喚 SE/パーティクル | Impl | Defer（音源なし） |
 | — | 029 占位整理 | ⚡/挑戦回数 UI 削除（任意） | Impl | 未計画 |
-| **2** | **P3-DG-STG-001** | サブステージ PoC（mourngate 1-1〜1-5）+ `spawn_weights` | Impl | **P3-DG-OMIT-001 で保留** |
+| **2** | **P3-DG-STG-001** | サブステージ（mourngate 1-1〜1-5 + ②〜⑤横展開）+ `spawn_weights` | **完了**（P3-DG-STG-ENABLE） |
 | **3** | **P3-EQ-LVL-001** | 装備レベル（全装備・BiomeドロップLv） | Impl | ✅ **Closeout** |
 | **4** | **P3-EQ-LEG-002** | 防具・装飾★ ②〜⑤横展開 | Impl | 未着手 |
 | **5** | **P3-ENEMY-002** | 新雑魚 +8〜12 | HQ+Impl | **Decision済・未着手** |

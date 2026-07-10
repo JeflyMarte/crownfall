@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "seradis_archive_seal"
+display_name = "学識王の封誌"
+rarity = 3
+icon = ""
+description = "沈没封緘書庫の封印誌。学識王セラディスの名と封じられた書目の断片が焼き付けられている。"
+hp_bonus = 20
+attack_bonus = 0
+defense_bonus = 0
+crit_rate_bonus = 0.04
+exp_gain_rate = 0.0
+gold_gain_rate = 0.0
+rare_drop_rate = 0.0
+fixed_passive_id = "eq_seradis_archive"

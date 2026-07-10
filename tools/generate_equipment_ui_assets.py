@@ -16,6 +16,7 @@ from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "assets/ui/equipment_ui"
+ICON_CELL_BASE = OUT / "_ref/IconCell_Base.png"
 
 GOLD = (235, 198, 72)
 GOLD_DARK = (140, 110, 40)
@@ -27,11 +28,24 @@ RARITY_BORDERS = {
     2: (170, 90, 220),
     3: (235, 198, 72),
 }
+# 暗い金属地色 + レアリティ色を控えめにティント（SSR はさらに弱め）。
+CELL_BG_BASE = (28, 22, 16)
+CELL_BG_ALPHA = 235
+RARITY_BG_TINT = {0: 0.12, 1: 0.12, 2: 0.12, 3: 0.08}
+INV_CELL_MARGINS = (12, 12, 12, 12)
+_ICON_CELL_TEXTURE_CACHE: dict[int, Image.Image] = {}
+# Owner art imported via tools/import_equipment_inv_cell_frames.py — do not overwrite.
+HAND_DRAWN_INV_CELL_LABELS: set[str] = set()
 
 
 def save(img: Image.Image, name: str) -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     path = OUT / name
+    if path.exists() and name.startswith("UI_Equip_InvCell_"):
+        label = name.removeprefix("UI_Equip_InvCell_").removesuffix(".png")
+        if label in HAND_DRAWN_INV_CELL_LABELS:
+            print(f"skip hand-drawn {path.name}")
+            return
     img.save(path, optimize=True)
     print(f"wrote {path} ({img.size[0]}x{img.size[1]})")
 
@@ -197,13 +211,72 @@ def draw_slot_frame(locked: bool = False, size: int = 128) -> Image.Image:
     return img
 
 
+def _blend_rgb(base: tuple[int, int, int], tint: tuple[int, int, int], ratio: float) -> tuple[int, int, int]:
+    return tuple(int(round(base[i] + (tint[i] - base[i]) * ratio)) for i in range(3))
+
+
+def _rounded_alpha_mask(size: int, pad: int = 2, radius: int = 12) -> Image.Image:
+    mask = Image.new("L", (size, size), 0)
+    draw = ImageDraw.Draw(mask)
+    draw.rounded_rectangle((pad, pad, size - pad - 1, size - pad - 1), radius=radius, fill=255)
+    return mask
+
+
+def _prepare_stone_texture(size: int) -> Image.Image:
+    if size in _ICON_CELL_TEXTURE_CACHE:
+        return _ICON_CELL_TEXTURE_CACHE[size].copy()
+    if not ICON_CELL_BASE.exists():
+        raise FileNotFoundError(f"Missing icon cell base art: {ICON_CELL_BASE}")
+
+    src = Image.open(ICON_CELL_BASE).convert("RGBA")
+    sw, sh = src.size
+    inset = int(min(sw, sh) * 0.12)
+    cropped = src.crop((inset, inset, sw - inset, sh - inset))
+    tex = cropped.resize((size, size), Image.Resampling.LANCZOS)
+
+    # 中央紋様を薄めて装備アイコンとの干渉を抑える。
+    emblem_mask = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    edraw = ImageDraw.Draw(emblem_mask)
+    cx, cy = size // 2, size // 2
+    emblem_r = int(size * 0.36)
+    edraw.ellipse((cx - emblem_r, cy - emblem_r, cx + emblem_r, cy + emblem_r), fill=(6, 4, 3, 118))
+    tex = Image.alpha_composite(tex, emblem_mask.filter(ImageFilter.GaussianBlur(5)))
+
+    tone = Image.new("RGBA", (size, size), (12, 9, 7, 42))
+    tex = Image.alpha_composite(tex, tone)
+
+    _ICON_CELL_TEXTURE_CACHE[size] = tex
+    return tex.copy()
+
+
 def draw_inv_cell(rarity: int, size: int = 144) -> Image.Image:
-    # 背景は UI 側 StyleBox で表現する。アセットは枠線のみ。
-    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
     border = RARITY_BORDERS.get(rarity, RARITY_BORDERS[0])
-    rounded_rect(draw, (0, 0, size - 1, size - 1), 10, (0, 0, 0, 0), (*border, 255), 3)
-    return img
+    tint_ratio = RARITY_BG_TINT.get(rarity, 0.12)
+    pad = 2
+    box = (pad, pad, size - pad - 1, size - pad - 1)
+    mask = _rounded_alpha_mask(size, pad, 12)
+
+    tex = _prepare_stone_texture(size)
+    body = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    body.paste(tex, (0, 0), mask)
+
+    tint_rgb = _blend_rgb(CELL_BG_BASE, border, tint_ratio)
+    tint_layer = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    tdraw = ImageDraw.Draw(tint_layer)
+    tdraw.rounded_rectangle(box, radius=12, fill=(*tint_rgb, int(CELL_BG_ALPHA * 0.28)))
+    img = Image.alpha_composite(body, tint_layer)
+
+    draw = ImageDraw.Draw(img)
+    rounded_rect(draw, box, 12, fill=None, outline=(*border, 255), width=3)
+
+    shade = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    shdraw = ImageDraw.Draw(shade)
+    shdraw.rounded_rectangle((pad + 2, size // 2, size - pad - 3, size - pad - 3), 9, fill=(0, 0, 0, 24))
+    img = Image.alpha_composite(img, shade.filter(ImageFilter.GaussianBlur(2)))
+
+    out = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    out.paste(img, (0, 0), mask)
+    return out
 
 
 def draw_button(w: int = 480, h: int = 96, disabled: bool = False) -> Image.Image:
@@ -226,6 +299,10 @@ def draw_section_rule(w: int = 680, h: int = 24) -> Image.Image:
 
 
 def main() -> int:
+    wip = OUT / "_wip"
+    for label in ("N", "R", "SR", "SSR"):
+        if (wip / f"UI_Equip_InvCell_{label}.png").exists():
+            HAND_DRAWN_INV_CELL_LABELS.add(label)
     save(draw_background(), "UI_BG_Equipment.png")
     save(draw_diamond(48), "UI_Ornament_Diamond.png")
     save(draw_back_arrow(48), "UI_Ico_Back_Gold.png")
@@ -241,9 +318,8 @@ def main() -> int:
     save(draw_section_rule(), "UI_Equip_SectionRule.png")
     for kind in ("hp", "atk", "def", "spd", "crit", "critdmg"):
         save(draw_stat_icon(kind), f"ICO_Equip_Stat_{kind.upper()}.png")
-    for kind in ("all", "weapon", "armor", "accessory"):
-        name = kind.capitalize() if kind != "all" else "All"
-        save(draw_category_icon(kind), f"ICO_Equip_Cat_{name}.png")
+    # Category tab icons are owner art — run tools/preprocess_category_icons.py --apply
+    save(draw_category_icon("all"), "ICO_Equip_Cat_All.png")
     for r, label in enumerate(["N", "R", "SR", "SSR"]):
         save(draw_inv_cell(r), f"UI_Equip_InvCell_{label}.png")
     return 0

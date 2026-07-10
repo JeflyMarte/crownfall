@@ -39,10 +39,9 @@ const FORGE_FLASH_PEAK_ALPHA: float = 0.32
 @onready var _category_row: HBoxContainer = $CategoryRow
 @onready var _left_list: VBoxContainer = $MainSplit/LeftScroll/LeftList
 @onready var _detail_panel: PanelContainer = $MainSplit/DetailPanel
-@onready var _hero_stack: Control = $MainSplit/DetailPanel/DetailVBox/HeroPanel/HeroStack
-@onready var _hero_glow: TextureRect = $MainSplit/DetailPanel/DetailVBox/HeroPanel/HeroStack/HeroGlow
-@onready var _hero_frame: PanelContainer = $MainSplit/DetailPanel/DetailVBox/HeroPanel/HeroStack/HeroFrame
-@onready var _hero_icon_slot: Control = $MainSplit/DetailPanel/DetailVBox/HeroPanel/HeroStack/HeroFrame/HeroIconSlot
+@onready var _hero_pedestal: TextureRect = $MainSplit/DetailPanel/DetailVBox/HeroPanel/HeroStack/HeroPedestal
+@onready var _hero_weapon_pivot: Control = $MainSplit/DetailPanel/DetailVBox/HeroPanel/HeroStack/HeroWeaponPivot
+@onready var _hero_icon_slot: Control = $MainSplit/DetailPanel/DetailVBox/HeroPanel/HeroStack/HeroWeaponPivot/HeroIconSlot
 @onready var _rarity_title_label: Label = $MainSplit/DetailPanel/DetailVBox/RarityTitleLabel
 @onready var _title_label: Label = $MainSplit/DetailPanel/DetailVBox/TitleLabel
 @onready var _subtitle_label: Label = $MainSplit/DetailPanel/DetailVBox/SubtitleLabel
@@ -89,9 +88,8 @@ func _ready() -> void:
 	_craft_button.pressed.connect(_on_craft_button_pressed)
 	_produce_notify_dot.add_theme_stylebox_override("panel", BlacksmithUiHelper.notify_dot_style())
 	_flash_overlay.color = Color(1.0, 1.0, 1.0, 0.0)
-	_hero_pulse_base_scale = _hero_frame.scale
-	_hero_stack.clip_contents = true
-	_setup_hero_frame_layout()
+	_hero_pulse_base_scale = _hero_weapon_pivot.scale
+	_setup_hero_display_layout()
 	_setup_forge_chrome()
 	_apply_detail_typography()
 	_detail_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -105,12 +103,24 @@ func _ready() -> void:
 func _setup_craftable_header() -> void:
 	UiTypography.apply_body(_craftable_header, UiTypography.SIZE_CAPTION, UiTypography.COLOR_GOLD)
 
-func _setup_hero_frame_layout() -> void:
-	var px: int = ForgeUiTokens.HERO_ICON_PX
-	_hero_frame.custom_minimum_size = Vector2(px, px)
-	_hero_icon_slot.custom_minimum_size = Vector2(px, px)
-	_hero_frame.pivot_offset = Vector2(px * 0.5, px * 0.5)
-	_hero_frame.rotation_degrees = ForgeUiTokens.HERO_ROTATION_DEG
+func _setup_hero_display_layout() -> void:
+	var pedestal_px: int = ForgeUiTokens.HERO_PEDESTAL_PX
+	var display_px: int = ForgeUiTokens.HERO_DISPLAY_PX
+	var half_ped: float = pedestal_px * 0.5
+	_hero_pedestal.offset_left = -half_ped
+	_hero_pedestal.offset_top = -half_ped
+	_hero_pedestal.offset_right = half_ped
+	_hero_pedestal.offset_bottom = half_ped
+	var half_weapon: float = display_px * 0.5
+	_hero_weapon_pivot.offset_left = -half_weapon
+	_hero_weapon_pivot.offset_top = -half_weapon
+	_hero_weapon_pivot.offset_right = half_weapon
+	_hero_weapon_pivot.offset_bottom = half_weapon
+	_hero_weapon_pivot.pivot_offset = Vector2(half_weapon, half_weapon)
+	_hero_weapon_pivot.rotation_degrees = 0.0
+	_hero_icon_slot.custom_minimum_size = Vector2(display_px, display_px)
+	_hero_pedestal.visible = false
+	_hero_weapon_pivot.visible = false
 
 func _setup_forge_chrome() -> void:
 	var back_tex: Texture2D = ForgeUiTokens.back_icon()
@@ -119,11 +129,10 @@ func _setup_forge_chrome() -> void:
 		_btn_back.icon = back_tex
 		_btn_back.expand_icon = true
 		_btn_back.custom_minimum_size = Vector2(40, 40)
-	var glow_tex: Texture2D = ForgeUiTokens.load_tex(ForgeUiTokens.HERO_GLOW)
-	if glow_tex != null:
-		_hero_glow.texture = glow_tex
-		# 鍛冶屋装飾用グロー。全面を暗く見せないよう弱めにする。
-		_hero_glow.modulate = Color(1.0, 0.92, 0.72, 0.22)
+	var pedestal_tex: Texture2D = ForgeUiTokens.load_tex(ForgeUiTokens.HERO_GLOW)
+	if pedestal_tex != null:
+		_hero_pedestal.texture = pedestal_tex
+		_hero_pedestal.modulate = Color(1.0, 1.0, 1.0, 1.0)
 	var anvil_tex: Texture2D = ForgeUiTokens.load_tex(ForgeUiTokens.ANVIL_PANEL)
 	if anvil_tex != null:
 		_anvil_bg.texture = anvil_tex
@@ -200,7 +209,7 @@ func _update_category_styles() -> void:
 			)
 
 func _apply_detail_typography() -> void:
-	UiTypography.apply_display(_rarity_title_label, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
+	_rarity_title_label.visible = false
 	UiTypography.apply_display(_title_label, UiTypography.SIZE_BODY, COLOR_TEXT_STRONG)
 	UiTypography.apply_body(_subtitle_label, UiTypography.SIZE_BODY_SMALL, COLOR_SUB_STRONG)
 	UiTypography.apply_body(_unique_label, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
@@ -276,43 +285,31 @@ func _make_recipe_list_card(craft: Resource) -> PanelContainer:
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(0, BlacksmithUiHelper.LIST_CARD_MIN_HEIGHT)
 	panel.add_theme_stylebox_override(
-		"panel", BlacksmithUiHelper.list_card_style(selected, can_craft, rarity)
+		"panel", BlacksmithUiHelper.simple_list_card_style(selected, can_craft, rarity)
 	)
-	panel.gui_input.connect(_on_recipe_card_input.bind(craft))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	panel.add_child(row)
-	row.add_child(_make_list_icon_frame(str(craft.output_id), str(craft.output_type), rarity))
-	var col := VBoxContainer.new()
-	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	col.add_theme_constant_override("separation", 4)
-	row.add_child(col)
+	var icon_host := _make_selectable_list_icon(
+		str(craft.output_id),
+		str(craft.output_type),
+		craft,
+		"_on_recipe_card_input",
+		rarity
+	)
+	row.add_child(icon_host)
 	var name_lbl := Label.new()
-	name_lbl.text = str(craft.display_name)
+	name_lbl.text = BlacksmithUiHelper.output_display_name(craft)
+	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	name_lbl.max_lines_visible = 2
+	name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	UiTypography.apply_body(
 		name_lbl,
 		UiTypography.SIZE_BODY_SMALL,
-		COLOR_TEXT_STRONG if can_craft else UiTypography.COLOR_BODY
+		COLOR_TEXT_STRONG if selected else UiTypography.COLOR_BODY
 	)
-	col.add_child(name_lbl)
-	var sub_row := HBoxContainer.new()
-	sub_row.add_theme_constant_override("separation", 6)
-	col.add_child(sub_row)
-	var rarity_badge := Label.new()
-	rarity_badge.text = BlacksmithUiHelper.rarity_short_label(rarity)
-	UiTypography.apply_body(rarity_badge, 15, BlacksmithUiHelper.rarity_color(rarity), 2)
-	sub_row.add_child(rarity_badge)
-	var owned: int = BlacksmithUiHelper.owned_count(str(craft.output_type), str(craft.output_id))
-	var sub := Label.new()
-	sub.text = "所持 %d" % owned
-	UiTypography.apply_body(
-		sub,
-		UiTypography.SIZE_CAPTION,
-		COLOR_SHORT if owned <= 0 else COLOR_SUB_STRONG
-	)
-	sub_row.add_child(sub)
+	row.add_child(name_lbl)
 	return panel
 
 func _on_recipe_card_input(event: InputEvent, craft: Resource) -> void:
@@ -328,43 +325,28 @@ func _make_enhance_list_card(weapon: Resource) -> PanelContainer:
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(0, BlacksmithUiHelper.LIST_CARD_MIN_HEIGHT)
 	panel.add_theme_stylebox_override(
-		"panel", BlacksmithUiHelper.list_card_style(selected, false, rarity)
+		"panel", BlacksmithUiHelper.simple_list_card_style(selected, false, rarity)
 	)
-	panel.gui_input.connect(_on_enhance_card_input.bind(weapon))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	panel.add_child(row)
-	row.add_child(_make_list_icon_frame(str(weapon.weapon_id), "weapon", rarity))
-	var col := VBoxContainer.new()
-	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	col.add_theme_constant_override("separation", 4)
-	row.add_child(col)
+	var icon_host := _make_selectable_list_icon(
+		str(weapon.weapon_id), "weapon", weapon, "_on_enhance_card_input", rarity
+	)
+	row.add_child(icon_host)
 	var name_lbl := Label.new()
 	name_lbl.text = _EquipmentEnhancer.get_display_name(weapon)
+	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	name_lbl.max_lines_visible = 2
+	name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	var name_color: Color = UiTypography.COLOR_BODY
 	if level >= _EquipmentEnhancer.MAX_FORGE_LEVEL:
 		name_color = UiTypography.COLOR_GOLD
 	elif selected:
 		name_color = COLOR_ACCENT
 	UiTypography.apply_body(name_lbl, UiTypography.SIZE_BODY_SMALL, name_color)
-	col.add_child(name_lbl)
-	var sub_row := HBoxContainer.new()
-	sub_row.add_theme_constant_override("separation", 6)
-	col.add_child(sub_row)
-	var rarity_badge := Label.new()
-	rarity_badge.text = BlacksmithUiHelper.rarity_short_label(rarity)
-	UiTypography.apply_body(rarity_badge, 15, BlacksmithUiHelper.rarity_color(rarity), 2)
-	sub_row.add_child(rarity_badge)
-	var sub := Label.new()
-	sub.text = "ATK %d" % _EquipmentEnhancer.get_effective_attack(weapon)
-	if level > 0:
-		sub.text += "  +%d" % level
-	if _is_weapon_equipped(weapon):
-		sub.text += "  装備中"
-	UiTypography.apply_body(sub, UiTypography.SIZE_CAPTION, COLOR_SUB_STRONG)
-	sub_row.add_child(sub)
+	row.add_child(name_lbl)
 	return panel
 
 func _on_enhance_card_input(event: InputEvent, weapon: Resource) -> void:
@@ -396,14 +378,14 @@ func _clear_materials_row() -> void:
 func _clear_hero_icon() -> void:
 	for child in _hero_icon_slot.get_children():
 		child.queue_free()
-	_hero_glow.visible = false
 
 func _set_detail_empty(message: String) -> void:
+	_rarity_title_label.visible = false
 	_rarity_title_label.text = ""
 	_title_label.text = message
 	_subtitle_label.text = ""
-	_hero_frame.visible = false
-	_hero_glow.visible = false
+	_hero_weapon_pivot.visible = false
+	_hero_pedestal.visible = false
 	_cost_panel.visible = false
 	_craft_button.visible = false
 
@@ -464,15 +446,14 @@ func _add_stats_section_spacer(height: float = 14.0) -> void:
 		gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_stats_grid.add_child(gap)
 
-func _update_hero_icon(item_id: String, category: String, rarity: int) -> void:
+func _update_hero_icon(item_id: String, category: String, _rarity: int) -> void:
 	_clear_hero_icon()
-	_hero_frame.visible = true
-	_hero_glow.visible = false
-	var cell_px: int = ForgeUiTokens.HERO_ICON_PX
-	_hero_frame.add_theme_stylebox_override(
-		"panel", EquipmentUiTokens.rarity_slot_style(rarity, true, cell_px)
+	_hero_pedestal.visible = true
+	_hero_weapon_pivot.visible = true
+	_hero_weapon_pivot.rotation_degrees = 0.0
+	BlacksmithUiHelper.attach_hero_icon(
+		_hero_icon_slot, item_id, category, ForgeUiTokens.HERO_DISPLAY_PX
 	)
-	BlacksmithUiHelper.attach_item_icon(_hero_icon_slot, item_id, category, cell_px)
 
 func _update_cost_panel(gold_cost: int, materials: Dictionary) -> void:
 	_gold_cost_label.text = "必要ゴールド: %d" % gold_cost
@@ -490,12 +471,9 @@ func _rebuild_produce_detail() -> void:
 	var can_craft: bool = CraftHelper.can_craft(craft)
 	var rarity: int = BlacksmithUiHelper.output_rarity(craft)
 	_update_hero_icon(str(craft.output_id), str(craft.output_type), rarity)
+	_rarity_title_label.visible = false
+	_rarity_title_label.text = ""
 	var rarity_col: Color = BlacksmithUiHelper.rarity_color(rarity)
-	_rarity_title_label.text = "%s %s" % [
-		BlacksmithUiHelper.rarity_gem(rarity),
-		BlacksmithUiHelper.rarity_short_label(rarity),
-	]
-	_rarity_title_label.add_theme_color_override("font_color", rarity_col)
 	_title_label.text = BlacksmithUiHelper.output_display_name(craft)
 	_title_label.add_theme_color_override(
 		"font_color", rarity_col.lerp(UiTypography.COLOR_BODY, 0.45)
@@ -520,12 +498,9 @@ func _rebuild_enhance_detail() -> void:
 	var weapon_data: Resource = DataRegistry.get_weapon_data(str(weapon.weapon_id))
 	var rarity: int = int(weapon_data.rarity) if weapon_data != null else 0
 	_update_hero_icon(str(weapon.weapon_id), "weapon", rarity)
+	_rarity_title_label.visible = false
+	_rarity_title_label.text = ""
 	var rarity_col: Color = BlacksmithUiHelper.rarity_color(rarity)
-	_rarity_title_label.text = "%s %s" % [
-		BlacksmithUiHelper.rarity_gem(rarity),
-		BlacksmithUiHelper.rarity_short_label(rarity),
-	]
-	_rarity_title_label.add_theme_color_override("font_color", rarity_col)
 	_title_label.text = _EquipmentEnhancer.get_display_name(weapon)
 	_title_label.add_theme_color_override(
 		"font_color", rarity_col.lerp(UiTypography.COLOR_BODY, 0.45)
@@ -573,9 +548,25 @@ func _rebuild_craftable_strip() -> void:
 	for craft in recipes:
 		_craftable_row.add_child(_make_craftable_chip(craft))
 
+func _make_selectable_list_icon(
+	item_id: String,
+	category: String,
+	payload: Resource,
+	handler_name: String,
+	rarity: int = 0
+) -> Control:
+	var cell_px: int = BlacksmithUiHelper.list_cell_px()
+	var host := Control.new()
+	host.custom_minimum_size = Vector2(cell_px, cell_px)
+	host.mouse_filter = Control.MOUSE_FILTER_STOP
+	host.gui_input.connect(Callable(self, handler_name).bind(payload))
+	host.add_child(
+		BlacksmithUiHelper.make_item_icon_cell(item_id, category, rarity, cell_px, false)
+	)
+	return host
+
 func _make_craftable_chip(craft: Resource) -> PanelContainer:
 	var selected: bool = craft == _selected_craft
-	var rarity: int = BlacksmithUiHelper.output_rarity(craft)
 	var panel := PanelContainer.new()
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	panel.custom_minimum_size = Vector2(
@@ -592,20 +583,15 @@ func _make_craftable_chip(craft: Resource) -> PanelContainer:
 	var cell_px: int = BlacksmithUiHelper.list_cell_px()
 	icon_wrap.custom_minimum_size = Vector2(cell_px, cell_px)
 	col.add_child(icon_wrap)
-	var icon_cell := BlacksmithUiHelper.make_item_icon_cell(
-		str(craft.output_id), str(craft.output_type), rarity, cell_px, selected
-	)
-	icon_wrap.add_child(icon_cell)
-	BlacksmithUiHelper.add_corner_badge(
-		icon_cell,
-		BlacksmithUiHelper.rarity_short_label(rarity),
-		BlacksmithUiHelper.rarity_color(rarity),
-		Vector2(2.0, 0.0),
-		10
+	var chip_rarity: int = BlacksmithUiHelper.output_rarity(craft)
+	icon_wrap.add_child(
+		BlacksmithUiHelper.make_item_icon_cell(
+			str(craft.output_id), str(craft.output_type), chip_rarity, cell_px, false
+		)
 	)
 	var can_make: bool = CraftHelper.can_craft(craft)
 	var name_lbl := Label.new()
-	name_lbl.text = str(craft.display_name)
+	name_lbl.text = BlacksmithUiHelper.output_display_name(craft)
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	name_lbl.max_lines_visible = 2
@@ -615,14 +601,6 @@ func _make_craftable_chip(craft: Resource) -> PanelContainer:
 		Color(0.96, 0.98, 0.92, 1.0) if can_make else UiTypography.COLOR_BODY
 	)
 	col.add_child(name_lbl)
-	if can_make:
-		BlacksmithUiHelper.add_corner_badge(
-			panel,
-			"可",
-			Color(0.55, 0.95, 0.45, 1.0),
-			Vector2(panel.custom_minimum_size.x - 22.0, 2.0),
-			11
-		)
 	return panel
 
 func _on_craftable_chip_input(event: InputEvent, craft: Resource) -> void:
@@ -633,18 +611,6 @@ func _on_craftable_chip_input(event: InputEvent, craft: Resource) -> void:
 			_update_category_styles()
 		_selected_craft = craft
 		_refresh_all()
-
-func _make_list_icon_frame(item_id: String, category: String, rarity: int) -> PanelContainer:
-	var cell_px: int = BlacksmithUiHelper.list_cell_px()
-	var frame := BlacksmithUiHelper.make_item_icon_cell(item_id, category, rarity, cell_px, false)
-	BlacksmithUiHelper.add_corner_badge(
-		frame,
-		BlacksmithUiHelper.rarity_gem(rarity),
-		BlacksmithUiHelper.rarity_color(rarity),
-		Vector2(1.0, -1.0),
-		12
-	)
-	return frame
 
 func _make_material_req_cell(mat_id: String, needed: int) -> Control:
 	var owned: int = GameState.get_material_quantity(mat_id)
@@ -815,13 +781,13 @@ func _flash_forge_screen(flash_color: Color) -> void:
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 
 func _pulse_hero_icon() -> void:
-	if not _hero_frame.visible:
+	if not _hero_weapon_pivot.visible:
 		return
-	_hero_frame.scale = _hero_pulse_base_scale
+	_hero_weapon_pivot.scale = _hero_pulse_base_scale
 	var tw := create_tween()
-	tw.tween_property(_hero_frame, "scale", _hero_pulse_base_scale * 1.14, 0.12)\
+	tw.tween_property(_hero_weapon_pivot, "scale", _hero_pulse_base_scale * 1.08, 0.12)\
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(_hero_frame, "scale", _hero_pulse_base_scale, 0.22)\
+	tw.tween_property(_hero_weapon_pivot, "scale", _hero_pulse_base_scale, 0.22)\
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 func _on_back_pressed() -> void:

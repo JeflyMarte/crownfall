@@ -8,13 +8,15 @@ id = "whisperwood_2_5"
 biome_id = "whisperwood"
 biome_index = 2
 chapter_index = 5
-display_name = "深森の王座"
+display_name = "世界樹の根域"
 floor_count = 10
 enemy_level = 14
 recommended_level = 16
 closing_type = "boss"
 boss_id = "granvel"
 requires_elite = false
+legendary_armor_id = "granvel_bark_plate"
+legendary_accessory_id = "silvaria_covenant_ring"
 spawn_weights = {
 "2": 10,
 "3": 90

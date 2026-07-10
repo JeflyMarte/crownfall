@@ -52,14 +52,41 @@ static func weapon_legendary_effect_text_from_data(weapon_data: Resource) -> Str
 		return ""
 	return CombatPassives.weapon_passive_description(pid)
 
+static func equipment_legendary_effect_text_from_passive_id(passive_id: String) -> String:
+	if passive_id.is_empty():
+		return ""
+	return CombatPassives.relic_description(passive_id)
+
+static func equipment_legendary_effect_text(item: Resource, category: String) -> String:
+	if item == null:
+		return ""
+	match category:
+		"weapon":
+			return weapon_legendary_effect_text(item, category)
+		"armor":
+			var armor_data: Resource = DataRegistry.get_armor_data(str(item.armor_id))
+			if armor_data == null:
+				return ""
+			return equipment_legendary_effect_text_from_passive_id(
+				str(armor_data.fixed_passive_id) if "fixed_passive_id" in armor_data else ""
+			)
+		"accessory":
+			var acc_data: Resource = DataRegistry.get_accessory_data(str(item.accessory_id))
+			if acc_data == null:
+				return ""
+			return equipment_legendary_effect_text_from_passive_id(
+				str(acc_data.fixed_passive_id) if "fixed_passive_id" in acc_data else ""
+			)
+	return ""
+
 static func weapon_legendary_effect_text(item: Resource, category: String) -> String:
 	if item == null or category != "weapon":
 		return ""
 	var weapon_data: Resource = DataRegistry.get_weapon_data(str(item.weapon_id))
 	return weapon_legendary_effect_text_from_data(weapon_data)
 
-static func _append_weapon_legendary_effect_block(host: VBoxContainer, item: Resource, category: String) -> void:
-	var effect_text: String = weapon_legendary_effect_text(item, category)
+static func _append_legendary_effect_block(host: VBoxContainer, item: Resource, category: String) -> void:
+	var effect_text: String = equipment_legendary_effect_text(item, category)
 	if effect_text.is_empty():
 		return
 	host.add_child(_make_rule())
@@ -203,6 +230,40 @@ static func flavor_text(item: Resource, category: String) -> String:
 		return ""
 	return _WeaponFlavorHelper.get_flavor_text_for_item(item)
 
+static func hover_summary(item: Resource, category: String, member: Resource = null) -> String:
+	if item == null:
+		return ""
+	var lines: PackedStringArray = PackedStringArray([short_name(item, category)])
+	var stat_limit: int = 4
+	for row: Dictionary in stat_rows(item, category):
+		if lines.size() >= stat_limit + 1:
+			break
+		lines.append("%s %s" % [str(row.get("label", "")), str(row.get("value", ""))])
+	var owner: String = owner_text(item)
+	if owner != "装備者: なし":
+		lines.append(owner)
+	if member != null:
+		var compare: String = compare_summary(item, category, member)
+		if not compare.is_empty():
+			lines.append(compare)
+	return "\n".join(lines)
+
+static func relic_hover_summary(relic_id: String) -> String:
+	if relic_id.is_empty():
+		return ""
+	var lines: PackedStringArray = PackedStringArray([CombatPassives.relic_display_name(relic_id)])
+	var desc: String = CombatPassives.relic_description(relic_id)
+	if not desc.is_empty():
+		if desc.length() > 72:
+			desc = desc.substr(0, 69) + "..."
+		lines.append(desc)
+	var owner_idx: int = EquipmentUiHelper.relic_equipped_member_index(relic_id)
+	if owner_idx >= 0:
+		var member: Resource = GameState.get_member(owner_idx)
+		if member != null:
+			lines.append("装備者: %s" % str(member.display_name))
+	return "\n".join(lines)
+
 static func compare_summary(item: Resource, category: String, member: Resource) -> String:
 	if item == null or member == null:
 		return ""
@@ -234,7 +295,7 @@ static func populate_stats_panel(host: VBoxContainer, item: Resource, category: 
 	host.add_child(_make_rule())
 	for row in stat_rows(item, category):
 		host.add_child(_make_stat_row(str(row.get("key", "")), str(row.get("label", "")), str(row.get("value", ""))))
-	_append_weapon_legendary_effect_block(host, item, category)
+	_append_legendary_effect_block(host, item, category)
 	var flavor: String = flavor_text(item, category)
 	if not flavor.is_empty():
 		host.add_child(_make_rule())
@@ -298,7 +359,7 @@ static func populate_panel(
 		host.add_child(compare_lbl)
 	for row in stat_rows(item, category):
 		host.add_child(_make_stat_row(str(row.get("key", "")), str(row.get("label", "")), str(row.get("value", ""))))
-	_append_weapon_legendary_effect_block(host, item, category)
+	_append_legendary_effect_block(host, item, category)
 	var affix: String = affix_text(item)
 	if not affix.is_empty():
 		host.add_child(_make_rule())
