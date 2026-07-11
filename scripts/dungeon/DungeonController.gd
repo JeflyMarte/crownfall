@@ -625,7 +625,21 @@ func get_enemy_level() -> int:
 		base = maxi(1, int(current_stage_data.enemy_level))
 	elif current_dungeon_data != null:
 		base = maxi(1, int(current_dungeon_data.enemy_level))
-	return base + _DungeonTierConfig.enemy_level_bonus(GameState.current_dungeon_tier)
+	return _DungeonTierConfig.scaled_enemy_level(base, GameState.current_dungeon_tier)
+
+func _combat_enemy_pool() -> Array:
+	if current_dungeon_data == null:
+		return []
+	if current_dungeon_data is DungeonData:
+		return (current_dungeon_data as DungeonData).combat_enemy_pool_for_tier(GameState.current_dungeon_tier)
+	return current_dungeon_data.enemy_pool
+
+func _elite_enemy_pool() -> Array:
+	if current_dungeon_data == null:
+		return []
+	if current_dungeon_data is DungeonData:
+		return (current_dungeon_data as DungeonData).elite_enemy_pool_for_tier(GameState.current_dungeon_tier)
+	return current_dungeon_data.elite_pool
 
 func get_tier_rarity_weight(base_weight: int) -> int:
 	var mult: float = _DungeonTierConfig.rarity_weight_mult(GameState.current_dungeon_tier)
@@ -639,7 +653,7 @@ func get_reward_multiplier() -> float:
 func pick_enemy_data() -> Resource:
 	if current_dungeon_data == null:
 		return null
-	var pool: Array = current_dungeon_data.enemy_pool
+	var pool: Array = _combat_enemy_pool()
 	if pool.is_empty():
 		return null
 	if current_stage_data != null and not current_stage_data.spawn_weights.is_empty():
@@ -684,9 +698,9 @@ func _pick_weighted_pool_enemy(pool: Array, spawn_weights: Dictionary) -> Resour
 func pick_elite_enemy_data() -> Resource:
 	if current_dungeon_data == null:
 		return null
-	var pool: Array = current_dungeon_data.elite_pool
+	var pool: Array = _elite_enemy_pool()
 	if pool.is_empty():
-		pool = current_dungeon_data.enemy_pool
+		pool = _combat_enemy_pool()
 	if pool.is_empty():
 		return null
 	return DataRegistry.get_enemy_data(pool[randi() % pool.size()] as String)

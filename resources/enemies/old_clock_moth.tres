@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "old_clock_moth"
+display_name = "オールドクロックモス"
+max_hp = 124
+attack = 20
+defense = 8
+attack_speed = 1.1
+critical_rate = 0.1
+move_speed = 1.05
+detection_range = 7.0
+attack_range = 2.0
+enemy_type = 1
+ai_type = "default"
+threat_target_bias = "back_row"
+exp_reward = 34
+gold_reward = 52
+drop_table_id = "clock_moth_drops"
+element_weakness = Array[String](["thunder"])
+element_resist = Array[String]([])
+attack_element = "thunder"
+on_hit_status_id = "stun"
+on_hit_status_chance = 0.2
+codex_class = "昆虫類"
+codex_danger = 3
+codex_habitat = "旧時計塔区画"
+codex_research_note = "蛾を祖先とする。封鎖監獄の古い歯車機構から赤銅粉を多く取り込み、翅の色が濃い古銅色になる。羽音が低く、足音のような響きに変化する。通常のクロックモスより営巣年限が長い個体とされる。地下で時間感覚が乱れる報告の一因と記録されている。"
+codex_materials = Array[String](["relic_shard", "elite_relic_shard"])
+skill_ids = Array[String](["enemy_sweep_front", "enemy_chrono_resonance"])
+skill_use_chance = 0.35

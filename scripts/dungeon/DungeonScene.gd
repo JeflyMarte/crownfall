@@ -48,6 +48,11 @@ const ENEMY_SPRITE_MAP: Dictionary = {
 	"vergaron": "res://resources/animation/ENM_Vergaron.tres",
 	"wayfarer_sparrow": "res://resources/animation/ENM_MistWyvern.tres",
 	"reliquary_beetle": "res://resources/animation/ENM_MossShell.tres",
+	"acid_crystal_needle_rat": "res://resources/animation/ENM_AcidCrystalNeedleRat.tres",
+	"ancient_tome_giant_rat": "res://resources/animation/ENM_AncientTomeGiantRat.tres",
+	"bone_roach": "res://resources/animation/ENM_BoneRoach.tres",
+	"corrosion_death_hound": "res://resources/animation/ENM_CorrosionDeathHound.tres",
+	"old_clock_moth": "res://resources/animation/ENM_OldClockMoth.tres",
 }
 const BOSS_ENEMY_SPRITE_MAP: Dictionary = {
 	"serdion": "res://resources/animation/BOSS_Serdion.tres",

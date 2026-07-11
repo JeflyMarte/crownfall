@@ -5,6 +5,7 @@ const _EquipmentRollHelper = preload("res://scripts/equipment/EquipmentRollHelpe
 const _AccessoryStatResolver = preload("res://scripts/equipment/AccessoryStatResolver.gd")
 const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _ElementResolver = preload("res://scripts/combat/ElementResolver.gd")
+const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 
 ## 鍛冶屋「炉研ぎ」— 武器のみ +1〜+5（P3-D152）。
 ## 装備レベル成長 — P3-EQ-LVL-001。
@@ -171,13 +172,25 @@ static func scale_equip_float(base: float, equip_level: int, rarity: int = 0) ->
 	var rate: float = equip_growth_rate_for_rarity(rarity)
 	return base + base * rate * float(lv - 1)
 
-static func resolve_drop_equip_level(stage: Resource, dungeon: Resource) -> int:
+static func resolve_drop_equip_level(
+	stage: Resource,
+	dungeon: Resource,
+	tier: int = _DungeonTierConfig.TIER_NORMAL,
+	apply_weapon_tier_rules: bool = false,
+) -> int:
 	var base_lv: int = 1
 	if stage != null and int(stage.enemy_level) > 0:
 		base_lv = int(stage.enemy_level)
 	elif dungeon != null and int(dungeon.enemy_level) > 0:
 		base_lv = int(dungeon.enemy_level)
-	return clamp_equip_level(base_lv + randi_range(-1, 1))
+	var resolved_tier: int = _DungeonTierConfig.clamp_tier(tier)
+	if apply_weapon_tier_rules and resolved_tier > _DungeonTierConfig.TIER_NORMAL:
+		base_lv = _DungeonTierConfig.scaled_enemy_level(base_lv, resolved_tier)
+	var rolled: int = base_lv + randi_range(-1, 1)
+	if apply_weapon_tier_rules and resolved_tier > _DungeonTierConfig.TIER_NORMAL:
+		var floor_lv: int = _DungeonTierConfig.min_weapon_drop_equip_level(resolved_tier, stage, dungeon)
+		rolled = maxi(rolled, floor_lv)
+	return clamp_equip_level(rolled)
 
 static func equip_exp_to_next_level(level: int) -> int:
 	return EQUIP_EXP_BASE + clamp_equip_level(level) * EQUIP_EXP_PER_LEVEL
@@ -279,7 +292,13 @@ static func effective_accessory_float_bonus(accessory: Resource, field: String, 
 static func assign_drop_equip_level(item: Resource, stage: Resource, dungeon: Resource) -> void:
 	if item == null or not ("equip_level" in item):
 		return
-	item.equip_level = resolve_drop_equip_level(stage, dungeon)
+	var is_weapon: bool = "weapon_id" in item and not str(item.weapon_id).is_empty()
+	item.equip_level = resolve_drop_equip_level(
+		stage,
+		dungeon,
+		GameState.current_dungeon_tier,
+		is_weapon,
+	)
 	if "equip_exp" in item:
 		item.equip_exp = 0
 

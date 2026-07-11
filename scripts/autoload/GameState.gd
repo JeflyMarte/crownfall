@@ -208,20 +208,25 @@ func mark_stage_cleared(stage_id: String, tier: int = -1) -> void:
 		if t == _DungeonTierConfig.TIER_NORMAL:
 			mark_dungeon_cleared(biome_id)
 
-func count_cleared_stages(biome_id: String) -> int:
+func count_cleared_stages(biome_id: String, tier: int = -1) -> int:
 	var count: int = 0
+	var t: int = _DungeonTierConfig.clamp_tier(tier if tier >= 0 else current_dungeon_tier)
 	for stage in DataRegistry.get_stages_for_biome(biome_id):
-		if stage != null and is_stage_cleared(str(stage.id)):
+		if stage != null and is_stage_cleared(str(stage.id), t):
 			count += 1
 	return count
 
-func get_stage_progress_label(biome_id: String) -> String:
+func get_stage_progress_label(biome_id: String, tier: int = -1) -> String:
 	if not Constants.SUB_STAGES_PLAYABLE:
 		return ""
 	var stages: Array = DataRegistry.get_stages_for_biome(biome_id)
 	if stages.is_empty():
 		return ""
-	return "章 %d/%d" % [count_cleared_stages(biome_id), stages.size()]
+	var t: int = _DungeonTierConfig.clamp_tier(tier if tier >= 0 else current_dungeon_tier)
+	var tier_label: String = ""
+	if t != _DungeonTierConfig.TIER_NORMAL:
+		tier_label = "%s " % _DungeonTierConfig.display_name(t)
+	return "%s章 %d/%d" % [tier_label, count_cleared_stages(biome_id, t), stages.size()]
 
 func sanitize_current_stage_id() -> void:
 	if current_stage_id.is_empty():
@@ -258,38 +263,75 @@ func sync_progress_from_stages() -> void:
 		if bool(tiers.get(str(_DungeonTierConfig.TIER_NORMAL), false)):
 			mark_dungeon_cleared(biome_id)
 
-func is_stage_unlocked(stage_id: String) -> bool:
+func is_global_tier_unlocked(tier: int) -> bool:
+	var t: int = _DungeonTierConfig.clamp_tier(tier)
+	if t == _DungeonTierConfig.TIER_NORMAL:
+		return true
+	if t == _DungeonTierConfig.TIER_HARD:
+		return is_stage_cleared(Constants.FINAL_NORMAL_STAGE_ID, _DungeonTierConfig.TIER_NORMAL)
+	if t == _DungeonTierConfig.TIER_NIGHTMARE:
+		return is_stage_cleared(Constants.FINAL_NORMAL_STAGE_ID, _DungeonTierConfig.TIER_HARD)
+	return false
+
+func _previous_main_biome_id(biome_id: String) -> String:
+	var mains: Array = []
+	for d in DataRegistry.get_all_dungeon_data():
+		if d != null and str(d.route_type) == "main":
+			mains.append(d)
+	mains.sort_custom(func(a, b): return int(a.difficulty) < int(b.difficulty))
+	var prev_id: String = ""
+	for d in mains:
+		if str(d.id) == biome_id:
+			return prev_id
+		prev_id = str(d.id)
+	return ""
+
+func is_stage_unlocked(stage_id: String, tier: int = -1) -> bool:
 	if stage_id.is_empty():
 		return false
 	var stage: Resource = DataRegistry.get_stage_data(stage_id)
 	if stage == null:
 		return false
+	var t: int = _DungeonTierConfig.clamp_tier(tier if tier >= 0 else current_dungeon_tier)
 	if not is_dungeon_unlocked(str(stage.biome_id)):
 		return false
+	if t > _DungeonTierConfig.TIER_NORMAL and not is_global_tier_unlocked(t):
+		return false
 	if int(stage.chapter_index) <= 1:
-		return true
+		if t == _DungeonTierConfig.TIER_NORMAL:
+			return true
+		var prev_biome_id: String = _previous_main_biome_id(str(stage.biome_id))
+		if prev_biome_id.is_empty():
+			return true
+		var prev_final: Resource = DataRegistry.get_stage_by_chapter(prev_biome_id, 5)
+		if prev_final == null:
+			return true
+		return is_stage_cleared(str(prev_final.id), t)
 	var prev: Resource = DataRegistry.get_stage_by_chapter(str(stage.biome_id), int(stage.chapter_index) - 1)
 	if prev == null:
 		return true
-	return is_stage_cleared(str(prev.id))
+	return is_stage_cleared(str(prev.id), t)
 
-func resolve_stage_for_run(biome_id: String) -> String:
+func resolve_stage_for_run(biome_id: String, tier: int = -1) -> String:
 	if not Constants.SUB_STAGES_PLAYABLE:
 		return ""
+	var t: int = _DungeonTierConfig.clamp_tier(tier if tier >= 0 else current_dungeon_tier)
 	if not current_stage_id.is_empty():
 		var selected: Resource = DataRegistry.get_stage_data(current_stage_id)
-		if selected != null and str(selected.biome_id) == biome_id and is_stage_unlocked(current_stage_id):
+		if selected != null and str(selected.biome_id) == biome_id and is_stage_unlocked(current_stage_id, t):
 			return current_stage_id
 	var stages: Array = DataRegistry.get_stages_for_biome(biome_id)
 	if stages.is_empty():
 		return ""
 	for stage in stages:
-		if is_stage_unlocked(str(stage.id)) and not is_stage_cleared(str(stage.id)):
+		if is_stage_unlocked(str(stage.id), t) and not is_stage_cleared(str(stage.id), t):
 			return str(stage.id)
 	for stage in stages:
-		if is_stage_unlocked(str(stage.id)):
+		if is_stage_unlocked(str(stage.id), t):
 			return str(stage.id)
-	return str(stages[0].id)
+	if is_stage_unlocked(str(stages[0].id), t):
+		return str(stages[0].id)
+	return ""
 
 # ダンジョン選択画面の CLEAR バッジ用。ラン完走（ボス突破→EXIT 到達）時に立てる。
 func mark_dungeon_cleared(dungeon_id: String) -> void:
@@ -327,7 +369,7 @@ func is_dungeon_tier_unlocked(dungeon_id: String, tier: int) -> bool:
 	var t: int = _DungeonTierConfig.clamp_tier(tier)
 	if t == _DungeonTierConfig.TIER_NORMAL:
 		return true
-	return is_dungeon_tier_cleared(dungeon_id, t - 1)
+	return is_global_tier_unlocked(t)
 
 func mark_dungeon_tier_cleared(dungeon_id: String, tier: int) -> void:
 	if dungeon_id.is_empty():
