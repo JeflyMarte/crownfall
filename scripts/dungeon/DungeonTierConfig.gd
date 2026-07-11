@@ -56,3 +56,25 @@ static func global_unlock_hint(tier: int) -> String:
 			return "ハード5-5クリアで解放"
 		_:
 			return ""
+
+## 武器ドロップ equip_level のティア別下限（P3-DG-TIER-STG-001）。
+## ハード＝ノーマル5-5帯以上 / ナイトメア＝同章ハード帯以上。±1 は呼び出し側で適用後に max。
+static func min_weapon_drop_equip_level(tier: int, stage: Resource, dungeon: Resource) -> int:
+	match clamp_tier(tier):
+		TIER_HARD:
+			var final_normal: Resource = DataRegistry.get_stage_data(Constants.FINAL_NORMAL_STAGE_ID)
+			if final_normal != null and int(final_normal.enemy_level) > 0:
+				return maxi(1, int(final_normal.enemy_level) - 1)
+			return 1
+		TIER_NIGHTMARE:
+			var base_lv: int = _stage_or_dungeon_enemy_level(stage, dungeon)
+			return maxi(1, scaled_enemy_level(base_lv, TIER_HARD) - 1)
+		_:
+			return 1
+
+static func _stage_or_dungeon_enemy_level(stage: Resource, dungeon: Resource) -> int:
+	if stage != null and int(stage.enemy_level) > 0:
+		return int(stage.enemy_level)
+	if dungeon != null and int(dungeon.enemy_level) > 0:
+		return int(dungeon.enemy_level)
+	return 1

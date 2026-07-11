@@ -71,3 +71,32 @@ func test_tier_rarity_weight_scales() -> void:
 	dc.current_dungeon_data = DataRegistry.get_dungeon_data("mourngate")
 	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NIGHTMARE
 	assert_eq(dc.get_tier_rarity_weight(10), 16)
+
+func test_hard_weapon_drop_at_least_normal_5_5() -> void:
+	const _EquipmentEnhancer = preload("res://scripts/equipment/EquipmentEnhancer.gd")
+	var normal_final: Resource = DataRegistry.get_stage_data("frostridge_5_5")
+	var normal_min: int = int(normal_final.enemy_level) - 1
+	var stage: Resource = DataRegistry.get_stage_data("mourngate_1_1")
+	seed(1)
+	for _i in 20:
+		var lv: int = _EquipmentEnhancer.resolve_drop_equip_level(
+			stage,
+			null,
+			_DungeonTierConfig.TIER_HARD,
+			true,
+		)
+		assert_true(lv >= normal_min, "hard weapon drop >= normal 5-5 band (got %d, min %d)" % [lv, normal_min])
+
+func test_nightmare_weapon_drop_at_least_hard_band() -> void:
+	const _EquipmentEnhancer = preload("res://scripts/equipment/EquipmentEnhancer.gd")
+	var stage: Resource = DataRegistry.get_stage_data("mourngate_1_1")
+	var hard_min: int = _DungeonTierConfig.scaled_enemy_level(int(stage.enemy_level), _DungeonTierConfig.TIER_HARD) - 1
+	seed(2)
+	for _i in 20:
+		var lv: int = _EquipmentEnhancer.resolve_drop_equip_level(
+			stage,
+			null,
+			_DungeonTierConfig.TIER_NIGHTMARE,
+			true,
+		)
+		assert_true(lv >= hard_min, "nightmare weapon drop >= hard band (got %d, min %d)" % [lv, hard_min])
