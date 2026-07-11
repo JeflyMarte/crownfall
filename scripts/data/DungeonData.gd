@@ -14,10 +14,32 @@ extends Resource
 ## 1 以上で部屋ランダム抽選を有効化。0 の場合は ROOM_SEQUENCE/room_count の従来固定列。
 @export var floor_count: int = 0
 @export var enemy_pool: Array[String] = []
+## ハード弧の COMBAT プール（空=ノーマル pool）。P3-DG-TIER-STG-001。
+@export var enemy_pool_hard: Array[String] = []
+## ナイトメア弧の COMBAT プール（空=ハード→ノーマルへフォールバック）。
+@export var enemy_pool_nightmare: Array[String] = []
 @export var boss_id: String = ""
 @export var drop_table_id: String = ""
 @export var discovery_unlocks: Dictionary = {}
 @export var elite_pool: Array[String] = []
+@export var elite_pool_hard: Array[String] = []
+@export var elite_pool_nightmare: Array[String] = []
+
+func combat_enemy_pool_for_tier(tier: int) -> Array[String]:
+	var t: int = DungeonTierConfig.clamp_tier(tier)
+	if t == DungeonTierConfig.TIER_NIGHTMARE and not enemy_pool_nightmare.is_empty():
+		return enemy_pool_nightmare
+	if t >= DungeonTierConfig.TIER_HARD and not enemy_pool_hard.is_empty():
+		return enemy_pool_hard
+	return enemy_pool
+
+func elite_enemy_pool_for_tier(tier: int) -> Array[String]:
+	var t: int = DungeonTierConfig.clamp_tier(tier)
+	if t == DungeonTierConfig.TIER_NIGHTMARE and not elite_pool_nightmare.is_empty():
+		return elite_pool_nightmare
+	if t >= DungeonTierConfig.TIER_HARD and not elite_pool_hard.is_empty():
+		return elite_pool_hard
+	return elite_pool
 ## Biome 属性相性（P3-D099）。この地形で有利な属性 id（fire/ice/lightning/holy/dark 等）。
 ## 味方攻撃の属性が一致すると与ダメに BIOME_FAVORED_BONUS を乗算。空＝補正なし。
 @export var favored_element: String = ""

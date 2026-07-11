@@ -269,6 +269,7 @@ func _on_tier_pressed(tier: int) -> void:
 	if not GameState.is_dungeon_tier_unlocked(dungeon_id, tier):
 		return
 	GameState.current_dungeon_tier = _DungeonTierConfig.clamp_tier(tier)
+	_sync_selected_stage_for_biome(_featured_dungeon_id)
 	_refresh_tier_tabs()
 	_refresh_featured()
 	_build_list()
@@ -287,14 +288,14 @@ func _sync_selected_stage_for_biome(biome_id: String) -> void:
 		return
 	if not _selected_stage_id.is_empty():
 		var current: Resource = DataRegistry.get_stage_data(_selected_stage_id)
-		if current != null and str(current.biome_id) == biome_id and GameState.is_stage_unlocked(_selected_stage_id):
+		if current != null and str(current.biome_id) == biome_id and GameState.is_stage_unlocked(_selected_stage_id, GameState.current_dungeon_tier):
 			return
 	if not GameState.current_stage_id.is_empty():
 		var saved: Resource = DataRegistry.get_stage_data(GameState.current_stage_id)
-		if saved != null and str(saved.biome_id) == biome_id and GameState.is_stage_unlocked(GameState.current_stage_id):
+		if saved != null and str(saved.biome_id) == biome_id and GameState.is_stage_unlocked(GameState.current_stage_id, GameState.current_dungeon_tier):
 			_selected_stage_id = GameState.current_stage_id
 			return
-	_selected_stage_id = GameState.resolve_stage_for_run(biome_id)
+	_selected_stage_id = GameState.resolve_stage_for_run(biome_id, GameState.current_dungeon_tier)
 
 func _format_stage_label(stage: Resource) -> String:
 	return "%d-%d %s" % [int(stage.biome_index), int(stage.chapter_index), str(stage.display_name)]
@@ -346,7 +347,7 @@ func _is_stage_cleared_for_ui(stage_id: String) -> bool:
 
 func _make_stage_card(stage: Resource) -> Control:
 	var stage_id: String = str(stage.id)
-	var unlocked: bool = GameState.is_stage_unlocked(stage_id)
+	var unlocked: bool = GameState.is_stage_unlocked(stage_id, GameState.current_dungeon_tier)
 	var selected: bool = stage_id == _selected_stage_id
 	var cleared: bool = _is_stage_cleared_for_ui(stage_id)
 	var wrap := PanelContainer.new()
@@ -427,7 +428,7 @@ func _make_stage_card(stage: Resource) -> Control:
 	return wrap
 
 func _on_stage_card_pressed(stage_id: String) -> void:
-	if not GameState.is_stage_unlocked(stage_id):
+	if not GameState.is_stage_unlocked(stage_id, GameState.current_dungeon_tier):
 		return
 	_selected_stage_id = stage_id
 	GameState.current_stage_id = stage_id
@@ -504,7 +505,7 @@ func _refresh_featured() -> void:
 	if int(data.recommended_level) > 0 and (stage == null or not _uses_stage_cards(_featured_dungeon_id)):
 		meta_parts.append("推奨Lv%d〜" % int(data.recommended_level))
 	if _uses_stage_cards(_featured_dungeon_id):
-		var stage_label: String = GameState.get_stage_progress_label(_featured_dungeon_id)
+		var stage_label: String = GameState.get_stage_progress_label(_featured_dungeon_id, GameState.current_dungeon_tier)
 		if not stage_label.is_empty():
 			meta_parts.append(stage_label)
 	meta_parts.append(_make_stars_text(int(data.difficulty)))
@@ -530,7 +531,7 @@ func _refresh_featured() -> void:
 		not _uses_stage_cards(_featured_dungeon_id)
 		or (
 			not _selected_stage_id.is_empty()
-			and GameState.is_stage_unlocked(_selected_stage_id)
+			and GameState.is_stage_unlocked(_selected_stage_id, GameState.current_dungeon_tier)
 		)
 	)
 	_btn_featured_select.text = "選択して出発"
@@ -882,7 +883,7 @@ func _make_biome_card(data: Resource) -> PanelContainer:
 	info.add_child(title)
 
 	if Constants.SUB_STAGES_PLAYABLE and str(data.route_type) == "main":
-		var stage_label: String = GameState.get_stage_progress_label(dungeon_id)
+		var stage_label: String = GameState.get_stage_progress_label(dungeon_id, GameState.current_dungeon_tier)
 		if not stage_label.is_empty():
 			var progress := Label.new()
 			progress.text = stage_label
@@ -1134,7 +1135,7 @@ func _prompt_enter_dungeon(dungeon_id: String) -> void:
 	if not GameState.is_dungeon_unlocked(dungeon_id):
 		return
 	if _uses_stage_cards(dungeon_id):
-		if _selected_stage_id.is_empty() or not GameState.is_stage_unlocked(_selected_stage_id):
+		if _selected_stage_id.is_empty() or not GameState.is_stage_unlocked(_selected_stage_id, GameState.current_dungeon_tier):
 			return
 	_pending_enter_dungeon_id = dungeon_id
 	_enter_confirm.popup_centered()
