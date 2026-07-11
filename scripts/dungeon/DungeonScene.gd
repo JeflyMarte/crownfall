@@ -316,6 +316,10 @@ var _elite_intro_tween: Tween
 var _elite_intro_label: Label
 var _elite_enemy_slide_sprite: AnimatedSprite2D
 var _elite_enemy_slide_target: Vector2 = Vector2.ZERO
+var _ultimate_sequence_active: bool = false
+var _ultimate_sequence_tween: Tween
+var _ultimate_cinematic_vignette: ColorRect
+var _ultimate_telop_root: VBoxContainer
 var _event_telop_panel: PanelContainer
 var _event_telop_bg: TextureRect
 var _event_telop_dim: ColorRect
@@ -435,6 +439,7 @@ const HealRoomPresentationScript: Script = preload("res://scripts/dungeon/HealRo
 const TreasureRoomPresentationScript: Script = preload("res://scripts/dungeon/TreasureRoomPresentation.gd")
 const LoreRoomPresentationScript: Script = preload("res://scripts/dungeon/LoreRoomPresentation.gd")
 const EventPresentationScript: Script = preload("res://scripts/dungeon/EventPresentation.gd")
+const UltimatePresentationScript: Script = preload("res://scripts/dungeon/UltimatePresentation.gd")
 const PartyLogColorsScript: Script = preload("res://scripts/ui/PartyLogColors.gd")
 const ExpRunSnapshotScript: Script = preload("res://scripts/result/ExpRunSnapshot.gd")
 const BOSS_POSITION_RATIO: Vector2 = Vector2(0.688, 0.25)
@@ -3094,6 +3099,8 @@ func _on_combat_timer_timeout() -> void:
 	if not $CombatController.is_in_combat:
 		$CombatTimer.stop()
 		return
+	if _ultimate_sequence_active:
+		return
 	if _round_active:
 		return
 	_round_active = true
@@ -3339,11 +3346,12 @@ func _execute_member_skill(
 	member_idx: int,
 	skill_data: Resource,
 	cast_index: int = 0,
-	suppress_resolve_label: bool = false
+	suppress_resolve_label: bool = false,
+	skip_ultimate_fx: bool = false
 ) -> String:
 	match skill_data.effect_type:
 		"heal":
-			return _execute_member_heal(member_idx, skill_data, cast_index, suppress_resolve_label)
+			return _execute_member_heal(member_idx, skill_data, cast_index, suppress_resolve_label, skip_ultimate_fx)
 		"buff":
 			return _execute_member_buff(member_idx, skill_data, cast_index, suppress_resolve_label)
 	if not _member_has_living_target(member_idx):
@@ -3390,7 +3398,7 @@ func _execute_member_skill(
 	var skill_is_crit: bool = result.get("is_critical", false)
 	var spawn_pos: Vector2 = _enemy_slot_pos(target_slot)
 	var is_ultimate: bool = _is_ultimate_skill(skill_data)
-	if is_ultimate:
+	if is_ultimate and not skip_ultimate_fx:
 		if not suppress_resolve_label:
 			if cast_index == 0:
 				_clear_member_skill_labels(member_idx)
@@ -3403,6 +3411,15 @@ func _execute_member_skill(
 			spawn_pos + Vector2(12.0, 0.0),
 			_outgoing_damage_telop_color(skill_is_crit, true),
 			ult_dmg_scale
+		)
+	elif is_ultimate and skip_ultimate_fx:
+		_play_chr_attack_one(member_idx)
+		var ult_dmg_scale_skip: float = 1.65 if skill_is_crit else 1.4
+		_spawn_damage_number(
+			str(final_dmg),
+			spawn_pos + Vector2(12.0, 0.0),
+			_outgoing_damage_telop_color(skill_is_crit, true),
+			ult_dmg_scale_skip
 		)
 	else:
 		_spawn_hit_vfx(spawn_pos, attack_element, 1.0, skill_is_crit)
@@ -3473,7 +3490,8 @@ func _execute_member_heal(
 	member_idx: int,
 	skill_data: Resource,
 	cast_index: int = 0,
-	suppress_resolve_label: bool = false
+	suppress_resolve_label: bool = false,
+	skip_ultimate_fx: bool = false
 ) -> String:
 	var target_idx: int = $CombatController.get_most_injured_member_index()
 	if target_idx < 0:
@@ -3489,13 +3507,16 @@ func _execute_member_heal(
 	_set_heal_rally(target_idx)
 	_update_hp_bars()
 	var is_ultimate: bool = _is_ultimate_skill(skill_data)
-	if is_ultimate:
+	if is_ultimate and not skip_ultimate_fx:
 		var focus_pos: Vector2 = _member_sprite_world_pos(target_idx, 0.5)
 		_play_ultimate_resolve_vfx(member_idx, skill_data, focus_pos, "")
 		if not suppress_resolve_label:
 			if cast_index == 0:
 				_clear_member_skill_labels(member_idx)
 			_spawn_ultimate_skill_name(result["display_name"], member_idx, "")
+	elif is_ultimate:
+		if cast_index == 0:
+			_clear_member_skill_labels(member_idx)
 	else:
 		if cast_index == 0:
 			_clear_member_skill_labels(member_idx)
@@ -4703,6 +4724,9 @@ func _try_cast_member_skill(member_idx: int, skill_data: Resource, is_ultimate: 
 				return false
 	var cast_time: float = float(skill_data.cast_time)
 	if cast_time <= 0.0:
+		if is_ultimate:
+			_begin_ultimate_cinematic(member_idx, skill_data)
+			return true
 		var log_text: String = _execute_member_skill(member_idx, skill_data, 0).strip_edges()
 		if log_text.is_empty():
 			return false
@@ -4766,6 +4790,9 @@ func _advance_member_cast(member_idx: int) -> void:
 		var frozen: int = int(pending["target_slot"])
 		if member_idx >= 0 and member_idx < $CombatController.member_target_slot.size():
 			$CombatController.member_target_slot[member_idx] = frozen
+	if str(skill_data.slot_type) == "ultimate":
+		_begin_ultimate_cinematic(member_idx, skill_data)
+		return
 	var log_text: String = _execute_member_skill(member_idx, skill_data, 0).strip_edges()
 	if log_text.is_empty():
 		return
@@ -5311,7 +5338,7 @@ func _combat_tier_banner_text(tier: String) -> String:
 			return ""
 
 func _start_auto_progress() -> void:
-	if _is_paused or _dive_intro_active or _room_transition_busy or _boss_intro_active or _elite_intro_active or _heal_presentation_active or _treasure_presentation_active or _trap_presentation_active or _event_presentation_active or _combat_clear_active:
+	if _is_paused or _dive_intro_active or _room_transition_busy or _boss_intro_active or _elite_intro_active or _ultimate_sequence_active or _heal_presentation_active or _treasure_presentation_active or _trap_presentation_active or _event_presentation_active or _combat_clear_active:
 		if _is_paused:
 			_auto_progress_paused_remaining = _auto_delay
 		return
@@ -6333,6 +6360,11 @@ func _set_turn_order_active(entry: Dictionary) -> void:
 		icon.modulate = Color(1.0, 1.0, 1.0, 1.0) if active else Color(1.0, 1.0, 1.0, 0.55)
 
 func _clear_turn_order_ui() -> void:
+	if _ultimate_sequence_active:
+		if _ultimate_sequence_tween != null and is_instance_valid(_ultimate_sequence_tween):
+			_ultimate_sequence_tween.kill()
+		_ultimate_sequence_active = false
+		_clear_ultimate_cinematic_fx()
 	if _turn_order_col_left == null or _turn_order_col_right == null:
 		return
 	for c in _turn_order_col_left.get_children():
@@ -7042,6 +7074,156 @@ func _play_heal_vfx() -> void:
 	for i: int in GameState.party_members.size():
 		if $CombatController.is_member_alive(i):
 			_spawn_member_heal_vfx(i)
+
+# ---- Ultimate Cinematic (P3-UX-ULT-001) ----
+
+func _ensure_ultimate_cinematic_vignette() -> ColorRect:
+	if _ultimate_cinematic_vignette != null and is_instance_valid(_ultimate_cinematic_vignette):
+		return _ultimate_cinematic_vignette
+	_ultimate_cinematic_vignette = ColorRect.new()
+	_ultimate_cinematic_vignette.name = "UltimateCinematicVignette"
+	_ultimate_cinematic_vignette.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_ultimate_cinematic_vignette.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_ultimate_cinematic_vignette.grow_vertical = Control.GROW_DIRECTION_BOTH
+	_ultimate_cinematic_vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ultimate_cinematic_vignette.color = Color(0.0, 0.0, 0.0, 0.0)
+	_ultimate_cinematic_vignette.visible = false
+	$TransitionLayer.add_child(_ultimate_cinematic_vignette)
+	return _ultimate_cinematic_vignette
+
+func _ensure_ultimate_telop() -> VBoxContainer:
+	if _ultimate_telop_root != null and is_instance_valid(_ultimate_telop_root):
+		return _ultimate_telop_root
+	_ultimate_telop_root = VBoxContainer.new()
+	_ultimate_telop_root.name = "UltimateTelop"
+	_ultimate_telop_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ultimate_telop_root.alignment = BoxContainer.ALIGNMENT_CENTER
+	_ultimate_telop_root.set_anchors_preset(Control.PRESET_CENTER)
+	_ultimate_telop_root.offset_left = -280.0
+	_ultimate_telop_root.offset_right = 280.0
+	_ultimate_telop_root.offset_top = -108.0
+	_ultimate_telop_root.offset_bottom = 52.0
+	_ultimate_telop_root.visible = false
+	$TransitionLayer.add_child(_ultimate_telop_root)
+	var title_lbl := Label.new()
+	title_lbl.name = "UltTitle"
+	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ultimate_telop_root.add_child(title_lbl)
+	var name_lbl := Label.new()
+	name_lbl.name = "UltName"
+	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ultimate_telop_root.add_child(name_lbl)
+	return _ultimate_telop_root
+
+func _clear_ultimate_cinematic_fx() -> void:
+	if _ultimate_telop_root != null and is_instance_valid(_ultimate_telop_root):
+		_ultimate_telop_root.visible = false
+		_ultimate_telop_root.modulate = Color.WHITE
+		_ultimate_telop_root.scale = Vector2.ONE
+	if _ultimate_cinematic_vignette != null and is_instance_valid(_ultimate_cinematic_vignette):
+		_ultimate_cinematic_vignette.visible = false
+		_ultimate_cinematic_vignette.color.a = 0.0
+
+func _ultimate_cinematic_focus_pos(member_idx: int, skill_data: Resource) -> Vector2:
+	if skill_data != null and str(skill_data.effect_type) == "heal":
+		var target_idx: int = $CombatController.get_most_injured_member_index()
+		if target_idx >= 0:
+			return _member_sprite_world_pos(target_idx, 0.5)
+		return _member_sprite_world_pos(member_idx, 0.35)
+	if _member_has_living_target(member_idx):
+		return _enemy_slot_pos($CombatController.get_member_target_slot(member_idx))
+	return _member_sprite_world_pos(member_idx, 0.35)
+
+func _resolve_ultimate_without_cinematic(member_idx: int, skill_data: Resource) -> void:
+	var log_text: String = _execute_member_skill(member_idx, skill_data, 0).strip_edges()
+	if log_text.is_empty():
+		return
+	_append_log("【必殺】" + log_text.trim_prefix("【スキル】"))
+	_update_hp_bars()
+	_refresh_combat_now_playing_next()
+
+func _ultimate_cinematic_impact(member_idx: int, skill_data: Resource, t: Dictionary) -> void:
+	_shake_battlefield(float(t.get("shake", 12.0)))
+	_flash_battlefield(UltimatePresentationScript.flash_color(skill_data), float(t.get("flash_impact", 0.36)))
+	var element: String = _resolve_skill_element(skill_data, member_idx)
+	var focus_pos: Vector2 = _ultimate_cinematic_focus_pos(member_idx, skill_data)
+	_play_ultimate_resolve_vfx(member_idx, skill_data, focus_pos, element)
+	var log_text: String = _execute_member_skill(member_idx, skill_data, 0, true, true).strip_edges()
+	if not log_text.is_empty():
+		_append_log("【必殺】" + log_text.trim_prefix("【スキル】"))
+	_update_hp_bars()
+	_refresh_combat_now_playing_next()
+
+func _finish_ultimate_cinematic() -> void:
+	_ultimate_sequence_active = false
+	_ultimate_sequence_tween = null
+	_clear_ultimate_cinematic_fx()
+	if not $CombatController.is_in_combat:
+		return
+	if $CombatController.living_enemy_count() == 0:
+		return
+	if $CombatController.is_party_wiped():
+		return
+	if _is_paused or _combat_clear_active or _boss_intro_active or _elite_intro_active:
+		return
+	if _try_combat_skip():
+		return
+	$CombatTimer.start()
+
+func _begin_ultimate_cinematic(member_idx: int, skill_data: Resource) -> void:
+	if skill_data == null:
+		return
+	if _ultimate_sequence_active:
+		_resolve_ultimate_without_cinematic(member_idx, skill_data)
+		return
+	_ultimate_sequence_active = true
+	$CombatTimer.stop()
+	_clear_member_skill_labels(member_idx)
+	var short: bool = _fast_run_enabled
+	var t: Dictionary = UltimatePresentationScript.timings(short)
+	_clear_ultimate_cinematic_fx()
+	var telop: VBoxContainer = _ensure_ultimate_telop()
+	var title_lbl: Label = telop.get_node("UltTitle") as Label
+	var name_lbl: Label = telop.get_node("UltName") as Label
+	title_lbl.text = UltimatePresentationScript.TITLE_TEXT
+	name_lbl.text = UltimatePresentationScript.skill_telop_name(skill_data.display_name)
+	UiTypography.apply_display(title_lbl, UiTypography.SIZE_BODY_SMALL, UltimatePresentationScript.COLOR_TITLE)
+	UiTypography.apply_display(
+		name_lbl,
+		UiTypography.SIZE_DISPLAY_TITLE,
+		UltimatePresentationScript.name_color(skill_data),
+		UiTypography.OUTLINE_STRONG
+	)
+	var vignette: ColorRect = _ensure_ultimate_cinematic_vignette()
+	var vignette_target: Color = UltimatePresentationScript.vignette_color(skill_data)
+	vignette.color = Color(vignette_target.r, vignette_target.g, vignette_target.b, 0.0)
+	vignette.visible = true
+	telop.visible = true
+	telop.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	_pulse_member_ultimate(member_idx)
+	_flash_battlefield(UltimatePresentationScript.flash_color(skill_data), float(t.get("flash_in", 0.14)))
+	if _ultimate_sequence_tween != null and is_instance_valid(_ultimate_sequence_tween):
+		_ultimate_sequence_tween.kill()
+	_ultimate_sequence_tween = create_tween()
+	_ultimate_sequence_tween.tween_property(
+		vignette, "color:a", vignette_target.a, float(t.get("dim_in", 0.12))
+	)
+	_ultimate_sequence_tween.parallel().tween_property(
+		telop, "modulate:a", 1.0, float(t.get("telop_in", 0.14))
+	).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_ultimate_sequence_tween.tween_interval(float(t.get("hold", 0.42)))
+	_ultimate_sequence_tween.tween_callback(
+		func() -> void: _ultimate_cinematic_impact(member_idx, skill_data, t)
+	)
+	_ultimate_sequence_tween.tween_interval(float(t.get("impact", 0.18)))
+	_ultimate_sequence_tween.tween_property(telop, "modulate:a", 0.0, float(t.get("telop_out", 0.16)))
+	_ultimate_sequence_tween.parallel().tween_property(
+		vignette, "color:a", 0.0, float(t.get("telop_out", 0.16))
+	)
+	_ultimate_sequence_tween.tween_callback(func() -> void: _finish_ultimate_cinematic())
 
 # ---- Elite Intro ----
 
