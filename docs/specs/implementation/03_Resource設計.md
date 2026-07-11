@@ -413,7 +413,7 @@ Autoload。コア Data Resource の lookup 層。
 | enemies | fallen_soldier, ruined_guard, ruins_looter, rusted_knight, royal_guard_captain |
 | skills | slash_attack |
 | dungeons | royal_ruins, graveyard |
-| materials | relic_shard, elite_relic_shard, ancient_bone, cursed_iron |
+| materials | relic_shard, elite_relic_shard, ancient_bone |
 | jobs | warrior, guardian, scout |
 | affixes | sharp, swift, heavy, blessed, fortune, protection, of_might |
 
@@ -458,17 +458,15 @@ extends Resource
 | relic_shard | 遺跡の欠片 | relic |
 | elite_relic_shard | 高品質遺跡の欠片 | relic |
 | ancient_bone | 古き骨 | bone |
-| cursed_iron | 呪いの鉄 | metal |
-| leather | なめし革 | hide |
 
-### 取得経路（M4）
+### 取得経路
 
 | 経路 | material_id |
 |---|---|
-| Event Room（朽ちた木箱） | relic_shard |
-| Elite Room ボーナス（15%） | elite_relic_shard |
-
-**未実装:** 商人素材販売 / 素材 UI
+| 通常戦闘撃破 | relic_shard / ancient_bone |
+| Event Room | relic_shard / ancient_bone |
+| Elite Room ボーナス | elite_relic_shard |
+| 素材商人 | relic_shard / ancient_bone |
 
 ---
 

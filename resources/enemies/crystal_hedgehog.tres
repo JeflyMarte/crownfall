@@ -29,6 +29,6 @@ codex_class = "獣類"
 codex_danger = 2
 codex_habitat = "崩れた地下水路"
 codex_research_note = "ハリネズミを祖先とし、水路に溶けた鉱物を針へ蓄積して結晶化させる。危険を察すると結晶の針を一斉に射出して身を守る遠隔型。帯電しやすい結晶質ゆえか、放電を浴びると針ごと砕けやすい。単独を好む。針の芯には水路へ流れ込んだ遺物の微片が混じることがあり、結晶ごしに古い金属光を放つ個体も確認されている。"
-codex_materials = Array[String](["crystal_spike", "crystal_core"])
+codex_materials = Array[String](["relic_shard", "ancient_bone"])
 skill_ids = Array[String](["enemy_crystal_rain", "enemy_crystal_burst"])
 skill_use_chance = 0.25

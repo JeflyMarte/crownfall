@@ -4,7 +4,7 @@ extends RefCounted
 const RARITY_GEMS: Array[String] = ["◇", "◆", "✦", "★"]
 const RARITY_SHORT: Array[String] = ["N", "R", "SR", "SSR"]
 
-const LIST_CARD_MIN_HEIGHT: int = 124
+const LIST_CARD_MIN_HEIGHT: int = 88
 const CRAFTABLE_CHIP_WIDTH: int = 120
 const CRAFTABLE_CHIP_HEIGHT: int = 136
 
@@ -115,14 +115,9 @@ static func card_style(selected: bool, craftable: bool = false) -> StyleBox:
 	return CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
 
 static func list_card_style(selected: bool, craftable: bool, rarity: int) -> StyleBox:
-	if selected:
-		var selected_sb: StyleBox = ForgeUiTokens.list_card_selected_style()
-		if _texture_style_ok(selected_sb):
-			return selected_sb
-	else:
-		var normal_sb: StyleBox = ForgeUiTokens.list_card_normal_style()
-		if _texture_style_ok(normal_sb):
-			return normal_sb
+	return simple_list_card_style(selected, craftable, rarity)
+
+static func simple_list_card_style(selected: bool, craftable: bool, rarity: int) -> StyleBox:
 	var sb := StyleBoxFlat.new()
 	var rarity_col: Color = rarity_color(rarity)
 	sb.set_corner_radius_all(6)
@@ -211,6 +206,27 @@ static func has_craftable_recipes() -> bool:
 static func list_cell_px() -> int:
 	return EquipmentUiTokens.INV_CELL_PX
 
+static func attach_hero_icon(host: Control, item_id: String, category: String, display_px: int) -> void:
+	for child in host.get_children():
+		child.queue_free()
+	host.custom_minimum_size = Vector2(display_px, display_px)
+	var tex: Texture2D = IconPaths.get_icon_texture(item_id, category)
+	if tex == null:
+		var glyph := Label.new()
+		glyph.text = "?"
+		glyph.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		glyph.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		glyph.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		host.add_child(glyph)
+		return
+	var icon := TextureRect.new()
+	icon.texture = tex
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	host.add_child(icon)
+
 static func attach_item_icon(host: Control, item_id: String, category: String, cell_px: int) -> void:
 	for child in host.get_children():
 		child.queue_free()
@@ -255,6 +271,18 @@ static func make_item_icon_cell(
 	host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	attach_item_icon(host, item_id, category, px)
 	return frame
+
+static func make_plain_item_icon(
+	item_id: String,
+	category: String,
+	cell_px: int = -1
+) -> Control:
+	var px: int = cell_px if cell_px > 0 else list_cell_px()
+	var host := Control.new()
+	host.custom_minimum_size = Vector2(px, px)
+	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	attach_item_icon(host, item_id, category, px)
+	return host
 
 static func rarity_color(rarity: int) -> Color:
 	return RARITY_COLORS[clampi(rarity, 0, RARITY_COLORS.size() - 1)]
@@ -313,7 +341,7 @@ static func primary_button_disabled() -> StyleBoxFlat:
 
 static func apply_primary_button(btn: Button) -> void:
 	var styled: StyleBox = ForgeUiTokens.produce_button_style()
-	if styled is StyleBoxTexture and (styled as StyleBoxTexture).texture != null:
+	if _texture_style_ok(styled):
 		btn.add_theme_stylebox_override("normal", styled)
 		btn.add_theme_stylebox_override("hover", styled)
 		btn.add_theme_stylebox_override("pressed", styled)
@@ -437,8 +465,31 @@ static func craft_stat_entries(craft: Resource) -> Array:
 				})
 	return entries
 
+static func _texture_has_usable_alpha(tex: Texture2D) -> bool:
+	if tex == null:
+		return false
+	var img: Image = tex.get_image()
+	if img == null or img.is_empty():
+		return true
+	var w: int = img.get_width()
+	var h: int = img.get_height()
+	if w <= 0 or h <= 0:
+		return false
+	var step: int = maxi(1, int(sqrt(float(w * h) / 256.0)))
+	var transparent: int = 0
+	var samples: int = 0
+	for y in range(0, h, step):
+		for x in range(0, w, step):
+			samples += 1
+			if img.get_pixel(x, y).a < 16:
+				transparent += 1
+	return float(transparent) / float(samples) >= 0.05
+
 static func _texture_style_ok(sb: StyleBox) -> bool:
-	return sb is StyleBoxTexture and (sb as StyleBoxTexture).texture != null
+	if not (sb is StyleBoxTexture):
+		return false
+	var tex: Texture2D = (sb as StyleBoxTexture).texture
+	return tex != null and _texture_has_usable_alpha(tex)
 
 static func apply_category_tab(btn: Button, active: bool) -> void:
 	var style := category_tab_style(active)

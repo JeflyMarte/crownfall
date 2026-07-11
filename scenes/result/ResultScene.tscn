@@ -1,8 +1,9 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/result/ResultScene.gd" id="1"]
 [ext_resource type="Theme" path="res://assets/ui/production_theme.tres" id="2"]
 [ext_resource type="Texture2D" path="res://assets/ui/UI_BG_Result.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/ui/result/UI_Result_Clear.png" id="4"]
 
 [sub_resource type="StyleBoxFlat" id="SB_Footer"]
 bg_color = Color(0.04, 0.04, 0.1, 0.92)
@@ -112,7 +113,16 @@ theme_override_font_sizes/font_size = 22
 text = "ダンジョン"
 horizontal_alignment = 1
 
+[node name="ClearBanner" type="TextureRect" parent="Scroll/Margin/Main/HeaderPanel/HeaderVBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 200)
+size_flags_horizontal = 3
+texture = ExtResource("4")
+expand_mode = 1
+stretch_mode = 5
+
 [node name="LabelClear" type="Label" parent="Scroll/Margin/Main/HeaderPanel/HeaderVBox"]
+visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0.96, 0.84, 0.42, 1)
 theme_override_font_sizes/font_size = 68
@@ -138,9 +148,11 @@ theme_override_font_sizes/font_size = 24
 text = "獲得報酬"
 horizontal_alignment = 1
 
-[node name="RewardRow" type="HBoxContainer" parent="Scroll/Margin/Main/RewardPanel/RewardVBox"]
+[node name="RewardRow" type="HFlowContainer" parent="Scroll/Margin/Main/RewardPanel/RewardVBox"]
 layout_mode = 2
-theme_override_constants/separation = 8
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
 alignment = 1
 
 [node name="MaterialPanel" type="PanelContainer" parent="Scroll/Margin/Main"]
@@ -157,13 +169,16 @@ theme_override_font_sizes/font_size = 24
 text = "採取素材"
 horizontal_alignment = 1
 
-[node name="MaterialRow" type="HBoxContainer" parent="Scroll/Margin/Main/MaterialPanel/MaterialVBox"]
+[node name="MaterialRow" type="HFlowContainer" parent="Scroll/Margin/Main/MaterialPanel/MaterialVBox"]
 layout_mode = 2
-theme_override_constants/separation = 8
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
 alignment = 1
 
 [node name="LabelCraftable" type="Label" parent="Scroll/Margin/Main/MaterialPanel/MaterialVBox"]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.7, 0.92, 0.6, 1)
 theme_override_font_sizes/font_size = 19
 text = ""
@@ -204,7 +219,8 @@ horizontal_alignment = 1
 
 [node name="InfoGrid" type="GridContainer" parent="Scroll/Margin/Main/InfoPanel/InfoVBox"]
 layout_mode = 2
-theme_override_constants/h_separation = 24
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 16
 theme_override_constants/v_separation = 8
 columns = 2
 

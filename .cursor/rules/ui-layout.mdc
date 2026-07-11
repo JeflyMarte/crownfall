@@ -1,0 +1,60 @@
+---
+description: Godot UI レイアウト・モック寄せの実装規約（Container / Tokens / 確認ゲート）
+globs: ["scenes/**/*.tscn", "scripts/**/*Scene.gd", "scripts/**/*UiTokens.gd", "scripts/**/*UiHelper.gd"]
+alwaysApply: false
+---
+
+# UI レイアウト・モック寄せ
+
+## モック参照の正
+
+| 用途 | 参照 |
+|---|---|
+| 画面分割・情報構造 | `docs/art/reference/UI_Reference_002.png` |
+| 色・装飾・密度 | `docs/art/reference/UI_Reference_003_*.png` |
+| 解像度 | **720×1280**（`project.godot`） |
+| ギャップ整理 | `docs/project/Proposal/OD-UI-001_Gap_Analysis_v1.0.md` |
+
+## モック寄せの曖昧依頼 — 実装前に必ず確認
+
+次のような依頼を受けたら、**コード変更前に**オーナーへ確認する:
+
+- 「モック通りに」「モック画面の通りに」「003 に寄せて」「レイアウトを合わせて」等、**領域分解・段階・テンプレートが未指定**の UI 依頼
+
+確認内容（簡潔でよい）:
+
+1. 対象画面・参照モック（例: `003_04_Equipment`）
+2. 採用方針: **Container 構造寄せ**（絶対座標配置はしない）
+3. テンプレート既存シーン（例: `EquipmentScene`）
+4. 今回のスコープ（例: 骨格のみ / chrome 差し替え / 1 領域だけ）
+5. GO または修正指示の待ち
+
+**GO まで実装しない。**
+
+## レイアウト原則（Godot 4）
+
+- **Container の子に anchor / offset を手動設定しない**（親が上書きする）
+- 余白 → `MarginContainer` または `Control` Spacer の `custom_minimum_size`
+- 間隔 → `separation` は **4 の倍数**（4, 8, 12, 16, 24…）
+- 伸縮 → `size_flags_horizontal/vertical`（`EXPAND_FILL` 等）
+- 絶対座標は **オーバーレイ・ポップアップ**程度に限定
+- `.tscn` 手編集は `scenes.mdc` に従い最小限。配置微調整は Godot エディタ推奨
+
+## 実装パターン（Crownfall）
+
+- 既存 `*UiTokens` / `*UiHelper` / `CombatUiFrames` を踏襲
+- 新規 chrome は Tokens にパス集約。magic number の色・spacing を直書きしない
+- 画面は領域単位で分解: `Header` / `Content` / `Footer(BottomNav)` 等
+- 1 Task = **1 画面の 1〜2 領域**まで。全面を一度にやらない
+
+## 検証
+
+- 完了後 `godot --path . -s tools/ui_audit.gd` でスクショ取得しモックと比較
+- 残差分は数値指定で小さく直す（例: `TabRow separation 8→12`）
+
+## 依頼文の良い例
+
+```
+EquipmentScene を 003_04 参考に、TabRow + 一覧グリッド領域のみ Container 骨格を寄せる。
+テンプレ: 現行 EquipmentScene。座標指定なし。Tokens は EquipmentUiTokens 拡張。
+```

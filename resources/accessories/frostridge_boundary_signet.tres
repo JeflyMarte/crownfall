@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "frostridge_boundary_signet"
+display_name = "開拓王の境界戒"
+rarity = 3
+icon = ""
+description = "フロストウォール北の境界標に嵌められた指戒。開拓王エルディオンの名は後世の俗称。"
+hp_bonus = 42
+attack_bonus = 0
+defense_bonus = 0
+crit_rate_bonus = 0.04
+exp_gain_rate = 0.0
+gold_gain_rate = 0.0
+rare_drop_rate = 0.0
+fixed_passive_id = "eq_frostridge_boundary"

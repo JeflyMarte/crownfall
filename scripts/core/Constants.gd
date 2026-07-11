@@ -9,7 +9,7 @@ const MOURNGATE_DUNGEON_ID: String = "mourngate"
 const DEFAULT_DUNGEON_ID: String = MOURNGATE_DUNGEON_ID
 ## 寄り道(side)・征討(apex)をプレイ対象に含める（P3-DG-OMIT-001）。false=UI非表示・解放不可。
 const SUB_DUNGEONS_PLAYABLE: bool = false
-## サブステージ（1-1 等）分割を有効化（P3-DG-STG PoC=mourngate）。
+## サブステージ（1-1 等）分割を有効化（P3-DG-STG-001 / P3-DG-STG-ENABLE — 2026-07-10 オーナー正式承認）。
 const SUB_STAGES_PLAYABLE: bool = true
 const RESOURCE_STAGES_PATH: String = "res://resources/stages/"
 const COMBAT_TICK_INTERVAL: float = 1.5

@@ -25,19 +25,29 @@ func test_make_icon_uses_base_texture_when_art_exists() -> void:
 	var member := Adventurer.new()
 	member.id = "adventurer_3"
 	member.job_id = "vanguard"
-	var icon: Control = _SkillIconHelper.make_icon("hex_bolt", member)
+	var icon: Control = _SkillIconHelper.make_ally_equipped_icon("hex_bolt", member)
 	assert_not_null(icon)
 	assert_true(icon is TextureRect)
 
 
-func test_ultimate_falls_back_to_slash_base() -> void:
-	if not _SkillIconHelper.has_base_art("slash"):
-		pass_test("slash base art not installed")
+func test_buff_uses_buff_base() -> void:
+	if not _SkillIconHelper.has_base_art("buff"):
+		pass_test("buff base art not installed")
 		return
-	assert_eq(_SkillIconHelper.resolve_base_id("ultimate_strike"), "slash")
+	assert_eq(_SkillIconHelper.resolve_base_id("empower"), "buff")
+	var member := Adventurer.new()
+	member.job_id = "alchemist"
+	assert_not_null(_SkillIconHelper.make_ally_equipped_icon("empower", member))
+
+
+func test_ultimate_uses_ultimate_base() -> void:
+	if not _SkillIconHelper.has_base_art("ultimate"):
+		pass_test("ultimate base art not installed")
+		return
+	assert_eq(_SkillIconHelper.resolve_base_id("ultimate_strike"), "ultimate")
 	var member := Adventurer.new()
 	member.job_id = "swordsman"
-	assert_not_null(_SkillIconHelper.make_icon("ultimate_strike", member))
+	assert_not_null(_SkillIconHelper.make_ally_equipped_icon("ultimate_strike", member))
 
 
 func test_job_ultimate_uses_base_texture() -> void:
@@ -46,9 +56,21 @@ func test_job_ultimate_uses_base_texture() -> void:
 		return
 	var member := Adventurer.new()
 	member.job_id = "swordsman"
-	var icon: Control = _SkillIconHelper.make_icon("ouga_retsudan", member)
+	var icon: Control = _SkillIconHelper.make_ally_equipped_icon("ouga_retsudan", member)
 	assert_not_null(icon)
 	assert_true(icon is TextureRect)
+
+
+func test_ally_equipped_icon_ignores_individual_art() -> void:
+	if not _SkillIconHelper.has_base_art("buff"):
+		pass_test("buff base art not installed")
+		return
+	assert_not_null(_SkillIconHelper.make_unique_icon("empower", Vector2(40, 40)))
+	var member := Adventurer.new()
+	member.job_id = "alchemist"
+	var icon: Control = _SkillIconHelper.make_ally_equipped_icon("empower", member)
+	assert_not_null(icon)
+	assert_ne(icon.texture, _SkillIconHelper.make_unique_icon("empower", Vector2(40, 40)).texture)
 
 
 func test_make_unique_icon_uses_individual_texture_for_ultimates() -> void:
@@ -59,3 +81,13 @@ func test_make_unique_icon_uses_individual_texture_for_ultimates() -> void:
 		var icon: Control = _SkillIconHelper.make_unique_icon(skill_id, Vector2(96, 96))
 		assert_not_null(icon, skill_id)
 		assert_true(icon is TextureRect, skill_id)
+
+
+func test_make_ultimate_icon_prefers_individual_art() -> void:
+	var member := Adventurer.new()
+	member.job_id = "swordsman"
+	var unique: Control = _SkillIconHelper.make_unique_icon("ouga_retsudan", Vector2(40, 40))
+	assert_not_null(unique)
+	var icon: Control = _SkillIconHelper.make_ultimate_icon("ouga_retsudan", member, Vector2(40, 40))
+	assert_not_null(icon)
+	assert_eq((icon as TextureRect).texture, (unique as TextureRect).texture)

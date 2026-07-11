@@ -7,6 +7,9 @@ const ResultFlowScript: Script = preload("res://scripts/result/ResultFlowControl
 const ExpRunSnapshotScript: Script = preload("res://scripts/result/ExpRunSnapshot.gd")
 const ExpBarPresenterScript: Script = preload("res://scripts/result/ExpBarPresenter.gd")
 const MvpScoreScript: Script = preload("res://scripts/result/MvpScore.gd")
+const MvpPresentationScript: Script = preload("res://scripts/result/MvpPresentation.gd")
+const SkillIconHelperScript: Script = preload("res://scripts/ui/SkillIconHelper.gd")
+const CLEAR_BANNER_TEX: Texture2D = preload("res://assets/ui/result/UI_Result_Clear.png")
 
 const COLOR_GOLD: Color = Color(0.85, 0.74, 0.45, 1)
 const COLOR_TEXT: Color = Color(0.82, 0.84, 0.9, 1)
@@ -30,15 +33,17 @@ const FS_RARE_DESC: int = 17
 const FS_RARE_STAR: int = 26
 const FS_CRAFTABLE: int = 19
 const FS_BUTTON: int = 24
+const REWARD_CELL_WIDTH: int = 88
 
 @onready var _scroll_rewards: ScrollContainer = $Scroll
 @onready var _label_title: Label = $Scroll/Margin/Main/HeaderPanel/HeaderVBox/LabelTitle
 @onready var _label_dungeon: Label = $Scroll/Margin/Main/HeaderPanel/HeaderVBox/LabelDungeon
+@onready var _clear_banner: TextureRect = $Scroll/Margin/Main/HeaderPanel/HeaderVBox/ClearBanner
 @onready var _label_outcome: Label = $Scroll/Margin/Main/HeaderPanel/HeaderVBox/LabelClear
 @onready var _stars_row: HBoxContainer = $Scroll/Margin/Main/HeaderPanel/HeaderVBox/StarsRow
-@onready var _reward_row: HBoxContainer = $Scroll/Margin/Main/RewardPanel/RewardVBox/RewardRow
+@onready var _reward_row: HFlowContainer = $Scroll/Margin/Main/RewardPanel/RewardVBox/RewardRow
 @onready var _material_panel: PanelContainer = $Scroll/Margin/Main/MaterialPanel
-@onready var _material_row: HBoxContainer = $Scroll/Margin/Main/MaterialPanel/MaterialVBox/MaterialRow
+@onready var _material_row: HFlowContainer = $Scroll/Margin/Main/MaterialPanel/MaterialVBox/MaterialRow
 @onready var _label_craftable: Label = $Scroll/Margin/Main/MaterialPanel/MaterialVBox/LabelCraftable
 @onready var _rare_panel: PanelContainer = $Scroll/Margin/Main/RarePanel
 @onready var _rare_list: VBoxContainer = $Scroll/Margin/Main/RarePanel/RareVBox/RareList
@@ -55,6 +60,7 @@ const FS_BUTTON: int = 24
 @onready var _label_info_title: Label = $Scroll/Margin/Main/InfoPanel/InfoVBox/LabelInfoTitle
 @onready var _footer_row: PanelContainer = $FooterRow
 @onready var _footer: HBoxContainer = $FooterRow/Footer
+@onready var _bg_texture: TextureRect = $BgTexture
 
 var _rewards_banked: bool = false
 var _current_step: int = ResultFlowScript.Step.REWARDS
@@ -69,6 +75,22 @@ var _levelup_header: Label
 var _levelup_member_list: VBoxContainer
 var _mvp_header: Label
 var _mvp_body: VBoxContainer
+var _mvp_context_row: HBoxContainer
+var _mvp_context_backdrop: PanelContainer
+var _mvp_context_dungeon: Label
+var _mvp_context_stars: HBoxContainer
+var _mvp_podium_host: CenterContainer
+var _mvp_stats_grid: GridContainer
+var _mvp_skill_row: HBoxContainer
+var _mvp_skill_backdrop: PanelContainer
+var _mvp_subtitle_label: Label
+var _mvp_subtitle_backdrop: PanelContainer
+var _mvp_lower_backdrop: PanelContainer
+var _mvp_header_backdrop: PanelContainer
+var _mvp_scrim: ColorRect
+var _mvp_fx_host: Control
+var _mvp_intro_active: bool = false
+var _mvp_anim_nodes: Array = []
 var _levelup_rows: Array = []
 var _levelup_pending_count: int = 0
 
@@ -143,17 +165,86 @@ func _setup_wizard_roots() -> void:
 	_step_mvp_root.add_theme_constant_override("margin_top", 12)
 	_step_mvp_root.add_theme_constant_override("margin_bottom", 12)
 	add_child(_step_mvp_root)
+	_mvp_scrim = ColorRect.new()
+	_mvp_scrim.name = "MvpScrim"
+	_mvp_scrim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_mvp_scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_mvp_scrim.color = MvpPresentationScript.SCRIM_COLOR
+	_step_mvp_root.add_child(_mvp_scrim)
 	var mvp_vbox := VBoxContainer.new()
 	mvp_vbox.add_theme_constant_override("separation", 14)
 	_step_mvp_root.add_child(mvp_vbox)
+	_mvp_fx_host = Control.new()
+	_mvp_fx_host.name = "MvpFxHost"
+	_mvp_fx_host.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_mvp_fx_host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_mvp_fx_host.z_index = 40
+	add_child(_mvp_fx_host)
+	_mvp_context_row = HBoxContainer.new()
+	_mvp_context_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_mvp_context_row.add_theme_constant_override("separation", 8)
+	var crown_icon := TextureRect.new()
+	crown_icon.custom_minimum_size = Vector2(28, 28)
+	crown_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	crown_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	if ResourceLoader.exists(MvpPresentationScript.CROWN_ICON_PATH):
+		crown_icon.texture = load(MvpPresentationScript.CROWN_ICON_PATH) as Texture2D
+	_mvp_context_row.add_child(crown_icon)
+	_mvp_context_dungeon = Label.new()
+	_mvp_context_dungeon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_body(
+		_mvp_context_dungeon, UiTypography.SIZE_BODY, MvpPresentationScript.TEXT_ON_BACKDROP, UiTypography.OUTLINE_BODY
+	)
+	_mvp_context_row.add_child(_mvp_context_dungeon)
+	_mvp_context_stars = HBoxContainer.new()
+	_mvp_context_stars.add_theme_constant_override("separation", 2)
+	_mvp_context_row.add_child(_mvp_context_stars)
+	_mvp_context_backdrop = _make_mvp_backdrop(_mvp_context_row, "header")
+	mvp_vbox.add_child(_mvp_context_backdrop)
 	_mvp_header = Label.new()
 	_mvp_header.text = "★ MVP ★"
 	_mvp_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_display(_mvp_header, 40, COLOR_GOLD, UiTypography.OUTLINE_STRONG)
-	mvp_vbox.add_child(_mvp_header)
+	_mvp_header_backdrop = _make_mvp_backdrop(_mvp_header, "header")
+	mvp_vbox.add_child(_mvp_header_backdrop)
+	_mvp_podium_host = CenterContainer.new()
+	_mvp_podium_host.custom_minimum_size = Vector2(0, MvpPresentationScript.PODIUM_MIN_HEIGHT)
+	_mvp_podium_host.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	mvp_vbox.add_child(_mvp_podium_host)
+	_mvp_lower_backdrop = PanelContainer.new()
+	_mvp_lower_backdrop.add_theme_stylebox_override("panel", MvpPresentationScript.backdrop_style("lower"))
+	_mvp_lower_backdrop.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var lower_margin := MarginContainer.new()
+	lower_margin.add_theme_constant_override("margin_left", 4)
+	lower_margin.add_theme_constant_override("margin_right", 4)
+	lower_margin.add_theme_constant_override("margin_top", 4)
+	lower_margin.add_theme_constant_override("margin_bottom", 4)
+	var lower_vbox := VBoxContainer.new()
+	lower_vbox.add_theme_constant_override("separation", 12)
+	_mvp_stats_grid = GridContainer.new()
+	_mvp_stats_grid.columns = 2
+	_mvp_stats_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_mvp_stats_grid.add_theme_constant_override("h_separation", 10)
+	_mvp_stats_grid.add_theme_constant_override("v_separation", 10)
+	lower_vbox.add_child(_mvp_stats_grid)
+	_mvp_skill_row = HBoxContainer.new()
+	_mvp_skill_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_mvp_skill_row.add_theme_constant_override("separation", 10)
+	_mvp_skill_backdrop = _make_mvp_backdrop(_mvp_skill_row, "body")
+	lower_vbox.add_child(_mvp_skill_backdrop)
+	_mvp_subtitle_label = Label.new()
+	_mvp_subtitle_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_mvp_subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTypography.apply_body(
+		_mvp_subtitle_label, UiTypography.SIZE_BODY, COLOR_GOLD, UiTypography.OUTLINE_BODY
+	)
+	_mvp_subtitle_backdrop = _make_mvp_backdrop(_mvp_subtitle_label, "body", true)
+	lower_vbox.add_child(_mvp_subtitle_backdrop)
+	lower_margin.add_child(lower_vbox)
+	_mvp_lower_backdrop.add_child(lower_margin)
+	mvp_vbox.add_child(_mvp_lower_backdrop)
 	_mvp_body = VBoxContainer.new()
-	_mvp_body.add_theme_constant_override("separation", 10)
-	_mvp_body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_mvp_body.visible = false
 	mvp_vbox.add_child(_mvp_body)
 
 func _enter_step(step: int) -> void:
@@ -162,11 +253,13 @@ func _enter_step(step: int) -> void:
 	_step_levelup_root.visible = step == ResultFlowScript.Step.LEVELUP
 	_step_mvp_root.visible = step == ResultFlowScript.Step.MVP
 	if step == ResultFlowScript.Step.MVP:
+		_apply_mvp_background(true)
 		_build_mvp_step()
 		_button_next.visible = false
-		_button_retry.visible = true
-		_button_home.visible = true
+		_button_retry.visible = false
+		_button_home.visible = false
 		_step_timer_sec = 0.0
+		_play_mvp_intro()
 	elif step == ResultFlowScript.Step.LEVELUP:
 		_button_next.visible = true
 		_button_retry.visible = false
@@ -175,6 +268,7 @@ func _enter_step(step: int) -> void:
 		_step_timer_sec = 0.0
 		_start_levelup_step()
 	else:
+		_apply_mvp_background(false)
 		_button_next.visible = true
 		_button_retry.visible = false
 		_button_home.visible = false
@@ -414,94 +508,353 @@ func _apply_pending_exp() -> void:
 	_exp_applied = true
 	GameState.last_run_level_ups = LevelSystem.grant_exp_to_party(GameState.last_run_exp_reward)
 
-func _build_mvp_step() -> void:
-	for child in _mvp_body.get_children():
+func _apply_mvp_background(use_mvp: bool) -> void:
+	if _bg_texture == null:
+		return
+	var path: String = MvpPresentationScript.BG_PATH if use_mvp else MvpPresentationScript.DEFAULT_BG_PATH
+	if path.is_empty() or not ResourceLoader.exists(path):
+		path = MvpPresentationScript.DEFAULT_BG_PATH
+	_bg_texture.texture = load(path) as Texture2D
+
+func _result_dungeon_label() -> String:
+	var dungeon_id: String = GameState.get_active_dungeon_id()
+	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
+	var name_text: String = "ダンジョン"
+	var stage_id: String = GameState.last_run_stage_id
+	if stage_id.is_empty():
+		stage_id = GameState.get_active_stage_id()
+	var stage: Resource = DataRegistry.get_stage_data(stage_id)
+	if stage != null and Constants.SUB_STAGES_PLAYABLE:
+		name_text = "%d-%d %s" % [int(stage.biome_index), int(stage.chapter_index), str(stage.display_name)]
+	elif data != null:
+		var dn: Variant = data.get("display_name")
+		if dn is String and not (dn as String).is_empty():
+			name_text = dn
+	return name_text
+
+func _result_star_count() -> int:
+	var dungeon_id: String = GameState.get_active_dungeon_id()
+	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
+	var difficulty: int = 1
+	if data != null:
+		var df: Variant = data.get("difficulty")
+		if df is int or df is float:
+			difficulty = int(df)
+	return clampi(difficulty, 0, 3)
+
+func _populate_mvp_context_header() -> void:
+	_mvp_context_dungeon.text = _result_dungeon_label()
+	for child in _mvp_context_stars.get_children():
 		child.queue_free()
+	var total: int = 3
+	var filled: int = _result_star_count()
+	for i in range(total):
+		var star := Label.new()
+		star.text = "★" if i < filled else "☆"
+		star.add_theme_font_size_override("font_size", FS_STAR - 8)
+		star.add_theme_color_override("font_color", COLOR_GOLD if i < filled else COLOR_SUB)
+		_mvp_context_stars.add_child(star)
+
+func _build_mvp_step() -> void:
+	_mvp_anim_nodes.clear()
+	for child in _mvp_podium_host.get_children():
+		child.queue_free()
+	for child in _mvp_stats_grid.get_children():
+		child.queue_free()
+	for child in _mvp_skill_row.get_children():
+		child.queue_free()
+	_populate_mvp_context_header()
+	_mvp_subtitle_label.text = ""
+	_reset_mvp_intro_visibility()
 	var stats: Dictionary = GameState.last_run_combat_stats
 	var ranked: Array = MvpScoreScript.rank_members(stats, GameState.party_members)
 	if ranked.is_empty():
-		var empty := Label.new()
-		empty.text = "活躍データなし"
-		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		UiTypography.apply_body(empty, UiTypography.SIZE_BODY, COLOR_SUB)
-		_mvp_body.add_child(empty)
+		_mvp_subtitle_label.text = "活躍データなし"
+		_mvp_anim_nodes = [
+			_mvp_scrim,
+			_mvp_context_backdrop,
+			_mvp_header_backdrop,
+			_mvp_lower_backdrop,
+		]
 		return
 	var mvp: Dictionary = ranked[0]
-	var hero_panel := PanelContainer.new()
-	hero_panel.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD))
-	var hero_margin := MarginContainer.new()
-	hero_margin.add_theme_constant_override("margin_left", 12)
-	hero_margin.add_theme_constant_override("margin_right", 12)
-	hero_margin.add_theme_constant_override("margin_top", 12)
-	hero_margin.add_theme_constant_override("margin_bottom", 12)
-	var hero_col := VBoxContainer.new()
-	hero_col.add_theme_constant_override("separation", 8)
-	hero_col.alignment = BoxContainer.ALIGNMENT_CENTER
+	_mvp_podium_host.add_child(_build_mvp_podium(ranked))
+	for card: Dictionary in MvpPresentationScript.stat_cards(mvp):
+		_mvp_stats_grid.add_child(_make_mvp_stat_card(card))
+	_fill_mvp_skill_row(mvp)
+	_mvp_subtitle_label.text = MvpPresentationScript.pick_subtitle(mvp)
+	_mvp_anim_nodes = [
+		_mvp_scrim,
+		_mvp_context_backdrop,
+		_mvp_header_backdrop,
+		_mvp_podium_host,
+		_mvp_lower_backdrop,
+	]
+
+func _make_mvp_backdrop(content: Control, tier: String, expand_horizontal: bool = false) -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", MvpPresentationScript.backdrop_style(tier))
+	if expand_horizontal:
+		panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	else:
+		panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 2)
+	margin.add_theme_constant_override("margin_right", 2)
+	margin.add_theme_constant_override("margin_top", 2)
+	margin.add_theme_constant_override("margin_bottom", 2)
+	margin.add_child(content)
+	panel.add_child(margin)
+	return panel
+
+func _reset_mvp_intro_visibility() -> void:
+	for node: Variant in [
+		_mvp_scrim,
+		_mvp_context_backdrop,
+		_mvp_header_backdrop,
+		_mvp_podium_host,
+		_mvp_lower_backdrop,
+	]:
+		if node is CanvasItem:
+			(node as CanvasItem).modulate.a = 0.0
+	if _mvp_podium_host is CanvasItem:
+		_mvp_podium_host.scale = Vector2(0.92, 0.92)
+
+func _build_mvp_podium(ranked: Array) -> Control:
+	var root := Control.new()
+	root.custom_minimum_size = Vector2(520, MvpPresentationScript.PODIUM_MIN_HEIGHT)
+	var slots: Array = MvpPresentationScript.podium_layout(ranked)
+	for slot_data: Dictionary in slots:
+		var slot: Control = _make_mvp_podium_slot(
+			slot_data.get("entry", {}),
+			bool(slot_data.get("hero", false)),
+			float(slot_data.get("scale", 1.0)),
+			int(slot_data.get("rank", 1)),
+		)
+		root.add_child(slot)
+		match str(slot_data.get("slot", "")):
+			"left":
+				slot.position = Vector2(24, 42)
+			"right":
+				slot.position = Vector2(360, 42)
+			_:
+				slot.position = Vector2(176, 0)
+	return root
+
+func _make_mvp_podium_slot(entry: Dictionary, is_hero: bool, scale: float, rank: int) -> Control:
+	var slot := VBoxContainer.new()
+	slot.alignment = BoxContainer.ALIGNMENT_CENTER
+	slot.add_theme_constant_override("separation", 6)
+	slot.scale = Vector2(scale, scale)
+	slot.pivot_offset = Vector2(64, 80)
+	var portrait_px: float = (
+		MvpPresentationScript.HERO_PORTRAIT_PX if is_hero else MvpPresentationScript.RUNNER_PORTRAIT_PX
+	)
+	var frame_host := Control.new()
+	frame_host.custom_minimum_size = Vector2(portrait_px + 24, portrait_px + 24)
+	if is_hero and ResourceLoader.exists(MvpPresentationScript.FRAME_HERO_PATH):
+		var frame := TextureRect.new()
+		frame.set_anchors_preset(Control.PRESET_FULL_RECT)
+		frame.texture = load(MvpPresentationScript.FRAME_HERO_PATH) as Texture2D
+		frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		frame.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		frame_host.add_child(frame)
 	var icon := TextureRect.new()
-	icon.custom_minimum_size = Vector2(96, 96)
+	icon.custom_minimum_size = Vector2(portrait_px, portrait_px)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.texture = IconPaths.get_icon_texture(str(mvp.get("job_id", "")), "chr")
-	hero_col.add_child(icon)
+	icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	icon.texture = IconPaths.get_icon_texture(str(entry.get("job_id", "")), "chr")
+	icon.position = Vector2((frame_host.custom_minimum_size.x - portrait_px) * 0.5, 10)
+	frame_host.add_child(icon)
+	slot.add_child(frame_host)
+	var text_block := VBoxContainer.new()
+	text_block.alignment = BoxContainer.ALIGNMENT_CENTER
+	text_block.add_theme_constant_override("separation", 4)
+	var rank_lbl := Label.new()
+	rank_lbl.text = "%d位" % rank
+	rank_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_body(
+		rank_lbl,
+		UiTypography.SIZE_CAPTION,
+		COLOR_GOLD if is_hero else MvpPresentationScript.TEXT_MUTED_ON_BACKDROP,
+		UiTypography.OUTLINE_BODY if is_hero else 0,
+	)
+	text_block.add_child(rank_lbl)
 	var name := Label.new()
-	name.text = str(mvp.get("display_name", ""))
+	name.text = str(entry.get("display_name", ""))
 	name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	for member: Resource in GameState.party_members:
-		if member != null and str(member.id) == str(mvp.get("member_id", "")):
+		if member != null and str(member.id) == str(entry.get("member_id", "")):
 			UiTypography.apply_display(
-				name, UiTypography.SIZE_DISPLAY, PartyLogColorsScript.party_color(member), UiTypography.OUTLINE_STRONG
+				name,
+				UiTypography.SIZE_BODY if is_hero else UiTypography.SIZE_BODY_SMALL,
+				PartyLogColorsScript.party_color(member),
+				UiTypography.OUTLINE_STRONG if is_hero else UiTypography.OUTLINE_BODY,
 			)
 			break
-	hero_col.add_child(name)
-	hero_margin.add_child(hero_col)
-	hero_panel.add_child(hero_margin)
-	_mvp_body.add_child(hero_panel)
-	_add_mvp_stat_line("与ダメージ", "%d" % int(mvp.get("damage_total", 0)))
-	_add_mvp_stat_line("最大ヒット", "%d" % int(mvp.get("damage_max_hit", 0)))
+	text_block.add_child(name)
+	var dmg := Label.new()
+	dmg.text = "%d dmg" % int(entry.get("damage_total", 0))
+	dmg.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_body(
+		dmg, UiTypography.SIZE_CAPTION, MvpPresentationScript.TEXT_MUTED_ON_BACKDROP, UiTypography.OUTLINE_BODY
+	)
+	text_block.add_child(dmg)
+	slot.add_child(_make_mvp_backdrop(text_block, "podium"))
+	return slot
+
+func _make_mvp_stat_card(card: Dictionary) -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", MvpPresentationScript.backdrop_style("stat"))
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 10)
+	margin.add_theme_constant_override("margin_right", 10)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	var icon_path: String = str(card.get("icon", ""))
+	if not icon_path.is_empty() and ResourceLoader.exists(icon_path):
+		var icon := TextureRect.new()
+		icon.custom_minimum_size = Vector2(28, 28)
+		icon.texture = load(icon_path) as Texture2D
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		row.add_child(icon)
+	var col := VBoxContainer.new()
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var key_lbl := Label.new()
+	key_lbl.text = str(card.get("key", ""))
+	UiTypography.apply_body(key_lbl, UiTypography.SIZE_CAPTION, MvpPresentationScript.TEXT_MUTED_ON_BACKDROP)
+	col.add_child(key_lbl)
+	var val_lbl := Label.new()
+	val_lbl.text = str(card.get("value", ""))
+	UiTypography.apply_display(
+		val_lbl, UiTypography.SIZE_BODY, card.get("color", COLOR_TEXT), UiTypography.OUTLINE_STRONG
+	)
+	col.add_child(val_lbl)
+	row.add_child(col)
+	margin.add_child(row)
+	panel.add_child(margin)
+	return panel
+
+func _fill_mvp_skill_row(mvp: Dictionary) -> void:
+	for child in _mvp_skill_row.get_children():
+		child.queue_free()
+	_mvp_skill_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	var title := Label.new()
+	title.text = "決め手"
+	UiTypography.apply_body(title, UiTypography.SIZE_BODY, MvpPresentationScript.TEXT_MUTED_ON_BACKDROP, UiTypography.OUTLINE_BODY)
+	_mvp_skill_row.add_child(title)
+	var skill_id: String = str(mvp.get("damage_max_skill_id", ""))
 	var skill_name: String = str(mvp.get("damage_max_skill_name", ""))
 	if skill_name.is_empty():
 		skill_name = "—"
-	_add_mvp_stat_line("決め手スキル", skill_name)
-	_add_mvp_stat_line("回復量", "%d" % int(mvp.get("heal_total", 0)))
-	if ranked.size() > 1:
-		var sub := Label.new()
-		sub.text = "— その他 —"
-		sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		UiTypography.apply_body(sub, UiTypography.SIZE_CAPTION, COLOR_SUB)
-		_mvp_body.add_child(sub)
-		for i in range(1, mini(ranked.size(), 4)):
-			var entry: Dictionary = ranked[i]
-			var line := Label.new()
-			line.text = "%d位 %s  %d dmg" % [
-				i + 1,
-				str(entry.get("display_name", "")),
-				int(entry.get("damage_total", 0)),
-			]
-			line.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			UiTypography.apply_body(line, UiTypography.SIZE_BODY_SMALL, COLOR_TEXT)
-			_mvp_body.add_child(line)
+	var member: Resource = null
+	for m: Resource in GameState.party_members:
+		if m != null and str(m.id) == str(mvp.get("member_id", "")):
+			member = m
+			break
+	var icon: Control = null
+	if not skill_id.is_empty() and member != null:
+		icon = SkillIconHelperScript.make_ally_equipped_icon(skill_id, member, Vector2(40, 40))
+	if icon == null and not skill_id.is_empty():
+		icon = SkillIconHelperScript.make_unique_icon(skill_id, Vector2(40, 40))
+	if icon != null:
+		_mvp_skill_row.add_child(icon)
+	var name_lbl := Label.new()
+	name_lbl.text = skill_name
+	UiTypography.apply_display(
+		name_lbl, UiTypography.SIZE_BODY, MvpPresentationScript.TEXT_ON_BACKDROP, UiTypography.OUTLINE_STRONG
+	)
+	_mvp_skill_row.add_child(name_lbl)
 
-func _add_mvp_stat_line(key: String, value: String) -> void:
-	var row := HBoxContainer.new()
-	var key_lbl := Label.new()
-	key_lbl.text = key
-	key_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiTypography.apply_body(key_lbl, UiTypography.SIZE_BODY, COLOR_SUB)
-	var val_lbl := Label.new()
-	val_lbl.text = value
-	val_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	UiTypography.apply_body(val_lbl, UiTypography.SIZE_BODY, COLOR_TEXT)
-	row.add_child(key_lbl)
-	row.add_child(val_lbl)
-	_mvp_body.add_child(row)
+func _play_mvp_intro() -> void:
+	_play_mvp_intro_async()
+
+func _play_mvp_intro_async() -> void:
+	_mvp_intro_active = true
+	_reset_mvp_intro_visibility()
+	var timings: Dictionary = MvpPresentationScript.timings(false)
+	await get_tree().process_frame
+	var scrim_tw: Tween = create_tween()
+	scrim_tw.tween_property(_mvp_scrim, "modulate:a", 1.0, float(timings["header"]) * 0.35)
+	var header_tw: Tween = create_tween().set_parallel(true)
+	header_tw.tween_property(_mvp_context_backdrop, "modulate:a", 1.0, float(timings["header"]) * 0.55)
+	header_tw.tween_property(_mvp_header_backdrop, "modulate:a", 1.0, float(timings["header"]) * 0.55)
+	await header_tw.finished
+	var podium_tw: Tween = create_tween().set_parallel(true)
+	podium_tw.tween_property(_mvp_podium_host, "modulate:a", 1.0, float(timings["podium"]) * 0.45)
+	podium_tw.tween_property(_mvp_podium_host, "scale", Vector2.ONE, float(timings["podium"])).set_trans(
+		Tween.TRANS_BACK
+	).set_ease(Tween.EASE_OUT)
+	await podium_tw.finished
+	_spawn_mvp_sparkles(_mvp_podium_center_global())
+	await get_tree().create_timer(float(timings["sparkle_delay"])).timeout
+	var lower_tw: Tween = create_tween()
+	lower_tw.tween_property(_mvp_lower_backdrop, "modulate:a", 1.0, float(timings["stat_gap"]) * 4.0)
+	await lower_tw.finished
+	_flash_mvp_screen()
+	_mvp_intro_active = false
+	_button_retry.visible = true
+	_button_home.visible = true
+
+func _mvp_podium_center_global() -> Vector2:
+	if _mvp_podium_host == null:
+		return get_viewport_rect().size * Vector2(0.5, 0.42)
+	return _mvp_podium_host.get_global_rect().get_center()
+
+func _spawn_mvp_sparkles(at_global: Vector2) -> void:
+	if _mvp_fx_host == null:
+		return
+	var parts := CPUParticles2D.new()
+	parts.amount = 42
+	parts.lifetime = 0.7
+	parts.one_shot = true
+	parts.explosiveness = 0.9
+	parts.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
+	parts.emission_sphere_radius = 24.0
+	parts.global_position = at_global
+	parts.direction = Vector2(0, -1)
+	parts.spread = 180.0
+	parts.gravity = Vector2(0, 90.0)
+	parts.initial_velocity_min = 70.0
+	parts.initial_velocity_max = 160.0
+	parts.modulate = MvpPresentationScript.COLOR_GOLD
+	_mvp_fx_host.add_child(parts)
+	parts.emitting = true
+	parts.finished.connect(parts.queue_free)
+
+func _flash_mvp_screen() -> void:
+	var flash := ColorRect.new()
+	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	flash.color = Color(MvpPresentationScript.COLOR_GOLD.r, MvpPresentationScript.COLOR_GOLD.g, MvpPresentationScript.COLOR_GOLD.b, 0.0)
+	if _mvp_fx_host != null:
+		_mvp_fx_host.add_child(flash)
+	var tw: Tween = create_tween()
+	tw.tween_property(flash, "color:a", 0.18, 0.08)
+	tw.tween_property(flash, "color:a", 0.0, 0.16)
+	tw.tween_callback(flash.queue_free)
 
 func _apply_typography() -> void:
 	UiTypography.apply_display(_label_title, FS_TITLE, COLOR_GOLD)
 	UiTypography.apply_body(_label_dungeon, FS_DUNGEON, COLOR_TEXT)
+	if _clear_banner.texture == null:
+		_clear_banner.texture = CLEAR_BANNER_TEX
+	_clear_banner.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_clear_banner.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	UiTypography.apply_display(_label_outcome, FS_OUTCOME_CLEAR, COLOR_GOLD)
 	for title in [_label_reward_title, _label_material_title, _label_rare_title, _label_info_title]:
 		UiTypography.apply_display(title, FS_SECTION, COLOR_GOLD)
 	UiTypography.apply_body(_label_craftable, FS_CRAFTABLE, Color(0.7, 0.92, 0.6))
+	_label_craftable.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_label_craftable.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_label_dungeon.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_label_dungeon.clip_text = true
+	_label_dungeon.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	for btn in [_button_retry, _button_home]:
 		UiTypography.apply_button(btn)
 		btn.add_theme_font_size_override("font_size", FS_BUTTON)
@@ -553,14 +906,19 @@ func _apply_outcome_banner() -> void:
 	_label_title.text = UiTypography.decorate_title_text("探索結果")
 	match outcome:
 		GameState.RUN_OUTCOME_RETIRE:
+			_clear_banner.visible = false
+			_label_outcome.visible = true
 			_label_outcome.text = "リタイア帰還"
 			UiTypography.apply_display(_label_outcome, FS_OUTCOME_ALT, COLOR_RETIRE)
 		GameState.RUN_OUTCOME_WIPE:
+			_clear_banner.visible = false
+			_label_outcome.visible = true
 			_label_outcome.text = "探索失敗"
 			UiTypography.apply_display(_label_outcome, FS_OUTCOME_ALT, COLOR_FAIL)
 		_:
+			_clear_banner.visible = true
+			_label_outcome.visible = false
 			_label_outcome.text = "CLEAR"
-			UiTypography.apply_display(_label_outcome, FS_OUTCOME_CLEAR, COLOR_GOLD)
 
 func _build_stars(filled: int) -> void:
 	for child in _stars_row.get_children():
@@ -605,7 +963,8 @@ func _build_rewards() -> void:
 
 func _make_reward_cell(texture: Texture2D, glyph: String, name_text: String, value_text: String) -> Control:
 	var cell: VBoxContainer = VBoxContainer.new()
-	cell.custom_minimum_size = Vector2(96, 0)
+	cell.custom_minimum_size = Vector2(REWARD_CELL_WIDTH, 0)
+	cell.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	cell.alignment = BoxContainer.ALIGNMENT_BEGIN
 	var frame: PanelContainer = PanelContainer.new()
 	frame.custom_minimum_size = Vector2(64, 64)
@@ -630,16 +989,23 @@ func _make_reward_cell(texture: Texture2D, glyph: String, name_text: String, val
 	cell.add_child(frame)
 	var name_label: Label = Label.new()
 	name_label.text = name_text
+	name_label.custom_minimum_size = Vector2(REWARD_CELL_WIDTH, 0)
 	name_label.add_theme_font_size_override("font_size", FS_REWARD_NAME)
 	name_label.add_theme_color_override("font_color", COLOR_SUB)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_label.max_lines_visible = 2
+	name_label.clip_text = true
+	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	cell.add_child(name_label)
 	var value_label: Label = Label.new()
 	value_label.text = value_text
+	value_label.custom_minimum_size = Vector2(REWARD_CELL_WIDTH, 0)
 	value_label.add_theme_font_size_override("font_size", FS_REWARD_VALUE)
 	value_label.add_theme_color_override("font_color", COLOR_TEXT)
 	value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	value_label.clip_text = true
+	value_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	cell.add_child(value_label)
 	return cell
 
@@ -725,12 +1091,16 @@ func _add_rare_row(item_id: String, category: String) -> int:
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var name_label: Label = Label.new()
 	name_label.text = item_name
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_label.add_theme_font_size_override("font_size", FS_RARE_NAME)
 	name_label.add_theme_color_override("font_color", COLOR_TEXT)
+	name_label.clip_text = true
+	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	col.add_child(name_label)
 	if not desc.is_empty():
 		var desc_label: Label = Label.new()
 		desc_label.text = desc
+		desc_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		desc_label.add_theme_font_size_override("font_size", FS_RARE_DESC)
 		desc_label.add_theme_color_override("font_color", COLOR_SUB)
 		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -777,6 +1147,8 @@ func _add_info_pair(key: String, value: String) -> void:
 	key_label.text = key
 	key_label.add_theme_font_size_override("font_size", FS_INFO)
 	key_label.add_theme_color_override("font_color", COLOR_SUB)
+	key_label.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	key_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	_info_grid.add_child(key_label)
 	var value_label: Label = Label.new()
 	value_label.text = value
@@ -784,6 +1156,7 @@ func _add_info_pair(key: String, value: String) -> void:
 	value_label.add_theme_color_override("font_color", COLOR_TEXT)
 	value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	value_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	value_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_info_grid.add_child(value_label)
 
 func _on_retry_pressed() -> void:

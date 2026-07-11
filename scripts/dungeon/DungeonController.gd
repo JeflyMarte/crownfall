@@ -19,12 +19,12 @@ const ROOM_SEQUENCE: Array[int] = [
 	Enums.RoomType.COMBAT,
 	Enums.RoomType.COMBAT,
 	Enums.RoomType.BOSS,
-	Enums.RoomType.EXIT,
 ]
 
 # 中間部屋の抽選重み（戦闘多めプリセット）。合計100。
 const ROOM_WEIGHT_COMBAT: int = 52
-const ROOM_WEIGHT_EVENT: int = 15
+const ROOM_WEIGHT_HEAL: int = 7
+const ROOM_WEIGHT_LORE: int = 8
 const ROOM_WEIGHT_TREASURE: int = 13
 const ROOM_WEIGHT_TRAP: int = 8
 const ROOM_WEIGHT_ELITE: int = 12
@@ -34,11 +34,7 @@ const ROOM_MAX_ELITE: int = 2      # 1ラン内のELITE上限
 const ROOM_MIN_COMBAT: int = 3     # COMBAT最低数（肩慣らし含む / BOSS除く）
 
 
-const TRAP_ROOM_NARRATIVES: Array[String] = [
-	"床板の罠が作動した",
-	"崩れた床から棘が飛び出した",
-	"古いワイヤーが足元を締め付けた",
-]
+
 const TREASURE_GOLD: int = 30
 const TREASURE_ACCESSORY_CHANCE: float = 0.2
 const ELITE_REWARD_MULTIPLIER: float = 1.5
@@ -48,13 +44,8 @@ const ELITE_MATERIAL_CHANCE: float = 0.20
 const DISCOVERY_PER_ROOM: float = 0.05
 const DISCOVERY_BOSS_BONUS: float = 0.20
 
-const MOURNGATE_EVENT_MATERIAL_POOL: Array[String] = [
-	"ancient_bone",
-	"faded_magic_fur",
-	"engraved_carapace",
-	"crystal_spike",
-	"chrono_dust",
-]
+## 炉研ぎ素材のみ（`EquipmentEnhancer.EVENT_DROP_MATERIAL_IDS` と同期）。
+const MOURNGATE_EVENT_MATERIAL_POOL: Array[String] = ["relic_shard", "ancient_bone"]
 const MOURNGATE_ECOLOGY_DUNGEON_IDS: Array[String] = [
 	"mourngate",
 	"mourngate_deep",
@@ -404,17 +395,9 @@ func get_display_floor_max() -> int:
 	return maxi(1, get_total_rooms())
 
 func get_display_floor_current() -> int:
-	var idx: int = current_room_index + 1
-	if current_stage_data == null:
-		return idx
-	var max_floor: int = get_display_floor_max()
-	if bool(current_stage_data.has_boss_floor()) and current_room_type == Enums.RoomType.EXIT:
-		return max_floor
-	return mini(idx, max_floor)
+	return mini(current_room_index + 1, get_display_floor_max())
 
 func get_display_floor_text() -> String:
-	if current_stage_data != null and bool(current_stage_data.has_boss_floor()) and current_room_type == Enums.RoomType.EXIT:
-		return "EXIT"
 	return "F%d/%d" % [get_display_floor_current(), get_display_floor_max()]
 
 func get_run_biome_display_name() -> String:
@@ -447,7 +430,7 @@ func get_total_rooms() -> int:
 	return room_sequence.size()
 
 # ── 部屋列の生成 ─────────────────────────────────────────────
-# floor_count > 0: ランダム抽選（START + 肩慣らしCOMBAT + 重み付き中間 + [BOSS] + EXIT）
+# floor_count > 0: ランダム抽選（肩慣らし COMBAT + 重み付き中間 + [BOSS]）。EXIT は別フロアにしない。
 # floor_count <= 0: 従来固定列（ROOM_SEQUENCE を room_count で切り詰め）
 func _build_room_sequence(dungeon: DungeonData) -> Array[int]:
 	if dungeon.floor_count > 0:
@@ -476,9 +459,11 @@ func _generate_random_sequence(
 	var seq: Array[int] = []
 	# F1 は中身のある戦闘フロアにする（エントランス演出は dive intro が担う）。
 	seq.append(Enums.RoomType.COMBAT)
+	var opener_count: int = 2 if fc >= 3 else 1
 	if fc >= 3:
 		seq.append(Enums.RoomType.COMBAT)
-	var middle_count: int = maxi(0, fc - 3)
+	var boss_slots: int = 1 if include_boss else 0
+	var middle_count: int = maxi(0, fc - opener_count - boss_slots)
 	var elite_count: int = 0
 	var prev: int = Enums.RoomType.COMBAT
 	for _i in middle_count:
@@ -496,7 +481,6 @@ func _generate_random_sequence(
 	if require_elite:
 		_enforce_required_elite(seq)
 	_enforce_last_floor_combat(seq)
-	seq.append(Enums.RoomType.EXIT)
 	return seq
 
 func _enforce_last_floor_combat(seq: Array[int]) -> void:
@@ -513,23 +497,24 @@ func _enforce_required_elite(seq: Array[int]) -> void:
 		return
 	for i in range(1, seq.size() - 1):
 		var rt: int = seq[i]
-		if rt in [Enums.RoomType.COMBAT, Enums.RoomType.EVENT, Enums.RoomType.TREASURE, Enums.RoomType.TRAP]:
+		if rt in [Enums.RoomType.COMBAT, Enums.RoomType.EVENT, Enums.RoomType.HEAL, Enums.RoomType.TREASURE, Enums.RoomType.TRAP]:
 			seq[i] = Enums.RoomType.ELITE
 			return
 
-func _resolve_event_room_weight(dungeon: DungeonData) -> int:
+func _resolve_lore_room_weight(dungeon: DungeonData) -> int:
 	if current_stage_data != null and int(current_stage_data.event_room_weight) > 0:
 		return mini(int(current_stage_data.event_room_weight), 40)
 	if dungeon != null and dungeon.event_room_weight > 0:
 		return mini(dungeon.event_room_weight, 40)
-	return ROOM_WEIGHT_EVENT
+	return ROOM_WEIGHT_LORE
 
 func _resolve_room_weights(dungeon: DungeonData) -> Dictionary:
-	var event_w: int = _resolve_event_room_weight(dungeon)
-	var combat_w: int = clampi(ROOM_WEIGHT_COMBAT - (event_w - ROOM_WEIGHT_EVENT), 35, 70)
+	var lore_w: int = _resolve_lore_room_weight(dungeon)
+	var combat_w: int = clampi(ROOM_WEIGHT_COMBAT - (lore_w - ROOM_WEIGHT_LORE), 35, 70)
 	return {
 		"combat": combat_w,
-		"event": event_w,
+		"heal": ROOM_WEIGHT_HEAL,
+		"lore": lore_w,
 		"treasure": ROOM_WEIGHT_TREASURE,
 		"trap": ROOM_WEIGHT_TRAP,
 		"elite": ROOM_WEIGHT_ELITE,
@@ -540,7 +525,7 @@ func _required_min_event_rooms(dungeon: DungeonData, middle_count: int) -> int:
 		return int(current_stage_data.min_event_rooms)
 	if dungeon != null and dungeon.min_event_rooms > 0:
 		return dungeon.min_event_rooms
-	if middle_count >= 3 and _resolve_event_room_weight(dungeon) > 0:
+	if middle_count >= 3 and _resolve_lore_room_weight(dungeon) > 0:
 		return 1
 	return 0
 
@@ -548,16 +533,16 @@ func _enforce_min_event(seq: Array[int], dungeon: DungeonData, middle_count: int
 	var required: int = _required_min_event_rooms(dungeon, middle_count)
 	if required <= 0:
 		return
-	var event_count: int = 0
+	var lore_count: int = 0
 	for i in range(1, seq.size() - 1):
 		if seq[i] == Enums.RoomType.EVENT:
-			event_count += 1
-	while event_count < required:
+			lore_count += 1
+	while lore_count < required:
 		var converted: bool = false
 		for i in range(1, seq.size() - 1):
-			if seq[i] == Enums.RoomType.TREASURE or seq[i] == Enums.RoomType.TRAP:
+			if seq[i] in [Enums.RoomType.TREASURE, Enums.RoomType.TRAP, Enums.RoomType.HEAL]:
 				seq[i] = Enums.RoomType.EVENT
-				event_count += 1
+				lore_count += 1
 				converted = true
 				break
 		if not converted:
@@ -569,9 +554,12 @@ func _roll_room_type(dungeon: DungeonData) -> int:
 	if r < int(weights["combat"]):
 		return Enums.RoomType.COMBAT
 	r -= int(weights["combat"])
-	if r < int(weights["event"]):
+	if r < int(weights["heal"]):
+		return Enums.RoomType.HEAL
+	r -= int(weights["heal"])
+	if r < int(weights["lore"]):
 		return Enums.RoomType.EVENT
-	r -= int(weights["event"])
+	r -= int(weights["lore"])
 	if r < int(weights["treasure"]):
 		return Enums.RoomType.TREASURE
 	r -= int(weights["treasure"])
@@ -580,7 +568,7 @@ func _roll_room_type(dungeon: DungeonData) -> int:
 	return Enums.RoomType.ELITE
 
 # COMBAT が ROOM_MIN_COMBAT 未満なら、中間の非COMBAT部屋をCOMBATへ変換して補う。
-# START(先頭)・BOSS(末尾) は対象外。EVENT/TREASURE を優先的に変換し、足りなければ ELITE も変換。
+# START(先頭)・BOSS(末尾) は対象外。HEAL/TREASURE/EVENT を優先的に変換し、足りなければ ELITE も変換。
 func _enforce_min_combat(seq: Array[int]) -> void:
 	var combat_total: int = seq.count(Enums.RoomType.COMBAT)
 	if combat_total >= ROOM_MIN_COMBAT:
@@ -592,7 +580,7 @@ func _enforce_min_combat(seq: Array[int]) -> void:
 			var rt: int = seq[i]
 			if rt == Enums.RoomType.COMBAT:
 				continue
-			# 1巡目は EVENT/TREASURE のみ、2巡目で ELITE も対象
+			# 1巡目は HEAL/EVENT/TREASURE のみ、2巡目で ELITE も対象
 			if pass_idx == 0 and rt == Enums.RoomType.ELITE:
 				continue
 			seq[i] = Enums.RoomType.COMBAT
@@ -614,13 +602,11 @@ func is_final_combat_encounter() -> bool:
 			return false
 	return true
 
+func is_on_last_floor() -> bool:
+	return not room_sequence.is_empty() and current_room_index >= room_sequence.size() - 1
+
 func is_on_last_floor_before_exit() -> bool:
-	if current_room_type == Enums.RoomType.EXIT:
-		return false
-	var next_index: int = current_room_index + 1
-	if next_index >= room_sequence.size():
-		return false
-	return room_sequence[next_index] == Enums.RoomType.EXIT
+	return is_on_last_floor()
 
 func accumulate_rewards(exp: int, gold: int) -> void:
 	if exp > 0:
@@ -823,12 +809,21 @@ func _mark_event_seen(event_id: String) -> void:
 	_seen_event_ids.append(event_id)
 
 func _get_event_pool() -> Array:
-	if current_dungeon_data == null:
-		return EVENTS
 	var combined: Array = []
-	combined.append_array(EVENTS)
-	combined.append_array(DUNGEON_EVENTS.get(str(current_dungeon_data.id), []))
-	return combined
+	if current_dungeon_data == null:
+		combined.append_array(EVENTS)
+	else:
+		combined.append_array(EVENTS)
+		combined.append_array(DUNGEON_EVENTS.get(str(current_dungeon_data.id), []))
+	var lore_only: Array = []
+	for ev: Dictionary in combined:
+		if _is_lore_event(ev):
+			lore_only.append(ev)
+	return lore_only
+
+func _is_lore_event(event: Dictionary) -> bool:
+	var outcome: Dictionary = event.get("outcome", {})
+	return str(outcome.get("type", "")) == "lore"
 
 func auto_resolve_event() -> Dictionary:
 	return resolve_event_outcome(current_event.get("outcome", {"type": "nothing"}))
@@ -837,16 +832,22 @@ func resolve_event_outcome(outcome: Dictionary) -> Dictionary:
 	var resolved: Dictionary = outcome.duplicate(true)
 	if str(resolved.get("type", "")) != "material":
 		return resolved
-	if current_dungeon_data == null:
-		return resolved
-	var dungeon_id: String = str(current_dungeon_data.id)
-	if dungeon_id not in MOURNGATE_ECOLOGY_DUNGEON_IDS:
-		return resolved
-	if str(resolved.get("material_id", "relic_shard")) != "relic_shard":
-		return resolved
-	var mat_id: String = MOURNGATE_EVENT_MATERIAL_POOL[randi() % MOURNGATE_EVENT_MATERIAL_POOL.size()]
-	resolved["material_id"] = mat_id
-	resolved["discovery_id"] = mat_id
+	if current_dungeon_data != null:
+		var dungeon_id: String = str(current_dungeon_data.id)
+		if dungeon_id in MOURNGATE_ECOLOGY_DUNGEON_IDS:
+			if str(resolved.get("material_id", "relic_shard")) == "relic_shard":
+				var mat_id: String = MOURNGATE_EVENT_MATERIAL_POOL[randi() % MOURNGATE_EVENT_MATERIAL_POOL.size()]
+				resolved["material_id"] = mat_id
+				resolved["discovery_id"] = mat_id
+	return _finalize_material_outcome(resolved)
+
+func _finalize_material_outcome(outcome: Dictionary) -> Dictionary:
+	var resolved: Dictionary = outcome.duplicate(true)
+	var mat_id: String = str(resolved.get("material_id", resolved.get("discovery_id", "relic_shard")))
+	if not EquipmentEnhancer.is_enhancement_material(mat_id):
+		mat_id = "relic_shard"
+		resolved["material_id"] = mat_id
+		resolved["discovery_id"] = mat_id
 	resolved["label"] = DataRegistry.get_material_name(mat_id)
 	return resolved
 
@@ -872,6 +873,11 @@ func generate_treasure_loot() -> Dictionary:
 		_generate_accessory_loot()
 		accessory_id = last_accessory_dropped
 	return {"gold": TREASURE_GOLD, "accessory_id": accessory_id}
+
+func generate_treasure_loot_failure() -> Dictionary:
+	var gold: int = maxi(1, int(round(float(TREASURE_GOLD) * 0.5)))
+	accumulate_rewards(0, gold)
+	return {"gold": gold, "accessory_id": ""}
 
 func generate_accessory_loot() -> String:
 	last_accessory_dropped = ""

@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="DungeonStageData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonStageData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "blackshore_4_5"
+biome_id = "blackshore"
+biome_index = 4
+chapter_index = 5
+display_name = "ネレイオンの深海"
+floor_count = 9
+enemy_level = 36
+recommended_level = 38
+closing_type = "boss"
+requires_elite = false
+boss_id = "nereion"
+legendary_armor_id = "nereion_tide_plate"
+legendary_accessory_id = "pharos_beacon_ring"
+spawn_weights = {
+"2": 20,
+"3": 80
+}
+event_room_weight = 18
+min_event_rooms = 1

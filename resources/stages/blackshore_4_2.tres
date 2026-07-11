@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="DungeonStageData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonStageData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "blackshore_4_2"
+biome_id = "blackshore"
+biome_index = 4
+chapter_index = 2
+display_name = "黒礁の入り江"
+floor_count = 8
+enemy_level = 33
+recommended_level = 35
+closing_type = "exit"
+requires_elite = false
+spawn_weights = {
+"2": 60,
+"3": 40
+}
+event_room_weight = 18
+min_event_rooms = 1

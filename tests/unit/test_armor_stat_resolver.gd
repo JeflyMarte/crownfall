@@ -70,8 +70,16 @@ func test_armor_resist_roll_sets_multiplier() -> void:
 	for _i in 100:
 		_ArmorStatResolver.apply_drop_stats(inst, data)
 		if "resist_elements" in inst.rolled_bonus_stats:
-			assert_true(float(inst.resist_multiplier) > 0.0)
-			assert_true(float(inst.resist_multiplier) <= BalanceConfig.ARMOR_RESIST_MULTIPLIER)
+			var mult: float = float(inst.resist_multiplier)
+			assert_true(mult > 0.0)
+			var weak: float = float(
+				_ArmorStatResolver.RESIST_MULT_MIN_BY_RARITY.get(
+					Enums.Rarity.RARE,
+					_ArmorStatResolver.RESIST_MULT_MIN_BY_RARITY[Enums.Rarity.COMMON]
+				)
+			)
+			assert_true(mult <= weak + 0.001)
+			assert_true(mult >= BalanceConfig.ARMOR_RESIST_MULTIPLIER - 0.001)
 			return
 	pass_test("resist not picked in 100 rolls — acceptable variance")
 

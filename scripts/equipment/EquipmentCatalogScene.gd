@@ -232,20 +232,7 @@ func _sync_inventory_cell_size() -> void:
 	_inventory_scroll.custom_minimum_size.y = height
 
 func _attach_item_icon(btn: Button, icon: Texture2D, cell_px: int, design_px: int) -> void:
-	if icon == null:
-		return
-	var inset: int = EquipmentUiTokens.icon_inset_px(cell_px, design_px)
-	var tex_rect := TextureRect.new()
-	tex_rect.texture = icon
-	tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	tex_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	tex_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	tex_rect.offset_left = inset
-	tex_rect.offset_top = inset
-	tex_rect.offset_right = -inset
-	tex_rect.offset_bottom = -inset
-	btn.add_child(tex_rect)
+	EquipmentUiTokens.attach_item_cell_layers(btn, icon, cell_px, design_px)
 
 func _apply_item_cell_styles(
 	btn: Button,

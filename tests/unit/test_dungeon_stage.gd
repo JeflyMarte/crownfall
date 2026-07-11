@@ -6,16 +6,20 @@ const _DungeonController = preload("res://scripts/dungeon/DungeonController.gd")
 
 var _saved_stage_progress: Dictionary = {}
 var _saved_stage_id: String = ""
+var _saved_dungeon_progress: Dictionary = {}
 
 func before_each() -> void:
 	_saved_stage_progress = GameState.stage_progress
 	_saved_stage_id = GameState.current_stage_id
+	_saved_dungeon_progress = GameState.dungeon_progress
 	GameState.stage_progress = {}
 	GameState.current_stage_id = ""
+	GameState.dungeon_progress = {}
 
 func after_each() -> void:
 	GameState.stage_progress = _saved_stage_progress
 	GameState.current_stage_id = _saved_stage_id
+	GameState.dungeon_progress = _saved_dungeon_progress
 
 func _make_controller() -> Node:
 	var dc: Node = _DungeonController.new()
@@ -30,13 +34,14 @@ func _stage_seq(stage_id: String) -> Array[int]:
 func test_stage_1_4_has_no_boss() -> void:
 	var seq: Array[int] = _stage_seq("mourngate_1_4")
 	assert_false(Enums.RoomType.BOSS in seq, "1-4 は Boss なし")
-	assert_eq(seq[-1], Enums.RoomType.EXIT, "EXIT 締め")
+	assert_false(Enums.RoomType.EXIT in seq, "EXIT は別フロアにしない")
+	assert_true(seq[-1] in [Enums.RoomType.COMBAT, Enums.RoomType.ELITE], "最終F は戦闘系")
 
-func test_stage_1_5_has_boss_before_exit() -> void:
+func test_stage_1_5_has_boss_on_last_floor() -> void:
 	var seq: Array[int] = _stage_seq("mourngate_1_5")
 	assert_true(Enums.RoomType.BOSS in seq, "1-5 は Boss あり")
-	assert_eq(seq[seq.size() - 2], Enums.RoomType.BOSS, "Boss は EXIT 直前")
-	assert_eq(seq[-1], Enums.RoomType.EXIT)
+	assert_eq(seq[-1], Enums.RoomType.BOSS, "最終F は Boss")
+	assert_false(Enums.RoomType.EXIT in seq)
 
 func test_stage_1_4_requires_elite() -> void:
 	seed(42)
@@ -66,9 +71,11 @@ func test_resolve_stage_picks_first_uncleared() -> void:
 func test_stage_floor_count_matches_ssot() -> void:
 	var dc: Node = _make_controller()
 	dc.start_stage("mourngate_1_1")
-	assert_eq(dc.room_sequence.size(), 6, "1-1 = 6F（EXIT 締め・Boss なし）")
+	assert_eq(dc.room_sequence.size(), 6, "1-1 = 6F")
+	assert_eq(dc.get_display_floor_max(), 6)
 	dc.start_stage("mourngate_1_5")
-	assert_eq(dc.room_sequence.size(), 11, "1-5 = 10F + EXIT")
+	assert_eq(dc.room_sequence.size(), 10, "1-5 = 10F")
+	assert_eq(dc.get_display_floor_max(), 10)
 
 func test_display_floor_text() -> void:
 	var dc: Node = _make_controller()
@@ -79,8 +86,8 @@ func test_display_floor_text() -> void:
 	assert_eq(dc.get_display_floor_text(), "F3/6")
 	dc.start_stage("mourngate_1_5")
 	dc.current_room_index = dc.room_sequence.size() - 1
-	dc.current_room_type = Enums.RoomType.EXIT
-	assert_eq(dc.get_display_floor_text(), "EXIT")
+	dc.current_room_type = Enums.RoomType.BOSS
+	assert_eq(dc.get_display_floor_text(), "F10/10")
 
 func test_run_display_name_includes_chapter() -> void:
 	var dc: Node = _make_controller()
@@ -94,13 +101,13 @@ func _unlock_whisperwood() -> void:
 func test_whisperwood_2_4_has_no_boss() -> void:
 	var seq: Array[int] = _stage_seq("whisperwood_2_4")
 	assert_false(Enums.RoomType.BOSS in seq, "2-4 は Boss なし")
-	assert_eq(seq[-1], Enums.RoomType.EXIT, "EXIT 締め")
+	assert_false(Enums.RoomType.EXIT in seq)
 
-func test_whisperwood_2_5_has_boss_before_exit() -> void:
+func test_whisperwood_2_5_has_boss_on_last_floor() -> void:
 	var seq: Array[int] = _stage_seq("whisperwood_2_5")
 	assert_true(Enums.RoomType.BOSS in seq, "2-5 は Boss あり")
-	assert_eq(seq[seq.size() - 2], Enums.RoomType.BOSS, "Boss は EXIT 直前")
-	assert_eq(seq[-1], Enums.RoomType.EXIT)
+	assert_eq(seq[-1], Enums.RoomType.BOSS, "最終F は Boss")
+	assert_false(Enums.RoomType.EXIT in seq)
 
 func test_whisperwood_2_4_requires_elite() -> void:
 	seed(42)
@@ -129,22 +136,31 @@ func test_whisperwood_floor_count_matches_ssot() -> void:
 	dc.start_stage("whisperwood_2_1")
 	assert_eq(dc.room_sequence.size(), 6, "2-1 = 6F")
 	dc.start_stage("whisperwood_2_5")
-	assert_eq(dc.room_sequence.size(), 11, "2-5 = 10F + EXIT")
+	assert_eq(dc.room_sequence.size(), 10, "2-5 = 10F")
 
 func test_whisperwood_run_display_name_includes_chapter() -> void:
 	var dc: Node = _make_controller()
 	dc.start_stage("whisperwood_2_3")
-	assert_eq(dc.get_run_display_name(), "2-3 花蔓帯")
+	assert_eq(dc.get_run_display_name(), "2-3 古樹の庭園")
 	assert_eq(dc.get_run_recommended_level(), 14)
 
-func test_is_on_last_floor_before_exit() -> void:
+func test_is_on_last_floor() -> void:
 	var dc: Node = _make_controller()
 	dc.start_stage("mourngate_1_1")
 	dc.current_room_index = 0
 	dc.current_room_type = dc.room_sequence[0]
-	assert_false(dc.is_on_last_floor_before_exit(), "F1 は最終フロアではない")
-	dc.current_room_index = dc.room_sequence.size() - 2
+	assert_false(dc.is_on_last_floor(), "F1 は最終フロアではない")
+	dc.current_room_index = dc.room_sequence.size() - 1
 	dc.current_room_type = dc.room_sequence[dc.current_room_index]
-	assert_true(dc.is_on_last_floor_before_exit(), "EXIT 直前は最終フロア")
-	dc.current_room_type = Enums.RoomType.EXIT
-	assert_false(dc.is_on_last_floor_before_exit(), "EXIT 自身は対象外")
+	assert_true(dc.is_on_last_floor(), "最終F は最終フロア")
+
+func test_five_floor_dungeon_ends_with_combat() -> void:
+	var dc: Node = _make_controller()
+	var dungeon := DungeonData.new()
+	dungeon.id = "test_five"
+	dungeon.floor_count = 5
+	dc.current_dungeon_data = dungeon
+	dc.room_sequence = dc._generate_random_sequence(dungeon, 5, false, false)
+	assert_eq(dc.room_sequence.size(), 5)
+	assert_false(Enums.RoomType.EXIT in dc.room_sequence)
+	assert_true(dc.room_sequence[-1] in [Enums.RoomType.COMBAT, Enums.RoomType.ELITE, Enums.RoomType.BOSS])

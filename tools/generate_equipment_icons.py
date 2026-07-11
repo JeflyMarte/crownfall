@@ -74,7 +74,7 @@ CANONICAL_TEMPLATES = {
 }
 
 SIZE = 128
-ICON_SCALE = 0.72
+ICON_SCALE = 0.82
 
 
 def snake_to_pascal(snake: str) -> str:
@@ -171,14 +171,22 @@ def _hash_hue(item_id: str) -> float:
     return int(digest[:2], 16) / 255.0
 
 
-def remove_black_bg(img: Image.Image, threshold: int = 28) -> Image.Image:
+def remove_matte_bg(
+    img: Image.Image, dark_threshold: int = 28, light_threshold: int = 220
+) -> Image.Image:
     img = img.convert("RGBA")
     px = img.load()
     w, h = img.size
     for y in range(h):
         for x in range(w):
             r, g, b, a = px[x, y]
-            if r <= threshold and g <= threshold and b <= threshold:
+            if a == 0:
+                continue
+            if r <= dark_threshold and g <= dark_threshold and b <= dark_threshold:
+                px[x, y] = (r, g, b, 0)
+            elif r >= light_threshold and g >= light_threshold and b >= light_threshold:
+                px[x, y] = (r, g, b, 0)
+            elif max(r, g, b) - min(r, g, b) < 18 and min(r, g, b) > 170:
                 px[x, y] = (r, g, b, 0)
     return img
 
@@ -235,7 +243,7 @@ def compose_icon(template_path: Path, item_id: str, element: str, rarity: int) -
     # 背景は UI 側の枠線で表現するため、スプライトのみを透過 PNG に合成する。
     canvas = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
     sprite = Image.open(template_path)
-    sprite = remove_black_bg(sprite)
+    sprite = remove_matte_bg(sprite)
 
     hue = ELEMENT_HUE.get(element)
     if hue is None:
@@ -246,7 +254,7 @@ def compose_icon(template_path: Path, item_id: str, element: str, rarity: int) -
     th = int(tw * sprite.height / sprite.width)
     sprite = sprite.resize((tw, th), Image.Resampling.NEAREST)
     ox = (SIZE - tw) // 2
-    oy = (SIZE - th) // 2 + 4
+    oy = (SIZE - th) // 2 + 2
 
     if rarity >= 2:
         sprite = ImageEnhance.Brightness(sprite).enhance(1.08)

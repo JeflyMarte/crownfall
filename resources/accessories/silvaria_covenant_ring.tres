@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "silvaria_covenant_ring"
+display_name = "森護王の盟約環"
+rarity = 3
+icon = ""
+description = "深森の王座に残る盟約の環。森護王の名が内側に刻まれている。"
+hp_bonus = 12
+attack_bonus = 0
+defense_bonus = 0
+crit_rate_bonus = 0.04
+exp_gain_rate = 0.0
+gold_gain_rate = 0.0
+rare_drop_rate = 0.0
+fixed_passive_id = "eq_silvaria_covenant"

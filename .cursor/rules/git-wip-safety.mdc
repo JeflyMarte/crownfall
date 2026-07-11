@@ -1,0 +1,59 @@
+---
+description: 未コミット WIP の巻き戻り防止 — cloud agent / stash 前後の git 確認
+alwaysApply: true
+---
+
+# Git WIP 安全運用（巻き戻り防止）
+
+未コミットの画面・演出・アセット作業が **cloud agent 退避で `stash` に入り、作業ツリーだけ `HEAD` に戻る**事故を防ぐ。
+
+## 原則
+
+- 大きな機能（図鑑 / 結果 MVP / 部屋演出など）は **動いた時点で WIP コミット**する。stash だけに依存しない
+- 長い作業は **feature ブランチ**で進める（`main` 直＋大量未コミットを避ける）
+- stash は短命。退避したら **同じセッション内で戻すか、オーナーに残存を報告**する
+
+## cloud agent / local changes 退避の前後（必須）
+
+次のいずれかを行う前後に、エージェントは git を確認する:
+
+- Cursor cloud agent への移管
+- 「local changes を移す」「moved local changes to cloud agent」系の操作
+- 作業ツリーを大きく変える `stash` / `stash push` / 類似の退避
+
+### 前
+
+```bash
+git status -sb
+git stash list | head -5
+```
+
+未コミットの画面・スクリプト・アセットがある場合は、可能なら **先にコミット**するか、オーナーに退避リスクを一言伝える。
+
+### 後（戻ってきたらすぐ）
+
+```bash
+git status -sb
+git stash list | head -10
+```
+
+`stash` に `cloud agent` / `moved local changes` がある、または作業ツリーが想定よりクリーンな場合:
+
+1. stash 内容を確認（`git diff --stat HEAD 'stash@{0}'` および `stash@{0}^3` の未追跡）
+2. **オーナーに残存 stash を報告**し、復元の可否を確認する（勝手に `stash drop` しない）
+3. 復元時は関連ファイルを戻し、後続の意図的 WIP（別修正）と衝突しないか確認する
+
+## 禁止
+
+- 大きな未コミット塊を抱えたまま、確認なしで cloud agent に移す
+- stash を長期間のバックアップとして放置する
+- オーナー確認なしに `stash drop` / `stash clear` する
+- 復元時に、セッション中の別意図の修正を黙って上書きする
+
+## 検知の目安
+
+オーナーが「以前直したレイアウト／演出が戻っている」と言ったら、まず:
+
+1. `git stash list`
+2. 直近の cloud agent 退避 stash の有無
+3. 該当画面の `HEAD` vs stash 差分

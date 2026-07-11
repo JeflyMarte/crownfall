@@ -12,6 +12,7 @@ func test_forge_ui_asset_paths_exist() -> void:
 		ForgeUiTokens.ICO_BACK,
 		ForgeUiTokens.ANVIL_PANEL,
 		ForgeUiTokens.HERO_GLOW,
+		ForgeUiTokens.HERO_ITEM_BG,
 		ForgeUiTokens.TAB_ACTIVE,
 		ForgeUiTokens.LIST_CARD_NORMAL,
 		ForgeUiTokens.LIST_CARD_SELECTED,
@@ -66,6 +67,16 @@ func test_list_card_selected_style_uses_texture_when_available() -> void:
 	var sb: StyleBox = ForgeUiTokens.list_card_selected_style()
 	assert_true(sb is StyleBoxTexture)
 	assert_not_null((sb as StyleBoxTexture).texture)
+
+func test_material_chip_style_uses_normal_inv_frame() -> void:
+	var sb: StyleBox = BlacksmithUiHelper.material_chip_style(true, 64)
+	assert_true(sb is StyleBoxTexture)
+	assert_not_null((sb as StyleBoxTexture).texture)
+
+func test_rarity_name_color_follows_rarity() -> void:
+	var common: Color = BlacksmithUiHelper.rarity_name_color(0)
+	var rare: Color = BlacksmithUiHelper.rarity_name_color(1)
+	assert_ne(common, rare)
 
 func test_decorate_title_adds_diamond_ornament() -> void:
 	var lbl := Label.new()

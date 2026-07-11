@@ -1,13 +1,19 @@
 class_name SkillIconHelper
 extends RefCounted
 
-## 味方スキル用の汎用ベースアイコン（最大10種）＋ジョブ色 tint。
-## assets/ui/skills/base/ICO_SKILL_BASE_{Base}_fg.png（透過）を参照。個別 ICO_SKILL_* は使わない。
+## 味方スキル用ベースアイコン（最大10種）＋ジョブ色 tint。
+## assets/ui/skills/base/ICO_SKILL_BASE_{Base}_fg.png（透過）を参照。
+##
+## アイコン方針（P3-UI-SKILL-ICON-C）:
+## 1. 装備枠①②・通常表示 → make_ally_equipped_icon（ベース fg + パーティ色のみ）
+## 2. 必殺スロット → make_ultimate_icon（個別 ICO_SKILL_* 優先 → なければベース+tint）
+## 3. 敵・図鑑・MVP フォールバック → make_unique_icon（IconPaths 個別）
+## 個別 ICO_SKILL_* は非必殺の装備スキル行では意図的に使わない。
 
 const BASE_DIR: String = "res://assets/ui/skills/base/"
 const DISPLAY_SIZE: Vector2 = Vector2(44, 44)
 
-## 未インストールベースのフォールバック（buff / ultimate 素材未配置時）。
+## 未インストールベースのフォールバック（将来ベース追加までの安全網）。
 const BASE_ART_FALLBACK: Dictionary = {
 	"buff": "heal",
 	"ultimate": "slash",
@@ -27,11 +33,6 @@ const SKILL_TO_BASE: Dictionary = {
 	"rime_touch": "slash",
 	"sanctal_strike": "slash",
 	"umbral_strike": "slash",
-	"leg_consecrated_maul": "slash",
-	"leg_eldion_frostbrand": "slash",
-	"leg_nereidas_tideblade": "slash",
-	"leg_silvaria_oathblade": "slash",
-	"leg_volgrave_thunderblade": "slash",
 	"guard_strike": "guard",
 	"iron_guard": "guard",
 	"heavy_guard": "guard",
@@ -49,14 +50,10 @@ const SKILL_TO_BASE: Dictionary = {
 	"vital_shot": "bow",
 	"beast_bite": "bow",
 	"apex_tame": "bow",
-	"leg_pharoslight_staff": "bow",
-	"leg_veld_branch_staff": "bow",
-	"leg_seradion_storm_staff": "bow",
 	"focus_mark": "mark",
 	"hunter_mark": "mark",
 	"mark_pursuit": "mark",
 	"alpha_strike": "mark",
-	"leg_sanctified_dagger": "mark",
 	"hex_bolt": "hex",
 	"curse_sigil": "hex",
 	"plague_bolt": "hex",
@@ -64,7 +61,6 @@ const SKILL_TO_BASE: Dictionary = {
 	"vulnerable_surge": "hex",
 	"arc_bolt": "hex",
 	"apex_hex": "hex",
-	"leg_umbra_terminus_staff": "hex",
 	"toxin_dart": "poison",
 	"venom_burst": "poison",
 	"snare_shot": "snare",
@@ -114,6 +110,19 @@ static func make_unique_icon(skill_id: String, display_size: Vector2 = DISPLAY_S
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return icon
+
+
+## 装備枠①②など — ベース fg + パーティ色（個別 ICO_SKILL_* は使わない）。
+static func make_ally_equipped_icon(skill_id: String, member: Resource, display_size: Vector2 = DISPLAY_SIZE) -> Control:
+	return make_icon(skill_id, member, display_size)
+
+
+## 必殺スロット — 個別アイコン優先、なければベース+tint。
+static func make_ultimate_icon(skill_id: String, member: Resource, display_size: Vector2 = DISPLAY_SIZE) -> Control:
+	var icon: Control = make_unique_icon(skill_id, display_size)
+	if icon != null:
+		return icon
+	return make_ally_equipped_icon(skill_id, member, display_size)
 
 
 static func make_icon(skill_id: String, member: Resource, display_size: Vector2 = DISPLAY_SIZE) -> Control:

@@ -1238,8 +1238,31 @@ func get_enemy_stage(enemy_id: String) -> int:
 func add_material(material_id: String, amount: int = 1) -> void:
 	if material_id.is_empty() or amount <= 0:
 		return
+	if not EquipmentEnhancer.is_enhancement_material(material_id):
+		return
 	var current: int = int(material_inventory.get(material_id, 0))
 	material_inventory[material_id] = current + amount
+
+func sanitize_material_inventory() -> void:
+	var cleaned: Dictionary = {}
+	for mat_id in material_inventory:
+		if not EquipmentEnhancer.is_enhancement_material(str(mat_id)):
+			continue
+		var qty: int = int(material_inventory[mat_id])
+		if qty > 0:
+			cleaned[str(mat_id)] = qty
+	material_inventory = cleaned
+
+func sanitize_discovery_registry() -> void:
+	var cleaned: Dictionary = {}
+	for key in discovery_registry:
+		var key_str: String = str(key)
+		if key_str.begins_with("material:"):
+			var mat_id: String = key_str.substr("material:".length())
+			if not EquipmentEnhancer.is_enhancement_material(mat_id):
+				continue
+		cleaned[key_str] = discovery_registry[key]
+	discovery_registry = cleaned
 
 func get_material_quantity(material_id: String) -> int:
 	return int(material_inventory.get(material_id, 0))

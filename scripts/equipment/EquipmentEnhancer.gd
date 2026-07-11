@@ -33,6 +33,28 @@ const MATERIALS_BY_NEXT_LEVEL: Array[Dictionary] = [
 	{"relic_shard": 3, "elite_relic_shard": 2},
 ]
 
+## 炉研ぎ消費素材＝戦闘ドロップの唯一対象（P3-D067 改）。
+const ENHANCEMENT_MATERIAL_IDS: Array[String] = [
+	"relic_shard",
+	"ancient_bone",
+	"elite_relic_shard",
+]
+const COMBAT_DROP_MATERIAL_IDS: Array[String] = ["relic_shard", "ancient_bone"]
+const EVENT_DROP_MATERIAL_IDS: Array[String] = ["relic_shard", "ancient_bone"]
+
+static func is_enhancement_material(material_id: String) -> bool:
+	return material_id in ENHANCEMENT_MATERIAL_IDS
+
+static func pick_combat_drop_material() -> String:
+	if COMBAT_DROP_MATERIAL_IDS.is_empty():
+		return "relic_shard"
+	return COMBAT_DROP_MATERIAL_IDS[0] if randf() < 0.72 else COMBAT_DROP_MATERIAL_IDS[1]
+
+static func pick_event_drop_material() -> String:
+	if EVENT_DROP_MATERIAL_IDS.is_empty():
+		return "relic_shard"
+	return EVENT_DROP_MATERIAL_IDS[randi() % EVENT_DROP_MATERIAL_IDS.size()]
+
 static func get_enhance_level(weapon: Resource) -> int:
 	if weapon == null:
 		return 0
