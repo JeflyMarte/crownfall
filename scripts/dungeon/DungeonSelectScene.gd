@@ -450,6 +450,12 @@ func _refresh_event_footer() -> void:
 	_footer_panel.visible = true
 	_bonus_col.visible = true
 	var summary: String = EventSystem.active_modifier_summary()
+	if EventSystem.is_featured_biome_week():
+		var biome_id: String = EventSystem.get_featured_biome_id()
+		if not biome_id.is_empty():
+			var biome: Resource = DataRegistry.get_dungeon_data(biome_id)
+			if biome != null:
+				summary = "%s ｜ 注目: %s" % [summary, str(biome.display_name)]
 	_label_bonus_value.text = summary if not summary.is_empty() else str(event_data.title)
 	_label_bonus_timer.text = "残り %s" % EventSystem.countdown_text()
 

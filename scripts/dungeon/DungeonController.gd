@@ -897,9 +897,10 @@ func apply_elite_bonus_loot() -> Dictionary:
 	if GameState.get_exploration_policy() == "material":
 		material_chance = 0.30
 	if randf() < material_chance:
+		var amount: int = EventSystem.get_elite_material_amount(1)
 		bonus["material_id"] = "elite_relic_shard"
-		bonus["material_amount"] = 1
-		GameState.add_material("elite_relic_shard", 1)
+		bonus["material_amount"] = amount
+		GameState.add_material("elite_relic_shard", amount)
 	return bonus
 
 ## ボス撃破で高品質遺跡の欠片を確定付与（P3-MAT-SUPPLY-001）。ハード以上は2個。
@@ -907,6 +908,7 @@ func apply_boss_material_loot() -> Dictionary:
 	var amount: int = 1
 	if GameState.current_dungeon_tier >= _DungeonTierConfig.TIER_HARD:
 		amount = 2
+	amount = EventSystem.get_elite_material_amount(amount)
 	GameState.add_material("elite_relic_shard", amount)
 	return {"material_id": "elite_relic_shard", "amount": amount}
 

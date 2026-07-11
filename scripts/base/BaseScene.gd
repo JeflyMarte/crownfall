@@ -9,6 +9,7 @@ const EQUIPMENT_CATALOG_SCENE: String = "res://scenes/equipment/EquipmentCatalog
 const ROSTER_SCENE: String = "res://scenes/roster/RosterScene.tscn"
 const CODEX_SCENE: String = "res://scenes/codex/CodexScene.tscn"
 const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
+const EVENT_SCENE: String = "res://scenes/event/EventScene.tscn"
 
 @onready var _menu_vbox: VBoxContainer = $HubView/LeftMenuPanel/MenuScroll/MenuVBox
 @onready var _label_gold: Label = $HubView/TopBar/TopBarRow/GoldChip/GoldRow/LabelGold
@@ -23,18 +24,93 @@ const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
 @onready var _label_daily_title: Label = $HubView/DailyMissionPanel/DailyVBox/DailyHeader/LabelDailyTitle
 @onready var _label_menu_title: Label = $HubView/LeftMenuPanel/MenuScroll/MenuVBox/LabelMenuTitle
 
+var _field_survey_banner: PanelContainer
+
 func _ready() -> void:
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.HOME)
 	_decorate_panels()
+	_setup_field_survey_banner()
 	_build_left_menu()
 	DailyMissionSystem.missions_updated.connect(_refresh_daily_missions)
+	EventSystem.event_updated.connect(_refresh_field_survey_banner)
 	$ResetTimer.timeout.connect(_update_daily_reset_label)
 	_ensure_valid_dungeon_selection()
 	DailyMissionSystem.ensure_refreshed()
 	_update_display()
 	_refresh_daily_missions()
 	_apply_typography()
+	_refresh_field_survey_banner()
 	GameState.base_initial_view = "hub"
+
+func _setup_field_survey_banner() -> void:
+	if not EventSystem.PERIODIC_EVENTS_ENABLED:
+		return
+	_field_survey_banner = PanelContainer.new()
+	_field_survey_banner.name = "FieldSurveyBanner"
+	_field_survey_banner.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	_field_survey_banner.offset_top = 92.0
+	_field_survey_banner.offset_bottom = 132.0
+	_field_survey_banner.mouse_filter = Control.MOUSE_FILTER_STOP
+	_field_survey_banner.gui_input.connect(_on_field_survey_banner_input)
+	_field_survey_banner.add_theme_stylebox_override(
+		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD_ACTIVE)
+	)
+	var row := HBoxContainer.new()
+	row.set_anchors_preset(Control.PRESET_FULL_RECT)
+	row.offset_left = 10.0
+	row.offset_top = 4.0
+	row.offset_right = -10.0
+	row.offset_bottom = -4.0
+	row.add_theme_constant_override("separation", 8)
+	_field_survey_banner.add_child(row)
+	var tag := Label.new()
+	tag.name = "LabelFieldTag"
+	tag.text = "今週の野外"
+	row.add_child(tag)
+	var body := Label.new()
+	body.name = "LabelFieldBody"
+	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.clip_text = true
+	body.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	row.add_child(body)
+	var timer := Label.new()
+	timer.name = "LabelFieldTimer"
+	timer.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	row.add_child(timer)
+	$HubView.add_child(_field_survey_banner)
+
+func _refresh_field_survey_banner() -> void:
+	if _field_survey_banner == null:
+		return
+	if not EventSystem.PERIODIC_EVENTS_ENABLED or not EventSystem.is_event_running():
+		_field_survey_banner.visible = false
+		return
+	_field_survey_banner.visible = true
+	var row: HBoxContainer = _field_survey_banner.get_child(0) as HBoxContainer
+	if row == null:
+		return
+	var tag: Label = row.get_node_or_null("LabelFieldTag") as Label
+	var body: Label = row.get_node_or_null("LabelFieldBody") as Label
+	var timer: Label = row.get_node_or_null("LabelFieldTimer") as Label
+	var event_data: Resource = EventSystem.get_active_event()
+	if event_data == null:
+		_field_survey_banner.visible = false
+		return
+	if tag != null:
+		UiTypography.apply_caption(tag, UiTypography.COLOR_GOLD)
+	if body != null:
+		body.text = "%s — %s" % [str(event_data.title), EventSystem.active_modifier_summary()]
+		UiTypography.apply_body(body, UiTypography.SIZE_BODY_SMALL)
+	if timer != null:
+		timer.text = EventSystem.countdown_text()
+		UiTypography.apply_caption(timer)
+
+func _on_field_survey_banner_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		var mb: InputEventMouseButton = event as InputEventMouseButton
+		if mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
+			if ResourceLoader.exists(EVENT_SCENE):
+				SceneRouter.change_scene(EVENT_SCENE)
 
 func _apply_typography() -> void:
 	UiTypography.apply_display(_label_player_name, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
