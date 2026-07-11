@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "corrosion_death_hound"
+display_name = "腐食デスハウンド"
+max_hp = 65
+attack = 12
+defense = 4
+attack_speed = 1.1
+critical_rate = 0.05
+move_speed = 1.25
+detection_range = 6.0
+attack_range = 1.0
+enemy_type = 0
+ai_type = "default"
+exp_reward = 10
+gold_reward = 22
+drop_table_id = "sepia_hound_drops"
+element_weakness = Array[String](["fire"])
+element_resist = Array[String]([])
+on_hit_status_id = ""
+on_hit_status_chance = 0.0
+can_swarm = true
+swarm_min = 2
+swarm_max = 3
+codex_class = "獣類"
+codex_danger = 2
+codex_habitat = "腐食排水管区画"
+codex_research_note = "イヌ科を祖先とする。旧排水管の腐食水に偏在し、被毛が赤錆色に変化した個体群。セピアハウンドが追う「人の痕跡」より、金属腐食と血の残りに強く反応する。群れで狭い管区間を縄張りにする。探索者は「腐食デス」と俗称する——管を死に染める毒水のイメージから来ているという。火と明かりを嫌う点は同型。"
+codex_materials = Array[String](["relic_shard", "ancient_bone"])
+skill_ids = Array[String](["enemy_memory_howl"])
+skill_use_chance = 0.22
