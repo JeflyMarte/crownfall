@@ -23,9 +23,18 @@ func _refresh() -> void:
 	if event_data == null:
 		SceneRouter.change_scene(HOME_SCENE)
 		return
-	_label_title.text = str(event_data.title)
+	_label_title.text = "✦ 今週の野外 ✦"
 	_label_modifier.text = EventSystem.active_modifier_summary()
 	_label_desc.text = str(event_data.description)
+	if EventSystem.is_featured_biome_week():
+		var biome_id: String = EventSystem.get_featured_biome_id()
+		if not biome_id.is_empty():
+			var biome: Resource = DataRegistry.get_dungeon_data(biome_id)
+			if biome != null:
+				_label_desc.text = "%s\n\n注目区域: %s" % [
+					str(event_data.description),
+					str(biome.display_name),
+				]
 	_label_timer.text = EventSystem.countdown_text()
 	_label_schedule.text = "開催期間: %s" % EventSystem.schedule_text(event_data)
 

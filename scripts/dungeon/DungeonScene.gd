@@ -552,6 +552,10 @@ func _ready() -> void:
 	if not GameState.get_weather().is_empty():
 		weather_suffix = "（天候: %s）" % CombatWeather.label(GameState.get_weather())
 	_set_narrative("%s の探索を開始した%s" % [dungeon_name, weather_suffix])
+	if EventSystem.PERIODIC_EVENTS_ENABLED and EventSystem.is_event_running():
+		var field_line: String = EventSystem.run_intro_line()
+		if not field_line.is_empty():
+			_append_log(field_line)
 	if not dungeon_id.is_empty():
 		_try_register_discovery("dungeon", dungeon_id)
 	_update_combat_visibility()
@@ -4340,6 +4344,10 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 			and GameState.get_enemy_stage(str(defeated_enemy.id)) < 5
 		)
 		GameState.add_enemy_kill(defeated_enemy.id)
+		var field_codex_extra: int = EventSystem.get_codex_kill_extra_count()
+		if field_codex_extra > 0 and GameState.get_enemy_stage(str(defeated_enemy.id)) < 5:
+			for _i in field_codex_extra:
+				GameState.add_enemy_kill(defeated_enemy.id)
 		# 探索方針（図鑑優先）撃破1回につき図鑑進捗を加速（P3-D098）
 		if GameState.get_exploration_policy() == "codex":
 			GameState.add_enemy_kill(defeated_enemy.id)
@@ -4363,7 +4371,7 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 			_swarm_nameplates[killed_slot].visible = false
 	var bonus_tag: String = " (x%.1f)" % mult if mult > 1.0 else ""
 	if exp_event_mult > 1.0 or gold_event_mult > 1.0:
-		bonus_tag += " [イベント]"
+		bonus_tag += " [野外]"
 	if tier_reward_mult > 1.0:
 		bonus_tag += " [%s]" % _DungeonTierConfig.display_name(GameState.current_dungeon_tier)
 	if codex_investigation:
