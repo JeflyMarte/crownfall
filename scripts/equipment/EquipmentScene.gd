@@ -10,6 +10,7 @@ const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
 
 const _AffixDisplayFormatter = preload("res://scripts/equipment/AffixDisplayFormatter.gd")
 const _JobEvolution = preload("res://scripts/systems/JobEvolution.gd")
+const _EvolutionVisual = preload("res://scripts/systems/EvolutionVisual.gd")
 const _EvolutionTraits = preload("res://scripts/systems/EvolutionTraits.gd")
 const _JobStatCalculator = preload("res://scripts/equipment/JobStatCalculator.gd")
 const _AffixStatCalculator = preload("res://scripts/equipment/AffixStatCalculator.gd")
@@ -451,6 +452,9 @@ func _update_character_card() -> void:
 		_label_level.text = ""
 		_label_job.text = ""
 		_job_icon.texture = null
+		_job_icon.modulate = Color.WHITE
+		_portrait_art.texture = null
+		_portrait_art.modulate = Color.WHITE
 		_portrait_glyph.text = "?"
 		_evolution_row.visible = false
 		return
@@ -466,6 +470,9 @@ func _update_character_card() -> void:
 	_job_icon.texture = IconPaths.get_icon_texture(str(member.job_id), "chr")
 	var chr_tex: Texture2D = RosterUiHelper.get_member_portrait_texture(member)
 	_portrait_art.texture = chr_tex
+	var portrait_tint: Color = _EvolutionVisual.portrait_modulate(member)
+	_job_icon.modulate = portrait_tint
+	_portrait_art.modulate = portrait_tint
 	_portrait_glyph.text = "" if chr_tex != null else member.display_name.substr(0, 1)
 	var party_idx: int = _party_index_for(member)
 	var stats: Dictionary = _compute_member_stats(party_idx if party_idx >= 0 else -1, member)

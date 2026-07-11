@@ -271,6 +271,7 @@ const ELEMENT_VFX_PATH: Dictionary = {
 }
 const SkillExecutorScript: Script = preload("res://scripts/combat/SkillExecutor.gd")
 const CombatVfxManagerScript: Script = preload("res://scripts/combat/CombatVfxManager.gd")
+const EvolutionVisualScript: Script = preload("res://scripts/systems/EvolutionVisual.gd")
 const ElementResolverScript: Script = preload("res://scripts/combat/ElementResolver.gd")
 const AffixStatCalculatorScript: Script = preload("res://scripts/equipment/AffixStatCalculator.gd")
 const JobStatCalculatorScript: Script = preload("res://scripts/equipment/JobStatCalculator.gd")
@@ -2104,17 +2105,29 @@ func _sync_status_sprite_tints() -> void:
 		_apply_status_tint_to_sprite(
 			_chr_sprites[i],
 			member_alive and _chr_sprites[i].visible,
-			member_statuses
+			member_statuses,
+			GameState.get_combatant(i)
 		)
 
-func _apply_status_tint_to_sprite(sprite: CanvasItem, apply_tint: bool, statuses: Array) -> void:
+func _apply_status_tint_to_sprite(
+	sprite: CanvasItem,
+	apply_tint: bool,
+	statuses: Array,
+	member: Resource = null
+) -> void:
 	if sprite == null or not is_instance_valid(sprite):
 		return
 	if not apply_tint:
-		if sprite.modulate != Color.WHITE:
-			sprite.modulate = Color.WHITE
+		var reset: Color = (
+			EvolutionVisualScript.base_modulate(member) if member != null else Color.WHITE
+		)
+		if sprite.modulate != reset:
+			sprite.modulate = reset
 		return
-	sprite.modulate = CombatVfxManager.unit_tint_from_statuses(statuses)
+	if member != null:
+		sprite.modulate = EvolutionVisualScript.sprite_modulate(member, statuses)
+	else:
+		sprite.modulate = CombatVfxManager.unit_tint_from_statuses(statuses)
 
 func _outgoing_damage_telop_color(is_critical: bool, is_ultimate: bool = false) -> Color:
 	if is_critical:
@@ -2188,14 +2201,21 @@ func _on_party_status_applied(member_idx: int, status_id: String) -> void:
 	if not sprite.visible:
 		return
 	var statuses: Array = $CombatController.get_member_status_list(member_idx)
-	_play_status_apply_vfx(sprite, _sprite_visual_center_global(sprite), status_id, statuses)
+	_play_status_apply_vfx(
+		sprite,
+		_sprite_visual_center_global(sprite),
+		status_id,
+		statuses,
+		GameState.get_combatant(member_idx)
+	)
 	_update_status_icons()
 
 func _play_status_apply_vfx(
 	sprite: AnimatedSprite2D,
 	world_pos: Vector2,
 	status_id: String,
-	statuses_after: Array
+	statuses_after: Array,
+	member: Resource = null
 ) -> void:
 	if sprite == null or not is_instance_valid(sprite) or status_id.is_empty():
 		return
@@ -2220,7 +2240,7 @@ func _play_status_apply_vfx(
 				tinted.play("default")
 				tinted.animation_finished.connect(func() -> void: tinted.queue_free())
 	_pulse_sprite_on_status_apply(sprite, is_buff)
-	_flash_sprite_status_apply(sprite, status_id, statuses_after)
+	_flash_sprite_status_apply(sprite, status_id, statuses_after, member)
 	_spawn_status_apply_name(world_pos, status_id, is_buff)
 
 func _pulse_sprite_on_status_apply(sprite: AnimatedSprite2D, is_buff: bool) -> void:
@@ -2238,11 +2258,20 @@ func _pulse_sprite_on_status_apply(sprite: AnimatedSprite2D, is_buff: bool) -> v
 		tw.tween_property(sprite, "position", base_pos + Vector2(-3.0, 0.0), 0.04)
 		tw.tween_property(sprite, "position", base_pos, 0.05)
 
-func _flash_sprite_status_apply(sprite: CanvasItem, status_id: String, statuses_after: Array) -> void:
+func _flash_sprite_status_apply(
+	sprite: CanvasItem,
+	status_id: String,
+	statuses_after: Array,
+	member: Resource = null
+) -> void:
 	if sprite == null or not is_instance_valid(sprite):
 		return
 	var flash_color: Color = CombatVfxManagerScript.apply_flash_color(status_id)
-	var settle: Color = CombatVfxManagerScript.unit_tint_from_statuses(statuses_after)
+	var settle: Color = (
+		EvolutionVisualScript.sprite_modulate(member, statuses_after)
+		if member != null
+		else CombatVfxManagerScript.unit_tint_from_statuses(statuses_after)
+	)
 	var tw: Tween = create_tween()
 	tw.tween_property(sprite, "modulate", flash_color, 0.08)
 	tw.tween_property(sprite, "modulate", settle, 0.24)
@@ -5797,6 +5826,7 @@ func _show_chr_sprites(with_entrance: bool = false) -> void:
 			var target_pos: Vector2 = sprite.position
 			var from_left: bool = slot <= 1
 			sprite.position = target_pos + Vector2(-36.0 if from_left else 36.0, 8.0)
+			_apply_chr_sprite_modulate(i, sprite)
 			sprite.modulate.a = 0.0
 			sprite.visible = true
 			var delay: float = 0.0 if slot <= 1 else 0.15
@@ -5812,8 +5842,20 @@ func _show_chr_sprites(with_entrance: bool = false) -> void:
 		else:
 			sprite.modulate.a = 1.0
 			sprite.visible = true
+			_apply_chr_sprite_modulate(i, sprite)
 			_setup_chr_idle_motion(i, sprite, frames)
 	_rebuild_party_cards()
+
+func _apply_chr_sprite_modulate(member_idx: int, sprite: CanvasItem) -> void:
+	if sprite == null or not is_instance_valid(sprite):
+		return
+	var member: Resource = GameState.get_combatant(member_idx)
+	var statuses: Array = []
+	if $CombatController.is_in_combat and $CombatController.is_member_alive(member_idx):
+		statuses = $CombatController.get_member_status_list(member_idx)
+	var alpha: float = sprite.modulate.a
+	sprite.modulate = EvolutionVisualScript.sprite_modulate(member, statuses)
+	sprite.modulate.a = alpha
 
 # 足元Yから深度 z_index を算出（下＝手前＝大）。味方4スロット（y≈668〜748）を
 # 10〜14 に収め、PauseOverlay(z=15) より下・従来帯(10〜12)と互換の範囲に留める。
@@ -6081,6 +6123,7 @@ func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
 	var tex: Texture2D = _get_chr_icon_texture(member.job_id)
 	if tex != null:
 		portrait.texture = tex
+	portrait.modulate = EvolutionVisualScript.portrait_modulate(member)
 	top_row.add_child(portrait)
 	var name_col := VBoxContainer.new()
 	name_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -6358,7 +6401,8 @@ func _update_party_cards_hp() -> void:
 			$CombatController.party_combat_hp[i], $CombatController.party_max_hp[i],
 		]
 		if i < _party_card_portraits.size():
-			_party_card_portraits[i].modulate = Color.WHITE if alive else Color(0.55, 0.55, 0.55, 0.65)
+			var member: Resource = GameState.get_combatant(i)
+			_party_card_portraits[i].modulate = EvolutionVisualScript.portrait_modulate(member, alive)
 		if i < _party_card_roots.size():
 			var card: PanelContainer = _party_card_roots[i]
 			_update_party_card_dramatics(i, alive)
