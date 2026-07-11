@@ -1531,6 +1531,73 @@ func _sprite_top_y_in_root(sprite: AnimatedSprite2D) -> float:
 		sprite.global_position + Vector2(0.0, local_top - sprite.position.y)
 	).y
 
+func _battlefield_local_from_root(root_pos: Vector2) -> Vector2:
+	var bf: Control = $MainVBox/BattlefieldArea
+	return bf.get_global_transform_with_canvas().affine_inverse() * root_pos
+
+func _lead_visible_enemy_sprite() -> AnimatedSprite2D:
+	if _boss_sprite.visible:
+		return _boss_sprite
+	for spr: AnimatedSprite2D in _swarm_sprites:
+		if spr.visible:
+			return spr
+	return null
+
+func _enemy_overlay_stack_metrics(sprite: AnimatedSprite2D) -> Dictionary:
+	const BAR_HALF_W: float = 36.0
+	const BAR_HEIGHT: float = 10.0
+	const NAME_HEIGHT: float = 24.0
+	const GAP_ABOVE_SPRITE: float = 12.0
+	const GAP_BAR_NAME: float = 6.0
+	const TIER_BANNER_HEIGHT: float = 28.0
+	const GAP_TIER_NAME: float = 4.0
+	var center: Vector2 = _sprite_center_in_root(sprite)
+	var top_y: float = _sprite_top_y_in_root(sprite)
+	var bar_ty: float = minf(center.y - 50.0, top_y - GAP_ABOVE_SPRITE - BAR_HEIGHT)
+	var name_ty: float = bar_ty - GAP_BAR_NAME - NAME_HEIGHT
+	var tier_ty: float = name_ty - GAP_TIER_NAME - TIER_BANNER_HEIGHT
+	return {
+		"center_x": center.x,
+		"bar_ty": bar_ty,
+		"bar_half_w": BAR_HALF_W,
+		"bar_height": BAR_HEIGHT,
+		"name_ty": name_ty,
+		"name_height": NAME_HEIGHT,
+		"tier_ty": tier_ty,
+		"tier_banner_height": TIER_BANNER_HEIGHT,
+	}
+
+func _reset_combat_tier_banner_layout() -> void:
+	_label_combat_tier.layout_mode = 2  # LAYOUT_MODE_CONTAINER
+	_label_combat_tier.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_label_combat_tier.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_label_combat_tier.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_label_combat_tier.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+
+func _layout_combat_tier_banner(tier: String) -> void:
+	var banner: String = _combat_tier_banner_text(tier)
+	if banner.is_empty():
+		_reset_combat_tier_banner_layout()
+		return
+	var sprite: AnimatedSprite2D = _lead_visible_enemy_sprite()
+	if sprite == null:
+		_reset_combat_tier_banner_layout()
+		return
+	var metrics: Dictionary = _enemy_overlay_stack_metrics(sprite)
+	var banner_fs: int = _label_combat_tier.get_theme_font_size("font_size")
+	var half_w: float = _nameplate_half_width(banner, banner_fs)
+	var cx: float = clampf(float(metrics["center_x"]), half_w + 12.0, 720.0 - half_w - 12.0)
+	var local: Vector2 = _battlefield_local_from_root(Vector2(cx, float(metrics["tier_ty"])))
+	var banner_h: float = float(metrics["tier_banner_height"])
+	_label_combat_tier.layout_mode = 0  # LAYOUT_MODE_POSITION
+	_label_combat_tier.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	_label_combat_tier.offset_left = local.x - half_w
+	_label_combat_tier.offset_top = local.y
+	_label_combat_tier.offset_right = local.x + half_w
+	_label_combat_tier.offset_bottom = local.y + banner_h
+	_label_combat_tier.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_label_combat_tier.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+
 func _formation_slot_position(slot: int) -> Vector2:
 	if slot < 0 or slot >= FORMATION_SLOT_RATIOS.size():
 		return Vector2.ZERO
@@ -1591,6 +1658,8 @@ func _on_battlefield_resized() -> void:
 	_update_chr_hp_bar_positions()
 	_update_status_icons()
 	_layout_turn_order_columns()
+	if $CombatController.is_in_combat:
+		_update_combat_tier_frame()
 
 func _wrap_log_color(text: String, color: Color) -> String:
 	return "[color=%s]%s[/color]" % [_log_color_hex(color), text]
@@ -1809,7 +1878,7 @@ func _update_hp_bars() -> void:
 			var bar: ProgressBar = _swarm_hp_bars[slot]
 			var np: Label = _swarm_nameplates[slot]
 			var alive: bool = $CombatController.is_enemy_slot_alive(slot)
-			var show: bool = in_combat and spr.visible and alive
+			var show: bool = in_combat and spr.visible and alive and not _elite_intro_active
 			bar.visible = show
 			if show:
 				bar.max_value = $CombatController.get_enemy_max_hp_at(slot)
@@ -5260,6 +5329,7 @@ func _update_combat_tier_frame() -> void:
 	_combat_tier_frame.visible = show
 	if not show:
 		_label_combat_tier.text = ""
+		_reset_combat_tier_banner_layout()
 		if _combat_tier_vignette != null:
 			_combat_tier_vignette.color = Color(0, 0, 0, 0)
 		return
@@ -5268,12 +5338,18 @@ func _update_combat_tier_frame() -> void:
 	_combat_tier_vignette.color = CombatUiFrames.vignette_color(tier)
 	_combat_tier_frame.modulate = Color.WHITE
 	var banner: String = _combat_tier_banner_text(tier)
-	_label_combat_tier.visible = not banner.is_empty()
+	var show_banner: bool = not banner.is_empty()
+	if tier == CombatUiFrames.TIER_ELITE and _elite_intro_active:
+		show_banner = false
+	_label_combat_tier.visible = show_banner
 	_label_combat_tier.text = banner
 	if tier == CombatUiFrames.TIER_ELITE:
 		UiTypography.apply_display(_label_combat_tier, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+		if show_banner:
+			_layout_combat_tier_banner(tier)
 	elif tier == CombatUiFrames.TIER_BOSS:
 		UiTypography.apply_display(_label_combat_tier, UiTypography.SIZE_BODY_SMALL, Color(1.0, 0.45, 0.4))
+		_reset_combat_tier_banner_layout()
 	if tier == CombatUiFrames.TIER_BOSS:
 		_start_tier_frame_pulse()
 
@@ -5572,6 +5648,12 @@ func _reposition_enemy_sprites() -> void:
 		spr.position = _battlefield_combat_position(
 			Vector2(start_ratio + float(i) * SWARM_SPACING_RATIO, SWARM_Y_RATIO)
 		)
+		if _elite_intro_active and spr == _elite_enemy_slide_sprite:
+			_elite_enemy_slide_target = spr.position
+			var slide_offset: float = float(
+				_elite_intro_timings(_fast_run_enabled).get("slide_offset", 140.0)
+			)
+			spr.position = _elite_enemy_slide_target + Vector2(slide_offset, 0.0)
 	_update_hp_bars()
 
 # 動的生成した 2体目以降のスロットを解放し、スロット配列を空に戻す（slot0 の既存ノードは残す）。
@@ -5684,19 +5766,16 @@ func _position_swarm_overlay(slot: int) -> void:
 	var sprite: AnimatedSprite2D = _swarm_sprites[slot]
 	var bar: ProgressBar = _swarm_hp_bars[slot]
 	var np: Label = _swarm_nameplates[slot]
-	const BAR_HALF_W: float = 36.0
-	const BAR_HEIGHT: float = 10.0
-	const NAME_HEIGHT: float = 24.0
-	const GAP_ABOVE_SPRITE: float = 12.0
-	const GAP_BAR_NAME: float = 6.0
-	var center: Vector2 = _sprite_center_in_root(sprite)
-	var cx: float = center.x
-	var top_y: float = _sprite_top_y_in_root(sprite)
-	var bar_ty: float = minf(center.y - 50.0, top_y - GAP_ABOVE_SPRITE - BAR_HEIGHT)
-	bar.offset_left = cx - BAR_HALF_W
+	var metrics: Dictionary = _enemy_overlay_stack_metrics(sprite)
+	var bar_half_w: float = float(metrics["bar_half_w"])
+	var bar_height: float = float(metrics["bar_height"])
+	var name_height: float = float(metrics["name_height"])
+	var bar_ty: float = float(metrics["bar_ty"])
+	var cx: float = float(metrics["center_x"])
+	bar.offset_left = cx - bar_half_w
 	bar.offset_top = bar_ty
-	bar.offset_right = cx + BAR_HALF_W
-	bar.offset_bottom = bar_ty + BAR_HEIGHT
+	bar.offset_right = cx + bar_half_w
+	bar.offset_bottom = bar_ty + bar_height
 	var data: Resource = $CombatController.get_enemy_data_at(slot)
 	if data == null:
 		np.visible = false
@@ -5705,15 +5784,17 @@ func _position_swarm_overlay(slot: int) -> void:
 	np.text = name_text
 	var name_fs: int = np.get_theme_font_size("font_size")
 	var name_half_w: float = _nameplate_half_width(name_text, name_fs)
-	cx = clampf(center.x, name_half_w + 12.0, 720.0 - name_half_w - 12.0)
-	bar.offset_left = cx - BAR_HALF_W
-	bar.offset_right = cx + BAR_HALF_W
-	var name_ty: float = bar_ty - GAP_BAR_NAME - NAME_HEIGHT
+	cx = clampf(float(metrics["center_x"]), name_half_w + 12.0, 720.0 - name_half_w - 12.0)
+	bar.offset_left = cx - bar_half_w
+	bar.offset_right = cx + bar_half_w
+	var name_ty: float = float(metrics["name_ty"])
 	np.offset_left = cx - name_half_w
 	np.offset_top = name_ty
 	np.offset_right = cx + name_half_w
-	np.offset_bottom = name_ty + NAME_HEIGHT
+	np.offset_bottom = name_ty + name_height
 	np.visible = true
+	if $DungeonController.current_room_type == Enums.RoomType.ELITE and slot == 0:
+		_layout_combat_tier_banner(CombatUiFrames.TIER_ELITE)
 
 func _play_enemy_animation(anim: String) -> void:
 	_play_enemy_slot_animation($CombatController.active_enemy_index, anim)
@@ -7100,6 +7181,7 @@ func _finish_elite_combat_entrance(lead: Resource) -> void:
 	_elite_intro_tween = null
 	_clear_elite_intro_fx()
 	_elite_enemy_slide_sprite = null
+	_update_combat_tier_frame()
 	if lead != null:
 		_append_log("【エリート】%s があらわれた" % lead.display_name)
 	_refresh_combat_now_playing_next()
