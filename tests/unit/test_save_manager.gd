@@ -8,6 +8,7 @@ extends GutTest
 const SAVE_PATH: String = "user://save_data.json"
 const BACKUP_PATH: String = "user://save_data.json.p3test_bak"
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
+const _CommanderProfile = preload("res://scripts/commander/CommanderProfile.gd")
 
 var _had_real_save: bool = false
 
@@ -42,6 +43,7 @@ func _reset_game_state() -> void:
 	GameState.current_dungeon_id = Constants.DEFAULT_DUNGEON_ID
 	GameState.current_stage_id = ""
 	GameState.stage_progress = {}
+	GameState.commander = {}
 func _write_raw_save(text: String) -> void:
 	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	assert_not_null(file, "テスト用セーブファイルを開けること")
@@ -201,6 +203,14 @@ func test_migrate_v2_stage_progress_adds_tiers() -> void:
 	assert_true(bool(prog["tiers"][str(_DungeonTierConfig.TIER_NORMAL)]))
 
 # ── e) save_version スキーマバージョン ───────────────────────────────────────
+
+func test_migrate_v4_adds_commander_block() -> void:
+	var migrated: Dictionary = SaveManager._migrate_save_data({
+		"save_version": 4,
+		"gold": 100,
+	})
+	assert_true(migrated.has("commander"))
+	assert_eq(str(migrated["commander"].get("name", "")), _CommanderProfile.DEFAULT_NAME)
 
 func test_save_writes_current_save_version() -> void:
 	SaveManager.save_game()

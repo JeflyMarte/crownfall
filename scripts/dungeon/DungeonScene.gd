@@ -275,6 +275,7 @@ const ElementResolverScript: Script = preload("res://scripts/combat/ElementResol
 const AffixStatCalculatorScript: Script = preload("res://scripts/equipment/AffixStatCalculator.gd")
 const JobStatCalculatorScript: Script = preload("res://scripts/equipment/JobStatCalculator.gd")
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
+const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd")
 
 var _auto_delay: float = AUTO_DELAY_BASE / SPEED_MULT_NORMAL
 var _auto_progress_paused_remaining: float = 0.0
@@ -537,6 +538,7 @@ func _ready() -> void:
 	GameState.last_run_modifier_counts = {}
 	GameState.reset_run_combat_stats()
 	GameState.begin_run_material_tracking()
+	_CommanderLifetime.record_run_started()
 	GameState.migrate_formation_slots_if_needed()
 	_update_room_label()
 	_update_room_art()
@@ -5143,6 +5145,19 @@ func _play_chr_attack_one(idx: int) -> void:
 	if s.visible and s.sprite_frames != null and s.sprite_frames.has_animation("attack"):
 		s.play("attack")
 
+func _commit_commander_run_stats(outcome: String) -> void:
+	var context: Dictionary = {
+		"dungeon_id": GameState.get_active_dungeon_id(),
+		"stage_id": GameState.last_run_stage_id,
+	}
+	if str(context["stage_id"]).is_empty() and $DungeonController.current_stage_data != null:
+		context["stage_id"] = str($DungeonController.current_stage_data.id)
+	_CommanderLifetime.record_run_finished(
+		outcome,
+		GameState.last_run_combat_stats,
+		context
+	)
+
 func _handle_party_wipe() -> void:
 	$CombatTimer.stop()
 	$CombatController.end_combat()
@@ -5165,6 +5180,7 @@ func _handle_party_wipe() -> void:
 	GameState.last_run_level_ups = {}
 	GameState.last_run_exp_snapshots = {}
 	GameState.last_run_combat_stats = GameState.get_run_combat_stats().snapshot()
+	_commit_commander_run_stats(GameState.RUN_OUTCOME_WIPE)
 	GameState.last_run_outcome = GameState.RUN_OUTCOME_WIPE
 	GameState.snapshot_last_run_context()
 	await get_tree().create_timer(2.0).timeout
@@ -5376,6 +5392,7 @@ func _on_finish_button_pressed() -> void:
 	DailyMissionSystem.report_progress("dungeon_clear", dungeon_id)
 	GameState.last_run_outcome = GameState.RUN_OUTCOME_CLEAR
 	GameState.last_run_combat_stats = GameState.get_run_combat_stats().snapshot()
+	_commit_commander_run_stats(GameState.RUN_OUTCOME_CLEAR)
 	GameState.snapshot_last_run_context()
 	SceneRouter.change_scene("res://scenes/result/ResultScene.tscn")
 
@@ -5500,6 +5517,7 @@ func _retire_from_dungeon() -> void:
 		GameState.last_run_armor_dropped = $DungeonController.last_armor_dropped
 	GameState.last_run_outcome = GameState.RUN_OUTCOME_RETIRE
 	GameState.last_run_combat_stats = GameState.get_run_combat_stats().snapshot()
+	_commit_commander_run_stats(GameState.RUN_OUTCOME_RETIRE)
 	GameState.snapshot_last_run_context()
 	SceneRouter.change_scene("res://scenes/result/ResultScene.tscn")
 

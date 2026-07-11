@@ -4,6 +4,7 @@ const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 const _RunCombatStats = preload("res://scripts/result/RunCombatStats.gd")
 const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _PassiveProgression = preload("res://scripts/systems/PassiveProgression.gd")
+const _CommanderProfile = preload("res://scripts/commander/CommanderProfile.gd")
 
 # 所持ゴールド（永続）
 var gold: int = 0
@@ -129,6 +130,9 @@ func top_run_modifiers(limit: int = 3) -> Array:
 
 # ギルド日課（P3-DAILY）— SaveManager が永続化。
 var daily_mission_state: Dictionary = {}
+
+## 指揮官（隊長）プロフィール — P3-CMD-001。SaveManager v5+。
+var commander: Dictionary = {}
 
 func begin_run_material_tracking() -> void:
 	run_material_start = material_inventory.duplicate()
@@ -1073,6 +1077,7 @@ const COMBAT_SLOT_MAX: int = 4
 
 func _ready() -> void:
 	_init_party()
+	_CommanderProfile.ensure_commander()
 
 func _init_party() -> void:
 	roster = []

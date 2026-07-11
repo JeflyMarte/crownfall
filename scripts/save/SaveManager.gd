@@ -4,6 +4,8 @@ const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _ArmorStatResolver = preload("res://scripts/equipment/ArmorStatResolver.gd")
 const _AccessoryStatResolver = preload("res://scripts/equipment/AccessoryStatResolver.gd")
+const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd")
+const _CommanderProfile = preload("res://scripts/commander/CommanderProfile.gd")
 
 const SAVE_PATH: String = "user://save_data.json"
 
@@ -11,7 +13,7 @@ const SAVE_PATH: String = "user://save_data.json"
 ## `_migrate_save_data` に v(n)→v(n+1) の段階マイグレーションを追加する。
 ## v0 = バージョンフィールド無しの旧セーブ（レガシー party/equipment/job/dungeon id を含む）
 ## v1 = save_version フィールド導入（2026-07-02）
-const SAVE_VERSION: int = 4
+const SAVE_VERSION: int = 5
 
 func save_game() -> void:
 	var data: Dictionary = {
@@ -37,6 +39,7 @@ func save_game() -> void:
 		"dungeon_tier_cleared": GameState.dungeon_tier_cleared.duplicate(true),
 		"current_stage_id": GameState.current_stage_id,
 		"stage_progress": GameState.stage_progress.duplicate(true),
+		"commander": GameState.commander.duplicate(true),
 	}
 	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file == null:
@@ -72,7 +75,14 @@ func _migrate_save_data(data: Dictionary) -> Dictionary:
 		data = _migrate_save_v2_to_v3(data)
 	if version < 4:
 		data = _migrate_save_v3_to_v4(data)
+	if version < 5:
+		data = _migrate_save_v4_to_v5(data)
 	data["save_version"] = SAVE_VERSION
+	return data
+
+func _migrate_save_v4_to_v5(data: Dictionary) -> Dictionary:
+	if not data.has("commander") or not data["commander"] is Dictionary:
+		data["commander"] = _CommanderLifetime.default_commander_dict()
 	return data
 
 func _migrate_save_v3_to_v4(data: Dictionary) -> Dictionary:
@@ -351,6 +361,9 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.owned_relics = relics
 	if data.has("daily_mission_state") and data["daily_mission_state"] is Dictionary:
 		GameState.daily_mission_state = (data["daily_mission_state"] as Dictionary).duplicate(true)
+	if data.has("commander") and data["commander"] is Dictionary:
+		GameState.commander = (data["commander"] as Dictionary).duplicate(true)
+	_CommanderProfile.ensure_commander()
 	_migrate_legacy_global_equipment(data)
 
 const _DUNGEON_MIGRATION: Dictionary = {

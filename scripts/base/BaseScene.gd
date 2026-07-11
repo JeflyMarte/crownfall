@@ -1,6 +1,8 @@
 extends Control
 
 const _HubNpcHelper := preload("res://scripts/ui/HubNpcHelper.gd")
+const _CommanderProfile := preload("res://scripts/commander/CommanderProfile.gd")
+const _CommanderTitles := preload("res://scripts/commander/CommanderTitles.gd")
 
 const DUNGEON_SELECT_SCENE: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
 const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
@@ -9,6 +11,7 @@ const EQUIPMENT_CATALOG_SCENE: String = "res://scenes/equipment/EquipmentCatalog
 const ROSTER_SCENE: String = "res://scenes/roster/RosterScene.tscn"
 const CODEX_SCENE: String = "res://scenes/codex/CodexScene.tscn"
 const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
+const COMMANDER_SCENE: String = "res://scenes/commander/CommanderScene.tscn"
 
 @onready var _menu_vbox: VBoxContainer = $HubView/LeftMenuPanel/MenuScroll/MenuVBox
 @onready var _label_gold: Label = $HubView/TopBar/TopBarRow/GoldChip/GoldRow/LabelGold
@@ -35,6 +38,7 @@ func _ready() -> void:
 	_refresh_daily_missions()
 	_apply_typography()
 	GameState.base_initial_view = "hub"
+	_player_card.gui_input.connect(_on_player_card_gui_input)
 
 func _apply_typography() -> void:
 	UiTypography.apply_display(_label_player_name, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
@@ -71,10 +75,13 @@ func _build_left_menu() -> void:
 	for child in to_remove:
 		child.free()
 	for entry in BottomNavHelper.SIDE_MENU_ENTRIES:
-		var card := NavUiTokens.make_side_menu_row(entry)
+		var card_entry: Dictionary = entry.duplicate()
+		if str(entry.get("id", "")) == "commander":
+			card_entry["locked"] = not _CommanderProfile.is_profile_unlocked()
+		var card := NavUiTokens.make_side_menu_row(card_entry)
 		var btn := _find_side_menu_button(card)
-		if btn != null and not bool(entry.get("locked", false)):
-			btn.pressed.connect(_on_menu_entry_pressed.bind(str(entry["id"])))
+		if btn != null and not bool(card_entry.get("locked", false)):
+			btn.pressed.connect(_on_menu_entry_pressed.bind(str(card_entry["id"])))
 		_menu_vbox.add_child(card)
 
 func _find_side_menu_button(card: Control) -> Button:
@@ -100,6 +107,8 @@ func _on_menu_entry_pressed(entry_id: String) -> void:
 			_on_gacha_button_pressed()
 		"codex":
 			_on_codex_button_pressed()
+		"commander":
+			_on_commander_button_pressed()
 
 func _ensure_valid_dungeon_selection() -> void:
 	if not _is_dungeon_available(GameState.current_dungeon_id):
@@ -161,24 +170,43 @@ func _update_currency() -> void:
 	$HubView/TopBar/TopBarRow/TokenChip.tooltip_text = CurrencyHelper.DISPLAY_NAME
 
 func _update_player_card() -> void:
-	if GameState.party_members.is_empty():
-		_label_player_name.text = "指揮官"
-		_label_player_level.text = "Lv.1"
-		_portrait_art.texture = null
-		_portrait_art.visible = false
-		_portrait_glyph.visible = true
-		_portrait_glyph.text = "英"
-		return
-	var member: Resource = GameState.party_members[0]
-	_label_player_name.text = str(member.display_name) if str(member.display_name) != "" else "冒険者"
-	_label_player_level.text = "Lv.%d" % int(member.level)
-	var job_id: String = str(member.job_id)
-	var tex := IconPaths.get_icon_texture(job_id, "chr")
-	_portrait_art.texture = tex
-	_portrait_art.visible = tex != null
-	_portrait_glyph.visible = tex == null
-	if tex == null:
-		_portrait_glyph.text = "英"
+	_CommanderProfile.ensure_commander()
+	var display_name: String = _CommanderProfile.get_name()
+	var title_id: String = _CommanderProfile.get_equipped_title()
+	if not title_id.is_empty():
+		display_name = "%s（%s）" % [display_name, _CommanderTitles.get_label(title_id)]
+	_label_player_name.text = display_name
+	var progress: Dictionary = _CommanderProfile.progress_to_next_rank()
+	var next_rank: String = str(progress.get("next_rank", ""))
+	if next_rank.is_empty():
+		_label_player_level.text = "%s 最大" % _CommanderProfile.rank_display(false)
+	else:
+		_label_player_level.text = "%s → %s級  %s" % [
+			_CommanderProfile.rank_display(false),
+			next_rank,
+			str(progress.get("label", "")),
+		]
+	_portrait_art.texture = null
+	_portrait_art.visible = false
+	_portrait_glyph.visible = true
+	_portrait_glyph.text = _CommanderProfile.rank_glyph()
+	var frame_tier: String = CombatUiFrames.TIER_NORMAL
+	if _CommanderProfile.is_rank_at_least(_CommanderProfile.GOLD_SEAL_RANK):
+		frame_tier = CombatUiFrames.TIER_CARD_ACTIVE
+	$HubView/TopBar/TopBarRow/PlayerCard/PlayerRow/PortraitFrame.add_theme_stylebox_override(
+		"panel", CombatUiFrames.panel_style(frame_tier)
+	)
+	_player_card.tooltip_text = "隊長台帳を開く"
+
+func _on_player_card_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		var mb: InputEventMouseButton = event as InputEventMouseButton
+		if mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
+			_on_commander_button_pressed()
+
+func _on_commander_button_pressed() -> void:
+	if ResourceLoader.exists(COMMANDER_SCENE):
+		SceneRouter.change_scene(COMMANDER_SCENE)
 
 func _refresh_daily_missions() -> void:
 	_update_daily_reset_label()

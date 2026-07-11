@@ -161,6 +161,15 @@ const SIDE_MENU_ENTRIES: Array[Dictionary] = [
 		"locked": false,
 	},
 	{
+		"id": "commander",
+		"title": "隊長台帳",
+		"node": "NavCommander",
+		"tab": Tab.NONE,
+		"icon_category": "nav",
+		"icon_id": "home",
+		"locked": false,
+	},
+	{
 		"id": "settings",
 		"title": "設定",
 		"node": "NavSettings",
