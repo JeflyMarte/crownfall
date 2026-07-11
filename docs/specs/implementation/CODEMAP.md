@@ -4,7 +4,7 @@
 
 > **警告:** `02_ディレクトリ構成.md` や `05_実装ロードマップ.md` は将来/target 構成を含む。Task が明示的に要求しない限り、そこに記載された未実装ファイルを**作成・参照してはならない**。本ファイルが現行実装の正。
 
-**最終確認:** 2026-07-03（**P3-EVT-HUB Closeout** — 週次バフイベント・端末日付スケジュール）
+**最終確認:** 2026-07-11（**P3-CMD-001 / P3-EVT-WEEK-002 Closeout** — 指揮官・6週野外ローテ）
 
 > **SSOT 注記:** … **P3-SKILL Closeout**（基本5職 Lv50 習得10・`skill_unlocks`・レジェンド武器スキル・P3-SKILL-001〜006）。
 
@@ -25,7 +25,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | SceneRouter | `scripts/autoload/SceneRouter.gd` |
 | EventBus | `scripts/autoload/EventBus.gd` |
 | DailyMissionSystem | `scripts/autoload/DailyMissionSystem.gd`（**P3-DAILY** 日課3件/日） |
-| EventSystem | `scripts/autoload/EventSystem.gd`（**P3-EVT-HUB** 週次バフ・端末日付 JST 5:00） |
+| EventSystem | `scripts/autoload/EventSystem.gd`（**P3-EVT-WEEK-002** 6週ローテ・`EventWeekRotation` SSOT・JST 5:00） |
 | GachaSystem | `scripts/autoload/GachaSystem.gd` |
 
 **危険度ティア（P3-DG-TIER）:** `DungeonTierConfig.gd` — `GameState.current_dungeon_tier` / `dungeon_tier_cleared`。戦闘=敵Lv補正・レア重み・報酬倍率。UI=`DungeonSelectScene` TabsRow。
@@ -46,7 +46,8 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | BlacksmithScene | `scenes/blacksmith/BlacksmithScene.tscn` | `scripts/blacksmith/BlacksmithScene.gd` |
 | CodexScene | `scenes/codex/CodexScene.tscn` | `scripts/codex/CodexScene.gd` |
 | GachaScene | `scenes/gacha/GachaScene.tscn` | `scripts/gacha/GachaScene.gd`（**P3-UI-GACHA** モック chrome・Reveal・DetailOverlay） |
-| EventScene | `scenes/event/EventScene.tscn` | `scripts/event/EventScene.gd`（**P3-EVT-HUB** バフ詳細） |
+| EventScene | `scenes/event/EventScene.tscn` | `scripts/event/EventScene.gd`（**P3-EVT-WEEK-002** 今週の野外詳細） |
+| CommanderScene | `scenes/commander/CommanderScene.tscn` | `scripts/commander/CommanderScene.gd`（**P3-CMD-001** 隊長台帳・C級解放） |
 
 **遷移:** Boot → Base → Dungeon → Result →（Appraisal / Equipment / **Blacksmith** / **Codex**）→ Base
 
@@ -71,7 +72,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 - 状態異常アイコン: ルート直下 HBox（敵 + Chr0〜2 + 群れ行）— HP バー上に追従（P3-UI2-013 / P3-D110 群れ行）。`StatusResolver.get_active_status_list()`
 
 **BaseScene ノード（P3-UI-Base-A / 003_01 Phase A）:**
-- `HubView` — 城背景・`TopBar`（プレイヤーカード+Gold/魔晶石）・`LeftMenuPanel` 7項目・`EventBanner`（**P3-EVT-HUB** 週次バフ告知・タップで EventScene）・`CurrencyStrip`・`DailyMissionPanel`
+- `HubView` — 城背景・`TopBar`（**指揮官カード** P3-CMD-001 + Gold/魔晶石）・`LeftMenuPanel` 7項目・**FieldSurveyBanner**（**P3-EVT-WEEK-002** 今週の野外・タップで EventScene）・`CurrencyStrip`・`DailyMissionPanel`
 - `MenuGridView` — 003_02 系 3×3 メニュー（下ナビ「メニュー」で切替）
 - `BottomNav` — 6タブ（ホーム/パーティ/冒険/強化/ショップ/メニュー）・`BottomNavHelper` + `NavIconHelper`
 - 検証: `tools/verify_base_hub.gd` / `tools/verify_bottom_nav.gd`

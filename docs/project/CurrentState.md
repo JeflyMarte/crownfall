@@ -4,6 +4,10 @@
 
 ## Last Update
 
+2026-07-11（**P3-CMD-001**: 指揮官・調査許可 D〜S・SP進捗・隊長台帳（C級解放）・Save v5 通算統計・TopBar 指揮官表示。unit 313/314 PASS・既存 EquipmentCatalog パース1件は非起因）
+
+2026-07-11（**P3-EVT-WEEK-002**: 6週ローテ「今週の野外」— 経済週3種維持+図鑑/注目Biome/ELITE素材。`EventWeekRotation` SSOT・ホームバナー・PERIODIC_EVENTS 再有効化）
+
 2026-07-11（**P3-MAT-003 / SUPPLY-001 / CRAFT-001**: 炉研ぎ3種正式確定・ボス高品質欠片確定・クラフト数/Gold差・図鑑S5共通表示）
 
 2026-07-11（**P3-MAT-CODEx-001**: 図鑑敵S5採取欄＝炉研ぎ共通3種表示。敵別`codex_materials`非参照。実ドロップと一致）
@@ -293,7 +297,9 @@
 | — | P3-GACHA-007 | 助っ人 5→10体＋立ち絵 AI 生成（P3-D162） | Impl | ✅ **Closeout（実機未確認）** |
 | **1** | **P3-UI3-003** | UI監査 拠点画面（図鑑タブ/DG選択/召喚所） | Impl | ✅ **Closeout** |
 | — | **P3-BAL-007** | 装備数量補充 + アセット配線バンドル | Impl | ✅ **Closeout** |
-| — | **P3-EVT-HUB** | 期間限定バフイベント（週次ローテ・端末日付） | Impl | ✅ **Closeout** |
+| — | **P3-EVT-HUB** | 期間限定バフイベント（週次ローテ・端末日付） | Impl | ✅ **Closeout**（**P3-EVT-WEEK-002** で6週拡張） |
+| — | **P3-CMD-001** | 指揮官・調査許可等級・隊長台帳 | Impl | ✅ **Closeout** |
+| — | **P3-EVT-WEEK-002** | 週替わり「野外の変化」6週ローテ | Impl | ✅ **Closeout** |
 | — | **P3-DG-TIER-001** | 危険度ティア（ノーマル/ハード/ナイトメア） | Impl | ✅ **Closeout** |
 | — | **P3-LV-099-001** | Lv上限99（51〜99ステ逓減） | Impl | ✅ **Closeout** |
 | — | **P3-WANDER-001** | 遍在希少種（遠旅スズメ/聖遺甲虫） | Impl | ✅ **Closeout** |

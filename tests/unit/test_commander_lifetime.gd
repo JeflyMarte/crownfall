@@ -12,6 +12,10 @@ func before_each() -> void:
 	GameState.party_members = []
 
 
+func after_each() -> void:
+	GameState._init_party()
+
+
 func test_record_run_finished_tracks_max_hit() -> void:
 	var stats: RefCounted = _RunCombatStats.new()
 	stats.record_damage("adv_a", 900, "skill_a", "スキルA")
