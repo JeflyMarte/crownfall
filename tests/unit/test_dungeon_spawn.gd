@@ -10,6 +10,10 @@ const _D2_IDS: Array[String] = [
 	"rune_roach",
 	"crystal_hedgehog",
 	"crystal_scorpion",
+	"corrosion_death_hound",
+	"bone_roach",
+	"acid_crystal_needle_rat",
+	"ancient_tome_giant_rat",
 ]
 const _D3_IDS: Array[String] = ["skullface_mantis"]
 const _WW_D2_IDS: Array[String] = ["moss_boar", "moss_shell", "bloom_serpent"]

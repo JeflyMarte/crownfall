@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "bone_roach"
+display_name = "骨灰蟲ボーンローチ"
+max_hp = 86
+attack = 10
+defense = 8
+attack_speed = 0.9
+critical_rate = 0.0
+move_speed = 0.85
+detection_range = 5.0
+attack_range = 1.0
+enemy_type = 0
+ai_type = "default"
+exp_reward = 12
+gold_reward = 20
+drop_table_id = "rune_roach_drops"
+element_weakness = Array[String](["fire"])
+element_resist = Array[String](["dark"])
+on_hit_status_id = ""
+on_hit_status_chance = 0.0
+codex_class = "昆虫類"
+codex_danger = 2
+codex_habitat = "納骨堂の骨灰堆積帯"
+codex_research_note = "ゴキブリの類。納骨堂の骨灰を取り込み、甲殻が白濁する。ルーンローチのような文字状析出は乏しく、骨の粉を這う虫のように見える。俗名「ボーンローチ」は殻の色に因む。硬い外殻で正面からの打撃を凌ぐが、動きは鈍い。闇に強い点は同型。"
+codex_materials = Array[String](["relic_shard", "ancient_bone"])
+skill_ids = Array[String](["enemy_rune_carapace"])
+skill_use_chance = 0.2

@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "ancient_tome_giant_rat"
+display_name = "古文書喰いの大ネズミ"
+max_hp = 52
+attack = 11
+defense = 3
+attack_speed = 1.2
+critical_rate = 0.05
+move_speed = 1.3
+threat_target_bias = "lowest_hp"
+detection_range = 6.0
+attack_range = 1.0
+enemy_type = 0
+ai_type = "default"
+exp_reward = 9
+gold_reward = 36
+drop_table_id = "crown_eater_rat_drops"
+element_weakness = Array[String](["fire"])
+element_resist = Array[String]([])
+on_hit_status_id = ""
+on_hit_status_chance = 0.0
+can_swarm = true
+swarm_min = 2
+swarm_max = 3
+codex_class = "獣類"
+codex_danger = 2
+codex_habitat = "古文書封印庫"
+codex_research_note = "ネズミの類の大型個体。古文書庫の封蝋と紙片を食べ、毛並みが羊皮紙色になる。冠喰いネズミより体格が大きく、公文の束を丸ごと巣に持ち込む。素早く隙を突くが臆病。群れでは押し寄せてくる。胃石には印章の欠片が混じることが多い。"
+codex_materials = Array[String](["relic_shard", "ancient_bone"])
+skill_ids = Array[String](["enemy_crown_gnaw"])
+skill_use_chance = 0.24
