@@ -6,8 +6,8 @@
 script = ExtResource("1")
 id = "craft_silver_ring"
 display_name = "銀の指輪の作成"
-required_materials = {"relic_shard": 2, "elite_relic_shard": 1}
-gold_cost = 80
+required_materials = {"relic_shard": 1, "ancient_bone": 1, "elite_relic_shard": 1}
+gold_cost = 120
 output_type = "accessory"
 output_id = "silver_ring"
 unlock_condition = ""

@@ -6,8 +6,8 @@
 script = ExtResource("1")
 id = "craft_bone_armor"
 display_name = "骨鎧の作成"
-required_materials = {"ancient_bone": 2}
-gold_cost = 40
+required_materials = {"ancient_bone": 3, "relic_shard": 1}
+gold_cost = 70
 output_type = "armor"
 output_id = "bone_armor"
 unlock_condition = ""

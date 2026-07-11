@@ -6,8 +6,8 @@
 script = ExtResource("1")
 id = "craft_iron_sword"
 display_name = "鉄剣の作成"
-required_materials = {"relic_shard": 2, "ancient_bone": 1}
-gold_cost = 40
+required_materials = {"relic_shard": 3, "ancient_bone": 1}
+gold_cost = 55
 output_type = "weapon"
 output_id = "iron_sword"
 unlock_condition = ""

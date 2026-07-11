@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "craft_leather_armor"
 display_name = "革鎧の作成"
-required_materials = {"relic_shard": 2}
+required_materials = {"relic_shard": 3}
 gold_cost = 50
 output_type = "armor"
 output_id = "leather_armor"

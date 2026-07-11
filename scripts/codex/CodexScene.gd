@@ -344,19 +344,10 @@ func _apply_enemy_stage_fields(entry: Dictionary) -> void:
 		_label_detail_extra_b.visible = true
 		_label_detail_overview_header.text = "調査記録:"
 		var research_note: String = str(entry.get("codex_research_note", ""))
-		var mat_ids: Array = entry.get("codex_materials", [])
-		if not mat_ids.is_empty():
-			var mat_parts: PackedStringArray = []
-			for mat_id in mat_ids:
-				var mat_key: String = str(mat_id)
-				if not EquipmentEnhancer.is_enhancement_material(mat_key):
-					continue
-				var mat_data: Resource = DataRegistry.get_material_data(mat_key)
-				var mat_name: String = mat_key if mat_data == null else mat_data.display_name
-				if mat_data != null and int(mat_data.rarity) >= 2:
-					mat_name = "【レア】" + mat_name
-				mat_parts.append(mat_name)
-			research_note += "\n\n採取素材: " + "  /  ".join(mat_parts)
+		# 採取素材は敵別ではなく炉研ぎ共通3種（実ドロップと一致。P3-MAT-CODEx-001）。
+		var mat_parts: PackedStringArray = EquipmentEnhancer.forge_material_display_names()
+		if not mat_parts.is_empty():
+			research_note += "\n\n炉研ぎ素材（ダンジョン共通）: " + "  /  ".join(mat_parts)
 		_label_detail_description.text = research_note
 	if stage >= 4:
 		_apply_enemy_combat_data(entry, stage, codex_class)

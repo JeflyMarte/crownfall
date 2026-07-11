@@ -885,7 +885,7 @@ func generate_accessory_loot() -> String:
 	return last_accessory_dropped
 
 func apply_elite_bonus_loot() -> Dictionary:
-	var bonus: Dictionary = {"armor_id": "", "accessory_id": "", "material_id": ""}
+	var bonus: Dictionary = {"armor_id": "", "accessory_id": "", "material_id": "", "material_amount": 0}
 	if randf() < ELITE_ARMOR_CHANCE:
 		_generate_armor_loot()
 		bonus["armor_id"] = last_armor_dropped
@@ -898,7 +898,17 @@ func apply_elite_bonus_loot() -> Dictionary:
 		material_chance = 0.30
 	if randf() < material_chance:
 		bonus["material_id"] = "elite_relic_shard"
+		bonus["material_amount"] = 1
+		GameState.add_material("elite_relic_shard", 1)
 	return bonus
+
+## ボス撃破で高品質遺跡の欠片を確定付与（P3-MAT-SUPPLY-001）。ハード以上は2個。
+func apply_boss_material_loot() -> Dictionary:
+	var amount: int = 1
+	if GameState.current_dungeon_tier >= _DungeonTierConfig.TIER_HARD:
+		amount = 2
+	GameState.add_material("elite_relic_shard", amount)
+	return {"material_id": "elite_relic_shard", "amount": amount}
 
 ## x-5 初回ボス討伐（ノーマル）のレジェンド防具・装飾を確定付与（P3-EQ-LEG-001）。
 func apply_boss_legendary_loot(stage: Resource) -> Dictionary:

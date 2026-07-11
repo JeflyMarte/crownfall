@@ -80,7 +80,7 @@ func _ready() -> void:
 	if EventSystem.PERIODIC_EVENTS_ENABLED and EventSystem.has_signal("event_updated"):
 		pass
 	_detail_panel.add_theme_stylebox_override(
-		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_NORMAL)
+		"panel", BlacksmithUiHelper.detail_panel_style()
 	)
 	_cost_panel.add_theme_stylebox_override("panel", BlacksmithUiHelper.cost_panel_style())
 	_unique_panel.add_theme_stylebox_override("panel", BlacksmithUiHelper.unique_panel_style())
@@ -129,10 +129,9 @@ func _setup_forge_chrome() -> void:
 		_btn_back.icon = back_tex
 		_btn_back.expand_icon = true
 		_btn_back.custom_minimum_size = Vector2(40, 40)
-	var pedestal_tex: Texture2D = ForgeUiTokens.load_tex(ForgeUiTokens.HERO_GLOW)
-	if pedestal_tex != null:
-		_hero_pedestal.texture = pedestal_tex
-		_hero_pedestal.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	# 詳細ヒーローは素のアイコンのみ（Glow/ItemBg の影・加工フレームを載せない）。
+	_hero_pedestal.texture = null
+	_hero_pedestal.visible = false
 	var anvil_tex: Texture2D = ForgeUiTokens.load_tex(ForgeUiTokens.ANVIL_PANEL)
 	if anvil_tex != null:
 		_anvil_bg.texture = anvil_tex
@@ -215,6 +214,8 @@ func _apply_detail_typography() -> void:
 	UiTypography.apply_body(_unique_label, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_body(_cost_header_label, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_body(_gold_cost_label, UiTypography.SIZE_BODY, COLOR_TEXT_STRONG)
+	# 統計・理由ラベルも暗背景で読めるよう強めの色を既定に
+	_reason_label.add_theme_color_override("font_color", COLOR_SUB_STRONG)
 
 func _setup_tab_styles() -> void:
 	BlacksmithUiHelper.apply_mode_tab(_btn_dismantle, false)
@@ -307,7 +308,7 @@ func _make_recipe_list_card(craft: Resource) -> PanelContainer:
 	UiTypography.apply_body(
 		name_lbl,
 		UiTypography.SIZE_BODY_SMALL,
-		COLOR_TEXT_STRONG if selected else UiTypography.COLOR_BODY
+		BlacksmithUiHelper.rarity_name_color(rarity)
 	)
 	row.add_child(name_lbl)
 	return panel
@@ -340,11 +341,9 @@ func _make_enhance_list_card(weapon: Resource) -> PanelContainer:
 	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	name_lbl.max_lines_visible = 2
 	name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	var name_color: Color = UiTypography.COLOR_BODY
+	var name_color: Color = BlacksmithUiHelper.rarity_name_color(rarity)
 	if level >= _EquipmentEnhancer.MAX_FORGE_LEVEL:
 		name_color = UiTypography.COLOR_GOLD
-	elif selected:
-		name_color = COLOR_ACCENT
 	UiTypography.apply_body(name_lbl, UiTypography.SIZE_BODY_SMALL, name_color)
 	row.add_child(name_lbl)
 	return panel
@@ -448,7 +447,7 @@ func _add_stats_section_spacer(height: float = 14.0) -> void:
 
 func _update_hero_icon(item_id: String, category: String, _rarity: int) -> void:
 	_clear_hero_icon()
-	_hero_pedestal.visible = true
+	_hero_pedestal.visible = false
 	_hero_weapon_pivot.visible = true
 	_hero_weapon_pivot.rotation_degrees = 0.0
 	BlacksmithUiHelper.attach_hero_icon(
@@ -473,11 +472,9 @@ func _rebuild_produce_detail() -> void:
 	_update_hero_icon(str(craft.output_id), str(craft.output_type), rarity)
 	_rarity_title_label.visible = false
 	_rarity_title_label.text = ""
-	var rarity_col: Color = BlacksmithUiHelper.rarity_color(rarity)
+	var rarity_col: Color = BlacksmithUiHelper.rarity_name_color(rarity)
 	_title_label.text = BlacksmithUiHelper.output_display_name(craft)
-	_title_label.add_theme_color_override(
-		"font_color", rarity_col.lerp(UiTypography.COLOR_BODY, 0.45)
-	)
+	_title_label.add_theme_color_override("font_color", rarity_col)
 	_subtitle_label.text = BlacksmithUiHelper.output_subtitle(craft)
 	_populate_stats_from_entries(BlacksmithUiHelper.craft_stat_entries(craft))
 	_add_stats_section_spacer()
@@ -500,11 +497,9 @@ func _rebuild_enhance_detail() -> void:
 	_update_hero_icon(str(weapon.weapon_id), "weapon", rarity)
 	_rarity_title_label.visible = false
 	_rarity_title_label.text = ""
-	var rarity_col: Color = BlacksmithUiHelper.rarity_color(rarity)
+	var rarity_col: Color = BlacksmithUiHelper.rarity_name_color(rarity)
 	_title_label.text = _EquipmentEnhancer.get_display_name(weapon)
-	_title_label.add_theme_color_override(
-		"font_color", rarity_col.lerp(UiTypography.COLOR_BODY, 0.45)
-	)
+	_title_label.add_theme_color_override("font_color", rarity_col)
 	_subtitle_label.text = "炉研ぎ +%d / +%d" % [level, _EquipmentEnhancer.MAX_FORGE_LEVEL]
 	if level >= _EquipmentEnhancer.MAX_FORGE_LEVEL:
 		_add_stat_row("攻撃力", "%d（上限）" % current_atk, "atk")
@@ -553,16 +548,15 @@ func _make_selectable_list_icon(
 	category: String,
 	payload: Resource,
 	handler_name: String,
-	rarity: int = 0
+	_rarity: int = 0
 ) -> Control:
 	var cell_px: int = BlacksmithUiHelper.list_cell_px()
 	var host := Control.new()
 	host.custom_minimum_size = Vector2(cell_px, cell_px)
 	host.mouse_filter = Control.MOUSE_FILTER_STOP
 	host.gui_input.connect(Callable(self, handler_name).bind(payload))
-	host.add_child(
-		BlacksmithUiHelper.make_item_icon_cell(item_id, category, rarity, cell_px, false)
-	)
+	# レアリティ加工フレームなし（素のアイコンのみ）。
+	host.add_child(BlacksmithUiHelper.make_plain_item_icon(item_id, category, cell_px))
 	return host
 
 func _make_craftable_chip(craft: Resource) -> PanelContainer:
@@ -585,8 +579,8 @@ func _make_craftable_chip(craft: Resource) -> PanelContainer:
 	col.add_child(icon_wrap)
 	var chip_rarity: int = BlacksmithUiHelper.output_rarity(craft)
 	icon_wrap.add_child(
-		BlacksmithUiHelper.make_item_icon_cell(
-			str(craft.output_id), str(craft.output_type), chip_rarity, cell_px, false
+		BlacksmithUiHelper.make_plain_item_icon(
+			str(craft.output_id), str(craft.output_type), cell_px
 		)
 	)
 	var can_make: bool = CraftHelper.can_craft(craft)
@@ -595,11 +589,10 @@ func _make_craftable_chip(craft: Resource) -> PanelContainer:
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	name_lbl.max_lines_visible = 2
-	UiTypography.apply_body(
-		name_lbl,
-		UiTypography.SIZE_BODY_SMALL,
-		Color(0.96, 0.98, 0.92, 1.0) if can_make else UiTypography.COLOR_BODY
-	)
+	var name_col: Color = BlacksmithUiHelper.rarity_name_color(chip_rarity)
+	if not can_make:
+		name_col = name_col.darkened(0.25)
+	UiTypography.apply_body(name_lbl, UiTypography.SIZE_BODY_SMALL, name_col)
 	col.add_child(name_lbl)
 	return panel
 

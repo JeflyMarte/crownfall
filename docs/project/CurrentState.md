@@ -4,6 +4,10 @@
 
 ## Last Update
 
+2026-07-11（**P3-MAT-003 / SUPPLY-001 / CRAFT-001**: 炉研ぎ3種正式確定・ボス高品質欠片確定・クラフト数/Gold差・図鑑S5共通表示）
+
+2026-07-11（**P3-MAT-CODEx-001**: 図鑑敵S5採取欄＝炉研ぎ共通3種表示。敵別`codex_materials`非参照。実ドロップと一致）
+
 2026-07-10（**P3-DG-STG-ENABLE**: サブステージ正式承認 — メイン5 Biome×5章を `SUB_STAGES_PLAYABLE=true` で有効化。`P3-DG-OMIT-001-2` 上書き）
 
 2026-07-08（**P3-WPN-LEG-EFFECT**: レジェンド武器10本→`fixed_passive_id`固有効果・`leg_*`廃止）

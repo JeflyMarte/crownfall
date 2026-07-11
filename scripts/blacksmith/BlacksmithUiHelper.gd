@@ -15,6 +15,14 @@ const RARITY_COLORS: Array[Color] = [
 	Color(0.95, 0.75, 0.25),
 ]
 
+## 暗背景向けの名前色（レアリティ対応・可読性優先）。
+const RARITY_NAME_COLORS: Array[Color] = [
+	Color(0.92, 0.92, 0.90),
+	Color(0.48, 0.74, 1.0),
+	Color(0.86, 0.58, 1.0),
+	Color(1.0, 0.86, 0.38),
+]
+
 const CATEGORY_LABELS: Dictionary = {
 	"weapon": "武器",
 	"armor": "防具",
@@ -118,40 +126,36 @@ static func list_card_style(selected: bool, craftable: bool, rarity: int) -> Sty
 	return simple_list_card_style(selected, craftable, rarity)
 
 static func simple_list_card_style(selected: bool, craftable: bool, rarity: int) -> StyleBox:
+	# 加工フレームなし。選択時のみ薄いハイライト。
 	var sb := StyleBoxFlat.new()
-	var rarity_col: Color = rarity_color(rarity)
-	sb.set_corner_radius_all(6)
-	sb.set_content_margin_all(6)
-	if craftable:
-		sb.bg_color = Color(0.10, 0.14, 0.09, 0.94)
+	sb.set_corner_radius_all(4)
+	sb.set_content_margin_all(4)
+	sb.set_border_width_all(0)
+	if selected:
+		sb.bg_color = Color(0.28, 0.24, 0.18, 0.55)
 		sb.set_border_width_all(2)
-		sb.border_color = Color(0.42, 0.82, 0.38, 0.85)
+		sb.border_color = rarity_color(rarity).lerp(Color(1.0, 1.0, 1.0), 0.25)
+	elif craftable:
+		sb.bg_color = Color(0.16, 0.22, 0.14, 0.35)
 	else:
-		sb.bg_color = Color(0.10, 0.09, 0.08, 0.9)
-		sb.set_border_width_all(1)
-		sb.border_color = rarity_col.lerp(Color(0.28, 0.26, 0.24), 0.55)
+		sb.bg_color = Color(0.0, 0.0, 0.0, 0.0)
 	return sb
 
 static func craftable_strip_style(selected: bool) -> StyleBox:
-	var textured: StyleBox = ForgeUiTokens.craft_chip_style(selected)
-	if _texture_style_ok(textured):
-		return textured
+	# チップ枠も最小限（加工フレーム感を出さない）。
 	var sb := StyleBoxFlat.new()
-	sb.set_corner_radius_all(8)
-	sb.set_content_margin_all(6)
+	sb.set_corner_radius_all(6)
+	sb.set_content_margin_all(4)
+	sb.set_border_width_all(0)
 	if selected:
-		sb.bg_color = Color(0.18, 0.14, 0.08, 0.98)
+		sb.bg_color = Color(0.28, 0.24, 0.16, 0.55)
 		sb.set_border_width_all(2)
-		sb.border_color = Color(0.95, 0.82, 0.38, 1.0)
-		sb.shadow_color = Color(0.95, 0.78, 0.28, 0.35)
-		sb.shadow_size = 4
+		sb.border_color = Color(0.95, 0.82, 0.38, 0.9)
 	else:
-		sb.bg_color = Color(0.11, 0.15, 0.10, 0.94)
-		sb.set_border_width_all(2)
-		sb.border_color = Color(0.48, 0.86, 0.42, 0.9)
+		sb.bg_color = Color(0.0, 0.0, 0.0, 0.0)
 	return sb
 
-static func material_chip_style(sufficient: bool) -> StyleBox:
+static func material_chip_style(sufficient: bool, _cell_px: int = -1) -> StyleBox:
 	var textured: StyleBox = ForgeUiTokens.material_cell_style()
 	if _texture_style_ok(textured):
 		if not sufficient and textured is StyleBoxTexture:
@@ -286,6 +290,18 @@ static func make_plain_item_icon(
 
 static func rarity_color(rarity: int) -> Color:
 	return RARITY_COLORS[clampi(rarity, 0, RARITY_COLORS.size() - 1)]
+
+static func rarity_name_color(rarity: int) -> Color:
+	return RARITY_NAME_COLORS[clampi(rarity, 0, RARITY_NAME_COLORS.size() - 1)]
+
+static func detail_panel_style() -> StyleBox:
+	# CombatUiFrames の暗い塗りつぶし枠を使わず、背景を透かして可読性を確保。
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.18, 0.16, 0.13, 0.42)
+	sb.set_border_width_all(0)
+	sb.set_corner_radius_all(8)
+	sb.set_content_margin_all(10.0)
+	return sb
 
 static func rarity_box(rarity: int, highlight: bool = true) -> StyleBox:
 	var textured: StyleBox = ForgeUiTokens.item_cell_style(rarity, highlight)

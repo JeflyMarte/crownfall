@@ -4298,7 +4298,11 @@ const ENHANCEMENT_DROP_CHANCE: Dictionary = {0: 0.65, 1: 0.35, 2: 0.12, 3: 0.05}
 const CODEX_INVESTIGATION_EXP_BONUS: float = 1.10
 const CODEX_INVESTIGATION_MATERIAL_MULT: float = 1.50
 
-func _roll_enhancement_material_drops(_enemy_data: Resource, log_lines: PackedStringArray) -> void:
+func _roll_enhancement_material_drops(
+	_enemy_data: Resource,
+	log_lines: PackedStringArray,
+	world_pos: Vector2 = Vector2.ZERO
+) -> void:
 	var mat_id: String = EquipmentEnhancer.pick_combat_drop_material()
 	if not EquipmentEnhancer.is_enhancement_material(mat_id):
 		return
@@ -4318,6 +4322,8 @@ func _roll_enhancement_material_drops(_enemy_data: Resource, log_lines: PackedSt
 	GameState.add_material(mat_id, amount)
 	log_lines.append("採取: %s" % _format_material_reward_log(mat_id, amount, ""))
 	_try_register_discovery("material", mat_id)
+	if world_pos != Vector2.ZERO:
+		_spawn_material_drop(world_pos, amount)
 
 # アクティブ敵 1体の撃破ブックキーピング（P3-D082/D083/D111）。
 func _award_enemy_kill_at(killed_slot: int) -> void:
@@ -4363,14 +4369,15 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 	var log_lines: PackedStringArray = [
 		"撃破!  EXP +%d  Gold +%d%s" % [final_exp, final_gold, bonus_tag],
 	]
+	var kill_pos: Vector2 = _enemy_slot_pos(killed_slot)
 	if room_type == Enums.RoomType.COMBAT and defeated_enemy != null:
-		_roll_enhancement_material_drops(defeated_enemy, log_lines)
+		_roll_enhancement_material_drops(defeated_enemy, log_lines, kill_pos)
 	# P3-D074/D082: 撃破ごとの武器直ドロップ（各敵個別判定）
 	var dropped_weapon: String = $DungeonController.roll_kill_weapon_drop(room_type, defeated_enemy)
 	if not dropped_weapon.is_empty():
 		GameState.last_run_weapon_dropped = dropped_weapon
 		log_lines.append("武器ドロップ: %s" % DataRegistry.get_weapon_name(dropped_weapon))
-		_spawn_weapon_drop(dropped_weapon, _enemy_slot_pos(killed_slot))
+		_spawn_weapon_drop(dropped_weapon, kill_pos + Vector2(24.0, 0.0))
 	if room_type == Enums.RoomType.BOSS:
 		var stage: Resource = $DungeonController.current_stage_data
 		if stage != null:
@@ -4385,6 +4392,16 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 				log_lines.append(
 					"ボス報酬: 装飾品 %s" % DataRegistry.get_accessory_name(str(legendary_bonus["accessory_id"]))
 				)
+		var boss_mat: Dictionary = $DungeonController.apply_boss_material_loot()
+		var boss_mat_amt: int = int(boss_mat.get("amount", 1))
+		log_lines.append(
+			"ボス報酬: %s" % _format_material_reward_log(
+				str(boss_mat.get("material_id", "elite_relic_shard")),
+				boss_mat_amt,
+				""
+			)
+		)
+		_spawn_material_drop(kill_pos + Vector2(-24.0, 0.0), boss_mat_amt)
 	if room_type == Enums.RoomType.ELITE:
 		var elite_bonus: Dictionary = $DungeonController.apply_elite_bonus_loot()
 		if not (elite_bonus["armor_id"] as String).is_empty():
@@ -4392,6 +4409,16 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 		if not (elite_bonus["accessory_id"] as String).is_empty():
 			log_lines.append("エリート報酬: 装飾品 %s" % DataRegistry.get_accessory_name(elite_bonus["accessory_id"]))
 			GameState.last_run_accessory_dropped = elite_bonus["accessory_id"]
+		if not str(elite_bonus.get("material_id", "")).is_empty():
+			var elite_mat_amt: int = int(elite_bonus.get("material_amount", 1))
+			log_lines.append(
+				"エリート報酬: %s" % _format_material_reward_log(
+					str(elite_bonus["material_id"]),
+					elite_mat_amt,
+					""
+				)
+			)
+			_spawn_material_drop(kill_pos + Vector2(-24.0, 0.0), elite_mat_amt)
 	# P3-D093: 撃破時の遺物ドロップ（解放型）
 	var dropped_relic: String = $DungeonController.roll_kill_relic_drop(room_type)
 	if not dropped_relic.is_empty():
@@ -6895,26 +6922,48 @@ func _spawn_weapon_drop(weapon_id: String, world_pos: Vector2) -> void:
 	var tex: Texture2D = IconPaths.get_icon_texture(weapon_id, "weapon")
 	if tex == null:
 		return
+	_spawn_pickup_drop(tex, world_pos)
+
+## 素材ドロップ演出（鉱石アイコン。武器ドロップと同型。P3-MAT-DROP-VFX）。
+const MATERIAL_DROP_ICON_PATH: String = "res://assets/ui/materials/ICO_Drop_Ore.png"
+
+func _spawn_material_drop(world_pos: Vector2, amount: int = 1) -> void:
+	if not ResourceLoader.exists(MATERIAL_DROP_ICON_PATH):
+		return
+	var tex: Texture2D = load(MATERIAL_DROP_ICON_PATH) as Texture2D
+	if tex == null:
+		return
+	var count: int = clampi(amount, 1, 4)
+	for i in range(count):
+		var offset_x: float = (float(i) - float(count - 1) * 0.5) * 28.0
+		_spawn_pickup_drop(tex, world_pos + Vector2(offset_x, 0.0), 0.05 * float(i))
+
+func _spawn_pickup_drop(
+	tex: Texture2D,
+	world_pos: Vector2,
+	start_delay: float = 0.0,
+	peak_scale: float = 1.0
+) -> void:
 	var spr := Sprite2D.new()
 	spr.texture = tex
 	spr.global_position = world_pos
-	spr.scale = Vector2(0.1, 0.1)
+	spr.scale = Vector2(0.1, 0.1) * peak_scale
 	spr.z_index = 50
 	add_child(spr)
 	var settle_y: float = world_pos.y - 24.0
 	var pickup_target: Vector2 = world_pos + Vector2(0.0, 200.0)
 	var tw: Tween = create_tween()
 	# 敵の死亡アニメ後に出現させるための待機
-	tw.tween_interval(0.35)
+	tw.tween_interval(0.35 + start_delay)
 	# ポップ（拡大＋上方へ放物）
-	tw.tween_property(spr, "scale", Vector2(1.0, 1.0), 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(spr, "scale", Vector2(peak_scale, peak_scale), 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.parallel().tween_property(spr, "global_position:y", world_pos.y - 56.0, 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	# 着地
 	tw.tween_property(spr, "global_position:y", settle_y, 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	# 入手（吸い込み＋縮小＋フェード）
 	tw.tween_interval(0.2)
 	tw.tween_property(spr, "global_position", pickup_target, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tw.parallel().tween_property(spr, "scale", Vector2(0.3, 0.3), 0.35)
+	tw.parallel().tween_property(spr, "scale", Vector2(peak_scale * 0.3, peak_scale * 0.3), 0.35)
 	tw.parallel().tween_property(spr, "modulate:a", 0.0, 0.35)
 	tw.tween_callback(spr.queue_free)
 
