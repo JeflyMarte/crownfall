@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 id = "beast_bite"
-display_name = "獣牙撃"
-description = "生物の牙の如く突き刺す一撃。素早く放てる基本技。"
+display_name = "裂牙"
+description = "捕食獣の噛み付き。素早く放てる基本の一撃。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.15

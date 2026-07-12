@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 id = "snare_shot"
-display_name = "スネアアロー"
-description = "生物の動線を読んで急所を射抜き、動きを鈍らせて誘導・弱体化する。"
+display_name = "仔鹿狙い"
+description = "群れの獲物と同じく、急所を射て足を止める。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.2
