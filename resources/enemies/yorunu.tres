@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "yorunu"
+display_name = "夜沼"
+max_hp = 178
+attack = 27
+defense = 11
+attack_speed = 0.98
+critical_rate = 0.1
+move_speed = 0.85
+threat_target_bias = "max_threat"
+detection_range = 8.0
+attack_range = 2.0
+enemy_type = 1
+ai_type = "default"
+exp_reward = 40
+gold_reward = 68
+drop_table_id = "yorunu_drops"
+element_weakness = Array[String](["thunder"])
+element_resist = Array[String](["dark"])
+attack_element = "dark"
+on_hit_status_id = "poison"
+on_hit_status_chance = 0.2
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "未確認大型種"
+codex_danger = 4
+codex_habitat = "霧沼・夜霧の泥塘"
+codex_research_note = "正体不明の大型生物。霧の奥から現れる影は、爬虫・魚・菌糸塊のいずれにも似て見える。唯一確かなのは、夜霧が濃い時だけ泥面が隆起し、複数の顎が同時に開くことだ。討伐記録はあるが、標本はいずれも泥に溶けていた。"
+codex_materials = Array[String]([])
+skill_ids = Array[String](["enemy_yorunu_mire_embrace", "enemy_yorunu_unknown_maw"])
+skill_use_chance = 0.38

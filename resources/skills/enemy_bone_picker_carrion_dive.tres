@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_bone_picker_carrion_dive"
+display_name = "腐肉急降下"
+description = "沈没書庫跡の死骸を狙い、泥面から一斉に急降下して啄む。"
+skill_type = "enemy"
+target_type = "party_front"
+power_multiplier = 0.52
+cooldown = 5.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["aoe"])
+element = ""
+apply_status_id = "bleed"
+apply_status_chance = 0.26

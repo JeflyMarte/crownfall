@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "bone_picker"
+display_name = "骨拾い"
+max_hp = 64
+attack = 17
+defense = 3
+attack_speed = 1.15
+critical_rate = 0.08
+move_speed = 1.2
+threat_target_bias = "lowest_hp"
+detection_range = 7.0
+attack_range = 1.0
+enemy_type = 0
+ai_type = "default"
+exp_reward = 11
+gold_reward = 44
+drop_table_id = "bone_picker_drops"
+element_weakness = Array[String](["thunder"])
+element_resist = Array[String]([])
+on_hit_status_id = "bleed"
+on_hit_status_chance = 0.2
+can_swarm = true
+swarm_min = 2
+swarm_max = 3
+codex_class = "鳥類"
+codex_danger = 2
+codex_habitat = "霧沼・沈没書庫外郭"
+codex_research_note = "カラスを祖先とし、腐肉食の習性を極限まで広げた渡り鳥。沈没した書庫跡の死骸と封印蝋の残滓を狙い、群れで骨を運び去る。羽音より先に影が来ると記録されている。"
+codex_materials = Array[String]([])
+skill_ids = Array[String](["enemy_bone_picker_carrion_dive"])
+skill_use_chance = 0.24
