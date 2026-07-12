@@ -406,9 +406,9 @@ func _make_stage_card(stage: Resource) -> Control:
 	if not unlocked:
 		status_text = "🔒 未解放"
 	elif cleared:
-		status_text = "✓ CLEAR"
+		status_text = "✓ クリア"
 	elif bool(stage.has_boss_floor()):
-		status_text = "Boss"
+		status_text = "ボス"
 	if not status_text.is_empty():
 		var status_col := VBoxContainer.new()
 		status_col.size_flags_horizontal = Control.SIZE_SHRINK_END
@@ -494,9 +494,9 @@ func _refresh_featured() -> void:
 		if int(stage.recommended_level) > 0:
 			meta_parts.append("推奨Lv%d" % int(stage.recommended_level))
 		if bool(stage.has_boss_floor()):
-			meta_parts.append("Boss")
+			meta_parts.append("ボス")
 		elif bool(stage.requires_elite):
-			meta_parts.append("ELITE")
+			meta_parts.append("エリート")
 	meta_parts.append(_DungeonTierConfig.display_name(GameState.current_dungeon_tier))
 	var tier_summary: String = _DungeonTierConfig.summary_text(GameState.current_dungeon_tier)
 	if not tier_summary.is_empty():
@@ -518,11 +518,11 @@ func _refresh_featured() -> void:
 	var discovery_pct: int = _discovery_percent(_featured_dungeon_id)
 	_label_featured_discovery.text = "発見率 %d%%" % discovery_pct
 	if GameState.is_dungeon_tier_cleared(_featured_dungeon_id, GameState.current_dungeon_tier):
-		_label_featured_discovery.text += " · %s CLEAR済" % _DungeonTierConfig.display_name(
+		_label_featured_discovery.text += " · %s クリア済" % _DungeonTierConfig.display_name(
 			GameState.current_dungeon_tier
 		)
 	elif GameState.is_dungeon_cleared(_featured_dungeon_id):
-		_label_featured_discovery.text += " · ノーマル CLEAR済"
+		_label_featured_discovery.text += " · ノーマル クリア済"
 
 	_populate_drop_row(_featured_drop_row, _featured_dungeon_id, 4)
 	var unlocked: bool = GameState.is_dungeon_unlocked(_featured_dungeon_id)
@@ -1068,7 +1068,7 @@ func _make_clear_ribbon() -> PanelContainer:
 	style.content_margin_bottom = 1.0
 	ribbon.add_theme_stylebox_override("panel", style)
 	var label := Label.new()
-	label.text = "CLEAR"
+	label.text = "クリア"
 	UiTypography.apply_caption(label, COLOR_CLEAR)
 	ribbon.add_child(label)
 	return ribbon

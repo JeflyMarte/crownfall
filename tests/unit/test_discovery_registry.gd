@@ -21,3 +21,11 @@ func test_event_display_name_uses_outcome_label() -> void:
 		_DungeonController.get_event_display_name("faded_inscription"),
 		"風化した記録"
 	)
+
+
+func test_unknown_internal_id_falls_back_to_unknown_label() -> void:
+	assert_eq(_DiscoveryRegistry.get_display_label("lore", "missing_lore_id"), "不明")
+	assert_eq(
+		_DiscoveryRegistry.format_new_discovery("lore", "ancient_record"),
+		"【新規発見】碑文 / %s" % _CatalogHelper.get_lore_title("ancient_record")
+	)

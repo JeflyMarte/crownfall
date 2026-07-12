@@ -1422,7 +1422,7 @@ func _item_icon(item: Resource, category: String) -> Texture2D:
 func _item_label(item: Resource, category: String) -> String:
 	match category:
 		"weapon":
-			var wt: String = "%s  ATK %d  SPD %.1f  CRT %.0f%%" % [
+			var wt: String = "%s  攻撃力 %d  攻撃速度 %.1f  会心率 %.0f%%" % [
 				_EquipmentEnhancer.get_display_name(item),
 				_EquipmentEnhancer.get_effective_attack(item),
 				item.attack_speed,
@@ -1434,7 +1434,7 @@ func _item_label(item: Resource, category: String) -> String:
 				wt += "\n「%s」" % flavor
 			return wt
 		"armor":
-			var at: String = "%s  DEF %d  HP+%d  WGT %.1f" % [
+			var at: String = "%s  防御力 %d  HP+%d  重量 %.1f" % [
 				DataRegistry.get_armor_name(item.armor_id), item.rolled_defense, item.hp_bonus, item.weight
 			]
 			at += _armor_resist_suffix(item)
@@ -1443,7 +1443,7 @@ func _item_label(item: Resource, category: String) -> String:
 			var acc_data: Resource = _accessory_data(item)
 			var act: String
 			if acc_data != null:
-				act = "%s  HP+%d  ATK+%d  DEF+%d  CRT+%.0f%%" % [
+				act = "%s  HP+%d  攻撃力+%d  防御力+%d  会心率+%.0f%%" % [
 					DataRegistry.get_accessory_name(item.accessory_id),
 					acc_data.hp_bonus, acc_data.attack_bonus, acc_data.defense_bonus,
 					acc_data.crit_rate_bonus * 100.0,
@@ -1471,13 +1471,13 @@ func _compare_text(candidate: Resource, category: String) -> String:
 func _weapon_compare(candidate: Resource, equipped: Resource) -> String:
 	var parts: PackedStringArray = []
 	var atk_diff: int = _EquipmentEnhancer.get_effective_attack(candidate) - _EquipmentEnhancer.get_effective_attack(equipped)
-	parts.append("ATK %s%d" % ["+" if atk_diff >= 0 else "", atk_diff])
+	parts.append("攻撃力 %s%d" % ["+" if atk_diff >= 0 else "", atk_diff])
 	var spd_diff: float = candidate.attack_speed - equipped.attack_speed
 	if not is_zero_approx(spd_diff):
-		parts.append("SPD %s%.1f" % ["+" if spd_diff >= 0.0 else "", spd_diff])
+		parts.append("攻撃速度 %s%.1f" % ["+" if spd_diff >= 0.0 else "", spd_diff])
 	var crt_diff: float = candidate.critical_rate - equipped.critical_rate
 	if not is_zero_approx(crt_diff):
-		parts.append("CRT %s%.0f%%" % ["+" if crt_diff >= 0.0 else "", crt_diff * 100.0])
+		parts.append("会心率 %s%.0f%%" % ["+" if crt_diff >= 0.0 else "", crt_diff * 100.0])
 	return "[%s]" % " | ".join(parts)
 
 # 防具の属性耐性表示（P3-D103）。例: "  耐性:闇"。
@@ -1503,7 +1503,7 @@ func _armor_compare(candidate: Resource, equipped: Resource) -> String:
 		- EquipmentEnhancer.effective_armor_defense(equipped)
 	)
 	if def_diff != 0:
-		parts.append("DEF %s%d" % ["+" if def_diff >= 0 else "", def_diff])
+		parts.append("防御力 %s%d" % ["+" if def_diff >= 0 else "", def_diff])
 	var hp_diff: int = (
 		EquipmentEnhancer.effective_armor_hp(candidate) - EquipmentEnhancer.effective_armor_hp(equipped)
 	)
@@ -1524,13 +1524,13 @@ func _accessory_compare(candidate: Resource, equipped: Resource) -> String:
 		parts.append("HP %s%d" % ["+" if hp_d >= 0 else "", hp_d])
 	var atk_d: int = c_data.attack_bonus - e_data.attack_bonus
 	if atk_d != 0:
-		parts.append("ATK %s%d" % ["+" if atk_d >= 0 else "", atk_d])
+		parts.append("攻撃力 %s%d" % ["+" if atk_d >= 0 else "", atk_d])
 	var def_d: int = c_data.defense_bonus - e_data.defense_bonus
 	if def_d != 0:
-		parts.append("DEF %s%d" % ["+" if def_d >= 0 else "", def_d])
+		parts.append("防御力 %s%d" % ["+" if def_d >= 0 else "", def_d])
 	var crt_d: float = c_data.crit_rate_bonus - e_data.crit_rate_bonus
 	if not is_zero_approx(crt_d):
-		parts.append("CRT %s%.0f%%" % ["+" if crt_d >= 0.0 else "", crt_d * 100.0])
+		parts.append("会心率 %s%.0f%%" % ["+" if crt_d >= 0.0 else "", crt_d * 100.0])
 	if parts.is_empty():
 		return "[±0]"
 	return "[%s]" % " | ".join(parts)

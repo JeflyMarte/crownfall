@@ -24,7 +24,7 @@ const SUCCESS_LINES: Array[String] = [
 	"宝箱は満ちていた。戦利品を回収した。",
 ]
 const FAIL_LINES: Array[String] = [
-	"箱は空だった。わずかな Gold だけが残っていた。",
+	"箱は空だった。わずかなゴールドだけが残っていた。",
 	"中身は朽ち、取れるものはほとんどなかった。",
 	"罠の跡だけが残り、宝物は既に奪われていた。",
 ]
@@ -69,7 +69,7 @@ static func failure_gold_amount(base_gold: int) -> int:
 
 
 static func format_success_narrative(success_line: String, gold: int, accessory_name: String) -> String:
-	var text: String = "%s\nGold +%d" % [success_line, gold]
+	var text: String = "%s\nゴールド +%d" % [success_line, gold]
 	if not accessory_name.is_empty():
 		text += "\n装飾品: %s" % accessory_name
 	return text
@@ -78,7 +78,7 @@ static func format_success_narrative(success_line: String, gold: int, accessory_
 static func format_fail_narrative(fail_line: String, gold: int) -> String:
 	if gold <= 0:
 		return fail_line
-	return "%s\nGold +%d" % [fail_line, gold]
+	return "%s\nゴールド +%d" % [fail_line, gold]
 
 
 static func _pick_line(lines: Array[String], rng: RandomNumberGenerator) -> String:

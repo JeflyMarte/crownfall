@@ -22,14 +22,14 @@ const WEEK_DEFINITIONS: Array[Dictionary] = [
 		"modifier_type": "exp",
 		"modifier_mult": 1.5,
 		"title": "経験記録増加週",
-		"banner_desc": "戦闘EXP ×1.5",
+		"banner_desc": "戦闘経験値 ×1.5",
 		"description": "ギルド報告：各地で戦闘データの取得効率が上昇している。今週の探索では経験値記録が増える。",
 	},
 	{
 		"modifier_type": "gold",
 		"modifier_mult": 1.5,
 		"title": "調査報酬増加週",
-		"banner_desc": "戦闘Gold ×1.5",
+		"banner_desc": "戦闘ゴールド ×1.5",
 		"description": "ギルド報告：補給局が追加報酬を配分した。今週の探索ではゴールド入手が増える。",
 	},
 	{
@@ -50,15 +50,15 @@ const WEEK_DEFINITIONS: Array[Dictionary] = [
 		"modifier_type": "featured_biome",
 		"modifier_mult": 1.5,
 		"title": "注目区域調査",
-		"banner_desc": "注目Biome EXP/Gold ×1.5",
-		"description": "ギルド指定の重点調査区域。今週は当該Biomeでの報酬が増える。",
+		"banner_desc": "注目区域 経験値/ゴールド ×1.5",
+		"description": "ギルド指定の重点調査区域。今週は当該区域での報酬が増える。",
 	},
 	{
 		"modifier_type": "elite_material",
 		"modifier_mult": 1.5,
 		"title": "高品質素材の澱",
-		"banner_desc": "ELITE素材 ×1.5",
-		"description": "ギルド報告：ELITE級個体からの素材採取が好調。今週は高品質欠片の入手量が増える。",
+		"banner_desc": "エリート素材 ×1.5",
+		"description": "ギルド報告：エリート級個体からの素材採取が好調。今週は高品質欠片の入手量が増える。",
 	},
 ]
 
@@ -102,7 +102,7 @@ static func build_active_event(now_unix: int) -> Resource:
 		var biome: Resource = DataRegistry.get_dungeon_data(event.featured_biome_id)
 		if biome != null and not str(biome.display_name).is_empty():
 			event.title = "注目区域 — %s" % str(biome.display_name)
-			event.banner_desc = "%s で EXP/Gold ×%.1f" % [
+			event.banner_desc = "%s で 経験値/ゴールド ×%.1f" % [
 				str(biome.display_name),
 				event.modifier_mult,
 			]

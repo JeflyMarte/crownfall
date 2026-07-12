@@ -31,7 +31,7 @@ func test_pick_subtitle_prefers_heal_when_dominant() -> void:
 func test_stat_cards_include_score() -> void:
 	var cards: Array = _MvpPresentation.stat_cards({"damage_total": 10, "damage_max_hit": 5, "heal_total": 2, "score": 11})
 	assert_eq(cards.size(), 4)
-	assert_eq(cards[3]["key"], "MVPスコア")
+	assert_eq(cards[3]["key"], "最活躍スコア")
 
 
 func test_backdrop_style_has_opaque_fill() -> void:

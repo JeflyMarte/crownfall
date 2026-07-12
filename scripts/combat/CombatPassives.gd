@@ -690,9 +690,9 @@ static func _passive_effect_summary(def: Dictionary) -> String:
 	if float(def.get("ultimate_power_mult", 1.0)) > 1.0:
 		parts.append("必殺 +%d%%" % int(round((float(def["ultimate_power_mult"]) - 1.0) * 100.0)))
 	if float(def.get("exp_gain_mult", 1.0)) > 1.0:
-		parts.append("EXP +%d%%" % int(round((float(def["exp_gain_mult"]) - 1.0) * 100.0)))
+		parts.append("経験値 +%d%%" % int(round((float(def["exp_gain_mult"]) - 1.0) * 100.0)))
 	if float(def.get("party_exp_gain_mult", 1.0)) > 1.0:
-		parts.append("パーティEXP +%d%%" % int(round((float(def["party_exp_gain_mult"]) - 1.0) * 100.0)))
+		parts.append("パーティ経験値 +%d%%" % int(round((float(def["party_exp_gain_mult"]) - 1.0) * 100.0)))
 	return " / ".join(parts)
 
 static func equipment_passives_for_member(member: Resource) -> Array:

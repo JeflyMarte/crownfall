@@ -176,7 +176,7 @@ func _build_members() -> void:
 		for row_data: Dictionary in rows:
 			_add_body(
 				vbox,
-				"%s — 出撃%d / MVP%d" % [
+				"%s — 出撃%d / 最活躍%d" % [
 					str(row_data.get("display_name", "")),
 					int(row_data.get("count", 0)),
 					int(row_data.get("mvp_count", 0)),

@@ -20,7 +20,10 @@ static func is_discovered(category: String, entry_id: String) -> bool:
 	return GameState.discovery_registry.has(_key(category, entry_id))
 
 static func format_new_discovery(category: String, entry_id: String) -> String:
-	return "【新規発見】%s / %s" % [category, entry_id]
+	return "【新規発見】%s / %s" % [
+		get_category_label(category),
+		get_display_label(category, entry_id),
+	]
 
 static func get_category_label(category: String) -> String:
 	match category:
@@ -66,8 +69,17 @@ static func get_display_label(category: String, entry_id: String) -> String:
 				"merchant": return "商人の部屋"
 				"event": return "イベントの部屋"
 				"elite": return "エリートの部屋"
-				_: return entry_id
+				"trap": return "罠の部屋"
+				_: return _display_fallback(entry_id)
 		_: pass
+	return _display_fallback(entry_id)
+
+static func _display_fallback(entry_id: String) -> String:
+	if entry_id.is_empty():
+		return "不明"
+	# 未解決の snake_case 内部 ID はプレイヤー向け UI に出さない。
+	if entry_id.find("_") >= 0:
+		return "不明"
 	return entry_id
 
 static func room_type_to_id(room_type: int) -> String:
@@ -77,6 +89,7 @@ static func room_type_to_id(room_type: int) -> String:
 		Enums.RoomType.MERCHANT: return "merchant"
 		Enums.RoomType.EVENT:    return "event"
 		Enums.RoomType.ELITE:    return "elite"
+		Enums.RoomType.TRAP:     return "trap"
 	return ""
 
 static func is_special_room(room_type: int) -> bool:

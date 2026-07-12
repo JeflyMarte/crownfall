@@ -57,10 +57,10 @@ func test_treasure_failure_gold_is_half() -> void:
 
 func test_treasure_narrative_formats() -> void:
 	var success: String = _TreasureRoomPresentation.format_success_narrative("開いた。", 30, "銀の指輪")
-	assert_true("Gold +30" in success)
+	assert_true("ゴールド +30" in success)
 	assert_true("銀の指輪" in success)
 	var fail: String = _TreasureRoomPresentation.format_fail_narrative("空だった。", 15)
-	assert_eq(fail, "空だった。\nGold +15")
+	assert_eq(fail, "空だった。\nゴールド +15")
 
 
 func test_room_bg_paths_exist() -> void:

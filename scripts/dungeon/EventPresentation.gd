@@ -107,9 +107,9 @@ static func format_result_line(outcome: Dictionary) -> String:
 		"damage":
 			return "HP -%d" % int(outcome.get("amount", 0))
 		"gold":
-			return "Gold +%d" % int(outcome.get("amount", 0))
+			return "ゴールド +%d" % int(outcome.get("amount", 0))
 		"buff":
-			return "攻撃 UP ×%.2f" % float(outcome.get("multiplier", 1.0))
+			return "攻撃力 ×%.2f" % float(outcome.get("multiplier", 1.0))
 		"material":
 			var label: String = str(outcome.get("label", ""))
 			if label.is_empty():

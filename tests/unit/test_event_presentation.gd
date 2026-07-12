@@ -20,7 +20,7 @@ func test_format_result_line_for_core_outcomes() -> void:
 	)
 	assert_eq(
 		_EventPresentation.format_result_line({"type": "gold", "amount": 24}),
-		"Gold +24"
+		"ゴールド +24"
 	)
 	assert_eq(
 		_EventPresentation.format_result_line({"type": "lore", "label": "ルーンの甲殻"}),
