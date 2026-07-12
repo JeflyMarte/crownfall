@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 id = "aimed_shot"
-display_name = "鷹の落とし"
-description = "高所から急所を突く一射。甲を裂き、標的を刻む。"
+display_name = "穿甲狙撃"
+description = "離れた標的を正確に射抜く。甲を裂き、標的を刻む。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.6

@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 id = "snare_shot"
-display_name = "仔鹿狙い"
-description = "群れの獲物と同じく、急所を射て足を止める。"
+display_name = "足止め矢"
+description = "急所を射て動きを鈍らせ、逃げ道を封じる遠隔の一射。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.2
