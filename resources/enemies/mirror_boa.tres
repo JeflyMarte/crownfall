@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "mirror_boa"
+display_name = "ミラーボア"
+max_hp = 158
+attack = 28
+defense = 8
+attack_speed = 1.08
+critical_rate = 0.12
+move_speed = 1.05
+threat_target_bias = "back_row"
+detection_range = 7.5
+attack_range = 2.0
+enemy_type = 1
+ai_type = "default"
+exp_reward = 38
+gold_reward = 62
+drop_table_id = "mirror_boa_drops"
+element_weakness = Array[String](["fire"])
+element_resist = Array[String]([])
+attack_element = "dark"
+on_hit_status_id = "mark"
+on_hit_status_chance = 0.22
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "爬虫類"
+codex_danger = 4
+codex_habitat = "囁きの森・鏡光の湿地"
+codex_research_note = "蛇を祖先とし、鱗が鏡のように反射して姿を増やして見せる大型個体。獲物は自分の影と本物の区別がつかず、一瞬の迷いの間に絞め上げられる。湿った苔地で最も鮮やかに輝く。"
+codex_materials = Array[String]([])
+skill_ids = Array[String](["enemy_ink_veil"])
+skill_use_chance = 0.32

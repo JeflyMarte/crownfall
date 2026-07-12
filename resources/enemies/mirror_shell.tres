@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "mirror_shell"
+display_name = "ミラーシェル"
+max_hp = 88
+attack = 16
+defense = 10
+attack_speed = 1.05
+critical_rate = 0.1
+move_speed = 1.0
+threat_target_bias = "lowest_hp"
+detection_range = 6.5
+attack_range = 1.5
+enemy_type = 0
+ai_type = "default"
+exp_reward = 13
+gold_reward = 45
+drop_table_id = "mirror_shell_drops"
+element_weakness = Array[String](["fire"])
+element_resist = Array[String](["holy"])
+on_hit_status_id = "mark"
+on_hit_status_chance = 0.18
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "昆虫類"
+codex_danger = 3
+codex_habitat = "囁きの森・光斑の林床"
+codex_research_note = "甲虫を祖先とし、鏡面状の甲殻で周囲の光景を写して擬態する幻虫。獲物は自分自身の影に近づき、一瞬の隙に毒針を刺す。乾燥した晴天では姿が揺らめく。"
+codex_materials = Array[String]([])
+skill_ids = Array[String](["enemy_dust_flutter"])
+skill_use_chance = 0.22

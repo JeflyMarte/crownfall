@@ -12,8 +12,8 @@ const _D2_IDS: Array[String] = [
 	"crystal_scorpion",
 ]
 const _D3_IDS: Array[String] = ["skullface_mantis"]
-const _WW_D2_IDS: Array[String] = ["moss_boar", "moss_shell", "bloom_serpent"]
-const _WW_D3_IDS: Array[String] = ["spore_widow"]
+const _WW_D2_IDS: Array[String] = ["moss_boar", "moss_shell", "bloom_serpent", "crown_beetle"]
+const _WW_D3_IDS: Array[String] = ["spore_widow", "jyuzen_cicada", "mirror_shell"]
 
 func _make_controller(stage_id: String) -> Node:
 	var dc: Node = _DungeonController.new()
