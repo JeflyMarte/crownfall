@@ -244,7 +244,11 @@ func _entry_list_name(entry: Dictionary) -> String:
 		return str(entry.get("display_name", UNKNOWN_DISPLAY))
 	if not bool(entry.get("discovered", true)):
 		return UNKNOWN_DISPLAY
-	return str(entry.get("display_name", UNKNOWN_DISPLAY))
+	var name_text: String = str(entry.get("display_name", UNKNOWN_DISPLAY))
+	if _current_category == "material":
+		var rarity: int = int(entry.get("rarity", MaterialUiTokens.material_rarity(str(entry.get("id", "")))))
+		return "%s %s" % [BlacksmithUiHelper.rarity_gem(rarity), name_text]
+	return name_text
 
 func _entry_list_icon(entry: Dictionary) -> Texture2D:
 	if _current_category == "enemy" and int(entry.get("stage", 1)) <= 1:
@@ -282,6 +286,10 @@ func _show_detail(index: int) -> void:
 			_set_status("確認済み", true)
 			_label_detail_description.text = str(entry.get("description", ""))
 			_update_icon(IconPaths.get_icon_texture(str(entry.get("id", "")), _current_category))
+			if _current_category == "material":
+				_apply_material_detail_fields(entry)
+			else:
+				_reset_art_frame_style()
 			_apply_bible_fields_discovered(entry)
 		else:
 			_label_detail_id.text = "Entry ID: %s" % UNKNOWN_DISPLAY
@@ -296,6 +304,7 @@ func _show_detail(index: int) -> void:
 func _hide_detail_popup() -> void:
 	_detail_overlay.visible = false
 	_selected_index = -1
+	_reset_art_frame_style()
 	_highlight_selected()
 
 func _on_detail_dim_input(event: InputEvent) -> void:
@@ -474,6 +483,21 @@ func _hide_bible_fields() -> void:
 	_label_detail_extra_b.visible = false
 	_label_detail_related_header.visible = false
 	_label_detail_related.visible = false
+
+func _apply_material_detail_fields(entry: Dictionary) -> void:
+	var mat_id: String = str(entry.get("id", ""))
+	var rarity: int = int(entry.get("rarity", MaterialUiTokens.material_rarity(mat_id)))
+	_art_frame.add_theme_stylebox_override(
+		"panel", MaterialUiTokens.cell_style(rarity, true, 96)
+	)
+	_label_detail_extra_a.text = "希少度: %s %s" % [
+		BlacksmithUiHelper.rarity_gem(rarity),
+		CodexContentHelper.rarity_label(rarity),
+	]
+	_label_detail_extra_a.visible = true
+
+func _reset_art_frame_style() -> void:
+	_art_frame.remove_theme_stylebox_override("panel")
 
 func _update_icon(texture: Texture2D, _big: bool = false) -> void:
 	_texture_icon.texture = null
