@@ -8,7 +8,7 @@ const HEAL_AMOUNT: int = 10
 # P3-D084: CT/ATB の 1 パルス（1 行動）間隔。倍率は COMBAT_TICK_BASE / mult。
 const COMBAT_TICK_BASE: float = 0.75
 const AUTO_DELAY_BASE: float = 1.2
-const NON_COMBAT_FLOOR_GRACE_SEC: float = 4.0
+const NON_COMBAT_FLOOR_GRACE_SEC: float = 3.0
 const SPEED_MULT_NORMAL: float = 0.75
 const SPEED_MULT_FAST: float = 1.5
 const COMBAT_WAIT_GRIND: float = 0.28
