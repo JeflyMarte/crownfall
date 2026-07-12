@@ -139,6 +139,8 @@ const ICON_MAP: Dictionary = {
 	"accessory:pilgrim_lantern_charm":           "res://assets/ui/equipment/ICO_ACC_PilgrimLanternCharm.png",
 	"accessory:unidentified":      "res://assets/ui/batch2/ICO_ACC_Unidentified.png",
 	"material:relic_shard":        "res://assets/ui/materials/ICO_MAT_RelicShard.png",
+	"material:base_ore":           "res://assets/ui/materials/ICO_MAT_RelicShard.png",
+	"material:epic_ore":           "res://assets/ui/materials/ICO_MAT_EliteRelicShard.png",
 	"material:elite_relic_shard":  "res://assets/ui/materials/ICO_MAT_EliteRelicShard.png",
 	"material:ancient_bone":       "res://assets/ui/materials/ICO_MAT_AncientBone.png",
 	"enemy:sepia_hound":           "res://assets/codex/enemies/ART_ENM_SepiaHound.png",

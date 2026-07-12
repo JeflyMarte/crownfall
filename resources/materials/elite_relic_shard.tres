@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 id = "elite_relic_shard"
-display_name = "高品質遺跡の欠片"
-description = "状態よく残った遺物の破片。手強い個体が巣へ持ち込んでいたもの。"
+display_name = "王墓の欠片"
+description = "ボス級の個体が守っていた高純度の遺物破片。レジェンド装備の炉研ぎに用いる。"
 rarity = 2
 icon = ""
 category = "relic"

@@ -16,9 +16,15 @@ static func get_instance_name(item: Resource, category: String) -> String:
 		"armor":
 			base_name = DataRegistry.get_armor_name(str(item.armor_id))
 			base_name += EquipmentEnhancer.format_equip_level_tag(item)
+			var armor_lv: int = EquipmentEnhancer.get_enhance_level(item)
+			if armor_lv > 0:
+				base_name = "%s +%d" % [base_name, armor_lv]
 		"accessory":
 			base_name = DataRegistry.get_accessory_name(str(item.accessory_id))
 			base_name += EquipmentEnhancer.format_equip_level_tag(item)
+			var acc_lv: int = EquipmentEnhancer.get_enhance_level(item)
+			if acc_lv > 0:
+				base_name = "%s +%d" % [base_name, acc_lv]
 		_:
 			return "—"
 	return base_name
