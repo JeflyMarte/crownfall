@@ -622,9 +622,10 @@ func _reset_mvp_intro_visibility() -> void:
 
 func _build_mvp_podium(ranked: Array) -> Control:
 	var root := Control.new()
-	root.custom_minimum_size = Vector2(520, MvpPresentationScript.PODIUM_MIN_HEIGHT)
+	root.custom_minimum_size = Vector2(MvpPresentationScript.PODIUM_WIDTH, MvpPresentationScript.PODIUM_MIN_HEIGHT)
 	var slots: Array = MvpPresentationScript.podium_layout(ranked)
 	for slot_data: Dictionary in slots:
+		var slot_name: String = str(slot_data.get("slot", "center"))
 		var slot: Control = _make_mvp_podium_slot(
 			slot_data.get("entry", {}),
 			bool(slot_data.get("hero", false)),
@@ -632,13 +633,7 @@ func _build_mvp_podium(ranked: Array) -> Control:
 			int(slot_data.get("rank", 1)),
 		)
 		root.add_child(slot)
-		match str(slot_data.get("slot", "")):
-			"left":
-				slot.position = Vector2(24, 42)
-			"right":
-				slot.position = Vector2(360, 42)
-			_:
-				slot.position = Vector2(176, 0)
+		slot.position = MvpPresentationScript.podium_slot_position(slot_name)
 	return root
 
 func _make_mvp_podium_slot(entry: Dictionary, is_hero: bool, scale: float, rank: int) -> Control:
@@ -646,12 +641,12 @@ func _make_mvp_podium_slot(entry: Dictionary, is_hero: bool, scale: float, rank:
 	slot.alignment = BoxContainer.ALIGNMENT_CENTER
 	slot.add_theme_constant_override("separation", 6)
 	slot.scale = Vector2(scale, scale)
-	slot.pivot_offset = Vector2(64, 80)
 	var portrait_px: float = (
 		MvpPresentationScript.HERO_PORTRAIT_PX if is_hero else MvpPresentationScript.RUNNER_PORTRAIT_PX
 	)
+	var frame_pad: float = MvpPresentationScript.PORTRAIT_FRAME_PAD
 	var frame_host := Control.new()
-	frame_host.custom_minimum_size = Vector2(portrait_px + 24, portrait_px + 24)
+	frame_host.custom_minimum_size = Vector2(portrait_px + frame_pad * 2, portrait_px + frame_pad * 2)
 	if is_hero and ResourceLoader.exists(MvpPresentationScript.FRAME_HERO_PATH):
 		var frame := TextureRect.new()
 		frame.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -659,14 +654,12 @@ func _make_mvp_podium_slot(entry: Dictionary, is_hero: bool, scale: float, rank:
 		frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		frame.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		frame_host.add_child(frame)
-	var icon := TextureRect.new()
-	icon.custom_minimum_size = Vector2(portrait_px, portrait_px)
-	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	icon.texture = IconPaths.get_icon_texture(str(entry.get("job_id", "")), "chr")
-	icon.position = Vector2((frame_host.custom_minimum_size.x - portrait_px) * 0.5, 10)
-	frame_host.add_child(icon)
+	var portrait := ChrIdlePortraitView.new()
+	portrait.set_portrait_size(portrait_px)
+	portrait.position = Vector2(frame_pad, frame_pad)
+	frame_host.add_child(portrait)
+	portrait.set_from_entry(entry)
+	slot.pivot_offset = Vector2(frame_host.custom_minimum_size.x * 0.5, portrait_px * 0.5 + frame_pad)
 	slot.add_child(frame_host)
 	var text_block := VBoxContainer.new()
 	text_block.alignment = BoxContainer.ALIGNMENT_CENTER

@@ -14,9 +14,11 @@ const COLOR_STAT_HIT: Color = Color(1.0, 0.86, 0.38)
 const COLOR_STAT_HEAL: Color = Color(0.45, 0.95, 0.58)
 const COLOR_STAT_SCORE: Color = Color(0.78, 0.62, 1.0)
 
-const HERO_PORTRAIT_PX: float = 128.0
-const RUNNER_PORTRAIT_PX: float = 84.0
-const PODIUM_MIN_HEIGHT: float = 220.0
+const HERO_PORTRAIT_PX: float = 184.0
+const RUNNER_PORTRAIT_PX: float = 120.0
+const PORTRAIT_FRAME_PAD: float = 16.0
+const PODIUM_MIN_HEIGHT: float = 300.0
+const PODIUM_WIDTH: float = 600.0
 
 const STAT_DAMAGE_ICON: String = "res://assets/ui/batch2/ICO_WPN_IronSword.png"
 const STAT_HIT_ICON: String = "res://assets/ui/batch2/ICO_WPN_FrostBlade.png"
@@ -64,6 +66,17 @@ static func podium_layout(ranked: Array) -> Array:
 	if ranked.size() > 2:
 		out.append({"entry": ranked[2], "slot": "right", "scale": 0.78, "hero": false, "rank": 3})
 	return out
+
+
+static func podium_slot_position(slot_name: String) -> Vector2:
+	match slot_name:
+		"left":
+			return Vector2(8, 52)
+		"right":
+			return Vector2(PODIUM_WIDTH - RUNNER_PORTRAIT_PX - PORTRAIT_FRAME_PAD * 2 - 8, 52)
+		_:
+			var hero_w: float = HERO_PORTRAIT_PX + PORTRAIT_FRAME_PAD * 2
+			return Vector2((PODIUM_WIDTH - hero_w) * 0.5, 0)
 
 
 static func pick_subtitle(entry: Dictionary) -> String:
