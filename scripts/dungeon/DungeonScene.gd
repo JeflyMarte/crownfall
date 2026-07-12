@@ -8,7 +8,7 @@ const HEAL_AMOUNT: int = 10
 # P3-D084: CT/ATB の 1 パルス（1 行動）間隔。倍率は COMBAT_TICK_BASE / mult。
 const COMBAT_TICK_BASE: float = 0.75
 const AUTO_DELAY_BASE: float = 1.2
-const NON_COMBAT_FLOOR_GRACE_SEC: float = 4.0
+const NON_COMBAT_FLOOR_GRACE_SEC: float = 2.5
 const SPEED_MULT_NORMAL: float = 0.75
 const SPEED_MULT_FAST: float = 1.5
 const COMBAT_WAIT_GRIND: float = 0.28
@@ -2471,7 +2471,7 @@ func _handle_event_room_async() -> void:
 		_finish_room_and_continue()
 		return
 	var event_id: String = event.get("id", "")
-	if not event_id.is_empty():
+	if not event_id.is_empty() and not $DungeonController._is_lore_event(event):
 		_try_register_discovery("event", event_id)
 	_set_non_combat_phase_bg(LoreRoomPresentationScript.bg_path_for_phase("success"))
 	var outcome: Dictionary = $DungeonController.auto_resolve_event()

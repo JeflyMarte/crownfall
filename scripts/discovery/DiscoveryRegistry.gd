@@ -2,6 +2,7 @@ class_name DiscoveryRegistry
 extends RefCounted
 
 const CATEGORIES: Array[String] = ["room", "enemy", "event", "lore", "material", "dungeon", "weapon"]
+const _DungeonController = preload("res://scripts/dungeon/DungeonController.gd")
 
 static func _key(category: String, entry_id: String) -> String:
 	return "%s:%s" % [category, entry_id]
@@ -50,6 +51,14 @@ static func get_display_label(category: String, entry_id: String) -> String:
 			var material: Resource = DataRegistry.get_material_data(entry_id)
 			if material != null and not material.display_name.is_empty():
 				return material.display_name
+		"lore":
+			var lore_title: String = CatalogHelper.get_lore_title(entry_id)
+			if not lore_title.is_empty():
+				return lore_title
+		"event":
+			var event_label: String = _DungeonController.get_event_display_name(entry_id)
+			if not event_label.is_empty():
+				return event_label
 		"room":
 			match entry_id:
 				"heal": return "回復の部屋"

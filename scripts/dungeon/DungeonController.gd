@@ -310,6 +310,48 @@ const DUNGEON_EVENTS: Dictionary = {
 	"north_reach": EVENTS_FROSTRIDGE,
 }
 
+static func get_event_display_name(event_id: String) -> String:
+	if event_id.is_empty():
+		return ""
+	for ev: Dictionary in _all_event_definitions():
+		if str(ev.get("id", "")) != event_id:
+			continue
+		var outcome: Dictionary = ev.get("outcome", {})
+		var label: String = str(outcome.get("label", ""))
+		if not label.is_empty():
+			return label
+		var desc: String = str(ev.get("description", ""))
+		if not desc.is_empty():
+			return desc
+	return ""
+
+
+static func _all_event_definitions() -> Array:
+	var out: Array = []
+	out.append_array(EVENTS)
+	out.append_array(EVENTS_MOURNGATE)
+	out.append_array(EVENTS_WHISPERWOOD)
+	out.append_array(EVENTS_MISTFEN)
+	out.append_array(EVENTS_ASTORIA_RUINS)
+	out.append_array(EVENTS_GREEN_HOLLOW)
+	out.append_array(EVENTS_BLACKSHORE)
+	out.append_array(EVENTS_WESTBAY_FLATS)
+	out.append_array(EVENTS_FROSTRIDGE)
+	out.append_array(EVENTS_FROSTWALL_PATH)
+	var seen: Dictionary = {}
+	for ev: Dictionary in out:
+		var id: String = str(ev.get("id", ""))
+		if not id.is_empty():
+			seen[id] = true
+	for dungeon_id in DUNGEON_EVENTS:
+		for ev: Dictionary in DUNGEON_EVENTS[dungeon_id]:
+			var id: String = str(ev.get("id", ""))
+			if id.is_empty() or id in seen:
+				continue
+			seen[id] = true
+			out.append(ev)
+	return out
+
 var current_dungeon_data: Resource = null
 var current_stage_data: Resource = null
 var current_room_index: int = 0
