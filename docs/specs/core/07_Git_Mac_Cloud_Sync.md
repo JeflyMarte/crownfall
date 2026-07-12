@@ -1,10 +1,12 @@
 # Git / Mac / Cloud 同期運用 — v1.0
 
 **Status:** SSOT（DevelopmentHQ 承認済）  
-**Version:** v1.0  
+**Version:** v1.1  
 **Approved:** 2026-07-12  
 **Decisions:** P3-OPS-GIT-001  
 **Audience:** プロジェクトオーナー / Cursor HQ・Impl / Cloud Agent
+
+> **v1.1** — §4「短指示 → 変換ルール」を SSOT として独立記載（Cursor ルールと双方向参照）
 
 ---
 
@@ -48,56 +50,148 @@ Crownfall は **Mac ローカル（Godot 実機確認）** と **Cursor Cloud Ag
 
 ---
 
-## 4. オーナー向け — 指示は2種類だけ
+## 4. 短指示 → 変換ルール（SSOT）
 
-オーナーは次の **開始フレーズのみ** 送ればよい。詳細 git 操作はエージェントが行う。
+オーナーの **1行指示** を、エージェント（Cursor HQ / Impl / Cloud Agent）が **追加質問なしで** 実行手順に変換するための正規表。  
+Cursor 実装: `.cursor/rules/git-mac-cloud-sync.mdc`（本 §4 と内容を一致させる）。
 
-| # | オーナーが言う | 意味 |
-|---|---|---|
-| 1 | **遠隔で作業開始** | Cloud Agent セッションを、リポジトリ最新・正ブランチ・Task 文脈で開始する |
-| 2 | **MACで作業開始** | Mac ローカルを、GitHub と同じコミット・正ブランチで Godot 確認可能な状態にする |
+### 4.0 変換の原則
 
-表記ゆれ（`Mac` / `MAC` / `mac`、句読点なし等）はエージェントが同一トリガーとして扱う。
+| 原則 | 内容 |
+|---|---|
+| **オーナーは git を書かない** | ブランチ名・fetch・stash 等はエージェントが決定・案内 |
+| **エージェントは実行する** | 「遠隔で作業開始」は Cloud 側で実際に git / 読書を行う |
+| **Mac はコピペブロック** | 「MACで作業開始」は Mac ターミナル用コマンドを **1ブロック** で渡す |
+| **表記ゆれは同一** | 下表「同義トリガー」はすべて同じ変換にマップ |
+| **応答は短く** | 変換後の報告はブランチ・HEAD・次 Task の **1〜3行**（`hq-response-minimal`） |
 
-### 4.1 遠隔で作業開始 — エージェントが行うこと
+### 4.1 トリガー登録表
 
-1. `git fetch origin`
-2. `git status -sb` と `git stash list | head -5`（`git-wip-safety` 準拠）
-3. `docs/project/CurrentState.md` / `CurrentSprint.md` を読み、Next Task を把握
-4. 作業対象ブランチを決定して checkout
-   - 新規 Task → `main` から `cursor/<slug>-cca2` を作成
-   - 継続 Task → 既存 feature / 統合ブランチを checkout
-5. 未 push / 未コミット WIP があれば報告し、コミット方針を決める
-6. オーナーへ **1行で** 報告: 現在ブランチ・HEAD コミット・これから着手する Task
+| ID | 正規トリガー | 同義トリガー（例） | 実行環境 |
+|---|---|---|---|
+| **T-REMOTE-START** | 遠隔で作業開始 | 遠隔作業開始 / cloud で作業開始 / クラウドで作業開始 | Cursor Cloud |
+| **T-MAC-START** | MACで作業開始 | Macで作業開始 / macで作業開始 / ローカルで作業開始 | Mac ローカル（案内） |
+| **T-REMOTE-END** | （明示フレーズなし） | 遠隔作業完了 / 実装完了 / PR 更新後 | Cursor Cloud |
 
-### 4.2 MACで作業開始 — エージェントが行うこと
+`T-REMOTE-END` はオーナーが言わなくても、遠隔で実装・レビューを終えたエージェントが **必ず** 適用する（§5）。
 
-Mac 上のターミナルで実行するコマンドを **そのまま提示** する（オーナーがコピペ実行）。
+### 4.2 T-REMOTE-START → 変換フロー
 
-1. 作業ディレクトリ確認: `cd /Users/marte/Projects/crownfall`
-2. `git fetch origin`
-3. 未コミットがあれば `git stash push -m "mac wip"` を案内（任意・オーナー判断）
-4. **作業ブランチ** を checkout + pull  
-   - 統合確認中 → `cursor/sub-mac-ui-integration-cca2`（または HQ が指定したブランチ）  
-   - 通常 → `main`（マージ済み後）
-5. `git log -1 --oneline` の期待値を明示
-6. Godot: **⌘+Q で完全終了** → 同フォルダから再起動
-7. stash がある場合は `git stash list` を確認し、復元要否をオーナーに確認（勝手に `drop` しない）
+```
+オーナー: 「遠隔で作業開始」
+    │
+    ▼
+[1] git fetch origin
+[2] git status -sb  +  git stash list | head -5
+[3] CurrentState.md / CurrentSprint.md を読む
+[4] ブランチ決定（§4.5 決定木）
+[5] checkout / 新規なら branch 作成
+[6] WIP が大きければ WIP commit を優先（stash のみに依存しない）
+[7] オーナーへ短報告（§4.6 テンプレート A）
+    │
+    ▼
+通常 Task 着手（オーナー追加指示待ち）
+```
 
-**Mac 開始テンプレート（統合ブランチ例）:**
+**エージェントが実行するコマンド（Cloud）:**
+
+```bash
+git fetch origin
+git status -sb
+git stash list | head -5
+# ブランチ決定後
+git checkout <branch>   # または git checkout -b cursor/<slug>-cca2 origin/main
+git log -1 --oneline
+```
+
+**やってはいけないこと:** 「どのブランチにしますか？」と丸投げ / fetch せずに着手 / stash 無確認 drop
+
+### 4.3 T-MAC-START → 変換フロー
+
+```
+オーナー: 「MACで作業開始」
+    │
+    ▼
+[1] 作業ブランチを決定（§4.5）
+[2] 期待 HEAD を特定（直前 PR / 統合ブランチ tip）
+[3] Mac 用コピペブロックを1つ提示（§4.4）
+[4] 期待 git log -1 を明記
+[5] Godot ⌘+Q → 同フォルダ再起動を添える
+[6] stash 残存があれば報告（drop しない）
+    │
+    ▼
+オーナーが Mac で実行 → Godot 確認
+```
+
+**エージェントは Cloud 上で Mac の git を実行しない**（案内のみ）。  
+Mac 正パス: **`/Users/marte/Projects/crownfall`**（推測禁止）。
+
+### 4.4 T-MAC-START → 出力テンプレート（コピペブロック）
+
+`<branch>` と期待コミットはセッション文脈で埋める。
 
 ```bash
 cd /Users/marte/Projects/crownfall
 git fetch origin
 git stash push -m "mac wip"   # 未コミットがあるときのみ
-git checkout cursor/sub-mac-ui-integration-cca2
-git pull origin cursor/sub-mac-ui-integration-cca2
+git checkout <branch>
+git pull origin <branch>
 git log -1 --oneline
 ```
 
+**統合確認中（HQ 未指定時のデフォルト）:** `<branch>` = `cursor/sub-mac-ui-integration-cca2`  
+**main のみでよいとき:** `<branch>` = `main`
+
+### 4.5 ブランチ決定木（両トリガー共通）
+
+```
+CurrentState / 直前 PR / 会話文脈に「継続ブランチ」あり？
+  ├─ YES → そのブランチ
+  └─ NO
+       ├─ Mac 統合 UI 確認中？ → cursor/sub-mac-ui-integration-cca2
+       ├─ 新規 Task（遠隔）？ → main から cursor/<slug>-cca2 新規作成
+       └─ それ以外 → main
+```
+
+HQ がブランチを明示した場合は **決定木より HQ 指定を優先**。
+
+### 4.6 エージェント応答テンプレート
+
+**A — T-REMOTE-START 完了報告（例）**
+
+```
+遠隔作業を開始した。
+ブランチ: cursor/xxx-cca2 @ abc1234（1行メッセージ）
+着手: P3-XXX-YYY（CurrentSprint より）
+```
+
+**B — T-MAC-START 案内（例）**
+
+```
+Mac で以下を実行してください。期待: abc1234 fix(forge): …
+（§4.4 のコードブロック）
+Godot は ⌘+Q で終了してから、同フォルダで開き直してください。
+```
+
+**C — T-REMOTE-END 添付（実装完了時・必須）**
+
+```
+PR #N を更新した。Mac 確認用:
+（T-MAC-START と同型のコードブロック + 期待 log -1）
+```
+
+### 4.7 オーナー向け — 指示は2種類だけ
+
+| # | オーナーが言う | 変換 ID |
+|---|---|---|
+| 1 | **遠隔で作業開始** | T-REMOTE-START |
+| 2 | **MACで作業開始** | T-MAC-START |
+
+表記ゆれ（`Mac` / `MAC` / `mac`、句読点なし等）は同一トリガー。
+
 ---
 
-## 5. 遠隔作業終了時（エージェント必須）
+## 5. 遠隔作業終了時（T-REMOTE-END・エージェント必須）
 
 遠隔セッションで実装を終えたら、**報告だけで終わらせない**。
 
@@ -132,4 +226,4 @@ git log -1 --oneline
 - `docs/specs/core/03_Decision_Log.md` — P3-OPS-GIT-001
 - `docs/specs/core/06_DevelopmentHQ_Operations.md`
 - `.cursor/rules/git-wip-safety.mdc`
-- `.cursor/rules/git-mac-cloud-sync.mdc`
+- `.cursor/rules/git-mac-cloud-sync.mdc` — §4 変換ルールの Cursor 実装（alwaysApply）
