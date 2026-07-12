@@ -13,6 +13,8 @@ const SUB_DUNGEONS_PLAYABLE: bool = false
 const GACHA_HELPERS_PLAYABLE: bool = false
 ## サブステージ（1-1 等）分割を有効化（P3-DG-STG-001 / P3-DG-STG-ENABLE — 2026-07-10 オーナー正式承認）。
 const SUB_STAGES_PLAYABLE: bool = true
+## メイン5 Biome ノーマル最終章（P3-DG-TIER-STG-001）。ハード解禁の全局ゲート。
+const FINAL_NORMAL_STAGE_ID: String = "frostridge_5_5"
 const RESOURCE_STAGES_PATH: String = "res://resources/stages/"
 const COMBAT_TICK_INTERVAL: float = 1.5
 const DEFAULT_PLAYER_SKILL_ID: String = "slash_attack"

@@ -4,11 +4,11 @@
 
 [resource]
 script = ExtResource("1")
-id = "relic_shard"
-display_name = "遺跡の結晶"
-description = "探索で得られる共通の炉研ぎ素材。あらゆる装備の強化に少量必要。"
-rarity = 0
+id = "epic_ore"
+display_name = "深層結晶"
+description = "深層区画や強敵の巣から得られる結晶化鉱石。上級装備の炉研ぎに用いる。"
+rarity = 2
 icon = ""
-category = "relic"
-value = 10
+category = "ore"
+value = 20
 lore_id = "HE-007"

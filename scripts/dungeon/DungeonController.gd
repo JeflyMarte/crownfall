@@ -45,7 +45,7 @@ const DISCOVERY_PER_ROOM: float = 0.05
 const DISCOVERY_BOSS_BONUS: float = 0.20
 
 ## 炉研ぎ素材のみ（`EquipmentEnhancer.EVENT_DROP_MATERIAL_IDS` と同期）。
-const MOURNGATE_EVENT_MATERIAL_POOL: Array[String] = ["relic_shard", "ancient_bone"]
+const MOURNGATE_EVENT_MATERIAL_POOL: Array[String] = ["base_ore", "relic_shard"]
 const MOURNGATE_ECOLOGY_DUNGEON_IDS: Array[String] = [
 	"mourngate",
 	"mourngate_deep",
@@ -898,9 +898,9 @@ func apply_elite_bonus_loot() -> Dictionary:
 		material_chance = 0.30
 	if randf() < material_chance:
 		var amount: int = EventSystem.get_elite_material_amount(1)
-		bonus["material_id"] = "elite_relic_shard"
+		bonus["material_id"] = EquipmentEnhancer.RARE_ORE_ID
 		bonus["material_amount"] = amount
-		GameState.add_material("elite_relic_shard", amount)
+		GameState.add_material(EquipmentEnhancer.RARE_ORE_ID, amount)
 	return bonus
 
 ## ボス撃破で高品質遺跡の欠片を確定付与（P3-MAT-SUPPLY-001）。ハード以上は2個。
@@ -909,8 +909,17 @@ func apply_boss_material_loot() -> Dictionary:
 	if GameState.current_dungeon_tier >= _DungeonTierConfig.TIER_HARD:
 		amount = 2
 	amount = EventSystem.get_elite_material_amount(amount)
-	GameState.add_material("elite_relic_shard", amount)
-	return {"material_id": "elite_relic_shard", "amount": amount}
+	GameState.add_material(EquipmentEnhancer.LEGEND_ORE_ID, amount)
+	var epic_bonus: Dictionary = {}
+	if randf() < 0.35:
+		GameState.add_material(EquipmentEnhancer.EPIC_ORE_ID, 1)
+		epic_bonus = {"material_id": EquipmentEnhancer.EPIC_ORE_ID, "amount": 1}
+	return {
+		"material_id": EquipmentEnhancer.LEGEND_ORE_ID,
+		"amount": amount,
+		"bonus_material_id": str(epic_bonus.get("material_id", "")),
+		"bonus_material_amount": int(epic_bonus.get("amount", 0)),
+	}
 
 ## x-5 初回ボス討伐（ノーマル）のレジェンド防具・装飾を確定付与（P3-EQ-LEG-001）。
 func apply_boss_legendary_loot(stage: Resource) -> Dictionary:

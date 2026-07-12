@@ -5,9 +5,9 @@
 [resource]
 script = ExtResource("1")
 id = "ancient_bone"
-display_name = "古き骨"
-description = "モーンゲートの崩落区画で見つかる朽ちた骨片。"
-rarity = 0
+display_name = "蒼古の骨鉱"
+description = "中層・エリート個体由来の骨化鉱石。レア装備の炉研ぎに用いる。"
+rarity = 1
 icon = ""
 category = "bone"
 value = 12

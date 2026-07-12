@@ -294,7 +294,7 @@ func _serialize_inventory() -> Array:
 			"weight": item.weight,
 			"prefix_ids": _serialize_affix_ids(item.prefix_ids),
 			"suffix_ids": _serialize_affix_ids(item.suffix_ids),
-			"enhance_level": int(item.enhance_level),
+			"enhance_level": EquipmentEnhancer.get_enhance_level(item),
 			"equip_level": EquipmentEnhancer.get_equip_level(item),
 			"equip_exp": EquipmentEnhancer.get_equip_exp(item),
 			"rolled_bonus_stats": _serialize_affix_ids(
@@ -671,6 +671,7 @@ func _serialize_armor_inventory() -> Array:
 			"suffix_ids": _serialize_affix_ids(item.suffix_ids),
 			"equip_level": EquipmentEnhancer.get_equip_level(item),
 			"equip_exp": EquipmentEnhancer.get_equip_exp(item),
+			"enhance_level": EquipmentEnhancer.get_enhance_level(item),
 			"rolled_bonus_stats": _serialize_affix_ids(
 				item.rolled_bonus_stats if "rolled_bonus_stats" in item else []
 			),
@@ -715,6 +716,7 @@ func _deserialize_armor_inventory(inv_data: Array) -> Array:
 		item.suffix_ids = _deserialize_affix_ids(entry.get("suffix_ids", []))
 		item.equip_level = int(entry.get("equip_level", 1))
 		item.equip_exp = int(entry.get("equip_exp", 0))
+		item.enhance_level = int(entry.get("enhance_level", 0))
 		if entry.has("rolled_bonus_stats"):
 			item.rolled_bonus_stats = _deserialize_affix_ids(entry.get("rolled_bonus_stats", []))
 		if entry.has("perfect_roll_count"):
@@ -741,6 +743,7 @@ func _serialize_accessory_inventory() -> Array:
 			"suffix_ids": _serialize_affix_ids(item.suffix_ids),
 			"equip_level": EquipmentEnhancer.get_equip_level(item),
 			"equip_exp": EquipmentEnhancer.get_equip_exp(item),
+			"enhance_level": EquipmentEnhancer.get_enhance_level(item),
 			"rolled_bonus_stats": _serialize_affix_ids(
 				item.rolled_bonus_stats if "rolled_bonus_stats" in item else []
 			),
@@ -775,6 +778,7 @@ func _deserialize_accessory_inventory(inv_data: Array) -> Array:
 		item.suffix_ids = _deserialize_affix_ids(entry.get("suffix_ids", []))
 		item.equip_level = int(entry.get("equip_level", 1))
 		item.equip_exp = int(entry.get("equip_exp", 0))
+		item.enhance_level = int(entry.get("enhance_level", 0))
 		if entry.has("rolled_bonus_stats"):
 			item.rolled_bonus_stats = _deserialize_affix_ids(entry.get("rolled_bonus_stats", []))
 		if entry.has("perfect_roll_count"):
