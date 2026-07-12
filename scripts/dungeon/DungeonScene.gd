@@ -520,7 +520,7 @@ func _ready() -> void:
 	call_deferred("_setup_combat_sprite_layer")
 	var dungeon_id: String = GameState.get_active_dungeon_id()
 	if Constants.SUB_STAGES_PLAYABLE:
-		var stage_id: String = GameState.resolve_stage_for_run(dungeon_id)
+		var stage_id: String = GameState.resolve_stage_for_run(dungeon_id, GameState.current_dungeon_tier)
 		if not stage_id.is_empty():
 			GameState.current_stage_id = stage_id
 			$DungeonController.start_stage(stage_id)
