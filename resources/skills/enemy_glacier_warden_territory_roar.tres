@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_glacier_warden_territory_roar"
+display_name = "縄張りの咆哮"
+description = "氷河洞窟の奥で低く唸り、数百年守り続けた領域への侵入を拒む。"
+skill_type = "enemy"
+target_type = "party_front"
+power_multiplier = 0.58
+cooldown = 6.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["aoe"])
+element = "ice"
+apply_status_id = "stun"
+apply_status_chance = 0.22

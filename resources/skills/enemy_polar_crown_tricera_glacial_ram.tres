@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_polar_crown_tricera_glacial_ram"
+display_name = "氷壁破"
+description = "三本角を盾に氷壁ごと突進し、標的を吹雪の中へ叩き込む。"
+skill_type = "enemy"
+target_type = "party"
+power_multiplier = 0.95
+cooldown = 7.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["single"])
+element = "ice"
+apply_status_id = "chill"
+apply_status_chance = 0.35

@@ -15,8 +15,8 @@ recommended_level = 50
 closing_type = "exit"
 requires_elite = true
 spawn_weights = {
-"2": 30,
-"3": 70
+"3": 10,
+"4": 90
 }
 event_room_weight = 15
 min_event_rooms = 1
