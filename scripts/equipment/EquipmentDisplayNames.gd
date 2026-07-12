@@ -1,11 +1,10 @@
 class_name EquipmentDisplayNames
 extends RefCounted
 
-const _EquipmentRollHelper = preload("res://scripts/equipment/EquipmentRollHelper.gd")
 const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _ElementResolver = preload("res://scripts/combat/ElementResolver.gd")
 
-## 装備個体の表示名（パーフェクトロール⭐️付き）。
+## 装備個体の表示名（パーフェクトロール⭐️はステータス行側で表示）。
 
 static func get_instance_name(item: Resource, category: String) -> String:
 	if item == null:
@@ -22,7 +21,7 @@ static func get_instance_name(item: Resource, category: String) -> String:
 			base_name += EquipmentEnhancer.format_equip_level_tag(item)
 		_:
 			return "—"
-	return base_name + _EquipmentRollHelper.perfect_roll_suffix(item)
+	return base_name
 
 static func _weapon_base_name(weapon: Resource) -> String:
 	if weapon == null or str(weapon.weapon_id).is_empty():

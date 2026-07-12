@@ -99,7 +99,7 @@ static func get_display_name(weapon: Resource) -> String:
 	var name: String = base_name + lv_tag
 	if level > 0:
 		name = "%s +%d" % [name, level]
-	return name + _EquipmentRollHelper.perfect_roll_suffix(weapon)
+	return name
 
 static func get_gold_cost(next_level: int) -> int:
 	return int(GOLD_BY_NEXT_LEVEL.get(next_level, 0))
