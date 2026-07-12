@@ -72,6 +72,7 @@ var _button_next: Button
 var _step_levelup_root: MarginContainer
 var _step_mvp_root: MarginContainer
 var _levelup_header: Label
+var _levelup_subheader: Label
 var _levelup_member_list: VBoxContainer
 var _mvp_header: Label
 var _mvp_body: VBoxContainer
@@ -151,6 +152,12 @@ func _setup_wizard_roots() -> void:
 	_levelup_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_display(_levelup_header, 42, COLOR_LEVELUP, UiTypography.OUTLINE_STRONG)
 	levelup_vbox.add_child(_levelup_header)
+	_levelup_subheader = Label.new()
+	_levelup_subheader.text = ""
+	_levelup_subheader.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_levelup_subheader.visible = false
+	UiTypography.apply_body(_levelup_subheader, UiTypography.SIZE_BODY, COLOR_GOLD, UiTypography.OUTLINE_BODY)
+	levelup_vbox.add_child(_levelup_subheader)
 	_levelup_member_list = VBoxContainer.new()
 	_levelup_member_list.add_theme_constant_override("separation", 14)
 	_levelup_member_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -305,6 +312,7 @@ func _advance_step() -> void:
 	_enter_step(next_step)
 
 func _start_levelup_step() -> void:
+	_update_levelup_header()
 	_build_levelup_rows()
 	if _levelup_rows.is_empty():
 		_apply_pending_exp()
@@ -315,6 +323,24 @@ func _start_levelup_step() -> void:
 	_levelup_skip_requested = false
 	_levelup_animating = true
 	_play_levelup_sequence()
+
+func _update_levelup_header() -> void:
+	if _levelup_header == null:
+		return
+	var snapshots: Dictionary = GameState.last_run_exp_snapshots
+	var exp_reward: int = GameState.last_run_exp_reward
+	_levelup_header.text = ResultFlowScript.exp_step_title(snapshots)
+	var has_level_up: bool = ResultFlowScript.total_levels_gained(snapshots) > 0
+	UiTypography.apply_display(
+		_levelup_header,
+		42,
+		COLOR_LEVELUP if has_level_up else COLOR_GOLD,
+		UiTypography.OUTLINE_STRONG
+	)
+	if _levelup_subheader != null:
+		var subtitle: String = ResultFlowScript.exp_step_subtitle(snapshots, exp_reward)
+		_levelup_subheader.text = subtitle
+		_levelup_subheader.visible = not subtitle.is_empty()
 
 func _build_levelup_rows() -> void:
 	for child in _levelup_member_list.get_children():

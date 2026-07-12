@@ -16,6 +16,29 @@ static func show_levelup_step(outcome: String, exp_reward: int) -> bool:
 	return true
 
 
+static func total_levels_gained(snapshots: Dictionary) -> int:
+	var total: int = 0
+	for key in snapshots:
+		var snap: Variant = snapshots[key]
+		if snap is Dictionary:
+			total += int((snap as Dictionary).get("levels_gained", 0))
+	return total
+
+
+static func exp_step_title(snapshots: Dictionary) -> String:
+	if total_levels_gained(snapshots) > 0:
+		return "レベルアップ！！"
+	return "経験値獲得"
+
+
+static func exp_step_subtitle(snapshots: Dictionary, exp_reward: int) -> String:
+	if total_levels_gained(snapshots) > 0:
+		return ""
+	if exp_reward > 0:
+		return "+%d EXP" % exp_reward
+	return ""
+
+
 static func next_step(current: Step, outcome: String, exp_reward: int) -> Step:
 	match current:
 		Step.REWARDS:
