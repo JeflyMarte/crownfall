@@ -8,6 +8,7 @@ const _ElementResolver = preload("res://scripts/combat/ElementResolver.gd")
 const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _ArmorStatResolver = preload("res://scripts/equipment/ArmorStatResolver.gd")
 const _AccessoryStatResolver = preload("res://scripts/equipment/AccessoryStatResolver.gd")
+const _EquipmentPerfectRollHelper = preload("res://scripts/equipment/EquipmentPerfectRollHelper.gd")
 
 const COLOR_SUB: Color = Color(0.90, 0.87, 0.80)
 const COLOR_LABEL: Color = Color(0.97, 0.94, 0.87)
@@ -101,6 +102,12 @@ static func _append_legendary_effect_block(host: VBoxContainer, item: Resource, 
 	UiTypography.apply_body(body, UiTypography.SIZE_CAPTION, COLOR_WEAPON_EFFECT)
 	host.add_child(body)
 
+static func _stat_value(item: Resource, category: String, stat_key: String, value_text: String) -> String:
+	return _EquipmentPerfectRollHelper.value_label(
+		value_text,
+		_EquipmentPerfectRollHelper.is_ui_stat_perfect(item, category, stat_key)
+	)
+
 static func stat_rows(item: Resource, category: String) -> Array:
 	var rows: Array = []
 	if item == null:
@@ -110,7 +117,10 @@ static func stat_rows(item: Resource, category: String) -> Array:
 			rows.append({
 				"key": "attack",
 				"label": "攻撃力",
-				"value": str(_EquipmentEnhancer.get_effective_attack(item)),
+				"value": _stat_value(
+					item, category, "attack",
+					str(_EquipmentEnhancer.get_effective_attack(item))
+				),
 			})
 			var elem: String = _WeaponStatResolver.resolve_element(item)
 			if not elem.is_empty():
@@ -124,7 +134,7 @@ static func stat_rows(item: Resource, category: String) -> Array:
 					rows.append({
 						"key": "element_power",
 						"label": "属性値",
-						"value": "+%d" % elem_power,
+						"value": _stat_value(item, category, "element_power", "+%d" % elem_power),
 					})
 			var bane: Dictionary = _WeaponStatResolver.resolve_bane(item)
 			if not str(bane.get("class", "")).is_empty():
@@ -136,12 +146,18 @@ static func stat_rows(item: Resource, category: String) -> Array:
 			rows.append({
 				"key": "speed",
 				"label": "攻撃速度",
-				"value": "%.1f" % _WeaponStatResolver.resolve_attack_speed(item),
+				"value": _stat_value(
+					item, category, "speed",
+					"%.1f" % _WeaponStatResolver.resolve_attack_speed(item)
+				),
 			})
 			rows.append({
 				"key": "crit_rate",
 				"label": "会心率",
-				"value": "%.0f%%" % (_WeaponStatResolver.resolve_critical_rate(item) * 100.0),
+				"value": _stat_value(
+					item, category, "crit_rate",
+					"%.0f%%" % (_WeaponStatResolver.resolve_critical_rate(item) * 100.0)
+				),
 			})
 			var on_hit_status_id: String = _WeaponStatResolver.resolve_on_hit_status_id(item)
 			if not on_hit_status_id.is_empty():
@@ -153,73 +169,108 @@ static func stat_rows(item: Resource, category: String) -> Array:
 				rows.append({
 					"key": "on_hit_status",
 					"label": "状態付与",
-					"value": "%s %.0f%%" % [status_label, on_hit_chance * 100.0],
+					"value": _stat_value(
+						item, category, "on_hit_status",
+						"%s %.0f%%" % [status_label, on_hit_chance * 100.0]
+					),
 				})
 		"armor":
 			rows.append({
 				"key": "defense",
 				"label": "防御力",
-				"value": str(int(item.rolled_defense)),
+				"value": _stat_value(item, category, "defense", str(int(item.rolled_defense))),
 			})
 			var hp_bonus: int = _ArmorStatResolver.resolve_hp_bonus(item)
 			if hp_bonus > 0:
 				rows.append({
 					"key": "hp",
 					"label": "HP",
-					"value": "+%d" % hp_bonus,
+					"value": _stat_value(item, category, "hp", "+%d" % hp_bonus),
 				})
 			var resist: String = _armor_resist_text(item)
 			if not resist.is_empty():
-				rows.append({"key": "resist", "label": "属性耐性", "value": resist})
-			_append_rate_row(rows, "exp_gain", "経験値獲得", _ArmorStatResolver.resolve_exp_gain_rate(item))
-			_append_rate_row(rows, "gold_gain", "ゴールド獲得", _ArmorStatResolver.resolve_gold_gain_rate(item))
-			_append_rate_row(rows, "rare_drop", "レアドロップ", _ArmorStatResolver.resolve_rare_drop_rate(item))
+				rows.append({
+					"key": "resist",
+					"label": "属性耐性",
+					"value": _stat_value(item, category, "resist", resist),
+				})
+			_append_rate_row(rows, item, category, "exp_gain", "経験値獲得", _ArmorStatResolver.resolve_exp_gain_rate(item))
+			_append_rate_row(rows, item, category, "gold_gain", "ゴールド獲得", _ArmorStatResolver.resolve_gold_gain_rate(item))
+			_append_rate_row(rows, item, category, "rare_drop", "レアドロップ", _ArmorStatResolver.resolve_rare_drop_rate(item))
 			var immunity_text: String = _armor_immunity_text(item)
 			if not immunity_text.is_empty():
-				rows.append({"key": "status_immunity", "label": "状態異常無効", "value": immunity_text})
+				rows.append({
+					"key": "status_immunity",
+					"label": "状態異常無効",
+					"value": _stat_value(item, category, "status_immunity", immunity_text),
+				})
 			var evasion: float = _ArmorStatResolver.resolve_evasion_rate(item)
 			if evasion > 0.0:
 				rows.append({
 					"key": "evasion_rate",
 					"label": "回避率",
-					"value": "+%.0f%%" % (evasion * 100.0),
+					"value": _stat_value(item, category, "evasion_rate", "+%.0f%%" % (evasion * 100.0)),
 				})
 		"accessory":
 			var acc_data: Resource = DataRegistry.get_accessory_data(str(item.accessory_id))
 			var hp: int = _AccessoryStatResolver.resolve_hp_bonus(item, acc_data)
 			if hp > 0:
-				rows.append({"key": "hp", "label": "HP", "value": "+%d" % hp})
+				rows.append({"key": "hp", "label": "HP", "value": _stat_value(item, category, "hp", "+%d" % hp)})
 			var atk: int = _AccessoryStatResolver.resolve_attack_bonus(item, acc_data)
 			if atk > 0:
-				rows.append({"key": "attack", "label": "攻撃力", "value": "+%d" % atk})
+				rows.append({
+					"key": "attack",
+					"label": "攻撃力",
+					"value": _stat_value(item, category, "attack", "+%d" % atk),
+				})
 			var def: int = _AccessoryStatResolver.resolve_defense_bonus(item, acc_data)
 			if def > 0:
-				rows.append({"key": "defense", "label": "防御力", "value": "+%d" % def})
+				rows.append({
+					"key": "defense",
+					"label": "防御力",
+					"value": _stat_value(item, category, "defense", "+%d" % def),
+				})
 			var crit: float = _AccessoryStatResolver.resolve_crit_rate_bonus(item, acc_data)
 			if crit > 0.0:
 				rows.append({
 					"key": "crit_rate",
 					"label": "会心率",
-					"value": "+%.0f%%" % (crit * 100.0),
+					"value": _stat_value(item, category, "crit_rate", "+%.0f%%" % (crit * 100.0)),
 				})
-			_append_rate_row(rows, "exp_gain", "経験値獲得", _AccessoryStatResolver.resolve_exp_gain_rate(item, acc_data))
-			_append_rate_row(rows, "gold_gain", "ゴールド獲得", _AccessoryStatResolver.resolve_gold_gain_rate(item, acc_data))
-			_append_rate_row(rows, "rare_drop", "レアドロップ", _AccessoryStatResolver.resolve_rare_drop_rate(item, acc_data))
+			_append_rate_row(
+				rows, item, category, "exp_gain", "経験値獲得",
+				_AccessoryStatResolver.resolve_exp_gain_rate(item, acc_data)
+			)
+			_append_rate_row(
+				rows, item, category, "gold_gain", "ゴールド獲得",
+				_AccessoryStatResolver.resolve_gold_gain_rate(item, acc_data)
+			)
+			_append_rate_row(
+				rows, item, category, "rare_drop", "レアドロップ",
+				_AccessoryStatResolver.resolve_rare_drop_rate(item, acc_data)
+			)
 			var evasion: float = _AccessoryStatResolver.resolve_evasion_rate(item, acc_data)
 			if evasion > 0.0:
 				rows.append({
 					"key": "evasion_rate",
 					"label": "回避率",
-					"value": "+%.0f%%" % (evasion * 100.0),
+					"value": _stat_value(item, category, "evasion_rate", "+%.0f%%" % (evasion * 100.0)),
 				})
 	return rows
 
-static func _append_rate_row(rows: Array, key: String, label: String, rate: float) -> void:
+static func _append_rate_row(
+	rows: Array,
+	item: Resource,
+	category: String,
+	key: String,
+	label: String,
+	rate: float
+) -> void:
 	if rate > 0.0:
 		rows.append({
 			"key": key,
 			"label": label,
-			"value": "+%.0f%%" % (rate * 100.0),
+			"value": _stat_value(item, category, key, "+%.0f%%" % (rate * 100.0)),
 		})
 
 static func affix_text(item: Resource) -> String:
