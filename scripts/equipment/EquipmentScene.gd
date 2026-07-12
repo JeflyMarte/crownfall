@@ -10,6 +10,7 @@ const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
 
 const _AffixDisplayFormatter = preload("res://scripts/equipment/AffixDisplayFormatter.gd")
 const _JobEvolution = preload("res://scripts/systems/JobEvolution.gd")
+const _EvolutionVisual = preload("res://scripts/systems/EvolutionVisual.gd")
 const _EvolutionTraits = preload("res://scripts/systems/EvolutionTraits.gd")
 const _JobStatCalculator = preload("res://scripts/equipment/JobStatCalculator.gd")
 const _AffixStatCalculator = preload("res://scripts/equipment/AffixStatCalculator.gd")
@@ -17,6 +18,7 @@ const _EquipmentEnhancer = preload("res://scripts/equipment/EquipmentEnhancer.gd
 const _WeaponFlavorHelper = preload("res://scripts/systems/WeaponFlavorHelper.gd")
 const _ElementResolver = preload("res://scripts/combat/ElementResolver.gd")
 const _SkillIconHelper = preload("res://scripts/ui/SkillIconHelper.gd")
+const _ChrIdlePortrait = preload("res://scripts/ui/ChrIdlePortrait.gd")
 
 # CombatController.BASE_MEMBER_HP と同値（表示用の素HP）。
 const BASE_MEMBER_HP: int = 30
@@ -403,7 +405,7 @@ func _process(delta: float) -> void:
 	if _portrait_idle_textures.size() <= 1:
 		return
 	_portrait_idle_accum += delta
-	var frame_dur: float = 1.0 / ChrIdlePortrait.IDLE_FPS
+	var frame_dur: float = 1.0 / _ChrIdlePortrait.IDLE_FPS
 	if _portrait_idle_accum < frame_dur:
 		return
 	_portrait_idle_accum = 0.0
@@ -419,7 +421,7 @@ func _set_character_portrait(member: Resource) -> void:
 		_portrait_glyph.text = "?"
 		return
 	var job_id: String = str(member.job_id)
-	var idle_texs: Array[Texture2D] = ChrIdlePortrait.load_idle_textures(job_id)
+	var idle_texs: Array[Texture2D] = _ChrIdlePortrait.load_idle_textures(job_id)
 	if not idle_texs.is_empty():
 		_portrait_idle_textures = idle_texs
 		_portrait_art.texture = idle_texs[0]
@@ -521,6 +523,8 @@ func _update_character_card() -> void:
 		_label_job.text = ""
 		_job_icon.texture = null
 		_set_character_portrait(null)
+		_job_icon.modulate = Color.WHITE
+		_portrait_art.modulate = Color.WHITE
 		_label_stars.text = ""
 		_evolution_row.visible = false
 		return
@@ -537,6 +541,9 @@ func _update_character_card() -> void:
 	_set_character_portrait(member)
 	_label_stars.text = EquipmentUiHelper.rarity_stars_text(int(member.rarity))
 	_label_stars.visible = true
+	var portrait_tint: Color = _EvolutionVisual.portrait_modulate(member)
+	_job_icon.modulate = portrait_tint
+	_portrait_art.modulate = portrait_tint
 	var party_idx: int = _party_index_for(member)
 	var stats: Dictionary = _compute_member_stats(party_idx if party_idx >= 0 else -1, member)
 	_populate_stat_grid(stats)
