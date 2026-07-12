@@ -92,8 +92,8 @@ static func craft_chip_style(selected: bool) -> StyleBox:
 	var path: String = CRAFT_CHIP_SELECTED if selected else CRAFT_CHIP_NORMAL
 	return texture_stylebox(path, ITEM_CELL_MARGINS, 6.0)
 
-static func material_cell_style() -> StyleBox:
-	return texture_stylebox(MATERIAL_CELL, Vector4i(10, 10, 10, 10), 6.0)
+static func material_cell_style(rarity: int = 0, highlight: bool = true) -> StyleBox:
+	return EquipmentUiTokens.rarity_slot_style(rarity, highlight, ITEM_CELL_DESIGN_PX)
 
 static func item_cell_style(rarity: int, selected: bool) -> StyleBox:
 	if selected:

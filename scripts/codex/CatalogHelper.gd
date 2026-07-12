@@ -167,6 +167,7 @@ func _build_material_entries() -> Array:
 			description,
 			"material"
 		))
+		entries[entries.size() - 1]["rarity"] = int(data.rarity)
 	return entries
 
 func _build_weapon_entries() -> Array:

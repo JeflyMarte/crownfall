@@ -68,8 +68,16 @@ func test_list_card_selected_style_uses_texture_when_available() -> void:
 	assert_true(sb is StyleBoxTexture)
 	assert_not_null((sb as StyleBoxTexture).texture)
 
-func test_material_chip_style_uses_normal_inv_frame() -> void:
-	var sb: StyleBox = BlacksmithUiHelper.material_chip_style(true, 64)
+func test_material_chip_style_uses_rarity_inv_frame() -> void:
+	var common: StyleBox = BlacksmithUiHelper.material_chip_style(0, true, 64)
+	var rare: StyleBox = BlacksmithUiHelper.material_chip_style(1, true, 64)
+	assert_true(common is StyleBoxTexture)
+	assert_true(rare is StyleBoxTexture)
+	assert_not_null((common as StyleBoxTexture).texture)
+	assert_not_null((rare as StyleBoxTexture).texture)
+
+func test_material_chip_style_for_id() -> void:
+	var sb: StyleBox = BlacksmithUiHelper.material_chip_style_for_id("elite_relic_shard", true, 64)
 	assert_true(sb is StyleBoxTexture)
 	assert_not_null((sb as StyleBoxTexture).texture)
 

@@ -1009,6 +1009,37 @@ func _make_reward_cell(texture: Texture2D, glyph: String, name_text: String, val
 	cell.add_child(value_label)
 	return cell
 
+func _make_material_reward_cell(material_id: String, value_text: String) -> Control:
+	var cell: VBoxContainer = VBoxContainer.new()
+	cell.custom_minimum_size = Vector2(REWARD_CELL_WIDTH, 0)
+	cell.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	cell.alignment = BoxContainer.ALIGNMENT_BEGIN
+	var frame: PanelContainer = MaterialUiTokens.make_icon_cell(material_id, 64, true)
+	frame.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	cell.add_child(frame)
+	var name_label: Label = Label.new()
+	name_label.text = DataRegistry.get_material_name(material_id)
+	name_label.custom_minimum_size = Vector2(REWARD_CELL_WIDTH, 0)
+	name_label.add_theme_font_size_override("font_size", FS_REWARD_NAME)
+	var rarity: int = EquipmentEnhancer.material_rarity(material_id)
+	name_label.add_theme_color_override("font_color", BlacksmithUiHelper.rarity_name_color(rarity))
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_label.max_lines_visible = 2
+	name_label.clip_text = true
+	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	cell.add_child(name_label)
+	var value_label: Label = Label.new()
+	value_label.text = value_text
+	value_label.custom_minimum_size = Vector2(REWARD_CELL_WIDTH, 0)
+	value_label.add_theme_font_size_override("font_size", FS_REWARD_VALUE)
+	value_label.add_theme_color_override("font_color", COLOR_TEXT)
+	value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	value_label.clip_text = true
+	value_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	cell.add_child(value_label)
+	return cell
+
 func _build_materials() -> void:
 	for child in _material_row.get_children():
 		child.queue_free()
@@ -1020,16 +1051,7 @@ func _build_materials() -> void:
 		if qty <= 0:
 			continue
 		var mat_key: String = str(mat_id)
-		var icon: Texture2D = IconPaths.get_icon_texture(mat_key, "material")
-		var glyph: String = "材"
-		if icon == null and not mat_key.is_empty():
-			glyph = mat_key.substr(0, 1)
-		_material_row.add_child(_make_reward_cell(
-			icon,
-			glyph,
-			DataRegistry.get_material_name(mat_key),
-			str(qty),
-		))
+		_material_row.add_child(_make_material_reward_cell(mat_key, str(qty)))
 		count += 1
 	_material_panel.visible = count > 0
 	_build_craftable_hint(count > 0)

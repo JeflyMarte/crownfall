@@ -625,28 +625,16 @@ func _on_craftable_chip_input(event: InputEvent, craft: Resource) -> void:
 func _make_material_req_cell(mat_id: String, needed: int) -> Control:
 	var owned: int = GameState.get_material_quantity(mat_id)
 	var ok: bool = owned >= needed
-	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", BlacksmithUiHelper.material_chip_style(ok))
-	panel.tooltip_text = "%s %d/%d" % [DataRegistry.get_material_name(mat_id), owned, needed]
-	var chip := VBoxContainer.new()
-	chip.add_theme_constant_override("separation", 4)
-	panel.add_child(chip)
-	var icon_row := CenterContainer.new()
-	chip.add_child(icon_row)
-	var icon_tex: Texture2D = IconPaths.get_icon_texture(mat_id, "material")
-	if icon_tex != null:
-		var icon := TextureRect.new()
-		icon.texture = icon_tex
-		icon.custom_minimum_size = Vector2(_COST_MAT_ICON_PX, _COST_MAT_ICON_PX)
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon_row.add_child(icon)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 4)
+	col.tooltip_text = "%s %d/%d" % [DataRegistry.get_material_name(mat_id), owned, needed]
+	col.add_child(MaterialUiTokens.make_icon_cell(mat_id, _COST_MAT_ICON_PX, ok))
 	var qty := Label.new()
 	qty.text = "%d / %d" % [owned, needed]
 	UiTypography.apply_body(qty, UiTypography.SIZE_CAPTION, COLOR_OK if ok else COLOR_SHORT)
 	qty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	chip.add_child(qty)
-	return panel
+	col.add_child(qty)
+	return col
 
 func _sorted_enhance_candidates() -> Array:
 	var weapons: Array = []

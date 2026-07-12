@@ -45,14 +45,18 @@ const EVENT_DROP_MATERIAL_IDS: Array[String] = ["relic_shard", "ancient_bone"]
 static func is_enhancement_material(material_id: String) -> bool:
 	return material_id in ENHANCEMENT_MATERIAL_IDS
 
+static func material_rarity(material_id: String) -> int:
+	var mat_data: Resource = DataRegistry.get_material_data(material_id)
+	if mat_data == null:
+		return Enums.Rarity.COMMON
+	return clampi(int(mat_data.rarity), Enums.Rarity.COMMON, Enums.Rarity.LEGENDARY)
+
 ## 図鑑 S5「採取素材」表示用（敵別ではなく炉研ぎ共通3種。P3-MAT-CODEx-001）。
 static func forge_material_display_names() -> PackedStringArray:
 	var parts: PackedStringArray = []
 	for mat_id in ENHANCEMENT_MATERIAL_IDS:
 		var mat_data: Resource = DataRegistry.get_material_data(str(mat_id))
 		var mat_name: String = str(mat_id) if mat_data == null else str(mat_data.display_name)
-		if mat_data != null and int(mat_data.rarity) >= 1:
-			mat_name = "【希少】" + mat_name
 		parts.append(mat_name)
 	return parts
 

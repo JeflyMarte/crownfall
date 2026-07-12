@@ -155,21 +155,26 @@ static func craftable_strip_style(selected: bool) -> StyleBox:
 		sb.bg_color = Color(0.0, 0.0, 0.0, 0.0)
 	return sb
 
-static func material_chip_style(sufficient: bool, _cell_px: int = -1) -> StyleBox:
-	var textured: StyleBox = ForgeUiTokens.material_cell_style()
-	if _texture_style_ok(textured):
-		if not sufficient and textured is StyleBoxTexture:
-			var tinted: StyleBoxTexture = (textured as StyleBoxTexture).duplicate() as StyleBoxTexture
-			tinted.modulate_color = Color(1.0, 0.55, 0.5, 1.0)
-			return tinted
-		return textured
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.08, 0.07, 0.06, 0.92)
-	sb.set_border_width_all(2)
-	sb.border_color = Color(0.48, 0.78, 0.42, 0.9) if sufficient else Color(0.78, 0.36, 0.32, 0.95)
-	sb.set_corner_radius_all(6)
-	sb.set_content_margin_all(6)
-	return sb
+static func material_chip_style(rarity: int, sufficient: bool, cell_px: int = -1) -> StyleBox:
+	var px: int = cell_px if cell_px > 0 else list_cell_px()
+	var style: StyleBox = EquipmentUiTokens.rarity_slot_style(rarity, sufficient, px)
+	if not sufficient:
+		return _material_insufficient_tint(style)
+	return style
+
+static func material_chip_style_for_id(material_id: String, sufficient: bool, cell_px: int = -1) -> StyleBox:
+	return material_chip_style(EquipmentEnhancer.material_rarity(material_id), sufficient, cell_px)
+
+static func _material_insufficient_tint(style: StyleBox) -> StyleBox:
+	if style is StyleBoxTexture:
+		var tinted: StyleBoxTexture = (style as StyleBoxTexture).duplicate() as StyleBoxTexture
+		tinted.modulate_color = Color(1.0, 0.55, 0.5, 1.0)
+		return tinted
+	if style is StyleBoxFlat:
+		var flat: StyleBoxFlat = (style as StyleBoxFlat).duplicate() as StyleBoxFlat
+		flat.border_color = Color(0.78, 0.36, 0.32, 0.95)
+		return flat
+	return style
 
 static func add_corner_badge(
 	parent: Control,
