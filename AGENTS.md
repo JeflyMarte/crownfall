@@ -15,7 +15,7 @@ Cursor AI およびその他 AI アシスタント共通の入口指示。
 
 セッション開始時は必ず上記から読む。Phase 0 や MVP 初期 Task の前提は使わない。
 
-オーナーが **「遠隔で作業開始」** または **「MACで作業開始」** とだけ指示した場合、`.cursor/rules/git-mac-cloud-sync.mdc` に従い詳細手順へ変換する。
+オーナーが **「遠隔で作業開始」** または **「MACで作業開始」** とだけ指示した場合、`.cursor/rules/git-mac-cloud-sync.mdc` が `07_Git_Mac_Cloud_Sync.md` **§4 変換ルール** に従い詳細手順へ変換する。
 
 ---
 
