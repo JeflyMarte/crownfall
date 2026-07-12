@@ -7,6 +7,8 @@ alwaysApply: true
 
 未コミットの画面・演出・アセット作業が **cloud agent 退避で `stash` に入り、作業ツリーだけ `HEAD` に戻る**事故を防ぐ。
 
+Mac / Cloud 同期の全体 SSOT: `docs/specs/core/07_Git_Mac_Cloud_Sync.md`（オーナー短指示: `.cursor/rules/git-mac-cloud-sync.mdc`）
+
 ## 原則
 
 - 大きな機能（図鑑 / 結果 MVP / 部屋演出など）は **動いた時点で WIP コミット**する。stash だけに依存しない

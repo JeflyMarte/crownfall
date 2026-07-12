@@ -1,0 +1,75 @@
+---
+description: オーナー短指示「遠隔で作業開始」「MACで作業開始」を git/Mac/Cloud 手順に変換
+alwaysApply: true
+---
+
+# Git / Mac / Cloud 同期（オーナー短指示）
+
+正式 SSOT: `docs/specs/core/07_Git_Mac_Cloud_Sync.md`  
+WIP / stash: `.cursor/rules/git-wip-safety.mdc`
+
+## オーナー短指示（トリガー）
+
+次のフレーズ（表記ゆれ含む）を受けたら、**追加の git 手順をオーナーに要求せず**、本ルールに従って実行または案内する。
+
+| トリガー | 同義例 |
+|---|---|
+| **遠隔で作業開始** | 遠隔作業開始 / cloud で作業開始 / クラウドで作業開始 |
+| **MACで作業開始** | Macで作業開始 / macで作業開始 / ローカルで作業開始（Mac 文脈） |
+
+---
+
+## 遠隔で作業開始 → エージェント手順
+
+1. `git fetch origin`
+2. `git status -sb` と `git stash list | head -5`
+3. `docs/project/CurrentState.md` と `docs/project/CurrentSprint.md` を読む
+4. ブランチ:
+   - 新規 → `main` から `cursor/<descriptive-slug>-cca2` を作成
+   - 継続 → 既存 feature / HQ 指定の統合ブランチを checkout
+5. 未コミット WIP が大きい場合は WIP コミットを優先（stash だけに依存しない）
+6. オーナーへ短く報告: **ブランチ名 / HEAD 1行 / 着手 Task**
+
+**応答に書かない:** 長い git 講義、ファイルパス羅列（`hq-response-minimal` 準拠）
+
+---
+
+## MACで作業開始 → エージェント手順
+
+Mac ローカル正: **`/Users/marte/Projects/crownfall`**
+
+1. 作業ブランチを決める（`CurrentState` / 直前の遠隔 PR / 統合ブランチ）
+2. 以下を **コピペ用コードブロック1つ** で提示:
+
+```bash
+cd /Users/marte/Projects/crownfall
+git fetch origin
+git stash push -m "mac wip"   # 未コミットがあるときのみ
+git checkout <branch>
+git pull origin <branch>
+git log -1 --oneline
+```
+
+3. 期待する `git log -1` のコミットメッセージ（または短いハッシュ）を明記
+4. **Godot は ⌘+Q 完全終了 → 同フォルダから再起動** を必ず添える
+5. `git stash list` に cloud agent 退避がある場合は **報告**（勝手に drop しない）
+
+統合確認のデフォルトブランチ（HQ 未指定時）: `cursor/sub-mac-ui-integration-cca2`  
+※ `main` にマージ済みの変更のみなら `<branch>` は `main`。
+
+---
+
+## 遠隔作業終了時（実装・レビュー完了）
+
+1. commit + push + PR 更新
+2. オーナー向けに **MACで作業開始** 相当の pull ブロックを必ず付ける
+3. stash を作った場合は一覧と復元要否を報告
+
+---
+
+## 禁止
+
+- 未 push で完了報告
+- Mac パス推測（必ず `/Users/marte/Projects/crownfall`）
+- stash の無確認 drop
+- 「pull してください」だけでブランチ名・期待コミットを省略
