@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "consecrated_maul"
 display_name = "祝聖の大槌"
+description = "聖域の祭壇で祝われた鉄塊の大槌。振り下ろすたびに清らかな響きが広がり、穢れを叩き砕く。"
 fixed_skill_id = ""
 fixed_passive_id = "eq_wpn_consecrated_maul"
 base_attack = 13

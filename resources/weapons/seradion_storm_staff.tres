@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "seradion_storm_staff"
 display_name = "学識王の雷典杖セラディオン"
+description = "学識王セラディオンの雷典を刻んだ杖。両生類のように湿った空気を読み、雷鳴の到来を先取りする。"
 fixed_skill_id = ""
 fixed_passive_id = "eq_wpn_seradion_storm_staff"
 base_attack = 29

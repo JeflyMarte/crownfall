@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "bolt_knife"
 display_name = "雷紋の双刃"
+description = "雷雲の走りを模して刻まれた雷紋の双刃。刃を交わす瞬間、空気が裂けたような鋭い閃光が走る。"
 fixed_skill_id = "static_strike"
 base_attack = 11
 rarity = 2

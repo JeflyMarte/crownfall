@@ -3,6 +3,8 @@ extends Resource
 
 @export var armor_id: String = ""
 @export var display_name: String = ""
+## 装備説明（由来・用途）。UI の説明文 SSOT。
+@export_multiline var description: String = ""
 @export var base_defense: int = 0
 @export var base_hp_bonus: int = 0
 ## 旧・汎用耐性（未使用・予約）。属性別耐性は resist_elements で実装（P3-D103）。

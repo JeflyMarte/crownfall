@@ -6,6 +6,7 @@
 script = ExtResource("1")
 armor_id = "bog_strider_cloak"
 display_name = "沼渡りの外套"
+description = "沼を渡る探索者が纏う泥染めの外套。膝まで沈む泥濘の中でも身の回りを軽く保つ。"
 base_defense = 13
 base_hp_bonus = 36
 base_resistance = 0.0

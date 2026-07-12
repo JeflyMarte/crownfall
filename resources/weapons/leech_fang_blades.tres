@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "leech_fang_blades"
 display_name = "蛭牙の双刃"
+description = "沼の蛭の牙を研いだ細身の双刃。吸い付くような切れ味で、軟らかな肉を静かに裂き開く。"
 base_attack = 20
 rarity = 0
 base_attack_speed = 1.15

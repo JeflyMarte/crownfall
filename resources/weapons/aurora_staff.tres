@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "aurora_staff"
 display_name = "極光の杖"
+description = "極夜の空に走る光筋を封じた氷晶の杖。振るうたびに冷たい残像が弧を描き、視界を凍らせる。"
 fixed_skill_id = "rime_touch"
 base_attack = 49
 rarity = 1

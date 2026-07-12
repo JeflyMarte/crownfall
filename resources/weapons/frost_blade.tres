@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "frost_blade"
 display_name = "霜結びの剣"
+description = "霜の朝に結ばれた氷晶を鍔に嵌めた剣。振るうたび細氷の粉が舞い、昆虫の翅のように軽く身を切る。"
 fixed_skill_id = "rime_touch"
 base_attack = 12
 rarity = 2

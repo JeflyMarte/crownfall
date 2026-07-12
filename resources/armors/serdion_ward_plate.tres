@@ -6,6 +6,7 @@
 script = ExtResource("1")
 armor_id = "serdion_ward_plate"
 display_name = "霊廟守の鎧"
+description = "霊廟守が聖域と闇の境で纏う鎧。聖なる印と深い影が同居し、穢れを裁くために鍛えられた。"
 base_defense = 14
 base_hp_bonus = 30
 base_resistance = 0.0

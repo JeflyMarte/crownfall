@@ -6,6 +6,7 @@
 script = ExtResource("1")
 armor_id = "wyvern_scale_plate"
 display_name = "飛竜鱗の胸甲"
+description = "飛竜の胸鱗を並べた胸甲。冷たい鱗が重なり、高所からの一撃を胸で受け止める。"
 base_defense = 14
 base_hp_bonus = 20
 base_resistance = 0.0

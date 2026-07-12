@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "ember_fang"
 display_name = "燻る炎牙"
+description = "燻り続ける獣牙を柄に据えた双刃。刃先から細い熱気が立ち、獲物の毛皮を焦がして切り口を開く。"
 fixed_skill_id = "kindling_strike"
 base_attack = 11
 rarity = 2

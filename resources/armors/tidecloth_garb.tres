@@ -6,6 +6,7 @@
 script = ExtResource("1")
 armor_id = "tidecloth_garb"
 display_name = "潮布の装衣"
+description = "潮布を重ねて縫った装衣。港の塩気に馴染み、湿った風の中でも肌を守る。"
 base_defense = 18
 base_hp_bonus = 42
 base_resistance = 0.0

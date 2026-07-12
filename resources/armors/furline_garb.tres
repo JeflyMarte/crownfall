@@ -6,6 +6,7 @@
 script = ExtResource("1")
 armor_id = "furline_garb"
 display_name = "厚毛裏の装衣"
+description = "厚い獣毛を裏地にした装衣。辺境の寒さに耐え、夜営のときも体温を逃がさない。"
 base_defense = 25
 base_hp_bonus = 58
 base_resistance = 0.0

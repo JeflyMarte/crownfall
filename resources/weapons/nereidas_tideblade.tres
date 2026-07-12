@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "nereidas_tideblade"
 display_name = "海統王の潮汐刃ネレイダス"
+description = "海統王の名を刻んだ潮汐の大剣。斬るたび潮の満ち引きが刃に重なり、古の海の律が響く。"
 fixed_skill_id = ""
 fixed_passive_id = "eq_wpn_nereidas_tideblade"
 base_attack = 44

@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "pharoslight_staff"
 display_name = "灯守の聖杖ファロスライト"
+description = "灯守が頭足類の骨と聖油で仕上げた聖杖。深淵の闇を照らす光が芯に脈打ち、潮の底まで届く。"
 fixed_skill_id = ""
 fixed_passive_id = "eq_wpn_pharoslight_staff"
 base_attack = 43

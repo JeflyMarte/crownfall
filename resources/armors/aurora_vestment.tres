@@ -6,6 +6,7 @@
 script = ExtResource("1")
 armor_id = "aurora_vestment"
 display_name = "極光の祭衣"
+description = "極夜に舞う光の帯を織り込んだ祭衣。闇の中で衣が淡く脈打ち、持ち主の姿を霞ませる。"
 base_defense = 34
 base_hp_bonus = 94
 base_resistance = 0.0

@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "cairn_staff"
 display_name = "境界標の杖"
+description = "国境の石標を模して積み上げた界石の杖。道の終わりを示す印が、迷い込んだ者の帰路を静かに指し示す。"
 base_attack = 44
 rarity = 0
 base_attack_speed = 0.9
