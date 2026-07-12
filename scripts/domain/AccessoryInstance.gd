@@ -18,6 +18,8 @@ extends Resource
 ## 装備レベル（1〜99）。ドロップ時 Biome 連動・戦闘で成長（P3-EQ-LVL-001）。
 @export var equip_level: int = 1
 @export var equip_exp: int = 0
+## 炉研ぎ段階（0〜5）。ロール整数ステ +N（P3-FORGE-002）。
+@export var enhance_level: int = 0
 ## ドロップ時に付与したランダムステータス id 一覧。
 @export var rolled_bonus_stats: Array[String] = []
 ## ランダムステータスで最高値を引いた数（表示名⭐️用）。
