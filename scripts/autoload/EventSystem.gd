@@ -82,7 +82,7 @@ func modifier_label(modifier_type: String) -> String:
 		MOD_FEATURED_BIOME:
 			return "注目区域報酬"
 		MOD_ELITE_MATERIAL:
-			return "ELITE素材"
+			return "エリート素材"
 		_:
 			return modifier_type
 

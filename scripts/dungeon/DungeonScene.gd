@@ -8,7 +8,7 @@ const HEAL_AMOUNT: int = 10
 # P3-D084: CT/ATB の 1 パルス（1 行動）間隔。倍率は COMBAT_TICK_BASE / mult。
 const COMBAT_TICK_BASE: float = 0.75
 const AUTO_DELAY_BASE: float = 1.2
-const NON_COMBAT_FLOOR_GRACE_SEC: float = 4.0
+const NON_COMBAT_FLOOR_GRACE_SEC: float = 2.5
 const SPEED_MULT_NORMAL: float = 0.75
 const SPEED_MULT_FAST: float = 1.5
 const COMBAT_WAIT_GRIND: float = 0.28
@@ -249,8 +249,8 @@ const DIVE_INTRO_FADE_SEC: float = 0.35
 const DIVE_INTRO_HOLD_SEC: float = 1.55
 const DIVE_INTRO_START_SEC: float = 0.85
 const RUN_HUD_HEIGHT: float = 28.0
-const BOSS_INTRO_WARNING_TEXT: String = "WARNING"
-const ELITE_INTRO_TEXT: String = "ELITE"
+const BOSS_INTRO_WARNING_TEXT: String = "警告"
+const ELITE_INTRO_TEXT: String = "エリート"
 ## 属性ごとの演出色（命中VFXの modulate / スキル名フォント色に共用）。
 ## 未設定/無属性は WHITE（VFX）・既定の青系（スキル名）にフォールバック。
 const ELEMENT_COLOR: Dictionary = {
@@ -1116,9 +1116,9 @@ func _dungeon_meta_line(data: Resource) -> String:
 	if stage != null:
 		parts.append("%dF" % int(stage.floor_count))
 		if bool(stage.has_boss_floor()):
-			parts.append("Boss")
+			parts.append("ボス")
 		elif bool(stage.requires_elite):
-			parts.append("ELITE")
+			parts.append("エリート")
 	elif data != null and int(data.recommended_level) > 0:
 		parts.append("推奨Lv.%d〜" % int(data.recommended_level))
 	if not GameState.get_weather().is_empty():
@@ -2456,7 +2456,9 @@ func _format_material_reward_log(material_id: String, amount: int, fallback_labe
 	if mat_data != null and not mat_data.display_name.is_empty():
 		display_name = mat_data.display_name
 	elif display_name.is_empty():
-		display_name = material_id
+		display_name = DataRegistry.get_material_name(material_id)
+	if display_name.is_empty() or display_name == material_id:
+		display_name = "素材"
 	return "%s x%d" % [display_name, amount]
 
 func _register_discoveries_for_room() -> void:
@@ -2500,7 +2502,7 @@ func _handle_event_room_async() -> void:
 		_finish_room_and_continue()
 		return
 	var event_id: String = event.get("id", "")
-	if not event_id.is_empty():
+	if not event_id.is_empty() and not $DungeonController._is_lore_event(event):
 		_try_register_discovery("event", event_id)
 	_set_non_combat_phase_bg(LoreRoomPresentationScript.bg_path_for_phase("success"))
 	var outcome: Dictionary = $DungeonController.auto_resolve_event()
@@ -2694,7 +2696,7 @@ func _apply_event_outcome(outcome: Dictionary) -> String:
 		"gold":
 			var gold_amount: int = outcome.get("amount", 0)
 			$DungeonController.accumulate_rewards(0, gold_amount)
-			return "Gold +%d を得た" % gold_amount
+			return "ゴールド +%d を得た" % gold_amount
 		"buff":
 			var mult: float = outcome.get("multiplier", 1.0)
 			$DungeonController.run_damage_multiplier = mult
@@ -2789,7 +2791,7 @@ func _apply_exploration_treasure_skills(treasure: Dictionary) -> PackedStringArr
 		var bonus_gold: int = 12
 		$DungeonController.accumulate_rewards(0, bonus_gold)
 		treasure["gold"] = int(treasure.get("gold", 0)) + bonus_gold
-		lines.append("[探索] 採掘: Gold +%d" % bonus_gold)
+		lines.append("[探索] 採掘: ゴールド +%d" % bonus_gold)
 	if ExplorationSkills.has_skill_for_room(members, "lockpick", room_type):
 		if str(treasure.get("accessory_id", "")).is_empty() and randf() < 0.35:
 			var acc_id: String = $DungeonController.generate_accessory_loot()
@@ -2929,7 +2931,7 @@ func _apply_exploration_event_skills(outcome: Dictionary) -> PackedStringArray:
 	):
 		var bonus_gold: int = 20
 		$DungeonController.accumulate_rewards(0, bonus_gold)
-		lines.append("[探索] 解読: Gold +%d" % bonus_gold)
+		lines.append("[探索] 解読: ゴールド +%d" % bonus_gold)
 	return lines
 
 func _try_exploration_trap() -> void:
@@ -4406,7 +4408,7 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 	if codex_investigation:
 		bonus_tag += " [図鑑調査]"
 	var log_lines: PackedStringArray = [
-		"撃破!  EXP +%d  Gold +%d%s" % [final_exp, final_gold, bonus_tag],
+		"撃破!  経験値 +%d  ゴールド +%d%s" % [final_exp, final_gold, bonus_tag],
 	]
 	var kill_pos: Vector2 = _enemy_slot_pos(killed_slot)
 	if room_type == Enums.RoomType.COMBAT and defeated_enemy != null:
@@ -4502,7 +4504,7 @@ func _finalize_combat_cleared() -> void:
 	elif $DungeonController.current_dungeon_data != null:
 		enemy_lv = int($DungeonController.current_dungeon_data.enemy_level)
 	EquipmentEnhancer.grant_party_combat_exp(enemy_lv, GameState.party_members)
-	_append_log("累計  EXP %d  Gold %d" % [
+	_append_log("累計  経験値 %d  ゴールド %d" % [
 		$DungeonController.run_exp_reward,
 		$DungeonController.run_gold_reward,
 	])
@@ -6013,7 +6015,7 @@ func _make_skill_cd_row() -> Dictionary:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 4)
 	var header := Label.new()
-	header.text = "CD"
+	header.text = "再使用"
 	UiTypography.apply_caption(header, PARTY_CARD_SKILL_CD_WAIT)
 	header.tooltip_text = "スキル再使用までの待ち時間（使用可になっても自動では発動しません）"
 	header.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -6491,7 +6493,7 @@ func _play_combat_clear_celebration(finish_dungeon_after: bool = false) -> void:
 	_spawn_combat_clear_confetti(64)
 	var lbl := Label.new()
 	lbl.name = "CombatClearLabel"
-	lbl.text = "CLEAR!!"
+	lbl.text = "クリア!!"
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	UiTypography.apply_display(lbl, 56, Color(1.0, 0.92, 0.38), UiTypography.OUTLINE_STRONG)

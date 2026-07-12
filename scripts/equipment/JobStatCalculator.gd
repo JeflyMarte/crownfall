@@ -4,7 +4,7 @@ extends RefCounted
 ## M7 Job modifier 読み取り（P2-Task033）。戦闘反映は Task034（CombatController / DungeonScene）。
 
 const DEFAULT_MULTIPLIER: float = 1.0
-const UNKNOWN_DISPLAY_NAME: String = "Unknown"
+const UNKNOWN_DISPLAY_NAME: String = "不明"
 ## ジョブ進化の専門深化係数（P3-D037 / P3-D052-1）。
 ## 進化後補正 = 1.0 + (基礎補正 - 1.0) × EVOLUTION_FACTOR。
 const EVOLUTION_FACTOR: float = 1.3
@@ -60,14 +60,12 @@ func _deepen(value: float) -> float:
 func _fallback_for_missing_job(job_id: String) -> Dictionary:
 	var result: Dictionary = empty_modifiers()
 	result["job_id"] = job_id
-	result["display_name"] = job_id if not job_id.is_empty() else UNKNOWN_DISPLAY_NAME
+	result["display_name"] = UNKNOWN_DISPLAY_NAME
 	return result
 
-func _job_display_name(job_data: Resource, job_id: String) -> String:
+func _job_display_name(job_data: Resource, _job_id: String) -> String:
 	if job_data != null and not job_data.display_name.is_empty():
 		return job_data.display_name
-	if not job_id.is_empty():
-		return job_id
 	return UNKNOWN_DISPLAY_NAME
 
 func _safe_multiplier(value: float) -> float:

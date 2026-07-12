@@ -255,7 +255,7 @@ func _play_summon_reveal(result: Dictionary) -> void:
 
 	if is_new:
 		_label_result.add_theme_color_override("font_color", COLOR_NEW)
-		_label_result.text = "NEW! %s を獲得！" % name_str
+		_label_result.text = "新規！ %s を獲得！" % name_str
 	else:
 		_label_result.add_theme_color_override("font_color", COLOR_SUB)
 		_label_result.text = "%s（重複） → %s %d 還元" % [
@@ -361,7 +361,7 @@ func _populate_reveal_content(
 		portrait_tex = IconPaths.get_icon_texture(job_id, "chr")
 
 	if is_new:
-		_label_banner.text = "NEW!"
+		_label_banner.text = "新規！"
 		_label_banner.add_theme_color_override("font_color", COLOR_NEW)
 		_label_reveal_sub.text = "ロスターに追加されました"
 	else:

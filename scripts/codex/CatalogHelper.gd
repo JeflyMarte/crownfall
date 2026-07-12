@@ -57,6 +57,14 @@ static func get_lore_body(lore_id: String) -> String:
 			return str(raw.get("body", ""))
 	return ""
 
+
+static func get_lore_title(lore_id: String) -> String:
+	var helper: RefCounted = load("res://scripts/codex/CatalogHelper.gd").new()
+	for raw in helper._load_fragment_entries():
+		if str(raw.get("id", "")) == lore_id:
+			return str(raw.get("title", ""))
+	return ""
+
 static func get_guide_entries() -> Array:
 	return [
 		{

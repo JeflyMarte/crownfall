@@ -204,7 +204,7 @@ func _setup_wizard_roots() -> void:
 	_mvp_context_backdrop = _make_mvp_backdrop(_mvp_context_row, "header")
 	mvp_vbox.add_child(_mvp_context_backdrop)
 	_mvp_header = Label.new()
-	_mvp_header.text = "★ MVP ★"
+	_mvp_header.text = "★ 最活躍 ★"
 	_mvp_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_display(_mvp_header, 40, COLOR_GOLD, UiTypography.OUTLINE_STRONG)
 	_mvp_header_backdrop = _make_mvp_backdrop(_mvp_header, "header")
@@ -371,11 +371,11 @@ func _build_levelup_rows() -> void:
 		col.add_child(bar)
 		var exp_label := Label.new()
 		var cap: int = LevelSystem.exp_to_next(lv_before)
-		exp_label.text = "%d / %d EXP" % [int(snap.get("exp_before", 0)), cap]
+		exp_label.text = "%d / %d 経験値" % [int(snap.get("exp_before", 0)), cap]
 		UiTypography.apply_body(exp_label, UiTypography.SIZE_CAPTION, COLOR_SUB)
 		col.add_child(exp_label)
 		var levelup_flash := Label.new()
-		levelup_flash.text = "Lv UP!"
+		levelup_flash.text = "レベルアップ！"
 		levelup_flash.visible = false
 		levelup_flash.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		UiTypography.apply_display(levelup_flash, UiTypography.SIZE_DISPLAY, COLOR_LEVELUP, UiTypography.OUTLINE_STRONG)
@@ -456,7 +456,7 @@ func _animate_member_exp_row(row: Dictionary, timings: Dictionary) -> void:
 			func(v: float) -> void:
 				bar.value = v
 				var shown_exp: int = int(round(v * float(cap)))
-				exp_label.text = "%d / %d EXP" % [shown_exp, cap],
+				exp_label.text = "%d / %d 経験値" % [shown_exp, cap],
 			start_ratio,
 			end_ratio,
 			float(timings.get("fill", 0.9))
@@ -475,7 +475,7 @@ func _animate_member_exp_row(row: Dictionary, timings: Dictionary) -> void:
 			cap = LevelSystem.exp_to_next(lv)
 			bar.value = 0.0
 			name_label.text = "%s  Lv%d" % [display_name, lv]
-			exp_label.text = "0 / %d EXP" % cap
+			exp_label.text = "0 / %d 経験値" % cap
 
 func _finalize_levelup_rows_from_party() -> void:
 	for row: Dictionary in _levelup_rows:
@@ -500,7 +500,7 @@ func _finalize_levelup_rows_from_party() -> void:
 			bar.value = ExpRunSnapshotScript.exp_ratio(lv_after, exp_after)
 			_style_exp_bar(bar, ExpBarPresenterScript.COLOR_BAR)
 		if exp_label != null:
-			exp_label.text = "%d / %d EXP" % [exp_after, LevelSystem.exp_to_next(lv_after)]
+			exp_label.text = "%d / %d 経験値" % [exp_after, LevelSystem.exp_to_next(lv_after)]
 		if flash != null:
 			flash.visible = false
 
@@ -690,7 +690,7 @@ func _make_mvp_podium_slot(entry: Dictionary, is_hero: bool, scale: float, rank:
 			break
 	text_block.add_child(name)
 	var dmg := Label.new()
-	dmg.text = "%d dmg" % int(entry.get("damage_total", 0))
+	dmg.text = "%d ダメージ" % int(entry.get("damage_total", 0))
 	dmg.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_body(
 		dmg, UiTypography.SIZE_CAPTION, MvpPresentationScript.TEXT_MUTED_ON_BACKDROP, UiTypography.OUTLINE_BODY
@@ -913,7 +913,7 @@ func _apply_outcome_banner() -> void:
 		_:
 			_clear_banner.visible = true
 			_label_outcome.visible = false
-			_label_outcome.text = "CLEAR"
+			_label_outcome.text = "クリア"
 
 func _build_stars(filled: int) -> void:
 	for child in _stars_row.get_children():
@@ -930,7 +930,7 @@ func _build_stars(filled: int) -> void:
 func _build_rewards() -> void:
 	for child in _reward_row.get_children():
 		child.queue_free()
-	_reward_row.add_child(_make_reward_cell(null, "EXP", "EXP", str(GameState.last_run_exp_reward)))
+	_reward_row.add_child(_make_reward_cell(null, "経験値", "経験値", str(GameState.last_run_exp_reward)))
 	var gold_icon: Texture2D = load("res://assets/ui/batch2/ICO_Gold.png") as Texture2D
 	_reward_row.add_child(_make_reward_cell(gold_icon, "G", "ゴールド", str(GameState.last_run_gold_reward)))
 	if GameState.last_run_token_reward > 0:
@@ -1180,7 +1180,7 @@ func _build_info() -> void:
 	var prog: Dictionary = GameState.dungeon_progress.get(dungeon_id, {})
 	var discovery_pct: int = int(round(float(prog.get("discovery", 0.0)) * 100.0))
 	_add_info_pair("発見率", "%d%%" % discovery_pct)
-	_add_info_pair("入手経験値", "%d EXP" % GameState.last_run_exp_reward)
+	_add_info_pair("入手経験値", "%d" % GameState.last_run_exp_reward)
 	_add_info_pair("入手ゴールド", "%d G" % GameState.last_run_gold_reward)
 	if GameState.last_run_token_reward > 0:
 		_add_info_pair("入手%s" % CurrencyHelper.DISPLAY_NAME, "%d" % GameState.last_run_token_reward)

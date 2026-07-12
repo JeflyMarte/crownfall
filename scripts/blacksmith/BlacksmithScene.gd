@@ -660,7 +660,7 @@ func _craft_button_label(craft: Resource, can_craft: bool) -> String:
 	if can_craft:
 		return "生産する"
 	if GameState.gold < craft.gold_cost:
-		return "Gold不足"
+		return "ゴールド不足"
 	return "素材不足"
 
 func _on_craft_pressed(craft: Resource) -> void:
@@ -695,7 +695,7 @@ func _on_enhance_pressed() -> void:
 		_refresh_all()
 		return
 	SaveManager.save_game()
-	var msg: String = "炉研ぎ成功: %s（ATK %d）" % [
+	var msg: String = "炉研ぎ成功: %s（攻撃力 %d）" % [
 		str(result.get("display_name", "")),
 		int(result.get("effective_attack", 0)),
 	]

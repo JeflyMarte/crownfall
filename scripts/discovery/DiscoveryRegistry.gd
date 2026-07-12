@@ -2,6 +2,7 @@ class_name DiscoveryRegistry
 extends RefCounted
 
 const CATEGORIES: Array[String] = ["room", "enemy", "event", "lore", "material", "dungeon", "weapon"]
+const _DungeonController = preload("res://scripts/dungeon/DungeonController.gd")
 
 static func _key(category: String, entry_id: String) -> String:
 	return "%s:%s" % [category, entry_id]
@@ -19,7 +20,10 @@ static func is_discovered(category: String, entry_id: String) -> bool:
 	return GameState.discovery_registry.has(_key(category, entry_id))
 
 static func format_new_discovery(category: String, entry_id: String) -> String:
-	return "【新規発見】%s / %s" % [category, entry_id]
+	return "【新規発見】%s / %s" % [
+		get_category_label(category),
+		get_display_label(category, entry_id),
+	]
 
 static func get_category_label(category: String) -> String:
 	match category:
@@ -50,6 +54,14 @@ static func get_display_label(category: String, entry_id: String) -> String:
 			var material: Resource = DataRegistry.get_material_data(entry_id)
 			if material != null and not material.display_name.is_empty():
 				return material.display_name
+		"lore":
+			var lore_title: String = CatalogHelper.get_lore_title(entry_id)
+			if not lore_title.is_empty():
+				return lore_title
+		"event":
+			var event_label: String = _DungeonController.get_event_display_name(entry_id)
+			if not event_label.is_empty():
+				return event_label
 		"room":
 			match entry_id:
 				"heal": return "回復の部屋"
@@ -57,8 +69,17 @@ static func get_display_label(category: String, entry_id: String) -> String:
 				"merchant": return "商人の部屋"
 				"event": return "イベントの部屋"
 				"elite": return "エリートの部屋"
-				_: return entry_id
+				"trap": return "罠の部屋"
+				_: return _display_fallback(entry_id)
 		_: pass
+	return _display_fallback(entry_id)
+
+static func _display_fallback(entry_id: String) -> String:
+	if entry_id.is_empty():
+		return "不明"
+	# 未解決の snake_case 内部 ID はプレイヤー向け UI に出さない。
+	if entry_id.find("_") >= 0:
+		return "不明"
 	return entry_id
 
 static func room_type_to_id(room_type: int) -> String:
@@ -68,6 +89,7 @@ static func room_type_to_id(room_type: int) -> String:
 		Enums.RoomType.MERCHANT: return "merchant"
 		Enums.RoomType.EVENT:    return "event"
 		Enums.RoomType.ELITE:    return "elite"
+		Enums.RoomType.TRAP:     return "trap"
 	return ""
 
 static func is_special_room(room_type: int) -> bool:

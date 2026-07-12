@@ -90,7 +90,7 @@ static func pick_subtitle(entry: Dictionary) -> String:
 		return "一撃の英雄 — %s が戦局を決した" % skill_name
 	if damage > 0:
 		return "攻撃の要 — 最多ダメージで隊を牽引した"
-	return "今回の MVP — 探索を勝ち抜いた"
+	return "今回の最活躍 — 探索を勝ち抜いた"
 
 
 static func stat_cards(entry: Dictionary) -> Array:
@@ -114,7 +114,7 @@ static func stat_cards(entry: Dictionary) -> Array:
 			"color": COLOR_STAT_HEAL,
 		},
 		{
-			"key": "MVPスコア",
+			"key": "最活躍スコア",
 			"value": str(int(entry.get("score", 0))),
 			"icon": STAT_SCORE_ICON,
 			"color": COLOR_STAT_SCORE,

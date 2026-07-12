@@ -77,6 +77,7 @@ func _ready() -> void:
 	$DetailOverlay/Dim.gui_input.connect(_on_detail_dim_input)
 	$DetailOverlay/DetailPanel/DetailVBox/DetailHeaderRow/ButtonDetailClose.pressed.connect(_hide_detail_popup)
 	_detail_overlay.visible = false
+	_label_detail_id.visible = false
 	_update_currency()
 	_label_detail_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_label_detail_name.clip_text = true
@@ -281,7 +282,7 @@ func _show_detail(index: int) -> void:
 	else:
 		var discovered: bool = bool(entry.get("discovered", false))
 		if discovered:
-			_label_detail_id.text = "Entry ID: %s" % str(entry.get("id", ""))
+			_label_detail_id.text = ""
 			_label_detail_name.text = "%s" % str(entry.get("display_name", ""))
 			_set_status("確認済み", true)
 			_label_detail_description.text = str(entry.get("description", ""))
@@ -292,7 +293,7 @@ func _show_detail(index: int) -> void:
 				_reset_art_frame_style()
 			_apply_bible_fields_discovered(entry)
 		else:
-			_label_detail_id.text = "Entry ID: %s" % UNKNOWN_DISPLAY
+			_label_detail_id.text = ""
 			_label_detail_name.text = "%s" % UNKNOWN_DISPLAY
 			_set_status("未確認", false)
 			_label_detail_description.text = "調査中"
@@ -318,7 +319,7 @@ func _apply_enemy_stage_fields(entry: Dictionary) -> void:
 	var stage: int = int(entry.get("stage", 1))
 	const STAGE_LABELS: Array[String] = ["", "未発見", "発見", "初回討伐", "追加調査", "調査完了"]
 	if stage == 1:
-		_label_detail_id.text = "Entry ID: %s" % UNKNOWN_DISPLAY
+		_label_detail_id.text = ""
 		_label_detail_name.text = "%s" % UNKNOWN_DISPLAY
 		_set_status("未発見", false)
 		_label_detail_overview_header.text = "調査記録:"
@@ -326,7 +327,7 @@ func _apply_enemy_stage_fields(entry: Dictionary) -> void:
 		_label_detail_description.text = "調査中"
 		_update_icon(null)
 		return
-	_label_detail_id.text = "Entry ID: %s" % enemy_id
+	_label_detail_id.text = ""
 	_label_detail_name.text = "%s" % str(entry.get("display_name", ""))
 	_set_status("段階%d ｜ %s" % [stage, STAGE_LABELS[stage]], stage >= 3)
 	_update_icon(IconPaths.get_icon_texture(enemy_id, "enemy"), true)
