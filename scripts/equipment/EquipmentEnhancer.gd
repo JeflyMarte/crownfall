@@ -6,7 +6,7 @@ const _AccessoryStatResolver = preload("res://scripts/equipment/AccessoryStatRes
 const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _ElementResolver = preload("res://scripts/combat/ElementResolver.gd")
 
-## 鍛冶屋「炉研ぎ」— 武器のみ +1〜+5（P3-D152）。
+## 鍛冶屋「炉研ぎ」— 武器・防具・装飾 +1〜+5（P3-D152）。
 ## 装備レベル成長 — P3-EQ-LVL-001。
 
 const MAX_FORGE_LEVEL: int = 5
@@ -66,12 +66,34 @@ static func pick_event_drop_material() -> String:
 		return "relic_shard"
 	return EVENT_DROP_MATERIAL_IDS[randi() % EVENT_DROP_MATERIAL_IDS.size()]
 
-static func get_enhance_level(weapon: Resource) -> int:
-	if weapon == null:
+static func get_enhance_level(item: Resource) -> int:
+	if item == null:
 		return 0
-	if not ("enhance_level" in weapon):
+	if not ("enhance_level" in item):
 		return 0
-	return clampi(int(weapon.enhance_level), 0, MAX_FORGE_LEVEL)
+	return clampi(int(item.enhance_level), 0, MAX_FORGE_LEVEL)
+
+static func get_item_category(item: Resource) -> String:
+	if item == null:
+		return ""
+	if "weapon_id" in item and not str(item.weapon_id).is_empty():
+		return "weapon"
+	if "armor_id" in item and not str(item.armor_id).is_empty():
+		return "armor"
+	if "accessory_id" in item and not str(item.accessory_id).is_empty():
+		return "accessory"
+	return ""
+
+static func _category_label(category: String) -> String:
+	match category:
+		"weapon":
+			return "武器"
+		"armor":
+			return "防具"
+		"accessory":
+			return "装飾品"
+		_:
+			return "装備"
 
 static func get_effective_attack(weapon: Resource) -> int:
 	if weapon == null:
@@ -82,6 +104,16 @@ static func get_effective_attack(weapon: Resource) -> int:
 		weapon_rarity(weapon)
 	)
 	return scaled + get_enhance_level(weapon)
+
+static func get_enhance_display_name(item: Resource) -> String:
+	var category: String = get_item_category(item)
+	match category:
+		"weapon":
+			return get_display_name(item)
+		"armor", "accessory":
+			return EquipmentDisplayNames.get_instance_name(item, category)
+		_:
+			return ""
 
 static func get_display_name(weapon: Resource) -> String:
 	if weapon == null or str(weapon.weapon_id).is_empty():
@@ -106,14 +138,15 @@ static func get_material_cost(next_level: int) -> Dictionary:
 	var raw: Dictionary = MATERIALS_BY_NEXT_LEVEL[next_level]
 	return raw.duplicate()
 
-static func can_enhance(weapon: Resource) -> Dictionary:
+static func can_enhance(item: Resource) -> Dictionary:
 	var fail := func(reason: String) -> Dictionary:
 		return {"ok": false, "reason": reason}
-	if weapon == null or str(weapon.weapon_id).is_empty():
-		return fail.call("武器が選択されていません")
-	if not bool(weapon.is_appraised):
-		return fail.call("未鑑定の武器は炉研ぎできません")
-	var current: int = get_enhance_level(weapon)
+	var category: String = get_item_category(item)
+	if category.is_empty():
+		return fail.call("装備が選択されていません")
+	if not bool(item.is_appraised):
+		return fail.call("未鑑定の%sは炉研ぎできません" % _category_label(category))
+	var current: int = get_enhance_level(item)
 	if current >= MAX_FORGE_LEVEL:
 		return fail.call("炉研ぎ上限に達しています")
 	var next_level: int = current + 1
@@ -129,24 +162,52 @@ static func can_enhance(weapon: Resource) -> Dictionary:
 		"next_level": next_level,
 		"gold_cost": gold_cost,
 		"materials": materials,
+		"category": category,
 	}
 
-static func enhance_weapon(weapon: Resource) -> Dictionary:
-	var check: Dictionary = can_enhance(weapon)
+static func enhance_item(item: Resource) -> Dictionary:
+	var check: Dictionary = can_enhance(item)
 	if not bool(check.get("ok", false)):
 		return check
 	var gold_cost: int = int(check.get("gold_cost", 0))
 	var materials: Dictionary = check.get("materials", {})
 	GameState.gold -= gold_cost
 	GameState.consume_materials(materials)
-	weapon.enhance_level = int(check.get("next_level", get_enhance_level(weapon) + 1))
-	return {
+	item.enhance_level = int(check.get("next_level", get_enhance_level(item) + 1))
+	var category: String = str(check.get("category", get_item_category(item)))
+	var result := {
 		"ok": true,
 		"reason": "",
-		"next_level": weapon.enhance_level,
-		"display_name": get_display_name(weapon),
-		"effective_attack": get_effective_attack(weapon),
+		"next_level": item.enhance_level,
+		"category": category,
+		"display_name": get_enhance_display_name(item),
 	}
+	match category:
+		"weapon":
+			result["effective_attack"] = get_effective_attack(item)
+		"armor":
+			result["effective_defense"] = effective_armor_defense(item)
+			result["effective_hp"] = effective_armor_hp(item)
+		"accessory":
+			var acc_data: Resource = DataRegistry.get_accessory_data(str(item.accessory_id))
+			if int(item.attack_bonus) > 0 or (
+				acc_data != null and int(acc_data.attack_bonus) > 0
+			):
+				result["effective_attack"] = effective_accessory_int_bonus(
+					item, "attack_bonus", acc_data
+				)
+			if int(item.defense_bonus) > 0 or (
+				acc_data != null and int(acc_data.defense_bonus) > 0
+			):
+				result["effective_defense"] = effective_accessory_int_bonus(
+					item, "defense_bonus", acc_data
+				)
+			if int(item.hp_bonus) > 0 or (acc_data != null and int(acc_data.hp_bonus) > 0):
+				result["effective_hp"] = effective_accessory_int_bonus(item, "hp_bonus", acc_data)
+	return result
+
+static func enhance_weapon(weapon: Resource) -> Dictionary:
+	return enhance_item(weapon)
 
 static func clamp_equip_level(level: int) -> int:
 	return clampi(level, 1, EQUIP_MAX_LEVEL)
@@ -251,12 +312,18 @@ static func accessory_rarity(accessory: Resource) -> int:
 static func effective_armor_defense(armor: Resource) -> int:
 	if armor == null:
 		return 0
-	return scale_equip_stat(int(armor.rolled_defense), get_equip_level(armor), armor_rarity(armor))
+	return (
+		scale_equip_stat(int(armor.rolled_defense), get_equip_level(armor), armor_rarity(armor))
+		+ get_enhance_level(armor)
+	)
 
 static func effective_armor_hp(armor: Resource) -> int:
 	if armor == null:
 		return 0
-	return scale_equip_stat(int(armor.hp_bonus), get_equip_level(armor), armor_rarity(armor))
+	var scaled: int = scale_equip_stat(int(armor.hp_bonus), get_equip_level(armor), armor_rarity(armor))
+	if scaled <= 0:
+		return 0
+	return scaled + get_enhance_level(armor)
 
 static func effective_accessory_int_bonus(accessory: Resource, field: String, data: Resource) -> int:
 	if accessory == null:
@@ -265,7 +332,7 @@ static func effective_accessory_int_bonus(accessory: Resource, field: String, da
 	if raw <= 0:
 		return 0
 	var rarity: int = int(data.rarity) if data != null else accessory_rarity(accessory)
-	return scale_equip_stat(raw, get_equip_level(accessory), rarity)
+	return scale_equip_stat(raw, get_equip_level(accessory), rarity) + get_enhance_level(accessory)
 
 static func effective_accessory_float_bonus(accessory: Resource, field: String, data: Resource) -> float:
 	if accessory == null:

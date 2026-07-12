@@ -15,6 +15,8 @@ extends Resource
 @export var is_appraised: bool = false
 @export var prefix_ids: Array[String] = []
 @export var suffix_ids: Array[String] = []
+## 炉研ぎ段階（0〜5）。実効ボーナス = レベル補正後 + enhance_level（P3-D152）。
+@export var enhance_level: int = 0
 ## 装備レベル（1〜99）。ドロップ時 Biome 連動・戦闘で成長（P3-EQ-LVL-001）。
 @export var equip_level: int = 1
 @export var equip_exp: int = 0

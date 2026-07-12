@@ -86,4 +86,7 @@ func test_enhance_badge_hides_until_first_enhance() -> void:
 	assert_eq(EquipmentUiHelper.enhance_badge(weapon, "weapon"), "+1")
 	weapon.enhance_level = 2
 	assert_eq(EquipmentUiHelper.enhance_badge(weapon, "weapon"), "+2")
-	assert_eq(EquipmentUiHelper.enhance_badge(weapon, "armor"), "")
+	var armor := ArmorInstance.new()
+	assert_eq(EquipmentUiHelper.enhance_badge(armor, "armor"), "")
+	armor.enhance_level = 2
+	assert_eq(EquipmentUiHelper.enhance_badge(armor, "armor"), "+2")
