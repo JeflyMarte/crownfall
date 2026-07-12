@@ -128,7 +128,8 @@ static func build_weapon_description(data: Resource) -> String:
 			skill_name = skill_data.display_name
 		lines.append("固定スキル: %s" % skill_name)
 
-	lines.append(_weapon_flavor_line(data))
+	if description.is_empty():
+		lines.append(_weapon_flavor_line(data))
 	return "\n".join(lines)
 
 

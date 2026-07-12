@@ -332,12 +332,12 @@ func _apply_enemy_stage_fields(entry: Dictionary) -> void:
 	var summary: String = str(entry.get("description", "")).strip_edges()
 	var danger_stars: String = "★".repeat(codex_danger) if codex_danger > 0 else "—"
 	if stage < 5:
-		_label_detail_extra_a.text = "分類: %s" % codex_class
+		_label_detail_extra_a.text = "分類: %s  危険度: %s" % [codex_class, danger_stars]
 		_label_detail_extra_a.visible = true
-		_label_detail_extra_b.text = "危険度: %s" % danger_stars
+		_label_detail_extra_b.text = "生息地: %s" % codex_habitat
 		_label_detail_extra_b.visible = true
 		_label_detail_overview_header.text = "概要:"
-		_label_detail_description.text = summary if not summary.is_empty() else codex_habitat
+		_label_detail_description.text = summary if not summary.is_empty() else "—"
 	else:
 		_label_detail_extra_a.text = "分類: %s  危険度: %s" % [codex_class, danger_stars]
 		_label_detail_extra_a.visible = true
