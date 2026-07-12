@@ -33,5 +33,5 @@ codex_danger = 4
 codex_habitat = "沈没航路・古防波堤"
 codex_research_note = "蛸を祖先とし、防波堤の影に潜む大型の頭足類。煙幕のように墨を吐き、腕ごとに別の獲物を搦め捕る。姿を見た者が少ないことが、綽名の由来である。"
 codex_materials = Array[String]([])
-skill_ids = Array[String](["enemy_ink_veil"])
-skill_use_chance = 0.35
+skill_ids = Array[String](["enemy_ink_veil", "enemy_ninja_octopus_tentacle_bind"])
+skill_use_chance = 0.38
