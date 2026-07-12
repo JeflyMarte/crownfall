@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "anchor_lord"
+display_name = "アンカーロード"
+max_hp = 192
+attack = 28
+defense = 15
+attack_speed = 0.92
+critical_rate = 0.1
+move_speed = 0.85
+threat_target_bias = "max_threat"
+detection_range = 7.5
+attack_range = 1.5
+enemy_type = 1
+ai_type = "default"
+exp_reward = 44
+gold_reward = 76
+drop_table_id = "anchor_lord_drops"
+element_weakness = Array[String](["holy"])
+element_resist = Array[String](["ice"])
+on_hit_status_id = "bleed"
+on_hit_status_chance = 0.22
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "甲殻類"
+codex_danger = 4
+codex_habitat = "沈没航路・座礁船団の錨床"
+codex_research_note = "ヤドカリを祖先とし、沈没船の巨錨を殻に据えた大型個体。錨の棘に藤壶と珊瑚が着生し、一歩ごとに潮が濁る。船喰らい蟹の群れを従えているという未確認報告がある。"
+codex_materials = Array[String]([])
+skill_ids = Array[String](["enemy_anchor_lord_anchor_slam", "enemy_anchor_lord_barnacle_volley"])
+skill_use_chance = 0.38

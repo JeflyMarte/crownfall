@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "tide_lantern"
+display_name = "潮灯"
+max_hp = 66
+attack = 16
+defense = 4
+attack_speed = 0.95
+critical_rate = 0.06
+move_speed = 0.9
+threat_target_bias = "back_row"
+detection_range = 8.0
+attack_range = 2.5
+enemy_type = 0
+ai_type = "default"
+exp_reward = 14
+gold_reward = 56
+drop_table_id = "tide_lantern_drops"
+element_weakness = Array[String](["holy"])
+element_resist = Array[String]([])
+attack_element = "holy"
+on_hit_status_id = "mark"
+on_hit_status_chance = 0.18
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "刺胞動物"
+codex_danger = 2
+codex_habitat = "沈没航路・夜潮の浅瀬"
+codex_research_note = "クラゲを祖先とし、傘の縁から青白く発光する潮間帯の個体。光は獲物を浅瀬へ誘い込む合図らしく、満潮の夜に列をなして漂う。触手は毒ではなく、塩分で粘膜を灼く。"
+codex_materials = Array[String]([])
+skill_ids = Array[String](["enemy_tide_lantern_phosphor_glow"])
+skill_use_chance = 0.26
