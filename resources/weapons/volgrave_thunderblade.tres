@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "volgrave_thunderblade"
 display_name = "沼王断ちの雷剣ヴォルグレイヴ"
+description = "沼王を断った雷剣ヴォルグレイヴ。古の雷が刃に刻まれ、湿地を踏みしめる一撃で轟きが走る。"
 fixed_skill_id = ""
 fixed_passive_id = "eq_wpn_volgrave_thunderblade"
 base_attack = 30

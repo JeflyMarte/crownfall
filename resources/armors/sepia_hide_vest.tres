@@ -6,6 +6,7 @@
 script = ExtResource("1")
 armor_id = "sepia_hide_vest"
 display_name = "褪色獣皮の胴衣"
+description = "褪色した獣皮で仕立てた胴衣。長い日射しを浴びた皮が、乾いた荒野の風を凌ぐ。"
 base_defense = 8
 base_hp_bonus = 20
 base_resistance = 0.0

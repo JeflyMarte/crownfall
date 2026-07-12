@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "rime_bow"
 display_name = "霧氷の弓"
+description = "霧氷の朝に張られた氷弦の弓。放たれる矢は白い霜を纏い、空気そのものを凍らせながら飛ぶ。"
 fixed_skill_id = "rime_touch"
 base_attack = 48
 rarity = 1

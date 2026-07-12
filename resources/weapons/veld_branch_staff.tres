@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "veld_branch_staff"
 display_name = "翠杖ヴェルドの枝"
+description = "翠の古木ヴェルドの枝をそのまま杖にしたもの。芯に燃えるような緑の熱が宿り、森の怒りを借りる。"
 fixed_skill_id = ""
 fixed_passive_id = "eq_wpn_veld_branch_staff"
 base_attack = 21

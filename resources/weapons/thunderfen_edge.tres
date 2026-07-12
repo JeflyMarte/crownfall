@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "thunderfen_edge"
 display_name = "雷沼の斬鉄剣"
+description = "雷沼の底で眠る斬鉄を甲殻で補強した大剣。湿った空気が刃を帯電させ、硬い殻を叩き割る。"
 fixed_skill_id = "static_strike"
 base_attack = 26
 rarity = 2

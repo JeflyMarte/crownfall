@@ -6,6 +6,7 @@
 script = ExtResource("1")
 armor_id = "moss_weave_garb"
 display_name = "苔織の胴衣"
+description = "苔を織り込んだ素朴な胴衣。森の湿気と同化し、踏み跡を目立たなくする。"
 base_defense = 7
 base_hp_bonus = 18
 base_resistance = 0.0

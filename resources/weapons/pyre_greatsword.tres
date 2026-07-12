@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "pyre_greatsword"
 display_name = "焚火の大剣"
+description = "焚き火の灰を鍔に封じた大剣。刃を振るうたび細い火の粉が舞い、獲物を焼き焦がすように斬る。"
 fixed_skill_id = "kindling_strike"
 base_attack = 16
 rarity = 1

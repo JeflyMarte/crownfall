@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "fen_lantern_staff"
 display_name = "沼灯の雷杖"
+description = "沼に浮かぶ灯りと雷鳴を束ねた杖。湿った空気の中で淡い光が脈打ち、雷の予兆を先読みする。"
 fixed_skill_id = "static_strike"
 base_attack = 24
 rarity = 1

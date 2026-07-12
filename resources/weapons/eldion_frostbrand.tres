@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "eldion_frostbrand"
 display_name = "始祖竜の氷焔剣エルディオン・ブランド"
+description = "始祖竜の息吹を封じた氷焔の大剣。刃から立ちのぼる白い炎は冷たく、古の王の名を今も唸らせる。"
 fixed_skill_id = ""
 fixed_passive_id = "eq_wpn_eldion_frostbrand"
 base_attack = 62

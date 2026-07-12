@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "verdant_cleaver"
 display_name = "森伐りの大剣"
+description = "深森の伐採人が使う断木の大剣。太い刃が幹を挽くように振るわれ、鎧さえ木屑のように裂く。"
 base_attack = 15
 rarity = 0
 base_attack_speed = 1.0

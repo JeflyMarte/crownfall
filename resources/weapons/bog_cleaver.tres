@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "bog_cleaver"
 display_name = "沼裂きの大剣"
+description = "泥沼の畔で鍛え直された断鉄の大剣。踏み込むたび泥水が跳ね、両生類のように低く沈み、一気に斬り上げる。"
 base_attack = 21
 rarity = 0
 base_attack_speed = 1.0

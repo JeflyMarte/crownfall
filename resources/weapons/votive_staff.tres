@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "votive_staff"
 display_name = "潮見の祭杖"
+description = "潮見の祭で捧げられた祭杖。波の高さを読む目と、港を守る祈りの律が芯に残っている。"
 fixed_skill_id = "sanctal_strike"
 base_attack = 35
 rarity = 1

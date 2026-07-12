@@ -6,6 +6,7 @@
 script = ExtResource("1")
 armor_id = "shipplate_mail"
 display_name = "船板の重鎧"
+description = "難破船の板を鎧に転用した重鎧。釘穴と塩の斑が残り、潮風の中で身を固める。"
 base_defense = 27
 base_hp_bonus = 33
 base_resistance = 0.0
