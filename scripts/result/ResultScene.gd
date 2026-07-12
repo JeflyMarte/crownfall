@@ -34,6 +34,8 @@ const FS_RARE_STAR: int = 26
 const FS_CRAFTABLE: int = 19
 const FS_BUTTON: int = 24
 const REWARD_CELL_WIDTH: int = 88
+const REWARD_ICON_PX: int = 64
+const RARE_ICON_PX: int = 48
 
 @onready var _scroll_rewards: ScrollContainer = $Scroll
 @onready var _label_title: Label = $Scroll/Margin/Main/HeaderPanel/HeaderVBox/LabelTitle
@@ -946,47 +948,61 @@ func _build_rewards() -> void:
 	var weapon: String = GameState.last_run_weapon_dropped
 	if not weapon.is_empty():
 		_reward_row.add_child(_make_reward_cell(
-			IconPaths.get_icon_texture(weapon, "weapon"), "", DataRegistry.get_weapon_name(weapon), "1"))
+			null, "", DataRegistry.get_weapon_name(weapon), "1", weapon, "weapon"))
 	var armor: String = GameState.last_run_armor_dropped
 	if not armor.is_empty():
 		_reward_row.add_child(_make_reward_cell(
-			IconPaths.get_icon_texture(armor, "armor"), "", DataRegistry.get_armor_name(armor), "1"))
+			null, "", DataRegistry.get_armor_name(armor), "1", armor, "armor"))
 	var accessory: String = GameState.last_run_accessory_dropped
 	if not accessory.is_empty():
 		_reward_row.add_child(_make_reward_cell(
-			IconPaths.get_icon_texture(accessory, "accessory"), "", DataRegistry.get_accessory_name(accessory), "1"))
+			null, "", DataRegistry.get_accessory_name(accessory), "1", accessory, "accessory"))
 	var relic: String = GameState.last_run_relic_dropped
 	if not relic.is_empty():
 		var relic_icon: String = CombatPassives.relic_icon_key(relic)
 		_reward_row.add_child(_make_reward_cell(
 			IconPaths.get_icon_texture(relic_icon, "relic"), "", CombatRelics.display_name(relic), "1"))
 
-func _make_reward_cell(texture: Texture2D, glyph: String, name_text: String, value_text: String) -> Control:
+func _make_reward_cell(
+	texture: Texture2D,
+	glyph: String,
+	name_text: String,
+	value_text: String,
+	item_id: String = "",
+	category: String = ""
+) -> Control:
 	var cell: VBoxContainer = VBoxContainer.new()
 	cell.custom_minimum_size = Vector2(REWARD_CELL_WIDTH, 0)
 	cell.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	cell.alignment = BoxContainer.ALIGNMENT_BEGIN
-	var frame: PanelContainer = PanelContainer.new()
-	frame.custom_minimum_size = Vector2(64, 64)
-	frame.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	frame.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD))
-	if texture != null:
-		var icon: TextureRect = TextureRect.new()
-		icon.texture = texture
-		icon.custom_minimum_size = Vector2(56, 56)
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		frame.add_child(icon)
+	var icon_host: Control
+	if _is_equipment_category(category) and not item_id.is_empty():
+		var rarity: int = _equipment_rarity(item_id, category)
+		icon_host = BlacksmithUiHelper.make_item_icon_cell(item_id, category, rarity, REWARD_ICON_PX, false)
+		icon_host.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	else:
-		var glyph_label: Label = Label.new()
-		glyph_label.text = glyph
-		glyph_label.add_theme_font_size_override("font_size", FS_REWARD_GLYPH)
-		glyph_label.add_theme_color_override("font_color", COLOR_GOLD)
-		glyph_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		glyph_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		frame.add_child(glyph_label)
-	cell.add_child(frame)
+		var frame: PanelContainer = PanelContainer.new()
+		frame.custom_minimum_size = Vector2(REWARD_ICON_PX, REWARD_ICON_PX)
+		frame.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		frame.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD))
+		if texture != null:
+			var icon: TextureRect = TextureRect.new()
+			icon.texture = texture
+			icon.custom_minimum_size = Vector2(56, 56)
+			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+			frame.add_child(icon)
+		else:
+			var glyph_label: Label = Label.new()
+			glyph_label.text = glyph
+			glyph_label.add_theme_font_size_override("font_size", FS_REWARD_GLYPH)
+			glyph_label.add_theme_color_override("font_color", COLOR_GOLD)
+			glyph_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			glyph_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			frame.add_child(glyph_label)
+		icon_host = frame
+	cell.add_child(icon_host)
 	var name_label: Label = Label.new()
 	name_label.text = name_text
 	name_label.custom_minimum_size = Vector2(REWARD_CELL_WIDTH, 0)
@@ -1101,14 +1117,10 @@ func _add_rare_row(item_id: String, category: String) -> int:
 		var d: Variant = data.get("description")
 		if d is String:
 			desc = d
+	var rarity: int = _equipment_rarity(item_id, category)
 	var row: HBoxContainer = HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
-	var icon: TextureRect = TextureRect.new()
-	icon.texture = IconPaths.get_icon_texture(item_id, category)
-	icon.custom_minimum_size = Vector2(44, 44)
-	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	row.add_child(icon)
+	row.add_child(BlacksmithUiHelper.make_item_icon_cell(item_id, category, rarity, RARE_ICON_PX, false))
 	var col: VBoxContainer = VBoxContainer.new()
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var name_label: Label = Label.new()
@@ -1129,13 +1141,29 @@ func _add_rare_row(item_id: String, category: String) -> int:
 		col.add_child(desc_label)
 	row.add_child(col)
 	var star: Label = Label.new()
-	star.text = "★"
+	star.text = EquipmentUiHelper.rarity_stars_text(rarity)
 	star.add_theme_font_size_override("font_size", FS_RARE_STAR)
-	star.add_theme_color_override("font_color", COLOR_GOLD)
+	star.add_theme_color_override("font_color", BlacksmithUiHelper.rarity_name_color(rarity))
 	star.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(star)
 	_rare_list.add_child(row)
 	return 1
+
+func _is_equipment_category(category: String) -> bool:
+	return category in ["weapon", "armor", "accessory"]
+
+func _equipment_rarity(item_id: String, category: String) -> int:
+	var data: Resource = null
+	match category:
+		"weapon":
+			data = DataRegistry.get_weapon_data(item_id)
+		"armor":
+			data = DataRegistry.get_armor_data(item_id)
+		"accessory":
+			data = DataRegistry.get_accessory_data(item_id)
+	if data != null and "rarity" in data:
+		return int(data.rarity)
+	return 0
 
 func _build_info() -> void:
 	for child in _info_grid.get_children():
