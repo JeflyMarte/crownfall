@@ -6,6 +6,7 @@
 script = ExtResource("1")
 armor_id = "granvel_bark_plate"
 display_name = "深森王の樹皮鎧"
+description = "深森王の樹皮を何層にも重ねた鎧。古木の燃えるような守りが身に宿り、森の律を纏う。"
 base_defense = 18
 base_hp_bonus = 25
 base_resistance = 0.0

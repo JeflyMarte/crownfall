@@ -6,6 +6,7 @@
 script = ExtResource("1")
 armor_id = "mycel_cloak"
 display_name = "菌糸の外套"
+description = "菌糸で織られた薄い外套。地下の湿気を纏い、闇の中で身の輪郭をぼかす。"
 base_defense = 8
 base_hp_bonus = 24
 base_resistance = 0.0

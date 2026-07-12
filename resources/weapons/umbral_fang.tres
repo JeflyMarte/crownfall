@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "umbral_fang"
 display_name = "影喰みの短刃"
+description = "影を喰らう獣の短刃。刃を振るうたび周囲がわずかに暗くなり、獲物の輪郭だけが浮かび上がる。"
 fixed_skill_id = "hex_bolt"
 base_attack = 11
 rarity = 2

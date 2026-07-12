@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "symbiont_edge"
 display_name = "共生蔦の大剣"
+description = "獣と絡み合う蔦を鍔に据えた大剣。斬るたび蔓のような熱が刃を伝い、獲物へと絡みつく。"
 fixed_skill_id = "kindling_strike"
 base_attack = 18
 rarity = 2

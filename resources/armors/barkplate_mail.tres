@@ -6,6 +6,7 @@
 script = ExtResource("1")
 armor_id = "barkplate_mail"
 display_name = "樹皮の重鎧"
+description = "古木の樹皮を重ねて鍛えた重鎧。炎に近い熱気を纏い、森の守り人のように硬く身を守る。"
 base_defense = 12
 base_hp_bonus = 15
 base_resistance = 0.0

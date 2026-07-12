@@ -6,6 +6,7 @@
 script = ExtResource("1")
 armor_id = "votive_vestment"
 display_name = "潮見の祭衣"
+description = "潮見の祭で用いる祭衣。波の高さを読む者が纏い、港と海の境で身を清める。"
 base_defense = 24
 base_hp_bonus = 67
 base_resistance = 0.0

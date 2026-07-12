@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "verdia_longbow"
 display_name = "ヴェルディア長弓"
+description = "ヴェルディアの森で仕上げた長弓。木のしなりが矢に乗り、葉陰の獲物を音なく射抜く。"
 base_attack = 14
 rarity = 0
 base_attack_speed = 1.2

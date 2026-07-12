@@ -6,6 +6,7 @@
 script = ExtResource("1")
 armor_id = "libris_ward_robe"
 display_name = "封緘司書の法衣"
+description = "封緘司書が禁書庫で纏う法衣。炎の印が裾に焼き付けられ、紙と墨を守るように身を守る。"
 base_defense = 16
 base_hp_bonus = 45
 base_resistance = 0.0

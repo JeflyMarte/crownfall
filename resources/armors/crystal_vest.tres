@@ -6,6 +6,7 @@
 script = ExtResource("1")
 armor_id = "crystal_vest"
 display_name = "結晶刺しの軽鎧"
+description = "雷雲の結晶を刺し込んだ軽鎧。身に帯電した空気が薄く張り、鋭い一撃を逸らす。"
 base_defense = 8
 base_hp_bonus = 18
 base_resistance = 0.0
