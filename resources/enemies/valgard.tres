@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "valgard"
 display_name = "境界の番ヴァルガード"
+description = "境界石に着生した岩鉄生物。槍状の突起で侵入者を押し返す。"
 max_hp = 300
 attack = 18
 defense = 22

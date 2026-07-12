@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "frost_claw_raptor"
 display_name = "霜爪ラプター"
+description = "氷刃の鉤爪で雪原を駆ける群れ狩り。三方向から同時に跳ぶ。"
 max_hp = 70
 attack = 16
 defense = 6

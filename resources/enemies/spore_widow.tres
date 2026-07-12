@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "spore_widow"
 display_name = "スポアウィドウ"
+description = "胞子を糸に絡めた蜘蛛。後衛を狙い、弱った獲物を仕留める。"
 max_hp = 65
 attack = 17
 defense = 4

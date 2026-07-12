@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "dead_poison_frog"
 display_name = "死毒の大蛙"
+description = "腐植土の病原を濃縮した大型蛙。泡状の毒を鳴嚢から散布する。"
 max_hp = 90
 attack = 18
 defense = 6

@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "crystal_scorpion"
 display_name = "水晶スコーピオン"
+description = "尾棘に氷晶を蓄えたサソリ。暗闇で静止し、近づく獲物を刺す。"
 max_hp = 82
 attack = 11
 defense = 9

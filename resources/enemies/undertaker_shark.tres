@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "undertaker_shark"
 display_name = "アンダーテイカー"
+description = "干潟を滑る小型ザメ。弱った獲物だけを選んで襲う。"
 max_hp = 68
 attack = 19
 defense = 5

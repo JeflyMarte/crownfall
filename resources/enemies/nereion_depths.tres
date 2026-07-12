@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "nereion_depths"
 display_name = "潮脈王ネレイオン・デプス"
+description = "沈没旗艦の骨を縄にした外洋型。潮脈を操る別個体。"
 max_hp = 390
 attack = 25
 defense = 24

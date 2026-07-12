@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "skullface_mantis"
 display_name = "骸面マンティス"
+description = "脱皮殻が人の顔に似る大型カマキリ。後列を一振りで仕留める。"
 max_hp = 74
 attack = 16
 defense = 6

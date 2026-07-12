@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "blood_leech"
 display_name = "吸血ヒル"
+description = "腐水に群れる吸血ヒル。振動を感知して泥中から一斉に吸着する。"
 max_hp = 70
 attack = 16
 defense = 4

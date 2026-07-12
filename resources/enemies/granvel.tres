@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "granvel"
 display_name = "フローラベア グランヴェル"
+description = "森と共生した古代巨熊。体表から根と蔓が伸び、傷は植生で塞がる。"
 max_hp = 320
 attack = 21
 defense = 18

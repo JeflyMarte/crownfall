@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "samurai_fish"
 display_name = "サムライフィッシュ"
+description = "槍状の吻で突進する大型魚。狙った獲物から離れない。"
 max_hp = 84
 attack = 20
 defense = 7

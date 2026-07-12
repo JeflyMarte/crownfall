@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "storm_joe"
 display_name = "ストームジョー"
+description = "吹雪の白闇を真っ直ぐ突進する中型恐竜。雪面の振動を読む。"
 max_hp = 90
 attack = 19
 defense = 9

@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "vergaron"
 display_name = "ヴェルガロン"
+description = "極寒の風を纏う大型狼。吐息で体温を奪い、群れが仕留める。"
 max_hp = 78
 attack = 17
 defense = 7

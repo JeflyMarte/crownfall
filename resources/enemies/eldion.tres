@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "eldion"
 display_name = "始祖の竜 エルディオン"
+description = "氷河晶を宿す古龍。吐息は空気ごと凍らせる。"
 max_hp = 300
 attack = 21
 defense = 26

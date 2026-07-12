@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "karna_smoke"
 display_name = "燼竜カルナ・スモーク"
+description = "火口頂の燼竜。灰雲に身を隠し、溶岩の槍を吐く。"
 max_hp = 340
 attack = 21
 defense = 20

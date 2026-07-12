@@ -119,6 +119,7 @@ func _build_enemy_entries() -> Array:
 		entries.append({
 			"id": data.id,
 			"display_name": data.display_name if stage >= 2 else UNKNOWN_DISPLAY,
+			"description": data.description if stage >= 2 else "",
 			"stage": stage,
 			"codex_class": data.codex_class,
 			"codex_danger": data.codex_danger,

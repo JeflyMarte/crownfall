@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "greios"
 display_name = "グレイオス"
+description = "吹雪に紛れて滑空する翼竜。次の瞬間に後衛が空へ攫われる。"
 max_hp = 185
 attack = 29
 defense = 14

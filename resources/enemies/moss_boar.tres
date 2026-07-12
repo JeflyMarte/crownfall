@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "moss_boar"
 display_name = "モスボア"
+description = "苔を背負う森の猪。群れで直進し、倒木ごと下生えを砕く。"
 max_hp = 75
 attack = 16
 defense = 4

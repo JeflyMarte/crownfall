@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "ship_eater_crab"
 display_name = "船喰らい"
+description = "座礁船を巣にする潮間帯の蟹。一晩で船骨を骨組みだけにする。"
 max_hp = 76
 attack = 16
 defense = 9
