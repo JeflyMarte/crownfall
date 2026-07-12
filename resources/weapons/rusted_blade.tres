@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "rusted_blade"
 display_name = "朽ちた近衛の剣"
+description = "朽ちた近衛の剣。錆と血の記憶が刃に残り、古い城壁を守った兵の手つきを今も借りている。"
 base_attack = 6
 rarity = 0
 base_attack_speed = 1.3

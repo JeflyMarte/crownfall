@@ -225,10 +225,30 @@ static func _append_rate_row(rows: Array, key: String, label: String, rate: floa
 static func affix_text(item: Resource) -> String:
 	return _AffixDisplayFormatter.format_for_instance(item)
 
+static func description_text(item: Resource, category: String) -> String:
+	if item == null:
+		return ""
+	var data: Resource = _master_data_for_item(item, category)
+	if data != null and "description" in data:
+		return str(data.description).strip_edges()
+	return ""
+
 static func flavor_text(item: Resource, category: String) -> String:
 	if category != "weapon" or item == null:
 		return ""
 	return _WeaponFlavorHelper.get_flavor_text_for_item(item)
+
+static func _append_description_block(host: VBoxContainer, item: Resource, category: String) -> void:
+	var desc: String = description_text(item, category)
+	if desc.is_empty():
+		return
+	host.add_child(_make_rule())
+	var desc_lbl := Label.new()
+	desc_lbl.text = desc
+	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_body(desc_lbl, UiTypography.SIZE_CAPTION, COLOR_SUB)
+	host.add_child(desc_lbl)
 
 static func hover_summary(item: Resource, category: String, member: Resource = null) -> String:
 	if item == null:
@@ -295,15 +315,9 @@ static func populate_stats_panel(host: VBoxContainer, item: Resource, category: 
 	host.add_child(_make_rule())
 	for row in stat_rows(item, category):
 		host.add_child(_make_stat_row(str(row.get("key", "")), str(row.get("label", "")), str(row.get("value", ""))))
+	_append_description_block(host, item, category)
 	_append_legendary_effect_block(host, item, category)
-	var flavor: String = flavor_text(item, category)
-	if not flavor.is_empty():
-		host.add_child(_make_rule())
-		var flavor_lbl := Label.new()
-		flavor_lbl.text = "「%s」" % flavor
-		flavor_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		UiTypography.apply_body(flavor_lbl, UiTypography.SIZE_CAPTION, COLOR_FLAVOR)
-		host.add_child(flavor_lbl)
+	_append_weapon_flavor_block(host, item, category)
 
 static func populate_panel(
 	host: VBoxContainer,
@@ -359,6 +373,7 @@ static func populate_panel(
 		host.add_child(compare_lbl)
 	for row in stat_rows(item, category):
 		host.add_child(_make_stat_row(str(row.get("key", "")), str(row.get("label", "")), str(row.get("value", ""))))
+	_append_description_block(host, item, category)
 	_append_legendary_effect_block(host, item, category)
 	var affix: String = affix_text(item)
 	if not affix.is_empty():
@@ -368,14 +383,7 @@ static func populate_panel(
 		affix_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		UiTypography.apply_body(affix_lbl, UiTypography.SIZE_CAPTION, COLOR_VALUE)
 		host.add_child(affix_lbl)
-	var flavor: String = flavor_text(item, category)
-	if not flavor.is_empty():
-		host.add_child(_make_rule())
-		var flavor_lbl := Label.new()
-		flavor_lbl.text = "「%s」" % flavor
-		flavor_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		UiTypography.apply_body(flavor_lbl, UiTypography.SIZE_CAPTION, COLOR_SUB)
-		host.add_child(flavor_lbl)
+	_append_weapon_flavor_block(host, item, category)
 
 static func _make_stat_row(stat_key: String, label_text: String, value_text: String) -> HBoxContainer:
 	var row := HBoxContainer.new()
@@ -432,18 +440,33 @@ static func _item_icon(item: Resource, category: String) -> Texture2D:
 			return IconPaths.get_icon_texture(str(item.accessory_id), "accessory")
 	return null
 
-static func _item_rarity(item: Resource, category: String) -> int:
-	var data: Resource = null
+static func _master_data_for_item(item: Resource, category: String) -> Resource:
 	match category:
 		"weapon":
-			data = DataRegistry.get_weapon_data(str(item.weapon_id))
+			return DataRegistry.get_weapon_data(str(item.weapon_id))
 		"armor":
-			data = DataRegistry.get_armor_data(str(item.armor_id))
+			return DataRegistry.get_armor_data(str(item.armor_id))
 		"accessory":
-			data = DataRegistry.get_accessory_data(str(item.accessory_id))
+			return DataRegistry.get_accessory_data(str(item.accessory_id))
+	return null
+
+static func _item_rarity(item: Resource, category: String) -> int:
+	var data: Resource = _master_data_for_item(item, category)
 	if data != null and "rarity" in data:
 		return int(data.rarity)
 	return 0
+
+static func _append_weapon_flavor_block(host: VBoxContainer, item: Resource, category: String) -> void:
+	var flavor: String = flavor_text(item, category)
+	if flavor.is_empty():
+		return
+	host.add_child(_make_rule())
+	var flavor_lbl := Label.new()
+	flavor_lbl.text = "「%s」" % flavor
+	flavor_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	flavor_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_body(flavor_lbl, UiTypography.SIZE_CAPTION, COLOR_FLAVOR)
+	host.add_child(flavor_lbl)
 
 static func _armor_resist_text(item: Resource) -> String:
 	if item == null:

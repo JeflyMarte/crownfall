@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "serdion"
 display_name = "水晶骸竜 セルディオン"
+description = "古龍の骨に寄生した結晶生命の複合体。骨は支持構造にすぎない。"
 max_hp = 250
 attack = 15
 defense = 20

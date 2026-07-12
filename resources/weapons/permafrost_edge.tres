@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "permafrost_edge"
 display_name = "永久凍土の斬鉄剣"
+description = "永久凍土の下で眠る斬鉄を掘り出した大剣。冷たい刃が硬い鱗を叩き、凍てつく一撃を放つ。"
 fixed_skill_id = "rime_touch"
 base_attack = 55
 rarity = 2

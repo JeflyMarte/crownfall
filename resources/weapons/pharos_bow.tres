@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "pharos_bow"
 display_name = "灯台の聖弓"
+description = "灯台の聖光を矢に託す長弓。霧海の夜に放たれる一矢は、祈りのように遠くの闇を貫く。"
 fixed_skill_id = "sanctal_strike"
 base_attack = 34
 rarity = 1

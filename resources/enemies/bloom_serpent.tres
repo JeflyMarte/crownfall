@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "bloom_serpent"
 display_name = "ブルームサーペント"
+description = "花弁状の鱗を持つ大蛇。開花に擬態して近づき、牙で麻痺させる。"
 max_hp = 81
 attack = 17
 defense = 5

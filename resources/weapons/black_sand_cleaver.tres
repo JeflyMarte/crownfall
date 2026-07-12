@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "black_sand_cleaver"
 display_name = "黒砂の大剣"
+description = "黒砂浜で晒された甲殻の破片を鍔に嵌めた大剣。潮風に錆びた刃先が、硬い外骨格を叩き割る。"
 base_attack = 31
 rarity = 0
 base_attack_speed = 1.0

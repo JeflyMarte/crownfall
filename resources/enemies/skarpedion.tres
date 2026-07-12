@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "skarpedion"
 display_name = "鉄殻の長スカルペディオン"
+description = "廃坑で殻が金属化した鉄殻虫。斬撃で装甲を剥がす。"
 max_hp = 320
 attack = 19
 defense = 24

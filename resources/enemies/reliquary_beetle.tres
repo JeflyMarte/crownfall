@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "reliquary_beetle"
 display_name = "聖遺甲虫"
+description = "武具の破片を甲殻に取り込む遍在の甲虫。倒せば良質な鍛冶材になる。"
 max_hp = 135
 attack = 22
 defense = 14

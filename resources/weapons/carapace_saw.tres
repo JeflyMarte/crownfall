@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "carapace_saw"
 display_name = "甲殻鋸の双刃"
+description = "沼地の甲殻獣から剥ぎ取った外骨格を鋸刃にした双刃。硬い殻を挽く手応えが、鎧ごと肉を裂く。"
 base_attack = 23
 rarity = 1
 base_attack_speed = 1.15

@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "crystal_hedgehog"
 display_name = "水晶ハリネズミ"
+description = "溶け込んだ鉱物で針を結晶化。危険時は針を一斉射出する。"
 max_hp = 58
 attack = 14
 defense = 5

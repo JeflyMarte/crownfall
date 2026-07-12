@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "crown_eater_rat"
 display_name = "冠喰いネズミ"
+description = "金属や宝石を齧る納骨堂の害獣。胃石に宝具の断片が混じる。"
 max_hp = 52
 attack = 11
 defense = 3

@@ -1437,6 +1437,17 @@ func _record_run_modifiers(line: String) -> void:
 		if line.contains(marker):
 			GameState.record_run_modifier(RUN_MODIFIER_MARKERS[marker])
 
+func _enemy_description(enemy_data: Resource) -> String:
+	if enemy_data == null or not ("description" in enemy_data):
+		return ""
+	return str(enemy_data.description).strip_edges()
+
+func _append_enemy_appearance_log(line: String, enemy_data: Resource) -> void:
+	_append_log(line)
+	var desc: String = _enemy_description(enemy_data)
+	if not desc.is_empty():
+		_append_log("  ― %s" % desc)
+
 func _append_log(text: String) -> void:
 	for line: String in text.split("\n"):
 		if line.is_empty():
@@ -2349,11 +2360,13 @@ func _enter_current_room() -> void:
 						names.append(e.display_name)
 					_append_log("【混成】%s" % " / ".join(names))
 				else:
-					_append_log("%s の群れ（%d体）があらわれた" % [lead.display_name, group.size()])
+					_append_enemy_appearance_log(
+						"%s の群れ（%d体）があらわれた" % [lead.display_name, group.size()], lead
+					)
 			elif bool(lead.is_wandering):
-				_append_log("【放浪】%s があらわれた" % lead.display_name)
+				_append_enemy_appearance_log("【放浪】%s があらわれた" % lead.display_name, lead)
 			else:
-				_append_log("%s があらわれた" % lead.display_name)
+				_append_enemy_appearance_log("%s があらわれた" % lead.display_name, lead)
 			if _try_combat_skip():
 				return
 			$CombatTimer.start()
@@ -7127,7 +7140,7 @@ func _finish_elite_combat_entrance(lead: Resource) -> void:
 	_clear_elite_intro_fx()
 	_elite_enemy_slide_sprite = null
 	if lead != null:
-		_append_log("【エリート】%s があらわれた" % lead.display_name)
+		_append_enemy_appearance_log("【エリート】%s があらわれた" % lead.display_name, lead)
 	_refresh_combat_now_playing_next()
 	if _try_combat_skip():
 		return
@@ -7284,7 +7297,7 @@ func _finish_boss_combat_entrance(lead: Resource) -> void:
 	_boss_intro_tween = null
 	_clear_boss_intro_fx()
 	if lead != null:
-		_append_log("【ボス】%s があらわれた" % lead.display_name)
+		_append_enemy_appearance_log("【ボス】%s があらわれた" % lead.display_name, lead)
 	_refresh_combat_now_playing_next()
 	if _try_combat_skip():
 		return

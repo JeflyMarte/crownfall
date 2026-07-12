@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "white_needle"
 display_name = "穿氷弓ホワイトニードル"
+description = "氷を穿つ矢を放つ猟弓。放たれる一矢は白い霜を纏い、獣の温もりを奪いながら遠くへ飛ぶ。"
 fixed_skill_id = "rime_touch"
 base_attack = 56
 rarity = 2

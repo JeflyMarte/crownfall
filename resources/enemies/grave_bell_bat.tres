@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "grave_bell_bat"
 display_name = "墓鐘バット"
+description = "胸骨が鐘腔の巨大コウモリ。羽音が平衡感覚を乱す。"
 max_hp = 50
 attack = 10
 defense = 2

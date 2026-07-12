@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "ninja_octopus"
 display_name = "ニンジャオクトパス"
+description = "墨で煙幕を張る大型蛸。腕ごとに別の獲物を搦め捕る。"
 max_hp = 185
 attack = 29
 defense = 13

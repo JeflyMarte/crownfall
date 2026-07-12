@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "snowline_longbow"
 display_name = "雪線の長弓"
+description = "雪線の岩陰で仕上げた長弓。冷たい弦が鱗の硬い獲物にも届き、高所から一矢を射抜く。"
 base_attack = 42
 rarity = 0
 base_attack_speed = 1.2

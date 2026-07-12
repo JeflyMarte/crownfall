@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "beacon_needle"
 display_name = "穿光弓ビーコンニードル"
+description = "灯台守が霧海で航路を示すために射た穿光の矢を模した弓。一筋の光が水面を裂き、深淵の影を退ける。"
 fixed_skill_id = "sanctal_strike"
 base_attack = 40
 rarity = 2

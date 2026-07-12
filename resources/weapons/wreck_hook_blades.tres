@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "wreck_hook_blades"
 display_name = "船鉤の双刃"
+description = "難破船の鉤を刃に転用した双刃。錆と潮の記憶が残り、滑る魚の身を引き寄せるように裂く。"
 base_attack = 30
 rarity = 0
 base_attack_speed = 1.15

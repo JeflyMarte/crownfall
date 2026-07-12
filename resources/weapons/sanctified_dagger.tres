@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "sanctified_dagger"
 display_name = "霊廟の聖別刃"
+description = "霊廟の祭壇で聖別された古代種の短刃。刃先に清らかな印が刻まれ、穢れたものを静かに裁く。"
 fixed_skill_id = ""
 fixed_passive_id = "eq_wpn_sanctified_dagger"
 base_attack = 14

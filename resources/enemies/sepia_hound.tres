@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "sepia_hound"
 display_name = "セピアハウンド"
+description = "地下で嗅覚が極度に発達した犬。古い人の痕跡を追う。"
 max_hp = 65
 attack = 12
 defense = 4

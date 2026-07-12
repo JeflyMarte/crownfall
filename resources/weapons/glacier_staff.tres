@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "glacier_staff"
 display_name = "氷霜の杖"
+description = "万年氷の芯を通した霜の杖。振るうたび冷気が扇状に広がり、周囲の湿気を瞬く間に凍らせる。"
 fixed_skill_id = "rime_touch"
 base_attack = 11
 rarity = 2

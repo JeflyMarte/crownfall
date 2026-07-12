@@ -6,6 +6,7 @@
 script = ExtResource("1")
 armor_id = "warden_vestment"
 display_name = "森護りの聖衣"
+description = "森護りの聖衣。古木の熱が裾に宿り、森の境界を守る者だけが纏うことを許される。"
 base_defense = 11
 base_hp_bonus = 30
 base_resistance = 0.0

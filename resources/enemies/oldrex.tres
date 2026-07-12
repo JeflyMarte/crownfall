@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "oldrex"
 display_name = "オルドレクス"
+description = "氷柱の間で数日動かぬ大型爬虫。縄張り侵入者を尾で打ち据える。"
 max_hp = 124
 attack = 14
 defense = 20

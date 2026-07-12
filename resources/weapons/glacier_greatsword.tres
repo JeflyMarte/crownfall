@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "glacier_greatsword"
 display_name = "氷河の大剣"
+description = "氷河の裂け目から採れた青白い鋼の大剣。千年の寒気が刃に宿り、一撃で熱を奪い去る。"
 fixed_skill_id = "rime_touch"
 base_attack = 48
 rarity = 1

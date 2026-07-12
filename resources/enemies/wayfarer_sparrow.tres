@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "wayfarer_sparrow"
 display_name = "遠旅スズメ"
+description = "探索者の痕跡を辿る渡り鳥。害は乏しいが、すぐ去る。"
 max_hp = 26
 attack = 7
 defense = 2

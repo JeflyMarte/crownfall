@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "storm_carver"
 display_name = "雷刻の大剣"
+description = "雷雲の走りを刃に刻んだ大剣。振るうたび低い雷鳴が響き、空気を裂く一撃を放つ。"
 fixed_skill_id = "static_strike"
 base_attack = 23
 rarity = 1

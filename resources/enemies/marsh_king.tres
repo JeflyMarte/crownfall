@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "marsh_king"
 display_name = "沼地の王"
+description = "腐植泥に擬態する巨大サンショウウオ。踏み込んだ瞬間だけ呑み込む。"
 max_hp = 115
 attack = 14
 defense = 12

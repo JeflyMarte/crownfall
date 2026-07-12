@@ -6,6 +6,7 @@
 script = ExtResource("1")
 armor_id = "moldgar_abyss_mail"
 display_name = "底なし王の鱗鎧"
+description = "底なし王の鱗を淵の闇で鍛え直した鎧。深い闇が身に吸い付き、視線すら飲み込む。"
 base_defense = 26
 base_hp_bonus = 38
 base_resistance = 0.0

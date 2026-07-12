@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "moldgar"
 display_name = "底なしの王 モルドガル"
+description = "沈没書庫を縄とする古代ワニ。底なし泥塘の頂点捕食者。"
 max_hp = 300
 attack = 21
 defense = 20

@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "umbra_terminus_staff"
 display_name = "終末の闇杖ウンブラ・テルミナス"
+description = "終末の闇を束ねた古代種の杖。杖先の影が脈打つたび、周囲の光が吸い込まれるように薄れる。"
 fixed_skill_id = ""
 fixed_passive_id = "eq_wpn_umbra_terminus_staff"
 base_attack = 60

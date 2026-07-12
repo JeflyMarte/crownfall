@@ -113,6 +113,10 @@ static func build_weapon_description(data: Resource) -> String:
 		stats.append("%s特効 ×%.1f" % [str(data.bane_class), float(data.bane_multiplier)])
 	lines.append(" ｜ ".join(stats))
 
+	var description: String = str(data.description).strip_edges() if "description" in data else ""
+	if not description.is_empty():
+		lines.append(description)
+
 	var skill_id: String = str(data.fixed_skill_id)
 	var passive_text: String = EquipmentItemDetailHelper.weapon_legendary_effect_text_from_data(data)
 	if not passive_text.is_empty():
@@ -124,7 +128,8 @@ static func build_weapon_description(data: Resource) -> String:
 			skill_name = skill_data.display_name
 		lines.append("固定スキル: %s" % skill_name)
 
-	lines.append(_weapon_flavor_line(data))
+	if description.is_empty():
+		lines.append(_weapon_flavor_line(data))
 	return "\n".join(lines)
 
 
