@@ -33,5 +33,5 @@ codex_danger = 4
 codex_habitat = "囁きの森・鏡光の湿地"
 codex_research_note = "蛇を祖先とし、鱗が鏡のように反射して姿を増やして見せる大型個体。獲物は自分の影と本物の区別がつかず、一瞬の迷いの間に絞め上げられる。湿った苔地で最も鮮やかに輝く。"
 codex_materials = Array[String]([])
-skill_ids = Array[String](["enemy_mirror_boa_twin_coil"])
-skill_use_chance = 0.36
+skill_ids = Array[String](["enemy_mirror_boa_twin_coil", "enemy_mirror_boa_scale_flash"])
+skill_use_chance = 0.38
