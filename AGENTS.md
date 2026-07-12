@@ -11,8 +11,11 @@ Cursor AI およびその他 AI アシスタント共通の入口指示。
 | `docs/project/CurrentState.md` | **プロジェクト状態の正** — フェーズ、完了 Task、Next Task、Known Issues |
 | `docs/project/CurrentSprint.md` | **現在の Task 焦点** — スプリント目標、優先順位、Blocker |
 | `docs/specs/core/06_DevelopmentHQ_Operations.md` | **DevelopmentHQ 運用 SSOT** — セッション種別・ワークフロー・レビュー |
+| `docs/specs/core/07_Git_Mac_Cloud_Sync.md` | **Git / Mac / Cloud 同期** — オーナー短指示「遠隔で作業開始」「MACで作業開始」 |
 
 セッション開始時は必ず上記から読む。Phase 0 や MVP 初期 Task の前提は使わない。
+
+オーナーが **「遠隔で作業開始」** または **「MACで作業開始」** とだけ指示した場合、`.cursor/rules/git-mac-cloud-sync.mdc` が `07_Git_Mac_Cloud_Sync.md` **§4 変換ルール** に従い詳細手順へ変換する。
 
 ---
 
@@ -85,7 +88,8 @@ Task 種別に応じて `.cursor/skills/` を使う:
 - DevelopmentHQ 運用: `docs/specs/core/06_DevelopmentHQ_Operations.md`
 - 実装ルール: `docs/specs/implementation/06_Claude運用ルール.md`, `07_コーディングルール.md`
 - Task 依頼形式: `docs/specs/implementation/10_Claude依頼テンプレート.md`
-- Cursor ルール: `.cursor/rules/developmenthq-operations.mdc`, `.cursor/rules/hq-response-minimal.mdc`, `.cursor/rules/ui-layout.mdc`, `.cursor/rules/git-wip-safety.mdc`
+- Cursor ルール: `.cursor/rules/developmenthq-operations.mdc`, `.cursor/rules/hq-response-minimal.mdc`, `.cursor/rules/ui-layout.mdc`, `.cursor/rules/git-wip-safety.mdc`, `.cursor/rules/git-mac-cloud-sync.mdc`
+- Git / Mac / Cloud: `docs/specs/core/07_Git_Mac_Cloud_Sync.md`
 
 ---
 

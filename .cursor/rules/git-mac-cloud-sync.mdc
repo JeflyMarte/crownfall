@@ -1,0 +1,56 @@
+---
+description: オーナー短指示「遠隔で作業開始」「MACで作業開始」を git/Mac/Cloud 手順に変換
+alwaysApply: true
+---
+
+# Git / Mac / Cloud 同期（オーナー短指示 → 変換）
+
+**変換ルール SSOT:** `docs/specs/core/07_Git_Mac_Cloud_Sync.md` **§4**（本ファイルはその Cursor 実装）  
+WIP / stash: `.cursor/rules/git-wip-safety.mdc`
+
+## トリガー → 変換 ID
+
+| オーナーが言う | 変換 ID | エージェントの役割 |
+|---|---|---|
+| 遠隔で作業開始（同義: 遠隔作業開始 / cloud・クラウドで作業開始） | **T-REMOTE-START** | Cloud 上で git 実行 + Task 把握 + 短報告 |
+| MACで作業開始（同義: Mac/macで作業開始 / ローカルで作業開始） | **T-MAC-START** | Mac 用コピペブロック + 期待 log -1 + Godot 再起動案内 |
+
+遠隔実装・レビュー完了時は **T-REMOTE-END**（§5）を自動適用。オーナー明示不要。
+
+---
+
+## T-REMOTE-START
+
+SSOT §4.2 に従う。要点:
+
+1. `git fetch origin` → `git status -sb` → `git stash list | head -5`
+2. `CurrentState.md` / `CurrentSprint.md` を読む
+3. ブランチは SSOT §4.5 決定木（HQ 明示 > 継続 > 統合 > 新規 feature > main）
+4. WIP は commit 優先。stash のみに依存しない
+5. 応答テンプレート A（§4.6）: ブランチ / HEAD / 着手 Task
+
+---
+
+## T-MAC-START
+
+SSOT §4.3–§4.4 に従う。要点:
+
+- Mac 正: **`/Users/marte/Projects/crownfall`**（推測禁止）
+- §4.4 の **コピペブロック1つ** + 期待 `git log -1` + ⌘+Q Godot 再起動
+- Cloud 上で Mac の git は実行しない（案内のみ）
+- stash 残存は報告。drop 禁止
+
+---
+
+## T-REMOTE-END
+
+SSOT §5。commit + push + PR 更新後、**T-MAC-START 相当の pull ブロックを必ず添付**（テンプレート C）。
+
+---
+
+## 禁止
+
+- 未 push で完了報告
+- 「pull してください」だけ（ブランチ・期待コミット省略）
+- stash 無確認 drop
+- 長い git 講義・パス羅列（`hq-response-minimal`）
