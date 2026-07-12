@@ -669,6 +669,7 @@ func _serialize_armor_inventory() -> Array:
 			"is_appraised": item.is_appraised,
 			"prefix_ids": _serialize_affix_ids(item.prefix_ids),
 			"suffix_ids": _serialize_affix_ids(item.suffix_ids),
+			"enhance_level": int(item.enhance_level) if "enhance_level" in item else 0,
 			"equip_level": EquipmentEnhancer.get_equip_level(item),
 			"equip_exp": EquipmentEnhancer.get_equip_exp(item),
 			"rolled_bonus_stats": _serialize_affix_ids(
@@ -713,6 +714,7 @@ func _deserialize_armor_inventory(inv_data: Array) -> Array:
 		item.is_appraised = bool(entry.get("is_appraised", false))
 		item.prefix_ids = _deserialize_affix_ids(entry.get("prefix_ids", []))
 		item.suffix_ids = _deserialize_affix_ids(entry.get("suffix_ids", []))
+		item.enhance_level = int(entry.get("enhance_level", 0))
 		item.equip_level = int(entry.get("equip_level", 1))
 		item.equip_exp = int(entry.get("equip_exp", 0))
 		if entry.has("rolled_bonus_stats"):
@@ -739,6 +741,7 @@ func _serialize_accessory_inventory() -> Array:
 			"is_appraised": item.is_appraised,
 			"prefix_ids": _serialize_affix_ids(item.prefix_ids),
 			"suffix_ids": _serialize_affix_ids(item.suffix_ids),
+			"enhance_level": int(item.enhance_level) if "enhance_level" in item else 0,
 			"equip_level": EquipmentEnhancer.get_equip_level(item),
 			"equip_exp": EquipmentEnhancer.get_equip_exp(item),
 			"rolled_bonus_stats": _serialize_affix_ids(
@@ -773,6 +776,7 @@ func _deserialize_accessory_inventory(inv_data: Array) -> Array:
 		item.is_appraised = bool(entry.get("is_appraised", false))
 		item.prefix_ids = _deserialize_affix_ids(entry.get("prefix_ids", []))
 		item.suffix_ids = _deserialize_affix_ids(entry.get("suffix_ids", []))
+		item.enhance_level = int(entry.get("enhance_level", 0))
 		item.equip_level = int(entry.get("equip_level", 1))
 		item.equip_exp = int(entry.get("equip_exp", 0))
 		if entry.has("rolled_bonus_stats"):

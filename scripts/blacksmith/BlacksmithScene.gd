@@ -62,7 +62,7 @@ const FORGE_FLASH_PEAK_ALPHA: float = 0.32
 var _mode: String = "produce"
 var _category: String = "weapon"
 var _selected_craft: Resource = null
-var _selected_weapon: Resource = null
+var _selected_enhance_item: Resource = null
 var _mode_button_group: ButtonGroup
 var _category_panels: Dictionary = {}
 var _hero_pulse_base_scale: Vector2 = Vector2.ONE
@@ -137,19 +137,18 @@ func _set_mode(mode: String) -> void:
 	_mode = mode
 	_btn_produce.button_pressed = mode == "produce"
 	_btn_enhance.button_pressed = mode == "enhance"
-	_category_row.visible = mode == "produce"
+	_category_row.visible = mode == "produce" or mode == "enhance"
 	_craftable_panel.visible = mode == "produce"
-	if mode == "enhance" and _category != "weapon":
-		_category = "weapon"
 	_update_category_styles()
 	_update_tab_styles()
 	_refresh_all()
 
 func _set_category(category: String) -> void:
-	if _mode != "produce":
-		return
 	_category = category
-	_selected_craft = null
+	if _mode == "produce":
+		_selected_craft = null
+	else:
+		_selected_enhance_item = null
 	_update_category_styles()
 	_refresh_all()
 
@@ -258,15 +257,24 @@ func _rebuild_produce_left_list() -> void:
 		_left_list.add_child(_make_recipe_list_card(craft))
 
 func _rebuild_enhance_left_list() -> void:
-	var weapons: Array = _sorted_enhance_candidates()
-	if weapons.is_empty():
-		_left_list.add_child(_make_empty_label("（鑑定済みの武器がありません）"))
-		_selected_weapon = null
+	var items: Array = _sorted_enhance_candidates()
+	if items.is_empty():
+		_left_list.add_child(_make_empty_label(_enhance_empty_message()))
+		_selected_enhance_item = null
 		return
-	if _selected_weapon == null or _selected_weapon not in weapons:
-		_selected_weapon = weapons[0]
-	for weapon in weapons:
-		_left_list.add_child(_make_enhance_list_card(weapon))
+	if _selected_enhance_item == null or _selected_enhance_item not in items:
+		_selected_enhance_item = items[0]
+	for item in items:
+		_left_list.add_child(_make_enhance_list_card(item))
+
+func _enhance_empty_message() -> String:
+	match _category:
+		"armor":
+			return "（鑑定済みの防具がありません）"
+		"accessory":
+			return "（鑑定済みの装飾品がありません）"
+		_:
+			return "（鑑定済みの武器がありません）"
 
 func _make_empty_label(text: String) -> Label:
 	var label := Label.new()
@@ -310,28 +318,27 @@ func _on_recipe_card_input(event: InputEvent, craft: Resource) -> void:
 		_selected_craft = craft
 		_refresh_all()
 
-func _make_enhance_list_card(weapon: Resource) -> PanelContainer:
-	var selected: bool = weapon == _selected_weapon
-	var level: int = _EquipmentEnhancer.get_enhance_level(weapon)
-	var weapon_data: Resource = DataRegistry.get_weapon_data(str(weapon.weapon_id))
-	var rarity: int = int(weapon_data.rarity) if weapon_data != null else 0
+func _make_enhance_list_card(item: Resource) -> PanelContainer:
+	var selected: bool = item == _selected_enhance_item
+	var level: int = _EquipmentEnhancer.get_enhance_level(item)
+	var category: String = _category
+	var item_id: String = _enhance_item_id(item, category)
+	var rarity: int = _enhance_item_rarity(item, category)
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(0, BlacksmithUiHelper.LIST_CARD_MIN_HEIGHT)
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	panel.add_theme_stylebox_override(
 		"panel", BlacksmithUiHelper.simple_list_card_style(selected, false, rarity)
 	)
-	panel.gui_input.connect(_on_enhance_card_input.bind(weapon))
+	panel.gui_input.connect(_on_enhance_card_input.bind(item))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(row)
-	var icon_host := _make_selectable_list_icon(
-		str(weapon.weapon_id), "weapon", rarity, selected
-	)
+	var icon_host := _make_selectable_list_icon(item_id, category, rarity, selected)
 	row.add_child(icon_host)
 	var name_lbl := Label.new()
-	name_lbl.text = _EquipmentEnhancer.get_display_name(weapon)
+	name_lbl.text = _EquipmentEnhancer.get_enhance_display_name(item)
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var name_color: Color = BlacksmithUiHelper.rarity_name_color(rarity)
@@ -356,9 +363,9 @@ func _apply_list_name_label(lbl: Label, color: Color) -> void:
 		font_size = 16
 	UiTypography.apply_body(lbl, font_size, color)
 
-func _on_enhance_card_input(event: InputEvent, weapon: Resource) -> void:
+func _on_enhance_card_input(event: InputEvent, item: Resource) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		_selected_weapon = weapon
+		_selected_enhance_item = item
 		_refresh_all()
 
 func _rebuild_detail() -> void:
@@ -494,32 +501,29 @@ func _rebuild_produce_detail() -> void:
 	_craft_button.disabled = not can_craft
 
 func _rebuild_enhance_detail() -> void:
-	if _selected_weapon == null:
-		_set_detail_empty("武器を選択してください")
+	if _selected_enhance_item == null:
+		_set_detail_empty(_enhance_select_message())
 		return
-	var weapon: Resource = _selected_weapon
-	var level: int = _EquipmentEnhancer.get_enhance_level(weapon)
-	var current_atk: int = _EquipmentEnhancer.get_effective_attack(weapon)
-	var weapon_data: Resource = DataRegistry.get_weapon_data(str(weapon.weapon_id))
-	var rarity: int = int(weapon_data.rarity) if weapon_data != null else 0
-	_update_hero_icon(str(weapon.weapon_id), "weapon", rarity)
+	var item: Resource = _selected_enhance_item
+	var category: String = _category
+	var level: int = _EquipmentEnhancer.get_enhance_level(item)
+	var item_id: String = _enhance_item_id(item, category)
+	var rarity: int = _enhance_item_rarity(item, category)
+	_update_hero_icon(item_id, category, rarity)
 	_rarity_title_label.visible = false
 	_rarity_title_label.text = ""
 	var rarity_col: Color = BlacksmithUiHelper.rarity_name_color(rarity)
-	_title_label.text = _EquipmentEnhancer.get_display_name(weapon)
+	_title_label.text = _EquipmentEnhancer.get_enhance_display_name(item)
 	_title_label.add_theme_color_override("font_color", rarity_col)
 	_subtitle_label.text = "炉研ぎ +%d / +%d" % [level, _EquipmentEnhancer.MAX_FORGE_LEVEL]
-	if level >= _EquipmentEnhancer.MAX_FORGE_LEVEL:
-		_add_stat_row("攻撃力", "%d（上限）" % current_atk, "atk")
-	else:
-		_add_stat_row("攻撃力", "%d → %d" % [current_atk, current_atk + 1], "atk")
-	if _is_weapon_equipped(weapon):
+	_populate_enhance_stat_rows(item, category, level)
+	if _is_item_equipped(item):
 		_add_stat_row("状態", "装備中")
 	if level >= _EquipmentEnhancer.MAX_FORGE_LEVEL:
 		_cost_panel.visible = false
 		_craft_button.visible = false
 		return
-	var check: Dictionary = _EquipmentEnhancer.can_enhance(weapon)
+	var check: Dictionary = _EquipmentEnhancer.can_enhance(item)
 	var next_level: int = int(check.get("next_level", level + 1))
 	var gold_cost: int = int(check.get("gold_cost", _EquipmentEnhancer.get_gold_cost(next_level)))
 	var materials: Dictionary = check.get(
@@ -532,10 +536,67 @@ func _rebuild_enhance_detail() -> void:
 		_reason_label.text = str(check.get("reason", ""))
 		_reason_label.visible = not _reason_label.text.is_empty()
 
+func _enhance_select_message() -> String:
+	match _category:
+		"armor":
+			return "防具を選択してください"
+		"accessory":
+			return "装飾品を選択してください"
+		_:
+			return "武器を選択してください"
+
+func _populate_enhance_stat_rows(item: Resource, category: String, level: int) -> void:
+	var at_max: bool = level >= _EquipmentEnhancer.MAX_FORGE_LEVEL
+	match category:
+		"weapon":
+			var current_atk: int = _EquipmentEnhancer.get_effective_attack(item)
+			if at_max:
+				_add_stat_row("攻撃力", "%d（上限）" % current_atk, "atk")
+			else:
+				_add_stat_row("攻撃力", "%d → %d" % [current_atk, current_atk + 1], "atk")
+		"armor":
+			var current_def: int = _EquipmentEnhancer.effective_armor_defense(item)
+			if at_max:
+				_add_stat_row("物理防御", "%d（上限）" % current_def, "def")
+			else:
+				_add_stat_row("物理防御", "%d → %d" % [current_def, current_def + 1], "def")
+			var current_hp: int = _EquipmentEnhancer.effective_armor_hp(item)
+			if current_hp > 0:
+				if at_max:
+					_add_stat_row("HP", "+%d（上限）" % current_hp, "hp")
+				else:
+					_add_stat_row("HP", "+%d → +%d" % [current_hp, current_hp + 1], "hp")
+		"accessory":
+			var acc_data: Resource = DataRegistry.get_accessory_data(str(item.accessory_id))
+			if int(item.hp_bonus) > 0 or (acc_data != null and int(acc_data.hp_bonus) > 0):
+				var hp_val: int = _EquipmentEnhancer.effective_accessory_int_bonus(
+					item, "hp_bonus", acc_data
+				)
+				if at_max:
+					_add_stat_row("HP", "+%d（上限）" % hp_val, "hp")
+				else:
+					_add_stat_row("HP", "+%d → +%d" % [hp_val, hp_val + 1], "hp")
+			if int(item.attack_bonus) > 0 or (acc_data != null and int(acc_data.attack_bonus) > 0):
+				var atk_val: int = _EquipmentEnhancer.effective_accessory_int_bonus(
+					item, "attack_bonus", acc_data
+				)
+				if at_max:
+					_add_stat_row("攻撃力", "+%d（上限）" % atk_val, "atk")
+				else:
+					_add_stat_row("攻撃力", "+%d → +%d" % [atk_val, atk_val + 1], "atk")
+			if int(item.defense_bonus) > 0 or (acc_data != null and int(acc_data.defense_bonus) > 0):
+				var def_val: int = _EquipmentEnhancer.effective_accessory_int_bonus(
+					item, "defense_bonus", acc_data
+				)
+				if at_max:
+					_add_stat_row("物理防御", "+%d（上限）" % def_val, "def")
+				else:
+					_add_stat_row("物理防御", "+%d → +%d" % [def_val, def_val + 1], "def")
+
 func _on_craft_button_pressed() -> void:
 	if _mode == "produce" and _selected_craft != null:
 		_on_craft_pressed(_selected_craft)
-	elif _mode == "enhance" and _selected_weapon != null:
+	elif _mode == "enhance" and _selected_enhance_item != null:
 		_on_enhance_pressed()
 
 func _rebuild_craftable_strip() -> void:
@@ -649,24 +710,58 @@ func _make_material_req_cell(mat_id: String, needed: int) -> Control:
 	return panel
 
 func _sorted_enhance_candidates() -> Array:
-	var weapons: Array = []
-	for item in GameState.inventory:
-		if item == null or not bool(item.is_appraised):
-			continue
-		if str(item.weapon_id).is_empty():
-			continue
-		weapons.append(item)
-	weapons.sort_custom(func(a: Resource, b: Resource) -> bool:
-		var a_eq: bool = _is_weapon_equipped(a)
-		var b_eq: bool = _is_weapon_equipped(b)
+	var items: Array = []
+	match _category:
+		"armor":
+			for item in GameState.armor_inventory:
+				if item == null or not bool(item.is_appraised):
+					continue
+				if str(item.armor_id).is_empty():
+					continue
+				items.append(item)
+		"accessory":
+			for item in GameState.accessory_inventory:
+				if item == null or not bool(item.is_appraised):
+					continue
+				if str(item.accessory_id).is_empty():
+					continue
+				items.append(item)
+		_:
+			for item in GameState.inventory:
+				if item == null or not bool(item.is_appraised):
+					continue
+				if str(item.weapon_id).is_empty():
+					continue
+				items.append(item)
+	items.sort_custom(func(a: Resource, b: Resource) -> bool:
+		var a_eq: bool = _is_item_equipped(a)
+		var b_eq: bool = _is_item_equipped(b)
 		if a_eq != b_eq:
 			return a_eq
-		return _EquipmentEnhancer.get_display_name(a) < _EquipmentEnhancer.get_display_name(b)
+		return _EquipmentEnhancer.get_enhance_display_name(a) < _EquipmentEnhancer.get_enhance_display_name(b)
 	)
-	return weapons
+	return items
 
-func _is_weapon_equipped(weapon: Resource) -> bool:
-	return GameState.find_item_equipped_member_index(weapon) >= 0
+func _enhance_item_id(item: Resource, category: String) -> String:
+	match category:
+		"armor":
+			return str(item.armor_id)
+		"accessory":
+			return str(item.accessory_id)
+		_:
+			return str(item.weapon_id)
+
+func _enhance_item_rarity(item: Resource, category: String) -> int:
+	match category:
+		"armor":
+			return _EquipmentEnhancer.armor_rarity(item)
+		"accessory":
+			return _EquipmentEnhancer.accessory_rarity(item)
+		_:
+			return _EquipmentEnhancer.weapon_rarity(item)
+
+func _is_item_equipped(item: Resource) -> bool:
+	return GameState.find_item_equipped_member_index(item) >= 0
 
 func _craft_button_label(craft: Resource, can_craft: bool) -> String:
 	if can_craft:
@@ -699,21 +794,42 @@ func _on_craft_pressed(craft: Resource) -> void:
 	_play_forge_success_feedback(FORGE_FLASH_CRAFT)
 
 func _on_enhance_pressed() -> void:
-	if _selected_weapon == null:
+	if _selected_enhance_item == null:
 		return
-	var result: Dictionary = _EquipmentEnhancer.enhance_weapon(_selected_weapon)
+	var result: Dictionary = _EquipmentEnhancer.enhance_item(_selected_enhance_item)
 	if not bool(result.get("ok", false)):
 		_log_craft(str(result.get("reason", "炉研ぎに失敗しました")))
 		_refresh_all()
 		return
 	SaveManager.save_game()
-	var msg: String = "炉研ぎ成功: %s（ATK %d）" % [
+	var msg: String = "炉研ぎ成功: %s（%s）" % [
 		str(result.get("display_name", "")),
-		int(result.get("effective_attack", 0)),
+		_enhance_success_stat_text(result),
 	]
 	_log_craft(msg)
 	_refresh_all()
 	_play_forge_success_feedback(FORGE_FLASH_ENHANCE)
+
+func _enhance_success_stat_text(result: Dictionary) -> String:
+	var category: String = str(result.get("category", ""))
+	match category:
+		"armor":
+			var parts: PackedStringArray = ["DEF %d" % int(result.get("effective_defense", 0))]
+			var hp: int = int(result.get("effective_hp", 0))
+			if hp > 0:
+				parts.append("HP +%d" % hp)
+			return ", ".join(parts)
+		"accessory":
+			var parts: PackedStringArray = []
+			if result.has("effective_attack"):
+				parts.append("ATK +%d" % int(result.get("effective_attack", 0)))
+			if result.has("effective_defense"):
+				parts.append("DEF +%d" % int(result.get("effective_defense", 0)))
+			if result.has("effective_hp"):
+				parts.append("HP +%d" % int(result.get("effective_hp", 0)))
+			return ", ".join(parts) if not parts.is_empty() else "強化完了"
+		_:
+			return "ATK %d" % int(result.get("effective_attack", 0))
 
 func _auto_appraise(instance: Resource, category: String, rarity: int) -> void:
 	instance.is_appraised = true

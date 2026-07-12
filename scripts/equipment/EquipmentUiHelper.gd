@@ -43,7 +43,7 @@ static func rarity_stars_text(rarity: int) -> String:
 	return out
 
 static func enhance_badge(item: Resource, category: String) -> String:
-	if category != "weapon" or item == null:
+	if item == null or category not in ["weapon", "armor", "accessory"]:
 		return ""
 	var level: int = EquipmentEnhancer.get_enhance_level(item)
 	if level <= 0:
