@@ -268,17 +268,8 @@ func _update_player_card() -> void:
 	var title_id: String = _CommanderProfile.get_equipped_title()
 	if not title_id.is_empty():
 		display_name = "%s（%s）" % [display_name, _CommanderTitles.get_label(title_id)]
-	_label_player_name.text = display_name
-	var progress: Dictionary = _CommanderProfile.progress_to_next_rank()
-	var next_rank: String = str(progress.get("next_rank", ""))
-	if next_rank.is_empty():
-		_label_player_level.text = "%s 最大" % _CommanderProfile.rank_display(false)
-	else:
-		_label_player_level.text = "%s → %s級  %s" % [
-			_CommanderProfile.rank_display(false),
-			next_rank,
-			str(progress.get("label", "")),
-		]
+	_label_player_name.text = "%s: %s" % [display_name, _CommanderProfile.rank_display(false)]
+	_label_player_level.visible = false
 	_portrait_art.texture = null
 	_portrait_art.visible = false
 	_portrait_glyph.visible = true

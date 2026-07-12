@@ -156,7 +156,7 @@ theme_override_constants/separation = 0
 
 [node name="LabelPlayerName" type="Label" parent="HubView/TopBar/TopBarRow/PlayerCard/PlayerRow/PlayerInfo"]
 layout_mode = 2
-text = "指揮官"
+text = "無名の隊長: D級"
 theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
 theme_override_font_sizes/font_size = 14
 
