@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_mirror_shell_glint"
+display_name = "鏡光扇"
+description = "鏡面の甲殻で光を扇状に反射し、獲物の影と本物の区別をつかせない。"
+skill_type = "enemy"
+target_type = "party"
+power_multiplier = 0.42
+cooldown = 5.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String]([])
+element = ""
+apply_status_id = "mark"
+apply_status_chance = 0.35
+apply_status_id2 = "poison"
+apply_status_chance2 = 0.18

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_moss_shell_resin_harden"
+display_name = "苔殻硬化"
+description = "苔と樹脂を重ね、外殻を一時的に硬化して反撃態勢を取る。"
+skill_type = "enemy"
+target_type = "self"
+power_multiplier = 1.0
+cooldown = 7.0
+trigger_type = "cooldown"
+effect_type = "buff"
+tags = Array[String]([])
+element = ""
+apply_status_id = "enrage"
+apply_status_chance = 1.0

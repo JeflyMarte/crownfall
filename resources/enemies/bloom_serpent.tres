@@ -32,5 +32,5 @@ codex_danger = 2
 codex_habitat = "囁きの森・花蔓帯"
 codex_research_note = "蛇を祖先とし、鱗が花弁状に変化した大蛇。開花に擬態して獲物を誘い、牙には麻痺性の植物毒を宿す。花期には鱗の彩度が上がる。"
 codex_materials = Array[String]([])
-skill_ids = Array[String]([])
-skill_use_chance = 0.0
+skill_ids = Array[String](["enemy_bloom_serpent_venom_fang"])
+skill_use_chance = 0.26

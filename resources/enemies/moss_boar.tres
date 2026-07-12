@@ -32,5 +32,5 @@ codex_danger = 2
 codex_habitat = "囁きの森・林床"
 codex_research_note = "猪を祖先とし、背に厚い苔と地衣を共生させた森猪。苔層は外傷と日射を防ぐ生きた鎧であり、群れで直進する突進は倒木ごと下生えを砕く。"
 codex_materials = Array[String]([])
-skill_ids = Array[String]([])
-skill_use_chance = 0.0
+skill_ids = Array[String](["enemy_moss_boar_gore_rush"])
+skill_use_chance = 0.24

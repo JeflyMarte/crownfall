@@ -32,5 +32,5 @@ codex_danger = 2
 codex_habitat = "囁きの森・倒木帯"
 codex_research_note = "甲虫を祖先とし、外殻表面に苔を育てて擬態する硬殻種。静止時は苔むした岩と見分けがつかない。殻は刃を滑らせるが、乾燥と炎に極端に弱い。"
 codex_materials = Array[String]([])
-skill_ids = Array[String]([])
-skill_use_chance = 0.0
+skill_ids = Array[String](["enemy_moss_shell_resin_harden"])
+skill_use_chance = 0.22

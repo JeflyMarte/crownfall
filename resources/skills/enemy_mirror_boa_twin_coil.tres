@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_mirror_boa_twin_coil"
+display_name = "二重蛇縛"
+description = "鏡鱗が残像を生み、本体と影が同時に後列を絞め上げる。"
+skill_type = "enemy"
+target_type = "party_back"
+power_multiplier = 0.68
+cooldown = 6.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["aoe"])
+element = "dark"
+apply_status_id = "mark"
+apply_status_chance = 0.35
+apply_status_id2 = "poison"
+apply_status_chance2 = 0.22
