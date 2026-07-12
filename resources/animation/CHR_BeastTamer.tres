@@ -1,14 +1,14 @@
 [gd_resource type="SpriteFrames" load_steps=37 format=3]
 
-[ext_resource type="Texture2D" path="res://assets/characters/beast_tamer/idle_0.png" id="1"]
-[ext_resource type="Texture2D" path="res://assets/characters/beast_tamer/idle_1.png" id="2"]
-[ext_resource type="Texture2D" path="res://assets/characters/beast_tamer/idle_2.png" id="3"]
-[ext_resource type="Texture2D" path="res://assets/characters/beast_tamer/idle_3.png" id="4"]
-[ext_resource type="Texture2D" path="res://assets/characters/beast_tamer/idle_4.png" id="5"]
-[ext_resource type="Texture2D" path="res://assets/characters/beast_tamer/idle_5.png" id="6"]
-[ext_resource type="Texture2D" path="res://assets/characters/beast_tamer/idle_6.png" id="7"]
-[ext_resource type="Texture2D" path="res://assets/characters/beast_tamer/idle_7.png" id="8"]
-[ext_resource type="Texture2D" path="res://assets/characters/beast_tamer/idle_8.png" id="9"]
+[ext_resource type="Texture2D" path="res://assets/characters/beast_tamer/walk_0.png" id="1"]
+[ext_resource type="Texture2D" path="res://assets/characters/beast_tamer/walk_1.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/characters/beast_tamer/walk_2.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/characters/beast_tamer/walk_3.png" id="4"]
+[ext_resource type="Texture2D" path="res://assets/characters/beast_tamer/walk_4.png" id="5"]
+[ext_resource type="Texture2D" path="res://assets/characters/beast_tamer/walk_5.png" id="6"]
+[ext_resource type="Texture2D" path="res://assets/characters/beast_tamer/walk_6.png" id="7"]
+[ext_resource type="Texture2D" path="res://assets/characters/beast_tamer/walk_7.png" id="8"]
+[ext_resource type="Texture2D" path="res://assets/characters/beast_tamer/walk_8.png" id="9"]
 [ext_resource type="Texture2D" path="res://assets/characters/beast_tamer/attack_0.png" id="10"]
 [ext_resource type="Texture2D" path="res://assets/characters/beast_tamer/attack_1.png" id="11"]
 [ext_resource type="Texture2D" path="res://assets/characters/beast_tamer/attack_2.png" id="12"]
@@ -59,3 +59,4 @@ animations = [{
 "name": &"death",
 "speed": 8.0
 }]
+

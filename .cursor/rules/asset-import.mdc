@@ -1,0 +1,38 @@
+---
+description: Desktop アセット取込の誤適用防止（Crownfall）
+globs: ["assets/**", "tools/import_*.py", "tools/generate_*.py", "scripts/ui/IconPaths.gd"]
+alwaysApply: false
+---
+
+# アセット取込（Desktop → res://）
+
+## 原則
+
+- ゲーム参照は **`res://assets/...` のみ**。`/Users/.../Desktop` をコードや `.tres` に書かない
+- 取込後はプロジェクト内にコピー。別 Mac 反映は **commit / push** 前提
+- 差替後は Godot **完全終了→再起動**（import キャッシュ）
+
+## 適用先の取り違え禁止
+
+| 依頼の意図 | 正しい先 | 間違った先 |
+|---|---|---|
+| 剣・弓・防具の装備見た目 | `ICO_WPN_*` / `ICO_ARM_*`（`weapon_type` で一括） | `ICO_Equip_Cat_*` / `ICO_Forge_Cat_*` |
+| スキル絵 | `assets/ui/skills/`（base / 必殺） | カテゴリタブ・無関係 PNG |
+| レリック | `assets/ui/relics/ICO_REL_*` | 装備 Cat やパッシブ |
+
+## データ突合
+
+- 武器 ID: tres の **`id`**（`weapon_id` ではない）
+- まとめ適用: `weapon_type`（`greatsword` / `bow` 等）
+- パス解決: `IconPaths.gd` を正とする
+
+## 透過・サイズ
+
+- AI 生成の黒／暗い板背景はキーイングしてから配置。甘いと再作業になる
+- セル全面絵は `ICON_FRAME_MARGIN_PX=18` 前提。余白を勝手に詰めない
+- chrome 差替後はピクセルサイズを確認（異常巨大キャッシュ → 鍛冶 Metal クラッシュの既往）
+
+## 参照
+
+- 既往一覧: `known-pitfalls.mdc`
+- 取込スクリプト例: `tools/import_job_chr_sprites.py`

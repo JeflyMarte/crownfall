@@ -19,42 +19,25 @@ OUT = ROOT / "assets/ui/forge"
 
 # width, height — tuned for 720×1280 viewport 9-slice
 TARGETS: dict[str, tuple[int, int]] = {
-    "UI_Forge_Btn_Produce.png": (600, 100),
-    "UI_Forge_Btn_Secondary.png": (480, 72),
-    "UI_Forge_ListCard_Normal.png": (720, 168),
-    "UI_Forge_ListCard_Selected.png": (720, 168),
-    "UI_Forge_Tab_Active.png": (220, 88),
-    "UI_Forge_Tab_Inactive.png": (220, 88),
-    "UI_Forge_Panel_Left.png": (400, 720),
-    "UI_Forge_Panel_Center.png": (520, 720),
-    "UI_Forge_Panel_Right.png": (360, 720),
-    "UI_Forge_HeroGlow.png": (800, 800),
-    "UI_Forge_SuccessRing.png": (320, 320),
-    "UI_Forge_SectionRule.png": (680, 24),
+	"UI_Forge_Btn_Produce.png": (600, 100),
+	"UI_Forge_ListCard_Normal.png": (720, 168),
+	"UI_Forge_ListCard_Selected.png": (720, 168),
+	"UI_Forge_Tab_Active.png": (220, 88),
+	"UI_Forge_HeroGlow.png": (800, 800),
 }
 
 # AI 生成原画は白背景が焼き込まれるため、エッジからの flood-fill で透過化する。
 STRIP_TRANSPARENCY = {
-    "UI_Forge_Btn_Produce.png",
-    "UI_Forge_Btn_Secondary.png",
-    "UI_Forge_ListCard_Normal.png",
-    "UI_Forge_ListCard_Selected.png",
-    "UI_Forge_Tab_Active.png",
-    "UI_Forge_Tab_Inactive.png",
-    "UI_Forge_Panel_Left.png",
-    "UI_Forge_Panel_Center.png",
-    "UI_Forge_Panel_Right.png",
-    "UI_Forge_CraftChip_Normal.png",
-    "UI_Forge_CraftChip_Selected.png",
-    "UI_Forge_ItemCell_Normal.png",
-    "UI_Forge_ItemCell_Selected.png",
-    "UI_Forge_ItemCell_N.png",
-    "UI_Forge_ItemCell_R.png",
-    "UI_Forge_ItemCell_SR.png",
-    "UI_Forge_ItemCell_SSR.png",
-    "UI_Forge_MaterialCell.png",
-    "UI_Forge_HeroGlow.png",
-    "UI_Forge_SuccessRing.png",
+	"UI_Forge_Btn_Produce.png",
+	"UI_Forge_ListCard_Normal.png",
+	"UI_Forge_ListCard_Selected.png",
+	"UI_Forge_Tab_Active.png",
+	"UI_Forge_CraftChip_Normal.png",
+	"UI_Forge_CraftChip_Selected.png",
+	"UI_Forge_ItemCell_Normal.png",
+	"UI_Forge_ItemCell_Selected.png",
+	"UI_Forge_MaterialCell.png",
+	"UI_Forge_HeroGlow.png",
 }
 
 

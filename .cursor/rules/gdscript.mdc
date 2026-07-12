@@ -16,6 +16,27 @@ Crownfall（2D見下ろし型・自動探索ハクスラRPG）向け。Godot 4.6
 - `KinematicBody2D` / `yield(get_tree()...)` 等 Godot 3 API 禁止
 - シグナル接続は `signal_name.connect(callable)`（文字列 connect 禁止）
 - 型注釈を付ける（`: int`, `: String`, `-> void` 等）
+- **Python の `for`/`else`・`while`/`else` は禁止**（GDScript 非対応。`Parser Error: Expected statement, found "else"` の原因）
+
+```gdscript
+# ❌ BAD — Python 互換に見えてパース不能
+while cond:
+	for x in items:
+		if ok(x):
+			break
+	else:
+		break
+
+# ✅ GOOD — フラグで明示
+while cond:
+	var added := false
+	for x in items:
+		if ok(x):
+			added = true
+			break
+	if not added:
+		break
+```
 
 ## 命名
 

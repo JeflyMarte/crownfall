@@ -4,6 +4,10 @@
 
 ## Last Update
 
+2026-07-12（**P3-ART-CHR-002**: メイン5職ダンジョンドット差替 — walk/attack/hurt/death を `assets/characters/{job}/` へ。SpriteFrames `idle`＝歩行。Idle PNG は別用途保管。`import_job_chr_sprites.py`）
+
+2026-07-12（**P3-CHR-OMIT-001**: メイン5以外一旦オミット — batch7 Warrior/Guardian/Scout を `_omitted/` 退避・`GACHA_HELPERS_PLAYABLE=false` で助っ人召喚/ロスター除外。データ残置）
+
 2026-07-11（**P3-CMD-001**: 指揮官・調査許可 D〜S・SP進捗・隊長台帳（C級解放）・Save v5 通算統計・TopBar 指揮官表示。unit 313/314 PASS・既存 EquipmentCatalog パース1件は非起因）
 
 2026-07-11（**P3-EVT-WEEK-002**: 6週ローテ「今週の野外」— 経済週3種維持+図鑑/注目Biome/ELITE素材。`EventWeekRotation` SSOT・ホームバナー・PERIODIC_EVENTS 再有効化）
@@ -283,8 +287,10 @@
 | 順 | ID | 内容 | レーン | 状態 |
 |---|---|---|---|---|
 | 0 | P3-ALPHA-003 | 実機チェックリスト v2.1（GO/NO-GO） | オーナー（可能時） | Defer |
-| — | P3-ART-002〜004 / P3-A-ENV-001 | 5職ドット / env / 助っ人本番立ち絵 | オーナー→Impl | **並行** |
-| — | P3-GACHA-005 | ガチャ★1〜4・パッシブ/初期ステ差別化 | Impl | ✅ **Closeout** |
+| — | P3-ART-002〜004 / P3-A-ENV-001 | 5職ドット / env / 助っ人本番立ち絵 | オーナー→Impl | ドット✅（P3-ART-CHR-002）・env/助っ人は並行（助っ人 OMIT 中） |
+| — | P3-ART-CHR-002 | メイン5職ダンジョンドット差替 | HQ | ✅ **Closeout** |
+| — | P3-CHR-OMIT-001 | メイン5以外オミット（batch7退避＋ガチャ助っ人） | HQ | ✅ **Closeout** |
+| — | P3-GACHA-005 | ガチャ★1〜4・パッシブ/初期ステ差別化 | Impl | ✅ **Closeout**（プレイは OMIT 中） |
 | — | P3-GACHA-004 | ガチャ助っ人+2 | Impl | ✅ **Closeout** |
 | — | **P3-SKILL-001〜006** | 基本5職 Lv50 習得10 + 武器スキル | Impl | ✅ **Closeout** |
 | — | P3-BETA-001 設計 | 2本目DG 具体（Biome/敵/イベント） | HQ+オーナー | ✅ **Closeout（P3-D154）** |

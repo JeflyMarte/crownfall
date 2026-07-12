@@ -52,6 +52,10 @@ var _active_tab_index: int = GachaUiTokens.ACTIVE_TAB_INDEX
 var _featured_helper_id: String = ""
 
 func _ready() -> void:
+	if not Constants.are_gacha_helpers_playable():
+		# オミット中は拠点へ戻す（ナビ直リンク等の保険）
+		SceneRouter.change_scene(HOME_SCENE)
+		return
 	_setup_gacha_chrome()
 	_setup_tabs()
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.GACHA)

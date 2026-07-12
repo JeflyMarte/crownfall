@@ -292,11 +292,11 @@ layout_mode = 2
 theme_override_constants/separation = 10
 
 [node name="HeroPanel" type="CenterContainer" parent="MainSplit/DetailPanel/DetailVBox"]
-custom_minimum_size = Vector2(0, 220)
+custom_minimum_size = Vector2(0, 260)
 layout_mode = 2
 
 [node name="HeroStack" type="Control" parent="MainSplit/DetailPanel/DetailVBox/HeroPanel"]
-custom_minimum_size = Vector2(260, 220)
+custom_minimum_size = Vector2(260, 260)
 layout_mode = 2
 
 [node name="HeroPedestal" type="TextureRect" parent="MainSplit/DetailPanel/DetailVBox/HeroPanel/HeroStack"]
@@ -323,15 +323,15 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -76.0
-offset_top = -76.0
-offset_right = 76.0
-offset_bottom = 76.0
+offset_left = -100.0
+offset_top = -100.0
+offset_right = 100.0
+offset_bottom = 100.0
 grow_horizontal = 2
 grow_vertical = 2
 
 [node name="HeroIconSlot" type="Control" parent="MainSplit/DetailPanel/DetailVBox/HeroPanel/HeroStack/HeroWeaponPivot"]
-custom_minimum_size = Vector2(152, 152)
+custom_minimum_size = Vector2(200, 200)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -380,18 +380,7 @@ layout_mode = 2
 
 [node name="CostRoot" type="Control" parent="MainSplit/DetailPanel/DetailVBox/CostPanel"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 132)
-
-[node name="AnvilBg" type="TextureRect" parent="MainSplit/DetailPanel/DetailVBox/CostPanel/CostRoot"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 6
+custom_minimum_size = Vector2(0, 148)
 
 [node name="CostVBox" type="VBoxContainer" parent="MainSplit/DetailPanel/DetailVBox/CostPanel/CostRoot"]
 layout_mode = 1
@@ -416,6 +405,10 @@ text = "必要素材"
 layout_mode = 2
 theme_override_constants/separation = 10
 
+[node name="GoldGap" type="Control" parent="MainSplit/DetailPanel/DetailVBox/CostPanel/CostRoot/CostVBox"]
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+
 [node name="GoldRow" type="HBoxContainer" parent="MainSplit/DetailPanel/DetailVBox/CostPanel/CostRoot/CostVBox"]
 layout_mode = 2
 theme_override_constants/separation = 6
@@ -434,15 +427,15 @@ size_flags_vertical = 4
 theme_override_font_sizes/font_size = 22
 
 [node name="CostButtonGap" type="Control" parent="MainSplit/DetailPanel/DetailVBox"]
-custom_minimum_size = Vector2(0, 28)
+custom_minimum_size = Vector2(0, 12)
 layout_mode = 2
 
 [node name="CraftButton" type="Button" parent="MainSplit/DetailPanel/DetailVBox"]
-custom_minimum_size = Vector2(0, 52)
+custom_minimum_size = Vector2(0, 76)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.98, 0.92, 0.72, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 28
 theme_override_styles/normal = SubResource("SB_PrimaryBtn")
 text = "生産する"
 

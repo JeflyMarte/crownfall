@@ -63,7 +63,10 @@ const SLOT_GLYPHS: Dictionary = {"weapon": "⚔", "armor": "🛡", "accessory": 
 @onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
 @onready var _btn_member_prev: Button = $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/BtnMemberPrev
 @onready var _btn_member_next: Button = $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/BtnMemberNext
+@onready var _portrait_box: VBoxContainer = $VBoxContainer/CharacterCard/CardRow/PortraitBox
+@onready var _portrait_stack: Control = $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/PortraitStack
 @onready var _pedestal_bg: TextureRect = $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/PortraitStack/PedestalBg
+@onready var _portrait_panel: PanelContainer = $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/PortraitStack/Portrait
 @onready var _member_row: HBoxContainer = $VBoxContainer/MemberSelectRow
 @onready var _label_stars: Label = $VBoxContainer/CharacterCard/CardRow/PortraitBox/LabelStars
 @onready var _portrait_art: TextureRect = $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/PortraitStack/Portrait/PortraitArt
@@ -154,6 +157,9 @@ var _inv_long_press_fired: bool = false
 var _inv_press_timer: SceneTreeTimer = null
 var _inv_press_action: Callable = Callable()
 var _detail_pinned: bool = false
+var _portrait_idle_textures: Array[Texture2D] = []
+var _portrait_idle_frame: int = 0
+var _portrait_idle_accum: float = 0.0
 
 func _ready() -> void:
 	$Header/HeaderRow/LabelTitle.text = ""
@@ -242,7 +248,6 @@ func _setup_equipment_chrome() -> void:
 	)
 	_evolution_row.visible = false
 	_btn_stat_detail.visible = false
-	_label_stars.visible = false
 	_slots_panel.custom_minimum_size.x = EquipmentUiTokens.SLOT_PANEL_MIN_W
 	_slots_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_equip_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -354,12 +359,76 @@ func _apply_panel_styles() -> void:
 	_character_card.add_theme_stylebox_override("panel", EquipmentUiTokens.char_card_style())
 
 func _decorate_portrait() -> void:
-	var p := $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/PortraitStack/Portrait as PanelContainer
-	if p != null:
-		p.add_theme_stylebox_override("panel", _framed_box(COLOR_GOLD, 2, Color(0.06, 0.05, 0.04, 0.85)))
-	_portrait_art.custom_minimum_size = Vector2(EquipmentUiTokens.PORTRAIT_PX, EquipmentUiTokens.PORTRAIT_PX)
+	# 台座の上に正面 Idle を大きく載せる（モック構図）。
+	_portrait_stack.custom_minimum_size = EquipmentUiTokens.PORTRAIT_STACK_SIZE
+	_pedestal_bg.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	_pedestal_bg.offset_left = 0.0
+	_pedestal_bg.offset_right = 0.0
+	_pedestal_bg.offset_top = -float(EquipmentUiTokens.PEDESTAL_HEIGHT_PX)
+	_pedestal_bg.offset_bottom = 0.0
+	_pedestal_bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_pedestal_bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_pedestal_bg.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	_pedestal_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_pedestal_bg.z_index = 0
+
+	var empty := StyleBoxEmpty.new()
+	_portrait_panel.add_theme_stylebox_override("panel", empty)
+	var char_px: float = float(EquipmentUiTokens.PORTRAIT_PX)
+	var overlap: float = float(EquipmentUiTokens.PORTRAIT_PEDESTAL_OVERLAP_PX)
+	var pedestal_h: float = float(EquipmentUiTokens.PEDESTAL_HEIGHT_PX)
+	_portrait_panel.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	_portrait_panel.offset_left = -char_px * 0.5
+	_portrait_panel.offset_right = char_px * 0.5
+	_portrait_panel.offset_bottom = -(pedestal_h - overlap)
+	_portrait_panel.offset_top = _portrait_panel.offset_bottom - char_px
+	_portrait_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_portrait_panel.z_index = 1
+
+	_portrait_art.custom_minimum_size = Vector2(char_px, char_px)
+	_portrait_art.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_portrait_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_portrait_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_portrait_glyph.add_theme_font_size_override("font_size", 36)
 	_portrait_glyph.add_theme_color_override("font_color", COLOR_GOLD)
+
+	# 星は台座の下（PortraitNavRow の後）へ。
+	if _label_stars.get_parent() == _portrait_box:
+		_portrait_box.move_child(_label_stars, _portrait_box.get_child_count() - 1)
+	_label_stars.visible = true
+	_label_stars.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_display(_label_stars, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+
+func _process(delta: float) -> void:
+	if _portrait_idle_textures.size() <= 1:
+		return
+	_portrait_idle_accum += delta
+	var frame_dur: float = 1.0 / ChrIdlePortrait.IDLE_FPS
+	if _portrait_idle_accum < frame_dur:
+		return
+	_portrait_idle_accum = 0.0
+	_portrait_idle_frame = (_portrait_idle_frame + 1) % _portrait_idle_textures.size()
+	_portrait_art.texture = _portrait_idle_textures[_portrait_idle_frame]
+
+func _set_character_portrait(member: Resource) -> void:
+	_portrait_idle_textures.clear()
+	_portrait_idle_frame = 0
+	_portrait_idle_accum = 0.0
+	if member == null:
+		_portrait_art.texture = null
+		_portrait_glyph.text = "?"
+		return
+	var job_id: String = str(member.job_id)
+	var idle_texs: Array[Texture2D] = ChrIdlePortrait.load_idle_textures(job_id)
+	if not idle_texs.is_empty():
+		_portrait_idle_textures = idle_texs
+		_portrait_art.texture = idle_texs[0]
+		_portrait_glyph.text = ""
+		return
+	# Idle 未配置時は従来バスト／立ち絵へフォールバック
+	var chr_tex: Texture2D = RosterUiHelper.get_member_portrait_texture(member)
+	_portrait_art.texture = chr_tex
+	_portrait_glyph.text = "" if chr_tex != null else member.display_name.substr(0, 1)
 
 func _on_category_selected(filter_id: String) -> void:
 	_inventory_filter = filter_id
@@ -451,7 +520,8 @@ func _update_character_card() -> void:
 		_label_level.text = ""
 		_label_job.text = ""
 		_job_icon.texture = null
-		_portrait_glyph.text = "?"
+		_set_character_portrait(null)
+		_label_stars.text = ""
 		_evolution_row.visible = false
 		return
 	_label_name.text = member.display_name
@@ -464,9 +534,9 @@ func _update_character_card() -> void:
 	_label_job.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_label_job.max_lines_visible = 1
 	_job_icon.texture = IconPaths.get_icon_texture(str(member.job_id), "chr")
-	var chr_tex: Texture2D = RosterUiHelper.get_member_portrait_texture(member)
-	_portrait_art.texture = chr_tex
-	_portrait_glyph.text = "" if chr_tex != null else member.display_name.substr(0, 1)
+	_set_character_portrait(member)
+	_label_stars.text = EquipmentUiHelper.rarity_stars_text(int(member.rarity))
+	_label_stars.visible = true
 	var party_idx: int = _party_index_for(member)
 	var stats: Dictionary = _compute_member_stats(party_idx if party_idx >= 0 else -1, member)
 	_populate_stat_grid(stats)

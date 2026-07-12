@@ -175,7 +175,7 @@ Task 明示指示がない限り作成しない:
 | `scripts/core/RandomUtil.gd` | 未作成 |
 | `scenes/dungeon/RoomNode.tscn` 等 | 未作成 |
 | `scenes/ui/*.tscn` | 未作成 |
-| `resources/animation/CHR_*.tres` | 冒険者スプライト — P3-A-008（CHR PNG 未納品） |
+| `resources/animation/CHR_*.tres` | 冒険者スプライト（メイン5職・P3-ART-CHR-002。`idle`＝walk。取込=`tools/import_job_chr_sprites.py`） |
 | `resources/animation/BossGravekeeper.tres` | 白骸墓地ボス — P3-A 後半（PNG 未納品） |
 
 ---
@@ -249,7 +249,7 @@ Task 明示指示がない限り作成しない:
 | `assets/ui/forge/` | 鍛冶屋 chrome（stat/cat/tab/anvil/hero glow 等 14枚・`ForgeUiTokens`） | ✅ |
 | `assets/ui/equipment_ui/` | 装備画面 chrome（背景/カード/タブ/スロット/一覧セル等・`EquipmentUiTokens`） | ✅ |
 | `assets/ui/gacha_ui/` | 召喚所 chrome 17枚（背景/タブ/バナー/天井バー/召喚ボタン/リボン/ラインナップセル/Reveal枠等・`GachaUiTokens` — **P3-UI-GACHA**） | ✅ |
-| `assets/ui/UI_BG_Summon.png` | 召喚所背景 720×1280（P3-UI3-001・シーンは `gacha_ui/UI_BG_Gacha.png` を優先使用） | ✅ |
+| `assets/ui/gacha_ui/UI_BG_Gacha.png` | 召喚所背景 720×1280（P3-UI3-001） | ✅ |
 | `assets/ui/UI_BG_Codex.png` | 図鑑背景 720×1280（P3-UI3-001） | ✅ |
 
 ### assets/fonts/

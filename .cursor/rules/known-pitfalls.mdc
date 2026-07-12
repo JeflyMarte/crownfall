@@ -1,0 +1,39 @@
+---
+description: Crownfall 既往エラー／落とし穴カタログ（再発防止）
+alwaysApply: true
+---
+
+# 既往エラー・落とし穴
+
+一度発生し修正済みの事故。同じパターンを繰り返さない。詳細規約は各領域ルールへ。
+
+## GDScript / 起動
+
+| 症状 | 原因 | 再発防止 |
+|---|---|---|
+| `Parser Error: Expected statement, found "else"` | Python の `for`/`else`・`while`/`else` | `gdscript.mdc` — フラグループを使う |
+| 起動時 autoload 失敗 / 壊れた UID | `project.godot` の空 autoload・不正 `uid://`（例: `_MCPGameBridge`） | autoload は実在パスのみ。UID 直書きを壊さない。変更後 headless 起動確認 |
+| 図鑑/装備カタログのパースエラー | `EquipmentUiTokens` 等の **参照メソッド欠落** | public API 削除・リネーム時は呼び出し側を一括検索 |
+
+## アセット取込（Desktop → プロジェクト）
+
+| 症状 | 原因 | 再発防止 |
+|---|---|---|
+| 別 Mac でアイコンが戻る | Desktop 直参照、または **未コミット** | 必ず `res://assets/...` にコピー。参照は `IconPaths` / Tokens。同期は commit/push |
+| カテゴリタブが差し替わる | 装備品 PNG を `ICO_*_Cat_*` に誤適用 | **本体アイコン**（`ICO_WPN_*` / `ICO_ARM_*` / skills）と **Cat タブ**を混同しない |
+| 武器アイコンが一部だけ | `weapon_id` フィールドを探す誤り | 武器 tres の ID は **`id`**。種別は `weapon_type`（greatsword/bow 等） |
+| 見た目が変わらない | `.godot` キャッシュ | アセット差替後は **Godot 完全終了→再起動**。壊れた import は該当 `.ctex` を消して再インポート |
+| 鍛冶クラッシュ（Metal） | import サイズ不正（例: 220×88 が 1536×1024 キャッシュ） | chrome 差替後に解像度を確認。異常なら `.godot/imported` を該当分クリア |
+| 黒／暗い板が残る | キーイング閾値が甘い | 透過処理後に目視。弓など暗い背景は閾値を広げて再適用 |
+| 枠にアイコンが食い込む | inset 不足 | `EquipmentUiTokens.ICON_FRAME_MARGIN_PX`（現行 18）を維持。全面キャンバス絵は余白を減らさない |
+
+## Git / ツール
+
+| 症状 | 原因 | 再発防止 |
+|---|---|---|
+| `git checkout` / `mv` が `Operation not permitted` | Cursor サンドボックス | アセット・git 復元は `required_permissions: ["all"]` |
+| WIP が消えた | cloud agent / stash | `git-wip-safety.mdc` |
+
+## ルール化フロー
+
+新しいエラーを直したら: 修正 → **この表に1行追加** → 必要なら領域 `.mdc` に BAD/GOOD 例。手順は `recurrence-prevention.mdc`。

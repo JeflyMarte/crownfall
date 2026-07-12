@@ -54,6 +54,8 @@ func test_scaled_margin_shrinks_with_cell() -> void:
 
 func test_icon_inset_leaves_room_for_art() -> void:
 	var inset: int = EquipmentUiTokens.icon_inset_px(112, 144)
+	# 枠・コーナー装飾を避けるため十分な inset（旧 frame_margin=10 では 15）。
+	assert_true(inset >= 20)
 	assert_true(inset < 56)
 
 func test_tooltip_panel_style_is_opaque() -> void:

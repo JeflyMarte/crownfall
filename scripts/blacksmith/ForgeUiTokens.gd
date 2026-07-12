@@ -36,7 +36,7 @@ const CATEGORY_ICONS: Dictionary = {
 const CATEGORY_MIN_SIZE: Vector2 = Vector2(72, 88)
 ## 詳細ヒーロー: 魔法陣ペデスタル（背景）と素のアイコン表示サイズ
 const HERO_PEDESTAL_PX: int = 240
-const HERO_DISPLAY_PX: int = 152
+const HERO_DISPLAY_PX: int = 200
 const HERO_ICON_PX: int = HERO_DISPLAY_PX
 const HERO_ROTATION_DEG: float = 0.0
 const STAT_ICON_PX: int = 36

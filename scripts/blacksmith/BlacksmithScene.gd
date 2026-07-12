@@ -49,7 +49,6 @@ const FORGE_FLASH_PEAK_ALPHA: float = 0.32
 @onready var _unique_panel: PanelContainer = $MainSplit/DetailPanel/DetailVBox/UniquePanel
 @onready var _unique_label: Label = $MainSplit/DetailPanel/DetailVBox/UniquePanel/UniqueLabel
 @onready var _cost_panel: PanelContainer = $MainSplit/DetailPanel/DetailVBox/CostPanel
-@onready var _anvil_bg: TextureRect = $MainSplit/DetailPanel/DetailVBox/CostPanel/CostRoot/AnvilBg
 @onready var _materials_row: HBoxContainer = $MainSplit/DetailPanel/DetailVBox/CostPanel/CostRoot/CostVBox/MaterialsRow
 @onready var _gold_cost_label: Label = $MainSplit/DetailPanel/DetailVBox/CostPanel/CostRoot/CostVBox/GoldRow/GoldCostLabel
 @onready var _cost_header_label: Label = $MainSplit/DetailPanel/DetailVBox/CostPanel/CostRoot/CostVBox/CostHeaderLabel
@@ -132,9 +131,6 @@ func _setup_forge_chrome() -> void:
 	# 詳細ヒーローは素のアイコンのみ（Glow/ItemBg の影・加工フレームを載せない）。
 	_hero_pedestal.texture = null
 	_hero_pedestal.visible = false
-	var anvil_tex: Texture2D = ForgeUiTokens.load_tex(ForgeUiTokens.ANVIL_PANEL)
-	if anvil_tex != null:
-		_anvil_bg.texture = anvil_tex
 	_build_category_icons()
 
 func _set_mode(mode: String) -> void:
@@ -285,31 +281,27 @@ func _make_recipe_list_card(craft: Resource) -> PanelContainer:
 	var rarity: int = BlacksmithUiHelper.output_rarity(craft)
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(0, BlacksmithUiHelper.LIST_CARD_MIN_HEIGHT)
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	panel.add_theme_stylebox_override(
 		"panel", BlacksmithUiHelper.simple_list_card_style(selected, can_craft, rarity)
 	)
+	panel.gui_input.connect(_on_recipe_card_input.bind(craft))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(row)
 	var icon_host := _make_selectable_list_icon(
 		str(craft.output_id),
 		str(craft.output_type),
-		craft,
-		"_on_recipe_card_input",
-		rarity
+		rarity,
+		selected
 	)
 	row.add_child(icon_host)
 	var name_lbl := Label.new()
 	name_lbl.text = BlacksmithUiHelper.output_display_name(craft)
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	name_lbl.max_lines_visible = 2
-	name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	UiTypography.apply_body(
-		name_lbl,
-		UiTypography.SIZE_BODY_SMALL,
-		BlacksmithUiHelper.rarity_name_color(rarity)
-	)
+	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_apply_list_name_label(name_lbl, BlacksmithUiHelper.rarity_name_color(rarity))
 	row.add_child(name_lbl)
 	return panel
 
@@ -325,28 +317,44 @@ func _make_enhance_list_card(weapon: Resource) -> PanelContainer:
 	var rarity: int = int(weapon_data.rarity) if weapon_data != null else 0
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(0, BlacksmithUiHelper.LIST_CARD_MIN_HEIGHT)
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	panel.add_theme_stylebox_override(
 		"panel", BlacksmithUiHelper.simple_list_card_style(selected, false, rarity)
 	)
+	panel.gui_input.connect(_on_enhance_card_input.bind(weapon))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(row)
 	var icon_host := _make_selectable_list_icon(
-		str(weapon.weapon_id), "weapon", weapon, "_on_enhance_card_input", rarity
+		str(weapon.weapon_id), "weapon", rarity, selected
 	)
 	row.add_child(icon_host)
 	var name_lbl := Label.new()
 	name_lbl.text = _EquipmentEnhancer.get_display_name(weapon)
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	name_lbl.max_lines_visible = 2
-	name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var name_color: Color = BlacksmithUiHelper.rarity_name_color(rarity)
 	if level >= _EquipmentEnhancer.MAX_FORGE_LEVEL:
 		name_color = UiTypography.COLOR_GOLD
-	UiTypography.apply_body(name_lbl, UiTypography.SIZE_BODY_SMALL, name_color)
+	_apply_list_name_label(name_lbl, name_color)
 	row.add_child(name_lbl)
 	return panel
+
+func _apply_list_name_label(lbl: Label, color: Color) -> void:
+	## 1行・省略なし。長い名前はフォントを段階的に小さくして収める。
+	lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+	lbl.max_lines_visible = 1
+	lbl.clip_text = false
+	lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	var font_size: int = UiTypography.SIZE_CAPTION
+	var char_count: int = lbl.text.length()
+	if char_count >= 10:
+		font_size = 14
+	elif char_count >= 7:
+		font_size = 16
+	UiTypography.apply_body(lbl, font_size, color)
 
 func _on_enhance_card_input(event: InputEvent, weapon: Resource) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -546,18 +554,25 @@ func _rebuild_craftable_strip() -> void:
 func _make_selectable_list_icon(
 	item_id: String,
 	category: String,
-	payload: Resource,
-	handler_name: String,
-	_rarity: int = 0
+	rarity: int = 0,
+	highlight: bool = false
 ) -> Control:
 	var cell_px: int = BlacksmithUiHelper.list_cell_px()
 	var host := Control.new()
 	host.custom_minimum_size = Vector2(cell_px, cell_px)
-	host.mouse_filter = Control.MOUSE_FILTER_STOP
-	host.gui_input.connect(Callable(self, handler_name).bind(payload))
-	# レアリティ加工フレームなし（素のアイコンのみ）。
-	host.add_child(BlacksmithUiHelper.make_plain_item_icon(item_id, category, cell_px))
+	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var cell: PanelContainer = BlacksmithUiHelper.make_item_icon_cell(
+		item_id, category, rarity, cell_px, highlight
+	)
+	_set_mouse_filter_tree(cell, Control.MOUSE_FILTER_IGNORE)
+	host.add_child(cell)
 	return host
+
+func _set_mouse_filter_tree(node: Node, filter: Control.MouseFilter) -> void:
+	if node is Control:
+		(node as Control).mouse_filter = filter
+	for child in node.get_children():
+		_set_mouse_filter_tree(child, filter)
 
 func _make_craftable_chip(craft: Resource) -> PanelContainer:
 	var selected: bool = craft == _selected_craft
@@ -579,16 +594,18 @@ func _make_craftable_chip(craft: Resource) -> PanelContainer:
 	col.add_child(icon_wrap)
 	var chip_rarity: int = BlacksmithUiHelper.output_rarity(craft)
 	icon_wrap.add_child(
-		BlacksmithUiHelper.make_plain_item_icon(
-			str(craft.output_id), str(craft.output_type), cell_px
+		BlacksmithUiHelper.make_item_icon_cell(
+			str(craft.output_id), str(craft.output_type), chip_rarity, cell_px, selected
 		)
 	)
 	var can_make: bool = CraftHelper.can_craft(craft)
 	var name_lbl := Label.new()
 	name_lbl.text = BlacksmithUiHelper.output_display_name(craft)
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	name_lbl.max_lines_visible = 2
+	name_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+	name_lbl.max_lines_visible = 1
+	name_lbl.clip_text = true
+	name_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	var name_col: Color = BlacksmithUiHelper.rarity_name_color(chip_rarity)
 	if not can_make:
 		name_col = name_col.darkened(0.25)

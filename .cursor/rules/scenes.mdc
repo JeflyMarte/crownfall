@@ -23,6 +23,7 @@ alwaysApply: false
 - 差分は最小限にする
 - `[node]` / `[sub_resource]` / `[connection]` ブロックの ID を既存と重複させない
 - `uid://` 参照を壊さない
+- **`project.godot` の `[autoload]`** — 空行プレースホルダや実在しない UID/パスを残さない（起動時 autoload 失敗の既往あり）
 
 ## 命名
 

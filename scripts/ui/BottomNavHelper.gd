@@ -203,7 +203,7 @@ static func apply_standard_labels(nav_row: HBoxContainer) -> void:
 		var full_title: String = str(entry["title"])
 		var nav_text: String = NavUiTokens.bottom_nav_label(full_title)
 		NavUiTokens.set_bottom_nav_text(btn, nav_text)
-		btn.disabled = bool(entry.get("locked", false))
+		btn.disabled = bool(entry.get("locked", false)) or _is_entry_omitted(str(entry.get("id", "")))
 		NavUiTokens.set_bottom_nav_disabled_style(btn, btn.disabled)
 		if btn.disabled:
 			btn.tooltip_text = "準備中"
@@ -220,6 +220,9 @@ static func get_entry_by_id(entry_id: String) -> Dictionary:
 		if str(entry["id"]) == entry_id:
 			return entry
 	return {}
+
+static func _is_entry_omitted(entry_id: String) -> bool:
+	return entry_id == "gacha" and not Constants.are_gacha_helpers_playable()
 
 static func _wire_nav_row(nav_row: HBoxContainer, active_tab: Tab) -> void:
 	var home_btn: Button = nav_row.get_node_or_null("NavHome") as Button
@@ -305,6 +308,8 @@ static func _go_forge() -> void:
 	_change_scene(SCENE_BLACKSMITH)
 
 static func _go_gacha() -> void:
+	if not Constants.are_gacha_helpers_playable():
+		return
 	if ResourceLoader.exists(SCENE_GACHA):
 		_change_scene(SCENE_GACHA)
 

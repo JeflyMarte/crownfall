@@ -1290,8 +1290,43 @@ func is_member_active(adv: Resource) -> bool:
 	return adv != null and party_members.has(adv)
 
 func add_roster_member(adv: Resource) -> void:
-	if adv != null and not roster.has(adv):
-		roster.append(adv)
+	if adv == null or roster.has(adv):
+		return
+	if not Constants.are_gacha_helpers_playable() and Constants.is_gacha_helper_id(str(adv.id)):
+		return
+	roster.append(adv)
+
+## ガチャ助っ人をロスター／編成から外し、スターターで穴埋め（P3-CHR-OMIT-001）。
+## owned_helpers / gacha_helpers データは残置。フラグ再有効化で復帰可能な状態を保つ。
+func omit_gacha_helpers_from_roster() -> void:
+	if Constants.are_gacha_helpers_playable():
+		return
+	var kept: Array = []
+	for adv in roster:
+		if adv == null:
+			continue
+		if Constants.is_gacha_helper_id(str(adv.id)):
+			continue
+		kept.append(adv)
+	roster = kept
+	var active: Array = []
+	for adv in party_members:
+		if adv != null and roster.has(adv):
+			active.append(adv)
+	party_members = active
+	ensure_base_roster_complete()
+	while party_members.size() < mini(ACTIVE_PARTY_SIZE, roster.size()):
+		var added: bool = false
+		for adv in roster:
+			if adv != null and not party_members.has(adv):
+				party_members.append(adv)
+				added = true
+				break
+		if not added:
+			break
+	if party_members.is_empty() and not roster.is_empty():
+		party_members.append(roster[0])
+	migrate_formation_slots_if_needed()
 
 func find_roster_member_by_id(member_id: String) -> Resource:
 	if member_id.is_empty():

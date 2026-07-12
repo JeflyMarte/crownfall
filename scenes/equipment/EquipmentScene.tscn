@@ -248,7 +248,7 @@ size_flags_vertical = 4
 text = "◀"
 
 [node name="PortraitStack" type="Control" parent="VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow"]
-custom_minimum_size = Vector2(108, 120)
+custom_minimum_size = Vector2(220, 280)
 layout_mode = 2
 
 [node name="PedestalBg" type="TextureRect" parent="VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/PortraitStack"]

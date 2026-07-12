@@ -9,6 +9,8 @@ const MOURNGATE_DUNGEON_ID: String = "mourngate"
 const DEFAULT_DUNGEON_ID: String = MOURNGATE_DUNGEON_ID
 ## 寄り道(side)・征討(apex)をプレイ対象に含める（P3-DG-OMIT-001）。false=UI非表示・解放不可。
 const SUB_DUNGEONS_PLAYABLE: bool = false
+## ガチャ助っ人をプレイ対象に含める（P3-CHR-OMIT-001）。false=召喚所ロック・ロスターから除外（データ残置）。
+const GACHA_HELPERS_PLAYABLE: bool = false
 ## サブステージ（1-1 等）分割を有効化（P3-DG-STG-001 / P3-DG-STG-ENABLE — 2026-07-10 オーナー正式承認）。
 const SUB_STAGES_PLAYABLE: bool = true
 const RESOURCE_STAGES_PATH: String = "res://resources/stages/"
@@ -45,3 +47,9 @@ static func is_playable_dungeon_route(route_type: String) -> bool:
 	if route_type == "main":
 		return true
 	return SUB_DUNGEONS_PLAYABLE
+
+static func is_gacha_helper_id(member_id: String) -> bool:
+	return member_id.begins_with("gacha_") or member_id.begins_with("helper_")
+
+static func are_gacha_helpers_playable() -> bool:
+	return GACHA_HELPERS_PLAYABLE

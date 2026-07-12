@@ -2,9 +2,12 @@ extends GutTest
 
 ## 召喚所 UI helper（GachaUiHelper）— headless 検証。
 
-func test_sorted_helpers_non_empty() -> void:
+func test_sorted_helpers_respects_omit_flag() -> void:
 	var helpers: Array = GachaUiHelper.sorted_helpers()
-	assert_gt(helpers.size(), 0)
+	if Constants.are_gacha_helpers_playable():
+		assert_gt(helpers.size(), 0)
+	else:
+		assert_eq(helpers.size(), 0, "P3-CHR-OMIT-001: 助っ人オミット時は空")
 
 func test_catchcopy_normal_tab() -> void:
 	assert_eq(

@@ -51,9 +51,6 @@ func _setup_field_survey_banner() -> void:
 		return
 	_field_survey_banner = PanelContainer.new()
 	_field_survey_banner.name = "FieldSurveyBanner"
-	_field_survey_banner.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	_field_survey_banner.offset_top = 92.0
-	_field_survey_banner.offset_bottom = 132.0
 	_field_survey_banner.mouse_filter = Control.MOUSE_FILTER_STOP
 	_field_survey_banner.gui_input.connect(_on_field_survey_banner_input)
 	_field_survey_banner.add_theme_stylebox_override(
@@ -82,6 +79,23 @@ func _setup_field_survey_banner() -> void:
 	timer.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	row.add_child(timer)
 	$HubView.add_child(_field_survey_banner)
+	_place_field_survey_banner()
+
+func _place_field_survey_banner() -> void:
+	if _field_survey_banner == null:
+		return
+	var menu: Control = $HubView/LeftMenuPanel as Control
+	if menu == null:
+		return
+	## 左メニュー直下・画面幅いっぱいに配置（メニューと重ねない）。
+	const BANNER_H: float = 40.0
+	const GAP: float = 8.0
+	var top: float = menu.offset_bottom + GAP
+	_field_survey_banner.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	_field_survey_banner.offset_left = 12.0
+	_field_survey_banner.offset_right = -12.0
+	_field_survey_banner.offset_top = top
+	_field_survey_banner.offset_bottom = top + BANNER_H
 
 func _refresh_field_survey_banner() -> void:
 	if _field_survey_banner == null:
@@ -89,6 +103,7 @@ func _refresh_field_survey_banner() -> void:
 	if not EventSystem.PERIODIC_EVENTS_ENABLED or not EventSystem.is_event_running():
 		_field_survey_banner.visible = false
 		return
+	_place_field_survey_banner()
 	_field_survey_banner.visible = true
 	var row: HBoxContainer = _field_survey_banner.get_child(0) as HBoxContainer
 	if row == null:
@@ -154,6 +169,8 @@ func _build_left_menu() -> void:
 		var card_entry: Dictionary = entry.duplicate()
 		if str(entry.get("id", "")) == "commander":
 			card_entry["locked"] = not _CommanderProfile.is_profile_unlocked()
+		elif str(entry.get("id", "")) == "gacha" and not Constants.are_gacha_helpers_playable():
+			card_entry["locked"] = true
 		var card := NavUiTokens.make_side_menu_row(card_entry)
 		var btn := _find_side_menu_button(card)
 		if btn != null and not bool(card_entry.get("locked", false)):
@@ -384,6 +401,8 @@ func _on_codex_button_pressed() -> void:
 	SceneRouter.change_scene(CODEX_SCENE)
 
 func _on_gacha_button_pressed() -> void:
+	if not Constants.are_gacha_helpers_playable():
+		return
 	if ResourceLoader.exists(GACHA_SCENE):
 		SceneRouter.change_scene(GACHA_SCENE)
 

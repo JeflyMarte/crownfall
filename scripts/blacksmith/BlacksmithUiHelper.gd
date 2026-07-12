@@ -4,7 +4,7 @@ extends RefCounted
 const RARITY_GEMS: Array[String] = ["◇", "◆", "✦", "★"]
 const RARITY_SHORT: Array[String] = ["N", "R", "SR", "SSR"]
 
-const LIST_CARD_MIN_HEIGHT: int = 88
+const LIST_CARD_MIN_HEIGHT: int = 120
 const CRAFTABLE_CHIP_WIDTH: int = 120
 const CRAFTABLE_CHIP_HEIGHT: int = 136
 
@@ -368,7 +368,9 @@ static func apply_primary_button(btn: Button) -> void:
 	btn.add_theme_stylebox_override("disabled", primary_button_disabled())
 	btn.add_theme_color_override("font_color", Color(0.98, 0.92, 0.72, 1.0))
 	btn.add_theme_color_override("font_disabled_color", Color(0.55, 0.52, 0.48, 1.0))
-	btn.add_theme_font_size_override("font_size", UiTypography.SIZE_BUTTON)
+	btn.add_theme_font_size_override("font_size", 28)
+	if btn.custom_minimum_size.y < 76.0:
+		btn.custom_minimum_size = Vector2(btn.custom_minimum_size.x, 76.0)
 
 static func mode_tab_style(active: bool) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
@@ -405,7 +407,11 @@ static func notify_dot_style() -> StyleBoxFlat:
 	return sb
 
 static func apply_mode_tab(btn: Button, active: bool) -> void:
-	var style: StyleBox = ForgeUiTokens.tab_active_style() if active else mode_tab_style(false)
+	var style: StyleBox = mode_tab_style(active)
+	if active:
+		var textured: StyleBox = ForgeUiTokens.tab_active_style()
+		if _texture_style_ok(textured):
+			style = textured
 	btn.add_theme_stylebox_override("normal", style)
 	btn.add_theme_stylebox_override("hover", style)
 	btn.add_theme_stylebox_override("pressed", style)

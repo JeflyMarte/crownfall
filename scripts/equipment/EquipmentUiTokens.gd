@@ -45,7 +45,7 @@ const CATEGORY_ICONS: Dictionary = {
 	"weapon": ROOT + "ICO_Equip_Cat_Weapon.png",
 	"armor": ROOT + "ICO_Equip_Cat_Armor.png",
 	"accessory": ROOT + "ICO_Equip_Cat_Accessory.png",
-	"relic": "res://assets/ui/relics/ICO_REL_WarBanner.png",
+	"relic": ROOT + "ICO_Equip_Cat_Relic.png",
 }
 
 const INV_CELLS: Array[String] = [
@@ -56,7 +56,12 @@ const INV_CELLS: Array[String] = [
 ]
 
 const CATEGORY_MIN_SIZE: Vector2 = Vector2(64, 76)
-const PORTRAIT_PX: int = 96
+## 装備カード左の正面 Idle ドット（台座上・モック構図）。
+const PORTRAIT_PX: int = 200
+const PORTRAIT_STACK_SIZE: Vector2 = Vector2(220, 280)
+const PEDESTAL_HEIGHT_PX: int = 88
+## 足元を台座に乗せるための重ね（px）。
+const PORTRAIT_PEDESTAL_OVERLAP_PX: int = 40
 const STAT_ICON_PX: int = 28
 ## アセット生成サイズ（`generate_equipment_ui_assets.py`）。
 const INV_CELL_DESIGN_PX: int = 144
@@ -67,6 +72,8 @@ const SLOT_PX: int = 96
 const INV_CELL_PX: int = 112
 const INV_GRID_FALLBACK_W: float = 688.0
 const INV_CELL_MARGINS: Vector4i = Vector4i(12, 12, 12, 12)
+## アイコンを枠・コーナー装飾の内側に収める（防具/レリックのフルブリードアート向け）。
+const ICON_FRAME_MARGIN_PX: int = 18
 ## 装備セル枠線色（COMMON/RARE/EPIC/LEGENDARY）。背景は INV_CELLS の金属質ティント。
 const RARITY_BORDER_COLORS: Array[Color] = [
 	Color(0.60, 0.60, 0.60),
@@ -102,7 +109,7 @@ static func scaled_content_margin(design_px: int, cell_px: int, design_margin: f
 		return design_margin
 	return maxf(2.0, design_margin * float(cell_px) / float(design_px))
 
-static func icon_inset_px(cell_px: int, design_px: int, frame_margin: int = 10) -> int:
+static func icon_inset_px(cell_px: int, design_px: int, frame_margin: int = ICON_FRAME_MARGIN_PX) -> int:
 	var margin: int = scaled_margin(design_px, cell_px, frame_margin)
 	var content: float = scaled_content_margin(design_px, cell_px)
 	return margin + int(ceil(content))
@@ -121,6 +128,32 @@ static func cell_px_for_slot_panel(panel_w: float, columns: int, h_sep: int) -> 
 	var width: float = panel_w if panel_w >= 120.0 else float(SLOT_PANEL_MIN_W)
 	var cell_w: float = floor((width - float(columns - 1) * h_sep) / float(columns))
 	return maxi(SLOT_PX, int(cell_w))
+
+## インベントリ／図鑑セルへアイコンを載せる（枠 StyleBox は呼び出し側）。
+static func attach_item_cell_layers(
+	btn: Button,
+	icon: Texture2D,
+	cell_px: int,
+	design_px: int = INV_CELL_DESIGN_PX
+) -> void:
+	if btn == null or icon == null:
+		return
+	var existing: Node = btn.get_node_or_null("ItemIcon")
+	if existing != null:
+		existing.queue_free()
+	var inset: int = icon_inset_px(cell_px, design_px)
+	var tex_rect := TextureRect.new()
+	tex_rect.name = "ItemIcon"
+	tex_rect.texture = icon
+	tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	tex_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tex_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	tex_rect.offset_left = inset
+	tex_rect.offset_top = inset
+	tex_rect.offset_right = -inset
+	tex_rect.offset_bottom = -inset
+	btn.add_child(tex_rect)
 
 static func texture_stylebox(
 	path: String,

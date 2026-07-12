@@ -11,6 +11,8 @@ const TOKEN_PURCHASE_GOLD: int = 100
 const HARD_PITY: int = 30
 
 func can_pull() -> bool:
+	if not Constants.are_gacha_helpers_playable():
+		return false
 	return GameState.gacha_token >= PULL_COST
 
 func rate_display_text() -> String:
@@ -21,6 +23,8 @@ func add_tokens(n: int) -> void:
 		GameState.gacha_token += n
 
 func buy_token() -> bool:
+	if not Constants.are_gacha_helpers_playable():
+		return false
 	if GameState.gold < TOKEN_PURCHASE_GOLD:
 		return false
 	GameState.gold -= TOKEN_PURCHASE_GOLD
@@ -29,6 +33,8 @@ func buy_token() -> bool:
 
 # 単発抽選。結果 Dictionary: { ok, reason?, helper_id, rarity, is_new, refund }
 func pull() -> Dictionary:
+	if not Constants.are_gacha_helpers_playable():
+		return {"ok": false, "reason": "omitted"}
 	if GameState.gacha_token < PULL_COST:
 		return {"ok": false, "reason": "no_token"}
 	var pool: Array = _get_pool()
@@ -64,6 +70,8 @@ func pull() -> Dictionary:
 	}
 
 func _get_pool() -> Array:
+	if not Constants.are_gacha_helpers_playable():
+		return []
 	return DataRegistry.get_all_gacha_helper_data()
 
 func _select_helper(pool: Array, pity_forced: bool) -> Resource:
