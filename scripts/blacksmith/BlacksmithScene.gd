@@ -81,10 +81,13 @@ func _ready() -> void:
 	_mode_button_group = ButtonGroup.new()
 	_btn_produce.button_group = _mode_button_group
 	_btn_enhance.button_group = _mode_button_group
+	_btn_dismantle.button_group = _mode_button_group
 	_btn_back.pressed.connect(_on_back_pressed)
 	_btn_produce.pressed.connect(func(): _set_mode("produce"))
 	_btn_enhance.pressed.connect(func(): _set_mode("enhance"))
 	_btn_dismantle.pressed.connect(func(): _set_mode("dismantle"))
+	_btn_dismantle.disabled = false
+	_btn_dismantle.text = "分解"
 	_setup_dismantle_dialogs()
 	_setup_bulk_dismantle_button()
 	_detail_panel.add_theme_stylebox_override(
