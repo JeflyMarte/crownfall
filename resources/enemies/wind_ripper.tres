@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "wind_ripper"
+display_name = "風裂き"
+max_hp = 74
+attack = 20
+defense = 5
+attack_speed = 1.1
+critical_rate = 0.12
+move_speed = 1.2
+threat_target_bias = "back_row"
+detection_range = 9.0
+attack_range = 2.5
+enemy_type = 0
+ai_type = "default"
+exp_reward = 20
+gold_reward = 74
+drop_table_id = "wind_ripper_drops"
+element_weakness = Array[String](["ice"])
+element_resist = Array[String]([])
+attack_element = "ice"
+on_hit_status_id = "bleed"
+on_hit_status_chance = 0.2
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "竜類"
+codex_danger = 4
+codex_habitat = "最果て氷裂・氷崖"
+codex_research_note = "飛竜を祖先とし、鋭い翼で吹雪を切り裂きながら滑空する大型個体。崖上から獲物を見つけると、猛烈な速度で急降下する。風切り音だけが先に届く。"
+codex_materials = Array[String]([])
+skill_ids = Array[String](["enemy_wind_ripper_blizzard_dive"])
+skill_use_chance = 0.3
