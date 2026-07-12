@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 id = "venom_burst"
-display_name = "猛毒噴射"
-description = "毒を浴びせ敵の弱点を突く。毒矢の後に真価を発揮する。"
+display_name = "毒腺破裂"
+description = "既に毒が回っている獲物に、毒を浴びせて急所を抉る。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.5

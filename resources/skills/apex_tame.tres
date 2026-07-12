@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 id = "apex_tame"
-display_name = "極意調教"
-description = "生態の頂点を極めた一撃。ビーストテイマーが到達できる最高の狩り。"
+display_name = "頂点捕食"
+description = "生態の頂点に立つ捕食者の一撃。テイマーが到達できる最高の狩り。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 2.1

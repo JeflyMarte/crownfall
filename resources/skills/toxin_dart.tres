@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 id = "toxin_dart"
-display_name = "毒矢"
-description = "毒を塗った矢で獲物を蝕む。生態を利用した弱体化。"
+display_name = "蝮の毒針"
+description = "毒腺の汁を塗った矢で、獲物を内側から蝕む。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.1

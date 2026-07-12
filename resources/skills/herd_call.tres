@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 id = "herd_call"
-display_name = "群れの呼び声"
-description = "群れの統率者として味方を鼓舞し、与ダメージを上昇させる。"
+display_name = "群狼の遠吠え"
+description = "群れの長の声で味方を鼓舞し、狩りの刃を研ぐ。"
 skill_type = "player"
 target_type = "ally"
 power_multiplier = 1.0

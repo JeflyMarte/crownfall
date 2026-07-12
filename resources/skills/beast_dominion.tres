@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 id = "beast_dominion"
-display_name = "ビーストドミニオン"
-description = "生態の頂点に立ち、獲物の四肢を縛り、捕食の刻を刻む。"
+display_name = "百獣覇王"
+description = "群獣の王として獲物を縛り、四肢を奪い、捕食の刻を刻む。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 2.5
