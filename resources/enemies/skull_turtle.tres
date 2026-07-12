@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "skull_turtle"
 display_name = "スカルタートル"
+description = "沈没船の白骨に擬態した亀。骨だと思って踏むと反撃される。"
 max_hp = 119
 attack = 13
 defense = 18

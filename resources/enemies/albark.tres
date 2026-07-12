@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "albark"
 display_name = "白甲の古龍アルバーク"
+description = "白甲の古龍。地図の空白地帯を縄に、氷と静寂で侵食者を消す。"
 max_hp = 480
 attack = 28
 defense = 30

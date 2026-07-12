@@ -3,6 +3,8 @@ extends Resource
 
 @export var id: String = ""
 @export var display_name: String = ""
+## 図鑑・初遭遇向けの短い紹介文（1〜2文）。
+@export_multiline var description: String = ""
 @export var max_hp: int = 0
 @export var attack: int = 0
 @export var defense: int = 0

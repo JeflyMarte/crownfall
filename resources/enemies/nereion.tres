@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "nereion"
 display_name = "潮鳴王 ネレイオン"
+description = "潮境の巨鯨と潮藻の複合体。満ち引きに合わせて低く鳴く。"
 max_hp = 347
 attack = 23
 defense = 22

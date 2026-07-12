@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "moss_shell"
 display_name = "モスシェル"
+description = "苔むした岩に擬態する硬殻虫。動かない限り見分けがつかない。"
 max_hp = 104
 attack = 12
 defense = 12

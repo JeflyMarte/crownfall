@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "mycolga_ancient"
 display_name = "霧沼の古茸ミコルガ"
+description = "封緘書庫に適応した菌類共生体。根と胞子で通路を塞ぐ。"
 max_hp = 330
 attack = 20
 defense = 20

@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "chronos_wave"
 display_name = "時環の共鳴体クロノス・ウェーブ"
+description = "時環が同期する巨大共鳴体。踏むたび刻限がずれる。"
 max_hp = 280
 attack = 17
 defense = 18

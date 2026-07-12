@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "mist_mantis"
 display_name = "ミストマンティス"
+description = "濃霧に紛れる大型カマキリ。鎌に腐生菌の毒を宿す。"
 max_hp = 75
 attack = 19
 defense = 5

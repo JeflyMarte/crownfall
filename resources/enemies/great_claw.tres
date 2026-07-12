@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "great_claw"
 display_name = "大爪刀"
+description = "封印蝋と泥を纏った巨蟹。大爪は石畳ごと獲物を両断する。"
 max_hp = 185
 attack = 29
 defense = 12

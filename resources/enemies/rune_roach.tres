@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "rune_roach"
 display_name = "ルーンローチ"
+description = "王墓のインク鉱物で甲殻に文字状の模様が析出するゴキブリ。"
 max_hp = 86
 attack = 10
 defense = 8

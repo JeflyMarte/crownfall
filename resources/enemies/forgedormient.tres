@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "forgedormient"
 display_name = "星炉の寝主フォージ・ドルミエント"
+description = "星炉の残熱に潜む熔岩生物。起こされると炉床ごと揺れる。"
 max_hp = 410
 attack = 26
 defense = 28
