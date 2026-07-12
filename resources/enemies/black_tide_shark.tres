@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "black_tide_shark"
+display_name = "黒潮シャーク"
+max_hp = 80
+attack = 21
+defense = 6
+attack_speed = 1.12
+critical_rate = 0.12
+move_speed = 1.22
+threat_target_bias = "lowest_hp"
+detection_range = 7.5
+attack_range = 1.5
+enemy_type = 0
+ai_type = "default"
+exp_reward = 17
+gold_reward = 64
+drop_table_id = "black_tide_shark_drops"
+element_weakness = Array[String](["holy"])
+element_resist = Array[String]([])
+on_hit_status_id = "bleed"
+on_hit_status_chance = 0.26
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "魚類"
+codex_danger = 3
+codex_habitat = "沈没航路・黒潮帯"
+codex_research_note = "サメを祖先とし、外洋から押し寄せる黒潮に乗って浅瀬へ侵入する大型ザメ。アンダーテイカーより深い水域を好み、潮の向きが変わる瞬間に群れで襲う。"
+codex_materials = Array[String]([])
+skill_ids = Array[String](["enemy_black_tide_shark_riptide_rush"])
+skill_use_chance = 0.28

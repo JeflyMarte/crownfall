@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_anchor_lord_barnacle_volley"
+display_name = "藤壶掃射"
+description = "錨殻に着生した藤壶を勢いよく弾き、探索隊全体を削る。"
+skill_type = "enemy"
+target_type = "all_party"
+power_multiplier = 0.4
+cooldown = 7.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["aoe"])
+element = ""
+apply_status_id = "bleed"
+apply_status_chance = 0.22

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_abyss_squid_tentacle_grasp"
+display_name = "深触手掴み"
+description = "墨雲の中から触手を伸ばし、後列を標的に絡め取る。"
+skill_type = "enemy"
+target_type = "party_back"
+power_multiplier = 0.58
+cooldown = 6.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["aoe"])
+element = "dark"
+apply_status_id = "mark"
+apply_status_chance = 0.32
