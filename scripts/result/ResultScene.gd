@@ -9,6 +9,8 @@ const ExpBarPresenterScript: Script = preload("res://scripts/result/ExpBarPresen
 const MvpScoreScript: Script = preload("res://scripts/result/MvpScore.gd")
 const MvpPresentationScript: Script = preload("res://scripts/result/MvpPresentation.gd")
 const SkillIconHelperScript: Script = preload("res://scripts/ui/SkillIconHelper.gd")
+const _MaterialUiTokens = preload("res://scripts/equipment/MaterialUiTokens.gd")
+const _ChrIdlePortraitView = preload("res://scripts/ui/ChrIdlePortraitView.gd")
 const CLEAR_BANNER_TEX: Texture2D = preload("res://assets/ui/result/UI_Result_Clear.png")
 
 const COLOR_GOLD: Color = Color(0.85, 0.74, 0.45, 1)
@@ -656,7 +658,7 @@ func _make_mvp_podium_slot(entry: Dictionary, is_hero: bool, scale: float, rank:
 		frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		frame.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		frame_host.add_child(frame)
-	var portrait := ChrIdlePortraitView.new()
+	var portrait: Control = _ChrIdlePortraitView.new()
 	portrait.set_portrait_size(portrait_px)
 	portrait.position = Vector2(frame_pad, frame_pad)
 	frame_host.add_child(portrait)
@@ -1023,7 +1025,7 @@ func _make_material_reward_cell(material_id: String, value_text: String) -> Cont
 	cell.custom_minimum_size = Vector2(REWARD_CELL_WIDTH, 0)
 	cell.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	cell.alignment = BoxContainer.ALIGNMENT_BEGIN
-	var frame: PanelContainer = MaterialUiTokens.make_icon_cell(material_id, 64, true)
+	var frame: PanelContainer = _MaterialUiTokens.make_icon_cell(material_id, 64, true)
 	frame.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	cell.add_child(frame)
 	var name_label: Label = Label.new()

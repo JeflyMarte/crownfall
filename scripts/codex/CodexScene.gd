@@ -12,6 +12,7 @@ const STATUS_UNDISCOVERED: String = "Undiscovered"
 const ICON_PLACEHOLDER_TEXT: String = "[Icon]"
 const DEFAULT_ICON_SIZE: Vector2 = Vector2(48, 48)
 const ENEMY_ART_SIZE: Vector2 = Vector2(256, 256)
+const _MaterialUiTokens = preload("res://scripts/equipment/MaterialUiTokens.gd")
 
 const CATEGORIES: Array[String] = ["enemy", "dungeon", "material", "weapon", "history", "lore", "guide"]
 
@@ -247,7 +248,7 @@ func _entry_list_name(entry: Dictionary) -> String:
 		return UNKNOWN_DISPLAY
 	var name_text: String = str(entry.get("display_name", UNKNOWN_DISPLAY))
 	if _current_category == "material":
-		var rarity: int = int(entry.get("rarity", MaterialUiTokens.material_rarity(str(entry.get("id", "")))))
+		var rarity: int = int(entry.get("rarity", _MaterialUiTokens.material_rarity(str(entry.get("id", "")))))
 		return "%s %s" % [BlacksmithUiHelper.rarity_gem(rarity), name_text]
 	return name_text
 
@@ -487,9 +488,9 @@ func _hide_bible_fields() -> void:
 
 func _apply_material_detail_fields(entry: Dictionary) -> void:
 	var mat_id: String = str(entry.get("id", ""))
-	var rarity: int = int(entry.get("rarity", MaterialUiTokens.material_rarity(mat_id)))
+	var rarity: int = int(entry.get("rarity", _MaterialUiTokens.material_rarity(mat_id)))
 	_art_frame.add_theme_stylebox_override(
-		"panel", MaterialUiTokens.cell_style(rarity, true, 96)
+		"panel", _MaterialUiTokens.cell_style(rarity, true, 96)
 	)
 	_label_detail_extra_a.text = "希少度: %s %s" % [
 		BlacksmithUiHelper.rarity_gem(rarity),

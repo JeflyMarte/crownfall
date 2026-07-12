@@ -13,6 +13,7 @@ const COLOR_OK: Color = Color(0.55, 0.88, 0.5)
 const COLOR_SUB: Color = UiTypography.COLOR_SUB
 const COLOR_TEXT: Color = UiTypography.COLOR_BODY
 const COLOR_GOLD: Color = UiTypography.COLOR_GOLD
+const _MaterialUiTokens = preload("res://scripts/equipment/MaterialUiTokens.gd")
 const COLOR_ACCENT: Color = Color(0.82, 0.9, 1.0, 1)
 
 const _AffixRoller = preload("res://scripts/equipment/AffixRoller.gd")
@@ -628,7 +629,7 @@ func _make_material_req_cell(mat_id: String, needed: int) -> Control:
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 4)
 	col.tooltip_text = "%s %d/%d" % [DataRegistry.get_material_name(mat_id), owned, needed]
-	col.add_child(MaterialUiTokens.make_icon_cell(mat_id, _COST_MAT_ICON_PX, ok))
+	col.add_child(_MaterialUiTokens.make_icon_cell(mat_id, _COST_MAT_ICON_PX, ok))
 	var qty := Label.new()
 	qty.text = "%d / %d" % [owned, needed]
 	UiTypography.apply_body(qty, UiTypography.SIZE_CAPTION, COLOR_OK if ok else COLOR_SHORT)
