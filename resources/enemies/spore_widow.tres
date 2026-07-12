@@ -32,5 +32,5 @@ codex_danger = 3
 codex_habitat = "囁きの森・樹冠"
 codex_research_note = "蜘蛛を祖先とし、腹部に共生菌の子実体を育てる捕食種。糸に胞子を絡ませて風に流し、吸い込んだ獲物が弱るのを待って仕留める。後衛を狙う狡猾さが記録されている。"
 codex_materials = Array[String]([])
-skill_ids = Array[String]([])
-skill_use_chance = 0.0
+skill_ids = Array[String](["enemy_spore_widow_mist_web"])
+skill_use_chance = 0.28

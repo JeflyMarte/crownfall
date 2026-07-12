@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "crown_beetle"
+display_name = "クラウンビート"
+max_hp = 112
+attack = 15
+defense = 13
+attack_speed = 0.88
+critical_rate = 0.06
+move_speed = 0.82
+threat_target_bias = "max_threat"
+detection_range = 5.5
+attack_range = 1.0
+enemy_type = 0
+ai_type = "default"
+exp_reward = 12
+gold_reward = 44
+drop_table_id = "crown_beetle_drops"
+element_weakness = Array[String](["fire"])
+element_resist = Array[String]([])
+on_hit_status_id = "stun"
+on_hit_status_chance = 0.1
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "昆虫類"
+codex_danger = 2
+codex_habitat = "囁きの森・古樹根"
+codex_research_note = "甲虫を祖先とし、王冠状に巨大化した大顎を持つ個体群の長。硬い顎で樹皮を抉り、同種の前を押しのけて餌場を独占する。甲殻の隆起は争いの勲章のように傷だらけになる。"
+codex_materials = Array[String]([])
+skill_ids = Array[String](["enemy_crown_beetle_mandible_crush"])
+skill_use_chance = 0.28

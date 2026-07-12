@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_crown_beetle_mandible_crush"
+display_name = "王顎崩し"
+description = "王冠状の大顎で前列を挟み込み、硬直させる一撃を放つ。"
+skill_type = "enemy"
+target_type = "party_front"
+power_multiplier = 0.62
+cooldown = 5.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["aoe"])
+element = ""
+apply_status_id = "stun"
+apply_status_chance = 0.28

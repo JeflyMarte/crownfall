@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_mist_wyvern_canopy_dive"
+display_name = "樹冠急降下"
+description = "霧膜を張った翼で樹冠から後列へ急降下し、冷気を残して離脱する。"
+skill_type = "enemy"
+target_type = "party_back"
+power_multiplier = 0.72
+cooldown = 6.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["aoe"])
+element = "ice"
+apply_status_id = "chill"
+apply_status_chance = 0.28
