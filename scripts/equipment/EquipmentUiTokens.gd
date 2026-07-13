@@ -16,6 +16,11 @@ const BTN_UNEQUIP: String = ROOT + "UI_Equip_Btn_Unequip.png"
 const BTN_STAT_DETAIL: String = ROOT + "UI_Equip_Btn_StatDetail_Disabled.png"
 const FILTER_ICON: String = ROOT + "ICO_Equip_Filter.png"
 const SECTION_RULE: String = ROOT + "UI_Equip_SectionRule.png"
+## レジェンド装備セル左下の「Legend」リボン。
+const LEGENDARY_BADGE: String = ROOT + "ICO_Equip_LegendaryBadge.png"
+## セル幅に対するバッジ幅比率（左下寄せ）。
+const LEGENDARY_BADGE_WIDTH_RATIO: float = 0.72
+const LEGENDARY_BADGE_MARGIN_PX: float = 3.0
 
 const STAT_ICONS: Dictionary = {
 	"hp": ROOT + "ICO_Equip_Stat_HP.png",
@@ -98,6 +103,17 @@ static func category_icon(category: String) -> Texture2D:
 
 static func filter_icon() -> Texture2D:
 	return load_tex(FILTER_ICON)
+
+static func legendary_badge() -> Texture2D:
+	return load_tex(LEGENDARY_BADGE)
+
+static func legendary_badge_size(cell_size: Vector2) -> Vector2:
+	var tex: Texture2D = legendary_badge()
+	if tex == null or cell_size.x <= 0.0:
+		return Vector2.ZERO
+	var badge_w: float = cell_size.x * LEGENDARY_BADGE_WIDTH_RATIO
+	var aspect: float = float(tex.get_height()) / maxf(1.0, float(tex.get_width()))
+	return Vector2(badge_w, badge_w * aspect)
 
 static func scaled_margin(design_px: int, cell_px: int, design_margin: int) -> int:
 	if design_px <= 0:

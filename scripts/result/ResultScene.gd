@@ -11,6 +11,7 @@ const MvpPresentationScript: Script = preload("res://scripts/result/MvpPresentat
 const SkillIconHelperScript: Script = preload("res://scripts/ui/SkillIconHelper.gd")
 const _MaterialUiTokens = preload("res://scripts/equipment/MaterialUiTokens.gd")
 const _ChrIdlePortraitView = preload("res://scripts/ui/ChrIdlePortraitView.gd")
+const _ResultUiHelper = preload("res://scripts/result/ResultUiHelper.gd")
 const CLEAR_BANNER_TEX: Texture2D = preload("res://assets/ui/result/UI_Result_Clear.png")
 
 const COLOR_GOLD: Color = Color(0.85, 0.74, 0.45, 1)
@@ -34,7 +35,6 @@ const FS_RARE_NAME: int = 21
 const FS_RARE_DESC: int = 17
 const FS_RARE_STAR: int = 26
 const FS_CRAFTABLE: int = 19
-const FS_BUTTON: int = 24
 const REWARD_CELL_WIDTH: int = 88
 const REWARD_ICON_PX: int = 64
 const RARE_ICON_PX: int = 48
@@ -102,6 +102,7 @@ func _ready() -> void:
 	_levelup_panel_legacy.visible = false
 	_apply_typography()
 	_apply_panel_styles()
+	_setup_footer_chrome()
 	_setup_wizard_roots()
 	_bank_rewards()
 	_build_header()
@@ -125,14 +126,17 @@ func _process(delta: float) -> void:
 	if _step_timer_sec <= 0.0:
 		_advance_step()
 
+func _setup_footer_chrome() -> void:
+	_ResultUiHelper.apply_retry_button(_button_retry)
+	_ResultUiHelper.apply_home_button(_button_home)
+
 func _setup_wizard_roots() -> void:
 	_button_next = Button.new()
 	_button_next.name = "ButtonNext"
 	_button_next.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_button_next.custom_minimum_size = Vector2(0, 48)
+	_button_next.custom_minimum_size = Vector2(0, _ResultUiHelper.FOOTER_BTN_MIN_HEIGHT)
 	_button_next.pressed.connect(_on_next_pressed)
-	UiTypography.apply_button(_button_next)
-	_button_next.add_theme_font_size_override("font_size", FS_BUTTON)
+	_ResultUiHelper.apply_next_button(_button_next)
 	_footer.add_child(_button_next)
 	_footer.move_child(_button_next, 0)
 	_button_retry.visible = false
@@ -852,9 +856,6 @@ func _apply_typography() -> void:
 	_label_dungeon.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_label_dungeon.clip_text = true
 	_label_dungeon.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	for btn in [_button_retry, _button_home]:
-		UiTypography.apply_button(btn)
-		btn.add_theme_font_size_override("font_size", FS_BUTTON)
 
 func _apply_panel_styles() -> void:
 	_header_panel.add_theme_stylebox_override(

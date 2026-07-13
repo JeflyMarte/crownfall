@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "rune_carcinos"
+display_name = "ルーンカルキノス"
+max_hp = 98
+attack = 14
+defense = 14
+attack_speed = 0.88
+critical_rate = 0.0
+move_speed = 0.85
+threat_target_bias = "max_threat"
+detection_range = 5.5
+attack_range = 1.0
+enemy_type = 0
+ai_type = "default"
+exp_reward = 13
+gold_reward = 46
+drop_table_id = "rune_carcinos_drops"
+element_weakness = Array[String](["fire"])
+element_resist = Array[String](["dark"])
+on_hit_status_id = ""
+on_hit_status_chance = 0.0
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "甲殻類"
+codex_danger = 3
+codex_habitat = "囁きの森・林床の水辺"
+codex_research_note = "蟹を祖先とし、甲羅に古代文字状の刻印を持つ大型個体。林床の浅い水流を移動し、刻印は遺構の古代文字を取り込んだ析出模様とされる。硬い甲羅で正面の打撃を凌ぎ、水辺では動きが鈍くなる。"
+codex_materials = Array[String]([])
+skill_ids = Array[String](["enemy_rune_carapace"])
+skill_use_chance = 0.25

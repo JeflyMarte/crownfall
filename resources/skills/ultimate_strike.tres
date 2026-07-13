@@ -19,4 +19,4 @@ apply_status_id = ""
 apply_status_chance = 0.0
 slot_type = "ultimate"
 range_type = "global"
-cast_time = 1.0
+cast_time = 2.0

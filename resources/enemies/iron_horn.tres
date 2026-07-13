@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "iron_horn"
+display_name = "鋭刀甲虫"
+max_hp = 82
+attack = 18
+defense = 6
+attack_speed = 1.05
+critical_rate = 0.06
+move_speed = 1.15
+threat_target_bias = "max_threat"
+detection_range = 6.0
+attack_range = 1.0
+enemy_type = 0
+ai_type = "default"
+exp_reward = 11
+gold_reward = 40
+drop_table_id = "iron_horn_drops"
+element_weakness = Array[String](["fire"])
+element_resist = Array[String]([])
+on_hit_status_id = ""
+on_hit_status_chance = 0.0
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "昆虫類"
+codex_danger = 2
+codex_habitat = "囁きの森・林床"
+codex_research_note = "甲虫を祖先とし、頭部の角を刃のように研ぎ澄ました突撃型。硬い角で正面から切り込み、倒木の間を力任せに突進する。苔擬態種より好戦的で、群れより単独の直進突撃を好む。"
+codex_materials = Array[String]([])
+skill_ids = Array[String]([])
+skill_use_chance = 0.0

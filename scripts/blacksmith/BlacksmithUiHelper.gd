@@ -279,6 +279,7 @@ static func make_item_icon_cell(
 	frame.add_child(host)
 	host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	attach_item_icon(host, item_id, category, px)
+	EquipmentUiHelper.apply_legendary_badge(host, rarity, Vector2(px, px))
 	return frame
 
 static func make_plain_item_icon(
@@ -360,20 +361,53 @@ static func primary_button_disabled() -> StyleBoxFlat:
 	sb.set_content_margin_all(10.0)
 	return sb
 
-static func apply_primary_button(btn: Button) -> void:
-	var styled: StyleBox = ForgeUiTokens.produce_button_style()
-	if _texture_style_ok(styled):
-		btn.add_theme_stylebox_override("normal", styled)
-		btn.add_theme_stylebox_override("hover", styled)
-		btn.add_theme_stylebox_override("pressed", styled)
+const PRIMARY_KIND_PRODUCE: String = "produce"
+const PRIMARY_KIND_DISMANTLE: String = "dismantle"
+const PRIMARY_KIND_ENHANCE: String = "enhance"
+
+static func apply_primary_button(btn: Button, kind: String = PRIMARY_KIND_PRODUCE) -> void:
+	var styles: Dictionary = {}
+	var with_overlay_text: bool = kind == PRIMARY_KIND_ENHANCE
+	match kind:
+		PRIMARY_KIND_DISMANTLE:
+			styles = ForgeUiTokens.dismantle_button_styles()
+		PRIMARY_KIND_ENHANCE:
+			styles = ForgeUiTokens.enhance_button_styles()
+		_:
+			styles = ForgeUiTokens.produce_button_styles()
+	_apply_image_button_styles(btn, styles, with_overlay_text)
+
+
+static func apply_bulk_dismantle_button(btn: Button) -> void:
+	_apply_image_button_styles(btn, ForgeUiTokens.bulk_dismantle_button_styles(), false)
+	if btn.custom_minimum_size.y < 76.0:
+		btn.custom_minimum_size = Vector2(btn.custom_minimum_size.x, 76.0)
+
+
+static func _apply_image_button_styles(btn: Button, styles: Dictionary, with_overlay_text: bool) -> void:
+	var normal: StyleBox = styles.get("normal", null)
+	var disabled: StyleBox = styles.get("disabled", null)
+	if _texture_style_ok(normal):
+		btn.add_theme_stylebox_override("normal", normal)
+		btn.add_theme_stylebox_override("hover", normal)
+		btn.add_theme_stylebox_override("pressed", normal)
 	else:
 		btn.add_theme_stylebox_override("normal", primary_button_normal())
 		btn.add_theme_stylebox_override("hover", primary_button_hover())
 		btn.add_theme_stylebox_override("pressed", primary_button_hover())
-	btn.add_theme_stylebox_override("disabled", primary_button_disabled())
-	btn.add_theme_color_override("font_color", Color(0.98, 0.92, 0.72, 1.0))
-	btn.add_theme_color_override("font_disabled_color", Color(0.55, 0.52, 0.48, 1.0))
-	btn.add_theme_font_size_override("font_size", 28)
+	if _texture_style_ok(disabled):
+		btn.add_theme_stylebox_override("disabled", disabled)
+	else:
+		btn.add_theme_stylebox_override("disabled", primary_button_disabled())
+	if with_overlay_text:
+		btn.add_theme_color_override("font_color", Color(0.98, 0.92, 0.72, 1.0))
+		btn.add_theme_color_override("font_disabled_color", Color(0.55, 0.52, 0.48, 1.0))
+		btn.add_theme_font_size_override("font_size", 28)
+	else:
+		btn.text = ""
+		btn.add_theme_font_size_override("font_size", 1)
+		btn.add_theme_color_override("font_color", Color(1, 1, 1, 0))
+		btn.add_theme_color_override("font_disabled_color", Color(1, 1, 1, 0))
 	if btn.custom_minimum_size.y < 76.0:
 		btn.custom_minimum_size = Vector2(btn.custom_minimum_size.x, 76.0)
 

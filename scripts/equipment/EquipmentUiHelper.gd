@@ -73,6 +73,29 @@ static func apply_enhance_badge(
 		font_size
 	)
 
+## レジェンド装備アイコンの左下に Legend リボンを重ねる。
+static func apply_legendary_badge(parent: Control, rarity: int, cell_size: Vector2) -> void:
+	if parent == null or rarity < Enums.Rarity.LEGENDARY:
+		return
+	var tex: Texture2D = EquipmentUiTokens.legendary_badge()
+	if tex == null:
+		return
+	var badge_size: Vector2 = EquipmentUiTokens.legendary_badge_size(cell_size)
+	if badge_size.x <= 0.0 or badge_size.y <= 0.0:
+		return
+	var margin: float = EquipmentUiTokens.LEGENDARY_BADGE_MARGIN_PX
+	var icon := TextureRect.new()
+	icon.name = "LegendaryBadge"
+	icon.texture = tex
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.z_index = 2
+	icon.custom_minimum_size = badge_size
+	icon.size = badge_size
+	icon.position = Vector2(margin, cell_size.y - badge_size.y - margin)
+	parent.add_child(icon)
+
 static func add_corner_badge(
 	parent: Control,
 	text: String,

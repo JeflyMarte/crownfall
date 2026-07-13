@@ -95,7 +95,7 @@ func _ready() -> void:
 	)
 	_cost_panel.add_theme_stylebox_override("panel", BlacksmithUiHelper.cost_panel_style())
 	_unique_panel.add_theme_stylebox_override("panel", BlacksmithUiHelper.unique_panel_style())
-	BlacksmithUiHelper.apply_primary_button(_craft_button)
+	BlacksmithUiHelper.apply_bulk_dismantle_button(_bulk_dismantle_btn)
 	_craft_button.pressed.connect(_on_craft_button_pressed)
 	_produce_notify_dot.add_theme_stylebox_override("panel", BlacksmithUiHelper.notify_dot_style())
 	_flash_overlay.color = Color(1.0, 1.0, 1.0, 0.0)
@@ -157,14 +157,15 @@ func _setup_bulk_dismantle_button() -> void:
 	_bulk_dismantle_btn = Button.new()
 	_bulk_dismantle_btn.text = "◇◆を一括分解"
 	_bulk_dismantle_btn.visible = false
-	BlacksmithUiHelper.apply_primary_button(_bulk_dismantle_btn)
+	_bulk_dismantle_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_bulk_dismantle_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	BlacksmithUiHelper.apply_bulk_dismantle_button(_bulk_dismantle_btn)
 	_bulk_dismantle_btn.pressed.connect(_on_bulk_dismantle_pressed)
-	$MainSplit.add_child(_bulk_dismantle_btn)
-	_bulk_dismantle_btn.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	_bulk_dismantle_btn.offset_left = 12
-	_bulk_dismantle_btn.offset_top = 4
-	_bulk_dismantle_btn.offset_right = -12
-	_bulk_dismantle_btn.offset_bottom = 36
+	# MainSplit(HBox) の第3列にすると縦に肥大化し左一覧を圧迫するため、
+	# 詳細パネル内・分解ボタン直下に置く。
+	var detail_vbox: VBoxContainer = $MainSplit/DetailPanel/DetailVBox
+	detail_vbox.add_child(_bulk_dismantle_btn)
+	detail_vbox.move_child(_bulk_dismantle_btn, _craft_button.get_index() + 1)
 
 func _setup_forge_chrome() -> void:
 	var back_tex: Texture2D = ForgeUiTokens.back_icon()
@@ -192,7 +193,24 @@ func _set_mode(mode: String) -> void:
 		_selected_dismantle_item = null
 	_update_category_styles()
 	_update_tab_styles()
+	_apply_craft_button_style()
 	_refresh_all()
+
+
+func _apply_craft_button_style() -> void:
+	match _mode:
+		"enhance":
+			BlacksmithUiHelper.apply_primary_button(
+				_craft_button, BlacksmithUiHelper.PRIMARY_KIND_ENHANCE
+			)
+		"dismantle":
+			BlacksmithUiHelper.apply_primary_button(
+				_craft_button, BlacksmithUiHelper.PRIMARY_KIND_DISMANTLE
+			)
+		_:
+			BlacksmithUiHelper.apply_primary_button(
+				_craft_button, BlacksmithUiHelper.PRIMARY_KIND_PRODUCE
+			)
 
 func _set_category(category: String) -> void:
 	if _mode == "produce":
@@ -607,8 +625,12 @@ func _rebuild_produce_detail() -> void:
 	_add_stat_row("所持数", "%d" % owned)
 	_populate_unique_from_craft(craft)
 	_update_cost_panel(int(craft.gold_cost), craft.required_materials)
-	_craft_button.text = _craft_button_label(craft, can_craft)
 	_craft_button.disabled = not can_craft
+	if can_craft:
+		_reason_label.visible = false
+	else:
+		_reason_label.text = _craft_button_label(craft, false)
+		_reason_label.visible = not _reason_label.text.is_empty()
 
 func _rebuild_enhance_detail() -> void:
 	if _selected_enhance_item == null:
@@ -690,9 +712,10 @@ func _rebuild_dismantle_detail() -> void:
 	var can_do: bool = bool(preview.get("ok", false))
 	_cost_panel.visible = false
 	_craft_button.visible = true
-	_craft_button.text = "分解する"
 	_craft_button.disabled = not can_do
-	if not can_do:
+	if can_do:
+		_reason_label.visible = false
+	else:
 		_reason_label.text = str(preview.get("reason", ""))
 		_reason_label.visible = not _reason_label.text.is_empty()
 
@@ -864,7 +887,10 @@ func _update_bulk_dismantle_button() -> void:
 	var preview: Dictionary = _EquipmentEnhancer.dismantle_bulk_preview()
 	var count: int = int(preview.get("count", 0))
 	_bulk_dismantle_btn.disabled = count <= 0
-	_bulk_dismantle_btn.text = "◇◆を一括分解（%d件）" % count if count > 0 else "◇◆を一括分解"
+	_bulk_dismantle_btn.text = ""
+	_bulk_dismantle_btn.tooltip_text = (
+		"◇◆ %d件を一括分解" % count if count > 0 else "◇◆を一括分解"
+	)
 
 func _craft_button_label(craft: Resource, can_craft: bool) -> String:
 	if can_craft:

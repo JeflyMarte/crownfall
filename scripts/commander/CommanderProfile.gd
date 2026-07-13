@@ -26,7 +26,6 @@ const RANK_SUBTITLES: Dictionary = {
 	"S": "広域調査許可",
 }
 
-const PROFILE_UNLOCK_RANK: String = "C"
 const NAME_EDIT_UNLOCK_RANK: String = "C"
 const EXTENDED_RECORDS_UNLOCK_RANK: String = "A"
 const GOLD_SEAL_RANK: String = "S"
@@ -82,8 +81,9 @@ static func is_rank_at_least(rank_code: String) -> bool:
 	return current >= target
 
 
+## 隊長台帳の閲覧可否（P3-CMD-001-8: ランク不問で常時閲覧可）。
 static func is_profile_unlocked() -> bool:
-	return is_rank_at_least(PROFILE_UNLOCK_RANK)
+	return true
 
 
 static func rank_display(include_subtitle: bool = true) -> String:
@@ -263,5 +263,7 @@ static func _sanitize_commander() -> void:
 		GameState.commander["titles_unlocked"] = []
 	if not GameState.commander.has("recent_highlights"):
 		GameState.commander["recent_highlights"] = []
+	if not GameState.commander.has("gift_box") or not GameState.commander["gift_box"] is Array:
+		GameState.commander["gift_box"] = []
 	if not GameState.commander.has("name") or str(GameState.commander.get("name", "")).strip_edges().is_empty():
 		GameState.commander["name"] = DEFAULT_NAME

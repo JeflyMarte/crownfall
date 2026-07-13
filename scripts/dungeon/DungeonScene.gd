@@ -19,6 +19,7 @@ const _LOG_MAX: int = 60
 
 const ENEMY_SPRITE_MAP: Dictionary = {
 	"blood_leech": "res://resources/animation/ENM_BloodLeech.tres",
+	"blood_bloom": "res://resources/animation/ENM_BloodLeech.tres",
 	"bloom_serpent": "res://resources/animation/ENM_BloomSerpent.tres",
 	"clock_moth": "res://resources/animation/ENM_ClockMoth.tres",
 	"crown_eater_rat": "res://resources/animation/ENM_CrownEaterRat.tres",
@@ -29,13 +30,16 @@ const ENEMY_SPRITE_MAP: Dictionary = {
 	"frost_claw_raptor": "res://resources/animation/ENM_FrostClawRaptor.tres",
 	"great_claw": "res://resources/animation/ENM_GreatClaw.tres",
 	"greios": "res://resources/animation/ENM_Greios.tres",
+	"iron_horn": "res://resources/animation/ENM_MossShell.tres",
 	"marsh_king": "res://resources/animation/ENM_MarshKing.tres",
 	"mist_mantis": "res://resources/animation/ENM_MistMantis.tres",
+	"mirror_boa": "res://resources/animation/ENM_BloomSerpent.tres",
 	"mist_wyvern": "res://resources/animation/ENM_MistWyvern.tres",
 	"moss_boar": "res://resources/animation/ENM_MossBoar.tres",
 	"moss_shell": "res://resources/animation/ENM_MossShell.tres",
 	"ninja_octopus": "res://resources/animation/ENM_NinjaOctopus.tres",
 	"oldrex": "res://resources/animation/ENM_Oldrex.tres",
+	"rune_carcinos": "res://resources/animation/ENM_ShipEaterCrab.tres",
 	"rune_roach": "res://resources/animation/ENM_RuneRoach.tres",
 	"samurai_fish": "res://resources/animation/ENM_SamuraiFish.tres",
 	"sepia_hound": "res://resources/animation/ENM_SepiaHound.tres",
@@ -218,6 +222,8 @@ const LOG_ENEMY_NORMAL: Color = Color("#E8C4B0")
 const LOG_ENEMY_ELITE: Color = Color("#FF9E7A")
 const LOG_ENEMY_BOSS: Color = Color("#FF6B6B")
 const LOG_ENEMY_TIER_BY_ID: Dictionary = {
+	"mirror_boa": "elite",
+	"mist_wyvern": "elite",
 	"clock_moth": "elite",
 	"serdion": "boss",
 	"granvel": "boss",
@@ -297,6 +303,9 @@ var _heal_presentation_active: bool = false
 var _treasure_presentation_active: bool = false
 var _event_presentation_active: bool = false
 var _combat_clear_active: bool = false
+var _combat_cinematic_lock: bool = false
+var _ultimate_presentation_active: bool = false
+var _ultimate_center_telop: Control = null
 var _combat_clear_tween: Tween
 var _dive_intro_active: bool = false
 var _room_transition_busy: bool = false
@@ -432,6 +441,7 @@ const TRAP_HIT_PAUSE_SEC: float = 0.45
 const TRAP_FEEDBACK_FLASH_COLOR: Color = Color(1.0, 0.32, 0.22)
 const TRAP_FEEDBACK_DMG_COLOR: Color = Color(1.0, 0.35, 0.35)
 const TrapPresentationScript: Script = preload("res://scripts/dungeon/TrapPresentation.gd")
+const UltimatePresentationConfigScript: Script = preload("res://scripts/combat/UltimatePresentationConfig.gd")
 const HealRoomPresentationScript: Script = preload("res://scripts/dungeon/HealRoomPresentation.gd")
 const TreasureRoomPresentationScript: Script = preload("res://scripts/dungeon/TreasureRoomPresentation.gd")
 const LoreRoomPresentationScript: Script = preload("res://scripts/dungeon/LoreRoomPresentation.gd")
@@ -3125,6 +3135,8 @@ func _on_combat_timer_timeout() -> void:
 	if not $CombatController.is_in_combat:
 		$CombatTimer.stop()
 		return
+	if _combat_cinematic_lock:
+		return
 	if _round_active:
 		return
 	_round_active = true
@@ -3133,6 +3145,8 @@ func _on_combat_timer_timeout() -> void:
 
 func _run_combat_step() -> void:
 	if not $CombatController.is_in_combat:
+		return
+	if _combat_cinematic_lock:
 		return
 	var actor: Dictionary = $CombatController.advance_to_next_actor()
 	var delta: float = $CombatController.consume_last_ct_step()
@@ -3421,37 +3435,39 @@ func _execute_member_skill(
 	var skill_is_crit: bool = result.get("is_critical", false)
 	var spawn_pos: Vector2 = _enemy_slot_pos(target_slot)
 	var is_ultimate: bool = _is_ultimate_skill(skill_data)
-	if is_ultimate:
-		if not suppress_resolve_label:
-			if cast_index == 0:
-				_clear_member_skill_labels(member_idx)
-			_spawn_ultimate_skill_name(result["display_name"], member_idx, attack_element)
-		_play_ultimate_resolve_vfx(member_idx, skill_data, spawn_pos, attack_element)
-		_play_chr_attack_one(member_idx)
-		var ult_dmg_scale: float = 1.65 if skill_is_crit else 1.4
-		_spawn_damage_number(
-			str(final_dmg),
-			spawn_pos + Vector2(12.0, 0.0),
-			_outgoing_damage_telop_color(skill_is_crit, true),
-			ult_dmg_scale
-		)
-	else:
-		_spawn_hit_vfx(spawn_pos, attack_element, 1.0, skill_is_crit)
-		_spawn_damage_number(
-			str(final_dmg),
-			spawn_pos + Vector2(12.0, 0.0),
-			_outgoing_damage_telop_color(skill_is_crit),
-			1.25 if skill_is_crit else 1.0
-		)
-		if cast_index == 0:
-			_clear_member_skill_labels(member_idx)
-		if not suppress_resolve_label:
-			_spawn_skill_name(result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP, attack_element)
 	var crit_tag: String = "  CRITICAL!" if skill_is_crit else ""
 	var tgt_tag: String = _member_target_tag(member_idx)
 	var log_line: String = "\n【スキル】%s: %dダメージ%s%s%s%s" % [
 		result["display_name"], final_dmg, crit_tag, elem_result["element_tag"], form_tag, tgt_tag,
 	]
+	if is_ultimate:
+		if cast_index == 0:
+			_clear_member_skill_labels(member_idx)
+		_play_ultimate_presentation_async({
+			"kind": "damage",
+			"member_idx": member_idx,
+			"skill_data": skill_data,
+			"display_name": str(result["display_name"]),
+			"final_dmg": final_dmg,
+			"target_slot": target_slot,
+			"attack_element": attack_element,
+			"skill_is_crit": skill_is_crit,
+			"spawn_pos": spawn_pos,
+			"log_line": log_line,
+			"skill_id": str(skill_data.id) if skill_data != null else "",
+		})
+		return ""
+	_spawn_hit_vfx(spawn_pos, attack_element, 1.0, skill_is_crit)
+	_spawn_damage_number(
+		str(final_dmg),
+		spawn_pos + Vector2(12.0, 0.0),
+		_outgoing_damage_telop_color(skill_is_crit),
+		1.25 if skill_is_crit else 1.0
+	)
+	if cast_index == 0:
+		_clear_member_skill_labels(member_idx)
+	if not suppress_resolve_label:
+		_spawn_skill_name(result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP, attack_element)
 	if _deal_member_damage_to_enemy(
 		member_idx,
 		final_dmg,
@@ -3514,35 +3530,38 @@ func _execute_member_heal(
 	if not result.get("executed", false):
 		return ""
 	var heal_amount: int = _apply_healing_bonus(int(round(skill_data.power_multiplier * float(HEAL_SKILL_BASE))), member_idx)
+	var is_ultimate: bool = _is_ultimate_skill(skill_data)
+	var target_name: String = ""
+	var target_member: Resource = GameState.get_combatant(target_idx)
+	if target_member != null:
+		target_name = target_member.display_name
+	if is_ultimate:
+		if cast_index == 0:
+			_clear_member_skill_labels(member_idx)
+		_play_ultimate_presentation_async({
+			"kind": "heal",
+			"member_idx": member_idx,
+			"skill_data": skill_data,
+			"display_name": str(result["display_name"]),
+			"target_idx": target_idx,
+			"target_name": target_name,
+			"heal_amount": heal_amount,
+		})
+		return ""
 	var healed: int = $CombatController.heal_member(target_idx, heal_amount)
 	if healed > 0:
 		GameState.record_run_heal(member_idx, healed)
 	_set_heal_rally(target_idx)
 	_update_hp_bars()
-	var is_ultimate: bool = _is_ultimate_skill(skill_data)
-	if is_ultimate:
-		var focus_pos: Vector2 = _member_sprite_world_pos(target_idx, 0.5)
-		_play_ultimate_resolve_vfx(member_idx, skill_data, focus_pos, "")
-		if not suppress_resolve_label:
-			if cast_index == 0:
-				_clear_member_skill_labels(member_idx)
-			_spawn_ultimate_skill_name(result["display_name"], member_idx, "")
-	else:
-		if cast_index == 0:
-			_clear_member_skill_labels(member_idx)
-		if not suppress_resolve_label:
-			_spawn_skill_name(result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP)
+	if cast_index == 0:
+		_clear_member_skill_labels(member_idx)
+	if not suppress_resolve_label:
+		_spawn_skill_name(result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP)
 	if healed > 0:
 		_spawn_member_heal_vfx(target_idx)
 		if target_idx >= 0 and target_idx < _chr_sprites.size() and _chr_sprites[target_idx].visible:
 			var heal_pos: Vector2 = _chr_sprites[target_idx].global_position + Vector2(0.0, -CHR_BODY_TARGET_PX * 0.5)
-			var heal_scale: float = 1.45 if is_ultimate else 1.1
-			var heal_color: Color = ULTIMATE_GOLD if is_ultimate else Color(0.45, 1.0, 0.5)
-			_spawn_damage_number("+%d" % healed, heal_pos, heal_color, heal_scale)
-	var target_name: String = ""
-	var target_member: Resource = GameState.get_combatant(target_idx)
-	if target_member != null:
-		target_name = target_member.display_name
+			_spawn_damage_number("+%d" % healed, heal_pos, Color(0.45, 1.0, 0.5), 1.1)
 	return "\n【スキル】%s: %s を %d回復" % [result["display_name"], target_name, healed]
 
 # バフスキル: 生存中のメイン編成全員に apply_status_id（鼓舞=与ダメ上昇）を付与する。
@@ -4736,6 +4755,9 @@ func _try_cast_member_skill(member_idx: int, skill_data: Resource, is_ultimate: 
 	if cast_time <= 0.0:
 		var log_text: String = _execute_member_skill(member_idx, skill_data, 0).strip_edges()
 		if log_text.is_empty():
+			if _ultimate_presentation_active:
+				_update_hp_bars()
+				return true
 			return false
 		if is_ultimate:
 			_append_log("【必殺】" + log_text.trim_prefix("【スキル】"))
@@ -4799,6 +4821,9 @@ func _advance_member_cast(member_idx: int) -> void:
 			$CombatController.member_target_slot[member_idx] = frozen
 	var log_text: String = _execute_member_skill(member_idx, skill_data, 0).strip_edges()
 	if log_text.is_empty():
+		if _ultimate_presentation_active:
+			_update_hp_bars()
+			return
 		return
 	if str(skill_data.slot_type) == "ultimate":
 		_append_log("【必殺】" + log_text.trim_prefix("【スキル】"))
@@ -6651,6 +6676,184 @@ func _spawn_damage_number(
 	tw.tween_property(lbl, "position:y", lbl.position.y + rise, 0.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tw.parallel().tween_property(lbl, "modulate:a", 0.0, 0.5).set_delay(0.2)
 	tw.chain().tween_callback(lbl.queue_free)
+
+func _ultimate_presentation_speed_mult() -> float:
+	if _combat_speed_mult > 0.0:
+		return _combat_speed_mult
+	return SPEED_MULT_NORMAL
+
+func _begin_combat_cinematic_lock() -> void:
+	_combat_cinematic_lock = true
+	_ultimate_presentation_active = true
+	if not $CombatTimer.is_stopped():
+		$CombatTimer.stop()
+
+func _end_combat_cinematic_lock() -> void:
+	_combat_cinematic_lock = false
+	_ultimate_presentation_active = false
+	if $CombatController.is_in_combat and not _is_paused:
+		$CombatTimer.start()
+
+func _show_ultimate_center_telop(skill_name: String, element: String = "") -> void:
+	_dismiss_ultimate_center_telop(0.0)
+	if skill_name.is_empty():
+		return
+	const TITLE_FONT_SIZE: int = 22
+	const NAME_FONT_SIZE: int = 52
+	var layer := Control.new()
+	layer.name = "UltimateCenterTelop"
+	layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.z_index = 140
+	var wrap := VBoxContainer.new()
+	wrap.set_anchors_preset(Control.PRESET_CENTER)
+	wrap.offset_left = -280.0
+	wrap.offset_right = 280.0
+	wrap.offset_top = -72.0
+	wrap.offset_bottom = 72.0
+	wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	wrap.alignment = BoxContainer.ALIGNMENT_CENTER
+	var title := Label.new()
+	title.text = "必殺技"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var af: Font = UiTypography.impact_font()
+	if af != null:
+		title.add_theme_font_override("font", af)
+		title.add_theme_font_size_override("font_size", TITLE_FONT_SIZE)
+	title.add_theme_color_override("font_color", Color(1.0, 0.92, 0.55))
+	title.add_theme_color_override("font_outline_color", Color(0.15, 0.05, 0.0, 0.95))
+	title.add_theme_constant_override("outline_size", 6)
+	var name_lbl := Label.new()
+	name_lbl.text = skill_name
+	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if af != null:
+		name_lbl.add_theme_font_override("font", af)
+	name_lbl.add_theme_font_size_override("font_size", NAME_FONT_SIZE)
+	var name_color: Color = ELEMENT_COLOR.get(element, ULTIMATE_GOLD)
+	name_lbl.add_theme_color_override("font_color", name_color)
+	name_lbl.add_theme_color_override("font_outline_color", Color(0.12, 0.04, 0.0, 0.95))
+	name_lbl.add_theme_constant_override("outline_size", 12)
+	name_lbl.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.65))
+	name_lbl.add_theme_constant_override("shadow_offset_x", 4)
+	name_lbl.add_theme_constant_override("shadow_offset_y", 5)
+	wrap.add_child(title)
+	wrap.add_child(name_lbl)
+	layer.add_child(wrap)
+	$TransitionLayer.add_child(layer)
+	_ultimate_center_telop = layer
+	wrap.pivot_offset = wrap.size * 0.5
+	wrap.scale = Vector2(0.35, 0.35)
+	wrap.modulate.a = 0.0
+	var tw: Tween = create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(wrap, "scale", Vector2(1.08, 1.08), 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(wrap, "modulate:a", 1.0, 0.16)
+
+func _dismiss_ultimate_center_telop(fade_sec: float = 0.25) -> void:
+	if _ultimate_center_telop == null or not is_instance_valid(_ultimate_center_telop):
+		_ultimate_center_telop = null
+		return
+	var node: Control = _ultimate_center_telop
+	_ultimate_center_telop = null
+	if fade_sec <= 0.0:
+		node.queue_free()
+		return
+	var tw: Tween = create_tween()
+	tw.tween_property(node, "modulate:a", 0.0, fade_sec)
+	tw.chain().tween_callback(node.queue_free)
+
+func _play_ultimate_presentation_async(payload: Dictionary) -> void:
+	var speed: float = _ultimate_presentation_speed_mult()
+	var t: Dictionary = UltimatePresentationConfigScript.scaled(speed)
+	_begin_combat_cinematic_lock()
+	var member_idx: int = int(payload.get("member_idx", -1))
+	var skill_data: Resource = payload.get("skill_data") as Resource
+	var display_name: String = str(payload.get("display_name", ""))
+	var kind: String = str(payload.get("kind", "damage"))
+	var element: String = str(payload.get("attack_element", ""))
+	var is_heal: bool = kind == "heal"
+	_show_ultimate_center_telop(display_name, element)
+	_pulse_member_ultimate(member_idx)
+	await get_tree().create_timer(float(t["announce"])).timeout
+	if not $CombatController.is_in_combat:
+		_dismiss_ultimate_center_telop(0.1)
+		_end_combat_cinematic_lock()
+		return
+	var caster_pos: Vector2 = _member_sprite_world_pos(member_idx, 0.35)
+	var ring_tint: Color = Color(0.65, 1.0, 0.78) if is_heal else ULTIMATE_GOLD
+	_spawn_ultimate_ring_burst(caster_pos, ring_tint, 1.65)
+	_flash_battlefield(ULTIMATE_FLASH_HEAL if is_heal else ULTIMATE_FLASH_DAMAGE, 0.22 if is_heal else 0.2)
+	_flash_member_sprite(member_idx, ring_tint)
+	await get_tree().create_timer(float(t["windup"])).timeout
+	if not $CombatController.is_in_combat:
+		_dismiss_ultimate_center_telop(0.1)
+		_end_combat_cinematic_lock()
+		return
+	if is_heal:
+		var target_idx: int = int(payload.get("target_idx", -1))
+		var focus_pos: Vector2 = _member_sprite_world_pos(target_idx, 0.5)
+		_play_ultimate_resolve_vfx(member_idx, skill_data, focus_pos, "")
+		_apply_ultimate_heal_impact(payload)
+	else:
+		var focus_pos: Vector2 = payload.get("spawn_pos", Vector2.ZERO) as Vector2
+		_play_ultimate_resolve_vfx(member_idx, skill_data, focus_pos, element)
+		_play_chr_attack_one(member_idx)
+		_apply_ultimate_damage_impact(payload)
+	_dismiss_ultimate_center_telop(float(t["release"]))
+	await get_tree().create_timer(float(t["release"])).timeout
+	_end_combat_cinematic_lock()
+	_update_hp_bars()
+
+func _apply_ultimate_damage_impact(payload: Dictionary) -> void:
+	var member_idx: int = int(payload.get("member_idx", -1))
+	var final_dmg: int = int(payload.get("final_dmg", 0))
+	var target_slot: int = int(payload.get("target_slot", -1))
+	var skill_is_crit: bool = bool(payload.get("skill_is_crit", false))
+	var spawn_pos: Vector2 = payload.get("spawn_pos", Vector2.ZERO) as Vector2
+	var ult_dmg_scale: float = 1.65 if skill_is_crit else 1.4
+	_spawn_damage_number(
+		str(final_dmg),
+		spawn_pos + Vector2(12.0, 0.0),
+		_outgoing_damage_telop_color(skill_is_crit, true),
+		ult_dmg_scale
+	)
+	var skill_data: Resource = payload.get("skill_data") as Resource
+	var log_line: String = str(payload.get("log_line", ""))
+	if _deal_member_damage_to_enemy(
+		member_idx,
+		final_dmg,
+		target_slot,
+		str(payload.get("skill_id", "")),
+		str(payload.get("display_name", "スキル"))
+	):
+		pass
+	else:
+		_apply_skill_status(member_idx, skill_data)
+		_apply_skill_secondary_status(member_idx, skill_data)
+	if not log_line.is_empty():
+		_append_log("【必殺】" + log_line.trim_prefix("【スキル】"))
+
+func _apply_ultimate_heal_impact(payload: Dictionary) -> void:
+	var member_idx: int = int(payload.get("member_idx", -1))
+	var target_idx: int = int(payload.get("target_idx", -1))
+	var heal_amount: int = int(payload.get("heal_amount", 0))
+	var display_name: String = str(payload.get("display_name", ""))
+	var target_name: String = str(payload.get("target_name", ""))
+	var healed: int = $CombatController.heal_member(target_idx, heal_amount)
+	if healed > 0:
+		GameState.record_run_heal(member_idx, healed)
+	_set_heal_rally(target_idx)
+	if healed > 0:
+		_spawn_member_heal_vfx(target_idx)
+		if target_idx >= 0 and target_idx < _chr_sprites.size() and _chr_sprites[target_idx].visible:
+			var heal_pos: Vector2 = _chr_sprites[target_idx].global_position + Vector2(0.0, -CHR_BODY_TARGET_PX * 0.5)
+			_spawn_damage_number("+%d" % healed, heal_pos, ULTIMATE_GOLD, 1.45)
+	_append_log(
+		"【必殺】"
+		+ ("\n【スキル】%s: %s を %d回復" % [display_name, target_name, healed]).trim_prefix("【スキル】")
+	)
 
 func _is_ultimate_skill(skill_data: Resource) -> bool:
 	return skill_data != null and str(skill_data.slot_type) == "ultimate"

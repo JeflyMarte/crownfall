@@ -139,7 +139,7 @@ const ICON_MAP: Dictionary = {
 	"accessory:pilgrim_lantern_charm":           "res://assets/ui/equipment/ICO_ACC_PilgrimLanternCharm.png",
 	"accessory:unidentified":      "res://assets/ui/batch2/ICO_ACC_Unidentified.png",
 	"material:relic_shard":        "res://assets/ui/materials/ICO_MAT_RelicShard.png",
-	"material:base_ore":           "res://assets/ui/materials/ICO_MAT_RelicShard.png",
+	"material:base_ore":           "res://assets/ui/materials/ICO_MAT_BaseOre.png",
 	"material:epic_ore":           "res://assets/ui/materials/ICO_MAT_EliteRelicShard.png",
 	"material:elite_relic_shard":  "res://assets/ui/materials/ICO_MAT_EliteRelicShard.png",
 	"material:ancient_bone":       "res://assets/ui/materials/ICO_MAT_AncientBone.png",
@@ -155,6 +155,10 @@ const ICON_MAP: Dictionary = {
 	"enemy:reliquary_beetle":      "res://assets/codex/enemies/ART_ENM_RuneRoach.png",
 	"enemy:serdion":               "res://assets/codex/enemies/ART_BOSS_Serdion.png",
 	# ② ウィスパーウッド
+	"enemy:iron_horn":             "res://assets/codex/enemies/ART_ENM_MossShell.png",
+	"enemy:blood_bloom":           "res://assets/codex/enemies/ART_ENM_SporeWidow.png",
+	"enemy:rune_carcinos":         "res://assets/codex/enemies/ART_ENM_ShipEaterCrab.png",
+	"enemy:mirror_boa":            "res://assets/codex/enemies/ART_ENM_BloomSerpent.png",
 	"enemy:moss_boar":             "res://assets/codex/enemies/ART_ENM_MossBoar.png",
 	"enemy:moss_shell":            "res://assets/codex/enemies/ART_ENM_MossShell.png",
 	"enemy:bloom_serpent":         "res://assets/codex/enemies/ART_ENM_BloomSerpent.png",
@@ -411,6 +415,13 @@ const ICON_MAP: Dictionary = {
 	"ui:guild":                    "res://assets/ui/menu/ICO_UI_Guild.png",
 	"ui:missions":                 "res://assets/ui/menu/ICO_UI_Missions.png",
 	"passive:battle_fervor":       "res://assets/ui/passives/ICO_PASSIVE_BattleFervor.png",
+	# 隊長台帳セクション見出し（64x64）
+	"commander:overview":          "res://assets/ui/commander/ICO_CMD_Overview.png",
+	"commander:gift_box":          "res://assets/ui/commander/ICO_CMD_GiftBox.png",
+	"commander:assets":            "res://assets/ui/commander/ICO_CMD_Assets.png",
+	"commander:members":           "res://assets/ui/commander/ICO_CMD_Members.png",
+	"commander:records":           "res://assets/ui/commander/ICO_CMD_Records.png",
+	"commander:titles":            "res://assets/ui/commander/ICO_CMD_Titles.png",
 }
 
 static func get_icon_texture(id: String, category: String) -> Texture2D:

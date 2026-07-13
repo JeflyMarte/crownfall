@@ -14,7 +14,7 @@ from __future__ import annotations
 import math
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "assets/ui/forge"
@@ -27,6 +27,26 @@ CELL_BG = (32, 24, 18, 235)
 EMBER = (255, 165, 55)
 EMBER_GLOW = (255, 140, 40, 90)
 WHITE = (245, 242, 235, 255)
+GOLD_HI = (255, 230, 150)
+BTN_BG = (68, 48, 10)
+BTN_BG_DISABLED = (42, 38, 34)
+FONT_PATHS = [
+    ROOT / "assets/fonts/ShipporiMinchoB1-Bold.ttf",
+    ROOT / "assets/fonts/NotoSansJP-VariableFont_wght.ttf",
+    Path("/System/Library/Fonts/Hiragino Sans GB.ttc"),
+]
+
+
+def load_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    for path in FONT_PATHS:
+        if path.exists():
+            try:
+                return ImageFont.truetype(str(path), size)
+            except OSError:
+                continue
+    return ImageFont.load_default()
+
+
 RARITY_BORDERS = {
     0: (150, 145, 138),   # N
     1: (75, 130, 215),    # R
@@ -265,10 +285,106 @@ def draw_tab_active(w: int = 440, h: int = 176) -> Image.Image:
 
 
 def draw_produce_button(w: int = 1200, h: int = 192) -> Image.Image:
+    return draw_primary_button_frame(w, h, enabled=True)
+
+
+def _draw_primary_frame_layer(draw: ImageDraw.ImageDraw, w: int, h: int, enabled: bool) -> None:
+    fill = BTN_BG if enabled else BTN_BG_DISABLED
+    border = GOLD if enabled else (90, 85, 78)
+    rounded_rect(draw, (0, 0, w - 1, h - 1), 14, (*fill, 255), (*border, 255), 3)
+    if enabled:
+        draw.line((12, 8, w - 12, 8), fill=(*GOLD_HI, 120), width=2)
+        draw.line((12, h - 10, w - 12, h - 10), fill=(*GOLD_DARK, 160), width=2)
+
+
+def draw_primary_button_frame(w: int = 1200, h: int = 192, *, enabled: bool = True) -> Image.Image:
     img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
-    rounded_rect(draw, (0, 0, w - 1, h - 1), 14, (68, 48, 10, 255), (*GOLD, 255), 3)
-    draw.line((12, 8, w - 12, 8), fill=(255, 230, 150, 120), width=2)
+    _draw_primary_frame_layer(draw, w, h, enabled)
+    if enabled:
+        glow = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        gdraw = ImageDraw.Draw(glow)
+        gdraw.ellipse((w // 2 - 180, h - 40, w // 2 + 180, h + 30), fill=(255, 170, 50, 55))
+        img = Image.alpha_composite(img, glow.filter(ImageFilter.GaussianBlur(6)))
+        draw = ImageDraw.Draw(img)
+        _draw_primary_frame_layer(draw, w, h, enabled)
+    return img
+
+
+def _draw_button_text(
+    draw: ImageDraw.ImageDraw,
+    w: int,
+    h: int,
+    label: str,
+    *,
+    enabled: bool,
+    text_shift_x: int = 0,
+    font_size: int | None = None,
+) -> None:
+    size = font_size if font_size is not None else (34 if len(label) <= 7 else 28)
+    font = load_font(size)
+    text_color = (255, 244, 210, 255) if enabled else (130, 125, 118, 255)
+    outline = (20, 14, 8, 220) if enabled else (30, 28, 26, 200)
+    bbox = draw.textbbox((0, 0), label, font=font)
+    tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
+    tx = (w - tw) // 2 + text_shift_x
+    ty = (h - th) // 2 - 2
+    for ox, oy in [(-2, 0), (2, 0), (0, -2), (0, 2), (-1, -1), (1, 1)]:
+        draw.text((tx + ox, ty + oy), label, font=font, fill=outline)
+    draw.text((tx, ty), label, font=font, fill=text_color)
+
+
+def _draw_produce_motif(draw: ImageDraw.ImageDraw, h: int) -> None:
+    ax, ay = 44, h // 2 + 6
+    draw.polygon([(ax - 18, ay + 8), (ax + 18, ay + 8), (ax + 12, ay - 2), (ax - 12, ay - 2)], fill=(55, 52, 58, 220))
+    draw.rectangle((ax - 8, ay - 12, ax + 8, ay - 2), fill=(70, 68, 74, 230))
+    draw.ellipse((ax - 22, ay + 4, ax + 22, ay + 16), fill=(35, 32, 36, 200))
+    hx, hy = ax + 26, ay - 10
+    draw.rectangle((hx - 3, hy, hx + 3, hy + 18), fill=(180, 170, 150, 255))
+    draw.rectangle((hx - 10, hy, hx + 10, hy + 6), fill=(*GOLD, 255))
+
+
+def _draw_dismantle_motif(draw: ImageDraw.ImageDraw, h: int, *, enabled: bool) -> None:
+    cx, cy = 52, h // 2
+    shard = (200, 170, 90, 255) if enabled else (110, 105, 98, 255)
+    draw.polygon([(cx - 16, cy + 10), (cx - 4, cy - 14), (cx + 8, cy + 2)], fill=shard)
+    draw.polygon([(cx + 18, cy + 12), (cx + 6, cy - 10), (cx - 2, cy + 4)], fill=shard)
+    draw.line((cx - 20, cy + 16, cx + 22, cy - 16), fill=(220, 80, 60, 220) if enabled else (90, 85, 80, 200), width=3)
+
+
+def _draw_bulk_motif(draw: ImageDraw.ImageDraw, h: int, *, enabled: bool) -> None:
+    col = (220, 190, 110, 255) if enabled else (110, 105, 98, 255)
+    for dx in (-14, 0, 14):
+        draw.rectangle((34 + dx, h // 2 - 10, 50 + dx, h // 2 + 10), outline=col, width=2)
+
+
+def draw_labeled_primary_button(
+    label: str,
+    motif: str,
+    w: int = 1200,
+    h: int = 192,
+    *,
+    enabled: bool = True,
+    font_size: int | None = None,
+) -> Image.Image:
+    img = draw_primary_button_frame(w, h, enabled=enabled)
+    draw = ImageDraw.Draw(img)
+    shift = 14
+    if enabled:
+        if motif == "produce":
+            _draw_produce_motif(draw, h)
+        elif motif == "dismantle":
+            _draw_dismantle_motif(draw, h, enabled=True)
+        elif motif == "bulk":
+            _draw_bulk_motif(draw, h, enabled=True)
+    elif motif == "dismantle":
+        _draw_dismantle_motif(draw, h, enabled=False)
+    elif motif == "bulk":
+        _draw_bulk_motif(draw, h, enabled=False)
+    _draw_button_text(
+        draw, w, h, label, enabled=enabled, text_shift_x=shift,
+        font_size=font_size if font_size is not None else (30 if len(label) > 8 else 34),
+    )
     return img
 
 
@@ -296,7 +412,14 @@ def main() -> int:
     save(draw_anvil_panel(1280, 400), "UI_Forge_AnvilPanel.png")
     save(draw_hero_glow(800), "UI_Forge_HeroGlow.png")
     save(draw_tab_active(440, 176), "UI_Forge_Tab_Active.png")
-    save(draw_produce_button(1200, 192), "UI_Forge_Btn_Produce.png")
+    save(draw_labeled_primary_button("生産する", "produce"), "UI_Forge_Btn_Produce.png")
+    save(draw_labeled_primary_button("生産する", "produce", enabled=False), "UI_Forge_Btn_Produce_Disabled.png")
+    save(draw_labeled_primary_button("分解する", "dismantle"), "UI_Forge_Btn_Dismantle.png")
+    save(draw_labeled_primary_button("分解する", "dismantle", enabled=False), "UI_Forge_Btn_Dismantle_Disabled.png")
+    save(draw_labeled_primary_button("◇◆を一括分解", "bulk", font_size=28), "UI_Forge_Btn_BulkDismantle.png")
+    save(draw_labeled_primary_button("◇◆を一括分解", "bulk", enabled=False, font_size=28), "UI_Forge_Btn_BulkDismantle_Disabled.png")
+    save(draw_primary_button_frame(), "UI_Forge_Btn_Enhance.png")
+    save(draw_primary_button_frame(enabled=False), "UI_Forge_Btn_Enhance_Disabled.png")
     return 0
 
 

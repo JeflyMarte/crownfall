@@ -62,3 +62,15 @@ func test_sync_and_clear_auras() -> void:
 	var host_after: Node = anchor.get_node_or_null("StatusAuraHost")
 	if host_after != null:
 		assert_eq(host_after.get_child_count(), 0)
+
+
+func test_combat_vfx_sprite_assets_exist() -> void:
+	for path in [
+		"res://resources/animation/FX_Hit_Normal.tres",
+		"res://resources/animation/FX_Hit_Critical.tres",
+		"res://resources/animation/FX_Hit_Fire.tres",
+		"res://resources/animation/FX_Hit_Ice.tres",
+		"res://resources/animation/FX_Hit_Thunder.tres",
+		"res://resources/animation/FX_Heal.tres",
+	]:
+		assert_true(ResourceLoader.exists(path), "missing combat vfx: %s" % path)

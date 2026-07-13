@@ -398,9 +398,9 @@ static func populate_panel(
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		icon_wrap.add_child(icon)
-		EquipmentUiHelper.apply_enhance_badge(
-			icon_wrap, item, category, Vector2(HEADER_ICON_PX, HEADER_ICON_PX)
-		)
+		var icon_size := Vector2(HEADER_ICON_PX, HEADER_ICON_PX)
+		EquipmentUiHelper.apply_legendary_badge(icon_wrap, _item_rarity(item, category), icon_size)
+		EquipmentUiHelper.apply_enhance_badge(icon_wrap, item, category, icon_size)
 	var title_col := VBoxContainer.new()
 	title_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_col.add_theme_constant_override("separation", 2)

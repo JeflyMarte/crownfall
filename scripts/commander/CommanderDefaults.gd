@@ -30,4 +30,5 @@ static func default_commander_dict() -> Dictionary:
 		"titles_unlocked": [],
 		"lifetime": default_lifetime_dict(),
 		"recent_highlights": [],
+		"gift_box": [],
 	}

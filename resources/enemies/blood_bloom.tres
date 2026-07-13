@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "blood_bloom"
+display_name = "ブラッドブルーム"
+max_hp = 70
+attack = 18
+defense = 5
+attack_speed = 0.95
+critical_rate = 0.05
+move_speed = 0.75
+threat_target_bias = "back_row"
+detection_range = 6.5
+attack_range = 2.0
+enemy_type = 0
+ai_type = "default"
+exp_reward = 12
+gold_reward = 44
+drop_table_id = "blood_bloom_drops"
+element_weakness = Array[String](["fire"])
+element_resist = Array[String]([])
+on_hit_status_id = "bleed"
+on_hit_status_chance = 0.25
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "菌植物"
+codex_danger = 3
+codex_habitat = "囁きの森・胞子の湿原"
+codex_research_note = "食虫植物を祖先とし、獲物の血液を養分に咲く巨大食虫花。花弁の内側に消化液を溜め、倒木の陰で獲物を待ち伏せする。傷口から血を吸い上げる棘状の蔓が記録されている。"
+codex_materials = Array[String]([])
+skill_ids = Array[String]([])
+skill_use_chance = 0.0

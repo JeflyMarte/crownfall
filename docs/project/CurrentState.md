@@ -4,6 +4,14 @@
 
 ## Last Update
 
+2026-07-13（**P3-UX-ULTIMATE-001**: 必殺 resolve 演出案A — announce/windup/release 3段・resolve 時のみグローバルロック・中央テロップ・インパクトでダメ/回復適用・`UltimatePresentationConfig`・`ultimate_strike` 詠唱2.0s。unit 355 PASS・smoke PASS・**要実機確認**）
+
+2026-07-13（**P3-VFX-ALPHA-001**: 戦闘VFX透過修正 — `batch6` Hit/Heal の暗背景残存を `key_dark_background` で再生成・全28枚監査合格。`known-pitfalls` 追記。unit PASS）
+
+2026-07-13（**P3-UI-BTN-002〜004**: ボタン画像化フェーズ2〜4 — ダンジョン入場・結果画面・隊長台帳/デイリー。フェーズ5（装備・編成）は **STOP**（オーナー GO 待ち））
+
+2026-07-13（**P3-ENEMY-002（部分）**: ウィスパーウッド新雑魚4種（iron_horn/blood_bloom/rune_carcinos/mirror_boa）・pool/elite 配線・spawn テスト更新。残り+4〜8は未着手）
+
 2026-07-12（**P3-ART-CHR-002**: メイン5職ダンジョンドット差替 — walk/attack/hurt/death を `assets/characters/{job}/` へ。SpriteFrames `idle`＝歩行。Idle PNG は別用途保管。`import_job_chr_sprites.py`）
 
 2026-07-12（**P3-CHR-OMIT-001**: メイン5以外一旦オミット — batch7 Warrior/Guardian/Scout を `_omitted/` 退避・`GACHA_HELPERS_PLAYABLE=false` で助っ人召喚/ロスター除外。データ残置）
@@ -320,7 +328,9 @@
 | **2** | **P3-DG-STG-001** | サブステージ（mourngate 1-1〜1-5 + ②〜⑤横展開）+ `spawn_weights` | **完了**（P3-DG-STG-ENABLE） |
 | **3** | **P3-EQ-LVL-001** | 装備レベル（全装備・BiomeドロップLv） | Impl | ✅ **Closeout** |
 | **4** | **P3-EQ-LEG-002** | 防具・装飾★ ②〜⑤横展開 | Impl | 未着手 |
-| **5** | **P3-ENEMY-002** | 新雑魚 +8〜12 | HQ+Impl | **Decision済・未着手** |
+| **5** | **P3-ENEMY-002** | 新雑魚 +8〜12 | HQ+Impl | **部分着手**（② whisperwood +4種） |
+| — | **P3-UI-BTN-005** | ボタン画像化フェーズ5（装備・編成） | Impl | **STOP**（オーナー GO 待ち） |
+| — | **P3-UX-ULTIMATE-001** | 必殺 resolve 演出（案A） | Impl | ✅ **Closeout**（要実機確認） |
 
 **凍結（Decision まで着手しない）:** 天候本格 / 週間日課 / 10連ガチャ / 6装備枠 / Affix本格 / 位置AI本格 / 探索手動+CD。
 

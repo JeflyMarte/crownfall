@@ -694,17 +694,24 @@ func formation_range_outgoing_multiplier(member_index: int, range_cat: String) -
 			return 1.0
 
 func formation_range_log_tag(member_index: int, range_cat: String) -> String:
-	if formation_range_outgoing_multiplier(member_index, range_cat) >= 1.0:
+	var mult: float = formation_range_outgoing_multiplier(member_index, range_cat)
+	if mult >= 1.0:
 		return ""
+	var penalty_pct: int = int(round((1.0 - mult) * 100.0))
+	var row_label: String = "後衛" if is_member_back_row(member_index) else "前衛"
+	var range_label: String = _formation_range_label_for_log(range_cat)
+	return "  [陣形:%sのため%s-%d%%]" % [row_label, range_label, penalty_pct]
+
+func _formation_range_label_for_log(range_cat: String) -> String:
 	match range_cat:
 		"melee":
-			return "  [陣形:近接不利]"
+			return "近接攻撃力"
 		"long", "global":
-			return "  [陣形:遠隔不利]"
+			return "遠隔攻撃力"
 		"mid":
-			return "  [陣形:中距離不利]"
+			return "中距離攻撃力"
 		_:
-			return ""
+			return "攻撃力"
 
 # 陣形プリセット適用（前から row 数だけ前列、残りを後列）。preset: "balanced"/"front"/"back"
 func apply_formation_preset(preset: String) -> void:

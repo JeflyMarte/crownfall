@@ -10,6 +10,11 @@ from PIL import Image, ImageEnhance
 ROOT = Path(__file__).resolve().parents[1]
 MG_ENV = ROOT / "assets/dungeon/mourngate/env"
 VFX_DIR = ROOT / "assets/vfx/batch6"
+VFX_ELEMENTS_DIR = ROOT / "assets/vfx/elements"
+
+# batch6 ヒット／回復は暗青緑の未キー背景が残りやすい（max RGB ~25）。宝箱は従来閾値のまま。
+VFX_KEY_MAX_RGB = 42
+VFX_KEY_MAX_LUM = 38
 
 DUNGEONS: list[tuple[str, str, float | None]] = [
     ("mourngate", "Mourngate", None),
@@ -30,6 +35,7 @@ HIT_SRC = VFX_DIR / "FX_Hit_Normal.png"
 
 
 def remove_black_bg(img: Image.Image, threshold: int = 24) -> Image.Image:
+    """宝箱・扉など単色暗背景向け（従来互換）。"""
     img = img.convert("RGBA")
     px = img.load()
     w, h = img.size
@@ -37,8 +43,44 @@ def remove_black_bg(img: Image.Image, threshold: int = 24) -> Image.Image:
         for x in range(w):
             r, g, b, a = px[x, y]
             if r <= threshold and g <= threshold and b <= threshold:
-                px[x, y] = (r, g, b, 0)
+                px[x, y] = (0, 0, 0, 0)
+    return sanitize_alpha(img)
+
+
+def sanitize_alpha(img: Image.Image) -> Image.Image:
+    """alpha=0 のピクセル RGB をゼロ化（加算合成のゴミ防止）。"""
+    img = img.convert("RGBA")
+    px = img.load()
+    for y in range(img.size[1]):
+        for x in range(img.size[0]):
+            r, g, b, a = px[x, y]
+            if a == 0:
+                px[x, y] = (0, 0, 0, 0)
     return img
+
+
+def key_dark_background(
+    img: Image.Image,
+    max_rgb: int = VFX_KEY_MAX_RGB,
+    max_lum: float = VFX_KEY_MAX_LUM,
+) -> Image.Image:
+    """戦闘 VFX 向け — 暗青緑マット等を透過にする。"""
+    img = img.convert("RGBA")
+    px = img.load()
+    for y in range(img.size[1]):
+        for x in range(img.size[0]):
+            r, g, b, a = px[x, y]
+            if a == 0:
+                px[x, y] = (0, 0, 0, 0)
+                continue
+            lum = (r + g + b) / 3.0
+            if max(r, g, b) <= max_rgb and lum <= max_lum:
+                px[x, y] = (0, 0, 0, 0)
+    return img
+
+
+def clean_vfx_image(img: Image.Image) -> Image.Image:
+    return sanitize_alpha(key_dark_background(img))
 
 
 def derive_open_chest(closed: Image.Image) -> Image.Image:
@@ -188,12 +230,31 @@ def generate_dungeon_objects() -> int:
 
 
 def generate_vfx_sheets() -> None:
-    base = remove_black_bg(Image.open(HIT_SRC))
-    gold_tint(base).save(VFX_DIR / "FX_Hit_Critical.png", "PNG")
-    purple_tint(base).save(VFX_DIR / "FX_Hit_Dark.png", "PNG")
-    holy_tint(base).save(VFX_DIR / "FX_Hit_Holy.png", "PNG")
+    base = clean_vfx_image(Image.open(HIT_SRC))
+    sanitize_alpha(gold_tint(base.copy())).save(VFX_DIR / "FX_Hit_Critical.png", "PNG")
+    sanitize_alpha(purple_tint(base.copy())).save(VFX_DIR / "FX_Hit_Dark.png", "PNG")
+    sanitize_alpha(holy_tint(base.copy())).save(VFX_DIR / "FX_Hit_Holy.png", "PNG")
     base.save(VFX_DIR / "FX_Hit_Normal.png", "PNG")
     print("  FX_Hit_Normal/Critical/Dark/Holy.png")
+
+
+def fix_batch6_vfx() -> None:
+    clean_vfx_image(Image.open(HIT_SRC)).save(HIT_SRC, "PNG")
+    heal_path = VFX_DIR / "FX_Heal.png"
+    clean_vfx_image(Image.open(heal_path)).save(heal_path, "PNG")
+    print("  FX_Hit_Normal (source), FX_Heal.png keyed")
+    generate_vfx_sheets()
+
+
+def fix_element_vfx() -> int:
+    count = 0
+    if not VFX_ELEMENTS_DIR.exists():
+        return count
+    for path in sorted(VFX_ELEMENTS_DIR.rglob("*.png")):
+        clean_vfx_image(Image.open(path)).save(path, "PNG")
+        count += 1
+    print(f"  elements: {count} PNGs sanitized")
+    return count
 
 
 def write_spriteframes_tres(name: str, sheet: str, speed: float = 12.0) -> None:
@@ -234,6 +295,7 @@ if __name__ == "__main__":
     n = generate_dungeon_objects()
     print(f"Generated {n} object PNGs.")
     print("VFX sheets...")
-    generate_vfx_sheets()
+    fix_batch6_vfx()
+    fix_element_vfx()
     generate_vfx_tres()
     print("Done.")

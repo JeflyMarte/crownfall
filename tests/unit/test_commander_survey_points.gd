@@ -37,6 +37,12 @@ func test_rank_progression_thresholds() -> void:
 	assert_eq(_CommanderProfile.current_rank(), "C")
 
 
+func test_profile_viewable_at_rank_d() -> void:
+	assert_eq(_CommanderProfile.current_rank(), "D")
+	assert_true(_CommanderProfile.is_profile_unlocked())
+	assert_false(_CommanderProfile.can_edit_name())
+
+
 func test_lifetime_run_points() -> void:
 	var lifetime: Dictionary = _CommanderProfile.get_lifetime()
 	lifetime["runs_cleared"] = 2

@@ -17,6 +17,15 @@ const MATERIAL_CELL: String = ROOT + "UI_Forge_MaterialCell.png"
 const ITEM_CELL_NORMAL: String = ROOT + "UI_Forge_ItemCell_Normal.png"
 const ITEM_CELL_SELECTED: String = ROOT + "UI_Forge_ItemCell_Selected.png"
 const BTN_PRODUCE: String = ROOT + "UI_Forge_Btn_Produce.png"
+const BTN_PRODUCE_DISABLED: String = ROOT + "UI_Forge_Btn_Produce_Disabled.png"
+const BTN_DISMANTLE: String = ROOT + "UI_Forge_Btn_Dismantle.png"
+const BTN_DISMANTLE_DISABLED: String = ROOT + "UI_Forge_Btn_Dismantle_Disabled.png"
+const BTN_BULK_DISMANTLE: String = ROOT + "UI_Forge_Btn_BulkDismantle.png"
+const BTN_BULK_DISMANTLE_DISABLED: String = ROOT + "UI_Forge_Btn_BulkDismantle_Disabled.png"
+const BTN_ENHANCE: String = ROOT + "UI_Forge_Btn_Enhance.png"
+const BTN_ENHANCE_DISABLED: String = ROOT + "UI_Forge_Btn_Enhance_Disabled.png"
+
+const PRIMARY_BTN_MARGINS: Vector4i = Vector4i(24, 20, 24, 20)
 
 const ITEM_CELLS_RARITY: Array[String] = EquipmentUiTokens.INV_CELLS
 
@@ -105,8 +114,32 @@ static func item_cell_style(rarity: int, selected: bool) -> StyleBox:
 		return sb
 	return texture_stylebox(ITEM_CELL_NORMAL, ITEM_CELL_MARGINS, 6.0)
 
+static func produce_button_styles() -> Dictionary:
+	return labeled_primary_button_styles(BTN_PRODUCE, BTN_PRODUCE_DISABLED)
+
+
+static func dismantle_button_styles() -> Dictionary:
+	return labeled_primary_button_styles(BTN_DISMANTLE, BTN_DISMANTLE_DISABLED)
+
+
+static func bulk_dismantle_button_styles() -> Dictionary:
+	return labeled_primary_button_styles(BTN_BULK_DISMANTLE, BTN_BULK_DISMANTLE_DISABLED)
+
+
+static func enhance_button_styles() -> Dictionary:
+	return labeled_primary_button_styles(BTN_ENHANCE, BTN_ENHANCE_DISABLED)
+
+
+static func labeled_primary_button_styles(normal_path: String, disabled_path: String) -> Dictionary:
+	return {
+		"normal": texture_stylebox(normal_path, PRIMARY_BTN_MARGINS, 4.0),
+		"disabled": texture_stylebox(disabled_path, PRIMARY_BTN_MARGINS, 4.0),
+	}
+
+
+## 後方互換（旧 API）
 static func produce_button_style() -> StyleBox:
-	return texture_stylebox(BTN_PRODUCE, Vector4i(24, 20, 24, 20))
+	return produce_button_styles()["normal"]
 
 static func anvil_panel_style() -> StyleBox:
 	return texture_stylebox(ANVIL_PANEL, Vector4i(24, 20, 24, 28))

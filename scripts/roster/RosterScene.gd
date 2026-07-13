@@ -11,7 +11,6 @@ const FORMATION_CELL_PX: int = 132
 const GRID_COLUMNS: int = 4
 const GRID_H_SEPARATION: int = 6
 const SLOT_H_SEPARATION: int = 6
-const LEADER_BADGE_HEIGHT: int = 22
 const FOOTER_HEIGHT: int = 60
 const TOOLBAR_BTN_H: int = 38
 
@@ -291,13 +290,12 @@ func _make_active_party_card(slot_index: int) -> Control:
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 3)
 	panel.add_child(vbox)
-	vbox.add_child(_make_leader_badge_row(slot_index == 0))
 	if member == null:
 		var empty := Label.new()
 		empty.text = "空き"
 		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		empty.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		empty.custom_minimum_size = Vector2(0, _active_card_min_height() - 24)
+		empty.custom_minimum_size = Vector2(0, _active_card_min_height() - 8)
 		empty.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		empty.add_theme_color_override("font_color", COLOR_EMPTY)
 		UiTypography.apply_body(empty, UiTypography.SIZE_CAPTION, COLOR_EMPTY)
@@ -305,7 +303,7 @@ func _make_active_party_card(slot_index: int) -> Control:
 		panel.gui_input.connect(_on_active_card_input.bind(slot_index))
 		return panel
 	var portrait_tex: Texture2D = RosterUiHelper.get_member_portrait_texture(member)
-	var portrait_px: int = clampi(card_w - 12, 48, 72)
+	var portrait_px: int = clampi(card_w - 8, 56, 92)
 	if portrait_tex != null:
 		var portrait := TextureRect.new()
 		portrait.texture = portrait_tex
@@ -374,17 +372,6 @@ func _make_card_stat_row(stat_key: String, label_text: String, value: int) -> Co
 	val_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	UiTypography.apply_body(val_lbl, UiTypography.SIZE_CAPTION, UiTypography.COLOR_BODY)
 	row.add_child(val_lbl)
-	return row
-
-func _make_leader_badge_row(is_leader: bool) -> Control:
-	var row := CenterContainer.new()
-	row.custom_minimum_size = Vector2(0, LEADER_BADGE_HEIGHT)
-	if is_leader:
-		var leader := Label.new()
-		leader.text = "リーダー"
-		leader.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		UiTypography.apply_caption(leader, COLOR_GOLD)
-		row.add_child(leader)
 	return row
 
 func _pick_style() -> StyleBoxFlat:

@@ -181,15 +181,21 @@ func _ready() -> void:
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
 	)
 	_apply_typography()
+	_setup_dungeon_select_chrome()
 	_setup_enter_confirm()
 	_refresh_all()
+
+
+func _setup_dungeon_select_chrome() -> void:
+	DungeonSelectUiHelper.apply_back_button(_btn_back)
+	DungeonSelectUiHelper.apply_depart_button(_btn_featured_select)
 
 func _setup_enter_confirm() -> void:
 	_enter_confirm = ConfirmationDialog.new()
 	_enter_confirm.title = ""
 	_enter_confirm.dialog_text = "ダンジョンに入りますか？"
-	_enter_confirm.ok_button_text = "はい"
-	_enter_confirm.cancel_button_text = "いいえ"
+	_enter_confirm.ok_button_text = ""
+	_enter_confirm.cancel_button_text = ""
 	_enter_confirm.initial_position = Window.WINDOW_INITIAL_POSITION_CENTER_MAIN_WINDOW_SCREEN
 	_enter_confirm.confirmed.connect(_on_enter_confirmed)
 	add_child(_enter_confirm)
@@ -208,12 +214,13 @@ func _arrange_enter_confirm_buttons() -> void:
 	row.move_child(cancel_btn, 1)
 	if row is BoxContainer:
 		(row as BoxContainer).add_theme_constant_override("separation", ENTER_CONFIRM_BUTTON_SEPARATION)
-	ok_btn.custom_minimum_size.x = 96.0
-	cancel_btn.custom_minimum_size.x = 96.0
+	ok_btn.custom_minimum_size = DungeonSelectUiHelper.CONFIRM_BTN_MIN_SIZE
+	cancel_btn.custom_minimum_size = DungeonSelectUiHelper.CONFIRM_BTN_MIN_SIZE
+	DungeonSelectUiHelper.apply_confirm_button(ok_btn, true)
+	DungeonSelectUiHelper.apply_confirm_button(cancel_btn, false)
 
 func _apply_typography() -> void:
 	UiTypography.apply_button(_btn_back, false)
-	UiTypography.apply_button(_btn_featured_select)
 	UiTypography.apply_body(_label_gold, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_body(_label_token, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_display(_label_featured_name, UiTypography.SIZE_BODY_SMALL)
@@ -533,7 +540,6 @@ func _refresh_featured() -> void:
 			and GameState.is_stage_unlocked(_selected_stage_id)
 		)
 	)
-	_btn_featured_select.text = "選択して出発"
 	_btn_featured_select.disabled = not unlocked or not stage_ready
 
 func _resolve_featured_dungeon_id() -> String:
@@ -924,14 +930,10 @@ func _make_biome_card(data: Resource) -> PanelContainer:
 	action.add_child(_make_stars_label(int(data.difficulty)))
 
 	var btn := Button.new()
-	btn.custom_minimum_size = Vector2(88, 40)
+	btn.custom_minimum_size = DungeonSelectUiHelper.SELECT_BTN_MIN_SIZE
+	DungeonSelectUiHelper.apply_select_button(btn, unlocked)
 	if unlocked:
-		btn.text = "選択"
-		UiTypography.apply_button(btn, is_featured)
 		btn.pressed.connect(_on_select_pressed.bind(dungeon_id))
-	else:
-		btn.text = "ロック中"
-		btn.disabled = true
 	action.add_child(btn)
 	return card
 

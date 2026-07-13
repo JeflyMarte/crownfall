@@ -22,6 +22,13 @@ func test_forge_ui_asset_paths_exist() -> void:
 		ForgeUiTokens.CRAFT_CHIP_SELECTED,
 		ForgeUiTokens.MATERIAL_CELL,
 		ForgeUiTokens.BTN_PRODUCE,
+		ForgeUiTokens.BTN_PRODUCE_DISABLED,
+		ForgeUiTokens.BTN_DISMANTLE,
+		ForgeUiTokens.BTN_DISMANTLE_DISABLED,
+		ForgeUiTokens.BTN_BULK_DISMANTLE,
+		ForgeUiTokens.BTN_BULK_DISMANTLE_DISABLED,
+		ForgeUiTokens.BTN_ENHANCE,
+		ForgeUiTokens.BTN_ENHANCE_DISABLED,
 	]:
 		assert_true(ResourceLoader.exists(key), "missing forge chrome: %s" % key)
 	for path in ForgeUiTokens.ITEM_CELLS_RARITY:
@@ -81,7 +88,13 @@ func test_material_chip_style_for_id() -> void:
 	assert_true(sb is StyleBoxTexture)
 	assert_not_null((sb as StyleBoxTexture).texture)
 
-func test_rarity_name_color_follows_rarity() -> void:
+func test_produce_button_styles_use_texture() -> void:
+	var styles: Dictionary = ForgeUiTokens.produce_button_styles()
+	for key in ["normal", "disabled"]:
+		var sb: StyleBox = styles[key]
+		assert_true(sb is StyleBoxTexture, key)
+		assert_not_null((sb as StyleBoxTexture).texture, key)
+
 	var common: Color = BlacksmithUiHelper.rarity_name_color(0)
 	var rare: Color = BlacksmithUiHelper.rarity_name_color(1)
 	assert_ne(common, rare)

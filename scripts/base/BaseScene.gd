@@ -3,6 +3,8 @@ extends Control
 const _HubNpcHelper := preload("res://scripts/ui/HubNpcHelper.gd")
 const _CommanderProfile := preload("res://scripts/commander/CommanderProfile.gd")
 const _CommanderTitles := preload("res://scripts/commander/CommanderTitles.gd")
+const _CommanderGiftBox := preload("res://scripts/commander/CommanderGiftBox.gd")
+const _CommanderUiHelper := preload("res://scripts/commander/CommanderUiHelper.gd")
 
 const DUNGEON_SELECT_SCENE: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
 const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
@@ -28,6 +30,7 @@ const EVENT_SCENE: String = "res://scenes/event/EventScene.tscn"
 @onready var _label_menu_title: Label = $HubView/LeftMenuPanel/MenuScroll/MenuVBox/LabelMenuTitle
 
 var _field_survey_banner: PanelContainer
+var _gift_badge: PanelContainer
 
 func _ready() -> void:
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.HOME)
@@ -45,6 +48,30 @@ func _ready() -> void:
 	_refresh_field_survey_banner()
 	GameState.base_initial_view = "hub"
 	_player_card.gui_input.connect(_on_player_card_gui_input)
+	_setup_gift_badge()
+
+func _setup_gift_badge() -> void:
+	_gift_badge = PanelContainer.new()
+	_gift_badge.name = "GiftBadge"
+	_gift_badge.visible = false
+	_gift_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_gift_badge.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_gift_badge.offset_left = -24.0
+	_gift_badge.offset_top = -6.0
+	_gift_badge.offset_right = 4.0
+	_gift_badge.offset_bottom = 14.0
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.82, 0.22, 0.18, 0.95)
+	sb.set_corner_radius_all(8)
+	sb.set_content_margin_all(2.0)
+	_gift_badge.add_theme_stylebox_override("panel", sb)
+	var lbl := Label.new()
+	lbl.name = "GiftBadgeLabel"
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	UiTypography.apply_display(lbl, 10, Color(1.0, 0.95, 0.9), UiTypography.OUTLINE_STRONG)
+	_gift_badge.add_child(lbl)
+	_player_card.add_child(_gift_badge)
 
 func _setup_field_survey_banner() -> void:
 	if not EventSystem.PERIODIC_EVENTS_ENABLED:
@@ -167,9 +194,7 @@ func _build_left_menu() -> void:
 		child.free()
 	for entry in BottomNavHelper.SIDE_MENU_ENTRIES:
 		var card_entry: Dictionary = entry.duplicate()
-		if str(entry.get("id", "")) == "commander":
-			card_entry["locked"] = not _CommanderProfile.is_profile_unlocked()
-		elif str(entry.get("id", "")) == "gacha" and not Constants.are_gacha_helpers_playable():
+		if str(entry.get("id", "")) == "gacha" and not Constants.are_gacha_helpers_playable():
 			card_entry["locked"] = true
 		var card := NavUiTokens.make_side_menu_row(card_entry)
 		var btn := _find_side_menu_button(card)
@@ -289,7 +314,16 @@ func _update_player_card() -> void:
 	$HubView/TopBar/TopBarRow/PlayerCard/PlayerRow/PortraitFrame.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(frame_tier)
 	)
-	_player_card.tooltip_text = "隊長台帳を開く"
+	var tooltip := "隊長台帳を開く"
+	var pending: int = _CommanderGiftBox.pending_count()
+	if pending > 0:
+		tooltip += "（配布物 %d）" % pending
+	_player_card.tooltip_text = tooltip
+	if _gift_badge != null:
+		var lbl: Label = _gift_badge.get_node_or_null("GiftBadgeLabel") as Label
+		if lbl != null:
+			lbl.text = str(pending) if pending < 100 else "99+"
+		_gift_badge.visible = pending > 0
 
 func _on_player_card_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
@@ -338,18 +372,15 @@ func _make_daily_row(index: int, entry: Dictionary) -> VBoxContainer:
 	UiTypography.apply_caption(reward)
 	row.add_child(reward)
 	var btn := Button.new()
-	btn.custom_minimum_size = Vector2(60, 32)
-	UiTypography.apply_menu_button(btn, false)
+	btn.custom_minimum_size = _CommanderUiHelper.DAILY_BTN_MIN_SIZE
 	var claimed: bool = bool(entry.get("claimed", false))
 	if claimed:
-		btn.text = "済"
-		btn.disabled = true
+		_CommanderUiHelper.apply_daily_button(btn, _CommanderUiHelper.DAILY_STATE_DONE)
 	elif bool(entry.get("can_claim", false)):
-		btn.text = "受取"
+		_CommanderUiHelper.apply_daily_button(btn, _CommanderUiHelper.DAILY_STATE_CLAIM)
 		btn.pressed.connect(_on_daily_claim_pressed.bind(index))
 	else:
-		btn.text = "移動"
-		btn.disabled = true
+		_CommanderUiHelper.apply_daily_button(btn, _CommanderUiHelper.DAILY_STATE_MOVE)
 	row.add_child(btn)
 	var bar := ProgressBar.new()
 	bar.custom_minimum_size = Vector2(0, 10)

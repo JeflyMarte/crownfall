@@ -267,11 +267,16 @@ func _apply_item_badges(
 		Vector2(3.0, 2.0),
 		star_font
 	)
+	EquipmentUiHelper.apply_legendary_badge(btn, rarity, size)
 	if category == "weapon":
 		EquipmentUiHelper.apply_enhance_badge(btn, item, category, size, COLOR_GOLD)
 	if is_equipped:
 		var eq_font: int = maxi(10, int(size.y * 0.14))
-		_add_corner_badge(btn, "装", COLOR_ACCENT, Vector2(3.0, size.y - float(eq_font) - 4.0), eq_font)
+		var eq_y: float = size.y - float(eq_font) - 4.0
+		if rarity >= Enums.Rarity.LEGENDARY:
+			var badge_h: float = EquipmentUiTokens.legendary_badge_size(size).y
+			eq_y = size.y - badge_h - float(eq_font) - 6.0
+		_add_corner_badge(btn, "装", COLOR_ACCENT, Vector2(3.0, eq_y), eq_font)
 
 func _add_corner_badge(
 	btn: Button,
