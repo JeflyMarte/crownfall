@@ -1,0 +1,223 @@
+extends Control
+
+## 設定画面（MVP）— 音声 / ゲームプレイ / システム。
+
+const _SettingsPrefs := preload("res://scripts/settings/SettingsPrefs.gd")
+const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
+const BG_PATH: String = "res://assets/ui/commander_ui/UI_BG_Commander.png"
+
+const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45)
+const COLOR_SUB: Color = Color(0.72, 0.69, 0.62)
+const SECTION_GAP: int = 16
+const BODY_SEP: int = 8
+const INNER_PAD: int = 10
+
+@onready var _label_title: Label = $Header/HeaderRow/LabelTitle
+@onready var _btn_back: Button = $Header/HeaderRow/ButtonBack
+@onready var _bg_texture: TextureRect = $BgTexture
+@onready var _content_host: VBoxContainer = $MainScroll/MainVBox/ContentHost
+
+var _speed_buttons: Dictionary = {}
+
+
+func _ready() -> void:
+	_SettingsPrefs.ensure_loaded()
+	if ResourceLoader.exists(BG_PATH):
+		_bg_texture.texture = load(BG_PATH) as Texture2D
+	_label_title.text = "設定"
+	UiTypography.apply_screen_title(_label_title)
+	UiTypography.apply_button(_btn_back, false)
+	_btn_back.pressed.connect(_on_back_pressed)
+	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.NONE)
+	_content_host.add_theme_constant_override("separation", SECTION_GAP)
+	_rebuild_page()
+
+
+func _rebuild_page() -> void:
+	for child in _content_host.get_children():
+		child.queue_free()
+	_speed_buttons.clear()
+	_content_host.add_child(_build_audio_section())
+	_content_host.add_child(_build_gameplay_section())
+	_content_host.add_child(_build_system_section())
+
+
+func _build_audio_section() -> Control:
+	var sec: Dictionary = _begin_section("音声")
+	var body: VBoxContainer = sec["body"]
+	body.add_child(_make_volume_row("Master", _SettingsPrefs.get_master_volume(), _on_master_changed))
+	body.add_child(_make_volume_row("BGM", _SettingsPrefs.get_bgm_volume(), _on_bgm_changed))
+	body.add_child(_make_volume_row("SE", _SettingsPrefs.get_sfx_volume(), _on_sfx_changed))
+	var mute := CheckButton.new()
+	mute.text = "ミュート"
+	mute.button_pressed = _SettingsPrefs.is_muted()
+	mute.toggled.connect(_on_mute_toggled)
+	UiTypography.apply_button(mute, false)
+	body.add_child(mute)
+	return sec["panel"]
+
+
+func _build_gameplay_section() -> Control:
+	var sec: Dictionary = _begin_section("ゲームプレイ")
+	var body: VBoxContainer = sec["body"]
+	var speed_lbl := Label.new()
+	speed_lbl.text = "戦闘速度（探索開始時）"
+	UiTypography.apply_caption(speed_lbl, COLOR_SUB)
+	body.add_child(speed_lbl)
+	var speed_row := HBoxContainer.new()
+	speed_row.add_theme_constant_override("separation", 8)
+	body.add_child(speed_row)
+	for pair in [
+		[_SettingsPrefs.SPEED_ID_X1, "×1"],
+		[_SettingsPrefs.SPEED_ID_X15, "×1.5"],
+		[_SettingsPrefs.SPEED_ID_X2, "×2"],
+	]:
+		var btn := Button.new()
+		btn.toggle_mode = true
+		btn.text = str(pair[1])
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn.pressed.connect(_on_speed_pressed.bind(str(pair[0])))
+		UiTypography.apply_button(btn, false)
+		speed_row.add_child(btn)
+		_speed_buttons[str(pair[0])] = btn
+	_refresh_speed_buttons()
+	var dmg := CheckButton.new()
+	dmg.text = "ダメージ数字を表示"
+	dmg.button_pressed = _SettingsPrefs.show_damage_numbers()
+	dmg.toggled.connect(_on_damage_toggled)
+	UiTypography.apply_button(dmg, false)
+	body.add_child(dmg)
+	var log_btn := CheckButton.new()
+	log_btn.text = "戦闘ログを表示"
+	log_btn.button_pressed = _SettingsPrefs.show_battle_log()
+	log_btn.toggled.connect(_on_log_toggled)
+	UiTypography.apply_button(log_btn, false)
+	body.add_child(log_btn)
+	var vib := CheckButton.new()
+	vib.text = "振動（対応端末のみ）"
+	vib.button_pressed = _SettingsPrefs.is_vibration_enabled()
+	vib.toggled.connect(_on_vibration_toggled)
+	UiTypography.apply_button(vib, false)
+	body.add_child(vib)
+	return sec["panel"]
+
+
+func _build_system_section() -> Control:
+	var sec: Dictionary = _begin_section("システム")
+	var body: VBoxContainer = sec["body"]
+	_add_caption(body, "バージョン: %s" % _SettingsPrefs.app_version_text())
+	_add_caption(body, _SettingsPrefs.save_status_text())
+	var home_btn := Button.new()
+	home_btn.text = "拠点へ戻る"
+	home_btn.pressed.connect(_on_back_pressed)
+	UiTypography.apply_button(home_btn, false)
+	body.add_child(home_btn)
+	return sec["panel"]
+
+
+func _begin_section(title: String) -> Dictionary:
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD))
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", INNER_PAD)
+	margin.add_theme_constant_override("margin_right", INNER_PAD)
+	margin.add_theme_constant_override("margin_top", INNER_PAD)
+	margin.add_theme_constant_override("margin_bottom", INNER_PAD)
+	panel.add_child(margin)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", BODY_SEP)
+	margin.add_child(col)
+	var heading := Label.new()
+	heading.text = title
+	UiTypography.apply_display(heading, UiTypography.SIZE_BODY, COLOR_GOLD)
+	col.add_child(heading)
+	var body := VBoxContainer.new()
+	body.add_theme_constant_override("separation", BODY_SEP)
+	col.add_child(body)
+	return {"panel": panel, "body": body}
+
+
+func _make_volume_row(label_text: String, value: float, handler: Callable) -> Control:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	var lbl := Label.new()
+	lbl.text = label_text
+	lbl.custom_minimum_size = Vector2(72, 0)
+	UiTypography.apply_body(lbl, UiTypography.SIZE_BODY_SMALL)
+	row.add_child(lbl)
+	var slider := HSlider.new()
+	slider.min_value = 0.0
+	slider.max_value = 1.0
+	slider.step = 0.05
+	slider.value = value
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slider.custom_minimum_size = Vector2(0, 28)
+	slider.value_changed.connect(handler)
+	row.add_child(slider)
+	var pct := Label.new()
+	pct.name = "Pct"
+	pct.custom_minimum_size = Vector2(48, 0)
+	pct.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	pct.text = "%d%%" % int(round(value * 100.0))
+	UiTypography.apply_caption(pct, COLOR_SUB)
+	row.add_child(pct)
+	slider.value_changed.connect(func(v: float) -> void:
+		pct.text = "%d%%" % int(round(v * 100.0))
+	)
+	return row
+
+
+func _add_caption(parent: Control, text: String) -> void:
+	var lbl := Label.new()
+	lbl.text = text
+	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTypography.apply_caption(lbl, COLOR_SUB)
+	parent.add_child(lbl)
+
+
+func _refresh_speed_buttons() -> void:
+	var current: String = _SettingsPrefs.get_combat_speed_id()
+	for speed_id in _speed_buttons.keys():
+		var btn: Button = _speed_buttons[speed_id] as Button
+		if btn == null:
+			continue
+		var active: bool = str(speed_id) == current
+		btn.button_pressed = active
+		UiTypography.apply_button(btn, active)
+
+
+func _on_master_changed(v: float) -> void:
+	_SettingsPrefs.set_master_volume(v)
+
+
+func _on_bgm_changed(v: float) -> void:
+	_SettingsPrefs.set_bgm_volume(v)
+
+
+func _on_sfx_changed(v: float) -> void:
+	_SettingsPrefs.set_sfx_volume(v)
+
+
+func _on_mute_toggled(v: bool) -> void:
+	_SettingsPrefs.set_muted(v)
+
+
+func _on_speed_pressed(speed_id: String) -> void:
+	_SettingsPrefs.set_combat_speed_id(speed_id)
+	_refresh_speed_buttons()
+
+
+func _on_damage_toggled(v: bool) -> void:
+	_SettingsPrefs.set_show_damage_numbers(v)
+
+
+func _on_log_toggled(v: bool) -> void:
+	_SettingsPrefs.set_show_battle_log(v)
+
+
+func _on_vibration_toggled(v: bool) -> void:
+	_SettingsPrefs.set_vibration_enabled(v)
+
+
+func _on_back_pressed() -> void:
+	SceneRouter.change_scene(HOME_SCENE)

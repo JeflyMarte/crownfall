@@ -570,7 +570,7 @@ func _ready() -> void:
 	if not dungeon_id.is_empty():
 		_try_register_discovery("dungeon", dungeon_id)
 	_update_combat_visibility()
-	_apply_combat_speed(SPEED_MULT_NORMAL)
+	_apply_combat_speed(SettingsPrefs.get_combat_speed_mult())
 	_init_dungeon_presentation_ui()
 	_begin_dungeon_dive_intro()
 
@@ -998,8 +998,16 @@ func _trigger_combat_impact_feedback(is_critical: bool, damage_value: int) -> vo
 	if is_critical:
 		_request_combat_shake(COMBAT_CRIT_SHAKE_INTENSITY)
 		_flash_battlefield(Color(1.0, 0.85, 0.35), 0.22)
+		_maybe_vibrate(40)
 	elif damage_value >= COMBAT_BIG_DAMAGE_THRESHOLD:
 		_request_combat_shake(COMBAT_BIG_DAMAGE_SHAKE_INTENSITY)
+		_maybe_vibrate(25)
+
+
+func _maybe_vibrate(duration_ms: int) -> void:
+	if not SettingsPrefs.is_vibration_enabled():
+		return
+	Input.vibrate_handheld(duration_ms)
 
 # ---- 潜入演出（P3-UX-003: A/C/B/D/E） ----
 
@@ -1453,6 +1461,8 @@ func _append_log(text: String) -> void:
 		if line.is_empty():
 			continue
 		_record_run_modifiers(line)
+		if not SettingsPrefs.show_battle_log():
+			continue
 		var entry := RichTextLabel.new()
 		entry.bbcode_enabled = true
 		entry.fit_content = true
@@ -1478,6 +1488,8 @@ func _append_trap_hit_log(line: String) -> void:
 	if line.is_empty():
 		return
 	_record_run_modifiers(line)
+	if not SettingsPrefs.show_battle_log():
+		return
 	var entry := RichTextLabel.new()
 	entry.bbcode_enabled = true
 	entry.fit_content = true
@@ -5516,6 +5528,9 @@ func _apply_combat_speed(speed_mult: float) -> void:
 	$CombatTimer.wait_time = _combat_wait_for_mult(speed_mult)
 	_auto_delay = _auto_delay_for_mult(speed_mult)
 	_refresh_speed_buttons()
+	## 周回中の切替も次回探索の既定に反映（×1 / ×2 のみ。×1.5 は設定画面）。
+	if is_equal_approx(speed_mult, SPEED_MULT_NORMAL) or is_equal_approx(speed_mult, SPEED_MULT_FAST):
+		SettingsPrefs.set_combat_speed_mult(speed_mult)
 	if _is_paused:
 		return
 	if $CombatController.is_in_combat:
@@ -6657,6 +6672,8 @@ func _spawn_damage_number(
 				parsed_damage = int(m.get_string(1))
 	if not skip_impact_feedback:
 		_trigger_combat_impact_feedback(is_crit, parsed_damage)
+	if not SettingsPrefs.show_damage_numbers():
+		return
 	var lbl := Label.new()
 	lbl.text = text
 	# ゲームらしい打撃感: 重厚ゴシック体＋太い黒縁＋ドロップシャドウ

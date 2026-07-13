@@ -13,6 +13,7 @@ const SCENE_DUNGEON: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
 const SCENE_BLACKSMITH: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
 const SCENE_GACHA: String = "res://scenes/gacha/GachaScene.tscn"
 const SCENE_CODEX: String = "res://scenes/codex/CodexScene.tscn"
+const SCENE_SETTINGS: String = "res://scenes/settings/SettingsScene.tscn"
 
 enum Tab { NONE, HOME, ADVENTURE, CHARACTER, PARTY, FORGE, GACHA, CODEX }
 
@@ -176,7 +177,7 @@ const SIDE_MENU_ENTRIES: Array[Dictionary] = [
 		"tab": Tab.NONE,
 		"icon_category": "nav",
 		"icon_id": "settings",
-		"locked": true,
+		"locked": false,
 	},
 ]
 

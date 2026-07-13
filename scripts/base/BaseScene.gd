@@ -13,6 +13,7 @@ const ROSTER_SCENE: String = "res://scenes/roster/RosterScene.tscn"
 const CODEX_SCENE: String = "res://scenes/codex/CodexScene.tscn"
 const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
 const COMMANDER_SCENE: String = "res://scenes/commander/CommanderScene.tscn"
+const SETTINGS_SCENE: String = "res://scenes/settings/SettingsScene.tscn"
 const EVENT_SCENE: String = "res://scenes/event/EventScene.tscn"
 const _CURRENCY_STRIP_ICON_PX: int = 20
 const _GOLD_ICON_PATH: String = "res://assets/ui/batch2/ICO_Gold.png"
@@ -231,6 +232,8 @@ func _on_menu_entry_pressed(entry_id: String) -> void:
 			_on_codex_button_pressed()
 		"commander":
 			_on_commander_button_pressed()
+		"settings":
+			_on_settings_button_pressed()
 
 func _ensure_valid_dungeon_selection() -> void:
 	if not _is_dungeon_available(GameState.current_dungeon_id):
@@ -356,6 +359,10 @@ func _on_player_card_gui_input(event: InputEvent) -> void:
 func _on_commander_button_pressed() -> void:
 	if ResourceLoader.exists(COMMANDER_SCENE):
 		SceneRouter.change_scene(COMMANDER_SCENE)
+
+func _on_settings_button_pressed() -> void:
+	if ResourceLoader.exists(SETTINGS_SCENE):
+		SceneRouter.change_scene(SETTINGS_SCENE)
 
 func _refresh_daily_missions() -> void:
 	_update_daily_reset_label()
