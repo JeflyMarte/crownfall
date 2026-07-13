@@ -40,7 +40,9 @@ func test_rank_progression_thresholds() -> void:
 func test_profile_viewable_at_rank_d() -> void:
 	assert_eq(_CommanderProfile.current_rank(), "D")
 	assert_true(_CommanderProfile.is_profile_unlocked())
-	assert_false(_CommanderProfile.can_edit_name())
+	assert_true(_CommanderProfile.can_edit_name())
+	assert_true(_CommanderProfile.set_commander_name("テスト隊長"))
+	assert_eq(_CommanderProfile.get_commander_name(), "テスト隊長")
 
 
 func test_lifetime_run_points() -> void:

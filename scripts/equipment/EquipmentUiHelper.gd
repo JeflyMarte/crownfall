@@ -91,9 +91,14 @@ static func apply_legendary_badge(parent: Control, rarity: int, cell_size: Vecto
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon.z_index = 2
-	icon.custom_minimum_size = badge_size
-	icon.size = badge_size
-	icon.position = Vector2(margin, cell_size.y - badge_size.y - margin)
+	icon.anchor_left = 0.0
+	icon.anchor_top = 1.0
+	icon.anchor_right = 0.0
+	icon.anchor_bottom = 1.0
+	icon.offset_left = margin
+	icon.offset_top = -badge_size.y - margin
+	icon.offset_right = margin + badge_size.x
+	icon.offset_bottom = -margin
 	parent.add_child(icon)
 
 static func add_corner_badge(

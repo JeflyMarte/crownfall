@@ -158,17 +158,22 @@ static func attach_item_cell_layers(
 	if existing != null:
 		existing.queue_free()
 	var inset: int = icon_inset_px(cell_px, design_px)
+	var side: int = maxi(1, cell_px - inset * 2)
+	var half: float = float(side) * 0.5
 	var tex_rect := TextureRect.new()
 	tex_rect.name = "ItemIcon"
 	tex_rect.texture = icon
 	tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	tex_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	tex_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	tex_rect.offset_left = inset
-	tex_rect.offset_top = inset
-	tex_rect.offset_right = -inset
-	tex_rect.offset_bottom = -inset
+	tex_rect.anchor_left = 0.5
+	tex_rect.anchor_top = 0.5
+	tex_rect.anchor_right = 0.5
+	tex_rect.anchor_bottom = 0.5
+	tex_rect.offset_left = -half
+	tex_rect.offset_top = -half
+	tex_rect.offset_right = half
+	tex_rect.offset_bottom = half
 	btn.add_child(tex_rect)
 
 static func texture_stylebox(

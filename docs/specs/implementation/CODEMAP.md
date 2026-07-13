@@ -256,7 +256,7 @@ Task 明示指示がない限り作成しない:
 
 | パス | 内容 |
 |---|---|
-| `NotoSansJP-VariableFont_wght.ttf` | 本文フォント（wght=600 variation） |
+| `NotoSansJP-VariableFont_wght.ttf` | 本文フォント（wght=700 variation） |
 | `ShipporiMinchoB1-Bold.ttf` | 見出し・タイトル（OFL、`ShipporiMinchoB1-OFL.txt` 同梱 — P3-UI3-001） |
 | `DelaGothicOne-Regular.ttf` | 戦闘数字・強調（`UiTypography.impact_font()`） |
 

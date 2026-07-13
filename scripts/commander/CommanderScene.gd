@@ -8,7 +8,6 @@ const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd
 const _CommanderSurveyPoints = preload("res://scripts/commander/CommanderSurveyPoints.gd")
 const _CommanderGiftBox = preload("res://scripts/commander/CommanderGiftBox.gd")
 const _CommanderUiTokens = preload("res://scripts/commander/CommanderUiTokens.gd")
-const _CommanderUiHelper = preload("res://scripts/commander/CommanderUiHelper.gd")
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
 const CODEX_SCENE: String = "res://scenes/codex/CodexScene.tscn"
@@ -53,18 +52,18 @@ func _setup_commander_chrome() -> void:
 	var bg_tex: Texture2D = _CommanderUiTokens.load_tex(_CommanderUiTokens.BG)
 	if bg_tex != null:
 		_bg_texture.texture = bg_tex
-	_CommanderUiHelper.apply_back_button(_btn_back)
+	UiTypography.apply_button(_btn_back, false)
 
 
 func _setup_name_edit_dialog() -> void:
 	_name_edit_dialog = ConfirmationDialog.new()
-	_name_edit_dialog.title = "隊長名の変更"
+	_name_edit_dialog.title = "指揮官名の変更"
 	_name_edit_dialog.ok_button_text = "変更する"
 	_name_edit_dialog.cancel_button_text = "やめる"
-	_name_edit_dialog.dialog_text = "新しい隊長名を入力してください"
+	_name_edit_dialog.dialog_text = "新しい指揮官名を入力してください"
 	var field := LineEdit.new()
 	field.name = "NameField"
-	field.placeholder_text = "隊長名（16文字まで）"
+	field.placeholder_text = "指揮官名（16文字まで）"
 	field.custom_minimum_size = Vector2(280, 36)
 	_name_edit_dialog.add_child(field)
 	_name_edit_dialog.confirmed.connect(_on_name_edit_confirmed)
@@ -104,7 +103,7 @@ func _build_overview_section() -> Control:
 	name_row.add_theme_constant_override("separation", 8)
 	info.add_child(name_row)
 	var name_lbl := Label.new()
-	name_lbl.text = _CommanderProfile.get_name()
+	name_lbl.text = _CommanderProfile.get_commander_name()
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	UiTypography.apply_display(name_lbl, UiTypography.SIZE_BODY, COLOR_GOLD)
 	name_row.add_child(name_lbl)
@@ -146,12 +145,22 @@ func _make_rank_portrait() -> PanelContainer:
 	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	frame.add_child(center)
-	var glyph := Label.new()
-	glyph.text = _CommanderProfile.rank_glyph()
-	glyph.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	glyph.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	UiTypography.apply_display(glyph, UiTypography.SIZE_DISPLAY_TITLE, COLOR_GOLD)
-	center.add_child(glyph)
+	var rank_tex: Texture2D = _CommanderProfile.rank_icon_texture()
+	if rank_tex != null:
+		var art := TextureRect.new()
+		art.texture = rank_tex
+		art.custom_minimum_size = Vector2(PORTRAIT_PX - 12, PORTRAIT_PX - 12)
+		art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		center.add_child(art)
+	else:
+		var glyph := Label.new()
+		glyph.text = _CommanderProfile.rank_glyph()
+		glyph.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		glyph.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		UiTypography.apply_display(glyph, UiTypography.SIZE_DISPLAY_TITLE, COLOR_GOLD)
+		center.add_child(glyph)
 	return frame
 
 
@@ -177,19 +186,16 @@ func _make_title_banner(label_text: String) -> PanelContainer:
 
 func _make_name_change_button() -> Button:
 	var btn := Button.new()
-	var enabled: bool = _CommanderProfile.can_edit_name()
-	_CommanderUiHelper.apply_rename_button(btn, enabled)
-	if enabled:
-		btn.pressed.connect(_open_name_edit_dialog)
-	else:
-		btn.tooltip_text = "調査許可C級で解放"
+	btn.text = "名前変更"
+	UiTypography.apply_menu_button(btn, false)
+	btn.pressed.connect(_open_name_edit_dialog)
 	return btn
 
 
 func _open_name_edit_dialog() -> void:
 	var field: LineEdit = _name_edit_dialog.get_node_or_null("NameField") as LineEdit
 	if field != null:
-		field.text = _CommanderProfile.get_name()
+		field.text = _CommanderProfile.get_commander_name()
 	_name_edit_dialog.popup_centered()
 
 
@@ -197,7 +203,7 @@ func _on_name_edit_confirmed() -> void:
 	var field: LineEdit = _name_edit_dialog.get_node_or_null("NameField") as LineEdit
 	if field == null:
 		return
-	if _CommanderProfile.set_name(field.text):
+	if _CommanderProfile.set_commander_name(field.text):
 		SaveManager.save_game()
 		_rebuild_page()
 
@@ -216,7 +222,8 @@ func _build_gift_box_section() -> Control:
 		claim_all_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		body.add_child(claim_all_row)
 		var claim_all_btn := Button.new()
-		_CommanderUiHelper.apply_claim_all_button(claim_all_btn)
+		claim_all_btn.text = "すべて受け取る"
+		UiTypography.apply_menu_button(claim_all_btn, false)
 		claim_all_btn.pressed.connect(_on_gift_claim_all_pressed)
 		claim_all_row.add_child(claim_all_btn)
 	for entry: Dictionary in pending:
@@ -252,7 +259,8 @@ func _make_gift_row(entry: Dictionary) -> PanelContainer:
 		_add_caption(text_col, message)
 	_add_caption(text_col, _CommanderGiftBox.reward_summary(entry))
 	var claim_btn := Button.new()
-	_CommanderUiHelper.apply_claim_button(claim_btn)
+	claim_btn.text = "受け取る"
+	UiTypography.apply_menu_button(claim_btn, false)
 	claim_btn.pressed.connect(_on_gift_claim_pressed.bind(str(entry.get("id", ""))))
 	row.add_child(claim_btn)
 	return block
@@ -317,11 +325,13 @@ func _build_assets_section() -> Control:
 	shortcuts.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	body.add_child(shortcuts)
 	var forge_btn := Button.new()
-	_CommanderUiHelper.apply_forge_shortcut_button(forge_btn)
+	forge_btn.text = "鍛冶屋へ"
+	UiTypography.apply_menu_button(forge_btn, false)
 	forge_btn.pressed.connect(func(): SceneRouter.change_scene(BLACKSMITH_SCENE))
 	shortcuts.add_child(forge_btn)
 	var codex_btn := Button.new()
-	_CommanderUiHelper.apply_codex_shortcut_button(codex_btn)
+	codex_btn.text = "図鑑へ"
+	UiTypography.apply_menu_button(codex_btn, false)
 	codex_btn.pressed.connect(func(): SceneRouter.change_scene(CODEX_SCENE))
 	shortcuts.add_child(codex_btn)
 	return sec["panel"]
@@ -535,7 +545,9 @@ func _build_titles_section() -> Control:
 	clear_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	equipped_body.add_child(clear_row)
 	var clear_btn := Button.new()
-	_CommanderUiHelper.apply_clear_title_button(clear_btn, not equipped.is_empty())
+	clear_btn.text = "称号を外す"
+	clear_btn.disabled = equipped.is_empty()
+	UiTypography.apply_menu_button(clear_btn, false)
 	clear_btn.pressed.connect(func():
 		_CommanderProfile.equip_title("")
 		SaveManager.save_game()

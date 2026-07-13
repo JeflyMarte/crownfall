@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """Normalize biome title banners for dungeon select accordion headers.
 
-Output: assets/ui/dungeon/BAN_DG_{BiomePascal}.png (default 1408x112 RGBA).
+Output: assets/ui/dungeon/BAN_DG_{BiomePascal}.png
+
+Default mode preserves the source aspect (title-baked key art).
+Legacy thin-strip mode: --strip-height 112
 
 Usage:
-  python3 tools/generate_biome_banner.py
-  python3 tools/generate_biome_banner.py --input path/to/raw.png --biome mourngate
+  python3 tools/generate_biome_banner.py --input path/to.png --biome mourngate
+  python3 tools/generate_biome_banner.py --input path/to.png --biome mourngate --strip-height 112
 """
 from __future__ import annotations
 
@@ -18,7 +21,6 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT / "assets/ui/dungeon"
 TARGET_W = 1408
-TARGET_H = 112
 WHITE_THRESHOLD = 235
 WHITE_SOFT = 250
 
@@ -45,35 +47,43 @@ def remove_light_matte(img: Image.Image) -> Image.Image:
     return img
 
 
-def normalize_banner(src: Path, dst: Path) -> None:
+def normalize_banner(src: Path, dst: Path, strip_height: int | None = None) -> None:
     img = remove_light_matte(Image.open(src))
     w, h = img.size
     scale = TARGET_W / float(w)
     resized_h = max(1, int(round(h * scale)))
     img = img.resize((TARGET_W, resized_h), Image.Resampling.LANCZOS)
-    if resized_h > TARGET_H:
-        top = (resized_h - TARGET_H) // 2
-        img = img.crop((0, top, TARGET_W, top + TARGET_H))
-    elif resized_h < TARGET_H:
-        canvas = Image.new("RGBA", (TARGET_W, TARGET_H), (0, 0, 0, 0))
-        offset_y = (TARGET_H - resized_h) // 2
-        canvas.paste(img, (0, offset_y), img)
-        img = canvas
+    if strip_height is not None and strip_height > 0:
+        target_h = strip_height
+        if resized_h > target_h:
+            top = (resized_h - target_h) // 2
+            img = img.crop((0, top, TARGET_W, top + target_h))
+        elif resized_h < target_h:
+            canvas = Image.new("RGBA", (TARGET_W, target_h), (0, 0, 0, 0))
+            offset_y = (target_h - resized_h) // 2
+            canvas.paste(img, (0, offset_y), img)
+            img = canvas
     dst.parent.mkdir(parents=True, exist_ok=True)
     img.save(dst, optimize=True)
-    print(f"wrote {dst} ({TARGET_W}x{TARGET_H})")
+    print(f"wrote {dst} ({img.size[0]}x{img.size[1]})")
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=Path, help="Raw banner PNG")
     parser.add_argument("--biome", type=str, default="mourngate", help="Biome id (e.g. mourngate)")
+    parser.add_argument(
+        "--strip-height",
+        type=int,
+        default=None,
+        help="Optional center-crop height (legacy thin strip). Omit to preserve aspect.",
+    )
     args = parser.parse_args()
 
     if args.input is not None:
         if not re.fullmatch(r"[a-z0-9_]+", args.biome):
             parser.error("invalid biome id")
-        normalize_banner(args.input, OUT_DIR / biome_filename(args.biome))
+        normalize_banner(args.input, OUT_DIR / biome_filename(args.biome), args.strip_height)
         return 0
 
     raw = OUT_DIR / "BAN_DG_Mourngate_raw.png"

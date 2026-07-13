@@ -25,7 +25,6 @@ const BASE_MEMBER_HP: int = 30
 # クリティカルダメージ倍率（BalanceConfig 準拠）。
 const CRIT_DAMAGE_MULT: float = BalanceConfig.CRITICAL_MULTIPLIER
 const GRID_COLUMNS: int = 6
-const SLOT_COLUMNS: int = 2
 const INV_VISIBLE_ROWS: int = 3
 const STAT_VALUE_FONT_SIZE: int = 24
 const STAT_LABEL_FONT_SIZE: int = 20
@@ -180,14 +179,30 @@ func _ready() -> void:
 	_btn_sort.pressed.connect(_on_sort_pressed)
 	_btn_filter.pressed.connect(_on_filter_pressed)
 	_inventory_grid.columns = GRID_COLUMNS
-	_inventory_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# Scroll 内で Grid が縦／横に EXPAND するとセルが伸び、
+	# InvCell の StyleBoxTexture 辺が巨大な金筋・隙間漏れになる（再発防止）。
+	_inventory_grid.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_inventory_grid.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_inventory_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_inventory_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	_inventory_scroll.scroll_deadzone = 12
+	_inventory_scroll.clip_contents = true
+	_category_row.clip_contents = true
+	# ルート／タブが CharacterCard の最小幅に引きずられて横はみ出ししないようにする。
+	clip_contents = true
+	$VBoxContainer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_tabs.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	for tab_child in _tabs.get_children():
+		if tab_child is ScrollContainer:
+			var sc: ScrollContainer = tab_child
+			sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+			sc.clip_contents = true
+			sc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_setup_equipment_chrome()
 	_build_category_chips()
 	_apply_panel_styles()
 	_decorate_portrait()
+	_compact_member_nav_buttons()
 	if GameState.equipment_focus_member_index >= 0:
 		_selected_member_index = _clamp_roster_index(GameState.equipment_focus_member_index)
 		GameState.equipment_focus_member_index = -1
@@ -225,6 +240,13 @@ func _setup_equipment_chrome() -> void:
 	var rule_tex: Texture2D = EquipmentUiTokens.load_tex(EquipmentUiTokens.SECTION_RULE)
 	if rule_tex != null:
 		_effects_rule.texture = rule_tex
+	_effects_rule.custom_minimum_size = Vector2(0, 12)
+	_effects_rule.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_effects_rule.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_effects_rule.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	# COVERED だと縦に伸びたとき中央の金帯が巨大な縦筋になる。横線は SCALE で十分。
+	_effects_rule.stretch_mode = TextureRect.STRETCH_SCALE
+	_effects_rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var filter_tex: Texture2D = EquipmentUiTokens.filter_icon()
 	if filter_tex != null:
 		_btn_filter.icon = filter_tex
@@ -235,7 +257,13 @@ func _setup_equipment_chrome() -> void:
 	_evolution_row.add_theme_constant_override("separation", 4)
 	UiTypography.apply_display(_label_name, UiTypography.SIZE_DISPLAY_TITLE, UiTypography.COLOR_GOLD)
 	UiTypography.apply_body(_label_level, UiTypography.SIZE_BODY, UiTypography.COLOR_BODY)
-	UiTypography.apply_body(_label_job, UiTypography.SIZE_BODY, UiTypography.COLOR_BODY)
+	UiTypography.apply_body(_label_job, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
+	_configure_job_label_one_line()
+	_job_icon.custom_minimum_size = Vector2(22, 22)
+	_job_icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_job_icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_job_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_job_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	UiTypography.apply_caption(
 		$VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryHeaderRow/LabelInventoryTitle,
 		UiTypography.COLOR_BODY
@@ -250,9 +278,18 @@ func _setup_equipment_chrome() -> void:
 	)
 	_evolution_row.visible = false
 	_btn_stat_detail.visible = false
-	_slots_panel.custom_minimum_size.x = EquipmentUiTokens.SLOT_PANEL_MIN_W
-	_slots_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_slots_panel.custom_minimum_size = Vector2(EquipmentUiTokens.SLOT_PANEL_MIN_W, 0)
+	_slots_panel.size_flags_horizontal = Control.SIZE_SHRINK_END
+	_slots_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_slots_row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_slots_row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_equip_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# 背景は画面全体を覆う（CENTERED だとレターボックスで消えたように見える）。
+	var bg := get_node_or_null("BgTexture") as TextureRect
+	if bg != null:
+		bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 func _apply_button_style(btn: Button, style: StyleBox) -> void:
 	if style is StyleBoxTexture and (style as StyleBoxTexture).texture != null:
@@ -318,6 +355,7 @@ func _build_category_chips() -> void:
 		var icon := TextureRect.new()
 		icon.custom_minimum_size = Vector2(40, 40)
 		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.texture = EquipmentUiTokens.category_icon(cat)
@@ -360,6 +398,50 @@ func _refresh_inventory_tools() -> void:
 func _apply_panel_styles() -> void:
 	_character_card.add_theme_stylebox_override("panel", EquipmentUiTokens.char_card_style())
 
+func _configure_job_label_one_line() -> void:
+	# 折返しすると InfoBox が高くなり、装備スロット／ステータスが下にずれる。
+	_label_job.clip_text = false
+	_label_job.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	_label_job.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_label_job.max_lines_visible = 1
+	_label_job.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+func _fit_job_label_font_to_width() -> void:
+	# 長い職名はフォントを下げて1行に収める（省略・改行しない）。
+	const MAX_FS: int = UiTypography.SIZE_BODY_SMALL
+	const MIN_FS: int = 16
+	UiTypography.apply_body(_label_job, MAX_FS, UiTypography.COLOR_BODY)
+	_configure_job_label_one_line()
+	var text: String = _label_job.text
+	if text.is_empty():
+		return
+	var font: Font = _label_job.get_theme_font("font")
+	if font == null:
+		return
+	var avail: float = _job_label_available_width()
+	var fs: int = MAX_FS
+	while fs > MIN_FS:
+		var w: float = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		if w <= avail:
+			break
+		fs -= 1
+	_label_job.add_theme_font_size_override("font_size", fs)
+
+func _job_label_available_width() -> float:
+	var sep: float = 6.0
+	var job_row: Control = _label_job.get_parent() as Control
+	if job_row != null:
+		sep = float(job_row.get_theme_constant("separation", "HBoxContainer"))
+	var icon_w: float = 22.0
+	if _job_icon != null:
+		icon_w = maxf(icon_w, _job_icon.get_combined_minimum_size().x)
+	if job_row != null and job_row.size.x >= 40.0:
+		return maxf(64.0, job_row.size.x - icon_w - sep)
+	if _label_job.size.x >= 40.0:
+		return _label_job.size.x
+	# レイアウト前の安全値（viewport 内 CardRow 想定）。
+	return 160.0
+
 func _decorate_portrait() -> void:
 	# 台座の上に正面 Idle を大きく載せる（モック構図）。
 	_portrait_stack.custom_minimum_size = EquipmentUiTokens.PORTRAIT_STACK_SIZE
@@ -400,6 +482,32 @@ func _decorate_portrait() -> void:
 	_label_stars.visible = true
 	_label_stars.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_display(_label_stars, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+
+func _compact_member_nav_buttons() -> void:
+	# 幅は抑えつつ ◀▶ を確実に表示する。
+	# 失敗パターン: テーマ Button が DelaGothic（矢印グリフ無し）＋ StyleBox 余白＋ clip_text
+	# → 文字が消える。flat + Noto body + 十分なフォントサイズにする。
+	var empty := StyleBoxEmpty.new()
+	var nav_font: Font = UiTypography.body_font()
+	for btn in [_btn_member_prev, _btn_member_next]:
+		if btn == null:
+			continue
+		btn.flat = true
+		btn.clip_text = false
+		btn.focus_mode = Control.FOCUS_NONE
+		btn.custom_minimum_size = Vector2(36, 48)
+		btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		for style_name in ["normal", "hover", "pressed", "disabled", "focus"]:
+			btn.add_theme_stylebox_override(style_name, empty)
+		if nav_font != null:
+			btn.add_theme_font_override("font", nav_font)
+		btn.add_theme_font_size_override("font_size", 28)
+		btn.add_theme_color_override("font_color", COLOR_GOLD)
+		btn.add_theme_color_override("font_hover_color", Color(1.0, 0.95, 0.7, 1.0))
+		btn.add_theme_color_override("font_pressed_color", COLOR_VALUE)
+		btn.add_theme_constant_override("outline_size", 3)
+		btn.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.92))
 
 func _process(delta: float) -> void:
 	if _portrait_idle_textures.size() <= 1:
@@ -535,8 +643,9 @@ func _update_character_card() -> void:
 	var job_name: String = str(job_mods.get("display_name", member.job_id))
 	_label_level.text = EquipmentUiHelper.level_line(int(member.level))
 	_label_job.text = job_name
-	_label_job.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	_label_job.max_lines_visible = 1
+	_configure_job_label_one_line()
+	_fit_job_label_font_to_width()
+	call_deferred("_fit_job_label_font_to_width")
 	_job_icon.texture = IconPaths.get_icon_texture(str(member.job_id), "chr")
 	_set_character_portrait(member)
 	_label_stars.text = EquipmentUiHelper.rarity_stars_text(int(member.rarity))
@@ -766,6 +875,11 @@ func _format_effect_speed(value: float) -> String:
 # ---- 装備スロット ----
 func _rebuild_equip_slots() -> void:
 	_sync_slot_cell_size()
+	# キャラ切替・長い職名で CardRow が再配分されてもスロット Grid を伸ばさない。
+	_slots_panel.size_flags_horizontal = Control.SIZE_SHRINK_END
+	_slots_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_slots_row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_slots_row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	for child in _slots_row.get_children():
 		child.queue_free()
 	var member: Resource = _get_view_adventurer()
@@ -783,6 +897,7 @@ func _make_relic_slot(cell_size: Vector2, member: Resource, can_equip: bool) -> 
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 2)
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	_lock_fixed_cell_box(box, cell_size)
 	var cap := Label.new()
 	cap.text = "レリック"
 	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -790,7 +905,7 @@ func _make_relic_slot(cell_size: Vector2, member: Resource, can_equip: bool) -> 
 	cap.add_theme_font_size_override("font_size", 11)
 	box.add_child(cap)
 	var btn := Button.new()
-	btn.custom_minimum_size = cell_size
+	_lock_fixed_cell_button(btn, cell_size)
 	btn.flat = false
 	btn.focus_mode = Control.FOCUS_NONE
 	btn.action_mode = BaseButton.ACTION_MODE_BUTTON_RELEASE
@@ -828,6 +943,7 @@ func _make_locked_slot(label: String, cell_size: Vector2) -> Control:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 2)
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	_lock_fixed_cell_box(box, cell_size)
 	var cap := Label.new()
 	cap.text = label
 	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -835,7 +951,7 @@ func _make_locked_slot(label: String, cell_size: Vector2) -> Control:
 	cap.add_theme_font_size_override("font_size", 11)
 	box.add_child(cap)
 	var btn := Button.new()
-	btn.custom_minimum_size = cell_size
+	_lock_fixed_cell_button(btn, cell_size)
 	btn.flat = false
 	btn.focus_mode = Control.FOCUS_NONE
 	btn.action_mode = BaseButton.ACTION_MODE_BUTTON_RELEASE
@@ -856,6 +972,7 @@ func _make_slot(
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 2)
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	_lock_fixed_cell_box(box, cell_size)
 	var cap := Label.new()
 	cap.text = slot_label
 	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -863,7 +980,7 @@ func _make_slot(
 	cap.add_theme_font_size_override("font_size", 11)
 	box.add_child(cap)
 	var btn := Button.new()
-	btn.custom_minimum_size = cell_size
+	_lock_fixed_cell_button(btn, cell_size)
 	btn.flat = false
 	btn.focus_mode = Control.FOCUS_NONE
 	btn.action_mode = BaseButton.ACTION_MODE_BUTTON_RELEASE
@@ -906,13 +1023,9 @@ func _inventory_grid_width() -> float:
 	return maxf(100.0, size.x - 16.0)
 
 func _sync_inventory_cell_size() -> void:
-	var sep: int = _inventory_grid.get_theme_constant("h_separation", "GridContainer")
-	var cell_px: int = EquipmentUiTokens.cell_px_for_grid_width(
-		_inventory_grid_width(),
-		GRID_COLUMNS,
-		sep
-	)
-	_inv_cell_size = Vector2(cell_px, cell_px)
+	# 幅追従で cell が肥大化すると所持アイコンが拡大して見える。
+	# 装備スロット同様、所持セルも設計サイズで固定する。
+	_inv_cell_size = Vector2(EquipmentUiTokens.INV_CELL_PX, EquipmentUiTokens.INV_CELL_PX)
 	_update_inventory_viewport_height()
 
 func _update_inventory_viewport_height() -> void:
@@ -921,21 +1034,30 @@ func _update_inventory_viewport_height() -> void:
 	var height: float = cell_size.y * float(INV_VISIBLE_ROWS) + float(v_sep * maxi(0, INV_VISIBLE_ROWS - 1))
 	_inventory_scroll.custom_minimum_size.y = height
 	_inventory_scroll.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-
-func _slot_panel_width() -> float:
-	var panel_w: float = maxf(_slots_panel.size.x, _slots_row.size.x)
-	if panel_w >= 120.0:
-		return panel_w
-	return float(EquipmentUiTokens.SLOT_PANEL_MIN_W)
+	# 行数が少なくても Grid を Scroll 高さまで伸ばさない（StyleBox 縦筋の再発防止）。
+	_inventory_grid.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	_inventory_grid.custom_minimum_size = Vector2(0, 0)
 
 func _sync_slot_cell_size() -> void:
-	var sep: int = _slots_row.get_theme_constant("h_separation", "GridContainer")
-	var cell_px: int = EquipmentUiTokens.cell_px_for_slot_panel(
-		_slot_panel_width(),
-		SLOT_COLUMNS,
-		sep
-	)
-	_slot_cell_size = Vector2(cell_px, cell_px)
+	# パネル幅連動だとキャラ切替・再レイアウトでセルが肥大化しアイコンが拡大して見える。
+	# 装備スロットは常に固定サイズとする。
+	_slot_cell_size = Vector2(EquipmentUiTokens.SLOT_PX, EquipmentUiTokens.SLOT_PX)
+
+func _lock_fixed_cell_box(box: Control, cell_size: Vector2) -> void:
+	box.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	# ラベル分の高さは許容しつつ、横幅はセル幅に固定する。
+	# NOTE: Godot 4.6.3 に custom_maximum_size は無い（参照すると実行時エラーで落ちる）。
+	box.custom_minimum_size = Vector2(cell_size.x, 0.0)
+
+func _lock_fixed_cell_button(btn: Button, cell_size: Vector2) -> void:
+	# 固定セルは minimum + SHRINK。親 Grid/SlotsPanel も SHRINK にして伸びを防ぐ。
+	btn.custom_minimum_size = cell_size
+	btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	# Grid が行を伸ばしても描画がセル外へ漏れないようにする。
+	btn.clip_contents = true
+
 
 func _inv_cell_size_vec() -> Vector2:
 	return _inv_cell_size
@@ -947,24 +1069,37 @@ func _attach_item_icon(btn: Button, icon: Texture2D, cell_px: int, design_px: in
 	if icon == null:
 		return
 	var inset: int = EquipmentUiTokens.icon_inset_px(cell_px, design_px)
+	var side: int = maxi(1, cell_px - inset * 2)
+	var half: float = float(side) * 0.5
 	var tex_rect := TextureRect.new()
 	tex_rect.name = "ItemIcon"
 	tex_rect.texture = icon
 	tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	tex_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	tex_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	tex_rect.offset_left = inset
-	tex_rect.offset_top = inset
-	tex_rect.offset_right = -inset
-	tex_rect.offset_bottom = -inset
+	# FULL_RECT+inset だと親幅変動時に偏って見えることがあるため、中央固定サイズで載せる。
+	tex_rect.anchor_left = 0.5
+	tex_rect.anchor_top = 0.5
+	tex_rect.anchor_right = 0.5
+	tex_rect.anchor_bottom = 0.5
+	tex_rect.offset_left = -half
+	tex_rect.offset_top = -half
+	tex_rect.offset_right = half
+	tex_rect.offset_bottom = half
 	btn.add_child(tex_rect)
+
+func _clear_inventory_grid_children() -> void:
+	# queue_free のみだと同フレーム内に旧ノードが残り、列ずれの原因になる。
+	for child in _inventory_grid.get_children():
+		_inventory_grid.remove_child(child)
+		child.queue_free()
 
 # ---- 所持一覧グリッド ----
 func _rebuild_inventory_grid() -> void:
-	_sync_inventory_cell_size()
-	for child in _inventory_grid.get_children():
-		child.queue_free()
+	# キャラ切替のたびに幅再計算するとセルが肥大化するため、サイズ同期はリサイズ時のみ。
+	if _inv_cell_size.x < float(EquipmentUiTokens.INV_CELL_PX):
+		_sync_inventory_cell_size()
+	_clear_inventory_grid_children()
 	var entries: Array = []
 	if _inventory_filter == "all" or _inventory_filter == "weapon":
 		for it in $EquipmentController.get_appraised_weapons():
@@ -1000,7 +1135,7 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 	var cell_size: Vector2 = _inv_cell_size_vec()
 	var cell_px: int = int(cell_size.x)
 	var btn := Button.new()
-	btn.custom_minimum_size = cell_size
+	_lock_fixed_cell_button(btn, cell_size)
 	btn.flat = false
 	btn.focus_mode = Control.FOCUS_NONE
 	btn.action_mode = BaseButton.ACTION_MODE_BUTTON_RELEASE
@@ -1032,7 +1167,7 @@ func _make_relic_cell(relic_id: String) -> Button:
 	var cell_size: Vector2 = _inv_cell_size_vec()
 	var cell_px: int = int(cell_size.x)
 	var btn := Button.new()
-	btn.custom_minimum_size = cell_size
+	_lock_fixed_cell_button(btn, cell_size)
 	btn.flat = false
 	btn.focus_mode = Control.FOCUS_NONE
 	btn.action_mode = BaseButton.ACTION_MODE_BUTTON_RELEASE
@@ -1169,13 +1304,23 @@ func _add_owner_portrait_badge(btn: Button, owner_idx: int, cell_size: Vector2) 
 	var tex: Texture2D = IconPaths.get_icon_texture(str(member.job_id), "chr")
 	if tex == null:
 		return
+	var badge_px: float = 18.0
 	var icon := TextureRect.new()
+	icon.name = "OwnerBadge"
 	icon.texture = tex
-	icon.custom_minimum_size = Vector2(18, 18)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	icon.position = Vector2(cell_size.x - 18.0, 2.0)
+	icon.z_index = 3
+	# Button 子で size 直指定すると CHR 原寸（1000px超）に戻ることがあるためアンカーで固定。
+	icon.anchor_left = 1.0
+	icon.anchor_top = 0.0
+	icon.anchor_right = 1.0
+	icon.anchor_bottom = 0.0
+	icon.offset_left = -badge_px - 2.0
+	icon.offset_top = 2.0
+	icon.offset_right = -2.0
+	icon.offset_bottom = 2.0 + badge_px
 	btn.add_child(icon)
 
 func _ensure_item_detail_overlay() -> void:

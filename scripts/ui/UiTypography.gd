@@ -2,12 +2,19 @@ class_name UiTypography
 extends RefCounted
 
 ## 三層フォント（P3-UI-TYPE-001 / P3-UI3-001）
-## — 本文 Noto Sans JP / 見出し・タイトル Shippori Mincho B1（金セリフ・モック準拠）
+## — 本文 Noto Sans JP（wght 800） / 見出し・タイトル Shippori Mincho B1（金セリフ・モック準拠）
 ## / 戦闘・数字インパクト DelaGothicOne。
 
 const BODY_FONT_PATH: String = "res://assets/fonts/NotoSansJP-VariableFont_wght.ttf"
 const DISPLAY_FONT_PATH: String = "res://assets/fonts/ShipporiMinchoB1-Bold.ttf"
 const IMPACT_FONT_PATH: String = "res://assets/fonts/DelaGothicOne-Regular.ttf"
+## Noto Sans JP Variable の本文ウェイト。
+## 600/700 では Mobile レンダラ＋小サイズ UI で薄く見えるため ExtraBold 相当。
+const BODY_FONT_WEIGHT: float = 800.0
+## OpenType 'wght' タグ（整数）。文字列キーだけに頼ると環境で効かないことがある。
+const BODY_WGHT_TAG: int = 0x77676874
+## 可変フォントでも足りないときの合成太字（0=なし）。可読性優先で軽く掛ける。
+const BODY_EMBOLDEN: float = 0.35
 
 ## 画面タイトルの飾り（モックの「✦〜✦」金飾 / P3-UI3-001）。
 const TITLE_ORNAMENT_LEFT: String = "✦ "
@@ -29,9 +36,9 @@ const COLOR_MUTED: Color = Color(0.82, 0.80, 0.76, 1.0)
 const COLOR_LOG: Color = Color(0.90, 0.88, 0.94, 1.0)
 const COLOR_LOCKED: Color = Color(0.58, 0.56, 0.52, 1.0)
 
-const OUTLINE_BODY: int = 2
+const OUTLINE_BODY: int = 4
 const OUTLINE_DISPLAY: int = 4
-const OUTLINE_MENU: int = 2
+const OUTLINE_MENU: int = 3
 const OUTLINE_STRONG: int = 5
 
 static var _body_font: Font
@@ -44,7 +51,12 @@ static func body_font() -> Font:
 		if base != null:
 			var variation := FontVariation.new()
 			variation.base_font = base
-			variation.variation_opentype = {"wght": 600.0}
+			# 文字列キーと整数タグの両方を入れ、テーマ／ランタイムで確実に wght を効かせる。
+			variation.variation_opentype = {
+				"wght": BODY_FONT_WEIGHT,
+				BODY_WGHT_TAG: BODY_FONT_WEIGHT,
+			}
+			variation.variation_embolden = BODY_EMBOLDEN
 			_body_font = variation
 	return _body_font
 

@@ -12,7 +12,8 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "assets/ui/forge/UI_Forge_HeroItemBg.png"
-TARGET_PX = 168
+# Matches ForgeUiTokens.HERO_PEDESTAL_PX (detail hero pedestal).
+TARGET_PX = 240
 DESKTOP_CANDIDATES = [
     Path.home() / "Desktop/CrownFall設定画像/武器背景.png",
     Path.home() / "Desktop/CrownFall設定画像/アイコン/ぶき/武器背景.png",

@@ -97,6 +97,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 expand_mode = 1
 stretch_mode = 6
 texture = ExtResource("4")
@@ -314,8 +315,10 @@ layout_mode = 2
 theme_override_constants/separation = 6
 
 [node name="JobIcon" type="TextureRect" parent="VBoxContainer/CharacterCard/CardRow/InfoBox/JobRow"]
-custom_minimum_size = Vector2(18, 18)
+custom_minimum_size = Vector2(22, 22)
 layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
 expand_mode = 1
 stretch_mode = 5
 
@@ -325,6 +328,10 @@ size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.88, 0.84, 0.76, 1)
 theme_override_font_sizes/font_size = 22
 text = "—"
+clip_text = false
+text_overrun_behavior = 0
+autowrap_mode = 0
+max_lines_visible = 1
 
 [node name="EvolutionRow" type="HBoxContainer" parent="VBoxContainer/CharacterCard/CardRow/InfoBox"]
 visible = false
@@ -359,11 +366,14 @@ text = "ステータス詳細"
 [node name="SlotsPanel" type="VBoxContainer" parent="VBoxContainer/CharacterCard/CardRow"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 4
 theme_override_constants/separation = 4
 
 [node name="EquipSlotsGrid" type="GridContainer" parent="VBoxContainer/CharacterCard/CardRow/SlotsPanel"]
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 4
+size_flags_vertical = 4
 theme_override_constants/h_separation = 4
 theme_override_constants/v_separation = 4
 columns = 2
@@ -412,9 +422,10 @@ horizontal_alignment = 1
 [node name="EffectsRule" type="TextureRect" parent="VBoxContainer/TabContainer/TabEquip/EquipContent/EffectsPanel/EffectsVBox"]
 custom_minimum_size = Vector2(0, 12)
 layout_mode = 2
+size_flags_vertical = 4
 mouse_filter = 2
 expand_mode = 1
-stretch_mode = 6
+stretch_mode = 0
 
 [node name="EffectsGrid" type="GridContainer" parent="VBoxContainer/TabContainer/TabEquip/EquipContent/EffectsPanel/EffectsVBox"]
 layout_mode = 2
@@ -479,7 +490,8 @@ vertical_scroll_mode = 2
 
 [node name="InventoryGrid" type="GridContainer" parent="VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryScroll"]
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 0
+size_flags_vertical = 0
 theme_override_constants/h_separation = 4
 theme_override_constants/v_separation = 4
 columns = 6

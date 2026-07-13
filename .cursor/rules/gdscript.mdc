@@ -17,6 +17,17 @@ Crownfall（2D見下ろし型・自動探索ハクスラRPG）向け。Godot 4.6
 - シグナル接続は `signal_name.connect(callable)`（文字列 connect 禁止）
 - 型注釈を付ける（`: int`, `: String`, `-> void` 等）
 - **Python の `for`/`else`・`while`/`else` は禁止**（GDScript 非対応。`Parser Error: Expected statement, found "else"` の原因）
+- **プロジェクトの Godot 版（4.6.3）に無い API を書かない**。Web の 4.x latest / PR マージ済み機能でも、未同梱なら実行時クラッシュする（例: `Control.custom_maximum_size`）
+
+```gdscript
+# ❌ BAD — 4.6.3 に無いプロパティ（キャラ管理が _ready で即終了）
+btn.custom_maximum_size = cell_size
+
+# ✅ GOOD — 現行版で固定サイズを担保
+btn.custom_minimum_size = cell_size
+btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+```
 
 ```gdscript
 # ❌ BAD — Python 互換に見えてパース不能
@@ -47,6 +58,9 @@ while cond:
 | 定数 | UPPER_SNAKE_CASE | `MAX_PARTY_SIZE` |
 | ノード名（シーン内） | PascalCase | `LabelDetailName` |
 | `class_name` | PascalCase | `AffixDisplayFormatter` |
+
+❌ `get_name` / `set_name` を独自 API にしない（Script 組み込み void と衝突し、呼び出しが null になる）  
+✅ `get_commander_name` / `set_commander_name` のように衝突しない名前にする
 
 ## アーキテクチャ
 

@@ -153,16 +153,29 @@ var _featured_dungeon_id: String = ""
 var _selected_stage_id: String = ""
 var _expanded_biome_id: String = ""
 var _pending_enter_dungeon_id: String = ""
-var _enter_confirm: ConfirmationDialog
+var _enter_confirm_overlay: Control
+var _enter_confirm_yes: Button
+var _enter_confirm_no: Button
 
 const STAGE_CARD_MIN_SIZE: Vector2 = Vector2(136, 78)
 const STAGE_THUMB_SIZE: Vector2 = Vector2(44, 44)
 const BIOME_HEADER_MIN_SIZE: Vector2 = Vector2(0, 112)
+## 一覧アコーディオン上の Biome バナー想定幅（高さはテクスチャ縦横比から算出）
+const BIOME_BANNER_LIST_WIDTH: float = 680.0
+const BIOME_BANNER_HEIGHT_MIN: float = 112.0
+const BIOME_BANNER_HEIGHT_MAX: float = 240.0
 const BIOME_BANNER_HEIGHT: float = 112.0
-const BIOME_BANNER_PATHS: Dictionary = {}
+## 空 = バナー画像を使わずテキスト見出し（▶ ダンジョン名）に戻す。
+## 雰囲気BGのみ（文字は UI ラベル重ね）。表示高さはテクスチャ比で ~112px（680幅時）。
+const BIOME_BANNER_PATHS: Dictionary = {
+	"mourngate": "res://assets/ui/dungeon/BAN_DG_Mourngate.png",
+	"whisperwood": "res://assets/ui/dungeon/BAN_DG_Whisperwood.png",
+	"mistfen": "res://assets/ui/dungeon/BAN_DG_Mistfen.png",
+	"blackshore": "res://assets/ui/dungeon/BAN_DG_Blackshore.png",
+	"frostridge": "res://assets/ui/dungeon/BAN_DG_Frostridge.png",
+}
 ## バナー画像にダンジョン名が焼き込まれている Biome（UI タイトルラベルを非表示）
 const BIOME_BANNER_TITLE_BAKED: Dictionary = {}
-const ENTER_CONFIRM_BUTTON_SEPARATION: int = 64
 func _ready() -> void:
 	$MainColumn/Header/HeaderRow/LabelTitle.text = ""
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.ADVENTURE)
@@ -181,50 +194,112 @@ func _ready() -> void:
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
 	)
 	_apply_typography()
-	_setup_dungeon_select_chrome()
 	_setup_enter_confirm()
 	_refresh_all()
 
-
-func _setup_dungeon_select_chrome() -> void:
-	DungeonSelectUiHelper.apply_back_button(_btn_back)
-	DungeonSelectUiHelper.apply_depart_button(_btn_featured_select)
-
 func _setup_enter_confirm() -> void:
-	_enter_confirm = ConfirmationDialog.new()
-	_enter_confirm.title = ""
-	_enter_confirm.dialog_text = "ダンジョンに入りますか？"
-	_enter_confirm.ok_button_text = ""
-	_enter_confirm.cancel_button_text = ""
-	_enter_confirm.initial_position = Window.WINDOW_INITIAL_POSITION_CENTER_MAIN_WINDOW_SCREEN
-	_enter_confirm.confirmed.connect(_on_enter_confirmed)
-	add_child(_enter_confirm)
-	_arrange_enter_confirm_buttons()
+	_enter_confirm_overlay = Control.new()
+	_enter_confirm_overlay.name = "EnterConfirmOverlay"
+	_enter_confirm_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_enter_confirm_overlay.visible = false
+	_enter_confirm_overlay.z_index = 80
+	_enter_confirm_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(_enter_confirm_overlay)
 
-func _arrange_enter_confirm_buttons() -> void:
-	# macOS 既定は「いいえ｜はい」。要望どおり「はい｜いいえ」に並べ替える。
-	var ok_btn: Button = _enter_confirm.get_ok_button()
-	var cancel_btn: Button = _enter_confirm.get_cancel_button()
-	if ok_btn == null or cancel_btn == null:
+	var dim := ColorRect.new()
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0.0, 0.0, 0.0, 0.62)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	dim.gui_input.connect(_on_enter_confirm_dim_input)
+	_enter_confirm_overlay.add_child(dim)
+
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_enter_confirm_overlay.add_child(center)
+
+	var panel_host := Control.new()
+	var panel_tex: Texture2D = DungeonSelectUiTokens.load_tex(DungeonSelectUiTokens.ENTER_CONFIRM_PANEL)
+	var panel_w: float = DungeonSelectUiTokens.ENTER_CONFIRM_PANEL_WIDTH
+	var panel_h: float = panel_w * 0.57
+	if panel_tex != null:
+		panel_h = panel_w * float(panel_tex.get_height()) / float(maxi(1, panel_tex.get_width()))
+	panel_host.custom_minimum_size = Vector2(panel_w, panel_h)
+	panel_host.mouse_filter = Control.MOUSE_FILTER_STOP
+	center.add_child(panel_host)
+
+	var panel := TextureRect.new()
+	panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	panel.texture = panel_tex
+	panel.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	panel.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel_host.add_child(panel)
+
+	_enter_confirm_yes = _make_enter_confirm_hit_button(true)
+	_enter_confirm_yes.pressed.connect(_on_enter_confirmed)
+	panel_host.add_child(_enter_confirm_yes)
+	_place_enter_confirm_button(_enter_confirm_yes, DungeonSelectUiTokens.ENTER_CONFIRM_YES_RECT, panel_w, panel_h)
+
+	_enter_confirm_no = _make_enter_confirm_hit_button(false)
+	_enter_confirm_no.pressed.connect(_hide_enter_confirm)
+	panel_host.add_child(_enter_confirm_no)
+	_place_enter_confirm_button(_enter_confirm_no, DungeonSelectUiTokens.ENTER_CONFIRM_NO_RECT, panel_w, panel_h)
+
+
+func _make_enter_confirm_hit_button(yes: bool) -> Button:
+	var btn := Button.new()
+	# パネル画像に「はい／いいえ」が焼込済み。見た目は画像、操作は Button ヒット領域。
+	btn.flat = true
+	btn.text = "はい" if yes else "いいえ"
+	btn.focus_mode = Control.FOCUS_ALL
+	var empty := StyleBoxEmpty.new()
+	btn.add_theme_stylebox_override("normal", empty)
+	btn.add_theme_stylebox_override("hover", empty)
+	btn.add_theme_stylebox_override("pressed", empty)
+	btn.add_theme_stylebox_override("focus", empty)
+	btn.add_theme_color_override("font_color", Color(1, 1, 1, 0))
+	btn.add_theme_color_override("font_hover_color", Color(1, 1, 1, 0))
+	btn.add_theme_color_override("font_pressed_color", Color(1, 1, 1, 0))
+	btn.add_theme_color_override("font_focus_color", Color(1, 1, 1, 0))
+	btn.add_theme_font_size_override("font_size", 1)
+	return btn
+
+
+func _place_enter_confirm_button(btn: Button, frac: Rect2, panel_w: float, panel_h: float) -> void:
+	btn.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	btn.anchor_right = 0.0
+	btn.anchor_bottom = 0.0
+	btn.position = Vector2(panel_w * frac.position.x, panel_h * frac.position.y)
+	btn.size = Vector2(panel_w * frac.size.x, panel_h * frac.size.y)
+	btn.custom_minimum_size = btn.size
+
+
+func _on_enter_confirm_dim_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_hide_enter_confirm()
+
+
+func _show_enter_confirm() -> void:
+	if _enter_confirm_overlay == null:
 		return
-	var row: Node = ok_btn.get_parent()
-	if row == null:
-		return
-	row.move_child(ok_btn, 0)
-	row.move_child(cancel_btn, 1)
-	if row is BoxContainer:
-		(row as BoxContainer).add_theme_constant_override("separation", ENTER_CONFIRM_BUTTON_SEPARATION)
-	ok_btn.custom_minimum_size = DungeonSelectUiHelper.CONFIRM_BTN_MIN_SIZE
-	cancel_btn.custom_minimum_size = DungeonSelectUiHelper.CONFIRM_BTN_MIN_SIZE
-	DungeonSelectUiHelper.apply_confirm_button(ok_btn, true)
-	DungeonSelectUiHelper.apply_confirm_button(cancel_btn, false)
+	_enter_confirm_overlay.visible = true
+	if _enter_confirm_yes != null:
+		_enter_confirm_yes.grab_focus()
+
+
+func _hide_enter_confirm() -> void:
+	if _enter_confirm_overlay != null:
+		_enter_confirm_overlay.visible = false
+
 
 func _apply_typography() -> void:
 	UiTypography.apply_button(_btn_back, false)
+	UiTypography.apply_button(_btn_featured_select)
 	UiTypography.apply_body(_label_gold, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_body(_label_token, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_display(_label_featured_name, UiTypography.SIZE_BODY_SMALL)
-	UiTypography.apply_body(_label_featured_flavor, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_SUB)
+	UiTypography.apply_body(_label_featured_flavor, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	UiTypography.apply_body(_label_featured_meta, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
 	UiTypography.apply_body(_label_featured_discovery, UiTypography.SIZE_BODY_SMALL, COLOR_CLEAR)
 	UiTypography.apply_body(_label_bonus_value, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
@@ -540,6 +615,7 @@ func _refresh_featured() -> void:
 			and GameState.is_stage_unlocked(_selected_stage_id)
 		)
 	)
+	_btn_featured_select.text = "選択して出発"
 	_btn_featured_select.disabled = not unlocked or not stage_ready
 
 func _resolve_featured_dungeon_id() -> String:
@@ -627,6 +703,16 @@ func _build_list() -> void:
 		_list.add_child(_make_section_header("最果て"))
 		for data in apexes:
 			_list.add_child(_make_biome_card(data))
+	# 末尾バナーがフッター／下ナビで見切れないようスクロール余白を確保
+	_list.add_child(_make_list_bottom_spacer())
+
+func _make_list_bottom_spacer() -> Control:
+	var spacer := Control.new()
+	spacer.name = "ListBottomSpacer"
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	spacer.custom_minimum_size = Vector2(0, BIOME_BANNER_HEIGHT + 16)
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return spacer
 
 func _sorted_dungeons(route_type: String) -> Array:
 	if not Constants.is_playable_dungeon_route(route_type):
@@ -651,6 +737,10 @@ func _make_section_header(title: String) -> Control:
 	header.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_display(header, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	header.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.9))
+	header.add_theme_constant_override("shadow_offset_x", 1)
+	header.add_theme_constant_override("shadow_offset_y", 1)
+	header.add_theme_constant_override("shadow_outline_size", 3)
 	margin.add_child(header)
 	return margin
 
@@ -665,8 +755,6 @@ func _make_biome_accordion(data: Resource) -> Control:
 
 	var banner_tex: Texture2D = _get_biome_banner_texture(dungeon_id)
 	if banner_tex != null:
-		if _banner_hides_title(dungeon_id):
-			outer.add_child(_make_biome_title_label(data, unlocked))
 		outer.add_child(_make_biome_banner_header(data, banner_tex, unlocked, is_expanded, is_featured))
 	else:
 		outer.add_child(_make_biome_text_header(data, unlocked, is_expanded, is_featured))
@@ -686,6 +774,17 @@ func _get_biome_banner_texture(dungeon_id: String) -> Texture2D:
 	if path.is_empty():
 		return null
 	return _load_texture_flexible(path)
+
+func _biome_banner_header_size(banner_tex: Texture2D) -> Vector2:
+	if banner_tex == null:
+		return BIOME_HEADER_MIN_SIZE
+	var tw: int = banner_tex.get_width()
+	var th: int = banner_tex.get_height()
+	if tw <= 0 or th <= 0:
+		return BIOME_HEADER_MIN_SIZE
+	var height: float = BIOME_BANNER_LIST_WIDTH * float(th) / float(tw)
+	height = clampf(height, BIOME_BANNER_HEIGHT_MIN, BIOME_BANNER_HEIGHT_MAX)
+	return Vector2(0.0, height)
 
 func _banner_hides_title(dungeon_id: String) -> bool:
 	return bool(BIOME_BANNER_TITLE_BAKED.get(dungeon_id, false))
@@ -715,6 +814,7 @@ func _make_biome_title_label(data: Resource, unlocked: bool) -> Control:
 func _sync_featured_banner(dungeon_id: String) -> void:
 	for child in _featured_banner_host.get_children():
 		child.queue_free()
+	# 一覧側に Biome バナーがある場合は Featured 上段の重複バナーを出さない。
 	if _uses_list_biome_banner(dungeon_id):
 		_featured_banner_host.visible = false
 		_featured_banner_host.custom_minimum_size = Vector2.ZERO
@@ -744,7 +844,7 @@ func _make_biome_banner_header(
 	var dungeon_id: String = str(data.id)
 	var root := Control.new()
 	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	root.custom_minimum_size = BIOME_HEADER_MIN_SIZE
+	root.custom_minimum_size = _biome_banner_header_size(banner_tex)
 	if not unlocked:
 		root.modulate = Color(0.72, 0.72, 0.76, 1.0)
 
@@ -752,11 +852,8 @@ func _make_biome_banner_header(
 	banner.set_anchors_preset(Control.PRESET_FULL_RECT)
 	banner.texture = banner_tex
 	banner.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	banner.stretch_mode = (
-		TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		if _banner_hides_title(dungeon_id)
-		else TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	)
+	banner.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	banner.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(banner)
 
@@ -766,11 +863,11 @@ func _make_biome_banner_header(
 	header_btn.disabled = not unlocked
 	var row := HBoxContainer.new()
 	row.set_anchors_preset(Control.PRESET_FULL_RECT)
-	row.offset_left = 10
+	row.offset_left = 8
 	row.offset_top = 4
-	row.offset_right = -10
+	row.offset_right = -8
 	row.offset_bottom = -4
-	row.add_theme_constant_override("separation", 8)
+	row.add_theme_constant_override("separation", 6)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	header_btn.add_child(row)
 
@@ -780,7 +877,12 @@ func _make_biome_banner_header(
 		chevron.text = "🔒"
 	chevron.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	chevron.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	UiTypography.apply_body(chevron, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	# バナー上でも視認できるよう金＋影を強める
+	UiTypography.apply_body(chevron, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
+	chevron.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.92))
+	chevron.add_theme_constant_override("shadow_offset_x", 1)
+	chevron.add_theme_constant_override("shadow_offset_y", 1)
+	chevron.add_theme_constant_override("shadow_outline_size", 4)
 	row.add_child(chevron)
 
 	if not _banner_hides_title(dungeon_id):
@@ -789,16 +891,20 @@ func _make_biome_banner_header(
 		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		title.max_lines_visible = 2
+		title.autowrap_mode = TextServer.AUTOWRAP_OFF
+		title.max_lines_visible = 1
 		title.clip_text = true
 		title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		UiTypography.apply_display(
 			title,
-			UiTypography.SIZE_BODY_SMALL,
+			UiTypography.SIZE_BODY,
 			UiTypography.COLOR_GOLD if unlocked else UiTypography.COLOR_SUB
 		)
+		title.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.95))
+		title.add_theme_constant_override("shadow_offset_x", 1)
+		title.add_theme_constant_override("shadow_offset_y", 1)
+		title.add_theme_constant_override("shadow_outline_size", 5)
 		row.add_child(title)
 
 	header_btn.pressed.connect(_on_biome_accordion_pressed.bind(dungeon_id))
@@ -930,10 +1036,14 @@ func _make_biome_card(data: Resource) -> PanelContainer:
 	action.add_child(_make_stars_label(int(data.difficulty)))
 
 	var btn := Button.new()
-	btn.custom_minimum_size = DungeonSelectUiHelper.SELECT_BTN_MIN_SIZE
-	DungeonSelectUiHelper.apply_select_button(btn, unlocked)
+	btn.custom_minimum_size = Vector2(88, 40)
 	if unlocked:
+		btn.text = "選択"
+		UiTypography.apply_button(btn, is_featured)
 		btn.pressed.connect(_on_select_pressed.bind(dungeon_id))
+	else:
+		btn.text = "ロック中"
+		btn.disabled = true
 	action.add_child(btn)
 	return card
 
@@ -1139,10 +1249,10 @@ func _prompt_enter_dungeon(dungeon_id: String) -> void:
 		if _selected_stage_id.is_empty() or not GameState.is_stage_unlocked(_selected_stage_id):
 			return
 	_pending_enter_dungeon_id = dungeon_id
-	_enter_confirm.popup_centered()
-	call_deferred("_arrange_enter_confirm_buttons")
+	_show_enter_confirm()
 
 func _on_enter_confirmed() -> void:
+	_hide_enter_confirm()
 	_do_enter_dungeon(_pending_enter_dungeon_id)
 
 func _on_select_pressed(dungeon_id: String) -> void:

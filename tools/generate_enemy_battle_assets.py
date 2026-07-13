@@ -28,6 +28,9 @@ SKIP_EXISTING_SHEETS = {
     ROOT / "assets/dungeon/mourngate/ENM_CrystalHedgehog_Sheet.png",
     ROOT / "assets/dungeon/mourngate/ENM_CrownEaterRat_Sheet.png",
     ROOT / "assets/dungeon/mourngate/ENM_ClockMoth_Sheet.png",
+    ROOT / "assets/dungeon/mourngate/ENM_GraveBellBat_Sheet.png",
+    ROOT / "assets/dungeon/mourngate/ENM_CrystalScorpion_Sheet.png",
+    ROOT / "assets/dungeon/mourngate/ENM_SkullfaceMantis_Sheet.png",
 }
 
 

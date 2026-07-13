@@ -1,6 +1,6 @@
 ---
 description: Godot UI レイアウト・モック寄せの実装規約（Container / Tokens / 確認ゲート）
-globs: ["scenes/**/*.tscn", "scripts/**/*Scene.gd", "scripts/**/*UiTokens.gd", "scripts/**/*UiHelper.gd"]
+globs: ["scenes/**/*.tscn", "scripts/**/*Scene.gd", "scripts/**/*UiTokens.gd", "scripts/**/*UiHelper.gd", "scripts/ui/ChrIdlePortrait.gd", "scripts/ui/ChrIdlePortraitView.gd", "scripts/ui/UiTypography.gd"]
 alwaysApply: false
 ---
 
@@ -37,6 +37,7 @@ alwaysApply: false
 - 余白 → `MarginContainer` または `Control` Spacer の `custom_minimum_size`
 - 間隔 → `separation` は **4 の倍数**（4, 8, 12, 16, 24…）
 - 伸縮 → `size_flags_horizontal/vertical`（`EXPAND_FILL` 等）
+- **HBox 内の短い数値 Label に `clip_text=true` を付けない**（最小幅 0 で数値が消える。アイコン＋数値チップで再発済み）
 - 絶対座標は **オーバーレイ・ポップアップ**程度に限定
 - `.tscn` 手編集は `scenes.mdc` に従い最小限。配置微調整は Godot エディタ推奨
 
@@ -48,6 +49,63 @@ alwaysApply: false
 - 1 Task = **1 画面の 1〜2 領域**まで。全面を一度にやらない
 - 装備セルのアイコン余白は `EquipmentUiTokens.ICON_FRAME_MARGIN_PX`（**18**）。全面キャンバス絵で枠食い込みを再発させない
 - ホームのイベントバナー等は **左メニューと重ねない**（メニュー下端＋余白）
+
+## 装備セルサイズ（再発防止・必須）
+
+キャラ切替や再レイアウトで **装備アイコンが拡大する** 事故が繰り返し発生している。
+
+❌ BAD
+- スロット／所持セルを `EXPAND_FILL` の Grid に載せ、`custom_minimum_size` だけ指定して伸びるままにする
+- `_rebuild_*`（キャラ切替）のたびにパネル幅から `cell_px` を再計算してセルを大きくする
+- `SlotsRow.size_flags_horizontal = EXPAND_FILL` のまま子ボタンを可変幅にする
+
+✅ GOOD
+- 装備スロットは **`EquipmentUiTokens.SLOT_PX` 固定**
+- 所持セルも **`EquipmentUiTokens.INV_CELL_PX` 固定**（幅追従の `maxi(INV_CELL_PX, cell_w)` で肥大化させない）
+- ボタンは `custom_minimum_size`＋`SIZE_SHRINK_CENTER`。親 `SlotsPanel` / `EquipSlotsGrid` も `SIZE_SHRINK_*`（`EXPAND_FILL` 禁止）
+- **`custom_maximum_size` は使わない**（Godot 4.6.3 に存在せず、参照するとキャラ管理が即クラッシュ）
+- 弓など枠を埋めやすい武器アートは取込時 `SAFE_SCALE` を下げて余白を確保（職固有バグと誤認しやすい）
+- 所持一覧の幅連動再計算は不要（セル固定）。リサイズでも `INV_CELL_PX` を維持
+- カテゴリ Chip の TextureRect は縦横とも `SIZE_SHRINK_CENTER`。`ICO_Equip_Cat_*` は他と同尺（目安 96）。巨大原画をそのまま載せない
+- `EffectsRule`（SectionRule）は `STRETCH_SCALE`＋縦 `SHRINK`。`KEEP_ASPECT_COVERED` は縦伸び時に金の縦筋になる
+- **所持 Grid は Scroll 内で縦 EXPAND 禁止**（`SIZE_SHRINK_BEGIN`）。行がビューポート高さまで伸びると InvCell の StyleBox 左右辺が巨大な金の縦筋になる
+- セル Button は `clip_contents = true`
+- 装備スロット Grid / SlotsPanel も横縦とも `SIZE_SHRINK_*`（長い職名で CardRow が再配分されてもスロットを伸ばさない）
+- CharacterCard の最小幅が viewport(720) を超えないこと（`◀▶` 肥大化・職名横伸び・OwnerBadge 原寸化に注意）
+- 各 Tab の ScrollContainer は横スクロール禁止＋`clip_contents`
+- 画面 BG（`BgTexture`）は `KEEP_ASPECT_COVERED`。`CENTERED` にするとレターボックスで背景が消えたように見える
+
+## CHR Idle ポートレート（再発防止・必須）
+
+`assets/characters/{job}/idle_*.png` は職によってフレーム間の描画サイズが不安定（特に beast_tamer / vanguard）。
+
+❌ BAD
+- 不安定 Idle をそのままループ → 拡縮に見える
+- 全フレームを「キャンバス中央寄せ」で再配置 → 左右に跳ぶ
+- 応急で静止画だけにして放置（その場アニメができなくなる）
+- 軽微な高さ揺れ（~1.08）までフル再配置して横跳びを再発させる
+
+✅ GOOD（`ChrIdlePortrait`）
+- 高さ比がほぼ安定 → 元テクスチャのまま
+- **軽微**（目安 max/min が 1.12 未満）→ 縮んだフレームを **間引き**（元配置を壊さない）
+- **重度**（ビーストテイマー級）→ **足元固定**で全フレーム正規化（中央寄せ禁止）
+- UI では「その場で動く」を維持する。静止固定は最終手段
+
+✅ GOOD（`ChrIdlePortraitView`）
+- `_ready` 前に `set_from_entry` / `set_from_member` され得る（MVP 表彰台など）
+- 子 `TextureRect` / `Label` は `_ensure_nodes()` で遅延生成し、Nil へ texture 代入しない
+
+❌ BAD（`ChrIdlePortraitView`）
+- `_ready` でのみ子を作り、呼び出し側がツリー投入前に texture を載せる想定にする → MVP 即落ち
+
+## 職名・本文タイポ
+
+- 職名ラベルは **省略（ellipsis）しない**（「ビーストテイマー」全文）
+- 長い職名は **改行しない**（InfoBox が高さ増でスロット／ステが下ずれる）。必要ならフォント縮小で1行に収める
+- JobIcon は巨大 CHR 原寸を載せない（固定 ~22px）
+- 本文 Noto は `UiTypography.BODY_FONT_WEIGHT = 800`＋軽い `variation_embolden`（テーマ `production_theme.tres` も同値）
+- キャラ切替 ◀▶ はテーマ Button（DelaGothic）を使わず、flat＋Noto body で描く
+- **Noto を薄く戻す典型原因:** (1) HEAD が wght 600 のまま・太字修正が未コミット (2) `body_font()` を通さず素の FontFile／別フォントを当てる (3) 700 止まりで Mobile 小サイズでは足りない
 
 ## 検証
 

@@ -9,8 +9,9 @@
 [sub_resource type="FontVariation" id="BodyFontVar"]
 base_font = ExtResource("4_BodyFont")
 variation_opentype = {
-"wght": 600.0
+"wght": 800.0
 }
+variation_embolden = 0.35
 
 [sub_resource type="StyleBoxTexture" id="SB_BtnNormal"]
 texture = ExtResource("1_BtnNormal")
@@ -85,7 +86,7 @@ Button/colors/font_disabled_color = Color(0.48, 0.48, 0.48, 1)
 Button/constants/outline_size = 2
 Button/colors/font_outline_color = Color(0, 0, 0, 0.9)
 Label/colors/font_color = Color(0.95, 0.92, 0.86, 1)
-Label/constants/outline_size = 2
-Label/colors/font_outline_color = Color(0, 0, 0, 0.9)
+Label/constants/outline_size = 4
+Label/colors/font_outline_color = Color(0, 0, 0, 0.92)
 Panel/styles/panel = SubResource("SB_Panel")
 PanelContainer/styles/panel = SubResource("SB_Panel")

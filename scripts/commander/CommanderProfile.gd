@@ -26,7 +26,6 @@ const RANK_SUBTITLES: Dictionary = {
 	"S": "広域調査許可",
 }
 
-const NAME_EDIT_UNLOCK_RANK: String = "C"
 const EXTENDED_RECORDS_UNLOCK_RANK: String = "A"
 const GOLD_SEAL_RANK: String = "S"
 
@@ -39,15 +38,13 @@ static func ensure_commander() -> void:
 	_sanitize_commander()
 
 
-static func get_name() -> String:
+static func get_commander_name() -> String:
 	ensure_commander()
 	var name: String = str(GameState.commander.get("name", DEFAULT_NAME)).strip_edges()
 	return name if not name.is_empty() else DEFAULT_NAME
 
 
-static func set_name(raw_name: String) -> bool:
-	if not can_edit_name():
-		return false
+static func set_commander_name(raw_name: String) -> bool:
 	ensure_commander()
 	var trimmed: String = raw_name.strip_edges()
 	if trimmed.is_empty():
@@ -56,8 +53,9 @@ static func set_name(raw_name: String) -> bool:
 	return true
 
 
+## 指揮官名の変更可否（P3-CMD-001-9: ランク不問で常時可）。
 static func can_edit_name() -> bool:
-	return is_rank_at_least(NAME_EDIT_UNLOCK_RANK)
+	return true
 
 
 static func survey_points() -> int:
@@ -125,6 +123,11 @@ static func progress_to_next_rank() -> Dictionary:
 
 static func rank_glyph() -> String:
 	return current_rank()
+
+
+static func rank_icon_texture(rank_code: String = "") -> Texture2D:
+	var code: String = rank_code if not rank_code.is_empty() else current_rank()
+	return CommanderUiTokens.rank_icon(code)
 
 
 static func title_slot_limit() -> int:

@@ -358,18 +358,16 @@ def _draw_bulk_motif(draw: ImageDraw.ImageDraw, h: int, *, enabled: bool) -> Non
         draw.rectangle((34 + dx, h // 2 - 10, 50 + dx, h // 2 + 10), outline=col, width=2)
 
 
-def draw_labeled_primary_button(
-    label: str,
+def draw_motif_primary_button(
     motif: str,
     w: int = 1200,
     h: int = 192,
     *,
     enabled: bool = True,
-    font_size: int | None = None,
 ) -> Image.Image:
+    """Frame + optional motif only. Label text is drawn by Godot (same as Enhance)."""
     img = draw_primary_button_frame(w, h, enabled=enabled)
     draw = ImageDraw.Draw(img)
-    shift = 14
     if enabled:
         if motif == "produce":
             _draw_produce_motif(draw, h)
@@ -381,8 +379,22 @@ def draw_labeled_primary_button(
         _draw_dismantle_motif(draw, h, enabled=False)
     elif motif == "bulk":
         _draw_bulk_motif(draw, h, enabled=False)
+    return img
+
+
+def draw_labeled_primary_button(
+    label: str,
+    motif: str,
+    w: int = 1200,
+    h: int = 192,
+    *,
+    enabled: bool = True,
+    font_size: int | None = None,
+) -> Image.Image:
+    img = draw_motif_primary_button(motif, w, h, enabled=enabled)
+    draw = ImageDraw.Draw(img)
     _draw_button_text(
-        draw, w, h, label, enabled=enabled, text_shift_x=shift,
+        draw, w, h, label, enabled=enabled, text_shift_x=14,
         font_size=font_size if font_size is not None else (30 if len(label) > 8 else 34),
     )
     return img
@@ -395,8 +407,7 @@ def main() -> int:
     for kind in ("atk", "def", "crit", "hp"):
         save(draw_stat_icon(kind, 64), f"ICO_Forge_Stat_{kind.upper()}.png")
 
-    for kind in ("weapon", "armor", "accessory"):
-        save(draw_category_icon(kind, 144), f"ICO_Forge_Cat_{kind.capitalize()}.png")
+    # Category tab icons are owner art — run tools/preprocess_category_icons.py --apply
 
     save(draw_item_cell_normal(128), "UI_Forge_ItemCell_Normal.png")
     save(draw_item_cell_selected(128), "UI_Forge_ItemCell_Selected.png")
@@ -412,12 +423,13 @@ def main() -> int:
     save(draw_anvil_panel(1280, 400), "UI_Forge_AnvilPanel.png")
     save(draw_hero_glow(800), "UI_Forge_HeroGlow.png")
     save(draw_tab_active(440, 176), "UI_Forge_Tab_Active.png")
-    save(draw_labeled_primary_button("生産する", "produce"), "UI_Forge_Btn_Produce.png")
-    save(draw_labeled_primary_button("生産する", "produce", enabled=False), "UI_Forge_Btn_Produce_Disabled.png")
-    save(draw_labeled_primary_button("分解する", "dismantle"), "UI_Forge_Btn_Dismantle.png")
-    save(draw_labeled_primary_button("分解する", "dismantle", enabled=False), "UI_Forge_Btn_Dismantle_Disabled.png")
-    save(draw_labeled_primary_button("◇◆を一括分解", "bulk", font_size=28), "UI_Forge_Btn_BulkDismantle.png")
-    save(draw_labeled_primary_button("◇◆を一括分解", "bulk", enabled=False, font_size=28), "UI_Forge_Btn_BulkDismantle_Disabled.png")
+    # Primary CTA frames: Godot overlays label text (font_size 28) like Enhance.
+    save(draw_motif_primary_button("produce"), "UI_Forge_Btn_Produce.png")
+    save(draw_motif_primary_button("produce", enabled=False), "UI_Forge_Btn_Produce_Disabled.png")
+    save(draw_motif_primary_button("dismantle"), "UI_Forge_Btn_Dismantle.png")
+    save(draw_motif_primary_button("dismantle", enabled=False), "UI_Forge_Btn_Dismantle_Disabled.png")
+    save(draw_motif_primary_button("bulk"), "UI_Forge_Btn_BulkDismantle.png")
+    save(draw_motif_primary_button("bulk", enabled=False), "UI_Forge_Btn_BulkDismantle_Disabled.png")
     save(draw_primary_button_frame(), "UI_Forge_Btn_Enhance.png")
     save(draw_primary_button_frame(enabled=False), "UI_Forge_Btn_Enhance_Disabled.png")
     return 0

@@ -174,8 +174,10 @@ func _setup_forge_chrome() -> void:
 		_btn_back.icon = back_tex
 		_btn_back.expand_icon = true
 		_btn_back.custom_minimum_size = Vector2(40, 40)
-	# 詳細ヒーローは素のアイコンのみ（Glow/ItemBg の影・加工フレームを載せない）。
-	_hero_pedestal.texture = null
+	# 武器詳細ヒーロー: 武器背景ペデスタル + 素のアイコン（Glow は載せない）。
+	_hero_pedestal.texture = ForgeUiTokens.load_tex(ForgeUiTokens.HERO_ITEM_BG)
+	_hero_pedestal.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_hero_pedestal.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_hero_pedestal.visible = false
 	_build_category_icons()
 
@@ -590,7 +592,10 @@ func _add_stats_section_spacer(height: float = 14.0) -> void:
 
 func _update_hero_icon(item_id: String, category: String, _rarity: int) -> void:
 	_clear_hero_icon()
-	_hero_pedestal.visible = false
+	# 武器詳細のみ Desktop「武器背景」をペデスタル表示（防具・装飾は別アセット想定）。
+	_hero_pedestal.visible = (
+		category == "weapon" and _hero_pedestal.texture != null
+	)
 	_hero_weapon_pivot.visible = true
 	_hero_weapon_pivot.rotation_degrees = 0.0
 	BlacksmithUiHelper.attach_hero_icon(
@@ -625,6 +630,7 @@ func _rebuild_produce_detail() -> void:
 	_add_stat_row("所持数", "%d" % owned)
 	_populate_unique_from_craft(craft)
 	_update_cost_panel(int(craft.gold_cost), craft.required_materials)
+	_craft_button.text = "生産する"
 	_craft_button.disabled = not can_craft
 	if can_craft:
 		_reason_label.visible = false
@@ -712,6 +718,7 @@ func _rebuild_dismantle_detail() -> void:
 	var can_do: bool = bool(preview.get("ok", false))
 	_cost_panel.visible = false
 	_craft_button.visible = true
+	_craft_button.text = "分解する"
 	_craft_button.disabled = not can_do
 	if can_do:
 		_reason_label.visible = false
@@ -887,10 +894,11 @@ func _update_bulk_dismantle_button() -> void:
 	var preview: Dictionary = _EquipmentEnhancer.dismantle_bulk_preview()
 	var count: int = int(preview.get("count", 0))
 	_bulk_dismantle_btn.disabled = count <= 0
-	_bulk_dismantle_btn.text = ""
-	_bulk_dismantle_btn.tooltip_text = (
-		"◇◆ %d件を一括分解" % count if count > 0 else "◇◆を一括分解"
+	_bulk_dismantle_btn.text = (
+		"◇◆を一括分解（%d件）" % count if count > 0 else "◇◆を一括分解"
 	)
+	_bulk_dismantle_btn.tooltip_text = _bulk_dismantle_btn.text
+	BlacksmithUiHelper.apply_bulk_dismantle_button(_bulk_dismantle_btn)
 
 func _craft_button_label(craft: Resource, can_craft: bool) -> String:
 	if can_craft:

@@ -2,6 +2,8 @@ class_name ChrIdlePortraitView
 extends Control
 
 ## 装備画面と同系統のジョブ別 Idle ドット表示（`ChrIdlePortrait` アニメ）。
+## NOTE: MVP 表彰台など、ツリー投入前に `set_from_entry` が呼ばれる経路がある。
+## `_ready` 前でも安全なよう `_ensure_nodes()` で子を遅延生成する。
 
 @export var portrait_size: Vector2 = Vector2(128, 128)
 
@@ -11,10 +13,18 @@ var _idle_textures: Array[Texture2D] = []
 var _idle_frame: int = 0
 var _idle_accum: float = 0.0
 
+
 func _ready() -> void:
-	_build_nodes()
+	_ensure_nodes()
 	custom_minimum_size = portrait_size
 	size = portrait_size
+
+
+func _ensure_nodes() -> void:
+	if _art != null:
+		return
+	_build_nodes()
+
 
 func _build_nodes() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -34,12 +44,15 @@ func _build_nodes() -> void:
 	_glyph.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_glyph)
 
+
 func set_portrait_size(px: float) -> void:
 	portrait_size = Vector2(px, px)
 	custom_minimum_size = portrait_size
 	size = portrait_size
+	_ensure_nodes()
 	if _glyph != null:
 		_glyph.add_theme_font_size_override("font_size", int(px * 0.28))
+
 
 func set_from_entry(entry: Dictionary) -> void:
 	var member_id: String = str(entry.get("member_id", ""))
@@ -49,11 +62,13 @@ func set_from_entry(entry: Dictionary) -> void:
 		job_id = str(member.job_id)
 	_apply_portrait(member, job_id)
 
+
 func set_from_member(member: Resource) -> void:
 	if member == null:
 		_clear_portrait("?")
 		return
 	_apply_portrait(member, str(member.job_id))
+
 
 func _find_member(member_id: String) -> Resource:
 	if member_id.is_empty():
@@ -63,7 +78,9 @@ func _find_member(member_id: String) -> Resource:
 			return member
 	return null
 
+
 func _apply_portrait(member: Resource, job_id: String) -> void:
+	_ensure_nodes()
 	_idle_textures.clear()
 	_idle_frame = 0
 	_idle_accum = 0.0
@@ -87,12 +104,15 @@ func _apply_portrait(member: Resource, job_id: String) -> void:
 		glyph = str(member.display_name).substr(0, 1)
 	_clear_portrait(glyph)
 
+
 func _clear_portrait(glyph: String) -> void:
+	_ensure_nodes()
 	_art.texture = null
 	_glyph.text = glyph
 
+
 func _process(delta: float) -> void:
-	if _idle_textures.size() <= 1:
+	if _art == null or _idle_textures.size() <= 1:
 		return
 	_idle_accum += delta
 	var frame_dur: float = 1.0 / ChrIdlePortrait.IDLE_FPS

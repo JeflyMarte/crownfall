@@ -4,7 +4,6 @@ const _HubNpcHelper := preload("res://scripts/ui/HubNpcHelper.gd")
 const _CommanderProfile := preload("res://scripts/commander/CommanderProfile.gd")
 const _CommanderTitles := preload("res://scripts/commander/CommanderTitles.gd")
 const _CommanderGiftBox := preload("res://scripts/commander/CommanderGiftBox.gd")
-const _CommanderUiHelper := preload("res://scripts/commander/CommanderUiHelper.gd")
 
 const DUNGEON_SELECT_SCENE: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
 const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
@@ -15,6 +14,11 @@ const CODEX_SCENE: String = "res://scenes/codex/CodexScene.tscn"
 const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
 const COMMANDER_SCENE: String = "res://scenes/commander/CommanderScene.tscn"
 const EVENT_SCENE: String = "res://scenes/event/EventScene.tscn"
+const _CURRENCY_STRIP_ICON_PX: int = 20
+const _GOLD_ICON_PATH: String = "res://assets/ui/batch2/ICO_Gold.png"
+const _STAT_ADVENTURERS_ICON_PATH: String = "res://assets/ui/batch2/ICO_Stat_Adventurers.png"
+const _STAT_DUNGEON_CLEAR_ICON_PATH: String = "res://assets/ui/batch2/ICO_Stat_DungeonClear.png"
+const _STAT_DISCOVERY_ICON_PATH: String = "res://assets/ui/batch2/ICO_Stat_Discovery.png"
 
 @onready var _menu_vbox: VBoxContainer = $HubView/LeftMenuPanel/MenuScroll/MenuVBox
 @onready var _label_gold: Label = $HubView/TopBar/TopBarRow/GoldChip/GoldRow/LabelGold
@@ -244,6 +248,7 @@ func _update_display() -> void:
 
 ## ホーム中段のリソース帯（モックの5列ステータス行 / P3-UI3-001）。
 ## 空パネルのまま表示されていた CurrencyStrip を実データで埋める。
+## 5列とも数値の左にアイコンを添える（ゴールド／魔晶石と同サイズ）。
 func _populate_currency_strip() -> void:
 	var row: HBoxContainer = $HubView/CurrencyStrip/CurrencyRow
 	for child in row.get_children():
@@ -257,23 +262,39 @@ func _populate_currency_strip() -> void:
 		if GameState.is_dungeon_cleared(str(d.id)):
 			cleared += 1
 	var stats: Array = [
-		["%d" % GameState.gold, "ゴールド"],
-		[CurrencyHelper.format_amount(), CurrencyHelper.DISPLAY_NAME],
-		["%d人" % GameState.roster.size(), "冒険者"],
-		["%d/%d" % [cleared, total_dungeons], "踏破"],
-		["%d" % GameState.discovery_registry.size(), "発見"],
+		["%d" % GameState.gold, "ゴールド", _GOLD_ICON_PATH],
+		[CurrencyHelper.format_amount(), CurrencyHelper.DISPLAY_NAME, CurrencyHelper.ICON_PATH],
+		["%d人" % GameState.roster.size(), "冒険者", _STAT_ADVENTURERS_ICON_PATH],
+		["%d/%d" % [cleared, total_dungeons], "踏破", _STAT_DUNGEON_CLEAR_ICON_PATH],
+		["%d" % GameState.discovery_registry.size(), "発見", _STAT_DISCOVERY_ICON_PATH],
 	]
 	for pair in stats:
 		var col := VBoxContainer.new()
 		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		col.alignment = BoxContainer.ALIGNMENT_CENTER
+		var value_row := HBoxContainer.new()
+		value_row.alignment = BoxContainer.ALIGNMENT_CENTER
+		value_row.add_theme_constant_override("separation", 4)
+		value_row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		var icon_path: String = str(pair[2])
+		if not icon_path.is_empty() and ResourceLoader.exists(icon_path):
+			var icon := TextureRect.new()
+			icon.texture = load(icon_path) as Texture2D
+			icon.custom_minimum_size = Vector2(_CURRENCY_STRIP_ICON_PX, _CURRENCY_STRIP_ICON_PX)
+			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			value_row.add_child(icon)
 		var value := Label.new()
 		value.text = str(pair[0])
 		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		value.clip_text = true
-		value.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		# HBox 内で clip_text=true だと最小幅が 0 になり数値が消える
+		value.clip_text = false
+		value.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		UiTypography.apply_body(value, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
-		col.add_child(value)
+		value_row.add_child(value)
+		col.add_child(value_row)
 		var caption := Label.new()
 		caption.text = str(pair[1])
 		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -289,7 +310,7 @@ func _update_currency() -> void:
 
 func _update_player_card() -> void:
 	_CommanderProfile.ensure_commander()
-	var display_name: String = _CommanderProfile.get_name()
+	var display_name: String = _CommanderProfile.get_commander_name()
 	var title_id: String = _CommanderProfile.get_equipped_title()
 	if not title_id.is_empty():
 		display_name = "%s（%s）" % [display_name, _CommanderTitles.get_label(title_id)]
@@ -304,9 +325,10 @@ func _update_player_card() -> void:
 			next_rank,
 			str(progress.get("label", "")),
 		]
-	_portrait_art.texture = null
-	_portrait_art.visible = false
-	_portrait_glyph.visible = true
+	_portrait_art.texture = _CommanderProfile.rank_icon_texture()
+	var has_rank_icon: bool = _portrait_art.texture != null
+	_portrait_art.visible = has_rank_icon
+	_portrait_glyph.visible = not has_rank_icon
 	_portrait_glyph.text = _CommanderProfile.rank_glyph()
 	var frame_tier: String = CombatUiFrames.TIER_NORMAL
 	if _CommanderProfile.is_rank_at_least(_CommanderProfile.GOLD_SEAL_RANK):
@@ -372,15 +394,18 @@ func _make_daily_row(index: int, entry: Dictionary) -> VBoxContainer:
 	UiTypography.apply_caption(reward)
 	row.add_child(reward)
 	var btn := Button.new()
-	btn.custom_minimum_size = _CommanderUiHelper.DAILY_BTN_MIN_SIZE
+	btn.custom_minimum_size = Vector2(60, 32)
+	UiTypography.apply_menu_button(btn, false)
 	var claimed: bool = bool(entry.get("claimed", false))
 	if claimed:
-		_CommanderUiHelper.apply_daily_button(btn, _CommanderUiHelper.DAILY_STATE_DONE)
+		btn.text = "済"
+		btn.disabled = true
 	elif bool(entry.get("can_claim", false)):
-		_CommanderUiHelper.apply_daily_button(btn, _CommanderUiHelper.DAILY_STATE_CLAIM)
+		btn.text = "受取"
 		btn.pressed.connect(_on_daily_claim_pressed.bind(index))
 	else:
-		_CommanderUiHelper.apply_daily_button(btn, _CommanderUiHelper.DAILY_STATE_MOVE)
+		btn.text = "移動"
+		btn.disabled = true
 	row.add_child(btn)
 	var bar := ProgressBar.new()
 	bar.custom_minimum_size = Vector2(0, 10)

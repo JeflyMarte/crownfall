@@ -4,11 +4,15 @@
 
 ## Last Update
 
+2026-07-13（**P3-CMD-001-9**: 指揮官名変更を隊長台帳から常時可能に（C級ロック撤廃）。起動時命名の代替）
+
+2026-07-13（**P3-UI-BTN-002〜004 撤回**: 文字可読性のため DG入場/結果/隊長台帳・日課のボタン画像化をテキストボタンへ戻した。アセットは残置。フェーズ5は引き続き STOP）
+
 2026-07-13（**P3-UX-ULTIMATE-001**: 必殺 resolve 演出案A — announce/windup/release 3段・resolve 時のみグローバルロック・中央テロップ・インパクトでダメ/回復適用・`UltimatePresentationConfig`・`ultimate_strike` 詠唱2.0s。unit 355 PASS・smoke PASS・**要実機確認**）
 
 2026-07-13（**P3-VFX-ALPHA-001**: 戦闘VFX透過修正 — `batch6` Hit/Heal の暗背景残存を `key_dark_background` で再生成・全28枚監査合格。`known-pitfalls` 追記。unit PASS）
 
-2026-07-13（**P3-UI-BTN-002〜004**: ボタン画像化フェーズ2〜4 — ダンジョン入場・結果画面・隊長台帳/デイリー。フェーズ5（装備・編成）は **STOP**（オーナー GO 待ち））
+2026-07-13（**P3-UI-BTN-002〜004**: ボタン画像化フェーズ2〜4 — ダンジョン入場・結果画面・隊長台帳/デイリー。**→ 同日撤回（可読性）**。フェーズ5（装備・編成）は **STOP**）
 
 2026-07-13（**P3-ENEMY-002（部分）**: ウィスパーウッド新雑魚4種（iron_horn/blood_bloom/rune_carcinos/mirror_boa）・pool/elite 配線・spawn テスト更新。残り+4〜8は未着手）
 
@@ -329,6 +333,7 @@
 | **3** | **P3-EQ-LVL-001** | 装備レベル（全装備・BiomeドロップLv） | Impl | ✅ **Closeout** |
 | **4** | **P3-EQ-LEG-002** | 防具・装飾★ ②〜⑤横展開 | Impl | 未着手 |
 | **5** | **P3-ENEMY-002** | 新雑魚 +8〜12 | HQ+Impl | **部分着手**（② whisperwood +4種） |
+| — | **P3-UI-BTN-002〜004** | DG入場/結果/隊長・日課ボタン画像化 | Impl | ↩ **撤回**（テキスト戻し・可読性） |
 | — | **P3-UI-BTN-005** | ボタン画像化フェーズ5（装備・編成） | Impl | **STOP**（オーナー GO 待ち） |
 | — | **P3-UX-ULTIMATE-001** | 必殺 resolve 演出（案A） | Impl | ✅ **Closeout**（要実機確認） |
 

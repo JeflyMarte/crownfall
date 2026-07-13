@@ -367,7 +367,6 @@ const PRIMARY_KIND_ENHANCE: String = "enhance"
 
 static func apply_primary_button(btn: Button, kind: String = PRIMARY_KIND_PRODUCE) -> void:
 	var styles: Dictionary = {}
-	var with_overlay_text: bool = kind == PRIMARY_KIND_ENHANCE
 	match kind:
 		PRIMARY_KIND_DISMANTLE:
 			styles = ForgeUiTokens.dismantle_button_styles()
@@ -375,11 +374,11 @@ static func apply_primary_button(btn: Button, kind: String = PRIMARY_KIND_PRODUC
 			styles = ForgeUiTokens.enhance_button_styles()
 		_:
 			styles = ForgeUiTokens.produce_button_styles()
-	_apply_image_button_styles(btn, styles, with_overlay_text)
+	_apply_image_button_styles(btn, styles, true)
 
 
 static func apply_bulk_dismantle_button(btn: Button) -> void:
-	_apply_image_button_styles(btn, ForgeUiTokens.bulk_dismantle_button_styles(), false)
+	_apply_image_button_styles(btn, ForgeUiTokens.bulk_dismantle_button_styles(), true)
 	if btn.custom_minimum_size.y < 76.0:
 		btn.custom_minimum_size = Vector2(btn.custom_minimum_size.x, 76.0)
 

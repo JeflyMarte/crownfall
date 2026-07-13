@@ -40,7 +40,10 @@ func _ready() -> void:
 	_btn_sort.pressed.connect(_on_sort_pressed)
 	_btn_filter.pressed.connect(_on_filter_pressed)
 	_inventory_grid.columns = GRID_COLUMNS
+	_inventory_grid.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_inventory_grid.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_inventory_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_inventory_scroll.clip_contents = true
 	_detail_panel.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
 	)
@@ -102,6 +105,7 @@ func _build_category_chips() -> void:
 		var icon := TextureRect.new()
 		icon.custom_minimum_size = Vector2(40, 40)
 		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.texture = EquipmentUiTokens.category_icon(cat_id)
@@ -193,6 +197,9 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 	var cell_px: int = int(cell_size.x)
 	var btn := Button.new()
 	btn.custom_minimum_size = cell_size
+	btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	btn.clip_contents = true
 	btn.flat = false
 	btn.focus_mode = Control.FOCUS_NONE
 	var icon: Texture2D = _item_icon(item, category)
