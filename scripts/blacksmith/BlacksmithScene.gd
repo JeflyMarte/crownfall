@@ -592,10 +592,8 @@ func _add_stats_section_spacer(height: float = 14.0) -> void:
 
 func _update_hero_icon(item_id: String, category: String, _rarity: int) -> void:
 	_clear_hero_icon()
-	# 武器詳細のみ Desktop「武器背景」をペデスタル表示（防具・装飾は別アセット想定）。
-	_hero_pedestal.visible = (
-		category == "weapon" and _hero_pedestal.texture != null
-	)
+	# 武器・防具・装飾いずれも詳細ヒーローに同一背景を表示。
+	_hero_pedestal.visible = _hero_pedestal.texture != null
 	_hero_weapon_pivot.visible = true
 	_hero_weapon_pivot.rotation_degrees = 0.0
 	BlacksmithUiHelper.attach_hero_icon(

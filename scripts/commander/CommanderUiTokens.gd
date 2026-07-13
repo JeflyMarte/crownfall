@@ -14,7 +14,7 @@ const RANK_ICON_D: String = ROOT + "ICO_Rank_D.png"
 const RANK_ICON_C: String = ROOT + "ICO_Rank_C.png"
 const RANK_ICON_B: String = ROOT + "ICO_Rank_B.png"
 const RANK_ICON_A: String = ROOT + "ICO_Rank_A.png"
-const RANK_ICON_S: String = ROOT + "ICO_Rank_S.png"  ## 未配置時は文字フォールバック
+const RANK_ICON_S: String = ROOT + "ICO_Rank_S.png"
 
 const RANK_ICON_BY_CODE: Dictionary = {
 	"D": RANK_ICON_D,

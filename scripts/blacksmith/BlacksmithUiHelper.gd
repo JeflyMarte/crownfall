@@ -5,8 +5,13 @@ const RARITY_GEMS: Array[String] = ["◇", "◆", "✦", "★"]
 const RARITY_SHORT: Array[String] = ["N", "R", "SR", "SSR"]
 
 const LIST_CARD_MIN_HEIGHT: int = 120
-const CRAFTABLE_CHIP_WIDTH: int = 120
-const CRAFTABLE_CHIP_HEIGHT: int = 136
+const CRAFTABLE_CHIP_WIDTH: int = 136
+const CRAFTABLE_CHIP_HEIGHT: int = 152
+## 鍛冶屋セル専用（装備袋の ICON_FRAME_MARGIN 18 は触らない）
+const LIST_CELL_PX: int = 124
+const ITEM_ICON_FRAME_MARGIN_PX: int = 8
+const ITEM_ICON_MODULATE: Color = Color(1.24, 1.18, 1.10, 1.0)
+const ITEM_ICON_UNDERLAY_COLOR: Color = Color(0.04, 0.03, 0.02, 0.58)
 
 const RARITY_COLORS: Array[Color] = [
 	Color(0.60, 0.60, 0.60),
@@ -213,7 +218,29 @@ static func has_craftable_recipes() -> bool:
 	return not CraftHelper.get_craftable_recipes().is_empty()
 
 static func list_cell_px() -> int:
-	return EquipmentUiTokens.INV_CELL_PX
+	return LIST_CELL_PX
+
+static func item_icon_inset_px(cell_px: int) -> int:
+	return EquipmentUiTokens.icon_inset_px(
+		cell_px,
+		EquipmentUiTokens.INV_CELL_DESIGN_PX,
+		ITEM_ICON_FRAME_MARGIN_PX
+	)
+
+static func _add_item_icon_underlay(host: Control, inset: int, cell_px: int) -> void:
+	var underlay := Panel.new()
+	underlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	underlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	underlay.offset_left = inset
+	underlay.offset_top = inset
+	underlay.offset_right = -inset
+	underlay.offset_bottom = -inset
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = ITEM_ICON_UNDERLAY_COLOR
+	sb.set_border_width_all(0)
+	sb.set_corner_radius_all(maxi(4, int(round(float(cell_px) * 0.08))))
+	underlay.add_theme_stylebox_override("panel", sb)
+	host.add_child(underlay)
 
 static func attach_hero_icon(host: Control, item_id: String, category: String, display_px: int) -> void:
 	for child in host.get_children():
@@ -228,12 +255,21 @@ static func attach_hero_icon(host: Control, item_id: String, category: String, d
 		glyph.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		host.add_child(glyph)
 		return
+	var inset: int = maxi(4, int(round(float(display_px) * 0.04)))
+	if _is_bow_weapon(item_id, category):
+		inset = maxi(2, int(round(float(inset) * 0.55)))
+	_add_item_icon_underlay(host, inset, display_px)
 	var icon := TextureRect.new()
 	icon.texture = tex
+	icon.modulate = ITEM_ICON_MODULATE
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	icon.offset_left = inset
+	icon.offset_top = inset
+	icon.offset_right = -inset
+	icon.offset_bottom = -inset
 	host.add_child(icon)
 
 static func attach_item_icon(host: Control, item_id: String, category: String, cell_px: int) -> void:
@@ -248,9 +284,14 @@ static func attach_item_icon(host: Control, item_id: String, category: String, c
 		glyph.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		host.add_child(glyph)
 		return
-	var inset: int = EquipmentUiTokens.icon_inset_px(cell_px, EquipmentUiTokens.INV_CELL_DESIGN_PX)
+	var inset: int = item_icon_inset_px(cell_px)
+	if _is_bow_weapon(item_id, category):
+		# 弓アートは余白が多いので、枠内余白をさらに削って見せる。
+		inset = maxi(2, int(round(float(inset) * 0.55)))
+	_add_item_icon_underlay(host, inset, cell_px)
 	var icon := TextureRect.new()
 	icon.texture = tex
+	icon.modulate = ITEM_ICON_MODULATE
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -260,6 +301,14 @@ static func attach_item_icon(host: Control, item_id: String, category: String, c
 	icon.offset_right = -inset
 	icon.offset_bottom = -inset
 	host.add_child(icon)
+
+static func _is_bow_weapon(item_id: String, category: String) -> bool:
+	if category != "weapon" or item_id.is_empty():
+		return false
+	var data: Resource = DataRegistry.get_weapon_data(item_id)
+	if data == null:
+		return false
+	return str(data.weapon_type) == "bow"
 
 static func make_item_icon_cell(
 	item_id: String,
@@ -301,12 +350,15 @@ static func rarity_name_color(rarity: int) -> Color:
 	return RARITY_NAME_COLORS[clampi(rarity, 0, RARITY_NAME_COLORS.size() - 1)]
 
 static func detail_panel_style() -> StyleBox:
-	# CombatUiFrames の暗い塗りつぶし枠を使わず、背景を透かして可読性を確保。
+	# 右ペイン全体（タイトル〜生産する）を金枠で囲み、暗背景上でも塊として読めるようにする。
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.18, 0.16, 0.13, 0.42)
-	sb.set_border_width_all(0)
-	sb.set_corner_radius_all(8)
-	sb.set_content_margin_all(10.0)
+	sb.bg_color = Color(0.10, 0.08, 0.06, 0.72)
+	sb.set_border_width_all(2)
+	sb.border_color = Color(0.86, 0.72, 0.32, 0.92)
+	sb.set_corner_radius_all(10)
+	sb.set_content_margin_all(12.0)
+	sb.shadow_color = Color(0.0, 0.0, 0.0, 0.35)
+	sb.shadow_size = 6
 	return sb
 
 static func rarity_box(rarity: int, highlight: bool = true) -> StyleBox:

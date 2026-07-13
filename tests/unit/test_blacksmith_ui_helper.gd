@@ -104,3 +104,24 @@ func test_decorate_title_adds_diamond_ornament() -> void:
 	lbl.text = "鍛冶屋"
 	ForgeUiTokens.decorate_title(lbl)
 	assert_eq(lbl.text, "◆ 鍛冶屋 ◆")
+
+func test_forge_item_icon_inset_smaller_than_equipment_default() -> void:
+	var cell_px: int = BlacksmithUiHelper.list_cell_px()
+	var forge_inset: int = BlacksmithUiHelper.item_icon_inset_px(cell_px)
+	var equip_inset: int = EquipmentUiTokens.icon_inset_px(
+		cell_px, EquipmentUiTokens.INV_CELL_DESIGN_PX
+	)
+	assert_lt(forge_inset, equip_inset)
+	assert_gte(cell_px, EquipmentUiTokens.INV_CELL_PX)
+
+func test_bow_display_texture_is_cropped() -> void:
+	var src: Texture2D = load("res://assets/ui/equipment/ICO_WPN_HuntingBow.png") as Texture2D
+	assert_not_null(src)
+	var shown: Texture2D = IconPaths.display_texture_for_weapon("hunting_bow", src)
+	assert_true(shown is AtlasTexture)
+	var atlas: AtlasTexture = shown as AtlasTexture
+	assert_lt(atlas.region.size.x, float(src.get_width()))
+	assert_lt(atlas.region.size.y, float(src.get_height()))
+	# IconPaths.get_icon_texture 経由でも同じ扱いになること
+	var via_map: Texture2D = IconPaths.get_icon_texture("hunting_bow", "weapon")
+	assert_true(via_map is AtlasTexture)

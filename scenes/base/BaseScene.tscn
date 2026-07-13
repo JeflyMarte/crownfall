@@ -88,10 +88,10 @@ anchor_left = 0.5
 anchor_top = 0.0
 anchor_right = 0.5
 anchor_bottom = 0.0
-offset_left = -260.0
+offset_left = -340.0
 offset_top = 88.0
-offset_right = 260.0
-offset_bottom = 218.0
+offset_right = 340.0
+offset_bottom = 268.0
 grow_horizontal = 2
 mouse_filter = 2
 
@@ -106,8 +106,10 @@ theme_override_constants/separation = 4
 mouse_filter = 2
 
 [node name="TitleLogo" type="TextureRect" parent="HubView/TitlePanel/TitleVBox"]
-custom_minimum_size = Vector2(480, 110)
+custom_minimum_size = Vector2(660, 160)
 layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
 texture = ExtResource("6")
 expand_mode = 1
 stretch_mode = 5

@@ -55,8 +55,8 @@ const COLOR_VALUE: Color = Color(0.94, 0.91, 0.83)
 const COLOR_POS: Color = Color(0.55, 0.88, 0.5)
 const COLOR_ACCENT: Color = Color(0.75, 0.82, 0.95, 1)
 
-# スロット空表示用グリフ（テクスチャ未取得時のフォールバック）。
-const SLOT_GLYPHS: Dictionary = {"weapon": "⚔", "armor": "🛡", "accessory": "💍", "relic": "✦"}
+# スロット空表示。
+const EMPTY_SLOT_TEXT: String = "空"
 
 @onready var _button_back: Button = $Header/HeaderRow/ButtonBack
 @onready var _btn_catalog: Button = $Header/HeaderRow/BtnCatalog
@@ -922,7 +922,7 @@ func _make_relic_slot(cell_size: Vector2, member: Resource, can_equip: bool) -> 
 		]
 		_apply_item_cell_styles(btn, 0, cell_px)
 	else:
-		btn.text = str(SLOT_GLYPHS.get("relic", "✦"))
+		btn.text = EMPTY_SLOT_TEXT
 		btn.add_theme_font_size_override("font_size", maxi(18, int(float(cell_px) * 0.34)))
 		btn.add_theme_color_override("font_color", Color(0.5, 0.45, 0.35, 0.7))
 		btn.add_theme_color_override("font_hover_color", COLOR_GOLD)
@@ -992,7 +992,7 @@ func _make_slot(
 		_apply_item_cell_styles(btn, rarity, cell_px)
 		_apply_item_badges(btn, item, category, cell_size, true)
 	else:
-		btn.text = str(SLOT_GLYPHS.get(category, "+"))
+		btn.text = EMPTY_SLOT_TEXT
 		btn.add_theme_font_size_override("font_size", maxi(18, int(float(cell_px) * 0.34)))
 		btn.add_theme_color_override("font_color", Color(0.5, 0.45, 0.35, 0.7))
 		btn.add_theme_color_override("font_hover_color", COLOR_GOLD)
@@ -1801,7 +1801,7 @@ func _make_skill_list_row(
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 4)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.custom_minimum_size.y = float(PASSIVE_ROW_ICON_PX)
+	row.custom_minimum_size.y = float(SKILL_ROW_ICON_PX)
 	row.add_child(_skill_row_icon(skill_id, member))
 	row.add_child(_make_skill_row_body(skill_id, skill_data, unlocked, req_lv, is_equipped))
 	var equip_btn := Button.new()
@@ -1822,7 +1822,7 @@ func _make_weapon_skill_list_row(member: Resource, weapon_skill: Dictionary) -> 
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 4)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.custom_minimum_size.y = float(PASSIVE_ROW_ICON_PX)
+	row.custom_minimum_size.y = float(SKILL_ROW_ICON_PX)
 	row.add_child(_skill_row_icon(ws_sid, member))
 	var body := PanelContainer.new()
 	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -1846,7 +1846,7 @@ func _make_weapon_skill_list_row(member: Resource, weapon_skill: Dictionary) -> 
 		ws_name.add_theme_color_override("font_color", SKILL_COLOR_ATTACK)
 		UiTypography.apply_body(ws_name, UiTypography.SIZE_CAPTION)
 		body_row.add_child(ws_name)
-	body_row.add_child(_passive_row_sep())
+	body_row.add_child(_skill_row_sep())
 	var ws_desc := _make_skill_desc_label(
 		_skill_summary_text(ws_skill_data, true, 1) if ws_skill_data != null else "武器スキルとして自動発動",
 		true
@@ -1867,9 +1867,18 @@ const SKILL_ROW_NAME_MIN_W: float = 132.0
 func _skill_row_icon(skill_id: String, member: Resource) -> Control:
 	var icon: Control = _make_skill_icon(skill_id, member)
 	if icon != null:
-		icon.custom_minimum_size = Vector2(PASSIVE_ROW_ICON_PX, PASSIVE_ROW_ICON_PX)
+		icon.custom_minimum_size = Vector2(SKILL_ROW_ICON_PX, SKILL_ROW_ICON_PX)
 		return icon
-	return _passive_row_icon_placeholder()
+	var ph := Control.new()
+	ph.custom_minimum_size = Vector2(SKILL_ROW_ICON_PX, SKILL_ROW_ICON_PX)
+	return ph
+
+func _skill_row_sep() -> Label:
+	var sep := Label.new()
+	sep.text = "："
+	sep.add_theme_color_override("font_color", COLOR_SUB)
+	UiTypography.apply_body(sep, UiTypography.SIZE_BODY_SMALL)
+	return sep
 
 func _make_skill_row_body(
 	skill_id: String,
@@ -1889,7 +1898,7 @@ func _make_skill_row_body(
 	body_row.add_theme_constant_override("separation", 0)
 	body.add_child(body_row)
 	body_row.add_child(_make_skill_name_label(skill_data))
-	body_row.add_child(_passive_row_sep())
+	body_row.add_child(_skill_row_sep())
 	body_row.add_child(_make_skill_desc_label(_skill_summary_text(skill_data, unlocked, req_lv), unlocked))
 	return body
 
@@ -1957,7 +1966,7 @@ func _weapon_skill_row_action(is_long_press: bool, skill_id: String) -> void:
 		_show_skill_detail_overlay(skill_id, true, 1, false)
 
 # ---- 必殺技タブ ----
-const ULTIMATE_ICON_PX: int = 96
+const ULTIMATE_ICON_PX: int = 144
 
 func _rebuild_ultimate_tab() -> void:
 	var host: VBoxContainer = _ultimate_content.get_node("UltimateHost") as VBoxContainer
@@ -1987,23 +1996,14 @@ func _rebuild_ultimate_tab() -> void:
 	margin.add_theme_constant_override("margin_bottom", 16)
 	panel.add_child(margin)
 	var outer := VBoxContainer.new()
-	outer.add_theme_constant_override("separation", 14)
+	outer.add_theme_constant_override("separation", 16)
 	outer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	margin.add_child(outer)
-	var icon_row := CenterContainer.new()
-	icon_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var icon := _make_ultimate_skill_icon(skill_id, member, Vector2(ULTIMATE_ICON_PX, ULTIMATE_ICON_PX))
-	if icon != null:
-		icon_row.add_child(icon)
-	else:
-		var ph := Control.new()
-		ph.custom_minimum_size = Vector2(ULTIMATE_ICON_PX, ULTIMATE_ICON_PX)
-		icon_row.add_child(ph)
-	outer.add_child(icon_row)
-	var title_row := HBoxContainer.new()
-	title_row.add_theme_constant_override("separation", 6)
-	title_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	outer.add_child(title_row)
+	# 上段: 技名 + 説明
+	var header := VBoxContainer.new()
+	header.add_theme_constant_override("separation", 8)
+	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	outer.add_child(header)
 	var name_lbl := Label.new()
 	name_lbl.text = _skill_wrapped_name(skill_data)
 	var name_font: Font = UiTypography.display_font()
@@ -2013,30 +2013,46 @@ func _rebuild_ultimate_tab() -> void:
 	name_lbl.add_theme_color_override("font_color", COLOR_GOLD)
 	name_lbl.add_theme_constant_override("outline_size", 3)
 	name_lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
-	title_row.add_child(name_lbl)
-	var ell := Label.new()
-	ell.text = "…"
-	ell.add_theme_color_override("font_color", COLOR_SUB)
-	UiTypography.apply_body(ell, UiTypography.SIZE_BODY_SMALL)
-	title_row.add_child(ell)
+	header.add_child(name_lbl)
 	var desc_lbl := Label.new()
 	desc_lbl.text = _skill_summary_text(skill_data, true, 1)
 	desc_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc_lbl.add_theme_color_override("font_color", COLOR_VALUE)
 	UiTypography.apply_body(desc_lbl, UiTypography.SIZE_BODY_SMALL)
-	title_row.add_child(desc_lbl)
+	header.add_child(desc_lbl)
+	# 下段: 大きいアイコン | 効果
+	var body := HBoxContainer.new()
+	body.add_theme_constant_override("separation", 16)
+	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	outer.add_child(body)
+	var icon := _make_ultimate_skill_icon(skill_id, member, Vector2(ULTIMATE_ICON_PX, ULTIMATE_ICON_PX))
+	if icon != null:
+		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		icon.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		body.add_child(icon)
+	else:
+		var ph := Control.new()
+		ph.custom_minimum_size = Vector2(ULTIMATE_ICON_PX, ULTIMATE_ICON_PX)
+		ph.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		ph.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		body.add_child(ph)
+	var fx_col := VBoxContainer.new()
+	fx_col.add_theme_constant_override("separation", 8)
+	fx_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	fx_col.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	body.add_child(fx_col)
 	var fx_title := Label.new()
 	fx_title.text = "効果"
 	UiTypography.apply_body(fx_title, UiTypography.SIZE_BODY, COLOR_GOLD)
-	outer.add_child(fx_title)
+	fx_col.add_child(fx_title)
 	for line in _skill_stats_detail_lines(skill_data, true, 1):
 		var stat_lbl := Label.new()
 		stat_lbl.text = "・%s" % line
 		stat_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		stat_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		UiTypography.apply_body(stat_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_VALUE)
-		outer.add_child(stat_lbl)
+		fx_col.add_child(stat_lbl)
 	host.add_child(panel)
 
 func _get_member_ultimate_skill_data(member: Resource) -> Resource:
@@ -2052,14 +2068,17 @@ func _get_member_ultimate_skill_data(member: Resource) -> Resource:
 	return DataRegistry.get_skill_data(ult_id)
 
 # ---- パッシブタブ ----
-const PASSIVE_ROW_ICON_PX: int = 56
+const PASSIVE_CARD_ICON_PX: int = 144
 const PASSIVE_ROW_BTN_W: int = 64
-const PASSIVE_ROW_NAME_MIN_W: int = 120
+## スキル一覧行など行向き UI 用の小アイコン尺。
+const SKILL_ROW_ICON_PX: int = 56
 
 func _rebuild_passive_tab() -> void:
 	_sync_slot_cell_size()
 	var member: Resource = _get_view_adventurer()
 	var list: Node = _passive_content.get_node("PassiveList")
+	if list is VBoxContainer:
+		(list as VBoxContainer).add_theme_constant_override("separation", 12)
 	for child in list.get_children():
 		child.queue_free()
 	if member == null:
@@ -2069,132 +2088,144 @@ func _rebuild_passive_tab() -> void:
 		var def: Dictionary = CombatPassives.get_def(pid)
 		if def.is_empty():
 			continue
-		list.add_child(_make_passive_equip_row(def, char_ids.has(pid)))
+		list.add_child(_make_passive_equip_card(def, char_ids.has(pid)))
 	for eq_def: Dictionary in CombatPassives.equipment_passives_for_member(member):
-		list.add_child(_make_passive_info_row(eq_def, "装備固定"))
+		list.add_child(_make_passive_info_card(eq_def, "装備固定"))
 
-func _make_passive_equip_row(def: Dictionary, is_equipped: bool) -> HBoxContainer:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 6)
-	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.custom_minimum_size.y = float(PASSIVE_ROW_ICON_PX)
+func _make_passive_equip_card(def: Dictionary, is_equipped: bool) -> Control:
 	var pid: String = str(def.get("id", ""))
-	row.add_child(_passive_row_icon(pid))
-	row.add_child(_passive_row_sep())
-	var name_lbl := _passive_row_label(
-		str(def.get("display_name", "—")), SKILL_COLOR_SUPPORT, PASSIVE_ROW_NAME_MIN_W, true
-	)
-	row.add_child(name_lbl)
-	row.add_child(_passive_row_sep())
-	var effect_lbl := _passive_row_label(_passive_effect_text(def), COLOR_VALUE, 0, false)
-	effect_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(effect_lbl)
-	row.add_child(_passive_row_sep())
+	var card: Control = _make_passive_detail_card(def, false)
+	var body: VBoxContainer = card.get_node("Margin/Outer") as VBoxContainer
+	if body == null:
+		return card
+	var action_row := HBoxContainer.new()
+	action_row.alignment = BoxContainer.ALIGNMENT_END
+	action_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var btn := Button.new()
-	btn.custom_minimum_size.x = PASSIVE_ROW_BTN_W
+	btn.custom_minimum_size = Vector2(PASSIVE_ROW_BTN_W, 36)
 	btn.text = "解除" if is_equipped else "装備"
+	UiTypography.apply_menu_button(btn, false)
 	btn.pressed.connect(_on_passive_toggle_pressed.bind(pid))
-	row.add_child(btn)
-	return row
+	action_row.add_child(btn)
+	body.add_child(action_row)
+	return card
 
-func _make_passive_info_row(def: Dictionary, tag_text: String) -> HBoxContainer:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 6)
-	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.custom_minimum_size.y = float(PASSIVE_ROW_ICON_PX)
+func _make_passive_info_card(def: Dictionary, tag_text: String) -> Control:
+	var card: Control = _make_passive_detail_card(def, true)
+	var body: VBoxContainer = card.get_node("Margin/Outer") as VBoxContainer
+	if body == null:
+		return card
+	var tag_lbl := Label.new()
+	tag_lbl.text = tag_text
+	tag_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	tag_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_caption(tag_lbl, COLOR_SUB)
+	body.add_child(tag_lbl)
+	return card
+
+## 必殺技タブと同型: 上=名前/説明、下=大アイコン|効果。
+func _make_passive_detail_card(def: Dictionary, use_relic_icon: bool) -> PanelContainer:
 	var pid: String = str(def.get("id", ""))
-	row.add_child(_passive_row_icon(pid))
-	row.add_child(_passive_row_sep())
-	var name_lbl := _passive_row_label(
-		str(def.get("display_name", "—")), SKILL_COLOR_SUPPORT, PASSIVE_ROW_NAME_MIN_W, true
+	var panel := PanelContainer.new()
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.add_theme_stylebox_override(
+		"panel", _framed_box(COLOR_GOLD, 2, Color(0.08, 0.07, 0.05, 0.92))
 	)
-	row.add_child(name_lbl)
-	row.add_child(_passive_row_sep())
-	var effect_lbl := _passive_row_label(_passive_effect_text(def), COLOR_VALUE, 0, false)
-	effect_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(effect_lbl)
-	row.add_child(_passive_row_sep())
-	var tag_lbl := _passive_row_label(tag_text, COLOR_SUB, PASSIVE_ROW_BTN_W)
-	tag_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	row.add_child(tag_lbl)
-	return row
-
-func _make_relic_passive_row(def: Dictionary, is_equipped: bool) -> HBoxContainer:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 6)
-	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.custom_minimum_size.y = float(PASSIVE_ROW_ICON_PX)
-	var pid: String = str(def.get("id", ""))
-	var relic_icon := _make_relic_passive_icon(pid)
-	if relic_icon != null:
-		relic_icon.custom_minimum_size = Vector2(PASSIVE_ROW_ICON_PX, PASSIVE_ROW_ICON_PX)
-		row.add_child(relic_icon)
-	else:
-		row.add_child(_passive_row_icon_placeholder())
-	row.add_child(_passive_row_sep())
-	var name_lbl := _passive_row_label(
-		str(def.get("display_name", "—")), COLOR_ACCENT, PASSIVE_ROW_NAME_MIN_W, true
-	)
-	row.add_child(name_lbl)
-	row.add_child(_passive_row_sep())
-	var effect_lbl := _passive_row_label(CombatPassives.relic_description(pid), COLOR_VALUE, 0, false)
-	effect_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(effect_lbl)
-	row.add_child(_passive_row_sep())
-	var btn := Button.new()
-	btn.custom_minimum_size.x = PASSIVE_ROW_BTN_W
-	btn.text = "解除" if is_equipped else "装備"
-	btn.pressed.connect(_on_relic_passive_toggle_pressed.bind(pid))
-	row.add_child(btn)
-	return row
-
-func _passive_row_icon(passive_id: String) -> Control:
-	var icon: Control = _make_passive_icon(passive_id)
+	var margin := MarginContainer.new()
+	margin.name = "Margin"
+	margin.add_theme_constant_override("margin_left", 16)
+	margin.add_theme_constant_override("margin_top", 16)
+	margin.add_theme_constant_override("margin_right", 16)
+	margin.add_theme_constant_override("margin_bottom", 16)
+	panel.add_child(margin)
+	var outer := VBoxContainer.new()
+	outer.name = "Outer"
+	outer.add_theme_constant_override("separation", 16)
+	outer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	margin.add_child(outer)
+	var header := VBoxContainer.new()
+	header.add_theme_constant_override("separation", 8)
+	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	outer.add_child(header)
+	var name_lbl := Label.new()
+	name_lbl.text = str(def.get("display_name", "—"))
+	var name_font: Font = UiTypography.display_font()
+	if name_font != null:
+		name_lbl.add_theme_font_override("font", name_font)
+	name_lbl.add_theme_font_size_override("font_size", UiTypography.SIZE_DISPLAY_TITLE)
+	name_lbl.add_theme_color_override("font_color", COLOR_GOLD)
+	name_lbl.add_theme_constant_override("outline_size", 3)
+	name_lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	header.add_child(name_lbl)
+	var effect_text: String = _passive_effect_text(def)
+	var desc_lbl := Label.new()
+	desc_lbl.text = effect_text
+	desc_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc_lbl.add_theme_color_override("font_color", COLOR_VALUE)
+	UiTypography.apply_body(desc_lbl, UiTypography.SIZE_BODY_SMALL)
+	header.add_child(desc_lbl)
+	var body := HBoxContainer.new()
+	body.add_theme_constant_override("separation", 16)
+	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	outer.add_child(body)
+	var icon: Control = null
+	if use_relic_icon and CombatPassives.is_relic_passive(pid):
+		icon = _make_relic_passive_icon(pid, PASSIVE_CARD_ICON_PX)
+	if icon == null:
+		icon = _make_passive_icon(pid, Vector2(PASSIVE_CARD_ICON_PX, PASSIVE_CARD_ICON_PX))
 	if icon != null:
-		icon.custom_minimum_size = Vector2(PASSIVE_ROW_ICON_PX, PASSIVE_ROW_ICON_PX)
-		return icon
-	return _passive_row_icon_placeholder()
-
-func _passive_row_icon_placeholder() -> Control:
-	var box := Control.new()
-	box.custom_minimum_size = Vector2(PASSIVE_ROW_ICON_PX, PASSIVE_ROW_ICON_PX)
-	return box
-
-func _passive_row_sep() -> Label:
-	var sep := Label.new()
-	sep.text = "："
-	sep.add_theme_color_override("font_color", COLOR_SUB)
-	UiTypography.apply_body(sep, UiTypography.SIZE_BODY_SMALL)
-	return sep
-
-func _passive_row_label(
-	text: String, color: Color, min_width: int, is_name: bool = false
-) -> Label:
-	var lbl := Label.new()
-	lbl.text = text
-	lbl.add_theme_color_override("font_color", color)
-	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	if is_name:
-		lbl.clip_text = true
-		lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		icon.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		body.add_child(icon)
 	else:
-		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	if min_width > 0:
-		lbl.custom_minimum_size.x = float(min_width)
-	UiTypography.apply_body(lbl, UiTypography.SIZE_BODY_SMALL)
-	return lbl
+		var ph := Control.new()
+		ph.custom_minimum_size = Vector2(PASSIVE_CARD_ICON_PX, PASSIVE_CARD_ICON_PX)
+		ph.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		ph.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		body.add_child(ph)
+	var fx_col := VBoxContainer.new()
+	fx_col.add_theme_constant_override("separation", 8)
+	fx_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	fx_col.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	body.add_child(fx_col)
+	var fx_title := Label.new()
+	fx_title.text = "効果"
+	UiTypography.apply_body(fx_title, UiTypography.SIZE_BODY, COLOR_GOLD)
+	fx_col.add_child(fx_title)
+	for line in _passive_effect_lines(effect_text):
+		var stat_lbl := Label.new()
+		stat_lbl.text = "・%s" % line
+		stat_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		stat_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		UiTypography.apply_body(stat_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_VALUE)
+		fx_col.add_child(stat_lbl)
+	return panel
+
+func _passive_effect_lines(effect_text: String) -> Array[String]:
+	var lines: Array[String] = []
+	var raw: String = effect_text.strip_edges()
+	if raw.is_empty():
+		return lines
+	for part in raw.split(" / "):
+		var t: String = str(part).strip_edges()
+		if not t.is_empty():
+			lines.append(t)
+	if lines.is_empty():
+		lines.append(raw)
+	return lines
 
 func _passive_effect_text(def: Dictionary) -> String:
 	return RosterUiHelper.passive_description(def)
 
-func _make_relic_passive_icon(passive_id: String) -> TextureRect:
+func _make_relic_passive_icon(passive_id: String, icon_px: int = PASSIVE_CARD_ICON_PX) -> TextureRect:
 	var icon_key: String = CombatPassives.relic_icon_key(passive_id)
 	var tex: Texture2D = IconPaths.get_icon_texture(icon_key, "relic") if not icon_key.is_empty() else null
 	if tex == null:
 		return null
 	var icon := TextureRect.new()
 	icon.texture = tex
-	icon.custom_minimum_size = Vector2(PASSIVE_ROW_ICON_PX, PASSIVE_ROW_ICON_PX)
+	icon.custom_minimum_size = Vector2(icon_px, icon_px)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -3029,11 +3060,14 @@ func _make_ultimate_skill_icon(skill_id: String, member: Resource, display_size:
 func _make_skill_icon(skill_id: String, member: Resource, display_size: Vector2 = Vector2.ZERO) -> Control:
 	var px: Vector2 = display_size
 	if px == Vector2.ZERO:
-		px = Vector2(PASSIVE_ROW_ICON_PX, PASSIVE_ROW_ICON_PX)
+		px = Vector2(SKILL_ROW_ICON_PX, SKILL_ROW_ICON_PX)
 	return SkillIconHelper.make_ally_equipped_icon(skill_id, member, px)
 
-func _make_passive_icon(passive_id: String) -> Control:
-	return PassiveIconHelper.make_icon(passive_id, Vector2(PASSIVE_ROW_ICON_PX, PASSIVE_ROW_ICON_PX))
+func _make_passive_icon(passive_id: String, display_size: Vector2 = Vector2.ZERO) -> Control:
+	var px: Vector2 = display_size
+	if px == Vector2.ZERO:
+		px = Vector2(PASSIVE_CARD_ICON_PX, PASSIVE_CARD_ICON_PX)
+	return PassiveIconHelper.make_icon(passive_id, px)
 
 func _on_skill_toggle_pressed(skill_id: String) -> void:
 	var member: Resource = _get_view_adventurer()

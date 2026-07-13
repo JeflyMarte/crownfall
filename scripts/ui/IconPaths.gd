@@ -424,15 +424,60 @@ const ICON_MAP: Dictionary = {
 	"commander:titles":            "res://assets/ui/commander/ICO_CMD_Titles.png",
 }
 
+static var _bow_display_cache: Dictionary = {}
+
 static func get_icon_texture(id: String, category: String) -> Texture2D:
 	if id.is_empty() or category.is_empty():
 		return null
+	# 弓クロップ済みキャッシュを優先（load / get_image 回避）
+	if category == "weapon" and _bow_display_cache.has(id):
+		return _bow_display_cache[id] as Texture2D
 	var path: String = ICON_MAP.get("%s:%s" % [category, id], "")
 	if path.is_empty() and category == "passive":
 		path = passive_icon_path(id)
 	if path.is_empty() or not ResourceLoader.exists(path):
 		return null
-	return load(path) as Texture2D
+	var tex: Texture2D = load(path) as Texture2D
+	if tex == null:
+		return null
+	# 弓は原画の余白が大きいので、全画面共通で不透明領域へクロップして表示サイズを揃える。
+	if category == "weapon":
+		return display_texture_for_weapon(id, tex)
+	return tex
+
+## 武器表示用テクスチャ（弓は余白クロップ済み）。テスト／鍛冶からも参照可。
+static func display_texture_for_weapon(weapon_id: String, tex: Texture2D) -> Texture2D:
+	if tex == null or weapon_id.is_empty():
+		return tex
+	if _bow_display_cache.has(weapon_id):
+		return _bow_display_cache[weapon_id] as Texture2D
+	var data: Resource = DataRegistry.get_weapon_data(weapon_id)
+	if data == null or str(data.weapon_type) != "bow":
+		_bow_display_cache[weapon_id] = tex
+		return tex
+	var cropped: Texture2D = _crop_opaque_region(tex)
+	_bow_display_cache[weapon_id] = cropped
+	return cropped
+
+static func _crop_opaque_region(tex: Texture2D) -> Texture2D:
+	var img: Image = tex.get_image()
+	if img == null or img.get_width() <= 0:
+		return tex
+	var used: Rect2i = img.get_used_rect()
+	if used.size.x <= 0 or used.size.y <= 0:
+		return tex
+	var pad: int = maxi(2, int(round(float(maxi(used.size.x, used.size.y)) * 0.08)))
+	var x0: int = maxi(0, used.position.x - pad)
+	var y0: int = maxi(0, used.position.y - pad)
+	var x1: int = mini(img.get_width(), used.position.x + used.size.x + pad)
+	var y1: int = mini(img.get_height(), used.position.y + used.size.y + pad)
+	var region := Rect2(x0, y0, x1 - x0, y1 - y0)
+	if region.size.x >= float(tex.get_width()) * 0.92 and region.size.y >= float(tex.get_height()) * 0.92:
+		return tex
+	var atlas := AtlasTexture.new()
+	atlas.atlas = tex
+	atlas.region = region
+	return atlas
 
 static func passive_icon_path(passive_id: String) -> String:
 	if passive_id.is_empty():

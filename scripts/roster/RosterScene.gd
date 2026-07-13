@@ -39,7 +39,8 @@ var _formation_cells: Array[PanelContainer] = []
 @onready var _main_scroll: ScrollContainer = $MainScroll
 @onready var _label_gold: Label = $Header/HeaderRow/GoldChip/GoldRow/LabelGold
 @onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
-@onready var _label_power: Label = $MainScroll/MainVBox/PowerSection/LabelPower
+@onready var _label_power: Label = $Header/HeaderRow/LabelTitle
+@onready var _label_power_legacy: Label = $MainScroll/MainVBox/PowerSection/LabelPower
 @onready var _active_party_row: HBoxContainer = $MainScroll/MainVBox/ActivePartyScroll/ActivePartyRow
 @onready var _roster_grid: GridContainer = $MainScroll/MainVBox/RosterGrid
 @onready var _label_status: Label = $MainScroll/MainVBox/LabelStatus
@@ -105,12 +106,11 @@ func _configure_layout() -> void:
 	_active_party_row.custom_minimum_size = Vector2(0, _active_card_min_height())
 
 func _apply_typography() -> void:
-	$Header/HeaderRow/LabelTitle.text = ""
+	_label_power_legacy.visible = false
+	_label_power.text = "総合戦力 0"
+	UiTypography.apply_screen_title(_label_power)
 	UiTypography.apply_body(_label_gold, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_body(_label_token, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
-	UiTypography.apply_display(_label_power, UiTypography.SIZE_BODY_SMALL)
-	_label_power.clip_text = true
-	_label_power.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	UiTypography.apply_body(
 		$MainScroll/MainVBox/ListHeader/LabelListTitle,
 		UiTypography.SIZE_CAPTION
@@ -217,7 +217,9 @@ func _update_currency() -> void:
 
 func _refresh_power_label() -> void:
 	var members: Array = _active_members_in_slot_order()
-	_label_power.text = "総合戦力 %s" % _format_number(RosterUiHelper.compute_combat_power(members))
+	_label_power.text = UiTypography.decorate_title_text(
+		"総合戦力 %s" % _format_number(RosterUiHelper.compute_combat_power(members))
+	)
 
 func _format_number(value: int) -> String:
 	var text: String = str(value)

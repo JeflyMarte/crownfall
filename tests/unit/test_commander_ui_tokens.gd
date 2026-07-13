@@ -14,16 +14,12 @@ func test_commander_ui_asset_paths_exist() -> void:
 		_CommanderUiTokens.RANK_ICON_C,
 		_CommanderUiTokens.RANK_ICON_B,
 		_CommanderUiTokens.RANK_ICON_A,
+		_CommanderUiTokens.RANK_ICON_S,
 	]:
 		assert_true(ResourceLoader.exists(key), "missing commander chrome: %s" % key)
 
 
-func test_rank_icon_resolves_for_d_through_a() -> void:
-	for code in ["D", "C", "B", "A"]:
+func test_rank_icon_resolves_for_all_ranks() -> void:
+	for code in ["D", "C", "B", "A", "S"]:
 		var tex: Texture2D = _CommanderUiTokens.rank_icon(code)
 		assert_not_null(tex, "rank icon missing for %s" % code)
-	# S は未配置時 null（文字フォールバック）
-	if ResourceLoader.exists(_CommanderUiTokens.RANK_ICON_S):
-		assert_not_null(_CommanderUiTokens.rank_icon("S"))
-	else:
-		assert_null(_CommanderUiTokens.rank_icon("S"))
