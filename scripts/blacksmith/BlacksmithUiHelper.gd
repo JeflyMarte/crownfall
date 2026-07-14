@@ -256,8 +256,8 @@ static func attach_hero_icon(host: Control, item_id: String, category: String, d
 		host.add_child(glyph)
 		return
 	var inset: int = maxi(4, int(round(float(display_px) * 0.04)))
-	if _is_bow_weapon(item_id, category):
-		inset = maxi(2, int(round(float(inset) * 0.55)))
+	if EquipmentUiTokens.is_bow_weapon(item_id, category):
+		inset = maxi(2, int(round(float(inset) * EquipmentUiTokens.BOW_ICON_INSET_SCALE)))
 	_add_item_icon_underlay(host, inset, display_px)
 	var icon := TextureRect.new()
 	icon.texture = tex
@@ -285,9 +285,9 @@ static func attach_item_icon(host: Control, item_id: String, category: String, c
 		host.add_child(glyph)
 		return
 	var inset: int = item_icon_inset_px(cell_px)
-	if _is_bow_weapon(item_id, category):
+	if EquipmentUiTokens.is_bow_weapon(item_id, category):
 		# 弓アートは余白が多いので、枠内余白をさらに削って見せる。
-		inset = maxi(2, int(round(float(inset) * 0.55)))
+		inset = maxi(2, int(round(float(inset) * EquipmentUiTokens.BOW_ICON_INSET_SCALE)))
 	_add_item_icon_underlay(host, inset, cell_px)
 	var icon := TextureRect.new()
 	icon.texture = tex
@@ -301,14 +301,6 @@ static func attach_item_icon(host: Control, item_id: String, category: String, c
 	icon.offset_right = -inset
 	icon.offset_bottom = -inset
 	host.add_child(icon)
-
-static func _is_bow_weapon(item_id: String, category: String) -> bool:
-	if category != "weapon" or item_id.is_empty():
-		return false
-	var data: Resource = DataRegistry.get_weapon_data(item_id)
-	if data == null:
-		return false
-	return str(data.weapon_type) == "bow"
 
 static func make_item_icon_cell(
 	item_id: String,

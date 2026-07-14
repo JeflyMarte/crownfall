@@ -79,6 +79,8 @@ const INV_GRID_FALLBACK_W: float = 688.0
 const INV_CELL_MARGINS: Vector4i = Vector4i(12, 12, 12, 12)
 ## アイコンを枠・コーナー装飾の内側に収める（防具/レリックのフルブリードアート向け）。
 const ICON_FRAME_MARGIN_PX: int = 18
+## 弓は透過余白が多く小さく見えるため、inset をこの倍率へ縮小（鍛冶屋と同バランス）。
+const BOW_ICON_INSET_SCALE: float = 0.55
 ## 装備セル枠線色（COMMON/RARE/EPIC/LEGENDARY）。背景は INV_CELLS の金属質ティント。
 const RARITY_BORDER_COLORS: Array[Color] = [
 	Color(0.60, 0.60, 0.60),
@@ -130,6 +132,27 @@ static func icon_inset_px(cell_px: int, design_px: int, frame_margin: int = ICON
 	var content: float = scaled_content_margin(design_px, cell_px)
 	return margin + int(ceil(content))
 
+static func is_bow_weapon(item_id: String, category: String) -> bool:
+	if category != "weapon" or item_id.is_empty():
+		return false
+	var data: Resource = DataRegistry.get_weapon_data(item_id)
+	if data == null:
+		return false
+	return str(data.weapon_type) == "bow"
+
+## 通常 inset。弓のみ `BOW_ICON_INSET_SCALE` で大きく見せる（BlacksmithUiHelper と同ポリシー）。
+static func icon_inset_for_item(
+	cell_px: int,
+	design_px: int,
+	item_id: String = "",
+	category: String = "",
+	frame_margin: int = ICON_FRAME_MARGIN_PX
+) -> int:
+	var inset: int = icon_inset_px(cell_px, design_px, frame_margin)
+	if is_bow_weapon(item_id, category):
+		inset = maxi(2, int(round(float(inset) * BOW_ICON_INSET_SCALE)))
+	return inset
+
 static func cell_px_for_grid_width(grid_w: float, columns: int, h_sep: int) -> int:
 	if columns <= 0:
 		return INV_CELL_PX
@@ -150,14 +173,16 @@ static func attach_item_cell_layers(
 	btn: Button,
 	icon: Texture2D,
 	cell_px: int,
-	design_px: int = INV_CELL_DESIGN_PX
+	design_px: int = INV_CELL_DESIGN_PX,
+	item_id: String = "",
+	category: String = ""
 ) -> void:
 	if btn == null or icon == null:
 		return
 	var existing: Node = btn.get_node_or_null("ItemIcon")
 	if existing != null:
 		existing.queue_free()
-	var inset: int = icon_inset_px(cell_px, design_px)
+	var inset: int = icon_inset_for_item(cell_px, design_px, item_id, category)
 	var side: int = maxi(1, cell_px - inset * 2)
 	var half: float = float(side) * 0.5
 	var tex_rect := TextureRect.new()

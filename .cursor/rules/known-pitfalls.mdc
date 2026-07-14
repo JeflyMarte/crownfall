@@ -12,8 +12,10 @@ alwaysApply: true
 | 症状 | 原因 | 再発防止 |
 |---|---|---|
 | `Parser Error: Expected statement, found "else"` | Python の `for`/`else`・`while`/`else` | `gdscript.mdc` — フラグループを使う |
+| 起動時黒画面・`inherits from Control, can't assign to Node` | `BootScene.gd` が `extends Control` なのに `.tscn` ルートが `Node` | スクリプトの `extends` とシーンルート型を一致させる。Boot は `Node` が正 |
 | 起動時 autoload 失敗 / 壊れた UID | `project.godot` の空 autoload・不正 `uid://`（例: `_MCPGameBridge`） | autoload は実在パスのみ。UID 直書きを壊さない。変更後 headless 起動確認 |
 | 図鑑/装備カタログのパースエラー | `EquipmentUiTokens` 等の **参照メソッド欠落** | public API 削除・リネーム時は呼び出し側を一括検索 |
+| メイン5がキャラ画面で★4表示 | キャラ★（個数1〜4）に装備用 `rarity_stars_text`（`rarity+1`）を適用 | キャラは `stars_text` / `RosterUiHelper.stars_text`。装備のみ `rarity_stars_text` |
 | キャラ管理オープンで即終了 | `Control.custom_maximum_size` を参照（**Godot 4.6.3 未実装**。4.x latest/PR のみ） | `gdscript.mdc` / `ui-layout.mdc` — 現行エンジンに無い API を使わない。固定サイズは `custom_minimum_size` + `SIZE_SHRINK_*` + 親も SHRINK |
 | Biome バナーが潰れる／タイトル欠ける | 2:1 キーアートを薄い strip（112px）に中央クロップ | `generate_biome_banner.py` は **アスペクト維持が既定**。タイトル焼込は `BIOME_BANNER_TITLE_BAKED`＋一覧ヘッダ高さは縦横比から算出 |
 | HBox 内の数値が消える（アイコンだけ残る） | Label の `clip_text=true` は最小幅 0 → SHRINK の HBox で幅が潰れる | `ui-layout.mdc` — 短い数値は `clip_text=false`。必要なら `EXPAND_FILL` |
@@ -39,7 +41,7 @@ alwaysApply: true
 | ビーストテイマーだけ装備アイコンが大きい | 長い職名で CardRow 再配分＋スロット Grid が `EXPAND_FILL`、または弓アートの枠占有 | スロット Grid/Panel は `SHRINK`。弓は SAFE_SCALE 余白（fill≲0.55） |
 | ビーストテイマーだけ所持アイコンの列がずれる | 職名を省略禁止のまま `AUTOWRAP_OFF` → Label 最小幅が CardRow/Equip を viewport 超に押し広げ、グリッドが横にはみ出す | 職名は1行のまま。長い場合のみフォント縮小で収める（改行禁止。改行するとスロット／ステが下にずれる） |
 | キャラ画面の全タブが左右にはみ出す | CharacterCard（Portrait◀▶＋Stack＋Slots）の最小幅が 720 超。VBox/Tab 全体が引きずられる。OwnerBadge が CHR 原寸(~1250px)に戻ることも | `◀▶` は 28px 固定。Badge は size 直指定せずアンカー固定。Tab Scroll は横スクロール禁止＋clip |
-| 特定職だけ装備が拡大して見える | その職の装備（例: 弓）アートが枠内占有率が高い。レイアウト差ではない | 武器種別アイコン取込で `SAFE_SCALE` 余白を確保。セルサイズ固定と切り分けて確認 |
+| 特定職だけ装備が拡大して見える | その職の装備（例: 弓）アートが枠内占有率が高い。レイアウト差ではない | 武器種別アイコン取込で `SAFE_SCALE` 余白を確保。セルサイズ固定と切り分けて確認。**小さく見える弓は** `EquipmentUiTokens.icon_inset_for_item`（`BOW_ICON_INSET_SCALE`）で鍛冶と同ポリシー |
 | MVP 画面で即落ち（`texture` on Nil） | `ChrIdlePortraitView` を `_ready` 前に `set_from_entry`（親未入場の動的生成） | `ui-layout.mdc` — 子ノードは `_ensure_nodes()` で遅延生成。ツリー投入前 API を想定する |
 | ボタン画像の文字が読めない | ラベル焼込 PNG＋非表示テキスト、または極小オーバーレイ | 可読優先。焼込文字に頼らず Godot テキスト（炉研ぎ同様）か、画像化を撤回 |
 | 職名が「ビーストテ…」になる | `OVERRUN_TRIM_ELLIPSIS`＋狭い JobRow／巨大 JobIcon | 職名は省略しない（必要なら折返し）。JobIcon は固定小サイズ（~22px） |

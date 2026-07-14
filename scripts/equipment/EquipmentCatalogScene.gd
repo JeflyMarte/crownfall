@@ -203,7 +203,7 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 	btn.flat = false
 	btn.focus_mode = Control.FOCUS_NONE
 	var icon: Texture2D = _item_icon(item, category)
-	_attach_item_icon(btn, icon, cell_px, EquipmentUiTokens.INV_CELL_DESIGN_PX)
+	_attach_item_icon(btn, icon, cell_px, EquipmentUiTokens.INV_CELL_DESIGN_PX, item, category)
 	var rarity: int = _item_rarity(item, category)
 	var owner_idx: int = EquipmentUiHelper.equipped_member_index(item)
 	var is_equipped: bool = owner_idx >= 0
@@ -238,8 +238,24 @@ func _sync_inventory_cell_size() -> void:
 	var height: float = _inv_cell_size.y * float(INV_VISIBLE_ROWS) + float(v_sep * maxi(0, INV_VISIBLE_ROWS - 1))
 	_inventory_scroll.custom_minimum_size.y = height
 
-func _attach_item_icon(btn: Button, icon: Texture2D, cell_px: int, design_px: int) -> void:
-	EquipmentUiTokens.attach_item_cell_layers(btn, icon, cell_px, design_px)
+func _attach_item_icon(
+	btn: Button,
+	icon: Texture2D,
+	cell_px: int,
+	design_px: int,
+	item: Resource = null,
+	category: String = ""
+) -> void:
+	var item_id: String = ""
+	if item != null:
+		match category:
+			"weapon":
+				item_id = str(item.weapon_id)
+			"armor":
+				item_id = str(item.armor_id)
+			"accessory":
+				item_id = str(item.accessory_id)
+	EquipmentUiTokens.attach_item_cell_layers(btn, icon, cell_px, design_px, item_id, category)
 
 func _apply_item_cell_styles(
 	btn: Button,

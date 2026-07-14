@@ -100,6 +100,7 @@ var _levelup_pending_count: int = 0
 
 func _ready() -> void:
 	_levelup_panel_legacy.visible = false
+	AudioManager.play_bgm("result")
 	_apply_typography()
 	_apply_panel_styles()
 	_setup_wizard_roots()
@@ -695,11 +696,14 @@ func _make_mvp_podium_slot(entry: Dictionary, is_hero: bool, scale: float, rank:
 	text_block.add_child(name)
 	var dmg := Label.new()
 	dmg.text = "%d ダメージ" % int(entry.get("damage_total", 0))
+	dmg.clip_text = false
+	dmg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	dmg.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_body(
 		dmg, UiTypography.SIZE_CAPTION, MvpPresentationScript.TEXT_MUTED_ON_BACKDROP, UiTypography.OUTLINE_BODY
 	)
 	text_block.add_child(dmg)
+	text_block.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	slot.add_child(_make_mvp_backdrop(text_block, "podium"))
 	return slot
 
@@ -714,22 +718,33 @@ func _make_mvp_stat_card(card: Dictionary) -> PanelContainer:
 	margin.add_theme_constant_override("margin_bottom", 8)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var icon_path: String = str(card.get("icon", ""))
 	if not icon_path.is_empty() and ResourceLoader.exists(icon_path):
 		var icon := TextureRect.new()
 		icon.custom_minimum_size = Vector2(28, 28)
+		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		icon.texture = load(icon_path) as Texture2D
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		row.add_child(icon)
 	var col := VBoxContainer.new()
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	col.add_theme_constant_override("separation", 4)
 	var key_lbl := Label.new()
 	key_lbl.text = str(card.get("key", ""))
+	key_lbl.clip_text = false
+	key_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	key_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_body(key_lbl, UiTypography.SIZE_CAPTION, MvpPresentationScript.TEXT_MUTED_ON_BACKDROP)
 	col.add_child(key_lbl)
 	var val_lbl := Label.new()
 	val_lbl.text = str(card.get("value", ""))
+	val_lbl.clip_text = false
+	val_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	## アイコン横の文章列で、見出しと数値の中心を揃える。
+	val_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_display(
 		val_lbl, UiTypography.SIZE_BODY, card.get("color", COLOR_TEXT), UiTypography.OUTLINE_STRONG
 	)

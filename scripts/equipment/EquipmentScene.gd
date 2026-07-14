@@ -648,7 +648,8 @@ func _update_character_card() -> void:
 	call_deferred("_fit_job_label_font_to_width")
 	_job_icon.texture = IconPaths.get_icon_texture(str(member.job_id), "chr")
 	_set_character_portrait(member)
-	_label_stars.text = EquipmentUiHelper.rarity_stars_text(int(member.rarity))
+	## キャラ★は 1〜4 の個数体系。装備ティア用 rarity_stars_text（0=★）を使わない。
+	_label_stars.text = EquipmentUiHelper.stars_text(int(member.rarity))
 	_label_stars.visible = true
 	var portrait_tint: Color = _EvolutionVisual.portrait_modulate(member)
 	_job_icon.modulate = portrait_tint
@@ -986,7 +987,9 @@ func _make_slot(
 	btn.action_mode = BaseButton.ACTION_MODE_BUTTON_RELEASE
 	if item != null:
 		var icon: Texture2D = _item_icon(item, category)
-		_attach_item_icon(btn, icon, cell_px, EquipmentUiTokens.SLOT_DESIGN_PX)
+		_attach_item_icon(
+			btn, icon, cell_px, EquipmentUiTokens.SLOT_DESIGN_PX, _item_id(item, category), category
+		)
 		btn.tooltip_text = _item_label(item, category)
 		var rarity: int = _item_rarity(item, category)
 		_apply_item_cell_styles(btn, rarity, cell_px)
@@ -1065,10 +1068,17 @@ func _inv_cell_size_vec() -> Vector2:
 func _slot_cell_size_vec() -> Vector2:
 	return _slot_cell_size
 
-func _attach_item_icon(btn: Button, icon: Texture2D, cell_px: int, design_px: int) -> void:
+func _attach_item_icon(
+	btn: Button,
+	icon: Texture2D,
+	cell_px: int,
+	design_px: int,
+	item_id: String = "",
+	category: String = ""
+) -> void:
 	if icon == null:
 		return
-	var inset: int = EquipmentUiTokens.icon_inset_px(cell_px, design_px)
+	var inset: int = EquipmentUiTokens.icon_inset_for_item(cell_px, design_px, item_id, category)
 	var side: int = maxi(1, cell_px - inset * 2)
 	var half: float = float(side) * 0.5
 	var tex_rect := TextureRect.new()
@@ -1140,7 +1150,9 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 	btn.focus_mode = Control.FOCUS_NONE
 	btn.action_mode = BaseButton.ACTION_MODE_BUTTON_RELEASE
 	var icon: Texture2D = _item_icon(item, category)
-	_attach_item_icon(btn, icon, cell_px, EquipmentUiTokens.INV_CELL_DESIGN_PX)
+	_attach_item_icon(
+		btn, icon, cell_px, EquipmentUiTokens.INV_CELL_DESIGN_PX, _item_id(item, category), category
+	)
 	var rarity: int = _item_rarity(item, category)
 	var owner_idx: int = EquipmentUiHelper.equipped_member_index(item)
 	var party_idx: int = _party_index_for_view()
@@ -1567,6 +1579,18 @@ func _item_rarity(item: Resource, category: String) -> int:
 	if data != null and "rarity" in data:
 		return int(data.rarity)
 	return 0
+
+func _item_id(item: Resource, category: String) -> String:
+	if item == null:
+		return ""
+	match category:
+		"weapon":
+			return str(item.weapon_id)
+		"armor":
+			return str(item.armor_id)
+		"accessory":
+			return str(item.accessory_id)
+	return ""
 
 func _item_icon(item: Resource, category: String) -> Texture2D:
 	match category:

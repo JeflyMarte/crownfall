@@ -24,7 +24,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | DataRegistry | `scripts/autoload/DataRegistry.gd` |
 | SceneRouter | `scripts/autoload/SceneRouter.gd` |
 | EventBus | `scripts/autoload/EventBus.gd` |
-| AudioManager | `scripts/audio/AudioManager.gd`（**P3-AUDIO-SE-001/002**・`SfxCatalog`） |
+| AudioManager | `scripts/audio/AudioManager.gd`（**P3-AUDIO-SE-001/002**・**BGM-001**・`SfxCatalog`/`BgmCatalog`） |
 | DailyMissionSystem | `scripts/autoload/DailyMissionSystem.gd`（**P3-DAILY** 日課3件/日） |
 | EventSystem | `scripts/autoload/EventSystem.gd`（**P3-EVT-WEEK-002** 6週ローテ・`EventWeekRotation` SSOT・JST 5:00） |
 | GachaSystem | `scripts/autoload/GachaSystem.gd` |
@@ -135,7 +135,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `save/` | `SaveManager.gd` |
 | `systems/` | **`LevelSystem.gd`**（**Lv99上限** P3-LV-099・Lv51+逓減成長）・**`SkillProgression.gd`**・**`WeaponSkillHelper.gd`**・`JobEvolution.gd`・**`EvolutionTraits.gd`**（昇格特質 P3-D167） |
 | `ui/` | **`IconPaths.gd`** …（Phase3-A — static class、ICON_MAP による `category:id` → `ICO_*.png` 解決）・**`CurrencyHelper.gd`**（魔晶石表示 SSOT）・**`BottomNavHelper.gd`**（全拠点系6タブ遷移・**P3-UI-Base-A**）・**`NavIconHelper.gd`**（下ナビ/左メニューアイコン）・**`UiTypography.gd`** |
-| `audio/` | **`AudioManager.gd`**（Autoload）・**`SfxCatalog.gd`**（ID→ogg・**P3-AUDIO-SE-001/002**） |
+| `audio/` | **`AudioManager.gd`**（Autoload）・**`SfxCatalog.gd`**・**`BgmCatalog.gd`**（**P3-AUDIO-SE-001/002 / BGM-001**） |
 
 ### プレースホルダのみ（.gitkeep、コードなし）
 `scripts/loot/`
@@ -304,7 +304,7 @@ Task 明示指示がない限り作成しない:
 | パス | 内容 |
 |---|---|
 | `sfx/` | Kenney CC0・`SfxCatalog` 18 ID（**P3-AUDIO-SE-001**）。配線拡張 **P3-AUDIO-SE-002** |
-| `bgm/` | オーナー（Suno）枠。API のみ先置き |
+| `bgm/` | オーナー制作 MP3（hub / dungeon_explore / battle / boss / result）。`BgmCatalog`（**P3-AUDIO-BGM-001**） |
 
 ---
 

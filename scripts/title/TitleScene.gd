@@ -1,9 +1,11 @@
 extends Control
 
 ## タイトル（つづきから / はじめから）— P3-UI-TITLE-001。
+## 背景は `UI_BG_TitleMain.png`（ロゴ焼込。テキストブランドは置かない）。
 
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const STARTER_PICK_SCENE: String = "res://scenes/roster/StarterPickScene.tscn"
+const BG_PATH: String = "res://assets/ui/UI_BG_TitleMain.png"
 
 var _btn_continue: Button
 var _confirm_new: ConfirmationDialog
@@ -16,58 +18,64 @@ func _ready() -> void:
 
 func _build_ui() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var bg := ColorRect.new()
+
+	var fallback := ColorRect.new()
+	fallback.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	fallback.color = Color(0.05, 0.06, 0.09, 1)
+	fallback.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(fallback)
+
+	var bg := TextureRect.new()
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	bg.color = Color(0.05, 0.06, 0.09, 1)
+	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var tex: Texture2D = load(BG_PATH) as Texture2D
+	if tex != null:
+		bg.texture = tex
 	add_child(bg)
 
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 40)
-	margin.add_theme_constant_override("margin_right", 40)
-	margin.add_theme_constant_override("margin_top", 80)
-	margin.add_theme_constant_override("margin_bottom", 48)
+	margin.add_theme_constant_override("margin_left", 48)
+	margin.add_theme_constant_override("margin_right", 48)
+	margin.add_theme_constant_override("margin_top", 40)
+	margin.add_theme_constant_override("margin_bottom", 40)
 	add_child(margin)
 
 	var root := VBoxContainer.new()
-	root.add_theme_constant_override("separation", 20)
+	root.add_theme_constant_override("separation", 14)
 	margin.add_child(root)
 
+	# 焼込ロゴ＋城を避け、ボタンは下寄り
 	var spacer_top := Control.new()
 	spacer_top.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	spacer_top.size_flags_stretch_ratio = 2.4
 	root.add_child(spacer_top)
 
-	var brand := Label.new()
-	brand.text = "CROWNFALL"
-	brand.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UiTypography.apply_display(brand, 42)
-	root.add_child(brand)
+	var menu_wrap := CenterContainer.new()
+	root.add_child(menu_wrap)
 
-	var sub := Label.new()
-	sub.text = "王冠凋落"
-	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UiTypography.apply_body(sub, 18, Color(0.72, 0.74, 0.8))
-	root.add_child(sub)
-
-	var mid := Control.new()
-	mid.custom_minimum_size = Vector2(0, 36)
-	root.add_child(mid)
+	var menu_col := VBoxContainer.new()
+	menu_col.custom_minimum_size = Vector2(320, 0)
+	menu_col.add_theme_constant_override("separation", 12)
+	menu_wrap.add_child(menu_col)
 
 	_btn_continue = _make_menu_button("つづきから")
 	_btn_continue.pressed.connect(_on_continue)
-	root.add_child(_btn_continue)
+	menu_col.add_child(_btn_continue)
 
 	var btn_new := _make_menu_button("はじめから")
 	btn_new.pressed.connect(_on_new_game_pressed)
-	root.add_child(btn_new)
+	menu_col.add_child(btn_new)
 
 	var btn_settings := _make_menu_button("設定")
 	btn_settings.pressed.connect(func() -> void: SceneRouter.open_settings("res://scenes/title/TitleScene.tscn"))
-	root.add_child(btn_settings)
+	menu_col.add_child(btn_settings)
 
 	var spacer_bot := Control.new()
 	spacer_bot.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	spacer_bot.size_flags_stretch_ratio = 0.55
 	root.add_child(spacer_bot)
 
 	var ver := Label.new()

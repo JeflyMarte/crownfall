@@ -4,6 +4,7 @@ extends Node
 
 const _SettingsPrefs := preload("res://scripts/settings/SettingsPrefs.gd")
 const _SfxCatalog := preload("res://scripts/audio/SfxCatalog.gd")
+const _BgmCatalog := preload("res://scripts/audio/BgmCatalog.gd")
 
 const SFX_POOL_SIZE: int = 8
 const DEFAULT_SFX_COOLDOWN_SEC: float = 0.045
@@ -14,6 +15,7 @@ var _stream_cache: Dictionary = {}
 var _sfx_cooldown_until: Dictionary = {}
 var _bgm_player: AudioStreamPlayer = null
 var _current_bgm_id: String = ""
+var _bgm_stream_cache: Dictionary = {}
 
 
 func _ready() -> void:
@@ -50,17 +52,16 @@ func play_sfx(sfx_id: String, pitch_scale: float = 1.0, cooldown_sec: float = DE
 
 
 func play_bgm(bgm_id: String, path: String = "") -> void:
-	## BGM ファイルはオーナーが `assets/audio/bgm/` に配置。path 省略時は未配線。
 	if bgm_id.is_empty():
 		return
 	if path.is_empty():
-		path = "res://assets/audio/bgm/%s.ogg" % bgm_id
-	if not ResourceLoader.exists(path):
+		path = _BgmCatalog.path_for(bgm_id)
+	if path.is_empty():
 		return
-	if _current_bgm_id == bgm_id and _bgm_player.playing:
+	if _current_bgm_id == bgm_id and _bgm_player != null and _bgm_player.playing:
 		return
-	var stream: AudioStream = load(path) as AudioStream
-	if stream == null:
+	var stream: AudioStream = _load_bgm_stream(bgm_id, path)
+	if stream == null or _bgm_player == null:
 		return
 	_bgm_player.stream = stream
 	_current_bgm_id = bgm_id
@@ -73,13 +74,42 @@ func stop_bgm() -> void:
 	_current_bgm_id = ""
 
 
+func current_bgm_id() -> String:
+	return _current_bgm_id
+
+
 func _load_sfx_stream(sfx_id: String) -> AudioStream:
 	if _stream_cache.has(sfx_id):
 		return _stream_cache[sfx_id] as AudioStream
 	var path: String = _SfxCatalog.path_for(sfx_id)
 	if path.is_empty() or not ResourceLoader.exists(path):
-		return null
+		if path.is_empty() or not FileAccess.file_exists(path):
+			return null
 	var stream: AudioStream = load(path) as AudioStream
 	if stream != null:
 		_stream_cache[sfx_id] = stream
 	return stream
+
+
+func _load_bgm_stream(bgm_id: String, path: String) -> AudioStream:
+	if _bgm_stream_cache.has(bgm_id):
+		return _bgm_stream_cache[bgm_id] as AudioStream
+	if not ResourceLoader.exists(path) and not FileAccess.file_exists(path):
+		return null
+	var stream: AudioStream = load(path) as AudioStream
+	if stream == null:
+		return null
+	_apply_bgm_loop(stream, _BgmCatalog.should_loop(bgm_id))
+	_bgm_stream_cache[bgm_id] = stream
+	return stream
+
+
+func _apply_bgm_loop(stream: AudioStream, do_loop: bool) -> void:
+	if stream is AudioStreamMP3:
+		(stream as AudioStreamMP3).loop = do_loop
+	elif stream is AudioStreamOggVorbis:
+		(stream as AudioStreamOggVorbis).loop = do_loop
+	elif stream is AudioStreamWAV:
+		(stream as AudioStreamWAV).loop_mode = (
+			AudioStreamWAV.LOOP_FORWARD if do_loop else AudioStreamWAV.LOOP_DISABLED
+		)

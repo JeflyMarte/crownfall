@@ -38,6 +38,7 @@ var _gift_badge: PanelContainer
 
 func _ready() -> void:
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.HOME)
+	AudioManager.play_bgm("hub")
 	_decorate_panels()
 	_setup_field_survey_banner()
 	_build_left_menu()

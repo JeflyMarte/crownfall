@@ -8,7 +8,7 @@ const HEAL_AMOUNT: int = 10
 # P3-D084: CT/ATB の 1 パルス（1 行動）間隔。倍率は COMBAT_TICK_BASE / mult。
 const COMBAT_TICK_BASE: float = 0.75
 const AUTO_DELAY_BASE: float = 1.2
-const NON_COMBAT_FLOOR_GRACE_SEC: float = 2.5
+const NON_COMBAT_FLOOR_GRACE_SEC: float = 1.6
 const SPEED_MULT_NORMAL: float = 0.75
 const SPEED_MULT_FAST: float = 1.5
 const COMBAT_WAIT_GRIND: float = 0.28
@@ -471,6 +471,8 @@ var _swarm_nameplates: Array[Label] = []
 const SWARM_SPACING_RATIO: float = 0.201
 const SWARM_CENTER_X_RATIO: float = 0.694
 const SWARM_Y_RATIO: float = 0.48
+## エリートは通常雑魚より上（ボスに近い高さ）に置く。
+const ELITE_Y_RATIO: float = 0.34
 # BattlefieldArea 内の足元Y比率へ加算（全体を下げる）
 const COMBAT_Y_BIAS: float = 0.08
 # 編成スロット別の戦闘配置（BattlefieldArea 内の比率・足元基準）。
@@ -542,6 +544,8 @@ const TURN_ORDER_SIDE_TOP: float = 36.0
 const TURN_ORDER_BADGE_FONT_PX: int = 12
 
 func _ready() -> void:
+	## 探索BGM（非戦闘ルームへ入るまで / dive 中も探索曲）。
+	AudioManager.play_bgm("dungeon_explore")
 	_btn_next_room.pressed.connect(_on_next_room_pressed)
 	_btn_finish.pressed.connect(_on_finish_button_pressed)
 	$CombatTimer.timeout.connect(_on_combat_timer_timeout)
@@ -1369,6 +1373,17 @@ func _room_transition_timing(room_type: int) -> Dictionary:
 		_:
 			return {"fade": 0.2, "hold": 0.55}
 
+
+func _sync_room_bgm() -> void:
+	## 非戦闘・探索中 = dungeon_explore。戦闘 = battle / boss。
+	if not $DungeonController.is_combat_room():
+		AudioManager.play_bgm("dungeon_explore")
+		return
+	if $DungeonController.current_room_type == Enums.RoomType.BOSS:
+		AudioManager.play_bgm("boss")
+	else:
+		AudioManager.play_bgm("battle")
+
 func _room_transition_caption() -> String:
 	var floor_text: String = $DungeonController.get_display_floor_text()
 	return "[%s]\n%s" % [_get_room_type_name(), floor_text]
@@ -1606,6 +1621,12 @@ func _battlefield_combat_position(ratio: Vector2) -> Vector2:
 		return Vector2.ZERO
 	var y_ratio: float = clampf(ratio.y + COMBAT_Y_BIAS, 0.0, 0.96)
 	return Vector2(size.x * ratio.x, size.y * y_ratio)
+
+
+func _enemy_swarm_y_ratio() -> float:
+	if $DungeonController.current_room_type == Enums.RoomType.ELITE:
+		return ELITE_Y_RATIO
+	return SWARM_Y_RATIO
 
 func _global_to_root_pos(global_pos: Vector2) -> Vector2:
 	return get_global_transform_with_canvas().affine_inverse() * global_pos
@@ -2418,6 +2439,7 @@ func _advance_to_next_room() -> void:
 func _enter_current_room() -> void:
 	_update_room_label()
 	_update_room_art()
+	_sync_room_bgm()
 	if $DungeonController.is_combat_room():
 		var group: Array[Resource] = $DungeonController.pick_combat_enemy_group()
 		if not group.is_empty():
@@ -4617,6 +4639,7 @@ func _finalize_combat_cleared() -> void:
 	_update_hp_bars()
 	_update_next_room_button()
 	_show_chr_sprites(false)
+	AudioManager.play_bgm("result")
 	if $DungeonController.is_on_last_floor_before_exit():
 		_play_combat_clear_celebration(true)
 	else:
@@ -5751,12 +5774,13 @@ func _reposition_enemy_sprites() -> void:
 	if n <= 0:
 		return
 	var start_ratio: float = SWARM_CENTER_X_RATIO - float(n - 1) * SWARM_SPACING_RATIO * 0.5
+	var y_ratio: float = _enemy_swarm_y_ratio()
 	for i in _swarm_sprites.size():
 		var spr: AnimatedSprite2D = _swarm_sprites[i]
 		if not spr.visible:
 			continue
 		spr.position = _battlefield_combat_position(
-			Vector2(start_ratio + float(i) * SWARM_SPACING_RATIO, SWARM_Y_RATIO)
+			Vector2(start_ratio + float(i) * SWARM_SPACING_RATIO, y_ratio)
 		)
 	_update_hp_bars()
 
@@ -5838,6 +5862,7 @@ func _show_enemy_swarm(enemy_ids: Array) -> void:
 	# 群れは名前が密集するため小さめフォントに、単体は従来サイズ。
 	var name_fs: int = 15 if n > 1 else 22
 	var start_ratio: float = SWARM_CENTER_X_RATIO - float(n - 1) * SWARM_SPACING_RATIO * 0.5
+	var y_ratio: float = _enemy_swarm_y_ratio()
 	for i in n:
 		_style_enemy_nameplate(_swarm_nameplates[i])
 		_swarm_nameplates[i].add_theme_font_size_override("font_size", name_fs)
@@ -5854,7 +5879,7 @@ func _show_enemy_swarm(enemy_ids: Array) -> void:
 		spr.sprite_frames = frames
 		_normalize_enemy_scale(spr, frames)
 		spr.position = _battlefield_combat_position(
-			Vector2(start_ratio + float(i) * SWARM_SPACING_RATIO, SWARM_Y_RATIO)
+			Vector2(start_ratio + float(i) * SWARM_SPACING_RATIO, y_ratio)
 		)
 		spr.play("idle")
 		spr.visible = true
@@ -6615,6 +6640,7 @@ func _play_combat_clear_celebration(finish_dungeon_after: bool = false) -> void:
 	if _combat_clear_active:
 		return
 	_combat_clear_active = true
+	AudioManager.play_bgm("result")
 	AudioManager.play_sfx("victory")
 	$AutoProgressTimer.stop()
 	if _combat_clear_tween != null and is_instance_valid(_combat_clear_tween):

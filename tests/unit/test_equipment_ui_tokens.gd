@@ -58,6 +58,16 @@ func test_icon_inset_leaves_room_for_art() -> void:
 	assert_true(inset >= 20)
 	assert_true(inset < 56)
 
+func test_bow_icon_inset_is_smaller_than_default() -> void:
+	var default_inset: int = EquipmentUiTokens.icon_inset_for_item(112, 144)
+	var bow_inset: int = EquipmentUiTokens.icon_inset_for_item(
+		112, 144, "hunting_bow", "weapon"
+	)
+	assert_true(EquipmentUiTokens.is_bow_weapon("hunting_bow", "weapon"))
+	assert_false(EquipmentUiTokens.is_bow_weapon("iron_sword", "weapon"))
+	assert_lt(bow_inset, default_inset)
+	assert_gte(bow_inset, 2)
+
 func test_tooltip_panel_style_is_opaque() -> void:
 	var sb: StyleBoxFlat = EquipmentUiTokens.tooltip_panel_style()
 	assert_eq(sb.bg_color.a, 1.0)
@@ -78,6 +88,12 @@ func test_rarity_stars_text_maps_equipment_tier() -> void:
 	assert_eq(EquipmentUiHelper.rarity_stars_text(0), "★")
 	assert_eq(EquipmentUiHelper.rarity_stars_text(1), "★★")
 	assert_eq(EquipmentUiHelper.rarity_stars_text(3), "★★★★")
+
+func test_character_stars_text_is_star_count() -> void:
+	## Adventurer.rarity は ★個数（スターター=3）。装備 Enums.Rarity とは別。
+	assert_eq(EquipmentUiHelper.stars_text(3), "★★★")
+	assert_eq(EquipmentUiHelper.stars_text(Adventurer.STARTER_RARITY), "★★★")
+	assert_ne(EquipmentUiHelper.stars_text(3), EquipmentUiHelper.rarity_stars_text(3))
 
 func test_enhance_badge_hides_until_first_enhance() -> void:
 	var weapon := WeaponInstance.new()

@@ -62,6 +62,9 @@ while cond:
 ❌ `get_name` / `set_name` を独自 API にしない（Script 組み込み void と衝突し、呼び出しが null になる）  
 ✅ `get_commander_name` / `set_commander_name` のように衝突しない名前にする
 
+❌ `extends Control` なスクリプトを `.tscn` の `Node` ルートへ付ける（起動黒画面・Errors に型不一致）  
+✅ `extends` とシーンルート型を一致させる。`BootScene` はルート `Node` ＋ `extends Node`
+
 ## アーキテクチャ
 
 - データは **Resource**（`WeaponData`, `DungeonData` 等）
