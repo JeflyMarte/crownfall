@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-14（**P3-INTRO-001 Decision**: 新規ゲーム導入＝世界観スクロール→隊長名→ニーナ3吹き出し→初期隊員選択→拠点。操作チュートなし・スキップ可。SSOT=`docs/specs/decisions/02_NewGameIntro.md`。Impl 未着手）
+
 2026-07-12（**P3-ART-CHR-002**: メイン5職ダンジョンドット差替 — walk/attack/hurt/death を `assets/characters/{job}/` へ。SpriteFrames `idle`＝歩行。Idle PNG は別用途保管。`import_job_chr_sprites.py`）
 
 2026-07-12（**P3-CHR-OMIT-001**: メイン5以外一旦オミット — batch7 Warrior/Guardian/Scout を `_omitted/` 退避・`GACHA_HELPERS_PLAYABLE=false` で助っ人召喚/ロスター除外。データ残置）
@@ -320,6 +322,7 @@
 | **2** | **P3-DG-STG-001** | サブステージ（mourngate 1-1〜1-5 + ②〜⑤横展開）+ `spawn_weights` | **完了**（P3-DG-STG-ENABLE） |
 | **3** | **P3-EQ-LVL-001** | 装備レベル（全装備・BiomeドロップLv） | Impl | ✅ **Closeout** |
 | **4** | **P3-EQ-LEG-002** | 防具・装飾★ ②〜⑤横展開 | Impl | 未着手 |
+| — | **P3-INTRO-001** | 新規ゲーム導入（スクロール→名前→ニーナ→スターター→拠点） | Impl | Decision ✅・未着手 |
 | **5** | **P3-ENEMY-002** | 新雑魚 +8〜12 | HQ+Impl | **Decision済・未着手** |
 
 **凍結（Decision まで着手しない）:** 天候本格 / 週間日課 / 10連ガチャ / 6装備枠 / Affix本格 / 位置AI本格 / 探索手動+CD。
