@@ -350,7 +350,7 @@ func _on_commander_button_pressed() -> void:
 
 func _on_settings_button_pressed() -> void:
 	if ResourceLoader.exists(SETTINGS_SCENE):
-		SceneRouter.change_scene(SETTINGS_SCENE)
+		SceneRouter.open_settings(SceneRouter.HOME_SCENE)
 
 func _refresh_daily_missions() -> void:
 	_update_daily_reset_label()

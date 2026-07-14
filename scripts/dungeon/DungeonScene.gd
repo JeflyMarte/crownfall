@@ -53,6 +53,42 @@ const ENEMY_SPRITE_MAP: Dictionary = {
 	"wayfarer_sparrow": "res://resources/animation/ENM_MistWyvern.tres",
 	"reliquary_beetle": "res://resources/animation/ENM_MossShell.tres",
 }
+## Hard/Nightmare 専用シート。キーは TIER_HARD=1 / TIER_NIGHTMARE=2 のみ。
+## ノーマルでは参照しない。Hard 資産を Nightmare にフォールバックしない。
+const ENEMY_SPRITE_MAP_BY_TIER: Dictionary = {
+	"grave_bell_bat": {
+		1: "res://resources/animation/ENM_GraveBellBat_Hard.tres",
+		2: "res://resources/animation/ENM_GraveBellBat_Nightmare.tres",
+	},
+	"crystal_scorpion": {
+		1: "res://resources/animation/ENM_CrystalScorpion_Hard.tres",
+		2: "res://resources/animation/ENM_CrystalScorpion_Nightmare.tres",
+	},
+	"skullface_mantis": {
+		1: "res://resources/animation/ENM_SkullfaceMantis_Hard.tres",
+		2: "res://resources/animation/ENM_SkullfaceMantis_Nightmare.tres",
+	},
+	"sepia_hound": {
+		1: "res://resources/animation/ENM_SepiaHound_Hard.tres",
+		2: "res://resources/animation/ENM_SepiaHound_Nightmare.tres",
+	},
+	"rune_roach": {
+		1: "res://resources/animation/ENM_RuneRoach_Hard.tres",
+		2: "res://resources/animation/ENM_RuneRoach_Nightmare.tres",
+	},
+	"crown_eater_rat": {
+		1: "res://resources/animation/ENM_CrownEaterRat_Hard.tres",
+		2: "res://resources/animation/ENM_CrownEaterRat_Nightmare.tres",
+	},
+	"crystal_hedgehog": {
+		1: "res://resources/animation/ENM_CrystalHedgehog_Hard.tres",
+		2: "res://resources/animation/ENM_CrystalHedgehog_Nightmare.tres",
+	},
+	"clock_moth": {
+		1: "res://resources/animation/ENM_ClockMoth_Hard.tres",
+		2: "res://resources/animation/ENM_ClockMoth_Nightmare.tres",
+	},
+}
 const BOSS_ENEMY_SPRITE_MAP: Dictionary = {
 	"serdion": "res://resources/animation/BOSS_Serdion.tres",
 	"granvel": "res://resources/animation/BOSS_Granvel.tres",
@@ -60,6 +96,27 @@ const BOSS_ENEMY_SPRITE_MAP: Dictionary = {
 	"nereion": "res://resources/animation/BOSS_Nereion.tres",
 	"nereion_depths": "res://resources/animation/BOSS_Nereion.tres",
 	"eldion": "res://resources/animation/BOSS_Eldion.tres",
+}
+## ボス Hard/NM 限定（ノーマルは BOSS_ENEMY_SPRITE_MAP / BOSS_SPRITE_MAP）
+const BOSS_ENEMY_SPRITE_MAP_BY_TIER: Dictionary = {
+	"serdion": {
+		1: "res://resources/animation/BOSS_Serdion_Hard.tres",
+		2: "res://resources/animation/BOSS_Serdion_Nightmare.tres",
+	},
+}
+const BOSS_SPRITE_MAP_BY_TIER: Dictionary = {
+	"mourngate": {
+		1: "res://resources/animation/BOSS_Serdion_Hard.tres",
+		2: "res://resources/animation/BOSS_Serdion_Nightmare.tres",
+	},
+	"mourngate_deep": {
+		1: "res://resources/animation/BOSS_Serdion_Hard.tres",
+		2: "res://resources/animation/BOSS_Serdion_Nightmare.tres",
+	},
+	"storm_crown_ruins": {
+		1: "res://resources/animation/BOSS_Serdion_Hard.tres",
+		2: "res://resources/animation/BOSS_Serdion_Nightmare.tres",
+	},
 }
 const BOSS_SPRITE_MAP: Dictionary = {
 	"astoria_ruins": "res://resources/animation/ENM_ClockMoth.tres",
@@ -545,6 +602,8 @@ func _ready() -> void:
 	GameState.last_run_accessory_dropped = ""
 	GameState.last_run_relic_dropped = ""
 	GameState.last_run_outcome = ""
+	GameState.last_run_starter_recruited_id = ""
+	GameState.last_run_starter_recruited_name = ""
 	GameState.last_run_exploration_policy = ""
 	GameState.last_run_modifier_counts = {}
 	GameState.reset_run_combat_stats()
@@ -2904,6 +2963,7 @@ func _resolve_treasure_room_async() -> void:
 		log_text += "\n" + line
 	var has_accessory: bool = not (treasure["accessory_id"] as String).is_empty()
 	_set_non_combat_phase_bg(TreasureRoomPresentationScript.bg_path_for_phase("success"))
+	AudioManager.play_sfx("treasure")
 	await _play_treasure_open_presentation(has_accessory)
 	_set_room_narrative(log_text, TreasureRoomPresentationScript.COLOR_SUCCESS)
 	_treasure_presentation_active = false
@@ -3078,6 +3138,7 @@ func _reset_narrative_typography() -> void:
 		_label_now_playing.text = ""
 
 func _apply_trap_hit_feedback(target_idx: int, dmg: int, trap_room: bool = false) -> void:
+	AudioManager.play_sfx("combat_hit", 1.0, 0.05)
 	var pos: Vector2 = _trap_feedback_world_pos(target_idx)
 	var dmg_scale: float = TrapPresentationScript.damage_scale(trap_room)
 	if pos != Vector2.ZERO:
@@ -4513,6 +4574,7 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 
 # 敵スロット撃破時。全滅なら true（戦闘終了済み）。
 func _on_enemy_slot_killed(killed_slot: int) -> bool:
+	AudioManager.play_sfx("combat_death", 1.0, 0.06)
 	$CombatController.clear_pending_cast("enemy", killed_slot)
 	_debuff_marks.erase(killed_slot)
 	_award_enemy_kill_at(killed_slot)
@@ -4996,6 +5058,7 @@ func _on_member_damaged(target_idx: int, ctx: Dictionary = {}) -> void:
 	if $CombatController.is_member_alive(target_idx):
 		_fire_member_passives(target_idx, "on_hit_taken", ctx)
 		return
+	AudioManager.play_sfx("combat_death", 1.0, 0.06)
 	$CombatController.clear_pending_cast("party", target_idx)
 	_clear_member_skill_labels(target_idx)
 	for i: int in GameState.party_members.size():
@@ -5439,6 +5502,7 @@ func _on_auto_progress_timeout() -> void:
 func _transition_to_next_room() -> void:
 	if _room_transition_busy or _dive_intro_active or _combat_clear_active:
 		return
+	AudioManager.play_sfx("room_enter", 1.0, 0.2)
 	_room_transition_busy = true
 	$AutoProgressTimer.stop()
 	var tw: Tween = create_tween()
@@ -5614,11 +5678,24 @@ func _retire_from_dungeon() -> void:
 
 # ---- Enemy Sprite ----
 
+## 現状ティア専用スプライト。Hard↔Nightmare 相互フォールバックなし。
+## ノーマル、または該当ティア資産なし → ノーマルシート。
+func _enemy_sprite_path(enemy_id: String) -> String:
+	var tier: int = _DungeonTierConfig.clamp_tier(GameState.current_dungeon_tier)
+	if tier > _DungeonTierConfig.TIER_NORMAL:
+		var by_tier: Variant = ENEMY_SPRITE_MAP_BY_TIER.get(enemy_id, null)
+		if by_tier is Dictionary:
+			var tier_path: String = str((by_tier as Dictionary).get(tier, ""))
+			if not tier_path.is_empty() and ResourceLoader.exists(tier_path):
+				return tier_path
+	return str(ENEMY_SPRITE_MAP.get(enemy_id, ""))
+
+
 func _show_enemy_sprite(enemy_id: String) -> void:
 	if $DungeonController.current_room_type == Enums.RoomType.BOSS:
 		_enemy_sprite.visible = false
 		return
-	var path: String = ENEMY_SPRITE_MAP.get(enemy_id, "")
+	var path: String = _enemy_sprite_path(enemy_id)
 	if path.is_empty() or not ResourceLoader.exists(path):
 		_enemy_sprite.visible = false
 		return
@@ -5766,7 +5843,7 @@ func _show_enemy_swarm(enemy_ids: Array) -> void:
 		_swarm_nameplates[i].add_theme_font_size_override("font_size", name_fs)
 		var spr: AnimatedSprite2D = _swarm_sprites[i]
 		var id: String = str(enemy_ids[i])
-		var path: String = ENEMY_SPRITE_MAP.get(id, "")
+		var path: String = _enemy_sprite_path(id)
 		if path.is_empty() or not ResourceLoader.exists(path):
 			spr.visible = false
 			continue
@@ -6301,7 +6378,7 @@ func _get_chr_icon_texture(job_id: String) -> Texture2D:
 func _get_enemy_icon_texture(enemy_id: String) -> Texture2D:
 	var path: String = BOSS_ENEMY_SPRITE_MAP.get(enemy_id, "")
 	if path.is_empty():
-		path = ENEMY_SPRITE_MAP.get(enemy_id, "")
+		path = _enemy_sprite_path(enemy_id)
 	if path.is_empty() and $DungeonController.current_dungeon_data != null:
 		path = BOSS_SPRITE_MAP.get($DungeonController.current_dungeon_data.id, "")
 	if not path.is_empty() and ResourceLoader.exists(path):
@@ -6538,6 +6615,7 @@ func _play_combat_clear_celebration(finish_dungeon_after: bool = false) -> void:
 	if _combat_clear_active:
 		return
 	_combat_clear_active = true
+	AudioManager.play_sfx("victory")
 	$AutoProgressTimer.stop()
 	if _combat_clear_tween != null and is_instance_valid(_combat_clear_tween):
 		_combat_clear_tween.kill()
@@ -6616,6 +6694,7 @@ func _play_hit_vfx(element: String = "", is_critical: bool = false) -> void:
 # 属性専用VFX(ELEMENT_VFX_PATH)があればそれを無着色で再生、無ければ
 # FX_Hit_Normal を ELEMENT_COLOR でティント着色してフォールバックする。
 func _spawn_hit_vfx(world_pos: Vector2, element: String = "", scale_mult: float = 1.0, is_critical: bool = false) -> void:
+	AudioManager.play_sfx("combat_crit" if is_critical else "combat_hit", 1.0, 0.03)
 	if is_critical and ResourceLoader.exists(VFX_CRIT_PATH):
 		var crit_frames: SpriteFrames = load(VFX_CRIT_PATH) as SpriteFrames
 		if crit_frames != null:
@@ -6803,6 +6882,7 @@ func _play_ultimate_presentation_async(payload: Dictionary) -> void:
 	var kind: String = str(payload.get("kind", "damage"))
 	var element: String = str(payload.get("attack_element", ""))
 	var is_heal: bool = kind == "heal"
+	AudioManager.play_sfx("combat_ultimate")
 	_show_ultimate_center_telop(display_name, element)
 	_pulse_member_ultimate(member_idx)
 	await get_tree().create_timer(float(t["announce"])).timeout
@@ -7072,6 +7152,9 @@ func _spawn_skill_name(
 	var sprite: AnimatedSprite2D = _chr_sprites[member_idx]
 	if not sprite.visible:
 		return
+	## 詠唱中ラベルは静音。resolve / 即時発動のみ combat_skill（必殺は combat_ultimate）。
+	if not persist:
+		AudioManager.play_sfx("combat_skill", 1.0, 0.08)
 	const SKILL_FONT_SIZE: int = 28
 	var lbl := Label.new()
 	lbl.text = skill_name
@@ -7352,6 +7435,7 @@ func _flash_member_sprite(member_idx: int, flash_color: Color) -> void:
 	tw.tween_property(sprite, "modulate", orig, 0.22)
 
 func _spawn_member_heal_vfx(member_idx: int) -> void:
+	AudioManager.play_sfx("combat_heal", 1.0, 0.05)
 	var pos: Vector2 = _member_sprite_world_pos(member_idx)
 	_spawn_support_sprite_vfx(pos, VFX_HEAL_PATH, SUPPORT_VFX_TINT["heal"])
 	_flash_member_sprite(member_idx, Color(0.65, 1.0, 0.7))
@@ -7620,6 +7704,7 @@ func _begin_boss_combat_entrance(lead: Resource) -> void:
 		return
 	_boss_intro_active = true
 	$CombatTimer.stop()
+	AudioManager.play_sfx("room_enter", 1.05, 0.2)
 	var short: bool = _fast_run_enabled
 	var t: Dictionary = _boss_intro_timings(short)
 	_clear_boss_intro_fx()
@@ -7649,11 +7734,25 @@ func _begin_boss_combat_entrance(lead: Resource) -> void:
 	_boss_intro_tween.tween_callback(func() -> void: _finish_boss_combat_entrance(lead))
 
 func _resolve_boss_sprite_path(enemy_id: String, dungeon_id: String) -> String:
+	var tier: int = _DungeonTierConfig.clamp_tier(GameState.current_dungeon_tier)
+	if tier > _DungeonTierConfig.TIER_NORMAL:
+		if not enemy_id.is_empty():
+			var by_enemy_tier: Variant = BOSS_ENEMY_SPRITE_MAP_BY_TIER.get(enemy_id, null)
+			if by_enemy_tier is Dictionary:
+				var tier_path: String = str((by_enemy_tier as Dictionary).get(tier, ""))
+				if not tier_path.is_empty() and ResourceLoader.exists(tier_path):
+					return tier_path
+		if not dungeon_id.is_empty():
+			var by_dg_tier: Variant = BOSS_SPRITE_MAP_BY_TIER.get(dungeon_id, null)
+			if by_dg_tier is Dictionary:
+				var dg_tier_path: String = str((by_dg_tier as Dictionary).get(tier, ""))
+				if not dg_tier_path.is_empty() and ResourceLoader.exists(dg_tier_path):
+					return dg_tier_path
 	if not enemy_id.is_empty():
 		var by_enemy: String = BOSS_ENEMY_SPRITE_MAP.get(enemy_id, "")
 		if not by_enemy.is_empty() and ResourceLoader.exists(by_enemy):
 			return by_enemy
-		var enm_path: String = ENEMY_SPRITE_MAP.get(enemy_id, "")
+		var enm_path: String = _enemy_sprite_path(enemy_id)
 		if not enm_path.is_empty() and ResourceLoader.exists(enm_path):
 			return enm_path
 	if not dungeon_id.is_empty():

@@ -1458,6 +1458,7 @@ func _on_cell_pressed(item: Resource, category: String) -> void:
 			$EquipmentController.equip_armor(item, party_idx)
 		"accessory":
 			$EquipmentController.equip_accessory(item, party_idx)
+	AudioManager.play_sfx("ui_equip")
 	_refresh_display()
 
 # ---- レア度枠スタイル ----

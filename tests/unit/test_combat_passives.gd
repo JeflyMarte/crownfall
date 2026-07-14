@@ -18,9 +18,9 @@ func _ids(defs: Array) -> Array:
 
 
 func test_base_roster_uses_char_passive_only() -> void:
-	var member: Resource = _make_member("adventurer_0", "swordsman", 4)
+	var member: Resource = _make_member("adventurer_0", "swordsman", Adventurer.STARTER_RARITY)
 	var ids: Array = _ids(CombatPassives.for_member(member))
-	assert_eq(ids, ["ald_royal_flame"], "基本ロスターはキャラ固有のみ（★4でもティア追加なし）")
+	assert_eq(ids, ["ald_royal_flame"], "基本ロスターはキャラ固有のみ（ティア追加なし）")
 
 
 func test_low_rarity_gets_job_fallback_only() -> void:

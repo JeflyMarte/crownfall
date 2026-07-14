@@ -7,12 +7,10 @@ const CODEX_SCENE: String = "res://scenes/codex/CodexScene.tscn"
 const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
 
 const UNKNOWN_DISPLAY: String = "???"
-const STATUS_DISCOVERED: String = "Discovered"
-const STATUS_UNDISCOVERED: String = "Undiscovered"
-const ICON_PLACEHOLDER_TEXT: String = "[Icon]"
 const DEFAULT_ICON_SIZE: Vector2 = Vector2(48, 48)
 const ENEMY_ART_SIZE: Vector2 = Vector2(256, 256)
 const _MaterialUiTokens = preload("res://scripts/equipment/MaterialUiTokens.gd")
+const _CodexRichText = preload("res://scripts/codex/CodexRichText.gd")
 
 const CATEGORIES: Array[String] = ["enemy", "dungeon", "material", "weapon", "history", "lore", "guide"]
 
@@ -32,8 +30,8 @@ const COLOR_SUB: Color = Color(0.62, 0.6, 0.55)
 
 # 属性の絵文字＋表記（弱点/耐性の即時表示用。専用アイコンは将来差し替え）。
 const ELEMENT_EMOJI: Dictionary = {
-	"fire": "🔥 火", "ice": "❄ 氷", "thunder": "⚡ 雷",
-	"holy": "☀ 光", "light": "☀ 光", "dark": "🌑 闇",
+	"fire": "🔥 炎", "ice": "❄ 氷", "thunder": "⚡ 雷",
+	"holy": "☀ 聖", "light": "☀ 聖", "dark": "🌑 闇",
 	"water": "💧 水", "wind": "🌪 風", "earth": "⛰ 土",
 }
 
@@ -52,10 +50,10 @@ var _entry_rows: Array = []
 @onready var _label_detail_extra_a: Label = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/InfoCol/LabelDetailExtraA
 @onready var _label_detail_extra_b: Label = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/InfoCol/LabelDetailExtraB
 @onready var _label_detail_overview_header: Label = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/DescBox/DescInner/LabelDetailOverviewHeader
-@onready var _label_detail_description: Label = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/DescBox/DescInner/LabelDetailDescription
+@onready var _label_detail_description: RichTextLabel = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/DescBox/DescInner/LabelDetailDescription
 @onready var _desc_box: PanelContainer = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/DescBox
 @onready var _label_detail_related_header: Label = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/InfoCol/LabelDetailRelatedHeader
-@onready var _label_detail_related: Label = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/InfoCol/LabelDetailRelated
+@onready var _label_detail_related: RichTextLabel = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/InfoCol/LabelDetailRelated
 @onready var _art_frame: PanelContainer = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/ArtFrame
 @onready var _icon_placeholder: PanelContainer = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/ArtFrame/IconPlaceholder
 @onready var _label_icon_placeholder: Label = $DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/ArtFrame/IconPlaceholder/LabelIconPlaceholder
@@ -126,6 +124,14 @@ func _set_status(text: String, confirmed: bool) -> void:
 	box.content_margin_bottom = 3.0
 	_label_detail_status.add_theme_stylebox_override("normal", box)
 	_label_detail_status.add_theme_color_override("font_color", Color(0.97, 0.94, 0.85) if confirmed else COLOR_SUB)
+
+func _set_detail_body(text: String) -> void:
+	_label_detail_description.text = _CodexRichText.decorate(text)
+
+
+func _set_detail_related(text: String) -> void:
+	_label_detail_related.text = _CodexRichText.decorate(text)
+
 
 func _format_elements(elements: Variant) -> String:
 	if elements is not Array or (elements as Array).is_empty():
@@ -286,7 +292,7 @@ func _show_detail(index: int) -> void:
 			_label_detail_id.text = ""
 			_label_detail_name.text = "%s" % str(entry.get("display_name", ""))
 			_set_status("確認済み", true)
-			_label_detail_description.text = str(entry.get("description", ""))
+			_set_detail_body(str(entry.get("description", "")))
 			_update_icon(IconPaths.get_icon_texture(str(entry.get("id", "")), _current_category))
 			if _current_category == "material":
 				_apply_material_detail_fields(entry)
@@ -297,7 +303,7 @@ func _show_detail(index: int) -> void:
 			_label_detail_id.text = ""
 			_label_detail_name.text = "%s" % UNKNOWN_DISPLAY
 			_set_status("未確認", false)
-			_label_detail_description.text = "調査中"
+			_set_detail_body("調査中")
 			_update_icon(null)
 			_apply_bible_fields_undiscovered()
 	_detail_overlay.visible = true
@@ -325,7 +331,7 @@ func _apply_enemy_stage_fields(entry: Dictionary) -> void:
 		_set_status("未発見", false)
 		_label_detail_overview_header.text = "調査記録:"
 		_label_detail_overview_header.visible = true
-		_label_detail_description.text = "調査中"
+		_set_detail_body("調査中")
 		_update_icon(null)
 		return
 	_label_detail_id.text = ""
@@ -334,7 +340,7 @@ func _apply_enemy_stage_fields(entry: Dictionary) -> void:
 	_update_icon(IconPaths.get_icon_texture(enemy_id, "enemy"), true)
 	_label_detail_overview_header.text = "調査記録:"
 	_label_detail_overview_header.visible = true
-	_label_detail_description.text = "調査中"
+	_set_detail_body("調査中")
 	if stage < 3:
 		return
 	var codex_class: String = str(entry.get("codex_class", ""))
@@ -347,7 +353,7 @@ func _apply_enemy_stage_fields(entry: Dictionary) -> void:
 		_label_detail_extra_b.text = "危険度: %s" % danger_stars
 		_label_detail_extra_b.visible = true
 		_label_detail_overview_header.text = "生息地:"
-		_label_detail_description.text = codex_habitat
+		_set_detail_body(codex_habitat)
 	else:
 		_label_detail_extra_a.text = "分類: %s  危険度: %s" % [codex_class, danger_stars]
 		_label_detail_extra_a.visible = true
@@ -355,11 +361,11 @@ func _apply_enemy_stage_fields(entry: Dictionary) -> void:
 		_label_detail_extra_b.visible = true
 		_label_detail_overview_header.text = "調査記録:"
 		var research_note: String = str(entry.get("codex_research_note", ""))
-		# 採取素材は敵別ではなく炉研ぎ共通3種（実ドロップと一致。P3-MAT-CODEx-001）。
+		# 採取素材は敵別ではなく炉研ぎ共通（実ドロップと一致。P3-MAT-CODEx-001）。
 		var mat_parts: PackedStringArray = EquipmentEnhancer.forge_material_display_names()
 		if not mat_parts.is_empty():
 			research_note += "\n\n炉研ぎ素材（ダンジョン共通）: " + "  /  ".join(mat_parts)
-		_label_detail_description.text = research_note
+		_set_detail_body(research_note)
 	if stage >= 4:
 		_apply_enemy_combat_data(entry, stage, codex_class)
 
@@ -369,33 +375,33 @@ func _apply_enemy_combat_data(entry: Dictionary, stage: int, codex_class: String
 	var weaknesses: Array = entry.get("element_weakness", [])
 	var resists: Array = entry.get("element_resist", [])
 	var lines: PackedStringArray = []
-	lines.append("弱点: %s" % _format_elements(weaknesses))
-	lines.append("耐性: %s" % _format_elements(resists))
+	lines.append("%s %s" % [_CodexRichText.emph("弱点:"), _format_elements(weaknesses)])
+	lines.append("%s %s" % [_CodexRichText.emph("耐性:"), _format_elements(resists)])
 	# 行動間隔の目安（attack_speed → CT秒換算）。
 	var spd: float = float(entry.get("attack_speed", 1.0))
 	if spd > 0.0:
-		lines.append("行動間隔: 約%.1f秒" % (BASE_ACTION_CT / spd))
+		lines.append("%s 約%.1f秒" % [_CodexRichText.emph("行動間隔:"), BASE_ACTION_CT / spd])
 	# 攻撃時の付与状態異常。
 	var on_hit: String = str(entry.get("on_hit_status_id", ""))
 	if not on_hit.is_empty():
 		var chance: float = float(entry.get("on_hit_status_chance", 0.0))
 		var st_name: String = _status_display_name(on_hit)
 		if chance > 0.0:
-			lines.append("攻撃で付与: %s（%d%%）" % [st_name, int(round(chance * 100.0))])
+			lines.append("%s %s（%d％）" % [_CodexRichText.emph("攻撃で付与:"), st_name, int(round(chance * 100.0))])
 		else:
-			lines.append("攻撃で付与: %s" % st_name)
+			lines.append("%s %s" % [_CodexRichText.emph("攻撃で付与:"), st_name])
 	if not codex_class.is_empty():
-		lines.append("特効: %s" % codex_class)
+		lines.append("%s %s" % [_CodexRichText.emph("特効:"), codex_class])
 	if stage >= 5:
 		var skill_ids: Array = entry.get("skill_ids", [])
 		var skill_names: PackedStringArray = []
 		for sid in skill_ids:
 			skill_names.append(_skill_display_name(str(sid)))
 		if not skill_names.is_empty():
-			lines.append("使用スキル: %s" % " / ".join(skill_names))
+			lines.append("%s %s" % [_CodexRichText.emph("使用スキル:"), " / ".join(skill_names)])
 		var hint: String = _build_tactics_hint(weaknesses, codex_class)
 		if not hint.is_empty():
-			lines.append("有効戦術: %s" % hint)
+			lines.append("%s %s" % [_CodexRichText.emph("有効戦術:"), hint])
 		var enemy_id: String = str(entry.get("id", ""))
 		var phase_text: String = CombatBossPhases.codex_phase_text(
 			enemy_id, GameState.get_boss_phases_seen(enemy_id)
@@ -404,7 +410,7 @@ func _apply_enemy_combat_data(entry: Dictionary, stage: int, codex_class: String
 			lines.append(phase_text)
 	_label_detail_related_header.text = "戦闘データ"
 	_label_detail_related_header.visible = true
-	_label_detail_related.text = "\n".join(lines)
+	_set_detail_related("\n".join(lines))
 	_label_detail_related.visible = true
 
 func _status_display_name(status_id: String) -> String:
@@ -477,7 +483,7 @@ func _show_related(header: String, related: Variant) -> void:
 		return
 	_label_detail_related_header.text = header
 	_label_detail_related_header.visible = true
-	_label_detail_related.text = ", ".join(parts)
+	_set_detail_related(", ".join(parts))
 	_label_detail_related.visible = true
 
 func _hide_bible_fields() -> void:

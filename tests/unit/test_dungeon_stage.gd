@@ -122,11 +122,17 @@ func test_whisperwood_stage_enemy_level_overrides_biome() -> void:
 func test_whisperwood_first_stage_locked_until_mourngate_cleared() -> void:
 	assert_false(GameState.is_stage_unlocked("whisperwood_2_1"))
 	_unlock_whisperwood()
-	assert_true(GameState.is_stage_unlocked("whisperwood_2_1"))
-	assert_false(GameState.is_stage_unlocked("whisperwood_2_2"))
+	if Constants.BETA_MOURNGATE_ONLY:
+		assert_false(GameState.is_stage_unlocked("whisperwood_2_1"), "βは②章も未解放")
+	else:
+		assert_true(GameState.is_stage_unlocked("whisperwood_2_1"))
+		assert_false(GameState.is_stage_unlocked("whisperwood_2_2"))
 
 func test_whisperwood_stage_unlock_chain() -> void:
 	_unlock_whisperwood()
+	if Constants.BETA_MOURNGATE_ONLY:
+		assert_false(GameState.is_stage_unlocked("whisperwood_2_1"), "βは②ロック")
+		return
 	GameState.mark_stage_cleared("whisperwood_2_1")
 	assert_true(GameState.is_stage_unlocked("whisperwood_2_2"))
 	assert_false(GameState.is_stage_unlocked("whisperwood_2_3"))

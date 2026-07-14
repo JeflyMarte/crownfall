@@ -24,11 +24,14 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | DataRegistry | `scripts/autoload/DataRegistry.gd` |
 | SceneRouter | `scripts/autoload/SceneRouter.gd` |
 | EventBus | `scripts/autoload/EventBus.gd` |
+| AudioManager | `scripts/audio/AudioManager.gd`（**P3-AUDIO-SE-001/002**・`SfxCatalog`） |
 | DailyMissionSystem | `scripts/autoload/DailyMissionSystem.gd`（**P3-DAILY** 日課3件/日） |
 | EventSystem | `scripts/autoload/EventSystem.gd`（**P3-EVT-WEEK-002** 6週ローテ・`EventWeekRotation` SSOT・JST 5:00） |
 | GachaSystem | `scripts/autoload/GachaSystem.gd` |
 
-**危険度ティア（P3-DG-TIER）:** `DungeonTierConfig.gd` — `GameState.current_dungeon_tier` / `dungeon_tier_cleared`。戦闘=敵Lv補正・レア重み・報酬倍率。UI=`DungeonSelectScene` TabsRow。
+**危険度ティア（P3-DG-TIER / P3-DG-TIER-002）:** `DungeonTierConfig.gd` — Hard/NM はメイン5キャンペーン周回帯。解放=ノーマル全クリア／ハード全クリア。敵Lvボーナス= N5-5 cap / 2×cap。UI=`DungeonSelectScene` TabsRow。  
+**ティア見た目／呼称（P3-ENEMY-TIER-VAR）:** `EnemyTierVariantConfig.gd` — 同IDの Hard/NM 表示名＋個性上書き（ベース数値据置）。スプライトは `DungeonScene.ENEMY_SPRITE_MAP_BY_TIER`。  
+**初期5ストーリー（P3-STORY-STARTER）:** `StarterPickScene` / `StarterRecruitment` — 開始1人選択、×-5（＋β Extra 1-2〜1-4）で加入。`starter_unlocked_ids` セーブ。
 
 ---
 
@@ -36,7 +39,8 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 
 | シーン | パス | スクリプト |
 |---|---|---|
-| BootScene | `scenes/boot/BootScene.tscn` | `scripts/boot/BootScene.gd` |
+| BootScene | `scenes/boot/BootScene.tscn` | `scripts/boot/BootScene.gd`（→ Title。起動時ロードなし） |
+| TitleScene | `scenes/title/TitleScene.tscn` | `scripts/title/TitleScene.gd`（**P3-UI-TITLE-001** Continue / New Game） |
 | BaseScene | `scenes/base/BaseScene.tscn` | `scripts/base/BaseScene.gd` |
 | DungeonScene | `scenes/dungeon/DungeonScene.tscn` | `scripts/dungeon/DungeonScene.gd` |
 | DungeonSelectScene | `scenes/dungeon/DungeonSelectScene.tscn` | `scripts/dungeon/DungeonSelectScene.gd` |
@@ -50,7 +54,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | CommanderScene | `scenes/commander/CommanderScene.tscn` | `scripts/commander/CommanderScene.gd`（**P3-CMD-001** 隊長台帳・C級解放） |
 | SettingsScene | `scenes/settings/SettingsScene.tscn` | `scripts/settings/SettingsScene.gd`（設定 MVP・`SettingsPrefs`） |
 
-**遷移:** Boot → Base → Dungeon → Result →（Appraisal / Equipment / **Blacksmith** / **Codex**）→ Base
+**遷移:** Boot → Title →（Continue: load→ Base / Pick｜New Game: reset→ Pick→ Base）→ Dungeon → Result →（Equipment / **Blacksmith** / **Codex**）→ Base
 
 **DungeonScene ノード（Phase UI-2 実装済み）:**
 - `MainVBox` — HeaderBar / BattlefieldArea / **BattleLogPanel** / **NarrativePanel** / BottomZone
@@ -114,22 +118,24 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `appraisal/` | `AppraisalController.gd`, `AppraisalScene.gd` |
 | `base/` | `BaseScene.gd`（**P3-UI-Base-A** Hub/MenuGrid・日課報酬表示・**EventBanner** P3-EVT-HUB） |
 | `event/` | **`EventScene.gd`**・**`EventScheduleHelper.gd`**（JST 日付境界） |
-| `boot/` | `BootScene.gd` |
+| `boot/` | `BootScene.gd`（Title へ委譲） |
+| `title/` | `TitleScene.gd`（**P3-UI-TITLE-001**） |
 | `combat/` | **コア:** `CombatController.gd`（`class_name`・CT/ATB・Threat・群れ/混成・個別ターゲット・詠唱・ボスフェーズ index）, `SkillExecutor.gd`, `StatusResolver.gd`, `StatusInstance.gd`, `ElementResolver.gd`, **`DamageCalculator.gd`**（ダメージ式 SSOT・シーン非依存 static・P3-REF-001）, **`BalanceConfig.gd`**（グローバルバランス定数 SSOT・P3-BAL-005） |
 | | **戦術/AI:** `CombatTactics.gd`（プリセット6・発動条件・温存・P3-D086/108/113/127）, `CombatGambit.gd`（カスタム戦術5行・P3-D122/127） |
 | | **パッシブ/シナジー:** `CombatPassives.gd`, `CombatSynergy.gd`, `CombatTags.gd`, `CombatCombos.gd`（P3-D109） |
 | | **メタ/周回:** `CombatPassives.gd`（レリック定義 SSOT・P3-RELIC-PASSIVE）, `CombatRelics.gd`（表示/互換ファサード）, `CombatLinks.gd`（連鎖3種・P3-D115）, `CombatBossPhases.gd`（P3-D116）, `ExplorationSkills.gd`（P3-D117）, `CombatFastRun.gd`（P3-D118）, `CombatWeather.gd`（天候・P3-D101） |
-| `dungeon/` | `DungeonController.gd`, `DungeonScene.gd`（生態素材ドロップ・図鑑方針ボーナス P3-D128）・**`DungeonTierConfig.gd`**（危険度ティア P3-D164）・**`WanderingEnemyConfig.gd`**（遍在希少種 P3-D166） |
+| `dungeon/` | `DungeonController.gd`, `DungeonScene.gd`（生態素材ドロップ・図鑑方針ボーナス P3-D128）・**`DungeonTierConfig.gd`**（危険度ティア P3-D164）・**`EnemyTierVariantConfig.gd`**（Hard/NM 呼称・個性 P3-ENEMY-TIER-VAR）・**`WanderingEnemyConfig.gd`**（遍在希少種 P3-D166） |
 | `equipment/` | `EquipmentController.gd`, `EquipmentScene.gd`, **`EquipmentUiHelper.gd`**（P3-UI2-019）, **`EquipmentUiTokens.gd`**（装備 chrome）, **`BuildTagHelper.gd`**（P3-UI2-016）, **`AffixRoller.gd`**, **`AffixStatCalculator.gd`**, **`AffixDisplayFormatter.gd`**, **`JobStatCalculator.gd`** |
-| `blacksmith/` | `BlacksmithScene.gd`（P3-UI2-018 Master-Detail UI）・`BlacksmithUiHelper.gd`（レシピ表示ヘルパ）・**`ForgeUiTokens.gd`**（鍛冶屋 chrome アセットパス） |
+| `blacksmith/` | `BlacksmithScene.gd`（生産／炉研ぎ／**錬成**／分解 — **P3-FORGE-ALCHEMY-001**）・`BlacksmithUiHelper.gd`・**`ForgeUiTokens.gd`** |
 | `gacha/` | **`GachaSystem.gd`**（**P3-GACHA-005** ★1〜4排出・`GachaRarityConfig`）・**`GachaRarityConfig.gd`**・**`GachaScene.gd`**（P3-UI2-020・**P3-GACHA-002/003**・**P3-UI-GACHA**）・**`GachaUiTokens.gd`**・**`GachaUiHelper.gd`** |
 | `guild/` | **`GuildScene.gd`**（P3-D052 ジョブ認定・**P3-UI2-024** 認定カードリスト polish） |
 | `crafting/` | **`CraftHelper.gd`**（`can_craft` / `get_craftable_recipes` — P3-D141） |
-| `codex/` | **`CatalogHelper.gd`**（P2-Task046/049 — Bible parse + Entry）, **`CodexScene.gd`**（P2-Task047/048/049 — Detail + Bible fields・**P3-UI2-020** Header/BottomNav） |
+| `codex/` | **`CatalogHelper.gd`** / **`GuideCatalog.gd`** / **`CodexRichText.gd`**（**P3-CODEX-COPY-001** 手引き日本語・色強調）, **`CodexScene.gd`**（詳細 RichTextLabel） |
 | `result/` | `ResultScene.gd`（素材アイコン P3-D135・作成可能レシピ P3-D141・**P3-UI2-023** パネル/フッター polish） |
 | `save/` | `SaveManager.gd` |
 | `systems/` | **`LevelSystem.gd`**（**Lv99上限** P3-LV-099・Lv51+逓減成長）・**`SkillProgression.gd`**・**`WeaponSkillHelper.gd`**・`JobEvolution.gd`・**`EvolutionTraits.gd`**（昇格特質 P3-D167） |
 | `ui/` | **`IconPaths.gd`** …（Phase3-A — static class、ICON_MAP による `category:id` → `ICO_*.png` 解決）・**`CurrencyHelper.gd`**（魔晶石表示 SSOT）・**`BottomNavHelper.gd`**（全拠点系6タブ遷移・**P3-UI-Base-A**）・**`NavIconHelper.gd`**（下ナビ/左メニューアイコン）・**`UiTypography.gd`** |
+| `audio/` | **`AudioManager.gd`**（Autoload）・**`SfxCatalog.gd`**（ID→ogg・**P3-AUDIO-SE-001/002**） |
 
 ### プレースホルダのみ（.gitkeep、コードなし）
 `scripts/loot/`
@@ -291,8 +297,14 @@ Task 明示指示がない限り作成しない:
 | `batch5/ENM_PaleHound_Sheet.png` | 通常敵 SpriteSheet 32×32 | ⚠ 未生成 |
 | `batch5/ENM_OssuaryKnight_Sheet.png` | elite 敵 SpriteSheet 32×32 | ⚠ 未生成 |
 
-### assets/sprites/, assets/audio/
-`.gitkeep` のみ（未実装）。
+### assets/sprites/
+用途別ディレクトリ（敵・UI・VFX 等）。詳細は各 Task 記録。
+
+### assets/audio/
+| パス | 内容 |
+|---|---|
+| `sfx/` | Kenney CC0・`SfxCatalog` 18 ID（**P3-AUDIO-SE-001**）。配線拡張 **P3-AUDIO-SE-002** |
+| `bgm/` | オーナー（Suno）枠。API のみ先置き |
 
 ---
 

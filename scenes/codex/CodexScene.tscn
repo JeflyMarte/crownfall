@@ -342,9 +342,12 @@ visible = false
 layout_mode = 2
 text = "関連:"
 
-[node name="LabelDetailRelated" type="Label" parent="DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/InfoCol"]
+[node name="LabelDetailRelated" type="RichTextLabel" parent="DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/TopRow/InfoCol"]
 visible = false
 layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
 text = ""
 autowrap_mode = 3
 
@@ -360,9 +363,12 @@ theme_override_constants/separation = 4
 layout_mode = 2
 text = "解説:"
 
-[node name="LabelDetailDescription" type="Label" parent="DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/DescBox/DescInner"]
+[node name="LabelDetailDescription" type="RichTextLabel" parent="DetailOverlay/DetailPanel/DetailVBox/DetailScroll/DetailScrollInner/DescBox/DescInner"]
 layout_mode = 2
 size_flags_vertical = 3
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
 text = ""
 autowrap_mode = 3
 

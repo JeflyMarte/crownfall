@@ -4,6 +4,28 @@
 
 ## Last Update
 
+2026-07-14（**P3-AUDIO-SE-002**: 未使用SE配線 — skill resolve / death / cancel / error。罠=`combat_hit`・ボス登場=`room_enter`。新規収録なし）
+
+2026-07-14（**P3-FORGE-ALCHEMY-001**: 鍛冶「錬成」タブ — 同種装備合成で装備Lv上昇（素材Lv×0.5・Gold 20×上昇）。炉研ぎ／分解と併存。装着時に冒険者Lvへクリップ）
+
+2026-07-14（**P3-CODEX-COPY-001**: 図鑑手引きを日本語化・鑑定等オミット語削除・素材名等を現行に同期。詳細本文 RichText 色強調。調査記録の誤字修正）
+
+2026-07-14（**P3-UI-TITLE-001**: タイトル Continue/New Game。Boot→Title（起動時ロードなし）。単一セーブ削除で再開始。設定は戻り先対応）
+
+2026-07-14（**P3-STORY-STARTER-001**: 開始1人選択＋章クリアで初期5加入（案B）。`STARTER_RECRUIT_BETA_EXTRA=ON` で①1-2〜1-4でも加入。旧セーブは全員解放互換）
+
+2026-07-14（**P3-DG-TIER-002**: Hard/NMをキャンペーン周回帯に再定義。解放=メイン5ノーマル全クリア／ハード全クリア。敵Lv +cap/+2cap（H1-1>N5-5, NM1-1>H5-5）。β体験外）
+2026-07-14（**P3-ENEMY-TIER-VAR-002**: モーンゲート全雑魚＋クロックモス＋セルディオンを Hard/NM 色・呼称・個性化。**色替えは Hard/NM 限定（ノーマル非表示）**。ベース数値据置）
+
+2026-07-14（**P3-ENEMY-TIER-VAR-001**: 墓鐘／水晶サソリ／骸面 Hard・NM — 専用色＋呼称（血鐘・紫晶・血面／月鐘・熔晶／屍面）＋個性のみ。ベース数値据置。図鑑同一）
+2026-07-14（**P3-BETA-SCOPE-001**: 公開β＝モーンゲートのみ。`BETA_MOURNGATE_ONLY`・②以降は解放 false／UI 案B 🔒表示。データ残置。①クリアしても次Biomeは解禁しない）
+
+2026-07-14（**βスコープ再設定**: 公開β＝**モーンゲート編完成**。②以降はデータ保持のまま封鎖→アップデート解禁。Task 仕分けは `CurrentSprint.md`。旧キュー先頭だった EQ-LEG-002 / ENEMY-002 はアップデート枠へ）
+
+2026-07-14（**P3-AUDIO-SE-001**: SE基盤 — Kenney CC0 18音・`AudioManager`/`SfxCatalog`・SFXバス連動。UI/戦闘/宝箱/必殺/結果/召喚へ配線。BGMはオーナー（Suno）枠を `assets/audio/bgm/` に予約）
+
+2026-07-14（**メイン5 ★3化**: `Adventurer.STARTER_RARITY` 4→3。既存セーブも `normalize_roster_rarity` で揃う。初期ステは★3帯）
+
 2026-07-13（**P3-CMD-001-9**: 指揮官名変更を隊長台帳から常時可能に（C級ロック撤廃）。起動時命名の代替）
 
 2026-07-13（**P3-UI-BTN-002〜004 撤回**: 文字可読性のため DG入場/結果/隊長台帳・日課のボタン画像化をテキストボタンへ戻した。アセットは残置。フェーズ5は引き続き STOP）
@@ -292,52 +314,28 @@
 
 ---
 
-## Next Implementation Queue（HQ 確定 2026-07-02 — P3-BETA-001b）
+## Next Implementation Queue（HQ 確定 2026-07-14 — β＝モーンゲート編）
 
-> **Beta最小=B1(2本目DG)のみ**（スタミナ撤回）。作画・実機はオーナーレーン並行。
+> **公開β＝モーンゲート完成。** ②以降は保持封鎖→アップデート解禁。詳細仕分けは `CurrentSprint.md`。
 
-| 順 | ID | 内容 | レーン | 状態 |
+| 帯 | 順 | ID | 内容 | 状態 |
 |---|---|---|---|---|
-| 0 | P3-ALPHA-003 | 実機チェックリスト v2.1（GO/NO-GO） | オーナー（可能時） | Defer |
-| — | P3-ART-002〜004 / P3-A-ENV-001 | 5職ドット / env / 助っ人本番立ち絵 | オーナー→Impl | ドット✅（P3-ART-CHR-002）・env/助っ人は並行（助っ人 OMIT 中） |
-| — | P3-ART-CHR-002 | メイン5職ダンジョンドット差替 | HQ | ✅ **Closeout** |
-| — | P3-CHR-OMIT-001 | メイン5以外オミット（batch7退避＋ガチャ助っ人） | HQ | ✅ **Closeout** |
-| — | P3-GACHA-005 | ガチャ★1〜4・パッシブ/初期ステ差別化 | Impl | ✅ **Closeout**（プレイは OMIT 中） |
-| — | P3-GACHA-004 | ガチャ助っ人+2 | Impl | ✅ **Closeout** |
-| — | **P3-SKILL-001〜006** | 基本5職 Lv50 習得10 + 武器スキル | Impl | ✅ **Closeout** |
-| — | P3-BETA-001 設計 | 2本目DG 具体（Biome/敵/イベント） | HQ+オーナー | ✅ **Closeout（P3-D154）** |
-| — | P3-BETA-B1 | 2本目 DG 実装 | Impl | ✅ **Closeout（P3-D154・実機未確認）** |
-| — | P3-BETA-002 | ③ミストフェン一式（敵6+装備20・P3-D154 の型で反復） | HQ+Impl | ✅ **Closeout（P3-D156・実機未確認）** |
-| — | P3-BETA-003/004 | ④沈没航路ブラックショア・⑤最果て氷裂フロストリッジ 一式 | HQ+Impl | ✅ **Closeout（P3-D160/D161・実機未確認）** |
-| — | P3-EVT-001 | ②③ Biome 専用イベント各5件＋LF断章4件 | Impl | ✅ **Closeout** |
-| — | P3-SUB-001 | 寄り道 broken_marsh パイロット（P3-D159） | Impl | ✅ **Closeout（実機未確認）** |
-| — | P3-GACHA-006 | ★3/★4 職固有パッシブ（P3-D155-3） | Impl | ✅ **Closeout** |
-| — | P3-GACHA-007 | 助っ人 5→10体＋立ち絵 AI 生成（P3-D162） | Impl | ✅ **Closeout（実機未確認）** |
-| **1** | **P3-UI3-003** | UI監査 拠点画面（図鑑タブ/DG選択/召喚所） | Impl | ✅ **Closeout** |
-| — | **P3-BAL-007** | 装備数量補充 + アセット配線バンドル | Impl | ✅ **Closeout** |
-| — | **P3-EVT-HUB** | 期間限定バフイベント（週次ローテ・端末日付） | Impl | ✅ **Closeout**（**P3-EVT-WEEK-002** で6週拡張） |
-| — | **P3-CMD-001** | 指揮官・調査許可等級・隊長台帳 | Impl | ✅ **Closeout** |
-| — | **P3-EVT-WEEK-002** | 週替わり「野外の変化」6週ローテ | Impl | ✅ **Closeout** |
-| — | **P3-DG-TIER-001** | 危険度ティア（ノーマル/ハード/ナイトメア） | Impl | ✅ **Closeout** |
-| — | **P3-LV-099-001** | Lv上限99（51〜99ステ逓減） | Impl | ✅ **Closeout** |
-| — | **P3-WANDER-001** | 遍在希少種（遠旅スズメ/聖遺甲虫） | Impl | ✅ **Closeout** |
-| — | **P3-EVO-TRAIT-001** | 昇格特質×2 + 進化Lv30 | Impl | ✅ **Closeout** |
-| — | **P3-UI-DG-001** | ダンジョン選択モック再構成（案C） | Impl | ✅ **Closeout** |
-| — | **P3-UI-GACHA** | 召喚所モック寄せ（chrome+Reveal+監査） | Impl | ✅ **Closeout** |
-| — | P3-D157 | ダンジョン解放条件（①クリア→②解放 等） | Impl | ✅ **Closeout** |
-| — | P3-D158 | ダメージ±乱数（ブレークポイント緩和・P3-D153-4） | Impl | ✅ **Closeout（P3-BAL-008）** |
-| — | P3-DAILY-B | 日課 UI polish | Impl | 任意 |
-| — | P3-UI2-026 | 召喚 SE/パーティクル | Impl | Defer（音源なし） |
-| — | 029 占位整理 | ⚡/挑戦回数 UI 削除（任意） | Impl | 未計画 |
-| **2** | **P3-DG-STG-001** | サブステージ（mourngate 1-1〜1-5 + ②〜⑤横展開）+ `spawn_weights` | **完了**（P3-DG-STG-ENABLE） |
-| **3** | **P3-EQ-LVL-001** | 装備レベル（全装備・BiomeドロップLv） | Impl | ✅ **Closeout** |
-| **4** | **P3-EQ-LEG-002** | 防具・装飾★ ②〜⑤横展開 | Impl | 未着手 |
-| **5** | **P3-ENEMY-002** | 新雑魚 +8〜12 | HQ+Impl | **部分着手**（② whisperwood +4種） |
-| — | **P3-UI-BTN-002〜004** | DG入場/結果/隊長・日課ボタン画像化 | Impl | ↩ **撤回**（テキスト戻し・可読性） |
-| — | **P3-UI-BTN-005** | ボタン画像化フェーズ5（装備・編成） | Impl | **STOP**（オーナー GO 待ち） |
-| — | **P3-UX-ULTIMATE-001** | 必殺 resolve 演出（案A） | Impl | ✅ **Closeout**（要実機確認） |
+| **β必須** | 1 | **P3-BETA-SCOPE-001** | ②以降＋寄り道を選択不可（データ削除なし） | ✅ **Closeout**（案B 🔒） |
+| **β必須** | 2 | 実機通し | ① 1-1〜ボス・必殺/VFX/SE/セーブ | オーナー |
+| **β必須** | 3 | **P3-BETA-QA-001** | 進行不能・クラッシュ遮断／許容リスト | HQ+オーナー |
+| **β必須** | 4 | バランス通し | ①周回が成立する最小調整 | 要なら Impl |
+| **β推奨** | — | **P3-UI-TITLE-001** | タイトル Continue / New Game（単一セーブ） | ✅ Impl（要実機） |
+| **β推奨** | — | P3-STORY-STARTER-001 | 開始1人＋章加入 | ✅ Impl（要実機） |
+| **β推奨** | — | P3-AUDIO-SE-002 | SE 未配線（skill/death/cancel/error 等） | ✅ Impl（要実機） |
+| **β推奨** | — | P3-DAILY-B / 権利表記 | 日課 polish・Kenney クレジット | 任意 |
+| **Update** | — | ②〜⑤解禁＋磨き | 旧 BETA-B1〜004 の実機・資産 | 後続 |
+| **Update** | — | P3-EQ-LEG-002 | 防具・装飾★ ②〜⑤ | 後続（旧キュー4） |
+| **Update** | — | P3-ENEMY-002 残り | 新雑魚（②+4済以外） | 後続（旧キュー5） |
+| **Update** | — | BGM / 助っ人再有効 / UI-BTN-005 | Suno・ガチャ・ボタン画像 | 後続 |
+| — | — | P3-UX-ULTIMATE-001 / P3-AUDIO-SE-001 | 必殺演出・SE基盤 | ✅ Closeout（要実機） |
+| — | — | P3-DG-STG-ENABLE 等 | サブステージ有効化済み | ✅（βでは①のみ解放） |
 
-**凍結（Decision まで着手しない）:** 天候本格 / 週間日課 / 10連ガチャ / 6装備枠 / Affix本格 / 位置AI本格 / 探索手動+CD。
+**凍結（Decision まで着手しない）:** 天候本格 / 週間日課 / 10連ガチャ / 6装備枠 / Affix本格 / 位置AI本格 / 探索手動+CD / ボタン全面画像化再開。
 
 ---
 
@@ -349,9 +347,9 @@ ProjectDocs **v3.6.0**
 
 ## Current Phase
 
-**Phase3-A — Alpha Closeout 完了（案A）** — P3-UI2-029 Closeout。受理ゲート=`smoke_test.sh` PASS（P3-ALPHA-003b）。Phase 3-B' システム完成済。
-- **Beta 計画（P3-BETA-001b）:** **2本目DG のみ**（スタミナ撤回）— **設計 Decision が次**
-- 作画・実機はオーナーレーン並行（プレースホルダのまま Alpha Close 可）
+**β — モーンゲート編完成**（2026-07-14 再設定）。システム／①〜⑤データは実装済み。公開体験は①に絞り、②以降はアップデート解禁。
+- 受理ゲート=`smoke_test.sh` PASS ＋ オーナー実機通し（①）
+- 次=実機通し（①）＋タイトル／スターター加入の確認
 
 ---
 

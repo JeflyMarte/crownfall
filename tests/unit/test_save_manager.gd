@@ -35,6 +35,9 @@ func _reset_game_state() -> void:
 	GameState.armor_inventory = []
 	GameState.accessory_inventory = []
 	GameState._init_party()
+	# ストーリーON時 _init_party は空ロスターになるため、既存セーブ系テスト用に全解放する
+	if Constants.STARTER_STORY_RECRUIT:
+		GameState.seed_all_starters_unlocked()
 	GameState.gold = 0
 	GameState.gacha_token = 0
 	GameState.gacha_pity = 0
@@ -87,10 +90,11 @@ func test_roundtrip_restores_roster_member_progress() -> void:
 	assert_eq(int(loaded.exp), 4200, "exp が復元されること")
 
 func test_roundtrip_keeps_base_roster_complete() -> void:
+	GameState.seed_all_starters_unlocked()
 	var before_size: int = GameState.roster.size()
 	SaveManager.save_game()
 	SaveManager.load_game()
-	assert_gte(GameState.roster.size(), 5, "基本5職が揃っていること")
+	assert_gte(GameState.roster.size(), 5, "基本5職が揃っていること（全解放シード後）")
 	assert_eq(GameState.roster.size(), before_size, "ロスター人数が保存前後で一致すること")
 	assert_false(GameState.party_members.is_empty(), "アクティブ編成が復元されること")
 
@@ -233,10 +237,43 @@ func test_load_future_version_is_best_effort() -> void:
 	SaveManager.load_game()
 	assert_eq(GameState.gold, 654, "将来バージョンのセーブも best-effort でロードすること")
 
+func test_has_save_and_delete_save() -> void:
+	assert_false(SaveManager.has_save(), "初期はセーブなし")
+	SaveManager.save_game()
+	assert_true(SaveManager.has_save(), "save_game 後はセーブあり")
+	SaveManager.delete_save()
+	assert_false(SaveManager.has_save(), "delete_save 後はセーブなし")
+	assert_false(FileAccess.file_exists(SAVE_PATH), "ファイルも消えていること")
+
+
+func test_reset_for_new_game_clears_progress() -> void:
+	GameState.gold = 999
+	GameState.dungeon_progress = {"mourngate": true}
+	GameState.starter_unlocked_ids = ["adventurer_0"]
+	GameState.starter_pick_pending = false
+	GameState.reset_for_new_game()
+	assert_eq(GameState.gold, 0)
+	assert_eq(GameState.dungeon_progress.size(), 0)
+	if Constants.STARTER_STORY_RECRUIT:
+		assert_true(GameState.starter_pick_pending)
+		assert_eq(GameState.roster.size(), 0)
+		assert_eq(GameState.starter_unlocked_ids.size(), 0)
+
+
+func test_title_scene_exists() -> void:
+	assert_true(ResourceLoader.exists("res://scenes/title/TitleScene.tscn"))
+
+
 func test_load_clamps_oversized_active_party() -> void:
+	GameState.seed_all_starters_unlocked()
 	var ids: Array = []
 	for m in GameState.roster:
 		ids.append(str(m.id))
-	_write_raw_save(JSON.stringify({"active_party_ids": ids}))
+	_write_raw_save(JSON.stringify({
+		"roster": SaveManager._serialize_roster(),
+		"starter_unlocked_ids": GameState.starter_unlocked_ids.duplicate(),
+		"starter_pick_pending": false,
+		"active_party_ids": ids,
+	}))
 	SaveManager.load_game()
 	assert_eq(GameState.party_members.size(), GameState.ACTIVE_PARTY_SIZE, "先頭 ACTIVE_PARTY_SIZE 人のみ採用")

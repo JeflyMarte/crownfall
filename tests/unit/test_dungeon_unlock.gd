@@ -37,13 +37,30 @@ func test_side_routes_unlock_after_prior_main() -> void:
 func test_second_main_locked_until_first_cleared() -> void:
 	assert_false(GameState.is_dungeon_unlocked("whisperwood"), "①未クリアでは②ロック")
 	GameState.mark_dungeon_cleared("mourngate")
-	assert_true(GameState.is_dungeon_unlocked("whisperwood"), "①クリアで②解放")
+	if Constants.BETA_MOURNGATE_ONLY:
+		assert_false(GameState.is_dungeon_unlocked("whisperwood"), "βは①クリア後も②ロック")
+	else:
+		assert_true(GameState.is_dungeon_unlocked("whisperwood"), "①クリアで②解放")
 
 func test_third_main_requires_second_not_first() -> void:
 	GameState.mark_dungeon_cleared("mourngate")
 	assert_false(GameState.is_dungeon_unlocked("mistfen"), "②未クリアでは③ロック")
 	GameState.mark_dungeon_cleared("whisperwood")
-	assert_true(GameState.is_dungeon_unlocked("mistfen"), "②クリアで③解放")
+	if Constants.BETA_MOURNGATE_ONLY:
+		assert_false(GameState.is_dungeon_unlocked("mistfen"), "βは③もロック")
+	else:
+		assert_true(GameState.is_dungeon_unlocked("mistfen"), "②クリアで③解放")
+
+func test_beta_mourngate_only_keeps_later_mains_locked() -> void:
+	if not Constants.BETA_MOURNGATE_ONLY:
+		pass_test("BETA_MOURNGATE_ONLY off")
+		return
+	assert_true(GameState.is_dungeon_unlocked("mourngate"))
+	GameState.mark_dungeon_cleared("mourngate")
+	GameState.mark_dungeon_cleared("whisperwood")
+	GameState.mark_dungeon_cleared("mistfen")
+	for dungeon_id in ["whisperwood", "mistfen", "blackshore", "frostridge"]:
+		assert_false(GameState.is_dungeon_unlocked(dungeon_id), "β封鎖: " + dungeon_id)
 
 func test_unknown_dungeon_locked() -> void:
 	assert_false(GameState.is_dungeon_unlocked("no_such_dungeon"), "未知IDは false")

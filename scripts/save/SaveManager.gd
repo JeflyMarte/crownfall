@@ -40,6 +40,8 @@ func save_game() -> void:
 		"current_stage_id": GameState.current_stage_id,
 		"stage_progress": GameState.stage_progress.duplicate(true),
 		"commander": GameState.commander.duplicate(true),
+		"starter_unlocked_ids": GameState.starter_unlocked_ids.duplicate(),
+		"starter_pick_pending": GameState.starter_pick_pending,
 	}
 	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file == null:
@@ -47,8 +49,17 @@ func save_game() -> void:
 	file.store_string(JSON.stringify(data))
 	file.close()
 
+func has_save() -> bool:
+	return FileAccess.file_exists(SAVE_PATH)
+
+
+func delete_save() -> void:
+	if FileAccess.file_exists(SAVE_PATH):
+		DirAccess.remove_absolute(SAVE_PATH)
+
+
 func load_game() -> void:
-	if not FileAccess.file_exists(SAVE_PATH):
+	if not has_save():
 		return
 	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.READ)
 	if file == null:
@@ -333,7 +344,17 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.armor_inventory = _deserialize_armor_inventory(data["armor_inventory"])
 	if data.has("accessory_inventory") and data["accessory_inventory"] is Array:
 		GameState.accessory_inventory = _deserialize_accessory_inventory(data["accessory_inventory"])
+	if data.has("starter_unlocked_ids") and data["starter_unlocked_ids"] is Array:
+		var unlocked: Array[String] = []
+		for raw_id: Variant in data["starter_unlocked_ids"]:
+			var sid: String = str(raw_id)
+			if not sid.is_empty() and sid not in unlocked:
+				unlocked.append(sid)
+		GameState.starter_unlocked_ids = unlocked
+	if data.has("starter_pick_pending"):
+		GameState.starter_pick_pending = bool(data["starter_pick_pending"])
 	_apply_roster_save(data)
+	GameState.migrate_starter_unlock_state()
 	_apply_gacha_save(data)
 	if data.has("enemy_codex") and data["enemy_codex"] is Dictionary:
 		var codex: Dictionary = {}

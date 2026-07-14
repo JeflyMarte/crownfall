@@ -244,6 +244,12 @@ size_flags_horizontal = 3
 toggle_mode = true
 text = "強化"
 
+[node name="BtnAlchemy" type="Button" parent="ModeTabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+text = "錬成"
+
 [node name="BtnDismantle" type="Button" parent="ModeTabs"]
 layout_mode = 2
 size_flags_horizontal = 3

@@ -292,6 +292,7 @@ func _refresh_next_button_text() -> void:
 		_button_next.text = "次へ"
 
 func _on_next_pressed() -> void:
+	AudioManager.play_sfx("ui_confirm")
 	if _current_step == ResultFlowScript.Step.LEVELUP and _levelup_animating:
 		_levelup_skip_requested = true
 		return
@@ -469,6 +470,7 @@ func _animate_member_exp_row(row: Dictionary, timings: Dictionary) -> void:
 		if exp >= cap and lv < LevelSystem.MAX_LEVEL:
 			flash.visible = true
 			_style_exp_bar(bar, ExpBarPresenterScript.COLOR_BAR_LEVELUP)
+			AudioManager.play_sfx("level_up", 1.0, 0.08)
 			await get_tree().create_timer(float(timings.get("level_up", 0.35))).timeout
 			flash.visible = false
 			_style_exp_bar(bar, ExpBarPresenterScript.COLOR_BAR)
@@ -935,6 +937,15 @@ func _build_rewards() -> void:
 	_reward_row.add_child(_make_reward_cell(null, "経験値", "経験値", str(GameState.last_run_exp_reward)))
 	var gold_icon: Texture2D = load("res://assets/ui/batch2/ICO_Gold.png") as Texture2D
 	_reward_row.add_child(_make_reward_cell(gold_icon, "G", "ゴールド", str(GameState.last_run_gold_reward)))
+	if not GameState.last_run_starter_recruited_name.is_empty():
+		_reward_row.add_child(
+			_make_reward_cell(
+				null,
+				"加入",
+				"隊員合流",
+				str(GameState.last_run_starter_recruited_name)
+			)
+		)
 	if GameState.last_run_token_reward > 0:
 		_reward_row.add_child(_make_reward_cell(
 			CurrencyHelper.get_icon_texture(), "", CurrencyHelper.DISPLAY_NAME,
@@ -1205,6 +1216,7 @@ func _add_info_pair(key: String, value: String) -> void:
 	_info_grid.add_child(value_label)
 
 func _on_retry_pressed() -> void:
+	AudioManager.play_sfx("ui_confirm")
 	if not _exp_applied and ResultFlowScript.show_levelup_step(
 		GameState.last_run_outcome, GameState.last_run_exp_reward
 	):
@@ -1214,6 +1226,7 @@ func _on_retry_pressed() -> void:
 	SceneRouter.change_scene(DUNGEON_SCENE)
 
 func _on_home_pressed() -> void:
+	AudioManager.play_sfx("ui_confirm")
 	if not _exp_applied and ResultFlowScript.show_levelup_step(
 		GameState.last_run_outcome, GameState.last_run_exp_reward
 	):

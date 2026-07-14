@@ -405,6 +405,8 @@ func _stage_list_line_bbcode(stage: Resource, unlocked: bool) -> String:
 
 func _dungeon_list_line_bbcode(data: Resource, unlocked: bool) -> String:
 	var name: String = _dungeon_card_title(data)
+	if not unlocked:
+		name = "🔒 %s" % name
 	var parts: Array[String] = []
 	if int(data.floor_count) > 0:
 		parts.append("%dF" % int(data.floor_count))
@@ -798,7 +800,10 @@ func _make_biome_title_label(data: Resource, unlocked: bool) -> Control:
 	margin.add_theme_constant_override("margin_top", 2)
 	margin.add_theme_constant_override("margin_bottom", 2)
 	var label := Label.new()
-	label.text = str(data.display_name)
+	var title: String = str(data.display_name)
+	if not unlocked:
+		title = "🔒 %s" % title
+	label.text = title
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	if not unlocked:
@@ -1042,8 +1047,10 @@ func _make_biome_card(data: Resource) -> PanelContainer:
 		UiTypography.apply_button(btn, is_featured)
 		btn.pressed.connect(_on_select_pressed.bind(dungeon_id))
 	else:
-		btn.text = "ロック中"
+		btn.text = "🔒 ロック中"
 		btn.disabled = true
+		if Constants.BETA_MOURNGATE_ONLY and str(data.route_type) == "main":
+			btn.tooltip_text = "今後のアップデートで解放予定"
 	action.add_child(btn)
 	return card
 

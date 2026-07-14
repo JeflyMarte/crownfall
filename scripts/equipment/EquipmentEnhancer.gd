@@ -22,6 +22,10 @@ const EQUIP_LEGENDARY_GROWTH_MULT: float = 1.25
 const EQUIP_EXP_BASE: int = 10
 const EQUIP_EXP_PER_LEVEL: int = 5
 const DISMANTLE_CRAFT_RETURN_CAP: float = 0.6
+## 錬成 — P3-FORGE-ALCHEMY-001
+const ALCHEMY_LEVEL_FACTOR: float = 0.5
+const ALCHEMY_GOLD_PER_GAIN: int = 20
+const ALCHEMY_CONFIRM_ENHANCE_LEVEL: int = 3
 
 const GOLD_BY_NEXT_LEVEL: Dictionary = {
 	1: 30,
@@ -404,10 +408,112 @@ static func assign_drop_equip_level(item: Resource, stage: Resource, dungeon: Re
 		item.equip_exp = 0
 
 static func format_equip_level_tag(item: Resource) -> String:
-	var lv: int = get_equip_level(item)
-	if lv <= 1:
-		return ""
-	return " Lv.%d" % lv
+	return " Lv.%d" % get_equip_level(item)
+
+
+static func alchemy_level_gain(fodder: Resource) -> int:
+	return maxi(1, int(floor(float(get_equip_level(fodder)) * ALCHEMY_LEVEL_FACTOR)))
+
+
+static func alchemy_gold_cost(applied_gain: int) -> int:
+	return maxi(0, applied_gain) * ALCHEMY_GOLD_PER_GAIN
+
+
+static func alchemy_needs_confirm(fodder: Resource) -> bool:
+	if fodder == null:
+		return false
+	if item_rarity(fodder) >= Enums.Rarity.EPIC:
+		return true
+	return get_enhance_level(fodder) >= ALCHEMY_CONFIRM_ENHANCE_LEVEL
+
+
+static func clamp_equip_level_to_member(item: Resource, member: Resource) -> void:
+	if item == null or member == null or not ("equip_level" in item):
+		return
+	var cap: int = equip_level_cap_for_member(member)
+	if get_equip_level(item) > cap:
+		item.equip_level = cap
+
+
+static func alchemy_preview(base: Resource, fodder: Resource) -> Dictionary:
+	var check: Dictionary = can_alchemy(base, fodder)
+	if not bool(check.get("ok", false)):
+		return check
+	var from_lv: int = get_equip_level(base)
+	var gain_raw: int = alchemy_level_gain(fodder)
+	var to_lv: int = mini(EQUIP_MAX_LEVEL, from_lv + gain_raw)
+	var applied: int = to_lv - from_lv
+	var gold: int = alchemy_gold_cost(applied)
+	return {
+		"ok": true,
+		"reason": "",
+		"from_level": from_lv,
+		"to_level": to_lv,
+		"gain": applied,
+		"gold_cost": gold,
+		"needs_confirm": alchemy_needs_confirm(fodder),
+	}
+
+
+static func can_alchemy(base: Resource, fodder: Resource) -> Dictionary:
+	var fail := func(reason: String) -> Dictionary:
+		return {"ok": false, "reason": reason}
+	if base == null or fodder == null:
+		return fail.call("主材と素材を選んでください")
+	if base == fodder:
+		return fail.call("同じ装備を素材にはできません")
+	var cat_base: String = item_category(base)
+	var cat_fodder: String = item_category(fodder)
+	if cat_base.is_empty() or cat_fodder.is_empty():
+		return fail.call("装備が不正です")
+	if cat_base != cat_fodder:
+		return fail.call("同じ種類の装備同士のみ錬成できます")
+	if GameState.find_item_equipped_member_index(base) >= 0:
+		return fail.call("主材が装備中です。外してから行ってください")
+	if GameState.find_item_equipped_member_index(fodder) >= 0:
+		return fail.call("素材が装備中です。外してから行ってください")
+	var from_lv: int = get_equip_level(base)
+	if from_lv >= EQUIP_MAX_LEVEL:
+		return fail.call("主材は装備レベル上限です")
+	var to_lv: int = mini(EQUIP_MAX_LEVEL, from_lv + alchemy_level_gain(fodder))
+	var applied: int = to_lv - from_lv
+	if applied <= 0:
+		return fail.call("レベルが上がりません")
+	var gold: int = alchemy_gold_cost(applied)
+	if GameState.gold < gold:
+		return fail.call("ゴールドが足りません")
+	return {
+		"ok": true,
+		"reason": "",
+		"from_level": from_lv,
+		"to_level": to_lv,
+		"gain": applied,
+		"gold_cost": gold,
+		"needs_confirm": alchemy_needs_confirm(fodder),
+	}
+
+
+static func perform_alchemy(base: Resource, fodder: Resource) -> Dictionary:
+	var preview: Dictionary = alchemy_preview(base, fodder)
+	if not bool(preview.get("ok", false)):
+		return preview
+	var gold: int = int(preview.get("gold_cost", 0))
+	var to_lv: int = int(preview.get("to_level", get_equip_level(base)))
+	if GameState.gold < gold:
+		return {"ok": false, "reason": "ゴールドが足りません"}
+	if not _remove_item_from_inventory(fodder):
+		return {"ok": false, "reason": "素材を削除できませんでした"}
+	GameState.gold -= gold
+	base.equip_level = to_lv
+	return {
+		"ok": true,
+		"reason": "",
+		"from_level": int(preview.get("from_level", 1)),
+		"to_level": to_lv,
+		"gain": int(preview.get("gain", 0)),
+		"gold_cost": gold,
+	}
+
 
 static func can_dismantle_item(item: Resource) -> Dictionary:
 	var fail := func(reason: String) -> Dictionary:

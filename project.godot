@@ -26,6 +26,7 @@ EventBus="*res://scripts/autoload/EventBus.gd"
 SaveManager="*res://scripts/save/SaveManager.gd"
 DailyMissionSystem="*res://scripts/autoload/DailyMissionSystem.gd"
 EventSystem="*res://scripts/autoload/EventSystem.gd"
+AudioManager="*res://scripts/audio/AudioManager.gd"
 _MCPGameBridge="*res://addons/agent_tools/runtime/game_bridge.gd"
 _mcp_game_helper="*res://addons/godot_ai/runtime/game_helper.gd"
 

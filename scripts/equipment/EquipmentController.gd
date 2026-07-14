@@ -22,6 +22,7 @@ func equip_weapon(item: Resource, member_index: int) -> void:
 	if not _is_valid_member_index(member_index):
 		return
 	GameState.clear_item_from_other_members(item, member_index)
+	EquipmentEnhancer.clamp_equip_level_to_member(item, GameState.party_members[member_index])
 	GameState.party_members[member_index].equipped_weapon = item
 	SaveManager.save_game()
 
@@ -29,6 +30,7 @@ func equip_armor(item: Resource, member_index: int) -> void:
 	if not _is_valid_member_index(member_index):
 		return
 	GameState.clear_item_from_other_members(item, member_index)
+	EquipmentEnhancer.clamp_equip_level_to_member(item, GameState.party_members[member_index])
 	GameState.party_members[member_index].equipped_armor = item
 	SaveManager.save_game()
 
@@ -36,6 +38,7 @@ func equip_accessory(item: Resource, member_index: int) -> void:
 	if not _is_valid_member_index(member_index):
 		return
 	GameState.clear_item_from_other_members(item, member_index)
+	EquipmentEnhancer.clamp_equip_level_to_member(item, GameState.party_members[member_index])
 	GameState.party_members[member_index].equipped_accessory = item
 	SaveManager.save_game()
 

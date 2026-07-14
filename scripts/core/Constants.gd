@@ -9,6 +9,12 @@ const MOURNGATE_DUNGEON_ID: String = "mourngate"
 const DEFAULT_DUNGEON_ID: String = MOURNGATE_DUNGEON_ID
 ## 寄り道(side)・征討(apex)をプレイ対象に含める（P3-DG-OMIT-001）。false=UI非表示・解放不可。
 const SUB_DUNGEONS_PLAYABLE: bool = false
+## 公開β範囲をモーンゲートのみにする（P3-BETA-SCOPE-001）。true=他メインは解放判定 false（UIは🔒表示・データ残置）。
+const BETA_MOURNGATE_ONLY: bool = true
+## 初期5人ストーリー編成（P3-STORY-STARTER-001）。true=開始1人選択＋章進行で加入。
+const STARTER_STORY_RECRUIT: bool = true
+## β検証用: モーンゲート 1-2/1-3/1-4 初回クリアでも未加入スターターを1人加入（本番×-5ルールに加え）。
+const STARTER_RECRUIT_BETA_EXTRA: bool = true
 ## ガチャ助っ人をプレイ対象に含める（P3-CHR-OMIT-001）。false=召喚所ロック・ロスターから除外（データ残置）。
 const GACHA_HELPERS_PLAYABLE: bool = false
 ## サブステージ（1-1 等）分割を有効化（P3-DG-STG-001 / P3-DG-STG-ENABLE — 2026-07-10 オーナー正式承認）。

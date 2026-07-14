@@ -5,6 +5,7 @@ const _RunCombatStats = preload("res://scripts/result/RunCombatStats.gd")
 const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _PassiveProgression = preload("res://scripts/systems/PassiveProgression.gd")
 const _CommanderProfile = preload("res://scripts/commander/CommanderProfile.gd")
+const _StarterRecruitment = preload("res://scripts/roster/StarterRecruitment.gd")
 
 # 所持ゴールド（永続）
 var gold: int = 0
@@ -12,8 +13,17 @@ var gold: int = 0
 # 編成中（アクティブ）の冒険者リスト（Adventurer Resource × 最大3）。roster の部分集合（参照）。
 var party_members: Array = []
 
-# 所持冒険者ロスター（基本5職 + ガチャ入手分）。party_members はここから3名選択（P3-D036b）。
+# 所持冒険者ロスター（基本5職 + ガチャ入手分）。party_members はここから最大 ACTIVE_PARTY_SIZE 名選択（P3-D036b）。
 var roster: Array = []
+
+## 解放済みスターター id（P3-STORY-STARTER-001）。空かつストーリーON＝選択待ち。
+var starter_unlocked_ids: Array[String] = []
+## 新規／未選択時 true。選択完了で false。
+var starter_pick_pending: bool = false
+## 直近ランで加入したスターター表示名（Result 用・揮発）。
+var last_run_starter_recruited_name: String = ""
+## 直近ランで加入したスターター id（揮発）。
+var last_run_starter_recruited_id: String = ""
 
 # ガチャ通貨（無償のみ） — P3-D036b
 var gacha_token: int = 0  ## 魔晶石（ガチャ通貨・表示名は CurrencyHelper）
@@ -191,6 +201,7 @@ func mark_stage_cleared(stage_id: String, tier: int = -1) -> void:
 	if stage_id.is_empty():
 		return
 	var t: int = _DungeonTierConfig.clamp_tier(tier if tier >= 0 else current_dungeon_tier)
+	var first_clear: bool = not is_stage_cleared(stage_id, t)
 	var progress: Dictionary = stage_progress.get(stage_id, {})
 	progress["cleared"] = true
 	var tiers: Dictionary = progress.get("tiers", {})
@@ -207,6 +218,11 @@ func mark_stage_cleared(stage_id: String, tier: int = -1) -> void:
 		mark_dungeon_tier_cleared(biome_id, t)
 		if t == _DungeonTierConfig.TIER_NORMAL:
 			mark_dungeon_cleared(biome_id)
+	if first_clear:
+		var recruited: Resource = _StarterRecruitment.try_recruit_after_first_clear(stage_id, t)
+		if recruited != null:
+			last_run_starter_recruited_id = str(recruited.id)
+			last_run_starter_recruited_name = str(recruited.display_name)
 
 func count_cleared_stages(biome_id: String) -> int:
 	var count: int = 0
@@ -323,11 +339,20 @@ func is_dungeon_tier_cleared(dungeon_id: String, tier: int) -> bool:
 		return false
 	return bool((per_dungeon as Dictionary).get(str(_DungeonTierConfig.clamp_tier(tier)), false))
 
+## Hard = メイン5 Biome のノーマル全クリア後。Nightmare = メイン5 のハード全クリア後。
+## （旧: 当該DG前ティアクリア — P3-DG-TIER-002 でキャンペーン周回帯に変更）
 func is_dungeon_tier_unlocked(dungeon_id: String, tier: int) -> bool:
 	var t: int = _DungeonTierConfig.clamp_tier(tier)
 	if t == _DungeonTierConfig.TIER_NORMAL:
 		return true
-	return is_dungeon_tier_cleared(dungeon_id, t - 1)
+	# dungeon_id は UI 都合で渡るが、解放はキャンペーン全体で判定する
+	if dungeon_id.is_empty():
+		return false
+	if t == _DungeonTierConfig.TIER_HARD:
+		return _DungeonTierConfig.is_main_campaign_tier_cleared(_DungeonTierConfig.TIER_NORMAL)
+	if t == _DungeonTierConfig.TIER_NIGHTMARE:
+		return _DungeonTierConfig.is_main_campaign_tier_cleared(_DungeonTierConfig.TIER_HARD)
+	return false
 
 func mark_dungeon_tier_cleared(dungeon_id: String, tier: int) -> void:
 	if dungeon_id.is_empty():
@@ -341,6 +366,7 @@ func mark_dungeon_tier_cleared(dungeon_id: String, tier: int) -> void:
 
 # ダンジョン解放判定（P3-D157）。メインルートは難易度順の直列解放
 # メイン以外（サブルート等）は当面 unlock_after_dungeon_id（空=常時解放）で判定する。
+# P3-BETA-SCOPE-001: BETA_MOURNGATE_ONLY 時はモーンゲート以外のメインを常に未解放扱いにする。
 func is_dungeon_unlocked(dungeon_id: String) -> bool:
 	if dungeon_id.is_empty() or not ResourceLoader.exists(Constants.RESOURCE_DUNGEONS_PATH + dungeon_id + ".tres"):
 		return false
@@ -348,6 +374,12 @@ func is_dungeon_unlocked(dungeon_id: String) -> bool:
 	if data == null:
 		return false
 	if not Constants.is_playable_dungeon_route(str(data.route_type)):
+		return false
+	if (
+		Constants.BETA_MOURNGATE_ONLY
+		and str(data.route_type) == "main"
+		and dungeon_id != Constants.MOURNGATE_DUNGEON_ID
+	):
 		return false
 	if str(data.route_type) != "main":
 		var req: String = str(data.unlock_after_dungeon_id) if "unlock_after_dungeon_id" in data else ""
@@ -1085,12 +1117,98 @@ const COMBAT_SLOT_MAX: int = 4
 func _ready() -> void:
 	_init_party()
 	_CommanderProfile.ensure_commander()
+	# GUT は従来どおり基本5人がいる前提のため、自動テスト時のみ全解放シードする。
+	if Constants.STARTER_STORY_RECRUIT and _is_gut_cmdline():
+		seed_all_starters_unlocked()
+
+
+## タイトル「はじめから」用。永続＋ラン中状態を初期化し、スターター選択待ちにする。
+func reset_for_new_game() -> void:
+	gold = 0
+	gacha_token = 0
+	gacha_pity = 0
+	owned_helpers = {}
+	owned_relics = []
+	inventory = []
+	armor_inventory = []
+	accessory_inventory = []
+	material_inventory = {}
+	dungeon_progress = {}
+	discovery_registry = {}
+	tutorial_flags = {}
+	stage_progress = {}
+	dungeon_tier_cleared = {}
+	current_dungeon_tier = 0
+	current_dungeon_id = ""
+	current_stage_id = ""
+	enemy_codex = {}
+	combat_presets = []
+	daily_mission_state = {}
+	commander = {}
+	current_exploration_policy = ""
+	current_weather = ""
+	equipment_focus_member_index = -1
+	base_initial_view = "hub"
+	hub_npc_hint = {}
+	last_run_exp_reward = 0
+	last_run_gold_reward = 0
+	last_run_token_reward = 0
+	last_run_weapon_dropped = ""
+	last_run_armor_dropped = ""
+	last_run_accessory_dropped = ""
+	last_run_relic_dropped = ""
+	last_run_level_ups = {}
+	last_run_exp_snapshots = {}
+	last_run_combat_stats = {}
+	last_run_outcome = ""
+	last_run_exploration_policy = ""
+	run_material_start = {}
+	last_run_material_gains = {}
+	last_run_weather = ""
+	last_run_stage_id = ""
+	last_run_modifier_counts = {}
+	last_run_starter_recruited_id = ""
+	last_run_starter_recruited_name = ""
+	_run_combat_stats = null
+	_init_party()
+	_CommanderProfile.ensure_commander()
+
+
+func _is_gut_cmdline() -> bool:
+	for arg: Variant in OS.get_cmdline_args():
+		if str(arg).findn("gut") >= 0:
+			return true
+	return false
+
+
+## テスト／デバッグ用: 初期5人を全員解放してロスターに揃える。
+func seed_all_starters_unlocked() -> void:
+	starter_unlocked_ids.clear()
+	roster.clear()
+	party_members.clear()
+	for def: Variant in BASE_ROSTER_DEFS:
+		unlock_starter_adventurer(str(def["id"]))
+	starter_pick_pending = false
+	normalize_roster_rarity()
+	normalize_all_equipped_skills()
+	normalize_all_equipped_passives()
+	migrate_formation_slots_if_needed()
 
 func _init_party() -> void:
 	roster = []
-	for def in BASE_ROSTER_DEFS:
-		roster.append(_create_base_adventurer(def))
 	party_members = []
+	last_run_starter_recruited_id = ""
+	last_run_starter_recruited_name = ""
+	if Constants.STARTER_STORY_RECRUIT:
+		starter_unlocked_ids = []
+		starter_pick_pending = true
+		return
+	starter_unlocked_ids = []
+	for def in BASE_ROSTER_DEFS:
+		var adv: Resource = _create_base_adventurer(def)
+		roster.append(adv)
+		starter_unlocked_ids.append(str(def["id"]))
+	starter_pick_pending = false
 	for i in mini(ACTIVE_PARTY_SIZE, roster.size()):
 		party_members.append(roster[i])
 	migrate_formation_slots_if_needed()
@@ -1098,6 +1216,84 @@ func _init_party() -> void:
 	_grant_starting_equipment()
 	normalize_all_equipped_skills()
 	normalize_all_equipped_passives()
+
+
+func needs_starter_pick() -> bool:
+	return Constants.STARTER_STORY_RECRUIT and starter_pick_pending
+
+
+func is_starter_unlocked(adventurer_id: String) -> bool:
+	return adventurer_id in starter_unlocked_ids
+
+
+## スターター選択（新規）。成功で true。
+func select_starting_adventurer(adventurer_id: String) -> bool:
+	if not Constants.STARTER_STORY_RECRUIT:
+		return false
+	var def: Variant = find_base_roster_def(adventurer_id)
+	if def == null:
+		return false
+	roster.clear()
+	party_members.clear()
+	starter_unlocked_ids = [adventurer_id]
+	var adv: Resource = _create_base_adventurer(def)
+	roster.append(adv)
+	party_members.append(adv)
+	starter_pick_pending = false
+	_grant_member_starting_weapon(adv)
+	normalize_roster_rarity()
+	normalize_all_equipped_skills()
+	normalize_all_equipped_passives()
+	migrate_formation_slots_if_needed()
+	return true
+
+
+## 未解放スターターを解放してロスターへ追加。既解放なら既存を返す。
+func unlock_starter_adventurer(adventurer_id: String) -> Resource:
+	var existing: Resource = find_roster_member_by_id(adventurer_id)
+	if existing != null:
+		if not is_starter_unlocked(adventurer_id):
+			starter_unlocked_ids.append(adventurer_id)
+		return existing
+	var def: Variant = find_base_roster_def(adventurer_id)
+	if def == null:
+		return null
+	if not is_starter_unlocked(adventurer_id):
+		starter_unlocked_ids.append(adventurer_id)
+	var adv: Resource = _create_base_adventurer(def)
+	roster.append(adv)
+	_grant_member_starting_weapon(adv)
+	normalize_roster_rarity()
+	normalize_all_equipped_skills()
+	normalize_all_equipped_passives()
+	if party_members.size() < ACTIVE_PARTY_SIZE:
+		party_members.append(adv)
+		migrate_formation_slots_if_needed()
+	return adv
+
+
+## ロード後: セーブに unlocked が無ければロスター内スターターから復元。空なら選択待ち。
+func migrate_starter_unlock_state() -> void:
+	if not Constants.STARTER_STORY_RECRUIT:
+		starter_pick_pending = false
+		return
+	if not starter_unlocked_ids.is_empty():
+		starter_pick_pending = false
+		# 解放済みだがロスター欠落を補完
+		for adv_id: String in starter_unlocked_ids:
+			if find_roster_member_by_id(adv_id) == null:
+				unlock_starter_adventurer(adv_id)
+		return
+	var found: Array[String] = []
+	for def: Variant in BASE_ROSTER_DEFS:
+		var adv_id: String = str(def["id"])
+		if find_roster_member_by_id(adv_id) != null:
+			found.append(adv_id)
+	if found.is_empty():
+		starter_pick_pending = true
+		return
+	starter_unlocked_ids = found
+	starter_pick_pending = false
 
 func _create_base_adventurer(def: Dictionary) -> Resource:
 	var adventurer_class = load("res://scripts/domain/Adventurer.gd")
@@ -1127,14 +1323,23 @@ func _grant_member_starting_weapon(member: Resource) -> void:
 	inventory.append(instance)
 	member.equipped_weapon = instance
 
-# 旧セーブ復元時など、ロスターに欠けている基本職を補完する（武器も付与）。
+# 解放済みスターターの欠落のみ補完する（未解放は追加しない — P3-STORY-STARTER-001）。
 func ensure_base_roster_complete() -> void:
+	if Constants.STARTER_STORY_RECRUIT:
+		migrate_starter_unlock_state()
+		for adv_id: String in starter_unlocked_ids:
+			if find_roster_member_by_id(adv_id) != null:
+				continue
+			unlock_starter_adventurer(adv_id)
+		return
 	for def in BASE_ROSTER_DEFS:
 		if find_roster_member_by_id(str(def["id"])) != null:
 			continue
 		var adv: Resource = _create_base_adventurer(def)
 		roster.append(adv)
 		_grant_member_starting_weapon(adv)
+		if not is_starter_unlocked(str(def["id"])):
+			starter_unlocked_ids.append(str(def["id"]))
 
 # 旧セーブに残る基本職の display_name / job_id を現行定義へ正規化する。
 # （旧名「戦士/盗賊/魔術師」等の残存を解消。基本職にカスタム改名機能は無いため上書き安全）

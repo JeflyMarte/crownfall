@@ -36,7 +36,10 @@ func test_final_chapter_unlocks_next_biome() -> void:
 		return
 	GameState.mark_stage_cleared("mourngate_1_5")
 	assert_true(GameState.is_dungeon_cleared("mourngate"))
-	assert_true(GameState.is_dungeon_unlocked("whisperwood"))
+	if Constants.BETA_MOURNGATE_ONLY:
+		assert_false(GameState.is_dungeon_unlocked("whisperwood"), "βは①最終章クリア後も②ロック")
+	else:
+		assert_true(GameState.is_dungeon_unlocked("whisperwood"))
 
 func test_mid_chapter_unlocks_next_chapter_only() -> void:
 	GameState.mark_stage_cleared("mourngate_1_2")
@@ -72,7 +75,10 @@ func test_whisperwood_final_chapter_unlocks_next_biome() -> void:
 	GameState.mark_stage_cleared("mourngate_1_5")
 	GameState.mark_stage_cleared("whisperwood_2_5")
 	assert_true(GameState.is_dungeon_cleared("whisperwood"))
-	assert_true(GameState.is_dungeon_unlocked("mistfen"))
+	if Constants.BETA_MOURNGATE_ONLY:
+		assert_false(GameState.is_dungeon_unlocked("mistfen"), "βは③ロック")
+	else:
+		assert_true(GameState.is_dungeon_unlocked("mistfen"))
 
 func test_whisperwood_mid_chapter_does_not_unlock_mistfen() -> void:
 	if not Constants.SUB_STAGES_PLAYABLE:

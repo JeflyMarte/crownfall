@@ -6,6 +6,7 @@ const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.
 const _ArmorStatResolver = preload("res://scripts/equipment/ArmorStatResolver.gd")
 const _AccessoryStatResolver = preload("res://scripts/equipment/AccessoryStatResolver.gd")
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
+const _EnemyTierVariantConfig = preload("res://scripts/dungeon/EnemyTierVariantConfig.gd")
 const _WanderingEnemyConfig = preload("res://scripts/dungeon/WanderingEnemyConfig.gd")
 const _EvolutionTraits = preload("res://scripts/systems/EvolutionTraits.gd")
 
@@ -686,7 +687,9 @@ func pick_enemy_data() -> Resource:
 		return null
 	if current_stage_data != null and not current_stage_data.spawn_weights.is_empty():
 		return _pick_weighted_pool_enemy(pool, current_stage_data.spawn_weights)
-	return DataRegistry.get_enemy_data(pool[randi() % pool.size()] as String)
+	return _EnemyTierVariantConfig.apply_for_current_tier(
+		DataRegistry.get_enemy_data(pool[randi() % pool.size()] as String)
+	)
 
 ## COMBAT 雑魚: `spawn_weights` × `codex_danger` で tier 抽選 → tier 内均等（P3-ENEMY-001）。
 ## プールに該当 danger が無い tier は重みから除外して再正規化。
@@ -712,16 +715,22 @@ func _pick_weighted_pool_enemy(pool: Array, spawn_weights: Dictionary) -> Resour
 		tier_entries.append({"weight": tier_weight, "enemies": enemies})
 		total_weight += tier_weight
 	if total_weight <= 0 or tier_entries.is_empty():
-		return DataRegistry.get_enemy_data(pool[randi() % pool.size()] as String)
+		return _EnemyTierVariantConfig.apply_for_current_tier(
+			DataRegistry.get_enemy_data(pool[randi() % pool.size()] as String)
+		)
 	var roll: int = randi() % total_weight
 	var cumulative: int = 0
 	for entry in tier_entries:
 		cumulative += int(entry["weight"])
 		if roll < cumulative:
 			var tier_enemies: Array = entry["enemies"]
-			return tier_enemies[randi() % tier_enemies.size()]
+			return _EnemyTierVariantConfig.apply_for_current_tier(
+				tier_enemies[randi() % tier_enemies.size()]
+			)
 	var fallback_enemies: Array = tier_entries[tier_entries.size() - 1]["enemies"]
-	return fallback_enemies[randi() % fallback_enemies.size()]
+	return _EnemyTierVariantConfig.apply_for_current_tier(
+		fallback_enemies[randi() % fallback_enemies.size()]
+	)
 
 func pick_elite_enemy_data() -> Resource:
 	if current_dungeon_data == null:
@@ -731,7 +740,9 @@ func pick_elite_enemy_data() -> Resource:
 		pool = current_dungeon_data.enemy_pool
 	if pool.is_empty():
 		return null
-	return DataRegistry.get_enemy_data(pool[randi() % pool.size()] as String)
+	return _EnemyTierVariantConfig.apply_for_current_tier(
+		DataRegistry.get_enemy_data(pool[randi() % pool.size()] as String)
+	)
 
 func pick_boss_enemy_data() -> Resource:
 	if current_dungeon_data == null:
@@ -743,7 +754,7 @@ func pick_boss_enemy_data() -> Resource:
 		boss_id = str(current_dungeon_data.boss_id)
 	if boss_id.is_empty():
 		return pick_enemy_data()
-	return DataRegistry.get_enemy_data(boss_id)
+	return _EnemyTierVariantConfig.apply_for_current_tier(DataRegistry.get_enemy_data(boss_id))
 
 func pick_combat_enemy_data() -> Resource:
 	match current_room_type:
@@ -771,7 +782,7 @@ func _swarm_capable_enemies() -> Array[Resource]:
 		if seen.has(ed.id):
 			continue
 		seen[ed.id] = true
-		out.append(ed)
+		out.append(_EnemyTierVariantConfig.apply_for_current_tier(ed))
 	return out
 
 # 戦闘の敵編成を返す（P3-D082 + P3-D110 混成 + P3-WANDER-001 放浪差し込み）。
@@ -821,7 +832,7 @@ func try_pick_wandering_enemy(rng: RandomNumberGenerator = null) -> Resource:
 	var wander_id: String = _WanderingEnemyConfig.try_roll_wandering_id(rng)
 	if wander_id.is_empty():
 		return null
-	return DataRegistry.get_enemy_data(wander_id)
+	return _EnemyTierVariantConfig.apply_for_current_tier(DataRegistry.get_enemy_data(wander_id))
 
 func pick_event() -> Dictionary:
 	var pool: Array = _filtered_event_pool()

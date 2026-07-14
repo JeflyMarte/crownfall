@@ -2,13 +2,13 @@ class_name Adventurer
 extends Resource
 
 ## ゲーム開始時スターター（adventurer_0..4）の★。ガチャ対象外の特別キャラ。
-const STARTER_RARITY: int = 4
+const STARTER_RARITY: int = 3
 ## 旧セーブ互換の既定値（非スターター・非ガチャのフォールバック）。
 const DEFAULT_RARITY: int = 1
 
 @export var id: String = ""
 @export var display_name: String = ""
-## キャラクター★（装備レアリティとは別体系）。ガチャ助っ人=1〜4、スターター=4。
+## キャラクター★（装備レアリティとは別体系）。ガチャ助っ人=1〜4、スターター=3。
 @export var rarity: int = DEFAULT_RARITY
 @export var level: int = 1
 @export var exp: int = 0

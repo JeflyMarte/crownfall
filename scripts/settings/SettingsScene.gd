@@ -4,6 +4,7 @@ extends Control
 
 const _SettingsPrefs := preload("res://scripts/settings/SettingsPrefs.gd")
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
+const TITLE_SCENE: String = "res://scenes/title/TitleScene.tscn"
 const BG_PATH: String = "res://assets/ui/commander_ui/UI_BG_Commander.png"
 
 const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45)
@@ -28,7 +29,12 @@ func _ready() -> void:
 	UiTypography.apply_screen_title(_label_title)
 	UiTypography.apply_button(_btn_back, false)
 	_btn_back.pressed.connect(_on_back_pressed)
-	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.NONE)
+	if _opened_from_title():
+		var bottom: Control = $BottomNav as Control
+		if bottom != null:
+			bottom.visible = false
+	else:
+		BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.NONE)
 	_content_host.add_theme_constant_override("separation", SECTION_GAP)
 	_rebuild_page()
 
@@ -108,7 +114,7 @@ func _build_system_section() -> Control:
 	_add_caption(body, "バージョン: %s" % _SettingsPrefs.app_version_text())
 	_add_caption(body, _SettingsPrefs.save_status_text())
 	var home_btn := Button.new()
-	home_btn.text = "拠点へ戻る"
+	home_btn.text = "タイトルへ戻る" if _opened_from_title() else "拠点へ戻る"
 	home_btn.pressed.connect(_on_back_pressed)
 	UiTypography.apply_button(home_btn, false)
 	body.add_child(home_btn)
@@ -196,6 +202,7 @@ func _on_bgm_changed(v: float) -> void:
 
 func _on_sfx_changed(v: float) -> void:
 	_SettingsPrefs.set_sfx_volume(v)
+	AudioManager.play_sfx("ui_switch", 1.0, 0.08)
 
 
 func _on_mute_toggled(v: bool) -> void:
@@ -219,5 +226,12 @@ func _on_vibration_toggled(v: bool) -> void:
 	_SettingsPrefs.set_vibration_enabled(v)
 
 
+func _opened_from_title() -> bool:
+	return SceneRouter.settings_return_scene == TITLE_SCENE
+
+
 func _on_back_pressed() -> void:
-	SceneRouter.change_scene(HOME_SCENE)
+	var path: String = SceneRouter.settings_return_scene
+	if path.is_empty():
+		path = HOME_SCENE
+	SceneRouter.change_scene(path)

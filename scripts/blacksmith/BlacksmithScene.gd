@@ -26,6 +26,7 @@ const _COST_MAT_ICON_PX: int = 48
 
 const FORGE_FLASH_CRAFT: Color = Color(1.0, 0.78, 0.35)
 const FORGE_FLASH_ENHANCE: Color = Color(0.72, 0.86, 1.0)
+const FORGE_FLASH_ALCHEMY: Color = Color(0.55, 0.92, 0.78)
 const FORGE_FLASH_DISMANTLE: Color = Color(0.86, 0.72, 1.0)
 const FORGE_FLASH_PEAK_ALPHA: float = 0.32
 
@@ -35,6 +36,7 @@ const FORGE_FLASH_PEAK_ALPHA: float = 0.32
 @onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
 @onready var _btn_produce: Button = $ModeTabs/BtnProduce
 @onready var _btn_enhance: Button = $ModeTabs/BtnEnhance
+@onready var _btn_alchemy: Button = $ModeTabs/BtnAlchemy
 @onready var _btn_dismantle: Button = $ModeTabs/BtnDismantle
 @onready var _produce_notify_dot: PanelContainer = $ModeTabs/BtnProduce/NotifyDot
 @onready var _flash_overlay: ColorRect = $FxLayer/FlashOverlay
@@ -65,6 +67,8 @@ var _mode: String = "produce"
 var _category: String = "weapon"
 var _selected_craft: Resource = null
 var _selected_enhance_item: Resource = null
+var _selected_alchemy_base: Resource = null
+var _selected_alchemy_fodder: Resource = null
 var _selected_dismantle_item: Resource = null
 var _mode_button_group: ButtonGroup
 var _category_panels: Dictionary = {}
@@ -73,6 +77,7 @@ var _bulk_dismantle_btn: Button
 var _dismantle_confirm: ConfirmationDialog
 var _legendary_dismantle_confirm: ConfirmationDialog
 var _legendary_dismantle_final_confirm: ConfirmationDialog
+var _alchemy_confirm: ConfirmationDialog
 var _pending_dismantle_item: Resource = null
 
 func _ready() -> void:
@@ -81,14 +86,18 @@ func _ready() -> void:
 	_mode_button_group = ButtonGroup.new()
 	_btn_produce.button_group = _mode_button_group
 	_btn_enhance.button_group = _mode_button_group
+	_btn_alchemy.button_group = _mode_button_group
 	_btn_dismantle.button_group = _mode_button_group
 	_btn_back.pressed.connect(_on_back_pressed)
 	_btn_produce.pressed.connect(func(): _set_mode("produce"))
 	_btn_enhance.pressed.connect(func(): _set_mode("enhance"))
+	_btn_alchemy.pressed.connect(func(): _set_mode("alchemy"))
 	_btn_dismantle.pressed.connect(func(): _set_mode("dismantle"))
 	_btn_dismantle.disabled = false
 	_btn_dismantle.text = "分解"
+	_btn_alchemy.text = "錬成"
 	_setup_dismantle_dialogs()
+	_setup_alchemy_confirm()
 	_setup_bulk_dismantle_button()
 	_detail_panel.add_theme_stylebox_override(
 		"panel", BlacksmithUiHelper.detail_panel_style()
@@ -133,24 +142,41 @@ func _setup_hero_display_layout() -> void:
 	_hero_pedestal.visible = false
 	_hero_weapon_pivot.visible = false
 
+func _setup_alchemy_confirm() -> void:
+	_alchemy_confirm = ConfirmationDialog.new()
+	_alchemy_confirm.title = "装備錬成"
+	_alchemy_confirm.ok_button_text = "錬成する"
+	_alchemy_confirm.cancel_button_text = "やめる"
+	_alchemy_confirm.confirmed.connect(_execute_alchemy)
+	_alchemy_confirm.canceled.connect(_on_forge_confirm_canceled)
+	add_child(_alchemy_confirm)
+
+
+func _on_forge_confirm_canceled() -> void:
+	AudioManager.play_sfx("ui_cancel")
+
+
 func _setup_dismantle_dialogs() -> void:
 	_dismantle_confirm = ConfirmationDialog.new()
 	_dismantle_confirm.title = "装備分解"
 	_dismantle_confirm.ok_button_text = "分解する"
 	_dismantle_confirm.cancel_button_text = "やめる"
 	_dismantle_confirm.confirmed.connect(_on_bulk_dismantle_confirmed)
+	_dismantle_confirm.canceled.connect(_on_forge_confirm_canceled)
 	add_child(_dismantle_confirm)
 	_legendary_dismantle_confirm = ConfirmationDialog.new()
 	_legendary_dismantle_confirm.title = "レジェンド装備の分解（1/2）"
 	_legendary_dismantle_confirm.ok_button_text = "続ける"
 	_legendary_dismantle_confirm.cancel_button_text = "やめる"
 	_legendary_dismantle_confirm.confirmed.connect(_on_legendary_dismantle_step1)
+	_legendary_dismantle_confirm.canceled.connect(_on_forge_confirm_canceled)
 	add_child(_legendary_dismantle_confirm)
 	_legendary_dismantle_final_confirm = ConfirmationDialog.new()
 	_legendary_dismantle_final_confirm.title = "レジェンド装備の分解（2/2）"
 	_legendary_dismantle_final_confirm.ok_button_text = "分解する"
 	_legendary_dismantle_final_confirm.cancel_button_text = "やめる"
 	_legendary_dismantle_final_confirm.confirmed.connect(_on_legendary_dismantle_final)
+	_legendary_dismantle_final_confirm.canceled.connect(_on_forge_confirm_canceled)
 	add_child(_legendary_dismantle_final_confirm)
 
 func _setup_bulk_dismantle_button() -> void:
@@ -185,12 +211,18 @@ func _set_mode(mode: String) -> void:
 	_mode = mode
 	_btn_produce.button_pressed = mode == "produce"
 	_btn_enhance.button_pressed = mode == "enhance"
+	_btn_alchemy.button_pressed = mode == "alchemy"
 	_btn_dismantle.button_pressed = mode == "dismantle"
-	_category_row.visible = mode == "produce" or mode == "enhance" or mode == "dismantle"
-	_craftable_panel.visible = mode == "produce"
+	_category_row.visible = (
+		mode == "produce" or mode == "enhance" or mode == "alchemy" or mode == "dismantle"
+	)
+	_craftable_panel.visible = mode == "produce" or mode == "alchemy"
 	_bulk_dismantle_btn.visible = mode == "dismantle"
 	if mode == "enhance":
 		_selected_enhance_item = null
+	elif mode == "alchemy":
+		_selected_alchemy_base = null
+		_selected_alchemy_fodder = null
 	elif mode == "dismantle":
 		_selected_dismantle_item = null
 	_update_category_styles()
@@ -201,7 +233,7 @@ func _set_mode(mode: String) -> void:
 
 func _apply_craft_button_style() -> void:
 	match _mode:
-		"enhance":
+		"enhance", "alchemy":
 			BlacksmithUiHelper.apply_primary_button(
 				_craft_button, BlacksmithUiHelper.PRIMARY_KIND_ENHANCE
 			)
@@ -218,10 +250,13 @@ func _set_category(category: String) -> void:
 	if _mode == "produce":
 		_category = category
 		_selected_craft = null
-	elif _mode == "enhance" or _mode == "dismantle":
+	elif _mode == "enhance" or _mode == "alchemy" or _mode == "dismantle":
 		_category = category
 		if _mode == "enhance":
 			_selected_enhance_item = null
+		elif _mode == "alchemy":
+			_selected_alchemy_base = null
+			_selected_alchemy_fodder = null
 		else:
 			_selected_dismantle_item = null
 	else:
@@ -272,7 +307,9 @@ func _build_category_icons() -> void:
 		wrap.add_child(btn)
 
 func _category_tab_active(cat: String) -> bool:
-	return _category == cat and (_mode == "produce" or _mode == "enhance" or _mode == "dismantle")
+	return _category == cat and (
+		_mode == "produce" or _mode == "enhance" or _mode == "alchemy" or _mode == "dismantle"
+	)
 
 func _update_category_styles() -> void:
 	for cat in _category_panels.keys():
@@ -298,6 +335,7 @@ func _setup_tab_styles() -> void:
 func _update_tab_styles() -> void:
 	BlacksmithUiHelper.apply_mode_tab(_btn_produce, _mode == "produce")
 	BlacksmithUiHelper.apply_mode_tab(_btn_enhance, _mode == "enhance")
+	BlacksmithUiHelper.apply_mode_tab(_btn_alchemy, _mode == "alchemy")
 	BlacksmithUiHelper.apply_mode_tab(_btn_dismantle, _mode == "dismantle")
 
 func _refresh_all() -> void:
@@ -307,6 +345,8 @@ func _refresh_all() -> void:
 	_rebuild_detail()
 	if _mode == "produce":
 		_rebuild_craftable_strip()
+	elif _mode == "alchemy":
+		_rebuild_alchemy_fodder_strip()
 
 func _update_currency() -> void:
 	_label_gold.text = "%d" % GameState.gold
@@ -314,6 +354,7 @@ func _update_currency() -> void:
 
 func _update_mode_tab_dots() -> void:
 	_btn_produce.text = "生産"
+	_btn_alchemy.text = "錬成"
 	_produce_notify_dot.visible = BlacksmithUiHelper.has_craftable_recipes()
 
 func _rebuild_left_list() -> void:
@@ -323,6 +364,8 @@ func _rebuild_left_list() -> void:
 		_rebuild_produce_left_list()
 	elif _mode == "enhance":
 		_rebuild_enhance_left_list()
+	elif _mode == "alchemy":
+		_rebuild_alchemy_left_list()
 	else:
 		_rebuild_dismantle_left_list()
 	_update_bulk_dismantle_button()
@@ -360,10 +403,26 @@ func _rebuild_dismantle_left_list() -> void:
 	for item in items:
 		_left_list.add_child(_make_dismantle_list_card(item))
 
+
+func _rebuild_alchemy_left_list() -> void:
+	var items: Array = _sorted_alchemy_base_candidates()
+	if items.is_empty():
+		_left_list.add_child(_make_empty_label(_empty_label_for_category(_category, "alchemy")))
+		_selected_alchemy_base = null
+		_selected_alchemy_fodder = null
+		return
+	if _selected_alchemy_base == null or _selected_alchemy_base not in items:
+		_selected_alchemy_base = items[0]
+		_selected_alchemy_fodder = null
+	for item in items:
+		_left_list.add_child(_make_alchemy_base_card(item))
+
 func _empty_label_for_category(category: String, mode: String) -> String:
 	var kind: String = BlacksmithUiHelper.category_label(category)
 	if mode == "dismantle":
 		return "（分解可能な%sがありません）" % kind
+	if mode == "alchemy":
+		return "（錬成できる%sがありません）" % kind
 	return "（鑑定済みの%sがありません）" % kind
 
 func _make_empty_label(text: String) -> Label:
@@ -496,6 +555,41 @@ func _on_dismantle_card_input(event: InputEvent, item: Resource) -> void:
 		_selected_dismantle_item = item
 		_refresh_all()
 
+
+func _make_alchemy_base_card(item: Resource) -> PanelContainer:
+	var selected: bool = item == _selected_alchemy_base
+	var category: String = _category
+	var item_id: String = _item_id_for_category(item, category)
+	var rarity: int = _EquipmentEnhancer.item_rarity(item)
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(0, BlacksmithUiHelper.LIST_CARD_MIN_HEIGHT)
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	panel.add_theme_stylebox_override(
+		"panel", BlacksmithUiHelper.simple_list_card_style(selected, false, rarity)
+	)
+	panel.gui_input.connect(_on_alchemy_base_card_input.bind(item))
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(row)
+	row.add_child(_make_selectable_list_icon(item_id, category, rarity, selected))
+	var name_lbl := Label.new()
+	name_lbl.text = _EquipmentEnhancer.get_display_name(item)
+	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_apply_list_name_label(name_lbl, BlacksmithUiHelper.rarity_name_color(rarity))
+	row.add_child(name_lbl)
+	return panel
+
+
+func _on_alchemy_base_card_input(event: InputEvent, item: Resource) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if _selected_alchemy_base != item:
+			_selected_alchemy_fodder = null
+		_selected_alchemy_base = item
+		_refresh_all()
+
+
 func _rebuild_detail() -> void:
 	_clear_stats_grid()
 	_clear_materials_row()
@@ -508,6 +602,8 @@ func _rebuild_detail() -> void:
 		_rebuild_produce_detail()
 	elif _mode == "enhance":
 		_rebuild_enhance_detail()
+	elif _mode == "alchemy":
+		_rebuild_alchemy_detail()
 	else:
 		_rebuild_dismantle_detail()
 
@@ -601,6 +697,7 @@ func _update_hero_icon(item_id: String, category: String, _rarity: int) -> void:
 	)
 
 func _update_cost_panel(gold_cost: int, materials: Dictionary) -> void:
+	_cost_header_label.text = "必要コスト"
 	_gold_cost_label.text = "必要ゴールド: %d" % gold_cost
 	_gold_cost_label.add_theme_color_override(
 		"font_color", COLOR_GOLD if GameState.gold >= gold_cost else COLOR_SHORT
@@ -734,6 +831,47 @@ func _populate_dismantle_yield(materials: Dictionary) -> void:
 			continue
 		_add_stat_row(DataRegistry.get_material_name(str(mat_id)), "× %d" % qty)
 
+
+func _rebuild_alchemy_detail() -> void:
+	if _selected_alchemy_base == null:
+		_set_detail_empty("主材にする%sを選んでください" % BlacksmithUiHelper.category_label(_category))
+		return
+	var base: Resource = _selected_alchemy_base
+	var rarity: int = _EquipmentEnhancer.item_rarity(base)
+	_update_hero_icon(_item_id_for_category(base, _category), _category, rarity)
+	_title_label.text = _EquipmentEnhancer.get_display_name(base)
+	_title_label.add_theme_color_override("font_color", BlacksmithUiHelper.rarity_name_color(rarity))
+	_subtitle_label.text = "素材を下段から選び、装備レベルを上げる"
+	_add_stat_row("現在レベル", "Lv.%d" % _EquipmentEnhancer.get_equip_level(base))
+	if _selected_alchemy_fodder == null:
+		_cost_panel.visible = false
+		_craft_button.visible = true
+		_craft_button.text = "錬成する"
+		_craft_button.disabled = true
+		_reason_label.text = "下段から素材装備を選択してください"
+		_reason_label.visible = true
+		return
+	var from_lv: int = _EquipmentEnhancer.get_equip_level(base)
+	var gain_raw: int = _EquipmentEnhancer.alchemy_level_gain(_selected_alchemy_fodder)
+	var to_lv: int = mini(_EquipmentEnhancer.EQUIP_MAX_LEVEL, from_lv + gain_raw)
+	var applied: int = maxi(0, to_lv - from_lv)
+	var gold_cost: int = _EquipmentEnhancer.alchemy_gold_cost(applied)
+	_add_stat_row("結果レベル", "Lv.%d → Lv.%d（+%d）" % [from_lv, to_lv, applied])
+	_add_stat_row("消費素材", _EquipmentEnhancer.get_display_name(_selected_alchemy_fodder))
+	_add_stat_row("注意", "素材は消滅（分解報酬なし）")
+	_update_cost_panel(gold_cost, {})
+	_cost_header_label.text = "錬成コスト"
+	_craft_button.text = "錬成する"
+	var preview: Dictionary = _EquipmentEnhancer.alchemy_preview(base, _selected_alchemy_fodder)
+	var can_do: bool = bool(preview.get("ok", false))
+	_craft_button.disabled = not can_do
+	if can_do:
+		_reason_label.visible = false
+	else:
+		_reason_label.text = str(preview.get("reason", ""))
+		_reason_label.visible = not _reason_label.text.is_empty()
+
+
 func _format_material_summary(materials: Dictionary) -> String:
 	var parts: PackedStringArray = []
 	for mat_id in materials:
@@ -748,10 +886,13 @@ func _on_craft_button_pressed() -> void:
 		_on_craft_pressed(_selected_craft)
 	elif _mode == "enhance" and _selected_enhance_item != null:
 		_on_enhance_pressed()
+	elif _mode == "alchemy" and _selected_alchemy_base != null and _selected_alchemy_fodder != null:
+		_on_alchemy_pressed()
 	elif _mode == "dismantle" and _selected_dismantle_item != null:
 		_on_dismantle_pressed()
 
 func _rebuild_craftable_strip() -> void:
+	_craftable_header.text = "作成可能"
 	for child in _craftable_row.get_children():
 		child.queue_free()
 	var recipes: Array = CraftHelper.get_craftable_recipes()
@@ -763,6 +904,64 @@ func _rebuild_craftable_strip() -> void:
 		return
 	for craft in recipes:
 		_craftable_row.add_child(_make_craftable_chip(craft))
+
+
+func _rebuild_alchemy_fodder_strip() -> void:
+	_craftable_header.text = "素材にする装備"
+	for child in _craftable_row.get_children():
+		child.queue_free()
+	if _selected_alchemy_base == null:
+		var empty := Label.new()
+		empty.text = "（まず左側で主材を選んでください）"
+		empty.add_theme_color_override("font_color", COLOR_SUB_STRONG)
+		_craftable_row.add_child(empty)
+		return
+	var fodders: Array = _sorted_alchemy_fodder_candidates()
+	if fodders.is_empty():
+		var empty2 := Label.new()
+		empty2.text = "（消費できる同種装備がありません）"
+		empty2.add_theme_color_override("font_color", COLOR_SUB_STRONG)
+		_craftable_row.add_child(empty2)
+		_selected_alchemy_fodder = null
+		return
+	if _selected_alchemy_fodder != null and _selected_alchemy_fodder not in fodders:
+		_selected_alchemy_fodder = null
+	for item in fodders:
+		_craftable_row.add_child(_make_alchemy_fodder_chip(item))
+
+
+func _make_alchemy_fodder_chip(item: Resource) -> PanelContainer:
+	var selected: bool = item == _selected_alchemy_fodder
+	var rarity: int = _EquipmentEnhancer.item_rarity(item)
+	var item_id: String = _item_id_for_category(item, _category)
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(96, 88)
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	panel.add_theme_stylebox_override(
+		"panel", BlacksmithUiHelper.simple_list_card_style(selected, false, rarity)
+	)
+	panel.gui_input.connect(_on_alchemy_fodder_chip_input.bind(item))
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 4)
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(col)
+	col.add_child(_make_selectable_list_icon(item_id, _category, rarity, selected))
+	var name_lbl := Label.new()
+	name_lbl.text = _EquipmentEnhancer.get_display_name(item)
+	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_lbl.clip_text = true
+	name_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	UiTypography.apply_body(
+		name_lbl, UiTypography.SIZE_CAPTION, BlacksmithUiHelper.rarity_name_color(rarity)
+	)
+	col.add_child(name_lbl)
+	return panel
+
+
+func _on_alchemy_fodder_chip_input(event: InputEvent, item: Resource) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_selected_alchemy_fodder = item
+		_refresh_all()
 
 func _make_selectable_list_icon(
 	item_id: String,
@@ -874,6 +1073,46 @@ func _sorted_dismantle_candidates() -> Array:
 	)
 	return items
 
+
+func _sorted_alchemy_base_candidates() -> Array:
+	var items: Array = []
+	for item in _inventory_for_category(_category):
+		if item == null:
+			continue
+		if _is_item_equipped(item):
+			continue
+		if _EquipmentEnhancer.get_equip_level(item) >= _EquipmentEnhancer.EQUIP_MAX_LEVEL:
+			continue
+		items.append(item)
+	items.sort_custom(func(a: Resource, b: Resource) -> bool:
+		var la: int = _EquipmentEnhancer.get_equip_level(a)
+		var lb: int = _EquipmentEnhancer.get_equip_level(b)
+		if la != lb:
+			return la > lb
+		return _EquipmentEnhancer.get_display_name(a) < _EquipmentEnhancer.get_display_name(b)
+	)
+	return items
+
+
+func _sorted_alchemy_fodder_candidates() -> Array:
+	var items: Array = []
+	if _selected_alchemy_base == null:
+		return items
+	for item in _inventory_for_category(_category):
+		if item == null or item == _selected_alchemy_base:
+			continue
+		if _is_item_equipped(item):
+			continue
+		items.append(item)
+	items.sort_custom(func(a: Resource, b: Resource) -> bool:
+		var la: int = _EquipmentEnhancer.get_equip_level(a)
+		var lb: int = _EquipmentEnhancer.get_equip_level(b)
+		if la != lb:
+			return la > lb
+		return _EquipmentEnhancer.get_display_name(a) < _EquipmentEnhancer.get_display_name(b)
+	)
+	return items
+
 func _inventory_for_category(category: String) -> Array:
 	match category:
 		"armor":
@@ -907,16 +1146,16 @@ func _craft_button_label(craft: Resource, can_craft: bool) -> String:
 
 func _on_craft_pressed(craft: Resource) -> void:
 	if craft.output_type != "armor" and craft.output_type != "accessory" and craft.output_type != "weapon":
-		_log_craft("作成できません（出力不正）")
+		_log_craft_error("作成できません（出力不正）")
 		return
 	if craft.output_id.is_empty() or not CraftHelper.craft_output_exists(craft):
-		_log_craft("作成できません（出力不正）")
+		_log_craft_error("作成できません（出力不正）")
 		return
 	if GameState.gold < craft.gold_cost:
-		_log_craft("ゴールドが足りません")
+		_log_craft_error("ゴールドが足りません")
 		return
 	if not CraftHelper.has_enough_materials(craft.required_materials):
-		_log_craft("素材が足りません")
+		_log_craft_error("素材が足りません")
 		return
 	GameState.gold -= craft.gold_cost
 	GameState.consume_materials(craft.required_materials)
@@ -928,12 +1167,55 @@ func _on_craft_pressed(craft: Resource) -> void:
 	_refresh_all()
 	_play_forge_success_feedback(FORGE_FLASH_CRAFT)
 
+func _on_alchemy_pressed() -> void:
+	if _selected_alchemy_base == null or _selected_alchemy_fodder == null:
+		return
+	var preview: Dictionary = _EquipmentEnhancer.alchemy_preview(
+		_selected_alchemy_base, _selected_alchemy_fodder
+	)
+	if not bool(preview.get("ok", false)):
+		_log_craft_error(str(preview.get("reason", "錬成できません")))
+		return
+	if bool(preview.get("needs_confirm", false)):
+		_alchemy_confirm.dialog_text = (
+			"%s を素材にして錬成します。\n素材は消滅します。よろしいですか？\n（Lv.%d → Lv.%d / Gold %d）"
+			% [
+				_EquipmentEnhancer.get_display_name(_selected_alchemy_fodder),
+				int(preview.get("from_level", 1)),
+				int(preview.get("to_level", 1)),
+				int(preview.get("gold_cost", 0)),
+			]
+		)
+		_alchemy_confirm.popup_centered()
+		return
+	_execute_alchemy()
+
+
+func _execute_alchemy() -> void:
+	if _selected_alchemy_base == null or _selected_alchemy_fodder == null:
+		return
+	var result: Dictionary = _EquipmentEnhancer.perform_alchemy(
+		_selected_alchemy_base, _selected_alchemy_fodder
+	)
+	if not bool(result.get("ok", false)):
+		_log_craft_error(str(result.get("reason", "錬成に失敗しました")))
+		return
+	_log_craft(
+		"錬成成功: Lv.%d → Lv.%d（Gold %d）"
+		% [int(result.get("from_level", 1)), int(result.get("to_level", 1)), int(result.get("gold_cost", 0))]
+	)
+	_selected_alchemy_fodder = null
+	SaveManager.save_game()
+	_refresh_all()
+	_play_forge_success_feedback(FORGE_FLASH_ALCHEMY)
+
+
 func _on_enhance_pressed() -> void:
 	if _selected_enhance_item == null:
 		return
 	var result: Dictionary = _EquipmentEnhancer.enhance_item(_selected_enhance_item)
 	if not bool(result.get("ok", false)):
-		_log_craft(str(result.get("reason", "炉研ぎに失敗しました")))
+		_log_craft_error(str(result.get("reason", "炉研ぎに失敗しました")))
 		_refresh_all()
 		return
 	SaveManager.save_game()
@@ -981,7 +1263,7 @@ func _on_legendary_dismantle_final() -> void:
 func _execute_dismantle(item: Resource) -> void:
 	var result: Dictionary = _EquipmentEnhancer.dismantle_item(item)
 	if not bool(result.get("ok", false)):
-		_log_craft(str(result.get("reason", "分解に失敗しました")))
+		_log_craft_error(str(result.get("reason", "分解に失敗しました")))
 		_refresh_all()
 		return
 	SaveManager.save_game()
@@ -995,7 +1277,7 @@ func _on_bulk_dismantle_pressed() -> void:
 	var preview: Dictionary = _EquipmentEnhancer.dismantle_bulk_preview()
 	var count: int = int(preview.get("count", 0))
 	if count <= 0:
-		_log_craft("分解対象がありません")
+		_log_craft_error("分解対象がありません")
 		return
 	_dismantle_confirm.dialog_text = (
 		"◇◆装備 %d件を分解します。\n獲得: %s\nよろしいですか？"
@@ -1006,7 +1288,7 @@ func _on_bulk_dismantle_pressed() -> void:
 func _on_bulk_dismantle_confirmed() -> void:
 	var result: Dictionary = _EquipmentEnhancer.dismantle_bulk_common_rare()
 	if not bool(result.get("ok", false)):
-		_log_craft(str(result.get("reason", "一括分解に失敗しました")))
+		_log_craft_error(str(result.get("reason", "一括分解に失敗しました")))
 		_refresh_all()
 		return
 	SaveManager.save_game()
@@ -1080,6 +1362,11 @@ func _log_craft(msg: String) -> void:
 	print("[Craft] ", msg)
 	_label_status.text = msg
 	_label_status.visible = not msg.is_empty()
+
+
+func _log_craft_error(msg: String) -> void:
+	AudioManager.play_sfx("ui_error")
+	_log_craft(msg)
 
 func _play_forge_success_feedback(flash_color: Color) -> void:
 	_flash_forge_screen(flash_color)

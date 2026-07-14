@@ -1,10 +1,8 @@
-extends Node
+extends Control
+## 起動入口: ロードせずタイトルへ。Continue / New Game は TitleScene が担う。
 
-const _SettingsPrefs := preload("res://scripts/settings/SettingsPrefs.gd")
+const TITLE_SCENE := "res://scenes/title/TitleScene.tscn"
+
 
 func _ready() -> void:
-	_SettingsPrefs.ensure_loaded()
-	SaveManager.load_game()
-	DailyMissionSystem.ensure_refreshed()
-	EventSystem.ensure_active()
-	SceneRouter.change_scene("res://scenes/base/BaseScene.tscn")
+	get_tree().change_scene_to_file.call_deferred(TITLE_SCENE)
