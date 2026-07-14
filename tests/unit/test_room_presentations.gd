@@ -13,10 +13,12 @@ func test_all_rooms_use_half_success_chance() -> void:
 
 
 func test_timings_match_trap_pattern() -> void:
-	assert_eq(_HealRoomPresentation.timings(false)["setup_hold"], 1.25)
-	assert_eq(_HealRoomPresentation.timings(true)["setup_hold"], 0.72)
-	assert_eq(_TreasureRoomPresentation.timings(false)["setup_hold"], 1.25)
-	assert_eq(_LoreRoomPresentation.timings(true)["setup_hold"], 0.72)
+	assert_eq(_HealRoomPresentation.timings(false)["setup_hold"], 2.0)
+	assert_eq(_HealRoomPresentation.timings(true)["setup_hold"], 1.15)
+	assert_eq(_TreasureRoomPresentation.timings(false)["setup_hold"], 2.0)
+	assert_eq(_TreasureRoomPresentation.timings(true)["setup_hold"], 1.15)
+	assert_eq(_LoreRoomPresentation.timings(false)["setup_hold"], 2.0)
+	assert_eq(_LoreRoomPresentation.timings(true)["setup_hold"], 1.15)
 
 
 func test_pick_lines_use_rng() -> void:

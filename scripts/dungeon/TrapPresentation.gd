@@ -39,8 +39,8 @@ const ALERT_ALPHAS_FAST: Array[float] = [0.16, 0.11]
 
 static func timings(fast_run: bool) -> Dictionary:
 	if fast_run:
-		return {"setup_hold": 0.72}
-	return {"setup_hold": 1.25}
+		return {"setup_hold": 1.15}
+	return {"setup_hold": 2.0}
 
 
 static func bg_path_for_phase(phase: String) -> String:
