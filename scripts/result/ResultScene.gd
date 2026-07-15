@@ -2,6 +2,7 @@ extends Control
 
 const DUNGEON_SCENE: String = "res://scenes/dungeon/DungeonScene.tscn"
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
+const _RosterJoin := preload("res://scripts/roster/RosterJoin.gd")
 const PartyLogColorsScript: Script = preload("res://scripts/ui/PartyLogColors.gd")
 const ResultFlowScript: Script = preload("res://scripts/result/ResultFlowController.gd")
 const ExpRunSnapshotScript: Script = preload("res://scripts/result/ExpRunSnapshot.gd")
@@ -1175,7 +1176,7 @@ func _on_home_pressed() -> void:
 		_apply_pending_exp()
 	_set_buttons_disabled(true)
 	SaveManager.save_game()
-	SceneRouter.change_scene(HOME_SCENE)
+	SceneRouter.change_scene(_RosterJoin.resolve_home_scene())
 
 func _set_buttons_disabled(value: bool) -> void:
 	_button_retry.disabled = value
