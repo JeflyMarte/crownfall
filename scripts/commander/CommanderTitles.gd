@@ -61,7 +61,7 @@ static func _is_unlocked(title_id: String) -> bool:
 		"title_nameless":
 			return (
 				_CommanderProfile.current_rank() == "S"
-				and _CommanderProfile.get_name() == _CommanderProfile.DEFAULT_NAME
+				and _CommanderProfile.get_commander_name() == _CommanderProfile.DEFAULT_NAME
 			)
 	return false
 
