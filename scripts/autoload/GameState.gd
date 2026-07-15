@@ -55,6 +55,11 @@ var discovery_registry: Dictionary = {}
 # チュートリアル進行フラグ { flag_name: bool }
 var tutorial_flags: Dictionary = {}
 
+## 新進行: 基本職を章クリアで段階加入（P3-JOIN-001）。false=旧セーブ／全員所持モード。
+var starter_progression_v1: bool = false
+## 結果画面後に会話へ送る加入待ち id（空=なし）。
+var pending_roster_join_id: String = ""
+
 var armor_inventory: Array = []
 var accessory_inventory: Array = []
 
@@ -190,6 +195,7 @@ func is_stage_cleared(stage_id: String, tier: int = -1) -> bool:
 func mark_stage_cleared(stage_id: String, tier: int = -1) -> void:
 	if stage_id.is_empty():
 		return
+	var was_cleared: bool = is_stage_cleared(stage_id)
 	var t: int = _DungeonTierConfig.clamp_tier(tier if tier >= 0 else current_dungeon_tier)
 	var progress: Dictionary = stage_progress.get(stage_id, {})
 	progress["cleared"] = true
@@ -199,6 +205,10 @@ func mark_stage_cleared(stage_id: String, tier: int = -1) -> void:
 	tiers[str(t)] = true
 	progress["tiers"] = tiers
 	stage_progress[stage_id] = progress
+	if not was_cleared:
+		var _RosterJoin = load("res://scripts/roster/RosterJoin.gd")
+		if _RosterJoin != null:
+			_RosterJoin.on_stage_first_cleared(stage_id)
 	var stage: Resource = DataRegistry.get_stage_data(stage_id)
 	if stage == null:
 		return
@@ -1094,6 +1104,8 @@ func reset_for_new_game() -> void:
 	dungeon_progress = {}
 	discovery_registry = {}
 	tutorial_flags = {}
+	starter_progression_v1 = false
+	pending_roster_join_id = ""
 	stage_progress = {}
 	dungeon_tier_cleared = {}
 	current_dungeon_tier = 0
@@ -1142,28 +1154,42 @@ func apply_intro_commander_name(raw_name: String) -> bool:
 	return true
 
 
-## 導入時の初期隊員選択。選んだ隊員を編成先頭にし、5人ロスターは維持する（P3-INTRO-001）。
+## 導入時の初期隊員選択。選んだ1人のみ所持（P3-JOIN-001 / 旧P3-INTRO-001の5人維持を上書き）。
 func select_intro_starter(adventurer_id: String) -> bool:
 	var def: Variant = find_base_roster_def(adventurer_id)
 	if def == null:
 		return false
-	_init_party()
-	var selected: Resource = null
-	var others: Array = []
-	for adv: Resource in roster:
-		if adv != null and str(adv.id) == adventurer_id:
-			selected = adv
-		elif adv != null:
-			others.append(adv)
-	if selected == null:
+	inventory.clear()
+	armor_inventory.clear()
+	accessory_inventory.clear()
+	var selected: Resource = _create_base_adventurer(def as Dictionary)
+	roster = [selected]
+	party_members = [selected]
+	_grant_member_starting_weapon(selected)
+	starter_progression_v1 = true
+	pending_roster_join_id = ""
+	normalize_roster_rarity()
+	normalize_all_equipped_skills()
+	normalize_all_equipped_passives()
+	migrate_formation_slots_if_needed()
+	return true
+
+
+## 基本職をロスターに追加（章加入用）。既所持なら false。
+func grant_base_roster_member(adventurer_id: String) -> bool:
+	var def: Variant = find_base_roster_def(adventurer_id)
+	if def == null:
 		return false
-	roster.clear()
-	roster.append(selected)
-	for adv: Resource in others:
-		roster.append(adv)
-	party_members.clear()
-	for i in mini(ACTIVE_PARTY_SIZE, roster.size()):
-		party_members.append(roster[i])
+	if find_roster_member_by_id(adventurer_id) != null:
+		return false
+	var adv: Resource = _create_base_adventurer(def as Dictionary)
+	roster.append(adv)
+	_grant_member_starting_weapon(adv)
+	if party_members.size() < ACTIVE_PARTY_SIZE and not party_members.has(adv):
+		party_members.append(adv)
+	normalize_roster_rarity()
+	normalize_all_equipped_skills()
+	normalize_all_equipped_passives()
 	migrate_formation_slots_if_needed()
 	return true
 
@@ -1209,7 +1235,10 @@ func _grant_member_starting_weapon(member: Resource) -> void:
 	member.equipped_weapon = instance
 
 # 旧セーブ復元時など、ロスターに欠けている基本職を補完する（武器も付与）。
+# 新進行（starter_progression_v1）では章加入で埋めるため補完しない（P3-JOIN-001）。
 func ensure_base_roster_complete() -> void:
+	if starter_progression_v1:
+		return
 	for def in BASE_ROSTER_DEFS:
 		if find_roster_member_by_id(str(def["id"])) != null:
 			continue

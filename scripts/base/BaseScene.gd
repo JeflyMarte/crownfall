@@ -30,6 +30,10 @@ const EVENT_SCENE: String = "res://scenes/event/EventScene.tscn"
 var _field_survey_banner: PanelContainer
 
 func _ready() -> void:
+	var _RosterJoin = preload("res://scripts/roster/RosterJoin.gd")
+	if _RosterJoin.has_pending_join():
+		SceneRouter.change_scene(_RosterJoin.JOIN_SCENE)
+		return
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.HOME)
 	_decorate_panels()
 	_setup_field_survey_banner()

@@ -12,8 +12,9 @@ const SAVE_PATH: String = "user://save_data.json"
 ## セーブスキーマバージョン。構造変更時にインクリメントし、
 ## `_migrate_save_data` に v(n)→v(n+1) の段階マイグレーションを追加する。
 ## v0 = バージョンフィールド無しの旧セーブ（レガシー party/equipment/job/dungeon id を含む）
-## v1 = save_version フィールド導入（2026-07-02）
-const SAVE_VERSION: int = 5
+## v5 = commander / stage 等（2026-07-11 前後）
+## v6 = 章加入進行フラグ・pending（P3-JOIN-001）
+const SAVE_VERSION: int = 6
 
 func save_game() -> void:
 	var data: Dictionary = {
@@ -40,6 +41,8 @@ func save_game() -> void:
 		"current_stage_id": GameState.current_stage_id,
 		"stage_progress": GameState.stage_progress.duplicate(true),
 		"commander": GameState.commander.duplicate(true),
+		"starter_progression_v1": GameState.starter_progression_v1,
+		"pending_roster_join_id": GameState.pending_roster_join_id,
 	}
 	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file == null:
@@ -86,7 +89,17 @@ func _migrate_save_data(data: Dictionary) -> Dictionary:
 		data = _migrate_save_v3_to_v4(data)
 	if version < 5:
 		data = _migrate_save_v4_to_v5(data)
+	if version < 6:
+		data = _migrate_save_v5_to_v6(data)
 	data["save_version"] = SAVE_VERSION
+	return data
+
+func _migrate_save_v5_to_v6(data: Dictionary) -> Dictionary:
+	# 旧セーブは基本職全員所持の既加入扱い（章加入イベントなし）
+	if not data.has("starter_progression_v1"):
+		data["starter_progression_v1"] = false
+	if not data.has("pending_roster_join_id"):
+		data["pending_roster_join_id"] = ""
 	return data
 
 func _migrate_save_v4_to_v5(data: Dictionary) -> Dictionary:
@@ -342,6 +355,14 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.armor_inventory = _deserialize_armor_inventory(data["armor_inventory"])
 	if data.has("accessory_inventory") and data["accessory_inventory"] is Array:
 		GameState.accessory_inventory = _deserialize_accessory_inventory(data["accessory_inventory"])
+	if data.has("starter_progression_v1"):
+		GameState.starter_progression_v1 = bool(data["starter_progression_v1"])
+	else:
+		GameState.starter_progression_v1 = false
+	if data.has("pending_roster_join_id"):
+		GameState.pending_roster_join_id = str(data["pending_roster_join_id"])
+	else:
+		GameState.pending_roster_join_id = ""
 	_apply_roster_save(data)
 	_apply_gacha_save(data)
 	if data.has("enemy_codex") and data["enemy_codex"] is Dictionary:

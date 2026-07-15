@@ -10,6 +10,10 @@ func before_each() -> void:
 	GameState.reset_for_new_game()
 
 
+func after_each() -> void:
+	GameState.reset_for_new_game()
+
+
 func test_lore_has_six_panels_and_three_nina_lines() -> void:
 	assert_eq(_IntroLoreContent.PANELS.size(), 6)
 	assert_eq(_IntroLoreContent.NINA_LINES.size(), 3)
@@ -37,4 +41,5 @@ func test_select_intro_starter_puts_member_first() -> void:
 	assert_true(GameState.select_intro_starter("adventurer_3"))
 	assert_eq(str(GameState.party_members[0].id), "adventurer_3")
 	assert_eq(str(GameState.roster[0].id), "adventurer_3")
-	assert_eq(GameState.roster.size(), 5)
+	assert_eq(GameState.roster.size(), 1)
+	assert_true(GameState.starter_progression_v1)

@@ -26,6 +26,8 @@ Title「はじめから」
 ⑤ 拠点 BaseScene へ解放
 ```
 
+選んだ隊員のみ所持（P3-JOIN-001）。残り基本職は章クリア加入。
+
 **強制ダンジョン突入はしない。**
 
 依存（WIP 可）: `TitleScene` / `StarterPickScene` / 指揮官表示名（TopBar）。

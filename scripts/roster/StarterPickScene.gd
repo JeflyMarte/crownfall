@@ -1,7 +1,7 @@
 extends Control
 
-## 新規ゲーム時の初期隊員選択 — P3-INTRO-001 / 002。
-## 選んだ隊員を編成先頭にし、基本5人ロスターは維持する。
+## 新規ゲーム時の初期隊員選択 — P3-INTRO-001 / P3-JOIN-001。
+## 選んだ1人のみ所持。残りは章クリア加入。
 
 const _IntroUiAssets := preload("res://scripts/intro/IntroUiAssets.gd")
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
