@@ -268,10 +268,7 @@ static func _connect_if_needed(btn: Button, handler: Callable) -> void:
 	btn.toggle_mode = false
 	for conn in btn.pressed.get_connections():
 		btn.pressed.disconnect(conn["callable"])
-	btn.pressed.connect(func() -> void:
-		AudioManager.play_sfx("ui_click")
-		handler.call()
-	)
+	btn.pressed.connect(handler)
 
 static func _set_active_tab(nav_row: HBoxContainer, active_tab: Tab) -> void:
 	var active_node: String = ""

@@ -4596,7 +4596,6 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 
 # 敵スロット撃破時。全滅なら true（戦闘終了済み）。
 func _on_enemy_slot_killed(killed_slot: int) -> bool:
-	AudioManager.play_sfx("combat_death", 1.0, 0.06)
 	$CombatController.clear_pending_cast("enemy", killed_slot)
 	_debuff_marks.erase(killed_slot)
 	_award_enemy_kill_at(killed_slot)
@@ -4639,7 +4638,8 @@ func _finalize_combat_cleared() -> void:
 	_update_hp_bars()
 	_update_next_room_button()
 	_show_chr_sprites(false)
-	AudioManager.play_bgm("result")
+	# クリアBGMは ResultScene のみ。戦闘直後は探索へ戻す。
+	AudioManager.play_bgm("dungeon_explore")
 	if $DungeonController.is_on_last_floor_before_exit():
 		_play_combat_clear_celebration(true)
 	else:
@@ -6400,7 +6400,14 @@ func _get_chr_icon_texture(job_id: String) -> Texture2D:
 		return null
 	return frames.get_frame_texture("idle", 0)
 
+func _get_enemy_turn_icon_texture(enemy_id: String) -> Texture2D:
+	## 行動順専用の枠焼込アイコン。無ければ null（図鑑 `enemy:` は使わない）。
+	return IconPaths.get_icon_texture(enemy_id, "enemy_turn")
+
 func _get_enemy_icon_texture(enemy_id: String) -> Texture2D:
+	var turn_icon: Texture2D = _get_enemy_turn_icon_texture(enemy_id)
+	if turn_icon != null:
+		return turn_icon
 	var path: String = BOSS_ENEMY_SPRITE_MAP.get(enemy_id, "")
 	if path.is_empty():
 		path = _enemy_sprite_path(enemy_id)
@@ -6446,21 +6453,33 @@ func _make_turn_order_cell(entry: Dictionary) -> PanelContainer:
 	var cell: float = _turn_order_side_cell_size()
 	var holder := PanelContainer.new()
 	holder.custom_minimum_size = Vector2(cell, cell)
-	holder.add_theme_stylebox_override("panel", _make_turn_order_frame_style(false))
 	var icon := TextureRect.new()
-	icon.custom_minimum_size = Vector2(TURN_ORDER_SIDE_ICON_PX, TURN_ORDER_SIDE_ICON_PX)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	var tex: Texture2D = null
+	var baked_enemy_frame: bool = false
 	if entry["kind"] == "party":
 		var m: Resource = GameState.get_combatant(entry["index"])
 		if m != null:
 			tex = _get_chr_icon_texture(m.job_id)
+		icon.custom_minimum_size = Vector2(TURN_ORDER_SIDE_ICON_PX, TURN_ORDER_SIDE_ICON_PX)
+		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		holder.add_theme_stylebox_override("panel", _make_turn_order_frame_style(false))
 	else:
 		var d: Resource = $CombatController.get_enemy_data_at(entry["index"])
 		if d != null:
+			baked_enemy_frame = _get_enemy_turn_icon_texture(d.id) != null
 			tex = _get_enemy_icon_texture(d.id)
+		if baked_enemy_frame:
+			# 枠はテクスチャに焼込済み。汎用 CombatUiFrames を重ねない。
+			icon.custom_minimum_size = Vector2(cell, cell)
+			icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+			holder.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+		else:
+			icon.custom_minimum_size = Vector2(TURN_ORDER_SIDE_ICON_PX, TURN_ORDER_SIDE_ICON_PX)
+			icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+			holder.add_theme_stylebox_override("panel", _make_turn_order_frame_style(false))
+	holder.set_meta("baked_enemy_frame", baked_enemy_frame)
 	icon.texture = tex
 	icon.modulate = Color(1.0, 1.0, 1.0, 0.7)
 	holder.add_child(icon)
@@ -6512,6 +6531,7 @@ func _update_turn_order_ui(order: Array) -> void:
 			"icon": holder.get_child(0),
 			"frame": holder,
 			"badge": holder.get_child(1),
+			"baked_frame": bool(holder.get_meta("baked_enemy_frame", false)),
 		})
 	_turn_order_col_left.visible = _turn_order_col_left.get_child_count() > 0
 	_turn_order_col_right.visible = _turn_order_col_right.get_child_count() > 0
@@ -6527,7 +6547,10 @@ func _set_turn_order_active(entry: Dictionary) -> void:
 		var icon: TextureRect = item["icon"]
 		var frame: PanelContainer = item["frame"]
 		var active: bool = item["kind"] == entry["kind"] and item["index"] == entry["index"]
-		frame.add_theme_stylebox_override("panel", _make_turn_order_frame_style(active))
+		if bool(item.get("baked_frame", false)):
+			frame.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+		else:
+			frame.add_theme_stylebox_override("panel", _make_turn_order_frame_style(active))
 		frame.scale = Vector2(1.06, 1.06) if active else Vector2.ONE
 		icon.modulate = Color(1.0, 1.0, 1.0, 1.0) if active else Color(1.0, 1.0, 1.0, 0.55)
 
@@ -6640,7 +6663,7 @@ func _play_combat_clear_celebration(finish_dungeon_after: bool = false) -> void:
 	if _combat_clear_active:
 		return
 	_combat_clear_active = true
-	AudioManager.play_bgm("result")
+	# クリアBGMは結果ウィザード（ResultScene）入室時のみ。
 	AudioManager.play_sfx("victory")
 	$AutoProgressTimer.stop()
 	if _combat_clear_tween != null and is_instance_valid(_combat_clear_tween):

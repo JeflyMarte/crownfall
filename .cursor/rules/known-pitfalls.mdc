@@ -45,6 +45,7 @@ alwaysApply: true
 | MVP 画面で即落ち（`texture` on Nil） | `ChrIdlePortraitView` を `_ready` 前に `set_from_entry`（親未入場の動的生成） | `ui-layout.mdc` — 子ノードは `_ensure_nodes()` で遅延生成。ツリー投入前 API を想定する |
 | ボタン画像の文字が読めない | ラベル焼込 PNG＋非表示テキスト、または極小オーバーレイ | 可読優先。焼込文字に頼らず Godot テキスト（炉研ぎ同様）か、画像化を撤回 |
 | 職名が「ビーストテ…」になる | `OVERRUN_TRIM_ELLIPSIS`＋狭い JobRow／巨大 JobIcon | 職名は省略しない（必要なら折返し）。JobIcon は固定小サイズ（~22px） |
+| キャラスキル名が「鋼斬…」等に省略 | スキル行 Name Label に `clip_text`＋`OVERRUN_TRIM_ELLIPSIS`＋固定最小幅 | スキル名は1行全文（`clip_text=false` / `OVERRUN_NO_TRIMMING` / `AUTOWRAP_OFF`）。説明側を ellipsis |
 | Noto 本文が薄い | Variable `wght` 600/700 のまま、または `UiTypography` 未適用／テーマ未同期。700 でも Mobile＋小サイズでは体感薄い | `BODY_FONT_WEIGHT=800`＋`variation_embolden`。`production_theme.tres` の FontVariation も同値。本文は必ず `UiTypography.body_font()`。変更はコミットする（未コミットだと再起動・別セッションで 600 に戻って見える） |
 | キャラ切替 ◀▶ が消える | テーマ Button フォントが DelaGothic（矢印グリフ無し）＋ StyleBox 余白＋ `clip_text`＋過小 font | nav は flat＋`StyleBoxEmpty`＋Noto body＋十分な font_size。幅圧縮だけしてグリフを潰さない |
 

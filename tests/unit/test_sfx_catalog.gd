@@ -1,5 +1,5 @@
 extends GutTest
-## P3-AUDIO-SE-001 / SE-002 — Kenney SE カタログと AudioManager。
+## P3-AUDIO-SE-001 / SE-002 — SE カタログと AudioManager（Kenney + TomMusic）。
 
 const _SfxCatalog := preload("res://scripts/audio/SfxCatalog.gd")
 

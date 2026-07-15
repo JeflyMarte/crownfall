@@ -4,6 +4,7 @@ extends GutTest
 const _BgmCatalog := preload("res://scripts/audio/BgmCatalog.gd")
 
 const REQUIRED_IDS: Array[String] = [
+	_BgmCatalog.ID_TITLE,
 	_BgmCatalog.ID_HUB,
 	_BgmCatalog.ID_DUNGEON_EXPLORE,
 	_BgmCatalog.ID_BATTLE,

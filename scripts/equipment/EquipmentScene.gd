@@ -1865,9 +1865,10 @@ func _make_weapon_skill_list_row(member: Resource, weapon_skill: Dictionary) -> 
 	else:
 		var ws_name := Label.new()
 		ws_name.text = "『%s』" % str(weapon_skill.get("skill_name", ""))
-		ws_name.custom_minimum_size.x = SKILL_ROW_NAME_MIN_W
-		ws_name.clip_text = true
-		ws_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		ws_name.clip_text = false
+		ws_name.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		ws_name.autowrap_mode = TextServer.AUTOWRAP_OFF
+		ws_name.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 		ws_name.add_theme_color_override("font_color", SKILL_COLOR_ATTACK)
 		UiTypography.apply_body(ws_name, UiTypography.SIZE_CAPTION)
 		body_row.add_child(ws_name)
@@ -1886,8 +1887,6 @@ func _make_weapon_skill_list_row(member: Resource, weapon_skill: Dictionary) -> 
 	UiTypography.apply_caption(ws_tag)
 	row.add_child(ws_tag)
 	return row
-
-const SKILL_ROW_NAME_MIN_W: float = 132.0
 
 func _skill_row_icon(skill_id: String, member: Resource) -> Control:
 	var icon: Control = _make_skill_icon(skill_id, member)
@@ -1931,9 +1930,11 @@ func _make_skill_name_label(skill_data: Resource) -> Label:
 	var name_lbl := Label.new()
 	name_lbl.text = _skill_wrapped_name(skill_data)
 	_apply_skill_name_style(name_lbl, skill_data)
-	name_lbl.custom_minimum_size.x = SKILL_ROW_NAME_MIN_W
-	name_lbl.clip_text = true
-	name_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	# スキル名は1行で全文表示（説明側を省略）。clip+ellipsis だと長い名前が『鋼…』等になる。
+	name_lbl.clip_text = false
+	name_lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	name_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+	name_lbl.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return name_lbl

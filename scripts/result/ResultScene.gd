@@ -949,7 +949,8 @@ func _build_stars(filled: int) -> void:
 func _build_rewards() -> void:
 	for child in _reward_row.get_children():
 		child.queue_free()
-	_reward_row.add_child(_make_reward_cell(null, "経験値", "経験値", str(GameState.last_run_exp_reward)))
+	var exp_icon: Texture2D = IconPaths.get_icon_texture("exp", "ui")
+	_reward_row.add_child(_make_reward_cell(exp_icon, "EXP", "経験値", str(GameState.last_run_exp_reward)))
 	var gold_icon: Texture2D = load("res://assets/ui/batch2/ICO_Gold.png") as Texture2D
 	_reward_row.add_child(_make_reward_cell(gold_icon, "G", "ゴールド", str(GameState.last_run_gold_reward)))
 	if not GameState.last_run_starter_recruited_name.is_empty():

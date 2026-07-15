@@ -14,6 +14,7 @@ var _confirm_new: ConfirmationDialog
 func _ready() -> void:
 	_build_ui()
 	_refresh_continue()
+	AudioManager.play_bgm("title")
 
 
 func _build_ui() -> void:

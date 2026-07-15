@@ -5,14 +5,16 @@ extends RefCounted
 
 const DIR: String = "res://assets/audio/bgm/"
 
+const ID_TITLE: String = "title"
 const ID_HUB: String = "hub"
 const ID_DUNGEON_EXPLORE: String = "dungeon_explore"
 const ID_BATTLE: String = "battle"
 const ID_BOSS: String = "boss"
 const ID_RESULT: String = "result"
 
-## 探索込みの現行5曲（`dungeon_explore` も登録済）。
+## 現行登録（タイトル＋拠点＋探索／戦闘／ボス／リザルト）。
 const PATHS: Dictionary = {
+	ID_TITLE: DIR + "title.mp3",
 	ID_HUB: DIR + "hub.mp3",
 	ID_DUNGEON_EXPLORE: DIR + "dungeon_explore.mp3",
 	ID_BATTLE: DIR + "battle.mp3",
@@ -21,6 +23,7 @@ const PATHS: Dictionary = {
 }
 
 const LOOP_IDS: Dictionary = {
+	ID_TITLE: true,
 	ID_HUB: true,
 	ID_DUNGEON_EXPLORE: true,
 	ID_BATTLE: true,
