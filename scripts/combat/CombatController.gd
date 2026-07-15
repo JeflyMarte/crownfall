@@ -135,7 +135,7 @@ func start_combat_group(enemies: Array, level: int = 1) -> void:
 
 # 現行編成人数に対する敵ステ補正倍率（base=3人前提）。
 static func _party_size_balance_multiplier(share: float) -> float:
-	var n: int = maxi(1, GameState.ACTIVE_PARTY_SIZE)
+	var n: int = maxi(1, GameState.combatant_count())
 	if n <= PARTY_BALANCE_BASE_SIZE:
 		return 1.0
 	var ratio: float = float(n) / float(PARTY_BALANCE_BASE_SIZE) - 1.0

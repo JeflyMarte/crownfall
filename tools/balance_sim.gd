@@ -19,6 +19,8 @@ extends SceneTree
 ##
 ## Usage:
 ##   godot --headless -s res://tools/balance_sim.gd -- --runs=300 --dungeon=mourngate --party-level=1
+##   godot --headless -s res://tools/balance_sim.gd -- --stage=mourngate_1_1 --party-size=1 --party-level=3 --runs=100
+##   godot --headless -s res://tools/balance_sim.gd -- --mourngate-screen --runs=80
 ##   （tools/balance_sim.sh 経由推奨）
 
 const BATTLE_ACTION_CAP: int = 600
@@ -27,8 +29,13 @@ const HEAL_HP_THRESHOLD: float = 0.6
 
 var _runs: int = 300
 var _dungeon_id: String = ""
+var _stage_id: String = ""
 var _party_level: int = 1
+var _party_size: int = -1
+## カンマ区切り adventurer_id（指定時はこれだけ編成）
+var _party_ids: PackedStringArray = PackedStringArray()
 var _sweep: bool = false
+var _mourngate_screen: bool = false
 ## 敵ステータス一括倍率（探索用・ゲーム本体には影響しない）
 var _enemy_scale: float = 1.0
 ## ボス部屋のみの倍率（探索用）
@@ -72,6 +79,10 @@ func _main() -> void:
 	_parse_args()
 	if _dungeon_id.is_empty():
 		_dungeon_id = load("res://scripts/core/Constants.gd").DEFAULT_DUNGEON_ID
+	if _mourngate_screen:
+		_run_mourngate_screen()
+		quit(0)
+		return
 	if _sweep:
 		_run_sweep()
 		quit(0)
@@ -80,10 +91,17 @@ func _main() -> void:
 		_level_system.hp_per_level = _hp_per_level_override
 	if _atk_per_level_override >= 0:
 		_level_system.attack_per_level = _atk_per_level_override
+	_prepare_party()
 	print("=== Crownfall Balance Sim ===")
-	print("dungeon=%s runs=%d party_level=%d party_size=%d hp/Lv=%d atk/Lv=%d enemy_scale=%.2f" % [
-		_dungeon_id, _runs, _party_level, _gs.ACTIVE_PARTY_SIZE,
-		_level_system.hp_per_level, _level_system.attack_per_level, _enemy_scale
+	print("dungeon=%s stage=%s runs=%d party_level=%d party_size=%d hp/Lv=%d atk/Lv=%d enemy_scale=%.2f" % [
+		_dungeon_id,
+		_stage_id if not _stage_id.is_empty() else "-",
+		_runs,
+		_party_level,
+		_gs.party_members.size(),
+		_level_system.hp_per_level,
+		_level_system.attack_per_level,
+		_enemy_scale,
 	])
 	_apply_party_level()
 	var stats: Dictionary = _simulate_all()
@@ -127,9 +145,20 @@ func _parse_args() -> void:
 			"--dungeon":
 				if parts.size() > 1:
 					_dungeon_id = parts[1]
+			"--stage":
+				if parts.size() > 1:
+					_stage_id = parts[1]
 			"--party-level":
 				if parts.size() > 1:
-					_party_level = clampi(int(parts[1]), 1, LevelSystem.MAX_LEVEL)
+					_party_level = clampi(int(parts[1]), 1, _level_system.MAX_LEVEL)
+			"--party-size":
+				if parts.size() > 1:
+					_party_size = clampi(int(parts[1]), 1, 4)
+			"--party-ids":
+				if parts.size() > 1:
+					_party_ids = parts[1].split(",", false)
+			"--mourngate-screen":
+				_mourngate_screen = true
 			"--sweep":
 				_sweep = true
 			"--enemy-scale":
@@ -153,6 +182,126 @@ func _parse_args() -> void:
 			"--gear-hp":
 				if parts.size() > 1:
 					_gear_hp = maxi(0, int(parts[1]))
+
+
+## 編成人数／メンバー指定を適用（基本ロスター前提）。
+func _prepare_party() -> void:
+	# フル基本ロスターへ戻してから削る
+	if _gs.has_method("reset_for_new_game"):
+		_gs.reset_for_new_game()
+	# starter_progression だと1人になるため、旧モード相当で5人揃える
+	_gs.starter_progression_v1 = false
+	if _gs.has_method("ensure_base_roster_complete"):
+		_gs.ensure_base_roster_complete()
+	if _gs.roster.is_empty() and _gs.has_method("_init_party"):
+		_gs._init_party()
+	var members: Array = []
+	if not _party_ids.is_empty():
+		for raw_id: String in _party_ids:
+			var adv_id: String = raw_id.strip_edges()
+			var found: Resource = null
+			for adv: Resource in _gs.roster:
+				if adv != null and str(adv.id) == adv_id:
+					found = adv
+					break
+			if found != null and not members.has(found):
+				members.append(found)
+	elif _party_size > 0:
+		for i: int in mini(_party_size, _gs.roster.size()):
+			members.append(_gs.roster[i])
+	else:
+		return
+	if members.is_empty():
+		push_error("party setup empty — check --party-ids / --party-size")
+		return
+	_gs.set_active_party(members)
+
+
+## モーンゲート 1-1〜1-5 スクリーニング（ソロStress＋章加入進行想定）。
+func _run_mourngate_screen() -> void:
+	print("=== Mourngate Solo / Join Progression Screen ===")
+	print("近似: 通常攻撃+スキル①②のみ。実プレイよりやや辛め。runs/cell=%d" % _runs)
+	print("")
+	print("── A) 純ソロ Stress（全員アルド単独・推奨Lv）──")
+	_print_screen_header()
+	for chapter: int in range(1, 6):
+		var stage_id: String = "mourngate_1_%d" % chapter
+		var rec_lv: int = _stage_recommended_level(stage_id)
+		_run_screen_cell("solo@rec", stage_id, ["adventurer_0"], rec_lv)
+	print("")
+	print("── B) 純ソロ Stress（アルド・低Lv寄り）──")
+	_print_screen_header()
+	var low_levels: Array[int] = [1, 2, 3, 4, 5]
+	for chapter: int in range(1, 6):
+		var stage_id2: String = "mourngate_1_%d" % chapter
+		_run_screen_cell("solo@low", stage_id2, ["adventurer_0"], low_levels[chapter - 1])
+	print("")
+	print("── C) 章加入進行想定（クリア後に+1）──")
+	print("   1-1:1人 / 1-2:2人 / 1-3:3人 / 1-4〜1-5:4人（キュー: アルド→ガレン→リーヴァ→アイリス）")
+	_print_screen_header()
+	var prog: Array[Dictionary] = [
+		{"stage": "mourngate_1_1", "ids": ["adventurer_0"], "lv": 1},
+		{"stage": "mourngate_1_1", "ids": ["adventurer_0"], "lv": 3},
+		{"stage": "mourngate_1_2", "ids": ["adventurer_0", "adventurer_3"], "lv": 3},
+		{"stage": "mourngate_1_2", "ids": ["adventurer_0", "adventurer_3"], "lv": 4},
+		{"stage": "mourngate_1_3", "ids": ["adventurer_0", "adventurer_3", "adventurer_1"], "lv": 4},
+		{"stage": "mourngate_1_3", "ids": ["adventurer_0", "adventurer_3", "adventurer_1"], "lv": 5},
+		{"stage": "mourngate_1_4", "ids": ["adventurer_0", "adventurer_3", "adventurer_1", "adventurer_2"], "lv": 5},
+		{"stage": "mourngate_1_4", "ids": ["adventurer_0", "adventurer_3", "adventurer_1", "adventurer_2"], "lv": 6},
+		{"stage": "mourngate_1_5", "ids": ["adventurer_0", "adventurer_3", "adventurer_1", "adventurer_2"], "lv": 6},
+		{"stage": "mourngate_1_5", "ids": ["adventurer_0", "adventurer_3", "adventurer_1", "adventurer_2"], "lv": 7},
+	]
+	for row: Dictionary in prog:
+		_run_screen_cell("join-path", str(row["stage"]), row["ids"], int(row["lv"]))
+	print("")
+	print("── D) 1-1 ソロ職比較（Lv1 / Lv3）──")
+	_print_screen_header()
+	for starter: String in ["adventurer_0", "adventurer_3", "adventurer_1", "adventurer_2", "adventurer_4"]:
+		_run_screen_cell("1-1 Lv1", "mourngate_1_1", [starter], 1)
+		_run_screen_cell("1-1 Lv3", "mourngate_1_1", [starter], 3)
+	print("")
+	print("BALANCE_SCREEN: DONE")
+
+
+func _print_screen_header() -> void:
+	print("%-10s %-16s n Lv clear%% wipe%% hp%% avgActN" % ["tag", "stage"])
+
+
+func _stage_recommended_level(stage_id: String) -> int:
+	var stage: Resource = _dr().get_stage_data(stage_id)
+	if stage != null and int(stage.recommended_level) > 0:
+		return int(stage.recommended_level)
+	return 1
+
+
+func _run_screen_cell(tag: String, stage_id: String, ids: Array, level: int) -> void:
+	_stage_id = stage_id
+	_dungeon_id = "mourngate"
+	_party_level = level
+	_party_ids = PackedStringArray()
+	for id_v: Variant in ids:
+		_party_ids.append(str(id_v))
+	_party_size = ids.size()
+	_prepare_party()
+	_apply_party_level()
+	var stats: Dictionary = _simulate_all()
+	var clears: int = int(stats["clears"])
+	var wipes: int = int(stats["wipes"])
+	var clear_pct: float = 100.0 * clears / _runs
+	var wipe_pct: float = 100.0 * wipes / _runs
+	var hp_pct: float = 0.0
+	if clears > 0:
+		hp_pct = 100.0 * float(stats["end_hp_ratio_sum"]) / clears
+	var act_n: float = 0.0
+	var arr: Array = stats["battle_actions"]["normal"]
+	if not arr.is_empty():
+		var total: int = 0
+		for v: Variant in arr:
+			total += int(v)
+		act_n = float(total) / arr.size()
+	print("%-10s %-16s %d %2d %6.1f %6.1f %5.1f %6.1f" % [
+		tag, stage_id, ids.size(), level, clear_pct, wipe_pct, hp_pct, act_n
+	])
 
 func _apply_party_level() -> void:
 	for member in _gs.roster:
@@ -205,6 +354,8 @@ func _simulate_run(stats: Dictionary) -> void:
 	get_root().add_child(dc)
 	get_root().add_child(cc)
 	dc.start_dungeon(_dungeon_id)
+	if not _stage_id.is_empty():
+		dc.start_stage(_stage_id)
 	cc.reset_party_hp_for_run()
 	var rt_combat: int = _enums.RoomType.COMBAT
 	var rt_elite: int = _enums.RoomType.ELITE

@@ -28,6 +28,7 @@ const _DEFS: Dictionary = {
 		"once_per_combat": true,
 		"cooldown": 0.0,
 	},
+	# 表示名はアイリス／ロアンに改名済。内部 id は互換のため維持（P3-JOIN-001c）。
 	"elias_field_elixir": {
 		"display_name": "野戦調合",
 		"description": "味方が倒れたとき、パーティを15回復する。",
