@@ -4,7 +4,7 @@
 
 ## Last Update
 
-2026-07-16（**リモート再開**: `cursor/sub-mac-ui-integration-cca2` @ `2e99e26` 同期。GUT 395 PASS。次＝オーナー実機通し／QA）
+2026-07-16（**リモート再開**: `cursor/sub-mac-ui-integration-cca2` 同期済。GUT 395 PASS。次＝オーナー実機通し／QA）
 
 2026-07-16（**P3-AUDIO-BGM-001**: BGM 配置＋配線 — title/hub/explore/battle/boss/result。戦闘SE差し替え・行動順敵アイコン・結果EXPアイコン等の polish WIP 同梱）
 
