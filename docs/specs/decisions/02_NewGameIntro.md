@@ -89,7 +89,20 @@ Title「はじめから」
 | ID | 内容 |
 |---|---|
 | P3-INTRO-001 | フロー配線＋3画面（LoreScroll / NameInput / NinaBrief）＋ Title→Starter 接続 |
-| P3-INTRO-002（任意） | 文案 polish・SE／立ち絵 |
+| P3-INTRO-002 | 導入アート（BG＋ニーナ立ち絵＋スターター枠）配線。文案/SE polish・パネル挿絵は後続 |
+
+### P3-INTRO-002 アセット（案A core・確定）
+
+| 用途 | パス |
+|---|---|
+| Lore BG | `assets/ui/intro/BG_Intro_Lore.png` |
+| Name / Nina BG | `assets/ui/intro/BG_Intro_Name.png` |
+| Starter BG | `assets/ui/intro/BG_Intro_Starter.png` |
+| ニーナ立ち絵 | `assets/npc/ART_NPC_Nina.png` |
+| スターター枠 | `assets/ui/intro/UI_Card_Starter_Frame.png` |
+
+- レイアウト: ニーナ＝左立ち絵／右吹き出し／下に次へ。スターター＝BG上の一覧＋大きめ職ポート＋枠
+- 画像に焼き込みテキストなし。パネル挿絵（案B）・操作チュートは **採用しない**
 
 Exit Criteria（P3-INTRO-001）:
 
@@ -98,3 +111,10 @@ Exit Criteria（P3-INTRO-001）:
 3. 入力した隊長名が拠点に表示される
 4. 操作講習画面が追加されていない
 5. smoke PASS
+
+Exit Criteria（P3-INTRO-002）:
+
+1. 上記5アセットが Intro / Starter 画面に配線されている
+2. ニーナ画面が左立ち絵・右吹き出しレイアウト
+3. スターターカードに枠オーバーレイ
+4. smoke PASS・`test_intro_flow` PASS

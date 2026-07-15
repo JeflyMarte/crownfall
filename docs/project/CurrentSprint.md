@@ -37,6 +37,7 @@
 | 2 | P3-ENEMY-002 | 新雑魚 +8〜12（章別 spawn は STG 同梱済） | Decision 済・未着手 |
 | — | P3-DAILY-B | 日課 UI polish | 任意 |
 | — | **P3-INTRO-001** | 新規導入フロー | ✅ Closeout（実機未確認） |
+| — | **P3-INTRO-002** | 導入アート（BG＋ニーナ＋枠） | ✅ Closeout（実機未確認） |
 | — | オーナー作画 | env（5職ドットは P3-ART-CHR-002 差替済・助っ人は OMIT） | 並行レーン |
 | — | P3-ART-CHR-002 | メイン5職ダンジョンドット差替 | ✅ |
 | — | P3-CHR-OMIT-001 | メイン5以外オミット | ✅ |

@@ -1,9 +1,11 @@
 extends Control
 
-## 新規ゲーム時の初期隊員選択 — P3-INTRO-001。
+## 新規ゲーム時の初期隊員選択 — P3-INTRO-001 / 002。
 ## 選んだ隊員を編成先頭にし、基本5人ロスターは維持する。
 
+const _IntroUiAssets := preload("res://scripts/intro/IntroUiAssets.gd")
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
+const PORTRAIT_SIZE := Vector2(112, 148)
 
 var _selected_id: String = ""
 var _confirm_btn: Button
@@ -16,11 +18,7 @@ func _ready() -> void:
 
 func _build_ui() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var bg := ColorRect.new()
-	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	bg.color = Color(0.06, 0.07, 0.1, 1)
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(bg)
+	_IntroUiAssets.add_full_bg(self, _IntroUiAssets.BG_STARTER, Color(0.06, 0.07, 0.1, 1))
 
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -37,14 +35,14 @@ func _build_ui() -> void:
 	var title := Label.new()
 	title.text = "調査隊員を選ぶ"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UiTypography.apply_display(title, UiTypography.SIZE_DISPLAY_TITLE)
+	UiTypography.apply_display(title, UiTypography.SIZE_DISPLAY_TITLE, UiTypography.COLOR_GOLD)
 	root.add_child(title)
 
 	var sub := Label.new()
 	sub.text = "最初に編成の中心とする隊員を選んでください。\n選んだ隊員が先頭になります。"
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	UiTypography.apply_body(sub, 16, Color(0.75, 0.78, 0.85))
+	UiTypography.apply_body(sub, 16, Color(0.82, 0.84, 0.90))
 	root.add_child(sub)
 
 	var scroll := ScrollContainer.new()
@@ -54,7 +52,7 @@ func _build_ui() -> void:
 
 	var list := VBoxContainer.new()
 	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	list.add_theme_constant_override("separation", 10)
+	list.add_theme_constant_override("separation", 12)
 	scroll.add_child(list)
 
 	for def: Variant in GameState.BASE_ROSTER_DEFS:
@@ -79,27 +77,42 @@ func _make_card(def: Dictionary) -> PanelContainer:
 			_select(adv_id)
 	)
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.12, 0.13, 0.18, 0.95)
+	sb.bg_color = Color(0.08, 0.09, 0.14, 0.90)
 	sb.set_border_width_all(2)
 	sb.border_color = Color(0.35, 0.38, 0.45)
-	sb.set_corner_radius_all(8)
+	sb.set_corner_radius_all(10)
 	sb.set_content_margin_all(12)
 	panel.add_theme_stylebox_override("panel", sb)
 	_cards[adv_id] = panel
 
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 12)
+	row.add_theme_constant_override("separation", 14)
 	panel.add_child(row)
 
+	var portrait_stack := Control.new()
+	portrait_stack.custom_minimum_size = PORTRAIT_SIZE
+	row.add_child(portrait_stack)
+
 	var icon := TextureRect.new()
-	icon.custom_minimum_size = Vector2(72, 72)
+	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.texture = IconPaths.get_icon_texture(job_id, "chr")
-	row.add_child(icon)
+	portrait_stack.add_child(icon)
+
+	var frame_tex: Texture2D = _IntroUiAssets.load_tex(_IntroUiAssets.STARTER_CARD_FRAME)
+	if frame_tex != null:
+		var frame := TextureRect.new()
+		frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		frame.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		frame.texture = frame_tex
+		portrait_stack.add_child(frame)
 
 	var col := VBoxContainer.new()
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	col.add_theme_constant_override("separation", 6)
 	row.add_child(col)
 
 	var name_lbl := Label.new()
@@ -110,7 +123,7 @@ func _make_card(def: Dictionary) -> PanelContainer:
 	var job_data: Resource = DataRegistry.get_job_data(job_id)
 	var job_lbl := Label.new()
 	job_lbl.text = str(job_data.display_name) if job_data != null else job_id
-	UiTypography.apply_body(job_lbl, 15, Color(0.7, 0.72, 0.8))
+	UiTypography.apply_body(job_lbl, 15, Color(0.75, 0.78, 0.86))
 	col.add_child(job_lbl)
 
 	return panel

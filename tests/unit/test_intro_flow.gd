@@ -1,7 +1,8 @@
 extends GutTest
-## P3-INTRO-001 — 導入文案・隊長名設定・初期隊員先頭化。
+## P3-INTRO-001/002 — 導入文案・隊長名設定・初期隊員先頭化・アセット存在。
 
 const _IntroLoreContent = preload("res://scripts/intro/IntroLoreContent.gd")
+const _IntroUiAssets = preload("res://scripts/intro/IntroUiAssets.gd")
 const _CommanderProfile = preload("res://scripts/commander/CommanderProfile.gd")
 
 
@@ -13,6 +14,15 @@ func test_lore_has_six_panels_and_three_nina_lines() -> void:
 	assert_eq(_IntroLoreContent.PANELS.size(), 6)
 	assert_eq(_IntroLoreContent.NINA_LINES.size(), 3)
 	assert_true(not _IntroLoreContent.PANELS[0].is_empty())
+
+
+func test_intro_art_assets_exist() -> void:
+	assert_true(ResourceLoader.exists(_IntroUiAssets.BG_LORE))
+	assert_true(ResourceLoader.exists(_IntroUiAssets.BG_NAME))
+	assert_true(ResourceLoader.exists(_IntroUiAssets.BG_STARTER))
+	assert_true(ResourceLoader.exists(_IntroUiAssets.NINA_PORTRAIT))
+	assert_true(ResourceLoader.exists(_IntroUiAssets.STARTER_CARD_FRAME))
+	assert_true(_IntroUiAssets.load_tex(_IntroUiAssets.NINA_PORTRAIT) != null)
 
 
 func test_set_name_for_intro_bypasses_rank_lock() -> void:

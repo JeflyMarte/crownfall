@@ -1,8 +1,9 @@
 extends Control
 
-## 世界観ナレーション（縦スクロール・スキップ可）— P3-INTRO-001。
+## 世界観ナレーション（縦スクロール・スキップ可）— P3-INTRO-001 / 002。
 
 const _IntroLoreContent := preload("res://scripts/intro/IntroLoreContent.gd")
+const _IntroUiAssets := preload("res://scripts/intro/IntroUiAssets.gd")
 const NEXT_SCENE: String = "res://scenes/intro/IntroNameScene.tscn"
 
 var _scroll: ScrollContainer
@@ -15,11 +16,7 @@ func _ready() -> void:
 
 func _build_ui() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var bg := ColorRect.new()
-	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	bg.color = Color(0.04, 0.05, 0.08, 1.0)
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(bg)
+	_IntroUiAssets.add_full_bg(self, _IntroUiAssets.BG_LORE, Color(0.04, 0.05, 0.08, 1.0))
 
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -61,12 +58,22 @@ func _build_ui() -> void:
 	_scroll.add_child(list)
 
 	for i: int in _IntroLoreContent.PANELS.size():
+		var panel_wrap := PanelContainer.new()
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Color(0.06, 0.07, 0.11, 0.82)
+		sb.set_border_width_all(1)
+		sb.border_color = Color(0.45, 0.40, 0.28, 0.7)
+		sb.set_corner_radius_all(8)
+		sb.set_content_margin_all(16)
+		panel_wrap.add_theme_stylebox_override("panel", sb)
+		list.add_child(panel_wrap)
+
 		var panel_lbl := Label.new()
 		panel_lbl.text = _IntroLoreContent.PANELS[i]
 		panel_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		panel_lbl.custom_minimum_size = Vector2(0, 96)
-		UiTypography.apply_body(panel_lbl, 22, Color(0.88, 0.86, 0.80))
-		list.add_child(panel_lbl)
+		panel_lbl.custom_minimum_size = Vector2(0, 72)
+		UiTypography.apply_body(panel_lbl, 22, Color(0.92, 0.90, 0.84))
+		panel_wrap.add_child(panel_lbl)
 
 	var hint := Label.new()
 	hint.text = "下へスクロールして読み進めてください"
