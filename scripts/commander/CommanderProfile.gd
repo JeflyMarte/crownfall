@@ -40,21 +40,24 @@ static func ensure_commander() -> void:
 	_sanitize_commander()
 
 
-static func get_name() -> String:
+static func get_commander_name() -> String:
 	ensure_commander()
-	var name: String = str(GameState.commander.get("name", DEFAULT_NAME)).strip_edges()
-	return name if not name.is_empty() else DEFAULT_NAME
+	var cmd_name: String = str(GameState.commander.get("name", DEFAULT_NAME)).strip_edges()
+	return cmd_name if not cmd_name.is_empty() else DEFAULT_NAME
 
 
-static func set_name(raw_name: String) -> bool:
+static func set_commander_name(raw_name: String) -> bool:
 	if not can_edit_name():
 		return false
-	ensure_commander()
-	var trimmed: String = raw_name.strip_edges()
-	if trimmed.is_empty():
-		return false
-	GameState.commander["name"] = trimmed.substr(0, 16)
-	return true
+	return set_name_for_intro(raw_name)
+
+
+static func apply_intro_commander_name(raw_name: String) -> bool:
+	return GameState.apply_intro_commander_name(raw_name)
+
+
+static func set_name_for_intro(raw_name: String) -> bool:
+	return apply_intro_commander_name(raw_name)
 
 
 static func can_edit_name() -> bool:

@@ -91,7 +91,7 @@ func _select_tab(tab: Tab) -> void:
 func _build_overview() -> void:
 	var panel := _make_card()
 	var vbox := _card_vbox(panel)
-	_add_heading(vbox, _CommanderProfile.get_name())
+	_add_heading(vbox, _CommanderProfile.get_commander_name())
 	var title_id: String = _CommanderProfile.get_equipped_title()
 	if not title_id.is_empty():
 		_add_caption(vbox, "称号: %s" % _CommanderTitles.get_label(title_id))
@@ -121,15 +121,15 @@ func _make_name_editor() -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
 	var field := LineEdit.new()
-	field.placeholder_text = "隊長名（16文字まで）"
-	field.text = _CommanderProfile.get_name()
+	field.placeholder_text = "隊長名（12文字まで）"
+	field.text = _CommanderProfile.get_commander_name()
 	field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(field)
 	var btn := Button.new()
 	btn.text = "変更"
 	UiTypography.apply_menu_button(btn, false)
 	btn.pressed.connect(func():
-		if _CommanderProfile.set_name(field.text):
+		if _CommanderProfile.set_commander_name(field.text):
 			SaveManager.save_game()
 			_select_tab(Tab.OVERVIEW)
 	)
