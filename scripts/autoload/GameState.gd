@@ -1077,9 +1077,9 @@ const _GachaRarityConfig: Script = preload("res://scripts/gacha/GachaRarityConfi
 const BASE_ROSTER_DEFS: Array = [
 	{"id": "adventurer_0", "name": "アルド", "job": "swordsman"},
 	{"id": "adventurer_1", "name": "リーヴァ", "job": "ranger"},
-	{"id": "adventurer_2", "name": "エリアス", "job": "alchemist"},
+	{"id": "adventurer_2", "name": "アイリス", "job": "alchemist"},
 	{"id": "adventurer_3", "name": "ガレン", "job": "vanguard"},
-	{"id": "adventurer_4", "name": "ミレイ", "job": "beast_tamer"},
+	{"id": "adventurer_4", "name": "ロアン", "job": "beast_tamer"},
 ]
 const ACTIVE_PARTY_SIZE: int = 4
 # 戦闘スロット上限（スプライト/HPバー枠＝4）。助っ人含む同時表示の最大数（P3-D105）。

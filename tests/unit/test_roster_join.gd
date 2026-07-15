@@ -57,6 +57,13 @@ func test_old_mode_does_not_queue_join() -> void:
 	assert_eq(GameState.pending_roster_join_id, "")
 
 
+func test_renamed_starter_display_names() -> void:
+	assert_eq(str(GameState.find_base_roster_def("adventurer_2")["name"]), "アイリス")
+	assert_eq(str(GameState.find_base_roster_def("adventurer_4")["name"]), "ロアン")
+	assert_true(ResourceLoader.exists(_Content.get_portrait_path("adventurer_2")))
+	assert_true(ResourceLoader.exists(_Content.get_portrait_path("adventurer_4")))
+
+
 func test_join_portraits_exist() -> void:
 	for adv_id: String in _Content.JOIN_ORDER:
 		var path: String = _Content.get_portrait_path(adv_id)

@@ -5,9 +5,9 @@ extends RefCounted
 const JOIN_ORDER: Array[String] = [
 	"adventurer_3", # ガレン
 	"adventurer_1", # リーヴァ
-	"adventurer_2", # エリアス
+	"adventurer_2", # アイリス
 	"adventurer_0", # アルド
-	"adventurer_4", # ミレイ
+	"adventurer_4", # ロアン
 ]
 
 ## 初回クリアで次の未所持を pending する章
@@ -21,9 +21,9 @@ const JOIN_TRIGGER_STAGES: Array[String] = [
 const PORTRAIT_BY_ID: Dictionary = {
 	"adventurer_0": "res://assets/npc/ART_ADV_Aldo.png",
 	"adventurer_1": "res://assets/npc/ART_ADV_Reeva.png",
-	"adventurer_2": "res://assets/npc/ART_ADV_Elias.png",
+	"adventurer_2": "res://assets/npc/ART_ADV_Iris.png",
 	"adventurer_3": "res://assets/npc/ART_ADV_Galen.png",
-	"adventurer_4": "res://assets/npc/ART_ADV_Mirei.png",
+	"adventurer_4": "res://assets/npc/ART_ADV_Roan.png",
 }
 
 const NINA_BRIDGE: String = "見知った顔を連れてきました。口を合わせてもらいましょう。"
@@ -40,8 +40,8 @@ const LINES_BY_ID: Dictionary = {
 		"覗きすぎない距離で、先を見る。それが仕事。",
 		"声は大きくしない。合図だけで、追いつけるよ。",
 	],
-	"adventurer_2": [ # エリアス／白髪紫外套の錬成屋（ドット外見）
-		"エリアスよ。瓶と記録が得意領域。",
+	"adventurer_2": [ # アイリス／白髪紫外套の錬成屋
+		"アイリスよ。瓶と記録が得意領域。",
 		"刃物より、反応のほうが誠実なこと、あるわ。",
 		"危ない調合は止める。……止まらない時は、後退を推奨するだけ。",
 	],
@@ -50,8 +50,8 @@ const LINES_BY_ID: Dictionary = {
 		"獅子の紋は飾りだ。役割は単純——隊を崩さないこと。",
 		"前は俺が受ける。隊長は方針だけ握っていてくれ。",
 	],
-	"adventurer_4": [ # ミレイ／獣使い（ドット外見・相棒付き）
-		"ミレイだ。相棒も連れてきた。文句はあとでいい。",
+	"adventurer_4": [ # ロアン／獣使い・相棒付き
+		"ロアンだ。相棒も連れてきた。文句はあとでいい。",
 		"吠え声も足跡も、俺には会話のうちだ。",
 		"森でも地下でも、生きてるものには耳を貸す。任せておけ。",
 	],
