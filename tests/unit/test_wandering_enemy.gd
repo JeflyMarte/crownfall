@@ -3,6 +3,22 @@ extends GutTest
 ## P3-WANDER-001 — 遍在希少種（遠旅スズメ / 聖遺甲虫）。
 
 const _WanderingEnemyConfig = preload("res://scripts/dungeon/WanderingEnemyConfig.gd")
+## 2026-07-01 05:00 JST — 週サイクル week0=exp（weapon_drop 週のカレンダー汚染を避ける）
+const _EVENT_EXP_WEEK_UNIX: int = 1783076400 + 3600
+
+var _saved_party: Array = []
+
+
+func before_each() -> void:
+	EventSystem.set_debug_unix_for_tests(_EVENT_EXP_WEEK_UNIX)
+	_saved_party = GameState.party_members.duplicate()
+
+
+func after_each() -> void:
+	EventSystem.clear_debug_unix_for_tests()
+	GameState.party_members = _saved_party
+	_saved_party = []
+
 
 func test_roll_wayfarer_at_low_roll() -> void:
 	assert_eq(_WanderingEnemyConfig.wandering_id_for_roll(0.01), _WanderingEnemyConfig.ID_WAYFARER_SPARROW)
@@ -48,6 +64,9 @@ func test_pick_wandering_replaces_combat_pool() -> void:
 	assert_true(saw_wander, "200 trials should hit wandering spawn")
 
 func test_weapon_drop_chance_override() -> void:
+	## ベース drop のみ検証（週次 weapon_drop×1.5 や昇格特質は掛けない）
+	assert_eq(EventSystem.get_modifier_mult(EventSystem.MOD_WEAPON_DROP), 1.0)
+	GameState.party_members = []
 	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
 	var dc: Node = dc_script.new()
 	add_child_autofree(dc)
