@@ -264,7 +264,7 @@ func _update_currency() -> void:
 
 func _update_player_card() -> void:
 	_CommanderProfile.ensure_commander()
-	var display_name: String = _CommanderProfile.get_name()
+	var display_name: String = _CommanderProfile.get_commander_name()
 	var title_id: String = _CommanderProfile.get_equipped_title()
 	if not title_id.is_empty():
 		display_name = "%s（%s）" % [display_name, _CommanderTitles.get_label(title_id)]

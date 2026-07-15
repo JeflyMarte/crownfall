@@ -1079,6 +1079,94 @@ func _ready() -> void:
 	_init_party()
 	_CommanderProfile.ensure_commander()
 
+
+## タイトル「はじめから」用。ラン中・永続状態を初期化し、導入フローへ渡す（P3-INTRO-001）。
+func reset_for_new_game() -> void:
+	gold = 0
+	gacha_token = 0
+	gacha_pity = 0
+	owned_helpers = {}
+	owned_relics = []
+	inventory = []
+	armor_inventory = []
+	accessory_inventory = []
+	material_inventory = {}
+	dungeon_progress = {}
+	discovery_registry = {}
+	tutorial_flags = {}
+	stage_progress = {}
+	dungeon_tier_cleared = {}
+	current_dungeon_tier = 0
+	current_dungeon_id = ""
+	current_stage_id = ""
+	enemy_codex = {}
+	combat_presets = []
+	daily_mission_state = {}
+	commander = {}
+	current_exploration_policy = ""
+	current_weather = ""
+	equipment_focus_member_index = -1
+	base_initial_view = "hub"
+	hub_npc_hint = {}
+	last_run_exp_reward = 0
+	last_run_gold_reward = 0
+	last_run_token_reward = 0
+	last_run_weapon_dropped = ""
+	last_run_armor_dropped = ""
+	last_run_accessory_dropped = ""
+	last_run_relic_dropped = ""
+	last_run_level_ups = {}
+	last_run_exp_snapshots = {}
+	last_run_combat_stats = {}
+	last_run_outcome = ""
+	last_run_exploration_policy = ""
+	run_material_start = {}
+	last_run_material_gains = {}
+	last_run_weather = ""
+	last_run_stage_id = ""
+	last_run_modifier_counts = {}
+	_run_combat_stats = null
+	_init_party()
+	_CommanderProfile.ensure_commander()
+
+
+## 導入フロー用の隊長名設定（等級ロック無視 / P3-INTRO-001）。
+func apply_intro_commander_name(raw_name: String) -> bool:
+	_CommanderProfile.ensure_commander()
+	var trimmed: String = raw_name.strip_edges()
+	if trimmed.is_empty():
+		return false
+	if trimmed.length() > 12:
+		trimmed = trimmed.substr(0, 12)
+	commander["name"] = trimmed
+	return true
+
+
+## 導入時の初期隊員選択。選んだ隊員を編成先頭にし、5人ロスターは維持する（P3-INTRO-001）。
+func select_intro_starter(adventurer_id: String) -> bool:
+	var def: Variant = find_base_roster_def(adventurer_id)
+	if def == null:
+		return false
+	_init_party()
+	var selected: Resource = null
+	var others: Array = []
+	for adv: Resource in roster:
+		if adv != null and str(adv.id) == adventurer_id:
+			selected = adv
+		elif adv != null:
+			others.append(adv)
+	if selected == null:
+		return false
+	roster.clear()
+	roster.append(selected)
+	for adv: Resource in others:
+		roster.append(adv)
+	party_members.clear()
+	for i in mini(ACTIVE_PARTY_SIZE, roster.size()):
+		party_members.append(roster[i])
+	migrate_formation_slots_if_needed()
+	return true
+
 func _init_party() -> void:
 	roster = []
 	for def in BASE_ROSTER_DEFS:

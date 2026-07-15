@@ -62,6 +62,15 @@ func load_game() -> void:
 	DailyMissionSystem.ensure_refreshed()
 	EventSystem.ensure_active()
 
+
+func has_save() -> bool:
+	return FileAccess.file_exists(SAVE_PATH)
+
+
+func delete_save() -> void:
+	if FileAccess.file_exists(SAVE_PATH):
+		DirAccess.remove_absolute(SAVE_PATH)
+
 ## 段階マイグレーション。v0（バージョン無し）の互換吸収は _apply_save_data 内の
 ## 既存レガシー処理（party キー / equipment / _migrate_job_id / _migrate_dungeon_id）が担う。
 ## 以後の構造変更は「if version < N: 変換」を本関数へ追記する。

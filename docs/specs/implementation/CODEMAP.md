@@ -36,7 +36,10 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 
 | シーン | パス | スクリプト |
 |---|---|---|
-| BootScene | `scenes/boot/BootScene.tscn` | `scripts/boot/BootScene.gd` |
+| BootScene | `scenes/boot/BootScene.tscn` | `scripts/boot/BootScene.gd` → Title |
+| TitleScene | `scenes/title/TitleScene.tscn` | `scripts/title/TitleScene.gd` |
+| IntroLore / Name / Nina | `scenes/intro/*.tscn` | `scripts/intro/*`（P3-INTRO-001） |
+| StarterPickScene | `scenes/roster/StarterPickScene.tscn` | `scripts/roster/StarterPickScene.gd` |
 | BaseScene | `scenes/base/BaseScene.tscn` | `scripts/base/BaseScene.gd` |
 | DungeonScene | `scenes/dungeon/DungeonScene.tscn` | `scripts/dungeon/DungeonScene.gd` |
 | DungeonSelectScene | `scenes/dungeon/DungeonSelectScene.tscn` | `scripts/dungeon/DungeonSelectScene.gd` |
