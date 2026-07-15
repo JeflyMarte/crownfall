@@ -4,6 +4,10 @@
 
 ## Last Update
 
+2026-07-16（**リモート再開**: `cursor/sub-mac-ui-integration-cca2` @ `2e99e26` 同期。GUT 395 PASS。次＝オーナー実機通し／QA）
+
+2026-07-16（**P3-AUDIO-BGM-001**: BGM 配置＋配線 — title/hub/explore/battle/boss/result。戦闘SE差し替え・行動順敵アイコン・結果EXPアイコン等の polish WIP 同梱）
+
 2026-07-14（**P3-AUDIO-SE-002**: 未使用SE配線 — skill resolve / death / cancel / error。罠=`combat_hit`・ボス登場=`room_enter`。新規収録なし）
 
 2026-07-14（**P3-FORGE-ALCHEMY-001**: 鍛冶「錬成」タブ — 同種装備合成で装備Lv上昇（素材Lv×0.5・Gold 20×上昇）。炉研ぎ／分解と併存。装着時に冒険者Lvへクリップ）
@@ -327,11 +331,12 @@
 | **β推奨** | — | **P3-UI-TITLE-001** | タイトル Continue / New Game（単一セーブ） | ✅ Impl（要実機） |
 | **β推奨** | — | P3-STORY-STARTER-001 | 開始1人＋章加入 | ✅ Impl（要実機） |
 | **β推奨** | — | P3-AUDIO-SE-002 | SE 未配線（skill/death/cancel/error 等） | ✅ Impl（要実機） |
-| **β推奨** | — | P3-DAILY-B / 権利表記 | 日課 polish・Kenney クレジット | 任意 |
+| **β推奨** | — | **P3-AUDIO-BGM-001** | BGM 配置＋配線（title〜result） | ✅ Impl（要実機） |
+| **β推奨** | — | P3-DAILY-B / 権利表記 | 日課 polish・Kenney/BGM クレジット | 任意 |
 | **Update** | — | ②〜⑤解禁＋磨き | 旧 BETA-B1〜004 の実機・資産 | 後続 |
 | **Update** | — | P3-EQ-LEG-002 | 防具・装飾★ ②〜⑤ | 後続（旧キュー4） |
 | **Update** | — | P3-ENEMY-002 残り | 新雑魚（②+4済以外） | 後続（旧キュー5） |
-| **Update** | — | BGM / 助っ人再有効 / UI-BTN-005 | Suno・ガチャ・ボタン画像 | 後続 |
+| **Update** | — | 助っ人再有効 / UI-BTN-005 | ガチャ・ボタン画像 | 後続 |
 | — | — | P3-UX-ULTIMATE-001 / P3-AUDIO-SE-001 | 必殺演出・SE基盤 | ✅ Closeout（要実機） |
 | — | — | P3-DG-STG-ENABLE 等 | サブステージ有効化済み | ✅（βでは①のみ解放） |
 
