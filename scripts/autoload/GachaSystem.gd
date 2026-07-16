@@ -1,9 +1,11 @@
 extends Node
 
-## 助っ人ガチャ（P3-D036b / P3-GACHA-005）。通貨=魔晶石。プール=`gacha_helpers/` のみ（スターター5職は除外）。
-## ★1〜4 段階排出・未所持優先・ハード天井30・重複還元。
+## 助っ人ガチャ（P3-D036b / P3-GACHA-005 / **P3-GACHA-LIMIT-001**）。
+## 通貨=魔晶石。プール=`gacha_helpers/` のみ（スターター5職は除外）。
+## ★2〜4 排出・未所持優先・ハード天井30・重複は限界突破＋半額還元。
 
 const _GachaRarityConfig: Script = preload("res://scripts/gacha/GachaRarityConfig.gd")
+const _GachaLimitBreak: Script = preload("res://scripts/gacha/GachaLimitBreak.gd")
 const _CombatControllerScript: Script = preload("res://scripts/combat/CombatController.gd")
 
 const PULL_COST: int = 1
@@ -31,7 +33,7 @@ func buy_token() -> bool:
 	GameState.gacha_token += 1
 	return true
 
-# 単発抽選。結果 Dictionary: { ok, reason?, helper_id, rarity, is_new, refund }
+# 単発抽選。結果: { ok, reason?, helper_id, rarity, is_new, refund, breakthrough, breakthrough_gained }
 func pull() -> Dictionary:
 	if not Constants.are_gacha_helpers_playable():
 		return {"ok": false, "reason": "omitted"}
@@ -52,13 +54,21 @@ func pull() -> Dictionary:
 	var rarity: int = _GachaRarityConfig.clamp_rarity(int(helper.rarity))
 	var is_new: bool = not GameState.owned_helpers.has(hid)
 	var refund: int = 0
+	var breakthrough: int = 0
+	var breakthrough_gained: bool = false
 	if is_new:
 		GameState.owned_helpers[hid] = 1
 		GameState.gacha_pity = 0
 		var adv: Resource = create_adventurer_from_helper(helper)
 		GameState.add_roster_member(adv)
+		breakthrough = 0
 	else:
-		GameState.owned_helpers[hid] = int(GameState.owned_helpers[hid]) + 1
+		var prev_count: int = int(GameState.owned_helpers[hid])
+		var next_count: int = prev_count + 1
+		GameState.owned_helpers[hid] = next_count
+		var bt_before: int = _GachaLimitBreak.breakthrough_from_owned_count(prev_count)
+		breakthrough = _GachaLimitBreak.breakthrough_from_owned_count(next_count)
+		breakthrough_gained = breakthrough > bt_before
 		refund = _GachaRarityConfig.get_refund(rarity)
 		GameState.gacha_token += refund
 	return {
@@ -67,6 +77,8 @@ func pull() -> Dictionary:
 		"rarity": rarity,
 		"is_new": is_new,
 		"refund": refund,
+		"breakthrough": breakthrough,
+		"breakthrough_gained": breakthrough_gained,
 	}
 
 func _get_pool() -> Array:

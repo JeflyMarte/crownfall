@@ -117,6 +117,16 @@ const _DEFS: Dictionary = {
 		"effect": "apply_status", "status_id": "guard", "target": "self",
 		"cooldown": 5.0,
 	},
+	"kaida_arena_edge": {
+		"display_name": "闘技場の切っ先",
+		"description": "与ダメージが常時6%上昇する。",
+		"outgoing_mult": 1.06,
+	},
+	"garm_caravan_guard": {
+		"display_name": "隊商の盾心",
+		"description": "被ダメージが常時6%軽減する。",
+		"incoming_mult": 0.94,
+	},
 	# ---- ジョブフォールバック補完（P3-D155） ----
 	"foresight": {
 		"display_name": "先読み",
@@ -724,7 +734,7 @@ static func for_member(member: Resource) -> Array:
 		if def.is_empty():
 			continue
 		seen[pid] = true
-		out.append(def)
+		out.append(_with_gacha_limit_break(member, def))
 	var relic_id: String = GameState.get_equipped_relic_passive_id(member)
 	if not relic_id.is_empty() and not seen.has(relic_id):
 		var relic_def: Dictionary = _def_with_id(relic_id)
@@ -763,7 +773,7 @@ static func _core_passives_for_member(member: Resource) -> Array:
 	var rarity: int = int(member.rarity) if "rarity" in member else 0
 	var tier_def: Dictionary = tier_def_for(str(member.job_id), rarity)
 	if not tier_def.is_empty():
-		out.append(tier_def)
+		out.append(_with_gacha_limit_break(member, tier_def))
 	return out
 
 static func _base_passives_for_member(member: Resource) -> Array:
@@ -780,11 +790,19 @@ static func _base_passives_for_member(member: Resource) -> Array:
 		if helper != null and not str(helper.passive_id).is_empty():
 			var helper_def: Dictionary = _def_with_id(str(helper.passive_id))
 			if not helper_def.is_empty():
-				out.append(helper_def)
+				out.append(_with_gacha_limit_break(member, helper_def))
 	if out.is_empty():
 		out = for_job(str(member.job_id))
 	return out
 
+static func _with_gacha_limit_break(member: Resource, def: Dictionary) -> Dictionary:
+	if def.is_empty():
+		return {}
+	const _LimitBreak := preload("res://scripts/gacha/GachaLimitBreak.gd")
+	var bt: int = _LimitBreak.breakthrough_for_member(member)
+	if bt <= 0:
+		return def
+	return _LimitBreak.scale_passive_def(def, bt)
 static func _equipment_passives_for_member(member: Resource) -> Array:
 	var out: Array = []
 	if member == null:

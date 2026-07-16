@@ -1,6 +1,8 @@
 class_name GachaUiHelper
 extends RefCounted
 
+const _GachaLimitBreak := preload("res://scripts/gacha/GachaLimitBreak.gd")
+
 const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45)
 const COLOR_SUB: Color = Color(0.72, 0.69, 0.62)
 const COLOR_OWNED: Color = Color(0.55, 0.88, 0.5)
@@ -44,7 +46,12 @@ static func pull_cost_amount(pulls: int) -> int:
 	return GachaSystem.PULL_COST * maxi(1, pulls)
 
 static func owned_label(helper_id: String) -> String:
-	return "所持済" if GameState.owned_helpers.has(helper_id) else "未所持"
+	if not GameState.owned_helpers.has(helper_id):
+		return "未所持"
+	var bt: int = _GachaLimitBreak.breakthrough_for_helper_id(helper_id)
+	if bt > 0:
+		return "限界突破 +%d" % bt
+	return "所持済"
 
 static func owned_color(helper_id: String) -> Color:
 	return COLOR_OWNED if GameState.owned_helpers.has(helper_id) else COLOR_SUB

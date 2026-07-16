@@ -17,9 +17,9 @@ const RARITY_WEIGHTS: Dictionary = {
 
 const REFUND_BY_RARITY: Dictionary = {
 	1: 1,
-	2: 2,
-	3: 4,
-	4: 8,
+	2: 1,
+	3: 2,
+	4: 4,
 }
 
 # 素体（BASE_MEMBER_HP=30）への加算。戦闘・UI 表示で使用。

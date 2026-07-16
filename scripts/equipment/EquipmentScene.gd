@@ -19,6 +19,7 @@ const _WeaponFlavorHelper = preload("res://scripts/systems/WeaponFlavorHelper.gd
 const _ElementResolver = preload("res://scripts/combat/ElementResolver.gd")
 const _SkillIconHelper = preload("res://scripts/ui/SkillIconHelper.gd")
 const _ChrIdlePortrait = preload("res://scripts/ui/ChrIdlePortrait.gd")
+const _GachaLimitBreak = preload("res://scripts/gacha/GachaLimitBreak.gd")
 
 # CombatController.BASE_MEMBER_HP と同値（表示用の素HP）。
 const BASE_MEMBER_HP: int = 30
@@ -636,7 +637,7 @@ func _update_character_card() -> void:
 		_label_stars.text = ""
 		_evolution_row.visible = false
 		return
-	_label_name.text = member.display_name
+	_label_name.text = _GachaLimitBreak.format_member_display_name(member) if str(member.id).begins_with("gacha_") else member.display_name
 	_label_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_label_name.max_lines_visible = 1
 	var job_mods: Dictionary = _JobStatCalculator.get_member_modifiers(member)

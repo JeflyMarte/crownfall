@@ -2,6 +2,7 @@ extends Control
 
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
+const _GachaLimitBreak := preload("res://scripts/gacha/GachaLimitBreak.gd")
 
 const COLOR_NEW: Color = Color(0.95, 0.78, 0.35)
 const COLOR_SUB: Color = Color(0.72, 0.69, 0.62)
@@ -250,18 +251,25 @@ func _play_summon_reveal(result: Dictionary) -> void:
 	var helper_id: String = str(result.get("helper_id", ""))
 	var is_new: bool = bool(result.get("is_new", false))
 	var refund: int = int(result.get("refund", 0))
+	var breakthrough: int = int(result.get("breakthrough", 0))
+	var breakthrough_gained: bool = bool(result.get("breakthrough_gained", false))
 	var helper_data: Resource = DataRegistry.get_gacha_helper_data(helper_id)
 	var name_str: String = helper_id if helper_data == null else str(helper_data.display_name)
-	_populate_reveal_content(helper_id, is_new, refund, helper_data)
+	_populate_reveal_content(helper_id, is_new, refund, helper_data, breakthrough, breakthrough_gained)
 
 	if is_new:
 		_label_result.add_theme_color_override("font_color", COLOR_NEW)
 		_label_result.text = "新規！ %s を獲得！" % name_str
 	else:
 		_label_result.add_theme_color_override("font_color", COLOR_SUB)
-		_label_result.text = "%s（重複） → %s %d 還元" % [
-			name_str, CurrencyHelper.DISPLAY_NAME, refund,
-		]
+		if breakthrough_gained:
+			_label_result.text = "%s（限界突破 +%d） → %s %d 還元" % [
+				name_str, breakthrough, CurrencyHelper.DISPLAY_NAME, refund,
+			]
+		else:
+			_label_result.text = "%s（重複・上限） → %s %d 還元" % [
+				name_str, CurrencyHelper.DISPLAY_NAME, refund,
+			]
 
 	if _summon_tween != null and _summon_tween.is_valid():
 		_summon_tween.kill()
@@ -333,7 +341,7 @@ func preview_summon_reveal_for_audit(helper_id: String = "", is_new: bool = true
 	var helper_data: Resource = DataRegistry.get_gacha_helper_data(hid)
 	var rarity: int = int(helper_data.rarity) if helper_data != null else 3
 	var refund: int = GachaRarityConfig.get_refund(rarity) if not is_new else 0
-	_populate_reveal_content(hid, is_new, refund, helper_data)
+	_populate_reveal_content(hid, is_new, refund, helper_data, 3 if not is_new else 0, not is_new)
 	_summon_active = true
 	_summon_can_dismiss = true
 	_set_pull_controls_enabled(false)
@@ -353,7 +361,9 @@ func _populate_reveal_content(
 	hid: String,
 	is_new: bool,
 	refund: int,
-	helper_data: Resource
+	helper_data: Resource,
+	breakthrough: int = 0,
+	breakthrough_gained: bool = false
 ) -> void:
 	var name_str: String = hid if helper_data == null else str(helper_data.display_name)
 	var job_id: String = str(helper_data.job_id) if helper_data != null else ""
@@ -368,15 +378,29 @@ func _populate_reveal_content(
 	else:
 		_label_banner.text = "重複"
 		_label_banner.add_theme_color_override("font_color", COLOR_SUB)
-		_label_reveal_sub.text = "%s %d 還元" % [CurrencyHelper.DISPLAY_NAME, refund]
+		if refund > 0 and breakthrough_gained and breakthrough > 0:
+			_label_reveal_sub.text = "限界突破 +%d！  %s %d 還元" % [
+				breakthrough, CurrencyHelper.DISPLAY_NAME, refund,
+			]
+		elif refund > 0 and breakthrough >= _GachaLimitBreak.MAX_BREAKTHROUGH:
+			_label_reveal_sub.text = "限界突破上限  %s %d 還元" % [CurrencyHelper.DISPLAY_NAME, refund]
+		elif refund > 0:
+			_label_reveal_sub.text = "%s %d 還元" % [CurrencyHelper.DISPLAY_NAME, refund]
+		elif breakthrough_gained:
+			_label_reveal_sub.text = "限界突破 +%d" % breakthrough
+		else:
+			_label_reveal_sub.text = "重複"
 
 	_label_reveal_name.text = name_str
 	if helper_data != null:
 		var job_data: Resource = DataRegistry.get_job_data(job_id)
 		var role_id: String = str(job_data.role) if job_data != null else job_id
 		var role_label: String = str(RosterUiHelper.ROLE_LABELS.get(role_id, job_id))
+		var name_line: String = name_str
+		if breakthrough > 0:
+			name_line = "%s（限界突破 +%d）" % [name_str, breakthrough]
 		_label_reveal_name.text = "%s\n%s  %s" % [
-			name_str,
+			name_line,
 			RosterUiHelper.stars_text(int(helper_data.rarity)),
 			role_label,
 		]
