@@ -3,6 +3,7 @@ extends Control
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
 const _GachaLimitBreak := preload("res://scripts/gacha/GachaLimitBreak.gd")
+const _GachaRevealPresenter := preload("res://scripts/gacha/GachaRevealPresenter.gd")
 
 const COLOR_NEW: Color = Color(0.95, 0.78, 0.35)
 const COLOR_SUB: Color = Color(0.72, 0.69, 0.62)
@@ -36,7 +37,9 @@ const COLOR_OWNED: Color = Color(0.55, 0.88, 0.5)
 @onready var _button_buy_crystal: Button = $SummonActionBar/ButtonBuyCrystal
 @onready var _summon_layer: CanvasLayer = $SummonRevealLayer
 @onready var _summon_dim: ColorRect = $SummonRevealLayer/Dim
+@onready var _invite_glow: TextureRect = $SummonRevealLayer/InviteGlow
 @onready var _reveal_panel: PanelContainer = $SummonRevealLayer/RevealPanel
+@onready var _invite_art: TextureRect = $SummonRevealLayer/RevealPanel/RevealVBox/InviteArt
 @onready var _flash_icon: TextureRect = $SummonRevealLayer/RevealPanel/RevealVBox/FlashIcon
 @onready var _portrait_frame: PanelContainer = $SummonRevealLayer/RevealPanel/RevealVBox/PortraitFrame
 @onready var _portrait_icon: TextureRect = $SummonRevealLayer/RevealPanel/RevealVBox/PortraitFrame/PortraitIcon
@@ -48,6 +51,7 @@ const COLOR_OWNED: Color = Color(0.55, 0.88, 0.5)
 var _summon_active: bool = false
 var _summon_can_dismiss: bool = false
 var _summon_tween: Tween = null
+var _reveal_presenter: RefCounted = null
 var _tab_buttons: Array[Button] = []
 var _active_tab_index: int = GachaUiTokens.ACTIVE_TAB_INDEX
 var _featured_helper_id: String = ""
@@ -70,9 +74,26 @@ func _ready() -> void:
 	_summon_dim.gui_input.connect(_on_summon_overlay_input)
 	_reveal_panel.gui_input.connect(_on_summon_overlay_input)
 	_portrait_frame.add_theme_stylebox_override("panel", GachaUiTokens.lineup_cell_style())
+	_setup_reveal_presenter()
 	_summon_layer.visible = false
 	_detail_overlay.visible = false
 	_refresh()
+
+func _setup_reveal_presenter() -> void:
+	_reveal_presenter = _GachaRevealPresenter.new()
+	_reveal_presenter.bind(
+		self,
+		_summon_dim,
+		_reveal_panel,
+		_invite_glow,
+		_invite_art,
+		_flash_icon,
+		_portrait_frame,
+		[_label_banner, _label_reveal_name, _label_reveal_sub, _label_tap_hint],
+		GachaUiTokens.load_tex(GachaUiTokens.INVITE_SEALED),
+		GachaUiTokens.load_tex(GachaUiTokens.INVITE_SEALED_STAR2),
+		GachaUiTokens.load_tex(GachaUiTokens.INVITE_OPENING)
+	)
 
 func _setup_gacha_chrome() -> void:
 	_label_title.text = GachaUiTokens.SCREEN_TITLE
@@ -248,7 +269,6 @@ func _play_summon_reveal(result: Dictionary) -> void:
 	_summon_active = true
 	_summon_can_dismiss = false
 	_set_pull_controls_enabled(false)
-	_reset_reveal_visuals()
 	_summon_layer.visible = true
 	AudioManager.play_sfx("gacha_reveal")
 
@@ -259,6 +279,7 @@ func _play_summon_reveal(result: Dictionary) -> void:
 	var breakthrough_gained: bool = bool(result.get("breakthrough_gained", false))
 	var helper_data: Resource = DataRegistry.get_gacha_helper_data(helper_id)
 	var name_str: String = helper_id if helper_data == null else str(helper_data.display_name)
+	var rarity: int = int(helper_data.rarity) if helper_data != null else 3
 	_populate_reveal_content(helper_id, is_new, refund, helper_data, breakthrough, breakthrough_gained)
 
 	if is_new:
@@ -275,60 +296,40 @@ func _play_summon_reveal(result: Dictionary) -> void:
 				name_str, CurrencyHelper.DISPLAY_NAME, refund,
 			]
 
-	if _summon_tween != null and _summon_tween.is_valid():
-		_summon_tween.kill()
-	_summon_tween = create_tween()
-	_summon_tween.set_parallel(false)
-	_summon_tween.tween_property(_summon_dim, "modulate:a", 1.0, 0.22)
-	_summon_tween.tween_property(_reveal_panel, "modulate:a", 1.0, 0.18)
-	_summon_tween.tween_property(_flash_icon, "scale", Vector2(1.35, 1.35), 0.16).set_trans(Tween.TRANS_BACK)
-	_summon_tween.tween_property(_flash_icon, "scale", Vector2(1.0, 1.0), 0.12)
-	_summon_tween.tween_callback(func() -> void:
-		_flash_icon.visible = false
-		_portrait_frame.visible = true
-		_portrait_frame.scale = Vector2(0.55, 0.55)
-		_portrait_frame.modulate.a = 0.0
-	)
-	_summon_tween.tween_property(_portrait_frame, "scale", Vector2(1.0, 1.0), 0.24).set_trans(Tween.TRANS_BACK)
-	_summon_tween.tween_property(_portrait_frame, "modulate:a", 1.0, 0.2)
-	_summon_tween.tween_callback(func() -> void:
-		_label_banner.visible = true
-		_label_reveal_name.visible = true
-		_label_reveal_sub.visible = true
-		_label_tap_hint.visible = true
+	if _reveal_presenter == null:
+		_setup_reveal_presenter()
+	_reveal_presenter.play(rarity, func() -> void:
 		_summon_can_dismiss = true
 	)
 
-func _reset_reveal_visuals() -> void:
-	_summon_dim.modulate = Color(1, 1, 1, 0)
-	_reveal_panel.modulate = Color(1, 1, 1, 0)
-	_flash_icon.visible = true
-	_flash_icon.scale = Vector2.ONE
-	_portrait_frame.visible = false
-	_portrait_frame.scale = Vector2.ONE
-	_portrait_frame.modulate = Color(1, 1, 1, 1)
-	_label_banner.visible = false
-	_label_reveal_name.visible = false
-	_label_reveal_sub.visible = false
-	_label_tap_hint.visible = false
-
 func _on_summon_overlay_input(event: InputEvent) -> void:
-	if not _summon_can_dismiss:
+	var pressed: bool = (
+		(event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT)
+		or (event is InputEventScreenTouch and event.pressed)
+	)
+	if not pressed:
 		return
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		_dismiss_summon_reveal()
-	elif event is InputEventScreenTouch and event.pressed:
+	if not _summon_active:
+		return
+	if not _summon_can_dismiss and _reveal_presenter != null:
+		if _reveal_presenter.request_skip():
+			_summon_can_dismiss = true
+		return
+	if _summon_can_dismiss:
 		_dismiss_summon_reveal()
 
 func _dismiss_summon_reveal() -> void:
 	if not _summon_active:
 		return
 	_summon_can_dismiss = false
+	if _reveal_presenter != null:
+		_reveal_presenter.kill()
 	if _summon_tween != null and _summon_tween.is_valid():
 		_summon_tween.kill()
 	_summon_tween = create_tween()
 	_summon_tween.tween_property(_summon_dim, "modulate:a", 0.0, 0.2)
 	_summon_tween.parallel().tween_property(_reveal_panel, "modulate:a", 0.0, 0.2)
+	_summon_tween.parallel().tween_property(_invite_glow, "modulate:a", 0.0, 0.2)
 	_summon_tween.chain().tween_callback(func() -> void:
 		_summon_layer.visible = false
 		_summon_active = false
@@ -352,6 +353,9 @@ func preview_summon_reveal_for_audit(helper_id: String = "", is_new: bool = true
 	_summon_layer.visible = true
 	_summon_dim.modulate = Color(1, 1, 1, 1)
 	_reveal_panel.modulate = Color(1, 1, 1, 1)
+	_invite_glow.visible = true
+	_invite_glow.modulate = Color(1, 1, 1, _GachaRevealPresenter.glow_alpha_for(rarity))
+	_invite_art.visible = false
 	_flash_icon.visible = false
 	_portrait_frame.visible = true
 	_portrait_frame.scale = Vector2.ONE

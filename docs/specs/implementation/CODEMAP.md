@@ -127,7 +127,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `dungeon/` | `DungeonController.gd`, `DungeonScene.gd`（生態素材ドロップ・図鑑方針ボーナス P3-D128）・**`DungeonTierConfig.gd`**（危険度ティア P3-D164）・**`EnemyTierVariantConfig.gd`**（Hard/NM 呼称・個性 P3-ENEMY-TIER-VAR）・**`WanderingEnemyConfig.gd`**（遍在希少種 P3-D166） |
 | `equipment/` | `EquipmentController.gd`, `EquipmentScene.gd`, **`EquipmentUiHelper.gd`**（P3-UI2-019）, **`EquipmentUiTokens.gd`**（装備 chrome）, **`BuildTagHelper.gd`**（P3-UI2-016）, **`AffixRoller.gd`**, **`AffixStatCalculator.gd`**, **`AffixDisplayFormatter.gd`**, **`JobStatCalculator.gd`** |
 | `blacksmith/` | `BlacksmithScene.gd`（生産／炉研ぎ／**錬成**／分解 — **P3-FORGE-ALCHEMY-001**）・`BlacksmithUiHelper.gd`・**`ForgeUiTokens.gd`** |
-| `gacha/` | **`GachaSystem.gd`**・**`GachaRarityConfig.gd`**・**`GachaLimitBreak.gd`**（**P3-GACHA-LIMIT-001**）・**`GachaScene.gd`**（P3-UI2-020・**P3-GACHA-002/003**・**P3-UI-GACHA**）・**`GachaUiTokens.gd`**・**`GachaUiHelper.gd`** |
+| `gacha/` | **`GachaSystem.gd`**・**`GachaRarityConfig.gd`**・**`GachaLimitBreak.gd`**（**P3-GACHA-LIMIT-001**）・**`GachaRevealPresenter.gd`**（**P3-GACHA-REVEAL-001**）・**`GachaScene.gd`**（P3-UI2-020・**P3-GACHA-002/003**・**P3-UI-GACHA**）・**`GachaUiTokens.gd`**・**`GachaUiHelper.gd`** |
 | `guild/` | **`GuildScene.gd`**（P3-D052 ジョブ認定・**P3-UI2-024** 認定カードリスト polish） |
 | `crafting/` | **`CraftHelper.gd`**（`can_craft` / `get_craftable_recipes` — P3-D141） |
 | `codex/` | **`CatalogHelper.gd`** / **`GuideCatalog.gd`** / **`CodexRichText.gd`**（**P3-CODEX-COPY-001** 手引き日本語・色強調）, **`CodexScene.gd`**（詳細 RichTextLabel） |
@@ -159,7 +159,8 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `tools/ui_audit.gd` | **UI 監査**（P3-UI3-001/003・**P3-UI-GACHA**）。ハブ7画面＋鍛冶屋生産/強化＋図鑑7タブ＋召喚所 detail/reveal を実レンダでスクショ（`user://ui_audit/`）。ヘッドレス不可 |
 | `tools/generate_forge_ui_assets.py` | 鍛冶屋 UI chrome 14枚プロシージャル生成 → `assets/ui/forge/` |
 | `tools/generate_equipment_ui_assets.py` | 装備画面 UI chrome 生成 → `assets/ui/equipment_ui/` |
-| `tools/generate_gacha_ui_assets.py` | 召喚所 UI chrome 17枚プロシージャル生成 → `assets/ui/gacha_ui/`（**P3-UI-GACHA**） |
+| `tools/generate_gacha_ui_assets.py` | 招待状 UI chrome 17枚プロシージャル生成 → `assets/ui/gacha_ui/`（**P3-UI-GACHA**） |
+| `tools/generate_gacha_invite_assets.py` | 開封リビール用 Invite スプライト生成（**P3-GACHA-REVEAL-001**） |
 | `tools/ui_audit_run.gd` | **UI 監査 戦闘・リザルト編**（P3-UI3-002）。DungeonScene 実走4時点＋ResultScene clear/wipe を撮影。ヘッドレス不可 |
 | `tools/generate_enemy_battle_assets.py` | 図鑑肖像→戦闘シート96×14＋`SpriteFrames` `.tres`＋`DungeonScene.gd` マップ自動更新 |
 | `tools/generate_all_skill_icons.py` | 全スキル `.tres` からプロシージャルアイコン生成＋`IconPaths` 一括更新 |

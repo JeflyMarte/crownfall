@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/gacha/GachaScene.gd" id="1"]
 [ext_resource type="Theme" path="res://assets/ui/production_theme.tres" id="2"]
@@ -6,6 +6,8 @@
 [ext_resource type="Texture2D" path="res://assets/ui/batch2/ICO_Gold.png" id="4"]
 [ext_resource type="Texture2D" path="res://assets/ui/batch2/ICO_Currency_Arcanite.png" id="5"]
 [ext_resource type="Texture2D" path="res://assets/ui/gacha_ui/UI_Gacha_Ribbon_SR.png" id="6"]
+[ext_resource type="Texture2D" path="res://assets/ui/gacha_ui/UI_Gacha_Invite_Glow.png" id="7"]
+[ext_resource type="Texture2D" path="res://assets/ui/gacha_ui/UI_Gacha_Invite_Sealed.png" id="8"]
 
 [sub_resource type="StyleBoxFlat" id="SB_Header"]
 bg_color = Color(0.04, 0.04, 0.1, 0.9)
@@ -467,6 +469,24 @@ grow_vertical = 2
 mouse_filter = 0
 color = Color(0.02, 0.02, 0.06, 0.78)
 
+[node name="InviteGlow" type="TextureRect" parent="SummonRevealLayer"]
+modulate = Color(1, 1, 1, 0)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -200.0
+offset_right = 200.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("7")
+expand_mode = 1
+stretch_mode = 5
+
 [node name="RevealPanel" type="PanelContainer" parent="SummonRevealLayer"]
 modulate = Color(1, 1, 1, 0)
 layout_mode = 1
@@ -476,9 +496,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -180.0
-offset_top = -210.0
+offset_top = -240.0
 offset_right = 180.0
-offset_bottom = 210.0
+offset_bottom = 240.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -487,7 +507,17 @@ layout_mode = 2
 theme_override_constants/separation = 10
 alignment = 1
 
+[node name="InviteArt" type="TextureRect" parent="SummonRevealLayer/RevealPanel/RevealVBox"]
+custom_minimum_size = Vector2(260, 180)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+texture = ExtResource("8")
+expand_mode = 1
+stretch_mode = 5
+
 [node name="FlashIcon" type="TextureRect" parent="SummonRevealLayer/RevealPanel/RevealVBox"]
+visible = false
 custom_minimum_size = Vector2(72, 72)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -497,7 +527,7 @@ stretch_mode = 5
 
 [node name="PortraitFrame" type="PanelContainer" parent="SummonRevealLayer/RevealPanel/RevealVBox"]
 visible = false
-custom_minimum_size = Vector2(132, 132)
+custom_minimum_size = Vector2(148, 148)
 layout_mode = 2
 size_flags_horizontal = 4
 
@@ -520,7 +550,7 @@ visible = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 theme_override_colors/font_color = Color(0.95, 0.78, 0.35, 1)
-text = "新規！"
+text = "招きに応じた"
 horizontal_alignment = 1
 
 [node name="LabelRevealName" type="Label" parent="SummonRevealLayer/RevealPanel/RevealVBox"]
@@ -546,5 +576,5 @@ visible = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
 theme_override_colors/font_color = Color(0.62, 0.6, 0.55, 1)
-text = "タップで閉じる"
+text = "タップで閉じる（演出中はスキップ）"
 horizontal_alignment = 1
