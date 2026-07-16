@@ -2565,6 +2565,7 @@
 | P3-GACHA-REVEAL-001-3 | **スキップ** — 演出中タップで最終状態へ。完了後タップで閉じる | テンポ維持 |
 | P3-GACHA-REVEAL-001-4 | **アセット** — `UI_Gacha_Invite_*` 手続き生成＋`GachaRevealPresenter`。10連フル演出は対象外 | メンテ容易 |
 | P3-GACHA-REVEAL-001-5 | **β** — `GACHA_HELPERS_PLAYABLE=false` 据置。再有効化時に体験 | スコープ分離 |
+| P3-GACHA-REVEAL-001-6 | **見た目 polish** — AI 生成封書をクロマキー処理し `UI_Gacha_Invite_*` を差し替え。手続き生成はフォールバック／再生成用 | モック級質感 |
 
 ---
 

@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-16（**P3-GACHA-REVEAL-001 polish**: Invite封書を AI 生成＋クロマキー差し替え。閉/★2/開封/Glow。演出ロジック据置）
+
 2026-07-16（**P3-GACHA-REVEAL-001**: 招待状開封リビール — 封緘→開封→顕現。★差尺／Glow／スキップ。`GachaRevealPresenter`＋Inviteアセット。`GACHA_HELPERS_PLAYABLE=false` 据置）
 
 2026-07-16（**P3-GACHA-COPY-001**: ガチャUI世界観リネーム — 召喚→招待状。タイトル／ナビ／天井／結果／図鑑手引きを同期。魔晶石名据置。`GACHA_HELPERS_PLAYABLE=false` 据置）

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Generate invitation-reveal sprites for Crownfall gacha (P3-GACHA-REVEAL-001).
+"""Procedural fallback invitation sprites (P3-GACHA-REVEAL-001).
 
-Output: assets/ui/gacha_ui/UI_Gacha_Invite_*.png
+本番見た目は AI 封書＋クロマキー（`tools/process_gacha_invite_ai_assets.py`）を優先。
+本スクリプトはフォールバック／SealShard 等の再生成用。
 
 Usage:
   python3 tools/generate_gacha_invite_assets.py

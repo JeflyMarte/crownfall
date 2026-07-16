@@ -508,7 +508,7 @@ theme_override_constants/separation = 10
 alignment = 1
 
 [node name="InviteArt" type="TextureRect" parent="SummonRevealLayer/RevealPanel/RevealVBox"]
-custom_minimum_size = Vector2(260, 180)
+custom_minimum_size = Vector2(300, 210)
 layout_mode = 2
 size_flags_horizontal = 4
 mouse_filter = 2
