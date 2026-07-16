@@ -1,6 +1,6 @@
 extends GutTest
 
-## 召喚所 UI polish（GachaUiTokens）— headless 検証。
+## 招待状 UI polish（GachaUiTokens）— headless 検証。
 
 func test_gacha_ui_asset_paths_exist() -> void:
 	for key in [
@@ -34,7 +34,7 @@ func test_tab_styles_use_texture() -> void:
 
 func test_pity_helpers() -> void:
 	assert_almost_eq(GachaUiTokens.pity_ratio(15, 30), 0.5, 0.001)
-	assert_eq(GachaUiTokens.pity_caption(15, 30), "天井まで 15 / 30 連（未所持確定）")
+	assert_eq(GachaUiTokens.pity_caption(15, 30), "確実な招きまで 15 / 30")
 
 func test_decorate_title_uses_screen_title() -> void:
 	var lbl := Label.new()
@@ -45,7 +45,9 @@ func test_decorate_title_uses_screen_title() -> void:
 
 func test_active_tab_index_is_normal() -> void:
 	assert_eq(GachaUiTokens.ACTIVE_TAB_INDEX, 2)
-	assert_eq(GachaUiTokens.TAB_LABELS[GachaUiTokens.ACTIVE_TAB_INDEX], "ノーマル")
+	assert_eq(GachaUiTokens.TAB_LABELS[GachaUiTokens.ACTIVE_TAB_INDEX], "通常招待")
+	assert_eq(GachaUiTokens.SCREEN_TITLE, "ギルドへの招待状")
+	assert_eq(GachaUiTokens.LINEUP_SECTION_TITLE, "招きの候補")
 
 func test_ten_pull_ribbon_text() -> void:
-	assert_eq(GachaUiTokens.TEN_PULL_RIBBON_TEXT, "★3以上1体確定")
+	assert_eq(GachaUiTokens.TEN_PULL_RIBBON_TEXT, "★3以上1名確定")

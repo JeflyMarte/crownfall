@@ -1,6 +1,6 @@
 extends GutTest
 
-## 召喚所 UI helper（GachaUiHelper）— headless 検証。
+## 招待状 UI helper（GachaUiHelper）— headless 検証。
 
 func test_sorted_helpers_respects_omit_flag() -> void:
 	var helpers: Array = GachaUiHelper.sorted_helpers()
@@ -12,8 +12,12 @@ func test_sorted_helpers_respects_omit_flag() -> void:
 func test_catchcopy_normal_tab() -> void:
 	assert_eq(
 		GachaUiHelper.catchcopy_for_tab(GachaUiTokens.ACTIVE_TAB_INDEX),
-		"王国の未来を担う新たな英雄たち"
+		"各地の探索者へ、ギルドからの招き"
 	)
+
+func test_pull_title_world_flavor() -> void:
+	assert_eq(GachaUiHelper.pull_title(1), "招待状を開く")
+	assert_eq(GachaUiHelper.pull_title(10), "束ねた招待状")
 
 func test_pull_cost_amount() -> void:
 	assert_eq(GachaUiHelper.pull_cost_amount(1), GachaSystem.PULL_COST)

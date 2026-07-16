@@ -85,7 +85,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 4
 theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
 theme_override_font_sizes/font_size = 18
-text = "英雄召喚"
+text = "ギルドへの招待状"
 horizontal_alignment = 1
 
 [node name="GoldChip" type="PanelContainer" parent="Header/HeaderRow"]
@@ -157,19 +157,19 @@ alignment = 1
 [node name="BtnTabPickup" type="Button" parent="MainColumn/TabRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "ピックアップ"
+text = "特達招待"
 
 [node name="BtnTabPremium" type="Button" parent="MainColumn/TabRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "プレミアム"
+text = "推薦状"
 
 [node name="BtnTabNormal" type="Button" parent="MainColumn/TabRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 toggle_mode = true
 button_pressed = true
-text = "ノーマル"
+text = "通常招待"
 
 [node name="HeroBanner" type="PanelContainer" parent="MainColumn"]
 layout_mode = 2
@@ -190,7 +190,7 @@ clip_contents = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.92, 0.86, 1)
 theme_override_font_sizes/font_size = 15
-text = "王国の未来を担う新たな英雄たち"
+text = "各地の探索者へ、ギルドからの招き"
 horizontal_alignment = 1
 autowrap_mode = 3
 max_lines_visible = 2
@@ -232,7 +232,7 @@ theme_override_constants/separation = 4
 layout_mode = 2
 theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
 theme_override_font_sizes/font_size = 14
-text = "天井まで 0 / 30 連（未所持確定）"
+text = "確実な招きまで 0 / 30"
 horizontal_alignment = 1
 
 [node name="PityBar" type="ProgressBar" parent="MainColumn/PityPanel/PityVBox"]
@@ -282,7 +282,7 @@ alignment = 1
 [node name="ButtonPull" type="Button" parent="SummonActionBar/PullRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "1回召喚"
+text = "招待状を開く"
 
 [node name="Pull10Wrap" type="Control" parent="SummonActionBar/PullRow"]
 custom_minimum_size = Vector2(300, 96)
@@ -316,7 +316,7 @@ offset_bottom = 36.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 0.96, 0.88, 1)
 theme_override_font_sizes/font_size = 14
-text = "★3以上1体確定"
+text = "★3以上1名確定"
 horizontal_alignment = 1
 vertical_alignment = 1
 mouse_filter = 2
@@ -329,7 +329,7 @@ anchor_bottom = 1.0
 offset_top = 20.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "10回召喚"
+text = "束ねた招待状"
 
 [node name="ButtonBuyCrystal" type="Button" parent="SummonActionBar"]
 layout_mode = 2
@@ -380,7 +380,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
 theme_override_font_sizes/font_size = 16
-text = "排出ラインナップ"
+text = "招きの候補"
 
 [node name="BtnDetailClose" type="Button" parent="DetailOverlay/DetailPanel/DetailVBox/DetailHeader"]
 custom_minimum_size = Vector2(72, 36)

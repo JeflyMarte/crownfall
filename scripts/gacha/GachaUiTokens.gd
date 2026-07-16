@@ -1,7 +1,7 @@
 class_name GachaUiTokens
 extends RefCounted
 
-## 召喚所 UI chrome（P3-UI-GACHA Phase 1）。ロジックは GachaSystem のまま。
+## 招待状 UI chrome（P3-UI-GACHA / P3-GACHA-COPY-001）。ロジックは GachaSystem のまま。
 
 const ROOT: String = "res://assets/ui/gacha_ui/"
 
@@ -23,10 +23,11 @@ const BTN_DETAIL: String = ROOT + "UI_Gacha_Btn_Detail.png"
 const ICO_TOKEN: String = ROOT + "ICO_Gacha_Token.png"
 const REVEAL_FRAME: String = ROOT + "UI_Gacha_Reveal_Frame.png"
 
-const SCREEN_TITLE: String = "英雄召喚"
-const TEN_PULL_RIBBON_TEXT: String = "★3以上1体確定"
+const SCREEN_TITLE: String = "ギルドへの招待状"
+const LINEUP_SECTION_TITLE: String = "招きの候補"
+const TEN_PULL_RIBBON_TEXT: String = "★3以上1名確定"
 
-const TAB_LABELS: Array[String] = ["ピックアップ", "プレミアム", "ノーマル"]
+const TAB_LABELS: Array[String] = ["特達招待", "推薦状", "通常招待"]
 const ACTIVE_TAB_INDEX: int = 2
 
 const TAB_HEIGHT: int = 72
@@ -127,7 +128,7 @@ static func apply_pull_button(btn: Button, enabled: bool, is_ten_pull: bool = fa
 	btn.disabled = not enabled
 	btn.custom_minimum_size = Vector2(PULL_BTN_MIN_WIDTH, PULL_BTN_HEIGHT)
 	if is_ten_pull and not enabled:
-		btn.tooltip_text = "10連召喚は準備中"
+		btn.tooltip_text = "束ねた招待状は準備中"
 
 static func decorate_title(label: Label) -> void:
 	UiTypography.apply_screen_title(label, UiTypography.SIZE_DISPLAY)
@@ -138,7 +139,7 @@ static func pity_ratio(current: int, max_pity: int) -> float:
 	return clampf(float(current) / float(max_pity), 0.0, 1.0)
 
 static func pity_caption(current: int, max_pity: int) -> String:
-	return "天井まで %d / %d 連（未所持確定）" % [clampi(current, 0, max_pity), maxi(1, max_pity)]
+	return "確実な招きまで %d / %d" % [clampi(current, 0, max_pity), maxi(1, max_pity)]
 
 static func _fallback_tab_style(active: bool) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()

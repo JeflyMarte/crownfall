@@ -79,7 +79,7 @@ const BOTTOM_NAV_ENTRIES: Array[Dictionary] = [
 	},
 	{
 		"id": "gacha",
-		"title": "召喚所",
+		"title": "招待状",
 		"node": "NavShop",
 		"tab": Tab.GACHA,
 		"icon_category": "nav",
@@ -145,7 +145,7 @@ const SIDE_MENU_ENTRIES: Array[Dictionary] = [
 	},
 	{
 		"id": "gacha",
-		"title": "召喚所",
+		"title": "招待状",
 		"node": "NavGacha",
 		"tab": Tab.GACHA,
 		"icon_category": "nav",

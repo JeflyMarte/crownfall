@@ -75,7 +75,11 @@ func _ready() -> void:
 	_refresh()
 
 func _setup_gacha_chrome() -> void:
-	_label_title.text = ""
+	_label_title.text = GachaUiTokens.SCREEN_TITLE
+	GachaUiTokens.decorate_title(_label_title)
+	$DetailOverlay/DetailPanel/DetailVBox/DetailHeader/LabelDetailTitle.text = (
+		GachaUiTokens.LINEUP_SECTION_TITLE
+	)
 	var back_tex: Texture2D = GachaUiTokens.back_icon()
 	if back_tex != null:
 		_btn_back.text = ""
@@ -235,7 +239,7 @@ func _on_pull_pressed() -> void:
 		if reason == "no_token":
 			_label_result.text = "%sが足りません。" % CurrencyHelper.DISPLAY_NAME
 		else:
-			_label_result.text = "召喚に失敗しました（%s）。" % reason
+			_label_result.text = "招きに失敗しました（%s）。" % reason
 		_refresh()
 		return
 	_play_summon_reveal(result)
@@ -259,15 +263,15 @@ func _play_summon_reveal(result: Dictionary) -> void:
 
 	if is_new:
 		_label_result.add_theme_color_override("font_color", COLOR_NEW)
-		_label_result.text = "新規！ %s を獲得！" % name_str
+		_label_result.text = "招きに応じた！ %s" % name_str
 	else:
 		_label_result.add_theme_color_override("font_color", COLOR_SUB)
 		if breakthrough_gained:
-			_label_result.text = "%s（限界突破 +%d） → %s %d 還元" % [
+			_label_result.text = "重ねた推薦 — %s（限界突破 +%d） → %s %d 還元" % [
 				name_str, breakthrough, CurrencyHelper.DISPLAY_NAME, refund,
 			]
 		else:
-			_label_result.text = "%s（重複・上限） → %s %d 還元" % [
+			_label_result.text = "重ねた推薦 — %s（上限） → %s %d 還元" % [
 				name_str, CurrencyHelper.DISPLAY_NAME, refund,
 			]
 
@@ -372,11 +376,11 @@ func _populate_reveal_content(
 		portrait_tex = IconPaths.get_icon_texture(job_id, "chr")
 
 	if is_new:
-		_label_banner.text = "新規！"
+		_label_banner.text = "招きに応じた"
 		_label_banner.add_theme_color_override("font_color", COLOR_NEW)
 		_label_reveal_sub.text = "ロスターに追加されました"
 	else:
-		_label_banner.text = "重複"
+		_label_banner.text = "重ねた推薦"
 		_label_banner.add_theme_color_override("font_color", COLOR_SUB)
 		if refund > 0 and breakthrough_gained and breakthrough > 0:
 			_label_reveal_sub.text = "限界突破 +%d！  %s %d 還元" % [
@@ -389,7 +393,7 @@ func _populate_reveal_content(
 		elif breakthrough_gained:
 			_label_reveal_sub.text = "限界突破 +%d" % breakthrough
 		else:
-			_label_reveal_sub.text = "重複"
+			_label_reveal_sub.text = "重ねた推薦"
 
 	_label_reveal_name.text = name_str
 	if helper_data != null:

@@ -33,14 +33,16 @@ static func banner_portrait_textures(max_count: int = BANNER_PORTRAIT_MAX) -> Ar
 static func catchcopy_for_tab(tab_index: int) -> String:
 	match tab_index:
 		0:
-			return "期間限定ピックアップ英雄（準備中）"
+			return "特達の招待状（準備中）"
 		1:
-			return "プレミアム英雄召喚（準備中）"
+			return "推薦状による招き（準備中）"
 		_:
-			return "王国の未来を担う新たな英雄たち"
+			return "各地の探索者へ、ギルドからの招き"
 
 static func pull_title(pulls: int) -> String:
-	return "%d回召喚" % maxi(1, pulls)
+	if pulls >= 10:
+		return "束ねた招待状"
+	return "招待状を開く"
 
 static func pull_cost_amount(pulls: int) -> int:
 	return GachaSystem.PULL_COST * maxi(1, pulls)

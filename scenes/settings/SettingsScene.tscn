@@ -129,7 +129,7 @@ text = "鍛冶"
 
 [node name="NavShop" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
-text = "召喚"
+text = "招待状"
 
 [node name="NavMenu" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
