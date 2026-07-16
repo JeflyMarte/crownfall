@@ -40,8 +40,8 @@ static func ensure_commander() -> void:
 
 static func get_commander_name() -> String:
 	ensure_commander()
-	var name: String = str(GameState.commander.get("name", DEFAULT_NAME)).strip_edges()
-	return name if not name.is_empty() else DEFAULT_NAME
+	var cmd_name: String = str(GameState.commander.get("name", DEFAULT_NAME)).strip_edges()
+	return cmd_name if not cmd_name.is_empty() else DEFAULT_NAME
 
 
 static func set_commander_name(raw_name: String) -> bool:
@@ -51,6 +51,14 @@ static func set_commander_name(raw_name: String) -> bool:
 		return false
 	GameState.commander["name"] = trimmed.substr(0, 16)
 	return true
+
+
+static func apply_intro_commander_name(raw_name: String) -> bool:
+	return GameState.apply_intro_commander_name(raw_name)
+
+
+static func set_name_for_intro(raw_name: String) -> bool:
+	return apply_intro_commander_name(raw_name)
 
 
 ## 指揮官名の変更可否（P3-CMD-001-9: ランク不問で常時可）。

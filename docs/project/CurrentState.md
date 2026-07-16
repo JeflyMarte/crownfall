@@ -4,6 +4,12 @@
 
 ## Last Update
 
+2026-07-15（**P3-INTRO-002**: 導入アート配線 — Lore/Name/Starter BG・ニーナ立ち絵・スターター枠。パネル挿絵は後続）
+
+2026-07-15（**P3-INTRO-001 Impl**: はじめから→世界観スクロール→隊長名→ニーナ3吹き出し→初期隊員選択→拠点。Boot=Title。操作チュートなし）
+
+2026-07-14（**P3-INTRO-001 Decision**: 新規ゲーム導入＝世界観スクロール→隊長名→ニーナ3吹き出し→初期隊員選択→拠点。操作チュートなし・スキップ可。SSOT=`docs/specs/decisions/02_NewGameIntro.md`）
+
 2026-07-17（**P3-GACHA-ENABLE-001**: `GACHA_HELPERS_PLAYABLE=true` 常時。招待状・抽選・ロスター参加を開放。戦力／ドット／10連の既知リスクは Decision に記録）
 
 2026-07-16（**P3-GACHA-REVEAL-001 polish**: Invite封書を AI 生成＋クロマキー差し替え。閉/★2/開封/Glow。演出ロジック据置）

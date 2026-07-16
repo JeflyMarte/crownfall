@@ -1,10 +1,12 @@
 extends Control
 
-## タイトル（つづきから / はじめから）— P3-UI-TITLE-001。
+## タイトル（つづきから / はじめから）— P3-UI-TITLE-001 / P3-INTRO-001。
 ## 背景は `UI_BG_TitleMain.png`（ロゴ焼込。テキストブランドは置かない）。
+## はじめから → 世界観導入（IntroLore）へ。
 
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const STARTER_PICK_SCENE: String = "res://scenes/roster/StarterPickScene.tscn"
+const INTRO_LORE_SCENE: String = "res://scenes/intro/IntroLoreScene.tscn"
 const BG_PATH: String = "res://assets/ui/UI_BG_TitleMain.png"
 
 var _btn_continue: Button
@@ -31,9 +33,8 @@ func _build_ui() -> void:
 	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var tex: Texture2D = load(BG_PATH) as Texture2D
-	if tex != null:
-		bg.texture = tex
+	if ResourceLoader.exists(BG_PATH):
+		bg.texture = load(BG_PATH) as Texture2D
 	add_child(bg)
 
 	var margin := MarginContainer.new()
@@ -134,4 +135,4 @@ func _on_new_game_confirmed() -> void:
 	GameState.reset_for_new_game()
 	DailyMissionSystem.ensure_refreshed()
 	EventSystem.ensure_active()
-	SceneRouter.change_scene(STARTER_PICK_SCENE)
+	SceneRouter.change_scene(INTRO_LORE_SCENE)

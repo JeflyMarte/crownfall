@@ -1174,6 +1174,23 @@ func reset_for_new_game() -> void:
 	_CommanderProfile.ensure_commander()
 
 
+## 導入フロー用の隊長名設定（等級ロック無視 / P3-INTRO-001）。
+func apply_intro_commander_name(raw_name: String) -> bool:
+	_CommanderProfile.ensure_commander()
+	var trimmed: String = raw_name.strip_edges()
+	if trimmed.is_empty():
+		return false
+	if trimmed.length() > 12:
+		trimmed = trimmed.substr(0, 12)
+	commander["name"] = trimmed
+	return true
+
+
+## 導入時の初期隊員選択。βスターター解放ルールに従う（P3-INTRO-001 / P3-STORY-STARTER-001）。
+func select_intro_starter(adventurer_id: String) -> bool:
+	return select_starting_adventurer(adventurer_id)
+
+
 func _is_gut_cmdline() -> bool:
 	for arg: Variant in OS.get_cmdline_args():
 		if str(arg).findn("gut") >= 0:
