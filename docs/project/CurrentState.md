@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-17（**P3-GACHA-ENABLE-001**: `GACHA_HELPERS_PLAYABLE=true` 常時。招待状・抽選・ロスター参加を開放。戦力／ドット／10連の既知リスクは Decision に記録）
+
 2026-07-16（**P3-GACHA-REVEAL-001 polish**: Invite封書を AI 生成＋クロマキー差し替え。閉/★2/開封/Glow。演出ロジック据置）
 
 2026-07-16（**P3-GACHA-REVEAL-001**: 招待状開封リビール — 封緘→開封→顕現。★差尺／Glow／スキップ。`GachaRevealPresenter`＋Inviteアセット。`GACHA_HELPERS_PLAYABLE=false` 据置）
