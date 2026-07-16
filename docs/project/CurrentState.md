@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-16（**P3-GACHA-008**: ガチャプール 10→6体 — ★2×3 / ★3×2 / ★4×1。排出率 ★2 50%/★3 35%/★4 15%。残り4体は `_omitted` 退避。`GACHA_HELPERS_PLAYABLE=false` 据置）
+
 2026-07-16（**リモート再開**: `cursor/sub-mac-ui-integration-cca2` 同期済。GUT 395 PASS。次＝オーナー実機通し／QA）
 
 2026-07-16（**P3-AUDIO-BGM-001**: BGM 配置＋配線 — title/hub/explore/battle/boss/result。戦闘SE差し替え・行動順敵アイコン・結果EXPアイコン等の polish WIP 同梱）

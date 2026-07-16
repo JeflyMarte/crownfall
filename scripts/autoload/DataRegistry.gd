@@ -118,11 +118,16 @@ func get_material_price(material_id: String) -> int:
 
 func get_gacha_helper_data(helper_id: String) -> Resource:
 	var path: String = Constants.RESOURCE_GACHA_HELPERS_PATH + helper_id + ".tres"
-	if not ResourceLoader.exists(path):
-		return null
-	return load(path)
+	if ResourceLoader.exists(path):
+		return load(path)
+	## プール外退避分もセーブ同期用に読む（P3-GACHA-008）
+	var omitted: String = Constants.RESOURCE_GACHA_HELPERS_PATH + "_omitted/" + helper_id + ".tres"
+	if ResourceLoader.exists(omitted):
+		return load(omitted)
+	return null
 
 func get_all_gacha_helper_data() -> Array:
+	## 直下の .tres のみ（`_omitted/` はプール外）
 	return _load_all_resources(Constants.RESOURCE_GACHA_HELPERS_PATH)
 
 func get_all_enemy_data() -> Array:

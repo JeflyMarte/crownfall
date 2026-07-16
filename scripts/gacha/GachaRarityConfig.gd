@@ -1,17 +1,18 @@
 class_name GachaRarityConfig
 extends RefCounted
 
-## ガチャ助っ人の★1〜4 共通ルール（P3-GACHA-005）。
+## ガチャ助っ人の★帯ルール（P3-GACHA-005 / **P3-GACHA-008**）。
 ## 基本5職スターター（adventurer_0..4）は対象外 — ガチャプールのみ。
+## 現行プールは ★2〜4（★1 はプールなし・重み0）。
 
 const MIN_RARITY: int = 1
 const MAX_RARITY: int = 4
 
 const RARITY_WEIGHTS: Dictionary = {
-	1: 0.45,
-	2: 0.30,
-	3: 0.20,
-	4: 0.05,
+	1: 0.0,
+	2: 0.50,
+	3: 0.35,
+	4: 0.15,
 }
 
 const REFUND_BY_RARITY: Dictionary = {
@@ -42,14 +43,16 @@ static func roll_rarity_tier() -> int:
 	var roll: float = randf()
 	var acc: float = 0.0
 	for tier in range(MIN_RARITY, MAX_RARITY + 1):
-		acc += float(RARITY_WEIGHTS.get(tier, 0.0))
+		var w: float = float(RARITY_WEIGHTS.get(tier, 0.0))
+		if w <= 0.0:
+			continue
+		acc += w
 		if roll <= acc:
 			return tier
-	return MIN_RARITY
+	return 2
 
 static func rate_display_text() -> String:
-	return "★1 %.0f%% / ★2 %.0f%% / ★3 %.0f%% / ★4 %.0f%%（未所持優先）" % [
-		float(RARITY_WEIGHTS.get(1, 0.0)) * 100.0,
+	return "★2 %.0f%% / ★3 %.0f%% / ★4 %.0f%%（未所持優先）" % [
 		float(RARITY_WEIGHTS.get(2, 0.0)) * 100.0,
 		float(RARITY_WEIGHTS.get(3, 0.0)) * 100.0,
 		float(RARITY_WEIGHTS.get(4, 0.0)) * 100.0,
