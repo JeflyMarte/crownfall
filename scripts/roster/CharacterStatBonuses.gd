@@ -1,41 +1,41 @@
 extends RefCounted
 
 ## キャラ個人ステ補正（P3-STAT-CHAR-001 案A）。
-## ★帯に加算。全キャラで最終 HP/ATK/DEF の組が重複しないよう個別定義。
+## ★帯に加算。全キャラで最終 HP/ATK/DEF の組が一意。3桁見栄え用スケール。
 ## 参照は preload（`GachaRarityConfig`）経由。
 
-## メイン5（★3帯 +14/+5/+3 の上）
+## メイン5（★3帯 +50/+18/+12 の上）
 const STARTER_BONUS: Dictionary = {
-	## アルド: 高火力・標準耐久
-	"adventurer_0": {"hp": 4, "attack": 20, "defense": 2},
-	## リーヴァ: 超ガラス・最高火力寄り（DEFは最低帯）
-	"adventurer_1": {"hp": -16, "attack": 28, "defense": -1},
-	## エリアス: 高HP・低攻撃・中防御
-	"adventurer_2": {"hp": 32, "attack": -14, "defense": 10},
-	## ガレン: 最高HP・最低攻撃・最高防御
-	"adventurer_3": {"hp": 40, "attack": -16, "defense": 26},
-	## ミレイ: 中高HP・高攻撃・低防御
-	"adventurer_4": {"hp": 12, "attack": 16, "defense": 0},
+	## アルド: 高火力・標準耐久 → 約 162/78/20
+	"adventurer_0": {"hp": 12, "attack": 60, "defense": 8},
+	## リーヴァ: ガラス最高火力 → 約 102/102/10
+	"adventurer_1": {"hp": -48, "attack": 84, "defense": -2},
+	## エリアス: 高HP支援 → 約 246/12/42
+	"adventurer_2": {"hp": 96, "attack": -6, "defense": 30},
+	## ガレン: 重盾 → 約 270/14/90
+	"adventurer_3": {"hp": 120, "attack": -4, "defense": 78},
+	## ミレイ: 追撃火力 → 約 186/66/16
+	"adventurer_4": {"hp": 36, "attack": 48, "defense": 4},
 }
 
 ## ガチャ助っ人（helper_id）。プール外★1も含む。
 const HELPER_BONUS: Dictionary = {
-	## ヴァルデン★4: 重盾（高HP/高DEF）
-	"helper_a": {"hp": 28, "attack": -12, "defense": 30},
-	## イヴァル★2: 軽快火力
-	"helper_b": {"hp": -8, "attack": 18, "defense": 2},
-	## セリン★3: 支援耐久（高HP・低ATK）
-	"helper_c": {"hp": 26, "attack": -12, "defense": 12},
-	## レオン★1: 素直な軽火力（★1帯DEF0のため個人で確保）
-	"helper_d": {"hp": 2, "attack": 14, "defense": 3},
-	## ミラ★3: 拘束火力（中低HP・高ATK）
-	"helper_e": {"hp": -10, "attack": 24, "defense": 4},
-	## カイダ★2: 極ガラス砲（DEFは最低帯）
-	"helper_f": {"hp": -20, "attack": 32, "defense": 0},
-	## ドランテ★1: 軽耐久・低攻撃
-	"helper_h": {"hp": 16, "attack": -6, "defense": 8},
-	## ガルム★2: 盾（高HP/中DEF）
-	"helper_i": {"hp": 22, "attack": -8, "defense": 16},
+	## ヴァルデン★4: 重盾 → 約 274/24/118
+	"helper_a": {"hp": 84, "attack": -16, "defense": 90},
+	## イヴァル★2: 軽火力 → 約 100/62/14
+	"helper_b": {"hp": -20, "attack": 54, "defense": 10},
+	## セリン★3: 支援耐久 → 約 228/10/48
+	"helper_c": {"hp": 78, "attack": -8, "defense": 36},
+	## レオン★1: 軽火力 → 約 108/42/12
+	"helper_d": {"hp": 8, "attack": 42, "defense": 12},
+	## ミラ★3: 拘束火力 → 約 120/90/24
+	"helper_e": {"hp": -30, "attack": 72, "defense": 12},
+	## カイダ★2: 極ガラス砲 → 約 100/104/8
+	"helper_f": {"hp": -20, "attack": 96, "defense": 4},
+	## ドランテ★1: 軽耐久 → 約 148/12/24
+	"helper_h": {"hp": 48, "attack": 12, "defense": 24},
+	## ガルム★2: 盾 → 約 186/12/52
+	"helper_i": {"hp": 66, "attack": 4, "defense": 48},
 }
 
 

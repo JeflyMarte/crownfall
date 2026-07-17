@@ -22,7 +22,7 @@ const _ChrIdlePortrait = preload("res://scripts/ui/ChrIdlePortrait.gd")
 const _GachaLimitBreak = preload("res://scripts/gacha/GachaLimitBreak.gd")
 
 # CombatController.BASE_MEMBER_HP と同値（表示用の素HP）。
-const BASE_MEMBER_HP: int = 30
+const BASE_MEMBER_HP: int = BalanceConfig.BASE_MEMBER_HP
 # クリティカルダメージ倍率（BalanceConfig 準拠）。
 const CRIT_DAMAGE_MULT: float = BalanceConfig.CRITICAL_MULTIPLIER
 const GRID_COLUMNS: int = 6

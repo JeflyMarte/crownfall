@@ -24,13 +24,13 @@ const REFUND_BY_RARITY: Dictionary = {
 	4: 4,
 }
 
-# 素体（BASE_MEMBER_HP=30）への加算。戦闘・UI 表示で使用。
-# P3-STAT-CHAR-001: ★帯差を明確化（★2 << ★3 << ★4）。
+# 素体（BASE_MEMBER_HP=100）への加算。戦闘・UI 表示で使用。
+# P3-STAT-CHAR-001: ★帯差を明確化（★2 << ★3 << ★4）。3桁見栄えに合わせ拡大。
 const STAT_BONUS_BY_RARITY: Dictionary = {
 	1: {"hp": 0, "attack": 0, "defense": 0},
-	2: {"hp": 6, "attack": 2, "defense": 1},
-	3: {"hp": 14, "attack": 5, "defense": 3},
-	4: {"hp": 26, "attack": 11, "defense": 7},
+	2: {"hp": 20, "attack": 8, "defense": 4},
+	3: {"hp": 50, "attack": 18, "defense": 12},
+	4: {"hp": 90, "attack": 40, "defense": 28},
 }
 
 static func clamp_rarity(rarity: int) -> int:
@@ -75,8 +75,8 @@ static func apply_base_stats_to_adventurer(
 	var pers: Dictionary = _CharacterStatBonuses.normalize_bonus(personal)
 	var stats = stats_class.new()
 	stats.hp = maxi(1, base_hp + int(bonuses.get("hp", 0)) + int(pers.get("hp", 0)))
-	stats.attack = maxi(0, int(bonuses.get("attack", 0)) + int(pers.get("attack", 0)))
-	## DEF 0 禁止（見栄え・最低限の被弾耐性）
+	## ATK/DEF 0 禁止（見栄え）
+	stats.attack = maxi(1, int(bonuses.get("attack", 0)) + int(pers.get("attack", 0)))
 	stats.defense = maxi(1, int(bonuses.get("defense", 0)) + int(pers.get("defense", 0)))
 	adv.base_stats = stats
 

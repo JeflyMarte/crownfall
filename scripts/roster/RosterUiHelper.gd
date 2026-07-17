@@ -5,7 +5,7 @@ const _JobStatCalculator = preload("res://scripts/equipment/JobStatCalculator.gd
 const _AffixStatCalculator = preload("res://scripts/equipment/AffixStatCalculator.gd")
 const _EquipmentEnhancer = preload("res://scripts/equipment/EquipmentEnhancer.gd")
 
-const BASE_MEMBER_HP: int = 30
+const BASE_MEMBER_HP: int = BalanceConfig.BASE_MEMBER_HP
 
 const ROLE_LABELS: Dictionary = {
 	"dps": "アタッカー",

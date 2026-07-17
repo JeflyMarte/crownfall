@@ -27,7 +27,8 @@ const EVASION_RATE_CAP: float = 0.50
 const DAMAGE_VARIANCE: float = 0.10
 
 # ── 味方基礎（旧 CombatController 定数） ──────────────────────────────────
-const BASE_MEMBER_HP: int = 30
+## P3-STAT-CHAR-001: 見栄え用に 3 桁帯へ（旧 30 → 100）
+const BASE_MEMBER_HP: int = 100
 
 # ── レベル成長（P3-D035 / P3-BAL-006 / P3-LV-099） ───────────────────────
 const MAX_PLAYER_LEVEL: int = 99
