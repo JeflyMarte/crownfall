@@ -1,5 +1,5 @@
 extends GutTest
-## キャラ個人ステ補正（P3-STAT-CHAR-001 / ×8 スケール）。
+## キャラ個人ステ補正（P3-STAT-CHAR-001 / 初期バランス: ★序列＋バラつき）。
 
 const _Bonuses = preload("res://scripts/roster/CharacterStatBonuses.gd")
 
@@ -12,29 +12,8 @@ func _make_member(id: String, job_id: String, rarity: int) -> Resource:
 	return adv
 
 
-func _final_key(member: Resource) -> String:
-	GachaRarityConfig.apply_stats_for_adventurer(member)
-	return "%d/%d/%d" % [
-		int(member.base_stats.hp),
-		int(member.base_stats.attack),
-		int(member.base_stats.defense),
-	]
-
-
-func test_base_member_hp_scaled() -> void:
-	assert_eq(BalanceConfig.BASE_MEMBER_HP, 800)
-
-
-func test_star_band_gaps_are_wide() -> void:
-	var b2: Dictionary = GachaRarityConfig.get_stat_bonuses(2)
-	var b3: Dictionary = GachaRarityConfig.get_stat_bonuses(3)
-	var b4: Dictionary = GachaRarityConfig.get_stat_bonuses(4)
-	assert_true(int(b3["hp"]) - int(b2["hp"]) >= 160, "★2→3 HP差")
-	assert_true(int(b4["hp"]) - int(b3["hp"]) >= 240, "★3→4 HP差")
-
-
-func test_all_defined_characters_have_unique_final_stats() -> void:
-	var roster: Array = [
+func _all_roster() -> Array:
+	return [
 		_make_member("adventurer_0", "swordsman", 3),
 		_make_member("adventurer_1", "ranger", 3),
 		_make_member("adventurer_2", "alchemist", 3),
@@ -49,6 +28,42 @@ func test_all_defined_characters_have_unique_final_stats() -> void:
 		_make_member("gacha_helper_h", "alchemist", 1),
 		_make_member("gacha_helper_i", "vanguard", 2),
 	]
+
+
+func _final_key(member: Resource) -> String:
+	GachaRarityConfig.apply_stats_for_adventurer(member)
+	return "%d/%d/%d" % [
+		int(member.base_stats.hp),
+		int(member.base_stats.attack),
+		int(member.base_stats.defense),
+	]
+
+
+func _stat_total(member: Resource) -> int:
+	GachaRarityConfig.apply_stats_for_adventurer(member)
+	return (
+		int(member.base_stats.hp)
+		+ int(member.base_stats.attack)
+		+ int(member.base_stats.defense)
+	)
+
+
+func test_base_member_hp_scaled() -> void:
+	assert_eq(BalanceConfig.BASE_MEMBER_HP, 800)
+
+
+func test_star_band_gaps_are_wide() -> void:
+	var b2: Dictionary = GachaRarityConfig.get_stat_bonuses(2)
+	var b3: Dictionary = GachaRarityConfig.get_stat_bonuses(3)
+	var b4: Dictionary = GachaRarityConfig.get_stat_bonuses(4)
+	assert_true(int(b3["hp"]) - int(b2["hp"]) >= 200, "★2→3 HP差")
+	assert_true(int(b4["hp"]) - int(b3["hp"]) >= 300, "★3→4 HP差")
+	assert_true(int(b3["attack"]) - int(b2["attack"]) >= 80, "★2→3 ATK差")
+	assert_true(int(b4["attack"]) - int(b3["attack"]) >= 120, "★3→4 ATK差")
+
+
+func test_all_defined_characters_have_unique_final_stats() -> void:
+	var roster: Array = _all_roster()
 	var seen: Dictionary = {}
 	for member: Resource in roster:
 		var key: String = _final_key(member)
@@ -74,38 +89,32 @@ func test_personal_bonus_triplets_are_all_unique() -> void:
 		seen[hkey] = str(k)
 
 
-func test_starter_ald_profile_near_320_atk() -> void:
+func test_starter_ald_profile() -> void:
 	var ald: Resource = _make_member("adventurer_0", "swordsman", Adventurer.STARTER_RARITY)
 	GachaRarityConfig.apply_stats_for_adventurer(ald)
-	## ★3 + 個人 → HP1296 ATK304 DEF160
-	assert_eq(int(ald.base_stats.hp), CombatController.BASE_MEMBER_HP + 400 + 96)
-	assert_eq(int(ald.base_stats.attack), 144 + 160)
-	assert_eq(int(ald.base_stats.defense), 96 + 64)
-	assert_true(int(ald.base_stats.attack) >= 300)
-	assert_true(int(ald.base_stats.attack) <= 340)
+	assert_eq(int(ald.base_stats.hp), 1261)
+	assert_eq(int(ald.base_stats.attack), 334)
+	assert_eq(int(ald.base_stats.defense), 208)
 
 
-func test_atk_def_spread_is_moderate() -> void:
-	var roster: Array = [
-		_make_member("adventurer_0", "swordsman", 3),
-		_make_member("adventurer_1", "ranger", 3),
-		_make_member("adventurer_2", "alchemist", 3),
-		_make_member("adventurer_3", "vanguard", 3),
-		_make_member("adventurer_4", "beast_tamer", 3),
-		_make_member("gacha_helper_a", "vanguard", 4),
-		_make_member("gacha_helper_f", "swordsman", 2),
-		_make_member("gacha_helper_c", "alchemist", 3),
-	]
-	var atks: Array[int] = []
-	var defs: Array[int] = []
-	for member: Resource in roster:
+func test_rarity_total_order_four_gt_three_gt_two() -> void:
+	## 初期バランス: 合計ステで ★4 > ★3 > ★2 > ★1（個々のATK逆転はロール次第で可）
+	var by_rarity: Dictionary = {1: [], 2: [], 3: [], 4: []}
+	for member: Resource in _all_roster():
+		var rarity: int = int(member.rarity)
+		## helper は DataRegistry 側レアで上書きされ得る
 		GachaRarityConfig.apply_stats_for_adventurer(member)
-		atks.append(int(member.base_stats.attack))
-		defs.append(int(member.base_stats.defense))
-	atks.sort()
-	defs.sort()
-	assert_true(atks[atks.size() - 1] - atks[0] <= 320, "ATK差は抑えめ（×8後）")
-	assert_true(defs[defs.size() - 1] - defs[0] <= 320, "DEF差は抑えめ（×8後）")
+		rarity = int(member.rarity)
+		by_rarity[rarity].append(_stat_total(member))
+	var max1: int = by_rarity[1].max()
+	var max2: int = by_rarity[2].max()
+	var max3: int = by_rarity[3].max()
+	var min2: int = by_rarity[2].min()
+	var min3: int = by_rarity[3].min()
+	var min4: int = by_rarity[4].min()
+	assert_true(min4 > max3, "★4合計 > ★3最大")
+	assert_true(min3 > max2, "★3合計 > ★2最大")
+	assert_true(min2 > max1, "★2合計 > ★1最大")
 
 
 func test_attack_and_defense_floor() -> void:

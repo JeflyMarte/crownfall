@@ -1,41 +1,42 @@
 extends RefCounted
 
 ## キャラ個人ステ補正（P3-STAT-CHAR-001 案A）。
-## ★帯に加算。最終組は一意。ATK/DEF差は抑えめ（全体×8スケール）。
+## ★帯に加算。最終組は一意。
+## 初期バランス: ★序列（4>3>2>1）を合計で明確化。個差はだいたい50前後でバラす（綺麗な梯子にしない）。
 ## 参照は preload（`GachaRarityConfig`）経由。
 
-## メイン5（★3帯 +400/+144/+96 の上）
+## メイン5（★3帯の上）
 const STARTER_BONUS: Dictionary = {
-	## アルド → 1296/304/160
-	"adventurer_0": {"hp": 96, "attack": 160, "defense": 64},
-	## リーヴァ → 816/368/128
-	"adventurer_1": {"hp": -384, "attack": 224, "defense": 32},
-	## エリアス → 1968/224/208
-	"adventurer_2": {"hp": 768, "attack": 80, "defense": 112},
-	## ガレン → 2160/192/272
-	"adventurer_3": {"hp": 960, "attack": 48, "defense": 176},
-	## ミレイ → 1488/272/144
-	"adventurer_4": {"hp": 288, "attack": 128, "defense": 48},
+	## アルド → 1261/334/208
+	"adventurer_0": {"hp": 81, "attack": 144, "defense": 93},
+	## リーヴァ → 1097/403/138
+	"adventurer_1": {"hp": -83, "attack": 213, "defense": 23},
+	## エリアス → 1496/227/298
+	"adventurer_2": {"hp": 316, "attack": 37, "defense": 183},
+	## ガレン → 1583/191/341
+	"adventurer_3": {"hp": 403, "attack": 1, "defense": 226},
+	## ミレイ → 1327/283/174
+	"adventurer_4": {"hp": 147, "attack": 93, "defense": 59},
 }
 
 ## ガチャ助っ人（helper_id）。プール外★1も含む。
 const HELPER_BONUS: Dictionary = {
-	## ヴァルデン★4 → 2192/256/288
-	"helper_a": {"hp": 672, "attack": -64, "defense": 64},
-	## イヴァル★2 → 800/320/176
-	"helper_b": {"hp": -160, "attack": 256, "defense": 144},
-	## セリン★3 → 1824/208/240
-	"helper_c": {"hp": 624, "attack": 64, "defense": 144},
-	## レオン★1 → 864/288/176
-	"helper_d": {"hp": 64, "attack": 288, "defense": 176},
-	## ミラ★3 → 960/336/176
-	"helper_e": {"hp": -240, "attack": 192, "defense": 80},
-	## カイダ★2 → 832/352/80
-	"helper_f": {"hp": -128, "attack": 288, "defense": 48},
-	## ドランテ★1 → 1184/208/192
-	"helper_h": {"hp": 384, "attack": 208, "defense": 192},
-	## ガルム★2 → 1488/160/240
-	"helper_i": {"hp": 528, "attack": 96, "defense": 208},
+	## ヴァルデン★4 → 1674/418/392
+	"helper_a": {"hp": 94, "attack": 58, "defense": 102},
+	## イヴァル★2 → 928/274/161
+	"helper_b": {"hp": 28, "attack": 204, "defense": 116},
+	## セリン★3 → 1438/246/271
+	"helper_c": {"hp": 258, "attack": 56, "defense": 156},
+	## レオン★1 → 853/239/129
+	"helper_d": {"hp": 53, "attack": 239, "defense": 129},
+	## ミラ★3 → 1194/361/186
+	"helper_e": {"hp": 14, "attack": 171, "defense": 71},
+	## カイダ★2 → 961/307/92
+	"helper_f": {"hp": 61, "attack": 237, "defense": 47},
+	## ドランテ★1 → 889/211/177
+	"helper_h": {"hp": 89, "attack": 211, "defense": 177},
+	## ガルム★2 → 1042/168/203
+	"helper_i": {"hp": 142, "attack": 98, "defense": 158},
 }
 
 
