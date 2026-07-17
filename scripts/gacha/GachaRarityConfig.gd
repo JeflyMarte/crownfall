@@ -76,7 +76,8 @@ static func apply_base_stats_to_adventurer(
 	var stats = stats_class.new()
 	stats.hp = maxi(1, base_hp + int(bonuses.get("hp", 0)) + int(pers.get("hp", 0)))
 	stats.attack = maxi(0, int(bonuses.get("attack", 0)) + int(pers.get("attack", 0)))
-	stats.defense = maxi(0, int(bonuses.get("defense", 0)) + int(pers.get("defense", 0)))
+	## DEF 0 禁止（見栄え・最低限の被弾耐性）
+	stats.defense = maxi(1, int(bonuses.get("defense", 0)) + int(pers.get("defense", 0)))
 	adv.base_stats = stats
 
 

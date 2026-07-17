@@ -76,10 +76,22 @@ func test_starter_ald_profile() -> void:
 	assert_eq(int(ald.base_stats.defense), 3 + 2)
 
 
+func test_defense_never_zero() -> void:
+	var roster: Array = [
+		_make_member("adventurer_1", "ranger", 3),
+		_make_member("gacha_helper_f", "swordsman", 2),
+		_make_member("gacha_helper_d", "swordsman", 1),
+	]
+	for member: Resource in roster:
+		GachaRarityConfig.apply_stats_for_adventurer(member)
+		assert_true(int(member.base_stats.defense) >= 1, "%s DEF>=1" % member.id)
+
+
 func test_attack_floors_at_zero() -> void:
-	var bonus: Dictionary = {"hp": 0, "attack": -99, "defense": 0}
+	var bonus: Dictionary = {"hp": 0, "attack": -99, "defense": -99}
 	var adv: Resource = _make_member("extra_floor", "alchemist", 3)
 	GachaRarityConfig.apply_base_stats_to_adventurer(
 		adv, 3, CombatController.BASE_MEMBER_HP, bonus
 	)
 	assert_eq(int(adv.base_stats.attack), 0)
+	assert_eq(int(adv.base_stats.defense), 1)

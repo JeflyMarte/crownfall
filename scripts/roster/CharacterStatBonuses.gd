@@ -8,14 +8,14 @@ extends RefCounted
 const STARTER_BONUS: Dictionary = {
 	## アルド: 高火力・標準耐久
 	"adventurer_0": {"hp": 4, "attack": 20, "defense": 2},
-	## リーヴァ: 超ガラス・最高火力寄り
-	"adventurer_1": {"hp": -16, "attack": 28, "defense": -4},
+	## リーヴァ: 超ガラス・最高火力寄り（DEFは最低帯）
+	"adventurer_1": {"hp": -16, "attack": 28, "defense": -1},
 	## エリアス: 高HP・低攻撃・中防御
 	"adventurer_2": {"hp": 32, "attack": -14, "defense": 10},
 	## ガレン: 最高HP・最低攻撃・最高防御
 	"adventurer_3": {"hp": 40, "attack": -16, "defense": 26},
 	## ミレイ: 中高HP・高攻撃・低防御
-	"adventurer_4": {"hp": 12, "attack": 16, "defense": -2},
+	"adventurer_4": {"hp": 12, "attack": 16, "defense": 0},
 }
 
 ## ガチャ助っ人（helper_id）。プール外★1も含む。
@@ -26,12 +26,12 @@ const HELPER_BONUS: Dictionary = {
 	"helper_b": {"hp": -8, "attack": 18, "defense": 2},
 	## セリン★3: 支援耐久（高HP・低ATK）
 	"helper_c": {"hp": 26, "attack": -12, "defense": 12},
-	## レオン★1: 素直な軽火力
-	"helper_d": {"hp": 2, "attack": 14, "defense": 0},
+	## レオン★1: 素直な軽火力（★1帯DEF0のため個人で確保）
+	"helper_d": {"hp": 2, "attack": 14, "defense": 3},
 	## ミラ★3: 拘束火力（中低HP・高ATK）
 	"helper_e": {"hp": -10, "attack": 24, "defense": 4},
-	## カイダ★2: 極ガラス砲
-	"helper_f": {"hp": -20, "attack": 32, "defense": -6},
+	## カイダ★2: 極ガラス砲（DEFは最低帯）
+	"helper_f": {"hp": -20, "attack": 32, "defense": 0},
 	## ドランテ★1: 軽耐久・低攻撃
 	"helper_h": {"hp": 16, "attack": -6, "defense": 8},
 	## ガルム★2: 盾（高HP/中DEF）
