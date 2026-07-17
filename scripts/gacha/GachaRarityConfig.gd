@@ -5,6 +5,8 @@ extends RefCounted
 ## 基本5職スターター（adventurer_0..4）は対象外 — ガチャプールのみ。
 ## 現行プールは ★2〜4（★1 はプールなし・重み0）。
 
+const _CharacterStatBonuses = preload("res://scripts/roster/CharacterStatBonuses.gd")
+
 const MIN_RARITY: int = 1
 const MAX_RARITY: int = 4
 
@@ -58,13 +60,42 @@ static func rate_display_text() -> String:
 		float(RARITY_WEIGHTS.get(4, 0.0)) * 100.0,
 	]
 
-static func apply_base_stats_to_adventurer(adv: Resource, rarity: int, base_hp: int) -> void:
+## personal: CharacterStatBonuses の {hp, attack, defense}。★帯に加算。
+static func apply_base_stats_to_adventurer(
+	adv: Resource,
+	rarity: int,
+	base_hp: int,
+	personal: Dictionary = {}
+) -> void:
 	if adv == null:
 		return
 	var stats_class = load("res://scripts/domain/Stats.gd")
 	var bonuses: Dictionary = get_stat_bonuses(rarity)
+	var pers: Dictionary = _CharacterStatBonuses.normalize_bonus(personal)
 	var stats = stats_class.new()
-	stats.hp = base_hp + int(bonuses.get("hp", 0))
-	stats.attack = int(bonuses.get("attack", 0))
-	stats.defense = int(bonuses.get("defense", 0))
+	stats.hp = maxi(1, base_hp + int(bonuses.get("hp", 0)) + int(pers.get("hp", 0)))
+	stats.attack = maxi(0, int(bonuses.get("attack", 0)) + int(pers.get("attack", 0)))
+	stats.defense = maxi(0, int(bonuses.get("defense", 0)) + int(pers.get("defense", 0)))
 	adv.base_stats = stats
+
+
+## 冒険者 id / レア / 個人補正を解決して base_stats を書き込む（ロード同期用）。
+static func apply_stats_for_adventurer(adv: Resource) -> void:
+	if adv == null:
+		return
+	var rarity: int = clamp_rarity(int(adv.rarity) if "rarity" in adv else MIN_RARITY)
+	var base_hp: int = CombatController.BASE_MEMBER_HP
+	var adv_id: String = str(adv.id)
+	if adv_id.begins_with("gacha_"):
+		var helper: Resource = DataRegistry.get_gacha_helper_data(adv_id.trim_prefix("gacha_"))
+		if helper != null:
+			rarity = clamp_rarity(int(helper.rarity))
+			adv.rarity = rarity
+			if helper.base_stats != null and int(helper.base_stats.hp) > 0:
+				base_hp = int(helper.base_stats.hp)
+	apply_base_stats_to_adventurer(
+		adv,
+		rarity,
+		base_hp,
+		_CharacterStatBonuses.for_adventurer(adv)
+	)

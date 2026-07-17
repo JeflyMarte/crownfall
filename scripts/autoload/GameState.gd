@@ -1328,7 +1328,7 @@ func _create_base_adventurer(def: Dictionary) -> Resource:
 	adv.display_name = str(def["name"])
 	adv.job_id = str(def["job"])
 	adv.rarity = Adventurer.STARTER_RARITY
-	_GachaRarityConfig.apply_base_stats_to_adventurer(adv, Adventurer.STARTER_RARITY, CombatController.BASE_MEMBER_HP)
+	_GachaRarityConfig.apply_stats_for_adventurer(adv)
 	return adv
 
 # 初期武器を生成し、inventory に登録した上で装備させる（ロスター全員分）。
@@ -1377,7 +1377,7 @@ func normalize_base_roster() -> void:
 		m.display_name = str(def["name"])
 		m.job_id = str(def["job"])
 		m.rarity = Adventurer.STARTER_RARITY
-		_GachaRarityConfig.apply_base_stats_to_adventurer(m, Adventurer.STARTER_RARITY, CombatController.BASE_MEMBER_HP)
+		_GachaRarityConfig.apply_stats_for_adventurer(m)
 
 # スターター5職の★を揃え、ガチャ助っ人は helper 定義へ同期する。
 func normalize_roster_rarity() -> void:

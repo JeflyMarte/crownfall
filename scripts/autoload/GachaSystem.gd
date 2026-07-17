@@ -151,9 +151,5 @@ func create_adventurer_from_helper(helper: Resource) -> Resource:
 	adv.display_name = str(helper.display_name)
 	adv.job_id = str(helper.job_id)
 	adv.rarity = _GachaRarityConfig.clamp_rarity(int(helper.rarity))
-	var base_hp: int = _CombatControllerScript.BASE_MEMBER_HP
-	if helper.base_stats != null and int(helper.base_stats.hp) > 0:
-		_GachaRarityConfig.apply_base_stats_to_adventurer(adv, adv.rarity, int(helper.base_stats.hp))
-	else:
-		_GachaRarityConfig.apply_base_stats_to_adventurer(adv, adv.rarity, base_hp)
+	_GachaRarityConfig.apply_stats_for_adventurer(adv)
 	return adv
