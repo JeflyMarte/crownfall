@@ -25,11 +25,12 @@ const REFUND_BY_RARITY: Dictionary = {
 }
 
 # 素体（BASE_MEMBER_HP=30）への加算。戦闘・UI 表示で使用。
+# P3-STAT-CHAR-001: ★帯差を明確化（★2 << ★3 << ★4）。
 const STAT_BONUS_BY_RARITY: Dictionary = {
 	1: {"hp": 0, "attack": 0, "defense": 0},
-	2: {"hp": 3, "attack": 1, "defense": 0},
-	3: {"hp": 6, "attack": 2, "defense": 1},
-	4: {"hp": 10, "attack": 4, "defense": 2},
+	2: {"hp": 6, "attack": 2, "defense": 1},
+	3: {"hp": 14, "attack": 5, "defense": 3},
+	4: {"hp": 26, "attack": 11, "defense": 7},
 }
 
 static func clamp_rarity(rarity: int) -> int:

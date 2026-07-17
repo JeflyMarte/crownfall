@@ -1,28 +1,28 @@
 extends RefCounted
 
 ## キャラ個人ステ補正（P3-STAT-CHAR-001 案A）。
-## ★帯ボーナスに加算する。値は小さく★序列を壊さない。
+## ★帯ボーナスに加算。差を明確にしつつロール個性を出す。
 ## 参照は preload（`GachaRarityConfig`）経由。
 
 ## メイン5（★3標準帯の上に乗る）
 const STARTER_BONUS: Dictionary = {
-	"adventurer_0": {"hp": 0, "attack": 2, "defense": 0}, ## アルド — 火力寄り
-	"adventurer_1": {"hp": 0, "attack": 1, "defense": 0}, ## リーヴァ — 軽火力
-	"adventurer_2": {"hp": 2, "attack": -1, "defense": 0}, ## エリアス — 耐久寄り
-	"adventurer_3": {"hp": 3, "attack": -1, "defense": 2}, ## ガレン — 盾
-	"adventurer_4": {"hp": 1, "attack": 1, "defense": 0}, ## ミレイ — 追撃寄り
+	"adventurer_0": {"hp": 0, "attack": 5, "defense": 0}, ## アルド — 火力
+	"adventurer_1": {"hp": -2, "attack": 4, "defense": 0}, ## リーヴァ — ガラス火力
+	"adventurer_2": {"hp": 6, "attack": -3, "defense": 1}, ## エリアス — 耐久／支援
+	"adventurer_3": {"hp": 10, "attack": -3, "defense": 5}, ## ガレン — 重盾
+	"adventurer_4": {"hp": 2, "attack": 3, "defense": 0}, ## ミレイ — 追撃寄り
 }
 
 ## ガチャ助っ人（helper_id）。プール外★1も含む。
 const HELPER_BONUS: Dictionary = {
-	"helper_a": {"hp": 2, "attack": 0, "defense": 2}, ## ヴァルデン★4 — 盾
-	"helper_b": {"hp": 0, "attack": 1, "defense": 0}, ## イヴァル★2
-	"helper_c": {"hp": 2, "attack": -1, "defense": 0}, ## セリン★3 — 回復役
-	"helper_d": {"hp": 0, "attack": 1, "defense": 0}, ## レオン★1
-	"helper_e": {"hp": 0, "attack": 1, "defense": 0}, ## ミラ★3
-	"helper_f": {"hp": -1, "attack": 2, "defense": 0}, ## カイダ★2 — ガラス
-	"helper_h": {"hp": 1, "attack": 0, "defense": 0}, ## ドランテ★1
-	"helper_i": {"hp": 2, "attack": 0, "defense": 1}, ## ガルム★2 — 盾
+	"helper_a": {"hp": 8, "attack": -2, "defense": 6}, ## ヴァルデン★4 — 重盾
+	"helper_b": {"hp": 0, "attack": 3, "defense": 0}, ## イヴァル★2 — 軽火力
+	"helper_c": {"hp": 6, "attack": -3, "defense": 1}, ## セリン★3 — 支援
+	"helper_d": {"hp": 0, "attack": 2, "defense": 0}, ## レオン★1 — 軽火力
+	"helper_e": {"hp": 0, "attack": 4, "defense": 0}, ## ミラ★3 — 拘束火力
+	"helper_f": {"hp": -4, "attack": 6, "defense": -1}, ## カイダ★2 — ガラス砲
+	"helper_h": {"hp": 3, "attack": -1, "defense": 0}, ## ドランテ★1 — 軽耐久
+	"helper_i": {"hp": 6, "attack": -1, "defense": 3}, ## ガルム★2 — 盾
 }
 
 
