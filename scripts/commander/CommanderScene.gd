@@ -298,6 +298,27 @@ func _build_assets_section() -> Control:
 		CurrencyHelper.ICON_PATH,
 		CurrencyHelper.format_amount()
 	))
+	_add_subheading(body, "所持チケット")
+	var tickets: Array = _owned_ticket_rows()
+	if tickets.is_empty():
+		_add_caption(body, "所持チケットなし")
+	else:
+		var ticket_block := _make_inner_block()
+		body.add_child(ticket_block["panel"])
+		var ticket_scroll := ScrollContainer.new()
+		ticket_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+		ticket_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		ticket_scroll.custom_minimum_size = Vector2(0, MAT_CELL_PX + 28)
+		ticket_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		ticket_block["body"].add_child(ticket_scroll)
+		var ticket_grid := HBoxContainer.new()
+		ticket_grid.add_theme_constant_override("separation", 8)
+		ticket_scroll.add_child(ticket_grid)
+		for row_data: Dictionary in tickets:
+			ticket_grid.add_child(_make_ticket_chip(
+				str(row_data.get("id", "")),
+				int(row_data.get("qty", 0))
+			))
 	_add_subheading(body, "所持素材")
 	var mats: Array = _CommanderProfile.top_materials(8)
 	if mats.is_empty():
@@ -363,6 +384,56 @@ func _make_material_chip(material_id: String, qty: int) -> VBoxContainer:
 	qty_lbl.text = "x%d" % qty
 	qty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_caption(qty_lbl, COLOR_SUB)
+	col.add_child(qty_lbl)
+	return col
+
+
+func _owned_ticket_rows() -> Array:
+	var rows: Array = []
+	for tid in TicketIds.ALL:
+		var qty: int = TicketInventory.get_qty(tid)
+		if qty <= 0:
+			continue
+		rows.append({"id": tid, "qty": qty})
+	return rows
+
+
+func _make_ticket_chip(ticket_id: String, qty: int) -> VBoxContainer:
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 2)
+	col.tooltip_text = TicketSystem.display_name(ticket_id)
+	var frame := PanelContainer.new()
+	frame.custom_minimum_size = Vector2(MAT_CELL_PX, MAT_CELL_PX)
+	var host := Control.new()
+	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	frame.add_child(host)
+	var tex: Texture2D = IconPaths.get_icon_texture(ticket_id, "ticket")
+	if tex != null:
+		var icon := TextureRect.new()
+		icon.texture = tex
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		icon.offset_left = 6
+		icon.offset_top = 6
+		icon.offset_right = -6
+		icon.offset_bottom = -6
+		host.add_child(icon)
+	else:
+		var glyph := Label.new()
+		glyph.text = "?"
+		glyph.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		glyph.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		glyph.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		UiTypography.apply_caption(glyph, COLOR_MUTED)
+		host.add_child(glyph)
+	col.add_child(frame)
+	var qty_lbl := Label.new()
+	qty_lbl.text = "x%d" % qty
+	qty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_caption(qty_lbl, COLOR_GOLD)
 	col.add_child(qty_lbl)
 	return col
 
