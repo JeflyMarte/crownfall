@@ -4,6 +4,7 @@ extends GutTest
 const _IntroLoreContent = preload("res://scripts/intro/IntroLoreContent.gd")
 const _IntroUiAssets = preload("res://scripts/intro/IntroUiAssets.gd")
 const _IntroLoreSceneScript = preload("res://scripts/intro/IntroLoreScene.gd")
+const _IntroNinaSceneScript = preload("res://scripts/intro/IntroNinaScene.gd")
 const _CommanderProfile = preload("res://scripts/commander/CommanderProfile.gd")
 
 
@@ -24,6 +25,12 @@ func test_lore_auto_crawl_params() -> void:
 	assert_gt(_IntroLoreSceneScript.CRAWL_START_DELAY_SEC, 0.0)
 	assert_lte(_IntroLoreSceneScript.CRAWL_START_DELAY_SEC, 2.0)
 	assert_gt(_IntroLoreSceneScript.CRAWL_BOOST_MULT, 1.0)
+
+
+func test_nina_typewriter_interval() -> void:
+	## ドラクエ風文字送りの間隔が妥当域。
+	assert_gt(_IntroNinaSceneScript.CHAR_INTERVAL_SEC, 0.01)
+	assert_lt(_IntroNinaSceneScript.CHAR_INTERVAL_SEC, 0.2)
 
 
 func test_intro_art_assets_exist() -> void:

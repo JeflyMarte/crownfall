@@ -1,20 +1,41 @@
 extends Control
 
-## 記録官ニーナの最短紹介 — P3-INTRO-001 / 002。
+## 記録官ニーナの最短紹介 — P3-INTRO-001 / 002 / P3-INTRO-NINA-TYPE-001。
 ## レイアウト: 左立ち絵 / 右吹き出し / 下に次へ。
+## 表示: ドラクエ風 — 1吹き出しずつ・文字送り。送り中の入力は全文表示、完了後に次へ。
 
 const _IntroLoreContent := preload("res://scripts/intro/IntroLoreContent.gd")
 const _IntroUiAssets := preload("res://scripts/intro/IntroUiAssets.gd")
 const NEXT_SCENE: String = "res://scenes/roster/StarterPickScene.tscn"
 
+## 1文字あたりの表示間隔（秒）。
+const CHAR_INTERVAL_SEC: float = 0.045
+
 var _line_idx: int = 0
 var _bubble: Label
 var _next_btn: Button
+var _full_line: String = ""
+var _revealed_chars: int = 0
+var _typing: bool = false
+var _char_timer: float = 0.0
 
 
 func _ready() -> void:
 	_build_ui()
-	_refresh_line()
+	_start_line()
+
+
+func _process(delta: float) -> void:
+	if not _typing:
+		return
+	_char_timer += delta
+	while _typing and _char_timer >= CHAR_INTERVAL_SEC:
+		_char_timer -= CHAR_INTERVAL_SEC
+		_revealed_chars += 1
+		if _revealed_chars >= _full_line.length():
+			_finish_typing()
+		else:
+			_bubble.visible_characters = _revealed_chars
 
 
 func _build_ui() -> void:
@@ -78,6 +99,7 @@ func _build_ui() -> void:
 	_bubble = Label.new()
 	_bubble.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_bubble.custom_minimum_size = Vector2(0, 140)
+	_bubble.visible_characters = 0
 	UiTypography.apply_body(_bubble, 22)
 	panel.add_child(_bubble)
 
@@ -93,19 +115,35 @@ func _build_ui() -> void:
 	root.add_child(_next_btn)
 
 
-func _refresh_line() -> void:
+func _start_line() -> void:
 	var lines: Array[String] = _IntroLoreContent.NINA_LINES
 	if _line_idx < 0 or _line_idx >= lines.size():
 		SceneRouter.change_scene(NEXT_SCENE)
 		return
-	_bubble.text = lines[_line_idx]
-	var last: bool = _line_idx >= lines.size() - 1
+	_full_line = lines[_line_idx]
+	_revealed_chars = 0
+	_char_timer = 0.0
+	_typing = true
+	_bubble.text = _full_line
+	_bubble.visible_characters = 0
+	# 送り中は「▼」、完了後に次へ／隊員選択へ切替。
+	_next_btn.text = "▼"
+
+
+func _finish_typing() -> void:
+	_typing = false
+	_revealed_chars = _full_line.length()
+	_bubble.visible_characters = -1
+	var last: bool = _line_idx >= _IntroLoreContent.NINA_LINES.size() - 1
 	_next_btn.text = "隊員を選ぶ" if last else "次へ"
 
 
 func _on_next() -> void:
+	if _typing:
+		_finish_typing()
+		return
 	_line_idx += 1
 	if _line_idx >= _IntroLoreContent.NINA_LINES.size():
 		SceneRouter.change_scene(NEXT_SCENE)
 		return
-	_refresh_line()
+	_start_line()
