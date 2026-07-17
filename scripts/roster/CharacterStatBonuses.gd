@@ -1,28 +1,41 @@
 extends RefCounted
 
 ## キャラ個人ステ補正（P3-STAT-CHAR-001 案A）。
-## ★帯ボーナスに加算。個性差は二桁単位で大きく取る。
+## ★帯に加算。全キャラで最終 HP/ATK/DEF の組が重複しないよう個別定義。
 ## 参照は preload（`GachaRarityConfig`）経由。
 
-## メイン5（★3標準帯の上に乗る）
+## メイン5（★3帯 +14/+5/+3 の上）
 const STARTER_BONUS: Dictionary = {
-	"adventurer_0": {"hp": 0, "attack": 12, "defense": 0}, ## アルド — 火力特化
-	"adventurer_1": {"hp": -8, "attack": 14, "defense": -2}, ## リーヴァ — ガラス砲
-	"adventurer_2": {"hp": 18, "attack": -8, "defense": 4}, ## エリアス — 耐久／支援
-	"adventurer_3": {"hp": 24, "attack": -10, "defense": 16}, ## ガレン — 重盾
-	"adventurer_4": {"hp": 6, "attack": 10, "defense": 0}, ## ミレイ — 追撃火力
+	## アルド: 高火力・標準耐久
+	"adventurer_0": {"hp": 4, "attack": 20, "defense": 2},
+	## リーヴァ: 超ガラス・最高火力寄り
+	"adventurer_1": {"hp": -16, "attack": 28, "defense": -4},
+	## エリアス: 高HP・低攻撃・中防御
+	"adventurer_2": {"hp": 32, "attack": -14, "defense": 10},
+	## ガレン: 最高HP・最低攻撃・最高防御
+	"adventurer_3": {"hp": 40, "attack": -16, "defense": 26},
+	## ミレイ: 中高HP・高攻撃・低防御
+	"adventurer_4": {"hp": 12, "attack": 16, "defense": -2},
 }
 
 ## ガチャ助っ人（helper_id）。プール外★1も含む。
 const HELPER_BONUS: Dictionary = {
-	"helper_a": {"hp": 20, "attack": -8, "defense": 18}, ## ヴァルデン★4 — 重盾
-	"helper_b": {"hp": -4, "attack": 10, "defense": 0}, ## イヴァル★2 — 軽火力
-	"helper_c": {"hp": 16, "attack": -8, "defense": 4}, ## セリン★3 — 支援耐久
-	"helper_d": {"hp": 0, "attack": 8, "defense": 0}, ## レオン★1 — 軽火力
-	"helper_e": {"hp": -2, "attack": 12, "defense": 0}, ## ミラ★3 — 拘束火力
-	"helper_f": {"hp": -12, "attack": 18, "defense": -4}, ## カイダ★2 — 超ガラス砲
-	"helper_h": {"hp": 10, "attack": -4, "defense": 2}, ## ドランテ★1 — 軽耐久
-	"helper_i": {"hp": 14, "attack": -4, "defense": 10}, ## ガルム★2 — 盾
+	## ヴァルデン★4: 重盾（高HP/高DEF）
+	"helper_a": {"hp": 28, "attack": -12, "defense": 30},
+	## イヴァル★2: 軽快火力
+	"helper_b": {"hp": -8, "attack": 18, "defense": 2},
+	## セリン★3: 支援耐久（高HP・低ATK）
+	"helper_c": {"hp": 26, "attack": -12, "defense": 12},
+	## レオン★1: 素直な軽火力
+	"helper_d": {"hp": 2, "attack": 14, "defense": 0},
+	## ミラ★3: 拘束火力（中低HP・高ATK）
+	"helper_e": {"hp": -10, "attack": 24, "defense": 4},
+	## カイダ★2: 極ガラス砲
+	"helper_f": {"hp": -20, "attack": 32, "defense": -6},
+	## ドランテ★1: 軽耐久・低攻撃
+	"helper_h": {"hp": 16, "attack": -6, "defense": 8},
+	## ガルム★2: 盾（高HP/中DEF）
+	"helper_i": {"hp": 22, "attack": -8, "defense": 16},
 }
 
 
