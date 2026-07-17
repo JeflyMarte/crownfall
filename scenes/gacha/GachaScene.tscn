@@ -271,10 +271,16 @@ theme_override_constants/separation = 10
 alignment = 1
 
 [node name="ButtonPull" type="Button" parent="SummonActionBar/PullRow"]
-custom_minimum_size = Vector2(300, 88)
+custom_minimum_size = Vector2(220, 88)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "招待状を開く"
+
+[node name="ButtonPullTicket" type="Button" parent="SummonActionBar/PullRow"]
+custom_minimum_size = Vector2(220, 88)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "チケットで招待"
 
 [node name="ButtonBuyCrystal" type="Button" parent="SummonActionBar"]
 layout_mode = 2

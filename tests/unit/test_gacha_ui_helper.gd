@@ -19,6 +19,7 @@ func test_pull_title_world_flavor() -> void:
 	assert_eq(GachaUiHelper.pull_title(1), "招待状を開く")
 	## 10連文言はストップデータとして残置
 	assert_eq(GachaUiHelper.pull_title(10), "束ねた招待状")
+	assert_eq(GachaUiHelper.ticket_pull_title(), "チケットで招待")
 
 func test_pull_cost_amount() -> void:
 	assert_eq(GachaUiHelper.pull_cost_amount(1), GachaSystem.PULL_COST)

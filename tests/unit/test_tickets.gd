@@ -26,15 +26,26 @@ func test_ticket_resources_and_icons_exist() -> void:
 	assert_true(TicketDistribution.active_grants_for(TicketDistribution.SOURCE_DAILY).is_empty())
 
 
-func test_free_gacha_ticket_priority_over_token() -> void:
+func test_free_gacha_ticket_button_path() -> void:
 	GameState.gacha_token = 0
 	TicketInventory.add(TicketIds.GACHA_FREE, 1)
-	assert_true(GachaSystem.can_pull())
-	var result: Dictionary = GachaSystem.pull()
+	assert_false(GachaSystem.can_pull(), "魔晶石0では通常招待不可")
+	assert_true(GachaSystem.can_pull_with_ticket())
+	var result: Dictionary = GachaSystem.pull(true)
 	assert_true(bool(result.get("ok", false)), str(result))
 	assert_true(bool(result.get("paid_with_ticket", false)))
 	assert_eq(TicketInventory.get_qty(TicketIds.GACHA_FREE), 0)
 	assert_eq(GameState.gacha_token, 0)
+
+
+func test_token_pull_does_not_consume_ticket() -> void:
+	GameState.gacha_token = 2
+	TicketInventory.add(TicketIds.GACHA_FREE, 3)
+	var result: Dictionary = GachaSystem.pull(false)
+	assert_true(bool(result.get("ok", false)), str(result))
+	assert_false(bool(result.get("paid_with_ticket", false)))
+	assert_eq(GameState.gacha_token, 1)
+	assert_eq(TicketInventory.get_qty(TicketIds.GACHA_FREE), 3)
 
 
 func test_limit_break_star3_ticket() -> void:

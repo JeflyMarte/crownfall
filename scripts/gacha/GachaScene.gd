@@ -30,6 +30,7 @@ const COLOR_OWNED: Color = Color(0.55, 0.88, 0.5)
 @onready var _btn_detail_close: Button = $DetailOverlay/DetailPanel/DetailVBox/DetailHeader/BtnDetailClose
 @onready var _label_result: Label = $SummonActionBar/LabelResult
 @onready var _button_pull: Button = $SummonActionBar/PullRow/ButtonPull
+@onready var _button_pull_ticket: Button = $SummonActionBar/PullRow/ButtonPullTicket
 @onready var _button_buy_crystal: Button = $SummonActionBar/ButtonBuyCrystal
 @onready var _summon_layer: CanvasLayer = $SummonRevealLayer
 @onready var _summon_dim: ColorRect = $SummonRevealLayer/Dim
@@ -63,6 +64,7 @@ func _ready() -> void:
 	_btn_detail_close.pressed.connect(_on_detail_close_pressed)
 	_detail_dim.gui_input.connect(_on_detail_dim_input)
 	_button_pull.pressed.connect(_on_pull_pressed)
+	_button_pull_ticket.pressed.connect(_on_pull_ticket_pressed)
 	_button_buy_crystal.pressed.connect(_on_buy_crystal_pressed)
 	_summon_dim.gui_input.connect(_on_summon_overlay_input)
 	_reveal_panel.gui_input.connect(_on_summon_overlay_input)
@@ -112,6 +114,7 @@ func _setup_gacha_chrome() -> void:
 	_pity_bar.add_theme_stylebox_override("fill", GachaUiTokens.pity_bar_fill_style())
 	_pity_bar.max_value = float(GachaSystem.HARD_PITY)
 	GachaUiHelper.setup_pull_button(_button_pull, 1, true, false)
+	GachaUiHelper.setup_ticket_pull_button(_button_pull_ticket, true)
 	_apply_button_style(_btn_rate_detail, GachaUiTokens.detail_button_style())
 	_apply_button_style(_btn_detail_close, GachaUiTokens.detail_button_style())
 	_apply_button_style(_button_buy_crystal, GachaUiTokens.detail_button_style())
@@ -151,12 +154,13 @@ func _refresh() -> void:
 	_label_catchcopy.text = GachaUiHelper.catchcopy_for_tab(GachaUiTokens.ACTIVE_TAB_INDEX)
 	_set_pull_controls_enabled(not _summon_active)
 	GachaUiHelper.setup_pull_button(_button_pull, 1, not _button_pull.disabled, false)
+	GachaUiHelper.setup_ticket_pull_button(_button_pull_ticket, not _button_pull_ticket.disabled)
 	_button_buy_crystal.text = "%s購入（%dG）" % [CurrencyHelper.DISPLAY_NAME, GachaSystem.TOKEN_PURCHASE_GOLD]
 	_button_buy_crystal.disabled = _summon_active or GameState.gold < GachaSystem.TOKEN_PURCHASE_GOLD
 	if not _summon_active:
 		var free_n: int = TicketSystem.free_gacha_qty()
 		if free_n > 0:
-			_label_result.text = "招待無料券 ×%d（優先消費）" % free_n
+			_label_result.text = "招待無料券 ×%d（右ボタンで使用）" % free_n
 		elif _label_result.text.begins_with("招待無料券"):
 			_label_result.text = ""
 	_refresh_banner_art()
@@ -172,6 +176,7 @@ func _refresh_banner_art() -> void:
 
 func _set_pull_controls_enabled(enabled: bool) -> void:
 	_button_pull.disabled = not enabled or not GachaSystem.can_pull()
+	_button_pull_ticket.disabled = not enabled or not GachaSystem.can_pull_with_ticket()
 	_btn_back.disabled = not enabled
 	_btn_rate_detail.disabled = not enabled
 	for nav_btn in $BottomNav/NavRow.get_children():
@@ -219,14 +224,24 @@ func _on_detail_dim_input(event: InputEvent) -> void:
 		_detail_overlay.visible = false
 
 func _on_pull_pressed() -> void:
+	_start_pull(false)
+
+
+func _on_pull_ticket_pressed() -> void:
+	_start_pull(true)
+
+
+func _start_pull(use_ticket: bool) -> void:
 	if _summon_active:
 		return
-	var result: Dictionary = GachaSystem.pull()
+	var result: Dictionary = GachaSystem.pull(use_ticket)
 	SaveManager.save_game()
 	if not bool(result.get("ok", false)):
 		var reason: String = str(result.get("reason", ""))
-		if reason == "no_token":
-			_label_result.text = "招待無料券または%sが足りません。" % CurrencyHelper.DISPLAY_NAME
+		if reason == "no_ticket":
+			_label_result.text = "招待無料券が足りません。"
+		elif reason == "no_token":
+			_label_result.text = "%sが足りません。" % CurrencyHelper.DISPLAY_NAME
 		else:
 			_label_result.text = "招きに失敗しました（%s）。" % reason
 		_refresh()

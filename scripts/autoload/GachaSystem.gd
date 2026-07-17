@@ -1,7 +1,7 @@
 extends Node
 
 ## 助っ人ガチャ（P3-D036b / P3-GACHA-005 / **P3-GACHA-LIMIT-001** / P3-TICKET-001）。
-## 通貨=魔晶石。招待無料券があれば優先消費。
+## 通貨=魔晶石。招待無料券は専用ボタン（use_ticket=true）でのみ消費。
 ## プール=`gacha_helpers/` のみ（スターター5職は除外）。
 ## ★2〜4 排出・未所持優先・ハード天井30・重複は限界突破＋半額還元。
 
@@ -16,9 +16,12 @@ const HARD_PITY: int = 30
 func can_pull() -> bool:
 	if not Constants.are_gacha_helpers_playable():
 		return false
-	if TicketSystem.can_use_free_gacha():
-		return true
 	return GameState.gacha_token >= PULL_COST
+
+func can_pull_with_ticket() -> bool:
+	if not Constants.are_gacha_helpers_playable():
+		return false
+	return TicketSystem.can_use_free_gacha()
 
 func rate_display_text() -> String:
 	return _GachaRarityConfig.rate_display_text()
@@ -36,14 +39,15 @@ func buy_token() -> bool:
 	GameState.gacha_token += 1
 	return true
 
-# 単発抽選。結果: { ok, reason?, helper_id, rarity, is_new, refund, breakthrough, breakthrough_gained, paid_with_ticket }
-func pull() -> Dictionary:
+# 単発抽選。use_ticket=true で招待無料券、false で魔晶石。
+# 結果: { ok, reason?, helper_id, rarity, is_new, refund, breakthrough, breakthrough_gained, paid_with_ticket }
+func pull(use_ticket: bool = false) -> Dictionary:
 	if not Constants.are_gacha_helpers_playable():
 		return {"ok": false, "reason": "omitted"}
 	var paid_with_ticket: bool = false
-	if TicketSystem.can_use_free_gacha():
+	if use_ticket:
 		if not TicketSystem.try_consume_free_gacha():
-			return {"ok": false, "reason": "no_token"}
+			return {"ok": false, "reason": "no_ticket"}
 		paid_with_ticket = true
 	elif GameState.gacha_token >= PULL_COST:
 		GameState.gacha_token -= PULL_COST
