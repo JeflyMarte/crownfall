@@ -1,8 +1,9 @@
 extends GutTest
-## P3-INTRO-001/002 — 導入文案・隊長名設定・初期隊員選択・アセット存在。
+## P3-INTRO-001/002 / SCROLL-001 — 導入文案・自動クロール・隊長名・初期隊員・アセット。
 
 const _IntroLoreContent = preload("res://scripts/intro/IntroLoreContent.gd")
 const _IntroUiAssets = preload("res://scripts/intro/IntroUiAssets.gd")
+const _IntroLoreSceneScript = preload("res://scripts/intro/IntroLoreScene.gd")
 const _CommanderProfile = preload("res://scripts/commander/CommanderProfile.gd")
 
 
@@ -14,6 +15,15 @@ func test_lore_has_six_panels_and_three_nina_lines() -> void:
 	assert_eq(_IntroLoreContent.PANELS.size(), 6)
 	assert_eq(_IntroLoreContent.NINA_LINES.size(), 3)
 	assert_true(not _IntroLoreContent.PANELS[0].is_empty())
+
+
+func test_lore_auto_crawl_params() -> void:
+	## 案A: 自動クロール速度・開始遅延・加速倍率が妥当域。
+	assert_gt(_IntroLoreSceneScript.CRAWL_SPEED_PX_PER_SEC, 20.0)
+	assert_lt(_IntroLoreSceneScript.CRAWL_SPEED_PX_PER_SEC, 120.0)
+	assert_gt(_IntroLoreSceneScript.CRAWL_START_DELAY_SEC, 0.0)
+	assert_lte(_IntroLoreSceneScript.CRAWL_START_DELAY_SEC, 2.0)
+	assert_gt(_IntroLoreSceneScript.CRAWL_BOOST_MULT, 1.0)
 
 
 func test_intro_art_assets_exist() -> void:
