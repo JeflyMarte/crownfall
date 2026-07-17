@@ -71,3 +71,16 @@ func test_mythic_passive_defs_exist() -> void:
 	assert_false(CombatPassives.get_def("eq_mythic_cenotaph").is_empty())
 	assert_false(CombatPassives.get_def("eq_mythic_hegemony").is_empty())
 	assert_true(bool(CombatPassives.get_def("eq_mythic_cenotaph").get("death_save_once", false)))
+
+func test_mythic_icons_and_cyan_frame_exist() -> void:
+	assert_true(ResourceLoader.exists("res://assets/ui/equipment/ICO_WPN_BurialCrownGreatsword.png"))
+	assert_true(ResourceLoader.exists("res://assets/ui/equipment/ICO_ARM_ImmortalCenotaphPlate.png"))
+	assert_true(ResourceLoader.exists("res://assets/ui/equipment/ICO_ACC_CouncilHegemonySeal.png"))
+	assert_true(ResourceLoader.exists(EquipmentUiTokens.INV_CELLS[Enums.Rarity.MYTHIC]))
+	assert_true(ResourceLoader.exists(EquipmentUiTokens.MYTHIC_BADGE))
+	assert_eq(
+		EquipmentUiTokens.INV_CELLS[Enums.Rarity.MYTHIC],
+		"res://assets/ui/equipment_ui/UI_Equip_InvCell_MYTHIC.png"
+	)
+	var w: Texture2D = IconPaths.get_icon_texture("burial_crown_greatsword", "weapon")
+	assert_not_null(w)

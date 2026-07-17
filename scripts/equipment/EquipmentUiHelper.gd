@@ -77,7 +77,11 @@ static func apply_enhance_badge(
 static func apply_legendary_badge(parent: Control, rarity: int, cell_size: Vector2) -> void:
 	if parent == null or rarity < Enums.Rarity.LEGENDARY:
 		return
-	var tex: Texture2D = EquipmentUiTokens.legendary_badge()
+	var tex: Texture2D = (
+		EquipmentUiTokens.mythic_badge()
+		if rarity >= Enums.Rarity.MYTHIC
+		else EquipmentUiTokens.legendary_badge()
+	)
 	if tex == null:
 		return
 	var badge_size: Vector2 = EquipmentUiTokens.legendary_badge_size(cell_size)
@@ -91,8 +95,6 @@ static func apply_legendary_badge(parent: Control, rarity: int, cell_size: Vecto
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon.z_index = 2
-	if rarity >= Enums.Rarity.MYTHIC:
-		icon.modulate = Color(1.0, 0.45, 0.55, 1.0)
 	icon.anchor_left = 0.0
 	icon.anchor_top = 1.0
 	icon.anchor_right = 0.0

@@ -18,7 +18,7 @@ const RARITY_COLORS: Array[Color] = [
 	Color(0.30, 0.55, 0.95),
 	Color(0.70, 0.45, 0.95),
 	Color(0.95, 0.75, 0.25),
-	Color(0.95, 0.35, 0.45),
+	Color(0.35, 0.88, 1.0),
 ]
 
 ## 暗背景向けの名前色（レアリティ対応・可読性優先）。
@@ -27,7 +27,7 @@ const RARITY_NAME_COLORS: Array[Color] = [
 	Color(0.48, 0.74, 1.0),
 	Color(0.86, 0.58, 1.0),
 	Color(1.0, 0.86, 0.38),
-	Color(1.0, 0.55, 0.62),
+	Color(0.55, 0.95, 1.0),
 ]
 
 const CATEGORY_LABELS: Dictionary = {

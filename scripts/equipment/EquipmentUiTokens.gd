@@ -18,6 +18,7 @@ const FILTER_ICON: String = ROOT + "ICO_Equip_Filter.png"
 const SECTION_RULE: String = ROOT + "UI_Equip_SectionRule.png"
 ## レジェンド装備セル左下の「Legend」リボン。
 const LEGENDARY_BADGE: String = ROOT + "ICO_Equip_LegendaryBadge.png"
+const MYTHIC_BADGE: String = ROOT + "ICO_Equip_MythicBadge.png"
 ## セル幅に対するバッジ幅比率（左下寄せ）。
 const LEGENDARY_BADGE_WIDTH_RATIO: float = 0.72
 const LEGENDARY_BADGE_MARGIN_PX: float = 3.0
@@ -58,7 +59,7 @@ const INV_CELLS: Array[String] = [
 	ROOT + "UI_Equip_InvCell_R.png",
 	ROOT + "UI_Equip_InvCell_SR.png",
 	ROOT + "UI_Equip_InvCell_SSR.png",
-	ROOT + "UI_Equip_InvCell_SSR.png", # MYTHIC: SSR 枠＋専用色（アセット未分離）
+	ROOT + "UI_Equip_InvCell_MYTHIC.png",
 ]
 
 const CATEGORY_MIN_SIZE: Vector2 = Vector2(64, 76)
@@ -88,7 +89,7 @@ const RARITY_BORDER_COLORS: Array[Color] = [
 	Color(0.30, 0.55, 0.95),
 	Color(0.70, 0.45, 0.95),
 	Color(0.95, 0.75, 0.25),
-	Color(0.95, 0.35, 0.45), # MYTHIC — 紅金
+	Color(0.35, 0.88, 1.0), # MYTHIC — 水色
 ]
 
 static func load_tex(path: String) -> Texture2D:
@@ -110,6 +111,12 @@ static func filter_icon() -> Texture2D:
 
 static func legendary_badge() -> Texture2D:
 	return load_tex(LEGENDARY_BADGE)
+
+static func mythic_badge() -> Texture2D:
+	var tex: Texture2D = load_tex(MYTHIC_BADGE)
+	if tex != null:
+		return tex
+	return legendary_badge()
 
 static func legendary_badge_size(cell_size: Vector2) -> Vector2:
 	var tex: Texture2D = legendary_badge()

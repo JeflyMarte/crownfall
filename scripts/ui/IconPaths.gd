@@ -20,6 +20,7 @@ const ICON_MAP: Dictionary = {
 	"weapon:storm_edge":           "res://assets/ui/equipment/ICO_WPN_StormEdge.png",
 	"weapon:umbral_fang":          "res://assets/ui/equipment/ICO_WPN_UmbralFang.png",
 	"weapon:consecrated_maul":     "res://assets/ui/equipment/ICO_WPN_ConsecratedMaul.png",
+	"weapon:burial_crown_greatsword": "res://assets/ui/equipment/ICO_WPN_BurialCrownGreatsword.png",
 	"weapon:unidentified":         "res://assets/ui/batch2/ICO_WPN_Unidentified.png",
 	# ② ウィスパーウッド — 専用 icon 9点（★2+代表7）。残11点は placeholder（P3-D154）
 	"weapon:verdant_cleaver":      "res://assets/ui/equipment/ICO_WPN_VerdantCleaver.png",
@@ -79,6 +80,7 @@ const ICON_MAP: Dictionary = {
 	"armor:crystal_vest":          "res://assets/ui/equipment/ICO_ARM_CrystalVest.png",
 	"armor:mourngate_plate":       "res://assets/ui/equipment/ICO_ARM_MourngatePlate.png",
 	"armor:serdion_ward_plate":    "res://assets/ui/equipment/ICO_ARM_SerdionWardPlate.png",
+	"armor:immortal_cenotaph_plate": "res://assets/ui/equipment/ICO_ARM_ImmortalCenotaphPlate.png",
 	"armor:granvel_bark_plate":    "res://assets/ui/equipment/ICO_ARM_GranvelBarkPlate.png",
 	"armor:moldgar_abyss_mail":    "res://assets/ui/equipment/ICO_ARM_MoldgarAbyssMail.png",
 	"armor:nereion_tide_plate":    "res://assets/ui/equipment/ICO_ARM_NereionTidePlate.png",
@@ -114,6 +116,7 @@ const ICON_MAP: Dictionary = {
 	"accessory:silver_ring":       "res://assets/ui/equipment/ICO_ACC_SilverRing.png",
 	"accessory:mourngate_sigil":   "res://assets/ui/equipment/ICO_ACC_MourngateSigil.png",
 	"accessory:mourngate_royal_seal": "res://assets/ui/equipment/ICO_ACC_MourngateRoyalSeal.png",
+	"accessory:council_hegemony_seal": "res://assets/ui/equipment/ICO_ACC_CouncilHegemonySeal.png",
 	"accessory:silvaria_covenant_ring": "res://assets/ui/equipment/ICO_ACC_SilvariaCovenantRing.png",
 	"accessory:seradis_archive_seal": "res://assets/ui/equipment/ICO_ACC_SeradisArchiveSeal.png",
 	"accessory:pharos_beacon_ring": "res://assets/ui/equipment/ICO_ACC_PharosBeaconRing.png",
