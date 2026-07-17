@@ -9,6 +9,6 @@ display_name = "ドランテ"
 job_id = "alchemist"
 origin_note = "街道筋を巡る行商薬師。沼毒の中和剤で名を知られる"
 rarity = 1
-passive_id = ""
+passive_id = "durante_vial_echo"
 sprite_resource_path = ""
 portrait_resource_path = "res://assets/gacha/portraits/ART_HELPER_helper_h.png"

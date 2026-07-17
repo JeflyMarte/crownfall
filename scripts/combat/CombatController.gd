@@ -768,11 +768,21 @@ func _member_relic_effects(member_index: int) -> Dictionary:
 	var member: Resource = GameState.party_members[member_index]
 	return CombatPassives.stat_multipliers_for_member(member, member_index)
 
+func enemy_slot_has_debuff(slot: int) -> bool:
+	if slot < 0 or not is_enemy_slot_alive(slot):
+		return false
+	for status_id: String in DEBUFF_STATUS_IDS:
+		if get_enemy_status_stacks_at(slot, status_id) > 0:
+			return true
+	return false
+
+
 func get_member_outgoing_damage_multiplier(
 	member_index: int,
 	action_range: String = "",
 	is_skill: bool = false,
-	attack_element: String = ""
+	attack_element: String = "",
+	target_slot: int = -1
 ) -> float:
 	var mult: float = _status_resolver.get_outgoing_damage_multiplier("party_%d" % member_index)
 	mult *= float(_member_relic_effects(member_index).get("outgoing_mult", 1.0))
@@ -790,6 +800,8 @@ func get_member_outgoing_damage_multiplier(
 		var elem_mults: Dictionary = CombatPassives.weapon_stat_modifiers_for_member(member_index).get("element_outgoing_mult", {})
 		if elem_mults is Dictionary and elem_mults.has(attack_element):
 			mult *= float(elem_mults[attack_element])
+	if target_slot >= 0 and enemy_slot_has_debuff(target_slot):
+		mult *= CombatPassives.outgoing_vs_status_mult_for_member(member_index)
 	return mult
 
 # 被ダメ補正（防御=guard 等）。1.0=等倍。P3-D085 で配線。遺物 incoming_mult も乗算（P3-D090）。

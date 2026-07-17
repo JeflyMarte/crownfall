@@ -2456,6 +2456,7 @@ func _enter_current_room() -> void:
 			_passive_next_attack_mult.clear()
 			_passive_once_fired.clear()
 			_passive_counter_depth = 0
+			_passive_skill_echo_depth = 0
 			_clear_party_links()
 			_set_paused(false)
 			var enemy_ids: Array = []
@@ -3217,6 +3218,7 @@ var _passive_first_attack_used: Dictionary = {}
 var _passive_next_attack_mult: Dictionary = {}
 var _passive_once_fired: Dictionary = {}
 var _passive_counter_depth: int = 0
+var _passive_skill_echo_depth: int = 0
 # パーティ連携連鎖（P3-D115）。
 var _taunt_link_source: int = -1
 var _taunt_link_charges: int = 0
@@ -3506,7 +3508,7 @@ func _execute_member_skill(
 	var skill_dmg: int = maxi(
 		1,
 		int(float(result["damage"]) * $CombatController.get_member_outgoing_damage_multiplier(
-			member_idx, action_range, true, attack_element
+			member_idx, action_range, true, attack_element, target_slot
 		))
 	)
 	var wpn_skill_mods: Dictionary = CombatPassives.skill_stat_modifiers_for_member(member_idx)
@@ -3734,10 +3736,11 @@ func _try_cast_player_skill() -> String:
 	var attack_element: String = _resolve_skill_element(skill_data, member_idx)
 	var action_range: String = CombatRange.resolve_for_action(member_idx, skill_data)
 	var form_tag: String = GameState.formation_range_log_tag(member_idx, action_range)
+	var player_target: int = $CombatController.get_member_target_slot(member_idx)
 	var skill_dmg: int = maxi(
 		1,
 		int(float(result["damage"]) * $CombatController.get_member_outgoing_damage_multiplier(
-			member_idx, action_range, true, attack_element
+			member_idx, action_range, true, attack_element, player_target
 		))
 	)
 	var wpn_skill_mods: Dictionary = CombatPassives.skill_stat_modifiers_for_member(member_idx)
@@ -3822,10 +3825,11 @@ func _try_cast_secondary_skill(primary_skill_id: String) -> String:
 	var attack_element: String = _resolve_skill_element(skill_data, member_idx)
 	var action_range: String = CombatRange.resolve_for_action(member_idx, skill_data)
 	var form_tag: String = GameState.formation_range_log_tag(member_idx, action_range)
+	var sec_target: int = $CombatController.get_member_target_slot(member_idx)
 	var skill_dmg: int = maxi(
 		1,
 		int(float(result["damage"]) * $CombatController.get_member_outgoing_damage_multiplier(
-			member_idx, action_range, true, attack_element
+			member_idx, action_range, true, attack_element, sec_target
 		))
 	)
 	var wpn_skill_mods: Dictionary = CombatPassives.skill_stat_modifiers_for_member(member_idx)
@@ -5040,7 +5044,7 @@ func _do_member_basic_attack(member_idx: int) -> void:
 		_play_enemy_slot_animation(target_slot, "hurt")
 	_try_apply_affix_statuses(member_idx)
 	_try_apply_weapon_on_hit_status(member_idx)
-	_fire_member_passives(member_idx, "on_attack", {"target_slot": target_slot, "damage": dmg})
+	## on_attack は _deal_member_damage_to_enemy 側で発火（二重発火防止）
 	_update_hp_bars()
 
 # 必殺技スロットのスキル（ジョブ ultimate_skill_id → 既定 ultimate_strike）。
@@ -5245,6 +5249,14 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 				float($CombatController.party_temp_incoming_mult), ward
 			)
 			applied = true
+		"chance_cast_equipped_skill":
+			if _passive_skill_echo_depth > 0:
+				return
+			if p.has("status_chance") and randf() > float(p.get("status_chance", 1.0)):
+				return
+			_passive_skill_echo_depth += 1
+			applied = _try_member_equipped_skill(member_idx)
+			_passive_skill_echo_depth -= 1
 		"bonus_damage":
 			var slot: int = int(ctx.get("target_slot", -1))
 			var base_dmg: int = int(ctx.get("damage", 0))

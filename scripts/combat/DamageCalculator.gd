@@ -217,7 +217,7 @@ static func member_attack_damage(
 	damage = int(damage * run_damage_multiplier)
 	var action_range: String = CombatRange.resolve_for_action(member_index)
 	damage = maxi(1, int(float(damage) * combat.get_member_outgoing_damage_multiplier(
-		member_index, action_range, false, weapon_element(member_index)
+		member_index, action_range, false, weapon_element(member_index), target_slot
 	)))
 	var elem_result: Dictionary = enemy_mitigation(
 		combat, dungeon_data, damage, weapon_element(member_index), member_index, target_slot, rng

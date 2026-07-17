@@ -13,7 +13,8 @@ extends RefCounted
 ## stat_mod（常時）: evasion_rate_add / outgoing_mult / incoming_mult / first_attack_mult /
 ##   ultimate_power_mult / exp_gain_mult / party_exp_gain_mult /
 ##   party_outgoing_mult / party_incoming_mult / death_save_once / death_save_chance /
-##   exploration_damage_immune / outgoing_mult_requires_hp_below
+##   exploration_damage_immune / outgoing_mult_requires_hp_below / outgoing_vs_status_mult
+## effect 追加: "chance_cast_equipped_skill"（攻撃後に装備スキルを確率発動）
 ## cooldown: CT 秒（0 = 都度発火可。on_combat_start は実質1回）
 
 const _DEFS: Dictionary = {
@@ -120,10 +121,17 @@ const _DEFS: Dictionary = {
 	},
 	# ---- ガチャ助っ人固有（P3-GACHA-005 / P3-PASSIVE-CHAR-001） ----
 	"leon_sword_focus": {
-		"display_name": "剣勢の集中",
-		"trigger": "on_combat_start",
+		"display_name": "病隙の刃",
+		"description": "状態異常の敵への与ダメージが25%上昇する。",
+		"outgoing_vs_status_mult": 1.25,
+	},
+	"durante_vial_echo": {
+		"display_name": "薬瓶の反響",
+		"description": "攻撃後、10%の確率で自身の装備スキルを発動する。",
+		"trigger": "on_attack",
 		"condition": "always",
-		"effect": "apply_status", "status_id": "empower", "target": "self",
+		"effect": "chance_cast_equipped_skill",
+		"status_chance": 0.10,
 		"cooldown": 0.0,
 	},
 	"ivar_trail_sight": {
@@ -715,6 +723,20 @@ static func member_ignores_exploration_damage(member: Resource) -> bool:
 		if bool(raw_def.get("exploration_damage_immune", false)):
 			return true
 	return false
+
+
+## 状態異常持ち敵への与ダメ倍率（該当パッシブがなければ 1.0）。
+static func outgoing_vs_status_mult_for_member(member_index: int) -> float:
+	if member_index < 0 or member_index >= GameState.party_members.size():
+		return 1.0
+	var mult: float = 1.0
+	var member: Resource = GameState.party_members[member_index]
+	for raw_def: Variant in for_member(member):
+		if raw_def is not Dictionary:
+			continue
+		if raw_def.has("outgoing_vs_status_mult"):
+			mult *= float(raw_def["outgoing_vs_status_mult"])
+	return mult
 
 static func on_kill_refund_fraction(member_index: int) -> float:
 	var def: Dictionary = weapon_passive_def_for_member(

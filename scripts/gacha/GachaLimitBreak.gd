@@ -62,6 +62,7 @@ static func scale_passive_def(def: Dictionary, breakthrough: int) -> Dictionary:
 	var out: Dictionary = def.duplicate(true)
 	for key: String in [
 		"outgoing_mult",
+		"outgoing_vs_status_mult",
 		"first_attack_mult",
 		"ultimate_power_mult",
 		"skill_power_mult",

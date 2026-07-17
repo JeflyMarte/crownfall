@@ -145,3 +145,17 @@ func test_kaida_outgoing_requires_low_hp() -> void:
 func test_ivar_exploration_immunity_flag() -> void:
 	var member: Resource = _make_member("gacha_helper_b", "ranger", 2)
 	assert_true(CombatPassives.member_ignores_exploration_damage(member))
+
+
+func test_star1_omitted_helper_passives() -> void:
+	var leon: Dictionary = CombatPassives.get_def("leon_sword_focus")
+	assert_eq(float(leon.get("outgoing_vs_status_mult", 0.0)), 1.25)
+	var durante: Dictionary = CombatPassives.get_def("durante_vial_echo")
+	assert_eq(str(durante.get("effect", "")), "chance_cast_equipped_skill")
+	assert_eq(float(durante.get("status_chance", 0.0)), 0.10)
+	var helper_h: Resource = DataRegistry.get_gacha_helper_data("helper_h")
+	assert_not_null(helper_h)
+	assert_eq(str(helper_h.passive_id), "durante_vial_echo")
+	var member: Resource = _make_member("gacha_helper_d", "swordsman", 1)
+	GameState.party_members = [member]
+	assert_eq(CombatPassives.outgoing_vs_status_mult_for_member(0), 1.25)
