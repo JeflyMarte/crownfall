@@ -14,7 +14,6 @@ const COLOR_OWNED: Color = Color(0.55, 0.88, 0.5)
 @onready var _label_gold: Label = $Header/HeaderRow/GoldChip/GoldRow/LabelGold
 @onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
 @onready var _token_icon: TextureRect = $Header/HeaderRow/TokenChip/TokenRow/TokenIcon
-@onready var _btn_tab_pickup: Button = $MainColumn/TabRow/BtnTabPickup
 @onready var _hero_banner: PanelContainer = $MainColumn/HeroBanner
 @onready var _banner_art_host: Control = $MainColumn/HeroBanner/BannerVBox/BannerArtHost
 @onready var _label_catchcopy: Label = $MainColumn/HeroBanner/BannerVBox/LabelCatchcopy
@@ -57,7 +56,6 @@ func _ready() -> void:
 		SceneRouter.change_scene(HOME_SCENE)
 		return
 	_setup_gacha_chrome()
-	_setup_tabs()
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.GACHA)
 	_btn_back.pressed.connect(_on_back_pressed)
 	_btn_rate_detail.pressed.connect(_on_rate_detail_pressed)
@@ -113,7 +111,7 @@ func _setup_gacha_chrome() -> void:
 	_pity_bar.add_theme_stylebox_override("background", GachaUiTokens.pity_bar_background_style())
 	_pity_bar.add_theme_stylebox_override("fill", GachaUiTokens.pity_bar_fill_style())
 	_pity_bar.max_value = float(GachaSystem.HARD_PITY)
-	GachaUiHelper.setup_pull_button(_button_pull, 1, true, false)
+	GachaUiHelper.setup_pull_button(_button_pull, true)
 	GachaUiHelper.setup_ticket_pull_button(_button_pull_ticket, true)
 	_apply_button_style(_btn_rate_detail, GachaUiTokens.detail_button_style())
 	_apply_button_style(_btn_detail_close, GachaUiTokens.detail_button_style())
@@ -132,14 +130,6 @@ func _setup_gacha_chrome() -> void:
 		UiTypography.SIZE_BODY_SMALL
 	)
 
-func _setup_tabs() -> void:
-	## 推薦状／通常招待／10連はオミット。特達招待のみ表示（切替なし）。
-	_btn_tab_pickup.text = GachaUiTokens.TAB_LABELS[GachaUiTokens.ACTIVE_TAB_INDEX]
-	_btn_tab_pickup.toggle_mode = true
-	_btn_tab_pickup.button_pressed = true
-	GachaUiTokens.apply_tab_button(_btn_tab_pickup, true, false)
-	_btn_tab_pickup.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
 func _apply_button_style(btn: Button, style: StyleBox) -> void:
 	if style is StyleBoxTexture and (style as StyleBoxTexture).texture != null:
 		btn.add_theme_stylebox_override("normal", style)
@@ -151,9 +141,9 @@ func _refresh() -> void:
 	_label_token.text = CurrencyHelper.format_amount()
 	_refresh_pity_bar()
 	_label_rate.text = GachaSystem.rate_display_text()
-	_label_catchcopy.text = GachaUiHelper.catchcopy_for_tab(GachaUiTokens.ACTIVE_TAB_INDEX)
+	_label_catchcopy.text = GachaUiHelper.catchcopy()
 	_set_pull_controls_enabled(not _summon_active)
-	GachaUiHelper.setup_pull_button(_button_pull, 1, not _button_pull.disabled, false)
+	GachaUiHelper.setup_pull_button(_button_pull, not _button_pull.disabled)
 	GachaUiHelper.setup_ticket_pull_button(_button_pull_ticket, not _button_pull_ticket.disabled)
 	_button_buy_crystal.text = "%s購入（%dG）" % [CurrencyHelper.DISPLAY_NAME, GachaSystem.TOKEN_PURCHASE_GOLD]
 	_button_buy_crystal.disabled = _summon_active or GameState.gold < GachaSystem.TOKEN_PURCHASE_GOLD

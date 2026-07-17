@@ -29,7 +29,7 @@ func test_ticket_resources_and_icons_exist() -> void:
 func test_free_gacha_ticket_button_path() -> void:
 	GameState.gacha_token = 0
 	TicketInventory.add(TicketIds.GACHA_FREE, 1)
-	assert_false(GachaSystem.can_pull(), "魔晶石0では通常招待不可")
+	assert_false(GachaSystem.can_pull(), "魔晶石0では魔晶石招待不可")
 	assert_true(GachaSystem.can_pull_with_ticket())
 	var result: Dictionary = GachaSystem.pull(true)
 	assert_true(bool(result.get("ok", false)), str(result))

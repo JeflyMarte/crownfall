@@ -150,18 +150,6 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 8
 
-[node name="TabRow" type="HBoxContainer" parent="MainColumn"]
-layout_mode = 2
-theme_override_constants/separation = 6
-alignment = 1
-
-[node name="BtnTabPickup" type="Button" parent="MainColumn/TabRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-toggle_mode = true
-button_pressed = true
-text = "特達招待"
-
 [node name="HeroBanner" type="PanelContainer" parent="MainColumn"]
 layout_mode = 2
 size_flags_vertical = 3

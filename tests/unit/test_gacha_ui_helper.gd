@@ -9,21 +9,16 @@ func test_sorted_helpers_respects_omit_flag() -> void:
 	else:
 		assert_eq(helpers.size(), 0, "P3-CHR-OMIT-001: 助っ人オミット時は空")
 
-func test_catchcopy_pickup_tab() -> void:
-	assert_eq(
-		GachaUiHelper.catchcopy_for_tab(GachaUiTokens.ACTIVE_TAB_INDEX),
-		"各地の探索者へ、ギルドからの招き"
-	)
+func test_catchcopy() -> void:
+	assert_eq(GachaUiHelper.catchcopy(), "各地の探索者へ、ギルドからの招き")
 
 func test_pull_title_world_flavor() -> void:
-	assert_eq(GachaUiHelper.pull_title(1), "招待状を開く")
-	## 10連文言はストップデータとして残置
-	assert_eq(GachaUiHelper.pull_title(10), "束ねた招待状")
+	assert_eq(GachaUiHelper.pull_title(), "招待状を開く")
 	assert_eq(GachaUiHelper.ticket_pull_title(), "チケットで招待")
 
 func test_pull_cost_amount() -> void:
+	assert_eq(GachaUiHelper.pull_cost_amount(), GachaSystem.PULL_COST)
 	assert_eq(GachaUiHelper.pull_cost_amount(1), GachaSystem.PULL_COST)
-	assert_eq(GachaUiHelper.pull_cost_amount(10), GachaSystem.PULL_COST * 10)
 
 func test_banner_portrait_textures_caps_at_three() -> void:
 	var textures: Array[Texture2D] = GachaUiHelper.banner_portrait_textures()

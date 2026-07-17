@@ -30,24 +30,13 @@ static func banner_portrait_textures(max_count: int = BANNER_PORTRAIT_MAX) -> Ar
 			out.append(tex)
 	return out
 
-static func catchcopy_for_tab(tab_index: int) -> String:
-	## 0=特達（現行）。1/2 はオミット済みストップ文言。
-	match tab_index:
-		0:
-			return "各地の探索者へ、ギルドからの招き"
-		1:
-			return "推薦状による招き（準備中）"
-		2:
-			return "通常招待（準備中）"
-		_:
-			return "各地の探索者へ、ギルドからの招き"
+static func catchcopy() -> String:
+	return GachaUiTokens.BANNER_CATCHCOPY
 
-static func pull_title(pulls: int) -> String:
-	if pulls >= 10:
-		return "束ねた招待状"
+static func pull_title() -> String:
 	return "招待状を開く"
 
-static func pull_cost_amount(pulls: int) -> int:
+static func pull_cost_amount(pulls: int = 1) -> int:
 	return GachaSystem.PULL_COST * maxi(1, pulls)
 
 static func owned_label(helper_id: String) -> String:
@@ -95,10 +84,10 @@ static func populate_banner_portraits(host: Control) -> void:
 		frame.add_child(icon)
 		row.add_child(frame)
 
-static func setup_pull_button(btn: Button, pulls: int, enabled: bool, is_ten_pull: bool = false) -> void:
+static func setup_pull_button(btn: Button, enabled: bool) -> void:
 	if btn == null:
 		return
-	GachaUiTokens.apply_pull_button(btn, enabled, is_ten_pull)
+	GachaUiTokens.apply_pull_button(btn, enabled)
 	btn.text = ""
 	for child in btn.get_children():
 		child.free()
@@ -109,7 +98,7 @@ static func setup_pull_button(btn: Button, pulls: int, enabled: bool, is_ten_pul
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	btn.add_child(row)
 	var title := Label.new()
-	title.text = pull_title(pulls)
+	title.text = pull_title()
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_menu_label(
 		title,
@@ -129,7 +118,7 @@ static func setup_pull_button(btn: Button, pulls: int, enabled: bool, is_ten_pul
 			icon.modulate = Color(0.62, 0.6, 0.55, 1.0)
 		row.add_child(icon)
 	var cost := Label.new()
-	cost.text = str(pull_cost_amount(pulls))
+	cost.text = str(pull_cost_amount(1))
 	cost.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_menu_label(
 		cost,
@@ -146,7 +135,7 @@ static func ticket_pull_title() -> String:
 static func setup_ticket_pull_button(btn: Button, enabled: bool) -> void:
 	if btn == null:
 		return
-	GachaUiTokens.apply_pull_button(btn, enabled, false)
+	GachaUiTokens.apply_pull_button(btn, enabled)
 	btn.text = ""
 	btn.tooltip_text = TicketSystem.display_name(TicketIds.GACHA_FREE)
 	for child in btn.get_children():

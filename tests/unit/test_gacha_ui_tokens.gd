@@ -8,14 +8,11 @@ func test_gacha_ui_asset_paths_exist() -> void:
 		GachaUiTokens.ORNAMENT_DIAMOND,
 		GachaUiTokens.ICO_BACK,
 		GachaUiTokens.SECTION_RULE,
-		GachaUiTokens.TAB_ACTIVE,
-		GachaUiTokens.TAB_INACTIVE,
 		GachaUiTokens.BANNER_FRAME,
 		GachaUiTokens.PITY_BAR_BG,
 		GachaUiTokens.PITY_BAR_FILL,
 		GachaUiTokens.BTN_1PULL,
-		GachaUiTokens.BTN_10PULL_DISABLED,
-		GachaUiTokens.RIBBON_SR,
+		GachaUiTokens.BTN_1PULL_DISABLED,
 		GachaUiTokens.LINEUP_CELL,
 		GachaUiTokens.PANEL_DARK,
 		GachaUiTokens.BTN_DETAIL,
@@ -24,13 +21,10 @@ func test_gacha_ui_asset_paths_exist() -> void:
 	]:
 		assert_true(ResourceLoader.exists(key), "missing gacha chrome: %s" % key)
 
-func test_tab_styles_use_texture() -> void:
-	var active: StyleBox = GachaUiTokens.tab_active_style()
-	var inactive: StyleBox = GachaUiTokens.tab_inactive_style()
-	assert_true(active is StyleBoxTexture)
-	assert_true(inactive is StyleBoxTexture)
-	assert_not_null((active as StyleBoxTexture).texture)
-	assert_not_null((inactive as StyleBoxTexture).texture)
+func test_pull_styles_use_texture() -> void:
+	var enabled: StyleBox = GachaUiTokens.pull_1_style()
+	assert_true(enabled is StyleBoxTexture)
+	assert_not_null((enabled as StyleBoxTexture).texture)
 
 func test_pity_helpers() -> void:
 	assert_almost_eq(GachaUiTokens.pity_ratio(15, 30), 0.5, 0.001)
@@ -43,14 +37,7 @@ func test_decorate_title_uses_screen_title() -> void:
 	assert_true(lbl.text.begins_with(UiTypography.TITLE_ORNAMENT_LEFT.strip_edges()))
 	assert_true(lbl.text.ends_with(UiTypography.TITLE_ORNAMENT_RIGHT.strip_edges()))
 
-func test_active_tab_is_pickup_only() -> void:
-	assert_eq(GachaUiTokens.ACTIVE_TAB_INDEX, 0)
-	assert_eq(GachaUiTokens.TAB_LABELS[GachaUiTokens.ACTIVE_TAB_INDEX], "特達招待")
-	assert_true(GachaUiTokens.TEN_PULL_OMITTED)
-	assert_true(1 in GachaUiTokens.OMITTED_TAB_INDICES)
-	assert_true(2 in GachaUiTokens.OMITTED_TAB_INDICES)
+func test_banner_copy_constants() -> void:
 	assert_eq(GachaUiTokens.SCREEN_TITLE, "ギルドへの招待状")
 	assert_eq(GachaUiTokens.LINEUP_SECTION_TITLE, "招きの候補")
-
-func test_ten_pull_ribbon_text_kept_as_stop_data() -> void:
-	assert_eq(GachaUiTokens.TEN_PULL_RIBBON_TEXT, "★3以上1名確定")
+	assert_eq(GachaUiTokens.BANNER_CATCHCOPY, "各地の探索者へ、ギルドからの招き")
