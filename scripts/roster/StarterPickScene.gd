@@ -126,7 +126,29 @@ func _make_card(def: Dictionary) -> PanelContainer:
 	UiTypography.apply_body(job_lbl, 15, Color(0.75, 0.78, 0.86))
 	col.add_child(job_lbl)
 
+	var blurb := Label.new()
+	blurb.text = _starter_blurb(job_data, job_id)
+	blurb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTypography.apply_caption(blurb, Color(0.70, 0.72, 0.78))
+	col.add_child(blurb)
+
 	return panel
+
+
+## 職の一行説明（性能・役割）。JobData.description を正とし、開発メモ括弧は表示から除く。
+func _starter_blurb(job_data: Resource, job_id: String) -> String:
+	var raw: String = ""
+	if job_data != null and "description" in job_data:
+		raw = str(job_data.description).strip_edges()
+	if raw.is_empty():
+		return "調査隊員。"
+	# 「（召喚は将来実装）」等の実装メモをプレイヤー向け表示から除去。
+	var cut: int = raw.find("（")
+	if cut >= 0:
+		raw = raw.substr(0, cut).strip_edges()
+	if raw.is_empty():
+		return job_id
+	return raw
 
 
 func _select(adventurer_id: String) -> void:
