@@ -9,7 +9,7 @@ func test_sorted_helpers_respects_omit_flag() -> void:
 	else:
 		assert_eq(helpers.size(), 0, "P3-CHR-OMIT-001: 助っ人オミット時は空")
 
-func test_catchcopy_normal_tab() -> void:
+func test_catchcopy_pickup_tab() -> void:
 	assert_eq(
 		GachaUiHelper.catchcopy_for_tab(GachaUiTokens.ACTIVE_TAB_INDEX),
 		"各地の探索者へ、ギルドからの招き"
@@ -17,6 +17,7 @@ func test_catchcopy_normal_tab() -> void:
 
 func test_pull_title_world_flavor() -> void:
 	assert_eq(GachaUiHelper.pull_title(1), "招待状を開く")
+	## 10連文言はストップデータとして残置
 	assert_eq(GachaUiHelper.pull_title(10), "束ねた招待状")
 
 func test_pull_cost_amount() -> void:

@@ -15,8 +15,6 @@ const COLOR_OWNED: Color = Color(0.55, 0.88, 0.5)
 @onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
 @onready var _token_icon: TextureRect = $Header/HeaderRow/TokenChip/TokenRow/TokenIcon
 @onready var _btn_tab_pickup: Button = $MainColumn/TabRow/BtnTabPickup
-@onready var _btn_tab_premium: Button = $MainColumn/TabRow/BtnTabPremium
-@onready var _btn_tab_normal: Button = $MainColumn/TabRow/BtnTabNormal
 @onready var _hero_banner: PanelContainer = $MainColumn/HeroBanner
 @onready var _banner_art_host: Control = $MainColumn/HeroBanner/BannerVBox/BannerArtHost
 @onready var _label_catchcopy: Label = $MainColumn/HeroBanner/BannerVBox/LabelCatchcopy
@@ -32,8 +30,6 @@ const COLOR_OWNED: Color = Color(0.55, 0.88, 0.5)
 @onready var _btn_detail_close: Button = $DetailOverlay/DetailPanel/DetailVBox/DetailHeader/BtnDetailClose
 @onready var _label_result: Label = $SummonActionBar/LabelResult
 @onready var _button_pull: Button = $SummonActionBar/PullRow/ButtonPull
-@onready var _button_pull_10: Button = $SummonActionBar/PullRow/Pull10Wrap/ButtonPull10
-@onready var _label_ribbon_10: Label = $SummonActionBar/PullRow/Pull10Wrap/LabelRibbon10
 @onready var _button_buy_crystal: Button = $SummonActionBar/ButtonBuyCrystal
 @onready var _summon_layer: CanvasLayer = $SummonRevealLayer
 @onready var _summon_dim: ColorRect = $SummonRevealLayer/Dim
@@ -52,8 +48,6 @@ var _summon_active: bool = false
 var _summon_can_dismiss: bool = false
 var _summon_tween: Tween = null
 var _reveal_presenter: RefCounted = null
-var _tab_buttons: Array[Button] = []
-var _active_tab_index: int = GachaUiTokens.ACTIVE_TAB_INDEX
 var _featured_helper_id: String = ""
 
 func _ready() -> void:
@@ -69,7 +63,6 @@ func _ready() -> void:
 	_btn_detail_close.pressed.connect(_on_detail_close_pressed)
 	_detail_dim.gui_input.connect(_on_detail_dim_input)
 	_button_pull.pressed.connect(_on_pull_pressed)
-	_button_pull_10.pressed.connect(_on_pull_10_pressed)
 	_button_buy_crystal.pressed.connect(_on_buy_crystal_pressed)
 	_summon_dim.gui_input.connect(_on_summon_overlay_input)
 	_reveal_panel.gui_input.connect(_on_summon_overlay_input)
@@ -119,18 +112,10 @@ func _setup_gacha_chrome() -> void:
 	_pity_bar.add_theme_stylebox_override("fill", GachaUiTokens.pity_bar_fill_style())
 	_pity_bar.max_value = float(GachaSystem.HARD_PITY)
 	GachaUiHelper.setup_pull_button(_button_pull, 1, true, false)
-	GachaUiHelper.setup_pull_button(_button_pull_10, 10, false, true)
 	_apply_button_style(_btn_rate_detail, GachaUiTokens.detail_button_style())
 	_apply_button_style(_btn_detail_close, GachaUiTokens.detail_button_style())
 	_apply_button_style(_button_buy_crystal, GachaUiTokens.detail_button_style())
 	UiTypography.apply_menu_button(_button_buy_crystal)
-	_label_ribbon_10.text = GachaUiTokens.TEN_PULL_RIBBON_TEXT
-	UiTypography.apply_menu_label(
-		_label_ribbon_10,
-		14,
-		Color(1.0, 0.96, 0.88, 1.0),
-		UiTypography.OUTLINE_STRONG
-	)
 	UiTypography.apply_body(_label_result, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
 	UiTypography.apply_display(_label_banner, UiTypography.SIZE_DISPLAY_TITLE)
 	UiTypography.apply_display(_label_reveal_name, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
@@ -145,18 +130,12 @@ func _setup_gacha_chrome() -> void:
 	)
 
 func _setup_tabs() -> void:
-	_tab_buttons = [_btn_tab_pickup, _btn_tab_premium, _btn_tab_normal]
-	for i in GachaUiTokens.TAB_LABELS.size():
-		if i >= _tab_buttons.size():
-			break
-		var btn: Button = _tab_buttons[i]
-		btn.text = GachaUiTokens.TAB_LABELS[i]
-		var locked: bool = i != GachaUiTokens.ACTIVE_TAB_INDEX
-		btn.toggle_mode = not locked
-		btn.button_pressed = i == GachaUiTokens.ACTIVE_TAB_INDEX
-		GachaUiTokens.apply_tab_button(btn, i == GachaUiTokens.ACTIVE_TAB_INDEX, locked)
-		if not locked:
-			btn.pressed.connect(_on_tab_pressed.bind(i))
+	## 推薦状／通常招待／10連はオミット。特達招待のみ表示（切替なし）。
+	_btn_tab_pickup.text = GachaUiTokens.TAB_LABELS[GachaUiTokens.ACTIVE_TAB_INDEX]
+	_btn_tab_pickup.toggle_mode = true
+	_btn_tab_pickup.button_pressed = true
+	GachaUiTokens.apply_tab_button(_btn_tab_pickup, true, false)
+	_btn_tab_pickup.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 func _apply_button_style(btn: Button, style: StyleBox) -> void:
 	if style is StyleBoxTexture and (style as StyleBoxTexture).texture != null:
@@ -169,10 +148,9 @@ func _refresh() -> void:
 	_label_token.text = CurrencyHelper.format_amount()
 	_refresh_pity_bar()
 	_label_rate.text = GachaSystem.rate_display_text()
-	_label_catchcopy.text = GachaUiHelper.catchcopy_for_tab(_active_tab_index)
+	_label_catchcopy.text = GachaUiHelper.catchcopy_for_tab(GachaUiTokens.ACTIVE_TAB_INDEX)
 	_set_pull_controls_enabled(not _summon_active)
 	GachaUiHelper.setup_pull_button(_button_pull, 1, not _button_pull.disabled, false)
-	GachaUiHelper.setup_pull_button(_button_pull_10, 10, false, true)
 	_button_buy_crystal.text = "%s購入（%dG）" % [CurrencyHelper.DISPLAY_NAME, GachaSystem.TOKEN_PURCHASE_GOLD]
 	_button_buy_crystal.disabled = _summon_active or GameState.gold < GachaSystem.TOKEN_PURCHASE_GOLD
 	if not _summon_active:
@@ -194,7 +172,6 @@ func _refresh_banner_art() -> void:
 
 func _set_pull_controls_enabled(enabled: bool) -> void:
 	_button_pull.disabled = not enabled or not GachaSystem.can_pull()
-	_button_pull_10.disabled = true
 	_btn_back.disabled = not enabled
 	_btn_rate_detail.disabled = not enabled
 	for nav_btn in $BottomNav/NavRow.get_children():
@@ -224,18 +201,6 @@ func _rebuild_lineup() -> void:
 		cell.gui_input.connect(_on_carousel_cell_input.bind(helper_id))
 		_lineup_carousel.add_child(cell)
 
-func _on_tab_pressed(tab_index: int) -> void:
-	if tab_index != GachaUiTokens.ACTIVE_TAB_INDEX:
-		return
-	_active_tab_index = tab_index
-	_label_catchcopy.text = GachaUiHelper.catchcopy_for_tab(tab_index)
-	for i in _tab_buttons.size():
-		GachaUiTokens.apply_tab_button(
-			_tab_buttons[i],
-			i == tab_index,
-			i != GachaUiTokens.ACTIVE_TAB_INDEX
-		)
-
 func _on_carousel_cell_input(event: InputEvent, helper_id: String) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		_featured_helper_id = helper_id
@@ -252,9 +217,6 @@ func _on_detail_dim_input(event: InputEvent) -> void:
 		_detail_overlay.visible = false
 	elif event is InputEventScreenTouch and event.pressed:
 		_detail_overlay.visible = false
-
-func _on_pull_10_pressed() -> void:
-	pass
 
 func _on_pull_pressed() -> void:
 	if _summon_active:

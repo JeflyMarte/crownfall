@@ -43,11 +43,14 @@ func test_decorate_title_uses_screen_title() -> void:
 	assert_true(lbl.text.begins_with(UiTypography.TITLE_ORNAMENT_LEFT.strip_edges()))
 	assert_true(lbl.text.ends_with(UiTypography.TITLE_ORNAMENT_RIGHT.strip_edges()))
 
-func test_active_tab_index_is_normal() -> void:
-	assert_eq(GachaUiTokens.ACTIVE_TAB_INDEX, 2)
-	assert_eq(GachaUiTokens.TAB_LABELS[GachaUiTokens.ACTIVE_TAB_INDEX], "通常招待")
+func test_active_tab_is_pickup_only() -> void:
+	assert_eq(GachaUiTokens.ACTIVE_TAB_INDEX, 0)
+	assert_eq(GachaUiTokens.TAB_LABELS[GachaUiTokens.ACTIVE_TAB_INDEX], "特達招待")
+	assert_true(GachaUiTokens.TEN_PULL_OMITTED)
+	assert_true(1 in GachaUiTokens.OMITTED_TAB_INDICES)
+	assert_true(2 in GachaUiTokens.OMITTED_TAB_INDICES)
 	assert_eq(GachaUiTokens.SCREEN_TITLE, "ギルドへの招待状")
 	assert_eq(GachaUiTokens.LINEUP_SECTION_TITLE, "招きの候補")
 
-func test_ten_pull_ribbon_text() -> void:
+func test_ten_pull_ribbon_text_kept_as_stop_data() -> void:
 	assert_eq(GachaUiTokens.TEN_PULL_RIBBON_TEXT, "★3以上1名確定")

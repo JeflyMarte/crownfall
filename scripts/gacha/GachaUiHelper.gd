@@ -31,11 +31,14 @@ static func banner_portrait_textures(max_count: int = BANNER_PORTRAIT_MAX) -> Ar
 	return out
 
 static func catchcopy_for_tab(tab_index: int) -> String:
+	## 0=特達（現行）。1/2 はオミット済みストップ文言。
 	match tab_index:
 		0:
-			return "特達の招待状（準備中）"
+			return "各地の探索者へ、ギルドからの招き"
 		1:
 			return "推薦状による招き（準備中）"
+		2:
+			return "通常招待（準備中）"
 		_:
 			return "各地の探索者へ、ギルドからの招き"
 

@@ -31,10 +31,14 @@ const INVITE_SEAL_SHARD: String = ROOT + "UI_Gacha_Invite_SealShard.png"
 
 const SCREEN_TITLE: String = "ギルドへの招待状"
 const LINEUP_SECTION_TITLE: String = "招きの候補"
+## 10連はオミット（文言・アセットは残置）。
 const TEN_PULL_RIBBON_TEXT: String = "★3以上1名確定"
 
+## 表示タブは特達招待のみ。推薦状／通常招待はオミット（ラベルはストップデータ）。
 const TAB_LABELS: Array[String] = ["特達招待", "推薦状", "通常招待"]
-const ACTIVE_TAB_INDEX: int = 2
+const ACTIVE_TAB_INDEX: int = 0
+const OMITTED_TAB_INDICES: Array[int] = [1, 2]
+const TEN_PULL_OMITTED: bool = true
 
 const TAB_HEIGHT: int = 72
 const BANNER_MIN_HEIGHT: int = 280
