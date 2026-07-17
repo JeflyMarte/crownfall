@@ -78,10 +78,33 @@ func test_personal_bonus_triplets_are_all_unique() -> void:
 func test_starter_ald_profile() -> void:
 	var ald: Resource = _make_member("adventurer_0", "swordsman", Adventurer.STARTER_RARITY)
 	GachaRarityConfig.apply_stats_for_adventurer(ald)
-	## ★3 + 個人 → HP162 ATK78 DEF20
+	## ★3 + 個人 → HP162 ATK38 DEF20
 	assert_eq(int(ald.base_stats.hp), CombatController.BASE_MEMBER_HP + 50 + 12)
-	assert_eq(int(ald.base_stats.attack), 18 + 60)
+	assert_eq(int(ald.base_stats.attack), 18 + 20)
 	assert_eq(int(ald.base_stats.defense), 12 + 8)
+
+
+func test_atk_def_spread_is_moderate() -> void:
+	var roster: Array = [
+		_make_member("adventurer_0", "swordsman", 3),
+		_make_member("adventurer_1", "ranger", 3),
+		_make_member("adventurer_2", "alchemist", 3),
+		_make_member("adventurer_3", "vanguard", 3),
+		_make_member("adventurer_4", "beast_tamer", 3),
+		_make_member("gacha_helper_a", "vanguard", 4),
+		_make_member("gacha_helper_f", "swordsman", 2),
+		_make_member("gacha_helper_c", "alchemist", 3),
+	]
+	var atks: Array[int] = []
+	var defs: Array[int] = []
+	for member: Resource in roster:
+		GachaRarityConfig.apply_stats_for_adventurer(member)
+		atks.append(int(member.base_stats.attack))
+		defs.append(int(member.base_stats.defense))
+	atks.sort()
+	defs.sort()
+	assert_true(atks[atks.size() - 1] - atks[0] <= 40, "ATK差は抑えめ")
+	assert_true(defs[defs.size() - 1] - defs[0] <= 40, "DEF差は抑えめ")
 
 
 func test_attack_and_defense_floor() -> void:
