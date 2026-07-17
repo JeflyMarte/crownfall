@@ -65,8 +65,8 @@ const _DEFS: Dictionary = {
 	},
 	"elias_field_elixir": {
 		"display_name": "野戦調合",
-		"description": "自身の行動開始時、味方全体のHPを30%回復する。",
-		"trigger": "on_action_start",
+		"description": "戦闘フロアに入ったとき、味方全体のHPを30%回復する。",
+		"trigger": "on_combat_start",
 		"condition": "always",
 		"effect": "heal",
 		"target": "party",

@@ -112,7 +112,7 @@ func test_starter_and_gacha_passive_redesign() -> void:
 	assert_eq(str(riva.get("status_id", "")), "poison")
 	assert_eq(float(riva.get("status_chance", 0.0)), 0.25)
 	var elias: Dictionary = CombatPassives.get_def("elias_field_elixir")
-	assert_eq(str(elias.get("trigger", "")), "on_action_start")
+	assert_eq(str(elias.get("trigger", "")), "on_combat_start")
 	assert_eq(float(elias.get("heal_max_hp_fraction", 0.0)), 0.30)
 	var kaida: Dictionary = CombatPassives.get_def("kaida_arena_edge")
 	assert_eq(float(kaida.get("outgoing_mult", 0.0)), 1.30)
