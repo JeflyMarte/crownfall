@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "grave_bell_bat"
 display_name = "墓鐘バット"
-max_hp = 50
-attack = 10
-defense = 2
+max_hp = 400
+attack = 80
+defense = 16
 attack_speed = 1.25
 critical_rate = 0.06
 move_speed = 1.35

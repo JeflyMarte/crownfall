@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "wayfarer_sparrow"
 display_name = "遠旅スズメ"
-max_hp = 26
-attack = 7
-defense = 2
+max_hp = 208
+attack = 56
+defense = 16
 attack_speed = 2.0
 critical_rate = 0.05
 move_speed = 2.2

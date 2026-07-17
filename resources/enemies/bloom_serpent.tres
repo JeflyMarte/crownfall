@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "bloom_serpent"
 display_name = "ブルームサーペント"
-max_hp = 81
-attack = 17
-defense = 5
+max_hp = 648
+attack = 136
+defense = 40
 attack_speed = 1.0
 critical_rate = 0.05
 move_speed = 1.0

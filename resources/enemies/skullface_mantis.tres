@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "skullface_mantis"
 display_name = "骸面マンティス"
-max_hp = 74
-attack = 16
-defense = 6
+max_hp = 592
+attack = 128
+defense = 48
 attack_speed = 1.05
 critical_rate = 0.1
 move_speed = 1.1

@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "ninja_octopus"
 display_name = "ニンジャオクトパス"
-max_hp = 185
-attack = 29
-defense = 13
+max_hp = 1480
+attack = 232
+defense = 104
 attack_speed = 1.0
 critical_rate = 0.1
 move_speed = 1.0

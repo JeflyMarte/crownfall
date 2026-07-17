@@ -41,6 +41,8 @@ func test_no_mandatory_stats_when_common() -> void:
 		active += 1
 	if float(inst.rare_drop_rate) > 0.0:
 		active += 1
+	if float(inst.evasion_rate) > 0.0:
+		active += 1
 	assert_eq(active, 1)
 
 func test_display_name_has_no_perfect_stars() -> void:

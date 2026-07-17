@@ -14,8 +14,9 @@ func _make_enemy(defense: int) -> Resource:
 # ── 敵防御 逓減軽減 K/(K+DEF) ────────────────────────────────────────────
 
 func test_defense_mitigation_formula() -> void:
-	# K=100, DEF=100 → 軽減率 0.5
-	var result: int = DamageCalculator.apply_enemy_defense(100, _make_enemy(100))
+	## DEF=K で与ダメ半減（K は STAT_SCALE 追随）
+	var k: int = int(BalanceConfig.DEFENSE_MITIGATION_K)
+	var result: int = DamageCalculator.apply_enemy_defense(100, _make_enemy(k))
 	assert_eq(result, 50, "DEF=K で与ダメ半減")
 
 func test_defense_zero_is_passthrough() -> void:
@@ -28,15 +29,17 @@ func test_defense_null_enemy_passthrough() -> void:
 	assert_eq(DamageCalculator.apply_enemy_defense(42, null), 42, "敵データ null は素通し")
 
 func test_armor_break_reduces_effective_defense() -> void:
-	var base: int = DamageCalculator.apply_enemy_defense(100, _make_enemy(100))
-	var broken: int = DamageCalculator.apply_enemy_defense(100, _make_enemy(100), 0.5)
+	var k: int = int(BalanceConfig.DEFENSE_MITIGATION_K)
+	var base: int = DamageCalculator.apply_enemy_defense(100, _make_enemy(k))
+	var broken: int = DamageCalculator.apply_enemy_defense(100, _make_enemy(k), 0.5)
 	assert_gt(broken, base, "防御DOWN で与ダメ増")
-	# DEF 100→50: 100×(100/150)=67
+	## DEF K→K/2: 100×(K/(K+K/2))=67
 	assert_eq(broken, 67, "def_reduction=0.5 の逓減値")
 
 func test_armor_break_reduction_clamped() -> void:
-	var full: int = DamageCalculator.apply_enemy_defense(100, _make_enemy(100), 5.0)
-	# clamp 0.95 → DEF 5: 100×(100/105)=95
+	var k: int = int(BalanceConfig.DEFENSE_MITIGATION_K)
+	var full: int = DamageCalculator.apply_enemy_defense(100, _make_enemy(k), 5.0)
+	## clamp 0.95 → DEF=K*0.05: 100×(K/(K+0.05K))=95
 	assert_eq(full, 95, "def_reduction は 0.95 で頭打ち")
 
 # ── Biome 属性相性 ───────────────────────────────────────────────────────

@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "nereion_depths"
 display_name = "潮脈王ネレイオン・デプス"
-max_hp = 390
-attack = 25
-defense = 24
+max_hp = 3120
+attack = 200
+defense = 192
 attack_speed = 0.9
 critical_rate = 0.1
 move_speed = 0.75

@@ -29,8 +29,9 @@ func test_apply_drop_stats_always_rolls_defense() -> void:
 	var inst: Resource = _ArmorInstance.new()
 	inst.armor_id = "test_armor"
 	_ArmorStatResolver.apply_drop_stats(inst, data)
+	var roll_max: int = int(_ArmorStatResolver.DEFENSE_ROLL_MAX[Enums.Rarity.COMMON])
 	assert_true(int(inst.rolled_defense) >= 10)
-	assert_true(int(inst.rolled_defense) <= 10 + 4)
+	assert_true(int(inst.rolled_defense) <= 10 + roll_max)
 
 
 func test_resolve_resist_elements_from_instance() -> void:

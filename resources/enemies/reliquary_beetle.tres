@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "reliquary_beetle"
 display_name = "聖遺甲虫"
-max_hp = 135
-attack = 22
-defense = 14
+max_hp = 1080
+attack = 176
+defense = 112
 attack_speed = 0.95
 critical_rate = 0.08
 move_speed = 0.9

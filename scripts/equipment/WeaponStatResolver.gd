@@ -5,11 +5,12 @@ const _EquipmentRollHelper = preload("res://scripts/equipment/EquipmentRollHelpe
 
 ## P3-EQ-STAT-005 — 武器個体ステータス解決。必須=攻撃力。レア度でランダム1〜4種。
 
+## 平坦ATKロール上限（P3-BAL-STAT-SCALE-001: ×STAT_SCALE）。属性値は%のため据置。
 const ATTACK_ROLL_MAX: Dictionary = {
-	Enums.Rarity.COMMON: 5,
-	Enums.Rarity.RARE: 7,
-	Enums.Rarity.EPIC: 10,
-	Enums.Rarity.LEGENDARY: 14,
+	Enums.Rarity.COMMON: 5 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.RARE: 7 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.EPIC: 10 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.LEGENDARY: 14 * BalanceConfig.STAT_SCALE,
 }
 
 const ELEMENT_POWER_ROLL_MAX: Dictionary = {

@@ -13,7 +13,7 @@ const SAVE_PATH: String = "user://save_data.json"
 ## `_migrate_save_data` に v(n)→v(n+1) の段階マイグレーションを追加する。
 ## v0 = バージョンフィールド無しの旧セーブ（レガシー party/equipment/job/dungeon id を含む）
 ## v1 = save_version フィールド導入（2026-07-02）
-const SAVE_VERSION: int = 5
+const SAVE_VERSION: int = 6
 
 func save_game() -> void:
 	var data: Dictionary = {
@@ -91,7 +91,47 @@ func _migrate_save_data(data: Dictionary) -> Dictionary:
 		data = _migrate_save_v3_to_v4(data)
 	if version < 5:
 		data = _migrate_save_v4_to_v5(data)
+	if version < 6:
+		data = _migrate_save_v5_to_v6(data)
 	data["save_version"] = SAVE_VERSION
+	return data
+
+## P3-BAL-STAT-SCALE-001: 所持装備の平坦ステを ×STAT_SCALE（マスター再スケールに追従）
+func _migrate_save_v5_to_v6(data: Dictionary) -> Dictionary:
+	var scale: int = BalanceConfig.STAT_SCALE
+	if data.has("inventory") and data["inventory"] is Array:
+		var weapons: Array = []
+		for entry in data["inventory"]:
+			if not entry is Dictionary:
+				continue
+			var e: Dictionary = (entry as Dictionary).duplicate(true)
+			if e.has("rolled_attack"):
+				e["rolled_attack"] = int(e.get("rolled_attack", 0)) * scale
+			weapons.append(e)
+		data["inventory"] = weapons
+	if data.has("armor_inventory") and data["armor_inventory"] is Array:
+		var armors: Array = []
+		for entry in data["armor_inventory"]:
+			if not entry is Dictionary:
+				continue
+			var e: Dictionary = (entry as Dictionary).duplicate(true)
+			if e.has("rolled_defense"):
+				e["rolled_defense"] = int(e.get("rolled_defense", 0)) * scale
+			if e.has("hp_bonus"):
+				e["hp_bonus"] = int(e.get("hp_bonus", 0)) * scale
+			armors.append(e)
+		data["armor_inventory"] = armors
+	if data.has("accessory_inventory") and data["accessory_inventory"] is Array:
+		var accessories: Array = []
+		for entry in data["accessory_inventory"]:
+			if not entry is Dictionary:
+				continue
+			var e: Dictionary = (entry as Dictionary).duplicate(true)
+			for key in ["hp_bonus", "attack_bonus", "defense_bonus"]:
+				if e.has(key):
+					e[key] = int(e.get(key, 0)) * scale
+			accessories.append(e)
+		data["accessory_inventory"] = accessories
 	return data
 
 func _migrate_save_v4_to_v5(data: Dictionary) -> Dictionary:

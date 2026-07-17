@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "valgard"
 display_name = "境界の番ヴァルガード"
-max_hp = 300
-attack = 18
-defense = 22
+max_hp = 2400
+attack = 144
+defense = 176
 attack_speed = 0.9
 critical_rate = 0.1
 move_speed = 0.8

@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "eldion"
 display_name = "始祖の竜 エルディオン"
-max_hp = 300
-attack = 21
-defense = 26
+max_hp = 2400
+attack = 168
+defense = 208
 attack_speed = 0.9
 critical_rate = 0.1
 move_speed = 0.8

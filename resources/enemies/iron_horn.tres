@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "iron_horn"
 display_name = "鋭刀甲虫"
-max_hp = 82
-attack = 18
-defense = 6
+max_hp = 656
+attack = 144
+defense = 48
 attack_speed = 1.05
 critical_rate = 0.06
 move_speed = 1.15

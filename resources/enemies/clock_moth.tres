@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "clock_moth"
 display_name = "クロックモス"
-max_hp = 124
-attack = 20
-defense = 8
+max_hp = 992
+attack = 160
+defense = 64
 attack_speed = 1.1
 critical_rate = 0.1
 move_speed = 1.05

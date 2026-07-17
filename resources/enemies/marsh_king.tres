@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "marsh_king"
 display_name = "沼地の王"
-max_hp = 115
-attack = 14
-defense = 12
+max_hp = 920
+attack = 112
+defense = 96
 attack_speed = 0.85
 critical_rate = 0.05
 move_speed = 0.8

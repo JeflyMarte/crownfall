@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "karna_smoke"
 display_name = "燼竜カルナ・スモーク"
-max_hp = 340
-attack = 21
-defense = 20
+max_hp = 2720
+attack = 168
+defense = 160
 attack_speed = 0.95
 critical_rate = 0.1
 move_speed = 0.85

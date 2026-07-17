@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "granvel"
 display_name = "フローラベア グランヴェル"
-max_hp = 320
-attack = 21
-defense = 18
+max_hp = 2560
+attack = 168
+defense = 144
 attack_speed = 0.95
 critical_rate = 0.1
 move_speed = 0.85

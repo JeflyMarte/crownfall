@@ -10,5 +10,5 @@ description = "防御力を高めるが動きが鈍い。"
 affix_category = "prefix"
 rarity = 0
 stat_type = "Defense"
-value = 2.0
+value = 16.0
 tags = Array[String](["weapon", "armor"])

@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "forgedormient"
 display_name = "星炉の寝主フォージ・ドルミエント"
-max_hp = 410
-attack = 26
-defense = 28
+max_hp = 3280
+attack = 208
+defense = 224
 attack_speed = 0.85
 critical_rate = 0.1
 move_speed = 0.7

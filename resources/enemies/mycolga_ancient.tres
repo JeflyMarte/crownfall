@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "mycolga_ancient"
 display_name = "霧沼の古茸ミコルガ"
-max_hp = 330
-attack = 20
-defense = 20
+max_hp = 2640
+attack = 160
+defense = 160
 attack_speed = 0.9
 critical_rate = 0.1
 move_speed = 0.8

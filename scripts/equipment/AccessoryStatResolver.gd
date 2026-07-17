@@ -5,25 +5,26 @@ const _EquipmentRollHelper = preload("res://scripts/equipment/EquipmentRollHelpe
 
 ## P3-EQ-STAT-008 — 装飾品個体ステータス解決。必須なし。レア度でランダム1〜4種。
 
+## 平坦ロール上限（P3-BAL-STAT-SCALE-001: ×STAT_SCALE）。率系は据置。
 const HP_ROLL_MAX: Dictionary = {
-	Enums.Rarity.COMMON: 6,
-	Enums.Rarity.RARE: 10,
-	Enums.Rarity.EPIC: 14,
-	Enums.Rarity.LEGENDARY: 20,
+	Enums.Rarity.COMMON: 6 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.RARE: 10 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.EPIC: 14 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.LEGENDARY: 20 * BalanceConfig.STAT_SCALE,
 }
 
 const ATTACK_ROLL_MAX: Dictionary = {
-	Enums.Rarity.COMMON: 3,
-	Enums.Rarity.RARE: 5,
-	Enums.Rarity.EPIC: 8,
-	Enums.Rarity.LEGENDARY: 12,
+	Enums.Rarity.COMMON: 3 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.RARE: 5 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.EPIC: 8 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.LEGENDARY: 12 * BalanceConfig.STAT_SCALE,
 }
 
 const DEFENSE_ROLL_MAX: Dictionary = {
-	Enums.Rarity.COMMON: 3,
-	Enums.Rarity.RARE: 5,
-	Enums.Rarity.EPIC: 8,
-	Enums.Rarity.LEGENDARY: 12,
+	Enums.Rarity.COMMON: 3 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.RARE: 5 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.EPIC: 8 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.LEGENDARY: 12 * BalanceConfig.STAT_SCALE,
 }
 
 const CRIT_ROLL_MAX: Dictionary = {

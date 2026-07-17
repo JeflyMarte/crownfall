@@ -5,8 +5,15 @@ extends RefCounted
 ## 各所の GDScript に散在していたグローバル倍率をここへ集約する。
 ## 個別エンティティの基礎値（敵HP/スキル倍率等）は従来通り .tres が正。
 
+# ── 見栄えスケール（P3-STAT-CHAR-001 / P3-BAL-STAT-SCALE-001） ───────────
+## 旧スケール（素体HP30台・装備ATK一桁）からの一括倍率。キャラ・装備・敵で共有。
+const STAT_SCALE: int = 8
+## 炉研ぎ +N の平坦加算（旧 +1 ATK/DEF、防具HPは旧 +2）
+const EQUIP_FORGE_FLAT_PER_LEVEL: int = STAT_SCALE
+const EQUIP_FORGE_HP_PER_LEVEL: int = STAT_SCALE * 2
+
 # ── ダメージ計算（旧 DungeonScene 定数） ──────────────────────────────────
-const FALLBACK_ATTACK: int = 10
+const FALLBACK_ATTACK: int = 10 * STAT_SCALE
 const CRITICAL_MULTIPLIER: float = 1.5
 ## 武器デフォルト（P3-EQ-STAT-005）。個体未設定時に使用。
 const DEFAULT_WEAPON_ATTACK_SPEED: float = 1.0
@@ -15,8 +22,8 @@ const DEFAULT_WEAPON_CRITICAL_DAMAGE: float = CRITICAL_MULTIPLIER
 const DEFAULT_BANE_MULTIPLIER: float = 1.3
 ## 属性値→与ダメ倍率: damage × (1 + element_power × K)。無属性時は適用しない。
 const ELEMENT_POWER_K: float = 0.01
-## 敵DEF逓減軽減 K/(K+DEF)（P3-BAL-002）
-const DEFENSE_MITIGATION_K: float = 100.0
+## 敵DEF逓減軽減 K/(K+DEF)（P3-BAL-002）。敵DEF×STAT_SCALE に合わせ K も同倍率。
+const DEFENSE_MITIGATION_K: float = 100.0 * float(STAT_SCALE)
 ## Biome 有利属性 与ダメ倍率（P3-D099）
 const BIOME_FAVORED_BONUS: float = 1.15
 ## 防具属性耐性 被ダメ倍率（P3-D103）
@@ -33,14 +40,14 @@ const BASE_MEMBER_HP: int = 800
 # ── レベル成長（P3-D035 / P3-BAL-006 / P3-LV-099） ───────────────────────
 const MAX_PLAYER_LEVEL: int = 99
 const SOFT_CAP_LEVEL: int = 50
-const HP_PER_LEVEL: int = 6
-const ATTACK_PER_LEVEL: int = 2
+const HP_PER_LEVEL: int = 6 * STAT_SCALE
+const ATTACK_PER_LEVEL: int = 2 * STAT_SCALE
 ## Lv51〜99 の逓減成長（新スキル習得なし）
-const HP_PER_LEVEL_MASTER: int = 3
-const ATTACK_PER_LEVEL_MASTER: int = 1
+const HP_PER_LEVEL_MASTER: int = 3 * STAT_SCALE
+const ATTACK_PER_LEVEL_MASTER: int = 1 * STAT_SCALE
 
 # ── 回復スキル基準値（旧 DungeonScene 定数） ─────────────────────────────
-const HEAL_SKILL_BASE: int = 14
+const HEAL_SKILL_BASE: int = 14 * STAT_SCALE
 
 # ── 敵レベルスケール（P3-D081） ──────────────────────────────────────────
 const ENEMY_LEVEL_HP_K: float = 0.10

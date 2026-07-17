@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "oldrex"
 display_name = "オルドレクス"
-max_hp = 124
-attack = 14
-defense = 20
+max_hp = 992
+attack = 112
+defense = 160
 attack_speed = 0.85
 critical_rate = 0.05
 move_speed = 0.8

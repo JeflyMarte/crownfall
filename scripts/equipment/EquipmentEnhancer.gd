@@ -152,7 +152,7 @@ static func get_effective_attack(weapon: Resource) -> int:
 		get_equip_level(weapon),
 		weapon_rarity(weapon)
 	)
-	return scaled + get_enhance_level(weapon)
+	return scaled + get_enhance_level(weapon) * BalanceConfig.EQUIP_FORGE_FLAT_PER_LEVEL
 
 static func pick_event_drop_material() -> String:
 	if EVENT_DROP_MATERIAL_IDS.is_empty():
@@ -374,13 +374,13 @@ static func effective_armor_defense(armor: Resource) -> int:
 	if armor == null:
 		return 0
 	return scale_equip_stat(int(armor.rolled_defense), get_equip_level(armor), armor_rarity(armor)) \
-		+ get_enhance_level(armor)
+		+ get_enhance_level(armor) * BalanceConfig.EQUIP_FORGE_FLAT_PER_LEVEL
 
 static func effective_armor_hp(armor: Resource) -> int:
 	if armor == null:
 		return 0
 	return scale_equip_stat(int(armor.hp_bonus), get_equip_level(armor), armor_rarity(armor)) \
-		+ get_enhance_level(armor) * 2
+		+ get_enhance_level(armor) * BalanceConfig.EQUIP_FORGE_HP_PER_LEVEL
 
 static func effective_accessory_int_bonus(accessory: Resource, field: String, data: Resource) -> int:
 	if accessory == null:
@@ -389,7 +389,8 @@ static func effective_accessory_int_bonus(accessory: Resource, field: String, da
 	if raw <= 0:
 		return 0
 	var rarity: int = int(data.rarity) if data != null else accessory_rarity(accessory)
-	return scale_equip_stat(raw, get_equip_level(accessory), rarity) + get_enhance_level(accessory)
+	return scale_equip_stat(raw, get_equip_level(accessory), rarity) \
+		+ get_enhance_level(accessory) * BalanceConfig.EQUIP_FORGE_FLAT_PER_LEVEL
 
 static func effective_accessory_float_bonus(accessory: Resource, field: String, data: Resource) -> float:
 	if accessory == null:

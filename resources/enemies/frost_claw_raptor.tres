@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "frost_claw_raptor"
 display_name = "霜爪ラプター"
-max_hp = 70
-attack = 16
-defense = 6
+max_hp = 560
+attack = 128
+defense = 48
 attack_speed = 1.2
 critical_rate = 0.1
 move_speed = 1.3

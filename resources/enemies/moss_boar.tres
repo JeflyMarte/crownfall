@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "moss_boar"
 display_name = "モスボア"
-max_hp = 75
-attack = 16
-defense = 4
+max_hp = 600
+attack = 128
+defense = 32
 attack_speed = 1.15
 critical_rate = 0.05
 move_speed = 1.25

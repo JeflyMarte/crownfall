@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "dead_poison_frog"
 display_name = "死毒の大蛙"
-max_hp = 90
-attack = 18
-defense = 6
+max_hp = 720
+attack = 144
+defense = 48
 attack_speed = 1.0
 critical_rate = 0.05
 move_speed = 0.95

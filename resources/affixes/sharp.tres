@@ -10,5 +10,5 @@ description = "攻撃力を高める。"
 affix_category = "prefix"
 rarity = 0
 stat_type = "Attack"
-value = 3.0
+value = 24.0
 tags = Array[String](["weapon", "physical"])

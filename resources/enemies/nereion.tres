@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "nereion"
 display_name = "潮鳴王 ネレイオン"
-max_hp = 347
-attack = 23
-defense = 22
+max_hp = 2776
+attack = 184
+defense = 176
 attack_speed = 0.9
 critical_rate = 0.1
 move_speed = 0.75

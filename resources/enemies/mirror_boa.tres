@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "mirror_boa"
 display_name = "ミラーボア"
-max_hp = 155
-attack = 25
-defense = 8
+max_hp = 1240
+attack = 200
+defense = 64
 attack_speed = 1.0
 critical_rate = 0.12
 move_speed = 1.05

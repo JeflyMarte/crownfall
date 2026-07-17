@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "mist_wyvern"
 display_name = "深霧ワイバーン"
-max_hp = 169
-attack = 27
-defense = 9
+max_hp = 1352
+attack = 216
+defense = 72
 attack_speed = 1.05
 critical_rate = 0.1
 move_speed = 1.1

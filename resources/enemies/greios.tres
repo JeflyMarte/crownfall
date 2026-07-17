@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "greios"
 display_name = "グレイオス"
-max_hp = 185
-attack = 29
-defense = 14
+max_hp = 1480
+attack = 232
+defense = 112
 attack_speed = 1.05
 critical_rate = 0.1
 move_speed = 1.1

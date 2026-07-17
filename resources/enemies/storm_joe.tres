@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "storm_joe"
 display_name = "ストームジョー"
-max_hp = 90
-attack = 19
-defense = 9
+max_hp = 720
+attack = 152
+defense = 72
 attack_speed = 1.0
 critical_rate = 0.1
 move_speed = 1.1

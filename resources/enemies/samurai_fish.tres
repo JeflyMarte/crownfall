@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "samurai_fish"
 display_name = "サムライフィッシュ"
-max_hp = 84
-attack = 20
-defense = 7
+max_hp = 672
+attack = 160
+defense = 56
 attack_speed = 1.05
 critical_rate = 0.1
 move_speed = 1.15

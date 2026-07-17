@@ -25,8 +25,14 @@ func test_armor_enhance_adds_def_and_hp() -> void:
 	armor.hp_bonus = 5
 	armor.is_appraised = true
 	armor.enhance_level = 2
-	assert_eq(_Enh.effective_armor_defense(armor), _Enh.scale_equip_stat(10, 1, 0) + 2)
-	assert_eq(_Enh.effective_armor_hp(armor), _Enh.scale_equip_stat(5, 1, 0) + 4)
+	assert_eq(
+		_Enh.effective_armor_defense(armor),
+		_Enh.scale_equip_stat(10, 1, 0) + 2 * BalanceConfig.EQUIP_FORGE_FLAT_PER_LEVEL
+	)
+	assert_eq(
+		_Enh.effective_armor_hp(armor),
+		_Enh.scale_equip_stat(5, 1, 0) + 2 * BalanceConfig.EQUIP_FORGE_HP_PER_LEVEL
+	)
 
 func test_dismantle_common_weapon_yields_base_and_common() -> void:
 	var weapon: Resource = load("res://scripts/domain/WeaponInstance.gd").new()

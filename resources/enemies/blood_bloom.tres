@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "blood_bloom"
 display_name = "ブラッドブルーム"
-max_hp = 70
-attack = 18
-defense = 5
+max_hp = 560
+attack = 144
+defense = 40
 attack_speed = 0.95
 critical_rate = 0.05
 move_speed = 0.75

@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "serdion"
 display_name = "水晶骸竜 セルディオン"
-max_hp = 250
-attack = 15
-defense = 20
+max_hp = 2000
+attack = 120
+defense = 160
 attack_speed = 1.0
 critical_rate = 0.1
 move_speed = 0.85
