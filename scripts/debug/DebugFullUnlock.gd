@@ -13,7 +13,8 @@ const _GachaLimitBreak = preload("res://scripts/gacha/GachaLimitBreak.gd")
 const DEBUG_GOLD: int = 999_999
 const DEBUG_GACHA_TOKEN: int = 9_999
 ## owned_helpers 所持数（1=未凸、6=+5 頭打ち）。
-const DEBUG_HELPER_OWNED_COUNT: int = _GachaLimitBreak.MAX_BREAKTHROUGH + 1
+## 上限-1（+4）にして限界突破券を1枚試せる余地を残す。
+const DEBUG_HELPER_OWNED_COUNT: int = _GachaLimitBreak.MAX_BREAKTHROUGH
 
 
 ## 現在の GameState をデバッグ用フル所持へ上書きする。セーブは呼び出し側。
@@ -26,6 +27,7 @@ static func apply() -> void:
 	_unlock_all_starters_and_helpers()
 	_grant_all_equipment()
 	_grant_all_relics()
+	TicketInventory.grant_debug_stock(Constants.DEBUG_TICKET_GRANT_EACH)
 	_unlock_all_progress()
 	GameState.current_dungeon_id = Constants.MOURNGATE_DUNGEON_ID
 	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL

@@ -46,8 +46,13 @@ const RESOURCE_RECIPES_PATH: String = "res://resources/recipes/"
 const RESOURCE_MATERIAL_SHOP_PATH: String = "res://resources/material_shop/"
 const RESOURCE_STATUS_EFFECTS_PATH: String = "res://resources/status/"
 const RESOURCE_GACHA_HELPERS_PATH: String = "res://resources/gacha_helpers/"
+const RESOURCE_TICKETS_PATH: String = "res://resources/tickets/"
 const RESOURCE_DAILY_MISSIONS_PATH: String = "res://resources/daily_missions/"
 const RESOURCE_EVENTS_PATH: String = "res://resources/events/"
+## チケット本番配布。false=ストップデータのみ残置（P3-TICKET-001）。
+const TICKET_DISTRIBUTION_ENABLED: bool = false
+## デバッグセーブ付与枚数（各種）。
+const DEBUG_TICKET_GRANT_EACH: int = 10
 
 static func is_playable_dungeon_route(route_type: String) -> bool:
 	if route_type == "main":

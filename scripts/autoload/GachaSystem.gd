@@ -1,7 +1,8 @@
 extends Node
 
-## 助っ人ガチャ（P3-D036b / P3-GACHA-005 / **P3-GACHA-LIMIT-001**）。
-## 通貨=魔晶石。プール=`gacha_helpers/` のみ（スターター5職は除外）。
+## 助っ人ガチャ（P3-D036b / P3-GACHA-005 / **P3-GACHA-LIMIT-001** / P3-TICKET-001）。
+## 通貨=魔晶石。招待無料券があれば優先消費。
+## プール=`gacha_helpers/` のみ（スターター5職は除外）。
 ## ★2〜4 排出・未所持優先・ハード天井30・重複は限界突破＋半額還元。
 
 const _GachaRarityConfig: Script = preload("res://scripts/gacha/GachaRarityConfig.gd")
@@ -15,6 +16,8 @@ const HARD_PITY: int = 30
 func can_pull() -> bool:
 	if not Constants.are_gacha_helpers_playable():
 		return false
+	if TicketSystem.can_use_free_gacha():
+		return true
 	return GameState.gacha_token >= PULL_COST
 
 func rate_display_text() -> String:
@@ -33,21 +36,28 @@ func buy_token() -> bool:
 	GameState.gacha_token += 1
 	return true
 
-# 単発抽選。結果: { ok, reason?, helper_id, rarity, is_new, refund, breakthrough, breakthrough_gained }
+# 単発抽選。結果: { ok, reason?, helper_id, rarity, is_new, refund, breakthrough, breakthrough_gained, paid_with_ticket }
 func pull() -> Dictionary:
 	if not Constants.are_gacha_helpers_playable():
 		return {"ok": false, "reason": "omitted"}
-	if GameState.gacha_token < PULL_COST:
+	var paid_with_ticket: bool = false
+	if TicketSystem.can_use_free_gacha():
+		if not TicketSystem.try_consume_free_gacha():
+			return {"ok": false, "reason": "no_token"}
+		paid_with_ticket = true
+	elif GameState.gacha_token >= PULL_COST:
+		GameState.gacha_token -= PULL_COST
+	else:
 		return {"ok": false, "reason": "no_token"}
 	var pool: Array = _get_pool()
 	if pool.is_empty():
+		_refund_pull_cost(paid_with_ticket)
 		return {"ok": false, "reason": "empty_pool"}
-	GameState.gacha_token -= PULL_COST
 	GameState.gacha_pity += 1
 	var pity_forced: bool = GameState.gacha_pity >= HARD_PITY
 	var helper: Resource = _select_helper(pool, pity_forced)
 	if helper == null:
-		GameState.gacha_token += PULL_COST
+		_refund_pull_cost(paid_with_ticket)
 		GameState.gacha_pity -= 1
 		return {"ok": false, "reason": "empty_pool"}
 	var hid: String = str(helper.id)
@@ -79,7 +89,14 @@ func pull() -> Dictionary:
 		"refund": refund,
 		"breakthrough": breakthrough,
 		"breakthrough_gained": breakthrough_gained,
+		"paid_with_ticket": paid_with_ticket,
 	}
+
+func _refund_pull_cost(paid_with_ticket: bool) -> void:
+	if paid_with_ticket:
+		TicketSystem.refund_free_gacha()
+	else:
+		GameState.gacha_token += PULL_COST
 
 func _get_pool() -> Array:
 	if not Constants.are_gacha_helpers_playable():

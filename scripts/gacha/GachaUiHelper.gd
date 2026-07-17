@@ -114,10 +114,15 @@ static func setup_pull_button(btn: Button, pulls: int, enabled: bool, is_ten_pul
 		UiTypography.COLOR_LOCKED if not enabled else UiTypography.COLOR_BODY
 	)
 	row.add_child(title)
-	var token_tex: Texture2D = GachaUiTokens.token_icon()
-	if token_tex != null:
+	var use_free_ticket: bool = (not is_ten_pull) and pulls <= 1 and TicketSystem.can_use_free_gacha()
+	var icon_tex: Texture2D = null
+	if use_free_ticket:
+		icon_tex = IconPaths.get_icon_texture(TicketIds.GACHA_FREE, "ticket")
+	if icon_tex == null:
+		icon_tex = GachaUiTokens.token_icon()
+	if icon_tex != null:
 		var icon := TextureRect.new()
-		icon.texture = token_tex
+		icon.texture = icon_tex
 		icon.custom_minimum_size = Vector2(24, 24)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -126,7 +131,10 @@ static func setup_pull_button(btn: Button, pulls: int, enabled: bool, is_ten_pul
 			icon.modulate = Color(0.62, 0.6, 0.55, 1.0)
 		row.add_child(icon)
 	var cost := Label.new()
-	cost.text = str(pull_cost_amount(pulls))
+	if use_free_ticket:
+		cost.text = "無料×%d" % TicketSystem.free_gacha_qty()
+	else:
+		cost.text = str(pull_cost_amount(pulls))
 	cost.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_menu_label(
 		cost,

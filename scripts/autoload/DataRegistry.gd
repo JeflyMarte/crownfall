@@ -130,6 +130,19 @@ func get_all_gacha_helper_data() -> Array:
 	## 直下の .tres のみ（`_omitted/` はプール外）
 	return _load_all_resources(Constants.RESOURCE_GACHA_HELPERS_PATH)
 
+func get_ticket_data(ticket_id: String) -> Resource:
+	if ticket_id.is_empty():
+		return null
+	var path: String = Constants.RESOURCE_TICKETS_PATH + ticket_id + ".tres"
+	if not ResourceLoader.exists(path):
+		return null
+	return load(path)
+
+func get_all_ticket_data() -> Array:
+	var all: Array = _load_all_resources(Constants.RESOURCE_TICKETS_PATH)
+	all.sort_custom(func(a, b): return int(a.sort_order) < int(b.sort_order))
+	return all
+
 func get_all_enemy_data() -> Array:
 	return _load_all_resources(Constants.RESOURCE_ENEMIES_PATH)
 

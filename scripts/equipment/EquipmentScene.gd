@@ -82,6 +82,10 @@ const EMPTY_SLOT_TEXT: String = "空"
 @onready var _btn_promote: Button = $VBoxContainer/CharacterCard/CardRow/InfoBox/EvolutionRow/BtnPromote
 @onready var _label_evolution: Label = $VBoxContainer/CharacterCard/CardRow/InfoBox/EvolutionRow/LabelEvolution
 var _label_evolution_traits: Label = null
+var _lb_ticket_row: HBoxContainer = null
+var _btn_lb_ticket: Button = null
+var _label_lb_ticket: Label = null
+var _confirm_lb_ticket: ConfirmationDialog = null
 @onready var _stats_grid: GridContainer = $VBoxContainer/CharacterCard/CardRow/InfoBox/StatsGrid
 @onready var _btn_stat_detail: Button = $VBoxContainer/CharacterCard/CardRow/InfoBox/BtnStatDetail
 @onready var _slots_panel: VBoxContainer = $VBoxContainer/CharacterCard/CardRow/SlotsPanel
@@ -659,6 +663,83 @@ func _update_character_card() -> void:
 	var party_idx: int = _party_index_for(member)
 	var stats: Dictionary = _compute_member_stats(party_idx if party_idx >= 0 else -1, member)
 	_populate_stat_grid(stats)
+	_update_lb_ticket_row(member)
+
+func _ensure_lb_ticket_row() -> void:
+	if _lb_ticket_row != null:
+		return
+	var info_box: Node = _evolution_row.get_parent()
+	_lb_ticket_row = HBoxContainer.new()
+	_lb_ticket_row.name = "LimitBreakTicketRow"
+	_lb_ticket_row.add_theme_constant_override("separation", 6)
+	_lb_ticket_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_label_lb_ticket = Label.new()
+	_label_lb_ticket.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_label_lb_ticket.clip_text = true
+	_label_lb_ticket.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	UiTypography.apply_caption(_label_lb_ticket)
+	_lb_ticket_row.add_child(_label_lb_ticket)
+	_btn_lb_ticket = Button.new()
+	_btn_lb_ticket.custom_minimum_size = Vector2(108, 32)
+	UiTypography.apply_menu_button(_btn_lb_ticket, false)
+	_btn_lb_ticket.add_theme_font_size_override("font_size", UiTypography.SIZE_CAPTION)
+	_btn_lb_ticket.pressed.connect(_on_lb_ticket_pressed)
+	_lb_ticket_row.add_child(_btn_lb_ticket)
+	info_box.add_child(_lb_ticket_row)
+	info_box.move_child(_lb_ticket_row, _evolution_row.get_index() + 1)
+	_confirm_lb_ticket = ConfirmationDialog.new()
+	_confirm_lb_ticket.title = "限界突破券"
+	_confirm_lb_ticket.ok_button_text = "使う"
+	_confirm_lb_ticket.cancel_button_text = "やめる"
+	_confirm_lb_ticket.confirmed.connect(_on_lb_ticket_confirmed)
+	add_child(_confirm_lb_ticket)
+
+
+func _update_lb_ticket_row(member: Resource) -> void:
+	_ensure_lb_ticket_row()
+	if member == null or not str(member.id).begins_with("gacha_"):
+		_lb_ticket_row.visible = false
+		return
+	var check: Dictionary = TicketSystem.can_limit_break_member(member)
+	var ticket_id: String = str(check.get("ticket_id", TicketSystem.ticket_id_for_limit_break_rarity(int(member.rarity))))
+	var tname: String = TicketSystem.display_name(ticket_id) if not ticket_id.is_empty() else "限界突破券"
+	var qty: int = TicketInventory.get_qty(ticket_id) if not ticket_id.is_empty() else 0
+	_lb_ticket_row.visible = true
+	if bool(check.get("ok", false)):
+		_label_lb_ticket.text = "%s ×%d" % [tname, qty]
+		_btn_lb_ticket.text = "凸券を使う"
+		_btn_lb_ticket.disabled = false
+	else:
+		var reason: String = str(check.get("reason", ""))
+		match reason:
+			"max_breakthrough":
+				_label_lb_ticket.text = "限界突破上限"
+				_btn_lb_ticket.text = "上限"
+			"no_ticket", "no_ticket_for_rarity":
+				_label_lb_ticket.text = "%s ×%d" % [tname, qty]
+				_btn_lb_ticket.text = "券なし"
+			_:
+				_label_lb_ticket.text = tname
+				_btn_lb_ticket.text = "対象外"
+		_btn_lb_ticket.disabled = true
+
+
+func _on_lb_ticket_pressed() -> void:
+	var member: Resource = _get_view_adventurer()
+	var check: Dictionary = TicketSystem.can_limit_break_member(member)
+	if not bool(check.get("ok", false)):
+		return
+	var tname: String = TicketSystem.display_name(str(check.get("ticket_id", "")))
+	_confirm_lb_ticket.dialog_text = "%s に %s を使いますか？" % [str(member.display_name), tname]
+	_confirm_lb_ticket.popup_centered()
+
+
+func _on_lb_ticket_confirmed() -> void:
+	var member: Resource = _get_view_adventurer()
+	var result: Dictionary = TicketSystem.apply_limit_break_member(member)
+	if bool(result.get("ok", false)):
+		SaveManager.save_game()
+	_refresh_display()
 
 func _update_evolution_row(member: Resource) -> void:
 	var target_name: String = _JobEvolution.get_evolved_name(member)

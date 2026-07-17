@@ -37,6 +37,8 @@ var base_initial_view: String = "hub"
 var hub_npc_hint: Dictionary = {}
 # ガチャ所持数 { helper_id: count }（重複＝凸用カウント。MVP は還元のみ）
 var owned_helpers: Dictionary = {}
+## 消費チケット所持 { ticket_id: qty }（P3-TICKET-001）。
+var ticket_inventory: Dictionary = {}
 # 天井カウンタ（未所持が出ていない連続抽選回数）
 var gacha_pity: int = 0
 
@@ -1134,6 +1136,7 @@ func reset_for_new_game() -> void:
 	gacha_pity = 0
 	debug_full_unlock = false
 	owned_helpers = {}
+	ticket_inventory = {}
 	owned_relics = []
 	inventory = []
 	armor_inventory = []

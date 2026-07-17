@@ -30,6 +30,9 @@ func test_debug_full_unlock_grants_currency_roster_and_gear() -> void:
 	assert_gt(GameState.armor_inventory.size(), 0)
 	assert_gt(GameState.accessory_inventory.size(), 0)
 	assert_true(GameState.is_dungeon_unlocked("whisperwood"), "デバッグ時はβ外メインも解放")
+	assert_eq(TicketInventory.get_qty(TicketIds.GACHA_FREE), Constants.DEBUG_TICKET_GRANT_EACH)
+	assert_eq(TicketInventory.get_qty(TicketIds.LB_STAR3), Constants.DEBUG_TICKET_GRANT_EACH)
+	assert_eq(TicketInventory.get_qty(TicketIds.LB_STAR4), Constants.DEBUG_TICKET_GRANT_EACH)
 	var mythic_w: bool = false
 	for item in GameState.inventory:
 		if str(item.weapon_id) == "burial_crown_greatsword":

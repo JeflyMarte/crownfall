@@ -175,6 +175,12 @@ func _refresh() -> void:
 	GachaUiHelper.setup_pull_button(_button_pull_10, 10, false, true)
 	_button_buy_crystal.text = "%s購入（%dG）" % [CurrencyHelper.DISPLAY_NAME, GachaSystem.TOKEN_PURCHASE_GOLD]
 	_button_buy_crystal.disabled = _summon_active or GameState.gold < GachaSystem.TOKEN_PURCHASE_GOLD
+	if not _summon_active:
+		var free_n: int = TicketSystem.free_gacha_qty()
+		if free_n > 0:
+			_label_result.text = "招待無料券 ×%d（優先消費）" % free_n
+		elif _label_result.text.begins_with("招待無料券"):
+			_label_result.text = ""
 	_refresh_banner_art()
 	_rebuild_lineup()
 
@@ -258,7 +264,7 @@ func _on_pull_pressed() -> void:
 	if not bool(result.get("ok", false)):
 		var reason: String = str(result.get("reason", ""))
 		if reason == "no_token":
-			_label_result.text = "%sが足りません。" % CurrencyHelper.DISPLAY_NAME
+			_label_result.text = "招待無料券または%sが足りません。" % CurrencyHelper.DISPLAY_NAME
 		else:
 			_label_result.text = "招きに失敗しました（%s）。" % reason
 		_refresh()

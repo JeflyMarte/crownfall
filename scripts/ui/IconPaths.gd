@@ -400,6 +400,9 @@ const ICON_MAP: Dictionary = {
 	"guide:COMBAT-G001":           "res://assets/ui/codex/ICO_CDX_GDE_CombatG001.png",
 	"guide:COMBAT-G002":           "res://assets/ui/codex/ICO_CDX_GDE_CombatG002.png",
 	"currency:arcane_crystal":     "res://assets/ui/batch2/ICO_Currency_Arcanite.png",
+	"ticket:ticket_gacha_free":    "res://assets/ui/tickets/ICO_Ticket_GachaFree.png",
+	"ticket:ticket_lb_star3":      "res://assets/ui/tickets/ICO_Ticket_LimitBreakStar3.png",
+	"ticket:ticket_lb_star4":      "res://assets/ui/tickets/ICO_Ticket_LimitBreakStar4.png",
 	# 下ナビ専用（64x64・余白統一）
 	"nav:home":                    "res://assets/ui/nav/ICO_NAV_Home.png",
 	"nav:adventure":               "res://assets/ui/nav/ICO_NAV_Adventure.png",
@@ -449,6 +452,10 @@ static func get_icon_texture(id: String, category: String) -> Texture2D:
 	var path: String = ICON_MAP.get("%s:%s" % [category, id], "")
 	if path.is_empty() and category == "passive":
 		path = passive_icon_path(id)
+	if path.is_empty() and category == "ticket":
+		var ticket: Resource = DataRegistry.get_ticket_data(id)
+		if ticket != null:
+			path = str(ticket.icon_path)
 	if path.is_empty() or not ResourceLoader.exists(path):
 		return null
 	var tex: Texture2D = load(path) as Texture2D

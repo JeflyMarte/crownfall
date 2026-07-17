@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="TicketData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/TicketData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "ticket_lb_star4"
+display_name = "★4限界突破券"
+description = "所持中の★4助っ人1名の限界突破を+1する（上限+5）。"
+effect_type = "limit_break"
+target_rarity = 4
+icon_path = "res://assets/ui/tickets/ICO_Ticket_LimitBreakStar4.png"
+sort_order = 30
