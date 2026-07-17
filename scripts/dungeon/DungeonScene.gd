@@ -4056,6 +4056,9 @@ func _deal_member_damage_to_enemy(
 			member_idx, "on_attack", {"damage": damage, "target_slot": target_slot}
 		)
 	if $CombatController.get_enemy_hp_at(target_slot) <= 0:
+		var frac: float = CombatPassives.on_kill_refund_fraction(member_idx)
+		if frac > 0.0:
+			$CombatController.refund_member_ct(member_idx, frac)
 		return _on_enemy_slot_killed(target_slot)
 	return false
 
@@ -4551,6 +4554,21 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 					"ボス報酬: 装飾品 %s" % DataRegistry.get_accessory_name(str(legendary_bonus["accessory_id"]))
 				)
 				_append_equipment_drop_icon(drop_icons, str(legendary_bonus["accessory_id"]), "accessory")
+			var mythic_bonus: Dictionary = $DungeonController.apply_boss_mythic_loot(stage)
+			var mythic_id: String = str(mythic_bonus.get("id", ""))
+			var mythic_cat: String = str(mythic_bonus.get("category", ""))
+			if not mythic_id.is_empty():
+				match mythic_cat:
+					"weapon":
+						GameState.last_run_weapon_dropped = mythic_id
+						log_lines.append("神話の招き: 武器 %s" % DataRegistry.get_weapon_name(mythic_id))
+					"armor":
+						GameState.last_run_armor_dropped = mythic_id
+						log_lines.append("神話の招き: 防具 %s" % DataRegistry.get_armor_name(mythic_id))
+					"accessory":
+						GameState.last_run_accessory_dropped = mythic_id
+						log_lines.append("神話の招き: 装飾品 %s" % DataRegistry.get_accessory_name(mythic_id))
+				_append_equipment_drop_icon(drop_icons, mythic_id, mythic_cat)
 		var boss_mat: Dictionary = $DungeonController.apply_boss_material_loot()
 		var boss_mat_id: String = str(boss_mat.get("material_id", "elite_relic_shard"))
 		var boss_mat_amt: int = int(boss_mat.get("amount", 1))

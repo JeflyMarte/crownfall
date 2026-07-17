@@ -5,14 +5,44 @@ extends RefCounted
 ## 共通フォーマット: Trigger → Condition → Effect → Cooldown。
 ## 基本5職ロスターはキャラ固有パッシブを優先、それ以外はジョブフォールバック。
 ##
-## trigger: "on_combat_start" | "on_hit_taken" | "on_ally_death" | "on_attack"
+## trigger: "on_combat_start" | "on_hit_taken" | "on_ally_death" | "on_attack" | "on_kill"
 ## condition: "always" | "self_hp_below"（value=HP割合）
-## effect: "apply_status" | "heal" | "bonus_damage" | "counter_attack" | "grant_next_attack_mult"
+## effect: "apply_status" | "heal" | "bonus_damage" | "counter_attack" | "grant_next_attack_mult" | "refund_ct"
 ## stat_mod（常時）: evasion_rate_add / outgoing_mult / incoming_mult / first_attack_mult /
-##   ultimate_power_mult / exp_gain_mult / party_exp_gain_mult
+##   ultimate_power_mult / exp_gain_mult / party_exp_gain_mult /
+##   party_outgoing_mult / party_incoming_mult / death_save_once
 ## cooldown: CT 秒（0 = 都度発火可。on_combat_start は実質1回）
 
 const _DEFS: Dictionary = {
+	# ---- 神話装備（P3-EQ-MYTHIC-001） ----
+	"eq_mythic_burial_crown": {
+		"display_name": "葬冠の連鎖",
+		"category": "weapon",
+		"description": "与ダメージ+25%。敵撃破時、自身の行動待ちを大きく短縮する。",
+		"outgoing_mult": 1.25,
+		"trigger": "on_kill",
+		"condition": "always",
+		"effect": "refund_ct",
+		"refund_ct_fraction": 0.85,
+		"cooldown": 0.0,
+	},
+	"eq_mythic_cenotaph": {
+		"display_name": "不滅の碑銘",
+		"category": "armor",
+		"description": "戦闘中1回、致死ダメージをHP1で耐え、直後に被ダメを大きく軽減する。",
+		"death_save_once": true,
+		"death_save_incoming_mult": 0.35,
+		"death_save_duration_sec": 4.0,
+	},
+	"eq_mythic_hegemony": {
+		"display_name": "評議会の覇",
+		"category": "accessory",
+		"description": "パーティ全体の与ダメ+20%／被ダメ-15%／獲得EXP+25%。",
+		"party_outgoing_mult": 1.20,
+		"party_incoming_mult": 0.85,
+		"party_exp_gain_mult": 1.25,
+	},
+
 	# ---- 基本5職キャラ固有 ----
 	"ald_royal_flame": {
 		"display_name": "王炎の覇気",
@@ -571,6 +601,8 @@ static func weapon_stat_modifiers_for_member(member_index: int) -> Dictionary:
 		out["crit_damage_add"] = float(def["crit_damage_add"])
 	if def.has("exp_gain_mult"):
 		out["exp_gain_mult"] = float(def["exp_gain_mult"])
+	if def.has("outgoing_mult"):
+		out["outgoing_mult"] = float(def["outgoing_mult"])
 	if def.has("incoming_block_chance"):
 		out["incoming_block_chance"] = float(def["incoming_block_chance"])
 	if def.has("incoming_block_mult"):
@@ -602,7 +634,62 @@ static func character_stat_modifiers_for_member(member_index: int) -> Dictionary
 		for key: String in ["ultimate_power_mult", "exp_gain_mult", "outgoing_mult", "incoming_mult", "first_attack_mult"]:
 			if def.has(key):
 				out[key] *= float(def[key])
+	# 武器常時 outgoing（神話など）
+	var wdef: Dictionary = weapon_passive_def_for_member(member)
+	if wdef.has("outgoing_mult") and str(wdef.get("trigger", "")) != "on_attack":
+		out["outgoing_mult"] *= float(wdef["outgoing_mult"])
 	return out
+
+static func party_outgoing_mult() -> float:
+	var mult: float = 1.0
+	for member: Resource in GameState.party_members:
+		if member == null:
+			continue
+		for raw_def: Variant in _equipment_passives_for_member(member):
+			if raw_def is not Dictionary:
+				continue
+			var def: Dictionary = raw_def
+			if def.has("party_outgoing_mult"):
+				mult *= float(def["party_outgoing_mult"])
+	return mult
+
+static func party_incoming_mult() -> float:
+	var mult: float = 1.0
+	for member: Resource in GameState.party_members:
+		if member == null:
+			continue
+		for raw_def: Variant in _equipment_passives_for_member(member):
+			if raw_def is not Dictionary:
+				continue
+			var def: Dictionary = raw_def
+			if def.has("party_incoming_mult"):
+				mult *= float(def["party_incoming_mult"])
+	return mult
+
+## 装着者の装備パッシブに death_save_once があれば定義を返す（消費判定は CombatController）。
+static func death_save_def_for_member(member_index: int) -> Dictionary:
+	if member_index < 0 or member_index >= GameState.party_members.size():
+		return {}
+	var member: Resource = GameState.party_members[member_index]
+	for raw_def: Variant in _equipment_passives_for_member(member):
+		if raw_def is not Dictionary:
+			continue
+		var def: Dictionary = raw_def
+		if bool(def.get("death_save_once", false)):
+			return def
+	return {}
+
+static func on_kill_refund_fraction(member_index: int) -> float:
+	var def: Dictionary = weapon_passive_def_for_member(
+		GameState.party_members[member_index] if member_index >= 0 and member_index < GameState.party_members.size() else null
+	)
+	if def.is_empty():
+		return 0.0
+	if str(def.get("trigger", "")) != "on_kill":
+		return 0.0
+	if str(def.get("effect", "")) != "refund_ct":
+		return 0.0
+	return clampf(float(def.get("refund_ct_fraction", 0.0)), 0.0, 1.0)
 
 static func skill_stat_modifiers_for_member(member_index: int) -> Dictionary:
 	var out: Dictionary = weapon_stat_modifiers_for_member(member_index)
@@ -616,7 +703,7 @@ static func party_exp_mult() -> float:
 	for member: Resource in GameState.party_members:
 		if member == null:
 			continue
-		for raw_def: Variant in _core_passives_for_member(member):
+		for raw_def: Variant in for_member(member):
 			if raw_def is not Dictionary:
 				continue
 			var def: Dictionary = raw_def

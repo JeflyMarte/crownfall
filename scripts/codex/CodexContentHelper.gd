@@ -19,7 +19,7 @@ const ELEMENT_NAMES: Dictionary = {
 	"dark": "闇",
 }
 
-const RARITY_NAMES: Array[String] = ["通常", "上質", "希少", "伝説"]
+const RARITY_NAMES: Array[String] = ["通常", "上質", "希少", "伝説", "神話"]
 
 const DUNGEON_CODEX_META: Dictionary = {
 	"mourngate": {

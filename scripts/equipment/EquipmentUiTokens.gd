@@ -58,6 +58,7 @@ const INV_CELLS: Array[String] = [
 	ROOT + "UI_Equip_InvCell_R.png",
 	ROOT + "UI_Equip_InvCell_SR.png",
 	ROOT + "UI_Equip_InvCell_SSR.png",
+	ROOT + "UI_Equip_InvCell_SSR.png", # MYTHIC: SSR 枠＋専用色（アセット未分離）
 ]
 
 const CATEGORY_MIN_SIZE: Vector2 = Vector2(64, 76)
@@ -81,12 +82,13 @@ const INV_CELL_MARGINS: Vector4i = Vector4i(12, 12, 12, 12)
 const ICON_FRAME_MARGIN_PX: int = 18
 ## 弓は透過余白が多く小さく見えるため、inset をこの倍率へ縮小（鍛冶屋と同バランス）。
 const BOW_ICON_INSET_SCALE: float = 0.55
-## 装備セル枠線色（COMMON/RARE/EPIC/LEGENDARY）。背景は INV_CELLS の金属質ティント。
+## 装備セル枠線色（COMMON/RARE/EPIC/LEGENDARY/MYTHIC）。背景は INV_CELLS の金属質ティント。
 const RARITY_BORDER_COLORS: Array[Color] = [
 	Color(0.60, 0.60, 0.60),
 	Color(0.30, 0.55, 0.95),
 	Color(0.70, 0.45, 0.95),
 	Color(0.95, 0.75, 0.25),
+	Color(0.95, 0.35, 0.45), # MYTHIC — 紅金
 ]
 
 static func load_tex(path: String) -> Texture2D:

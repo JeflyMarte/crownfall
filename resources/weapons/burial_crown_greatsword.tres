@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "burial_crown_greatsword"
+display_name = "葬冠の大剣"
+description = "墓門の冠を鍛え直した神話の大剣。斬った魂が次の一振りを引き寄せると伝えられる。"
+fixed_skill_id = ""
+fixed_passive_id = "eq_mythic_burial_crown"
+base_attack = 22
+rarity = 4
+base_attack_speed = 0.95
+base_critical_rate = 0.08
+base_knockback = 0.5
+base_stagger_power = 0.3
+base_attack_range = 1.0
+weight = 1.15
+element = "dark"
+weapon_type = "greatsword"
+tags = Array[String](["slash", "dark"])

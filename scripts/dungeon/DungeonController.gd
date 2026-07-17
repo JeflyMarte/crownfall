@@ -9,6 +9,7 @@ const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 const _EnemyTierVariantConfig = preload("res://scripts/dungeon/EnemyTierVariantConfig.gd")
 const _WanderingEnemyConfig = preload("res://scripts/dungeon/WanderingEnemyConfig.gd")
 const _EvolutionTraits = preload("res://scripts/systems/EvolutionTraits.gd")
+const MythicLoot = preload("res://scripts/equipment/MythicLoot.gd")
 
 const ROOM_SEQUENCE: Array[int] = [
 	Enums.RoomType.START,
@@ -992,6 +993,26 @@ func apply_boss_legendary_loot(stage: Resource) -> Dictionary:
 	if not accessory_id.is_empty():
 		_spawn_accessory(accessory_id)
 		bonus["accessory_id"] = accessory_id
+	return bonus
+
+## ボス再クリア時の神話ドロップ（P3-EQ-MYTHIC-001）。通常レア抽選外。
+func apply_boss_mythic_loot(stage: Resource) -> Dictionary:
+	var bonus: Dictionary = {"category": "", "id": ""}
+	var rolled: Dictionary = MythicLoot.roll_for_boss_reclear(stage)
+	if rolled.is_empty():
+		return bonus
+	var category: String = str(rolled.get("category", ""))
+	var item_id: String = str(rolled.get("id", ""))
+	if category == "weapon":
+		_spawn_weapon(item_id)
+	elif category == "armor":
+		_spawn_armor(item_id)
+	elif category == "accessory":
+		_spawn_accessory(item_id)
+	else:
+		return bonus
+	bonus["category"] = category
+	bonus["id"] = item_id
 	return bonus
 
 const WEAPON_POOL: Array[String] = [

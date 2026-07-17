@@ -1,7 +1,7 @@
 class_name EquipmentUiHelper
 extends RefCounted
 
-const RARITY_GEMS: Array[String] = ["◇", "◆", "✦", "★"]
+const RARITY_GEMS: Array[String] = ["◇", "◆", "✦", "★", "❖"]
 const LEVEL_CAP: int = LevelSystem.MAX_LEVEL
 
 const SORT_LABELS: Dictionary = {
@@ -36,7 +36,7 @@ static func level_line(level: int, max_level: int = LEVEL_CAP) -> String:
 	return "Lv.%d / %d" % [clampi(level, 1, max_level), max_level]
 
 static func rarity_stars_text(rarity: int) -> String:
-	var count: int = clampi(rarity + 1, 1, 4)
+	var count: int = clampi(rarity + 1, 1, 5)
 	var out: String = ""
 	for _i in count:
 		out += "★"
@@ -91,6 +91,8 @@ static func apply_legendary_badge(parent: Control, rarity: int, cell_size: Vecto
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon.z_index = 2
+	if rarity >= Enums.Rarity.MYTHIC:
+		icon.modulate = Color(1.0, 0.45, 0.55, 1.0)
 	icon.anchor_left = 0.0
 	icon.anchor_top = 1.0
 	icon.anchor_right = 0.0

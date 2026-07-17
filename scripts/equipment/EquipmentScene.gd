@@ -46,9 +46,10 @@ const RARITY_COLORS: Array[Color] = [
 	Color(0.30, 0.55, 0.95),
 	Color(0.70, 0.45, 0.95),
 	Color(0.95, 0.75, 0.25),
+	Color(0.95, 0.35, 0.45),
 ]
-# レアリティ隅マーカー（COMMON/RARE/EPIC/LEGENDARY）。
-const RARITY_GEMS: Array[String] = ["◇", "◆", "✦", "★"]
+# レアリティ隅マーカー（COMMON/RARE/EPIC/LEGENDARY/MYTHIC）。
+const RARITY_GEMS: Array[String] = ["◇", "◆", "✦", "★", "❖"]
 
 const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45)
 const COLOR_SUB: Color = Color(0.72, 0.69, 0.62)

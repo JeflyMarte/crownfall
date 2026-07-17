@@ -130,6 +130,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `equipment/` | `EquipmentController.gd`, `EquipmentScene.gd`, **`EquipmentUiHelper.gd`**（P3-UI2-019）, **`EquipmentUiTokens.gd`**（装備 chrome）, **`BuildTagHelper.gd`**（P3-UI2-016）, **`AffixRoller.gd`**, **`AffixStatCalculator.gd`**, **`AffixDisplayFormatter.gd`**, **`JobStatCalculator.gd`** |
 | `blacksmith/` | `BlacksmithScene.gd`（生産／炉研ぎ／**錬成**／分解 — **P3-FORGE-ALCHEMY-001**）・`BlacksmithUiHelper.gd`・**`ForgeUiTokens.gd`** |
 | `gacha/` | **`GachaSystem.gd`**・**`GachaRarityConfig.gd`**・**`GachaLimitBreak.gd`**（**P3-GACHA-LIMIT-001**）・**`GachaRevealPresenter.gd`**（**P3-GACHA-REVEAL-001**）・**`GachaScene.gd`**（P3-UI2-020・**P3-GACHA-002/003**・**P3-UI-GACHA**）・**`GachaUiTokens.gd`**・**`GachaUiHelper.gd`** |
+| `equipment/MythicLoot.gd` | 神話ドロップ SSOT（**P3-EQ-MYTHIC-001**） |
 | `guild/` | **`GuildScene.gd`**（P3-D052 ジョブ認定・**P3-UI2-024** 認定カードリスト polish） |
 | `crafting/` | **`CraftHelper.gd`**（`can_craft` / `get_craftable_recipes` — P3-D141） |
 | `codex/` | **`CatalogHelper.gd`** / **`GuideCatalog.gd`** / **`CodexRichText.gd`**（**P3-CODEX-COPY-001** 手引き日本語・色強調）, **`CodexScene.gd`**（詳細 RichTextLabel） |

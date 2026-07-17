@@ -96,6 +96,7 @@ func start_combat(enemy_data: Resource, level: int = 1) -> void:
 # 群れ対応の戦闘開始（P3-D082）。単体は要素1の配列として扱う。
 func start_combat_group(enemies: Array, level: int = 1) -> void:
 	is_in_combat = true
+	clear_death_save_state()
 	enemy_level = maxi(1, level)
 	var lf: float = float(enemy_level - 1)
 	swarm_data.clear()
@@ -381,6 +382,7 @@ func flee_enemy_slot(slot: int) -> void:
 
 func end_combat() -> void:
 	is_in_combat = false
+	clear_death_save_state()
 	current_enemy_data = null
 	current_enemy_hp = 0
 	enemy_level = 1
@@ -480,10 +482,40 @@ func apply_damage_to_enemy(amount: int) -> void:
 	else:
 		current_enemy_hp = max(0, current_enemy_hp - amount)
 
+## 致死回避を使ったメンバー index → シールド終了時刻（Time.get_ticks_msec）。
+var _death_save_used: Dictionary = {}
+var _death_save_shield_until_msec: Dictionary = {}
+
+func clear_death_save_state() -> void:
+	_death_save_used.clear()
+	_death_save_shield_until_msec.clear()
+
 func apply_damage_to_member(index: int, amount: int) -> void:
 	if index < 0 or index >= party_combat_hp.size():
 		return
-	party_combat_hp[index] = max(0, party_combat_hp[index] - amount)
+	var before: int = int(party_combat_hp[index])
+	if before <= 0:
+		return
+	var after: int = max(0, before - amount)
+	if after <= 0 and not bool(_death_save_used.get(index, false)):
+		var save_def: Dictionary = CombatPassives.death_save_def_for_member(index)
+		if not save_def.is_empty():
+			_death_save_used[index] = true
+			party_combat_hp[index] = 1
+			var dur_sec: float = float(save_def.get("death_save_duration_sec", 4.0))
+			_death_save_shield_until_msec[index] = Time.get_ticks_msec() + int(dur_sec * 1000.0)
+			return
+	party_combat_hp[index] = after
+
+func refund_member_ct(member_index: int, fraction: float) -> void:
+	var frac: float = clampf(fraction, 0.0, 1.0)
+	if frac <= 0.0:
+		return
+	var key: String = _ct_unit_key("party", member_index)
+	if not unit_ct.has(key):
+		return
+	var full: float = get_unit_action_ct("party", member_index)
+	unit_ct[key] = full * (1.0 - frac)
 
 func is_enemy_slot_defeated(slot: int) -> bool:
 	return is_in_combat and not is_enemy_slot_alive(slot)
@@ -732,6 +764,7 @@ func get_member_outgoing_damage_multiplier(
 	var mult: float = _status_resolver.get_outgoing_damage_multiplier("party_%d" % member_index)
 	mult *= float(_member_relic_effects(member_index).get("outgoing_mult", 1.0))
 	mult *= float(CombatPassives.character_stat_modifiers_for_member(member_index).get("outgoing_mult", 1.0))
+	mult *= CombatPassives.party_outgoing_mult()
 	mult *= 1.0 + CombatSynergy.compute_physical_bonus(GameState.party_members)
 	mult *= float(CombatSynergy.compute_role_bonuses(GameState.party_members).get("outgoing_mult", 1.0))
 	if not action_range.is_empty():
@@ -748,6 +781,13 @@ func get_member_incoming_damage_multiplier(member_index: int) -> float:
 	var mult: float = _status_resolver.get_incoming_damage_multiplier("party_%d" % member_index)
 	mult *= float(_member_relic_effects(member_index).get("incoming_mult", 1.0))
 	mult *= float(CombatPassives.character_stat_modifiers_for_member(member_index).get("incoming_mult", 1.0))
+	mult *= CombatPassives.party_incoming_mult()
+	if bool(_death_save_shield_until_msec.has(member_index)):
+		if Time.get_ticks_msec() <= int(_death_save_shield_until_msec[member_index]):
+			var save_def: Dictionary = CombatPassives.death_save_def_for_member(member_index)
+			mult *= float(save_def.get("death_save_incoming_mult", 0.35))
+		else:
+			_death_save_shield_until_msec.erase(member_index)
 	# ロール（堅守）ボーナス（P3-D097・party 全体）
 	mult *= float(CombatSynergy.compute_role_bonuses(GameState.party_members).get("incoming_mult", 1.0))
 	# 探索方針（安全優先）被ダメ軽減（P3-D098）
