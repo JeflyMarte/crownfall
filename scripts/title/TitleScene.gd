@@ -1,16 +1,18 @@
 extends Control
 
-## タイトル（つづきから / はじめから）— P3-UI-TITLE-001 / P3-INTRO-001。
+## タイトル（はじめから / つづきから / デバッグ）— P3-UI-TITLE-001 / P3-INTRO-001 / デバッグフル所持。
 ## 背景は `UI_BG_TitleMain.png`（ロゴ焼込。テキストブランドは置かない）。
-## はじめから → 世界観導入（IntroLore）へ。
+## はじめから → 世界観導入（IntroLore）へ。デバッグ → 拠点へ直入。
 
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const STARTER_PICK_SCENE: String = "res://scenes/roster/StarterPickScene.tscn"
 const INTRO_LORE_SCENE: String = "res://scenes/intro/IntroLoreScene.tscn"
 const BG_PATH: String = "res://assets/ui/UI_BG_TitleMain.png"
+const _DebugFullUnlock = preload("res://scripts/debug/DebugFullUnlock.gd")
 
 var _btn_continue: Button
 var _confirm_new: ConfirmationDialog
+var _confirm_debug: ConfirmationDialog
 
 
 func _ready() -> void:
@@ -63,13 +65,17 @@ func _build_ui() -> void:
 	menu_col.add_theme_constant_override("separation", 12)
 	menu_wrap.add_child(menu_col)
 
+	var btn_new := _make_menu_button("はじめから")
+	btn_new.pressed.connect(_on_new_game_pressed)
+	menu_col.add_child(btn_new)
+
 	_btn_continue = _make_menu_button("つづきから")
 	_btn_continue.pressed.connect(_on_continue)
 	menu_col.add_child(_btn_continue)
 
-	var btn_new := _make_menu_button("はじめから")
-	btn_new.pressed.connect(_on_new_game_pressed)
-	menu_col.add_child(btn_new)
+	var btn_debug := _make_menu_button("デバッグ")
+	btn_debug.pressed.connect(_on_debug_pressed)
+	menu_col.add_child(btn_debug)
 
 	var btn_settings := _make_menu_button("設定")
 	btn_settings.pressed.connect(func() -> void: SceneRouter.open_settings("res://scenes/title/TitleScene.tscn"))
@@ -94,6 +100,18 @@ func _build_ui() -> void:
 	_confirm_new.confirmed.connect(_on_new_game_confirmed)
 	_confirm_new.canceled.connect(func() -> void: AudioManager.play_sfx("ui_cancel"))
 	add_child(_confirm_new)
+
+	_confirm_debug = ConfirmationDialog.new()
+	_confirm_debug.title = "デバッグ"
+	_confirm_debug.dialog_text = (
+		"セーブを上書きしてデバッグ用データで開始します。\n"
+		+ "（全装備・全キャラ・金999999・魔晶石9999・進行解放）\nよろしいですか？"
+	)
+	_confirm_debug.ok_button_text = "デバッグ開始"
+	_confirm_debug.cancel_button_text = "やめる"
+	_confirm_debug.confirmed.connect(_on_debug_confirmed)
+	_confirm_debug.canceled.connect(func() -> void: AudioManager.play_sfx("ui_cancel"))
+	add_child(_confirm_debug)
 
 
 func _make_menu_button(text: String) -> Button:
@@ -136,3 +154,18 @@ func _on_new_game_confirmed() -> void:
 	DailyMissionSystem.ensure_refreshed()
 	EventSystem.ensure_active()
 	SceneRouter.change_scene(INTRO_LORE_SCENE)
+
+
+func _on_debug_pressed() -> void:
+	if SaveManager.has_save():
+		_confirm_debug.popup_centered()
+	else:
+		_on_debug_confirmed()
+
+
+func _on_debug_confirmed() -> void:
+	_DebugFullUnlock.apply()
+	DailyMissionSystem.ensure_refreshed()
+	EventSystem.ensure_active()
+	SaveManager.save_game()
+	SceneRouter.change_scene(HOME_SCENE)

@@ -717,7 +717,7 @@ func _make_list_bottom_spacer() -> Control:
 	return spacer
 
 func _sorted_dungeons(route_type: String) -> Array:
-	if not Constants.is_playable_dungeon_route(route_type):
+	if not Constants.is_playable_dungeon_route(route_type) and not GameState.debug_full_unlock:
 		return []
 	var out: Array = []
 	for data in DataRegistry.get_all_dungeon_data():

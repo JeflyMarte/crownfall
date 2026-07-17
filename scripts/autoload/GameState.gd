@@ -9,6 +9,8 @@ const _StarterRecruitment = preload("res://scripts/roster/StarterRecruitment.gd"
 
 # 所持ゴールド（永続）
 var gold: int = 0
+## タイトル「デバッグ」適用セーブ。βスコープ／章解放をバイパス（永続）。
+var debug_full_unlock: bool = false
 
 # 編成中（アクティブ）の冒険者リスト（Adventurer Resource × 最大3）。roster の部分集合（参照）。
 var party_members: Array = []
@@ -373,6 +375,9 @@ func is_dungeon_unlocked(dungeon_id: String) -> bool:
 	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
 	if data == null:
 		return false
+	## デバッグフル所持: β封鎖・寄り道フラグ・直列解放を無視して選択可能にする。
+	if debug_full_unlock:
+		return true
 	if not Constants.is_playable_dungeon_route(str(data.route_type)):
 		return false
 	if (
@@ -1127,6 +1132,7 @@ func reset_for_new_game() -> void:
 	gold = 0
 	gacha_token = 0
 	gacha_pity = 0
+	debug_full_unlock = false
 	owned_helpers = {}
 	owned_relics = []
 	inventory = []

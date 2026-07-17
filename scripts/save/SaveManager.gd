@@ -42,6 +42,7 @@ func save_game() -> void:
 		"commander": GameState.commander.duplicate(true),
 		"starter_unlocked_ids": GameState.starter_unlocked_ids.duplicate(),
 		"starter_pick_pending": GameState.starter_pick_pending,
+		"debug_full_unlock": GameState.debug_full_unlock,
 	}
 	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file == null:
@@ -319,6 +320,8 @@ func _serialize_inventory() -> Array:
 func _apply_save_data(data: Dictionary) -> void:
 	if data.has("gold"):
 		GameState.gold = int(data["gold"])
+	## 章／ダンジョン解放判定より前に復元（sanitize が参照する）。
+	GameState.debug_full_unlock = bool(data.get("debug_full_unlock", false))
 	if data.has("dungeon_progress") and data["dungeon_progress"] is Dictionary:
 		GameState.dungeon_progress = data["dungeon_progress"]
 	if data.has("current_dungeon_id"):
