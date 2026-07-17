@@ -1,5 +1,5 @@
 extends GutTest
-## キャラ個人ステ補正（P3-STAT-CHAR-001 案A / 3桁スケール）。
+## キャラ個人ステ補正（P3-STAT-CHAR-001 / ×8 スケール）。
 
 const _Bonuses = preload("res://scripts/roster/CharacterStatBonuses.gd")
 
@@ -21,17 +21,16 @@ func _final_key(member: Resource) -> String:
 	]
 
 
-func test_base_member_hp_is_three_digit_band() -> void:
-	assert_eq(BalanceConfig.BASE_MEMBER_HP, 100)
-	assert_true(BalanceConfig.BASE_MEMBER_HP >= 100)
+func test_base_member_hp_scaled() -> void:
+	assert_eq(BalanceConfig.BASE_MEMBER_HP, 800)
 
 
 func test_star_band_gaps_are_wide() -> void:
 	var b2: Dictionary = GachaRarityConfig.get_stat_bonuses(2)
 	var b3: Dictionary = GachaRarityConfig.get_stat_bonuses(3)
 	var b4: Dictionary = GachaRarityConfig.get_stat_bonuses(4)
-	assert_true(int(b3["hp"]) - int(b2["hp"]) >= 20, "★2→3 HP差")
-	assert_true(int(b4["hp"]) - int(b3["hp"]) >= 30, "★3→4 HP差")
+	assert_true(int(b3["hp"]) - int(b2["hp"]) >= 160, "★2→3 HP差")
+	assert_true(int(b4["hp"]) - int(b3["hp"]) >= 240, "★3→4 HP差")
 
 
 func test_all_defined_characters_have_unique_final_stats() -> void:
@@ -55,7 +54,7 @@ func test_all_defined_characters_have_unique_final_stats() -> void:
 		var key: String = _final_key(member)
 		assert_false(seen.has(key), "ステ重複: %s = %s" % [member.id, key])
 		seen[key] = str(member.id)
-		assert_true(int(member.base_stats.hp) >= 100, "%s HP 3桁帯" % member.id)
+		assert_true(int(member.base_stats.hp) >= 800, "%s HP帯" % member.id)
 		assert_true(int(member.base_stats.attack) >= 1, "%s ATK>=1" % member.id)
 		assert_true(int(member.base_stats.defense) >= 1, "%s DEF>=1" % member.id)
 	assert_eq(seen.size(), roster.size())
@@ -75,13 +74,15 @@ func test_personal_bonus_triplets_are_all_unique() -> void:
 		seen[hkey] = str(k)
 
 
-func test_starter_ald_profile() -> void:
+func test_starter_ald_profile_near_320_atk() -> void:
 	var ald: Resource = _make_member("adventurer_0", "swordsman", Adventurer.STARTER_RARITY)
 	GachaRarityConfig.apply_stats_for_adventurer(ald)
-	## ★3 + 個人 → HP162 ATK38 DEF20
-	assert_eq(int(ald.base_stats.hp), CombatController.BASE_MEMBER_HP + 50 + 12)
-	assert_eq(int(ald.base_stats.attack), 18 + 20)
-	assert_eq(int(ald.base_stats.defense), 12 + 8)
+	## ★3 + 個人 → HP1296 ATK304 DEF160
+	assert_eq(int(ald.base_stats.hp), CombatController.BASE_MEMBER_HP + 400 + 96)
+	assert_eq(int(ald.base_stats.attack), 144 + 160)
+	assert_eq(int(ald.base_stats.defense), 96 + 64)
+	assert_true(int(ald.base_stats.attack) >= 300)
+	assert_true(int(ald.base_stats.attack) <= 340)
 
 
 func test_atk_def_spread_is_moderate() -> void:
@@ -103,12 +104,12 @@ func test_atk_def_spread_is_moderate() -> void:
 		defs.append(int(member.base_stats.defense))
 	atks.sort()
 	defs.sort()
-	assert_true(atks[atks.size() - 1] - atks[0] <= 40, "ATK差は抑えめ")
-	assert_true(defs[defs.size() - 1] - defs[0] <= 40, "DEF差は抑えめ")
+	assert_true(atks[atks.size() - 1] - atks[0] <= 320, "ATK差は抑えめ（×8後）")
+	assert_true(defs[defs.size() - 1] - defs[0] <= 320, "DEF差は抑えめ（×8後）")
 
 
 func test_attack_and_defense_floor() -> void:
-	var bonus: Dictionary = {"hp": 0, "attack": -99, "defense": -99}
+	var bonus: Dictionary = {"hp": 0, "attack": -9999, "defense": -9999}
 	var adv: Resource = _make_member("extra_floor", "alchemist", 3)
 	GachaRarityConfig.apply_base_stats_to_adventurer(
 		adv, 3, CombatController.BASE_MEMBER_HP, bonus

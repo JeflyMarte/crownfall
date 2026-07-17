@@ -24,13 +24,13 @@ const REFUND_BY_RARITY: Dictionary = {
 	4: 4,
 }
 
-# 素体（BASE_MEMBER_HP=100）への加算。戦闘・UI 表示で使用。
-# P3-STAT-CHAR-001: ★帯差を明確化（★2 << ★3 << ★4）。3桁見栄えに合わせ拡大。
+# 素体（BASE_MEMBER_HP=800）への加算。戦闘・UI 表示で使用。
+# P3-STAT-CHAR-001: ★帯差を明確化。全体×8（ATK目安 300台）。
 const STAT_BONUS_BY_RARITY: Dictionary = {
 	1: {"hp": 0, "attack": 0, "defense": 0},
-	2: {"hp": 20, "attack": 8, "defense": 4},
-	3: {"hp": 50, "attack": 18, "defense": 12},
-	4: {"hp": 90, "attack": 40, "defense": 28},
+	2: {"hp": 160, "attack": 64, "defense": 32},
+	3: {"hp": 400, "attack": 144, "defense": 96},
+	4: {"hp": 720, "attack": 320, "defense": 224},
 }
 
 static func clamp_rarity(rarity: int) -> int:
