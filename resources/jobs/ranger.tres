@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "ranger"
 display_name = "レンジャー"
-description = "弓による遠隔攻撃で後方から火力を出すジョブ。"
+description = "弓による遠隔攻撃で後方から火力を出す。"
 role = "scout"
 base_hp_modifier = 0.9
 base_attack_modifier = 1.05

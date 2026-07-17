@@ -33,6 +33,17 @@ func test_nina_typewriter_interval() -> void:
 	assert_lt(_IntroNinaSceneScript.CHAR_INTERVAL_SEC, 0.2)
 
 
+func test_starter_jobs_have_one_line_blurb() -> void:
+	## 隊員選択カード用に、初期5職すべて一行説明を持つ。
+	for def: Variant in GameState.BASE_ROSTER_DEFS:
+		var job_id: String = str(def["job"])
+		var job_data: Resource = DataRegistry.get_job_data(job_id)
+		assert_true(job_data != null, job_id)
+		var desc: String = str(job_data.description).strip_edges()
+		assert_true(not desc.is_empty(), job_id)
+		assert_true(not desc.contains("将来実装"), job_id)
+
+
 func test_intro_art_assets_exist() -> void:
 	# 初回 import 前でもディスク上の存在を正とする（ResourceLoader.exists は .import 依存）。
 	for path: String in [
