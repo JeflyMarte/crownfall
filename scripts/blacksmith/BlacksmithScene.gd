@@ -771,22 +771,26 @@ func _populate_enhance_stats(item: Resource) -> void:
 		"weapon":
 			var current_atk: int = _EquipmentEnhancer.get_effective_attack(item)
 			var level: int = _EquipmentEnhancer.get_enhance_level(item)
+			var forge_flat: int = BalanceConfig.EQUIP_FORGE_FLAT_PER_LEVEL
 			if level >= _EquipmentEnhancer.MAX_FORGE_LEVEL:
 				_add_stat_row("攻撃力", "%d（上限）" % current_atk, "atk")
 			else:
-				_add_stat_row("攻撃力", "%d → %d" % [current_atk, current_atk + 1], "atk")
+				_add_stat_row("攻撃力", "%d → %d" % [current_atk, current_atk + forge_flat], "atk")
 		"armor":
 			var def_now: int = _EquipmentEnhancer.effective_armor_defense(item)
 			var hp_now: int = _EquipmentEnhancer.effective_armor_hp(item)
 			var enh: int = _EquipmentEnhancer.get_enhance_level(item)
+			var forge_flat: int = BalanceConfig.EQUIP_FORGE_FLAT_PER_LEVEL
+			var forge_hp: int = BalanceConfig.EQUIP_FORGE_HP_PER_LEVEL
 			if enh >= _EquipmentEnhancer.MAX_FORGE_LEVEL:
 				_add_stat_row("防御力", "%d（上限）" % def_now, "def")
 				_add_stat_row("HP", "%d（上限）" % hp_now, "hp")
 			else:
-				_add_stat_row("防御力", "%d → %d" % [def_now, def_now + 1], "def")
-				_add_stat_row("HP", "%d → %d" % [hp_now, hp_now + 2], "hp")
+				_add_stat_row("防御力", "%d → %d" % [def_now, def_now + forge_flat], "def")
+				_add_stat_row("HP", "%d → %d" % [hp_now, hp_now + forge_hp], "hp")
 		"accessory":
 			var acc_data: Resource = DataRegistry.get_accessory_data(str(item.accessory_id))
+			var forge_flat: int = BalanceConfig.EQUIP_FORGE_FLAT_PER_LEVEL
 			for field_pair in [["hp_bonus", "HP", "hp"], ["attack_bonus", "攻撃力", "atk"], ["defense_bonus", "防御力", "def"]]:
 				var raw: int = _AccessoryStatResolver.resolve_int_stat(item, field_pair[0], acc_data)
 				if raw <= 0:
@@ -796,7 +800,7 @@ func _populate_enhance_stats(item: Resource) -> void:
 				if enh_lv >= _EquipmentEnhancer.MAX_FORGE_LEVEL:
 					_add_stat_row(field_pair[1], "%d（上限）" % now, field_pair[2])
 				else:
-					_add_stat_row(field_pair[1], "%d → %d" % [now, now + 1], field_pair[2])
+					_add_stat_row(field_pair[1], "%d → %d" % [now, now + forge_flat], field_pair[2])
 
 func _rebuild_dismantle_detail() -> void:
 	if _selected_dismantle_item == null:

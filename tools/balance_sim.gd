@@ -91,8 +91,9 @@ func _main() -> void:
 	quit(0)
 
 ## 成長値 sweep（P3-BAL-006）。hp/atk per Lv の組合せ × レベル帯でクリア率グリッドを出す。
-const SWEEP_HP_VALUES: Array[int] = [3, 4, 5, 6]
-const SWEEP_ATK_VALUES: Array[int] = [1, 2]
+## P3-BAL-STAT-SCALE-001 後の帯（旧 3〜6 / 1〜2 × STAT_SCALE）
+const SWEEP_HP_VALUES: Array[int] = [24, 32, 40, 48]
+const SWEEP_ATK_VALUES: Array[int] = [8, 16]
 const SWEEP_LEVELS: Array[int] = [1, 3, 6, 10, 13, 16, 20]
 
 func _run_sweep() -> void:
@@ -140,10 +141,10 @@ func _parse_args() -> void:
 					_boss_scale = clampf(float(parts[1]), 0.1, 3.0)
 			"--hp-per-level":
 				if parts.size() > 1:
-					_hp_per_level_override = clampi(int(parts[1]), 0, 20)
+					_hp_per_level_override = clampi(int(parts[1]), 0, 200)
 			"--atk-per-level":
 				if parts.size() > 1:
-					_atk_per_level_override = clampi(int(parts[1]), 0, 10)
+					_atk_per_level_override = clampi(int(parts[1]), 0, 100)
 			"--gear-atk":
 				if parts.size() > 1:
 					_gear_atk = maxi(0, int(parts[1]))

@@ -26,7 +26,7 @@ extends Resource
 @export var weight: float = 1.0
 @export var prefix_ids: Array[String] = []
 @export var suffix_ids: Array[String] = []
-## 炉研ぎ段階（0〜5）。実効 ATK = レベル補正後 rolled_attack + enhance_level（P3-D152 / P3-EQ-LVL-001）。
+## 炉研ぎ段階（0〜5）。実効 ATK = レベル補正後 + enhance×EQUIP_FORGE_FLAT（P3-D152 / P3-EQ-LVL-001）。
 @export var enhance_level: int = 0
 ## 装備レベル（1〜99）。ドロップ時 Biome 連動・戦闘で成長（P3-EQ-LVL-001）。
 @export var equip_level: int = 1

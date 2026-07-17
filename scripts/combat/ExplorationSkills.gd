@@ -5,8 +5,8 @@ extends RefCounted
 ## 戦闘スキルとは別枠。ロール判定は CombatSynergy と同型（1人以上で発動可）。
 
 const TRAP_CHANCE: float = 0.20
-const TRAP_DAMAGE_COMBAT: int = 10
-const TRAP_DAMAGE_ROOM: int = 15
+const TRAP_DAMAGE_COMBAT: int = BalanceConfig.TRAP_DAMAGE_COMBAT
+const TRAP_DAMAGE_ROOM: int = BalanceConfig.TRAP_DAMAGE_ROOM
 
 const _SKILLS: Dictionary = {
 	"gather": {

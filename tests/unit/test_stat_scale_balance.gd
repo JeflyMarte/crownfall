@@ -35,6 +35,40 @@ func test_roll_and_forge_follow_scale() -> void:
 	assert_eq(BalanceConfig.DEFENSE_MITIGATION_K, 100.0 * float(BalanceConfig.STAT_SCALE))
 
 
+func test_exploration_and_dot_follow_scale() -> void:
+	assert_eq(BalanceConfig.ROOM_HEAL_AMOUNT, 10 * BalanceConfig.STAT_SCALE)
+	assert_eq(BalanceConfig.TRAP_DAMAGE_COMBAT, 10 * BalanceConfig.STAT_SCALE)
+	assert_eq(BalanceConfig.TRAP_DAMAGE_ROOM, 15 * BalanceConfig.STAT_SCALE)
+	assert_eq(BalanceConfig.SPARE_VIAL_HEAL, 12 * BalanceConfig.STAT_SCALE)
+	assert_eq(BalanceConfig.DOT_FLAT_POISON, 4 * BalanceConfig.STAT_SCALE)
+	assert_eq(BalanceConfig.DOT_FLAT_IGNITE, 3 * BalanceConfig.STAT_SCALE)
+	assert_eq(BalanceConfig.COMBO_POISON_PER_STACK, 8 * BalanceConfig.STAT_SCALE)
+	assert_eq(BalanceConfig.COMBO_BLEED_PER_STACK, 6 * BalanceConfig.STAT_SCALE)
+	assert_eq(BalanceConfig.THREAT_TAUNT, 40.0 * float(BalanceConfig.STAT_SCALE))
+	var poison: Resource = DataRegistry.get_status_effect("poison")
+	var ignite: Resource = DataRegistry.get_status_effect("ignite")
+	assert_not_null(poison)
+	assert_not_null(ignite)
+	assert_eq(int(poison.dot_flat), BalanceConfig.DOT_FLAT_POISON)
+	assert_eq(int(ignite.dot_flat), BalanceConfig.DOT_FLAT_IGNITE)
+	var vial: Dictionary = CombatPassives.get_def("spare_vial")
+	assert_eq(int(vial.get("heal_value", 0)), BalanceConfig.SPARE_VIAL_HEAL)
+
+
+func test_guide_catalog_uses_scaled_numbers() -> void:
+	var desc: String = ""
+	for entry: Dictionary in GuideCatalog.get_entries():
+		if str(entry.get("id", "")) == "EQUIP-G005":
+			desc = str(entry.get("description", ""))
+			break
+	assert_false(desc.is_empty(), "EQUIP-G005 が存在する")
+	assert_true(
+		desc.contains("攻撃力 +%d" % BalanceConfig.EQUIP_FORGE_FLAT_PER_LEVEL),
+		"炉研ぎ手引きが現行加算を含む"
+	)
+	assert_false(desc.contains("攻撃力 +1（"), "旧 +1 表記が残っていない")
+
+
 func test_save_v5_to_v6_scales_inventory_flats() -> void:
 	var raw: Dictionary = {
 		"save_version": 5,

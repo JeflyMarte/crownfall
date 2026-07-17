@@ -59,7 +59,7 @@ const EVENTS: Array = [
 	{
 		"id": "fallen_altar",
 		"description": "崩れた祭壇を発見し、碑文に触れた。",
-		"outcome": {"type": "heal", "amount": 8},
+		"outcome": {"type": "heal", "amount": 64},
 	},
 	{
 		"id": "ancient_tome",
@@ -122,7 +122,7 @@ const EVENTS_MOURNGATE: Array = [
 	{
 		"id": "mourngate_temp_companion",
 		"description": "負傷した探索者と出会い、応急手当の知恵を得た。",
-		"outcome": {"type": "heal", "amount": 10},
+		"outcome": {"type": "heal", "amount": 80},
 	},
 ]
 
@@ -130,7 +130,7 @@ const EVENTS_WHISPERWOOD: Array = [
 	{
 		"id": "whisperwood_moss_spring",
 		"description": "苔むした岩の間に澄んだ湧水を見つけ、傷を洗った。",
-		"outcome": {"type": "heal", "amount": 10},
+		"outcome": {"type": "heal", "amount": 80},
 	},
 	{
 		"id": "whisperwood_hollow_cache",
@@ -158,7 +158,7 @@ const EVENTS_MISTFEN: Array = [
 	{
 		"id": "mistfen_dry_islet",
 		"description": "乾いた中州を見つけ、泥を落として小休止した。",
-		"outcome": {"type": "heal", "amount": 12},
+		"outcome": {"type": "heal", "amount": 96},
 	},
 	{
 		"id": "mistfen_sunken_satchel",
@@ -212,7 +212,7 @@ const EVENTS_BLACKSHORE: Array = [
 	{
 		"id": "blackshore_tidal_pool",
 		"description": "干潮の潮溜まりで聖別の残光を掬い、傷を癒した。",
-		"outcome": {"type": "heal", "amount": 14},
+		"outcome": {"type": "heal", "amount": 112},
 	},
 	{
 		"id": "blackshore_wreck_cache",
@@ -245,7 +245,7 @@ const EVENTS_WESTBAY_FLATS: Array = [
 	{
 		"id": "westbay_holy_spring",
 		"description": "干潟の湧きから聖水を汲み、持ち帰った。",
-		"outcome": {"type": "heal", "amount": 12},
+		"outcome": {"type": "heal", "amount": 96},
 	},
 ]
 
@@ -253,7 +253,7 @@ const EVENTS_FROSTRIDGE: Array = [
 	{
 		"id": "frostridge_snow_shelter",
 		"description": "雪庇の下で体を温め、凍傷を防いだ。",
-		"outcome": {"type": "heal", "amount": 16},
+		"outcome": {"type": "heal", "amount": 128},
 	},
 	{
 		"id": "frostridge_ice_cache",

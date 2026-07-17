@@ -201,10 +201,10 @@ const _DEFS: Dictionary = {
 	},
 	"spare_vial": {
 		"display_name": "予備薬瓶",
-		"description": "HPが50%を下回ったとき、自身を12回復する（CD 10秒）。",
+		"description": "HPが50%を下回ったとき、自身を96回復する（CD 10秒）。",
 		"trigger": "on_hit_taken",
 		"condition": "self_hp_below", "value": 0.5,
-		"effect": "heal", "target": "self", "heal_value": 12,
+		"effect": "heal", "target": "self", "heal_value": BalanceConfig.SPARE_VIAL_HEAL,
 		"cooldown": 10.0,
 	},
 	"unyielding_stance": {

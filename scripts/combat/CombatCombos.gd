@@ -14,8 +14,8 @@ extends RefCounted
 ## 数値は調整可。
 
 const _RULES: Dictionary = {
-	"poison": {"label": "毒爆発", "per_stack": 8, "hit_fraction": 0.0, "require_tag": ""},
-	"bleed": {"label": "出血追撃", "per_stack": 6, "hit_fraction": 0.0, "require_tag": "slash"},
+	"poison": {"label": "毒爆発", "per_stack": BalanceConfig.COMBO_POISON_PER_STACK, "hit_fraction": 0.0, "require_tag": ""},
+	"bleed": {"label": "出血追撃", "per_stack": BalanceConfig.COMBO_BLEED_PER_STACK, "hit_fraction": 0.0, "require_tag": "slash"},
 	"chill": {"label": "粉砕", "per_stack": 0, "hit_fraction": 0.5, "require_tag": ""},
 	"shock": {"label": "感電", "per_stack": 0, "hit_fraction": 0.4, "require_tag": "lightning"},
 }

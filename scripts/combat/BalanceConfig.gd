@@ -48,6 +48,12 @@ const ATTACK_PER_LEVEL_MASTER: int = 1 * STAT_SCALE
 
 # ── 回復スキル基準値（旧 DungeonScene 定数） ─────────────────────────────
 const HEAL_SKILL_BASE: int = 14 * STAT_SCALE
+## 回復部屋の固定回復（旧 10）
+const ROOM_HEAL_AMOUNT: int = 10 * STAT_SCALE
+
+# ── 探索罠（旧 ExplorationSkills 定数） ──────────────────────────────────
+const TRAP_DAMAGE_COMBAT: int = 10 * STAT_SCALE
+const TRAP_DAMAGE_ROOM: int = 15 * STAT_SCALE
 
 # ── 敵レベルスケール（P3-D081） ──────────────────────────────────────────
 const ENEMY_LEVEL_HP_K: float = 0.10
@@ -61,8 +67,15 @@ const PARTY_BALANCE_ATK_SHARE: float = 0.40
 # ── Threat（P3-D104） ────────────────────────────────────────────────────
 const THREAT_DAMAGE_K: float = 0.10   # 与ダメ1あたりの加算
 const THREAT_TAKEN_K: float = 0.15    # 被ダメ1あたりの加算
-const THREAT_TAUNT: float = 40.0      # 挑発（防御スロット）スパイク
+const THREAT_TAUNT: float = 40.0 * float(STAT_SCALE)  # 挑発（防御スロット）スパイク
 const THREAT_DECAY: float = 0.90
+
+# ── 状態／コンボの平坦値（旧スケール×STAT_SCALE） ───────────────────────
+const DOT_FLAT_POISON: int = 4 * STAT_SCALE
+const DOT_FLAT_IGNITE: int = 3 * STAT_SCALE
+const COMBO_POISON_PER_STACK: int = 8 * STAT_SCALE
+const COMBO_BLEED_PER_STACK: int = 6 * STAT_SCALE
+const SPARE_VIAL_HEAL: int = 12 * STAT_SCALE
 
 # ── 陣形（P3-D106） ──────────────────────────────────────────────────────
 const FORMATION_BACK_INCOMING: float = 0.85  # 後列の被ダメ倍率
