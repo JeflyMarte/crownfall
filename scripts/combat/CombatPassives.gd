@@ -5,12 +5,15 @@ extends RefCounted
 ## 共通フォーマット: Trigger → Condition → Effect → Cooldown。
 ## 基本5職ロスターはキャラ固有パッシブを優先、それ以外はジョブフォールバック。
 ##
-## trigger: "on_combat_start" | "on_hit_taken" | "on_ally_death" | "on_attack" | "on_kill"
+## trigger: "on_combat_start" | "on_action_start" | "on_hit_taken" | "on_ally_death" |
+##   "on_attack" | "on_kill" | "on_noncombat_enter"
 ## condition: "always" | "self_hp_below"（value=HP割合）
-## effect: "apply_status" | "heal" | "bonus_damage" | "counter_attack" | "grant_next_attack_mult" | "refund_ct"
+## effect: "apply_status" | "heal" | "bonus_damage" | "counter_attack" | "grant_next_attack_mult" |
+##   "refund_ct" | "grant_party_incoming_mult"
 ## stat_mod（常時）: evasion_rate_add / outgoing_mult / incoming_mult / first_attack_mult /
 ##   ultimate_power_mult / exp_gain_mult / party_exp_gain_mult /
-##   party_outgoing_mult / party_incoming_mult / death_save_once
+##   party_outgoing_mult / party_incoming_mult / death_save_once / death_save_chance /
+##   exploration_damage_immune / outgoing_mult_requires_hp_below
 ## cooldown: CT 秒（0 = 都度発火可。on_combat_start は実質1回）
 
 const _DEFS: Dictionary = {
@@ -50,20 +53,24 @@ const _DEFS: Dictionary = {
 		"outgoing_mult": 1.10,
 	},
 	"riva_lone_focus": {
-		"display_name": "孤高の集中",
-		"description": "味方が倒れたとき、反撃する（戦闘中1回）。",
-		"trigger": "on_ally_death",
+		"display_name": "毒矢の刻印",
+		"description": "攻撃時25%の確率で敵に毒を付与する。",
+		"trigger": "on_attack",
 		"condition": "always",
-		"effect": "counter_attack",
-		"once_per_combat": true,
+		"effect": "apply_status",
+		"status_id": "poison",
+		"target": "enemy",
+		"status_chance": 0.25,
 		"cooldown": 0.0,
 	},
 	"elias_field_elixir": {
 		"display_name": "野戦調合",
-		"description": "味方が倒れたとき、パーティを15回復する。",
-		"trigger": "on_ally_death",
+		"description": "自身の行動開始時、味方全体のHPを30%回復する。",
+		"trigger": "on_action_start",
 		"condition": "always",
-		"effect": "heal", "target": "party", "value": 15,
+		"effect": "heal",
+		"target": "party",
+		"heal_max_hp_fraction": 0.30,
 		"cooldown": 0.0,
 	},
 	"galen_sacred_bastion": {
@@ -111,7 +118,7 @@ const _DEFS: Dictionary = {
 		"bonus_fraction": 0.30,
 		"cooldown": 0.0,
 	},
-	# ---- ガチャ助っ人固有（P3-GACHA-005） ----
+	# ---- ガチャ助っ人固有（P3-GACHA-005 / P3-PASSIVE-CHAR-001） ----
 	"leon_sword_focus": {
 		"display_name": "剣勢の集中",
 		"trigger": "on_combat_start",
@@ -120,42 +127,52 @@ const _DEFS: Dictionary = {
 		"cooldown": 0.0,
 	},
 	"ivar_trail_sight": {
-		"display_name": "狩場の目",
-		"trigger": "on_combat_start",
-		"condition": "always",
-		"effect": "apply_status", "status_id": "empower", "target": "self",
-		"cooldown": 0.0,
+		"display_name": "辺境の踏破",
+		"description": "非戦闘（罠・探索ダメージ）を受けない。",
+		"exploration_damage_immune": true,
 	},
 	"serin_quick_mend": {
-		"display_name": "応急調合",
-		"trigger": "on_ally_death",
+		"display_name": "野営の調合",
+		"description": "非戦闘エリアに入ったとき、味方全体のHPを30%回復する。",
+		"trigger": "on_noncombat_enter",
 		"condition": "always",
-		"effect": "heal", "target": "party", "value": 14,
+		"effect": "heal",
+		"target": "party",
+		"heal_max_hp_fraction": 0.30,
 		"cooldown": 0.0,
 	},
 	"mira_beast_call": {
 		"display_name": "獣呼びの絆",
-		"trigger": "on_ally_death",
+		"description": "攻撃時20%の確率で敵を拘束する。",
+		"trigger": "on_attack",
 		"condition": "always",
-		"effect": "apply_status", "status_id": "empower", "target": "party",
+		"effect": "apply_status",
+		"status_id": "snare",
+		"target": "enemy",
+		"status_chance": 0.20,
 		"cooldown": 0.0,
 	},
 	"valden_iron_oath": {
 		"display_name": "鉄誓の守護",
+		"description": "被ダメージ12%軽減。被弾時、戦闘中1回だけ味方全体の被ダメを10%軽減する。",
+		"incoming_mult": 0.88,
 		"trigger": "on_hit_taken",
-		"condition": "self_hp_below", "value": 0.5,
-		"effect": "apply_status", "status_id": "guard", "target": "self",
-		"cooldown": 5.0,
+		"condition": "always",
+		"effect": "grant_party_incoming_mult",
+		"mult": 0.90,
+		"once_per_combat": true,
+		"cooldown": 0.0,
 	},
 	"kaida_arena_edge": {
 		"display_name": "闘技場の切っ先",
-		"description": "与ダメージが常時6%上昇する。",
-		"outgoing_mult": 1.06,
+		"description": "HPが50%以下のとき、与ダメージが30%上昇する。",
+		"outgoing_mult": 1.30,
+		"outgoing_mult_requires_hp_below": 0.5,
 	},
 	"garm_caravan_guard": {
 		"display_name": "隊商の盾心",
-		"description": "被ダメージが常時6%軽減する。",
-		"incoming_mult": 0.94,
+		"description": "致死ダメージを10%の確率でHP1で耐える。",
+		"death_save_chance": 0.10,
 	},
 	# ---- ジョブフォールバック補完（P3-D155） ----
 	"foresight": {
@@ -513,8 +530,8 @@ const _JOB_PASSIVES: Dictionary = {
 	"beast_tamer": ["pack_instinct"],
 }
 
-# ★3 / ★4 ガチャ冒険者の職固有パッシブ（P3-D155 / P3-GACHA-006）。
-# ★1〜2 は付与なし（初期ステ差のみ）。★4 は ★4 定義のみ（★3 と重複付与しない）。
+# ★3 / ★4 職帯パッシブ定義（データ残置）。P3-PASSIVE-CHAR-001 案αにより
+# 自動付与・選択プールからは外し、差別化はキャラ固有のみ。
 const _STAR3_JOB_PASSIVES: Dictionary = {
 	"swordsman": "sword_charge",
 	"ranger": "wind_reading",
@@ -531,6 +548,7 @@ const _STAR4_JOB_PASSIVES: Dictionary = {
 }
 
 # レア度に応じた職固有ティアパッシブ定義（該当なしは空 Dictionary）。
+# 案α: 装備プールには載せない（定義照会・テスト用に残置）。
 static func tier_def_for(job_id: String, rarity: int) -> Dictionary:
 	if rarity >= 4:
 		return _def_with_id(str(_STAR4_JOB_PASSIVES.get(job_id, "")))
@@ -611,7 +629,8 @@ static func weapon_stat_modifiers_for_member(member_index: int) -> Dictionary:
 		out["element_outgoing_mult"] = (def["element_outgoing_mult"] as Dictionary).duplicate()
 	return out
 
-static func character_stat_modifiers_for_member(member_index: int) -> Dictionary:
+## hp_ratio: 0..1。負なら HP 条件付き outgoing は適用しない（非戦闘参照用）。
+static func character_stat_modifiers_for_member(member_index: int, hp_ratio: float = -1.0) -> Dictionary:
 	var out: Dictionary = {
 		"evasion_rate_add": 0.0,
 		"ultimate_power_mult": 1.0,
@@ -623,7 +642,7 @@ static func character_stat_modifiers_for_member(member_index: int) -> Dictionary
 	if member_index < 0 or member_index >= GameState.party_members.size():
 		return out
 	var member: Resource = GameState.party_members[member_index]
-	for raw_def: Variant in _core_passives_for_member(member):
+	for raw_def: Variant in for_member(member):
 		if raw_def is not Dictionary:
 			continue
 		var def: Dictionary = raw_def
@@ -631,9 +650,16 @@ static func character_stat_modifiers_for_member(member_index: int) -> Dictionary
 			continue
 		if def.has("evasion_rate_add"):
 			out["evasion_rate_add"] += float(def["evasion_rate_add"])
-		for key: String in ["ultimate_power_mult", "exp_gain_mult", "outgoing_mult", "incoming_mult", "first_attack_mult"]:
+		for key: String in ["ultimate_power_mult", "exp_gain_mult", "incoming_mult", "first_attack_mult"]:
 			if def.has(key):
 				out[key] *= float(def[key])
+		if def.has("outgoing_mult"):
+			var need_below: float = float(def.get("outgoing_mult_requires_hp_below", -1.0))
+			if need_below >= 0.0:
+				if hp_ratio >= 0.0 and hp_ratio <= need_below:
+					out["outgoing_mult"] *= float(def["outgoing_mult"])
+			else:
+				out["outgoing_mult"] *= float(def["outgoing_mult"])
 	# 武器常時 outgoing（神話など）
 	var wdef: Dictionary = weapon_passive_def_for_member(member)
 	if wdef.has("outgoing_mult") and str(wdef.get("trigger", "")) != "on_attack":
@@ -666,18 +692,29 @@ static func party_incoming_mult() -> float:
 				mult *= float(def["party_incoming_mult"])
 	return mult
 
-## 装着者の装備パッシブに death_save_once があれば定義を返す（消費判定は CombatController）。
+## 致死回避パッシブ定義（装備→キャラ固有）。消費／確率判定は CombatController。
 static func death_save_def_for_member(member_index: int) -> Dictionary:
 	if member_index < 0 or member_index >= GameState.party_members.size():
 		return {}
 	var member: Resource = GameState.party_members[member_index]
-	for raw_def: Variant in _equipment_passives_for_member(member):
+	for raw_def: Variant in for_member(member):
 		if raw_def is not Dictionary:
 			continue
 		var def: Dictionary = raw_def
-		if bool(def.get("death_save_once", false)):
+		if bool(def.get("death_save_once", false)) or float(def.get("death_save_chance", 0.0)) > 0.0:
 			return def
 	return {}
+
+
+static func member_ignores_exploration_damage(member: Resource) -> bool:
+	if member == null:
+		return false
+	for raw_def: Variant in for_member(member):
+		if raw_def is not Dictionary:
+			continue
+		if bool(raw_def.get("exploration_damage_immune", false)):
+			return true
+	return false
 
 static func on_kill_refund_fraction(member_index: int) -> float:
 	var def: Dictionary = weapon_passive_def_for_member(
@@ -854,14 +891,8 @@ static func selectable_passive_ids(member: Resource) -> Array[String]:
 	return out
 
 static func _core_passives_for_member(member: Resource) -> Array:
-	var out: Array = _base_passives_for_member(member)
-	if member != null and _BASE_ROSTER_PASSIVES.has(str(member.id)):
-		return out
-	var rarity: int = int(member.rarity) if "rarity" in member else 0
-	var tier_def: Dictionary = tier_def_for(str(member.job_id), rarity)
-	if not tier_def.is_empty():
-		out.append(_with_gacha_limit_break(member, tier_def))
-	return out
+	## P3-PASSIVE-CHAR-001 案α: 職帯は自動付与しない（固有／ジョブFBのみ）。
+	return _base_passives_for_member(member)
 
 static func _base_passives_for_member(member: Resource) -> Array:
 	if member == null:

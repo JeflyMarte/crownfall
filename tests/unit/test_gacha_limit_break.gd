@@ -75,8 +75,10 @@ func test_core_passives_scale_for_gacha_member() -> void:
 	var found_scaled: bool = false
 	for d: Variant in defs:
 		if str(d.get("id", "")) == "valden_iron_oath":
-			## HP閾値が 0.5 * 1.5 = 0.75
-			assert_almost_eq(float(d.get("value", 0.0)), 0.75, 0.001)
+			## incoming 0.88 → 軽減幅 0.12 * 1.5 = 0.18 → 0.82
+			assert_almost_eq(float(d.get("incoming_mult", 1.0)), 0.82, 0.001)
+			## party ward 0.90 → 軽減幅 0.10 * 1.5 = 0.15 → 0.85
+			assert_almost_eq(float(d.get("mult", 1.0)), 0.85, 0.001)
 			found_scaled = true
 	assert_true(found_scaled, "valden_iron_oath should be present and scaled")
 
@@ -88,6 +90,6 @@ func test_stat_passive_scales_via_core() -> void:
 	adv.job_id = "swordsman"
 	adv.rarity = 2
 	GameState.party_members = [adv]
-	var mods: Dictionary = CombatPassives.character_stat_modifiers_for_member(0)
-	## 1.06 → excess 0.06 * 1.5 = 0.09 → 1.09
-	assert_almost_eq(float(mods.get("outgoing_mult", 1.0)), 1.09, 0.001)
+	var mods: Dictionary = CombatPassives.character_stat_modifiers_for_member(0, 0.4)
+	## 1.30 → excess 0.30 * 1.5 = 0.45 → 1.45（HP50%以下時）
+	assert_almost_eq(float(mods.get("outgoing_mult", 1.0)), 1.45, 0.001)

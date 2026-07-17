@@ -27,14 +27,17 @@ func test_unequip_passive_persists_empty() -> void:
 
 
 func test_toggle_swaps_equipped_passive() -> void:
+	## P3-PASSIVE-CHAR-001 案α: 職帯は選択不可。外して再装備でトグルを検証。
 	var member: Resource = _make_member("extra_2", "alchemist", 3)
-	GameState.toggle_member_passive(member, "spare_vial")
+	GameState.toggle_member_passive(member, "field_medic")
+	assert_eq(GameState.get_equipped_passive_ids(member), [])
+	GameState.toggle_member_passive(member, "field_medic")
 	var ids: Array[String] = GameState.get_equipped_passive_ids(member)
-	assert_eq(ids, ["spare_vial"])
+	assert_eq(ids, ["field_medic"])
 	var combat_ids: Array = []
 	for def in CombatPassives.for_member(member):
 		combat_ids.append(str(def.get("id", "")))
-	assert_eq(combat_ids, ["spare_vial"])
+	assert_eq(combat_ids, ["field_medic"])
 
 
 func test_selectable_pool_excludes_equipment_passives() -> void:

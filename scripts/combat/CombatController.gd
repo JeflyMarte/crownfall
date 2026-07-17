@@ -485,10 +485,13 @@ func apply_damage_to_enemy(amount: int) -> void:
 ## 致死回避を使ったメンバー index → シールド終了時刻（Time.get_ticks_msec）。
 var _death_save_used: Dictionary = {}
 var _death_save_shield_until_msec: Dictionary = {}
+## 戦闘中の一時パーティ被ダメ倍率（ヴァルデン等）。1.0=等倍。
+var party_temp_incoming_mult: float = 1.0
 
 func clear_death_save_state() -> void:
 	_death_save_used.clear()
 	_death_save_shield_until_msec.clear()
+	party_temp_incoming_mult = 1.0
 
 func apply_damage_to_member(index: int, amount: int) -> void:
 	if index < 0 or index >= party_combat_hp.size():
@@ -497,14 +500,24 @@ func apply_damage_to_member(index: int, amount: int) -> void:
 	if before <= 0:
 		return
 	var after: int = max(0, before - amount)
-	if after <= 0 and not bool(_death_save_used.get(index, false)):
+	if after <= 0:
 		var save_def: Dictionary = CombatPassives.death_save_def_for_member(index)
 		if not save_def.is_empty():
-			_death_save_used[index] = true
-			party_combat_hp[index] = 1
-			var dur_sec: float = float(save_def.get("death_save_duration_sec", 4.0))
-			_death_save_shield_until_msec[index] = Time.get_ticks_msec() + int(dur_sec * 1000.0)
-			return
+			var once: bool = bool(save_def.get("death_save_once", false))
+			if once and bool(_death_save_used.get(index, false)):
+				party_combat_hp[index] = after
+				return
+			var chance: float = float(save_def.get("death_save_chance", 1.0 if once else 0.0))
+			if chance <= 0.0:
+				chance = 1.0 if once else 0.0
+			if chance > 0.0 and randf() <= chance:
+				if once:
+					_death_save_used[index] = true
+				party_combat_hp[index] = 1
+				var dur_sec: float = float(save_def.get("death_save_duration_sec", 0.0))
+				if dur_sec > 0.0:
+					_death_save_shield_until_msec[index] = Time.get_ticks_msec() + int(dur_sec * 1000.0)
+				return
 	party_combat_hp[index] = after
 
 func refund_member_ct(member_index: int, fraction: float) -> void:
@@ -763,7 +776,10 @@ func get_member_outgoing_damage_multiplier(
 ) -> float:
 	var mult: float = _status_resolver.get_outgoing_damage_multiplier("party_%d" % member_index)
 	mult *= float(_member_relic_effects(member_index).get("outgoing_mult", 1.0))
-	mult *= float(CombatPassives.character_stat_modifiers_for_member(member_index).get("outgoing_mult", 1.0))
+	var hp_ratio: float = 1.0
+	if member_index < party_max_hp.size() and party_max_hp[member_index] > 0:
+		hp_ratio = float(party_combat_hp[member_index]) / float(party_max_hp[member_index])
+	mult *= float(CombatPassives.character_stat_modifiers_for_member(member_index, hp_ratio).get("outgoing_mult", 1.0))
 	mult *= CombatPassives.party_outgoing_mult()
 	mult *= 1.0 + CombatSynergy.compute_physical_bonus(GameState.party_members)
 	mult *= float(CombatSynergy.compute_role_bonuses(GameState.party_members).get("outgoing_mult", 1.0))
@@ -782,6 +798,7 @@ func get_member_incoming_damage_multiplier(member_index: int) -> float:
 	mult *= float(_member_relic_effects(member_index).get("incoming_mult", 1.0))
 	mult *= float(CombatPassives.character_stat_modifiers_for_member(member_index).get("incoming_mult", 1.0))
 	mult *= CombatPassives.party_incoming_mult()
+	mult *= clampf(party_temp_incoming_mult, 0.05, 1.0)
 	if bool(_death_save_shield_until_msec.has(member_index)):
 		if Time.get_ticks_msec() <= int(_death_save_shield_until_msec[member_index]):
 			var save_def: Dictionary = CombatPassives.death_save_def_for_member(member_index)

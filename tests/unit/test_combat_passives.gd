@@ -1,5 +1,5 @@
 extends GutTest
-## CombatPassives の解決ロジック（P3-D155 / P3-GACHA-006）。
+## CombatPassives の解決ロジック（P3-D155 / P3-PASSIVE-CHAR-001）。
 
 
 func _make_member(id: String, job_id: String, rarity: int) -> Resource:
@@ -29,30 +29,27 @@ func test_low_rarity_gets_job_fallback_only() -> void:
 	assert_eq(ids, ["foresight"], "★2以下はジョブフォールバックのみ")
 
 
-func test_star3_appends_tier_passive() -> void:
+func test_star3_no_auto_tier_passive() -> void:
 	var member: Resource = _make_member("extra_2", "alchemist", 3)
 	var ids: Array = _ids(CombatPassives.for_member(member))
-	assert_eq(ids, ["field_medic"], "★3ティアは装備時のみ有効（既定はジョブFB）")
+	assert_eq(ids, ["field_medic"], "案α: 職帯は自動付与しない")
 	var pool: Array[String] = CombatPassives.selectable_passive_ids(member)
 	assert_true(pool.has("field_medic"))
-	assert_true(pool.has("spare_vial"))
+	assert_false(pool.has("spare_vial"), "職帯は選択プール外")
 
 
-func test_star4_appends_star4_only() -> void:
+func test_star4_no_auto_tier_passive() -> void:
 	var member: Resource = _make_member("extra_3", "vanguard", 4)
 	var ids: Array = _ids(CombatPassives.for_member(member))
-	assert_eq(ids, ["bulwark"], "★4ティアは装備時のみ有効（既定はジョブFB）")
-	GameState.toggle_member_passive(member, "greatshield_order")
-	ids = _ids(CombatPassives.for_member(member))
-	assert_eq(ids, ["greatshield_order"])
-	assert_false(ids.has("unyielding_stance"), "★3定義は重複付与しない")
+	assert_eq(ids, ["bulwark"], "案α: ★4職帯も自動付与しない")
+	assert_false(CombatPassives.selectable_passive_ids(member).has("greatshield_order"))
 
 
-func test_gacha_helper_keeps_own_passive_plus_tier() -> void:
+func test_gacha_helper_keeps_own_passive_only() -> void:
 	var member: Resource = _make_member("gacha_helper_a", "vanguard", 4)
 	var ids: Array = _ids(CombatPassives.for_member(member))
-	assert_eq(ids, ["valden_iron_oath"], "助っ人固有が既定。★4は装備で差し替え")
-	assert_true(CombatPassives.selectable_passive_ids(member).has("greatshield_order"))
+	assert_eq(ids, ["valden_iron_oath"], "助っ人固有のみ（職帯なし）")
+	assert_false(CombatPassives.selectable_passive_ids(member).has("greatshield_order"))
 
 
 func test_all_tier_passive_defs_exist() -> void:
@@ -110,10 +107,41 @@ func test_character_stat_modifiers_aggregate() -> void:
 	GameState.party_members = prev_party
 
 
-func test_party_exp_mult_from_panacea() -> void:
+func test_starter_and_gacha_passive_redesign() -> void:
+	var riva: Dictionary = CombatPassives.get_def("riva_lone_focus")
+	assert_eq(str(riva.get("status_id", "")), "poison")
+	assert_eq(float(riva.get("status_chance", 0.0)), 0.25)
+	var elias: Dictionary = CombatPassives.get_def("elias_field_elixir")
+	assert_eq(str(elias.get("trigger", "")), "on_action_start")
+	assert_eq(float(elias.get("heal_max_hp_fraction", 0.0)), 0.30)
+	var kaida: Dictionary = CombatPassives.get_def("kaida_arena_edge")
+	assert_eq(float(kaida.get("outgoing_mult", 0.0)), 1.30)
+	assert_eq(float(kaida.get("outgoing_mult_requires_hp_below", -1.0)), 0.5)
+	var ivar: Dictionary = CombatPassives.get_def("ivar_trail_sight")
+	assert_true(bool(ivar.get("exploration_damage_immune", false)))
+	var garm: Dictionary = CombatPassives.get_def("garm_caravan_guard")
+	assert_eq(float(garm.get("death_save_chance", 0.0)), 0.10)
+	var serin: Dictionary = CombatPassives.get_def("serin_quick_mend")
+	assert_eq(str(serin.get("trigger", "")), "on_noncombat_enter")
+	var mira: Dictionary = CombatPassives.get_def("mira_beast_call")
+	assert_eq(str(mira.get("status_id", "")), "snare")
+	assert_eq(float(mira.get("status_chance", 0.0)), 0.20)
+	var valden: Dictionary = CombatPassives.get_def("valden_iron_oath")
+	assert_eq(float(valden.get("incoming_mult", 0.0)), 0.88)
+	assert_eq(str(valden.get("effect", "")), "grant_party_incoming_mult")
+
+
+func test_kaida_outgoing_requires_low_hp() -> void:
 	var prev_party: Array = GameState.party_members.duplicate()
-	var member: Resource = _make_member("extra_alch", "alchemist", 4)
-	GameState.toggle_member_passive(member, "panacea_gift")
+	var member: Resource = _make_member("gacha_helper_f", "swordsman", 2)
 	GameState.party_members = [member]
-	assert_eq(CombatPassives.party_exp_mult(), 1.10)
+	var high: Dictionary = CombatPassives.character_stat_modifiers_for_member(0, 0.8)
+	assert_eq(float(high.get("outgoing_mult", 1.0)), 1.0)
+	var low: Dictionary = CombatPassives.character_stat_modifiers_for_member(0, 0.4)
+	assert_eq(float(low.get("outgoing_mult", 1.0)), 1.30)
 	GameState.party_members = prev_party
+
+
+func test_ivar_exploration_immunity_flag() -> void:
+	var member: Resource = _make_member("gacha_helper_b", "ranger", 2)
+	assert_true(CombatPassives.member_ignores_exploration_damage(member))

@@ -2498,6 +2498,7 @@ func _enter_current_room() -> void:
 		_boss_sprite.visible = false
 		_hide_enemy_sprite()
 		_hide_chr_sprites()
+		_fire_noncombat_enter_passives()
 		match $DungeonController.current_room_type:
 			Enums.RoomType.HEAL:
 				_resolve_heal_room()
@@ -3049,11 +3050,9 @@ func _try_exploration_trap() -> void:
 		_append_log("[探索] 罠解除: パーティは無事だった")
 		return
 	var dmg: int = ExplorationSkills.trap_damage()
-	var living: Array[int] = []
-	for i: int in members.size():
-		if $CombatController.is_member_alive(i):
-			living.append(i)
+	var living: Array[int] = _living_exploration_damage_targets()
 	if living.is_empty():
+		_append_log("[探索] 罠: 辺境の踏破により被害なし")
 		return
 	var target: int = living[randi() % living.size()]
 	var m: Resource = GameState.get_combatant(target)
@@ -3087,14 +3086,12 @@ func _resolve_trap_room_async() -> void:
 		return
 	var hit_text: String = TrapPresentationScript.pick_hit_line()
 	var dmg: int = ExplorationSkills.trap_damage_room()
-	var members: Array = GameState.party_members
-	var living: Array[int] = []
-	for i: int in members.size():
-		if $CombatController.is_member_alive(i):
-			living.append(i)
+	var living: Array[int] = _living_exploration_damage_targets()
 	if living.is_empty():
+		var avoid_immune: String = "辺境の踏破により罠の被害を受けなかった"
 		_set_non_combat_phase_bg(TrapPresentationScript.bg_path_for_phase("avoid"))
-		_set_trap_avoid_narrative(TrapPresentationScript.pick_avoid_line())
+		_set_trap_avoid_narrative(avoid_immune)
+		_append_log("[罠] %s" % avoid_immune)
 		_trap_presentation_active = false
 		_reset_narrative_typography()
 		_finish_room_and_continue()
@@ -4697,6 +4694,7 @@ func _do_member_turn(member_idx: int) -> void:
 		var mname: String = skip_member.display_name if skip_member != null else "?"
 		_append_log("[%s] %s は行動できなかった" % [skip_label, mname])
 		return
+	_fire_member_passives(member_idx, "on_action_start")
 	var member: Resource = GameState.get_combatant(member_idx)
 	$CombatController.resolve_member_target(member_idx, CombatGambit.target_from_member(member))
 	var ctx: Dictionary = _build_tactics_context(member_idx)
@@ -5094,6 +5092,25 @@ func _fire_combat_start_passives() -> void:
 		if $CombatController.is_member_alive(i):
 			_fire_member_passives(i, "on_combat_start")
 
+
+func _fire_noncombat_enter_passives() -> void:
+	$CombatController.ensure_party_hp_for_combat()
+	for i: int in GameState.party_members.size():
+		if $CombatController.is_member_alive(i):
+			_fire_member_passives(i, "on_noncombat_enter")
+
+
+func _living_exploration_damage_targets() -> Array[int]:
+	var living: Array[int] = []
+	for i: int in GameState.party_members.size():
+		if not $CombatController.is_member_alive(i):
+			continue
+		var m: Resource = GameState.get_combatant(i)
+		if CombatPassives.member_ignores_exploration_damage(m):
+			continue
+		living.append(i)
+	return living
+
 # メンバー被弾フック: 生存なら on_hit_taken、死亡なら生存者の on_ally_death を発火。
 func _on_member_damaged(target_idx: int, ctx: Dictionary = {}) -> void:
 	if $CombatController.is_member_alive(target_idx):
@@ -5187,24 +5204,46 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 				applied = $CombatController.apply_status_to_enemy_slot(enemy_slot, rand_sid, 1, 0)
 		"heal":
 			# heal_value: condition 閾値の "value" と衝突する場合の回復量キー（P3-D155）
-			var amount: int = 0
-			if p.has("heal_max_hp_fraction"):
-				var max_hp: int = 0
-				if member_idx < $CombatController.party_max_hp.size():
-					max_hp = int($CombatController.party_max_hp[member_idx])
-				amount = maxi(1, int(round(float(max_hp) * float(p.get("heal_max_hp_fraction", 0.0)))))
-			else:
-				amount = _apply_healing_bonus(int(p.get("heal_value", p.get("value", 10))), member_idx)
-			if str(p.get("target", "party")) == "self":
-				$CombatController.heal_member(member_idx, amount)
-				_update_hp_bars()
-				_spawn_member_heal_vfx(member_idx)
-			else:
-				$CombatController.heal_party(amount)
-				_update_hp_bars()
-				for i: int in GameState.party_members.size():
-					if $CombatController.is_member_alive(i):
+			var frac: float = float(p.get("heal_max_hp_fraction", -1.0))
+			if frac >= 0.0:
+				if str(p.get("target", "party")) == "self":
+					var max_hp_self: int = 0
+					if member_idx < $CombatController.party_max_hp.size():
+						max_hp_self = int($CombatController.party_max_hp[member_idx])
+					var amt_self: int = maxi(1, int(round(float(max_hp_self) * frac)))
+					$CombatController.heal_member(member_idx, amt_self)
+					_update_hp_bars()
+					_spawn_member_heal_vfx(member_idx)
+				else:
+					for i: int in GameState.party_members.size():
+						if not $CombatController.is_member_alive(i):
+							continue
+						var max_hp_i: int = 0
+						if i < $CombatController.party_max_hp.size():
+							max_hp_i = int($CombatController.party_max_hp[i])
+						var amt_i: int = maxi(1, int(round(float(max_hp_i) * frac)))
+						$CombatController.heal_member(i, amt_i)
 						_spawn_member_heal_vfx(i)
+					_update_hp_bars()
+				applied = true
+			else:
+				var amount: int = _apply_healing_bonus(int(p.get("heal_value", p.get("value", 10))), member_idx)
+				if str(p.get("target", "party")) == "self":
+					$CombatController.heal_member(member_idx, amount)
+					_update_hp_bars()
+					_spawn_member_heal_vfx(member_idx)
+				else:
+					$CombatController.heal_party(amount)
+					_update_hp_bars()
+					for i: int in GameState.party_members.size():
+						if $CombatController.is_member_alive(i):
+							_spawn_member_heal_vfx(i)
+				applied = true
+		"grant_party_incoming_mult":
+			var ward: float = clampf(float(p.get("mult", 0.9)), 0.05, 1.0)
+			$CombatController.party_temp_incoming_mult = minf(
+				float($CombatController.party_temp_incoming_mult), ward
+			)
 			applied = true
 		"bonus_damage":
 			var slot: int = int(ctx.get("target_slot", -1))
