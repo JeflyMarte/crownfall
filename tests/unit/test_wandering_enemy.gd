@@ -32,6 +32,21 @@ func test_roll_empty_above_threshold() -> void:
 	assert_eq(_WanderingEnemyConfig.wandering_id_for_roll(0.99), "")
 
 
+func test_spawn_chance_scales_with_dungeon_tier() -> void:
+	var n_duck: float = _WanderingEnemyConfig.spawn_chance_cosmic_duck(0)
+	var h_duck: float = _WanderingEnemyConfig.spawn_chance_cosmic_duck(1)
+	var nm_duck: float = _WanderingEnemyConfig.spawn_chance_cosmic_duck(2)
+	assert_almost_eq(n_duck, 0.025, 0.0001)
+	assert_almost_eq(h_duck, 0.025 * 1.3, 0.0001)
+	assert_almost_eq(nm_duck, 0.025 * 1.6, 0.0001)
+	assert_almost_eq(_WanderingEnemyConfig.spawn_chance_crown_raven(2), 0.015 * 1.6, 0.0001)
+	## ノーマル帯では外れる roll が、ナイトメアではレイヴン帯に入る
+	assert_eq(_WanderingEnemyConfig.wandering_id_for_roll(0.05, 0), "")
+	assert_eq(
+		_WanderingEnemyConfig.wandering_id_for_roll(0.05, 2),
+		_WanderingEnemyConfig.ID_CROWN_RAVEN
+	)
+
 func test_legacy_ids_alias_to_new() -> void:
 	assert_eq(
 		_WanderingEnemyConfig.canonical_enemy_id("wayfarer_sparrow"),

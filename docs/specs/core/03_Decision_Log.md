@@ -2683,6 +2683,19 @@
 
 **Closeout（2026-07-19）:** データ＋配線＋unit。
 
+## 遍在希少種・周回帯出現率（2026-07-19 — P3-WANDER-003）
+
+> オーナー GO: 全ダンジョン出現は維持。出現率は周回難易度（N/H/NM）で上昇（案A）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-WANDER-003-1 | **ダンジョン制限なし** — COMBAT 差し込みは全 DG 共通（据置） | 遍在の意図 |
+| P3-WANDER-003-2 | **基準率** — ダック 2.5% / レイヴン 1.5%（ノーマル） | 既存据置 |
+| P3-WANDER-003-3 | **倍率** — `DungeonTierConfig.rarity_weight_mult` と同型（N×1.0 / H×1.3 / NM×1.6） | レア装備曲線と整合 |
+| P3-WANDER-003-4 | SSOT=`WanderingEnemyConfig`・配線=`try_pick_wandering_enemy`（`GameState.current_dungeon_tier`） | データ駆動 |
+
+**Closeout（2026-07-19）:** Config＋unit。
+
 ## 昇格特質（2026-07-03 — P3-EVO-TRAIT-001 / P3-D167）
 
 | ID | 決定 | 理由 |

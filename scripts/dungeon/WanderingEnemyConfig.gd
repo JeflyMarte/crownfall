@@ -1,7 +1,9 @@
 class_name WanderingEnemyConfig
 extends RefCounted
 
-## 遍在希少種（放浪個体）の出現・報酬 SSOT（P3-WANDER-001 / P3-WANDER-002）。
+## 遍在希少種（放浪個体）の出現・報酬 SSOT（P3-WANDER-001 / P3-WANDER-002 / P3-WANDER-003）。
+
+const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 
 const ID_COSMIC_DUCK: String = "cosmic_duck"
 const ID_CROWN_RAVEN: String = "crown_raven"
@@ -15,7 +17,7 @@ const ENEMY_ID_ALIASES: Dictionary = {
 	ID_RELIQUARY_BEETLE: ID_CROWN_RAVEN,
 }
 
-## COMBAT 部屋で放浪個体が差し込まれる合計確率（2.5% + 1.5%）。
+## COMBAT 部屋の基準出現率（ノーマル帯）。Hard/NM は rarity_weight_mult と同型で上昇。
 const SPAWN_CHANCE_COSMIC_DUCK: float = 0.025
 const SPAWN_CHANCE_CROWN_RAVEN: float = 0.015
 
@@ -54,14 +56,34 @@ static func canonical_enemy_id(enemy_id: String) -> String:
 	return str(ENEMY_ID_ALIASES.get(enemy_id, enemy_id))
 
 
-static func try_roll_wandering_id(rng: RandomNumberGenerator = null) -> String:
-	return wandering_id_for_roll(_randf(rng))
+static func spawn_mult_for_tier(tier: int) -> float:
+	return _DungeonTierConfig.rarity_weight_mult(tier)
 
 
-static func wandering_id_for_roll(roll: float) -> String:
-	if roll < SPAWN_CHANCE_COSMIC_DUCK:
+static func spawn_chance_cosmic_duck(tier: int = _DungeonTierConfig.TIER_NORMAL) -> float:
+	return SPAWN_CHANCE_COSMIC_DUCK * spawn_mult_for_tier(tier)
+
+
+static func spawn_chance_crown_raven(tier: int = _DungeonTierConfig.TIER_NORMAL) -> float:
+	return SPAWN_CHANCE_CROWN_RAVEN * spawn_mult_for_tier(tier)
+
+
+static func try_roll_wandering_id(
+	rng: RandomNumberGenerator = null,
+	tier: int = _DungeonTierConfig.TIER_NORMAL
+) -> String:
+	return wandering_id_for_roll(_randf(rng), tier)
+
+
+static func wandering_id_for_roll(
+	roll: float,
+	tier: int = _DungeonTierConfig.TIER_NORMAL
+) -> String:
+	var duck_chance: float = spawn_chance_cosmic_duck(tier)
+	var raven_chance: float = spawn_chance_crown_raven(tier)
+	if roll < duck_chance:
 		return ID_COSMIC_DUCK
-	if roll < SPAWN_CHANCE_COSMIC_DUCK + SPAWN_CHANCE_CROWN_RAVEN:
+	if roll < duck_chance + raven_chance:
 		return ID_CROWN_RAVEN
 	return ""
 

@@ -839,7 +839,10 @@ func pick_combat_enemy_group() -> Array[Resource]:
 func try_pick_wandering_enemy(rng: RandomNumberGenerator = null) -> Resource:
 	if current_room_type != Enums.RoomType.COMBAT:
 		return null
-	var wander_id: String = _WanderingEnemyConfig.try_roll_wandering_id(rng)
+	## P3-WANDER-003: 全ダンジョン共通。出現率は周回帯（N/H/NM）で上昇。
+	var wander_id: String = _WanderingEnemyConfig.try_roll_wandering_id(
+		rng, GameState.current_dungeon_tier
+	)
 	if wander_id.is_empty():
 		return null
 	return _EnemyTierVariantConfig.apply_for_current_tier(DataRegistry.get_enemy_data(wander_id))
