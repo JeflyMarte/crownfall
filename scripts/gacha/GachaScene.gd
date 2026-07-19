@@ -8,6 +8,8 @@ const _GachaRevealPresenter := preload("res://scripts/gacha/GachaRevealPresenter
 const COLOR_NEW: Color = Color(0.95, 0.78, 0.35)
 const COLOR_SUB: Color = Color(0.72, 0.69, 0.62)
 const COLOR_OWNED: Color = Color(0.55, 0.88, 0.5)
+const FEATURED_ROTATE_SEC: float = 5.0
+const FEATURED_CROSSFADE_SEC: float = 0.3
 
 @onready var _btn_back: Button = $Header/HeaderRow/ButtonBack
 @onready var _label_title: Label = $Header/HeaderRow/LabelTitle
@@ -19,7 +21,7 @@ const COLOR_OWNED: Color = Color(0.55, 0.88, 0.5)
 @onready var _label_catchcopy: Label = $MainColumn/HeroBanner/BannerVBox/LabelCatchcopy
 @onready var _label_rate: Label = $MainColumn/HeroBanner/BannerVBox/RateRow/LabelRate
 @onready var _btn_rate_detail: Button = $MainColumn/HeroBanner/BannerVBox/RateRow/BtnRateDetail
-@onready var _lineup_carousel: HBoxContainer = $MainColumn/LineupCarouselScroll/LineupCarousel
+@onready var _lineup_carousel_scroll: ScrollContainer = $MainColumn/LineupCarouselScroll
 @onready var _detail_overlay: Control = $DetailOverlay
 @onready var _detail_dim: ColorRect = $DetailOverlay/Dim
 @onready var _detail_panel: PanelContainer = $DetailOverlay/DetailPanel
@@ -46,6 +48,12 @@ var _summon_can_dismiss: bool = false
 var _summon_tween: Tween = null
 var _reveal_presenter: RefCounted = null
 var _featured_helper_id: String = ""
+var _featured_helpers: Array = []
+var _featured_index: int = 0
+var _featured_shell: Dictionary = {}
+var _featured_timer: Timer = null
+var _featured_tween: Tween = null
+var _featured_animating: bool = false
 
 func _ready() -> void:
 	if not Constants.are_gacha_helpers_playable():
@@ -64,6 +72,7 @@ func _ready() -> void:
 	_reveal_panel.gui_input.connect(_on_summon_overlay_input)
 	_portrait_frame.add_theme_stylebox_override("panel", GachaUiTokens.lineup_cell_style())
 	_setup_reveal_presenter()
+	_setup_featured_preview()
 	_summon_layer.visible = false
 	_detail_overlay.visible = false
 	_refresh()
@@ -139,11 +148,126 @@ func _refresh() -> void:
 			_label_result.text = "招待無料券 ×%d（右ボタンで使用）" % free_n
 		elif _label_result.text.begins_with("招待無料券"):
 			_label_result.text = ""
-	_refresh_banner_art()
+	_sync_featured_rotation_state()
 	_rebuild_lineup()
 
-func _refresh_banner_art() -> void:
-	GachaUiHelper.populate_banner_portraits(_banner_art_host)
+
+func _setup_featured_preview() -> void:
+	if _lineup_carousel_scroll != null:
+		_lineup_carousel_scroll.visible = false
+		_lineup_carousel_scroll.custom_minimum_size = Vector2.ZERO
+	_banner_art_host.custom_minimum_size = Vector2(0, 220)
+	if _featured_shell.is_empty():
+		_featured_shell = GachaUiHelper.build_featured_shell(_banner_art_host)
+		if not _banner_art_host.gui_input.is_connected(_on_featured_host_input):
+			_banner_art_host.gui_input.connect(_on_featured_host_input)
+	if _featured_timer == null:
+		_featured_timer = Timer.new()
+		_featured_timer.name = "FeaturedRotateTimer"
+		_featured_timer.wait_time = FEATURED_ROTATE_SEC
+		_featured_timer.one_shot = false
+		_featured_timer.timeout.connect(_on_featured_rotate_timeout)
+		add_child(_featured_timer)
+	_reload_featured_helpers(true)
+
+
+func _reload_featured_helpers(force_show: bool = false) -> void:
+	_featured_helpers = GachaUiHelper.featured_helpers()
+	if _featured_helpers.is_empty():
+		_featured_index = 0
+		_featured_helper_id = ""
+		_set_featured_timer_running(false)
+		return
+	var prefer_id: String = _featured_helper_id
+	var idx: int = 0
+	if not prefer_id.is_empty():
+		for i in _featured_helpers.size():
+			if str(_featured_helpers[i].id) == prefer_id:
+				idx = i
+				break
+	_featured_index = idx
+	_show_featured_at(_featured_index, false)
+	if force_show:
+		_sync_featured_rotation_state()
+
+
+func _show_featured_at(index: int, animate: bool) -> void:
+	if _featured_helpers.is_empty() or _featured_shell.is_empty():
+		return
+	var next_i: int = posmod(index, _featured_helpers.size())
+	var helper: Resource = _featured_helpers[next_i]
+	_featured_index = next_i
+	_featured_helper_id = str(helper.id)
+	if not animate:
+		GachaUiHelper.apply_featured_helper(_featured_shell, helper)
+		var fade_now: Control = _featured_shell.get("fade") as Control
+		if fade_now != null:
+			fade_now.modulate = Color(1, 1, 1, 1)
+		return
+	if _featured_animating:
+		return
+	_featured_animating = true
+	var fade: Control = _featured_shell.get("fade") as Control
+	if fade == null:
+		GachaUiHelper.apply_featured_helper(_featured_shell, helper)
+		_featured_animating = false
+		return
+	if _featured_tween != null and _featured_tween.is_valid():
+		_featured_tween.kill()
+	_featured_tween = create_tween()
+	_featured_tween.tween_property(fade, "modulate:a", 0.0, FEATURED_CROSSFADE_SEC * 0.5)
+	_featured_tween.tween_callback(func() -> void:
+		GachaUiHelper.apply_featured_helper(_featured_shell, helper)
+	)
+	_featured_tween.tween_property(fade, "modulate:a", 1.0, FEATURED_CROSSFADE_SEC * 0.5)
+	_featured_tween.tween_callback(func() -> void:
+		_featured_animating = false
+	)
+
+
+func _advance_featured(manual: bool = false) -> void:
+	if _featured_helpers.size() <= 1:
+		return
+	if _summon_active or _featured_animating:
+		return
+	_show_featured_at(_featured_index + 1, true)
+	if manual and _featured_timer != null:
+		_featured_timer.start()
+
+
+func _on_featured_rotate_timeout() -> void:
+	_advance_featured(false)
+
+
+func _on_featured_host_input(event: InputEvent) -> void:
+	if _summon_active:
+		return
+	var pressed: bool = (
+		(event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT)
+		or (event is InputEventScreenTouch and event.pressed)
+	)
+	if pressed:
+		_advance_featured(true)
+
+
+func _set_featured_timer_running(running: bool) -> void:
+	if _featured_timer == null:
+		return
+	if running and _featured_helpers.size() > 1 and not _summon_active:
+		if _featured_timer.is_stopped():
+			_featured_timer.start()
+	else:
+		_featured_timer.stop()
+
+
+func _sync_featured_rotation_state() -> void:
+	if _featured_shell.is_empty():
+		_setup_featured_preview()
+		return
+	if _featured_helpers.is_empty():
+		_reload_featured_helpers(false)
+	_set_featured_timer_running(not _summon_active)
+
 
 func _set_pull_controls_enabled(enabled: bool) -> void:
 	_button_pull.disabled = not enabled or not GachaSystem.can_pull()
@@ -157,8 +281,6 @@ func _set_pull_controls_enabled(enabled: bool) -> void:
 func _rebuild_lineup() -> void:
 	for child in _lineup_container.get_children():
 		child.queue_free()
-	for child in _lineup_carousel.get_children():
-		child.queue_free()
 	var helpers: Array = GachaUiHelper.sorted_helpers()
 	if helpers.is_empty():
 		var lbl := Label.new()
@@ -166,21 +288,11 @@ func _rebuild_lineup() -> void:
 		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_lineup_container.add_child(lbl)
 		return
-	if _featured_helper_id.is_empty() or DataRegistry.get_gacha_helper_data(_featured_helper_id) == null:
-		_featured_helper_id = str(helpers[0].id)
 	for helper in helpers:
 		if helper == null:
 			continue
-		var helper_id: String = str(helper.id)
 		_lineup_container.add_child(GachaUiHelper.make_lineup_row(helper))
-		var cell: PanelContainer = GachaUiHelper.make_carousel_cell(helper, helper_id == _featured_helper_id)
-		cell.gui_input.connect(_on_carousel_cell_input.bind(helper_id))
-		_lineup_carousel.add_child(cell)
 
-func _on_carousel_cell_input(event: InputEvent, helper_id: String) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		_featured_helper_id = helper_id
-		_rebuild_lineup()
 
 func _on_rate_detail_pressed() -> void:
 	_detail_overlay.visible = true
@@ -222,6 +334,7 @@ func _start_pull(use_ticket: bool) -> void:
 func _play_summon_reveal(result: Dictionary) -> void:
 	_summon_active = true
 	_summon_can_dismiss = false
+	_set_featured_timer_running(false)
 	_set_pull_controls_enabled(false)
 	_summon_layer.visible = true
 	AudioManager.play_sfx("gacha_reveal")
@@ -287,6 +400,7 @@ func _dismiss_summon_reveal() -> void:
 	_summon_tween.chain().tween_callback(func() -> void:
 		_summon_layer.visible = false
 		_summon_active = false
+		_reload_featured_helpers(true)
 		_refresh()
 	)
 
@@ -369,6 +483,10 @@ func _populate_reveal_content(
 	_portrait_icon.texture = portrait_tex
 	if not hid.is_empty():
 		_featured_helper_id = hid
+		for i in _featured_helpers.size():
+			if str(_featured_helpers[i].id) == hid:
+				_featured_index = i
+				break
 
 func _on_back_pressed() -> void:
 	if _summon_active:

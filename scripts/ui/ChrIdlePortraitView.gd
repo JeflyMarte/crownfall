@@ -70,6 +70,32 @@ func set_from_member(member: Resource) -> void:
 	_apply_portrait(member, str(member.job_id))
 
 
+## ガチャ Featured など、未所持の助っ人を helper_id → job_id の順で Idle 解決する。
+func set_from_helper_id(helper_id: String, job_id: String = "") -> void:
+	_ensure_nodes()
+	_idle_textures.clear()
+	_idle_frame = 0
+	_idle_accum = 0.0
+	var idle_texs: Array[Texture2D] = []
+	if not helper_id.is_empty():
+		idle_texs = ChrIdlePortrait.load_idle_textures(helper_id)
+	if idle_texs.is_empty() and not job_id.is_empty():
+		idle_texs = ChrIdlePortrait.load_idle_textures(job_id)
+	if not idle_texs.is_empty():
+		_idle_textures = idle_texs
+		_art.texture = idle_texs[0]
+		_glyph.text = ""
+		return
+	var chr_tex: Texture2D = null
+	if not job_id.is_empty():
+		chr_tex = IconPaths.get_icon_texture(job_id, "chr")
+	if chr_tex != null:
+		_art.texture = chr_tex
+		_glyph.text = ""
+		return
+	_clear_portrait("?")
+
+
 func _find_member(member_id: String) -> Resource:
 	if member_id.is_empty():
 		return null
