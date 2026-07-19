@@ -37,8 +37,10 @@ func test_roll_and_forge_follow_scale() -> void:
 
 func test_exploration_and_dot_follow_scale() -> void:
 	assert_eq(BalanceConfig.ROOM_HEAL_AMOUNT, 10 * BalanceConfig.STAT_SCALE)
-	assert_eq(BalanceConfig.TRAP_DAMAGE_COMBAT, 10 * BalanceConfig.STAT_SCALE)
-	assert_eq(BalanceConfig.TRAP_DAMAGE_ROOM, 15 * BalanceConfig.STAT_SCALE)
+	assert_almost_eq(BalanceConfig.TRAP_MAX_HP_FRAC_COMBAT_SINGLE, 0.10, 0.0001)
+	assert_almost_eq(BalanceConfig.TRAP_MAX_HP_FRAC_ROOM_SINGLE, 0.15, 0.0001)
+	assert_almost_eq(BalanceConfig.TRAP_MAX_HP_FRAC_COMBAT_AOE, 0.05, 0.0001)
+	assert_almost_eq(BalanceConfig.TRAP_MAX_HP_FRAC_ROOM_AOE, 0.08, 0.0001)
 	assert_eq(BalanceConfig.SPARE_VIAL_HEAL, 12 * BalanceConfig.STAT_SCALE)
 	assert_eq(BalanceConfig.DOT_FLAT_POISON, 4 * BalanceConfig.STAT_SCALE)
 	assert_eq(BalanceConfig.DOT_FLAT_IGNITE, 3 * BalanceConfig.STAT_SCALE)

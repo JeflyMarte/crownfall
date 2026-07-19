@@ -3,10 +3,9 @@ extends RefCounted
 
 ## 探索スキル群（P3-D117）。編成ロールが特定部屋で自動発動し、報酬/安全にボーナス。
 ## 戦闘スキルとは別枠。ロール判定は CombatSynergy と同型（1人以上で発動可）。
+## 罠ダメージは最大HP割合（P3-TRAP-PCT-001）。
 
 const TRAP_CHANCE: float = 0.20
-const TRAP_DAMAGE_COMBAT: int = BalanceConfig.TRAP_DAMAGE_COMBAT
-const TRAP_DAMAGE_ROOM: int = BalanceConfig.TRAP_DAMAGE_ROOM
 
 const _SKILLS: Dictionary = {
 	"gather": {
@@ -57,11 +56,27 @@ static func can_disarm(members: Array) -> bool:
 static func should_roll_trap() -> bool:
 	return randf() < TRAP_CHANCE
 
-static func trap_damage() -> int:
-	return TRAP_DAMAGE_COMBAT
+static func roll_trap_aoe(rng: RandomNumberGenerator = null) -> bool:
+	var roll: float = rng.randf() if rng != null else randf()
+	return roll < BalanceConfig.TRAP_AOE_CHANCE
 
-static func trap_damage_room() -> int:
-	return TRAP_DAMAGE_ROOM
+static func trap_max_hp_fraction(trap_room: bool, aoe: bool) -> float:
+	if trap_room:
+		return (
+			BalanceConfig.TRAP_MAX_HP_FRAC_ROOM_AOE
+			if aoe
+			else BalanceConfig.TRAP_MAX_HP_FRAC_ROOM_SINGLE
+		)
+	return (
+		BalanceConfig.TRAP_MAX_HP_FRAC_COMBAT_AOE
+		if aoe
+		else BalanceConfig.TRAP_MAX_HP_FRAC_COMBAT_SINGLE
+	)
+
+## 対象の最大HPに対する罠ダメージ（最低1）。
+static func trap_damage_for_max_hp(max_hp: int, trap_room: bool, aoe: bool) -> int:
+	var frac: float = trap_max_hp_fraction(trap_room, aoe)
+	return maxi(1, int(round(float(maxi(1, max_hp)) * frac)))
 
 # 装備画面用：編成で使える探索スキル一覧。
 static func active_labels(members: Array) -> PackedStringArray:

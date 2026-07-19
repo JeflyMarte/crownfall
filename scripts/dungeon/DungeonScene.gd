@@ -3061,18 +3061,17 @@ func _try_exploration_trap() -> void:
 	if ExplorationSkills.can_disarm(members):
 		_append_log("[探索] 罠解除: パーティは無事だった")
 		return
-	var dmg: int = ExplorationSkills.trap_damage()
 	var living: Array[int] = _living_exploration_damage_targets()
 	if living.is_empty():
 		_append_log("[探索] 罠: 辺境の踏破により被害なし")
 		return
-	var target: int = living[randi() % living.size()]
-	var m: Resource = GameState.get_combatant(target)
-	var nm: String = m.display_name if m != null else "?"
-	$CombatController.apply_damage_to_member(target, dmg)
-	_on_member_damaged(target)
-	_apply_trap_hit_feedback(target, dmg, false)
-	_append_trap_hit_log("[探索] 罠: %s に %d ダメージ！" % [nm, dmg])
+	var aoe: bool = ExplorationSkills.roll_trap_aoe()
+	var targets: Array[int] = []
+	if aoe:
+		targets = living.duplicate()
+	else:
+		targets.append(living[randi() % living.size()])
+	_apply_trap_damage_hits(targets, false, aoe, "[探索] 罠")
 	_update_hp_bars()
 
 func _resolve_trap_room() -> void:
@@ -3096,8 +3095,6 @@ func _resolve_trap_room_async() -> void:
 		_reset_narrative_typography()
 		_finish_room_and_continue()
 		return
-	var hit_text: String = TrapPresentationScript.pick_hit_line()
-	var dmg: int = ExplorationSkills.trap_damage_room()
 	var living: Array[int] = _living_exploration_damage_targets()
 	if living.is_empty():
 		var avoid_immune: String = "辺境の踏破により罠の被害を受けなかった"
@@ -3108,16 +3105,29 @@ func _resolve_trap_room_async() -> void:
 		_reset_narrative_typography()
 		_finish_room_and_continue()
 		return
-	var target: int = living[randi() % living.size()]
-	var m: Resource = GameState.get_combatant(target)
-	var nm: String = m.display_name if m != null else "?"
+	var aoe: bool = ExplorationSkills.roll_trap_aoe()
+	var hit_text: String = (
+		TrapPresentationScript.pick_hit_line_aoe()
+		if aoe
+		else TrapPresentationScript.pick_hit_line()
+	)
 	_set_non_combat_phase_bg(TrapPresentationScript.bg_path_for_phase("hit"))
 	_begin_trap_hit_presentation()
-	_set_trap_hit_narrative(hit_text, nm, dmg)
-	$CombatController.apply_damage_to_member(target, dmg)
-	_on_member_damaged(target)
-	_apply_trap_hit_feedback(target, dmg, true)
-	_append_trap_hit_log("[罠] %s に %d ダメージ！" % [nm, dmg])
+	if aoe:
+		_set_trap_aoe_hit_narrative(hit_text, living.size())
+	else:
+		var preview_target: int = living[randi() % living.size()]
+		var preview_m: Resource = GameState.get_combatant(preview_target)
+		var preview_nm: String = preview_m.display_name if preview_m != null else "?"
+		var preview_dmg: int = ExplorationSkills.trap_damage_for_max_hp(
+			_member_max_hp_for_trap(preview_target), true, false
+		)
+		_set_trap_hit_narrative(hit_text, preview_nm, preview_dmg)
+		## 単体はナラティブ用に選んだ対象へ固定
+		var single_targets: Array[int] = []
+		single_targets.append(preview_target)
+		living = single_targets
+	_apply_trap_damage_hits(living, true, aoe, "[罠]")
 	_update_hp_bars()
 	if $CombatController.is_party_wiped():
 		await get_tree().create_timer(TRAP_HIT_PAUSE_SEC).timeout
@@ -3156,6 +3166,36 @@ func _set_trap_avoid_narrative(text: String) -> void:
 func _set_trap_hit_narrative(hit_line: String, member_name: String, dmg: int) -> void:
 	_label_narrative.text = TrapPresentationScript.format_hit_narrative(hit_line, member_name, dmg)
 	UiTypography.apply_body(_label_narrative, UiTypography.SIZE_BODY, TrapPresentationScript.COLOR_HIT)
+
+
+func _set_trap_aoe_hit_narrative(hit_line: String, hit_count: int) -> void:
+	_label_narrative.text = TrapPresentationScript.format_aoe_hit_narrative(hit_line, hit_count)
+	UiTypography.apply_body(_label_narrative, UiTypography.SIZE_BODY, TrapPresentationScript.COLOR_HIT)
+
+
+## 罠ダメージ適用（最大HP割合・単体/全体）。log_prefix 例: "[罠]" / "[探索] 罠"
+func _apply_trap_damage_hits(
+	targets: Array[int], trap_room: bool, aoe: bool, log_prefix: String
+) -> void:
+	if targets.is_empty():
+		return
+	if aoe:
+		_append_trap_hit_log("%s: パーティ全体にダメージ！" % log_prefix)
+	for target: int in targets:
+		var max_hp: int = _member_max_hp_for_trap(target)
+		var dmg: int = ExplorationSkills.trap_damage_for_max_hp(max_hp, trap_room, aoe)
+		var m: Resource = GameState.get_combatant(target)
+		var nm: String = m.display_name if m != null else "?"
+		$CombatController.apply_damage_to_member(target, dmg)
+		_on_member_damaged(target)
+		_apply_trap_hit_feedback(target, dmg, trap_room)
+		_append_trap_hit_log("%s: %s に %d ダメージ！" % [log_prefix, nm, dmg])
+
+
+func _member_max_hp_for_trap(index: int) -> int:
+	if index >= 0 and index < $CombatController.party_max_hp.size():
+		return maxi(1, int($CombatController.party_max_hp[index]))
+	return 1
 
 func _set_room_narrative(text: String, accent: Color = UiTypography.COLOR_BODY) -> void:
 	_label_narrative.text = text

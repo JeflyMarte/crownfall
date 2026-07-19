@@ -56,3 +56,16 @@ func test_pick_lines_use_rng() -> void:
 func test_format_hit_narrative() -> void:
 	var text: String = _TrapPresentation.format_hit_narrative("棘が跳ねた！", "アリア", 12)
 	assert_eq(text, "棘が跳ねた！\nアリア に 12 ダメージ！")
+
+
+func test_format_aoe_hit_narrative() -> void:
+	var text: String = _TrapPresentation.format_aoe_hit_narrative("通路が崩れた！", 4)
+	assert_eq(text, "通路が崩れた！\nパーティ全体に罠ダメージ！（4人）")
+
+
+func test_aoe_hit_lines_exist() -> void:
+	assert_gt(_TrapPresentation.HIT_LINES_AOE.size(), 0)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 3
+	var line: String = _TrapPresentation.pick_hit_line_aoe(rng)
+	assert_true(line in _TrapPresentation.HIT_LINES_AOE)

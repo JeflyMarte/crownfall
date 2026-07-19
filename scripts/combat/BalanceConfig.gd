@@ -51,9 +51,15 @@ const HEAL_SKILL_BASE: int = 14 * STAT_SCALE
 ## 回復部屋の固定回復（旧 10）
 const ROOM_HEAL_AMOUNT: int = 10 * STAT_SCALE
 
-# ── 探索罠（旧 ExplorationSkills 定数） ──────────────────────────────────
-const TRAP_DAMAGE_COMBAT: int = 10 * STAT_SCALE
-const TRAP_DAMAGE_ROOM: int = 15 * STAT_SCALE
+# ── 探索罠（最大HP割合 / P3-TRAP-PCT-001） ───────────────────────────────
+## 単体被弾
+const TRAP_MAX_HP_FRAC_COMBAT_SINGLE: float = 0.10
+const TRAP_MAX_HP_FRAC_ROOM_SINGLE: float = 0.15
+## 全体被弾（単体より低め）
+const TRAP_MAX_HP_FRAC_COMBAT_AOE: float = 0.05
+const TRAP_MAX_HP_FRAC_ROOM_AOE: float = 0.08
+## 発動時に全体パターンになる確率
+const TRAP_AOE_CHANCE: float = 0.35
 
 # ── 敵レベルスケール（P3-D081） ──────────────────────────────────────────
 const ENEMY_LEVEL_HP_K: float = 0.10

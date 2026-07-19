@@ -24,6 +24,11 @@ const HIT_LINES: Array[String] = [
 	"床板が沈み、鋭い杭が影を穿った！",
 	"古いワイヤーが跳ね上がり、肉を裂いた！",
 ]
+const HIT_LINES_AOE: Array[String] = [
+	"通路全体に棘が噴き出した！",
+	"天井の機括が砕け、瓦礫が降り注いだ！",
+	"床が一斉に落ち、杭の嵐がパーティを襲った！",
+]
 const AVOID_LINES: Array[String] = [
 	"全員が間一髪で退いた。機括は沈黙に戻った。",
 	"斥候の合図の直後、罠だけが空を切った。",
@@ -61,6 +66,10 @@ static func pick_hit_line(rng: RandomNumberGenerator = null) -> String:
 	return _pick_line(HIT_LINES, rng)
 
 
+static func pick_hit_line_aoe(rng: RandomNumberGenerator = null) -> String:
+	return _pick_line(HIT_LINES_AOE, rng)
+
+
 static func pick_avoid_line(rng: RandomNumberGenerator = null) -> String:
 	return _pick_line(AVOID_LINES, rng)
 
@@ -73,6 +82,10 @@ static func is_triggered(rng: RandomNumberGenerator = null) -> bool:
 
 static func format_hit_narrative(hit_line: String, member_name: String, dmg: int) -> String:
 	return "%s\n%s に %d ダメージ！" % [hit_line, member_name, dmg]
+
+
+static func format_aoe_hit_narrative(hit_line: String, hit_count: int) -> String:
+	return "%s\nパーティ全体に罠ダメージ！（%d人）" % [hit_line, hit_count]
 
 
 static func pulse_count(trap_room: bool, fast_run: bool) -> int:
