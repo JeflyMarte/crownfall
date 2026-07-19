@@ -132,6 +132,10 @@ func _reset_for_day(day_key: String) -> void:
 	GameState.daily_mission_state = {"day_key": day_key, "entries": entries}
 	missions_updated.emit()
 
+func current_day_key() -> String:
+	return _current_day_key()
+
+
 func _current_day_key() -> String:
 	var jst_now: int = int(Time.get_unix_time_from_system()) + JST_OFFSET_SEC
 	var dt: Dictionary = Time.get_datetime_dict_from_unix_time(jst_now)

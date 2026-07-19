@@ -487,7 +487,8 @@ func get_total_rooms() -> int:
 # floor_count <= 0: 従来固定列（ROOM_SEQUENCE を room_count で切り詰め）
 func _build_room_sequence(dungeon: DungeonData) -> Array[int]:
 	if dungeon.floor_count > 0:
-		return _generate_random_sequence(dungeon, dungeon.floor_count, true, false)
+		var include_boss: bool = not str(dungeon.boss_id).is_empty()
+		return _generate_random_sequence(dungeon, dungeon.floor_count, include_boss, false)
 	var legacy: Array[int] = []
 	var n: int = dungeon.room_count if dungeon.room_count > 0 else ROOM_SEQUENCE.size()
 	for i in mini(n, ROOM_SEQUENCE.size()):
@@ -562,6 +563,16 @@ func _resolve_lore_room_weight(dungeon: DungeonData) -> int:
 	return ROOM_WEIGHT_LORE
 
 func _resolve_room_weights(dungeon: DungeonData) -> Dictionary:
+	if dungeon != null and not dungeon.room_weight_overrides.is_empty():
+		var o: Dictionary = dungeon.room_weight_overrides
+		return {
+			"combat": maxi(0, int(o.get("combat", ROOM_WEIGHT_COMBAT))),
+			"heal": maxi(0, int(o.get("heal", ROOM_WEIGHT_HEAL))),
+			"lore": maxi(0, int(o.get("lore", ROOM_WEIGHT_LORE))),
+			"treasure": maxi(0, int(o.get("treasure", ROOM_WEIGHT_TREASURE))),
+			"trap": maxi(0, int(o.get("trap", ROOM_WEIGHT_TRAP))),
+			"elite": maxi(0, int(o.get("elite", ROOM_WEIGHT_ELITE))),
+		}
 	var lore_w: int = _resolve_lore_room_weight(dungeon)
 	var combat_w: int = clampi(ROOM_WEIGHT_COMBAT - (lore_w - ROOM_WEIGHT_LORE), 35, 70)
 	return {
@@ -618,7 +629,10 @@ func _roll_room_type(dungeon: DungeonData) -> int:
 	r -= int(weights["treasure"])
 	if r < int(weights["trap"]):
 		return Enums.RoomType.TRAP
-	return Enums.RoomType.ELITE
+	r -= int(weights["trap"])
+	if int(weights["elite"]) > 0 and r < int(weights["elite"]):
+		return Enums.RoomType.ELITE
+	return Enums.RoomType.COMBAT
 
 # COMBAT が ROOM_MIN_COMBAT 未満なら、中間の非COMBAT部屋をCOMBATへ変換して補う。
 # START(先頭)・BOSS(末尾) は対象外。HEAL/TREASURE/EVENT を優先的に変換し、足りなければ ELITE も変換。
@@ -810,18 +824,28 @@ func pick_combat_enemy_group() -> Array[Resource]:
 	group.append(base)
 	if current_room_type != Enums.RoomType.COMBAT:
 		return group
-	if not bool(base.can_swarm):
+	var forced_swarm: bool = (
+		current_dungeon_data != null and float(current_dungeon_data.forced_swarm_chance) >= 0.0
+	)
+	if not bool(base.can_swarm) and not forced_swarm:
 		return group
 	var swarm_chance: float = SWARM_CHANCE
+	if forced_swarm:
+		swarm_chance = float(current_dungeon_data.forced_swarm_chance)
 	# 探索方針（安全優先）群れ出現率を半減（P3-D098）
-	if GameState.get_exploration_policy() == "safe":
+	elif GameState.get_exploration_policy() == "safe":
 		swarm_chance *= 0.5
 	if randf() >= swarm_chance:
 		return group
 	var lo: int = maxi(2, int(base.swarm_min))
 	var hi: int = maxi(lo, int(base.swarm_max))
+	if forced_swarm:
+		lo = maxi(2, int(current_dungeon_data.forced_swarm_min))
+		hi = maxi(lo, int(current_dungeon_data.forced_swarm_max))
 	var size: int = randi_range(lo, hi)
 	var capable: Array[Resource] = _swarm_capable_enemies()
+	if forced_swarm and capable.is_empty():
+		capable.append(base)
 	var use_mixed: bool = capable.size() >= 2 and randf() < MIXED_SWARM_CHANCE
 	for _i in (size - 1):
 		if use_mixed:
@@ -838,6 +862,8 @@ func pick_combat_enemy_group() -> Array[Resource]:
 
 func try_pick_wandering_enemy(rng: RandomNumberGenerator = null) -> Resource:
 	if current_room_type != Enums.RoomType.COMBAT:
+		return null
+	if current_dungeon_data != null and bool(current_dungeon_data.disable_wandering):
 		return null
 	## P3-WANDER-003: 全ダンジョン共通。出現率は周回帯（N/H/NM）で上昇。
 	var wander_id: String = _WanderingEnemyConfig.try_roll_wandering_id(

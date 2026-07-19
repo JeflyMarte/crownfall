@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="DungeonData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "cosmic_rift"
+display_name = "コズミックダックの裂け目"
+difficulty = 1
+recommended_level = 5
+enemy_level = 3
+room_count = 5
+floor_count = 5
+enemy_pool = Array[String](["cosmic_duck"])
+boss_id = ""
+drop_table_id = ""
+discovery_unlocks = {}
+elite_pool = Array[String]([])
+favored_element = "fire"
+route_type = "event"
+event_room_weight = 10
+min_event_rooms = 0
+room_weight_overrides = {
+"combat": 30,
+"heal": 5,
+"lore": 10,
+"treasure": 10,
+"trap": 45,
+"elite": 0
+}
+weapon_pool = Array[String]([])
+armor_pool = Array[String]([])
+accessory_pool = Array[String]([])
+unlock_after_dungeon_id = ""
+daily_attempt_limit = 1
+disable_wandering = true
+forced_swarm_chance = 0.12
+forced_swarm_min = 2
+forced_swarm_max = 3
+flavor_text = "一日一回だけ開く異界の裂け目。星屑の水鳥だけが泳ぎ、
+機括の罠が通路を埋めている。稀に群れで襲ってくる。"

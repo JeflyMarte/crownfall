@@ -197,6 +197,7 @@ const SUB_BANNER_FALLBACK: Dictionary = {
 	"thunder_peak": "mistfen",
 	"mistfen_depths": "mistfen",
 	"blackshore_abyss": "blackshore",
+	"cosmic_rift": "mourngate",
 	"red_forge_depths": "frostridge",
 	"north_reach": "frostridge",
 }
@@ -381,9 +382,6 @@ func _on_route_tab_pressed(tab: String) -> void:
 
 
 func _sync_route_tab_to_featured() -> void:
-	# イベントタブは手動切替のみ（中身未実装のため featured から戻さない）
-	if _route_tab == ROUTE_TAB_EVENT:
-		return
 	var data: Resource = DataRegistry.get_dungeon_data(_featured_dungeon_id)
 	if data == null:
 		return
@@ -392,12 +390,11 @@ func _sync_route_tab_to_featured() -> void:
 		_route_tab = ROUTE_TAB_MAIN
 	elif route == "side" or route == "apex":
 		_route_tab = ROUTE_TAB_SUB
-	# event タブは中身未実装のため、選択ダンジョンからは自動切替しない
+	elif route == "event":
+		_route_tab = ROUTE_TAB_EVENT
 
 
 func _ensure_featured_matches_route_tab() -> void:
-	if _route_tab == ROUTE_TAB_EVENT:
-		return
 	var data: Resource = DataRegistry.get_dungeon_data(_featured_dungeon_id)
 	if data != null and _route_matches_tab(str(data.route_type)) and GameState.is_dungeon_unlocked(_featured_dungeon_id):
 		return
@@ -416,6 +413,8 @@ func _route_matches_tab(route_type: String) -> bool:
 		return route_type == "main"
 	if _route_tab == ROUTE_TAB_SUB:
 		return route_type == "side" or route_type == "apex"
+	if _route_tab == ROUTE_TAB_EVENT:
+		return route_type == "event"
 	return false
 
 
@@ -440,8 +439,7 @@ func _dungeons_for_route_tab() -> Array:
 		out.append_array(_sorted_dungeons("apex"))
 		return out
 	if _route_tab == ROUTE_TAB_EVENT:
-		# 中身は後続 Task。枠のみ先置き。
-		return []
+		return _sorted_dungeons("event")
 	return _sorted_dungeons("main")
 
 
@@ -451,6 +449,10 @@ func _clamp_selected_tier() -> void:
 	var dungeon_id: String = _featured_dungeon_id
 	if dungeon_id.is_empty():
 		return
+	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
+	if data != null and str(data.route_type) == "event":
+		GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
+		return
 	var tier: int = _DungeonTierConfig.clamp_tier(GameState.current_dungeon_tier)
 	while tier > _DungeonTierConfig.TIER_NORMAL and not GameState.is_dungeon_tier_unlocked(dungeon_id, tier):
 		tier -= 1
@@ -458,10 +460,16 @@ func _clamp_selected_tier() -> void:
 
 func _refresh_tier_tabs() -> void:
 	var dungeon_id: String = _featured_dungeon_id
+	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
+	var event_only_normal: bool = data != null and str(data.route_type) == "event"
 	var buttons: Array[Button] = [_btn_tier_normal, _btn_tier_hard, _btn_tier_nightmare]
 	for tier in _DungeonTierConfig.TIER_COUNT:
 		var btn: Button = buttons[tier]
-		var unlocked: bool = GameState.is_dungeon_tier_unlocked(dungeon_id, tier)
+		var unlocked: bool = (
+			tier == _DungeonTierConfig.TIER_NORMAL
+			if event_only_normal
+			else GameState.is_dungeon_tier_unlocked(dungeon_id, tier)
+		)
 		var selected: bool = GameState.current_dungeon_tier == tier
 		btn.disabled = not unlocked
 		btn.button_pressed = selected
@@ -727,6 +735,8 @@ func _refresh_featured() -> void:
 	)
 	if dungeon_rec > 0 and (stage == null or not _uses_stage_cards(_featured_dungeon_id)):
 		meta_parts.append("推奨Lv%d〜" % dungeon_rec)
+	if not _uses_stage_cards(_featured_dungeon_id) and int(data.floor_count) > 0:
+		meta_parts.append("%dF" % int(data.floor_count))
 	if _uses_stage_cards(_featured_dungeon_id):
 		var stage_label: String = GameState.get_stage_progress_label(_featured_dungeon_id)
 		if not stage_label.is_empty():
@@ -757,8 +767,21 @@ func _refresh_featured() -> void:
 			and GameState.is_stage_unlocked(_selected_stage_id)
 		)
 	)
+	var attempt_ok: bool = true
+	if data != null and int(data.daily_attempt_limit) > 0:
+		var remaining: int = GameState.event_dungeon_attempts_remaining(_featured_dungeon_id)
+		_label_featured_discovery.text += " · 本日残り %d/%d（リセット %s）" % [
+			remaining,
+			int(data.daily_attempt_limit),
+			DailyMissionSystem.reset_countdown_text(),
+		]
+		attempt_ok = remaining > 0
+		if not attempt_ok:
+			_btn_featured_select.text = "本日分は挑戦済"
+			_btn_featured_select.disabled = true
+			return
 	_btn_featured_select.text = "選択して出発"
-	_btn_featured_select.disabled = not unlocked or not stage_ready
+	_btn_featured_select.disabled = not unlocked or not stage_ready or not attempt_ok
 
 func _resolve_featured_dungeon_id() -> String:
 	if not _featured_dungeon_id.is_empty():
@@ -1191,9 +1214,14 @@ func _make_biome_card(data: Resource) -> PanelContainer:
 	var btn := Button.new()
 	btn.custom_minimum_size = Vector2(88, 40)
 	if unlocked:
-		btn.text = "選択"
-		UiTypography.apply_button(btn, is_featured)
-		btn.pressed.connect(_on_select_pressed.bind(dungeon_id))
+		if int(data.daily_attempt_limit) > 0 and not GameState.can_attempt_event_dungeon(dungeon_id):
+			btn.text = "本日済"
+			btn.disabled = true
+			UiTypography.apply_button(btn, false)
+		else:
+			btn.text = "選択"
+			UiTypography.apply_button(btn, is_featured)
+			btn.pressed.connect(_on_select_pressed.bind(dungeon_id))
 	else:
 		btn.text = "🔒 ロック中"
 		btn.disabled = true
@@ -1398,6 +1426,8 @@ func _prompt_enter_dungeon(dungeon_id: String) -> void:
 		return
 	if not GameState.is_dungeon_unlocked(dungeon_id):
 		return
+	if not GameState.can_attempt_event_dungeon(dungeon_id):
+		return
 	if _uses_stage_cards(dungeon_id):
 		if _selected_stage_id.is_empty() or not GameState.is_stage_unlocked(_selected_stage_id):
 			return
@@ -1416,6 +1446,8 @@ func _do_enter_dungeon(dungeon_id: String) -> void:
 		return
 	if not GameState.is_dungeon_unlocked(dungeon_id):
 		return
+	if not GameState.consume_event_dungeon_attempt(dungeon_id):
+		return
 	GameState.current_dungeon_id = dungeon_id
 	_featured_dungeon_id = dungeon_id
 	_clamp_selected_tier()
@@ -1424,6 +1456,7 @@ func _do_enter_dungeon(dungeon_id: String) -> void:
 		GameState.current_stage_id = _selected_stage_id
 	else:
 		GameState.current_stage_id = ""
+	SaveManager.save_game()
 	SceneRouter.change_scene(DUNGEON_SCENE)
 
 func _go_home() -> void:

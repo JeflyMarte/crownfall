@@ -142,6 +142,8 @@ func top_run_modifiers(limit: int = 3) -> Array:
 
 # ギルド日課（P3-DAILY）— SaveManager が永続化。
 var daily_mission_state: Dictionary = {}
+## イベントDG日次挑戦（P3-DG-DUCK-EVENT-001）。dungeon_id → { day_key, used }
+var event_dungeon_attempts: Dictionary = {}
 
 ## 指揮官（隊長）プロフィール — P3-CMD-001。SaveManager v5+。
 var commander: Dictionary = {}
@@ -400,6 +402,50 @@ func is_dungeon_unlocked(dungeon_id: String) -> bool:
 			return prev_id.is_empty() or is_dungeon_cleared(prev_id)
 		prev_id = str(d.id)
 	return false
+
+
+## イベントDGの本日残り挑戦回数（無制限DGは -1）。
+func event_dungeon_attempts_remaining(dungeon_id: String) -> int:
+	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
+	if data == null:
+		return 0
+	var limit: int = int(data.daily_attempt_limit) if "daily_attempt_limit" in data else 0
+	if limit <= 0:
+		return -1
+	_refresh_event_dungeon_attempt_day(dungeon_id)
+	var entry: Dictionary = event_dungeon_attempts.get(dungeon_id, {})
+	var used: int = int(entry.get("used", 0))
+	return maxi(0, limit - used)
+
+
+func can_attempt_event_dungeon(dungeon_id: String) -> bool:
+	var remaining: int = event_dungeon_attempts_remaining(dungeon_id)
+	return remaining != 0
+
+
+func consume_event_dungeon_attempt(dungeon_id: String) -> bool:
+	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
+	if data == null:
+		return false
+	var limit: int = int(data.daily_attempt_limit) if "daily_attempt_limit" in data else 0
+	if limit <= 0:
+		return true
+	if not can_attempt_event_dungeon(dungeon_id):
+		return false
+	_refresh_event_dungeon_attempt_day(dungeon_id)
+	var entry: Dictionary = event_dungeon_attempts.get(dungeon_id, {}).duplicate()
+	entry["day_key"] = DailyMissionSystem.current_day_key()
+	entry["used"] = int(entry.get("used", 0)) + 1
+	event_dungeon_attempts[dungeon_id] = entry
+	return true
+
+
+func _refresh_event_dungeon_attempt_day(dungeon_id: String) -> void:
+	var day_key: String = DailyMissionSystem.current_day_key()
+	var entry: Dictionary = event_dungeon_attempts.get(dungeon_id, {})
+	if str(entry.get("day_key", "")) == day_key:
+		return
+	event_dungeon_attempts[dungeon_id] = {"day_key": day_key, "used": 0}
 
 func get_member(member_index: int) -> Resource:
 	if member_index < 0 or member_index >= party_members.size():
@@ -1150,6 +1196,7 @@ func reset_for_new_game() -> void:
 	enemy_codex = {}
 	combat_presets = []
 	daily_mission_state = {}
+	event_dungeon_attempts = {}
 	commander = {}
 	current_exploration_policy = ""
 	current_weather = ""

@@ -201,7 +201,7 @@ Task 明示指示がない限り作成しない:
 | 防具 | `resources/armors/` — 28（① 2 + ②〜⑤ 各5 + 寄り道3） |
 | 装飾品 | `resources/accessories/` — 17（① + ②〜⑤ 各3 + 寄り道2） |
 | 敵 | `resources/enemies/` — メイン30（5 Biome×6）+ 征討 Boss 8（chronos_wave / valgard / skarpedion / mycolga_ancient / karna_smoke / nereion_depths / forgedormient / albark）+ 遍在希少種2（P3-WANDER-002: cosmic_duck / crown_raven） |
-| ダンジョン | `resources/dungeons/` — **18本**: メイン5 + 寄り道5（astoria_ruins / green_hollow / broken_marsh / westbay_flats / frostwall_path）+ 征討8（`*_deep` / `storm_crown_ruins` / `red_ridge_mine` / `mistfen_depths` / `thunder_peak` / `blackshore_abyss` / `red_forge_depths` / `north_reach`）。`route_type`: main/side/apex。解放=`unlock_after_dungeon_id`+メイン直列（P3-D157） |
+| ダンジョン | `resources/dungeons/` — **19本**: メイン5 + 寄り道5 + 征討8 + イベント1（`cosmic_rift` / P3-DG-DUCK-EVENT-001）。`route_type`: main/side/apex/event。解放=`unlock_after_dungeon_id`+メイン直列（P3-D157）。イベントは日次挑戦枠 |
 | スキル | `resources/skills/` — プレイヤー約50+（基本5職×習得10 + 必殺5 + 属性/敵/ボス）。代表: slash_attack, guard_strike, aimed_shot, hex_bolt, mend, empower + P3-SKILL-002〜006 新規（`rend_slash`〜`apex_tame` 等） |
 | ジョブ | `resources/jobs/` — 5職。各 **`skill_unlocks` Lv1/6/12/…/50 で習得10**（P3-SKILL-002〜006） |
 | 状態異常 | `resources/status/` — bleed, poison, stun, chill, ignite, shock, slow, curse, guard, empower, enrage, **fear**, **vulnerable**, **armor_break**（P3-D107）, **mark**（P3-D120） |

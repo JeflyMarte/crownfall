@@ -2683,6 +2683,21 @@
 
 **Closeout（2026-07-19）:** データ＋配線＋unit。
 
+## コズミックダック日次イベントDG（2026-07-19 — P3-DG-DUCK-EVENT-001）
+
+> オーナー GO: ダック専用・5F・罠多め・稀に群れ・一日1回。イベントタブへ掲載。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-DUCK-EVENT-001-1 | **`cosmic_rift`（コズミックダックの裂け目）** — `route_type=event`・5F・Bossなし | 育成ピンチ用短編 |
+| P3-DG-DUCK-EVENT-001-2 | **敵は `cosmic_duck` のみ**・`disable_wandering`・`forced_swarm_chance=12%`（2〜3体） | 要望どおり |
+| P3-DG-DUCK-EVENT-001-3 | **部屋重み** — TRAP45 / COMBAT30 / lore10 / treasure10 / heal5 / elite0 | 罠多め |
+| P3-DG-DUCK-EVENT-001-4 | **日次1回** — JST5:00 リセット・出発時消費（失敗も消費）・セーブ v8 | 日課と同型 |
+| P3-DG-DUCK-EVENT-001-5 | **UI** — イベントダンジョンタブ。Hard/NM なし。βでも選択可（`EVENT_DUNGEONS_PLAYABLE`） | プレースホルダ解消 |
+| P3-DG-DUCK-EVENT-001-6 | 装備ドロップなし（ダック仕様据置）。クリア金は軽め（通常経路） | 報酬はEXP主 |
+
+**Closeout（2026-07-19）:** データ＋配線＋unit。
+
 ## 罠ダメージ割合化＋全体パターン（2026-07-19 — P3-TRAP-PCT-001）
 
 > オーナー GO: 固定ダメ廃止→最大HP割合。全体被弾パターン追加。

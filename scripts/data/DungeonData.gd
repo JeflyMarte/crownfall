@@ -23,12 +23,14 @@ extends Resource
 @export var favored_element: String = ""
 ## フレーバーテキスト（ダンジョン選択フィーチャー表示 / P3-UI2-028）。
 @export var flavor_text: String = ""
-## メイン=main / 寄り道=side / 征討=apex（P3-LORE-005 伝説個体）。
+## メイン=main / 寄り道=side / 征討=apex / イベント=event（P3-DG-DUCK-EVENT-001）。
 @export var route_type: String = "main"
 ## 中間部屋抽選の EVENT 重み（0=グローバル既定15）。増分は COMBAT から差し引く（P3-D5DG-003）。
 @export var event_room_weight: int = 0
 ## 中間部屋の EVENT 最低数（0=自動: 中間≥3かつ event 重み>0 なら1）。
 @export var min_event_rooms: int = 0
+## 中間部屋重み上書き（空=グローバル）。キー: combat/heal/lore/treasure/trap/elite。合計100想定。
+@export var room_weight_overrides: Dictionary = {}
 ## ダンジョン別ドロップ・プール（P3-D154）。空＝グローバル既定
 ## （武器=DungeonController.WEAPON_POOL / 防具=革70%骨30% / 装飾=silver_ring）へフォールバック。
 @export var weapon_pool: Array[String] = []
@@ -37,3 +39,12 @@ extends Resource
 ## 解放条件（P3-D157）。メインルートは難易度順の直列解放（このフィールド不使用）。
 ## サブルート等はここに指定したダンジョンのクリアで解放（空＝常時解放）。
 @export var unlock_after_dungeon_id: String = ""
+## 1日あたりの挑戦上限（0=無制限）。JST 5:00 リセット（P3-DG-DUCK-EVENT-001）。
+@export var daily_attempt_limit: int = 0
+## true のとき放浪差し込みを行わない（専用プールDG用）。
+@export var disable_wandering: bool = false
+## >=0 のとき COMBAT 群れ確率を上書き。can_swarm でない敵でも群れ可。
+@export var forced_swarm_chance: float = -1.0
+## forced_swarm 時の群れサイズ（inclusive）。
+@export var forced_swarm_min: int = 2
+@export var forced_swarm_max: int = 3

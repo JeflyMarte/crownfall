@@ -13,7 +13,7 @@ const SAVE_PATH: String = "user://save_data.json"
 ## `_migrate_save_data` に v(n)→v(n+1) の段階マイグレーションを追加する。
 ## v0 = バージョンフィールド無しの旧セーブ（レガシー party/equipment/job/dungeon id を含む）
 ## v1 = save_version フィールド導入（2026-07-02）
-const SAVE_VERSION: int = 7
+const SAVE_VERSION: int = 8
 
 func save_game() -> void:
 	var data: Dictionary = {
@@ -35,6 +35,7 @@ func save_game() -> void:
 		"combat_presets": GameState.combat_presets.duplicate(true),
 		"owned_relics": GameState.owned_relics.duplicate(),
 		"daily_mission_state": GameState.daily_mission_state.duplicate(true),
+		"event_dungeon_attempts": GameState.event_dungeon_attempts.duplicate(true),
 		"current_dungeon_tier": GameState.current_dungeon_tier,
 		"dungeon_tier_cleared": GameState.dungeon_tier_cleared.duplicate(true),
 		"current_stage_id": GameState.current_stage_id,
@@ -94,7 +95,16 @@ func _migrate_save_data(data: Dictionary) -> Dictionary:
 		data = _migrate_save_v5_to_v6(data)
 	if version < 7:
 		data = _migrate_save_v6_to_v7(data)
+	if version < 8:
+		data = _migrate_save_v7_to_v8(data)
 	data["save_version"] = SAVE_VERSION
+	return data
+
+
+## P3-DG-DUCK-EVENT-001: イベントDG日次挑戦枠
+func _migrate_save_v7_to_v8(data: Dictionary) -> Dictionary:
+	if not data.has("event_dungeon_attempts") or not (data["event_dungeon_attempts"] is Dictionary):
+		data["event_dungeon_attempts"] = {}
 	return data
 
 ## P3-WANDER-002: 旧放浪敵IDを図鑑キーへマージ
@@ -457,6 +467,10 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.owned_relics = relics
 	if data.has("daily_mission_state") and data["daily_mission_state"] is Dictionary:
 		GameState.daily_mission_state = (data["daily_mission_state"] as Dictionary).duplicate(true)
+	if data.has("event_dungeon_attempts") and data["event_dungeon_attempts"] is Dictionary:
+		GameState.event_dungeon_attempts = (data["event_dungeon_attempts"] as Dictionary).duplicate(true)
+	else:
+		GameState.event_dungeon_attempts = {}
 	if data.has("commander") and data["commander"] is Dictionary:
 		GameState.commander = (data["commander"] as Dictionary).duplicate(true)
 	_CommanderProfile.ensure_commander()
