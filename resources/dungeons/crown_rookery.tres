@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="DungeonData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "crown_rookery"
+display_name = "宝冠レイヴンの巣"
+difficulty = 2
+recommended_level = 12
+enemy_level = 10
+room_count = 5
+floor_count = 5
+enemy_pool = Array[String](["crown_raven"])
+boss_id = ""
+drop_table_id = ""
+discovery_unlocks = {}
+elite_pool = Array[String]([])
+favored_element = "thunder"
+route_type = "event"
+event_room_weight = 5
+min_event_rooms = 0
+room_weight_overrides = {
+"combat": 50,
+"heal": 10,
+"lore": 5,
+"treasure": 15,
+"trap": 20,
+"elite": 0
+}
+weapon_pool = Array[String](["iron_sword", "rusted_blade", "hunting_bow", "apprentice_staff", "heater_blade", "frost_blade", "bolt_knife", "ember_fang", "glacier_staff", "storm_edge", "sanctified_dagger", "consecrated_maul"])
+armor_pool = Array[String](["crypt_weave_cloak", "sepia_hide_vest", "rune_linen_garb", "lament_guard_mail", "mourngate_plate"])
+accessory_pool = Array[String](["clockwing_brooch", "mourngate_sigil", "pilgrim_lantern_charm"])
+unlock_after_dungeon_id = ""
+daily_attempt_limit = 1
+disable_wandering = true
+forced_swarm_chance = 0.08
+forced_swarm_min = 2
+forced_swarm_max = 3
+flavor_text = "一日一回だけ現れる黒鳥の塒。宝冠の欠片を銜えたレイヴンだけが
+巣を守り、稀に群れで襲ってくる。戦利の武具を求めて踏み入る。"

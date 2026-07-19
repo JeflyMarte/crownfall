@@ -37,6 +37,14 @@ const ROUTE_TAB_SUB: String = "sub"
 const ROUTE_TAB_EVENT: String = "event"
 
 const DROP_PREVIEW: Dictionary = {
+	"cosmic_rift": [
+		["material", "relic_shard"],
+	],
+	"crown_rookery": [
+		["weapon", "consecrated_maul"],
+		["armor", "mourngate_plate"],
+		["accessory", "mourngate_sigil"],
+	],
 	"mourngate": [
 		["weapon", "iron_sword"],
 		["armor", "leather_armor"],
@@ -198,6 +206,7 @@ const SUB_BANNER_FALLBACK: Dictionary = {
 	"mistfen_depths": "mistfen",
 	"blackshore_abyss": "blackshore",
 	"cosmic_rift": "mourngate",
+	"crown_rookery": "mourngate",
 	"red_forge_depths": "frostridge",
 	"north_reach": "frostridge",
 }
