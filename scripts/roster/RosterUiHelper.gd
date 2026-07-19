@@ -58,6 +58,8 @@ static func passive_description(def: Dictionary) -> String:
 		return "編成中パーティの獲得経験値が%d%%増加する。" % int(round((float(def["party_exp_gain_mult"]) - 1.0) * 100.0))
 	if float(def.get("outgoing_mult", 1.0)) > 1.0:
 		return "与ダメージが%d%%上昇する。" % int(round((float(def["outgoing_mult"]) - 1.0) * 100.0))
+	if float(def.get("pet_outgoing_mult", 1.0)) > 1.0:
+		return "オトモの与ダメージが%d%%上昇する。" % int(round((float(def["pet_outgoing_mult"]) - 1.0) * 100.0))
 	if float(def.get("incoming_mult", 1.0)) < 1.0:
 		return "被ダメージが%d%%軽減される。" % int(round((1.0 - float(def["incoming_mult"])) * 100.0))
 	var effect: String = str(def.get("effect", ""))

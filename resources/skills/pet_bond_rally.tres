@@ -4,13 +4,13 @@
 
 [resource]
 script = ExtResource("1")
-id = "herd_call"
-display_name = "群れの號令"
-description = "オトモを強く鼓舞し、他の仲間にも弱い鼓舞を届ける。"
+id = "pet_bond_rally"
+display_name = "相棒鼓舞"
+description = "オトモを強く鼓舞し、与ダメージを大きく上昇させる。"
 skill_type = "player"
-target_type = "ally"
+target_type = "pet"
 power_multiplier = 1.0
-cooldown = 6.0
+cooldown = 5.5
 trigger_type = "cooldown"
 effect_type = "buff"
 tags = Array[String](["support", "buff", "pet"])

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "pet_command_fang"
+display_name = "指揮の牙"
+description = "合図とともにオトモへ追撃を命じる。自身も軽い一撃を加える。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 0.9
+cooldown = 4.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["melee", "pet", "pet_followup"])
+element = ""
+apply_status_id = ""
+apply_status_chance = 0.0
+slot_type = "skill"
+range_type = "melee"

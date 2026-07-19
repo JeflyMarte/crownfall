@@ -84,13 +84,9 @@ const _DEFS: Dictionary = {
 		"cooldown": 3.0,
 	},
 	"mirei_swarm_resonance": {
-		"display_name": "群響の絆",
-		"description": "3回攻撃するごとに追撃する（威力30%）。",
-		"trigger": "on_attack",
-		"every_n": 3,
-		"effect": "bonus_damage",
-		"bonus_fraction": 0.30,
-		"cooldown": 0.0,
+		"display_name": "相棒共鳴",
+		"description": "オトモが生存中、オトモの与ダメージが20%上昇する。",
+		"pet_outgoing_mult": 1.20,
 	},
 	# ---- ジョブフォールバック（非基本ロスター・助っ人等） ----
 	"bulwark": {
@@ -112,13 +108,9 @@ const _DEFS: Dictionary = {
 		"exp_gain_mult": 1.15,
 	},
 	"pack_instinct": {
-		"display_name": "群れの本能",
-		"description": "3回攻撃するごとに追撃する（威力30%）。",
-		"trigger": "on_attack",
-		"every_n": 3,
-		"effect": "bonus_damage",
-		"bonus_fraction": 0.30,
-		"cooldown": 0.0,
+		"display_name": "群れの指揮",
+		"description": "オトモが生存中、オトモの与ダメージが10%上昇する。",
+		"pet_outgoing_mult": 1.10,
 	},
 	# ---- ガチャ助っ人固有（P3-GACHA-005 / P3-PASSIVE-CHAR-001） ----
 	"leon_sword_focus": {
@@ -767,6 +759,21 @@ static func party_outgoing_mult() -> float:
 				mult *= float(def["party_outgoing_mult"])
 	return mult
 
+
+## 編成メンバーのキャラ／ジョブパッシブからオトモ与ダメ倍率（オトモ未所持なら 1.0）。
+static func pet_outgoing_mult_from_party() -> float:
+	if GameState.active_pet == null:
+		return 1.0
+	var mult: float = 1.0
+	for member: Resource in GameState.party_members:
+		if member == null:
+			continue
+		for def: Dictionary in for_member(member):
+			if def.has("pet_outgoing_mult"):
+				mult *= float(def["pet_outgoing_mult"])
+	return mult
+
+
 static func party_incoming_mult() -> float:
 	var mult: float = 1.0
 	for member: Resource in GameState.party_members:
@@ -916,6 +923,8 @@ static func _passive_effect_summary(def: Dictionary) -> String:
 	var parts: PackedStringArray = []
 	if float(def.get("outgoing_mult", 1.0)) > 1.0:
 		parts.append("与ダメ +%d%%" % int(round((float(def["outgoing_mult"]) - 1.0) * 100.0)))
+	if float(def.get("pet_outgoing_mult", 1.0)) > 1.0:
+		parts.append("オトモ与ダメ +%d%%" % int(round((float(def["pet_outgoing_mult"]) - 1.0) * 100.0)))
 	if float(def.get("incoming_mult", 1.0)) < 1.0:
 		parts.append("被ダメ -%d%%" % int(round((1.0 - float(def["incoming_mult"])) * 100.0)))
 	if float(def.get("incoming_mult", 1.0)) > 1.0:

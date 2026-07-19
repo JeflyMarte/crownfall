@@ -254,6 +254,7 @@ const STATUS_ICON_DEF: Dictionary = {
 	"armor_break": {"abbrev": "破", "color": Color(0.8, 0.6, 0.3)},
 	"mark": {"abbrev": "標", "color": Color(0.95, 0.35, 0.55)},
 	"empower": {"abbrev": "攻", "color": Color(0.95, 0.55, 0.2)},
+	"empower_minor": {"abbrev": "攻", "color": Color(0.85, 0.6, 0.35)},
 	"guard": {"abbrev": "防", "color": Color(0.4, 0.55, 0.85)},
 }
 const HEAL_SKILL_BASE: int = BalanceConfig.HEAL_SKILL_BASE
@@ -265,6 +266,7 @@ const VFX_HEAL_PATH: String = "res://resources/animation/FX_Heal.tres"
 const SUPPORT_VFX_TINT: Dictionary = {
 	"heal": Color(0.5, 1.0, 0.55, 1.0),
 	"empower": Color(1.0, 0.72, 0.25, 1.0),
+	"empower_minor": Color(0.92, 0.7, 0.4, 1.0),
 	"guard": Color(0.45, 0.78, 1.0, 1.0),
 	"default_buff": Color(1.0, 0.9, 0.45, 1.0),
 }
@@ -3709,6 +3711,7 @@ func _execute_member_heal(
 	return "\n【スキル】%s: %s を %d回復" % [result["display_name"], target_name, healed]
 
 # バフスキル: 生存中のメイン編成全員に apply_status_id（鼓舞=与ダメ上昇）を付与する。
+# target_type=pet / tags に pet → オトモのみ。herd_call → オトモ本鼓舞＋他は弱い鼓舞。
 func _execute_member_buff(
 	member_idx: int,
 	skill_data: Resource,
@@ -3723,12 +3726,28 @@ func _execute_member_buff(
 		return ""
 	var applied: int = 0
 	var status_id: String = skill_data.apply_status_id
-	for i: int in GameState.party_members.size():
-		if not $CombatController.is_member_alive(i):
-			continue
-		if $CombatController.apply_status("party_%d" % i, status_id, 1, 0):
-			applied += 1
-			_on_party_status_applied(i, status_id)
+	var skill_id: String = str(skill_data.id)
+	var pet_only: bool = (
+		str(skill_data.target_type) == "pet"
+		or skill_data.tags.has("pet_only")
+	)
+	if pet_only:
+		applied = _apply_status_to_pet(status_id)
+	elif skill_id == "herd_call":
+		applied = _apply_status_to_pet("empower")
+		for i: int in GameState.party_members.size():
+			if not $CombatController.is_member_alive(i):
+				continue
+			if $CombatController.apply_status("party_%d" % i, "empower_minor", 1, 0):
+				applied += 1
+				_on_party_status_applied(i, "empower_minor")
+	else:
+		for i: int in GameState.party_members.size():
+			if not $CombatController.is_member_alive(i):
+				continue
+			if $CombatController.apply_status("party_%d" % i, status_id, 1, 0):
+				applied += 1
+				_on_party_status_applied(i, status_id)
 	_update_status_icons()
 	if cast_index == 0:
 		_clear_member_skill_labels(member_idx)
@@ -3738,7 +3757,28 @@ func _execute_member_buff(
 	var label: String = skill_data.apply_status_id
 	if effect != null:
 		label = effect.display_name
+	if pet_only:
+		return "\n【スキル】%s: オトモに[%s]" % [result["display_name"], label]
+	if skill_id == "herd_call":
+		return "\n【スキル】%s: オトモ鼓舞＋味方%d" % [result["display_name"], applied]
 	return "\n【スキル】%s: 味方%d体に[%s]" % [result["display_name"], applied, label]
+
+
+func _apply_status_to_pet(status_id: String) -> int:
+	if status_id.is_empty() or GameState.active_pet == null:
+		return 0
+	if GameState.party_members.is_empty():
+		return 0
+	var pet_idx: int = GameState.combatant_count() - 1
+	if pet_idx < 0 or not GameState.is_pet_combatant(pet_idx):
+		return 0
+	if not $CombatController.is_member_alive(pet_idx):
+		return 0
+	if $CombatController.apply_status("party_%d" % pet_idx, status_id, 1, 0):
+		_on_party_status_applied(pet_idx, status_id)
+		return 1
+	return 0
+
 
 func _get_player_skill_data(member_index: int = -1) -> Resource:
 	var skill_id: String = Constants.DEFAULT_PLAYER_SKILL_ID
@@ -4995,6 +5035,12 @@ func _try_cast_member_skill(member_idx: int, skill_data: Resource, is_ultimate: 
 		"heal":
 			if $CombatController.get_most_injured_member_index() < 0:
 				return false
+		"buff":
+			if str(skill_data.target_type) == "pet" or skill_data.tags.has("pet_only"):
+				if not _is_active_pet_alive():
+					return false
+			elif str(skill_data.id) == "herd_call" and not _is_active_pet_alive() and GameState.party_members.is_empty():
+				return false
 		"damage":
 			if not _member_has_living_target(member_idx):
 				return false
@@ -5596,8 +5642,28 @@ func _resolve_party_skill_damage_impact_async(payload: Dictionary) -> void:
 			_play_enemy_slot_animation(target_slot, "hurt")
 		_apply_skill_status(member_idx, skill_data)
 		_apply_skill_secondary_status(member_idx, skill_data)
+	if skill_data != null and skill_data.tags.has("pet_followup"):
+		_queue_pet_followup_attack()
 	_update_hp_bars()
 	_end_combat_cinematic_lock()
+
+
+func _is_active_pet_alive() -> bool:
+	if GameState.active_pet == null or GameState.party_members.is_empty():
+		return false
+	var pet_idx: int = GameState.combatant_count() - 1
+	if not GameState.is_pet_combatant(pet_idx):
+		return false
+	return $CombatController.is_member_alive(pet_idx)
+
+
+func _queue_pet_followup_attack() -> void:
+	if not _is_active_pet_alive():
+		return
+	var pet_idx: int = GameState.combatant_count() - 1
+	_append_log("【指揮】オトモが追撃する")
+	_do_member_basic_attack(pet_idx)
+
 
 func _commit_commander_run_stats(outcome: String) -> void:
 	var context: Dictionary = {

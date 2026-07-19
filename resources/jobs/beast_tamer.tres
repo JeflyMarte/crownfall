@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "beast_tamer"
 display_name = "ビーストテイマー"
-description = "弓・杖を扱い、生物の生態を利用して戦う支援職。"
+description = "弓・杖を扱い、生物の生態とオトモを指揮して戦う支援職。"
 role = "support"
 base_hp_modifier = 1.0
 base_attack_modifier = 0.95
@@ -18,7 +18,7 @@ skill_unlocks = Array[Dictionary]([{
 "skill_id": "snare_shot",
 "level": 1
 }, {
-"skill_id": "beast_bite",
+"skill_id": "pet_bond_rally",
 "level": 6
 }, {
 "skill_id": "toxin_dart",
@@ -39,13 +39,13 @@ skill_unlocks = Array[Dictionary]([{
 "skill_id": "venom_burst",
 "level": 42
 }, {
-"skill_id": "alpha_strike",
+"skill_id": "pet_command_fang",
 "level": 48
 }, {
-"skill_id": "apex_tame",
+"skill_id": "pet_bond_guard",
 "level": 50
 }])
-learnable_skill_ids = Array[String](["snare_shot", "beast_bite", "toxin_dart", "aimed_shot", "herd_call", "entangle", "hex_bolt", "venom_burst", "alpha_strike", "apex_tame"])
+learnable_skill_ids = Array[String](["snare_shot", "pet_bond_rally", "toxin_dart", "aimed_shot", "herd_call", "entangle", "hex_bolt", "venom_burst", "pet_command_fang", "pet_bond_guard"])
 passive_tag_ids = Array[String](["tamer"])
 ultimate_skill_id = "beast_dominion"
 evolved_display_name = "ビーストロード"

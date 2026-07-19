@@ -795,6 +795,8 @@ func get_member_outgoing_damage_multiplier(
 		hp_ratio = float(party_combat_hp[member_index]) / float(party_max_hp[member_index])
 	mult *= float(CombatPassives.character_stat_modifiers_for_member(member_index, hp_ratio).get("outgoing_mult", 1.0))
 	mult *= CombatPassives.party_outgoing_mult()
+	if GameState.is_pet_combatant(member_index) and is_member_alive(member_index):
+		mult *= CombatPassives.pet_outgoing_mult_from_party()
 	mult *= 1.0 + CombatSynergy.compute_physical_bonus(GameState.party_members)
 	mult *= float(CombatSynergy.compute_role_bonuses(GameState.party_members).get("outgoing_mult", 1.0))
 	if not action_range.is_empty():
