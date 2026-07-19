@@ -1062,6 +1062,76 @@ func generate_run_loot() -> void:
 	if randf() < 0.2:
 		_generate_accessory_loot()
 
+# P3-D074 / P3-WANDER-002: 撃破時装備ドロップ。
+# 戻り値: {category, id}。空 Dictionary = なし。
+# equip_category_weights 非空 → 武器/防具/装飾。それ以外は従来どおり武器のみ。
+func roll_kill_equip_drop(room_type: int, enemy_data: Resource = null) -> Dictionary:
+	if enemy_data != null and not enemy_data.equip_category_weights.is_empty():
+		return _roll_multi_category_equip_drop(enemy_data)
+	var weapon_id: String = roll_kill_weapon_drop(room_type, enemy_data)
+	if weapon_id.is_empty():
+		return {}
+	return {"category": "weapon", "id": weapon_id}
+
+
+func _roll_multi_category_equip_drop(enemy_data: Resource) -> Dictionary:
+	var chance: float = minf(
+		1.0,
+		float(enemy_data.weapon_drop_chance)
+		* EventSystem.get_modifier_mult(EventSystem.MOD_WEAPON_DROP)
+		* _EvolutionTraits.party_weapon_drop_mult()
+	)
+	if chance <= 0.0 or randf() > chance:
+		return {}
+	var category: String = _pick_equip_category(enemy_data.equip_category_weights)
+	match category:
+		"armor":
+			var armor_id: String = _pick_kill_armor_id(enemy_data)
+			if armor_id.is_empty():
+				return {}
+			_spawn_armor(armor_id)
+			return {"category": "armor", "id": armor_id}
+		"accessory":
+			var accessory_id: String = _pick_kill_accessory_id(enemy_data)
+			if accessory_id.is_empty():
+				return {}
+			_spawn_accessory(accessory_id)
+			return {"category": "accessory", "id": accessory_id}
+		_:
+			var weapon_id: String = _pick_weighted_weapon(enemy_data)
+			if weapon_id.is_empty():
+				return {}
+			_spawn_weapon(weapon_id)
+			return {"category": "weapon", "id": weapon_id}
+
+
+func _pick_equip_category(weights: Dictionary) -> String:
+	var total: int = 0
+	for key: Variant in weights.keys():
+		total += maxi(0, int(weights[key]))
+	if total <= 0:
+		return "weapon"
+	var roll: int = randi() % total
+	var acc: int = 0
+	for key: Variant in weights.keys():
+		acc += maxi(0, int(weights[key]))
+		if roll < acc:
+			return str(key)
+	return "weapon"
+
+
+func _pick_kill_armor_id(enemy_data: Resource) -> String:
+	if current_dungeon_data != null and not current_dungeon_data.armor_pool.is_empty():
+		return _pick_rarity_weighted(current_dungeon_data.armor_pool, "armor", enemy_data)
+	return "bone_armor" if randf() < 0.3 else "leather_armor"
+
+
+func _pick_kill_accessory_id(enemy_data: Resource) -> String:
+	if current_dungeon_data != null and not current_dungeon_data.accessory_pool.is_empty():
+		return _pick_rarity_weighted(current_dungeon_data.accessory_pool, "accessory", enemy_data)
+	return "silver_ring"
+
+
 # P3-D074: 撃破時の武器直ドロップ。確率はボス/エリート/放浪個体で上書き可。
 func roll_kill_weapon_drop(room_type: int, enemy_data: Resource = null) -> String:
 	var chance: float = _resolve_weapon_drop_chance(room_type, enemy_data)
@@ -1192,8 +1262,8 @@ func _generate_armor_loot() -> void:
 	var armor_id: String = "bone_armor" if randf() < 0.3 else "leather_armor"
 	_spawn_armor(armor_id)
 
-# プールからレア度重み（RARITY_DROP_WEIGHT）で1件抽選する（armor/accessory 共用）。
-func _pick_rarity_weighted(pool: Array, category: String) -> String:
+# プールからレア度重みで1件抽選（armor/accessory 共用）。enemy_data で放浪重み上書き可。
+func _pick_rarity_weighted(pool: Array, category: String, enemy_data: Resource = null) -> String:
 	var weights: Array[int] = []
 	var total: int = 0
 	for iid in pool:
@@ -1203,8 +1273,9 @@ func _pick_rarity_weighted(pool: Array, category: String) -> String:
 		else:
 			data = DataRegistry.get_accessory_data(str(iid))
 		var r: int = 0 if data == null else int(data.rarity)
+		var base_w: int = _rarity_drop_weight_for(r, enemy_data)
 		var w: int = get_tier_rarity_weight(
-			_AffixStatCalculator.apply_rarity_drop_weight(int(RARITY_DROP_WEIGHT.get(r, 1)), r)
+			_AffixStatCalculator.apply_rarity_drop_weight(base_w, r)
 		)
 		weights.append(w)
 		total += w

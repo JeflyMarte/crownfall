@@ -160,6 +160,8 @@ const ICON_MAP: Dictionary = {
 	"enemy:crystal_scorpion":      "res://assets/codex/enemies/ART_ENM_CrystalScorpion.png",
 	"enemy:skullface_mantis":      "res://assets/codex/enemies/ART_ENM_SkullfaceMantis.png",
 	"enemy:clock_moth":            "res://assets/codex/enemies/ART_ENM_ClockMoth.png",
+	"enemy:cosmic_duck":           "res://assets/codex/enemies/ART_ENM_ClockMoth.png",
+	"enemy:crown_raven":           "res://assets/codex/enemies/ART_ENM_RuneRoach.png",
 	"enemy:wayfarer_sparrow":      "res://assets/codex/enemies/ART_ENM_ClockMoth.png",
 	"enemy:reliquary_beetle":      "res://assets/codex/enemies/ART_ENM_RuneRoach.png",
 	"enemy:serdion":               "res://assets/codex/enemies/ART_BOSS_Serdion.png",

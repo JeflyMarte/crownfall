@@ -13,7 +13,7 @@ const SAVE_PATH: String = "user://save_data.json"
 ## `_migrate_save_data` に v(n)→v(n+1) の段階マイグレーションを追加する。
 ## v0 = バージョンフィールド無しの旧セーブ（レガシー party/equipment/job/dungeon id を含む）
 ## v1 = save_version フィールド導入（2026-07-02）
-const SAVE_VERSION: int = 6
+const SAVE_VERSION: int = 7
 
 func save_game() -> void:
 	var data: Dictionary = {
@@ -92,7 +92,38 @@ func _migrate_save_data(data: Dictionary) -> Dictionary:
 		data = _migrate_save_v4_to_v5(data)
 	if version < 6:
 		data = _migrate_save_v5_to_v6(data)
+	if version < 7:
+		data = _migrate_save_v6_to_v7(data)
 	data["save_version"] = SAVE_VERSION
+	return data
+
+## P3-WANDER-002: 旧放浪敵IDを図鑑キーへマージ
+func _migrate_save_v6_to_v7(data: Dictionary) -> Dictionary:
+	if not data.has("enemy_codex") or not data["enemy_codex"] is Dictionary:
+		return data
+	var codex: Dictionary = (data["enemy_codex"] as Dictionary).duplicate(true)
+	for old_id: Variant in WanderingEnemyConfig.ENEMY_ID_ALIASES.keys():
+		var new_id: String = str(WanderingEnemyConfig.ENEMY_ID_ALIASES[old_id])
+		var old_key: String = str(old_id)
+		if not codex.has(old_key):
+			continue
+		var old_entry: Dictionary = (codex[old_key] as Dictionary).duplicate(true)
+		codex.erase(old_key)
+		if not codex.has(new_id):
+			codex[new_id] = old_entry
+			continue
+		var merged: Dictionary = (codex[new_id] as Dictionary).duplicate(true)
+		merged["seen"] = bool(merged.get("seen", false)) or bool(old_entry.get("seen", false))
+		merged["kills"] = int(merged.get("kills", 0)) + int(old_entry.get("kills", 0))
+		var phases: Array = merged.get("phases_seen", [])
+		if not phases is Array:
+			phases = []
+		for p in old_entry.get("phases_seen", []):
+			if p not in phases:
+				phases.append(p)
+		merged["phases_seen"] = phases
+		codex[new_id] = merged
+	data["enemy_codex"] = codex
 	return data
 
 ## P3-BAL-STAT-SCALE-001: 所持装備の平坦ステを ×STAT_SCALE（マスター再スケールに追従）

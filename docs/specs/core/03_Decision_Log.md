@@ -2667,6 +2667,21 @@
 | P3-D166-3 | **聖遺甲虫** — ELITE 級ステ・**武器撃破 85%**・レア重み ★2〜3 寄り（10/20/45/25） | レア武器ハント型 |
 | P3-D166-4 | `EnemyData.is_wandering` / `weapon_drop_chance` / `weapon_rarity_weights` / `wander_flee_after_turns`。SSOT=`WanderingEnemyConfig.gd` | データ駆動・dungeon 別プール不要 |
 
+## 遍在希少種差し替え（2026-07-19 — P3-WANDER-002）
+
+> オーナー GO: スズメ／甲虫をコズミックダック／宝冠レイヴンへ置き換え。推奨値採用。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-WANDER-002-1 | **差し替え** — `cosmic_duck`（旧 wayfarer_sparrow）／`crown_raven`（旧 reliquary_beetle）。出現率 2.5% / 1.5% 据置 | 役割維持・枠数据置 |
+| P3-WANDER-002-2 | **コズミックダック** — 高EXP（100）・装備ドロップ0・**3行動後逃走** | スズメ後継の育成ピンチ |
+| P3-WANDER-002-3 | **宝冠レイヴンC** — 撃破85%で武器40%/防具35%/装飾25%。レア重み 10/20/45/25。逃走なし | レア装備ハント（武器以外含む） |
+| P3-WANDER-002-4 | `EnemyData.equip_category_weights` ＋ `roll_kill_equip_drop` | 既存武器経路を拡張 |
+| P3-WANDER-002-5 | **旧IDエイリアス** — DataRegistry／図鑑記録／セーブ v7 で新IDへマージ | セーブ破壊回避 |
+| P3-WANDER-002-6 | ドットはプレースホルダ（後差し替え） | アート準備中 |
+
+**Closeout（2026-07-19）:** データ＋配線＋unit。
+
 ## 昇格特質（2026-07-03 — P3-EVO-TRAIT-001 / P3-D167）
 
 | ID | 決定 | 理由 |

@@ -1,6 +1,6 @@
 extends GutTest
 
-## P3-WANDER-001 — 遍在希少種（遠旅スズメ / 聖遺甲虫）。
+## P3-WANDER-001 / P3-WANDER-002 — コズミックダック / 宝冠レイヴン。
 
 const _WanderingEnemyConfig = preload("res://scripts/dungeon/WanderingEnemyConfig.gd")
 ## 2026-07-01 05:00 JST — 週サイクル week0=exp（weapon_drop 週のカレンダー汚染を避ける）
@@ -20,29 +20,53 @@ func after_each() -> void:
 	_saved_party = []
 
 
-func test_roll_wayfarer_at_low_roll() -> void:
-	assert_eq(_WanderingEnemyConfig.wandering_id_for_roll(0.01), _WanderingEnemyConfig.ID_WAYFARER_SPARROW)
+func test_roll_cosmic_duck_at_low_roll() -> void:
+	assert_eq(_WanderingEnemyConfig.wandering_id_for_roll(0.01), _WanderingEnemyConfig.ID_COSMIC_DUCK)
 
-func test_roll_reliquary_in_mid_band() -> void:
-	assert_eq(_WanderingEnemyConfig.wandering_id_for_roll(0.03), _WanderingEnemyConfig.ID_RELIQUARY_BEETLE)
+
+func test_roll_crown_raven_in_mid_band() -> void:
+	assert_eq(_WanderingEnemyConfig.wandering_id_for_roll(0.03), _WanderingEnemyConfig.ID_CROWN_RAVEN)
+
 
 func test_roll_empty_above_threshold() -> void:
 	assert_eq(_WanderingEnemyConfig.wandering_id_for_roll(0.99), "")
 
-func test_wayfarer_has_flee_and_no_weapon() -> void:
-	var data: Resource = DataRegistry.get_enemy_data("wayfarer_sparrow")
+
+func test_legacy_ids_alias_to_new() -> void:
+	assert_eq(
+		_WanderingEnemyConfig.canonical_enemy_id("wayfarer_sparrow"),
+		_WanderingEnemyConfig.ID_COSMIC_DUCK
+	)
+	assert_eq(
+		_WanderingEnemyConfig.canonical_enemy_id("reliquary_beetle"),
+		_WanderingEnemyConfig.ID_CROWN_RAVEN
+	)
+	var duck_via_alias: Resource = DataRegistry.get_enemy_data("wayfarer_sparrow")
+	assert_not_null(duck_via_alias)
+	assert_eq(str(duck_via_alias.id), _WanderingEnemyConfig.ID_COSMIC_DUCK)
+
+
+func test_cosmic_duck_has_flee_and_no_weapon() -> void:
+	var data: Resource = DataRegistry.get_enemy_data("cosmic_duck")
 	assert_not_null(data)
 	assert_true(data.is_wandering)
 	assert_eq(data.wander_flee_after_turns, 3)
 	assert_eq(data.weapon_drop_chance, 0.0)
+	assert_true(data.equip_category_weights.is_empty())
+	assert_eq(int(data.exp_reward), 100)
 
-func test_reliquary_weapon_drop_and_weights() -> void:
-	var data: Resource = DataRegistry.get_enemy_data("reliquary_beetle")
+
+func test_crown_raven_multi_category_drop() -> void:
+	var data: Resource = DataRegistry.get_enemy_data("crown_raven")
 	assert_not_null(data)
 	assert_true(data.is_wandering)
 	assert_eq(data.wander_flee_after_turns, 0)
 	assert_eq(data.weapon_drop_chance, 0.85)
 	assert_false(data.weapon_rarity_weights.is_empty())
+	assert_eq(int(data.equip_category_weights.get("weapon", 0)), 40)
+	assert_eq(int(data.equip_category_weights.get("armor", 0)), 35)
+	assert_eq(int(data.equip_category_weights.get("accessory", 0)), 25)
+
 
 func test_pick_wandering_replaces_combat_pool() -> void:
 	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
@@ -50,34 +74,76 @@ func test_pick_wandering_replaces_combat_pool() -> void:
 	add_child_autofree(dc)
 	dc.current_dungeon_data = DataRegistry.get_dungeon_data("mourngate")
 	dc.current_room_type = Enums.RoomType.COMBAT
-	# pick_combat_enemy_group は内部 randf を使うため、複数回試行して放浪が出ることを確認。
 	var saw_wander: bool = false
 	for seed_val: int in range(200):
 		seed(seed_val)
 		var group: Array = dc.pick_combat_enemy_group()
-		if group.size() == 1 and group[0].id == "wayfarer_sparrow":
-			saw_wander = true
-			break
-		if group.size() == 1 and group[0].id == "reliquary_beetle":
+		if group.size() != 1:
+			continue
+		var eid: String = str(group[0].id)
+		if eid == "cosmic_duck" or eid == "crown_raven":
 			saw_wander = true
 			break
 	assert_true(saw_wander, "200 trials should hit wandering spawn")
 
+
 func test_weapon_drop_chance_override() -> void:
-	## ベース drop のみ検証（週次 weapon_drop×1.5 や昇格特質は掛けない）
 	assert_eq(EventSystem.get_modifier_mult(EventSystem.MOD_WEAPON_DROP), 1.0)
 	GameState.party_members = []
 	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
 	var dc: Node = dc_script.new()
 	add_child_autofree(dc)
-	var sparrow: Resource = DataRegistry.get_enemy_data("wayfarer_sparrow")
-	assert_eq(dc._resolve_weapon_drop_chance(Enums.RoomType.COMBAT, sparrow), 0.0)
-	var beetle: Resource = DataRegistry.get_enemy_data("reliquary_beetle")
-	assert_eq(dc._resolve_weapon_drop_chance(Enums.RoomType.COMBAT, beetle), 0.85)
+	var duck: Resource = DataRegistry.get_enemy_data("cosmic_duck")
+	assert_eq(dc._resolve_weapon_drop_chance(Enums.RoomType.COMBAT, duck), 0.0)
+	var raven: Resource = DataRegistry.get_enemy_data("crown_raven")
+	assert_eq(dc._resolve_weapon_drop_chance(Enums.RoomType.COMBAT, raven), 0.85)
 
-func test_rarity_weight_override_for_beetle() -> void:
+
+func test_rarity_weight_override_for_raven() -> void:
 	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
 	var dc: Node = dc_script.new()
 	add_child_autofree(dc)
-	var beetle: Resource = DataRegistry.get_enemy_data("reliquary_beetle")
-	assert_eq(dc._rarity_drop_weight_for(Enums.Rarity.EPIC, beetle), 45)
+	var raven: Resource = DataRegistry.get_enemy_data("crown_raven")
+	assert_eq(dc._rarity_drop_weight_for(Enums.Rarity.EPIC, raven), 45)
+
+
+func test_multi_category_equip_drop_can_yield_armor() -> void:
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	dc.current_dungeon_data = DataRegistry.get_dungeon_data("mourngate")
+	var raven: Resource = DataRegistry.get_enemy_data("crown_raven")
+	GameState.armor_inventory.clear()
+	GameState.accessory_inventory.clear()
+	GameState.inventory.clear()
+	var saw_non_weapon: bool = false
+	for seed_val: int in range(80):
+		seed(seed_val)
+		GameState.armor_inventory.clear()
+		GameState.accessory_inventory.clear()
+		GameState.inventory.clear()
+		## ドロップ判定を通すため chance 内に入るよう強制再試行
+		var drop: Dictionary = dc._roll_multi_category_equip_drop(raven)
+		if drop.is_empty():
+			continue
+		var cat: String = str(drop.get("category", ""))
+		if cat == "armor" or cat == "accessory":
+			saw_non_weapon = true
+			break
+	assert_true(saw_non_weapon, "レイヴンは防具/装飾も落とせる")
+
+
+func test_save_v6_to_v7_merges_legacy_wander_codex() -> void:
+	var raw: Dictionary = {
+		"save_version": 6,
+		"enemy_codex": {
+			"wayfarer_sparrow": {"seen": true, "kills": 3},
+			"reliquary_beetle": {"seen": true, "kills": 1},
+		},
+	}
+	var migrated: Dictionary = SaveManager._migrate_save_v6_to_v7(raw.duplicate(true))
+	var codex: Dictionary = migrated["enemy_codex"]
+	assert_false(codex.has("wayfarer_sparrow"))
+	assert_false(codex.has("reliquary_beetle"))
+	assert_eq(int(codex["cosmic_duck"]["kills"]), 3)
+	assert_eq(int(codex["crown_raven"]["kills"]), 1)

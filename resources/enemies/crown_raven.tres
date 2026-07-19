@@ -4,8 +4,8 @@
 
 [resource]
 script = ExtResource("1")
-id = "reliquary_beetle"
-display_name = "聖遺甲虫"
+id = "crown_raven"
+display_name = "宝冠レイヴン"
 max_hp = 1080
 attack = 176
 defense = 112
@@ -26,10 +26,10 @@ attack_element = ""
 on_hit_status_id = ""
 on_hit_status_chance = 0.0
 can_swarm = false
-codex_class = "昆虫類"
+codex_class = "鳥類"
 codex_danger = 4
-codex_habitat = "戦場跡・遺構（遍在）"
-codex_research_note = "カブトムシを祖先とする大型甲虫。武具の破片を甲殻に取り込み、鉄分の濃い場所を嗅ぎ分けて移動する。攻撃的だが、倒せば甲殻の破片は良質な鍛冶素材になる。ギルドの武具部は「聖遺甲虫の角＝幸運の鍛冶材」と半ば迷信している。"
+codex_habitat = "旧王の葬列路（遍在）"
+codex_research_note = "宝冠の欠片を銜えて飛ぶ黒鳥。武具の気配を嗅ぎ分け、落とし物や戦場跡を漁る。攻撃的だが、倒せば銜えていた武具が落ちることがある。ギルド武具部は「レイヴンの羽＝幸運の拾得」と半ば迷信している。"
 codex_materials = Array[String]([])
 skill_ids = Array[String](["enemy_shrapnel_slam"])
 skill_use_chance = 0.32
@@ -41,4 +41,9 @@ weapon_rarity_weights = {
 1: 20,
 2: 45,
 3: 25
+}
+equip_category_weights = {
+"weapon": 40,
+"armor": 35,
+"accessory": 25
 }

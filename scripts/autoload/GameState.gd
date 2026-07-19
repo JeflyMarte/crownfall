@@ -1429,7 +1429,12 @@ const STAGE5_KILLS: int = 6
 
 var enemy_codex: Dictionary = {}
 
+func _canonical_enemy_id(enemy_id: String) -> String:
+	return WanderingEnemyConfig.canonical_enemy_id(enemy_id)
+
+
 func mark_enemy_seen(enemy_id: String) -> void:
+	enemy_id = _canonical_enemy_id(enemy_id)
 	if enemy_id.is_empty():
 		return
 	if not enemy_codex.has(enemy_id):
@@ -1438,6 +1443,7 @@ func mark_enemy_seen(enemy_id: String) -> void:
 		enemy_codex[enemy_id]["seen"] = true
 
 func add_enemy_kill(enemy_id: String) -> void:
+	enemy_id = _canonical_enemy_id(enemy_id)
 	if enemy_id.is_empty():
 		return
 	if not enemy_codex.has(enemy_id):
@@ -1447,6 +1453,7 @@ func add_enemy_kill(enemy_id: String) -> void:
 		enemy_codex[enemy_id]["kills"] = int(enemy_codex[enemy_id].get("kills", 0)) + 1
 
 func mark_boss_phase_seen(enemy_id: String, phase_index: int) -> void:
+	enemy_id = _canonical_enemy_id(enemy_id)
 	if enemy_id.is_empty() or phase_index < 0:
 		return
 	mark_enemy_seen(enemy_id)
@@ -1456,11 +1463,13 @@ func mark_boss_phase_seen(enemy_id: String, phase_index: int) -> void:
 	enemy_codex[enemy_id]["phases_seen"] = seen
 
 func get_boss_phases_seen(enemy_id: String) -> Array:
+	enemy_id = _canonical_enemy_id(enemy_id)
 	if not enemy_codex.has(enemy_id):
 		return []
 	return (enemy_codex[enemy_id].get("phases_seen", []) as Array).duplicate()
 
 func get_enemy_stage(enemy_id: String) -> int:
+	enemy_id = _canonical_enemy_id(enemy_id)
 	if not enemy_codex.has(enemy_id):
 		return 1
 	var entry: Dictionary = enemy_codex[enemy_id]

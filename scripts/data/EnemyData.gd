@@ -40,9 +40,12 @@ extends Resource
 @export var threat_target_bias: String = "max_threat"
 ## 遍在希少種（放浪個体 / P3-WANDER-001）。全 Biome の COMBAT に低確率差し込み。
 @export var is_wandering: bool = false
-## 放浪個体の逃走。0=逃走なし。N=自身の行動 N 回後に逃走（遠旅スズメ=3）。
+## 放浪個体の逃走。0=逃走なし。N=自身の行動 N 回後に逃走（コズミックダック=3）。
 @export var wander_flee_after_turns: int = 0
-## 撃破時武器ドロップ率。-1=部屋種別既定 / 0〜1=上書き（聖遺甲虫=0.85）。
+## 撃破時装備ドロップ率。-1=部屋種別既定（武器のみ） / 0〜1=上書き。
+## `equip_category_weights` 非空時は武器/防具/装飾のいずれかに適用（宝冠レイヴン）。
 @export var weapon_drop_chance: float = -1.0
-## 武器レア度重み上書き（空=既定 RARITY_DROP_WEIGHT）。キー=Enums.Rarity 値。
+## 装備レア度重み上書き（空=既定 RARITY_DROP_WEIGHT）。キー=Enums.Rarity 値。
 @export var weapon_rarity_weights: Dictionary = {}
+## 撃破装備の種別重み（空=従来どおり武器のみ経路）。例: weapon/armor/accessory。
+@export var equip_category_weights: Dictionary = {}

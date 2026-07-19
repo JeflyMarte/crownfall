@@ -14,7 +14,9 @@ func get_accessory_data(accessory_id: String) -> Resource:
 	return load(Constants.RESOURCE_ACCESSORIES_PATH + accessory_id + ".tres")
 
 func get_enemy_data(enemy_id: String) -> Resource:
-	return load(Constants.RESOURCE_ENEMIES_PATH + enemy_id + ".tres")
+	## P3-WANDER-002: 旧放浪ID → 新ID
+	var canonical: String = WanderingEnemyConfig.canonical_enemy_id(enemy_id)
+	return load(Constants.RESOURCE_ENEMIES_PATH + canonical + ".tres")
 
 func get_skill_data(skill_id: String) -> Resource:
 	return load(Constants.RESOURCE_SKILLS_PATH + skill_id + ".tres")

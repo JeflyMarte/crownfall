@@ -50,6 +50,9 @@ const ENEMY_SPRITE_MAP: Dictionary = {
 	"storm_joe": "res://resources/animation/ENM_StormJoe.tres",
 	"undertaker_shark": "res://resources/animation/ENM_UndertakerShark.tres",
 	"vergaron": "res://resources/animation/ENM_Vergaron.tres",
+	"cosmic_duck": "res://resources/animation/ENM_MistWyvern.tres",
+	"crown_raven": "res://resources/animation/ENM_MossShell.tres",
+	## 旧IDエイリアス（プレースホルダ）
 	"wayfarer_sparrow": "res://resources/animation/ENM_MistWyvern.tres",
 	"reliquary_beetle": "res://resources/animation/ENM_MossShell.tres",
 }
@@ -4595,12 +4598,22 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 		_append_gold_drop_icons(drop_icons, final_gold)
 	if room_type == Enums.RoomType.COMBAT and defeated_enemy != null:
 		_roll_enhancement_material_drops(defeated_enemy, log_lines, drop_icons)
-	# P3-D074/D082: 撃破ごとの武器直ドロップ（各敵個別判定）
-	var dropped_weapon: String = $DungeonController.roll_kill_weapon_drop(room_type, defeated_enemy)
-	if not dropped_weapon.is_empty():
-		GameState.last_run_weapon_dropped = dropped_weapon
-		log_lines.append("武器ドロップ: %s" % DataRegistry.get_weapon_name(dropped_weapon))
-		_append_equipment_drop_icon(drop_icons, dropped_weapon, "weapon")
+	# P3-D074/D082/WANDER-002: 撃破ごとの装備直ドロップ（各敵個別判定）
+	var equip_drop: Dictionary = $DungeonController.roll_kill_equip_drop(room_type, defeated_enemy)
+	if not equip_drop.is_empty():
+		var drop_cat: String = str(equip_drop.get("category", "weapon"))
+		var drop_id: String = str(equip_drop.get("id", ""))
+		match drop_cat:
+			"armor":
+				GameState.last_run_armor_dropped = drop_id
+				log_lines.append("防具ドロップ: %s" % DataRegistry.get_armor_name(drop_id))
+			"accessory":
+				GameState.last_run_accessory_dropped = drop_id
+				log_lines.append("装飾ドロップ: %s" % DataRegistry.get_accessory_name(drop_id))
+			_:
+				GameState.last_run_weapon_dropped = drop_id
+				log_lines.append("武器ドロップ: %s" % DataRegistry.get_weapon_name(drop_id))
+		_append_equipment_drop_icon(drop_icons, drop_id, drop_cat)
 	if room_type == Enums.RoomType.BOSS:
 		var stage: Resource = $DungeonController.current_stage_data
 		if stage != null:
