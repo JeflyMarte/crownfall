@@ -19,8 +19,6 @@ const COLOR_OWNED: Color = Color(0.55, 0.88, 0.5)
 @onready var _label_catchcopy: Label = $MainColumn/HeroBanner/BannerVBox/LabelCatchcopy
 @onready var _label_rate: Label = $MainColumn/HeroBanner/BannerVBox/RateRow/LabelRate
 @onready var _btn_rate_detail: Button = $MainColumn/HeroBanner/BannerVBox/RateRow/BtnRateDetail
-@onready var _label_pity_caption: Label = $MainColumn/PityPanel/PityVBox/LabelPityCaption
-@onready var _pity_bar: ProgressBar = $MainColumn/PityPanel/PityVBox/PityBar
 @onready var _lineup_carousel: HBoxContainer = $MainColumn/LineupCarouselScroll/LineupCarousel
 @onready var _detail_overlay: Control = $DetailOverlay
 @onready var _detail_dim: ColorRect = $DetailOverlay/Dim
@@ -30,7 +28,6 @@ const COLOR_OWNED: Color = Color(0.55, 0.88, 0.5)
 @onready var _label_result: Label = $SummonActionBar/LabelResult
 @onready var _button_pull: Button = $SummonActionBar/PullRow/ButtonPull
 @onready var _button_pull_ticket: Button = $SummonActionBar/PullRow/ButtonPullTicket
-@onready var _button_buy_crystal: Button = $SummonActionBar/ButtonBuyCrystal
 @onready var _summon_layer: CanvasLayer = $SummonRevealLayer
 @onready var _summon_dim: ColorRect = $SummonRevealLayer/Dim
 @onready var _invite_glow: TextureRect = $SummonRevealLayer/InviteGlow
@@ -63,7 +60,6 @@ func _ready() -> void:
 	_detail_dim.gui_input.connect(_on_detail_dim_input)
 	_button_pull.pressed.connect(_on_pull_pressed)
 	_button_pull_ticket.pressed.connect(_on_pull_ticket_pressed)
-	_button_buy_crystal.pressed.connect(_on_buy_crystal_pressed)
 	_summon_dim.gui_input.connect(_on_summon_overlay_input)
 	_reveal_panel.gui_input.connect(_on_summon_overlay_input)
 	_portrait_frame.add_theme_stylebox_override("panel", GachaUiTokens.lineup_cell_style())
@@ -105,18 +101,12 @@ func _setup_gacha_chrome() -> void:
 		_token_icon.texture = token_tex
 		_flash_icon.texture = token_tex
 	_hero_banner.add_theme_stylebox_override("panel", GachaUiTokens.banner_frame_style())
-	$MainColumn/PityPanel.add_theme_stylebox_override("panel", GachaUiTokens.panel_dark_style())
 	_detail_panel.add_theme_stylebox_override("panel", GachaUiTokens.panel_dark_style())
 	_reveal_panel.add_theme_stylebox_override("panel", GachaUiTokens.reveal_frame_style())
-	_pity_bar.add_theme_stylebox_override("background", GachaUiTokens.pity_bar_background_style())
-	_pity_bar.add_theme_stylebox_override("fill", GachaUiTokens.pity_bar_fill_style())
-	_pity_bar.max_value = float(GachaSystem.HARD_PITY)
 	GachaUiHelper.setup_pull_button(_button_pull, true)
 	GachaUiHelper.setup_ticket_pull_button(_button_pull_ticket, true)
 	_apply_button_style(_btn_rate_detail, GachaUiTokens.detail_button_style())
 	_apply_button_style(_btn_detail_close, GachaUiTokens.detail_button_style())
-	_apply_button_style(_button_buy_crystal, GachaUiTokens.detail_button_style())
-	UiTypography.apply_menu_button(_button_buy_crystal)
 	UiTypography.apply_body(_label_result, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
 	UiTypography.apply_display(_label_banner, UiTypography.SIZE_DISPLAY_TITLE)
 	UiTypography.apply_display(_label_reveal_name, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
@@ -124,7 +114,6 @@ func _setup_gacha_chrome() -> void:
 	UiTypography.apply_caption(_label_tap_hint, UiTypography.COLOR_MUTED)
 	UiTypography.apply_body(_label_catchcopy, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	UiTypography.apply_caption(_label_rate)
-	UiTypography.apply_caption(_label_pity_caption)
 	UiTypography.apply_display(
 		$DetailOverlay/DetailPanel/DetailVBox/DetailHeader/LabelDetailTitle,
 		UiTypography.SIZE_BODY_SMALL
@@ -139,14 +128,11 @@ func _apply_button_style(btn: Button, style: StyleBox) -> void:
 func _refresh() -> void:
 	_label_gold.text = "%d" % GameState.gold
 	_label_token.text = CurrencyHelper.format_amount()
-	_refresh_pity_bar()
 	_label_rate.text = GachaSystem.rate_display_text()
 	_label_catchcopy.text = GachaUiHelper.catchcopy()
 	_set_pull_controls_enabled(not _summon_active)
 	GachaUiHelper.setup_pull_button(_button_pull, not _button_pull.disabled)
 	GachaUiHelper.setup_ticket_pull_button(_button_pull_ticket, not _button_pull_ticket.disabled)
-	_button_buy_crystal.text = "%s購入（%dG）" % [CurrencyHelper.DISPLAY_NAME, GachaSystem.TOKEN_PURCHASE_GOLD]
-	_button_buy_crystal.disabled = _summon_active or GameState.gold < GachaSystem.TOKEN_PURCHASE_GOLD
 	if not _summon_active:
 		var free_n: int = TicketSystem.free_gacha_qty()
 		if free_n > 0:
@@ -155,11 +141,6 @@ func _refresh() -> void:
 			_label_result.text = ""
 	_refresh_banner_art()
 	_rebuild_lineup()
-
-func _refresh_pity_bar() -> void:
-	var pity: int = GameState.gacha_pity
-	_label_pity_caption.text = GachaUiTokens.pity_caption(pity, GachaSystem.HARD_PITY)
-	_pity_bar.value = float(pity)
 
 func _refresh_banner_art() -> void:
 	GachaUiHelper.populate_banner_portraits(_banner_art_host)
@@ -388,19 +369,6 @@ func _populate_reveal_content(
 	_portrait_icon.texture = portrait_tex
 	if not hid.is_empty():
 		_featured_helper_id = hid
-
-func _on_buy_crystal_pressed() -> void:
-	if _summon_active:
-		return
-	var success: bool = GachaSystem.buy_token()
-	SaveManager.save_game()
-	if success:
-		_label_result.add_theme_color_override("font_color", COLOR_OWNED)
-		_label_result.text = "%sを1個購入しました。" % CurrencyHelper.DISPLAY_NAME
-	else:
-		_label_result.add_theme_color_override("font_color", COLOR_SUB)
-		_label_result.text = "ゴールドが足りません。"
-	_refresh()
 
 func _on_back_pressed() -> void:
 	if _summon_active:

@@ -9,8 +9,6 @@ func test_gacha_ui_asset_paths_exist() -> void:
 		GachaUiTokens.ICO_BACK,
 		GachaUiTokens.SECTION_RULE,
 		GachaUiTokens.BANNER_FRAME,
-		GachaUiTokens.PITY_BAR_BG,
-		GachaUiTokens.PITY_BAR_FILL,
 		GachaUiTokens.BTN_1PULL,
 		GachaUiTokens.BTN_1PULL_DISABLED,
 		GachaUiTokens.LINEUP_CELL,
@@ -25,10 +23,6 @@ func test_pull_styles_use_texture() -> void:
 	var enabled: StyleBox = GachaUiTokens.pull_1_style()
 	assert_true(enabled is StyleBoxTexture)
 	assert_not_null((enabled as StyleBoxTexture).texture)
-
-func test_pity_helpers() -> void:
-	assert_almost_eq(GachaUiTokens.pity_ratio(15, 30), 0.5, 0.001)
-	assert_eq(GachaUiTokens.pity_caption(15, 30), "確実な招きまで 15 / 30")
 
 func test_decorate_title_uses_screen_title() -> void:
 	var lbl := Label.new()

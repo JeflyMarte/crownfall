@@ -427,11 +427,14 @@ func get_run_chapter_label() -> String:
 	return "%d-%d" % [int(current_stage_data.biome_index), int(current_stage_data.chapter_index)]
 
 func get_run_recommended_level() -> int:
+	var base: int = 0
 	if current_stage_data != null and int(current_stage_data.recommended_level) > 0:
-		return int(current_stage_data.recommended_level)
-	if current_dungeon_data != null and int(current_dungeon_data.recommended_level) > 0:
-		return int(current_dungeon_data.recommended_level)
-	return 0
+		base = int(current_stage_data.recommended_level)
+	elif current_dungeon_data != null and int(current_dungeon_data.recommended_level) > 0:
+		base = int(current_dungeon_data.recommended_level)
+	if base <= 0:
+		return 0
+	return _DungeonTierConfig.apply_tier_level(base, GameState.current_dungeon_tier)
 
 func get_display_floor_max() -> int:
 	if current_stage_data != null:

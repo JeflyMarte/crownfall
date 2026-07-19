@@ -23,7 +23,6 @@ static func apply() -> void:
 	GameState.debug_full_unlock = true
 	GameState.gold = DEBUG_GOLD
 	GameState.gacha_token = DEBUG_GACHA_TOKEN
-	GameState.gacha_pity = 0
 	_unlock_all_starters_and_helpers()
 	_grant_all_equipment()
 	_grant_all_relics()

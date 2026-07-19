@@ -65,6 +65,13 @@ static func enemy_level_bonus(tier: int) -> int:
 			return 0
 
 
+## ノーマル基準の推奨／敵Lvを、選択中ティアの実態に合わせる。
+static func apply_tier_level(base_level: int, tier: int) -> int:
+	if base_level <= 0:
+		return 0
+	return base_level + enemy_level_bonus(tier)
+
+
 static func rarity_weight_mult(tier: int) -> float:
 	return RARITY_WEIGHT_MULT[clamp_tier(tier)]
 

@@ -33,4 +33,5 @@ func test_rate_display_omits_star1() -> void:
 	assert_false(text.contains("★1"))
 	assert_true(text.contains("★2"))
 	assert_true(text.contains("★4"))
+	assert_false(text.contains("未所持優先"))
 	assert_eq(float(_GachaRarityConfig.RARITY_WEIGHTS.get(1, -1.0)), 0.0)

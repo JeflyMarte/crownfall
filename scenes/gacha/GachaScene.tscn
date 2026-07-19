@@ -200,26 +200,6 @@ theme_override_font_sizes/font_size = 11
 text = "常設"
 horizontal_alignment = 1
 
-[node name="PityPanel" type="PanelContainer" parent="MainColumn"]
-layout_mode = 2
-
-[node name="PityVBox" type="VBoxContainer" parent="MainColumn/PityPanel"]
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="LabelPityCaption" type="Label" parent="MainColumn/PityPanel/PityVBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
-theme_override_font_sizes/font_size = 14
-text = "確実な招きまで 0 / 30"
-horizontal_alignment = 1
-
-[node name="PityBar" type="ProgressBar" parent="MainColumn/PityPanel/PityVBox"]
-custom_minimum_size = Vector2(0, 28)
-layout_mode = 2
-max_value = 30.0
-show_percentage = false
-
 [node name="LineupCarouselScroll" type="ScrollContainer" parent="MainColumn"]
 custom_minimum_size = Vector2(0, 132)
 layout_mode = 2
@@ -269,10 +249,6 @@ custom_minimum_size = Vector2(220, 88)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "チケットで招待"
-
-[node name="ButtonBuyCrystal" type="Button" parent="SummonActionBar"]
-layout_mode = 2
-text = "魔晶石購入（100G）"
 
 [node name="DetailOverlay" type="Control" parent="."]
 visible = false

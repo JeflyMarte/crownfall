@@ -25,6 +25,8 @@ func test_lore_auto_crawl_params() -> void:
 	assert_gt(_IntroLoreSceneScript.CRAWL_START_DELAY_SEC, 0.0)
 	assert_lte(_IntroLoreSceneScript.CRAWL_START_DELAY_SEC, 2.0)
 	assert_gt(_IntroLoreSceneScript.CRAWL_BOOST_MULT, 1.0)
+	assert_gt(_IntroLoreSceneScript.FADE_BAND_PX, 24.0)
+	assert_lt(_IntroLoreSceneScript.PANEL_DWELL_SPEED_MULT, 1.0)
 
 
 func test_nina_typewriter_interval() -> void:

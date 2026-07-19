@@ -9,7 +9,6 @@ var settings_return_scene: String = HOME_SCENE
 
 
 func change_scene(path: String) -> void:
-	AudioManager.play_sfx("ui_open", 1.0, 0.12)
 	get_tree().change_scene_to_file.call_deferred(path)
 
 

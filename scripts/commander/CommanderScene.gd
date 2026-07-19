@@ -404,22 +404,33 @@ func _make_ticket_chip(ticket_id: String, qty: int) -> VBoxContainer:
 	col.tooltip_text = TicketSystem.display_name(ticket_id)
 	var frame := PanelContainer.new()
 	frame.custom_minimum_size = Vector2(MAT_CELL_PX, MAT_CELL_PX)
+	var rarity: int = 0
+	var ticket: Resource = DataRegistry.get_ticket_data(ticket_id)
+	if ticket != null and int(ticket.target_rarity) > 0:
+		# ★帯チケットは見た目枠をレア帯に寄せる（N=0 … SSR=3）
+		rarity = clampi(int(ticket.target_rarity) - 1, 0, 3)
+	# テーマ既定パネルは不透明板になるため、素材セルと同様の rarity 枠のみにする。
+	frame.add_theme_stylebox_override(
+		"panel",
+		EquipmentUiTokens.rarity_slot_style(rarity, false, MAT_CELL_PX)
+	)
 	var host := Control.new()
 	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	frame.add_child(host)
 	var tex: Texture2D = IconPaths.get_icon_texture(ticket_id, "ticket")
 	if tex != null:
+		var inset: int = EquipmentUiTokens.icon_inset_px(MAT_CELL_PX, EquipmentUiTokens.INV_CELL_DESIGN_PX)
 		var icon := TextureRect.new()
 		icon.texture = tex
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		icon.offset_left = 6
-		icon.offset_top = 6
-		icon.offset_right = -6
-		icon.offset_bottom = -6
+		icon.offset_left = inset
+		icon.offset_top = inset
+		icon.offset_right = -inset
+		icon.offset_bottom = -inset
 		host.add_child(icon)
 	else:
 		var glyph := Label.new()

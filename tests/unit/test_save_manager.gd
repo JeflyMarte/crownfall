@@ -40,13 +40,13 @@ func _reset_game_state() -> void:
 		GameState.seed_all_starters_unlocked()
 	GameState.gold = 0
 	GameState.gacha_token = 0
-	GameState.gacha_pity = 0
 	GameState.owned_helpers = {}
 	GameState.owned_relics = []
 	GameState.current_dungeon_id = Constants.DEFAULT_DUNGEON_ID
 	GameState.current_stage_id = ""
 	GameState.stage_progress = {}
 	GameState.commander = {}
+
 func _write_raw_save(text: String) -> void:
 	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	assert_not_null(file, "テスト用セーブファイルを開けること")

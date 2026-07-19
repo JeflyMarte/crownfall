@@ -55,7 +55,7 @@ static func roll_rarity_tier() -> int:
 	return 2
 
 static func rate_display_text() -> String:
-	return "★2 %.0f%% / ★3 %.0f%% / ★4 %.0f%%（未所持優先）" % [
+	return "★2 %.0f%% / ★3 %.0f%% / ★4 %.0f%%" % [
 		float(RARITY_WEIGHTS.get(2, 0.0)) * 100.0,
 		float(RARITY_WEIGHTS.get(3, 0.0)) * 100.0,
 		float(RARITY_WEIGHTS.get(4, 0.0)) * 100.0,

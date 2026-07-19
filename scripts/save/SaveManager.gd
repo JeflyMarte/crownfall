@@ -30,7 +30,6 @@ func save_game() -> void:
 		"accessory_inventory": _serialize_accessory_inventory(),
 		"enemy_codex": _serialize_enemy_codex(),
 		"gacha_token": GameState.gacha_token,
-		"gacha_pity": GameState.gacha_pity,
 		"owned_helpers": GameState.owned_helpers.duplicate(),
 		"ticket_inventory": GameState.ticket_inventory.duplicate(),
 		"combat_presets": GameState.combat_presets.duplicate(true),
@@ -595,8 +594,7 @@ func _restore_active_party(data: Dictionary) -> void:
 func _apply_gacha_save(data: Dictionary) -> void:
 	if data.has("gacha_token"):
 		GameState.gacha_token = int(data["gacha_token"])
-	if data.has("gacha_pity"):
-		GameState.gacha_pity = int(data["gacha_pity"])
+	# 旧セーブの gacha_pity は無視（天井ロジック廃止）
 	if data.has("owned_helpers") and data["owned_helpers"] is Dictionary:
 		var oh: Dictionary = {}
 		for k in data["owned_helpers"]:

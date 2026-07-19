@@ -1201,7 +1201,10 @@ func _dungeon_meta_line(data: Resource) -> String:
 		elif bool(stage.requires_elite):
 			parts.append("エリート")
 	elif data != null and int(data.recommended_level) > 0:
-		parts.append("推奨Lv.%d〜" % int(data.recommended_level))
+		var dungeon_rec: int = _DungeonTierConfig.apply_tier_level(
+			int(data.recommended_level), GameState.current_dungeon_tier
+		)
+		parts.append("推奨Lv.%d〜" % dungeon_rec)
 	if not GameState.get_weather().is_empty():
 		parts.append("天候:%s" % CombatWeather.label(GameState.get_weather()))
 	return " · ".join(parts)

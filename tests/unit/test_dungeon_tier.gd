@@ -62,6 +62,22 @@ func test_enemy_level_band_h11_gt_n55_and_nm11_gt_h55() -> void:
 	assert_gt(nm11, h55)
 
 
+func test_recommended_level_follows_tier_enemy_bonus() -> void:
+	var cap: int = _DungeonTierConfig.main_normal_cap_level()
+	assert_eq(_DungeonTierConfig.apply_tier_level(3, _DungeonTierConfig.TIER_NORMAL), 3)
+	assert_eq(_DungeonTierConfig.apply_tier_level(3, _DungeonTierConfig.TIER_HARD), 3 + cap)
+	assert_eq(_DungeonTierConfig.apply_tier_level(3, _DungeonTierConfig.TIER_NIGHTMARE), 3 + cap * 2)
+	assert_eq(_DungeonTierConfig.apply_tier_level(0, _DungeonTierConfig.TIER_HARD), 0)
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	dc.current_stage_data = DataRegistry.get_stage_data("mourngate_1_1")
+	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
+	assert_eq(dc.get_run_recommended_level(), 3)
+	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_HARD
+	assert_eq(dc.get_run_recommended_level(), 3 + cap)
+
+
 func test_tier_rarity_weight_scales() -> void:
 	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
 	var dc: Node = dc_script.new()

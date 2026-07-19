@@ -10,8 +10,6 @@ const ORNAMENT_DIAMOND: String = ROOT + "UI_Ornament_Diamond.png"
 const ICO_BACK: String = ROOT + "UI_Ico_Back_Gold.png"
 const SECTION_RULE: String = ROOT + "UI_Gacha_SectionRule.png"
 const BANNER_FRAME: String = ROOT + "UI_Gacha_Banner_Frame.png"
-const PITY_BAR_BG: String = ROOT + "UI_Gacha_PityBar_Bg.png"
-const PITY_BAR_FILL: String = ROOT + "UI_Gacha_PityBar_Fill.png"
 const BTN_1PULL: String = ROOT + "UI_Gacha_Btn_1Pull.png"
 const BTN_1PULL_DISABLED: String = ROOT + "UI_Gacha_Btn_1Pull_Disabled.png"
 const LINEUP_CELL: String = ROOT + "UI_Gacha_LineupCell.png"
@@ -31,7 +29,6 @@ const LINEUP_SECTION_TITLE: String = "招きの候補"
 const BANNER_CATCHCOPY: String = "各地の探索者へ、ギルドからの招き"
 
 const BANNER_MIN_HEIGHT: int = 280
-const PITY_BAR_HEIGHT: int = 28
 const LINEUP_CELL_PX: int = 120
 const PULL_BTN_HEIGHT: int = 88
 const PULL_BTN_MIN_WIDTH: int = 220
@@ -87,12 +84,6 @@ static func detail_button_style() -> StyleBox:
 static func reveal_frame_style() -> StyleBox:
 	return texture_stylebox(REVEAL_FRAME, Vector4i(20, 20, 20, 20))
 
-static func pity_bar_background_style() -> StyleBox:
-	return texture_stylebox(PITY_BAR_BG, Vector4i(14, 0, 14, 0))
-
-static func pity_bar_fill_style() -> StyleBox:
-	return texture_stylebox(PITY_BAR_FILL, Vector4i(14, 0, 14, 0))
-
 static func apply_pull_button(btn: Button, enabled: bool) -> void:
 	var style: StyleBox = pull_1_style() if enabled else pull_disabled_style()
 	if style is StyleBoxTexture and (style as StyleBoxTexture).texture == null:
@@ -106,14 +97,6 @@ static func apply_pull_button(btn: Button, enabled: bool) -> void:
 
 static func decorate_title(label: Label) -> void:
 	UiTypography.apply_screen_title(label, UiTypography.SIZE_DISPLAY)
-
-static func pity_ratio(current: int, max_pity: int) -> float:
-	if max_pity <= 0:
-		return 0.0
-	return clampf(float(current) / float(max_pity), 0.0, 1.0)
-
-static func pity_caption(current: int, max_pity: int) -> String:
-	return "確実な招きまで %d / %d" % [clampi(current, 0, max_pity), maxi(1, max_pity)]
 
 static func _fallback_pull_style(enabled: bool) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()

@@ -32,6 +32,10 @@ const COLOR_SUB: Color = Color(0.78, 0.74, 0.6, 1)
 const COLOR_CLEAR: Color = Color(0.45, 0.92, 0.55, 1)
 const COLOR_TEAL: Color = Color(0.6, 0.82, 0.78, 1)
 
+const ROUTE_TAB_MAIN: String = "main"
+const ROUTE_TAB_SUB: String = "sub"
+const ROUTE_TAB_EVENT: String = "event"
+
 const DROP_PREVIEW: Dictionary = {
 	"mourngate": [
 		["weapon", "iron_sword"],
@@ -142,6 +146,9 @@ const DROP_PREVIEW: Dictionary = {
 @onready var _label_featured_discovery: Label = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo/LabelFeaturedDiscovery
 @onready var _featured_drop_row: HBoxContainer = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedDropRow
 @onready var _btn_featured_select: Button = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedActionRow/BtnFeaturedSelect
+@onready var _btn_route_main: Button = $MainColumn/RouteTabsRow/ButtonMainRoute
+@onready var _btn_route_sub: Button = $MainColumn/RouteTabsRow/ButtonSubDungeon
+@onready var _btn_route_event: Button = $MainColumn/RouteTabsRow/ButtonEventDungeon
 @onready var _scroll_list: ScrollContainer = $MainColumn/ScrollList
 @onready var _list: VBoxContainer = $MainColumn/ScrollList/ListVBox
 @onready var _footer_panel: PanelContainer = $FooterPanel
@@ -152,6 +159,7 @@ const DROP_PREVIEW: Dictionary = {
 var _featured_dungeon_id: String = ""
 var _selected_stage_id: String = ""
 var _expanded_biome_id: String = ""
+var _route_tab: String = ROUTE_TAB_MAIN
 var _pending_enter_dungeon_id: String = ""
 var _enter_confirm_overlay: Control
 var _enter_confirm_yes: Button
@@ -176,6 +184,23 @@ const BIOME_BANNER_PATHS: Dictionary = {
 }
 ## バナー画像にダンジョン名が焼き込まれている Biome（UI タイトルラベルを非表示）
 const BIOME_BANNER_TITLE_BAKED: Dictionary = {}
+## サブダンジョンに専用バナーが無い場合、親メイン Biome のバナーを流用
+const SUB_BANNER_FALLBACK: Dictionary = {
+	"astoria_ruins": "mourngate",
+	"green_hollow": "whisperwood",
+	"broken_marsh": "mistfen",
+	"westbay_flats": "blackshore",
+	"frostwall_path": "frostridge",
+	"mourngate_deep": "mourngate",
+	"storm_crown_ruins": "mourngate",
+	"red_ridge_mine": "whisperwood",
+	"thunder_peak": "mistfen",
+	"mistfen_depths": "mistfen",
+	"blackshore_abyss": "blackshore",
+	"red_forge_depths": "frostridge",
+	"north_reach": "frostridge",
+}
+
 func _ready() -> void:
 	$MainColumn/Header/HeaderRow/LabelTitle.text = ""
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.ADVENTURE)
@@ -184,6 +209,9 @@ func _ready() -> void:
 	_btn_tier_normal.pressed.connect(_on_tier_pressed.bind(_DungeonTierConfig.TIER_NORMAL))
 	_btn_tier_hard.pressed.connect(_on_tier_pressed.bind(_DungeonTierConfig.TIER_HARD))
 	_btn_tier_nightmare.pressed.connect(_on_tier_pressed.bind(_DungeonTierConfig.TIER_NIGHTMARE))
+	_btn_route_main.pressed.connect(_on_route_tab_pressed.bind(ROUTE_TAB_MAIN))
+	_btn_route_sub.pressed.connect(_on_route_tab_pressed.bind(ROUTE_TAB_SUB))
+	_btn_route_event.pressed.connect(_on_route_tab_pressed.bind(ROUTE_TAB_EVENT))
 	if EventSystem.PERIODIC_EVENTS_ENABLED and EventSystem.has_signal("event_updated"):
 		EventSystem.event_updated.connect(_refresh_event_footer)
 	_featured_panel.add_theme_stylebox_override(
@@ -296,6 +324,9 @@ func _hide_enter_confirm() -> void:
 func _apply_typography() -> void:
 	UiTypography.apply_button(_btn_back, false)
 	UiTypography.apply_button(_btn_featured_select)
+	UiTypography.apply_button(_btn_route_main, _route_tab == ROUTE_TAB_MAIN)
+	UiTypography.apply_button(_btn_route_sub, _route_tab == ROUTE_TAB_SUB)
+	UiTypography.apply_button(_btn_route_event, _route_tab == ROUTE_TAB_EVENT)
 	UiTypography.apply_body(_label_gold, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_body(_label_token, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_display(_label_featured_name, UiTypography.SIZE_BODY_SMALL)
@@ -309,13 +340,110 @@ func _refresh_all() -> void:
 	_featured_dungeon_id = _resolve_featured_dungeon_id()
 	if _expanded_biome_id.is_empty() and _uses_stage_cards(_featured_dungeon_id):
 		_expanded_biome_id = _featured_dungeon_id
+	_sync_route_tab_to_featured()
 	_clamp_selected_tier()
 	_update_currency()
 	_refresh_tier_tabs()
+	_refresh_route_tabs()
 	_refresh_featured()
 	_refresh_event_footer()
 	_build_list()
 	call_deferred("_reset_scroll_list_top")
+
+
+func _refresh_route_tabs() -> void:
+	var buttons: Array[Button] = [_btn_route_main, _btn_route_sub, _btn_route_event]
+	var tabs: Array[String] = [ROUTE_TAB_MAIN, ROUTE_TAB_SUB, ROUTE_TAB_EVENT]
+	for i in tabs.size():
+		var selected: bool = _route_tab == tabs[i]
+		buttons[i].button_pressed = selected
+		UiTypography.apply_button(buttons[i], selected)
+
+
+func _on_route_tab_pressed(tab: String) -> void:
+	if tab != ROUTE_TAB_MAIN and tab != ROUTE_TAB_SUB and tab != ROUTE_TAB_EVENT:
+		return
+	if _route_tab == tab:
+		_refresh_route_tabs()
+		return
+	_route_tab = tab
+	if tab != ROUTE_TAB_EVENT:
+		_ensure_featured_matches_route_tab()
+		_expanded_biome_id = ""
+		if _uses_stage_cards(_featured_dungeon_id):
+			_expanded_biome_id = _featured_dungeon_id
+		_clamp_selected_tier()
+		_refresh_tier_tabs()
+		_refresh_featured()
+	_refresh_route_tabs()
+	_build_list()
+	call_deferred("_reset_scroll_list_top")
+
+
+func _sync_route_tab_to_featured() -> void:
+	# イベントタブは手動切替のみ（中身未実装のため featured から戻さない）
+	if _route_tab == ROUTE_TAB_EVENT:
+		return
+	var data: Resource = DataRegistry.get_dungeon_data(_featured_dungeon_id)
+	if data == null:
+		return
+	var route: String = str(data.route_type)
+	if route == "main":
+		_route_tab = ROUTE_TAB_MAIN
+	elif route == "side" or route == "apex":
+		_route_tab = ROUTE_TAB_SUB
+	# event タブは中身未実装のため、選択ダンジョンからは自動切替しない
+
+
+func _ensure_featured_matches_route_tab() -> void:
+	if _route_tab == ROUTE_TAB_EVENT:
+		return
+	var data: Resource = DataRegistry.get_dungeon_data(_featured_dungeon_id)
+	if data != null and _route_matches_tab(str(data.route_type)) and GameState.is_dungeon_unlocked(_featured_dungeon_id):
+		return
+	var next_id: String = _first_unlocked_for_route_tab()
+	if next_id.is_empty():
+		next_id = _first_any_for_route_tab()
+	if not next_id.is_empty():
+		_featured_dungeon_id = next_id
+		GameState.current_dungeon_id = next_id
+		_sync_selected_stage_for_biome(next_id)
+		GameState.current_stage_id = _selected_stage_id
+
+
+func _route_matches_tab(route_type: String) -> bool:
+	if _route_tab == ROUTE_TAB_MAIN:
+		return route_type == "main"
+	if _route_tab == ROUTE_TAB_SUB:
+		return route_type == "side" or route_type == "apex"
+	return false
+
+
+func _first_unlocked_for_route_tab() -> String:
+	for data in _dungeons_for_route_tab():
+		if data != null and GameState.is_dungeon_unlocked(str(data.id)):
+			return str(data.id)
+	return ""
+
+
+func _first_any_for_route_tab() -> String:
+	var list: Array = _dungeons_for_route_tab()
+	if list.is_empty():
+		return ""
+	return str(list[0].id)
+
+
+func _dungeons_for_route_tab() -> Array:
+	if _route_tab == ROUTE_TAB_SUB:
+		var out: Array = []
+		out.append_array(_sorted_dungeons("side"))
+		out.append_array(_sorted_dungeons("apex"))
+		return out
+	if _route_tab == ROUTE_TAB_EVENT:
+		# 中身は後続 Task。枠のみ先置き。
+		return []
+	return _sorted_dungeons("main")
+
 
 func _clamp_selected_tier() -> void:
 	if _featured_dungeon_id.is_empty():
@@ -383,8 +511,11 @@ func _format_stage_label(stage: Resource) -> String:
 
 func _format_stage_meta_text(stage: Resource) -> String:
 	var parts: Array[String] = ["%dF" % int(stage.floor_count)]
-	if int(stage.recommended_level) > 0:
-		parts.append("推奨Lv%d" % int(stage.recommended_level))
+	var rec_lv: int = _DungeonTierConfig.apply_tier_level(
+		int(stage.recommended_level), GameState.current_dungeon_tier
+	)
+	if rec_lv > 0:
+		parts.append("推奨Lv%d" % rec_lv)
 	return "  ".join(parts)
 
 func _apply_stage_list_rich_text(line: RichTextLabel, unlocked: bool) -> void:
@@ -410,8 +541,11 @@ func _dungeon_list_line_bbcode(data: Resource, unlocked: bool) -> String:
 	var parts: Array[String] = []
 	if int(data.floor_count) > 0:
 		parts.append("%dF" % int(data.floor_count))
-	if int(data.recommended_level) > 0:
-		parts.append("推奨Lv%d〜" % int(data.recommended_level))
+	var rec_lv: int = _DungeonTierConfig.apply_tier_level(
+		int(data.recommended_level), GameState.current_dungeon_tier
+	)
+	if rec_lv > 0:
+		parts.append("推奨Lv%d〜" % rec_lv)
 	var meta: String = "  ".join(parts)
 	var name_color: String = "f5e07a" if unlocked else "c9c4b8"
 	if meta.is_empty():
@@ -575,8 +709,11 @@ func _refresh_featured() -> void:
 		if not title_baked:
 			meta_parts.append(str(stage.display_name))
 		meta_parts.append("%dF" % int(stage.floor_count))
-		if int(stage.recommended_level) > 0:
-			meta_parts.append("推奨Lv%d" % int(stage.recommended_level))
+		var stage_rec: int = _DungeonTierConfig.apply_tier_level(
+			int(stage.recommended_level), GameState.current_dungeon_tier
+		)
+		if stage_rec > 0:
+			meta_parts.append("推奨Lv%d" % stage_rec)
 		if bool(stage.has_boss_floor()):
 			meta_parts.append("ボス")
 		elif bool(stage.requires_elite):
@@ -585,8 +722,11 @@ func _refresh_featured() -> void:
 	var tier_summary: String = _DungeonTierConfig.summary_text(GameState.current_dungeon_tier)
 	if not tier_summary.is_empty():
 		meta_parts.append(tier_summary)
-	if int(data.recommended_level) > 0 and (stage == null or not _uses_stage_cards(_featured_dungeon_id)):
-		meta_parts.append("推奨Lv%d〜" % int(data.recommended_level))
+	var dungeon_rec: int = _DungeonTierConfig.apply_tier_level(
+		int(data.recommended_level), GameState.current_dungeon_tier
+	)
+	if dungeon_rec > 0 and (stage == null or not _uses_stage_cards(_featured_dungeon_id)):
+		meta_parts.append("推奨Lv%d〜" % dungeon_rec)
 	if _uses_stage_cards(_featured_dungeon_id):
 		var stage_label: String = GameState.get_stage_progress_label(_featured_dungeon_id)
 		if not stage_label.is_empty():
@@ -644,10 +784,12 @@ func _set_featured_dungeon(dungeon_id: String) -> void:
 		return
 	_featured_dungeon_id = dungeon_id
 	GameState.current_dungeon_id = dungeon_id
+	_sync_route_tab_to_featured()
 	_sync_selected_stage_for_biome(dungeon_id)
 	GameState.current_stage_id = _selected_stage_id
 	_clamp_selected_tier()
 	_refresh_tier_tabs()
+	_refresh_route_tabs()
 	_refresh_featured()
 	_build_list()
 
@@ -685,28 +827,32 @@ func _populate_drop_row(row: HBoxContainer, dungeon_id: String, max_icons: int =
 func _build_list() -> void:
 	for child in _list.get_children():
 		child.queue_free()
-	var mains: Array = _sorted_dungeons("main")
-	var sides: Array = _sorted_dungeons("side")
-	var apexes: Array = _sorted_dungeons("apex")
-	if mains.is_empty() and sides.is_empty() and apexes.is_empty():
-		return
-	if not mains.is_empty():
-		_list.add_child(_make_section_header("メインルート"))
-		for data in mains:
-			if _uses_stage_cards(str(data.id)):
-				_list.add_child(_make_biome_accordion(data))
-			else:
-				_list.add_child(_make_biome_card(data))
-	if not sides.is_empty():
-		_list.add_child(_make_section_header("寄り道"))
-		for data in sides:
-			_list.add_child(_make_biome_card(data))
-	if not apexes.is_empty():
-		_list.add_child(_make_section_header("最果て"))
-		for data in apexes:
-			_list.add_child(_make_biome_card(data))
+	var entries: Array = _dungeons_for_route_tab()
+	if entries.is_empty() and _route_tab == ROUTE_TAB_EVENT:
+		_list.add_child(_make_event_tab_placeholder())
+	else:
+		for data in entries:
+			if data == null:
+				continue
+			# メイン／サブともバナー＋アコーディオン（章が無ければバナー選択のみ）
+			_list.add_child(_make_biome_accordion(data))
 	# 末尾バナーがフッター／下ナビで見切れないようスクロール余白を確保
 	_list.add_child(_make_list_bottom_spacer())
+
+
+func _make_event_tab_placeholder() -> Control:
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_top", 24)
+	margin.add_theme_constant_override("margin_bottom", 16)
+	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var label := Label.new()
+	label.text = "開催中のイベントダンジョンはありません"
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_body(label, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_SUB)
+	margin.add_child(label)
+	return margin
 
 func _make_list_bottom_spacer() -> Control:
 	var spacer := Control.new()
@@ -717,8 +863,6 @@ func _make_list_bottom_spacer() -> Control:
 	return spacer
 
 func _sorted_dungeons(route_type: String) -> Array:
-	if not Constants.is_playable_dungeon_route(route_type) and not GameState.debug_full_unlock:
-		return []
 	var out: Array = []
 	for data in DataRegistry.get_all_dungeon_data():
 		if data == null or str(data.route_type) != route_type:
@@ -773,6 +917,10 @@ func _make_biome_accordion(data: Resource) -> Control:
 
 func _get_biome_banner_texture(dungeon_id: String) -> Texture2D:
 	var path: String = str(BIOME_BANNER_PATHS.get(dungeon_id, ""))
+	if path.is_empty():
+		var fallback_id: String = str(SUB_BANNER_FALLBACK.get(dungeon_id, ""))
+		if not fallback_id.is_empty():
+			path = str(BIOME_BANNER_PATHS.get(fallback_id, ""))
 	if path.is_empty():
 		return null
 	return _load_texture_flexible(path)
@@ -1055,11 +1203,6 @@ func _make_biome_card(data: Resource) -> PanelContainer:
 	return card
 
 func _dungeon_card_title(data: Resource) -> String:
-	var route: String = str(data.route_type)
-	if route == "side":
-		return "寄 %s" % str(data.display_name)
-	if route == "apex":
-		return "征 %s" % str(data.display_name)
 	return str(data.display_name)
 
 func _on_card_preview_input(event: InputEvent, dungeon_id: String, unlocked: bool) -> void:
@@ -1069,7 +1212,10 @@ func _on_card_preview_input(event: InputEvent, dungeon_id: String, unlocked: boo
 		_set_featured_dungeon(dungeon_id)
 
 func _recommended_combat_power(data: Resource, floor: int) -> int:
-	var base_lv: int = maxi(1, int(data.recommended_level))
+	var base_lv: int = _DungeonTierConfig.apply_tier_level(
+		maxi(1, int(data.recommended_level)), GameState.current_dungeon_tier
+	)
+	base_lv = maxi(1, base_lv)
 	return (base_lv + floor - 1) * 130 + int(data.difficulty) * 45
 
 func _enemy_preview_ids(data: Resource, floor: int) -> Array[String]:

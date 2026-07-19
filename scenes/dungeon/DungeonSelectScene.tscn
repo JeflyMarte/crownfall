@@ -230,6 +230,30 @@ layout_mode = 2
 custom_minimum_size = Vector2(132, 40)
 text = "選択して出発"
 
+[node name="RouteTabsRow" type="HBoxContainer" parent="MainColumn"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 6
+
+[node name="ButtonMainRoute" type="Button" parent="MainColumn/RouteTabsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+button_pressed = true
+text = "メインルート"
+
+[node name="ButtonSubDungeon" type="Button" parent="MainColumn/RouteTabsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+text = "サブダンジョン"
+
+[node name="ButtonEventDungeon" type="Button" parent="MainColumn/RouteTabsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+text = "イベントダンジョン"
+
 [node name="ScrollList" type="ScrollContainer" parent="MainColumn"]
 layout_mode = 2
 size_flags_vertical = 3

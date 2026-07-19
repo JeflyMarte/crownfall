@@ -31,6 +31,7 @@ alwaysApply: true
 | 見た目が変わらない | `.godot` キャッシュ | アセット差替後は **Godot 完全終了→再起動**。壊れた import は該当 `.ctex` を消して再インポート |
 | 鍛冶クラッシュ（Metal） | import サイズ不正（例: 220×88 が 1536×1024 キャッシュ） | chrome 差替後に解像度を確認。異常なら `.godot/imported` を該当分クリア |
 | 黒／暗い板が残る | キーイング閾値が甘い | 透過処理後に目視。弓など暗い背景は閾値を広げて再適用 |
+| 所持チケットが白マット | AI PNG の白背景がエッジ非連結で残存 | 透過隣接＋エッジから light matte flood-fill。枠は `StyleBox` 既定パネルを使わず rarity 枠 |
 | MVP 表彰枠が白／灰の不透明板 | AI 生成 PNG が RGB 白マットのまま（内外の穴も非連結） | エッジ＋中心穴の flood-fill で透過化（`import_forge_ui_assets.strip_edge_background` 相当）。差替後 `.godot/imported` を該当分クリア |
 | 戦闘ヒット／回復 VFX に暗縁 | `remove_black_bg(threshold=24)` では暗青緑マット `(14,21,25)` が残る | `tools/generate_env_and_vfx.py` の `clean_vfx_image`（`fix_batch6_vfx`）で再生成。alpha=0 の RGB ゴミも `sanitize_alpha` |
 | 枠にアイコンが食い込む | inset 不足 | `EquipmentUiTokens.ICON_FRAME_MARGIN_PX`（現行 18）を維持。全面キャンバス絵は余白を減らさない |
