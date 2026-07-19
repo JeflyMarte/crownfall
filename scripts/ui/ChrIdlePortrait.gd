@@ -1,7 +1,8 @@
 class_name ChrIdlePortrait
 extends RefCounted
 
-## ジョブ別 UI 用 Idle ドット（`assets/characters/{job}/idle_*.png`）。
+## UI 用 Idle ドット（`assets/characters/{folder}/idle_*.png`）。
+## folder は job_id、またはガチャ助っ人の helper_id。
 ## 戦闘 SpriteFrames の `idle`（=walk）とは別系統。
 
 const IDLE_FPS: float = 8.0
@@ -15,13 +16,25 @@ const MILD_HEIGHT_RATIO: float = 1.12
 const MILD_HEIGHT_SLACK_PX: int = 2
 
 
-static func idle_frame_paths(job_id: String) -> PackedStringArray:
+## Adventurer から Idle フォルダ名を解決（助っ人優先、なければ職）。
+static func folder_id_for_member(member: Resource) -> String:
+	if member == null:
+		return ""
+	var member_id: String = str(member.id)
+	if Constants.is_gacha_helper_id(member_id):
+		var helper_id: String = member_id.trim_prefix("gacha_")
+		if not helper_id.is_empty() and ResourceLoader.exists(FRAME_PATH % [helper_id, 0]):
+			return helper_id
+	return str(member.job_id)
+
+
+static func idle_frame_paths(folder_id: String) -> PackedStringArray:
 	var out: PackedStringArray = []
-	if job_id.is_empty():
+	if folder_id.is_empty():
 		return out
 	var i: int = 0
 	while i < 64:
-		var path: String = FRAME_PATH % [job_id, i]
+		var path: String = FRAME_PATH % [folder_id, i]
 		if not ResourceLoader.exists(path):
 			break
 		out.append(path)
@@ -29,17 +42,21 @@ static func idle_frame_paths(job_id: String) -> PackedStringArray:
 	return out
 
 
-static func load_idle_textures(job_id: String) -> Array[Texture2D]:
+static func load_idle_textures(folder_id: String) -> Array[Texture2D]:
 	var textures: Array[Texture2D] = []
-	for path in idle_frame_paths(job_id):
+	for path in idle_frame_paths(folder_id):
 		var tex: Texture2D = load(path) as Texture2D
 		if tex != null:
 			textures.append(tex)
 	return _prepare_idle_textures(textures)
 
 
-static func get_idle_texture(job_id: String) -> Texture2D:
-	var textures: Array[Texture2D] = load_idle_textures(job_id)
+static func load_idle_textures_for_member(member: Resource) -> Array[Texture2D]:
+	return load_idle_textures(folder_id_for_member(member))
+
+
+static func get_idle_texture(folder_id: String) -> Texture2D:
+	var textures: Array[Texture2D] = load_idle_textures(folder_id)
 	if textures.is_empty():
 		return null
 	return textures[0]

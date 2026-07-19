@@ -10,5 +10,5 @@ job_id = "swordsman"
 origin_note = "シーゲートの闘技場崩れ。賞金より広い世界を選んだ剣士"
 rarity = 2
 passive_id = "kaida_arena_edge"
-sprite_resource_path = ""
+sprite_resource_path = "res://resources/animation/CHR_Helper_f.tres"
 portrait_resource_path = "res://assets/gacha/portraits/ART_HELPER_helper_f.png"

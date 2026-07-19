@@ -10,5 +10,5 @@ job_id = "vanguard"
 origin_note = "元隊商護衛の古強者。大盾の凹み一つごとに逸話がある"
 rarity = 2
 passive_id = "garm_caravan_guard"
-sprite_resource_path = ""
+sprite_resource_path = "res://resources/animation/CHR_Helper_i.tres"
 portrait_resource_path = "res://assets/gacha/portraits/ART_HELPER_helper_i.png"

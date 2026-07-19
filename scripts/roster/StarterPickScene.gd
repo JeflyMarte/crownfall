@@ -97,7 +97,9 @@ func _make_card(def: Dictionary) -> PanelContainer:
 	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.texture = IconPaths.get_icon_texture(job_id, "chr")
+	icon.texture = IconPaths.get_icon_texture(adv_id, "chr")
+	if icon.texture == null:
+		icon.texture = IconPaths.get_icon_texture(job_id, "chr")
 	portrait_stack.add_child(icon)
 
 	var frame_tex: Texture2D = _IntroUiAssets.load_tex(_IntroUiAssets.STARTER_CARD_FRAME)

@@ -31,7 +31,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 
 **危険度ティア（P3-DG-TIER / P3-DG-TIER-002）:** `DungeonTierConfig.gd` — Hard/NM はメイン5キャンペーン周回帯。解放=ノーマル全クリア／ハード全クリア。敵Lvボーナス= N5-5 cap / 2×cap。UI=`DungeonSelectScene` TabsRow。  
 **ティア見た目／呼称（P3-ENEMY-TIER-VAR）:** `EnemyTierVariantConfig.gd` — 同IDの Hard/NM 表示名＋個性上書き（ベース数値据置）。スプライトは `DungeonScene.ENEMY_SPRITE_MAP_BY_TIER`。  
-**初期5ストーリー（P3-STORY-STARTER）:** `StarterPickScene` / `StarterRecruitment` — 開始1人選択、×-5（＋β Extra 1-2〜1-4）で加入。`starter_unlocked_ids` セーブ。
+**初期5ストーリー（P3-STORY-STARTER）:** `StarterPickScene` / `StarterRecruitment` — 開始1人選択、メイン章5（×-5）ノーマル初回で加入。`STARTER_RECRUIT_BETA_EXTRA=false`（1-2〜1-4 Extra は OFF）。`starter_unlocked_ids` セーブ。
 
 ---
 
@@ -186,7 +186,7 @@ Task 明示指示がない限り作成しない:
 | `scripts/core/RandomUtil.gd` | 未作成 |
 | `scenes/dungeon/RoomNode.tscn` 等 | 未作成 |
 | `scenes/ui/*.tscn` | 未作成 |
-| `resources/animation/CHR_*.tres` | 冒険者スプライト（メイン5職・P3-ART-CHR-002。`idle`＝walk。取込=`tools/import_job_chr_sprites.py`） |
+| `resources/animation/CHR_*.tres` | 冒険者スプライト（メイン5職・P3-ART-CHR-002。`idle`＝walk。取込=`tools/import_job_chr_sprites.py`）。ガチャ助っ人は `CHR_Helper_{a,b,c,e,f,i}.tres`（`tools/import_gacha_helper_sprites.py` → `GachaHelperData.sprite_resource_path`） |
 | `resources/animation/BossGravekeeper.tres` | 白骸墓地ボス — P3-A 後半（PNG 未納品） |
 
 ---

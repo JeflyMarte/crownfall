@@ -42,7 +42,7 @@
 
 | ID / 項目 | 内容 | 備考 |
 |---|---|---|
-| **P3-STORY-STARTER-001** | 開始1人選択＋×-5／β Extra(1-2〜1-4)で初期5加入 | ✅ Impl（検証待ち） |
+| **P3-STORY-STARTER-001** | 開始1人選択＋×-5で初期5加入（β Extra OFF・本番寄り） | ✅ Impl（検証待ち） |
 | **P3-UI-TITLE-001** | タイトル Continue / New Game（単一セーブ） | ✅ Impl（要実機） |
 | **P3-FORGE-ALCHEMY-001** | 鍛冶・錬成（装備Lv合成） | ✅ Impl（要実機） |
 | P3-AUDIO-SE-002 | 未使用SE配線（skill / death / cancel / error）＋罠・ボス登場 | ✅ Impl（要実機） |

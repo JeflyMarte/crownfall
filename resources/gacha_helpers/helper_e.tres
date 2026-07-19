@@ -10,5 +10,5 @@ job_id = "beast_tamer"
 origin_note = "翠の盟約の系譜を継ぐ獣使い。ヴェルディアの集落出身"
 rarity = 3
 passive_id = "mira_beast_call"
-sprite_resource_path = ""
+sprite_resource_path = "res://resources/animation/CHR_Helper_e.tres"
 portrait_resource_path = "res://assets/gacha/portraits/ART_HELPER_helper_e.png"

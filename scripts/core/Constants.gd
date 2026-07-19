@@ -14,7 +14,8 @@ const BETA_MOURNGATE_ONLY: bool = true
 ## 初期5人ストーリー編成（P3-STORY-STARTER-001）。true=開始1人選択＋章進行で加入。
 const STARTER_STORY_RECRUIT: bool = true
 ## β検証用: モーンゲート 1-2/1-3/1-4 初回クリアでも未加入スターターを1人加入（本番×-5ルールに加え）。
-const STARTER_RECRUIT_BETA_EXTRA: bool = true
+## 2026-07-19 オーナー指示で OFF（本番寄り＝章5のみ）。
+const STARTER_RECRUIT_BETA_EXTRA: bool = false
 ## ガチャ助っ人をプレイ対象に含める（P3-CHR-OMIT-001 / P3-GACHA-ENABLE-001）。false=招待状ロック・ロスターから除外（データ残置）。
 const GACHA_HELPERS_PLAYABLE: bool = true
 ## サブステージ（1-1 等）分割を有効化（P3-DG-STG-001 / P3-DG-STG-ENABLE — 2026-07-10 オーナー正式承認）。

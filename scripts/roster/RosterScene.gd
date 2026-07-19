@@ -395,14 +395,19 @@ func _on_active_card_input(event: InputEvent, slot_index: int) -> void:
 		return
 	if _active_pick_slot < 0:
 		_active_pick_slot = slot_index
+		_label_status.text = "入れ替え先を下のリストから選んでください"
 	else:
 		if _active_pick_slot != slot_index:
 			var tmp = _formation_slots[_active_pick_slot]
 			_formation_slots[_active_pick_slot] = _formation_slots[slot_index]
 			_formation_slots[slot_index] = tmp
 			_apply_formation_rows_from_slots()
+			_label_status.text = "パーティ内の並びを入れ替えました"
+		else:
+			_label_status.text = ""
 		_active_pick_slot = -1
 	_rebuild_active_party_row()
+	_rebuild_roster_grid()
 
 func _on_detail_pressed(member: Resource) -> void:
 	var party: Array = _ordered_party_from_formation()
@@ -461,12 +466,17 @@ func _sort_roster_cmp(a: Resource, b: Resource) -> bool:
 
 func _make_roster_grid_card(adv: Resource) -> Control:
 	var in_party: bool = _selected.has(adv)
+	var picking: bool = _active_pick_slot >= 0
 	var cell_h: int = _grid_cell_height()
 	var wrapper := PanelContainer.new()
 	wrapper.custom_minimum_size = Vector2(0, cell_h)
 	wrapper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	wrapper.add_theme_stylebox_override("panel", RosterUiHelper.card_panel_style(in_party, false))
-	if in_party:
+	if picking and not in_party:
+		wrapper.add_theme_stylebox_override("panel", _pick_style())
+	else:
+		wrapper.add_theme_stylebox_override("panel", RosterUiHelper.card_panel_style(in_party, false))
+	# 入れ替え選択中はリストを暗くせず選べることを示す。通常時のみ編成中を暗くする。
+	if in_party and not picking:
 		wrapper.modulate = Color(0.42, 0.42, 0.42, 1.0)
 	var btn := Button.new()
 	btn.flat = true
@@ -536,6 +546,9 @@ func _make_roster_grid_card(adv: Resource) -> Control:
 	return wrapper
 
 func _toggle_selection(adv: Resource) -> void:
+	if _active_pick_slot >= 0:
+		_apply_active_pick_with_roster(adv)
+		return
 	if _selected.has(adv):
 		if _selected.size() > 1:
 			_selected.erase(adv)
@@ -544,6 +557,42 @@ func _toggle_selection(adv: Resource) -> void:
 			_selected.append(adv)
 	_sync_formation_slots_from_selection()
 	_active_pick_slot = -1
+	_refresh_all()
+
+
+## 上段パーティ枠を選んだあとに下リストを押すと、その枠のメンバーを入れ替える。
+func _apply_active_pick_with_roster(adv: Resource) -> void:
+	var slot: int = _active_pick_slot
+	_active_pick_slot = -1
+	if slot < 0 or slot >= FORMATION_SLOT_COUNT or adv == null:
+		_rebuild_active_party_row()
+		_rebuild_roster_grid()
+		return
+	var current: Resource = _formation_slots[slot]
+	if adv == current:
+		_label_status.text = ""
+		_rebuild_active_party_row()
+		_rebuild_roster_grid()
+		return
+	if _selected.has(adv):
+		var other_slot: int = -1
+		for i in FORMATION_SLOT_COUNT:
+			if _formation_slots[i] == adv:
+				other_slot = i
+				break
+		if other_slot >= 0:
+			_formation_slots[slot] = adv
+			_formation_slots[other_slot] = current
+		_apply_formation_rows_from_slots()
+		_label_status.text = "パーティ内の並びを入れ替えました"
+	else:
+		if current != null:
+			_selected.erase(current)
+		if not _selected.has(adv):
+			_selected.append(adv)
+		_formation_slots[slot] = adv
+		_apply_formation_rows_from_slots()
+		_label_status.text = "メンバーを入れ替えました"
 	_refresh_all()
 
 func _on_recommend_pressed() -> void:

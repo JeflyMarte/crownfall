@@ -84,7 +84,11 @@ func _apply_portrait(member: Resource, job_id: String) -> void:
 	_idle_textures.clear()
 	_idle_frame = 0
 	_idle_accum = 0.0
-	var idle_texs: Array[Texture2D] = ChrIdlePortrait.load_idle_textures(job_id)
+	var idle_texs: Array[Texture2D] = []
+	if member != null:
+		idle_texs = ChrIdlePortrait.load_idle_textures_for_member(member)
+	if idle_texs.is_empty() and not job_id.is_empty():
+		idle_texs = ChrIdlePortrait.load_idle_textures(job_id)
 	if not idle_texs.is_empty():
 		_idle_textures = idle_texs
 		_art.texture = idle_texs[0]

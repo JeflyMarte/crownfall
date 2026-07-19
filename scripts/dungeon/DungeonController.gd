@@ -459,8 +459,14 @@ func get_run_biome_id() -> String:
 
 func _init_discovery() -> void:
 	var did: String = current_dungeon_data.id
-	if not GameState.dungeon_progress.has(did):
-		GameState.dungeon_progress[did] = {"discovery": 0.0, "hidden_room": false, "hidden_boss": false}
+	var prog: Dictionary = GameState.dungeon_progress.get(did, {})
+	if not prog.has("discovery"):
+		prog["discovery"] = 0.0
+	if not prog.has("hidden_room"):
+		prog["hidden_room"] = false
+	if not prog.has("hidden_boss"):
+		prog["hidden_boss"] = false
+	GameState.dungeon_progress[did] = prog
 
 func set_policy(policy: int) -> void:
 	current_exploration_policy = policy
@@ -912,14 +918,19 @@ func update_discovery(bonus: float = 0.0) -> void:
 	if current_dungeon_data == null:
 		return
 	var did: String = current_dungeon_data.id
-	if not GameState.dungeon_progress.has(did):
-		GameState.dungeon_progress[did] = {"discovery": 0.0, "hidden_room": false, "hidden_boss": false}
-	var prog: Dictionary = GameState.dungeon_progress[did]
-	prog["discovery"] = min(1.0, prog["discovery"] + DISCOVERY_PER_ROOM + bonus)
+	# cleared のみの進捗（セーブ／デバッグ解放）でも discovery 欠落で落ちないよう補完する
+	var prog: Dictionary = GameState.dungeon_progress.get(did, {})
+	var discovery: float = float(prog.get("discovery", 0.0))
+	discovery = minf(1.0, discovery + DISCOVERY_PER_ROOM + bonus)
+	prog["discovery"] = discovery
+	if not prog.has("hidden_room"):
+		prog["hidden_room"] = false
+	if not prog.has("hidden_boss"):
+		prog["hidden_boss"] = false
 	var unlocks: Dictionary = current_dungeon_data.discovery_unlocks
-	if unlocks.has("hidden_room") and prog["discovery"] >= float(unlocks["hidden_room"]):
+	if unlocks.has("hidden_room") and discovery >= float(unlocks["hidden_room"]):
 		prog["hidden_room"] = true
-	if unlocks.has("hidden_boss") and prog["discovery"] >= float(unlocks["hidden_boss"]):
+	if unlocks.has("hidden_boss") and discovery >= float(unlocks["hidden_boss"]):
 		prog["hidden_boss"] = true
 	GameState.dungeon_progress[did] = prog
 

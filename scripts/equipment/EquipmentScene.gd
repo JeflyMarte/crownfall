@@ -534,8 +534,7 @@ func _set_character_portrait(member: Resource) -> void:
 		_portrait_art.texture = null
 		_portrait_glyph.text = "?"
 		return
-	var job_id: String = str(member.job_id)
-	var idle_texs: Array[Texture2D] = _ChrIdlePortrait.load_idle_textures(job_id)
+	var idle_texs: Array[Texture2D] = _ChrIdlePortrait.load_idle_textures_for_member(member)
 	if not idle_texs.is_empty():
 		_portrait_idle_textures = idle_texs
 		_portrait_art.texture = idle_texs[0]
@@ -652,7 +651,7 @@ func _update_character_card() -> void:
 	_configure_job_label_one_line()
 	_fit_job_label_font_to_width()
 	call_deferred("_fit_job_label_font_to_width")
-	_job_icon.texture = IconPaths.get_icon_texture(str(member.job_id), "chr")
+	_job_icon.texture = RosterUiHelper.get_member_portrait_texture(member)
 	_set_character_portrait(member)
 	## キャラ★は 1〜4 の個数体系。装備ティア用 rarity_stars_text（0=★）を使わない。
 	_label_stars.text = EquipmentUiHelper.stars_text(int(member.rarity))
@@ -1396,7 +1395,7 @@ func _add_owner_portrait_badge(btn: Button, owner_idx: int, cell_size: Vector2) 
 	var member: Resource = GameState.get_member(owner_idx)
 	if member == null:
 		return
-	var tex: Texture2D = IconPaths.get_icon_texture(str(member.job_id), "chr")
+	var tex: Texture2D = RosterUiHelper.get_member_portrait_texture(member)
 	if tex == null:
 		return
 	var badge_px: float = 18.0

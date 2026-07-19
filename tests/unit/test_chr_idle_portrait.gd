@@ -3,11 +3,25 @@ extends GutTest
 const _ChrIdlePortrait = preload("res://scripts/ui/ChrIdlePortrait.gd")
 const _ChrIdlePortraitView = preload("res://scripts/ui/ChrIdlePortraitView.gd")
 
+func test_helper_idle_folder_prefers_helper_id() -> void:
+	# Adventurer stub: gacha helper id resolves to helper_* idle folder.
+	var adv: Resource = Adventurer.new()
+	adv.id = "gacha_helper_a"
+	adv.job_id = "vanguard"
+	adv.display_name = "ヴァルデン"
+	assert_eq(_ChrIdlePortrait.folder_id_for_member(adv), "helper_a")
+	var paths: PackedStringArray = _ChrIdlePortrait.idle_frame_paths("helper_a")
+	assert_gt(paths.size(), 0, "helper_a idle frames imported")
+	var texs: Array[Texture2D] = _ChrIdlePortrait.load_idle_textures_for_member(adv)
+	assert_gt(texs.size(), 0, "helper member loads own idle")
+
+
 func test_swordsman_idle_frames_exist() -> void:
 	var paths: PackedStringArray = _ChrIdlePortrait.idle_frame_paths("swordsman")
 	assert_gt(paths.size(), 0, "swordsman idle frames")
 	var tex: Texture2D = _ChrIdlePortrait.get_idle_texture("swordsman")
 	assert_not_null(tex)
+
 
 func test_unknown_job_has_no_idle() -> void:
 	assert_eq(_ChrIdlePortrait.idle_frame_paths("not_a_job").size(), 0)

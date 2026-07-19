@@ -134,7 +134,7 @@ func _make_portrait(adv: Resource) -> Control:
 	portrait.custom_minimum_size = Vector2(64, 64)
 	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	portrait.texture = IconPaths.get_icon_texture(str(adv.job_id), "chr")
+	portrait.texture = RosterUiHelper.get_member_portrait_texture(adv)
 	frame.add_child(portrait)
 	return frame
 

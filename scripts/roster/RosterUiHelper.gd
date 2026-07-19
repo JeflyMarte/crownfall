@@ -130,7 +130,13 @@ static func get_member_portrait_texture(member: Resource) -> Texture2D:
 	if member_id.begins_with("gacha_"):
 		var helper: Resource = DataRegistry.get_gacha_helper_data(member_id.trim_prefix("gacha_"))
 		if helper != null:
-			return helper.get_portrait_texture()
+			var helper_tex: Texture2D = helper.get_portrait_texture()
+			if helper_tex != null:
+				return helper_tex
+	# 初期5・固有登録は member id、無ければ職フォールバック
+	var by_id: Texture2D = IconPaths.get_icon_texture(member_id, "chr")
+	if by_id != null:
+		return by_id
 	return IconPaths.get_icon_texture(str(member.job_id), "chr")
 
 static func compute_combat_power(members: Array) -> int:

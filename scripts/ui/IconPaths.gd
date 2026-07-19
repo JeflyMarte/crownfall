@@ -2,11 +2,17 @@ class_name IconPaths
 extends RefCounted
 
 const ICON_MAP: Dictionary = {
-	"chr:swordsman":               "res://assets/ui/chr_icons/ICO_CHR_Swordsman.png",
-	"chr:ranger":                  "res://assets/ui/chr_icons/ICO_CHR_Ranger.png",
-	"chr:alchemist":               "res://assets/ui/chr_icons/ICO_CHR_Alchemist.png",
-	"chr:vanguard":                "res://assets/ui/chr_icons/ICO_CHR_Vanguard.png",
-	"chr:beast_tamer":             "res://assets/ui/chr_icons/ICO_CHR_BeastTamer.png",
+	# 初期5はキャラ名ファイル。adventurer_id 優先、職キーは互換エイリアス。
+	"chr:adventurer_0":            "res://assets/ui/chr_icons/ICO_CHR_Ald.png",
+	"chr:adventurer_1":            "res://assets/ui/chr_icons/ICO_CHR_Riva.png",
+	"chr:adventurer_2":            "res://assets/ui/chr_icons/ICO_CHR_Elias.png",
+	"chr:adventurer_3":            "res://assets/ui/chr_icons/ICO_CHR_Garen.png",
+	"chr:adventurer_4":            "res://assets/ui/chr_icons/ICO_CHR_Mirei.png",
+	"chr:swordsman":               "res://assets/ui/chr_icons/ICO_CHR_Ald.png",
+	"chr:ranger":                  "res://assets/ui/chr_icons/ICO_CHR_Riva.png",
+	"chr:alchemist":               "res://assets/ui/chr_icons/ICO_CHR_Elias.png",
+	"chr:vanguard":                "res://assets/ui/chr_icons/ICO_CHR_Garen.png",
+	"chr:beast_tamer":             "res://assets/ui/chr_icons/ICO_CHR_Mirei.png",
 	"weapon:iron_sword":           "res://assets/ui/equipment/ICO_WPN_IronSword.png",
 	"weapon:rusted_blade":         "res://assets/ui/equipment/ICO_WPN_RustedBlade.png",
 	"weapon:heater_blade":         "res://assets/ui/equipment/ICO_WPN_HeaterBlade.png",

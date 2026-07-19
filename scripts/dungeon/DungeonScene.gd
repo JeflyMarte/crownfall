@@ -268,6 +268,11 @@ const SUPPORT_VFX_TINT: Dictionary = {
 const ULTIMATE_GOLD: Color = Color(1.0, 0.78, 0.22)
 const ULTIMATE_FLASH_DAMAGE: Color = Color(1.0, 0.88, 0.45)
 const ULTIMATE_FLASH_HEAL: Color = Color(0.55, 1.0, 0.72)
+## 攻撃アニメ中のヒット位置（全体尺に対する比率）。ダメージ／ヒットVFXはここまで遅延。
+const ATTACK_IMPACT_FRAME_RATIO: float = 0.42
+const ATTACK_IMPACT_FALLBACK_SEC: float = 0.22
+## 戦闘フロア入場〜実際の戦闘開始までの余白。
+const COMBAT_START_DELAY_SEC: float = 1.5
 # バトルログ BBCode 色（モック準拠・P3-UI2 拡張）
 const LOG_MUTED: Color = UiTypography.COLOR_LOG
 const LOG_TAG: Color = Color("#C9A0FF")
@@ -1293,7 +1298,7 @@ func _begin_dungeon_dive_intro() -> void:
 		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		icon.modulate.a = 0.0
 		icon.scale = Vector2(0.88, 0.88)
-		var tex: Texture2D = _get_chr_icon_texture(member.job_id)
+		var tex: Texture2D = _get_member_icon_texture(member)
 		if tex != null:
 			icon.texture = tex
 		party_row.add_child(icon)
@@ -1443,7 +1448,7 @@ func _spawn_transition_party_silhouettes() -> void:
 		var icon := TextureRect.new()
 		icon.custom_minimum_size = Vector2(64, 64)
 		icon.modulate = Color(1, 1, 1, 0.55)
-		var tex: Texture2D = _get_chr_icon_texture(member.job_id)
+		var tex: Texture2D = _get_member_icon_texture(member)
 		if tex != null:
 			icon.texture = tex
 		row.add_child(icon)
@@ -2492,7 +2497,7 @@ func _enter_current_room() -> void:
 				_append_log("%s があらわれた" % lead.display_name)
 			if _try_combat_skip():
 				return
-			$CombatTimer.start()
+			_start_combat_after_appear_delay()
 		else:
 			_set_narrative("敵が現れなかった")
 			_boss_sprite.visible = false
@@ -3554,28 +3559,24 @@ func _execute_member_skill(
 			"skill_id": str(skill_data.id) if skill_data != null else "",
 		})
 		return ""
-	_spawn_hit_vfx(spawn_pos, attack_element, 1.0, skill_is_crit)
-	_spawn_damage_number(
-		str(final_dmg),
-		spawn_pos + Vector2(12.0, 0.0),
-		_outgoing_damage_telop_color(skill_is_crit),
-		1.25 if skill_is_crit else 1.0
-	)
+	_play_chr_attack_one(member_idx)
 	if cast_index == 0:
 		_clear_member_skill_labels(member_idx)
 	if not suppress_resolve_label:
 		_spawn_skill_name(result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP, attack_element)
-	if _deal_member_damage_to_enemy(
-		member_idx,
-		final_dmg,
-		target_slot,
-		str(skill_data.id) if skill_data != null else "",
-		str(result.get("display_name", "スキル"))
-	):
-		return log_line
-	_apply_skill_status(member_idx, skill_data)
-	_apply_skill_secondary_status(member_idx, skill_data)
-	return log_line
+	_resolve_party_skill_damage_impact_async({
+		"member_idx": member_idx,
+		"skill_data": skill_data,
+		"final_dmg": final_dmg,
+		"target_slot": target_slot,
+		"attack_element": attack_element,
+		"skill_is_crit": skill_is_crit,
+		"spawn_pos": spawn_pos,
+		"log_line": log_line,
+		"display_name": str(result.get("display_name", "スキル")),
+		"skill_id": str(skill_data.id) if skill_data != null else "",
+	})
+	return ""
 
 # スキルの状態異常付与（apply_status_id / apply_status_chance）。
 func _apply_skill_status(member_idx: int, skill_data: Resource) -> void:
@@ -4200,6 +4201,7 @@ func _execute_enemy_damage(skill: Resource) -> void:
 	var used_fallback: bool = false
 	var targets: Array[int] = []
 	var dist_tag: String = ""
+	var shares: Dictionary = {}
 	if target_type in [CombatFormation.TARGET_PARTY_FRONT, CombatFormation.TARGET_PARTY_BACK]:
 		var resolved: Dictionary = CombatFormation.resolve_column_members_with_fallback(
 			target_type,
@@ -4209,12 +4211,10 @@ func _execute_enemy_damage(skill: Resource) -> void:
 		targets = resolved["indices"]
 		used_fallback = bool(resolved.get("fallback", false))
 		if not targets.is_empty():
-			var shares: Dictionary = CombatFormation.threat_damage_shares(
+			shares = CombatFormation.threat_damage_shares(
 				targets, Callable($CombatController, "get_member_threat")
 			)
 			dist_tag = CombatFormation.column_distribution_log_tag(targets)
-			_apply_enemy_damage_to_targets(skill, targets, shares, dist_tag, target_type, used_fallback)
-			return
 	else:
 		targets = CombatFormation.resolve_enemy_party_targets(
 			skill,
@@ -4224,14 +4224,42 @@ func _execute_enemy_damage(skill: Resource) -> void:
 				$CombatController.active_enemy_index
 			)
 		)
+		for ti: int in targets:
+			shares[ti] = 1.0
 	if targets.is_empty():
 		var empty_tag: String = CombatFormation.enemy_target_row_log_tag(target_type, used_fallback)
 		_append_log("敵スキル【%s】%s\n  対象なし" % [skill.display_name, empty_tag])
 		return
-	var equal_shares: Dictionary = {}
-	for ti: int in targets:
-		equal_shares[ti] = 1.0
-	_apply_enemy_damage_to_targets(skill, targets, equal_shares, dist_tag, target_type, used_fallback)
+	_resolve_enemy_skill_damage_impact_async({
+		"skill": skill,
+		"targets": targets,
+		"shares": shares,
+		"dist_tag": dist_tag,
+		"target_type": target_type,
+		"used_fallback": used_fallback,
+	})
+
+
+func _resolve_enemy_skill_damage_impact_async(payload: Dictionary) -> void:
+	var skill: Resource = payload.get("skill") as Resource
+	var targets: Array[int] = payload.get("targets", []) as Array[int]
+	var shares: Dictionary = payload.get("shares", {}) as Dictionary
+	var dist_tag: String = str(payload.get("dist_tag", ""))
+	var target_type: String = str(payload.get("target_type", ""))
+	var used_fallback: bool = bool(payload.get("used_fallback", false))
+	_begin_combat_cinematic_lock()
+	var sprite: AnimatedSprite2D = _active_enemy_sprite()
+	await get_tree().create_timer(_attack_anim_impact_delay(sprite)).timeout
+	if not $CombatController.is_in_combat:
+		_end_combat_cinematic_lock()
+		return
+	_apply_enemy_damage_to_targets(skill, targets, shares, dist_tag, target_type, used_fallback)
+	_update_hp_bars()
+	if $CombatController.is_party_wiped():
+		_end_combat_cinematic_lock()
+		_handle_party_wipe()
+		return
+	_end_combat_cinematic_lock()
 
 func _apply_enemy_damage_to_targets(
 	skill: Resource,
@@ -4359,6 +4387,30 @@ func _do_enemy_attack(slot: int = -1) -> void:
 		_play_enemy_slot_animation(slot, "attack")
 	else:
 		_play_active_enemy_animation("attack")
+	_resolve_enemy_attack_impact_async({
+		"slot": slot,
+		"target_idx": target_idx,
+	})
+
+
+func _resolve_enemy_attack_impact_async(payload: Dictionary) -> void:
+	var slot: int = int(payload.get("slot", -1))
+	var target_idx: int = int(payload.get("target_idx", -1))
+	_begin_combat_cinematic_lock()
+	var sprite: AnimatedSprite2D = null
+	if slot >= 0 and slot < _swarm_sprites.size() and _swarm_sprites[slot].visible:
+		sprite = _swarm_sprites[slot]
+	elif _boss_sprite.visible:
+		sprite = _boss_sprite
+	elif _enemy_sprite.visible:
+		sprite = _enemy_sprite
+	await get_tree().create_timer(_attack_anim_impact_delay(sprite)).timeout
+	if not $CombatController.is_in_combat:
+		_end_combat_cinematic_lock()
+		return
+	if target_idx < 0 or not $CombatController.is_member_alive(target_idx):
+		_end_combat_cinematic_lock()
+		return
 	var attacker_atk: int = $CombatController.get_enemy_attack_at(slot) if slot >= 0 else -1
 	var enemy_result: Dictionary = _calc_enemy_damage_to_member(target_idx, 1.0, attacker_atk, slot)
 	var target_combatant: Resource = GameState.get_combatant(target_idx)
@@ -4370,6 +4422,7 @@ func _do_enemy_attack(slot: int = -1) -> void:
 		if target_idx < _chr_sprites.size():
 			_spawn_miss_telop(_chr_sprites[target_idx].global_position)
 		_append_log("敵の攻撃: %s%s は Miss!" % [guard_prefix, member_name])
+		_end_combat_cinematic_lock()
 		return
 	$CombatController.apply_damage_to_member(target_idx, enemy_result["final"])
 	$CombatController.add_threat(target_idx, float(enemy_result["final"]) * CombatController.THREAT_TAKEN_K)
@@ -4397,6 +4450,12 @@ func _do_enemy_attack(slot: int = -1) -> void:
 	_append_log(log_text)
 	_on_member_damaged(target_idx, {"attacker_slot": slot})
 	_try_apply_enemy_hit_status(target_idx, slot)
+	_update_hp_bars()
+	if $CombatController.is_party_wiped():
+		_end_combat_cinematic_lock()
+		_handle_party_wipe()
+		return
+	_end_combat_cinematic_lock()
 
 func _try_apply_enemy_hit_status(target_idx: int, attacker_slot: int = -1) -> void:
 	var slot: int = attacker_slot if attacker_slot >= 0 else $CombatController.active_enemy_index
@@ -4887,7 +4946,8 @@ func _try_cast_member_skill(member_idx: int, skill_data: Resource, is_ultimate: 
 	if cast_time <= 0.0:
 		var log_text: String = _execute_member_skill(member_idx, skill_data, 0).strip_edges()
 		if log_text.is_empty():
-			if _ultimate_presentation_active:
+			# 必殺／ヒット遅延スキルはログを後で出すため、ロック中なら発動成功とみなす
+			if _ultimate_presentation_active or _combat_cinematic_lock:
 				_update_hp_bars()
 				return true
 			return false
@@ -4993,26 +5053,15 @@ func _execute_counter_attack(member_idx: int, target_slot: int, passive_name: St
 	_passive_counter_depth += 1
 	var result: Dictionary = _calc_damage(member_idx, target_slot)
 	var dmg: int = int(result["damage"])
-	if dmg > 0:
-		_play_hit_vfx(_get_weapon_element(member_idx), result["is_critical"])
-		_play_chr_attack_one(member_idx)
-		_spawn_damage_number(
-			str(dmg),
-			_enemy_slot_pos(target_slot),
-			_outgoing_damage_telop_color(result["is_critical"]),
-			1.25 if result["is_critical"] else 1.0
-		)
-	var member: Resource = GameState.get_combatant(member_idx)
-	var mname: String = member.display_name if member != null else "?"
-	var crit_tag: String = "  CRITICAL!" if result["is_critical"] else ""
-	_append_log("%s の反撃: %dダメージ%s" % [mname, dmg, crit_tag])
-	var killed: bool = _deal_member_damage_to_enemy(member_idx, dmg, target_slot, "counter_attack", "反撃")
-	if not killed and dmg > 0 and $CombatController.is_enemy_slot_alive(target_slot):
-		_play_enemy_slot_animation(target_slot, "hurt")
-	_try_apply_affix_statuses(member_idx)
-	_try_apply_weapon_on_hit_status(member_idx)
-	_update_hp_bars()
-	_passive_counter_depth -= 1
+	_play_chr_attack_one(member_idx)
+	_resolve_party_attack_impact_async({
+		"kind": "counter",
+		"member_idx": member_idx,
+		"target_slot": target_slot,
+		"dmg": dmg,
+		"is_critical": bool(result.get("is_critical", false)),
+		"passive_name": passive_name,
+	})
 	return dmg > 0
 
 func _do_member_basic_attack(member_idx: int) -> void:
@@ -5023,32 +5072,19 @@ func _do_member_basic_attack(member_idx: int) -> void:
 	result["damage"] = int(result["damage"]) + _consume_combo_bonus(
 		member_idx, int(result["damage"]), _member_action_tags(member_idx), null, target_slot
 	)
-	var member: Resource = GameState.get_combatant(member_idx)
-	var mname: String = member.display_name if member != null else "?"
-	var crit_tag: String = "  CRITICAL!" if result["is_critical"] else ""
-	var elem_tag: String = result.get("element_tag", "")
-	var form_tag: String = result.get("formation_tag", "")
-	var tgt_tag: String = _member_target_tag(member_idx)
 	var dmg: int = _apply_basic_attack_passive_mult(member_idx, int(result["damage"]))
 	result["damage"] = dmg
-	if dmg > 0:
-		_play_hit_vfx(_get_weapon_element(member_idx), result["is_critical"])
-		_play_chr_attack_one(member_idx)
-		_spawn_damage_number(
-			str(dmg),
-			_enemy_slot_pos(target_slot),
-			_outgoing_damage_telop_color(result["is_critical"]),
-			1.25 if result["is_critical"] else 1.0
-		)
-	_append_log("%s の攻撃: %dダメージ%s%s%s%s" % [mname, dmg, crit_tag, elem_tag, form_tag, tgt_tag])
-	if _deal_member_damage_to_enemy(member_idx, dmg, target_slot):
-		return
-	if $CombatController.is_enemy_slot_alive(target_slot):
-		_play_enemy_slot_animation(target_slot, "hurt")
-	_try_apply_affix_statuses(member_idx)
-	_try_apply_weapon_on_hit_status(member_idx)
-	## on_attack は _deal_member_damage_to_enemy 側で発火（二重発火防止）
-	_update_hp_bars()
+	# アニメを先に開始し、ダメージはヒットタイミングまで遅延（見た目上の先行ダメージを防ぐ）
+	_play_chr_attack_one(member_idx)
+	_resolve_party_attack_impact_async({
+		"kind": "basic",
+		"member_idx": member_idx,
+		"target_slot": target_slot,
+		"dmg": dmg,
+		"is_critical": bool(result.get("is_critical", false)),
+		"element_tag": str(result.get("element_tag", "")),
+		"formation_tag": str(result.get("formation_tag", "")),
+	})
 
 # 必殺技スロットのスキル（ジョブ ultimate_skill_id → 既定 ultimate_strike）。
 func _get_member_ultimate_skill(member_idx: int) -> Resource:
@@ -5390,6 +5426,122 @@ func _play_chr_attack_one(idx: int) -> void:
 	var s: AnimatedSprite2D = _chr_sprites[idx]
 	if s.visible and s.sprite_frames != null and s.sprite_frames.has_animation("attack"):
 		s.play("attack")
+
+
+func _attack_anim_impact_delay(sprite: AnimatedSprite2D) -> float:
+	var delay: float = ATTACK_IMPACT_FALLBACK_SEC
+	if sprite != null and sprite.visible and sprite.sprite_frames != null \
+			and sprite.sprite_frames.has_animation("attack"):
+		var frame_n: int = sprite.sprite_frames.get_frame_count("attack")
+		var speed: float = sprite.sprite_frames.get_animation_speed("attack")
+		if frame_n > 0 and speed > 0.0:
+			delay = (float(frame_n) / speed) * ATTACK_IMPACT_FRAME_RATIO
+	var combat_speed: float = _combat_speed_mult if _combat_speed_mult > 0.0 else 1.0
+	return maxf(0.05, delay / combat_speed)
+
+
+## 通常攻撃／反撃: アニメ開始後、ヒットタイミングでダメージ・VFXを適用する。
+func _resolve_party_attack_impact_async(payload: Dictionary) -> void:
+	var member_idx: int = int(payload.get("member_idx", -1))
+	var target_slot: int = int(payload.get("target_slot", -1))
+	var kind: String = str(payload.get("kind", "basic"))
+	var dmg: int = int(payload.get("dmg", 0))
+	var is_critical: bool = bool(payload.get("is_critical", false))
+	_begin_combat_cinematic_lock()
+	var sprite: AnimatedSprite2D = null
+	if member_idx >= 0 and member_idx < _chr_sprites.size():
+		sprite = _chr_sprites[member_idx]
+	await get_tree().create_timer(_attack_anim_impact_delay(sprite)).timeout
+	if not $CombatController.is_in_combat:
+		if kind == "counter":
+			_passive_counter_depth = maxi(0, _passive_counter_depth - 1)
+		_end_combat_cinematic_lock()
+		return
+	if not $CombatController.is_member_alive(member_idx):
+		if kind == "counter":
+			_passive_counter_depth = maxi(0, _passive_counter_depth - 1)
+		_end_combat_cinematic_lock()
+		return
+	if target_slot < 0 or not $CombatController.is_enemy_slot_alive(target_slot):
+		target_slot = $CombatController.get_member_target_slot(member_idx)
+	var member: Resource = GameState.get_combatant(member_idx)
+	var mname: String = member.display_name if member != null else "?"
+	var crit_tag: String = "  CRITICAL!" if is_critical else ""
+	if dmg > 0 and target_slot >= 0 and $CombatController.is_enemy_slot_alive(target_slot):
+		_play_hit_vfx(_get_weapon_element(member_idx), is_critical)
+		_spawn_damage_number(
+			str(dmg),
+			_enemy_slot_pos(target_slot),
+			_outgoing_damage_telop_color(is_critical),
+			1.25 if is_critical else 1.0
+		)
+	if kind == "counter":
+		_append_log("%s の反撃: %dダメージ%s" % [mname, dmg, crit_tag])
+		var killed: bool = _deal_member_damage_to_enemy(
+			member_idx, dmg, target_slot, "counter_attack", "反撃"
+		)
+		if not killed and dmg > 0 and $CombatController.is_enemy_slot_alive(target_slot):
+			_play_enemy_slot_animation(target_slot, "hurt")
+		_try_apply_affix_statuses(member_idx)
+		_try_apply_weapon_on_hit_status(member_idx)
+		_passive_counter_depth = maxi(0, _passive_counter_depth - 1)
+	else:
+		var elem_tag: String = str(payload.get("element_tag", ""))
+		var form_tag: String = str(payload.get("formation_tag", ""))
+		var tgt_tag: String = _member_target_tag(member_idx)
+		_append_log("%s の攻撃: %dダメージ%s%s%s%s" % [mname, dmg, crit_tag, elem_tag, form_tag, tgt_tag])
+		if not _deal_member_damage_to_enemy(member_idx, dmg, target_slot):
+			if $CombatController.is_enemy_slot_alive(target_slot):
+				_play_enemy_slot_animation(target_slot, "hurt")
+			_try_apply_affix_statuses(member_idx)
+			_try_apply_weapon_on_hit_status(member_idx)
+	_update_hp_bars()
+	_end_combat_cinematic_lock()
+
+
+## スキル攻撃: アニメ開始後、ヒットタイミングで敵へダメージを適用する。
+func _resolve_party_skill_damage_impact_async(payload: Dictionary) -> void:
+	var member_idx: int = int(payload.get("member_idx", -1))
+	var target_slot: int = int(payload.get("target_slot", -1))
+	var final_dmg: int = int(payload.get("final_dmg", 0))
+	var attack_element: String = str(payload.get("attack_element", ""))
+	var skill_is_crit: bool = bool(payload.get("skill_is_crit", false))
+	var spawn_pos: Vector2 = payload.get("spawn_pos", Vector2.ZERO) as Vector2
+	var log_line: String = str(payload.get("log_line", ""))
+	var skill_data: Resource = payload.get("skill_data") as Resource
+	var skill_id: String = str(payload.get("skill_id", ""))
+	var display_name: String = str(payload.get("display_name", "スキル"))
+	_begin_combat_cinematic_lock()
+	var sprite: AnimatedSprite2D = null
+	if member_idx >= 0 and member_idx < _chr_sprites.size():
+		sprite = _chr_sprites[member_idx]
+	await get_tree().create_timer(_attack_anim_impact_delay(sprite)).timeout
+	if not $CombatController.is_in_combat:
+		_end_combat_cinematic_lock()
+		return
+	if not $CombatController.is_member_alive(member_idx):
+		_end_combat_cinematic_lock()
+		return
+	if target_slot < 0 or not $CombatController.is_enemy_slot_alive(target_slot):
+		target_slot = $CombatController.get_member_target_slot(member_idx)
+		spawn_pos = _enemy_slot_pos(target_slot)
+	if final_dmg > 0 and target_slot >= 0 and $CombatController.is_enemy_slot_alive(target_slot):
+		_spawn_hit_vfx(spawn_pos, attack_element, 1.0, skill_is_crit)
+		_spawn_damage_number(
+			str(final_dmg),
+			spawn_pos + Vector2(12.0, 0.0),
+			_outgoing_damage_telop_color(skill_is_crit),
+			1.25 if skill_is_crit else 1.0
+		)
+	if not log_line.is_empty():
+		_append_log(log_line)
+	if not _deal_member_damage_to_enemy(member_idx, final_dmg, target_slot, skill_id, display_name):
+		if $CombatController.is_enemy_slot_alive(target_slot):
+			_play_enemy_slot_animation(target_slot, "hurt")
+		_apply_skill_status(member_idx, skill_data)
+		_apply_skill_secondary_status(member_idx, skill_data)
+	_update_hp_bars()
+	_end_combat_cinematic_lock()
 
 func _commit_commander_run_stats(outcome: String) -> void:
 	var context: Dictionary = {
@@ -6034,9 +6186,12 @@ func _show_chr_sprites(with_entrance: bool = false) -> void:
 			sprite.visible = false
 			continue
 		var member: Resource = GameState.get_combatant(i)
-		var path: String = CHR_SPRITE_MAP.get(member.job_id, "")
+		var path: String = _chr_sprite_path_for_member(member)
 		if path.is_empty() or not ResourceLoader.exists(path):
-			push_warning("DungeonScene: missing CHR sprite for job_id=%s" % str(member.job_id))
+			push_warning("DungeonScene: missing CHR sprite for member=%s job=%s" % [
+				str(member.id) if member != null else "?",
+				str(member.job_id) if member != null else "?",
+			])
 			sprite.visible = false
 			continue
 		var frames: SpriteFrames = load(path) as SpriteFrames
@@ -6348,7 +6503,7 @@ func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
 	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	portrait.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var tex: Texture2D = _get_chr_icon_texture(member.job_id)
+	var tex: Texture2D = _get_member_icon_texture(member)
 	if tex != null:
 		portrait.texture = tex
 	portrait.modulate = EvolutionVisualScript.portrait_modulate(member)
@@ -6459,8 +6614,37 @@ func _get_member_job_display_name(member: Resource) -> String:
 	var mods: Dictionary = JobStatCalculatorScript.get_member_modifiers(member)
 	return str(mods.get("display_name", ""))
 
+## ガチャ助っ人は専用 SpriteFrames（`GachaHelperData.sprite_resource_path`）。未設定時は職デフォルト。
+func _chr_sprite_path_for_member(member: Resource) -> String:
+	if member == null:
+		return ""
+	var member_id: String = str(member.id)
+	if Constants.is_gacha_helper_id(member_id):
+		var helper_id: String = member_id.trim_prefix("gacha_")
+		var helper: Resource = DataRegistry.get_gacha_helper_data(helper_id)
+		if helper != null:
+			var helper_path: String = str(helper.sprite_resource_path)
+			if not helper_path.is_empty() and ResourceLoader.exists(helper_path):
+				return helper_path
+	return str(CHR_SPRITE_MAP.get(str(member.job_id), ""))
+
+func _get_member_icon_texture(member: Resource) -> Texture2D:
+	if member == null:
+		return null
+	var icon: Texture2D = RosterUiHelper.get_member_portrait_texture(member)
+	if icon != null:
+		return icon
+	# バスト未配置時は戦闘スプライト idle へフォールバック
+	var path: String = _chr_sprite_path_for_member(member)
+	if path.is_empty() or not ResourceLoader.exists(path):
+		return null
+	var frames: SpriteFrames = load(path) as SpriteFrames
+	if frames == null or not frames.has_animation("idle"):
+		return null
+	return frames.get_frame_texture("idle", 0)
+
 func _get_chr_icon_texture(job_id: String) -> Texture2D:
-	# 専用バストアイコンを優先（無ければ全身idleフレームにフォールバック）
+	# 互換: 職のみ分かる経路向け。可能なら _get_member_icon_texture を使う。
 	var icon: Texture2D = IconPaths.get_icon_texture(job_id, "chr")
 	if icon != null:
 		return icon
@@ -6533,7 +6717,7 @@ func _make_turn_order_cell(entry: Dictionary) -> PanelContainer:
 	if entry["kind"] == "party":
 		var m: Resource = GameState.get_combatant(entry["index"])
 		if m != null:
-			tex = _get_chr_icon_texture(m.job_id)
+			tex = _get_member_icon_texture(m)
 		icon.custom_minimum_size = Vector2(TURN_ORDER_SIDE_ICON_PX, TURN_ORDER_SIDE_ICON_PX)
 		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		holder.add_theme_stylebox_override("panel", _make_turn_order_frame_style(false))
@@ -6922,6 +7106,19 @@ func _end_combat_cinematic_lock() -> void:
 	_ultimate_presentation_active = false
 	if $CombatController.is_in_combat and not _is_paused:
 		$CombatTimer.start()
+
+
+## 敵出現ログのあと、実際のCT戦闘開始まで間を空ける。
+func _start_combat_after_appear_delay() -> void:
+	$CombatTimer.stop()
+	_combat_cinematic_lock = true
+	await get_tree().create_timer(COMBAT_START_DELAY_SEC).timeout
+	_combat_cinematic_lock = false
+	if not $CombatController.is_in_combat or _is_paused:
+		return
+	if _boss_intro_active or _elite_intro_active:
+		return
+	$CombatTimer.start()
 
 func _show_ultimate_center_telop(skill_name: String, element: String = "") -> void:
 	_dismiss_ultimate_center_telop(0.0)
@@ -7660,7 +7857,7 @@ func _finish_elite_combat_entrance(lead: Resource) -> void:
 	_refresh_combat_now_playing_next()
 	if _try_combat_skip():
 		return
-	$CombatTimer.start()
+	_start_combat_after_appear_delay()
 
 func _begin_elite_combat_entrance(lead: Resource) -> void:
 	if lead == null:
@@ -7817,7 +8014,7 @@ func _finish_boss_combat_entrance(lead: Resource) -> void:
 	_refresh_combat_now_playing_next()
 	if _try_combat_skip():
 		return
-	$CombatTimer.start()
+	_start_combat_after_appear_delay()
 
 func _begin_boss_combat_entrance(lead: Resource) -> void:
 	if lead == null or not _boss_sprite.visible:

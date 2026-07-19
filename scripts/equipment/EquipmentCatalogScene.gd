@@ -322,7 +322,7 @@ func _add_owner_portrait_badge(btn: Button, owner_idx: int, cell_size: Vector2) 
 	var member: Resource = GameState.get_member(owner_idx)
 	if member == null:
 		return
-	var tex: Texture2D = IconPaths.get_icon_texture(str(member.job_id), "chr")
+	var tex: Texture2D = RosterUiHelper.get_member_portrait_texture(member)
 	if tex == null:
 		return
 	var icon := TextureRect.new()

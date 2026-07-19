@@ -350,8 +350,7 @@ func _build_levelup_rows() -> void:
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		var job_id: String = str(snap.get("job_id", member.job_id))
-		icon.texture = IconPaths.get_icon_texture(job_id, "chr")
+		icon.texture = RosterUiHelper.get_member_portrait_texture(member)
 		row_h.add_child(icon)
 		var col := VBoxContainer.new()
 		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL

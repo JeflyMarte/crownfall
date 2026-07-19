@@ -57,18 +57,28 @@ func test_chapter5_normal_recruits() -> void:
 	assert_false(GameState.last_run_starter_recruited_name.is_empty())
 
 
-func test_beta_extra_chapters_2_to_4() -> void:
+func test_beta_extra_off_chapters_2_to_4_do_not_recruit() -> void:
+	## STARTER_RECRUIT_BETA_EXTRA=false（本番）では 1-2〜1-4 では加入しない。
 	GameState.select_starting_adventurer("adventurer_0")
-	assert_true(
+	assert_false(Constants.STARTER_RECRUIT_BETA_EXTRA)
+	assert_false(
 		_StarterRecruitment.is_recruit_eligible_stage(
 			"mourngate_1_2", _DungeonTierConfig.TIER_NORMAL
 		)
 	)
+	assert_false(
+		_StarterRecruitment.is_recruit_eligible_stage(
+			"mourngate_1_3", _DungeonTierConfig.TIER_NORMAL
+		)
+	)
+	assert_false(
+		_StarterRecruitment.is_recruit_eligible_stage(
+			"mourngate_1_4", _DungeonTierConfig.TIER_NORMAL
+		)
+	)
 	GameState.mark_stage_cleared("mourngate_1_2", _DungeonTierConfig.TIER_NORMAL)
-	assert_eq(GameState.roster.size(), 2)
-	# 二重クリアでは増えない
-	GameState.mark_stage_cleared("mourngate_1_2", _DungeonTierConfig.TIER_NORMAL)
-	assert_eq(GameState.roster.size(), 2)
+	assert_eq(GameState.roster.size(), 1)
+	assert_eq(GameState.last_run_starter_recruited_id, "")
 
 
 func test_old_save_migration_unlocks_present_starters() -> void:

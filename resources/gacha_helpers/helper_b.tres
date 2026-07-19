@@ -10,5 +10,5 @@ job_id = "ranger"
 origin_note = "北方辺境の狩人。未踏査域の地図化に長ける"
 rarity = 2
 passive_id = "ivar_trail_sight"
-sprite_resource_path = ""
+sprite_resource_path = "res://resources/animation/CHR_Helper_b.tres"
 portrait_resource_path = "res://assets/gacha/portraits/ART_HELPER_helper_b.png"
