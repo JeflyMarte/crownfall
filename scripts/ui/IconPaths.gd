@@ -27,6 +27,9 @@ const ICON_MAP: Dictionary = {
 	"weapon:umbral_fang":          "res://assets/ui/equipment/ICO_WPN_UmbralFang.png",
 	"weapon:consecrated_maul":     "res://assets/ui/equipment/ICO_WPN_ConsecratedMaul.png",
 	"weapon:burial_crown_greatsword": "res://assets/ui/equipment/ICO_WPN_BurialCrownGreatsword.png",
+	"weapon:stormveil_needle":     "res://assets/ui/equipment/ICO_WPN_StormveilNeedle.png",
+	"weapon:noctumbra_fang":       "res://assets/ui/equipment/ICO_WPN_NoctumbraFang.png",
+	"weapon:mistpierce_halberd":   "res://assets/ui/equipment/ICO_WPN_MistpierceHalberd.png",
 	"weapon:unidentified":         "res://assets/ui/batch2/ICO_WPN_Unidentified.png",
 	# ② ウィスパーウッド — 専用 icon 9点（★2+代表7）。残11点は placeholder（P3-D154）
 	"weapon:verdant_cleaver":      "res://assets/ui/equipment/ICO_WPN_VerdantCleaver.png",

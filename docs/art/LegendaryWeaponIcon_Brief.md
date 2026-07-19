@@ -1,7 +1,7 @@
 # Legendary Weapon Icon Brief — レジェンド武器アイコン作画指示
 
 **Status:** Phase B 初版納品済（2026-07-09）— WIP 原画 → `import_legendary_weapon_icons.py` で 64×64 取り込み  
-**対象:** ★レジェンド武器 10 本の UI アイコン（個別手描き）  
+**対象:** ★レジェンド武器 UI アイコン（Biome 10 本＋天候シンクロ 3 本）  
 **SSOT 命名:** `docs/specs/implementation/12_AssetPipeline.md` / P3-D003
 
 ---
@@ -68,6 +68,7 @@ python3 tools/verify_icon_paths.py
 | 状態 | 本数 |
 |---|---|
 | 初版納品済（2026-07-09） | 10/10 |
+| 天候シンクロ（2026-07-19） | +3（`stormveil_needle` / `noctumbra_fang` / `mistpierce_halberd`） |
 
 差し替え時は WIP 上書き → `import_legendary_weapon_icons.py` 再実行。
 
