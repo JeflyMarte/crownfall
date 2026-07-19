@@ -41,9 +41,9 @@ const DROP_PREVIEW: Dictionary = {
 		["material", "relic_shard"],
 	],
 	"crown_rookery": [
-		["weapon", "consecrated_maul"],
-		["armor", "mourngate_plate"],
-		["accessory", "mourngate_sigil"],
+		["weapon", "stormveil_needle"],
+		["weapon", "noctumbra_fang"],
+		["weapon", "mistpierce_halberd"],
 	],
 	"mourngate": [
 		["weapon", "iron_sword"],
