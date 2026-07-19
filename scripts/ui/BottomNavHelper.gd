@@ -13,9 +13,10 @@ const SCENE_DUNGEON: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
 const SCENE_BLACKSMITH: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
 const SCENE_GACHA: String = "res://scenes/gacha/GachaScene.tscn"
 const SCENE_CODEX: String = "res://scenes/codex/CodexScene.tscn"
+const SCENE_COMMANDER: String = "res://scenes/commander/CommanderScene.tscn"
 const SCENE_SETTINGS: String = "res://scenes/settings/SettingsScene.tscn"
 
-enum Tab { NONE, HOME, ADVENTURE, CHARACTER, PARTY, FORGE, GACHA, CODEX }
+enum Tab { NONE, HOME, ADVENTURE, CHARACTER, PARTY, FORGE, GACHA, CODEX, MYPAGE }
 
 const COLOR_NAV_ACTIVE: Color = Color(0.95, 0.84, 0.4, 1)
 const COLOR_NAV_IDLE: Color = Color(0.92, 0.88, 0.78, 1)
@@ -30,6 +31,15 @@ const BOTTOM_NAV_ENTRIES: Array[Dictionary] = [
 		"tab": Tab.HOME,
 		"icon_category": "nav",
 		"icon_id": "home",
+		"locked": false,
+	},
+	{
+		"id": "adventure",
+		"title": "ダンジョン",
+		"node": "NavAdventure",
+		"tab": Tab.ADVENTURE,
+		"icon_category": "nav",
+		"icon_id": "adventure",
 		"locked": false,
 	},
 	{
@@ -57,15 +67,6 @@ const BOTTOM_NAV_ENTRIES: Array[Dictionary] = [
 		"tab": Tab.NONE,
 		"icon_category": "nav",
 		"icon_id": "forge",
-		"locked": false,
-	},
-	{
-		"id": "adventure",
-		"title": "冒険に出る",
-		"node": "NavAdventure",
-		"tab": Tab.ADVENTURE,
-		"icon_category": "nav",
-		"icon_id": "adventure",
 		"locked": false,
 	},
 	{
@@ -95,12 +96,22 @@ const BOTTOM_NAV_ENTRIES: Array[Dictionary] = [
 		"icon_id": "codex",
 		"locked": false,
 	},
+	{
+		"id": "commander",
+		"title": "マイページ",
+		"node": "NavMyPage",
+		"tab": Tab.MYPAGE,
+		"icon_category": "nav",
+		"icon_id": "mypage",
+		"locked": false,
+	},
 ]
 
+## 下ナビと同じ並び（ホームは拠点本体のため左メニューでは省略。末尾に設定）。
 const SIDE_MENU_ENTRIES: Array[Dictionary] = [
 	{
 		"id": "adventure",
-		"title": "冒険に出る",
+		"title": "ダンジョン",
 		"node": "NavAdventure",
 		"tab": Tab.ADVENTURE,
 		"icon_category": "nav",
@@ -117,21 +128,21 @@ const SIDE_MENU_ENTRIES: Array[Dictionary] = [
 		"locked": false,
 	},
 	{
-		"id": "equipment_catalog",
-		"title": "装備一覧",
-		"node": "NavEquipmentCatalog",
-		"tab": Tab.NONE,
-		"icon_category": "nav",
-		"icon_id": "forge",
-		"locked": false,
-	},
-	{
 		"id": "roster",
 		"title": "パーティー編成",
 		"node": "NavParty",
 		"tab": Tab.PARTY,
 		"icon_category": "nav",
 		"icon_id": "party",
+		"locked": false,
+	},
+	{
+		"id": "equipment_catalog",
+		"title": "装備一覧",
+		"node": "NavEquipmentCatalog",
+		"tab": Tab.NONE,
+		"icon_category": "nav",
+		"icon_id": "forge",
 		"locked": false,
 	},
 	{
@@ -163,11 +174,11 @@ const SIDE_MENU_ENTRIES: Array[Dictionary] = [
 	},
 	{
 		"id": "commander",
-		"title": "隊長台帳",
+		"title": "マイページ",
 		"node": "NavCommander",
-		"tab": Tab.NONE,
+		"tab": Tab.MYPAGE,
 		"icon_category": "nav",
-		"icon_id": "home",
+		"icon_id": "mypage",
 		"locked": false,
 	},
 	{
@@ -184,12 +195,38 @@ const SIDE_MENU_ENTRIES: Array[Dictionary] = [
 static func setup(nav_row: HBoxContainer, active_tab: Tab) -> void:
 	if nav_row == null:
 		return
+	_reorder_nav_row(nav_row)
 	NavUiTokens.apply_bottom_nav_row(nav_row)
 	apply_standard_labels(nav_row)
 	NavIconHelper.decorate_bottom_nav_row(nav_row)
 	highlight_tab(nav_row, active_tab)
 	_wire_nav_row(nav_row, active_tab)
 	_HubNpcHelper.show_pending_banner(_scene_root(nav_row))
+
+
+## BOTTOM_NAV_ENTRIES の順に子を並べ、未掲載ボタンは隠す。
+## 並び: ホーム → ダンジョン → … → 図鑑 → マイページ。
+static func _reorder_nav_row(nav_row: HBoxContainer) -> void:
+	var kept: Dictionary = {}
+	for i in BOTTOM_NAV_ENTRIES.size():
+		var node_name: String = str(BOTTOM_NAV_ENTRIES[i]["node"])
+		kept[node_name] = true
+		var btn: Button = _ensure_nav_button(nav_row, node_name)
+		btn.visible = true
+		nav_row.move_child(btn, i)
+	for child in nav_row.get_children():
+		if child is Button and not kept.has(str(child.name)):
+			(child as Button).visible = false
+
+
+static func _ensure_nav_button(nav_row: HBoxContainer, node_name: String) -> Button:
+	var existing: Button = nav_row.get_node_or_null(node_name) as Button
+	if existing != null:
+		return existing
+	var btn := Button.new()
+	btn.name = node_name
+	nav_row.add_child(btn)
+	return btn
 
 static func highlight_tab(nav_row: HBoxContainer, active_tab: Tab) -> void:
 	_set_active_tab(nav_row, active_tab)
@@ -260,7 +297,26 @@ static func _wire_nav_row(nav_row: HBoxContainer, active_tab: Tab) -> void:
 			NavUiTokens.set_bottom_nav_disabled_style(forge_btn, false)
 			_connect_if_needed(forge_btn, _go_forge)
 	_connect_if_needed(nav_row.get_node_or_null("NavShop") as Button, _go_gacha)
-	_connect_if_needed(nav_row.get_node_or_null("NavMenu") as Button, _go_codex)
+	var codex_btn: Button = nav_row.get_node_or_null("NavMenu") as Button
+	if codex_btn != null:
+		if active_tab == Tab.CODEX:
+			codex_btn.disabled = true
+			codex_btn.tooltip_text = "図鑑"
+			NavUiTokens.set_bottom_nav_text_color(codex_btn, COLOR_NAV_ACTIVE)
+		else:
+			codex_btn.disabled = false
+			NavUiTokens.set_bottom_nav_disabled_style(codex_btn, false)
+			_connect_if_needed(codex_btn, _go_codex)
+	var mypage_btn: Button = nav_row.get_node_or_null("NavMyPage") as Button
+	if mypage_btn != null:
+		if active_tab == Tab.MYPAGE:
+			mypage_btn.disabled = true
+			mypage_btn.tooltip_text = "マイページ"
+			NavUiTokens.set_bottom_nav_text_color(mypage_btn, COLOR_NAV_ACTIVE)
+		else:
+			mypage_btn.disabled = false
+			NavUiTokens.set_bottom_nav_disabled_style(mypage_btn, false)
+			_connect_if_needed(mypage_btn, _go_mypage)
 
 static func _connect_if_needed(btn: Button, handler: Callable) -> void:
 	if btn == null or btn.disabled:
@@ -317,6 +373,10 @@ static func _go_gacha() -> void:
 static func _go_codex() -> void:
 	if ResourceLoader.exists(SCENE_CODEX):
 		_change_scene(SCENE_CODEX)
+
+static func _go_mypage() -> void:
+	if ResourceLoader.exists(SCENE_COMMANDER):
+		_change_scene(SCENE_COMMANDER)
 
 static func _change_scene(path: String) -> void:
 	_HubNpcHelper.queue_hint_for_scene(path)

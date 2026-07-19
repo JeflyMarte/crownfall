@@ -15,6 +15,8 @@ const COMBAT_WAIT_GRIND: float = 0.28
 const AUTO_DELAY_GRIND: float = 0.6
 # 味方CHRの「見える体格」を揃える目標高さ（実体=α領域の高さ基準）
 const CHR_BODY_TARGET_PX: float = 140.0
+## オトモは味方より一回り小さく（P3-PET-OTOMO-001 polish）
+const PET_BODY_TARGET_PX: float = 92.0
 const _LOG_MAX: int = 60
 
 const ENEMY_SPRITE_MAP: Dictionary = {
@@ -50,8 +52,8 @@ const ENEMY_SPRITE_MAP: Dictionary = {
 	"storm_joe": "res://resources/animation/ENM_StormJoe.tres",
 	"undertaker_shark": "res://resources/animation/ENM_UndertakerShark.tres",
 	"vergaron": "res://resources/animation/ENM_Vergaron.tres",
-	"cosmic_duck": "res://resources/animation/ENM_MistWyvern.tres",
-	"crown_raven": "res://resources/animation/ENM_MossShell.tres",
+	"cosmic_duck": "res://resources/animation/ENM_CosmicDuck.tres",
+	"crown_raven": "res://resources/animation/ENM_CrownRaven.tres",
 	## 旧IDエイリアス（プレースホルダ）
 	"wayfarer_sparrow": "res://resources/animation/ENM_MistWyvern.tres",
 	"reliquary_beetle": "res://resources/animation/ENM_MossShell.tres",
@@ -274,8 +276,11 @@ const ULTIMATE_GOLD: Color = Color(1.0, 0.78, 0.22)
 const ULTIMATE_FLASH_DAMAGE: Color = Color(1.0, 0.88, 0.45)
 const ULTIMATE_FLASH_HEAL: Color = Color(0.55, 1.0, 0.72)
 ## 攻撃アニメ中のヒット位置（全体尺に対する比率）。ダメージ／ヒットVFXはここまで遅延。
-const ATTACK_IMPACT_FRAME_RATIO: float = 0.42
+const ATTACK_IMPACT_FRAME_RATIO: float = 0.58
 const ATTACK_IMPACT_FALLBACK_SEC: float = 0.22
+const CHR_ATTACK_LUNGE_PX: float = 22.0
+const CHR_ATTACK_LUNGE_OUT_SEC: float = 0.10
+const CHR_ATTACK_LUNGE_BACK_SEC: float = 0.16
 ## 戦闘フロア入場〜実際の戦闘開始までの余白。
 const COMBAT_START_DELAY_SEC: float = 1.5
 # バトルログ BBCode 色（モック準拠・P3-UI2 拡張）
@@ -458,9 +463,12 @@ var _party_card_hp_bars: Array[ProgressBar] = []
 var _party_card_hp_labels: Array[Label] = []
 var _party_card_skill_cd_bars: Array = []
 var _skill_cd_visual_rem: Dictionary = {}
+## ProgressBar instance_id → 満タン時の点滅 Tween
+var _skill_cd_ready_pulse: Dictionary = {}
 var _last_ct_step_ui: float = 0.0
 var _party_card_portraits: Array[TextureRect] = []
 var _party_card_roots: Array[PanelContainer] = []
+var _party_card_name_labels: Array[Label] = []
 var _party_card_active_turn: int = -1
 var _combat_tier_vignette: ColorRect
 var _tier_frame_pulse_tween: Tween
@@ -480,6 +488,10 @@ var _combat_sprites_host: Node2D
 var _swarm_sprites: Array[AnimatedSprite2D] = []
 var _swarm_hp_bars: Array[ProgressBar] = []
 var _swarm_nameplates: Array[Label] = []
+## エリート敵ネームプレート直上の「【エリート】」バッジ（枠上部ラベルは使わない）。
+var _elite_name_badge: Label
+## 必殺リング等で再利用する Heal VFX（都度 load すると攻撃直前にカクつく）。
+var _cached_heal_vfx_frames: SpriteFrames
 const SWARM_SPACING_RATIO: float = 0.201
 const SWARM_CENTER_X_RATIO: float = 0.694
 const SWARM_Y_RATIO: float = 0.48
@@ -494,7 +506,7 @@ const FORMATION_SLOT_RATIOS: Array[Vector2] = [
 	Vector2(0.583, 0.72),  # 1 前衛右（敵寄り）
 	Vector2(0.174, 0.71),  # 2 後衛左（奥）
 	Vector2(0.368, 0.80),  # 3 後衛右
-	Vector2(0.48, 0.58),  # 4 オトモ固定前衛（陣形外 / P3-PET-OTOMO-001）
+	Vector2(0.43, 0.66),  # 4 オトモ（前衛左の少し右）
 ]
 const PARTY_CARD_SLOT_COUNT: int = 4
 const BATTLE_LOG_VISIBLE_LINES: int = 4
@@ -527,11 +539,12 @@ const COMBAT_OVERLAY_Z: int = 25
 const PARTY_CARD_ICON_PX: float = 72.0
 const PARTY_CARD_WEAPON_ICON_PX: float = 24.0
 const PARTY_CARD_HP_HEIGHT: float = 14.0
-const PARTY_CARD_CD_HEIGHT: float = 5.0
+const PARTY_CARD_CD_HEIGHT: float = 11.0
 const SKILL_CD_LERP_RATE: float = 14.0
 const PARTY_CARD_HP_FILL: Color = Color("#41D16A")
-const PARTY_CARD_SKILL_CD_READY: Color = Color(0.55, 0.82, 0.55, 1.0)
-const PARTY_CARD_SKILL_CD_WAIT: Color = Color(0.95, 0.72, 0.35, 1.0)
+const PARTY_CARD_SKILL_CD_READY: Color = Color(0.42, 0.98, 0.58, 1.0)
+const PARTY_CARD_SKILL_CD_WAIT: Color = Color(1.0, 0.78, 0.28, 1.0)
+const PARTY_CARD_SKILL_CD_TRACK: Color = Color(0.07, 0.06, 0.05, 0.96)
 const PARTY_CARD_EMPTY_MODULATE: Color = Color(0.45, 0.45, 0.5, 0.55)
 const PARTY_CARD_DEAD_MODULATE: Color = Color(0.55, 0.55, 0.55, 0.75)
 const UI_TEXT_PRIMARY: Color = Color(0.98, 0.96, 0.92, 1.0)
@@ -703,8 +716,8 @@ func _process(delta: float) -> void:
 	if _request_scroll_to_bottom:
 		_request_scroll_to_bottom = false
 		_battle_log_scroll.scroll_vertical = _battle_log_scroll.get_v_scroll_bar().max_value
-	_update_party_skill_cd_bars_smooth(delta)
 	if $DungeonController.is_combat_room():
+		_update_party_skill_cd_bars_smooth(delta)
 		_update_chr_hp_bar_positions()
 
 func _set_narrative(text: String) -> void:
@@ -1047,13 +1060,15 @@ func _update_party_card_dramatics(member_idx: int, alive: bool) -> void:
 	if member_idx >= _party_card_roots.size():
 		return
 	var tier: String = _party_card_visual_tier(member_idx, alive)
-	_party_card_roots[member_idx].add_theme_stylebox_override(
-		"panel", CombatUiFrames.panel_style(tier)
-	)
+	var card: PanelContainer = _party_card_roots[member_idx]
+	if str(card.get_meta("visual_tier", "")) != tier:
+		card.set_meta("visual_tier", tier)
+		card.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(tier))
 	if member_idx < _party_card_state_badges.size():
 		var badge: Label = _party_card_state_badges[member_idx]
 		var badge_text: String = _party_card_state_badge_text(member_idx, alive)
-		badge.text = badge_text
+		if badge.text != badge_text:
+			badge.text = badge_text
 		badge.visible = not badge_text.is_empty()
 	if not alive:
 		_stop_party_card_pulse(member_idx)
@@ -1942,6 +1957,8 @@ func _update_hp_bars() -> void:
 				_position_swarm_overlay(slot)
 			else:
 				np.visible = false
+				if slot == 0:
+					_hide_elite_name_badge()
 	for i: int in _chr_hp_bars.size():
 		var bar: ProgressBar = _chr_hp_bars[i]
 		var sprite: AnimatedSprite2D = _chr_sprites[i]
@@ -1960,6 +1977,13 @@ func _update_chr_hp_bar_positions() -> void:
 		var sprite: AnimatedSprite2D = _chr_sprites[i]
 		if not bar.visible or not sprite.visible:
 			continue
+		## position/offset が変わっていないフレームはスキップ（毎フレームの行列逆変換を避ける）。
+		var track: Vector4 = Vector4(
+			sprite.position.x, sprite.position.y, sprite.offset.x, sprite.offset.y
+		)
+		if bar.has_meta("hp_follow_track") and bar.get_meta("hp_follow_track") == track:
+			continue
+		bar.set_meta("hp_follow_track", track)
 		_set_hp_bar_above_sprite(bar, sprite, _formation_slot_for_combat_index(i))
 
 func _chr_hp_bar_row_y_offset(formation_slot: int) -> float:
@@ -1973,23 +1997,23 @@ func _chr_hp_bar_top_y(sprite: AnimatedSprite2D, formation_slot: int) -> float:
 	return _sprite_visible_top_y(sprite) - CHR_HP_BAR_GAP_ABOVE_SPRITE - CHR_HP_BAR_HEIGHT + _chr_hp_bar_row_y_offset(formation_slot)
 
 func _sprite_visible_top_y(sprite: AnimatedSprite2D) -> float:
-	if sprite.sprite_frames == null:
+	## 毎フレーム get_image() すると戦闘がカクつくので、正規化時の meta を使う。
+	## meta 欠落時も get_image は使わず高さのみ（inset=0）でフォールバックする。
+	var frame_h: float = float(sprite.get_meta("body_frame_h", 0.0))
+	var top_in_tex: float = float(sprite.get_meta("body_top_inset", 0.0))
+	if frame_h <= 0.0 and sprite.sprite_frames != null:
+		var anim: String = sprite.animation
+		if not sprite.sprite_frames.has_animation(anim):
+			anim = "idle"
+		if sprite.sprite_frames.has_animation(anim):
+			var tex: Texture2D = sprite.sprite_frames.get_frame_texture(anim, 0)
+			if tex != null:
+				frame_h = float(tex.get_height())
+				top_in_tex = 0.0
+				sprite.set_meta("body_frame_h", frame_h)
+				sprite.set_meta("body_top_inset", top_in_tex)
+	if frame_h <= 0.0:
 		return sprite.position.y
-	var anim: String = sprite.animation
-	if not sprite.sprite_frames.has_animation(anim):
-		anim = "idle"
-	if not sprite.sprite_frames.has_animation(anim):
-		return sprite.position.y
-	var tex: Texture2D = sprite.sprite_frames.get_frame_texture(anim, 0)
-	if tex == null:
-		return sprite.position.y
-	var frame_h: float = float(tex.get_height())
-	var top_in_tex: float = 0.0
-	var img: Image = tex.get_image()
-	if img != null:
-		var used: Rect2i = img.get_used_rect()
-		if used.size.y > 0:
-			top_in_tex = float(used.position.y)
 	var center_y: float = _sprite_visual_center(sprite).y
 	return center_y - (frame_h * 0.5 - top_in_tex) * absf(sprite.scale.y)
 
@@ -5528,6 +5552,24 @@ func _play_chr_attack_one(idx: int) -> void:
 	var s: AnimatedSprite2D = _chr_sprites[idx]
 	if s.visible and s.sprite_frames != null and s.sprite_frames.has_animation("attack"):
 		s.play("attack")
+		## 背面寄り素材でも攻撃が分かるよう、敵方向へ短い踏み込みを付ける
+		_play_chr_attack_lunge(idx)
+
+
+func _play_chr_attack_lunge(idx: int) -> void:
+	if idx < 0 or idx >= _chr_sprites.size():
+		return
+	var s: AnimatedSprite2D = _chr_sprites[idx]
+	if s == null or not s.visible:
+		return
+	var base: Vector2 = s.position
+	var toward: Vector2 = Vector2(CHR_ATTACK_LUNGE_PX, -CHR_ATTACK_LUNGE_PX * 0.25)
+	## 敵は戦場右側。ペット含め味方は右前へ踏み込む
+	var speed_m: float = _ultimate_presentation_speed_mult()
+	var tw: Tween = create_tween()
+	tw.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(s, "position", base + toward, CHR_ATTACK_LUNGE_OUT_SEC / maxf(0.01, speed_m))
+	tw.tween_property(s, "position", base, CHR_ATTACK_LUNGE_BACK_SEC / maxf(0.01, speed_m)).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 
 
 func _attack_anim_impact_delay(sprite: AnimatedSprite2D) -> float:
@@ -5796,6 +5838,8 @@ func _update_combat_tier_frame() -> void:
 	_combat_tier_frame.visible = show
 	if not show:
 		_label_combat_tier.text = ""
+		_label_combat_tier.visible = false
+		_hide_elite_name_badge()
 		if _combat_tier_vignette != null:
 			_combat_tier_vignette.color = Color(0, 0, 0, 0)
 		return
@@ -5803,24 +5847,11 @@ func _update_combat_tier_frame() -> void:
 	_combat_tier_frame.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(tier))
 	_combat_tier_vignette.color = CombatUiFrames.vignette_color(tier)
 	_combat_tier_frame.modulate = Color.WHITE
-	var banner: String = _combat_tier_banner_text(tier)
-	_label_combat_tier.visible = not banner.is_empty()
-	_label_combat_tier.text = banner
-	if tier == CombatUiFrames.TIER_ELITE:
-		UiTypography.apply_display(_label_combat_tier, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
-	elif tier == CombatUiFrames.TIER_BOSS:
-		UiTypography.apply_display(_label_combat_tier, UiTypography.SIZE_BODY_SMALL, Color(1.0, 0.45, 0.4))
+	## エリート文言はネームプレート直上バッジへ移したため、枠上ラベルは出さない。
+	_label_combat_tier.visible = false
+	_label_combat_tier.text = ""
 	if tier == CombatUiFrames.TIER_BOSS:
 		_start_tier_frame_pulse()
-
-func _combat_tier_banner_text(tier: String) -> String:
-	match tier:
-		CombatUiFrames.TIER_ELITE:
-			return "【エリート】"
-		CombatUiFrames.TIER_BOSS:
-			return ""
-		_:
-			return ""
 
 func _start_auto_progress() -> void:
 	if _is_paused or _dive_intro_active or _room_transition_busy or _boss_intro_active or _elite_intro_active or _heal_presentation_active or _treasure_presentation_active or _trap_presentation_active or _event_presentation_active or _combat_clear_active:
@@ -6090,14 +6121,18 @@ func _normalize_enemy_scale(sprite: AnimatedSprite2D, frames: SpriteFrames) -> v
 	if frame_h <= 0.0:
 		return
 	var body_h: float = frame_h
+	var top_inset: float = 0.0
 	var img: Image = tex.get_image()
 	if img != null:
 		var used: Rect2i = img.get_used_rect()
 		if used.size.y > 0:
 			body_h = float(used.size.y)
+			top_inset = float(used.position.y)
 	var s: float = clampf(ENEMY_BODY_TARGET_PX / body_h, 0.05, 20.0)
 	sprite.scale = Vector2(s, s)
 	sprite.centered = true
+	sprite.set_meta("body_frame_h", frame_h)
+	sprite.set_meta("body_top_inset", top_inset)
 
 func _hide_enemy_sprite() -> void:
 	_clear_swarm_slots()
@@ -6148,6 +6183,7 @@ func _clear_swarm_slots() -> void:
 	_swarm_hp_bars.clear()
 	_swarm_nameplates.clear()
 	_status_icon_swarm_rows.clear()
+	_hide_elite_name_badge()
 
 # 必要なスロット数を確保する。slot0 は既存ノードを流用、追加分は duplicate で生成。
 func _ensure_swarm_slots(n: int) -> void:
@@ -6257,6 +6293,8 @@ func _position_swarm_overlay(slot: int) -> void:
 	var data: Resource = $CombatController.get_enemy_data_at(slot)
 	if data == null:
 		np.visible = false
+		if slot == 0:
+			_hide_elite_name_badge()
 		return
 	var name_text: String = "Lv%d %s" % [$CombatController.enemy_level, data.display_name]
 	np.text = name_text
@@ -6271,6 +6309,59 @@ func _position_swarm_overlay(slot: int) -> void:
 	np.offset_right = cx + name_half_w
 	np.offset_bottom = name_ty + NAME_HEIGHT
 	np.visible = true
+	_position_elite_name_badge(slot, cx, name_ty)
+
+func _ensure_elite_name_badge() -> Label:
+	if _elite_name_badge != null and is_instance_valid(_elite_name_badge):
+		return _elite_name_badge
+	_elite_name_badge = Label.new()
+	_elite_name_badge.name = "EliteNameBadge"
+	_elite_name_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_elite_name_badge.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_elite_name_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_elite_name_badge.clip_text = false
+	_elite_name_badge.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	_elite_name_badge.text = "【エリート】"
+	UiTypography.apply_display(
+		_elite_name_badge,
+		UiTypography.SIZE_BODY_SMALL,
+		UiTypography.COLOR_GOLD,
+		UiTypography.OUTLINE_STRONG
+	)
+	add_child(_elite_name_badge)
+	_apply_combat_overlay_z(_elite_name_badge, 2)
+	return _elite_name_badge
+
+
+## エリート戦の先頭敵（slot0）ネームプレート直上に【エリート】を置く。
+func _position_elite_name_badge(slot: int, cx: float, name_ty: float) -> void:
+	## 他スロットのオーバーレイ更新でバッジを消さない（slot0 専用）。
+	if slot != 0:
+		return
+	const BADGE_H: float = 22.0
+	const GAP_NAME_BADGE: float = 2.0
+	var show: bool = (
+		$DungeonController.current_room_type == Enums.RoomType.ELITE
+		and $CombatController.is_in_combat
+		and $CombatController.is_enemy_slot_alive(slot)
+	)
+	if not show:
+		_hide_elite_name_badge()
+		return
+	var badge: Label = _ensure_elite_name_badge()
+	var half_w: float = _nameplate_half_width(badge.text, badge.get_theme_font_size("font_size"))
+	var badge_ty: float = name_ty - GAP_NAME_BADGE - BADGE_H
+	badge.offset_left = cx - half_w
+	badge.offset_top = badge_ty
+	badge.offset_right = cx + half_w
+	badge.offset_bottom = badge_ty + BADGE_H
+	badge.visible = true
+
+
+func _hide_elite_name_badge() -> void:
+	if _elite_name_badge != null and is_instance_valid(_elite_name_badge):
+		_elite_name_badge.visible = false
+
 
 func _play_enemy_animation(anim: String) -> void:
 	_play_enemy_slot_animation($CombatController.active_enemy_index, anim)
@@ -6321,7 +6412,9 @@ func _show_chr_sprites(with_entrance: bool = false) -> void:
 			sprite.visible = false
 			continue
 		sprite.sprite_frames = frames
-		_normalize_chr_scale(sprite, frames)
+		var body_target: float = PET_BODY_TARGET_PX if GameState.is_pet_combatant(i) else CHR_BODY_TARGET_PX
+		_normalize_chr_scale(sprite, frames, body_target)
+		_warm_sprite_animation_textures(frames, "attack")
 		var slot: int = _formation_slot_for_combat_index(i)
 		if slot < FORMATION_SLOT_RATIOS.size():
 			sprite.position = _formation_slot_position(slot)
@@ -6350,6 +6443,16 @@ func _show_chr_sprites(with_entrance: bool = false) -> void:
 			_apply_chr_sprite_modulate(i, sprite)
 			_setup_chr_idle_motion(i, sprite, frames)
 	_rebuild_party_cards()
+	## 必殺リング用 VFX を戦闘入場時に温めて、発動直前の load スパイクを防ぐ。
+	_get_cached_heal_vfx_frames()
+
+func _warm_sprite_animation_textures(frames: SpriteFrames, anim: String) -> void:
+	if frames == null or not frames.has_animation(anim):
+		return
+	for i: int in frames.get_frame_count(anim):
+		var tex: Texture2D = frames.get_frame_texture(anim, i)
+		if tex != null:
+			tex.get_width()
 
 func _apply_chr_sprite_modulate(member_idx: int, sprite: CanvasItem) -> void:
 	if sprite == null or not is_instance_valid(sprite):
@@ -6397,8 +6500,10 @@ func _rebuild_party_cards() -> void:
 	_party_card_hp_bars.clear()
 	_party_card_hp_labels.clear()
 	_party_card_skill_cd_bars.clear()
+	_clear_skill_cd_ready_pulses()
 	_party_card_portraits.clear()
 	_party_card_roots.clear()
+	_party_card_name_labels.clear()
 	_party_card_state_badges.clear()
 	for tw in _party_card_pulse_tweens:
 		if tw != null and is_instance_valid(tw):
@@ -6417,11 +6522,25 @@ func _rebuild_party_cards() -> void:
 			_party_card_skill_cd_bars.append(built["skill_cd_bars"])
 			_party_card_portraits.append(built["portrait"])
 			_party_card_roots.append(built["card"])
+			_party_card_name_labels.append(built["name_label"])
 			_party_card_state_badges.append(built["state_badge"])
 			_party_card_pulse_tweens.append(null)
 		else:
 			_party_cards_row.add_child(_make_empty_party_card())
 	_update_party_cards_hp()
+	call_deferred("_fit_all_party_card_name_fonts")
+	if not _party_cards_row.resized.is_connected(_on_party_cards_row_resized):
+		_party_cards_row.resized.connect(_on_party_cards_row_resized)
+
+func _on_party_cards_row_resized() -> void:
+	if bool(get_meta("_party_name_fit_pending", false)):
+		return
+	set_meta("_party_name_fit_pending", true)
+	call_deferred("_fit_all_party_card_name_fonts_deferred")
+
+func _fit_all_party_card_name_fonts_deferred() -> void:
+	set_meta("_party_name_fit_pending", false)
+	_fit_all_party_card_name_fonts()
 	_update_party_skill_cd_bars_smooth(1.0)
 
 func _party_card_short_name(display_name: String) -> String:
@@ -6509,9 +6628,82 @@ func _stop_tier_frame_pulse() -> void:
 	_combat_tier_frame.modulate = Color.WHITE
 
 
-func _style_party_card_skill_cd_bar(bar: ProgressBar) -> void:
-	_style_hp_bar_readable(bar, PARTY_CARD_SKILL_CD_WAIT)
+func _style_party_card_skill_cd_bar(bar: ProgressBar, ready: bool = false) -> void:
+	## 再使用ゲージ: 太いバーで伸びを見せ、満タン時だけ縁取り＋点滅で「使える」を強調。
+	## StyleBox は ready 状態ごとに1回だけ作り、毎フレーム new しない（戦闘カクつき防止）。
+	if bool(bar.get_meta("cd_ready_styled", not ready)) == ready and bar.has_meta("cd_style_applied"):
+		_set_skill_cd_ready_pulse(bar, ready)
+		return
+	var fill_style: StyleBoxFlat = _cached_skill_cd_fill_style(ready)
+	var bg_style: StyleBoxFlat = _cached_skill_cd_bg_style(ready)
+	bar.add_theme_stylebox_override("fill", fill_style)
+	bar.add_theme_stylebox_override("background", bg_style)
 	bar.custom_minimum_size = Vector2(0, PARTY_CARD_CD_HEIGHT)
+	bar.set_meta("cd_ready_styled", ready)
+	bar.set_meta("cd_style_applied", true)
+	_set_skill_cd_ready_pulse(bar, ready)
+
+
+func _cached_skill_cd_fill_style(ready: bool) -> StyleBoxFlat:
+	var key: String = "ready" if ready else "wait"
+	if not has_meta("_cd_fill_styles"):
+		set_meta("_cd_fill_styles", {})
+	var cache: Dictionary = get_meta("_cd_fill_styles")
+	if cache.has(key):
+		return cache[key] as StyleBoxFlat
+	var fill_style := StyleBoxFlat.new()
+	fill_style.bg_color = PARTY_CARD_SKILL_CD_READY if ready else PARTY_CARD_SKILL_CD_WAIT
+	fill_style.set_corner_radius_all(3)
+	if ready:
+		fill_style.set_border_width_all(1)
+		fill_style.border_color = Color(0.9, 1.0, 0.78, 0.98)
+	cache[key] = fill_style
+	return fill_style
+
+
+func _cached_skill_cd_bg_style(ready: bool) -> StyleBoxFlat:
+	var key: String = "ready" if ready else "wait"
+	if not has_meta("_cd_bg_styles"):
+		set_meta("_cd_bg_styles", {})
+	var cache: Dictionary = get_meta("_cd_bg_styles")
+	if cache.has(key):
+		return cache[key] as StyleBoxFlat
+	var bg_style := StyleBoxFlat.new()
+	bg_style.bg_color = PARTY_CARD_SKILL_CD_TRACK
+	bg_style.set_border_width_all(1)
+	bg_style.border_color = Color(0.42, 0.36, 0.2, 0.95) if not ready else Color(0.55, 0.85, 0.45, 0.9)
+	bg_style.set_corner_radius_all(3)
+	cache[key] = bg_style
+	return bg_style
+
+
+func _set_skill_cd_ready_pulse(bar: ProgressBar, ready: bool) -> void:
+	if bar == null:
+		return
+	var key: int = bar.get_instance_id()
+	var existing = _skill_cd_ready_pulse.get(key)
+	if not ready:
+		if existing != null and is_instance_valid(existing):
+			existing.kill()
+		_skill_cd_ready_pulse.erase(key)
+		bar.modulate = Color.WHITE
+		return
+	if existing != null and is_instance_valid(existing) and existing.is_valid():
+		return
+	var tw: Tween = create_tween().set_loops()
+	tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_property(bar, "modulate", Color(1.28, 1.38, 1.12, 1.0), 0.5)
+	tw.tween_property(bar, "modulate", Color(0.92, 1.08, 0.88, 1.0), 0.5)
+	_skill_cd_ready_pulse[key] = tw
+
+
+func _clear_skill_cd_ready_pulses() -> void:
+	for key in _skill_cd_ready_pulse.keys():
+		var tw = _skill_cd_ready_pulse[key]
+		if tw != null and is_instance_valid(tw):
+			tw.kill()
+	_skill_cd_ready_pulse.clear()
+
 
 # 装備スキル①②のCD表示（CTとは別。満タン=使用可・≠自動発動）（P3-FIX-008）。
 func _make_skill_cd_row() -> Dictionary:
@@ -6539,7 +6731,7 @@ func _make_skill_cd_row() -> Dictionary:
 		bar.value = 1.0
 		bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		_style_party_card_skill_cd_bar(bar)
+		_style_party_card_skill_cd_bar(bar, true)
 		slot_col.add_child(bar)
 		row.add_child(slot_col)
 		bars.append(bar)
@@ -6580,18 +6772,21 @@ func _update_party_skill_cd_bars_smooth(delta: float) -> void:
 		for s in mini(2, cd_bars.size()):
 			var bar: ProgressBar = cd_bars[s]
 			if not alive:
-				bar.value = 0.0
-				_style_party_card_skill_cd_bar(bar)
+				if bar.value != 0.0:
+					bar.value = 0.0
+				_style_party_card_skill_cd_bar(bar, false)
 				continue
 			var info: Dictionary = _party_card_skill_cd_info(i, s)
 			if not bool(info.get("has_skill", false)):
-				bar.value = 0.0
-				_style_party_card_skill_cd_bar(bar)
+				if bar.value != 0.0:
+					bar.value = 0.0
+				_style_party_card_skill_cd_bar(bar, false)
 				continue
 			var cd_key: String = str(info.get("cd_key", ""))
 			if cd_key.is_empty():
-				bar.value = 1.0
-				_style_hp_bar_readable(bar, PARTY_CARD_SKILL_CD_READY)
+				if bar.value != 1.0:
+					bar.value = 1.0
+				_style_party_card_skill_cd_bar(bar, true)
 				continue
 			var max_cd: float = float(info.get("max_cd", 1.0))
 			var actual_rem: float = _skill_executor.get_cooldown_remaining(cd_key)
@@ -6604,11 +6799,10 @@ func _update_party_skill_cd_bars_smooth(delta: float) -> void:
 				visual_rem = lerpf(visual_rem, actual_rem, blend)
 			_skill_cd_visual_rem[cd_key] = visual_rem
 			var ready: bool = visual_rem <= 0.05
-			bar.value = 1.0 if ready else clampf(1.0 - visual_rem / maxf(max_cd, 0.001), 0.0, 1.0)
-			_style_hp_bar_readable(
-				bar,
-				PARTY_CARD_SKILL_CD_READY if ready else PARTY_CARD_SKILL_CD_WAIT
-			)
+			var next_value: float = 1.0 if ready else clampf(1.0 - visual_rem / maxf(max_cd, 0.001), 0.0, 1.0)
+			if absf(bar.value - next_value) > 0.0005:
+				bar.value = next_value
+			_style_party_card_skill_cd_bar(bar, ready)
 
 func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
 	var card := PanelContainer.new()
@@ -6639,8 +6833,9 @@ func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
 	name_label.text = _party_card_short_name(member.display_name)
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	name_label.clip_text = true
-	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	name_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	name_label.clip_text = false
+	name_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	UiTypography.apply_display(name_label, UiTypography.SIZE_BODY_SMALL, _party_log_color(member), UiTypography.OUTLINE_BODY)
 	name_col.add_child(name_label)
 	var weapon_wrap := Control.new()
@@ -6697,8 +6892,53 @@ func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
 		"hp_label": hp_label,
 		"skill_cd_bars": skill_cd["bars"],
 		"portrait": portrait,
+		"name_label": name_label,
 		"state_badge": state_badge,
 	}
+
+func _fit_all_party_card_name_fonts() -> void:
+	for i in _party_card_name_labels.size():
+		var label: Label = _party_card_name_labels[i]
+		if label == null or not is_instance_valid(label):
+			continue
+		var avail: float = _party_card_name_available_width(i)
+		_fit_party_card_name_font(label, avail)
+
+func _party_card_name_available_width(card_index: int) -> float:
+	if card_index < 0 or card_index >= _party_card_roots.size():
+		return 72.0
+	var card: PanelContainer = _party_card_roots[card_index]
+	if card == null:
+		return 72.0
+	var card_w: float = card.size.x
+	if card_w < 40.0:
+		card_w = card.get_combined_minimum_size().x
+	## アイコン＋余白を除いた名前列幅（パネル余白おおよそ左右8）
+	var inner: float = card_w - PARTY_CARD_ICON_PX - 6.0 - 16.0
+	return maxf(48.0, inner)
+
+func _fit_party_card_name_font(label: Label, avail_w: float) -> void:
+	## 長い名前は省略せずフォント縮小で1行全文表示（装備画面の職名と同方針）
+	const MAX_FS: int = UiTypography.SIZE_BODY_SMALL
+	const MIN_FS: int = 11
+	var text: String = label.text
+	if text.is_empty():
+		return
+	var font: Font = label.get_theme_font("font")
+	if font == null:
+		font = UiTypography.display_font()
+	if font == null:
+		return
+	var fs: int = MAX_FS
+	while fs > MIN_FS:
+		var w: float = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		if w <= avail_w:
+			break
+		fs -= 1
+	label.add_theme_font_size_override("font_size", fs)
+	label.clip_text = false
+	label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	label.autowrap_mode = TextServer.AUTOWRAP_OFF
 
 func _make_empty_party_card() -> Control:
 	var card := PanelContainer.new()
@@ -6968,8 +7208,12 @@ func _update_party_cards_hp() -> void:
 			if not alive:
 				card.modulate = PARTY_CARD_DEAD_MODULATE
 
-func _normalize_chr_scale(sprite: AnimatedSprite2D, frames: SpriteFrames) -> void:
-	# 実体（α非透明領域）のバウンディングボックスを CHR_BODY_TARGET_PX に揃える。
+func _normalize_chr_scale(
+	sprite: AnimatedSprite2D,
+	frames: SpriteFrames,
+	body_target_px: float = CHR_BODY_TARGET_PX
+) -> void:
+	# 実体（α非透明領域）のバウンディングボックスを body_target_px に揃える。
 	# 足元（下端中央）をノード position に合わせる。
 	var tex: Texture2D = frames.get_frame_texture("idle", 0)
 	if tex == null:
@@ -6982,6 +7226,7 @@ func _normalize_chr_scale(sprite: AnimatedSprite2D, frames: SpriteFrames) -> voi
 	var body_h: float = frame_h
 	var body_cx: float = frame_w / 2.0
 	var body_bottom: float = frame_h
+	var top_inset: float = 0.0
 	var img: Image = tex.get_image()
 	if img != null:
 		var used: Rect2i = img.get_used_rect()
@@ -6990,11 +7235,14 @@ func _normalize_chr_scale(sprite: AnimatedSprite2D, frames: SpriteFrames) -> voi
 			body_h = float(used.size.y)
 			body_cx = float(used.position.x) + body_w * 0.5
 			body_bottom = float(used.position.y + used.size.y)
+			top_inset = float(used.position.y)
 	var body_max: float = maxf(body_w, body_h)
-	var s: float = clampf(CHR_BODY_TARGET_PX / body_max, 0.05, 20.0)
+	var s: float = clampf(body_target_px / body_max, 0.05, 20.0)
 	sprite.scale = Vector2(s, s)
 	sprite.centered = true
 	sprite.offset = Vector2(frame_w / 2.0 - body_cx, frame_h / 2.0 - body_bottom)
+	sprite.set_meta("body_frame_h", frame_h)
+	sprite.set_meta("body_top_inset", top_inset)
 
 func _formation_slot_for_combat_index(combat_index: int) -> int:
 	return GameState.get_combatant_formation_slot(combat_index)
@@ -7334,6 +7582,9 @@ func _play_ultimate_presentation_async(payload: Dictionary) -> void:
 		return
 	var caster_pos: Vector2 = _member_sprite_world_pos(member_idx, 0.35)
 	var ring_tint: Color = Color(0.65, 1.0, 0.78) if is_heal else ULTIMATE_GOLD
+	## 攻撃モーションは windup 開始時に始め、resolve 同フレームの負荷スパイクを避ける。
+	if not is_heal:
+		_play_chr_attack_one(member_idx)
 	_spawn_ultimate_ring_burst(caster_pos, ring_tint, 1.65)
 	_flash_battlefield(ULTIMATE_FLASH_HEAL if is_heal else ULTIMATE_FLASH_DAMAGE, 0.22 if is_heal else 0.2)
 	_flash_member_sprite(member_idx, ring_tint)
@@ -7350,7 +7601,6 @@ func _play_ultimate_presentation_async(payload: Dictionary) -> void:
 	else:
 		var focus_pos: Vector2 = payload.get("spawn_pos", Vector2.ZERO) as Vector2
 		_play_ultimate_resolve_vfx(member_idx, skill_data, focus_pos, element)
-		_play_chr_attack_one(member_idx)
 		_apply_ultimate_damage_impact(payload)
 	_dismiss_ultimate_center_telop(float(t["release"]))
 	await get_tree().create_timer(float(t["release"])).timeout
@@ -7443,9 +7693,9 @@ func _pulse_member_ultimate(member_idx: int) -> void:
 	_flash_member_sprite(member_idx, Color(1.0, 0.9, 0.5))
 
 func _spawn_ultimate_ring_burst(world_pos: Vector2, tint: Color, peak_scale: float = 2.1) -> void:
-	if world_pos == Vector2.ZERO or not ResourceLoader.exists(VFX_HEAL_PATH):
+	if world_pos == Vector2.ZERO:
 		return
-	var frames: SpriteFrames = load(VFX_HEAL_PATH) as SpriteFrames
+	var frames: SpriteFrames = _get_cached_heal_vfx_frames()
 	if frames == null:
 		return
 	var spr := AnimatedSprite2D.new()
@@ -7488,18 +7738,30 @@ func _play_ultimate_resolve_vfx(
 	element: String = ""
 ) -> void:
 	var is_heal: bool = skill_data != null and str(skill_data.effect_type) == "heal"
-	_flash_battlefield(ULTIMATE_FLASH_HEAL if is_heal else ULTIMATE_FLASH_DAMAGE, 0.44 if is_heal else 0.4)
-	_shake_battlefield(11.5 if is_heal else 12.0)
-	_pulse_member_ultimate(member_idx)
-	var caster_pos: Vector2 = _member_sprite_world_pos(member_idx, 0.35)
-	var ring_tint: Color = Color(0.7, 1.0, 0.82) if is_heal else ULTIMATE_GOLD
-	_spawn_ultimate_ring_burst(caster_pos, ring_tint, 2.25)
 	if is_heal:
+		## 回復必殺はフル演出。ダメージ必殺は windup で開始済みのためヒット側だけ強調する。
+		_flash_battlefield(ULTIMATE_FLASH_HEAL, 0.44)
+		_shake_battlefield(11.5)
+		_pulse_member_ultimate(member_idx)
+		var caster_pos: Vector2 = _member_sprite_world_pos(member_idx, 0.35)
+		_spawn_ultimate_ring_burst(caster_pos, Color(0.7, 1.0, 0.82), 2.25)
 		for i: int in GameState.party_members.size():
 			if $CombatController.is_member_alive(i):
 				_spawn_ultimate_ring_burst(_member_sprite_world_pos(i, 0.4), Color(0.55, 1.0, 0.72), 1.35)
-	elif focus_pos != Vector2.ZERO:
+		return
+	_request_combat_shake(12.0)
+	if focus_pos != Vector2.ZERO:
 		_spawn_ultimate_impact_vfx(focus_pos, element)
+
+
+func _get_cached_heal_vfx_frames() -> SpriteFrames:
+	if _cached_heal_vfx_frames != null:
+		return _cached_heal_vfx_frames
+	if not ResourceLoader.exists(VFX_HEAL_PATH):
+		return null
+	_cached_heal_vfx_frames = load(VFX_HEAL_PATH) as SpriteFrames
+	return _cached_heal_vfx_frames
+
 
 func _spawn_ultimate_skill_name(
 	skill_name: String,
@@ -8278,6 +8540,7 @@ func _normalize_boss_scale(sprite: AnimatedSprite2D, frames: SpriteFrames) -> vo
 	var body_h: float = frame_h
 	var body_cx: float = frame_w / 2.0
 	var body_bottom: float = frame_h
+	var top_inset: float = 0.0
 	var img: Image = tex.get_image()
 	if img != null:
 		var used: Rect2i = img.get_used_rect()
@@ -8286,11 +8549,14 @@ func _normalize_boss_scale(sprite: AnimatedSprite2D, frames: SpriteFrames) -> vo
 			body_h = float(used.size.y)
 			body_cx = float(used.position.x) + body_w * 0.5
 			body_bottom = float(used.position.y + used.size.y)
+			top_inset = float(used.position.y)
 	var body_max: float = maxf(body_w, body_h)
 	var s: float = clampf(BOSS_BODY_TARGET_PX / body_max, 0.05, 20.0)
 	sprite.scale = Vector2(s, s)
 	sprite.centered = true
 	sprite.offset = Vector2(frame_w / 2.0 - body_cx, frame_h / 2.0 - body_bottom)
+	sprite.set_meta("body_frame_h", frame_h)
+	sprite.set_meta("body_top_inset", top_inset)
 
 func _play_boss_animation(anim: String) -> void:
 	if not _boss_sprite.visible:

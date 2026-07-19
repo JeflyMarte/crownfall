@@ -33,6 +33,8 @@ var _formation_pick_slot: int = -1
 var _active_pick_slot: int = -1
 var _sort_by_rarity: bool = true
 var _role_filter_index: int = 0
+## false=冒険者一覧 / true=ペット（オトモ）一覧
+var _show_pets: bool = false
 var _formation_cells: Array[PanelContainer] = []
 
 @onready var _main_vbox: VBoxContainer = $MainScroll/MainVBox
@@ -55,6 +57,7 @@ func _ready() -> void:
 	$MainScroll/MainVBox/PowerSection/PowerButtonRow/ButtonFormation.pressed.connect(_open_formation_overlay)
 	$MainScroll/MainVBox/ListHeader/ButtonSort.pressed.connect(_on_sort_pressed)
 	$MainScroll/MainVBox/ListHeader/ButtonRoleFilter.pressed.connect(_on_role_filter_pressed)
+	$MainScroll/MainVBox/ListHeader/ButtonPet.pressed.connect(_on_pet_tab_pressed)
 	$FooterRow/ButtonReset.pressed.connect(_on_reset_pressed)
 	$FooterRow/ButtonSave.pressed.connect(_on_save_pressed)
 	$FormationOverlay/Dim.gui_input.connect(_on_formation_dim_input)
@@ -140,6 +143,11 @@ func _apply_toolbar_buttons() -> void:
 		},
 		{
 			"path": "MainScroll/MainVBox/ListHeader/ButtonRoleFilter",
+			"min": Vector2(0, TOOLBAR_BTN_H),
+			"expand": true,
+		},
+		{
+			"path": "MainScroll/MainVBox/ListHeader/ButtonPet",
 			"min": Vector2(0, TOOLBAR_BTN_H),
 			"expand": true,
 		},
@@ -424,6 +432,17 @@ func _on_detail_pressed(member: Resource) -> void:
 func _rebuild_roster_grid() -> void:
 	for child in _roster_grid.get_children():
 		child.queue_free()
+	if _show_pets:
+		var pet: Resource = PetSystem.ensure_starter_pet()
+		if pet != null:
+			_roster_grid.add_child(_make_roster_grid_card(pet))
+		else:
+			var empty_pet := Label.new()
+			empty_pet.text = "ペットがいません"
+			empty_pet.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			empty_pet.add_theme_color_override("font_color", COLOR_SUB)
+			_roster_grid.add_child(empty_pet)
+		return
 	var roster: Array = GameState.get_roster().duplicate()
 	roster = roster.filter(func(adv: Resource) -> bool: return _passes_role_filter(adv))
 	roster.sort_custom(func(a: Resource, b: Resource) -> bool: return _sort_roster_cmp(a, b))
@@ -443,13 +462,17 @@ func _passes_role_filter(adv: Resource) -> bool:
 	var mods: Dictionary = JobStatCalculator.get_member_modifiers(adv)
 	return str(mods.get("role", "")) == filter_id
 
-func _on_role_filter_pressed() -> void:
-	_role_filter_index = (_role_filter_index + 1) % _ROLE_FILTER_ORDER.size()
-	var filter_id: String = _ROLE_FILTER_ORDER[_role_filter_index]
-	$MainScroll/MainVBox/ListHeader/ButtonRoleFilter.text = str(
-		RosterUiHelper.ROLE_FILTER_LABELS.get(filter_id, filter_id)
-	)
+func _on_pet_tab_pressed() -> void:
+	_show_pets = true
+	_active_pick_slot = -1
+	_update_list_header_title()
 	_rebuild_roster_grid()
+	_rebuild_active_party_row()
+
+func _update_list_header_title() -> void:
+	$MainScroll/MainVBox/ListHeader/LabelListTitle.text = (
+		"ペット一覧" if _show_pets else "キャラクター一覧"
+	)
 
 func _sort_roster_cmp(a: Resource, b: Resource) -> bool:
 	if _sort_by_rarity:
@@ -465,13 +488,16 @@ func _sort_roster_cmp(a: Resource, b: Resource) -> bool:
 	return str(a.display_name) < str(b.display_name)
 
 func _make_roster_grid_card(adv: Resource) -> Control:
-	var in_party: bool = _selected.has(adv)
-	var picking: bool = _active_pick_slot >= 0
+	var is_pet: bool = PetSystem.is_pet_member(adv)
+	var in_party: bool = (not is_pet) and _selected.has(adv)
+	var picking: bool = (not is_pet) and _active_pick_slot >= 0
 	var cell_h: int = _grid_cell_height()
 	var wrapper := PanelContainer.new()
 	wrapper.custom_minimum_size = Vector2(0, cell_h)
 	wrapper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	if picking and not in_party:
+	if is_pet:
+		wrapper.add_theme_stylebox_override("panel", RosterUiHelper.card_panel_style(true, false))
+	elif picking and not in_party:
 		wrapper.add_theme_stylebox_override("panel", _pick_style())
 	else:
 		wrapper.add_theme_stylebox_override("panel", RosterUiHelper.card_panel_style(in_party, false))
@@ -546,6 +572,11 @@ func _make_roster_grid_card(adv: Resource) -> Control:
 	return wrapper
 
 func _toggle_selection(adv: Resource) -> void:
+	if PetSystem.is_pet_member(adv):
+		_label_status.text = "%sは常時随伴するオトモです（4人編成には入りません）" % RosterUiHelper.short_display_name(
+			str(adv.display_name)
+		)
+		return
 	if _active_pick_slot >= 0:
 		_apply_active_pick_with_roster(adv)
 		return
@@ -628,8 +659,26 @@ func _on_reset_pressed() -> void:
 	_refresh_all()
 
 func _on_sort_pressed() -> void:
+	if _show_pets:
+		_show_pets = false
+		_update_list_header_title()
+		_rebuild_roster_grid()
+		return
 	_sort_by_rarity = not _sort_by_rarity
 	$MainScroll/MainVBox/ListHeader/ButtonSort.text = "レアリティ順" if _sort_by_rarity else "レベル順"
+	_rebuild_roster_grid()
+
+func _on_role_filter_pressed() -> void:
+	if _show_pets:
+		_show_pets = false
+		_update_list_header_title()
+		_rebuild_roster_grid()
+		return
+	_role_filter_index = (_role_filter_index + 1) % _ROLE_FILTER_ORDER.size()
+	var filter_id: String = _ROLE_FILTER_ORDER[_role_filter_index]
+	$MainScroll/MainVBox/ListHeader/ButtonRoleFilter.text = str(
+		RosterUiHelper.ROLE_FILTER_LABELS.get(filter_id, filter_id)
+	)
 	_rebuild_roster_grid()
 
 func _on_save_pressed() -> void:

@@ -86,7 +86,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 4
 theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
 theme_override_font_sizes/font_size = 18
-text = "ギルドへの招待状"
+text = ""
 horizontal_alignment = 1
 
 [node name="GoldChip" type="PanelContainer" parent="Header/HeaderRow"]
@@ -160,7 +160,7 @@ layout_mode = 2
 theme_override_constants/separation = 6
 
 [node name="BannerArtHost" type="Control" parent="MainColumn/HeroBanner/BannerVBox"]
-custom_minimum_size = Vector2(0, 160)
+custom_minimum_size = Vector2(0, 220)
 layout_mode = 2
 size_flags_vertical = 3
 clip_contents = true
@@ -350,7 +350,7 @@ text = "装備一覧"
 [node name="NavAdventure" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "冒険"
+text = "ダンジョン"
 
 [node name="NavForge" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2

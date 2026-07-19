@@ -6,6 +6,14 @@ extends RefCounted
 const ROOT: String = "res://assets/ui/gacha_ui/"
 
 const BG: String = ROOT + "UI_BG_Gacha.png"
+## 招待枠（チケット上）内の聖堂キーアート。台座込み。
+const BANNER_BG: String = ROOT + "UI_Gacha_Banner_BG.png"
+## 招待枠上部のタイトル／キャッチコピー焼込プレート。
+const BANNER_TITLE: String = ROOT + "UI_Gacha_Banner_Title.png"
+const BANNER_CATCHCOPY_ART: String = ROOT + "UI_Gacha_Banner_Catchcopy.png"
+## フィーチャーキャラ背後の紫光柱・塵（モック光柱。画面全体モヤではない）。
+const FEATURED_BEAM: String = ROOT + "UI_Gacha_FeaturedBeam.png"
+const FEATURED_MOTE: String = ROOT + "UI_Gacha_FeaturedMote.png"
 const ORNAMENT_DIAMOND: String = ROOT + "UI_Ornament_Diamond.png"
 const ICO_BACK: String = ROOT + "UI_Ico_Back_Gold.png"
 const SECTION_RULE: String = ROOT + "UI_Gacha_SectionRule.png"
@@ -29,6 +37,9 @@ const LINEUP_SECTION_TITLE: String = "招きの候補"
 const BANNER_CATCHCOPY: String = "各地の探索者へ、ギルドからの招き"
 
 const BANNER_MIN_HEIGHT: int = 280
+## 招待枠内タイトル／キャッチコピー画像の表示高さ（幅は親に追従・アスペクト維持）。
+const BANNER_TITLE_HEIGHT: int = 120
+const BANNER_CATCHCOPY_HEIGHT: int = 48
 const LINEUP_CELL_PX: int = 120
 const PULL_BTN_HEIGHT: int = 88
 const PULL_BTN_MIN_WIDTH: int = 220
@@ -61,7 +72,15 @@ static func texture_stylebox(path: String, margins: Vector4i = Vector4i(12, 12, 
 	return sb
 
 static func banner_frame_style() -> StyleBox:
-	return texture_stylebox(BANNER_FRAME, Vector4i(20, 18, 20, 22))
+	## 枠線のみ（中央は塗らない）— 招待枠内の Banner_BG を隠さない。
+	var sb: StyleBox = texture_stylebox(BANNER_FRAME, Vector4i(20, 18, 20, 22))
+	if sb is StyleBoxTexture:
+		var tex_sb := sb as StyleBoxTexture
+		tex_sb.draw_center = false
+		tex_sb.modulate_color = Color(1.05, 0.98, 0.88, 1.0)
+		## 余白を抑えてキーアートを枠いっぱいに。
+		tex_sb.set_content_margin_all(4.0)
+	return sb
 
 static func panel_dark_style() -> StyleBox:
 	return texture_stylebox(PANEL_DARK, Vector4i(16, 14, 16, 14))

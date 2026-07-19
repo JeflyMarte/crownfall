@@ -41,7 +41,7 @@ func _ready() -> void:
 	_setup_commander_chrome()
 	_label_title.text = _CommanderUiTokens.SCREEN_TITLE
 	UiTypography.apply_screen_title(_label_title)
-	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.HOME)
+	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.MYPAGE)
 	_btn_back.pressed.connect(_on_back_pressed)
 	_content_host.add_theme_constant_override("separation", SECTION_GAP)
 	_setup_name_edit_dialog()

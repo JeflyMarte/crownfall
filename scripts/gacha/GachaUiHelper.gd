@@ -9,13 +9,16 @@ const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45)
 const COLOR_SUB: Color = Color(0.72, 0.69, 0.62)
 const COLOR_OWNED: Color = Color(0.55, 0.88, 0.5)
 
-const LINEUP_ICON_PX: int = 40
+const LINEUP_ICON_PX: int = 72
 const BANNER_PORTRAIT_MAX: int = 3
 const BANNER_PORTRAIT_MIN_W: int = 96
 ## Featured プレビュー対象の最低★（★4→★3。★2 は出さない / P3-GACHA-FEATURE-IDLE-001）
 const FEATURED_MIN_RARITY: int = 3
 const FEATURED_IDLE_PX: float = 196.0
-const FEATURED_STATS_MIN_W: float = 168.0
+const FEATURED_STATS_MIN_W: float = 220.0
+## 台座中心向け。枠全体中央＋足元を台座天面へ（大きいほど上）。
+const FEATURED_IDLE_OFFSET_X: float = 0.0
+const FEATURED_PEDESTAL_FOOT_PAD: float = 260.0
 
 static func sorted_helpers() -> Array:
 	if not Constants.are_gacha_helpers_playable():
@@ -100,6 +103,149 @@ static func banner_portrait_textures(max_count: int = BANNER_PORTRAIT_MAX) -> Ar
 static func catchcopy() -> String:
 	return GachaUiTokens.BANNER_CATCHCOPY
 
+
+## VBox 上のタイトル枠（黒余白の原因）を外し、キャッチコピー Label を隠す。
+## タイトルロゴ自体は build_featured_shell 内で背景の上にオーバーレイする。
+static func setup_banner_header(banner_vbox: VBoxContainer, catchcopy_label: Label) -> void:
+	if banner_vbox != null:
+		for node_name in ["BannerTitle", "BannerCatchcopyArt"]:
+			var stale: Node = banner_vbox.get_node_or_null(node_name)
+			if stale != null:
+				stale.queue_free()
+	if catchcopy_label != null:
+		catchcopy_label.visible = false
+
+
+static func _add_banner_title_overlay(parent: Control) -> void:
+	var rect := TextureRect.new()
+	rect.name = "BannerTitle"
+	rect.texture = GachaUiTokens.load_tex(GachaUiTokens.BANNER_TITLE)
+	rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rect.z_index = 8
+	rect.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	rect.offset_left = 8.0
+	rect.offset_right = -8.0
+	rect.offset_top = 4.0
+	rect.offset_bottom = float(GachaUiTokens.BANNER_TITLE_HEIGHT)
+	rect.visible = rect.texture != null
+	parent.add_child(rect)
+
+
+## モックの紫光柱＋上昇塵。キャラ背後のみ（画面全体の紫モヤではない）。
+static func _add_featured_purple_aura(stage: Control) -> void:
+	if stage == null:
+		return
+	var beam_tex: Texture2D = GachaUiTokens.load_tex(GachaUiTokens.FEATURED_BEAM)
+	if beam_tex == null:
+		return
+
+	var beam := TextureRect.new()
+	beam.name = "FeaturedBeam"
+	beam.texture = beam_tex
+	beam.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	beam.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	beam.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	beam.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	beam.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	beam.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	var beam_w: float = 220.0
+	var beam_h: float = FEATURED_IDLE_PX + FEATURED_PEDESTAL_FOOT_PAD + 80.0
+	beam.offset_left = -beam_w * 0.5 + FEATURED_IDLE_OFFSET_X
+	beam.offset_right = beam_w * 0.5 + FEATURED_IDLE_OFFSET_X
+	beam.offset_top = -beam_h
+	beam.offset_bottom = -FEATURED_PEDESTAL_FOOT_PAD + 36.0
+	beam.modulate = Color(1.15, 1.0, 1.25, 0.52)
+	stage.add_child(beam)
+
+	var beam_soft := TextureRect.new()
+	beam_soft.name = "FeaturedBeamSoft"
+	beam_soft.texture = beam_tex
+	beam_soft.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	beam_soft.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	beam_soft.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	beam_soft.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	beam_soft.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	beam_soft.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	var soft_w: float = 300.0
+	beam_soft.offset_left = -soft_w * 0.5 + FEATURED_IDLE_OFFSET_X
+	beam_soft.offset_right = soft_w * 0.5 + FEATURED_IDLE_OFFSET_X
+	beam_soft.offset_top = -beam_h * 0.92
+	beam_soft.offset_bottom = -FEATURED_PEDESTAL_FOOT_PAD + 48.0
+	beam_soft.modulate = Color(0.85, 0.55, 1.2, 0.28)
+	stage.add_child(beam_soft)
+	stage.move_child(beam_soft, 0)
+	stage.move_child(beam, 1)
+
+	var mote_tex: Texture2D = GachaUiTokens.load_tex(GachaUiTokens.FEATURED_MOTE)
+	if mote_tex != null:
+		for i in 7:
+			var mote := TextureRect.new()
+			mote.name = "FeaturedMote_%d" % i
+			mote.texture = mote_tex
+			mote.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			mote.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			mote.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			mote.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+			var mote_px: float = 10.0 + float(i % 3) * 4.0
+			var x_off: float = FEATURED_IDLE_OFFSET_X + float((i % 5) - 2) * 22.0
+			var y0: float = -FEATURED_PEDESTAL_FOOT_PAD - 24.0 - float(i) * 10.0
+			mote.offset_left = x_off - mote_px * 0.5
+			mote.offset_right = x_off + mote_px * 0.5
+			mote.offset_top = y0 - mote_px
+			mote.offset_bottom = y0
+			mote.modulate = Color(1.1, 0.9, 1.3, 0.0)
+			stage.add_child(mote)
+			stage.move_child(mote, mini(2 + i, stage.get_child_count() - 1))
+			_start_mote_rise(mote, y0, mote_px, 1.8 + float(i) * 0.35)
+
+	_start_beam_pulse(beam, 0.48, 0.78, 1.55)
+	_start_beam_pulse(beam_soft, 0.22, 0.42, 2.1)
+
+
+static func _start_beam_pulse(beam: CanvasItem, a_lo: float, a_hi: float, period: float) -> void:
+	if beam == null:
+		return
+	var start := func() -> void:
+		if not is_instance_valid(beam) or not beam.is_inside_tree():
+			return
+		var tw: Tween = beam.create_tween()
+		tw.set_loops()
+		tw.tween_property(beam, "modulate:a", a_hi, period).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		tw.tween_property(beam, "modulate:a", a_lo, period).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	if beam.is_inside_tree():
+		start.call()
+	else:
+		beam.tree_entered.connect(start, CONNECT_ONE_SHOT)
+
+
+static func _start_mote_rise(mote: TextureRect, y0: float, mote_px: float, duration: float) -> void:
+	if mote == null:
+		return
+	var start := func() -> void:
+		if not is_instance_valid(mote) or not mote.is_inside_tree():
+			return
+		var rise: float = 110.0 + mote_px * 2.0
+		var tw: Tween = mote.create_tween()
+		tw.set_loops()
+		tw.tween_property(mote, "modulate:a", 0.7, duration * 0.2)
+		tw.parallel().tween_property(mote, "offset_top", y0 - rise - mote_px, duration)
+		tw.parallel().tween_property(mote, "offset_bottom", y0 - rise, duration)
+		tw.tween_property(mote, "modulate:a", 0.0, duration * 0.25)
+		tw.tween_callback(func() -> void:
+			if not is_instance_valid(mote):
+				return
+			mote.offset_top = y0 - mote_px
+			mote.offset_bottom = y0
+			mote.modulate.a = 0.0
+		)
+	if mote.is_inside_tree():
+		start.call()
+	else:
+		mote.tree_entered.connect(start, CONNECT_ONE_SHOT)
+
+
 static func pull_title() -> String:
 	return "招待状を開く"
 
@@ -118,6 +264,7 @@ static func owned_color(helper_id: String) -> Color:
 	return COLOR_OWNED if GameState.owned_helpers.has(helper_id) else COLOR_SUB
 
 ## Featured idle + ステパネルのシェルを host に構築。返り値はノード参照 Dictionary。
+## host（チケット上の招待枠）に聖堂キーアートを敷き、台座上にキャラを乗せる。
 static func build_featured_shell(host: Control) -> Dictionary:
 	var empty: Dictionary = {}
 	if host == null:
@@ -133,82 +280,118 @@ static func build_featured_shell(host: Control) -> Dictionary:
 	fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	host.add_child(fade)
 
-	var row := HBoxContainer.new()
-	row.name = "FeaturedRow"
-	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	row.add_theme_constant_override("separation", 12)
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	fade.add_child(row)
+	var banner_bg := TextureRect.new()
+	banner_bg.name = "BannerBg"
+	banner_bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	banner_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	banner_bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	banner_bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	banner_bg.texture = GachaUiTokens.load_tex(GachaUiTokens.BANNER_BG)
+	fade.add_child(banner_bg)
 
-	var idle_wrap := CenterContainer.new()
-	idle_wrap.name = "IdleWrap"
-	idle_wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	idle_wrap.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	idle_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(idle_wrap)
+	## 台座は枠全体の中央。ステージを全面にしてキャラを台座上へ置く（ステは右オーバーレイ）。
+	var stage := Control.new()
+	stage.name = "FeaturedStage"
+	stage.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fade.add_child(stage)
+
+	_add_featured_purple_aura(stage)
 
 	var idle: Control = _ChrIdlePortraitView.new()
 	idle.name = "FeaturedIdle"
 	if idle.has_method("set_portrait_size"):
 		idle.call("set_portrait_size", FEATURED_IDLE_PX)
 	idle.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	idle_wrap.add_child(idle)
+	idle.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	idle.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	idle.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	idle.offset_left = -FEATURED_IDLE_PX * 0.5 + FEATURED_IDLE_OFFSET_X
+	idle.offset_right = FEATURED_IDLE_PX * 0.5 + FEATURED_IDLE_OFFSET_X
+	idle.offset_top = -FEATURED_IDLE_PX - FEATURED_PEDESTAL_FOOT_PAD
+	idle.offset_bottom = -FEATURED_PEDESTAL_FOOT_PAD
+	stage.add_child(idle)
+
+	var stats_wrap := PanelContainer.new()
+	stats_wrap.name = "StatsWrap"
+	## 高さ固定オフセットだと文言が見切れるため、内容サイズに追従させる。
+	stats_wrap.anchor_left = 1.0
+	stats_wrap.anchor_top = 0.5
+	stats_wrap.anchor_right = 1.0
+	stats_wrap.anchor_bottom = 0.5
+	stats_wrap.offset_left = -(FEATURED_STATS_MIN_W + 28.0)
+	stats_wrap.offset_right = -6.0
+	stats_wrap.offset_top = 0.0
+	stats_wrap.offset_bottom = 0.0
+	stats_wrap.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	stats_wrap.grow_vertical = Control.GROW_DIRECTION_BOTH
+	stats_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var stats_sb := StyleBoxFlat.new()
+	stats_sb.bg_color = Color(0.04, 0.03, 0.05, 0.78)
+	stats_sb.set_corner_radius_all(8)
+	stats_sb.set_content_margin_all(10.0)
+	stats_sb.set_border_width_all(1)
+	stats_sb.border_color = Color(0.72, 0.62, 0.38, 0.75)
+	stats_wrap.add_theme_stylebox_override("panel", stats_sb)
+	fade.add_child(stats_wrap)
 
 	var stats := VBoxContainer.new()
 	stats.name = "StatsCol"
 	stats.custom_minimum_size = Vector2(FEATURED_STATS_MIN_W, 0)
-	stats.size_flags_horizontal = Control.SIZE_SHRINK_END
-	stats.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	stats.add_theme_constant_override("separation", 4)
+	stats.add_theme_constant_override("separation", 5)
 	stats.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(stats)
+	stats_wrap.add_child(stats)
 
+	## モック寄せ: 名前・職・ステは Shippori Mincho（金セリフ見出し）。
 	var name_lbl := Label.new()
 	name_lbl.name = "LabelName"
-	name_lbl.clip_text = true
-	name_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	UiTypography.apply_body(name_lbl, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
+	name_lbl.clip_text = false
+	name_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+	name_lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	UiTypography.apply_display(name_lbl, UiTypography.SIZE_DISPLAY, UiTypography.COLOR_GOLD)
 	stats.add_child(name_lbl)
 
 	var stars_lbl := Label.new()
 	stars_lbl.name = "LabelStars"
-	stars_lbl.add_theme_color_override("font_color", COLOR_GOLD)
-	UiTypography.apply_caption(stars_lbl)
+	UiTypography.apply_display(stars_lbl, UiTypography.SIZE_CAPTION, COLOR_GOLD)
 	stats.add_child(stars_lbl)
 
 	var job_lbl := Label.new()
 	job_lbl.name = "LabelJob"
-	job_lbl.clip_text = true
-	job_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	UiTypography.apply_caption(job_lbl)
+	job_lbl.clip_text = false
+	job_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+	job_lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	UiTypography.apply_display(job_lbl, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	stats.add_child(job_lbl)
 
 	var hp_lbl := Label.new()
 	hp_lbl.name = "LabelHp"
 	hp_lbl.clip_text = false
-	UiTypography.apply_body(hp_lbl, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
+	UiTypography.apply_display(hp_lbl, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	stats.add_child(hp_lbl)
 
 	var atk_lbl := Label.new()
 	atk_lbl.name = "LabelAtk"
 	atk_lbl.clip_text = false
-	UiTypography.apply_body(atk_lbl, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
+	UiTypography.apply_display(atk_lbl, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	stats.add_child(atk_lbl)
 
 	var def_lbl := Label.new()
 	def_lbl.name = "LabelDef"
 	def_lbl.clip_text = false
-	UiTypography.apply_body(def_lbl, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
+	UiTypography.apply_display(def_lbl, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	stats.add_child(def_lbl)
 
 	var unique_lbl := Label.new()
 	unique_lbl.name = "LabelUnique"
 	unique_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	unique_lbl.max_lines_visible = 2
+	unique_lbl.max_lines_visible = 4
+	unique_lbl.clip_text = false
 	unique_lbl.custom_minimum_size = Vector2(FEATURED_STATS_MIN_W, 0)
-	UiTypography.apply_caption(unique_lbl, COLOR_SUB)
+	UiTypography.apply_display(unique_lbl, UiTypography.SIZE_CAPTION, COLOR_SUB)
 	stats.add_child(unique_lbl)
+
+	_add_banner_title_overlay(fade)
 
 	return {
 		"fade": fade,
@@ -354,13 +537,23 @@ static func make_lineup_row(helper: Resource) -> PanelContainer:
 
 	var icon_box := PanelContainer.new()
 	icon_box.custom_minimum_size = Vector2(LINEUP_ICON_PX, LINEUP_ICON_PX)
-	icon_box.add_theme_stylebox_override("panel", GachaUiTokens.lineup_cell_style())
+	icon_box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	## カルーセル用の下余白付きセルは使わず、枠にアイコンが収まるようタイトな枠にする。
+	var icon_sb: StyleBox = GachaUiTokens.texture_stylebox(
+		GachaUiTokens.LINEUP_CELL, Vector4i(8, 8, 8, 8)
+	)
+	if icon_sb is StyleBoxTexture:
+		(icon_sb as StyleBoxTexture).set_content_margin_all(4.0)
+	icon_box.add_theme_stylebox_override("panel", icon_sb)
 	var icon_tex: Texture2D = helper.get_portrait_texture()
 	if icon_tex != null:
 		var icon := TextureRect.new()
 		icon.texture = icon_tex
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		icon.custom_minimum_size = Vector2(LINEUP_ICON_PX - 12, LINEUP_ICON_PX - 12)
+		icon.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		icon.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		icon_box.add_child(icon)
 	else:
 		var glyph := Label.new()

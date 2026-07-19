@@ -16,7 +16,7 @@ const SCENES: Array[Dictionary] = [
 const NAV_LABELS: Dictionary = {
 	"NavHome": "ホーム",
 	"NavParty": "パーティ",
-	"NavAdventure": "冒険",
+	"NavAdventure": "ダンジョン",
 	"NavForge": "強化",
 	"NavShop": "ショップ",
 	"NavMenu": "メニュー",

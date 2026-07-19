@@ -5,7 +5,7 @@ extends RefCounted
 
 const STARTER_PET_ID: String = "pet_jack"
 const PET_DATA_PATH: String = "res://resources/pets/%s.tres"
-const PLACEHOLDER_SPRITE: String = "res://resources/animation/ENM_CrownEaterRat.tres"
+const PLACEHOLDER_SPRITE: String = "res://resources/animation/PET_Jack.tres"
 ## 陣形UI外の固定前衛スロット（DungeonScene FORMATION_SLOT_RATIOS[4]）
 const PET_FORMATION_SLOT: int = 4
 const PET_THREAT_BASE: float = 0.55

@@ -220,6 +220,10 @@ text = "レアリティ順"
 layout_mode = 2
 text = "全職"
 
+[node name="ButtonPet" type="Button" parent="MainScroll/MainVBox/ListHeader"]
+layout_mode = 2
+text = "ペット"
+
 [node name="RosterGrid" type="GridContainer" parent="MainScroll/MainVBox"]
 layout_mode = 2
 theme_override_constants/h_separation = 8
@@ -291,7 +295,7 @@ text = "装備一覧"
 [node name="NavAdventure" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "冒険"
+text = "ダンジョン"
 
 [node name="NavForge" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2

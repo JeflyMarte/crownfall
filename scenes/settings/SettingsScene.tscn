@@ -121,7 +121,7 @@ text = "編成"
 
 [node name="NavAdventure" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2
-text = "冒険"
+text = "ダンジョン"
 
 [node name="NavForge" type="Button" parent="BottomNav/NavRow"]
 layout_mode = 2

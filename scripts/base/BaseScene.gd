@@ -4,6 +4,7 @@ const _HubNpcHelper := preload("res://scripts/ui/HubNpcHelper.gd")
 const _CommanderProfile := preload("res://scripts/commander/CommanderProfile.gd")
 const _CommanderGiftBox := preload("res://scripts/commander/CommanderGiftBox.gd")
 const _CommanderRankUpOverlay := preload("res://scripts/commander/CommanderRankUpOverlay.gd")
+const _CurrencyGainFx := preload("res://scripts/ui/CurrencyGainFx.gd")
 
 const DUNGEON_SELECT_SCENE: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
 const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
@@ -347,7 +348,7 @@ func _update_player_card() -> void:
 	$HubView/TopBar/TopBarRow/PlayerCard/PlayerRow/PortraitFrame.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(frame_tier)
 	)
-	var tooltip := "隊長台帳を開く"
+	var tooltip := "マイページを開く"
 	var pending: int = _CommanderGiftBox.pending_count()
 	if pending > 0:
 		tooltip += "（配布物 %d）" % pending
@@ -448,12 +449,49 @@ func _format_daily_reward(entry: Dictionary) -> String:
 	return " / ".join(parts)
 
 func _on_daily_claim_pressed(index: int) -> void:
+	var from_global: Vector2 = _daily_claim_origin_global(index)
 	var result: Dictionary = DailyMissionSystem.claim(index)
 	if not bool(result.get("ok", false)):
 		return
 	SaveManager.save_game()
-	_update_display()
 	_refresh_daily_missions()
+	_play_daily_claim_fx(from_global, result)
+
+
+func _daily_claim_origin_global(index: int) -> Vector2:
+	if index >= 0 and index < _mission_list.get_child_count():
+		var row: Control = _mission_list.get_child(index) as Control
+		if row != null:
+			return row.get_global_rect().get_center()
+	return _mission_list.get_global_rect().get_center()
+
+
+func _play_daily_claim_fx(from_global: Vector2, result: Dictionary) -> void:
+	var gold_chip: Control = $HubView/TopBar/TopBarRow/GoldChip as Control
+	var token_chip: Control = $HubView/TopBar/TopBarRow/TokenChip as Control
+	var strip: Control = $HubView/CurrencyStrip as Control
+	var rewards: Array = []
+	var gold: int = int(result.get("gold", 0))
+	if gold > 0:
+		var gold_tex: Texture2D = load(_GOLD_ICON_PATH) as Texture2D
+		if gold_tex != null and gold_chip != null:
+			rewards.append({"texture": gold_tex, "target": gold_chip, "amount": gold})
+	var tokens: int = int(result.get("gacha_token", 0))
+	if tokens > 0:
+		var token_tex: Texture2D = CurrencyHelper.get_icon_texture()
+		if token_tex != null and token_chip != null:
+			rewards.append({"texture": token_tex, "target": token_chip, "amount": tokens})
+	var mat_id: String = str(result.get("material_id", ""))
+	var mat_qty: int = int(result.get("material_qty", 0))
+	if not mat_id.is_empty() and mat_qty > 0:
+		var mat_tex: Texture2D = IconPaths.get_icon_texture(mat_id, "material")
+		var mat_target: Control = strip if strip != null else gold_chip
+		if mat_tex != null and mat_target != null:
+			rewards.append({"texture": mat_tex, "target": mat_target, "amount": mat_qty})
+	if rewards.is_empty():
+		_update_display()
+		return
+	_CurrencyGainFx.play(self, from_global, rewards, _update_display)
 
 func _on_dungeon_button_pressed() -> void:
 	SceneRouter.change_scene(DUNGEON_SELECT_SCENE)

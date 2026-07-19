@@ -15,12 +15,20 @@ const TIER_CARD_CRITICAL: String = "card_critical"
 const TIER_CARD_ULTIMATE: String = "card_ultimate"
 const TIER_THREAT: String = "threat"
 
+static var _cached_frame_tex: Texture2D
+static var _cached_panel_styles: Dictionary = {}
+
 static func _frame_texture() -> Texture2D:
+	if _cached_frame_tex != null:
+		return _cached_frame_tex
 	if not ResourceLoader.exists(FRAME_TEXTURE_PATH):
 		return null
-	return load(FRAME_TEXTURE_PATH) as Texture2D
+	_cached_frame_tex = load(FRAME_TEXTURE_PATH) as Texture2D
+	return _cached_frame_tex
 
 static func panel_style(tier: String) -> StyleBoxTexture:
+	if _cached_panel_styles.has(tier):
+		return _cached_panel_styles[tier] as StyleBoxTexture
 	var style := StyleBoxTexture.new()
 	var tex: Texture2D = _frame_texture()
 	if tex != null:
@@ -81,6 +89,7 @@ static func panel_style(tier: String) -> StyleBoxTexture:
 			style.content_margin_top = 10.0
 			style.content_margin_right = 10.0
 			style.content_margin_bottom = 10.0
+	_cached_panel_styles[tier] = style
 	return style
 
 static func vignette_color(tier: String) -> Color:

@@ -5,6 +5,11 @@ extends GutTest
 func test_gacha_ui_asset_paths_exist() -> void:
 	for key in [
 		GachaUiTokens.BG,
+		GachaUiTokens.BANNER_BG,
+		GachaUiTokens.BANNER_TITLE,
+		GachaUiTokens.BANNER_CATCHCOPY_ART,
+		GachaUiTokens.FEATURED_BEAM,
+		GachaUiTokens.FEATURED_MOTE,
 		GachaUiTokens.ORNAMENT_DIAMOND,
 		GachaUiTokens.ICO_BACK,
 		GachaUiTokens.SECTION_RULE,

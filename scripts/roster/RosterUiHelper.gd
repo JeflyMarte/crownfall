@@ -109,6 +109,8 @@ static func short_display_name(full_name: String) -> String:
 static func job_display_name(member: Resource) -> String:
 	if member == null:
 		return "—"
+	if PetSystem.is_pet_member(member):
+		return "オトモ"
 	var mods: Dictionary = _JobStatCalculator.get_member_modifiers(member)
 	return str(mods.get("display_name", member.job_id))
 
@@ -129,6 +131,8 @@ static func get_member_portrait_texture(member: Resource) -> Texture2D:
 	if member == null:
 		return null
 	var member_id: String = str(member.id)
+	if PetSystem.is_pet_id(member_id):
+		return IconPaths.get_icon_texture(member_id, "chr")
 	if member_id.begins_with("gacha_"):
 		var helper: Resource = DataRegistry.get_gacha_helper_data(member_id.trim_prefix("gacha_"))
 		if helper != null:

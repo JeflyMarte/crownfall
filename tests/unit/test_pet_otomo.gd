@@ -65,3 +65,10 @@ func test_pet_data_and_skills_exist() -> void:
 	assert_not_null(DataRegistry.get_skill_data("pet_nibble"))
 	assert_not_null(DataRegistry.get_skill_data("pet_pounce"))
 	assert_false(_PetSystem.sprite_path_for(GameState.active_pet).is_empty())
+
+
+func test_jack_portrait_icon_resolves() -> void:
+	var tex: Texture2D = RosterUiHelper.get_member_portrait_texture(GameState.active_pet)
+	assert_not_null(tex)
+	assert_eq(RosterUiHelper.job_display_name(GameState.active_pet), "オトモ")
+	assert_true(ResourceLoader.exists("res://assets/ui/chr_icons/ICO_CHR_Jack.png"))

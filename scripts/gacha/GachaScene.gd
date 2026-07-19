@@ -128,8 +128,9 @@ func _setup_reveal_presenter() -> void:
 	)
 
 func _setup_gacha_chrome() -> void:
-	_label_title.text = GachaUiTokens.SCREEN_TITLE
-	GachaUiTokens.decorate_title(_label_title)
+	_setup_gacha_atmosphere()
+	## 枠上のロゴが正。ヘッダ文言「ギルドへの招待状」は出さない（スペーサのみ）。
+	_label_title.text = ""
 	$DetailOverlay/DetailPanel/DetailVBox/DetailHeader/LabelDetailTitle.text = (
 		GachaUiTokens.LINEUP_SECTION_TITLE
 	)
@@ -146,6 +147,11 @@ func _setup_gacha_chrome() -> void:
 	_hero_banner.add_theme_stylebox_override("panel", GachaUiTokens.banner_frame_style())
 	_detail_panel.add_theme_stylebox_override("panel", GachaUiTokens.panel_dark_style())
 	_reveal_panel.add_theme_stylebox_override("panel", GachaUiTokens.reveal_frame_style())
+	_flatten_banner_art_frame()
+	GachaUiHelper.setup_banner_header(
+		$MainColumn/HeroBanner/BannerVBox as VBoxContainer,
+		_label_catchcopy
+	)
 	GachaUiHelper.setup_pull_button(_button_pull, true)
 	GachaUiHelper.setup_ticket_pull_button(_button_pull_ticket, true)
 	_apply_button_style(_btn_rate_detail, GachaUiTokens.detail_button_style())
@@ -155,12 +161,50 @@ func _setup_gacha_chrome() -> void:
 	UiTypography.apply_display(_label_reveal_name, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	UiTypography.apply_body(_label_reveal_sub, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_SUB)
 	UiTypography.apply_caption(_label_tap_hint, UiTypography.COLOR_MUTED)
-	UiTypography.apply_body(_label_catchcopy, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	UiTypography.apply_caption(_label_rate)
 	UiTypography.apply_display(
 		$DetailOverlay/DetailPanel/DetailVBox/DetailHeader/LabelDetailTitle,
 		UiTypography.SIZE_BODY_SMALL
 	)
+
+
+## 確率行などを枠外へ出し、HeroBanner 内はキーアート＋タイトルのみ（黒余白なし）。
+func _flatten_banner_art_frame() -> void:
+	var vbox := $MainColumn/HeroBanner/BannerVBox as VBoxContainer
+	var main := $MainColumn as VBoxContainer
+	if vbox == null or main == null:
+		return
+	var insert_at: int = _hero_banner.get_index() + 1
+	for node_name in ["LabelCatchcopy", "RateRow", "LabelPeriod"]:
+		var n: Node = vbox.get_node_or_null(node_name)
+		if n == null:
+			continue
+		vbox.remove_child(n)
+		main.add_child(n)
+		main.move_child(n, insert_at)
+		insert_at += 1
+	## ArtHost だけが枠内に残り、縦いっぱいに伸びる。
+	_banner_art_host.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_banner_art_host.custom_minimum_size = Vector2(0, 260)
+
+
+## 画面全体は落ち着いた暗背景。紫モヤ等の雰囲気レイヤは付けない。
+func _setup_gacha_atmosphere() -> void:
+	var stale := get_node_or_null("GachaAtmosphere")
+	if stale != null:
+		stale.queue_free()
+	var bg := get_node_or_null("BgTexture") as TextureRect
+	if bg == null:
+		return
+	var bg_tex: Texture2D = GachaUiTokens.load_tex(GachaUiTokens.BG)
+	if bg_tex != null:
+		bg.texture = bg_tex
+	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bg.modulate = Color.WHITE
+	bg.z_index = -20
+
 
 func _apply_button_style(btn: Button, style: StyleBox) -> void:
 	if style is StyleBoxTexture and (style as StyleBoxTexture).texture != null:
@@ -190,7 +234,7 @@ func _setup_featured_preview() -> void:
 	if _lineup_carousel_scroll != null:
 		_lineup_carousel_scroll.visible = false
 		_lineup_carousel_scroll.custom_minimum_size = Vector2.ZERO
-	_banner_art_host.custom_minimum_size = Vector2(0, 220)
+	_banner_art_host.custom_minimum_size = Vector2(0, 260)
 	if _featured_shell.is_empty():
 		_featured_shell = GachaUiHelper.build_featured_shell(_banner_art_host)
 		if not _banner_art_host.gui_input.is_connected(_on_featured_host_input):

@@ -24,7 +24,7 @@ const RANK_ICON_BY_CODE: Dictionary = {
 	"S": RANK_ICON_S,
 }
 
-const SCREEN_TITLE: String = "隊長台帳"
+const SCREEN_TITLE: String = "マイページ"
 
 
 static func load_tex(path: String) -> Texture2D:

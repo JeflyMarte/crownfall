@@ -90,7 +90,13 @@ func claim(index: int) -> Dictionary:
 	_apply_rewards(mission)
 	entry["claimed"] = true
 	missions_updated.emit()
-	return {"ok": true}
+	return {
+		"ok": true,
+		"gold": int(mission.reward_gold),
+		"gacha_token": int(mission.reward_gacha_token),
+		"material_id": str(mission.reward_material_id),
+		"material_qty": int(mission.reward_material_qty),
+	}
 
 func has_claimable() -> bool:
 	for entry in get_entries():

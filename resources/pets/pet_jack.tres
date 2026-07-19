@@ -16,5 +16,5 @@ display_name = "ジャック"
 rarity = 1
 base_stats = SubResource("Stats_jack")
 skill_ids = Array[String](["pet_nibble", "pet_pounce"])
-sprite_resource_path = ""
+sprite_resource_path = "res://resources/animation/PET_Jack.tres"
 origin_note = "ニューゲームから同行する随伴オトモ"
