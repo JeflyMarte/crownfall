@@ -1083,6 +1083,11 @@ func _roll_multi_category_equip_drop(enemy_data: Resource) -> Dictionary:
 	)
 	if chance <= 0.0 or randf() > chance:
 		return {}
+	## 宝冠レイヴン: 神話は通常レア抽選外の別枠（P3-WANDER-002）
+	if _WanderingEnemyConfig.is_crown_raven(enemy_data):
+		var mythic: Dictionary = _try_crown_raven_mythic_drop()
+		if not mythic.is_empty():
+			return mythic
 	var category: String = _pick_equip_category(enemy_data.equip_category_weights)
 	match category:
 		"armor":
@@ -1105,6 +1110,31 @@ func _roll_multi_category_equip_drop(enemy_data: Resource) -> Dictionary:
 			return {"category": "weapon", "id": weapon_id}
 
 
+func _try_crown_raven_mythic_drop() -> Dictionary:
+	if randf() > _WanderingEnemyConfig.CROWN_RAVEN_MYTHIC_CHANCE:
+		return {}
+	var candidates: Array = MythicLoot.unowned_pool()
+	if candidates.is_empty():
+		candidates = MythicLoot.POOL.duplicate()
+	if candidates.is_empty():
+		return {}
+	var picked: Dictionary = (candidates[randi() % candidates.size()] as Dictionary).duplicate()
+	var category: String = str(picked.get("category", ""))
+	var item_id: String = str(picked.get("id", ""))
+	if item_id.is_empty():
+		return {}
+	match category:
+		"weapon":
+			_spawn_weapon(item_id)
+		"armor":
+			_spawn_armor(item_id)
+		"accessory":
+			_spawn_accessory(item_id)
+		_:
+			return {}
+	return {"category": category, "id": item_id, "mythic": true}
+
+
 func _pick_equip_category(weights: Dictionary) -> String:
 	var total: int = 0
 	for key: Variant in weights.keys():
@@ -1121,15 +1151,69 @@ func _pick_equip_category(weights: Dictionary) -> String:
 
 
 func _pick_kill_armor_id(enemy_data: Resource) -> String:
+	var pool: Array = []
 	if current_dungeon_data != null and not current_dungeon_data.armor_pool.is_empty():
-		return _pick_rarity_weighted(current_dungeon_data.armor_pool, "armor", enemy_data)
-	return "bone_armor" if randf() < 0.3 else "leather_armor"
+		pool = current_dungeon_data.armor_pool.duplicate()
+	else:
+		pool = ["leather_armor", "bone_armor"]
+	pool = _augment_pool_with_legendaries(pool, "armor", enemy_data)
+	return _pick_rarity_weighted(pool, "armor", enemy_data)
 
 
 func _pick_kill_accessory_id(enemy_data: Resource) -> String:
+	var pool: Array = []
 	if current_dungeon_data != null and not current_dungeon_data.accessory_pool.is_empty():
-		return _pick_rarity_weighted(current_dungeon_data.accessory_pool, "accessory", enemy_data)
-	return "silver_ring"
+		pool = current_dungeon_data.accessory_pool.duplicate()
+	else:
+		pool = ["silver_ring"]
+	pool = _augment_pool_with_legendaries(pool, "accessory", enemy_data)
+	return _pick_rarity_weighted(pool, "accessory", enemy_data)
+
+
+## 宝冠レイヴン: ダンジョンプールに伝説が無くても ★3 が当たるよう候補を足す（神話は別枠）。
+func _augment_pool_with_legendaries(pool: Array, category: String, enemy_data: Resource) -> Array:
+	if not _WanderingEnemyConfig.is_crown_raven(enemy_data):
+		return pool
+	var out: Array = pool.duplicate()
+	for item_id: String in _all_legendary_ids(category):
+		if item_id.is_empty() or item_id in out:
+			continue
+		out.append(item_id)
+	return out
+
+
+func _all_legendary_ids(category: String) -> Array[String]:
+	var out: Array[String] = []
+	var all: Array = []
+	match category:
+		"weapon":
+			all = DataRegistry.get_all_weapon_data()
+		"armor":
+			all = DataRegistry.get_all_armor_data()
+		"accessory":
+			all = DataRegistry.get_all_accessory_data()
+		_:
+			return out
+	for data: Resource in all:
+		if data == null:
+			continue
+		if int(data.rarity) != Enums.Rarity.LEGENDARY:
+			continue
+		var item_id: String = ""
+		match category:
+			"weapon":
+				item_id = str(data.id)
+			"armor":
+				item_id = str(data.armor_id)
+			"accessory":
+				item_id = str(data.id)
+		if item_id.is_empty():
+			continue
+		## 神話はレア度抽選に載せない（別枠）
+		if MythicLoot.is_mythic_id(item_id):
+			continue
+		out.append(item_id)
+	return out
 
 
 # P3-D074: 撃破時の武器直ドロップ。確率はボス/エリート/放浪個体で上書き可。
@@ -1189,7 +1273,7 @@ func _active_weapon_pool() -> Array:
 
 # 武器プールからレア度重みで1本抽選（放浪個体は weapon_rarity_weights で上書き可）。
 func _pick_weighted_weapon(enemy_data: Resource = null) -> String:
-	var pool: Array = _active_weapon_pool()
+	var pool: Array = _augment_pool_with_legendaries(_active_weapon_pool(), "weapon", enemy_data)
 	var weights: Array[int] = []
 	var total: int = 0
 	for wid in pool:

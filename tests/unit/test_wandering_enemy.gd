@@ -104,7 +104,8 @@ func test_rarity_weight_override_for_raven() -> void:
 	var dc: Node = dc_script.new()
 	add_child_autofree(dc)
 	var raven: Resource = DataRegistry.get_enemy_data("crown_raven")
-	assert_eq(dc._rarity_drop_weight_for(Enums.Rarity.EPIC, raven), 45)
+	assert_eq(dc._rarity_drop_weight_for(Enums.Rarity.EPIC, raven), 40)
+	assert_eq(dc._rarity_drop_weight_for(Enums.Rarity.LEGENDARY, raven), 30)
 
 
 func test_multi_category_equip_drop_can_yield_armor() -> void:
@@ -131,6 +132,39 @@ func test_multi_category_equip_drop_can_yield_armor() -> void:
 			saw_non_weapon = true
 			break
 	assert_true(saw_non_weapon, "レイヴンは防具/装飾も落とせる")
+
+
+func test_crown_raven_pool_includes_legendary_weapons() -> void:
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	dc.current_dungeon_data = DataRegistry.get_dungeon_data("astoria_ruins")
+	var raven: Resource = DataRegistry.get_enemy_data("crown_raven")
+	var pool: Array = dc._augment_pool_with_legendaries(
+		dc._active_weapon_pool(), "weapon", raven
+	)
+	assert_true("consecrated_maul" in pool or "sanctified_dagger" in pool, "伝説武器が候補に入る")
+	assert_false(MythicLoot.WEAPON_ID in pool, "神話はレア度プール外")
+
+
+func test_crown_raven_mythic_drop_can_succeed() -> void:
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	var saw: bool = false
+	for seed_val: int in range(400):
+		seed(seed_val)
+		GameState.inventory.clear()
+		GameState.armor_inventory.clear()
+		GameState.accessory_inventory.clear()
+		var drop: Dictionary = dc._try_crown_raven_mythic_drop()
+		if drop.is_empty():
+			continue
+		assert_true(bool(drop.get("mythic", false)))
+		assert_true(MythicLoot.is_mythic_id(str(drop.get("id", ""))))
+		saw = true
+		break
+	assert_true(saw, "神話ドロップが成立しうる")
 
 
 func test_save_v6_to_v7_merges_legacy_wander_codex() -> void:

@@ -157,6 +157,12 @@ func get_all_material_data() -> Array:
 func get_all_weapon_data() -> Array:
 	return _load_all_resources(Constants.RESOURCE_WEAPONS_PATH)
 
+func get_all_armor_data() -> Array:
+	return _load_all_resources(Constants.RESOURCE_ARMORS_PATH)
+
+func get_all_accessory_data() -> Array:
+	return _load_all_resources(Constants.RESOURCE_ACCESSORIES_PATH)
+
 func get_weapon_name(id: String) -> String:
 	if id.is_empty():
 		return id

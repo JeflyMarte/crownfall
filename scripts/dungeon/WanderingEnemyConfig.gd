@@ -23,12 +23,12 @@ const SPAWN_CHANCE_CROWN_RAVEN: float = 0.015
 const SPAWN_CHANCE_WAYFARER: float = SPAWN_CHANCE_COSMIC_DUCK
 const SPAWN_CHANCE_RELIQUARY: float = SPAWN_CHANCE_CROWN_RAVEN
 
-## 宝冠レイヴンの装備レア度重み（★2〜3 寄り）。
+## 宝冠レイヴンの装備レア度重み（★2〜3 寄り。伝説も有意な枠）。
 const CROWN_RAVEN_RARITY_WEIGHTS: Dictionary = {
 	Enums.Rarity.COMMON: 10,
 	Enums.Rarity.RARE: 20,
-	Enums.Rarity.EPIC: 45,
-	Enums.Rarity.LEGENDARY: 25,
+	Enums.Rarity.EPIC: 40,
+	Enums.Rarity.LEGENDARY: 30,
 }
 
 ## 宝冠レイヴンの装備種別重み。
@@ -37,6 +37,15 @@ const CROWN_RAVEN_CATEGORY_WEIGHTS: Dictionary = {
 	"armor": 35,
 	"accessory": 25,
 }
+
+## 撃破装備ドロップ成功時に神話を抽選する確率（ボス再クリアと同程度）。
+const CROWN_RAVEN_MYTHIC_CHANCE: float = 0.01
+
+
+static func is_crown_raven(enemy_data: Resource) -> bool:
+	if enemy_data == null:
+		return false
+	return str(enemy_data.id) == ID_CROWN_RAVEN
 
 
 static func canonical_enemy_id(enemy_id: String) -> String:
