@@ -51,3 +51,26 @@ func test_lifetime_run_points() -> void:
 	lifetime["runs_retired"] = 1
 	GameState.commander["lifetime"] = lifetime
 	assert_eq(_CommanderSurveyPoints.evaluate(), 5)
+
+
+func test_rank_up_pending_and_acknowledge() -> void:
+	GameState.commander["acknowledged_rank"] = "D"
+	assert_eq(_CommanderProfile.pending_rank_up(), "")
+	for i in 40:
+		GameState.discovery_registry["enemy:rank_%d" % i] = true
+	assert_eq(_CommanderProfile.current_rank(), "C")
+	assert_eq(_CommanderProfile.pending_rank_up(), "C")
+	_CommanderProfile.acknowledge_rank("C")
+	assert_eq(_CommanderProfile.get_acknowledged_rank(), "C")
+	assert_eq(_CommanderProfile.pending_rank_up(), "")
+
+
+func test_missing_acknowledged_rank_bootstraps_to_current() -> void:
+	for i in 40:
+		GameState.discovery_registry["enemy:boot_%d" % i] = true
+	assert_eq(_CommanderProfile.current_rank(), "C")
+	GameState.commander.erase("acknowledged_rank")
+	_CommanderProfile.ensure_commander()
+	_CommanderProfile.bootstrap_acknowledged_rank_if_needed()
+	assert_eq(_CommanderProfile.get_acknowledged_rank(), "C")
+	assert_eq(_CommanderProfile.pending_rank_up(), "")

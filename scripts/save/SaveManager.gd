@@ -541,6 +541,7 @@ func _apply_save_data(data: Dictionary) -> void:
 	if data.has("commander") and data["commander"] is Dictionary:
 		GameState.commander = (data["commander"] as Dictionary).duplicate(true)
 	_CommanderProfile.ensure_commander()
+	_CommanderProfile.bootstrap_acknowledged_rank_if_needed()
 	_migrate_legacy_global_equipment(data)
 
 const _DUNGEON_MIGRATION: Dictionary = {

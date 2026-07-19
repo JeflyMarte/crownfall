@@ -70,13 +70,61 @@ static func survey_points() -> int:
 	return _CommanderSurveyPoints.evaluate()
 
 
-static func current_rank() -> String:
-	var sp: int = survey_points()
+static func rank_for_sp(sp: int) -> String:
 	var rank: String = "D"
 	for code: String in RANK_ORDER:
 		if sp >= int(RANK_THRESHOLDS.get(code, 0)):
 			rank = code
 	return rank
+
+
+static func current_rank() -> String:
+	return rank_for_sp(survey_points())
+
+
+## 拠点で祝辞表示済みの等級。未設定セーブは現行等級で埋めて二重表示を避ける。
+static func get_acknowledged_rank() -> String:
+	ensure_commander()
+	bootstrap_acknowledged_rank_if_needed()
+	var code: String = str(GameState.commander.get("acknowledged_rank", "D")).strip_edges().to_upper()
+	if RANK_ORDER.find(code) < 0:
+		return "D"
+	return code
+
+
+## 未表示のランクアップがある場合、到達等級コードを返す（無ければ空）。
+static func pending_rank_up() -> String:
+	bootstrap_acknowledged_rank_if_needed()
+	var current: String = current_rank()
+	var acknowledged: String = get_acknowledged_rank()
+	if RANK_ORDER.find(current) > RANK_ORDER.find(acknowledged):
+		return current
+	return ""
+
+
+static func acknowledge_rank(rank_code: String = "") -> void:
+	ensure_commander()
+	GameState.commander.erase("_ack_needs_bootstrap")
+	var code: String = rank_code.strip_edges().to_upper() if not rank_code.is_empty() else current_rank()
+	if RANK_ORDER.find(code) < 0:
+		code = current_rank()
+	var ack: String = str(GameState.commander.get("acknowledged_rank", "D")).strip_edges().to_upper()
+	var ack_idx: int = RANK_ORDER.find(ack)
+	if ack_idx < 0:
+		ack_idx = 0
+	var new_idx: int = RANK_ORDER.find(code)
+	if new_idx >= ack_idx:
+		GameState.commander["acknowledged_rank"] = code
+
+
+## 旧セーブで acknowledged_rank が無い場合、ensure 外で現行等級へ埋める。
+## （sanitize 内で evaluate すると get_lifetime→ensure 再入でスタックする）
+static func bootstrap_acknowledged_rank_if_needed() -> void:
+	ensure_commander()
+	if not bool(GameState.commander.get("_ack_needs_bootstrap", false)):
+		return
+	GameState.commander.erase("_ack_needs_bootstrap")
+	GameState.commander["acknowledged_rank"] = current_rank()
 
 
 static func is_rank_at_least(rank_code: String) -> bool:
@@ -278,3 +326,12 @@ static func _sanitize_commander() -> void:
 		GameState.commander["gift_box"] = []
 	if not GameState.commander.has("name") or str(GameState.commander.get("name", "")).strip_edges().is_empty():
 		GameState.commander["name"] = DEFAULT_NAME
+	## 既存セーブ: キー欠落は仮 D＋bootstrap フラグ。評価は ensure 外で行う。
+	if not GameState.commander.has("acknowledged_rank"):
+		GameState.commander["acknowledged_rank"] = "D"
+		GameState.commander["_ack_needs_bootstrap"] = true
+	else:
+		var ack: String = str(GameState.commander.get("acknowledged_rank", "")).strip_edges().to_upper()
+		if RANK_ORDER.find(ack) < 0:
+			GameState.commander["acknowledged_rank"] = "D"
+			GameState.commander["_ack_needs_bootstrap"] = true

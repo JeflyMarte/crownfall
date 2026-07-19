@@ -4,12 +4,16 @@ const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
 const _GachaLimitBreak := preload("res://scripts/gacha/GachaLimitBreak.gd")
 const _GachaRevealPresenter := preload("res://scripts/gacha/GachaRevealPresenter.gd")
+const _ChrIdlePortraitView := preload("res://scripts/ui/ChrIdlePortraitView.gd")
 
 const COLOR_NEW: Color = Color(0.95, 0.78, 0.35)
 const COLOR_SUB: Color = Color(0.72, 0.69, 0.62)
 const COLOR_OWNED: Color = Color(0.55, 0.88, 0.5)
 const FEATURED_ROTATE_SEC: float = 5.0
 const FEATURED_CROSSFADE_SEC: float = 0.3
+const REVEAL_IDLE_PX: float = 196.0
+const REVEAL_CONFETTI_NEW: int = 72
+const REVEAL_CONFETTI_DUP: int = 48
 
 @onready var _btn_back: Button = $Header/HeaderRow/ButtonBack
 @onready var _label_title: Label = $Header/HeaderRow/LabelTitle
@@ -47,6 +51,8 @@ var _summon_active: bool = false
 var _summon_can_dismiss: bool = false
 var _summon_tween: Tween = null
 var _reveal_presenter: RefCounted = null
+var _reveal_idle: Control = null
+var _confetti_host: Control = null
 var _featured_helper_id: String = ""
 var _featured_helpers: Array = []
 var _featured_index: int = 0
@@ -54,6 +60,7 @@ var _featured_shell: Dictionary = {}
 var _featured_timer: Timer = null
 var _featured_tween: Tween = null
 var _featured_animating: bool = false
+var _reveal_is_new: bool = false
 
 func _ready() -> void:
 	if not Constants.are_gacha_helpers_playable():
@@ -71,11 +78,38 @@ func _ready() -> void:
 	_summon_dim.gui_input.connect(_on_summon_overlay_input)
 	_reveal_panel.gui_input.connect(_on_summon_overlay_input)
 	_portrait_frame.add_theme_stylebox_override("panel", GachaUiTokens.lineup_cell_style())
+	_setup_reveal_idle()
+	_setup_confetti_host()
 	_setup_reveal_presenter()
 	_setup_featured_preview()
 	_summon_layer.visible = false
 	_detail_overlay.visible = false
 	_refresh()
+
+
+func _setup_reveal_idle() -> void:
+	_portrait_frame.custom_minimum_size = Vector2(REVEAL_IDLE_PX + 16.0, REVEAL_IDLE_PX + 16.0)
+	if _portrait_icon != null:
+		_portrait_icon.visible = false
+	_reveal_idle = _ChrIdlePortraitView.new()
+	_reveal_idle.name = "RevealIdle"
+	_reveal_idle.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_reveal_idle.offset_left = 8.0
+	_reveal_idle.offset_top = 8.0
+	_reveal_idle.offset_right = -8.0
+	_reveal_idle.offset_bottom = -8.0
+	if _reveal_idle.has_method("set_portrait_size"):
+		_reveal_idle.call("set_portrait_size", REVEAL_IDLE_PX)
+	_reveal_idle.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_portrait_frame.add_child(_reveal_idle)
+
+
+func _setup_confetti_host() -> void:
+	_confetti_host = Control.new()
+	_confetti_host.name = "ConfettiHost"
+	_confetti_host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_confetti_host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_summon_layer.add_child(_confetti_host)
 
 func _setup_reveal_presenter() -> void:
 	_reveal_presenter = _GachaRevealPresenter.new()
@@ -341,6 +375,7 @@ func _play_summon_reveal(result: Dictionary) -> void:
 
 	var helper_id: String = str(result.get("helper_id", ""))
 	var is_new: bool = bool(result.get("is_new", false))
+	_reveal_is_new = is_new
 	var refund: int = int(result.get("refund", 0))
 	var breakthrough: int = int(result.get("breakthrough", 0))
 	var breakthrough_gained: bool = bool(result.get("breakthrough_gained", false))
@@ -365,9 +400,14 @@ func _play_summon_reveal(result: Dictionary) -> void:
 
 	if _reveal_presenter == null:
 		_setup_reveal_presenter()
-	_reveal_presenter.play(rarity, func() -> void:
+	var on_done := func() -> void:
 		_summon_can_dismiss = true
-	)
+	var on_portrait := func() -> void:
+		_spawn_reveal_confetti(
+			REVEAL_CONFETTI_NEW if _reveal_is_new else REVEAL_CONFETTI_DUP
+		)
+	_reveal_presenter.play(rarity, on_done, on_portrait)
+
 
 func _on_summon_overlay_input(event: InputEvent) -> void:
 	var pressed: bool = (
@@ -389,6 +429,7 @@ func _dismiss_summon_reveal() -> void:
 	if not _summon_active:
 		return
 	_summon_can_dismiss = false
+	_clear_reveal_confetti()
 	if _reveal_presenter != null:
 		_reveal_presenter.kill()
 	if _summon_tween != null and _summon_tween.is_valid():
@@ -404,6 +445,48 @@ func _dismiss_summon_reveal() -> void:
 		_refresh()
 	)
 
+
+func _spawn_reveal_confetti(piece_count: int) -> void:
+	if _confetti_host == null:
+		return
+	_clear_reveal_confetti()
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	var area: Rect2 = get_viewport_rect()
+	var width: float = maxf(area.size.x, 1.0)
+	var height: float = maxf(area.size.y, 1.0)
+	for _i: int in piece_count:
+		var piece := ColorRect.new()
+		piece.size = Vector2(rng.randf_range(5.0, 12.0), rng.randf_range(8.0, 18.0))
+		piece.color = Color.from_hsv(rng.randf(), rng.randf_range(0.7, 1.0), 1.0, 0.95)
+		piece.rotation = rng.randf_range(-0.9, 0.9)
+		piece.position = Vector2(
+			rng.randf_range(0.0, width),
+			rng.randf_range(-40.0, height * 0.28)
+		)
+		piece.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_confetti_host.add_child(piece)
+		var drift_x: float = rng.randf_range(-140.0, 140.0)
+		var fall_y: float = height + rng.randf_range(30.0, 90.0)
+		var duration: float = rng.randf_range(1.1, 2.4)
+		var tw: Tween = create_tween()
+		tw.set_parallel(true)
+		tw.tween_property(piece, "position:y", fall_y, duration).set_trans(Tween.TRANS_QUAD).set_ease(
+			Tween.EASE_IN
+		)
+		tw.tween_property(piece, "position:x", piece.position.x + drift_x, duration)
+		tw.tween_property(piece, "rotation", piece.rotation + rng.randf_range(-2.8, 2.8), duration)
+		tw.tween_property(piece, "modulate:a", 0.0, 0.45).set_delay(maxf(0.0, duration - 0.45))
+		tw.chain().tween_callback(piece.queue_free)
+
+
+func _clear_reveal_confetti() -> void:
+	if _confetti_host == null:
+		return
+	for child in _confetti_host.get_children():
+		child.queue_free()
+
+
 ## UI 監査用: 演出完了状態のリビールを即時表示（セーブ・通貨は変更しない）。
 func preview_summon_reveal_for_audit(helper_id: String = "", is_new: bool = true) -> void:
 	var hid: String = helper_id
@@ -414,6 +497,7 @@ func preview_summon_reveal_for_audit(helper_id: String = "", is_new: bool = true
 	var helper_data: Resource = DataRegistry.get_gacha_helper_data(hid)
 	var rarity: int = int(helper_data.rarity) if helper_data != null else 3
 	var refund: int = GachaRarityConfig.get_refund(rarity) if not is_new else 0
+	_reveal_is_new = is_new
 	_populate_reveal_content(hid, is_new, refund, helper_data, 3 if not is_new else 0, not is_new)
 	_summon_active = true
 	_summon_can_dismiss = true
@@ -432,6 +516,8 @@ func preview_summon_reveal_for_audit(helper_id: String = "", is_new: bool = true
 	_label_reveal_name.visible = true
 	_label_reveal_sub.visible = true
 	_label_tap_hint.visible = true
+	_spawn_reveal_confetti(REVEAL_CONFETTI_NEW if is_new else REVEAL_CONFETTI_DUP)
+
 
 func _populate_reveal_content(
 	hid: String,
@@ -443,9 +529,6 @@ func _populate_reveal_content(
 ) -> void:
 	var name_str: String = hid if helper_data == null else str(helper_data.display_name)
 	var job_id: String = str(helper_data.job_id) if helper_data != null else ""
-	var portrait_tex: Texture2D = helper_data.get_portrait_texture() if helper_data != null else null
-	if portrait_tex == null:
-		portrait_tex = IconPaths.get_icon_texture(job_id, "chr")
 
 	if is_new:
 		_label_banner.text = "招きに応じた"
@@ -480,7 +563,13 @@ func _populate_reveal_content(
 			RosterUiHelper.stars_text(int(helper_data.rarity)),
 			role_label,
 		]
-	_portrait_icon.texture = portrait_tex
+	if _reveal_idle != null and _reveal_idle.has_method("set_from_helper_id"):
+		_reveal_idle.call("set_from_helper_id", hid, job_id)
+	elif _portrait_icon != null:
+		var portrait_tex: Texture2D = helper_data.get_portrait_texture() if helper_data != null else null
+		if portrait_tex == null:
+			portrait_tex = IconPaths.get_icon_texture(job_id, "chr")
+		_portrait_icon.texture = portrait_tex
 	if not hid.is_empty():
 		_featured_helper_id = hid
 		for i in _featured_helpers.size():

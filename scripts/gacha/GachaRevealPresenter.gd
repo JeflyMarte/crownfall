@@ -26,6 +26,8 @@ var _tex_sealed: Texture2D = null
 var _tex_sealed_star2: Texture2D = null
 var _tex_opening: Texture2D = null
 var _on_done: Callable = Callable()
+var _on_portrait: Callable = Callable()
+var _portrait_fired: bool = false
 var _skip_requested: bool = false
 
 
@@ -74,6 +76,8 @@ func kill() -> void:
 	_tween = null
 	phase = Phase.IDLE
 	_skip_requested = false
+	_portrait_fired = false
+	_on_portrait = Callable()
 
 
 func request_skip() -> bool:
@@ -85,10 +89,12 @@ func request_skip() -> bool:
 	return true
 
 
-func play(rarity_in: int, on_done: Callable) -> void:
+func play(rarity_in: int, on_done: Callable, on_portrait: Callable = Callable()) -> void:
 	kill()
 	rarity = clamp_rarity(rarity_in)
 	_on_done = on_done
+	_on_portrait = on_portrait
+	_portrait_fired = false
 	phase = Phase.SEALED
 	_reset_visuals()
 	if _invite != null:
@@ -139,6 +145,7 @@ func play(rarity_in: int, on_done: Callable) -> void:
 			_portrait.visible = true
 			_portrait.scale = Vector2(0.55, 0.55)
 			_portrait.modulate.a = 0.0
+		_fire_portrait()
 	)
 	_tween.tween_property(_portrait, "scale", Vector2.ONE, d_port).set_trans(Tween.TRANS_BACK)
 	_tween.parallel().tween_property(_portrait, "modulate:a", 1.0, d_port * 0.85)
@@ -189,7 +196,16 @@ func _finish_immediately() -> void:
 		_portrait.visible = true
 		_portrait.scale = Vector2.ONE
 		_portrait.modulate = Color(1, 1, 1, 1)
+	_fire_portrait()
 	_complete()
+
+
+func _fire_portrait() -> void:
+	if _portrait_fired:
+		return
+	_portrait_fired = true
+	if _on_portrait.is_valid():
+		_on_portrait.call()
 
 
 func _complete() -> void:

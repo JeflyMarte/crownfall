@@ -3,6 +3,7 @@ extends Control
 const _HubNpcHelper := preload("res://scripts/ui/HubNpcHelper.gd")
 const _CommanderProfile := preload("res://scripts/commander/CommanderProfile.gd")
 const _CommanderGiftBox := preload("res://scripts/commander/CommanderGiftBox.gd")
+const _CommanderRankUpOverlay := preload("res://scripts/commander/CommanderRankUpOverlay.gd")
 
 const DUNGEON_SELECT_SCENE: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
 const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
@@ -54,6 +55,24 @@ func _ready() -> void:
 	GameState.base_initial_view = "hub"
 	_player_card.gui_input.connect(_on_player_card_gui_input)
 	_setup_gift_badge()
+	call_deferred("_maybe_show_rank_up")
+
+
+func _maybe_show_rank_up() -> void:
+	_CommanderProfile.bootstrap_acknowledged_rank_if_needed()
+	var pending: String = _CommanderProfile.pending_rank_up()
+	if pending.is_empty():
+		return
+	if get_node_or_null("CommanderRankUpOverlay") != null:
+		return
+	var overlay: CanvasLayer = _CommanderRankUpOverlay.show_on(self, pending)
+	overlay.dismissed.connect(_on_rank_up_dismissed)
+
+
+func _on_rank_up_dismissed(_rank_code: String) -> void:
+	_update_player_card()
+	## 複数段ジャンプ時は次の到達分を続けて表示しない（到達等級を一括 ack 済み）。
+
 
 func _setup_gift_badge() -> void:
 	_gift_badge = PanelContainer.new()

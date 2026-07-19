@@ -31,4 +31,6 @@ static func default_commander_dict() -> Dictionary:
 		"lifetime": default_lifetime_dict(),
 		"recent_highlights": [],
 		"gift_box": [],
+		## 拠点ポップアップ表示済みの調査許可等級（P3-CMD-RANKUP-001）。
+		"acknowledged_rank": "D",
 	}
