@@ -8,6 +8,7 @@ const _ArmorStatResolver = preload("res://scripts/equipment/ArmorStatResolver.gd
 const _JobStatCalculator = preload("res://scripts/equipment/JobStatCalculator.gd")
 const _StatusResolver = preload("res://scripts/combat/StatusResolver.gd")
 const _EvolutionTraits = preload("res://scripts/systems/EvolutionTraits.gd")
+const _PetSystem = preload("res://scripts/pets/PetSystem.gd")
 
 var is_in_combat: bool = false
 var current_enemy_data: Resource = null
@@ -83,10 +84,13 @@ func _job_threat_base(member_index: int) -> float:
 	if c == null:
 		return 1.0
 	var base: float = 1.0
-	match str(c.job_id):
-		"vanguard": base = 4.0
-		"swordsman": base = 2.0
-		_: base = 1.0
+	if Constants.is_pet_id(str(c.id)):
+		base = _PetSystem.PET_THREAT_BASE
+	else:
+		match str(c.job_id):
+			"vanguard": base = 4.0
+			"swordsman": base = 2.0
+			_: base = 1.0
 	# 陣形（後列は狙われにくい）（P3-D106）
 	return base * GameState.formation_threat_multiplier(member_index)
 

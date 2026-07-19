@@ -409,6 +409,7 @@ var _event_telop_result_label: Label
 @onready var _chr_sprite_1: AnimatedSprite2D = $ChrSprite1
 @onready var _chr_sprite_2: AnimatedSprite2D = $ChrSprite2
 @onready var _chr_sprite_3: AnimatedSprite2D = $ChrSprite3
+@onready var _chr_sprite_4: AnimatedSprite2D = $ChrSprite4
 
 @onready var _battle_log_panel: PanelContainer = $MainVBox/BattleLogPanel
 @onready var _battle_log_scroll: ScrollContainer = $MainVBox/BattleLogPanel/BattleLogScroll
@@ -437,6 +438,7 @@ var _dungeon_header_icon: TextureRect
 @onready var _hp_bar_chr1: ProgressBar = $HpBarChr1
 @onready var _hp_bar_chr2: ProgressBar = $HpBarChr2
 @onready var _hp_bar_chr3: ProgressBar = $HpBarChr3
+@onready var _hp_bar_chr4: ProgressBar = $HpBarChr4
 @onready var _hp_bar_enemy: ProgressBar = $HpBarEnemy
 @onready var _enemy_nameplate: Label = $EnemyNamePlate
 @onready var _transition_overlay: ColorRect = $TransitionLayer/TransitionOverlay
@@ -444,9 +446,9 @@ var _dungeon_header_icon: TextureRect
 
 var _chr_sprites: Array[AnimatedSprite2D] = []
 # 1フレームのみの idle 素材（Ranger/Alchemist 等）向けのコード擬似 idle（呼吸）tween 保持
-var _chr_idle_tweens: Array = [null, null, null, null]
+var _chr_idle_tweens: Array = [null, null, null, null, null]
 # メンバーごとの表示中スキル名ラベル（重なり防止のため tick 毎に置換・段組み）
-var _chr_skill_labels: Array = [[], [], [], []]
+var _chr_skill_labels: Array = [[], [], [], [], []]
 # 同一メンバーが同 tick に複数スキルを発動した際、ラベルを縦にずらす間隔(px)
 const SKILL_LABEL_STACK_GAP: float = 34.0
 var _chr_hp_bars: Array[ProgressBar] = []
@@ -490,6 +492,7 @@ const FORMATION_SLOT_RATIOS: Array[Vector2] = [
 	Vector2(0.583, 0.72),  # 1 前衛右（敵寄り）
 	Vector2(0.174, 0.71),  # 2 後衛左（奥）
 	Vector2(0.368, 0.80),  # 3 後衛右
+	Vector2(0.48, 0.58),  # 4 オトモ固定前衛（陣形外 / P3-PET-OTOMO-001）
 ]
 const PARTY_CARD_SLOT_COUNT: int = 4
 const BATTLE_LOG_VISIBLE_LINES: int = 4
@@ -571,8 +574,8 @@ func _ready() -> void:
 	EventBus.weapon_obtained.connect(_on_weapon_obtained)
 	_hit_vfx_sprite.animation_finished.connect(func(): _hit_vfx_sprite.visible = false)
 	_heal_vfx_sprite.animation_finished.connect(func(): _heal_vfx_sprite.visible = false)
-	_chr_sprites = [_chr_sprite_0, _chr_sprite_1, _chr_sprite_2, _chr_sprite_3]
-	_chr_hp_bars = [_hp_bar_chr0, _hp_bar_chr1, _hp_bar_chr2, _hp_bar_chr3]
+	_chr_sprites = [_chr_sprite_0, _chr_sprite_1, _chr_sprite_2, _chr_sprite_3, _chr_sprite_4]
+	_chr_hp_bars = [_hp_bar_chr0, _hp_bar_chr1, _hp_bar_chr2, _hp_bar_chr3, _hp_bar_chr4]
 	_init_status_icon_rows()
 	_init_turn_order_row()
 	for sprite: AnimatedSprite2D in _chr_sprites:
@@ -6672,6 +6675,8 @@ func _chr_sprite_path_for_member(member: Resource) -> String:
 	if member == null:
 		return ""
 	var member_id: String = str(member.id)
+	if Constants.is_pet_id(member_id):
+		return preload("res://scripts/pets/PetSystem.gd").sprite_path_for(member)
 	if Constants.is_gacha_helper_id(member_id):
 		var helper_id: String = member_id.trim_prefix("gacha_")
 		var helper: Resource = DataRegistry.get_gacha_helper_data(helper_id)

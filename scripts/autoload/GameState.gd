@@ -6,6 +6,7 @@ const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.
 const _PassiveProgression = preload("res://scripts/systems/PassiveProgression.gd")
 const _CommanderProfile = preload("res://scripts/commander/CommanderProfile.gd")
 const _StarterRecruitment = preload("res://scripts/roster/StarterRecruitment.gd")
+const _PetSystem = preload("res://scripts/pets/PetSystem.gd")
 
 # 所持ゴールド（永続）
 var gold: int = 0
@@ -17,6 +18,9 @@ var party_members: Array = []
 
 # 所持冒険者ロスター（基本5職 + ガチャ入手分）。party_members はここから最大 ACTIVE_PARTY_SIZE 名選択（P3-D036b）。
 var roster: Array = []
+
+## 随伴オトモ（P3-PET-OTOMO-001）。roster/party_members 外。出撃は常時1体。
+var active_pet: Resource = null
 
 ## 解放済みスターター id（P3-STORY-STARTER-001）。空かつストーリーON＝選択待ち。
 var starter_unlocked_ids: Array[String] = []
@@ -709,6 +713,8 @@ func set_member_formation_slot(member: Resource, slot: int) -> void:
 	member.formation_slot = clampi(slot, 0, 3)
 
 func get_combatant_formation_slot(member_index: int) -> int:
+	if is_pet_combatant(member_index):
+		return _PetSystem.PET_FORMATION_SLOT
 	return get_member_formation_slot(get_combatant(member_index))
 
 # formation_slot 未保存の旧データ向け。formation_row から空きスロットへ割当。
@@ -753,6 +759,8 @@ func _dedupe_formation_slots() -> void:
 				break
 
 func is_member_back_row(member_index: int) -> bool:
+	if is_pet_combatant(member_index):
+		return false
 	return get_member_formation_row(get_combatant(member_index)) == FORMATION_BACK
 
 # 後列の被ダメ軽減倍率（CombatController が乗算）。
@@ -1162,8 +1170,8 @@ const BASE_ROSTER_DEFS: Array = [
 	{"id": "adventurer_4", "name": "ミレイ", "job": "beast_tamer"},
 ]
 const ACTIVE_PARTY_SIZE: int = 4
-# 戦闘スロット上限（スプライト/HPバー枠＝4）。助っ人含む同時表示の最大数（P3-D105）。
-const COMBAT_SLOT_MAX: int = 4
+# 戦闘スロット上限（人間4＋オトモ1）。`ACTIVE_PARTY_SIZE` は人間編成のみ（P3-PET-OTOMO-001）。
+const COMBAT_SLOT_MAX: int = 5
 
 func _ready() -> void:
 	_init_party()
@@ -1223,6 +1231,7 @@ func reset_for_new_game() -> void:
 	last_run_starter_recruited_id = ""
 	last_run_starter_recruited_name = ""
 	_run_combat_stats = null
+	active_pet = null
 	_init_party()
 	_CommanderProfile.ensure_commander()
 
@@ -1263,15 +1272,18 @@ func seed_all_starters_unlocked() -> void:
 	normalize_all_equipped_skills()
 	normalize_all_equipped_passives()
 	migrate_formation_slots_if_needed()
+	_PetSystem.ensure_starter_pet()
 
 func _init_party() -> void:
 	roster = []
 	party_members = []
+	active_pet = null
 	last_run_starter_recruited_id = ""
 	last_run_starter_recruited_name = ""
 	if Constants.STARTER_STORY_RECRUIT:
 		starter_unlocked_ids = []
 		starter_pick_pending = true
+		_PetSystem.ensure_starter_pet()
 		return
 	starter_unlocked_ids = []
 	for def in BASE_ROSTER_DEFS:
@@ -1286,6 +1298,7 @@ func _init_party() -> void:
 	_grant_starting_equipment()
 	normalize_all_equipped_skills()
 	normalize_all_equipped_passives()
+	_PetSystem.ensure_starter_pet()
 
 
 func needs_starter_pick() -> bool:
@@ -1315,6 +1328,7 @@ func select_starting_adventurer(adventurer_id: String) -> bool:
 	normalize_all_equipped_skills()
 	normalize_all_equipped_passives()
 	migrate_formation_slots_if_needed()
+	_PetSystem.ensure_starter_pet()
 	return true
 
 
@@ -1457,18 +1471,30 @@ func _create_starting_weapon(member_id: String, weapon_id: String) -> Resource:
 	_WeaponStatResolver.apply_drop_stats(instance, weapon_data)
 	return instance
 
-# ---- 戦闘参加者（編成メンバーのみ） ----
+# ---- 戦闘参加者（編成メンバー＋随伴オトモ） ----
 
 func get_combatants() -> Array:
-	return party_members
+	var out: Array = []
+	for m in party_members:
+		out.append(m)
+	if active_pet != null and not party_members.is_empty():
+		out.append(active_pet)
+	return out
 
 func combatant_count() -> int:
-	return party_members.size()
+	return get_combatants().size()
 
 func get_combatant(i: int) -> Resource:
-	if i < 0 or i >= party_members.size():
+	var combatants: Array = get_combatants()
+	if i < 0 or i >= combatants.size():
 		return null
-	return party_members[i]
+	return combatants[i]
+
+func is_pet_combatant(member_index: int) -> bool:
+	return _PetSystem.is_pet_member(get_combatant(member_index))
+
+func ensure_starter_pet() -> Resource:
+	return _PetSystem.ensure_starter_pet()
 
 # ---- 生態図鑑進捗（P3-CODEX5-001） ----
 const STAGE4_KILLS: int = 3

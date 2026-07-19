@@ -57,6 +57,9 @@ static func can_equip_job_skill(member: Resource, skill_id: String) -> bool:
 static func normalize_equipped_skills(member: Resource) -> void:
 	if member == null:
 		return
+	## オトモはジョブスキル表外の固定スキルを持つ（P3-PET-OTOMO-001）
+	if Constants.is_pet_id(str(member.id)):
+		return
 	var allowed: Array[String] = get_unlocked_job_skill_ids(member)
 	var ids: Array[String] = []
 	if "equipped_skill_ids" in member:

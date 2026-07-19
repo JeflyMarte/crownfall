@@ -13,7 +13,7 @@ const SAVE_PATH: String = "user://save_data.json"
 ## `_migrate_save_data` に v(n)→v(n+1) の段階マイグレーションを追加する。
 ## v0 = バージョンフィールド無しの旧セーブ（レガシー party/equipment/job/dungeon id を含む）
 ## v1 = save_version フィールド導入（2026-07-02）
-const SAVE_VERSION: int = 8
+const SAVE_VERSION: int = 9
 
 func save_game() -> void:
 	var data: Dictionary = {
@@ -21,6 +21,7 @@ func save_game() -> void:
 		"gold": GameState.gold,
 		"roster": _serialize_roster(),
 		"active_party_ids": _serialize_active_party_ids(),
+		"active_pet": _serialize_active_pet(),
 		"dungeon_progress": GameState.dungeon_progress,
 		"current_dungeon_id": GameState.current_dungeon_id,
 		"discovery_registry": GameState.discovery_registry,
@@ -97,7 +98,16 @@ func _migrate_save_data(data: Dictionary) -> Dictionary:
 		data = _migrate_save_v6_to_v7(data)
 	if version < 8:
 		data = _migrate_save_v7_to_v8(data)
+	if version < 9:
+		data = _migrate_save_v8_to_v9(data)
 	data["save_version"] = SAVE_VERSION
+	return data
+
+
+## P3-PET-OTOMO-001: 随伴オトモ（欠落時はロード側で starter 付与）
+func _migrate_save_v8_to_v9(data: Dictionary) -> Dictionary:
+	if not data.has("active_pet"):
+		data["active_pet"] = {}
 	return data
 
 
@@ -298,6 +308,58 @@ func _serialize_active_party_ids() -> Array:
 			out.append(str(member.id))
 	return out
 
+
+func _serialize_active_pet() -> Dictionary:
+	if GameState.active_pet == null:
+		return {}
+	return {
+		"id": str(GameState.active_pet.id),
+		"display_name": str(GameState.active_pet.display_name),
+		"level": int(GameState.active_pet.level),
+		"exp": int(GameState.active_pet.exp),
+		"rarity": 1,
+		"equipped_skills": GameState.active_pet.equipped_skill_ids.duplicate(),
+		"base_stats": _serialize_stats(GameState.active_pet.base_stats),
+		"tactics_id": str(GameState.active_pet.tactics_id),
+	}
+
+
+func _deserialize_active_pet(raw: Variant) -> Resource:
+	var _PetSystem = preload("res://scripts/pets/PetSystem.gd")
+	var pet: Resource = _PetSystem.create_pet_adventurer(_PetSystem.STARTER_PET_ID)
+	if raw == null or not (raw is Dictionary) or (raw as Dictionary).is_empty():
+		return pet
+	var data: Dictionary = raw
+	var pid: String = str(data.get("id", _PetSystem.STARTER_PET_ID))
+	if Constants.is_pet_id(pid) and pid != str(pet.id):
+		pet = _PetSystem.create_pet_adventurer(pid)
+	pet.display_name = str(data.get("display_name", pet.display_name))
+	pet.level = maxi(1, int(data.get("level", 1)))
+	pet.exp = maxi(0, int(data.get("exp", 0)))
+	pet.rarity = 1
+	if data.get("base_stats") is Dictionary and not (data["base_stats"] as Dictionary).is_empty():
+		var stats_class = load("res://scripts/domain/Stats.gd")
+		var stats = stats_class.new()
+		var sd: Dictionary = data["base_stats"]
+		stats.hp = int(sd.get("hp", stats.hp))
+		stats.attack = int(sd.get("attack", stats.attack))
+		stats.defense = int(sd.get("defense", stats.defense))
+		pet.base_stats = stats
+	if data.get("equipped_skills") is Array:
+		var skills: Array[String] = []
+		for sid in data["equipped_skills"]:
+			var s: String = str(sid)
+			if not s.is_empty() and not skills.has(s):
+				skills.append(s)
+			if skills.size() >= Constants.MAX_EQUIPPED_SKILLS:
+				break
+		if not skills.is_empty():
+			pet.equipped_skill_ids = skills
+	pet.tactics_id = str(data.get("tactics_id", "balanced"))
+	_PetSystem.sync_pet_runtime(pet)
+	return pet
+
+
 func _serialize_adventurer(adv: Resource) -> Dictionary:
 	var weapon_instance_id: String = ""
 	var armor_instance_id: String = ""
@@ -440,6 +502,11 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.starter_pick_pending = bool(data["starter_pick_pending"])
 	_apply_roster_save(data)
 	GameState.migrate_starter_unlock_state()
+	if data.has("active_pet"):
+		GameState.active_pet = _deserialize_active_pet(data.get("active_pet"))
+	else:
+		GameState.ensure_starter_pet()
+	GameState.ensure_starter_pet()
 	_apply_gacha_save(data)
 	if data.has("enemy_codex") and data["enemy_codex"] is Dictionary:
 		var codex: Dictionary = {}

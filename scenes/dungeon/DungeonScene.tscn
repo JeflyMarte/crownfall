@@ -274,6 +274,10 @@ visible = false
 position = Vector2(425, 700)
 visible = false
 
+[node name="ChrSprite4" type="AnimatedSprite2D" parent="."]
+position = Vector2(360, 640)
+visible = false
+
 [node name="MenuOverlay" type="PanelContainer" parent="."]
 layout_mode = 1
 anchors_preset = 8
@@ -389,6 +393,16 @@ offset_left = 780.0
 offset_top = 320.0
 offset_right = 860.0
 offset_bottom = 328.0
+show_percentage = false
+value = 100.0
+visible = false
+
+[node name="HpBarChr4" type="ProgressBar" parent="."]
+layout_mode = 1
+offset_left = 520.0
+offset_top = 300.0
+offset_right = 600.0
+offset_bottom = 308.0
 show_percentage = false
 value = 100.0
 visible = false

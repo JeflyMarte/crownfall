@@ -73,3 +73,6 @@ static func is_gacha_helper_id(member_id: String) -> bool:
 
 static func are_gacha_helpers_playable() -> bool:
 	return GACHA_HELPERS_PLAYABLE
+
+static func is_pet_id(member_id: String) -> bool:
+	return member_id.begins_with("pet_")

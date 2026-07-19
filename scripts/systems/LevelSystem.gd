@@ -74,4 +74,9 @@ static func grant_exp_to_party(amount: int) -> Dictionary:
 		var gained: int = grant_exp(member, amount)
 		if gained > 0:
 			result[member.id] = gained
+	## 随伴オトモも共有EXP（P3-PET-OTOMO-001）
+	if GameState.active_pet != null:
+		var pet_gained: int = grant_exp(GameState.active_pet, amount)
+		if pet_gained > 0:
+			result[GameState.active_pet.id] = pet_gained
 	return result
