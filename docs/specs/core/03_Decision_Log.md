@@ -2683,6 +2683,20 @@
 
 **Closeout（2026-07-19）:** データ＋配線＋unit。
 
+## 天候シンクロ・レジェンド武器（2026-07-19 — P3-EQ-WEATHER-LEG-001）
+
+> オーナー GO: 案A（雨・夜・霧の3本）。晴れ専用は作らない。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-WEATHER-LEG-001-1 | **3本** — 雨=`stormveil_needle`／夜=`noctumbra_fang`／霧=`mistpierce_halberd` | 天候出現15%帯に意味を持たせる |
+| P3-EQ-WEATHER-LEG-001-2 | **雨** — 常時雷+15%、雨時雷+40% | 既存雨の雷補正と相乗 |
+| P3-EQ-WEATHER-LEG-001-3 | **夜** — 常時闇+15%、夜時闇+40%＋撃破CT短縮50% | 夜の闇補正＋テンポ |
+| P3-EQ-WEATHER-LEG-001-4 | **霧** — 常時会心+3%、霧時 outgoing×1.263（罰則打消+20%）＋会心+10% | 属性無し霧の差別化 |
+| P3-EQ-WEATHER-LEG-001-5 | SSOT=`weather_bonus` on `CombatPassives`・入手=レイヴン伝説プール／mourngate・rookery 武器プール | 新規ドロップ経路最小 |
+
+**Closeout（2026-07-19）:** データ＋配線＋unit。
+
 ## 宝冠レイヴン日次イベントDG（2026-07-19 — P3-DG-RAVEN-EVENT-001）
 
 > オーナー GO: ダック版と同型のカラス版。装備ハント向けに戦闘寄り。

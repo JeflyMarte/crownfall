@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "noctumbra_fang"
+display_name = "宵闇の牙ノクトゥンブラ"
+description = "夜の帳から研ぎ出された双牙。闇を纏い、夜戦で獲物の息を奪う。"
+fixed_skill_id = ""
+fixed_passive_id = "eq_wpn_noctumbra_fang"
+base_attack = 144
+rarity = 3
+base_attack_speed = 1.1
+base_critical_rate = 0.11
+base_knockback = 0.3
+base_stagger_power = 0.15
+base_attack_range = 1.0
+weight = 0.9
+element = "dark"
+weapon_type = "dual_blades"
+tags = Array[String](["slash", "dark"])
+bane_class = ""
+bane_multiplier = 1.0

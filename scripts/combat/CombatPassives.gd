@@ -14,6 +14,7 @@ extends RefCounted
 ##   ultimate_power_mult / exp_gain_mult / party_exp_gain_mult /
 ##   party_outgoing_mult / party_incoming_mult / death_save_once / death_save_chance /
 ##   exploration_damage_immune / outgoing_mult_requires_hp_below / outgoing_vs_status_mult
+## weather_bonus（P3-EQ-WEATHER-LEG-001）: weather_id → element_outgoing_mult / outgoing_mult / crit_rate_add / refund_ct_fraction
 ## effect 追加: "chance_cast_equipped_skill"（攻撃後に装備スキルを確率発動）
 ## cooldown: CT 秒（0 = 都度発火可。on_combat_start は実質1回）
 
@@ -502,6 +503,49 @@ const _DEFS: Dictionary = {
 		"target": "enemy_all",
 		"cooldown": 0.0,
 	},
+	# ---- 天候シンクロ・レジェンド（P3-EQ-WEATHER-LEG-001） ----
+	"eq_wpn_stormveil_needle": {
+		"display_name": "雷雨の穿針",
+		"category": "weapon",
+		"description": "雷属性与ダメ+15%。雨のとき雷与ダメ+40%。",
+		"forced_element": "thunder",
+		"guaranteed_element_power_roll": true,
+		"element_outgoing_mult": {"thunder": 1.15},
+		"weather_bonus": {
+			"rain": {
+				"element_outgoing_mult": {"thunder": 1.40},
+			},
+		},
+	},
+	"eq_wpn_noctumbra_fang": {
+		"display_name": "宵闇の牙",
+		"category": "weapon",
+		"description": "闇属性与ダメ+15%。夜のとき闇与ダメ+40%、撃破時に自身の行動待ちを短縮。",
+		"forced_element": "dark",
+		"guaranteed_element_power_roll": true,
+		"element_outgoing_mult": {"dark": 1.15},
+		"trigger": "on_kill",
+		"effect": "refund_ct",
+		"refund_ct_fraction": 0.0,
+		"weather_bonus": {
+			"night": {
+				"element_outgoing_mult": {"dark": 1.40},
+				"refund_ct_fraction": 0.50,
+			},
+		},
+	},
+	"eq_wpn_mistpierce_halberd": {
+		"display_name": "霧穿ちの戦鉾",
+		"category": "weapon",
+		"description": "会心率+3%。霧のとき与ダメ罰則を打ち消しさらに+20%、会心率+10%。",
+		"crit_rate_add": 0.03,
+		"weather_bonus": {
+			"fog": {
+				"outgoing_mult": 1.263,
+				"crit_rate_add": 0.10,
+			},
+		},
+	},
 }
 
 # 基本5職ロスター adventurer_id → キャラ固有パッシブ id
@@ -635,7 +679,40 @@ static func weapon_stat_modifiers_for_member(member_index: int) -> Dictionary:
 		out["incoming_block_mult"] = float(def["incoming_block_mult"])
 	if def.has("element_outgoing_mult") and def["element_outgoing_mult"] is Dictionary:
 		out["element_outgoing_mult"] = (def["element_outgoing_mult"] as Dictionary).duplicate()
+	_merge_weapon_weather_bonus(def, out)
 	return out
+
+
+static func _active_weather_bonus(def: Dictionary) -> Dictionary:
+	if def.is_empty() or not def.has("weather_bonus"):
+		return {}
+	var bonuses: Variant = def.get("weather_bonus", {})
+	if bonuses is not Dictionary:
+		return {}
+	var weather: String = GameState.get_weather()
+	if weather.is_empty() or not (bonuses as Dictionary).has(weather):
+		return {}
+	var block: Variant = (bonuses as Dictionary)[weather]
+	if block is not Dictionary:
+		return {}
+	return (block as Dictionary).duplicate()
+
+
+static func _merge_weapon_weather_bonus(def: Dictionary, out: Dictionary) -> void:
+	var bonus: Dictionary = _active_weather_bonus(def)
+	if bonus.is_empty():
+		return
+	if bonus.has("crit_rate_add"):
+		out["crit_rate_add"] = float(out.get("crit_rate_add", 0.0)) + float(bonus["crit_rate_add"])
+	if bonus.has("crit_damage_add"):
+		out["crit_damage_add"] = float(out.get("crit_damage_add", 0.0)) + float(bonus["crit_damage_add"])
+	if bonus.has("outgoing_mult"):
+		out["outgoing_mult"] = float(out.get("outgoing_mult", 1.0)) * float(bonus["outgoing_mult"])
+	if bonus.has("element_outgoing_mult") and bonus["element_outgoing_mult"] is Dictionary:
+		var merged: Dictionary = out.get("element_outgoing_mult", {}).duplicate()
+		for key: Variant in (bonus["element_outgoing_mult"] as Dictionary).keys():
+			merged[str(key)] = float((bonus["element_outgoing_mult"] as Dictionary)[key])
+		out["element_outgoing_mult"] = merged
 
 ## hp_ratio: 0..1。負なら HP 条件付き outgoing は適用しない（非戦闘参照用）。
 static func character_stat_modifiers_for_member(member_index: int, hp_ratio: float = -1.0) -> Dictionary:
@@ -668,10 +745,13 @@ static func character_stat_modifiers_for_member(member_index: int, hp_ratio: flo
 					out["outgoing_mult"] *= float(def["outgoing_mult"])
 			else:
 				out["outgoing_mult"] *= float(def["outgoing_mult"])
-	# 武器常時 outgoing（神話など）
+	# 武器常時 outgoing（神話など）＋天候シンクロ outgoing
 	var wdef: Dictionary = weapon_passive_def_for_member(member)
 	if wdef.has("outgoing_mult") and str(wdef.get("trigger", "")) != "on_attack":
 		out["outgoing_mult"] *= float(wdef["outgoing_mult"])
+	var wbonus: Dictionary = _active_weather_bonus(wdef)
+	if wbonus.has("outgoing_mult"):
+		out["outgoing_mult"] *= float(wbonus["outgoing_mult"])
 	return out
 
 static func party_outgoing_mult() -> float:
@@ -744,6 +824,9 @@ static func on_kill_refund_fraction(member_index: int) -> float:
 	)
 	if def.is_empty():
 		return 0.0
+	var weather_bonus: Dictionary = _active_weather_bonus(def)
+	if weather_bonus.has("refund_ct_fraction"):
+		return clampf(float(weather_bonus["refund_ct_fraction"]), 0.0, 1.0)
 	if str(def.get("trigger", "")) != "on_kill":
 		return 0.0
 	if str(def.get("effect", "")) != "refund_ct":
