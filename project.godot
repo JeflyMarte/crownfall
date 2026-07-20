@@ -27,6 +27,7 @@ SaveManager="*res://scripts/save/SaveManager.gd"
 DailyMissionSystem="*res://scripts/autoload/DailyMissionSystem.gd"
 EventSystem="*res://scripts/autoload/EventSystem.gd"
 AudioManager="*res://scripts/audio/AudioManager.gd"
+SafeAreaPad="*res://scripts/autoload/SafeAreaPad.gd"
 _MCPGameBridge="*res://addons/agent_tools/runtime/game_bridge.gd"
 _mcp_game_helper="*res://addons/godot_ai/runtime/game_helper.gd"
 
@@ -35,7 +36,7 @@ _mcp_game_helper="*res://addons/godot_ai/runtime/game_helper.gd"
 window/size/viewport_width=720
 window/size/viewport_height=1280
 window/stretch/mode="canvas_items"
-window/stretch/aspect="expand"
+window/stretch/aspect="keep"
 
 [editor_plugins]
 

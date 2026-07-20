@@ -32,7 +32,7 @@ static func column_width(
 	return int(floor((content_width - gaps) / float(columns)))
 
 static func stack_bottom_offset(footer_height: float = 0.0) -> float:
-	return -(NavUiTokens.BOTTOM_NAV_HEIGHT + footer_height)
+	return -(NavUiTokens.BOTTOM_NAV_HEIGHT + SafeAreaHelper.bottom_inset() + footer_height)
 
 static func apply_horizontal_insets(scroll: ScrollContainer) -> void:
 	if scroll == null:

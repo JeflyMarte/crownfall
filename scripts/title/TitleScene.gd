@@ -112,6 +112,7 @@ func _build_ui() -> void:
 	_confirm_debug.confirmed.connect(_on_debug_confirmed)
 	_confirm_debug.canceled.connect(func() -> void: AudioManager.play_sfx("ui_cancel"))
 	add_child(_confirm_debug)
+	SafeAreaHelper.apply_scene_chrome(self)
 
 
 func _make_menu_button(text: String) -> Button:

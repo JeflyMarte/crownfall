@@ -201,7 +201,9 @@ static func setup(nav_row: HBoxContainer, active_tab: Tab) -> void:
 	NavIconHelper.decorate_bottom_nav_row(nav_row)
 	highlight_tab(nav_row, active_tab)
 	_wire_nav_row(nav_row, active_tab)
-	_HubNpcHelper.show_pending_banner(_scene_root(nav_row))
+	var root: Node = _scene_root(nav_row)
+	SafeAreaHelper.apply_scene_chrome(root)
+	_HubNpcHelper.show_pending_banner(root)
 
 
 ## BOTTOM_NAV_ENTRIES の順に子を並べ、未掲載ボタンは隠す。
