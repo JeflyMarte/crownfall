@@ -272,7 +272,7 @@ static func _helper_display_name(helper_id: String) -> String:
 
 static func _ticket_display_name(ticket_id: String) -> String:
 	var data: Resource = DataRegistry.get_ticket_data(ticket_id)
-	if data != null and "display_name" in data:
+	if data != null:
 		return str(data.display_name)
 	return ticket_id
 
