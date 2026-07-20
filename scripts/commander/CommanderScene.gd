@@ -7,6 +7,7 @@ const _CommanderTitles = preload("res://scripts/commander/CommanderTitles.gd")
 const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd")
 const _CommanderSurveyPoints = preload("res://scripts/commander/CommanderSurveyPoints.gd")
 const _CommanderGiftBox = preload("res://scripts/commander/CommanderGiftBox.gd")
+const _RedeemCodeSystem = preload("res://scripts/commander/RedeemCodeSystem.gd")
 const _CommanderUiTokens = preload("res://scripts/commander/CommanderUiTokens.gd")
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
@@ -35,6 +36,8 @@ const HEADING_ICON_PX: int = 32
 @onready var _bg_texture: TextureRect = $BgTexture
 @onready var _content_host: VBoxContainer = $MainScroll/MainVBox/ContentHost
 var _name_edit_dialog: ConfirmationDialog
+var _redeem_feedback: AcceptDialog
+var _redeem_field: LineEdit
 
 
 func _ready() -> void:
@@ -45,6 +48,7 @@ func _ready() -> void:
 	_btn_back.pressed.connect(_on_back_pressed)
 	_content_host.add_theme_constant_override("separation", SECTION_GAP)
 	_setup_name_edit_dialog()
+	_setup_redeem_feedback()
 	_rebuild_page()
 
 
@@ -70,10 +74,18 @@ func _setup_name_edit_dialog() -> void:
 	add_child(_name_edit_dialog)
 
 
+func _setup_redeem_feedback() -> void:
+	_redeem_feedback = AcceptDialog.new()
+	_redeem_feedback.title = "調査許可コード"
+	_redeem_feedback.ok_button_text = "閉じる"
+	add_child(_redeem_feedback)
+
+
 func _rebuild_page() -> void:
 	for child in _content_host.get_children():
 		child.queue_free()
 	_content_host.add_child(_build_overview_section())
+	_content_host.add_child(_build_redeem_section())
 	var gift_section: Control = _build_gift_box_section()
 	if gift_section != null:
 		_content_host.add_child(gift_section)
@@ -206,6 +218,68 @@ func _on_name_edit_confirmed() -> void:
 	if _CommanderProfile.set_commander_name(field.text):
 		SaveManager.save_game()
 		_rebuild_page()
+
+
+# ---- 調査許可コード ----
+func _build_redeem_section() -> Control:
+	var sec: Dictionary = _begin_section("redeem", "調査許可コード")
+	var body: VBoxContainer = sec["body"]
+	_add_caption(body, "ギルドから受け取った許可コードを入力すると、配布ボックスへ補給が届きます。")
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.add_child(row)
+	_redeem_field = LineEdit.new()
+	_redeem_field.placeholder_text = "コードを入力"
+	_redeem_field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_redeem_field.custom_minimum_size = Vector2(0, 40)
+	_redeem_field.max_length = 32
+	row.add_child(_redeem_field)
+	var btn := Button.new()
+	btn.text = "送信"
+	btn.custom_minimum_size = Vector2(96, 40)
+	UiTypography.apply_menu_button(btn, false)
+	btn.pressed.connect(_on_redeem_pressed)
+	row.add_child(btn)
+	return sec["panel"]
+
+
+func _on_redeem_pressed() -> void:
+	var raw: String = ""
+	if _redeem_field != null:
+		raw = _redeem_field.text
+	var result: Dictionary = _RedeemCodeSystem.redeem(raw)
+	if bool(result.get("ok", false)):
+		AudioManager.play_sfx("ui_confirm")
+		if _redeem_field != null:
+			_redeem_field.text = ""
+		SaveManager.save_game()
+		_rebuild_page()
+		_show_redeem_feedback(
+			"配布ボックスへ届きました。\n「%s」\n%s"
+			% [str(result.get("title", "")), str(result.get("summary", ""))]
+		)
+		return
+	AudioManager.play_sfx("ui_error")
+	var reason: String = str(result.get("reason", ""))
+	var msg: String = "コードを確認してください。"
+	match reason:
+		"empty":
+			msg = "コードを入力してください。"
+		"invalid":
+			msg = "無効なコードです。"
+		"used":
+			msg = "このコードは既に使用済みです。"
+		"enqueue_failed":
+			msg = "配布の登録に失敗しました。"
+	_show_redeem_feedback(msg)
+
+
+func _show_redeem_feedback(message: String) -> void:
+	if _redeem_feedback == null:
+		return
+	_redeem_feedback.dialog_text = message
+	_redeem_feedback.popup_centered()
 
 
 # ---- 配布ボックス ----

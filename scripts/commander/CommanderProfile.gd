@@ -324,6 +324,8 @@ static func _sanitize_commander() -> void:
 		GameState.commander["recent_highlights"] = []
 	if not GameState.commander.has("gift_box") or not GameState.commander["gift_box"] is Array:
 		GameState.commander["gift_box"] = []
+	if not GameState.commander.has("redeemed_codes") or not GameState.commander["redeemed_codes"] is Array:
+		GameState.commander["redeemed_codes"] = []
 	if not GameState.commander.has("name") or str(GameState.commander.get("name", "")).strip_edges().is_empty():
 		GameState.commander["name"] = DEFAULT_NAME
 	## 既存セーブ: キー欠落は仮 D＋bootstrap フラグ。評価は ensure 外で行う。
