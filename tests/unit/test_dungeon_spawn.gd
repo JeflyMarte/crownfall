@@ -12,7 +12,7 @@ const _D2_IDS: Array[String] = [
 	"crystal_scorpion",
 ]
 const _D3_IDS: Array[String] = ["skullface_mantis"]
-const _WW_D2_IDS: Array[String] = ["moss_boar", "moss_shell", "bloom_serpent", "iron_horn"]
+const _WW_D2_IDS: Array[String] = ["moss_boar", "moss_shell", "iron_horn"]
 const _WW_D3_IDS: Array[String] = ["spore_widow", "blood_bloom", "rune_carcinos"]
 const _MF_D2_IDS: Array[String] = ["bone_picker"]
 const _MF_D3_IDS: Array[String] = [

@@ -27,7 +27,7 @@ static func format_new_discovery(category: String, entry_id: String) -> String:
 
 static func get_category_label(category: String) -> String:
 	match category:
-		"enemy": return "敵"
+		"enemy": return "モンスター"
 		"weapon": return "武器"
 		"dungeon": return "ダンジョン"
 		"material": return "素材"

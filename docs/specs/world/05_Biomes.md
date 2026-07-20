@@ -354,7 +354,7 @@ Biome は、その両者が重なり合う場所である。
 |---|---|---|---|---|---|---|
 | 雑魚 | **モスボア（moss_boar）** | 猪 | I | fire | — | 苔に覆われた森猪。突進・群れ |
 | 雑魚 | **モスシェル（moss_shell）** | 甲虫 | IV | fire | — | 苔擬態の硬殻甲虫 |
-| 雑魚 | **ブルームサーペント（bloom_serpent）** | 蛇 | III | fire | poison | 花弁状鱗の大蛇 |
+| 雑魚 | ~~ブルームサーペント（bloom_serpent）~~ | 蛇 | III | fire | poison | **P3-ENEMY-WW-OMIT-001 で一旦オミット**（データ残置・プール外） |
 | 雑魚 | **スポアウィドウ（spore_widow）** | 蜘蛛＋菌 | IV | fire | poison | 菌共生の捕食蜘蛛・後列 |
 | Elite | **深霧ワイバーン（mist_wyvern）** | 飛竜 | III | fire | chill | 霧膜を纏う大型飛竜 |
 | Boss | **フローラベア・グランヴェル（granvel）** | 古代巨熊＋森 | VII | fire | poison, bleed | 森と一体化した頂点捕食者 |

@@ -15,7 +15,7 @@ const _CodexRichText = preload("res://scripts/codex/CodexRichText.gd")
 const CATEGORIES: Array[String] = ["enemy", "dungeon", "material", "weapon", "history", "lore", "guide"]
 
 const CATEGORY_DISPLAY: Dictionary = {
-	"enemy": "敵",
+	"enemy": "モンスター",
 	"dungeon": "ダンジョン",
 	"material": "素材",
 	"weapon": "武器",
@@ -73,6 +73,7 @@ func _ready() -> void:
 	$MainScroll/MainVBox/TabRow/ButtonTabHistory.pressed.connect(func(): _select_category("history"))
 	$MainScroll/MainVBox/TabRow/ButtonTabLore.pressed.connect(func(): _select_category("lore"))
 	$MainScroll/MainVBox/TabRow/ButtonTabGuide.pressed.connect(func(): _select_category("guide"))
+	$MainScroll/MainVBox/TabRow/ButtonTabEnemy.text = str(CATEGORY_DISPLAY["enemy"])
 	$DetailOverlay/Dim.gui_input.connect(_on_detail_dim_input)
 	$DetailOverlay/DetailPanel/DetailVBox/DetailHeaderRow/ButtonDetailClose.pressed.connect(_hide_detail_popup)
 	_detail_overlay.visible = false

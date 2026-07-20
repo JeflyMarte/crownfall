@@ -24,7 +24,7 @@ const ENEMY_SPRITE_MAP: Dictionary = {
 	"anchor_lord": "res://resources/animation/ENM_GreatClaw.tres",
 	"black_tide_shark": "res://resources/animation/ENM_UndertakerShark.tres",
 	"blood_leech": "res://resources/animation/ENM_BloodLeech.tres",
-	"blood_bloom": "res://resources/animation/ENM_BloodLeech.tres",
+	"blood_bloom": "res://resources/animation/ENM_BloodBloom.tres",
 	"bloom_serpent": "res://resources/animation/ENM_BloomSerpent.tres",
 	"bone_picker": "res://resources/animation/ENM_GraveBellBat.tres",
 	"clock_moth": "res://resources/animation/ENM_ClockMoth.tres",
@@ -38,11 +38,11 @@ const ENEMY_SPRITE_MAP: Dictionary = {
 	"great_claw": "res://resources/animation/ENM_GreatClaw.tres",
 	"greios": "res://resources/animation/ENM_Greios.tres",
 	"ice_tail_fox": "res://resources/animation/ENM_Vergaron.tres",
-	"iron_horn": "res://resources/animation/ENM_MossShell.tres",
+	"iron_horn": "res://resources/animation/ENM_IronHorn.tres",
 	"marsh_king": "res://resources/animation/ENM_MarshKing.tres",
 	"mire_strider_spider": "res://resources/animation/ENM_SporeWidow.tres",
 	"mist_mantis": "res://resources/animation/ENM_MistMantis.tres",
-	"mirror_boa": "res://resources/animation/ENM_BloomSerpent.tres",
+	"mirror_boa": "res://resources/animation/ENM_MirrorBoa.tres",
 	"mist_wyvern": "res://resources/animation/ENM_MistWyvern.tres",
 	"moss_boar": "res://resources/animation/ENM_MossBoar.tres",
 	"moss_shell": "res://resources/animation/ENM_MossShell.tres",
@@ -50,7 +50,7 @@ const ENEMY_SPRITE_MAP: Dictionary = {
 	"ninja_octopus": "res://resources/animation/ENM_NinjaOctopus.tres",
 	"oldrex": "res://resources/animation/ENM_Oldrex.tres",
 	"polar_tricera": "res://resources/animation/ENM_StormJoe.tres",
-	"rune_carcinos": "res://resources/animation/ENM_ShipEaterCrab.tres",
+	"rune_carcinos": "res://resources/animation/ENM_RuneCarcinos.tres",
 	"rune_roach": "res://resources/animation/ENM_RuneRoach.tres",
 	"samurai_fish": "res://resources/animation/ENM_SamuraiFish.tres",
 	"sepia_hound": "res://resources/animation/ENM_SepiaHound.tres",
@@ -181,6 +181,9 @@ const BATTLE_BG_MAP: Dictionary = {
 	"blackshore_abyss": "res://assets/dungeon/blackshore/env/BG_Battle_Blackshore.png",
 	"red_forge_depths": "res://assets/dungeon/frostridge/env/BG_Battle_Frostridge.png",
 	"north_reach": "res://assets/dungeon/frostridge/env/BG_Battle_Frostridge.png",
+	## イベントDG（ダック／レイヴン共通背景）
+	"cosmic_rift": "res://assets/dungeon/event/env/BG_Battle_Event.png",
+	"crown_rookery": "res://assets/dungeon/event/env/BG_Battle_Event.png",
 }
 const TREASURE_CLOSED_OBJ_MAP: Dictionary = {
 	"mourngate": "res://assets/dungeon/mourngate/env/OBJ_TreasureChest_Closed.png",
@@ -937,16 +940,19 @@ func _init_combat_drama_ui() -> void:
 	_threat_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_threat_banner.z_index = 42
 	_threat_banner.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	_threat_banner.offset_left = -210.0
-	_threat_banner.offset_right = 210.0
+	## ボス詠唱警告は長文になりやすいので幅を確保し、折り返さず1行表示する。
+	_threat_banner.offset_left = -340.0
+	_threat_banner.offset_right = 340.0
 	_threat_banner.offset_top = 8.0
-	_threat_banner.offset_bottom = 44.0
+	_threat_banner.offset_bottom = 40.0
 	_threat_banner.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_THREAT))
 	battlefield.add_child(_threat_banner)
 	_label_threat_banner = Label.new()
 	_label_threat_banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_label_threat_banner.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_label_threat_banner.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_label_threat_banner.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_label_threat_banner.clip_text = false
+	_label_threat_banner.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	_label_threat_banner.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_label_threat_banner.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	UiTypography.apply_display(_label_threat_banner, UiTypography.SIZE_BODY_SMALL, Color(1.0, 0.88, 0.82))
@@ -984,6 +990,11 @@ func _update_combat_threat_banner() -> void:
 		threat.get("skill_name", "スキル"),
 		int(threat.get("turns_left", 1)),
 	]
+	_label_threat_banner.reset_size()
+	var need_w: float = maxf(_label_threat_banner.get_minimum_size().x + 28.0, 420.0)
+	var half: float = minf(need_w * 0.5, 360.0)
+	_threat_banner.offset_left = -half
+	_threat_banner.offset_right = half
 	_threat_banner.visible = true
 	if _threat_vignette != null:
 		_threat_vignette.color = CombatUiFrames.vignette_color(CombatUiFrames.TIER_THREAT)
@@ -4442,6 +4453,9 @@ func _spawn_enemy_skill_name(skill_name: String) -> void:
 	const ENEMY_SKILL_FONT_SIZE: int = 26
 	var lbl := Label.new()
 	lbl.text = skill_name
+	lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+	lbl.clip_text = false
+	lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	var af: Font = UiTypography.impact_font()
 	if af != null:
 		lbl.add_theme_font_override("font", af)
@@ -4452,10 +4466,12 @@ func _spawn_enemy_skill_name(skill_name: String) -> void:
 	lbl.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.5))
 	lbl.add_theme_constant_override("shadow_offset_x", 2)
 	lbl.add_theme_constant_override("shadow_offset_y", 3)
+	lbl.reset_size()
+	var text_w: float = maxf(lbl.size.x, float(skill_name.length()) * ENEMY_SKILL_FONT_SIZE * 0.55)
 	var base_y: float = spr.global_position.y - 150.0
-	lbl.pivot_offset = Vector2(float(skill_name.length()) * ENEMY_SKILL_FONT_SIZE * 0.5, ENEMY_SKILL_FONT_SIZE * 0.5)
+	lbl.pivot_offset = Vector2(text_w * 0.5, ENEMY_SKILL_FONT_SIZE * 0.5)
 	lbl.position = Vector2(
-		spr.global_position.x - float(skill_name.length()) * ENEMY_SKILL_FONT_SIZE * 0.5,
+		spr.global_position.x - text_w * 0.5,
 		base_y
 	)
 	# ボス/敵技は一瞬大きく出して威圧感を出す
@@ -4484,6 +4500,9 @@ func _spawn_enemy_cast_name(skill_name: String, slot: int) -> void:
 	const CAST_FONT_SIZE: int = 22
 	var lbl := Label.new()
 	lbl.text = "◆ %s" % skill_name
+	lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+	lbl.clip_text = false
+	lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	var af: Font = UiTypography.impact_font()
 	if af != null:
 		lbl.add_theme_font_override("font", af)
@@ -4491,9 +4510,10 @@ func _spawn_enemy_cast_name(skill_name: String, slot: int) -> void:
 	lbl.add_theme_color_override("font_color", Color(0.75, 0.55, 1.0))
 	lbl.add_theme_color_override("font_outline_color", Color(0.08, 0.0, 0.12, 0.95))
 	lbl.add_theme_constant_override("outline_size", 6)
+	lbl.reset_size()
 	var base_y: float = spr.global_position.y - 130.0
 	lbl.position = Vector2(
-		spr.global_position.x - float(lbl.text.length()) * CAST_FONT_SIZE * 0.28,
+		spr.global_position.x - maxf(lbl.size.x, float(lbl.text.length()) * CAST_FONT_SIZE * 0.55) * 0.5,
 		base_y
 	)
 	lbl.modulate.a = 0.0
@@ -7523,8 +7543,8 @@ func _show_ultimate_center_telop(skill_name: String, element: String = "") -> vo
 	layer.z_index = 140
 	var wrap := VBoxContainer.new()
 	wrap.set_anchors_preset(Control.PRESET_CENTER)
-	wrap.offset_left = -280.0
-	wrap.offset_right = 280.0
+	wrap.offset_left = -360.0
+	wrap.offset_right = 360.0
 	wrap.offset_top = -72.0
 	wrap.offset_bottom = 72.0
 	wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -7533,6 +7553,8 @@ func _show_ultimate_center_telop(skill_name: String, element: String = "") -> vo
 	title.text = "必殺技"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	title.autowrap_mode = TextServer.AUTOWRAP_OFF
+	title.clip_text = false
 	var af: Font = UiTypography.impact_font()
 	if af != null:
 		title.add_theme_font_override("font", af)
@@ -7544,6 +7566,9 @@ func _show_ultimate_center_telop(skill_name: String, element: String = "") -> vo
 	name_lbl.text = skill_name
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	name_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+	name_lbl.clip_text = false
+	name_lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	if af != null:
 		name_lbl.add_theme_font_override("font", af)
 	name_lbl.add_theme_font_size_override("font_size", NAME_FONT_SIZE)
@@ -7803,6 +7828,8 @@ func _spawn_ultimate_skill_name(
 	title.text = "必殺技"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	title.autowrap_mode = TextServer.AUTOWRAP_OFF
+	title.clip_text = false
 	var af: Font = UiTypography.impact_font()
 	if af != null:
 		title.add_theme_font_override("font", af)
@@ -7814,6 +7841,9 @@ func _spawn_ultimate_skill_name(
 	name_lbl.text = skill_name
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	name_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+	name_lbl.clip_text = false
+	name_lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	if af != null:
 		name_lbl.add_theme_font_override("font", af)
 	name_lbl.add_theme_font_size_override("font_size", NAME_FONT_SIZE)
@@ -7826,7 +7856,8 @@ func _spawn_ultimate_skill_name(
 	name_lbl.add_theme_constant_override("shadow_offset_y", 4)
 	wrap.add_child(title)
 	wrap.add_child(name_lbl)
-	var wrap_w: float = maxf(float(skill_name.length()) * 26.0, 120.0)
+	name_lbl.reset_size()
+	var wrap_w: float = maxf(maxf(name_lbl.size.x + 24.0, float(skill_name.length()) * 26.0), 120.0)
 	var wrap_h: float = float(TITLE_FONT_SIZE + NAME_FONT_SIZE + 10)
 	wrap.custom_minimum_size = Vector2(wrap_w, wrap_h)
 	var head_center: Vector2 = _sprite_visual_center_global(sprite)

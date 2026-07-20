@@ -554,7 +554,7 @@ func _build_records_section() -> Control:
 	var codex_lines: PackedStringArray = []
 	for key in ["enemy", "material", "weapon"]:
 		var row: Dictionary = rates.get(key, {})
-		var label: String = {"enemy": "敵", "material": "素材", "weapon": "武器"}.get(key, key)
+		var label: String = {"enemy": "モンスター", "material": "素材", "weapon": "武器"}.get(key, key)
 		codex_lines.append("%s %d/%d（%d%%）" % [
 			label,
 			int(row.get("discovered", 0)),

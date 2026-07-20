@@ -24,8 +24,9 @@ const STARTER_STORY_RECRUIT: bool = true
 const STARTER_RECRUIT_BETA_EXTRA: bool = false
 ## ガチャ助っ人をプレイ対象に含める（P3-CHR-OMIT-001 / P3-GACHA-ENABLE-001）。false=招待状ロック・ロスターから除外（データ残置）。
 const GACHA_HELPERS_PLAYABLE: bool = true
-## サブステージ（1-1 等）分割を有効化（P3-DG-STG-001 / P3-DG-STG-ENABLE — 2026-07-10 オーナー正式承認）。
-const SUB_STAGES_PLAYABLE: bool = true
+## サブステージ（1-1 等）分割を有効化（P3-DG-STG-001 / P3-DG-STG-ENABLE）。
+## 2026-07-20 オーナー指示で一旦オミット（単体 DG 運用へ戻す）。
+const SUB_STAGES_PLAYABLE: bool = false
 const RESOURCE_STAGES_PATH: String = "res://resources/stages/"
 const COMBAT_TICK_INTERVAL: float = 1.5
 const DEFAULT_PLAYER_SKILL_ID: String = "slash_attack"

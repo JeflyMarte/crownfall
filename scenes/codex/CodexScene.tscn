@@ -164,7 +164,7 @@ theme_override_constants/v_separation = 8
 custom_minimum_size = Vector2(96, 52)
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "敵"
+text = "モンスター"
 
 [node name="ButtonTabDungeon" type="Button" parent="MainScroll/MainVBox/TabRow"]
 custom_minimum_size = Vector2(120, 52)

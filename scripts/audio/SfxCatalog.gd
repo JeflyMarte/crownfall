@@ -22,6 +22,7 @@ const ID_TREASURE: String = "treasure"
 const ID_ROOM_ENTER: String = "room_enter"
 const ID_VICTORY: String = "victory"
 const ID_LEVEL_UP: String = "level_up"
+const ID_RANK_UP: String = "rank_up"
 const ID_GACHA_REVEAL: String = "gacha_reveal"
 
 const PATHS: Dictionary = {
@@ -42,6 +43,8 @@ const PATHS: Dictionary = {
 	ID_ROOM_ENTER: DIR + "room_enter.ogg",
 	ID_VICTORY: DIR + "victory.ogg",
 	ID_LEVEL_UP: DIR + "level_up.ogg",
+	## 隊長ランクアップはレベルアップと同音（P3-CMD-RANKUP-001）
+	ID_RANK_UP: DIR + "level_up.ogg",
 	## 暫定: 専用ファンファーレ導入まで level_up を共用（P3 ガチャ入手SE）
 	ID_GACHA_REVEAL: DIR + "level_up.ogg",
 }
