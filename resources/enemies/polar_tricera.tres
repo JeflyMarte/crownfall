@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "polar_tricera"
+display_name = "極冠トリケラ"
+max_hp = 1720
+attack = 240
+defense = 144
+attack_speed = 0.95
+critical_rate = 0.1
+move_speed = 1.0
+threat_target_bias = "max_threat"
+detection_range = 8.0
+attack_range = 1.5
+enemy_type = 1
+ai_type = "default"
+exp_reward = 52
+gold_reward = 90
+drop_table_id = "polar_tricera_drops"
+element_weakness = Array[String](["fire"])
+element_resist = Array[String](["ice"])
+attack_element = "ice"
+on_hit_status_id = "stun"
+on_hit_status_chance = 0.25
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "爬虫類"
+codex_danger = 5
+codex_habitat = "最果て氷裂・極冠尾根"
+codex_research_note = "角竜を祖先とし、三本の角に永久氷を宿す極冠の巨種。頭盾は氷河の断面に似て、突進は尾根の雪を割る。グレイオスが空を支配するなら、地を踏む影はこの角竜だと猟師は言う。"
+codex_materials = Array[String]([])
+skill_ids = Array[String](["enemy_tricera_charge"])
+skill_use_chance = 0.35

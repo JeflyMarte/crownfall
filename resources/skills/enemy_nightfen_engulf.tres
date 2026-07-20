@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_nightfen_engulf"
+display_name = "夜沼の呑込"
+description = "輪郭なき巨体が霧ごと探索隊を包み込み、足元から沈める。"
+skill_type = "enemy"
+target_type = "all_party"
+power_multiplier = 0.42
+cooldown = 6.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["aoe"])
+element = "dark"
+apply_status_id = "fear"
+apply_status_chance = 0.25

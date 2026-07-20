@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "spore_needle_wasp"
+display_name = "胞針ワスプ"
+max_hp = 544
+attack = 160
+defense = 40
+attack_speed = 1.15
+critical_rate = 0.1
+move_speed = 1.2
+threat_target_bias = "back_row"
+detection_range = 7.5
+attack_range = 2.0
+enemy_type = 0
+ai_type = "default"
+exp_reward = 14
+gold_reward = 52
+drop_table_id = "spore_needle_wasp_drops"
+element_weakness = Array[String](["thunder", "fire"])
+element_resist = Array[String]([])
+attack_element = ""
+on_hit_status_id = "poison"
+on_hit_status_chance = 0.3
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "昆虫類"
+codex_danger = 4
+codex_habitat = "霧沼・瘴胞の樹冠"
+codex_research_note = "蜂を祖先とし、産卵管に共生胞子を蓄えた巨大種。刺突で胞子を注入し、宿主の体液を菌糸の苗床にする。後列の術者を選んで急襲する記録が多い。"
+codex_materials = Array[String]([])
+skill_ids = Array[String]([])
+skill_use_chance = 0.0

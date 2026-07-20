@@ -18,8 +18,9 @@ boss_id = "moldgar"
 legendary_armor_id = "moldgar_abyss_mail"
 legendary_accessory_id = "seradis_archive_seal"
 spawn_weights = {
-"2": 20,
-"3": 80
+"2": 0,
+"3": 45,
+"4": 55
 }
 event_room_weight = 22
 min_event_rooms = 1

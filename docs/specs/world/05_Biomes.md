@@ -417,7 +417,11 @@ Biome は、その両者が重なり合う場所である。
 | 雑魚 | **死毒の大蛙（dead_poison_frog）** | 蛙 | V | thunder | poison | 沼毒を蓄えた巨大蛙。泡状の毒を散布 |
 | 雑魚 | **ミストマンティス（mist_mantis）** | カマキリ | IV | thunder | poison | 濃霧の中で待ち伏せする大型カマキリ |
 | 雑魚 | **沼地の王（marsh_king）** | オオサンショウウオ | V | thunder | poison | 腐植泥に擬態する巨大サンショウウオ。沼の小さな「王」 |
+| 雑魚 | **骨拾い（bone_picker）** | 腐肉食鳥 | II | thunder | bleed | 沼縁の残骸を漁る拾荒鳥。群れで弱者を狙う |
+| 雑魚 | **沼脚スパイダー（mire_strider_spider）** | 蜘蛛 | IV | thunder | poison | 水面張力を渡る巨大蜘蛛 |
+| 雑魚 | **胞針ワスプ（spore_needle_wasp）** | 蜂 | IV | thunder, fire | poison | 刺突で共生胞子を注入する巨大蜂 |
 | Elite | **大爪刀（great_claw）** | 蟹 | V | thunder | bleed | 封印蝋と泥を甲羅に纏った巨蟹。刃状の大爪 |
+| Elite | **夜沼（nightfen）** | 未詳（腐生群体） | VII | thunder, fire | fear | 濃霧の夜にだけ輪郭が立つ正体未詳の大型生物 |
 | Boss | **底なしの王 モルドガル（moldgar）** | ワニ | VII | thunder, fire | poison, bleed | 沈没封緘区の深淵に棲む巨大ワニ。「底なし沼」の頂点 |
 
 **底なしの王 モルドガル** は、霧沼の最深部——探索者が「底なし」と呼ぶ泥塘——に棲む古代型ワニである。学識王ゆかりの沈没書庫跡を縄張りとし、腐生環境に完全適応した頂点捕食者。**不死者ではない。**
@@ -490,7 +494,11 @@ Biome は、その両者が重なり合う場所である。
 | 雑魚 | **スカルタートル（skull_turtle）** | 亀 | V | holy | — | 沈没船の骨に擬態した硬甲の亀 |
 | 雑魚 | **アンダーテイカー（undertaker_shark）** | サメ | V | holy | bleed | 干潟の浅瀬を滑る小型サメ。奇襲 |
 | 雑魚 | **サムライフィッシュ（samurai_fish）** | カジキマグロ | V | holy | mark | 槍のような吻を持つ突進型。標的を仕留める |
+| 雑魚 | **黒潮シャーク（black_tide_shark）** | サメ | V | holy | bleed | 黒砂を巻く潮流に乗る沿岸サメ。群れ |
+| 雑魚 | **深海スクイッド（abyssal_squid）** | 烏賊 | V | holy | mark | 沈没旗艦の影で腕を伸ばす深部烏賊 |
+| 雑魚 | **潮灯（tide_lamp）** | クラゲ | V | holy | chill | 青白く発光する潮間帯クラゲ。夜の干潟を誘う |
 | Elite | **ニンジャオクトパス（ninja_octopus）** | 蛸 | V | holy | mark | 防波堤の影に潜む頭足類。煙幕のように墨を吐く |
+| Elite | **アンカーロード（anchor_lord）** | ヤドカリ | V | holy | stun | 沈没船の錨を殻にした巨大ヤドカリ |
 | Boss | **潮鳴王 ネレイオン（nereion）** | 鯨 | VII | holy, thunder | chill, mark | 潮の満ち引きに低く鳴く巨鯨。海統王の名を民間が付けただけ |
 
 **潮鳴王 ネレイオン** は、座礁船団を背にした潮境の巨鯨と、船骨に着生した潮藻の複合体である（伝承「潮鳴りの主」／`04_Classification §5.5`）。王そのものではない。
@@ -545,7 +553,11 @@ Biome は、その両者が重なり合う場所である。
 | 雑魚 | **ヴェルガロン（vergaron）** | 狼 | I | ice | chill | 極寒の風を纏って狩る大型狼 |
 | 雑魚 | **ストームジョー（storm_joe）** | 恐竜（獣脚類） | III | ice | chill | 吹雪の中を突進する中型恐竜 |
 | 雑魚 | **オルドレクス（oldrex）** | 恐竜（獣脚類） | III | ice | stun | 氷河期の遺構に似た甲殻状の鱗を持つ大型恐竜 |
+| 雑魚 | **氷尾フォックス（ice_tail_fox）** | 狐 | I | ice, fire | chill | 尾に霜柱を蓄える寒地狐。群れで横取り |
+| 雑魚 | **氷河の番人（glacier_warden）** | 熊 | I | fire | stun | 氷晶の板を背負い氷壁に擬態する大型熊 |
+| 雑魚 | **風裂き（wind_ripper）** | 猛禽 | II | ice, fire | chill | 翼で真空の刃を起こす高空猛禽 |
 | Elite | **グレイオス（greios）** | 翼竜 | III | ice, fire | chill, stun | 吹雪に紛れる翼竜。鱗粉で視界を奪う |
+| Elite | **極冠トリケラ（polar_tricera）** | 角竜 | III | fire | stun | 三本角に永久氷を宿す極冠の巨角竜 |
 | Boss | **始祖の竜 エルディオン（eldion）** | 竜（古龍種） | VII | ice, fire | chill, stun | 氷河の果てに眠ると伝わる古代竜。開拓王の俗称が後世についた |
 
 **始祖の竜 エルディオン** は、氷河晶を体内に宿した古龍種の頂点個体である。セルディオン（鉱物）・グランヴェル（森）・モルドガル（沼）と並ぶ Class VII 古代種。**不死者ではない。**

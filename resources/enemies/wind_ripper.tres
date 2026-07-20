@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "wind_ripper"
+display_name = "風裂き"
+max_hp = 560
+attack = 160
+defense = 48
+attack_speed = 1.2
+critical_rate = 0.12
+move_speed = 1.4
+threat_target_bias = "back_row"
+detection_range = 8.0
+attack_range = 2.0
+enemy_type = 0
+ai_type = "default"
+exp_reward = 19
+gold_reward = 72
+drop_table_id = "wind_ripper_drops"
+element_weakness = Array[String](["ice", "fire"])
+element_resist = Array[String]([])
+attack_element = "ice"
+on_hit_status_id = "chill"
+on_hit_status_chance = 0.25
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "鳥類"
+codex_danger = 4
+codex_habitat = "最果て氷裂・吹雪帯"
+codex_research_note = "猛禽を祖先とし、翼で真空の刃を起こす高空種。吹雪の筋に乗り、後列を切り裂いて去る。姿より先に風の裂け目が来る、と報告される。"
+codex_materials = Array[String]([])
+skill_ids = Array[String]([])
+skill_use_chance = 0.0

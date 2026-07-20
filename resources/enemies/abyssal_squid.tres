@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "abyssal_squid"
+display_name = "深海スクイッド"
+max_hp = 736
+attack = 152
+defense = 56
+attack_speed = 1.0
+critical_rate = 0.08
+move_speed = 1.05
+threat_target_bias = "back_row"
+detection_range = 7.0
+attack_range = 2.0
+enemy_type = 0
+ai_type = "default"
+exp_reward = 17
+gold_reward = 64
+drop_table_id = "abyssal_squid_drops"
+element_weakness = Array[String](["holy"])
+element_resist = Array[String]([])
+attack_element = ""
+on_hit_status_id = "mark"
+on_hit_status_chance = 0.25
+can_swarm = false
+swarm_min = 2
+swarm_max = 2
+codex_class = "頭足類"
+codex_danger = 4
+codex_habitat = "沈没航路・潮境の深み"
+codex_research_note = "烏賊を祖先とし、沈没旗艦の影で腕を伸ばす深部種。墨ではなく濃い潮を吐き、標的を付けた獲物へ腕を集中させる。浅瀬の蛸より大型で、単独を好む。"
+codex_materials = Array[String]([])
+skill_ids = Array[String]([])
+skill_use_chance = 0.0

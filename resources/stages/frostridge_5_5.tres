@@ -18,8 +18,8 @@ boss_id = "eldion"
 legendary_armor_id = "eldion_glacier_aegis"
 legendary_accessory_id = "frostridge_boundary_signet"
 spawn_weights = {
-"2": 20,
-"3": 80
+"3": 0,
+"4": 100
 }
 event_room_weight = 15
 min_event_rooms = 1

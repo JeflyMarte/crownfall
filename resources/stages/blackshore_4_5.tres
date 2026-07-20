@@ -18,8 +18,9 @@ boss_id = "nereion"
 legendary_armor_id = "nereion_tide_plate"
 legendary_accessory_id = "pharos_beacon_ring"
 spawn_weights = {
-"2": 20,
-"3": 80
+"2": 0,
+"3": 45,
+"4": 55
 }
 event_room_weight = 18
 min_event_rooms = 1

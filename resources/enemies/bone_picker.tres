@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "bone_picker"
+display_name = "骨拾い"
+max_hp = 480
+attack = 136
+defense = 24
+attack_speed = 1.25
+critical_rate = 0.08
+move_speed = 1.3
+threat_target_bias = "lowest_hp"
+detection_range = 7.0
+attack_range = 1.0
+enemy_type = 0
+ai_type = "default"
+exp_reward = 11
+gold_reward = 42
+drop_table_id = "bone_picker_drops"
+element_weakness = Array[String](["thunder"])
+element_resist = Array[String]([])
+attack_element = ""
+on_hit_status_id = "bleed"
+on_hit_status_chance = 0.2
+can_swarm = true
+swarm_min = 2
+swarm_max = 3
+codex_class = "鳥類"
+codex_danger = 2
+codex_habitat = "霧沼・腐水域の縁"
+codex_research_note = "腐肉食の鳥を祖先とし、沼縁の残骸を漁る拾荒種。嘴は骨を割り、弱った獲物の体温を嗅ぎ分ける。群れで舞い降り、傷のある探索者から先に襲う。"
+codex_materials = Array[String]([])
+skill_ids = Array[String]([])
+skill_use_chance = 0.0

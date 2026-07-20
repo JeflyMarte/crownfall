@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "black_tide_shark"
+display_name = "黒潮シャーク"
+max_hp = 520
+attack = 144
+defense = 40
+attack_speed = 1.2
+critical_rate = 0.08
+move_speed = 1.25
+threat_target_bias = "lowest_hp"
+detection_range = 7.0
+attack_range = 1.5
+enemy_type = 0
+ai_type = "default"
+exp_reward = 14
+gold_reward = 56
+drop_table_id = "black_tide_shark_drops"
+element_weakness = Array[String](["holy"])
+element_resist = Array[String]([])
+attack_element = ""
+on_hit_status_id = "bleed"
+on_hit_status_chance = 0.25
+can_swarm = true
+swarm_min = 2
+swarm_max = 3
+codex_class = "魚類"
+codex_danger = 2
+codex_habitat = "沈没航路・黒潮の筋"
+codex_research_note = "サメを祖先とし、黒砂を巻く潮流に乗る沿岸種。潮が変わる瞬間に群れで押し上げ、弱い獲物を選んで噛み裂く。アンダーテイカーより大きく、より集団的。"
+codex_materials = Array[String]([])
+skill_ids = Array[String]([])
+skill_use_chance = 0.0
