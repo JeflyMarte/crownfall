@@ -66,7 +66,7 @@ const BOTTOM_NAV_ENTRIES: Array[Dictionary] = [
 		"node": "NavEquipmentCatalog",
 		"tab": Tab.NONE,
 		"icon_category": "nav",
-		"icon_id": "forge",
+		"icon_id": "equipment",
 		"locked": false,
 	},
 	{
@@ -142,7 +142,7 @@ const SIDE_MENU_ENTRIES: Array[Dictionary] = [
 		"node": "NavEquipmentCatalog",
 		"tab": Tab.NONE,
 		"icon_category": "nav",
-		"icon_id": "forge",
+		"icon_id": "equipment",
 		"locked": false,
 	},
 	{
