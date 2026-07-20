@@ -160,10 +160,10 @@ layout_mode = 2
 theme_override_constants/separation = 6
 
 [node name="BannerArtHost" type="Control" parent="MainColumn/HeroBanner/BannerVBox"]
-custom_minimum_size = Vector2(0, 220)
+custom_minimum_size = Vector2(0, 320)
 layout_mode = 2
 size_flags_vertical = 3
-clip_contents = true
+clip_contents = false
 
 [node name="LabelCatchcopy" type="Label" parent="MainColumn/HeroBanner/BannerVBox"]
 layout_mode = 2

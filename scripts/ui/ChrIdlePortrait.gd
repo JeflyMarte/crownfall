@@ -65,13 +65,19 @@ static func get_idle_texture(folder_id: String) -> Texture2D:
 static func _prepare_idle_textures(textures: Array[Texture2D]) -> Array[Texture2D]:
 	if textures.size() <= 1:
 		return textures
+	## iOS/Android の VRAM 圧縮テクスチャは get_image() が空／失敗しやすく、
+	## 正規化でフレームが消えることがある。モバイルでは元テクスチャをそのまま使う。
+	if OS.has_feature("mobile") or OS.has_feature("ios") or OS.has_feature("android"):
+		return textures
 	var images: Array[Image] = []
 	for tex in textures:
 		var img: Image = tex.get_image()
-		if img == null:
+		if img == null or img.get_width() <= 0 or img.get_height() <= 0:
 			return textures
 		if img.is_compressed():
 			img.decompress()
+		if img.get_width() <= 0 or img.get_height() <= 0:
+			return textures
 		images.append(img)
 	var min_h: int = 0
 	var max_h: int = 0

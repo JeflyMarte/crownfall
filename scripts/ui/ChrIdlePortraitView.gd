@@ -79,11 +79,15 @@ func set_from_helper_id(helper_id: String, job_id: String = "") -> void:
 	var idle_texs: Array[Texture2D] = []
 	if not helper_id.is_empty():
 		idle_texs = ChrIdlePortrait.load_idle_textures(helper_id)
+	if idle_texs.is_empty() and not helper_id.is_empty():
+		## Idle フォルダが無い／読めない場合は walk をドット代替に。
+		idle_texs = _load_walk_textures(helper_id)
 	if idle_texs.is_empty() and not job_id.is_empty():
 		idle_texs = ChrIdlePortrait.load_idle_textures(job_id)
 	if not idle_texs.is_empty():
 		_idle_textures = idle_texs
 		_art.texture = idle_texs[0]
+		_art.visible = true
 		_glyph.text = ""
 		return
 	var chr_tex: Texture2D = null
@@ -91,9 +95,41 @@ func set_from_helper_id(helper_id: String, job_id: String = "") -> void:
 		chr_tex = IconPaths.get_icon_texture(job_id, "chr")
 	if chr_tex != null:
 		_art.texture = chr_tex
+		_art.visible = true
 		_glyph.text = ""
 		return
 	_clear_portrait("?")
+
+
+func has_idle_texture() -> bool:
+	_ensure_nodes()
+	return _art != null and _art.texture != null
+
+
+func set_static_texture(tex: Texture2D) -> void:
+	_ensure_nodes()
+	_idle_textures.clear()
+	_idle_frame = 0
+	_idle_accum = 0.0
+	_art.texture = tex
+	_art.visible = tex != null
+	_glyph.text = "" if tex != null else "?"
+
+
+func _load_walk_textures(folder_id: String) -> Array[Texture2D]:
+	var out: Array[Texture2D] = []
+	if folder_id.is_empty():
+		return out
+	var i: int = 0
+	while i < 16:
+		var path: String = "res://assets/characters/%s/walk_%d.png" % [folder_id, i]
+		if not ResourceLoader.exists(path):
+			break
+		var tex: Texture2D = load(path) as Texture2D
+		if tex != null:
+			out.append(tex)
+		i += 1
+	return out
 
 
 func _find_member(member_id: String) -> Resource:

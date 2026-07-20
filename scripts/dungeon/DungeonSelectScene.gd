@@ -999,18 +999,13 @@ func _make_biome_title_label(data: Resource, unlocked: bool) -> Control:
 func _sync_featured_banner(dungeon_id: String) -> void:
 	for child in _featured_banner_host.get_children():
 		child.queue_free()
-	# 一覧側に Biome バナーがある場合は Featured 上段の重複バナーを出さない。
-	if _uses_list_biome_banner(dungeon_id):
-		_featured_banner_host.visible = false
-		_featured_banner_host.custom_minimum_size = Vector2.ZERO
-		return
 	var banner_tex: Texture2D = _get_biome_banner_texture(dungeon_id)
 	if banner_tex == null:
 		_featured_banner_host.visible = false
 		_featured_banner_host.custom_minimum_size = Vector2.ZERO
 		return
 	_featured_banner_host.visible = true
-	_featured_banner_host.custom_minimum_size = Vector2(0, BIOME_BANNER_HEIGHT)
+	_featured_banner_host.custom_minimum_size = _biome_banner_header_size(banner_tex)
 	var banner := TextureRect.new()
 	banner.set_anchors_preset(Control.PRESET_FULL_RECT)
 	banner.texture = banner_tex

@@ -30,12 +30,18 @@ AudioManager="*res://scripts/audio/AudioManager.gd"
 _MCPGameBridge="*res://addons/agent_tools/runtime/game_bridge.gd"
 _mcp_game_helper="*res://addons/godot_ai/runtime/game_helper.gd"
 
+[crownfall]
+
+## Mac 等デスクトップでも iPhone 相当のセーフエリア inset を当て、実機とのレイアウト差を減らす。
+ui/simulate_mobile_safe_area=true
+
 [display]
 
 window/size/viewport_width=720
 window/size/viewport_height=1280
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+window/handheld/orientation=1
 
 [editor_plugins]
 
@@ -44,3 +50,5 @@ enabled=PackedStringArray("res://addons/gut/plugin.cfg", "res://addons/agent_too
 [rendering]
 
 renderer/rendering_method="mobile"
+textures/vram_compression/import_etc2_astc=true
+textures/vram_compression/import_s3tc_bptc=true

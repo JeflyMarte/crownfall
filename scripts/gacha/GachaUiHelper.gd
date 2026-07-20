@@ -16,9 +16,63 @@ const BANNER_PORTRAIT_MIN_W: int = 96
 const FEATURED_MIN_RARITY: int = 3
 const FEATURED_IDLE_PX: float = 196.0
 const FEATURED_STATS_MIN_W: float = 220.0
-## 台座中心向け。枠全体中央＋足元を台座天面へ（大きいほど上）。
+## 台座中心向け。実機の短い枠でもキャラ全体が枠内に収まるよう host から算出。
 const FEATURED_IDLE_OFFSET_X: float = 0.0
-const FEATURED_PEDESTAL_FOOT_PAD: float = 260.0
+const FEATURED_PEDESTAL_FOOT_PAD_MIN: float = 16.0
+const FEATURED_PEDESTAL_FOOT_PAD_MAX: float = 96.0
+## 後方互換（オーラ初期値など）。実レイアウトは featured_foot_pad() を使う。
+const FEATURED_PEDESTAL_FOOT_PAD: float = 48.0
+
+
+static func featured_idle_px(host_height: float) -> float:
+	var h: float = maxf(host_height, 1.0)
+	return clampf(minf(FEATURED_IDLE_PX, h * 0.55), 96.0, FEATURED_IDLE_PX)
+
+
+static func featured_foot_pad(host_height: float) -> float:
+	var h: float = maxf(host_height, 1.0)
+	var idle_px: float = featured_idle_px(h)
+	## 必ず idle 全体が host 内に入る（はみ出しで clip 消滅させない）。
+	var max_foot: float = maxf(FEATURED_PEDESTAL_FOOT_PAD_MIN, h - idle_px - 4.0)
+	var preferred: float = clampf(h * 0.14, FEATURED_PEDESTAL_FOOT_PAD_MIN, FEATURED_PEDESTAL_FOOT_PAD_MAX)
+	return minf(preferred, max_foot)
+
+
+## Featured idle / ビームの足元オフセットを host 高さに合わせて再配置。
+static func relayout_featured_shell(shell: Dictionary, host: Control) -> void:
+	if shell.is_empty() or host == null:
+		return
+	var h: float = maxf(host.size.y, 1.0)
+	var idle_px: float = featured_idle_px(h)
+	var foot: float = featured_foot_pad(h)
+	var idle: Control = shell.get("idle") as Control
+	if idle != null:
+		if idle.has_method("set_portrait_size"):
+			idle.call("set_portrait_size", idle_px)
+		idle.offset_left = -idle_px * 0.5 + FEATURED_IDLE_OFFSET_X
+		idle.offset_right = idle_px * 0.5 + FEATURED_IDLE_OFFSET_X
+		idle.offset_top = -idle_px - foot
+		idle.offset_bottom = -foot
+		idle.visible = true
+		idle.modulate = Color.WHITE
+		idle.z_index = 5
+	var fade: Control = shell.get("fade") as Control
+	if fade == null:
+		return
+	var stage: Control = fade.get_node_or_null("FeaturedStage") as Control
+	if stage == null:
+		return
+	var beam: Control = stage.get_node_or_null("FeaturedBeam") as Control
+	if beam != null:
+		var beam_h: float = idle_px + foot + 80.0
+		beam.offset_top = -beam_h
+		beam.offset_bottom = -foot + 36.0
+	var beam_soft: Control = stage.get_node_or_null("FeaturedBeamSoft") as Control
+	if beam_soft != null:
+		var soft_h: float = idle_px + foot + 80.0
+		beam_soft.offset_top = -soft_h * 0.92
+		beam_soft.offset_bottom = -foot + 48.0
+
 
 static func sorted_helpers() -> Array:
 	if not Constants.are_gacha_helpers_playable():
@@ -134,12 +188,13 @@ static func _add_banner_title_overlay(parent: Control) -> void:
 
 
 ## モックの紫光柱＋上昇塵。キャラ背後のみ（画面全体の紫モヤではない）。
-static func _add_featured_purple_aura(stage: Control) -> void:
+static func _add_featured_purple_aura(stage: Control, foot_pad: float = FEATURED_PEDESTAL_FOOT_PAD) -> void:
 	if stage == null:
 		return
 	var beam_tex: Texture2D = GachaUiTokens.load_tex(GachaUiTokens.FEATURED_BEAM)
 	if beam_tex == null:
 		return
+	var foot: float = foot_pad
 
 	var beam := TextureRect.new()
 	beam.name = "FeaturedBeam"
@@ -151,11 +206,11 @@ static func _add_featured_purple_aura(stage: Control) -> void:
 	beam.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	beam.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	var beam_w: float = 220.0
-	var beam_h: float = FEATURED_IDLE_PX + FEATURED_PEDESTAL_FOOT_PAD + 80.0
+	var beam_h: float = FEATURED_IDLE_PX + foot + 80.0
 	beam.offset_left = -beam_w * 0.5 + FEATURED_IDLE_OFFSET_X
 	beam.offset_right = beam_w * 0.5 + FEATURED_IDLE_OFFSET_X
 	beam.offset_top = -beam_h
-	beam.offset_bottom = -FEATURED_PEDESTAL_FOOT_PAD + 36.0
+	beam.offset_bottom = -foot + 36.0
 	beam.modulate = Color(1.15, 1.0, 1.25, 0.52)
 	stage.add_child(beam)
 
@@ -172,7 +227,7 @@ static func _add_featured_purple_aura(stage: Control) -> void:
 	beam_soft.offset_left = -soft_w * 0.5 + FEATURED_IDLE_OFFSET_X
 	beam_soft.offset_right = soft_w * 0.5 + FEATURED_IDLE_OFFSET_X
 	beam_soft.offset_top = -beam_h * 0.92
-	beam_soft.offset_bottom = -FEATURED_PEDESTAL_FOOT_PAD + 48.0
+	beam_soft.offset_bottom = -foot + 48.0
 	beam_soft.modulate = Color(0.85, 0.55, 1.2, 0.28)
 	stage.add_child(beam_soft)
 	stage.move_child(beam_soft, 0)
@@ -190,7 +245,7 @@ static func _add_featured_purple_aura(stage: Control) -> void:
 			mote.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
 			var mote_px: float = 10.0 + float(i % 3) * 4.0
 			var x_off: float = FEATURED_IDLE_OFFSET_X + float((i % 5) - 2) * 22.0
-			var y0: float = -FEATURED_PEDESTAL_FOOT_PAD - 24.0 - float(i) * 10.0
+			var y0: float = -foot - 24.0 - float(i) * 10.0
 			mote.offset_left = x_off - mote_px * 0.5
 			mote.offset_right = x_off + mote_px * 0.5
 			mote.offset_top = y0 - mote_px
@@ -272,7 +327,8 @@ static func build_featured_shell(host: Control) -> Dictionary:
 	for child in host.get_children():
 		child.queue_free()
 	host.mouse_filter = Control.MOUSE_FILTER_STOP
-	host.clip_contents = true
+	## clip すると短い枠で idle が消える。バナーは親 Panel 側で十分。
+	host.clip_contents = false
 
 	var fade := Control.new()
 	fade.name = "FeaturedFade"
@@ -296,35 +352,34 @@ static func build_featured_shell(host: Control) -> Dictionary:
 	stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	fade.add_child(stage)
 
-	_add_featured_purple_aura(stage)
+	var host_h: float = maxf(host.size.y, 280.0)
+	var foot: float = featured_foot_pad(host_h)
+	var idle_px: float = featured_idle_px(host_h)
+	_add_featured_purple_aura(stage, foot)
 
 	var idle: Control = _ChrIdlePortraitView.new()
 	idle.name = "FeaturedIdle"
 	if idle.has_method("set_portrait_size"):
-		idle.call("set_portrait_size", FEATURED_IDLE_PX)
+		idle.call("set_portrait_size", idle_px)
 	idle.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	idle.z_index = 5
 	idle.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
 	idle.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	idle.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	idle.offset_left = -FEATURED_IDLE_PX * 0.5 + FEATURED_IDLE_OFFSET_X
-	idle.offset_right = FEATURED_IDLE_PX * 0.5 + FEATURED_IDLE_OFFSET_X
-	idle.offset_top = -FEATURED_IDLE_PX - FEATURED_PEDESTAL_FOOT_PAD
-	idle.offset_bottom = -FEATURED_PEDESTAL_FOOT_PAD
+	idle.offset_left = -idle_px * 0.5 + FEATURED_IDLE_OFFSET_X
+	idle.offset_right = idle_px * 0.5 + FEATURED_IDLE_OFFSET_X
+	idle.offset_top = -idle_px - foot
+	idle.offset_bottom = -foot
 	stage.add_child(idle)
 
 	var stats_wrap := PanelContainer.new()
 	stats_wrap.name = "StatsWrap"
-	## 高さ固定オフセットだと文言が見切れるため、内容サイズに追従させる。
-	stats_wrap.anchor_left = 1.0
-	stats_wrap.anchor_top = 0.5
-	stats_wrap.anchor_right = 1.0
-	stats_wrap.anchor_bottom = 0.5
+	## 中央 anchor＋offset 0 は iOS 初回レイアウトで高さ 0 になり説明が消える。右上固定。
+	stats_wrap.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	stats_wrap.offset_left = -(FEATURED_STATS_MIN_W + 28.0)
 	stats_wrap.offset_right = -6.0
-	stats_wrap.offset_top = 0.0
-	stats_wrap.offset_bottom = 0.0
-	stats_wrap.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	stats_wrap.grow_vertical = Control.GROW_DIRECTION_BOTH
+	stats_wrap.offset_top = 128.0
+	stats_wrap.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	stats_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var stats_sb := StyleBoxFlat.new()
 	stats_sb.bg_color = Color(0.04, 0.03, 0.05, 0.78)
@@ -395,6 +450,7 @@ static func build_featured_shell(host: Control) -> Dictionary:
 
 	return {
 		"fade": fade,
+		"stats_wrap": stats_wrap,
 		"idle": idle,
 		"name": name_lbl,
 		"stars": stars_lbl,
@@ -412,6 +468,19 @@ static func apply_featured_helper(shell: Dictionary, helper: Resource) -> void:
 	var idle: Control = shell.get("idle") as Control
 	if idle != null and idle.has_method("set_from_helper_id"):
 		idle.call("set_from_helper_id", str(helper.id), str(helper.job_id))
+		idle.visible = true
+		idle.modulate = Color.WHITE
+		## Idle が空なら立ち絵／歩行1コマへフォールバック。
+		if idle.has_method("has_idle_texture") and not bool(idle.call("has_idle_texture")):
+			var fallback: Texture2D = null
+			if helper.has_method("get_portrait_texture"):
+				fallback = helper.call("get_portrait_texture") as Texture2D
+			if fallback == null:
+				var walk_path: String = "res://assets/characters/%s/walk_0.png" % str(helper.id)
+				if ResourceLoader.exists(walk_path):
+					fallback = load(walk_path) as Texture2D
+			if fallback != null and idle.has_method("set_static_texture"):
+				idle.call("set_static_texture", fallback)
 	var name_lbl: Label = shell.get("name") as Label
 	if name_lbl != null:
 		name_lbl.text = str(helper.display_name)
@@ -434,6 +503,10 @@ static func apply_featured_helper(shell: Dictionary, helper: Resource) -> void:
 	var unique_lbl: Label = shell.get("unique") as Label
 	if unique_lbl != null:
 		unique_lbl.text = unique_line_for_helper(helper)
+	var stats_wrap: Control = shell.get("stats_wrap") as Control
+	if stats_wrap != null:
+		stats_wrap.visible = true
+		stats_wrap.queue_sort()
 
 static func setup_pull_button(btn: Button, enabled: bool) -> void:
 	if btn == null:

@@ -82,6 +82,7 @@ func _ready() -> void:
 	_setup_confetti_host()
 	_setup_reveal_presenter()
 	_setup_featured_preview()
+	call_deferred("_finalize_gacha_layout")
 	_summon_layer.visible = false
 	_detail_overlay.visible = false
 	_refresh()
@@ -185,7 +186,9 @@ func _flatten_banner_art_frame() -> void:
 		insert_at += 1
 	## ArtHost だけが枠内に残り、縦いっぱいに伸びる。
 	_banner_art_host.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_banner_art_host.custom_minimum_size = Vector2(0, 260)
+	## 実機で台座キャラが確実に入る高さ。
+	_banner_art_host.custom_minimum_size = Vector2(0, 320)
+	_banner_art_host.clip_contents = false
 
 
 ## 画面全体は落ち着いた暗背景。紫モヤ等の雰囲気レイヤは付けない。
@@ -234,11 +237,15 @@ func _setup_featured_preview() -> void:
 	if _lineup_carousel_scroll != null:
 		_lineup_carousel_scroll.visible = false
 		_lineup_carousel_scroll.custom_minimum_size = Vector2.ZERO
-	_banner_art_host.custom_minimum_size = Vector2(0, 260)
+	_banner_art_host.custom_minimum_size = Vector2(0, 320)
+	_banner_art_host.clip_contents = false
 	if _featured_shell.is_empty():
 		_featured_shell = GachaUiHelper.build_featured_shell(_banner_art_host)
 		if not _banner_art_host.gui_input.is_connected(_on_featured_host_input):
 			_banner_art_host.gui_input.connect(_on_featured_host_input)
+		if not _banner_art_host.resized.is_connected(_on_featured_host_resized):
+			_banner_art_host.resized.connect(_on_featured_host_resized)
+		call_deferred("_on_featured_host_resized")
 	if _featured_timer == null:
 		_featured_timer = Timer.new()
 		_featured_timer.name = "FeaturedRotateTimer"
@@ -247,6 +254,23 @@ func _setup_featured_preview() -> void:
 		_featured_timer.timeout.connect(_on_featured_rotate_timeout)
 		add_child(_featured_timer)
 	_reload_featured_helpers(true)
+
+
+func _on_featured_host_resized() -> void:
+	if _featured_shell.is_empty():
+		return
+	GachaUiHelper.relayout_featured_shell(_featured_shell, _banner_art_host)
+
+
+## BottomNav のセーフエリア適用後、Featured 枠と説明パネルを再レイアウト。
+func _finalize_gacha_layout() -> void:
+	HubLayoutHelper.apply_chrome_safe_area(self)
+	if not _featured_shell.is_empty():
+		GachaUiHelper.relayout_featured_shell(_featured_shell, _banner_art_host)
+		GachaUiHelper.apply_featured_helper(
+			_featured_shell,
+			_featured_helpers[_featured_index] if not _featured_helpers.is_empty() else null
+		)
 
 
 func _reload_featured_helpers(force_show: bool = false) -> void:
@@ -278,6 +302,7 @@ func _show_featured_at(index: int, animate: bool) -> void:
 	_featured_helper_id = str(helper.id)
 	if not animate:
 		GachaUiHelper.apply_featured_helper(_featured_shell, helper)
+		GachaUiHelper.relayout_featured_shell(_featured_shell, _banner_art_host)
 		var fade_now: Control = _featured_shell.get("fade") as Control
 		if fade_now != null:
 			fade_now.modulate = Color(1, 1, 1, 1)

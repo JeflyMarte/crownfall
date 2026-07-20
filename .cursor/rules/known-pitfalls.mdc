@@ -64,6 +64,13 @@ alwaysApply: true
 | `git checkout` / `mv` が `Operation not permitted` | Cursor サンドボックス | アセット・git 復元は `required_permissions: ["all"]` |
 | WIP が消えた | cloud agent / stash | `git-wip-safety.mdc` |
 | GUT で武器ドロップ率が `1.0`（期待 `0.85`） | `weapon_drop` 週のイベント×1.5が加算され `minf(1.0, …)` | イベント依存アサーションは `EventSystem.set_debug_unix_for_tests` で非該当週に固定（`test_wandering_enemy` 参照） |
+| iOS Personal Team で Push 署名エラー | `entitlements/push_notifications=false` が文字列 `"false"` 扱いになり `aps-environment` が付く | 値は `"Disabled"`。entitlements から Push キーを外す |
+| iPhone で上部UI見切れ／下ナビ不反応／ガチャ台座キャラ消失 | セーフエリア未対応＋日課の絶対Y＋`FEATURED_PEDESTAL_FOOT_PAD` 過大で clip／モバイル `get_image` 正規化 | `SafeAreaHelper`＋`HubLayoutHelper.apply_chrome_safe_area`。日課は下端アンカー。台座は host 高さで foot pad。モバイル Idle は正規化スキップ |
+| ダンジョン選択が白紙（特に実機） | VBox 内 `MainColumn/Header` の offset をセーフエリアで上書きしレイアウト崩壊。併せて MainColumn 下端がフッタ分不足 | Header はルート直下のみ inset。MainColumn は `offset_top`＋フッタ高を残した `offset_bottom` |
+| 図鑑／装備一覧などで通貨・タブがノッチに食い込む | Header だけずらして本文が旧位置のまま重なる。または stretch 換算失敗で inset=0 | `DisplayServer` セーフ矩形を `get_final_transform` で換算＋iOS 最低 inset。ルート Header と上端アンカー本文を同じ top で下降（鍛冶の複数帯も含む） |
+| Mac では正しいのに iPhone だけ上バー侵食 | Mac の safe area は常に全画面（inset=0）。ノッチ分が開発時に見えない | `SafeAreaHelper` がデスクトップでも iPhone 相当 inset をシミュレート（`crownfall/ui/simulate_mobile_safe_area`） |
+| ガチャ Featured が消える／説明も無い | ①HEAD の `foot_pad=260` で idle が host 外 ②`SummonActionBar` 分を HubLayout が確保せず MainColumn がボタン背面へ ③StatsWrap の center-anchor 0 高さ | 動的 `featured_foot_pad()`＋`SummonActionBar` を Footer 同様に inset。StatsWrap は右上固定 |
+| ダンジョン Featured バナーが無い | 一覧にバナーがある Biome は Featured 上段を意図的に非表示 | Featured でもバナー表示（アスペクト比の高さ） |
 
 ## ルール化フロー
 

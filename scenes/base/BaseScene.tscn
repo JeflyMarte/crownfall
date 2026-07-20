@@ -193,13 +193,14 @@ layout_mode = 1
 offset_left = 12.0
 offset_top = 96.0
 offset_right = 200.0
-offset_bottom = 720.0
+offset_bottom = 580.0
 theme_override_styles/panel = SubResource("SB_LeftPanel")
 
 [node name="MenuScroll" type="ScrollContainer" parent="HubView/LeftMenuPanel"]
 layout_mode = 2
-size_flags_vertical = 3
+size_flags_vertical = 0
 horizontal_scroll_mode = 0
+vertical_scroll_mode = 0
 
 [node name="MenuVBox" type="VBoxContainer" parent="HubView/LeftMenuPanel/MenuScroll"]
 layout_mode = 2
