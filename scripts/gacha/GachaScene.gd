@@ -11,7 +11,9 @@ const COLOR_SUB: Color = Color(0.72, 0.69, 0.62)
 const COLOR_OWNED: Color = Color(0.55, 0.88, 0.5)
 const FEATURED_ROTATE_SEC: float = 5.0
 const FEATURED_CROSSFADE_SEC: float = 0.3
-const REVEAL_IDLE_PX: float = 196.0
+const REVEAL_IDLE_PX: float = 280.0
+const REVEAL_PANEL_HALF_W: float = 320.0
+const REVEAL_PANEL_HALF_H: float = 540.0
 const REVEAL_CONFETTI_NEW: int = 72
 const REVEAL_CONFETTI_DUP: int = 48
 
@@ -47,6 +49,7 @@ const REVEAL_CONFETTI_DUP: int = 48
 @onready var _label_reveal_sub: Label = $SummonRevealLayer/RevealPanel/RevealVBox/LabelRevealSub
 @onready var _label_tap_hint: Label = $SummonRevealLayer/RevealPanel/RevealVBox/LabelTapHint
 
+var _label_quote: Label = null
 var _summon_active: bool = false
 var _summon_can_dismiss: bool = false
 var _summon_tween: Tween = null
@@ -77,8 +80,9 @@ func _ready() -> void:
 	_button_pull_ticket.pressed.connect(_on_pull_ticket_pressed)
 	_summon_dim.gui_input.connect(_on_summon_overlay_input)
 	_reveal_panel.gui_input.connect(_on_summon_overlay_input)
-	_portrait_frame.add_theme_stylebox_override("panel", GachaUiTokens.lineup_cell_style())
+	_portrait_frame.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	_setup_reveal_idle()
+	_setup_reveal_quote_label()
 	_setup_confetti_host()
 	_setup_reveal_presenter()
 	_setup_featured_preview()
@@ -86,6 +90,26 @@ func _ready() -> void:
 	_summon_layer.visible = false
 	_detail_overlay.visible = false
 	_refresh()
+
+
+func _setup_reveal_quote_label() -> void:
+	if _label_quote != null:
+		return
+	var vbox := $SummonRevealLayer/RevealPanel/RevealVBox as VBoxContainer
+	if vbox == null:
+		return
+	_label_quote = Label.new()
+	_label_quote.name = "LabelQuote"
+	_label_quote.visible = false
+	_label_quote.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_label_quote.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_label_quote.clip_text = false
+	_label_quote.custom_minimum_size = Vector2(0, 0)
+	_label_quote.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_display(_label_quote, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	var insert_at: int = _label_reveal_name.get_index() + 1
+	vbox.add_child(_label_quote)
+	vbox.move_child(_label_quote, insert_at)
 
 
 func _setup_reveal_idle() -> void:
@@ -122,7 +146,7 @@ func _setup_reveal_presenter() -> void:
 		_invite_art,
 		_flash_icon,
 		_portrait_frame,
-		[_label_banner, _label_reveal_name, _label_reveal_sub, _label_tap_hint],
+		[_label_banner, _label_reveal_name, _label_quote, _label_reveal_sub, _label_tap_hint],
 		GachaUiTokens.load_tex(GachaUiTokens.INVITE_SEALED),
 		GachaUiTokens.load_tex(GachaUiTokens.INVITE_SEALED_STAR2),
 		GachaUiTokens.load_tex(GachaUiTokens.INVITE_OPENING)
@@ -148,6 +172,7 @@ func _setup_gacha_chrome() -> void:
 	_hero_banner.add_theme_stylebox_override("panel", GachaUiTokens.banner_frame_style())
 	_detail_panel.add_theme_stylebox_override("panel", GachaUiTokens.panel_dark_style())
 	_reveal_panel.add_theme_stylebox_override("panel", GachaUiTokens.reveal_frame_style())
+	_layout_reveal_panel()
 	_flatten_banner_art_frame()
 	GachaUiHelper.setup_banner_header(
 		$MainColumn/HeroBanner/BannerVBox as VBoxContainer,
@@ -159,7 +184,9 @@ func _setup_gacha_chrome() -> void:
 	_apply_button_style(_btn_detail_close, GachaUiTokens.detail_button_style())
 	UiTypography.apply_body(_label_result, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
 	UiTypography.apply_display(_label_banner, UiTypography.SIZE_DISPLAY_TITLE)
-	UiTypography.apply_display(_label_reveal_name, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
+	UiTypography.apply_display(_label_reveal_name, UiTypography.SIZE_BODY, UiTypography.COLOR_BODY)
+	if _label_quote != null:
+		UiTypography.apply_display(_label_quote, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_body(_label_reveal_sub, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_SUB)
 	UiTypography.apply_caption(_label_tap_hint, UiTypography.COLOR_MUTED)
 	UiTypography.apply_caption(_label_rate)
@@ -167,6 +194,27 @@ func _setup_gacha_chrome() -> void:
 		$DetailOverlay/DetailPanel/DetailVBox/DetailHeader/LabelDetailTitle,
 		UiTypography.SIZE_BODY_SMALL
 	)
+
+
+## 入手フレームを画面中央に大きく配置（720×1280 想定）。
+func _layout_reveal_panel() -> void:
+	if _reveal_panel == null:
+		return
+	_reveal_panel.set_anchors_preset(Control.PRESET_CENTER)
+	_reveal_panel.offset_left = -REVEAL_PANEL_HALF_W
+	_reveal_panel.offset_right = REVEAL_PANEL_HALF_W
+	_reveal_panel.offset_top = -REVEAL_PANEL_HALF_H
+	_reveal_panel.offset_bottom = REVEAL_PANEL_HALF_H
+	_reveal_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_reveal_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+	var vbox := $SummonRevealLayer/RevealPanel/RevealVBox as VBoxContainer
+	if vbox != null:
+		vbox.add_theme_constant_override("separation", 12)
+		vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	if _invite_art != null:
+		_invite_art.custom_minimum_size = Vector2(360, 250)
+	if _portrait_frame != null:
+		_portrait_frame.custom_minimum_size = Vector2(REVEAL_IDLE_PX + 24.0, REVEAL_IDLE_PX + 24.0)
 
 
 ## 確率行などを枠外へ出し、HeroBanner 内はキーアート＋タイトルのみ（黒余白なし）。
@@ -191,22 +239,28 @@ func _flatten_banner_art_frame() -> void:
 	_banner_art_host.clip_contents = false
 
 
-## 画面全体は落ち着いた暗背景。紫モヤ等の雰囲気レイヤは付けない。
+## 画面全体は落ち着いた暗背景。聖堂キーアートは招待枠内（Banner_BG）のみ。
 func _setup_gacha_atmosphere() -> void:
 	var stale := get_node_or_null("GachaAtmosphere")
 	if stale != null:
 		stale.queue_free()
+	## 全画面 UI_BG_Gacha は枠内キーアートと二重になるため使わない。
 	var bg := get_node_or_null("BgTexture") as TextureRect
-	if bg == null:
-		return
-	var bg_tex: Texture2D = GachaUiTokens.load_tex(GachaUiTokens.BG)
-	if bg_tex != null:
-		bg.texture = bg_tex
-	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	bg.modulate = Color.WHITE
-	bg.z_index = -20
+	if bg != null:
+		bg.visible = false
+		bg.texture = null
+		bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var flat := get_node_or_null("BgFlat") as ColorRect
+	if flat == null:
+		flat = ColorRect.new()
+		flat.name = "BgFlat"
+		flat.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		flat.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		flat.z_index = -20
+		add_child(flat)
+		move_child(flat, 0)
+	flat.color = Color(0.035, 0.03, 0.055, 1.0)
+	flat.visible = true
 
 
 func _apply_button_style(btn: Button, style: StyleBox) -> void:
@@ -241,6 +295,7 @@ func _setup_featured_preview() -> void:
 	_banner_art_host.clip_contents = false
 	if _featured_shell.is_empty():
 		_featured_shell = GachaUiHelper.build_featured_shell(_banner_art_host)
+		_wire_pool_icon_buttons()
 		if not _banner_art_host.gui_input.is_connected(_on_featured_host_input):
 			_banner_art_host.gui_input.connect(_on_featured_host_input)
 		if not _banner_art_host.resized.is_connected(_on_featured_host_resized):
@@ -254,6 +309,48 @@ func _setup_featured_preview() -> void:
 		_featured_timer.timeout.connect(_on_featured_rotate_timeout)
 		add_child(_featured_timer)
 	_reload_featured_helpers(true)
+
+
+func _wire_pool_icon_buttons() -> void:
+	if _featured_shell.is_empty():
+		return
+	var strip: Control = _featured_shell.get("pool_strip") as Control
+	if strip == null:
+		return
+	var row: Node = strip.get_node_or_null("PoolIconRow")
+	if row == null:
+		return
+	for child in row.get_children():
+		if child is BaseButton:
+			var btn: BaseButton = child as BaseButton
+			if not btn.pressed.is_connected(_on_pool_icon_pressed):
+				btn.pressed.connect(_on_pool_icon_pressed.bind(btn))
+
+
+func _on_pool_icon_pressed(btn: BaseButton) -> void:
+	if _summon_active or _featured_animating or btn == null:
+		return
+	var helper_id: String = str(btn.get_meta("helper_id", ""))
+	if helper_id.is_empty():
+		return
+	for i in _featured_helpers.size():
+		if str(_featured_helpers[i].id) == helper_id:
+			_show_featured_at(i, true)
+			if _featured_timer != null:
+				_featured_timer.start()
+			return
+	## ★2 など Featured 回転外も枠内プレビュー可。
+	for helper in GachaUiHelper.sorted_helpers():
+		if helper == null or str(helper.id) != helper_id:
+			continue
+		_featured_helper_id = helper_id
+		if _featured_shell.is_empty():
+			return
+		GachaUiHelper.apply_featured_helper(_featured_shell, helper)
+		GachaUiHelper.relayout_featured_shell(_featured_shell, _banner_art_host)
+		if _featured_timer != null:
+			_featured_timer.start()
+		return
 
 
 func _on_featured_host_resized() -> void:
@@ -453,7 +550,7 @@ func _play_summon_reveal(result: Dictionary) -> void:
 	_set_featured_timer_running(false)
 	_set_pull_controls_enabled(false)
 	_summon_layer.visible = true
-	AudioManager.play_sfx("gacha_reveal")
+	AudioManager.play_sfx("level_up")
 
 	var helper_id: String = str(result.get("helper_id", ""))
 	var is_new: bool = bool(result.get("is_new", false))
@@ -472,11 +569,11 @@ func _play_summon_reveal(result: Dictionary) -> void:
 	else:
 		_label_result.add_theme_color_override("font_color", COLOR_SUB)
 		if breakthrough_gained:
-			_label_result.text = "重ねた推薦 — %s（限界突破 +%d） → %s %d 還元" % [
+			_label_result.text = "%s（限界突破 +%d） → %s %d 還元" % [
 				name_str, breakthrough, CurrencyHelper.DISPLAY_NAME, refund,
 			]
 		else:
-			_label_result.text = "重ねた推薦 — %s（上限） → %s %d 還元" % [
+			_label_result.text = "%s（上限） → %s %d 還元" % [
 				name_str, CurrencyHelper.DISPLAY_NAME, refund,
 			]
 
@@ -594,7 +691,7 @@ func preview_summon_reveal_for_audit(helper_id: String = "", is_new: bool = true
 	_portrait_frame.visible = true
 	_portrait_frame.scale = Vector2.ONE
 	_portrait_frame.modulate = Color(1, 1, 1, 1)
-	_label_banner.visible = true
+	## バナー表示は _populate_reveal_content（新規のみ）に従う。
 	_label_reveal_name.visible = true
 	_label_reveal_sub.visible = true
 	_label_tap_hint.visible = true
@@ -612,13 +709,12 @@ func _populate_reveal_content(
 	var name_str: String = hid if helper_data == null else str(helper_data.display_name)
 	var job_id: String = str(helper_data.job_id) if helper_data != null else ""
 
+	## 入手フレームに「仲間を獲得しました」焼込済みのためバナーは出さない。
+	_label_banner.visible = false
+	_label_banner.text = ""
 	if is_new:
-		_label_banner.text = "招きに応じた"
-		_label_banner.add_theme_color_override("font_color", COLOR_NEW)
 		_label_reveal_sub.text = "ロスターに追加されました"
 	else:
-		_label_banner.text = "重ねた推薦"
-		_label_banner.add_theme_color_override("font_color", COLOR_SUB)
 		if refund > 0 and breakthrough_gained and breakthrough > 0:
 			_label_reveal_sub.text = "限界突破 +%d！  %s %d 還元" % [
 				breakthrough, CurrencyHelper.DISPLAY_NAME, refund,
@@ -630,21 +726,30 @@ func _populate_reveal_content(
 		elif breakthrough_gained:
 			_label_reveal_sub.text = "限界突破 +%d" % breakthrough
 		else:
-			_label_reveal_sub.text = "重ねた推薦"
+			_label_reveal_sub.text = ""
 
-	_label_reveal_name.text = name_str
+	var name_line: String = name_str
+	if breakthrough > 0:
+		name_line = "%s（限界突破 +%d）" % [name_str, breakthrough]
+	var job_label: String = GachaUiHelper.job_display_name_for_helper(helper_data)
 	if helper_data != null:
-		var job_data: Resource = DataRegistry.get_job_data(job_id)
-		var role_id: String = str(job_data.role) if job_data != null else job_id
-		var role_label: String = str(RosterUiHelper.ROLE_LABELS.get(role_id, job_id))
-		var name_line: String = name_str
-		if breakthrough > 0:
-			name_line = "%s（限界突破 +%d）" % [name_str, breakthrough]
 		_label_reveal_name.text = "%s\n%s  %s" % [
 			name_line,
 			RosterUiHelper.stars_text(int(helper_data.rarity)),
-			role_label,
+			job_label,
 		]
+	else:
+		_label_reveal_name.text = name_line
+
+	var quote: String = GachaUiHelper.summon_quote_for_helper(helper_data)
+	if _label_quote != null:
+		if quote.is_empty():
+			_label_quote.text = ""
+			_label_quote.visible = false
+		else:
+			_label_quote.text = "「%s」" % quote
+			_label_quote.visible = true
+
 	if _reveal_idle != null and _reveal_idle.has_method("set_from_helper_id"):
 		_reveal_idle.call("set_from_helper_id", hid, job_id)
 	elif _portrait_icon != null:

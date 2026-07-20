@@ -2,11 +2,11 @@ class_name SafeAreaHelper
 extends RefCounted
 
 ## iPhone ノッチ / Dynamic Island / Home Indicator 向け inset。
-## stretch=canvas_items+expand 時は DisplayServer 座標をビューポートへ換算する。
+## stretch=canvas_items+keep 時も DisplayServer 座標をビューポートへ換算する。
 ##
 ## Mac ではセーフエリアが常に「画面全体」(inset=0) のため、未対策だと
 ## エディタでは正しいのに実機だけ上バー侵食、という不一致が起きる。
-## デスクトップでは iPhone 相当 inset をシミュレートして開発時に揃える。
+## デスクトップでは ProjectSettings で明示 ON のときだけシミュレートする。
 
 ## 720 幅論理 px 目安（Dynamic Island 機の top / Home Indicator）。
 const _IOS_TOP_FALLBACK: float = 54.0
@@ -92,15 +92,24 @@ static func _insets() -> Vector4:
 
 static func _platform_fallback(computed: Vector4) -> Vector4:
 	var out := computed
-	## 実機: API が 0 のときの最低保証。
-	## デスクトップ: 常に iPhone 相当をシミュレート（Mac と実機の見た目を揃える）。
+	## デスクトップは inset=0 のまま。
 	if not _needs_mobile_insets():
 		return out
+	## aspect=keep（案A）は上下黒帯でノッチ／Home Indicator を吸収済み。
+	## ここで 54/24 を足すと TopBar が下がり、下ナビ下に余白が空く。
+	if _uses_letterbox_aspect():
+		return out
+	## aspect=expand 等: API が 0 のときの最低保証。
 	if out.y < 0.5:
 		out.y = _IOS_TOP_FALLBACK
 	if out.w < 0.5:
 		out.w = _IOS_BOTTOM_FALLBACK
 	return out
+
+
+static func _uses_letterbox_aspect() -> bool:
+	var aspect: String = str(ProjectSettings.get_setting("display/window/stretch/aspect", "keep"))
+	return aspect == "keep" or aspect == "keep_width" or aspect == "keep_height"
 
 
 static func _needs_mobile_insets() -> bool:

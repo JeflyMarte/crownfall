@@ -10,6 +10,8 @@ extends Resource
 @export var job_id: String = ""
 ## 来歴一行（排出ラインナップ等の表示用 / P3-GACHA-002）。
 @export var origin_note: String = ""
+## 召喚入手時の一言セリフ（空なら origin_note をフォールバック）。
+@export_multiline var summon_quote: String = ""
 ## レアリティ ★1〜4（ノーマル〜超レア）。全員いずれかの基本5職に属する。
 @export var rarity: int = 1
 ## 戦闘パッシブ id（`CombatPassives` SSOT / 空ならジョブフォールバック）。

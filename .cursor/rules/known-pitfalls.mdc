@@ -52,6 +52,8 @@ alwaysApply: true
 | キャラ画面の全タブが左右にはみ出す | CharacterCard（Portrait◀▶＋Stack＋Slots）の最小幅が 720 超。VBox/Tab 全体が引きずられる。OwnerBadge が CHR 原寸(~1250px)に戻ることも | `◀▶` は 28px 固定。Badge は size 直指定せずアンカー固定。Tab Scroll は横スクロール禁止＋clip |
 | 特定職だけ装備が拡大して見える | その職の装備（例: 弓）アートが枠内占有率が高い。レイアウト差ではない | 武器種別アイコン取込で `SAFE_SCALE` 余白を確保。セルサイズ固定と切り分けて確認。**小さく見える弓は** `EquipmentUiTokens.icon_inset_for_item`（`BOW_ICON_INSET_SCALE`）で鍛冶と同ポリシー |
 | MVP 画面で即落ち（`texture` on Nil） | `ChrIdlePortraitView` を `_ready` 前に `set_from_entry`（親未入場の動的生成） | `ui-layout.mdc` — 子ノードは `_ensure_nodes()` で遅延生成。ツリー投入前 API を想定する |
+| ガチャ枠下に同じ聖堂背景が二重 | 全画面 `UI_BG_Gacha` ＋枠内 `Banner_BG` | 画面下地は暗色 `ColorRect`。キーアートは枠内のみ |
+| 結果のレベルアップにオトモが出ない | EXP 付与は `active_pet` 済みだが `ExpRunSnapshot`／UI が `party_members` のみ | スナップショットと行構築は `exp_recipients()`（人間＋オトモ）を使う |
 | ボタン画像の文字が読めない | ラベル焼込 PNG＋非表示テキスト、または極小オーバーレイ | 可読優先。焼込文字に頼らず Godot テキスト（炉研ぎ同様）か、画像化を撤回 |
 | 職名が「ビーストテ…」になる | `OVERRUN_TRIM_ELLIPSIS`＋狭い JobRow／巨大 JobIcon | 職名は省略しない（必要なら折返し）。JobIcon は固定小サイズ（~22px） |
 | キャラスキル名が「鋼斬…」等に省略 | スキル行 Name Label に `clip_text`＋`OVERRUN_TRIM_ELLIPSIS`＋固定最小幅 | スキル名は1行全文（`clip_text=false` / `OVERRUN_NO_TRIMMING` / `AUTOWRAP_OFF`）。説明側を ellipsis |
@@ -62,6 +64,8 @@ alwaysApply: true
 
 | 症状 | 原因 | 再発防止 |
 |---|---|---|
+| iPhone でタッチスクロール不能（ダンジョン他） | Scroll 内 Button／STOP がドラッグを吸収 | `ScrollTouchHelper`（deadzone＋子孫を PASS）。`BottomNavHelper.setup` と一覧 rebuild 後に適用 |
+| aspect=keep なのに TopBar が低い／下ナビ下に黒余白 | SafeArea が inset=0 でも 54/24 を強制フォールバック | letterbox（keep）時はフォールバックしない |
 | `git checkout` / `mv` が `Operation not permitted` | Cursor サンドボックス | アセット・git 復元は `required_permissions: ["all"]` |
 | WIP が消えた | cloud agent / stash | `git-wip-safety.mdc` |
 | GUT で武器ドロップ率が `1.0`（期待 `0.85`） | `weapon_drop` 週のイベント×1.5が加算され `minf(1.0, …)` | イベント依存アサーションは `EventSystem.set_debug_unix_for_tests` で非該当週に固定（`test_wandering_enemy` 参照） |
@@ -74,7 +78,10 @@ alwaysApply: true
 | 招待状が黒画面・下ナビにアイコン無し・BG／タイトル無し | `GachaScene.gd` が欠落メンバ（`TITLE_ART` 等）でパース失敗→スクリプト未実行で chrome／ナビ装飾が走らない | ガチャ画面は HEAD の `_setup_gacha_atmosphere` / `setup_banner_header` を維持。トークン定数は参照前に必ず定義。変更後 headless で GachaScene ロード確認 |
 | アプリアイコンが金の矢印 | iOS 向けに仮 `icon.png`（矢印）を追加したまま放置 | `assets/ui/UI_Title_Logo.png` から生成した `icon.png` を使う |
 | `HubLayoutHelper` が `SafeAreaHelper` 未解決でコンパイル失敗 | class_name 同士の早期参照／`-s` ツールからの preload 順 | `HubLayoutHelper` は `SafeAreaHelper` を `preload` する |
-| Mac では正しいのに iPhone だけ上バー侵食 | Mac の safe area は常に全画面（inset=0）。ノッチ分が開発時に見えない | `SafeAreaHelper` がデスクトップでも iPhone 相当 inset をシミュレート（`crownfall/ui/simulate_mobile_safe_area`） |
+| Mac では正しいのに iPhone だけアイコン位置がズレる | `stretch/aspect=expand` で論理画面の縦横比が実機に合わせて伸びる | 案A: `aspect=keep` で 720×1280 を維持（上下黒帯はエンジンが付与）。自前の黒帯 UI は作らない |
+| Mac では正しいのに iPhone だけ上バー侵食 | Mac の safe area は常に全画面（inset=0）。ノッチ分が開発時に見えない | `SafeAreaHelper` は実機のみ。Mac simulate は既定 OFF（`crownfall/ui/simulate_mobile_safe_area`） |
+| iPhone で隊長名と左メニューが重なる／日課が下ナビに食い込む | `apply_chrome` が TopBar だけ下げ、LeftMenu／日課の絶対Yが未追従。Home Indicator でナビが高くなる | 実機のみ `HubLayoutHelper.layout_hub_home_content`（左メニュー=top+96、日課・通貨は HubView 下端アンカー） |
+| `project.godot` の aspect／simulate が効かない | 日本語コメントをキー文字列に混ぜて設定キーが壊れる | コメントは `;` 行のみ。キーは `window/stretch/aspect` / `ui/simulate_mobile_safe_area` 単体 |
 | ガチャ Featured が消える／説明も無い | ①HEAD の `foot_pad=260` で idle が host 外 ②`SummonActionBar` 分を HubLayout が確保せず MainColumn がボタン背面へ ③StatsWrap の center-anchor 0 高さ | 動的 `featured_foot_pad()`＋`SummonActionBar` を Footer 同様に inset。StatsWrap は右上固定 |
 | ダンジョン Featured バナーが無い | 一覧にバナーがある Biome は Featured 上段を意図的に非表示 | Featured でもバナー表示（アスペクト比の高さ） |
 

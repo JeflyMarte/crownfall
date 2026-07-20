@@ -14,10 +14,10 @@ const COLOR_STAT_HIT: Color = Color(1.0, 0.86, 0.38)
 const COLOR_STAT_HEAL: Color = Color(0.45, 0.95, 0.58)
 const COLOR_STAT_SCORE: Color = Color(0.78, 0.62, 1.0)
 
-const HERO_PORTRAIT_PX: float = 184.0
-const RUNNER_PORTRAIT_PX: float = 120.0
-const PORTRAIT_FRAME_PAD: float = 16.0
-const PODIUM_MIN_HEIGHT: float = 300.0
+const HERO_PORTRAIT_PX: float = 168.0
+const RUNNER_PORTRAIT_PX: float = 112.0
+const PORTRAIT_FRAME_PAD: float = 14.0
+const PODIUM_MIN_HEIGHT: float = 380.0
 const PODIUM_WIDTH: float = 600.0
 
 const STAT_DAMAGE_ICON: String = "res://assets/ui/batch2/ICO_WPN_IronSword.png"

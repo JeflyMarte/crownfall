@@ -10,7 +10,11 @@
 #   2. iPhone を USB 接続 → 「このコンピュータを信頼」
 #   3. Godot でプロジェクトを開く → Project → Export → iOS
 #   4. Bundle Identifier / Team を設定 → Export Project
-#   5. 出力された .xcodeproj を Xcode で開く → 実機を選んで ▶ Run
+#   5. 出力された .xcodeproj を Xcode で開く → **実機 iPhone** を選んで ▶ Run
+#
+# 注意: 実行先に「iPhone 17 Pro」等の **Simulator** を選ぶと
+#       Undefined symbol: _main で失敗する（Godot 4.6.3 の sim 用 lib が x86_64 のみのため）。
+#       接続中の実機（例: "iPhone"）を選ぶこと。
 
 set -euo pipefail
 

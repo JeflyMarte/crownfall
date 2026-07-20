@@ -33,14 +33,16 @@ _mcp_game_helper="*res://addons/godot_ai/runtime/game_helper.gd"
 
 [crownfall]
 
-"##Macç­ã§iPhoneç¸å½insetãã·ãã¥ã¬ã¼ãããå ´åã®ã¿trueã##æ¢å®falseâONã«ããã¨æ ç¹TopBarï¼å·¦ã¡ãã¥ã¼ãä¸ãã£ã¦è¦ãããui/simulate_mobile_safe_area"=false
+; Mac で iPhone 相当 inset をシミュレートする場合のみ true。既定 false。
+ui/simulate_mobile_safe_area=false
 
 [display]
 
 window/size/viewport_width=720
 window/size/viewport_height=1280
 window/stretch/mode="canvas_items"
-window/stretch/aspect="expand"
+; 案A: 720×1280 を維持。実機の縦横比差は上下（または左右）の黒帯で吸収。
+window/stretch/aspect="keep"
 window/handheld/orientation=1
 
 [editor_plugins]

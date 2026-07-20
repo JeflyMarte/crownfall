@@ -214,6 +214,9 @@ const SUB_BANNER_FALLBACK: Dictionary = {
 func _ready() -> void:
 	$MainColumn/Header/HeaderRow/LabelTitle.text = ""
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.ADVENTURE)
+	var bg: TextureRect = $BgTexture as TextureRect
+	if bg != null:
+		bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_btn_back.pressed.connect(_go_home)
 	_btn_featured_select.pressed.connect(_on_featured_select_pressed)
 	_btn_tier_normal.pressed.connect(_on_tier_pressed.bind(_DungeonTierConfig.TIER_NORMAL))
@@ -870,6 +873,12 @@ func _build_list() -> void:
 			_list.add_child(_make_biome_accordion(data))
 	# 末尾バナーがフッター／下ナビで見切れないようスクロール余白を確保
 	_list.add_child(_make_list_bottom_spacer())
+	## 動的生成した Button がタッチドラッグを奪うため、列挙後に PASS 化。
+	call_deferred("_enable_list_touch_scroll")
+
+
+func _enable_list_touch_scroll() -> void:
+	ScrollTouchHelper.enable(_scroll_list)
 
 
 func _make_event_tab_placeholder() -> Control:

@@ -16,6 +16,13 @@ const _META_HEADER_DESIGN_H: StringName = &"_cf_header_design_h"
 const _META_BODY_BASE_TOP: StringName = &"_cf_body_base_top"
 const _META_BODY_BASE_BOTTOM: StringName = &"_cf_body_base_bottom"
 
+## BaseScene HubView 設計値（scenes/base/BaseScene.tscn）。
+const HUB_TOP_BAR_H: float = 88.0
+const HUB_LEFT_MENU_DESIGN_TOP: float = 96.0
+const HUB_DAILY_H: float = 236.0
+const HUB_STRIP_H: float = 80.0
+const HUB_STACK_GAP: float = 8.0
+
 static func viewport_width(fallback: float = NavUiTokens.VIEWPORT_WIDTH) -> float:
 	var root: Window = _main_window()
 	if root != null and root.size.x > 1.0:
@@ -147,11 +154,76 @@ static func _apply_chrome_safe_area_impl(root: Control) -> void:
 		hub.offset_bottom = -nav_h
 	var top_bar: Control = root.get_node_or_null("HubView/TopBar") as Control
 	if top_bar != null:
-		var bar_h2: float = _design_height(top_bar, 88.0)
+		var bar_h2: float = _design_height(top_bar, HUB_TOP_BAR_H)
 		top_bar.offset_top = top
 		top_bar.offset_bottom = top + bar_h2
+	## Hub ホーム: TopBar だけ下げると左メニュー／隊長名が重なる。日課は絶対Yのままだと下ナビに侵食。
+	layout_hub_home_content(root)
 	if root_header != null:
 		_shift_root_header_and_body(root, root_header, top)
+
+
+## 実機のみ。左メニューを TopBar に追従させ、日課・通貨帯を HubView 下端に積む。
+## Mac（should_apply_chrome=false）では呼ばれても何もしない。
+static func layout_hub_home_content(root: Control) -> void:
+	if root == null or not _SafeAreaHelper.should_apply_chrome():
+		return
+	var hub: Control = root.get_node_or_null("HubView") as Control
+	if hub == null:
+		return
+	var top: float = _SafeAreaHelper.top_inset()
+	var left: Control = hub.get_node_or_null("LeftMenuPanel") as Control
+	if left != null:
+		left.anchor_top = 0.0
+		left.anchor_bottom = 0.0
+		left.offset_top = top + HUB_LEFT_MENU_DESIGN_TOP
+		_fit_hub_left_menu_height(left)
+	_stack_hub_bottom_panels(hub)
+
+
+static func _fit_hub_left_menu_height(left: Control) -> void:
+	if left == null:
+		return
+	var scroll: ScrollContainer = left.get_node_or_null("MenuScroll") as ScrollContainer
+	if scroll != null:
+		scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	var vbox: VBoxContainer = left.get_node_or_null("MenuScroll/MenuVBox") as VBoxContainer
+	var content_h: float = 0.0
+	if vbox != null:
+		## size.y 禁止（空パネル化の再発防止）。最小サイズのみ。
+		content_h = vbox.get_combined_minimum_size().y
+	if content_h < 1.0:
+		var design_h: float = absf(left.offset_bottom - left.offset_top)
+		content_h = design_h if design_h > 1.0 else 484.0
+	else:
+		content_h += 20.0
+	left.offset_bottom = left.offset_top + content_h
+
+
+static func _stack_hub_bottom_panels(hub: Control) -> void:
+	if hub == null:
+		return
+	var daily: Control = hub.get_node_or_null("DailyMissionPanel") as Control
+	var strip: Control = hub.get_node_or_null("CurrencyStrip") as Control
+	if daily != null:
+		daily.anchor_left = 0.0
+		daily.anchor_right = 1.0
+		daily.anchor_top = 1.0
+		daily.anchor_bottom = 1.0
+		daily.offset_left = CONTENT_MARGIN_H
+		daily.offset_right = -CONTENT_MARGIN_H
+		daily.offset_top = -(HUB_DAILY_H + HUB_STACK_GAP)
+		daily.offset_bottom = -HUB_STACK_GAP
+	if strip != null:
+		strip.anchor_left = 0.0
+		strip.anchor_right = 1.0
+		strip.anchor_top = 1.0
+		strip.anchor_bottom = 1.0
+		strip.offset_left = CONTENT_MARGIN_H
+		strip.offset_right = -CONTENT_MARGIN_H
+		strip.offset_top = -(HUB_DAILY_H + HUB_STACK_GAP * 2.0 + HUB_STRIP_H)
+		strip.offset_bottom = -(HUB_DAILY_H + HUB_STACK_GAP * 2.0)
 
 
 static func _design_height(ctrl: Control, fallback: float) -> float:

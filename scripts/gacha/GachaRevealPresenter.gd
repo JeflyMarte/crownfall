@@ -5,9 +5,9 @@ extends RefCounted
 
 enum Phase { IDLE, SEALED, OPENING, PORTRAIT, DONE }
 
-const DUR_SEALED: Dictionary = {2: 0.22, 3: 0.32, 4: 0.42}
-const DUR_OPENING: Dictionary = {2: 0.34, 3: 0.48, 4: 0.70}
-const DUR_PORTRAIT: Dictionary = {2: 0.22, 3: 0.28, 4: 0.36}
+const DUR_SEALED: Dictionary = {2: 0.70, 3: 0.95, 4: 1.20}
+const DUR_OPENING: Dictionary = {2: 1.10, 3: 1.45, 4: 1.90}
+const DUR_PORTRAIT: Dictionary = {2: 0.40, 3: 0.50, 4: 0.60}
 const GLOW_ALPHA: Dictionary = {2: 0.35, 3: 0.55, 4: 0.85}
 
 var phase: int = Phase.IDLE
@@ -211,7 +211,12 @@ func _fire_portrait() -> void:
 func _complete() -> void:
 	phase = Phase.DONE
 	for lab in _labels:
-		if lab != null:
+		if lab == null:
+			continue
+		## 空文言のバナー等は出さない（限界突破時の「重ねた推薦」撤去など）。
+		if lab is Label and str((lab as Label).text).is_empty():
+			lab.visible = false
+		else:
 			lab.visible = true
 	if _on_done.is_valid():
 		_on_done.call()

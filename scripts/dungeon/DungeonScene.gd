@@ -5943,7 +5943,7 @@ func _on_finish_button_pressed() -> void:
 	GameState.last_run_exp_snapshots = ExpRunSnapshotScript.build_party_snapshots($DungeonController.run_exp_reward)
 	GameState.last_run_level_ups = {}
 	GameState.last_run_gold_reward = $DungeonController.run_gold_reward
-	GameState.last_run_token_reward = randi_range(1, 2)
+	GameState.last_run_token_reward = randi_range(50, 100)
 	GameState.last_run_weapon_dropped = $DungeonController.last_weapon_dropped
 	GameState.last_run_armor_dropped = $DungeonController.last_armor_dropped
 	if not $DungeonController.last_accessory_dropped.is_empty():

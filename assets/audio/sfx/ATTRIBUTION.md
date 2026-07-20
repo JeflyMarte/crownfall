@@ -28,8 +28,8 @@ SE はこのフォルダ配下。出典は **Kenney.nl（CC0）** と **TomMusic
 | combat_heal.ogg | Interface / pluck_001 |
 | combat_death.ogg | Digital / phaserDown1 |
 | victory.ogg | Digital / threeTone1 |
-| level_up.ogg | Digital / powerUp12 |
-| gacha_reveal.ogg | Digital / powerUp1 |
+| gacha_reveal.ogg | （未使用・暫定で `level_up` を再生） |
+| level_up.ogg | Digital / powerUp12（ガチャ入手SEも共用） |
 
 ### TomMusic（戦闘ヒット／スキル／宝箱／部屋）
 

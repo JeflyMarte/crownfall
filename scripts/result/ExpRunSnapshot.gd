@@ -4,13 +4,22 @@ extends RefCounted
 ## EXP 付与前スナップショット + シミュレーション（P3-UX-RESULT-002）。
 
 
+## 人間パーティ + 随伴オトモ（P3-PET-OTOMO-001 共有EXP）
+static func exp_recipients() -> Array:
+	var out: Array = []
+	for member: Resource in GameState.party_members:
+		if member != null:
+			out.append(member)
+	if GameState.active_pet != null:
+		out.append(GameState.active_pet)
+	return out
+
+
 static func build_party_snapshots(exp_amount: int) -> Dictionary:
 	var out: Dictionary = {}
 	if exp_amount <= 0:
 		return out
-	for member: Resource in GameState.party_members:
-		if member == null:
-			continue
+	for member: Resource in exp_recipients():
 		var member_id: String = str(member.id)
 		if member_id.is_empty():
 			continue

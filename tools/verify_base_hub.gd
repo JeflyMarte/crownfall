@@ -5,6 +5,7 @@ extends SceneTree
 const EXPECTED_LEFT_MENU: int = 9
 const LEFT_MENU_DESIGN_TOP: float = 96.0
 const _SafeAreaHelper := preload("res://scripts/ui/SafeAreaHelper.gd")
+const HubLayoutHelper := preload("res://scripts/ui/HubLayoutHelper.gd")
 
 func _init() -> void:
 	call_deferred("_run")
@@ -92,4 +93,42 @@ func _verify_hub_restored(root: Control) -> PackedStringArray:
 	if nav != null and absf(nav.offset_top + 84.0) > 1.0:
 		## シーン設計の BottomNav 高さ。
 		failures.append("BottomNav offset_top=%.1f expected≈-84 on desktop" % nav.offset_top)
+	failures.append_array(_verify_hub_device_layout_simulated(root))
+	return failures
+
+
+func _verify_hub_device_layout_simulated(root: Control) -> PackedStringArray:
+	## simulate ON で TopBar 追従・日課下端アンカーを検証（実機相当）。
+	var failures: PackedStringArray = []
+	var setting: StringName = &"crownfall/ui/simulate_mobile_safe_area"
+	var prev: bool = bool(ProjectSettings.get_setting(setting, false))
+	ProjectSettings.set_setting(setting, true)
+	HubLayoutHelper.apply_chrome_safe_area(root)
+	HubLayoutHelper.layout_hub_home_content(root)
+	var top_inset: float = _SafeAreaHelper.top_inset()
+	var top_bar: Control = root.get_node_or_null("HubView/TopBar") as Control
+	var left: Control = root.get_node_or_null("HubView/LeftMenuPanel") as Control
+	var daily: Control = root.get_node_or_null("HubView/DailyMissionPanel") as Control
+	if top_bar != null and absf(top_bar.offset_top - top_inset) > 1.0:
+		failures.append(
+			"sim TopBar offset_top=%.1f expected≈%.1f" % [top_bar.offset_top, top_inset]
+		)
+	if left != null:
+		var expect_left: float = top_inset + LEFT_MENU_DESIGN_TOP
+		if absf(left.offset_top - expect_left) > 1.0:
+			failures.append(
+				"sim LeftMenu offset_top=%.1f expected≈%.1f" % [left.offset_top, expect_left]
+			)
+		if top_bar != null and left.offset_top < top_bar.offset_bottom - 1.0:
+			failures.append(
+				"sim LeftMenu overlaps TopBar (left.top=%.1f top_bar.bottom=%.1f)"
+				% [left.offset_top, top_bar.offset_bottom]
+			)
+	if daily != null:
+		if absf(daily.anchor_top - 1.0) > 0.01 or absf(daily.anchor_bottom - 1.0) > 0.01:
+			failures.append("sim DailyMissionPanel should be bottom-anchored")
+		if daily.offset_bottom > -1.0:
+			failures.append("sim DailyMissionPanel offset_bottom=%.1f expected < 0" % daily.offset_bottom)
+	ProjectSettings.set_setting(setting, prev)
+	## デスクトップ既定へ戻したあと、再適用でシーン座標に戻す必要はない（検証終了）。
 	return failures

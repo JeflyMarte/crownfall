@@ -61,7 +61,7 @@ MVPでは地図室・装備・識別のみ優先。
 
 | 機能 | Task | 実装概要 |
 |---|---|---|
-| 縦長固定ビューポート | P3-UI2-003 | 720×1280 固定（`project.godot`: viewport_width=720 / viewport_height=1280 / stretch mode=canvas_items / aspect=expand） |
+| 縦長固定ビューポート | P3-UI2-003 | 720×1280 固定（`project.godot`: viewport_width=720 / viewport_height=1280 / stretch mode=canvas_items / aspect=**keep**）。実機の縦横比差はレターボックス（黒帯）で吸収し、Mac と同じ UI 位置を優先する |
 | 頭上 HP バー | P3-UI2-005 | `HpBarChr0〜2` / `HpBarEnemy` が対応スプライトの `position.x` に追従 |
 | 浮動ダメージ数字 | P3-UI2-004 | `_spawn_damage_number(text, pos, color, scale)` — Label Tween でフェードアップ。クリティカル scale=1.25、DoT 橙・赤橙、スキル白 |
 | バトルログ Panel | P3-UI2-006 | `BattleLogPanel`（PanelContainer）が `BattleLogScroll` をラップ。`production_theme` の `PanelContainer/styles/panel = SB_Panel`（UI_Frame_Panel_Base 9-slice）が明示定義。`BattleLogScroll` の `custom_minimum_size` 高さ 200。**戦闘中のみ表示**（P3-UI2-012） |

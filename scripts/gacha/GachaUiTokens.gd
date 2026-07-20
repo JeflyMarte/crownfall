@@ -24,7 +24,7 @@ const LINEUP_CELL: String = ROOT + "UI_Gacha_LineupCell.png"
 const PANEL_DARK: String = ROOT + "UI_Gacha_Panel_Dark.png"
 const BTN_DETAIL: String = ROOT + "UI_Gacha_Btn_Detail.png"
 const ICO_TOKEN: String = ROOT + "ICO_Gacha_Token.png"
-const REVEAL_FRAME: String = ROOT + "UI_Gacha_Reveal_Frame.png"
+const REVEAL_FRAME: String = ROOT + "UI_Gacha_Reveal_Obtain_Frame.png"
 const INVITE_SEALED: String = ROOT + "UI_Gacha_Invite_Sealed.png"
 const INVITE_SEALED_STAR2: String = ROOT + "UI_Gacha_Invite_Sealed_Star2.png"
 const INVITE_OPENING: String = ROOT + "UI_Gacha_Invite_Opening.png"
@@ -105,7 +105,17 @@ static func detail_button_style() -> StyleBox:
 	return texture_stylebox(BTN_DETAIL, Vector4i(12, 10, 12, 10))
 
 static func reveal_frame_style() -> StyleBox:
-	return texture_stylebox(REVEAL_FRAME, Vector4i(20, 20, 20, 20))
+	## 入手フレーム（タイトル焼込あり）。上下の装飾帯を content margin で確保。
+	var sb: StyleBox = texture_stylebox(REVEAL_FRAME, Vector4i(64, 148, 64, 96))
+	if sb is StyleBoxTexture:
+		var tex_sb := sb as StyleBoxTexture
+		tex_sb.draw_center = true
+		tex_sb.set_content_margin_all(0.0)
+		tex_sb.content_margin_left = 28.0
+		tex_sb.content_margin_right = 28.0
+		tex_sb.content_margin_top = 120.0
+		tex_sb.content_margin_bottom = 72.0
+	return sb
 
 static func apply_pull_button(btn: Button, enabled: bool) -> void:
 	var style: StyleBox = pull_1_style() if enabled else pull_disabled_style()

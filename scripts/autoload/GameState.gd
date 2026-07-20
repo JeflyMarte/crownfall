@@ -1184,7 +1184,7 @@ func _ready() -> void:
 ## タイトル「はじめから」用。永続＋ラン中状態を初期化し、スターター選択待ちにする。
 func reset_for_new_game() -> void:
 	gold = 0
-	gacha_token = 0
+	gacha_token = GachaSystem.STARTING_TOKENS
 	debug_full_unlock = false
 	owned_helpers = {}
 	ticket_inventory = {}

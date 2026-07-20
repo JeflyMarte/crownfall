@@ -24,6 +24,11 @@ const FEATURED_PEDESTAL_FOOT_PAD_MIN: float = 16.0
 const FEATURED_PEDESTAL_FOOT_PAD_MAX: float = 98.0
 ## 後方互換（オーラ初期値など）。実レイアウトは featured_foot_pad() を使う。
 const FEATURED_PEDESTAL_FOOT_PAD: float = 48.0
+## 枠内・ドット絵下の出現プールアイコン帯。
+const POOL_ICON_PX: int = 52
+const POOL_STRIP_HEIGHT: float = 60.0
+const POOL_STRIP_BOTTOM_PAD: float = 8.0
+const POOL_STRIP_SIDE_PAD: float = 12.0
 
 
 static func featured_idle_px(host_height: float) -> float:
@@ -31,18 +36,28 @@ static func featured_idle_px(host_height: float) -> float:
 	return clampf(minf(FEATURED_IDLE_PX, h * 0.55), 96.0, FEATURED_IDLE_PX)
 
 
+static func pool_strip_reserve() -> float:
+	return POOL_STRIP_HEIGHT + POOL_STRIP_BOTTOM_PAD
+
+
 static func featured_foot_pad(host_height: float) -> float:
 	var h: float = maxf(host_height, 1.0)
 	var idle_px: float = featured_idle_px(h)
-	## 必ず idle 全体が host 内に入る（はみ出しで clip 消滅させない）。
-	var max_foot: float = maxf(FEATURED_PEDESTAL_FOOT_PAD_MIN, h - idle_px - 4.0)
-	## 枠が高いと preferred が MAX に張り付く → MIN を変えても見た目は変わらない。
+	var strip: float = pool_strip_reserve()
+	## 必ず idle 全体が host 内に入る（はみ出しで clip 消滅させない）。プール帯の上に置く。
+	var max_foot: float = maxf(FEATURED_PEDESTAL_FOOT_PAD_MIN, h - idle_px - strip - 4.0)
 	var preferred: float = clampf(h * 0.14, FEATURED_PEDESTAL_FOOT_PAD_MIN, FEATURED_PEDESTAL_FOOT_PAD_MAX)
 	return minf(preferred, max_foot)
 
 
-static func _featured_bottom_offset(foot: float) -> float:
-	return -(foot + FEATURED_IDLE_LIFT_Y)
+static func _featured_bottom_offset(foot: float, host_height: float = 0.0, idle_px: float = 0.0) -> float:
+	## LIFT は枠内に収まる範囲まで（実機の短い枠でキャラ消滅防止）。プール帯分を底から確保。
+	var strip: float = pool_strip_reserve()
+	var lift: float = FEATURED_IDLE_LIFT_Y
+	if host_height > 1.0 and idle_px > 1.0:
+		var max_lift: float = maxf(0.0, host_height - foot - idle_px - strip - 4.0)
+		lift = minf(lift, max_lift)
+	return -(foot + lift + strip)
 
 
 ## Featured idle / ビームの足元オフセットを host 高さに合わせて再配置。
@@ -52,7 +67,7 @@ static func relayout_featured_shell(shell: Dictionary, host: Control) -> void:
 	var h: float = maxf(host.size.y, 1.0)
 	var idle_px: float = featured_idle_px(h)
 	var foot: float = featured_foot_pad(h)
-	var bottom: float = _featured_bottom_offset(foot)
+	var bottom: float = _featured_bottom_offset(foot, h, idle_px)
 	var idle: Control = shell.get("idle") as Control
 	if idle != null:
 		if idle.has_method("set_portrait_size"):
@@ -72,14 +87,26 @@ static func relayout_featured_shell(shell: Dictionary, host: Control) -> void:
 		return
 	var beam: Control = stage.get_node_or_null("FeaturedBeam") as Control
 	if beam != null:
-		var beam_h: float = idle_px + foot + FEATURED_IDLE_LIFT_Y + 80.0
+		var beam_h: float = idle_px + foot + absf(bottom) + 80.0
 		beam.offset_top = -beam_h
 		beam.offset_bottom = bottom + 36.0
 	var beam_soft: Control = stage.get_node_or_null("FeaturedBeamSoft") as Control
 	if beam_soft != null:
-		var soft_h: float = idle_px + foot + FEATURED_IDLE_LIFT_Y + 80.0
+		var soft_h: float = idle_px + foot + absf(bottom) + 80.0
 		beam_soft.offset_top = -soft_h * 0.92
 		beam_soft.offset_bottom = bottom + 48.0
+	_relayout_pool_strip(shell.get("pool_strip") as Control)
+
+
+static func _relayout_pool_strip(strip: Control) -> void:
+	if strip == null:
+		return
+	strip.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	strip.offset_left = POOL_STRIP_SIDE_PAD
+	strip.offset_right = -POOL_STRIP_SIDE_PAD
+	strip.offset_top = -(POOL_STRIP_HEIGHT + POOL_STRIP_BOTTOM_PAD)
+	strip.offset_bottom = -POOL_STRIP_BOTTOM_PAD
+	strip.custom_minimum_size = Vector2(0, POOL_STRIP_HEIGHT)
 
 
 static func sorted_helpers() -> Array:
@@ -132,6 +159,17 @@ static func job_display_name_for_helper(helper: Resource) -> String:
 	if job_data != null and not str(job_data.display_name).is_empty():
 		return str(job_data.display_name)
 	return str(helper.job_id)
+
+
+static func summon_quote_for_helper(helper: Resource) -> String:
+	if helper == null:
+		return ""
+	var quote: String = ""
+	if "summon_quote" in helper:
+		quote = str(helper.summon_quote).strip_edges()
+	if quote.is_empty() and "origin_note" in helper:
+		quote = str(helper.origin_note).strip_edges()
+	return quote
 
 
 static func unique_line_for_helper(helper: Resource) -> String:
@@ -474,12 +512,14 @@ static func build_featured_shell(host: Control) -> Dictionary:
 	stats.add_child(unique_lbl)
 
 	_add_banner_title_overlay(fade)
+	var pool_strip: Control = _build_pool_icon_strip(fade)
 
 	return {
 		"fade": fade,
 		"stage": stage,
 		"stats_wrap": stats_wrap,
 		"idle": idle,
+		"pool_strip": pool_strip,
 		"name": name_lbl,
 		"stars": stars_lbl,
 		"job": job_lbl,
@@ -488,6 +528,90 @@ static func build_featured_shell(host: Control) -> Dictionary:
 		"def": def_lbl,
 		"unique": unique_lbl,
 	}
+
+
+## 枠内下部に出現プールの顔アイコン帯を置く。
+static func _build_pool_icon_strip(parent: Control) -> Control:
+	var scroll := ScrollContainer.new()
+	scroll.name = "PoolIconStrip"
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.mouse_filter = Control.MOUSE_FILTER_STOP
+	scroll.z_index = 12
+	_relayout_pool_strip(scroll)
+	parent.add_child(scroll)
+
+	var row := HBoxContainer.new()
+	row.name = "PoolIconRow"
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 8)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	scroll.add_child(row)
+
+	for helper in sorted_helpers():
+		if helper == null:
+			continue
+		row.add_child(make_pool_icon_button(helper))
+	return scroll
+
+
+static func make_pool_icon_button(helper: Resource) -> Button:
+	var btn := Button.new()
+	btn.custom_minimum_size = Vector2(POOL_ICON_PX, POOL_ICON_PX)
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.flat = true
+	btn.clip_contents = true
+	btn.mouse_filter = Control.MOUSE_FILTER_STOP
+	btn.set_meta("helper_id", str(helper.id) if helper != null else "")
+	var empty := StyleBoxEmpty.new()
+	btn.add_theme_stylebox_override("normal", empty)
+	btn.add_theme_stylebox_override("hover", empty)
+	btn.add_theme_stylebox_override("pressed", empty)
+	btn.add_theme_stylebox_override("disabled", empty)
+	btn.add_theme_stylebox_override("focus", empty)
+
+	var frame := PanelContainer.new()
+	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var frame_sb: StyleBox = GachaUiTokens.lineup_cell_style()
+	if frame_sb is StyleBoxTexture:
+		(frame_sb as StyleBoxTexture).set_content_margin_all(3.0)
+	frame.add_theme_stylebox_override("panel", frame_sb)
+	btn.add_child(frame)
+
+	var icon_tex: Texture2D = null
+	if helper != null and helper.has_method("get_portrait_texture"):
+		icon_tex = helper.call("get_portrait_texture") as Texture2D
+	if icon_tex != null:
+		var icon := TextureRect.new()
+		icon.name = "Icon"
+		icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		icon.offset_left = 4.0
+		icon.offset_top = 4.0
+		icon.offset_right = -4.0
+		icon.offset_bottom = -4.0
+		icon.texture = icon_tex
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		frame.add_child(icon)
+	return btn
+
+
+static func highlight_pool_icon(strip: Control, helper_id: String) -> void:
+	if strip == null:
+		return
+	var row: Node = strip.get_node_or_null("PoolIconRow")
+	if row == null:
+		return
+	for child in row.get_children():
+		if not child is CanvasItem:
+			continue
+		var cid: String = str(child.get_meta("helper_id", ""))
+		var on: bool = (not helper_id.is_empty()) and cid == helper_id
+		(child as CanvasItem).modulate = Color(1.08, 1.02, 0.9, 1.0) if on else Color(0.78, 0.76, 0.72, 1.0)
 
 
 static func apply_featured_helper(shell: Dictionary, helper: Resource) -> void:
@@ -535,6 +659,7 @@ static func apply_featured_helper(shell: Dictionary, helper: Resource) -> void:
 	if stats_wrap != null:
 		stats_wrap.visible = true
 		stats_wrap.queue_sort()
+	highlight_pool_icon(shell.get("pool_strip") as Control, str(helper.id))
 
 static func setup_pull_button(btn: Button, enabled: bool) -> void:
 	if btn == null:

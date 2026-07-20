@@ -8,6 +8,7 @@ id = "helper_i"
 display_name = "ガルム"
 job_id = "vanguard"
 origin_note = "元隊商護衛の古強者。大盾の凹み一つごとに逸話がある"
+summon_quote = "盾の凹みは、誇りだ。"
 rarity = 2
 passive_id = "garm_caravan_guard"
 sprite_resource_path = "res://resources/animation/CHR_Helper_i.tres"

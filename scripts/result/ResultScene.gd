@@ -179,7 +179,7 @@ func _setup_wizard_roots() -> void:
 	_mvp_scrim.color = MvpPresentationScript.SCRIM_COLOR
 	_step_mvp_root.add_child(_mvp_scrim)
 	var mvp_vbox := VBoxContainer.new()
-	mvp_vbox.add_theme_constant_override("separation", 14)
+	mvp_vbox.add_theme_constant_override("separation", 20)
 	_step_mvp_root.add_child(mvp_vbox)
 	_mvp_fx_host = Control.new()
 	_mvp_fx_host.name = "MvpFxHost"
@@ -329,9 +329,7 @@ func _build_levelup_rows() -> void:
 		child.queue_free()
 	_levelup_rows.clear()
 	var snapshots: Dictionary = GameState.last_run_exp_snapshots
-	for member: Resource in GameState.party_members:
-		if member == null:
-			continue
+	for member: Resource in ExpRunSnapshotScript.exp_recipients():
 		var member_id: String = str(member.id)
 		if not snapshots.has(member_id):
 			continue
@@ -487,11 +485,7 @@ func _finalize_levelup_rows_from_party() -> void:
 	for row: Dictionary in _levelup_rows:
 		var snap: Dictionary = row.get("snap", {})
 		var member_id: String = str(snap.get("member_id", ""))
-		var member: Resource = null
-		for m: Resource in GameState.party_members:
-			if m != null and str(m.id) == member_id:
-				member = m
-				break
+		var member: Resource = _find_exp_member(member_id)
 		if member == null:
 			continue
 		var lv_after: int = int(member.level)
@@ -509,6 +503,17 @@ func _finalize_levelup_rows_from_party() -> void:
 			exp_label.text = "%d / %d 経験値" % [exp_after, LevelSystem.exp_to_next(lv_after)]
 		if flash != null:
 			flash.visible = false
+
+
+func _find_exp_member(member_id: String) -> Resource:
+	if member_id.is_empty():
+		return null
+	for m: Resource in GameState.party_members:
+		if m != null and str(m.id) == member_id:
+			return m
+	if GameState.active_pet != null and str(GameState.active_pet.id) == member_id:
+		return GameState.active_pet
+	return null
 
 func _apply_pending_exp() -> void:
 	if _exp_applied:
@@ -607,10 +612,10 @@ func _make_mvp_backdrop(content: Control, tier: String, expand_horizontal: bool 
 	else:
 		panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 2)
-	margin.add_theme_constant_override("margin_right", 2)
-	margin.add_theme_constant_override("margin_top", 2)
-	margin.add_theme_constant_override("margin_bottom", 2)
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_top", 6)
+	margin.add_theme_constant_override("margin_bottom", 6)
 	margin.add_child(content)
 	panel.add_child(margin)
 	return panel
@@ -647,7 +652,7 @@ func _build_mvp_podium(ranked: Array) -> Control:
 func _make_mvp_podium_slot(entry: Dictionary, is_hero: bool, scale: float, rank: int) -> Control:
 	var slot := VBoxContainer.new()
 	slot.alignment = BoxContainer.ALIGNMENT_CENTER
-	slot.add_theme_constant_override("separation", 6)
+	slot.add_theme_constant_override("separation", 10)
 	slot.scale = Vector2(scale, scale)
 	var portrait_px: float = (
 		MvpPresentationScript.HERO_PORTRAIT_PX if is_hero else MvpPresentationScript.RUNNER_PORTRAIT_PX
@@ -671,10 +676,11 @@ func _make_mvp_podium_slot(entry: Dictionary, is_hero: bool, scale: float, rank:
 	slot.add_child(frame_host)
 	var text_block := VBoxContainer.new()
 	text_block.alignment = BoxContainer.ALIGNMENT_CENTER
-	text_block.add_theme_constant_override("separation", 4)
+	text_block.add_theme_constant_override("separation", 8)
 	var rank_lbl := Label.new()
 	rank_lbl.text = "%d位" % rank
 	rank_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	rank_lbl.clip_text = false
 	UiTypography.apply_body(
 		rank_lbl,
 		UiTypography.SIZE_CAPTION,
@@ -685,26 +691,32 @@ func _make_mvp_podium_slot(entry: Dictionary, is_hero: bool, scale: float, rank:
 	var name := Label.new()
 	name.text = str(entry.get("display_name", ""))
 	name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name.clip_text = false
+	name.autowrap_mode = TextServer.AUTOWRAP_OFF
+	var name_color: Color = MvpPresentationScript.TEXT_ON_BACKDROP
 	for member: Resource in GameState.party_members:
 		if member != null and str(member.id) == str(entry.get("member_id", "")):
-			UiTypography.apply_display(
-				name,
-				UiTypography.SIZE_BODY if is_hero else UiTypography.SIZE_BODY_SMALL,
-				PartyLogColorsScript.party_color(member),
-				UiTypography.OUTLINE_STRONG if is_hero else UiTypography.OUTLINE_BODY,
-			)
+			name_color = PartyLogColorsScript.party_color(member)
 			break
+	if GameState.active_pet != null and str(GameState.active_pet.id) == str(entry.get("member_id", "")):
+		name_color = PartyLogColorsScript.party_color(GameState.active_pet)
+	UiTypography.apply_display(
+		name,
+		UiTypography.SIZE_BODY if is_hero else UiTypography.SIZE_BODY_SMALL,
+		name_color,
+		UiTypography.OUTLINE_STRONG if is_hero else UiTypography.OUTLINE_BODY,
+	)
 	text_block.add_child(name)
 	var dmg := Label.new()
 	dmg.text = "%d ダメージ" % int(entry.get("damage_total", 0))
 	dmg.clip_text = false
-	dmg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	dmg.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	dmg.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_body(
 		dmg, UiTypography.SIZE_CAPTION, MvpPresentationScript.TEXT_MUTED_ON_BACKDROP, UiTypography.OUTLINE_BODY
 	)
 	text_block.add_child(dmg)
-	text_block.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_block.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	slot.add_child(_make_mvp_backdrop(text_block, "podium"))
 	return slot
 

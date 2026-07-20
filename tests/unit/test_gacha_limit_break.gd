@@ -48,9 +48,9 @@ func test_scale_heal_value() -> void:
 
 
 func test_half_refund_table() -> void:
-	assert_eq(_GachaRarityConfig.get_refund(2), 1)
-	assert_eq(_GachaRarityConfig.get_refund(3), 2)
-	assert_eq(_GachaRarityConfig.get_refund(4), 4)
+	assert_eq(_GachaRarityConfig.get_refund(2), 50)
+	assert_eq(_GachaRarityConfig.get_refund(3), 100)
+	assert_eq(_GachaRarityConfig.get_refund(4), 150)
 
 
 func test_kaida_and_garm_have_passives() -> void:

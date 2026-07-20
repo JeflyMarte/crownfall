@@ -11,6 +11,6 @@ objective_type = "craft_item"
 target_count = 1
 target_param = ""
 reward_gold = 0
-reward_gacha_token = 1
+reward_gacha_token = 50
 reward_material_id = ""
 reward_material_qty = 0

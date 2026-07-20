@@ -42,7 +42,8 @@ const PATHS: Dictionary = {
 	ID_ROOM_ENTER: DIR + "room_enter.ogg",
 	ID_VICTORY: DIR + "victory.ogg",
 	ID_LEVEL_UP: DIR + "level_up.ogg",
-	ID_GACHA_REVEAL: DIR + "gacha_reveal.ogg",
+	## 暫定: 専用ファンファーレ導入まで level_up を共用（P3 ガチャ入手SE）
+	ID_GACHA_REVEAL: DIR + "level_up.ogg",
 }
 
 

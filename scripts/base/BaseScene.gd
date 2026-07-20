@@ -56,7 +56,14 @@ func _ready() -> void:
 	GameState.base_initial_view = "hub"
 	_player_card.gui_input.connect(_on_player_card_gui_input)
 	_setup_gift_badge()
+	call_deferred("_layout_hub_if_needed")
 	call_deferred("_maybe_show_rank_up")
+
+
+func _layout_hub_if_needed() -> void:
+	## 実機のみ: TopBar 追従＋日課下端スタック。Mac はシーン座標のまま。
+	HubLayoutHelper.layout_hub_home_content(self)
+	_place_field_survey_banner()
 
 
 func _maybe_show_rank_up() -> void:

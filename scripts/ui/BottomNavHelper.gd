@@ -44,7 +44,7 @@ const BOTTOM_NAV_ENTRIES: Array[Dictionary] = [
 	},
 	{
 		"id": "equipment",
-		"title": "キャラ管理",
+		"title": "キャラ",
 		"node": "NavCharacter",
 		"tab": Tab.CHARACTER,
 		"icon_category": "nav",
@@ -53,7 +53,7 @@ const BOTTOM_NAV_ENTRIES: Array[Dictionary] = [
 	},
 	{
 		"id": "roster",
-		"title": "パーティー編成",
+		"title": "パーティ",
 		"node": "NavParty",
 		"tab": Tab.PARTY,
 		"icon_category": "nav",
@@ -62,7 +62,7 @@ const BOTTOM_NAV_ENTRIES: Array[Dictionary] = [
 	},
 	{
 		"id": "equipment_catalog",
-		"title": "装備一覧",
+		"title": "装備",
 		"node": "NavEquipmentCatalog",
 		"tab": Tab.NONE,
 		"icon_category": "nav",
@@ -204,6 +204,7 @@ static func setup(nav_row: HBoxContainer, active_tab: Tab) -> void:
 	var root: Control = _scene_root(nav_row)
 	## 実機のみ。Mac で呼ぶと BottomNav／Hub のシーン座標が壊れる。
 	HubLayoutHelper.apply_chrome_safe_area(root)
+	ScrollTouchHelper.enable_in_subtree(root)
 	_HubNpcHelper.show_pending_banner(root)
 
 
@@ -280,7 +281,7 @@ static func _wire_nav_row(nav_row: HBoxContainer, active_tab: Tab) -> void:
 	if character_btn != null:
 		if active_tab == Tab.CHARACTER:
 			character_btn.disabled = true
-			character_btn.tooltip_text = "キャラ管理"
+			character_btn.tooltip_text = "キャラ"
 			NavUiTokens.set_bottom_nav_text_color(character_btn, COLOR_NAV_ACTIVE)
 		else:
 			character_btn.disabled = false

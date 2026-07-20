@@ -72,20 +72,7 @@ func get_craft_data(craft_id: String) -> Resource:
 	return load(path)
 
 func get_all_craft_data() -> Array:
-	var result: Array = []
-	var dir := DirAccess.open(Constants.RESOURCE_CRAFTING_PATH)
-	if dir == null:
-		return result
-	dir.list_dir_begin()
-	var file_name := dir.get_next()
-	while file_name != "":
-		if file_name.ends_with(".tres"):
-			var res: Resource = load(Constants.RESOURCE_CRAFTING_PATH + file_name)
-			if res != null:
-				result.append(res)
-		file_name = dir.get_next()
-	dir.list_dir_end()
-	return result
+	return _load_all_resources(Constants.RESOURCE_CRAFTING_PATH)
 
 func get_recipe_data(recipe_id: String) -> Resource:
 	var path: String = Constants.RESOURCE_RECIPES_PATH + recipe_id + ".tres"
@@ -94,20 +81,7 @@ func get_recipe_data(recipe_id: String) -> Resource:
 	return load(path)
 
 func get_material_shop_items() -> Array:
-	var result: Array = []
-	var dir := DirAccess.open(Constants.RESOURCE_MATERIAL_SHOP_PATH)
-	if dir == null:
-		return result
-	dir.list_dir_begin()
-	var file_name := dir.get_next()
-	while file_name != "":
-		if file_name.ends_with(".tres"):
-			var res: Resource = load(Constants.RESOURCE_MATERIAL_SHOP_PATH + file_name)
-			if res != null:
-				result.append(res)
-		file_name = dir.get_next()
-	dir.list_dir_end()
-	return result
+	return _load_all_resources(Constants.RESOURCE_MATERIAL_SHOP_PATH)
 
 func get_material_price(material_id: String) -> int:
 	var path: String = Constants.RESOURCE_MATERIAL_SHOP_PATH + material_id + ".tres"
@@ -204,17 +178,50 @@ func get_item_name(id: String, item_type: String) -> String:
 	return id
 
 func _load_all_resources(dir_path: String) -> Array:
+	## エディタでは `*.tres`、エクスポート後の PCK では `*.tres.remap` だけが見えることがある。
+	## `.tres` のみを見ると iOS 等で一覧が空になり、ダンジョン選択／ガチャ Featured が消える。
 	var result: Array = []
+	var seen: Dictionary = {}
+	for file_name in _list_resource_dir(dir_path):
+		if file_name.is_empty() or file_name.begins_with("."):
+			continue
+		## サブディレクトリ（例: `_omitted/`）はスキップ。
+		if file_name.ends_with("/") or file_name.contains("/"):
+			continue
+		var base: String = file_name
+		if base.ends_with(".remap"):
+			base = base.substr(0, base.length() - 6)
+		if base.ends_with(".import"):
+			continue
+		if not (base.ends_with(".tres") or base.ends_with(".res")):
+			continue
+		var path: String = dir_path + base
+		if seen.has(path):
+			continue
+		seen[path] = true
+		if not ResourceLoader.exists(path):
+			continue
+		var res: Resource = load(path)
+		if res != null:
+			result.append(res)
+	return result
+
+
+func _list_resource_dir(dir_path: String) -> PackedStringArray:
+	## Godot 4.3+ — エクスポート後も安定して列挙できる。
+	if ResourceLoader.has_method("list_directory"):
+		var listed: Variant = ResourceLoader.call("list_directory", dir_path)
+		if listed is PackedStringArray:
+			return listed as PackedStringArray
+	var out: PackedStringArray = []
 	var dir := DirAccess.open(dir_path)
 	if dir == null:
-		return result
+		return out
 	dir.list_dir_begin()
 	var file_name := dir.get_next()
 	while file_name != "":
-		if file_name.ends_with(".tres"):
-			var res: Resource = load(dir_path + file_name)
-			if res != null:
-				result.append(res)
+		if not dir.current_is_dir():
+			out.append(file_name)
 		file_name = dir.get_next()
 	dir.list_dir_end()
-	return result
+	return out

@@ -10,7 +10,7 @@ func test_sorted_helpers_respects_omit_flag() -> void:
 		assert_eq(helpers.size(), 0, "P3-CHR-OMIT-001: 助っ人オミット時は空")
 
 func test_catchcopy() -> void:
-	assert_eq(GachaUiHelper.catchcopy(), "各地の探索者へ、ギルドからの招き")
+	assert_eq(GachaUiHelper.catchcopy(), GachaUiTokens.BANNER_CATCHCOPY)
 
 func test_pull_title_world_flavor() -> void:
 	assert_eq(GachaUiHelper.pull_title(), "招待状を開く")
@@ -61,3 +61,30 @@ func test_make_lineup_row_has_name() -> void:
 	var row: PanelContainer = GachaUiHelper.make_lineup_row(helpers[0])
 	assert_not_null(row)
 	assert_gt(row.get_child_count(), 0)
+
+
+func test_make_pool_icon_button_sets_helper_id() -> void:
+	var helpers: Array = GachaUiHelper.sorted_helpers()
+	if helpers.is_empty():
+		return
+	var btn: Button = GachaUiHelper.make_pool_icon_button(helpers[0])
+	assert_not_null(btn)
+	assert_eq(str(btn.get_meta("helper_id", "")), str(helpers[0].id))
+	assert_eq(btn.custom_minimum_size.x, float(GachaUiHelper.POOL_ICON_PX))
+
+
+func test_job_display_is_job_name_not_role() -> void:
+	var helpers: Array = GachaUiHelper.sorted_helpers()
+	if helpers.is_empty():
+		return
+	var helper: Resource = null
+	for h in helpers:
+		if h != null and str(h.job_id) == "vanguard":
+			helper = h
+			break
+	if helper == null:
+		helper = helpers[0]
+	var job_label: String = GachaUiHelper.job_display_name_for_helper(helper)
+	assert_false(job_label.is_empty())
+	assert_ne(job_label, "タンク")
+	assert_false(GachaUiHelper.summon_quote_for_helper(helper).is_empty())

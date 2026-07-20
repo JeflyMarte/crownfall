@@ -39,7 +39,7 @@ func test_free_gacha_ticket_button_path() -> void:
 
 
 func test_token_pull_does_not_consume_ticket() -> void:
-	GameState.gacha_token = 2
+	GameState.gacha_token = GachaSystem.PULL_COST + 1
 	TicketInventory.add(TicketIds.GACHA_FREE, 3)
 	var result: Dictionary = GachaSystem.pull(false)
 	assert_true(bool(result.get("ok", false)), str(result))

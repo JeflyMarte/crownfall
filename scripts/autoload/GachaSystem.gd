@@ -9,7 +9,10 @@ const _GachaRarityConfig: Script = preload("res://scripts/gacha/GachaRarityConfi
 const _GachaLimitBreak: Script = preload("res://scripts/gacha/GachaLimitBreak.gd")
 const _CombatControllerScript: Script = preload("res://scripts/combat/CombatController.gd")
 
-const PULL_COST: int = 1
+const PULL_COST: int = 500
+## 「はじめから」開始時の所持魔晶石（1回招待分）。
+const STARTING_TOKENS: int = 500
+
 
 func can_pull() -> bool:
 	if not Constants.are_gacha_helpers_playable():
