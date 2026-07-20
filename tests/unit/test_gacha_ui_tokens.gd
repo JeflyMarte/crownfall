@@ -37,6 +37,12 @@ func test_decorate_title_uses_screen_title() -> void:
 	assert_true(lbl.text.ends_with(UiTypography.TITLE_ORNAMENT_RIGHT.strip_edges()))
 
 func test_banner_copy_constants() -> void:
-	assert_eq(GachaUiTokens.SCREEN_TITLE, "ギルドへの招待状")
+	assert_eq(GachaUiTokens.SCREEN_TITLE, "ギルドからの招待状")
 	assert_eq(GachaUiTokens.LINEUP_SECTION_TITLE, "招きの候補")
-	assert_eq(GachaUiTokens.BANNER_CATCHCOPY, "各地の探索者へ、ギルドからの招き")
+	assert_eq(GachaUiTokens.BANNER_CATCHCOPY, "強力な仲間を召喚する")
+
+func test_gacha_bg_is_production_art() -> void:
+	assert_true(
+		GachaUiTokens.bg_looks_production(),
+		"UI_BG_Gacha.png looks like placeholder (< %d bytes)" % GachaUiTokens.BG_MIN_BYTES
+	)

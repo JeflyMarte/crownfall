@@ -262,9 +262,9 @@ func _on_featured_host_resized() -> void:
 	GachaUiHelper.relayout_featured_shell(_featured_shell, _banner_art_host)
 
 
-## BottomNav のセーフエリア適用後、Featured 枠と説明パネルを再レイアウト。
+## Featured 枠と説明パネルを再レイアウト（chrome は BottomNavHelper／実機のみ）。
 func _finalize_gacha_layout() -> void:
-	HubLayoutHelper.apply_chrome_safe_area(self)
+	## Mac では apply_chrome は no-op。ここでは Featured 再配置のみ。
 	if not _featured_shell.is_empty():
 		GachaUiHelper.relayout_featured_shell(_featured_shell, _banner_art_host)
 		GachaUiHelper.apply_featured_helper(
@@ -300,29 +300,42 @@ func _show_featured_at(index: int, animate: bool) -> void:
 	var helper: Resource = _featured_helpers[next_i]
 	_featured_index = next_i
 	_featured_helper_id = str(helper.id)
+	var stage: Control = _featured_shell.get("stage") as Control
+	var stats_wrap: Control = _featured_shell.get("stats_wrap") as Control
+	## 背景・タイトルは固定。キャラ台座＋説明だけクロスフェードする。
+	var fade_targets: Array[Control] = []
+	if stage != null:
+		fade_targets.append(stage)
+	if stats_wrap != null:
+		fade_targets.append(stats_wrap)
 	if not animate:
 		GachaUiHelper.apply_featured_helper(_featured_shell, helper)
 		GachaUiHelper.relayout_featured_shell(_featured_shell, _banner_art_host)
-		var fade_now: Control = _featured_shell.get("fade") as Control
-		if fade_now != null:
-			fade_now.modulate = Color(1, 1, 1, 1)
+		for t in fade_targets:
+			t.modulate = Color(1, 1, 1, 1)
 		return
 	if _featured_animating:
 		return
 	_featured_animating = true
-	var fade: Control = _featured_shell.get("fade") as Control
-	if fade == null:
+	if fade_targets.is_empty():
 		GachaUiHelper.apply_featured_helper(_featured_shell, helper)
 		_featured_animating = false
 		return
 	if _featured_tween != null and _featured_tween.is_valid():
 		_featured_tween.kill()
 	_featured_tween = create_tween()
-	_featured_tween.tween_property(fade, "modulate:a", 0.0, FEATURED_CROSSFADE_SEC * 0.5)
+	_featured_tween.set_parallel(true)
+	for t in fade_targets:
+		_featured_tween.tween_property(t, "modulate:a", 0.0, FEATURED_CROSSFADE_SEC * 0.5)
+	_featured_tween.set_parallel(false)
 	_featured_tween.tween_callback(func() -> void:
 		GachaUiHelper.apply_featured_helper(_featured_shell, helper)
+		GachaUiHelper.relayout_featured_shell(_featured_shell, _banner_art_host)
 	)
-	_featured_tween.tween_property(fade, "modulate:a", 1.0, FEATURED_CROSSFADE_SEC * 0.5)
+	_featured_tween.set_parallel(true)
+	for t in fade_targets:
+		_featured_tween.tween_property(t, "modulate:a", 1.0, FEATURED_CROSSFADE_SEC * 0.5)
+	_featured_tween.set_parallel(false)
 	_featured_tween.tween_callback(func() -> void:
 		_featured_animating = false
 	)

@@ -51,6 +51,20 @@ alwaysApply: false
 - **弓のみ** `BOW_ICON_INSET_SCALE`（0.55）で inset 縮小し大きく見せる（鍛冶屋と同ポリシー。`icon_inset_for_item`）
 - ホームのイベントバナー等は **左メニューと重ねない**（メニュー下端＋余白）
 
+## 拠点 Hub × セーフエリア（再発防止・必須）
+
+Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` が動く。
+
+❌ BAD
+- Mac で `simulate_mobile_safe_area=true` のまま TopBar／左メニューを動的に下げる
+- 全画面の `BottomNavHelper.setup` で無条件に chrome を当て、招待状の下ナビを潰す
+- `LeftMenuPanel` 高さを Scroll 子の **`size.y`** で決める
+
+✅ GOOD
+- Mac: シーン設計座標を尊重（隊長バー top≈0、左メニュー top≈96）
+- 実機: `SafeAreaHelper.should_apply_chrome()` が true のときだけ chrome
+- 検証: `tools/verify_base_hub.gd`
+
 ## 装備セルサイズ（再発防止・必須）
 
 キャラ切替や再レイアウトで **装備アイコンが拡大する** 事故が繰り返し発生している。

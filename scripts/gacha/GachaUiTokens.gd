@@ -32,14 +32,17 @@ const INVITE_OPEN_FRAME: String = ROOT + "UI_Gacha_Invite_OpenFrame.png"
 const INVITE_GLOW: String = ROOT + "UI_Gacha_Invite_Glow.png"
 const INVITE_SEAL_SHARD: String = ROOT + "UI_Gacha_Invite_SealShard.png"
 
-const SCREEN_TITLE: String = "ギルドへの招待状"
+const SCREEN_TITLE: String = "ギルドからの招待状"
 const LINEUP_SECTION_TITLE: String = "招きの候補"
-const BANNER_CATCHCOPY: String = "各地の探索者へ、ギルドからの招き"
+const BANNER_CATCHCOPY: String = "強力な仲間を召喚する"
+
+## 本番全画面背景の下限（生成プレースホルダ ~5–43KB より大きいこと）。
+const BG_MIN_BYTES: int = 200_000
 
 const BANNER_MIN_HEIGHT: int = 280
 ## 招待枠内タイトル／キャッチコピー画像の表示高さ（幅は親に追従・アスペクト維持）。
-const BANNER_TITLE_HEIGHT: int = 120
-const BANNER_CATCHCOPY_HEIGHT: int = 48
+const BANNER_TITLE_HEIGHT: int = 140
+const BANNER_CATCHCOPY_HEIGHT: int = 72
 const LINEUP_CELL_PX: int = 120
 const PULL_BTN_HEIGHT: int = 88
 const PULL_BTN_MIN_WIDTH: int = 220
@@ -53,7 +56,8 @@ static func back_icon() -> Texture2D:
 	return load_tex(ICO_BACK)
 
 static func token_icon() -> Texture2D:
-	return load_tex(ICO_TOKEN)
+	## ホーム等と同じ魔晶石アイコン（バッチ2）。
+	return CurrencyHelper.get_icon_texture()
 
 static func ornament_diamond() -> Texture2D:
 	return load_tex(ORNAMENT_DIAMOND)
@@ -116,6 +120,17 @@ static func apply_pull_button(btn: Button, enabled: bool) -> void:
 
 static func decorate_title(label: Label) -> void:
 	UiTypography.apply_screen_title(label, UiTypography.SIZE_DISPLAY)
+
+## 全画面背景が生成プレースホルダに戻っていないか。
+static func bg_looks_production() -> bool:
+	if not FileAccess.file_exists(BG):
+		return false
+	var f: FileAccess = FileAccess.open(BG, FileAccess.READ)
+	if f == null:
+		return false
+	var n: int = f.get_length()
+	f.close()
+	return n >= BG_MIN_BYTES
 
 static func _fallback_pull_style(enabled: bool) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()

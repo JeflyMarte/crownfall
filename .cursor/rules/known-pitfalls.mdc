@@ -33,6 +33,7 @@ alwaysApply: true
 | 症状 | 原因 | 再発防止 |
 |---|---|---|
 | 別 Mac でアイコンが戻る | Desktop 直参照、または **未コミット** | 必ず `res://assets/...` にコピー。参照は `IconPaths` / Tokens。同期は commit/push |
+| ガチャ背景が星空プレースホルダに戻る | `generate_gacha_ui_assets.py` が `UI_BG_Gacha.png` を上書き／本番アート未コミット／art 一括で誤削除 | Desktop→`tools/import_gacha_screen_art.py`。生成スクリプトは本番BG/Title/Catchcopyを保護。`GachaUiTokens.bg_looks_production()`＋unit test。差替は必ず commit |
 | カテゴリタブが差し替わる | 装備品 PNG を `ICO_*_Cat_*` に誤適用 | **本体アイコン**（`ICO_WPN_*` / `ICO_ARM_*` / skills）と **Cat タブ**を混同しない |
 | 武器アイコンが一部だけ | `weapon_id` フィールドを探す誤り | 武器 tres の ID は **`id`**。種別は `weapon_type`（greatsword/bow 等） |
 | 見た目が変わらない | `.godot` キャッシュ | アセット差替後は **Godot 完全終了→再起動**。壊れた import は該当 `.ctex` を消して再インポート |
@@ -68,6 +69,11 @@ alwaysApply: true
 | iPhone で上部UI見切れ／下ナビ不反応／ガチャ台座キャラ消失 | セーフエリア未対応＋日課の絶対Y＋`FEATURED_PEDESTAL_FOOT_PAD` 過大で clip／モバイル `get_image` 正規化 | `SafeAreaHelper`＋`HubLayoutHelper.apply_chrome_safe_area`。日課は下端アンカー。台座は host 高さで foot pad。モバイル Idle は正規化スキップ |
 | ダンジョン選択が白紙（特に実機） | VBox 内 `MainColumn/Header` の offset をセーフエリアで上書きしレイアウト崩壊。併せて MainColumn 下端がフッタ分不足 | Header はルート直下のみ inset。MainColumn は `offset_top`＋フッタ高を残した `offset_bottom` |
 | 図鑑／装備一覧などで通貨・タブがノッチに食い込む | Header だけずらして本文が旧位置のまま重なる。または stretch 換算失敗で inset=0 | `DisplayServer` セーフ矩形を `get_final_transform` で換算＋iOS 最低 inset。ルート Header と上端アンカー本文を同じ top で下降（鍛冶の複数帯も含む） |
+| Mac DEBUG で拠点左メニューが空の縦長板／下〜中央が黒帯／ボタン無効 | Hub safe area 後に `LeftMenuPanel` 高さを Scroll 子の `size.y` で再計測→パネルだけ伸びて中身が空に見える。併せて BottomNav と `hub.offset_bottom` の二重計算 | 左メニュー高さは `get_combined_minimum_size()` のみ（`size.y` 禁止）。Mac では `simulate_mobile_safe_area=false` 既定。chrome は `SafeAreaHelper.should_apply_chrome()`（実機のみ）。検証: `tools/verify_base_hub.gd` |
+| 招待状で下ナビが潰れる／隊長バーが中段に落ちる | 全画面で `apply_chrome_safe_area`＋Mac simulate ON | chrome は実機のみ。Mac はシーン座標を触らない |
+| 招待状が黒画面・下ナビにアイコン無し・BG／タイトル無し | `GachaScene.gd` が欠落メンバ（`TITLE_ART` 等）でパース失敗→スクリプト未実行で chrome／ナビ装飾が走らない | ガチャ画面は HEAD の `_setup_gacha_atmosphere` / `setup_banner_header` を維持。トークン定数は参照前に必ず定義。変更後 headless で GachaScene ロード確認 |
+| アプリアイコンが金の矢印 | iOS 向けに仮 `icon.png`（矢印）を追加したまま放置 | `assets/ui/UI_Title_Logo.png` から生成した `icon.png` を使う |
+| `HubLayoutHelper` が `SafeAreaHelper` 未解決でコンパイル失敗 | class_name 同士の早期参照／`-s` ツールからの preload 順 | `HubLayoutHelper` は `SafeAreaHelper` を `preload` する |
 | Mac では正しいのに iPhone だけ上バー侵食 | Mac の safe area は常に全画面（inset=0）。ノッチ分が開発時に見えない | `SafeAreaHelper` がデスクトップでも iPhone 相当 inset をシミュレート（`crownfall/ui/simulate_mobile_safe_area`） |
 | ガチャ Featured が消える／説明も無い | ①HEAD の `foot_pad=260` で idle が host 外 ②`SummonActionBar` 分を HubLayout が確保せず MainColumn がボタン背面へ ③StatsWrap の center-anchor 0 高さ | 動的 `featured_foot_pad()`＋`SummonActionBar` を Footer 同様に inset。StatsWrap は右上固定 |
 | ダンジョン Featured バナーが無い | 一覧にバナーがある Biome は Featured 上段を意図的に非表示 | Featured でもバナー表示（アスペクト比の高さ） |

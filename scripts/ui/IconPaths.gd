@@ -436,6 +436,7 @@ const ICON_MAP: Dictionary = {
 	"nav:character":               "res://assets/ui/nav/ICO_NAV_Character.png",
 	"nav:party":                   "res://assets/ui/nav/ICO_NAV_Party.png",
 	"nav:forge":                   "res://assets/ui/nav/ICO_NAV_Forge.png",
+	"nav:equipment":               "res://assets/ui/nav/ICO_NAV_Equipment.png",
 	"nav:gacha":                   "res://assets/ui/nav/ICO_NAV_Gacha.png",
 	"nav:codex":                   "res://assets/ui/nav/ICO_NAV_Codex.png",
 	"nav:settings":                "res://assets/ui/nav/ICO_NAV_Settings.png",

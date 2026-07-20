@@ -18,8 +18,10 @@ const FEATURED_IDLE_PX: float = 196.0
 const FEATURED_STATS_MIN_W: float = 220.0
 ## 台座中心向け。実機の短い枠でもキャラ全体が枠内に収まるよう host から算出。
 const FEATURED_IDLE_OFFSET_X: float = 0.0
+## 【キャラ上下の主操作】大きいほど上へ。MIN/MAX は自動計算の下限／上限なので触っても効きにくい。
+const FEATURED_IDLE_LIFT_Y: float = 130.0
 const FEATURED_PEDESTAL_FOOT_PAD_MIN: float = 16.0
-const FEATURED_PEDESTAL_FOOT_PAD_MAX: float = 96.0
+const FEATURED_PEDESTAL_FOOT_PAD_MAX: float = 98.0
 ## 後方互換（オーラ初期値など）。実レイアウトは featured_foot_pad() を使う。
 const FEATURED_PEDESTAL_FOOT_PAD: float = 48.0
 
@@ -34,8 +36,13 @@ static func featured_foot_pad(host_height: float) -> float:
 	var idle_px: float = featured_idle_px(h)
 	## 必ず idle 全体が host 内に入る（はみ出しで clip 消滅させない）。
 	var max_foot: float = maxf(FEATURED_PEDESTAL_FOOT_PAD_MIN, h - idle_px - 4.0)
+	## 枠が高いと preferred が MAX に張り付く → MIN を変えても見た目は変わらない。
 	var preferred: float = clampf(h * 0.14, FEATURED_PEDESTAL_FOOT_PAD_MIN, FEATURED_PEDESTAL_FOOT_PAD_MAX)
 	return minf(preferred, max_foot)
+
+
+static func _featured_bottom_offset(foot: float) -> float:
+	return -(foot + FEATURED_IDLE_LIFT_Y)
 
 
 ## Featured idle / ビームの足元オフセットを host 高さに合わせて再配置。
@@ -45,14 +52,15 @@ static func relayout_featured_shell(shell: Dictionary, host: Control) -> void:
 	var h: float = maxf(host.size.y, 1.0)
 	var idle_px: float = featured_idle_px(h)
 	var foot: float = featured_foot_pad(h)
+	var bottom: float = _featured_bottom_offset(foot)
 	var idle: Control = shell.get("idle") as Control
 	if idle != null:
 		if idle.has_method("set_portrait_size"):
 			idle.call("set_portrait_size", idle_px)
 		idle.offset_left = -idle_px * 0.5 + FEATURED_IDLE_OFFSET_X
 		idle.offset_right = idle_px * 0.5 + FEATURED_IDLE_OFFSET_X
-		idle.offset_top = -idle_px - foot
-		idle.offset_bottom = -foot
+		idle.offset_top = -idle_px + bottom
+		idle.offset_bottom = bottom
 		idle.visible = true
 		idle.modulate = Color.WHITE
 		idle.z_index = 5
@@ -64,14 +72,14 @@ static func relayout_featured_shell(shell: Dictionary, host: Control) -> void:
 		return
 	var beam: Control = stage.get_node_or_null("FeaturedBeam") as Control
 	if beam != null:
-		var beam_h: float = idle_px + foot + 80.0
+		var beam_h: float = idle_px + foot + FEATURED_IDLE_LIFT_Y + 80.0
 		beam.offset_top = -beam_h
-		beam.offset_bottom = -foot + 36.0
+		beam.offset_bottom = bottom + 36.0
 	var beam_soft: Control = stage.get_node_or_null("FeaturedBeamSoft") as Control
 	if beam_soft != null:
-		var soft_h: float = idle_px + foot + 80.0
+		var soft_h: float = idle_px + foot + FEATURED_IDLE_LIFT_Y + 80.0
 		beam_soft.offset_top = -soft_h * 0.92
-		beam_soft.offset_bottom = -foot + 48.0
+		beam_soft.offset_bottom = bottom + 48.0
 
 
 static func sorted_helpers() -> Array:
@@ -183,6 +191,25 @@ static func _add_banner_title_overlay(parent: Control) -> void:
 	rect.offset_right = -8.0
 	rect.offset_top = 4.0
 	rect.offset_bottom = float(GachaUiTokens.BANNER_TITLE_HEIGHT)
+	rect.visible = rect.texture != null
+	parent.add_child(rect)
+	_add_banner_catchcopy_overlay(parent)
+
+
+static func _add_banner_catchcopy_overlay(parent: Control) -> void:
+	var rect := TextureRect.new()
+	rect.name = "BannerCatchcopyArt"
+	rect.texture = GachaUiTokens.load_tex(GachaUiTokens.BANNER_CATCHCOPY_ART)
+	rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rect.z_index = 8
+	rect.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	rect.offset_left = 24.0
+	rect.offset_right = -24.0
+	var top: float = float(GachaUiTokens.BANNER_TITLE_HEIGHT) + 2.0
+	rect.offset_top = top
+	rect.offset_bottom = top + float(GachaUiTokens.BANNER_CATCHCOPY_HEIGHT)
 	rect.visible = rect.texture != null
 	parent.add_child(rect)
 
@@ -378,7 +405,7 @@ static func build_featured_shell(host: Control) -> Dictionary:
 	stats_wrap.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	stats_wrap.offset_left = -(FEATURED_STATS_MIN_W + 28.0)
 	stats_wrap.offset_right = -6.0
-	stats_wrap.offset_top = 128.0
+	stats_wrap.offset_top = 208.0
 	stats_wrap.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	stats_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var stats_sb := StyleBoxFlat.new()
@@ -450,6 +477,7 @@ static func build_featured_shell(host: Control) -> Dictionary:
 
 	return {
 		"fade": fade,
+		"stage": stage,
 		"stats_wrap": stats_wrap,
 		"idle": idle,
 		"name": name_lbl,

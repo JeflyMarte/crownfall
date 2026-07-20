@@ -13,9 +13,9 @@ config_version=5
 config/name="Crownfall"
 config/description="2D見下ろし型自動探索ハクスラRPG"
 config/version="0.1.0"
-config/icon="res://icon.png"
 run/main_scene="res://scenes/boot/BootScene.tscn"
 config/features=PackedStringArray("4.6", "Mobile")
+config/icon="res://icon.png"
 
 [autoload]
 
@@ -33,16 +33,15 @@ _mcp_game_helper="*res://addons/godot_ai/runtime/game_helper.gd"
 
 [crownfall]
 
-## Mac 等デスクトップでも iPhone 相当のセーフエリア inset を当て、実機とのレイアウト差を減らす。
-ui/simulate_mobile_safe_area=true
+"##Macç­ã§iPhoneç¸å½insetãã·ãã¥ã¬ã¼ãããå ´åã®ã¿trueã##æ¢å®falseâONã«ããã¨æ ç¹TopBarï¼å·¦ã¡ãã¥ã¼ãä¸ãã£ã¦è¦ãããui/simulate_mobile_safe_area"=false
 
 [display]
 
 window/size/viewport_width=720
 window/size/viewport_height=1280
-window/handheld/orientation=1
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+window/handheld/orientation=1
 
 [editor_plugins]
 
@@ -51,5 +50,5 @@ enabled=PackedStringArray("res://addons/gut/plugin.cfg", "res://addons/agent_too
 [rendering]
 
 renderer/rendering_method="mobile"
-textures/vram_compression/import_etc2_astc=true
 textures/vram_compression/import_s3tc_bptc=true
+textures/vram_compression/import_etc2_astc=true

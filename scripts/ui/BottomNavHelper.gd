@@ -66,7 +66,7 @@ const BOTTOM_NAV_ENTRIES: Array[Dictionary] = [
 		"node": "NavEquipmentCatalog",
 		"tab": Tab.NONE,
 		"icon_category": "nav",
-		"icon_id": "forge",
+		"icon_id": "equipment",
 		"locked": false,
 	},
 	{
@@ -142,7 +142,7 @@ const SIDE_MENU_ENTRIES: Array[Dictionary] = [
 		"node": "NavEquipmentCatalog",
 		"tab": Tab.NONE,
 		"icon_category": "nav",
-		"icon_id": "forge",
+		"icon_id": "equipment",
 		"locked": false,
 	},
 	{
@@ -202,6 +202,7 @@ static func setup(nav_row: HBoxContainer, active_tab: Tab) -> void:
 	highlight_tab(nav_row, active_tab)
 	_wire_nav_row(nav_row, active_tab)
 	var root: Control = _scene_root(nav_row)
+	## 実機のみ。Mac で呼ぶと BottomNav／Hub のシーン座標が壊れる。
 	HubLayoutHelper.apply_chrome_safe_area(root)
 	_HubNpcHelper.show_pending_banner(root)
 

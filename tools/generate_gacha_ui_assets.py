@@ -5,6 +5,10 @@ Output: assets/ui/gacha_ui/*.png
 
 Usage:
   python3 tools/generate_gacha_ui_assets.py
+  python3 tools/generate_gacha_ui_assets.py --force  # overwrite protected production art
+
+Protected (use import_gacha_screen_art.py instead):
+  UI_BG_Gacha.png, UI_Gacha_Banner_BG/Title/Catchcopy.png
 """
 from __future__ import annotations
 
@@ -26,9 +30,23 @@ TEAL = (90, 180, 220)
 RED_RIBBON = (180, 45, 55)
 
 
-def save(img: Image.Image, name: str) -> None:
+# 本番アート。再生成で上書きすると出戻りする（既往: UI_BG_Gacha が星空プレースホルダに戻った）。
+PROTECTED_ASSETS = frozenset(
+    {
+        "UI_BG_Gacha.png",
+        "UI_Gacha_Banner_BG.png",
+        "UI_Gacha_Banner_Title.png",
+        "UI_Gacha_Banner_Catchcopy.png",
+    }
+)
+
+
+def save(img: Image.Image, name: str, *, force: bool = False) -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     path = OUT / name
+    if name in PROTECTED_ASSETS and path.exists() and not force:
+        print(f"skip protected {path} (use --force to overwrite)")
+        return
     img.save(path, optimize=True)
     print(f"wrote {path} ({img.size[0]}x{img.size[1]})")
 
@@ -230,21 +248,29 @@ def draw_reveal_frame(w: int = 360, h: int = 420) -> Image.Image:
     return Image.alpha_composite(glow.filter(ImageFilter.GaussianBlur(6)), img)
 
 
-def main() -> int:
-    save(draw_background(), "UI_BG_Gacha.png")
-    save(draw_diamond(48), "UI_Ornament_Diamond.png")
-    save(draw_back_arrow(48), "UI_Ico_Back_Gold.png")
-    save(draw_section_rule(), "UI_Gacha_SectionRule.png")
-    save(draw_banner_frame(), "UI_Gacha_Banner_Frame.png")
-    save(draw_pity_bar_bg(), "UI_Gacha_PityBar_Bg.png")
-    save(draw_pity_bar_fill(), "UI_Gacha_PityBar_Fill.png")
-    save(draw_pull_button(320, 88, enabled=True), "UI_Gacha_Btn_1Pull.png")
-    save(draw_pull_button(320, 88, enabled=False), "UI_Gacha_Btn_1Pull_Disabled.png")
-    save(draw_lineup_cell(120), "UI_Gacha_LineupCell.png")
-    save(draw_panel_dark(), "UI_Gacha_Panel_Dark.png")
-    save(draw_detail_button(), "UI_Gacha_Btn_Detail.png")
-    save(draw_token_icon(64), "ICO_Gacha_Token.png")
-    save(draw_reveal_frame(), "UI_Gacha_Reveal_Frame.png")
+def main(argv: list[str] | None = None) -> int:
+    import sys
+
+    args = list(sys.argv[1:] if argv is None else argv)
+    force = "--force" in args
+    bg_path = OUT / "UI_BG_Gacha.png"
+    if force or not bg_path.exists():
+        save(draw_background(), "UI_BG_Gacha.png", force=force)
+    else:
+        print(f"skip protected {bg_path} (use --force to overwrite)")
+    save(draw_diamond(48), "UI_Ornament_Diamond.png", force=force)
+    save(draw_back_arrow(48), "UI_Ico_Back_Gold.png", force=force)
+    save(draw_section_rule(), "UI_Gacha_SectionRule.png", force=force)
+    save(draw_banner_frame(), "UI_Gacha_Banner_Frame.png", force=force)
+    save(draw_pity_bar_bg(), "UI_Gacha_PityBar_Bg.png", force=force)
+    save(draw_pity_bar_fill(), "UI_Gacha_PityBar_Fill.png", force=force)
+    save(draw_pull_button(320, 88, enabled=True), "UI_Gacha_Btn_1Pull.png", force=force)
+    save(draw_pull_button(320, 88, enabled=False), "UI_Gacha_Btn_1Pull_Disabled.png", force=force)
+    save(draw_lineup_cell(120), "UI_Gacha_LineupCell.png", force=force)
+    save(draw_panel_dark(), "UI_Gacha_Panel_Dark.png", force=force)
+    save(draw_detail_button(), "UI_Gacha_Btn_Detail.png", force=force)
+    save(draw_token_icon(64), "ICO_Gacha_Token.png", force=force)
+    save(draw_reveal_frame(), "UI_Gacha_Reveal_Frame.png", force=force)
     return 0
 
 

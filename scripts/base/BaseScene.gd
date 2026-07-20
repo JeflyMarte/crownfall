@@ -56,84 +56,7 @@ func _ready() -> void:
 	GameState.base_initial_view = "hub"
 	_player_card.gui_input.connect(_on_player_card_gui_input)
 	_setup_gift_badge()
-	call_deferred("_layout_hub_for_device")
 	call_deferred("_maybe_show_rank_up")
-
-
-func _layout_hub_for_device() -> void:
-	var top_inset: float = SafeAreaHelper.top_inset()
-	var nav_h: float = HubLayoutHelper.bottom_nav_total_height()
-	var hub: Control = $HubView
-	hub.offset_bottom = -nav_h
-	var top_bar: Control = $HubView/TopBar
-	top_bar.offset_top = top_inset
-	top_bar.offset_bottom = top_inset + 88.0
-	## 左メニューは内容高さ＋少し余白まで（下まで伸ばさない）。
-	var left_menu: Control = $HubView/LeftMenuPanel
-	left_menu.anchor_top = 0.0
-	left_menu.anchor_bottom = 0.0
-	left_menu.offset_top = top_inset + 96.0
-	_fit_left_menu_height()
-	## 日課・リソース帯を HubView 下端基準へ（expand 時の浮き上がり防止）。
-	var daily: Control = $HubView/DailyMissionPanel
-	var strip: Control = $HubView/CurrencyStrip
-	var daily_h: float = 236.0
-	var strip_h: float = 80.0
-	var gap: float = 8.0
-	daily.anchor_left = 0.0
-	daily.anchor_right = 1.0
-	daily.anchor_top = 1.0
-	daily.anchor_bottom = 1.0
-	daily.offset_left = 16.0
-	daily.offset_right = -16.0
-	daily.offset_top = -(daily_h + gap)
-	daily.offset_bottom = -gap
-	strip.anchor_left = 0.0
-	strip.anchor_right = 1.0
-	strip.anchor_top = 1.0
-	strip.anchor_bottom = 1.0
-	strip.offset_left = 16.0
-	strip.offset_right = -16.0
-	strip.offset_top = -(daily_h + gap + strip_h + gap)
-	strip.offset_bottom = -(daily_h + gap + gap)
-	_place_field_survey_banner()
-
-
-## 設定ボタン直下＋少し余白でパネル下端を切る（日課への侵食防止）。
-func _fit_left_menu_height() -> void:
-	var left_menu: Control = $HubView/LeftMenuPanel
-	if left_menu == null or _menu_vbox == null:
-		return
-	var scroll: ScrollContainer = left_menu.get_node_or_null("MenuScroll") as ScrollContainer
-	if scroll != null:
-		scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	## タイトル＋区切り＋各行の最小高さから算出。
-	var content_h: float = _menu_vbox.get_combined_minimum_size().y
-	if content_h < 1.0:
-		## 未レイアウト時は行数から概算。
-		var rows: int = maxi(0, _menu_vbox.get_child_count() - 2)
-		content_h = 28.0 + 8.0 + float(rows) * (NavUiTokens.SIDE_MENU_HEIGHT + 4.0)
-	const PAD_BELOW_SETTINGS: float = 12.0
-	const PANEL_PAD: float = 8.0
-	var h: float = content_h + PANEL_PAD + PAD_BELOW_SETTINGS
-	left_menu.offset_bottom = left_menu.offset_top + h
-	## 次フレームで実測し直す（フォント適用後の正確な高さ）。
-	call_deferred("_refit_left_menu_height_measured")
-
-
-func _refit_left_menu_height_measured() -> void:
-	var left_menu: Control = $HubView/LeftMenuPanel
-	if left_menu == null or _menu_vbox == null:
-		return
-	var content_h: float = _menu_vbox.size.y
-	if content_h < 1.0:
-		content_h = _menu_vbox.get_combined_minimum_size().y
-	if content_h < 1.0:
-		return
-	const PAD_BELOW_SETTINGS: float = 12.0
-	const PANEL_PAD: float = 8.0
-	left_menu.offset_bottom = left_menu.offset_top + content_h + PANEL_PAD + PAD_BELOW_SETTINGS
 
 
 func _maybe_show_rank_up() -> void:
@@ -213,19 +136,18 @@ func _setup_field_survey_banner() -> void:
 func _place_field_survey_banner() -> void:
 	if _field_survey_banner == null:
 		return
-	## リソース帯の直上（下端スタック）。左メニュー下固定だと expand で浮く。
+	var menu: Control = $HubView/LeftMenuPanel as Control
+	if menu == null:
+		return
+	## 左メニュー直下・画面幅いっぱいに配置（メニューと重ねない）。
 	const BANNER_H: float = 40.0
 	const GAP: float = 8.0
-	const DAILY_H: float = 236.0
-	const STRIP_H: float = 80.0
-	_field_survey_banner.anchor_left = 0.0
-	_field_survey_banner.anchor_right = 1.0
-	_field_survey_banner.anchor_top = 1.0
-	_field_survey_banner.anchor_bottom = 1.0
+	var top: float = menu.offset_bottom + GAP
+	_field_survey_banner.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	_field_survey_banner.offset_left = 12.0
 	_field_survey_banner.offset_right = -12.0
-	_field_survey_banner.offset_top = -(DAILY_H + GAP + STRIP_H + GAP + BANNER_H + GAP)
-	_field_survey_banner.offset_bottom = -(DAILY_H + GAP + STRIP_H + GAP + GAP)
+	_field_survey_banner.offset_top = top
+	_field_survey_banner.offset_bottom = top + BANNER_H
 
 func _refresh_field_survey_banner() -> void:
 	if _field_survey_banner == null:

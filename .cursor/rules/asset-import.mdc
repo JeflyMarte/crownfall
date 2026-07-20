@@ -19,6 +19,20 @@ alwaysApply: false
 | 剣・弓・防具の装備見た目 | `ICO_WPN_*` / `ICO_ARM_*`（`weapon_type` で一括） | `ICO_Equip_Cat_*` / `ICO_Forge_Cat_*` |
 | スキル絵 | `assets/ui/skills/`（base / 必殺） | カテゴリタブ・無関係 PNG |
 | レリック | `assets/ui/relics/ICO_REL_*` | 装備 Cat やパッシブ |
+| ガチャ全画面背景 | `gacha_ui/UI_BG_Gacha.png`（`GachaUiTokens.BG`） | `generate_gacha_ui_assets.py` の星空仮画像で上書き |
+| ガチャタイトル／キャッチ焼込 | `UI_Gacha_Banner_Title.png` / `UI_Gacha_Banner_Catchcopy.png` | Header Label 文言だけ変更／生成スクリプト上書き |
+
+## 画面背景（Desktop → res://）
+
+| Desktop（`CrownFall設定画像/背景/`） | プロジェクト先 | 取込 |
+|---|---|---|
+| `ガチャ背景.png` | `gacha_ui/UI_BG_Gacha.png` | `tools/import_gacha_screen_art.py` |
+| `ガチャタイトル.png` | `Banner_Title` + `Banner_Catchcopy` | 同上（シート分割） |
+| `メイン画面.png` | `UI_BG_Base.png` | 手動コピー＋シーン参照確認 |
+| `キャラ画面.png` | `equipment_ui/UI_BG_Equipment.png` | 手動コピー |
+
+- **本番背景を generate スクリプトで上書きしない**（ガチャは保護済み。上書きは `--force`）
+- 取込後は **commit**（未コミットのまま Mac 移行すると出戻り）
 
 ## データ突合
 

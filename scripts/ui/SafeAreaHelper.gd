@@ -12,7 +12,8 @@ extends RefCounted
 const _IOS_TOP_FALLBACK: float = 54.0
 const _IOS_BOTTOM_FALLBACK: float = 24.0
 
-## ProjectSettings で false にすると Mac シミュレーションを切れる。
+## ProjectSettings で true にすると Mac でも iPhone 相当 inset をシミュレート。
+## 既定は false（Mac ではシーン設計座標を壊さない）。
 const SETTINGS_SIMULATE: StringName = &"crownfall/ui/simulate_mobile_safe_area"
 
 
@@ -30,6 +31,14 @@ static func left_inset() -> float:
 
 static func right_inset() -> float:
 	return _insets().z
+
+
+## 実機（または明示的な Mac シミュレーション）で chrome を動かすか。
+static func should_apply_chrome() -> bool:
+	if not _needs_mobile_insets():
+		return false
+	var insets: Vector4 = _insets()
+	return insets.y > 0.5 or insets.w > 0.5 or insets.x > 0.5 or insets.z > 0.5
 
 
 ## Vector4(left, top, right, bottom) in viewport pixels.
@@ -98,10 +107,10 @@ static func _needs_mobile_insets() -> bool:
 	var os_name: String = OS.get_name()
 	if os_name == "iOS" or os_name == "Android":
 		return true
-	## macOS / Windows / Linux — モバイル向け UI の開発時シミュレーション。
+	## macOS / Windows / Linux — 明示 ON のときだけシミュレート（既定 OFF）。
 	if ProjectSettings.has_setting(SETTINGS_SIMULATE):
 		return bool(ProjectSettings.get_setting(SETTINGS_SIMULATE))
-	return true
+	return false
 
 
 static func _main_window() -> Window:
