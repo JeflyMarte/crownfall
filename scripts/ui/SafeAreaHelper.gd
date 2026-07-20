@@ -17,11 +17,11 @@ const _CONTENT_HOST_NAMES: Array[String] = [
 	"RootVBox",
 	"CenterRoot",
 ]
-## 画面上部クローム（TopBar / Header）。HubView 内 TopBar は HubView inset に任せる。
+## 画面上部クローム（アンカー配置の Header / TopBar）。
+## VBox 内 Header（DungeonSelect 等）は親ホストの top inset に任せる。
 const _TOP_CHROME_NAMES: Array[String] = [
 	"Header",
 	"TopBar",
-	"MainColumn/Header",
 ]
 
 
@@ -118,6 +118,9 @@ static func apply_scene_chrome(root: Node) -> void:
 
 
 static func _apply_top_chrome(chrome: Control, inset: Vector4) -> void:
+	## Container 配下は親がレイアウトするため offset 操作しない。
+	if chrome.get_parent() is Container:
+		return
 	var base: Vector4 = _ensure_base_offsets(chrome)
 	chrome.offset_left = base.x + inset.x
 	chrome.offset_top = base.y + inset.y
