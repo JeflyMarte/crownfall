@@ -30,8 +30,9 @@ tools/_ed.log
 *.swp
 *.swo
 
-# Saves / user data
-saves/
+# Godot export / build output
+build/
+
 
 # OS
 Thumbs.db

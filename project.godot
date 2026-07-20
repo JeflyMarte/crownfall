@@ -13,6 +13,7 @@ config_version=5
 config/name="Crownfall"
 config/description="2D見下ろし型自動探索ハクスラRPG"
 config/version="0.1.0"
+config/icon="res://icon.png"
 run/main_scene="res://scenes/boot/BootScene.tscn"
 config/features=PackedStringArray("4.6", "Mobile")
 
@@ -39,9 +40,9 @@ ui/simulate_mobile_safe_area=true
 
 window/size/viewport_width=720
 window/size/viewport_height=1280
+window/handheld/orientation=1
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
-window/handheld/orientation=1
 
 [editor_plugins]
 
