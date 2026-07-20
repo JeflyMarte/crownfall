@@ -42,3 +42,14 @@ func test_claim_all_applies_materials_and_tokens() -> void:
 	assert_eq(GameState.gold, 110)
 	assert_eq(GameState.gacha_token, 2)
 	assert_eq(GameState.get_material_quantity("base_ore"), 3)
+
+
+func test_reward_summary_includes_helper() -> void:
+	var summary: String = _CommanderGiftBox.reward_summary({
+		"gold": 100,
+		"helpers": ["helper_a"],
+		"tickets": {TicketIds.GACHA_FREE: 1},
+	})
+	assert_true(summary.contains("ヴァルデン") or summary.contains("助っ人"))
+	assert_true(summary.contains("ゴールド"))
+

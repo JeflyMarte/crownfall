@@ -3,13 +3,15 @@ extends RefCounted
 
 const _CommanderProfile := preload("res://scripts/commander/CommanderProfile.gd")
 const _CommanderLifetime := preload("res://scripts/commander/CommanderLifetime.gd")
+const _GachaLimitBreak := preload("res://scripts/gacha/GachaLimitBreak.gd")
 
 ## 隊長台帳「配布ボックス」— 運営配布報酬の受取 SSOT。
 ## 配布物は `GameState.commander["gift_box"]` に格納し、セーブ v5 の commander 配下で永続化する。
 ##
-## 運営配布（将来のサーバ連携・管理ツール）は `enqueue()` で投入する。
+## 運営配布（将来のサーバ連携・管理ツール）／調査許可コードは `enqueue()` で投入する。
 ## エントリ例:
-##   {"title": "補填", "message": "...", "gold": 500, "gacha_token": 0, "materials": {}}
+##   {"title": "補填", "message": "...", "gold": 500, "gacha_token": 0,
+##    "materials": {}, "tickets": {}, "helpers": ["helper_a"]}
 
 const MAX_ENTRIES: int = 100
 
@@ -96,6 +98,20 @@ static func reward_summary(entry: Dictionary) -> String:
 			if qty <= 0:
 				continue
 			parts.append("%s×%d" % [DataRegistry.get_material_name(str(mat_id)), qty])
+	var tickets: Variant = entry.get("tickets", {})
+	if tickets is Dictionary:
+		for tid: Variant in tickets:
+			var tqty: int = int(tickets[tid])
+			if tqty <= 0:
+				continue
+			parts.append("%s×%d" % [_ticket_display_name(str(tid)), tqty])
+	var helpers: Variant = entry.get("helpers", [])
+	if helpers is Array:
+		for hid_v: Variant in helpers:
+			var hid: String = str(hid_v)
+			if hid.is_empty():
+				continue
+			parts.append("助っ人 %s" % _helper_display_name(hid))
 	if parts.is_empty():
 		return "報酬なし"
 	return " / ".join(parts)
@@ -112,6 +128,34 @@ static func _normalize_entry(payload: Dictionary) -> Dictionary:
 			var qty: int = int(raw_mats[mat_id])
 			if qty > 0:
 				materials[str(mat_id)] = qty
+	var tickets: Dictionary = {}
+	var raw_tickets: Variant = payload.get("tickets", {})
+	if raw_tickets is Dictionary:
+		for tid: Variant in raw_tickets:
+			var tqty: int = int(raw_tickets[tid])
+			if tqty > 0 and DataRegistry.get_ticket_data(str(tid)) != null:
+				tickets[str(tid)] = tqty
+	var helpers: Array = []
+	var raw_helpers: Variant = payload.get("helpers", [])
+	if raw_helpers is Array:
+		for hid_v: Variant in raw_helpers:
+			var hid: String = str(hid_v).strip_edges()
+			if hid.is_empty():
+				continue
+			if DataRegistry.get_gacha_helper_data(hid) == null:
+				continue
+			if not helpers.has(hid):
+				helpers.append(hid)
+	var has_reward: bool = (
+		int(payload.get("gold", 0)) > 0
+		or int(payload.get("gacha_token", 0)) > 0
+		or not materials.is_empty()
+		or not tickets.is_empty()
+		or not helpers.is_empty()
+	)
+	if not has_reward:
+		## 空配布は投入しない（誤 enqueue 防止）。
+		return {}
 	return {
 		"id": _make_id(),
 		"title": title.substr(0, 32),
@@ -119,6 +163,8 @@ static func _normalize_entry(payload: Dictionary) -> Dictionary:
 		"gold": maxi(0, int(payload.get("gold", 0))),
 		"gacha_token": maxi(0, int(payload.get("gacha_token", 0))),
 		"materials": materials,
+		"tickets": tickets,
+		"helpers": helpers,
 		"source": str(payload.get("source", "ops")),
 		"created_at": int(payload.get("created_at", Time.get_unix_time_from_system())),
 		"claimed": false,
@@ -127,7 +173,13 @@ static func _normalize_entry(payload: Dictionary) -> Dictionary:
 
 
 static func _apply_rewards(entry: Dictionary) -> Dictionary:
-	var applied: Dictionary = {"gold": 0, "gacha_token": 0, "materials": {}}
+	var applied: Dictionary = {
+		"gold": 0,
+		"gacha_token": 0,
+		"materials": {},
+		"tickets": {},
+		"helpers": [],
+	}
 	var gold: int = int(entry.get("gold", 0))
 	if gold > 0:
 		GameState.gold += gold
@@ -146,7 +198,83 @@ static func _apply_rewards(entry: Dictionary) -> Dictionary:
 			GameState.add_material(str(mat_id), qty)
 			applied_mats[str(mat_id)] = qty
 		applied["materials"] = applied_mats
+	var tickets: Variant = entry.get("tickets", {})
+	if tickets is Dictionary:
+		var applied_tickets: Dictionary = {}
+		for tid: Variant in tickets:
+			var tqty: int = int(tickets[tid])
+			if tqty <= 0:
+				continue
+			TicketInventory.add(str(tid), tqty)
+			applied_tickets[str(tid)] = tqty
+		applied["tickets"] = applied_tickets
+	var helpers: Variant = entry.get("helpers", [])
+	if helpers is Array:
+		var applied_helpers: Array = []
+		for hid_v: Variant in helpers:
+			var grant: Dictionary = _grant_helper(str(hid_v))
+			if bool(grant.get("ok", false)):
+				applied_helpers.append(grant)
+		applied["helpers"] = applied_helpers
 	return applied
+
+
+## 助っ人付与。未所持→ロスター加入、所持済→限界突破カウント+1（ガチャと同型）。
+static func _grant_helper(helper_id: String) -> Dictionary:
+	if helper_id.is_empty():
+		return {"ok": false, "reason": "empty"}
+	var helper: Resource = DataRegistry.get_gacha_helper_data(helper_id)
+	if helper == null:
+		return {"ok": false, "reason": "unknown"}
+	var is_new: bool = not GameState.owned_helpers.has(helper_id)
+	if is_new:
+		GameState.owned_helpers[helper_id] = 1
+		var adv: Resource = GachaSystem.create_adventurer_from_helper(helper)
+		## 配布は playable フラグに関わらずロスターへ入れる。
+		if adv != null and not GameState.roster.has(adv):
+			var already: bool = false
+			var want_id: String = str(adv.id)
+			for member in GameState.roster:
+				if member != null and str(member.id) == want_id:
+					already = true
+					break
+			if not already:
+				GameState.roster.append(adv)
+		GameState.normalize_roster_rarity()
+		GameState.normalize_all_equipped_skills()
+		GameState.normalize_all_equipped_passives()
+		return {
+			"ok": true,
+			"helper_id": helper_id,
+			"is_new": true,
+			"display_name": str(helper.display_name),
+			"breakthrough": 0,
+		}
+	var prev: int = int(GameState.owned_helpers[helper_id])
+	var next: int = prev + 1
+	GameState.owned_helpers[helper_id] = next
+	var bt: int = _GachaLimitBreak.breakthrough_from_owned_count(next)
+	return {
+		"ok": true,
+		"helper_id": helper_id,
+		"is_new": false,
+		"display_name": str(helper.display_name),
+		"breakthrough": bt,
+	}
+
+
+static func _helper_display_name(helper_id: String) -> String:
+	var helper: Resource = DataRegistry.get_gacha_helper_data(helper_id)
+	if helper != null:
+		return str(helper.display_name)
+	return helper_id
+
+
+static func _ticket_display_name(ticket_id: String) -> String:
+	var data: Resource = DataRegistry.get_ticket_data(ticket_id)
+	if data != null:
+		return str(data.display_name)
+	return ticket_id
 
 
 static func _make_id() -> String:
