@@ -88,8 +88,11 @@ func _refresh_layout() -> void:
 
 func _configure_layout() -> void:
 	HubLayoutHelper.apply_horizontal_insets(_main_scroll)
-	# 実測ナビ高（パネル余白込み）でフッターを配置し、下ナビとの重なりを防ぐ（P3-UI3-001）
-	var nav_h: float = maxf(NavUiTokens.BOTTOM_NAV_HEIGHT, $BottomNav.size.y) + 8.0
+	# 実測ナビ高（パネル余白込み）＋セーフエリアでフッターを配置し、下ナビとの重なりを防ぐ
+	var nav_h: float = maxf(
+		NavUiTokens.BOTTOM_NAV_HEIGHT + SafeAreaHelper.bottom_inset(),
+		-$BottomNav.offset_top if $BottomNav.offset_top < 0.0 else $BottomNav.size.y
+	) + 8.0
 	var footer_top: float = -(nav_h + float(FOOTER_HEIGHT))
 	_main_scroll.offset_bottom = footer_top
 	var footer_row: Control = $FooterRow

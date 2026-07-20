@@ -615,6 +615,7 @@ func _ready() -> void:
 	$MainVBox/BattlefieldArea.resized.connect(_on_battlefield_resized)
 	_apply_scene_typography()
 	_setup_dungeon_header_icon()
+	SafeAreaHelper.apply_scene_chrome(self)
 	call_deferred("_setup_combat_sprite_layer")
 	var dungeon_id: String = GameState.get_active_dungeon_id()
 	if Constants.SUB_STAGES_PLAYABLE:

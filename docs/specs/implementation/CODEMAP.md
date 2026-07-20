@@ -28,6 +28,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | DailyMissionSystem | `scripts/autoload/DailyMissionSystem.gd`（**P3-DAILY** 日課3件/日） |
 | EventSystem | `scripts/autoload/EventSystem.gd`（**P3-EVT-WEEK-002** 6週ローテ・`EventWeekRotation` SSOT・JST 5:00） |
 | GachaSystem | `scripts/autoload/GachaSystem.gd` |
+| SafeAreaPad | `scripts/autoload/SafeAreaPad.gd`（**P3-UI-SAFE-001** — `SafeAreaHelper` 再適用） |
 
 **危険度ティア（P3-DG-TIER / P3-DG-TIER-002）:** `DungeonTierConfig.gd` — Hard/NM はメイン5キャンペーン周回帯。解放=ノーマル全クリア／ハード全クリア。敵Lvボーナス= N5-5 cap / 2×cap。UI=`DungeonSelectScene` TabsRow。  
 **ティア見た目／呼称（P3-ENEMY-TIER-VAR）:** `EnemyTierVariantConfig.gd` — 同IDの Hard/NM 表示名＋個性上書き（ベース数値据置）。スプライトは `DungeonScene.ENEMY_SPRITE_MAP_BY_TIER`。  

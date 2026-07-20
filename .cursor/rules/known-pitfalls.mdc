@@ -20,6 +20,7 @@ alwaysApply: true
 | キャラ管理オープンで即終了 | `Control.custom_maximum_size` を参照（**Godot 4.6.3 未実装**。4.x latest/PR のみ） | `gdscript.mdc` / `ui-layout.mdc` — 現行エンジンに無い API を使わない。固定サイズは `custom_minimum_size` + `SIZE_SHRINK_*` + 親も SHRINK |
 | Biome バナーが潰れる／タイトル欠ける | 2:1 キーアートを薄い strip（112px）に中央クロップ | `generate_biome_banner.py` は **アスペクト維持が既定**。タイトル焼込は `BIOME_BANNER_TITLE_BAKED`＋一覧ヘッダ高さは縦横比から算出 |
 | HBox 内の数値が消える（アイコンだけ残る） | Label の `clip_text=true` は最小幅 0 → SHRINK の HBox で幅が潰れる | `ui-layout.mdc` — 短い数値は `clip_text=false`。必要なら `EXPAND_FILL` |
+| iPhone で端のアイコンが切れる／ノッチに食われる | Mac の 720×1280 ぴったりでは再現せず、`aspect=expand`＋セーフエリア未考慮 | **`aspect=keep`**＋`SafeAreaHelper`（レターボックスで足りない分だけ inset）。固定黒帯は使わない |
 | 戦闘下カードで名前が「アル…」等に切れる | `clip_text`＋ellipsis。長い表示名がカード幅を超える | 省略禁止＋幅に合わせて font_size 縮小（`_fit_party_card_name_font`）。レイアウト後に deferred 再計算 |
 | 戦闘が全体的にカクつく／歩行が飛ぶ | `_process` で HPバー位置更新のたび `Texture2D.get_image()`＋`get_used_rect()` | 正規化時に `body_frame_h` / `body_top_inset` を meta キャッシュしホットパスでは使わない |
 | 攻撃モーション寸前に一瞬カクつく | 必殺 resolve 同フレームで攻撃開始＋フラッシュ／シェイク／リング／ヒット VFX／ダメージ数字が集中。VFX の都度 `load` | windup 開始で攻撃開始。ダメージ必殺の resolve はヒット側のみ。Heal VFX／attack テクスチャは入場時にウォーム |
