@@ -30,8 +30,8 @@ const _DEFS: Dictionary = {
 	# 必殺になるため、汎用プリセットは「ボス/エリート（積極のみ+群れ）」に限定する。
 	# ultimate_ready 条件自体はカスタム戦術（ガンビット）用に温存。
 	"balanced": {
-		"display_name": "バランス",
-		"summary_hint": "標準立ち回り。ボス・エリートで必殺、ピンチで防御。",
+		"display_name": "スキル優先（ピンチで防御）",
+		"summary_hint": "スキルを主に使い、ボス・エリートで必殺。HP低下時は防御。",
 		"target": "front",
 		"plan": [
 			{"slot": "ultimate", "condition": "enemy_is_boss"},
@@ -42,8 +42,8 @@ const _DEFS: Dictionary = {
 		],
 	},
 	"aggressive": {
-		"display_name": "積極攻撃",
-		"summary_hint": "火力優先。弱った敵を狙い、スキルを積極的に使う。",
+		"display_name": "スキル多用・火力寄り",
+		"summary_hint": "弱った敵を狙い、スキルを積極的に使う。群れでも必殺を出しやすい。",
 		"target": "lowest_hp",
 		"plan": [
 			{"slot": "ultimate", "condition": "enemy_is_boss"},
@@ -56,8 +56,8 @@ const _DEFS: Dictionary = {
 		],
 	},
 	"cautious": {
-		"display_name": "慎重",
-		"summary_hint": "生存寄り。早めに防御し、後衛の敵を狙う。",
+		"display_name": "防御多め",
+		"summary_hint": "早めに防御し、後衛の敵を狙う。",
 		"target": "back",
 		"plan": [
 			{"slot": "defend", "condition": "self_hp_below", "value": 0.50},
@@ -69,7 +69,7 @@ const _DEFS: Dictionary = {
 		],
 	},
 	"survival": {
-		"display_name": "生存優先",
+		"display_name": "防御を最優先",
 		"summary_hint": "とにかく耐える。危なくなったら防御を優先。",
 		"target": "lowest_hp",
 		"plan": [
@@ -81,8 +81,8 @@ const _DEFS: Dictionary = {
 		],
 	},
 	"boss_focus": {
-		"display_name": "ボス集中",
-		"summary_hint": "強敵に火力集中。HPの高い敵を優先。",
+		"display_name": "強敵を集中攻撃",
+		"summary_hint": "HPの高い敵を優先し、強敵に火力を集中。",
 		"target": "highest_hp",
 		"plan": [
 			{"slot": "ultimate", "condition": "enemy_is_boss"},
@@ -93,8 +93,8 @@ const _DEFS: Dictionary = {
 		],
 	},
 	"sweep": {
-		"display_name": "雑魚掃討",
-		"summary_hint": "複数敵・デバフ中の敵を優先して処理。",
+		"display_name": "複数敵・弱体を優先",
+		"summary_hint": "複数敵や弱体中の敵を優先して処理。",
 		"target": "enemy_with_debuff",
 		"plan": [
 			{"slot": "ultimate", "condition": "enemy_count_gte", "value": 2},
