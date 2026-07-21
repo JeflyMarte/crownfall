@@ -75,6 +75,7 @@ var _exp_applied: bool = false
 var _levelup_animating: bool = false
 var _levelup_skip_requested: bool = false
 var _button_next: Button
+var _button_next_stage: Button
 var _step_levelup_root: MarginContainer
 var _step_mvp_root: MarginContainer
 var _levelup_header: Label
@@ -114,6 +115,7 @@ func _ready() -> void:
 	_build_info()
 	_button_retry.pressed.connect(_on_retry_pressed)
 	_button_home.pressed.connect(_on_home_pressed)
+	_ensure_next_stage_button()
 	_enter_step(ResultFlowScript.Step.REWARDS)
 
 func _process(delta: float) -> void:
@@ -140,6 +142,8 @@ func _setup_wizard_roots() -> void:
 	_footer.move_child(_button_next, 0)
 	_button_retry.visible = false
 	_button_home.visible = false
+	if _button_next_stage != null:
+		_button_next_stage.visible = false
 	_step_levelup_root = MarginContainer.new()
 	_step_levelup_root.name = "StepLevelUp"
 	_step_levelup_root.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -265,12 +269,16 @@ func _enter_step(step: int) -> void:
 		_button_next.visible = false
 		_button_retry.visible = false
 		_button_home.visible = false
+		if _button_next_stage != null:
+			_button_next_stage.visible = false
 		_step_timer_sec = 0.0
 		_play_mvp_intro()
 	elif step == ResultFlowScript.Step.LEVELUP:
 		_button_next.visible = true
 		_button_retry.visible = false
 		_button_home.visible = false
+		if _button_next_stage != null:
+			_button_next_stage.visible = false
 		_button_next.disabled = true
 		_step_timer_sec = 0.0
 		_start_levelup_step()
@@ -279,6 +287,8 @@ func _enter_step(step: int) -> void:
 		_button_next.visible = true
 		_button_retry.visible = false
 		_button_home.visible = false
+		if _button_next_stage != null:
+			_button_next_stage.visible = false
 		_button_next.disabled = false
 		_start_step_timer()
 
@@ -827,6 +837,7 @@ func _play_mvp_intro_async() -> void:
 	_mvp_intro_active = false
 	_button_retry.visible = true
 	_button_home.visible = true
+	_refresh_next_stage_button()
 
 func _mvp_podium_center_global() -> Vector2:
 	if _mvp_podium_host == null:
@@ -882,7 +893,9 @@ func _apply_typography() -> void:
 	_label_dungeon.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_label_dungeon.clip_text = true
 	_label_dungeon.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	for btn in [_button_retry, _button_home]:
+	for btn in [_button_retry, _button_home, _button_next_stage]:
+		if btn == null:
+			continue
 		UiTypography.apply_button(btn)
 		btn.add_theme_font_size_override("font_size", FS_BUTTON)
 
@@ -1333,8 +1346,65 @@ func _on_home_pressed() -> void:
 	SaveManager.save_game()
 	SceneRouter.change_scene(HOME_SCENE)
 
+func _ensure_next_stage_button() -> void:
+	if _button_next_stage != null:
+		return
+	_button_next_stage = Button.new()
+	_button_next_stage.name = "ButtonNextStage"
+	_button_next_stage.text = "次のダンジョンへ"
+	_button_next_stage.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_button_next_stage.custom_minimum_size = Vector2(0, 48)
+	_button_next_stage.visible = false
+	_button_next_stage.pressed.connect(_on_next_stage_pressed)
+	UiTypography.apply_button(_button_next_stage)
+	_button_next_stage.add_theme_font_size_override("font_size", FS_BUTTON)
+	_footer.add_child(_button_next_stage)
+	## 再挑戦の右・拠点の左（進行の主CTA）。
+	_footer.move_child(_button_next_stage, _button_retry.get_index() + 1)
+
+func _resolve_cleared_stage_id() -> String:
+	var stage_id: String = GameState.last_run_stage_id
+	if stage_id.is_empty():
+		stage_id = GameState.get_active_stage_id()
+	return stage_id
+
+func _next_stage_id_available() -> String:
+	var outcome: String = GameState.last_run_outcome
+	if outcome.is_empty():
+		outcome = GameState.RUN_OUTCOME_CLEAR
+	if outcome != GameState.RUN_OUTCOME_CLEAR:
+		return ""
+	if not Constants.SUB_STAGES_PLAYABLE:
+		return ""
+	return GameState.get_next_stage_after(_resolve_cleared_stage_id())
+
+func _refresh_next_stage_button() -> void:
+	_ensure_next_stage_button()
+	var next_id: String = _next_stage_id_available()
+	_button_next_stage.visible = not next_id.is_empty()
+	_button_next_stage.text = "次のダンジョンへ"
+
+func _on_next_stage_pressed() -> void:
+	var next_id: String = _next_stage_id_available()
+	if next_id.is_empty():
+		return
+	AudioManager.play_sfx("ui_confirm")
+	if not _exp_applied and ResultFlowScript.show_levelup_step(
+		GameState.last_run_outcome, GameState.last_run_exp_reward
+	):
+		_apply_pending_exp()
+	var next_stage: Resource = DataRegistry.get_stage_data(next_id)
+	if next_stage != null:
+		GameState.current_dungeon_id = str(next_stage.biome_id)
+	GameState.current_stage_id = next_id
+	_set_buttons_disabled(true)
+	SaveManager.save_game()
+	SceneRouter.change_scene(DUNGEON_SCENE)
+
 func _set_buttons_disabled(value: bool) -> void:
 	_button_retry.disabled = value
 	_button_home.disabled = value
 	if _button_next != null:
 		_button_next.disabled = value
+	if _button_next_stage != null:
+		_button_next_stage.disabled = value

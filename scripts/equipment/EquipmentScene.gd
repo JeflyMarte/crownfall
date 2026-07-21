@@ -483,11 +483,13 @@ func _decorate_portrait() -> void:
 	_portrait_glyph.add_theme_color_override("font_color", COLOR_GOLD)
 
 	# 星は台座の下（PortraitNavRow の後）へ。
+	# 見出しフォント（Shippori）は ★ グリフが無くフォールバックで灰色に見えることがある。
+	# ガチャ等と同様、本文フォント＋金色で揃える。
 	if _label_stars.get_parent() == _portrait_box:
 		_portrait_box.move_child(_label_stars, _portrait_box.get_child_count() - 1)
 	_label_stars.visible = true
 	_label_stars.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UiTypography.apply_display(_label_stars, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	UiTypography.apply_body(_label_stars, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 
 func _compact_member_nav_buttons() -> void:
 	# 幅は抑えつつ ◀▶ を確実に表示する。
@@ -656,6 +658,7 @@ func _update_character_card() -> void:
 	## キャラ★は 1〜4 の個数体系。装備ティア用 rarity_stars_text（0=★）を使わない。
 	_label_stars.text = EquipmentUiHelper.stars_text(int(member.rarity))
 	_label_stars.visible = true
+	UiTypography.apply_body(_label_stars, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	var portrait_tint: Color = _EvolutionVisual.portrait_modulate(member)
 	_job_icon.modulate = portrait_tint
 	_portrait_art.modulate = portrait_tint

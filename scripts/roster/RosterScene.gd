@@ -356,7 +356,7 @@ func _make_active_party_card(slot_index: int) -> Control:
 	var stars := Label.new()
 	stars.text = "%s  Lv%d" % [RosterUiHelper.stars_text(int(member.rarity)), int(member.level)]
 	stars.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UiTypography.apply_body(stars, UiTypography.SIZE_CAPTION, COLOR_SUB)
+	UiTypography.apply_body(stars, UiTypography.SIZE_CAPTION, UiTypography.COLOR_GOLD)
 	vbox.add_child(stars)
 	var job_lbl := Label.new()
 	job_lbl.text = RosterUiHelper.job_display_name(member)
@@ -592,7 +592,7 @@ func _make_roster_grid_card(adv: Resource) -> Control:
 	var star_lbl := Label.new()
 	star_lbl.text = RosterUiHelper.stars_text(int(adv.rarity))
 	star_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	UiTypography.apply_caption(star_lbl, COLOR_GOLD)
+	UiTypography.apply_caption(star_lbl, UiTypography.COLOR_GOLD)
 	star_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	info_row.add_child(star_lbl)
 	return wrapper

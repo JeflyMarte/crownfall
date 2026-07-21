@@ -83,6 +83,18 @@ func test_resolve_stage_picks_first_uncleared() -> void:
 	GameState.mark_stage_cleared("mourngate_1_1")
 	assert_eq(GameState.resolve_stage_for_run("mourngate"), "mourngate_1_2")
 
+func test_get_next_stage_after_cleared() -> void:
+	assert_eq(GameState.get_next_stage_after("mourngate_1_1"), "", "未クリアなら次章未解放")
+	GameState.mark_stage_cleared("mourngate_1_1")
+	assert_eq(GameState.get_next_stage_after("mourngate_1_1"), "mourngate_1_2")
+	GameState.mark_stage_cleared("mourngate_1_2")
+	GameState.mark_stage_cleared("mourngate_1_3")
+	GameState.mark_stage_cleared("mourngate_1_4")
+	GameState.mark_stage_cleared("mourngate_1_5")
+	assert_eq(GameState.get_next_stage_after("mourngate_1_5"), "", "最終章の次は無し")
+	assert_eq(GameState.get_next_stage_after(""), "")
+	assert_eq(GameState.get_next_stage_after("no_such_stage"), "")
+
 func test_stage_floor_count_matches_ssot() -> void:
 	var dc: Node = _make_controller()
 	dc.start_stage("mourngate_1_1")

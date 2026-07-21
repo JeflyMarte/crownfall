@@ -315,6 +315,23 @@ func resolve_stage_for_run(biome_id: String) -> String:
 			return str(stage.id)
 	return str(stages[0].id)
 
+## クリア直後の「次のダンジョンへ」用。同一 Biome の次章が解放済みならその stage_id。
+func get_next_stage_after(stage_id: String) -> String:
+	if not Constants.SUB_STAGES_PLAYABLE or stage_id.is_empty():
+		return ""
+	var stage: Resource = DataRegistry.get_stage_data(stage_id)
+	if stage == null:
+		return ""
+	var next: Resource = DataRegistry.get_stage_by_chapter(
+		str(stage.biome_id), int(stage.chapter_index) + 1
+	)
+	if next == null:
+		return ""
+	var next_id: String = str(next.id)
+	if not is_stage_unlocked(next_id):
+		return ""
+	return next_id
+
 # ダンジョン選択画面の CLEAR バッジ用。ラン完走（ボス突破→EXIT 到達）時に立てる。
 func mark_dungeon_cleared(dungeon_id: String) -> void:
 	if dungeon_id.is_empty():
