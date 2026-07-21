@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-21（**P3-DG-STG-ENABLE-002**: サブステージ再有効化 — 単体DGだと初回ランからボス＋章別spawn無効化が起きていた。`SUB_STAGES_PLAYABLE=true`。1-1〜x-4 Bossなし／x-5のみ Boss）
+
 2026-07-20（**P3-ENEMY-WW-OMIT-001**: ブルームサーペントを一旦オミット — WW／寄り道プールから除外。`EnemyData` 残置）
 
 2026-07-20（**P3-DG-STG-OMIT-002**: サブステージ（1-1〜x-5）を `SUB_STAGES_PLAYABLE=false` で一旦オミット。寄り道・征討は従来どおりオミット維持）

@@ -3088,6 +3088,17 @@
 | P3-DG-STG-OMIT-002-2 | **寄り道・征討は引き続きオミット**（`SUB_DUNGEONS_PLAYABLE=false` 維持） | P3-DG-OMIT-001-1 |
 | P3-DG-STG-OMIT-002-3 | `resources/stages/` データは削除しない。再有効化はフラグ true＋別 GO | 再開容易 |
 
+## サブステージ再有効化（2026-07-21 — P3-DG-STG-ENABLE-002）
+
+> **オーナー実機報告（2026-07-21）** — 単体 DG 運用だと初回ラン（体感 1-1）から最終ボス（serdion）が出現し、章別 spawn も効かない。`P3-DG-STG-OMIT-002` を撤回して章分割を復帰。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-STG-ENABLE-002-1 | **`Constants.SUB_STAGES_PLAYABLE=true`** — 1-1〜x-5 を再有効化 | 実機: 1-1 相当でボス出現 |
+| P3-DG-STG-ENABLE-002-2 | **1-1〜x-4 = Boss なし** / **x-5 最終Fのみ Boss**（P3-DG-STG-001 維持） | SSOT |
+| P3-DG-STG-ENABLE-002-3 | 章別 `spawn_weights` を復帰（1-1 は D3 除外など） | P3-ENEMY-001 |
+| P3-DG-STG-ENABLE-002-4 | 寄り道・征討は引き続きオミット | P3-DG-OMIT-001-1 |
+
 ## メイン Biome 敵プール拡充・章別危険度 spawn（2026-07-06 — P3-ENEMY-001）
 
 > **オーナー GO（2026-07-06）** — 章別需要・危険度一覧・奥行き spawn 重みを SSOT 化。**新種アート/データ追加は別 Task**。**spawn 重み Impl は P3-DG-STG PoC（mourngate 1-1〜1-5）に同梱**。

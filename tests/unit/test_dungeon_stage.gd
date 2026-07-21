@@ -31,11 +31,26 @@ func _stage_seq(stage_id: String) -> Array[int]:
 	dc.start_stage(stage_id)
 	return dc.room_sequence.duplicate()
 
+func test_stage_1_1_has_no_boss() -> void:
+	var seq: Array[int] = _stage_seq("mourngate_1_1")
+	assert_false(Enums.RoomType.BOSS in seq, "1-1 は Boss なし")
+	assert_false(Enums.RoomType.EXIT in seq, "EXIT は別フロアにしない")
+	assert_true(seq[-1] in [Enums.RoomType.COMBAT, Enums.RoomType.ELITE], "最終F は戦闘系")
+
 func test_stage_1_4_has_no_boss() -> void:
 	var seq: Array[int] = _stage_seq("mourngate_1_4")
 	assert_false(Enums.RoomType.BOSS in seq, "1-4 は Boss なし")
 	assert_false(Enums.RoomType.EXIT in seq, "EXIT は別フロアにしない")
 	assert_true(seq[-1] in [Enums.RoomType.COMBAT, Enums.RoomType.ELITE], "最終F は戦闘系")
+
+func test_sub_stages_playable_resolves_1_1_without_boss() -> void:
+	## 実機回帰: SUB_STAGES 無効時は単体 mourngate が常時 serdion 付きになる。
+	assert_true(Constants.SUB_STAGES_PLAYABLE, "章分割が有効であること")
+	GameState.current_stage_id = ""
+	var stage_id: String = GameState.resolve_stage_for_run("mourngate")
+	assert_eq(stage_id, "mourngate_1_1")
+	var seq: Array[int] = _stage_seq(stage_id)
+	assert_false(Enums.RoomType.BOSS in seq, "初回ラン(1-1)に Boss 部屋を入れない")
 
 func test_stage_1_5_has_boss_on_last_floor() -> void:
 	var seq: Array[int] = _stage_seq("mourngate_1_5")

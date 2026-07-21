@@ -372,6 +372,12 @@ var run_damage_multiplier: float = 1.0
 var _seen_event_ids: Array[String] = []
 
 func start_dungeon(dungeon_id: String) -> void:
+	## メイン Biome は章データがあるとき start_stage へ寄せる（単体DGだと x-5 ボスが常時付く）。
+	if Constants.SUB_STAGES_PLAYABLE:
+		var stage_id: String = GameState.resolve_stage_for_run(dungeon_id)
+		if not stage_id.is_empty():
+			start_stage(stage_id)
+			return
 	current_stage_data = null
 	current_dungeon_data = DataRegistry.get_dungeon_data(dungeon_id)
 	if current_dungeon_data == null:
