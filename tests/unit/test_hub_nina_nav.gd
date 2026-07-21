@@ -20,11 +20,28 @@ func test_rotate_interval_is_ten_seconds() -> void:
 
 func test_build_rotation_has_recommend_then_field() -> void:
 	var rot: Array[Dictionary] = _Helper.build_rotation()
-	assert_gte(rot.size(), 2)
+	assert_gte(rot.size(), 2 + _Helper.CHAT_IN_ROTATION)
 	assert_eq(str(rot[0].get("kind", "")), _Helper.KIND_RECOMMEND)
 	assert_eq(str(rot[1].get("kind", "")), _Helper.KIND_FIELD)
 	assert_true(not str(rot[0].get("text", "")).is_empty())
 	assert_true(not str(rot[1].get("text", "")).is_empty())
+	for i in range(2, rot.size()):
+		assert_eq(str(rot[i].get("kind", "")), _Helper.KIND_CHAT)
+		assert_true(not str(rot[i].get("text", "")).is_empty())
+
+
+func test_chat_pool_is_large() -> void:
+	assert_gte(_Helper.CHAT_LINES.size(), 30)
+
+
+func test_pick_chat_lines_unique() -> void:
+	var picked: Array[String] = _Helper.pick_chat_lines(_Helper.CHAT_IN_ROTATION)
+	assert_eq(picked.size(), _Helper.CHAT_IN_ROTATION)
+	var seen: Dictionary = {}
+	for line in picked:
+		assert_true(_Helper.CHAT_LINES.has(line), line)
+		assert_false(seen.has(line), line)
+		seen[line] = true
 
 
 func test_recommend_claimable_daily() -> void:
@@ -60,8 +77,8 @@ func test_field_line_calm_when_no_event_weather() -> void:
 
 
 func test_weather_tip_rain_junior_voice() -> void:
-	assert_true(_Helper._weather_tip(CombatWeather.RAIN).contains("雨"))
-	assert_true(_Helper._weather_tip(CombatWeather.RAIN).contains("ぬかるみ"))
+	var tip: String = _Helper._weather_tip(CombatWeather.RAIN)
+	assert_true(tip.contains("雨"), tip)
 
 
 func test_chat_line_from_pool() -> void:

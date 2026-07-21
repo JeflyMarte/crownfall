@@ -9,15 +9,13 @@ const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
 const UNKNOWN_DISPLAY: String = "???"
 const DEFAULT_ICON_SIZE: Vector2 = Vector2(48, 48)
 const ENEMY_ART_SIZE: Vector2 = Vector2(256, 256)
-const _MaterialUiTokens = preload("res://scripts/equipment/MaterialUiTokens.gd")
 const _CodexRichText = preload("res://scripts/codex/CodexRichText.gd")
 
-const CATEGORIES: Array[String] = ["enemy", "dungeon", "material", "weapon", "history", "lore", "guide"]
+const CATEGORIES: Array[String] = ["enemy", "dungeon", "weapon", "history", "lore", "guide"]
 
 const CATEGORY_DISPLAY: Dictionary = {
 	"enemy": "モンスター",
 	"dungeon": "ダンジョン",
-	"material": "素材",
 	"weapon": "武器",
 	"history": "歴史",
 	"lore": "記録",
@@ -68,7 +66,6 @@ func _ready() -> void:
 	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)
 	$MainScroll/MainVBox/TabRow/ButtonTabEnemy.pressed.connect(func(): _select_category("enemy"))
 	$MainScroll/MainVBox/TabRow/ButtonTabDungeon.pressed.connect(func(): _select_category("dungeon"))
-	$MainScroll/MainVBox/TabRow/ButtonTabMaterial.pressed.connect(func(): _select_category("material"))
 	$MainScroll/MainVBox/TabRow/ButtonTabWeapon.pressed.connect(func(): _select_category("weapon"))
 	$MainScroll/MainVBox/TabRow/ButtonTabHistory.pressed.connect(func(): _select_category("history"))
 	$MainScroll/MainVBox/TabRow/ButtonTabLore.pressed.connect(func(): _select_category("lore"))
@@ -170,8 +167,6 @@ func _fetch_entries(category: String) -> Array:
 			return CatalogHelper.get_enemy_entries()
 		"dungeon":
 			return CatalogHelper.get_dungeon_entries()
-		"material":
-			return CatalogHelper.get_material_entries()
 		"weapon":
 			return CatalogHelper.get_weapon_entries()
 		"history":
@@ -190,7 +185,6 @@ func _update_tab_buttons() -> void:
 	var mapping: Dictionary = {
 		"enemy": $MainScroll/MainVBox/TabRow/ButtonTabEnemy,
 		"dungeon": $MainScroll/MainVBox/TabRow/ButtonTabDungeon,
-		"material": $MainScroll/MainVBox/TabRow/ButtonTabMaterial,
 		"weapon": $MainScroll/MainVBox/TabRow/ButtonTabWeapon,
 		"history": $MainScroll/MainVBox/TabRow/ButtonTabHistory,
 		"lore": $MainScroll/MainVBox/TabRow/ButtonTabLore,
@@ -253,11 +247,7 @@ func _entry_list_name(entry: Dictionary) -> String:
 		return str(entry.get("display_name", UNKNOWN_DISPLAY))
 	if not bool(entry.get("discovered", true)):
 		return UNKNOWN_DISPLAY
-	var name_text: String = str(entry.get("display_name", UNKNOWN_DISPLAY))
-	if _current_category == "material":
-		var rarity: int = int(entry.get("rarity", _MaterialUiTokens.material_rarity(str(entry.get("id", "")))))
-		return "%s %s" % [BlacksmithUiHelper.rarity_gem(rarity), name_text]
-	return name_text
+	return str(entry.get("display_name", UNKNOWN_DISPLAY))
 
 func _entry_list_icon(entry: Dictionary) -> Texture2D:
 	if _current_category == "enemy" and int(entry.get("stage", 1)) <= 1:
@@ -295,10 +285,7 @@ func _show_detail(index: int) -> void:
 			_set_status("確認済み", true)
 			_set_detail_body(str(entry.get("description", "")))
 			_update_icon(IconPaths.get_icon_texture(str(entry.get("id", "")), _current_category))
-			if _current_category == "material":
-				_apply_material_detail_fields(entry)
-			else:
-				_reset_art_frame_style()
+			_reset_art_frame_style()
 			_apply_bible_fields_discovered(entry)
 		else:
 			_label_detail_id.text = ""
@@ -492,18 +479,6 @@ func _hide_bible_fields() -> void:
 	_label_detail_extra_b.visible = false
 	_label_detail_related_header.visible = false
 	_label_detail_related.visible = false
-
-func _apply_material_detail_fields(entry: Dictionary) -> void:
-	var mat_id: String = str(entry.get("id", ""))
-	var rarity: int = int(entry.get("rarity", _MaterialUiTokens.material_rarity(mat_id)))
-	_art_frame.add_theme_stylebox_override(
-		"panel", _MaterialUiTokens.cell_style(rarity, true, 96)
-	)
-	_label_detail_extra_a.text = "希少度: %s %s" % [
-		BlacksmithUiHelper.rarity_gem(rarity),
-		CodexContentHelper.rarity_label(rarity),
-	]
-	_label_detail_extra_a.visible = true
 
 func _reset_art_frame_style() -> void:
 	_art_frame.remove_theme_stylebox_override("panel")

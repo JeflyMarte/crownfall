@@ -17,7 +17,6 @@ const SCENES: Array = [
 const CODEX_TABS: Array = [
 	["codex_enemy", "ButtonTabEnemy"],
 	["codex_dungeon", "ButtonTabDungeon"],
-	["codex_material", "ButtonTabMaterial"],
 	["codex_weapon", "ButtonTabWeapon"],
 	["codex_history", "ButtonTabHistory"],
 	["codex_lore", "ButtonTabLore"],

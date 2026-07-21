@@ -172,12 +172,6 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "ダンジョン"
 
-[node name="ButtonTabMaterial" type="Button" parent="MainScroll/MainVBox/TabRow"]
-custom_minimum_size = Vector2(96, 52)
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "素材"
-
 [node name="ButtonTabWeapon" type="Button" parent="MainScroll/MainVBox/TabRow"]
 custom_minimum_size = Vector2(96, 52)
 layout_mode = 2

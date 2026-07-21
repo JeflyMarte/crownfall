@@ -161,7 +161,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `tests/unit/test_level_system.gd` | Lv99上限・逓減成長・スキル習得据置（P3-LV-099） |
 | `tools/run_tests.sh` | headless GUT 実行（バイナリ検出は `smoke_test.sh` と同一・exit code 伝播） |
 | `tools/smoke_test.sh` | 既存受理ゲート（import + 120frame 起動） |
-| `tools/ui_audit.gd` | **UI 監査**（P3-UI3-001/003・**P3-UI-GACHA**）。ハブ7画面＋鍛冶屋生産/強化＋図鑑7タブ＋召喚所 detail/reveal を実レンダでスクショ（`user://ui_audit/`）。ヘッドレス不可 |
+| `tools/ui_audit.gd` | **UI 監査**（P3-UI3-001/003・**P3-UI-GACHA**）。ハブ7画面＋鍛冶屋生産/強化＋図鑑6タブ＋召喚所 detail/reveal を実レンダでスクショ（`user://ui_audit/`）。ヘッドレス不可 |
 | `tools/generate_forge_ui_assets.py` | 鍛冶屋 UI chrome 14枚プロシージャル生成 → `assets/ui/forge/` |
 | `tools/generate_equipment_ui_assets.py` | 装備画面 UI chrome 生成 → `assets/ui/equipment_ui/` |
 | `tools/generate_gacha_ui_assets.py` | 招待状 UI chrome 17枚プロシージャル生成 → `assets/ui/gacha_ui/`（**P3-UI-GACHA**） |
