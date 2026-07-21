@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="DungeonStageData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonStageData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "crown_rookery_1_1"
+biome_id = "crown_rookery"
+biome_index = 1
+chapter_index = 1
+display_name = "黒羽の入口"
+floor_count = 4
+enemy_level = 8
+recommended_level = 10
+closing_type = "exit"
+requires_elite = false
+spawn_weights = {
+"1": 100,
+}
+event_room_weight = 5
+min_event_rooms = 0

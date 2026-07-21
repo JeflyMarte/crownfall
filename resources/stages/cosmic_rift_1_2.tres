@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="DungeonStageData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonStageData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "cosmic_rift_1_2"
+biome_id = "cosmic_rift"
+biome_index = 1
+chapter_index = 2
+display_name = "漂う羽の回廊"
+floor_count = 4
+enemy_level = 3
+recommended_level = 5
+closing_type = "exit"
+requires_elite = false
+spawn_weights = {
+"1": 100,
+}
+event_room_weight = 10
+min_event_rooms = 0

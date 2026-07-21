@@ -222,7 +222,17 @@ func mark_stage_cleared(stage_id: String, tier: int = -1) -> void:
 	if stage == null:
 		return
 	var biome_id: String = str(stage.biome_id)
+	var stages: Array = DataRegistry.get_stages_for_biome(biome_id)
+	var is_final_chapter: bool = (
+		not stages.is_empty()
+		and int(stage.chapter_index) >= int(stages[stages.size() - 1].chapter_index)
+	)
 	if bool(stage.has_boss_floor()):
+		mark_dungeon_tier_cleared(biome_id, t)
+		if t == _DungeonTierConfig.TIER_NORMAL:
+			mark_dungeon_cleared(biome_id)
+	elif is_final_chapter:
+		## Boss 無し最終章（イベントDG等）も Biome クリア扱い。
 		mark_dungeon_tier_cleared(biome_id, t)
 		if t == _DungeonTierConfig.TIER_NORMAL:
 			mark_dungeon_cleared(biome_id)

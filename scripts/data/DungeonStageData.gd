@@ -3,9 +3,9 @@ extends Resource
 
 @export var id: String = ""
 @export var biome_id: String = ""
-## メイン Biome 番号（1〜5）。`stage_id` = `{biome_id}_{biome_index}_{chapter_index}`。
+## メイン Biome 番号（1〜5）またはイベント内通し番号。`stage_id` = `{biome_id}_{biome_index}_{chapter_index}`。
 @export var biome_index: int = 1
-## Biome 内章番号（1〜5）。
+## Biome 内章番号（1〜）。メインは 1〜5。イベントも同型。
 @export var chapter_index: int = 1
 @export var display_name: String = ""
 @export var floor_count: int = 6

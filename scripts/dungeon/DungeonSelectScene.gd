@@ -504,10 +504,10 @@ func _on_tier_pressed(tier: int) -> void:
 	_build_list()
 
 func _uses_stage_cards(dungeon_id: String) -> bool:
+	## ダンジョン共通: 章データがあればバナー展開でサブダンジョン一覧（main/side/event 共通）。
 	if not Constants.SUB_STAGES_PLAYABLE or dungeon_id.is_empty():
 		return false
-	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
-	if data == null or str(data.route_type) != "main":
+	if DataRegistry.get_dungeon_data(dungeon_id) == null:
 		return false
 	return not DataRegistry.get_stages_for_biome(dungeon_id).is_empty()
 
@@ -1182,7 +1182,7 @@ func _make_biome_card(data: Resource) -> PanelContainer:
 	title.text = _dungeon_list_line_bbcode(data, unlocked)
 	info.add_child(title)
 
-	if Constants.SUB_STAGES_PLAYABLE and str(data.route_type) == "main":
+	if Constants.SUB_STAGES_PLAYABLE and _uses_stage_cards(dungeon_id):
 		var stage_label: String = GameState.get_stage_progress_label(dungeon_id)
 		if not stage_label.is_empty():
 			var progress := Label.new()
