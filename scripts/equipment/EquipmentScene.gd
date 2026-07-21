@@ -1878,7 +1878,11 @@ func _rebuild_skill_tab() -> void:
 	slots_label.text = "[center]装備中スキル (%d/%d): %s[/center]" % [
 		equipped.size(), Constants.MAX_EQUIPPED_SKILLS, shown
 	]
+<<<<<<< HEAD
 	hint_label.text = "習得スキル（装備は1本。長押しで詳細）"
+=======
+	hint_label.text = "習得スキル（長押しで詳細。未習得はタップでも可 / 右で装備）"
+>>>>>>> origin/cursor/skill-longpress-detail-e010
 	var job: Resource = DataRegistry.get_job_data(member.job_id)
 	if job == null:
 		return
@@ -2067,9 +2071,10 @@ func _skill_row_action(
 	req_lv: int,
 	is_equipped: bool
 ) -> void:
-	if is_long_press:
+	# 未習得（習得予定）は短押しでも詳細を開く。長押しは常に詳細。
+	if is_long_press or not unlocked:
 		_show_skill_detail_overlay(skill_id, unlocked, req_lv, is_equipped)
-	elif unlocked:
+	else:
 		_on_skill_toggle_pressed(skill_id)
 
 func _weapon_skill_row_action(is_long_press: bool, skill_id: String) -> void:
@@ -3025,9 +3030,9 @@ func _skill_stats_detail_lines(skill_data: Resource, unlocked: bool = true, req_
 	var lines: PackedStringArray = PackedStringArray()
 	if skill_data == null:
 		return lines
+	# 習得予定でも効果は開示（一覧行はロック文言のみ、詳細オーバーレイで全文）。
 	if not unlocked:
 		lines.append("🔒 Lv%d で習得" % req_lv)
-		return lines
 	lines.append("対象: %s" % _skill_target_label(str(skill_data.target_type)))
 	var slot_type: String = str(skill_data.slot_type)
 	if slot_type != "skill":
@@ -3094,8 +3099,17 @@ func _show_skill_detail_overlay(
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header_row.add_child(name_lbl)
 	_detail_host.add_child(header_row)
+	if not unlocked:
+		var lock_lbl := Label.new()
+		lock_lbl.text = "🔒 Lv%d で習得" % req_lv
+		lock_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		lock_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		UiTypography.apply_body(lock_lbl, UiTypography.SIZE_CAPTION, COLOR_GOLD)
+		_detail_host.add_child(lock_lbl)
 	var desc_lbl := Label.new()
-	desc_lbl.text = _skill_summary_text(skill_data, unlocked, req_lv)
+	# 一覧行はロック文言のみ。詳細では説明文を優先表示する。
+	var desc: String = str(skill_data.description)
+	desc_lbl.text = desc if not desc.is_empty() else _skill_detail_text(skill_data, true, req_lv)
 	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	UiTypography.apply_body(desc_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_VALUE)
@@ -3104,7 +3118,7 @@ func _show_skill_detail_overlay(
 	stats_title.text = "効果"
 	UiTypography.apply_body(stats_title, UiTypography.SIZE_CAPTION, COLOR_GOLD)
 	_detail_host.add_child(stats_title)
-	for line in _skill_stats_detail_lines(skill_data, unlocked, req_lv):
+	for line in _skill_stats_detail_lines(skill_data, true, req_lv):
 		var stat_lbl := Label.new()
 		stat_lbl.text = "・%s" % line
 		stat_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
