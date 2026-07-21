@@ -531,17 +531,17 @@ const FORMATION_SLOT_RATIOS: Array[Vector2] = [
 ]
 const PARTY_CARD_SLOT_COUNT: int = 4
 const BATTLE_LOG_VISIBLE_LINES: int = 4
-# 1行の実描画高（フォント22＋アウトライン余白）＋行間3。
-const BATTLE_LOG_LINE_HEIGHT: float = 46.0
+# 1行の実描画高（本文26＋上端余白）＋行間3。ログ最上行の見切れ防止。
+const BATTLE_LOG_LINE_HEIGHT: float = 48.0
 const BATTLE_LOG_LINE_GAP: float = 3.0
-const BATTLE_LOG_SCROLL_MARGIN_V: float = 10.0
+const BATTLE_LOG_SCROLL_MARGIN_V: float = 18.0
 const BATTLE_LOG_SCROLL_HEIGHT: float = (
 	BATTLE_LOG_LINE_HEIGHT * float(BATTLE_LOG_VISIBLE_LINES)
 	+ BATTLE_LOG_LINE_GAP * float(BATTLE_LOG_VISIBLE_LINES - 1)
 	+ BATTLE_LOG_SCROLL_MARGIN_V
 )
-# パネル content_margin 上下 6+6 を加算。
-const BATTLE_LOG_PANEL_HEIGHT: float = BATTLE_LOG_SCROLL_HEIGHT + 12.0
+# パネル content_margin 上下 12+8 を加算。
+const BATTLE_LOG_PANEL_HEIGHT: float = BATTLE_LOG_SCROLL_HEIGHT + 24.0
 const TRAP_HIT_PAUSE_SEC: float = 0.45
 const TRAP_FEEDBACK_FLASH_COLOR: Color = Color(1.0, 0.32, 0.22)
 const TRAP_FEEDBACK_DMG_COLOR: Color = Color(1.0, 0.35, 0.35)
@@ -6607,9 +6607,9 @@ func _style_combat_ui_panels() -> void:
 func _battle_log_panel_style() -> StyleBoxTexture:
 	var style: StyleBoxTexture = CombatUiFrames.panel_style(CombatUiFrames.TIER_NORMAL)
 	style.content_margin_left = 12.0
-	style.content_margin_top = 6.0
+	style.content_margin_top = 12.0
 	style.content_margin_right = 12.0
-	style.content_margin_bottom = 6.0
+	style.content_margin_bottom = 8.0
 	return style
 
 func _configure_battle_log_layout() -> void:
@@ -6627,8 +6627,8 @@ func _configure_battle_log_layout() -> void:
 		_battle_log_scroll.add_child(margin)
 	margin.add_theme_constant_override("margin_left", 8)
 	margin.add_theme_constant_override("margin_right", 8)
-	margin.add_theme_constant_override("margin_top", 6)
-	margin.add_theme_constant_override("margin_bottom", 4)
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_bottom", 6)
 	_battle_log_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_battle_log_content.add_theme_constant_override("separation", BATTLE_LOG_LINE_GAP)
 	if not _battle_log_scroll.resized.is_connected(_on_battle_log_scroll_resized):

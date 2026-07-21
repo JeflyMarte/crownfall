@@ -59,6 +59,40 @@ def sanitize_alpha(img: Image.Image) -> Image.Image:
     return img
 
 
+def key_flat_matte_frames(img: Image.Image, frame_w: int = 32, tol: int = 18) -> Image.Image:
+    """ヒットシートの不透明マット枠を透過化（ADD 合成で白い板になるのを防ぐ）。"""
+    img = img.convert("RGBA")
+    w, h = img.size
+    if h < frame_w or w % frame_w != 0:
+        return img
+    px = img.load()
+    for fi in range(w // frame_w):
+        corners = [
+            px[fi * frame_w, 0],
+            px[fi * frame_w + frame_w - 1, 0],
+            px[fi * frame_w, frame_w - 1],
+            px[fi * frame_w + frame_w - 1, frame_w - 1],
+        ]
+        if any(c[3] < 200 for c in corners):
+            continue
+        matte = (
+            sum(c[0] for c in corners) // 4,
+            sum(c[1] for c in corners) // 4,
+            sum(c[2] for c in corners) // 4,
+        )
+        if any(max(abs(c[i] - matte[i]) for i in range(3)) > 8 for c in corners):
+            continue
+        for y in range(frame_w):
+            for lx in range(frame_w):
+                x = fi * frame_w + lx
+                r, g, b, a = px[x, y]
+                if a == 0:
+                    continue
+                if max(abs(r - matte[0]), abs(g - matte[1]), abs(b - matte[2])) <= tol:
+                    px[x, y] = (0, 0, 0, 0)
+    return sanitize_alpha(img)
+
+
 def key_dark_background(
     img: Image.Image,
     max_rgb: int = VFX_KEY_MAX_RGB,
@@ -80,7 +114,7 @@ def key_dark_background(
 
 
 def clean_vfx_image(img: Image.Image) -> Image.Image:
-    return sanitize_alpha(key_dark_background(img))
+    return sanitize_alpha(key_flat_matte_frames(key_dark_background(img)))
 
 
 def derive_open_chest(closed: Image.Image) -> Image.Image:
