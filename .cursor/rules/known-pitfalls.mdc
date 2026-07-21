@@ -50,7 +50,7 @@ alwaysApply: true
 | 所持チケットが白マット | AI PNG の白背景がエッジ非連結で残存 | 透過隣接＋エッジから light matte flood-fill。枠は `StyleBox` 既定パネルを使わず rarity 枠 |
 | MVP 表彰枠が白／灰の不透明板 | AI 生成 PNG が RGB 白マットのまま（内外の穴も非連結） | エッジ＋中心穴の flood-fill で透過化（`import_forge_ui_assets.strip_edge_background` 相当）。差替後 `.godot/imported` を該当分クリア |
 | 戦闘ヒット／回復 VFX に暗縁 | `remove_black_bg(threshold=24)` では暗青緑マット `(14,21,25)` が残る | `tools/generate_env_and_vfx.py` の `clean_vfx_image`（`fix_batch6_vfx`）で再生成。alpha=0 の RGB ゴミも `sanitize_alpha` |
-| ダメージ時に白い四角／謎図形が出る | ヒットVFX 3コマ目が不透明マットのまま ADD 合成される | `key_flat_matte_frames` で枠マットを透過化。再生成時も `clean_vfx_image` 経由 |
+| ダンジョン選択の Featured バナーに名前が無い | `_sync_featured_banner` が画像のみで、一覧ヘッダのタイトル重ねを省略していた | 一覧と同様に `display_name` ラベルを中央重ね（焼き込み Banner は従来どおり非表示） |
 | 戦闘ログ最上行が見切れる | 本文サイズ拡大後も行高／上余白が旧フォント想定のまま | `BATTLE_LOG_LINE_HEIGHT`・パネル／Margin の上余白を本文サイズに合わせて確保 |
 | 枠にアイコンが食い込む | inset 不足 | `EquipmentUiTokens.ICON_FRAME_MARGIN_PX`（現行 18）を維持。全面キャンバス絵は余白を減らさない |
 | UI idle が拡縮／左右に跳ぶ | `idle_*.png` のフレーム間で描画サイズ・中心が不安定。安易な再配置や静止固定の行き来 | `ui-layout.mdc`「CHR Idle ポートレート」— 軽微は間引き、重度のみ足元固定。横跳びする再中央寄せをしない |

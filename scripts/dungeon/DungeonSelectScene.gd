@@ -1022,6 +1022,30 @@ func _sync_featured_banner(dungeon_id: String) -> void:
 	banner.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_featured_banner_host.add_child(banner)
+	## 一覧バナーと同様、画像上にダンジョン名を重ねる（焼き込み無しの雰囲気BG向け）。
+	if _banner_hides_title(dungeon_id):
+		return
+	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
+	if data == null:
+		return
+	var title := Label.new()
+	title.text = _dungeon_card_title(data)
+	title.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	title.offset_left = 12.0
+	title.offset_right = -12.0
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	title.autowrap_mode = TextServer.AUTOWRAP_OFF
+	title.max_lines_visible = 1
+	title.clip_text = true
+	title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_display(title, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
+	title.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.95))
+	title.add_theme_constant_override("shadow_offset_x", 1)
+	title.add_theme_constant_override("shadow_offset_y", 1)
+	title.add_theme_constant_override("shadow_outline_size", 5)
+	_featured_banner_host.add_child(title)
 
 func _make_biome_banner_header(
 	data: Resource,
