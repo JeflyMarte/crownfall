@@ -27,6 +27,7 @@ alwaysApply: true
 | 戦闘が継続的にカクつく | `_process` の CDバー更新が毎フレーム `StyleBoxFlat.new()`。`CombatUiFrames.panel_style` も都度 new＋load | CD/パネル StyleBox をキャッシュ。HPバー追従は position/offset 差分時のみ。ホットパスで `get_image` 禁止 |
 | 攻撃アニメと同時にダメージ数字／HP減少 | 通常攻撃が `play("attack")` とダメージ適用を同フレームで実行 | ヒットは `ATTACK_IMPACT_FRAME_RATIO` まで遅延＋cinematic lock（`_resolve_party_attack_impact_async`） |
 | アルド攻撃が「動いてない」ように見える | 背面アングル＋序盤フレームが立ち姿に近く、ヒットが早すぎて剣の振り上がり前にダメ数字が目立つ | ヒット比を中盤寄りに。静止に近い先頭フレームを攻撃から外す。短い踏み込み（`_play_chr_attack_lunge`）で可読性を補う |
+| 1-1（初回ラン）からボス（セルディオン）が出る | `SUB_STAGES_PLAYABLE=false` で単体 `mourngate` 運用になり `boss_id` が毎回付く。章別 `spawn_weights` も無効 | メインは `SUB_STAGES_PLAYABLE=true`。1-1〜x-4 は Boss なし／x-5 のみ。`start_dungeon` も章へ誘導 |
 
 ## アセット取込（Desktop → プロジェクト）
 
