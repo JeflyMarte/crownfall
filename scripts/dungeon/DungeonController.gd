@@ -413,8 +413,15 @@ func _reset_run_state() -> void:
 	current_event = {}
 	run_damage_multiplier = 1.0
 	_seen_event_ids.clear()
-	GameState.set_weather(CombatWeather.roll())
+	GameState.set_weather(_roll_run_weather())
 	_init_discovery()
+
+
+func _roll_run_weather() -> String:
+	var forced: String = EventSystem.forced_weather_id()
+	if not forced.is_empty():
+		return CombatWeather.normalize(forced)
+	return CombatWeather.roll()
 
 func get_run_display_name() -> String:
 	if current_stage_data != null and not str(current_stage_data.display_name).is_empty():
@@ -569,25 +576,29 @@ func _resolve_lore_room_weight(dungeon: DungeonData) -> int:
 	return ROOM_WEIGHT_LORE
 
 func _resolve_room_weights(dungeon: DungeonData) -> Dictionary:
+	var elite_mult: float = EventSystem.get_elite_room_weight_mult()
 	if dungeon != null and not dungeon.room_weight_overrides.is_empty():
 		var o: Dictionary = dungeon.room_weight_overrides
+		var elite_base: int = maxi(0, int(o.get("elite", ROOM_WEIGHT_ELITE)))
 		return {
 			"combat": maxi(0, int(o.get("combat", ROOM_WEIGHT_COMBAT))),
 			"heal": maxi(0, int(o.get("heal", ROOM_WEIGHT_HEAL))),
 			"lore": maxi(0, int(o.get("lore", ROOM_WEIGHT_LORE))),
 			"treasure": maxi(0, int(o.get("treasure", ROOM_WEIGHT_TREASURE))),
 			"trap": maxi(0, int(o.get("trap", ROOM_WEIGHT_TRAP))),
-			"elite": maxi(0, int(o.get("elite", ROOM_WEIGHT_ELITE))),
+			## 上書きが 0 のダンジョン（イベントDG等）は 0 のまま維持。
+			"elite": maxi(0, int(round(float(elite_base) * elite_mult))),
 		}
 	var lore_w: int = _resolve_lore_room_weight(dungeon)
 	var combat_w: int = clampi(ROOM_WEIGHT_COMBAT - (lore_w - ROOM_WEIGHT_LORE), 35, 70)
+	var elite_w: int = maxi(1, int(round(float(ROOM_WEIGHT_ELITE) * elite_mult)))
 	return {
 		"combat": combat_w,
 		"heal": ROOM_WEIGHT_HEAL,
 		"lore": lore_w,
 		"treasure": ROOM_WEIGHT_TREASURE,
 		"trap": ROOM_WEIGHT_TRAP,
-		"elite": ROOM_WEIGHT_ELITE,
+		"elite": elite_w,
 	}
 
 func _required_min_event_rooms(dungeon: DungeonData, middle_count: int) -> int:
@@ -698,7 +709,11 @@ func get_enemy_level() -> int:
 		base = maxi(1, int(current_stage_data.enemy_level))
 	elif current_dungeon_data != null:
 		base = maxi(1, int(current_dungeon_data.enemy_level))
-	return base + _DungeonTierConfig.enemy_level_bonus(GameState.current_dungeon_tier)
+	return (
+		base
+		+ _DungeonTierConfig.enemy_level_bonus(GameState.current_dungeon_tier)
+		+ EventSystem.get_enemy_level_bonus()
+	)
 
 func get_tier_rarity_weight(base_weight: int) -> int:
 	var mult: float = _DungeonTierConfig.rarity_weight_mult(GameState.current_dungeon_tier)
@@ -841,6 +856,7 @@ func pick_combat_enemy_group() -> Array[Resource]:
 	# 探索方針（安全優先）群れ出現率を半減（P3-D098）
 	elif GameState.get_exploration_policy() == "safe":
 		swarm_chance *= 0.5
+	swarm_chance = minf(0.95, swarm_chance * EventSystem.get_swarm_chance_mult())
 	if randf() >= swarm_chance:
 		return group
 	var lo: int = maxi(2, int(base.swarm_min))

@@ -695,7 +695,7 @@ func _refresh_event_footer() -> void:
 			if biome != null:
 				summary = "%s ｜ 注目: %s" % [summary, str(biome.display_name)]
 	_label_bonus_value.text = summary if not summary.is_empty() else str(event_data.title)
-	_label_bonus_timer.text = "残り %s" % EventSystem.countdown_text()
+	_label_bonus_timer.text = EventSystem.countdown_text()
 
 func _update_currency() -> void:
 	_label_gold.text = "%d" % GameState.gold

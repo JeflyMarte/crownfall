@@ -3,14 +3,22 @@ extends GutTest
 ## P3-WANDER-001 / P3-WANDER-002 — コズミックダック / 宝冠レイヴン。
 
 const _WanderingEnemyConfig = preload("res://scripts/dungeon/WanderingEnemyConfig.gd")
-## 2026-07-01 05:00 JST — 週サイクル week0=exp（weapon_drop 週のカレンダー汚染を避ける）
-const _EVENT_EXP_WEEK_UNIX: int = 1783076400 + 3600
+const _WeekRotation = preload("res://scripts/event/EventWeekRotation.gd")
+const _Schedule = preload("res://scripts/event/EventScheduleHelper.gd")
+func _unix_for_none_field_slot() -> int:
+	var anchor: int = _Schedule.jst_day_start_unix(_WeekRotation.ANCHOR_DATE_JST)
+	for slot: int in range(0, 800):
+		var idx: int = _WeekRotation.definition_index_for_slot(slot)
+		if str(_WeekRotation.SLOT_DEFINITIONS[idx].get("id", "")) == "none":
+			return anchor + slot * _WeekRotation.SLOT_SECONDS + 60
+	return anchor + 60
+
 
 var _saved_party: Array = []
 
 
 func before_each() -> void:
-	EventSystem.set_debug_unix_for_tests(_EVENT_EXP_WEEK_UNIX)
+	EventSystem.set_debug_unix_for_tests(_unix_for_none_field_slot())
 	_saved_party = GameState.party_members.duplicate()
 
 

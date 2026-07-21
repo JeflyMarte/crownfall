@@ -50,9 +50,9 @@ static func field_or_weather_line() -> String:
 			var title: String = str(event_data.title).strip_edges()
 			var desc: String = str(event_data.banner_desc).strip_edges()
 			if not title.is_empty() and not desc.is_empty():
-				return "今週の野外は「%s」。%s" % [title, desc]
+				return "いまの野外は「%s」。%s" % [title, desc]
 			if not title.is_empty():
-				return "今週の野外は「%s」よ。記録も忘れずに。" % title
+				return "いまの野外は「%s」よ。記録も忘れずに。" % title
 	var weather: String = GameState.get_weather()
 	if not weather.is_empty():
 		return "直近の野外は%sだったわ。次の探索でも気をつけて。" % CombatWeather.label(weather)

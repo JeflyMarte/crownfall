@@ -50,7 +50,7 @@ func _ready() -> void:
 	DailyMissionSystem.missions_updated.connect(_refresh_daily_missions)
 	EventSystem.event_updated.connect(_refresh_field_survey_banner)
 	EventSystem.event_updated.connect(_refresh_nina_nav)
-	$ResetTimer.timeout.connect(_update_daily_reset_label)
+	$ResetTimer.timeout.connect(_on_hub_tick)
 	_ensure_valid_dungeon_selection()
 	DailyMissionSystem.ensure_refreshed()
 	_update_display()
@@ -131,7 +131,7 @@ func _setup_field_survey_banner() -> void:
 	_field_survey_banner.add_child(row)
 	var tag := Label.new()
 	tag.name = "LabelFieldTag"
-	tag.text = "今週の野外"
+	tag.text = "いまの野外"
 	row.add_child(tag)
 	var body := Label.new()
 	body.name = "LabelFieldBody"
@@ -421,6 +421,12 @@ func _refresh_daily_missions() -> void:
 
 func _update_daily_reset_label() -> void:
 	_label_daily_reset.text = "リセットまで %s" % DailyMissionSystem.reset_countdown_text()
+
+
+func _on_hub_tick() -> void:
+	_update_daily_reset_label()
+	EventSystem.ensure_active()
+	_refresh_field_survey_banner()
 
 func _make_daily_row(index: int, entry: Dictionary) -> VBoxContainer:
 	var wrap := VBoxContainer.new()

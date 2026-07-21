@@ -61,11 +61,13 @@ static func spawn_mult_for_tier(tier: int) -> float:
 
 
 static func spawn_chance_cosmic_duck(tier: int = _DungeonTierConfig.TIER_NORMAL) -> float:
-	return SPAWN_CHANCE_COSMIC_DUCK * spawn_mult_for_tier(tier)
+	var base: float = SPAWN_CHANCE_COSMIC_DUCK * spawn_mult_for_tier(tier)
+	return minf(0.45, base * EventSystem.get_wander_spawn_mult(ID_COSMIC_DUCK))
 
 
 static func spawn_chance_crown_raven(tier: int = _DungeonTierConfig.TIER_NORMAL) -> float:
-	return SPAWN_CHANCE_CROWN_RAVEN * spawn_mult_for_tier(tier)
+	var base: float = SPAWN_CHANCE_CROWN_RAVEN * spawn_mult_for_tier(tier)
+	return minf(0.45, base * EventSystem.get_wander_spawn_mult(ID_CROWN_RAVEN))
 
 
 static func try_roll_wandering_id(

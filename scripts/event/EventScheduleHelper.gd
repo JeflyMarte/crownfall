@@ -42,6 +42,9 @@ static func format_countdown(seconds: int) -> String:
 	const SECONDS_PER_DAY: int = 86400
 	var days: int = seconds / SECONDS_PER_DAY
 	var hours: int = (seconds % SECONDS_PER_DAY) / 3600
+	var mins: int = (seconds % 3600) / 60
 	if days > 0:
 		return "残り %d日 %d時間" % [days, hours]
-	return "残り %d:%02d" % [hours, (seconds % 3600) / 60]
+	if hours > 0:
+		return "残り %d:%02d" % [hours, mins]
+	return "残り %d分" % maxi(1, mins) if seconds > 0 else "残り 0分"
