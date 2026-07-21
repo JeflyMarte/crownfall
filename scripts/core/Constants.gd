@@ -30,8 +30,14 @@ const SUB_STAGES_PLAYABLE: bool = true
 const RESOURCE_STAGES_PATH: String = "res://resources/stages/"
 const COMBAT_TICK_INTERVAL: float = 1.5
 const DEFAULT_PLAYER_SKILL_ID: String = "slash_attack"
-## 1キャラが装備できるスキル数（P3-D077）。
-const MAX_EQUIPPED_SKILLS: int = 2
+## 1キャラが装備できるスキル数（P3-COMBAT-GAUGE-001: 1本。旧 P3-D077=2）。
+const MAX_EQUIPPED_SKILLS: int = 1
+## 必殺ゲージ上限（P3-COMBAT-GAUGE-001）。
+const ULTIMATE_CHARGE_MAX: float = 100.0
+## 与ダメ → 必殺チャージ係数。
+const ULTIMATE_CHARGE_DEALT_K: float = 0.10
+## 被ダメ → 必殺チャージ係数。
+const ULTIMATE_CHARGE_TAKEN_K: float = 0.20
 ## 1キャラが装備できるパッシブ数（キャラ/ジョブ由来。装備固定パッシブは別）。
 const MAX_EQUIPPED_PASSIVES: int = 1
 ## 1キャラが装備できるレリック数（解放型パッシブ・P3-RELIC-PASSIVE）。

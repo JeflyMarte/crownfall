@@ -19,6 +19,9 @@ func can_cast(skill_data: Resource, cooldown_key: String = "") -> bool:
 		return false
 	if skill_data.trigger_type != "cooldown":
 		return false
+	# 必殺はチャージ制（P3-COMBAT-GAUGE-001）。CD ゲートは使わない。
+	if str(skill_data.slot_type) == "ultimate":
+		return true
 	var key: String = cooldown_key if not cooldown_key.is_empty() else skill_data.id
 	return _cooldown_remaining.get(key, 0.0) <= 0.0
 
@@ -57,7 +60,8 @@ func execute_damage_skill(
 	var damage: int = calculate_damage(
 		skill_data, base_damage, is_critical, critical_multiplier, run_multiplier
 	)
-	_cooldown_remaining[key] = skill_data.cooldown
+	if str(skill_data.slot_type) != "ultimate":
+		_cooldown_remaining[key] = skill_data.cooldown
 	return {
 		"executed": true,
 		"damage": damage,
@@ -74,7 +78,8 @@ func execute_support_skill(skill_data: Resource, cooldown_key: String = "") -> D
 	var key: String = cooldown_key if not cooldown_key.is_empty() else skill_data.id
 	if not can_cast(skill_data, key):
 		return {"executed": false}
-	_cooldown_remaining[key] = skill_data.cooldown
+	if str(skill_data.slot_type) != "ultimate":
+		_cooldown_remaining[key] = skill_data.cooldown
 	return {
 		"executed": true,
 		"display_name": skill_data.display_name,

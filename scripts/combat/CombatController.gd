@@ -48,6 +48,8 @@ var active_enemy_index: int = 0
 var member_target_slot: Array[int] = []
 # 装備スキル①②のローテーション開始位置（P3-D113）。戦闘中のみ保持。
 var member_skill_rot_idx: Array[int] = []
+# 必殺チャージ（P3-COMBAT-GAUGE-001）。member index → 0..ULTIMATE_CHARGE_MAX。
+var member_ultimate_charge: Array[float] = []
 
 # CT/ATB スケジューラ（P3-D084）。各生存ユニット（味方/群れ各敵）は個別の CT を持ち、
 # CT が 0 になったユニットから 1 体ずつ行動する。速度（initiative_score）が大きいほど
@@ -136,6 +138,7 @@ func start_combat_group(enemies: Array, level: int = 1) -> void:
 	ensure_party_hp_for_combat()
 	_init_member_targets()
 	_init_member_skill_rotation()
+	_init_member_ultimate_charge()
 	init_ct()
 
 # 現行編成人数に対する敵ステ補正倍率（base=3人前提）。
@@ -250,6 +253,49 @@ func set_skill_rotation_after_cast(member_index: int, used_index: int, slot_coun
 	if member_index < 0 or member_index >= member_skill_rot_idx.size() or slot_count <= 0:
 		return
 	member_skill_rot_idx[member_index] = (used_index + 1) % slot_count
+
+func _init_member_ultimate_charge() -> void:
+	member_ultimate_charge.clear()
+	for i in party_combat_hp.size():
+		member_ultimate_charge.append(0.0)
+
+func get_ultimate_charge(member_index: int) -> float:
+	if member_index < 0 or member_index >= member_ultimate_charge.size():
+		return 0.0
+	return float(member_ultimate_charge[member_index])
+
+func get_ultimate_charge_ratio(member_index: int) -> float:
+	return clampf(get_ultimate_charge(member_index) / Constants.ULTIMATE_CHARGE_MAX, 0.0, 1.0)
+
+func is_ultimate_charge_ready(member_index: int) -> bool:
+	return get_ultimate_charge(member_index) >= Constants.ULTIMATE_CHARGE_MAX - 0.001
+
+func add_ultimate_charge(member_index: int, amount: float) -> void:
+	if member_index < 0 or member_index >= member_ultimate_charge.size():
+		return
+	if amount <= 0.0:
+		return
+	if not is_member_alive(member_index):
+		return
+	member_ultimate_charge[member_index] = minf(
+		Constants.ULTIMATE_CHARGE_MAX,
+		float(member_ultimate_charge[member_index]) + amount
+	)
+
+func add_ultimate_charge_from_damage_dealt(member_index: int, damage: int) -> void:
+	if damage <= 0:
+		return
+	add_ultimate_charge(member_index, float(damage) * Constants.ULTIMATE_CHARGE_DEALT_K)
+
+func add_ultimate_charge_from_damage_taken(member_index: int, damage: int) -> void:
+	if damage <= 0:
+		return
+	add_ultimate_charge(member_index, float(damage) * Constants.ULTIMATE_CHARGE_TAKEN_K)
+
+func consume_ultimate_charge(member_index: int) -> void:
+	if member_index < 0 or member_index >= member_ultimate_charge.size():
+		return
+	member_ultimate_charge[member_index] = 0.0
 
 func get_member_target_slot(member_index: int) -> int:
 	if member_index < 0 or member_index >= member_target_slot.size():

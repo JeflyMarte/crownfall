@@ -351,8 +351,6 @@ func _deserialize_active_pet(raw: Variant) -> Resource:
 			var s: String = str(sid)
 			if not s.is_empty() and not skills.has(s):
 				skills.append(s)
-			if skills.size() >= Constants.MAX_EQUIPPED_SKILLS:
-				break
 		if not skills.is_empty():
 			pet.equipped_skill_ids = skills
 	pet.tactics_id = str(data.get("tactics_id", "balanced"))
@@ -609,6 +607,8 @@ func _deserialize_party(party_data: Array) -> Dictionary:
 		var saved_skills: Array = entry.get("equipped_skills", [])
 		var skill_ids: Array[String] = []
 		for sid in saved_skills:
+			if skill_ids.size() >= Constants.MAX_EQUIPPED_SKILLS:
+				break
 			skill_ids.append(str(sid))
 		adv.equipped_skill_ids = skill_ids
 		var saved_passives: Array = entry.get("equipped_passives", [])

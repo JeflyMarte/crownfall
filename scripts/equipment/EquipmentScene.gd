@@ -1878,7 +1878,7 @@ func _rebuild_skill_tab() -> void:
 	slots_label.text = "[center]装備中スキル (%d/%d): %s[/center]" % [
 		equipped.size(), Constants.MAX_EQUIPPED_SKILLS, shown
 	]
-	hint_label.text = "習得スキル（タップで詳細 / 右ボタンで装備）"
+	hint_label.text = "習得スキル（装備は1本。長押しで詳細）"
 	var job: Resource = DataRegistry.get_job_data(member.job_id)
 	if job == null:
 		return

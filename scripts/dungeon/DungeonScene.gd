@@ -483,6 +483,7 @@ var _chr_hp_bars: Array[ProgressBar] = []
 var _party_card_hp_bars: Array[ProgressBar] = []
 var _party_card_hp_labels: Array[Label] = []
 var _party_card_skill_cd_bars: Array = []
+var _party_card_ult_gauge_bars: Array = []
 var _skill_cd_visual_rem: Dictionary = {}
 ## ProgressBar instance_id → 満タン時の点滅 Tween
 var _skill_cd_ready_pulse: Dictionary = {}
@@ -3478,6 +3479,8 @@ func _process_status_ticks() -> void:
 		elif unit_id.begins_with("party_"):
 			var idx: int = int(unit_id.substr(7))
 			$CombatController.apply_damage_to_member(idx, dmg)
+			if dmg > 0:
+				$CombatController.add_ultimate_charge_from_damage_taken(idx, dmg)
 			if idx < _chr_sprites.size():
 				var party_pos: Vector2 = _sprite_visual_center_global(_chr_sprites[idx])
 				var party_effect: String = str(result.get("effect_id", ""))
@@ -4194,6 +4197,9 @@ func _deal_member_damage_to_enemy(
 	GameState.record_run_damage(member_idx, damage, skill_id, skill_name)
 	$CombatController.apply_damage_to_enemy_slot(target_slot, damage)
 	$CombatController.add_threat(member_idx, float(damage) * CombatController.THREAT_DAMAGE_K)
+	# 必殺自身の与ダメではチャージしない（P3-COMBAT-GAUGE-001）。
+	if damage > 0 and not _skill_id_is_ultimate(skill_id):
+		$CombatController.add_ultimate_charge_from_damage_dealt(member_idx, damage)
 	_check_boss_phase_transition(target_slot)
 	if damage > 0:
 		_fire_member_passives(
@@ -4429,6 +4435,8 @@ func _apply_enemy_damage_to_targets(
 			dmg = maxi(1, dmg)
 		$CombatController.apply_damage_to_member(ti, dmg)
 		$CombatController.add_threat(ti, float(dmg) * CombatController.THREAT_TAKEN_K)
+		if dmg > 0:
+			$CombatController.add_ultimate_charge_from_damage_taken(ti, dmg)
 		_play_chr_hurt(ti)
 		if dmg > 0 and ti < _chr_sprites.size():
 			_spawn_hit_vfx(_chr_sprites[ti].global_position)
@@ -4574,6 +4582,8 @@ func _resolve_enemy_attack_impact_async(payload: Dictionary) -> void:
 		return
 	$CombatController.apply_damage_to_member(target_idx, enemy_result["final"])
 	$CombatController.add_threat(target_idx, float(enemy_result["final"]) * CombatController.THREAT_TAKEN_K)
+	if int(enemy_result["final"]) > 0:
+		$CombatController.add_ultimate_charge_from_damage_taken(target_idx, int(enemy_result["final"]))
 	_play_chr_hurt(target_idx)
 	if enemy_result["final"] > 0 and target_idx < _chr_sprites.size():
 		_spawn_hit_vfx(_chr_sprites[target_idx].global_position)
@@ -4986,12 +4996,18 @@ func _build_tactics_context(member_idx: int) -> Dictionary:
 		"ally_injured": $CombatController.get_most_injured_member_index() >= 0,
 	}
 
-# 必殺技が CT/CD 待ちなしで撃てるか（P3-D108 ultimate_ready）。
+# 必殺技がチャージ満タンか（P3-COMBAT-GAUGE-001 / 旧 P3-D108 は CT/CD）。
 func _is_member_ultimate_ready(member_idx: int) -> bool:
 	var ult: Resource = _get_member_ultimate_skill(member_idx)
 	if ult == null:
 		return false
-	return _skill_executor.can_cast(ult, "%d:%s" % [member_idx, ult.id])
+	return $CombatController.is_ultimate_charge_ready(member_idx)
+
+func _skill_id_is_ultimate(skill_id: String) -> bool:
+	if skill_id.is_empty() or skill_id == "basic_attack" or skill_id == "counter_attack":
+		return false
+	var skill_data: Resource = DataRegistry.get_skill_data(skill_id)
+	return skill_data != null and str(skill_data.slot_type) == "ultimate"
 
 # 戦術「距離」判定用（CombatRange SSOT に委譲）。
 func _member_combat_range(member_idx: int) -> String:
@@ -5090,9 +5106,13 @@ func _try_member_weapon_skill(member_idx: int) -> bool:
 func _try_cast_member_skill(member_idx: int, skill_data: Resource, is_ultimate: bool) -> bool:
 	if skill_data == null:
 		return false
-	var cd_key: String = _member_skill_cd_key(member_idx, skill_data)
-	if not _skill_executor.can_cast(skill_data, cd_key):
-		return false
+	if is_ultimate:
+		if not $CombatController.is_ultimate_charge_ready(member_idx):
+			return false
+	else:
+		var cd_key: String = _member_skill_cd_key(member_idx, skill_data)
+		if not _skill_executor.can_cast(skill_data, cd_key):
+			return false
 	match skill_data.effect_type:
 		"heal":
 			if $CombatController.get_most_injured_member_index() < 0:
@@ -5106,6 +5126,8 @@ func _try_cast_member_skill(member_idx: int, skill_data: Resource, is_ultimate: 
 		"damage":
 			if not _member_has_living_target(member_idx):
 				return false
+	if is_ultimate:
+		$CombatController.consume_ultimate_charge(member_idx)
 	var cast_time: float = float(skill_data.cast_time)
 	if cast_time <= 0.0:
 		var log_text: String = _execute_member_skill(member_idx, skill_data, 0).strip_edges()
@@ -5114,6 +5136,7 @@ func _try_cast_member_skill(member_idx: int, skill_data: Resource, is_ultimate: 
 			if _ultimate_presentation_active or _combat_cinematic_lock:
 				_update_hp_bars()
 				return true
+			# チャージを消費済みだが不発 → 返却しない（レア）。ログ空は失敗扱い。
 			return false
 		if is_ultimate:
 			_append_log("【必殺】" + log_text.trim_prefix("【スキル】"))
@@ -6538,6 +6561,7 @@ func _rebuild_party_cards() -> void:
 	_party_card_hp_bars.clear()
 	_party_card_hp_labels.clear()
 	_party_card_skill_cd_bars.clear()
+	_party_card_ult_gauge_bars.clear()
 	_clear_skill_cd_ready_pulses()
 	_party_card_portraits.clear()
 	_party_card_roots.clear()
@@ -6557,7 +6581,8 @@ func _rebuild_party_cards() -> void:
 			_party_cards_row.add_child(built["card"])
 			_party_card_hp_bars.append(built["hp_bar"])
 			_party_card_hp_labels.append(built["hp_label"])
-			_party_card_skill_cd_bars.append(built["skill_cd_bars"])
+			_party_card_skill_cd_bars.append(built["skill_bar"])
+			_party_card_ult_gauge_bars.append(built["ult_bar"])
 			_party_card_portraits.append(built["portrait"])
 			_party_card_roots.append(built["card"])
 			_party_card_name_labels.append(built["name_label"])
@@ -6743,37 +6768,88 @@ func _clear_skill_cd_ready_pulses() -> void:
 	_skill_cd_ready_pulse.clear()
 
 
-# 装備スキル①②のCD表示（CTとは別。満タン=使用可・≠自動発動）（P3-FIX-008）。
-func _make_skill_cd_row() -> Dictionary:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 4)
-	var header := Label.new()
-	header.text = "再使用"
-	UiTypography.apply_caption(header, PARTY_CARD_SKILL_CD_WAIT)
-	header.tooltip_text = "スキル再使用までの待ち時間（使用可になっても自動では発動しません）"
-	header.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(header)
-	var bars: Array[ProgressBar] = []
-	for slot_num in [1, 2]:
-		var slot_col := HBoxContainer.new()
-		slot_col.add_theme_constant_override("separation", 2)
-		slot_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var tag := Label.new()
-		tag.text = "①" if slot_num == 1 else "②"
-		UiTypography.apply_caption(tag, PARTY_CARD_SKILL_CD_READY)
-		tag.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		slot_col.add_child(tag)
-		var bar := ProgressBar.new()
-		bar.show_percentage = false
-		bar.max_value = 1.0
-		bar.value = 1.0
-		bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		_style_party_card_skill_cd_bar(bar, true)
-		slot_col.add_child(bar)
-		row.add_child(slot_col)
-		bars.append(bar)
-	return {"row": row, "bars": bars}
+# スキル1本＋必殺の2段ゲージ（P3-COMBAT-GAUGE-001）。
+func _make_party_gauge_block() -> Dictionary:
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 2)
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var skill_row := HBoxContainer.new()
+	skill_row.add_theme_constant_override("separation", 4)
+	var skill_tag := Label.new()
+	skill_tag.text = "技"
+	skill_tag.custom_minimum_size.x = 20.0
+	UiTypography.apply_caption(skill_tag, PARTY_CARD_SKILL_CD_WAIT)
+	skill_tag.tooltip_text = "装備スキル（時間経過で溜まり、満タンで使用可）"
+	skill_tag.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	skill_row.add_child(skill_tag)
+	var skill_bar := ProgressBar.new()
+	skill_bar.show_percentage = false
+	skill_bar.max_value = 1.0
+	skill_bar.value = 1.0
+	skill_bar.custom_minimum_size.y = 8.0
+	skill_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	skill_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_style_party_card_skill_cd_bar(skill_bar, true)
+	skill_row.add_child(skill_bar)
+	col.add_child(skill_row)
+	var ult_row := HBoxContainer.new()
+	ult_row.add_theme_constant_override("separation", 4)
+	var ult_tag := Label.new()
+	ult_tag.text = "必"
+	ult_tag.custom_minimum_size.x = 20.0
+	UiTypography.apply_caption(ult_tag, Color(0.95, 0.78, 0.35))
+	ult_tag.tooltip_text = "必殺技（与ダメージ・被ダメージで溜まる）"
+	ult_tag.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	ult_row.add_child(ult_tag)
+	var ult_bar := ProgressBar.new()
+	ult_bar.show_percentage = false
+	ult_bar.max_value = 1.0
+	ult_bar.value = 0.0
+	ult_bar.custom_minimum_size.y = 10.0
+	ult_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	ult_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_style_party_card_ult_gauge_bar(ult_bar, false)
+	ult_row.add_child(ult_bar)
+	col.add_child(ult_row)
+	return {"row": col, "skill_bar": skill_bar, "ult_bar": ult_bar}
+
+func _style_party_card_ult_gauge_bar(bar: ProgressBar, ready: bool = false) -> void:
+	if bool(bar.get_meta("ult_ready_styled", not ready)) == ready and bar.has_meta("ult_style_applied"):
+		_set_skill_cd_ready_pulse(bar, ready)
+		return
+	var fill_style: StyleBoxFlat = _cached_ult_gauge_fill_style(ready)
+	var bg_style: StyleBoxFlat = _cached_ult_gauge_bg_style()
+	bar.add_theme_stylebox_override("fill", fill_style)
+	bar.add_theme_stylebox_override("background", bg_style)
+	bar.custom_minimum_size = Vector2(0, PARTY_CARD_CD_HEIGHT + 2)
+	bar.set_meta("ult_ready_styled", ready)
+	bar.set_meta("ult_style_applied", true)
+	_set_skill_cd_ready_pulse(bar, ready)
+
+func _cached_ult_gauge_fill_style(ready: bool) -> StyleBoxFlat:
+	var key: String = "ready" if ready else "wait"
+	if not has_meta("_ult_fill_styles"):
+		set_meta("_ult_fill_styles", {})
+	var cache: Dictionary = get_meta("_ult_fill_styles")
+	if cache.has(key):
+		return cache[key] as StyleBoxFlat
+	var fill_style := StyleBoxFlat.new()
+	fill_style.bg_color = Color(0.95, 0.72, 0.22) if ready else Color(0.72, 0.48, 0.12)
+	fill_style.set_corner_radius_all(3)
+	if ready:
+		fill_style.set_border_width_all(1)
+		fill_style.border_color = Color(1.0, 0.92, 0.55, 0.98)
+	cache[key] = fill_style
+	return fill_style
+
+func _cached_ult_gauge_bg_style() -> StyleBoxFlat:
+	if has_meta("_ult_bg_style"):
+		return get_meta("_ult_bg_style") as StyleBoxFlat
+	var bg_style := StyleBoxFlat.new()
+	bg_style.bg_color = Color(0.12, 0.10, 0.08, 0.85)
+	bg_style.set_corner_radius_all(3)
+	set_meta("_ult_bg_style", bg_style)
+	return bg_style
 
 func _party_card_skill_cd_info(member_idx: int, skill_slot: int) -> Dictionary:
 	var member: Resource = GameState.get_combatant(member_idx)
@@ -6805,42 +6881,56 @@ func _update_party_skill_cd_bars_smooth(delta: float) -> void:
 	for i in _party_card_skill_cd_bars.size():
 		if i >= $CombatController.party_max_hp.size():
 			continue
-		var cd_bars: Array = _party_card_skill_cd_bars[i]
+		var bar: ProgressBar = _party_card_skill_cd_bars[i] as ProgressBar
+		if bar == null:
+			continue
 		var alive: bool = $CombatController.is_member_alive(i)
-		for s in mini(2, cd_bars.size()):
-			var bar: ProgressBar = cd_bars[s]
-			if not alive:
-				if bar.value != 0.0:
-					bar.value = 0.0
-				_style_party_card_skill_cd_bar(bar, false)
-				continue
-			var info: Dictionary = _party_card_skill_cd_info(i, s)
+		if not alive:
+			if bar.value != 0.0:
+				bar.value = 0.0
+			_style_party_card_skill_cd_bar(bar, false)
+		else:
+			var info: Dictionary = _party_card_skill_cd_info(i, 0)
 			if not bool(info.get("has_skill", false)):
 				if bar.value != 0.0:
 					bar.value = 0.0
 				_style_party_card_skill_cd_bar(bar, false)
-				continue
-			var cd_key: String = str(info.get("cd_key", ""))
-			if cd_key.is_empty():
-				if bar.value != 1.0:
-					bar.value = 1.0
-				_style_party_card_skill_cd_bar(bar, true)
-				continue
-			var max_cd: float = float(info.get("max_cd", 1.0))
-			var actual_rem: float = _skill_executor.get_cooldown_remaining(cd_key)
-			var visual_rem: float = float(_skill_cd_visual_rem.get(cd_key, actual_rem))
-			if actual_rem > visual_rem + 0.05:
-				visual_rem = actual_rem
-			elif actual_rem + 0.05 < visual_rem and ct_rate > 0.0:
-				visual_rem = maxf(actual_rem, visual_rem - ct_rate * delta)
 			else:
-				visual_rem = lerpf(visual_rem, actual_rem, blend)
-			_skill_cd_visual_rem[cd_key] = visual_rem
-			var ready: bool = visual_rem <= 0.05
-			var next_value: float = 1.0 if ready else clampf(1.0 - visual_rem / maxf(max_cd, 0.001), 0.0, 1.0)
-			if absf(bar.value - next_value) > 0.0005:
-				bar.value = next_value
-			_style_party_card_skill_cd_bar(bar, ready)
+				var cd_key: String = str(info.get("cd_key", ""))
+				if cd_key.is_empty():
+					if bar.value != 1.0:
+						bar.value = 1.0
+					_style_party_card_skill_cd_bar(bar, true)
+				else:
+					var max_cd: float = float(info.get("max_cd", 1.0))
+					var actual_rem: float = _skill_executor.get_cooldown_remaining(cd_key)
+					var visual_rem: float = float(_skill_cd_visual_rem.get(cd_key, actual_rem))
+					if actual_rem > visual_rem + 0.05:
+						visual_rem = actual_rem
+					elif actual_rem + 0.05 < visual_rem and ct_rate > 0.0:
+						visual_rem = maxf(actual_rem, visual_rem - ct_rate * delta)
+					else:
+						visual_rem = lerpf(visual_rem, actual_rem, blend)
+					_skill_cd_visual_rem[cd_key] = visual_rem
+					var ready: bool = visual_rem <= 0.05
+					var next_value: float = 1.0 if ready else clampf(1.0 - visual_rem / maxf(max_cd, 0.001), 0.0, 1.0)
+					if absf(bar.value - next_value) > 0.0005:
+						bar.value = next_value
+					_style_party_card_skill_cd_bar(bar, ready)
+		if i < _party_card_ult_gauge_bars.size():
+			var ult_bar: ProgressBar = _party_card_ult_gauge_bars[i] as ProgressBar
+			if ult_bar == null:
+				continue
+			if not alive:
+				if ult_bar.value != 0.0:
+					ult_bar.value = 0.0
+				_style_party_card_ult_gauge_bar(ult_bar, false)
+			else:
+				var ratio: float = $CombatController.get_ultimate_charge_ratio(i)
+				var ult_ready: bool = ratio >= 0.999
+				if absf(ult_bar.value - ratio) > 0.0005:
+					ult_bar.value = ratio
+				_style_party_card_ult_gauge_bar(ult_bar, ult_ready)
 
 func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
 	var card := PanelContainer.new()
@@ -6913,8 +7003,8 @@ func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
 	hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	UiTypography.apply_body(hp_label, UiTypography.SIZE_CAPTION, UI_TEXT_PRIMARY, UiTypography.OUTLINE_BODY)
 	hp_row.add_child(hp_label)
-	var skill_cd: Dictionary = _make_skill_cd_row()
-	root.add_child(skill_cd["row"])
+	var gauges: Dictionary = _make_party_gauge_block()
+	root.add_child(gauges["row"])
 	var state_badge := Label.new()
 	state_badge.visible = false
 	state_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -6928,7 +7018,8 @@ func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
 		"card": card,
 		"hp_bar": hp_bar,
 		"hp_label": hp_label,
-		"skill_cd_bars": skill_cd["bars"],
+		"skill_bar": gauges["skill_bar"],
+		"ult_bar": gauges["ult_bar"],
 		"portrait": portrait,
 		"name_label": name_label,
 		"state_badge": state_badge,

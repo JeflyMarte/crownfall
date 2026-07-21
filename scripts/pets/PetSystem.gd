@@ -74,8 +74,7 @@ static func create_pet_adventurer(pet_id: String = STARTER_PET_ID) -> Resource:
 			var s: String = str(sid)
 			if not s.is_empty() and not skills.has(s):
 				skills.append(s)
-			if skills.size() >= Constants.MAX_EQUIPPED_SKILLS:
-				break
+	# オトモは装備枠1の人間ルール外（固定スキル列をそのまま持つ）。
 	if skills.is_empty():
 		skills.append("pet_nibble")
 		skills.append("pet_pounce")
@@ -111,8 +110,6 @@ static func sync_pet_runtime(pet: Resource) -> void:
 				var s: String = str(sid)
 				if not s.is_empty() and not skills.has(s):
 					skills.append(s)
-				if skills.size() >= Constants.MAX_EQUIPPED_SKILLS:
-					break
 		if skills.is_empty():
 			skills.append("pet_nibble")
 			skills.append("pet_pounce")

@@ -523,6 +523,7 @@ func get_equipped_skill_ids(member: Resource) -> Array[String]:
 	return get_default_skill_ids(member)
 
 # スキルの装備/解除トグル（最大 MAX_EQUIPPED_SKILLS）。未解放は不可。
+# 満枠時に別スキルを選ぶと先頭を置換（1枠運用向け）。
 func toggle_member_skill(member: Resource, skill_id: String) -> void:
 	if member == null or skill_id.is_empty():
 		return
@@ -534,7 +535,7 @@ func toggle_member_skill(member: Resource, skill_id: String) -> void:
 	elif ids.size() < Constants.MAX_EQUIPPED_SKILLS:
 		ids.append(skill_id)
 	else:
-		return
+		ids = [skill_id] as Array[String]
 	member.equipped_skill_ids = ids
 
 # ---- 装備パッシブ（P3-D088 拡張 / P3-RELIC-PASSIVE） ----
