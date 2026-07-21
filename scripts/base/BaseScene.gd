@@ -5,6 +5,7 @@ const _CommanderProfile := preload("res://scripts/commander/CommanderProfile.gd"
 const _CommanderGiftBox := preload("res://scripts/commander/CommanderGiftBox.gd")
 const _CommanderRankUpOverlay := preload("res://scripts/commander/CommanderRankUpOverlay.gd")
 const _CurrencyGainFx := preload("res://scripts/ui/CurrencyGainFx.gd")
+const _HubNinaNavigator := preload("res://scripts/ui/HubNinaNavigator.gd")
 
 const DUNGEON_SELECT_SCENE: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
 const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
@@ -37,15 +38,18 @@ const _STAT_DISCOVERY_ICON_PATH: String = "res://assets/ui/batch2/ICO_Stat_Disco
 
 var _field_survey_banner: PanelContainer
 var _gift_badge: PanelContainer
+var _nina_nav: HubNinaNavigator
 
 func _ready() -> void:
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.HOME)
 	AudioManager.play_bgm("hub")
 	_decorate_panels()
 	_setup_field_survey_banner()
+	_setup_nina_nav()
 	_build_left_menu()
 	DailyMissionSystem.missions_updated.connect(_refresh_daily_missions)
 	EventSystem.event_updated.connect(_refresh_field_survey_banner)
+	EventSystem.event_updated.connect(_refresh_nina_nav)
 	$ResetTimer.timeout.connect(_update_daily_reset_label)
 	_ensure_valid_dungeon_selection()
 	DailyMissionSystem.ensure_refreshed()
@@ -53,6 +57,7 @@ func _ready() -> void:
 	_refresh_daily_missions()
 	_apply_typography()
 	_refresh_field_survey_banner()
+	_refresh_nina_nav()
 	GameState.base_initial_view = "hub"
 	_player_card.gui_input.connect(_on_player_card_gui_input)
 	_setup_gift_badge()
@@ -64,6 +69,7 @@ func _layout_hub_if_needed() -> void:
 	## 実機のみ: TopBar 追従＋日課下端スタック。Mac はシーン座標のまま。
 	HubLayoutHelper.layout_hub_home_content(self)
 	_place_field_survey_banner()
+	_place_nina_nav()
 
 
 func _maybe_show_rank_up() -> void:
@@ -155,6 +161,25 @@ func _place_field_survey_banner() -> void:
 	_field_survey_banner.offset_right = -12.0
 	_field_survey_banner.offset_top = top
 	_field_survey_banner.offset_bottom = top + BANNER_H
+
+
+func _setup_nina_nav() -> void:
+	_nina_nav = _HubNinaNavigator.new()
+	$HubView.add_child(_nina_nav)
+	_place_nina_nav()
+
+
+func _place_nina_nav() -> void:
+	if _nina_nav == null:
+		return
+	var top_bar: Control = $HubView/TopBar as Control
+	_nina_nav.place_below_top_bar(top_bar)
+
+
+func _refresh_nina_nav() -> void:
+	if _nina_nav == null:
+		return
+	_nina_nav.refresh_messages()
 
 func _refresh_field_survey_banner() -> void:
 	if _field_survey_banner == null:
@@ -390,6 +415,7 @@ func _refresh_daily_missions() -> void:
 	var entries: Array[Dictionary] = DailyMissionSystem.get_entries()
 	for i in entries.size():
 		_mission_list.add_child(_make_daily_row(i, entries[i]))
+	_refresh_nina_nav()
 
 func _update_daily_reset_label() -> void:
 	_label_daily_reset.text = "リセットまで %s" % DailyMissionSystem.reset_countdown_text()

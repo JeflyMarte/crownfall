@@ -1,0 +1,68 @@
+extends GutTest
+## P3-UI-NINA-NAV-001 — ニーナ拠点ナビ文案。
+
+const _Helper = preload("res://scripts/ui/HubNinaNavHelper.gd")
+const _Navigator = preload("res://scripts/ui/HubNinaNavigator.gd")
+
+
+func before_each() -> void:
+	GameState.reset_for_new_game()
+	EventSystem.set_debug_unix_for_tests(-1)
+
+
+func after_each() -> void:
+	EventSystem.set_debug_unix_for_tests(-1)
+
+
+func test_rotate_interval_is_ten_seconds() -> void:
+	assert_eq(_Navigator.ROTATE_SEC, 10.0)
+
+
+func test_build_rotation_has_recommend_then_field() -> void:
+	var rot: Array[Dictionary] = _Helper.build_rotation()
+	assert_gte(rot.size(), 2)
+	assert_eq(str(rot[0].get("kind", "")), _Helper.KIND_RECOMMEND)
+	assert_eq(str(rot[1].get("kind", "")), _Helper.KIND_FIELD)
+	assert_true(not str(rot[0].get("text", "")).is_empty())
+	assert_true(not str(rot[1].get("text", "")).is_empty())
+
+
+func test_recommend_claimable_daily() -> void:
+	DailyMissionSystem.ensure_refreshed()
+	var entries: Array = GameState.daily_mission_state.get("entries", [])
+	assert_gt(entries.size(), 0)
+	var entry: Dictionary = entries[0]
+	entry["progress"] = 99
+	entry["claimed"] = false
+	GameState.daily_mission_state["entries"] = entries
+	var line: String = _Helper.recommend_line()
+	assert_true(line.contains("報酬") or line.contains("受け取"), line)
+
+
+func test_recommend_incomplete_daily() -> void:
+	DailyMissionSystem.ensure_refreshed()
+	var entries: Array = GameState.daily_mission_state.get("entries", [])
+	assert_gt(entries.size(), 0)
+	for raw in entries:
+		if raw is Dictionary:
+			raw["progress"] = 0
+			raw["claimed"] = false
+	GameState.daily_mission_state["entries"] = entries
+	var line: String = _Helper.recommend_line()
+	assert_true(line.contains("日課"), line)
+
+
+func test_field_line_calm_when_no_event_weather() -> void:
+	GameState.set_weather("")
+	## イベントが走っていても文は空でないこと（週次は環境依存）。
+	var line: String = _Helper.field_or_weather_line()
+	assert_true(not line.is_empty(), line)
+
+
+func test_chat_line_from_pool() -> void:
+	var line: String = _Helper.chat_line()
+	assert_true(_Helper.CHAT_LINES.has(line), line)
+
+
+func test_nina_portrait_asset_exists() -> void:
+	assert_true(FileAccess.file_exists("res://assets/npc/ART_NPC_Nina.png"))

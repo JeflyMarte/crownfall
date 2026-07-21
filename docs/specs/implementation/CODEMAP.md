@@ -79,7 +79,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 - 状態異常アイコン: ルート直下 HBox（敵 + Chr0〜2 + 群れ行）— HP バー上に追従（P3-UI2-013 / P3-D110 群れ行）。`StatusResolver.get_active_status_list()`
 
 **BaseScene ノード（P3-UI-Base-A / 003_01 Phase A）:**
-- `HubView` — 城背景・`TopBar`（**指揮官カード** P3-CMD-001 + Gold/魔晶石）・`LeftMenuPanel` 7項目・**FieldSurveyBanner**（**P3-EVT-WEEK-002** 今週の野外・タップで EventScene）・`CurrencyStrip`・`DailyMissionPanel`
+- `HubView` — 城背景・`TopBar`（**指揮官カード** P3-CMD-001 + Gold/魔晶石）・`LeftMenuPanel` 7項目・**NinaNavPanel**（**P3-UI-NINA-NAV-001** 右上顔＋吹き出し・10秒／タップ）・**FieldSurveyBanner**（**P3-EVT-WEEK-002** 今週の野外・タップで EventScene）・`CurrencyStrip`・`DailyMissionPanel`
 - `MenuGridView` — 003_02 系 3×3 メニュー（下ナビ「メニュー」で切替）
 - `BottomNav` — 6タブ（ホーム/パーティ/冒険/強化/ショップ/メニュー）・`BottomNavHelper` + `NavIconHelper`
 - 検証: `tools/verify_base_hub.gd` / `tools/verify_bottom_nav.gd`
@@ -118,7 +118,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 |---|---|
 | `discovery/` | `DiscoveryRegistry.gd`（`get_display_label` / `get_category_label` — P3-UI2-015） |
 | `appraisal/` | `AppraisalController.gd`, `AppraisalScene.gd` |
-| `base/` | `BaseScene.gd`（**P3-UI-Base-A** Hub/MenuGrid・日課報酬表示・**EventBanner** P3-EVT-HUB） |
+| `base/` | `BaseScene.gd`（**P3-UI-Base-A** Hub/MenuGrid・日課報酬表示・**EventBanner** P3-EVT-HUB・**NinaNav** P3-UI-NINA-NAV-001） |
 | `event/` | **`EventScene.gd`**・**`EventScheduleHelper.gd`**（JST 日付境界） |
 | `boot/` | `BootScene.gd`（Title へ委譲） |
 | `title/` | `TitleScene.gd`（**P3-UI-TITLE-001**） |
