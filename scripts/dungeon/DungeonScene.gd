@@ -7621,41 +7621,104 @@ func _start_combat_after_appear_delay() -> void:
 		return
 	$CombatTimer.start()
 
-func _show_ultimate_center_telop(skill_name: String, element: String = "") -> void:
+func _show_ultimate_center_telop(
+	skill_name: String,
+	element: String = "",
+	member_idx: int = -1,
+	is_heal: bool = false
+) -> void:
 	_dismiss_ultimate_center_telop(0.0)
 	if skill_name.is_empty():
 		return
-	const TITLE_FONT_SIZE: int = 22
-	const NAME_FONT_SIZE: int = 52
+	const TITLE_FONT_SIZE: int = 20
+	const NAME_FONT_SIZE: int = 44
+	const FACE_PX: float = 112.0
+	var member: Resource = GameState.get_combatant(member_idx)
+	var accent: Color = (
+		Color(0.55, 1.0, 0.78) if is_heal else ELEMENT_COLOR.get(element, ULTIMATE_GOLD)
+	)
+	if member != null and not is_heal and element.is_empty():
+		accent = _party_log_color(member)
+	elif member != null and is_heal:
+		accent = Color(0.45, 0.95, 0.72)
 	var layer := Control.new()
 	layer.name = "UltimateCenterTelop"
 	layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 	layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.z_index = 140
-	var wrap := VBoxContainer.new()
-	wrap.set_anchors_preset(Control.PRESET_CENTER)
-	wrap.offset_left = -360.0
-	wrap.offset_right = 360.0
-	wrap.offset_top = -72.0
-	wrap.offset_bottom = 72.0
-	wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	wrap.alignment = BoxContainer.ALIGNMENT_CENTER
+	## 暗転 vignette（カットイン読みやすさ）
+	var dim := ColorRect.new()
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	dim.color = Color(0.02, 0.02, 0.06, 0.0)
+	layer.add_child(dim)
+	## 横帯カットイン（フレーム無しの顔＋必殺名）
+	var band := Control.new()
+	band.name = "UltimateCutinBand"
+	band.set_anchors_preset(Control.PRESET_CENTER_LEFT)
+	band.offset_left = -40.0
+	band.offset_right = 760.0
+	band.offset_top = -70.0
+	band.offset_bottom = 70.0
+	band.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var band_bg := ColorRect.new()
+	band_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	band_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	band_bg.color = Color(accent.r * 0.22, accent.g * 0.18, accent.b * 0.12, 0.92)
+	band.add_child(band_bg)
+	var stripe := ColorRect.new()
+	stripe.set_anchors_and_offsets_preset(Control.PRESET_LEFT_WIDE)
+	stripe.offset_right = 10.0
+	stripe.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stripe.color = accent
+	band.add_child(stripe)
+	var row := HBoxContainer.new()
+	row.set_anchors_preset(Control.PRESET_FULL_RECT)
+	row.offset_left = 18.0
+	row.offset_right = -18.0
+	row.offset_top = 10.0
+	row.offset_bottom = -10.0
+	row.add_theme_constant_override("separation", 14)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	band.add_child(row)
+	## 顔のみ（レア枠・キャラ枠なし — P3-UX-ULTIMATE-002）
+	var face := TextureRect.new()
+	face.custom_minimum_size = Vector2(FACE_PX, FACE_PX)
+	face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var face_tex: Texture2D = _get_member_icon_texture(member) if member != null else null
+	if face_tex != null:
+		face.texture = face_tex
+		if member != null:
+			face.modulate = EvolutionVisualScript.portrait_modulate(member)
+	else:
+		face.modulate = Color(accent.r, accent.g, accent.b, 0.35)
+	row.add_child(face)
+	var text_col := VBoxContainer.new()
+	text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_col.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	text_col.alignment = BoxContainer.ALIGNMENT_CENTER
+	text_col.add_theme_constant_override("separation", 2)
+	text_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(text_col)
 	var title := Label.new()
 	title.text = "必殺技"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	title.autowrap_mode = TextServer.AUTOWRAP_OFF
 	title.clip_text = false
 	var af: Font = UiTypography.impact_font()
 	if af != null:
 		title.add_theme_font_override("font", af)
-		title.add_theme_font_size_override("font_size", TITLE_FONT_SIZE)
-	title.add_theme_color_override("font_color", Color(1.0, 0.92, 0.55))
-	title.add_theme_color_override("font_outline_color", Color(0.15, 0.05, 0.0, 0.95))
+	title.add_theme_font_size_override("font_size", TITLE_FONT_SIZE)
+	title.add_theme_color_override("font_color", Color(1.0, 0.94, 0.7))
+	title.add_theme_color_override("font_outline_color", Color(0.1, 0.04, 0.0, 0.95))
 	title.add_theme_constant_override("outline_size", 6)
+	text_col.add_child(title)
 	var name_lbl := Label.new()
 	name_lbl.text = skill_name
-	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	name_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
 	name_lbl.clip_text = false
@@ -7663,25 +7726,24 @@ func _show_ultimate_center_telop(skill_name: String, element: String = "") -> vo
 	if af != null:
 		name_lbl.add_theme_font_override("font", af)
 	name_lbl.add_theme_font_size_override("font_size", NAME_FONT_SIZE)
-	var name_color: Color = ELEMENT_COLOR.get(element, ULTIMATE_GOLD)
-	name_lbl.add_theme_color_override("font_color", name_color)
-	name_lbl.add_theme_color_override("font_outline_color", Color(0.12, 0.04, 0.0, 0.95))
+	name_lbl.add_theme_color_override("font_color", accent)
+	name_lbl.add_theme_color_override("font_outline_color", Color(0.08, 0.02, 0.0, 0.95))
 	name_lbl.add_theme_constant_override("outline_size", 12)
-	name_lbl.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.65))
+	name_lbl.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.7))
 	name_lbl.add_theme_constant_override("shadow_offset_x", 4)
 	name_lbl.add_theme_constant_override("shadow_offset_y", 5)
-	wrap.add_child(title)
-	wrap.add_child(name_lbl)
-	layer.add_child(wrap)
+	text_col.add_child(name_lbl)
+	layer.add_child(band)
 	$TransitionLayer.add_child(layer)
 	_ultimate_center_telop = layer
-	wrap.pivot_offset = wrap.size * 0.5
-	wrap.scale = Vector2(0.35, 0.35)
-	wrap.modulate.a = 0.0
+	## 入場: 暗転＋帯が左からスライド
+	band.position.x = -520.0
+	band.modulate.a = 0.0
 	var tw: Tween = create_tween()
 	tw.set_parallel(true)
-	tw.tween_property(wrap, "scale", Vector2(1.08, 1.08), 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(wrap, "modulate:a", 1.0, 0.16)
+	tw.tween_property(dim, "color:a", 0.58, 0.18).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(band, "position:x", 0.0, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(band, "modulate:a", 1.0, 0.14)
 
 func _dismiss_ultimate_center_telop(fade_sec: float = 0.25) -> void:
 	if _ultimate_center_telop == null or not is_instance_valid(_ultimate_center_telop):
@@ -7707,8 +7769,9 @@ func _play_ultimate_presentation_async(payload: Dictionary) -> void:
 	var element: String = str(payload.get("attack_element", ""))
 	var is_heal: bool = kind == "heal"
 	AudioManager.play_sfx("combat_ultimate")
-	_show_ultimate_center_telop(display_name, element)
+	_show_ultimate_center_telop(display_name, element, member_idx, is_heal)
 	_pulse_member_ultimate(member_idx)
+	_shake_battlefield(6.5)
 	await get_tree().create_timer(float(t["announce"])).timeout
 	if not $CombatController.is_in_combat:
 		_dismiss_ultimate_center_telop(0.1)
@@ -7717,11 +7780,13 @@ func _play_ultimate_presentation_async(payload: Dictionary) -> void:
 	var caster_pos: Vector2 = _member_sprite_world_pos(member_idx, 0.35)
 	var ring_tint: Color = Color(0.65, 1.0, 0.78) if is_heal else ULTIMATE_GOLD
 	## 攻撃モーションは windup 開始時に始め、resolve 同フレームの負荷スパイクを避ける。
-	if not is_heal:
-		_play_chr_attack_one(member_idx)
-	_spawn_ultimate_ring_burst(caster_pos, ring_tint, 1.65)
-	_flash_battlefield(ULTIMATE_FLASH_HEAL if is_heal else ULTIMATE_FLASH_DAMAGE, 0.22 if is_heal else 0.2)
+	## 回復必殺も同格に派手化（モーション＋リング＋フラッシュ＋シェイク）。
+	_play_chr_attack_one(member_idx)
+	_spawn_ultimate_ring_burst(caster_pos, ring_tint, 2.05)
+	_flash_battlefield(ULTIMATE_FLASH_HEAL if is_heal else ULTIMATE_FLASH_DAMAGE, 0.42)
+	_shake_battlefield(10.0)
 	_flash_member_sprite(member_idx, ring_tint)
+	_maybe_vibrate(35)
 	await get_tree().create_timer(float(t["windup"])).timeout
 	if not $CombatController.is_in_combat:
 		_dismiss_ultimate_center_telop(0.1)
@@ -7784,7 +7849,7 @@ func _apply_ultimate_heal_impact(payload: Dictionary) -> void:
 		_spawn_member_heal_vfx(target_idx)
 		if target_idx >= 0 and target_idx < _chr_sprites.size() and _chr_sprites[target_idx].visible:
 			var heal_pos: Vector2 = _chr_sprites[target_idx].global_position + Vector2(0.0, -CHR_BODY_TARGET_PX * 0.5)
-			_spawn_damage_number("+%d" % healed, heal_pos, ULTIMATE_GOLD, 1.45)
+			_spawn_damage_number("+%d" % healed, heal_pos, ULTIMATE_GOLD, 1.65)
 	_append_log(
 		"【必殺】"
 		+ ("\n【スキル】%s: %s を %d回復" % [display_name, target_name, healed]).trim_prefix("【スキル】")
@@ -7873,19 +7938,24 @@ func _play_ultimate_resolve_vfx(
 ) -> void:
 	var is_heal: bool = skill_data != null and str(skill_data.effect_type) == "heal"
 	if is_heal:
-		## 回復必殺はフル演出。ダメージ必殺は windup で開始済みのためヒット側だけ強調する。
-		_flash_battlefield(ULTIMATE_FLASH_HEAL, 0.44)
-		_shake_battlefield(11.5)
+		## 回復必殺もダメージと同格に派手（P3-UX-ULTIMATE-002）。
+		_flash_battlefield(ULTIMATE_FLASH_HEAL, 0.5)
+		_shake_battlefield(13.0)
 		_pulse_member_ultimate(member_idx)
 		var caster_pos: Vector2 = _member_sprite_world_pos(member_idx, 0.35)
-		_spawn_ultimate_ring_burst(caster_pos, Color(0.7, 1.0, 0.82), 2.25)
+		_spawn_ultimate_ring_burst(caster_pos, Color(0.7, 1.0, 0.82), 2.45)
 		for i: int in GameState.party_members.size():
 			if $CombatController.is_member_alive(i):
-				_spawn_ultimate_ring_burst(_member_sprite_world_pos(i, 0.4), Color(0.55, 1.0, 0.72), 1.35)
+				_spawn_ultimate_ring_burst(_member_sprite_world_pos(i, 0.4), Color(0.55, 1.0, 0.72), 1.55)
+		_maybe_vibrate(40)
 		return
-	_request_combat_shake(12.0)
+	_flash_battlefield(ULTIMATE_FLASH_DAMAGE, 0.48)
+	_request_combat_shake(14.0)
+	_shake_battlefield(12.0)
 	if focus_pos != Vector2.ZERO:
 		_spawn_ultimate_impact_vfx(focus_pos, element)
+		_spawn_ultimate_ring_burst(focus_pos, ULTIMATE_GOLD, 1.85)
+	_maybe_vibrate(40)
 
 
 func _get_cached_heal_vfx_frames() -> SpriteFrames:
