@@ -118,8 +118,18 @@ func start_combat_group(enemies: Array, level: int = 1) -> void:
 			continue
 		var party_hp_mult: float = _party_size_balance_multiplier(PARTY_BALANCE_HP_SHARE)
 		var party_atk_mult: float = _party_size_balance_multiplier(PARTY_BALANCE_ATK_SHARE)
-		var hp: int = maxi(1, int(round(float(e.max_hp) * (1.0 + ENEMY_LEVEL_HP_K * lf) * party_hp_mult)))
-		var atk: int = maxi(1, int(round(float(e.attack) * (1.0 + ENEMY_LEVEL_ATK_K * lf) * party_atk_mult)))
+		var hp: int = maxi(1, int(round(
+			float(e.max_hp)
+			* (1.0 + ENEMY_LEVEL_HP_K * lf)
+			* party_hp_mult
+			* BalanceConfig.ENEMY_GLOBAL_HP_MULT
+		)))
+		var atk: int = maxi(1, int(round(
+			float(e.attack)
+			* (1.0 + ENEMY_LEVEL_ATK_K * lf)
+			* party_atk_mult
+			* BalanceConfig.ENEMY_GLOBAL_ATK_MULT
+		)))
 		var df: int = maxi(0, int(e.defense))
 		var xp: int = maxi(0, int(round(float(e.exp_reward) * (1.0 + ENEMY_LEVEL_EXP_K * lf))))
 		swarm_data.append(e)
@@ -142,8 +152,9 @@ func start_combat_group(enemies: Array, level: int = 1) -> void:
 	init_ct()
 
 # 現行編成人数に対する敵ステ補正倍率（base=3人前提）。
+# オトモ込みの実戦闘人数を使う（P3-BAL-OPENING-001 / 旧は ACTIVE_PARTY_SIZE=人間4固定）。
 static func _party_size_balance_multiplier(share: float) -> float:
-	var n: int = maxi(1, GameState.ACTIVE_PARTY_SIZE)
+	var n: int = maxi(1, GameState.combatant_count())
 	if n <= PARTY_BALANCE_BASE_SIZE:
 		return 1.0
 	var ratio: float = float(n) / float(PARTY_BALANCE_BASE_SIZE) - 1.0

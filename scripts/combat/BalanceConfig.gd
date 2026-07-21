@@ -70,6 +70,13 @@ const ENEMY_LEVEL_EXP_K: float = 0.15
 const PARTY_BALANCE_HP_SHARE: float = 0.85
 const PARTY_BALANCE_ATK_SHARE: float = 0.40
 
+# ── 序盤〜全体の難易度再調整（P3-BAL-OPENING-001・案C しっかり危ない） ──
+## 戦闘開始時に敵 HP/ATK へ乗算（全ダンジョン共通）。
+const ENEMY_GLOBAL_HP_MULT: float = 1.50
+const ENEMY_GLOBAL_ATK_MULT: float = 1.30
+## ★帯ボーナス＋個人ステ補正の圧縮（素体 BASE_MEMBER_HP は据置）。
+const ALLY_STAT_BONUS_SCALE: float = 0.70
+
 # ── Threat（P3-D104） ────────────────────────────────────────────────────
 const THREAT_DAMAGE_K: float = 0.10   # 与ダメ1あたりの加算
 const THREAT_TAKEN_K: float = 0.15    # 被ダメ1あたりの加算

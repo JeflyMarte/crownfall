@@ -73,11 +73,15 @@ static func apply_base_stats_to_adventurer(
 	var stats_class = load("res://scripts/domain/Stats.gd")
 	var bonuses: Dictionary = get_stat_bonuses(rarity)
 	var pers: Dictionary = _CharacterStatBonuses.normalize_bonus(personal)
+	var bonus_scale: float = BalanceConfig.ALLY_STAT_BONUS_SCALE
+	var bonus_hp: int = int(round(float(int(bonuses.get("hp", 0)) + int(pers.get("hp", 0))) * bonus_scale))
+	var bonus_atk: int = int(round(float(int(bonuses.get("attack", 0)) + int(pers.get("attack", 0))) * bonus_scale))
+	var bonus_def: int = int(round(float(int(bonuses.get("defense", 0)) + int(pers.get("defense", 0))) * bonus_scale))
 	var stats = stats_class.new()
-	stats.hp = maxi(1, base_hp + int(bonuses.get("hp", 0)) + int(pers.get("hp", 0)))
+	stats.hp = maxi(1, base_hp + bonus_hp)
 	## ATK/DEF 0 禁止（見栄え）
-	stats.attack = maxi(1, int(bonuses.get("attack", 0)) + int(pers.get("attack", 0)))
-	stats.defense = maxi(1, int(bonuses.get("defense", 0)) + int(pers.get("defense", 0)))
+	stats.attack = maxi(1, bonus_atk)
+	stats.defense = maxi(1, bonus_def)
 	adv.base_stats = stats
 
 
