@@ -38,7 +38,7 @@ const _STAT_DISCOVERY_ICON_PATH: String = "res://assets/ui/batch2/ICO_Stat_Disco
 
 var _field_survey_banner: PanelContainer
 var _gift_badge: PanelContainer
-var _nina_nav: HubNinaNavigator
+var _nina_nav: Control
 
 func _ready() -> void:
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.HOME)
@@ -164,7 +164,7 @@ func _place_field_survey_banner() -> void:
 
 
 func _setup_nina_nav() -> void:
-	_nina_nav = _HubNinaNavigator.new()
+	_nina_nav = _HubNinaNavigator.new() as Control
 	$HubView.add_child(_nina_nav)
 	_place_nina_nav()
 
@@ -173,13 +173,15 @@ func _place_nina_nav() -> void:
 	if _nina_nav == null:
 		return
 	var top_bar: Control = $HubView/TopBar as Control
-	_nina_nav.place_below_top_bar(top_bar)
+	if _nina_nav.has_method("place_below_top_bar"):
+		_nina_nav.call("place_below_top_bar", top_bar)
 
 
 func _refresh_nina_nav() -> void:
 	if _nina_nav == null:
 		return
-	_nina_nav.refresh_messages()
+	if _nina_nav.has_method("refresh_messages"):
+		_nina_nav.call("refresh_messages")
 
 func _refresh_field_survey_banner() -> void:
 	if _field_survey_banner == null:

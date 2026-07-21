@@ -5,6 +5,7 @@ extends PanelContainer
 ## 10秒ローテ／タップで次へ。文言は HubNinaNavHelper。
 
 const _IntroUiAssets := preload("res://scripts/intro/IntroUiAssets.gd")
+const _HubNinaNavHelper := preload("res://scripts/ui/HubNinaNavHelper.gd")
 
 const ROTATE_SEC: float = 10.0
 const PANEL_W: float = 308.0
@@ -37,7 +38,7 @@ func _process(delta: float) -> void:
 
 
 func refresh_messages() -> void:
-	_messages = HubNinaNavHelper.build_rotation()
+	_messages = _HubNinaNavHelper.build_rotation()
 	_index = 0
 	_elapsed = 0.0
 	_apply_current()
