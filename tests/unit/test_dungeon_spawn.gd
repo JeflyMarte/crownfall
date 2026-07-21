@@ -164,11 +164,26 @@ func test_missing_danger_tier_is_renormalized() -> void:
 		assert_false(_danger_of(enemy) == 5, "プールに無い D5 tier は除外")
 
 func test_legacy_dungeon_stays_uniform() -> void:
+	## 章データ無し（current_stage_data=null）の単体 DG 経路は pool 均等。
 	var dc: Node = _DungeonController.new()
 	add_child_autofree(dc)
-	dc.start_dungeon("mourngate")
+	dc.current_stage_data = null
+	dc.current_dungeon_data = DataRegistry.get_dungeon_data("mourngate")
 	var seen: Dictionary = {}
 	for _i in 300:
 		var enemy: Resource = dc.pick_enemy_data()
 		seen[str(enemy.id)] = true
 	assert_gte(seen.size(), 4, "単体 DG は pool 均等のまま")
+
+func test_start_dungeon_routes_main_biome_to_stage() -> void:
+	## メイン Biome の start_dungeon は章へ寄せ、初回は Boss なし。
+	GameState.current_stage_id = ""
+	GameState.stage_progress = {}
+	var dc: Node = _DungeonController.new()
+	add_child_autofree(dc)
+	dc.start_dungeon("mourngate")
+	assert_not_null(dc.current_stage_data)
+	assert_eq(str(dc.current_stage_data.id), "mourngate_1_1")
+	assert_false(Enums.RoomType.BOSS in dc.room_sequence)
+	for enemy_id in _pick_many(dc, 100):
+		assert_false(enemy_id in _D3_IDS, "1-1 経路では D3 が出ない")
