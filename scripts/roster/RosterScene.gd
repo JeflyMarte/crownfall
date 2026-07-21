@@ -242,29 +242,55 @@ func _format_number(value: int) -> String:
 func _init_formation_slots_from_party() -> void:
 	for i in FORMATION_SLOT_COUNT:
 		_formation_slots[i] = null
+	var placed: Dictionary = {}
 	for member in GameState.party_members:
 		if member == null:
 			continue
 		var slot: int = GameState.get_member_formation_slot(member)
-		if slot < 0 or slot >= FORMATION_SLOT_COUNT or _formation_slots[slot] != null:
+		if slot < 0 or slot >= FORMATION_SLOT_COUNT:
+			continue
+		if _formation_slots[slot] != null:
 			continue
 		_formation_slots[slot] = member
-	for i in mini(FORMATION_SLOT_COUNT, GameState.party_members.size()):
-		if _formation_slots[i] == null:
-			_formation_slots[i] = GameState.party_members[i]
+		placed[member] = true
+	## 空き枠は「未配置メンバー」から埋める。party index 直埋めは複製の原因。
+	for member in GameState.party_members:
+		if member == null or placed.has(member):
+			continue
+		for i in FORMATION_SLOT_COUNT:
+			if _formation_slots[i] == null:
+				_formation_slots[i] = member
+				placed[member] = true
+				break
+	_dedupe_formation_slots_local()
+
+func _dedupe_formation_slots_local() -> void:
+	var seen: Dictionary = {}
+	for i in FORMATION_SLOT_COUNT:
+		var member: Resource = _formation_slots[i]
+		if member == null:
+			continue
+		if seen.has(member):
+			_formation_slots[i] = null
+			continue
+		seen[member] = true
 
 func _sync_formation_slots_from_selection() -> void:
 	var kept: Array = []
+	var seen: Dictionary = {}
 	for slot in _formation_slots:
-		if slot != null and _selected.has(slot):
+		if slot != null and _selected.has(slot) and not seen.has(slot):
 			kept.append(slot)
+			seen[slot] = true
 	for adv in _selected:
-		if not kept.has(adv):
+		if not seen.has(adv):
 			kept.append(adv)
+			seen[adv] = true
 	while kept.size() < FORMATION_SLOT_COUNT:
 		kept.append(null)
 	for i in FORMATION_SLOT_COUNT:
 		_formation_slots[i] = kept[i] if i < kept.size() else null
+	_dedupe_formation_slots_local()
 	_apply_formation_rows_from_slots()
 
 func _active_members_in_slot_order() -> Array:
@@ -837,12 +863,27 @@ func _slot_row_for_index(slot_index: int) -> int:
 	return GameState.FORMATION_FRONT if slot_index < 2 else GameState.FORMATION_BACK
 
 func _apply_formation_rows_from_slots() -> void:
+	_dedupe_formation_slots_local()
 	for i in FORMATION_SLOT_COUNT:
 		var member: Resource = _formation_slots[i]
 		if member == null:
 			continue
 		GameState.set_member_formation_row(member, _slot_row_for_index(i))
 		GameState.set_member_formation_slot(member, i)
+
+func _collect_selected_members_for_formation() -> Array:
+	var members: Array = []
+	var seen: Dictionary = {}
+	for adv in _formation_slots:
+		if adv != null and not seen.has(adv):
+			members.append(adv)
+			seen[adv] = true
+	if members.is_empty():
+		for adv in _selected:
+			if adv != null and not seen.has(adv):
+				members.append(adv)
+				seen[adv] = true
+	return members
 
 func _on_formation_preset_pressed(preset: String) -> void:
 	var members: Array = _collect_selected_members_for_formation()
@@ -860,15 +901,6 @@ func _on_formation_preset_pressed(preset: String) -> void:
 	_formation_pick_slot = -1
 	_refresh_formation_grid()
 	_rebuild_active_party_row()
-
-func _collect_selected_members_for_formation() -> Array:
-	var members: Array = []
-	for adv in _formation_slots:
-		if adv != null:
-			members.append(adv)
-	if members.is_empty():
-		members = _selected.duplicate()
-	return members
 
 func _assign_formation_by_role(members: Array, tanks_to_front_slots: bool) -> void:
 	var tanks: Array = []

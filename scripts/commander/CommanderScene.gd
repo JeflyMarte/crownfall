@@ -46,6 +46,7 @@ func _ready() -> void:
 	_content_host.add_theme_constant_override("separation", SECTION_GAP)
 	_setup_name_edit_dialog()
 	_rebuild_page()
+	ScrollTouchHelper.enable($MainScroll as ScrollContainer)
 
 
 func _setup_commander_chrome() -> void:
@@ -81,6 +82,8 @@ func _rebuild_page() -> void:
 	_content_host.add_child(_build_members_section())
 	_content_host.add_child(_build_records_section())
 	_content_host.add_child(_build_titles_section())
+	## rebuild 後に Button が STOP のままだと実機で縦スクロール不能になる。
+	ScrollTouchHelper.enable($MainScroll as ScrollContainer)
 
 
 # ---- 概要 ----

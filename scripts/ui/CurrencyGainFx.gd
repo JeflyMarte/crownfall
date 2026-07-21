@@ -147,8 +147,19 @@ static func _control_center_global(ctrl: Control) -> Vector2:
 static func _pulse_target(target: Control) -> void:
 	if target == null or not is_instance_valid(target) or not target.is_inside_tree():
 		return
-	var base: Vector2 = target.scale
+	## 複数モート完了で tween が重なると、途中の scale を基準に拡大が積み上がる。
+	const META_BASE_SCALE := &"_cf_currency_pulse_base_scale"
+	const META_PULSE_TWEEN := &"_cf_currency_pulse_tween"
+	if not target.has_meta(META_BASE_SCALE):
+		target.set_meta(META_BASE_SCALE, target.scale)
+	var base: Vector2 = target.get_meta(META_BASE_SCALE) as Vector2
+	if target.has_meta(META_PULSE_TWEEN):
+		var prev: Variant = target.get_meta(META_PULSE_TWEEN)
+		if prev is Tween and is_instance_valid(prev):
+			(prev as Tween).kill()
+	target.scale = base
 	var tw: Tween = target.create_tween()
+	target.set_meta(META_PULSE_TWEEN, tw)
 	tw.tween_property(target, "scale", base * 1.14, 0.07).set_trans(Tween.TRANS_BACK).set_ease(
 		Tween.EASE_OUT
 	)
