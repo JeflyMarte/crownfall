@@ -61,8 +61,38 @@ func _verify(root: Control) -> PackedStringArray:
 		var home: Button = nav_row.get_node_or_null("NavHome") as Button
 		if home == null:
 			failures.append("Missing nav button: NavHome")
+	failures.append_array(_verify_topbar_player_card(root))
 	return failures
 
+
+func _verify_topbar_player_card(root: Control) -> PackedStringArray:
+	## TopBar 左は隊長カード。通貨名「魔晶石」が左上に出ないこと。
+	var failures: PackedStringArray = []
+	const CURRENCY_NAME: String = "魔晶石"
+	var name_lbl: Label = root.get_node_or_null(
+		"HubView/TopBar/TopBarRow/PlayerCard/PlayerRow/PlayerInfo/LabelPlayerName"
+	) as Label
+	var token_lbl: Label = root.get_node_or_null(
+		"HubView/TopBar/TopBarRow/TokenChip/TokenRow/LabelToken"
+	) as Label
+	var token_chip: Control = root.get_node_or_null("HubView/TopBar/TopBarRow/TokenChip") as Control
+	if name_lbl == null:
+		failures.append("LabelPlayerName missing")
+	else:
+		var name_text: String = str(name_lbl.text)
+		if name_text.is_empty():
+			failures.append("LabelPlayerName empty")
+		if name_text.find(CURRENCY_NAME) >= 0:
+			failures.append("LabelPlayerName contains currency name: [%s]" % name_text)
+		if not name_lbl.visible:
+			failures.append("LabelPlayerName not visible")
+	if token_lbl != null:
+		var token_text: String = str(token_lbl.text)
+		if token_text.find(CURRENCY_NAME) >= 0:
+			failures.append("LabelToken contains currency name: [%s]" % token_text)
+	if token_chip != null and not str(token_chip.tooltip_text).is_empty():
+		failures.append("TokenChip tooltip should be empty (got [%s])" % token_chip.tooltip_text)
+	return failures
 
 func _verify_hub_restored(root: Control) -> PackedStringArray:
 	## 案B: Mac では simulate OFF。TopBar／左メニューはシーン設計座標のまま。

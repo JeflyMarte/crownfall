@@ -30,6 +30,7 @@ alwaysApply: true
 | 1-1（初回ラン）からボス（セルディオン）が出る | `SUB_STAGES_PLAYABLE=false` で単体 `mourngate` 運用になり `boss_id` が毎回付く。章別 `spawn_weights` も無効 | メインは `SUB_STAGES_PLAYABLE=true`。1-1〜x-4 は Boss なし／x-5 のみ。`start_dungeon` も章へ誘導 |
 | 世界観イントロの「続ける」が実機で押せない | Home Indicator 下にボタンが沈む／到達後もヒット領域が弱い | Intro に SafeArea 下余白。到達後は `disabled=false`＋`z_index`＋`move_to_front` |
 | 報酬受取後に所持金／魔晶石アイコンが拡大したまま | `CurrencyGainFx` のパルスが複数モートで重なり、途中 scale を基準に積み上がる | 元 scale を meta 保存。旧 tween kill 後に元へ戻してからパルス |
+| 拠点左上に「魔晶石」が見える／隊長名に見える | TokenChip の `tooltip_text=魔晶石` がタッチ環境で残る、または隊長名 Label に通貨名が混入 | TopBar の魔晶石は数値のみ（tooltip 空）。`LabelPlayerName` は等級＋隊長名のみを毎フレーム明示上書き。`verify_base_hub` で混入検査 |
 | マイページがタッチスクロール不能 | `BottomNavHelper` の ScrollTouch 適用後に `_rebuild_page` で Button が再生成され STOP のまま | rebuild 後に `ScrollTouchHelper.enable(MainScroll)` を再実行 |
 | 陣形で前→後に動かすとキャラが複製表示 | 空き枠を `party_members[i]` で埋めて同一メンバーが複数スロットに入る | 未配置メンバーから埋める＋スロット重複除去 |
 | 装備一覧の攻・防・会心アイコンが古い | `equipment_ui/` 本番が procedural 小アイコンのまま。更新アートは `preview/` に滞留 | `preprocess_equipment_stat_icons.py --apply` で preview→本番＋forge へ反映 |
