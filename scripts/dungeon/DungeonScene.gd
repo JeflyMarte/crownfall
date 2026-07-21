@@ -7655,9 +7655,12 @@ func _show_ultimate_center_telop(
 	## 横帯カットイン（フレーム無しの顔＋必殺名）
 	var band := Control.new()
 	band.name = "UltimateCutinBand"
-	band.set_anchors_preset(Control.PRESET_CENTER_LEFT)
-	band.offset_left = -40.0
-	band.offset_right = 760.0
+	band.anchor_left = 0.0
+	band.anchor_right = 0.0
+	band.anchor_top = 0.5
+	band.anchor_bottom = 0.5
+	band.offset_left = -560.0
+	band.offset_right = 200.0
 	band.offset_top = -70.0
 	band.offset_bottom = 70.0
 	band.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -7736,13 +7739,13 @@ func _show_ultimate_center_telop(
 	layer.add_child(band)
 	$TransitionLayer.add_child(layer)
 	_ultimate_center_telop = layer
-	## 入場: 暗転＋帯が左からスライド
-	band.position.x = -520.0
+	## 入場: 暗転＋帯が左からスライド（offset 駆動でアンカーと衝突しない）
 	band.modulate.a = 0.0
 	var tw: Tween = create_tween()
 	tw.set_parallel(true)
 	tw.tween_property(dim, "color:a", 0.58, 0.18).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.tween_property(band, "position:x", 0.0, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(band, "offset_left", 16.0, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(band, "offset_right", 776.0, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.tween_property(band, "modulate:a", 1.0, 0.14)
 
 func _dismiss_ultimate_center_telop(fade_sec: float = 0.25) -> void:
