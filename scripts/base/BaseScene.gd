@@ -131,7 +131,7 @@ func _setup_field_survey_banner() -> void:
 	_field_survey_banner.add_child(row)
 	var tag := Label.new()
 	tag.name = "LabelFieldTag"
-	tag.text = "いまの野外"
+	tag.text = "今日のダンジョン状態"
 	row.add_child(tag)
 	var body := Label.new()
 	body.name = "LabelFieldBody"
@@ -545,10 +545,12 @@ func _on_dungeon_button_pressed() -> void:
 
 func _daily_mission_dest_scene(mission_id: String) -> String:
 	match mission_id:
-		"daily_clear_run", "daily_combat_win":
+		"daily_clear_run", "daily_kill_enemies", "daily_kill_elite", "daily_kill_boss":
 			return DUNGEON_SELECT_SCENE
-		"daily_craft_item":
+		"daily_craft_item", "daily_enhance_item", "daily_alchemy_item", "daily_dismantle_item":
 			return BLACKSMITH_SCENE
+		"daily_gacha_pull":
+			return GACHA_SCENE if ResourceLoader.exists(GACHA_SCENE) else ""
 		_:
 			return DUNGEON_SELECT_SCENE
 

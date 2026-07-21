@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 id = "daily_craft_item"
-title = "装備作成"
-description = "赤鉄の工房で装備を1つ作成する"
+title = "装備品を1つ作成する"
+description = "鍛冶屋で装備を1つ生産する"
 objective_type = "craft_item"
 target_count = 1
 target_param = ""

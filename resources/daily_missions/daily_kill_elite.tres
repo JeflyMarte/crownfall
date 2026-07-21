@@ -4,13 +4,13 @@
 
 [resource]
 script = ExtResource("1")
-id = "daily_clear_run"
-title = "ダンジョンを1回クリアする"
-description = "任意のダンジョンを1回クリアする"
-objective_type = "dungeon_clear"
+id = "daily_kill_elite"
+title = "エリートを1体倒す"
+description = "エリート部屋の敵を1体倒す"
+objective_type = "kill_elite"
 target_count = 1
 target_param = ""
-reward_gold = 80
+reward_gold = 60
 reward_gacha_token = 0
 reward_material_id = ""
 reward_material_qty = 0

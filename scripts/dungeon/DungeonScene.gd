@@ -4705,6 +4705,12 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 	$CombatController.clear_enemy_slot_status(killed_slot)
 	$CombatController.capture_rewards_at(killed_slot)
 	var defeated_enemy: Resource = $CombatController.get_enemy_data_at(killed_slot)
+	## 日課撃破（ボス・エリート含む）。部屋種別で追加目標も加算。
+	DailyMissionSystem.report_progress("kill_enemy")
+	if room_type == Enums.RoomType.BOSS or room_type == Enums.RoomType.MID_BOSS:
+		DailyMissionSystem.report_progress("kill_boss")
+	elif room_type == Enums.RoomType.ELITE:
+		DailyMissionSystem.report_progress("kill_elite")
 	var codex_investigation: bool = false
 	if defeated_enemy != null:
 		codex_investigation = (
@@ -4872,7 +4878,6 @@ func _finalize_combat_cleared() -> void:
 	_clear_all_member_skill_labels()
 	_update_status_labels()
 	_clear_turn_order_ui()
-	DailyMissionSystem.report_progress("combat_win")
 	var enemy_lv: int = 1
 	if $DungeonController.current_stage_data != null:
 		enemy_lv = int($DungeonController.current_stage_data.enemy_level)

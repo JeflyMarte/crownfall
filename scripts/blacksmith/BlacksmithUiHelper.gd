@@ -7,11 +7,20 @@ const RARITY_SHORT: Array[String] = ["N", "R", "SR", "SSR", "MY"]
 const LIST_CARD_MIN_HEIGHT: int = 120
 const CRAFTABLE_CHIP_WIDTH: int = 136
 const CRAFTABLE_CHIP_HEIGHT: int = 152
-## 鍛冶屋セル専用（装備袋の ICON_FRAME_MARGIN 18 は触らない）
-const LIST_CELL_PX: int = 124
-const ITEM_ICON_FRAME_MARGIN_PX: int = 8
+## 左リスト／錬成素材チップ用（行カードに収まる固定サイズ）
+const LIST_ICON_PX: int = 72
+## 作成可能ストリップ用（装備袋 INV_CELL 以上）
+const LIST_CELL_PX: int = 112
+## 装備袋と同ポリシー（枠装飾の内側に収める）
+const ITEM_ICON_FRAME_MARGIN_PX: int = 18
 const ITEM_ICON_MODULATE: Color = Color(1.24, 1.18, 1.10, 1.0)
 const ITEM_ICON_UNDERLAY_COLOR: Color = Color(0.04, 0.03, 0.02, 0.58)
+## InvCell の texture_margin(12/144)＋余白。これを超える描画は枠左右にはみ出して見える。
+const FORGE_ICON_SAFE_FILL: float = 0.52
+## 詳細ヒーローは大きく見せるが、枠いっぱいに食い込ませない。
+const HERO_ICON_INSET_RATIO: float = 0.14
+const HERO_ICON_INSET_MIN_PX: int = 22
+const HERO_ICON_SAFE_FILL: float = 0.70
 
 const RARITY_COLORS: Array[Color] = [
 	Color(0.60, 0.60, 0.60),
@@ -133,10 +142,13 @@ static func list_card_style(selected: bool, craftable: bool, rarity: int) -> Sty
 	return simple_list_card_style(selected, craftable, rarity)
 
 static func simple_list_card_style(selected: bool, craftable: bool, rarity: int) -> StyleBox:
-	# 加工フレームなし。選択時のみ薄いハイライト。
+	# 加工フレームなし。選択時のみ薄いハイライト。左余白でアイコン欠け見えを防ぐ。
 	var sb := StyleBoxFlat.new()
 	sb.set_corner_radius_all(4)
-	sb.set_content_margin_all(4)
+	sb.content_margin_left = 8.0
+	sb.content_margin_top = 4.0
+	sb.content_margin_right = 4.0
+	sb.content_margin_bottom = 4.0
 	sb.set_border_width_all(0)
 	if selected:
 		sb.bg_color = Color(0.28, 0.24, 0.18, 0.55)
@@ -222,6 +234,9 @@ static func has_craftable_recipes() -> bool:
 static func list_cell_px() -> int:
 	return LIST_CELL_PX
 
+static func list_icon_px() -> int:
+	return LIST_ICON_PX
+
 static func item_icon_inset_px(cell_px: int) -> int:
 	return EquipmentUiTokens.icon_inset_px(
 		cell_px,
@@ -229,8 +244,31 @@ static func item_icon_inset_px(cell_px: int) -> int:
 		ITEM_ICON_FRAME_MARGIN_PX
 	)
 
-static func _add_item_icon_underlay(host: Control, inset: int, cell_px: int) -> void:
+static func forge_icon_side_px(cell_px: int, inset: int, safe_fill: float = FORGE_ICON_SAFE_FILL) -> int:
+	## inset 由来と、InvCell 9-slice 内側に収まる上限の小さい方。
+	var by_inset: int = maxi(1, cell_px - inset * 2)
+	var by_safe: int = maxi(1, int(floor(float(cell_px) * safe_fill)))
+	return mini(by_inset, by_safe)
+
+
+static func _item_inset_px(_item_id: String, _category: String, cell_px: int) -> int:
+	## 鍛冶は弓の inset 縮小を使わない（枠はみ出し再発防止）。
+	return EquipmentUiTokens.icon_inset_px(
+		cell_px,
+		EquipmentUiTokens.INV_CELL_DESIGN_PX,
+		ITEM_ICON_FRAME_MARGIN_PX
+	)
+
+
+static func _attach_icon_full_rect_inset(
+	host: Control,
+	tex: Texture2D,
+	inset: int
+) -> void:
+	## FULL_RECT＋対称 inset。親サイズ確定後も必ず内側。負の中央offsetは使わない。
+	host.clip_contents = true
 	var underlay := Panel.new()
+	underlay.name = "ItemIconUnderlay"
 	underlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	underlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	underlay.offset_left = inset
@@ -240,14 +278,29 @@ static func _add_item_icon_underlay(host: Control, inset: int, cell_px: int) -> 
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = ITEM_ICON_UNDERLAY_COLOR
 	sb.set_border_width_all(0)
-	sb.set_corner_radius_all(maxi(4, int(round(float(cell_px) * 0.08))))
+	sb.set_corner_radius_all(4)
 	underlay.add_theme_stylebox_override("panel", sb)
 	host.add_child(underlay)
+	var icon := TextureRect.new()
+	icon.name = "ItemIcon"
+	icon.texture = tex
+	icon.modulate = ITEM_ICON_MODULATE
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	icon.offset_left = inset
+	icon.offset_top = inset
+	icon.offset_right = -inset
+	icon.offset_bottom = -inset
+	host.add_child(icon)
+
 
 static func attach_hero_icon(host: Control, item_id: String, category: String, display_px: int) -> void:
 	for child in host.get_children():
 		child.queue_free()
 	host.custom_minimum_size = Vector2(display_px, display_px)
+	host.clip_contents = true
 	var tex: Texture2D = IconPaths.get_icon_texture(item_id, category)
 	if tex == null:
 		var glyph := Label.new()
@@ -257,26 +310,22 @@ static func attach_hero_icon(host: Control, item_id: String, category: String, d
 		glyph.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		host.add_child(glyph)
 		return
-	var inset: int = maxi(4, int(round(float(display_px) * 0.04)))
-	if EquipmentUiTokens.is_bow_weapon(item_id, category):
-		inset = maxi(2, int(round(float(inset) * EquipmentUiTokens.BOW_ICON_INSET_SCALE)))
-	_add_item_icon_underlay(host, inset, display_px)
-	var icon := TextureRect.new()
-	icon.texture = tex
-	icon.modulate = ITEM_ICON_MODULATE
-	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	icon.offset_left = inset
-	icon.offset_top = inset
-	icon.offset_right = -inset
-	icon.offset_bottom = -inset
-	host.add_child(icon)
+	var inset: int = maxi(
+		HERO_ICON_INSET_MIN_PX,
+		int(round(float(display_px) * HERO_ICON_INSET_RATIO))
+	)
+	## safe_fill からも下限を取る（右はみ出し防止）。
+	var side: int = forge_icon_side_px(display_px, inset, HERO_ICON_SAFE_FILL)
+	## 偶数余りを inset に寄せ、描画辺が safe_fill を超えないようにする。
+	inset = int(ceil((float(display_px) - float(side)) * 0.5))
+	_attach_icon_full_rect_inset(host, tex, inset)
+
 
 static func attach_item_icon(host: Control, item_id: String, category: String, cell_px: int) -> void:
 	for child in host.get_children():
 		child.queue_free()
+	host.custom_minimum_size = Vector2(cell_px, cell_px)
+	host.clip_contents = true
 	var tex: Texture2D = IconPaths.get_icon_texture(item_id, category)
 	if tex == null:
 		var glyph := Label.new()
@@ -286,23 +335,11 @@ static func attach_item_icon(host: Control, item_id: String, category: String, c
 		glyph.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		host.add_child(glyph)
 		return
-	var inset: int = item_icon_inset_px(cell_px)
-	if EquipmentUiTokens.is_bow_weapon(item_id, category):
-		# 弓アートは余白が多いので、枠内余白をさらに削って見せる。
-		inset = maxi(2, int(round(float(inset) * EquipmentUiTokens.BOW_ICON_INSET_SCALE)))
-	_add_item_icon_underlay(host, inset, cell_px)
-	var icon := TextureRect.new()
-	icon.texture = tex
-	icon.modulate = ITEM_ICON_MODULATE
-	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	icon.offset_left = inset
-	icon.offset_top = inset
-	icon.offset_right = -inset
-	icon.offset_bottom = -inset
-	host.add_child(icon)
+	var inset: int = _item_inset_px(item_id, category, cell_px)
+	var side: int = forge_icon_side_px(cell_px, inset, FORGE_ICON_SAFE_FILL)
+	inset = int(ceil((float(cell_px) - float(side)) * 0.5))
+	_attach_icon_full_rect_inset(host, tex, inset)
+
 
 static func make_item_icon_cell(
 	item_id: String,
@@ -310,20 +347,54 @@ static func make_item_icon_cell(
 	rarity: int,
 	cell_px: int = -1,
 	highlight: bool = false
-) -> PanelContainer:
+) -> Control:
+	## 装備袋と同型の固定 Button。PanelContainer は使わない。
 	var px: int = cell_px if cell_px > 0 else list_cell_px()
-	var frame := PanelContainer.new()
-	frame.custom_minimum_size = Vector2(px, px)
-	frame.add_theme_stylebox_override(
-		"panel", EquipmentUiTokens.rarity_slot_style(rarity, highlight, px)
-	)
-	var host := Control.new()
-	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	frame.add_child(host)
-	host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	attach_item_icon(host, item_id, category, px)
-	EquipmentUiHelper.apply_legendary_badge(host, rarity, Vector2(px, px))
-	return frame
+	var btn := Button.new()
+	btn.name = "ForgeItemIconCell"
+	btn.custom_minimum_size = Vector2(px, px)
+	btn.size = Vector2(px, px)
+	btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	btn.clip_contents = true
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	btn.disabled = true
+	btn.flat = false
+	## 72px 前後では InvCell 9-slice の左枠が潰れて「左欠け」に見える。
+	## リストサイズは Flat の四辺ボーダーを使い、ストリップ大セルのみテクスチャ枠。
+	var style: StyleBox
+	if px <= 88:
+		style = _list_icon_flat_frame(rarity, highlight, px)
+	else:
+		style = EquipmentUiTokens.rarity_slot_style(rarity, highlight, px)
+		if style != null:
+			style = style.duplicate()
+			style.set_content_margin_all(0.0)
+	for state in ["normal", "pressed", "hover", "disabled", "focus"]:
+		btn.add_theme_stylebox_override(state, style)
+	btn.add_theme_constant_override("h_separation", 0)
+	btn.add_theme_constant_override("icon_max_width", 0)
+	btn.add_theme_color_override("font_color", Color(1, 1, 1, 0))
+	btn.add_theme_color_override("font_disabled_color", Color(1, 1, 1, 0))
+	btn.add_theme_color_override("font_focus_color", Color(1, 1, 1, 0))
+	btn.text = ""
+	attach_item_icon(btn, item_id, category, px)
+	EquipmentUiHelper.apply_legendary_badge(btn, rarity, Vector2(px, px))
+	return btn
+
+
+static func _list_icon_flat_frame(rarity: int, highlight: bool, cell_px: int) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.07, 0.06, 0.05, 0.94)
+	var col: Color = rarity_color(rarity)
+	sb.set_border_width_all(2)
+	sb.border_color = col.lerp(Color.WHITE, 0.28) if highlight else col
+	sb.set_corner_radius_all(maxi(4, int(round(float(cell_px) * 0.08))))
+	sb.set_content_margin_all(0.0)
+	## shadow は親カード外へ描画され「左はみ出し」に見えるので付けない。
+	return sb
+
 
 static func make_plain_item_icon(
 	item_id: String,
@@ -332,7 +403,12 @@ static func make_plain_item_icon(
 ) -> Control:
 	var px: int = cell_px if cell_px > 0 else list_cell_px()
 	var host := Control.new()
+	host.name = "ForgePlainItemIcon"
 	host.custom_minimum_size = Vector2(px, px)
+	host.size = Vector2(px, px)
+	host.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	host.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	host.clip_contents = true
 	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	attach_item_icon(host, item_id, category, px)
 	return host

@@ -9,10 +9,11 @@ const _HubNinaNavHelper := preload("res://scripts/ui/HubNinaNavHelper.gd")
 
 const ROTATE_SEC: float = 10.0
 const PANEL_W: float = 308.0
-const PANEL_H: float = 100.0
-const FACE_PX: float = 72.0
+const PANEL_H: float = 148.0
+const FACE_PX: float = 80.0
 const MARGIN_RIGHT: float = 12.0
-const GAP_BELOW_TOP: float = 8.0
+## TopBar 直下から下げて、指揮官カード／バナーと被りにくくする。
+const GAP_BELOW_TOP: float = 48.0
 
 var _bubble: Label
 var _messages: Array[Dictionary] = []
@@ -115,9 +116,14 @@ func _build_chrome() -> void:
 	var face := TextureRect.new()
 	face.custom_minimum_size = Vector2(FACE_PX, FACE_PX)
 	face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	face.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	face.texture = _IntroUiAssets.load_tex(_IntroUiAssets.NINA_PORTRAIT)
+	var icon_tex: Texture2D = _IntroUiAssets.load_tex(_IntroUiAssets.NINA_ICON)
+	if icon_tex == null:
+		icon_tex = _IntroUiAssets.load_tex(_IntroUiAssets.NINA_PORTRAIT)
+		face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	face.texture = icon_tex
 	face_frame.add_child(face)
 
 	tooltip_text = "タップで次の案内"

@@ -580,6 +580,7 @@ func _start_pull(use_ticket: bool) -> void:
 			_label_result.text = "招きに失敗しました（%s）。" % reason
 		_refresh()
 		return
+	DailyMissionSystem.report_progress("gacha_pull")
 	_play_summon_reveal(result)
 
 func _play_summon_reveal(result: Dictionary) -> void:

@@ -1159,7 +1159,7 @@ func _add_rare_row(item_id: String, category: String) -> int:
 	var rarity: int = _equipment_rarity(item_id, category)
 	var row: HBoxContainer = HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
-	var icon_cell: PanelContainer = BlacksmithUiHelper.make_item_icon_cell(
+	var icon_cell: Control = BlacksmithUiHelper.make_item_icon_cell(
 		item_id, category, rarity, RARE_EQUIP_ICON_PX, false
 	)
 	icon_cell.size_flags_horizontal = Control.SIZE_SHRINK_CENTER

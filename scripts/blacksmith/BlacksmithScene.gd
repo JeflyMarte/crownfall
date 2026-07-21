@@ -43,6 +43,8 @@ const FORGE_FLASH_PEAK_ALPHA: float = 0.32
 @onready var _category_row: HBoxContainer = $CategoryRow
 @onready var _left_list: VBoxContainer = $MainSplit/LeftScroll/LeftList
 @onready var _detail_panel: PanelContainer = $MainSplit/DetailPanel
+@onready var _hero_panel: CenterContainer = $MainSplit/DetailPanel/DetailVBox/HeroPanel
+@onready var _hero_stack: Control = $MainSplit/DetailPanel/DetailVBox/HeroPanel/HeroStack
 @onready var _hero_pedestal: TextureRect = $MainSplit/DetailPanel/DetailVBox/HeroPanel/HeroStack/HeroPedestal
 @onready var _hero_weapon_pivot: Control = $MainSplit/DetailPanel/DetailVBox/HeroPanel/HeroStack/HeroWeaponPivot
 @onready var _hero_icon_slot: Control = $MainSplit/DetailPanel/DetailVBox/HeroPanel/HeroStack/HeroWeaponPivot/HeroIconSlot
@@ -122,28 +124,55 @@ func _ready() -> void:
 	_craft_button.size_flags_vertical = Control.SIZE_SHRINK_END
 	_setup_craftable_header()
 	_setup_tab_styles()
+	_setup_left_list_layout()
 	_set_mode("produce")
 
 
 func _setup_craftable_header() -> void:
 	UiTypography.apply_body(_craftable_header, UiTypography.SIZE_CAPTION, UiTypography.COLOR_GOLD)
 
+
+func _setup_left_list_layout() -> void:
+	## 長い装備名で行の最小幅が LeftScroll を超えると、左アイコンが欠けて見える。
+	var left_scroll: ScrollContainer = $MainSplit/LeftScroll
+	left_scroll.clip_contents = true
+	left_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	left_scroll.custom_minimum_size = Vector2(228, 0)
+	left_scroll.size_flags_stretch_ratio = 0.42
+	_left_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_left_list.clip_contents = true
+	$MainSplit/DetailPanel.size_flags_stretch_ratio = 0.58
+	_craftable_panel.clip_contents = true
+	$CraftablePanel/CraftableScroll.clip_contents = true
+
+
 func _setup_hero_display_layout() -> void:
-	var pedestal_px: int = ForgeUiTokens.HERO_PEDESTAL_PX
-	var display_px: int = ForgeUiTokens.HERO_DISPLAY_PX
-	var half_ped: float = pedestal_px * 0.5
-	_hero_pedestal.offset_left = -half_ped
+	## 詳細ペイン内に余裕を残す（右寄せ／はみ出し防止）。
+	var stack_px: int = 220
+	var pedestal_px: int = 200
+	var display_px: int = 168
+	## 台座アートの視覚重心が右寄りなので、描画を少し左へ寄せる。
+	var nudge_x: float = -14.0
+	_hero_stack.custom_minimum_size = Vector2(stack_px, stack_px)
+	_hero_stack.clip_contents = true
+	_hero_panel.clip_contents = true
+	var half_ped: float = float(pedestal_px) * 0.5
+	_hero_pedestal.offset_left = -half_ped + nudge_x
 	_hero_pedestal.offset_top = -half_ped
-	_hero_pedestal.offset_right = half_ped
+	_hero_pedestal.offset_right = half_ped + nudge_x
 	_hero_pedestal.offset_bottom = half_ped
-	var half_weapon: float = display_px * 0.5
-	_hero_weapon_pivot.offset_left = -half_weapon
+	_hero_pedestal.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	var half_weapon: float = float(display_px) * 0.5
+	_hero_weapon_pivot.offset_left = -half_weapon + nudge_x
 	_hero_weapon_pivot.offset_top = -half_weapon
-	_hero_weapon_pivot.offset_right = half_weapon
+	_hero_weapon_pivot.offset_right = half_weapon + nudge_x
 	_hero_weapon_pivot.offset_bottom = half_weapon
 	_hero_weapon_pivot.pivot_offset = Vector2(half_weapon, half_weapon)
 	_hero_weapon_pivot.rotation_degrees = 0.0
+	_hero_weapon_pivot.clip_contents = true
+	_hero_icon_slot.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_hero_icon_slot.custom_minimum_size = Vector2(display_px, display_px)
+	_hero_icon_slot.clip_contents = true
 	_hero_pedestal.visible = false
 	_hero_weapon_pivot.visible = false
 
@@ -301,10 +330,14 @@ func _build_category_icons() -> void:
 	for child in _category_row.get_children():
 		child.queue_free()
 	_category_panels.clear()
+	## カテゴリアイコンは固定辺。VBox の FILL で伸びると枠を食い込む（再発防止）。
+	const CAT_ICON_PX: int = 40
 	for cat in ["weapon", "armor", "accessory"]:
 		var wrap := PanelContainer.new()
 		wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		wrap.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		wrap.custom_minimum_size = ForgeUiTokens.CATEGORY_MIN_SIZE
+		wrap.clip_contents = true
 		wrap.add_theme_stylebox_override(
 			"panel", BlacksmithUiHelper.category_tab_style(_category_tab_active(cat))
 		)
@@ -317,11 +350,13 @@ func _build_category_icons() -> void:
 		col.offset_right = -4
 		col.offset_bottom = -4
 		col.add_theme_constant_override("separation", 2)
+		col.alignment = BoxContainer.ALIGNMENT_CENTER
 		col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		wrap.add_child(col)
 		var icon := TextureRect.new()
-		icon.custom_minimum_size = Vector2(52, 52)
+		icon.custom_minimum_size = Vector2(CAT_ICON_PX, CAT_ICON_PX)
 		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.texture = ForgeUiTokens.category_icon(cat)
@@ -330,6 +365,8 @@ func _build_category_icons() -> void:
 		var lbl := Label.new()
 		lbl.text = BlacksmithUiHelper.category_label(cat)
 		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		UiTypography.apply_caption(lbl)
 		col.add_child(lbl)
@@ -469,27 +506,19 @@ func _make_recipe_list_card(craft: Resource) -> PanelContainer:
 	var can_craft: bool = CraftHelper.can_craft(craft)
 	var selected: bool = craft == _selected_craft
 	var rarity: int = BlacksmithUiHelper.output_rarity(craft)
-	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(0, BlacksmithUiHelper.LIST_CARD_MIN_HEIGHT)
-	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	var panel := _make_owned_list_card_shell(selected, rarity)
 	panel.add_theme_stylebox_override(
 		"panel", BlacksmithUiHelper.simple_list_card_style(selected, can_craft, rarity)
 	)
 	panel.gui_input.connect(_on_recipe_card_input.bind(craft))
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	panel.add_child(row)
-	var icon_host := _make_selectable_list_icon(
-		str(craft.output_id),
-		str(craft.output_type),
-		rarity,
-		selected
+	var row: HBoxContainer = panel.get_child(0) as HBoxContainer
+	row.add_child(
+		_make_selectable_list_icon(
+			str(craft.output_id), str(craft.output_type), rarity, selected
+		)
 	)
-	row.add_child(icon_host)
 	var name_lbl := Label.new()
 	name_lbl.text = BlacksmithUiHelper.output_display_name(craft)
-	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_apply_list_name_label(name_lbl, BlacksmithUiHelper.rarity_name_color(rarity))
 	row.add_child(name_lbl)
@@ -506,21 +535,12 @@ func _make_enhance_list_card(item: Resource) -> PanelContainer:
 	var category: String = _category
 	var item_id: String = _item_id_for_category(item, category)
 	var rarity: int = _EquipmentEnhancer.item_rarity(item)
-	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(0, BlacksmithUiHelper.LIST_CARD_MIN_HEIGHT)
-	panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	panel.add_theme_stylebox_override(
-		"panel", BlacksmithUiHelper.simple_list_card_style(selected, false, rarity)
-	)
+	var panel := _make_owned_list_card_shell(selected, rarity)
 	panel.gui_input.connect(_on_enhance_card_input.bind(item))
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	panel.add_child(row)
+	var row: HBoxContainer = panel.get_child(0) as HBoxContainer
 	row.add_child(_make_selectable_list_icon(item_id, category, rarity, selected))
 	var name_lbl := Label.new()
 	name_lbl.text = _EquipmentEnhancer.get_display_name(item)
-	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var name_color: Color = BlacksmithUiHelper.rarity_name_color(rarity)
 	if level >= _EquipmentEnhancer.MAX_FORGE_LEVEL:
@@ -534,21 +554,12 @@ func _make_dismantle_list_card(item: Resource) -> PanelContainer:
 	var category: String = _category
 	var item_id: String = _item_id_for_category(item, category)
 	var rarity: int = _EquipmentEnhancer.item_rarity(item)
-	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(0, BlacksmithUiHelper.LIST_CARD_MIN_HEIGHT)
-	panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	panel.add_theme_stylebox_override(
-		"panel", BlacksmithUiHelper.simple_list_card_style(selected, false, rarity)
-	)
+	var panel := _make_owned_list_card_shell(selected, rarity)
 	panel.gui_input.connect(_on_dismantle_card_input.bind(item))
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	panel.add_child(row)
+	var row: HBoxContainer = panel.get_child(0) as HBoxContainer
 	row.add_child(_make_selectable_list_icon(item_id, category, rarity, selected))
 	var name_lbl := Label.new()
 	name_lbl.text = _EquipmentEnhancer.get_display_name(item)
-	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_apply_list_name_label(name_lbl, BlacksmithUiHelper.rarity_name_color(rarity))
 	row.add_child(name_lbl)
@@ -563,12 +574,31 @@ func _item_id_for_category(item: Resource, category: String) -> String:
 		_:
 			return str(item.weapon_id)
 
+func _make_owned_list_card_shell(selected: bool, rarity: int) -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(0, BlacksmithUiHelper.LIST_CARD_MIN_HEIGHT)
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.clip_contents = true
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	panel.add_theme_stylebox_override(
+		"panel", BlacksmithUiHelper.simple_list_card_style(selected, false, rarity)
+	)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(row)
+	return panel
+
+
 func _apply_list_name_label(lbl: Label, color: Color) -> void:
-	## 1行・省略なし。長い名前はフォントを段階的に小さくして収める。
+	## 1行。長い名前はフォント縮小のうえ、それでも溢れる場合のみ省略。
+	## 省略禁止だと行最小幅が LeftScroll を超え、左アイコンが欠ける。
 	lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
 	lbl.max_lines_visible = 1
-	lbl.clip_text = false
-	lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	lbl.clip_text = true
+	lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	var font_size: int = UiTypography.SIZE_CAPTION
 	var char_count: int = lbl.text.length()
@@ -594,21 +624,12 @@ func _make_alchemy_base_card(item: Resource) -> PanelContainer:
 	var category: String = _category
 	var item_id: String = _item_id_for_category(item, category)
 	var rarity: int = _EquipmentEnhancer.item_rarity(item)
-	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(0, BlacksmithUiHelper.LIST_CARD_MIN_HEIGHT)
-	panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	panel.add_theme_stylebox_override(
-		"panel", BlacksmithUiHelper.simple_list_card_style(selected, false, rarity)
-	)
+	var panel := _make_owned_list_card_shell(selected, rarity)
 	panel.gui_input.connect(_on_alchemy_base_card_input.bind(item))
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	panel.add_child(row)
+	var row: HBoxContainer = panel.get_child(0) as HBoxContainer
 	row.add_child(_make_selectable_list_icon(item_id, category, rarity, selected))
 	var name_lbl := Label.new()
 	name_lbl.text = _EquipmentEnhancer.get_display_name(item)
-	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_apply_list_name_label(name_lbl, BlacksmithUiHelper.rarity_name_color(rarity))
 	row.add_child(name_lbl)
@@ -725,9 +746,10 @@ func _update_hero_icon(item_id: String, category: String, _rarity: int) -> void:
 	_hero_pedestal.visible = _hero_pedestal.texture != null
 	_hero_weapon_pivot.visible = true
 	_hero_weapon_pivot.rotation_degrees = 0.0
-	BlacksmithUiHelper.attach_hero_icon(
-		_hero_icon_slot, item_id, category, ForgeUiTokens.HERO_DISPLAY_PX
-	)
+	var display_px: int = ForgeUiTokens.HERO_DISPLAY_PX
+	if _hero_icon_slot.size.x >= 32.0:
+		display_px = int(_hero_icon_slot.size.x)
+	BlacksmithUiHelper.attach_hero_icon(_hero_icon_slot, item_id, category, display_px)
 
 func _update_cost_panel(gold_cost: int, materials: Dictionary) -> void:
 	_cost_header_label.text = "必要コスト"
@@ -972,7 +994,10 @@ func _make_alchemy_fodder_chip(item: Resource) -> PanelContainer:
 	var rarity: int = _EquipmentEnhancer.item_rarity(item)
 	var item_id: String = _item_id_for_category(item, _category)
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(96, 88)
+	var icon_px: int = BlacksmithUiHelper.list_icon_px()
+	panel.custom_minimum_size = Vector2(icon_px + 20, icon_px + 32)
+	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	panel.add_theme_stylebox_override(
 		"panel", BlacksmithUiHelper.simple_list_card_style(selected, false, rarity)
@@ -981,6 +1006,8 @@ func _make_alchemy_fodder_chip(item: Resource) -> PanelContainer:
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 4)
 	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	col.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	panel.add_child(col)
 	col.add_child(_make_selectable_list_icon(item_id, _category, rarity, selected))
 	var name_lbl := Label.new()
@@ -1006,16 +1033,12 @@ func _make_selectable_list_icon(
 	rarity: int = 0,
 	highlight: bool = false
 ) -> Control:
-	var cell_px: int = BlacksmithUiHelper.list_cell_px()
-	var host := Control.new()
-	host.custom_minimum_size = Vector2(cell_px, cell_px)
-	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var cell: PanelContainer = BlacksmithUiHelper.make_item_icon_cell(
-		item_id, category, rarity, cell_px, highlight
+	## 生産／強化／錬成／分解で共通。二重ホストは作らずセル自体を返す。
+	var cell: Control = BlacksmithUiHelper.make_item_icon_cell(
+		item_id, category, rarity, BlacksmithUiHelper.list_icon_px(), highlight
 	)
 	_set_mouse_filter_tree(cell, Control.MOUSE_FILTER_IGNORE)
-	host.add_child(cell)
-	return host
+	return cell
 
 func _set_mouse_filter_tree(node: Node, filter: Control.MouseFilter) -> void:
 	if node is Control:
@@ -1040,6 +1063,8 @@ func _make_craftable_chip(craft: Resource) -> PanelContainer:
 	var icon_wrap := CenterContainer.new()
 	var cell_px: int = BlacksmithUiHelper.list_cell_px()
 	icon_wrap.custom_minimum_size = Vector2(cell_px, cell_px)
+	icon_wrap.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	icon_wrap.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	col.add_child(icon_wrap)
 	var chip_rarity: int = BlacksmithUiHelper.output_rarity(craft)
 	icon_wrap.add_child(
@@ -1273,6 +1298,7 @@ func _execute_alchemy() -> void:
 		"錬成成功: Lv.%d → Lv.%d（Gold %d）"
 		% [int(result.get("from_level", 1)), int(result.get("to_level", 1)), int(result.get("gold_cost", 0))]
 	)
+	DailyMissionSystem.report_progress("alchemy_item")
 	_selected_alchemy_fodder = null
 	SaveManager.save_game()
 	_refresh_all()
@@ -1287,6 +1313,7 @@ func _on_enhance_pressed() -> void:
 		_log_craft_error(str(result.get("reason", "炉研ぎに失敗しました")))
 		_refresh_all()
 		return
+	DailyMissionSystem.report_progress("enhance_item")
 	SaveManager.save_game()
 	var display_name: String = str(result.get("display_name", ""))
 	var body: String = "強化しました。\n\n%s" % display_name
@@ -1338,6 +1365,7 @@ func _execute_dismantle(item: Resource) -> void:
 		_log_craft_error(str(result.get("reason", "分解に失敗しました")))
 		_refresh_all()
 		return
+	DailyMissionSystem.report_progress("dismantle_item")
 	SaveManager.save_game()
 	_selected_dismantle_item = null
 	_selected_enhance_item = null
@@ -1363,6 +1391,8 @@ func _on_bulk_dismantle_confirmed() -> void:
 		_log_craft_error(str(result.get("reason", "一括分解に失敗しました")))
 		_refresh_all()
 		return
+	var dismantled: int = maxi(1, int(result.get("count", 0)))
+	DailyMissionSystem.report_progress("dismantle_item", "", dismantled)
 	SaveManager.save_game()
 	_selected_dismantle_item = null
 	_log_craft(

@@ -214,7 +214,7 @@ static func build_active_event(now_unix: int) -> Resource:
 	var event: Resource = _EventData.new()
 	event.id = "field_slot_%s_%d" % [str(def.get("id", def_idx)), slot]
 	event.title = str(def.get("title", ""))
-	event.tag_text = "いまの野外"
+	event.tag_text = "今日のダンジョン状態"
 	event.banner_desc = str(def.get("banner_desc", ""))
 	event.description = str(def.get("description", ""))
 	event.modifier_type = str(def.get("modifier_type", ""))

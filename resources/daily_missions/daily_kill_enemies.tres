@@ -4,11 +4,11 @@
 
 [resource]
 script = ExtResource("1")
-id = "daily_combat_win"
-title = "戦闘勝利"
-description = "戦闘に3回勝利する"
-objective_type = "combat_win"
-target_count = 3
+id = "daily_kill_enemies"
+title = "モンスターを20体倒す"
+description = "通常・エリート・ボスを含む撃破数"
+objective_type = "kill_enemy"
+target_count = 20
 target_param = ""
 reward_gold = 0
 reward_gacha_token = 0

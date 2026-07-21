@@ -53,7 +53,7 @@ func test_build_active_event_has_ima_tag() -> void:
 	EventSystem.set_debug_unix_for_tests(_anchor_unix() + 60)
 	var event: Resource = EventSystem.get_active_event()
 	assert_not_null(event)
-	assert_eq(str(event.tag_text), "いまの野外")
+	assert_eq(str(event.tag_text), "今日のダンジョン状態")
 	assert_true(EventSystem.is_event_running())
 
 

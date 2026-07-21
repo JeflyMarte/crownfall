@@ -23,7 +23,7 @@ func _refresh() -> void:
 	if event_data == null:
 		SceneRouter.change_scene(HOME_SCENE)
 		return
-	_label_title.text = "✦ いまの野外 ✦"
+	_label_title.text = "✦ 今日のダンジョン状態 ✦"
 	_label_modifier.text = EventSystem.active_modifier_summary()
 	_label_desc.text = str(event_data.description)
 	if EventSystem.is_featured_biome_week():

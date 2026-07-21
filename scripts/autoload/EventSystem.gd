@@ -1,6 +1,6 @@
 extends Node
 
-## 拠点「いまの野外の変化」（P3-EVT-FIELD-001）。30分スロット＋重み付きプール。
+## 拠点「今日のダンジョン状態」（P3-EVT-FIELD-001）。30分スロット＋重み付きプール。
 
 const PERIODIC_EVENTS_ENABLED: bool = true
 
@@ -171,7 +171,7 @@ func run_intro_line() -> String:
 		var biome_name: String = _featured_biome_display_name(event_data)
 		if not biome_name.is_empty():
 			biome_line = "（注目: %s）" % biome_name
-	return "【いまの野外】%s%s" % [str(event_data.title), biome_line]
+	return "【今日のダンジョン状態】%s%s" % [str(event_data.title), biome_line]
 
 func countdown_text() -> String:
 	if not PERIODIC_EVENTS_ENABLED:

@@ -105,14 +105,100 @@ func test_decorate_title_adds_diamond_ornament() -> void:
 	ForgeUiTokens.decorate_title(lbl)
 	assert_eq(lbl.text, "◆ 鍛冶屋 ◆")
 
-func test_forge_item_icon_inset_smaller_than_equipment_default() -> void:
+func test_forge_item_icon_inset_matches_equipment_policy() -> void:
 	var cell_px: int = BlacksmithUiHelper.list_cell_px()
 	var forge_inset: int = BlacksmithUiHelper.item_icon_inset_px(cell_px)
 	var equip_inset: int = EquipmentUiTokens.icon_inset_px(
 		cell_px, EquipmentUiTokens.INV_CELL_DESIGN_PX
 	)
-	assert_lt(forge_inset, equip_inset)
+	assert_eq(forge_inset, equip_inset)
 	assert_gte(cell_px, EquipmentUiTokens.INV_CELL_PX)
+	assert_lt(BlacksmithUiHelper.list_icon_px(), cell_px)
+
+
+func test_forge_list_icon_stays_inside_safe_fill() -> void:
+	## 再発防止: 弓でも safe_fill を超えて左右にはみ出さない。
+	var cell_px: int = BlacksmithUiHelper.list_icon_px()
+	var inset: int = BlacksmithUiHelper.item_icon_inset_px(cell_px)
+	var bow_shrunk: int = maxi(
+		2, int(round(float(inset) * EquipmentUiTokens.BOW_ICON_INSET_SCALE))
+	)
+	## 旧バグ: 弓 inset 縮小だけだと side が枠クロムを超える。
+	var unsafe_side: int = cell_px - bow_shrunk * 2
+	var safe_side: int = BlacksmithUiHelper.forge_icon_side_px(cell_px, inset)
+	assert_lte(float(safe_side), float(cell_px) * BlacksmithUiHelper.FORGE_ICON_SAFE_FILL + 0.001)
+	assert_lt(safe_side, unsafe_side)
+
+	var cell: Control = BlacksmithUiHelper.make_item_icon_cell(
+		"hunting_bow", "weapon", 1, cell_px, false
+	)
+	assert_eq(cell.size_flags_horizontal, Control.SIZE_SHRINK_BEGIN)
+	assert_eq(cell.size_flags_vertical, Control.SIZE_SHRINK_CENTER)
+	assert_eq(cell.custom_minimum_size.x, float(cell_px))
+	assert_true(cell.clip_contents)
+	var icon: TextureRect = cell.find_child("ItemIcon", true, false) as TextureRect
+	assert_not_null(icon)
+	## FULL_RECT＋対称 inset。描画幅は cell - 2*inset。
+	var draw_inset: float = icon.offset_left
+	var icon_w: float = float(cell_px) - draw_inset * 2.0
+	assert_lte(icon_w, float(cell_px) * BlacksmithUiHelper.FORGE_ICON_SAFE_FILL + 0.001)
+	assert_lte(icon_w, float(safe_side) + 0.001)
+	assert_gte(draw_inset, 0.0)
+	cell.free()
+
+
+func test_forge_list_row_keeps_icon_inside_scroll_width() -> void:
+	## 長い装備名でも行最小幅が LeftScroll 想定幅を超えないこと。
+	var scroll_w: float = 228.0
+	var cell_px: int = BlacksmithUiHelper.list_icon_px()
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	row.custom_minimum_size = Vector2(scroll_w, BlacksmithUiHelper.LIST_CARD_MIN_HEIGHT)
+	var icon: Control = BlacksmithUiHelper.make_item_icon_cell(
+		"verdia_longbow", "weapon", 2, cell_px, false
+	)
+	row.add_child(icon)
+	var name_lbl := Label.new()
+	name_lbl.text = "ヴェルディア長弓 Lv.1"
+	name_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+	name_lbl.max_lines_visible = 1
+	name_lbl.clip_text = true
+	name_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(name_lbl)
+	add_child(row)
+	await get_tree().process_frame
+	assert_lte(icon.get_combined_minimum_size().x, float(cell_px) + 0.001)
+	## 省略ありなら Label 最小幅は全文幅より小さくなる（行が scroll に収まる前提）。
+	assert_lt(name_lbl.get_combined_minimum_size().x, 200.0)
+	assert_lte(row.get_combined_minimum_size().x, scroll_w + 1.0)
+	row.free()
+
+
+func test_forge_icon_cell_is_not_panel_container() -> void:
+	## PanelContainer+content_margin 押し合いの再発を防ぐ。
+	var cell: Control = BlacksmithUiHelper.make_item_icon_cell(
+		"apprentice_staff", "weapon", 0, BlacksmithUiHelper.list_icon_px(), false
+	)
+	assert_false(cell is PanelContainer)
+	assert_eq(cell.name, "ForgeItemIconCell")
+	cell.free()
+
+
+func test_forge_list_icon_uses_flat_frame_at_list_size() -> void:
+	## 小さいセルは InvCell 9-slice ではなく Flat 四辺枠（左欠け見え防止）。
+	var cell: Control = BlacksmithUiHelper.make_item_icon_cell(
+		"iron_sword", "weapon", 1, BlacksmithUiHelper.list_icon_px(), false
+	)
+	var sb: StyleBox = cell.get_theme_stylebox("normal")
+	assert_true(sb is StyleBoxFlat)
+	cell.free()
+	var big: Control = BlacksmithUiHelper.make_item_icon_cell(
+		"iron_sword", "weapon", 1, BlacksmithUiHelper.list_cell_px(), false
+	)
+	var big_sb: StyleBox = big.get_theme_stylebox("normal")
+	assert_true(big_sb is StyleBoxTexture)
+	big.free()
 
 func test_bow_display_texture_is_cropped() -> void:
 	var src: Texture2D = load("res://assets/ui/equipment/ICO_WPN_HuntingBow.png") as Texture2D

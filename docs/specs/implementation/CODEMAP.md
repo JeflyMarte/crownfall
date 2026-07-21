@@ -25,7 +25,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | SceneRouter | `scripts/autoload/SceneRouter.gd` |
 | EventBus | `scripts/autoload/EventBus.gd` |
 | AudioManager | `scripts/audio/AudioManager.gd`（**P3-AUDIO-SE-001/002**・**BGM-001**・`SfxCatalog`/`BgmCatalog`） |
-| DailyMissionSystem | `scripts/autoload/DailyMissionSystem.gd`（**P3-DAILY** 日課3件/日） |
+| DailyMissionSystem | `scripts/autoload/DailyMissionSystem.gd`（**P3-DAILY-002** プールから毎日3件抽選） |
 | EventSystem | `scripts/autoload/EventSystem.gd`（**P3-EVT-FIELD-001** 30分スロット・重み付き野外速報・`EventWeekRotation` SSOT） |
 | GachaSystem | `scripts/autoload/GachaSystem.gd` |
 
@@ -52,7 +52,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | BlacksmithScene | `scenes/blacksmith/BlacksmithScene.tscn` | `scripts/blacksmith/BlacksmithScene.gd` |
 | CodexScene | `scenes/codex/CodexScene.tscn` | `scripts/codex/CodexScene.gd` |
 | GachaScene | `scenes/gacha/GachaScene.tscn` | `scripts/gacha/GachaScene.gd`（**P3-UI-GACHA** モック chrome・Reveal・DetailOverlay） |
-| EventScene | `scenes/event/EventScene.tscn` | `scripts/event/EventScene.gd`（**P3-EVT-FIELD-001** いまの野外詳細） |
+| EventScene | `scenes/event/EventScene.tscn` | `scripts/event/EventScene.gd`（**P3-EVT-FIELD-001** 今日のダンジョン状態詳細） |
 | CommanderScene | `scenes/commander/CommanderScene.tscn` | `scripts/commander/CommanderScene.gd`（**P3-CMD-001** 隊長台帳・C級解放）・**P3-CMD-RANKUP-001** `CommanderRankUpOverlay`（拠点ランクアップ祝辞） |
 | SettingsScene | `scenes/settings/SettingsScene.tscn` | `scripts/settings/SettingsScene.gd`（設定 MVP・`SettingsPrefs`） |
 
@@ -79,7 +79,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 - 状態異常アイコン: ルート直下 HBox（敵 + Chr0〜2 + 群れ行）— HP バー上に追従（P3-UI2-013 / P3-D110 群れ行）。`StatusResolver.get_active_status_list()`
 
 **BaseScene ノード（P3-UI-Base-A / 003_01 Phase A）:**
-- `HubView` — 城背景・`TopBar`（**指揮官カード** P3-CMD-001 + Gold/魔晶石）・`LeftMenuPanel` 7項目・**NinaNavPanel**（**P3-UI-NINA-NAV-001** 右上顔＋吹き出し・10秒／タップ）・**FieldSurveyBanner**（**P3-EVT-FIELD-001** いまの野外・30分スロット・タップで EventScene）・`CurrencyStrip`・`DailyMissionPanel`
+- `HubView` — 城背景・`TopBar`（**指揮官カード** P3-CMD-001 + Gold/魔晶石）・`LeftMenuPanel` 7項目・**NinaNavPanel**（**P3-UI-NINA-NAV-001** 右上顔＋吹き出し・10秒／タップ）・**FieldSurveyBanner**（**P3-EVT-FIELD-001** 今日のダンジョン状態・30分スロット・タップで EventScene）・`CurrencyStrip`・`DailyMissionPanel`
 - `MenuGridView` — 003_02 系 3×3 メニュー（下ナビ「メニュー」で切替）
 - `BottomNav` — 6タブ（ホーム/パーティ/冒険/強化/ショップ/メニュー）・`BottomNavHelper` + `NavIconHelper`
 - 検証: `tools/verify_base_hub.gd` / `tools/verify_bottom_nav.gd`
@@ -212,7 +212,7 @@ Task 明示指示がない限り作成しない:
 | クラフト | `resources/crafting/` — 6レシピ（武器3/防具2/装飾1・P3-D067/D136） |
 | レシピ | `resources/recipes/` — recipe_leather_armor, recipe_bone_armor, recipe_silver_ring |
 | 素材ショップ | `resources/material_shop/` — relic_shard, ancient_bone |
-| 日課 | `resources/daily_missions/` — daily_clear_run / daily_combat_win / daily_craft_item（P3-DAILY） |
+| 日課 | `resources/daily_missions/` — プール抽選3件/日（P3-DAILY-002）。撃破20・鍛冶系・招待など |
 | 期間イベント | `resources/events/` — `evt_week_exp` / `evt_week_gold` / `evt_week_weapon`（各7日・P3-D163） |
 
 ### animation/（Phase3-A — SpriteFrames）

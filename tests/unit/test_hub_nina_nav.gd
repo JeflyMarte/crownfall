@@ -59,10 +59,21 @@ func test_field_line_calm_when_no_event_weather() -> void:
 	assert_true(not line.is_empty(), line)
 
 
+func test_weather_tip_rain_junior_voice() -> void:
+	assert_true(_Helper._weather_tip(CombatWeather.RAIN).contains("雨"))
+	assert_true(_Helper._weather_tip(CombatWeather.RAIN).contains("ぬかるみ"))
+
+
 func test_chat_line_from_pool() -> void:
 	var line: String = _Helper.chat_line()
 	assert_true(_Helper.CHAT_LINES.has(line), line)
 
 
+func test_nina_panel_sits_below_top_bar_gap() -> void:
+	assert_eq(_Navigator.GAP_BELOW_TOP, 48.0)
+	assert_eq(_Navigator.PANEL_H, 148.0)
+
+
 func test_nina_portrait_asset_exists() -> void:
 	assert_true(FileAccess.file_exists("res://assets/npc/ART_NPC_Nina.png"))
+	assert_true(FileAccess.file_exists("res://assets/npc/ICO_NPC_Nina.png"))

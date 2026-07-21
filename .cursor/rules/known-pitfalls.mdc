@@ -55,6 +55,9 @@ alwaysApply: true
 | 枠にアイコンが食い込む | inset 不足 | `EquipmentUiTokens.ICON_FRAME_MARGIN_PX`（現行 18）を維持。全面キャンバス絵は余白を減らさない |
 | UI idle が拡縮／左右に跳ぶ | `idle_*.png` のフレーム間で描画サイズ・中心が不安定。安易な再配置や静止固定の行き来 | `ui-layout.mdc`「CHR Idle ポートレート」— 軽微は間引き、重度のみ足元固定。横跳びする再中央寄せをしない |
 | キャラ切替で装備アイコンが拡大 | Grid/`EXPAND_FILL` でセルが伸びる、または幅から `cell_px` を再計算して肥大化 | `ui-layout.mdc`「装備セルサイズ」— スロット/`INV_CELL` とも固定 px＋親子 `SIZE_SHRINK_*` |
+| 錬成／分解の左リスト装備アイコンが左に欠ける／消える | ①長い装備名を `clip_text=false` のまま狭い LeftScroll へ ②中央アンカー＋負 offset ③**小セルで InvCell 9-slice 左枠が潰れる** | リスト名 ellipsis。固定 Button＋FULL_RECT 対称 inset。**≲88px は Flat 四辺枠**。弓 inset 縮小禁止 |
+| 鍛冶詳細ヒーローが右にはみ出す | 台座／武器枠が詳細ペイン幅より大きい、または clip 無し | HeroStack をペイン内サイズに収め `clip_contents`。アイコンは対称 inset |
+| 鍛冶カテゴリ（武器/防具/装飾）アイコンが枠を食い込む | TextureRect が VBox で縦 FILL 伸長＋`EXPAND_IGNORE_SIZE` で枠いっぱいに拡大 | 縦横とも `SIZE_SHRINK_CENTER`＋固定 px（40）。親 Panel は `clip_contents`。`ui-layout` 鍛冶屋アイコン節 |
 | キャラ画面に金の縦筋／巨大フレーム断片 | `InventoryGrid` が Scroll 高さまで縦伸び → InvCell `StyleBoxTexture` の左右辺が引き伸ばされる | Grid は縦横 `SIZE_SHRINK_BEGIN`（Scroll 内で EXPAND 禁止）。セル Button は `clip_contents`。SectionRule は COVERED 禁止 |
 | キャラ画面の背景が消える | `BgTexture` を `KEEP_ASPECT_CENTERED` にした | フルブリード背景は `KEEP_ASPECT_COVERED` を維持 |
 | ビーストテイマーだけ装備アイコンが大きい | 長い職名で CardRow 再配分＋スロット Grid が `EXPAND_FILL`、または弓アートの枠占有 | スロット Grid/Panel は `SHRINK`。弓は SAFE_SCALE 余白（fill≲0.55） |

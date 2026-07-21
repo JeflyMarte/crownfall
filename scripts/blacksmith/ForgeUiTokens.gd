@@ -131,9 +131,10 @@ static func enhance_button_styles() -> Dictionary:
 
 
 static func labeled_primary_button_styles(normal_path: String, disabled_path: String) -> Dictionary:
+	## content_margin が texture_margin より狭いと、ラベルが左枠クロムに食い込んで欠ける。
 	return {
-		"normal": texture_stylebox(normal_path, PRIMARY_BTN_MARGINS, 4.0),
-		"disabled": texture_stylebox(disabled_path, PRIMARY_BTN_MARGINS, 4.0),
+		"normal": texture_stylebox(normal_path, PRIMARY_BTN_MARGINS, 22.0),
+		"disabled": texture_stylebox(disabled_path, PRIMARY_BTN_MARGINS, 22.0),
 	}
 
 

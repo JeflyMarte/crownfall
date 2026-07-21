@@ -4,13 +4,13 @@
 
 [resource]
 script = ExtResource("1")
-id = "daily_clear_run"
-title = "ダンジョンを1回クリアする"
-description = "任意のダンジョンを1回クリアする"
-objective_type = "dungeon_clear"
+id = "daily_alchemy_item"
+title = "装備を1回錬成する"
+description = "鍛冶屋で装備を1回錬成する"
+objective_type = "alchemy_item"
 target_count = 1
 target_param = ""
-reward_gold = 80
+reward_gold = 40
 reward_gacha_token = 0
 reward_material_id = ""
 reward_material_qty = 0
