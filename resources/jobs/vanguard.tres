@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "vanguard"
 display_name = "ヴァンガード"
-description = "剣で前線を固め、敵の attention を引く重装タンク。"
+description = "剣で前線を固め、敵の注意を引く重装タンク。"
 role = "tank"
 base_hp_modifier = 1.2
 base_attack_modifier = 0.95

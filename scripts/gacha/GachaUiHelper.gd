@@ -168,8 +168,18 @@ static func summon_quote_for_helper(helper: Resource) -> String:
 	if "summon_quote" in helper:
 		quote = str(helper.summon_quote).strip_edges()
 	if quote.is_empty() and "origin_note" in helper:
-		quote = str(helper.origin_note).strip_edges()
+		quote = ensure_sentence_period(str(helper.origin_note).strip_edges())
 	return quote
+
+
+## キャラ説明の句点ゆれを防ぐ（末尾に 。／！／？ が無ければ付与）。
+static func ensure_sentence_period(text: String) -> String:
+	var t: String = text.strip_edges()
+	if t.is_empty():
+		return t
+	if t.ends_with("。") or t.ends_with("！") or t.ends_with("？") or t.ends_with("!"):
+		return t
+	return t + "。"
 
 
 static func unique_line_for_helper(helper: Resource) -> String:
@@ -185,7 +195,7 @@ static func unique_line_for_helper(helper: Resource) -> String:
 		if not pname.is_empty():
 			return pname
 	var note: String = str(helper.origin_note) if "origin_note" in helper else ""
-	return note.strip_edges()
+	return ensure_sentence_period(note)
 
 
 static func banner_portrait_textures(max_count: int = BANNER_PORTRAIT_MAX) -> Array[Texture2D]:
@@ -815,7 +825,7 @@ static func make_lineup_row(helper: Resource) -> PanelContainer:
 	var role_id: String = str(job_data.role) if job_data != null else str(helper.job_id)
 	var origin_note: String = str(helper.origin_note) if "origin_note" in helper else ""
 	if not origin_note.is_empty():
-		sub.text = origin_note
+		sub.text = ensure_sentence_period(origin_note)
 	else:
 		sub.text = str(RosterUiHelper.ROLE_LABELS.get(role_id, str(helper.job_id)))
 	sub.clip_text = true

@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "swordsman"
 display_name = "ソードマン"
-description = "剣で前線を支える近接アタッカー。被弾を引き受ける前衛役。"
+description = "剣で前線を支え、被弾を引き受ける近接アタッカー。"
 role = "dps"
 base_hp_modifier = 1.05
 base_attack_modifier = 1.1

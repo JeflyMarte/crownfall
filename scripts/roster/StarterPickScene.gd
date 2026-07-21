@@ -149,8 +149,17 @@ func _starter_blurb(job_data: Resource, job_id: String) -> String:
 	if cut >= 0:
 		raw = raw.substr(0, cut).strip_edges()
 	if raw.is_empty():
-		return job_id
-	return raw
+		return _ensure_sentence_period(job_id)
+	return _ensure_sentence_period(raw)
+
+
+static func _ensure_sentence_period(text: String) -> String:
+	var t: String = text.strip_edges()
+	if t.is_empty():
+		return t
+	if t.ends_with("。") or t.ends_with("！") or t.ends_with("？") or t.ends_with("!"):
+		return t
+	return t + "。"
 
 
 func _select(adventurer_id: String) -> void:

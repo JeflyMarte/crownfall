@@ -6,6 +6,7 @@ extends Control
 
 const _IntroLoreContent := preload("res://scripts/intro/IntroLoreContent.gd")
 const _IntroUiAssets := preload("res://scripts/intro/IntroUiAssets.gd")
+const _SafeAreaHelper := preload("res://scripts/ui/SafeAreaHelper.gd")
 const NEXT_SCENE: String = "res://scenes/intro/IntroNameScene.tscn"
 
 ## 自動クロール基準速度（px/秒）。
@@ -32,12 +33,15 @@ var _crawl_boost: bool = false
 var _reached_end: bool = false
 var _scroll_pos: float = 0.0
 var _layout_ready: bool = false
+var _root_margin: MarginContainer
 
 
 func _ready() -> void:
 	_build_ui()
+	_apply_safe_area_margins()
 	# 初回フレーム前に仮幅を入れておく（遅延待ち中のレイアウト暴れ防止）。
 	call_deferred("_prepare_crawl_layout")
+	call_deferred("_apply_safe_area_margins")
 	_start_crawl_after_delay()
 
 
@@ -102,17 +106,17 @@ func _build_ui() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_IntroUiAssets.add_full_bg(self, _IntroUiAssets.BG_LORE, Color(0.04, 0.05, 0.08, 1.0))
 
-	var margin := MarginContainer.new()
-	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 28)
-	margin.add_theme_constant_override("margin_right", 28)
-	margin.add_theme_constant_override("margin_top", 28)
-	margin.add_theme_constant_override("margin_bottom", 24)
-	add_child(margin)
+	_root_margin = MarginContainer.new()
+	_root_margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_root_margin.add_theme_constant_override("margin_left", 28)
+	_root_margin.add_theme_constant_override("margin_right", 28)
+	_root_margin.add_theme_constant_override("margin_top", 28)
+	_root_margin.add_theme_constant_override("margin_bottom", 24)
+	add_child(_root_margin)
 
 	var root := VBoxContainer.new()
 	root.add_theme_constant_override("separation", 14)
-	margin.add_child(root)
+	_root_margin.add_child(root)
 
 	var header := HBoxContainer.new()
 	header.add_theme_constant_override("separation", 12)
@@ -184,12 +188,24 @@ func _build_ui() -> void:
 
 	_continue_btn = Button.new()
 	_continue_btn.text = "続ける"
-	_continue_btn.custom_minimum_size = Vector2(0, 52)
+	_continue_btn.custom_minimum_size = Vector2(0, 56)
 	_continue_btn.disabled = true
 	_continue_btn.modulate = Color(1, 1, 1, 0.45)
+	_continue_btn.mouse_filter = Control.MOUSE_FILTER_STOP
+	_continue_btn.focus_mode = Control.FOCUS_ALL
 	UiTypography.apply_button(_continue_btn)
 	_continue_btn.pressed.connect(_go_next)
 	root.add_child(_continue_btn)
+
+
+func _apply_safe_area_margins() -> void:
+	if _root_margin == null:
+		return
+	## iPhone Home Indicator 下に「続ける」が沈みタップ不能になるのを防ぐ。
+	var top: float = 28.0 + _SafeAreaHelper.top_inset()
+	var bottom: float = 24.0 + _SafeAreaHelper.bottom_inset()
+	_root_margin.add_theme_constant_override("margin_top", int(ceil(top)))
+	_root_margin.add_theme_constant_override("margin_bottom", int(ceil(bottom)))
 
 
 func _make_spacer(height_px: float) -> Control:
@@ -326,14 +342,6 @@ func _check_manual_end() -> void:
 		_on_reached_end()
 
 
-func _notification(what: int) -> void:
-	if what == NOTIFICATION_RESIZED and _layout_ready:
-		_prepare_crawl_layout()
-		var max_v: float = _max_scroll()
-		if max_v > 0.0:
-			_set_scroll_pos(minf(_scroll_pos, max_v))
-
-
 func _on_reached_end() -> void:
 	if _reached_end:
 		return
@@ -345,6 +353,20 @@ func _on_reached_end() -> void:
 	if _continue_btn != null:
 		_continue_btn.disabled = false
 		_continue_btn.modulate = Color(1, 1, 1, 1)
+		_continue_btn.mouse_filter = Control.MOUSE_FILTER_STOP
+		## 実機でヒット領域が潰れている場合に備え、明示的に前面へ。
+		_continue_btn.z_index = 8
+		_continue_btn.move_to_front()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED:
+		_apply_safe_area_margins()
+		if _layout_ready:
+			_prepare_crawl_layout()
+			var max_v: float = _max_scroll()
+			if max_v > 0.0:
+				_set_scroll_pos(minf(_scroll_pos, max_v))
 
 
 func _go_next() -> void:

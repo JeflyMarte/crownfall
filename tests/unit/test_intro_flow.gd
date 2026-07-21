@@ -44,6 +44,21 @@ func test_starter_jobs_have_one_line_blurb() -> void:
 		var desc: String = str(job_data.description).strip_edges()
 		assert_true(not desc.is_empty(), job_id)
 		assert_true(not desc.contains("将来実装"), job_id)
+		assert_true(desc.ends_with("。"), "%s は句点で終わる" % job_id)
+
+
+func test_gacha_origin_notes_end_with_period() -> void:
+	for helper in DataRegistry.get_all_gacha_helper_data():
+		if helper == null:
+			continue
+		var note: String = str(helper.origin_note).strip_edges()
+		if note.is_empty():
+			continue
+		assert_true(note.ends_with("。"), "%s origin_note" % str(helper.id))
+
+
+func test_battle_log_font_matches_body() -> void:
+	assert_eq(UiTypography.SIZE_LOG, UiTypography.SIZE_BODY)
 
 
 func test_intro_art_assets_exist() -> void:

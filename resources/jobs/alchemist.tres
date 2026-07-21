@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "alchemist"
 display_name = "アルケミスト"
-description = "杖で魔法ダメージ・デバフに加え、回復と鼓舞（与ダメ上昇）で味方を支える支援役。"
+description = "杖で魔法ダメージ・デバフに加え、回復と鼓舞で味方を支える支援役。"
 role = "support"
 base_hp_modifier = 0.85
 base_attack_modifier = 1.0

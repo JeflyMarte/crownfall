@@ -78,6 +78,9 @@ var _dismantle_confirm: ConfirmationDialog
 var _legendary_dismantle_confirm: ConfirmationDialog
 var _legendary_dismantle_final_confirm: ConfirmationDialog
 var _alchemy_confirm: ConfirmationDialog
+var _craft_confirm: ConfirmationDialog
+var _pending_craft: Resource = null
+var _result_dialog: AcceptDialog
 var _pending_dismantle_item: Resource = null
 
 func _ready() -> void:
@@ -98,6 +101,8 @@ func _ready() -> void:
 	_btn_alchemy.text = "錬成"
 	_setup_dismantle_dialogs()
 	_setup_alchemy_confirm()
+	_setup_craft_confirm()
+	_setup_result_dialog()
 	_setup_bulk_dismantle_button()
 	_detail_panel.add_theme_stylebox_override(
 		"panel", BlacksmithUiHelper.detail_panel_style()
@@ -152,7 +157,35 @@ func _setup_alchemy_confirm() -> void:
 	add_child(_alchemy_confirm)
 
 
+func _setup_craft_confirm() -> void:
+	_craft_confirm = ConfirmationDialog.new()
+	_craft_confirm.title = "装備生産"
+	_craft_confirm.ok_button_text = "生産する"
+	_craft_confirm.cancel_button_text = "やめる"
+	_craft_confirm.confirmed.connect(_on_craft_confirmed)
+	_craft_confirm.canceled.connect(_on_forge_confirm_canceled)
+	add_child(_craft_confirm)
+
+
+func _setup_result_dialog() -> void:
+	_result_dialog = AcceptDialog.new()
+	_result_dialog.title = "鍛冶屋"
+	_result_dialog.ok_button_text = "閉じる"
+	add_child(_result_dialog)
+
+
+func _show_forge_result(title: String, body: String) -> void:
+	if _result_dialog == null:
+		_log_craft(body)
+		return
+	_result_dialog.title = title
+	_result_dialog.dialog_text = body
+	_result_dialog.popup_centered()
+	_log_craft(body)
+
+
 func _on_forge_confirm_canceled() -> void:
+	_pending_craft = null
 	AudioManager.play_sfx("ui_cancel")
 
 
@@ -1161,13 +1194,45 @@ func _on_craft_pressed(craft: Resource) -> void:
 	if not CraftHelper.has_enough_materials(craft.required_materials):
 		_log_craft_error("素材が足りません")
 		return
+	_pending_craft = craft
+	var item_name: String = DataRegistry.get_item_name(craft.output_id, craft.output_type)
+	_craft_confirm.dialog_text = (
+		"%s を生産しますか？\n（Gold %d）"
+		% [item_name, int(craft.gold_cost)]
+	)
+	_craft_confirm.popup_centered()
+
+
+func _on_craft_confirmed() -> void:
+	var craft: Resource = _pending_craft
+	_pending_craft = null
+	if craft == null:
+		return
+	if craft.output_type != "armor" and craft.output_type != "accessory" and craft.output_type != "weapon":
+		_log_craft_error("作成できません（出力不正）")
+		return
+	if craft.output_id.is_empty() or not CraftHelper.craft_output_exists(craft):
+		_log_craft_error("作成できません（出力不正）")
+		return
+	if GameState.gold < craft.gold_cost:
+		_log_craft_error("ゴールドが足りません")
+		return
+	if not CraftHelper.has_enough_materials(craft.required_materials):
+		_log_craft_error("素材が足りません")
+		return
 	GameState.gold -= craft.gold_cost
 	GameState.consume_materials(craft.required_materials)
 	_generate_craft_output(craft)
 	DailyMissionSystem.report_progress("craft_item")
 	SaveManager.save_game()
-	var msg: String = "作成完了: %s" % DataRegistry.get_item_name(craft.output_id, craft.output_type)
-	_log_craft(msg)
+	var item_name: String = DataRegistry.get_item_name(craft.output_id, craft.output_type)
+	var rarity: int = BlacksmithUiHelper.output_rarity(craft)
+	var stars: String = EquipmentUiHelper.rarity_stars_text(rarity)
+	var type_label: String = BlacksmithUiHelper.output_subtitle(craft)
+	var body: String = "生産しました。\n\n%s\n%s" % [item_name, type_label]
+	if not stars.is_empty():
+		body += "\n%s" % stars
+	_show_forge_result("生産完了", body)
 	_refresh_all()
 	_play_forge_success_feedback(FORGE_FLASH_CRAFT)
 
@@ -1223,15 +1288,18 @@ func _on_enhance_pressed() -> void:
 		_refresh_all()
 		return
 	SaveManager.save_game()
-	var msg: String = "炉研ぎ成功: %s" % str(result.get("display_name", ""))
+	var display_name: String = str(result.get("display_name", ""))
+	var body: String = "強化しました。\n\n%s" % display_name
 	if _category == "weapon":
-		msg += "（攻撃力 %d）" % int(result.get("effective_attack", 0))
+		body += "\n攻撃力 %d" % int(result.get("effective_attack", 0))
 	elif _category == "armor":
-		msg += "（防御力 %d / HP %d）" % [
+		body += "\n防御力 %d / HP %d" % [
 			int(result.get("effective_defense", 0)),
 			int(result.get("effective_hp", 0)),
 		]
-	_log_craft(msg)
+	elif _category == "accessory":
+		body += "\n攻撃補正 %d" % int(result.get("effective_attack", 0))
+	_show_forge_result("強化完了", body)
 	_refresh_all()
 	_play_forge_success_feedback(FORGE_FLASH_ENHANCE)
 

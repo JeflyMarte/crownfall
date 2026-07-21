@@ -65,6 +65,10 @@ var _featured_tween: Tween = null
 var _featured_animating: bool = false
 var _reveal_is_new: bool = false
 
+var _pull_confirm: ConfirmationDialog
+var _pending_pull_ticket: bool = false
+
+
 func _ready() -> void:
 	if not Constants.are_gacha_helpers_playable():
 		# オミット中は拠点へ戻す（ナビ直リンク等の保険）
@@ -86,10 +90,21 @@ func _ready() -> void:
 	_setup_confetti_host()
 	_setup_reveal_presenter()
 	_setup_featured_preview()
+	_setup_pull_confirm()
 	call_deferred("_finalize_gacha_layout")
 	_summon_layer.visible = false
 	_detail_overlay.visible = false
 	_refresh()
+
+
+func _setup_pull_confirm() -> void:
+	_pull_confirm = ConfirmationDialog.new()
+	_pull_confirm.title = "招待状"
+	_pull_confirm.ok_button_text = "引く"
+	_pull_confirm.cancel_button_text = "やめる"
+	_pull_confirm.confirmed.connect(_on_pull_confirmed)
+	_pull_confirm.canceled.connect(func() -> void: AudioManager.play_sfx("ui_cancel"))
+	add_child(_pull_confirm)
 
 
 func _setup_reveal_quote_label() -> void:
@@ -520,11 +535,34 @@ func _on_detail_dim_input(event: InputEvent) -> void:
 		_detail_overlay.visible = false
 
 func _on_pull_pressed() -> void:
-	_start_pull(false)
+	_ask_pull(false)
 
 
 func _on_pull_ticket_pressed() -> void:
-	_start_pull(true)
+	_ask_pull(true)
+
+
+func _ask_pull(use_ticket: bool) -> void:
+	if _summon_active:
+		return
+	if use_ticket:
+		if not GachaSystem.can_pull_with_ticket():
+			_label_result.text = "招待無料券が足りません。"
+			return
+		_pull_confirm.dialog_text = "招待無料券を1枚使って引きますか？"
+	else:
+		if not GachaSystem.can_pull():
+			_label_result.text = "%sが足りません。" % CurrencyHelper.DISPLAY_NAME
+			return
+		_pull_confirm.dialog_text = "%s %d を使って引きますか？" % [
+			CurrencyHelper.DISPLAY_NAME, GachaSystem.PULL_COST,
+		]
+	_pending_pull_ticket = use_ticket
+	_pull_confirm.popup_centered()
+
+
+func _on_pull_confirmed() -> void:
+	_start_pull(_pending_pull_ticket)
 
 
 func _start_pull(use_ticket: bool) -> void:

@@ -532,7 +532,7 @@ const FORMATION_SLOT_RATIOS: Array[Vector2] = [
 const PARTY_CARD_SLOT_COUNT: int = 4
 const BATTLE_LOG_VISIBLE_LINES: int = 4
 # 1行の実描画高（フォント22＋アウトライン余白）＋行間3。
-const BATTLE_LOG_LINE_HEIGHT: float = 38.0
+const BATTLE_LOG_LINE_HEIGHT: float = 46.0
 const BATTLE_LOG_LINE_GAP: float = 3.0
 const BATTLE_LOG_SCROLL_MARGIN_V: float = 10.0
 const BATTLE_LOG_SCROLL_HEIGHT: float = (
