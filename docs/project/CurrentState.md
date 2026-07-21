@@ -4,6 +4,8 @@
 
 ## Last Update
 
+2026-07-21（**UX実機QA修正**: 戦闘ログ1倍／イントロ続けるSafeArea／キャラ説明句点統一／ガチャ・鍛冶の確認＆結果ダイアログ。統合＋`main` 反映済）
+
 2026-07-21（**P3-DG-STG-ENABLE-002**: サブステージ再有効化 — 単体DGだと初回ランからボス＋章別spawn無効化が起きていた。`SUB_STAGES_PLAYABLE=true`。1-1〜x-4 Bossなし／x-5のみ Boss）
 
 2026-07-20（**P3-ENEMY-WW-OMIT-001**: ブルームサーペントを一旦オミット — WW／寄り道プールから除外。`EnemyData` 残置）
