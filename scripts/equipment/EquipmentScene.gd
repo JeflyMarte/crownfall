@@ -1878,12 +1878,7 @@ func _rebuild_skill_tab() -> void:
 	slots_label.text = "[center]装備中スキル (%d/%d): %s[/center]" % [
 		equipped.size(), Constants.MAX_EQUIPPED_SKILLS, shown
 	]
-<<<<<<< HEAD
-	hint_label.text = "習得スキル（装備は1本。長押しで詳細）"
-=======
-	hint_label.text = "習得スキル（長押しで詳細。未習得はタップでも可 / 右で装備）"
->>>>>>> origin/cursor/skill-longpress-detail-e010
-	var job: Resource = DataRegistry.get_job_data(member.job_id)
+	hint_label.text = "習得スキル（装備は1本。長押しで詳細／未習得はタップ可）"	var job: Resource = DataRegistry.get_job_data(member.job_id)
 	if job == null:
 		return
 	for entry in SkillProgression.get_unlock_entries(job):
