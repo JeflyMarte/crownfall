@@ -4064,3 +4064,15 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-HUB-SURVEY-001-8 | **β封鎖更新** — `BETA_MOURNGATE_ONLY` 恒久封鎖を条件付き②解禁へ | Q3=A |
 | P3-HUB-SURVEY-001-9 | **SSOT** — `docs/specs/decisions/05_HubSurveyRoom.md` | Decision 文書 |
 
+## Cursor 一本化（2026-07-22 — P3-OPS-CURSOR-001）
+
+> **オーナー指示** — 実装は Cursor に一本化。Claude Code / ChatGPT を使う運用ルールは削除。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-OPS-CURSOR-001-1 | **HQ / Impl とも Cursor のみ** | オーナー一本化 |
+| P3-OPS-CURSOR-001-2 | **P2-D177（外部 Impl 並行）を置換** — §11 を Cursor Impl 運用に更新 | 上記 |
+| P3-OPS-CURSOR-001-3 | **入口は `AGENTS.md`**。旧 Claude/ChatGPT 専用文書・配布スクリプトを削除／ポインタ化 | 運用単純化 |
+| P3-OPS-CURSOR-001-4 | **依頼テンプレ** — `10_Impl依頼テンプレート.md` / `06_Impl運用ルール.md` | 旧 `10_Claude*` / `06_Claude*` から改名 |
+
+

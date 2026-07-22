@@ -4,7 +4,7 @@
 
 仕様書
 ↓
-Claude Code（Task 仕様化）
+Cursor Impl（Task 仕様化・取込）
 ↓
 Pixel Apprentice（素材生成 — P3-D013 で PA 必須のみ）
 ↓
@@ -12,19 +12,19 @@ assets/ へ保存
 ↓
 Godot Import（下記参照）
 ↓
-Scene へ組み込み（Impl CC）
+Scene へ組み込み（Impl）
 ↓
 ゲーム内確認 / Headless Smoke（下記参照）
 
-## 素材生成分担（P3-D013 — 2026-06-25）
+## 素材生成分担（P3-D013 — 2026-06-25／表記更新 2026-07-22）
 
 | 担当 | 対象 | 例 |
 |---|---|---|
 | **Pixel Apprentice** | 一貫性が必要な **スプライトシート** | ENM / BOSS / CHR / ICO / VFX / 32×32 タイル |
-| **ChatGPT（オーナー生成）** | **代替可能なビジュアル** | ダンジョン背景・雰囲気 art・UI 参考 |
-| **HQ 判定** | 発注前に PA 必須か確認 | Phase UI-1 バトル背景 → ChatGPT 可 |
+| **オーナー画像生成（任意ツール）** | **代替可能なビジュアル** | ダンジョン背景・雰囲気 art・UI 参考 |
+| **HQ 判定** | 発注前に PA 必須か確認 | Phase UI-1 バトル背景 → 画像生成可 |
 
-**原則:** PA Batch は Impl 接続に必須なピクセルアートのみ。背景は ChatGPT → Godot `TextureRect` 等で暫定可。
+**原則:** PA Batch は Impl 接続に必須なピクセルアートのみ。背景はオーナー生成 → Godot `TextureRect` 等で暫定可。
 
 ## 命名規則（Phase3-A 確定 — P3-D003/004）
 

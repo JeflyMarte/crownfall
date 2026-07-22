@@ -4,7 +4,8 @@
 
 ## Last Update
 
-2026-07-22（**P3-HUB-SURVEY-001 Decision GO**: 調査室モック準拠・SURVEY70%＋①ボスで②解禁・派遣短/標準・図鑑実績。入室=左メニュー等／通常 BottomNav 表示（モック下ナビ案のみ無視）。SSOT `decisions/05_HubSurveyRoom.md`・Impl 待ち）
+2026-07-22（**P3-HUB-SURVEY-001 Decision GO**: 調査室モック準拠・SURVEY70%＋①ボスで②解禁・派遣短/標準・図鑑実績。入室=左メニュー等／通常 BottomNav 表示（モック下ナビ案のみ無視）。SSOT `decisions/05_HubSurveyRoom.md`・Impl 準備中）
+2026-07-22（**P3-OPS-CURSOR-001**: HQ/Impl とも Cursor 一本化。Claude Code / ChatGPT 運用ルール・専用文書を削除）
 2026-07-22（**P3-STORY-STARTER-001-9**: ×-5加入を拠点へ延期 — セリフ→ガチャ入手リビール。Result/MVPに出さない）
 2026-07-21（**P3-EVT-FIELD-001**: 野外速報＝30分スロット。「何も無し」最頻＋天候／ダック／レイヴン等。旧週次置換）
 2026-07-21（**P3-UI-NINA-NAV-001**: 拠点ホーム右上ニーナ案内 — 10秒／タップ・おすすめ1件ローテ。Decision＋Impl）

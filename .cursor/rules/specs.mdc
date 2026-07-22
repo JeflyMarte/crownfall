@@ -26,7 +26,7 @@ spec 変更時は以下も確認:
 
 ## 読み込み
 
-- Task 種別ごとの Bundle: `docs/specs/implementation/10_Claude依頼テンプレート.md`
+- Task 種別ごとの Bundle: `docs/specs/implementation/10_Impl依頼テンプレート.md`
 - 全文ロード禁止。Task に必要なファイルのみ
 
 ## 文体
