@@ -1,6 +1,6 @@
 # Crownfall — AGENTS.md
 
-Cursor AI およびその他 AI アシスタント共通の入口指示。
+Cursor 上の HQ / Impl 共通の入口指示。**実装も HQ も Cursor に一本化**している。
 
 ---
 
@@ -41,7 +41,7 @@ Cursor AI およびその他 AI アシスタント共通の入口指示。
 
 ## コンテキスト読み込み
 
-- Task に必要な spec のみ按需ロード（Bundle 一覧: `docs/specs/implementation/10_Claude依頼テンプレート.md`）
+- Task に必要な spec のみ按需ロード（Bundle 一覧: `docs/specs/implementation/10_Impl依頼テンプレート.md`）
 - **`docs/specs/` 全文をデフォルトで読まない**
 - **`docs/archives/` をデフォルトで読まない**
 - archives 内の文書は **Proposal**。DevelopmentHQ 承認前は実装根拠にしない
@@ -83,15 +83,15 @@ Task 種別に応じて `.cursor/skills/` を使う:
 ## 関連
 
 - DevelopmentHQ 運用: `docs/specs/core/06_DevelopmentHQ_Operations.md`
-- 実装ルール: `docs/specs/implementation/06_Claude運用ルール.md`, `07_コーディングルール.md`
-- Task 依頼形式: `docs/specs/implementation/10_Claude依頼テンプレート.md`
+- 実装ルール: `docs/specs/implementation/06_Impl運用ルール.md`, `07_コーディングルール.md`
+- Task 依頼形式: `docs/specs/implementation/10_Impl依頼テンプレート.md`
 - Cursor ルール: `.cursor/rules/developmenthq-operations.mdc`, `.cursor/rules/hq-response-minimal.mdc`, `.cursor/rules/ui-layout.mdc`, `.cursor/rules/git-wip-safety.mdc`
 
 ---
 
 ## 完了報告（Impl セッション）
 
-Task 完了時は以下を報告する（ChatGPT コピペブロックは **不要**）。`impl-closeout` skill を使ってよい:
+Task 完了時は以下を報告する。`impl-closeout` skill を使ってよい:
 
 - 変更ファイル一覧
 - 実装要約

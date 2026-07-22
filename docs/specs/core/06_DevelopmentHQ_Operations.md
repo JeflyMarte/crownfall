@@ -1,25 +1,24 @@
-# DevelopmentHQ Operations — v1.3
+# DevelopmentHQ Operations — v1.4
 
 **Status:** SSOT（DevelopmentHQ 承認済）  
-**Version:** v1.3  
-**Approved:** 2026-06-23（§7.1 追記: 2026-07-17）  
-**Decisions:** P2-D154〜P2-D156, **P2-D169**（設計フロー v1.1）  
+**Version:** v1.4  
+**Approved:** 2026-06-23（§7.1 追記: 2026-07-17／Cursor 一本化: 2026-07-22）  
+**Decisions:** P2-D154〜P2-D156, **P2-D169**（設計フロー v1.1）, **P3-OPS-CURSOR-001**  
 **Audience:** プロジェクトオーナー / DevelopmentHQ / Implementation Agent
 
 ---
 
 ## 1. 概要
 
-Crownfall の **DevelopmentHQ（設計・進行の司令塔）** は **Cursor** 上で運用する。
+Crownfall の **DevelopmentHQ（設計・進行の司令塔）** と **Impl（実装）** は、いずれも **Cursor** 上で運用する。
 
-旧運用（ChatGPT ブラウザ → 報告コピペ → Claude 実装）を廃止し、**リポジトリを直接読み書きする Cursor セッション** を正とする。
-
-| 旧 | 新 |
+| 役割 | 担当 |
 |---|---|
-| ChatGPT = DevelopmentHQ | **Cursor HQ セッション** = DevelopmentHQ |
-| Claude Code = 実装 | **Cursor Impl セッション** = 実装 |
-| `■ Task:` コピペブロック | **リポジトリ更新**（Decision / spec / ダッシュボード） |
-| GPT 協議 → 未反映 | **Proposal → Decision → Spec** のパイプライン必須 |
+| DevelopmentHQ | **Cursor HQ セッション** |
+| 実装 | **Cursor Impl セッション** |
+| 情報の正 | **リポジトリ更新**（Decision / spec / ダッシュボード） |
+
+口頭・チャットでの協議は SSOT にならない。**Proposal → Decision → Spec** のパイプラインを通す。
 
 ---
 
@@ -32,7 +31,7 @@ Crownfall の **DevelopmentHQ（設計・進行の司令塔）** は **Cursor** 
 DevelopmentHQ（Cursor — HQ セッション）
   │ 設計パイプライン統括 / Scope / Decision / Task / レビュー
   ▼
-Implementation Agent（Claude Code — 最大 2 並行 / worktree 推奨）
+Implementation Agent（Cursor — Impl セッション）
   │ 指定 Task のみ実装
   ▼
 リポジトリ（SSOT）
@@ -42,7 +41,7 @@ Implementation Agent（Claude Code — 最大 2 並行 / worktree 推奨）
 
 ## 3. 設計文書の種類（レイヤー）
 
-新規アイデア・GPT 協議結果は、**いきなり spec に書かない**。レイヤーを守る。
+新規アイデアは、**いきなり spec に書かない**。レイヤーを守る。
 
 | レイヤー | 格納先 | 役割 | 変更頻度 |
 |---|---|---|---|
@@ -53,7 +52,7 @@ Implementation Agent（Claude Code — 最大 2 並行 / worktree 推奨）
 | **Implementation** | `CODEMAP.md`, コード | 実装の正 | Impl Task で更新 |
 | **Backlog** | `05_Backlog.md` | 名前と優先度のみ | Decision / Closeout 後 |
 
-**GPT・口頭・チャットでの協議は SSOT にならない。** 必ず Proposal または spec 更新パイプラインを通す。
+**口頭・チャットでの協議は SSOT にならない。** 必ず Proposal または spec 更新パイプラインを通す。
 
 ---
 
@@ -61,7 +60,7 @@ Implementation Agent（Claude Code — 最大 2 並行 / worktree 推奨）
 
 ```mermaid
 flowchart TD
-  A[Spark: アイデア / GPT協議 / プレイ感想] --> B{Vision整合?}
+  A[Spark: アイデア / 協議 / プレイ感想] --> B{Vision整合?}
   B -->|No| A2[却下 or 修正]
   B -->|Yes| C[Proposal 起票 archives/Proposal]
   C --> D[HQ レビュー: ワクワク / 命名 / SSOT矛盾 / 工数]
@@ -82,7 +81,7 @@ flowchart TD
 
 | Step | 担当 | 成果物 |
 |---|---|---|
-| **Spark** | オーナー / GD / GPT | メモ（SSOT 化前） |
+| **Spark** | オーナー / GD | メモ（SSOT 化前） |
 | **Vision 整合** | HQ | Combat Vision / World Bible 原則との照合メモ |
 | **Proposal** | HQ | IN/OUT scope、リスク、Task 順案、命名 |
 | **HQ レビュー** | HQ | レビュー文書（例: `*_Review_v1.0.md`） |
@@ -215,13 +214,15 @@ Phase3-B Content + Combat Depth
 Phase4 Polish → Phase5 Release
 ```
 
-## 11. Impl 並行運用（P2-D177）
+## 11. Impl 運用（P3-OPS-CURSOR-001）
 
-| 環境 | 推奨 |
+| 項目 | 内容 |
 |---|---|
-| MacBook Air 16GB | Claude Code **最大 2** + Cursor HQ |
-| 同一リポジトリ | **git worktree** 推奨 |
-| Godot 同時起動 | Claude は 1〜2 に抑制 |
+| 実装ツール | **Cursor Impl のみ**（外部 Impl ツールは使わない） |
+| 並行 | Cursor の複数エージェント／worktree 可。同一ファイルの同時編集は避ける |
+| Godot | 実機／エディタ確認は必要に応じて 1〜2 |
+
+（旧 P2-D177「外部 Impl 最大 2 並行」は本 Decision で置換。）
 
 ---
 
@@ -242,5 +243,6 @@ Phase4 Polish → Phase5 Release
 |---|---|---|
 | v1.0 | 2026-06-23 | Cursor 移行初版 |
 | v1.1 | 2026-06-23 | 設計パイプライン・戦闘設計フロー（P2-D169） |
-| v1.2 | 2026-06-23 | M9 完了・Claude Code 2 並行（P2-D177）・Phase3-A 開始 |
+| v1.2 | 2026-06-23 | M9 完了・旧並行運用・Phase3-A 開始 |
 | v1.3 | 2026-07-17 | §7.1 ブランチ統合方針（Impl GO → 統合＋`main` 同時） |
+| v1.4 | 2026-07-22 | HQ/Impl とも Cursor 一本化（P3-OPS-CURSOR-001）。§11 更新 |

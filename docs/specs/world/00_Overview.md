@@ -1,6 +1,6 @@
 # world/00_Overview — 世界観マスター（World Overview）
 
-**Status:** v1.0（ChatGPT 執筆 / 2026-06-27）
+**Status:** v1.0（2026-06-27）
 **Layer:** 入口（Master）
 **移行元:** `docs/specs/game/03_世界観.md` + `29_PostwarEcology.md`
 **位置づけ:** 世界観資料群（`docs/specs/world/`）の入口。ここから全文書へ辿れる。
@@ -138,4 +138,4 @@ Biome ──▶ Ecology
 
 | 日付 | バージョン | 内容 |
 |---|---|---|
-| 2026-06-27 | v1.0 | 初版作成（ChatGPT 執筆） |
+| 2026-06-27 | v1.0 | 初版作成 |

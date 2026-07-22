@@ -1,6 +1,6 @@
-# 06_AI実装運用ルール
+# 06_Impl運用ルール
 
-> **ファイル名:** 後方互換のため `06_Claude運用ルール.md` を維持。対象は Cursor / Claude Code 等の **Impl セッション** 全般。
+**対象:** Cursor **Impl セッション**（実装は Cursor に一本化）。
 
 ## 基本方針
 
@@ -43,7 +43,7 @@ Task 番号：
 ■ 懸念点
 ```
 
-HQ セッションがリポジトリを直接確認して承認する。ChatGPT コピペブロックは不要。
+HQ セッションがリポジトリを直接確認して承認する。
 
 ## レビュー観点（HQ が確認）
 
@@ -57,4 +57,5 @@ HQ セッションがリポジトリを直接確認して承認する。ChatGPT 
 ## 参照
 
 - `docs/specs/core/06_DevelopmentHQ_Operations.md`
-- `docs/specs/implementation/10_Claude依頼テンプレート.md`
+- `docs/specs/implementation/10_Impl依頼テンプレート.md`
+- `AGENTS.md`

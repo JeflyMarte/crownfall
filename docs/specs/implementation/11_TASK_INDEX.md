@@ -5,7 +5,7 @@
 Task番号は2系統存在する。
 
 - **ロードマップTask（001〜050）**: 05_実装ロードマップ.md に定義された設計上のTask
-- **実装Task（IMPL-035〜IMPL-048）**: MVP 期間に Cursor / Claude Code へ依頼・実施した Task。ロードマップの Task 番号とは一致しない
+- **実装Task（IMPL-035〜IMPL-048）**: MVP 期間に Cursor へ依頼・実施した Task。ロードマップの Task 番号とは一致しない
 
 ---
 
@@ -177,7 +177,7 @@ Phase2-M1 Equipment Complete スコープ。
 
 | Task | 内容 | 主な変更ファイル |
 |---|---|---|
-| — | AI Context Optimization Phase A / A.1 | CLAUDE.md, AGENTS.md, CODEMAP.md, 10_Claude依頼テンプレート.md |
+| — | AI Context Optimization Phase A / A.1 | AGENTS.md, CODEMAP.md, 10_Impl依頼テンプレート.md |
 | — | ProjectDocs v3.4 Update | docs/specs/, docs/project/, CHANGELOG.md |
 | — | Product Vision Completed | Crownfall_Product_Vision_Completed_v1.0.md |
 | — | M8 Craft Resource Pack（Parallel Task） | CraftData.gd, RecipeData.gd, resources/crafting/ ×3, resources/recipes/ ×3, leather.tres, Constants.gd, DataRegistry.gd |

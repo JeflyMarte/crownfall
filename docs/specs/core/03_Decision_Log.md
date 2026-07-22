@@ -4045,3 +4045,17 @@ SSOT: `docs/specs/decisions/03_HubNinaNav.md`
 | P3-EVT-FIELD-001-7 | **P3-EVT-WEEK-002 の7日ローテは本 Decision で置換** | 実装一本化 |
 
 SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
+
+---
+
+## Cursor 一本化（2026-07-22 — P3-OPS-CURSOR-001）
+
+> **オーナー指示** — 実装は Cursor に一本化。Claude Code / ChatGPT を使う運用ルールは削除。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-OPS-CURSOR-001-1 | **HQ / Impl とも Cursor のみ** | オーナー一本化 |
+| P3-OPS-CURSOR-001-2 | **P2-D177（外部 Impl 並行）を置換** — §11 を Cursor Impl 運用に更新 | 上記 |
+| P3-OPS-CURSOR-001-3 | **入口は `AGENTS.md`**。旧 Claude/ChatGPT 専用文書・配布スクリプトを削除／ポインタ化 | 運用単純化 |
+| P3-OPS-CURSOR-001-4 | **依頼テンプレ** — `10_Impl依頼テンプレート.md` / `06_Impl運用ルール.md` | 旧 `10_Claude*` / `06_Claude*` から改名 |
+
