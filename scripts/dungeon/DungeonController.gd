@@ -816,6 +816,16 @@ const SWARM_CHANCE: float = BalanceConfig.SWARM_CHANCE
 const MIXED_SWARM_CHANCE: float = BalanceConfig.MIXED_SWARM_CHANCE
 
 func _swarm_capable_enemies() -> Array[Resource]:
+	## 同種／混成の追加枠候補。護衛リーダー（escorts_minions）は含めない。
+	return _swarm_pool_enemies(false)
+
+
+func _swarm_minion_enemies() -> Array[Resource]:
+	## 護衛付きリーダーが従える雑魚候補。
+	return _swarm_pool_enemies(false)
+
+
+func _swarm_pool_enemies(include_escorts: bool) -> Array[Resource]:
 	var out: Array[Resource] = []
 	if current_dungeon_data == null:
 		return out
@@ -824,13 +834,15 @@ func _swarm_capable_enemies() -> Array[Resource]:
 		var ed: Resource = DataRegistry.get_enemy_data(str(raw_id))
 		if ed == null or not bool(ed.can_swarm):
 			continue
+		if not include_escorts and bool(ed.escorts_minions):
+			continue
 		if seen.has(ed.id):
 			continue
 		seen[ed.id] = true
 		out.append(_EnemyTierVariantConfig.apply_for_current_tier(ed))
 	return out
 
-# 戦闘の敵編成を返す（P3-D082 + P3-D110 混成 + P3-WANDER-001 放浪差し込み）。
+# 戦闘の敵編成を返す（P3-D082 + P3-D110 混成 + P3-WANDER-001 放浪差し込み + P3-BAL-SWARM-001 護衛）。
 # BOSS/ELITE は常に単体。COMBAT は放浪抽選→群れ抽選の順。
 func pick_combat_enemy_group() -> Array[Resource]:
 	var group: Array[Resource] = []
@@ -848,7 +860,8 @@ func pick_combat_enemy_group() -> Array[Resource]:
 	var forced_swarm: bool = (
 		current_dungeon_data != null and float(current_dungeon_data.forced_swarm_chance) >= 0.0
 	)
-	if not bool(base.can_swarm) and not forced_swarm:
+	var escorts: bool = bool(base.escorts_minions)
+	if not bool(base.can_swarm) and not forced_swarm and not escorts:
 		return group
 	var swarm_chance: float = SWARM_CHANCE
 	if forced_swarm:
@@ -868,6 +881,14 @@ func pick_combat_enemy_group() -> Array[Resource]:
 	var capable: Array[Resource] = _swarm_capable_enemies()
 	if forced_swarm and capable.is_empty():
 		capable.append(base)
+	var minions: Array[Resource] = _swarm_minion_enemies()
+	## 護衛リーダー: 追加枠は常に雑魚。雑魚プールが空なら単体のまま。
+	if escorts:
+		if minions.is_empty():
+			return group
+		for _i in (size - 1):
+			group.append(minions[randi() % minions.size()])
+		return group
 	var use_mixed: bool = capable.size() >= 2 and randf() < MIXED_SWARM_CHANCE
 	for _i in (size - 1):
 		if use_mixed:

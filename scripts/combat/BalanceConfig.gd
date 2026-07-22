@@ -97,5 +97,5 @@ const DENSE_ROW_INCOMING: float = 1.08       # 密集列 被ダメ倍率
 const SPREAD_ROW_INCOMING: float = 0.94      # 散開列 被ダメ倍率
 
 # ── エンカウント（P3-D082/D110） ─────────────────────────────────────────
-const SWARM_CHANCE: float = 0.24        # COMBAT 部屋の群れ出現率
+const SWARM_CHANCE: float = 0.45        # COMBAT 部屋の群れ出現率（P3-BAL-SWARM-001）
 const MIXED_SWARM_CHANCE: float = 0.50  # 群れ時に別種を混ぜる確率
