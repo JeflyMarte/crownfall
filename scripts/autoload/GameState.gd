@@ -26,10 +26,12 @@ var active_pet: Resource = null
 var starter_unlocked_ids: Array[String] = []
 ## 新規／未選択時 true。選択完了で false。
 var starter_pick_pending: bool = false
-## 直近ランで加入したスターター表示名（Result 用・揮発）。
+## 直近ランで加入したスターター表示名（Result 用・揮発）。拠点演出後は空。
 var last_run_starter_recruited_name: String = ""
 ## 直近ランで加入したスターター id（揮発）。
 var last_run_starter_recruited_id: String = ""
+## 拠点で加入セリフ＋入手演出待ちのスターター id（セーブ永続）。
+var pending_starter_recruit_id: String = ""
 
 # ガチャ通貨（無償のみ） — P3-D036b
 var gacha_token: int = 0  ## 魔晶石（ガチャ通貨・表示名は CurrencyHelper）
@@ -237,10 +239,12 @@ func mark_stage_cleared(stage_id: String, tier: int = -1) -> void:
 		if t == _DungeonTierConfig.TIER_NORMAL:
 			mark_dungeon_cleared(biome_id)
 	if first_clear:
-		var recruited: Resource = _StarterRecruitment.try_recruit_after_first_clear(stage_id, t)
-		if recruited != null:
-			last_run_starter_recruited_id = str(recruited.id)
-			last_run_starter_recruited_name = str(recruited.display_name)
+		## クリア時点では候補のみ確定。roster 追加は拠点の加入演出で行う。
+		var pick: Dictionary = _StarterRecruitment.pick_recruit_after_first_clear(stage_id, t)
+		if not pick.is_empty() and not str(pick.get("id", "")).is_empty():
+			pending_starter_recruit_id = str(pick.get("id", ""))
+			last_run_starter_recruited_id = pending_starter_recruit_id
+			last_run_starter_recruited_name = str(pick.get("name", ""))
 
 func count_cleared_stages(biome_id: String) -> int:
 	var count: int = 0
@@ -1258,6 +1262,7 @@ func reset_for_new_game() -> void:
 	last_run_modifier_counts = {}
 	last_run_starter_recruited_id = ""
 	last_run_starter_recruited_name = ""
+	pending_starter_recruit_id = ""
 	_run_combat_stats = null
 	active_pet = null
 	_init_party()
@@ -1308,6 +1313,7 @@ func _init_party() -> void:
 	active_pet = null
 	last_run_starter_recruited_id = ""
 	last_run_starter_recruited_name = ""
+	pending_starter_recruit_id = ""
 	if Constants.STARTER_STORY_RECRUIT:
 		starter_unlocked_ids = []
 		starter_pick_pending = true
@@ -1381,6 +1387,18 @@ func unlock_starter_adventurer(adventurer_id: String) -> Resource:
 	if party_members.size() < ACTIVE_PARTY_SIZE:
 		party_members.append(adv)
 		migrate_formation_slots_if_needed()
+	return adv
+
+
+## 拠点加入演出の確定。pending を unlock して消費する。
+func commit_pending_starter_recruit() -> Resource:
+	var adventurer_id: String = pending_starter_recruit_id.strip_edges()
+	if adventurer_id.is_empty():
+		return null
+	var adv: Resource = unlock_starter_adventurer(adventurer_id)
+	pending_starter_recruit_id = ""
+	last_run_starter_recruited_id = ""
+	last_run_starter_recruited_name = ""
 	return adv
 
 
