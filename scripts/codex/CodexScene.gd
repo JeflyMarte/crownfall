@@ -11,11 +11,7 @@ const DEFAULT_ICON_SIZE: Vector2 = Vector2(48, 48)
 const ENEMY_ART_SIZE: Vector2 = Vector2(256, 256)
 const _CodexRichText = preload("res://scripts/codex/CodexRichText.gd")
 
-<<<<<<< HEAD
-const CATEGORIES: Array[String] = ["enemy", "dungeon", "weapon", "history", "lore", "guide"]
-=======
-const CATEGORIES: Array[String] = ["enemy", "dungeon", "material", "weapon", "history", "lore", "guide", "achieve"]
->>>>>>> origin/main
+const CATEGORIES: Array[String] = ["enemy", "dungeon", "weapon", "history", "lore", "guide", "achieve"]
 
 const CATEGORY_DISPLAY: Dictionary = {
 	"enemy": "モンスター",
