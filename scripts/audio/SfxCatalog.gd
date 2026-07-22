@@ -50,6 +50,8 @@ const PATHS: Dictionary = {
 	ID_GACHA_REVEAL: DIR + "level_up.ogg",
 	## レジェンド／神話装備ドロップ（専用 ogg）
 	ID_LEGENDARY_DROP: DIR + "gacha_reveal.ogg",
+	## ガチャ入手は専用 SE（レベルアップと分離 — P3-AUDIO-SE-003）
+	ID_GACHA_REVEAL: DIR + "gacha_reveal.ogg",
 }
 
 

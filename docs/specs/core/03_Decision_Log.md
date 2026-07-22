@@ -4086,3 +4086,17 @@ SSOT: `docs/specs/decisions/03_HubNinaNav.md`
 | P3-EVT-FIELD-001-7 | **P3-EVT-WEEK-002 の7日ローテは本 Decision で置換** | 実装一本化 |
 
 SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
+
+---
+
+## クリア／レベルアップ SE 強化（2026-07-22 — P3-AUDIO-SE-003）
+
+> **オーナー GO（案 B+C）** — 商用可パックから選定し、既存ドラマチック寄り／オーナー BGM スティングを暫定ミックス。ガチャ入手は level_up と分離。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-AUDIO-SE-003-1 | **victory** — Kenney Music Jingles（Steel07）＋オーナー `result` BGM 冒頭スティング | 薄い Digital threeTone を置き換え・クリア感を厚く |
+| P3-AUDIO-SE-003-2 | **level_up** — Music Jingles（HIT15＋PIZZI07）＋ Interface confirmation | クリアと音色を分離・ランクアップ共用は維持 |
+| P3-AUDIO-SE-003-3 | **gacha_reveal** — 専用 `gacha_reveal.ogg` をカタログ／召喚シーンへ配線（level_up 共用廃止） | 入手とレベルアップの耳の衝突回避 |
+| P3-AUDIO-SE-003-4 | **権利** — `LICENSE_Kenney_MusicJingles.txt` 追加・`ATTRIBUTION.md` 更新 | SE-001-6 継続 |
+

@@ -1,6 +1,7 @@
 # Crownfall SE Attribution
 
-SE はこのフォルダ配下。出典は **Kenney.nl（CC0）** と **TomMusic Free Fantasy SFX Pack** の併用。
+SE はこのフォルダ配下。出典は **Kenney.nl（CC0）** と **TomMusic Free Fantasy SFX Pack** の併用。  
+クリア／レベルアップは **Kenney Music Jingles** ＋オーナー BGM スティング／既存 UI SE のミックス（P3-AUDIO-SE-003）。
 
 ## Packs used
 
@@ -10,11 +11,12 @@ SE はこのフォルダ配下。出典は **Kenney.nl（CC0）** と **TomMusic
 | RPG Audio | https://kenney.nl/assets/rpg-audio | `LICENSE_Kenney_RPGAudio.txt`（CC0） |
 | Impact Sounds | https://kenney.nl/assets/impact-sounds | `LICENSE_Kenney_ImpactSounds.txt`（CC0） |
 | Digital Audio | https://kenney.nl/assets/digital-audio | `LICENSE_Kenney_DigitalAudio.txt`（CC0） |
+| Music Jingles | https://kenney.nl/assets/music-jingles | `LICENSE_Kenney_MusicJingles.txt`（CC0） |
 | Free Fantasy 200 SFX Pack | https://tommusic.itch.io/free-fantasy-200-sfx-pack | `LICENSE_TomMusic_FreeFantasySFX.txt`（商用可・クレジット任意推奨・パック再配布禁止） |
 
 ## Filename map (Crownfall ID ← original)
 
-### Kenney（UI／回復／撃破／勝利系）
+### Kenney（UI／回復／撃破）
 
 | File | Original |
 |---|---|
@@ -27,9 +29,14 @@ SE はこのフォルダ配下。出典は **Kenney.nl（CC0）** と **TomMusic
 | ui_equip.ogg | RPG / metalClick |
 | combat_heal.ogg | Interface / pluck_001 |
 | combat_death.ogg | Digital / phaserDown1 |
-| victory.ogg | Digital / threeTone1 |
-| gacha_reveal.ogg | （未使用・暫定で `level_up` を再生） |
-| level_up.ogg | Digital / powerUp12（ガチャ入手SEも共用） |
+| gacha_reveal.ogg | Digital / powerUp 系（ブースト再エンコード。ガチャ専用） |
+
+### クリア／レベルアップ（P3-AUDIO-SE-003）
+
+| File | Mix |
+|---|---|
+| victory.ogg | Music Jingles / Steel `jingles_STEEL07` ＋ オーナー `bgm/result.mp3` 冒頭スティング |
+| level_up.ogg | Music Jingles / Hit `jingles_HIT15` ＋ Pizzicato `jingles_PIZZI07` ＋ Interface `confirmation_002` |
 
 ### TomMusic（戦闘ヒット／スキル／宝箱／部屋）
 
