@@ -239,7 +239,8 @@ func _on_field_survey_banner_input(event: InputEvent) -> void:
 				SceneRouter.change_scene(EVENT_SCENE)
 
 func _apply_typography() -> void:
-	UiTypography.apply_display(_label_player_name, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	## 隊長名は本文フォント（可読優先）。装飾見出しだと誤読・溢れやすい。
+	UiTypography.apply_body(_label_player_name, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_body(_label_player_level, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
 	UiTypography.apply_body(_label_gold, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_body(_label_token, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
@@ -385,14 +386,21 @@ func _populate_currency_strip() -> void:
 
 func _update_currency() -> void:
 	_label_gold.text = "%d" % GameState.gold
+	## 数値のみ。表示名「魔晶石」を TopBar に出さない（tooltip 残留・誤読防止）。
 	_label_token.text = CurrencyHelper.format_amount()
-	$HubView/TopBar/TopBarRow/TokenChip.tooltip_text = CurrencyHelper.DISPLAY_NAME
+	var token_chip: Control = $HubView/TopBar/TopBarRow/TokenChip as Control
+	if token_chip != null:
+		token_chip.tooltip_text = ""
 
 func _update_player_card() -> void:
 	_CommanderProfile.ensure_commander()
 	var rank_text: String = _CommanderProfile.rank_display(false)
 	var commander_name: String = _CommanderProfile.get_commander_name()
+	## 隊長カードは等級＋名前のみ。通貨名が混入しないよう明示上書き。
 	_label_player_name.text = "%s %s" % [rank_text, commander_name]
+	_label_player_name.clip_text = false
+	_label_player_name.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	_label_player_level.text = ""
 	_label_player_level.visible = false
 	_portrait_art.texture = _CommanderProfile.rank_icon_texture()
 	var has_rank_icon: bool = _portrait_art.texture != null
