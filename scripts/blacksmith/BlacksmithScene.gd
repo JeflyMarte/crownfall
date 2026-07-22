@@ -195,7 +195,7 @@ func _ensure_result_overlay() -> void:
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_result_overlay.add_child(center)
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(560, 820)
+	panel.custom_minimum_size = Vector2(620, 900)
 	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	panel.add_theme_stylebox_override("panel", ForgeUiTokens.result_panel_style())
