@@ -1002,7 +1002,7 @@ func _make_relic_slot(cell_size: Vector2, member: Resource, can_equip: bool) -> 
 	)
 	if relic_tex != null:
 		_attach_item_icon(btn, relic_tex, cell_px, EquipmentUiTokens.SLOT_DESIGN_PX)
-		btn.tooltip_text = "%s\n%s" % [
+		btn.tooltip_text = "%s\n%s\n（長押しで詳細）" % [
 			CombatPassives.relic_display_name(relic_id),
 			CombatPassives.relic_description(relic_id),
 		]
@@ -1013,8 +1013,9 @@ func _make_relic_slot(cell_size: Vector2, member: Resource, can_equip: bool) -> 
 		btn.add_theme_color_override("font_color", Color(0.5, 0.45, 0.35, 0.7))
 		btn.add_theme_color_override("font_hover_color", COLOR_GOLD)
 		_apply_item_cell_styles(btn, 0, cell_px)
-	btn.pressed.connect(_on_relic_slot_pressed)
-	btn.disabled = not can_equip
+	## 装備中レリックは閲覧用に常時タップ可（編成外キャラでも長押し詳細）。
+	btn.disabled = not can_equip and relic_id.is_empty()
+	_bind_inventory_cell_interaction(btn, _relic_slot_action.bind(relic_id))
 	box.add_child(btn)
 	return box
 
@@ -1023,6 +1024,13 @@ func _on_relic_slot_pressed() -> void:
 	_refresh_category_buttons()
 	_rebuild_inventory_grid()
 	_set_active_tab(0)
+
+func _relic_slot_action(is_long_press: bool, relic_id: String) -> void:
+	if is_long_press:
+		if not relic_id.is_empty():
+			_show_relic_stats_overlay(relic_id, true)
+		return
+	_on_relic_slot_pressed()
 
 func _make_locked_slot(label: String, cell_size: Vector2) -> Control:
 	var cell_px: int = int(cell_size.x)
@@ -1075,7 +1083,7 @@ func _make_slot(
 		_attach_item_icon(
 			btn, icon, cell_px, EquipmentUiTokens.SLOT_DESIGN_PX, _item_id(item, category), category
 		)
-		btn.tooltip_text = _item_label(item, category)
+		btn.tooltip_text = "%s\n（長押しで効果）" % _item_label(item, category)
 		var rarity: int = _item_rarity(item, category)
 		_apply_item_cell_styles(btn, rarity, cell_px)
 		_apply_item_badges(btn, item, category, cell_size, true)
@@ -1085,10 +1093,18 @@ func _make_slot(
 		btn.add_theme_color_override("font_color", Color(0.5, 0.45, 0.35, 0.7))
 		btn.add_theme_color_override("font_hover_color", COLOR_GOLD)
 		_apply_item_cell_styles(btn, 0, cell_px)
-	btn.pressed.connect(_on_slot_pressed.bind(category))
-	btn.disabled = not can_equip
+	## 装備中アイテムは閲覧用に常時タップ可（編成外キャラでも長押しで効果表示）。
+	btn.disabled = not can_equip and item == null
+	_bind_inventory_cell_interaction(btn, _equip_slot_action.bind(category, item))
 	box.add_child(btn)
 	return box
+
+func _equip_slot_action(is_long_press: bool, category: String, item: Resource) -> void:
+	if is_long_press:
+		if item != null:
+			_show_item_stats_overlay(item, category, true)
+		return
+	_on_slot_pressed(category)
 
 func _on_slot_pressed(category: String) -> void:
 	_inventory_filter = category
