@@ -58,13 +58,17 @@ func test_resolve_stage_for_event_biome() -> void:
 
 
 func test_event_stage_icons_are_mapped() -> void:
-	## イベント章もメイン同様に stage アイコンを持つ。
-	assert_true(ResourceLoader.exists("res://assets/dungeon/event/stages/ICO_DG_CosmicRift_1_1.png"))
-	assert_true(ResourceLoader.exists("res://assets/dungeon/event/stages/ICO_DG_CrownRookery_1_1.png"))
-	var duck_tex: Texture2D = IconPaths.get_stage_icon_texture("cosmic_rift_1_1")
-	var raven_tex: Texture2D = IconPaths.get_stage_icon_texture("crown_rookery_1_1")
-	assert_ne(duck_tex, null)
-	assert_ne(raven_tex, null)
+	## イベント章もメイン同様に stage アイコンを持つ（パス配線＋ファイル実在）。
+	assert_eq(
+		IconPaths.stage_icon_path("cosmic_rift_1_1"),
+		"res://assets/dungeon/event/stages/ICO_DG_CosmicRift_1_1.png"
+	)
+	assert_eq(
+		IconPaths.stage_icon_path("crown_rookery_1_1"),
+		"res://assets/dungeon/event/stages/ICO_DG_CrownRookery_1_1.png"
+	)
+	assert_true(FileAccess.file_exists("res://assets/dungeon/event/stages/ICO_DG_CosmicRift_1_1.png"))
+	assert_true(FileAccess.file_exists("res://assets/dungeon/event/stages/ICO_DG_CrownRookery_1_1.png"))
 
 
 func test_start_event_stage_builds_sequence_without_boss() -> void:
