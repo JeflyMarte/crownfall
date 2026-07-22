@@ -26,11 +26,14 @@ extends Resource
 ## ボス/エリート用スキル。skill_ids の中から skill_use_chance で発動を試行する。
 @export var skill_ids: Array[String] = []
 @export var skill_use_chance: float = 0.0
-## 群れ出現（P3-D082）。true の敵は COMBAT 部屋で一定確率により複数体（同種）で出現する。
+## 群れ出現（P3-D082 / P3-BAL-SWARM-001）。true の敵は COMBAT 部屋で一定確率により複数体で出現する。
 ## ELITE/BOSS 部屋は対象外。swarm_min..swarm_max からサイズを抽選。
 @export var can_swarm: bool = false
 @export var swarm_min: int = 2
 @export var swarm_max: int = 3
+## true のとき群れ追加枠は同種複製せず、プール内の雑魚（escorts_minions=false かつ can_swarm）を従える。
+## マンティス等の強い敵向け（P3-BAL-SWARM-001）。
+@export var escorts_minions: bool = false
 @export var codex_class: String = ""
 @export var codex_danger: int = 0
 @export var codex_habitat: String = ""
