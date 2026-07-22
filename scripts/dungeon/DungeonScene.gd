@@ -6,10 +6,10 @@ extends Control
 const CRITICAL_MULTIPLIER: float = BalanceConfig.CRITICAL_MULTIPLIER
 const HEAL_AMOUNT: int = BalanceConfig.ROOM_HEAL_AMOUNT
 # P3-D084: CT/ATB の 1 パルス（1 行動）間隔。倍率は COMBAT_TICK_BASE / mult。
-const COMBAT_TICK_BASE: float = 0.75
+const COMBAT_TICK_BASE: float = 1.0
 const AUTO_DELAY_BASE: float = 1.2
 const NON_COMBAT_FLOOR_GRACE_SEC: float = 1.6
-const SPEED_MULT_NORMAL: float = 0.75
+const SPEED_MULT_NORMAL: float = 1.0
 const SPEED_MULT_FAST: float = 1.5
 const COMBAT_WAIT_GRIND: float = 0.28
 const AUTO_DELAY_GRIND: float = 0.6
@@ -273,6 +273,9 @@ const STATUS_ICON_DEF: Dictionary = {
 	"empower": {"abbrev": "攻", "color": Color(0.95, 0.55, 0.2)},
 	"empower_minor": {"abbrev": "攻", "color": Color(0.85, 0.6, 0.35)},
 	"guard": {"abbrev": "防", "color": Color(0.4, 0.55, 0.85)},
+	"bleed": {"abbrev": "出血", "color": Color(0.9, 0.28, 0.28)},
+	"slow": {"abbrev": "鈍", "color": Color(0.47, 0.67, 0.82)},
+	"enrage": {"abbrev": "激", "color": Color(0.9, 0.35, 0.16)},
 }
 const HEAL_SKILL_BASE: int = BalanceConfig.HEAL_SKILL_BASE
 const STATUS_ICON_SIZE: float = 26.0
@@ -1954,6 +1957,8 @@ func _apply_scene_typography() -> void:
 	UiTypography.apply_button($MainVBox/HeaderBar/ButtonMenu, false)
 	UiTypography.apply_button($MainVBox/HeaderBar/ButtonSpeedX1, false)
 	UiTypography.apply_button($MainVBox/HeaderBar/ButtonSpeedX2, false)
+	$MainVBox/HeaderBar/ButtonSpeedX1.text = "×1"
+	$MainVBox/HeaderBar/ButtonSpeedX2.text = "×1.5"
 	$MainVBox/HeaderBar/ButtonSpeedX1.toggle_mode = true
 	$MainVBox/HeaderBar/ButtonSpeedX2.toggle_mode = true
 	UiTypography.apply_button($MainVBox/HeaderBar/ButtonStop, false)
@@ -6053,7 +6058,7 @@ func _apply_combat_speed(speed_mult: float) -> void:
 	$CombatTimer.wait_time = _combat_wait_for_mult(speed_mult)
 	_auto_delay = _auto_delay_for_mult(speed_mult)
 	_refresh_speed_buttons()
-	## 周回中の切替も次回探索の既定に反映（×1 / ×2 のみ。×1.5 は設定画面）。
+	## 周回中の切替も次回探索の既定に反映（×1 / ×1.5）。
 	if is_equal_approx(speed_mult, SPEED_MULT_NORMAL) or is_equal_approx(speed_mult, SPEED_MULT_FAST):
 		SettingsPrefs.set_combat_speed_mult(speed_mult)
 	if _is_paused:

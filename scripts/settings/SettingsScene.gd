@@ -76,7 +76,6 @@ func _build_gameplay_section() -> Control:
 	for pair in [
 		[_SettingsPrefs.SPEED_ID_X1, "×1"],
 		[_SettingsPrefs.SPEED_ID_X15, "×1.5"],
-		[_SettingsPrefs.SPEED_ID_X2, "×2"],
 	]:
 		var btn := Button.new()
 		btn.toggle_mode = true

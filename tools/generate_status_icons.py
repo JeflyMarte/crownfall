@@ -24,6 +24,9 @@ STATUSES: list[tuple[str, tuple[int, int, int], str]] = [
     ("mark", (242, 89, 140), "mark"),
     ("empower", (242, 140, 51), "buff"),
     ("guard", (102, 140, 217), "shield"),
+    ("bleed", (230, 64, 64), "bleed"),
+    ("slow", (120, 170, 210), "slow"),
+    ("enrage", (230, 90, 40), "enrage"),
 ]
 
 
@@ -72,6 +75,16 @@ def draw_glyph(draw: ImageDraw.ImageDraw, cx: int, cy: int, kind: str, color: tu
         draw.rectangle((cx - 2, cy - 4, cx + 2, cy + 4), fill=(30, 24, 18))
     elif kind == "shield":
         draw.polygon([(cx, cy - 9), (cx + 9, cy - 3), (cx + 6, cy + 9), (cx - 6, cy + 9), (cx - 9, cy - 3)], fill=color, outline=(20, 20, 30))
+    elif kind == "bleed":
+        draw.ellipse((cx - 3, cy - 10, cx + 3, cy - 4), fill=color)
+        draw.polygon([(cx, cy - 4), (cx - 6, cy + 10), (cx + 6, cy + 10)], fill=color)
+    elif kind == "slow":
+        draw.ellipse((cx - 9, cy - 9, cx + 9, cy + 9), outline=color, width=2)
+        draw.line((cx, cy, cx, cy - 6), fill=color, width=2)
+        draw.line((cx, cy, cx + 5, cy + 3), fill=color, width=2)
+    elif kind == "enrage":
+        draw.polygon([(cx - 8, cy + 8), (cx, cy - 10), (cx + 8, cy + 8)], fill=color)
+        draw.polygon([(cx - 4, cy + 2), (cx, cy - 6), (cx + 4, cy + 2)], fill=(30, 20, 20))
     else:
         draw.ellipse((cx - 8, cy - 8, cx + 8, cy + 8), fill=color)
 

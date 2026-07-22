@@ -28,7 +28,11 @@ alwaysApply: true
 | 攻撃アニメと同時にダメージ数字／HP減少 | 通常攻撃が `play("attack")` とダメージ適用を同フレームで実行 | ヒットは `ATTACK_IMPACT_FRAME_RATIO` まで遅延＋cinematic lock（`_resolve_party_attack_impact_async`） |
 | アルド攻撃が「動いてない」ように見える | 背面アングル＋序盤フレームが立ち姿に近く、ヒットが早すぎて剣の振り上がり前にダメ数字が目立つ | ヒット比を中盤寄りに。静止に近い先頭フレームを攻撃から外す。短い踏み込み（`_play_chr_attack_lunge`）で可読性を補う |
 | 1-1（初回ラン）からボス（セルディオン）が出る | `SUB_STAGES_PLAYABLE=false` で単体 `mourngate` 運用になり `boss_id` が毎回付く。章別 `spawn_weights` も無効 | メインは `SUB_STAGES_PLAYABLE=true`。1-1〜x-4 は Boss なし／x-5 のみ。`start_dungeon` も章へ誘導 |
-| 世界観イントロの「続ける」が実機で押せない | Home Indicator 下にボタンが沈む／到達後もヒット領域が弱い | Intro に SafeArea 下余白。到達後は `disabled=false`＋`z_index`＋`move_to_front` |
+| 世界観イントロの「続ける」が実機で押せない | Home Indicator 下に沈む／`disabled` がタップを落とす／aspect=keep で inset=0 | Intro 専用下余白下限＋到達後は `disabled` ではなく `_continue_ready` ガード |
+| 未開ダンジョンに実名・バナーが出る | ロック中でも `display_name`／バナー／ドロップを表示 | `unlocked==false` は「？」表示。バナー・敵／ドロップ非表示 |
+| 結果の素材獲得でスクロールが効かない | `ResultScene` に `ScrollTouchHelper` 未適用 | `_ready`／素材 rebuild 後に `ScrollTouchHelper.enable` |
+| 状態異常アイコンが「？」 | `bleed`/`slow`/`enrage` が `STATUS_ICON_DEF`・`IconPaths` 欠落 | DEF＋ICO_STA_*＋IconPaths を追加。`empower_minor` は empower 流用 |
+| 戦闘速度が ×0.75 のまま／設定と不一致 | `SPEED_MULT_NORMAL=0.75` と設定の3択 | ×1(1.0)／×1.5 の2択に統一。旧 ×2 は ×1.5 へ移行 |
 | 報酬受取後に所持金／魔晶石アイコンが拡大したまま | `CurrencyGainFx` のパルスが複数モートで重なり、途中 scale を基準に積み上がる | 元 scale を meta 保存。旧 tween kill 後に元へ戻してからパルス |
 | ×-5 クリア後に仲間が結果／MVP周りに突然出る | クリア時に即 `unlock_starter` して Result 報酬にも出していた | クリアは候補のみ（`pending_starter_recruit_id`）。拠点でセリフ→ガチャ入手リビール後に unlock |
 | マイページがタッチスクロール不能 | `BottomNavHelper` の ScrollTouch 適用後に `_rebuild_page` で Button が再生成され STOP のまま | rebuild 後に `ScrollTouchHelper.enable(MainScroll)` を再実行 |

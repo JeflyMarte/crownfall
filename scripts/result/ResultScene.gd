@@ -113,6 +113,7 @@ func _ready() -> void:
 	_build_materials()
 	_build_rare_items()
 	_build_info()
+	ScrollTouchHelper.enable(_scroll_rewards)
 	_button_retry.pressed.connect(_on_retry_pressed)
 	_button_home.pressed.connect(_on_home_pressed)
 	_ensure_next_stage_button()
@@ -1111,6 +1112,8 @@ func _build_materials() -> void:
 		count += 1
 	_material_panel.visible = count > 0
 	_build_craftable_hint(count > 0)
+	## 素材セル追加後にタッチスクロールを再適用（STOP 吸収対策）。
+	ScrollTouchHelper.enable(_scroll_rewards)
 
 func _build_craftable_hint(had_material_gains: bool) -> void:
 	if not had_material_gains:
