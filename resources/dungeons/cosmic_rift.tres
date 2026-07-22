@@ -37,5 +37,5 @@ disable_wandering = true
 forced_swarm_chance = 0.12
 forced_swarm_min = 2
 forced_swarm_max = 3
-flavor_text = "一日一回だけ開く異界の裂け目。星屑の水鳥だけが泳ぎ、
+flavor_text = "一日一回だけ開くエルダの裂け目。濃い自然力に寄る水鳥だけが泳ぎ、
 機括の罠が通路を埋めている。稀に群れで襲ってくる。"
