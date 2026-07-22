@@ -46,12 +46,10 @@ const PATHS: Dictionary = {
 	ID_LEVEL_UP: DIR + "level_up.ogg",
 	## 隊長ランクアップはレベルアップと同音（P3-CMD-RANKUP-001）
 	ID_RANK_UP: DIR + "level_up.ogg",
-	## 暫定: 専用ファンファーレ導入まで level_up を共用（P3 ガチャ入手SE）
-	ID_GACHA_REVEAL: DIR + "level_up.ogg",
-	## レジェンド／神話装備ドロップ（専用 ogg）
-	ID_LEGENDARY_DROP: DIR + "gacha_reveal.ogg",
 	## ガチャ入手は専用 SE（レベルアップと分離 — P3-AUDIO-SE-003）
 	ID_GACHA_REVEAL: DIR + "gacha_reveal.ogg",
+	## レジェンド／神話装備ドロップ（暫定: gacha_reveal 流用）
+	ID_LEGENDARY_DROP: DIR + "gacha_reveal.ogg",
 }
 
 
