@@ -6,6 +6,7 @@ const _CommanderGiftBox := preload("res://scripts/commander/CommanderGiftBox.gd"
 const _CommanderRankUpOverlay := preload("res://scripts/commander/CommanderRankUpOverlay.gd")
 const _CurrencyGainFx := preload("res://scripts/ui/CurrencyGainFx.gd")
 const _HubNinaNavigator := preload("res://scripts/ui/HubNinaNavigator.gd")
+const _StarterJoinOverlay := preload("res://scripts/roster/StarterJoinOverlay.gd")
 
 const DUNGEON_SELECT_SCENE: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
 const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
@@ -76,6 +77,7 @@ func _maybe_show_rank_up() -> void:
 	_CommanderProfile.bootstrap_acknowledged_rank_if_needed()
 	var pending: String = _CommanderProfile.pending_rank_up()
 	if pending.is_empty():
+		_maybe_show_starter_join()
 		return
 	if get_node_or_null("CommanderRankUpOverlay") != null:
 		return
@@ -86,6 +88,24 @@ func _maybe_show_rank_up() -> void:
 func _on_rank_up_dismissed(_rank_code: String) -> void:
 	_update_player_card()
 	## 複数段ジャンプ時は次の到達分を続けて表示しない（到達等級を一括 ack 済み）。
+	_maybe_show_starter_join()
+
+
+func _maybe_show_starter_join() -> void:
+	var pending_id: String = GameState.pending_starter_recruit_id.strip_edges()
+	if pending_id.is_empty():
+		return
+	if get_node_or_null("StarterJoinOverlay") != null:
+		return
+	if get_node_or_null("CommanderRankUpOverlay") != null:
+		return
+	var overlay: CanvasLayer = _StarterJoinOverlay.show_on(self, pending_id)
+	overlay.dismissed.connect(_on_starter_join_dismissed)
+
+
+func _on_starter_join_dismissed(_adventurer_id: String) -> void:
+	_update_display()
+	_refresh_nina_nav()
 
 
 func _setup_gift_badge() -> void:

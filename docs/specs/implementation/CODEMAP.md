@@ -31,7 +31,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 
 **危険度ティア（P3-DG-TIER / P3-DG-TIER-002）:** `DungeonTierConfig.gd` — Hard/NM はメイン5キャンペーン周回帯。解放=ノーマル全クリア／ハード全クリア。敵Lvボーナス= N5-5 cap / 2×cap。UI=`DungeonSelectScene` TabsRow。  
 **ティア見た目／呼称（P3-ENEMY-TIER-VAR）:** `EnemyTierVariantConfig.gd` — 同IDの Hard/NM 表示名＋個性上書き（ベース数値据置）。スプライトは `DungeonScene.ENEMY_SPRITE_MAP_BY_TIER`。  
-**初期5ストーリー（P3-STORY-STARTER）:** `StarterPickScene` / `StarterRecruitment` — 開始1人選択、メイン章5（×-5）ノーマル初回で加入。`STARTER_RECRUIT_BETA_EXTRA=false`（1-2〜1-4 Extra は OFF）。`starter_unlocked_ids` セーブ。
+**初期5ストーリー（P3-STORY-STARTER）:** `StarterPickScene` / `StarterRecruitment` — 開始1人選択、メイン章5（×-5）ノーマル初回で候補確定。実加入は拠点 `StarterJoinOverlay`（セリフ→ガチャ入手リビール）。`pending_starter_recruit_id` セーブ。`STARTER_RECRUIT_BETA_EXTRA=false`。
 
 ---
 

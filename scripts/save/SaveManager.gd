@@ -44,6 +44,7 @@ func save_game() -> void:
 		"commander": GameState.commander.duplicate(true),
 		"starter_unlocked_ids": GameState.starter_unlocked_ids.duplicate(),
 		"starter_pick_pending": GameState.starter_pick_pending,
+		"pending_starter_recruit_id": GameState.pending_starter_recruit_id,
 		"debug_full_unlock": GameState.debug_full_unlock,
 	}
 	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
@@ -498,6 +499,16 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.starter_unlocked_ids = unlocked
 	if data.has("starter_pick_pending"):
 		GameState.starter_pick_pending = bool(data["starter_pick_pending"])
+	if data.has("pending_starter_recruit_id"):
+		GameState.pending_starter_recruit_id = str(data.get("pending_starter_recruit_id", "")).strip_edges()
+	else:
+		GameState.pending_starter_recruit_id = ""
+	## 既に解放済みなら演出待ちを破棄（旧セーブ／二重防止）。
+	if (
+		not GameState.pending_starter_recruit_id.is_empty()
+		and GameState.is_starter_unlocked(GameState.pending_starter_recruit_id)
+	):
+		GameState.pending_starter_recruit_id = ""
 	_apply_roster_save(data)
 	GameState.migrate_starter_unlock_state()
 	if data.has("active_pet"):
