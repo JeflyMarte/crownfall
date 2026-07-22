@@ -21,6 +21,11 @@ const MAIN_BIOME_IDS: Array[String] = [
 
 const RARITY_WEIGHT_MULT: Array[float] = [1.0, 1.3, 1.6]
 const REWARD_MULT: Array[float] = [1.0, 1.2, 1.4]
+## 群れの率・質（P3-BAL-SWARM-002）。N / H / NM。
+const SWARM_CHANCE_MULT: Array[float] = [1.0, 1.25, 1.50]
+const SWARM_SIZE_BONUS: Array[int] = [0, 1, 2]
+const SWARM_MIXED_CHANCE: Array[float] = [0.50, 0.65, 0.80]
+const SWARM_SIZE_CAP: int = 5
 
 static var _cached_normal_cap: int = -1
 
@@ -80,13 +85,30 @@ static func reward_mult(tier: int) -> float:
 	return REWARD_MULT[clamp_tier(tier)]
 
 
+static func swarm_chance_mult(tier: int) -> float:
+	return SWARM_CHANCE_MULT[clamp_tier(tier)]
+
+
+static func swarm_size_bonus(tier: int) -> int:
+	return SWARM_SIZE_BONUS[clamp_tier(tier)]
+
+
+static func swarm_mixed_chance(tier: int) -> float:
+	return SWARM_MIXED_CHANCE[clamp_tier(tier)]
+
+
+static func swarm_size_cap() -> int:
+	return SWARM_SIZE_CAP
+
+
 static func summary_text(tier: int) -> String:
 	if tier <= TIER_NORMAL:
 		return ""
 	var bonus: int = enemy_level_bonus(tier)
 	var rare: float = rarity_weight_mult(tier)
 	var reward: float = reward_mult(tier)
-	return "敵Lv+%d / レア×%.1f / 報酬×%.1f" % [bonus, rare, reward]
+	var swarm: float = swarm_chance_mult(tier)
+	return "敵Lv+%d / レア×%.1f / 報酬×%.1f / 群れ×%.2f" % [bonus, rare, reward, swarm]
 
 
 ## メイン5 Biome すべてが当該ティアクリア済みか（Hard/NM キャンペーン解放判定）。

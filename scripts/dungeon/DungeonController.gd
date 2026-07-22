@@ -869,6 +869,7 @@ func pick_combat_enemy_group() -> Array[Resource]:
 	# 探索方針（安全優先）群れ出現率を半減（P3-D098）
 	elif GameState.get_exploration_policy() == "safe":
 		swarm_chance *= 0.5
+	swarm_chance *= _DungeonTierConfig.swarm_chance_mult(GameState.current_dungeon_tier)
 	swarm_chance = minf(0.95, swarm_chance * EventSystem.get_swarm_chance_mult())
 	if randf() >= swarm_chance:
 		return group
@@ -877,6 +878,9 @@ func pick_combat_enemy_group() -> Array[Resource]:
 	if forced_swarm:
 		lo = maxi(2, int(current_dungeon_data.forced_swarm_min))
 		hi = maxi(lo, int(current_dungeon_data.forced_swarm_max))
+	var size_bonus: int = _DungeonTierConfig.swarm_size_bonus(GameState.current_dungeon_tier)
+	hi = mini(_DungeonTierConfig.swarm_size_cap(), hi + size_bonus)
+	lo = mini(lo, hi)
 	var size: int = randi_range(lo, hi)
 	var capable: Array[Resource] = _swarm_capable_enemies()
 	if forced_swarm and capable.is_empty():
@@ -889,7 +893,8 @@ func pick_combat_enemy_group() -> Array[Resource]:
 		for _i in (size - 1):
 			group.append(minions[randi() % minions.size()])
 		return group
-	var use_mixed: bool = capable.size() >= 2 and randf() < MIXED_SWARM_CHANCE
+	var mixed_chance: float = _DungeonTierConfig.swarm_mixed_chance(GameState.current_dungeon_tier)
+	var use_mixed: bool = capable.size() >= 2 and randf() < mixed_chance
 	for _i in (size - 1):
 		if use_mixed:
 			var candidates: Array[Resource] = []
