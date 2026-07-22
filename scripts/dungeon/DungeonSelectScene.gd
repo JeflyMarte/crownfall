@@ -343,6 +343,7 @@ func _apply_typography() -> void:
 	UiTypography.apply_body(_label_gold, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_body(_label_token, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_display(_label_featured_name, UiTypography.SIZE_BODY_SMALL)
+	_label_featured_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_body(_label_featured_flavor, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	UiTypography.apply_body(_label_featured_meta, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
 	UiTypography.apply_body(_label_featured_discovery, UiTypography.SIZE_BODY_SMALL, COLOR_CLEAR)
@@ -1070,38 +1071,15 @@ func _make_biome_banner_header(
 	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(banner)
 
-	var header_btn := Button.new()
-	header_btn.set_anchors_preset(Control.PRESET_FULL_RECT)
-	header_btn.flat = true
-	header_btn.disabled = not unlocked
-	var row := HBoxContainer.new()
-	row.set_anchors_preset(Control.PRESET_FULL_RECT)
-	row.offset_left = 8
-	row.offset_top = 4
-	row.offset_right = -8
-	row.offset_bottom = -4
-	row.add_theme_constant_override("separation", 6)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	header_btn.add_child(row)
-
-	var chevron := Label.new()
-	chevron.text = "▼" if is_expanded else "▶"
-	if not unlocked:
-		chevron.text = "🔒"
-	chevron.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	chevron.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	# バナー上でも視認できるよう金＋影を強める
-	UiTypography.apply_body(chevron, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
-	chevron.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.92))
-	chevron.add_theme_constant_override("shadow_offset_x", 1)
-	chevron.add_theme_constant_override("shadow_offset_y", 1)
-	chevron.add_theme_constant_override("shadow_outline_size", 4)
-	row.add_child(chevron)
-
+	## タイトルは Featured と同様バナー全面中央。シェブロンは左オーバーレイ（HBox だと右寄りになる）。
 	if not _banner_hides_title(dungeon_id):
 		var title := Label.new()
 		title.text = _dungeon_card_title(data)
-		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		title.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		title.offset_left = 36.0
+		title.offset_right = -36.0
+		title.offset_top = 4.0
+		title.offset_bottom = -4.0
 		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		title.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -1118,8 +1096,30 @@ func _make_biome_banner_header(
 		title.add_theme_constant_override("shadow_offset_x", 1)
 		title.add_theme_constant_override("shadow_offset_y", 1)
 		title.add_theme_constant_override("shadow_outline_size", 5)
-		row.add_child(title)
+		root.add_child(title)
 
+	var chevron := Label.new()
+	chevron.text = "▼" if is_expanded else "▶"
+	if not unlocked:
+		chevron.text = "🔒"
+	chevron.set_anchors_and_offsets_preset(Control.PRESET_LEFT_WIDE)
+	chevron.offset_left = 8.0
+	chevron.offset_right = 32.0
+	chevron.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	chevron.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	chevron.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# バナー上でも視認できるよう金＋影を強める
+	UiTypography.apply_body(chevron, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
+	chevron.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.92))
+	chevron.add_theme_constant_override("shadow_offset_x", 1)
+	chevron.add_theme_constant_override("shadow_offset_y", 1)
+	chevron.add_theme_constant_override("shadow_outline_size", 4)
+	root.add_child(chevron)
+
+	var header_btn := Button.new()
+	header_btn.set_anchors_preset(Control.PRESET_FULL_RECT)
+	header_btn.flat = true
+	header_btn.disabled = not unlocked
 	header_btn.pressed.connect(_on_biome_accordion_pressed.bind(dungeon_id))
 	UiTypography.apply_button(header_btn, is_featured or is_expanded)
 	root.add_child(header_btn)
