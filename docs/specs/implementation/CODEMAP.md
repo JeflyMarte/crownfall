@@ -312,7 +312,7 @@ Task 明示指示がない限り作成しない:
 | パス | 内容 |
 |---|---|
 | `sfx/` | Kenney CC0・`SfxCatalog` 18 ID（**P3-AUDIO-SE-001**）。配線拡張 **P3-AUDIO-SE-002** |
-| `bgm/` | オーナー制作 MP3（title / hub / dungeon_explore / battle / boss / result）。`BgmCatalog`（**P3-AUDIO-BGM-001**） |
+| `bgm/` | オーナー制作 MP3（title / introduction / hub / forge / survey / gacha / dungeon_explore / battle / boss / result）。`BgmCatalog`（**P3-AUDIO-BGM-001**） |
 
 ---
 

@@ -5,8 +5,9 @@ const RARITY_GEMS: Array[String] = ["◇", "◆", "✦", "★", "❖"]
 const RARITY_SHORT: Array[String] = ["N", "R", "SR", "SSR", "MY"]
 
 const LIST_CARD_MIN_HEIGHT: int = 120
-const CRAFTABLE_CHIP_WIDTH: int = 136
-const CRAFTABLE_CHIP_HEIGHT: int = 152
+const CRAFTABLE_CHIP_WIDTH: int = 120
+## 下段ストリップ内に収める（152 だと帯が上に伸びて左右パネルへ乗る）。
+const CRAFTABLE_CHIP_HEIGHT: int = 112
 ## 左リスト／錬成素材チップ用（行カードに収まる固定サイズ）
 const LIST_ICON_PX: int = 72
 ## 作成可能ストリップ用（装備袋 INV_CELL 以上）
@@ -18,9 +19,9 @@ const ITEM_ICON_UNDERLAY_COLOR: Color = Color(0.04, 0.03, 0.02, 0.58)
 ## InvCell の texture_margin(12/144)＋余白。これを超える描画は枠左右にはみ出して見える。
 const FORGE_ICON_SAFE_FILL: float = 0.52
 ## 詳細ヒーローは大きく見せるが、枠いっぱいに食い込ませない。
-const HERO_ICON_INSET_RATIO: float = 0.14
-const HERO_ICON_INSET_MIN_PX: int = 22
-const HERO_ICON_SAFE_FILL: float = 0.70
+const HERO_ICON_INSET_RATIO: float = 0.08
+const HERO_ICON_INSET_MIN_PX: int = 14
+const HERO_ICON_SAFE_FILL: float = 0.82
 
 const RARITY_COLORS: Array[Color] = [
 	Color(0.60, 0.60, 0.60),
@@ -174,6 +175,19 @@ static func craftable_strip_style(selected: bool) -> StyleBox:
 		sb.bg_color = Color(0.0, 0.0, 0.0, 0.0)
 	return sb
 
+
+## 下段「作成可能／素材にする装備」帯の外枠。
+static func craftable_panel_style() -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.08, 0.06, 0.05, 0.88)
+	sb.set_border_width_all(2)
+	sb.border_color = Color(0.86, 0.72, 0.32, 0.92)
+	sb.set_corner_radius_all(8)
+	sb.set_content_margin_all(8.0)
+	sb.shadow_color = Color(0.0, 0.0, 0.0, 0.35)
+	sb.shadow_size = 4
+	return sb
+
 static func material_chip_style(rarity: int, sufficient: bool, cell_px: int = -1) -> StyleBox:
 	var px: int = cell_px if cell_px > 0 else list_cell_px()
 	var style: StyleBox = EquipmentUiTokens.rarity_slot_style(rarity, sufficient, px)
@@ -263,10 +277,45 @@ static func _item_inset_px(_item_id: String, _category: String, cell_px: int) ->
 static func _attach_icon_full_rect_inset(
 	host: Control,
 	tex: Texture2D,
-	inset: int
+	inset: int,
+	rarity: int = 0,
+	use_inv_cell_bg: bool = false
 ) -> void:
 	## FULL_RECT＋対称 inset。親サイズ確定後も必ず内側。負の中央offsetは使わない。
 	host.clip_contents = true
+	if use_inv_cell_bg:
+		## 小セルは 9-slice だと枠が潰れるため、InvCell を等倍スケール下地として載せる（装備画面と同アセット）。
+		var idx: int = clampi(rarity, 0, EquipmentUiTokens.INV_CELLS.size() - 1)
+		var bg_tex: Texture2D = EquipmentUiTokens.load_tex(EquipmentUiTokens.INV_CELLS[idx])
+		if bg_tex != null:
+			var bg := TextureRect.new()
+			bg.name = "ItemBg"
+			bg.texture = bg_tex
+			bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			bg.stretch_mode = TextureRect.STRETCH_SCALE
+			bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			host.add_child(bg)
+		else:
+			_attach_flat_icon_underlay(host, inset)
+	else:
+		_attach_flat_icon_underlay(host, inset)
+	var icon := TextureRect.new()
+	icon.name = "ItemIcon"
+	icon.texture = tex
+	icon.modulate = ITEM_ICON_MODULATE
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	icon.offset_left = inset
+	icon.offset_top = inset
+	icon.offset_right = -inset
+	icon.offset_bottom = -inset
+	host.add_child(icon)
+
+
+static func _attach_flat_icon_underlay(host: Control, inset: int) -> void:
 	var underlay := Panel.new()
 	underlay.name = "ItemIconUnderlay"
 	underlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -281,19 +330,6 @@ static func _attach_icon_full_rect_inset(
 	sb.set_corner_radius_all(4)
 	underlay.add_theme_stylebox_override("panel", sb)
 	host.add_child(underlay)
-	var icon := TextureRect.new()
-	icon.name = "ItemIcon"
-	icon.texture = tex
-	icon.modulate = ITEM_ICON_MODULATE
-	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	icon.offset_left = inset
-	icon.offset_top = inset
-	icon.offset_right = -inset
-	icon.offset_bottom = -inset
-	host.add_child(icon)
 
 
 static func attach_hero_icon(host: Control, item_id: String, category: String, display_px: int) -> void:
@@ -318,10 +354,17 @@ static func attach_hero_icon(host: Control, item_id: String, category: String, d
 	var side: int = forge_icon_side_px(display_px, inset, HERO_ICON_SAFE_FILL)
 	## 偶数余りを inset に寄せ、描画辺が safe_fill を超えないようにする。
 	inset = int(ceil((float(display_px) - float(side)) * 0.5))
-	_attach_icon_full_rect_inset(host, tex, inset)
+	_attach_icon_full_rect_inset(host, tex, inset, 0, false)
 
 
-static func attach_item_icon(host: Control, item_id: String, category: String, cell_px: int) -> void:
+static func attach_item_icon(
+	host: Control,
+	item_id: String,
+	category: String,
+	cell_px: int,
+	rarity: int = 0,
+	use_inv_cell_bg: bool = false
+) -> void:
 	for child in host.get_children():
 		child.queue_free()
 	host.custom_minimum_size = Vector2(cell_px, cell_px)
@@ -338,7 +381,7 @@ static func attach_item_icon(host: Control, item_id: String, category: String, c
 	var inset: int = _item_inset_px(item_id, category, cell_px)
 	var side: int = forge_icon_side_px(cell_px, inset, FORGE_ICON_SAFE_FILL)
 	inset = int(ceil((float(cell_px) - float(side)) * 0.5))
-	_attach_icon_full_rect_inset(host, tex, inset)
+	_attach_icon_full_rect_inset(host, tex, inset, rarity, use_inv_cell_bg)
 
 
 static func make_item_icon_cell(
@@ -362,15 +405,16 @@ static func make_item_icon_cell(
 	btn.disabled = true
 	btn.flat = false
 	## 72px 前後では InvCell 9-slice の左枠が潰れて「左欠け」に見える。
-	## リストサイズは Flat の四辺ボーダーを使い、ストリップ大セルのみテクスチャ枠。
+	## リストサイズは Flat（透明）＋ InvCell 等倍下地。ストリップ大セルは StyleBoxTexture。
+	var use_stylebox_cell: bool = px > 88
 	var style: StyleBox
-	if px <= 88:
-		style = _list_icon_flat_frame(rarity, highlight, px)
-	else:
+	if use_stylebox_cell:
 		style = EquipmentUiTokens.rarity_slot_style(rarity, highlight, px)
 		if style != null:
 			style = style.duplicate()
 			style.set_content_margin_all(0.0)
+	else:
+		style = _list_icon_flat_frame(rarity, highlight, px)
 	for state in ["normal", "pressed", "hover", "disabled", "focus"]:
 		btn.add_theme_stylebox_override(state, style)
 	btn.add_theme_constant_override("h_separation", 0)
@@ -379,17 +423,22 @@ static func make_item_icon_cell(
 	btn.add_theme_color_override("font_disabled_color", Color(1, 1, 1, 0))
 	btn.add_theme_color_override("font_focus_color", Color(1, 1, 1, 0))
 	btn.text = ""
-	attach_item_icon(btn, item_id, category, px)
+	attach_item_icon(btn, item_id, category, px, rarity, not use_stylebox_cell)
 	EquipmentUiHelper.apply_legendary_badge(btn, rarity, Vector2(px, px))
 	return btn
 
 
 static func _list_icon_flat_frame(rarity: int, highlight: bool, cell_px: int) -> StyleBoxFlat:
+	## 下地は ItemBg（InvCell）。StyleBox は選択ハイライト枠のみ。
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.07, 0.06, 0.05, 0.94)
+	sb.bg_color = Color(0.0, 0.0, 0.0, 0.0)
 	var col: Color = rarity_color(rarity)
-	sb.set_border_width_all(2)
-	sb.border_color = col.lerp(Color.WHITE, 0.28) if highlight else col
+	if highlight:
+		sb.set_border_width_all(2)
+		sb.border_color = col.lerp(Color.WHITE, 0.28)
+	else:
+		sb.set_border_width_all(0)
+		sb.border_color = Color(0, 0, 0, 0)
 	sb.set_corner_radius_all(maxi(4, int(round(float(cell_px) * 0.08))))
 	sb.set_content_margin_all(0.0)
 	## shadow は親カード外へ描画され「左はみ出し」に見えるので付けない。
@@ -426,9 +475,10 @@ static func detail_panel_style() -> StyleBox:
 	sb.set_border_width_all(2)
 	sb.border_color = Color(0.86, 0.72, 0.32, 0.92)
 	sb.set_corner_radius_all(10)
-	sb.set_content_margin_all(12.0)
-	sb.shadow_color = Color(0.0, 0.0, 0.0, 0.35)
-	sb.shadow_size = 6
+	sb.set_content_margin_all(10.0)
+	## 影がカテゴリタブへはみ出さないよう弱める。
+	sb.shadow_color = Color(0.0, 0.0, 0.0, 0.22)
+	sb.shadow_size = 2
 	return sb
 
 static func rarity_box(rarity: int, highlight: bool = true) -> StyleBox:

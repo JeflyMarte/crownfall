@@ -29,6 +29,17 @@ const FORGE_FLASH_ENHANCE: Color = Color(0.72, 0.86, 1.0)
 const FORGE_FLASH_ALCHEMY: Color = Color(0.55, 0.92, 0.78)
 const FORGE_FLASH_DISMANTLE: Color = Color(0.86, 0.72, 1.0)
 const FORGE_FLASH_PEAK_ALPHA: float = 0.32
+## 下段ストリップ（作成可能／錬成素材）。BottomNav 上に専用帯を確保する。
+## 帯が高すぎると左右パネルに乗るため、コンパクトに固定する。
+const CRAFTABLE_STRIP_HEIGHT_PX: float = 128.0
+const CRAFTABLE_SCROLL_MIN_H: float = 88.0
+## カテゴリタブ下端〜 MainSplit 上端の隙間。
+const MAIN_SPLIT_TOP_GAP_PX: float = 20.0
+## MainSplit 下端〜素材帯の隙間。
+const MAIN_TO_STRIP_GAP_PX: float = 16.0
+## CategoryRow の設計高さ。
+const CATEGORY_ROW_DESIGN_H_PX: float = 92.0
+const BOTTOM_NAV_FALLBACK_H_PX: float = 84.0
 
 @onready var _btn_back: Button = $Header/HeaderRow/ButtonBack
 @onready var _label_title: Label = $Header/HeaderRow/LabelTitle
@@ -60,9 +71,10 @@ const FORGE_FLASH_PEAK_ALPHA: float = 0.32
 @onready var _cost_header_label: Label = $MainSplit/DetailPanel/DetailVBox/CostPanel/CostRoot/CostVBox/CostHeaderLabel
 @onready var _craft_button: Button = $MainSplit/DetailPanel/DetailVBox/CraftButton
 @onready var _reason_label: Label = $MainSplit/DetailPanel/DetailVBox/ReasonLabel
-@onready var _craftable_panel: VBoxContainer = $CraftablePanel
-@onready var _craftable_header: Label = $CraftablePanel/LabelCraftableHeader
-@onready var _craftable_row: HBoxContainer = $CraftablePanel/CraftableScroll/CraftableRow
+@onready var _craftable_panel: PanelContainer = $CraftablePanel
+@onready var _craftable_header: Label = $CraftablePanel/CraftableVBox/LabelCraftableHeader
+@onready var _craftable_row: HBoxContainer = $CraftablePanel/CraftableVBox/CraftableScroll/CraftableRow
+@onready var _craftable_scroll: ScrollContainer = $CraftablePanel/CraftableVBox/CraftableScroll
 @onready var _label_status: Label = $LabelStatus
 
 var _mode: String = "produce"
@@ -90,6 +102,7 @@ var _pending_dismantle_item: Resource = null
 
 func _ready() -> void:
 	_label_title.text = ""
+	AudioManager.play_bgm("forge")
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.FORGE)
 	_mode_button_group = ButtonGroup.new()
 	_btn_produce.button_group = _mode_button_group
@@ -124,15 +137,87 @@ func _ready() -> void:
 	_apply_detail_typography()
 	_detail_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_cost_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_craft_button.size_flags_vertical = Control.SIZE_SHRINK_END
+	_craft_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_setup_craftable_header()
 	_setup_tab_styles()
 	_setup_left_list_layout()
 	_set_mode("produce")
+	## カテゴリアイコン生成後の実寸で帯を再計算（生産／錬成の上下侵食防止）。
+	call_deferred("_layout_craftable_strip")
 
 
 func _setup_craftable_header() -> void:
 	UiTypography.apply_body(_craftable_header, UiTypography.SIZE_CAPTION, UiTypography.COLOR_GOLD)
+	_layout_craftable_strip()
+
+
+func _layout_craftable_strip() -> void:
+	## 左右パネルを「カテゴリタブ下〜作成可能帯上」に厳密に収める。
+	_fit_category_row_height()
+	var nav: Control = $BottomNav
+	var nav_h: float = BOTTOM_NAV_FALLBACK_H_PX
+	if nav != null:
+		nav_h = maxf(BOTTOM_NAV_FALLBACK_H_PX, absf(nav.offset_top))
+		if nav.size.y > 1.0:
+			nav_h = maxf(nav_h, nav.size.y)
+	var strip_h: float = CRAFTABLE_STRIP_HEIGHT_PX
+	var category_bottom: float = _category_row_bottom_px()
+	var main_top: float = category_bottom + MAIN_SPLIT_TOP_GAP_PX
+	var main_bottom: float = -(nav_h + strip_h + MAIN_TO_STRIP_GAP_PX)
+
+	var main_split: Control = $MainSplit
+	main_split.offset_top = main_top
+	main_split.offset_bottom = main_bottom
+	main_split.clip_contents = true
+	main_split.z_index = 0
+
+	## 下端アンカー固定（set_anchors_preset は offset を壊すことがあるので直書き）。
+	_craftable_panel.anchor_left = 0.0
+	_craftable_panel.anchor_right = 1.0
+	_craftable_panel.anchor_top = 1.0
+	_craftable_panel.anchor_bottom = 1.0
+	_craftable_panel.offset_left = 8.0
+	_craftable_panel.offset_right = -8.0
+	_craftable_panel.offset_bottom = -nav_h
+	_craftable_panel.offset_top = -(nav_h + strip_h)
+	## 子の最小高で上方向に伸びて左右パネルへ乗るのを防ぐ。
+	_craftable_panel.grow_vertical = Control.GROW_DIRECTION_END
+	_craftable_panel.clip_contents = true
+	_craftable_panel.z_index = 2
+	_craftable_panel.add_theme_stylebox_override("panel", BlacksmithUiHelper.craftable_panel_style())
+	_craftable_scroll.custom_minimum_size = Vector2(0, CRAFTABLE_SCROLL_MIN_H)
+	_craftable_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_craftable_scroll.clip_contents = true
+	_detail_panel.clip_contents = true
+	_category_row.z_index = 3
+	var mode_tabs: Control = $ModeTabs
+	if mode_tabs != null:
+		mode_tabs.z_index = 3
+
+
+func _fit_category_row_height() -> void:
+	## タブ内容が行高を押し広げて MainSplit に食い込むのを防ぐ。
+	var top: float = _category_row.offset_top
+	if top < 80.0:
+		top = 112.0
+		_category_row.offset_top = top
+	var need_h: float = maxf(
+		CATEGORY_ROW_DESIGN_H_PX,
+		_category_row.get_combined_minimum_size().y
+	)
+	_category_row.offset_bottom = top + need_h
+	_category_row.clip_contents = true
+
+
+func _category_row_bottom_px() -> float:
+	var bottom: float = _category_row.offset_bottom
+	if bottom < 120.0:
+		return _category_row.offset_top + CATEGORY_ROW_DESIGN_H_PX
+	## 実レイアウト後は size も見る（offset より下に描画されている場合）。
+	if _category_row.size.y > 1.0:
+		var by_size: float = _category_row.position.y + _category_row.size.y
+		bottom = maxf(bottom, by_size)
+	return bottom
 
 
 func _setup_left_list_layout() -> void:
@@ -145,17 +230,18 @@ func _setup_left_list_layout() -> void:
 	_left_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_left_list.clip_contents = true
 	$MainSplit/DetailPanel.size_flags_stretch_ratio = 0.58
-	_craftable_panel.clip_contents = true
-	$CraftablePanel/CraftableScroll.clip_contents = true
+	_layout_craftable_strip()
 
 
 func _setup_hero_display_layout() -> void:
 	## 詳細ペイン内に余裕を残す（右寄せ／はみ出し防止）。
-	var stack_px: int = 220
-	var pedestal_px: int = 200
-	var display_px: int = 168
+	var stack_px: int = ForgeUiTokens.HERO_STACK_PX
+	var pedestal_px: int = ForgeUiTokens.HERO_PEDESTAL_PX
+	var display_px: int = ForgeUiTokens.HERO_DISPLAY_PX
 	## 台座アートの視覚重心が右寄りなので、描画を少し左へ寄せる。
 	var nudge_x: float = -14.0
+	## tscn の旧 260px 固定を上書き（これが高いと詳細が下帯へ食い込む）。
+	_hero_panel.custom_minimum_size = Vector2(0, stack_px)
 	_hero_stack.custom_minimum_size = Vector2(stack_px, stack_px)
 	_hero_stack.clip_contents = true
 	_hero_panel.clip_contents = true

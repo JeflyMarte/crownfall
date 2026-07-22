@@ -7,7 +7,11 @@ Suno AI などで作成した BGM をここに配置する。
 | ID | ファイル | 用途 | ループ |
 |---|---|---|---|
 | `title` | `title.mp3` | タイトル（はじめから／つづきから） | YES |
+| `introduction` | `introduction.mp3` | 新規導入（世界観〜ニーナ） | YES |
 | `hub` | `hub.mp3` | 拠点 | YES |
+| `forge` | `forge.mp3` | 鍛冶屋 | YES |
+| `survey` | `survey.mp3` | 調査室 | YES |
+| `gacha` | `gacha.mp3` | ガチャ（招待状） | YES |
 | `dungeon_explore` | `dungeon_explore.mp3` | ダンジョン探索（非戦闘） | YES |
 | `battle` | `battle.mp3` | 通常・エリート戦闘 | YES |
 | `boss` | `boss.mp3` | ボス戦 | YES |

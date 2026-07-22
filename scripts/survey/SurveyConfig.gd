@@ -13,8 +13,18 @@ const SHORT_DURATION_SEC: float = 20.0 * 60.0
 const STANDARD_DURATION_SEC: float = 3.0 * 60.0 * 60.0
 
 const INVESTIGATOR_SLOTS: int = 3
+## UI 表示枠（うち末尾は Phase1 ロック）。
+const INVESTIGATOR_UI_SLOTS: int = 4
 const INVESTIGATOR_SLOT_LOCKED: int = 3 ## 4枠目はロック表示用 index
 const MAX_SPEED_BONUS: float = 0.40
+
+## 調査員速度ボーナス（案A: 装備込み ATK+DEF+HP に比例）。
+## power = REF_LOW → +MIN、REF_HIGH → +MAX。担当ロールは別途 +ROLE。
+const SPEED_BONUS_MIN: float = 0.04
+const SPEED_BONUS_MAX: float = 0.14
+const SPEED_BONUS_ROLE: float = 0.01
+const SPEED_POWER_REF_LOW: float = 800.0
+const SPEED_POWER_REF_HIGH: float = 2800.0
 
 const SURVEY_ADD_CLEAR: float = 4.0
 const SURVEY_ADD_BOSS_FIRST: float = 8.0
@@ -26,6 +36,10 @@ const SURVEY_ROOM_DAILY_CAP: float = 12.0
 const WEAPON_P_STAR1: float = 0.12
 const WEAPON_P_STAR2: float = 0.05
 const WEAPON_P_STAR3: float = 0.015
+
+## 表示用: 装備ドロップ合算率（★1〜3）。
+static func weapon_drop_chance() -> float:
+	return WEAPON_P_STAR1 + WEAPON_P_STAR2 + WEAPON_P_STAR3
 
 const TOKEN_SHORT_MIN: int = 20
 const TOKEN_SHORT_MAX: int = 40

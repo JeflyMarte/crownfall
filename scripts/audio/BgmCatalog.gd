@@ -11,8 +11,12 @@ const ID_DUNGEON_EXPLORE: String = "dungeon_explore"
 const ID_BATTLE: String = "battle"
 const ID_BOSS: String = "boss"
 const ID_RESULT: String = "result"
+const ID_INTRODUCTION: String = "introduction"
+const ID_FORGE: String = "forge"
+const ID_SURVEY: String = "survey"
+const ID_GACHA: String = "gacha"
 
-## 現行登録（タイトル＋拠点＋探索／戦闘／ボス／リザルト）。
+## 現行登録（タイトル＋導入＋拠点施設＋探索／戦闘／ボス／リザルト）。
 const PATHS: Dictionary = {
 	ID_TITLE: DIR + "title.mp3",
 	ID_HUB: DIR + "hub.mp3",
@@ -20,6 +24,10 @@ const PATHS: Dictionary = {
 	ID_BATTLE: DIR + "battle.mp3",
 	ID_BOSS: DIR + "boss.mp3",
 	ID_RESULT: DIR + "result.mp3",
+	ID_INTRODUCTION: DIR + "introduction.mp3",
+	ID_FORGE: DIR + "forge.mp3",
+	ID_SURVEY: DIR + "survey.mp3",
+	ID_GACHA: DIR + "gacha.mp3",
 }
 
 const LOOP_IDS: Dictionary = {
@@ -29,6 +37,10 @@ const LOOP_IDS: Dictionary = {
 	ID_BATTLE: true,
 	ID_BOSS: true,
 	ID_RESULT: true,
+	ID_INTRODUCTION: true,
+	ID_FORGE: true,
+	ID_SURVEY: true,
+	ID_GACHA: true,
 }
 
 

@@ -269,11 +269,12 @@ layout_mode = 1
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 8.0
-offset_top = 212.0
+offset_top = 232.0
 offset_right = -8.0
-offset_bottom = -188.0
+offset_bottom = -228.0
 grow_horizontal = 2
 grow_vertical = 2
+clip_contents = true
 theme_override_constants/separation = 8
 
 [node name="LeftScroll" type="ScrollContainer" parent="MainSplit"]
@@ -295,14 +296,14 @@ size_flags_stretch_ratio = 0.64
 
 [node name="DetailVBox" type="VBoxContainer" parent="MainSplit/DetailPanel"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 6
 
 [node name="HeroPanel" type="CenterContainer" parent="MainSplit/DetailPanel/DetailVBox"]
-custom_minimum_size = Vector2(0, 260)
+custom_minimum_size = Vector2(0, 176)
 layout_mode = 2
 
 [node name="HeroStack" type="Control" parent="MainSplit/DetailPanel/DetailVBox/HeroPanel"]
-custom_minimum_size = Vector2(260, 260)
+custom_minimum_size = Vector2(176, 176)
 layout_mode = 2
 
 [node name="HeroPedestal" type="TextureRect" parent="MainSplit/DetailPanel/DetailVBox/HeroPanel/HeroStack"]
@@ -433,17 +434,22 @@ size_flags_vertical = 4
 theme_override_font_sizes/font_size = 22
 
 [node name="CostButtonGap" type="Control" parent="MainSplit/DetailPanel/DetailVBox"]
-custom_minimum_size = Vector2(0, 12)
+custom_minimum_size = Vector2(0, 4)
 layout_mode = 2
 
 [node name="CraftButton" type="Button" parent="MainSplit/DetailPanel/DetailVBox"]
-custom_minimum_size = Vector2(0, 76)
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 0
 theme_override_colors/font_color = Color(0.98, 0.92, 0.72, 1)
 theme_override_font_sizes/font_size = 28
 theme_override_styles/normal = SubResource("SB_PrimaryBtn")
 text = "生産する"
+
+[node name="CraftButtonBottomPad" type="Control" parent="MainSplit/DetailPanel/DetailVBox"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
 
 [node name="ReasonLabel" type="Label" parent="MainSplit/DetailPanel/DetailVBox"]
 visible = false
@@ -452,33 +458,43 @@ theme_override_colors/font_color = Color(0.82, 0.45, 0.42, 1)
 theme_override_font_sizes/font_size = 13
 horizontal_alignment = 1
 
-[node name="CraftablePanel" type="VBoxContainer" parent="."]
+[node name="CraftablePanel" type="PanelContainer" parent="."]
 layout_mode = 1
 anchors_preset = 12
+anchor_left = 0.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 8.0
-offset_top = -188.0
+offset_top = -212.0
 offset_right = -8.0
-offset_bottom = -88.0
+offset_bottom = -84.0
 grow_horizontal = 2
-mouse_filter = 2
-theme_override_constants/separation = 4
+grow_vertical = 1
+mouse_filter = 0
+clip_contents = true
 
-[node name="LabelCraftableHeader" type="Label" parent="CraftablePanel"]
+[node name="CraftableVBox" type="VBoxContainer" parent="CraftablePanel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="LabelCraftableHeader" type="Label" parent="CraftablePanel/CraftableVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.92, 0.84, 1)
 theme_override_font_sizes/font_size = 16
 text = "製作可能レシピ"
 
-[node name="CraftableScroll" type="ScrollContainer" parent="CraftablePanel"]
-custom_minimum_size = Vector2(0, 96)
+[node name="CraftableScroll" type="ScrollContainer" parent="CraftablePanel/CraftableVBox"]
+custom_minimum_size = Vector2(0, 88)
 layout_mode = 2
+size_flags_vertical = 3
 horizontal_scroll_mode = 2
 vertical_scroll_mode = 0
+clip_contents = true
 
-[node name="CraftableRow" type="HBoxContainer" parent="CraftablePanel/CraftableScroll"]
+[node name="CraftableRow" type="HBoxContainer" parent="CraftablePanel/CraftableVBox/CraftableScroll"]
 layout_mode = 2
 theme_override_constants/separation = 10
 

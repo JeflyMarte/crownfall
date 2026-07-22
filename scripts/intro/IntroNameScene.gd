@@ -12,6 +12,7 @@ var _error_lbl: Label
 
 
 func _ready() -> void:
+	AudioManager.play_bgm("introduction")
 	_build_ui()
 
 

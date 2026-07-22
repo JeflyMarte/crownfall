@@ -10,6 +10,10 @@ const REQUIRED_IDS: Array[String] = [
 	_BgmCatalog.ID_BATTLE,
 	_BgmCatalog.ID_BOSS,
 	_BgmCatalog.ID_RESULT,
+	_BgmCatalog.ID_INTRODUCTION,
+	_BgmCatalog.ID_FORGE,
+	_BgmCatalog.ID_SURVEY,
+	_BgmCatalog.ID_GACHA,
 ]
 
 

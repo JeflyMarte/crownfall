@@ -29,19 +29,21 @@ var _clip: Control
 var _list: VBoxContainer
 var _lead_in: Control
 var _lead_out: Control
+## 読みやすさ用の dwell 対象（全文を収めた単一パネル）。
 var _panel_nodes: Array[Control] = []
-var _continue_btn: Button
+var _lore_body_lbl: Label
 var _hint_lbl: Label
 var _crawl_active: bool = false
 var _crawl_boost: bool = false
 var _reached_end: bool = false
-var _continue_ready: bool = false
+var _advance_ready: bool = false
 var _scroll_pos: float = 0.0
 var _layout_ready: bool = false
 var _root_margin: MarginContainer
 
 
 func _ready() -> void:
+	AudioManager.play_bgm("introduction")
 	_build_ui()
 	_apply_safe_area_margins()
 	# 初回フレーム前に仮幅を入れておく（遅延待ち中のレイアウト暴れ防止）。
@@ -160,24 +162,24 @@ func _build_ui() -> void:
 	_list.add_child(_lead_in)
 
 	_panel_nodes.clear()
-	for i: int in _IntroLoreContent.PANELS.size():
-		var panel_wrap := PanelContainer.new()
-		var sb := StyleBoxFlat.new()
-		sb.bg_color = Color(0.06, 0.07, 0.11, 0.82)
-		sb.set_border_width_all(1)
-		sb.border_color = Color(0.45, 0.40, 0.28, 0.7)
-		sb.set_corner_radius_all(8)
-		sb.set_content_margin_all(16)
-		panel_wrap.add_theme_stylebox_override("panel", sb)
-		_list.add_child(panel_wrap)
-		_panel_nodes.append(panel_wrap)
+	var panel_wrap := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	## 半透明の単一パネルに全文をまとめる（段落ごとの枠は使わない）。
+	sb.bg_color = Color(0.06, 0.07, 0.11, 0.48)
+	sb.set_border_width_all(1)
+	sb.border_color = Color(0.45, 0.40, 0.28, 0.45)
+	sb.set_corner_radius_all(10)
+	sb.set_content_margin_all(18)
+	panel_wrap.add_theme_stylebox_override("panel", sb)
+	_list.add_child(panel_wrap)
+	_panel_nodes.append(panel_wrap)
 
-		var panel_lbl := Label.new()
-		panel_lbl.text = _IntroLoreContent.PANELS[i]
-		panel_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		panel_lbl.custom_minimum_size = Vector2(0, 72)
-		UiTypography.apply_body(panel_lbl, 22, Color(0.92, 0.90, 0.84))
-		panel_wrap.add_child(panel_lbl)
+	_lore_body_lbl = Label.new()
+	_lore_body_lbl.text = "\n\n".join(_IntroLoreContent.PANELS)
+	_lore_body_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_lore_body_lbl.custom_minimum_size = Vector2(0, 72)
+	UiTypography.apply_body(_lore_body_lbl, 22, Color(0.92, 0.90, 0.84))
+	panel_wrap.add_child(_lore_body_lbl)
 
 	_hint_lbl = Label.new()
 	_hint_lbl.text = "物語が流れます（タッチで加速）"
@@ -190,25 +192,13 @@ func _build_ui() -> void:
 
 	_add_fade_band(_clip, true)
 	_add_fade_band(_clip, false)
-
-	_continue_btn = Button.new()
-	_continue_btn.text = "続ける"
-	_continue_btn.custom_minimum_size = Vector2(0, 56)
-	## disabled だと実機でタップが落ちることがあるため、見た目＋ガードで制御する。
-	_continue_btn.disabled = false
-	_continue_ready = false
-	_continue_btn.modulate = Color(1, 1, 1, 0.45)
-	_continue_btn.mouse_filter = Control.MOUSE_FILTER_STOP
-	_continue_btn.focus_mode = Control.FOCUS_ALL
-	UiTypography.apply_button(_continue_btn)
-	_continue_btn.pressed.connect(_on_continue_pressed)
-	root.add_child(_continue_btn)
+	_advance_ready = false
 
 
 func _apply_safe_area_margins() -> void:
 	if _root_margin == null:
 		return
-	## iPhone Home Indicator 下に「続ける」が沈みタップ不能になるのを防ぐ。
+	## Home Indicator 近傍で本文・ヒントが沈まないよう Intro 専用の下余白を確保する。
 	## aspect=keep 時は SafeAreaHelper が inset=0 を返すため、モバイルでは下限を常時確保する。
 	var top: float = INTRO_BASE_TOP_MARGIN + _SafeAreaHelper.top_inset()
 	var bottom: float = INTRO_BASE_BOTTOM_MARGIN + _SafeAreaHelper.bottom_inset()
@@ -319,11 +309,9 @@ func _prepare_crawl_layout() -> void:
 		if panel == null:
 			continue
 		panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		for child in panel.get_children():
-			if child is Label:
-				var lbl: Label = child as Label
-				lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-				lbl.custom_minimum_size = Vector2(maxf(0.0, view_w - 32.0), 72.0)
+	if _lore_body_lbl != null:
+		_lore_body_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_lore_body_lbl.custom_minimum_size = Vector2(maxf(0.0, view_w - 36.0), 72.0)
 	_list.custom_minimum_size = Vector2(view_w, 0.0)
 	_list.size.x = view_w
 	_list.reset_size()
@@ -339,11 +327,13 @@ func _on_clip_gui_input(event: InputEvent) -> void:
 			_crawl_boost = mb.pressed
 			if not mb.pressed:
 				_check_manual_end()
+				_try_advance_after_end()
 	elif event is InputEventScreenTouch:
 		var st: InputEventScreenTouch = event
 		_crawl_boost = st.pressed
 		if not st.pressed:
 			_check_manual_end()
+			_try_advance_after_end()
 	elif event is InputEventScreenDrag:
 		_crawl_boost = true
 		_set_scroll_pos(_scroll_pos - float(event.relative.y))
@@ -367,22 +357,16 @@ func _on_reached_end() -> void:
 	_reached_end = true
 	_crawl_active = false
 	_crawl_boost = false
+	_advance_ready = true
 	if _hint_lbl != null:
-		_hint_lbl.text = "準備ができたら続けてください"
-	if _continue_btn != null:
-		_continue_ready = true
-		_continue_btn.disabled = false
-		_continue_btn.modulate = Color(1, 1, 1, 1)
-		_continue_btn.mouse_filter = Control.MOUSE_FILTER_STOP
-		## 実機でヒット領域が潰れている場合に備え、明示的に前面へ。
-		_continue_btn.z_index = 8
-		_continue_btn.move_to_front()
+		_hint_lbl.text = "タップで進む"
 
 
-func _on_continue_pressed() -> void:
-	if not _continue_ready:
+func _try_advance_after_end() -> void:
+	if not _advance_ready or not _reached_end:
 		return
 	_go_next()
+
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:

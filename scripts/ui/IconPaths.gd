@@ -481,6 +481,7 @@ const ICON_MAP: Dictionary = {
 	"ui:missions":                 "res://assets/ui/menu/ICO_UI_Missions.png",
 	"survey:materials":            "res://assets/ui/survey/ICO_Survey_Materials.png",
 	"survey:clue":                 "res://assets/ui/survey/ICO_Survey_Clue.png",
+	"survey:dungeon_mourngate":    "res://assets/ui/survey/ICO_Survey_DG_Mourngate.png",
 	"passive:battle_fervor":       "res://assets/ui/passives/ICO_PASSIVE_BattleFervor.png",
 	# 隊長台帳セクション見出し（64x64）
 	"commander:overview":          "res://assets/ui/commander/ICO_CMD_Overview.png",

@@ -74,6 +74,7 @@ func _ready() -> void:
 		# オミット中は拠点へ戻す（ナビ直リンク等の保険）
 		SceneRouter.change_scene(HOME_SCENE)
 		return
+	AudioManager.play_bgm("gacha")
 	_setup_gacha_chrome()
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.GACHA)
 	_btn_back.pressed.connect(_on_back_pressed)

@@ -188,18 +188,20 @@ func test_forge_icon_cell_is_not_panel_container() -> void:
 
 
 func test_forge_list_icon_uses_flat_frame_at_list_size() -> void:
-	## 小さいセルは InvCell 9-slice ではなく Flat 四辺枠（左欠け見え防止）。
+	## 小さいセルは InvCell 9-slice ではなく Flat＋等倍 ItemBg（左欠け見え防止）。
 	var cell: Control = BlacksmithUiHelper.make_item_icon_cell(
 		"iron_sword", "weapon", 1, BlacksmithUiHelper.list_icon_px(), false
 	)
 	var sb: StyleBox = cell.get_theme_stylebox("normal")
 	assert_true(sb is StyleBoxFlat)
+	assert_not_null(cell.get_node_or_null("ItemBg"))
 	cell.free()
 	var big: Control = BlacksmithUiHelper.make_item_icon_cell(
 		"iron_sword", "weapon", 1, BlacksmithUiHelper.list_cell_px(), false
 	)
 	var big_sb: StyleBox = big.get_theme_stylebox("normal")
 	assert_true(big_sb is StyleBoxTexture)
+	assert_null(big.get_node_or_null("ItemBg"))
 	big.free()
 
 func test_bow_display_texture_is_cropped() -> void:

@@ -21,6 +21,7 @@ var _char_timer: float = 0.0
 
 
 func _ready() -> void:
+	AudioManager.play_bgm("introduction")
 	_build_ui()
 	_start_line()
 

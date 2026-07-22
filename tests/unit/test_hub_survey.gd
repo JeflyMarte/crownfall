@@ -84,3 +84,30 @@ func test_cycle_completes_with_time() -> void:
 func test_achieve_entries_exist() -> void:
 	var rows: Array[Dictionary] = _SurveySystem.achieve_entries()
 	assert_gt(rows.size(), 0)
+
+
+func test_speed_bonus_scales_with_combat_power() -> void:
+	## 案A: 総合戦闘力が高いほど調査速度ボーナスが大きい。
+	assert_true(not GameState.roster.is_empty(), "roster required")
+	var adv: Resource = GameState.roster[0]
+	assert_ne(adv, null)
+	var mid: String = str(adv.id)
+	var saved_hp: int = 0
+	if adv.base_stats != null:
+		saved_hp = int(adv.base_stats.hp)
+	var base_bonus: float = _SurveySystem.investigator_speed_bonus(mid, "")
+	assert_gte(base_bonus, _SurveyConfig.SPEED_BONUS_MIN)
+	assert_lte(base_bonus, _SurveyConfig.SPEED_BONUS_MAX + _SurveyConfig.SPEED_BONUS_ROLE)
+	## HP を上げるとボーナスが増える（上限未満のとき）。
+	var before_power: int = _SurveySystem.investigator_combat_power(mid)
+	if adv.base_stats != null:
+		adv.base_stats.hp = saved_hp + 2000
+	var after_power: int = _SurveySystem.investigator_combat_power(mid)
+	assert_gt(after_power, before_power)
+	var boosted: float = _SurveySystem.investigator_speed_bonus(mid, "")
+	assert_gte(boosted, base_bonus)
+	## 担当ロールはわずかに上乗せ。
+	var with_role: float = _SurveySystem.investigator_speed_bonus(mid, "archaeology")
+	assert_gte(with_role, boosted)
+	if adv.base_stats != null:
+		adv.base_stats.hp = saved_hp

@@ -6,6 +6,7 @@ extends RefCounted
 const _SurveyConfig := preload("res://scripts/survey/SurveyConfig.gd")
 const _WeaponStatResolver := preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _EquipmentEnhancer := preload("res://scripts/equipment/EquipmentEnhancer.gd")
+const _RosterUiHelper := preload("res://scripts/roster/RosterUiHelper.gd")
 
 
 static func get_survey_percent(dungeon_id: String) -> float:
@@ -67,16 +68,29 @@ static func on_codex_stage_up(enemy_id: String) -> void:
 	add_survey_percent(Constants.MOURNGATE_DUNGEON_ID, _SurveyConfig.SURVEY_ADD_CODEX_STAGE, false)
 
 
-static func investigator_speed_bonus(member_id: String, role_id: String) -> float:
+## 装備込みの総合戦闘力（ATK+DEF+HP）。調査速度ボーナスの比例元。
+static func investigator_combat_power(member_id: String) -> int:
 	var adv: Resource = GameState.find_roster_member_by_id(member_id)
 	if adv == null:
+		return 0
+	var stats: Dictionary = _RosterUiHelper.compute_member_stats(adv, -1)
+	return int(stats.get("attack", 0)) + int(stats.get("defense", 0)) + int(stats.get("hp", 0))
+
+
+static func investigator_speed_bonus(member_id: String, role_id: String) -> float:
+	var power: float = float(investigator_combat_power(member_id))
+	if power <= 0.0:
 		return 0.0
-	var rarity: int = clampi(int(adv.rarity) if "rarity" in adv else 1, 1, 4)
-	var base: float = 0.05 + float(rarity) * 0.012
+	var span: float = _SurveyConfig.SPEED_POWER_REF_HIGH - _SurveyConfig.SPEED_POWER_REF_LOW
+	var t: float = 0.0
+	if span > 0.0:
+		t = clampf((power - _SurveyConfig.SPEED_POWER_REF_LOW) / span, 0.0, 1.0)
+	var base: float = lerpf(_SurveyConfig.SPEED_BONUS_MIN, _SurveyConfig.SPEED_BONUS_MAX, t)
 	## 担当一致でわずかに上乗せ（表示用ロールは固定割当でも可）
 	if not role_id.is_empty():
-		base += 0.01
-	return clampf(base, 0.06, 0.10)
+		base += _SurveyConfig.SPEED_BONUS_ROLE
+	var cap: float = _SurveyConfig.SPEED_BONUS_MAX + _SurveyConfig.SPEED_BONUS_ROLE
+	return clampf(base, _SurveyConfig.SPEED_BONUS_MIN, cap)
 
 
 static func total_speed_bonus(assignees: Array) -> float:
@@ -204,27 +218,23 @@ static func _remove_dispatched_from_party() -> void:
 
 
 static func auto_assign_members() -> Array[String]:
-	var ids: Array[String] = []
+	## 総合戦闘力の高い順に埋める（調査速度＝ステ比例と整合）。
+	var scored: Array[Dictionary] = []
 	for adv in GameState.roster:
 		if adv == null:
 			continue
 		var mid: String = str(adv.id)
 		if mid.is_empty():
 			continue
-		## パーティー優先で埋める
-		if GameState.is_member_active(adv):
-			ids.append(mid)
-	for adv in GameState.roster:
-		if adv == null:
-			continue
-		var mid: String = str(adv.id)
-		if ids.has(mid):
-			continue
-		ids.append(mid)
+		scored.append({"id": mid, "power": investigator_combat_power(mid)})
+	scored.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return int(a.get("power", 0)) > int(b.get("power", 0))
+	)
+	var ids: Array[String] = []
+	for row: Dictionary in scored:
+		ids.append(str(row.get("id", "")))
 		if ids.size() >= _SurveyConfig.INVESTIGATOR_SLOTS:
 			break
-	while ids.size() > _SurveyConfig.INVESTIGATOR_SLOTS:
-		ids.pop_back()
 	return ids
 
 
@@ -247,10 +257,8 @@ static func claim_cycle() -> Dictionary:
 	if not weapon_id.is_empty():
 		_grant_weapon(weapon_id)
 	add_survey_percent(dungeon_id, _SurveyConfig.cycle_survey_add(preset), true)
-	var discovery: String = _discovery_flavor(dungeon_id)
 	GameState.hub_survey_cycle = {}
 	rewards["ok"] = true
-	rewards["discovery"] = discovery
 	rewards["dungeon_id"] = dungeon_id
 	SaveManager.save_game()
 	return rewards
@@ -315,14 +323,6 @@ static func _grant_weapon(weapon_id: String) -> void:
 	_WeaponStatResolver.apply_drop_stats(instance, weapon_data)
 	instance.is_appraised = true
 	GameState.inventory.append(instance)
-
-
-static func _discovery_flavor(dungeon_id: String) -> String:
-	if dungeon_id == Constants.MOURNGATE_DUNGEON_ID:
-		return "地下水路入口に関する記録の断片"
-	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
-	var name_str: String = dungeon_id if data == null else str(data.display_name)
-	return "%s に関する調査メモ" % name_str
 
 
 static func enemy_codex_fill_percent() -> float:
