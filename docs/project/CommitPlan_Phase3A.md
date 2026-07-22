@@ -97,7 +97,7 @@ P3-Prep-004/006/007: CommitPlan / OD-UI-001 / Batch 6+7 発注書
 |---|---|
 | `docs/specs/` 各ファイル（多数更新中） | ProjectDocs マイルストーン完了時 |
 | `resources/enemies/*.tres`（パラメータ更新） | HQ 確認後 |
-| `CLAUDE.md`, `README.md`, `.gitignore` | HQ 裁量 |
+| `AGENTS.md`, `README.md`, `.gitignore` | HQ 裁量 |
 | `resources/dungeons/royal_ruins.tres` | HQ 確認後 |
 
 ---

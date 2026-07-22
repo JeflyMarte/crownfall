@@ -10,6 +10,7 @@ const _StarterJoinOverlay := preload("res://scripts/roster/StarterJoinOverlay.gd
 
 const DUNGEON_SELECT_SCENE: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
 const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
+const SURVEY_SCENE: String = "res://scenes/survey/SurveyScene.tscn"
 const EQUIPMENT_SCENE: String = "res://scenes/equipment/EquipmentScene.tscn"
 const EQUIPMENT_CATALOG_SCENE: String = "res://scenes/equipment/EquipmentCatalogScene.tscn"
 const ROSTER_SCENE: String = "res://scenes/roster/RosterScene.tscn"
@@ -300,6 +301,8 @@ func _on_menu_entry_pressed(entry_id: String) -> void:
 			_on_roster_button_pressed()
 		"blacksmith":
 			_on_blacksmith_button_pressed()
+		"survey":
+			_on_survey_button_pressed()
 		"gacha":
 			_on_gacha_button_pressed()
 		"codex":
@@ -586,6 +589,9 @@ func _on_equipment_catalog_pressed() -> void:
 
 func _on_blacksmith_button_pressed() -> void:
 	SceneRouter.change_scene(BLACKSMITH_SCENE)
+
+func _on_survey_button_pressed() -> void:
+	SceneRouter.change_scene(SURVEY_SCENE)
 
 func _on_codex_button_pressed() -> void:
 	SceneRouter.change_scene(CODEX_SCENE)

@@ -13,7 +13,7 @@ const SAVE_PATH: String = "user://save_data.json"
 ## `_migrate_save_data` に v(n)→v(n+1) の段階マイグレーションを追加する。
 ## v0 = バージョンフィールド無しの旧セーブ（レガシー party/equipment/job/dungeon id を含む）
 ## v1 = save_version フィールド導入（2026-07-02）
-const SAVE_VERSION: int = 9
+const SAVE_VERSION: int = 10
 
 func save_game() -> void:
 	var data: Dictionary = {
@@ -23,6 +23,10 @@ func save_game() -> void:
 		"active_party_ids": _serialize_active_party_ids(),
 		"active_pet": _serialize_active_pet(),
 		"dungeon_progress": GameState.dungeon_progress,
+		"hub_survey_progress": GameState.hub_survey_progress.duplicate(true),
+		"hub_survey_cycle": GameState.hub_survey_cycle.duplicate(true),
+		"hub_survey_room_daily": GameState.hub_survey_room_daily.duplicate(true),
+		"hub_survey_achievements_claimed": GameState.hub_survey_achievements_claimed.duplicate(true),
 		"current_dungeon_id": GameState.current_dungeon_id,
 		"discovery_registry": GameState.discovery_registry,
 		"material_inventory": GameState.material_inventory.duplicate(),
@@ -101,7 +105,22 @@ func _migrate_save_data(data: Dictionary) -> Dictionary:
 		data = _migrate_save_v7_to_v8(data)
 	if version < 9:
 		data = _migrate_save_v8_to_v9(data)
+	if version < 10:
+		data = _migrate_save_v9_to_v10(data)
 	data["save_version"] = SAVE_VERSION
+	return data
+
+
+## P3-HUB-SURVEY-001: 拠点調査ゲージ／サイクル／実績
+func _migrate_save_v9_to_v10(data: Dictionary) -> Dictionary:
+	if not data.has("hub_survey_progress") or not (data["hub_survey_progress"] is Dictionary):
+		data["hub_survey_progress"] = {}
+	if not data.has("hub_survey_cycle") or not (data["hub_survey_cycle"] is Dictionary):
+		data["hub_survey_cycle"] = {}
+	if not data.has("hub_survey_room_daily") or not (data["hub_survey_room_daily"] is Dictionary):
+		data["hub_survey_room_daily"] = {}
+	if not data.has("hub_survey_achievements_claimed") or not (data["hub_survey_achievements_claimed"] is Dictionary):
+		data["hub_survey_achievements_claimed"] = {}
 	return data
 
 
@@ -466,6 +485,22 @@ func _apply_save_data(data: Dictionary) -> void:
 	GameState.debug_full_unlock = bool(data.get("debug_full_unlock", false))
 	if data.has("dungeon_progress") and data["dungeon_progress"] is Dictionary:
 		GameState.dungeon_progress = data["dungeon_progress"]
+	if data.has("hub_survey_progress") and data["hub_survey_progress"] is Dictionary:
+		GameState.hub_survey_progress = (data["hub_survey_progress"] as Dictionary).duplicate(true)
+	else:
+		GameState.hub_survey_progress = {}
+	if data.has("hub_survey_cycle") and data["hub_survey_cycle"] is Dictionary:
+		GameState.hub_survey_cycle = (data["hub_survey_cycle"] as Dictionary).duplicate(true)
+	else:
+		GameState.hub_survey_cycle = {}
+	if data.has("hub_survey_room_daily") and data["hub_survey_room_daily"] is Dictionary:
+		GameState.hub_survey_room_daily = (data["hub_survey_room_daily"] as Dictionary).duplicate(true)
+	else:
+		GameState.hub_survey_room_daily = {}
+	if data.has("hub_survey_achievements_claimed") and data["hub_survey_achievements_claimed"] is Dictionary:
+		GameState.hub_survey_achievements_claimed = (data["hub_survey_achievements_claimed"] as Dictionary).duplicate(true)
+	else:
+		GameState.hub_survey_achievements_claimed = {}
 	if data.has("current_dungeon_id"):
 		GameState.current_dungeon_id = _migrate_dungeon_id(str(data["current_dungeon_id"]))
 	if data.has("current_dungeon_tier"):

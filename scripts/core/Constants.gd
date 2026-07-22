@@ -6,12 +6,14 @@ const MAX_SUMMON_COUNT: int = 3
 const SUMMON_DURATION_SEC: float = 20.0
 const DEFAULT_DUNGEON_ROOM_COUNT: int = 10
 const MOURNGATE_DUNGEON_ID: String = "mourngate"
+const WHISPERWOOD_DUNGEON_ID: String = "whisperwood"
 const DEFAULT_DUNGEON_ID: String = MOURNGATE_DUNGEON_ID
 ## 寄り道(side)・征討(apex)をプレイ対象に含める（P3-DG-OMIT-001）。false=UI非表示・解放不可。
 const SUB_DUNGEONS_PLAYABLE: bool = false
 ## イベントダンジョン（route_type=event）をプレイ対象に含める（P3-DG-DUCK-EVENT-001）。
 const EVENT_DUNGEONS_PLAYABLE: bool = true
-## 公開β範囲をモーンゲートのみにする（P3-BETA-SCOPE-001）。true=他メインは解放判定 false（UIは🔒表示・データ残置）。
+## 公開β範囲をモーンゲート中心にする（P3-BETA-SCOPE-001）。
+## P3-HUB-SURVEY-001: ②whisperwood はボス＋調査クリアで解禁可。③以降のメインは引き続き封鎖。
 const BETA_MOURNGATE_ONLY: bool = true
 ## コズミックダック日次イベントDG id。
 const COSMIC_RIFT_DUNGEON_ID: String = "cosmic_rift"

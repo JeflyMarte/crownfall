@@ -362,7 +362,7 @@ P2-Task037  Build Summary UI ── Task034 完了後（依存: 033, 034, 032）
 P2-Task038  Phase2-M7 Closeout
 ```
 
-**推奨:** 1 Task / 1 依頼（CLAUDE.md 運用）。Task036 は Task034 と **並行可能**（UI のみ）。
+**推奨:** 1 Task / 1 依頼（`AGENTS.md` 運用）。Task036 は Task034 と **並行可能**（UI のみ）。
 
 ---
 

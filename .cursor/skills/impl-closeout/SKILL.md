@@ -45,6 +45,5 @@ bash tools/run_tests.sh
 
 ## 禁止
 
-- ChatGPT 向け `■ Task:` コピペブロック
 - 仕様外機能の独断追加
 - CurrentState.md / CurrentSprint.md の更新（HQ 担当）

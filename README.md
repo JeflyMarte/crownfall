@@ -33,6 +33,6 @@ docs/specs/decisions/        確定済みMVP方針
 | 役割 | 入口 |
 |---|---|
 | DevelopmentHQ（設計・進行） | [`docs/specs/core/06_DevelopmentHQ_Operations.md`](docs/specs/core/06_DevelopmentHQ_Operations.md) |
-| Implementation（実装） | [`AGENTS.md`](AGENTS.md) / [`CLAUDE.md`](CLAUDE.md) |
+| Implementation（実装） | [`AGENTS.md`](AGENTS.md) |
 
-開発は **Cursor** 上で運用する。旧 ChatGPT 司令塔 + コピペ報告フローは廃止。
+開発は **Cursor に一本化**（HQ / Impl とも Cursor）。
