@@ -57,8 +57,9 @@ func test_gacha_origin_notes_end_with_period() -> void:
 		assert_true(note.ends_with("。"), "%s origin_note" % str(helper.id))
 
 
-func test_battle_log_font_matches_body() -> void:
-	assert_eq(UiTypography.SIZE_LOG, UiTypography.SIZE_BODY)
+func test_battle_log_font_is_readable_body_small() -> void:
+	assert_eq(UiTypography.SIZE_LOG, UiTypography.SIZE_BODY_SMALL)
+	assert_lt(UiTypography.SIZE_LOG, UiTypography.SIZE_BODY)
 
 
 func test_intro_art_assets_exist() -> void:

@@ -15,6 +15,7 @@ const _EvolutionTraits = preload("res://scripts/systems/EvolutionTraits.gd")
 const _JobStatCalculator = preload("res://scripts/equipment/JobStatCalculator.gd")
 const _AffixStatCalculator = preload("res://scripts/equipment/AffixStatCalculator.gd")
 const _EquipmentEnhancer = preload("res://scripts/equipment/EquipmentEnhancer.gd")
+const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _WeaponFlavorHelper = preload("res://scripts/systems/WeaponFlavorHelper.gd")
 const _ElementResolver = preload("res://scripts/combat/ElementResolver.gd")
 const _SkillIconHelper = preload("res://scripts/ui/SkillIconHelper.gd")
@@ -905,6 +906,9 @@ func _compute_equipment_effect_bonuses(member: Resource) -> Dictionary:
 	var acc_data: Resource = _accessory_data(member.equipped_accessory)
 	var affix: Dictionary = _AffixStatCalculator.get_bonuses(party_idx) if party_idx >= 0 else {}
 	result["attack"] = int(affix.get("attack_flat", 0))
+	## 武器の実効攻撃力（炉研ぎ込み）。ここが欠けると「攻撃力 +0」のままになる。
+	if weapon != null:
+		result["attack"] += _EquipmentEnhancer.get_effective_attack(weapon)
 	if acc_data != null and member.equipped_accessory != null:
 		result["attack"] += EquipmentEnhancer.effective_accessory_int_bonus(
 			member.equipped_accessory, "attack_bonus", acc_data
@@ -931,6 +935,9 @@ func _compute_equipment_effect_bonuses(member: Resource) -> Dictionary:
 	if weapon != null:
 		result["crit_rate"] += float(weapon.critical_rate)
 		result["attack_speed"] = maxf(0.0, float(weapon.attack_speed) - 1.0)
+		## 会心ダメ倍率の 1.0 超過分（1.5 → +50%）。
+		var crit_dmg: float = _WeaponStatResolver.resolve_critical_damage(weapon)
+		result["crit_damage"] = maxf(0.0, crit_dmg - 1.0)
 	result["attack_speed"] += float(affix.get("attack_speed_mult_add", 0.0))
 	return result
 
@@ -1863,16 +1870,19 @@ func _compute_member_stats(idx: int, member_override: Resource = null) -> Dictio
 	defense = int(round(float(defense) * float(job.get("defense_multiplier", 1.0))))
 	var speed: float = weapon.attack_speed if weapon != null else 1.0
 	var crit: float = (weapon.critical_rate if weapon != null else 0.0)
-	if acc_data != null:
-		crit += acc_data.crit_rate_bonus
+	if acc_data != null and accessory != null:
+		crit += EquipmentEnhancer.effective_accessory_float_bonus(accessory, "crit_rate_bonus", acc_data)
 	crit += float(affix.get("crit_rate_add", 0.0))
+	var crit_damage: float = CRIT_DAMAGE_MULT
+	if weapon != null:
+		crit_damage = _WeaponStatResolver.resolve_critical_damage(weapon)
 	return {
 		"hp": hp,
 		"attack": attack,
 		"defense": defense,
 		"speed": speed,
 		"crit_rate": crit,
-		"crit_damage": CRIT_DAMAGE_MULT,
+		"crit_damage": crit_damage,
 	}
 
 # ---- スキルタブ（P3-D077） ----

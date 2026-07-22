@@ -13,10 +13,12 @@ alwaysApply: true
 |---|---|---|
 | `Could not resolve class "CurrencyGainFx"`（起動パース失敗） | `tween_method(` に複数行ラムダ＋直後の `,` や、静的関数内の複雑なインライン Callable | 飛行更新は `_make_*` で Callable を返す。mutable カウンタは `Dictionary`。修正後 headless 起動確認 |
 | `Parser Error: Expected statement, found "else"` | Python の `for`/`else`・`while`/`else` | `gdscript.mdc` — フラグループを使う |
+| 編成の「おすすめ／陣形」が Header 金線に食い込む | タブが MainScroll 先頭で offset 余白だけに依存し潰れる | タブを Header 直下の固定 `ToolbarBand` に分離し、一覧スクロールはその下へ |
 | 起動時黒画面・`inherits from Control, can't assign to Node` | `BootScene.gd` が `extends Control` なのに `.tscn` ルートが `Node` | スクリプトの `extends` とシーンルート型を一致させる。Boot は `Node` が正 |
 | 起動時 autoload 失敗 / 壊れた UID | `project.godot` の空 autoload・不正 `uid://`（例: `_MCPGameBridge`） | autoload は実在パスのみ。UID 直書きを壊さない。変更後 headless 起動確認 |
 | 図鑑/装備カタログのパースエラー | `EquipmentUiTokens` 等の **参照メソッド欠落** | public API 削除・リネーム時は呼び出し側を一括検索 |
-| メイン5がキャラ画面で★4表示 | キャラ★（個数1〜4）に装備用 `rarity_stars_text`（`rarity+1`）を適用 | キャラは `stars_text` / `RosterUiHelper.stars_text`。装備のみ `rarity_stars_text` |
+| 設定画面下に謎の横線（ーーー） | `UI_BG_Commander` 等の罫線テクスチャが空き領域に見える | 設定はテクスチャBG禁止。単色 `ColorRect` のみ |
+| 設定の音声パネルが Header に食い込む | MainScroll `offset_top` が Header 下端に追従していない／余白不足 | Header 実サイズ下端＋`HEADER_CONTENT_GAP`（≧24）へ同期。chrome 前に meta を入れる |
 | キャラ管理オープンで即終了 | `Control.custom_maximum_size` を参照（**Godot 4.6.3 未実装**。4.x latest/PR のみ） | `gdscript.mdc` / `ui-layout.mdc` — 現行エンジンに無い API を使わない。固定サイズは `custom_minimum_size` + `SIZE_SHRINK_*` + 親も SHRINK |
 | Biome バナーが潰れる／タイトル欠ける | 2:1 キーアートを薄い strip（112px）に中央クロップ | `generate_biome_banner.py` は **アスペクト維持が既定**。タイトル焼込は `BIOME_BANNER_TITLE_BAKED`＋一覧ヘッダ高さは縦横比から算出 |
 | HBox 内の数値が消える（アイコンだけ残る） | Label の `clip_text=true` は最小幅 0 → SHRINK の HBox で幅が潰れる | `ui-layout.mdc` — 短い数値は `clip_text=false`。必要なら `EXPAND_FILL` |
@@ -42,7 +44,8 @@ alwaysApply: true
 | 陣形で前→後に動かすとキャラが複製表示 | 空き枠を `party_members[i]` で埋めて同一メンバーが複数スロットに入る | 未配置メンバーから埋める＋スロット重複除去 |
 | 装備一覧の攻・防・会心アイコンが古い | `equipment_ui/` 本番が procedural 小アイコンのまま。更新アートは `preview/` に滞留 | `preprocess_equipment_stat_icons.py --apply` で preview→本番＋forge へ反映 |
 | キャラ画面の★が灰色 | LabelStars に見出しフォント（Shippori）を当てると ★ 欠落でフォールバックが灰色に見える | 本文フォント＋`UiTypography.COLOR_GOLD`（ガチャと同ポリシー） |
-| 結果画面に次ダンジョン導線が無い | 再挑戦／拠点のみ | クリア時に `get_next_stage_after` で次章があれば「次のダンジョンへ」 |
+| ガチャ／鍛冶BGMが他画面に残る | Equipment 等の拠点画面が `play_bgm` せず継続再生 | `BgmCatalog.SCENE_BGM`＋`SceneRouter.change_scene` で画面入場時に切替（拠点=hub） |
+| 敵の行動順アイコンが真っ黒 | 焼込枠＋暗い plate＋非アクティブ alpha 0.55 | Turn アイコンはシャドウリフト。非アクティブは不透明寄り＋敵は軽い modulate 持ち上げ |
 
 ## アセット取込（Desktop → プロジェクト）
 
@@ -59,7 +62,9 @@ alwaysApply: true
 | MVP 表彰枠が白／灰の不透明板 | AI 生成 PNG が RGB 白マットのまま（内外の穴も非連結） | エッジ＋中心穴の flood-fill で透過化（`import_forge_ui_assets.strip_edge_background` 相当）。差替後 `.godot/imported` を該当分クリア |
 | 戦闘ヒット／回復 VFX に暗縁 | `remove_black_bg(threshold=24)` では暗青緑マット `(14,21,25)` が残る | `tools/generate_env_and_vfx.py` の `clean_vfx_image`（`fix_batch6_vfx`）で再生成。alpha=0 の RGB ゴミも `sanitize_alpha` |
 | ダンジョン選択の Featured バナーに名前が無い | `_sync_featured_banner` が画像のみで、一覧ヘッダのタイトル重ねを省略していた | 一覧と同様に `display_name` ラベルを中央重ね（焼き込み Banner は従来どおり非表示） |
-| 戦闘ログ最上行が見切れる | 本文サイズ拡大後も行高／上余白が旧フォント想定のまま | `BATTLE_LOG_LINE_HEIGHT`・パネル／Margin の上余白を本文サイズに合わせて確保 |
+| 戦闘ログ最上行が見切れる | 本文サイズ拡大後も行高／上余白が旧フォント想定のまま | `BATTLE_LOG_LINE_HEIGHT`・パネル／Margin の上余白を本文サイズに合わせて確保。`SIZE_LOG` 変更時は行高も同期 |
+| 状態異常アイコンが敵HPバーの裏 | 行の z 未設定＋敵アイコンYがバーと同帯 | `COMBAT_OVERLAY_Z+3`＋HPバー直上に配置（`_enemy_hp_bar_top_y_in_root`） |
+| 複数敵が右にはみ出す | 固定 spacing で右端 ratio>0.9 | `_swarm_x_ratio_for_slot` で MIN/MAX 内に収める |
 | 枠にアイコンが食い込む | inset 不足 | `EquipmentUiTokens.ICON_FRAME_MARGIN_PX`（現行 18）を維持。全面キャンバス絵は余白を減らさない |
 | UI idle が拡縮／左右に跳ぶ | `idle_*.png` のフレーム間で描画サイズ・中心が不安定。安易な再配置や静止固定の行き来 | `ui-layout.mdc`「CHR Idle ポートレート」— 軽微は間引き、重度のみ足元固定。横跳びする再中央寄せをしない |
 | キャラ切替で装備アイコンが拡大 | Grid/`EXPAND_FILL` でセルが伸びる、または幅から `cell_px` を再計算して肥大化 | `ui-layout.mdc`「装備セルサイズ」— スロット/`INV_CELL` とも固定 px＋親子 `SIZE_SHRINK_*` |

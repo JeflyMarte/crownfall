@@ -1047,6 +1047,8 @@ func _sync_featured_banner(dungeon_id: String) -> void:
 	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_featured_banner_host.add_child(banner)
 	## 一覧バナーと同様、画像上にダンジョン名を重ねる（焼き込み無しの雰囲気BG向け）。
+	## Mourngate 系バナーのネームプレートは幾何中心よりやや上＋見出しフォントのアセントで上寄りに見えるため、
+	## 上余白を厚くして視覚中央を下げる。
 	if _banner_hides_title(dungeon_id):
 		return
 	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
@@ -1058,6 +1060,8 @@ func _sync_featured_banner(dungeon_id: String) -> void:
 	title.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	title.offset_left = 12.0
 	title.offset_right = -12.0
+	title.offset_top = 18.0
+	title.offset_bottom = -2.0
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	title.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -1100,14 +1104,15 @@ func _make_biome_banner_header(
 	root.add_child(banner)
 
 	## タイトルは Featured と同様バナー全面中央。シェブロンは左オーバーレイ（HBox だと右寄りになる）。
+	## ネームプレート／見出しフォント分だけ上余白を厚くし、文字の視覚位置を下げる。
 	if not _banner_hides_title(dungeon_id):
 		var title := Label.new()
 		title.text = _dungeon_card_title(data, unlocked)
 		title.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		title.offset_left = 36.0
 		title.offset_right = -36.0
-		title.offset_top = 4.0
-		title.offset_bottom = -4.0
+		title.offset_top = 18.0
+		title.offset_bottom = -2.0
 		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		title.autowrap_mode = TextServer.AUTOWRAP_OFF
