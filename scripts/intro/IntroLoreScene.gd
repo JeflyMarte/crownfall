@@ -20,6 +20,10 @@ const FADE_BAND_PX: float = 56.0
 ## 先頭／末尾に足す余白（viewport 高さ比）。これで必ずクロール距離が生まれる。
 const LEAD_IN_VIEW_RATIO: float = 0.72
 const LEAD_OUT_VIEW_RATIO: float = 0.85
+## aspect=keep でも Home Indicator 近傍に沈まないよう Intro 専用の下余白下限。
+const INTRO_MIN_BOTTOM_MARGIN: float = 48.0
+const INTRO_BASE_TOP_MARGIN: float = 28.0
+const INTRO_BASE_BOTTOM_MARGIN: float = 24.0
 
 var _clip: Control
 var _list: VBoxContainer
@@ -31,6 +35,7 @@ var _hint_lbl: Label
 var _crawl_active: bool = false
 var _crawl_boost: bool = false
 var _reached_end: bool = false
+var _continue_ready: bool = false
 var _scroll_pos: float = 0.0
 var _layout_ready: bool = false
 var _root_margin: MarginContainer
@@ -189,12 +194,14 @@ func _build_ui() -> void:
 	_continue_btn = Button.new()
 	_continue_btn.text = "続ける"
 	_continue_btn.custom_minimum_size = Vector2(0, 56)
-	_continue_btn.disabled = true
+	## disabled だと実機でタップが落ちることがあるため、見た目＋ガードで制御する。
+	_continue_btn.disabled = false
+	_continue_ready = false
 	_continue_btn.modulate = Color(1, 1, 1, 0.45)
 	_continue_btn.mouse_filter = Control.MOUSE_FILTER_STOP
 	_continue_btn.focus_mode = Control.FOCUS_ALL
 	UiTypography.apply_button(_continue_btn)
-	_continue_btn.pressed.connect(_go_next)
+	_continue_btn.pressed.connect(_on_continue_pressed)
 	root.add_child(_continue_btn)
 
 
@@ -202,10 +209,22 @@ func _apply_safe_area_margins() -> void:
 	if _root_margin == null:
 		return
 	## iPhone Home Indicator 下に「続ける」が沈みタップ不能になるのを防ぐ。
-	var top: float = 28.0 + _SafeAreaHelper.top_inset()
-	var bottom: float = 24.0 + _SafeAreaHelper.bottom_inset()
+	## aspect=keep 時は SafeAreaHelper が inset=0 を返すため、モバイルでは下限を常時確保する。
+	var top: float = INTRO_BASE_TOP_MARGIN + _SafeAreaHelper.top_inset()
+	var bottom: float = INTRO_BASE_BOTTOM_MARGIN + _SafeAreaHelper.bottom_inset()
+	if _needs_intro_bottom_guard():
+		bottom = maxf(bottom, INTRO_MIN_BOTTOM_MARGIN)
 	_root_margin.add_theme_constant_override("margin_top", int(ceil(top)))
 	_root_margin.add_theme_constant_override("margin_bottom", int(ceil(bottom)))
+
+
+func _needs_intro_bottom_guard() -> bool:
+	var os_name: String = OS.get_name()
+	if os_name == "iOS" or os_name == "Android":
+		return true
+	if ProjectSettings.has_setting(_SafeAreaHelper.SETTINGS_SIMULATE):
+		return bool(ProjectSettings.get_setting(_SafeAreaHelper.SETTINGS_SIMULATE))
+	return false
 
 
 func _make_spacer(height_px: float) -> Control:
@@ -351,6 +370,7 @@ func _on_reached_end() -> void:
 	if _hint_lbl != null:
 		_hint_lbl.text = "準備ができたら続けてください"
 	if _continue_btn != null:
+		_continue_ready = true
 		_continue_btn.disabled = false
 		_continue_btn.modulate = Color(1, 1, 1, 1)
 		_continue_btn.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -358,6 +378,11 @@ func _on_reached_end() -> void:
 		_continue_btn.z_index = 8
 		_continue_btn.move_to_front()
 
+
+func _on_continue_pressed() -> void:
+	if not _continue_ready:
+		return
+	_go_next()
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:

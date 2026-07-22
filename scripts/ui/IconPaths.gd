@@ -414,7 +414,11 @@ const ICON_MAP: Dictionary = {
 	"status:armor_break":           "res://assets/ui/status/ICO_STA_ArmorBreak.png",
 	"status:mark":                  "res://assets/ui/status/ICO_STA_Mark.png",
 	"status:empower":               "res://assets/ui/status/ICO_STA_Empower.png",
+	"status:empower_minor":         "res://assets/ui/status/ICO_STA_Empower.png",
 	"status:guard":                 "res://assets/ui/status/ICO_STA_Guard.png",
+	"status:bleed":                 "res://assets/ui/status/ICO_STA_Bleed.png",
+	"status:slow":                  "res://assets/ui/status/ICO_STA_Slow.png",
+	"status:enrage":                "res://assets/ui/status/ICO_STA_Enrage.png",
 	# 図鑑カテゴリ（歴史・記録・手引き）
 	"history:HE-001":           "res://assets/ui/codex/ICO_CDX_HIS_HE001.png",
 	"history:HE-002":           "res://assets/ui/codex/ICO_CDX_HIS_HE002.png",

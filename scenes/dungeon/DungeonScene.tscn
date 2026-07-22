@@ -71,7 +71,7 @@ vertical_alignment = 1
 layout_mode = 2
 toggle_mode = true
 button_pressed = true
-text = "×0.75"
+text = "×1"
 
 [node name="ButtonSpeedX2" type="Button" parent="MainVBox/HeaderBar"]
 layout_mode = 2

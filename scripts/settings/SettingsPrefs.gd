@@ -19,14 +19,12 @@ const BUS_MASTER: String = "Master"
 const BUS_BGM: String = "BGM"
 const BUS_SFX: String = "SFX"
 
-## DungeonScene の SPEED_MULT_* と揃える。
-const SPEED_X1: float = 0.75
-const SPEED_X15: float = 1.125
-const SPEED_X2: float = 1.5
+## DungeonScene の SPEED_MULT_* と揃える（×1 / ×1.5 の2択）。
+const SPEED_X1: float = 1.0
+const SPEED_X15: float = 1.5
 
 const SPEED_ID_X1: String = "x1"
 const SPEED_ID_X15: String = "x1_5"
-const SPEED_ID_X2: String = "x2"
 
 static var _loaded: bool = false
 static var _master: float = 1.0
@@ -229,16 +227,13 @@ static func speed_mult_for_id(speed_id: String) -> float:
 	match _normalize_speed_id(speed_id):
 		SPEED_ID_X15:
 			return SPEED_X15
-		SPEED_ID_X2:
-			return SPEED_X2
 		_:
 			return SPEED_X1
 
 
 static func speed_id_for_mult(mult: float) -> String:
-	if is_equal_approx(mult, SPEED_X2):
-		return SPEED_ID_X2
-	if is_equal_approx(mult, SPEED_X15):
+	## 旧 ×2(1.5) / 旧 ×1.5(1.125) / 新 ×1.5 をまとめて ×1.5 扱い。
+	if mult >= 1.25:
 		return SPEED_ID_X15
 	return SPEED_ID_X1
 
@@ -247,21 +242,17 @@ static func speed_label(speed_id: String) -> String:
 	match _normalize_speed_id(speed_id):
 		SPEED_ID_X15:
 			return "×1.5"
-		SPEED_ID_X2:
-			return "×2"
 		_:
 			return "×1"
 
 
 static func _normalize_speed_id(speed_id: String) -> String:
 	match speed_id:
-		SPEED_ID_X15, "x1.5", "1.5", "medium":
+		SPEED_ID_X15, "x1.5", "1.5", "medium", "x2", "2", "fast":
+			## 旧 ×2 設定は ×1.5 へ統合。
 			return SPEED_ID_X15
-		SPEED_ID_X2, "2", "fast":
-			return SPEED_ID_X2
 		_:
 			return SPEED_ID_X1
-
 
 static func app_version_text() -> String:
 	return str(ProjectSettings.get_setting("application/config/version", "0.1.0"))
