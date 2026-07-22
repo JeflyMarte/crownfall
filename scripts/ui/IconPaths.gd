@@ -248,6 +248,11 @@ const ICON_MAP: Dictionary = {
 	"stage:mourngate_1_3":         "res://assets/dungeon/mourngate/stages/ICO_DG_Mourngate_1_3.png",
 	"stage:mourngate_1_4":         "res://assets/dungeon/mourngate/stages/ICO_DG_Mourngate_1_4.png",
 	"stage:mourngate_1_5":         "res://assets/dungeon/mourngate/stages/ICO_DG_Mourngate_1_5.png",
+	# イベントDG章（暫定: ボス／代表敵アートから生成）
+	"stage:cosmic_rift_1_1":       "res://assets/dungeon/event/stages/ICO_DG_CosmicRift_1_1.png",
+	"stage:crown_rookery_1_1":     "res://assets/dungeon/event/stages/ICO_DG_CrownRookery_1_1.png",
+	"dungeon:cosmic_rift":         "res://assets/dungeon/event/stages/ICO_DG_CosmicRift_1_1.png",
+	"dungeon:crown_rookery":       "res://assets/dungeon/event/stages/ICO_DG_CrownRookery_1_1.png",
 	# ② ウィスパーウッド — 章別 icon 5点（P3-DG-STG / WW-2）
 	"stage:whisperwood_2_1":       "res://assets/dungeon/whisperwood/stages/ICO_DG_Whisperwood_2_1.png",
 	"stage:whisperwood_2_2":       "res://assets/dungeon/whisperwood/stages/ICO_DG_Whisperwood_2_2.png",
