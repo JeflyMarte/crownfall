@@ -1,6 +1,6 @@
 # Crownfall 世界観資料（World）
 
-**Status:** 採用（正式 SSOT / cutover 完了 2026-06-27 P3-D041b）。15 文書（+ Fragments P3-W-022 / Characters P3-W-023 / Society P3-W-027）
+**Status:** 採用（正式 SSOT / cutover 完了 2026-06-27 P3-D041b）。15 文書（+ Fragments P3-W-022 / Characters P3-W-023 / Society P3-W-027）。**P3-W-031**（2026-07-22）で β向け人物・遍在希少種・招待状／魔晶石・参照整合を追記。
 **入口:** `00_Overview.md`
 
 世界観・ロアの SSOT 置き場。数値・スキーマ・実装ルールは `docs/specs/game/` / `docs/specs/implementation/` に置く。
