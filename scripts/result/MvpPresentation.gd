@@ -12,7 +12,6 @@ const COLOR_GOLD: Color = Color(0.92, 0.78, 0.34)
 const COLOR_STAT_DAMAGE: Color = Color(1.0, 0.55, 0.42)
 const COLOR_STAT_HIT: Color = Color(1.0, 0.86, 0.38)
 const COLOR_STAT_HEAL: Color = Color(0.45, 0.95, 0.58)
-const COLOR_STAT_SCORE: Color = Color(0.78, 0.62, 1.0)
 
 const HERO_PORTRAIT_PX: float = 168.0
 const RUNNER_PORTRAIT_PX: float = 112.0
@@ -23,7 +22,6 @@ const PODIUM_WIDTH: float = 600.0
 const STAT_DAMAGE_ICON: String = "res://assets/ui/batch2/ICO_WPN_IronSword.png"
 const STAT_HIT_ICON: String = "res://assets/ui/batch2/ICO_WPN_FrostBlade.png"
 const STAT_HEAL_ICON: String = "res://assets/ui/batch2/ICO_HP.png"
-const STAT_SCORE_ICON: String = "res://assets/ui/batch2/ICO_Gold.png"
 
 const BACKDROP_HEADER_BG: Color = Color(0.04, 0.05, 0.1, 0.9)
 const BACKDROP_BODY_BG: Color = Color(0.03, 0.04, 0.08, 0.86)
@@ -94,6 +92,7 @@ static func pick_subtitle(entry: Dictionary) -> String:
 
 
 static func stat_cards(entry: Dictionary) -> Array:
+	## MVPスコアは内部選出用のみ表示しない（P3-UX-RESULT-004-2）。
 	return [
 		{
 			"key": "与ダメージ",
@@ -112,12 +111,6 @@ static func stat_cards(entry: Dictionary) -> Array:
 			"value": str(int(entry.get("heal_total", 0))),
 			"icon": STAT_HEAL_ICON,
 			"color": COLOR_STAT_HEAL,
-		},
-		{
-			"key": "MVPスコア",
-			"value": str(int(entry.get("score", 0))),
-			"icon": STAT_SCORE_ICON,
-			"color": COLOR_STAT_SCORE,
 		},
 	]
 
