@@ -28,6 +28,14 @@ func test_defense_never_reduces_below_one() -> void:
 func test_defense_null_enemy_passthrough() -> void:
 	assert_eq(DamageCalculator.apply_enemy_defense(42, null), 42, "敵データ null は素通し")
 
+func test_member_defense_uses_same_mitigation_formula() -> void:
+	## P3-BAL-OPENING-002: 敵→味方も K/(K+DEF)。flat 減算ではない。
+	var k: int = int(BalanceConfig.DEFENSE_MITIGATION_K)
+	assert_eq(DamageCalculator.apply_member_defense(100, k), 50, "DEF=K で被ダメ半減")
+	assert_eq(DamageCalculator.apply_member_defense(125, 153), 105, "序盤: ATK125 vs DEF153 は ~105（旧 flat なら1）")
+	assert_eq(DamageCalculator.apply_member_defense(80, 0), 80, "DEF=0 は素通し")
+	assert_eq(DamageCalculator.apply_member_defense(1, 9999), 1, "最低1ダメージ保証")
+
 func test_armor_break_reduces_effective_defense() -> void:
 	var k: int = int(BalanceConfig.DEFENSE_MITIGATION_K)
 	var base: int = DamageCalculator.apply_enemy_defense(100, _make_enemy(k))

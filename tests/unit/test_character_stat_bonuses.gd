@@ -92,15 +92,16 @@ func test_personal_bonus_triplets_are_all_unique() -> void:
 func test_starter_ald_profile() -> void:
 	var ald: Resource = _make_member("adventurer_0", "swordsman", Adventurer.STARTER_RARITY)
 	GachaRarityConfig.apply_stats_for_adventurer(ald)
-	## P3-BAL-OPENING-001: ★／個人ボーナス ×0.70 後の値
+	## P3-BAL-OPENING-002: HP/DEF×0.70・ATK×0.40 後の値
 	assert_eq(int(ald.base_stats.hp), 1123)
-	assert_eq(int(ald.base_stats.attack), 234)
+	assert_eq(int(ald.base_stats.attack), 134)
 	assert_eq(int(ald.base_stats.defense), 146)
 
 
 func test_ally_stat_bonus_scale_is_opening_balance() -> void:
 	assert_almost_eq(BalanceConfig.ALLY_STAT_BONUS_SCALE, 0.70, 0.001)
-	assert_almost_eq(BalanceConfig.ENEMY_GLOBAL_HP_MULT, 1.50, 0.001)
+	assert_almost_eq(BalanceConfig.ALLY_ATK_BONUS_SCALE, 0.40, 0.001)
+	assert_almost_eq(BalanceConfig.ENEMY_GLOBAL_HP_MULT, 2.00, 0.001)
 	assert_almost_eq(BalanceConfig.ENEMY_GLOBAL_ATK_MULT, 1.30, 0.001)
 
 
