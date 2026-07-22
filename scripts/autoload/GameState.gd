@@ -67,6 +67,15 @@ var dungeon_tier_cleared: Dictionary = {}
 # ダンジョン別の発見度・解放状態 { dungeon_id: { discovery: float, hidden_room: bool, hidden_boss: bool } }
 var dungeon_progress: Dictionary = {}
 
+## 拠点調査ゲージ { dungeon_id: float 0..100 }（P3-HUB-SURVEY-001）。
+var hub_survey_progress: Dictionary = {}
+## 進行中の調査サイクル（空=なし）。
+var hub_survey_cycle: Dictionary = {}
+## 調査室由来の1日 SURVEY 加算 { day_key, used }。
+var hub_survey_room_daily: Dictionary = {}
+## 図鑑実績の受取済み id { achieve_id: true }。
+var hub_survey_achievements_claimed: Dictionary = {}
+
 # 発見登録 { "category:entry_id": true } — Codex 基盤（P2-Task018）
 var discovery_registry: Dictionary = {}
 
@@ -229,7 +238,8 @@ func mark_stage_cleared(stage_id: String, tier: int = -1) -> void:
 		not stages.is_empty()
 		and int(stage.chapter_index) >= int(stages[stages.size() - 1].chapter_index)
 	)
-	if bool(stage.has_boss_floor()):
+	var has_boss: bool = bool(stage.has_boss_floor())
+	if has_boss:
 		mark_dungeon_tier_cleared(biome_id, t)
 		if t == _DungeonTierConfig.TIER_NORMAL:
 			mark_dungeon_cleared(biome_id)
@@ -238,6 +248,9 @@ func mark_stage_cleared(stage_id: String, tier: int = -1) -> void:
 		mark_dungeon_tier_cleared(biome_id, t)
 		if t == _DungeonTierConfig.TIER_NORMAL:
 			mark_dungeon_cleared(biome_id)
+	## 拠点調査ゲージ（P3-HUB-SURVEY-001）
+	const _SurveySystem := preload("res://scripts/survey/SurveySystem.gd")
+	_SurveySystem.on_stage_cleared(stage_id, first_clear, has_boss)
 	if first_clear:
 		## クリア時点では候補のみ確定。roster 追加は拠点の加入演出で行う。
 		var pick: Dictionary = _StarterRecruitment.pick_recruit_after_first_clear(stage_id, t)
@@ -403,9 +416,9 @@ func mark_dungeon_tier_cleared(dungeon_id: String, tier: int) -> void:
 	per_dungeon[str(t)] = true
 	dungeon_tier_cleared[dungeon_id] = per_dungeon
 
-# ダンジョン解放判定（P3-D157）。メインルートは難易度順の直列解放
-# メイン以外（サブルート等）は当面 unlock_after_dungeon_id（空=常時解放）で判定する。
-# P3-BETA-SCOPE-001: BETA_MOURNGATE_ONLY 時はモーンゲート以外のメインを常に未解放扱いにする。
+# ダンジョン解放判定（P3-D157 / P3-HUB-SURVEY-001）。
+# メインルートは難易度順の直列解放。②は加えて① SURVEY≥70%。
+# β: ③以降のメインは封鎖。②は条件付き解禁可。
 func is_dungeon_unlocked(dungeon_id: String) -> bool:
 	if dungeon_id.is_empty() or not ResourceLoader.exists(Constants.RESOURCE_DUNGEONS_PATH + dungeon_id + ".tres"):
 		return false
@@ -421,6 +434,7 @@ func is_dungeon_unlocked(dungeon_id: String) -> bool:
 		Constants.BETA_MOURNGATE_ONLY
 		and str(data.route_type) == "main"
 		and dungeon_id != Constants.MOURNGATE_DUNGEON_ID
+		and dungeon_id != Constants.WHISPERWOOD_DUNGEON_ID
 	):
 		return false
 	if str(data.route_type) != "main":
@@ -432,11 +446,18 @@ func is_dungeon_unlocked(dungeon_id: String) -> bool:
 			mains.append(d)
 	mains.sort_custom(func(a, b): return int(a.difficulty) < int(b.difficulty))
 	var prev_id: String = ""
+	var serial_ok: bool = false
 	for d in mains:
 		if str(d.id) == dungeon_id:
-			return prev_id.is_empty() or is_dungeon_cleared(prev_id)
+			serial_ok = prev_id.is_empty() or is_dungeon_cleared(prev_id)
+			break
 		prev_id = str(d.id)
-	return false
+	if not serial_ok:
+		return false
+	if dungeon_id == Constants.WHISPERWOOD_DUNGEON_ID:
+		const _SurveySystem := preload("res://scripts/survey/SurveySystem.gd")
+		return _SurveySystem.is_survey_clear(Constants.MOURNGATE_DUNGEON_ID)
+	return true
 
 
 ## イベントDGの本日残り挑戦回数（無制限DGは -1）。
@@ -1226,6 +1247,10 @@ func reset_for_new_game() -> void:
 	accessory_inventory = []
 	material_inventory = {}
 	dungeon_progress = {}
+	hub_survey_progress = {}
+	hub_survey_cycle = {}
+	hub_survey_room_daily = {}
+	hub_survey_achievements_claimed = {}
 	discovery_registry = {}
 	tutorial_flags = {}
 	stage_progress = {}
@@ -1704,9 +1729,12 @@ func find_roster_member_by_id(member_id: String) -> Resource:
 func set_active_party(members: Array) -> bool:
 	if members.is_empty() or members.size() > ACTIVE_PARTY_SIZE:
 		return false
+	const _SurveySystem := preload("res://scripts/survey/SurveySystem.gd")
 	var seen: Array = []
 	for adv in members:
 		if adv == null or not roster.has(adv) or seen.has(adv):
+			return false
+		if _SurveySystem.is_member_dispatched(str(adv.id)):
 			return false
 		seen.append(adv)
 	party_members = members.duplicate()
