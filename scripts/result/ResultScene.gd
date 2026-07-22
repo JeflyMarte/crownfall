@@ -979,15 +979,7 @@ func _build_rewards() -> void:
 	_reward_row.add_child(_make_reward_cell(exp_icon, "EXP", "経験値", str(GameState.last_run_exp_reward)))
 	var gold_icon: Texture2D = load("res://assets/ui/batch2/ICO_Gold.png") as Texture2D
 	_reward_row.add_child(_make_reward_cell(gold_icon, "G", "ゴールド", str(GameState.last_run_gold_reward)))
-	if not GameState.last_run_starter_recruited_name.is_empty():
-		_reward_row.add_child(
-			_make_reward_cell(
-				null,
-				"加入",
-				"隊員合流",
-				str(GameState.last_run_starter_recruited_name)
-			)
-		)
+	## スターター加入は拠点でセリフ＋入手演出（Result では出さない）。
 	if GameState.last_run_token_reward > 0:
 		_reward_row.add_child(_make_reward_cell(
 			CurrencyHelper.get_icon_texture(), "", CurrencyHelper.DISPLAY_NAME,

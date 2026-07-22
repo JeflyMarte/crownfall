@@ -15,6 +15,7 @@ func before_each() -> void:
 	GameState.stage_progress.clear()
 	GameState.last_run_starter_recruited_id = ""
 	GameState.last_run_starter_recruited_name = ""
+	GameState.pending_starter_recruit_id = ""
 	GameState.inventory.clear()
 	GameState.armor_inventory.clear()
 	GameState.accessory_inventory.clear()
@@ -53,8 +54,24 @@ func test_chapter5_normal_recruits() -> void:
 		)
 	)
 	GameState.mark_stage_cleared("mourngate_1_5", _DungeonTierConfig.TIER_NORMAL)
-	assert_eq(GameState.roster.size(), 2)
+	## クリア時点では候補のみ。roster はまだ開始1人。
+	assert_eq(GameState.roster.size(), 1)
+	assert_false(GameState.pending_starter_recruit_id.is_empty())
 	assert_false(GameState.last_run_starter_recruited_name.is_empty())
+	var joined: Resource = GameState.commit_pending_starter_recruit()
+	assert_true(joined != null)
+	assert_eq(GameState.roster.size(), 2)
+	assert_eq(GameState.pending_starter_recruit_id, "")
+
+
+func test_pick_does_not_unlock() -> void:
+	GameState.select_starting_adventurer("adventurer_0")
+	var pick: Dictionary = _StarterRecruitment.pick_recruit_after_first_clear(
+		"mourngate_1_5", _DungeonTierConfig.TIER_NORMAL
+	)
+	assert_false(pick.is_empty())
+	assert_eq(GameState.roster.size(), 1)
+	assert_false(GameState.is_starter_unlocked(str(pick.get("id", ""))))
 
 
 func test_beta_extra_off_chapters_2_to_4_do_not_recruit() -> void:
