@@ -588,7 +588,7 @@ func _play_summon_reveal(result: Dictionary) -> void:
 	_set_featured_timer_running(false)
 	_set_pull_controls_enabled(false)
 	_summon_layer.visible = true
-	AudioManager.play_sfx("level_up")
+	AudioManager.play_sfx("gacha_reveal")
 
 	var helper_id: String = str(result.get("helper_id", ""))
 	var is_new: bool = bool(result.get("is_new", false))
