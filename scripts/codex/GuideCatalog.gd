@@ -295,7 +295,11 @@ static func _g011() -> String:
 		+ "9. 敵の被ダメ状態（標的・脆弱・感電等）\n"
 		+ "10. 最終 ±10％ 乱数\n\n"
 		+ _s("敵→味方") + "\n"
-		+ "敵攻撃力 × 威力 − 味方防御（最低 1）\n"
+		+ "敵攻撃力 × 威力\n"
+		+ "→ 味方防御による逓減 … ダメージ × %d/(%d+防御)\n" % [
+			int(BalanceConfig.DEFENSE_MITIGATION_K),
+			int(BalanceConfig.DEFENSE_MITIGATION_K),
+		]
 		+ "→ 防御状態・陣形・パッシブ被ダメ軽減\n"
 		+ "→ 回避判定（装備合算、上限 50％）\n"
 		+ "→ 防具の属性耐性（一致時 ×0.75）\n"

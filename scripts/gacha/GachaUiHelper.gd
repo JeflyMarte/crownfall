@@ -146,8 +146,9 @@ static func preview_combat_stats(helper: Resource) -> Dictionary:
 	var bonuses: Dictionary = GachaRarityConfig.get_stat_bonuses(rarity)
 	var pers: Dictionary = _CharacterStatBonuses.for_helper_id(str(helper.id))
 	var bonus_scale: float = BalanceConfig.ALLY_STAT_BONUS_SCALE
+	var atk_scale: float = BalanceConfig.ALLY_ATK_BONUS_SCALE
 	var bonus_hp: int = int(round(float(int(bonuses.get("hp", 0)) + int(pers.get("hp", 0))) * bonus_scale))
-	var bonus_atk: int = int(round(float(int(bonuses.get("attack", 0)) + int(pers.get("attack", 0))) * bonus_scale))
+	var bonus_atk: int = int(round(float(int(bonuses.get("attack", 0)) + int(pers.get("attack", 0))) * atk_scale))
 	var bonus_def: int = int(round(float(int(bonuses.get("defense", 0)) + int(pers.get("defense", 0))) * bonus_scale))
 	return {
 		"hp": maxi(1, base_hp + bonus_hp),
