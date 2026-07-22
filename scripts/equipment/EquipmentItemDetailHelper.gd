@@ -368,6 +368,15 @@ static func populate_stats_panel(host: VBoxContainer, item: Resource, category: 
 		host.add_child(_make_stat_row(str(row.get("key", "")), str(row.get("label", "")), str(row.get("value", ""))))
 	_append_description_block(host, item, category)
 	_append_legendary_effect_block(host, item, category)
+	var affix: String = affix_text(item)
+	if not affix.is_empty():
+		host.add_child(_make_rule())
+		var affix_lbl := Label.new()
+		affix_lbl.text = affix
+		affix_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		affix_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		UiTypography.apply_body(affix_lbl, UiTypography.SIZE_CAPTION, COLOR_VALUE)
+		host.add_child(affix_lbl)
 	_append_weapon_flavor_block(host, item, category)
 
 static func populate_panel(
@@ -382,13 +391,15 @@ static func populate_panel(
 		host.add_child(_make_caption_label("装備を選択してください"))
 		return
 	var compare_member: Resource = options.get("compare_member", null)
+	var show_owner: bool = bool(options.get("show_owner", true))
+	var header_icon_px: int = int(options.get("header_icon_px", HEADER_ICON_PX))
 	var header := HBoxContainer.new()
 	header.add_theme_constant_override("separation", 10)
 	host.add_child(header)
 	var icon_tex: Texture2D = _item_icon(item, category)
 	if icon_tex != null:
 		var icon_wrap := Control.new()
-		icon_wrap.custom_minimum_size = Vector2(HEADER_ICON_PX, HEADER_ICON_PX)
+		icon_wrap.custom_minimum_size = Vector2(header_icon_px, header_icon_px)
 		icon_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		header.add_child(icon_wrap)
 		var icon := TextureRect.new()
@@ -398,7 +409,7 @@ static func populate_panel(
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		icon_wrap.add_child(icon)
-		var icon_size := Vector2(HEADER_ICON_PX, HEADER_ICON_PX)
+		var icon_size := Vector2(header_icon_px, header_icon_px)
 		EquipmentUiHelper.apply_legendary_badge(icon_wrap, _item_rarity(item, category), icon_size)
 		EquipmentUiHelper.apply_enhance_badge(icon_wrap, item, category, icon_size)
 	var title_col := VBoxContainer.new()
@@ -416,7 +427,8 @@ static func populate_panel(
 	UiTypography.apply_caption(meta_lbl, COLOR_SUB)
 	title_col.add_child(meta_lbl)
 	host.add_child(_make_rule())
-	host.add_child(_make_caption_label(owner_text(item)))
+	if show_owner:
+		host.add_child(_make_caption_label(owner_text(item)))
 	var compare_member_res: Resource = compare_member
 	if compare_member_res != null:
 		var compare_lbl := _make_caption_label(compare_summary(item, category, compare_member_res))
@@ -426,14 +438,14 @@ static func populate_panel(
 		host.add_child(_make_stat_row(str(row.get("key", "")), str(row.get("label", "")), str(row.get("value", ""))))
 	_append_description_block(host, item, category)
 	_append_legendary_effect_block(host, item, category)
-	var affix: String = affix_text(item)
-	if not affix.is_empty():
+	var affix2: String = affix_text(item)
+	if not affix2.is_empty():
 		host.add_child(_make_rule())
-		var affix_lbl := Label.new()
-		affix_lbl.text = affix
-		affix_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		UiTypography.apply_body(affix_lbl, UiTypography.SIZE_CAPTION, COLOR_VALUE)
-		host.add_child(affix_lbl)
+		var affix_lbl2 := Label.new()
+		affix_lbl2.text = affix2
+		affix_lbl2.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		UiTypography.apply_body(affix_lbl2, UiTypography.SIZE_CAPTION, COLOR_VALUE)
+		host.add_child(affix_lbl2)
 	_append_weapon_flavor_block(host, item, category)
 
 static func _make_stat_row(stat_key: String, label_text: String, value_text: String) -> HBoxContainer:
