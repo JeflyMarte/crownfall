@@ -1096,11 +1096,12 @@ const WEAPON_POOL: Array[String] = [
 	"consecrated_maul",
 ]
 
-# レア度別ドロップ重み（レアほど低確率＝レア度を体感に反映）
+# レア度別ドロップ重み（レアほど低確率＝レア度を体感に反映）。
+## P3-EQ-LEG-DROP-001: LEGENDARY 相対を約1/3へ（他帯×3）。雑魚含む全撃破で抽選可は据置。
 const RARITY_DROP_WEIGHT: Dictionary = {
-	Enums.Rarity.COMMON: 40,
-	Enums.Rarity.RARE: 15,
-	Enums.Rarity.EPIC: 5,
+	Enums.Rarity.COMMON: 120,
+	Enums.Rarity.RARE: 45,
+	Enums.Rarity.EPIC: 15,
 	Enums.Rarity.LEGENDARY: 1,
 }
 
