@@ -28,10 +28,14 @@ func test_pick_subtitle_prefers_heal_when_dominant() -> void:
 	assert_true("守りの要" in _MvpPresentation.pick_subtitle(entry))
 
 
-func test_stat_cards_include_score() -> void:
+func test_stat_cards_omit_score() -> void:
 	var cards: Array = _MvpPresentation.stat_cards({"damage_total": 10, "damage_max_hit": 5, "heal_total": 2, "score": 11})
-	assert_eq(cards.size(), 4)
-	assert_eq(cards[3]["key"], "MVPスコア")
+	assert_eq(cards.size(), 3)
+	assert_eq(cards[0]["key"], "与ダメージ")
+	assert_eq(cards[1]["key"], "最大ヒット")
+	assert_eq(cards[2]["key"], "回復量")
+	for card: Dictionary in cards:
+		assert_ne(str(card.get("key", "")), "MVPスコア")
 
 
 func test_backdrop_style_has_opaque_fill() -> void:

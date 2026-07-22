@@ -11,7 +11,11 @@ const DEFAULT_ICON_SIZE: Vector2 = Vector2(48, 48)
 const ENEMY_ART_SIZE: Vector2 = Vector2(256, 256)
 const _CodexRichText = preload("res://scripts/codex/CodexRichText.gd")
 
+<<<<<<< HEAD
 const CATEGORIES: Array[String] = ["enemy", "dungeon", "weapon", "history", "lore", "guide"]
+=======
+const CATEGORIES: Array[String] = ["enemy", "dungeon", "material", "weapon", "history", "lore", "guide", "achieve"]
+>>>>>>> origin/main
 
 const CATEGORY_DISPLAY: Dictionary = {
 	"enemy": "モンスター",
@@ -20,6 +24,7 @@ const CATEGORY_DISPLAY: Dictionary = {
 	"history": "歴史",
 	"lore": "記録",
 	"guide": "手引き",
+	"achieve": "実績",
 }
 
 const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45)
@@ -70,6 +75,7 @@ func _ready() -> void:
 	$MainScroll/MainVBox/TabRow/ButtonTabHistory.pressed.connect(func(): _select_category("history"))
 	$MainScroll/MainVBox/TabRow/ButtonTabLore.pressed.connect(func(): _select_category("lore"))
 	$MainScroll/MainVBox/TabRow/ButtonTabGuide.pressed.connect(func(): _select_category("guide"))
+	_ensure_achieve_tab_button()
 	$MainScroll/MainVBox/TabRow/ButtonTabEnemy.text = str(CATEGORY_DISPLAY["enemy"])
 	$DetailOverlay/Dim.gui_input.connect(_on_detail_dim_input)
 	$DetailOverlay/DetailPanel/DetailVBox/DetailHeaderRow/ButtonDetailClose.pressed.connect(_hide_detail_popup)
@@ -151,6 +157,18 @@ func _pill_box(active: bool) -> StyleBoxFlat:
 	sb.content_margin_bottom = 10.0
 	return sb
 
+func _ensure_achieve_tab_button() -> void:
+	var tab_row: HFlowContainer = $MainScroll/MainVBox/TabRow
+	if tab_row.get_node_or_null("ButtonTabAchieve") != null:
+		return
+	var btn := Button.new()
+	btn.name = "ButtonTabAchieve"
+	btn.text = str(CATEGORY_DISPLAY["achieve"])
+	btn.custom_minimum_size = Vector2(0, 36)
+	btn.pressed.connect(func(): _select_category("achieve"))
+	tab_row.add_child(btn)
+
+
 func _select_category(category: String) -> void:
 	if category not in CATEGORIES:
 		return
@@ -175,6 +193,12 @@ func _fetch_entries(category: String) -> Array:
 			return CatalogHelper.get_lore_entries()
 		"guide":
 			return CatalogHelper.get_guide_entries()
+		"achieve":
+			const _SurveySystem := preload("res://scripts/survey/SurveySystem.gd")
+			var rows: Array = []
+			for e in _SurveySystem.achieve_entries():
+				rows.append(e)
+			return rows
 		_:
 			return []
 
@@ -189,9 +213,12 @@ func _update_tab_buttons() -> void:
 		"history": $MainScroll/MainVBox/TabRow/ButtonTabHistory,
 		"lore": $MainScroll/MainVBox/TabRow/ButtonTabLore,
 		"guide": $MainScroll/MainVBox/TabRow/ButtonTabGuide,
+		"achieve": $MainScroll/MainVBox/TabRow.get_node_or_null("ButtonTabAchieve"),
 	}
 	for cat in CATEGORIES:
-		var btn: Button = mapping[cat]
+		var btn: Button = mapping.get(cat) as Button
+		if btn == null:
+			continue
 		var active: bool = cat == _current_category
 		btn.disabled = active
 		var on_box: StyleBoxFlat = _pill_box(active)
@@ -241,6 +268,15 @@ func _rebuild_entry_list() -> void:
 	_highlight_selected()
 
 func _entry_list_name(entry: Dictionary) -> String:
+	if _current_category == "achieve":
+		var status: String = "受取済" if bool(entry.get("claimed", false)) else (
+			"受取可" if bool(entry.get("unlocked", false)) else "未達"
+		)
+		return "%s（%.0f%%）[%s]" % [
+			str(entry.get("display_name", entry.get("title", "?"))),
+			float(entry.get("need_pct", 0.0)),
+			status,
+		]
 	if _current_category == "enemy":
 		if int(entry.get("stage", 1)) <= 1:
 			return UNKNOWN_DISPLAY
@@ -250,6 +286,8 @@ func _entry_list_name(entry: Dictionary) -> String:
 	return str(entry.get("display_name", UNKNOWN_DISPLAY))
 
 func _entry_list_icon(entry: Dictionary) -> Texture2D:
+	if _current_category == "achieve":
+		return IconPaths.get_icon_texture("clue", "survey")
 	if _current_category == "enemy" and int(entry.get("stage", 1)) <= 1:
 		return null
 	if _current_category != "enemy" and not bool(entry.get("discovered", true)):
@@ -272,6 +310,36 @@ func _show_detail(index: int) -> void:
 	_selected_index = index
 	_highlight_selected()
 	var entry: Dictionary = _entries[index]
+	if _current_category == "achieve":
+		const _SurveySystem := preload("res://scripts/survey/SurveySystem.gd")
+		if bool(entry.get("unlocked", false)) and not bool(entry.get("claimed", false)):
+			var claim: Dictionary = _SurveySystem.claim_achievement(str(entry.get("id", "")))
+			if bool(claim.get("ok", false)):
+				_entries = _fetch_entries("achieve")
+				_rebuild_entry_list()
+				entry = _entries[index] if index < _entries.size() else entry
+		$DetailOverlay/DetailPanel/DetailVBox/DetailHeaderRow/LabelDetailPopupTitle.text = _entry_list_name(entry)
+		_label_detail_category.text = "種別: 実績"
+		_hide_bible_fields()
+		_label_detail_id.text = ""
+		_label_detail_name.text = str(entry.get("display_name", ""))
+		var st: String = "受取済み" if bool(entry.get("claimed", false)) else (
+			"条件達成 — タップで受取" if bool(entry.get("unlocked", false)) else "未達成"
+		)
+		_set_status(st, bool(entry.get("unlocked", false)))
+		_set_detail_body(
+			"敵図鑑埋め %.0f%%／必要 %.0f%%\n報酬: Gold %d ／ %s %d" % [
+				float(entry.get("fill_pct", 0.0)),
+				float(entry.get("need_pct", 0.0)),
+				int(entry.get("gold", 0)),
+				CurrencyHelper.DISPLAY_NAME,
+				int(entry.get("token", 0)),
+			]
+		)
+		_update_icon(IconPaths.get_icon_texture("clue", "survey"))
+		_detail_overlay.visible = true
+		_detail_scroll.scroll_vertical = 0
+		return
 	$DetailOverlay/DetailPanel/DetailVBox/DetailHeaderRow/LabelDetailPopupTitle.text = _entry_list_name(entry)
 	_label_detail_category.text = "種別: %s" % _get_category_display()
 	_hide_bible_fields()

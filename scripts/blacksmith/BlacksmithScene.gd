@@ -82,7 +82,10 @@ var _legendary_dismantle_final_confirm: ConfirmationDialog
 var _alchemy_confirm: ConfirmationDialog
 var _craft_confirm: ConfirmationDialog
 var _pending_craft: Resource = null
-var _result_dialog: AcceptDialog
+var _result_overlay: Control = null
+var _result_title_tex: TextureRect = null
+var _result_title_lbl: Label = null
+var _result_detail_host: VBoxContainer = null
 var _pending_dismantle_item: Resource = null
 
 func _ready() -> void:
@@ -197,20 +200,138 @@ func _setup_craft_confirm() -> void:
 
 
 func _setup_result_dialog() -> void:
-	_result_dialog = AcceptDialog.new()
-	_result_dialog.title = "鍛冶屋"
-	_result_dialog.ok_button_text = "閉じる"
-	add_child(_result_dialog)
+	_ensure_result_overlay()
+
+
+func _ensure_result_overlay() -> void:
+	if _result_overlay != null:
+		return
+	_result_overlay = Control.new()
+	_result_overlay.name = "ForgeResultOverlay"
+	_result_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_result_overlay.visible = false
+	_result_overlay.z_index = 80
+	_result_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(_result_overlay)
+	var dim := ColorRect.new()
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0.0, 0.0, 0.0, 0.72)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	dim.gui_input.connect(_on_result_overlay_dim_input)
+	_result_overlay.add_child(dim)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_result_overlay.add_child(center)
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(620, 900)
+	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	panel.add_theme_stylebox_override("panel", ForgeUiTokens.result_panel_style())
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	center.add_child(panel)
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 28)
+	margin.add_theme_constant_override("margin_top", 36)
+	margin.add_theme_constant_override("margin_right", 28)
+	margin.add_theme_constant_override("margin_bottom", 36)
+	panel.add_child(margin)
+	var outer := VBoxContainer.new()
+	outer.add_theme_constant_override("separation", 12)
+	outer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	outer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	margin.add_child(outer)
+	var title_wrap := Control.new()
+	title_wrap.custom_minimum_size = Vector2(0, 120)
+	title_wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	outer.add_child(title_wrap)
+	_result_title_tex = TextureRect.new()
+	_result_title_tex.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_result_title_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_result_title_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_result_title_tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_result_title_tex.texture = ForgeUiTokens.title_complete_tex()
+	title_wrap.add_child(_result_title_tex)
+	_result_title_lbl = Label.new()
+	_result_title_lbl.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_result_title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_result_title_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_result_title_lbl.visible = false
+	_result_title_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_display(_result_title_lbl, UiTypography.SIZE_DISPLAY_TITLE, UiTypography.COLOR_GOLD)
+	_result_title_lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	_result_title_lbl.add_theme_constant_override("shadow_outline_size", 4)
+	title_wrap.add_child(_result_title_lbl)
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.custom_minimum_size = Vector2(0, 480)
+	outer.add_child(scroll)
+	_result_detail_host = VBoxContainer.new()
+	_result_detail_host.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_result_detail_host.add_theme_constant_override("separation", 6)
+	scroll.add_child(_result_detail_host)
+	var close_btn := Button.new()
+	close_btn.text = "閉じる"
+	close_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	close_btn.custom_minimum_size = Vector2(200, 48)
+	UiTypography.apply_menu_button(close_btn)
+	close_btn.pressed.connect(_hide_result_overlay)
+	outer.add_child(close_btn)
+
+
+func _on_result_overlay_dim_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_hide_result_overlay()
+
+
+func _hide_result_overlay() -> void:
+	if _result_overlay != null:
+		_result_overlay.visible = false
+	AudioManager.play_sfx("ui_cancel")
 
 
 func _show_forge_result(title: String, body: String) -> void:
-	if _result_dialog == null:
-		_log_craft(body)
-		return
-	_result_dialog.title = title
-	_result_dialog.dialog_text = body
-	_result_dialog.popup_centered()
+	## テキストのみのフォールバック（アイテム無し経路）。
+	_ensure_result_overlay()
+	_apply_result_title(title, title == "生産完了")
+	for child in _result_detail_host.get_children():
+		child.queue_free()
+	var body_lbl := Label.new()
+	body_lbl.text = body
+	body_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_body(body_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_TEXT_STRONG)
+	_result_detail_host.add_child(body_lbl)
+	_result_overlay.visible = true
 	_log_craft(body)
+
+
+func _show_forge_item_result(title: String, item: Resource, category: String) -> void:
+	_ensure_result_overlay()
+	_apply_result_title(title, title == "生産完了")
+	EquipmentItemDetailHelper.populate_panel(
+		_result_detail_host,
+		item,
+		category,
+		{"show_owner": false, "header_icon_px": 96}
+	)
+	_result_overlay.visible = true
+	_log_craft("%s: %s" % [title, EquipmentItemDetailHelper.short_name(item, category)])
+
+
+func _apply_result_title(title: String, use_complete_art: bool) -> void:
+	var has_art: bool = (
+		use_complete_art
+		and _result_title_tex != null
+		and _result_title_tex.texture != null
+	)
+	if _result_title_tex != null:
+		_result_title_tex.visible = has_art
+	if _result_title_lbl != null:
+		_result_title_lbl.visible = not has_art
+		_result_title_lbl.text = title
 
 
 func _on_forge_confirm_canceled() -> void:
@@ -1247,17 +1368,14 @@ func _on_craft_confirmed() -> void:
 		return
 	GameState.gold -= craft.gold_cost
 	GameState.consume_materials(craft.required_materials)
-	_generate_craft_output(craft)
+	var crafted: Resource = _generate_craft_output(craft)
 	DailyMissionSystem.report_progress("craft_item")
 	SaveManager.save_game()
-	var item_name: String = DataRegistry.get_item_name(craft.output_id, craft.output_type)
-	var rarity: int = BlacksmithUiHelper.output_rarity(craft)
-	var stars: String = EquipmentUiHelper.rarity_stars_text(rarity)
-	var type_label: String = BlacksmithUiHelper.output_subtitle(craft)
-	var body: String = "生産しました。\n\n%s\n%s" % [item_name, type_label]
-	if not stars.is_empty():
-		body += "\n%s" % stars
-	_show_forge_result("生産完了", body)
+	if crafted != null:
+		_show_forge_item_result("生産完了", crafted, craft.output_type)
+	else:
+		var item_name: String = DataRegistry.get_item_name(craft.output_id, craft.output_type)
+		_show_forge_result("生産完了", "生産しました。\n\n%s" % item_name)
 	_refresh_all()
 	_play_forge_success_feedback(FORGE_FLASH_CRAFT)
 
@@ -1315,18 +1433,7 @@ func _on_enhance_pressed() -> void:
 		return
 	DailyMissionSystem.report_progress("enhance_item")
 	SaveManager.save_game()
-	var display_name: String = str(result.get("display_name", ""))
-	var body: String = "強化しました。\n\n%s" % display_name
-	if _category == "weapon":
-		body += "\n攻撃力 %d" % int(result.get("effective_attack", 0))
-	elif _category == "armor":
-		body += "\n防御力 %d / HP %d" % [
-			int(result.get("effective_defense", 0)),
-			int(result.get("effective_hp", 0)),
-		]
-	elif _category == "accessory":
-		body += "\n攻撃補正 %d" % int(result.get("effective_attack", 0))
-	_show_forge_result("強化完了", body)
+	_show_forge_item_result("強化完了", _selected_enhance_item, _category)
 	_refresh_all()
 	_play_forge_success_feedback(FORGE_FLASH_ENHANCE)
 
@@ -1418,29 +1525,31 @@ func _auto_appraise(instance: Resource, category: String, rarity: int) -> void:
 	instance.prefix_ids = prefix
 	instance.suffix_ids = suffix
 
-func _generate_craft_output(craft: Resource) -> void:
+func _generate_craft_output(craft: Resource) -> Resource:
 	if craft.output_type == "armor":
-		_spawn_armor(craft.output_id)
-	elif craft.output_type == "accessory":
-		_spawn_accessory(craft.output_id)
-	elif craft.output_type == "weapon":
-		_spawn_weapon(craft.output_id)
+		return _spawn_armor(craft.output_id)
+	if craft.output_type == "accessory":
+		return _spawn_accessory(craft.output_id)
+	if craft.output_type == "weapon":
+		return _spawn_weapon(craft.output_id)
+	return null
 
-func _spawn_weapon(weapon_id: String) -> void:
+func _spawn_weapon(weapon_id: String) -> Resource:
 	var weapon_data: Resource = DataRegistry.get_weapon_data(weapon_id)
 	if weapon_data == null:
-		return
+		return null
 	var instance := WeaponInstance.new()
 	instance.instance_id = str(Time.get_ticks_msec()) + "_craft_" + str(randi() % 100000)
 	instance.weapon_id = weapon_id
 	_WeaponStatResolver.apply_drop_stats(instance, weapon_data)
 	_auto_appraise(instance, _AffixRoller.CATEGORY_WEAPON, weapon_data.rarity)
 	GameState.inventory.append(instance)
+	return instance
 
-func _spawn_armor(armor_id: String) -> void:
+func _spawn_armor(armor_id: String) -> Resource:
 	var armor_data: Resource = DataRegistry.get_armor_data(armor_id)
 	if armor_data == null:
-		return
+		return null
 	var instance := ArmorInstance.new()
 	instance.instance_id = str(Time.get_ticks_msec()) + "_craft_" + str(randi() % 100000)
 	instance.armor_id = armor_id
@@ -1448,17 +1557,19 @@ func _spawn_armor(armor_id: String) -> void:
 	instance.rarity = armor_data.rarity
 	_auto_appraise(instance, _AffixRoller.CATEGORY_ARMOR, armor_data.rarity)
 	GameState.armor_inventory.append(instance)
+	return instance
 
-func _spawn_accessory(accessory_id: String) -> void:
+func _spawn_accessory(accessory_id: String) -> Resource:
 	var accessory_data: Resource = DataRegistry.get_accessory_data(accessory_id)
 	if accessory_data == null:
-		return
+		return null
 	var instance := AccessoryInstance.new()
 	instance.instance_id = str(Time.get_ticks_msec()) + "_craft_" + str(randi() % 100000)
 	instance.accessory_id = accessory_id
 	_AccessoryStatResolver.apply_drop_stats(instance, accessory_data)
 	_auto_appraise(instance, _AffixRoller.CATEGORY_ACCESSORY, accessory_data.rarity)
 	GameState.accessory_inventory.append(instance)
+	return instance
 
 func _log_craft(msg: String) -> void:
 	print("[Craft] ", msg)

@@ -343,6 +343,7 @@ func _apply_typography() -> void:
 	UiTypography.apply_body(_label_gold, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_body(_label_token, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_display(_label_featured_name, UiTypography.SIZE_BODY_SMALL)
+	_label_featured_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_body(_label_featured_flavor, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	UiTypography.apply_body(_label_featured_meta, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
 	UiTypography.apply_body(_label_featured_discovery, UiTypography.SIZE_BODY_SMALL, COLOR_CLEAR)
@@ -549,15 +550,15 @@ func _apply_stage_list_rich_text(line: RichTextLabel, unlocked: bool) -> void:
 	line.add_theme_font_size_override("bold_font_size", UiTypography.SIZE_BODY_SMALL)
 
 func _stage_list_line_bbcode(stage: Resource, unlocked: bool) -> String:
-	var name: String = str(stage.display_name)
-	var meta: String = _format_stage_meta_text(stage)
+	var name: String = str(stage.display_name) if unlocked else "？"
+	var meta: String = _format_stage_meta_text(stage) if unlocked else "未開"
 	var name_color: String = "f5e07a" if unlocked else "c9c4b8"
 	return "[color=#%s][b]%s[/b][/color]  [color=#e0dcd0]%s[/color]" % [name_color, name, meta]
 
 func _dungeon_list_line_bbcode(data: Resource, unlocked: bool) -> String:
-	var name: String = _dungeon_card_title(data)
+	var name: String = _dungeon_card_title(data, unlocked)
 	if not unlocked:
-		name = "🔒 %s" % name
+		return "[color=#c9c4b8][b]%s[/b][/color]  [color=#e0dcd0]未開[/color]" % name
 	var parts: Array[String] = []
 	if int(data.floor_count) > 0:
 		parts.append("%dF" % int(data.floor_count))
@@ -567,7 +568,7 @@ func _dungeon_list_line_bbcode(data: Resource, unlocked: bool) -> String:
 	if rec_lv > 0:
 		parts.append("推奨Lv%d〜" % rec_lv)
 	var meta: String = "  ".join(parts)
-	var name_color: String = "f5e07a" if unlocked else "c9c4b8"
+	var name_color: String = "f5e07a"
 	if meta.is_empty():
 		return "[color=#%s][b]%s[/b][/color]" % [name_color, name]
 	return "[color=#%s][b]%s[/b][/color]  [color=#e0dcd0]%s[/color]" % [name_color, name, meta]
@@ -618,11 +619,12 @@ func _make_stage_card(stage: Resource) -> Control:
 	thumb.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	thumb.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	thumb.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var stage_tex: Texture2D = IconPaths.get_stage_icon_texture(stage_id)
-	if stage_tex != null:
-		thumb.texture = stage_tex
-	else:
-		thumb.texture = _get_dungeon_thumb_texture(str(stage.biome_id))
+	if unlocked:
+		var stage_tex: Texture2D = IconPaths.get_stage_icon_texture(stage_id)
+		if stage_tex != null:
+			thumb.texture = stage_tex
+		else:
+			thumb.texture = _get_dungeon_thumb_texture(str(stage.biome_id))
 	content.add_child(thumb)
 	var text_col := VBoxContainer.new()
 	text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -642,7 +644,7 @@ func _make_stage_card(stage: Resource) -> Control:
 	text_col.add_child(line)
 	var status_text: String = ""
 	if not unlocked:
-		status_text = "🔒 未解放"
+		status_text = "？"
 	elif cleared:
 		status_text = "✓ クリア"
 	elif bool(stage.has_boss_floor()):
@@ -712,7 +714,13 @@ func _refresh_featured() -> void:
 	_sync_featured_banner(_featured_dungeon_id)
 	var stage: Resource = DataRegistry.get_stage_data(_selected_stage_id)
 	var title_baked: bool = _banner_hides_title(_featured_dungeon_id)
-	if title_baked:
+	var unlocked_featured: bool = GameState.is_dungeon_unlocked(_featured_dungeon_id)
+	if not unlocked_featured:
+		_label_featured_name.visible = true
+		_label_featured_name.text = "？"
+		_label_featured_flavor.text = "未開のダンジョン"
+		_label_featured_flavor.visible = true
+	elif title_baked:
 		_label_featured_name.visible = stage != null and _uses_stage_cards(_featured_dungeon_id)
 		_label_featured_name.text = str(stage.display_name) if stage != null else ""
 	elif stage != null and _uses_stage_cards(_featured_dungeon_id):
@@ -721,57 +729,65 @@ func _refresh_featured() -> void:
 	else:
 		_label_featured_name.visible = true
 		_label_featured_name.text = str(data.display_name)
-	_label_featured_flavor.text = str(data.flavor_text)
-	_label_featured_flavor.visible = not str(data.flavor_text).is_empty()
+	if unlocked_featured:
+		_label_featured_flavor.text = str(data.flavor_text)
+		_label_featured_flavor.visible = not str(data.flavor_text).is_empty()
 
 	var meta_parts: Array[String] = []
-	if stage != null and _uses_stage_cards(_featured_dungeon_id):
-		if not title_baked:
-			meta_parts.append(str(stage.display_name))
-		meta_parts.append("%dF" % int(stage.floor_count))
-		var stage_rec: int = _DungeonTierConfig.apply_tier_level(
-			int(stage.recommended_level), GameState.current_dungeon_tier
+	if unlocked_featured:
+		if stage != null and _uses_stage_cards(_featured_dungeon_id):
+			if not title_baked:
+				meta_parts.append(str(stage.display_name))
+			meta_parts.append("%dF" % int(stage.floor_count))
+			var stage_rec: int = _DungeonTierConfig.apply_tier_level(
+				int(stage.recommended_level), GameState.current_dungeon_tier
+			)
+			if stage_rec > 0:
+				meta_parts.append("推奨Lv%d" % stage_rec)
+			if bool(stage.has_boss_floor()):
+				meta_parts.append("ボス")
+			elif bool(stage.requires_elite):
+				meta_parts.append("エリート")
+		meta_parts.append(_DungeonTierConfig.display_name(GameState.current_dungeon_tier))
+		var tier_summary: String = _DungeonTierConfig.summary_text(GameState.current_dungeon_tier)
+		if not tier_summary.is_empty():
+			meta_parts.append(tier_summary)
+		var dungeon_rec: int = _DungeonTierConfig.apply_tier_level(
+			int(data.recommended_level), GameState.current_dungeon_tier
 		)
-		if stage_rec > 0:
-			meta_parts.append("推奨Lv%d" % stage_rec)
-		if bool(stage.has_boss_floor()):
-			meta_parts.append("ボス")
-		elif bool(stage.requires_elite):
-			meta_parts.append("エリート")
-	meta_parts.append(_DungeonTierConfig.display_name(GameState.current_dungeon_tier))
-	var tier_summary: String = _DungeonTierConfig.summary_text(GameState.current_dungeon_tier)
-	if not tier_summary.is_empty():
-		meta_parts.append(tier_summary)
-	var dungeon_rec: int = _DungeonTierConfig.apply_tier_level(
-		int(data.recommended_level), GameState.current_dungeon_tier
-	)
-	if dungeon_rec > 0 and (stage == null or not _uses_stage_cards(_featured_dungeon_id)):
-		meta_parts.append("推奨Lv%d〜" % dungeon_rec)
-	if not _uses_stage_cards(_featured_dungeon_id) and int(data.floor_count) > 0:
-		meta_parts.append("%dF" % int(data.floor_count))
-	if _uses_stage_cards(_featured_dungeon_id):
-		var stage_label: String = GameState.get_stage_progress_label(_featured_dungeon_id)
-		if not stage_label.is_empty():
-			meta_parts.append(stage_label)
-	meta_parts.append(_make_stars_text(int(data.difficulty)))
-	if not str(data.favored_element).is_empty():
-		meta_parts.append("%s 有利" % _ElementResolver.get_display_name(str(data.favored_element)))
-	var policy: String = GameState.get_exploration_policy()
-	if not policy.is_empty():
-		meta_parts.append("方針:%s" % GameState.exploration_policy_label(policy))
+		if dungeon_rec > 0 and (stage == null or not _uses_stage_cards(_featured_dungeon_id)):
+			meta_parts.append("推奨Lv%d〜" % dungeon_rec)
+		if not _uses_stage_cards(_featured_dungeon_id) and int(data.floor_count) > 0:
+			meta_parts.append("%dF" % int(data.floor_count))
+		if _uses_stage_cards(_featured_dungeon_id):
+			var stage_label: String = GameState.get_stage_progress_label(_featured_dungeon_id)
+			if not stage_label.is_empty():
+				meta_parts.append(stage_label)
+		meta_parts.append(_make_stars_text(int(data.difficulty)))
+		if not str(data.favored_element).is_empty():
+			meta_parts.append("%s 有利" % _ElementResolver.get_display_name(str(data.favored_element)))
+		var policy: String = GameState.get_exploration_policy()
+		if not policy.is_empty():
+			meta_parts.append("方針:%s" % GameState.exploration_policy_label(policy))
+	else:
+		meta_parts.append("？")
 	_label_featured_meta.text = " · ".join(meta_parts)
 
-	var discovery_pct: int = _discovery_percent(_featured_dungeon_id)
-	_label_featured_discovery.text = "発見率 %d%%" % discovery_pct
-	if GameState.is_dungeon_tier_cleared(_featured_dungeon_id, GameState.current_dungeon_tier):
-		_label_featured_discovery.text += " · %s クリア済" % _DungeonTierConfig.display_name(
-			GameState.current_dungeon_tier
-		)
-	elif GameState.is_dungeon_cleared(_featured_dungeon_id):
-		_label_featured_discovery.text += " · ノーマル クリア済"
-
-	_populate_drop_row(_featured_drop_row, _featured_dungeon_id, 4)
-	var unlocked: bool = GameState.is_dungeon_unlocked(_featured_dungeon_id)
+	if unlocked_featured:
+		var discovery_pct: int = _discovery_percent(_featured_dungeon_id)
+		_label_featured_discovery.text = "発見率 %d%%" % discovery_pct
+		if GameState.is_dungeon_tier_cleared(_featured_dungeon_id, GameState.current_dungeon_tier):
+			_label_featured_discovery.text += " · %s クリア済" % _DungeonTierConfig.display_name(
+				GameState.current_dungeon_tier
+			)
+		elif GameState.is_dungeon_cleared(_featured_dungeon_id):
+			_label_featured_discovery.text += " · ノーマル クリア済"
+		_populate_drop_row(_featured_drop_row, _featured_dungeon_id, 4)
+	else:
+		_label_featured_discovery.text = "未開"
+		for child in _featured_drop_row.get_children():
+			child.queue_free()
+	var unlocked: bool = unlocked_featured
 	var stage_ready: bool = (
 		not _uses_stage_cards(_featured_dungeon_id)
 		or (
@@ -780,7 +796,7 @@ func _refresh_featured() -> void:
 		)
 	)
 	var attempt_ok: bool = true
-	if data != null and int(data.daily_attempt_limit) > 0:
+	if unlocked and data != null and int(data.daily_attempt_limit) > 0:
 		var remaining: int = GameState.event_dungeon_attempts_remaining(_featured_dungeon_id)
 		_label_featured_discovery.text += " · 本日残り %d/%d（リセット %s）" % [
 			remaining,
@@ -792,7 +808,7 @@ func _refresh_featured() -> void:
 			_btn_featured_select.text = "本日分は挑戦済"
 			_btn_featured_select.disabled = true
 			return
-	_btn_featured_select.text = "選択して出発"
+	_btn_featured_select.text = "選択して出発" if unlocked else "未開"
 	_btn_featured_select.disabled = not unlocked or not stage_ready or not attempt_ok
 
 func _resolve_featured_dungeon_id() -> String:
@@ -941,7 +957,8 @@ func _make_biome_accordion(data: Resource) -> Control:
 	outer.add_theme_constant_override("separation", 2)
 
 	var banner_tex: Texture2D = _get_biome_banner_texture(dungeon_id)
-	if banner_tex != null:
+	## 未開はバナー実写を出さず「？」ヘッダに統一（ネタバレ防止）。
+	if banner_tex != null and unlocked:
 		outer.add_child(_make_biome_banner_header(data, banner_tex, unlocked, is_expanded, is_featured))
 	else:
 		outer.add_child(_make_biome_text_header(data, unlocked, is_expanded, is_featured))
@@ -989,10 +1006,7 @@ func _make_biome_title_label(data: Resource, unlocked: bool) -> Control:
 	margin.add_theme_constant_override("margin_top", 2)
 	margin.add_theme_constant_override("margin_bottom", 2)
 	var label := Label.new()
-	var title: String = str(data.display_name)
-	if not unlocked:
-		title = "🔒 %s" % title
-	label.text = title
+	label.text = _dungeon_card_title(data, unlocked)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	if not unlocked:
@@ -1028,8 +1042,9 @@ func _sync_featured_banner(dungeon_id: String) -> void:
 	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
 	if data == null:
 		return
+	var unlocked: bool = GameState.is_dungeon_unlocked(dungeon_id)
 	var title := Label.new()
-	title.text = _dungeon_card_title(data)
+	title.text = _dungeon_card_title(data, unlocked)
 	title.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	title.offset_left = 12.0
 	title.offset_right = -12.0
@@ -1040,7 +1055,11 @@ func _sync_featured_banner(dungeon_id: String) -> void:
 	title.clip_text = true
 	title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	UiTypography.apply_display(title, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
+	UiTypography.apply_display(
+		title,
+		UiTypography.SIZE_BODY,
+		UiTypography.COLOR_GOLD if unlocked else UiTypography.COLOR_SUB
+	)
 	title.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.95))
 	title.add_theme_constant_override("shadow_offset_x", 1)
 	title.add_theme_constant_override("shadow_offset_y", 1)
@@ -1070,38 +1089,15 @@ func _make_biome_banner_header(
 	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(banner)
 
-	var header_btn := Button.new()
-	header_btn.set_anchors_preset(Control.PRESET_FULL_RECT)
-	header_btn.flat = true
-	header_btn.disabled = not unlocked
-	var row := HBoxContainer.new()
-	row.set_anchors_preset(Control.PRESET_FULL_RECT)
-	row.offset_left = 8
-	row.offset_top = 4
-	row.offset_right = -8
-	row.offset_bottom = -4
-	row.add_theme_constant_override("separation", 6)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	header_btn.add_child(row)
-
-	var chevron := Label.new()
-	chevron.text = "▼" if is_expanded else "▶"
-	if not unlocked:
-		chevron.text = "🔒"
-	chevron.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	chevron.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	# バナー上でも視認できるよう金＋影を強める
-	UiTypography.apply_body(chevron, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
-	chevron.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.92))
-	chevron.add_theme_constant_override("shadow_offset_x", 1)
-	chevron.add_theme_constant_override("shadow_offset_y", 1)
-	chevron.add_theme_constant_override("shadow_outline_size", 4)
-	row.add_child(chevron)
-
+	## タイトルは Featured と同様バナー全面中央。シェブロンは左オーバーレイ（HBox だと右寄りになる）。
 	if not _banner_hides_title(dungeon_id):
 		var title := Label.new()
-		title.text = _dungeon_card_title(data)
-		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		title.text = _dungeon_card_title(data, unlocked)
+		title.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		title.offset_left = 36.0
+		title.offset_right = -36.0
+		title.offset_top = 4.0
+		title.offset_bottom = -4.0
 		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		title.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -1118,8 +1114,30 @@ func _make_biome_banner_header(
 		title.add_theme_constant_override("shadow_offset_x", 1)
 		title.add_theme_constant_override("shadow_offset_y", 1)
 		title.add_theme_constant_override("shadow_outline_size", 5)
-		row.add_child(title)
+		root.add_child(title)
 
+	var chevron := Label.new()
+	chevron.text = "▼" if is_expanded else "▶"
+	if not unlocked:
+		chevron.text = "？"
+	chevron.set_anchors_and_offsets_preset(Control.PRESET_LEFT_WIDE)
+	chevron.offset_left = 8.0
+	chevron.offset_right = 32.0
+	chevron.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	chevron.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	chevron.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# バナー上でも視認できるよう金＋影を強める
+	UiTypography.apply_body(chevron, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
+	chevron.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.92))
+	chevron.add_theme_constant_override("shadow_offset_x", 1)
+	chevron.add_theme_constant_override("shadow_offset_y", 1)
+	chevron.add_theme_constant_override("shadow_outline_size", 4)
+	root.add_child(chevron)
+
+	var header_btn := Button.new()
+	header_btn.set_anchors_preset(Control.PRESET_FULL_RECT)
+	header_btn.flat = true
+	header_btn.disabled = not unlocked
 	header_btn.pressed.connect(_on_biome_accordion_pressed.bind(dungeon_id))
 	UiTypography.apply_button(header_btn, is_featured or is_expanded)
 	root.add_child(header_btn)
@@ -1151,8 +1169,8 @@ func _make_biome_text_header(
 	header_btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	var chevron: String = "▼" if is_expanded else "▶"
 	if not unlocked:
-		chevron = "🔒"
-	header_btn.text = "%s  %s" % [chevron, _dungeon_card_title(data)]
+		chevron = "？"
+	header_btn.text = "%s  %s" % [chevron, _dungeon_card_title(data, unlocked)]
 	header_btn.pressed.connect(_on_biome_accordion_pressed.bind(dungeon_id))
 	UiTypography.apply_button(header_btn, is_featured or is_expanded)
 	header_wrap.add_child(header_btn)
@@ -1184,7 +1202,7 @@ func _make_biome_card(data: Resource) -> PanelContainer:
 	row.add_theme_constant_override("separation", 10)
 	card.add_child(row)
 
-	var thumb_tex: Texture2D = _get_dungeon_thumb_texture(dungeon_id)
+	var thumb_tex: Texture2D = _get_dungeon_thumb_texture(dungeon_id) if unlocked else null
 	var thumb_wrap := _make_thumb_with_ribbon(thumb_tex, cleared, not unlocked)
 	thumb_wrap.gui_input.connect(_on_card_preview_input.bind(dungeon_id, unlocked))
 	row.add_child(thumb_wrap)
@@ -1206,7 +1224,7 @@ func _make_biome_card(data: Resource) -> PanelContainer:
 	title.text = _dungeon_list_line_bbcode(data, unlocked)
 	info.add_child(title)
 
-	if Constants.SUB_STAGES_PLAYABLE and _uses_stage_cards(dungeon_id):
+	if unlocked and Constants.SUB_STAGES_PLAYABLE and _uses_stage_cards(dungeon_id):
 		var stage_label: String = GameState.get_stage_progress_label(dungeon_id)
 		if not stage_label.is_empty():
 			var progress := Label.new()
@@ -1214,7 +1232,7 @@ func _make_biome_card(data: Resource) -> PanelContainer:
 			UiTypography.apply_caption(progress)
 			info.add_child(progress)
 
-	if not str(data.flavor_text).is_empty():
+	if unlocked and not str(data.flavor_text).is_empty():
 		var flavor := Label.new()
 		flavor.text = str(data.flavor_text)
 		flavor.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -1224,17 +1242,18 @@ func _make_biome_card(data: Resource) -> PanelContainer:
 		UiTypography.apply_caption(flavor, UiTypography.COLOR_MUTED)
 		info.add_child(flavor)
 
-	info.add_child(_make_enemy_icon_row(data, 1))
+	if unlocked:
+		info.add_child(_make_enemy_icon_row(data, 1))
 
-	var drop_row := HBoxContainer.new()
-	drop_row.add_theme_constant_override("separation", 4)
-	info.add_child(drop_row)
-	var preview: Array = DROP_PREVIEW.get(dungeon_id, [])
-	for i in mini(3, preview.size()):
-		var pair: Array = preview[i]
-		var tex: Texture2D = IconPaths.get_icon_texture(str(pair[1]), str(pair[0]))
-		if tex != null:
-			drop_row.add_child(_make_drop_icon(tex))
+		var drop_row := HBoxContainer.new()
+		drop_row.add_theme_constant_override("separation", 4)
+		info.add_child(drop_row)
+		var preview: Array = DROP_PREVIEW.get(dungeon_id, [])
+		for i in mini(3, preview.size()):
+			var pair: Array = preview[i]
+			var tex: Texture2D = IconPaths.get_icon_texture(str(pair[1]), str(pair[0]))
+			if tex != null:
+				drop_row.add_child(_make_drop_icon(tex))
 
 	var action := VBoxContainer.new()
 	action.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -1242,11 +1261,15 @@ func _make_biome_card(data: Resource) -> PanelContainer:
 	row.add_child(action)
 
 	var power := Label.new()
-	power.text = "推奨戦力\n%d" % _recommended_combat_power(data, 1)
+	if unlocked:
+		power.text = "推奨戦力\n%d" % _recommended_combat_power(data, 1)
+	else:
+		power.text = "？\n？"
 	power.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_body(power, UiTypography.SIZE_CAPTION, COLOR_TEAL)
 	action.add_child(power)
-	action.add_child(_make_stars_label(int(data.difficulty)))
+	if unlocked:
+		action.add_child(_make_stars_label(int(data.difficulty)))
 
 	var btn := Button.new()
 	btn.custom_minimum_size = Vector2(88, 40)
@@ -1260,14 +1283,18 @@ func _make_biome_card(data: Resource) -> PanelContainer:
 			UiTypography.apply_button(btn, is_featured)
 			btn.pressed.connect(_on_select_pressed.bind(dungeon_id))
 	else:
-		btn.text = "🔒 ロック中"
+		btn.text = "？"
 		btn.disabled = true
 		if Constants.BETA_MOURNGATE_ONLY and str(data.route_type) == "main":
 			btn.tooltip_text = "今後のアップデートで解放予定"
 	action.add_child(btn)
 	return card
 
-func _dungeon_card_title(data: Resource) -> String:
+func _dungeon_card_title(data: Resource, unlocked: bool = true) -> String:
+	if data == null:
+		return "？"
+	if not unlocked:
+		return "？"
 	return str(data.display_name)
 
 func _on_card_preview_input(event: InputEvent, dungeon_id: String, unlocked: bool) -> void:
@@ -1370,7 +1397,7 @@ func _load_texture_flexible(path: String) -> Texture2D:
 func _make_thumb_with_ribbon(tex: Texture2D, show_clear: bool, locked: bool) -> Control:
 	var wrap := Control.new()
 	wrap.custom_minimum_size = THUMB_SIZE
-	var thumb := _make_thumb(tex, "🔒" if locked else "♛", THUMB_SIZE)
+	var thumb := _make_thumb(tex, "？" if locked else "♛", THUMB_SIZE)
 	thumb.set_anchors_preset(Control.PRESET_FULL_RECT)
 	wrap.add_child(thumb)
 	if show_clear:
@@ -1379,7 +1406,7 @@ func _make_thumb_with_ribbon(tex: Texture2D, show_clear: bool, locked: bool) -> 
 		wrap.add_child(ribbon)
 	if locked:
 		var lock := Label.new()
-		lock.text = "🔒"
+		lock.text = "？"
 		lock.set_anchors_preset(Control.PRESET_CENTER)
 		lock.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lock.vertical_alignment = VERTICAL_ALIGNMENT_CENTER

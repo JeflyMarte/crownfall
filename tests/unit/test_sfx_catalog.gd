@@ -44,3 +44,14 @@ func test_se002_wired_ids_in_catalog() -> void:
 
 func test_attribution_doc_exists() -> void:
 	assert_true(FileAccess.file_exists("res://assets/audio/sfx/ATTRIBUTION.md"))
+
+
+func test_gacha_reveal_not_shared_with_level_up() -> void:
+	## P3-AUDIO-SE-003 — ガチャ入手 SE は level_up と分離
+	var gacha_path: String = _SfxCatalog.path_for(_SfxCatalog.ID_GACHA_REVEAL)
+	var level_path: String = _SfxCatalog.path_for(_SfxCatalog.ID_LEVEL_UP)
+	assert_eq(gacha_path, "res://assets/audio/sfx/gacha_reveal.ogg")
+	assert_ne(gacha_path, level_path)
+	assert_true(FileAccess.file_exists(gacha_path))
+	assert_true(FileAccess.file_exists(level_path))
+	assert_true(FileAccess.file_exists(_SfxCatalog.path_for(_SfxCatalog.ID_VICTORY)))

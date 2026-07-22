@@ -155,6 +155,15 @@ const SIDE_MENU_ENTRIES: Array[Dictionary] = [
 		"locked": false,
 	},
 	{
+		"id": "survey",
+		"title": "調査室",
+		"node": "NavSurvey",
+		"tab": Tab.NONE,
+		"icon_category": "ui",
+		"icon_id": "survey",
+		"locked": false,
+	},
+	{
 		"id": "gacha",
 		"title": "招待状",
 		"node": "NavGacha",

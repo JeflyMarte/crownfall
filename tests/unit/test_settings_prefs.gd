@@ -71,9 +71,15 @@ func test_persist_volume_and_toggles() -> void:
 
 
 func test_speed_id_mult_roundtrip() -> void:
-	assert_eq(_SettingsPrefs.speed_id_for_mult(_SettingsPrefs.SPEED_X2), _SettingsPrefs.SPEED_ID_X2)
+	assert_eq(_SettingsPrefs.speed_id_for_mult(_SettingsPrefs.SPEED_X15), _SettingsPrefs.SPEED_ID_X15)
 	assert_eq(_SettingsPrefs.speed_mult_for_id(_SettingsPrefs.SPEED_ID_X1), _SettingsPrefs.SPEED_X1)
+	assert_almost_eq(_SettingsPrefs.speed_mult_for_id(_SettingsPrefs.SPEED_ID_X1), 1.0, 0.001)
+	assert_almost_eq(_SettingsPrefs.speed_mult_for_id(_SettingsPrefs.SPEED_ID_X15), 1.5, 0.001)
 	assert_eq(_SettingsPrefs._normalize_speed_id("medium"), _SettingsPrefs.SPEED_ID_X15)
+	## 旧 ×2 設定は ×1.5 へ統合。
+	assert_eq(_SettingsPrefs._normalize_speed_id("x2"), _SettingsPrefs.SPEED_ID_X15)
+	assert_eq(_SettingsPrefs.speed_id_for_mult(1.5), _SettingsPrefs.SPEED_ID_X15)
+	assert_eq(_SettingsPrefs.speed_id_for_mult(0.75), _SettingsPrefs.SPEED_ID_X1)
 
 
 func test_audio_buses_created() -> void:

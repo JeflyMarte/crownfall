@@ -1,5 +1,17 @@
 # CHANGELOG — ProjectDocs
 
+## v3.5.47 — 2026-07-22
+
+**P3-OPS-CURSOR-001** — HQ / Impl とも Cursor 一本化
+
+### 確定内容
+
+- 実装・HQ とも Cursor のみ。外部 Impl / コピペ司令塔の運用ルールを削除
+- 入口は `AGENTS.md`。依頼テンプレを `10_Impl依頼テンプレート.md` / `06_Impl運用ルール.md` に改名
+- 削除: Claude Code キャラ定義、ChatGPT 世界観パッケージ README、`package_chatgpt_worldlore.sh` 等
+
+---
+
 ## v3.5.46 — 2026-06-25
 
 Phase3-A Closeout — Visual Production 完了（P3-D008〜010）

@@ -5,17 +5,17 @@ extends RefCounted
 ## 初期バランス: ★序列（4>3>2>1）を合計で明確化。個差はだいたい50前後でバラす（綺麗な梯子にしない）。
 ## 参照は preload（`GachaRarityConfig`）経由。
 
-## メイン5（★3帯の上）。最終表示値は ALLY_STAT_BONUS_SCALE 適用後（P3-BAL-OPENING-001）。
+## メイン5（★3帯の上）。最終表示値は HP/DEF×ALLY_STAT_BONUS_SCALE・ATK×ALLY_ATK_BONUS_SCALE 後。
 const STARTER_BONUS: Dictionary = {
-	## アルド → 補正後 1123/234/146
+	## アルド → 補正後 1123/134/146
 	"adventurer_0": {"hp": 81, "attack": 144, "defense": 93},
-	## リーヴァ
+	## リーヴァ → 1008/161/97
 	"adventurer_1": {"hp": -83, "attack": 213, "defense": 23},
-	## エリアス
+	## エリアス → 1287/91/209
 	"adventurer_2": {"hp": 316, "attack": 37, "defense": 183},
-	## ガレン
+	## ガレン → 1348/76/239
 	"adventurer_3": {"hp": 403, "attack": 1, "defense": 226},
-	## ミレイ
+	## ミレイ → 1169/113/122
 	"adventurer_4": {"hp": 147, "attack": 93, "defense": 59},
 }
 

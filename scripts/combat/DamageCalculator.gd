@@ -59,9 +59,24 @@ static func apply_enemy_defense(damage: int, enemy_data: Resource, def_reduction
 	var def: float = float(enemy_data.defense)
 	if def_reduction > 0.0:
 		def *= (1.0 - clampf(def_reduction, 0.0, 0.95))
-	if def <= 0.0:
+	return apply_defense_mitigation(damage, int(round(def)))
+
+
+## 味方DEFによる逓減軽減（P3-BAL-OPENING-002）。敵→味方も味方→敵と同式。
+## 旧 flat `ATK−DEF` は高DEFで常時1ダメになり脅威が消えるため廃止。
+static func apply_member_defense(damage: int, defense: int) -> int:
+	return apply_defense_mitigation(damage, defense)
+
+
+## 共通: damage × K/(K+DEF)。DEF≤0 は素通し。最低1。
+static func apply_defense_mitigation(damage: int, defense: int) -> int:
+	if damage <= 0:
 		return damage
-	var mult: float = BalanceConfig.DEFENSE_MITIGATION_K / (BalanceConfig.DEFENSE_MITIGATION_K + def)
+	if defense <= 0:
+		return damage
+	var mult: float = BalanceConfig.DEFENSE_MITIGATION_K / (
+		BalanceConfig.DEFENSE_MITIGATION_K + float(defense)
+	)
 	return maxi(1, int(round(float(damage) * mult)))
 
 # ── ダメージ±乱数（P3-D158） ────────────────────────────────────────────
@@ -298,7 +313,7 @@ static func enemy_damage_to_member(
 		var job_mods: Dictionary = JobStatCalculator.get_member_modifiers(member)
 		var def_mult: float = float(job_mods.get("defense_multiplier", JobStatCalculator.DEFAULT_MULTIPLIER))
 		defense = maxi(0, int(round(float(defense) * def_mult)))
-	var final_dmg: int = max(1, base_dmg - defense)
+	var final_dmg: int = apply_member_defense(base_dmg, defense)
 	# 防御(guard)等の被ダメ補正（P3-D085）。
 	var incoming_mult: float = combat.get_member_incoming_damage_multiplier(target_index)
 	if not is_equal_approx(incoming_mult, 1.0):

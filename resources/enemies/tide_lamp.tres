@@ -28,6 +28,7 @@ on_hit_status_chance = 0.3
 can_swarm = true
 swarm_min = 2
 swarm_max = 3
+escorts_minions = false
 codex_class = "刺胞類"
 codex_danger = 3
 codex_habitat = "沈没航路・夜の干潟"

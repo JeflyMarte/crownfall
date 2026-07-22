@@ -6,10 +6,10 @@ extends Control
 const CRITICAL_MULTIPLIER: float = BalanceConfig.CRITICAL_MULTIPLIER
 const HEAL_AMOUNT: int = BalanceConfig.ROOM_HEAL_AMOUNT
 # P3-D084: CT/ATB の 1 パルス（1 行動）間隔。倍率は COMBAT_TICK_BASE / mult。
-const COMBAT_TICK_BASE: float = 0.75
+const COMBAT_TICK_BASE: float = 1.0
 const AUTO_DELAY_BASE: float = 1.2
 const NON_COMBAT_FLOOR_GRACE_SEC: float = 1.6
-const SPEED_MULT_NORMAL: float = 0.75
+const SPEED_MULT_NORMAL: float = 1.0
 const SPEED_MULT_FAST: float = 1.5
 const COMBAT_WAIT_GRIND: float = 0.28
 const AUTO_DELAY_GRIND: float = 0.6
@@ -273,6 +273,9 @@ const STATUS_ICON_DEF: Dictionary = {
 	"empower": {"abbrev": "攻", "color": Color(0.95, 0.55, 0.2)},
 	"empower_minor": {"abbrev": "攻", "color": Color(0.85, 0.6, 0.35)},
 	"guard": {"abbrev": "防", "color": Color(0.4, 0.55, 0.85)},
+	"bleed": {"abbrev": "出血", "color": Color(0.9, 0.28, 0.28)},
+	"slow": {"abbrev": "鈍", "color": Color(0.47, 0.67, 0.82)},
+	"enrage": {"abbrev": "激", "color": Color(0.9, 0.35, 0.16)},
 }
 const HEAL_SKILL_BASE: int = BalanceConfig.HEAL_SKILL_BASE
 const STATUS_ICON_SIZE: float = 26.0
@@ -523,12 +526,13 @@ const ELITE_Y_RATIO: float = 0.34
 const COMBAT_Y_BIAS: float = 0.08
 # 編成スロット別の戦闘配置（BattlefieldArea 内の比率・足元基準）。
 # スロット 0,1=前衛 / 2,3=後衛（combat_index ではなく formation_slot で参照）。
+## P3-UX-PARTY-POS-001: やや左下へ寄せて敵との間合いを広げる。
 const FORMATION_SLOT_RATIOS: Array[Vector2] = [
-	Vector2(0.368, 0.61),  # 0 前衛左
-	Vector2(0.583, 0.72),  # 1 前衛右（敵寄り）
-	Vector2(0.174, 0.71),  # 2 後衛左（奥）
-	Vector2(0.368, 0.80),  # 3 後衛右
-	Vector2(0.43, 0.66),  # 4 オトモ（前衛左の少し右）
+	Vector2(0.333, 0.645),  # 0 前衛左
+	Vector2(0.548, 0.755),  # 1 前衛右（敵寄り）
+	Vector2(0.139, 0.745),  # 2 後衛左（奥）
+	Vector2(0.333, 0.835),  # 3 後衛右
+	Vector2(0.395, 0.695),  # 4 オトモ（前衛左の少し右）
 ]
 const PARTY_CARD_SLOT_COUNT: int = 4
 const BATTLE_LOG_VISIBLE_LINES: int = 4
@@ -1954,6 +1958,8 @@ func _apply_scene_typography() -> void:
 	UiTypography.apply_button($MainVBox/HeaderBar/ButtonMenu, false)
 	UiTypography.apply_button($MainVBox/HeaderBar/ButtonSpeedX1, false)
 	UiTypography.apply_button($MainVBox/HeaderBar/ButtonSpeedX2, false)
+	$MainVBox/HeaderBar/ButtonSpeedX1.text = "×1"
+	$MainVBox/HeaderBar/ButtonSpeedX2.text = "×1.5"
 	$MainVBox/HeaderBar/ButtonSpeedX1.toggle_mode = true
 	$MainVBox/HeaderBar/ButtonSpeedX2.toggle_mode = true
 	UiTypography.apply_button($MainVBox/HeaderBar/ButtonStop, false)
@@ -4767,14 +4773,15 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 		match drop_cat:
 			"armor":
 				GameState.last_run_armor_dropped = drop_id
-				log_lines.append("防具ドロップ: %s" % DataRegistry.get_armor_name(drop_id))
+				log_lines.append(_format_equip_drop_log("防具", drop_id, drop_cat))
 			"accessory":
 				GameState.last_run_accessory_dropped = drop_id
-				log_lines.append("装飾ドロップ: %s" % DataRegistry.get_accessory_name(drop_id))
+				log_lines.append(_format_equip_drop_log("装飾", drop_id, drop_cat))
 			_:
 				GameState.last_run_weapon_dropped = drop_id
-				log_lines.append("武器ドロップ: %s" % DataRegistry.get_weapon_name(drop_id))
+				log_lines.append(_format_equip_drop_log("武器", drop_id, drop_cat))
 		_append_equipment_drop_icon(drop_icons, drop_id, drop_cat)
+		_maybe_celebrate_rare_equip_drop(drop_id, drop_cat, bool(equip_drop.get("mythic", false)))
 	if room_type == Enums.RoomType.BOSS:
 		var stage: Resource = $DungeonController.current_stage_data
 		if stage != null:
@@ -4785,12 +4792,14 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 					"ボス報酬: 防具 %s" % DataRegistry.get_armor_name(str(legendary_bonus["armor_id"]))
 				)
 				_append_equipment_drop_icon(drop_icons, str(legendary_bonus["armor_id"]), "armor")
+				_maybe_celebrate_rare_equip_drop(str(legendary_bonus["armor_id"]), "armor", false)
 			if not str(legendary_bonus.get("accessory_id", "")).is_empty():
 				GameState.last_run_accessory_dropped = str(legendary_bonus["accessory_id"])
 				log_lines.append(
 					"ボス報酬: 装飾品 %s" % DataRegistry.get_accessory_name(str(legendary_bonus["accessory_id"]))
 				)
 				_append_equipment_drop_icon(drop_icons, str(legendary_bonus["accessory_id"]), "accessory")
+				_maybe_celebrate_rare_equip_drop(str(legendary_bonus["accessory_id"]), "accessory", false)
 			var mythic_bonus: Dictionary = $DungeonController.apply_boss_mythic_loot(stage)
 			var mythic_id: String = str(mythic_bonus.get("id", ""))
 			var mythic_cat: String = str(mythic_bonus.get("category", ""))
@@ -4806,6 +4815,7 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 						GameState.last_run_accessory_dropped = mythic_id
 						log_lines.append("神話の招き: 装飾品 %s" % DataRegistry.get_accessory_name(mythic_id))
 				_append_equipment_drop_icon(drop_icons, mythic_id, mythic_cat)
+				_maybe_celebrate_rare_equip_drop(mythic_id, mythic_cat, true)
 		var boss_mat: Dictionary = $DungeonController.apply_boss_material_loot()
 		var boss_mat_id: String = str(boss_mat.get("material_id", "elite_relic_shard"))
 		var boss_mat_amt: int = int(boss_mat.get("amount", 1))
@@ -6058,7 +6068,7 @@ func _apply_combat_speed(speed_mult: float) -> void:
 	$CombatTimer.wait_time = _combat_wait_for_mult(speed_mult)
 	_auto_delay = _auto_delay_for_mult(speed_mult)
 	_refresh_speed_buttons()
-	## 周回中の切替も次回探索の既定に反映（×1 / ×2 のみ。×1.5 は設定画面）。
+	## 周回中の切替も次回探索の既定に反映（×1 / ×1.5）。
 	if is_equal_approx(speed_mult, SPEED_MULT_NORMAL) or is_equal_approx(speed_mult, SPEED_MULT_FAST):
 		SettingsPrefs.set_combat_speed_mult(speed_mult)
 	if _is_paused:
@@ -8233,6 +8243,7 @@ const MATERIAL_DROP_FALLBACK_ICON_PATH: String = "res://assets/ui/materials/ICO_
 const MATERIAL_DROP_PEAK_SCALE: float = 0.7
 const GOLD_DROP_PEAK_SCALE: float = 0.7
 const EQUIPMENT_DROP_PEAK_SCALE: float = 1.0
+const LEGENDARY_DROP_PEAK_SCALE: float = 1.55
 const DROP_FAN_SPACING_PX: float = 28.0
 const DROP_ICON_MAX_PER_KIND: int = 4
 
@@ -8267,11 +8278,73 @@ func _append_material_drop_icons(drop_icons: Array, material_id: String, amount:
 		drop_icons.append({"tex": tex, "peak_scale": MATERIAL_DROP_PEAK_SCALE})
 
 
+func _equip_drop_rarity(item_id: String, category: String) -> int:
+	if item_id.is_empty():
+		return Enums.Rarity.COMMON
+	var data: Resource = null
+	match category:
+		"armor":
+			data = DataRegistry.get_armor_data(item_id)
+		"accessory":
+			data = DataRegistry.get_accessory_data(item_id)
+		_:
+			data = DataRegistry.get_weapon_data(item_id)
+	if data == null:
+		return Enums.Rarity.COMMON
+	return int(data.rarity)
+
+
+func _equip_drop_display_name(item_id: String, category: String) -> String:
+	match category:
+		"armor":
+			return DataRegistry.get_armor_name(item_id)
+		"accessory":
+			return DataRegistry.get_accessory_name(item_id)
+		_:
+			return DataRegistry.get_weapon_name(item_id)
+
+
+func _format_equip_drop_log(kind_label: String, item_id: String, category: String) -> String:
+	var rarity: int = _equip_drop_rarity(item_id, category)
+	var name: String = _equip_drop_display_name(item_id, category)
+	if rarity >= Enums.Rarity.MYTHIC:
+		return "★神話%sドロップ: %s" % [kind_label, name]
+	if rarity >= Enums.Rarity.LEGENDARY:
+		return "★レジェンド%sドロップ: %s" % [kind_label, name]
+	return "%sドロップ: %s" % [kind_label, name]
+
+
 func _append_equipment_drop_icon(drop_icons: Array, item_id: String, category: String) -> void:
 	var tex: Texture2D = IconPaths.get_icon_texture(item_id, category)
 	if tex == null:
 		return
-	drop_icons.append({"tex": tex, "peak_scale": EQUIPMENT_DROP_PEAK_SCALE})
+	var rarity: int = _equip_drop_rarity(item_id, category)
+	var peak: float = EQUIPMENT_DROP_PEAK_SCALE
+	if rarity >= Enums.Rarity.LEGENDARY:
+		peak = LEGENDARY_DROP_PEAK_SCALE
+	drop_icons.append({
+		"tex": tex,
+		"peak_scale": peak,
+		"legendary": rarity >= Enums.Rarity.LEGENDARY,
+	})
+
+
+func _maybe_celebrate_rare_equip_drop(item_id: String, category: String, force_mythic: bool = false) -> void:
+	if item_id.is_empty():
+		return
+	var rarity: int = _equip_drop_rarity(item_id, category)
+	if not force_mythic and rarity < Enums.Rarity.LEGENDARY:
+		return
+	var is_mythic: bool = force_mythic or rarity >= Enums.Rarity.MYTHIC
+	var display: String = _equip_drop_display_name(item_id, category)
+	if display.is_empty():
+		display = item_id
+	var tier_label: String = "神話" if is_mythic else "レジェンド"
+	AudioManager.play_sfx("legendary_drop", 1.0, 0.0)
+	AudioManager.play_sfx("treasure", 1.05, 0.0)
+	_spawn_relic_confetti(40 if is_mythic else 28)
+	_flash_battlefield(Color(1.0, 0.88, 0.42, 1.0) if not is_mythic else Color(0.95, 0.72, 1.0, 1.0), 0.38)
+	_play_relic_get_telop("%s %s Get!!" % [tier_label, display])
 
 
 func _spawn_pickup_drop_burst(world_pos: Vector2, drop_icons: Array) -> void:
@@ -8289,7 +8362,8 @@ func _spawn_pickup_drop_burst(world_pos: Vector2, drop_icons: Array) -> void:
 			tex,
 			world_pos + Vector2(offset_x, 0.0),
 			0.05 * float(i),
-			peak_scale
+			peak_scale,
+			bool(entry.get("legendary", false))
 		)
 
 
@@ -8297,13 +8371,17 @@ func _spawn_pickup_drop(
 	tex: Texture2D,
 	world_pos: Vector2,
 	start_delay: float = 0.0,
-	peak_scale: float = 1.0
+	peak_scale: float = 1.0,
+	legendary: bool = false
 ) -> void:
 	var spr := Sprite2D.new()
 	spr.texture = tex
 	spr.global_position = world_pos
 	spr.scale = Vector2(0.1, 0.1) * peak_scale
 	spr.z_index = 50
+	if legendary:
+		spr.modulate = Color(1.0, 0.95, 0.7, 1.0)
+		spr.z_index = 60
 	add_child(spr)
 	var settle_y: float = world_pos.y - 24.0
 	var pickup_target: Vector2 = world_pos + Vector2(0.0, 200.0)
@@ -8313,10 +8391,12 @@ func _spawn_pickup_drop(
 	# ポップ（拡大＋上方へ放物）
 	tw.tween_property(spr, "scale", Vector2(peak_scale, peak_scale), 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.parallel().tween_property(spr, "global_position:y", world_pos.y - 56.0, 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	if legendary:
+		tw.parallel().tween_property(spr, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.2)
 	# 着地
 	tw.tween_property(spr, "global_position:y", settle_y, 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	# 入手（吸い込み＋縮小＋フェード）
-	tw.tween_interval(0.2)
+	# 入手（吸い込み＋縮小＋フェード）— レジェンドは少し長く見せる
+	tw.tween_interval(0.45 if legendary else 0.2)
 	tw.tween_property(spr, "global_position", pickup_target, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tw.parallel().tween_property(spr, "scale", Vector2(peak_scale * 0.3, peak_scale * 0.3), 0.35)
 	tw.parallel().tween_property(spr, "modulate:a", 0.0, 0.35)

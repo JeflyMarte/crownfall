@@ -70,12 +70,15 @@ const ENEMY_LEVEL_EXP_K: float = 0.15
 const PARTY_BALANCE_HP_SHARE: float = 0.85
 const PARTY_BALANCE_ATK_SHARE: float = 0.40
 
-# ── 序盤〜全体の難易度再調整（P3-BAL-OPENING-001・案C しっかり危ない） ──
+# ── 序盤〜全体の難易度再調整（P3-BAL-OPENING-001 / 002） ──
 ## 戦闘開始時に敵 HP/ATK へ乗算（全ダンジョン共通）。
-const ENEMY_GLOBAL_HP_MULT: float = 1.50
+## OPENING-002: HP をさらに上げて数撃交換に（ATK グローバルは据置＝逓減式で脅威を出す）。
+const ENEMY_GLOBAL_HP_MULT: float = 2.00
 const ENEMY_GLOBAL_ATK_MULT: float = 1.30
 ## ★帯ボーナス＋個人ステ補正の圧縮（素体 BASE_MEMBER_HP は据置）。
+## HP/DEF は 0.70 据置。ATK のみさらに圧縮して一撃感を抑える（OPENING-002）。
 const ALLY_STAT_BONUS_SCALE: float = 0.70
+const ALLY_ATK_BONUS_SCALE: float = 0.40
 
 # ── Threat（P3-D104） ────────────────────────────────────────────────────
 const THREAT_DAMAGE_K: float = 0.10   # 与ダメ1あたりの加算
@@ -97,5 +100,5 @@ const DENSE_ROW_INCOMING: float = 1.08       # 密集列 被ダメ倍率
 const SPREAD_ROW_INCOMING: float = 0.94      # 散開列 被ダメ倍率
 
 # ── エンカウント（P3-D082/D110） ─────────────────────────────────────────
-const SWARM_CHANCE: float = 0.24        # COMBAT 部屋の群れ出現率
+const SWARM_CHANCE: float = 0.45        # COMBAT 部屋の群れ出現率（P3-BAL-SWARM-001）
 const MIXED_SWARM_CHANCE: float = 0.50  # 群れ時に別種を混ぜる確率

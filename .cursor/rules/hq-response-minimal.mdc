@@ -16,14 +16,13 @@ Crownfall の Cursor セッション（HQ / Impl 共通）。
 ## フル出力してよいもの
 
 1. **オーナー承認依頼** — Decision 候補、GO/修正、リスクと推奨
-2. **Impl 依頼プロンプト** — Cursor Impl / Claude Code 共通（`Task:` / `Read:` / `Do:` / `Do NOT:` / `Done when:`）
+2. **Impl 依頼プロンプト** — Cursor Impl 向け（`Task:` / `Read:` / `Do:` / `Do NOT:` / `Done when:`）
 3. **作業結果の要点** — 「何をしたか」「残り／次」のみ（パス・diff 過程は不要）
 
 ## 書かないもの
 
 - 修正したファイル名の羅列、編集過程のログ
 - 既にリポジトリに書いた内容の再掲
-- `■ Task:` コピペブロック（廃止）
 - 自明なエンゲージメント文言・「何か他にありますか」系
 
 ## STOP（実装せずオーナー確認）

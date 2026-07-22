@@ -460,7 +460,7 @@ Phase5 Release Preparation
 DevelopmentHQ / 実装 AI 共通ルール（要約）。
 
 1. **One milestone at a time** — 現行 M の Exit Criteria を満たしてから次 M へ
-2. **Task スコープ厳守** — 指定 Task 範囲外に手を付けない（`CLAUDE.md`）
+2. **Task スコープ厳守** — 指定 Task 範囲外に手を付けない（`AGENTS.md`）
 3. **Decision before SSOT** — 仕様変更は Decision Log → specs 更新 → 実装
 4. **ProjectDocs before implementation** — Task バンドル Read リストを守る
 5. **Completed documents archived** — 承認後 `GameplayArchive/Completed/` に成果物
