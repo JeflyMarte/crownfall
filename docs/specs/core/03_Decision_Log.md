@@ -4045,3 +4045,22 @@ SSOT: `docs/specs/decisions/03_HubNinaNav.md`
 | P3-EVT-FIELD-001-7 | **P3-EVT-WEEK-002 の7日ローテは本 Decision で置換** | 実装一本化 |
 
 SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
+
+---
+
+## 調査室・拠点調査サイクル（2026-07-22 — P3-HUB-SURVEY-001）
+
+> **オーナー GO** — 目的 B（拠点サイクル＋②解禁）。報酬=素材・石主＋武器（★1–2低確率／稀に★3）。解放=①ボス＋調査ゲージクリア（70%）。UI=オーナー提示モック「調査室」構成準拠（下ナビは無視）。Phase1 から本実装。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-HUB-SURVEY-001-1 | **三系統** — SURVEY（永続解放進行）／DISPATCH（調査室サイクル）／ACHIEVE（図鑑実績）。混同禁止 | 放置と本編進行の分離 |
+| P3-HUB-SURVEY-001-2 | **②解放** — ①ボス初回討伐 **かつ** ① SURVEY≥70%。100%=完全調査（解放必須にしない） | オーナー Q1=B |
+| P3-HUB-SURVEY-001-3 | **調査室 UI** — モックの画面構成を正。下ナビ追加はしない（左メニュー等で入室） | オーナー指定 |
+| P3-HUB-SURVEY-001-4 | **サイクル** — 短＋標準の実時間。完了=当該ラン100%で受取。Phase1 同時枠=1（拡張UIは後続） | Q2=C / Q5=A |
+| P3-HUB-SURVEY-001-5 | **調査員配置** — 速度ボーナス（モックの担当スロット）。派遣中は編成ロック | モック準拠 |
+| P3-HUB-SURVEY-001-6 | **報酬** — 主=素材・魔晶石。武器=★1–2低確率＋稀に★3。次DG手がかりは確定フレーバー／SURVEY加算 | Q4=A+C |
+| P3-HUB-SURVEY-001-7 | **ACHIEVE** — 図鑑「実績」タブ・埋め％一回限り報酬 | 解放と分離 |
+| P3-HUB-SURVEY-001-8 | **β封鎖更新** — `BETA_MOURNGATE_ONLY` 恒久封鎖を条件付き②解禁へ | Q3=A |
+| P3-HUB-SURVEY-001-9 | **SSOT** — `docs/specs/decisions/05_HubSurveyRoom.md` | Decision 文書 |
+
