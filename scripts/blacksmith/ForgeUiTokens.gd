@@ -24,6 +24,9 @@ const BTN_BULK_DISMANTLE: String = ROOT + "UI_Forge_Btn_BulkDismantle.png"
 const BTN_BULK_DISMANTLE_DISABLED: String = ROOT + "UI_Forge_Btn_BulkDismantle_Disabled.png"
 const BTN_ENHANCE: String = ROOT + "UI_Forge_Btn_Enhance.png"
 const BTN_ENHANCE_DISABLED: String = ROOT + "UI_Forge_Btn_Enhance_Disabled.png"
+const TITLE_COMPLETE: String = ROOT + "UI_Forge_Title_Complete.png"
+const RESULT_PANEL: String = ROOT + "UI_Forge_ResultPanel.png"
+const SUCCESS_RING: String = ROOT + "UI_Forge_SuccessRing.png"
 
 const PRIMARY_BTN_MARGINS: Vector4i = Vector4i(24, 20, 24, 20)
 
@@ -143,6 +146,20 @@ static func produce_button_style() -> StyleBox:
 
 static func anvil_panel_style() -> StyleBox:
 	return texture_stylebox(ANVIL_PANEL, Vector4i(24, 20, 24, 28))
+
+
+## 生産／強化完了オーバーレイ枠（縦長オーナメントパネル）
+static func result_panel_style() -> StyleBox:
+	return texture_stylebox(RESULT_PANEL, Vector4i(72, 140, 72, 120), 20.0)
+
+
+static func title_complete_tex() -> Texture2D:
+	return load_tex(TITLE_COMPLETE)
+
+
+static func success_ring_tex() -> Texture2D:
+	return load_tex(SUCCESS_RING)
+
 
 static func decorate_title(label: Label) -> void:
 	var text: String = label.text.strip_edges()
