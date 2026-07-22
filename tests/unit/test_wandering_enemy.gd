@@ -1,6 +1,6 @@
 extends GutTest
 
-## P3-WANDER-001 / P3-WANDER-002 — コズミックダック / 宝冠レイヴン。
+## P3-WANDER-001〜004 — 遍在希少種（ダック／レイヴン／スカラベ／影狩り）。
 
 const _WanderingEnemyConfig = preload("res://scripts/dungeon/WanderingEnemyConfig.gd")
 const _WeekRotation = preload("res://scripts/event/EventWeekRotation.gd")
@@ -36,6 +36,16 @@ func test_roll_crown_raven_in_mid_band() -> void:
 	assert_eq(_WanderingEnemyConfig.wandering_id_for_roll(0.03), _WanderingEnemyConfig.ID_CROWN_RAVEN)
 
 
+func test_roll_golden_scarab_band() -> void:
+	## N: duck 0.025 + raven 0.015 = 0.040 → scarab until 0.055
+	assert_eq(_WanderingEnemyConfig.wandering_id_for_roll(0.045), _WanderingEnemyConfig.ID_GOLDEN_SCARAB)
+
+
+func test_roll_shadow_stalker_band() -> void:
+	## N: …scarab ends 0.055 → stalker until 0.063
+	assert_eq(_WanderingEnemyConfig.wandering_id_for_roll(0.058), _WanderingEnemyConfig.ID_SHADOW_STALKER)
+
+
 func test_roll_empty_above_threshold() -> void:
 	assert_eq(_WanderingEnemyConfig.wandering_id_for_roll(0.99), "")
 
@@ -48,11 +58,15 @@ func test_spawn_chance_scales_with_dungeon_tier() -> void:
 	assert_almost_eq(h_duck, 0.025 * 1.3, 0.0001)
 	assert_almost_eq(nm_duck, 0.025 * 1.6, 0.0001)
 	assert_almost_eq(_WanderingEnemyConfig.spawn_chance_crown_raven(2), 0.015 * 1.6, 0.0001)
-	## ノーマル帯では外れる roll が、ナイトメアではレイヴン帯に入る
-	assert_eq(_WanderingEnemyConfig.wandering_id_for_roll(0.05, 0), "")
+	assert_almost_eq(_WanderingEnemyConfig.spawn_chance_golden_scarab(0), 0.015, 0.0001)
+	assert_almost_eq(_WanderingEnemyConfig.spawn_chance_shadow_stalker(0), 0.008, 0.0001)
+	assert_almost_eq(_WanderingEnemyConfig.spawn_chance_shadow_stalker(2), 0.008 * 1.6, 0.0001)
+	## ノーマル帯では外れる roll が、ナイトメアでは影狩り帯に入る
+	## N total=0.063 / NM: duck0.04+raven0.024+scarab0.024=0.088 → stalker to ~0.1008
+	assert_eq(_WanderingEnemyConfig.wandering_id_for_roll(0.07, 0), "")
 	assert_eq(
-		_WanderingEnemyConfig.wandering_id_for_roll(0.05, 2),
-		_WanderingEnemyConfig.ID_CROWN_RAVEN
+		_WanderingEnemyConfig.wandering_id_for_roll(0.09, 2),
+		_WanderingEnemyConfig.ID_SHADOW_STALKER
 	)
 
 func test_legacy_ids_alias_to_new() -> void:
@@ -79,6 +93,17 @@ func test_cosmic_duck_has_flee_and_no_weapon() -> void:
 	assert_eq(int(data.exp_reward), 100)
 
 
+func test_golden_scarab_gold_flee_no_weapon() -> void:
+	var data: Resource = DataRegistry.get_enemy_data("golden_scarab")
+	assert_not_null(data)
+	assert_true(data.is_wandering)
+	assert_eq(data.wander_flee_after_turns, 3)
+	assert_eq(data.weapon_drop_chance, 0.0)
+	assert_true(data.equip_category_weights.is_empty())
+	assert_eq(int(data.gold_reward), 220)
+	assert_eq(int(data.exp_reward), 15)
+
+
 func test_crown_raven_multi_category_drop() -> void:
 	var data: Resource = DataRegistry.get_enemy_data("crown_raven")
 	assert_not_null(data)
@@ -91,6 +116,20 @@ func test_crown_raven_multi_category_drop() -> void:
 	assert_eq(int(data.equip_category_weights.get("accessory", 0)), 25)
 
 
+func test_shadow_stalker_high_risk_loot() -> void:
+	var data: Resource = DataRegistry.get_enemy_data("shadow_stalker")
+	assert_not_null(data)
+	assert_true(data.is_wandering)
+	assert_eq(data.wander_flee_after_turns, 0)
+	assert_eq(data.weapon_drop_chance, 0.75)
+	assert_eq(int(data.exp_reward), 100)
+	assert_eq(int(data.gold_reward), 100)
+	assert_eq(int(data.weapon_rarity_weights.get(Enums.Rarity.LEGENDARY, 0)), 40)
+	assert_eq(int(data.equip_category_weights.get("weapon", 0)), 40)
+	assert_true(_WanderingEnemyConfig.grants_legendary_equip_pool(data))
+	assert_almost_eq(_WanderingEnemyConfig.mythic_chance_for(data), 0.02, 0.0001)
+
+
 func test_pick_wandering_replaces_combat_pool() -> void:
 	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
 	var dc: Node = dc_script.new()
@@ -98,13 +137,16 @@ func test_pick_wandering_replaces_combat_pool() -> void:
 	dc.current_dungeon_data = DataRegistry.get_dungeon_data("mourngate")
 	dc.current_room_type = Enums.RoomType.COMBAT
 	var saw_wander: bool = false
+	var wander_ids: Array[String] = [
+		"cosmic_duck", "crown_raven", "golden_scarab", "shadow_stalker"
+	]
 	for seed_val: int in range(200):
 		seed(seed_val)
 		var group: Array = dc.pick_combat_enemy_group()
 		if group.size() != 1:
 			continue
 		var eid: String = str(group[0].id)
-		if eid == "cosmic_duck" or eid == "crown_raven":
+		if eid in wander_ids:
 			saw_wander = true
 			break
 	assert_true(saw_wander, "200 trials should hit wandering spawn")
@@ -120,6 +162,10 @@ func test_weapon_drop_chance_override() -> void:
 	assert_eq(dc._resolve_weapon_drop_chance(Enums.RoomType.COMBAT, duck), 0.0)
 	var raven: Resource = DataRegistry.get_enemy_data("crown_raven")
 	assert_eq(dc._resolve_weapon_drop_chance(Enums.RoomType.COMBAT, raven), 0.85)
+	var scarab: Resource = DataRegistry.get_enemy_data("golden_scarab")
+	assert_eq(dc._resolve_weapon_drop_chance(Enums.RoomType.COMBAT, scarab), 0.0)
+	var stalker: Resource = DataRegistry.get_enemy_data("shadow_stalker")
+	assert_eq(dc._resolve_weapon_drop_chance(Enums.RoomType.COMBAT, stalker), 0.75)
 
 
 func test_rarity_weight_override_for_raven() -> void:
@@ -129,6 +175,8 @@ func test_rarity_weight_override_for_raven() -> void:
 	var raven: Resource = DataRegistry.get_enemy_data("crown_raven")
 	assert_eq(dc._rarity_drop_weight_for(Enums.Rarity.EPIC, raven), 40)
 	assert_eq(dc._rarity_drop_weight_for(Enums.Rarity.LEGENDARY, raven), 30)
+	var stalker: Resource = DataRegistry.get_enemy_data("shadow_stalker")
+	assert_eq(dc._rarity_drop_weight_for(Enums.Rarity.LEGENDARY, stalker), 40)
 
 
 func test_multi_category_equip_drop_can_yield_armor() -> void:
@@ -168,6 +216,14 @@ func test_crown_raven_pool_includes_legendary_weapons() -> void:
 	)
 	assert_true("consecrated_maul" in pool or "sanctified_dagger" in pool, "伝説武器が候補に入る")
 	assert_false(MythicLoot.WEAPON_ID in pool, "神話はレア度プール外")
+	var stalker: Resource = DataRegistry.get_enemy_data("shadow_stalker")
+	var stalker_pool: Array = dc._augment_pool_with_legendaries(
+		dc._active_weapon_pool(), "weapon", stalker
+	)
+	assert_true(
+		"consecrated_maul" in stalker_pool or "sanctified_dagger" in stalker_pool,
+		"影狩りも伝説武器候補"
+	)
 
 
 func test_crown_raven_mythic_drop_can_succeed() -> void:
@@ -188,6 +244,27 @@ func test_crown_raven_mythic_drop_can_succeed() -> void:
 		saw = true
 		break
 	assert_true(saw, "神話ドロップが成立しうる")
+
+
+func test_shadow_stalker_mythic_drop_can_succeed() -> void:
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	var stalker: Resource = DataRegistry.get_enemy_data("shadow_stalker")
+	var saw: bool = false
+	for seed_val: int in range(250):
+		seed(seed_val)
+		GameState.inventory.clear()
+		GameState.armor_inventory.clear()
+		GameState.accessory_inventory.clear()
+		var drop: Dictionary = dc._try_wander_mythic_drop(stalker)
+		if drop.is_empty():
+			continue
+		assert_true(bool(drop.get("mythic", false)))
+		assert_true(MythicLoot.is_mythic_id(str(drop.get("id", ""))))
+		saw = true
+		break
+	assert_true(saw, "影狩りの神話ドロップが成立しうる")
 
 
 func test_save_v6_to_v7_merges_legacy_wander_codex() -> void:

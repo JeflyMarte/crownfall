@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="DungeonStageData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonStageData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "shadow_hunt_1_1"
+biome_id = "shadow_hunt"
+biome_index = 1
+chapter_index = 1
+display_name = "影狩りの狩場"
+floor_count = 5
+enemy_level = 14
+recommended_level = 16
+closing_type = "exit"
+requires_elite = false
+spawn_weights = {
+"1": 100,
+}
+event_room_weight = 5
+min_event_rooms = 0

@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "golden_scarab"
+display_name = "ゴールデンスカラベ"
+max_hp = 192
+attack = 48
+defense = 24
+attack_speed = 1.8
+critical_rate = 0.05
+move_speed = 2.0
+detection_range = 7.0
+attack_range = 1.5
+enemy_type = 0
+ai_type = "default"
+threat_target_bias = "lowest_threat"
+exp_reward = 15
+gold_reward = 220
+drop_table_id = ""
+element_weakness = Array[String](["fire"])
+element_resist = Array[String]([])
+attack_element = ""
+on_hit_status_id = ""
+on_hit_status_chance = 0.0
+can_swarm = false
+codex_class = "昆虫類"
+codex_danger = 1
+codex_habitat = "鉱脈の裂け目（遍在）"
+codex_research_note = "外殻に砂金とエルダ微粒子が沈着した甲虫の適応型。警戒心が強く、接触後すぐに巣穴へ逃げる。撃退すれば殻に溜まった金砂を回収できるが、逃がすとほぼ得られない。武具部より会計が先に騒ぎ立てる種。"
+codex_materials = Array[String]([])
+skill_ids = Array[String](["enemy_crystal_sting"])
+skill_use_chance = 0.22
+is_wandering = true
+wander_flee_after_turns = 3
+weapon_drop_chance = 0.0
+weapon_rarity_weights = {}
+equip_category_weights = {}

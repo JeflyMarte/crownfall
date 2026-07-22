@@ -1161,9 +1161,9 @@ func _roll_multi_category_equip_drop(enemy_data: Resource) -> Dictionary:
 	)
 	if chance <= 0.0 or randf() > chance:
 		return {}
-	## 宝冠レイヴン: 神話は通常レア抽選外の別枠（P3-WANDER-002）
-	if _WanderingEnemyConfig.is_crown_raven(enemy_data):
-		var mythic: Dictionary = _try_crown_raven_mythic_drop()
+	## レイヴン／影狩り: 神話は通常レア抽選外の別枠（P3-WANDER-002 / P3-WANDER-004）
+	if _WanderingEnemyConfig.grants_legendary_equip_pool(enemy_data):
+		var mythic: Dictionary = _try_wander_mythic_drop(enemy_data)
 		if not mythic.is_empty():
 			return mythic
 	var category: String = _pick_equip_category(enemy_data.equip_category_weights)
@@ -1189,7 +1189,13 @@ func _roll_multi_category_equip_drop(enemy_data: Resource) -> Dictionary:
 
 
 func _try_crown_raven_mythic_drop() -> Dictionary:
-	if randf() > _WanderingEnemyConfig.CROWN_RAVEN_MYTHIC_CHANCE:
+	## 互換エイリアス（旧テスト／呼び出し）。
+	return _try_wander_mythic_drop(DataRegistry.get_enemy_data(_WanderingEnemyConfig.ID_CROWN_RAVEN))
+
+
+func _try_wander_mythic_drop(enemy_data: Resource) -> Dictionary:
+	var chance: float = _WanderingEnemyConfig.mythic_chance_for(enemy_data)
+	if chance <= 0.0 or randf() > chance:
 		return {}
 	var candidates: Array = MythicLoot.unowned_pool()
 	if candidates.is_empty():
@@ -1248,9 +1254,9 @@ func _pick_kill_accessory_id(enemy_data: Resource) -> String:
 	return _pick_rarity_weighted(pool, "accessory", enemy_data)
 
 
-## 宝冠レイヴン: ダンジョンプールに伝説が無くても ★3 が当たるよう候補を足す（神話は別枠）。
+## レイヴン／影狩り: ダンジョンプールに伝説が無くても ★3 が当たるよう候補を足す（神話は別枠）。
 func _augment_pool_with_legendaries(pool: Array, category: String, enemy_data: Resource) -> Array:
-	if not _WanderingEnemyConfig.is_crown_raven(enemy_data):
+	if not _WanderingEnemyConfig.grants_legendary_equip_pool(enemy_data):
 		return pool
 	var out: Array = pool.duplicate()
 	for item_id: String in _all_legendary_ids(category):

@@ -66,6 +66,8 @@ const ENEMY_SPRITE_MAP: Dictionary = {
 	"wind_ripper": "res://resources/animation/ENM_Greios.tres",
 	"cosmic_duck": "res://resources/animation/ENM_CosmicDuck.tres",
 	"crown_raven": "res://resources/animation/ENM_CrownRaven.tres",
+	"golden_scarab": "res://resources/animation/ENM_GoldenScarab.tres",
+	"shadow_stalker": "res://resources/animation/ENM_ShadowStalker.tres",
 	## 旧IDエイリアス（プレースホルダ）
 	"wayfarer_sparrow": "res://resources/animation/ENM_MistWyvern.tres",
 	"reliquary_beetle": "res://resources/animation/ENM_MossShell.tres",
@@ -184,6 +186,8 @@ const BATTLE_BG_MAP: Dictionary = {
 	## イベントDG（ダック／レイヴン共通背景）
 	"cosmic_rift": "res://assets/dungeon/event/env/BG_Battle_Event.png",
 	"crown_rookery": "res://assets/dungeon/event/env/BG_Battle_Event.png",
+	"golden_nest": "res://assets/dungeon/event/env/BG_Battle_Event.png",
+	"shadow_hunt": "res://assets/dungeon/event/env/BG_Battle_Event.png",
 }
 const TREASURE_CLOSED_OBJ_MAP: Dictionary = {
 	"mourngate": "res://assets/dungeon/mourngate/env/OBJ_TreasureChest_Closed.png",

@@ -45,6 +45,14 @@ const DROP_PREVIEW: Dictionary = {
 		["weapon", "noctumbra_fang"],
 		["weapon", "mistpierce_halberd"],
 	],
+	"golden_nest": [
+		["material", "relic_shard"],
+	],
+	"shadow_hunt": [
+		["weapon", "stormveil_needle"],
+		["weapon", "noctumbra_fang"],
+		["weapon", "mistpierce_halberd"],
+	],
 	"mourngate": [
 		["weapon", "iron_sword"],
 		["armor", "leather_armor"],
@@ -207,6 +215,8 @@ const SUB_BANNER_FALLBACK: Dictionary = {
 	"blackshore_abyss": "blackshore",
 	"cosmic_rift": "mourngate",
 	"crown_rookery": "mourngate",
+	"golden_nest": "mourngate",
+	"shadow_hunt": "mourngate",
 	"red_forge_depths": "frostridge",
 	"north_reach": "frostridge",
 }

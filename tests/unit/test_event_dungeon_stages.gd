@@ -28,10 +28,16 @@ func after_each() -> void:
 func test_event_biomes_have_one_stage() -> void:
 	var duck: Array = DataRegistry.get_stages_for_biome("cosmic_rift")
 	var raven: Array = DataRegistry.get_stages_for_biome("crown_rookery")
+	var scarab: Array = DataRegistry.get_stages_for_biome("golden_nest")
+	var stalker: Array = DataRegistry.get_stages_for_biome("shadow_hunt")
 	assert_eq(duck.size(), 1)
 	assert_eq(raven.size(), 1)
+	assert_eq(scarab.size(), 1)
+	assert_eq(stalker.size(), 1)
 	assert_eq(str(duck[0].id), "cosmic_rift_1_1")
 	assert_eq(str(raven[0].id), "crown_rookery_1_1")
+	assert_eq(str(scarab[0].id), "golden_nest_1_1")
+	assert_eq(str(stalker[0].id), "shadow_hunt_1_1")
 
 
 func test_uses_stage_cards_is_route_agnostic() -> void:
@@ -67,8 +73,18 @@ func test_event_stage_icons_are_mapped() -> void:
 		IconPaths.stage_icon_path("crown_rookery_1_1"),
 		"res://assets/dungeon/event/stages/ICO_DG_CrownRookery_1_1.png"
 	)
+	assert_eq(
+		IconPaths.stage_icon_path("golden_nest_1_1"),
+		"res://assets/dungeon/event/stages/ICO_DG_GoldenNest_1_1.png"
+	)
+	assert_eq(
+		IconPaths.stage_icon_path("shadow_hunt_1_1"),
+		"res://assets/dungeon/event/stages/ICO_DG_ShadowHunt_1_1.png"
+	)
 	assert_true(FileAccess.file_exists("res://assets/dungeon/event/stages/ICO_DG_CosmicRift_1_1.png"))
 	assert_true(FileAccess.file_exists("res://assets/dungeon/event/stages/ICO_DG_CrownRookery_1_1.png"))
+	assert_true(FileAccess.file_exists("res://assets/dungeon/event/stages/ICO_DG_GoldenNest_1_1.png"))
+	assert_true(FileAccess.file_exists("res://assets/dungeon/event/stages/ICO_DG_ShadowHunt_1_1.png"))
 
 
 func test_start_event_stage_builds_sequence_without_boss() -> void:
@@ -84,3 +100,13 @@ func test_start_event_stage_builds_sequence_without_boss() -> void:
 	assert_eq(dc.room_sequence.size(), 5)
 	assert_false(Enums.RoomType.BOSS in dc.room_sequence)
 	assert_eq(dc.get_enemy_level(), 10)
+	dc.start_stage("golden_nest_1_1")
+	assert_eq(dc.room_sequence.size(), 5)
+	assert_false(Enums.RoomType.BOSS in dc.room_sequence)
+	assert_eq(dc.get_enemy_level(), 4)
+	assert_eq(dc.get_run_display_name(), "1-1 砂金の巣穴")
+	dc.start_stage("shadow_hunt_1_1")
+	assert_eq(dc.room_sequence.size(), 5)
+	assert_false(Enums.RoomType.BOSS in dc.room_sequence)
+	assert_eq(dc.get_enemy_level(), 14)
+	assert_eq(dc.get_run_display_name(), "1-1 影狩りの狩場")

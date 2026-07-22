@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="DungeonData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "shadow_hunt"
+display_name = "影狩りの狩場"
+difficulty = 3
+recommended_level = 16
+enemy_level = 14
+room_count = 5
+floor_count = 5
+enemy_pool = Array[String](["shadow_stalker"])
+boss_id = ""
+drop_table_id = ""
+discovery_unlocks = {}
+elite_pool = Array[String]([])
+favored_element = "holy"
+route_type = "event"
+event_room_weight = 5
+min_event_rooms = 0
+room_weight_overrides = {
+"combat": 55,
+"heal": 10,
+"lore": 5,
+"treasure": 15,
+"trap": 15,
+"elite": 0
+}
+weapon_pool = Array[String](["iron_sword", "rusted_blade", "hunting_bow", "apprentice_staff", "heater_blade", "frost_blade", "bolt_knife", "ember_fang", "glacier_staff", "storm_edge", "sanctified_dagger", "consecrated_maul", "stormveil_needle", "noctumbra_fang", "mistpierce_halberd"])
+armor_pool = Array[String](["crypt_weave_cloak", "sepia_hide_vest", "rune_linen_garb", "lament_guard_mail", "mourngate_plate"])
+accessory_pool = Array[String](["clockwing_brooch", "mourngate_sigil", "pilgrim_lantern_charm"])
+unlock_after_dungeon_id = ""
+daily_attempt_limit = 1
+disable_wandering = true
+forced_swarm_chance = 0.05
+forced_swarm_min = 2
+forced_swarm_max = 3
+flavor_text = "一日一回だけ霧が濃くなる宵闇の獣道。後列を狙う影狩りだけが
+狩場を支配し、稀に群れで忍び寄る。戦利は厚いが生還は保証されない。"
