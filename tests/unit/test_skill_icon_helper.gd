@@ -8,6 +8,7 @@ func test_player_skill_mapping_covers_expected_ids() -> void:
 		"slash_attack", "guard_strike", "quick_shot", "hunter_mark", "hex_bolt",
 		"toxin_dart", "snare_shot", "mend", "empower", "ultimate_strike",
 		"ouga_retsudan", "titan_roar", "grand_elixir", "dead_eye", "beast_dominion",
+		"pet_bond_rally", "pet_command_fang", "pet_bond_guard", "aimed_shot", "herd_call",
 	]
 	for skill_id in expected:
 		assert_false(_SkillIconHelper.get_base_id(skill_id).is_empty(), skill_id)
@@ -71,6 +72,20 @@ func test_ally_equipped_icon_ignores_individual_art() -> void:
 	var icon: Control = _SkillIconHelper.make_ally_equipped_icon("empower", member)
 	assert_not_null(icon)
 	assert_ne(icon.texture, _SkillIconHelper.make_unique_icon("empower", Vector2(40, 40)).texture)
+
+
+func test_beast_tamer_pet_skills_resolve_base() -> void:
+	assert_eq(_SkillIconHelper.resolve_base_id("pet_bond_rally"), "buff")
+	assert_eq(_SkillIconHelper.resolve_base_id("pet_command_fang"), "mark")
+	assert_eq(_SkillIconHelper.resolve_base_id("pet_bond_guard"), "guard")
+	assert_eq(_SkillIconHelper.resolve_base_id("aimed_shot"), "bow")
+	if not _SkillIconHelper.has_base_art("buff"):
+		pass_test("buff base art not installed")
+		return
+	var member := Adventurer.new()
+	member.job_id = "beast_tamer"
+	for skill_id in ["pet_bond_rally", "pet_command_fang", "pet_bond_guard", "aimed_shot"]:
+		assert_not_null(_SkillIconHelper.make_ally_equipped_icon(skill_id, member), skill_id)
 
 
 func test_make_unique_icon_uses_individual_texture_for_ultimates() -> void:
