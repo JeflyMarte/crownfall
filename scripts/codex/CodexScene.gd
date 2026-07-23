@@ -11,7 +11,8 @@ const DEFAULT_ICON_SIZE: Vector2 = Vector2(48, 48)
 const ENEMY_ART_SIZE: Vector2 = Vector2(256, 256)
 const _CodexRichText = preload("res://scripts/codex/CodexRichText.gd")
 
-const CATEGORIES: Array[String] = ["enemy", "dungeon", "weapon", "history", "lore", "guide", "achieve"]
+## 実績タブは `Constants.CODEX_ACHIEVE_PLAYABLE` で制御（P3-CODEX-ACHIEVE-OMIT）。
+const CATEGORIES_BASE: Array[String] = ["enemy", "dungeon", "weapon", "history", "lore", "guide"]
 
 const CATEGORY_DISPLAY: Dictionary = {
 	"enemy": "モンスター",
@@ -33,6 +34,12 @@ const ELEMENT_EMOJI: Dictionary = {
 	"holy": "☀ 聖", "light": "☀ 聖", "dark": "🌑 闇",
 	"water": "💧 水", "wind": "🌪 風", "earth": "⛰ 土",
 }
+
+static func playable_categories() -> Array[String]:
+	var cats: Array[String] = CATEGORIES_BASE.duplicate()
+	if Constants.CODEX_ACHIEVE_PLAYABLE:
+		cats.append("achieve")
+	return cats
 
 var _current_category: String = "enemy"
 var _entries: Array = []
@@ -71,7 +78,10 @@ func _ready() -> void:
 	$MainScroll/MainVBox/TabRow/ButtonTabHistory.pressed.connect(func(): _select_category("history"))
 	$MainScroll/MainVBox/TabRow/ButtonTabLore.pressed.connect(func(): _select_category("lore"))
 	$MainScroll/MainVBox/TabRow/ButtonTabGuide.pressed.connect(func(): _select_category("guide"))
-	_ensure_achieve_tab_button()
+	if Constants.CODEX_ACHIEVE_PLAYABLE:
+		_ensure_achieve_tab_button()
+	else:
+		_hide_achieve_tab_button()
 	$MainScroll/MainVBox/TabRow/ButtonTabEnemy.text = str(CATEGORY_DISPLAY["enemy"])
 	$DetailOverlay/Dim.gui_input.connect(_on_detail_dim_input)
 	$DetailOverlay/DetailPanel/DetailVBox/DetailHeaderRow/ButtonDetailClose.pressed.connect(_hide_detail_popup)
@@ -165,8 +175,16 @@ func _ensure_achieve_tab_button() -> void:
 	tab_row.add_child(btn)
 
 
+func _hide_achieve_tab_button() -> void:
+	var btn: Button = $MainScroll/MainVBox/TabRow.get_node_or_null("ButtonTabAchieve") as Button
+	if btn == null:
+		return
+	btn.visible = false
+	btn.disabled = true
+
+
 func _select_category(category: String) -> void:
-	if category not in CATEGORIES:
+	if category not in playable_categories():
 		return
 	_current_category = category
 	_entries = _fetch_entries(category)
@@ -211,7 +229,7 @@ func _update_tab_buttons() -> void:
 		"guide": $MainScroll/MainVBox/TabRow/ButtonTabGuide,
 		"achieve": $MainScroll/MainVBox/TabRow.get_node_or_null("ButtonTabAchieve"),
 	}
-	for cat in CATEGORIES:
+	for cat in playable_categories():
 		var btn: Button = mapping.get(cat) as Button
 		if btn == null:
 			continue

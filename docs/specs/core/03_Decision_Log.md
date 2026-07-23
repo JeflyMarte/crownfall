@@ -4154,6 +4154,7 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 
 **Closeout（2026-07-23）:** データ＋UI配線＋unit。
 
+<<<<<<< HEAD
 ## 影狩り強化 B+D（2026-07-23 — P3-WANDER-STALKER-001）
 
 > オーナー GO: 案B（後列処刑特化）＋案D（報酬強化）。影狩り戦闘フロアのみ薄暗演出。
@@ -4165,3 +4166,13 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-WANDER-STALKER-001-3 | **報酬** — EXP140 / gold150 / 装備88%・レア重み0/10/35/55・神話別枠3.5% | 高リスク総取りの見返り |
 | P3-WANDER-STALKER-001-4 | **演出** — 影狩り戦闘フロアのみ Battlefield を薄暗く（退室で解除） | 特別な敵の空気 |
 | P3-WANDER-STALKER-001-5 | **出現制限** — モーンゲート 1-1〜1-3 では影狩り放浪を出さない（1-4以降／他Biomeは可）。イベントDGは据置 | 序盤保護 |
+=======
+## 図鑑実績タブ一旦オミット（2026-07-23 — P3-CODEX-ACHIEVE-OMIT）
+> **オーナー指示** — 図鑑の「実績」タブをオミット。
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-CODEX-ACHIEVE-OMIT-1 | **UI 非表示** — `Constants.CODEX_ACHIEVE_PLAYABLE=false`。タブ生成スキップ・カテゴリから除外 | オーナー明示オミット |
+| P3-CODEX-ACHIEVE-OMIT-2 | **データ／Save／`SurveySystem.achieve_*` は残置**。再表示はフラグ ON | 他オミットと同型 |
+| P3-CODEX-ACHIEVE-OMIT-3 | **手引き SYS-G001** から実績タブ案内を撤去。記録タブは維持 | プレイヤー向け案内の整合 |
+| P3-CODEX-ACHIEVE-OMIT-4 | **SSOT** — `decisions/05_HubSurveyRoom.md` §6 にオミット注記。P3-HUB-SURVEY-001-7 を本 Decision で上書き（骨格残置） | 調査室 Decision の ACHIEVE 節 |
+>>>>>>> origin/cursor/codex-omit-achieve-5bd7
