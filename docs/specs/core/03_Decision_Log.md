@@ -4153,3 +4153,15 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-DG-WANDER-EVENT-002-6 | P3-WANDER-004-5 の「イベントDGはスコープ外」を本 Decision で上書き | オーナー追指示 |
 
 **Closeout（2026-07-23）:** データ＋UI配線＋unit。
+
+## 影狩り強化 B+D（2026-07-23 — P3-WANDER-STALKER-001）
+
+> オーナー GO: 案B（後列処刑特化）＋案D（報酬強化）。影狩り戦闘フロアのみ薄暗演出。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-WANDER-STALKER-001-1 | **ステ** — HP2270 / ATK330 / DEF188（概ね ×1.4 / ×1.25 / ×1.2）。鈍化付与40%・スキル発動50% | 数値で殴りすぎず、脅威を厚く |
+| P3-WANDER-STALKER-001-2 | **専用スキル `enemy_shadow_reap`（死告の鎌）** — 後列全体・倍率1.85・bleed55%＋防御DOWN45%・闇 | 後列処刑の役割明確化 |
+| P3-WANDER-STALKER-001-3 | **報酬** — EXP140 / gold150 / 装備88%・レア重み0/10/35/55・神話別枠3.5% | 高リスク総取りの見返り |
+| P3-WANDER-STALKER-001-4 | **演出** — 影狩り戦闘フロアのみ Battlefield を薄暗く（退室で解除） | 特別な敵の空気 |
+| P3-WANDER-STALKER-001-5 | **出現制限** — モーンゲート 1-1〜1-3 では影狩り放浪を出さない（1-4以降／他Biomeは可）。イベントDGは据置 | 序盤保護 |

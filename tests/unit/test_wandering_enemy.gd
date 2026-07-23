@@ -44,6 +44,45 @@ func test_roll_golden_scarab_band() -> void:
 func test_roll_shadow_stalker_band() -> void:
 	## N: …scarab ends 0.055 → stalker until 0.063
 	assert_eq(_WanderingEnemyConfig.wandering_id_for_roll(0.058), _WanderingEnemyConfig.ID_SHADOW_STALKER)
+	## 1-1〜1-3 相当: 影狩り帯の roll でも空
+	assert_eq(
+		_WanderingEnemyConfig.wandering_id_for_roll(0.058, 0, false),
+		""
+	)
+
+
+func test_shadow_stalker_blocked_on_early_mourngate_chapters() -> void:
+	assert_false(_WanderingEnemyConfig.is_shadow_stalker_allowed_on_stage(1, 1))
+	assert_false(_WanderingEnemyConfig.is_shadow_stalker_allowed_on_stage(1, 2))
+	assert_false(_WanderingEnemyConfig.is_shadow_stalker_allowed_on_stage(1, 3))
+	assert_true(_WanderingEnemyConfig.is_shadow_stalker_allowed_on_stage(1, 4))
+	assert_true(_WanderingEnemyConfig.is_shadow_stalker_allowed_on_stage(1, 5))
+	assert_true(_WanderingEnemyConfig.is_shadow_stalker_allowed_on_stage(2, 1))
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	dc.current_dungeon_data = DataRegistry.get_dungeon_data("mourngate")
+	dc.current_room_type = Enums.RoomType.COMBAT
+	dc.current_stage_data = DataRegistry.get_stage_data("mourngate_1_1")
+	var saw_stalker: bool = false
+	for seed_val: int in range(400):
+		seed(seed_val)
+		var picked: Resource = dc.try_pick_wandering_enemy()
+		if picked != null and str(picked.id) == "shadow_stalker":
+			saw_stalker = true
+			break
+	assert_false(saw_stalker, "1-1 では影狩り放浪が出ない")
+	dc.current_stage_data = DataRegistry.get_stage_data("mourngate_1_4")
+	var saw_any_wander: bool = false
+	for seed_val: int in range(400):
+		seed(seed_val)
+		var picked2: Resource = dc.try_pick_wandering_enemy()
+		if picked2 != null:
+			saw_any_wander = true
+			if str(picked2.id) == "shadow_stalker":
+				saw_stalker = true
+				break
+	assert_true(saw_any_wander or saw_stalker, "1-4 では放浪抽選が動く")
 
 
 func test_roll_empty_above_threshold() -> void:
@@ -121,13 +160,24 @@ func test_shadow_stalker_high_risk_loot() -> void:
 	assert_not_null(data)
 	assert_true(data.is_wandering)
 	assert_eq(data.wander_flee_after_turns, 0)
-	assert_eq(data.weapon_drop_chance, 0.75)
-	assert_eq(int(data.exp_reward), 100)
-	assert_eq(int(data.gold_reward), 100)
-	assert_eq(int(data.weapon_rarity_weights.get(Enums.Rarity.LEGENDARY, 0)), 40)
+	assert_eq(data.weapon_drop_chance, 0.88)
+	assert_eq(int(data.exp_reward), 140)
+	assert_eq(int(data.gold_reward), 150)
+	assert_eq(int(data.max_hp), 2270)
+	assert_eq(int(data.attack), 330)
+	assert_eq(str(data.skill_ids[0]), "enemy_shadow_reap")
+	assert_almost_eq(float(data.skill_use_chance), 0.5, 0.0001)
+	assert_almost_eq(float(data.on_hit_status_chance), 0.4, 0.0001)
+	assert_eq(int(data.weapon_rarity_weights.get(Enums.Rarity.LEGENDARY, 0)), 55)
 	assert_eq(int(data.equip_category_weights.get("weapon", 0)), 40)
 	assert_true(_WanderingEnemyConfig.grants_legendary_equip_pool(data))
-	assert_almost_eq(_WanderingEnemyConfig.mythic_chance_for(data), 0.02, 0.0001)
+	assert_almost_eq(_WanderingEnemyConfig.mythic_chance_for(data), 0.035, 0.0001)
+	var skill: Resource = DataRegistry.get_skill_data("enemy_shadow_reap")
+	assert_not_null(skill)
+	assert_eq(str(skill.target_type), "party_back")
+	assert_almost_eq(float(skill.power_multiplier), 1.85, 0.001)
+	assert_eq(str(skill.apply_status_id), "bleed")
+	assert_eq(str(skill.apply_status_id2), "armor_break")
 
 
 func test_pick_wandering_replaces_combat_pool() -> void:
@@ -165,7 +215,7 @@ func test_weapon_drop_chance_override() -> void:
 	var scarab: Resource = DataRegistry.get_enemy_data("golden_scarab")
 	assert_eq(dc._resolve_weapon_drop_chance(Enums.RoomType.COMBAT, scarab), 0.0)
 	var stalker: Resource = DataRegistry.get_enemy_data("shadow_stalker")
-	assert_eq(dc._resolve_weapon_drop_chance(Enums.RoomType.COMBAT, stalker), 0.75)
+	assert_eq(dc._resolve_weapon_drop_chance(Enums.RoomType.COMBAT, stalker), 0.88)
 
 
 func test_rarity_weight_override_for_raven() -> void:
@@ -176,7 +226,7 @@ func test_rarity_weight_override_for_raven() -> void:
 	assert_eq(dc._rarity_drop_weight_for(Enums.Rarity.EPIC, raven), 40)
 	assert_eq(dc._rarity_drop_weight_for(Enums.Rarity.LEGENDARY, raven), 30)
 	var stalker: Resource = DataRegistry.get_enemy_data("shadow_stalker")
-	assert_eq(dc._rarity_drop_weight_for(Enums.Rarity.LEGENDARY, stalker), 40)
+	assert_eq(dc._rarity_drop_weight_for(Enums.Rarity.LEGENDARY, stalker), 55)
 
 
 func test_multi_category_equip_drop_can_yield_armor() -> void:

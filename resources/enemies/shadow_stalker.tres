@@ -6,41 +6,41 @@
 script = ExtResource("1")
 id = "shadow_stalker"
 display_name = "影狩り"
-max_hp = 1620
-attack = 264
-defense = 157
-attack_speed = 1.15
-critical_rate = 0.14
-move_speed = 1.4
+max_hp = 2270
+attack = 330
+defense = 188
+attack_speed = 1.2
+critical_rate = 0.18
+move_speed = 1.45
 detection_range = 9.0
 attack_range = 2.0
 enemy_type = 0
 ai_type = "default"
 threat_target_bias = "back_row"
-exp_reward = 100
-gold_reward = 100
+exp_reward = 140
+gold_reward = 150
 drop_table_id = ""
 element_weakness = Array[String](["holy"])
 element_resist = Array[String](["dark"])
 attack_element = "dark"
 on_hit_status_id = "slow"
-on_hit_status_chance = 0.25
+on_hit_status_chance = 0.4
 can_swarm = false
 codex_class = "獣類"
 codex_danger = 5
 codex_habitat = "宵闇の獣道（遍在）"
-codex_research_note = "薄暮と霧の境界を好み、探索隊の後列を狙う大型の夜行適応獣。害意は明確で、倒すと獲物から剥ぎ取った武具や蓄えを落とす。遭遇そのものが危険だが、撃破報酬は遍在希少種のなかでも厚い。ジョブ名の影狩人とは無関係の野生種。"
+codex_research_note = "薄暮と霧の境界を好み、探索隊の後列を狙う大型の夜行適応獣。害意は明確で、羽音が聞こえた時点で後衛はすでに標的になっている。倒すと獲物から剥ぎ取った武具や蓄えを落とす。遭遇そのものが危険だが、撃破報酬は遍在希少種のなかでも厚い。ジョブ名の影狩人とは無関係の野生種。"
 codex_materials = Array[String]([])
-skill_ids = Array[String](["enemy_skullface_reap"])
-skill_use_chance = 0.38
+skill_ids = Array[String](["enemy_shadow_reap"])
+skill_use_chance = 0.5
 is_wandering = true
 wander_flee_after_turns = 0
-weapon_drop_chance = 0.75
+weapon_drop_chance = 0.88
 weapon_rarity_weights = {
-0: 5,
-1: 15,
-2: 40,
-3: 40
+0: 0,
+1: 10,
+2: 35,
+3: 55
 }
 equip_category_weights = {
 "weapon": 40,

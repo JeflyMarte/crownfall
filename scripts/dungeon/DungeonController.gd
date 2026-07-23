@@ -427,12 +427,25 @@ func _plan_wandering_encounters() -> void:
 	if current_dungeon_data != null and bool(current_dungeon_data.disable_wandering):
 		return
 	var tier: int = GameState.current_dungeon_tier
+	var allow_stalker: bool = _shadow_stalker_allowed_on_current_stage()
 	for i: int in range(room_sequence.size()):
 		if room_sequence[i] != Enums.RoomType.COMBAT:
 			continue
-		var wander_id: String = _WanderingEnemyConfig.try_roll_wandering_id(null, tier)
+		var wander_id: String = _WanderingEnemyConfig.try_roll_wandering_id(
+			null, tier, allow_stalker
+		)
 		if not wander_id.is_empty():
 			_planned_wander_by_room[i] = wander_id
+
+
+func _shadow_stalker_allowed_on_current_stage() -> bool:
+	## 1-1〜1-3 は影狩りのみ除外（予兆計画・ライブ抽選の共通判定）。
+	if current_stage_data == null:
+		return true
+	return _WanderingEnemyConfig.is_shadow_stalker_allowed_on_stage(
+		int(current_stage_data.biome_index),
+		int(current_stage_data.chapter_index)
+	)
 
 
 func should_show_shadow_stalker_omen() -> bool:
@@ -957,8 +970,9 @@ func try_pick_wandering_enemy(rng: RandomNumberGenerator = null) -> Resource:
 		wander_id = str(_planned_wander_by_room.get(current_room_index, ""))
 	else:
 		## P3-WANDER-003: 全ダンジョン共通。出現率は周回帯（N/H/NM）で上昇。
+		## 1-1〜1-3 は影狩りのみ除外。
 		wander_id = _WanderingEnemyConfig.try_roll_wandering_id(
-			rng, GameState.current_dungeon_tier
+			rng, GameState.current_dungeon_tier, _shadow_stalker_allowed_on_current_stage()
 		)
 	if wander_id.is_empty():
 		return null
