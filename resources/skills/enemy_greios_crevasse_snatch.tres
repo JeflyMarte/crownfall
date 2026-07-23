@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_greios_crevasse_snatch"
+display_name = "裂け目の攫い"
+description = "吹雪に紛れて滑空し、後列を爪で掴んで氷裂の底へ投げ捨てる。"
+skill_type = "enemy"
+target_type = "party_back"
+power_multiplier = 0.82
+cooldown = 6.5
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["single"])
+element = "ice"
+apply_status_id = "chill"
+apply_status_chance = 0.3
