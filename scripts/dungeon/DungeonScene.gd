@@ -544,13 +544,13 @@ const ELITE_Y_RATIO: float = 0.34
 const COMBAT_Y_BIAS: float = 0.08
 # 編成スロット別の戦闘配置（BattlefieldArea 内の比率・足元基準）。
 # スロット 0,1=前衛 / 2,3=後衛（combat_index ではなく formation_slot で参照）。
-## P3-UX-PARTY-POS-001: やや左下へ寄せて敵との間合いを広げる。
+## P3-UX-PARTY-POS-001: 左下へ寄せて敵との間合いを広げる（再調整でさらに左下へ）。
 const FORMATION_SLOT_RATIOS: Array[Vector2] = [
-	Vector2(0.333, 0.645),  # 0 前衛左
-	Vector2(0.548, 0.755),  # 1 前衛右（敵寄り）
-	Vector2(0.139, 0.745),  # 2 後衛左（奥）
-	Vector2(0.333, 0.835),  # 3 後衛右
-	Vector2(0.395, 0.695),  # 4 オトモ（前衛左の少し右）
+	Vector2(0.293, 0.675),  # 0 前衛左
+	Vector2(0.508, 0.785),  # 1 前衛右（敵寄り）
+	Vector2(0.110, 0.775),  # 2 後衛左（奥）
+	Vector2(0.293, 0.865),  # 3 後衛右
+	Vector2(0.355, 0.725),  # 4 オトモ（前衛左の少し右）
 ]
 const PARTY_CARD_SLOT_COUNT: int = 4
 const BATTLE_LOG_VISIBLE_LINES: int = 4

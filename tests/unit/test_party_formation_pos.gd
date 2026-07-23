@@ -9,9 +9,9 @@ func test_party_formation_is_left_of_swarm_center() -> void:
 	assert_eq(ratios.size(), 5)
 	var front_right: Vector2 = ratios[1]
 	assert_lt(front_right.x, _DungeonScene.SWARM_CENTER_X_RATIO)
-	## 旧値 (0.583, 0.72) より左下。
-	assert_lt(front_right.x, 0.58)
-	assert_gt(front_right.y, 0.72)
+	## 再調整後: 前衛右はさらに左下（旧 0.548/0.755）。
+	assert_lt(front_right.x, 0.52)
+	assert_gt(front_right.y, 0.77)
 	## 後衛左が画面端に食い込みすぎない。
 	assert_gt(float(ratios[2].x), 0.10)
 	## 後衛右の足元が clamp 余裕内（COMBAT_Y_BIAS 加算後）。
