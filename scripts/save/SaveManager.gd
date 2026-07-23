@@ -37,6 +37,7 @@ func save_game() -> void:
 		"gacha_token": GameState.gacha_token,
 		"owned_helpers": GameState.owned_helpers.duplicate(),
 		"ticket_inventory": GameState.ticket_inventory.duplicate(),
+		"redeemed_codes": GameState.redeemed_codes.duplicate(),
 		"combat_presets": GameState.combat_presets.duplicate(true),
 		"owned_relics": GameState.owned_relics.duplicate(),
 		"daily_mission_state": GameState.daily_mission_state.duplicate(true),
@@ -767,6 +768,14 @@ func _apply_gacha_save(data: Dictionary) -> void:
 		TicketInventory.sanitize()
 	else:
 		GameState.ticket_inventory = {}
+	if data.has("redeemed_codes") and data["redeemed_codes"] is Dictionary:
+		var rc: Dictionary = {}
+		for k in data["redeemed_codes"]:
+			if bool(data["redeemed_codes"][k]):
+				rc[str(k)] = true
+		GameState.redeemed_codes = rc
+	else:
+		GameState.redeemed_codes = {}
 
 func _resolve_equipment_for(members: Array, equipment_ids: Array) -> void:
 	for i in members.size():
