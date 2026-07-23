@@ -383,6 +383,7 @@ const ElementResolverScript: Script = preload("res://scripts/combat/ElementResol
 const AffixStatCalculatorScript: Script = preload("res://scripts/equipment/AffixStatCalculator.gd")
 const JobStatCalculatorScript: Script = preload("res://scripts/equipment/JobStatCalculator.gd")
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
+const _WanderingEnemyConfig = preload("res://scripts/dungeon/WanderingEnemyConfig.gd")
 const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd")
 
 var _auto_delay: float = AUTO_DELAY_BASE / SPEED_MULT_NORMAL
@@ -1439,6 +1440,8 @@ func _on_current_room_transition_midpoint() -> void:
 	_play_room_transition_fx($DungeonController.current_room_type)
 	var timing: Dictionary = _room_transition_timing($DungeonController.current_room_type)
 	var hold: float = float(timing.get("hold", 0.55))
+	if $DungeonController.should_show_shadow_stalker_omen():
+		hold = maxf(hold, 1.15)
 	var fade: float = float(timing.get("fade", 0.2))
 	var tw: Tween = create_tween()
 	tw.tween_interval(hold)
@@ -1469,10 +1472,23 @@ func _sync_room_bgm() -> void:
 
 func _room_transition_caption() -> String:
 	var floor_text: String = $DungeonController.get_display_floor_text()
-	return "[%s]\n%s" % [_get_room_type_name(), floor_text]
+	var caption: String = "[%s]\n%s" % [_get_room_type_name(), floor_text]
+	if $DungeonController.should_show_shadow_stalker_omen():
+		caption += "\n%s" % _WanderingEnemyConfig.SHADOW_STALKER_OMEN_LINE
+	return caption
 
 func _room_transition_label_color(room_type: int) -> Color:
 	return _room_type_chip_color(room_type)
+
+func _apply_room_transition_caption_style(room_type: int) -> void:
+	var has_omen: bool = $DungeonController.should_show_shadow_stalker_omen()
+	var font_size: int = (
+		UiTypography.SIZE_BODY if has_omen else UiTypography.SIZE_DISPLAY_TITLE
+	)
+	var color: Color = _room_transition_label_color(room_type)
+	if has_omen:
+		color = Color(0.86, 0.72, 0.92)
+	UiTypography.apply_display(_label_transition, font_size, color)
 
 func _clear_transition_fx() -> void:
 	if _transition_fx_host == null or not is_instance_valid(_transition_fx_host):
@@ -1536,11 +1552,7 @@ func _spawn_transition_party_silhouettes() -> void:
 
 func _play_room_transition_fx(room_type: int) -> void:
 	_clear_transition_fx()
-	UiTypography.apply_display(
-		_label_transition,
-		UiTypography.SIZE_DISPLAY_TITLE,
-		_room_transition_label_color(room_type)
-	)
+	_apply_room_transition_caption_style(room_type)
 	match room_type:
 		Enums.RoomType.COMBAT:
 			pass
@@ -1576,6 +1588,8 @@ func _on_room_transition_midpoint() -> void:
 	_play_room_transition_fx($DungeonController.current_room_type)
 	var timing: Dictionary = _room_transition_timing($DungeonController.current_room_type)
 	var hold: float = float(timing.get("hold", 0.55))
+	if $DungeonController.should_show_shadow_stalker_omen():
+		hold = maxf(hold, 1.15)
 	var fade: float = float(timing.get("fade", 0.2))
 	var tw: Tween = create_tween()
 	tw.tween_interval(hold)
@@ -6042,8 +6056,8 @@ func _transition_to_next_room() -> void:
 
 func _advance_with_caption() -> void:
 	_advance_to_next_room()
-	var floor_text: String = $DungeonController.get_display_floor_text()
-	_label_transition.text = "[%s] %s" % [_get_room_type_name(), floor_text]
+	_label_transition.text = _room_transition_caption()
+	_apply_room_transition_caption_style($DungeonController.current_room_type)
 
 func _on_finish_button_pressed() -> void:
 	_btn_finish.disabled = true
