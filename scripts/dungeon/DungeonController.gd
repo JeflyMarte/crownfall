@@ -370,6 +370,9 @@ var last_relic_dropped: String = ""
 var current_event: Dictionary = {}
 var run_damage_multiplier: float = 1.0
 var _seen_event_ids: Array[String] = []
+## ラン開始時に COMBAT 部屋ごとの放浪出現を事前抽選（予兆表示用）。未計画時はライブ抽選。
+var _wander_plan_ready: bool = false
+var _planned_wander_by_room: Dictionary = {}
 
 func start_dungeon(dungeon_id: String) -> void:
 	## メイン Biome は章データがあるとき start_stage へ寄せる（単体DGだと x-5 ボスが常時付く）。
@@ -415,6 +418,29 @@ func _reset_run_state() -> void:
 	_seen_event_ids.clear()
 	GameState.set_weather(_roll_run_weather())
 	_init_discovery()
+	_plan_wandering_encounters()
+
+
+func _plan_wandering_encounters() -> void:
+	_planned_wander_by_room.clear()
+	_wander_plan_ready = true
+	if current_dungeon_data != null and bool(current_dungeon_data.disable_wandering):
+		return
+	var tier: int = GameState.current_dungeon_tier
+	for i: int in range(room_sequence.size()):
+		if room_sequence[i] != Enums.RoomType.COMBAT:
+			continue
+		var wander_id: String = _WanderingEnemyConfig.try_roll_wandering_id(null, tier)
+		if not wander_id.is_empty():
+			_planned_wander_by_room[i] = wander_id
+
+
+func should_show_shadow_stalker_omen() -> bool:
+	## 次の部屋が影狩りの放浪出現予定なら、現フロアの部屋種別一幕で予兆を出す。
+	var next_i: int = current_room_index + 1
+	if next_i >= room_sequence.size():
+		return false
+	return str(_planned_wander_by_room.get(next_i, "")) == _WanderingEnemyConfig.ID_SHADOW_STALKER
 
 
 func _roll_run_weather() -> String:
@@ -925,10 +951,15 @@ func try_pick_wandering_enemy(rng: RandomNumberGenerator = null) -> Resource:
 		return null
 	if current_dungeon_data != null and bool(current_dungeon_data.disable_wandering):
 		return null
-	## P3-WANDER-003: 全ダンジョン共通。出現率は周回帯（N/H/NM）で上昇。
-	var wander_id: String = _WanderingEnemyConfig.try_roll_wandering_id(
-		rng, GameState.current_dungeon_tier
-	)
+	## ラン計画済みならそれを使う（直前フロア予兆と一致させる）。未計画はライブ抽選。
+	var wander_id: String = ""
+	if _wander_plan_ready:
+		wander_id = str(_planned_wander_by_room.get(current_room_index, ""))
+	else:
+		## P3-WANDER-003: 全ダンジョン共通。出現率は周回帯（N/H/NM）で上昇。
+		wander_id = _WanderingEnemyConfig.try_roll_wandering_id(
+			rng, GameState.current_dungeon_tier
+		)
 	if wander_id.is_empty():
 		return null
 	return _EnemyTierVariantConfig.apply_for_current_tier(DataRegistry.get_enemy_data(wander_id))

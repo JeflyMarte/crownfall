@@ -10,6 +10,8 @@ const ID_COSMIC_DUCK: String = "cosmic_duck"
 const ID_CROWN_RAVEN: String = "crown_raven"
 const ID_GOLDEN_SCARAB: String = "golden_scarab"
 const ID_SHADOW_STALKER: String = "shadow_stalker"
+## 影狩り出現の直前フロア・部屋種別トランジション用ナレーション。
+const SHADOW_STALKER_OMEN_LINE: String = "──死を告げる羽音が近づく。この気配…影狩だ。"
 
 ## 旧ID（セーブ／図鑑エイリアス）
 const ID_WAYFARER_SPARROW: String = "wayfarer_sparrow"

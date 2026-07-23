@@ -267,6 +267,48 @@ func test_shadow_stalker_mythic_drop_can_succeed() -> void:
 	assert_true(saw, "影狩りの神話ドロップが成立しうる")
 
 
+func test_shadow_stalker_omen_on_previous_floor() -> void:
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	var seq: Array[int] = [
+		Enums.RoomType.START,
+		Enums.RoomType.ELITE,
+		Enums.RoomType.COMBAT,
+		Enums.RoomType.EXIT,
+	]
+	dc.room_sequence = seq
+	dc.current_dungeon_data = DataRegistry.get_dungeon_data("mourngate")
+	dc._wander_plan_ready = true
+	dc._planned_wander_by_room = {2: _WanderingEnemyConfig.ID_SHADOW_STALKER}
+	dc.current_room_index = 1
+	dc.current_room_type = Enums.RoomType.ELITE
+	assert_true(dc.should_show_shadow_stalker_omen())
+	assert_eq(
+		_WanderingEnemyConfig.SHADOW_STALKER_OMEN_LINE,
+		"──死を告げる羽音が近づく。この気配…影狩だ。"
+	)
+	dc.current_room_index = 2
+	dc.current_room_type = Enums.RoomType.COMBAT
+	assert_false(dc.should_show_shadow_stalker_omen())
+	dc.current_room_index = 0
+	assert_false(dc.should_show_shadow_stalker_omen())
+
+
+func test_planned_wander_used_on_combat_pick() -> void:
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	dc.current_dungeon_data = DataRegistry.get_dungeon_data("mourngate")
+	dc.current_room_type = Enums.RoomType.COMBAT
+	dc.current_room_index = 3
+	dc._wander_plan_ready = true
+	dc._planned_wander_by_room = {3: _WanderingEnemyConfig.ID_SHADOW_STALKER}
+	var group: Array = dc.pick_combat_enemy_group()
+	assert_eq(group.size(), 1)
+	assert_eq(str(group[0].id), "shadow_stalker")
+
+
 func test_save_v6_to_v7_merges_legacy_wander_codex() -> void:
 	var raw: Dictionary = {
 		"save_version": 6,
