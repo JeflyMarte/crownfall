@@ -1324,13 +1324,12 @@ func _sorted_enhance_candidates() -> Array:
 			continue
 		items.append(item)
 	items.sort_custom(func(a: Resource, b: Resource) -> bool:
-		var a_eq: bool = _is_item_equipped(a)
-		var b_eq: bool = _is_item_equipped(b)
-		if a_eq != b_eq:
-			return a_eq
-		return _EquipmentEnhancer.get_display_name(a) < _EquipmentEnhancer.get_display_name(b)
+		return BlacksmithUiHelper.enhance_list_sort_before(
+			a, b, _is_item_equipped(a), _is_item_equipped(b)
+		)
 	)
 	return items
+
 
 func _sorted_dismantle_candidates() -> Array:
 	var items: Array = []
@@ -1392,7 +1391,19 @@ func _inventory_for_category(category: String) -> Array:
 			return GameState.inventory
 
 func _is_item_equipped(item: Resource) -> bool:
-	return GameState.find_item_equipped_member_index(item) >= 0
+	## 編成外ロスターの装着も「装備中」として強化一覧の上に寄せる。
+	if item == null:
+		return false
+	for member: Variant in GameState.roster:
+		if member == null:
+			continue
+		if (
+			member.equipped_weapon == item
+			or member.equipped_armor == item
+			or member.equipped_accessory == item
+		):
+			return true
+	return false
 
 func _update_bulk_dismantle_button() -> void:
 	if _bulk_dismantle_btn == null:

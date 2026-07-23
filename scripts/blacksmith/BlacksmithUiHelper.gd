@@ -245,6 +245,59 @@ static func recipes_for_category(category: String) -> Array:
 static func has_craftable_recipes() -> bool:
 	return not CraftHelper.get_craftable_recipes().is_empty()
 
+
+## 強化左一覧の並び用スコア（高いほど上）。
+static func enhance_list_stat_score(item: Resource) -> int:
+	if item == null:
+		return 0
+	match EquipmentEnhancer.item_category(item):
+		"weapon":
+			return EquipmentEnhancer.get_effective_attack(item)
+		"armor":
+			return (
+				EquipmentEnhancer.effective_armor_defense(item) * 10
+				+ EquipmentEnhancer.effective_armor_hp(item)
+			)
+		"accessory":
+			var data: Resource = DataRegistry.get_accessory_data(str(item.accessory_id))
+			var score: int = 0
+			score += EquipmentEnhancer.effective_accessory_int_bonus(item, "hp_bonus", data)
+			score += EquipmentEnhancer.effective_accessory_int_bonus(item, "attack_bonus", data) * 10
+			score += EquipmentEnhancer.effective_accessory_int_bonus(item, "defense_bonus", data) * 10
+			score += int(
+				round(
+					EquipmentEnhancer.effective_accessory_float_bonus(item, "critical_rate", data)
+					* 1000.0
+				)
+			)
+			return score
+		_:
+			return 0
+
+
+## 強化左一覧: 装備中優先 → ステ高い順 → レア → 炉研ぎLv → 名前。
+static func enhance_list_sort_before(
+	a: Resource,
+	b: Resource,
+	a_equipped: bool,
+	b_equipped: bool
+) -> bool:
+	if a_equipped != b_equipped:
+		return a_equipped
+	var a_score: int = enhance_list_stat_score(a)
+	var b_score: int = enhance_list_stat_score(b)
+	if a_score != b_score:
+		return a_score > b_score
+	var a_rarity: int = EquipmentEnhancer.item_rarity(a)
+	var b_rarity: int = EquipmentEnhancer.item_rarity(b)
+	if a_rarity != b_rarity:
+		return a_rarity > b_rarity
+	var a_lv: int = EquipmentEnhancer.get_enhance_level(a)
+	var b_lv: int = EquipmentEnhancer.get_enhance_level(b)
+	if a_lv != b_lv:
+		return a_lv > b_lv
+	return EquipmentEnhancer.get_display_name(a) < EquipmentEnhancer.get_display_name(b)
+
 static func list_cell_px() -> int:
 	return LIST_CELL_PX
 
