@@ -2,13 +2,15 @@ extends GutTest
 
 ## 図鑑「実績」タブのオミット（P3-CODEX-ACHIEVE-OMIT）。
 
+const _CodexScene := preload("res://scripts/codex/CodexScene.gd")
+
 
 func test_codex_achieve_playable_flag_default_off() -> void:
 	assert_false(Constants.CODEX_ACHIEVE_PLAYABLE, "βでは実績タブをオミット")
 
 
 func test_playable_categories_omit_achieve_when_flag_off() -> void:
-	var cats: Array[String] = CodexScene.playable_categories()
+	var cats: Array[String] = _CodexScene.playable_categories()
 	assert_false(cats.has("achieve"), "フラグOFF時はカテゴリに実績を含めない")
 	assert_true(cats.has("enemy"))
 	assert_true(cats.has("guide"))
