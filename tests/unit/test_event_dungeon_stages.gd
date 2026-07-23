@@ -87,6 +87,22 @@ func test_event_stage_icons_are_mapped() -> void:
 	assert_true(FileAccess.file_exists("res://assets/dungeon/event/stages/ICO_DG_ShadowHunt_1_1.png"))
 
 
+func test_event_biome_banners_are_unique() -> void:
+	## イベント4種は mourngate 流用ではなく専用 BAN_DG_* を持つ。
+	var expected: Dictionary = {
+		"cosmic_rift": "res://assets/ui/dungeon/BAN_DG_CosmicRift.png",
+		"crown_rookery": "res://assets/ui/dungeon/BAN_DG_CrownRookery.png",
+		"golden_nest": "res://assets/ui/dungeon/BAN_DG_GoldenNest.png",
+		"shadow_hunt": "res://assets/ui/dungeon/BAN_DG_ShadowHunt.png",
+	}
+	for dungeon_id in expected.keys():
+		var path: String = str(expected[dungeon_id])
+		assert_true(FileAccess.file_exists(path), path)
+		var tex: Texture2D = load(path) as Texture2D
+		assert_not_null(tex, path)
+		assert_gt(tex.get_width(), 0, path)
+
+
 func test_start_event_stage_builds_sequence_without_boss() -> void:
 	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
 	var dc: Node = dc_script.new()

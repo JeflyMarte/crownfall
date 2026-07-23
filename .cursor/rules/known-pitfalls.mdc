@@ -96,6 +96,7 @@ alwaysApply: true
 | 症状 | 原因 | 再発防止 |
 |---|---|---|
 | iPhone でタッチスクロール不能（ダンジョン他） | Scroll 内 Button／STOP がドラッグを吸収 | `ScrollTouchHelper`（deadzone＋子孫を PASS）。`BottomNavHelper.setup` と一覧 rebuild 後に適用 |
+| イベントDGバナーが全部モーンゲート | `SUB_BANNER_FALLBACK` で mourngate 流用のみ | 各イベントに `BAN_DG_*` を用意し `BIOME_BANNER_PATHS` へ登録。フォールバックから外す |
 | aspect=keep なのに TopBar が低い／下ナビ下に黒余白 | SafeArea が inset=0 でも 54/24 を強制フォールバック | letterbox（keep）時はフォールバックしない |
 | `git checkout` / `mv` が `Operation not permitted` | Cursor サンドボックス | アセット・git 復元は `required_permissions: ["all"]` |
 | WIP が消えた | cloud agent / stash | `git-wip-safety.mdc` |

@@ -197,6 +197,10 @@ const BIOME_BANNER_PATHS: Dictionary = {
 	"mistfen": "res://assets/ui/dungeon/BAN_DG_Mistfen.png",
 	"blackshore": "res://assets/ui/dungeon/BAN_DG_Blackshore.png",
 	"frostridge": "res://assets/ui/dungeon/BAN_DG_Frostridge.png",
+	"cosmic_rift": "res://assets/ui/dungeon/BAN_DG_CosmicRift.png",
+	"crown_rookery": "res://assets/ui/dungeon/BAN_DG_CrownRookery.png",
+	"golden_nest": "res://assets/ui/dungeon/BAN_DG_GoldenNest.png",
+	"shadow_hunt": "res://assets/ui/dungeon/BAN_DG_ShadowHunt.png",
 }
 ## バナー画像にダンジョン名が焼き込まれている Biome（UI タイトルラベルを非表示）
 const BIOME_BANNER_TITLE_BAKED: Dictionary = {}
@@ -213,10 +217,6 @@ const SUB_BANNER_FALLBACK: Dictionary = {
 	"thunder_peak": "mistfen",
 	"mistfen_depths": "mistfen",
 	"blackshore_abyss": "blackshore",
-	"cosmic_rift": "mourngate",
-	"crown_rookery": "mourngate",
-	"golden_nest": "mourngate",
-	"shadow_hunt": "mourngate",
 	"red_forge_depths": "frostridge",
 	"north_reach": "frostridge",
 }
