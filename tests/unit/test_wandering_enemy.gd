@@ -44,6 +44,45 @@ func test_roll_golden_scarab_band() -> void:
 func test_roll_shadow_stalker_band() -> void:
 	## N: …scarab ends 0.055 → stalker until 0.063
 	assert_eq(_WanderingEnemyConfig.wandering_id_for_roll(0.058), _WanderingEnemyConfig.ID_SHADOW_STALKER)
+	## 1-1〜1-3 相当: 影狩り帯の roll でも空
+	assert_eq(
+		_WanderingEnemyConfig.wandering_id_for_roll(0.058, 0, false),
+		""
+	)
+
+
+func test_shadow_stalker_blocked_on_early_mourngate_chapters() -> void:
+	assert_false(_WanderingEnemyConfig.is_shadow_stalker_allowed_on_stage(1, 1))
+	assert_false(_WanderingEnemyConfig.is_shadow_stalker_allowed_on_stage(1, 2))
+	assert_false(_WanderingEnemyConfig.is_shadow_stalker_allowed_on_stage(1, 3))
+	assert_true(_WanderingEnemyConfig.is_shadow_stalker_allowed_on_stage(1, 4))
+	assert_true(_WanderingEnemyConfig.is_shadow_stalker_allowed_on_stage(1, 5))
+	assert_true(_WanderingEnemyConfig.is_shadow_stalker_allowed_on_stage(2, 1))
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	dc.current_dungeon_data = DataRegistry.get_dungeon_data("mourngate")
+	dc.current_room_type = Enums.RoomType.COMBAT
+	dc.current_stage_data = DataRegistry.get_stage_data("mourngate_1_1")
+	var saw_stalker: bool = false
+	for seed_val: int in range(400):
+		seed(seed_val)
+		var picked: Resource = dc.try_pick_wandering_enemy()
+		if picked != null and str(picked.id) == "shadow_stalker":
+			saw_stalker = true
+			break
+	assert_false(saw_stalker, "1-1 では影狩り放浪が出ない")
+	dc.current_stage_data = DataRegistry.get_stage_data("mourngate_1_4")
+	var saw_any_wander: bool = false
+	for seed_val: int in range(400):
+		seed(seed_val)
+		var picked2: Resource = dc.try_pick_wandering_enemy()
+		if picked2 != null:
+			saw_any_wander = true
+			if str(picked2.id) == "shadow_stalker":
+				saw_stalker = true
+				break
+	assert_true(saw_any_wander or saw_stalker, "1-4 では放浪抽選が動く")
 
 
 func test_roll_empty_above_threshold() -> void:

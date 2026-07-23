@@ -926,8 +926,15 @@ func try_pick_wandering_enemy(rng: RandomNumberGenerator = null) -> Resource:
 	if current_dungeon_data != null and bool(current_dungeon_data.disable_wandering):
 		return null
 	## P3-WANDER-003: 全ダンジョン共通。出現率は周回帯（N/H/NM）で上昇。
+	## 1-1〜1-3 は影狩りのみ除外。
+	var allow_stalker: bool = true
+	if current_stage_data != null:
+		allow_stalker = _WanderingEnemyConfig.is_shadow_stalker_allowed_on_stage(
+			int(current_stage_data.biome_index),
+			int(current_stage_data.chapter_index)
+		)
 	var wander_id: String = _WanderingEnemyConfig.try_roll_wandering_id(
-		rng, GameState.current_dungeon_tier
+		rng, GameState.current_dungeon_tier, allow_stalker
 	)
 	if wander_id.is_empty():
 		return null

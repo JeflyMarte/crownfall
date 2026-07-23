@@ -127,21 +127,32 @@ static func spawn_chance_shadow_stalker(tier: int = _DungeonTierConfig.TIER_NORM
 	return minf(0.45, base * EventSystem.get_wander_spawn_mult(ID_SHADOW_STALKER))
 
 
+## モーンゲート 1-1〜1-3 では影狩り放浪を出さない（序盤保護）。
+static func is_shadow_stalker_allowed_on_stage(biome_index: int, chapter_index: int) -> bool:
+	if biome_index == 1 and chapter_index >= 1 and chapter_index <= 3:
+		return false
+	return true
+
+
 static func try_roll_wandering_id(
 	rng: RandomNumberGenerator = null,
-	tier: int = _DungeonTierConfig.TIER_NORMAL
+	tier: int = _DungeonTierConfig.TIER_NORMAL,
+	allow_shadow_stalker: bool = true
 ) -> String:
-	return wandering_id_for_roll(_randf(rng), tier)
+	return wandering_id_for_roll(_randf(rng), tier, allow_shadow_stalker)
 
 
 static func wandering_id_for_roll(
 	roll: float,
-	tier: int = _DungeonTierConfig.TIER_NORMAL
+	tier: int = _DungeonTierConfig.TIER_NORMAL,
+	allow_shadow_stalker: bool = true
 ) -> String:
 	var duck_chance: float = spawn_chance_cosmic_duck(tier)
 	var raven_chance: float = spawn_chance_crown_raven(tier)
 	var scarab_chance: float = spawn_chance_golden_scarab(tier)
-	var stalker_chance: float = spawn_chance_shadow_stalker(tier)
+	var stalker_chance: float = (
+		spawn_chance_shadow_stalker(tier) if allow_shadow_stalker else 0.0
+	)
 	var cursor: float = 0.0
 	if roll < cursor + duck_chance:
 		return ID_COSMIC_DUCK
