@@ -36,10 +36,10 @@ func test_final_chapter_unlocks_next_biome() -> void:
 		return
 	GameState.mark_stage_cleared("mourngate_1_5")
 	assert_true(GameState.is_dungeon_cleared("mourngate"))
-	if Constants.BETA_MOURNGATE_ONLY:
-		assert_false(GameState.is_dungeon_unlocked("whisperwood"), "βは①最終章クリア後も②ロック")
-	else:
-		assert_true(GameState.is_dungeon_unlocked("whisperwood"))
+	## ②は①クリアに加え SURVEY≥70%（P3-HUB-SURVEY-001）。
+	assert_false(GameState.is_dungeon_unlocked("whisperwood"), "SURVEY未達では②ロック")
+	GameState.hub_survey_progress["mourngate"] = 70.0
+	assert_true(GameState.is_dungeon_unlocked("whisperwood"), "①クリア＋SURVEY70%で②解放")
 
 func test_mid_chapter_unlocks_next_chapter_only() -> void:
 	GameState.mark_stage_cleared("mourngate_1_2")
@@ -72,6 +72,7 @@ func test_whisperwood_final_chapter_unlocks_next_biome() -> void:
 	if not Constants.SUB_STAGES_PLAYABLE:
 		pass_test("SUB_STAGES off")
 		return
+	GameState.hub_survey_progress["mourngate"] = 70.0
 	GameState.mark_stage_cleared("mourngate_1_5")
 	GameState.mark_stage_cleared("whisperwood_2_5")
 	assert_true(GameState.is_dungeon_cleared("whisperwood"))
