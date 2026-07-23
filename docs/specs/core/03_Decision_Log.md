@@ -4189,3 +4189,14 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-EQ-LEG-WPN-BOW-DUAL-001-6 | **天候シンクロ追加はしない**（雨／夜／霧は据置） | P3-EQ-WEATHER-LEG-001 |
 
 **Closeout（2026-07-23）:** オーナー GO → 統合＋`main`。
+
+## ロックバイソン追加（2026-07-23 — P3-ENEMY-ROCK-BISON-001）
+> **オーナー指示** — ドロップ案A／配置全ダンジョン／アート後差し。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-ENEMY-ROCK-BISON-001-1 | **敵** — `rock_bison`（表示名「ロックバイソン」）。硬め・遅め・群れ2〜3 | 補給寄り雑魚 |
+| P3-ENEMY-ROCK-BISON-001-2 | **ドロップ案A** — 素材種類は共通炉研ぎプール据置。`EnemyData.material_drop_chance_mult`（既定1.0）で**率のみ**上げる。ロックバイソン=**1.75** | 種類増やさず補給感 |
+| P3-ENEMY-ROCK-BISON-001-3 | **配置** — メイン／寄り道／征討の全 `enemy_pool` に追加。イベント専任（`golden_nest`／`shadow_hunt`／`crown_rookery`／`cosmic_rift`）は除外 | オーナー「全てのダンジョン」＋単一種イベント保護 |
+| P3-ENEMY-ROCK-BISON-001-4 | **アート** — 仮で MossBoar 流用（アニメ／IconPaths）。本番アートは後差し | オーナー明示 |
+| P3-ENEMY-ROCK-BISON-001-5 | **図鑑 S5** — `codex_materials` 空のまま（敵別リスト復活なし） | 現行採取SSOT維持 |
