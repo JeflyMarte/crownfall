@@ -573,12 +573,12 @@ static func rarity_box(rarity: int, highlight: bool = true) -> StyleBox:
 	return sb
 
 static func cost_panel_style() -> StyleBox:
-	## 必要コスト帯: やや小さく見せるため左余白で右寄せ気味に。
+	## 必要コスト帯: ステ行との被り防止のため上余白を確保。やや右寄せ。
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0, 0, 0, 0)
 	sb.set_border_width_all(0)
 	sb.content_margin_left = 36.0
-	sb.content_margin_top = 6.0
+	sb.content_margin_top = 12.0
 	sb.content_margin_right = 8.0
 	sb.content_margin_bottom = 4.0
 	return sb

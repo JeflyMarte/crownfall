@@ -22,6 +22,15 @@ const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.
 const _ArmorStatResolver = preload("res://scripts/equipment/ArmorStatResolver.gd")
 const _AccessoryStatResolver = preload("res://scripts/equipment/AccessoryStatResolver.gd")
 
+## 装備画面と同じステアイコンを preload（class_name 経由の欠落を防ぐ）。
+const _STAT_ICON_ATK: Texture2D = preload("res://assets/ui/equipment_ui/ICO_Equip_Stat_ATK.png")
+const _STAT_ICON_DEF: Texture2D = preload("res://assets/ui/equipment_ui/ICO_Equip_Stat_DEF.png")
+const _STAT_ICON_HP: Texture2D = preload("res://assets/ui/equipment_ui/ICO_Equip_Stat_HP.png")
+const _STAT_ICON_CRIT: Texture2D = preload("res://assets/ui/equipment_ui/ICO_Equip_Stat_CRIT.png")
+const _STAT_ICON_CRITDMG: Texture2D = preload("res://assets/ui/equipment_ui/ICO_Equip_Stat_CRITDMG.png")
+const _STAT_ICON_SPD: Texture2D = preload("res://assets/ui/equipment_ui/ICO_Equip_Stat_SPD.png")
+const _DETAIL_STAT_ICON_PX: float = 36.0
+
 const _COST_MAT_ICON_PX: int = 48
 
 const FORGE_FLASH_CRAFT: Color = Color(1.0, 0.78, 0.35)
@@ -952,16 +961,23 @@ func _rebuild_detail() -> void:
 		_rebuild_dismantle_detail()
 
 func _clear_stats_grid() -> void:
-	for child in _stats_grid.get_children():
-		child.queue_free()
+	## queue_free だと同フレームに新旧が混在しレイアウトが崩れることがあるため即 free。
+	while _stats_grid.get_child_count() > 0:
+		var child: Node = _stats_grid.get_child(0)
+		_stats_grid.remove_child(child)
+		child.free()
 
 func _clear_materials_row() -> void:
-	for child in _materials_row.get_children():
-		child.queue_free()
+	while _materials_row.get_child_count() > 0:
+		var child: Node = _materials_row.get_child(0)
+		_materials_row.remove_child(child)
+		child.free()
 
 func _clear_hero_icon() -> void:
-	for child in _hero_icon_slot.get_children():
-		child.queue_free()
+	while _hero_icon_slot.get_child_count() > 0:
+		var child: Node = _hero_icon_slot.get_child(0)
+		_hero_icon_slot.remove_child(child)
+		child.free()
 
 func _set_detail_empty(message: String) -> void:
 	_rarity_title_label.visible = false
@@ -974,23 +990,29 @@ func _set_detail_empty(message: String) -> void:
 	_craft_button.visible = false
 
 func _add_stat_row(key: String, value: String, stat_key: String = "") -> void:
-	## 1行 HBox: [装備画面と同系アイコン] + ラベル + 数値。
+	## 装備画面と同じ: [剣/盾/HP…]アイコン + ラベル + 数値。
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 6)
+	row.add_theme_constant_override("separation", 8)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var stat_tex: Texture2D = _resolve_stat_icon(stat_key, key)
+	var stat_tex: Texture2D = _stat_icon_texture(stat_key, key)
 	if stat_tex != null:
+		var icon_host := Control.new()
+		icon_host.custom_minimum_size = Vector2(_DETAIL_STAT_ICON_PX, _DETAIL_STAT_ICON_PX)
+		icon_host.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		icon_host.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		icon_host.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var icon := TextureRect.new()
 		icon.texture = stat_tex
-		var icon_px: float = float(ForgeUiTokens.STAT_ICON_PX)
-		icon.custom_minimum_size = Vector2(icon_px, icon_px)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		row.add_child(icon)
+		icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		## 暗背景でも装備画面と同程度に読めるよう軽く持ち上げる。
+		icon.modulate = Color(1.28, 1.20, 1.08, 1.0)
+		icon_host.add_child(icon)
+		row.add_child(icon_host)
 	var key_lbl := Label.new()
 	key_lbl.text = key
 	key_lbl.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
@@ -1009,21 +1031,27 @@ func _add_stat_row(key: String, value: String, stat_key: String = "") -> void:
 	_stats_grid.add_child(row)
 
 
-func _resolve_stat_icon(stat_key: String, label: String) -> Texture2D:
-	## 装備画面の ICO_Equip_Stat_* を優先。欠落時のみ鍛冶側へフォールバック。
-	var equip_key: String = _equip_stat_key(stat_key, label)
-	if not equip_key.is_empty():
-		var equip_tex: Texture2D = EquipmentUiTokens.stat_icon(equip_key)
-		if equip_tex != null:
-			return equip_tex
-	var forge_key: String = _forge_stat_key(stat_key, label)
-	if not forge_key.is_empty():
-		return ForgeUiTokens.stat_icon(forge_key)
-	return null
+func _stat_icon_texture(stat_key: String, label: String) -> Texture2D:
+	## preload 済みテクスチャのみ返す（実行時 load 失敗を排除）。
+	match _equip_stat_key(stat_key, label):
+		"attack":
+			return _STAT_ICON_ATK
+		"defense":
+			return _STAT_ICON_DEF
+		"hp":
+			return _STAT_ICON_HP
+		"crit_rate":
+			return _STAT_ICON_CRIT
+		"crit_damage":
+			return _STAT_ICON_CRITDMG
+		"speed":
+			return _STAT_ICON_SPD
+		_:
+			return null
 
 
 func _equip_stat_key(stat_key: String, label: String) -> String:
-	## 鍛冶側キー（atk/def/crit）を装備画面の EquipmentUiTokens キーへ。
+	## 鍛冶側キー（atk/def/crit）を装備画面キーへ。
 	match stat_key:
 		"atk", "attack":
 			return "attack"
@@ -1039,40 +1067,13 @@ func _equip_stat_key(stat_key: String, label: String) -> String:
 			return "speed"
 		_:
 			pass
-	var from_label: String = str(EquipmentUiTokens.EFFECT_STAT_KEYS.get(label, ""))
-	if not from_label.is_empty():
-		return from_label
-	## 「物理防御」など表記ゆれ。
 	if label.find("防御") >= 0:
 		return "defense"
 	if label.find("攻撃") >= 0:
 		return "attack"
 	if label.find("クリティカル") >= 0 or label.find("会心") >= 0:
 		return "crit_rate"
-	if label == "HP" or label.find("HP") >= 0:
-		return "hp"
-	return ""
-
-
-func _forge_stat_key(stat_key: String, label: String) -> String:
-	match stat_key:
-		"atk", "attack":
-			return "atk"
-		"def", "defense":
-			return "def"
-		"hp":
-			return "hp"
-		"crit", "crit_rate":
-			return "crit"
-		_:
-			pass
-	if label.find("防御") >= 0:
-		return "def"
-	if label.find("攻撃") >= 0:
-		return "atk"
-	if label.find("クリティカル") >= 0 or label.find("会心") >= 0:
-		return "crit"
-	if label == "HP" or label.find("HP") >= 0:
+	if label == "HP" or label.begins_with("HP"):
 		return "hp"
 	return ""
 
@@ -1087,7 +1088,7 @@ func _update_hero_icon(item_id: String, category: String, _rarity: int) -> void:
 	BlacksmithUiHelper.attach_hero_icon(_hero_icon_slot, item_id, category, display_px)
 
 
-func _add_stats_section_spacer(height: float = 14.0) -> void:
+func _add_stats_section_spacer(height: float = 24.0) -> void:
 	var gap := Control.new()
 	gap.custom_minimum_size = Vector2(0, height)
 	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -1200,7 +1201,7 @@ func _rebuild_enhance_detail() -> void:
 	_populate_enhance_stats(item)
 	if _is_item_equipped(item):
 		_add_stat_row("状態", "装備中")
-	_add_stats_section_spacer(12.0)
+	_add_stats_section_spacer(24.0)
 	if level >= _EquipmentEnhancer.MAX_FORGE_LEVEL:
 		_cost_panel.visible = false
 		_craft_button.visible = false
