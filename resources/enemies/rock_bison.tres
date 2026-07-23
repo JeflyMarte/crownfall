@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "rock_bison"
+display_name = "ロックバイソン"
+max_hp = 720
+attack = 118
+defense = 58
+attack_speed = 0.95
+critical_rate = 0.04
+move_speed = 1.05
+threat_target_bias = "max_threat"
+detection_range = 6.0
+attack_range = 1.0
+enemy_type = 0
+ai_type = "default"
+exp_reward = 12
+gold_reward = 42
+drop_table_id = "rock_bison_drops"
+element_weakness = Array[String](["fire"])
+element_resist = Array[String]([])
+on_hit_status_id = ""
+on_hit_status_chance = 0.0
+can_swarm = true
+swarm_min = 2
+swarm_max = 3
+escorts_minions = false
+material_drop_chance_mult = 1.75
+codex_class = "獣類"
+codex_danger = 2
+codex_habitat = "各地の岩場・廃都縁"
+codex_research_note = "野牛を祖先とし、角と肩甲に鉱物が沈着した岩化種。打撃に強いが炎に弱い。撃破時に炉研ぎ素材を落としやすく、探索隊の補給対象として知られる。アートは後差し替え予定の仮見た目。"
+codex_materials = Array[String]([])
+skill_ids = Array[String]([])
+skill_use_chance = 0.0

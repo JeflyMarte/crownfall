@@ -1306,10 +1306,24 @@ func _on_craftable_chip_input(event: InputEvent, craft: Resource) -> void:
 func _make_material_req_cell(mat_id: String, needed: int) -> Control:
 	var owned: int = GameState.get_material_quantity(mat_id)
 	var ok: bool = owned >= needed
+	var mat_name: String = DataRegistry.get_material_name(mat_id)
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 4)
-	col.tooltip_text = "%s %d/%d" % [DataRegistry.get_material_name(mat_id), owned, needed]
-	col.add_child(_MaterialUiTokens.make_icon_cell(mat_id, _COST_MAT_ICON_PX, ok))
+	col.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	## iPhone は tooltip 長押しが使えないため、名前を常時表示する。
+	col.tooltip_text = ""
+	var icon_cell: Control = _MaterialUiTokens.make_icon_cell(mat_id, _COST_MAT_ICON_PX, ok)
+	icon_cell.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	col.add_child(icon_cell)
+	var name_l := Label.new()
+	name_l.text = mat_name
+	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_l.clip_text = false
+	name_l.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	name_l.autowrap_mode = TextServer.AUTOWRAP_OFF
+	name_l.custom_minimum_size = Vector2(maxi(_COST_MAT_ICON_PX, 72), 0)
+	UiTypography.apply_caption(name_l, COLOR_TEXT_STRONG if ok else COLOR_SHORT)
+	col.add_child(name_l)
 	var qty := Label.new()
 	qty.text = "%d / %d" % [owned, needed]
 	UiTypography.apply_body(qty, UiTypography.SIZE_CAPTION, COLOR_OK if ok else COLOR_SHORT)
