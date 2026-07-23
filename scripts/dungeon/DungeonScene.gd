@@ -45,6 +45,7 @@ const ENEMY_SPRITE_MAP: Dictionary = {
 	"mirror_boa": "res://resources/animation/ENM_MirrorBoa.tres",
 	"mist_wyvern": "res://resources/animation/ENM_MistWyvern.tres",
 	"moss_boar": "res://resources/animation/ENM_MossBoar.tres",
+	"rock_bison": "res://resources/animation/ENM_MossBoar.tres", ## 仮。本番アート差し替え後に専用へ
 	"moss_shell": "res://resources/animation/ENM_MossShell.tres",
 	"nightfen": "res://resources/animation/ENM_MarshKing.tres",
 	"ninja_octopus": "res://resources/animation/ENM_NinjaOctopus.tres",
@@ -4776,6 +4777,8 @@ func _roll_enhancement_material_drops(
 	var mat_data: Resource = DataRegistry.get_material_data(mat_id)
 	var rarity: int = 0 if mat_data == null else int(mat_data.rarity)
 	var chance: float = float(ENHANCEMENT_DROP_CHANCE.get(rarity, 0.05))
+	if _enemy_data != null and "material_drop_chance_mult" in _enemy_data:
+		chance = minf(chance * maxf(float(_enemy_data.material_drop_chance_mult), 0.0), 1.0)
 	var codex_boost: bool = (
 		GameState.get_exploration_policy() == "codex"
 		and _enemy_data != null
