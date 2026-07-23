@@ -33,6 +33,8 @@ const GACHA_HELPERS_PLAYABLE: bool = true
 ## サブステージ（1-1 等）分割を有効化（P3-DG-STG-001 / P3-DG-STG-ENABLE）。
 ## 2026-07-20 一旦オミット → 2026-07-21 実機で単体DGが常時ボス化し序盤出現が崩れたため再有効化。
 const SUB_STAGES_PLAYABLE: bool = true
+## 図鑑「実績」タブを表示する（P3-CODEX-ACHIEVE-OMIT）。false=UI非表示・データ／Save 残置。
+const CODEX_ACHIEVE_PLAYABLE: bool = false
 const RESOURCE_STAGES_PATH: String = "res://resources/stages/"
 const COMBAT_TICK_INTERVAL: float = 1.5
 const DEFAULT_PLAYER_SKILL_ID: String = "slash_attack"

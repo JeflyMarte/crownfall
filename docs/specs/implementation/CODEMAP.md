@@ -137,7 +137,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `equipment/MythicLoot.gd` | 神話ドロップ SSOT（**P3-EQ-MYTHIC-001**） |
 | `guild/` | **`GuildScene.gd`**（P3-D052 ジョブ認定・**P3-UI2-024** 認定カードリスト polish） |
 | `crafting/` | **`CraftHelper.gd`**（`can_craft` / `get_craftable_recipes` — P3-D141） |
-| `codex/` | **`CatalogHelper.gd`** / **`GuideCatalog.gd`** / **`CodexRichText.gd`**（**P3-CODEX-COPY-001** 手引き日本語・色強調）, **`CodexScene.gd`**（詳細 RichTextLabel） |
+| `codex/` | **`CatalogHelper.gd`** / **`GuideCatalog.gd`** / **`CodexRichText.gd`**（**P3-CODEX-COPY-001** 手引き日本語・色強調）, **`CodexScene.gd`**（詳細 RichTextLabel。実績タブは `CODEX_ACHIEVE_PLAYABLE` でオミット可） |
 | `result/` | `ResultScene.gd`（素材アイコン P3-D135・作成可能レシピ P3-D141・**P3-UI2-023** パネル/フッター polish） |
 | `save/` | `SaveManager.gd` |
 | `systems/` | **`LevelSystem.gd`**（**Lv99上限** P3-LV-099・Lv51+逓減成長）・**`SkillProgression.gd`**・**`WeaponSkillHelper.gd`**・`JobEvolution.gd`・**`EvolutionTraits.gd`**（昇格特質 P3-D167） |
