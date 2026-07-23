@@ -109,6 +109,24 @@ func test_hub_and_field_guide_entries_exist() -> void:
 	assert_true(wander.contains("逃走") or wander.contains("経験"), "ダック特性")
 	assert_true(wander.contains("装備") or wander.contains("神話"), "レイヴン特性")
 
+	var daily: String = str(by_id.get("SYS-G006", ""))
+	assert_false(daily.is_empty(), "日課の条がある")
+	assert_true(daily.contains("3"), "毎日3件")
+	assert_true(daily.contains("5:00") or daily.contains("5：00"), "JST5時リセット")
+
+	var rooms: String = str(by_id.get("SYS-G007", ""))
+	assert_false(rooms.is_empty(), "部屋と罠の条がある")
+	assert_true(rooms.contains("罠"), "罠に言及")
+	assert_true(rooms.contains("安全優先"), "探索方針との関係")
+
+	var formation: String = str(by_id.get("COMBAT-G003", ""))
+	assert_true(formation.contains("ジャック"), "陣形にオトモ関係")
+	assert_true(formation.contains("密集"), "密集とジャックの関係")
+
+	var eq002: String = str(by_id.get("EQUIP-G002", ""))
+	assert_true(eq002.contains("限界突破"), "限界突破の厚み")
+	assert_true(eq002.contains("パッシブ"), "突破でパッシブ強化")
+
 
 func test_cosmic_rift_flavor_uses_elda_rift() -> void:
 	var dg: Resource = load("res://resources/dungeons/cosmic_rift.tres")
