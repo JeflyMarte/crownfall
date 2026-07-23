@@ -4,6 +4,9 @@
 
 ## Last Update
 
+2026-07-23（**P3-EQ-LEG-WPN-BOW-DUAL-001 GO**: 弓★3＋双刃★2を承認。統合＋`main` 反映済）
+2026-07-23（**P3-CODEX-ACHIEVE-OMIT GO**: 図鑑「実績」タブ一旦オミットを承認。統合＋`main` 反映済）
+2026-07-23（**P3-EQ-LEG-WPN-BOW-DUAL-001**: 弓★3＋双刃★2を追加。専用アイコン生成・セット。Biome プール配線）
 2026-07-23（**P3-CODEX-ACHIEVE-OMIT**: 図鑑「実績」タブを一旦オミット — `CODEX_ACHIEVE_PLAYABLE=false`。データ／Save 残置）
 2026-07-23（**P3-CODEX-GUIDE-003 GO**: 手引き拠点ギャップ＋中優先＋世界観12条を承認。統合＋`main` 反映済）
 2026-07-23（**P3-CODEX-GUIDE-003**: 手引きに世界観12条を追加。モーンゲート等DG概要を正典同期・征討メタ拡充）

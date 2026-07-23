@@ -44,6 +44,7 @@ const DROP_PREVIEW: Dictionary = {
 		["weapon", "stormveil_needle"],
 		["weapon", "noctumbra_fang"],
 		["weapon", "mistpierce_halberd"],
+		["weapon", "shadowcord"],
 	],
 	"golden_nest": [
 		["material", "relic_shard"],
@@ -52,6 +53,7 @@ const DROP_PREVIEW: Dictionary = {
 		["weapon", "stormveil_needle"],
 		["weapon", "noctumbra_fang"],
 		["weapon", "mistpierce_halberd"],
+		["weapon", "shadowcord"],
 	],
 	"mourngate": [
 		["weapon", "iron_sword"],
