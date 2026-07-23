@@ -18,6 +18,11 @@ from pathlib import Path
 
 from PIL import Image
 
+try:
+    RESAMPLE_LANCZOS = Image.Resampling.LANCZOS
+except AttributeError:
+    RESAMPLE_LANCZOS = Image.LANCZOS
+
 ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT / "assets/ui/dungeon"
 TARGET_W = 1408
@@ -52,7 +57,7 @@ def normalize_banner(src: Path, dst: Path, strip_height: int | None = None) -> N
     w, h = img.size
     scale = TARGET_W / float(w)
     resized_h = max(1, int(round(h * scale)))
-    img = img.resize((TARGET_W, resized_h), Image.Resampling.LANCZOS)
+    img = img.resize((TARGET_W, resized_h), RESAMPLE_LANCZOS)
     if strip_height is not None and strip_height > 0:
         target_h = strip_height
         if resized_h > target_h:
