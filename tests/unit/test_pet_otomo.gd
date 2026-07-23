@@ -72,3 +72,44 @@ func test_jack_portrait_icon_resolves() -> void:
 	assert_not_null(tex)
 	assert_eq(RosterUiHelper.job_display_name(GameState.active_pet), "オトモ")
 	assert_true(ResourceLoader.exists("res://assets/ui/chr_icons/ICO_CHR_Jack.png"))
+
+
+func test_pet_threat_can_be_selected_over_generic_jobs() -> void:
+	## max_threat 下でも雑魚職より高く、盾より低いこと（無敵回避）。
+	assert_gt(_PetSystem.PET_THREAT_BASE, 1.0)
+	assert_lt(_PetSystem.PET_THREAT_BASE, 2.0)
+	var cc: CombatController = CombatController.new()
+	add_child_autofree(cc)
+	cc._init_party_hp()
+	var pet_i: int = GameState.combatant_count() - 1
+	assert_true(GameState.is_pet_combatant(pet_i))
+	## 人間を全員 Threat 1.0 相当（剣士/盾以外）に揃えた想定で、ペットが選ばれうる
+	for i in GameState.party_members.size():
+		if i < cc.party_threat.size():
+			cc.party_threat[i] = 1.0
+	if pet_i < cc.party_threat.size():
+		cc.party_threat[pet_i] = _PetSystem.PET_THREAT_BASE
+	var target: int = cc.pick_enemy_target_member_index(-1)
+	assert_eq(target, pet_i)
+
+
+func test_pet_takes_damage_with_base_defense() -> void:
+	## party_members 外でも base DEF が被ダメ計算に乗る。
+	var cc: CombatController = CombatController.new()
+	add_child_autofree(cc)
+	cc._init_party_hp()
+	var pet_i: int = GameState.combatant_count() - 1
+	assert_true(pet_i >= 0)
+	## 低DEFだと乱数で mitigated が消えるため、一時的に上げて combatant 経路を検証
+	var saved_def: int = int(GameState.active_pet.base_stats.defense)
+	GameState.active_pet.base_stats.defense = 400
+	var before: int = int(cc.party_combat_hp[pet_i])
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1
+	var result: Dictionary = DamageCalculator.enemy_damage_to_member(cc, pet_i, 1.0, 200, -1, rng)
+	GameState.active_pet.base_stats.defense = saved_def
+	assert_false(bool(result.get("missed", false)))
+	assert_gt(int(result.get("final", 0)), 0)
+	assert_gt(int(result.get("mitigated", 0)), 0)
+	cc.apply_damage_to_member(pet_i, int(result["final"]))
+	assert_lt(int(cc.party_combat_hp[pet_i]), before)

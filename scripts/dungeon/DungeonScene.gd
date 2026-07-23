@@ -2091,11 +2091,14 @@ func _sprite_top_y_global(sprite: AnimatedSprite2D) -> float:
 
 func _set_hp_bar_above_sprite(bar: ProgressBar, sprite: AnimatedSprite2D, formation_slot: int = 0) -> void:
 	const BAR_HALF_W: float = 40.0
+	## オトモは体が小さいのでパネルも短く（人間の約6割）
+	const PET_BAR_HALF_W: float = 24.0
+	var half_w: float = PET_BAR_HALF_W if formation_slot == PetSystem.PET_FORMATION_SLOT else BAR_HALF_W
 	var center: Vector2 = _sprite_center_in_root(sprite)
 	var bar_ty: float = _sprite_top_y_in_root(sprite) - CHR_HP_BAR_GAP_ABOVE_SPRITE - CHR_HP_BAR_HEIGHT + _chr_hp_bar_row_y_offset(formation_slot)
-	bar.offset_left = center.x - BAR_HALF_W
+	bar.offset_left = center.x - half_w
 	bar.offset_top = bar_ty
-	bar.offset_right = center.x + BAR_HALF_W
+	bar.offset_right = center.x + half_w
 	bar.offset_bottom = bar_ty + CHR_HP_BAR_HEIGHT
 
 # 注: 以下 _sprite_top_y は offset 補正込み（非透明領域上端基準）
