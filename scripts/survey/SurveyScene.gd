@@ -61,7 +61,16 @@ func _ready() -> void:
 	_pending_members = _SurveySystem.auto_assign_members()
 	_update_currency()
 	_refresh()
+<<<<<<< HEAD
 	call_deferred("_try_auto_claim_on_enter")
+=======
+	call_deferred("_maybe_show_content_unlock")
+
+
+func _maybe_show_content_unlock() -> void:
+	const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
+	_ContentUnlockNotice.show_pending_on(self)
+>>>>>>> origin/cursor/dungeon-unlock-popup-b062
 
 
 func _process(delta: float) -> void:
@@ -883,6 +892,7 @@ func _finish_claim(result: Dictionary) -> void:
 	_label_status.text = "受取完了: %s" % " ・ ".join(parts)
 	_pending_members = _SurveySystem.auto_assign_members()
 	_refresh()
+	call_deferred("_maybe_show_content_unlock")
 
 
 func _update_currency() -> void:

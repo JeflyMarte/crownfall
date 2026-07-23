@@ -41,6 +41,8 @@ var equipment_focus_member_index: int = -1
 var base_initial_view: String = "hub"
 ## 拠点機能遷移時の NPC 1行台詞（P3-LORE-003）。{ npc, line }。
 var hub_npc_hint: Dictionary = {}
+## 新規解放ポップアップ待ち（揮発）。{ kind, id, display_name }
+var pending_content_unlock_notices: Array = []
 # ガチャ所持数 { helper_id: count }（重複＝凸用カウント。MVP は還元のみ）
 var owned_helpers: Dictionary = {}
 ## 消費チケット所持 { ticket_id: qty }（P3-TICKET-001）。
@@ -219,6 +221,8 @@ func is_stage_cleared(stage_id: String, tier: int = -1) -> bool:
 func mark_stage_cleared(stage_id: String, tier: int = -1) -> void:
 	if stage_id.is_empty():
 		return
+	const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
+	var unlock_before: Dictionary = _ContentUnlockNotice.snapshot_unlocked()
 	var t: int = _DungeonTierConfig.clamp_tier(tier if tier >= 0 else current_dungeon_tier)
 	var first_clear: bool = not is_stage_cleared(stage_id, t)
 	var progress: Dictionary = stage_progress.get(stage_id, {})
@@ -231,6 +235,7 @@ func mark_stage_cleared(stage_id: String, tier: int = -1) -> void:
 	stage_progress[stage_id] = progress
 	var stage: Resource = DataRegistry.get_stage_data(stage_id)
 	if stage == null:
+		_ContentUnlockNotice.queue_newly_unlocked(unlock_before)
 		return
 	var biome_id: String = str(stage.biome_id)
 	var stages: Array = DataRegistry.get_stages_for_biome(biome_id)
@@ -258,6 +263,7 @@ func mark_stage_cleared(stage_id: String, tier: int = -1) -> void:
 			pending_starter_recruit_id = str(pick.get("id", ""))
 			last_run_starter_recruited_id = pending_starter_recruit_id
 			last_run_starter_recruited_name = str(pick.get("name", ""))
+	_ContentUnlockNotice.queue_newly_unlocked(unlock_before)
 
 func count_cleared_stages(biome_id: String) -> int:
 	var count: int = 0
@@ -363,9 +369,18 @@ func get_next_stage_after(stage_id: String) -> String:
 func mark_dungeon_cleared(dungeon_id: String) -> void:
 	if dungeon_id.is_empty():
 		return
+	## 章クリア経路は mark_stage_cleared 側でまとめて検知する。
+	## 単体クリア（非サブステージ運用）でも解放ポップアップを積む。
+	const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
+	var track: bool = not Constants.SUB_STAGES_PLAYABLE
+	var unlock_before: Dictionary = {}
+	if track:
+		unlock_before = _ContentUnlockNotice.snapshot_unlocked()
 	var progress: Dictionary = dungeon_progress.get(dungeon_id, {})
 	progress["cleared"] = true
 	dungeon_progress[dungeon_id] = progress
+	if track:
+		_ContentUnlockNotice.queue_newly_unlocked(unlock_before)
 
 func is_dungeon_cleared(dungeon_id: String) -> bool:
 	if dungeon_id.is_empty():
@@ -1272,6 +1287,7 @@ func reset_for_new_game() -> void:
 	equipment_focus_member_index = -1
 	base_initial_view = "hub"
 	hub_npc_hint = {}
+	pending_content_unlock_notices = []
 	last_run_exp_reward = 0
 	last_run_gold_reward = 0
 	last_run_token_reward = 0

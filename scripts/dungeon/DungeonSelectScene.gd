@@ -247,6 +247,12 @@ func _ready() -> void:
 	_apply_typography()
 	_setup_enter_confirm()
 	_refresh_all()
+	call_deferred("_maybe_show_content_unlock")
+
+
+func _maybe_show_content_unlock() -> void:
+	const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
+	_ContentUnlockNotice.show_pending_on(self)
 
 func _setup_enter_confirm() -> void:
 	_enter_confirm_overlay = Control.new()
