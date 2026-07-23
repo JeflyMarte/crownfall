@@ -427,7 +427,7 @@ func _on_forge_confirm_canceled() -> void:
 
 func _setup_dismantle_dialogs() -> void:
 	_dismantle_confirm = ConfirmationDialog.new()
-	_dismantle_confirm.title = "装備分解"
+	_dismantle_confirm.title = "ノーマル・レア一括分解"
 	_dismantle_confirm.ok_button_text = "分解する"
 	_dismantle_confirm.cancel_button_text = "やめる"
 	_dismantle_confirm.confirmed.connect(_on_bulk_dismantle_confirmed)
@@ -450,7 +450,7 @@ func _setup_dismantle_dialogs() -> void:
 
 func _setup_bulk_dismantle_button() -> void:
 	_bulk_dismantle_btn = Button.new()
-	_bulk_dismantle_btn.text = "◇◆を一括分解"
+	_bulk_dismantle_btn.text = "ノーマル・レアを一括分解"
 	_bulk_dismantle_btn.visible = false
 	_bulk_dismantle_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_bulk_dismantle_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -1401,7 +1401,9 @@ func _update_bulk_dismantle_button() -> void:
 	var count: int = int(preview.get("count", 0))
 	_bulk_dismantle_btn.disabled = count <= 0
 	_bulk_dismantle_btn.text = (
-		"◇◆を一括分解（%d件）" % count if count > 0 else "◇◆を一括分解"
+		"ノーマル・レアを一括分解（%d件）" % count
+		if count > 0
+		else "ノーマル・レアを一括分解"
 	)
 	_bulk_dismantle_btn.tooltip_text = _bulk_dismantle_btn.text
 	BlacksmithUiHelper.apply_bulk_dismantle_button(_bulk_dismantle_btn)
@@ -1573,7 +1575,7 @@ func _on_bulk_dismantle_pressed() -> void:
 		_log_craft_error("分解対象がありません")
 		return
 	_dismantle_confirm.dialog_text = (
-		"◇◆装備 %d件を分解します。\n獲得: %s\nよろしいですか？"
+		"ノーマル・レア装備 %d件を分解します。\n獲得: %s\nよろしいですか？"
 		% [count, _format_material_summary(preview.get("materials", {}))]
 	)
 	_dismantle_confirm.popup_centered()
