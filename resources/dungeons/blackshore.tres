@@ -23,4 +23,5 @@ min_event_rooms = 1
 weapon_pool = Array[String](["black_sand_cleaver", "wreck_hook_blades", "tidewood_longbow", "brine_lantern_staff", "lighthouse_greatsword", "pharos_bow", "votive_staff", "barnacle_saw", "sanctum_tide_edge", "beacon_needle", "nereidas_tideblade", "pharoslight_staff"])
 armor_pool = Array[String](["tidecloth_garb", "shipplate_mail", "kelp_weave_cloak", "whalebone_plate", "votive_vestment"])
 accessory_pool = Array[String](["black_pearl_ring", "barnacle_charm", "nereion_song_talisman"])
-flavor_text = "大陸西海岸の黒砂に、座礁船団が骨のように連なる潮間帯。\n海統王の古防波堤が、満ち引きのたびに姿を現す。"
+flavor_text = "大陸西海岸の黒砂に、座礁船団が骨のように連なる潮間帯。
+海統王の古防波堤が満ち引きのたびに姿を現し、潮のエルダが濃い。"

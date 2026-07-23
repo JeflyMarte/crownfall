@@ -23,4 +23,5 @@ min_event_rooms = 1
 weapon_pool = Array[String](["bog_cleaver", "leech_fang_blades", "mire_longbow", "driftwood_staff", "storm_carver", "galvanic_bow", "fen_lantern_staff", "carapace_saw", "thunderfen_edge", "volt_needle", "volgrave_thunderblade", "seradion_storm_staff"])
 armor_pool = Array[String](["mire_hide_garb", "chitin_plate", "bog_strider_cloak", "moldgar_scale_mail", "libris_ward_robe"])
 accessory_pool = Array[String](["marsh_pearl_ring", "leech_oil_charm", "moldgar_eye_talisman"])
-flavor_text = "大陸南岸の沈没封緘区に広がる霧の沼。足元は底なしの泥、\n頭上は方角を隠す濃霧。学識王の沈んだ書庫が今も眠るという。"
+flavor_text = "大陸南岸の沈没封緘区に広がる霧の沼。足元は底なしの泥、頭上は濃霧。
+学識王が封じたと伝わる書庫の気配が、今も水底に沈む。"
