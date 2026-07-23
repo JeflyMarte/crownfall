@@ -1,6 +1,6 @@
 extends GutTest
 
-## 図鑑手引きが現行仕様・P3-W-031 とずれていないこと（P3-CODEX-GUIDE-001）。
+## 図鑑手引きが現行仕様・P3-W-031 とずれていないこと（P3-CODEX-GUIDE-001〜003）。
 
 
 func test_guide_no_outdated_combat_or_gacha_copy() -> void:
@@ -17,6 +17,8 @@ func test_guide_no_outdated_combat_or_gacha_copy() -> void:
 	var g007: String = str(by_id.get("COMBAT-G007", ""))
 	assert_false(g007.contains("長い再使用待ち"), "必殺はゲージ制")
 	assert_true(g007.contains("必殺ゲージ"), "ゲージ説明あり")
+	assert_false(g007.contains("×0.10"), "チャージ係数を出さない")
+	assert_false(g007.contains("×0.20"), "チャージ係数を出さない")
 
 	var g013: String = str(by_id.get("COMBAT-G013", ""))
 	assert_true(g013.contains("天候シンクロ"), "天候レジェンド連動に言及")
@@ -32,6 +34,7 @@ func test_guide_no_outdated_combat_or_gacha_copy() -> void:
 	var eq002: String = str(by_id.get("EQUIP-G002", ""))
 	assert_false(eq002.contains("休止中"), "招待状は常時ON")
 	assert_true(eq002.contains("魔晶石"), "魔晶石に言及")
+	assert_true(eq002.contains("限界突破"), "限界突破を案内")
 
 
 func test_equip_level_guide_is_player_facing() -> void:
@@ -49,6 +52,62 @@ func test_equip_level_guide_is_player_facing() -> void:
 	assert_true(desc.contains("錬成"), "錬成導線に言及")
 	assert_true(desc.contains("神話"), "神話は錬成不可を案内")
 	assert_true(desc.contains("炉研ぎ"), "炉研ぎと別枠であることに言及")
+
+
+func test_combat_guides_player_facing_no_internal_formulas() -> void:
+	var by_id: Dictionary = {}
+	for entry: Dictionary in GuideCatalog.get_entries():
+		by_id[str(entry.get("id", ""))] = str(entry.get("description", ""))
+
+	var g002: String = str(by_id.get("COMBAT-G002", ""))
+	assert_false(g002.is_empty())
+	assert_true(g002.contains("毒"), "状態異常の代表に言及")
+	assert_false(g002.contains("/刻、5 刻、最大 3 スタック"), "刻ごとの固定値羅列を避ける")
+
+	var g010: String = str(by_id.get("COMBAT-G010", ""))
+	assert_true(g010.contains("脅威"), "脅威の説明あり")
+	assert_false(g010.contains("+0.10"), "与ダメあたり係数を出さない")
+	assert_false(g010.contains("+0.15"), "被ダメあたり係数を出さない")
+	assert_false(g010.contains("90％ 減衰"), "減衰式を出さない")
+
+	var g011: String = str(by_id.get("COMBAT-G011", ""))
+	assert_true(g011.contains("防御"), "防御の影響に言及")
+	assert_false(g011.contains("逓減"), "内部用語を出さない")
+	assert_false(g011.contains("/("), "防御式を出さない")
+	assert_false(g011.contains("×1.25"), "弱点倍率の羅列を避ける")
+
+
+func test_hub_and_field_guide_entries_exist() -> void:
+	var by_id: Dictionary = {}
+	for entry: Dictionary in GuideCatalog.get_entries():
+		by_id[str(entry.get("id", ""))] = str(entry.get("description", ""))
+
+	var survey: String = str(by_id.get("SYS-G001", ""))
+	assert_false(survey.is_empty(), "調査室の条がある")
+	assert_true(survey.contains("70"), "②解放の調査ゲージ条件")
+	assert_true(survey.contains("20"), "短調査20分")
+	assert_true(survey.contains("3 時間") or survey.contains("3時間"), "標準調査3時間")
+
+	var otomo: String = str(by_id.get("SYS-G002", ""))
+	assert_true(otomo.contains("ジャック"), "オトモ名")
+	assert_true(otomo.contains("前衛"), "常時前衛")
+	assert_true(otomo.contains("招待状"), "招待状対象外に言及")
+
+	var field: String = str(by_id.get("SYS-G003", ""))
+	assert_true(field.contains("今日のダンジョン状態"), "UI名")
+	assert_true(field.contains("30"), "30分スロット")
+	assert_true(field.contains("穏やか"), "穏やか最頻")
+
+	var event_dg: String = str(by_id.get("SYS-G004", ""))
+	assert_true(event_dg.contains("裂け目") or event_dg.contains("エルダ"), "ダックDG")
+	assert_true(event_dg.contains("巣") or event_dg.contains("レイヴン"), "レイヴンDG")
+	assert_true(event_dg.contains("一日"), "日次挑戦")
+
+	var wander: String = str(by_id.get("SYS-G005", ""))
+	assert_true(wander.contains("ダック"), "放浪ダック")
+	assert_true(wander.contains("レイヴン"), "放浪レイヴン")
+	assert_true(wander.contains("逃走") or wander.contains("経験"), "ダック特性")
+	assert_true(wander.contains("装備") or wander.contains("神話"), "レイヴン特性")
 
 
 func test_cosmic_rift_flavor_uses_elda_rift() -> void:
