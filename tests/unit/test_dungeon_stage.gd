@@ -7,19 +7,23 @@ const _DungeonController = preload("res://scripts/dungeon/DungeonController.gd")
 var _saved_stage_progress: Dictionary = {}
 var _saved_stage_id: String = ""
 var _saved_dungeon_progress: Dictionary = {}
+var _saved_survey: Dictionary = {}
 
 func before_each() -> void:
 	_saved_stage_progress = GameState.stage_progress
 	_saved_stage_id = GameState.current_stage_id
 	_saved_dungeon_progress = GameState.dungeon_progress
+	_saved_survey = GameState.hub_survey_progress.duplicate(true)
 	GameState.stage_progress = {}
 	GameState.current_stage_id = ""
 	GameState.dungeon_progress = {}
+	GameState.hub_survey_progress = {}
 
 func after_each() -> void:
 	GameState.stage_progress = _saved_stage_progress
 	GameState.current_stage_id = _saved_stage_id
 	GameState.dungeon_progress = _saved_dungeon_progress
+	GameState.hub_survey_progress = _saved_survey
 
 func _make_controller() -> Node:
 	var dc: Node = _DungeonController.new()
@@ -124,6 +128,7 @@ func test_run_display_name_includes_chapter() -> void:
 
 func _unlock_whisperwood() -> void:
 	GameState.mark_stage_cleared("mourngate_1_5")
+	GameState.hub_survey_progress["mourngate"] = 70.0
 
 func test_whisperwood_2_4_has_no_boss() -> void:
 	var seq: Array[int] = _stage_seq("whisperwood_2_4")
@@ -149,17 +154,11 @@ func test_whisperwood_stage_enemy_level_overrides_biome() -> void:
 func test_whisperwood_first_stage_locked_until_mourngate_cleared() -> void:
 	assert_false(GameState.is_stage_unlocked("whisperwood_2_1"))
 	_unlock_whisperwood()
-	if Constants.BETA_MOURNGATE_ONLY:
-		assert_false(GameState.is_stage_unlocked("whisperwood_2_1"), "βは②章も未解放")
-	else:
-		assert_true(GameState.is_stage_unlocked("whisperwood_2_1"))
-		assert_false(GameState.is_stage_unlocked("whisperwood_2_2"))
+	assert_true(GameState.is_stage_unlocked("whisperwood_2_1"))
+	assert_false(GameState.is_stage_unlocked("whisperwood_2_2"))
 
 func test_whisperwood_stage_unlock_chain() -> void:
 	_unlock_whisperwood()
-	if Constants.BETA_MOURNGATE_ONLY:
-		assert_false(GameState.is_stage_unlocked("whisperwood_2_1"), "βは②ロック")
-		return
 	GameState.mark_stage_cleared("whisperwood_2_1")
 	assert_true(GameState.is_stage_unlocked("whisperwood_2_2"))
 	assert_false(GameState.is_stage_unlocked("whisperwood_2_3"))

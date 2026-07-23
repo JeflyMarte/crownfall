@@ -4173,4 +4173,4 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-CODEX-ACHIEVE-OMIT-1 | **UI 非表示** — `Constants.CODEX_ACHIEVE_PLAYABLE=false`。タブ生成スキップ・カテゴリから除外 | オーナー明示オミット |
 | P3-CODEX-ACHIEVE-OMIT-2 | **データ／Save／`SurveySystem.achieve_*` は残置**。再表示はフラグ ON | 他オミットと同型 |
 | P3-CODEX-ACHIEVE-OMIT-3 | **手引き SYS-G001** から実績タブ案内を撤去。記録タブは維持 | プレイヤー向け案内の整合 |
-| P3-CODEX-ACHIEVE-OMIT-4 | **SSOT** — `decisions/05_HubSurveyRoom.md` §6 にオミット注記。P3-HUB-SURVEY-001-7 を本 Decision で上書き（骨格残置） | 調査室 Decision の ACHIEVE 節
+| P3-CODEX-ACHIEVE-OMIT-4 | **SSOT** — `decisions/05_HubSurveyRoom.md` §6 にオミット注記。P3-HUB-SURVEY-001-7 を本 Decision で上書き（骨格残置） | 調査室 Decision の ACHIEVE 節 |

@@ -7,18 +7,22 @@ const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 var _saved_dungeon_progress: Dictionary = {}
 var _saved_stage_progress: Dictionary = {}
 var _saved_dungeon_tier: int = 0
+var _saved_survey: Dictionary = {}
 
 func before_each() -> void:
 	_saved_dungeon_progress = GameState.dungeon_progress
 	_saved_stage_progress = GameState.stage_progress
 	_saved_dungeon_tier = GameState.current_dungeon_tier
+	_saved_survey = GameState.hub_survey_progress.duplicate(true)
 	GameState.dungeon_progress = {}
 	GameState.stage_progress = {}
+	GameState.hub_survey_progress = {}
 	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
 
 func after_each() -> void:
 	GameState.dungeon_progress = _saved_dungeon_progress
 	GameState.stage_progress = _saved_stage_progress
+	GameState.hub_survey_progress = _saved_survey
 	GameState.current_dungeon_tier = _saved_dungeon_tier
 
 func test_chapter_clear_does_not_unlock_next_biome() -> void:
@@ -36,10 +40,10 @@ func test_final_chapter_unlocks_next_biome() -> void:
 		return
 	GameState.mark_stage_cleared("mourngate_1_5")
 	assert_true(GameState.is_dungeon_cleared("mourngate"))
-	if Constants.BETA_MOURNGATE_ONLY:
-		assert_false(GameState.is_dungeon_unlocked("whisperwood"), "βは①最終章クリア後も②ロック")
-	else:
-		assert_true(GameState.is_dungeon_unlocked("whisperwood"))
+	## ②は①クリアに加え SURVEY≥70%（P3-HUB-SURVEY-001）。
+	assert_false(GameState.is_dungeon_unlocked("whisperwood"), "SURVEY未達では②ロック")
+	GameState.hub_survey_progress["mourngate"] = 70.0
+	assert_true(GameState.is_dungeon_unlocked("whisperwood"), "①クリア＋SURVEY70%で②解放")
 
 func test_mid_chapter_unlocks_next_chapter_only() -> void:
 	GameState.mark_stage_cleared("mourngate_1_2")
@@ -72,6 +76,7 @@ func test_whisperwood_final_chapter_unlocks_next_biome() -> void:
 	if not Constants.SUB_STAGES_PLAYABLE:
 		pass_test("SUB_STAGES off")
 		return
+	GameState.hub_survey_progress["mourngate"] = 70.0
 	GameState.mark_stage_cleared("mourngate_1_5")
 	GameState.mark_stage_cleared("whisperwood_2_5")
 	assert_true(GameState.is_dungeon_cleared("whisperwood"))

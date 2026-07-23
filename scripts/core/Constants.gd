@@ -13,8 +13,8 @@ const SUB_DUNGEONS_PLAYABLE: bool = false
 ## イベントダンジョン（route_type=event）をプレイ対象に含める（P3-DG-DUCK-EVENT-001）。
 const EVENT_DUNGEONS_PLAYABLE: bool = true
 ## 公開β範囲をモーンゲート中心にする（P3-BETA-SCOPE-001）。
-## P3-HUB-SURVEY-001: ②whisperwood はボス＋調査クリアで解禁可。③以降のメインは引き続き封鎖。
-const BETA_MOURNGATE_ONLY: bool = true
+## 2026-07-23 オーナー指示: OFF（③以降も通常の直列解放）。②は引き続き SURVEY≥70%＋①クリア。
+const BETA_MOURNGATE_ONLY: bool = false
 ## コズミックダック日次イベントDG id。
 const COSMIC_RIFT_DUNGEON_ID: String = "cosmic_rift"
 ## 宝冠レイヴン日次イベントDG id。
