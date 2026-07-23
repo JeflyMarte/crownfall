@@ -3198,7 +3198,11 @@ func _make_skill_icon(skill_id: String, member: Resource, display_size: Vector2 
 	var px: Vector2 = display_size
 	if px == Vector2.ZERO:
 		px = Vector2(SKILL_ROW_ICON_PX, SKILL_ROW_ICON_PX)
-	return SkillIconHelper.make_ally_equipped_icon(skill_id, member, px)
+	var icon: Control = SkillIconHelper.make_ally_equipped_icon(skill_id, member, px)
+	if icon != null:
+		return icon
+	## ベース未登録時は個別アートへ（空白枠のままにしない）。
+	return SkillIconHelper.make_unique_icon(skill_id, px)
 
 func _make_passive_icon(passive_id: String, display_size: Vector2 = Vector2.ZERO) -> Control:
 	var px: Vector2 = display_size
