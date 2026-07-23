@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "shadowcord"
+display_name = "葬冠の影弦シャドウコード"
+description = "葬冠の影を紡いだ闇の長弓。弦を弾く音は低く、標的の急所だけを静かに射抜く。"
+fixed_skill_id = ""
+fixed_passive_id = "eq_wpn_shadowcord"
+base_attack = 200
+rarity = 3
+base_attack_speed = 1.25
+base_critical_rate = 0.14
+base_knockback = 0.1
+base_stagger_power = 0.1
+base_attack_range = 3.0
+weight = 0.7
+element = "dark"
+weapon_type = "bow"
+tags = Array[String](["pierce", "dark"])
+bane_class = ""
+bane_multiplier = 1.0
