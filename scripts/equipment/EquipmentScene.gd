@@ -86,6 +86,10 @@ var _lb_ticket_row: HBoxContainer = null
 var _btn_lb_ticket: Button = null
 var _label_lb_ticket: Label = null
 var _confirm_lb_ticket: ConfirmationDialog = null
+var _confirm_take_equip: ConfirmationDialog = null
+var _pending_take_item: Resource = null
+var _pending_take_category: String = ""
+var _pending_take_relic_id: String = ""
 @onready var _stats_grid: GridContainer = $VBoxContainer/CharacterCard/CardRow/InfoBox/StatsGrid
 @onready var _btn_stat_detail: Button = $VBoxContainer/CharacterCard/CardRow/InfoBox/BtnStatDetail
 @onready var _slots_panel: VBoxContainer = $VBoxContainer/CharacterCard/CardRow/SlotsPanel
@@ -179,6 +183,7 @@ func _ready() -> void:
 	_btn_catalog.pressed.connect(_on_catalog_pressed)
 	UiTypography.apply_menu_button(_btn_catalog)
 	_ensure_item_detail_overlay()
+	_ensure_take_equip_confirm()
 	_btn_member_prev.pressed.connect(_on_member_prev_pressed)
 	_btn_member_next.pressed.connect(_on_member_next_pressed)
 	_btn_promote.pressed.connect(_on_promote_pressed)
@@ -1407,7 +1412,8 @@ func _show_relic_stats_overlay(relic_id: String, pinned: bool = false) -> void:
 	var is_on_self: bool = party_idx >= 0 and owner_idx == party_idx
 	_detail_equip_btn.text = "外す" if is_on_self else "装備する"
 	_detail_equip_btn.visible = party_idx >= 0
-	_detail_equip_btn.disabled = party_idx < 0 or (owner_idx >= 0 and not is_on_self)
+	## 他人装備中も付け替え確認経由で装備可。
+	_detail_equip_btn.disabled = party_idx < 0
 	_detail_overlay.visible = true
 
 func _add_owner_portrait_badge(btn: Button, owner_idx: int, cell_size: Vector2) -> void:
@@ -1539,8 +1545,26 @@ func _on_relic_equip_pressed(relic_id: String) -> void:
 	var pid: String = CombatPassives.migrate_relic_passive_id(relic_id)
 	if GameState.get_equipped_relic_passive_id(member) == pid:
 		GameState.set_member_relic(member, "")
-	else:
-		GameState.set_member_relic(member, relic_id)
+		_refresh_display()
+		return
+	var owner_idx: int = EquipmentUiHelper.relic_equipped_member_index(relic_id)
+	if owner_idx >= 0 and owner_idx != party_idx:
+		_pending_take_item = null
+		_pending_take_category = ""
+		_pending_take_relic_id = relic_id
+		_popup_take_equip_confirm(owner_idx)
+		return
+	_apply_equip_relic(relic_id)
+
+func _apply_equip_relic(relic_id: String) -> void:
+	var party_idx: int = _party_index_for_view()
+	if party_idx < 0:
+		return
+	var member: Resource = GameState.get_member(party_idx)
+	if member == null:
+		return
+	GameState.set_member_relic(member, relic_id)
+	AudioManager.play_sfx("ui_equip")
 	_refresh_display()
 
 func _hide_item_detail_overlay() -> void:
@@ -1561,8 +1585,53 @@ func _on_catalog_pressed() -> void:
 		SceneRouter.change_scene(CATALOG_SCENE)
 
 func _on_cell_pressed(item: Resource, category: String) -> void:
+	_request_equip_item(item, category)
+
+func _ensure_take_equip_confirm() -> void:
+	if _confirm_take_equip != null:
+		return
+	_confirm_take_equip = ConfirmationDialog.new()
+	_confirm_take_equip.title = "装備の付け替え"
+	_confirm_take_equip.ok_button_text = "付け替える"
+	_confirm_take_equip.cancel_button_text = "やめる"
+	_confirm_take_equip.confirmed.connect(_on_take_equip_confirmed)
+	_confirm_take_equip.canceled.connect(_on_take_equip_canceled)
+	add_child(_confirm_take_equip)
+
+func _clear_pending_take_equip() -> void:
+	_pending_take_item = null
+	_pending_take_category = ""
+	_pending_take_relic_id = ""
+
+func _owner_display_name(owner_idx: int) -> String:
+	var owner: Resource = GameState.get_member(owner_idx)
+	if owner == null or str(owner.display_name).is_empty():
+		return "別の隊員"
+	return RosterUiHelper.short_display_name(str(owner.display_name))
+
+func _popup_take_equip_confirm(owner_idx: int) -> void:
+	_ensure_take_equip_confirm()
+	_confirm_take_equip.dialog_text = (
+		"この装備は%sが装備してます。\n付け替えますか？" % _owner_display_name(owner_idx)
+	)
+	_confirm_take_equip.popup_centered()
+
+func _request_equip_item(item: Resource, category: String) -> void:
 	var party_idx: int = _party_index_for_view()
-	if party_idx < 0:
+	if party_idx < 0 or item == null:
+		return
+	var owner_idx: int = EquipmentUiHelper.equipped_member_index(item)
+	if owner_idx >= 0 and owner_idx != party_idx:
+		_pending_take_item = item
+		_pending_take_category = category
+		_pending_take_relic_id = ""
+		_popup_take_equip_confirm(owner_idx)
+		return
+	_apply_equip_item(item, category)
+
+func _apply_equip_item(item: Resource, category: String) -> void:
+	var party_idx: int = _party_index_for_view()
+	if party_idx < 0 or item == null:
 		return
 	match category:
 		"weapon":
@@ -1573,6 +1642,17 @@ func _on_cell_pressed(item: Resource, category: String) -> void:
 			$EquipmentController.equip_accessory(item, party_idx)
 	AudioManager.play_sfx("ui_equip")
 	_refresh_display()
+
+func _on_take_equip_confirmed() -> void:
+	if not _pending_take_relic_id.is_empty():
+		_apply_equip_relic(_pending_take_relic_id)
+	elif _pending_take_item != null and not _pending_take_category.is_empty():
+		_apply_equip_item(_pending_take_item, _pending_take_category)
+	_clear_pending_take_equip()
+
+func _on_take_equip_canceled() -> void:
+	AudioManager.play_sfx("ui_cancel")
+	_clear_pending_take_equip()
 
 # ---- レア度枠スタイル ----
 func _rarity_box(rarity: int, highlight: bool, cell_px: int) -> StyleBox:
