@@ -7,19 +7,23 @@ const _DungeonController = preload("res://scripts/dungeon/DungeonController.gd")
 var _saved_stage_progress: Dictionary = {}
 var _saved_stage_id: String = ""
 var _saved_dungeon_progress: Dictionary = {}
+var _saved_survey: Dictionary = {}
 
 func before_each() -> void:
 	_saved_stage_progress = GameState.stage_progress
 	_saved_stage_id = GameState.current_stage_id
 	_saved_dungeon_progress = GameState.dungeon_progress
+	_saved_survey = GameState.hub_survey_progress.duplicate(true)
 	GameState.stage_progress = {}
 	GameState.current_stage_id = ""
 	GameState.dungeon_progress = {}
+	GameState.hub_survey_progress = {}
 
 func after_each() -> void:
 	GameState.stage_progress = _saved_stage_progress
 	GameState.current_stage_id = _saved_stage_id
 	GameState.dungeon_progress = _saved_dungeon_progress
+	GameState.hub_survey_progress = _saved_survey
 
 func _make_controller() -> Node:
 	var dc: Node = _DungeonController.new()
