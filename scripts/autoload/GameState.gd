@@ -47,6 +47,8 @@ var pending_content_unlock_notices: Array = []
 var owned_helpers: Dictionary = {}
 ## 消費チケット所持 { ticket_id: qty }（P3-TICKET-001）。
 var ticket_inventory: Dictionary = {}
+## 特典コード受取済み id { code_id: true }（P3-UX-REDEEM-001）。
+var redeemed_codes: Dictionary = {}
 
 # 所持アイテムリスト（WeaponInstance）
 var inventory: Array = []
@@ -1260,6 +1262,7 @@ func reset_for_new_game() -> void:
 	debug_full_unlock = false
 	owned_helpers = {}
 	ticket_inventory = {}
+	redeemed_codes = {}
 	owned_relics = []
 	inventory = []
 	armor_inventory = []
@@ -1655,6 +1658,18 @@ func add_material(material_id: String, amount: int = 1) -> void:
 		return
 	var current: int = int(material_inventory.get(material_id, 0))
 	material_inventory[material_id] = current + amount
+
+
+func is_redeem_code_claimed(code_id: String) -> bool:
+	if code_id.is_empty():
+		return false
+	return bool(redeemed_codes.get(code_id, false))
+
+
+func mark_redeem_code_claimed(code_id: String) -> void:
+	if code_id.is_empty():
+		return
+	redeemed_codes[code_id] = true
 
 func sanitize_material_inventory() -> void:
 	var cleaned: Dictionary = {}
