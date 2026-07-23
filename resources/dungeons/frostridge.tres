@@ -23,4 +23,5 @@ min_event_rooms = 1
 weapon_pool = Array[String](["ridge_cleaver", "frostclaw_blades", "snowline_longbow", "cairn_staff", "glacier_greatsword", "rime_bow", "aurora_staff", "shadow_fang_saw", "permafrost_edge", "white_needle", "eldion_frostbrand", "umbra_terminus_staff"])
 armor_pool = Array[String](["furline_garb", "glacier_plate", "snowdrift_cloak", "dragon_scale_aegis", "aurora_vestment"])
 accessory_pool = Array[String](["ice_crystal_ring", "frost_fang_charm", "eldion_heart_talisman"])
-flavor_text = "フロストウォールの北、氷河の裂け目に続く最果ての寒冷地。\n開拓王の境界標が、白闇の奥で今も北を指している。"
+flavor_text = "フロストウォールの北、氷河の裂け目に続く最果ての寒冷地。
+開拓王の境界標が白闇の奥で北を指し、地図の余白が始まる。"

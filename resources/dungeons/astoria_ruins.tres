@@ -23,4 +23,5 @@ min_event_rooms = 1
 weapon_pool = Array[String](["iron_sword", "rusted_blade", "hunting_bow", "apprentice_staff", "heater_blade", "frost_blade", "bolt_knife", "ember_fang"])
 armor_pool = Array[String](["leather_armor", "bone_armor", "crypt_weave_cloak", "sepia_hide_vest", "lament_guard_mail"])
 accessory_pool = Array[String](["silver_ring", "mourngate_sigil", "pilgrim_lantern_charm"])
-flavor_text = "崩落した王都の外郭を踏む短編寄り道。地表の廃墟で\n闇と出血に強い装備を揃え、地下モーンゲートへ踏み込む足場とする。"
+flavor_text = "崩落した王都アステリアの外郭を踏む短編寄り道。
+地表の廃墟で装備を整え、地下モーンゲートへ降り立つ足場となる。"

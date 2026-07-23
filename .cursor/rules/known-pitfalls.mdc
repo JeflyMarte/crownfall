@@ -105,6 +105,7 @@ alwaysApply: true
 | `project.godot` の aspect／simulate が効かない | 日本語コメントをキー文字列に混ぜて設定キーが壊れる | コメントは `;` 行のみ。キーは `window/stretch/aspect` / `ui/simulate_mobile_safe_area` 単体 |
 | ガチャ Featured が消える／説明も無い | ①HEAD の `foot_pad=260` で idle が host 外 ②`SummonActionBar` 分を HubLayout が確保せず MainColumn がボタン背面へ ③StatsWrap の center-anchor 0 高さ | 動的 `featured_foot_pad()`＋`SummonActionBar` を Footer 同様に inset。StatsWrap は右上固定 |
 | ダンジョン Featured バナーが無い | 一覧にバナーがある Biome は Featured 上段を意図的に非表示 | Featured でもバナー表示（アスペクト比の高さ） |
+| 図鑑／DG概要が「魔法」「亡霊」「異界の裂け目」になる | 旧フレーバーや民間俗称を正典として書いた | 正称はエルダ／鉱物化適応等（`world/03`・`05`）。異界は俗称のみ。差し替え後 `test_codex_guide_sync` で確認 |
 
 ## ルール化フロー
 

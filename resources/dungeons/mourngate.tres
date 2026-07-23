@@ -23,5 +23,5 @@ min_event_rooms = 1
 weapon_pool = Array[String](["iron_sword", "rusted_blade", "hunting_bow", "apprentice_staff", "heater_blade", "frost_blade", "bolt_knife", "ember_fang", "glacier_staff", "storm_edge", "sanctified_dagger", "consecrated_maul", "stormveil_needle", "noctumbra_fang", "mistpierce_halberd"])
 armor_pool = Array[String](["crypt_weave_cloak", "sepia_hide_vest", "rune_linen_garb", "lament_guard_mail", "mourngate_plate"])
 accessory_pool = Array[String](["clockwing_brooch", "mourngate_sigil", "pilgrim_lantern_charm"])
-flavor_text = "王都地下に広がる封印回廊。古い魔法の残滓と亡霊が漂う。
-かつての継承儀式の痕跡が、薄闇の奥に残されている。"
+flavor_text = "王都アステリア地下の巨大排水網に育った生態系。
+遺物を取り込む鉱物化適応が進み、降りるほど王都の過去へ遡る。"

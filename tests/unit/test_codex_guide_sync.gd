@@ -134,3 +134,34 @@ func test_cosmic_rift_flavor_uses_elda_rift() -> void:
 	var flavor: String = str(dg.get("flavor_text"))
 	assert_true(flavor.contains("エルダの裂け目"), "正称はエルダの裂け目")
 	assert_false(flavor.contains("異界の裂け目"), "異界は民間俗称のためDG文から除去")
+
+
+func test_world_guide_entries_cover_canon_basics() -> void:
+	var by_id: Dictionary = {}
+	for entry: Dictionary in GuideCatalog.get_entries():
+		by_id[str(entry.get("id", ""))] = str(entry.get("description", ""))
+
+	var required: Array[String] = [
+		"WORLD-G001", "WORLD-G002", "WORLD-G003", "WORLD-G004", "WORLD-G005",
+		"WORLD-G006", "WORLD-G007", "WORLD-G008", "WORLD-G009", "WORLD-G010",
+		"WORLD-G011", "WORLD-G012",
+	]
+	for wid: String in required:
+		assert_false(str(by_id.get(wid, "")).is_empty(), "%s がある" % wid)
+
+	assert_true(str(by_id.get("WORLD-G002", "")).contains("魔法"), "魔法不在に言及")
+	assert_true(str(by_id.get("WORLD-G002", "")).contains("エルダ"), "エルダ定義")
+	assert_true(str(by_id.get("WORLD-G003", "")).contains("調査"), "ギルドは調査機関")
+	assert_true(str(by_id.get("WORLD-G003", "")).contains("冒険者組合ではない"), "組合否定")
+	assert_true(str(by_id.get("WORLD-G008", "")).contains("異界"), "民間俗称に触れつつ否定")
+	assert_true(str(by_id.get("WORLD-G011", "")).contains("鉱物化"), "モーンゲート生態")
+	assert_true(str(by_id.get("WORLD-G012", "")).contains("共生"), "ウィスパーウッド生態")
+
+
+func test_mourngate_flavor_matches_postwar_ecology() -> void:
+	var dg: Resource = load("res://resources/dungeons/mourngate.tres")
+	assert_ne(dg, null)
+	var flavor: String = str(dg.get("flavor_text"))
+	assert_true(flavor.contains("鉱物化") or flavor.contains("排水"), "正典の地下生態")
+	assert_false(flavor.contains("魔法"), "魔法表現を撤去")
+	assert_false(flavor.contains("亡霊"), "亡霊表現を撤去")
