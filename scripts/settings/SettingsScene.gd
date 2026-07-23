@@ -24,6 +24,9 @@ const _META_BODY_BASE_TOP: StringName = &"_cf_body_base_top"
 @onready var _content_host: VBoxContainer = $MainScroll/MainVBox/ContentHost
 
 var _speed_buttons: Dictionary = {}
+var _redeem_input: LineEdit = null
+var _redeem_status: Label = null
+var _redeem_dialog: AcceptDialog = null
 
 
 func _ready() -> void:
@@ -43,6 +46,7 @@ func _ready() -> void:
 			bottom.visible = false
 	else:
 		BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.NONE)
+	_ensure_redeem_dialog()
 	_rebuild_page()
 	_configure_layout()
 	call_deferred("_configure_layout")
@@ -94,6 +98,7 @@ func _rebuild_page() -> void:
 	_speed_buttons.clear()
 	_content_host.add_child(_build_audio_section())
 	_content_host.add_child(_build_gameplay_section())
+	_content_host.add_child(_build_redeem_section())
 	_content_host.add_child(_build_system_section())
 
 
@@ -153,6 +158,35 @@ func _build_gameplay_section() -> Control:
 	vib.toggled.connect(_on_vibration_toggled)
 	UiTypography.apply_button(vib, false)
 	body.add_child(vib)
+	return sec["panel"]
+
+
+func _build_redeem_section() -> Control:
+	var sec: Dictionary = _begin_section("特典コード")
+	var body: VBoxContainer = sec["body"]
+	_add_caption(body, "コードを入力して特典を受け取ります（セーブごと1回）")
+	_redeem_input = LineEdit.new()
+	_redeem_input.placeholder_text = "コードを入力"
+	_redeem_input.clear_button_enabled = true
+	_redeem_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_redeem_input.custom_minimum_size = Vector2(0, 40)
+	var body_font: Font = UiTypography.body_font()
+	if body_font != null:
+		_redeem_input.add_theme_font_override("font", body_font)
+	_redeem_input.add_theme_font_size_override("font_size", UiTypography.SIZE_BODY_SMALL)
+	_redeem_input.add_theme_color_override("font_color", UiTypography.COLOR_BODY)
+	_redeem_input.text_submitted.connect(func(_t: String) -> void: _on_redeem_pressed())
+	body.add_child(_redeem_input)
+	var btn := Button.new()
+	btn.text = "受け取る"
+	btn.pressed.connect(_on_redeem_pressed)
+	UiTypography.apply_button(btn, true)
+	body.add_child(btn)
+	_redeem_status = Label.new()
+	_redeem_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_redeem_status.text = ""
+	UiTypography.apply_caption(_redeem_status, COLOR_SUB)
+	body.add_child(_redeem_status)
 	return sec["panel"]
 
 
@@ -276,6 +310,37 @@ func _on_vibration_toggled(v: bool) -> void:
 
 func _opened_from_title() -> bool:
 	return SceneRouter.settings_return_scene == TITLE_SCENE
+
+
+func _ensure_redeem_dialog() -> void:
+	if _redeem_dialog != null:
+		return
+	_redeem_dialog = AcceptDialog.new()
+	_redeem_dialog.title = "特典コード"
+	_redeem_dialog.ok_button_text = "OK"
+	add_child(_redeem_dialog)
+
+
+func _on_redeem_pressed() -> void:
+	if _redeem_input == null:
+		return
+	AudioManager.play_sfx("ui_switch", 1.0, 0.08)
+	var raw: String = _redeem_input.text
+	## タイトルから開いた場合はセーブを読み直してから付与（空 GameState 上書き防止）。
+	var result: Dictionary = RedeemCodeSystem.try_redeem(raw, _opened_from_title())
+	var message: String = str(result.get("message", ""))
+	if bool(result.get("ok", false)):
+		var summary: String = str(result.get("summary", ""))
+		if not summary.is_empty():
+			message = "%s\n\n%s" % [message, summary]
+		if _redeem_input != null:
+			_redeem_input.text = ""
+		AudioManager.play_sfx("ui_confirm", 1.0, 0.08)
+	if _redeem_status != null:
+		_redeem_status.text = message
+	_ensure_redeem_dialog()
+	_redeem_dialog.dialog_text = message
+	_redeem_dialog.popup_centered()
 
 
 func _on_back_pressed() -> void:
