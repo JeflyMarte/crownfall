@@ -102,3 +102,5 @@ const SPREAD_ROW_INCOMING: float = 0.94      # 散開列 被ダメ倍率
 # ── エンカウント（P3-D082/D110） ─────────────────────────────────────────
 const SWARM_CHANCE: float = 0.45        # COMBAT 部屋の群れ出現率（P3-BAL-SWARM-001）
 const MIXED_SWARM_CHANCE: float = 0.50  # 群れ時に別種を混ぜる確率
+## 1-1〜1-3（biome_index=1 かつ chapter 1〜3）の群れ率倍率。序盤の圧を抑える。
+const EARLY_STAGE_SWARM_CHANCE_MULT: float = 0.50
