@@ -1,6 +1,6 @@
 extends GutTest
 
-## P3-ENEMY-ROCK-BISON-001 — ロックバイソン（素材ドロップ率↑・全DG配置・仮アート）。
+## P3-ENEMY-ROCK-BISON-001 — ロックバイソン（素材ドロップ率↑・全DG配置・専用アート）。
 
 
 const _EVENT_ONLY: Array[String] = [
@@ -8,6 +8,7 @@ const _EVENT_ONLY: Array[String] = [
 	"shadow_hunt",
 	"crown_rookery",
 	"cosmic_rift",
+	"rock_stampede",
 ]
 
 
@@ -37,20 +38,29 @@ func test_rock_bison_in_all_non_event_pools() -> void:
 		assert_not_null(data)
 		var dungeon_id: String = str(data.id)
 		var pool: Array = data.enemy_pool
-		if dungeon_id in _EVENT_ONLY:
+		if dungeon_id == "rock_stampede":
+			assert_eq(pool, ["rock_bison"], "%s should be bison-only" % dungeon_id)
+		elif dungeon_id in _EVENT_ONLY:
 			assert_false("rock_bison" in pool, "%s should stay single-species" % dungeon_id)
 		else:
 			assert_true("rock_bison" in pool, "%s missing rock_bison" % dungeon_id)
 
 
-func test_icon_paths_placeholder() -> void:
+func test_rock_bison_dedicated_art() -> void:
 	assert_true(IconPaths.ICON_MAP.has("enemy:rock_bison"))
 	assert_true(IconPaths.ICON_MAP.has("enemy_turn:rock_bison"))
 	assert_eq(
 		str(IconPaths.ICON_MAP["enemy:rock_bison"]),
-		str(IconPaths.ICON_MAP["enemy:moss_boar"])
+		"res://assets/codex/enemies/ART_ENM_RockBison.png"
 	)
 	assert_eq(
 		str(IconPaths.ICON_MAP["enemy_turn:rock_bison"]),
-		str(IconPaths.ICON_MAP["enemy_turn:moss_boar"])
+		"res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_RockBison.png"
+	)
+	assert_true(ResourceLoader.exists("res://resources/animation/ENM_RockBison.tres"))
+	assert_true(ResourceLoader.exists("res://assets/battle/enemies/ENM_RockBison_Sheet.png"))
+	assert_true(ResourceLoader.exists("res://assets/codex/enemies/ART_ENM_RockBison.png"))
+	assert_ne(
+		str(IconPaths.ICON_MAP["enemy:rock_bison"]),
+		str(IconPaths.ICON_MAP["enemy:moss_boar"])
 	)

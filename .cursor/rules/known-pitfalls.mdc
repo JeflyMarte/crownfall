@@ -42,13 +42,14 @@ alwaysApply: true
 | ミレイ習得スキルのアイコンが空白 | `pet_bond_*` が `SkillIconHelper.SKILL_TO_BASE` 未登録 → ally アイコン null | 相棒鼓舞=buff／指揮の牙=mark／絆の守り=guard。ベース無し時は個別アートへフォールバック |
 | 報酬受取後に所持金／魔晶石アイコンが拡大したまま | `CurrencyGainFx` のパルスが複数モートで重なり、途中 scale を基準に積み上がる | 元 scale を meta 保存。旧 tween kill 後に元へ戻してからパルス |
 | ×-5 クリア後に仲間が結果／MVP周りに突然出る | クリア時に即 `unlock_starter` して Result 報酬にも出していた | クリアは候補のみ（`pending_starter_recruit_id`）。拠点でセリフ→ガチャ入手リビール後に unlock |
-| 鍛冶の必要コスト素材が iPhone で何かわからない | 名前が `tooltip_text` のみで、タッチでは長押し確認できない | `_make_material_req_cell` で素材名 Label を常時表示。tooltip に頼らない |
+| 鍛冶の必要コスト素材が iPhone で何かわからない | 名前が `tooltip_text` のみで、タッチでは長押し確認できない | **現行方針（オーナー）**: 鍛冶コストはアイコン＋個数のみ（窮屈さ優先）。名前は tooltip 残置。識別が足りなければ後続でアイコン拡大／キャプション再検討 |
 | 拠点左上に「魔晶石」が見える／隊長名に見える | TokenChip の `tooltip_text=魔晶石` がタッチ環境で残る、または隊長名 Label に通貨名が混入 | TopBar の魔晶石は数値のみ（tooltip 空）。`LabelPlayerName` は等級＋隊長名のみを毎フレーム明示上書き。`verify_base_hub` で混入検査 |
 | マイページがタッチスクロール不能 | `BottomNavHelper` の ScrollTouch 適用後に `_rebuild_page` で Button が再生成され STOP のまま | rebuild 後に `ScrollTouchHelper.enable(MainScroll)` を再実行 |
 | 陣形で前→後に動かすとキャラが複製表示 | 空き枠を `party_members[i]` で埋めて同一メンバーが複数スロットに入る | 未配置メンバーから埋める＋スロット重複除去 |
 | 2人を後列にしたのに戦闘では前列 | `_sync_formation_slots_from_selection` が空き前列を詰めて slot0/1 へ移し、`_apply_formation_rows_from_slots` で前列化 | sync は空きスロットを保持。後衛プリセットは後ろ最大2を後列（前列空可） |
 | ジャックがほぼ被弾せず無敵に見える | `PET_THREAT_BASE=0.55`＋max_threat 選択で人間（≥1.0）がいる限り未選択。被ダメ計算も `party_members` 限定でオトモ DEF 未加算 | Threat を前衛相当（盾未満）へ。ダメ計算は `get_combatant`。HPバーは PET スロット短尺 |
 | 装備一覧の攻・防・会心アイコンが古い | `equipment_ui/` 本番が procedural 小アイコンのまま。更新アートは `preview/` に滞留 | `preprocess_equipment_stat_icons.py --apply` で preview→本番＋forge へ反映 |
+| レジェンド防具／装飾／杖がデフォルト同アイコン | `generate_equipment_icons.py` がテンプレ流用のまま。専用PNG未差替 | PixelLab等で専用生成→`assets/ui/equipment` 上書き。`LEGENDARY_HAND_DRAWN_*_IDS` に入れて再生成で潰さない |
 | キャラ画面の★が灰色 | LabelStars に見出しフォント（Shippori）を当てると ★ 欠落でフォールバックが灰色に見える | 本文フォント＋`UiTypography.COLOR_GOLD`（ガチャと同ポリシー） |
 | ガチャ／鍛冶BGMが他画面に残る | Equipment 等の拠点画面が `play_bgm` せず継続再生 | `BgmCatalog.SCENE_BGM`＋`SceneRouter.change_scene` で画面入場時に切替（拠点=hub） |
 | 敵の行動順アイコンが真っ黒 | 焼込枠＋暗い plate＋非アクティブ alpha 0.55 | Turn アイコンはシャドウリフト。非アクティブは不透明寄り＋敵は軽い modulate 持ち上げ |
@@ -74,7 +75,7 @@ alwaysApply: true
 | 枠にアイコンが食い込む | inset 不足 | `EquipmentUiTokens.ICON_FRAME_MARGIN_PX`（現行 18）を維持。全面キャンバス絵は余白を減らさない |
 | UI idle が拡縮／左右に跳ぶ | `idle_*.png` のフレーム間で描画サイズ・中心が不安定。安易な再配置や静止固定の行き来 | `ui-layout.mdc`「CHR Idle ポートレート」— 軽微は間引き、重度のみ足元固定。横跳びする再中央寄せをしない |
 | キャラ切替で装備アイコンが拡大 | Grid/`EXPAND_FILL` でセルが伸びる、または幅から `cell_px` を再計算して肥大化 | `ui-layout.mdc`「装備セルサイズ」— スロット/`INV_CELL` とも固定 px＋親子 `SIZE_SHRINK_*` |
-| 錬成／分解の左リスト装備アイコンが左に欠ける／消える | ①長い装備名を `clip_text=false` のまま狭い LeftScroll へ ②中央アンカー＋負 offset ③**小セルで InvCell 9-slice 左枠が潰れる** | リスト名 ellipsis。固定 Button＋FULL_RECT 対称 inset。**≲88px は Flat 四辺枠**。弓 inset 縮小禁止 |
+| 鍛冶詳細の必要コストで素材名を常時表示していたが枠が窮屈 | オーナー方針で個数のみ表示へ | 鍛冶コストは **アイコン＋`0/1` のみ**。名前は `tooltip_text` に残す |
 | 鍛冶詳細ヒーローが右にはみ出す | 台座／武器枠が詳細ペイン幅より大きい、または clip 無し | HeroStack をペイン内サイズに収め `clip_contents`。アイコンは対称 inset |
 | 鍛冶カテゴリ（武器/防具/装飾）アイコンが枠を食い込む | TextureRect が VBox で縦 FILL 伸長＋`EXPAND_IGNORE_SIZE` で枠いっぱいに拡大 | 縦横とも `SIZE_SHRINK_CENTER`＋固定 px（40）。親 Panel は `clip_contents`。`ui-layout` 鍛冶屋アイコン節 |
 | キャラ画面に金の縦筋／巨大フレーム断片 | `InventoryGrid` が Scroll 高さまで縦伸び → InvCell `StyleBoxTexture` の左右辺が引き伸ばされる | Grid は縦横 `SIZE_SHRINK_BEGIN`（Scroll 内で EXPAND 禁止）。セル Button は `clip_contents`。SectionRule は COVERED 禁止 |
@@ -98,6 +99,8 @@ alwaysApply: true
 |---|---|---|
 | iPhone でタッチスクロール不能（ダンジョン他） | Scroll 内 Button／STOP がドラッグを吸収 | `ScrollTouchHelper`（deadzone＋子孫を PASS）。`BottomNavHelper.setup` と一覧 rebuild 後に適用 |
 | イベントDGバナーが全部モーンゲート | `SUB_BANNER_FALLBACK` で mourngate 流用のみ | 各イベントに `BAN_DG_*` を用意し `BIOME_BANNER_PATHS` へ登録。フォールバックから外す |
+| イベントDGバナーだけ大きい（240px）／枠なし | キーアート全高のまま、または strip のみで金枠未合成 | `generate_biome_banner.py --strip-height 232`（枠は既定 ON）。`BAN_DG_Frame_Strip` を重ねメインと同寸・同枠に |
+| 戦闘フロア入場直後に謎の Hit 音 | 探索罠被弾→`on_hit_taken` 反撃が `_spawn_hit_vfx` で `combat_hit`。入場遅延中も SE 可だった | 罠は `skip_hit_taken`。ヒットSEは `_combat_impact_sfx_enabled`（CT開始後のみ） |
 | aspect=keep なのに TopBar が低い／下ナビ下に黒余白 | SafeArea が inset=0 でも 54/24 を強制フォールバック | letterbox（keep）時はフォールバックしない |
 | `git checkout` / `mv` が `Operation not permitted` | Cursor サンドボックス | アセット・git 復元は `required_permissions: ["all"]` |
 | WIP が消えた | cloud agent / stash | `git-wip-safety.mdc` |

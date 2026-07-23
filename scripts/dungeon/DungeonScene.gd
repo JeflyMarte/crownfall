@@ -45,7 +45,7 @@ const ENEMY_SPRITE_MAP: Dictionary = {
 	"mirror_boa": "res://resources/animation/ENM_MirrorBoa.tres",
 	"mist_wyvern": "res://resources/animation/ENM_MistWyvern.tres",
 	"moss_boar": "res://resources/animation/ENM_MossBoar.tres",
-	"rock_bison": "res://resources/animation/ENM_MossBoar.tres", ## 仮。本番アート差し替え後に専用へ
+	"rock_bison": "res://resources/animation/ENM_RockBison.tres",
 	"moss_shell": "res://resources/animation/ENM_MossShell.tres",
 	"nightfen": "res://resources/animation/ENM_MarshKing.tres",
 	"ninja_octopus": "res://resources/animation/ENM_NinjaOctopus.tres",
@@ -190,6 +190,7 @@ const BATTLE_BG_MAP: Dictionary = {
 	"crown_rookery": "res://assets/dungeon/event/env/BG_Battle_Event.png",
 	"golden_nest": "res://assets/dungeon/event/env/BG_Battle_Event.png",
 	"shadow_hunt": "res://assets/dungeon/event/env/BG_Battle_Event.png",
+	"rock_stampede": "res://assets/dungeon/event/env/BG_Battle_Event.png",
 }
 const TREASURE_CLOSED_OBJ_MAP: Dictionary = {
 	"mourngate": "res://assets/dungeon/mourngate/env/OBJ_TreasureChest_Closed.png",
@@ -409,6 +410,8 @@ var _treasure_presentation_active: bool = false
 var _event_presentation_active: bool = false
 var _combat_clear_active: bool = false
 var _combat_cinematic_lock: bool = false
+## true のときのみ combat_hit / combat_crit を鳴らす（入場〜開始遅延中の幽霊ヒット音防止）。
+var _combat_impact_sfx_enabled: bool = false
 var _ultimate_presentation_active: bool = false
 var _ultimate_center_telop: Control = null
 var _combat_clear_tween: Tween
@@ -2591,6 +2594,7 @@ func _enter_current_room() -> void:
 		var group: Array[Resource] = $DungeonController.pick_combat_enemy_group()
 		if not group.is_empty():
 			var lead: Resource = group[0]
+			_combat_impact_sfx_enabled = false
 			$CombatController.start_combat_group(group, $DungeonController.get_enemy_level())
 			_update_combat_visibility()
 			_sync_shadow_stalker_floor_dim(group)
@@ -3324,7 +3328,9 @@ func _apply_trap_damage_hits(
 		var m: Resource = GameState.get_combatant(target)
 		var nm: String = m.display_name if m != null else "?"
 		$CombatController.apply_damage_to_member(target, dmg)
-		_on_member_damaged(target)
+		## 罠／探索ダメージは敵攻撃ではない。on_hit_taken（反撃等）を発火させない。
+		## 死亡時のみ死亡SE・on_ally_death を通す（skip_hit_taken）。
+		_on_member_damaged(target, {"skip_hit_taken": true})
 		_apply_trap_hit_feedback(target, dmg, trap_room)
 		_append_trap_hit_log("%s: %s に %d ダメージ！" % [log_prefix, nm, dmg])
 
@@ -4972,6 +4978,7 @@ func _on_active_enemy_killed() -> bool:
 # 群れ全滅で戦闘を終了する（P3-D083）。
 func _finalize_combat_cleared() -> void:
 	$CombatTimer.stop()
+	_combat_impact_sfx_enabled = false
 	$CombatController.end_combat()
 	_combat_vfx.clear_all()
 	_clear_all_member_skill_labels()
@@ -5446,8 +5453,11 @@ func _living_exploration_damage_targets() -> Array[int]:
 	return living
 
 # メンバー被弾フック: 生存なら on_hit_taken、死亡なら生存者の on_ally_death を発火。
+# ctx.skip_hit_taken=true のとき生存被弾パッシブ（反撃等）は飛ばす（罠／探索用）。
 func _on_member_damaged(target_idx: int, ctx: Dictionary = {}) -> void:
 	if $CombatController.is_member_alive(target_idx):
+		if bool(ctx.get("skip_hit_taken", false)):
+			return
 		_fire_member_passives(target_idx, "on_hit_taken", ctx)
 		return
 	AudioManager.play_sfx("combat_death", 1.0, 0.06)
@@ -5545,9 +5555,10 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 					if member_idx < $CombatController.party_max_hp.size():
 						max_hp_self = int($CombatController.party_max_hp[member_idx])
 					var amt_self: int = maxi(1, int(round(float(max_hp_self) * frac)))
-					$CombatController.heal_member(member_idx, amt_self)
+					var healed_self_frac: int = $CombatController.heal_member(member_idx, amt_self)
 					_update_hp_bars()
-					_spawn_member_heal_vfx(member_idx)
+					if healed_self_frac > 0:
+						_spawn_member_heal_vfx(member_idx)
 				else:
 					for i: int in GameState.party_members.size():
 						if not $CombatController.is_member_alive(i):
@@ -5556,22 +5567,27 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 						if i < $CombatController.party_max_hp.size():
 							max_hp_i = int($CombatController.party_max_hp[i])
 						var amt_i: int = maxi(1, int(round(float(max_hp_i) * frac)))
-						$CombatController.heal_member(i, amt_i)
-						_spawn_member_heal_vfx(i)
+						var healed_i: int = $CombatController.heal_member(i, amt_i)
+						if healed_i > 0:
+							_spawn_member_heal_vfx(i)
 					_update_hp_bars()
 				applied = true
 			else:
 				var amount: int = _apply_healing_bonus(int(p.get("heal_value", p.get("value", 10))), member_idx)
 				if str(p.get("target", "party")) == "self":
-					$CombatController.heal_member(member_idx, amount)
+					var healed_self: int = $CombatController.heal_member(member_idx, amount)
 					_update_hp_bars()
-					_spawn_member_heal_vfx(member_idx)
+					if healed_self > 0:
+						_spawn_member_heal_vfx(member_idx)
 				else:
-					$CombatController.heal_party(amount)
-					_update_hp_bars()
+					## 個別 heal_member で実回復量を見て VFX/SE（満タン時の幽霊 SE 防止）。
 					for i: int in GameState.party_members.size():
-						if $CombatController.is_member_alive(i):
+						if not $CombatController.is_member_alive(i):
+							continue
+						var healed_party: int = $CombatController.heal_member(i, amount)
+						if healed_party > 0:
 							_spawn_member_heal_vfx(i)
+					_update_hp_bars()
 				applied = true
 		"grant_party_incoming_mult":
 			var ward: float = clampf(float(p.get("mult", 0.9)), 0.05, 1.0)
@@ -5887,6 +5903,7 @@ func _commit_commander_run_stats(outcome: String) -> void:
 
 func _handle_party_wipe() -> void:
 	$CombatTimer.stop()
+	_combat_impact_sfx_enabled = false
 	$CombatController.end_combat()
 	_update_status_labels()
 	_clear_turn_order_ui()
@@ -7648,7 +7665,8 @@ func _play_hit_vfx(element: String = "", is_critical: bool = false) -> void:
 # 属性専用VFX(ELEMENT_VFX_PATH)があればそれを無着色で再生、無ければ
 # FX_Hit_Normal を ELEMENT_COLOR でティント着色してフォールバックする。
 func _spawn_hit_vfx(world_pos: Vector2, element: String = "", scale_mult: float = 1.0, is_critical: bool = false) -> void:
-	AudioManager.play_sfx("combat_crit" if is_critical else "combat_hit", 1.0, 0.03)
+	if _combat_impact_sfx_enabled:
+		AudioManager.play_sfx("combat_crit" if is_critical else "combat_hit", 1.0, 0.03)
 	if is_critical and ResourceLoader.exists(VFX_CRIT_PATH):
 		var crit_frames: SpriteFrames = load(VFX_CRIT_PATH) as SpriteFrames
 		if crit_frames != null:
@@ -7761,12 +7779,14 @@ func _end_combat_cinematic_lock() -> void:
 func _start_combat_after_appear_delay() -> void:
 	$CombatTimer.stop()
 	_combat_cinematic_lock = true
+	_combat_impact_sfx_enabled = false
 	await get_tree().create_timer(COMBAT_START_DELAY_SEC).timeout
 	_combat_cinematic_lock = false
 	if not $CombatController.is_in_combat or _is_paused:
 		return
 	if _boss_intro_active or _elite_intro_active:
 		return
+	_combat_impact_sfx_enabled = true
 	$CombatTimer.start()
 
 func _show_ultimate_center_telop(

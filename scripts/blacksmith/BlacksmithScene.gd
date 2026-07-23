@@ -30,16 +30,19 @@ const FORGE_FLASH_ALCHEMY: Color = Color(0.55, 0.92, 0.78)
 const FORGE_FLASH_DISMANTLE: Color = Color(0.86, 0.72, 1.0)
 const FORGE_FLASH_PEAK_ALPHA: float = 0.32
 ## 下段ストリップ（作成可能／錬成素材）。BottomNav 上に専用帯を確保する。
-## 帯が高すぎると左右パネルに乗るため、コンパクトに固定する。
-const CRAFTABLE_STRIP_HEIGHT_PX: float = 128.0
+## モック寄せ: 装飾枠分を少し厚く。
+const CRAFTABLE_STRIP_HEIGHT_PX: float = 140.0
 const CRAFTABLE_SCROLL_MIN_H: float = 88.0
 ## カテゴリタブ下端〜 MainSplit 上端の隙間。
-const MAIN_SPLIT_TOP_GAP_PX: float = 20.0
+const MAIN_SPLIT_TOP_GAP_PX: float = 16.0
 ## MainSplit 下端〜素材帯の隙間。
-const MAIN_TO_STRIP_GAP_PX: float = 16.0
+const MAIN_TO_STRIP_GAP_PX: float = 14.0
 ## CategoryRow の設計高さ。
 const CATEGORY_ROW_DESIGN_H_PX: float = 92.0
 const BOTTOM_NAV_FALLBACK_H_PX: float = 84.0
+const LEFT_LIST_MIN_WIDTH_PX: float = 248.0
+const LEFT_LIST_STRETCH_RATIO: float = 0.40
+const DETAIL_STRETCH_RATIO: float = 0.60
 
 @onready var _btn_back: Button = $Header/HeaderRow/ButtonBack
 @onready var _label_title: Label = $Header/HeaderRow/LabelTitle
@@ -62,13 +65,13 @@ const BOTTOM_NAV_FALLBACK_H_PX: float = 84.0
 @onready var _rarity_title_label: Label = $MainSplit/DetailPanel/DetailVBox/RarityTitleLabel
 @onready var _title_label: Label = $MainSplit/DetailPanel/DetailVBox/TitleLabel
 @onready var _subtitle_label: Label = $MainSplit/DetailPanel/DetailVBox/SubtitleLabel
-@onready var _stats_grid: GridContainer = $MainSplit/DetailPanel/DetailVBox/StatsGrid
+@onready var _stats_grid: VBoxContainer = $MainSplit/DetailPanel/DetailVBox/StatsGrid
 @onready var _unique_panel: PanelContainer = $MainSplit/DetailPanel/DetailVBox/UniquePanel
 @onready var _unique_label: Label = $MainSplit/DetailPanel/DetailVBox/UniquePanel/UniqueLabel
 @onready var _cost_panel: PanelContainer = $MainSplit/DetailPanel/DetailVBox/CostPanel
-@onready var _materials_row: HBoxContainer = $MainSplit/DetailPanel/DetailVBox/CostPanel/CostRoot/CostVBox/MaterialsRow
-@onready var _gold_cost_label: Label = $MainSplit/DetailPanel/DetailVBox/CostPanel/CostRoot/CostVBox/GoldRow/GoldCostLabel
-@onready var _cost_header_label: Label = $MainSplit/DetailPanel/DetailVBox/CostPanel/CostRoot/CostVBox/CostHeaderLabel
+@onready var _materials_row: HBoxContainer = $MainSplit/DetailPanel/DetailVBox/CostPanel/CostVBox/MaterialsRow
+@onready var _gold_cost_label: Label = $MainSplit/DetailPanel/DetailVBox/CostPanel/CostVBox/GoldRow/GoldCostLabel
+@onready var _cost_header_label: Label = $MainSplit/DetailPanel/DetailVBox/CostPanel/CostVBox/CostHeaderLabel
 @onready var _craft_button: Button = $MainSplit/DetailPanel/DetailVBox/CraftButton
 @onready var _reason_label: Label = $MainSplit/DetailPanel/DetailVBox/ReasonLabel
 @onready var _craftable_panel: PanelContainer = $CraftablePanel
@@ -225,13 +228,30 @@ func _setup_left_list_layout() -> void:
 	var left_scroll: ScrollContainer = $MainSplit/LeftScroll
 	left_scroll.clip_contents = true
 	left_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	left_scroll.custom_minimum_size = Vector2(228, 0)
-	left_scroll.size_flags_stretch_ratio = 0.42
+	left_scroll.custom_minimum_size = Vector2(LEFT_LIST_MIN_WIDTH_PX, 0)
+	left_scroll.size_flags_stretch_ratio = LEFT_LIST_STRETCH_RATIO
 	_left_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_left_list.clip_contents = true
-	$MainSplit/DetailPanel.size_flags_stretch_ratio = 0.58
+	$MainSplit/DetailPanel.size_flags_stretch_ratio = DETAIL_STRETCH_RATIO
 	_layout_craftable_strip()
+	_fit_mode_tabs_height()
 
+
+func _fit_mode_tabs_height() -> void:
+	## モック寄せ: モードタブを金属板の高さに。
+	var mode_tabs: Control = $ModeTabs
+	if mode_tabs == null:
+		return
+	var top: float = mode_tabs.offset_top
+	if top < 40.0:
+		top = 54.0
+		mode_tabs.offset_top = top
+	mode_tabs.offset_bottom = top + 64.0
+	mode_tabs.add_theme_constant_override("separation", 6)
+	## カテゴリ行はモードタブ直下へ。
+	var cat_top: float = mode_tabs.offset_bottom + 8.0
+	_category_row.offset_top = cat_top
+	_fit_category_row_height()
 
 func _setup_hero_display_layout() -> void:
 	## 詳細ペイン内に余裕を残す（右寄せ／はみ出し防止）。
@@ -240,22 +260,25 @@ func _setup_hero_display_layout() -> void:
 	var display_px: int = ForgeUiTokens.HERO_DISPLAY_PX
 	## 台座アートの視覚重心が右寄りなので、描画を少し左へ寄せる。
 	var nudge_x: float = -14.0
+	var nudge_y: float = ForgeUiTokens.HERO_NUDGE_Y_PX
 	## tscn の旧 260px 固定を上書き（これが高いと詳細が下帯へ食い込む）。
-	_hero_panel.custom_minimum_size = Vector2(0, stack_px)
-	_hero_stack.custom_minimum_size = Vector2(stack_px, stack_px)
+	## クレスト分＋下方向 nudge をスタック高に含める。
+	var panel_h: float = float(stack_px) + nudge_y + 8.0
+	_hero_panel.custom_minimum_size = Vector2(0, panel_h)
+	_hero_stack.custom_minimum_size = Vector2(stack_px, stack_px + int(nudge_y))
 	_hero_stack.clip_contents = true
 	_hero_panel.clip_contents = true
 	var half_ped: float = float(pedestal_px) * 0.5
 	_hero_pedestal.offset_left = -half_ped + nudge_x
-	_hero_pedestal.offset_top = -half_ped
+	_hero_pedestal.offset_top = -half_ped + nudge_y
 	_hero_pedestal.offset_right = half_ped + nudge_x
-	_hero_pedestal.offset_bottom = half_ped
+	_hero_pedestal.offset_bottom = half_ped + nudge_y
 	_hero_pedestal.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	var half_weapon: float = float(display_px) * 0.5
 	_hero_weapon_pivot.offset_left = -half_weapon + nudge_x
-	_hero_weapon_pivot.offset_top = -half_weapon
+	_hero_weapon_pivot.offset_top = -half_weapon + nudge_y
 	_hero_weapon_pivot.offset_right = half_weapon + nudge_x
-	_hero_weapon_pivot.offset_bottom = half_weapon
+	_hero_weapon_pivot.offset_bottom = half_weapon + nudge_y
 	_hero_weapon_pivot.pivot_offset = Vector2(half_weapon, half_weapon)
 	_hero_weapon_pivot.rotation_degrees = 0.0
 	_hero_weapon_pivot.clip_contents = true
@@ -264,7 +287,20 @@ func _setup_hero_display_layout() -> void:
 	_hero_icon_slot.clip_contents = true
 	_hero_pedestal.visible = false
 	_hero_weapon_pivot.visible = false
+	_ensure_hero_to_title_gap()
 
+
+func _ensure_hero_to_title_gap() -> void:
+	## 名前以降をまとめて下げる（ヒーロー直下の余白）。
+	var detail_vbox: VBoxContainer = $MainSplit/DetailPanel/DetailVBox
+	var gap: Control = detail_vbox.get_node_or_null("HeroTitleGap") as Control
+	if gap == null:
+		gap = Control.new()
+		gap.name = "HeroTitleGap"
+		gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		detail_vbox.add_child(gap)
+		detail_vbox.move_child(gap, _hero_panel.get_index() + 1)
+	gap.custom_minimum_size = Vector2(0, 16)
 func _setup_alchemy_confirm() -> void:
 	_alchemy_confirm = ConfirmationDialog.new()
 	_alchemy_confirm.title = "装備錬成"
@@ -469,10 +505,13 @@ func _setup_forge_chrome() -> void:
 		_btn_back.icon = back_tex
 		_btn_back.expand_icon = true
 		_btn_back.custom_minimum_size = Vector2(40, 40)
-	# 武器詳細ヒーロー: 武器背景ペデスタル + 素のアイコン（Glow は載せない）。
+	# 武器詳細ヒーロー: Desktop「武器背景」ペデスタル + 透過アイコン（Glow なし）。
 	_hero_pedestal.texture = ForgeUiTokens.load_tex(ForgeUiTokens.HERO_ITEM_BG)
 	_hero_pedestal.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_hero_pedestal.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_hero_pedestal.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_hero_pedestal.z_index = 0
+	_hero_weapon_pivot.z_index = 1
 	_hero_pedestal.visible = false
 	_build_category_icons()
 
@@ -601,8 +640,8 @@ func _apply_detail_typography() -> void:
 	UiTypography.apply_display(_title_label, UiTypography.SIZE_BODY, COLOR_TEXT_STRONG)
 	UiTypography.apply_body(_subtitle_label, UiTypography.SIZE_BODY_SMALL, COLOR_SUB_STRONG)
 	UiTypography.apply_body(_unique_label, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
-	UiTypography.apply_body(_cost_header_label, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
-	UiTypography.apply_body(_gold_cost_label, UiTypography.SIZE_BODY, COLOR_TEXT_STRONG)
+	UiTypography.apply_caption(_cost_header_label, UiTypography.COLOR_GOLD)
+	UiTypography.apply_caption(_gold_cost_label, COLOR_TEXT_STRONG)
 	# 統計・理由ラベルも暗背景で読めるよう強めの色を既定に
 	_reason_label.add_theme_color_override("font_color", COLOR_SUB_STRONG)
 
@@ -637,6 +676,7 @@ func _update_mode_tab_dots() -> void:
 func _rebuild_left_list() -> void:
 	for child in _left_list.get_children():
 		child.queue_free()
+	_left_list.add_child(_make_list_section_header())
 	if _mode == "produce":
 		_rebuild_produce_left_list()
 	elif _mode == "enhance":
@@ -646,6 +686,49 @@ func _rebuild_left_list() -> void:
 	else:
 		_rebuild_dismantle_left_list()
 	_update_bulk_dismantle_button()
+
+
+func _make_list_section_header() -> Control:
+	var wrap := HBoxContainer.new()
+	wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	wrap.custom_minimum_size = Vector2(0, 28)
+	wrap.add_theme_constant_override("separation", 6)
+	wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var rule_l := ColorRect.new()
+	rule_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	rule_l.custom_minimum_size = Vector2(12, 2)
+	rule_l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	rule_l.color = Color(0.72, 0.58, 0.28, 0.55)
+	rule_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	wrap.add_child(rule_l)
+	var lbl := Label.new()
+	lbl.text = _list_section_title()
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_caption(lbl, UiTypography.COLOR_GOLD)
+	wrap.add_child(lbl)
+	var rule_r := ColorRect.new()
+	rule_r.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	rule_r.custom_minimum_size = Vector2(12, 2)
+	rule_r.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	rule_r.color = Color(0.72, 0.58, 0.28, 0.55)
+	rule_r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	wrap.add_child(rule_r)
+	return wrap
+
+
+func _list_section_title() -> String:
+	match _mode:
+		"enhance":
+			return "%s一覧" % BlacksmithUiHelper.category_label(_category)
+		"alchemy":
+			return "錬成・主材"
+		"dismantle":
+			return "分解・%s" % BlacksmithUiHelper.category_label(_category)
+		_:
+			return "%s一覧" % BlacksmithUiHelper.category_label(_category)
+
 
 func _rebuild_produce_left_list() -> void:
 	var recipes: Array = BlacksmithUiHelper.recipes_for_category(_category)
@@ -715,7 +798,7 @@ func _make_recipe_list_card(craft: Resource) -> PanelContainer:
 	var rarity: int = BlacksmithUiHelper.output_rarity(craft)
 	var panel := _make_owned_list_card_shell(selected, rarity)
 	panel.add_theme_stylebox_override(
-		"panel", BlacksmithUiHelper.simple_list_card_style(selected, can_craft, rarity)
+		"panel", BlacksmithUiHelper.list_card_style(selected, can_craft, rarity)
 	)
 	panel.gui_input.connect(_on_recipe_card_input.bind(craft))
 	var row: HBoxContainer = panel.get_child(0) as HBoxContainer
@@ -788,7 +871,7 @@ func _make_owned_list_card_shell(selected: bool, rarity: int) -> PanelContainer:
 	panel.clip_contents = true
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	panel.add_theme_stylebox_override(
-		"panel", BlacksmithUiHelper.simple_list_card_style(selected, false, rarity)
+		"panel", BlacksmithUiHelper.list_card_style(selected, false, rarity)
 	)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
@@ -891,33 +974,125 @@ func _set_detail_empty(message: String) -> void:
 	_craft_button.visible = false
 
 func _add_stat_row(key: String, value: String, stat_key: String = "") -> void:
-	var left := HBoxContainer.new()
-	left.add_theme_constant_override("separation", 6)
-	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	if not stat_key.is_empty():
-		var stat_tex: Texture2D = ForgeUiTokens.stat_icon(stat_key)
-		if stat_tex != null:
-			var icon := TextureRect.new()
-			icon.texture = stat_tex
-			icon.custom_minimum_size = Vector2(
-				ForgeUiTokens.STAT_ICON_PX, ForgeUiTokens.STAT_ICON_PX
-			)
-			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			left.add_child(icon)
+	## 1行 HBox: [装備画面と同系アイコン] + ラベル + 数値。
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var stat_tex: Texture2D = _resolve_stat_icon(stat_key, key)
+	if stat_tex != null:
+		var icon := TextureRect.new()
+		icon.texture = stat_tex
+		var icon_px: float = float(ForgeUiTokens.STAT_ICON_PX)
+		icon.custom_minimum_size = Vector2(icon_px, icon_px)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(icon)
 	var key_lbl := Label.new()
 	key_lbl.text = key
-	key_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	key_lbl.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	key_lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	key_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_body(key_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_SUB_STRONG)
-	left.add_child(key_lbl)
-	_stats_grid.add_child(left)
+	row.add_child(key_lbl)
 	var val_lbl := Label.new()
 	val_lbl.text = value
-	val_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	val_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	val_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	val_lbl.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	val_lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	val_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_body(val_lbl, UiTypography.SIZE_BODY, COLOR_TEXT_STRONG)
-	_stats_grid.add_child(val_lbl)
+	row.add_child(val_lbl)
+	_stats_grid.add_child(row)
+
+
+func _resolve_stat_icon(stat_key: String, label: String) -> Texture2D:
+	## 装備画面の ICO_Equip_Stat_* を優先。欠落時のみ鍛冶側へフォールバック。
+	var equip_key: String = _equip_stat_key(stat_key, label)
+	if not equip_key.is_empty():
+		var equip_tex: Texture2D = EquipmentUiTokens.stat_icon(equip_key)
+		if equip_tex != null:
+			return equip_tex
+	var forge_key: String = _forge_stat_key(stat_key, label)
+	if not forge_key.is_empty():
+		return ForgeUiTokens.stat_icon(forge_key)
+	return null
+
+
+func _equip_stat_key(stat_key: String, label: String) -> String:
+	## 鍛冶側キー（atk/def/crit）を装備画面の EquipmentUiTokens キーへ。
+	match stat_key:
+		"atk", "attack":
+			return "attack"
+		"def", "defense":
+			return "defense"
+		"hp":
+			return "hp"
+		"crit", "crit_rate":
+			return "crit_rate"
+		"crit_damage":
+			return "crit_damage"
+		"speed":
+			return "speed"
+		_:
+			pass
+	var from_label: String = str(EquipmentUiTokens.EFFECT_STAT_KEYS.get(label, ""))
+	if not from_label.is_empty():
+		return from_label
+	## 「物理防御」など表記ゆれ。
+	if label.find("防御") >= 0:
+		return "defense"
+	if label.find("攻撃") >= 0:
+		return "attack"
+	if label.find("クリティカル") >= 0 or label.find("会心") >= 0:
+		return "crit_rate"
+	if label == "HP" or label.find("HP") >= 0:
+		return "hp"
+	return ""
+
+
+func _forge_stat_key(stat_key: String, label: String) -> String:
+	match stat_key:
+		"atk", "attack":
+			return "atk"
+		"def", "defense":
+			return "def"
+		"hp":
+			return "hp"
+		"crit", "crit_rate":
+			return "crit"
+		_:
+			pass
+	if label.find("防御") >= 0:
+		return "def"
+	if label.find("攻撃") >= 0:
+		return "atk"
+	if label.find("クリティカル") >= 0 or label.find("会心") >= 0:
+		return "crit"
+	if label == "HP" or label.find("HP") >= 0:
+		return "hp"
+	return ""
+
+
+func _update_hero_icon(item_id: String, category: String, _rarity: int) -> void:
+	_clear_hero_icon()
+	## 武器背景の上に透過で武器本体。
+	_hero_pedestal.visible = BlacksmithUiHelper.HERO_USE_PEDESTAL and _hero_pedestal.texture != null
+	_hero_weapon_pivot.visible = true
+	_hero_weapon_pivot.rotation_degrees = 0.0
+	var display_px: int = ForgeUiTokens.HERO_DISPLAY_PX
+	BlacksmithUiHelper.attach_hero_icon(_hero_icon_slot, item_id, category, display_px)
+
+
+func _add_stats_section_spacer(height: float = 14.0) -> void:
+	var gap := Control.new()
+	gap.custom_minimum_size = Vector2(0, height)
+	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_stats_grid.add_child(gap)
 
 func _populate_stats_from_entries(entries: Array) -> void:
 	for entry in entries:
@@ -940,30 +1115,44 @@ func _populate_unique_from_craft(craft: Resource) -> void:
 	_unique_label.text = "固有効果\n%s" % effect_text
 	_unique_panel.visible = true
 
-func _add_stats_section_spacer(height: float = 14.0) -> void:
-	for _i in 2:
-		var gap := Control.new()
-		gap.custom_minimum_size = Vector2(0, height)
-		gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_stats_grid.add_child(gap)
+func _add_meta_stat_row(key: String, value: String) -> void:
+	## 所持数などコスト寄りメタ行: 小さめ＋やや右寄せ。
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var pad := Control.new()
+	pad.custom_minimum_size = Vector2(36, 0)
+	pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(pad)
+	var key_lbl := Label.new()
+	key_lbl.text = key
+	key_lbl.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	key_lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	key_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_caption(key_lbl, COLOR_SUB_STRONG)
+	row.add_child(key_lbl)
+	var val_lbl := Label.new()
+	val_lbl.text = value
+	val_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	val_lbl.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	val_lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	val_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_caption(val_lbl, COLOR_TEXT_STRONG)
+	row.add_child(val_lbl)
+	_stats_grid.add_child(row)
 
-func _update_hero_icon(item_id: String, category: String, _rarity: int) -> void:
-	_clear_hero_icon()
-	# 武器・防具・装飾いずれも詳細ヒーローに同一背景を表示。
-	_hero_pedestal.visible = _hero_pedestal.texture != null
-	_hero_weapon_pivot.visible = true
-	_hero_weapon_pivot.rotation_degrees = 0.0
-	var display_px: int = ForgeUiTokens.HERO_DISPLAY_PX
-	if _hero_icon_slot.size.x >= 32.0:
-		display_px = int(_hero_icon_slot.size.x)
-	BlacksmithUiHelper.attach_hero_icon(_hero_icon_slot, item_id, category, display_px)
 
 func _update_cost_panel(gold_cost: int, materials: Dictionary) -> void:
 	_cost_header_label.text = "必要コスト"
+	UiTypography.apply_caption(_cost_header_label, UiTypography.COLOR_GOLD)
 	_gold_cost_label.text = "必要ゴールド: %d" % gold_cost
-	_gold_cost_label.add_theme_color_override(
-		"font_color", COLOR_GOLD if GameState.gold >= gold_cost else COLOR_SHORT
+	UiTypography.apply_caption(
+		_gold_cost_label,
+		COLOR_GOLD if GameState.gold >= gold_cost else COLOR_SHORT
 	)
+	for child in _materials_row.get_children():
+		child.queue_free()
 	for mat_id in materials:
 		_materials_row.add_child(_make_material_req_cell(str(mat_id), int(materials[mat_id])))
 
@@ -984,7 +1173,7 @@ func _rebuild_produce_detail() -> void:
 	_populate_stats_from_entries(BlacksmithUiHelper.craft_stat_entries(craft))
 	_add_stats_section_spacer()
 	var owned: int = BlacksmithUiHelper.owned_count(str(craft.output_type), str(craft.output_id))
-	_add_stat_row("所持数", "%d" % owned)
+	_add_meta_stat_row("所持数", "%d" % owned)
 	_populate_unique_from_craft(craft)
 	_update_cost_panel(int(craft.gold_cost), craft.required_materials)
 	_craft_button.text = "生産する"
@@ -1011,6 +1200,7 @@ func _rebuild_enhance_detail() -> void:
 	_populate_enhance_stats(item)
 	if _is_item_equipped(item):
 		_add_stat_row("状態", "装備中")
+	_add_stats_section_spacer(12.0)
 	if level >= _EquipmentEnhancer.MAX_FORGE_LEVEL:
 		_cost_panel.visible = false
 		_craft_button.visible = false
@@ -1207,7 +1397,7 @@ func _make_alchemy_fodder_chip(item: Resource) -> PanelContainer:
 	panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	panel.add_theme_stylebox_override(
-		"panel", BlacksmithUiHelper.simple_list_card_style(selected, false, rarity)
+		"panel", BlacksmithUiHelper.list_card_style(selected, false, rarity)
 	)
 	panel.gui_input.connect(_on_alchemy_fodder_chip_input.bind(item))
 	var col := VBoxContainer.new()
@@ -1308,26 +1498,19 @@ func _make_material_req_cell(mat_id: String, needed: int) -> Control:
 	var ok: bool = owned >= needed
 	var mat_name: String = DataRegistry.get_material_name(mat_id)
 	var col := VBoxContainer.new()
-	col.add_theme_constant_override("separation", 4)
+	col.add_theme_constant_override("separation", 2)
 	col.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	## iPhone は tooltip 長押しが使えないため、名前を常時表示する。
-	col.tooltip_text = ""
+	## 名前は出さず個数のみ。長押し向けに tooltip は残す。
+	col.tooltip_text = mat_name
 	var icon_cell: Control = _MaterialUiTokens.make_icon_cell(mat_id, _COST_MAT_ICON_PX, ok)
 	icon_cell.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	icon_cell.tooltip_text = mat_name
 	col.add_child(icon_cell)
-	var name_l := Label.new()
-	name_l.text = mat_name
-	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_l.clip_text = false
-	name_l.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
-	name_l.autowrap_mode = TextServer.AUTOWRAP_OFF
-	name_l.custom_minimum_size = Vector2(maxi(_COST_MAT_ICON_PX, 72), 0)
-	UiTypography.apply_caption(name_l, COLOR_TEXT_STRONG if ok else COLOR_SHORT)
-	col.add_child(name_l)
 	var qty := Label.new()
-	qty.text = "%d / %d" % [owned, needed]
-	UiTypography.apply_body(qty, UiTypography.SIZE_CAPTION, COLOR_OK if ok else COLOR_SHORT)
+	qty.text = "%d/%d" % [owned, needed]
+	UiTypography.apply_caption(qty, COLOR_OK if ok else COLOR_SHORT)
 	qty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	qty.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	col.add_child(qty)
 	return col
 

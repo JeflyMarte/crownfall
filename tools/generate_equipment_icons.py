@@ -39,24 +39,44 @@ SKIP_IDS = {"unidentified"}
 
 ## 手描き／専用生成済みレジェンド武器。再生成で上書きしない。
 LEGENDARY_HAND_DRAWN_WEAPON_IDS: set[str] = {
-    "sanctified_dagger",
-    "consecrated_maul",
-    "silvaria_oathblade",
-    "veld_branch_staff",
-    "volgrave_thunderblade",
-    "seradion_storm_staff",
-    "nereidas_tideblade",
-    "pharoslight_staff",
-    "eldion_frostbrand",
-    "umbra_terminus_staff",
-    "stormveil_needle",
-    "noctumbra_fang",
-    "mistpierce_halberd",
-    "eldion_spine",
-    "pharos_flare",
-    "shadowcord",
-    "silvaria_fang",
-    "eldion_claw",
+	"sanctified_dagger",
+	"consecrated_maul",
+	"silvaria_oathblade",
+	"veld_branch_staff",
+	"volgrave_thunderblade",
+	"seradion_storm_staff",
+	"nereidas_tideblade",
+	"pharoslight_staff",
+	"eldion_frostbrand",
+	"umbra_terminus_staff",
+	"stormveil_needle",
+	"noctumbra_fang",
+	"mistpierce_halberd",
+	"eldion_spine",
+	"pharos_flare",
+	"shadowcord",
+	"silvaria_fang",
+	"eldion_claw",
+}
+
+## 専用生成済みレジェンド防具（テンプレ流用防止）。
+LEGENDARY_HAND_DRAWN_ARMOR_IDS: set[str] = {
+	"serdion_ward_plate",
+	"granvel_bark_plate",
+	"moldgar_abyss_mail",
+	"nereion_tide_plate",
+	"eldion_glacier_aegis",
+	"immortal_cenotaph_plate",
+}
+
+## 専用生成済みレジェンド装飾。
+LEGENDARY_HAND_DRAWN_ACCESSORY_IDS: set[str] = {
+	"mourngate_royal_seal",
+	"silvaria_covenant_ring",
+	"seradis_archive_seal",
+	"frostridge_boundary_signet",
+	"pharos_beacon_ring",
+	"council_hegemony_seal",
 }
 
 CANONICAL_TEMPLATES = {
@@ -344,22 +364,26 @@ def generate_equipment() -> list[tuple[str, str, str]]:
                 continue
             rarity = int(data.get("rarity", "0"))
             element = data.get("element", "")
-            fname = output_name(category, item_id)
-            out_path = EQUIP_OUT_DIR / fname
-            if category == "weapon" and item_id in LEGENDARY_HAND_DRAWN_WEAPON_IDS:
-                if out_path.exists():
-                    mappings.append(
-                        (category, item_id, f"res://assets/ui/equipment/{fname}")
-                    )
-                    print(f"  {category}:{item_id} skip hand-drawn -> {fname}")
-                    continue
+			fname = output_name(category, item_id)
+			out_path = EQUIP_OUT_DIR / fname
+			protected = (
+				(category == "weapon" and item_id in LEGENDARY_HAND_DRAWN_WEAPON_IDS)
+				or (category == "armor" and item_id in LEGENDARY_HAND_DRAWN_ARMOR_IDS)
+				or (category == "accessory" and item_id in LEGENDARY_HAND_DRAWN_ACCESSORY_IDS)
+			)
+			if protected and out_path.exists():
+				mappings.append(
+					(category, item_id, f"res://assets/ui/equipment/{fname}")
+				)
+				print(f"  {category}:{item_id} skip hand-drawn -> {fname}")
+				continue
 
-            if category == "weapon":
-                template = pick_weapon_template(item_id, data.get("weapon_type", "greatsword"))
-            elif category == "armor":
-                template = pick_armor_template(rarity)
-            else:
-                template = CANONICAL_TEMPLATES["accessory"]["default"]
+			if category == "weapon":
+				template = pick_weapon_template(item_id, data.get("weapon_type", "greatsword"))
+			elif category == "armor":
+				template = pick_armor_template(rarity)
+			else:
+				template = CANONICAL_TEMPLATES["accessory"]["default"]
 
             icon = compose_icon(template, item_id, element, rarity)
             icon.save(out_path, "PNG")

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Import battle dots + codex for wander rares (golden_scarab / shadow_stalker).
+"""Import battle dots + codex for wander rares and rock_bison.
 
 Sources (Desktop):
-  モンスター/モンスタードット絵/{ゴールデンスカラベ,影狩り}.zip
-  モンスター/モンスター図鑑/その他/{ゴールデンスカラベ,影狩}.png
+  モンスター/モンスタードット絵/{ゴールデンスカラベ,影狩り,ロックバイソン}.zip
+  モンスター/モンスター図鑑/その他/{ゴールデンスカラベ,影狩,ロックバイソン}.png
 
 Outputs:
   assets/battle/enemies/ENM_*_Sheet.png
@@ -43,6 +43,7 @@ SPEED = {"idle": 6.0, "attack": 10.0, "hurt": 8.0, "death": 6.0}
 ENEMY_MAP: dict[str, tuple[str, str]] = {
 	"ゴールデンスカラベ": ("golden_scarab", "GoldenScarab"),
 	"影狩り": ("shadow_stalker", "ShadowStalker"),
+	"ロックバイソン": ("rock_bison", "RockBison"),
 }
 
 # 図鑑 PNG stem (NFC) → enemy_id（影狩りだけファイル名が「影狩」）
@@ -50,6 +51,7 @@ CODEX_STEMS: dict[str, str] = {
 	"ゴールデンスカラベ": "golden_scarab",
 	"影狩": "shadow_stalker",
 	"影狩り": "shadow_stalker",
+	"ロックバイソン": "rock_bison",
 }
 
 ANIM_KEYWORDS: list[tuple[str, bool, tuple[str, ...]]] = [
@@ -330,7 +332,7 @@ def import_battle(stem: str, src_root: Path) -> tuple[str, str, Image.Image]:
 	return enemy_id, tres_res, idle0
 
 
-def import_codex_portraits() -> dict[str, str]:
+def import_codex_portraits(only: set[str] | None = None) -> dict[str, str]:
 	"""Returns enemy_id → ART filename."""
 	found = {nfc(p.stem): p for p in CODEX_OTHER.glob("*.png")}
 	out: dict[str, str] = {}
@@ -338,13 +340,16 @@ def import_codex_portraits() -> dict[str, str]:
 	for stem, enemy_id in CODEX_STEMS.items():
 		if enemy_id not in pascal_by_id:
 			continue
+		if only is not None and enemy_id not in only:
+			continue
 		if stem not in found:
 			continue
 		pascal = pascal_by_id[enemy_id]
 		save_codex(pascal, Image.open(found[stem]))
 		out[enemy_id] = f"ART_ENM_{pascal}.png"
 		print(f"  portrait {enemy_id} <- {stem}")
-	missing = [eid for eid in pascal_by_id if eid not in out]
+	needed = [eid for eid in pascal_by_id if only is None or eid in only]
+	missing = [eid for eid in needed if eid not in out]
 	if missing:
 		raise SystemExit(f"missing codex portraits for: {missing}")
 	return out
@@ -385,10 +390,8 @@ def main() -> None:
 			f"res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_{pascal}.png",
 		)
 
-	portraits = import_codex_portraits()
+	portraits = import_codex_portraits(only)
 	for enemy_id, art_name in portraits.items():
-		if only is not None and enemy_id not in only:
-			continue
 		patch_map_line(
 			icons,
 			f"enemy:{enemy_id}",
@@ -398,7 +401,11 @@ def main() -> None:
 	# stale .godot cache for replaced textures
 	imported = ROOT / ".godot" / "imported"
 	if imported.is_dir():
-		stems = ("GoldenScarab", "ShadowStalker")
+		stems = ("GoldenScarab", "ShadowStalker", "RockBison")
+		if only is not None:
+			stems = tuple(
+				pascal for _stem, (eid, pascal) in ENEMY_MAP.items() if eid in only
+			)
 		for p in imported.iterdir():
 			if any(s in p.name for s in stems):
 				p.unlink(missing_ok=True)

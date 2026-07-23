@@ -4,7 +4,8 @@ extends RefCounted
 const RARITY_GEMS: Array[String] = ["◇", "◆", "✦", "★", "❖"]
 const RARITY_SHORT: Array[String] = ["N", "R", "SR", "SSR", "MY"]
 
-const LIST_CARD_MIN_HEIGHT: int = 120
+## モック寄せ: 行はやや詰め、選択枠は Texture 側で厚く見せる。
+const LIST_CARD_MIN_HEIGHT: int = 112
 const CRAFTABLE_CHIP_WIDTH: int = 120
 ## 下段ストリップ内に収める（152 だと帯が上に伸びて左右パネルへ乗る）。
 const CRAFTABLE_CHIP_HEIGHT: int = 112
@@ -19,9 +20,12 @@ const ITEM_ICON_UNDERLAY_COLOR: Color = Color(0.04, 0.03, 0.02, 0.58)
 ## InvCell の texture_margin(12/144)＋余白。これを超える描画は枠左右にはみ出して見える。
 const FORGE_ICON_SAFE_FILL: float = 0.52
 ## 詳細ヒーローは大きく見せるが、枠いっぱいに食い込ませない。
-const HERO_ICON_INSET_RATIO: float = 0.08
-const HERO_ICON_INSET_MIN_PX: int = 14
-const HERO_ICON_SAFE_FILL: float = 0.82
+const HERO_ICON_INSET_RATIO: float = 0.03
+const HERO_ICON_INSET_MIN_PX: int = 4
+const HERO_ICON_SAFE_FILL: float = 0.94
+## ヒーローは暗下地なし。武器背景（ペデスタル）の上に透過で武器本体。
+const HERO_USE_UNDERLAY: bool = false
+const HERO_USE_PEDESTAL: bool = true
 
 const RARITY_COLORS: Array[Color] = [
 	Color(0.60, 0.60, 0.60),
@@ -140,10 +144,21 @@ static func card_style(selected: bool, craftable: bool = false) -> StyleBox:
 	return CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
 
 static func list_card_style(selected: bool, craftable: bool, rarity: int) -> StyleBox:
+	var textured: StyleBox = (
+		ForgeUiTokens.list_card_selected_style()
+		if selected
+		else ForgeUiTokens.list_card_normal_style()
+	)
+	if _texture_style_ok(textured):
+		if craftable and not selected and textured is StyleBoxTexture:
+			var tinted: StyleBoxTexture = (textured as StyleBoxTexture).duplicate() as StyleBoxTexture
+			tinted.modulate_color = Color(0.88, 1.0, 0.84, 1.0)
+			return tinted
+		return textured
 	return simple_list_card_style(selected, craftable, rarity)
 
 static func simple_list_card_style(selected: bool, craftable: bool, rarity: int) -> StyleBox:
-	# 加工フレームなし。選択時のみ薄いハイライト。左余白でアイコン欠け見えを防ぐ。
+	# Texture 欠落時のフォールバック。選択時のみ薄いハイライト。
 	var sb := StyleBoxFlat.new()
 	sb.set_corner_radius_all(4)
 	sb.content_margin_left = 8.0
@@ -177,7 +192,10 @@ static func craftable_strip_style(selected: bool) -> StyleBox:
 
 
 ## 下段「作成可能／素材にする装備」帯の外枠。
-static func craftable_panel_style() -> StyleBoxFlat:
+static func craftable_panel_style() -> StyleBox:
+	var textured: StyleBox = ForgeUiTokens.craftable_band_style()
+	if _texture_style_ok(textured):
+		return textured
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.08, 0.06, 0.05, 0.88)
 	sb.set_border_width_all(2)
@@ -332,7 +350,8 @@ static func _attach_icon_full_rect_inset(
 	tex: Texture2D,
 	inset: int,
 	rarity: int = 0,
-	use_inv_cell_bg: bool = false
+	use_inv_cell_bg: bool = false,
+	with_underlay: bool = true
 ) -> void:
 	## FULL_RECT＋対称 inset。親サイズ確定後も必ず内側。負の中央offsetは使わない。
 	host.clip_contents = true
@@ -349,9 +368,9 @@ static func _attach_icon_full_rect_inset(
 			bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 			host.add_child(bg)
-		else:
+		elif with_underlay:
 			_attach_flat_icon_underlay(host, inset)
-	else:
+	elif with_underlay:
 		_attach_flat_icon_underlay(host, inset)
 	var icon := TextureRect.new()
 	icon.name = "ItemIcon"
@@ -391,6 +410,8 @@ static func attach_hero_icon(host: Control, item_id: String, category: String, d
 	host.custom_minimum_size = Vector2(display_px, display_px)
 	host.clip_contents = true
 	var tex: Texture2D = IconPaths.get_icon_texture(item_id, category)
+	if tex != null and category == "weapon":
+		tex = IconPaths.display_texture_for_weapon(item_id, tex)
 	if tex == null:
 		var glyph := Label.new()
 		glyph.text = "?"
@@ -407,8 +428,7 @@ static func attach_hero_icon(host: Control, item_id: String, category: String, d
 	var side: int = forge_icon_side_px(display_px, inset, HERO_ICON_SAFE_FILL)
 	## 偶数余りを inset に寄せ、描画辺が safe_fill を超えないようにする。
 	inset = int(ceil((float(display_px) - float(side)) * 0.5))
-	_attach_icon_full_rect_inset(host, tex, inset, 0, false)
-
+	_attach_icon_full_rect_inset(host, tex, inset, 0, false, HERO_USE_UNDERLAY)
 
 static func attach_item_icon(
 	host: Control,
@@ -522,14 +542,16 @@ static func rarity_name_color(rarity: int) -> Color:
 	return RARITY_NAME_COLORS[clampi(rarity, 0, RARITY_NAME_COLORS.size() - 1)]
 
 static func detail_panel_style() -> StyleBox:
-	# 右ペイン全体（タイトル〜生産する）を金枠で囲み、暗背景上でも塊として読めるようにする。
+	var textured: StyleBox = ForgeUiTokens.detail_panel_style()
+	if _texture_style_ok(textured):
+		return textured
+	# Texture 欠落時: 右ペインを金枠 Flat で囲む。
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.10, 0.08, 0.06, 0.72)
 	sb.set_border_width_all(2)
 	sb.border_color = Color(0.86, 0.72, 0.32, 0.92)
 	sb.set_corner_radius_all(10)
 	sb.set_content_margin_all(10.0)
-	## 影がカテゴリタブへはみ出さないよう弱める。
 	sb.shadow_color = Color(0.0, 0.0, 0.0, 0.22)
 	sb.shadow_size = 2
 	return sb
@@ -551,7 +573,15 @@ static func rarity_box(rarity: int, highlight: bool = true) -> StyleBox:
 	return sb
 
 static func cost_panel_style() -> StyleBox:
-	return StyleBoxEmpty.new()
+	## 必要コスト帯: やや小さく見せるため左余白で右寄せ気味に。
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0, 0, 0, 0)
+	sb.set_border_width_all(0)
+	sb.content_margin_left = 36.0
+	sb.content_margin_top = 6.0
+	sb.content_margin_right = 8.0
+	sb.content_margin_bottom = 4.0
+	return sb
 
 static func unique_panel_style() -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
@@ -611,8 +641,9 @@ static func apply_bulk_dismantle_button(btn: Button) -> void:
 	btn.clip_text = false
 	btn.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	btn.autowrap_mode = TextServer.AUTOWRAP_OFF
-	if btn.custom_minimum_size.y < 76.0:
-		btn.custom_minimum_size = Vector2(btn.custom_minimum_size.x, 76.0)
+	## 一括はラベルが長いので主ボタンより広め。
+	btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	btn.custom_minimum_size = Vector2(300.0, ForgeUiTokens.PRIMARY_BTN_HEIGHT_PX)
 
 
 static func _apply_image_button_styles(btn: Button, styles: Dictionary, with_overlay_text: bool) -> void:
@@ -633,14 +664,18 @@ static func _apply_image_button_styles(btn: Button, styles: Dictionary, with_ove
 	if with_overlay_text:
 		btn.add_theme_color_override("font_color", Color(0.98, 0.92, 0.72, 1.0))
 		btn.add_theme_color_override("font_disabled_color", Color(0.55, 0.52, 0.48, 1.0))
-		btn.add_theme_font_size_override("font_size", 28)
+		btn.add_theme_font_size_override("font_size", 26)
 	else:
 		btn.text = ""
 		btn.add_theme_font_size_override("font_size", 1)
 		btn.add_theme_color_override("font_color", Color(1, 1, 1, 0))
 		btn.add_theme_color_override("font_disabled_color", Color(1, 1, 1, 0))
-	if btn.custom_minimum_size.y < 76.0:
-		btn.custom_minimum_size = Vector2(btn.custom_minimum_size.x, 76.0)
+	## 横幅を抑えて中央寄せ（EXPAND_FILL だと枠いっぱいに伸びる）。
+	btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	btn.custom_minimum_size = Vector2(
+		ForgeUiTokens.PRIMARY_BTN_WIDTH_PX,
+		maxi(btn.custom_minimum_size.y, ForgeUiTokens.PRIMARY_BTN_HEIGHT_PX)
+	)
 
 static func mode_tab_style(active: bool) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
@@ -659,14 +694,17 @@ static func mode_tab_style(active: bool) -> StyleBoxFlat:
 
 static func category_tab_style(active: bool) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.13, 0.11, 0.08, 0.9) if active else Color(0.09, 0.08, 0.07, 0.78)
+	sb.bg_color = Color(0.16, 0.13, 0.09, 0.94) if active else Color(0.09, 0.08, 0.07, 0.82)
 	sb.set_corner_radius_all(6)
 	sb.content_margin_left = 8.0
 	sb.content_margin_top = 4.0
 	sb.content_margin_right = 8.0
 	sb.content_margin_bottom = 4.0
-	sb.set_border_width_all(1)
-	sb.border_color = Color(0.88, 0.72, 0.30, 0.95) if active else Color(0.34, 0.31, 0.27, 0.65)
+	sb.set_border_width_all(3 if active else 1)
+	sb.border_color = Color(0.95, 0.82, 0.38, 1.0) if active else Color(0.40, 0.36, 0.30, 0.72)
+	if active:
+		sb.shadow_color = Color(0.85, 0.65, 0.2, 0.35)
+		sb.shadow_size = 3
 	return sb
 
 static func notify_dot_style() -> StyleBoxFlat:
@@ -678,14 +716,17 @@ static func notify_dot_style() -> StyleBoxFlat:
 
 static func apply_mode_tab(btn: Button, active: bool) -> void:
 	var style: StyleBox = mode_tab_style(active)
-	if active:
-		var textured: StyleBox = ForgeUiTokens.tab_active_style()
-		if _texture_style_ok(textured):
-			style = textured
+	var textured: StyleBox = (
+		ForgeUiTokens.tab_active_style() if active else ForgeUiTokens.tab_inactive_style()
+	)
+	if _texture_style_ok(textured):
+		style = textured
 	btn.add_theme_stylebox_override("normal", style)
 	btn.add_theme_stylebox_override("hover", style)
 	btn.add_theme_stylebox_override("pressed", style)
-	btn.add_theme_font_size_override("font_size", 17 if active else 16)
+	if btn.custom_minimum_size.y < 52.0:
+		btn.custom_minimum_size = Vector2(btn.custom_minimum_size.x, 52.0)
+	btn.add_theme_font_size_override("font_size", 18 if active else 16)
 	var tab_font: Font = UiTypography.display_font()
 	if tab_font != null:
 		btn.add_theme_font_override("font", tab_font)

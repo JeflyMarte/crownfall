@@ -49,6 +49,9 @@ const DROP_PREVIEW: Dictionary = {
 	"golden_nest": [
 		["material", "relic_shard"],
 	],
+	"rock_stampede": [
+		["material", "relic_shard"],
+	],
 	"shadow_hunt": [
 		["weapon", "stormveil_needle"],
 		["weapon", "noctumbra_fang"],
@@ -192,7 +195,8 @@ const BIOME_BANNER_HEIGHT_MIN: float = 112.0
 const BIOME_BANNER_HEIGHT_MAX: float = 240.0
 const BIOME_BANNER_HEIGHT: float = 112.0
 ## 空 = バナー画像を使わずテキスト見出し（▶ ダンジョン名）に戻す。
-## 雰囲気BGのみ（文字は UI ラベル重ね）。表示高さはテクスチャ比で ~112px（680幅時）。
+## 雰囲気BGのみ（文字は UI ラベル重ね）。本番バナーは 1408×232（--strip-height 232）。
+## 表示高さはテクスチャ比で ~112px（680幅時）。イベントも同寸に揃える。
 const BIOME_BANNER_PATHS: Dictionary = {
 	"mourngate": "res://assets/ui/dungeon/BAN_DG_Mourngate.png",
 	"whisperwood": "res://assets/ui/dungeon/BAN_DG_Whisperwood.png",
@@ -203,6 +207,7 @@ const BIOME_BANNER_PATHS: Dictionary = {
 	"crown_rookery": "res://assets/ui/dungeon/BAN_DG_CrownRookery.png",
 	"golden_nest": "res://assets/ui/dungeon/BAN_DG_GoldenNest.png",
 	"shadow_hunt": "res://assets/ui/dungeon/BAN_DG_ShadowHunt.png",
+	"rock_stampede": "res://assets/ui/dungeon/BAN_DG_RockStampede.png",
 }
 ## バナー画像にダンジョン名が焼き込まれている Biome（UI タイトルラベルを非表示）
 const BIOME_BANNER_TITLE_BAKED: Dictionary = {}

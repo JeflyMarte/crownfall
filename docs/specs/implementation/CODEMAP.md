@@ -204,8 +204,8 @@ Task 明示指示がない限り作成しない:
 | 武器 | `resources/weapons/` — 61本（①〜⑤ = 13+12×4。★は各難易度2・P3-D154/D156/D160/D161） |
 | 防具 | `resources/armors/` — 28（① 2 + ②〜⑤ 各5 + 寄り道3） |
 | 装飾品 | `resources/accessories/` — 17（① + ②〜⑤ 各3 + 寄り道2） |
-| 敵 | `resources/enemies/` — メイン（①〜⑤・P3-ENEMY-002 拡充）+ 征討 Boss 8（chronos_wave / valgard / skarpedion / mycolga_ancient / karna_smoke / nereion_depths / forgedormient / albark）+ 遍在希少種4（P3-WANDER-002/004: cosmic_duck / crown_raven / golden_scarab / shadow_stalker）+ ロックバイソン（P3-ENEMY-ROCK-BISON-001: 全DG雑魚・素材率1.75・仮MossBoar） |
-| ダンジョン | `resources/dungeons/` — **22本**: メイン5 + 寄り道5 + 征討8 + イベント4（`cosmic_rift` / `crown_rookery` / `golden_nest` / `shadow_hunt`）。`route_type`: main/side/apex/event。イベントは日次挑戦枠（DGごと）。**章データがある Biome は route 不問でバナー下にサブ章**（P3-DG-EVENT-STG-001）。イベントは各1章 |
+| 敵 | `resources/enemies/` — メイン（①〜⑤・P3-ENEMY-002 拡充）+ 征討 Boss 8（chronos_wave / valgard / skarpedion / mycolga_ancient / karna_smoke / nereion_depths / forgedormient / albark）+ 遍在希少種4（P3-WANDER-002/004: cosmic_duck / crown_raven / golden_scarab / shadow_stalker）+ ロックバイソン（P3-ENEMY-ROCK-BISON-001: 全非イベント雑魚・素材率1.75・専用ドット／図鑑／イベント `rock_stampede`） |
+| ダンジョン | `resources/dungeons/` — **23本**: メイン5 + 寄り道5 + 征討8 + イベント5（`cosmic_rift` / `crown_rookery` / `golden_nest` / `shadow_hunt` / `rock_stampede`）。`route_type`: main/side/apex/event。イベントは日次挑戦枠（DGごと）。**章データがある Biome は route 不問でバナー下にサブ章**（P3-DG-EVENT-STG-001）。イベントは各1章 |
 | スキル | `resources/skills/` — プレイヤー約50+（基本5職×習得10 + 必殺5 + 属性/敵/ボス）。代表: slash_attack, guard_strike, aimed_shot, hex_bolt, mend, empower + P3-SKILL-002〜006 新規（`rend_slash`〜`apex_tame` 等） |
 | ジョブ | `resources/jobs/` — 5職。各 **`skill_unlocks` Lv1/6/12/…/50 で習得10**（P3-SKILL-002〜006） |
 | 状態異常 | `resources/status/` — bleed, poison, stun, chill, ignite, shock, slow, curse, guard, empower, enrage, **fear**, **vulnerable**, **armor_break**（P3-D107）, **mark**（P3-D120） |
@@ -261,7 +261,7 @@ Task 明示指示がない限り作成しない:
 | `assets/ui/batch2/ICO_MAT_RelicShard.png` | 素材アイコン 64×64 | ✅ |
 | `assets/ui/nav/ICO_NAV_*.png` | 下ナビ/サイドメニュー金アイコン 128×128 ×8（Home/Adventure/Character/Party/Forge/Gacha/Codex/Settings — P3-UI3-001 で AI 生成・ソース復旧） | ✅ |
 | `assets/ui/UI_BG_Forge.png` | 鍛冶屋背景 720×1280（P3-UI3-001） | ✅ |
-| `assets/ui/forge/` | 鍛冶屋 chrome（stat/cat/tab/anvil/hero glow 等 14枚・`ForgeUiTokens`） | ✅ |
+| `assets/ui/forge/` | 鍛冶屋 chrome（DetailPanel／Tab／ListCard／CraftablePanel／主ボタン・`ForgeUiTokens`） | ✅ |
 | `assets/ui/equipment_ui/` | 装備画面 chrome（背景/カード/タブ/スロット/一覧セル等・`EquipmentUiTokens`） | ✅ |
 | `assets/ui/gacha_ui/` | 召喚所 chrome 17枚（背景/タブ/バナー/天井バー/召喚ボタン/リボン/ラインナップセル/Reveal枠等・`GachaUiTokens` — **P3-UI-GACHA**） | ✅ |
 | `assets/ui/gacha_ui/UI_BG_Gacha.png` | 召喚所背景 720×1280（P3-UI3-001） | ✅ |

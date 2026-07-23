@@ -4228,3 +4228,33 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 
 **Closeout（2026-07-23）:** オーナー GO → 統合＋`main`。
 
+## 鍛冶屋ビジュアルモック寄せ（2026-07-23 — P3-UI-FORGE-CHROME-001）
+
+> **オーナー GO（推奨一括）** — 安っぽい Flat 金枠をモックの金属板質感へ。スコープ A＋リスト見出し。フィルタ／ソートは別 Task。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UI-FORGE-CHROME-001-1 | **スコープ** — 見た目のみ（詳細枠・モードタブ・リスト行・作成可能帯・主ボタン）＋左リスト見出し。レアリティ／降順フィルタは含めない | 推奨 A＋見出し |
+| P3-UI-FORGE-CHROME-001-2 | **サイズ** — 案2の軽い版。モードタブ高〜64、リスト行112、左幅248／詳細0.60、ヒーロー台座184、作成可能帯140、詳細枠 9-slice 余白厚め | モック比率に寄せつつレイアウト破綻を避ける |
+| P3-UI-FORGE-CHROME-001-3 | **アセット** — DetailPanel（PixelLab）／ListCard・Tab・CraftablePanel（手続き生成）／主ボタン青黒メタリック差し替え。焼込文字禁止 | P0＋主ボタン |
+| P3-UI-FORGE-CHROME-001-4 | **配線** — Flat フォールバック維持。`ForgeUiTokens`＋`BlacksmithUiHelper` 経由 | 既存方針 |
+| P3-UI-FORGE-CHROME-001-5 | **スコープ外** — 他画面への金属枠横展開・ソート UI・NPC台詞 | 鍛冶のみ先行 |
+
+**Impl（2026-07-23）:** chrome 配線＋サイズ調整。要実機／エディタ目視。
+
+**Closeout（2026-07-24）:** オーナー GO → 統合＋`main`。
+
+
+## ロックバイソンイベントDG（2026-07-24 — P3-DG-ROCK-STAMPEDE-001）
+> **オーナー指示** — ロックバイソンのイベントダンジョンを他イベント同型で作成。アイコン／バナー生成。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-ROCK-STAMPEDE-001-1 | **`rock_stampede`（岩角の群れ道）** — event・5F・Bossなし・日1回・敵=`rock_bison`のみ・放浪無効・群れ15% | 既存イベント同型＋素材狩り |
+| P3-DG-ROCK-STAMPEDE-001-2 | **部屋** — COMBAT40 / treasure25 / trap20 / heal10 / lore5 / elite0 | 砂金寄り（宝＋戦闘） |
+| P3-DG-ROCK-STAMPEDE-001-3 | **難易度** — difficulty2・推奨Lv10・敵Lv8。`spawn_weights` danger2=100 | バイソン危険度2 |
+| P3-DG-ROCK-STAMPEDE-001-4 | **章** — `rock_stampede_1_1` のみ（P3-DG-EVENT-STG-001）。日次は他イベントと別カウント → 一日最大5 | 既存日次枠拡張 |
+| P3-DG-ROCK-STAMPEDE-001-5 | **アート** — 専用 BAN_DG_RockStampede（1408×232＋外枠＋中央ネームプレート）／ICO_DG_RockStampede_1_1 | オーナー指示 |
+| P3-DG-ROCK-STAMPEDE-001-6 | **メイン pool** — ロックバイソンは非イベント pool に据置（イベントは単一種のみ） | P3-ENEMY-ROCK-BISON-001 維持 |
+
+**Closeout（2026-07-24）:** オーナー GO → 統合＋`main`。ロックバイソン専用アート接続・レジェンド装備アイコン・イベントバナー同寸／金枠・罠Hit SE 修正も同バッチ反映。

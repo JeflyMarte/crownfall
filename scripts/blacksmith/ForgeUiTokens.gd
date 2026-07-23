@@ -9,6 +9,9 @@ const ANVIL_PANEL: String = ROOT + "UI_Forge_AnvilPanel.png"
 const HERO_GLOW: String = ROOT + "UI_Forge_HeroGlow.png"
 const HERO_ITEM_BG: String = ROOT + "UI_Forge_HeroItemBg.png"
 const TAB_ACTIVE: String = ROOT + "UI_Forge_Tab_Active.png"
+const TAB_INACTIVE: String = ROOT + "UI_Forge_Tab_Inactive.png"
+const DETAIL_PANEL: String = ROOT + "UI_Forge_DetailPanel.png"
+const CRAFTABLE_PANEL: String = ROOT + "UI_Forge_CraftablePanel.png"
 const LIST_CARD_NORMAL: String = ROOT + "UI_Forge_ListCard_Normal.png"
 const LIST_CARD_SELECTED: String = ROOT + "UI_Forge_ListCard_Selected.png"
 const CRAFT_CHIP_NORMAL: String = ROOT + "UI_Forge_CraftChip_Normal.png"
@@ -28,7 +31,7 @@ const TITLE_COMPLETE: String = ROOT + "UI_Forge_Title_Complete.png"
 const RESULT_PANEL: String = ROOT + "UI_Forge_ResultPanel.png"
 const SUCCESS_RING: String = ROOT + "UI_Forge_SuccessRing.png"
 
-const PRIMARY_BTN_MARGINS: Vector4i = Vector4i(24, 20, 24, 20)
+const PRIMARY_BTN_MARGINS: Vector4i = Vector4i(20, 16, 20, 16)
 
 const ITEM_CELLS_RARITY: Array[String] = EquipmentUiTokens.INV_CELLS
 
@@ -46,17 +49,26 @@ const CATEGORY_ICONS: Dictionary = {
 }
 
 const CATEGORY_MIN_SIZE: Vector2 = Vector2(72, 88)
-## 詳細ヒーロー: カテゴリ／下段帯の間に収まるサイズ。
-const HERO_PEDESTAL_PX: int = 168
-const HERO_DISPLAY_PX: int = 140
+## 詳細ヒーロー: 武器背景の上に透過アイコン。背景は少し大きめ。
+const HERO_PEDESTAL_PX: int = 200
+const HERO_DISPLAY_PX: int = 168
 const HERO_ICON_PX: int = HERO_DISPLAY_PX
-const HERO_STACK_PX: int = 176
+const HERO_STACK_PX: int = 220
 const HERO_ROTATION_DEG: float = 0.0
-const STAT_ICON_PX: int = 36
+## ヒーローを枠上端から離す（クレスト／アーチとの被り防止）。
+const HERO_NUDGE_Y_PX: float = 28.0
+const STAT_ICON_PX: int = 32
 const ANVIL_PANEL_HEIGHT: int = 120
 const ITEM_CELL_DESIGN_PX: int = 128
-const LIST_CARD_MARGINS: Vector4i = Vector4i(14, 14, 14, 14)
+const LIST_CARD_MARGINS: Vector4i = Vector4i(12, 12, 12, 12)
 const ITEM_CELL_MARGINS: Vector4i = Vector4i(12, 12, 12, 12)
+## 詳細枠（装備画面フレーム）。上アーチ＋クレスト分を多めに。
+const DETAIL_PANEL_MARGINS: Vector4i = Vector4i(36, 72, 36, 28)
+const CRAFTABLE_PANEL_MARGINS: Vector4i = Vector4i(20, 22, 20, 18)
+const TAB_MARGINS: Vector4i = Vector4i(16, 12, 16, 14)
+## 生産／強化など主ボタンの横幅上限（EXPAND せず中央寄せ）。
+const PRIMARY_BTN_WIDTH_PX: float = 240.0
+const PRIMARY_BTN_HEIGHT_PX: float = 64.0
 
 static func load_tex(path: String) -> Texture2D:
 	if path.is_empty() or not ResourceLoader.exists(path):
@@ -93,7 +105,20 @@ static func texture_stylebox(
 	return sb
 
 static func tab_active_style() -> StyleBox:
-	return texture_stylebox(TAB_ACTIVE, Vector4i(20, 16, 20, 24))
+	return texture_stylebox(TAB_ACTIVE, TAB_MARGINS, 8.0)
+
+
+static func tab_inactive_style() -> StyleBox:
+	return texture_stylebox(TAB_INACTIVE, TAB_MARGINS, 8.0)
+
+
+static func detail_panel_style() -> StyleBox:
+	return texture_stylebox(DETAIL_PANEL, DETAIL_PANEL_MARGINS, 10.0)
+
+
+static func craftable_band_style() -> StyleBox:
+	return texture_stylebox(CRAFTABLE_PANEL, CRAFTABLE_PANEL_MARGINS, 10.0)
+
 
 static func list_card_normal_style() -> StyleBox:
 	return texture_stylebox(LIST_CARD_NORMAL, LIST_CARD_MARGINS, 8.0)
@@ -137,8 +162,8 @@ static func enhance_button_styles() -> Dictionary:
 static func labeled_primary_button_styles(normal_path: String, disabled_path: String) -> Dictionary:
 	## content_margin が texture_margin より狭いと、ラベルが左枠クロムに食い込んで欠ける。
 	return {
-		"normal": texture_stylebox(normal_path, PRIMARY_BTN_MARGINS, 22.0),
-		"disabled": texture_stylebox(disabled_path, PRIMARY_BTN_MARGINS, 22.0),
+		"normal": texture_stylebox(normal_path, PRIMARY_BTN_MARGINS, 18.0),
+		"disabled": texture_stylebox(disabled_path, PRIMARY_BTN_MARGINS, 18.0),
 	}
 
 

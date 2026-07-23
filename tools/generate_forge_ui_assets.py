@@ -28,8 +28,16 @@ EMBER = (255, 165, 55)
 EMBER_GLOW = (255, 140, 40, 90)
 WHITE = (245, 242, 235, 255)
 GOLD_HI = (255, 230, 150)
-BTN_BG = (68, 48, 10)
-BTN_BG_DISABLED = (42, 38, 34)
+BTN_BG = (14, 18, 28)  # blue-black metal (legacy flat fallback)
+BTN_BG_DISABLED = (18, 18, 22)
+BTN_W, BTN_H = 600, 100
+BTN_RADIUS = 12
+BTN_ACCENTS = {
+    "produce": (90, 160, 220),
+    "enhance": (120, 180, 255),
+    "dismantle": (200, 110, 70),
+    "bulk": (160, 140, 90),
+}
 FONT_PATHS = [
     ROOT / "assets/fonts/ShipporiMinchoB1-Bold.ttf",
     ROOT / "assets/fonts/NotoSansJP-VariableFont_wght.ttf",
@@ -284,31 +292,154 @@ def draw_tab_active(w: int = 440, h: int = 176) -> Image.Image:
     return img
 
 
-def draw_produce_button(w: int = 1200, h: int = 192) -> Image.Image:
-    return draw_primary_button_frame(w, h, enabled=True)
+def draw_produce_button(w: int = BTN_W, h: int = BTN_H) -> Image.Image:
+    return draw_forge_cta_button("produce", w=w, h=h, enabled=True)
 
 
-def _draw_primary_frame_layer(draw: ImageDraw.ImageDraw, w: int, h: int, enabled: bool) -> None:
-    fill = BTN_BG if enabled else BTN_BG_DISABLED
-    border = GOLD if enabled else (90, 85, 78)
-    rounded_rect(draw, (0, 0, w - 1, h - 1), 14, (*fill, 255), (*border, 255), 3)
-    if enabled:
-        draw.line((12, 8, w - 12, 8), fill=(*GOLD_HI, 120), width=2)
-        draw.line((12, h - 10, w - 12, h - 10), fill=(*GOLD_DARK, 160), width=2)
+def _lerp_rgb(a: tuple[int, int, int], b: tuple[int, int, int], t: float) -> tuple[int, int, int]:
+    return tuple(int(a[i] + (b[i] - a[i]) * t) for i in range(3))  # type: ignore[return-value]
 
 
-def draw_primary_button_frame(w: int = 1200, h: int = 192, *, enabled: bool = True) -> Image.Image:
+def _metallic_button_fill(w: int, h: int, accent: tuple[int, int, int], *, enabled: bool) -> Image.Image:
+    """Vertical blue-black metal plate with soft highlight band. No baked text."""
     img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-    _draw_primary_frame_layer(draw, w, h, enabled)
+    px = img.load()
+    if enabled:
+        top, mid, bot, hi_band = (28, 36, 48), (14, 18, 28), (8, 10, 16), (48, 62, 82)
+    else:
+        top, mid, bot, hi_band = (28, 28, 32), (18, 18, 22), (12, 12, 14), (36, 36, 40)
+        accent = tuple(int(c * 0.45) for c in accent)  # type: ignore[assignment]
+    for y in range(h):
+        t = y / max(1, h - 1)
+        if t < 0.35:
+            c = _lerp_rgb(top, hi_band, t / 0.35)
+        elif t < 0.55:
+            c = _lerp_rgb(hi_band, mid, (t - 0.35) / 0.20)
+        else:
+            c = _lerp_rgb(mid, bot, (t - 0.55) / 0.45)
+        brush = int(3 * math.sin(y * 0.55))
+        row = (max(0, c[0] + brush), max(0, c[1] + brush), max(0, c[2] + brush + 2))
+        for x in range(w):
+            lx = x / max(1, w - 1)
+            wash = max(0.0, 1.0 - lx * 4.5) * (0.12 if enabled else 0.05)
+            r = min(255, int(row[0] + accent[0] * wash))
+            g = min(255, int(row[1] + accent[1] * wash))
+            b = min(255, int(row[2] + accent[2] * wash))
+            sheen = math.exp(-((lx - 0.52) ** 2) / 0.08) * (0.10 if enabled else 0.04)
+            r = min(255, int(r + 40 * sheen))
+            g = min(255, int(g + 50 * sheen))
+            b = min(255, int(b + 70 * sheen))
+            px[x, y] = (r, g, b, 255)
+    return img
+
+
+def _rounded_mask(w: int, h: int, radius: int) -> Image.Image:
+    m = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(m).rounded_rectangle((0, 0, w - 1, h - 1), radius=radius, fill=255)
+    return m
+
+
+def _subtle_left_motif(
+    draw: ImageDraw.ImageDraw,
+    h: int,
+    accent: tuple[int, int, int],
+    *,
+    enabled: bool,
+    motif: str,
+) -> None:
+    """Faint left ornament — keep empty-ish for Godot label/icon overlay."""
+    a = 55 if enabled else 28
+    col = (*accent, a)
+    col2 = (200, 210, 220, a) if enabled else (120, 120, 125, a)
+    cx, cy = 36, h // 2
+    if motif == "produce":
+        draw.polygon([(cx - 10, cy + 6), (cx + 10, cy + 6), (cx + 7, cy - 1), (cx - 7, cy - 1)], fill=col)
+        draw.rectangle((cx - 4, cy - 8, cx + 4, cy - 1), fill=col)
+        draw.ellipse((cx - 12, cy + 4, cx + 12, cy + 11), outline=col, width=1)
+    elif motif == "enhance":
+        draw.polygon([(cx - 6, cy + 8), (cx, cy - 10), (cx + 6, cy + 8)], outline=col2, width=1)
+        draw.line((cx, cy - 2, cx, cy + 8), fill=col, width=1)
+    elif motif == "dismantle":
+        draw.line((cx - 10, cy + 8, cx + 10, cy - 8), fill=col, width=1)
+        draw.line((cx - 8, cy - 6, cx + 6, cy + 6), fill=(*accent, max(20, a - 15)), width=1)
+    elif motif == "bulk":
+        for dx in (-8, 0, 8):
+            draw.rectangle((cx - 4 + dx, cy - 6, cx + 4 + dx, cy + 6), outline=col, width=1)
+
+
+def draw_forge_cta_button(
+    motif: str = "produce",
+    w: int = BTN_W,
+    h: int = BTN_H,
+    *,
+    enabled: bool = True,
+) -> Image.Image:
+    """Mock-like blue-black metallic CTA with gold border. No baked text."""
+    accent = BTN_ACCENTS.get(motif, BTN_ACCENTS["produce"])
+    base = _metallic_button_fill(w, h, accent, enabled=enabled)
+    mask = _rounded_mask(w, h, BTN_RADIUS)
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    img.paste(base, (0, 0))
+    img.putalpha(mask)
+
+    overlay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    od = ImageDraw.Draw(overlay)
+    inset = 4
+    if enabled:
+        od.rounded_rectangle(
+            (inset, inset, w - 1 - inset, h - 1 - inset),
+            radius=BTN_RADIUS - 3,
+            outline=(accent[0], accent[1], accent[2], 50),
+            width=1,
+        )
+        od.line((14, 7, w - 14, 7), fill=(*GOLD_HI, 90), width=1)
+        od.line((16, h - 9, w - 16, h - 9), fill=(20, 24, 32, 140), width=1)
+    else:
+        od.rounded_rectangle(
+            (inset, inset, w - 1 - inset, h - 1 - inset),
+            radius=BTN_RADIUS - 3,
+            outline=(70, 70, 75, 60),
+            width=1,
+        )
+
+    border = GOLD if enabled else (95, 90, 82)
+    border2 = (180, 150, 55) if enabled else (70, 66, 60)
+    od.rounded_rectangle((0, 0, w - 1, h - 1), radius=BTN_RADIUS, outline=(*border, 255), width=3)
+    od.rounded_rectangle(
+        (2, 2, w - 3, h - 3),
+        radius=BTN_RADIUS - 2,
+        outline=(*border2, 180 if enabled else 100),
+        width=1,
+    )
+    tick = (*GOLD, 200 if enabled else 80)
+    for x0 in (10, w - 18):
+        for y0 in (8, h - 16):
+            od.rectangle((x0, y0 + 3, x0 + 6, y0 + 4), fill=tick)
+
+    _subtle_left_motif(od, h, accent, enabled=enabled, motif=motif)
+
     if enabled:
         glow = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-        gdraw = ImageDraw.Draw(glow)
-        gdraw.ellipse((w // 2 - 180, h - 40, w // 2 + 180, h + 30), fill=(255, 170, 50, 55))
-        img = Image.alpha_composite(img, glow.filter(ImageFilter.GaussianBlur(6)))
-        draw = ImageDraw.Draw(img)
-        _draw_primary_frame_layer(draw, w, h, enabled)
+        gd = ImageDraw.Draw(glow)
+        if motif in ("produce", "enhance"):
+            gd.ellipse((w // 2 - 140, h - 28, w // 2 + 140, h + 24), fill=(*accent, 40))
+        else:
+            gd.ellipse((w // 2 - 140, h - 28, w // 2 + 140, h + 24), fill=(255, 140, 60, 35))
+        glow = glow.filter(ImageFilter.GaussianBlur(8))
+        img = Image.alpha_composite(img, glow)
+        a = img.split()[3]
+        a = Image.composite(a, Image.new("L", (w, h), 0), mask)
+        img.putalpha(a)
+
+    img = Image.alpha_composite(img, overlay)
+    a = img.split()[3]
+    a = Image.composite(a, Image.new("L", (w, h), 0), mask)
+    img.putalpha(a)
     return img
+
+
+def draw_primary_button_frame(w: int = BTN_W, h: int = BTN_H, *, enabled: bool = True) -> Image.Image:
+    return draw_forge_cta_button("enhance", w=w, h=h, enabled=enabled)
 
 
 def _draw_button_text(
@@ -321,7 +452,8 @@ def _draw_button_text(
     text_shift_x: int = 0,
     font_size: int | None = None,
 ) -> None:
-    size = font_size if font_size is not None else (34 if len(label) <= 7 else 28)
+    """Optional debug label — production assets use Godot text overlay (no bake)."""
+    size = font_size if font_size is not None else (28 if len(label) <= 7 else 24)
     font = load_font(size)
     text_color = (255, 244, 210, 255) if enabled else (130, 125, 118, 255)
     outline = (20, 14, 8, 220) if enabled else (30, 28, 26, 200)
@@ -334,59 +466,22 @@ def _draw_button_text(
     draw.text((tx, ty), label, font=font, fill=text_color)
 
 
-def _draw_produce_motif(draw: ImageDraw.ImageDraw, h: int) -> None:
-    ax, ay = 44, h // 2 + 6
-    draw.polygon([(ax - 18, ay + 8), (ax + 18, ay + 8), (ax + 12, ay - 2), (ax - 12, ay - 2)], fill=(55, 52, 58, 220))
-    draw.rectangle((ax - 8, ay - 12, ax + 8, ay - 2), fill=(70, 68, 74, 230))
-    draw.ellipse((ax - 22, ay + 4, ax + 22, ay + 16), fill=(35, 32, 36, 200))
-    hx, hy = ax + 26, ay - 10
-    draw.rectangle((hx - 3, hy, hx + 3, hy + 18), fill=(180, 170, 150, 255))
-    draw.rectangle((hx - 10, hy, hx + 10, hy + 6), fill=(*GOLD, 255))
-
-
-def _draw_dismantle_motif(draw: ImageDraw.ImageDraw, h: int, *, enabled: bool) -> None:
-    cx, cy = 52, h // 2
-    shard = (200, 170, 90, 255) if enabled else (110, 105, 98, 255)
-    draw.polygon([(cx - 16, cy + 10), (cx - 4, cy - 14), (cx + 8, cy + 2)], fill=shard)
-    draw.polygon([(cx + 18, cy + 12), (cx + 6, cy - 10), (cx - 2, cy + 4)], fill=shard)
-    draw.line((cx - 20, cy + 16, cx + 22, cy - 16), fill=(220, 80, 60, 220) if enabled else (90, 85, 80, 200), width=3)
-
-
-def _draw_bulk_motif(draw: ImageDraw.ImageDraw, h: int, *, enabled: bool) -> None:
-    col = (220, 190, 110, 255) if enabled else (110, 105, 98, 255)
-    for dx in (-14, 0, 14):
-        draw.rectangle((34 + dx, h // 2 - 10, 50 + dx, h // 2 + 10), outline=col, width=2)
-
-
 def draw_motif_primary_button(
     motif: str,
-    w: int = 1200,
-    h: int = 192,
+    w: int = BTN_W,
+    h: int = BTN_H,
     *,
     enabled: bool = True,
 ) -> Image.Image:
-    """Frame + optional motif only. Label text is drawn by Godot (same as Enhance)."""
-    img = draw_primary_button_frame(w, h, enabled=enabled)
-    draw = ImageDraw.Draw(img)
-    if enabled:
-        if motif == "produce":
-            _draw_produce_motif(draw, h)
-        elif motif == "dismantle":
-            _draw_dismantle_motif(draw, h, enabled=True)
-        elif motif == "bulk":
-            _draw_bulk_motif(draw, h, enabled=True)
-    elif motif == "dismantle":
-        _draw_dismantle_motif(draw, h, enabled=False)
-    elif motif == "bulk":
-        _draw_bulk_motif(draw, h, enabled=False)
-    return img
+    """Frame + faint motif only. Label text is drawn by Godot."""
+    return draw_forge_cta_button(motif, w=w, h=h, enabled=enabled)
 
 
 def draw_labeled_primary_button(
     label: str,
     motif: str,
-    w: int = 1200,
-    h: int = 192,
+    w: int = BTN_W,
+    h: int = BTN_H,
     *,
     enabled: bool = True,
     font_size: int | None = None,
@@ -395,7 +490,7 @@ def draw_labeled_primary_button(
     draw = ImageDraw.Draw(img)
     _draw_button_text(
         draw, w, h, label, enabled=enabled, text_shift_x=14,
-        font_size=font_size if font_size is not None else (30 if len(label) > 8 else 34),
+        font_size=font_size if font_size is not None else (26 if len(label) > 8 else 28),
     )
     return img
 
@@ -423,7 +518,7 @@ def main() -> int:
     save(draw_anvil_panel(1280, 400), "UI_Forge_AnvilPanel.png")
     save(draw_hero_glow(800), "UI_Forge_HeroGlow.png")
     save(draw_tab_active(440, 176), "UI_Forge_Tab_Active.png")
-    # Primary CTA frames: Godot overlays label text (font_size 28) like Enhance.
+    # Primary CTAs @ 600x100: blue-black metal + gold border; Godot overlays labels.
     save(draw_motif_primary_button("produce"), "UI_Forge_Btn_Produce.png")
     save(draw_motif_primary_button("produce", enabled=False), "UI_Forge_Btn_Produce_Disabled.png")
     save(draw_motif_primary_button("dismantle"), "UI_Forge_Btn_Dismantle.png")
