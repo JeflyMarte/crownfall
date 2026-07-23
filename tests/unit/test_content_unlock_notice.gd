@@ -53,8 +53,7 @@ func test_clearing_stage_queues_next_stage_notice() -> void:
 		var entry: Dictionary = raw
 		if str(entry.get("id", "")) == str(second.id):
 			found = true
-			assert_string_contains(str(entry.get("display_name", "")), "")
-			assert_true(str(entry.get("display_name", "")).length() > 0)
+			assert_gt(str(entry.get("display_name", "")).length(), 0)
 			break
 	assert_true(found, "次章の解放通知がキューに入ること")
 
