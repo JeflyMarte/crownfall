@@ -22,29 +22,44 @@ func test_build_rotation_has_recommend_then_field() -> void:
 	var rot: Array[Dictionary] = _Helper.build_rotation()
 	assert_gte(rot.size(), 2 + _Helper.CHAT_IN_ROTATION)
 	assert_eq(str(rot[0].get("kind", "")), _Helper.KIND_RECOMMEND)
-	assert_eq(str(rot[1].get("kind", "")), _Helper.KIND_FIELD)
+	## 開始直後は招待状＋調査室の2件が先に並ぶ。
+	assert_eq(str(rot[1].get("kind", "")), _Helper.KIND_RECOMMEND)
+	assert_eq(str(rot[2].get("kind", "")), _Helper.KIND_FIELD)
 	assert_true(not str(rot[0].get("text", "")).is_empty())
 	assert_true(not str(rot[1].get("text", "")).is_empty())
-	for i in range(2, rot.size()):
+	assert_true(not str(rot[2].get("text", "")).is_empty())
+	for i in range(3, rot.size()):
 		assert_eq(str(rot[i].get("kind", "")), _Helper.KIND_CHAT)
 		assert_true(not str(rot[i].get("text", "")).is_empty())
 
 
-func test_chat_pool_is_large() -> void:
-	assert_gte(_Helper.CHAT_LINES.size(), 30)
+func test_early_hub_tips_on_new_game() -> void:
+	var tips: Array[String] = _Helper.early_hub_tips()
+	assert_eq(tips.size(), 2)
+	assert_eq(tips[0], _Helper.START_GACHA_TIP)
+	assert_eq(tips[1], _Helper.START_SURVEY_TIP)
+	var line: String = _Helper.recommend_line()
+	assert_eq(line, _Helper.START_GACHA_TIP)
 
 
-func test_pick_chat_lines_unique() -> void:
-	var picked: Array[String] = _Helper.pick_chat_lines(_Helper.CHAT_IN_ROTATION)
-	assert_eq(picked.size(), _Helper.CHAT_IN_ROTATION)
-	var seen: Dictionary = {}
-	for line in picked:
-		assert_true(_Helper.CHAT_LINES.has(line), line)
-		assert_false(seen.has(line), line)
-		seen[line] = true
+func test_early_gacha_tip_clears_after_helper_owned() -> void:
+	GameState.owned_helpers["kaida"] = 1
+	var tips: Array[String] = _Helper.early_hub_tips()
+	assert_eq(tips.size(), 1)
+	assert_eq(tips[0], _Helper.START_SURVEY_TIP)
+
+
+func test_early_survey_tip_clears_after_progress() -> void:
+	GameState.hub_survey_progress[Constants.DEFAULT_DUNGEON_ID] = 3.0
+	var tips: Array[String] = _Helper.early_hub_tips()
+	assert_eq(tips.size(), 1)
+	assert_eq(tips[0], _Helper.START_GACHA_TIP)
 
 
 func test_recommend_claimable_daily() -> void:
+	## 開始案内を消してから日課受取優先を確認。
+	GameState.owned_helpers["kaida"] = 1
+	GameState.hub_survey_progress[Constants.DEFAULT_DUNGEON_ID] = 1.0
 	DailyMissionSystem.ensure_refreshed()
 	var entries: Array = GameState.daily_mission_state.get("entries", [])
 	assert_gt(entries.size(), 0)
@@ -57,6 +72,8 @@ func test_recommend_claimable_daily() -> void:
 
 
 func test_recommend_incomplete_daily() -> void:
+	GameState.owned_helpers["kaida"] = 1
+	GameState.hub_survey_progress[Constants.DEFAULT_DUNGEON_ID] = 1.0
 	DailyMissionSystem.ensure_refreshed()
 	var entries: Array = GameState.daily_mission_state.get("entries", [])
 	assert_gt(entries.size(), 0)
@@ -86,9 +103,23 @@ func test_chat_line_from_pool() -> void:
 	assert_true(_Helper.CHAT_LINES.has(line), line)
 
 
+func test_chat_pool_is_large() -> void:
+	assert_gte(_Helper.CHAT_LINES.size(), 30)
+
+
+func test_pick_chat_lines_unique() -> void:
+	var picked: Array[String] = _Helper.pick_chat_lines(_Helper.CHAT_IN_ROTATION)
+	assert_eq(picked.size(), _Helper.CHAT_IN_ROTATION)
+	var seen: Dictionary = {}
+	for line in picked:
+		assert_true(_Helper.CHAT_LINES.has(line), line)
+		assert_false(seen.has(line), line)
+		seen[line] = true
+
+
 func test_nina_panel_sits_below_top_bar_gap() -> void:
 	assert_eq(_Navigator.GAP_BELOW_TOP, 48.0)
-	assert_eq(_Navigator.PANEL_H, 148.0)
+	assert_eq(_Navigator.PANEL_H, 160.0)
 
 
 func test_nina_portrait_asset_exists() -> void:

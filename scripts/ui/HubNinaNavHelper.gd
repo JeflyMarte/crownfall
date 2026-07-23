@@ -89,18 +89,43 @@ const PARTY_VACANCY_LINES: Array[String] = [
 	"まだ編成に入れられる仲間がいますよ！キャラ画面を見てみてください！",
 ]
 
+## ニューゲーム直後の優先案内（おすすめより前にローテへ載せる）。
+const START_GACHA_TIP: String = (
+	"招待状アイコンを押して、仲間を集めましょう！\n必要な魔晶石はバッグに入れときました！"
+)
+const START_SURVEY_TIP: String = "調査室に行って、ダンジョンを開放しましょう！"
+
 
 ## ローテ用メッセージ列。先頭=おすすめ1件 → 野外/天候 → 雑談複数。
+## 開始直後は招待状／調査室の優先案内を先に載せる。
 static func build_rotation() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	out.append({"kind": KIND_RECOMMEND, "text": recommend_line()})
+	var early: Array[String] = early_hub_tips()
+	if not early.is_empty():
+		for tip in early:
+			out.append({"kind": KIND_RECOMMEND, "text": tip})
+	else:
+		out.append({"kind": KIND_RECOMMEND, "text": recommend_line()})
 	out.append({"kind": KIND_FIELD, "text": field_or_weather_line()})
 	for chat in pick_chat_lines(CHAT_IN_ROTATION):
 		out.append({"kind": KIND_CHAT, "text": chat})
 	return out
 
 
+## 開始時優先案内。該当するものを招待状→調査室の順で返す。
+static func early_hub_tips() -> Array[String]:
+	var out: Array[String] = []
+	if _should_tip_start_gacha():
+		out.append(START_GACHA_TIP)
+	if _should_tip_start_survey():
+		out.append(START_SURVEY_TIP)
+	return out
+
+
 static func recommend_line() -> String:
+	var early: Array[String] = early_hub_tips()
+	if not early.is_empty():
+		return early[0]
 	DailyMissionSystem.ensure_refreshed()
 	if DailyMissionSystem.has_claimable():
 		return _pick_from(CLAIMABLE_LINES, 11)
@@ -281,6 +306,21 @@ static func _has_party_vacancy() -> bool:
 		if adv != null and not GameState.is_member_active(adv):
 			return true
 	return false
+
+
+## 招待状未使用（助っ人未所持）なら開始案内を出す。
+static func _should_tip_start_gacha() -> bool:
+	return GameState.owned_helpers.is_empty()
+
+
+## 調査室を一度も使っていなければ開始案内を出す。
+static func _should_tip_start_survey() -> bool:
+	if SurveySystem.has_active_cycle():
+		return false
+	for dungeon_id in GameState.hub_survey_progress.keys():
+		if float(GameState.hub_survey_progress[dungeon_id]) > 0.0:
+			return false
+	return true
 
 
 static func _explore_recommend_line() -> String:
