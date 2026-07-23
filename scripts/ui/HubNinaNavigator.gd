@@ -9,7 +9,7 @@ const _HubNinaNavHelper := preload("res://scripts/ui/HubNinaNavHelper.gd")
 
 const ROTATE_SEC: float = 10.0
 const PANEL_W: float = 308.0
-const PANEL_H: float = 148.0
+const PANEL_H: float = 160.0
 const FACE_PX: float = 80.0
 const MARGIN_RIGHT: float = 12.0
 ## TopBar 直下から下げて、指揮官カード／バナーと被りにくくする。

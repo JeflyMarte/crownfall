@@ -66,6 +66,9 @@ const ENEMY_SPRITE_MAP: Dictionary = {
 	"wind_ripper": "res://resources/animation/ENM_Greios.tres",
 	"cosmic_duck": "res://resources/animation/ENM_CosmicDuck.tres",
 	"crown_raven": "res://resources/animation/ENM_CrownRaven.tres",
+	## P3-WANDER-004: アート後差し（スカラベ＝甲虫／影狩り＝鎌系プレースホルダ）
+	"golden_scarab": "res://resources/animation/ENM_GoldenScarab.tres",
+	"shadow_stalker": "res://resources/animation/ENM_ShadowStalker.tres",
 	## 旧IDエイリアス（プレースホルダ）
 	"wayfarer_sparrow": "res://resources/animation/ENM_MistWyvern.tres",
 	"reliquary_beetle": "res://resources/animation/ENM_MossShell.tres",
@@ -184,6 +187,8 @@ const BATTLE_BG_MAP: Dictionary = {
 	## イベントDG（ダック／レイヴン共通背景）
 	"cosmic_rift": "res://assets/dungeon/event/env/BG_Battle_Event.png",
 	"crown_rookery": "res://assets/dungeon/event/env/BG_Battle_Event.png",
+	"golden_nest": "res://assets/dungeon/event/env/BG_Battle_Event.png",
+	"shadow_hunt": "res://assets/dungeon/event/env/BG_Battle_Event.png",
 }
 const TREASURE_CLOSED_OBJ_MAP: Dictionary = {
 	"mourngate": "res://assets/dungeon/mourngate/env/OBJ_TreasureChest_Closed.png",
@@ -520,26 +525,39 @@ var _cached_heal_vfx_frames: SpriteFrames
 const SWARM_SPACING_RATIO: float = 0.201
 const SWARM_CENTER_X_RATIO: float = 0.694
 const SWARM_Y_RATIO: float = 0.48
+## 群れ配置の左右クリップ防止（左=味方帯／右=行動順アイコン列を避ける）。
+const SWARM_X_MIN_RATIO: float = 0.48
+const SWARM_X_MAX_RATIO: float = 0.82
+## 群れ時の見た目縮小（ドット／HPバー／名前）
+const SWARM_DISPLAY_SCALE: float = 0.82
+const SWARM_BAR_HALF_W: float = 26.0
+const SWARM_BAR_HEIGHT: float = 8.0
+const SWARM_NAME_FONT_SIZE: int = 13
+const SWARM_NAME_HEIGHT: float = 20.0
+const SINGLE_BAR_HALF_W: float = 36.0
+const SINGLE_BAR_HEIGHT: float = 10.0
+const SINGLE_NAME_FONT_SIZE: int = 22
+const SINGLE_NAME_HEIGHT: float = 24.0
 ## エリートは通常雑魚より上（ボスに近い高さ）に置く。
 const ELITE_Y_RATIO: float = 0.34
 # BattlefieldArea 内の足元Y比率へ加算（全体を下げる）
 const COMBAT_Y_BIAS: float = 0.08
 # 編成スロット別の戦闘配置（BattlefieldArea 内の比率・足元基準）。
 # スロット 0,1=前衛 / 2,3=後衛（combat_index ではなく formation_slot で参照）。
-## P3-UX-PARTY-POS-001: やや左下へ寄せて敵との間合いを広げる。
+## P3-UX-PARTY-POS-001: 左下へ寄せて敵との間合いを広げる（再調整でさらに左下へ）。
 const FORMATION_SLOT_RATIOS: Array[Vector2] = [
-	Vector2(0.333, 0.645),  # 0 前衛左
-	Vector2(0.548, 0.755),  # 1 前衛右（敵寄り）
-	Vector2(0.139, 0.745),  # 2 後衛左（奥）
-	Vector2(0.333, 0.835),  # 3 後衛右
-	Vector2(0.395, 0.695),  # 4 オトモ（前衛左の少し右）
+	Vector2(0.293, 0.675),  # 0 前衛左
+	Vector2(0.508, 0.785),  # 1 前衛右（敵寄り）
+	Vector2(0.110, 0.775),  # 2 後衛左（奥）
+	Vector2(0.293, 0.865),  # 3 後衛右
+	Vector2(0.355, 0.725),  # 4 オトモ（前衛左の少し右）
 ]
 const PARTY_CARD_SLOT_COUNT: int = 4
 const BATTLE_LOG_VISIBLE_LINES: int = 4
-# 1行の実描画高（本文26＋上端余白）＋行間3。ログ最上行の見切れ防止。
-const BATTLE_LOG_LINE_HEIGHT: float = 48.0
+# 1行の実描画高（本文22＋上端余白）＋行間。ログ最上行の見切れ防止。
+const BATTLE_LOG_LINE_HEIGHT: float = 40.0
 const BATTLE_LOG_LINE_GAP: float = 3.0
-const BATTLE_LOG_SCROLL_MARGIN_V: float = 18.0
+const BATTLE_LOG_SCROLL_MARGIN_V: float = 16.0
 const BATTLE_LOG_SCROLL_HEIGHT: float = (
 	BATTLE_LOG_LINE_HEIGHT * float(BATTLE_LOG_VISIBLE_LINES)
 	+ BATTLE_LOG_LINE_GAP * float(BATTLE_LOG_VISIBLE_LINES - 1)
@@ -576,8 +594,8 @@ const PARTY_CARD_DEAD_MODULATE: Color = Color(0.55, 0.55, 0.55, 0.75)
 const UI_TEXT_PRIMARY: Color = Color(0.98, 0.96, 0.92, 1.0)
 const UI_TEXT_SECONDARY: Color = Color(0.92, 0.90, 0.84, 1.0)
 const UI_TEXT_WEAPON: Color = Color(0.95, 0.91, 0.82, 1.0)
-const CHR_HP_BAR_FRONT_Y_OFFSET: float = 0.0
-const CHR_HP_BAR_BACK_Y_OFFSET: float = 0.0
+const CHR_HP_BAR_FRONT_Y_OFFSET: float = 10.0
+const CHR_HP_BAR_BACK_Y_OFFSET: float = 10.0
 const CHR_HP_BAR_GAP_ABOVE_SPRITE: float = 12.0
 const CHR_HP_BAR_HEIGHT: float = 8.0
 const CHR_STATUS_GAP_ABOVE_BAR: float = 4.0
@@ -1636,7 +1654,7 @@ func _append_trap_hit_log(line: String) -> void:
 	entry.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	entry.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	entry.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	UiTypography.apply_log_rich(entry, UiTypography.SIZE_LOG + 2)
+	UiTypography.apply_log_rich(entry, UiTypography.SIZE_LOG)
 	entry.text = "[b]%s[/b]" % _format_log_line_bbcode(line)
 	_prepare_battle_log_entry(entry)
 	_battle_log_content.add_child(entry)
@@ -1692,6 +1710,24 @@ func _enemy_swarm_y_ratio() -> float:
 	if $DungeonController.current_room_type == Enums.RoomType.ELITE:
 		return ELITE_Y_RATIO
 	return SWARM_Y_RATIO
+
+
+## 群れスロット数に応じて X 比率を算出し、画面端／行動順列へのはみ出しを防ぐ。
+func _swarm_x_ratio_for_slot(slot: int, n: int) -> float:
+	if n <= 1:
+		return clampf(SWARM_CENTER_X_RATIO, SWARM_X_MIN_RATIO, SWARM_X_MAX_RATIO)
+	var span: float = maxf(0.08, SWARM_X_MAX_RATIO - SWARM_X_MIN_RATIO)
+	var spacing: float = SWARM_SPACING_RATIO
+	var needed: float = spacing * float(n - 1)
+	if needed > span:
+		spacing = span / float(n - 1)
+		needed = span
+	var start: float = SWARM_CENTER_X_RATIO - needed * 0.5
+	if start < SWARM_X_MIN_RATIO:
+		start = SWARM_X_MIN_RATIO
+	if start + needed > SWARM_X_MAX_RATIO:
+		start = SWARM_X_MAX_RATIO - needed
+	return start + float(slot) * spacing
 
 func _global_to_root_pos(global_pos: Vector2) -> Vector2:
 	return get_global_transform_with_canvas().affine_inverse() * global_pos
@@ -2065,11 +2101,14 @@ func _sprite_top_y_global(sprite: AnimatedSprite2D) -> float:
 
 func _set_hp_bar_above_sprite(bar: ProgressBar, sprite: AnimatedSprite2D, formation_slot: int = 0) -> void:
 	const BAR_HALF_W: float = 40.0
+	## オトモは体が小さいのでパネルも短く（人間の約6割）
+	const PET_BAR_HALF_W: float = 24.0
+	var half_w: float = PET_BAR_HALF_W if formation_slot == PetSystem.PET_FORMATION_SLOT else BAR_HALF_W
 	var center: Vector2 = _sprite_center_in_root(sprite)
 	var bar_ty: float = _sprite_top_y_in_root(sprite) - CHR_HP_BAR_GAP_ABOVE_SPRITE - CHR_HP_BAR_HEIGHT + _chr_hp_bar_row_y_offset(formation_slot)
-	bar.offset_left = center.x - BAR_HALF_W
+	bar.offset_left = center.x - half_w
 	bar.offset_top = bar_ty
-	bar.offset_right = center.x + BAR_HALF_W
+	bar.offset_right = center.x + half_w
 	bar.offset_bottom = bar_ty + CHR_HP_BAR_HEIGHT
 
 # 注: 以下 _sprite_top_y は offset 補正込み（非透明領域上端基準）
@@ -2130,6 +2169,9 @@ func _make_status_icon_row() -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", int(STATUS_ICON_GAP))
 	row.visible = false
+	## HPバー／ネームプレートより前面（COMBAT_OVERLAY_Z=25）。
+	row.z_index = COMBAT_OVERLAY_Z + 3
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return row
 
 func _build_status_icon(entry: Dictionary) -> PanelContainer:
@@ -2209,8 +2251,18 @@ func _set_status_row_above_sprite(row: HBoxContainer, sprite: AnimatedSprite2D, 
 	if formation_slot >= 0:
 		icon_y = _sprite_top_y_in_root(sprite) - CHR_HP_BAR_GAP_ABOVE_SPRITE - CHR_HP_BAR_HEIGHT - CHR_STATUS_GAP_ABOVE_BAR - STATUS_ICON_SIZE + _chr_hp_bar_row_y_offset(formation_slot)
 	else:
-		icon_y = _sprite_top_y_in_root(sprite) - STATUS_ICON_SIZE - 4.0
+		## 敵: HPバー直上（バーに隠れない位置）。
+		icon_y = _enemy_hp_bar_top_y_in_root(sprite) - CHR_STATUS_GAP_ABOVE_BAR - STATUS_ICON_SIZE
 	row.position = Vector2(center.x - total_w * 0.5, icon_y)
+	row.z_index = COMBAT_OVERLAY_Z + 3
+
+
+func _enemy_hp_bar_top_y_in_root(sprite: AnimatedSprite2D) -> float:
+	const BAR_HEIGHT: float = 10.0
+	const GAP_ABOVE_SPRITE: float = 12.0
+	var center: Vector2 = _sprite_center_in_root(sprite)
+	var top_y: float = _sprite_top_y_in_root(sprite)
+	return minf(center.y - 50.0, top_y - GAP_ABOVE_SPRITE - BAR_HEIGHT)
 
 func _update_status_icons() -> void:
 	var in_combat: bool = $CombatController.is_in_combat
@@ -3274,7 +3326,10 @@ func _reset_narrative_typography() -> void:
 		_label_now_playing.text = ""
 
 func _apply_trap_hit_feedback(target_idx: int, dmg: int, trap_room: bool = false) -> void:
-	AudioManager.play_sfx("combat_hit", 1.0, 0.05)
+	## 探索中罠（戦闘入室時）は combat_hit を鳴らさない。
+	## 入室直後にヒット音だけ聞こえて「謎ダメージ」に聞こえるため。罠部屋のみ SE。
+	if trap_room:
+		AudioManager.play_sfx("combat_hit", 1.0, 0.05)
 	var pos: Vector2 = _trap_feedback_world_pos(target_idx)
 	var dmg_scale: float = TrapPresentationScript.damage_scale(trap_room)
 	if pos != Vector2.ZERO:
@@ -6224,20 +6279,23 @@ func _reposition_enemy_sprites() -> void:
 		_apply_boss_sprite_transform()
 		_update_hp_bars()
 		return
-	var n: int = 0
-	for spr: AnimatedSprite2D in _swarm_sprites:
-		if spr.visible:
-			n += 1
+	var n: int = _swarm_sprites.size()
 	if n <= 0:
 		return
-	var start_ratio: float = SWARM_CENTER_X_RATIO - float(n - 1) * SWARM_SPACING_RATIO * 0.5
+	var any_visible: bool = false
+	for spr: AnimatedSprite2D in _swarm_sprites:
+		if spr.visible:
+			any_visible = true
+			break
+	if not any_visible:
+		return
 	var y_ratio: float = _enemy_swarm_y_ratio()
-	for i in _swarm_sprites.size():
+	for i in n:
 		var spr: AnimatedSprite2D = _swarm_sprites[i]
 		if not spr.visible:
 			continue
 		spr.position = _battlefield_combat_position(
-			Vector2(start_ratio + float(i) * SWARM_SPACING_RATIO, y_ratio)
+			Vector2(_swarm_x_ratio_for_slot(i, n), y_ratio)
 		)
 	_update_hp_bars()
 
@@ -6318,8 +6376,7 @@ func _show_enemy_swarm(enemy_ids: Array) -> void:
 		return
 	_ensure_swarm_slots(n)
 	# 群れは名前が密集するため小さめフォントに、単体は従来サイズ。
-	var name_fs: int = 15 if n > 1 else 22
-	var start_ratio: float = SWARM_CENTER_X_RATIO - float(n - 1) * SWARM_SPACING_RATIO * 0.5
+	var name_fs: int = SWARM_NAME_FONT_SIZE if n > 1 else SINGLE_NAME_FONT_SIZE
 	var y_ratio: float = _enemy_swarm_y_ratio()
 	for i in n:
 		_style_enemy_nameplate(_swarm_nameplates[i])
@@ -6336,8 +6393,10 @@ func _show_enemy_swarm(enemy_ids: Array) -> void:
 			continue
 		spr.sprite_frames = frames
 		_normalize_enemy_scale(spr, frames)
+		if n > 1:
+			spr.scale *= SWARM_DISPLAY_SCALE
 		spr.position = _battlefield_combat_position(
-			Vector2(start_ratio + float(i) * SWARM_SPACING_RATIO, y_ratio)
+			Vector2(_swarm_x_ratio_for_slot(i, n), y_ratio)
 		)
 		spr.play("idle")
 		spr.visible = true
@@ -6353,19 +6412,18 @@ func _position_swarm_overlay(slot: int) -> void:
 	var sprite: AnimatedSprite2D = _swarm_sprites[slot]
 	var bar: ProgressBar = _swarm_hp_bars[slot]
 	var np: Label = _swarm_nameplates[slot]
-	const BAR_HALF_W: float = 36.0
-	const BAR_HEIGHT: float = 10.0
-	const NAME_HEIGHT: float = 24.0
-	const GAP_ABOVE_SPRITE: float = 12.0
+	var swarming: bool = $CombatController.swarm_data.size() > 1
+	var bar_half_w: float = SWARM_BAR_HALF_W if swarming else SINGLE_BAR_HALF_W
+	var bar_height: float = SWARM_BAR_HEIGHT if swarming else SINGLE_BAR_HEIGHT
+	var name_height: float = SWARM_NAME_HEIGHT if swarming else SINGLE_NAME_HEIGHT
 	const GAP_BAR_NAME: float = 6.0
 	var center: Vector2 = _sprite_center_in_root(sprite)
 	var cx: float = center.x
-	var top_y: float = _sprite_top_y_in_root(sprite)
-	var bar_ty: float = minf(center.y - 50.0, top_y - GAP_ABOVE_SPRITE - BAR_HEIGHT)
-	bar.offset_left = cx - BAR_HALF_W
+	var bar_ty: float = _enemy_hp_bar_top_y_in_root(sprite)
+	bar.offset_left = cx - bar_half_w
 	bar.offset_top = bar_ty
-	bar.offset_right = cx + BAR_HALF_W
-	bar.offset_bottom = bar_ty + BAR_HEIGHT
+	bar.offset_right = cx + bar_half_w
+	bar.offset_bottom = bar_ty + bar_height
 	var data: Resource = $CombatController.get_enemy_data_at(slot)
 	if data == null:
 		np.visible = false
@@ -6374,16 +6432,17 @@ func _position_swarm_overlay(slot: int) -> void:
 		return
 	var name_text: String = "Lv%d %s" % [$CombatController.enemy_level, data.display_name]
 	np.text = name_text
-	var name_fs: int = np.get_theme_font_size("font_size")
+	var name_fs: int = SWARM_NAME_FONT_SIZE if swarming else SINGLE_NAME_FONT_SIZE
+	np.add_theme_font_size_override("font_size", name_fs)
 	var name_half_w: float = _nameplate_half_width(name_text, name_fs)
 	cx = clampf(center.x, name_half_w + 12.0, 720.0 - name_half_w - 12.0)
-	bar.offset_left = cx - BAR_HALF_W
-	bar.offset_right = cx + BAR_HALF_W
-	var name_ty: float = bar_ty - GAP_BAR_NAME - NAME_HEIGHT
+	bar.offset_left = cx - bar_half_w
+	bar.offset_right = cx + bar_half_w
+	var name_ty: float = bar_ty - GAP_BAR_NAME - name_height
 	np.offset_left = cx - name_half_w
 	np.offset_top = name_ty
 	np.offset_right = cx + name_half_w
-	np.offset_bottom = name_ty + NAME_HEIGHT
+	np.offset_bottom = name_ty + name_height
 	np.visible = true
 	_position_elite_name_badge(slot, cx, name_ty)
 
@@ -7245,16 +7304,10 @@ func _make_turn_order_cell(entry: Dictionary) -> PanelContainer:
 			holder.add_theme_stylebox_override("panel", _make_turn_order_frame_style(false))
 	holder.set_meta("baked_enemy_frame", baked_enemy_frame)
 	icon.texture = tex
-	icon.modulate = Color(1.0, 1.0, 1.0, 0.7)
+	## 敵アイコンは暗めの焼込枠が多いので初期からフル不透明。強調は _set_turn_order_active。
+	icon.modulate = Color(1.0, 1.0, 1.0, 1.0)
 	holder.add_child(icon)
-	var badge := Label.new()
-	badge.text = _turn_order_action_badge(str(entry.get("kind", "")), int(entry.get("index", -1)))
-	badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	badge.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-	badge.offset_top = -16.0
-	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	UiTypography.apply_display(badge, TURN_ORDER_BADGE_FONT_PX, Color(1.0, 0.95, 0.82, 1.0), UiTypography.OUTLINE_STRONG)
-	holder.add_child(badge)
+	## 攻／技などの行動予定バッジは表示しない（アイコンのみ）。
 	return holder
 
 func _layout_turn_order_columns() -> void:
@@ -7294,7 +7347,6 @@ func _update_turn_order_ui(order: Array) -> void:
 			"index": entry["index"],
 			"icon": holder.get_child(0),
 			"frame": holder,
-			"badge": holder.get_child(1),
 			"baked_frame": bool(holder.get_meta("baked_enemy_frame", false)),
 		})
 	_turn_order_col_left.visible = _turn_order_col_left.get_child_count() > 0
@@ -7304,6 +7356,8 @@ func _update_turn_order_ui(order: Array) -> void:
 	if not order.is_empty() and order[0].get("kind", "") == "party":
 		_party_card_active_turn = int(order[0].get("index", -1))
 	_update_party_cards_hp()
+	if not order.is_empty():
+		_set_turn_order_active(order[0])
 
 # 次に行動するユニットの枠を強調する。
 func _set_turn_order_active(entry: Dictionary) -> void:
@@ -7311,12 +7365,22 @@ func _set_turn_order_active(entry: Dictionary) -> void:
 		var icon: TextureRect = item["icon"]
 		var frame: PanelContainer = item["frame"]
 		var active: bool = item["kind"] == entry["kind"] and item["index"] == entry["index"]
-		if bool(item.get("baked_frame", false)):
+		var baked: bool = bool(item.get("baked_frame", false))
+		if baked:
 			frame.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 		else:
 			frame.add_theme_stylebox_override("panel", _make_turn_order_frame_style(active))
 		frame.scale = Vector2(1.06, 1.06) if active else Vector2.ONE
-		icon.modulate = Color(1.0, 1.0, 1.0, 1.0) if active else Color(1.0, 1.0, 1.0, 0.55)
+		## 非アクティブを alpha 0.55 にすると敵の暗め焼込枠がほぼ真っ黒になる。
+		## 敵は軽く持ち上げ、味方は軽い不透明差のみ。
+		if baked:
+			icon.modulate = (
+				Color(1.15, 1.15, 1.2, 1.0) if active else Color(1.05, 1.05, 1.1, 1.0)
+			)
+		else:
+			icon.modulate = (
+				Color(1.0, 1.0, 1.0, 1.0) if active else Color(1.0, 1.0, 1.0, 0.88)
+			)
 
 func _clear_turn_order_ui() -> void:
 	if _turn_order_col_left == null or _turn_order_col_right == null:

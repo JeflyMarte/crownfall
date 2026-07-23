@@ -42,3 +42,29 @@ func test_play_unknown_bgm_is_noop() -> void:
 	AudioManager.stop_bgm()
 	AudioManager.play_bgm("not_a_real_bgm")
 	assert_eq(AudioManager.current_bgm_id(), "")
+
+
+func test_scene_bgm_maps_hub_and_facility() -> void:
+	assert_eq(
+		_BgmCatalog.bgm_for_scene("res://scenes/equipment/EquipmentScene.tscn"),
+		_BgmCatalog.ID_HUB
+	)
+	assert_eq(
+		_BgmCatalog.bgm_for_scene("res://scenes/gacha/GachaScene.tscn"),
+		_BgmCatalog.ID_GACHA
+	)
+	assert_eq(
+		_BgmCatalog.bgm_for_scene("res://scenes/blacksmith/BlacksmithScene.tscn"),
+		_BgmCatalog.ID_FORGE
+	)
+	assert_eq(_BgmCatalog.bgm_for_scene("res://scenes/unknown/NoScene.tscn"), "")
+
+
+func test_leaving_gacha_to_equipment_switches_to_hub() -> void:
+	AudioManager.play_bgm(_BgmCatalog.ID_GACHA)
+	assert_eq(AudioManager.current_bgm_id(), _BgmCatalog.ID_GACHA)
+	var hub_id: String = _BgmCatalog.bgm_for_scene(
+		"res://scenes/equipment/EquipmentScene.tscn"
+	)
+	AudioManager.play_bgm(hub_id)
+	assert_eq(AudioManager.current_bgm_id(), _BgmCatalog.ID_HUB)

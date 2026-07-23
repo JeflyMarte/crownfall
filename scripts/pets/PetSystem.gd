@@ -8,7 +8,10 @@ const PET_DATA_PATH: String = "res://resources/pets/%s.tres"
 const PLACEHOLDER_SPRITE: String = "res://resources/animation/PET_Jack.tres"
 ## 陣形UI外の固定前衛スロット（DungeonScene FORMATION_SLOT_RATIOS[4]）
 const PET_FORMATION_SLOT: int = 4
-const PET_THREAT_BASE: float = 0.55
+## 前衛固定のため「低Threatで狙われうる」（P3-PET-OTOMO-001-6）。
+## 旧 0.55 は max_threat 選択下で人間（≥1.0）がいる限り一度も狙われず無敵に見えた。
+## 雑魚職(1.0)より少し高く、剣士(2.0)／盾(4.0)より低く保つ。
+const PET_THREAT_BASE: float = 1.35
 
 
 static func is_pet_id(member_id: String) -> bool:

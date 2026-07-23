@@ -1,12 +1,15 @@
 class_name WanderingEnemyConfig
 extends RefCounted
 
-## 遍在希少種（放浪個体）の出現・報酬 SSOT（P3-WANDER-001 / P3-WANDER-002 / P3-WANDER-003）。
+## 遍在希少種（放浪個体）の出現・報酬 SSOT
+## （P3-WANDER-001 / P3-WANDER-002 / P3-WANDER-003 / P3-WANDER-004）。
 
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 
 const ID_COSMIC_DUCK: String = "cosmic_duck"
 const ID_CROWN_RAVEN: String = "crown_raven"
+const ID_GOLDEN_SCARAB: String = "golden_scarab"
+const ID_SHADOW_STALKER: String = "shadow_stalker"
 
 ## 旧ID（セーブ／図鑑エイリアス）
 const ID_WAYFARER_SPARROW: String = "wayfarer_sparrow"
@@ -18,8 +21,11 @@ const ENEMY_ID_ALIASES: Dictionary = {
 }
 
 ## COMBAT 部屋の基準出現率（ノーマル帯）。Hard/NM は rarity_weight_mult と同型で上昇。
+## 案A（P3-WANDER-004）: 既存据置＋新2種追加。合計 ≈ 6.3%。
 const SPAWN_CHANCE_COSMIC_DUCK: float = 0.025
 const SPAWN_CHANCE_CROWN_RAVEN: float = 0.015
+const SPAWN_CHANCE_GOLDEN_SCARAB: float = 0.015
+const SPAWN_CHANCE_SHADOW_STALKER: float = 0.008
 
 ## 互換エイリアス（旧定数名）
 const SPAWN_CHANCE_WAYFARER: float = SPAWN_CHANCE_COSMIC_DUCK
@@ -40,14 +46,55 @@ const CROWN_RAVEN_CATEGORY_WEIGHTS: Dictionary = {
 	"accessory": 25,
 }
 
-## 撃破装備ドロップ成功時に神話を抽選する確率（ボス再クリアと同程度）。
+## 影狩りの装備レア度重み（★寄り強化）。
+const SHADOW_STALKER_RARITY_WEIGHTS: Dictionary = {
+	Enums.Rarity.COMMON: 5,
+	Enums.Rarity.RARE: 15,
+	Enums.Rarity.EPIC: 40,
+	Enums.Rarity.LEGENDARY: 40,
+}
+
+## 影狩りの装備種別重み（レイヴンと同型）。
+const SHADOW_STALKER_CATEGORY_WEIGHTS: Dictionary = {
+	"weapon": 40,
+	"armor": 35,
+	"accessory": 25,
+}
+
+## 撃破装備ドロップ成功時に神話を抽選する確率（別枠）。
 const CROWN_RAVEN_MYTHIC_CHANCE: float = 0.01
+const SHADOW_STALKER_MYTHIC_CHANCE: float = 0.02
 
 
 static func is_crown_raven(enemy_data: Resource) -> bool:
 	if enemy_data == null:
 		return false
 	return str(enemy_data.id) == ID_CROWN_RAVEN
+
+
+static func is_shadow_stalker(enemy_data: Resource) -> bool:
+	if enemy_data == null:
+		return false
+	return str(enemy_data.id) == ID_SHADOW_STALKER
+
+
+static func is_golden_scarab(enemy_data: Resource) -> bool:
+	if enemy_data == null:
+		return false
+	return str(enemy_data.id) == ID_GOLDEN_SCARAB
+
+
+## 伝説プール補完＋神話別枠の対象（レイヴン／影狩り）。
+static func grants_legendary_equip_pool(enemy_data: Resource) -> bool:
+	return is_crown_raven(enemy_data) or is_shadow_stalker(enemy_data)
+
+
+static func mythic_chance_for(enemy_data: Resource) -> float:
+	if is_shadow_stalker(enemy_data):
+		return SHADOW_STALKER_MYTHIC_CHANCE
+	if is_crown_raven(enemy_data):
+		return CROWN_RAVEN_MYTHIC_CHANCE
+	return 0.0
 
 
 static func canonical_enemy_id(enemy_id: String) -> String:
@@ -70,6 +117,16 @@ static func spawn_chance_crown_raven(tier: int = _DungeonTierConfig.TIER_NORMAL)
 	return minf(0.45, base * EventSystem.get_wander_spawn_mult(ID_CROWN_RAVEN))
 
 
+static func spawn_chance_golden_scarab(tier: int = _DungeonTierConfig.TIER_NORMAL) -> float:
+	var base: float = SPAWN_CHANCE_GOLDEN_SCARAB * spawn_mult_for_tier(tier)
+	return minf(0.45, base * EventSystem.get_wander_spawn_mult(ID_GOLDEN_SCARAB))
+
+
+static func spawn_chance_shadow_stalker(tier: int = _DungeonTierConfig.TIER_NORMAL) -> float:
+	var base: float = SPAWN_CHANCE_SHADOW_STALKER * spawn_mult_for_tier(tier)
+	return minf(0.45, base * EventSystem.get_wander_spawn_mult(ID_SHADOW_STALKER))
+
+
 static func try_roll_wandering_id(
 	rng: RandomNumberGenerator = null,
 	tier: int = _DungeonTierConfig.TIER_NORMAL
@@ -83,10 +140,20 @@ static func wandering_id_for_roll(
 ) -> String:
 	var duck_chance: float = spawn_chance_cosmic_duck(tier)
 	var raven_chance: float = spawn_chance_crown_raven(tier)
-	if roll < duck_chance:
+	var scarab_chance: float = spawn_chance_golden_scarab(tier)
+	var stalker_chance: float = spawn_chance_shadow_stalker(tier)
+	var cursor: float = 0.0
+	if roll < cursor + duck_chance:
 		return ID_COSMIC_DUCK
-	if roll < duck_chance + raven_chance:
+	cursor += duck_chance
+	if roll < cursor + raven_chance:
 		return ID_CROWN_RAVEN
+	cursor += raven_chance
+	if roll < cursor + scarab_chance:
+		return ID_GOLDEN_SCARAB
+	cursor += scarab_chance
+	if roll < cursor + stalker_chance:
+		return ID_SHADOW_STALKER
 	return ""
 
 

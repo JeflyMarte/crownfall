@@ -1,8 +1,7 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/settings/SettingsScene.gd" id="1"]
 [ext_resource type="Theme" path="res://assets/ui/production_theme.tres" id="2"]
-[ext_resource type="Texture2D" path="res://assets/ui/commander_ui/UI_BG_Commander.png" id="3"]
 
 [sub_resource type="StyleBoxFlat" id="SB_Header"]
 bg_color = Color(0.04, 0.04, 0.1, 0.9)
@@ -32,17 +31,15 @@ grow_vertical = 2
 theme = ExtResource("2")
 script = ExtResource("1")
 
-[node name="BgTexture" type="TextureRect" parent="."]
+[node name="Bg" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("3")
-expand_mode = 1
-stretch_mode = 6
 mouse_filter = 2
+color = Color(0.045, 0.045, 0.09, 1)
 
 [node name="Header" type="PanelContainer" parent="."]
 layout_mode = 1
@@ -74,7 +71,7 @@ layout_mode = 1
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 12.0
-offset_top = 52.0
+offset_top = 70.0
 offset_right = -12.0
 offset_bottom = -88.0
 grow_horizontal = 2

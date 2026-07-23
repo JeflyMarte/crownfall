@@ -19,6 +19,10 @@ const BETA_MOURNGATE_ONLY: bool = true
 const COSMIC_RIFT_DUNGEON_ID: String = "cosmic_rift"
 ## 宝冠レイヴン日次イベントDG id。
 const CROWN_ROOKERY_DUNGEON_ID: String = "crown_rookery"
+## ゴールデンスカラベ日次イベントDG id。
+const GOLDEN_NEST_DUNGEON_ID: String = "golden_nest"
+## 影狩り日次イベントDG id。
+const SHADOW_HUNT_DUNGEON_ID: String = "shadow_hunt"
 ## 初期5人ストーリー編成（P3-STORY-STARTER-001）。true=開始1人選択＋章進行で加入。
 const STARTER_STORY_RECRUIT: bool = true
 ## β検証用: モーンゲート 1-2/1-3/1-4 初回クリアでも未加入スターターを1人加入（本番×-5ルールに加え）。

@@ -43,6 +43,31 @@ const LOOP_IDS: Dictionary = {
 	ID_GACHA: true,
 }
 
+## シーンパス → BGM ID。未登録は切替なし（呼び出し側の play_bgm に委ねる）。
+## ガチャ／鍛冶は画面限定。拠点タブ群は hub に戻す（P3-AUDIO-BGM-001 後続）。
+const SCENE_BGM: Dictionary = {
+	"res://scenes/title/TitleScene.tscn": ID_TITLE,
+	"res://scenes/intro/IntroLoreScene.tscn": ID_INTRODUCTION,
+	"res://scenes/intro/IntroNameScene.tscn": ID_INTRODUCTION,
+	"res://scenes/intro/IntroNinaScene.tscn": ID_INTRODUCTION,
+	"res://scenes/base/BaseScene.tscn": ID_HUB,
+	"res://scenes/equipment/EquipmentScene.tscn": ID_HUB,
+	"res://scenes/equipment/EquipmentCatalogScene.tscn": ID_HUB,
+	"res://scenes/roster/RosterScene.tscn": ID_HUB,
+	"res://scenes/roster/StarterPickScene.tscn": ID_HUB,
+	"res://scenes/dungeon/DungeonSelectScene.tscn": ID_HUB,
+	"res://scenes/codex/CodexScene.tscn": ID_HUB,
+	"res://scenes/commander/CommanderScene.tscn": ID_HUB,
+	"res://scenes/settings/SettingsScene.tscn": ID_HUB,
+	"res://scenes/guild/GuildScene.tscn": ID_HUB,
+	"res://scenes/event/EventScene.tscn": ID_HUB,
+	"res://scenes/gacha/GachaScene.tscn": ID_GACHA,
+	"res://scenes/blacksmith/BlacksmithScene.tscn": ID_FORGE,
+	"res://scenes/survey/SurveyScene.tscn": ID_SURVEY,
+	"res://scenes/dungeon/DungeonScene.tscn": ID_DUNGEON_EXPLORE,
+	"res://scenes/result/ResultScene.tscn": ID_RESULT,
+}
+
 
 static func path_for(bgm_id: String) -> String:
 	var primary: String = str(PATHS.get(bgm_id, ""))
@@ -59,6 +84,12 @@ static func path_for(bgm_id: String) -> String:
 
 static func should_loop(bgm_id: String) -> bool:
 	return bool(LOOP_IDS.get(bgm_id, true))
+
+
+static func bgm_for_scene(scene_path: String) -> String:
+	if scene_path.is_empty():
+		return ""
+	return str(SCENE_BGM.get(scene_path, ""))
 
 
 static func all_ids() -> Array[String]:

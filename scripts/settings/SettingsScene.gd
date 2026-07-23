@@ -5,17 +5,22 @@ extends Control
 const _SettingsPrefs := preload("res://scripts/settings/SettingsPrefs.gd")
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const TITLE_SCENE: String = "res://scenes/title/TitleScene.tscn"
-const BG_PATH: String = "res://assets/ui/commander_ui/UI_BG_Commander.png"
+## 司令官BGの罫線が「ーーー」に見えるため、設定は単色下地のみ（テクスチャBG禁止）。
+const BG_COLOR: Color = Color(0.045, 0.045, 0.09, 1.0)
 
 const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45)
 const COLOR_SUB: Color = Color(0.72, 0.69, 0.62)
 const SECTION_GAP: int = 16
 const BODY_SEP: int = 8
 const INNER_PAD: int = 10
+## Header 下端と音声パネルのあいだの余白。
+const HEADER_CONTENT_GAP: float = 24.0
+const _META_BODY_BASE_TOP: StringName = &"_cf_body_base_top"
 
 @onready var _label_title: Label = $Header/HeaderRow/LabelTitle
 @onready var _btn_back: Button = $Header/HeaderRow/ButtonBack
-@onready var _bg_texture: TextureRect = $BgTexture
+@onready var _bg: ColorRect = $Bg
+@onready var _main_scroll: ScrollContainer = $MainScroll
 @onready var _content_host: VBoxContainer = $MainScroll/MainVBox/ContentHost
 
 var _speed_buttons: Dictionary = {}
@@ -23,20 +28,64 @@ var _speed_buttons: Dictionary = {}
 
 func _ready() -> void:
 	_SettingsPrefs.ensure_loaded()
-	if ResourceLoader.exists(BG_PATH):
-		_bg_texture.texture = load(BG_PATH) as Texture2D
+	if _bg != null:
+		_bg.color = BG_COLOR
 	_label_title.text = "設定"
 	UiTypography.apply_screen_title(_label_title)
 	UiTypography.apply_button(_btn_back, false)
 	_btn_back.pressed.connect(_on_back_pressed)
+	_content_host.add_theme_constant_override("separation", SECTION_GAP)
+	## chrome 適用前に本文基準 top を入れておく（BottomNavHelper → HubLayoutHelper）。
+	_sync_main_scroll_below_header()
 	if _opened_from_title():
 		var bottom: Control = $BottomNav as Control
 		if bottom != null:
 			bottom.visible = false
 	else:
 		BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.NONE)
-	_content_host.add_theme_constant_override("separation", SECTION_GAP)
 	_rebuild_page()
+	_configure_layout()
+	call_deferred("_configure_layout")
+	var tree: SceneTree = get_tree()
+	if tree != null:
+		var timer: SceneTreeTimer = tree.create_timer(0.08)
+		timer.timeout.connect(_configure_layout)
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED and is_node_ready():
+		_configure_layout()
+
+
+func _configure_layout() -> void:
+	if _main_scroll == null:
+		return
+	_sync_main_scroll_below_header()
+	var bottom: Control = $BottomNav as Control
+	var nav_hidden: bool = bottom == null or not bottom.visible
+	if nav_hidden:
+		_main_scroll.offset_bottom = -12.0
+	else:
+		var nav_h: float = maxf(NavUiTokens.BOTTOM_NAV_HEIGHT, bottom.size.y) + 8.0
+		_main_scroll.offset_bottom = -nav_h
+
+
+func _sync_main_scroll_below_header() -> void:
+	var header: Control = $Header as Control
+	if header == null or _main_scroll == null:
+		return
+	var top_inset: float = 0.0
+	if SafeAreaHelper.should_apply_chrome():
+		top_inset = SafeAreaHelper.top_inset()
+	var header_bottom: float = header.offset_bottom
+	if header.size.y > 1.0:
+		header_bottom = maxf(header_bottom, header.offset_top + header.size.y)
+	var desired_top: float = header_bottom + HEADER_CONTENT_GAP
+	_main_scroll.offset_top = desired_top
+	_main_scroll.set_meta(
+		_META_BODY_BASE_TOP,
+		maxf(HEADER_CONTENT_GAP + 46.0, desired_top - top_inset)
+	)
 
 
 func _rebuild_page() -> void:

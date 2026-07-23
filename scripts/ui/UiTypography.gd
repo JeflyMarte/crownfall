@@ -27,8 +27,8 @@ const SIZE_DISPLAY: int = 24
 const SIZE_DISPLAY_TITLE: int = 28
 const SIZE_BUTTON: int = 24
 const SIZE_NAV: int = 13
-## 戦闘ログは本文と同サイズ（旧 22≈0.85倍 → 1倍）。
-const SIZE_LOG: int = SIZE_BODY
+## 戦闘ログは本文よりやや小さく（可読性とログ領域のバランス）。
+const SIZE_LOG: int = SIZE_BODY_SMALL
 
 const COLOR_BODY: Color = Color(0.95, 0.92, 0.86, 1.0)
 const COLOR_SUB: Color = Color(0.88, 0.84, 0.76, 1.0)

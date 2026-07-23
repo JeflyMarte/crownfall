@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="DungeonData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "golden_nest"
+display_name = "砂金の巣穴"
+difficulty = 1
+recommended_level = 6
+enemy_level = 4
+room_count = 5
+floor_count = 5
+enemy_pool = Array[String](["golden_scarab"])
+boss_id = ""
+drop_table_id = ""
+discovery_unlocks = {}
+elite_pool = Array[String]([])
+favored_element = "fire"
+route_type = "event"
+event_room_weight = 5
+min_event_rooms = 0
+room_weight_overrides = {
+"combat": 35,
+"heal": 10,
+"lore": 5,
+"treasure": 30,
+"trap": 20,
+"elite": 0
+}
+weapon_pool = Array[String]([])
+armor_pool = Array[String]([])
+accessory_pool = Array[String]([])
+unlock_after_dungeon_id = ""
+daily_attempt_limit = 1
+disable_wandering = true
+forced_swarm_chance = 0.10
+forced_swarm_min = 2
+forced_swarm_max = 3
+flavor_text = "一日一回だけ開く砂金の孔。殻に金を溜めたスカラベだけが
+巣を守り、触れるとすぐに逃げ込む。稀に群れで飛び出す。"

@@ -15,6 +15,7 @@ const _EvolutionTraits = preload("res://scripts/systems/EvolutionTraits.gd")
 const _JobStatCalculator = preload("res://scripts/equipment/JobStatCalculator.gd")
 const _AffixStatCalculator = preload("res://scripts/equipment/AffixStatCalculator.gd")
 const _EquipmentEnhancer = preload("res://scripts/equipment/EquipmentEnhancer.gd")
+const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _WeaponFlavorHelper = preload("res://scripts/systems/WeaponFlavorHelper.gd")
 const _ElementResolver = preload("res://scripts/combat/ElementResolver.gd")
 const _SkillIconHelper = preload("res://scripts/ui/SkillIconHelper.gd")
@@ -86,6 +87,10 @@ var _lb_ticket_row: HBoxContainer = null
 var _btn_lb_ticket: Button = null
 var _label_lb_ticket: Label = null
 var _confirm_lb_ticket: ConfirmationDialog = null
+var _confirm_take_equip: ConfirmationDialog = null
+var _pending_take_item: Resource = null
+var _pending_take_category: String = ""
+var _pending_take_relic_id: String = ""
 @onready var _stats_grid: GridContainer = $VBoxContainer/CharacterCard/CardRow/InfoBox/StatsGrid
 @onready var _btn_stat_detail: Button = $VBoxContainer/CharacterCard/CardRow/InfoBox/BtnStatDetail
 @onready var _slots_panel: VBoxContainer = $VBoxContainer/CharacterCard/CardRow/SlotsPanel
@@ -159,10 +164,13 @@ var _overlay_relic_id: String = ""
 var _overlay_skill_id: String = ""
 
 const INVENTORY_LONG_PRESS_SEC: float = 0.45
+## iPhone は静止長押しでも微細 ScreenDrag が来る。Scroll deadzone と同程度まで許容する。
+const INVENTORY_PRESS_MOVE_CANCEL_PX: float = 20.0
 var _inv_pointer_down: bool = false
 var _inv_long_press_fired: bool = false
 var _inv_press_timer: SceneTreeTimer = null
 var _inv_press_action: Callable = Callable()
+var _inv_press_origin: Vector2 = Vector2.ZERO
 var _detail_pinned: bool = false
 var _portrait_idle_textures: Array[Texture2D] = []
 var _portrait_idle_frame: int = 0
@@ -179,6 +187,7 @@ func _ready() -> void:
 	_btn_catalog.pressed.connect(_on_catalog_pressed)
 	UiTypography.apply_menu_button(_btn_catalog)
 	_ensure_item_detail_overlay()
+	_ensure_take_equip_confirm()
 	_btn_member_prev.pressed.connect(_on_member_prev_pressed)
 	_btn_member_next.pressed.connect(_on_member_next_pressed)
 	_btn_promote.pressed.connect(_on_promote_pressed)
@@ -905,6 +914,9 @@ func _compute_equipment_effect_bonuses(member: Resource) -> Dictionary:
 	var acc_data: Resource = _accessory_data(member.equipped_accessory)
 	var affix: Dictionary = _AffixStatCalculator.get_bonuses(party_idx) if party_idx >= 0 else {}
 	result["attack"] = int(affix.get("attack_flat", 0))
+	## 武器の実効攻撃力（炉研ぎ込み）。ここが欠けると「攻撃力 +0」のままになる。
+	if weapon != null:
+		result["attack"] += _EquipmentEnhancer.get_effective_attack(weapon)
 	if acc_data != null and member.equipped_accessory != null:
 		result["attack"] += EquipmentEnhancer.effective_accessory_int_bonus(
 			member.equipped_accessory, "attack_bonus", acc_data
@@ -931,6 +943,9 @@ func _compute_equipment_effect_bonuses(member: Resource) -> Dictionary:
 	if weapon != null:
 		result["crit_rate"] += float(weapon.critical_rate)
 		result["attack_speed"] = maxf(0.0, float(weapon.attack_speed) - 1.0)
+		## 会心ダメ倍率の 1.0 超過分（1.5 → +50%）。
+		var crit_dmg: float = _WeaponStatResolver.resolve_critical_damage(weapon)
+		result["crit_damage"] = maxf(0.0, crit_dmg - 1.0)
 	result["attack_speed"] += float(affix.get("attack_speed_mult_add", 0.0))
 	return result
 
@@ -1241,6 +1256,8 @@ func _rebuild_inventory_grid() -> void:
 			_inventory_grid.add_child(_make_relic_cell(str(e.get("relic_id", ""))))
 		else:
 			_inventory_grid.add_child(_make_item_cell(e["item"], str(e["category"])))
+	## rebuild 後も Scroll 内 Button を PASS 化（長押し＋スクロール両立）。
+	ScrollTouchHelper.enable(_inventory_scroll)
 
 func _make_item_cell(item: Resource, category: String) -> Button:
 	var cell_size: Vector2 = _inv_cell_size_vec()
@@ -1259,12 +1276,10 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 	var party_idx: int = _party_index_for_view()
 	var is_on_self: bool = party_idx >= 0 and owner_idx == party_idx
 	var member: Resource = _get_view_adventurer()
-	btn.tooltip_text = EquipmentItemDetailHelper.hover_summary(item, category, member)
-	var captured_item: Resource = item
-	var captured_category: String = category
-	btn.pressed.connect(func() -> void:
-		_tap_inventory_item(captured_item, captured_category)
-	)
+	var summary: String = EquipmentItemDetailHelper.hover_summary(item, category, member)
+	btn.tooltip_text = "%s\n（長押しで効果）" % summary
+	## 短押し=着脱、長押し=効果オーバーレイ（Button.pressed は使わず gui_input で統一）。
+	_bind_inventory_cell_interaction(btn, _inventory_item_action.bind(item, category))
 	btn.disabled = party_idx < 0
 	if is_on_self:
 		btn.modulate = Color(0.72, 0.72, 0.72, 0.85)
@@ -1290,11 +1305,8 @@ func _make_relic_cell(relic_id: String) -> Button:
 	var owner_idx: int = EquipmentUiHelper.relic_equipped_member_index(relic_id)
 	var party_idx: int = _party_index_for_view()
 	var is_on_self: bool = party_idx >= 0 and owner_idx == party_idx
-	btn.tooltip_text = EquipmentItemDetailHelper.relic_hover_summary(relic_id)
-	var captured_relic_id: String = relic_id
-	btn.pressed.connect(func() -> void:
-		_on_relic_equip_pressed(captured_relic_id)
-	)
+	btn.tooltip_text = "%s\n（長押しで詳細）" % EquipmentItemDetailHelper.relic_hover_summary(relic_id)
+	_bind_inventory_cell_interaction(btn, _inventory_relic_action.bind(relic_id))
 	btn.disabled = party_idx < 0
 	if is_on_self:
 		btn.modulate = Color(0.72, 0.72, 0.72, 0.85)
@@ -1305,16 +1317,31 @@ func _make_relic_cell(relic_id: String) -> Button:
 		_add_owner_portrait_badge(btn, owner_idx, cell_size)
 	return btn
 
+func _inventory_item_action(is_long_press: bool, item: Resource, category: String) -> void:
+	if is_long_press:
+		if item != null:
+			_show_item_stats_overlay(item, category, true)
+		return
+	_tap_inventory_item(item, category)
+
+func _inventory_relic_action(is_long_press: bool, relic_id: String) -> void:
+	if is_long_press:
+		if not relic_id.is_empty():
+			_show_relic_stats_overlay(relic_id, true)
+		return
+	_on_relic_equip_pressed(relic_id)
+
 func _bind_inventory_cell_interaction(btn: Button, action: Callable) -> void:
 	btn.gui_input.connect(_on_inventory_cell_gui_input.bind(action))
 
 func _on_inventory_cell_gui_input(event: InputEvent, action: Callable) -> void:
-	if event is InputEventScreenDrag:
+	if _inv_pointer_down and _should_cancel_inventory_press_for_move(event):
 		_cancel_inventory_press()
 		return
 	if not _is_inventory_pointer_event(event):
 		return
 	if event.pressed:
+		_inv_press_origin = _inventory_event_position(event)
 		_begin_inventory_press(action)
 	else:
 		_end_inventory_press()
@@ -1326,6 +1353,31 @@ func _is_inventory_pointer_event(event: InputEvent) -> bool:
 		return event.button_index == MOUSE_BUTTON_LEFT
 	if event is InputEventScreenTouch:
 		return true
+	return false
+
+func _inventory_event_position(event: InputEvent) -> Vector2:
+	if event is InputEventScreenTouch:
+		return (event as InputEventScreenTouch).position
+	if event is InputEventMouseButton:
+		return (event as InputEventMouseButton).position
+	if event is InputEventScreenDrag:
+		return (event as InputEventScreenDrag).position
+	if event is InputEventMouseMotion:
+		return (event as InputEventMouseMotion).position
+	return Vector2.ZERO
+
+func _should_cancel_inventory_press_for_move(event: InputEvent) -> bool:
+	## スクロール開始と同程度の移動までは長押しを維持（実機の指ぶれ対策）。
+	if event is InputEventScreenDrag:
+		return (
+			_inv_press_origin.distance_to((event as InputEventScreenDrag).position)
+			>= INVENTORY_PRESS_MOVE_CANCEL_PX
+		)
+	if event is InputEventMouseMotion:
+		var motion: InputEventMouseMotion = event as InputEventMouseMotion
+		if (motion.button_mask & MOUSE_BUTTON_MASK_LEFT) == 0:
+			return false
+		return _inv_press_origin.distance_to(motion.position) >= INVENTORY_PRESS_MOVE_CANCEL_PX
 	return false
 
 func _begin_inventory_press(action: Callable) -> void:
@@ -1407,7 +1459,8 @@ func _show_relic_stats_overlay(relic_id: String, pinned: bool = false) -> void:
 	var is_on_self: bool = party_idx >= 0 and owner_idx == party_idx
 	_detail_equip_btn.text = "外す" if is_on_self else "装備する"
 	_detail_equip_btn.visible = party_idx >= 0
-	_detail_equip_btn.disabled = party_idx < 0 or (owner_idx >= 0 and not is_on_self)
+	## 他人装備中も付け替え確認経由で装備可。
+	_detail_equip_btn.disabled = party_idx < 0
 	_detail_overlay.visible = true
 
 func _add_owner_portrait_badge(btn: Button, owner_idx: int, cell_size: Vector2) -> void:
@@ -1539,8 +1592,26 @@ func _on_relic_equip_pressed(relic_id: String) -> void:
 	var pid: String = CombatPassives.migrate_relic_passive_id(relic_id)
 	if GameState.get_equipped_relic_passive_id(member) == pid:
 		GameState.set_member_relic(member, "")
-	else:
-		GameState.set_member_relic(member, relic_id)
+		_refresh_display()
+		return
+	var owner_idx: int = EquipmentUiHelper.relic_equipped_member_index(relic_id)
+	if owner_idx >= 0 and owner_idx != party_idx:
+		_pending_take_item = null
+		_pending_take_category = ""
+		_pending_take_relic_id = relic_id
+		_popup_take_equip_confirm(owner_idx)
+		return
+	_apply_equip_relic(relic_id)
+
+func _apply_equip_relic(relic_id: String) -> void:
+	var party_idx: int = _party_index_for_view()
+	if party_idx < 0:
+		return
+	var member: Resource = GameState.get_member(party_idx)
+	if member == null:
+		return
+	GameState.set_member_relic(member, relic_id)
+	AudioManager.play_sfx("ui_equip")
 	_refresh_display()
 
 func _hide_item_detail_overlay() -> void:
@@ -1561,8 +1632,53 @@ func _on_catalog_pressed() -> void:
 		SceneRouter.change_scene(CATALOG_SCENE)
 
 func _on_cell_pressed(item: Resource, category: String) -> void:
+	_request_equip_item(item, category)
+
+func _ensure_take_equip_confirm() -> void:
+	if _confirm_take_equip != null:
+		return
+	_confirm_take_equip = ConfirmationDialog.new()
+	_confirm_take_equip.title = "装備の付け替え"
+	_confirm_take_equip.ok_button_text = "付け替える"
+	_confirm_take_equip.cancel_button_text = "やめる"
+	_confirm_take_equip.confirmed.connect(_on_take_equip_confirmed)
+	_confirm_take_equip.canceled.connect(_on_take_equip_canceled)
+	add_child(_confirm_take_equip)
+
+func _clear_pending_take_equip() -> void:
+	_pending_take_item = null
+	_pending_take_category = ""
+	_pending_take_relic_id = ""
+
+func _owner_display_name(owner_idx: int) -> String:
+	var owner: Resource = GameState.get_member(owner_idx)
+	if owner == null or str(owner.display_name).is_empty():
+		return "別の隊員"
+	return RosterUiHelper.short_display_name(str(owner.display_name))
+
+func _popup_take_equip_confirm(owner_idx: int) -> void:
+	_ensure_take_equip_confirm()
+	_confirm_take_equip.dialog_text = (
+		"この装備は%sが装備してます。\n付け替えますか？" % _owner_display_name(owner_idx)
+	)
+	_confirm_take_equip.popup_centered()
+
+func _request_equip_item(item: Resource, category: String) -> void:
 	var party_idx: int = _party_index_for_view()
-	if party_idx < 0:
+	if party_idx < 0 or item == null:
+		return
+	var owner_idx: int = EquipmentUiHelper.equipped_member_index(item)
+	if owner_idx >= 0 and owner_idx != party_idx:
+		_pending_take_item = item
+		_pending_take_category = category
+		_pending_take_relic_id = ""
+		_popup_take_equip_confirm(owner_idx)
+		return
+	_apply_equip_item(item, category)
+
+func _apply_equip_item(item: Resource, category: String) -> void:
+	var party_idx: int = _party_index_for_view()
+	if party_idx < 0 or item == null:
 		return
 	match category:
 		"weapon":
@@ -1573,6 +1689,17 @@ func _on_cell_pressed(item: Resource, category: String) -> void:
 			$EquipmentController.equip_accessory(item, party_idx)
 	AudioManager.play_sfx("ui_equip")
 	_refresh_display()
+
+func _on_take_equip_confirmed() -> void:
+	if not _pending_take_relic_id.is_empty():
+		_apply_equip_relic(_pending_take_relic_id)
+	elif _pending_take_item != null and not _pending_take_category.is_empty():
+		_apply_equip_item(_pending_take_item, _pending_take_category)
+	_clear_pending_take_equip()
+
+func _on_take_equip_canceled() -> void:
+	AudioManager.play_sfx("ui_cancel")
+	_clear_pending_take_equip()
 
 # ---- レア度枠スタイル ----
 func _rarity_box(rarity: int, highlight: bool, cell_px: int) -> StyleBox:
@@ -1863,16 +1990,19 @@ func _compute_member_stats(idx: int, member_override: Resource = null) -> Dictio
 	defense = int(round(float(defense) * float(job.get("defense_multiplier", 1.0))))
 	var speed: float = weapon.attack_speed if weapon != null else 1.0
 	var crit: float = (weapon.critical_rate if weapon != null else 0.0)
-	if acc_data != null:
-		crit += acc_data.crit_rate_bonus
+	if acc_data != null and accessory != null:
+		crit += EquipmentEnhancer.effective_accessory_float_bonus(accessory, "crit_rate_bonus", acc_data)
 	crit += float(affix.get("crit_rate_add", 0.0))
+	var crit_damage: float = CRIT_DAMAGE_MULT
+	if weapon != null:
+		crit_damage = _WeaponStatResolver.resolve_critical_damage(weapon)
 	return {
 		"hp": hp,
 		"attack": attack,
 		"defense": defense,
 		"speed": speed,
 		"crit_rate": crit,
-		"crit_damage": CRIT_DAMAGE_MULT,
+		"crit_damage": crit_damage,
 	}
 
 # ---- スキルタブ（P3-D077） ----
@@ -3198,7 +3328,11 @@ func _make_skill_icon(skill_id: String, member: Resource, display_size: Vector2 
 	var px: Vector2 = display_size
 	if px == Vector2.ZERO:
 		px = Vector2(SKILL_ROW_ICON_PX, SKILL_ROW_ICON_PX)
-	return SkillIconHelper.make_ally_equipped_icon(skill_id, member, px)
+	var icon: Control = SkillIconHelper.make_ally_equipped_icon(skill_id, member, px)
+	if icon != null:
+		return icon
+	## ベース未登録時は個別アートへ（空白枠のままにしない）。
+	return SkillIconHelper.make_unique_icon(skill_id, px)
 
 func _make_passive_icon(passive_id: String, display_size: Vector2 = Vector2.ZERO) -> Control:
 	var px: Vector2 = display_size

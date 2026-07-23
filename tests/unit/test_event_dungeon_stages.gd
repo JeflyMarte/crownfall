@@ -28,10 +28,16 @@ func after_each() -> void:
 func test_event_biomes_have_one_stage() -> void:
 	var duck: Array = DataRegistry.get_stages_for_biome("cosmic_rift")
 	var raven: Array = DataRegistry.get_stages_for_biome("crown_rookery")
+	var scarab: Array = DataRegistry.get_stages_for_biome("golden_nest")
+	var stalker: Array = DataRegistry.get_stages_for_biome("shadow_hunt")
 	assert_eq(duck.size(), 1)
 	assert_eq(raven.size(), 1)
+	assert_eq(scarab.size(), 1)
+	assert_eq(stalker.size(), 1)
 	assert_eq(str(duck[0].id), "cosmic_rift_1_1")
 	assert_eq(str(raven[0].id), "crown_rookery_1_1")
+	assert_eq(str(scarab[0].id), "golden_nest_1_1")
+	assert_eq(str(stalker[0].id), "shadow_hunt_1_1")
 
 
 func test_uses_stage_cards_is_route_agnostic() -> void:
@@ -67,8 +73,34 @@ func test_event_stage_icons_are_mapped() -> void:
 		IconPaths.stage_icon_path("crown_rookery_1_1"),
 		"res://assets/dungeon/event/stages/ICO_DG_CrownRookery_1_1.png"
 	)
+	assert_eq(
+		IconPaths.stage_icon_path("golden_nest_1_1"),
+		"res://assets/dungeon/event/stages/ICO_DG_GoldenNest_1_1.png"
+	)
+	assert_eq(
+		IconPaths.stage_icon_path("shadow_hunt_1_1"),
+		"res://assets/dungeon/event/stages/ICO_DG_ShadowHunt_1_1.png"
+	)
 	assert_true(FileAccess.file_exists("res://assets/dungeon/event/stages/ICO_DG_CosmicRift_1_1.png"))
 	assert_true(FileAccess.file_exists("res://assets/dungeon/event/stages/ICO_DG_CrownRookery_1_1.png"))
+	assert_true(FileAccess.file_exists("res://assets/dungeon/event/stages/ICO_DG_GoldenNest_1_1.png"))
+	assert_true(FileAccess.file_exists("res://assets/dungeon/event/stages/ICO_DG_ShadowHunt_1_1.png"))
+
+
+func test_event_biome_banners_are_unique() -> void:
+	## イベント4種は mourngate 流用ではなく専用 BAN_DG_* を持つ。
+	var expected: Dictionary = {
+		"cosmic_rift": "res://assets/ui/dungeon/BAN_DG_CosmicRift.png",
+		"crown_rookery": "res://assets/ui/dungeon/BAN_DG_CrownRookery.png",
+		"golden_nest": "res://assets/ui/dungeon/BAN_DG_GoldenNest.png",
+		"shadow_hunt": "res://assets/ui/dungeon/BAN_DG_ShadowHunt.png",
+	}
+	for dungeon_id in expected.keys():
+		var path: String = str(expected[dungeon_id])
+		assert_true(FileAccess.file_exists(path), path)
+		var tex: Texture2D = load(path) as Texture2D
+		assert_not_null(tex, path)
+		assert_gt(tex.get_width(), 0, path)
 
 
 func test_start_event_stage_builds_sequence_without_boss() -> void:
@@ -84,3 +116,13 @@ func test_start_event_stage_builds_sequence_without_boss() -> void:
 	assert_eq(dc.room_sequence.size(), 5)
 	assert_false(Enums.RoomType.BOSS in dc.room_sequence)
 	assert_eq(dc.get_enemy_level(), 10)
+	dc.start_stage("golden_nest_1_1")
+	assert_eq(dc.room_sequence.size(), 5)
+	assert_false(Enums.RoomType.BOSS in dc.room_sequence)
+	assert_eq(dc.get_enemy_level(), 4)
+	assert_eq(dc.get_run_display_name(), "1-1 砂金の巣穴")
+	dc.start_stage("shadow_hunt_1_1")
+	assert_eq(dc.room_sequence.size(), 5)
+	assert_false(Enums.RoomType.BOSS in dc.room_sequence)
+	assert_eq(dc.get_enemy_level(), 14)
+	assert_eq(dc.get_run_display_name(), "1-1 影狩りの狩場")

@@ -1,20 +1,22 @@
 #!/usr/bin/env python3
-"""Import battle dots for cosmic_duck / crown_raven from Downloads PixelLab zips.
+"""Import battle dots + codex for wander rares (golden_scarab / shadow_stalker).
 
-Sources:
-  ~/Downloads/コズミックダック.zip
-  ~/Downloads/トレジャーレイヴン.zip
+Sources (Desktop):
+  モンスター/モンスタードット絵/{ゴールデンスカラベ,影狩り}.zip
+  モンスター/モンスター図鑑/その他/{ゴールデンスカラベ,影狩}.png
 
-Output:
-  assets/dungeon/mourngate/ENM_*_Sheet.png
+Outputs:
+  assets/battle/enemies/ENM_*_Sheet.png
   resources/animation/ENM_*.tres
-  assets/codex/enemies/ART_ENM_*.png  (idle frame 0)
+  assets/codex/enemies/ART_ENM_*.png
   assets/ui/combat/enemy_icons/ICO_ENM_Turn_*.png
 
-Also patches DungeonScene.gd ENEMY_SPRITE_MAP and IconPaths.gd.
+Patches DungeonScene ENEMY_SPRITE_MAP and IconPaths.
 """
 from __future__ import annotations
 
+import argparse
+import re
 import shutil
 import unicodedata
 import zipfile
@@ -23,25 +25,33 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-DOWNLOADS = Path("/Users/marte/Downloads")
-WORK = Path("/tmp/crownfall_wander_dots")
-OUT_DIR = ROOT / "assets/dungeon/mourngate"
+DESKTOP_MON = Path("/Users/marte/Desktop/CrownFall設定画像/モンスター")
+DOT_DIR = DESKTOP_MON / "モンスタードット絵"
+CODEX_OTHER = DESKTOP_MON / "モンスター図鑑" / "その他"
+WORK = Path("/tmp/crownfall_wander_dots_p3")
+BATTLE_DIR = ROOT / "assets/battle/enemies"
 ANIM_DIR = ROOT / "resources/animation"
 CODEX_DIR = ROOT / "assets/codex/enemies"
 TURN_DIR = ROOT / "assets/ui/combat/enemy_icons"
 FRAME = 96
-CODEX_SIZE = 256
+CODEX_SIZE = 512
 TURN_SIZE = 64
 DIRECTION = "south-west"
 SPEED = {"idle": 6.0, "attack": 10.0, "hurt": 8.0, "death": 6.0}
 
-# zip stem (NFC) → (enemy_id, Pascal stem)
-ENEMY_MAP = {
-	"コズミックダック": ("cosmic_duck", "CosmicDuck"),
-	"トレジャーレイヴン": ("crown_raven", "CrownRaven"),
+# zip stem (NFC) → (enemy_id, Pascal)
+ENEMY_MAP: dict[str, tuple[str, str]] = {
+	"ゴールデンスカラベ": ("golden_scarab", "GoldenScarab"),
+	"影狩り": ("shadow_stalker", "ShadowStalker"),
 }
 
-# game anim → folder name keywords (matched case-insensitive against anim dir stem)
+# 図鑑 PNG stem (NFC) → enemy_id（影狩りだけファイル名が「影狩」）
+CODEX_STEMS: dict[str, str] = {
+	"ゴールデンスカラベ": "golden_scarab",
+	"影狩": "shadow_stalker",
+	"影狩り": "shadow_stalker",
+}
+
 ANIM_KEYWORDS: list[tuple[str, bool, tuple[str, ...]]] = [
 	("idle", True, ("idle",)),
 	("attack", False, ("attack", "wind_attack", "dark_wind")),
@@ -73,28 +83,98 @@ def fit_frame(src: Image.Image, size: int) -> Image.Image:
 	return frame
 
 
+def strip_edge_bg(img: Image.Image, light_threshold: int = 245) -> Image.Image:
+	img = img.convert("RGBA")
+	w, h = img.size
+	px = img.load()
+	visited = [[False] * w for _ in range(h)]
+	stack: list[tuple[int, int]] = []
+
+	def is_light(x: int, y: int) -> bool:
+		r, g, b, a = px[x, y]
+		if a < 8:
+			return True
+		return r >= light_threshold and g >= light_threshold and b >= light_threshold
+
+	for x in range(w):
+		stack.append((x, 0))
+		stack.append((x, h - 1))
+	for y in range(h):
+		stack.append((0, y))
+		stack.append((w - 1, y))
+	while stack:
+		x, y = stack.pop()
+		if x < 0 or y < 0 or x >= w or y >= h or visited[y][x]:
+			continue
+		visited[y][x] = True
+		if not is_light(x, y):
+			continue
+		px[x, y] = (0, 0, 0, 0)
+		stack.extend(((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)))
+	return img
+
+
+def strip_dark_edge_bg(img: Image.Image, dark_threshold: int = 85) -> Image.Image:
+	"""Flood-fill near-black/gray matte connected to edges (影狩りなど暗背景)。"""
+	img = img.convert("RGBA")
+	w, h = img.size
+	px = img.load()
+	# Seed from corner average — only remove colors close to the matte, not cloak black.
+	seeds = [px[0, 0], px[w - 1, 0], px[0, h - 1], px[w - 1, h - 1]]
+	opaque_seeds = [c for c in seeds if c[3] > 8]
+	if not opaque_seeds:
+		return img
+	sr = sum(c[0] for c in opaque_seeds) // len(opaque_seeds)
+	sg = sum(c[1] for c in opaque_seeds) // len(opaque_seeds)
+	sb = sum(c[2] for c in opaque_seeds) // len(opaque_seeds)
+	# Skip if corners are already transparent / not a flat dark plate.
+	if max(sr, sg, sb) > dark_threshold + 40:
+		return img
+	tol = 28
+	visited = [[False] * w for _ in range(h)]
+	stack: list[tuple[int, int]] = []
+
+	def is_matte(x: int, y: int) -> bool:
+		r, g, b, a = px[x, y]
+		if a < 8:
+			return True
+		if abs(r - sr) > tol or abs(g - sg) > tol or abs(b - sb) > tol:
+			return False
+		# keep saturated aura (purple smoke)
+		if max(r, g, b) - min(r, g, b) > 22:
+			return False
+		return True
+
+	for x in range(w):
+		stack.append((x, 0))
+		stack.append((x, h - 1))
+	for y in range(h):
+		stack.append((0, y))
+		stack.append((w - 1, y))
+	while stack:
+		x, y = stack.pop()
+		if x < 0 or y < 0 or x >= w or y >= h or visited[y][x]:
+			continue
+		visited[y][x] = True
+		if not is_matte(x, y):
+			continue
+		px[x, y] = (0, 0, 0, 0)
+		stack.extend(((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)))
+	return img
+
+
+def prepare_codex_src(src: Image.Image) -> Image.Image:
+	img = strip_edge_bg(src)
+	img = strip_dark_edge_bg(img)
+	return img
+
+
 def find_zip(stem: str) -> Path:
 	want = nfc(stem)
-	for zpath in DOWNLOADS.glob("*.zip"):
+	for zpath in DOT_DIR.glob("*.zip"):
 		if nfc(zpath.stem) == want:
 			return zpath
-	raise FileNotFoundError(f"zip not found in Downloads: {stem}.zip")
-
-
-def extract_zips() -> dict[str, Path]:
-	if WORK.exists():
-		shutil.rmtree(WORK)
-	WORK.mkdir(parents=True)
-	found: dict[str, Path] = {}
-	for stem in ENEMY_MAP:
-		zpath = find_zip(stem)
-		dest = WORK / stem
-		dest.mkdir(parents=True, exist_ok=True)
-		with zipfile.ZipFile(zpath) as zf:
-			zf.extractall(dest)
-		found[stem] = dest
-		print(f"extracted {stem} from {zpath.name}")
-	return found
+	raise FileNotFoundError(f"zip not found: {DOT_DIR}/{stem}.zip")
 
 
 def list_anim_dirs(root: Path) -> dict[str, Path]:
@@ -121,7 +201,6 @@ def pick_anim_dir(anim_dirs: dict[str, Path], keywords: tuple[str, ...]) -> Path
 def load_anim_frames(anim_dir: Path) -> list[Image.Image]:
 	facing = anim_dir / DIRECTION
 	if not facing.is_dir():
-		# any single facing folder
 		subs = [d for d in anim_dir.iterdir() if d.is_dir()]
 		if not subs:
 			raise FileNotFoundError(f"no facing under {anim_dir}")
@@ -172,19 +251,47 @@ def write_tres(sheet_res: str, tres_path: Path, meta: list[tuple[str, bool, int]
 	tres_path.write_text("\n".join(lines), encoding="utf-8")
 
 
-def write_codex_and_turn(pascal: str, idle0: Image.Image) -> None:
+def save_codex(pascal: str, src: Image.Image) -> Path:
 	CODEX_DIR.mkdir(parents=True, exist_ok=True)
+	out = CODEX_DIR / f"ART_ENM_{pascal}.png"
+	img = prepare_codex_src(src)
+	bbox = img.getbbox()
+	if bbox:
+		img = img.crop(bbox)
+	canvas = Image.new("RGBA", (CODEX_SIZE, CODEX_SIZE), (0, 0, 0, 0))
+	cw, ch = img.size
+	ratio = min((CODEX_SIZE * 0.92) / cw, (CODEX_SIZE * 0.92) / ch)
+	nw, nh = max(1, int(cw * ratio)), max(1, int(ch * ratio))
+	resized = img.resize((nw, nh), Image.Resampling.LANCZOS)
+	ox = (CODEX_SIZE - nw) // 2
+	oy = (CODEX_SIZE - nh) // 2
+	canvas.paste(resized, (ox, oy), resized)
+	canvas.save(out)
+	print(f"  codex {out.name} {canvas.size}")
+	return out
+
+
+def save_turn_icon(pascal: str, idle: Image.Image) -> Path:
 	TURN_DIR.mkdir(parents=True, exist_ok=True)
-	codex = fit_frame(idle0, CODEX_SIZE)
-	turn = fit_frame(idle0, TURN_SIZE)
-	codex_path = CODEX_DIR / f"ART_ENM_{pascal}.png"
-	turn_path = TURN_DIR / f"ICO_ENM_Turn_{pascal}.png"
-	codex.save(codex_path)
-	turn.save(turn_path)
-	print(f"  wrote {codex_path.name} + {turn_path.name}")
+	out = TURN_DIR / f"ICO_ENM_Turn_{pascal}.png"
+	fit_frame(idle, TURN_SIZE).save(out)
+	print(f"  turn {out.name}")
+	return out
 
 
-def import_one(stem: str, src_root: Path) -> str:
+def patch_map_line(path: Path, key: str, value: str) -> None:
+	text = path.read_text(encoding="utf-8")
+	pattern = re.compile(rf'^(\t+)"{re.escape(key)}":\s*"[^"]*",', re.M)
+	m = pattern.search(text)
+	if not m:
+		raise SystemExit(f"{path.name}: missing key {key}")
+	indent = m.group(1)
+	new = f'{indent}"{key}": "{value}",'
+	path.write_text(text[: m.start()] + new + text[m.end() :], encoding="utf-8")
+	print(f"  patch {path.name} {key} -> {value}")
+
+
+def import_battle(stem: str, src_root: Path) -> tuple[str, str, Image.Image]:
 	enemy_id, pascal = ENEMY_MAP[stem]
 	anim_dirs = list_anim_dirs(src_root)
 	all_frames: list[Image.Image] = []
@@ -194,7 +301,6 @@ def import_one(stem: str, src_root: Path) -> str:
 		adir = pick_anim_dir(anim_dirs, keywords)
 		frames = load_anim_frames(adir)
 		if anim_id == "idle" and frames:
-			# original before fit for codex — re-open first source frame
 			facing = adir / DIRECTION
 			if not facing.is_dir():
 				facing = next(d for d in adir.iterdir() if d.is_dir())
@@ -204,96 +310,100 @@ def import_one(stem: str, src_root: Path) -> str:
 		meta.append((anim_id, loop, len(frames)))
 		print(f"  {stem} {anim_id}: {len(frames)} from {adir.name}")
 
+	if idle0 is None:
+		raise SystemExit(f"{stem}: no idle frame")
+
 	sheet = Image.new("RGBA", (FRAME * len(all_frames), FRAME), (0, 0, 0, 0))
 	for i, frame in enumerate(all_frames):
 		sheet.paste(frame, (i * FRAME, 0), frame)
 
-	OUT_DIR.mkdir(parents=True, exist_ok=True)
+	BATTLE_DIR.mkdir(parents=True, exist_ok=True)
 	ANIM_DIR.mkdir(parents=True, exist_ok=True)
-	sheet_path = OUT_DIR / f"ENM_{pascal}_Sheet.png"
+	sheet_path = BATTLE_DIR / f"ENM_{pascal}_Sheet.png"
 	sheet.save(sheet_path)
-	sheet_res = f"res://assets/dungeon/mourngate/ENM_{pascal}_Sheet.png"
+	sheet_res = f"res://assets/battle/enemies/ENM_{pascal}_Sheet.png"
 	tres_path = ANIM_DIR / f"ENM_{pascal}.tres"
 	write_tres(sheet_res, tres_path, meta)
-	print(f"  wrote {sheet_path.name} ({sheet.size[0]}x{sheet.size[1]}) + {tres_path.name}")
-	if idle0 is not None:
-		write_codex_and_turn(pascal, idle0)
-	return f"res://{tres_path.relative_to(ROOT).as_posix()}"
+	print(f"  wrote {sheet_path.relative_to(ROOT)} ({sheet.size[0]}x{sheet.size[1]})")
+	tres_res = f"res://{tres_path.relative_to(ROOT).as_posix()}"
+	save_turn_icon(pascal, idle0)
+	return enemy_id, tres_res, idle0
 
 
-def patch_dungeon_scene(tres_by_id: dict[str, str]) -> None:
-	path = ROOT / "scripts/dungeon/DungeonScene.gd"
-	text = path.read_text(encoding="utf-8")
-	for enemy_id, tres in tres_by_id.items():
-		old = None
-		for line in text.splitlines():
-			if line.strip().startswith(f'"{enemy_id}":'):
-				old = line
-				break
-		if old is None:
-			raise SystemExit(f"ENEMY_SPRITE_MAP missing key: {enemy_id}")
-		indent = old[: len(old) - len(old.lstrip("\t"))]
-		new = f'{indent}"{enemy_id}": "{tres}",'
-		text = text.replace(old, new, 1)
-		print(f"  map {enemy_id} -> {tres}")
-	path.write_text(text, encoding="utf-8")
-
-
-def patch_icon_paths() -> None:
-	path = ROOT / "scripts/ui/IconPaths.gd"
-	text = path.read_text(encoding="utf-8")
-	replacements = {
-		'"enemy:cosmic_duck":': (
-			'\t"enemy:cosmic_duck":           "res://assets/codex/enemies/ART_ENM_CosmicDuck.png",'
-		),
-		'"enemy:crown_raven":': (
-			'\t"enemy:crown_raven":           "res://assets/codex/enemies/ART_ENM_CrownRaven.png",'
-		),
-	}
-	# also add turn icons if missing
-	turn_lines = {
-		"cosmic_duck": '\t"enemy_turn:cosmic_duck":     "res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_CosmicDuck.png",',
-		"crown_raven": '\t"enemy_turn:crown_raven":     "res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_CrownRaven.png",',
-	}
-	lines = text.splitlines()
-	out: list[str] = []
-	seen_turn: set[str] = set()
-	for line in lines:
-		stripped = line.strip()
-		replaced = False
-		for prefix, new_line in replacements.items():
-			if stripped.startswith(prefix):
-				out.append(new_line)
-				replaced = True
-				break
-		if replaced:
+def import_codex_portraits() -> dict[str, str]:
+	"""Returns enemy_id → ART filename."""
+	found = {nfc(p.stem): p for p in CODEX_OTHER.glob("*.png")}
+	out: dict[str, str] = {}
+	pascal_by_id = {eid: pascal for _stem, (eid, pascal) in ENEMY_MAP.items()}
+	for stem, enemy_id in CODEX_STEMS.items():
+		if enemy_id not in pascal_by_id:
 			continue
-		for eid in turn_lines:
-			if stripped.startswith(f'"enemy_turn:{eid}":'):
-				out.append(turn_lines[eid])
-				seen_turn.add(eid)
-				replaced = True
-				break
-		if replaced:
+		if stem not in found:
 			continue
-		out.append(line)
-		# insert turn entries after enemy:crown_raven line if absent
-		if stripped.startswith('"enemy:crown_raven":'):
-			for eid, tline in turn_lines.items():
-				if eid not in seen_turn and f'"enemy_turn:{eid}":' not in text:
-					out.append(tline)
-					seen_turn.add(eid)
-	path.write_text("\n".join(out) + "\n", encoding="utf-8")
-	print("  patched IconPaths.gd")
+		pascal = pascal_by_id[enemy_id]
+		save_codex(pascal, Image.open(found[stem]))
+		out[enemy_id] = f"ART_ENM_{pascal}.png"
+		print(f"  portrait {enemy_id} <- {stem}")
+	missing = [eid for eid in pascal_by_id if eid not in out]
+	if missing:
+		raise SystemExit(f"missing codex portraits for: {missing}")
+	return out
 
 
 def main() -> None:
-	found = extract_zips()
-	tres_by_id: dict[str, str] = {}
-	for stem in ENEMY_MAP:
-		tres_by_id[ENEMY_MAP[stem][0]] = import_one(stem, found[stem])
-	patch_dungeon_scene(tres_by_id)
-	patch_icon_paths()
+	parser = argparse.ArgumentParser()
+	parser.add_argument(
+		"--only",
+		nargs="*",
+		default=None,
+		help="enemy_id filter (default: all in ENEMY_MAP)",
+	)
+	args = parser.parse_args()
+	only = set(args.only) if args.only else None
+
+	if WORK.exists():
+		shutil.rmtree(WORK)
+	WORK.mkdir(parents=True)
+
+	dungeon = ROOT / "scripts/dungeon/DungeonScene.gd"
+	icons = ROOT / "scripts/ui/IconPaths.gd"
+
+	for stem, (enemy_id, pascal) in ENEMY_MAP.items():
+		if only is not None and enemy_id not in only:
+			continue
+		zpath = find_zip(stem)
+		dest = WORK / stem
+		dest.mkdir(parents=True, exist_ok=True)
+		with zipfile.ZipFile(zpath) as zf:
+			zf.extractall(dest)
+		print(f"extract {stem} from {zpath.name}")
+		eid, tres, _idle = import_battle(stem, dest)
+		patch_map_line(dungeon, eid, tres)
+		patch_map_line(
+			icons,
+			f"enemy_turn:{eid}",
+			f"res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_{pascal}.png",
+		)
+
+	portraits = import_codex_portraits()
+	for enemy_id, art_name in portraits.items():
+		if only is not None and enemy_id not in only:
+			continue
+		patch_map_line(
+			icons,
+			f"enemy:{enemy_id}",
+			f"res://assets/codex/enemies/{art_name}",
+		)
+
+	# stale .godot cache for replaced textures
+	imported = ROOT / ".godot" / "imported"
+	if imported.is_dir():
+		stems = ("GoldenScarab", "ShadowStalker")
+		for p in imported.iterdir():
+			if any(s in p.name for s in stems):
+				p.unlink(missing_ok=True)
+				print(f"  cleared cache {p.name}")
+
 	print("done")
 
 

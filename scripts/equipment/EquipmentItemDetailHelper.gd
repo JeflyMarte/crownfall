@@ -103,8 +103,10 @@ static func _append_legendary_effect_block(host: VBoxContainer, item: Resource, 
 	host.add_child(body)
 
 static func _stat_value(item: Resource, category: String, stat_key: String, value_text: String) -> String:
+	## 例: 会心率 30%(10〜40)⭐️ — ランダム上下限を値の直後へ。
+	var with_range: String = value_text + _EquipmentPerfectRollHelper.range_suffix(item, category, stat_key)
 	return _EquipmentPerfectRollHelper.value_label(
-		value_text,
+		with_range,
 		_EquipmentPerfectRollHelper.is_ui_stat_perfect(item, category, stat_key)
 	)
 

@@ -163,8 +163,9 @@ def compose(frame: Image.Image, monster: Image.Image) -> Image.Image:
 	content = fit_monster(monster, box_w, box_h)
 
 	canvas = Image.new("RGBA", frame.size, (0, 0, 0, 0))
-	# Soft dark plate behind the portrait for readability on busy combat UI.
-	plate = Image.new("RGBA", (box_w, box_h), (12, 8, 18, 220))
+	# Soft plate behind the portrait for readability on busy combat UI.
+	# Too-dark plates make turn-order icons look black in combat (avg RGB ~30).
+	plate = Image.new("RGBA", (box_w, box_h), (48, 36, 64, 200))
 	mask = Image.new("L", (box_w, box_h), 0)
 	draw = ImageDraw.Draw(mask)
 	rad = max(8, box_w // 10)
@@ -176,9 +177,29 @@ def compose(frame: Image.Image, monster: Image.Image) -> Image.Image:
 	ox = cx - box_w // 2
 	oy = cy - box_h // 2
 	canvas.paste(plate, (ox, oy), plate)
-	canvas.paste(content, (ox, oy), content)
+	lifted = _lift_shadows(content)
+	canvas.paste(lifted, (ox, oy), lifted)
 	canvas.alpha_composite(frame)
-	return canvas.resize((OUT_SIZE, OUT_SIZE), Image.Resampling.LANCZOS)
+	return _lift_shadows(canvas.resize((OUT_SIZE, OUT_SIZE), Image.Resampling.LANCZOS))
+
+
+def _lift_shadows(img: Image.Image) -> Image.Image:
+	"""Raise midtones so dark enemy art stays readable at UI size."""
+	img = img.convert("RGBA")
+	px = img.load()
+	w, h = img.size
+	for y in range(h):
+		for x in range(w):
+			r, g, b, a = px[x, y]
+			if a == 0:
+				continue
+
+			def lift(v: int) -> int:
+				t = pow(max(0.0, v / 255.0), 0.55)
+				return int(round(min(1.0, t * 1.15) * 255))
+
+			px[x, y] = (lift(r), lift(g), lift(b), a)
+	return img
 
 
 def resolve_sources() -> dict[str, Path]:

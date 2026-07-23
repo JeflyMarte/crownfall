@@ -57,6 +57,8 @@ ENEMY_MAP: dict[str, tuple[str, str, bool]] = {
 OTHER_CODEX: dict[str, tuple[str, str]] = {
 	"コズミックダック": ("cosmic_duck", "ART_ENM_CosmicDuck.png"),
 	"宝冠レイヴン": ("crown_raven", "ART_ENM_CrownRaven.png"),
+	"ゴールデンスカラベ": ("golden_scarab", "ART_ENM_GoldenScarab.png"),
+	"影狩": ("shadow_stalker", "ART_ENM_ShadowStalker.png"),
 }
 
 

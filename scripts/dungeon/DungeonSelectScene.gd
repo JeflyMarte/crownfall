@@ -45,6 +45,14 @@ const DROP_PREVIEW: Dictionary = {
 		["weapon", "noctumbra_fang"],
 		["weapon", "mistpierce_halberd"],
 	],
+	"golden_nest": [
+		["material", "relic_shard"],
+	],
+	"shadow_hunt": [
+		["weapon", "stormveil_needle"],
+		["weapon", "noctumbra_fang"],
+		["weapon", "mistpierce_halberd"],
+	],
 	"mourngate": [
 		["weapon", "iron_sword"],
 		["armor", "leather_armor"],
@@ -189,6 +197,10 @@ const BIOME_BANNER_PATHS: Dictionary = {
 	"mistfen": "res://assets/ui/dungeon/BAN_DG_Mistfen.png",
 	"blackshore": "res://assets/ui/dungeon/BAN_DG_Blackshore.png",
 	"frostridge": "res://assets/ui/dungeon/BAN_DG_Frostridge.png",
+	"cosmic_rift": "res://assets/ui/dungeon/BAN_DG_CosmicRift.png",
+	"crown_rookery": "res://assets/ui/dungeon/BAN_DG_CrownRookery.png",
+	"golden_nest": "res://assets/ui/dungeon/BAN_DG_GoldenNest.png",
+	"shadow_hunt": "res://assets/ui/dungeon/BAN_DG_ShadowHunt.png",
 }
 ## バナー画像にダンジョン名が焼き込まれている Biome（UI タイトルラベルを非表示）
 const BIOME_BANNER_TITLE_BAKED: Dictionary = {}
@@ -205,8 +217,6 @@ const SUB_BANNER_FALLBACK: Dictionary = {
 	"thunder_peak": "mistfen",
 	"mistfen_depths": "mistfen",
 	"blackshore_abyss": "blackshore",
-	"cosmic_rift": "mourngate",
-	"crown_rookery": "mourngate",
 	"red_forge_depths": "frostridge",
 	"north_reach": "frostridge",
 }
@@ -1037,6 +1047,8 @@ func _sync_featured_banner(dungeon_id: String) -> void:
 	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_featured_banner_host.add_child(banner)
 	## 一覧バナーと同様、画像上にダンジョン名を重ねる（焼き込み無しの雰囲気BG向け）。
+	## Mourngate 系バナーのネームプレートは幾何中心よりやや上＋見出しフォントのアセントで上寄りに見えるため、
+	## 上余白を厚くして視覚中央を下げる。
 	if _banner_hides_title(dungeon_id):
 		return
 	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
@@ -1048,6 +1060,8 @@ func _sync_featured_banner(dungeon_id: String) -> void:
 	title.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	title.offset_left = 12.0
 	title.offset_right = -12.0
+	title.offset_top = 18.0
+	title.offset_bottom = -2.0
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	title.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -1090,14 +1104,15 @@ func _make_biome_banner_header(
 	root.add_child(banner)
 
 	## タイトルは Featured と同様バナー全面中央。シェブロンは左オーバーレイ（HBox だと右寄りになる）。
+	## ネームプレート／見出しフォント分だけ上余白を厚くし、文字の視覚位置を下げる。
 	if not _banner_hides_title(dungeon_id):
 		var title := Label.new()
 		title.text = _dungeon_card_title(data, unlocked)
 		title.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		title.offset_left = 36.0
 		title.offset_right = -36.0
-		title.offset_top = 4.0
-		title.offset_bottom = -4.0
+		title.offset_top = 18.0
+		title.offset_bottom = -2.0
 		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		title.autowrap_mode = TextServer.AUTOWRAP_OFF

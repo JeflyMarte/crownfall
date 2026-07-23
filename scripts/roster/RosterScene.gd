@@ -13,6 +13,12 @@ const GRID_H_SEPARATION: int = 6
 const SLOT_H_SEPARATION: int = 6
 const FOOTER_HEIGHT: int = 60
 const TOOLBAR_BTN_H: int = 38
+## Header → タブ帯 → 本文 の余白（タブが金線に食い込まないよう十分空ける）。
+const HEADER_CONTENT_GAP: float = 10.0
+const TOOLBAR_BAND_HEIGHT: float = 46.0
+const TOOLBAR_SCROLL_GAP: float = 10.0
+const _META_BODY_BASE_TOP: StringName = &"_cf_body_base_top"
+const _META_BODY_BASE_BOTTOM: StringName = &"_cf_body_base_bottom"
 
 const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45)
 const COLOR_SUB: Color = Color(0.72, 0.69, 0.62)
@@ -49,12 +55,16 @@ var _formation_cells: Array[PanelContainer] = []
 @onready var _formation_overlay: CanvasLayer = $FormationOverlay
 @onready var _formation_board: VBoxContainer = $FormationOverlay/FormationPanel/FormationVBox/FormationBoard
 @onready var _button_save: Button = $FooterRow/ButtonSave
+var _toolbar_band: MarginContainer
+var _btn_recommend: Button
+var _btn_formation: Button
 
 func _ready() -> void:
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.PARTY)
 	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)
-	$MainScroll/MainVBox/PowerSection/PowerButtonRow/ButtonRecommend.pressed.connect(_on_recommend_pressed)
-	$MainScroll/MainVBox/PowerSection/PowerButtonRow/ButtonFormation.pressed.connect(_open_formation_overlay)
+	_ensure_toolbar_band()
+	_btn_recommend.pressed.connect(_on_recommend_pressed)
+	_btn_formation.pressed.connect(_open_formation_overlay)
 	$MainScroll/MainVBox/ListHeader/ButtonSort.pressed.connect(_on_sort_pressed)
 	$MainScroll/MainVBox/ListHeader/ButtonRoleFilter.pressed.connect(_on_role_filter_pressed)
 	$MainScroll/MainVBox/ListHeader/ButtonPet.pressed.connect(_on_pet_tab_pressed)
@@ -80,6 +90,12 @@ func _ready() -> void:
 	_build_formation_grid()
 	_refresh_all()
 	call_deferred("_refresh_layout")
+	## chrome 遅延再適用のあともタブ帯・本文を Header 下へ再同期する。
+	var tree: SceneTree = get_tree()
+	if tree != null:
+		for delay_sec: float in [0.05, 0.12, 0.25]:
+			var timer: SceneTreeTimer = tree.create_timer(delay_sec)
+			timer.timeout.connect(_configure_layout)
 
 func _refresh_layout() -> void:
 	_configure_layout()
@@ -87,7 +103,9 @@ func _refresh_layout() -> void:
 	_rebuild_roster_grid()
 
 func _configure_layout() -> void:
+	_ensure_toolbar_band()
 	HubLayoutHelper.apply_horizontal_insets(_main_scroll)
+	_layout_toolbar_and_scroll()
 	# 実測ナビ高（パネル余白込み）でフッターを配置し、下ナビとの重なりを防ぐ（P3-UI3-001）
 	var nav_h: float = maxf(NavUiTokens.BOTTOM_NAV_HEIGHT, $BottomNav.size.y) + 8.0
 	var footer_top: float = -(nav_h + float(FOOTER_HEIGHT))
@@ -108,6 +126,60 @@ func _configure_layout() -> void:
 	_active_party_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_active_party_row.custom_minimum_size = Vector2(0, _active_card_min_height())
 
+
+## おすすめ編成／陣形を Header 直下の固定帯へ移し、スクロール本文と分離する。
+func _ensure_toolbar_band() -> void:
+	if _toolbar_band != null and is_instance_valid(_toolbar_band):
+		return
+	var power_section: Control = $MainScroll/MainVBox/PowerSection as Control
+	var row: HBoxContainer = power_section.get_node_or_null("PowerButtonRow") as HBoxContainer
+	if row == null:
+		return
+	_btn_recommend = row.get_node("ButtonRecommend") as Button
+	_btn_formation = row.get_node("ButtonFormation") as Button
+	_toolbar_band = MarginContainer.new()
+	_toolbar_band.name = "ToolbarBand"
+	_toolbar_band.add_theme_constant_override("margin_left", 12)
+	_toolbar_band.add_theme_constant_override("margin_right", 12)
+	_toolbar_band.add_theme_constant_override("margin_top", 0)
+	_toolbar_band.add_theme_constant_override("margin_bottom", 0)
+	_toolbar_band.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(_toolbar_band)
+	move_child(_toolbar_band, $Header.get_index() + 1)
+	row.get_parent().remove_child(row)
+	_toolbar_band.add_child(row)
+	## 旧 PowerSection（非表示ラベルのみ）はレイアウトから外す。
+	if power_section != null:
+		power_section.visible = false
+		power_section.custom_minimum_size = Vector2.ZERO
+
+
+## Header 下にタブ帯、その下に一覧スクロールを積む（金線への食い込み防止）。
+func _layout_toolbar_and_scroll() -> void:
+	var header: Control = $Header as Control
+	if header == null or _main_scroll == null or _toolbar_band == null:
+		return
+	var top_inset: float = 0.0
+	if SafeAreaHelper.should_apply_chrome():
+		top_inset = SafeAreaHelper.top_inset()
+	var header_bottom: float = header.offset_bottom
+	if header.size.y > 1.0:
+		header_bottom = maxf(header_bottom, header.offset_top + header.size.y)
+	var band_top: float = header_bottom + HEADER_CONTENT_GAP
+	var band_bottom: float = band_top + TOOLBAR_BAND_HEIGHT
+	_toolbar_band.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	_toolbar_band.offset_left = 0.0
+	_toolbar_band.offset_right = 0.0
+	_toolbar_band.offset_top = band_top
+	_toolbar_band.offset_bottom = band_bottom
+	_toolbar_band.z_index = 5
+	## chrome 遅延再適用用の設計座標（inset 抜き）。
+	_toolbar_band.set_meta(_META_BODY_BASE_TOP, band_top - top_inset)
+	_toolbar_band.set_meta(_META_BODY_BASE_BOTTOM, band_bottom - top_inset)
+	var scroll_top: float = band_bottom + TOOLBAR_SCROLL_GAP
+	_main_scroll.offset_top = scroll_top
+	_main_scroll.set_meta(_META_BODY_BASE_TOP, scroll_top - top_inset)
+
 func _apply_typography() -> void:
 	_label_power_legacy.visible = false
 	_label_power.text = "総合戦力 0"
@@ -125,35 +197,30 @@ func _apply_typography() -> void:
 
 func _apply_toolbar_buttons() -> void:
 	var compact := _compact_toolbar_style()
+	_ensure_toolbar_band()
 	var specs: Array[Dictionary] = [
+		{"btn": _btn_recommend, "min": Vector2(0, TOOLBAR_BTN_H), "expand": true},
+		{"btn": _btn_formation, "min": Vector2(0, TOOLBAR_BTN_H), "expand": true},
 		{
-			"path": "MainScroll/MainVBox/PowerSection/PowerButtonRow/ButtonRecommend",
+			"btn": $MainScroll/MainVBox/ListHeader/ButtonSort,
 			"min": Vector2(0, TOOLBAR_BTN_H),
 			"expand": true,
 		},
 		{
-			"path": "MainScroll/MainVBox/PowerSection/PowerButtonRow/ButtonFormation",
+			"btn": $MainScroll/MainVBox/ListHeader/ButtonRoleFilter,
 			"min": Vector2(0, TOOLBAR_BTN_H),
 			"expand": true,
 		},
 		{
-			"path": "MainScroll/MainVBox/ListHeader/ButtonSort",
-			"min": Vector2(0, TOOLBAR_BTN_H),
-			"expand": true,
-		},
-		{
-			"path": "MainScroll/MainVBox/ListHeader/ButtonRoleFilter",
-			"min": Vector2(0, TOOLBAR_BTN_H),
-			"expand": true,
-		},
-		{
-			"path": "MainScroll/MainVBox/ListHeader/ButtonPet",
+			"btn": $MainScroll/MainVBox/ListHeader/ButtonPet,
 			"min": Vector2(0, TOOLBAR_BTN_H),
 			"expand": true,
 		},
 	]
 	for spec in specs:
-		var btn: Button = get_node(str(spec["path"]))
+		var btn: Button = spec["btn"] as Button
+		if btn == null:
+			continue
 		UiTypography.apply_menu_button(btn, false)
 		btn.add_theme_font_size_override("font_size", UiTypography.SIZE_CAPTION)
 		btn.clip_text = true
@@ -276,20 +343,24 @@ func _dedupe_formation_slots_local() -> void:
 		seen[member] = true
 
 func _sync_formation_slots_from_selection() -> void:
-	var kept: Array = []
+	## 空きスロット（前列空＋後列のみ等）を詰めない。詰めると後列が前列表示になる。
 	var seen: Dictionary = {}
-	for slot in _formation_slots:
-		if slot != null and _selected.has(slot) and not seen.has(slot):
-			kept.append(slot)
-			seen[slot] = true
-	for adv in _selected:
-		if not seen.has(adv):
-			kept.append(adv)
-			seen[adv] = true
-	while kept.size() < FORMATION_SLOT_COUNT:
-		kept.append(null)
 	for i in FORMATION_SLOT_COUNT:
-		_formation_slots[i] = kept[i] if i < kept.size() else null
+		var member: Resource = _formation_slots[i]
+		if member == null:
+			continue
+		if not _selected.has(member) or seen.has(member):
+			_formation_slots[i] = null
+			continue
+		seen[member] = true
+	for adv in _selected:
+		if adv == null or seen.has(adv):
+			continue
+		for i in FORMATION_SLOT_COUNT:
+			if _formation_slots[i] == null:
+				_formation_slots[i] = adv
+				seen[adv] = true
+				break
 	_dedupe_formation_slots_local()
 	_apply_formation_rows_from_slots()
 
@@ -892,15 +963,38 @@ func _on_formation_preset_pressed(preset: String) -> void:
 		return
 	match preset:
 		"front":
-			_assign_formation_by_role(members, true)
-		"back":
-			_assign_formation_by_role(members, false)
-		_:
+			## 前衛寄り: 前から詰める（2人なら前列のみ）
 			_place_members_in_slots(members, [0, 1, 2, 3])
+		"back":
+			## 後衛=後ろ最大2人を後列（P3-D106）。2人なら前列空＋後列2
+			_place_members_with_back_count(members, 2)
+		_:
+			## 均衡=最後尾1人後列（P3-D106）
+			_place_members_with_back_count(members, 1)
 	_apply_formation_rows_from_slots()
 	_formation_pick_slot = -1
 	_refresh_formation_grid()
 	_rebuild_active_party_row()
+
+func _place_members_with_back_count(members: Array, back_count: int) -> void:
+	for i in FORMATION_SLOT_COUNT:
+		_formation_slots[i] = null
+	if members.is_empty():
+		return
+	var n: int = members.size()
+	var back_n: int = clampi(back_count, 0, mini(2, n))
+	var front_n: int = n - back_n
+	## 前列は最大2。溢れた分は後列スロットへ（2×2制約）
+	if front_n > 2:
+		front_n = 2
+		back_n = n - front_n
+	var idx: int = 0
+	for i in front_n:
+		_formation_slots[i] = members[idx]
+		idx += 1
+	for j in back_n:
+		_formation_slots[2 + j] = members[idx]
+		idx += 1
 
 func _assign_formation_by_role(members: Array, tanks_to_front_slots: bool) -> void:
 	var tanks: Array = []

@@ -166,6 +166,8 @@ const ICON_MAP: Dictionary = {
 	"enemy:clock_moth":            "res://assets/codex/enemies/ART_ENM_ClockMoth.png",
 	"enemy:cosmic_duck": "res://assets/codex/enemies/ART_ENM_CosmicDuck.png",
 	"enemy:crown_raven": "res://assets/codex/enemies/ART_ENM_CrownRaven.png",
+	"enemy:golden_scarab": "res://assets/codex/enemies/ART_ENM_GoldenScarab.png",
+	"enemy:shadow_stalker": "res://assets/codex/enemies/ART_ENM_ShadowStalker.png",
 	"enemy:wayfarer_sparrow":      "res://assets/codex/enemies/ART_ENM_ClockMoth.png",
 	"enemy:reliquary_beetle":      "res://assets/codex/enemies/ART_ENM_RuneRoach.png",
 	"enemy:serdion":               "res://assets/codex/enemies/ART_BOSS_Serdion.png",
@@ -180,6 +182,8 @@ const ICON_MAP: Dictionary = {
 	"enemy_turn:clock_moth":       "res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_ClockMoth.png",
 	"enemy_turn:cosmic_duck":      "res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_CosmicDuck.png",
 	"enemy_turn:crown_raven":      "res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_CrownRaven.png",
+	"enemy_turn:golden_scarab": "res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_GoldenScarab.png",
+	"enemy_turn:shadow_stalker": "res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_ShadowStalker.png",
 	"enemy_turn:serdion":          "res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_Serdion.png",
 	# ② ウィスパーウッド
 	"enemy:iron_horn": "res://assets/codex/enemies/ART_ENM_IronHorn.png",
@@ -251,8 +255,12 @@ const ICON_MAP: Dictionary = {
 	# イベントDG章（暫定: ボス／代表敵アートから生成）
 	"stage:cosmic_rift_1_1":       "res://assets/dungeon/event/stages/ICO_DG_CosmicRift_1_1.png",
 	"stage:crown_rookery_1_1":     "res://assets/dungeon/event/stages/ICO_DG_CrownRookery_1_1.png",
+	"stage:golden_nest_1_1":       "res://assets/dungeon/event/stages/ICO_DG_GoldenNest_1_1.png",
+	"stage:shadow_hunt_1_1":       "res://assets/dungeon/event/stages/ICO_DG_ShadowHunt_1_1.png",
 	"dungeon:cosmic_rift":         "res://assets/dungeon/event/stages/ICO_DG_CosmicRift_1_1.png",
 	"dungeon:crown_rookery":       "res://assets/dungeon/event/stages/ICO_DG_CrownRookery_1_1.png",
+	"dungeon:golden_nest":         "res://assets/dungeon/event/stages/ICO_DG_GoldenNest_1_1.png",
+	"dungeon:shadow_hunt":         "res://assets/dungeon/event/stages/ICO_DG_ShadowHunt_1_1.png",
 	# ② ウィスパーウッド — 章別 icon 5点（P3-DG-STG / WW-2）
 	"stage:whisperwood_2_1":       "res://assets/dungeon/whisperwood/stages/ICO_DG_Whisperwood_2_1.png",
 	"stage:whisperwood_2_2":       "res://assets/dungeon/whisperwood/stages/ICO_DG_Whisperwood_2_2.png",
