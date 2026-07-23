@@ -75,6 +75,13 @@ func _layout_hub_if_needed() -> void:
 
 
 func _maybe_show_rank_up() -> void:
+	const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
+	if _ContentUnlockNotice.has_pending():
+		var unlock_overlay: CanvasLayer = _ContentUnlockNotice.show_pending_on(
+			self, Callable(self, "_maybe_show_rank_up")
+		)
+		if unlock_overlay != null:
+			return
 	_CommanderProfile.bootstrap_acknowledged_rank_if_needed()
 	var pending: String = _CommanderProfile.pending_rank_up()
 	if pending.is_empty():

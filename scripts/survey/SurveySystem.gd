@@ -24,9 +24,13 @@ static func add_survey_percent(dungeon_id: String, amount: float, from_room: boo
 		amount = _clamp_room_daily(amount)
 		if amount <= 0.0:
 			return get_survey_percent(dungeon_id)
+	const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
+	## ②解放など SURVEY 閾値越えを検知（章クリア経由でも dedupe される）。
+	var unlock_before: Dictionary = _ContentUnlockNotice.snapshot_unlocked()
 	var cur: float = get_survey_percent(dungeon_id)
 	var nxt: float = clampf(cur + amount, 0.0, _SurveyConfig.SURVEY_COMPLETE_PERCENT)
 	GameState.hub_survey_progress[dungeon_id] = nxt
+	_ContentUnlockNotice.queue_newly_unlocked(unlock_before)
 	return nxt
 
 

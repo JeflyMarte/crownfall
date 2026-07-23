@@ -54,6 +54,12 @@ func _ready() -> void:
 	_build_ui()
 	_pending_members = _SurveySystem.auto_assign_members()
 	_refresh()
+	call_deferred("_maybe_show_content_unlock")
+
+
+func _maybe_show_content_unlock() -> void:
+	const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
+	_ContentUnlockNotice.show_pending_on(self)
 
 
 func _process(delta: float) -> void:
@@ -786,6 +792,7 @@ func _on_claim() -> void:
 	_label_status.text = "受取完了: %s" % " ・ ".join(parts)
 	_pending_members = _SurveySystem.auto_assign_members()
 	_refresh()
+	call_deferred("_maybe_show_content_unlock")
 
 
 func _on_back_pressed() -> void:

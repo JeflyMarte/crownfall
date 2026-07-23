@@ -118,6 +118,12 @@ func _ready() -> void:
 	_button_home.pressed.connect(_on_home_pressed)
 	_ensure_next_stage_button()
 	_enter_step(ResultFlowScript.Step.REWARDS)
+	call_deferred("_maybe_show_content_unlock")
+
+
+func _maybe_show_content_unlock() -> void:
+	const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
+	_ContentUnlockNotice.show_pending_on(self)
 
 func _process(delta: float) -> void:
 	if _step_timer_sec <= 0.0:
