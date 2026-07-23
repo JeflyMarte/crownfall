@@ -358,6 +358,8 @@ const DIVE_INTRO_START_SEC: float = 0.85
 const RUN_HUD_HEIGHT: float = 28.0
 const BOSS_INTRO_WARNING_TEXT: String = "警告"
 const ELITE_INTRO_TEXT: String = "エリート"
+## 影狩り戦闘フロア専用の薄暗（BattlefieldArea 上の ColorRect）。
+const SHADOW_STALKER_FLOOR_DIM: Color = Color(0.04, 0.02, 0.12, 0.46)
 ## 属性ごとの演出色（命中VFXの modulate / スキル名フォント色に共用）。
 ## 未設定/無属性は WHITE（VFX）・既定の青系（スキル名）にフォールバック。
 const ELEMENT_COLOR: Dictionary = {
@@ -383,6 +385,7 @@ const ElementResolverScript: Script = preload("res://scripts/combat/ElementResol
 const AffixStatCalculatorScript: Script = preload("res://scripts/equipment/AffixStatCalculator.gd")
 const JobStatCalculatorScript: Script = preload("res://scripts/equipment/JobStatCalculator.gd")
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
+const _WanderingEnemyConfig = preload("res://scripts/dungeon/WanderingEnemyConfig.gd")
 const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd")
 
 var _auto_delay: float = AUTO_DELAY_BASE / SPEED_MULT_NORMAL
@@ -501,6 +504,7 @@ var _party_card_roots: Array[PanelContainer] = []
 var _party_card_name_labels: Array[Label] = []
 var _party_card_active_turn: int = -1
 var _combat_tier_vignette: ColorRect
+var _shadow_stalker_floor_dim: ColorRect
 var _tier_frame_pulse_tween: Tween
 var _threat_banner: PanelContainer
 var _label_threat_banner: Label
@@ -2568,12 +2572,14 @@ func _enter_current_room() -> void:
 	_update_room_label()
 	_update_room_art()
 	_sync_room_bgm()
+	_set_shadow_stalker_floor_dim(false)
 	if $DungeonController.is_combat_room():
 		var group: Array[Resource] = $DungeonController.pick_combat_enemy_group()
 		if not group.is_empty():
 			var lead: Resource = group[0]
 			$CombatController.start_combat_group(group, $DungeonController.get_enemy_level())
 			_update_combat_visibility()
+			_sync_shadow_stalker_floor_dim(group)
 			_skill_executor.reset()
 			_skill_cd_visual_rem.clear()
 			_round_active = false
@@ -4509,8 +4515,20 @@ func _apply_enemy_damage_to_targets(
 			lines.append("%s に %d（撃破）%s" % [mname, dmg, density_tag])
 		else:
 			lines.append("%s に %d%s" % [mname, dmg, density_tag])
+		_try_apply_enemy_skill_hit_statuses(skill, ti, dmg)
 		_on_member_damaged(ti, {"attacker_slot": atk_slot})
 	_append_log("敵スキル【%s】%s%s\n  %s" % [skill.display_name, row_tag, dist_tag, " / ".join(lines)])
+
+func _try_apply_enemy_skill_hit_statuses(skill: Resource, member_idx: int, base_damage: int) -> void:
+	## 敵ダメージスキルの apply_status / apply_status2（後列処刑の bleed・防御DOWN 等）。
+	if skill == null or not $CombatController.is_member_alive(member_idx):
+		return
+	if not skill.apply_status_id.is_empty() and skill.apply_status_chance > 0.0:
+		if randf() <= float(skill.apply_status_chance):
+			_apply_status_to_member_target(member_idx, str(skill.apply_status_id), 1, base_damage)
+	if not skill.apply_status_id2.is_empty() and skill.apply_status_chance2 > 0.0:
+		if randf() <= float(skill.apply_status_chance2):
+			_apply_status_to_member_target(member_idx, str(skill.apply_status_id2), 1, base_damage)
 
 # 敵スキル発動時、敵ドット絵の頭上にスキル名を赤系でポップ表示
 func _spawn_enemy_skill_name(skill_name: String) -> void:
@@ -6750,6 +6768,41 @@ func _ensure_combat_tier_vignette() -> void:
 	_combat_tier_vignette.color = Color(0, 0, 0, 0)
 	_combat_tier_frame.add_child(_combat_tier_vignette)
 	_combat_tier_frame.move_child(_combat_tier_vignette, 0)
+
+
+func _ensure_shadow_stalker_floor_dim() -> void:
+	if _shadow_stalker_floor_dim != null and is_instance_valid(_shadow_stalker_floor_dim):
+		return
+	var battlefield: Control = $MainVBox/BattlefieldArea
+	_shadow_stalker_floor_dim = ColorRect.new()
+	_shadow_stalker_floor_dim.name = "ShadowStalkerFloorDim"
+	_shadow_stalker_floor_dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_shadow_stalker_floor_dim.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_shadow_stalker_floor_dim.grow_vertical = Control.GROW_DIRECTION_BOTH
+	_shadow_stalker_floor_dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_shadow_stalker_floor_dim.color = Color(SHADOW_STALKER_FLOOR_DIM.r, SHADOW_STALKER_FLOOR_DIM.g, SHADOW_STALKER_FLOOR_DIM.b, 0.0)
+	_shadow_stalker_floor_dim.visible = false
+	_shadow_stalker_floor_dim.z_index = 8
+	battlefield.add_child(_shadow_stalker_floor_dim)
+
+
+func _set_shadow_stalker_floor_dim(active: bool) -> void:
+	_ensure_shadow_stalker_floor_dim()
+	if not active:
+		_shadow_stalker_floor_dim.visible = false
+		_shadow_stalker_floor_dim.color.a = 0.0
+		return
+	_shadow_stalker_floor_dim.visible = true
+	_shadow_stalker_floor_dim.color = SHADOW_STALKER_FLOOR_DIM
+
+
+func _sync_shadow_stalker_floor_dim(group: Array) -> void:
+	var active: bool = false
+	for enemy: Variant in group:
+		if enemy is Resource and _WanderingEnemyConfig.is_shadow_stalker(enemy as Resource):
+			active = true
+			break
+	_set_shadow_stalker_floor_dim(active)
 
 func _start_tier_frame_pulse() -> void:
 	_stop_tier_frame_pulse()

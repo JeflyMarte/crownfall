@@ -343,6 +343,7 @@ const ICON_MAP: Dictionary = {
 	"skill:enemy_grave_bell_peal":      "res://assets/ui/skills/ICO_SKILL_EnemyChronoResonance.png",
 	"skill:enemy_crystal_sting":        "res://assets/ui/skills/ICO_SKILL_EnemyCrystalRain.png",
 	"skill:enemy_skullface_reap":       "res://assets/ui/skills/ICO_SKILL_EnemyClawGuillotine.png",
+	"skill:enemy_shadow_reap":          "res://assets/ui/skills/ICO_SKILL_EnemyClawGuillotine.png",
 	"skill:enemy_crystal_burst":           "res://assets/ui/skills/ICO_SKILL_EnemyCrystalBurst.png",
 	"skill:enemy_crystal_rain":           "res://assets/ui/skills/ICO_SKILL_EnemyCrystalRain.png",
 	"skill:enemy_eldion_crevasse":           "res://assets/ui/skills/ICO_SKILL_EnemyEldionCrevasse.png",

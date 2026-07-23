@@ -46,12 +46,12 @@ const CROWN_RAVEN_CATEGORY_WEIGHTS: Dictionary = {
 	"accessory": 25,
 }
 
-## 影狩りの装備レア度重み（★寄り強化）。
+## 影狩りの装備レア度重み（★寄り強化・B+D）。
 const SHADOW_STALKER_RARITY_WEIGHTS: Dictionary = {
-	Enums.Rarity.COMMON: 5,
-	Enums.Rarity.RARE: 15,
-	Enums.Rarity.EPIC: 40,
-	Enums.Rarity.LEGENDARY: 40,
+	Enums.Rarity.COMMON: 0,
+	Enums.Rarity.RARE: 10,
+	Enums.Rarity.EPIC: 35,
+	Enums.Rarity.LEGENDARY: 55,
 }
 
 ## 影狩りの装備種別重み（レイヴンと同型）。
@@ -63,7 +63,7 @@ const SHADOW_STALKER_CATEGORY_WEIGHTS: Dictionary = {
 
 ## 撃破装備ドロップ成功時に神話を抽選する確率（別枠）。
 const CROWN_RAVEN_MYTHIC_CHANCE: float = 0.01
-const SHADOW_STALKER_MYTHIC_CHANCE: float = 0.02
+const SHADOW_STALKER_MYTHIC_CHANCE: float = 0.035
 
 
 static func is_crown_raven(enemy_data: Resource) -> bool:
