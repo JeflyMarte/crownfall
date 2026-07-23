@@ -7,18 +7,22 @@ const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 var _saved_dungeon_progress: Dictionary = {}
 var _saved_stage_progress: Dictionary = {}
 var _saved_dungeon_tier: int = 0
+var _saved_survey: Dictionary = {}
 
 func before_each() -> void:
 	_saved_dungeon_progress = GameState.dungeon_progress
 	_saved_stage_progress = GameState.stage_progress
 	_saved_dungeon_tier = GameState.current_dungeon_tier
+	_saved_survey = GameState.hub_survey_progress.duplicate(true)
 	GameState.dungeon_progress = {}
 	GameState.stage_progress = {}
+	GameState.hub_survey_progress = {}
 	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
 
 func after_each() -> void:
 	GameState.dungeon_progress = _saved_dungeon_progress
 	GameState.stage_progress = _saved_stage_progress
+	GameState.hub_survey_progress = _saved_survey
 	GameState.current_dungeon_tier = _saved_dungeon_tier
 
 func test_chapter_clear_does_not_unlock_next_biome() -> void:
