@@ -276,20 +276,24 @@ func _dedupe_formation_slots_local() -> void:
 		seen[member] = true
 
 func _sync_formation_slots_from_selection() -> void:
-	var kept: Array = []
+	## 空きスロット（前列空＋後列のみ等）を詰めない。詰めると後列が前列表示になる。
 	var seen: Dictionary = {}
-	for slot in _formation_slots:
-		if slot != null and _selected.has(slot) and not seen.has(slot):
-			kept.append(slot)
-			seen[slot] = true
-	for adv in _selected:
-		if not seen.has(adv):
-			kept.append(adv)
-			seen[adv] = true
-	while kept.size() < FORMATION_SLOT_COUNT:
-		kept.append(null)
 	for i in FORMATION_SLOT_COUNT:
-		_formation_slots[i] = kept[i] if i < kept.size() else null
+		var member: Resource = _formation_slots[i]
+		if member == null:
+			continue
+		if not _selected.has(member) or seen.has(member):
+			_formation_slots[i] = null
+			continue
+		seen[member] = true
+	for adv in _selected:
+		if adv == null or seen.has(adv):
+			continue
+		for i in FORMATION_SLOT_COUNT:
+			if _formation_slots[i] == null:
+				_formation_slots[i] = adv
+				seen[adv] = true
+				break
 	_dedupe_formation_slots_local()
 	_apply_formation_rows_from_slots()
 
@@ -892,15 +896,38 @@ func _on_formation_preset_pressed(preset: String) -> void:
 		return
 	match preset:
 		"front":
-			_assign_formation_by_role(members, true)
-		"back":
-			_assign_formation_by_role(members, false)
-		_:
+			## 前衛寄り: 前から詰める（2人なら前列のみ）
 			_place_members_in_slots(members, [0, 1, 2, 3])
+		"back":
+			## 後衛=後ろ最大2人を後列（P3-D106）。2人なら前列空＋後列2
+			_place_members_with_back_count(members, 2)
+		_:
+			## 均衡=最後尾1人後列（P3-D106）
+			_place_members_with_back_count(members, 1)
 	_apply_formation_rows_from_slots()
 	_formation_pick_slot = -1
 	_refresh_formation_grid()
 	_rebuild_active_party_row()
+
+func _place_members_with_back_count(members: Array, back_count: int) -> void:
+	for i in FORMATION_SLOT_COUNT:
+		_formation_slots[i] = null
+	if members.is_empty():
+		return
+	var n: int = members.size()
+	var back_n: int = clampi(back_count, 0, mini(2, n))
+	var front_n: int = n - back_n
+	## 前列は最大2。溢れた分は後列スロットへ（2×2制約）
+	if front_n > 2:
+		front_n = 2
+		back_n = n - front_n
+	var idx: int = 0
+	for i in front_n:
+		_formation_slots[i] = members[idx]
+		idx += 1
+	for j in back_n:
+		_formation_slots[2 + j] = members[idx]
+		idx += 1
 
 func _assign_formation_by_role(members: Array, tanks_to_front_slots: bool) -> void:
 	var tanks: Array = []

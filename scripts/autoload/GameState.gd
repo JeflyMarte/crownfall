@@ -805,9 +805,13 @@ func _dedupe_formation_slots() -> void:
 		else:
 			overflow.append(m)
 	for m in overflow:
-		for candidate in range(4):
+		## 後列指定なら後列スロットを優先（前列へ押し出さない）
+		var prefer_back: bool = get_member_formation_row(m) == FORMATION_BACK
+		var candidates: Array = [2, 3, 0, 1] if prefer_back else [0, 1, 2, 3]
+		for candidate in candidates:
 			if not used.has(candidate):
-				m.formation_slot = candidate
+				m.formation_slot = int(candidate)
+				m.formation_row = FORMATION_BACK if int(candidate) >= 2 else FORMATION_FRONT
 				used[candidate] = m
 				break
 
