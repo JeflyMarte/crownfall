@@ -4200,3 +4200,5 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-UX-REDEEM-001-3 | **回数** — セーブごと1回。`GameState.redeemed_codes` に永続 | 二重受取防止 |
 | P3-UX-REDEEM-001-4 | **初回コード** — `CROWNFALL-BETA`（空白・ハイフン無視）→ Gold 5000＋魔晶石 30＋招待チケット1 | 推奨案で確定 |
 | P3-UX-REDEEM-001-5 | **セーブ必須** — 未セーブ時は拒否。タイトル経由時は `load_game` 後に付与して空上書きを防ぐ | データ破壊防止 |
+
+**Closeout（2026-07-23）:** オーナー GO → 統合＋`main`。
