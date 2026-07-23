@@ -520,6 +520,16 @@ var _cached_heal_vfx_frames: SpriteFrames
 const SWARM_SPACING_RATIO: float = 0.201
 const SWARM_CENTER_X_RATIO: float = 0.694
 const SWARM_Y_RATIO: float = 0.48
+## 群れ時の見た目縮小（ドット／HPバー／名前）
+const SWARM_DISPLAY_SCALE: float = 0.82
+const SWARM_BAR_HALF_W: float = 26.0
+const SWARM_BAR_HEIGHT: float = 8.0
+const SWARM_NAME_FONT_SIZE: int = 13
+const SWARM_NAME_HEIGHT: float = 20.0
+const SINGLE_BAR_HALF_W: float = 36.0
+const SINGLE_BAR_HEIGHT: float = 10.0
+const SINGLE_NAME_FONT_SIZE: int = 22
+const SINGLE_NAME_HEIGHT: float = 24.0
 ## エリートは通常雑魚より上（ボスに近い高さ）に置く。
 const ELITE_Y_RATIO: float = 0.34
 # BattlefieldArea 内の足元Y比率へ加算（全体を下げる）
@@ -6318,7 +6328,7 @@ func _show_enemy_swarm(enemy_ids: Array) -> void:
 		return
 	_ensure_swarm_slots(n)
 	# 群れは名前が密集するため小さめフォントに、単体は従来サイズ。
-	var name_fs: int = 15 if n > 1 else 22
+	var name_fs: int = SWARM_NAME_FONT_SIZE if n > 1 else SINGLE_NAME_FONT_SIZE
 	var start_ratio: float = SWARM_CENTER_X_RATIO - float(n - 1) * SWARM_SPACING_RATIO * 0.5
 	var y_ratio: float = _enemy_swarm_y_ratio()
 	for i in n:
@@ -6336,6 +6346,8 @@ func _show_enemy_swarm(enemy_ids: Array) -> void:
 			continue
 		spr.sprite_frames = frames
 		_normalize_enemy_scale(spr, frames)
+		if n > 1:
+			spr.scale *= SWARM_DISPLAY_SCALE
 		spr.position = _battlefield_combat_position(
 			Vector2(start_ratio + float(i) * SWARM_SPACING_RATIO, y_ratio)
 		)
@@ -6353,19 +6365,20 @@ func _position_swarm_overlay(slot: int) -> void:
 	var sprite: AnimatedSprite2D = _swarm_sprites[slot]
 	var bar: ProgressBar = _swarm_hp_bars[slot]
 	var np: Label = _swarm_nameplates[slot]
-	const BAR_HALF_W: float = 36.0
-	const BAR_HEIGHT: float = 10.0
-	const NAME_HEIGHT: float = 24.0
+	var swarming: bool = $CombatController.swarm_data.size() > 1
+	var bar_half_w: float = SWARM_BAR_HALF_W if swarming else SINGLE_BAR_HALF_W
+	var bar_height: float = SWARM_BAR_HEIGHT if swarming else SINGLE_BAR_HEIGHT
+	var name_height: float = SWARM_NAME_HEIGHT if swarming else SINGLE_NAME_HEIGHT
 	const GAP_ABOVE_SPRITE: float = 12.0
 	const GAP_BAR_NAME: float = 6.0
 	var center: Vector2 = _sprite_center_in_root(sprite)
 	var cx: float = center.x
 	var top_y: float = _sprite_top_y_in_root(sprite)
-	var bar_ty: float = minf(center.y - 50.0, top_y - GAP_ABOVE_SPRITE - BAR_HEIGHT)
-	bar.offset_left = cx - BAR_HALF_W
+	var bar_ty: float = minf(center.y - 50.0, top_y - GAP_ABOVE_SPRITE - bar_height)
+	bar.offset_left = cx - bar_half_w
 	bar.offset_top = bar_ty
-	bar.offset_right = cx + BAR_HALF_W
-	bar.offset_bottom = bar_ty + BAR_HEIGHT
+	bar.offset_right = cx + bar_half_w
+	bar.offset_bottom = bar_ty + bar_height
 	var data: Resource = $CombatController.get_enemy_data_at(slot)
 	if data == null:
 		np.visible = false
@@ -6374,16 +6387,17 @@ func _position_swarm_overlay(slot: int) -> void:
 		return
 	var name_text: String = "Lv%d %s" % [$CombatController.enemy_level, data.display_name]
 	np.text = name_text
-	var name_fs: int = np.get_theme_font_size("font_size")
+	var name_fs: int = SWARM_NAME_FONT_SIZE if swarming else SINGLE_NAME_FONT_SIZE
+	np.add_theme_font_size_override("font_size", name_fs)
 	var name_half_w: float = _nameplate_half_width(name_text, name_fs)
 	cx = clampf(center.x, name_half_w + 12.0, 720.0 - name_half_w - 12.0)
-	bar.offset_left = cx - BAR_HALF_W
-	bar.offset_right = cx + BAR_HALF_W
-	var name_ty: float = bar_ty - GAP_BAR_NAME - NAME_HEIGHT
+	bar.offset_left = cx - bar_half_w
+	bar.offset_right = cx + bar_half_w
+	var name_ty: float = bar_ty - GAP_BAR_NAME - name_height
 	np.offset_left = cx - name_half_w
 	np.offset_top = name_ty
 	np.offset_right = cx + name_half_w
-	np.offset_bottom = name_ty + NAME_HEIGHT
+	np.offset_bottom = name_ty + name_height
 	np.visible = true
 	_position_elite_name_badge(slot, cx, name_ty)
 

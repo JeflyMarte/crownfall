@@ -439,6 +439,16 @@ func get_run_chapter_label() -> String:
 		return ""
 	return "%d-%d" % [int(current_stage_data.biome_index), int(current_stage_data.chapter_index)]
 
+## 1-1〜1-3 のみ群れ率を下げる（イベント forced_swarm は対象外）。
+func _early_stage_swarm_chance_mult() -> float:
+	if current_stage_data == null:
+		return 1.0
+	var biome_i: int = int(current_stage_data.biome_index)
+	var chapter_i: int = int(current_stage_data.chapter_index)
+	if biome_i == 1 and chapter_i >= 1 and chapter_i <= 3:
+		return BalanceConfig.EARLY_STAGE_SWARM_CHANCE_MULT
+	return 1.0
+
 func get_run_recommended_level() -> int:
 	var base: int = 0
 	if current_stage_data != null and int(current_stage_data.recommended_level) > 0:
@@ -869,6 +879,8 @@ func pick_combat_enemy_group() -> Array[Resource]:
 	# 探索方針（安全優先）群れ出現率を半減（P3-D098）
 	elif GameState.get_exploration_policy() == "safe":
 		swarm_chance *= 0.5
+	if not forced_swarm:
+		swarm_chance *= _early_stage_swarm_chance_mult()
 	swarm_chance *= _DungeonTierConfig.swarm_chance_mult(GameState.current_dungeon_tier)
 	swarm_chance = minf(0.95, swarm_chance * EventSystem.get_swarm_chance_mult())
 	if randf() >= swarm_chance:

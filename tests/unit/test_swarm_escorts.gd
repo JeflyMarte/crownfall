@@ -7,6 +7,21 @@ const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 
 func test_swarm_chance_raised() -> void:
 	assert_almost_eq(BalanceConfig.SWARM_CHANCE, 0.45, 0.001)
+	assert_almost_eq(BalanceConfig.EARLY_STAGE_SWARM_CHANCE_MULT, 0.50, 0.001)
+
+
+func test_early_stage_swarm_chance_mult_for_1_1_to_1_3() -> void:
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	dc.current_stage_data = DataRegistry.get_stage_data("mourngate_1_1")
+	assert_almost_eq(dc._early_stage_swarm_chance_mult(), 0.50, 0.001)
+	dc.current_stage_data = DataRegistry.get_stage_data("mourngate_1_3")
+	assert_almost_eq(dc._early_stage_swarm_chance_mult(), 0.50, 0.001)
+	dc.current_stage_data = DataRegistry.get_stage_data("mourngate_1_4")
+	assert_almost_eq(dc._early_stage_swarm_chance_mult(), 1.0, 0.001)
+	dc.current_stage_data = DataRegistry.get_stage_data("mourngate_1_5")
+	assert_almost_eq(dc._early_stage_swarm_chance_mult(), 1.0, 0.001)
 
 
 func test_tier_swarm_scalars() -> void:
