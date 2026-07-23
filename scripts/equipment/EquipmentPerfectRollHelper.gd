@@ -2,8 +2,10 @@ class_name EquipmentPerfectRollHelper
 extends RefCounted
 
 ## パーフェクトロール⭐️ — UI ステータス行への表示（P3-EQ-STAT-007 拡張）。
+## ランダム値の上下限 `(min〜max)` もここで付与する。
 
 const _EquipmentRollHelper = preload("res://scripts/equipment/EquipmentRollHelper.gd")
+const _EquipmentEnhancer = preload("res://scripts/equipment/EquipmentEnhancer.gd")
 const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _ArmorStatResolver = preload("res://scripts/equipment/ArmorStatResolver.gd")
 const _AccessoryStatResolver = preload("res://scripts/equipment/AccessoryStatResolver.gd")
@@ -15,6 +17,28 @@ static func value_label(value_text: String, is_perfect: bool) -> String:
 	if not is_perfect:
 		return value_text
 	return value_text + _EquipmentRollHelper.PERFECT_STAR
+
+
+## 例: `30%(10〜40)` / `120(100〜140)`。レンジ無しなら空文字。
+static func range_suffix(item: Resource, category: String, stat_key: String) -> String:
+	var bounds: Dictionary = roll_bounds_display(item, category, stat_key)
+	if bounds.is_empty():
+		return ""
+	return "(%s〜%s)" % [str(bounds["min"]), str(bounds["max"])]
+
+
+## UI 表示単位の上下限。キー min/max（String）。対象外は空 Dictionary。
+static func roll_bounds_display(item: Resource, category: String, stat_key: String) -> Dictionary:
+	if item == null or stat_key.is_empty():
+		return {}
+	match category:
+		"weapon":
+			return _weapon_roll_bounds(item, stat_key)
+		"armor":
+			return _armor_roll_bounds(item, stat_key)
+		"accessory":
+			return _accessory_roll_bounds(item, stat_key)
+	return {}
 
 
 static func is_ui_stat_perfect(item: Resource, category: String, stat_key: String) -> bool:
@@ -202,3 +226,160 @@ static func _has_rolled_stat(item: Resource, stat_id: String) -> bool:
 	if item == null or not ("rolled_bonus_stats" in item):
 		return false
 	return stat_id in item.rolled_bonus_stats
+
+
+static func _table_number(table: Dictionary, rarity: int) -> Variant:
+	if table.has(rarity):
+		return table[rarity]
+	if rarity >= Enums.Rarity.LEGENDARY and table.has(Enums.Rarity.LEGENDARY):
+		return table[Enums.Rarity.LEGENDARY]
+	return table.get(Enums.Rarity.COMMON, 0)
+
+
+static func _bounds_int(lo: int, hi: int) -> Dictionary:
+	if hi < lo:
+		return {}
+	return {"min": str(lo), "max": str(hi)}
+
+
+static func _bounds_float1(lo: float, hi: float) -> Dictionary:
+	if hi + _RATE_EPS < lo:
+		return {}
+	return {"min": "%.1f" % lo, "max": "%.1f" % hi}
+
+
+static func _bounds_percent_points(lo_rate: float, hi_rate: float) -> Dictionary:
+	if hi_rate + _RATE_EPS < lo_rate:
+		return {}
+	return {
+		"min": str(int(round(lo_rate * 100.0))),
+		"max": str(int(round(hi_rate * 100.0))),
+	}
+
+
+static func _weapon_roll_bounds(weapon: Resource, stat_key: String) -> Dictionary:
+	var data: Resource = DataRegistry.get_weapon_data(str(weapon.weapon_id))
+	if data == null:
+		return {}
+	var rarity: int = int(data.rarity)
+	match stat_key:
+		"attack":
+			var roll_max: int = int(_table_number(_WeaponStatResolver.ATTACK_ROLL_MAX, rarity))
+			var lo_raw: int = int(data.base_attack)
+			var hi_raw: int = lo_raw + roll_max
+			var lv: int = _EquipmentEnhancer.get_equip_level(weapon)
+			var forge: int = _EquipmentEnhancer.get_enhance_level(weapon) * BalanceConfig.EQUIP_FORGE_FLAT_PER_LEVEL
+			var lo: int = _EquipmentEnhancer.scale_equip_stat(lo_raw, lv, rarity) + forge
+			var hi: int = _EquipmentEnhancer.scale_equip_stat(hi_raw, lv, rarity) + forge
+			return _bounds_int(lo, hi)
+		"element_power":
+			if not _has_rolled_stat(weapon, "element_power"):
+				return {}
+			var base_power: int = maxi(0, int(data.base_element_power) if "base_element_power" in data else 0)
+			var ep_max: int = int(_table_number(_WeaponStatResolver.ELEMENT_POWER_ROLL_MAX, rarity))
+			return _bounds_int(base_power, base_power + ep_max)
+		"speed":
+			if not _has_rolled_stat(weapon, "attack_speed"):
+				return {}
+			var base_spd: float = float(data.base_attack_speed)
+			if base_spd <= 0.0:
+				base_spd = BalanceConfig.DEFAULT_WEAPON_ATTACK_SPEED
+			var spd_max: float = float(_table_number(_WeaponStatResolver.ATTACK_SPEED_ROLL_MAX, rarity))
+			return _bounds_float1(base_spd, base_spd + spd_max)
+		"crit_rate":
+			if not _has_rolled_stat(weapon, "critical_rate"):
+				return {}
+			var base_crit: float = float(data.base_critical_rate)
+			if base_crit <= 0.0:
+				base_crit = BalanceConfig.DEFAULT_WEAPON_CRITICAL_RATE
+			var crit_max: float = float(_table_number(_WeaponStatResolver.CRITICAL_RATE_ROLL_MAX, rarity))
+			return _bounds_percent_points(base_crit, base_crit + crit_max)
+		"on_hit_status":
+			if not _has_rolled_stat(weapon, "on_hit_status"):
+				return {}
+			var cmin: float = float(_table_number(_WeaponStatResolver.STATUS_CHANCE_MIN_BY_RARITY, rarity))
+			var cmax: float = float(_table_number(_WeaponStatResolver.STATUS_CHANCE_MAX_BY_RARITY, rarity))
+			return _bounds_percent_points(cmin, cmax)
+	return {}
+
+
+static func _armor_roll_bounds(armor: Resource, stat_key: String) -> Dictionary:
+	var data: Resource = DataRegistry.get_armor_data(str(armor.armor_id))
+	if data == null:
+		return {}
+	var rarity: int = int(data.rarity)
+	match stat_key:
+		"defense":
+			var roll_max: int = int(_table_number(_ArmorStatResolver.DEFENSE_ROLL_MAX, rarity))
+			var lo: int = int(data.base_defense)
+			return _bounds_int(lo, lo + roll_max)
+		"hp":
+			if not _has_rolled_stat(armor, "hp_bonus"):
+				return {}
+			var base_hp: int = maxi(0, int(data.base_hp_bonus))
+			var hp_max: int = int(_table_number(_ArmorStatResolver.HP_ROLL_MAX, rarity))
+			return _bounds_int(base_hp, base_hp + hp_max)
+		"exp_gain", "gold_gain", "rare_drop":
+			if not _has_rolled_stat(armor, _rate_rolled_id(stat_key)):
+				return {}
+			return _bounds_percent_points(
+				float(_table_number(_ArmorStatResolver.RATE_MIN_BY_RARITY, rarity)),
+				float(_table_number(_ArmorStatResolver.RATE_MAX_BY_RARITY, rarity))
+			)
+		"evasion_rate":
+			if not _has_rolled_stat(armor, "evasion_rate"):
+				return {}
+			return _bounds_percent_points(
+				float(_table_number(_ArmorStatResolver.EVASION_MIN_BY_RARITY, rarity)),
+				float(_table_number(_ArmorStatResolver.EVASION_MAX_BY_RARITY, rarity))
+			)
+	return {}
+
+
+static func _accessory_roll_bounds(accessory: Resource, stat_key: String) -> Dictionary:
+	var data: Resource = DataRegistry.get_accessory_data(str(accessory.accessory_id))
+	if data == null:
+		return {}
+	var rarity: int = int(data.rarity)
+	match stat_key:
+		"hp":
+			return _accessory_int_bounds(accessory, data, rarity, "hp_bonus", _AccessoryStatResolver.HP_ROLL_MAX)
+		"attack":
+			return _accessory_int_bounds(accessory, data, rarity, "attack_bonus", _AccessoryStatResolver.ATTACK_ROLL_MAX)
+		"defense":
+			return _accessory_int_bounds(accessory, data, rarity, "defense_bonus", _AccessoryStatResolver.DEFENSE_ROLL_MAX)
+		"crit_rate":
+			if not _has_rolled_stat(accessory, "crit_rate_bonus"):
+				return {}
+			var base_crit: float = maxf(0.0, float(data.crit_rate_bonus))
+			var crit_max: float = float(_table_number(_AccessoryStatResolver.CRIT_ROLL_MAX, rarity))
+			return _bounds_percent_points(base_crit, base_crit + crit_max)
+		"exp_gain", "gold_gain", "rare_drop":
+			if not _has_rolled_stat(accessory, _rate_rolled_id(stat_key)):
+				return {}
+			return _bounds_percent_points(
+				float(_table_number(_AccessoryStatResolver.RATE_MIN_BY_RARITY, rarity)),
+				float(_table_number(_AccessoryStatResolver.RATE_MAX_BY_RARITY, rarity))
+			)
+		"evasion_rate":
+			if not _has_rolled_stat(accessory, "evasion_rate"):
+				return {}
+			return _bounds_percent_points(
+				float(_table_number(_AccessoryStatResolver.EVASION_MIN_BY_RARITY, rarity)),
+				float(_table_number(_AccessoryStatResolver.EVASION_MAX_BY_RARITY, rarity))
+			)
+	return {}
+
+
+static func _accessory_int_bounds(
+	item: Resource,
+	data: Resource,
+	rarity: int,
+	rolled_id: String,
+	roll_table: Dictionary
+) -> Dictionary:
+	if not _has_rolled_stat(item, rolled_id):
+		return {}
+	var base_val: int = maxi(0, int(data.get(rolled_id)))
+	var roll_max: int = int(_table_number(roll_table, rarity))
+	return _bounds_int(base_val, base_val + roll_max)
