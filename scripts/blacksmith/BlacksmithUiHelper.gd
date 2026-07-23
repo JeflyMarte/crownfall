@@ -549,8 +549,15 @@ static func apply_primary_button(btn: Button, kind: String = PRIMARY_KIND_PRODUC
 	_apply_image_button_styles(btn, styles, true)
 
 
+## 一括分解は長いラベルのため、本番ボタンより小さめ・一行固定。
+const BULK_DISMANTLE_FONT_SIZE: int = 18
+
 static func apply_bulk_dismantle_button(btn: Button) -> void:
 	_apply_image_button_styles(btn, ForgeUiTokens.bulk_dismantle_button_styles(), true)
+	btn.add_theme_font_size_override("font_size", BULK_DISMANTLE_FONT_SIZE)
+	btn.clip_text = false
+	btn.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	btn.autowrap_mode = TextServer.AUTOWRAP_OFF
 	if btn.custom_minimum_size.y < 76.0:
 		btn.custom_minimum_size = Vector2(btn.custom_minimum_size.x, 76.0)
 
