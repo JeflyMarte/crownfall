@@ -31,7 +31,25 @@ func test_build_rotation_has_recommend_then_field() -> void:
 
 
 func test_chat_pool_is_large() -> void:
-	assert_gte(_Helper.CHAT_LINES.size(), 30)
+	assert_gte(_Helper.CHAT_LINES.size(), 100)
+	assert_eq(_Helper.CHAT_IN_ROTATION, 5)
+
+
+func test_chat_pool_has_no_empty_or_duplicate() -> void:
+	var seen: Dictionary = {}
+	for line in _Helper.CHAT_LINES:
+		var text: String = str(line).strip_edges()
+		assert_false(text.is_empty(), "空セリフ禁止")
+		assert_false(seen.has(text), "重複: %s" % text)
+		seen[text] = true
+
+
+func test_recommend_pools_are_expanded() -> void:
+	assert_gte(_Helper.CLAIMABLE_LINES.size(), 6)
+	assert_gte(_Helper.INCOMPLETE_DAILY_LINES.size(), 6)
+	assert_gte(_Helper.PARTY_VACANCY_LINES.size(), 6)
+	assert_gte(_Helper.FALLBACK_RECOMMEND_LINES.size(), 8)
+	assert_gte(_Helper.CALM_FIELD_LINES.size(), 8)
 
 
 func test_pick_chat_lines_unique() -> void:
