@@ -4175,6 +4175,8 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-CODEX-ACHIEVE-OMIT-3 | **手引き SYS-G001** から実績タブ案内を撤去。記録タブは維持 | プレイヤー向け案内の整合 |
 | P3-CODEX-ACHIEVE-OMIT-4 | **SSOT** — `decisions/05_HubSurveyRoom.md` §6 にオミット注記。P3-HUB-SURVEY-001-7 を本 Decision で上書き（骨格残置） | 調査室 Decision の ACHIEVE 節 |
 
+**Closeout（2026-07-23）:** オーナー GO → 統合＋`main`。
+
 ## 弓／双刃レジェンド拡充（2026-07-23 — P3-EQ-LEG-WPN-BOW-DUAL-001）
 > **オーナー GO（案B）** — 弓3＋双刃2。アイコンも既存レジェンド同様に生成・セット。
 | # | 決定 | 根拠 |
@@ -4185,3 +4187,5 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-EQ-LEG-WPN-BOW-DUAL-001-4 | **入手** — 該当 Biome `weapon_pool`＋レイヴン／影狩りは mourngate 流用に `shadowcord` 追加 | 新経路なし |
 | P3-EQ-LEG-WPN-BOW-DUAL-001-5 | **アイコン** — 生成→64×64透過→`IconPaths`＋`LEGENDARY_HAND_DRAWN_WEAPON_IDS` | P3-ART-LEG-WPN-001 継続 |
 | P3-EQ-LEG-WPN-BOW-DUAL-001-6 | **天候シンクロ追加はしない**（雨／夜／霧は据置） | P3-EQ-WEATHER-LEG-001 |
+
+**Closeout（2026-07-23）:** オーナー GO → 統合＋`main`。
