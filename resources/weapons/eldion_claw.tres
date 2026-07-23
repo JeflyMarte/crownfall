@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "eldion_claw"
+display_name = "始祖の霜爪エルディオン・クロー"
+description = "始祖竜の霜爪を研ぎ直した双刃。触れた肌から体温を奪い、白い息とともに裂傷を残す。"
+fixed_skill_id = ""
+fixed_passive_id = "eq_wpn_eldion_claw"
+base_attack = 432
+rarity = 3
+base_attack_speed = 1.1
+base_critical_rate = 0.11
+base_knockback = 0.3
+base_stagger_power = 0.15
+base_attack_range = 1.0
+weight = 0.9
+element = "ice"
+weapon_type = "dual_blades"
+tags = Array[String](["pierce", "ice"])
+bane_class = "古代種"
+bane_multiplier = 1.3

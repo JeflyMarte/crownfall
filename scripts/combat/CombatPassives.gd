@@ -495,6 +495,44 @@ const _DEFS: Dictionary = {
 		"target": "enemy_all",
 		"cooldown": 0.0,
 	},
+	# ---- 弓／双刃レジェンド拡充（P3-EQ-LEG-WPN-BOW-DUAL-001） ----
+	"eq_wpn_eldion_spine": {
+		"display_name": "始祖の霜矢",
+		"category": "weapon",
+		"description": "属性値ロール確定 + 氷属性攻撃の与ダメ +25%。",
+		"forced_element": "ice",
+		"guaranteed_element_power_roll": true,
+		"element_outgoing_mult": {"ice": 1.25},
+	},
+	"eq_wpn_pharos_flare": {
+		"display_name": "烽火の極意",
+		"category": "weapon",
+		"description": "装備スキルの与ダメージ +35%。",
+		"skill_power_mult": 1.35,
+	},
+	"eq_wpn_shadowcord": {
+		"display_name": "影弦の急所",
+		"category": "weapon",
+		"description": "会心率 +10% / 会心ダメ +40%。",
+		"crit_rate_add": 0.10,
+		"crit_damage_add": 0.40,
+	},
+	"eq_wpn_silvaria_fang": {
+		"display_name": "黒陽の双牙",
+		"category": "weapon",
+		"description": "属性値ロール確定 + 炎属性攻撃の与ダメ +25%。",
+		"forced_element": "fire",
+		"guaranteed_element_power_roll": true,
+		"element_outgoing_mult": {"fire": 1.25},
+	},
+	"eq_wpn_eldion_claw": {
+		"display_name": "始祖の霜爪",
+		"category": "weapon",
+		"description": "属性値ロール確定 + 氷属性攻撃の与ダメ +25%。",
+		"forced_element": "ice",
+		"guaranteed_element_power_roll": true,
+		"element_outgoing_mult": {"ice": 1.25},
+	},
 	# ---- 天候シンクロ・レジェンド（P3-EQ-WEATHER-LEG-001） ----
 	"eq_wpn_stormveil_needle": {
 		"display_name": "雷雨の穿針",

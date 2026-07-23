@@ -52,6 +52,11 @@ LEGENDARY_HAND_DRAWN_WEAPON_IDS: set[str] = {
     "stormveil_needle",
     "noctumbra_fang",
     "mistpierce_halberd",
+    "eldion_spine",
+    "pharos_flare",
+    "shadowcord",
+    "silvaria_fang",
+    "eldion_claw",
 }
 
 CANONICAL_TEMPLATES = {

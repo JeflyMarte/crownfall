@@ -4,12 +4,9 @@
 
 ## Last Update
 
-<<<<<<< HEAD
-2026-07-23（**P3-CODEX-ACHIEVE-OMIT**: 図鑑「実績」タブを一旦オミット — `CODEX_ACHIEVE_PLAYABLE=false`。データ／Save 残置）
-=======
+2026-07-23（**今日修正一括 GO #86〜#94**: 鍛冶一括分解／影狩り予兆・強化／鍛冶強化ソート／実績タブオミット／調査室受取FX／解放ポップアップ／β封鎖解除／弓★3＋双刃★2。統合＋`main` 反映）
 2026-07-23（**β封鎖解除**: `BETA_MOURNGATE_ONLY=false`。③以降も通常直列解放。②は SURVEY≥70%＋①クリア据置。寄り道は引き続きオミット）
-
->>>>>>> origin/cursor/lift-beta-dungeon-lock-b062
+2026-07-23（**P3-CODEX-ACHIEVE-OMIT**: 図鑑「実績」タブを一旦オミット — `CODEX_ACHIEVE_PLAYABLE=false`。データ／Save 残置）
 2026-07-23（**P3-CODEX-GUIDE-003 GO**: 手引き拠点ギャップ＋中優先＋世界観12条を承認。統合＋`main` 反映済）
 2026-07-23（**P3-CODEX-GUIDE-003**: 手引きに世界観12条を追加。モーンゲート等DG概要を正典同期・征討メタ拡充）
 2026-07-23（**P3-CODEX-GUIDE-003**: 手引き中優先も追加 — 日課／部屋・罠／陣形×ジャック／招待状厚み。探索方針を平易化）

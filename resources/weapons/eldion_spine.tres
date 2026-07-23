@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "eldion_spine"
+display_name = "霜穿ちの長弓エルディオン・スパイン"
+description = "始祖竜の背棘を弦に架けた氷の長弓。矢は冷炎を纏い、遠き標的の熱を奪いながら貫く。"
+fixed_skill_id = ""
+fixed_passive_id = "eq_wpn_eldion_spine"
+base_attack = 512
+rarity = 3
+base_attack_speed = 1.2
+base_critical_rate = 0.12
+base_knockback = 0.1
+base_stagger_power = 0.1
+base_attack_range = 3.0
+weight = 0.75
+element = "ice"
+weapon_type = "bow"
+tags = Array[String](["pierce", "ice"])
+bane_class = "古代種"
+bane_multiplier = 1.3
