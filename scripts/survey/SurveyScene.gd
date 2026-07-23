@@ -61,16 +61,12 @@ func _ready() -> void:
 	_pending_members = _SurveySystem.auto_assign_members()
 	_update_currency()
 	_refresh()
-<<<<<<< HEAD
 	call_deferred("_try_auto_claim_on_enter")
-=======
-	call_deferred("_maybe_show_content_unlock")
 
 
 func _maybe_show_content_unlock() -> void:
 	const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
 	_ContentUnlockNotice.show_pending_on(self)
->>>>>>> origin/cursor/dungeon-unlock-popup-b062
 
 
 func _process(delta: float) -> void:
@@ -807,6 +803,7 @@ func _try_auto_claim_on_enter() -> void:
 	if _claim_fx_busy:
 		return
 	if not _SurveySystem.has_active_cycle() or not _SurveySystem.is_cycle_complete():
+		_maybe_show_content_unlock()
 		return
 	_perform_claim()
 
