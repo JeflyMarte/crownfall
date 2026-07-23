@@ -159,10 +159,13 @@ var _overlay_relic_id: String = ""
 var _overlay_skill_id: String = ""
 
 const INVENTORY_LONG_PRESS_SEC: float = 0.45
+## iPhone は静止長押しでも微細 ScreenDrag が来る。Scroll deadzone と同程度まで許容する。
+const INVENTORY_PRESS_MOVE_CANCEL_PX: float = 20.0
 var _inv_pointer_down: bool = false
 var _inv_long_press_fired: bool = false
 var _inv_press_timer: SceneTreeTimer = null
 var _inv_press_action: Callable = Callable()
+var _inv_press_origin: Vector2 = Vector2.ZERO
 var _detail_pinned: bool = false
 var _portrait_idle_textures: Array[Texture2D] = []
 var _portrait_idle_frame: int = 0
@@ -1241,6 +1244,8 @@ func _rebuild_inventory_grid() -> void:
 			_inventory_grid.add_child(_make_relic_cell(str(e.get("relic_id", ""))))
 		else:
 			_inventory_grid.add_child(_make_item_cell(e["item"], str(e["category"])))
+	## rebuild 後も Scroll 内 Button を PASS 化（長押し＋スクロール両立）。
+	ScrollTouchHelper.enable(_inventory_scroll)
 
 func _make_item_cell(item: Resource, category: String) -> Button:
 	var cell_size: Vector2 = _inv_cell_size_vec()
@@ -1259,12 +1264,10 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 	var party_idx: int = _party_index_for_view()
 	var is_on_self: bool = party_idx >= 0 and owner_idx == party_idx
 	var member: Resource = _get_view_adventurer()
-	btn.tooltip_text = EquipmentItemDetailHelper.hover_summary(item, category, member)
-	var captured_item: Resource = item
-	var captured_category: String = category
-	btn.pressed.connect(func() -> void:
-		_tap_inventory_item(captured_item, captured_category)
-	)
+	var summary: String = EquipmentItemDetailHelper.hover_summary(item, category, member)
+	btn.tooltip_text = "%s\n（長押しで効果）" % summary
+	## 短押し=着脱、長押し=効果オーバーレイ（Button.pressed は使わず gui_input で統一）。
+	_bind_inventory_cell_interaction(btn, _inventory_item_action.bind(item, category))
 	btn.disabled = party_idx < 0
 	if is_on_self:
 		btn.modulate = Color(0.72, 0.72, 0.72, 0.85)
@@ -1290,11 +1293,8 @@ func _make_relic_cell(relic_id: String) -> Button:
 	var owner_idx: int = EquipmentUiHelper.relic_equipped_member_index(relic_id)
 	var party_idx: int = _party_index_for_view()
 	var is_on_self: bool = party_idx >= 0 and owner_idx == party_idx
-	btn.tooltip_text = EquipmentItemDetailHelper.relic_hover_summary(relic_id)
-	var captured_relic_id: String = relic_id
-	btn.pressed.connect(func() -> void:
-		_on_relic_equip_pressed(captured_relic_id)
-	)
+	btn.tooltip_text = "%s\n（長押しで詳細）" % EquipmentItemDetailHelper.relic_hover_summary(relic_id)
+	_bind_inventory_cell_interaction(btn, _inventory_relic_action.bind(relic_id))
 	btn.disabled = party_idx < 0
 	if is_on_self:
 		btn.modulate = Color(0.72, 0.72, 0.72, 0.85)
@@ -1305,16 +1305,31 @@ func _make_relic_cell(relic_id: String) -> Button:
 		_add_owner_portrait_badge(btn, owner_idx, cell_size)
 	return btn
 
+func _inventory_item_action(is_long_press: bool, item: Resource, category: String) -> void:
+	if is_long_press:
+		if item != null:
+			_show_item_stats_overlay(item, category, true)
+		return
+	_tap_inventory_item(item, category)
+
+func _inventory_relic_action(is_long_press: bool, relic_id: String) -> void:
+	if is_long_press:
+		if not relic_id.is_empty():
+			_show_relic_stats_overlay(relic_id, true)
+		return
+	_on_relic_equip_pressed(relic_id)
+
 func _bind_inventory_cell_interaction(btn: Button, action: Callable) -> void:
 	btn.gui_input.connect(_on_inventory_cell_gui_input.bind(action))
 
 func _on_inventory_cell_gui_input(event: InputEvent, action: Callable) -> void:
-	if event is InputEventScreenDrag:
+	if _inv_pointer_down and _should_cancel_inventory_press_for_move(event):
 		_cancel_inventory_press()
 		return
 	if not _is_inventory_pointer_event(event):
 		return
 	if event.pressed:
+		_inv_press_origin = _inventory_event_position(event)
 		_begin_inventory_press(action)
 	else:
 		_end_inventory_press()
@@ -1326,6 +1341,31 @@ func _is_inventory_pointer_event(event: InputEvent) -> bool:
 		return event.button_index == MOUSE_BUTTON_LEFT
 	if event is InputEventScreenTouch:
 		return true
+	return false
+
+func _inventory_event_position(event: InputEvent) -> Vector2:
+	if event is InputEventScreenTouch:
+		return (event as InputEventScreenTouch).position
+	if event is InputEventMouseButton:
+		return (event as InputEventMouseButton).position
+	if event is InputEventScreenDrag:
+		return (event as InputEventScreenDrag).position
+	if event is InputEventMouseMotion:
+		return (event as InputEventMouseMotion).position
+	return Vector2.ZERO
+
+func _should_cancel_inventory_press_for_move(event: InputEvent) -> bool:
+	## スクロール開始と同程度の移動までは長押しを維持（実機の指ぶれ対策）。
+	if event is InputEventScreenDrag:
+		return (
+			_inv_press_origin.distance_to((event as InputEventScreenDrag).position)
+			>= INVENTORY_PRESS_MOVE_CANCEL_PX
+		)
+	if event is InputEventMouseMotion:
+		var motion: InputEventMouseMotion = event as InputEventMouseMotion
+		if (motion.button_mask & MOUSE_BUTTON_MASK_LEFT) == 0:
+			return false
+		return _inv_press_origin.distance_to(motion.position) >= INVENTORY_PRESS_MOVE_CANCEL_PX
 	return false
 
 func _begin_inventory_press(action: Callable) -> void:
