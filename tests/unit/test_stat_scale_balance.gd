@@ -64,10 +64,8 @@ func test_guide_catalog_uses_scaled_numbers() -> void:
 			desc = str(entry.get("description", ""))
 			break
 	assert_false(desc.is_empty(), "EQUIP-G005 が存在する")
-	assert_true(
-		desc.contains("攻撃力 +%d" % BalanceConfig.EQUIP_FORGE_FLAT_PER_LEVEL),
-		"炉研ぎ手引きが現行加算を含む"
-	)
+	assert_true(desc.contains("炉研ぎ"), "炉研ぎ手引きである")
+	assert_true(desc.contains("+1=30"), "ゴールド目安を含む")
 	assert_false(desc.contains("攻撃力 +1（"), "旧 +1 表記が残っていない")
 
 

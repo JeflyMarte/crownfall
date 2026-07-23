@@ -34,6 +34,23 @@ func test_guide_no_outdated_combat_or_gacha_copy() -> void:
 	assert_true(eq002.contains("魔晶石"), "魔晶石に言及")
 
 
+func test_equip_level_guide_is_player_facing() -> void:
+	var desc: String = ""
+	for entry: Dictionary in GuideCatalog.get_entries():
+		if str(entry.get("id", "")) == "EQUIP-G004":
+			desc = str(entry.get("description", ""))
+			break
+	assert_false(desc.is_empty(), "EQUIP-G004 がある")
+	assert_false(desc.contains("実効ステ"), "内部式を出さない")
+	assert_false(desc.contains("成長率"), "内部用語を出さない")
+	assert_false(desc.contains("端数切り捨て"), "実装用語を出さない")
+	assert_false(desc.contains("10 + 現在装備レベル"), "必要EXP式を出さない")
+	assert_false(desc.contains("敵レベル÷2"), "内部計算式を出さない")
+	assert_true(desc.contains("錬成"), "錬成導線に言及")
+	assert_true(desc.contains("神話"), "神話は錬成不可を案内")
+	assert_true(desc.contains("炉研ぎ"), "炉研ぎと別枠であることに言及")
+
+
 func test_cosmic_rift_flavor_uses_elda_rift() -> void:
 	var dg: Resource = load("res://resources/dungeons/cosmic_rift.tres")
 	assert_ne(dg, null)
