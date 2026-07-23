@@ -113,18 +113,21 @@ static func attack_base(combat: CombatController, member_index: int = -1) -> Dic
 	crit_rate += EvolutionTraits.member_crit_add(member_index)
 	if member_index >= 0:
 		crit_rate += float(CombatPassives.weapon_stat_modifiers_for_member(member_index).get("crit_rate_add", 0.0))
-	if member_index >= 0 and member_index < GameState.party_members.size():
-		damage += LevelSystem.level_attack_bonus(GameState.party_members[member_index].level)
-		var member: Resource = GameState.party_members[member_index]
-		if member.base_stats != null:
-			damage += int(member.base_stats.attack)
+	if member_index >= 0:
+		var member: Resource = GameState.get_combatant(member_index)
+		if member != null:
+			damage += LevelSystem.level_attack_bonus(member.level)
+			if member.base_stats != null:
+				damage += int(member.base_stats.attack)
 	damage = apply_job_attack_multiplier(damage, member_index)
 	return {"base_damage": damage, "crit_rate": crit_rate}
 
 static func apply_job_attack_multiplier(base_damage: int, member_index: int) -> int:
-	if base_damage <= 0 or member_index < 0 or member_index >= GameState.party_members.size():
+	if base_damage <= 0 or member_index < 0:
 		return base_damage
-	var member: Resource = GameState.party_members[member_index]
+	var member: Resource = GameState.get_combatant(member_index)
+	if member == null:
+		return base_damage
 	var job_mods: Dictionary = JobStatCalculator.get_member_modifiers(member)
 	var atk_mult: float = float(job_mods.get("attack_multiplier", JobStatCalculator.DEFAULT_MULTIPLIER))
 	var weapon_inst: Resource = GameState.get_member_equipped_weapon(member_index)
@@ -306,13 +309,15 @@ static func enemy_damage_to_member(
 		if acc_data != null:
 			defense += EquipmentEnhancer.effective_accessory_int_bonus(acc, "defense_bonus", acc_data)
 	defense += int(AffixStatCalculator.get_bonuses(target_index).get("defense_flat", 0))
-	if target_index >= 0 and target_index < GameState.party_members.size():
-		var member: Resource = GameState.party_members[target_index]
-		if member.base_stats != null:
-			defense += int(member.base_stats.defense)
-		var job_mods: Dictionary = JobStatCalculator.get_member_modifiers(member)
-		var def_mult: float = float(job_mods.get("defense_multiplier", JobStatCalculator.DEFAULT_MULTIPLIER))
-		defense = maxi(0, int(round(float(defense) * def_mult)))
+	## オトモは party_members 外の combatant。index 範囲を party に限定すると DEF0 になる。
+	if target_index >= 0:
+		var member: Resource = GameState.get_combatant(target_index)
+		if member != null:
+			if member.base_stats != null:
+				defense += int(member.base_stats.defense)
+			var job_mods: Dictionary = JobStatCalculator.get_member_modifiers(member)
+			var def_mult: float = float(job_mods.get("defense_multiplier", JobStatCalculator.DEFAULT_MULTIPLIER))
+			defense = maxi(0, int(round(float(defense) * def_mult)))
 	var final_dmg: int = apply_member_defense(base_dmg, defense)
 	# 防御(guard)等の被ダメ補正（P3-D085）。
 	var incoming_mult: float = combat.get_member_incoming_damage_multiplier(target_index)
