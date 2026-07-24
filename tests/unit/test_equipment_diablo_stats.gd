@@ -36,7 +36,7 @@ func test_armor_base_defense_fixed() -> void:
 	assert_not_null(ad)
 	var inst: Resource = ArmorInstance.new()
 	inst.instance_id = "t_diablo_arm"
-	inst.armor_id = str(ad.id)
+	inst.armor_id = str(ad.armor_id)
 	_ASR.apply_drop_stats(inst, ad)
 	assert_eq(int(inst.rolled_defense), int(ad.base_defense))
 	assert_eq(inst.random_mods.size(), int(load("res://scripts/equipment/EquipmentRollHelper.gd").random_stat_count(int(ad.rarity))))
@@ -50,8 +50,10 @@ func test_migrate_legacy_attack_roll_to_mod() -> void:
 	inst.weapon_id = str(wd.id)
 	inst.is_appraised = true
 	inst.rolled_attack = int(wd.base_attack) + 12
-	inst.prefix_ids = ["sharp"]
-	inst.suffix_ids = []
+	var prefixes: Array[String] = ["sharp"]
+	var empty_sfx: Array[String] = []
+	inst.prefix_ids = prefixes
+	inst.suffix_ids = empty_sfx
 	inst.random_mods = []
 	_ERM.ensure_migrated(inst)
 	assert_eq(int(inst.rolled_attack), int(wd.base_attack))

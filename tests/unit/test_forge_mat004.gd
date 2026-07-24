@@ -21,13 +21,18 @@ func test_rare_forge_plus4_adds_epic_ore() -> void:
 func test_armor_enhance_adds_def_and_hp() -> void:
 	var armor: Resource = ArmorInstance.new()
 	armor.armor_id = "leather_armor"
-	armor.rolled_defense = 10
+	## 移行済み扱い（空 mods だと ensure_migrated がマスタ基礎へ正規化する）
+	armor.rolled_defense = 40
 	armor.hp_bonus = 5
 	armor.is_appraised = true
 	armor.enhance_level = 2
+	armor.random_mods = [{
+		"id": "hp_up", "label": "HPアップ", "kind": "hp_up",
+		"value": 5, "min_v": 1, "max_v": 5, "perfect": false, "meta": {},
+	}]
 	assert_eq(
 		_Enh.effective_armor_defense(armor),
-		_Enh.scale_equip_stat(10, 1, 0) + 2 * BalanceConfig.EQUIP_FORGE_FLAT_PER_LEVEL
+		_Enh.scale_equip_stat(40, 1, 0) + 2 * BalanceConfig.EQUIP_FORGE_FLAT_PER_LEVEL
 	)
 	assert_eq(
 		_Enh.effective_armor_hp(armor),

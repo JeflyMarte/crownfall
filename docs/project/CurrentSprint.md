@@ -78,6 +78,7 @@
 
 | 順 | ID | 内容 | 状態 |
 |---|---|---|---|
+| — | **P3-EQ-DIABLO-001** | 装備ステ・ディアブロ寄せ（固定ATK/DEF＋random_mods／Affix統合） | Impl・レビュー待ち |
 | — | **P3-UI-FORGE-CHROME-001** | 鍛冶屋モック寄せ（枠／タブ／リスト／ボタン Texture 化）＋詳細ステアイコン／武器背景フォロー | ✅ GO・統合＋main |
 | — | **P3-DG-ROCK-STAMPEDE-001** | 岩角の群れ道（ロックバイソン日次イベント） | ✅ GO・統合＋main |
 | — | **P3-UX-REDEEM-001** | 設定・特典コード受取（`CROWNFALL-BETA`） | ✅ GO・統合＋main |

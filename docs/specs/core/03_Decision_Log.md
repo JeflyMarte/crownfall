@@ -4258,3 +4258,18 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-DG-ROCK-STAMPEDE-001-6 | **メイン pool** — ロックバイソンは非イベント pool に据置（イベントは単一種のみ） | P3-ENEMY-ROCK-BISON-001 維持 |
 
 **Closeout（2026-07-24）:** オーナー GO → 統合＋`main`。ロックバイソン専用アート接続・レジェンド装備アイコン・イベントバナー同寸／金枠・罠Hit SE 修正も同バッチ反映。
+
+## 装備ステ・ディアブロ寄せ（2026-07-24 — P3-EQ-DIABLO-001）
+> **オーナー GO** — 固定主ステ行＋レア別ランダム。Affix をランダム枠へ統合。セーブ移行案A。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-DIABLO-001-1 | **表示** — 武器/防具は固定攻撃・防御の総合値＋ランダム行。装飾はランダムのみ | ディアブロ風 |
+| P3-EQ-DIABLO-001-2 | **本数** — N1/R2/E3/L・Mythic4（据置） | 現行表維持 |
+| P3-EQ-DIABLO-001-3 | **A2** — マスタ属性／種族特攻は必ず枠消費 | 専用枠の見え方 |
+| P3-EQ-DIABLO-001-4 | **固定総合** — マスタ基礎＋Lv＋炉研ぎ＋攻撃/防御アップ合計。内訳行も出す | 個体ブレ廃止 |
+| P3-EQ-DIABLO-001-5 | **セーブ** — ロード時 `ensure_migrated`（旧ロール差分→mods） | 案A |
+| P3-EQ-DIABLO-001-6 | **名前** — Affix 接頭接尾ワードなし。属性プレフィックスは可 | D |
+
+**SSOT:** `docs/specs/decisions/06_EquipmentDiabloStats.md`  
+**Status:** Impl 完了・HQ レビュー待ち（統合／`main` は承認後）

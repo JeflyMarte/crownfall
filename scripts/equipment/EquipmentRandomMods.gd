@@ -60,6 +60,20 @@ static func sum_kind_float(item: Resource, kind: String) -> float:
 	return total
 
 
+## ensure_migrated 経由の再帰を避ける（normalize 用）。
+static func _sum_kind_raw(item: Resource, kind: String) -> int:
+	if item == null or not ("random_mods" in item):
+		return 0
+	var raw: Variant = item.random_mods
+	if not raw is Array:
+		return 0
+	var total: int = 0
+	for mod: Variant in raw as Array:
+		if mod is Dictionary and str(mod.get("kind", "")) == kind:
+			total += int(mod.get("value", 0))
+	return total
+
+
 static func apply_weapon_drop(instance: Resource, weapon_data: Resource) -> void:
 	if instance == null or weapon_data == null:
 		return
@@ -516,6 +530,12 @@ static func _roll_on_hit_mod(rarity: int) -> Dictionary:
 
 
 static func _roll_resist_mod(rarity: int) -> Dictionary:
+	## 旧 ArmorStatResolver._roll_resist_multiplier と同レンジ（弱い〜強い＝min〜ARMOR_RESIST）。
+	var roll: Dictionary = _ArmorStatResolver._roll_resist_multiplier(rarity)
+	var mult: float = float(roll.get("value", BalanceConfig.ARMOR_RESIST_MULTIPLIER))
+	var weak: float = float(
+		_ArmorStatResolver.RESIST_MULT_MIN_BY_RARITY.get(rarity, 0.88)
+	)
 	var count_max: int = int(_ArmorStatResolver.RESIST_ELEM_COUNT_MAX.get(rarity, 1))
 	var n: int = maxi(1, mini(count_max, 1 + randi() % maxi(1, count_max)))
 	var elems: Array[String] = []
@@ -523,16 +543,14 @@ static func _roll_resist_mod(rarity: int) -> Dictionary:
 	all_e.shuffle()
 	for i in n:
 		elems.append(all_e[i])
-	var mult_min: float = float(_ArmorStatResolver.RESIST_MULT_MIN_BY_RARITY.get(rarity, 0.88))
-	var mult: float = lerpf(mult_min, 0.95, randf())
 	return {
 		"id": KIND_RESIST,
 		"label": "属性耐性",
 		"kind": KIND_RESIST,
 		"value": mult,
-		"min_v": mult_min,
-		"max_v": 0.95,
-		"perfect": mult <= mult_min + 0.005,
+		"min_v": BalanceConfig.ARMOR_RESIST_MULTIPLIER,
+		"max_v": weak,
+		"perfect": bool(roll.get("perfect", false)),
 		"meta": {"elements": elems},
 	}
 
@@ -727,13 +745,13 @@ static func _normalize_fixed_primary(item: Resource) -> void:
 		var data: Resource = DataRegistry.get_weapon_data(str(item.weapon_id))
 		if data != null:
 			var base_atk: int = int(data.base_attack)
-			if int(item.rolled_attack) != base_atk and sum_kind_int(item, KIND_ATTACK_UP) > 0:
+			if int(item.rolled_attack) != base_atk and _sum_kind_raw(item, KIND_ATTACK_UP) > 0:
 				item.rolled_attack = base_atk
 	elif category == "armor":
 		var adata: Resource = DataRegistry.get_armor_data(str(item.armor_id))
 		if adata != null:
 			var base_def: int = int(adata.base_defense)
-			if int(item.rolled_defense) != base_def and sum_kind_int(item, KIND_DEFENSE_UP) > 0:
+			if int(item.rolled_defense) != base_def and _sum_kind_raw(item, KIND_DEFENSE_UP) > 0:
 				item.rolled_defense = base_def
 
 
