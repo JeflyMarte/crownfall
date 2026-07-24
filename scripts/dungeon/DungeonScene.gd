@@ -118,6 +118,11 @@ const BOSS_ENEMY_SPRITE_MAP: Dictionary = {
 	"nereion_depths": "res://resources/animation/BOSS_Nereion.tres",
 	"eldion": "res://resources/animation/BOSS_Eldion.tres",
 }
+## 体格正規化後の見た目倍率（1.0=標準）。ドットが他雑魚より大きく見える種を抑える。
+const ENEMY_BODY_SCALE_MULT: Dictionary = {
+	"crystal_hedgehog": 0.85,
+	"rune_roach": 0.85,
+}
 ## ボス Hard/NM 限定（ノーマルは BOSS_ENEMY_SPRITE_MAP / BOSS_SPRITE_MAP）
 const BOSS_ENEMY_SPRITE_MAP_BY_TIER: Dictionary = {
 	"serdion": {
@@ -6286,13 +6291,13 @@ func _show_enemy_sprite(enemy_id: String) -> void:
 		_enemy_sprite.visible = false
 		return
 	_enemy_sprite.sprite_frames = frames
-	_normalize_enemy_scale(_enemy_sprite, frames)
+	_normalize_enemy_scale(_enemy_sprite, frames, enemy_id)
 	_enemy_sprite.play("idle")
 	_enemy_sprite.visible = true
 
 # 敵セルサイズが種別で異なる（通常 96px / エリート 128px 等）ため表示高さを揃える。
 # 固定 scale だと 128px が突出して巨大化するのを防ぐ。
-func _normalize_enemy_scale(sprite: AnimatedSprite2D, frames: SpriteFrames) -> void:
+func _normalize_enemy_scale(sprite: AnimatedSprite2D, frames: SpriteFrames, enemy_id: String = "") -> void:
 	# 味方CHR(_normalize_chr_scale)と同様、フレーム高ではなく実体(α非透明領域)の高さを
 	# 基準にスケールする。モック準拠で「敵≒味方サイズ(やや大)」へ揃える（縮小も許可）。
 	const ENEMY_BODY_TARGET_PX: float = 132.0
@@ -6311,10 +6316,13 @@ func _normalize_enemy_scale(sprite: AnimatedSprite2D, frames: SpriteFrames) -> v
 			body_h = float(used.size.y)
 			top_inset = float(used.position.y)
 	var s: float = clampf(ENEMY_BODY_TARGET_PX / body_h, 0.05, 20.0)
+	var mult: float = float(ENEMY_BODY_SCALE_MULT.get(enemy_id, 1.0))
+	s *= clampf(mult, 0.05, 2.0)
 	sprite.scale = Vector2(s, s)
 	sprite.centered = true
 	sprite.set_meta("body_frame_h", frame_h)
 	sprite.set_meta("body_top_inset", top_inset)
+	sprite.set_meta("enemy_id", enemy_id)
 
 func _hide_enemy_sprite() -> void:
 	_clear_swarm_slots()
@@ -6443,7 +6451,7 @@ func _show_enemy_swarm(enemy_ids: Array) -> void:
 			spr.visible = false
 			continue
 		spr.sprite_frames = frames
-		_normalize_enemy_scale(spr, frames)
+		_normalize_enemy_scale(spr, frames, id)
 		if n > 1:
 			spr.scale *= SWARM_DISPLAY_SCALE
 		spr.position = _battlefield_combat_position(
