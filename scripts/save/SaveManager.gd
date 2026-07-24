@@ -713,6 +713,7 @@ func _apply_roster_save(data: Dictionary) -> void:
 	GameState.normalize_roster_rarity()
 	GameState.normalize_all_equipped_skills()
 	GameState.normalize_all_equipped_passives()
+	GameState.strip_incompatible_equipped_weapons()
 	_sync_gacha_roster_metadata()
 	_restore_active_party(data)
 	GameState.omit_gacha_helpers_from_roster()

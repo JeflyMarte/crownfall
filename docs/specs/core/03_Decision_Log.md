@@ -4308,3 +4308,17 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-CODEX-WORLD-002-3 | **スコープ外** — 歴史タブ本文の改稿・ニーナセリフ・新システム | 手引き WORLD 条のみ |
 
 **Closeout（2026-07-24）:** オーナー一括 GO → 統合＋`main`。
+
+## 職別武器種制限（2026-07-24 — P3-EQ-JOB-WPN-001）
+> **オーナー GO（推奨案A）** — preferred を装備可能リストに昇格。防具／装飾は対象外。非適合は外して所持へ。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-JOB-WPN-001-1 | **厳格制限** — `preferred_weapon_types` 外の武器は装備不可 | 職アイデンティティの整理 |
+| P3-EQ-JOB-WPN-001-2 | **許可表** — 近接2職=大剣/双刃系、レンジャー=弓、アルケ=杖、BT=弓+杖（JobData 据置） | 現行 preferred を正 |
+| P3-EQ-JOB-WPN-001-3 | **セーブ** — ロード後に非適合を外す（所持残置・自動付け替えなし） | 破壊しない移行 |
+| P3-EQ-JOB-WPN-001-4 | **スコープ外** — 防具／装飾の職制限 | オーナー確認済み |
+
+**SSOT:** `docs/specs/decisions/07_JobWeaponRestrict.md`
+
+**Closeout（2026-07-24）:** オーナー一括 GO → 統合＋`main`。

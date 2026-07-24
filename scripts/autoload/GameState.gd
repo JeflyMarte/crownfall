@@ -1187,11 +1187,30 @@ func _apply_preset_equipment_slot(
 	clear_item_from_other_members(item, member_index)
 	match kind:
 		"weapon":
+			if not JobStatCalculator.can_equip_weapon(member, item):
+				skipped.append({"member_name": member_name, "kind": kind, "reason": "job_weapon"})
+				return
 			member.equipped_weapon = item
 		"armor":
 			member.equipped_armor = item
 		"accessory":
 			member.equipped_accessory = item
+
+
+## P3-EQ-JOB-WPN-001: 非適合武器を外す（所持インベントリはそのまま）。
+func strip_incompatible_equipped_weapons() -> int:
+	var stripped: int = 0
+	for member: Resource in roster:
+		if member == null:
+			continue
+		var weapon: Resource = member.equipped_weapon if "equipped_weapon" in member else null
+		if weapon == null:
+			continue
+		if JobStatCalculator.can_equip_weapon(member, weapon):
+			continue
+		member.equipped_weapon = null
+		stripped += 1
+	return stripped
 
 func find_item_equipped_member_index(item: Resource) -> int:
 	if item == null:
