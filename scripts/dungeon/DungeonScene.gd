@@ -118,6 +118,11 @@ const BOSS_ENEMY_SPRITE_MAP: Dictionary = {
 	"nereion_depths": "res://resources/animation/BOSS_Nereion.tres",
 	"eldion": "res://resources/animation/BOSS_Eldion.tres",
 }
+## 体格正規化後の見た目倍率（1.0=標準）。ドットが他雑魚より大きく見える種を抑える。
+const ENEMY_BODY_SCALE_MULT: Dictionary = {
+	"crystal_hedgehog": 0.85,
+	"rune_roach": 0.85,
+}
 ## ボス Hard/NM 限定（ノーマルは BOSS_ENEMY_SPRITE_MAP / BOSS_SPRITE_MAP）
 const BOSS_ENEMY_SPRITE_MAP_BY_TIER: Dictionary = {
 	"serdion": {
@@ -2259,7 +2264,13 @@ func _populate_status_icon_row(row: HBoxContainer, statuses: Array) -> void:
 	for entry: Dictionary in statuses:
 		row.add_child(_build_status_icon(entry))
 
-func _set_status_row_above_sprite(row: HBoxContainer, sprite: AnimatedSprite2D, statuses: Array, formation_slot: int = -1) -> void:
+func _set_status_row_above_sprite(
+	row: HBoxContainer,
+	sprite: AnimatedSprite2D,
+	statuses: Array,
+	formation_slot: int = -1,
+	enemy_slot: int = -1
+) -> void:
 	_populate_status_icon_row(row, statuses)
 	var show: bool = sprite.visible and not statuses.is_empty()
 	row.visible = show
@@ -2272,8 +2283,9 @@ func _set_status_row_above_sprite(row: HBoxContainer, sprite: AnimatedSprite2D, 
 	if formation_slot >= 0:
 		icon_y = _sprite_top_y_in_root(sprite) - CHR_HP_BAR_GAP_ABOVE_SPRITE - CHR_HP_BAR_HEIGHT - CHR_STATUS_GAP_ABOVE_BAR - STATUS_ICON_SIZE + _chr_hp_bar_row_y_offset(formation_slot)
 	else:
-		## 敵: HPバー直上（バーに隠れない位置）。
-		icon_y = _enemy_hp_bar_top_y_in_root(sprite) - CHR_STATUS_GAP_ABOVE_BAR - STATUS_ICON_SIZE
+		## 敵: ネームプレート（エリートはバッジ）の上。HPバー帯と重ねない。
+		var stack_top: float = _enemy_overlay_stack_top_y_in_root(sprite, enemy_slot)
+		icon_y = stack_top - CHR_STATUS_GAP_ABOVE_BAR - STATUS_ICON_SIZE
 	row.position = Vector2(center.x - total_w * 0.5, icon_y)
 	row.z_index = COMBAT_OVERLAY_Z + 3
 
@@ -2284,6 +2296,25 @@ func _enemy_hp_bar_top_y_in_root(sprite: AnimatedSprite2D) -> float:
 	var center: Vector2 = _sprite_center_in_root(sprite)
 	var top_y: float = _sprite_top_y_in_root(sprite)
 	return minf(center.y - 50.0, top_y - GAP_ABOVE_SPRITE - BAR_HEIGHT)
+
+
+func _enemy_overlay_stack_top_y_in_root(sprite: AnimatedSprite2D, enemy_slot: int = -1) -> float:
+	## HPバー上のネームプレート（＋エリートバッジ）上端。状態異常はこの上へ置く。
+	const GAP_BAR_NAME: float = 6.0
+	const BADGE_H: float = 22.0
+	const GAP_NAME_BADGE: float = 2.0
+	var bar_ty: float = _enemy_hp_bar_top_y_in_root(sprite)
+	var swarming: bool = $CombatController.swarm_data.size() > 1
+	var name_height: float = SWARM_NAME_HEIGHT if swarming else SINGLE_NAME_HEIGHT
+	var name_ty: float = bar_ty - GAP_BAR_NAME - name_height
+	var stack_top: float = name_ty
+	var is_elite_lead: bool = (
+		enemy_slot == 0
+		and $DungeonController.current_room_type == Enums.RoomType.ELITE
+	)
+	if is_elite_lead:
+		stack_top = name_ty - GAP_NAME_BADGE - BADGE_H
+	return stack_top
 
 func _update_status_icons() -> void:
 	var in_combat: bool = $CombatController.is_in_combat
@@ -2309,7 +2340,9 @@ func _update_status_icons() -> void:
 			_set_status_row_above_sprite(
 				row,
 				_swarm_sprites[slot],
-				$CombatController.get_enemy_status_list_at(slot)
+				$CombatController.get_enemy_status_list_at(slot),
+				-1,
+				slot
 			)
 	for i: int in _status_icon_chr_rows.size():
 		var sprite: AnimatedSprite2D = _chr_sprites[i]
@@ -6286,13 +6319,13 @@ func _show_enemy_sprite(enemy_id: String) -> void:
 		_enemy_sprite.visible = false
 		return
 	_enemy_sprite.sprite_frames = frames
-	_normalize_enemy_scale(_enemy_sprite, frames)
+	_normalize_enemy_scale(_enemy_sprite, frames, enemy_id)
 	_enemy_sprite.play("idle")
 	_enemy_sprite.visible = true
 
 # 敵セルサイズが種別で異なる（通常 96px / エリート 128px 等）ため表示高さを揃える。
 # 固定 scale だと 128px が突出して巨大化するのを防ぐ。
-func _normalize_enemy_scale(sprite: AnimatedSprite2D, frames: SpriteFrames) -> void:
+func _normalize_enemy_scale(sprite: AnimatedSprite2D, frames: SpriteFrames, enemy_id: String = "") -> void:
 	# 味方CHR(_normalize_chr_scale)と同様、フレーム高ではなく実体(α非透明領域)の高さを
 	# 基準にスケールする。モック準拠で「敵≒味方サイズ(やや大)」へ揃える（縮小も許可）。
 	const ENEMY_BODY_TARGET_PX: float = 132.0
@@ -6311,10 +6344,13 @@ func _normalize_enemy_scale(sprite: AnimatedSprite2D, frames: SpriteFrames) -> v
 			body_h = float(used.size.y)
 			top_inset = float(used.position.y)
 	var s: float = clampf(ENEMY_BODY_TARGET_PX / body_h, 0.05, 20.0)
+	var mult: float = float(ENEMY_BODY_SCALE_MULT.get(enemy_id, 1.0))
+	s *= clampf(mult, 0.05, 2.0)
 	sprite.scale = Vector2(s, s)
 	sprite.centered = true
 	sprite.set_meta("body_frame_h", frame_h)
 	sprite.set_meta("body_top_inset", top_inset)
+	sprite.set_meta("enemy_id", enemy_id)
 
 func _hide_enemy_sprite() -> void:
 	_clear_swarm_slots()
@@ -6443,7 +6479,7 @@ func _show_enemy_swarm(enemy_ids: Array) -> void:
 			spr.visible = false
 			continue
 		spr.sprite_frames = frames
-		_normalize_enemy_scale(spr, frames)
+		_normalize_enemy_scale(spr, frames, id)
 		if n > 1:
 			spr.scale *= SWARM_DISPLAY_SCALE
 		spr.position = _battlefield_combat_position(

@@ -13,7 +13,8 @@ extends RefCounted
 ## stat_mod（常時）: evasion_rate_add / outgoing_mult / incoming_mult / first_attack_mult /
 ##   ultimate_power_mult / exp_gain_mult / party_exp_gain_mult /
 ##   party_outgoing_mult / party_incoming_mult / death_save_once / death_save_chance /
-##   exploration_damage_immune / outgoing_mult_requires_hp_below / outgoing_vs_status_mult
+##   exploration_damage_immune / outgoing_mult_requires_hp_below / outgoing_vs_status_mult /
+##   pet_outgoing_mult / threat_base_add
 ## weather_bonus（P3-EQ-WEATHER-LEG-001）: weather_id → element_outgoing_mult / outgoing_mult / crit_rate_add / refund_ct_fraction
 ## effect 追加: "chance_cast_equipped_skill"（攻撃後に装備スキルを確率発動）
 ## cooldown: CT 秒（0 = 都度発火可。on_combat_start は実質1回）
@@ -174,6 +175,32 @@ const _DEFS: Dictionary = {
 		"display_name": "隊商の盾心",
 		"description": "致死ダメージを10%の確率でHP1で耐える。",
 		"death_save_chance": 0.10,
+	},
+	## P3-GACHA-STAGED-002 — プール外助っ人固有
+	"lenore_seal_echo": {
+		"display_name": "封緘の余韻",
+		"description": "状態異常の敵への与ダメージが15%上昇する。",
+		"outgoing_vs_status_mult": 1.15,
+	},
+	"torva_frost_breath": {
+		"display_name": "霜刃の一息",
+		"description": "戦闘中最初の通常攻撃の威力が1.5倍になる。",
+		"first_attack_mult": 1.5,
+	},
+	"sian_silent_line": {
+		"display_name": "無音の射線",
+		"description": "回避率が15%上昇する。",
+		"evasion_rate_add": 0.15,
+	},
+	"borg_gate_voice": {
+		"display_name": "門前の声",
+		"description": "敵に狙われやすくなる（Threat +2.0）。",
+		"threat_base_add": 2.0,
+	},
+	"neri_waterfowl_call": {
+		"display_name": "水鳥の合図",
+		"description": "オトモが生存中、オトモの与ダメージが15%上昇する。",
+		"pet_outgoing_mult": 1.15,
 	},
 	# ---- ジョブフォールバック補完（P3-D155） ----
 	"foresight": {
@@ -812,6 +839,19 @@ static func pet_outgoing_mult_from_party() -> float:
 	return mult
 
 
+static func threat_base_add_for_member(member: Resource) -> float:
+	if member == null:
+		return 0.0
+	var add: float = 0.0
+	for raw_def: Variant in for_member(member):
+		if raw_def is not Dictionary:
+			continue
+		var def: Dictionary = raw_def
+		if def.has("threat_base_add"):
+			add += float(def["threat_base_add"])
+	return add
+
+
 static func party_incoming_mult() -> float:
 	var mult: float = 1.0
 	for member: Resource in GameState.party_members:
@@ -973,6 +1013,8 @@ static func _passive_effect_summary(def: Dictionary) -> String:
 		parts.append("回避 +%d%%" % int(round(float(def["evasion_rate_add"]) * 100.0)))
 	if float(def.get("first_attack_mult", 1.0)) > 1.0:
 		parts.append("初撃 ×%.1f" % float(def["first_attack_mult"]))
+	if float(def.get("threat_base_add", 0.0)) > 0.0:
+		parts.append("Threat +%.1f" % float(def["threat_base_add"]))
 	if float(def.get("ultimate_power_mult", 1.0)) > 1.0:
 		parts.append("必殺 +%d%%" % int(round((float(def["ultimate_power_mult"]) - 1.0) * 100.0)))
 	if float(def.get("exp_gain_mult", 1.0)) > 1.0:

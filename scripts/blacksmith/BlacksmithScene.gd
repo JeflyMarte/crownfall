@@ -273,7 +273,10 @@ func _setup_hero_display_layout() -> void:
 	## tscn の旧 260px 固定を上書き（これが高いと詳細が下帯へ食い込む）。
 	## クレスト分＋下方向 nudge をスタック高に含める。
 	var panel_h: float = float(stack_px) + nudge_y + 8.0
-	_hero_panel.custom_minimum_size = Vector2(0, panel_h)
+	## ヒーローは左固定幅。ステは右カラムへ（横並び）。
+	_hero_panel.custom_minimum_size = Vector2(stack_px, panel_h)
+	_hero_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_hero_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_hero_stack.custom_minimum_size = Vector2(stack_px, stack_px + int(nudge_y))
 	_hero_stack.clip_contents = true
 	_hero_panel.clip_contents = true
@@ -296,11 +299,71 @@ func _setup_hero_display_layout() -> void:
 	_hero_icon_slot.clip_contents = true
 	_hero_pedestal.visible = false
 	_hero_weapon_pivot.visible = false
+	_setup_hero_stats_row()
 	_ensure_hero_to_title_gap()
 
 
+func _setup_hero_stats_row() -> void:
+	## 装備アイコン左＋（名前／ステ）右。
+	var detail_vbox: VBoxContainer = $MainSplit/DetailPanel/DetailVBox
+	var row: HBoxContainer = detail_vbox.get_node_or_null("HeroStatsRow") as HBoxContainer
+	if row == null:
+		row = HBoxContainer.new()
+		row.name = "HeroStatsRow"
+		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		detail_vbox.add_child(row)
+		detail_vbox.move_child(row, _hero_panel.get_index())
+	row.add_theme_constant_override("separation", 10)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.alignment = BoxContainer.ALIGNMENT_BEGIN
+	row.clip_contents = true
+
+	if _hero_panel.get_parent() != row:
+		var hero_parent: Node = _hero_panel.get_parent()
+		if hero_parent != null:
+			hero_parent.remove_child(_hero_panel)
+		row.add_child(_hero_panel)
+	_hero_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_hero_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+
+	var stats_side: VBoxContainer = row.get_node_or_null("StatsSide") as VBoxContainer
+	if stats_side == null:
+		stats_side = VBoxContainer.new()
+		stats_side.name = "StatsSide"
+		stats_side.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(stats_side)
+	stats_side.add_theme_constant_override("separation", 4)
+	stats_side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	stats_side.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	stats_side.alignment = BoxContainer.ALIGNMENT_BEGIN
+
+	## 右カラム順: レア度 → 名前 → 種別 → ステ。
+	_reparent_into(stats_side, _rarity_title_label)
+	_reparent_into(stats_side, _title_label)
+	_reparent_into(stats_side, _subtitle_label)
+	_reparent_into(stats_side, _stats_grid)
+	_rarity_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_subtitle_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_rarity_title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_subtitle_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_stats_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_stats_grid.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+
+
+func _reparent_into(new_parent: Node, child: Node) -> void:
+	if child == null or new_parent == null or child.get_parent() == new_parent:
+		return
+	var old_parent: Node = child.get_parent()
+	if old_parent != null:
+		old_parent.remove_child(child)
+	new_parent.add_child(child)
+
+
 func _ensure_hero_to_title_gap() -> void:
-	## 名前以降をまとめて下げる（ヒーロー直下の余白）。
+	## 名前以降をまとめて下げる（ヒーロー＋ステ行の直下余白）。
 	var detail_vbox: VBoxContainer = $MainSplit/DetailPanel/DetailVBox
 	var gap: Control = detail_vbox.get_node_or_null("HeroTitleGap") as Control
 	if gap == null:
@@ -308,7 +371,10 @@ func _ensure_hero_to_title_gap() -> void:
 		gap.name = "HeroTitleGap"
 		gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		detail_vbox.add_child(gap)
-		detail_vbox.move_child(gap, _hero_panel.get_index() + 1)
+	var anchor: Node = detail_vbox.get_node_or_null("HeroStatsRow")
+	if anchor == null:
+		anchor = _hero_panel
+	detail_vbox.move_child(gap, anchor.get_index() + 1)
 	gap.custom_minimum_size = Vector2(0, 16)
 func _setup_alchemy_confirm() -> void:
 	_alchemy_confirm = ConfirmationDialog.new()

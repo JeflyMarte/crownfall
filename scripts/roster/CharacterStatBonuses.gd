@@ -37,6 +37,16 @@ const HELPER_BONUS: Dictionary = {
 	"helper_h": {"hp": 89, "attack": 211, "defense": 177},
 	## ガルム★2 → 1042/168/203
 	"helper_i": {"hp": 142, "attack": 98, "defense": 158},
+	## レノール★4（プール外 staged）— 耐久寄りアルケ
+	"helper_k": {"hp": 220, "attack": 24, "defense": 88},
+	## トルヴァ★3 — 短決戦アタッカー
+	"helper_l": {"hp": -40, "attack": 205, "defense": 28},
+	## シアン★3 — 影の射手
+	"helper_m": {"hp": -55, "attack": 145, "defense": 22},
+	## ボルグ★2 — 門番タンク
+	"helper_n": {"hp": 165, "attack": 38, "defense": 175},
+	## ネリ★2 — オトモ支援
+	"helper_o": {"hp": 78, "attack": 125, "defense": 88},
 }
 
 

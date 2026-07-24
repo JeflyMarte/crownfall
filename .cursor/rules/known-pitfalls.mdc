@@ -52,6 +52,7 @@ alwaysApply: true
 | レジェンド防具／装飾／杖がデフォルト同アイコン | `generate_equipment_icons.py` がテンプレ流用のまま。専用PNG未差替 | PixelLab等で専用生成→`assets/ui/equipment` 上書き。`LEGENDARY_HAND_DRAWN_*_IDS` に入れて再生成で潰さない |
 | キャラ画面の★が灰色 | LabelStars に見出しフォント（Shippori）を当てると ★ 欠落でフォールバックが灰色に見える | 本文フォント＋`UiTypography.COLOR_GOLD`（ガチャと同ポリシー） |
 | ガチャ／鍛冶BGMが他画面に残る | Equipment 等の拠点画面が `play_bgm` せず継続再生 | `BgmCatalog.SCENE_BGM`＋`SceneRouter.change_scene` で画面入場時に切替（拠点=hub） |
+| 調査隊員選択でイントロBGMが切れる | `StarterPickScene` が `SCENE_BGM` で hub になっていた | 導入フローは `introduction`（同ID再生中は継続）。拠点入りで hub へ |
 | 鍛冶詳細ステにアイコンが付かない／見えない | `EquipmentUiTokens.stat_icon` の実行時 load 欠落、または TextureRect を HBox に直置きして寸法 0、必要コスト被り | `BlacksmithScene` は `ICO_Equip_Stat_*` を **preload**＋固定 `Control` ホスト（36px）。コスト前スペーサ≧24。差替後は `.godot/imported` 再インポート |
 
 ## アセット取込（Desktop → プロジェクト）
@@ -70,7 +71,7 @@ alwaysApply: true
 | 戦闘ヒット／回復 VFX に暗縁 | `remove_black_bg(threshold=24)` では暗青緑マット `(14,21,25)` が残る | `tools/generate_env_and_vfx.py` の `clean_vfx_image`（`fix_batch6_vfx`）で再生成。alpha=0 の RGB ゴミも `sanitize_alpha` |
 | ダンジョン選択の Featured バナーに名前が無い | `_sync_featured_banner` が画像のみで、一覧ヘッダのタイトル重ねを省略していた | 一覧と同様に `display_name` ラベルを中央重ね（焼き込み Banner は従来どおり非表示） |
 | 戦闘ログ最上行が見切れる | 本文サイズ拡大後も行高／上余白が旧フォント想定のまま | `BATTLE_LOG_LINE_HEIGHT`・パネル／Margin の上余白を本文サイズに合わせて確保。`SIZE_LOG` 変更時は行高も同期 |
-| 状態異常アイコンが敵HPバーの裏 | 行の z 未設定＋敵アイコンYがバーと同帯 | `COMBAT_OVERLAY_Z+3`＋HPバー直上に配置（`_enemy_hp_bar_top_y_in_root`） |
+| 状態異常アイコンが敵HPバーの裏／ネームと重なる | 行の z 未設定、または敵アイコンYをバー直上だけにしてネーム帯と同帯 | `COMBAT_OVERLAY_Z+3`＋ネーム（エリートはバッジ）上端より上（`_enemy_overlay_stack_top_y_in_root`） |
 | 複数敵が右にはみ出す | 固定 spacing で右端 ratio>0.9 | `_swarm_x_ratio_for_slot` で MIN/MAX 内に収める |
 | 枠にアイコンが食い込む | inset 不足 | `EquipmentUiTokens.ICON_FRAME_MARGIN_PX`（現行 18）を維持。全面キャンバス絵は余白を減らさない |
 | UI idle が拡縮／左右に跳ぶ | `idle_*.png` のフレーム間で描画サイズ・中心が不安定。安易な再配置や静止固定の行き来 | `ui-layout.mdc`「CHR Idle ポートレート」— 軽微は間引き、重度のみ足元固定。横跳びする再中央寄せをしない |

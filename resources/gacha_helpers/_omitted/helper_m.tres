@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="GachaHelperData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/GachaHelperData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "helper_m"
+display_name = "シアン"
+job_id = "ranger"
+origin_note = "囁きの森の影追い。足跡を残さない斥候。"
+summon_quote = "足跡は、残さない。"
+rarity = 3
+passive_id = "sian_silent_line"
+sprite_resource_path = ""
+portrait_resource_path = ""

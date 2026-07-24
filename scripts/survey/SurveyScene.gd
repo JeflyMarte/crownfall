@@ -47,6 +47,8 @@ var _pending_members: Array[String] = []
 var _target_dungeon_id: String = Constants.MOURNGATE_DUNGEON_ID
 var _tick: float = 0.0
 var _claim_fx_busy: bool = false
+var _start_confirm: ConfirmationDialog
+var _pending_start_preset: String = ""
 
 
 func _ready() -> void:
@@ -57,6 +59,7 @@ func _ready() -> void:
 	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)
 	_hide_legacy_event_nodes()
 	_ensure_background()
+	_setup_start_confirm()
 	_build_ui()
 	_pending_members = _SurveySystem.auto_assign_members()
 	_update_currency()
@@ -777,7 +780,43 @@ func _on_auto_assign() -> void:
 	_refresh()
 
 
+func _setup_start_confirm() -> void:
+	_start_confirm = ConfirmationDialog.new()
+	_start_confirm.title = "調査開始"
+	_start_confirm.ok_button_text = "開始する"
+	_start_confirm.cancel_button_text = "やめる"
+	_start_confirm.confirmed.connect(_execute_start)
+	_start_confirm.canceled.connect(_on_start_confirm_canceled)
+	add_child(_start_confirm)
+
+
 func _on_start(preset: String) -> void:
+	if _SurveySystem.has_active_cycle():
+		_label_status.text = "開始不可: 調査中の案件があります"
+		return
+	_pending_start_preset = preset
+	var did: String = _selected_dungeon_id()
+	var data: Resource = DataRegistry.get_dungeon_data(did)
+	var dg_name: String = str(data.display_name) if data != null else did
+	var kind: String = (
+		"短調査（20分）" if preset == _SurveyConfig.PRESET_SHORT else "標準調査（3時間）"
+	)
+	_start_confirm.dialog_text = (
+		"調査を開始しますか？\n\n対象: %s\n種別: %s\n※配置した隊員は編成から外れます"
+		% [dg_name, kind]
+	)
+	_start_confirm.popup_centered()
+
+
+func _on_start_confirm_canceled() -> void:
+	_pending_start_preset = ""
+
+
+func _execute_start() -> void:
+	var preset: String = _pending_start_preset
+	_pending_start_preset = ""
+	if preset.is_empty():
+		return
 	var result: Dictionary = _SurveySystem.start_cycle(
 		_selected_dungeon_id(), preset, _pending_members
 	)
