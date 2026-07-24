@@ -6,10 +6,25 @@ const _TreasureRoomPresentation = preload("res://scripts/dungeon/TreasureRoomPre
 const _LoreRoomPresentation = preload("res://scripts/dungeon/LoreRoomPresentation.gd")
 
 
-func test_all_rooms_use_half_success_chance() -> void:
+func test_heal_treasure_use_half_success_chance() -> void:
 	assert_almost_eq(_HealRoomPresentation.SUCCESS_CHANCE, 0.5, 0.001)
 	assert_almost_eq(_TreasureRoomPresentation.SUCCESS_CHANCE, 0.5, 0.001)
-	assert_almost_eq(_LoreRoomPresentation.SUCCESS_CHANCE, 0.5, 0.001)
+
+
+func test_lore_decipher_rate_and_first_guarantee() -> void:
+	## P3-UX-LORE-002: 通常80%。記録未所持なら初回保証。
+	assert_almost_eq(_LoreRoomPresentation.SUCCESS_CHANCE, 0.8, 0.001)
+	GameState.discovery_registry.clear()
+	assert_true(_LoreRoomPresentation.is_deciphered(), "記録0件は必ず成功")
+	DiscoveryRegistry.register("lore", "ancient_record")
+	var succ: int = 0
+	for i in 500:
+		var rng := RandomNumberGenerator.new()
+		rng.seed = i + 11
+		if _LoreRoomPresentation.is_deciphered(rng):
+			succ += 1
+	assert_gt(succ, 340, "所持後はおおよそ80%")
+	assert_lt(succ, 460, "所持後はおおよそ80%")
 
 
 func test_timings_match_trap_pattern() -> void:
@@ -39,6 +54,9 @@ func test_success_roll_is_deterministic_with_rng() -> void:
 	var treasure_ok: bool = _TreasureRoomPresentation.is_successful(rng)
 	rng.seed = 42
 	assert_eq(treasure_ok, _TreasureRoomPresentation.is_successful(rng))
+	## 所持済みでないと初回保証で常に true になり、乱数の決定性を検証できない。
+	GameState.discovery_registry.clear()
+	DiscoveryRegistry.register("lore", "ancient_record")
 	rng.seed = 42
 	var lore_ok: bool = _LoreRoomPresentation.is_deciphered(rng)
 	rng.seed = 42
