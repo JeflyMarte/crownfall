@@ -4,6 +4,7 @@ const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _ArmorStatResolver = preload("res://scripts/equipment/ArmorStatResolver.gd")
 const _AccessoryStatResolver = preload("res://scripts/equipment/AccessoryStatResolver.gd")
+const _EquipmentRandomMods = preload("res://scripts/equipment/EquipmentRandomMods.gd")
 const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd")
 const _CommanderProfile = preload("res://scripts/commander/CommanderProfile.gd")
 
@@ -469,6 +470,7 @@ func _serialize_inventory() -> Array:
 			"weight": item.weight,
 			"prefix_ids": _serialize_affix_ids(item.prefix_ids),
 			"suffix_ids": _serialize_affix_ids(item.suffix_ids),
+			"random_mods": _serialize_random_mods(item.random_mods if "random_mods" in item else []),
 			"enhance_level": EquipmentEnhancer.get_enhance_level(item),
 			"equip_level": EquipmentEnhancer.get_equip_level(item),
 			"equip_exp": EquipmentEnhancer.get_equip_exp(item),
@@ -877,6 +879,7 @@ func _deserialize_inventory(inv_data: Array) -> Array:
 		item.weight = float(entry.get("weight", 1.0))
 		item.prefix_ids = _deserialize_affix_ids(entry.get("prefix_ids", []))
 		item.suffix_ids = _deserialize_affix_ids(entry.get("suffix_ids", []))
+		item.random_mods = _deserialize_random_mods(entry.get("random_mods", []))
 		item.enhance_level = int(entry.get("enhance_level", 0))
 		item.equip_level = int(entry.get("equip_level", 1))
 		item.equip_exp = int(entry.get("equip_exp", 0))
@@ -884,6 +887,7 @@ func _deserialize_inventory(inv_data: Array) -> Array:
 			item.rolled_bonus_stats = _deserialize_affix_ids(entry.get("rolled_bonus_stats", []))
 		if entry.has("perfect_roll_count"):
 			item.perfect_roll_count = int(entry.get("perfect_roll_count", 0))
+		_EquipmentRandomMods.ensure_migrated(item)
 		items.append(item)
 	return items
 
@@ -908,6 +912,7 @@ func _serialize_armor_inventory() -> Array:
 			"is_appraised": item.is_appraised,
 			"prefix_ids": _serialize_affix_ids(item.prefix_ids),
 			"suffix_ids": _serialize_affix_ids(item.suffix_ids),
+			"random_mods": _serialize_random_mods(item.random_mods if "random_mods" in item else []),
 			"equip_level": EquipmentEnhancer.get_equip_level(item),
 			"equip_exp": EquipmentEnhancer.get_equip_exp(item),
 			"enhance_level": EquipmentEnhancer.get_enhance_level(item),
@@ -953,6 +958,7 @@ func _deserialize_armor_inventory(inv_data: Array) -> Array:
 		item.is_appraised = bool(entry.get("is_appraised", false))
 		item.prefix_ids = _deserialize_affix_ids(entry.get("prefix_ids", []))
 		item.suffix_ids = _deserialize_affix_ids(entry.get("suffix_ids", []))
+		item.random_mods = _deserialize_random_mods(entry.get("random_mods", []))
 		item.equip_level = int(entry.get("equip_level", 1))
 		item.equip_exp = int(entry.get("equip_exp", 0))
 		item.enhance_level = int(entry.get("enhance_level", 0))
@@ -960,6 +966,7 @@ func _deserialize_armor_inventory(inv_data: Array) -> Array:
 			item.rolled_bonus_stats = _deserialize_affix_ids(entry.get("rolled_bonus_stats", []))
 		if entry.has("perfect_roll_count"):
 			item.perfect_roll_count = int(entry.get("perfect_roll_count", 0))
+		_EquipmentRandomMods.ensure_migrated(item)
 		items.append(item)
 	return items
 
@@ -980,6 +987,7 @@ func _serialize_accessory_inventory() -> Array:
 			"is_appraised": item.is_appraised,
 			"prefix_ids": _serialize_affix_ids(item.prefix_ids),
 			"suffix_ids": _serialize_affix_ids(item.suffix_ids),
+			"random_mods": _serialize_random_mods(item.random_mods if "random_mods" in item else []),
 			"equip_level": EquipmentEnhancer.get_equip_level(item),
 			"equip_exp": EquipmentEnhancer.get_equip_exp(item),
 			"enhance_level": EquipmentEnhancer.get_enhance_level(item),
@@ -1015,6 +1023,7 @@ func _deserialize_accessory_inventory(inv_data: Array) -> Array:
 		item.is_appraised = bool(entry.get("is_appraised", false))
 		item.prefix_ids = _deserialize_affix_ids(entry.get("prefix_ids", []))
 		item.suffix_ids = _deserialize_affix_ids(entry.get("suffix_ids", []))
+		item.random_mods = _deserialize_random_mods(entry.get("random_mods", []))
 		item.equip_level = int(entry.get("equip_level", 1))
 		item.equip_exp = int(entry.get("equip_exp", 0))
 		item.enhance_level = int(entry.get("enhance_level", 0))
@@ -1022,6 +1031,7 @@ func _deserialize_accessory_inventory(inv_data: Array) -> Array:
 			item.rolled_bonus_stats = _deserialize_affix_ids(entry.get("rolled_bonus_stats", []))
 		if entry.has("perfect_roll_count"):
 			item.perfect_roll_count = int(entry.get("perfect_roll_count", 0))
+		_EquipmentRandomMods.ensure_migrated(item)
 		items.append(item)
 	return items
 
@@ -1037,4 +1047,20 @@ func _deserialize_affix_ids(data) -> Array[String]:
 		return out
 	for affix_id in data:
 		out.append(str(affix_id))
+	return out
+
+func _serialize_random_mods(mods: Array) -> Array:
+	var out: Array = []
+	for mod: Variant in mods:
+		if mod is Dictionary:
+			out.append((mod as Dictionary).duplicate(true))
+	return out
+
+func _deserialize_random_mods(data) -> Array:
+	var out: Array = []
+	if not data is Array:
+		return out
+	for mod: Variant in data:
+		if mod is Dictionary:
+			out.append((mod as Dictionary).duplicate(true))
 	return out
