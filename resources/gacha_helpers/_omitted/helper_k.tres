@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="GachaHelperData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/GachaHelperData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "helper_k"
+display_name = "レノール"
+job_id = "alchemist"
+origin_note = "王立図書院の写本係上がり。封緘の噂を追って野外へ出た錬成士。"
+summon_quote = "読めない傷など、ない。"
+rarity = 4
+passive_id = ""
+sprite_resource_path = ""
+portrait_resource_path = ""
