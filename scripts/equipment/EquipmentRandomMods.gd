@@ -612,21 +612,27 @@ static func _apply_armor_mods_to_fields(instance: Resource, _armor_data: Resourc
 			KIND_RARE_DROP:
 				instance.rare_drop_rate = value
 			KIND_RESIST:
-				instance.resist_elements = meta.get("elements", [])
+				var elems_raw: Variant = meta.get("elements", [])
+				var elems: Array[String] = []
+				if elems_raw is Array:
+					for e: Variant in elems_raw:
+						elems.append(str(e))
+				instance.resist_elements = elems
 				instance.resist_multiplier = value
 			KIND_IMMUNITY:
-				instance.status_immunities = meta.get("status_ids", [])
+				var ids_raw: Variant = meta.get("status_ids", [])
+				var ids: Array[String] = []
+				if ids_raw is Array:
+					for sid: Variant in ids_raw:
+						ids.append(str(sid))
+				instance.status_immunities = ids
 			_:
 				pass
 
 
-static func _apply_accessory_mods_to_fields(instance: Resource, accessory_data: Resource, mods: Array) -> void:
+static func _apply_accessory_mods_to_fields(instance: Resource, _accessory_data: Resource, mods: Array) -> void:
 	_AccessoryStatResolver._reset_bonus_stats(instance)
-	## マスタ基礎は残す（装飾の土台）。ランダムは上乗せ。
-	instance.hp_bonus = int(accessory_data.hp_bonus) if "hp_bonus" in accessory_data else 0
-	instance.attack_bonus = int(accessory_data.attack_bonus) if "attack_bonus" in accessory_data else 0
-	instance.defense_bonus = int(accessory_data.defense_bonus) if "defense_bonus" in accessory_data else 0
-	instance.crit_rate_bonus = float(accessory_data.crit_rate_bonus) if "crit_rate_bonus" in accessory_data else 0.0
+	## ドロップ時はマスタ基礎を載せず、ランダム枠のみ（P3-EQ-STAT-008／DIABLO）。
 	for mod: Variant in mods:
 		if not mod is Dictionary:
 			continue
@@ -642,13 +648,16 @@ static func _apply_accessory_mods_to_fields(instance: Resource, accessory_data: 
 			KIND_CRIT_RATE:
 				instance.crit_rate_bonus += value
 			KIND_EVASION:
-				instance.evasion_rate = value
+				instance.evasion_rate += value
 			KIND_EXP_GAIN:
-				instance.exp_gain_rate = value
+				instance.exp_gain_rate += value
 			KIND_GOLD_GAIN:
-				instance.gold_gain_rate = value
+				instance.gold_gain_rate += value
 			KIND_RARE_DROP:
-				instance.rare_drop_rate = value
+				instance.rare_drop_rate += value
+			KIND_HEALING:
+				## 戦闘側 AffixStatCalculator。
+				pass
 			_:
 				pass
 
