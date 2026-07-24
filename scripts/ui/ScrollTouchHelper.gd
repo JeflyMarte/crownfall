@@ -47,11 +47,10 @@ static func _queue_refresh(scroll: ScrollContainer) -> void:
 	if scroll.get_meta(_META_REFRESH_QUEUED, false):
 		return
 	scroll.set_meta(_META_REFRESH_QUEUED, true)
-	var tree: SceneTree = scroll.get_tree()
-	if tree == null:
-		scroll.set_meta(_META_REFRESH_QUEUED, false)
-		return
-	tree.process_frame.connect(_refresh_once.bind(scroll), CONNECT_ONE_SHOT)
+	## process_frame + CONNECT_ONE_SHOT は、refresh 中に再 queue すると
+	## ONE_SHOT 解除前に同じ Callable を再 connect して ERROR→実機強制終了の原因になる。
+	## call_deferred なら同一フレーム内の再入場でも衝突しない。
+	_refresh_once.call_deferred(scroll)
 
 
 static func _refresh_once(scroll: ScrollContainer) -> void:

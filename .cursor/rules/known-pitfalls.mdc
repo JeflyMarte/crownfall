@@ -99,6 +99,7 @@ alwaysApply: true
 | 症状 | 原因 | 再発防止 |
 |---|---|---|
 | iPhone でタッチスクロール不能（ダンジョン他） | Scroll 内 Button／STOP がドラッグを吸収 | `ScrollTouchHelper`（deadzone＋子孫を PASS）。`BottomNavHelper.setup` と一覧 rebuild 後に適用 |
+| 装備／キャラ管理オープンで ERROR→強制終了 | `ScrollTouchHelper` が `process_frame`+`CONNECT_ONE_SHOT` で refresh。refresh 中の再 queue が ONE_SHOT 解除前に同 Callable を再 connect | refresh は `call_deferred`。`process_frame.connect` 禁止（装備グリッド大量追加時に再発） |
 | イベントDGバナーが全部モーンゲート | `SUB_BANNER_FALLBACK` で mourngate 流用のみ | 各イベントに `BAN_DG_*` を用意し `BIOME_BANNER_PATHS` へ登録。フォールバックから外す |
 | イベントDGバナーだけ大きい（240px）／枠なし | キーアート全高のまま、または strip のみで金枠未合成 | `generate_biome_banner.py --strip-height 232`（枠は既定 ON）。`BAN_DG_Frame_Strip` を重ねメインと同寸・同枠に |
 | 戦闘フロア入場直後に謎の Hit 音 | 探索罠被弾→`on_hit_taken` 反撃が `_spawn_hit_vfx` で `combat_hit`。入場遅延中も SE 可だった | 罠は `skip_hit_taken`。ヒットSEは `_combat_impact_sfx_enabled`（CT開始後のみ） |
