@@ -69,14 +69,18 @@ static func scale_passive_def(def: Dictionary, breakthrough: int) -> Dictionary:
 		"exp_gain_mult",
 		"party_exp_gain_mult",
 		"speed_mult",
+		"pet_outgoing_mult",
 	]:
 		if out.has(key):
 			out[key] = _scale_mult_above_one(float(out[key]), scale)
 	if out.has("incoming_mult"):
 		out["incoming_mult"] = _scale_mult_below_one(float(out["incoming_mult"]), scale)
-	for key: String in ["evasion_rate_add", "status_chance", "incoming_block_chance", "death_save_chance"]:
+	for key: String in ["evasion_rate_add", "status_chance", "incoming_block_chance", "death_save_chance", "threat_base_add"]:
 		if out.has(key):
-			out[key] = minf(1.0, float(out[key]) * scale)
+			if key == "threat_base_add":
+				out[key] = float(out[key]) * scale
+			else:
+				out[key] = minf(1.0, float(out[key]) * scale)
 	if out.has("heal_max_hp_fraction"):
 		out["heal_max_hp_fraction"] = minf(0.5, float(out["heal_max_hp_fraction"]) * scale)
 	if str(out.get("effect", "")) == "grant_party_incoming_mult" and out.has("mult"):

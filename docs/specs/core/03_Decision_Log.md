@@ -4259,6 +4259,30 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 
 **Closeout（2026-07-24）:** オーナー GO → 統合＋`main`。ロックバイソン専用アート接続・レジェンド装備アイコン・イベントバナー同寸／金枠・罠Hit SE 修正も同バッチ反映。
 
+## 在野助っ人追加・プール外データ（2026-07-24 — P3-GACHA-STAGED-001）
+> **オーナー GO** — 既存6据置。追加は内部データのみ（招待状に出さない）。★4オーナー枠は別途。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-GACHA-STAGED-001-1 | **追加5体** — レノール★4／トルヴァ★3／シアン★3／ボルグ★2／ネリ★2 を `_omitted/` に配置 | 案GO・追加方針 |
+| P3-GACHA-STAGED-001-2 | **排出プール不変** — 直下6体・排出率・天井据置 | 「ガチャには入れない」 |
+| P3-GACHA-STAGED-001-3 | **台帳本載せは昇格時** — `13`／`08`／Glossary はプール投入 Task で同期 | プール外は `_omitted` 正 |
+| P3-GACHA-STAGED-001-4 | **オーナー★4** — 未定義（オーナー設計待ち） | 指示どおり1体はオーナー |
+
+**SSOT:** `docs/specs/decisions/08_GachaHelpersStaged.md`
+
+## 在野助っ人ステ・パッシブ方向（2026-07-24 — P3-GACHA-STAGED-002）
+> **オーナー GO** — staged 5体の個人ステ／固有パッシブ／スキル立ち回りを確定。固有スキル新設なし。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-GACHA-STAGED-002-1 | **差別化** — ★帯＋個人ステ＋固有パッシブ1。職スキルは共通プールから推奨セットのみ | 現行助っ人方針 |
+| P3-GACHA-STAGED-002-2 | **パッシブ** — 封緘の余韻／霜刃の一息／無音の射線／門前の声／水鳥の合図（数値は Decision §4） | 案GO |
+| P3-GACHA-STAGED-002-3 | **Threat +2** — `threat_base_add` を CombatPassives／Threat 初期化へ配線 | ボルグ専用 |
+| P3-GACHA-STAGED-002-4 | **排出据置** — 引き続き `_omitted`（ガチャ非表示） | STAGED-001 継承 |
+
+**SSOT:** `docs/specs/decisions/08_GachaHelpersStaged.md` §4
+
 ## 碑文判読率アップ（2026-07-24 — P3-UX-LORE-002）
 > **オーナー GO（案B）** — 記録が拾いにくい体感の是正。配線は健全・失敗率が高すぎた。
 

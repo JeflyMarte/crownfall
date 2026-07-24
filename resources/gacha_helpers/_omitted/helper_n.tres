@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="GachaHelperData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/GachaHelperData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "helper_n"
+display_name = "ボルグ"
+job_id = "vanguard"
+origin_note = "アイアンヘイブン門番上がり。街の入口を守る実務盾。"
+summon_quote = "通れ。俺が塞ぐ。"
+rarity = 2
+passive_id = "borg_gate_voice"
+sprite_resource_path = ""
+portrait_resource_path = ""
