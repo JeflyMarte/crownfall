@@ -1277,12 +1277,23 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 	var is_on_self: bool = party_idx >= 0 and owner_idx == party_idx
 	var member: Resource = _get_view_adventurer()
 	var summary: String = EquipmentItemDetailHelper.hover_summary(item, category, member)
-	btn.tooltip_text = "%s\n（長押しで効果）" % summary
+	var job_blocked: bool = (
+		category == "weapon"
+		and member != null
+		and not JobStatCalculator.can_equip_weapon(member, item)
+	)
+	if job_blocked:
+		btn.tooltip_text = "%s\n（%s）" % [summary, JobStatCalculator.unequip_reason_weapon(member, item)]
+	else:
+		btn.tooltip_text = "%s\n（長押しで効果）" % summary
 	## 短押し=着脱、長押し=効果オーバーレイ（Button.pressed は使わず gui_input で統一）。
 	_bind_inventory_cell_interaction(btn, _inventory_item_action.bind(item, category))
 	btn.disabled = party_idx < 0
 	if is_on_self:
 		btn.modulate = Color(0.72, 0.72, 0.72, 0.85)
+		_apply_item_cell_styles(btn, rarity, cell_px, true)
+	elif job_blocked:
+		btn.modulate = Color(0.55, 0.55, 0.55, 0.75)
 		_apply_item_cell_styles(btn, rarity, cell_px, true)
 	else:
 		_apply_item_cell_styles(btn, rarity, cell_px)
@@ -1431,6 +1442,11 @@ func _tap_inventory_item(item: Resource, category: String) -> void:
 				$EquipmentController.unequip_accessory(party_idx)
 		_refresh_display()
 	else:
+		if category == "weapon":
+			var member: Resource = GameState.get_member(party_idx)
+			if not JobStatCalculator.can_equip_weapon(member, item):
+				AudioManager.play_sfx("ui_error")
+				return
 		_on_cell_pressed(item, category)
 
 func _show_relic_stats_overlay(relic_id: String, pinned: bool = false) -> void:
@@ -1561,9 +1577,15 @@ func _show_item_stats_overlay(item: Resource, category: String, pinned: bool = f
 	EquipmentItemDetailHelper.populate_stats_panel(_detail_host, item, category)
 	var party_idx: int = _party_index_for_view()
 	var owner_idx: int = EquipmentUiHelper.equipped_member_index(item)
-	var can_equip: bool = party_idx >= 0 and owner_idx != party_idx
-	_detail_equip_btn.visible = can_equip
+	var member: Resource = GameState.get_member(party_idx) if party_idx >= 0 else null
+	var job_ok: bool = category != "weapon" or JobStatCalculator.can_equip_weapon(member, item)
+	var can_equip: bool = party_idx >= 0 and owner_idx != party_idx and job_ok
+	_detail_equip_btn.visible = party_idx >= 0 and owner_idx != party_idx
 	_detail_equip_btn.disabled = not can_equip
+	if category == "weapon" and party_idx >= 0 and owner_idx != party_idx and not job_ok:
+		_detail_equip_btn.tooltip_text = JobStatCalculator.unequip_reason_weapon(member, item)
+	else:
+		_detail_equip_btn.tooltip_text = ""
 	_detail_overlay.visible = true
 
 func _on_detail_equip_pressed() -> void:
@@ -1667,6 +1689,11 @@ func _request_equip_item(item: Resource, category: String) -> void:
 	var party_idx: int = _party_index_for_view()
 	if party_idx < 0 or item == null:
 		return
+	if category == "weapon":
+		var member: Resource = GameState.get_member(party_idx)
+		if not JobStatCalculator.can_equip_weapon(member, item):
+			AudioManager.play_sfx("ui_error")
+			return
 	var owner_idx: int = EquipmentUiHelper.equipped_member_index(item)
 	if owner_idx >= 0 and owner_idx != party_idx:
 		_pending_take_item = item

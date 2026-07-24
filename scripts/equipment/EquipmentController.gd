@@ -10,7 +10,15 @@ func get_appraised_accessories() -> Array:
 	return GameState.accessory_inventory.filter(func(item: Resource) -> bool: return item.is_appraised)
 
 func get_appraised_weapons_for_member(member_index: int) -> Array:
-	return _filter_items_for_member(get_appraised_weapons(), member_index)
+	var member: Resource = null
+	if _is_valid_member_index(member_index):
+		member = GameState.party_members[member_index]
+	var out: Array = []
+	for item in _filter_items_for_member(get_appraised_weapons(), member_index):
+		if member != null and not JobStatCalculator.can_equip_weapon(member, item):
+			continue
+		out.append(item)
+	return out
 
 func get_appraised_armors_for_member(member_index: int) -> Array:
 	return _filter_items_for_member(get_appraised_armors(), member_index)
@@ -21,9 +29,12 @@ func get_appraised_accessories_for_member(member_index: int) -> Array:
 func equip_weapon(item: Resource, member_index: int) -> void:
 	if not _is_valid_member_index(member_index):
 		return
+	var member: Resource = GameState.party_members[member_index]
+	if not JobStatCalculator.can_equip_weapon(member, item):
+		return
 	GameState.clear_item_from_other_members(item, member_index)
-	EquipmentEnhancer.clamp_equip_level_to_member(item, GameState.party_members[member_index])
-	GameState.party_members[member_index].equipped_weapon = item
+	EquipmentEnhancer.clamp_equip_level_to_member(item, member)
+	member.equipped_weapon = item
 	SaveManager.save_game()
 
 func equip_armor(item: Resource, member_index: int) -> void:
