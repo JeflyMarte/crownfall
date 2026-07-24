@@ -62,32 +62,34 @@ const WEAPON_STATUS_POOL: Array[String] = [
 static func apply_drop_stats(instance: Resource, weapon_data: Resource) -> void:
 	if instance == null or weapon_data == null:
 		return
-	var rarity: int = int(weapon_data.rarity)
 	_reset_bonus_stats(instance)
 	instance.element = str(weapon_data.element)
 	instance.knockback = float(weapon_data.base_knockback)
 	instance.stagger_power = float(weapon_data.base_stagger_power)
 	instance.attack_range = float(weapon_data.base_attack_range)
 	instance.weight = float(weapon_data.weight)
-	var atk_roll: Dictionary = _EquipmentRollHelper.roll_int_bonus(
-		int(ATTACK_ROLL_MAX.get(rarity, ATTACK_ROLL_MAX[Enums.Rarity.COMMON]))
-	)
-	instance.rolled_attack = int(weapon_data.base_attack) + int(atk_roll.get("value", 0))
+	## P3-EQ-DIABLO-001: 基礎攻撃は固定（個体ブレなし）。
+	instance.rolled_attack = int(weapon_data.base_attack)
 	var passive_def: Dictionary = CombatPassives.get_def(str(weapon_data.fixed_passive_id)) if "fixed_passive_id" in weapon_data else {}
 	if not str(passive_def.get("forced_element", "")).is_empty():
 		instance.element = str(passive_def.get("forced_element", ""))
-	var picked: Array[String] = _EquipmentRollHelper.pick_random_stats(
-		_build_bonus_pool(weapon_data),
-		_EquipmentRollHelper.random_stat_count(rarity)
-	)
-	var perfect: int = 0
-	if bool(passive_def.get("guaranteed_element_power_roll", false)) and "element_power" not in picked:
-		picked.append("element_power")
-	for stat_id: String in picked:
-		if _roll_bonus_stat(instance, weapon_data, rarity, stat_id):
-			perfect += 1
-	instance.rolled_bonus_stats = picked
-	instance.perfect_roll_count = perfect
+	var _EquipmentRandomMods = load("res://scripts/equipment/EquipmentRandomMods.gd")
+	_EquipmentRandomMods.apply_weapon_drop(instance, weapon_data)
+	## 天候レジェンド等: 属性値枠が必須なら不足時に追加。
+	if bool(passive_def.get("guaranteed_element_power_roll", false)):
+		var mods: Array = instance.random_mods if "random_mods" in instance else []
+		var has_ep: bool = false
+		for m: Variant in mods:
+			if m is Dictionary and str(m.get("kind", "")) == "element_power":
+				has_ep = true
+				break
+		if not has_ep and not str(instance.element).is_empty():
+			var rarity: int = int(weapon_data.rarity)
+			var em: Dictionary = _EquipmentRandomMods._roll_element_power_mod(weapon_data, rarity)
+			mods.append(em)
+			instance.element_power = int(em.get("value", 0))
+			instance.random_mods = mods
+			instance.perfect_roll_count = int(instance.perfect_roll_count) + (1 if bool(em.get("perfect", false)) else 0)
 
 static func backfill_from_master(instance: Resource) -> void:
 	var weapon_data: Resource = _weapon_data(instance)

@@ -86,24 +86,15 @@ const STATUS_IMMUNITY_POOL: Array[String] = [
 static func apply_drop_stats(instance: Resource, armor_data: Resource) -> void:
 	if instance == null or armor_data == null:
 		return
-	var rarity: int = int(armor_data.rarity)
 	_reset_bonus_stats(instance)
 	instance.resistance = float(armor_data.base_resistance)
 	instance.weight = float(armor_data.weight)
-	var def_roll: Dictionary = _EquipmentRollHelper.roll_int_bonus(
-		int(DEFENSE_ROLL_MAX.get(rarity, DEFENSE_ROLL_MAX[Enums.Rarity.COMMON]))
-	)
-	instance.rolled_defense = int(armor_data.base_defense) + int(def_roll.get("value", 0))
-	var picked: Array[String] = _EquipmentRollHelper.pick_random_stats(
-		ARMOR_BONUS_POOL,
-		_EquipmentRollHelper.random_stat_count(rarity)
-	)
-	var perfect: int = 0
-	for stat_id: String in picked:
-		if _roll_bonus_stat(instance, armor_data, rarity, stat_id):
-			perfect += 1
-	instance.rolled_bonus_stats = picked
-	instance.perfect_roll_count = perfect
+	## P3-EQ-DIABLO-001: 基礎防御は固定。
+	instance.rolled_defense = int(armor_data.base_defense)
+	if "rarity" in instance:
+		instance.rarity = int(armor_data.rarity)
+	var _EquipmentRandomMods = load("res://scripts/equipment/EquipmentRandomMods.gd")
+	_EquipmentRandomMods.apply_armor_drop(instance, armor_data)
 
 static func backfill_from_master(instance: Resource) -> void:
 	var armor_data: Resource = _armor_data(instance)

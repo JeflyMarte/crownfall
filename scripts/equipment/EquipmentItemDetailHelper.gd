@@ -114,150 +114,35 @@ static func stat_rows(item: Resource, category: String) -> Array:
 	var rows: Array = []
 	if item == null:
 		return rows
+	var _EquipmentRandomMods = load("res://scripts/equipment/EquipmentRandomMods.gd")
+	_EquipmentRandomMods.ensure_migrated(item)
+	## P3-EQ-DIABLO-001: 固定行（武器／防具）→ ランダム行。装飾はランダムのみ。
 	match category:
 		"weapon":
 			rows.append({
 				"key": "attack",
 				"label": "攻撃力",
-				"value": _stat_value(
-					item, category, "attack",
-					str(_EquipmentEnhancer.get_effective_attack(item))
-				),
+				"value": str(_EquipmentEnhancer.get_effective_attack(item)),
 			})
-			var elem: String = _WeaponStatResolver.resolve_element(item)
-			if not elem.is_empty():
-				rows.append({
-					"key": "element",
-					"label": "属性",
-					"value": _ElementResolver.get_display_name(elem),
-				})
-				var elem_power: int = _WeaponStatResolver.resolve_element_power(item)
-				if elem_power > 0:
-					rows.append({
-						"key": "element_power",
-						"label": "属性値",
-						"value": _stat_value(item, category, "element_power", "+%d" % elem_power),
-					})
-			var bane: Dictionary = _WeaponStatResolver.resolve_bane(item)
-			if not str(bane.get("class", "")).is_empty():
-				rows.append({
-					"key": "bane",
-					"label": "生態特効",
-					"value": "%s ×%.1f" % [str(bane.get("class", "")), float(bane.get("mult", 1.0))],
-				})
-			rows.append({
-				"key": "speed",
-				"label": "攻撃速度",
-				"value": _stat_value(
-					item, category, "speed",
-					"%.1f" % _WeaponStatResolver.resolve_attack_speed(item)
-				),
-			})
-			rows.append({
-				"key": "crit_rate",
-				"label": "会心率",
-				"value": _stat_value(
-					item, category, "crit_rate",
-					"%.0f%%" % (_WeaponStatResolver.resolve_critical_rate(item) * 100.0)
-				),
-			})
-			var on_hit_status_id: String = _WeaponStatResolver.resolve_on_hit_status_id(item)
-			if not on_hit_status_id.is_empty():
-				var on_hit_chance: float = _WeaponStatResolver.resolve_on_hit_status_chance(item)
-				var status_effect: Resource = DataRegistry.get_status_effect(on_hit_status_id)
-				var status_label: String = (
-					status_effect.display_name if status_effect != null else on_hit_status_id
-				)
-				rows.append({
-					"key": "on_hit_status",
-					"label": "状態付与",
-					"value": _stat_value(
-						item, category, "on_hit_status",
-						"%s %.0f%%" % [status_label, on_hit_chance * 100.0]
-					),
-				})
 		"armor":
 			rows.append({
 				"key": "defense",
 				"label": "防御力",
-				"value": _stat_value(item, category, "defense", str(int(item.rolled_defense))),
+				"value": str(_EquipmentEnhancer.effective_armor_defense(item)),
 			})
-			var hp_bonus: int = _ArmorStatResolver.resolve_hp_bonus(item)
-			if hp_bonus > 0:
-				rows.append({
-					"key": "hp",
-					"label": "HP",
-					"value": _stat_value(item, category, "hp", "+%d" % hp_bonus),
-				})
-			var resist: String = _armor_resist_text(item)
-			if not resist.is_empty():
-				rows.append({
-					"key": "resist",
-					"label": "属性耐性",
-					"value": _stat_value(item, category, "resist", resist),
-				})
-			_append_rate_row(rows, item, category, "exp_gain", "経験値獲得", _ArmorStatResolver.resolve_exp_gain_rate(item))
-			_append_rate_row(rows, item, category, "gold_gain", "ゴールド獲得", _ArmorStatResolver.resolve_gold_gain_rate(item))
-			_append_rate_row(rows, item, category, "rare_drop", "レアドロップ", _ArmorStatResolver.resolve_rare_drop_rate(item))
-			var immunity_text: String = _armor_immunity_text(item)
-			if not immunity_text.is_empty():
-				rows.append({
-					"key": "status_immunity",
-					"label": "状態異常無効",
-					"value": _stat_value(item, category, "status_immunity", immunity_text),
-				})
-			var evasion: float = _ArmorStatResolver.resolve_evasion_rate(item)
-			if evasion > 0.0:
-				rows.append({
-					"key": "evasion_rate",
-					"label": "回避率",
-					"value": _stat_value(item, category, "evasion_rate", "+%.0f%%" % (evasion * 100.0)),
-				})
 		"accessory":
-			var acc_data: Resource = DataRegistry.get_accessory_data(str(item.accessory_id))
-			var hp: int = _AccessoryStatResolver.resolve_hp_bonus(item, acc_data)
-			if hp > 0:
-				rows.append({"key": "hp", "label": "HP", "value": _stat_value(item, category, "hp", "+%d" % hp)})
-			var atk: int = _AccessoryStatResolver.resolve_attack_bonus(item, acc_data)
-			if atk > 0:
-				rows.append({
-					"key": "attack",
-					"label": "攻撃力",
-					"value": _stat_value(item, category, "attack", "+%d" % atk),
-				})
-			var def: int = _AccessoryStatResolver.resolve_defense_bonus(item, acc_data)
-			if def > 0:
-				rows.append({
-					"key": "defense",
-					"label": "防御力",
-					"value": _stat_value(item, category, "defense", "+%d" % def),
-				})
-			var crit: float = _AccessoryStatResolver.resolve_crit_rate_bonus(item, acc_data)
-			if crit > 0.0:
-				rows.append({
-					"key": "crit_rate",
-					"label": "会心率",
-					"value": _stat_value(item, category, "crit_rate", "+%.0f%%" % (crit * 100.0)),
-				})
-			_append_rate_row(
-				rows, item, category, "exp_gain", "経験値獲得",
-				_AccessoryStatResolver.resolve_exp_gain_rate(item, acc_data)
-			)
-			_append_rate_row(
-				rows, item, category, "gold_gain", "ゴールド獲得",
-				_AccessoryStatResolver.resolve_gold_gain_rate(item, acc_data)
-			)
-			_append_rate_row(
-				rows, item, category, "rare_drop", "レアドロップ",
-				_AccessoryStatResolver.resolve_rare_drop_rate(item, acc_data)
-			)
-			var evasion: float = _AccessoryStatResolver.resolve_evasion_rate(item, acc_data)
-			if evasion > 0.0:
-				rows.append({
-					"key": "evasion_rate",
-					"label": "回避率",
-					"value": _stat_value(item, category, "evasion_rate", "+%.0f%%" % (evasion * 100.0)),
-				})
+			pass
+		_:
+			return rows
+	for mod: Variant in _EquipmentRandomMods.get_mods(item):
+		if not mod is Dictionary:
+			continue
+		var line: String = _EquipmentRandomMods.format_mod_line(mod as Dictionary)
+		rows.append({
+			"key": str(mod.get("kind", "mod")),
+			"label": "",
+			"value": line,
+		})
 	return rows
 
 static func _append_rate_row(
@@ -276,7 +161,8 @@ static func _append_rate_row(
 		})
 
 static func affix_text(item: Resource) -> String:
-	return _AffixDisplayFormatter.format_for_instance(item)
+	## 追加効果行は廃止（ランダムステに統合）。
+	return ""
 
 static func description_text(item: Resource, category: String) -> String:
 	if item == null:
@@ -466,7 +352,11 @@ static func _make_stat_row(stat_key: String, label_text: String, value_text: Str
 			row.add_child(icon)
 	var name_lbl := Label.new()
 	name_lbl.text = label_text
-	name_lbl.custom_minimum_size = Vector2(STAT_LABEL_MIN_W, 0)
+	if label_text.is_empty():
+		name_lbl.visible = false
+		name_lbl.custom_minimum_size = Vector2(0, 0)
+	else:
+		name_lbl.custom_minimum_size = Vector2(STAT_LABEL_MIN_W, 0)
 	name_lbl.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	UiTypography.apply_body(name_lbl, UiTypography.SIZE_CAPTION, COLOR_LABEL)
 	row.add_child(name_lbl)
