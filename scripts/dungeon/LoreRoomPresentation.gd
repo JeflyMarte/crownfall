@@ -1,12 +1,13 @@
 class_name LoreRoomPresentation
 extends RefCounted
 
-## 碑文部屋の演出 SSOT（P3-UX-LORE-001）。
+## 碑文部屋の演出 SSOT（P3-UX-LORE-001 / P3-UX-LORE-002）。
 
 const ROOM_BG_SETUP_PATH: String = "res://assets/dungeon/common/lore/BG_Room_Lore_Setup.png"
 const ROOM_BG_SUCCESS_PATH: String = "res://assets/dungeon/common/lore/BG_Room_Lore_Success.png"
 const ROOM_BG_FAIL_PATH: String = "res://assets/dungeon/common/lore/BG_Room_Lore_Fail.png"
-const SUCCESS_CHANCE: float = 0.5
+## 通常判読率。記録を1件も持っていないときは初回保証で必ず成功（P3-UX-LORE-002）。
+const SUCCESS_CHANCE: float = 0.8
 
 const COLOR_SUCCESS: Color = Color(0.78, 0.62, 1.0)
 const COLOR_FAIL: Color = Color(0.72, 0.70, 0.66)
@@ -49,6 +50,9 @@ static func pick_fail_line(rng: RandomNumberGenerator = null) -> String:
 
 
 static func is_deciphered(rng: RandomNumberGenerator = null) -> bool:
+	## 図鑑「記録」が未所持なら必ず成功（初回保証）。
+	if DiscoveryRegistry.count_by_category("lore") <= 0:
+		return true
 	if rng != null:
 		return rng.randf() < SUCCESS_CHANCE
 	return randf() < SUCCESS_CHANCE
