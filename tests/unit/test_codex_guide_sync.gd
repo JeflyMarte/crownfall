@@ -145,6 +145,8 @@ func test_world_guide_entries_cover_canon_basics() -> void:
 		"WORLD-G001", "WORLD-G002", "WORLD-G003", "WORLD-G004", "WORLD-G005",
 		"WORLD-G006", "WORLD-G007", "WORLD-G008", "WORLD-G009", "WORLD-G010",
 		"WORLD-G011", "WORLD-G012",
+		"WORLD-G013", "WORLD-G014", "WORLD-G015", "WORLD-G016", "WORLD-G017",
+		"WORLD-G018", "WORLD-G019", "WORLD-G020", "WORLD-G021", "WORLD-G022",
 	]
 	for wid: String in required:
 		assert_false(str(by_id.get(wid, "")).is_empty(), "%s がある" % wid)
@@ -156,6 +158,15 @@ func test_world_guide_entries_cover_canon_basics() -> void:
 	assert_true(str(by_id.get("WORLD-G008", "")).contains("異界"), "民間俗称に触れつつ否定")
 	assert_true(str(by_id.get("WORLD-G011", "")).contains("鉱物化"), "モーンゲート生態")
 	assert_true(str(by_id.get("WORLD-G012", "")).contains("共生"), "ウィスパーウッド生態")
+	assert_true(str(by_id.get("WORLD-G013", "")).contains("専門"), "ジョブは専門資格")
+	assert_true(str(by_id.get("WORLD-G014", "")).contains("英雄ではない"), "隊長は選ばれし英雄ではない")
+	assert_true(str(by_id.get("WORLD-G015", "")).contains("生存"), "動機の三層")
+	assert_true(str(by_id.get("WORLD-G016", "")).contains("灯火"), "灯火の信仰")
+	assert_true(str(by_id.get("WORLD-G017", "")).contains("魔物"), "魔物呼びを否定")
+	assert_true(str(by_id.get("WORLD-G018", "")).contains("探索者の時代"), "六時代")
+	assert_true(str(by_id.get("WORLD-G020", "")).contains("辻灯亭"), "在野と辻灯亭")
+	assert_true(str(by_id.get("WORLD-G021", "")).contains("ゴールド"), "通貨")
+	assert_true(str(by_id.get("WORLD-G022", "")).contains("隊商"), "街道と隊商")
 
 
 func test_mourngate_flavor_matches_postwar_ecology() -> void:
