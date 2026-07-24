@@ -13,6 +13,8 @@ var _cards: Dictionary = {}
 
 
 func _ready() -> void:
+	## 導入フローの続き（ニーナ吹き出し→隊員選択）。イントロBGMを維持。
+	AudioManager.play_bgm("introduction")
 	_build_ui()
 
 
