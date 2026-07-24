@@ -15,6 +15,8 @@ extends Resource
 @export var is_appraised: bool = false
 @export var prefix_ids: Array[String] = []
 @export var suffix_ids: Array[String] = []
+## P3-EQ-DIABLO-001: 統合ランダムステ。
+@export var random_mods: Array = []
 ## 装備レベル（1〜99）。ドロップ時 Biome 連動・戦闘で成長（P3-EQ-LVL-001）。
 @export var equip_level: int = 1
 @export var equip_exp: int = 0

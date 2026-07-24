@@ -76,18 +76,9 @@ const ACCESSORY_BONUS_POOL: Array[String] = [
 static func apply_drop_stats(instance: Resource, accessory_data: Resource) -> void:
 	if instance == null or accessory_data == null:
 		return
-	var rarity: int = int(accessory_data.rarity)
 	_reset_bonus_stats(instance)
-	var picked: Array[String] = _EquipmentRollHelper.pick_random_stats(
-		ACCESSORY_BONUS_POOL,
-		_EquipmentRollHelper.random_stat_count(rarity)
-	)
-	var perfect: int = 0
-	for stat_id: String in picked:
-		if _roll_bonus_stat(instance, accessory_data, rarity, stat_id):
-			perfect += 1
-	instance.rolled_bonus_stats = picked
-	instance.perfect_roll_count = perfect
+	var _EquipmentRandomMods = load("res://scripts/equipment/EquipmentRandomMods.gd")
+	_EquipmentRandomMods.apply_accessory_drop(instance, accessory_data)
 
 static func backfill_from_master(instance: Resource) -> void:
 	var data: Resource = _accessory_data(instance)

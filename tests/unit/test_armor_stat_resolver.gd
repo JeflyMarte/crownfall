@@ -29,9 +29,9 @@ func test_apply_drop_stats_always_rolls_defense() -> void:
 	var inst: Resource = _ArmorInstance.new()
 	inst.armor_id = "test_armor"
 	_ArmorStatResolver.apply_drop_stats(inst, data)
-	var roll_max: int = int(_ArmorStatResolver.DEFENSE_ROLL_MAX[Enums.Rarity.COMMON])
-	assert_true(int(inst.rolled_defense) >= 10)
-	assert_true(int(inst.rolled_defense) <= 10 + roll_max)
+	## P3-EQ-DIABLO-001: 基礎防御は固定。ブレはランダム「防御力アップ」。
+	assert_eq(int(inst.rolled_defense), 10)
+	assert_eq(inst.random_mods.size(), 1)
 
 
 func test_resolve_resist_elements_from_instance() -> void:
@@ -86,11 +86,26 @@ func test_armor_resist_roll_sets_multiplier() -> void:
 
 
 func test_armor_rates_stack_in_affix_calculator() -> void:
+	var saved_armors: Array = []
+	for m: Resource in GameState.party_members:
+		saved_armors.append(m.equipped_armor if m != null else null)
+		if m != null:
+			m.equipped_armor = null
 	var member: Resource = GameState.party_members[0]
 	var armor: Resource = _ArmorInstance.new()
 	armor.armor_id = "leather_armor"
 	armor.gold_gain_rate = 0.05
 	armor.exp_gain_rate = 0.03
+	armor.is_appraised = true
+	## 移行スキップ（フィールド率がそのまま効く）
+	armor.random_mods = [{
+		"id": "marker", "label": "", "kind": "hp_up",
+		"value": 0, "min_v": 0, "max_v": 0, "perfect": false, "meta": {},
+	}]
 	member.equipped_armor = armor
 	assert_eq(_AffixStatCalculator.apply_gold_bonus(100), 105)
 	assert_eq(_AffixStatCalculator.apply_exp_bonus(100), 103)
+	for i in GameState.party_members.size():
+		var m2: Resource = GameState.party_members[i]
+		if m2 != null:
+			m2.equipped_armor = saved_armors[i]

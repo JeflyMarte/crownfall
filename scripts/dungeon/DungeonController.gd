@@ -1447,20 +1447,10 @@ func _rarity_drop_weight_for(rarity: int, enemy_data: Resource) -> int:
 	return int(RARITY_DROP_WEIGHT.get(rarity, 1))
 
 func _auto_appraise(instance: Resource, category: String, rarity: int) -> void:
-	instance.is_appraised = true
-	var roll: Dictionary = _AffixRoller.roll_for_equipment(category, rarity)
-	if roll.is_empty() or roll.has("error"):
-		instance.prefix_ids = []
-		instance.suffix_ids = []
-		return
-	var prefix: Array[String] = []
-	for v in roll.get("prefix_ids", []):
-		prefix.append(str(v))
-	var suffix: Array[String] = []
-	for v in roll.get("suffix_ids", []):
-		suffix.append(str(v))
-	instance.prefix_ids = prefix
-	instance.suffix_ids = suffix
+	## P3-EQ-DIABLO-001: Affix 抽選は apply_drop_stats → EquipmentRandomMods に統合済。
+	if instance != null:
+		instance.is_appraised = true
+	return
 
 func _spawn_weapon(weapon_id: String) -> void:
 	var weapon_data = load("res://resources/weapons/" + weapon_id + ".tres")

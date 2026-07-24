@@ -83,6 +83,7 @@ func _compute_bonuses(member_index: int = -1) -> Dictionary:
 			_apply_armor_base_rates(member, bonuses)
 			for affix_data: Resource in _affixes_from_member(member):
 				_apply_affix_to_bonuses(affix_data, bonuses)
+			_apply_random_mods_from_member(member, bonuses)
 		return bonuses
 	for i in GameState.party_members.size():
 		var member_all: Resource = GameState.party_members[i]
@@ -92,6 +93,7 @@ func _compute_bonuses(member_index: int = -1) -> Dictionary:
 		_apply_armor_base_rates(member_all, bonuses)
 		for affix_data: Resource in _affixes_from_member(member_all):
 			_apply_affix_to_bonuses(affix_data, bonuses)
+		_apply_random_mods_from_member(member_all, bonuses)
 	return bonuses
 
 func _apply_accessory_base_rates(member: Resource, bonuses: Dictionary) -> void:
@@ -140,6 +142,7 @@ func _append_instance_affixes(
 ) -> void:
 	if item == null or not item.is_appraised:
 		return
+	## レガシー Affix ID（未移行時のみ）。移行後は random_mods を _compute 側で直接適用。
 	if include_prefix:
 		for affix_id in item.prefix_ids:
 			_append_affix_data(target, str(affix_id))
@@ -184,5 +187,66 @@ func _apply_affix_to_bonuses(affix_data: Resource, bonuses: Dictionary) -> void:
 			bonuses["poison_chance"] += float(affix_data.value)
 		STAT_ATTACK_SPEED:
 			bonuses["attack_speed_mult_add"] += float(affix_data.value)
+		_:
+			pass
+
+
+func _apply_random_mods_from_member(member: Resource, bonuses: Dictionary) -> void:
+	var _EquipmentRandomMods = load("res://scripts/equipment/EquipmentRandomMods.gd")
+	for item: Resource in [
+		member.equipped_weapon if "equipped_weapon" in member else null,
+		member.equipped_armor if "equipped_armor" in member else null,
+		member.equipped_accessory if "equipped_accessory" in member else null,
+	]:
+		if item == null or not bool(item.is_appraised):
+			continue
+		var category: String = _EquipmentRandomMods._item_category(item)
+		for mod: Variant in _EquipmentRandomMods.get_mods(item):
+			if mod is Dictionary:
+				_apply_random_mod_to_bonuses(mod as Dictionary, category, bonuses)
+
+
+func _apply_random_mod_to_bonuses(mod: Dictionary, category: String, bonuses: Dictionary) -> void:
+	var kind: String = str(mod.get("kind", ""))
+	var value: float = float(mod.get("value", 0.0))
+	## フィールド／固定行に既に載るものは二重加算しない。
+	match kind:
+		"attack_up":
+			if category == "weapon" or category == "accessory":
+				return
+			bonuses["attack_flat"] += int(value)
+		"defense_up":
+			if category == "armor" or category == "accessory":
+				return
+			bonuses["defense_flat"] += int(value)
+		"hp_up":
+			if category == "armor" or category == "accessory":
+				return
+			bonuses["hp_flat"] += int(value)
+		"crit_rate":
+			if category == "weapon" or category == "accessory":
+				return
+			bonuses["crit_rate_add"] += value
+		"attack_speed":
+			if category == "weapon":
+				return
+			bonuses["attack_speed_mult_add"] += value
+		"gold_gain":
+			## 防具／装飾はフィールド経由。武器 Fortune のみここ。
+			if category != "weapon":
+				return
+			bonuses["gold_gain_mult"] += value
+		"exp_gain", "rare_drop", "evasion":
+			return
+		"healing":
+			bonuses["healing_bonus"] += int(value)
+		"chill_chance":
+			bonuses["chill_chance"] += value
+		"shock_chance":
+			bonuses["shock_chance"] += value
+		"ignite_chance":
+			bonuses["ignite_chance"] += value
+		"poison_chance":
+			bonuses["poison_chance"] += value
 		_:
 			pass

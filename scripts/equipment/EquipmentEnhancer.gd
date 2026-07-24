@@ -147,12 +147,16 @@ static func get_enhance_level(item: Resource) -> int:
 static func get_effective_attack(weapon: Resource) -> int:
 	if weapon == null:
 		return 0
+	var _EquipmentRandomMods = load("res://scripts/equipment/EquipmentRandomMods.gd")
+	_EquipmentRandomMods.ensure_migrated(weapon)
 	var scaled: int = scale_equip_stat(
 		int(weapon.rolled_attack),
 		get_equip_level(weapon),
 		weapon_rarity(weapon)
 	)
-	return scaled + get_enhance_level(weapon) * BalanceConfig.EQUIP_FORGE_FLAT_PER_LEVEL
+	var forge: int = get_enhance_level(weapon) * BalanceConfig.EQUIP_FORGE_FLAT_PER_LEVEL
+	var attack_up: int = _EquipmentRandomMods.sum_kind_int(weapon, _EquipmentRandomMods.KIND_ATTACK_UP)
+	return scaled + forge + attack_up
 
 static func pick_event_drop_material() -> String:
 	if EVENT_DROP_MATERIAL_IDS.is_empty():
@@ -373,8 +377,12 @@ static func accessory_rarity(accessory: Resource) -> int:
 static func effective_armor_defense(armor: Resource) -> int:
 	if armor == null:
 		return 0
-	return scale_equip_stat(int(armor.rolled_defense), get_equip_level(armor), armor_rarity(armor)) \
-		+ get_enhance_level(armor) * BalanceConfig.EQUIP_FORGE_FLAT_PER_LEVEL
+	var _EquipmentRandomMods = load("res://scripts/equipment/EquipmentRandomMods.gd")
+	_EquipmentRandomMods.ensure_migrated(armor)
+	var scaled: int = scale_equip_stat(int(armor.rolled_defense), get_equip_level(armor), armor_rarity(armor))
+	var forge: int = get_enhance_level(armor) * BalanceConfig.EQUIP_FORGE_FLAT_PER_LEVEL
+	var def_up: int = _EquipmentRandomMods.sum_kind_int(armor, _EquipmentRandomMods.KIND_DEFENSE_UP)
+	return scaled + forge + def_up
 
 static func effective_armor_hp(armor: Resource) -> int:
 	if armor == null:
