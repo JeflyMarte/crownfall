@@ -2259,7 +2259,13 @@ func _populate_status_icon_row(row: HBoxContainer, statuses: Array) -> void:
 	for entry: Dictionary in statuses:
 		row.add_child(_build_status_icon(entry))
 
-func _set_status_row_above_sprite(row: HBoxContainer, sprite: AnimatedSprite2D, statuses: Array, formation_slot: int = -1) -> void:
+func _set_status_row_above_sprite(
+	row: HBoxContainer,
+	sprite: AnimatedSprite2D,
+	statuses: Array,
+	formation_slot: int = -1,
+	enemy_slot: int = -1
+) -> void:
 	_populate_status_icon_row(row, statuses)
 	var show: bool = sprite.visible and not statuses.is_empty()
 	row.visible = show
@@ -2272,8 +2278,9 @@ func _set_status_row_above_sprite(row: HBoxContainer, sprite: AnimatedSprite2D, 
 	if formation_slot >= 0:
 		icon_y = _sprite_top_y_in_root(sprite) - CHR_HP_BAR_GAP_ABOVE_SPRITE - CHR_HP_BAR_HEIGHT - CHR_STATUS_GAP_ABOVE_BAR - STATUS_ICON_SIZE + _chr_hp_bar_row_y_offset(formation_slot)
 	else:
-		## 敵: HPバー直上（バーに隠れない位置）。
-		icon_y = _enemy_hp_bar_top_y_in_root(sprite) - CHR_STATUS_GAP_ABOVE_BAR - STATUS_ICON_SIZE
+		## 敵: ネームプレート（エリートはバッジ）の上。HPバー帯と重ねない。
+		var stack_top: float = _enemy_overlay_stack_top_y_in_root(sprite, enemy_slot)
+		icon_y = stack_top - CHR_STATUS_GAP_ABOVE_BAR - STATUS_ICON_SIZE
 	row.position = Vector2(center.x - total_w * 0.5, icon_y)
 	row.z_index = COMBAT_OVERLAY_Z + 3
 
@@ -2284,6 +2291,25 @@ func _enemy_hp_bar_top_y_in_root(sprite: AnimatedSprite2D) -> float:
 	var center: Vector2 = _sprite_center_in_root(sprite)
 	var top_y: float = _sprite_top_y_in_root(sprite)
 	return minf(center.y - 50.0, top_y - GAP_ABOVE_SPRITE - BAR_HEIGHT)
+
+
+func _enemy_overlay_stack_top_y_in_root(sprite: AnimatedSprite2D, enemy_slot: int = -1) -> float:
+	## HPバー上のネームプレート（＋エリートバッジ）上端。状態異常はこの上へ置く。
+	const GAP_BAR_NAME: float = 6.0
+	const BADGE_H: float = 22.0
+	const GAP_NAME_BADGE: float = 2.0
+	var bar_ty: float = _enemy_hp_bar_top_y_in_root(sprite)
+	var swarming: bool = $CombatController.swarm_data.size() > 1
+	var name_height: float = SWARM_NAME_HEIGHT if swarming else SINGLE_NAME_HEIGHT
+	var name_ty: float = bar_ty - GAP_BAR_NAME - name_height
+	var stack_top: float = name_ty
+	var is_elite_lead: bool = (
+		enemy_slot == 0
+		and $DungeonController.current_room_type == Enums.RoomType.ELITE
+	)
+	if is_elite_lead:
+		stack_top = name_ty - GAP_NAME_BADGE - BADGE_H
+	return stack_top
 
 func _update_status_icons() -> void:
 	var in_combat: bool = $CombatController.is_in_combat
@@ -2309,7 +2335,9 @@ func _update_status_icons() -> void:
 			_set_status_row_above_sprite(
 				row,
 				_swarm_sprites[slot],
-				$CombatController.get_enemy_status_list_at(slot)
+				$CombatController.get_enemy_status_list_at(slot),
+				-1,
+				slot
 			)
 	for i: int in _status_icon_chr_rows.size():
 		var sprite: AnimatedSprite2D = _chr_sprites[i]

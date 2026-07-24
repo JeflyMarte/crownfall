@@ -70,7 +70,7 @@ alwaysApply: true
 | 戦闘ヒット／回復 VFX に暗縁 | `remove_black_bg(threshold=24)` では暗青緑マット `(14,21,25)` が残る | `tools/generate_env_and_vfx.py` の `clean_vfx_image`（`fix_batch6_vfx`）で再生成。alpha=0 の RGB ゴミも `sanitize_alpha` |
 | ダンジョン選択の Featured バナーに名前が無い | `_sync_featured_banner` が画像のみで、一覧ヘッダのタイトル重ねを省略していた | 一覧と同様に `display_name` ラベルを中央重ね（焼き込み Banner は従来どおり非表示） |
 | 戦闘ログ最上行が見切れる | 本文サイズ拡大後も行高／上余白が旧フォント想定のまま | `BATTLE_LOG_LINE_HEIGHT`・パネル／Margin の上余白を本文サイズに合わせて確保。`SIZE_LOG` 変更時は行高も同期 |
-| 状態異常アイコンが敵HPバーの裏 | 行の z 未設定＋敵アイコンYがバーと同帯 | `COMBAT_OVERLAY_Z+3`＋HPバー直上に配置（`_enemy_hp_bar_top_y_in_root`） |
+| 状態異常アイコンが敵HPバーの裏／ネームと重なる | 行の z 未設定、または敵アイコンYをバー直上だけにしてネーム帯と同帯 | `COMBAT_OVERLAY_Z+3`＋ネーム（エリートはバッジ）上端より上（`_enemy_overlay_stack_top_y_in_root`） |
 | 複数敵が右にはみ出す | 固定 spacing で右端 ratio>0.9 | `_swarm_x_ratio_for_slot` で MIN/MAX 内に収める |
 | 枠にアイコンが食い込む | inset 不足 | `EquipmentUiTokens.ICON_FRAME_MARGIN_PX`（現行 18）を維持。全面キャンバス絵は余白を減らさない |
 | UI idle が拡縮／左右に跳ぶ | `idle_*.png` のフレーム間で描画サイズ・中心が不安定。安易な再配置や静止固定の行き来 | `ui-layout.mdc`「CHR Idle ポートレート」— 軽微は間引き、重度のみ足元固定。横跳びする再中央寄せをしない |
