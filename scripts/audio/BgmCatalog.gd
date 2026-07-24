@@ -54,7 +54,7 @@ const SCENE_BGM: Dictionary = {
 	"res://scenes/equipment/EquipmentScene.tscn": ID_HUB,
 	"res://scenes/equipment/EquipmentCatalogScene.tscn": ID_HUB,
 	"res://scenes/roster/RosterScene.tscn": ID_HUB,
-	"res://scenes/roster/StarterPickScene.tscn": ID_HUB,
+	"res://scenes/roster/StarterPickScene.tscn": ID_INTRODUCTION,
 	"res://scenes/dungeon/DungeonSelectScene.tscn": ID_HUB,
 	"res://scenes/codex/CodexScene.tscn": ID_HUB,
 	"res://scenes/commander/CommanderScene.tscn": ID_HUB,

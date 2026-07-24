@@ -52,6 +52,7 @@ alwaysApply: true
 | レジェンド防具／装飾／杖がデフォルト同アイコン | `generate_equipment_icons.py` がテンプレ流用のまま。専用PNG未差替 | PixelLab等で専用生成→`assets/ui/equipment` 上書き。`LEGENDARY_HAND_DRAWN_*_IDS` に入れて再生成で潰さない |
 | キャラ画面の★が灰色 | LabelStars に見出しフォント（Shippori）を当てると ★ 欠落でフォールバックが灰色に見える | 本文フォント＋`UiTypography.COLOR_GOLD`（ガチャと同ポリシー） |
 | ガチャ／鍛冶BGMが他画面に残る | Equipment 等の拠点画面が `play_bgm` せず継続再生 | `BgmCatalog.SCENE_BGM`＋`SceneRouter.change_scene` で画面入場時に切替（拠点=hub） |
+| 調査隊員選択でイントロBGMが切れる | `StarterPickScene` が `SCENE_BGM` で hub になっていた | 導入フローは `introduction`（同ID再生中は継続）。拠点入りで hub へ |
 | 鍛冶詳細ステにアイコンが付かない／見えない | `EquipmentUiTokens.stat_icon` の実行時 load 欠落、または TextureRect を HBox に直置きして寸法 0、必要コスト被り | `BlacksmithScene` は `ICO_Equip_Stat_*` を **preload**＋固定 `Control` ホスト（36px）。コスト前スペーサ≧24。差替後は `.godot/imported` 再インポート |
 
 ## アセット取込（Desktop → プロジェクト）
