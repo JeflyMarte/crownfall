@@ -4271,6 +4271,8 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 
 **SSOT:** `docs/specs/decisions/08_GachaHelpersStaged.md`
 
+**Closeout（2026-07-24）:** オーナー一括 GO → 統合＋`main`。
+
 ## 在野助っ人ステ・パッシブ方向（2026-07-24 — P3-GACHA-STAGED-002）
 > **オーナー GO** — staged 5体の個人ステ／固有パッシブ／スキル立ち回りを確定。固有スキル新設なし。
 
@@ -4283,6 +4285,8 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 
 **SSOT:** `docs/specs/decisions/08_GachaHelpersStaged.md` §4
 
+**Closeout（2026-07-24）:** オーナー一括 GO → 統合＋`main`。
+
 ## 碑文判読率アップ（2026-07-24 — P3-UX-LORE-002）
 > **オーナー GO（案B）** — 記録が拾いにくい体感の是正。配線は健全・失敗率が高すぎた。
 
@@ -4293,3 +4297,14 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-UX-LORE-002-3 | **スコープ外** — 回復／宝箱の成功率、碑文部屋出現率、演出強化（案C） | 碑文判読のみ |
 
 **Closeout（2026-07-24）:** オーナー GO → 統合＋`main`。
+
+## 図鑑世界観手引き拡充（2026-07-24 — P3-CODEX-WORLD-002）
+> **オーナー指示** — 図鑑の世界観説明をもっと増やす。正典は `docs/specs/world/`。真相・魔法・内部用語は出さない。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-CODEX-WORLD-002-1 | **追加** — WORLD-G013〜022（職／隊長／動機／信仰／生物分類／六時代／九英雄／在野・辻灯亭／ゴールド・素材／大街道・隊商） | 既存 G001〜012（土地・拠点中心）の人・社会・歴史側を厚くする |
+| P3-CODEX-WORLD-002-2 | **文体** — プレイヤー向け手引き。内部英語禁止・真相断定禁止。歴史タブ／他手引きへ誘導 | `test_codex_guide_copy`／既存 WORLD 方針 |
+| P3-CODEX-WORLD-002-3 | **スコープ外** — 歴史タブ本文の改稿・ニーナセリフ・新システム | 手引き WORLD 条のみ |
+
+**Closeout（2026-07-24）:** オーナー一括 GO → 統合＋`main`。
