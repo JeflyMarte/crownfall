@@ -10,6 +10,6 @@ job_id = "beast_tamer"
 origin_note = "南沼寄りの水鳥使い。群れの流れで間合いを取る。"
 summon_quote = "鳴け。道が分かる。"
 rarity = 2
-passive_id = ""
+passive_id = "neri_waterfowl_call"
 sprite_resource_path = ""
 portrait_resource_path = ""

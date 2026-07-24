@@ -10,6 +10,6 @@ job_id = "alchemist"
 origin_note = "王立図書院の写本係上がり。封緘の噂を追って野外へ出た錬成士。"
 summon_quote = "読めない傷など、ない。"
 rarity = 4
-passive_id = ""
+passive_id = "lenore_seal_echo"
 sprite_resource_path = ""
 portrait_resource_path = ""

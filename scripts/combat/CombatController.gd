@@ -93,6 +93,7 @@ func _job_threat_base(member_index: int) -> float:
 			"vanguard": base = 4.0
 			"swordsman": base = 2.0
 			_: base = 1.0
+		base += CombatPassives.threat_base_add_for_member(c)
 	# 陣形（後列は狙われにくい）（P3-D106）
 	return base * GameState.formation_threat_multiplier(member_index)
 

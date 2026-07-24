@@ -10,6 +10,6 @@ job_id = "swordsman"
 origin_note = "フロストウォール辺境の斬り込み隊抜け。短い決戦の剣士。"
 summon_quote = "長く戦う暇はない。"
 rarity = 3
-passive_id = ""
+passive_id = "torva_frost_breath"
 sprite_resource_path = ""
 portrait_resource_path = ""

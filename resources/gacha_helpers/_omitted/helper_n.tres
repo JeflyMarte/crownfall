@@ -10,6 +10,6 @@ job_id = "vanguard"
 origin_note = "アイアンヘイブン門番上がり。街の入口を守る実務盾。"
 summon_quote = "通れ。俺が塞ぐ。"
 rarity = 2
-passive_id = ""
+passive_id = "borg_gate_voice"
 sprite_resource_path = ""
 portrait_resource_path = ""
