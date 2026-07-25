@@ -33,5 +33,5 @@ codex_danger = 2
 codex_habitat = "囁きの森・林床"
 codex_research_note = "甲虫を祖先とし、頭部の角を刃のように研ぎ澄ました突撃型。硬い角で正面から切り込み、倒木の間を力任せに突進する。苔擬態種より好戦的で、群れより単独の直進突撃を好む。"
 codex_materials = Array[String]([])
-skill_ids = Array[String]([])
-skill_use_chance = 0.0
+skill_ids = Array[String](["enemy_iron_horn_pierce"])
+skill_use_chance = 0.24

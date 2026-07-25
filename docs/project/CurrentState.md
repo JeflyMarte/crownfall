@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-07-25（**P3-BAL-ENEMY-SKILL-FIT-001／FROST-WEAK-FIRE-001 GO**: 敵スキル適合＋フロストリッジ火弱点。統合＋`main`）
 2026-07-25（**P3-ENEMY-TIER-VAR-004/005 GO**: ミストフェン＋ブラックショア Hard/NM 色・呼称・個性化。統合＋`main`）
 2026-07-25（**P3-ENEMY-TIER-VAR-003 GO**: ウィスパーウッド全雑魚＋ELITE＋グランヴェルを Hard/NM 色・呼称・個性化。統合＋`main`）
 2026-07-25（**P3-DG-ABYSS-001-D Impl**: 99以降・100/110…で深層レジェンド5%＋ソフト天井10。セーブ `abyss_leg_pity`）

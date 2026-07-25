@@ -34,5 +34,5 @@ codex_danger = 3
 codex_habitat = "沈没航路・夜の干潟"
 codex_research_note = "クラゲを祖先とし、傘が青白く生物発光する潮間帯種。夜の干潟を迷う探索者を灯のように誘い、触手の冷気で動きを奪う。灯台の導きではない、と記録部は注記する。"
 codex_materials = Array[String]([])
-skill_ids = Array[String]([])
-skill_use_chance = 0.0
+skill_ids = Array[String](["enemy_tide_glow"])
+skill_use_chance = 0.26

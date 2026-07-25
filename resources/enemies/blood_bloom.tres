@@ -33,5 +33,5 @@ codex_danger = 3
 codex_habitat = "囁きの森・胞子の湿原"
 codex_research_note = "食虫植物を祖先とし、獲物の血液を養分に咲く巨大食虫花。花弁の内側に消化液を溜め、倒木の陰で獲物を待ち伏せする。傷口から血を吸い上げる棘状の蔓が記録されている。"
 codex_materials = Array[String]([])
-skill_ids = Array[String]([])
-skill_use_chance = 0.0
+skill_ids = Array[String](["enemy_blood_bloom_burst"])
+skill_use_chance = 0.26

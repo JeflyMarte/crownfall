@@ -15,6 +15,6 @@ trigger_type = "cooldown"
 effect_type = "damage"
 tags = Array[String](["boss", "aoe"])
 element = "thunder"
-apply_status_id = "chill"
+apply_status_id = "shock"
 apply_status_chance = 0.35
 cast_time = 1.0

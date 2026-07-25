@@ -15,6 +15,6 @@ trigger_type = "cooldown"
 effect_type = "damage"
 tags = Array[String](["boss", "aoe"])
 element = "fire"
-apply_status_id = "bleed"
+apply_status_id = "ignite"
 apply_status_chance = 0.3
 cast_time = 1.0
