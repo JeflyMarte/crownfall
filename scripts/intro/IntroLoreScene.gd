@@ -12,7 +12,10 @@ const NEXT_SCENE: String = "res://scenes/intro/IntroNameScene.tscn"
 ## 自動クロール基準速度（px/秒）。
 const CRAWL_SPEED_PX_PER_SEC: float = 50.0
 const CRAWL_START_DELAY_SEC: float = 0.5
-const CRAWL_BOOST_MULT: float = 2.5
+## 長押し中の速度倍率。
+const CRAWL_BOOST_MULT: float = 4.0
+## 押し続けてから加速が始まるまでの秒（誤タップで一瞬加速しない）。
+const LONG_PRESS_BOOST_SEC: float = 0.18
 const PANEL_DWELL_RADIUS_PX: float = 56.0
 const PANEL_DWELL_SPEED_MULT: float = 0.42
 const EASE_EDGE_PX: float = 80.0
@@ -24,6 +27,7 @@ const LEAD_OUT_VIEW_RATIO: float = 0.85
 const INTRO_MIN_BOTTOM_MARGIN: float = 48.0
 const INTRO_BASE_TOP_MARGIN: float = 28.0
 const INTRO_BASE_BOTTOM_MARGIN: float = 24.0
+const TAP_PROMPT_TEXT: String = "TAP！"
 
 var _clip: Control
 var _list: VBoxContainer
@@ -33,13 +37,20 @@ var _lead_out: Control
 var _panel_nodes: Array[Control] = []
 var _lore_body_lbl: Label
 var _hint_lbl: Label
+var _tap_prompt_lbl: Label
+var _tap_catcher: ColorRect
 var _crawl_active: bool = false
+var _press_held: bool = false
 var _crawl_boost: bool = false
+var _press_hold_sec: float = 0.0
 var _reached_end: bool = false
 var _advance_ready: bool = false
+## 終端到達時に押したままの指を離しても進まない（新しいタップが必要）。
+var _suppress_release_advance: bool = false
 var _scroll_pos: float = 0.0
 var _layout_ready: bool = false
 var _root_margin: MarginContainer
+var _tap_pulse_tween: Tween
 
 
 func _ready() -> void:
@@ -53,6 +64,9 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	if _press_held and not _reached_end:
+		_press_hold_sec += delta
+		_crawl_boost = _press_hold_sec >= LONG_PRESS_BOOST_SEC
 	if not _crawl_active or _reached_end or not _layout_ready:
 		return
 	if _clip == null or _list == null:
@@ -182,7 +196,7 @@ func _build_ui() -> void:
 	panel_wrap.add_child(_lore_body_lbl)
 
 	_hint_lbl = Label.new()
-	_hint_lbl.text = "物語が流れます（タッチで加速）"
+	_hint_lbl.text = "長押しでスクロール加速"
 	_hint_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_caption(_hint_lbl)
 	_list.add_child(_hint_lbl)
@@ -192,7 +206,25 @@ func _build_ui() -> void:
 
 	_add_fade_band(_clip, true)
 	_add_fade_band(_clip, false)
+	_build_tap_prompt()
 	_advance_ready = false
+
+
+func _build_tap_prompt() -> void:
+	_tap_prompt_lbl = Label.new()
+	_tap_prompt_lbl.text = TAP_PROMPT_TEXT
+	_tap_prompt_lbl.visible = false
+	_tap_prompt_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_tap_prompt_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_tap_prompt_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_tap_prompt_lbl.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	_tap_prompt_lbl.offset_top = -120.0
+	_tap_prompt_lbl.offset_bottom = -48.0
+	_tap_prompt_lbl.offset_left = -160.0
+	_tap_prompt_lbl.offset_right = 160.0
+	_tap_prompt_lbl.z_index = 8
+	UiTypography.apply_display(_tap_prompt_lbl, 36, UiTypography.COLOR_GOLD)
+	add_child(_tap_prompt_lbl)
 
 
 func _apply_safe_area_margins() -> void:
@@ -324,20 +356,39 @@ func _on_clip_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mb: InputEventMouseButton = event
 		if mb.button_index == MOUSE_BUTTON_LEFT or mb.button_index == MOUSE_BUTTON_RIGHT:
-			_crawl_boost = mb.pressed
-			if not mb.pressed:
+			if mb.pressed:
+				_begin_press()
+			else:
+				_end_press()
 				_check_manual_end()
 				_try_advance_after_end()
 	elif event is InputEventScreenTouch:
 		var st: InputEventScreenTouch = event
-		_crawl_boost = st.pressed
-		if not st.pressed:
+		if st.pressed:
+			_begin_press()
+		else:
+			_end_press()
 			_check_manual_end()
 			_try_advance_after_end()
 	elif event is InputEventScreenDrag:
+		## ドラッグ中は長押し加速扱い（読み飛ばし用）。
+		_press_held = true
+		_press_hold_sec = LONG_PRESS_BOOST_SEC
 		_crawl_boost = true
 		_set_scroll_pos(_scroll_pos - float(event.relative.y))
 		_check_manual_end()
+
+
+func _begin_press() -> void:
+	_press_held = true
+	_press_hold_sec = 0.0
+	_crawl_boost = false
+
+
+func _end_press() -> void:
+	_press_held = false
+	_press_hold_sec = 0.0
+	_crawl_boost = false
 
 
 func _check_manual_end() -> void:
@@ -356,14 +407,67 @@ func _on_reached_end() -> void:
 		return
 	_reached_end = true
 	_crawl_active = false
-	_crawl_boost = false
+	## 加速長押しのまま終端に来た場合、その release では進まない。
+	_suppress_release_advance = _press_held
+	_end_press()
 	_advance_ready = true
 	if _hint_lbl != null:
-		_hint_lbl.text = "タップで進む"
+		_hint_lbl.text = TAP_PROMPT_TEXT
+	_show_tap_prompt()
+
+
+func _show_tap_prompt() -> void:
+	if _tap_prompt_lbl == null:
+		return
+	_tap_prompt_lbl.visible = true
+	_tap_prompt_lbl.modulate = Color(1, 1, 1, 1)
+	_ensure_tap_catcher()
+	if _tap_pulse_tween != null and _tap_pulse_tween.is_valid():
+		_tap_pulse_tween.kill()
+	_tap_pulse_tween = create_tween()
+	_tap_pulse_tween.set_loops()
+	_tap_pulse_tween.tween_property(_tap_prompt_lbl, "modulate:a", 0.35, 0.55)
+	_tap_pulse_tween.tween_property(_tap_prompt_lbl, "modulate:a", 1.0, 0.55)
+
+
+func _ensure_tap_catcher() -> void:
+	if _tap_catcher != null and is_instance_valid(_tap_catcher):
+		_tap_catcher.visible = true
+		return
+	_tap_catcher = ColorRect.new()
+	_tap_catcher.name = "TapCatcher"
+	_tap_catcher.color = Color(0, 0, 0, 0)
+	_tap_catcher.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_tap_catcher.mouse_filter = Control.MOUSE_FILTER_STOP
+	_tap_catcher.z_index = 7
+	_tap_catcher.gui_input.connect(_on_tap_catcher_gui_input)
+	add_child(_tap_catcher)
+	## TAP! 文言はキャッチより前面。
+	if _tap_prompt_lbl != null:
+		move_child(_tap_prompt_lbl, get_child_count() - 1)
+
+
+func _on_tap_catcher_gui_input(event: InputEvent) -> void:
+	if not _advance_ready or not _reached_end:
+		return
+	var release: bool = false
+	if event is InputEventMouseButton:
+		var mb: InputEventMouseButton = event
+		release = (
+			(mb.button_index == MOUSE_BUTTON_LEFT or mb.button_index == MOUSE_BUTTON_RIGHT)
+			and not mb.pressed
+		)
+	elif event is InputEventScreenTouch:
+		release = not (event as InputEventScreenTouch).pressed
+	if release:
+		_try_advance_after_end()
 
 
 func _try_advance_after_end() -> void:
 	if not _advance_ready or not _reached_end:
+		return
+	if _suppress_release_advance:
+		_suppress_release_advance = false
 		return
 	_go_next()
 
@@ -380,4 +484,7 @@ func _notification(what: int) -> void:
 
 func _go_next() -> void:
 	_crawl_active = false
+	_end_press()
+	if _tap_pulse_tween != null and _tap_pulse_tween.is_valid():
+		_tap_pulse_tween.kill()
 	SceneRouter.change_scene(NEXT_SCENE)
