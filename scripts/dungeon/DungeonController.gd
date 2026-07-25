@@ -47,6 +47,13 @@ const ELITE_ACCESSORY_CHANCE: float = 0.25
 const ELITE_MATERIAL_CHANCE: float = 0.25
 ## P3-BAL-ECO-001: ボス深層結晶ボーナス 35%→45%
 const BOSS_EPIC_ORE_CHANCE: float = 0.45
+## P3-BAL-DROP-001: 雑魚直ドロップ武器率（旧 0.25）
+const COMBAT_WEAPON_DROP_CHANCE: float = 0.20
+const ELITE_WEAPON_DROP_CHANCE: float = 0.60
+const BOSS_WEAPON_DROP_CHANCE: float = 1.00
+## P3-BAL-DROP-001: ラン終了防具／装飾（旧 0.30 / 0.20）
+const RUN_ARMOR_DROP_CHANCE: float = 0.40
+const RUN_ACCESSORY_DROP_CHANCE: float = 0.30
 const DISCOVERY_PER_ROOM: float = 0.05
 const DISCOVERY_BOSS_BONUS: float = 0.20
 
@@ -1305,15 +1312,15 @@ func apply_boss_material_loot() -> Dictionary:
 		"bonus_material_amount": int(epic_bonus.get("amount", 0)),
 	}
 
-## x-5 初回ボス討伐（ノーマル）のレジェンド防具・装飾を確定付与（P3-EQ-LEG-001）。
+## x-5 初回ボス討伐のレジェンド防具・装飾を確定付与（P3-EQ-LEG-001 / P3-BAL-DROP-001）。
+## ティア別初回（Normal / Hard / Nightmare それぞれ1回）。同一 ★ 装備。
 func apply_boss_legendary_loot(stage: Resource) -> Dictionary:
 	var bonus: Dictionary = {"armor_id": "", "accessory_id": ""}
 	if stage == null or not bool(stage.has_boss_floor()):
 		return bonus
-	if GameState.current_dungeon_tier != _DungeonTierConfig.TIER_NORMAL:
-		return bonus
+	var tier: int = _DungeonTierConfig.clamp_tier(GameState.current_dungeon_tier)
 	var stage_id: String = str(stage.id)
-	if GameState.is_stage_cleared(stage_id, _DungeonTierConfig.TIER_NORMAL):
+	if GameState.is_stage_cleared(stage_id, tier):
 		return bonus
 	var armor_id: String = str(stage.legendary_armor_id) if "legendary_armor_id" in stage else ""
 	var accessory_id: String = str(stage.legendary_accessory_id) if "legendary_accessory_id" in stage else ""
@@ -1374,9 +1381,9 @@ const RARITY_DROP_WEIGHT: Dictionary = {
 func generate_run_loot() -> void:
 	last_armor_dropped = ""
 	last_accessory_dropped = ""
-	if randf() < 0.3:
+	if randf() < RUN_ARMOR_DROP_CHANCE:
 		_generate_armor_loot()
-	if randf() < 0.2:
+	if randf() < RUN_ACCESSORY_DROP_CHANCE:
 		_generate_accessory_loot()
 
 # P3-D074 / P3-WANDER-002: 撃破時装備ドロップ。
@@ -1560,11 +1567,11 @@ func _resolve_weapon_drop_chance(room_type: int, enemy_data: Resource) -> float:
 			* EventSystem.get_modifier_mult(EventSystem.MOD_WEAPON_DROP)
 			* _EvolutionTraits.party_weapon_drop_mult()
 		)
-	var chance: float = 0.25
+	var chance: float = COMBAT_WEAPON_DROP_CHANCE
 	if room_type == Enums.RoomType.BOSS:
-		chance = 1.0
+		chance = BOSS_WEAPON_DROP_CHANCE
 	elif room_type == Enums.RoomType.ELITE:
-		chance = 0.6
+		chance = ELITE_WEAPON_DROP_CHANCE
 	return minf(1.0, chance * EventSystem.get_modifier_mult(EventSystem.MOD_WEAPON_DROP) * _EvolutionTraits.party_weapon_drop_mult())
 
 # P3-D093: 撃破時の遺物ドロップ（解放型）。未所持の遺物から1つ解放する。

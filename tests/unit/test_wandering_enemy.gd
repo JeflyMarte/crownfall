@@ -148,7 +148,7 @@ func test_crown_raven_multi_category_drop() -> void:
 	assert_not_null(data)
 	assert_true(data.is_wandering)
 	assert_eq(data.wander_flee_after_turns, 0)
-	assert_eq(data.weapon_drop_chance, 0.85)
+	assert_eq(data.weapon_drop_chance, 0.55)
 	assert_false(data.weapon_rarity_weights.is_empty())
 	assert_eq(int(data.equip_category_weights.get("weapon", 0)), 40)
 	assert_eq(int(data.equip_category_weights.get("armor", 0)), 35)
@@ -160,7 +160,7 @@ func test_shadow_stalker_high_risk_loot() -> void:
 	assert_not_null(data)
 	assert_true(data.is_wandering)
 	assert_eq(data.wander_flee_after_turns, 0)
-	assert_eq(data.weapon_drop_chance, 0.88)
+	assert_eq(data.weapon_drop_chance, 0.60)
 	assert_eq(int(data.exp_reward), 140)
 	assert_eq(int(data.gold_reward), 150)
 	assert_eq(int(data.max_hp), 2270)
@@ -211,11 +211,11 @@ func test_weapon_drop_chance_override() -> void:
 	var duck: Resource = DataRegistry.get_enemy_data("cosmic_duck")
 	assert_eq(dc._resolve_weapon_drop_chance(Enums.RoomType.COMBAT, duck), 0.0)
 	var raven: Resource = DataRegistry.get_enemy_data("crown_raven")
-	assert_eq(dc._resolve_weapon_drop_chance(Enums.RoomType.COMBAT, raven), 0.85)
+	assert_eq(dc._resolve_weapon_drop_chance(Enums.RoomType.COMBAT, raven), 0.55)
 	var scarab: Resource = DataRegistry.get_enemy_data("golden_scarab")
 	assert_eq(dc._resolve_weapon_drop_chance(Enums.RoomType.COMBAT, scarab), 0.0)
 	var stalker: Resource = DataRegistry.get_enemy_data("shadow_stalker")
-	assert_eq(dc._resolve_weapon_drop_chance(Enums.RoomType.COMBAT, stalker), 0.88)
+	assert_eq(dc._resolve_weapon_drop_chance(Enums.RoomType.COMBAT, stalker), 0.60)
 
 
 func test_rarity_weight_override_for_raven() -> void:

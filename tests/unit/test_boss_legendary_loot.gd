@@ -41,8 +41,25 @@ func test_repeat_clear_skips_legendary() -> void:
 	assert_eq(GameState.armor_inventory.size(), 0)
 	assert_eq(GameState.accessory_inventory.size(), 0)
 
-func test_hard_tier_skips_legendary() -> void:
+func test_hard_tier_first_clear_grants_legendary() -> void:
+	## P3-BAL-DROP-001: Hard/NM もティア別初回で ★ 防具＋装飾を付与
 	GameState.stage_progress.erase("mourngate_1_5")
+	GameState.armor_inventory.clear()
+	GameState.accessory_inventory.clear()
+	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_HARD
+	var dc: Node = _make_controller("mourngate_1_5")
+	var bonus: Dictionary = dc.apply_boss_legendary_loot(dc.current_stage_data)
+	assert_eq(str(bonus["armor_id"]), "serdion_ward_plate")
+	assert_eq(str(bonus["accessory_id"]), "mourngate_royal_seal")
+	assert_eq(GameState.armor_inventory.size(), 1)
+	assert_eq(GameState.accessory_inventory.size(), 1)
+
+
+func test_hard_repeat_clear_skips_legendary() -> void:
+	GameState.stage_progress.erase("mourngate_1_5")
+	GameState.mark_stage_cleared("mourngate_1_5", _DungeonTierConfig.TIER_HARD)
+	GameState.armor_inventory.clear()
+	GameState.accessory_inventory.clear()
 	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_HARD
 	var dc: Node = _make_controller("mourngate_1_5")
 	var bonus: Dictionary = dc.apply_boss_legendary_loot(dc.current_stage_data)

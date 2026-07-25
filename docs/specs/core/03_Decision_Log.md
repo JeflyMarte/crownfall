@@ -3302,7 +3302,7 @@ ELITE/BOSS/遍在希少種（P3-D166）は別枠。重みは **当該 Biome 雑�
 
 | # | 決定 | 根拠 |
 |---|---|---|
-| P3-EQ-LEG-001-1 | **入手= x-5 初回ボス討伐（ノーマル）確定**。通常 `armor_pool`/`accessory_pool` は ◇〜✦ のまま（レジェンドはプール外） | ドロップインフレ抑制・「Biome 極め」の証 |
+| P3-EQ-LEG-001-1 | **入手= x-5 初回ボス討伐確定**（~~ノーマルのみ~~ → **P3-BAL-DROP-001-D**: Normal/Hard/NM 各ティア初回）。通常 `armor_pool`/`accessory_pool` は ◇〜✦ のまま（レジェンドはプール外） | ドロップインフレ抑制・「Biome 極め」の証 |
 | P3-EQ-LEG-001-2 | **各 Biome 防具★1 + 装飾★1**（計10+10）。①= `serdion_ward_plate` / `mourngate_royal_seal` | 武器★2と同型のブランド装備 |
 | P3-EQ-LEG-001-3 | **`fixed_passive_id`** を `ArmorData` / `AccessoryData` に追加。`CombatPassives` SSOT で発火（武器 `fixed_skill_id` と同型） | スキル枠を増やさず個性付与 |
 | P3-EQ-LEG-001-4 | **ステ目安** — ✦比 DEF/HP +25% 前後・装飾 crit +1段階。バランスハーネスで各 Biome 目標帯維持 | P3-D154 帯規則踏襲 |
@@ -3814,6 +3814,21 @@ ELITE/BOSS/遍在希少種（P3-D166）は別枠。重みは **当該 Biome 雑�
 | P3-BAL-FORGE-002-3 | **炉研ぎGold** — +1〜+3 は ECO-001 表据置。**+4/+5 のみ**レア倍率 ◇1.0／◆1.15／✦1.3／★1.5 | 後半装備の投資圧 |
 | P3-BAL-FORGE-002-4 | **銀指輪** — `unlock_condition=stage_cleared:mourngate_1_5`。未解放は生産不可（一覧には表示） | 王墓結晶ゲートと進行を一致 |
 | P3-BAL-FORGE-002-5 | **仕様書同期** — `04_ゲームループ`／Decision 旧表を現行5種・Gold表・錬成倍率に合わせる | ドリフト解消 |
+
+---
+
+## 装備ドロップバランス是正（2026-07-25 — P3-BAL-DROP-001）
+
+> **オーナー GO（A〜F 全推奨値）** — 卓上点検後のドロップ／プール／初回★枠是正。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-DROP-001-A | **雑魚武器直ドロップ** — COMBAT `0.25` → **`0.20`**（ELITE 0.60／BOSS 1.0 据置） | 序盤武器過多の抑制 |
+| P3-BAL-DROP-001-B | **①★武器プール薄化** — モーンゲート残: `sanctified_dagger`／`consecrated_maul`。移管: `stormveil_needle`→霜／`mistpierce_halberd`→霧／`noctumbra_fang`→岸／`shadowcord`→森。深層プールも親に追随 | ★希少感・後 Biome 報酬 |
+| P3-BAL-DROP-001-C | **ラン終了防具／装飾** — 防具 `0.30`→**`0.40`**、装飾 `0.20`→**`0.30`** | 武器偏重の是正 |
+| P3-BAL-DROP-001-D | **x-5 ★防具＋装飾** — Normal 限定をやめ、**現行ティアの初回クリアごと**付与（Hard/NM も各1回）。同一装備ID | 高難度初回の報奨 |
+| P3-BAL-DROP-001-E | **放浪装備ドロップ率** — レイヴン `0.85`→**`0.55`**、影狩り `0.88`→**`0.60`** | イベント過報酬の抑制 |
+| P3-BAL-DROP-001-F | **仕様同期** — `07_武器_装備` の終了ドロップ率・「100G鑑定」を P3-D068/072 実態に合わせる。本 Decision で P3-EQ-LEG-001-1 の「ノーマルのみ」を上書き | ドリフト解消 |
 
 ---
 

@@ -35,7 +35,7 @@ skill_ids = Array[String](["enemy_shadow_reap"])
 skill_use_chance = 0.5
 is_wandering = true
 wander_flee_after_turns = 0
-weapon_drop_chance = 0.88
+weapon_drop_chance = 0.60
 weapon_rarity_weights = {
 0: 0,
 1: 10,

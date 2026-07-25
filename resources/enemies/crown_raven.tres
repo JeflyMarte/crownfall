@@ -35,7 +35,7 @@ skill_ids = Array[String](["enemy_shrapnel_slam"])
 skill_use_chance = 0.32
 is_wandering = true
 wander_flee_after_turns = 0
-weapon_drop_chance = 0.85
+weapon_drop_chance = 0.55
 weapon_rarity_weights = {
 0: 10,
 1: 20,
