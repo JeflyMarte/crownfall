@@ -20,6 +20,23 @@ func test_pick_missions_is_deterministic_for_day_key() -> void:
 		assert_true(mid in DailyMissionSystem.DAILY_POOL)
 
 
+func test_genre_id_for_mission_groups() -> void:
+	assert_eq(DailyMissionSystem.genre_id_for_mission("daily_kill_boss"), DailyMissionSystem.GENRE_ADVENTURE)
+	assert_eq(DailyMissionSystem.genre_id_for_mission("daily_enhance_item"), DailyMissionSystem.GENRE_FORGE)
+	assert_eq(DailyMissionSystem.genre_id_for_mission("daily_gacha_pull"), DailyMissionSystem.GENRE_GACHA)
+	assert_eq(DailyMissionSystem.genre_id_for_mission("", "craft_item"), DailyMissionSystem.GENRE_FORGE)
+
+
+func test_genre_icons_exist() -> void:
+	for gid in [
+		DailyMissionSystem.GENRE_ADVENTURE,
+		DailyMissionSystem.GENRE_FORGE,
+		DailyMissionSystem.GENRE_GACHA,
+	]:
+		var tex: Texture2D = DailyMissionSystem.genre_icon_texture(gid)
+		assert_not_null(tex, "missing icon for %s" % gid)
+
+
 func test_kill_enemy_mission_title_and_target() -> void:
 	var mission: Resource = load("res://resources/daily_missions/daily_kill_enemies.tres")
 	assert_not_null(mission)

@@ -94,7 +94,7 @@ func test_hub_and_field_guide_entries_exist() -> void:
 	assert_true(otomo.contains("招待状"), "招待状対象外に言及")
 
 	var field: String = str(by_id.get("SYS-G003", ""))
-	assert_true(field.contains("今日のダンジョン状態"), "UI名")
+	assert_true(field.contains("ギルド情報誌"), "UI名")
 	assert_true(field.contains("30"), "30分スロット")
 	assert_true(field.contains("穏やか"), "穏やか最頻")
 

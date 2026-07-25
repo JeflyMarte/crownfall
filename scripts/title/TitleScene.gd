@@ -10,15 +10,31 @@ const INTRO_LORE_SCENE: String = "res://scenes/intro/IntroLoreScene.tscn"
 const BG_PATH: String = "res://assets/ui/UI_BG_TitleMain.png"
 const _DebugFullUnlock = preload("res://scripts/debug/DebugFullUnlock.gd")
 
+## 背景太陽（右上の雲の切れ目）付近の薄い発光。比率は 720×1280 基準。
+const SUN_GLOW_ANCHOR_X: float = 0.78
+const SUN_GLOW_ANCHOR_Y: float = 0.24
+const SUN_GLOW_SIZE_PX: float = 400.0
+const SUN_GLOW_PULSE_SEC: float = 1.2
+const SUN_GLOW_MODULATE_DIM: Color = Color(1.0, 0.9, 0.55, 0.22)
+const SUN_GLOW_MODULATE_BRIGHT: Color = Color(1.0, 0.95, 0.7, 0.42)
+
 var _btn_continue: Button
 var _confirm_new: ConfirmationDialog
 var _confirm_debug: ConfirmationDialog
+var _sun_glow: TextureRect
+var _sun_glow_tween: Tween
 
 
 func _ready() -> void:
 	_build_ui()
 	_refresh_continue()
 	AudioManager.play_bgm("title")
+
+
+func _exit_tree() -> void:
+	if _sun_glow_tween != null and is_instance_valid(_sun_glow_tween):
+		_sun_glow_tween.kill()
+	_sun_glow_tween = null
 
 
 func _build_ui() -> void:
@@ -38,6 +54,8 @@ func _build_ui() -> void:
 	if ResourceLoader.exists(BG_PATH):
 		bg.texture = load(BG_PATH) as Texture2D
 	add_child(bg)
+
+	_add_sun_glow()
 
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -105,13 +123,68 @@ func _build_ui() -> void:
 	_confirm_debug.title = "デバッグ"
 	_confirm_debug.dialog_text = (
 		"セーブを上書きしてデバッグ用データで開始します。\n"
-		+ "（全装備・全キャラ・金999999・魔晶石9999・進行解放）\nよろしいですか？"
+		+"（全装備・全キャラ・金999999・魔晶石9999・進行解放）\nよろしいですか？"
 	)
 	_confirm_debug.ok_button_text = "デバッグ開始"
 	_confirm_debug.cancel_button_text = "やめる"
 	_confirm_debug.confirmed.connect(_on_debug_confirmed)
 	_confirm_debug.canceled.connect(func() -> void: AudioManager.play_sfx("ui_cancel"))
 	add_child(_confirm_debug)
+
+
+func _add_sun_glow() -> void:
+	_sun_glow = TextureRect.new()
+	_sun_glow.name = "SunGlow"
+	_sun_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_sun_glow.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_sun_glow.stretch_mode = TextureRect.STRETCH_SCALE
+	_sun_glow.texture = _make_sun_glow_texture()
+	var mat := CanvasItemMaterial.new()
+	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	_sun_glow.material = mat
+	_sun_glow.modulate = SUN_GLOW_MODULATE_DIM
+	var half: float = SUN_GLOW_SIZE_PX * 0.5
+	_sun_glow.anchor_left = SUN_GLOW_ANCHOR_X
+	_sun_glow.anchor_right = SUN_GLOW_ANCHOR_X
+	_sun_glow.anchor_top = SUN_GLOW_ANCHOR_Y
+	_sun_glow.anchor_bottom = SUN_GLOW_ANCHOR_Y
+	_sun_glow.offset_left = - half
+	_sun_glow.offset_right = half
+	_sun_glow.offset_top = - half
+	_sun_glow.offset_bottom = half
+	add_child(_sun_glow)
+	_start_sun_glow_pulse()
+
+
+func _make_sun_glow_texture() -> GradientTexture2D:
+	var grad := Gradient.new()
+	grad.offsets = PackedFloat32Array([0.0, 0.28, 0.65, 1.0])
+	grad.colors = PackedColorArray([
+		Color(1.0, 0.95, 0.7, 1.0),
+		Color(1.0, 0.82, 0.4, 0.55),
+		Color(0.95, 0.55, 0.2, 0.12),
+		Color(0.8, 0.4, 0.1, 0.0),
+	])
+	var tex := GradientTexture2D.new()
+	tex.gradient = grad
+	tex.width = 256
+	tex.height = 256
+	tex.fill = GradientTexture2D.FILL_RADIAL
+	tex.fill_from = Vector2(0.5, 0.5)
+	tex.fill_to = Vector2(1.0, 0.5)
+	return tex
+
+
+func _start_sun_glow_pulse() -> void:
+	if _sun_glow == null:
+		return
+	if _sun_glow_tween != null and is_instance_valid(_sun_glow_tween):
+		_sun_glow_tween.kill()
+	_sun_glow.modulate = SUN_GLOW_MODULATE_DIM
+	_sun_glow_tween = create_tween().set_loops()
+	_sun_glow_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_sun_glow_tween.tween_property(_sun_glow, "modulate", SUN_GLOW_MODULATE_BRIGHT, SUN_GLOW_PULSE_SEC)
+	_sun_glow_tween.tween_property(_sun_glow, "modulate", SUN_GLOW_MODULATE_DIM, SUN_GLOW_PULSE_SEC)
 
 
 func _make_menu_button(text: String) -> Button:

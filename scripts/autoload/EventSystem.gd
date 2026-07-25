@@ -1,8 +1,9 @@
 extends Node
 
-## 拠点「今日のダンジョン状態」（P3-EVT-FIELD-001）。30分スロット＋重み付きプール。
+## 拠点「ギルド情報誌」（P3-EVT-FIELD-001）。30分スロット＋重み付きプール。
 
 const PERIODIC_EVENTS_ENABLED: bool = true
+const DISPLAY_NAME: String = "ギルド情報誌"
 
 signal event_updated
 
@@ -171,7 +172,18 @@ func run_intro_line() -> String:
 		var biome_name: String = _featured_biome_display_name(event_data)
 		if not biome_name.is_empty():
 			biome_line = "（注目: %s）" % biome_name
-	return "【今日のダンジョン状態】%s%s" % [str(event_data.title), biome_line]
+	return "【%s】%s%s" % [DISPLAY_NAME, str(event_data.title), biome_line]
+
+func issue_date_text() -> String:
+	## ギルド情報誌の発行日（端末時刻の JST 日付）。
+	var dict: Dictionary = Time.get_datetime_dict_from_unix_time(
+		_current_unix() + _Schedule.JST_OFFSET_SEC
+	)
+	return "発行日 %04d-%02d-%02d" % [
+		int(dict.get("year", 0)),
+		int(dict.get("month", 0)),
+		int(dict.get("day", 0)),
+	]
 
 func countdown_text() -> String:
 	if not PERIODIC_EVENTS_ENABLED:
@@ -182,7 +194,7 @@ func countdown_text() -> String:
 func schedule_text(event_data: Resource) -> String:
 	if event_data == null:
 		return ""
-	return "%s 〜 %s（30分ごと・全端末同時）" % [
+	return "%s 〜 %s" % [
 		str(event_data.start_date_jst),
 		str(event_data.end_date_jst),
 	]
@@ -196,6 +208,9 @@ func clear_debug_unix_for_tests() -> void:
 	_debug_unix_override = -1
 	_cached_active_id = ""
 	ensure_active()
+
+func current_unix() -> int:
+	return _current_unix()
 
 func _current_unix() -> int:
 	if _debug_unix_override >= 0:

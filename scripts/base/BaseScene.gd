@@ -159,7 +159,7 @@ func _setup_field_survey_banner() -> void:
 	_field_survey_banner.add_child(row)
 	var tag := Label.new()
 	tag.name = "LabelFieldTag"
-	tag.text = "今日のダンジョン状態"
+	tag.text = EventSystem.DISPLAY_NAME
 	row.add_child(tag)
 	var body := Label.new()
 	body.name = "LabelFieldBody"
@@ -194,6 +194,8 @@ func _place_field_survey_banner() -> void:
 func _setup_nina_nav() -> void:
 	_nina_nav = _HubNinaNavigator.new() as Control
 	$HubView.add_child(_nina_nav)
+	if _nina_nav.has_signal("survey_pressed"):
+		_nina_nav.connect("survey_pressed", _on_survey_button_pressed)
 	_place_nina_nav()
 
 
@@ -309,8 +311,6 @@ func _on_menu_entry_pressed(entry_id: String) -> void:
 			_on_roster_button_pressed()
 		"blacksmith":
 			_on_blacksmith_button_pressed()
-		"survey":
-			_on_survey_button_pressed()
 		"gacha":
 			_on_gacha_button_pressed()
 		"codex":
@@ -472,8 +472,20 @@ func _make_daily_row(index: int, entry: Dictionary) -> VBoxContainer:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	wrap.add_child(row)
+	var icon_host := Control.new()
+	icon_host.custom_minimum_size = Vector2(36, 36)
+	icon_host.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(icon_host)
+	var icon := TextureRect.new()
+	icon.set_anchors_preset(Control.PRESET_FULL_RECT)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.texture = DailyMissionSystem.genre_icon_texture(str(entry.get("genre_id", "")))
+	icon_host.add_child(icon)
 	var title := Label.new()
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.clip_text = false
 	title.text = str(entry.get("title", ""))
 	UiTypography.apply_body(title, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	row.add_child(title)

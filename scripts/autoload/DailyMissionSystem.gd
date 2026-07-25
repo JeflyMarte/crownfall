@@ -79,8 +79,39 @@ func get_entries() -> Array[Dictionary]:
 		entry["reward_gacha_token"] = int(mission.reward_gacha_token)
 		entry["reward_material_id"] = str(mission.reward_material_id)
 		entry["reward_material_qty"] = int(mission.reward_material_qty)
+		entry["objective_type"] = str(mission.objective_type)
+		entry["genre_id"] = genre_id_for_mission(str(mission.id), str(mission.objective_type))
 		out.append(entry)
 	return out
+
+
+## 日課ジャンル（行先頭アイコン用）。探索 / 鍛冶 / 招待。
+const GENRE_ADVENTURE: String = "adventure"
+const GENRE_FORGE: String = "forge"
+const GENRE_GACHA: String = "gacha"
+
+
+static func genre_id_for_mission(mission_id: String, objective_type: String = "") -> String:
+	match mission_id:
+		"daily_clear_run", "daily_kill_enemies", "daily_kill_elite", "daily_kill_boss":
+			return GENRE_ADVENTURE
+		"daily_craft_item", "daily_enhance_item", "daily_alchemy_item", "daily_dismantle_item":
+			return GENRE_FORGE
+		"daily_gacha_pull":
+			return GENRE_GACHA
+	match objective_type:
+		"dungeon_clear", "kill_enemy", "kill_elite", "kill_boss":
+			return GENRE_ADVENTURE
+		"craft_item", "enhance_item", "alchemy_item", "dismantle_item":
+			return GENRE_FORGE
+		"gacha_pull":
+			return GENRE_GACHA
+	return GENRE_ADVENTURE
+
+
+static func genre_icon_texture(genre_id: String) -> Texture2D:
+	return IconPaths.get_icon_texture(genre_id, "daily")
+
 
 func claim(index: int) -> Dictionary:
 	ensure_refreshed()
