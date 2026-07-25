@@ -254,6 +254,7 @@ static func _shift_root_header_and_body(root: Control, header: Control, top: flo
 		if (
 			n == "BottomNav"
 			or n == "BgTexture"
+			or n == "BgDim"
 			or n == "Bg"
 			or n == "BgOverlay"
 			or n == "FxLayer"

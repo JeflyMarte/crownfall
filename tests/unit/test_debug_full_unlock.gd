@@ -27,8 +27,8 @@ func test_debug_full_unlock_grants_currency_roster_and_gear() -> void:
 	assert_eq(GameState.starter_unlocked_ids.size(), GameState.BASE_ROSTER_DEFS.size())
 	assert_gte(GameState.roster.size(), GameState.BASE_ROSTER_DEFS.size())
 	assert_gte(GameState.inventory.size(), DataRegistry.get_all_weapon_data().size())
-	assert_gt(GameState.armor_inventory.size(), 0)
-	assert_gt(GameState.accessory_inventory.size(), 0)
+	assert_eq(GameState.armor_inventory.size(), DataRegistry.get_all_armor_data().size())
+	assert_eq(GameState.accessory_inventory.size(), DataRegistry.get_all_accessory_data().size())
 	assert_true(GameState.is_dungeon_unlocked("whisperwood"), "デバッグ時はβ外メインも解放")
 	assert_eq(TicketInventory.get_qty(TicketIds.GACHA_FREE), Constants.DEBUG_TICKET_GRANT_EACH)
 	assert_eq(TicketInventory.get_qty(TicketIds.LB_STAR3), Constants.DEBUG_TICKET_GRANT_EACH)
@@ -41,6 +41,20 @@ func test_debug_full_unlock_grants_currency_roster_and_gear() -> void:
 	assert_true(mythic_w, "神話武器が所持に含まれる")
 
 
+func test_debug_full_unlock_max_levels_and_codex() -> void:
+	_DebugFullUnlock.apply()
+	for member in GameState.roster:
+		assert_eq(int(member.level), LevelSystem.MAX_LEVEL, str(member.id))
+	var enemies: Array = DataRegistry.get_all_enemy_data()
+	assert_gt(enemies.size(), 0)
+	for data in enemies:
+		var eid: String = str(data.id)
+		assert_eq(GameState.get_enemy_stage(eid), 5, eid)
+	assert_true(CatalogHelper.is_discovered("weapon", "burial_crown_greatsword"))
+	assert_true(CatalogHelper.is_discovered("dungeon", "mistfen"))
+	assert_gt(GameState.armor_inventory.size(), 0)
+
+
 func test_debug_save_roundtrip_keeps_flag() -> void:
 	_DebugFullUnlock.apply()
 	SaveManager.save_game()
@@ -50,3 +64,5 @@ func test_debug_save_roundtrip_keeps_flag() -> void:
 	assert_true(GameState.debug_full_unlock)
 	assert_eq(GameState.gold, _DebugFullUnlock.DEBUG_GOLD)
 	assert_true(GameState.is_dungeon_unlocked("whisperwood"))
+	assert_eq(GameState.armor_inventory.size(), DataRegistry.get_all_armor_data().size())
+	assert_eq(int(GameState.roster[0].level), LevelSystem.MAX_LEVEL)

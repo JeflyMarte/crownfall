@@ -21,9 +21,9 @@ const _LOG_MAX: int = 60
 const _BgmCatalog := preload("res://scripts/audio/BgmCatalog.gd")
 
 const ENEMY_SPRITE_MAP: Dictionary = {
-	"abyssal_squid": "res://resources/animation/ENM_NinjaOctopus.tres",
-	"anchor_lord": "res://resources/animation/ENM_GreatClaw.tres",
-	"black_tide_shark": "res://resources/animation/ENM_UndertakerShark.tres",
+	"abyssal_squid": "res://resources/animation/ENM_VoidTentacle.tres",
+	"anchor_lord": "res://resources/animation/ENM_AnchorLord.tres",
+	"black_tide_shark": "res://resources/animation/ENM_DreadJaw.tres",
 	"blood_leech": "res://resources/animation/ENM_BloodLeech.tres",
 	"blood_bloom": "res://resources/animation/ENM_BloodBloom.tres",
 	"bloom_serpent": "res://resources/animation/ENM_BloomSerpent.tres",
@@ -62,7 +62,7 @@ const ENEMY_SPRITE_MAP: Dictionary = {
 	"spore_needle_wasp": "res://resources/animation/ENM_SporeNeedleWasp.tres",
 	"spore_widow": "res://resources/animation/ENM_SporeWidow.tres",
 	"storm_joe": "res://resources/animation/ENM_StormJoe.tres",
-	"tide_lamp": "res://resources/animation/ENM_MistWyvern.tres",
+	"tide_lamp": "res://resources/animation/ENM_TideLamp.tres",
 	"undertaker_shark": "res://resources/animation/ENM_UndertakerShark.tres",
 	"vergaron": "res://resources/animation/ENM_Vergaron.tres",
 	"wind_ripper": "res://resources/animation/ENM_Greios.tres",

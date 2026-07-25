@@ -26,6 +26,12 @@ static func get_bonuses(member_index: int = -1) -> Dictionary:
 	var calculator: RefCounted = load("res://scripts/equipment/AffixStatCalculator.gd").new()
 	return calculator._compute_bonuses(member_index)
 
+
+## パーティ index に依存せず、指定メンバーの装備から集計（編成ドラフト／ベンチ表示用）。
+static func get_bonuses_for_member(member: Resource) -> Dictionary:
+	var calculator: RefCounted = load("res://scripts/equipment/AffixStatCalculator.gd").new()
+	return calculator._compute_bonuses_for_member(member)
+
 static func apply_gold_bonus(base_gold: int) -> int:
 	if base_gold <= 0:
 		return base_gold
@@ -59,8 +65,8 @@ static func apply_material_bonus(base_amount: int) -> int:
 	var bonus: int = int(get_bonuses().get("material_gain_bonus", 0))
 	return maxi(0, base_amount + bonus)
 
-func _compute_bonuses(member_index: int = -1) -> Dictionary:
-	var bonuses: Dictionary = {
+func _empty_bonuses() -> Dictionary:
+	return {
 		"attack_flat": 0,
 		"defense_flat": 0,
 		"hp_flat": 0,
@@ -76,15 +82,24 @@ func _compute_bonuses(member_index: int = -1) -> Dictionary:
 		"poison_chance": 0.0,
 		"attack_speed_mult_add": 0.0,
 	}
-	if member_index >= 0:
-		var member: Resource = GameState.get_member(member_index)
-		if member != null:
-			_apply_accessory_base_rates(member, bonuses)
-			_apply_armor_base_rates(member, bonuses)
-			for affix_data: Resource in _affixes_from_member(member):
-				_apply_affix_to_bonuses(affix_data, bonuses)
-			_apply_random_mods_from_member(member, bonuses)
+
+
+func _compute_bonuses_for_member(member: Resource) -> Dictionary:
+	var bonuses: Dictionary = _empty_bonuses()
+	if member == null:
 		return bonuses
+	_apply_accessory_base_rates(member, bonuses)
+	_apply_armor_base_rates(member, bonuses)
+	for affix_data: Resource in _affixes_from_member(member):
+		_apply_affix_to_bonuses(affix_data, bonuses)
+	_apply_random_mods_from_member(member, bonuses)
+	return bonuses
+
+
+func _compute_bonuses(member_index: int = -1) -> Dictionary:
+	if member_index >= 0:
+		return _compute_bonuses_for_member(GameState.get_member(member_index))
+	var bonuses: Dictionary = _empty_bonuses()
 	for i in GameState.party_members.size():
 		var member_all: Resource = GameState.party_members[i]
 		if member_all == null:

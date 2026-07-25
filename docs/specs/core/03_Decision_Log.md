@@ -4364,4 +4364,4 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-ART-BS-ENM-001-5 | **納品** — `ART_ENM_DreadJaw` / `VoidTentacle` / `TideLamp` / `AnchorLord` ＋ `ENM_*_Sheet` ＋ tres。IconPaths／DungeonScene 切替 | P3-ENEMY-002-6 差替 |
 | P3-ART-BS-ENM-001-6 | **スコープ外** — ステ／スキル／スポーン率変更なし。id リネームなし | セーブ互換 |
 
-**Closeout:** アート配線後に統合＋`main`。
+**Closeout:** アート配線完了（図鑑4＋戦闘シート4）。オーナー確認後に統合＋`main`。

@@ -4,6 +4,7 @@ extends RefCounted
 const _JobStatCalculator = preload("res://scripts/equipment/JobStatCalculator.gd")
 const _AffixStatCalculator = preload("res://scripts/equipment/AffixStatCalculator.gd")
 const _EquipmentEnhancer = preload("res://scripts/equipment/EquipmentEnhancer.gd")
+const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
 
 const BASE_MEMBER_HP: int = BalanceConfig.BASE_MEMBER_HP
 
@@ -168,20 +169,17 @@ static func compute_combat_power(members: Array) -> int:
 		total += int(stats.get("hp", 0))
 	return total
 
-static func compute_member_stats(member: Resource, party_index: int = -1) -> Dictionary:
+## party_index は互換のため残す（未使用）。装備由来は常にメンバー本体から集計。
+static func compute_member_stats(member: Resource, _party_index: int = -1) -> Dictionary:
 	if member == null:
-		return {"hp": 0, "attack": 0, "defense": 0}
+		return {"hp": 0, "attack": 0, "defense": 0, "speed": 1.0, "crit_rate": 0.0, "crit_damage": 1.5}
 	var weapon: Resource = member.equipped_weapon if "equipped_weapon" in member else null
 	var armor: Resource = member.equipped_armor if "equipped_armor" in member else null
 	var accessory: Resource = member.equipped_accessory if "equipped_accessory" in member else null
 	var acc_data: Resource = null
 	if accessory != null and not str(accessory.accessory_id).is_empty():
 		acc_data = DataRegistry.get_accessory_data(str(accessory.accessory_id))
-	var affix: Dictionary = (
-		_AffixStatCalculator.get_bonuses(party_index)
-		if party_index >= 0
-		else _affixes_for_member(member)
-	)
+	var affix: Dictionary = _AffixStatCalculator.get_bonuses_for_member(member)
 	var job: Dictionary = _JobStatCalculator.get_member_modifiers(member)
 	var level: int = int(member.level)
 	var hp: int = BASE_MEMBER_HP
@@ -189,18 +187,16 @@ static func compute_member_stats(member: Resource, party_index: int = -1) -> Dic
 		hp = int(member.base_stats.hp)
 	if armor != null:
 		hp += EquipmentEnhancer.effective_armor_hp(armor)
-	if acc_data != null and member.equipped_accessory != null:
-		hp += EquipmentEnhancer.effective_accessory_int_bonus(member.equipped_accessory, "hp_bonus", acc_data)
+	if acc_data != null and accessory != null:
+		hp += EquipmentEnhancer.effective_accessory_int_bonus(accessory, "hp_bonus", acc_data)
 	hp += int(affix.get("hp_flat", 0))
 	hp += LevelSystem.level_hp_bonus(level)
 	hp = int(round(float(hp) * float(job.get("hp_multiplier", 1.0))))
 	var attack: int = 0
 	if weapon != null:
 		attack = _EquipmentEnhancer.get_effective_attack(weapon)
-	if acc_data != null and member.equipped_accessory != null:
-		attack += EquipmentEnhancer.effective_accessory_int_bonus(
-			member.equipped_accessory, "attack_bonus", acc_data
-		)
+	if acc_data != null and accessory != null:
+		attack += EquipmentEnhancer.effective_accessory_int_bonus(accessory, "attack_bonus", acc_data)
 	attack += int(affix.get("attack_flat", 0))
 	attack += LevelSystem.level_attack_bonus(level)
 	if member.base_stats != null:
@@ -214,45 +210,30 @@ static func compute_member_stats(member: Resource, party_index: int = -1) -> Dic
 	var defense: int = 0
 	if armor != null:
 		defense = EquipmentEnhancer.effective_armor_defense(armor)
-	if acc_data != null and member.equipped_accessory != null:
+	if acc_data != null and accessory != null:
 		defense += EquipmentEnhancer.effective_accessory_int_bonus(
-			member.equipped_accessory, "defense_bonus", acc_data
+			accessory, "defense_bonus", acc_data
 		)
 	defense += int(affix.get("defense_flat", 0))
 	if member.base_stats != null:
 		defense += int(member.base_stats.defense)
 	defense = int(round(float(defense) * float(job.get("defense_multiplier", 1.0))))
-	return {"hp": hp, "attack": attack, "defense": defense}
-
-static func _affixes_for_member(member: Resource) -> Dictionary:
-	var bonuses: Dictionary = {
-		"attack_flat": 0,
-		"defense_flat": 0,
-		"hp_flat": 0,
+	var speed: float = weapon.attack_speed if weapon != null else 1.0
+	var crit: float = (weapon.critical_rate if weapon != null else 0.0)
+	if acc_data != null and accessory != null:
+		crit += EquipmentEnhancer.effective_accessory_float_bonus(accessory, "crit_rate_bonus", acc_data)
+	crit += float(affix.get("crit_rate_add", 0.0))
+	var crit_damage: float = BalanceConfig.CRITICAL_MULTIPLIER
+	if weapon != null:
+		crit_damage = _WeaponStatResolver.resolve_critical_damage(weapon)
+	return {
+		"hp": hp,
+		"attack": attack,
+		"defense": defense,
+		"speed": speed,
+		"crit_rate": crit,
+		"crit_damage": crit_damage,
 	}
-	for item in [member.equipped_weapon, member.equipped_armor, member.equipped_accessory]:
-		if item == null or not bool(item.is_appraised):
-			continue
-		for affix_id in item.prefix_ids:
-			_apply_affix_flat(bonuses, str(affix_id))
-		if "suffix_ids" in item:
-			for affix_id in item.suffix_ids:
-				_apply_affix_flat(bonuses, str(affix_id))
-	return bonuses
-
-static func _apply_affix_flat(bonuses: Dictionary, affix_id: String) -> void:
-	if affix_id.is_empty():
-		return
-	var affix_data: Resource = DataRegistry.get_affix_data(affix_id)
-	if affix_data == null:
-		return
-	match str(affix_data.stat_type):
-		"Attack":
-			bonuses["attack_flat"] = int(bonuses.get("attack_flat", 0)) + int(affix_data.value)
-		"Defense":
-			bonuses["defense_flat"] = int(bonuses.get("defense_flat", 0)) + int(affix_data.value)
-		"HP":
-			bonuses["hp_flat"] = int(bonuses.get("hp_flat", 0)) + int(affix_data.value)
 
 static func card_panel_style(active: bool, leader: bool) -> StyleBox:
 	var tier: String = CombatUiFrames.TIER_CARD_ACTIVE if active else CombatUiFrames.TIER_CARD

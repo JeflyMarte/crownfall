@@ -373,10 +373,9 @@ func _active_members_in_slot_order() -> Array:
 	return members
 
 func _party_index_for_member(member: Resource) -> int:
-	for i in _selected.size():
-		if _selected[i] == member:
-			return i
-	return -1
+	if member == null:
+		return -1
+	return GameState.party_members.find(member)
 
 func _rebuild_active_party_row() -> void:
 	for child in _active_party_row.get_children():
@@ -435,9 +434,9 @@ func _make_active_party_card(slot_index: int) -> Control:
 	UiTypography.apply_body(job_lbl, UiTypography.SIZE_CAPTION)
 	vbox.add_child(job_lbl)
 	var stats: Dictionary = RosterUiHelper.compute_member_stats(member, _party_index_for_member(member))
+	vbox.add_child(_make_card_stat_row("hp", "HP", int(stats.get("hp", 0))))
 	vbox.add_child(_make_card_stat_row("attack", "攻撃力", int(stats.get("attack", 0))))
 	vbox.add_child(_make_card_stat_row("defense", "防御力", int(stats.get("defense", 0))))
-	vbox.add_child(_make_card_stat_row("hp", "HP", int(stats.get("hp", 0))))
 	var row_lbl := Label.new()
 	var is_back: bool = GameState.get_member_formation_row(member) == GameState.FORMATION_BACK
 	row_lbl.text = "後列" if is_back else "前列"

@@ -912,11 +912,10 @@ func _compute_equipment_effect_bonuses(member: Resource) -> Dictionary:
 	}
 	if member == null:
 		return result
-	var party_idx: int = _party_index_for(member)
 	var armor: Resource = member.equipped_armor
 	var weapon: Resource = member.equipped_weapon
 	var acc_data: Resource = _accessory_data(member.equipped_accessory)
-	var affix: Dictionary = _AffixStatCalculator.get_bonuses(party_idx) if party_idx >= 0 else {}
+	var affix: Dictionary = _AffixStatCalculator.get_bonuses_for_member(member)
 	result["attack"] = int(affix.get("attack_flat", 0))
 	## 武器の実効攻撃力（炉研ぎ込み）。ここが欠けると「攻撃力 +0」のままになる。
 	if weapon != null:
@@ -1978,64 +1977,10 @@ func _accessory_compare(candidate: Resource, equipped: Resource) -> String:
 		return "[±0]"
 	return "[%s]" % " | ".join(parts)
 
-# ---- ステータス計算（戦闘式と整合する表示用集計） ----
-func _compute_member_stats(idx: int, member_override: Resource = null) -> Dictionary:
-	var member: Resource = member_override if member_override != null else GameState.get_member(idx)
-	var weapon: Resource = member.equipped_weapon if member != null else null
-	var armor: Resource = member.equipped_armor if member != null else null
-	var accessory: Resource = member.equipped_accessory if member != null else null
-	var acc_data: Resource = _accessory_data(accessory)
-	var affix: Dictionary = _AffixStatCalculator.get_bonuses(idx) if idx >= 0 else {}
-	var job: Dictionary = _JobStatCalculator.get_member_modifiers(member)
-	var level: int = int(member.level) if member != null else 1
-	var hp: int = BASE_MEMBER_HP
-	if member != null and member.base_stats != null and int(member.base_stats.hp) > 0:
-		hp = int(member.base_stats.hp)
-	if armor != null:
-		hp += EquipmentEnhancer.effective_armor_hp(armor)
-	if acc_data != null and accessory != null:
-		hp += EquipmentEnhancer.effective_accessory_int_bonus(accessory, "hp_bonus", acc_data)
-	hp += int(affix.get("hp_flat", 0))
-	hp += LevelSystem.level_hp_bonus(level)
-	hp = int(round(float(hp) * float(job.get("hp_multiplier", 1.0))))
-	var attack: int = 0
-	if weapon != null:
-		attack = _EquipmentEnhancer.get_effective_attack(weapon)
-	if acc_data != null and accessory != null:
-		attack += EquipmentEnhancer.effective_accessory_int_bonus(accessory, "attack_bonus", acc_data)
-	attack += int(affix.get("attack_flat", 0))
-	attack += LevelSystem.level_attack_bonus(level)
-	if member != null and member.base_stats != null:
-		attack += int(member.base_stats.attack)
-	var atk_mult: float = float(job.get("attack_multiplier", 1.0))
-	if weapon != null:
-		atk_mult *= _JobStatCalculator.get_preferred_weapon_multiplier(member, DataRegistry.get_weapon_data(weapon.weapon_id))
-	attack = int(round(float(attack) * atk_mult))
-	var defense: int = 0
-	if armor != null:
-		defense = EquipmentEnhancer.effective_armor_defense(armor)
-	if acc_data != null and accessory != null:
-		defense += EquipmentEnhancer.effective_accessory_int_bonus(accessory, "defense_bonus", acc_data)
-	defense += int(affix.get("defense_flat", 0))
-	if member != null and member.base_stats != null:
-		defense += int(member.base_stats.defense)
-	defense = int(round(float(defense) * float(job.get("defense_multiplier", 1.0))))
-	var speed: float = weapon.attack_speed if weapon != null else 1.0
-	var crit: float = (weapon.critical_rate if weapon != null else 0.0)
-	if acc_data != null and accessory != null:
-		crit += EquipmentEnhancer.effective_accessory_float_bonus(accessory, "crit_rate_bonus", acc_data)
-	crit += float(affix.get("crit_rate_add", 0.0))
-	var crit_damage: float = CRIT_DAMAGE_MULT
-	if weapon != null:
-		crit_damage = _WeaponStatResolver.resolve_critical_damage(weapon)
-	return {
-		"hp": hp,
-		"attack": attack,
-		"defense": defense,
-		"speed": speed,
-		"crit_rate": crit,
-		"crit_damage": crit_damage,
-	}
+# ---- ステータス計算（RosterUiHelper と同一式。表示の正） ----
+func _compute_member_stats(_idx: int, member_override: Resource = null) -> Dictionary:
+	var member: Resource = member_override if member_override != null else GameState.get_member(_idx)
+	return RosterUiHelper.compute_member_stats(member)
 
 # ---- スキルタブ（P3-D077） ----
 func _rebuild_skill_tab() -> void:
@@ -2071,7 +2016,7 @@ func _rebuild_skill_tab() -> void:
 		var unlocked: bool = SkillProgression.is_job_skill_unlocked(member, sid)
 		var is_equipped: bool = equipped.has(sid)
 		list.add_child(_make_skill_list_row(
-			sid, skill_data, member, unlocked, req_lv, is_equipped, equipped.size()
+			sid, skill_data, member, unlocked, req_lv, is_equipped
 		))
 	var weapon_skill: Dictionary = WeaponSkillHelper.get_weapon_skill_display(member)
 	if not str(weapon_skill.get("skill_id", "")).is_empty():
@@ -2083,9 +2028,8 @@ func _make_skill_list_row(
 	member: Resource,
 	unlocked: bool,
 	req_lv: int,
-	is_equipped: bool,
-	equipped_count: int
-) -> HBoxContainer:
+	is_equipped: bool
+) -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 4)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -2095,14 +2039,30 @@ func _make_skill_list_row(
 	var equip_btn := Button.new()
 	equip_btn.text = "解除" if is_equipped else "装備"
 	equip_btn.custom_minimum_size.x = PASSIVE_ROW_BTN_W
-	equip_btn.disabled = (
-		not unlocked or ((not is_equipped) and equipped_count >= Constants.MAX_EQUIPPED_SKILLS)
-	)
+	## 満枠でも他スキルは装備可（toggle 側で置換）。未解放のみ不可。
+	equip_btn.disabled = not unlocked
 	equip_btn.pressed.connect(_on_skill_toggle_pressed.bind(skill_id))
 	row.add_child(equip_btn)
 	if not unlocked:
 		row.modulate = Color(0.78, 0.78, 0.78, 1.0)
-	return row
+	var frame := PanelContainer.new()
+	frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	frame.add_theme_stylebox_override("panel", _skill_row_frame_style(is_equipped))
+	frame.add_child(row)
+	return frame
+
+
+## 装備中スキルは金枠。未装備は透明枠（余白だけ揃え）。
+func _skill_row_frame_style(is_equipped: bool) -> StyleBox:
+	if is_equipped:
+		return _framed_box(COLOR_GOLD, 2, Color(0.18, 0.14, 0.08, 0.55))
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0, 0, 0, 0)
+	sb.set_border_width_all(2)
+	sb.border_color = Color(0, 0, 0, 0)
+	sb.set_corner_radius_all(8)
+	sb.set_content_margin_all(4.0)
+	return sb
 
 func _make_weapon_skill_list_row(member: Resource, weapon_skill: Dictionary) -> HBoxContainer:
 	var ws_sid: String = str(weapon_skill.get("skill_id", ""))
@@ -2118,7 +2078,7 @@ func _make_weapon_skill_list_row(member: Resource, weapon_skill: Dictionary) -> 
 	body.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	body.gui_input.connect(_on_weapon_skill_row_gui_input.bind(ws_sid))
 	if ws_skill_data != null:
-		body.tooltip_text = _skill_summary_text(ws_skill_data, true, 1)
+		body.tooltip_text = _skill_performance_text(ws_skill_data, true, 1)
 	var body_row := HBoxContainer.new()
 	body_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	body_row.add_theme_constant_override("separation", 0)
@@ -2137,7 +2097,11 @@ func _make_weapon_skill_list_row(member: Resource, weapon_skill: Dictionary) -> 
 		body_row.add_child(ws_name)
 	body_row.add_child(_skill_row_sep())
 	var ws_desc := _make_skill_desc_label(
-		_skill_summary_text(ws_skill_data, true, 1) if ws_skill_data != null else "武器スキルとして自動発動",
+		(
+			_skill_performance_text(ws_skill_data, true, 1)
+			if ws_skill_data != null
+			else "武器スキルとして自動発動"
+		),
 		true
 	)
 	body_row.add_child(ws_desc)
@@ -2179,14 +2143,16 @@ func _make_skill_row_body(
 	body.mouse_filter = Control.MOUSE_FILTER_STOP
 	body.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	body.gui_input.connect(_on_skill_row_gui_input.bind(skill_id, unlocked, req_lv, is_equipped))
-	body.tooltip_text = _skill_summary_text(skill_data, unlocked, req_lv)
+	body.tooltip_text = _skill_performance_text(skill_data, unlocked, req_lv)
 	var body_row := HBoxContainer.new()
 	body_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	body_row.add_theme_constant_override("separation", 0)
 	body.add_child(body_row)
 	body_row.add_child(_make_skill_name_label(skill_data))
 	body_row.add_child(_skill_row_sep())
-	body_row.add_child(_make_skill_desc_label(_skill_summary_text(skill_data, unlocked, req_lv), unlocked))
+	body_row.add_child(
+		_make_skill_desc_label(_skill_performance_text(skill_data, unlocked, req_lv), unlocked)
+	)
 	return body
 
 func _make_skill_name_label(skill_data: Resource) -> Label:
@@ -2305,12 +2271,21 @@ func _rebuild_ultimate_tab() -> void:
 	name_lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	header.add_child(name_lbl)
 	var desc_lbl := Label.new()
-	desc_lbl.text = _skill_summary_text(skill_data, true, 1)
+	desc_lbl.text = _skill_performance_text(skill_data, true, 1)
 	desc_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc_lbl.add_theme_color_override("font_color", COLOR_VALUE)
 	UiTypography.apply_body(desc_lbl, UiTypography.SIZE_BODY_SMALL)
 	header.add_child(desc_lbl)
+	var flavor: String = str(skill_data.description).strip_edges()
+	if not flavor.is_empty():
+		var flavor_lbl := Label.new()
+		flavor_lbl.text = flavor
+		flavor_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		flavor_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		flavor_lbl.add_theme_color_override("font_color", COLOR_SUB)
+		UiTypography.apply_body(flavor_lbl, UiTypography.SIZE_CAPTION)
+		header.add_child(flavor_lbl)
 	# 下段: 大きいアイコン | 効果
 	var body := HBoxContainer.new()
 	body.add_theme_constant_override("separation", 16)
@@ -3126,15 +3101,17 @@ func _skill_applies_status(skill_data: Resource) -> bool:
 		return true
 	return not str(skill_data.apply_status_id2).is_empty() and float(skill_data.apply_status_chance2) > 0.0
 
-func _skill_summary_text(skill_data: Resource, unlocked: bool = true, req_lv: int = 1) -> String:
+## 一覧行用の性能一行（例: 威力x1.50。CD；2.0）。
+func _skill_performance_text(skill_data: Resource, unlocked: bool = true, req_lv: int = 1) -> String:
 	if skill_data == null:
 		return ""
 	if not unlocked:
 		return "🔒 Lv%d で習得" % req_lv
-	var desc: String = str(skill_data.description)
-	if not desc.is_empty():
-		return desc
-	return _skill_detail_text(skill_data, unlocked, req_lv)
+	return _skill_detail_text(skill_data, true, req_lv)
+
+## 互換: 旧 summary 呼び出しは性能表示へ。
+func _skill_summary_text(skill_data: Resource, unlocked: bool = true, req_lv: int = 1) -> String:
+	return _skill_performance_text(skill_data, unlocked, req_lv)
 
 func _skill_target_label(target_type: String) -> String:
 	match target_type:
@@ -3280,14 +3257,24 @@ func _show_skill_detail_overlay(
 		lock_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		UiTypography.apply_body(lock_lbl, UiTypography.SIZE_CAPTION, COLOR_GOLD)
 		_detail_host.add_child(lock_lbl)
-	var desc_lbl := Label.new()
-	# 一覧行はロック文言のみ。詳細では説明文を優先表示する。
-	var desc: String = str(skill_data.description)
-	desc_lbl.text = desc if not desc.is_empty() else _skill_detail_text(skill_data, true, req_lv)
-	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiTypography.apply_body(desc_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_VALUE)
-	_detail_host.add_child(desc_lbl)
+	## 性能一行（名前；威力…）→ 説明文（長押しで両方見える）。
+	var perf_lbl := Label.new()
+	var skill_name: String = str(skill_data.display_name)
+	if skill_name.is_empty():
+		skill_name = skill_id
+	perf_lbl.text = "%s；%s" % [skill_name, _skill_performance_text(skill_data, true, req_lv)]
+	perf_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	perf_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_body(perf_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_VALUE)
+	_detail_host.add_child(perf_lbl)
+	var flavor: String = str(skill_data.description).strip_edges()
+	if not flavor.is_empty():
+		var desc_lbl := Label.new()
+		desc_lbl.text = flavor
+		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		desc_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		UiTypography.apply_body(desc_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_SUB)
+		_detail_host.add_child(desc_lbl)
 	var stats_title := Label.new()
 	stats_title.text = "効果"
 	UiTypography.apply_body(stats_title, UiTypography.SIZE_CAPTION, COLOR_GOLD)
@@ -3309,9 +3296,8 @@ func _show_skill_detail_overlay(
 	else:
 		_detail_equip_btn.text = "解除" if is_equipped else "装備"
 		_detail_equip_btn.visible = unlocked
-		_detail_equip_btn.disabled = (
-			not unlocked or ((not is_equipped) and equipped.size() >= Constants.MAX_EQUIPPED_SKILLS)
-		)
+		## 満枠でも他スキル装備可（置換）。未解放のみ不可。
+		_detail_equip_btn.disabled = not unlocked
 	_detail_overlay.visible = true
 
 func _skill_detail_text(skill_data: Resource, unlocked: bool = true, req_lv: int = 1) -> String:
@@ -3319,7 +3305,7 @@ func _skill_detail_text(skill_data: Resource, unlocked: bool = true, req_lv: int
 	match skill_data.effect_type:
 		"heal":
 			var amt: int = int(round(skill_data.power_multiplier * 14.0))
-			body = "回復+%d  CD%.1fs" % [amt, skill_data.cooldown]
+			body = "回復+%d。CD；%.1f" % [amt, skill_data.cooldown]
 		"buff":
 			var parts_buff: PackedStringArray = []
 			var eff_b: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id)
@@ -3328,12 +3314,12 @@ func _skill_detail_text(skill_data: Resource, unlocked: bool = true, req_lv: int
 				if up != 0:
 					parts_buff.append("味方与ダメ+%d%%" % up)
 				parts_buff.append("%dtick" % eff_b.duration_ticks)
-			parts_buff.append("CD%.1fs" % skill_data.cooldown)
-			body = "  ".join(parts_buff)
+			parts_buff.append("CD；%.1f" % skill_data.cooldown)
+			body = "。".join(parts_buff)
 		_:
 			var parts: PackedStringArray = [
 				"威力x%.2f" % skill_data.power_multiplier,
-				"CD%.1fs" % skill_data.cooldown,
+				"CD；%.1f" % skill_data.cooldown,
 			]
 			if not str(skill_data.element).is_empty():
 				parts.append("属性:%s" % skill_data.element)
@@ -3345,7 +3331,7 @@ func _skill_detail_text(skill_data: Resource, unlocked: bool = true, req_lv: int
 				var eff2: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id2)
 				var st_name2: String = eff2.display_name if eff2 != null else str(skill_data.apply_status_id2)
 				parts.append("%s%.0f%%" % [st_name2, skill_data.apply_status_chance2 * 100.0])
-			body = "  ".join(parts)
+			body = "。".join(parts)
 	if not unlocked:
 		return "🔒 Lv%d  %s" % [req_lv, body]
 	return body
