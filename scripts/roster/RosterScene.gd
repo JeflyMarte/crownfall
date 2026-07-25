@@ -529,15 +529,28 @@ func _rebuild_roster_grid() -> void:
 	for child in _roster_grid.get_children():
 		child.queue_free()
 	if _show_pets:
-		var pet: Resource = PetSystem.ensure_starter_pet()
-		if pet != null:
-			_roster_grid.add_child(_make_roster_grid_card(pet))
-		else:
+		PetSystem.ensure_starter_pet()
+		PetSystem.sync_unlocks_from_stage_progress(false)
+		var owned: Array[String] = PetSystem.owned_pet_ids_ordered()
+		if owned.is_empty():
 			var empty_pet := Label.new()
 			empty_pet.text = "ペットがいません"
 			empty_pet.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			empty_pet.add_theme_color_override("font_color", COLOR_SUB)
 			_roster_grid.add_child(empty_pet)
+			return
+		var active_id: String = str(GameState.active_pet.id) if GameState.active_pet != null else ""
+		var shared_lv: int = int(GameState.active_pet.level) if GameState.active_pet != null else 1
+		var shared_exp: int = int(GameState.active_pet.exp) if GameState.active_pet != null else 0
+		for pid in owned:
+			var pet: Resource
+			if pid == active_id and GameState.active_pet != null:
+				pet = GameState.active_pet
+			else:
+				pet = PetSystem.create_pet_adventurer(pid)
+				pet.level = shared_lv
+				pet.exp = shared_exp
+			_roster_grid.add_child(_make_roster_grid_card(pet))
 		return
 	var roster: Array = GameState.get_roster().duplicate()
 	roster = roster.filter(func(adv: Resource) -> bool: return _passes_role_filter(adv))
@@ -585,6 +598,11 @@ func _sort_roster_cmp(a: Resource, b: Resource) -> bool:
 
 func _make_roster_grid_card(adv: Resource) -> Control:
 	var is_pet: bool = PetSystem.is_pet_member(adv)
+	var is_active_pet: bool = (
+		is_pet
+		and GameState.active_pet != null
+		and str(GameState.active_pet.id) == str(adv.id)
+	)
 	var in_party: bool = (not is_pet) and _selected.has(adv)
 	var picking: bool = (not is_pet) and _active_pick_slot >= 0
 	var cell_h: int = _grid_cell_height()
@@ -592,7 +610,7 @@ func _make_roster_grid_card(adv: Resource) -> Control:
 	wrapper.custom_minimum_size = Vector2(0, cell_h)
 	wrapper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	if is_pet:
-		wrapper.add_theme_stylebox_override("panel", RosterUiHelper.card_panel_style(true, false))
+		wrapper.add_theme_stylebox_override("panel", RosterUiHelper.card_panel_style(is_active_pet, false))
 	elif picking and not in_party:
 		wrapper.add_theme_stylebox_override("panel", _pick_style())
 	else:
@@ -600,6 +618,8 @@ func _make_roster_grid_card(adv: Resource) -> Control:
 	# 入れ替え選択中はリストを暗くせず選べることを示す。通常時のみ編成中を暗くする。
 	if in_party and not picking:
 		wrapper.modulate = Color(0.42, 0.42, 0.42, 1.0)
+	elif is_pet and not is_active_pet:
+		wrapper.modulate = Color(0.72, 0.72, 0.72, 1.0)
 	var btn := Button.new()
 	btn.flat = true
 	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -655,6 +675,8 @@ func _make_roster_grid_card(adv: Resource) -> Control:
 	bottom_bar.add_child(info_row)
 	var lv_lbl := Label.new()
 	lv_lbl.text = "Lv.%d" % int(adv.level)
+	if is_pet and is_active_pet:
+		lv_lbl.text = "出撃 Lv.%d" % int(adv.level)
 	lv_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	UiTypography.apply_caption(lv_lbl)
 	lv_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -667,11 +689,18 @@ func _make_roster_grid_card(adv: Resource) -> Control:
 	info_row.add_child(star_lbl)
 	return wrapper
 
+
 func _toggle_selection(adv: Resource) -> void:
 	if PetSystem.is_pet_member(adv):
-		_label_status.text = "%sは常時随伴するオトモです（4人編成には入りません）" % RosterUiHelper.short_display_name(
-			str(adv.display_name)
-		)
+		var name_short: String = RosterUiHelper.short_display_name(str(adv.display_name))
+		if GameState.active_pet != null and str(GameState.active_pet.id) == str(adv.id):
+			_label_status.text = "%sは出撃中のオトモです（4人編成には入りません）" % name_short
+			return
+		if PetSystem.set_active_pet_id(str(adv.id)):
+			_label_status.text = "%sに切り替えました" % name_short
+			_rebuild_roster_grid()
+		else:
+			_label_status.text = "オトモの切り替えに失敗しました"
 		return
 	if _active_pick_slot >= 0:
 		_apply_active_pick_with_roster(adv)

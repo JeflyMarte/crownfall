@@ -113,3 +113,90 @@ func test_pet_takes_damage_with_base_defense() -> void:
 	assert_gt(int(result.get("mitigated", 0)), 0)
 	cc.apply_damage_to_member(pet_i, int(result["final"]))
 	assert_lt(int(cc.party_combat_hp[pet_i]), before)
+
+
+## --- P3-PET-VARIANT-001 ---
+
+func test_variant_pet_data_exists() -> void:
+	assert_not_null(_PetSystem.get_pet_data("pet_ash"))
+	assert_not_null(_PetSystem.get_pet_data("pet_ink"))
+	assert_eq(str(_PetSystem.get_pet_data("pet_ash").display_name), "アッシュ")
+	assert_eq(str(_PetSystem.get_pet_data("pet_ink").display_name), "インク")
+	assert_true(ResourceLoader.exists("res://resources/animation/PET_Ash.tres"))
+	assert_true(ResourceLoader.exists("res://resources/animation/PET_Ink.tres"))
+	assert_true(ResourceLoader.exists("res://assets/ui/chr_icons/ICO_CHR_Ash.png"))
+	assert_true(ResourceLoader.exists("res://assets/ui/chr_icons/ICO_CHR_Ink.png"))
+
+
+func test_owned_pets_seed_with_jack_only() -> void:
+	assert_true(GameState.owned_pet_ids.has("pet_jack"))
+	assert_false(GameState.owned_pet_ids.has("pet_ash"))
+	assert_false(GameState.owned_pet_ids.has("pet_ink"))
+
+
+func test_unlock_ash_on_mourngate_1_5_clear() -> void:
+	GameState.mark_stage_cleared("mourngate_1_5", 0)
+	assert_true(_PetSystem.owns_pet("pet_ash"))
+	assert_false(_PetSystem.owns_pet("pet_ink"))
+
+
+func test_unlock_ink_on_whisperwood_2_5_clear() -> void:
+	GameState.mark_stage_cleared("whisperwood_2_5", 0)
+	assert_true(_PetSystem.owns_pet("pet_ink"))
+
+
+func test_switch_active_pet_carries_level_exp() -> void:
+	_PetSystem.unlock_pet("pet_ash", false)
+	GameState.active_pet.level = 12
+	GameState.active_pet.exp = 340
+	assert_true(_PetSystem.set_active_pet_id("pet_ash"))
+	assert_eq(str(GameState.active_pet.id), "pet_ash")
+	assert_eq(str(GameState.active_pet.display_name), "アッシュ")
+	assert_eq(int(GameState.active_pet.level), 12)
+	assert_eq(int(GameState.active_pet.exp), 340)
+	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_ash_bark"))
+	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_ash_guard"))
+	assert_false(GameState.active_pet.equipped_skill_ids.has("pet_nibble"))
+	assert_true(_PetSystem.set_active_pet_id("pet_jack"))
+	assert_eq(str(GameState.active_pet.id), "pet_jack")
+	assert_eq(int(GameState.active_pet.level), 12)
+	assert_eq(int(GameState.active_pet.exp), 340)
+	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_nibble"))
+
+
+func test_cannot_activate_unowned_pet() -> void:
+	assert_false(_PetSystem.set_active_pet_id("pet_ink"))
+	assert_eq(str(GameState.active_pet.id), "pet_jack")
+
+
+func test_variant_role_skills() -> void:
+	var ash: Resource = _PetSystem.get_pet_data("pet_ash")
+	var ink: Resource = _PetSystem.get_pet_data("pet_ink")
+	assert_true(ash.skill_ids.has("pet_ash_bark"))
+	assert_true(ash.skill_ids.has("pet_ash_guard"))
+	assert_true(ink.skill_ids.has("pet_ink_fang"))
+	assert_true(ink.skill_ids.has("pet_ink_snare"))
+	var bark: Resource = DataRegistry.get_skill_data("pet_ash_bark")
+	var guard_s: Resource = DataRegistry.get_skill_data("pet_ash_guard")
+	var fang: Resource = DataRegistry.get_skill_data("pet_ink_fang")
+	var snare: Resource = DataRegistry.get_skill_data("pet_ink_snare")
+	assert_not_null(bark)
+	assert_not_null(guard_s)
+	assert_not_null(fang)
+	assert_not_null(snare)
+	assert_eq(str(bark.effect_type), "buff")
+	assert_true(bark.tags.has("taunt"))
+	assert_eq(str(bark.apply_status_id), "guard")
+	assert_eq(str(guard_s.apply_status_id), "guard")
+	assert_eq(str(fang.apply_status_id), "bleed")
+	assert_eq(str(snare.apply_status_id), "slow")
+
+
+func test_variant_portrait_icons_resolve() -> void:
+	_PetSystem.unlock_pet("pet_ash", false)
+	_PetSystem.unlock_pet("pet_ink", false)
+	_PetSystem.set_active_pet_id("pet_ash")
+	assert_not_null(RosterUiHelper.get_member_portrait_texture(GameState.active_pet))
+	_PetSystem.set_active_pet_id("pet_ink")
+	assert_not_null(RosterUiHelper.get_member_portrait_texture(GameState.active_pet))
+	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_ink_fang"))

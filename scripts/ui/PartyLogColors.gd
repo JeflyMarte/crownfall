@@ -12,6 +12,8 @@ const COLOR_BY_ADV: Dictionary = {
 	"adventurer_3": Color("#B48EAD"),
 	"adventurer_4": Color("#D08770"),
 	"pet_jack": Color("#C4A882"),
+	"pet_ash": Color("#B8B0A0"),
+	"pet_ink": Color("#7A6A8C"),
 }
 
 const COLOR_BY_JOB: Dictionary = {

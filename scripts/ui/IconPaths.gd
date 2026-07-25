@@ -14,6 +14,8 @@ const ICON_MAP: Dictionary = {
 	"chr:vanguard":                "res://assets/ui/chr_icons/ICO_CHR_Garen.png",
 	"chr:beast_tamer":             "res://assets/ui/chr_icons/ICO_CHR_Mirei.png",
 	"chr:pet_jack":                "res://assets/ui/chr_icons/ICO_CHR_Jack.png",
+	"chr:pet_ash":                 "res://assets/ui/chr_icons/ICO_CHR_Ash.png",
+	"chr:pet_ink":                 "res://assets/ui/chr_icons/ICO_CHR_Ink.png",
 	"weapon:iron_sword":           "res://assets/ui/equipment/ICO_WPN_IronSword.png",
 	"weapon:rusted_blade":         "res://assets/ui/equipment/ICO_WPN_RustedBlade.png",
 	"weapon:heater_blade":         "res://assets/ui/equipment/ICO_WPN_HeaterBlade.png",

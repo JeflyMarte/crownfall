@@ -21,6 +21,8 @@ var roster: Array = []
 
 ## 随伴オトモ（P3-PET-OTOMO-001）。roster/party_members 外。出撃は常時1体。
 var active_pet: Resource = null
+## 所持オトモ id 一覧（P3-PET-VARIANT-001）。常に pet_jack を含む。
+var owned_pet_ids: Array[String] = []
 
 ## 解放済みスターター id（P3-STORY-STARTER-001）。空かつストーリーON＝選択待ち。
 var starter_unlocked_ids: Array[String] = []
@@ -241,6 +243,8 @@ func mark_stage_cleared(stage_id: String, tier: int = -1) -> void:
 	tiers[str(t)] = true
 	progress["tiers"] = tiers
 	stage_progress[stage_id] = progress
+	## 色変えオトモ解放（P3-PET-VARIANT-001 U1）— stage データ欠落時も進捗キーで判定
+	_PetSystem.sync_unlocks_from_stage_progress(true)
 	var stage: Resource = DataRegistry.get_stage_data(stage_id)
 	if stage == null:
 		_ContentUnlockNotice.queue_newly_unlocked(unlock_before)
@@ -1372,6 +1376,7 @@ func reset_for_new_game() -> void:
 	pending_starter_recruit_id = ""
 	_run_combat_stats = null
 	active_pet = null
+	owned_pet_ids = []
 	_init_party()
 	_CommanderProfile.ensure_commander()
 
@@ -1418,6 +1423,7 @@ func _init_party() -> void:
 	roster = []
 	party_members = []
 	active_pet = null
+	owned_pet_ids = []
 	last_run_starter_recruited_id = ""
 	last_run_starter_recruited_name = ""
 	pending_starter_recruit_id = ""

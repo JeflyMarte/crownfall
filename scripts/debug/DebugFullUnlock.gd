@@ -35,6 +35,10 @@ static func apply() -> void:
 	TicketInventory.grant_debug_stock(Constants.DEBUG_TICKET_GRANT_EACH)
 	_unlock_all_progress()
 	_unlock_all_codex()
+	var _PetSystem = preload("res://scripts/pets/PetSystem.gd")
+	_PetSystem.unlock_pet(_PetSystem.PET_ASH_ID, false)
+	_PetSystem.unlock_pet(_PetSystem.PET_INK_ID, false)
+	_PetSystem.ensure_starter_pet()
 	GameState.current_dungeon_id = Constants.MOURNGATE_DUNGEON_ID
 	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
 	var first_stage: Resource = DataRegistry.get_stage_by_chapter(Constants.MOURNGATE_DUNGEON_ID, 1)

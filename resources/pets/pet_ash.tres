@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="PetData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/PetData.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/domain/Stats.gd" id="2"]
+
+[sub_resource type="Resource" id="Stats_ash"]
+script = ExtResource("2")
+hp = 420
+attack = 70
+defense = 35
+
+[resource]
+script = ExtResource("1")
+id = "pet_ash"
+display_name = "アッシュ"
+rarity = 1
+base_stats = SubResource("Stats_ash")
+skill_ids = Array[String](["pet_ash_bark", "pet_ash_guard"])
+sprite_resource_path = "res://resources/animation/PET_Ash.tres"
+origin_note = "ギルド随伴訓練舎の夜間索敵組。ジャックの同期。灰白の毛並み。守り役。"

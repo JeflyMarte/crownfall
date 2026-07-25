@@ -4090,13 +4090,15 @@ func _execute_member_heal(
 
 # バフスキル: 生存中のメイン編成全員に apply_status_id（鼓舞=与ダメ上昇）を付与する。
 # target_type=pet / tags に pet → オトモのみ。herd_call → オトモ本鼓舞＋他は弱い鼓舞。
+# tags に self → 発動者のみ。tags に taunt → Threat スパイク（P3-PET-VARIANT-001 アッシュ）。
 func _execute_member_buff(
 	member_idx: int,
 	skill_data: Resource,
 	cast_index: int = 0,
 	suppress_resolve_label: bool = false
 ) -> String:
-	if skill_data.apply_status_id.is_empty():
+	var wants_taunt: bool = skill_data.tags.has("taunt")
+	if skill_data.apply_status_id.is_empty() and not wants_taunt:
 		return ""
 	var cd_key: String = _member_skill_cd_key(member_idx, skill_data)
 	var result: Dictionary = _skill_executor.execute_support_skill(skill_data, cd_key)
@@ -4109,32 +4111,50 @@ func _execute_member_buff(
 		str(skill_data.target_type) == "pet"
 		or skill_data.tags.has("pet_only")
 	)
-	if pet_only:
-		applied = _apply_status_to_pet(status_id)
-	elif skill_id == "herd_call":
-		applied = _apply_status_to_pet("empower")
-		for i: int in GameState.party_members.size():
-			if not $CombatController.is_member_alive(i):
-				continue
-			if $CombatController.apply_status("party_%d" % i, "empower_minor", 1, 0):
-				applied += 1
-				_on_party_status_applied(i, "empower_minor")
-	else:
-		for i: int in GameState.party_members.size():
-			if not $CombatController.is_member_alive(i):
-				continue
-			if $CombatController.apply_status("party_%d" % i, status_id, 1, 0):
-				applied += 1
-				_on_party_status_applied(i, status_id)
+	var self_only: bool = (
+		str(skill_data.target_type) == "self"
+		or skill_data.tags.has("self")
+	)
+	if not status_id.is_empty():
+		if self_only:
+			if $CombatController.is_member_alive(member_idx):
+				if $CombatController.apply_status("party_%d" % member_idx, status_id, 1, 0):
+					applied = 1
+					_on_party_status_applied(member_idx, status_id)
+		elif pet_only:
+			applied = _apply_status_to_pet(status_id)
+		elif skill_id == "herd_call":
+			applied = _apply_status_to_pet("empower")
+			for i: int in GameState.party_members.size():
+				if not $CombatController.is_member_alive(i):
+					continue
+				if $CombatController.apply_status("party_%d" % i, "empower_minor", 1, 0):
+					applied += 1
+					_on_party_status_applied(i, "empower_minor")
+		else:
+			for i: int in GameState.party_members.size():
+				if not $CombatController.is_member_alive(i):
+					continue
+				if $CombatController.apply_status("party_%d" % i, status_id, 1, 0):
+					applied += 1
+					_on_party_status_applied(i, status_id)
+	if wants_taunt and $CombatController.is_member_alive(member_idx):
+		$CombatController.apply_taunt(member_idx)
+		_activate_taunt_link(member_idx)
 	_update_status_icons()
 	if cast_index == 0:
 		_clear_member_skill_labels(member_idx)
 	if not suppress_resolve_label:
 		_spawn_skill_name(result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP)
-	var effect: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id)
-	var label: String = skill_data.apply_status_id
-	if effect != null:
-		label = effect.display_name
+	var label: String = status_id
+	if not status_id.is_empty():
+		var effect: Resource = DataRegistry.get_status_effect(status_id)
+		if effect != null:
+			label = effect.display_name
+	if wants_taunt and self_only:
+		if status_id.is_empty():
+			return "\n【スキル】%s: 敵の注意を引いた" % result["display_name"]
+		return "\n【スキル】%s: 自身に[%s]・注意を引いた" % [result["display_name"], label]
 	if pet_only:
 		return "\n【スキル】%s: オトモに[%s]" % [result["display_name"], label]
 	if skill_id == "herd_call":

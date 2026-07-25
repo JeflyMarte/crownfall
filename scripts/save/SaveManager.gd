@@ -14,7 +14,7 @@ const SAVE_PATH: String = "user://save_data.json"
 ## `_migrate_save_data` に v(n)→v(n+1) の段階マイグレーションを追加する。
 ## v0 = バージョンフィールド無しの旧セーブ（レガシー party/equipment/job/dungeon id を含む）
 ## v1 = save_version フィールド導入（2026-07-02）
-const SAVE_VERSION: int = 11
+const SAVE_VERSION: int = 12
 
 func save_game() -> void:
 	var data: Dictionary = {
@@ -23,6 +23,7 @@ func save_game() -> void:
 		"roster": _serialize_roster(),
 		"active_party_ids": _serialize_active_party_ids(),
 		"active_pet": _serialize_active_pet(),
+		"owned_pet_ids": GameState.owned_pet_ids.duplicate(),
 		"dungeon_progress": GameState.dungeon_progress,
 		"hub_survey_progress": GameState.hub_survey_progress.duplicate(true),
 		"hub_survey_cycle": GameState.hub_survey_cycle.duplicate(true),
@@ -112,7 +113,16 @@ func _migrate_save_data(data: Dictionary) -> Dictionary:
 		data = _migrate_save_v9_to_v10(data)
 	if version < 11:
 		data = _migrate_save_v10_to_v11(data)
+	if version < 12:
+		data = _migrate_save_v11_to_v12(data)
 	data["save_version"] = SAVE_VERSION
+	return data
+
+
+## P3-PET-VARIANT-001: 所持オトモ一覧
+func _migrate_save_v11_to_v12(data: Dictionary) -> Dictionary:
+	if not data.has("owned_pet_ids") or not (data["owned_pet_ids"] is Array):
+		data["owned_pet_ids"] = []
 	return data
 
 
@@ -565,10 +575,24 @@ func _apply_save_data(data: Dictionary) -> void:
 	## roster 適用後に展示 id を検証。
 	GameState.find_showcase_member()
 	GameState.migrate_starter_unlock_state()
+	if data.has("owned_pet_ids") and data["owned_pet_ids"] is Array:
+		var owned: Array[String] = []
+		for raw_pid in data["owned_pet_ids"]:
+			var pid: String = str(raw_pid).strip_edges()
+			if Constants.is_pet_id(pid) and not owned.has(pid):
+				owned.append(pid)
+		GameState.owned_pet_ids = owned
+	else:
+		GameState.owned_pet_ids = []
 	if data.has("active_pet"):
 		GameState.active_pet = _deserialize_active_pet(data.get("active_pet"))
 	else:
-		GameState.ensure_starter_pet()
+		GameState.active_pet = null
+	var _PetSystem = preload("res://scripts/pets/PetSystem.gd")
+	_PetSystem.ensure_owned_pets_seeded()
+	_PetSystem.sync_unlocks_from_stage_progress(false)
+	if GameState.active_pet != null and Constants.is_pet_id(str(GameState.active_pet.id)):
+		_PetSystem.unlock_pet(str(GameState.active_pet.id), false)
 	GameState.ensure_starter_pet()
 	_apply_gacha_save(data)
 	if data.has("enemy_codex") and data["enemy_codex"] is Dictionary:

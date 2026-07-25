@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="PetData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/PetData.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/domain/Stats.gd" id="2"]
+
+[sub_resource type="Resource" id="Stats_ink"]
+script = ExtResource("2")
+hp = 420
+attack = 70
+defense = 35
+
+[resource]
+script = ExtResource("1")
+id = "pet_ink"
+display_name = "インク"
+rarity = 1
+base_stats = SubResource("Stats_ink")
+skill_ids = Array[String](["pet_ink_fang", "pet_ink_snare"])
+sprite_resource_path = "res://resources/animation/PET_Ink.tres"
+origin_note = "訓練舎の珍毛個体。黒紫の影毛。崩し役の伴侶獣。"

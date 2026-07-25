@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "pet_ink_snare"
+display_name = "墨の足止め"
+description = "影のような噛みつきで足を鈍らせる。敵の動きを封じる。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 0.9
+cooldown = 4.5
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["melee", "blunt", "pet"])
+element = ""
+apply_status_id = "slow"
+apply_status_chance = 0.55
+slot_type = "skill"
+range_type = "melee"
