@@ -35,19 +35,23 @@ mkdocs build
 
 想定URL: **https://jeflymarte.github.io/crownfall/**
 
-### 初回だけやること（リポジトリ設定）
+### いまの公開方式（稼働）
+
+静的サイトは **`gh-pages` ブランチ** に載せる方式。
+
+```bash
+cd wiki
+source .venv/bin/activate
+mkdocs gh-deploy --force
+```
+
+### 初回だけ（リポジトリ設定）
 
 1. GitHub → リポジトリ **Settings** → **Pages**
-2. **Build and deployment → Source** を **GitHub Actions** にする
-3. プライベートリポジトリの場合、Pages が使えるプランか確認（パブリックなら無料で可）
+2. **Build and deployment → Source** を **Deploy from a branch**
+3. Branch: **`gh-pages`** / folder: **`/ (root)`** → Save
 
-### デプロイの流れ
-
-- `main` に `wiki/` の変更が push されると、Workflow **Deploy Wiki** がビルド＆公開する
-- または Actions タブから **Deploy Wiki** → **Run workflow**（手動）
-
-公開に含めるもの: `wiki/docs/`・`wiki/mkdocs.yml`・`wiki/requirements.txt` など。  
-`wiki/site/` と `wiki/.venv/` はコミット不要（gitignore）。
+（Actions 用 Workflow ファイルはローカルに用意済みだが、PAT に `workflow` 権限が無いと push できない。Actions 運用に切り替えるときは権限付きトークンで `.github/workflows/wiki-pages.yml` を push し、Source を GitHub Actions に変更）
 
 ### 検索に載せるには
 
