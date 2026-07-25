@@ -14,7 +14,7 @@ extends RefCounted
 ##   ultimate_power_mult / exp_gain_mult / party_exp_gain_mult /
 ##   party_outgoing_mult / party_incoming_mult / death_save_once / death_save_chance /
 ##   exploration_damage_immune / outgoing_mult_requires_hp_below / outgoing_vs_status_mult /
-##   pet_outgoing_mult / threat_base_add
+##   pet_outgoing_mult / pet_defense_mult / threat_base_add
 ## weather_bonus（P3-EQ-WEATHER-LEG-001）: weather_id → element_outgoing_mult / outgoing_mult / crit_rate_add / refund_ct_fraction
 ## effect 追加: "chance_cast_equipped_skill"（攻撃後に装備スキルを確率発動）
 ## action_skip_chance（常時）: 行動出番でこの確率で行動スキップ（状態異常スキップと独立）
@@ -177,11 +177,12 @@ const _DEFS: Dictionary = {
 		"description": "致死ダメージを10%の確率でHP1で耐える。",
 		"death_save_chance": 0.10,
 	},
-	## P3-GACHA-STAGED-002 — プール外助っ人固有
+	## P3-GACHA 追加4体（レノール／シアン／ネリ／ボルグ）
 	"lenore_seal_echo": {
-		"display_name": "封緘の余韻",
-		"description": "状態異常の敵への与ダメージが15%上昇する。",
-		"outgoing_vs_status_mult": 1.15,
+		"display_name": "封緘の切っ先",
+		"description": "与ダメージが18%上昇する。被ダメージが12%増加する。",
+		"outgoing_mult": 1.18,
+		"incoming_mult": 1.12,
 	},
 	"torva_frost_breath": {
 		"display_name": "霜刃の一息",
@@ -189,19 +190,25 @@ const _DEFS: Dictionary = {
 		"first_attack_mult": 1.5,
 	},
 	"sian_silent_line": {
-		"display_name": "無音の射線",
-		"description": "回避率が15%上昇する。",
-		"evasion_rate_add": 0.15,
+		"display_name": "影からの号令",
+		"description": "戦闘開始時、味方全体に激励（empower）を付与する。",
+		"trigger": "on_combat_start",
+		"condition": "always",
+		"effect": "apply_status",
+		"status_id": "empower",
+		"target": "party",
+		"cooldown": 0.0,
 	},
 	"borg_gate_voice": {
-		"display_name": "門前の声",
-		"description": "敵に狙われやすくなる（Threat +2.0）。",
-		"threat_base_add": 2.0,
+		"display_name": "門前の残像",
+		"description": "回避率が18%上昇する。",
+		"evasion_rate_add": 0.18,
 	},
 	"neri_waterfowl_call": {
-		"display_name": "水鳥の合図",
-		"description": "ペットが生存中、ペットの与ダメージが15%上昇する。",
-		"pet_outgoing_mult": 1.15,
+		"display_name": "水鳥の指揮",
+		"description": "ペットが生存中、ペットの与ダメージが25%上昇し、防御が10%上昇する。",
+		"pet_outgoing_mult": 1.25,
+		"pet_defense_mult": 1.10,
 	},
 	## プール助っ人 — ホダカ★4（撃破鼓舞＋行動スキップ）
 	"hodaka_blood_price": {
@@ -901,6 +908,20 @@ static func pet_outgoing_mult_from_party() -> float:
 	return mult
 
 
+## 編成メンバーのパッシブからオトモ防御倍率（オトモ未所持なら 1.0）。
+static func pet_defense_mult_from_party() -> float:
+	if GameState.active_pet == null:
+		return 1.0
+	var mult: float = 1.0
+	for member: Resource in GameState.party_members:
+		if member == null:
+			continue
+		for def: Dictionary in for_member(member):
+			if def.has("pet_defense_mult"):
+				mult *= float(def["pet_defense_mult"])
+	return mult
+
+
 static func threat_base_add_for_member(member: Resource) -> float:
 	if member == null:
 		return 0.0
@@ -1095,6 +1116,8 @@ static func _passive_effect_summary(def: Dictionary) -> String:
 		parts.append("与ダメ +%d%%" % int(round((float(def["outgoing_mult"]) - 1.0) * 100.0)))
 	if float(def.get("pet_outgoing_mult", 1.0)) > 1.0:
 		parts.append("ペット与ダメ +%d%%" % int(round((float(def["pet_outgoing_mult"]) - 1.0) * 100.0)))
+	if float(def.get("pet_defense_mult", 1.0)) > 1.0:
+		parts.append("ペット防御 +%d%%" % int(round((float(def["pet_defense_mult"]) - 1.0) * 100.0)))
 	if float(def.get("incoming_mult", 1.0)) < 1.0:
 		parts.append("被ダメ -%d%%" % int(round((1.0 - float(def["incoming_mult"])) * 100.0)))
 	if float(def.get("incoming_mult", 1.0)) > 1.0:

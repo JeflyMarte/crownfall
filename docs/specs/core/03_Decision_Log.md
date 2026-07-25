@@ -4683,6 +4683,24 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-CODEX-CHAR-001-3 | **プロフィール項目** — 出身・身長・好き／苦手・生い立ち・記録メモ（＋助っ人は召喚セリフ・パッシブ要約）。初期5は `CharacterCodexProfiles`、助っ人は `GachaHelperData` | ゲームデータを正 |
 | P3-CODEX-CHAR-001-4 | **スコープ外** — staged 4体のプール昇格・★／ステ／パッシブ再設計・`pet_defense_mult`。`13` への staged 本載せも昇格時 | `08_GachaHelpersStaged` 維持 |
 
+**Closeout（2026-07-26）:** 案1 Impl → 統合＋`main`。プール昇格は P3-GACHA-PROMOTE-001。
+
+---
+
+## 在野助っ人プール昇格（2026-07-26 — P3-GACHA-PROMOTE-001）
+
+> **オーナー GO（残り一括）** — staged 4体を排出へ投入し、★／ステ／パッシブを再設計。アート接続。トルヴァは `_omitted` 残置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-GACHA-PROMOTE-001-1 | **昇格** — レノール／シアン／ボルグ／ネリを `resources/gacha_helpers/` 直下へ。プール **11体**（★2×5／★3×4／★4×2） | 案2・残りGO |
+| P3-GACHA-PROMOTE-001-2 | **トルヴァ据置** — `helper_l` は `_omitted` 継続 | 未調整 |
+| P3-GACHA-PROMOTE-001-3 | **数値再設計** — レノール紙耐久高火力★2／シアン開幕味方empower／ボルグ回避★3／ネリペット与ダメ×1.25＋防御×1.10（`pet_defense_mult`） | 差別化 |
+| P3-GACHA-PROMOTE-001-4 | **排出率・天井据置** — 個体数増のみ。`GachaRarityConfig` 不変 | 経済据置 |
+| P3-GACHA-PROMOTE-001-5 | **文書同期** — `08 §14`／`11`／`13`／Decision SSOT | STAGED-001-3 の昇格時同期 |
+
+**SSOT:** `docs/specs/decisions/08_GachaHelpersStaged.md`
+
 **Closeout:** Impl 後に統合＋`main`。
 
 ---

@@ -318,6 +318,8 @@ static func enemy_damage_to_member(
 			var job_mods: Dictionary = JobStatCalculator.get_member_modifiers(member)
 			var def_mult: float = float(job_mods.get("defense_multiplier", JobStatCalculator.DEFAULT_MULTIPLIER))
 			defense = maxi(0, int(round(float(defense) * def_mult)))
+			if GameState.is_pet_combatant(target_index):
+				defense = maxi(0, int(round(float(defense) * CombatPassives.pet_defense_mult_from_party())))
 	var final_dmg: int = apply_member_defense(base_dmg, defense)
 	# 防御(guard)等の被ダメ補正（P3-D085）。
 	var incoming_mult: float = combat.get_member_incoming_damage_multiplier(target_index)

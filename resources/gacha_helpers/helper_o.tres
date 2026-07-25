@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="GachaHelperData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/GachaHelperData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "helper_o"
+display_name = "ネリ"
+job_id = "beast_tamer"
+origin_note = "人より獣を信じるテイマー。相棒だけが、彼女の盾になる。"
+summon_quote = "…そっちは信用しない。こいつは別だ。"
+rarity = 2
+passive_id = "neri_waterfowl_call"
+sprite_resource_path = "res://resources/animation/CHR_Helper_o.tres"
+portrait_resource_path = "res://assets/gacha/portraits/ART_HELPER_helper_o.png"
+hometown = "ウェストベイ干潟〜シーゲート縁"
+height_cm = 158
+likes = "相棒だけ、水辺の静けさ"
+dislikes = "軽い口約束、人混みの宴"
+backstory = "人より獣を信じるテイマー。水鳥のように距離を取り、相棒だけを盾にする。\n人間への言葉は短く、伴侶獣への指揮は精確。\n信用は簡単には渡さないが、一度預かった命は離さない。"
+record_note = "人間への信頼値が極端に低い。伴侶獣への指揮は精確。"

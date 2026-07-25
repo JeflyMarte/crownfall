@@ -39,6 +39,10 @@ HELPER_MAP = {
 	"ミラ": ("helper_e", "CHR_Helper_e"),
 	"カイダ": ("helper_f", "CHR_Helper_f"),
 	"ガルム": ("helper_i", "CHR_Helper_i"),
+	"レノール": ("helper_k", "CHR_Helper_k"),
+	"シアン": ("helper_m", "CHR_Helper_m"),
+	"ボルグ": ("helper_n", "CHR_Helper_n"),
+	"ネリ": ("helper_o", "CHR_Helper_o"),
 	"ホダカ": ("helper_p", "CHR_Helper_p"),
 }
 
@@ -79,12 +83,18 @@ def find_anim_dir(job_dir: Path, anim_key: str) -> Path | None:
 	if not anims:
 		return None
 	root = anims[0]
+	unmapped: list[Path] = []
 	for child in root.iterdir():
 		if not child.is_dir():
 			continue
 		mapped = ANIM_MAP.get(nfc(child.name).lower())
 		if mapped == anim_key:
 			return child
+		if mapped is None:
+			unmapped.append(child)
+	## PixelLab が Idle を説明文フォルダ名にする場合（例: シアン）のフォールバック。
+	if anim_key == "idle" and unmapped:
+		return sorted(unmapped, key=lambda p: p.name)[0]
 	return None
 
 

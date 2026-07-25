@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="GachaHelperData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/GachaHelperData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "helper_n"
+display_name = "ボルグ"
+job_id = "vanguard"
+origin_note = "自信家の俺様盾。回避でかわし、主役は自分だと疑わない。"
+summon_quote = "はっ、俺の後ろにいれば百点満点だろ？"
+rarity = 3
+passive_id = "borg_gate_voice"
+sprite_resource_path = "res://resources/animation/CHR_Helper_n.tres"
+portrait_resource_path = "res://assets/gacha/portraits/ART_HELPER_helper_n.png"
+hometown = "アイアンヘイブン門前町"
+height_cm = 185
+likes = "自分の活躍、派手な回避"
+dislikes = "無視されること、地味な護衛任務"
+backstory = "自信家の門前盾。避けることを守りと呼び、主役は自分だと疑わない。\nそれでも危ない隙間には、結局いちばん早く立つ。\n自慢は長いが、盾の置き場は正確だ。"
+record_note = "門番上がりとの自己申告。回避が目立つ、と戦闘記録。"
