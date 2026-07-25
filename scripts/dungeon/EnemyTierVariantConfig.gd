@@ -4,7 +4,7 @@ extends RefCounted
 ## ハード／ナイトメア限定の同一 enemy_id に対する表示名・個性上書き（ベース数値は据置）。
 ## ノーマル(T0) では一切適用しない — 色替え敵は Hard/NM 限定。
 ## 数値強化は DungeonTierConfig の敵Lvボーナスに任せ、二重加算しない。
-## Decision: P3-ENEMY-TIER-VAR-001 / 002 / 003
+## Decision: P3-ENEMY-TIER-VAR-001 / 002 / 003 / 004 / 005
 
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 
@@ -244,6 +244,289 @@ const VARIANTS: Dictionary = {
 			"on_hit_status_chance": 0.28,
 			"skill_use_chance": 0.50,
 			"element_resist": ["dark", "ice"],
+		},
+	},
+	## ── ミストフェン（P3-ENEMY-TIER-VAR-004）──
+	"blood_leech": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "血蛭ヒル",
+			"on_hit_status_chance": 0.32,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "月蛭ヒル",
+			"on_hit_status_id": "bleed",
+			"on_hit_status_chance": 0.30,
+			"attack_element": "dark",
+			"element_resist": ["dark"],
+		},
+	},
+	"dead_poison_frog": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "紅毒の大蛙",
+			"on_hit_status_chance": 0.32,
+			"skill_use_chance": 0.32,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "蒼毒の大蛙",
+			"on_hit_status_id": "poison",
+			"on_hit_status_chance": 0.32,
+			"skill_use_chance": 0.34,
+			"attack_element": "ice",
+			"element_resist": ["ice"],
+		},
+	},
+	"mist_mantis": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "血霧マンティス",
+			"on_hit_status_chance": 0.28,
+			"critical_rate": 0.10,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "月霧マンティス",
+			"on_hit_status_id": "poison",
+			"on_hit_status_chance": 0.28,
+			"attack_element": "dark",
+			"critical_rate": 0.10,
+		},
+	},
+	"marsh_king": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "血沼の王",
+			"on_hit_status_chance": 0.28,
+			"skill_use_chance": 0.30,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "月沼の王",
+			"on_hit_status_chance": 0.28,
+			"skill_use_chance": 0.34,
+			"element_resist": ["dark", "ice"],
+		},
+	},
+	"bone_picker": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "血骨拾い",
+			"on_hit_status_chance": 0.28,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "幽骨拾い",
+			"on_hit_status_id": "bleed",
+			"on_hit_status_chance": 0.28,
+			"attack_element": "dark",
+			"element_resist": ["dark"],
+		},
+	},
+	"mire_strider_spider": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "血脚スパイダー",
+			"on_hit_status_chance": 0.28,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "月脚スパイダー",
+			"on_hit_status_id": "poison",
+			"on_hit_status_chance": 0.30,
+			"attack_element": "dark",
+		},
+	},
+	"spore_needle_wasp": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "朱針ワスプ",
+			"on_hit_status_chance": 0.36,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "蒼針ワスプ",
+			"attack_element": "ice",
+			"on_hit_status_id": "chill",
+			"on_hit_status_chance": 0.30,
+		},
+	},
+	"great_claw": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "血爪刀",
+			"on_hit_status_chance": 0.32,
+			"skill_use_chance": 0.40,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "月爪刀",
+			"on_hit_status_chance": 0.30,
+			"skill_use_chance": 0.42,
+			"attack_element": "dark",
+			"element_resist": ["dark", "ice"],
+		},
+	},
+	"nightfen": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "血夜沼",
+			"on_hit_status_chance": 0.28,
+			"skill_use_chance": 0.40,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "月夜沼",
+			"on_hit_status_chance": 0.28,
+			"skill_use_chance": 0.42,
+			"element_resist": ["dark", "ice"],
+		},
+	},
+	"moldgar": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "紅泥モルドガル",
+			"on_hit_status_chance": 0.28,
+			"skill_use_chance": 0.46,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "蒼泥モルドガル",
+			"on_hit_status_chance": 0.28,
+			"skill_use_chance": 0.50,
+			"element_resist": ["dark", "ice"],
+		},
+	},
+	## ── ブラックショア（P3-ENEMY-TIER-VAR-005）──
+	"ship_eater_crab": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "血殻船喰らい",
+			"on_hit_status_id": "bleed",
+			"on_hit_status_chance": 0.18,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "蒼殻船喰らい",
+			"on_hit_status_id": "chill",
+			"on_hit_status_chance": 0.18,
+			"element_resist": ["ice"],
+		},
+	},
+	"skull_turtle": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "血骸タートル",
+			"on_hit_status_id": "bleed",
+			"on_hit_status_chance": 0.16,
+			"element_resist": ["dark"],
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "月骸タートル",
+			"on_hit_status_id": "chill",
+			"on_hit_status_chance": 0.16,
+			"element_resist": ["ice", "dark"],
+		},
+	},
+	"undertaker_shark": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "血葬テイカー",
+			"on_hit_status_chance": 0.32,
+			"skill_use_chance": 0.28,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "月葬テイカー",
+			"on_hit_status_chance": 0.30,
+			"skill_use_chance": 0.30,
+			"attack_element": "dark",
+			"element_resist": ["dark"],
+		},
+	},
+	"samurai_fish": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "血冠シャーク",
+			"on_hit_status_chance": 0.32,
+			"skill_use_chance": 0.30,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "月冠シャーク",
+			"on_hit_status_chance": 0.30,
+			"skill_use_chance": 0.32,
+			"attack_element": "ice",
+			"on_hit_status_id": "chill",
+		},
+	},
+	"black_tide_shark": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "血潮ジョー",
+			"on_hit_status_chance": 0.32,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "月潮ジョー",
+			"on_hit_status_id": "bleed",
+			"on_hit_status_chance": 0.30,
+			"attack_element": "dark",
+		},
+	},
+	"abyssal_squid": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "血虚テンタクル",
+			"on_hit_status_chance": 0.32,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "月虚テンタクル",
+			"on_hit_status_chance": 0.30,
+			"attack_element": "dark",
+			"element_resist": ["dark"],
+		},
+	},
+	"tide_lamp": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "血潮灯",
+			"on_hit_status_chance": 0.36,
+			"attack_element": "fire",
+			"on_hit_status_id": "ignite",
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "月潮灯",
+			"on_hit_status_chance": 0.34,
+			"attack_element": "ice",
+			"on_hit_status_id": "chill",
+			"element_resist": ["ice"],
+		},
+	},
+	"ninja_octopus": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "血海司祭",
+			"on_hit_status_chance": 0.36,
+			"skill_use_chance": 0.40,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "月海司祭",
+			"on_hit_status_chance": 0.34,
+			"skill_use_chance": 0.42,
+			"attack_element": "dark",
+			"element_resist": ["dark", "ice"],
+		},
+	},
+	"anchor_lord": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "錆錨ロード",
+			"on_hit_status_chance": 0.28,
+			"skill_use_chance": 0.40,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "霜錨ロード",
+			"on_hit_status_chance": 0.28,
+			"skill_use_chance": 0.42,
+			"attack_element": "ice",
+			"on_hit_status_id": "chill",
+			"element_resist": ["ice"],
+		},
+	},
+	"nereion": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "紅潮ネレイオン",
+			"on_hit_status_chance": 0.28,
+			"skill_use_chance": 0.46,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "蒼潮ネレイオン",
+			"on_hit_status_chance": 0.28,
+			"skill_use_chance": 0.50,
+			"element_resist": ["fire", "ice"],
+		},
+	},
+	"nereion_depths": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "紅脈ネレイオン",
+			"on_hit_status_chance": 0.32,
+			"skill_use_chance": 0.46,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "蒼脈ネレイオン",
+			"on_hit_status_chance": 0.32,
+			"skill_use_chance": 0.50,
+			"element_resist": ["fire", "ice", "dark"],
 		},
 	},
 }

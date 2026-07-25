@@ -3819,6 +3819,28 @@ ELITE/BOSS/遍在希少種（P3-D166）は別枠。重みは **当該 Biome 雑�
 | P3-ENEMY-TIER-VAR-003-3 | **資産** — `tools/recolor_whisperwood_tier_enemies.py` で Hard/NM Sheet 生成。配線は `ENEMY_SPRITE_MAP_BY_TIER` / `BOSS_*_BY_TIER` | 既存手順踏襲 |
 | P3-ENEMY-TIER-VAR-003-4 | **個性** — 毒／出血／chill／属性耐性・スキル率のみ。HP/ATK/DEF 不変 | P3-D164 と非二重 |
 
+### ミストフェン Hard／NM 色・呼称（2026-07-25 — P3-ENEMY-TIER-VAR-004）
+
+> オーナー指示「ミストフェン進めてください」。モーンゲート／ウィスパーウッドと同方針。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-ENEMY-TIER-VAR-004-1 | **対象** — blood_leech / dead_poison_frog / mist_mantis / marsh_king / bone_picker / mire_strider_spider / spore_needle_wasp / great_claw / nightfen / moldgar | ③本編プール＋ELITE＋Boss |
+| P3-ENEMY-TIER-VAR-004-2 | **呼称** — Hard: 血蛭／紅毒／血霧／血沼／血骨／血脚／朱針／血爪／血夜／紅泥。NM: 月蛭／蒼毒／月霧／月沼／幽骨／月脚／蒼針／月爪／月夜／蒼泥 | 沼・血泥／月霧対比 |
+| P3-ENEMY-TIER-VAR-004-3 | **資産** — `tools/recolor_mistfen_tier_enemies.py`。配線は `ENEMY_SPRITE_MAP_BY_TIER` / `BOSS_*_BY_TIER` | 既存手順踏襲 |
+| P3-ENEMY-TIER-VAR-004-4 | **個性** — 毒／出血／chill／属性・スキル率のみ。ベース数値据置 | P3-D164 と非二重 |
+
+### ブラックショア Hard／NM 色・呼称（2026-07-25 — P3-ENEMY-TIER-VAR-005）
+
+> オーナー指示「ブラックショア進めてください」。①〜③と同方針。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-ENEMY-TIER-VAR-005-1 | **対象** — ship_eater_crab / skull_turtle / undertaker_shark / samurai_fish / black_tide_shark / abyssal_squid / tide_lamp / ninja_octopus / anchor_lord / nereion / nereion_depths | ④本編プール＋ELITE＋Boss（depths含む） |
+| P3-ENEMY-TIER-VAR-005-2 | **呼称** — Hard: 血殻／血骸／血葬／血冠／血潮／血虚／血潮灯／血海／錆錨／紅潮／紅脈。NM: 蒼殻／月骸／月葬／月冠／月潮／月虚／月潮灯／月海／霜錨／蒼潮／蒼脈 | 血潮／月深対比 |
+| P3-ENEMY-TIER-VAR-005-3 | **資産** — `tools/recolor_blackshore_tier_enemies.py`（VoidTentacle／DreadJaw 茎名に注意）。`BOSS_Nereion` を depths も共用 | 既存手順＋既存別名シート |
+| P3-ENEMY-TIER-VAR-005-4 | **個性** — 異常／属性／スキル率のみ。ベース数値据置 | P3-D164 と非二重 |
+
 ---
 
 ## SE 基盤（2026-07-14 — P3-AUDIO-SE-001）

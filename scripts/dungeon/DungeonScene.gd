@@ -142,6 +142,78 @@ const ENEMY_SPRITE_MAP_BY_TIER: Dictionary = {
 		1: "res://resources/animation/ENM_MirrorBoa_Hard.tres",
 		2: "res://resources/animation/ENM_MirrorBoa_Nightmare.tres",
 	},
+	"blood_leech": {
+		1: "res://resources/animation/ENM_BloodLeech_Hard.tres",
+		2: "res://resources/animation/ENM_BloodLeech_Nightmare.tres",
+	},
+	"dead_poison_frog": {
+		1: "res://resources/animation/ENM_DeadPoisonFrog_Hard.tres",
+		2: "res://resources/animation/ENM_DeadPoisonFrog_Nightmare.tres",
+	},
+	"mist_mantis": {
+		1: "res://resources/animation/ENM_MistMantis_Hard.tres",
+		2: "res://resources/animation/ENM_MistMantis_Nightmare.tres",
+	},
+	"marsh_king": {
+		1: "res://resources/animation/ENM_MarshKing_Hard.tres",
+		2: "res://resources/animation/ENM_MarshKing_Nightmare.tres",
+	},
+	"bone_picker": {
+		1: "res://resources/animation/ENM_BonePicker_Hard.tres",
+		2: "res://resources/animation/ENM_BonePicker_Nightmare.tres",
+	},
+	"mire_strider_spider": {
+		1: "res://resources/animation/ENM_MireStriderSpider_Hard.tres",
+		2: "res://resources/animation/ENM_MireStriderSpider_Nightmare.tres",
+	},
+	"spore_needle_wasp": {
+		1: "res://resources/animation/ENM_SporeNeedleWasp_Hard.tres",
+		2: "res://resources/animation/ENM_SporeNeedleWasp_Nightmare.tres",
+	},
+	"great_claw": {
+		1: "res://resources/animation/ENM_GreatClaw_Hard.tres",
+		2: "res://resources/animation/ENM_GreatClaw_Nightmare.tres",
+	},
+	"nightfen": {
+		1: "res://resources/animation/ENM_Nightfen_Hard.tres",
+		2: "res://resources/animation/ENM_Nightfen_Nightmare.tres",
+	},
+	"ship_eater_crab": {
+		1: "res://resources/animation/ENM_ShipEaterCrab_Hard.tres",
+		2: "res://resources/animation/ENM_ShipEaterCrab_Nightmare.tres",
+	},
+	"skull_turtle": {
+		1: "res://resources/animation/ENM_SkullTurtle_Hard.tres",
+		2: "res://resources/animation/ENM_SkullTurtle_Nightmare.tres",
+	},
+	"undertaker_shark": {
+		1: "res://resources/animation/ENM_UndertakerShark_Hard.tres",
+		2: "res://resources/animation/ENM_UndertakerShark_Nightmare.tres",
+	},
+	"samurai_fish": {
+		1: "res://resources/animation/ENM_SamuraiFish_Hard.tres",
+		2: "res://resources/animation/ENM_SamuraiFish_Nightmare.tres",
+	},
+	"black_tide_shark": {
+		1: "res://resources/animation/ENM_DreadJaw_Hard.tres",
+		2: "res://resources/animation/ENM_DreadJaw_Nightmare.tres",
+	},
+	"abyssal_squid": {
+		1: "res://resources/animation/ENM_VoidTentacle_Hard.tres",
+		2: "res://resources/animation/ENM_VoidTentacle_Nightmare.tres",
+	},
+	"tide_lamp": {
+		1: "res://resources/animation/ENM_TideLamp_Hard.tres",
+		2: "res://resources/animation/ENM_TideLamp_Nightmare.tres",
+	},
+	"ninja_octopus": {
+		1: "res://resources/animation/ENM_NinjaOctopus_Hard.tres",
+		2: "res://resources/animation/ENM_NinjaOctopus_Nightmare.tres",
+	},
+	"anchor_lord": {
+		1: "res://resources/animation/ENM_AnchorLord_Hard.tres",
+		2: "res://resources/animation/ENM_AnchorLord_Nightmare.tres",
+	},
 }
 const BOSS_ENEMY_SPRITE_MAP: Dictionary = {
 	"serdion": "res://resources/animation/BOSS_Serdion.tres",
@@ -165,6 +237,18 @@ const BOSS_ENEMY_SPRITE_MAP_BY_TIER: Dictionary = {
 	"granvel": {
 		1: "res://resources/animation/BOSS_Granvel_Hard.tres",
 		2: "res://resources/animation/BOSS_Granvel_Nightmare.tres",
+	},
+	"moldgar": {
+		1: "res://resources/animation/BOSS_Moldgar_Hard.tres",
+		2: "res://resources/animation/BOSS_Moldgar_Nightmare.tres",
+	},
+	"nereion": {
+		1: "res://resources/animation/BOSS_Nereion_Hard.tres",
+		2: "res://resources/animation/BOSS_Nereion_Nightmare.tres",
+	},
+	"nereion_depths": {
+		1: "res://resources/animation/BOSS_Nereion_Hard.tres",
+		2: "res://resources/animation/BOSS_Nereion_Nightmare.tres",
 	},
 }
 const BOSS_SPRITE_MAP_BY_TIER: Dictionary = {
@@ -195,6 +279,42 @@ const BOSS_SPRITE_MAP_BY_TIER: Dictionary = {
 	"abyss_whisperwood": {
 		1: "res://resources/animation/BOSS_Granvel_Hard.tres",
 		2: "res://resources/animation/BOSS_Granvel_Nightmare.tres",
+	},
+	"mistfen": {
+		1: "res://resources/animation/BOSS_Moldgar_Hard.tres",
+		2: "res://resources/animation/BOSS_Moldgar_Nightmare.tres",
+	},
+	"mistfen_depths": {
+		1: "res://resources/animation/BOSS_Moldgar_Hard.tres",
+		2: "res://resources/animation/BOSS_Moldgar_Nightmare.tres",
+	},
+	"thunder_peak": {
+		1: "res://resources/animation/BOSS_Moldgar_Hard.tres",
+		2: "res://resources/animation/BOSS_Moldgar_Nightmare.tres",
+	},
+	"broken_marsh": {
+		1: "res://resources/animation/ENM_GreatClaw_Hard.tres",
+		2: "res://resources/animation/ENM_GreatClaw_Nightmare.tres",
+	},
+	"abyss_mistfen": {
+		1: "res://resources/animation/BOSS_Moldgar_Hard.tres",
+		2: "res://resources/animation/BOSS_Moldgar_Nightmare.tres",
+	},
+	"blackshore": {
+		1: "res://resources/animation/BOSS_Nereion_Hard.tres",
+		2: "res://resources/animation/BOSS_Nereion_Nightmare.tres",
+	},
+	"blackshore_abyss": {
+		1: "res://resources/animation/BOSS_Nereion_Hard.tres",
+		2: "res://resources/animation/BOSS_Nereion_Nightmare.tres",
+	},
+	"westbay_flats": {
+		1: "res://resources/animation/ENM_NinjaOctopus_Hard.tres",
+		2: "res://resources/animation/ENM_NinjaOctopus_Nightmare.tres",
+	},
+	"abyss_blackshore": {
+		1: "res://resources/animation/BOSS_Nereion_Hard.tres",
+		2: "res://resources/animation/BOSS_Nereion_Nightmare.tres",
 	},
 }
 const BOSS_SPRITE_MAP: Dictionary = {
