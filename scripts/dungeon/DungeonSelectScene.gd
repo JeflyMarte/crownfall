@@ -6,6 +6,7 @@ const DUNGEON_SCENE: String = "res://scenes/dungeon/DungeonScene.tscn"
 
 const _ElementResolver: Script = preload("res://scripts/combat/ElementResolver.gd")
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
+const _AbyssDungeonConfig = preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
 
 const THUMB_SIZE: Vector2 = Vector2(72, 72)
 const ENEMY_ICON_PX: int = 26
@@ -214,6 +215,7 @@ const BIOME_BANNER_PATHS: Dictionary = {
 ## バナー画像にダンジョン名が焼き込まれている Biome（UI タイトルラベルを非表示）
 const BIOME_BANNER_TITLE_BAKED: Dictionary = {}
 ## サブダンジョンに専用バナーが無い場合、親メイン Biome のバナーを流用
+## （枠＋中央ネームプレート込み。無限＝深層も親メインと同バナー）
 const SUB_BANNER_FALLBACK: Dictionary = {
 	"astoria_ruins": "mourngate",
 	"green_hollow": "whisperwood",
@@ -228,6 +230,11 @@ const SUB_BANNER_FALLBACK: Dictionary = {
 	"blackshore_abyss": "blackshore",
 	"red_forge_depths": "frostridge",
 	"north_reach": "frostridge",
+	"abyss_mourngate": "mourngate",
+	"abyss_whisperwood": "whisperwood",
+	"abyss_mistfen": "mistfen",
+	"abyss_blackshore": "blackshore",
+	"abyss_frostridge": "frostridge",
 }
 
 func _ready() -> void:
@@ -1054,6 +1061,8 @@ func _get_biome_banner_texture(dungeon_id: String) -> Texture2D:
 	var path: String = str(BIOME_BANNER_PATHS.get(dungeon_id, ""))
 	if path.is_empty():
 		var fallback_id: String = str(SUB_BANNER_FALLBACK.get(dungeon_id, ""))
+		if fallback_id.is_empty():
+			fallback_id = str(_AbyssDungeonConfig.parent_biome_id(dungeon_id))
 		if not fallback_id.is_empty():
 			path = str(BIOME_BANNER_PATHS.get(fallback_id, ""))
 	if path.is_empty():
@@ -1137,7 +1146,7 @@ func _sync_featured_banner(dungeon_id: String) -> void:
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_display(
 		title,
-		UiTypography.SIZE_BODY,
+		_banner_title_font_size(dungeon_id),
 		UiTypography.COLOR_GOLD if unlocked else UiTypography.COLOR_SUB
 	)
 	title.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.95))
@@ -1145,6 +1154,12 @@ func _sync_featured_banner(dungeon_id: String) -> void:
 	title.add_theme_constant_override("shadow_offset_y", 1)
 	title.add_theme_constant_override("shadow_outline_size", 5)
 	_featured_banner_host.add_child(title)
+
+func _banner_title_font_size(dungeon_id: String) -> int:
+	## 無限は表示名が長いため、ネームプレート内に収まるよう一段小さくする。
+	if _AbyssDungeonConfig.is_abyss_dungeon_id(dungeon_id):
+		return UiTypography.SIZE_BODY_SMALL
+	return UiTypography.SIZE_BODY
 
 func _make_biome_banner_header(
 	data: Resource,
@@ -1188,7 +1203,7 @@ func _make_biome_banner_header(
 		title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		UiTypography.apply_display(
 			title,
-			UiTypography.SIZE_BODY,
+			_banner_title_font_size(dungeon_id),
 			UiTypography.COLOR_GOLD if unlocked else UiTypography.COLOR_SUB
 		)
 		title.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.95))

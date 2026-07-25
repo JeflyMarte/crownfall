@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-07-25（**P3-DG-ABYSS-BANNER-001 GO**: 深層選択バナーを親Biome流用＋長い「無限〜」タイトルを小さめフォント。統合＋`main`）
 2026-07-25（**P3-PET-VARIANT-001 GO**: アッシュ／インク色変えオトモ＋三角スキル（火力／守り／崩し）。U1解放・編成切替・セーブ v12。統合＋`main`）
 2026-07-25（**P3-PET-VARIANT-001 三角スキル**: Jack火力／Ash守り（威嚇＋味方Guard）／Ink崩し（Bleed＋Slow）。Decision更新）
 2026-07-25（**P3-PET-VARIANT-001 Impl**: アッシュ／インク色変えオトモ。U1＝1-5／2-5クリア解放。編成ペットタブで切替。セーブ v12 `owned_pet_ids`）
