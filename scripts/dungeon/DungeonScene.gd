@@ -214,6 +214,34 @@ const ENEMY_SPRITE_MAP_BY_TIER: Dictionary = {
 		1: "res://resources/animation/ENM_AnchorLord_Hard.tres",
 		2: "res://resources/animation/ENM_AnchorLord_Nightmare.tres",
 	},
+	"frost_claw_raptor": {
+		1: "res://resources/animation/ENM_FrostClawRaptor_Hard.tres",
+		2: "res://resources/animation/ENM_FrostClawRaptor_Nightmare.tres",
+	},
+	"vergaron": {
+		1: "res://resources/animation/ENM_Vergaron_Hard.tres",
+		2: "res://resources/animation/ENM_Vergaron_Nightmare.tres",
+	},
+	"storm_joe": {
+		1: "res://resources/animation/ENM_StormJoe_Hard.tres",
+		2: "res://resources/animation/ENM_StormJoe_Nightmare.tres",
+	},
+	"oldrex": {
+		1: "res://resources/animation/ENM_Oldrex_Hard.tres",
+		2: "res://resources/animation/ENM_Oldrex_Nightmare.tres",
+	},
+	"greios": {
+		1: "res://resources/animation/ENM_Greios_Hard.tres",
+		2: "res://resources/animation/ENM_Greios_Nightmare.tres",
+	},
+	"glacier_warden": {
+		1: "res://resources/animation/ENM_GlacierWarden_Hard.tres",
+		2: "res://resources/animation/ENM_GlacierWarden_Nightmare.tres",
+	},
+	"wind_ripper": {
+		1: "res://resources/animation/ENM_WindRipper_Hard.tres",
+		2: "res://resources/animation/ENM_WindRipper_Nightmare.tres",
+	},
 }
 const BOSS_ENEMY_SPRITE_MAP: Dictionary = {
 	"serdion": "res://resources/animation/BOSS_Serdion.tres",
@@ -249,6 +277,10 @@ const BOSS_ENEMY_SPRITE_MAP_BY_TIER: Dictionary = {
 	"nereion_depths": {
 		1: "res://resources/animation/BOSS_Nereion_Hard.tres",
 		2: "res://resources/animation/BOSS_Nereion_Nightmare.tres",
+	},
+	"eldion": {
+		1: "res://resources/animation/BOSS_Eldion_Hard.tres",
+		2: "res://resources/animation/BOSS_Eldion_Nightmare.tres",
 	},
 }
 const BOSS_SPRITE_MAP_BY_TIER: Dictionary = {
@@ -315,6 +347,26 @@ const BOSS_SPRITE_MAP_BY_TIER: Dictionary = {
 	"abyss_blackshore": {
 		1: "res://resources/animation/BOSS_Nereion_Hard.tres",
 		2: "res://resources/animation/BOSS_Nereion_Nightmare.tres",
+	},
+	"frostridge": {
+		1: "res://resources/animation/BOSS_Eldion_Hard.tres",
+		2: "res://resources/animation/BOSS_Eldion_Nightmare.tres",
+	},
+	"red_forge_depths": {
+		1: "res://resources/animation/BOSS_Eldion_Hard.tres",
+		2: "res://resources/animation/BOSS_Eldion_Nightmare.tres",
+	},
+	"north_reach": {
+		1: "res://resources/animation/BOSS_Eldion_Hard.tres",
+		2: "res://resources/animation/BOSS_Eldion_Nightmare.tres",
+	},
+	"abyss_frostridge": {
+		1: "res://resources/animation/BOSS_Eldion_Hard.tres",
+		2: "res://resources/animation/BOSS_Eldion_Nightmare.tres",
+	},
+	"frostwall_path": {
+		1: "res://resources/animation/ENM_FrostClawRaptor_Hard.tres",
+		2: "res://resources/animation/ENM_FrostClawRaptor_Nightmare.tres",
 	},
 }
 const BOSS_SPRITE_MAP: Dictionary = {

@@ -4,7 +4,7 @@ extends RefCounted
 ## ハード／ナイトメア限定の同一 enemy_id に対する表示名・個性上書き（ベース数値は据置）。
 ## ノーマル(T0) では一切適用しない — 色替え敵は Hard/NM 限定。
 ## 数値強化は DungeonTierConfig の敵Lvボーナスに任せ、二重加算しない。
-## Decision: P3-ENEMY-TIER-VAR-001 / 002 / 003 / 004 / 005
+## Decision: P3-ENEMY-TIER-VAR-001 / 002 / 003 / 004 / 005 / 006
 
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 
@@ -527,6 +527,114 @@ const VARIANTS: Dictionary = {
 			"on_hit_status_chance": 0.32,
 			"skill_use_chance": 0.50,
 			"element_resist": ["fire", "ice", "dark"],
+		},
+	},
+	## ── フロストリッジ（P3-ENEMY-TIER-VAR-006）──
+	"frost_claw_raptor": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "血爪ラプター",
+			"on_hit_status_chance": 0.30,
+			"critical_rate": 0.12,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "月爪ラプター",
+			"on_hit_status_chance": 0.28,
+			"attack_element": "ice",
+			"on_hit_status_id": "chill",
+			"element_resist": ["ice"],
+		},
+	},
+	"vergaron": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "血狼ヴェルガロン",
+			"on_hit_status_chance": 0.30,
+			"skill_use_chance": 0.22,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "月狼ヴェルガロン",
+			"on_hit_status_chance": 0.28,
+			"skill_use_chance": 0.26,
+			"element_resist": ["ice"],
+		},
+	},
+	"storm_joe": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "血嵐ジョー",
+			"on_hit_status_chance": 0.26,
+			"skill_use_chance": 0.28,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "月嵐ジョー",
+			"on_hit_status_chance": 0.26,
+			"skill_use_chance": 0.30,
+			"element_resist": ["ice"],
+		},
+	},
+	"oldrex": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "血甲オルドレクス",
+			"on_hit_status_chance": 0.26,
+			"skill_use_chance": 0.26,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "蒼甲オルドレクス",
+			"on_hit_status_chance": 0.26,
+			"skill_use_chance": 0.28,
+			"attack_element": "ice",
+			"on_hit_status_id": "chill",
+			"element_resist": ["ice"],
+		},
+	},
+	"greios": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "血翼グレイオス",
+			"on_hit_status_chance": 0.34,
+			"skill_use_chance": 0.40,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "月翼グレイオス",
+			"on_hit_status_chance": 0.34,
+			"skill_use_chance": 0.42,
+			"element_resist": ["ice"],
+		},
+	},
+	"glacier_warden": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "血晶マンモス",
+			"on_hit_status_chance": 0.30,
+			"skill_use_chance": 0.22,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "月晶マンモス",
+			"on_hit_status_chance": 0.28,
+			"skill_use_chance": 0.26,
+			"element_resist": ["ice"],
+		},
+	},
+	"wind_ripper": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "血雪ストーム",
+			"on_hit_status_chance": 0.30,
+			"skill_use_chance": 0.24,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "月雪ストーム",
+			"on_hit_status_chance": 0.30,
+			"skill_use_chance": 0.28,
+			"element_resist": ["ice"],
+		},
+	},
+	"eldion": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "紅始祖エルディオン",
+			"on_hit_status_chance": 0.30,
+			"skill_use_chance": 0.46,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "蒼始祖エルディオン",
+			"on_hit_status_chance": 0.30,
+			"skill_use_chance": 0.50,
+			"element_resist": ["ice", "dark"],
 		},
 	},
 }

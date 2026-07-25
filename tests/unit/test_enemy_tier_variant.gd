@@ -45,6 +45,14 @@ const _ALL_VARIANT_IDS: Array[String] = [
 	"anchor_lord",
 	"nereion",
 	"nereion_depths",
+	"frost_claw_raptor",
+	"vergaron",
+	"storm_joe",
+	"oldrex",
+	"greios",
+	"glacier_warden",
+	"wind_ripper",
+	"eldion",
 ]
 
 
@@ -106,6 +114,14 @@ func test_hard_and_nightmare_names_are_distinct_and_exclusive() -> void:
 		"anchor_lord": "錆錨ロード",
 		"nereion": "紅潮ネレイオン",
 		"nereion_depths": "紅脈ネレイオン",
+		"frost_claw_raptor": "血爪ラプター",
+		"vergaron": "血狼ヴェルガロン",
+		"storm_joe": "血嵐ジョー",
+		"oldrex": "血甲オルドレクス",
+		"greios": "血翼グレイオス",
+		"glacier_warden": "血晶マンモス",
+		"wind_ripper": "血雪ストーム",
+		"eldion": "紅始祖エルディオン",
 	}
 	var expected_nm: Dictionary = {
 		"grave_bell_bat": "月鐘バット",
@@ -147,6 +163,14 @@ func test_hard_and_nightmare_names_are_distinct_and_exclusive() -> void:
 		"anchor_lord": "霜錨ロード",
 		"nereion": "蒼潮ネレイオン",
 		"nereion_depths": "蒼脈ネレイオン",
+		"frost_claw_raptor": "月爪ラプター",
+		"vergaron": "月狼ヴェルガロン",
+		"storm_joe": "月嵐ジョー",
+		"oldrex": "蒼甲オルドレクス",
+		"greios": "月翼グレイオス",
+		"glacier_warden": "月晶マンモス",
+		"wind_ripper": "月雪ストーム",
+		"eldion": "蒼始祖エルディオン",
 	}
 	for enemy_id: String in _ALL_VARIANT_IDS:
 		var base: Resource = DataRegistry.get_enemy_data(enemy_id)
