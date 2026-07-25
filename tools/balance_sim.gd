@@ -72,6 +72,9 @@ func _main() -> void:
 	_parse_args()
 	if _dungeon_id.is_empty():
 		_dungeon_id = load("res://scripts/core/Constants.gd").DEFAULT_DUNGEON_ID
+	## STARTER_STORY_RECRUIT 時は通常起動で roster 空。GUT 以外の `-s` でもシードする。
+	if _gs.roster.is_empty() and _gs.has_method("seed_all_starters_unlocked"):
+		_gs.seed_all_starters_unlocked()
 	if _sweep:
 		_run_sweep()
 		quit(0)

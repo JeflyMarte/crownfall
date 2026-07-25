@@ -127,6 +127,7 @@ alwaysApply: true
 | 招待状が黒画面・下ナビにアイコン無し・BG／タイトル無し | `GachaScene.gd` が欠落メンバ（`TITLE_ART` 等）でパース失敗→スクリプト未実行で chrome／ナビ装飾が走らない | ガチャ画面は HEAD の `_setup_gacha_atmosphere` / `setup_banner_header` を維持。トークン定数は参照前に必ず定義。変更後 headless で GachaScene ロード確認 |
 | アプリアイコンが金の矢印 | iOS 向けに仮 `icon.png`（矢印）を追加したまま放置 | 正は `Downloads/アプリアイコン` → `assets/ui/UI_AppIcon.png`＋`icon.png`（1024²）。iOS は `AppIcon.appiconset` も更新し再ビルド／再インストール |
 | `HubLayoutHelper` が `SafeAreaHelper` 未解決でコンパイル失敗 | class_name 同士の早期参照／`-s` ツールからの preload 順 | `HubLayoutHelper` は `SafeAreaHelper` を `preload` する |
+| `balance_sim` が即死／平均EXP=0（`GameState` Identifier not found、または全滅100%・行動0） | ①`-s` 時 autoload 未注入で `LevelSystem` が `GameState` 識別子参照 ②`STARTER_STORY_RECRUIT` で roster 空のままシム | `LevelSystem` は実行時解決。sim 開始時に `seed_all_starters_unlocked`（P3-BAL-EXP-001-G） |
 | Mac では正しいのに iPhone だけアイコン位置がズレる | `stretch/aspect=expand` で論理画面の縦横比が実機に合わせて伸びる | 案A: `aspect=keep` で 720×1280 を維持（上下黒帯はエンジンが付与）。自前の黒帯 UI は作らない |
 | Mac では正しいのに iPhone だけ上バー侵食 | Mac の safe area は常に全画面（inset=0）。ノッチ分が開発時に見えない | `SafeAreaHelper` は実機のみ。Mac simulate は既定 OFF（`crownfall/ui/simulate_mobile_safe_area`） |
 | iPhone で隊長名と左メニューが重なる／日課が下ナビに食い込む | `apply_chrome` が TopBar だけ下げ、LeftMenu／日課の絶対Yが未追従。Home Indicator でナビが高くなる | 実機のみ `HubLayoutHelper.layout_hub_home_content`（左メニュー=top+96、日課・通貨は HubView 下端アンカー） |
