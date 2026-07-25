@@ -85,3 +85,17 @@ func test_tier_rarity_weight_scales() -> void:
 	dc.current_dungeon_data = DataRegistry.get_dungeon_data("mourngate")
 	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NIGHTMARE
 	assert_eq(dc.get_tier_rarity_weight(10), 16)
+
+
+func test_clear_token_reward_scales_with_tier() -> void:
+	## P3-BAL-TIER-001-C: 基礎35–65 × H1.2 / NM1.4（切り上げ）
+	assert_eq(_DungeonTierConfig.CLEAR_TOKEN_MIN, 35)
+	assert_eq(_DungeonTierConfig.CLEAR_TOKEN_MAX, 65)
+	seed(1)
+	for _i in 30:
+		var n: int = _DungeonTierConfig.clear_token_reward(_DungeonTierConfig.TIER_NORMAL)
+		assert_true(n >= 35 and n <= 65, "Normal token %d" % n)
+		var h: int = _DungeonTierConfig.clear_token_reward(_DungeonTierConfig.TIER_HARD)
+		assert_true(h >= 42 and h <= 78, "Hard token %d" % h)
+		var nm: int = _DungeonTierConfig.clear_token_reward(_DungeonTierConfig.TIER_NIGHTMARE)
+		assert_true(nm >= 49 and nm <= 91, "NM token %d" % nm)

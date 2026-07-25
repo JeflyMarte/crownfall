@@ -1654,7 +1654,9 @@ func _spawn_weapon(weapon_id: String) -> void:
 	instance.instance_id = str(Time.get_ticks_msec()) + "_" + str(randi() % 100000)
 	instance.weapon_id = weapon_id
 	_WeaponStatResolver.apply_drop_stats(instance, weapon_data)
-	EquipmentEnhancer.assign_drop_equip_level(instance, current_stage_data, current_dungeon_data)
+	EquipmentEnhancer.assign_drop_equip_level(
+		instance, current_stage_data, current_dungeon_data, get_enemy_level()
+	)
 	_auto_appraise(instance, _AffixRoller.CATEGORY_WEAPON, weapon_data.rarity)
 	GameState.inventory.append(instance)
 	last_weapon_dropped = weapon_id
@@ -1707,7 +1709,9 @@ func _spawn_armor(armor_id: String) -> void:
 	instance.armor_id = armor_id
 	_ArmorStatResolver.apply_drop_stats(instance, armor_data)
 	instance.rarity = armor_data.rarity
-	EquipmentEnhancer.assign_drop_equip_level(instance, current_stage_data, current_dungeon_data)
+	EquipmentEnhancer.assign_drop_equip_level(
+		instance, current_stage_data, current_dungeon_data, get_enemy_level()
+	)
 	_auto_appraise(instance, _AffixRoller.CATEGORY_ARMOR, armor_data.rarity)
 	GameState.armor_inventory.append(instance)
 	last_armor_dropped = armor_id
@@ -1731,7 +1735,9 @@ func _spawn_accessory(accessory_id: String) -> void:
 	instance.instance_id = str(Time.get_ticks_msec() + 2) + "_" + str(randi() % 100000)
 	instance.accessory_id = accessory_id
 	_AccessoryStatResolver.apply_drop_stats(instance, accessory_data)
-	EquipmentEnhancer.assign_drop_equip_level(instance, current_stage_data, current_dungeon_data)
+	EquipmentEnhancer.assign_drop_equip_level(
+		instance, current_stage_data, current_dungeon_data, get_enemy_level()
+	)
 	_auto_appraise(instance, _AffixRoller.CATEGORY_ACCESSORY, accessory_data.rarity)
 	GameState.accessory_inventory.append(instance)
 	last_accessory_dropped = accessory_id

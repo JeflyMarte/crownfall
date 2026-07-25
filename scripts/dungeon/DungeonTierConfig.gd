@@ -21,6 +21,9 @@ const MAIN_BIOME_IDS: Array[String] = [
 
 const RARITY_WEIGHT_MULT: Array[float] = [1.0, 1.3, 1.6]
 const REWARD_MULT: Array[float] = [1.0, 1.2, 1.4]
+## P3-BAL-ECO-001 / P3-BAL-TIER-001: クリア魔晶石基礎帯（ティア倍率は reward_mult）
+const CLEAR_TOKEN_MIN: int = 35
+const CLEAR_TOKEN_MAX: int = 65
 ## 群れの率・質（P3-BAL-SWARM-002）。N / H / NM。
 const SWARM_CHANCE_MULT: Array[float] = [1.0, 1.25, 1.50]
 const SWARM_SIZE_BONUS: Array[int] = [0, 1, 2]
@@ -83,6 +86,13 @@ static func rarity_weight_mult(tier: int) -> float:
 
 static func reward_mult(tier: int) -> float:
 	return REWARD_MULT[clamp_tier(tier)]
+
+
+## クリア時魔晶石（基礎35–65 × ティア報酬倍率、切り上げ）。深層マイルストーンとは別。
+static func clear_token_reward(tier: int) -> int:
+	var base: int = randi_range(CLEAR_TOKEN_MIN, CLEAR_TOKEN_MAX)
+	var mult: float = reward_mult(tier)
+	return maxi(1, int(ceil(float(base) * mult)))
 
 
 static func swarm_chance_mult(tier: int) -> float:

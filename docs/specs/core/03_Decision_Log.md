@@ -2631,7 +2631,7 @@
 |---|---|---|
 | P3-D164-1 | **ティア3段** — ノーマル(T0) / ハード(T1) / ナイトメア(T2)。`DungeonData.difficulty`（Biome★）とは別軸 | P3-UI2-021-2 の実装化 |
 | P3-D164-2 | **解放=当該DGで前ティアクリア**（T0常時・T1←T0・T2←T1） | オーナー D2=A |
-| P3-D164-3 | **効果** — 敵Lv +0/+3/+6、レア重み ×1.0/×1.3/×1.6、EXP/Gold ×1.0/×1.2/×1.4 | D3=A・P3-D081 敵Lvに加算 |
+| P3-D164-3 | **効果** — ~~敵Lv +0/+3/+6~~ → **P3-DG-TIER-002** で +49/+98。レア重み ×1.0/×1.3/×1.6、EXP/Gold ×1.0/×1.2/×1.4 は据置（後に **P3-BAL-TIER-001** で装備Lv・魔晶石を補強） | D3=A・P3-D081 敵Lvに加算 |
 | P3-D164-4 | **次Biome解放はノーマルクリアのみ**（`mark_dungeon_cleared` は T0 のみ） | 導線維持（P3-D157） |
 | P3-D164-5 | **Lv上限99は P3-LV-099 で後続**（D4=A・D5=A） | ティア先行 |
 
@@ -2646,6 +2646,20 @@
 | P3-DG-TIER-002-3 | **cap 導出** — メイン5の stage `enemy_level` 最大値（`DungeonTierConfig.main_normal_cap_level`） | ステージ改訂に追従 |
 | P3-DG-TIER-002-4 | **レア／報酬倍率は据置** — ×1.3/×1.6・×1.2/×1.4 | P3-D164-3 の非Lv部維持 |
 | P3-DG-TIER-002-5 | **β** — ②〜⑤封鎖中は Hard/NM 解禁条件を満たせない＝β体験外（ノーマル①がβ本体） | オーナー「β範囲外」 |
+
+---
+
+## Hard／Nightmare 報酬点検（2026-07-25 — P3-BAL-TIER-001）
+
+> **オーナー GO（A＋B＋C）** — 難易度本体（+49/+98）は据置。落ち物Lvとクリア魔晶石をティアに追随。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-TIER-001-A | **仕様同期** — 現行正は P3-DG-TIER-002（解放・敵Lv・報酬×1.2/1.4・レア×1.3/1.6）。旧 D164 の +3/+6 は廃止扱い。`05_ダンジョン` に Hard/NM 節を追記 | ドリフト解消 |
+| P3-BAL-TIER-001-B | **装備ドロップLv** — `resolve_drop_equip_level` を **実効敵Lv**（`DungeonController.get_enemy_level()`＝章Lv＋ティア／深層加算）±1 に | H/NM で序盤装備が落ちる不整合の解消 |
+| P3-BAL-TIER-001-C | **クリア魔晶石** — 基礎 **35–65** × ティア報酬倍率（N×1.0／H×1.2／NM×1.4）、切り上げ。深層マイルストーンは据置 | 高難度クリアの時間対効果 |
+
+---
 
 ## レベル上限99（2026-07-03 — P3-LV-099 / P3-D165）
 
@@ -3905,6 +3919,18 @@ ELITE/BOSS/遍在希少種（P3-D166）は別枠。重みは **当該 Biome 雑�
 | P3-ENEMY-TIER-VAR-005-2 | **呼称** — Hard: 血殻／血骸／血葬／血冠／血潮／血虚／血潮灯／血海／錆錨／紅潮／紅脈。NM: 蒼殻／月骸／月葬／月冠／月潮／月虚／月潮灯／月海／霜錨／蒼潮／蒼脈 | 血潮／月深対比 |
 | P3-ENEMY-TIER-VAR-005-3 | **資産** — `tools/recolor_blackshore_tier_enemies.py`（VoidTentacle／DreadJaw 茎名に注意）。`BOSS_Nereion` を depths も共用 | 既存手順＋既存別名シート |
 | P3-ENEMY-TIER-VAR-005-4 | **個性** — 異常／属性／スキル率のみ。ベース数値据置 | P3-D164 と非二重 |
+
+### フロストリッジ Hard／NM 色・呼称（2026-07-25 — P3-ENEMY-TIER-VAR-006）
+
+> オーナー指示「フロストリッジもハード・ナイトメア用の敵を生成してください」。①〜④と同方針。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-ENEMY-TIER-VAR-006-1 | **対象** — frost_claw_raptor / vergaron / storm_joe / oldrex / greios / glacier_warden / wind_ripper / eldion | ⑤本編プール＋ELITE＋Boss |
+| P3-ENEMY-TIER-VAR-006-2 | **除外** — rock_bison（横断）、polar_tricera（FR-OMIT） | 既存方針 |
+| P3-ENEMY-TIER-VAR-006-3 | **呼称** — Hard: 血爪／血狼／血嵐／血甲／血翼／血晶／血雪／紅始祖。NM: 月爪／月狼／月嵐／蒼甲／月翼／月晶／月雪／蒼始祖 | 緋霜／蒼月対比 |
+| P3-ENEMY-TIER-VAR-006-4 | **資産** — `tools/recolor_frostridge_tier_enemies.py`。`BOSS_Eldion`＋寄り道 `frostwall_path`／`north_reach`／`red_forge_depths`／`abyss_frostridge` | 既存手順 |
+| P3-ENEMY-TIER-VAR-006-5 | **個性** — 異常／属性／スキル率のみ。ベース数値据置 | P3-D164 と非二重 |
 
 ---
 

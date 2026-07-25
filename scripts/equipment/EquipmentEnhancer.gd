@@ -333,12 +333,22 @@ static func scale_equip_float(base: float, equip_level: int, rarity: int = 0) ->
 	var rate: float = equip_growth_rate_for_rarity(rarity)
 	return base + base * rate * float(lv - 1)
 
-static func resolve_drop_equip_level(stage: Resource, dungeon: Resource) -> int:
+static func resolve_drop_equip_level(
+	stage: Resource,
+	dungeon: Resource,
+	combat_enemy_level: int = -1
+) -> int:
+	## P3-BAL-TIER-001: 実効敵Lv（戦闘と同じ帯）±1。未指定時は章Lv＋現行ティア加算。
 	var base_lv: int = 1
-	if stage != null and int(stage.enemy_level) > 0:
-		base_lv = int(stage.enemy_level)
-	elif dungeon != null and int(dungeon.enemy_level) > 0:
-		base_lv = int(dungeon.enemy_level)
+	if combat_enemy_level > 0:
+		base_lv = combat_enemy_level
+	else:
+		if stage != null and int(stage.enemy_level) > 0:
+			base_lv = int(stage.enemy_level)
+		elif dungeon != null and int(dungeon.enemy_level) > 0:
+			base_lv = int(dungeon.enemy_level)
+		var tier: int = int(GameState.current_dungeon_tier) if GameState != null else 0
+		base_lv = _DungeonTierConfig.apply_tier_level(base_lv, tier)
 	return clamp_equip_level(base_lv + randi_range(-1, 1))
 
 static func equip_exp_to_next_level(level: int) -> int:
@@ -445,10 +455,15 @@ static func effective_accessory_float_bonus(accessory: Resource, field: String, 
 	var rarity: int = int(data.rarity) if data != null else accessory_rarity(accessory)
 	return scale_equip_float(raw, get_equip_level(accessory), rarity)
 
-static func assign_drop_equip_level(item: Resource, stage: Resource, dungeon: Resource) -> void:
+static func assign_drop_equip_level(
+	item: Resource,
+	stage: Resource,
+	dungeon: Resource,
+	combat_enemy_level: int = -1
+) -> void:
 	if item == null or not ("equip_level" in item):
 		return
-	item.equip_level = resolve_drop_equip_level(stage, dungeon)
+	item.equip_level = resolve_drop_equip_level(stage, dungeon, combat_enemy_level)
 	if "equip_exp" in item:
 		item.equip_exp = 0
 
