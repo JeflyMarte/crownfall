@@ -47,3 +47,4 @@ crownfall_projectdocs_*.zip
 
 # MkDocs build output
 wiki/site/
+wiki/.venv/

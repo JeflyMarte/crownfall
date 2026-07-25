@@ -1,0 +1,2 @@
+# Crownfall 攻略Wiki（MkDocs Material）
+mkdocs-material>=9.5,<10

@@ -1,5 +1,9 @@
 site_name: Crownfall 攻略Wiki
-site_description: 2D見下ろし型 自動探索ハクスラRPG「Crownfall」の世界観・攻略・データ事典
+site_description: 2D見下ろし型 自動探索ハクスラRPG「Crownfall」の世界観・攻略・データ事典（現行バージョン準拠）
+site_url: https://jeflymarte.github.io/crownfall/
+repo_url: https://github.com/JeflyMarte/crownfall
+repo_name: JeflyMarte/crownfall
+edit_uri: edit/main/wiki/docs/
 docs_dir: docs
 site_dir: site
 use_directory_urls: true
@@ -54,11 +58,52 @@ plugins:
 
 extra:
   social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/JeflyMarte/crownfall
     - icon: material/crown
       link: /
 
 nav:
   - ホーム: index.md
+  - プレイヤー向け:
+      - どんなゲーム？: guide/what-is.md
+      - よくある質問: guide/faq.md
+      - 初心者向けガイド: guide/beginner.md
+      - キャラを強くするには: guide/power-up.md
+      - 稼ぎ方: guide/farming.md
+      - 招待状（ガチャ）: guide/gacha.md
+      - オトモ: guide/pets.md
+      - キャラTierランク: guide/tier.md
+      - 要注意敵: guide/threats.md
+      - Boss攻略まとめ: guide/bosses.md
+      - 放浪敵一覧: guide/wandering.md
+      - Hard／Nightmare: guide/hard-nightmare.md
+      - ビルド構成例: guide/builds.md
+      - おすすめ装備: guide/recommended-gear.md
+      - 用語集（プレイヤー版）: guide/glossary-player.md
+      - UI案内: guide/ui-guide.md
+      - 更新履歴: guide/changelog.md
+  - 攻略:
+      - はじめに: guide/getting-started.md
+      - 拠点ガイド: guide/hub.md
+      - 進行とダンジョン: guide/progression.md
+      - モーンゲート攻略: guide/mourngate.md
+      - ウィスパーウッド攻略: guide/whisperwood.md
+      - ミストフェン攻略: guide/mistfen.md
+      - ブラックショア攻略: guide/blackshore.md
+      - フロストリッジ攻略: guide/frostridge.md
+      - イベントダンジョン: guide/events.md
+      - 深層攻略: guide/abyss.md
+      - 戦闘の仕組み: guide/combat.md
+      - 属性と状態異常: guide/elements.md
+      - 装備と鍛冶: guide/equipment.md
+  - データ:
+      - モンスター図鑑: data/monsters.md
+      - 武器一覧: data/weapons.md
+      - 防具・装飾品: data/equipment.md
+      - ジョブ: data/jobs.md
+      - スキル一覧: data/skills.md
+      - ダンジョンデータ: data/dungeons.md
   - 世界観:
       - 概要: world/overview.md
       - 歴史: world/history.md
@@ -72,15 +117,3 @@ nav:
       - 王遺産（遺物）: world/relics.md
       - 断片ロア: world/fragments.md
       - 用語集: world/glossary.md
-  - 攻略:
-      - はじめに: guide/getting-started.md
-      - 戦闘の仕組み: guide/combat.md
-      - 属性と状態異常: guide/elements.md
-      - モーンゲート攻略: guide/mourngate.md
-  - データ:
-      - モンスター図鑑: data/monsters.md
-      - 武器一覧: data/weapons.md
-      - 防具・装飾品: data/equipment.md
-      - ジョブ: data/jobs.md
-      - スキル一覧: data/skills.md
-      - ダンジョンデータ: data/dungeons.md
