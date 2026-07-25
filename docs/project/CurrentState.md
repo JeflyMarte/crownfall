@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-07-25（**P3-DG-ABYSS-LEG-001 Decision GO**: 深層レジェンド5＝虚脈大剣／根葬双刃／澱み封杖／虚潮長弓／裂氷双爪。攻撃3・生存2。数値はImpl時）
 2026-07-25（**P3-DG-ABYSS-001 Decision GO**: Biome深層×5・33/66/99マイルストーン・深層限定レジェンド本命・99以降無限。Implはβ後。SSOT `decisions/09_BiomeAbyss.md`）
 2026-07-25（**④図鑑立ち絵 GO**: ブラックショア9体 Desktop立ち絵を透過処理して差替。統合＋`main`）
 2026-07-25（**一括 GO**: P3-SHOWCASE-001（展示室）／ギルド情報誌記事拡充＋背景／バナー右上クリック誘導ロゴ／調査室丸アイコン／④表示名変更＋戦闘ドット差替／Biome BGM（blackshore／frostridge／final_boss）。統合＋`main`）

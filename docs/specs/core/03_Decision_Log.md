@@ -4403,3 +4403,18 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 **SSOT:** `docs/specs/decisions/09_BiomeAbyss.md`
 
 **Impl:** β後アップデート枠。未着手。
+
+## 深層限定レジェンド5（2026-07-25 — P3-DG-ABYSS-LEG-001）
+> **オーナー GO（案C）** — 武器5本。固有効果を攻撃特化3／生存特化2に振り分け。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-ABYSS-LEG-001-1 | **虚脈の大剣**（`abyss_veinblade`／greatsword）— 撃破裂傷＋低HP与ダメ↑。**攻撃** | モーン深層・鉱物化 |
+| P3-DG-ABYSS-LEG-001-2 | **根葬の双刃**（`abyss_rootfang`／dual_blades）— 同一敵連続ヒットで与ダメ段階↑。**攻撃** | ウィスパー深層 |
+| P3-DG-ABYSS-LEG-001-3 | **澱みの封杖**（`abyss_mirestaff`／staff）— 被弾時霧ガード。**生存** | ミストフェン深層 |
+| P3-DG-ABYSS-LEG-001-4 | **虚潮の長弓**（`abyss_netherbow`／bow）— 潮汐印→爆発。**攻撃** | ブラックショア深層 |
+| P3-DG-ABYSS-LEG-001-5 | **裂氷の双爪**（`abyss_riftclaw`／dual_blades）— 氷殻で被ダメ軽減＋軽反撃。**生存** | フロストリッジ深層 |
+| P3-DG-ABYSS-LEG-001-6 | rarity=Legendary。既存ボス★3と名称非重複。通常産出対象外 | エンド専用 |
+| P3-DG-ABYSS-LEG-001-7 | **スコープ外** — 基礎数値／Mythic／防具装飾／セット効果 | Impl・別Decision |
+
+**SSOT:** `docs/specs/decisions/10_AbyssLegendaries.md`
