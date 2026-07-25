@@ -59,12 +59,33 @@ func _ready() -> void:
 	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)
 	_hide_legacy_event_nodes()
 	_ensure_background()
+	_raise_header_chrome()
 	_setup_start_confirm()
 	_build_ui()
 	_pending_members = _SurveySystem.auto_assign_members()
 	_update_currency()
 	_refresh()
 	call_deferred("_try_auto_claim_on_enter")
+
+
+## 戻る／通貨を BG・ヒーローより前面へ（実機で背景に沈むのを防ぐ）。
+func _raise_header_chrome() -> void:
+	var header: Control = $Header as Control
+	if header == null:
+		return
+	header.z_as_relative = false
+	header.z_index = 40
+	## BottomNav(z=20) より手前、オーバーレイより下。
+	move_child(header, get_child_count() - 1)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.04, 0.04, 0.1, 0.96)
+	sb.border_width_bottom = 1
+	sb.border_color = Color(0.55, 0.45, 0.18, 0.6)
+	sb.content_margin_left = 12.0
+	sb.content_margin_top = 8.0
+	sb.content_margin_right = 12.0
+	sb.content_margin_bottom = 8.0
+	header.add_theme_stylebox_override("panel", sb)
 
 
 func _maybe_show_content_unlock() -> void:
@@ -657,12 +678,14 @@ func _build_assignee_card(slot: int, member_id: String, locked: bool, cycle_acti
 	var card := _card_panel()
 	card.clip_contents = true
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	card.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	## HBox 内で他カード高さに揃える（ロック枠が短い問題の防止）。
+	card.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	card.custom_minimum_size = Vector2(0, 0)
 
 	var vb := VBoxContainer.new()
 	vb.add_theme_constant_override("separation", 4)
 	vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vb.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vb.alignment = BoxContainer.ALIGNMENT_CENTER
 
 	var icon_host := Control.new()
@@ -713,7 +736,14 @@ func _build_assignee_card(slot: int, member_id: String, locked: bool, cycle_acti
 			icon_host.add_child(lock_l)
 		name_l.text = "ロック"
 		stars_l.text = "—"
-		speed_l.text = "Lv.15"
+		speed_l.text = "—"
+		speed_l.visible = false
+		## 「変更」ボタン分の高さを確保して他カードと揃える。
+		var lock_pad := Control.new()
+		lock_pad.custom_minimum_size = Vector2(0, 36.0)
+		lock_pad.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		lock_pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		vb.add_child(lock_pad)
 		card.add_child(vb)
 		return card
 
@@ -739,6 +769,7 @@ func _build_assignee_card(slot: int, member_id: String, locked: bool, cycle_acti
 	btn.text = "変更"
 	btn.disabled = cycle_active
 	btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	btn.custom_minimum_size = Vector2(0, 36.0)
 	var slot_i: int = slot
 	btn.pressed.connect(func(): _cycle_member_at(slot_i))
 	vb.add_child(btn)

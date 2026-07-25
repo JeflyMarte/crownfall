@@ -43,9 +43,9 @@ const FORGE_FLASH_ALCHEMY: Color = Color(0.55, 0.92, 0.78)
 const FORGE_FLASH_DISMANTLE: Color = Color(0.86, 0.72, 1.0)
 const FORGE_FLASH_PEAK_ALPHA: float = 0.32
 ## 下段ストリップ（作成可能／錬成素材）。BottomNav 上に専用帯を確保する。
-## モック寄せ: 装飾枠分を少し厚く。
-const CRAFTABLE_STRIP_HEIGHT_PX: float = 140.0
-const CRAFTABLE_SCROLL_MIN_H: float = 88.0
+## チップ高(112)＋ヘッダ分。外枠テクスチャ無しなので余白は控えめ。
+const CRAFTABLE_STRIP_HEIGHT_PX: float = 148.0
+const CRAFTABLE_SCROLL_MIN_H: float = 118.0
 ## カテゴリタブ下端〜 MainSplit 上端の隙間（一覧ヘッダがタブに食われるのを防ぐ）。
 const MAIN_SPLIT_TOP_GAP_PX: float = 40.0
 ## MainSplit 下端〜素材帯の隙間。
@@ -117,11 +117,26 @@ var _result_title_tex: TextureRect = null
 var _result_title_lbl: Label = null
 var _result_detail_host: VBoxContainer = null
 var _pending_dismantle_item: Resource = null
+var _detail_scroll: ScrollContainer = null
+## カテゴリ下〜下ナビ上の全体縦スクロール（MainSplit＋素材帯）。
+var _body_scroll: ScrollContainer = null
+var _body_vbox: VBoxContainer = null
+var _main_split: HBoxContainer = null
+## 錬成素材チップの長押し（名前表示）。
+const FODDER_LONG_PRESS_SEC: float = 0.45
+const FODDER_PRESS_MOVE_CANCEL_PX: float = 20.0
+var _fodder_pointer_down: bool = false
+var _fodder_long_press_fired: bool = false
+var _fodder_press_timer: SceneTreeTimer = null
+var _fodder_press_item: Resource = null
+var _fodder_press_origin: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
 	_label_title.text = ""
 	AudioManager.play_bgm("forge")
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.FORGE)
+	_ensure_body_scroll()
+	_ensure_detail_scroll()
 	_mode_button_group = ButtonGroup.new()
 	_btn_produce.button_group = _mode_button_group
 	_btn_enhance.button_group = _mode_button_group
@@ -154,11 +169,13 @@ func _ready() -> void:
 	_setup_forge_chrome()
 	_apply_detail_typography()
 	_detail_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	var detail_vbox: VBoxContainer = $MainSplit/DetailPanel/DetailVBox
-	detail_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	detail_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	## 生産詳細が下にはみ出さないよう行間を詰める。
-	detail_vbox.add_theme_constant_override("separation", 5)
+	var detail_vbox: VBoxContainer = _detail_vbox()
+	if detail_vbox != null:
+		## Scroll 内では SHRINK。EXPAND だと中身が伸びてスクロール不能になる。
+		detail_vbox.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		detail_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		## 生産詳細が下にはみ出さないよう行間を詰める。
+		detail_vbox.add_theme_constant_override("separation", 5)
 	_cost_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_craft_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_setup_craftable_header()
@@ -167,6 +184,129 @@ func _ready() -> void:
 	_set_mode("produce")
 	## カテゴリアイコン生成後の実寸で帯を再計算（生産／錬成の上下侵食防止）。
 	call_deferred("_layout_craftable_strip")
+	call_deferred("_enable_forge_scroll_touch")
+
+
+## 一覧＋詳細＋素材帯をまとめて縦スクロール可能にする。
+func _ensure_body_scroll() -> void:
+	if _craftable_panel == null:
+		return
+	if get_node_or_null("BodyScroll") != null:
+		_body_scroll = get_node("BodyScroll") as ScrollContainer
+		_body_vbox = _body_scroll.get_node_or_null("BodyVBox") as VBoxContainer
+		if _body_vbox != null:
+			_main_split = _body_vbox.get_node_or_null("MainSplit") as HBoxContainer
+		return
+	_main_split = get_node_or_null("MainSplit") as HBoxContainer
+	if _main_split == null:
+		return
+	_body_scroll = ScrollContainer.new()
+	_body_scroll.name = "BodyScroll"
+	_body_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_body_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	_body_scroll.clip_contents = true
+	_body_scroll.mouse_filter = Control.MOUSE_FILTER_STOP
+	_body_vbox = VBoxContainer.new()
+	_body_vbox.name = "BodyVBox"
+	_body_vbox.add_theme_constant_override("separation", int(MAIN_TO_STRIP_GAP_PX))
+	_body_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_body_vbox.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	remove_child(_main_split)
+	remove_child(_craftable_panel)
+	_body_vbox.add_child(_main_split)
+	_body_vbox.add_child(_craftable_panel)
+	_body_scroll.add_child(_body_vbox)
+	add_child(_body_scroll)
+	## Header / ModeTabs / Category より手前、BottomNav / Fx より奥。
+	var cat_i: int = _category_row.get_index() if _category_row != null else 0
+	move_child(_body_scroll, cat_i + 1)
+	_prepare_body_child_for_vbox(_main_split)
+	_prepare_body_child_for_vbox(_craftable_panel)
+
+
+func _prepare_body_child_for_vbox(ctrl: Control) -> void:
+	if ctrl == null:
+		return
+	## 絶対配置から VBox 子へ切り替え。
+	ctrl.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	ctrl.anchor_right = 0.0
+	ctrl.anchor_bottom = 0.0
+	ctrl.offset_left = 0.0
+	ctrl.offset_top = 0.0
+	ctrl.offset_right = 0.0
+	ctrl.offset_bottom = 0.0
+	ctrl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	ctrl.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	ctrl.grow_vertical = Control.GROW_DIRECTION_END
+
+
+## 詳細パネルを縦スクロール可能にする（錬成などで内容がはみ出す対策）。
+func _ensure_detail_scroll() -> void:
+	if _detail_panel == null:
+		return
+	if _detail_panel.get_node_or_null("DetailScroll") != null:
+		_detail_scroll = _detail_panel.get_node("DetailScroll") as ScrollContainer
+		return
+	var detail_vbox: VBoxContainer = _detail_panel.get_node_or_null("DetailVBox") as VBoxContainer
+	if detail_vbox == null:
+		return
+	_detail_scroll = ScrollContainer.new()
+	_detail_scroll.name = "DetailScroll"
+	_detail_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_detail_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_detail_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	_detail_scroll.clip_contents = true
+	_detail_scroll.mouse_filter = Control.MOUSE_FILTER_STOP
+	_detail_panel.remove_child(detail_vbox)
+	_detail_scroll.add_child(detail_vbox)
+	_detail_panel.add_child(_detail_scroll)
+	detail_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	detail_vbox.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	detail_vbox.mouse_filter = Control.MOUSE_FILTER_PASS
+
+
+func _detail_vbox() -> VBoxContainer:
+	## DetailScroll 導入後はパスが変わるため、ノード参照経由で解決する。
+	if _title_label != null:
+		return _title_label.get_parent() as VBoxContainer
+	if _detail_scroll != null:
+		return _detail_scroll.get_node_or_null("DetailVBox") as VBoxContainer
+	if _detail_panel != null:
+		return _detail_panel.get_node_or_null("DetailVBox") as VBoxContainer
+	return null
+
+
+func _enable_forge_scroll_touch() -> void:
+	## 全体 BodyScroll ＋ 左一覧・詳細・下帯。
+	if _body_scroll != null:
+		ScrollTouchHelper.enable(_body_scroll)
+	var left_scroll: ScrollContainer = null
+	if _main_split != null:
+		left_scroll = _main_split.get_node_or_null("LeftScroll") as ScrollContainer
+	if left_scroll != null:
+		left_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+		left_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		## 子が親幅に潰されると縦スクロール不能。
+		if _left_list != null:
+			_left_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			_left_list.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		ScrollTouchHelper.enable(left_scroll)
+	if _detail_scroll != null:
+		_detail_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+		_detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		var detail_vbox: VBoxContainer = _detail_vbox()
+		if detail_vbox != null:
+			detail_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			detail_vbox.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		ScrollTouchHelper.enable(_detail_scroll)
+	if _craftable_scroll != null:
+		_craftable_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+		_craftable_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		if _craftable_row != null:
+			_craftable_row.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+			_craftable_row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		ScrollTouchHelper.enable(_craftable_scroll)
 
 
 func _setup_craftable_header() -> void:
@@ -174,8 +314,17 @@ func _setup_craftable_header() -> void:
 	_layout_craftable_strip()
 
 
+func _craftable_strip_natural_height() -> float:
+	## ヘッダ＋チップ全体が見切れない高さ（外枠マージン込み）。
+	var chip_h: float = float(BlacksmithUiHelper.CRAFTABLE_CHIP_HEIGHT)
+	var header_h: float = 22.0
+	if _craftable_header != null:
+		header_h = maxf(header_h, _craftable_header.get_combined_minimum_size().y)
+	return header_h + 4.0 + chip_h + 12.0
+
+
 func _layout_craftable_strip() -> void:
-	## 左右パネルを「カテゴリタブ下〜作成可能帯上」に厳密に収める。
+	## BodyScroll をカテゴリ下〜下ナビ上に置き、中で MainSplit＋素材帯を縦スクロール。
 	_fit_mode_tabs_height()
 	_fit_category_row_height()
 	var nav: Control = $BottomNav
@@ -184,47 +333,73 @@ func _layout_craftable_strip() -> void:
 		nav_h = maxf(BOTTOM_NAV_FALLBACK_H_PX, absf(nav.offset_top))
 		if nav.size.y > 1.0:
 			nav_h = maxf(nav_h, nav.size.y)
-	## 生産／錬成のみ下帯を確保。他モードはタブ下の一覧余白を揃える。
-	var strip_h: float = 0.0
-	if _craftable_panel.visible:
-		strip_h = CRAFTABLE_STRIP_HEIGHT_PX
 	var category_bottom: float = _category_row_bottom_px()
-	var main_top: float = category_bottom + MAIN_SPLIT_TOP_GAP_PX
-	var main_bottom: float = -(nav_h + strip_h + (MAIN_TO_STRIP_GAP_PX if strip_h > 0.0 else 8.0))
+	var body_top: float = category_bottom + MAIN_SPLIT_TOP_GAP_PX
+	var body_bottom: float = -(nav_h + 4.0)
+	var view_h: float = size.y
+	if view_h < 1.0:
+		view_h = 1280.0
+	var body_view_h: float = maxf(320.0, view_h - body_top - absf(body_bottom))
 
-	var main_split: Control = $MainSplit
-	main_split.anchor_left = 0.0
-	main_split.anchor_right = 1.0
-	main_split.anchor_top = 0.0
-	main_split.anchor_bottom = 1.0
-	main_split.offset_left = 8.0
-	main_split.offset_right = -8.0
-	main_split.offset_top = main_top
-	main_split.offset_bottom = main_bottom
-	## BOTH だと最小高超過時に上方向へ伸びて CategoryRow に重なる。
-	main_split.grow_vertical = Control.GROW_DIRECTION_END
-	main_split.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	main_split.clip_contents = true
-	main_split.z_index = 0
+	if _body_scroll != null:
+		_body_scroll.anchor_left = 0.0
+		_body_scroll.anchor_right = 1.0
+		_body_scroll.anchor_top = 0.0
+		_body_scroll.anchor_bottom = 1.0
+		_body_scroll.offset_left = 8.0
+		_body_scroll.offset_right = -8.0
+		_body_scroll.offset_top = body_top
+		_body_scroll.offset_bottom = body_bottom
+		_body_scroll.grow_vertical = Control.GROW_DIRECTION_END
+		_body_scroll.grow_horizontal = Control.GROW_DIRECTION_BOTH
+		_body_scroll.z_index = 0
 
-	## 下端アンカー固定（set_anchors_preset は offset を壊すことがあるので直書き）。
-	_craftable_panel.anchor_left = 0.0
-	_craftable_panel.anchor_right = 1.0
-	_craftable_panel.anchor_top = 1.0
-	_craftable_panel.anchor_bottom = 1.0
-	_craftable_panel.offset_left = 8.0
-	_craftable_panel.offset_right = -8.0
-	_craftable_panel.offset_bottom = -nav_h
-	_craftable_panel.offset_top = -(nav_h + maxf(strip_h, 1.0))
-	## 子の最小高で上方向に伸びて左右パネルへ乗るのを防ぐ。
-	_craftable_panel.grow_vertical = Control.GROW_DIRECTION_END
-	_craftable_panel.clip_contents = true
-	_craftable_panel.z_index = 2
-	_craftable_panel.add_theme_stylebox_override("panel", BlacksmithUiHelper.craftable_panel_style())
-	_craftable_scroll.custom_minimum_size = Vector2(0, CRAFTABLE_SCROLL_MIN_H)
-	_craftable_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_craftable_scroll.clip_contents = true
-	_detail_panel.clip_contents = true
+	if _body_vbox != null:
+		_body_vbox.custom_minimum_size = Vector2(maxf(0.0, size.x - 16.0), 0.0)
+		_body_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_body_vbox.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+
+	var strip_h: float = 0.0
+	if _craftable_panel != null and _craftable_panel.visible:
+		strip_h = _craftable_strip_natural_height()
+
+	if _main_split != null:
+		## 素材帯は初画面下部に見える高さ。足りなければ BodyScroll で下へ。
+		var main_min_h: float = body_view_h
+		if strip_h > 0.0:
+			main_min_h = maxf(
+				360.0,
+				body_view_h - strip_h - float(MAIN_TO_STRIP_GAP_PX)
+			)
+		_main_split.custom_minimum_size = Vector2(0, main_min_h)
+		_main_split.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_main_split.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		_main_split.clip_contents = true
+		_main_split.z_index = 0
+
+	if _craftable_panel != null:
+		_craftable_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_craftable_panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		_craftable_panel.custom_minimum_size = Vector2(0, strip_h if _craftable_panel.visible else 0.0)
+		## チップ見切れ防止（高さは natural で確保）。
+		_craftable_panel.clip_contents = false
+		_craftable_panel.z_index = 1
+		_craftable_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+		_craftable_panel.add_theme_stylebox_override("panel", BlacksmithUiHelper.craftable_panel_style())
+
+	if _craftable_scroll != null:
+		_craftable_scroll.custom_minimum_size = Vector2(0, float(BlacksmithUiHelper.CRAFTABLE_CHIP_HEIGHT))
+		_craftable_scroll.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		_craftable_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_craftable_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+		_craftable_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		_craftable_scroll.clip_contents = true
+	if _craftable_row != null:
+		## EXPAND だと親幅に潰されて横スクロール不能になる。
+		_craftable_row.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		_craftable_row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	if _detail_panel != null:
+		_detail_panel.clip_contents = true
 	_category_row.z_index = 3
 	var mode_tabs: Control = $ModeTabs
 	if mode_tabs != null:
@@ -258,14 +433,21 @@ func _category_row_bottom_px() -> float:
 
 func _setup_left_list_layout() -> void:
 	## 長い装備名で行の最小幅が LeftScroll を超えると、左アイコンが欠けて見える。
-	var left_scroll: ScrollContainer = $MainSplit/LeftScroll
+	var left_scroll: ScrollContainer = null
+	if _main_split != null:
+		left_scroll = _main_split.get_node_or_null("LeftScroll") as ScrollContainer
+	if left_scroll == null:
+		return
 	left_scroll.clip_contents = true
 	left_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	left_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	left_scroll.custom_minimum_size = Vector2(LEFT_LIST_MIN_WIDTH_PX, 0)
 	left_scroll.size_flags_stretch_ratio = LEFT_LIST_STRETCH_RATIO
 	_left_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_left_list.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_left_list.clip_contents = true
-	$MainSplit/DetailPanel.size_flags_stretch_ratio = DETAIL_STRETCH_RATIO
+	if _detail_panel != null:
+		_detail_panel.size_flags_stretch_ratio = DETAIL_STRETCH_RATIO
 	_layout_craftable_strip()
 
 
@@ -330,7 +512,9 @@ func _setup_hero_display_layout() -> void:
 
 func _ensure_hero_to_title_gap() -> void:
 	## 名前以降をまとめて下げる（ヒーロー直下の余白）。
-	var detail_vbox: VBoxContainer = $MainSplit/DetailPanel/DetailVBox
+	var detail_vbox: VBoxContainer = _detail_vbox()
+	if detail_vbox == null:
+		return
 	var gap: Control = detail_vbox.get_node_or_null("HeroTitleGap") as Control
 	if gap == null:
 		gap = Control.new()
@@ -535,7 +719,9 @@ func _setup_bulk_dismantle_button() -> void:
 	_bulk_dismantle_btn.pressed.connect(_on_bulk_dismantle_pressed)
 	# MainSplit(HBox) の第3列にすると縦に肥大化し左一覧を圧迫するため、
 	# 詳細パネル内・分解ボタン直下に置く。
-	var detail_vbox: VBoxContainer = $MainSplit/DetailPanel/DetailVBox
+	var detail_vbox: VBoxContainer = _detail_vbox()
+	if detail_vbox == null:
+		return
 	detail_vbox.add_child(_bulk_dismantle_btn)
 	detail_vbox.move_child(_bulk_dismantle_btn, _craft_button.get_index() + 1)
 
@@ -582,6 +768,7 @@ func _set_mode(mode: String) -> void:
 	_refresh_all()
 	_layout_craftable_strip()
 	call_deferred("_layout_craftable_strip")
+	call_deferred("_enable_forge_scroll_touch")
 
 
 func _apply_craft_button_style() -> void:
@@ -714,6 +901,8 @@ func _refresh_all() -> void:
 		_rebuild_craftable_strip()
 	elif _mode == "alchemy":
 		_rebuild_alchemy_fodder_strip()
+	## 一覧再生成後も全タブでタッチスクロールを維持。
+	call_deferred("_enable_forge_scroll_touch")
 
 func _update_currency() -> void:
 	_label_gold.text = "%d" % GameState.gold
@@ -925,8 +1114,10 @@ func _make_owned_list_card_shell(selected: bool, rarity: int) -> PanelContainer:
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(0, BlacksmithUiHelper.LIST_CARD_MIN_HEIGHT)
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	panel.clip_contents = true
-	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	## PASS: 左一覧の縦スクロールを奪わない。
+	panel.mouse_filter = Control.MOUSE_FILTER_PASS
 	panel.add_theme_stylebox_override(
 		"panel", BlacksmithUiHelper.list_card_style(selected, false, rarity)
 	)
@@ -1421,14 +1612,15 @@ func _rebuild_alchemy_detail() -> void:
 func _layout_detail_action_anchor() -> void:
 	## 錬成でコスト帯が空のとき、ボタン／ヒントを詳細枠下寄りへ押し下げる。
 	## 生産は下帯（作成可能）があるため、余白を詰めてボタンを枠内に残す。
+	## DetailScroll 導入後は EXPAND で無限伸長しない（スクロールで足りる）。
 	if _cost_button_gap == null:
 		return
 	var push_down: bool = _mode == "alchemy" and not _cost_panel.visible
 	if push_down:
-		_cost_button_gap.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		_cost_button_gap.custom_minimum_size = Vector2(0, 48)
+		_cost_button_gap.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		_cost_button_gap.custom_minimum_size = Vector2(0, 24)
 		if _craft_button_bottom_pad != null:
-			_craft_button_bottom_pad.custom_minimum_size = Vector2(0, 18)
+			_craft_button_bottom_pad.custom_minimum_size = Vector2(0, 12)
 	elif _mode == "produce":
 		_cost_button_gap.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		_cost_button_gap.custom_minimum_size = Vector2(0, 6)
@@ -1470,9 +1662,11 @@ func _rebuild_craftable_strip() -> void:
 		empty.text = "（作成可能なレシピはありません）"
 		empty.add_theme_color_override("font_color", COLOR_SUB_STRONG)
 		_craftable_row.add_child(empty)
+		call_deferred("_enable_forge_scroll_touch")
 		return
 	for craft in recipes:
 		_craftable_row.add_child(_make_craftable_chip(craft))
+	call_deferred("_enable_forge_scroll_touch")
 
 
 func _rebuild_alchemy_fodder_strip() -> void:
@@ -1484,6 +1678,7 @@ func _rebuild_alchemy_fodder_strip() -> void:
 		empty.text = "（まず左側で主材を選んでください）"
 		empty.add_theme_color_override("font_color", COLOR_SUB_STRONG)
 		_craftable_row.add_child(empty)
+		call_deferred("_enable_forge_scroll_touch")
 		return
 	var fodders: Array = _sorted_alchemy_fodder_candidates()
 	if fodders.is_empty():
@@ -1492,50 +1687,151 @@ func _rebuild_alchemy_fodder_strip() -> void:
 		empty2.add_theme_color_override("font_color", COLOR_SUB_STRONG)
 		_craftable_row.add_child(empty2)
 		_selected_alchemy_fodder = null
+		call_deferred("_enable_forge_scroll_touch")
 		return
 	if _selected_alchemy_fodder != null and _selected_alchemy_fodder not in fodders:
 		_selected_alchemy_fodder = null
 	for item in fodders:
 		_craftable_row.add_child(_make_alchemy_fodder_chip(item))
+	call_deferred("_enable_forge_scroll_touch")
 
 
-func _make_alchemy_fodder_chip(item: Resource) -> PanelContainer:
+func _make_alchemy_fodder_chip(item: Resource) -> Control:
 	var selected: bool = item == _selected_alchemy_fodder
 	var rarity: int = _EquipmentEnhancer.item_rarity(item)
 	var item_id: String = _item_id_for_category(item, _category)
-	var panel := PanelContainer.new()
-	var icon_px: int = BlacksmithUiHelper.list_icon_px()
-	panel.custom_minimum_size = Vector2(icon_px + 20, icon_px + 32)
-	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	panel.add_theme_stylebox_override(
-		"panel", BlacksmithUiHelper.list_card_style(selected, false, rarity)
+	var display_name: String = _EquipmentEnhancer.get_display_name(item)
+	## 外枠帯は無し。装備アイコン枠（レア枠）は残す。名前は長押し。
+	var cell_px: int = BlacksmithUiHelper.list_cell_px()
+	var host := Control.new()
+	host.custom_minimum_size = Vector2(cell_px, cell_px)
+	host.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	host.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	host.mouse_filter = Control.MOUSE_FILTER_PASS
+	host.clip_contents = true
+	host.tooltip_text = display_name
+	host.gui_input.connect(_on_alchemy_fodder_chip_input.bind(item))
+	var cell: Control = BlacksmithUiHelper.make_item_icon_cell(
+		item_id, _category, rarity, cell_px, selected
 	)
-	panel.gui_input.connect(_on_alchemy_fodder_chip_input.bind(item))
-	var col := VBoxContainer.new()
-	col.add_theme_constant_override("separation", 4)
-	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	col.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	col.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	panel.add_child(col)
-	col.add_child(_make_selectable_list_icon(item_id, _category, rarity, selected))
-	var name_lbl := Label.new()
-	name_lbl.text = _EquipmentEnhancer.get_display_name(item)
-	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_lbl.clip_text = true
-	name_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	UiTypography.apply_body(
-		name_lbl, UiTypography.SIZE_CAPTION, BlacksmithUiHelper.rarity_name_color(rarity)
-	)
-	col.add_child(name_lbl)
-	return panel
+	_set_mouse_filter_tree(cell, Control.MOUSE_FILTER_IGNORE)
+	cell.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	host.add_child(cell)
+	return host
 
 
 func _on_alchemy_fodder_chip_input(event: InputEvent, item: Resource) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		_selected_alchemy_fodder = item
+	if _fodder_pointer_down and _should_cancel_fodder_press_for_move(event):
+		_cancel_fodder_press()
+		return
+	if not _is_fodder_pointer_event(event):
+		return
+	if event.pressed:
+		_fodder_press_origin = _fodder_event_position(event)
+		_begin_fodder_press(item)
+	else:
+		_end_fodder_press()
+	## accept_event しない（横スクロールを奪わない）。
+
+
+func _is_fodder_pointer_event(event: InputEvent) -> bool:
+	if event is InputEventMouseButton:
+		return event.button_index == MOUSE_BUTTON_LEFT
+	if event is InputEventScreenTouch:
+		return true
+	return false
+
+
+func _fodder_event_position(event: InputEvent) -> Vector2:
+	if event is InputEventScreenTouch:
+		return (event as InputEventScreenTouch).position
+	if event is InputEventMouseButton:
+		return (event as InputEventMouseButton).position
+	if event is InputEventScreenDrag:
+		return (event as InputEventScreenDrag).position
+	if event is InputEventMouseMotion:
+		return (event as InputEventMouseMotion).position
+	return Vector2.ZERO
+
+
+func _should_cancel_fodder_press_for_move(event: InputEvent) -> bool:
+	if event is InputEventScreenDrag:
+		return (
+			_fodder_press_origin.distance_to((event as InputEventScreenDrag).position)
+			>= FODDER_PRESS_MOVE_CANCEL_PX
+		)
+	if event is InputEventMouseMotion:
+		var motion: InputEventMouseMotion = event as InputEventMouseMotion
+		if (motion.button_mask & MOUSE_BUTTON_MASK_LEFT) == 0:
+			return false
+		return _fodder_press_origin.distance_to(motion.position) >= FODDER_PRESS_MOVE_CANCEL_PX
+	return false
+
+
+func _begin_fodder_press(item: Resource) -> void:
+	_cancel_fodder_press()
+	_fodder_pointer_down = true
+	_fodder_long_press_fired = false
+	_fodder_press_item = item
+	_fodder_press_timer = get_tree().create_timer(FODDER_LONG_PRESS_SEC)
+	_fodder_press_timer.timeout.connect(_on_fodder_long_press_timeout)
+
+
+func _on_fodder_long_press_timeout() -> void:
+	if not _fodder_pointer_down or _fodder_press_item == null:
+		return
+	_fodder_long_press_fired = true
+	_show_fodder_name(_fodder_press_item)
+
+
+func _end_fodder_press() -> void:
+	if not _fodder_pointer_down:
+		return
+	_fodder_pointer_down = false
+	_cancel_fodder_press_timer_only()
+	if not _fodder_long_press_fired and _fodder_press_item != null:
+		_selected_alchemy_fodder = _fodder_press_item
 		_refresh_all()
+	_fodder_press_item = null
+
+
+func _cancel_fodder_press_timer_only() -> void:
+	if _fodder_press_timer != null:
+		if _fodder_press_timer.timeout.is_connected(_on_fodder_long_press_timeout):
+			_fodder_press_timer.timeout.disconnect(_on_fodder_long_press_timeout)
+		_fodder_press_timer = null
+
+
+func _cancel_fodder_press() -> void:
+	_fodder_pointer_down = false
+	_cancel_fodder_press_timer_only()
+	_fodder_press_item = null
+	_fodder_long_press_fired = false
+
+
+func _show_fodder_name(item: Resource) -> void:
+	if item == null or _label_status == null:
+		return
+	var name_text: String = _EquipmentEnhancer.get_display_name(item)
+	_label_status.text = name_text
+	_label_status.visible = true
+	_label_status.z_index = 40
+	_label_status.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	## 下帯上にトースト表示（省略名の代わり）。
+	_label_status.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	_label_status.offset_left = 16.0
+	_label_status.offset_right = -16.0
+	_label_status.offset_top = -210.0
+	_label_status.offset_bottom = -168.0
+	UiTypography.apply_body(_label_status, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
+	_label_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	## 短時間表示して消す。
+	var tw: Tween = create_tween()
+	tw.tween_interval(1.6)
+	tw.tween_callback(func() -> void:
+		if _label_status != null and _label_status.text == name_text:
+			_label_status.visible = false
+	)
 
 func _make_selectable_list_icon(
 	item_id: String,
@@ -1559,29 +1855,34 @@ func _set_mouse_filter_tree(node: Node, filter: Control.MouseFilter) -> void:
 func _make_craftable_chip(craft: Resource) -> PanelContainer:
 	var selected: bool = craft == _selected_craft
 	var panel := PanelContainer.new()
-	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	## PASS にして横スクロールを親 ScrollContainer に渡す。
+	panel.mouse_filter = Control.MOUSE_FILTER_PASS
 	panel.custom_minimum_size = Vector2(
 		BlacksmithUiHelper.CRAFTABLE_CHIP_WIDTH,
 		BlacksmithUiHelper.CRAFTABLE_CHIP_HEIGHT
 	)
+	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	panel.add_theme_stylebox_override("panel", BlacksmithUiHelper.craftable_strip_style(selected))
 	panel.gui_input.connect(_on_craftable_chip_input.bind(craft))
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 4)
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(col)
 	var icon_wrap := CenterContainer.new()
 	var cell_px: int = BlacksmithUiHelper.list_cell_px()
 	icon_wrap.custom_minimum_size = Vector2(cell_px, cell_px)
 	icon_wrap.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	icon_wrap.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	icon_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_child(icon_wrap)
 	var chip_rarity: int = BlacksmithUiHelper.output_rarity(craft)
-	icon_wrap.add_child(
-		BlacksmithUiHelper.make_item_icon_cell(
-			str(craft.output_id), str(craft.output_type), chip_rarity, cell_px, selected
-		)
+	var cell: Control = BlacksmithUiHelper.make_item_icon_cell(
+		str(craft.output_id), str(craft.output_type), chip_rarity, cell_px, selected
 	)
+	_set_mouse_filter_tree(cell, Control.MOUSE_FILTER_IGNORE)
+	icon_wrap.add_child(cell)
 	var can_make: bool = CraftHelper.can_craft(craft)
 	var name_lbl := Label.new()
 	name_lbl.text = BlacksmithUiHelper.output_display_name(craft)
@@ -1590,6 +1891,7 @@ func _make_craftable_chip(craft: Resource) -> PanelContainer:
 	name_lbl.max_lines_visible = 1
 	name_lbl.clip_text = true
 	name_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var name_col: Color = BlacksmithUiHelper.rarity_name_color(chip_rarity)
 	if not can_make:
 		name_col = name_col.darkened(0.25)

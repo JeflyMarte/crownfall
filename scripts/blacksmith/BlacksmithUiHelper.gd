@@ -168,7 +168,7 @@ static func simple_list_card_style(selected: bool, craftable: bool, rarity: int)
 	sb.set_border_width_all(0)
 	if selected:
 		sb.bg_color = Color(0.28, 0.24, 0.18, 0.55)
-		sb.set_border_width_all(2)
+		sb.set_border_width_all(1)
 		sb.border_color = rarity_color(rarity).lerp(Color(1.0, 1.0, 1.0), 0.25)
 	elif craftable:
 		sb.bg_color = Color(0.16, 0.22, 0.14, 0.35)
@@ -184,26 +184,20 @@ static func craftable_strip_style(selected: bool) -> StyleBox:
 	sb.set_border_width_all(0)
 	if selected:
 		sb.bg_color = Color(0.28, 0.24, 0.16, 0.55)
-		sb.set_border_width_all(2)
+		sb.set_border_width_all(1)
 		sb.border_color = Color(0.95, 0.82, 0.38, 0.9)
 	else:
 		sb.bg_color = Color(0.0, 0.0, 0.0, 0.0)
 	return sb
 
 
-## 下段「作成可能／素材にする装備」帯の外枠。
+## 下段「作成可能／素材にする装備」帯。外枠の金フレームは付けない（アイコン枠は別）。
 static func craftable_panel_style() -> StyleBox:
-	var textured: StyleBox = ForgeUiTokens.craftable_band_style()
-	if _texture_style_ok(textured):
-		return textured
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.08, 0.06, 0.05, 0.88)
-	sb.set_border_width_all(2)
-	sb.border_color = Color(0.86, 0.72, 0.32, 0.92)
+	sb.bg_color = Color(0.06, 0.05, 0.04, 0.55)
+	sb.set_border_width_all(0)
 	sb.set_corner_radius_all(8)
-	sb.set_content_margin_all(8.0)
-	sb.shadow_color = Color(0.0, 0.0, 0.0, 0.35)
-	sb.shadow_size = 4
+	sb.set_content_margin_all(6.0)
 	return sb
 
 static func material_chip_style(rarity: int, sufficient: bool, cell_px: int = -1) -> StyleBox:
@@ -688,10 +682,7 @@ static func mode_tab_style(active: bool) -> StyleBoxFlat:
 	sb.content_margin_top = 6.0
 	sb.content_margin_right = 10.0
 	sb.content_margin_bottom = 6.0
-	sb.border_width_left = 1
-	sb.border_width_top = 1
-	sb.border_width_right = 1
-	sb.border_width_bottom = 3 if active else 1
+	sb.set_border_width_all(1)
 	sb.border_color = Color(0.95, 0.78, 0.28, 1.0) if active else Color(0.38, 0.34, 0.30, 0.7)
 	return sb
 
@@ -703,11 +694,11 @@ static func category_tab_style(active: bool) -> StyleBoxFlat:
 	sb.content_margin_top = 4.0
 	sb.content_margin_right = 8.0
 	sb.content_margin_bottom = 4.0
-	sb.set_border_width_all(3 if active else 1)
+	sb.set_border_width_all(1)
 	sb.border_color = Color(0.95, 0.82, 0.38, 1.0) if active else Color(0.40, 0.36, 0.30, 0.72)
 	if active:
-		sb.shadow_color = Color(0.85, 0.65, 0.2, 0.35)
-		sb.shadow_size = 3
+		sb.shadow_color = Color(0.85, 0.65, 0.2, 0.25)
+		sb.shadow_size = 1
 	return sb
 
 static func notify_dot_style() -> StyleBoxFlat:

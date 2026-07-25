@@ -60,6 +60,10 @@ alwaysApply: true
 | 生産の「武器一覧」がカテゴリタブに重なる | `MainSplit.grow_vertical=BOTH` で最小高超過時に上方向へ伸長 | `GROW_DIRECTION_END` のみ。タブ下 gap≧40 |
 | 鍛冶タブ切替で装備アイコンが消える | `_setup_hero_display_layout` を `_refresh_all` 後に呼び `visible=false` で上書き | レイアウト調整→詳細再構築の順。layout では visible を触らない |
 | 装備（防具等）タップで強制終了 | `InputEvent.accept_event()` は存在しない（SCRIPT ERROR→デバッガで Abort） | `Control.accept_event()` を使う |
+| 鍛冶「作成可能」の黄色い外枠 | `CraftablePanel` の Texture 金枠 | `craftable_panel_style` は無枠 Flat。武器アイコン枠は残す |
+| 鍛冶素材帯が下見切れ／全体スクロール不能 | 帯を下端固定＋`clip`、または `CraftableRow` が EXPAND で潰れる | `BodyScroll` で MainSplit＋帯。Row は `SHRINK_BEGIN`。帯高はチップが見切れない natural |
+| 編成とキャラ画面でステが食い違う | 編成は `_selected` index→`party_members` の Affix、キャラは別経路／ベンチは Affix 空 | 表示は `RosterUiHelper.compute_member_stats`＋`AffixStatCalculator.get_bonuses_for_member` に統一 |
+| キャラ画面で他スキルを装備できない | `MAX_EQUIPPED_SKILLS=1` なのに満枠で「装備」ボタンを disabled | 未解放のみ disabled。満枠は `toggle_member_skill` で置換 |
 
 ## アセット取込（Desktop → プロジェクト）
 
