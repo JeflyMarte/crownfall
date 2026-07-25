@@ -26,7 +26,7 @@ const ENEMY_SPRITE_MAP: Dictionary = {
 	"blood_leech": "res://resources/animation/ENM_BloodLeech.tres",
 	"blood_bloom": "res://resources/animation/ENM_BloodBloom.tres",
 	"bloom_serpent": "res://resources/animation/ENM_BloomSerpent.tres",
-	"bone_picker": "res://resources/animation/ENM_GraveBellBat.tres",
+	"bone_picker": "res://resources/animation/ENM_BonePicker.tres",
 	"clock_moth": "res://resources/animation/ENM_ClockMoth.tres",
 	"crown_eater_rat": "res://resources/animation/ENM_CrownEaterRat.tres",
 	"crystal_scorpion": "res://resources/animation/ENM_CrystalScorpion.tres",
@@ -40,14 +40,14 @@ const ENEMY_SPRITE_MAP: Dictionary = {
 	"ice_tail_fox": "res://resources/animation/ENM_Vergaron.tres",
 	"iron_horn": "res://resources/animation/ENM_IronHorn.tres",
 	"marsh_king": "res://resources/animation/ENM_MarshKing.tres",
-	"mire_strider_spider": "res://resources/animation/ENM_SporeWidow.tres",
+	"mire_strider_spider": "res://resources/animation/ENM_MireStriderSpider.tres",
 	"mist_mantis": "res://resources/animation/ENM_MistMantis.tres",
 	"mirror_boa": "res://resources/animation/ENM_MirrorBoa.tres",
 	"mist_wyvern": "res://resources/animation/ENM_MistWyvern.tres",
 	"moss_boar": "res://resources/animation/ENM_MossBoar.tres",
 	"rock_bison": "res://resources/animation/ENM_RockBison.tres",
 	"moss_shell": "res://resources/animation/ENM_MossShell.tres",
-	"nightfen": "res://resources/animation/ENM_MarshKing.tres",
+	"nightfen": "res://resources/animation/ENM_Nightfen.tres",
 	"ninja_octopus": "res://resources/animation/ENM_NinjaOctopus.tres",
 	"oldrex": "res://resources/animation/ENM_Oldrex.tres",
 	"polar_tricera": "res://resources/animation/ENM_StormJoe.tres",
@@ -58,7 +58,7 @@ const ENEMY_SPRITE_MAP: Dictionary = {
 	"skullface_mantis": "res://resources/animation/ENM_SkullfaceMantis.tres",
 	"ship_eater_crab": "res://resources/animation/ENM_ShipEaterCrab.tres",
 	"skull_turtle": "res://resources/animation/ENM_SkullTurtle.tres",
-	"spore_needle_wasp": "res://resources/animation/ENM_MistMantis.tres",
+	"spore_needle_wasp": "res://resources/animation/ENM_SporeNeedleWasp.tres",
 	"spore_widow": "res://resources/animation/ENM_SporeWidow.tres",
 	"storm_joe": "res://resources/animation/ENM_StormJoe.tres",
 	"tide_lamp": "res://resources/animation/ENM_MistWyvern.tres",
@@ -547,6 +547,9 @@ const SWARM_BAR_HALF_W: float = 26.0
 const SWARM_BAR_HEIGHT: float = 8.0
 const SWARM_NAME_FONT_SIZE: int = 13
 const SWARM_NAME_HEIGHT: float = 20.0
+## 複数敵の名前が重ならないよう、スロットごとに右下へずらす（階段状）。
+const SWARM_NAME_STAIR_X: float = 24.0
+const SWARM_NAME_STAIR_Y: float = 16.0
 const SINGLE_BAR_HALF_W: float = 36.0
 const SINGLE_BAR_HEIGHT: float = 10.0
 const SINGLE_NAME_FONT_SIZE: int = 22
@@ -2306,7 +2309,8 @@ func _enemy_overlay_stack_top_y_in_root(sprite: AnimatedSprite2D, enemy_slot: in
 	var bar_ty: float = _enemy_hp_bar_top_y_in_root(sprite)
 	var swarming: bool = $CombatController.swarm_data.size() > 1
 	var name_height: float = SWARM_NAME_HEIGHT if swarming else SINGLE_NAME_HEIGHT
-	var name_ty: float = bar_ty - GAP_BAR_NAME - name_height
+	var stair_y: float = _swarm_nameplate_stair_offset(enemy_slot).y
+	var name_ty: float = bar_ty - GAP_BAR_NAME - name_height + stair_y
 	var stack_top: float = name_ty
 	var is_elite_lead: bool = (
 		enemy_slot == 0
@@ -2315,6 +2319,15 @@ func _enemy_overlay_stack_top_y_in_root(sprite: AnimatedSprite2D, enemy_slot: in
 	if is_elite_lead:
 		stack_top = name_ty - GAP_NAME_BADGE - BADGE_H
 	return stack_top
+
+
+## 群れネームプレートの階段オフセット（slot0=基準、以降は右下へ）。
+func _swarm_nameplate_stair_offset(slot: int) -> Vector2:
+	if slot <= 0:
+		return Vector2.ZERO
+	if $CombatController.swarm_data.size() <= 1:
+		return Vector2.ZERO
+	return Vector2(float(slot) * SWARM_NAME_STAIR_X, float(slot) * SWARM_NAME_STAIR_Y)
 
 func _update_status_icons() -> void:
 	var in_combat: bool = $CombatController.is_in_combat
@@ -6522,16 +6535,23 @@ func _position_swarm_overlay(slot: int) -> void:
 	var name_fs: int = SWARM_NAME_FONT_SIZE if swarming else SINGLE_NAME_FONT_SIZE
 	np.add_theme_font_size_override("font_size", name_fs)
 	var name_half_w: float = _nameplate_half_width(name_text, name_fs)
+	var stair: Vector2 = _swarm_nameplate_stair_offset(slot)
+	## HPバーはスプライト直上のまま。名前だけ階段状にずらす。
 	cx = clampf(center.x, name_half_w + 12.0, 720.0 - name_half_w - 12.0)
 	bar.offset_left = cx - bar_half_w
 	bar.offset_right = cx + bar_half_w
-	var name_ty: float = bar_ty - GAP_BAR_NAME - name_height
-	np.offset_left = cx - name_half_w
+	var name_cx: float = clampf(
+		center.x + stair.x,
+		name_half_w + 12.0,
+		720.0 - name_half_w - 12.0
+	)
+	var name_ty: float = bar_ty - GAP_BAR_NAME - name_height + stair.y
+	np.offset_left = name_cx - name_half_w
 	np.offset_top = name_ty
-	np.offset_right = cx + name_half_w
+	np.offset_right = name_cx + name_half_w
 	np.offset_bottom = name_ty + name_height
 	np.visible = true
-	_position_elite_name_badge(slot, cx, name_ty)
+	_position_elite_name_badge(slot, name_cx, name_ty)
 
 func _ensure_elite_name_badge() -> Label:
 	if _elite_name_badge != null and is_instance_valid(_elite_name_badge):
