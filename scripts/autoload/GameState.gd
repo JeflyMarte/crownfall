@@ -508,6 +508,9 @@ func note_abyss_floor_reached(dungeon_id: String, floor_1based: int) -> void:
 	## マイルストーンは「このランでその階に到達した」時点で判定（初回／再到達）。
 	const _AbyssMilestoneRewards := preload("res://scripts/dungeon/AbyssMilestoneRewards.gd")
 	_AbyssMilestoneRewards.try_claim_for_floor(dungeon_id, floor_1based)
+	## 99初回後の10Fマーカー：低確率＋ソフト天井（P3-DG-ABYSS-001-D）。
+	const _AbyssLegendaryDrop := preload("res://scripts/dungeon/AbyssLegendaryDrop.gd")
+	_AbyssLegendaryDrop.try_on_floor(dungeon_id, floor_1based)
 
 
 ## イベントDGの本日残り挑戦回数（無制限DGは -1）。

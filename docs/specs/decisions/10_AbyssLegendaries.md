@@ -35,7 +35,12 @@
 ## 付与
 
 - **99F初回**: `AbyssMilestoneRewards` → `AbyssLegendaryWeapons.grant_for_abyss`
-- 低確率ドロップ＋ソフト天井: **未実装**（後続 Task）
+- **99以降（P3-DG-ABYSS-001-D）**: `AbyssLegendaryDrop`
+  - 対象: 当該深層の **100 / 110 / 120…** 到達（99初回済みが前提）
+  - 基本確率 **5%**／マーカー
+  - ハズレごとに pity +1。**pity ≥ 10** の次マーカーで確定付与（最悪あと約100F）
+  - セーブ: `dungeon_progress[abyss_id].abyss_leg_pity`
+  - 重複所持を許可（量産しにくい天井付き）
 
 ## SSOT 実装
 
@@ -43,6 +48,7 @@
 - `CombatPassives` `eq_abyss_*`
 - `scripts/combat/AbyssWeaponEffects.gd`
 - `scripts/dungeon/AbyssLegendaryWeapons.gd`
+- `scripts/dungeon/AbyssLegendaryDrop.gd`
 
 ## 非要件
 
