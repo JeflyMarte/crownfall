@@ -55,8 +55,10 @@ Biome は、その両者が重なり合う場所である。
 | メイン×5 | mourngate / whisperwood / mistfen / blackshore / frostridge |
 | 寄り道×5 | astoria_ruins / green_hollow / broken_marsh / westbay_flats / frostwall_path |
 | 征討×8 | mourngate_deep / storm_crown_ruins / red_ridge_mine / mistfen_depths / thunder_peak / blackshore_abyss / red_forge_depths / north_reach |
+| 深層×5（Decision済・未実装） | `abyss_mourngate` / `abyss_whisperwood` / `abyss_mistfen` / `abyss_blackshore` / `abyss_frostridge`（**P3-DG-ABYSS-001**） |
 
-征討 Boss と解放条件の対応は `04_Classification §5.6`・`07_Geography §4.3`。
+征討 Boss と解放条件の対応は `04_Classification §5.6`・`07_Geography §4.3`。  
+深層は寄り道／征討と別枠（無限エンド・SSOT `docs/specs/decisions/09_BiomeAbyss.md`）。
 
 ---
 
