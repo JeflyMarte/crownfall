@@ -17,6 +17,7 @@ extends RefCounted
 ##   pet_outgoing_mult / threat_base_add
 ## weather_bonus（P3-EQ-WEATHER-LEG-001）: weather_id → element_outgoing_mult / outgoing_mult / crit_rate_add / refund_ct_fraction
 ## effect 追加: "chance_cast_equipped_skill"（攻撃後に装備スキルを確率発動）
+## action_skip_chance（常時）: 行動出番でこの確率で行動スキップ（状態異常スキップと独立）
 ## cooldown: CT 秒（0 = 都度発火可。on_combat_start は実質1回）
 
 const _DEFS: Dictionary = {
@@ -201,6 +202,18 @@ const _DEFS: Dictionary = {
 		"display_name": "水鳥の合図",
 		"description": "オトモが生存中、オトモの与ダメージが15%上昇する。",
 		"pet_outgoing_mult": 1.15,
+	},
+	## プール助っ人 — ホダカ★4（撃破鼓舞＋行動スキップ）
+	"hodaka_blood_price": {
+		"display_name": "血潮の代償",
+		"description": "敵撃破時、自身の攻撃力が上昇する（鼓舞）。行動出番でたまに行動できなくなる。",
+		"trigger": "on_kill",
+		"condition": "always",
+		"effect": "apply_status",
+		"status_id": "empower",
+		"target": "self",
+		"cooldown": 0.0,
+		"action_skip_chance": 0.20,
 	},
 	# ---- ジョブフォールバック補完（P3-D155） ----
 	"foresight": {
@@ -899,6 +912,36 @@ static func threat_base_add_for_member(member: Resource) -> float:
 		if def.has("threat_base_add"):
 			add += float(def["threat_base_add"])
 	return add
+
+
+## パッシブ固有の行動スキップ確率（合計。状態異常スキップとは別判定）。
+static func action_skip_chance_for_member(member: Resource) -> float:
+	if member == null:
+		return 0.0
+	var chance: float = 0.0
+	for raw_def: Variant in for_member(member):
+		if raw_def is not Dictionary:
+			continue
+		var def: Dictionary = raw_def
+		if str(def.get("category", "")) in ["relic", "weapon"]:
+			continue
+		chance += float(def.get("action_skip_chance", 0.0))
+	return clampf(chance, 0.0, 1.0)
+
+
+## 行動スキップ時のログ用ラベル（最初に action_skip_chance を持つパッシブ名）。
+static func action_skip_label_for_member(member: Resource) -> String:
+	if member == null:
+		return ""
+	for raw_def: Variant in for_member(member):
+		if raw_def is not Dictionary:
+			continue
+		var def: Dictionary = raw_def
+		if str(def.get("category", "")) in ["relic", "weapon"]:
+			continue
+		if float(def.get("action_skip_chance", 0.0)) > 0.0:
+			return str(def.get("display_name", ""))
+	return ""
 
 
 static func party_incoming_mult() -> float:

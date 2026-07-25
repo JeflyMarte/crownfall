@@ -63,6 +63,8 @@ var unit_ct: Dictionary = {}
 var _last_ct_step: float = 0.0
 # 詠唱中ペイロード（P3-D112）。key = "party_<i>" / "enemy_<slot>"。
 var _pending_casts: Dictionary = {}
+## 直前の should_member_skip がパッシブ固有スキップだったか（ラベル用・1回消費）。
+var _member_passive_skip: Dictionary = {}
 
 var party_combat_hp: Array[int] = []
 var party_max_hp: Array[int] = []
@@ -105,6 +107,7 @@ func start_combat(enemy_data: Resource, level: int = 1) -> void:
 func start_combat_group(enemies: Array, level: int = 1) -> void:
 	is_in_combat = true
 	clear_death_save_state()
+	_member_passive_skip.clear()
 	enemy_level = maxi(1, level)
 	var lf: float = float(enemy_level - 1)
 	swarm_data.clear()
@@ -817,11 +820,26 @@ func get_enemy_skip_action_label() -> String:
 func should_member_skip_action_at(member_index: int) -> bool:
 	if member_index < 0 or member_index >= party_combat_hp.size():
 		return false
-	return _status_resolver.should_skip_action("party_%d" % member_index)
+	_member_passive_skip.erase(member_index)
+	if _status_resolver.should_skip_action("party_%d" % member_index):
+		return true
+	var member: Resource = GameState.get_combatant(member_index)
+	var chance: float = CombatPassives.action_skip_chance_for_member(member)
+	if chance > 0.0 and randf() < chance:
+		_member_passive_skip[member_index] = true
+		return true
+	return false
 
 func get_member_skip_action_label_at(member_index: int) -> String:
 	if member_index < 0 or member_index >= party_combat_hp.size():
 		return ""
+	if bool(_member_passive_skip.get(member_index, false)):
+		_member_passive_skip.erase(member_index)
+		var member: Resource = GameState.get_combatant(member_index)
+		var label: String = CombatPassives.action_skip_label_for_member(member)
+		if not label.is_empty():
+			return label
+		return "パッシブ"
 	return _status_resolver.get_skip_action_label("party_%d" % member_index)
 
 # メンバーの遺物効果倍率（P3-D090）。メイン編成のみ（助っ人は遺物なし）。

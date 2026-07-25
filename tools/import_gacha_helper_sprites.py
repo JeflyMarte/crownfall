@@ -4,10 +4,17 @@
 Same pipeline as import_job_chr_sprites.py (P3-ART-CHR-002):
   walk/attack/hurt/death/idle → assets/characters/{helper_id}/
   SpriteFrames idle(=walk) → resources/animation/CHR_Helper_{suffix}.tres
+
+Optional portrait: ~/Downloads/{名前}.PNG|png → assets/gacha/portraits/ART_HELPER_{id}.png
+
+Usage:
+  python3 tools/import_gacha_helper_sprites.py           # all HELPER_MAP with zips present
+  python3 tools/import_gacha_helper_sprites.py ホダカ    # one helper only
 """
 from __future__ import annotations
 
 import shutil
+import sys
 import unicodedata
 import zipfile
 from pathlib import Path
@@ -19,6 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT_ROOT = ROOT / "assets" / "characters"
 ANIM_ROOT = ROOT / "resources" / "animation"
 HELPERS_ROOT = ROOT / "resources" / "gacha_helpers"
+PORTRAIT_ROOT = ROOT / "assets" / "gacha" / "portraits"
 WORK = Path("/tmp/crownfall_gacha_helper_import")
 TARGET = 232
 PAD_RATIO = 0.08
@@ -31,6 +39,7 @@ HELPER_MAP = {
 	"ミラ": ("helper_e", "CHR_Helper_e"),
 	"カイダ": ("helper_f", "CHR_Helper_f"),
 	"ガルム": ("helper_i", "CHR_Helper_i"),
+	"ホダカ": ("helper_p", "CHR_Helper_p"),
 }
 
 ANIM_MAP = {
@@ -47,13 +56,15 @@ def nfc(s: str) -> str:
 	return unicodedata.normalize("NFC", s)
 
 
-def extract_zips() -> Path:
+def extract_zips(only: set[str] | None = None) -> Path:
 	if WORK.exists():
 		shutil.rmtree(WORK)
 	WORK.mkdir(parents=True)
 	for zpath in sorted(DOWNLOADS.glob("*.zip")):
 		name = nfc(zpath.stem)
 		if name not in HELPER_MAP:
+			continue
+		if only is not None and name not in only:
 			continue
 		dest = WORK / name
 		dest.mkdir(parents=True, exist_ok=True)
@@ -232,20 +243,68 @@ def write_sprite_frames(folder_id: str, tres_stem: str, counts: dict[str, int]) 
 	return f"res://resources/animation/{tres_stem}.tres"
 
 
-def patch_helper_tres(helper_id: str, sprite_path: str) -> None:
-	tres_path = HELPERS_ROOT / f"{helper_id}.tres"
-	if not tres_path.exists():
-		raise FileNotFoundError(tres_path)
-	text = tres_path.read_text(encoding="utf-8")
-	needle = 'sprite_resource_path = "'
+def _set_tres_field(text: str, field: str, value: str) -> str:
+	needle = f'{field} = "'
 	start = text.find(needle)
 	if start < 0:
-		raise ValueError(f"{tres_path}: missing sprite_resource_path")
+		raise ValueError(f"missing {field}")
 	start += len(needle)
 	end = text.find('"', start)
-	text = text[:start] + sprite_path + text[end:]
+	return text[:start] + value + text[end:]
+
+
+def find_helper_tres(helper_id: str) -> Path:
+	for candidate in (
+		HELPERS_ROOT / f"{helper_id}.tres",
+		HELPERS_ROOT / "_omitted" / f"{helper_id}.tres",
+	):
+		if candidate.exists():
+			return candidate
+	raise FileNotFoundError(f"helper tres not found: {helper_id}")
+
+
+def patch_helper_tres(helper_id: str, *, sprite_path: str | None = None, portrait_path: str | None = None) -> None:
+	tres_path = find_helper_tres(helper_id)
+	text = tres_path.read_text(encoding="utf-8")
+	if sprite_path is not None:
+		text = _set_tres_field(text, "sprite_resource_path", sprite_path)
+	if portrait_path is not None:
+		text = _set_tres_field(text, "portrait_resource_path", portrait_path)
 	tres_path.write_text(text, encoding="utf-8")
-	print(f"  patched {tres_path.relative_to(ROOT)} → {sprite_path}")
+	bits: list[str] = []
+	if sprite_path:
+		bits.append(f"sprite={sprite_path}")
+	if portrait_path:
+		bits.append(f"portrait={portrait_path}")
+	print(f"  patched {tres_path.relative_to(ROOT)} → {', '.join(bits)}")
+
+
+def find_portrait_source(folder_name: str) -> Path | None:
+	for p in DOWNLOADS.iterdir():
+		if not p.is_file():
+			continue
+		if nfc(p.stem) != folder_name:
+			continue
+		if p.suffix.lower() in (".png", ".jpg", ".jpeg", ".webp"):
+			return p
+	return None
+
+
+def import_portrait(folder_name: str, helper_id: str) -> str | None:
+	src = find_portrait_source(folder_name)
+	if src is None:
+		print(f"  portrait: skip (no ~/Downloads/{folder_name}.PNG)")
+		return None
+	PORTRAIT_ROOT.mkdir(parents=True, exist_ok=True)
+	out = PORTRAIT_ROOT / f"ART_HELPER_{helper_id}.png"
+	im = Image.open(src).convert("RGBA")
+	im.save(out)
+	# .import は Godot `--import` に任せる（手書き dest hash は壊れる）
+	old_imp = out.with_suffix(out.suffix + ".import")
+	if old_imp.exists():
+		old_imp.unlink()
+	print(f"  portrait: {src.name} → {out.relative_to(ROOT)} ({im.size[0]}x{im.size[1]})")
+	return f"res://assets/gacha/portraits/{out.name}"
 
 
 def process_helper(folder_name: str, helper_id: str, tres_stem: str) -> None:
@@ -261,15 +320,25 @@ def process_helper(folder_name: str, helper_id: str, tres_stem: str) -> None:
 		names = export_anim(src, helper_id, key)
 		counts[key] = len(names)
 	sprite_path = write_sprite_frames(helper_id, tres_stem, counts)
-	patch_helper_tres(helper_id, sprite_path)
+	portrait_path = import_portrait(folder_name, helper_id)
+	patch_helper_tres(helper_id, sprite_path=sprite_path, portrait_path=portrait_path)
 
 
 def main() -> None:
-	extract_zips()
-	missing = [n for n in HELPER_MAP if not any(nfc(p.name) == n for p in WORK.iterdir())]
+	only: set[str] | None = None
+	if len(sys.argv) > 1:
+		only = {nfc(a) for a in sys.argv[1:]}
+		unknown = only - set(HELPER_MAP)
+		if unknown:
+			raise SystemExit(f"unknown helper name(s): {sorted(unknown)}")
+	extract_zips(only)
+	targets = only if only is not None else set(HELPER_MAP)
+	present = {nfc(p.name) for p in WORK.iterdir() if p.is_dir()}
+	missing = sorted(targets - present)
 	if missing:
 		raise SystemExit(f"missing zips/folders: {missing}")
-	for folder, (helper_id, tres_stem) in HELPER_MAP.items():
+	for folder in sorted(targets):
+		helper_id, tres_stem = HELPER_MAP[folder]
 		process_helper(folder, helper_id, tres_stem)
 	print("\nDONE")
 

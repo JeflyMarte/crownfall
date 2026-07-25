@@ -3,9 +3,13 @@ extends GutTest
 ## P3-GACHA-STAGED-001 — プール外助っ人は排出に出ない。
 
 
-func test_pool_still_six() -> void:
+func test_pool_seven_with_hodaka() -> void:
 	var pool: Array = DataRegistry.get_all_gacha_helper_data()
-	assert_eq(pool.size(), 6)
+	assert_eq(pool.size(), 7)
+	var ids: Dictionary = {}
+	for h: Resource in pool:
+		ids[str(h.id)] = true
+	assert_true(ids.has("helper_p"), "ホダカは排出プール")
 
 
 func test_staged_helpers_load_from_omitted() -> void:
@@ -25,3 +29,4 @@ func test_staged_not_in_pool_ids() -> void:
 		ids[str(h.id)] = true
 	for hid: String in ["helper_k", "helper_l", "helper_m", "helper_n", "helper_o"]:
 		assert_false(ids.has(hid), hid)
+	assert_true(ids.has("helper_p"))
