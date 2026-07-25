@@ -34,7 +34,7 @@ func test_33_first_then_repeat() -> void:
 	var g1: Array = _AbyssMilestoneRewards.try_claim_for_floor("abyss_mourngate", 33)
 	assert_eq(g1.size(), 1)
 	assert_eq(str(g1[0].get("kind", "")), "first")
-	assert_eq(GameState.last_run_token_reward, 8)
+	assert_eq(GameState.last_run_token_reward, 100)
 	assert_eq(GameState.get_material_quantity("epic_ore"), 5)
 	assert_eq(GameState.get_material_quantity("elite_relic_shard"), 2)
 	GameState.material_inventory = {}
@@ -49,7 +49,7 @@ func test_33_first_then_repeat() -> void:
 func test_66_grants_limit_break_ticket() -> void:
 	_AbyssMilestoneRewards.try_claim_for_floor("abyss_whisperwood", 66)
 	assert_eq(_TicketInventory.get_qty("ticket_lb_star3"), 1)
-	assert_eq(GameState.last_run_token_reward, 20)
+	assert_eq(GameState.last_run_token_reward, 200)
 
 
 func test_endless_bag_once_per_floor() -> void:

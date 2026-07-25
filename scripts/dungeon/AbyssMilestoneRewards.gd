@@ -13,10 +13,11 @@ const ENDLESS_BAG_STEP: int = 10
 
 ## floor → { "first": {...}, "repeat": {...} }
 ## materials: { id: qty }, tokens: int, tickets: { id: qty }, abyss_legendary: bool
+## P3-BAL-ECO-001: 深層魔晶石を通常クリア帯より厚く（初回100/200/300）
 const REWARDS: Dictionary = {
 	33: {
 		"first": {
-			"tokens": 8,
+			"tokens": 100,
 			"materials": {"epic_ore": 5, "elite_relic_shard": 2},
 		},
 		"repeat": {
@@ -25,23 +26,23 @@ const REWARDS: Dictionary = {
 	},
 	66: {
 		"first": {
-			"tokens": 20,
+			"tokens": 200,
 			"materials": {"epic_ore": 8, "elite_relic_shard": 3},
 			"tickets": {"ticket_lb_star3": 1},
 		},
 		"repeat": {
-			"tokens": 5,
+			"tokens": 25,
 			"materials": {"epic_ore": 3},
 		},
 	},
 	99: {
 		"first": {
-			"tokens": 30,
+			"tokens": 300,
 			"materials": {"elite_relic_shard": 5},
 			"abyss_legendary": true,
 		},
 		"repeat": {
-			"tokens": 10,
+			"tokens": 50,
 			"materials": {"elite_relic_shard": 3},
 		},
 	},

@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-07-25（**P3-BAL-ECO-001 GO**: クリア魔晶石35–65／深層100・200・300／日課撃破Gold50+魔晶石15／素材供給微量強化／炉研ぎ・錬成金シンク。統合＋`main`）
 2026-07-25（**P3-BAL-ALLY-FIX-001 GO**: snare→chill／BT極意／連携自己付与／タイタンロア・野戦調合。統合＋`main`）
 2026-07-25（**P3-BAL-ENEMY-SKILL-FIT-001／FROST-WEAK-FIRE-001 GO**: 敵スキル適合＋フロストリッジ火弱点。統合＋`main`）
 2026-07-25（**P3-PET-VARIANT-001 三角スキル**: Jack火力／Ash守り（威嚇＋味方Guard）／Ink崩し（Bleed＋Slow）。Decision更新）

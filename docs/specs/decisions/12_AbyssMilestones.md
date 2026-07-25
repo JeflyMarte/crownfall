@@ -1,20 +1,21 @@
-# 深層マイルストーン報酬（P3-DG-ABYSS-001-B）
+# 深層マイルストーン報酬（P3-DG-ABYSS-001-B / P3-BAL-ECO-001）
 
 **Status:** SSOT（Decision 承認済）  
 **Approved:** 2026-07-25  
-**Parent:** `09_BiomeAbyss.md`
+**Parent:** `09_BiomeAbyss.md`  
+**Override:** 魔晶石数量は **P3-BAL-ECO-001**（通常クリア帯より厚く）
 
 ## 方針
 
-案R（推奨数量）＋66Fは **R1（★3限界突破券）**。
+案R（素材・券）＋66Fは **R1（★3限界突破券）**。魔晶石は経済点検で引き上げ。
 
 ## 確定表
 
 | 到達 | 初回 | 2回目以降 |
 |---|---|---|
-| **33F** | 魔晶石8＋`epic_ore`×5＋`elite_relic_shard`×2 | `epic_ore`×2 |
-| **66F** | 魔晶石20＋`ticket_lb_star3`×1＋`epic_ore`×8＋`elite_relic_shard`×3 | 魔晶石5＋`epic_ore`×3 |
-| **99F** | 深層限定レジェンド確定（本体は **001-C**）＋魔晶石30＋`elite_relic_shard`×5 | 魔晶石10＋`elite_relic_shard`×3 |
+| **33F** | 魔晶石**100**＋`epic_ore`×5＋`elite_relic_shard`×2 | `epic_ore`×2 |
+| **66F** | 魔晶石**200**＋`ticket_lb_star3`×1＋`epic_ore`×8＋`elite_relic_shard`×3 | 魔晶石**25**＋`epic_ore`×3 |
+| **99F** | 深層限定レジェンド確定（本体は **001-C**）＋魔晶石**300**＋`elite_relic_shard`×5 | 魔晶石**50**＋`elite_relic_shard`×3 |
 | **100F〜**（10の倍数） | `epic_ore`×1（各階・一生一回） | — |
 
 ## 付与ルール

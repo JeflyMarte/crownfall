@@ -43,7 +43,10 @@ const TREASURE_ACCESSORY_CHANCE: float = 0.2
 const ELITE_REWARD_MULTIPLIER: float = 1.5
 const ELITE_ARMOR_CHANCE: float = 0.35
 const ELITE_ACCESSORY_CHANCE: float = 0.25
-const ELITE_MATERIAL_CHANCE: float = 0.20
+## P3-BAL-ECO-001: エリート骨鉱 20%→25%（素材優先は +10pt）
+const ELITE_MATERIAL_CHANCE: float = 0.25
+## P3-BAL-ECO-001: ボス深層結晶ボーナス 35%→45%
+const BOSS_EPIC_ORE_CHANCE: float = 0.45
 const DISCOVERY_PER_ROOM: float = 0.05
 const DISCOVERY_BOSS_BONUS: float = 0.20
 
@@ -1274,9 +1277,9 @@ func apply_elite_bonus_loot() -> Dictionary:
 		_generate_accessory_loot()
 		bonus["accessory_id"] = last_accessory_dropped
 	var material_chance: float = ELITE_MATERIAL_CHANCE
-	# 探索方針（素材優先）ELITE 素材ドロップ率↑（P3-D098）
+	# 探索方針（素材優先）ELITE 素材ドロップ率↑（P3-D098 / P3-BAL-ECO-001）
 	if GameState.get_exploration_policy() == "material":
-		material_chance = 0.30
+		material_chance = 0.35
 	if randf() < material_chance:
 		var amount: int = EventSystem.get_elite_material_amount(1)
 		bonus["material_id"] = EquipmentEnhancer.RARE_ORE_ID
@@ -1292,7 +1295,7 @@ func apply_boss_material_loot() -> Dictionary:
 	amount = EventSystem.get_elite_material_amount(amount)
 	GameState.add_material(EquipmentEnhancer.LEGEND_ORE_ID, amount)
 	var epic_bonus: Dictionary = {}
-	if randf() < 0.35:
+	if randf() < BOSS_EPIC_ORE_CHANCE:
 		GameState.add_material(EquipmentEnhancer.EPIC_ORE_ID, 1)
 		epic_bonus = {"material_id": EquipmentEnhancer.EPIC_ORE_ID, "amount": 1}
 	return {

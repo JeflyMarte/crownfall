@@ -5,6 +5,7 @@ const _EquipmentRollHelper = preload("res://scripts/equipment/EquipmentRollHelpe
 const _AccessoryStatResolver = preload("res://scripts/equipment/AccessoryStatResolver.gd")
 const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _ElementResolver = preload("res://scripts/combat/ElementResolver.gd")
+const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 
 ## 鍛冶屋「炉研ぎ」— 武器・防具・装飾 +1〜+5（P3-D152 / P3-FORGE-002）。
 ## 装備レベル成長 — P3-EQ-LVL-001。分解 — P3-FORGE-003。
@@ -24,18 +25,22 @@ const EQUIP_EXP_PER_LEVEL: int = 5
 const DISMANTLE_CRAFT_RETURN_CAP: float = 0.6
 ## 錬成 — P3-FORGE-ALCHEMY-001
 const ALCHEMY_LEVEL_FACTOR: float = 0.5
-const ALCHEMY_GOLD_PER_GAIN: int = 20
+## P3-BAL-ECO-001: 錬成金コスト 20→30／炉研ぎ金を約1.5〜1.6倍
+const ALCHEMY_GOLD_PER_GAIN: int = 30
 const ALCHEMY_CONFIRM_ENHANCE_LEVEL: int = 3
 
 const GOLD_BY_NEXT_LEVEL: Dictionary = {
-	1: 30,
-	2: 50,
-	3: 80,
-	4: 120,
-	5: 180,
+	1: 50,
+	2: 80,
+	3: 120,
+	4: 180,
+	5: 280,
 }
 
-## 炉研ぎ消費素材＝戦闘ドロップの唯一対象（P3-MAT-004）。
+## 炉研ぎ消費素材（P3-MAT-004）。供給レーンは P3-BAL-ECO-001 で明文化:
+## ・雑魚 COMBAT＝基礎鉱／遺跡結晶のみ（Hard/NM は微量で蒼古の骨鉱）
+## ・エリート＝蒼古の骨鉱チャンス
+## ・ボス＝王墓の欠片確定＋深層結晶ボーナス／深層マイルストーン＝上級袋
 const ENHANCEMENT_MATERIAL_IDS: Array[String] = [
 	COMMON_MATERIAL_ID,
 	BASE_ORE_ID,
@@ -45,6 +50,9 @@ const ENHANCEMENT_MATERIAL_IDS: Array[String] = [
 ]
 const COMBAT_DROP_MATERIAL_IDS: Array[String] = [BASE_ORE_ID, COMMON_MATERIAL_ID]
 const EVENT_DROP_MATERIAL_IDS: Array[String] = [BASE_ORE_ID, COMMON_MATERIAL_ID]
+## Hard / Nightmare 雑魚からの骨鉱微量（P3-BAL-ECO-001）
+const HARD_COMBAT_RARE_ORE_CHANCE: float = 0.10
+const NIGHTMARE_COMBAT_RARE_ORE_CHANCE: float = 0.15
 
 static func is_enhancement_material(material_id: String) -> bool:
 	return material_id in ENHANCEMENT_MATERIAL_IDS
@@ -65,6 +73,14 @@ static func forge_material_display_names() -> PackedStringArray:
 	return parts
 
 static func pick_combat_drop_material() -> String:
+	var tier: int = int(GameState.current_dungeon_tier) if GameState != null else 0
+	var rare_chance: float = 0.0
+	if tier >= _DungeonTierConfig.TIER_NIGHTMARE:
+		rare_chance = NIGHTMARE_COMBAT_RARE_ORE_CHANCE
+	elif tier >= _DungeonTierConfig.TIER_HARD:
+		rare_chance = HARD_COMBAT_RARE_ORE_CHANCE
+	if rare_chance > 0.0 and randf() < rare_chance:
+		return RARE_ORE_ID
 	if COMBAT_DROP_MATERIAL_IDS.is_empty():
 		return BASE_ORE_ID
 	return COMBAT_DROP_MATERIAL_IDS[0] if randf() < 0.65 else COMBAT_DROP_MATERIAL_IDS[1]
