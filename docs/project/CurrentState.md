@@ -4,7 +4,11 @@
 
 ## Last Update
 
+2026-07-25（**P3-BAL-ALLY-FIX-001 GO**: snare→chill／BT極意／連携自己付与／タイタンロア・野戦調合。統合＋`main`）
 2026-07-25（**P3-BAL-ENEMY-SKILL-FIT-001／FROST-WEAK-FIRE-001 GO**: 敵スキル適合＋フロストリッジ火弱点。統合＋`main`）
+2026-07-25（**P3-PET-VARIANT-001 三角スキル**: Jack火力／Ash守り（威嚇＋味方Guard）／Ink崩し（Bleed＋Slow）。Decision更新）
+2026-07-25（**P3-PET-VARIANT-001 Impl**: アッシュ／インク色変えオトモ。U1＝1-5／2-5クリア解放。編成ペットタブで切替。セーブ v12 `owned_pet_ids`。承認待ち）
+2026-07-25（**P3-PET-VARIANT-001 Decision**: 色変え別オトモ＝アッシュ／インク。運用1＝見た目コレのみ。U1＝mourngate_1_5／whisperwood_2_5）
 2026-07-25（**P3-ENEMY-TIER-VAR-004/005 GO**: ミストフェン＋ブラックショア Hard/NM 色・呼称・個性化。統合＋`main`）
 2026-07-25（**P3-ENEMY-TIER-VAR-003 GO**: ウィスパーウッド全雑魚＋ELITE＋グランヴェルを Hard/NM 色・呼称・個性化。統合＋`main`）
 2026-07-25（**P3-DG-ABYSS-001-D Impl**: 99以降・100/110…で深層レジェンド5%＋ソフト天井10。セーブ `abyss_leg_pity`）

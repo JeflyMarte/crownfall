@@ -2707,12 +2707,13 @@
 
 ### 色変え別オトモ2体（2026-07-25 — P3-PET-VARIANT-001）
 
-> **オーナー確定** — 案Aアッシュ＋案Dインク。枠組み＝**運用1（見た目コレのみ）**。ステ／スキル／装備規則はジャックと同一。
+> **オーナー確定** — 案Aアッシュ＋案Dインク。枠組み＝**運用1（Lv/EXP共有・ステ同一）＋三角スキル役割**（火力／守り／崩し）。
 
 | # | 決定 | 根拠 |
 |---|---|---|
 | P3-PET-VARIANT-001-1 | **追加個体** — `pet_ash`（アッシュ・灰白）／`pet_ink`（インク・黒紫影毛）。同種伴侶獣の別個体 | オーナー選定 |
-| P3-PET-VARIANT-001-2 | **差分は見た目＋表示名のみ**。HP/ATK/DEF・スキル・Threat・★帯はジャック完全同一 | 運用1・バランス議論を増やさない |
+| P3-PET-VARIANT-001-2 | **差分は見た目＋表示名＋所持スキル2本**。HP/ATK/DEF・Threat基準・★帯はジャック同一。役割＝ジャック火力／アッシュ守り／インク崩し（三角） | オーナー GO（旧「スキル同一」を更新） |
+| P3-PET-VARIANT-001-2a | **スキル割当** — Jack=`pet_nibble`+`pet_pounce`／Ash=`pet_ash_bark`（自Guard＋Taunt）+`pet_ash_guard`（味方Guard）／Ink=`pet_ink_fang`（Bleed）+`pet_ink_snare`（Slow） | 三角案 GO |
 | P3-PET-VARIANT-001-3 | **ドット** — `PET_Jack` シートの色替え（Hard/NM敵と同手法）。専用新規ドットは不要 | 工数／一貫性 |
 | P3-PET-VARIANT-001-4 | **出撃は常時1体**。所持リストから切替（P3-PET-OTOMO-001-6 を本実装） | 既存Decisionの拡張完遂 |
 | P3-PET-VARIANT-001-5 | **入手** — アッシュ＝メイン① **1-5クリア**／インク＝メイン② **2-5クリア**（ストーリーのみ・招待状不可） | オーナー U1 |
@@ -2728,7 +2729,7 @@
 
 | # | 決定 | 根拠 |
 |---|---|---|
-| P3-BT-PET-LINK-001-1 | Lv6=`pet_bond_rally`（相棒鼓舞）／Lv48=`pet_command_fang`（指揮の牙）／Lv50=`pet_bond_guard`（絆の守り） | ペット強化を混ぜる |
+| P3-BT-PET-LINK-001-1 | Lv6=`pet_bond_rally`（相棒鼓舞）／Lv48=`pet_command_fang`（指揮の牙）／Lv50=`pet_bond_guard`（絆の守り） → **2026-07-25 上書き:** Lv42=指揮の牙／Lv48=絆の守り／Lv50=`apex_tame`（P3-BAL-ALLY-FIX-001-2） | ペット強化を混ぜる／到達技対称 |
 | P3-BT-PET-LINK-001-2 | `herd_call`→**群れの號令** — オトモ本鼓舞＋他味方は弱い鼓舞 | 既存枠の意味付け |
 | P3-BT-PET-LINK-001-3 | ミレイ固有→**相棒共鳴**（オトモ与ダメ+20%） | 案A |
 | P3-BT-PET-LINK-001-4 | 職FB `pack_instinct`→**群れの指揮**（オトモ与ダメ+10%） | 案A・ミレイより弱 |
@@ -4524,6 +4525,34 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | # | 決定 | 根拠 |
 |---|---|---|
 | P3-BAL-FROST-WEAK-FIRE-001 | フロストリッジ系敵（雑魚／ELITE／ボス／関連寄り道の霜敵）の `element_weakness` を **fire** に統一。ice 弱点は外す。`rock_bison` は横断種のため従来どおり fire | オーナー指示。P3-BAL-ENEMY-SKILL-FIT-001-5／P3-D161-1 の砕氷方針を上書き |
+
+## 味方バランス修正（2026-07-25 — P3-BAL-ALLY-FIX-001）
+> **オーナー指示** — 点検推奨1・2を先に修正。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-ALLY-FIX-001-1 | `mira_beast_call`／`tamer_whistle` の付与状態を **snare→chill**（拘束表現は既存 snare_shot と同系） | 未定義 status によるパッシブ不発を解消 |
+| P3-BAL-ALLY-FIX-001-2 | BT習得 Lv50=`apex_tame`。オトモ3種は Lv6/42/48 維持。借用 `hex_bolt` は習得から外す | 他職と到達技の対称性。P3-BT-PET-LINK-001-1 の Lv50=絆の守りを上書き（絆の守りは Lv48へ） |
+
+## 味方連携技 案B（2026-07-25 — P3-BAL-ALLY-FIX-001-3B）
+> **オーナー指示** — 推奨3は案B（連携技自身に軽い付与）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-ALLY-FIX-001-3B-1 | 連携5技（恐怖追撃／崩呪／連刃／追標射／猛毒噴射）に **自己付与〜35%** を付与 | 1枠でも単体運用可 |
+| P3-BAL-ALLY-FIX-001-3B-2 | 同技の `reserve_condition` を **空** に（温存ゲート解除） | 温存ありだと自己付与まで到達不能なため必須 |
+| P3-BAL-ALLY-FIX-001-3B-3 | 猛毒噴射は poison 主付与＋vulnerable 副次（従来の脆化を残す） | 毒コンボ種としての識別 |
+
+## 味方必殺／エリアス（2026-07-25 — P3-BAL-ALLY-FIX-001-4）
+> **オーナー GO** — 推奨 A1＋B1。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-ALLY-FIX-001-4-A1 | `titan_roar` — power **2.7**／CD **30**／stun **0.55**（fear 副次は据置） | タンク必殺の決め技感。デッドアイ3.0は超えない |
+| P3-BAL-ALLY-FIX-001-4-B1 | `elias_field_elixir` — 入場全体回復 **30%→20%** | 安心感は残し毎戦保険を弱める |
+
+
+
 
 
 
