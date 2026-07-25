@@ -4418,3 +4418,17 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-DG-ABYSS-LEG-001-7 | **スコープ外** — 基礎数値／Mythic／防具装飾／セット効果 | Impl・別Decision |
 
 **SSOT:** `docs/specs/decisions/10_AbyssLegendaries.md`
+
+## 深層ダンジョン正式名（2026-07-25 — P3-DG-ABYSS-NAME-001）
+> **オーナー指定** — `無限`＋ダンジョン通称＋`の最果て`。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-ABYSS-NAME-001-1 | 命名規則 — `無限`＋本編通称＋`の最果て` | オーナー指示・単純明快 |
+| P3-DG-ABYSS-NAME-001-2 | `abyss_mourngate` → **無限モーンゲートの最果て** | 同上 |
+| P3-DG-ABYSS-NAME-001-3 | `abyss_whisperwood` → **無限ウィスパーウッドの最果て** | 同上 |
+| P3-DG-ABYSS-NAME-001-4 | `abyss_mistfen` → **無限ミストフェンの最果て** | 同上 |
+| P3-DG-ABYSS-NAME-001-5 | `abyss_blackshore` → **無限ブラックショアの最果て** | 同上 |
+| P3-DG-ABYSS-NAME-001-6 | `abyss_frostridge` → **無限フロストリッジの最果て** | 同上（本編「最果て氷裂」とは通称で区別） |
+
+**SSOT:** `docs/specs/decisions/11_AbyssDungeonNames.md`
