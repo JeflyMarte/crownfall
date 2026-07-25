@@ -8,8 +8,11 @@ const DEFAULT_DUNGEON_ROOM_COUNT: int = 10
 const MOURNGATE_DUNGEON_ID: String = "mourngate"
 const WHISPERWOOD_DUNGEON_ID: String = "whisperwood"
 const DEFAULT_DUNGEON_ID: String = MOURNGATE_DUNGEON_ID
-## 寄り道(side)・征討(apex)をプレイ対象に含める（P3-DG-OMIT-001）。false=UI非表示・解放不可。
+## 寄り道(side)・征討(apex)をプレイ対象に含める（P3-DG-OMIT-001）。
+## false=選択タブ非表示・解放不可。データ（tres）は残置。
 const SUB_DUNGEONS_PLAYABLE: bool = false
+## 深層(abyss)をプレイ対象に含める（P3-DG-ABYSS-001）。SUB とは独立。
+const ABYSS_DUNGEONS_PLAYABLE: bool = true
 ## イベントダンジョン（route_type=event）をプレイ対象に含める（P3-DG-DUCK-EVENT-001）。
 const EVENT_DUNGEONS_PLAYABLE: bool = true
 ## 公開β範囲をモーンゲート中心にする（P3-BETA-SCOPE-001）。
@@ -83,6 +86,8 @@ static func is_playable_dungeon_route(route_type: String) -> bool:
 		return true
 	if route_type == "event":
 		return EVENT_DUNGEONS_PLAYABLE
+	if route_type == "abyss":
+		return ABYSS_DUNGEONS_PLAYABLE
 	return SUB_DUNGEONS_PLAYABLE
 
 static func is_gacha_helper_id(member_id: String) -> bool:

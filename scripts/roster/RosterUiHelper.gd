@@ -74,6 +74,10 @@ static func passive_description(def: Dictionary) -> String:
 			return "攻撃を受けたとき、反撃する。"
 		"bonus_damage":
 			return "一定回数の攻撃ごとに追撃する。"
+		"aoe_burst":
+			return "撃破時に周囲へ追撃する。"
+		"abyss_ice_shell_counter":
+			return "被弾時に氷殻を張り、反撃する。"
 		"grant_next_attack_mult":
 			return "味方が倒れたとき、次の通常攻撃の威力が上昇する。"
 		"apply_status":
@@ -83,6 +87,8 @@ static func passive_description(def: Dictionary) -> String:
 				return "味方が倒れたとき、パーティに%sを付与する。" % status_name
 			if str(def.get("trigger", "")) == "on_combat_start":
 				return "戦闘開始時、自身に%sを付与する。" % status_name
+			if str(def.get("trigger", "")) == "on_hit_taken":
+				return "攻撃を受けたとき、自身に%sを付与する。" % status_name
 			if str(def.get("condition", "")) == "self_hp_below":
 				return "HPが低下したとき、自身に%sを付与する。" % status_name
 			return "条件を満たすと%sを付与する。" % status_name

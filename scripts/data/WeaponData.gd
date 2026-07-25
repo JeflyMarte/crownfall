@@ -6,7 +6,7 @@ extends Resource
 ## 装備説明（由来・用途）。UI の説明文 SSOT。
 @export_multiline var description: String = ""
 @export var fixed_skill_id: String = ""
-## レジェンド固有効果 id（P3-WPN-LEG-EFFECT）。`CombatPassives` の `eq_wpn_*`。
+## レジェンド固有効果 id（P3-WPN-LEG-EFFECT）。`CombatPassives` の `eq_wpn_*` / `eq_abyss_*`。
 @export var fixed_passive_id: String = ""
 @export var base_attack: int = 0
 @export var rarity: int = 0

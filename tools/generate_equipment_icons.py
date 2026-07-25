@@ -57,6 +57,11 @@ LEGENDARY_HAND_DRAWN_WEAPON_IDS: set[str] = {
 	"shadowcord",
 	"silvaria_fang",
 	"eldion_claw",
+	"abyss_veinblade",
+	"abyss_rootfang",
+	"abyss_mirestaff",
+	"abyss_netherbow",
+	"abyss_riftclaw",
 }
 
 ## 専用生成済みレジェンド防具（テンプレ流用防止）。

@@ -10,6 +10,7 @@ const _EnemyTierVariantConfig = preload("res://scripts/dungeon/EnemyTierVariantC
 const _WanderingEnemyConfig = preload("res://scripts/dungeon/WanderingEnemyConfig.gd")
 const _EvolutionTraits = preload("res://scripts/systems/EvolutionTraits.gd")
 const MythicLoot = preload("res://scripts/equipment/MythicLoot.gd")
+const _AbyssLegendaryWeapons = preload("res://scripts/dungeon/AbyssLegendaryWeapons.gd")
 
 const ROOM_SEQUENCE: Array[int] = [
 	Enums.RoomType.START,
@@ -498,12 +499,15 @@ var _wander_plan_ready: bool = false
 var _planned_wander_by_room: Dictionary = {}
 
 func start_dungeon(dungeon_id: String) -> void:
-	## メイン Biome は章データがあるとき start_stage へ寄せる（単体DGだと x-5 ボスが常時付く）。
-	if Constants.SUB_STAGES_PLAYABLE:
-		var stage_id: String = GameState.resolve_stage_for_run(dungeon_id)
-		if not stage_id.is_empty():
-			start_stage(stage_id)
-			return
+	## 深層は章分割しない（親 Biome の stage へ寄せない）。
+	const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
+	if not _AbyssDungeonConfig.is_abyss_dungeon_id(dungeon_id):
+		## メイン Biome は章データがあるとき start_stage へ寄せる（単体DGだと x-5 ボスが常時付く）。
+		if Constants.SUB_STAGES_PLAYABLE:
+			var stage_id: String = GameState.resolve_stage_for_run(dungeon_id)
+			if not stage_id.is_empty():
+				start_stage(stage_id)
+				return
 	current_stage_data = null
 	current_dungeon_data = DataRegistry.get_dungeon_data(dungeon_id)
 	if current_dungeon_data == null:
@@ -511,6 +515,9 @@ func start_dungeon(dungeon_id: String) -> void:
 		return
 	room_sequence = _build_room_sequence(current_dungeon_data)
 	_reset_run_state()
+	if _is_abyss_run():
+		_sync_abyss_tier_for_current_floor()
+		_note_abyss_progress()
 
 func start_stage(stage_id: String) -> void:
 	current_stage_data = DataRegistry.get_stage_data(stage_id)
@@ -622,14 +629,20 @@ func get_run_recommended_level() -> int:
 	return _DungeonTierConfig.apply_tier_level(base, GameState.current_dungeon_tier)
 
 func get_display_floor_max() -> int:
+	if _is_abyss_run():
+		return maxi(1, room_sequence.size())
 	if current_stage_data != null:
 		return maxi(1, int(current_stage_data.floor_count))
 	return maxi(1, get_total_rooms())
 
 func get_display_floor_current() -> int:
+	if _is_abyss_run():
+		return maxi(1, current_room_index + 1)
 	return mini(current_room_index + 1, get_display_floor_max())
 
 func get_display_floor_text() -> String:
+	if _is_abyss_run():
+		return "F%d" % get_display_floor_current()
 	return "F%d/%d" % [get_display_floor_current(), get_display_floor_max()]
 
 func get_run_biome_display_name() -> String:
@@ -659,13 +672,56 @@ func set_policy(policy: int) -> void:
 func advance_room() -> void:
 	current_room_index += 1
 	if current_room_index >= room_sequence.size():
-		is_completed = true
-		return
+		if _is_abyss_run():
+			_extend_abyss_chunk()
+		else:
+			is_completed = true
+			return
 	current_room_type = room_sequence[current_room_index]
 	update_discovery()
+	if _is_abyss_run():
+		_sync_abyss_tier_for_current_floor()
+		_note_abyss_progress()
 
 func get_total_rooms() -> int:
 	return room_sequence.size()
+
+
+func _is_abyss_run() -> bool:
+	const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
+	return _AbyssDungeonConfig.is_abyss_data(current_dungeon_data)
+
+
+func _sync_abyss_tier_for_current_floor() -> void:
+	if not _is_abyss_run():
+		return
+	const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
+	GameState.current_dungeon_tier = _AbyssDungeonConfig.synthetic_tier_for_floor(
+		get_display_floor_current()
+	)
+
+
+func _note_abyss_progress() -> void:
+	if not _is_abyss_run() or current_dungeon_data == null:
+		return
+	GameState.note_abyss_floor_reached(str(current_dungeon_data.id), get_display_floor_current())
+
+
+func _extend_abyss_chunk() -> void:
+	const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
+	if current_dungeon_data == null:
+		is_completed = true
+		return
+	var chunk: Array[int] = _generate_random_sequence(
+		current_dungeon_data,
+		_AbyssDungeonConfig.CHUNK_FLOORS,
+		false,
+		false
+	)
+	for room_type: int in chunk:
+		room_sequence.append(room_type)
+	## 延長後も完走扱いにしない。
+	is_completed = false
 
 # ── 部屋列の生成 ─────────────────────────────────────────────
 # floor_count > 0: ランダム抽選（肩慣らし COMBAT + 重み付き中間 + [BOSS]）。EXIT は別フロアにしない。
@@ -881,11 +937,11 @@ func get_enemy_level() -> int:
 		base = maxi(1, int(current_stage_data.enemy_level))
 	elif current_dungeon_data != null:
 		base = maxi(1, int(current_dungeon_data.enemy_level))
-	return (
-		base
-		+ _DungeonTierConfig.enemy_level_bonus(GameState.current_dungeon_tier)
-		+ EventSystem.get_enemy_level_bonus()
-	)
+	var tier_bonus: int = _DungeonTierConfig.enemy_level_bonus(GameState.current_dungeon_tier)
+	if _is_abyss_run():
+		const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
+		tier_bonus = _AbyssDungeonConfig.enemy_level_bonus_for_floor(get_display_floor_current())
+	return base + tier_bonus + EventSystem.get_enemy_level_bonus()
 
 func get_tier_rarity_weight(base_weight: int) -> int:
 	var mult: float = _DungeonTierConfig.rarity_weight_mult(GameState.current_dungeon_tier)
@@ -1475,6 +1531,8 @@ func _all_legendary_ids(category: String) -> Array[String]:
 			continue
 		## 神話はレア度抽選に載せない（別枠）
 		if MythicLoot.is_mythic_id(item_id):
+			continue
+		if category == "weapon" and _AbyssLegendaryWeapons.is_abyss_legendary_id(item_id):
 			continue
 		out.append(item_id)
 	return out

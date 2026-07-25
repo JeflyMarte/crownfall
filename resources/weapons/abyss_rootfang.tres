@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "abyss_rootfang"
+display_name = "根葬の双刃"
+description = "深森の裏側で腐らずに伸び続けた根を鍛えた双刃。同じ獲物に食い込むたび、根が絡みつき切れ味が増す。"
+fixed_skill_id = ""
+fixed_passive_id = "eq_abyss_rootfang"
+base_attack = 512
+rarity = 3
+base_attack_speed = 1.15
+base_critical_rate = 0.12
+base_knockback = 0.22
+base_stagger_power = 0.12
+base_attack_range = 1.0
+weight = 0.85
+element = "dark"
+weapon_type = "dual_blades"
+tags = Array[String](["slash", "pierce", "dark"])
+bane_class = ""
+bane_multiplier = 1.0
+flavor_text = "葬られた根は、一度掴んだ獲物を離さない。"

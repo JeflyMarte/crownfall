@@ -714,9 +714,9 @@ Biome は、その両者が重なり合う場所である。
 | 雑魚 | **ヴェルガロン（vergaron）** | 狼 | I | ice | chill | 極寒の風を纏って狩る大型狼 |
 | 雑魚 | **ストームジョー（storm_joe）** | 恐竜（獣脚類） | III | ice | chill | 吹雪の中を突進する中型恐竜 |
 | 雑魚 | **オルドレクス（oldrex）** | 恐竜（獣脚類） | III | ice | stun | 氷河期の遺構に似た甲殻状の鱗を持つ大型恐竜 |
-| 雑魚 | **氷尾フォックス（ice_tail_fox）** | 狐 | I | ice, fire | chill | 尾に霜柱を蓄える寒地狐。群れで横取り |
-| 雑魚 | **氷河の番人（glacier_warden）** | 熊 | I | fire | stun | 氷晶の板を背負い氷壁に擬態する大型熊 |
-| 雑魚 | **風裂き（wind_ripper）** | 猛禽 | II | ice, fire | chill | 翼で真空の刃を起こす高空猛禽 |
+| 雑魚 | **グレイオス（greios）** | 翼竜 | III | ice, fire | chill | 吹雪に紛れる翼竜。鱗粉で視界を奪う（Elite 枠にも併存） |
+| 雑魚 | **氷晶マンモス（glacier_warden）** | マンモス | I | fire | stun | 氷晶の板を背負い氷壁に擬態する大型マンモス |
+| 雑魚 | **スノーストーム（wind_ripper）** | 猛禽 | II | ice, fire | chill | 翼で真空の刃を起こす高空猛禽 |
 | Elite | **グレイオス（greios）** | 翼竜 | III | ice, fire | chill, stun | 吹雪に紛れる翼竜。鱗粉で視界を奪う |
 | Elite | **極冠トリケラ（polar_tricera）** | 角竜 | III | fire | stun | 三本角に永久氷を宿す極冠の巨角竜 |
 | Boss | **始祖の竜 エルディオン（eldion）** | 竜（古龍種） | VII | ice, fire | chill, stun | 氷河の果てに眠ると伝わる古代竜。開拓王の俗称が後世についた |

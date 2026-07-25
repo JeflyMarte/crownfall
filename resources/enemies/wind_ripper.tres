@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "wind_ripper"
-display_name = "風裂き"
+display_name = "スノーストーム"
 max_hp = 560
 attack = 160
 defense = 48

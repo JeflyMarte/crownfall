@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "abyss_netherbow"
+display_name = "虚潮の長弓"
+description = "虚ろの航路を渡る潮を弦に束ねた長弓。矢が命中するたび潮汐の印が溜まり、満ちたとき単体を砕く。"
+fixed_skill_id = ""
+fixed_passive_id = "eq_abyss_netherbow"
+base_attack = 536
+rarity = 3
+base_attack_speed = 1.2
+base_critical_rate = 0.12
+base_knockback = 0.12
+base_stagger_power = 0.1
+base_attack_range = 3.0
+weight = 0.75
+element = "dark"
+weapon_type = "bow"
+tags = Array[String](["pierce", "dark"])
+bane_class = ""
+bane_multiplier = 1.0
+flavor_text = "灯台の光が届かぬ潮。満ち引きは、狙いを定めた者の側にある。"

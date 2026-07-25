@@ -2,9 +2,16 @@ extends GutTest
 
 ## P3-DG-DUCK-EVENT-001 — コズミックダックの裂け目。
 
+const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
+
+
+func before_each() -> void:
+	_EventDungeonSchedule.set_debug_weekday_override(-2)
+
 
 func after_each() -> void:
 	GameState.event_dungeon_attempts.clear()
+	_EventDungeonSchedule.clear_debug_weekday_override()
 
 
 func test_cosmic_rift_data_shape() -> void:

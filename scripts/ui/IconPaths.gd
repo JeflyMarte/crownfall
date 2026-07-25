@@ -36,6 +36,11 @@ const ICON_MAP: Dictionary = {
 	"weapon:shadowcord":           "res://assets/ui/equipment/ICO_WPN_Shadowcord.png",
 	"weapon:silvaria_fang":        "res://assets/ui/equipment/ICO_WPN_SilvariaFang.png",
 	"weapon:eldion_claw":          "res://assets/ui/equipment/ICO_WPN_EldionClaw.png",
+	"weapon:abyss_veinblade":      "res://assets/ui/equipment/ICO_WPN_AbyssVeinblade.png",
+	"weapon:abyss_rootfang":       "res://assets/ui/equipment/ICO_WPN_AbyssRootfang.png",
+	"weapon:abyss_mirestaff":      "res://assets/ui/equipment/ICO_WPN_AbyssMirestaff.png",
+	"weapon:abyss_netherbow":      "res://assets/ui/equipment/ICO_WPN_AbyssNetherbow.png",
+	"weapon:abyss_riftclaw":       "res://assets/ui/equipment/ICO_WPN_AbyssRiftclaw.png",
 	"weapon:unidentified":         "res://assets/ui/batch2/ICO_WPN_Unidentified.png",
 	# ② ウィスパーウッド — 専用 icon 9点（★2+代表7）。残11点は placeholder（P3-D154）
 	"weapon:verdant_cleaver":      "res://assets/ui/equipment/ICO_WPN_VerdantCleaver.png",

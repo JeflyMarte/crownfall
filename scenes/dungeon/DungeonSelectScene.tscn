@@ -254,6 +254,12 @@ size_flags_horizontal = 3
 toggle_mode = true
 text = "イベントダンジョン"
 
+[node name="ButtonAbyssDungeon" type="Button" parent="MainColumn/RouteTabsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+text = "深層"
+
 [node name="ScrollList" type="ScrollContainer" parent="MainColumn"]
 layout_mode = 2
 size_flags_vertical = 3

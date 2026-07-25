@@ -9,7 +9,7 @@ extends RefCounted
 ##   "on_attack" | "on_kill" | "on_noncombat_enter"
 ## condition: "always" | "self_hp_below"（value=HP割合）
 ## effect: "apply_status" | "heal" | "bonus_damage" | "counter_attack" | "grant_next_attack_mult" |
-##   "refund_ct" | "grant_party_incoming_mult"
+##   "refund_ct" | "grant_party_incoming_mult" | "aoe_burst" | "abyss_ice_shell_counter"
 ## stat_mod（常時）: evasion_rate_add / outgoing_mult / incoming_mult / first_attack_mult /
 ##   ultimate_power_mult / exp_gain_mult / party_exp_gain_mult /
 ##   party_outgoing_mult / party_incoming_mult / death_save_once / death_save_chance /
@@ -602,6 +602,55 @@ const _DEFS: Dictionary = {
 				"crit_rate_add": 0.10,
 			},
 		},
+	},
+	# ---- 深層限定レジェンド（P3-DG-ABYSS-001-C / P3-DG-ABYSS-LEG-001） ----
+	"eq_abyss_veinblade": {
+		"display_name": "虚脈裂傷",
+		"category": "weapon",
+		"description": "HPが低いほど与ダメ上昇（最大+40%）。撃破時、他の敵へ鉱物裂傷（与ダメの40%）。",
+		"missing_hp_outgoing_bonus": 0.40,
+		"trigger": "on_kill",
+		"condition": "always",
+		"effect": "aoe_burst",
+		"aoe_burst_fraction": 0.40,
+		"cooldown": 0.0,
+	},
+	"eq_abyss_rootfang": {
+		"display_name": "根葬連撃",
+		"category": "weapon",
+		"description": "同一敵への連続ヒットで与ダメが段階上昇（+8%/最大5）。対象が変わるとリセット。",
+		"same_target_stack_bonus": 0.08,
+		"same_target_stack_max": 5,
+	},
+	"eq_abyss_mirestaff": {
+		"display_name": "澱みの霧ガード",
+		"category": "weapon",
+		"description": "被弾時に霧ガード（被ダメ半減）を付与する（CD 8秒）。",
+		"trigger": "on_hit_taken",
+		"condition": "always",
+		"effect": "apply_status",
+		"status_id": "guard",
+		"target": "self",
+		"cooldown": 8.0,
+	},
+	"eq_abyss_netherbow": {
+		"display_name": "虚潮の印",
+		"category": "weapon",
+		"description": "命中で潮汐印。同一敵に4積で爆発（そのヒットの150%追撃）。",
+		"tide_mark_threshold": 4,
+		"tide_mark_burst_fraction": 1.50,
+	},
+	"eq_abyss_riftclaw": {
+		"display_name": "裂氷の氷殻",
+		"category": "weapon",
+		"description": "被弾時またはHP40%未満で氷殻（被ダメ-35%、4秒）。氷殻中は反撃する（CD 6秒）。",
+		"ice_shell_incoming_mult": 0.65,
+		"ice_shell_duration_sec": 4.0,
+		"ice_shell_hp_threshold": 0.40,
+		"trigger": "on_hit_taken",
+		"condition": "always",
+		"effect": "abyss_ice_shell_counter",
+		"cooldown": 6.0,
 	},
 }
 

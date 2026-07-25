@@ -35,6 +35,7 @@ const COLOR_TEAL: Color = Color(0.6, 0.82, 0.78, 1)
 const ROUTE_TAB_MAIN: String = "main"
 const ROUTE_TAB_SUB: String = "sub"
 const ROUTE_TAB_EVENT: String = "event"
+const ROUTE_TAB_ABYSS: String = "abyss"
 
 const DROP_PREVIEW: Dictionary = {
 	"cosmic_rift": [
@@ -170,6 +171,7 @@ const DROP_PREVIEW: Dictionary = {
 @onready var _btn_route_main: Button = $MainColumn/RouteTabsRow/ButtonMainRoute
 @onready var _btn_route_sub: Button = $MainColumn/RouteTabsRow/ButtonSubDungeon
 @onready var _btn_route_event: Button = $MainColumn/RouteTabsRow/ButtonEventDungeon
+@onready var _btn_route_abyss: Button = $MainColumn/RouteTabsRow/ButtonAbyssDungeon
 @onready var _scroll_list: ScrollContainer = $MainColumn/ScrollList
 @onready var _list: VBoxContainer = $MainColumn/ScrollList/ListVBox
 @onready var _footer_panel: PanelContainer = $FooterPanel
@@ -242,6 +244,12 @@ func _ready() -> void:
 	_btn_route_main.pressed.connect(_on_route_tab_pressed.bind(ROUTE_TAB_MAIN))
 	_btn_route_sub.pressed.connect(_on_route_tab_pressed.bind(ROUTE_TAB_SUB))
 	_btn_route_event.pressed.connect(_on_route_tab_pressed.bind(ROUTE_TAB_EVENT))
+	_btn_route_abyss.pressed.connect(_on_route_tab_pressed.bind(ROUTE_TAB_ABYSS))
+	## 寄り道・征討はデータ残置のまま UI から外す（P3-DG-OMIT-001）。
+	_btn_route_sub.visible = Constants.SUB_DUNGEONS_PLAYABLE
+	_btn_route_abyss.visible = Constants.ABYSS_DUNGEONS_PLAYABLE
+	if not Constants.SUB_DUNGEONS_PLAYABLE and _route_tab == ROUTE_TAB_SUB:
+		_route_tab = ROUTE_TAB_MAIN
 	if EventSystem.PERIODIC_EVENTS_ENABLED and EventSystem.has_signal("event_updated"):
 		EventSystem.event_updated.connect(_refresh_event_footer)
 	_featured_panel.add_theme_stylebox_override(
@@ -363,6 +371,7 @@ func _apply_typography() -> void:
 	UiTypography.apply_button(_btn_route_main, _route_tab == ROUTE_TAB_MAIN)
 	UiTypography.apply_button(_btn_route_sub, _route_tab == ROUTE_TAB_SUB)
 	UiTypography.apply_button(_btn_route_event, _route_tab == ROUTE_TAB_EVENT)
+	UiTypography.apply_button(_btn_route_abyss, _route_tab == ROUTE_TAB_ABYSS)
 	UiTypography.apply_body(_label_gold, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_body(_label_token, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_display(_label_featured_name, UiTypography.SIZE_BODY_SMALL)
@@ -389,8 +398,8 @@ func _refresh_all() -> void:
 
 
 func _refresh_route_tabs() -> void:
-	var buttons: Array[Button] = [_btn_route_main, _btn_route_sub, _btn_route_event]
-	var tabs: Array[String] = [ROUTE_TAB_MAIN, ROUTE_TAB_SUB, ROUTE_TAB_EVENT]
+	var buttons: Array[Button] = [_btn_route_main, _btn_route_sub, _btn_route_event, _btn_route_abyss]
+	var tabs: Array[String] = [ROUTE_TAB_MAIN, ROUTE_TAB_SUB, ROUTE_TAB_EVENT, ROUTE_TAB_ABYSS]
 	for i in tabs.size():
 		var selected: bool = _route_tab == tabs[i]
 		buttons[i].button_pressed = selected
@@ -398,7 +407,16 @@ func _refresh_route_tabs() -> void:
 
 
 func _on_route_tab_pressed(tab: String) -> void:
-	if tab != ROUTE_TAB_MAIN and tab != ROUTE_TAB_SUB and tab != ROUTE_TAB_EVENT:
+	if (
+		tab != ROUTE_TAB_MAIN
+		and tab != ROUTE_TAB_SUB
+		and tab != ROUTE_TAB_EVENT
+		and tab != ROUTE_TAB_ABYSS
+	):
+		return
+	if tab == ROUTE_TAB_SUB and not Constants.SUB_DUNGEONS_PLAYABLE:
+		return
+	if tab == ROUTE_TAB_ABYSS and not Constants.ABYSS_DUNGEONS_PLAYABLE:
 		return
 	if _route_tab == tab:
 		_refresh_route_tabs()
@@ -425,9 +443,17 @@ func _sync_route_tab_to_featured() -> void:
 	if route == "main":
 		_route_tab = ROUTE_TAB_MAIN
 	elif route == "side" or route == "apex":
-		_route_tab = ROUTE_TAB_SUB
+		if Constants.SUB_DUNGEONS_PLAYABLE:
+			_route_tab = ROUTE_TAB_SUB
+		else:
+			_route_tab = ROUTE_TAB_MAIN
 	elif route == "event":
 		_route_tab = ROUTE_TAB_EVENT
+	elif route == "abyss":
+		if Constants.ABYSS_DUNGEONS_PLAYABLE:
+			_route_tab = ROUTE_TAB_ABYSS
+		else:
+			_route_tab = ROUTE_TAB_MAIN
 
 
 func _ensure_featured_matches_route_tab() -> void:
@@ -451,6 +477,8 @@ func _route_matches_tab(route_type: String) -> bool:
 		return route_type == "side" or route_type == "apex"
 	if _route_tab == ROUTE_TAB_EVENT:
 		return route_type == "event"
+	if _route_tab == ROUTE_TAB_ABYSS:
+		return route_type == "abyss"
 	return false
 
 
@@ -476,6 +504,8 @@ func _dungeons_for_route_tab() -> Array:
 		return out
 	if _route_tab == ROUTE_TAB_EVENT:
 		return _sorted_dungeons("event")
+	if _route_tab == ROUTE_TAB_ABYSS:
+		return _sorted_dungeons("abyss")
 	return _sorted_dungeons("main")
 
 
@@ -486,7 +516,7 @@ func _clamp_selected_tier() -> void:
 	if dungeon_id.is_empty():
 		return
 	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
-	if data != null and str(data.route_type) == "event":
+	if data != null and (str(data.route_type) == "event" or str(data.route_type) == "abyss"):
 		GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
 		return
 	var tier: int = _DungeonTierConfig.clamp_tier(GameState.current_dungeon_tier)
@@ -497,7 +527,9 @@ func _clamp_selected_tier() -> void:
 func _refresh_tier_tabs() -> void:
 	var dungeon_id: String = _featured_dungeon_id
 	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
-	var event_only_normal: bool = data != null and str(data.route_type) == "event"
+	var event_only_normal: bool = (
+		data != null and (str(data.route_type) == "event" or str(data.route_type) == "abyss")
+	)
 	var buttons: Array[Button] = [_btn_tier_normal, _btn_tier_hard, _btn_tier_nightmare]
 	for tier in _DungeonTierConfig.TIER_COUNT:
 		var btn: Button = buttons[tier]
@@ -780,7 +812,15 @@ func _refresh_featured() -> void:
 		)
 		if dungeon_rec > 0 and (stage == null or not _uses_stage_cards(_featured_dungeon_id)):
 			meta_parts.append("推奨Lv%d〜" % dungeon_rec)
-		if not _uses_stage_cards(_featured_dungeon_id) and int(data.floor_count) > 0:
+		if str(data.route_type) == "event":
+			const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
+			meta_parts.append(_EventDungeonSchedule.open_schedule_label(_featured_dungeon_id))
+		if str(data.route_type) == "abyss":
+			meta_parts.append("無限階")
+			var best_f: int = GameState.get_abyss_highest_floor(_featured_dungeon_id)
+			if best_f > 0:
+				meta_parts.append("最高到達 F%d" % best_f)
+		elif not _uses_stage_cards(_featured_dungeon_id) and int(data.floor_count) > 0:
 			meta_parts.append("%dF" % int(data.floor_count))
 		if _uses_stage_cards(_featured_dungeon_id):
 			var stage_label: String = GameState.get_stage_progress_label(_featured_dungeon_id)
@@ -819,6 +859,20 @@ func _refresh_featured() -> void:
 		)
 	)
 	var attempt_ok: bool = true
+	if unlocked and data != null and str(data.route_type) == "event":
+		const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
+		if not _EventDungeonSchedule.is_open_today(_featured_dungeon_id):
+			_label_featured_discovery.text += " · 開放: %s" % _EventDungeonSchedule.open_schedule_label(
+				_featured_dungeon_id
+			)
+			_btn_featured_select.text = "本日は未開放（%s）" % _EventDungeonSchedule.open_schedule_label(
+				_featured_dungeon_id
+			)
+			_btn_featured_select.disabled = true
+			return
+		_label_featured_discovery.text += " · %s" % _EventDungeonSchedule.open_schedule_label(
+			_featured_dungeon_id
+		)
 	if unlocked and data != null and int(data.daily_attempt_limit) > 0:
 		var remaining: int = GameState.event_dungeon_attempts_remaining(_featured_dungeon_id)
 		_label_featured_discovery.text += " · 本日残り %d/%d（リセット %s）" % [

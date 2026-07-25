@@ -1317,6 +1317,9 @@ func _build_info() -> void:
 	_add_info_pair("入手ゴールド", "%d G" % GameState.last_run_gold_reward)
 	if GameState.last_run_token_reward > 0:
 		_add_info_pair("入手%s" % CurrencyHelper.DISPLAY_NAME, "%d" % GameState.last_run_token_reward)
+	if GameState.last_run_abyss_notices is Array and not GameState.last_run_abyss_notices.is_empty():
+		for notice in GameState.last_run_abyss_notices:
+			_add_info_pair("深層報酬", str(notice))
 
 func _add_info_pair(key: String, value: String) -> void:
 	var key_label: Label = Label.new()

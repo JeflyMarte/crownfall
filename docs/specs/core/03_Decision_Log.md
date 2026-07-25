@@ -3951,7 +3951,7 @@ ELITE/BOSS/遍在希少種（P3-D166）は別枠。重みは **当該 Biome 雑�
 |---|---|---|
 | P3-ENEMY-002-1 | **③ mistfen** — 雑魚 `bone_picker` / `mire_strider_spider` / `spore_needle_wasp`（D2/D3/D4）＋ Elite `nightfen`。既存 Elite `great_claw` 併存 | オーナー指定＋P3-ENEMY-001 危険度幅 |
 | P3-ENEMY-002-2 | **④ blackshore** — 雑魚 `black_tide_shark` / `tide_lamp` / `abyssal_squid`（D2/D3/D4）＋ Elite `anchor_lord`。既存 `ninja_octopus` 併存 | 同上 |
-| P3-ENEMY-002-3 | **⑤ frostridge** — 雑魚 `ice_tail_fox` / `glacier_warden` / `wind_ripper`（D3/D4）＋ Elite `polar_tricera`。既存 `greios` 併存 | 同上 |
+| P3-ENEMY-002-3 | **⑤ frostridge** — 雑魚 `greios` / `glacier_warden` / `wind_ripper`（D3/D4）＋ Elite `polar_tricera`。`greios` は雑魚枠併存（旧 `ice_tail_fox` 置換）。`glacier_warden` 表示＝氷晶マンモス | 同上・2026-07-25 オーナー指示 |
 | P3-ENEMY-002-4 | **spawn_weights** — ③④⑤章データを P3-ENEMY-001 SSOT（D2/D3/D4 および D3/D4）へ同期 | 追加種が章別重みに乗るため |
 | P3-ENEMY-002-5 | **Elite 複数** — Biome あたり Elite 2（均等抽選）。P3-ENEMY-001「Elite据置1」をオーナー指示で上書き | 明示リクエスト |
 | P3-ENEMY-002-6 | **アート** — 戦闘／図鑑は既存近縁スプライトのプレースホルダ。本番ドットは後差し | ② ENEMY-002 同型 |
@@ -4432,3 +4432,28 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-DG-ABYSS-NAME-001-6 | `abyss_frostridge` → **無限フロストリッジの最果て** | 同上（本編「最果て氷裂」とは通称で区別） |
 
 **SSOT:** `docs/specs/decisions/11_AbyssDungeonNames.md`
+
+## 深層マイルストーン報酬（2026-07-25 — P3-DG-ABYSS-001-B）
+> **オーナー GO** — 案R数量＋66F=R1（★3限界突破券）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-ABYSS-001-B-1 | 33初回=魔晶石8+epic5+王墓2／再=epic2 | 案R |
+| P3-DG-ABYSS-001-B-2 | 66初回=魔晶石20+LB★3券+epic8+王墓3／再=魔晶石5+epic3 | R1 |
+| P3-DG-ABYSS-001-B-3 | 99初回=レジェンド(C)+魔晶石30+王墓5／再=魔晶石10+王墓3 | 案R |
+| P3-DG-ABYSS-001-B-4 | 100+は10の倍数でepic×1（各階一回） | 案R小袋 |
+| P3-DG-ABYSS-001-B-5 | セーブは `abyss_milestones`。魔晶石は Result bank | Impl |
+
+**SSOT:** `docs/specs/decisions/12_AbyssMilestones.md`
+
+## イベントDG曜日開放（2026-07-25 — P3-DG-EVENT-WEEKDAY-001）
+> **オーナー指示** — 曜日限定。土日は全開放。日次1回は据置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-EVENT-WEEKDAY-001-1 | 境界は **JST 5:00**（日課・挑戦回数と同一） | 既存リセットと揃える |
+| P3-DG-EVENT-WEEKDAY-001-2 | **月** `cosmic_rift`／**火** `crown_rookery`／**水** `golden_nest`／**木** `shadow_hunt`／**金** `rock_stampede` | 適当割当 |
+| P3-DG-EVENT-WEEKDAY-001-3 | **土日は5本すべて開放** | オーナー指定 |
+| P3-DG-EVENT-WEEKDAY-001-4 | 未開放日は挑戦不可（一覧・説明は可視） | UX |
+| P3-DG-EVENT-WEEKDAY-001-5 | SSOT `EventDungeonSchedule.gd` | Impl |
+

@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "abyss_veinblade"
+display_name = "虚脈の大剣"
+description = "王都地下の虚脈から削り出した大剣。鉱物化した刃は血を吸うほど鋭く、斬った先に裂傷の脈を走らせる。"
+fixed_skill_id = ""
+fixed_passive_id = "eq_abyss_veinblade"
+base_attack = 528
+rarity = 3
+base_attack_speed = 0.95
+base_critical_rate = 0.08
+base_knockback = 0.5
+base_stagger_power = 0.28
+base_attack_range = 1.0
+weight = 1.15
+element = "dark"
+weapon_type = "greatsword"
+tags = Array[String](["slash", "dark"])
+bane_class = ""
+bane_multiplier = 1.0
+flavor_text = "最果てで脈打つ虚ろの鉱脈。振るう者の傷が、刃をさらに深くする。"

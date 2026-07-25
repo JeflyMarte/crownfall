@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="DungeonData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "abyss_mourngate"
+display_name = "無限モーンゲートの最果て"
+difficulty = 1
+recommended_level = 3
+enemy_level = 1
+room_count = 10
+floor_count = 10
+enemy_pool = Array[String](["sepia_hound", "rock_bison", "rune_roach", "crystal_hedgehog", "crown_eater_rat", "grave_bell_bat", "crystal_scorpion", "skullface_mantis"])
+boss_id = ""
+drop_table_id = "mourngate_drops"
+discovery_unlocks = {"hidden_room": 0.3, "special_event": 0.6, "hidden_boss": 1.0}
+elite_pool = Array[String](["clock_moth"])
+favored_element = "dark"
+route_type = "abyss"
+event_room_weight = 15
+min_event_rooms = 0
+weapon_pool = Array[String](["iron_sword", "rusted_blade", "hunting_bow", "apprentice_staff", "heater_blade", "frost_blade", "bolt_knife", "ember_fang", "glacier_staff", "storm_edge", "sanctified_dagger", "consecrated_maul", "stormveil_needle", "noctumbra_fang", "mistpierce_halberd", "shadowcord"])
+armor_pool = Array[String](["crypt_weave_cloak", "sepia_hide_vest", "rune_linen_garb", "lament_guard_mail", "mourngate_plate"])
+accessory_pool = Array[String](["clockwing_brooch", "mourngate_sigil", "pilgrim_lantern_charm"])
+unlock_after_dungeon_id = "mourngate"
+flavor_text = "王都地下のさらに下。虚脈を辿る無限の最果て。"

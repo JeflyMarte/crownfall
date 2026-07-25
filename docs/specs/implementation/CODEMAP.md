@@ -44,8 +44,8 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | IntroLore / Name / Nina | `scenes/intro/*.tscn` | `scripts/intro/*`（P3-INTRO-001/002・SCROLL-001 自動クロール・ニーナ文字送り・`IntroUiAssets`） |
 | StarterPickScene | `scenes/roster/StarterPickScene.tscn` | `scripts/roster/StarterPickScene.gd`（導入BG＋枠） |
 | BaseScene | `scenes/base/BaseScene.tscn` | `scripts/base/BaseScene.gd` |
-| DungeonScene | `scenes/dungeon/DungeonScene.tscn` | `scripts/dungeon/DungeonScene.gd` |
 | DungeonSelectScene | `scenes/dungeon/DungeonSelectScene.tscn` | `scripts/dungeon/DungeonSelectScene.gd` |
+| DungeonScene | `scenes/dungeon/DungeonScene.tscn` | `scripts/dungeon/DungeonScene.gd` |
 | ResultScene | `scenes/result/ResultScene.tscn` | `scripts/result/ResultScene.gd` |
 | AppraisalScene | `scenes/appraisal/AppraisalScene.tscn` | `scripts/appraisal/AppraisalScene.gd` |
 | EquipmentScene | `scenes/equipment/EquipmentScene.tscn` | `scripts/equipment/EquipmentScene.gd` |
@@ -127,9 +127,9 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `combat/` | **コア:** `CombatController.gd`（`class_name`・CT/ATB・Threat・群れ/混成・個別ターゲット・詠唱・ボスフェーズ index）, `SkillExecutor.gd`, `StatusResolver.gd`, `StatusInstance.gd`, `ElementResolver.gd`, **`DamageCalculator.gd`**（ダメージ式 SSOT・シーン非依存 static・P3-REF-001）, **`BalanceConfig.gd`**（グローバルバランス定数 SSOT・P3-BAL-005） |
 | | **戦術/AI:** `CombatTactics.gd`（プリセット6・発動条件・温存・P3-D086/108/113/127）, `CombatGambit.gd`（カスタム戦術5行・P3-D122/127） |
 | | **バランス:** `BalanceConfig.gd`（STAT_SCALE・成長・Threat・**P3-BAL-OPENING-001** 敵グローバル倍率／味方ボーナス圧縮） |
-| | **パッシブ/シナジー:** `CombatPassives.gd`, `CombatSynergy.gd`, `CombatTags.gd`, `CombatCombos.gd`（P3-D109） |
+| | **パッシブ/シナジー:** `CombatPassives.gd`, **`AbyssWeaponEffects.gd`**（深層レジェンド戦闘状態 P3-DG-ABYSS-001-C）, `CombatSynergy.gd`, `CombatTags.gd`, `CombatCombos.gd`（P3-D109） |
 | | **メタ/周回:** `CombatPassives.gd`（レリック定義 SSOT・P3-RELIC-PASSIVE）, `CombatRelics.gd`（表示/互換ファサード）, `CombatLinks.gd`（連鎖3種・P3-D115）, `CombatBossPhases.gd`（P3-D116）, `ExplorationSkills.gd`（P3-D117）, `CombatFastRun.gd`（P3-D118）, `CombatWeather.gd`（天候・P3-D101） |
-| `dungeon/` | `DungeonController.gd`, `DungeonScene.gd`（生態素材ドロップ・図鑑方針ボーナス P3-D128）・**`DungeonTierConfig.gd`**（危険度ティア P3-D164）・**`EnemyTierVariantConfig.gd`**（Hard/NM 呼称・個性 P3-ENEMY-TIER-VAR）・**`WanderingEnemyConfig.gd`**（遍在希少種 P3-D166） |
+| `dungeon/` | `DungeonController.gd`, `DungeonScene.gd`（生態素材ドロップ・図鑑方針ボーナス P3-D128）・**`DungeonTierConfig.gd`**（危険度ティア P3-D164）・**`AbyssDungeonConfig.gd`**（深層階数帯 P3-DG-ABYSS-001）・**`AbyssMilestoneRewards.gd`**／**`AbyssLegendaryWeapons.gd`**（深層マイルストーン・レジェンド付与）・**`EventDungeonSchedule.gd`**（イベント曜日開放 P3-DG-EVENT-WEEKDAY-001）・**`EnemyTierVariantConfig.gd`**（Hard/NM 呼称・個性 P3-ENEMY-TIER-VAR）・**`WanderingEnemyConfig.gd`**（遍在希少種 P3-D166） |
 | `equipment/` | `EquipmentController.gd`, `EquipmentScene.gd`, **`EquipmentUiHelper.gd`**（P3-UI2-019）, **`EquipmentUiTokens.gd`**（装備 chrome）, **`BuildTagHelper.gd`**（P3-UI2-016）, **`EquipmentRandomMods.gd`**（P3-EQ-DIABLO-001）, **`AffixRoller.gd`**（レガシー）, **`AffixStatCalculator.gd`**, **`AffixDisplayFormatter.gd`**, **`JobStatCalculator.gd`** |
 | `blacksmith/` | `BlacksmithScene.gd`（生産／炉研ぎ／**錬成**／分解 — **P3-FORGE-ALCHEMY-001**）・`BlacksmithUiHelper.gd`・**`ForgeUiTokens.gd`** |
 | `gacha/` | **`GachaSystem.gd`**・**`GachaRarityConfig.gd`**・**`GachaLimitBreak.gd`**（**P3-GACHA-LIMIT-001**）・**`GachaRevealPresenter.gd`**（**P3-GACHA-REVEAL-001**）・**`GachaScene.gd`**（P3-UI2-020・**P3-GACHA-002/003**・**P3-UI-GACHA**・**P3-GACHA-FEATURE-IDLE-001** Featured idle）・**`GachaUiTokens.gd`**・**`GachaUiHelper.gd`** |
@@ -205,7 +205,7 @@ Task 明示指示がない限り作成しない:
 | 防具 | `resources/armors/` — 28（① 2 + ②〜⑤ 各5 + 寄り道3） |
 | 装飾品 | `resources/accessories/` — 17（① + ②〜⑤ 各3 + 寄り道2） |
 | 敵 | `resources/enemies/` — メイン（①〜⑤・P3-ENEMY-002 拡充）+ 征討 Boss 8（chronos_wave / valgard / skarpedion / mycolga_ancient / karna_smoke / nereion_depths / forgedormient / albark）+ 遍在希少種4（P3-WANDER-002/004: cosmic_duck / crown_raven / golden_scarab / shadow_stalker）+ ロックバイソン（P3-ENEMY-ROCK-BISON-001: 全非イベント雑魚・素材率1.75・専用ドット／図鑑／イベント `rock_stampede`） |
-| ダンジョン | `resources/dungeons/` — **23本**: メイン5 + 寄り道5 + 征討8 + イベント5（`cosmic_rift` / `crown_rookery` / `golden_nest` / `shadow_hunt` / `rock_stampede`）。`route_type`: main/side/apex/event。イベントは日次挑戦枠（DGごと）。**章データがある Biome は route 不問でバナー下にサブ章**（P3-DG-EVENT-STG-001）。イベントは各1章 |
+| ダンジョン | `resources/dungeons/` — **28本**: メイン5 + 寄り道5 + 征討8 + イベント5 + **深層5**（`abyss_*`／**P3-DG-ABYSS-001**）。`route_type`: main/side/apex/event/abyss。イベントは日次挑戦枠（DGごと）。**章データがある Biome は route 不問でバナー下にサブ章**（P3-DG-EVENT-STG-001）。イベントは各1章。深層は無限階・親Biomeクリアで解放。深層限定レジェンド武器5（`abyss_veinblade` 等／**P3-DG-ABYSS-001-C**） |
 | スキル | `resources/skills/` — プレイヤー約50+（基本5職×習得10 + 必殺5 + 属性/敵/ボス）。代表: slash_attack, guard_strike, aimed_shot, hex_bolt, mend, empower + P3-SKILL-002〜006 新規（`rend_slash`〜`apex_tame` 等） |
 | ジョブ | `resources/jobs/` — 5職。各 **`skill_unlocks` Lv1/6/12/…/50 で習得10**（P3-SKILL-002〜006） |
 | 状態異常 | `resources/status/` — bleed, poison, stun, chill, ignite, shock, slow, curse, guard, empower, enrage, **fear**, **vulnerable**, **armor_break**（P3-D107）, **mark**（P3-D120） |

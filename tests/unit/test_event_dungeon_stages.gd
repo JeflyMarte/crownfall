@@ -7,8 +7,11 @@ var _saved_stage_progress: Dictionary = {}
 var _saved_stage_id: String = ""
 var _saved_dungeon_progress: Dictionary = {}
 
+const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
+
 
 func before_each() -> void:
+	_EventDungeonSchedule.set_debug_weekday_override(-2)
 	_saved_stage_progress = GameState.stage_progress.duplicate(true)
 	_saved_stage_id = GameState.current_stage_id
 	_saved_dungeon_progress = GameState.dungeon_progress.duplicate(true)
@@ -23,6 +26,7 @@ func after_each() -> void:
 	GameState.current_stage_id = _saved_stage_id
 	GameState.dungeon_progress = _saved_dungeon_progress
 	GameState.event_dungeon_attempts.clear()
+	_EventDungeonSchedule.clear_debug_weekday_override()
 
 
 func test_event_biomes_have_one_stage() -> void:

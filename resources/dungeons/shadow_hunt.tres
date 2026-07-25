@@ -37,5 +37,6 @@ disable_wandering = true
 forced_swarm_chance = 0.05
 forced_swarm_min = 2
 forced_swarm_max = 3
-flavor_text = "一日一回だけ霧が濃くなる宵闇の獣道。後列を狙う影狩りだけが
+flavor_text = "木曜・土日開放。
+一日一回だけ霧が濃くなる宵闇の獣道。後列を狙う影狩りだけが
 狩場を支配し、稀に群れで忍び寄る。戦利は厚いが生還は保証されない。"

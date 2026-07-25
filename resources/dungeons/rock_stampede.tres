@@ -37,5 +37,6 @@ disable_wandering = true
 forced_swarm_chance = 0.15
 forced_swarm_min = 2
 forced_swarm_max = 3
-flavor_text = "一日一回だけ開く岩角の道。鉱物化したロックバイソンの群れが
+flavor_text = "金曜・土日開放。
+一日一回だけ開く岩角の道。鉱物化したロックバイソンの群れが
 土煙を上げて駆け抜け、炉研ぎに使える欠片を落とす。"

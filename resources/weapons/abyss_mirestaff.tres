@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "abyss_mirestaff"
+display_name = "澱みの封杖"
+description = "霧沼の最果てで凝固した澱みを杖芯にした封杖。被弾の瞬間に霧の壁を起こし、術者を包む。"
+fixed_skill_id = ""
+fixed_passive_id = "eq_abyss_mirestaff"
+base_attack = 520
+rarity = 3
+base_attack_speed = 0.9
+base_critical_rate = 0.06
+base_knockback = 0.1
+base_stagger_power = 0.1
+base_attack_range = 2.5
+weight = 0.9
+element = "dark"
+weapon_type = "staff"
+tags = Array[String](["dark"])
+bane_class = ""
+bane_multiplier = 1.0
+flavor_text = "澱みの霧は、傷を受けた者の側にだけ厚くなる。"

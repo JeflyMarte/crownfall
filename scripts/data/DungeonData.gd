@@ -23,7 +23,7 @@ extends Resource
 @export var favored_element: String = ""
 ## フレーバーテキスト（ダンジョン選択フィーチャー表示 / P3-UI2-028）。
 @export var flavor_text: String = ""
-## メイン=main / 寄り道=side / 征討=apex / イベント=event（P3-DG-DUCK-EVENT-001）。
+## メイン=main / 寄り道=side / 征討=apex / イベント=event / 深層=abyss（P3-DG-ABYSS-001）。
 @export var route_type: String = "main"
 ## 中間部屋抽選の EVENT 重み（0=グローバル既定15）。増分は COMBAT から差し引く（P3-D5DG-003）。
 @export var event_room_weight: int = 0

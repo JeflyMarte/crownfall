@@ -9,6 +9,7 @@ const _JobStatCalculator = preload("res://scripts/equipment/JobStatCalculator.gd
 const _StatusResolver = preload("res://scripts/combat/StatusResolver.gd")
 const _EvolutionTraits = preload("res://scripts/systems/EvolutionTraits.gd")
 const _PetSystem = preload("res://scripts/pets/PetSystem.gd")
+const _AbyssWeaponEffects = preload("res://scripts/combat/AbyssWeaponEffects.gd")
 
 var is_in_combat: bool = false
 var current_enemy_data: Resource = null
@@ -866,6 +867,7 @@ func get_member_outgoing_damage_multiplier(
 			mult *= float(elem_mults[attack_element])
 	if target_slot >= 0 and enemy_slot_has_debuff(target_slot):
 		mult *= CombatPassives.outgoing_vs_status_mult_for_member(member_index)
+	mult *= _AbyssWeaponEffects.outgoing_multiplier(member_index, target_slot, hp_ratio)
 	return mult
 
 # 被ダメ補正（防御=guard 等）。1.0=等倍。P3-D085 で配線。遺物 incoming_mult も乗算（P3-D090）。
@@ -894,6 +896,7 @@ func get_member_incoming_damage_multiplier(member_index: int) -> float:
 		member_index, party_combat_hp.size(), Callable(self, "is_member_alive")
 	)
 	mult *= _EvolutionTraits.member_incoming_mult(member_index)
+	mult *= _AbyssWeaponEffects.incoming_shell_multiplier(member_index)
 	return mult
 
 func get_density_log_tag(member_index: int) -> String:

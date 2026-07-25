@@ -395,6 +395,7 @@ const JobStatCalculatorScript: Script = preload("res://scripts/equipment/JobStat
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 const _WanderingEnemyConfig = preload("res://scripts/dungeon/WanderingEnemyConfig.gd")
 const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd")
+const _AbyssWeaponEffects = preload("res://scripts/combat/AbyssWeaponEffects.gd")
 
 var _auto_delay: float = AUTO_DELAY_BASE / SPEED_MULT_NORMAL
 var _auto_progress_paused_remaining: float = 0.0
@@ -2670,6 +2671,7 @@ func _enter_current_room() -> void:
 			_passive_once_fired.clear()
 			_passive_counter_depth = 0
 			_passive_skill_echo_depth = 0
+			_AbyssWeaponEffects.reset_combat()
 			_clear_party_links()
 			_set_paused(false)
 			var enemy_ids: Array = []
@@ -4353,10 +4355,23 @@ func _deal_member_damage_to_enemy(
 		_fire_member_passives(
 			member_idx, "on_attack", {"damage": damage, "target_slot": target_slot}
 		)
+		var tide_burst: int = _AbyssWeaponEffects.after_attack_hit(member_idx, target_slot, damage)
+		if tide_burst > 0 and $CombatController.is_enemy_slot_alive(target_slot):
+			$CombatController.apply_damage_to_enemy_slot(target_slot, tide_burst)
+			$CombatController.add_threat(member_idx, float(tide_burst) * CombatController.THREAT_DAMAGE_K)
+			GameState.record_run_damage(member_idx, tide_burst, "abyss_tide_burst", "虚潮爆発")
+			_update_hp_bars()
+			_spawn_skill_name("⚔虚潮爆発", member_idx, 0.0)
+			_append_log("[武器] 虚潮の印 爆発")
+			_check_boss_phase_transition(target_slot)
 	if $CombatController.get_enemy_hp_at(target_slot) <= 0:
 		var frac: float = CombatPassives.on_kill_refund_fraction(member_idx)
 		if frac > 0.0:
 			$CombatController.refund_member_ct(member_idx, frac)
+		_fire_member_passives(
+			member_idx, "on_kill", {"damage": damage, "target_slot": target_slot}
+		)
+		_AbyssWeaponEffects.clear_focus_on_enemy_death(target_slot)
 		return _on_enemy_slot_killed(target_slot)
 	return false
 
@@ -5520,6 +5535,14 @@ func _on_member_damaged(target_idx: int, ctx: Dictionary = {}) -> void:
 		if bool(ctx.get("skip_hit_taken", false)):
 			return
 		_fire_member_passives(target_idx, "on_hit_taken", ctx)
+		var max_hp: int = 0
+		if target_idx < $CombatController.party_max_hp.size():
+			max_hp = int($CombatController.party_max_hp[target_idx])
+		if max_hp > 0:
+			var ratio: float = float($CombatController.party_combat_hp[target_idx]) / float(max_hp)
+			if _AbyssWeaponEffects.try_low_hp_ice_shell(target_idx, ratio):
+				_spawn_skill_name("⚔裂氷の氷殻", target_idx, 0.0)
+				_append_log("[武器] 裂氷の氷殻 発動")
 		return
 	AudioManager.play_sfx("combat_death", 1.0, 0.06)
 	$CombatController.clear_pending_cast("party", target_idx)
@@ -5695,6 +5718,35 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 				_passive_next_attack_mult[member_idx] = maxf(
 					float(_passive_next_attack_mult.get(member_idx, 1.0)), mult
 				)
+				applied = true
+		"aoe_burst":
+			var killed_slot: int = int(ctx.get("target_slot", -1))
+			var base_dmg: int = int(ctx.get("damage", 0))
+			var aoe_frac: float = float(p.get("aoe_burst_fraction", 0.35))
+			var burst: int = maxi(1, int(round(float(base_dmg) * aoe_frac))) if base_dmg > 0 else 0
+			if burst > 0:
+				for slot: int in $CombatController.get_living_enemy_indices():
+					if slot == killed_slot:
+						continue
+					$CombatController.apply_damage_to_enemy_slot(slot, burst)
+					$CombatController.add_threat(
+						member_idx, float(burst) * CombatController.THREAT_DAMAGE_K
+					)
+					_check_boss_phase_transition(slot)
+					if $CombatController.get_enemy_hp_at(slot) <= 0:
+						_on_enemy_slot_killed(slot)
+				_update_hp_bars()
+				applied = true
+		"abyss_ice_shell_counter":
+			_AbyssWeaponEffects.activate_ice_shell(member_idx)
+			var counter_slot2: int = int(ctx.get("attacker_slot", -1))
+			if counter_slot2 < 0 or not $CombatController.is_enemy_slot_alive(counter_slot2):
+				counter_slot2 = $CombatController.get_member_target_slot(member_idx)
+			applied = _execute_counter_attack(
+				member_idx, counter_slot2, str(p.get("display_name", ""))
+			)
+			if not applied:
+				## 反撃不能でも氷殻は張る
 				applied = true
 	if not applied:
 		return
@@ -5977,7 +6029,7 @@ func _handle_party_wipe() -> void:
 	_append_log("全員が倒れた... 探索失敗")
 	GameState.last_run_exp_reward = $DungeonController.run_exp_reward
 	GameState.last_run_gold_reward = $DungeonController.run_gold_reward
-	GameState.last_run_token_reward = 0
+	## 深層マイルストーンの魔晶石はラン中加算分を残す。
 	GameState.last_run_weapon_dropped = ""
 	GameState.last_run_armor_dropped = ""
 	GameState.last_run_accessory_dropped = ""
@@ -6306,11 +6358,17 @@ func _retire_from_dungeon() -> void:
 	if $CombatController.is_in_combat:
 		$CombatController.end_combat()
 	_append_log("リタイアして帰還した")
+	const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
+	if _AbyssDungeonConfig.is_abyss_dungeon_id(GameState.current_dungeon_id):
+		GameState.note_abyss_floor_reached(
+			GameState.current_dungeon_id,
+			$DungeonController.get_display_floor_current()
+		)
 	GameState.last_run_exp_reward = $DungeonController.run_exp_reward
 	GameState.last_run_exp_snapshots = ExpRunSnapshotScript.build_party_snapshots($DungeonController.run_exp_reward)
 	GameState.last_run_level_ups = {}
 	GameState.last_run_gold_reward = $DungeonController.run_gold_reward
-	GameState.last_run_token_reward = 0
+	## last_run_token_reward はラン中マイルストーン等で加算済み。上書きしない。
 	if GameState.last_run_armor_dropped.is_empty():
 		GameState.last_run_armor_dropped = $DungeonController.last_armor_dropped
 	GameState.last_run_outcome = GameState.RUN_OUTCOME_RETIRE

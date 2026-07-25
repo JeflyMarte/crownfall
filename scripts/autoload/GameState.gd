@@ -95,6 +95,8 @@ var last_run_exp_reward: int = 0
 var last_run_gold_reward: int = 0
 # 直近ランで獲得した魔晶石（成功時のみ >0） — P3-D036b-D
 var last_run_token_reward: int = 0
+## 深層マイルストーン等の結果用文言（P3-DG-ABYSS-001-B）。
+var last_run_abyss_notices: Array = []
 var last_run_weapon_dropped: String = ""
 var last_run_armor_dropped: String = ""
 var last_run_accessory_dropped: String = ""
@@ -172,6 +174,8 @@ var commander: Dictionary = {}
 func begin_run_material_tracking() -> void:
 	run_material_start = material_inventory.duplicate()
 	last_run_material_gains = {}
+	last_run_token_reward = 0
+	last_run_abyss_notices = []
 
 func _compute_run_material_gains() -> Dictionary:
 	var gains: Dictionary = {}
@@ -456,6 +460,12 @@ func is_dungeon_unlocked(dungeon_id: String) -> bool:
 		and dungeon_id != Constants.WHISPERWOOD_DUNGEON_ID
 	):
 		return false
+	if str(data.route_type) == "abyss":
+		const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
+		var parent_id: String = _AbyssDungeonConfig.parent_biome_id(dungeon_id)
+		if parent_id.is_empty():
+			parent_id = str(data.unlock_after_dungeon_id) if "unlock_after_dungeon_id" in data else ""
+		return not parent_id.is_empty() and is_dungeon_cleared(parent_id)
 	if str(data.route_type) != "main":
 		var req: String = str(data.unlock_after_dungeon_id) if "unlock_after_dungeon_id" in data else ""
 		return req.is_empty() or is_dungeon_cleared(req)
@@ -479,6 +489,27 @@ func is_dungeon_unlocked(dungeon_id: String) -> bool:
 	return true
 
 
+## 深層の最高到達フロア（1始まり）。未到達は 0。
+func get_abyss_highest_floor(dungeon_id: String) -> int:
+	if dungeon_id.is_empty():
+		return 0
+	var progress: Dictionary = dungeon_progress.get(dungeon_id, {})
+	return maxi(0, int(progress.get("highest_floor", 0)))
+
+
+func note_abyss_floor_reached(dungeon_id: String, floor_1based: int) -> void:
+	if dungeon_id.is_empty() or floor_1based <= 0:
+		return
+	var progress: Dictionary = dungeon_progress.get(dungeon_id, {})
+	var prev: int = int(progress.get("highest_floor", 0))
+	if floor_1based > prev:
+		progress["highest_floor"] = floor_1based
+		dungeon_progress[dungeon_id] = progress
+	## マイルストーンは「このランでその階に到達した」時点で判定（初回／再到達）。
+	const _AbyssMilestoneRewards := preload("res://scripts/dungeon/AbyssMilestoneRewards.gd")
+	_AbyssMilestoneRewards.try_claim_for_floor(dungeon_id, floor_1based)
+
+
 ## イベントDGの本日残り挑戦回数（無制限DGは -1）。
 func event_dungeon_attempts_remaining(dungeon_id: String) -> int:
 	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
@@ -494,6 +525,9 @@ func event_dungeon_attempts_remaining(dungeon_id: String) -> int:
 
 
 func can_attempt_event_dungeon(dungeon_id: String) -> bool:
+	const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
+	if not _EventDungeonSchedule.is_open_today(dungeon_id):
+		return false
 	var remaining: int = event_dungeon_attempts_remaining(dungeon_id)
 	return remaining != 0
 
@@ -1315,6 +1349,7 @@ func reset_for_new_game() -> void:
 	last_run_exp_reward = 0
 	last_run_gold_reward = 0
 	last_run_token_reward = 0
+	last_run_abyss_notices = []
 	last_run_weapon_dropped = ""
 	last_run_armor_dropped = ""
 	last_run_accessory_dropped = ""

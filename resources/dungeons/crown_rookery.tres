@@ -37,5 +37,6 @@ disable_wandering = true
 forced_swarm_chance = 0.08
 forced_swarm_min = 2
 forced_swarm_max = 3
-flavor_text = "一日一回だけ現れる黒鳥の塒。宝冠の欠片を銜えたレイヴンだけが
+flavor_text = "火曜・土日開放。
+一日一回だけ現れる黒鳥の塒。宝冠の欠片を銜えたレイヴンだけが
 巣を守り、稀に群れで襲ってくる。戦利の武具を求めて踏み入る。"

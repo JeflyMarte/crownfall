@@ -24,7 +24,7 @@ const _MF_D3_IDS: Array[String] = [
 	"mire_strider_spider",
 ]
 const _MF_D4_IDS: Array[String] = ["spore_needle_wasp"]
-const _FR_D3_IDS: Array[String] = ["ice_tail_fox"]
+const _FR_D3_IDS: Array[String] = ["greios"]
 const _FR_D4_IDS: Array[String] = [
 	"frost_claw_raptor",
 	"vergaron",

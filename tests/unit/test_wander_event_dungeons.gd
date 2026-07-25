@@ -2,9 +2,16 @@ extends GutTest
 
 ## P3-DG-WANDER-EVENT-002 — 砂金の巣穴 / 影狩りの狩場。
 
+const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
+
+
+func before_each() -> void:
+	_EventDungeonSchedule.set_debug_weekday_override(-2)
+
 
 func after_each() -> void:
 	GameState.event_dungeon_attempts.clear()
+	_EventDungeonSchedule.clear_debug_weekday_override()
 
 
 func test_golden_nest_data_shape() -> void:
