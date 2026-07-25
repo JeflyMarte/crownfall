@@ -29,7 +29,11 @@ const _STAT_ICON_HP: Texture2D = preload("res://assets/ui/equipment_ui/ICO_Equip
 const _STAT_ICON_CRIT: Texture2D = preload("res://assets/ui/equipment_ui/ICO_Equip_Stat_CRIT.png")
 const _STAT_ICON_CRITDMG: Texture2D = preload("res://assets/ui/equipment_ui/ICO_Equip_Stat_CRITDMG.png")
 const _STAT_ICON_SPD: Texture2D = preload("res://assets/ui/equipment_ui/ICO_Equip_Stat_SPD.png")
-const _DETAIL_STAT_ICON_PX: float = 36.0
+const _DETAIL_STAT_ICON_PX: float = 28.0
+## ステ行のラベル列幅（「攻撃力」「クリティカル率」の左揃え用）。
+const _DETAIL_STAT_KEY_W: float = 150.0
+const _DETAIL_STAT_FONT_PX: int = 16
+const _DETAIL_SUBTITLE_FONT_PX: int = 16
 
 const _COST_MAT_ICON_PX: int = 48
 
@@ -42,12 +46,12 @@ const FORGE_FLASH_PEAK_ALPHA: float = 0.32
 ## モック寄せ: 装飾枠分を少し厚く。
 const CRAFTABLE_STRIP_HEIGHT_PX: float = 140.0
 const CRAFTABLE_SCROLL_MIN_H: float = 88.0
-## カテゴリタブ下端〜 MainSplit 上端の隙間。
-const MAIN_SPLIT_TOP_GAP_PX: float = 16.0
+## カテゴリタブ下端〜 MainSplit 上端の隙間（一覧ヘッダがタブに食われるのを防ぐ）。
+const MAIN_SPLIT_TOP_GAP_PX: float = 40.0
 ## MainSplit 下端〜素材帯の隙間。
 const MAIN_TO_STRIP_GAP_PX: float = 14.0
 ## CategoryRow の設計高さ。
-const CATEGORY_ROW_DESIGN_H_PX: float = 92.0
+const CATEGORY_ROW_DESIGN_H_PX: float = 100.0
 const BOTTOM_NAV_FALLBACK_H_PX: float = 84.0
 const LEFT_LIST_MIN_WIDTH_PX: float = 248.0
 const LEFT_LIST_STRETCH_RATIO: float = 0.40
@@ -81,7 +85,9 @@ const DETAIL_STRETCH_RATIO: float = 0.60
 @onready var _materials_row: HBoxContainer = $MainSplit/DetailPanel/DetailVBox/CostPanel/CostVBox/MaterialsRow
 @onready var _gold_cost_label: Label = $MainSplit/DetailPanel/DetailVBox/CostPanel/CostVBox/GoldRow/GoldCostLabel
 @onready var _cost_header_label: Label = $MainSplit/DetailPanel/DetailVBox/CostPanel/CostVBox/CostHeaderLabel
+@onready var _cost_button_gap: Control = $MainSplit/DetailPanel/DetailVBox/CostButtonGap
 @onready var _craft_button: Button = $MainSplit/DetailPanel/DetailVBox/CraftButton
+@onready var _craft_button_bottom_pad: Control = $MainSplit/DetailPanel/DetailVBox/CraftButtonBottomPad
 @onready var _reason_label: Label = $MainSplit/DetailPanel/DetailVBox/ReasonLabel
 @onready var _craftable_panel: PanelContainer = $CraftablePanel
 @onready var _craftable_header: Label = $CraftablePanel/CraftableVBox/LabelCraftableHeader
@@ -148,6 +154,11 @@ func _ready() -> void:
 	_setup_forge_chrome()
 	_apply_detail_typography()
 	_detail_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var detail_vbox: VBoxContainer = $MainSplit/DetailPanel/DetailVBox
+	detail_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	detail_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	## 生産詳細が下にはみ出さないよう行間を詰める。
+	detail_vbox.add_theme_constant_override("separation", 5)
 	_cost_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_craft_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_setup_craftable_header()
@@ -165,6 +176,7 @@ func _setup_craftable_header() -> void:
 
 func _layout_craftable_strip() -> void:
 	## 左右パネルを「カテゴリタブ下〜作成可能帯上」に厳密に収める。
+	_fit_mode_tabs_height()
 	_fit_category_row_height()
 	var nav: Control = $BottomNav
 	var nav_h: float = BOTTOM_NAV_FALLBACK_H_PX
@@ -172,14 +184,26 @@ func _layout_craftable_strip() -> void:
 		nav_h = maxf(BOTTOM_NAV_FALLBACK_H_PX, absf(nav.offset_top))
 		if nav.size.y > 1.0:
 			nav_h = maxf(nav_h, nav.size.y)
-	var strip_h: float = CRAFTABLE_STRIP_HEIGHT_PX
+	## 生産／錬成のみ下帯を確保。他モードはタブ下の一覧余白を揃える。
+	var strip_h: float = 0.0
+	if _craftable_panel.visible:
+		strip_h = CRAFTABLE_STRIP_HEIGHT_PX
 	var category_bottom: float = _category_row_bottom_px()
 	var main_top: float = category_bottom + MAIN_SPLIT_TOP_GAP_PX
-	var main_bottom: float = -(nav_h + strip_h + MAIN_TO_STRIP_GAP_PX)
+	var main_bottom: float = -(nav_h + strip_h + (MAIN_TO_STRIP_GAP_PX if strip_h > 0.0 else 8.0))
 
 	var main_split: Control = $MainSplit
+	main_split.anchor_left = 0.0
+	main_split.anchor_right = 1.0
+	main_split.anchor_top = 0.0
+	main_split.anchor_bottom = 1.0
+	main_split.offset_left = 8.0
+	main_split.offset_right = -8.0
 	main_split.offset_top = main_top
 	main_split.offset_bottom = main_bottom
+	## BOTH だと最小高超過時に上方向へ伸びて CategoryRow に重なる。
+	main_split.grow_vertical = Control.GROW_DIRECTION_END
+	main_split.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	main_split.clip_contents = true
 	main_split.z_index = 0
 
@@ -191,7 +215,7 @@ func _layout_craftable_strip() -> void:
 	_craftable_panel.offset_left = 8.0
 	_craftable_panel.offset_right = -8.0
 	_craftable_panel.offset_bottom = -nav_h
-	_craftable_panel.offset_top = -(nav_h + strip_h)
+	_craftable_panel.offset_top = -(nav_h + maxf(strip_h, 1.0))
 	## 子の最小高で上方向に伸びて左右パネルへ乗るのを防ぐ。
 	_craftable_panel.grow_vertical = Control.GROW_DIRECTION_END
 	_craftable_panel.clip_contents = true
@@ -243,7 +267,6 @@ func _setup_left_list_layout() -> void:
 	_left_list.clip_contents = true
 	$MainSplit/DetailPanel.size_flags_stretch_ratio = DETAIL_STRETCH_RATIO
 	_layout_craftable_strip()
-	_fit_mode_tabs_height()
 
 
 func _fit_mode_tabs_height() -> void:
@@ -270,13 +293,17 @@ func _setup_hero_display_layout() -> void:
 	## 台座アートの視覚重心が右寄りなので、描画を少し左へ寄せる。
 	var nudge_x: float = -14.0
 	var nudge_y: float = ForgeUiTokens.HERO_NUDGE_Y_PX
+	## 生産／錬成は下帯があるためヒーローを一段コンパクトに。
+	if _craftable_panel != null and _craftable_panel.visible:
+		stack_px = mini(stack_px, 176)
+		display_px = mini(display_px, 140)
+		pedestal_px = mini(pedestal_px, 160)
+		nudge_y = 16.0
 	## tscn の旧 260px 固定を上書き（これが高いと詳細が下帯へ食い込む）。
 	## クレスト分＋下方向 nudge をスタック高に含める。
 	var panel_h: float = float(stack_px) + nudge_y + 8.0
-	## ヒーローは左固定幅。ステは右カラムへ（横並び）。
-	_hero_panel.custom_minimum_size = Vector2(stack_px, panel_h)
-	_hero_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	_hero_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	## 縦並び: ヒーロー上 → レア／名前／ステ下（横並びは詳細枠内で重なるため撤回）。
+	_hero_panel.custom_minimum_size = Vector2(0, panel_h)
 	_hero_stack.custom_minimum_size = Vector2(stack_px, stack_px + int(nudge_y))
 	_hero_stack.clip_contents = true
 	_hero_panel.clip_contents = true
@@ -297,73 +324,12 @@ func _setup_hero_display_layout() -> void:
 	_hero_icon_slot.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_hero_icon_slot.custom_minimum_size = Vector2(display_px, display_px)
 	_hero_icon_slot.clip_contents = true
-	_hero_pedestal.visible = false
-	_hero_weapon_pivot.visible = false
-	_setup_hero_stats_row()
+	## visible は触らない（タブ切替後の _update_hero_icon 表示を消さない）。
 	_ensure_hero_to_title_gap()
 
 
-func _setup_hero_stats_row() -> void:
-	## 装備アイコン左＋（名前／ステ）右。
-	var detail_vbox: VBoxContainer = $MainSplit/DetailPanel/DetailVBox
-	var row: HBoxContainer = detail_vbox.get_node_or_null("HeroStatsRow") as HBoxContainer
-	if row == null:
-		row = HBoxContainer.new()
-		row.name = "HeroStatsRow"
-		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		detail_vbox.add_child(row)
-		detail_vbox.move_child(row, _hero_panel.get_index())
-	row.add_theme_constant_override("separation", 10)
-	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.alignment = BoxContainer.ALIGNMENT_BEGIN
-	row.clip_contents = true
-
-	if _hero_panel.get_parent() != row:
-		var hero_parent: Node = _hero_panel.get_parent()
-		if hero_parent != null:
-			hero_parent.remove_child(_hero_panel)
-		row.add_child(_hero_panel)
-	_hero_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	_hero_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-
-	var stats_side: VBoxContainer = row.get_node_or_null("StatsSide") as VBoxContainer
-	if stats_side == null:
-		stats_side = VBoxContainer.new()
-		stats_side.name = "StatsSide"
-		stats_side.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		row.add_child(stats_side)
-	stats_side.add_theme_constant_override("separation", 4)
-	stats_side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	stats_side.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	stats_side.alignment = BoxContainer.ALIGNMENT_BEGIN
-
-	## 右カラム順: レア度 → 名前 → 種別 → ステ。
-	_reparent_into(stats_side, _rarity_title_label)
-	_reparent_into(stats_side, _title_label)
-	_reparent_into(stats_side, _subtitle_label)
-	_reparent_into(stats_side, _stats_grid)
-	_rarity_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	_subtitle_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	_rarity_title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_subtitle_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_stats_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_stats_grid.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-
-
-func _reparent_into(new_parent: Node, child: Node) -> void:
-	if child == null or new_parent == null or child.get_parent() == new_parent:
-		return
-	var old_parent: Node = child.get_parent()
-	if old_parent != null:
-		old_parent.remove_child(child)
-	new_parent.add_child(child)
-
-
 func _ensure_hero_to_title_gap() -> void:
-	## 名前以降をまとめて下げる（ヒーロー＋ステ行の直下余白）。
+	## 名前以降をまとめて下げる（ヒーロー直下の余白）。
 	var detail_vbox: VBoxContainer = $MainSplit/DetailPanel/DetailVBox
 	var gap: Control = detail_vbox.get_node_or_null("HeroTitleGap") as Control
 	if gap == null:
@@ -371,11 +337,11 @@ func _ensure_hero_to_title_gap() -> void:
 		gap.name = "HeroTitleGap"
 		gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		detail_vbox.add_child(gap)
-	var anchor: Node = detail_vbox.get_node_or_null("HeroStatsRow")
-	if anchor == null:
-		anchor = _hero_panel
-	detail_vbox.move_child(gap, anchor.get_index() + 1)
-	gap.custom_minimum_size = Vector2(0, 16)
+	detail_vbox.move_child(gap, _hero_panel.get_index() + 1)
+	## 生産でボタンが下帯に沈まないよう、ヒーロー直下余白は詰める。
+	gap.custom_minimum_size = Vector2(0, 8)
+
+
 func _setup_alchemy_confirm() -> void:
 	_alchemy_confirm = ConfirmationDialog.new()
 	_alchemy_confirm.title = "装備錬成"
@@ -611,7 +577,11 @@ func _set_mode(mode: String) -> void:
 	_update_category_styles()
 	_update_tab_styles()
 	_apply_craft_button_style()
+	## 先にサイズ調整→詳細再構築（逆だと装備アイコンが非表示のまま残る）。
+	_setup_hero_display_layout()
 	_refresh_all()
+	_layout_craftable_strip()
+	call_deferred("_layout_craftable_strip")
 
 
 func _apply_craft_button_style() -> void:
@@ -713,12 +683,18 @@ func _update_category_styles() -> void:
 func _apply_detail_typography() -> void:
 	_rarity_title_label.visible = false
 	UiTypography.apply_display(_title_label, UiTypography.SIZE_BODY, COLOR_TEXT_STRONG)
-	UiTypography.apply_body(_subtitle_label, UiTypography.SIZE_BODY_SMALL, COLOR_SUB_STRONG)
+	UiTypography.apply_caption(_subtitle_label, COLOR_SUB_STRONG)
+	_subtitle_label.add_theme_font_size_override("font_size", _DETAIL_SUBTITLE_FONT_PX)
+	_subtitle_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_body(_unique_label, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_caption(_cost_header_label, UiTypography.COLOR_GOLD)
 	UiTypography.apply_caption(_gold_cost_label, COLOR_TEXT_STRONG)
 	# 統計・理由ラベルも暗背景で読めるよう強めの色を既定に
 	_reason_label.add_theme_color_override("font_color", COLOR_SUB_STRONG)
+	## ステ列は内容幅で中央配置しつつ、行内は左揃え。
+	_stats_grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_stats_grid.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_stats_grid.alignment = BoxContainer.ALIGNMENT_BEGIN
 
 func _setup_tab_styles() -> void:
 	_update_tab_styles()
@@ -751,6 +727,11 @@ func _update_mode_tab_dots() -> void:
 func _rebuild_left_list() -> void:
 	for child in _left_list.get_children():
 		child.queue_free()
+	## カテゴリタブとの隙間（生産で「武器一覧」がタブに重なるのを防ぐ）。
+	var top_pad := Control.new()
+	top_pad.custom_minimum_size = Vector2(0, 10)
+	top_pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_left_list.add_child(top_pad)
 	_left_list.add_child(_make_list_section_header())
 	if _mode == "produce":
 		_rebuild_produce_left_list()
@@ -766,7 +747,8 @@ func _rebuild_left_list() -> void:
 func _make_list_section_header() -> Control:
 	var wrap := HBoxContainer.new()
 	wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	wrap.custom_minimum_size = Vector2(0, 28)
+	## 生産一覧ヘッダがカテゴリタブ／先頭カードに食われないよう高さを確保。
+	wrap.custom_minimum_size = Vector2(0, 36)
 	wrap.add_theme_constant_override("separation", 6)
 	wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var rule_l := ColorRect.new()
@@ -1017,6 +999,12 @@ func _rebuild_detail() -> void:
 	_reason_label.visible = false
 	_cost_panel.visible = true
 	_craft_button.visible = true
+	## 錬成以外は説明文の縮小設定を戻す。
+	if _mode != "alchemy":
+		_subtitle_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+		UiTypography.apply_caption(_subtitle_label, COLOR_SUB_STRONG)
+		_subtitle_label.add_theme_font_size_override("font_size", _DETAIL_SUBTITLE_FONT_PX)
+		_subtitle_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	if _mode == "produce":
 		_rebuild_produce_detail()
 	elif _mode == "enhance":
@@ -1025,6 +1013,8 @@ func _rebuild_detail() -> void:
 		_rebuild_alchemy_detail()
 	else:
 		_rebuild_dismantle_detail()
+	if _mode != "alchemy":
+		_layout_detail_action_anchor()
 
 func _clear_stats_grid() -> void:
 	## queue_free だと同フレームに新旧が混在しレイアウトが崩れることがあるため即 free。
@@ -1056,35 +1046,40 @@ func _set_detail_empty(message: String) -> void:
 	_craft_button.visible = false
 
 func _add_stat_row(key: String, value: String, stat_key: String = "") -> void:
-	## 装備画面と同じ: [剣/盾/HP…]アイコン + ラベル + 数値。
+	## [アイコン][固定幅ラベル][数値]。ラベル列を左揃え（攻撃力／クリティカル率が縦に揃う）。
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
-	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_theme_constant_override("separation", 6)
+	row.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.alignment = BoxContainer.ALIGNMENT_BEGIN
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	## アイコン無し行でもラベル起点を揃えるため、常に同幅スロットを置く。
+	var icon_host := Control.new()
+	icon_host.custom_minimum_size = Vector2(_DETAIL_STAT_ICON_PX, _DETAIL_STAT_ICON_PX)
+	icon_host.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	icon_host.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	icon_host.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var stat_tex: Texture2D = _stat_icon_texture(stat_key, key)
 	if stat_tex != null:
-		var icon_host := Control.new()
-		icon_host.custom_minimum_size = Vector2(_DETAIL_STAT_ICON_PX, _DETAIL_STAT_ICON_PX)
-		icon_host.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-		icon_host.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		icon_host.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var icon := TextureRect.new()
 		icon.texture = stat_tex
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		## 暗背景でも装備画面と同程度に読めるよう軽く持ち上げる。
 		icon.modulate = Color(1.28, 1.20, 1.08, 1.0)
 		icon_host.add_child(icon)
-		row.add_child(icon_host)
+	row.add_child(icon_host)
 	var key_lbl := Label.new()
 	key_lbl.text = key
+	key_lbl.custom_minimum_size = Vector2(_DETAIL_STAT_KEY_W, 0)
+	key_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	key_lbl.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	key_lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	key_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	UiTypography.apply_body(key_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_SUB_STRONG)
+	key_lbl.clip_text = false
+	UiTypography.apply_caption(key_lbl, COLOR_SUB_STRONG)
+	key_lbl.add_theme_font_size_override("font_size", _DETAIL_STAT_FONT_PX)
 	row.add_child(key_lbl)
 	var val_lbl := Label.new()
 	val_lbl.text = value
@@ -1092,7 +1087,8 @@ func _add_stat_row(key: String, value: String, stat_key: String = "") -> void:
 	val_lbl.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	val_lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	val_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	UiTypography.apply_body(val_lbl, UiTypography.SIZE_BODY, COLOR_TEXT_STRONG)
+	UiTypography.apply_caption(val_lbl, COLOR_TEXT_STRONG)
+	val_lbl.add_theme_font_size_override("font_size", _DETAIL_STAT_FONT_PX)
 	row.add_child(val_lbl)
 	_stats_grid.add_child(row)
 
@@ -1238,9 +1234,6 @@ func _rebuild_produce_detail() -> void:
 	_title_label.add_theme_color_override("font_color", rarity_col)
 	_subtitle_label.text = BlacksmithUiHelper.output_subtitle(craft)
 	_populate_stats_from_entries(BlacksmithUiHelper.craft_stat_entries(craft))
-	_add_stats_section_spacer()
-	var owned: int = BlacksmithUiHelper.owned_count(str(craft.output_type), str(craft.output_id))
-	_add_meta_stat_row("所持数", "%d" % owned)
 	_populate_unique_from_craft(craft)
 	_update_cost_panel(int(craft.gold_cost), craft.required_materials)
 	_craft_button.text = "生産する"
@@ -1250,6 +1243,7 @@ func _rebuild_produce_detail() -> void:
 	else:
 		_reason_label.text = _craft_button_label(craft, false)
 		_reason_label.visible = not _reason_label.text.is_empty()
+	_layout_detail_action_anchor()
 
 func _rebuild_enhance_detail() -> void:
 	if _selected_enhance_item == null:
@@ -1352,12 +1346,32 @@ func _populate_dismantle_yield(materials: Dictionary) -> void:
 		var qty: int = int(materials[mat_id])
 		if qty <= 0:
 			continue
-		_add_stat_row(DataRegistry.get_material_name(str(mat_id)), "× %d" % qty)
+		## 中央寄せ（「基礎鉱 × N」が左枠に貼り付かないように）。
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.alignment = BoxContainer.ALIGNMENT_CENTER
+		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var key_lbl := Label.new()
+		key_lbl.text = DataRegistry.get_material_name(str(mat_id))
+		key_lbl.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		key_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		UiTypography.apply_body(key_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_SUB_STRONG)
+		row.add_child(key_lbl)
+		var val_lbl := Label.new()
+		val_lbl.text = "× %d" % qty
+		val_lbl.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		val_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		UiTypography.apply_body(val_lbl, UiTypography.SIZE_BODY, COLOR_TEXT_STRONG)
+		row.add_child(val_lbl)
+		_stats_grid.add_child(row)
 
 
 func _rebuild_alchemy_detail() -> void:
 	if _selected_alchemy_base == null:
 		_set_detail_empty("主材にする%sを選んでください" % BlacksmithUiHelper.category_label(_category))
+		_layout_detail_action_anchor()
 		return
 	var base: Resource = _selected_alchemy_base
 	var rarity: int = _EquipmentEnhancer.item_rarity(base)
@@ -1365,6 +1379,13 @@ func _rebuild_alchemy_detail() -> void:
 	_title_label.text = _EquipmentEnhancer.get_display_name(base)
 	_title_label.add_theme_color_override("font_color", BlacksmithUiHelper.rarity_name_color(rarity))
 	_subtitle_label.text = "素材を下段から選び、装備レベルを上げる"
+	## 長文が詳細枠左右へはみ出さないよう縮小＋折返し。
+	_subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_subtitle_label.clip_text = false
+	_subtitle_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_subtitle_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_caption(_subtitle_label, COLOR_SUB_STRONG)
+	_subtitle_label.add_theme_font_size_override("font_size", 12)
 	_add_stat_row("現在レベル", "Lv.%d" % _EquipmentEnhancer.get_equip_level(base))
 	if _selected_alchemy_fodder == null:
 		_cost_panel.visible = false
@@ -1373,6 +1394,7 @@ func _rebuild_alchemy_detail() -> void:
 		_craft_button.disabled = true
 		_reason_label.text = "下段から素材装備を選択してください"
 		_reason_label.visible = true
+		_layout_detail_action_anchor()
 		return
 	var from_lv: int = _EquipmentEnhancer.get_equip_level(base)
 	var gain_raw: int = _EquipmentEnhancer.alchemy_level_gain(_selected_alchemy_fodder)
@@ -1393,6 +1415,30 @@ func _rebuild_alchemy_detail() -> void:
 	else:
 		_reason_label.text = str(preview.get("reason", ""))
 		_reason_label.visible = not _reason_label.text.is_empty()
+	_layout_detail_action_anchor()
+
+
+func _layout_detail_action_anchor() -> void:
+	## 錬成でコスト帯が空のとき、ボタン／ヒントを詳細枠下寄りへ押し下げる。
+	## 生産は下帯（作成可能）があるため、余白を詰めてボタンを枠内に残す。
+	if _cost_button_gap == null:
+		return
+	var push_down: bool = _mode == "alchemy" and not _cost_panel.visible
+	if push_down:
+		_cost_button_gap.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		_cost_button_gap.custom_minimum_size = Vector2(0, 48)
+		if _craft_button_bottom_pad != null:
+			_craft_button_bottom_pad.custom_minimum_size = Vector2(0, 18)
+	elif _mode == "produce":
+		_cost_button_gap.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		_cost_button_gap.custom_minimum_size = Vector2(0, 6)
+		if _craft_button_bottom_pad != null:
+			_craft_button_bottom_pad.custom_minimum_size = Vector2(0, 4)
+	else:
+		_cost_button_gap.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		_cost_button_gap.custom_minimum_size = Vector2(0, 14)
+		if _craft_button_bottom_pad != null:
+			_craft_button_bottom_pad.custom_minimum_size = Vector2(0, 10)
 
 
 func _format_material_summary(materials: Dictionary) -> String:

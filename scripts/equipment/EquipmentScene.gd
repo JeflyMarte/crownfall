@@ -652,7 +652,11 @@ func _update_character_card() -> void:
 		_label_stars.text = ""
 		_evolution_row.visible = false
 		return
-	_label_name.text = _GachaLimitBreak.format_member_display_name(member) if str(member.id).begins_with("gacha_") else member.display_name
+	_label_name.text = (
+		_GachaLimitBreak.format_member_name_plus(member)
+		if str(member.id).begins_with("gacha_")
+		else member.display_name
+	)
 	_label_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_label_name.max_lines_visible = 1
 	var job_mods: Dictionary = _JobStatCalculator.get_member_modifiers(member)
@@ -1357,7 +1361,8 @@ func _on_inventory_cell_gui_input(event: InputEvent, action: Callable) -> void:
 	else:
 		_end_inventory_press()
 	if event is InputEventMouseButton or event is InputEventScreenTouch:
-		event.accept_event()
+		## InputEvent には accept_event が無い。Control 側で消費する。
+		accept_event()
 
 func _is_inventory_pointer_event(event: InputEvent) -> bool:
 	if event is InputEventMouseButton:

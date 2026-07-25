@@ -54,6 +54,11 @@ alwaysApply: true
 | ガチャ／鍛冶BGMが他画面に残る | Equipment 等の拠点画面が `play_bgm` せず継続再生 | `BgmCatalog.SCENE_BGM`＋`SceneRouter.change_scene` で画面入場時に切替（拠点=hub） |
 | 調査隊員選択でイントロBGMが切れる | `StarterPickScene` が `SCENE_BGM` で hub になっていた | 導入フローは `introduction`（同ID再生中は継続）。拠点入りで hub へ |
 | 鍛冶詳細ステにアイコンが付かない／見えない | `EquipmentUiTokens.stat_icon` の実行時 load 欠落、または TextureRect を HBox に直置きして寸法 0、必要コスト被り | `BlacksmithScene` は `ICO_Equip_Stat_*` を **preload**＋固定 `Control` ホスト（36px）。コスト前スペーサ≧24。差替後は `.godot/imported` 再インポート |
+| 鍛冶詳細がぐちゃぐちゃ（名前／ステが武器画像に重なる） | ヒーローと名前／ステを `HeroStatsRow` で横並びに runtime reparent すると詳細枠幅で重なる | 詳細は **縦並び**（ヒーロー上→レア／名前／ステ下）。横並び reparent 禁止 |
+| 鍛冶詳細のステ／基礎鉱が左枠に食い込む | `DetailPanel` の `content_margin`≪`texture_margin`（例: 10 vs 36）。加えてタイトル中央・ステ左寄せのズレ | content_margin を枠クロム以上に。ステ行は **中央寄せ** |
+| 生産の「武器一覧」がカテゴリタブに重なる | `MainSplit.grow_vertical=BOTH` で最小高超過時に上方向へ伸長 | `GROW_DIRECTION_END` のみ。タブ下 gap≧40 |
+| 鍛冶タブ切替で装備アイコンが消える | `_setup_hero_display_layout` を `_refresh_all` 後に呼び `visible=false` で上書き | レイアウト調整→詳細再構築の順。layout では visible を触らない |
+| 装備（防具等）タップで強制終了 | `InputEvent.accept_event()` は存在しない（SCRIPT ERROR→デバッガで Abort） | `Control.accept_event()` を使う |
 
 ## アセット取込（Desktop → プロジェクト）
 
@@ -115,7 +120,7 @@ alwaysApply: true
 | Mac DEBUG で拠点左メニューが空の縦長板／下〜中央が黒帯／ボタン無効 | Hub safe area 後に `LeftMenuPanel` 高さを Scroll 子の `size.y` で再計測→パネルだけ伸びて中身が空に見える。併せて BottomNav と `hub.offset_bottom` の二重計算 | 左メニュー高さは `get_combined_minimum_size()` のみ（`size.y` 禁止）。Mac では `simulate_mobile_safe_area=false` 既定。chrome は `SafeAreaHelper.should_apply_chrome()`（実機のみ）。検証: `tools/verify_base_hub.gd` |
 | 招待状で下ナビが潰れる／隊長バーが中段に落ちる | 全画面で `apply_chrome_safe_area`＋Mac simulate ON | chrome は実機のみ。Mac はシーン座標を触らない |
 | 招待状が黒画面・下ナビにアイコン無し・BG／タイトル無し | `GachaScene.gd` が欠落メンバ（`TITLE_ART` 等）でパース失敗→スクリプト未実行で chrome／ナビ装飾が走らない | ガチャ画面は HEAD の `_setup_gacha_atmosphere` / `setup_banner_header` を維持。トークン定数は参照前に必ず定義。変更後 headless で GachaScene ロード確認 |
-| アプリアイコンが金の矢印 | iOS 向けに仮 `icon.png`（矢印）を追加したまま放置 | `assets/ui/UI_Title_Logo.png` から生成した `icon.png` を使う |
+| アプリアイコンが金の矢印 | iOS 向けに仮 `icon.png`（矢印）を追加したまま放置 | 正は `Downloads/アプリアイコン` → `assets/ui/UI_AppIcon.png`＋`icon.png`（1024²）。iOS は `AppIcon.appiconset` も更新し再ビルド／再インストール |
 | `HubLayoutHelper` が `SafeAreaHelper` 未解決でコンパイル失敗 | class_name 同士の早期参照／`-s` ツールからの preload 順 | `HubLayoutHelper` は `SafeAreaHelper` を `preload` する |
 | Mac では正しいのに iPhone だけアイコン位置がズレる | `stretch/aspect=expand` で論理画面の縦横比が実機に合わせて伸びる | 案A: `aspect=keep` で 720×1280 を維持（上下黒帯はエンジンが付与）。自前の黒帯 UI は作らない |
 | Mac では正しいのに iPhone だけ上バー侵食 | Mac の safe area は常に全画面（inset=0）。ノッチ分が開発時に見えない | `SafeAreaHelper` は実機のみ。Mac simulate は既定 OFF（`crownfall/ui/simulate_mobile_safe_area`） |

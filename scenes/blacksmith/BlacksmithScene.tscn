@@ -273,7 +273,7 @@ offset_top = 232.0
 offset_right = -8.0
 offset_bottom = -228.0
 grow_horizontal = 2
-grow_vertical = 2
+grow_vertical = 1
 clip_contents = true
 theme_override_constants/separation = 8
 

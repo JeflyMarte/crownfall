@@ -420,7 +420,7 @@ func _make_active_party_card(slot_index: int) -> Control:
 		portrait.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		vbox.add_child(portrait)
 	var name_lbl := Label.new()
-	name_lbl.text = RosterUiHelper.short_display_name(str(member.display_name))
+	name_lbl.text = RosterUiHelper.member_name_with_limit_break(member)
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_body(name_lbl, UiTypography.SIZE_CAPTION, UiTypography.COLOR_BODY)
 	vbox.add_child(name_lbl)
@@ -923,7 +923,7 @@ func _refresh_formation_grid() -> void:
 			portrait.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 			vbox.add_child(portrait)
 		var name_lbl := Label.new()
-		name_lbl.text = RosterUiHelper.short_display_name(str(member.display_name))
+		name_lbl.text = RosterUiHelper.member_name_with_limit_break(member)
 		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		name_lbl.add_theme_font_size_override("font_size", 12)
 		name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD

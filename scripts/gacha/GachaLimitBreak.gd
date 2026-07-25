@@ -43,6 +43,14 @@ static func tag_text(breakthrough: int) -> String:
 	return "限界突破 +%d" % n
 
 
+static func plus_suffix(breakthrough: int) -> String:
+	## 名前横の短縮表記（例: +2）。
+	var n: int = clampi(breakthrough, 0, MAX_BREAKTHROUGH)
+	if n <= 0:
+		return ""
+	return "+%d" % n
+
+
 static func format_member_display_name(member: Resource) -> String:
 	if member == null:
 		return ""
@@ -51,6 +59,17 @@ static func format_member_display_name(member: Resource) -> String:
 	if tag.is_empty():
 		return base
 	return "%s（%s）" % [base, tag]
+
+
+static func format_member_name_plus(member: Resource) -> String:
+	## キャラ画面向け: 「名前 +N」（未凸は名前のみ）。
+	if member == null:
+		return ""
+	var base: String = str(member.display_name)
+	var suf: String = plus_suffix(breakthrough_for_member(member))
+	if suf.is_empty():
+		return base
+	return "%s %s" % [base, suf]
 
 
 static func scale_passive_def(def: Dictionary, breakthrough: int) -> Dictionary:

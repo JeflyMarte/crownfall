@@ -63,7 +63,9 @@ const ITEM_CELL_DESIGN_PX: int = 128
 const LIST_CARD_MARGINS: Vector4i = Vector4i(12, 12, 12, 12)
 const ITEM_CELL_MARGINS: Vector4i = Vector4i(12, 12, 12, 12)
 ## 詳細枠（装備画面フレーム）。上アーチ＋クレスト分を多めに。
+## content は texture_margin 以上にしないとステ／素材行が左枠クロムに食い込む。
 const DETAIL_PANEL_MARGINS: Vector4i = Vector4i(36, 72, 36, 28)
+const DETAIL_PANEL_CONTENT_MARGINS: Vector4i = Vector4i(56, 56, 44, 28)
 const CRAFTABLE_PANEL_MARGINS: Vector4i = Vector4i(20, 22, 20, 18)
 const TAB_MARGINS: Vector4i = Vector4i(16, 12, 16, 14)
 ## 生産／強化など主ボタンの横幅上限（EXPAND せず中央寄せ）。
@@ -113,7 +115,14 @@ static func tab_inactive_style() -> StyleBox:
 
 
 static func detail_panel_style() -> StyleBox:
-	return texture_stylebox(DETAIL_PANEL, DETAIL_PANEL_MARGINS, 10.0)
+	var sb: StyleBox = texture_stylebox(DETAIL_PANEL, DETAIL_PANEL_MARGINS, 10.0)
+	if sb is StyleBoxTexture:
+		var st := sb as StyleBoxTexture
+		st.content_margin_left = float(DETAIL_PANEL_CONTENT_MARGINS.x)
+		st.content_margin_top = float(DETAIL_PANEL_CONTENT_MARGINS.y)
+		st.content_margin_right = float(DETAIL_PANEL_CONTENT_MARGINS.z)
+		st.content_margin_bottom = float(DETAIL_PANEL_CONTENT_MARGINS.w)
+	return sb
 
 
 static func craftable_band_style() -> StyleBox:

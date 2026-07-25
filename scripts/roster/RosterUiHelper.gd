@@ -106,6 +106,18 @@ static func short_display_name(full_name: String) -> String:
 		return text.substr(0, idx)
 	return text
 
+
+static func member_name_with_limit_break(member: Resource, short: bool = true) -> String:
+	## 限界突破分を名前横に「 +N」で付与（編成カード等）。
+	if member == null:
+		return "—"
+	var base: String = short_display_name(str(member.display_name)) if short else str(member.display_name)
+	const _GachaLimitBreak := preload("res://scripts/gacha/GachaLimitBreak.gd")
+	var suf: String = _GachaLimitBreak.plus_suffix(_GachaLimitBreak.breakthrough_for_member(member))
+	if suf.is_empty():
+		return base
+	return "%s %s" % [base, suf]
+
 static func job_display_name(member: Resource) -> String:
 	if member == null:
 		return "—"

@@ -551,7 +551,10 @@ static func detail_panel_style() -> StyleBox:
 	sb.set_border_width_all(2)
 	sb.border_color = Color(0.86, 0.72, 0.32, 0.92)
 	sb.set_corner_radius_all(10)
-	sb.set_content_margin_all(10.0)
+	sb.content_margin_left = 56.0
+	sb.content_margin_top = 56.0
+	sb.content_margin_right = 44.0
+	sb.content_margin_bottom = 28.0
 	sb.shadow_color = Color(0.0, 0.0, 0.0, 0.22)
 	sb.shadow_size = 2
 	return sb
@@ -577,10 +580,10 @@ static func cost_panel_style() -> StyleBox:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0, 0, 0, 0)
 	sb.set_border_width_all(0)
-	sb.content_margin_left = 36.0
-	sb.content_margin_top = 12.0
+	sb.content_margin_left = 28.0
+	sb.content_margin_top = 6.0
 	sb.content_margin_right = 8.0
-	sb.content_margin_bottom = 4.0
+	sb.content_margin_bottom = 2.0
 	return sb
 
 static func unique_panel_style() -> StyleBoxFlat:
