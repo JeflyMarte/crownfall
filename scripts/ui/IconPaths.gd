@@ -242,16 +242,32 @@ const ICON_MAP: Dictionary = {
 	"enemy:anchor_lord":           "res://assets/codex/enemies/ART_ENM_AnchorLord.png",
 	"enemy:nereion":               "res://assets/codex/enemies/ART_BOSS_Nereion.png",
 	# ⑤ フロストリッジ
-	"enemy:frost_claw_raptor":     "res://assets/codex/enemies/ART_ENM_FrostClawRaptor.png",
-	"enemy:vergaron":              "res://assets/codex/enemies/ART_ENM_Vergaron.png",
-	"enemy:storm_joe":             "res://assets/codex/enemies/ART_ENM_StormJoe.png",
-	"enemy:oldrex":                "res://assets/codex/enemies/ART_ENM_Oldrex.png",
+	"enemy:frost_claw_raptor": "res://assets/codex/enemies/ART_ENM_FrostClawRaptor.png",
+	"enemy_turn:frost_claw_raptor": "res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_FrostClawRaptor.png",
+
+	"enemy:vergaron": "res://assets/codex/enemies/ART_ENM_Vergaron.png",
+	"enemy_turn:vergaron": "res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_Vergaron.png",
+
+	"enemy:storm_joe": "res://assets/codex/enemies/ART_ENM_StormJoe.png",
+	"enemy_turn:storm_joe": "res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_StormJoe.png",
+
+	"enemy:oldrex": "res://assets/codex/enemies/ART_ENM_Oldrex.png",
+	"enemy_turn:oldrex": "res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_Oldrex.png",
+
 	"enemy:ice_tail_fox":          "res://assets/codex/enemies/ART_ENM_Vergaron.png",
-	"enemy:glacier_warden":        "res://assets/codex/enemies/ART_ENM_Oldrex.png",
-	"enemy:wind_ripper":           "res://assets/codex/enemies/ART_ENM_Greios.png",
-	"enemy:greios":                "res://assets/codex/enemies/ART_ENM_Greios.png",
+	"enemy:glacier_warden": "res://assets/codex/enemies/ART_ENM_GlacierWarden.png",
+	"enemy_turn:glacier_warden": "res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_GlacierWarden.png",
+
+	"enemy:wind_ripper": "res://assets/codex/enemies/ART_ENM_WindRipper.png",
+	"enemy_turn:wind_ripper": "res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_WindRipper.png",
+
+	"enemy:greios": "res://assets/codex/enemies/ART_ENM_Greios.png",
+	"enemy_turn:greios": "res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_Greios.png",
+
 	"enemy:polar_tricera":         "res://assets/codex/enemies/ART_ENM_StormJoe.png",
-	"enemy:eldion":                "res://assets/codex/enemies/ART_BOSS_Eldion.png",
+	"enemy:eldion": "res://assets/codex/enemies/ART_BOSS_Eldion.png",
+	"enemy_turn:eldion": "res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_Eldion.png",
+
 	"enemy:chronos_wave":          "res://assets/codex/enemies/ART_BOSS_Serdion.png",
 	"enemy:valgard":               "res://assets/codex/enemies/ART_BOSS_Serdion.png",
 	"enemy:skarpedion":            "res://assets/codex/enemies/ART_BOSS_Granvel.png",

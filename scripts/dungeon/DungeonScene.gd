@@ -35,7 +35,7 @@ const ENEMY_SPRITE_MAP: Dictionary = {
 	"grave_bell_bat": "res://resources/animation/ENM_GraveBellBat.tres",
 	"dead_poison_frog": "res://resources/animation/ENM_DeadPoisonFrog.tres",
 	"frost_claw_raptor": "res://resources/animation/ENM_FrostClawRaptor.tres",
-	"glacier_warden": "res://resources/animation/ENM_Oldrex.tres",
+	"glacier_warden": "res://resources/animation/ENM_GlacierWarden.tres",
 	"great_claw": "res://resources/animation/ENM_GreatClaw.tres",
 	"greios": "res://resources/animation/ENM_Greios.tres",
 	"ice_tail_fox": "res://resources/animation/ENM_Vergaron.tres",
@@ -65,7 +65,7 @@ const ENEMY_SPRITE_MAP: Dictionary = {
 	"tide_lamp": "res://resources/animation/ENM_TideLamp.tres",
 	"undertaker_shark": "res://resources/animation/ENM_UndertakerShark.tres",
 	"vergaron": "res://resources/animation/ENM_Vergaron.tres",
-	"wind_ripper": "res://resources/animation/ENM_Greios.tres",
+	"wind_ripper": "res://resources/animation/ENM_WindRipper.tres",
 	"cosmic_duck": "res://resources/animation/ENM_CosmicDuck.tres",
 	"crown_raven": "res://resources/animation/ENM_CrownRaven.tres",
 	## P3-WANDER-004: アート後差し（スカラベ＝甲虫／影狩り＝鎌系プレースホルダ）
@@ -6412,8 +6412,8 @@ func _on_finish_button_pressed() -> void:
 	GameState.last_run_exp_snapshots = ExpRunSnapshotScript.build_party_snapshots($DungeonController.run_exp_reward)
 	GameState.last_run_level_ups = {}
 	GameState.last_run_gold_reward = $DungeonController.run_gold_reward
-	## P3-BAL-ECO-001: 通常クリア 35–65（深層マイルストーンより薄く）
-	GameState.last_run_token_reward = randi_range(35, 65)
+	## P3-BAL-ECO-001 / P3-BAL-TIER-001: 基礎35–65 × ティア報酬倍率（H×1.2／NM×1.4）
+	GameState.last_run_token_reward = _DungeonTierConfig.clear_token_reward(GameState.current_dungeon_tier)
 	GameState.last_run_weapon_dropped = $DungeonController.last_weapon_dropped
 	GameState.last_run_armor_dropped = $DungeonController.last_armor_dropped
 	if not $DungeonController.last_accessory_dropped.is_empty():

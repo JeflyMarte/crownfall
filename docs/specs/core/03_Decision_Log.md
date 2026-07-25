@@ -4598,6 +4598,16 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-BAL-ALLY-FIX-001-4-A1 | `titan_roar` — power **2.7**／CD **30**／stun **0.55**（fear 副次は据置） | タンク必殺の決め技感。デッドアイ3.0は超えない |
 | P3-BAL-ALLY-FIX-001-4-B1 | `elias_field_elixir` — 入場全体回復 **30%→20%** | 安心感は残し毎戦保険を弱める |
 
+## 極冠トリケラ一旦オミット＋フロストリッジアート接続（2026-07-25 — P3-ENEMY-FR-OMIT-001）
+> **オーナー指示** — 極冠トリケラをオミット。オルドレクス戦闘ドットを接続（同セッションで⑤全体のドット／図鑑接続も承認）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-ENEMY-FR-OMIT-001-1 | **`frostridge` / `abyss_frostridge` の `elite_pool` から `polar_tricera` を除外**。Elite は `greios` のみ | 出現停止 |
+| P3-ENEMY-FR-OMIT-001-2 | **`EnemyData`／スプライト／図鑑マップは残置**（削除しない） | WW オミットと同型 |
+| P3-ENEMY-FR-OMIT-001-3 | **再有効化** — 本番ドット＋図鑑受領後にプール復帰 | 別 Task |
+| P3-ENEMY-FR-ART-001 | **⑤戦闘／図鑑アート接続** — Desktop ドット zip＋図鑑 PNG を `ENM_*`／`BOSS_Eldion`／`ART_*`／行動順アイコンへ。`glacier_warden`／`wind_ripper` の alias 解消。オルドレクス zip 含む | オーナー素材受領 |
+
 ## 経済バランス（魔晶石／日課／素材／ゴールド）（2026-07-25 — P3-BAL-ECO-001）
 > **オーナー指示** — 点検推奨1〜4を推奨値で実装。
 
