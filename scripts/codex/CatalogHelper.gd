@@ -13,10 +13,19 @@ const HISTORY_BIBLE_PATH: String = "res://docs/specs/world/01_History.md"
 const DUNGEON_BIBLE_PATH: String = ""
 const FRAGMENTS_PATH: String = "res://docs/specs/world/12_Fragments.md"
 
-# HE-001〜004=基幹、HE-005〜009=追加（P3-W-019）。lore ドロップ未実装のため全て starter 開示。
+# HE-001〜004=基幹、HE-005〜050=追加。lore ドロップ未実装のため全て starter 開示。
 const STARTER_HISTORY_IDS: Array[String] = [
 	"HE-001", "HE-002", "HE-003", "HE-004",
 	"HE-005", "HE-006", "HE-007", "HE-008", "HE-009",
+	"HE-010", "HE-011",
+	"HE-012", "HE-013", "HE-014", "HE-015", "HE-016",
+	"HE-017", "HE-018", "HE-019", "HE-020",
+	"HE-021", "HE-022", "HE-023", "HE-024", "HE-025",
+	"HE-026", "HE-027", "HE-028", "HE-029",
+	"HE-030", "HE-031", "HE-032", "HE-033", "HE-034",
+	"HE-035", "HE-036", "HE-037", "HE-038",
+	"HE-039", "HE-040", "HE-041", "HE-042", "HE-043", "HE-044",
+	"HE-045", "HE-046", "HE-047", "HE-048", "HE-049", "HE-050",
 ]
 
 const LORE_TO_HISTORY: Dictionary = {}

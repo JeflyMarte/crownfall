@@ -147,9 +147,22 @@ func test_world_guide_entries_cover_canon_basics() -> void:
 		"WORLD-G011", "WORLD-G012",
 		"WORLD-G013", "WORLD-G014", "WORLD-G015", "WORLD-G016", "WORLD-G017",
 		"WORLD-G018", "WORLD-G019", "WORLD-G020", "WORLD-G021", "WORLD-G022",
+		"WORLD-G023", "WORLD-G024", "WORLD-G025", "WORLD-G026", "WORLD-G027",
+		"WORLD-G028",
+		"WORLD-G029", "WORLD-G030", "WORLD-G031", "WORLD-G032", "WORLD-G033",
+		"WORLD-G034", "WORLD-G035", "WORLD-G036", "WORLD-G037", "WORLD-G038",
+		"WORLD-G039", "WORLD-G040", "WORLD-G041", "WORLD-G042", "WORLD-G043",
+		"WORLD-G044", "WORLD-G045", "WORLD-G046", "WORLD-G047", "WORLD-G048",
+		"WORLD-G049", "WORLD-G050",
 	]
 	for wid: String in required:
 		assert_false(str(by_id.get(wid, "")).is_empty(), "%s がある" % wid)
+
+	var world_count: int = 0
+	for wid in by_id.keys():
+		if str(wid).begins_with("WORLD-G"):
+			world_count += 1
+	assert_eq(world_count, 50, "世界観手引きは50件")
 
 	assert_true(str(by_id.get("WORLD-G002", "")).contains("魔法"), "魔法不在に言及")
 	assert_true(str(by_id.get("WORLD-G002", "")).contains("エルダ"), "エルダ定義")
@@ -157,7 +170,9 @@ func test_world_guide_entries_cover_canon_basics() -> void:
 	assert_true(str(by_id.get("WORLD-G003", "")).contains("冒険者組合ではない"), "組合否定")
 	assert_true(str(by_id.get("WORLD-G008", "")).contains("異界"), "民間俗称に触れつつ否定")
 	assert_true(str(by_id.get("WORLD-G011", "")).contains("鉱物化"), "モーンゲート生態")
+	assert_true(str(by_id.get("WORLD-G011", "")).contains("吐き門") or str(by_id.get("WORLD-G011", "")).contains("下鍛冶"), "モーンゲート地名")
 	assert_true(str(by_id.get("WORLD-G012", "")).contains("共生"), "ウィスパーウッド生態")
+	assert_true(str(by_id.get("WORLD-G012", "")).contains("葉隠れ") or str(by_id.get("WORLD-G012", "")).contains("糸網"), "囁きの森地名")
 	assert_true(str(by_id.get("WORLD-G013", "")).contains("専門"), "ジョブは専門資格")
 	assert_true(str(by_id.get("WORLD-G014", "")).contains("英雄ではない"), "隊長は選ばれし英雄ではない")
 	assert_true(str(by_id.get("WORLD-G015", "")).contains("生存"), "動機の三層")
@@ -167,6 +182,22 @@ func test_world_guide_entries_cover_canon_basics() -> void:
 	assert_true(str(by_id.get("WORLD-G020", "")).contains("辻灯亭"), "在野と辻灯亭")
 	assert_true(str(by_id.get("WORLD-G021", "")).contains("ゴールド"), "通貨")
 	assert_true(str(by_id.get("WORLD-G022", "")).contains("隊商"), "街道と隊商")
+	assert_true(str(by_id.get("WORLD-G023", "")).contains("腐生"), "霧沼生態")
+	assert_true(str(by_id.get("WORLD-G023", "")).contains("リブリス"), "リブリス環")
+	assert_true(str(by_id.get("WORLD-G024", "")).contains("潮汐"), "ブラックショア生態")
+	assert_true(str(by_id.get("WORLD-G024", "")).contains("沈旗"), "沈旗列")
+	assert_true(str(by_id.get("WORLD-G025", "")).contains("寒冷"), "フロストリッジ生態")
+	assert_true(str(by_id.get("WORLD-G025", "")).contains("エルディオンの針") or str(by_id.get("WORLD-G025", "")).contains("地図なし"), "北境標")
+	assert_true(str(by_id.get("WORLD-G026", "")).contains("開拓王"), "九王理念")
+	assert_true(str(by_id.get("WORLD-G027", "")).contains("灯断ち"), "崩落前後")
+	assert_true(str(by_id.get("WORLD-G027", "")).contains("三説") or str(by_id.get("WORLD-G027", "")).contains("継承"), "盟議の諸説")
+	assert_true(str(by_id.get("WORLD-G028", "")).contains("記録"), "断片の読み方")
+	assert_true(str(by_id.get("WORLD-G029", "")).contains("ソードマン"), "基本職")
+	assert_true(str(by_id.get("WORLD-G033", "")).contains("ビーストテイマー"), "テイマー")
+	assert_true(str(by_id.get("WORLD-G039", "")).contains("調査許可等級"), "等級")
+	assert_true(str(by_id.get("WORLD-G040", "")).contains("伝説個体"), "伝説個体")
+	assert_true(str(by_id.get("WORLD-G046", "")).contains("五部門"), "五部門")
+	assert_true(str(by_id.get("WORLD-G050", "")).contains("到達形"), "到達形")
 
 
 func test_mourngate_flavor_matches_postwar_ecology() -> void:

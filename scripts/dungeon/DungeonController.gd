@@ -120,6 +120,41 @@ const EVENTS_MOURNGATE: Array = [
 		"outcome": {"type": "lore", "label": "灯火のレリーフ", "discovery_id": "mourngate_lamp_relief"},
 	},
 	{
+		"id": "mourngate_blank_page",
+		"description": "記録庁の聞き書きを写し、継承の書の白紙の話を残した。",
+		"outcome": {"type": "lore", "label": "継承の白紙", "discovery_id": "mourngate_blank_page"},
+	},
+	{
+		"id": "mourngate_no_victor",
+		"description": "崩落期の断簡を見つけ、勝者なき戦の記述を書き写した。",
+		"outcome": {"type": "lore", "label": "勝者なき戦", "discovery_id": "mourngate_no_victor"},
+	},
+	{
+		"id": "mourngate_successor_stone",
+		"description": "王座の深淵で崩れた石を見つけ、継ぐ者への碑文を書き留めた。",
+		"outcome": {"type": "lore", "label": "継ぐ者への碑", "discovery_id": "mourngate_successor_stone"},
+	},
+	{
+		"id": "mourngate_nameless_heir",
+		"description": "記録保管区の断簡を見つけ、名なき継承の覚書を写した。",
+		"outcome": {"type": "lore", "label": "名なき継承の覚書", "discovery_id": "mourngate_nameless_heir"},
+	},
+	{
+		"id": "mourngate_war_versions",
+		"description": "記録部の整理票を見つけ、戦争伝承の三つの写本を突き合わせた。",
+		"outcome": {"type": "lore", "label": "三つの写本", "discovery_id": "mourngate_war_versions"},
+	},
+	{
+		"id": "mourngate_chrono_shelf",
+		"description": "クロノ庫の空棚を調べ、棚札の裏書きを記録した。",
+		"outcome": {"type": "lore", "label": "クロノ庫の空棚", "discovery_id": "mourngate_chrono_shelf"},
+	},
+	{
+		"id": "mourngate_shield_gate",
+		"description": "ストームクラウン砦跡の門文の写しを見つけ、静けさの碑を書き留めた。",
+		"outcome": {"type": "lore", "label": "静けさの門", "discovery_id": "mourngate_shield_gate"},
+	},
+	{
 		"id": "mourngate_temp_companion",
 		"description": "負傷した探索者と出会い、応急手当の知恵を得た。",
 		"outcome": {"type": "heal", "amount": 80},
@@ -152,6 +187,21 @@ const EVENTS_WHISPERWOOD: Array = [
 		"description": "梢のざわめきから方角を読む口伝を思い出し、書き留めた。",
 		"outcome": {"type": "lore", "label": "梢のささやき", "discovery_id": "whisperwood_canopy_whisper"},
 	},
+	{
+		"id": "whisperwood_worldtree_note",
+		"description": "世界樹の照合票の写しを見つけ、覚書を記録した。",
+		"outcome": {"type": "lore", "label": "世界樹の覚書", "discovery_id": "whisperwood_worldtree_note"},
+	},
+	{
+		"id": "whisperwood_seed_verse",
+		"description": "翠の祠で苔に覆われた詩片を見つけ、種の文言を書き写した。",
+		"outcome": {"type": "lore", "label": "種の詩片", "discovery_id": "whisperwood_seed_verse"},
+	},
+	{
+		"id": "whisperwood_verdant_oath",
+		"description": "森番の柱の根元に古い刻を見つけ、翠の盟約の文言を記録した。",
+		"outcome": {"type": "lore", "label": "翠の盟約の刻", "discovery_id": "whisperwood_verdant_oath"},
+	},
 ]
 
 const EVENTS_MISTFEN: Array = [
@@ -180,13 +230,28 @@ const EVENTS_MISTFEN: Array = [
 		"description": "水浸しの台帳が浅瀬に沈んでいた。読める頁を書き写した。",
 		"outcome": {"type": "lore", "label": "水浸しの台帳", "discovery_id": "mistfen_drowned_ledger"},
 	},
+	{
+		"id": "mistfen_sealed_ask",
+		"description": "半没書庫の楣に刻まれた一文を見つけ、欠落ごと書き留めた。",
+		"outcome": {"type": "lore", "label": "封じの問い", "discovery_id": "mistfen_sealed_ask"},
+	},
+	{
+		"id": "mistfen_idealess_relic",
+		"description": "沈没書庫の欄外票を見つけ、理念なき遺産の聞き書きを写した。",
+		"outcome": {"type": "lore", "label": "理念なき遺産", "discovery_id": "mistfen_idealess_relic"},
+	},
+	{
+		"id": "mistfen_why_sealed",
+		"description": "半没書庫の扉裏に走り書きを見つけ、封じの理由の欠落を記録した。",
+		"outcome": {"type": "lore", "label": "封じの理由", "discovery_id": "mistfen_why_sealed"},
+	},
 ]
 
 const EVENTS_ASTORIA_RUINS: Array = [
 	{
 		"id": "astoria_crown_bridge_rubble",
 		"description": "王冠橋の落石を避けながら、崩落前の街道標識を書き写した。",
-		"outcome": {"type": "lore", "label": "落橋の標識", "discovery_id": "mourngate_pilgrim_marker"},
+		"outcome": {"type": "lore", "label": "落橋の標識", "discovery_id": "astoria_fallen_sign"},
 	},
 	{
 		"id": "astoria_bleeding_wall",
@@ -205,6 +270,16 @@ const EVENTS_GREEN_HOLLOW: Array = [
 		"id": "green_hollow_poison_sample",
 		"description": "毒胞子の塊を採取し、耐性試料として持ち帰った。",
 		"outcome": {"type": "material", "label": "湿地の毒試料", "material_id": "relic_shard", "discovery_id": "relic_shard", "amount": 1},
+	},
+	{
+		"id": "green_hollow_root_mark",
+		"description": "湿地の大根に小さな標を見つけ、刻文を書き写した。",
+		"outcome": {"type": "lore", "label": "根の標", "discovery_id": "green_hollow_root_mark"},
+	},
+	{
+		"id": "green_hollow_kyle_mark",
+		"description": "湿地端の小さな標を見つけ、距離の文言を書き留めた。",
+		"outcome": {"type": "lore", "label": "距離の標", "discovery_id": "green_hollow_kyle_mark"},
 	},
 ]
 
@@ -230,6 +305,21 @@ const EVENTS_BLACKSHORE: Array = [
 		"outcome": {"type": "lore", "label": "潮見表の断片", "discovery_id": "blackshore_tide_chart"},
 	},
 	{
+		"id": "blackshore_lost_course",
+		"description": "沈没旗艦の船室で塗りつぶされた航路名を見つけ、記録した。",
+		"outcome": {"type": "lore", "label": "失われた航路", "discovery_id": "blackshore_lost_course"},
+	},
+	{
+		"id": "blackshore_marek_log",
+		"description": "座礁船の防水箱から航海録の端切れを見つけ、書き写した。",
+		"outcome": {"type": "lore", "label": "航海録の端", "discovery_id": "blackshore_marek_log"},
+	},
+	{
+		"id": "blackshore_first_flame",
+		"description": "干潟の辻灯亭の落書きの写しを見つけ、最初の火の問いを記録した。",
+		"outcome": {"type": "lore", "label": "最初の火", "discovery_id": "blackshore_first_flame"},
+	},
+	{
 		"id": "blackshore_salt_blessing",
 		"description": "潮の聖別を浴び、次の一戦に備えた。",
 		"outcome": {"type": "buff", "multiplier": 1.12},
@@ -246,6 +336,11 @@ const EVENTS_WESTBAY_FLATS: Array = [
 		"id": "westbay_holy_spring",
 		"description": "干潟の湧きから聖水を汲み、持ち帰った。",
 		"outcome": {"type": "heal", "amount": 96},
+	},
+	{
+		"id": "westbay_salt_prayer",
+		"description": "貝殻線の先に塩で描かれた円を見つけ、文言を書き留めた。",
+		"outcome": {"type": "lore", "label": "塩の祈り", "discovery_id": "westbay_salt_prayer"},
 	},
 ]
 
@@ -271,6 +366,16 @@ const EVENTS_FROSTRIDGE: Array = [
 		"outcome": {"type": "lore", "label": "吹雪の記録", "discovery_id": "frostridge_blizzard_note"},
 	},
 	{
+		"id": "frostridge_mapless_north",
+		"description": "開拓隊の携帯地図の余白注記を見つけ、写し取った。",
+		"outcome": {"type": "lore", "label": "地図なき北", "discovery_id": "frostridge_mapless_north"},
+	},
+	{
+		"id": "frostridge_keep_flame",
+		"description": "北境の宿場跡で灯火の教えを聞き書きし、記録した。",
+		"outcome": {"type": "lore", "label": "絶やすなという教え", "discovery_id": "frostridge_keep_flame"},
+	},
+	{
 		"id": "frostridge_aurora_gleam",
 		"description": "極光の残光が氷壁を照らし、一時的に視界が開けた。",
 		"outcome": {"type": "buff", "multiplier": 1.12},
@@ -288,6 +393,24 @@ const EVENTS_FROSTWALL_PATH: Array = [
 		"description": "壁沿いの氷柱を採取し、持ち帰った。",
 		"outcome": {"type": "material", "label": "氷壁の欠片", "material_id": "relic_shard", "discovery_id": "relic_shard", "amount": 1},
 	},
+	{
+		"id": "frostwall_ice_oath",
+		"description": "氷壁の裂け目に凍った布きれを見つけ、文言を書き写した。",
+		"outcome": {"type": "lore", "label": "氷壁の誓い", "discovery_id": "frostwall_ice_oath"},
+	},
+	{
+		"id": "frostwall_asten_margin",
+		"description": "開拓隊の携帯地図の別葉を見つけ、余白の注記を写し取った。",
+		"outcome": {"type": "lore", "label": "余白の注記", "discovery_id": "frostwall_asten_margin"},
+	},
+]
+
+const EVENTS_BROKEN_MARSH: Array = [
+	{
+		"id": "broken_marsh_bridge_bell",
+		"description": "崩落街道橋の欄干に残る錆びた鈴を見つけ、銘を書き留めた。",
+		"outcome": {"type": "lore", "label": "落橋の鈴", "discovery_id": "broken_marsh_bridge_bell"},
+	},
 ]
 
 # ダンジョン別イベント（P3-EVT-001）。id 一致で EVENTS へ加算。
@@ -297,7 +420,7 @@ const DUNGEON_EVENTS: Dictionary = {
 	"whisperwood": EVENTS_WHISPERWOOD,
 	"green_hollow": EVENTS_WHISPERWOOD + EVENTS_GREEN_HOLLOW,
 	"mistfen": EVENTS_MISTFEN,
-	"broken_marsh": EVENTS_MISTFEN,
+	"broken_marsh": EVENTS_MISTFEN + EVENTS_BROKEN_MARSH,
 	"blackshore": EVENTS_BLACKSHORE,
 	"westbay_flats": EVENTS_BLACKSHORE + EVENTS_WESTBAY_FLATS,
 	"frostridge": EVENTS_FROSTRIDGE,

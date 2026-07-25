@@ -44,13 +44,19 @@ func test_astoria_ruins_pool_has_surface_lore_only() -> void:
 func test_side_route_lore_pools() -> void:
 	var green_ids: Array = _pool_ids(_make_controller("green_hollow"))
 	assert_has(green_ids, "whisperwood_warden_carving", "②帯の碑文を共用")
+	assert_has(green_ids, "green_hollow_root_mark", "②寄り道専用碑文")
 	assert_does_not_have(green_ids, "green_hollow_bog_fire", "非碑文イベントは除外")
 	var west_ids: Array = _pool_ids(_make_controller("westbay_flats"))
 	assert_has(west_ids, "blackshore_pharos_echo", "④帯の碑文を共用")
+	assert_has(west_ids, "westbay_salt_prayer", "④寄り道専用碑文")
 	assert_does_not_have(west_ids, "westbay_holy_spring", "回復イベントは除外")
 	var frost_ids: Array = _pool_ids(_make_controller("frostwall_path"))
 	assert_has(frost_ids, "frostridge_boundary_marker", "⑤帯の碑文を共用")
+	assert_has(frost_ids, "frostwall_ice_oath", "⑤寄り道専用碑文")
 	assert_does_not_have(frost_ids, "frostwall_ice_shard", "素材イベントは除外")
+	var marsh_ids: Array = _pool_ids(_make_controller("broken_marsh"))
+	assert_has(marsh_ids, "broken_marsh_bridge_bell", "③寄り道専用碑文")
+	assert_has(marsh_ids, "mistfen_libris_seal", "③帯の碑文を共用")
 
 func test_side_route_equipment_pools() -> void:
 	for dungeon_id: String in [
@@ -70,15 +76,39 @@ func test_blackshore_main_has_biome_lore_only() -> void:
 
 func test_new_lore_fragments_have_bodies() -> void:
 	for lore_id: String in [
-		"whisperwood_warden_carving", "whisperwood_canopy_whisper",
-		"mistfen_libris_seal", "mistfen_drowned_ledger",
-		"blackshore_pharos_echo", "blackshore_tide_chart",
-		"frostridge_boundary_marker", "frostridge_blizzard_note",
+		"whisperwood_warden_carving", "whisperwood_canopy_whisper", "whisperwood_worldtree_note",
+		"mistfen_libris_seal", "mistfen_drowned_ledger", "mistfen_sealed_ask",
+		"blackshore_pharos_echo", "blackshore_tide_chart", "blackshore_lost_course",
+		"frostridge_boundary_marker", "frostridge_blizzard_note", "frostridge_mapless_north",
+		"mourngate_blank_page", "mourngate_no_victor",
+		"mourngate_successor_stone", "mourngate_nameless_heir", "mourngate_war_versions",
+		"mourngate_chrono_shelf", "mourngate_shield_gate",
+		"green_hollow_root_mark", "broken_marsh_bridge_bell",
+		"westbay_salt_prayer", "frostwall_ice_oath", "astoria_fallen_sign",
+		"whisperwood_seed_verse", "whisperwood_verdant_oath",
+		"mistfen_idealess_relic", "mistfen_why_sealed",
+		"blackshore_marek_log", "blackshore_first_flame",
+		"frostridge_keep_flame", "green_hollow_kyle_mark", "frostwall_asten_margin",
 	]:
 		assert_false(
 			CatalogHelper.get_lore_body(lore_id).is_empty(),
 			"LF 本文が解析できる: %s" % lore_id
 		)
+
+func test_nine_kings_history_entries_are_parsed() -> void:
+	var entries: Array = CatalogHelper.get_history_entries()
+	var by_id: Dictionary = {}
+	for e in entries:
+		by_id[str(e.get("id", ""))] = e
+	assert_eq(by_id.size(), 50, "歴史は50件")
+	for he_id: String in [
+		"HE-012", "HE-013", "HE-014", "HE-015", "HE-016",
+		"HE-017", "HE-018", "HE-019", "HE-020",
+		"HE-021", "HE-029", "HE-030", "HE-038", "HE-039", "HE-050",
+	]:
+		assert_true(by_id.has(he_id), "HE が解析される: %s" % he_id)
+		assert_true(bool(by_id[he_id].get("discovered", false)), "starter 開示: %s" % he_id)
+		assert_false(str(by_id[he_id].get("description", "")).is_empty(), "Overview あり: %s" % he_id)
 
 func test_pick_event_deduplicates_until_pool_exhausted() -> void:
 	var dc: Node = _make_controller("whisperwood")
