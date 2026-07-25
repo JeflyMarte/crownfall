@@ -694,13 +694,13 @@ func _toggle_selection(adv: Resource) -> void:
 	if PetSystem.is_pet_member(adv):
 		var name_short: String = RosterUiHelper.short_display_name(str(adv.display_name))
 		if GameState.active_pet != null and str(GameState.active_pet.id) == str(adv.id):
-			_label_status.text = "%sは出撃中のオトモです（4人編成には入りません）" % name_short
+			_label_status.text = "%sは出撃中のペットです（4人編成には入りません）" % name_short
 			return
 		if PetSystem.set_active_pet_id(str(adv.id)):
 			_label_status.text = "%sに切り替えました" % name_short
 			_rebuild_roster_grid()
 		else:
-			_label_status.text = "オトモの切り替えに失敗しました"
+			_label_status.text = "ペットの切り替えに失敗しました"
 		return
 	if _active_pick_slot >= 0:
 		_apply_active_pick_with_roster(adv)

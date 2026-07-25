@@ -89,7 +89,8 @@ func test_hub_and_field_guide_entries_exist() -> void:
 	assert_true(survey.contains("3 時間") or survey.contains("3時間"), "標準調査3時間")
 
 	var otomo: String = str(by_id.get("SYS-G002", ""))
-	assert_true(otomo.contains("ジャック"), "オトモ名")
+	assert_true(otomo.contains("ジャック"), "ペット名")
+	assert_true(otomo.contains("ペット") or otomo.contains("随伴ペット"), "ペット表記")
 	assert_true(otomo.contains("前衛"), "常時前衛")
 	assert_true(otomo.contains("招待状"), "招待状対象外に言及")
 
@@ -120,8 +121,9 @@ func test_hub_and_field_guide_entries_exist() -> void:
 	assert_true(rooms.contains("安全優先"), "探索方針との関係")
 
 	var formation: String = str(by_id.get("COMBAT-G003", ""))
-	assert_true(formation.contains("ジャック"), "陣形にオトモ関係")
+	assert_true(formation.contains("ジャック"), "陣形にペット関係")
 	assert_true(formation.contains("密集"), "密集とジャックの関係")
+	assert_true(formation.contains("ペット") or formation.contains("随伴ペット"), "陣形のペット表記"), "密集とジャックの関係")
 
 	var eq002: String = str(by_id.get("EQUIP-G002", ""))
 	assert_true(eq002.contains("限界突破"), "限界突破の厚み")

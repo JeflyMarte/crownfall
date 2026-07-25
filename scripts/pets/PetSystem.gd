@@ -130,7 +130,7 @@ static func unlock_pet(pet_id: String, notify: bool = true) -> bool:
 		var data: Resource = get_pet_data(pet_id)
 		var name_str: String = str(data.display_name) if data != null else pet_id
 		const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
-		_ContentUnlockNotice._queue_entry("pet", pet_id, "随伴オトモ「%s」" % name_str)
+		_ContentUnlockNotice._queue_entry("pet", pet_id, "随伴ペット「%s」" % name_str)
 	return true
 
 

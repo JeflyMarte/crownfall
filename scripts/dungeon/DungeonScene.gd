@@ -4208,9 +4208,9 @@ func _execute_member_buff(
 			return "\n【スキル】%s: 敵の注意を引いた" % result["display_name"]
 		return "\n【スキル】%s: 自身に[%s]・注意を引いた" % [result["display_name"], label]
 	if pet_only:
-		return "\n【スキル】%s: オトモに[%s]" % [result["display_name"], label]
+		return "\n【スキル】%s: ペットに[%s]" % [result["display_name"], label]
 	if skill_id == "herd_call":
-		return "\n【スキル】%s: オトモ鼓舞＋味方%d" % [result["display_name"], applied]
+		return "\n【スキル】%s: ペット鼓舞＋味方%d" % [result["display_name"], applied]
 	return "\n【スキル】%s: 味方%d体に[%s]" % [result["display_name"], applied, label]
 
 
@@ -6241,7 +6241,7 @@ func _queue_pet_followup_attack() -> void:
 	if not _is_active_pet_alive():
 		return
 	var pet_idx: int = GameState.combatant_count() - 1
-	_append_log("【指揮】オトモが追撃する")
+	_append_log("【指揮】ペットが追撃する")
 	_do_member_basic_attack(pet_idx)
 
 

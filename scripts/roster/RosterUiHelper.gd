@@ -60,7 +60,7 @@ static func passive_description(def: Dictionary) -> String:
 	if float(def.get("outgoing_mult", 1.0)) > 1.0:
 		return "与ダメージが%d%%上昇する。" % int(round((float(def["outgoing_mult"]) - 1.0) * 100.0))
 	if float(def.get("pet_outgoing_mult", 1.0)) > 1.0:
-		return "オトモの与ダメージが%d%%上昇する。" % int(round((float(def["pet_outgoing_mult"]) - 1.0) * 100.0))
+		return "ペットの与ダメージが%d%%上昇する。" % int(round((float(def["pet_outgoing_mult"]) - 1.0) * 100.0))
 	if float(def.get("incoming_mult", 1.0)) < 1.0:
 		return "被ダメージが%d%%軽減される。" % int(round((1.0 - float(def["incoming_mult"])) * 100.0))
 	var effect: String = str(def.get("effect", ""))
@@ -129,7 +129,7 @@ static func job_display_name(member: Resource) -> String:
 	if member == null:
 		return "—"
 	if PetSystem.is_pet_member(member):
-		return "オトモ"
+		return "ペット"
 	var mods: Dictionary = _JobStatCalculator.get_member_modifiers(member)
 	return str(mods.get("display_name", member.job_id))
 
