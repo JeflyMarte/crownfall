@@ -4,7 +4,7 @@ extends RefCounted
 ## ハード／ナイトメア限定の同一 enemy_id に対する表示名・個性上書き（ベース数値は据置）。
 ## ノーマル(T0) では一切適用しない — 色替え敵は Hard/NM 限定。
 ## 数値強化は DungeonTierConfig の敵Lvボーナスに任せ、二重加算しない。
-## Decision: P3-ENEMY-TIER-VAR-001 / 002
+## Decision: P3-ENEMY-TIER-VAR-001 / 002 / 003
 
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 
@@ -120,6 +120,130 @@ const VARIANTS: Dictionary = {
 			"on_hit_status_chance": 0.28,
 			"skill_use_chance": 0.50,
 			"element_resist": ["dark"],
+		},
+	},
+	## ── ウィスパーウッド（P3-ENEMY-TIER-VAR-003）──
+	"moss_boar": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "血苔ボア",
+			"critical_rate": 0.08,
+			"on_hit_status_id": "poison",
+			"on_hit_status_chance": 0.18,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "月苔ボア",
+			"critical_rate": 0.08,
+			"on_hit_status_id": "chill",
+			"on_hit_status_chance": 0.18,
+			"element_resist": ["dark"],
+		},
+	},
+	"moss_shell": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "緋殻シェル",
+			"on_hit_status_id": "poison",
+			"on_hit_status_chance": 0.16,
+			"element_resist": ["dark"],
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "蒼殻シェル",
+			"on_hit_status_id": "chill",
+			"on_hit_status_chance": 0.16,
+			"element_resist": ["ice", "dark"],
+		},
+	},
+	"iron_horn": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "錆刃甲虫",
+			"critical_rate": 0.10,
+			"skill_use_chance": 0.28,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "霜刃甲虫",
+			"critical_rate": 0.12,
+			"attack_element": "ice",
+			"on_hit_status_id": "chill",
+			"on_hit_status_chance": 0.22,
+		},
+	},
+	"spore_widow": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "朱胞ウィドウ",
+			"on_hit_status_chance": 0.28,
+			"critical_rate": 0.10,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "月胞ウィドウ",
+			"on_hit_status_id": "poison",
+			"on_hit_status_chance": 0.30,
+			"attack_element": "dark",
+			"element_resist": ["dark"],
+		},
+	},
+	"blood_bloom": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "紅咲ブルーム",
+			"on_hit_status_chance": 0.32,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "幽咲ブルーム",
+			"on_hit_status_id": "bleed",
+			"on_hit_status_chance": 0.28,
+			"attack_element": "dark",
+			"element_resist": ["dark"],
+		},
+	},
+	"rune_carcinos": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "朱紋カルキノス",
+			"skill_use_chance": 0.30,
+			"element_resist": ["dark"],
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "蒼紋カルキノス",
+			"skill_use_chance": 0.34,
+			"attack_element": "ice",
+			"element_resist": ["dark", "ice"],
+		},
+	},
+	"mist_wyvern": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "血霧ワイバーン",
+			"on_hit_status_chance": 0.28,
+			"skill_use_chance": 0.40,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "月霧ワイバーン",
+			"on_hit_status_chance": 0.28,
+			"skill_use_chance": 0.42,
+			"element_resist": ["ice", "dark"],
+		},
+	},
+	"mirror_boa": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "血鏡ボア",
+			"on_hit_status_chance": 0.28,
+			"critical_rate": 0.14,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "幽鏡ボア",
+			"on_hit_status_id": "poison",
+			"on_hit_status_chance": 0.30,
+			"attack_element": "dark",
+			"critical_rate": 0.14,
+		},
+	},
+	"granvel": {
+		_DungeonTierConfig.TIER_HARD: {
+			"display_name": "紅樹グランヴェル",
+			"on_hit_status_chance": 0.28,
+			"skill_use_chance": 0.46,
+		},
+		_DungeonTierConfig.TIER_NIGHTMARE: {
+			"display_name": "蒼樹グランヴェル",
+			"on_hit_status_chance": 0.28,
+			"skill_use_chance": 0.50,
+			"element_resist": ["dark", "ice"],
 		},
 	},
 }

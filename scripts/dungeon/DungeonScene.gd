@@ -110,6 +110,38 @@ const ENEMY_SPRITE_MAP_BY_TIER: Dictionary = {
 		1: "res://resources/animation/ENM_ClockMoth_Hard.tres",
 		2: "res://resources/animation/ENM_ClockMoth_Nightmare.tres",
 	},
+	"moss_boar": {
+		1: "res://resources/animation/ENM_MossBoar_Hard.tres",
+		2: "res://resources/animation/ENM_MossBoar_Nightmare.tres",
+	},
+	"moss_shell": {
+		1: "res://resources/animation/ENM_MossShell_Hard.tres",
+		2: "res://resources/animation/ENM_MossShell_Nightmare.tres",
+	},
+	"iron_horn": {
+		1: "res://resources/animation/ENM_IronHorn_Hard.tres",
+		2: "res://resources/animation/ENM_IronHorn_Nightmare.tres",
+	},
+	"spore_widow": {
+		1: "res://resources/animation/ENM_SporeWidow_Hard.tres",
+		2: "res://resources/animation/ENM_SporeWidow_Nightmare.tres",
+	},
+	"blood_bloom": {
+		1: "res://resources/animation/ENM_BloodBloom_Hard.tres",
+		2: "res://resources/animation/ENM_BloodBloom_Nightmare.tres",
+	},
+	"rune_carcinos": {
+		1: "res://resources/animation/ENM_RuneCarcinos_Hard.tres",
+		2: "res://resources/animation/ENM_RuneCarcinos_Nightmare.tres",
+	},
+	"mist_wyvern": {
+		1: "res://resources/animation/ENM_MistWyvern_Hard.tres",
+		2: "res://resources/animation/ENM_MistWyvern_Nightmare.tres",
+	},
+	"mirror_boa": {
+		1: "res://resources/animation/ENM_MirrorBoa_Hard.tres",
+		2: "res://resources/animation/ENM_MirrorBoa_Nightmare.tres",
+	},
 }
 const BOSS_ENEMY_SPRITE_MAP: Dictionary = {
 	"serdion": "res://resources/animation/BOSS_Serdion.tres",
@@ -130,6 +162,10 @@ const BOSS_ENEMY_SPRITE_MAP_BY_TIER: Dictionary = {
 		1: "res://resources/animation/BOSS_Serdion_Hard.tres",
 		2: "res://resources/animation/BOSS_Serdion_Nightmare.tres",
 	},
+	"granvel": {
+		1: "res://resources/animation/BOSS_Granvel_Hard.tres",
+		2: "res://resources/animation/BOSS_Granvel_Nightmare.tres",
+	},
 }
 const BOSS_SPRITE_MAP_BY_TIER: Dictionary = {
 	"mourngate": {
@@ -143,6 +179,22 @@ const BOSS_SPRITE_MAP_BY_TIER: Dictionary = {
 	"storm_crown_ruins": {
 		1: "res://resources/animation/BOSS_Serdion_Hard.tres",
 		2: "res://resources/animation/BOSS_Serdion_Nightmare.tres",
+	},
+	"whisperwood": {
+		1: "res://resources/animation/BOSS_Granvel_Hard.tres",
+		2: "res://resources/animation/BOSS_Granvel_Nightmare.tres",
+	},
+	"green_hollow": {
+		1: "res://resources/animation/BOSS_Granvel_Hard.tres",
+		2: "res://resources/animation/BOSS_Granvel_Nightmare.tres",
+	},
+	"red_ridge_mine": {
+		1: "res://resources/animation/BOSS_Granvel_Hard.tres",
+		2: "res://resources/animation/BOSS_Granvel_Nightmare.tres",
+	},
+	"abyss_whisperwood": {
+		1: "res://resources/animation/BOSS_Granvel_Hard.tres",
+		2: "res://resources/animation/BOSS_Granvel_Nightmare.tres",
 	},
 }
 const BOSS_SPRITE_MAP: Dictionary = {

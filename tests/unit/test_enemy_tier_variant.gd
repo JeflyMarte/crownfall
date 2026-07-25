@@ -15,6 +15,15 @@ const _ALL_VARIANT_IDS: Array[String] = [
 	"crystal_hedgehog",
 	"clock_moth",
 	"serdion",
+	"moss_boar",
+	"moss_shell",
+	"iron_horn",
+	"spore_widow",
+	"blood_bloom",
+	"rune_carcinos",
+	"mist_wyvern",
+	"mirror_boa",
+	"granvel",
 ]
 
 
@@ -46,6 +55,15 @@ func test_hard_and_nightmare_names_are_distinct_and_exclusive() -> void:
 		"crystal_hedgehog": "紅晶ハリネズミ",
 		"clock_moth": "血刻モス",
 		"serdion": "紅骸セルディオン",
+		"moss_boar": "血苔ボア",
+		"moss_shell": "緋殻シェル",
+		"iron_horn": "錆刃甲虫",
+		"spore_widow": "朱胞ウィドウ",
+		"blood_bloom": "紅咲ブルーム",
+		"rune_carcinos": "朱紋カルキノス",
+		"mist_wyvern": "血霧ワイバーン",
+		"mirror_boa": "血鏡ボア",
+		"granvel": "紅樹グランヴェル",
 	}
 	var expected_nm: Dictionary = {
 		"grave_bell_bat": "月鐘バット",
@@ -57,6 +75,15 @@ func test_hard_and_nightmare_names_are_distinct_and_exclusive() -> void:
 		"crystal_hedgehog": "黒晶ハリネズミ",
 		"clock_moth": "停時モス",
 		"serdion": "蒼骸セルディオン",
+		"moss_boar": "月苔ボア",
+		"moss_shell": "蒼殻シェル",
+		"iron_horn": "霜刃甲虫",
+		"spore_widow": "月胞ウィドウ",
+		"blood_bloom": "幽咲ブルーム",
+		"rune_carcinos": "蒼紋カルキノス",
+		"mist_wyvern": "月霧ワイバーン",
+		"mirror_boa": "幽鏡ボア",
+		"granvel": "蒼樹グランヴェル",
 	}
 	for enemy_id: String in _ALL_VARIANT_IDS:
 		var base: Resource = DataRegistry.get_enemy_data(enemy_id)
@@ -90,6 +117,18 @@ func test_nightmare_key_identity_samples() -> void:
 	)
 	assert_eq(str(roach.display_name), "蒼紋ローチ")
 	assert_eq(str(roach.attack_element), "ice")
+
+	var carcinos: Resource = _EnemyTierVariantConfig.apply(
+		DataRegistry.get_enemy_data("rune_carcinos"), _DungeonTierConfig.TIER_NIGHTMARE
+	)
+	assert_eq(str(carcinos.display_name), "蒼紋カルキノス")
+	assert_eq(str(carcinos.attack_element), "ice")
+
+	var granvel: Resource = _EnemyTierVariantConfig.apply(
+		DataRegistry.get_enemy_data("granvel"), _DungeonTierConfig.TIER_HARD
+	)
+	assert_eq(str(granvel.display_name), "紅樹グランヴェル")
+	assert_eq(int(granvel.max_hp), int(DataRegistry.get_enemy_data("granvel").max_hp))
 
 
 func test_duplicate_does_not_mutate_registry() -> void:

@@ -3808,6 +3808,17 @@ ELITE/BOSS/遍在希少種（P3-D166）は別枠。重みは **当該 Biome 雑�
 | P3-ENEMY-TIER-VAR-002-4 | **フォールバック** — 該当ティア資産が無いときのみノーマルへ。HardシートをNMで使わない | 誤表示防止 |
 | P3-ENEMY-TIER-VAR-002-5 | **個性** — ベース数値据置。異常・属性・スキル率のみ（既存方針継続） | P3-D164 と非二重 |
 
+### ウィスパーウッド Hard／NM 色・呼称（2026-07-25 — P3-ENEMY-TIER-VAR-003）
+
+> オーナー指示「ウィスパーウッド対応」。モーンゲートと同方針（同ID・専用シート・ノーマル非表示・Hard↔NM 相互フォールバック禁止・ベース数値据置）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-ENEMY-TIER-VAR-003-1 | **対象** — moss_boar / moss_shell / iron_horn / spore_widow / blood_bloom / rune_carcinos / mist_wyvern / mirror_boa / granvel | ②本編プール＋ELITE＋Boss |
+| P3-ENEMY-TIER-VAR-003-2 | **呼称** — Hard: 血苔／緋殻／錆刃／朱胞／紅咲／朱紋／血霧／血鏡／紅樹。NM: 月苔／蒼殻／霜刃／月胞／幽咲／蒼紋／月霧／幽鏡／蒼樹 | 森・腐敗／月霧対比 |
+| P3-ENEMY-TIER-VAR-003-3 | **資産** — `tools/recolor_whisperwood_tier_enemies.py` で Hard/NM Sheet 生成。配線は `ENEMY_SPRITE_MAP_BY_TIER` / `BOSS_*_BY_TIER` | 既存手順踏襲 |
+| P3-ENEMY-TIER-VAR-003-4 | **個性** — 毒／出血／chill／属性耐性・スキル率のみ。HP/ATK/DEF 不変 | P3-D164 と非二重 |
+
 ---
 
 ## SE 基盤（2026-07-14 — P3-AUDIO-SE-001）
