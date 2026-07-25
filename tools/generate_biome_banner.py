@@ -7,7 +7,7 @@ Default mode preserves the source aspect (title-baked key art).
 Dungeon select list / Featured banners (main + event) must match main strip size:
   --strip-height 232  → 1408×232（一覧表示高さ ~112px @680幅）
   メイン同様の金枠は BAN_DG_Frame_Strip.png を重ねる（--with-frame / 既定 ON for strip）。
-  中央ネームプレート（ダンジョン名用の二重金枠）は --with-nameplate。
+  中央ネームプレート（ダンジョン名用の一重金枠・メインと同型）は --with-nameplate。
 
 Usage:
   python3 tools/generate_biome_banner.py --input path/to.png --biome mourngate --strip-height 232
@@ -34,13 +34,13 @@ NAMEPLATE_STRIP_PATH = OUT_DIR / "BAN_DG_Nameplate_Strip.png"
 TARGET_W = 1408
 WHITE_THRESHOLD = 235
 WHITE_SOFT = 250
-## メイン Biome と同型の中央ネームプレート（二重金枠＋半透明暗板）。UI ラベルが載る。
-NAMEPLATE_MARGIN_X = 56
+## メイン Biome（Mourngate 等）と同型の中央ネームプレート。UI ラベルが載る。
+## 計測: 金枠は一重・約2px、外縁 x≈63 / y≈48（1408×232）。
+NAMEPLATE_MARGIN_X = 63
 NAMEPLATE_MARGIN_Y = 48
-NAMEPLATE_RADIUS = 9
-NAMEPLATE_FILL = (6, 6, 10, 185)
-NAMEPLATE_GOLD_OUTER = (205, 170, 78, 255)
-NAMEPLATE_GOLD_INNER = (230, 200, 110, 255)
+NAMEPLATE_RADIUS = 8
+NAMEPLATE_FILL = (15, 16, 28, 230)
+NAMEPLATE_GOLD = (196, 168, 78, 255)
 
 
 def biome_filename(biome_id: str) -> str:
@@ -131,27 +131,21 @@ def apply_frame(img: Image.Image, frame: Image.Image | None) -> Image.Image:
 
 
 def make_nameplate_strip(size: tuple[int, int] = (TARGET_W, 232)) -> Image.Image:
-	"""中央にダンジョン名用の二重金枠＋暗板（メイン Biome バナーと同型）。"""
+	"""中央にダンジョン名用の一重金枠＋暗板（メイン Biome バナーと同型・2px）。"""
 	w, h = size
 	plate = Image.new("RGBA", (w, h), (0, 0, 0, 0))
 	draw = ImageDraw.Draw(plate)
 	x0, y0 = NAMEPLATE_MARGIN_X, NAMEPLATE_MARGIN_Y
 	x1, y1 = w - NAMEPLATE_MARGIN_X, h - NAMEPLATE_MARGIN_Y
 	draw.rounded_rectangle(
-		[x0 + 2, y0 + 2, x1 - 2, y1 - 2],
+		[x0 + 1, y0 + 1, x1 - 1, y1 - 1],
 		radius=max(2, NAMEPLATE_RADIUS - 1),
 		fill=NAMEPLATE_FILL,
 	)
 	draw.rounded_rectangle(
 		[x0, y0, x1, y1],
 		radius=NAMEPLATE_RADIUS,
-		outline=NAMEPLATE_GOLD_OUTER,
-		width=3,
-	)
-	draw.rounded_rectangle(
-		[x0 + 5, y0 + 5, x1 - 5, y1 - 5],
-		radius=max(2, NAMEPLATE_RADIUS - 3),
-		outline=NAMEPLATE_GOLD_INNER,
+		outline=NAMEPLATE_GOLD,
 		width=2,
 	)
 	return plate
