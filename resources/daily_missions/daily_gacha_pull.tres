@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "daily_gacha_pull"
 title = "招待状を1回引く"
-description = "召喚所で招待を1回行う"
+description = "（プール除外・P3-BAL-GACHA-001）召喚所で招待を1回行う"
 objective_type = "gacha_pull"
 target_count = 1
 target_param = ""

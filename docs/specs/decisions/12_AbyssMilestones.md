@@ -3,7 +3,8 @@
 **Status:** SSOT（Decision 承認済）  
 **Approved:** 2026-07-25  
 **Parent:** `09_BiomeAbyss.md`  
-**Override:** 魔晶石数量は **P3-BAL-ECO-001**（通常クリア帯より厚く）
+**Override:** 魔晶石数量は **P3-BAL-ECO-001**（通常クリア帯より厚く）  
+**関連:** ガチャ単価・クリア供給の正は **P3-BAL-GACHA-001**（単発500・通常クリア35–65）
 
 ## 方針
 

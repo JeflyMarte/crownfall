@@ -9,7 +9,7 @@ const JST_OFFSET_SEC: int = 9 * 3600
 const DAY_START_HOUR_JST: int = 5
 const DAILY_PICK_COUNT: int = 3
 
-## 抽選プール（P3-DAILY-002-4）
+## 抽選プール（P3-DAILY-002-4 / P3-BAL-GACHA-001: 招待日課は除外）
 const DAILY_POOL: Array[String] = [
 	"daily_clear_run",
 	"daily_kill_enemies",
@@ -19,6 +19,9 @@ const DAILY_POOL: Array[String] = [
 	"daily_enhance_item",
 	"daily_alchemy_item",
 	"daily_dismantle_item",
+]
+## データ残置・プール外（消費500に対し報酬20の逆インセンティブ解消）
+const DAILY_POOL_OMITTED: Array[String] = [
 	"daily_gacha_pull",
 ]
 
@@ -223,6 +226,8 @@ func _entries_valid(entries: Variant) -> bool:
 		if not raw is Dictionary:
 			return false
 		var mid: String = str((raw as Dictionary).get("mission_id", ""))
+		if mid.is_empty() or mid not in DAILY_POOL:
+			return false
 		if _get_mission_data(mid) == null:
 			return false
 	return true

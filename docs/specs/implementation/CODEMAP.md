@@ -214,7 +214,7 @@ Task 明示指示がない限り作成しない:
 | クラフト | `resources/crafting/` — 6レシピ（武器3/防具2/装飾1・P3-D067/D136） |
 | レシピ | `resources/recipes/` — recipe_leather_armor, recipe_bone_armor, recipe_silver_ring |
 | 素材ショップ | `resources/material_shop/` — relic_shard, ancient_bone |
-| 日課 | `resources/daily_missions/` — プール抽選3件/日（P3-DAILY-002）。撃破20・鍛冶系・招待など |
+| 日課 | `resources/daily_missions/` — プール抽選3件/日（P3-DAILY-002）。撃破・鍛冶系等。**招待日課はプール外**（P3-BAL-GACHA-001） |
 | 期間イベント | `resources/events/` — `evt_week_exp` / `evt_week_gold` / `evt_week_weapon`（各7日・P3-D163） |
 
 ### animation/（Phase3-A — SpriteFrames）

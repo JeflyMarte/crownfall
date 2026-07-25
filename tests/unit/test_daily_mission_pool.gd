@@ -25,6 +25,25 @@ func test_genre_id_for_mission_groups() -> void:
 	assert_eq(DailyMissionSystem.genre_id_for_mission("daily_enhance_item"), DailyMissionSystem.GENRE_FORGE)
 	assert_eq(DailyMissionSystem.genre_id_for_mission("daily_gacha_pull"), DailyMissionSystem.GENRE_GACHA)
 	assert_eq(DailyMissionSystem.genre_id_for_mission("", "craft_item"), DailyMissionSystem.GENRE_FORGE)
+	assert_false("daily_gacha_pull" in DailyMissionSystem.DAILY_POOL)
+	assert_true("daily_gacha_pull" in DailyMissionSystem.DAILY_POOL_OMITTED)
+
+
+func test_omitted_gacha_pull_triggers_refresh() -> void:
+	## P3-BAL-GACHA-001: プール外の招待日課が残っていても再抽選する。
+	GameState.daily_mission_state = {
+		"day_key": DailyMissionSystem.current_day_key(),
+		"entries": [
+			{"mission_id": "daily_gacha_pull", "progress": 0, "claimed": false},
+			{"mission_id": "daily_craft_item", "progress": 0, "claimed": false},
+			{"mission_id": "daily_clear_run", "progress": 0, "claimed": false},
+		],
+	}
+	var entries: Array[Dictionary] = DailyMissionSystem.get_entries()
+	assert_eq(entries.size(), DailyMissionSystem.DAILY_PICK_COUNT)
+	for e in entries:
+		assert_ne(str(e.get("mission_id", "")), "daily_gacha_pull")
+		assert_true(str(e.get("mission_id", "")) in DailyMissionSystem.DAILY_POOL)
 
 
 func test_genre_icons_exist() -> void:
