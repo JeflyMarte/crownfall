@@ -1,7 +1,7 @@
 class_name SurveyConfig
 extends RefCounted
 
-## P3-HUB-SURVEY-001 Phase1 仮数値（Decision §10）。
+## P3-HUB-SURVEY-001 / P3-BAL-SURVEY-001（Decision §10）。
 
 const SURVEY_CLEAR_PERCENT: float = 70.0
 const SURVEY_COMPLETE_PERCENT: float = 100.0
@@ -41,10 +41,13 @@ const WEAPON_P_STAR3: float = 0.015
 static func weapon_drop_chance() -> float:
 	return WEAPON_P_STAR1 + WEAPON_P_STAR2 + WEAPON_P_STAR3
 
-const TOKEN_SHORT_MIN: int = 20
-const TOKEN_SHORT_MAX: int = 40
-const TOKEN_STANDARD_MIN: int = 80
-const TOKEN_STANDARD_MAX: int = 140
+## P3-BAL-SURVEY-001: 潜行クリア（35–65）より一段下。
+const TOKEN_SHORT_MIN: int = 15
+const TOKEN_SHORT_MAX: int = 30
+const TOKEN_STANDARD_MIN: int = 40
+const TOKEN_STANDARD_MAX: int = 70
+## 調査室日次 SURVEY 上限到達後の受取は魔晶石（と連動 Gold）を半減。
+const ROOM_OVER_CAP_TOKEN_MULT: float = 0.5
 
 const MATERIAL_SHORT_MIN: int = 2
 const MATERIAL_SHORT_MAX: int = 4

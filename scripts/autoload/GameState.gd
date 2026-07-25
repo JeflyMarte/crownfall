@@ -1669,20 +1669,35 @@ func mark_enemy_seen(enemy_id: String) -> void:
 	enemy_id = _canonical_enemy_id(enemy_id)
 	if enemy_id.is_empty():
 		return
+	var stage_before: int = get_enemy_stage(enemy_id)
 	if not enemy_codex.has(enemy_id):
 		enemy_codex[enemy_id] = {"seen": true, "kills": 0}
 	else:
 		enemy_codex[enemy_id]["seen"] = true
+	_notify_survey_codex_stage_up(enemy_id, stage_before)
+
 
 func add_enemy_kill(enemy_id: String) -> void:
 	enemy_id = _canonical_enemy_id(enemy_id)
 	if enemy_id.is_empty():
 		return
+	var stage_before: int = get_enemy_stage(enemy_id)
 	if not enemy_codex.has(enemy_id):
 		enemy_codex[enemy_id] = {"seen": true, "kills": 1}
 	else:
 		enemy_codex[enemy_id]["seen"] = true
 		enemy_codex[enemy_id]["kills"] = int(enemy_codex[enemy_id].get("kills", 0)) + 1
+	_notify_survey_codex_stage_up(enemy_id, stage_before)
+
+
+func _notify_survey_codex_stage_up(enemy_id: String, stage_before: int) -> void:
+	## P3-BAL-SURVEY-001: 図鑑段階アップごとに① SURVEY +2。
+	var stage_after: int = get_enemy_stage(enemy_id)
+	var gained: int = stage_after - stage_before
+	if gained <= 0:
+		return
+	const _SurveySystem := preload("res://scripts/survey/SurveySystem.gd")
+	_SurveySystem.on_codex_stage_up(enemy_id, gained)
 
 func mark_boss_phase_seen(enemy_id: String, phase_index: int) -> void:
 	enemy_id = _canonical_enemy_id(enemy_id)

@@ -10,6 +10,8 @@ var _saved_survey: Dictionary = {}
 var _saved_cycle: Dictionary = {}
 var _saved_room: Dictionary = {}
 var _saved_achieve: Dictionary = {}
+var _saved_codex: Dictionary = {}
+var _saved_token: int = 0
 
 
 func before_each() -> void:
@@ -18,11 +20,14 @@ func before_each() -> void:
 	_saved_cycle = GameState.hub_survey_cycle.duplicate(true)
 	_saved_room = GameState.hub_survey_room_daily.duplicate(true)
 	_saved_achieve = GameState.hub_survey_achievements_claimed.duplicate(true)
+	_saved_codex = GameState.enemy_codex.duplicate(true)
+	_saved_token = GameState.gacha_token
 	GameState.dungeon_progress = {}
 	GameState.hub_survey_progress = {}
 	GameState.hub_survey_cycle = {}
 	GameState.hub_survey_room_daily = {}
 	GameState.hub_survey_achievements_claimed = {}
+	GameState.enemy_codex = {}
 	GameState.debug_full_unlock = false
 
 
@@ -32,6 +37,8 @@ func after_each() -> void:
 	GameState.hub_survey_cycle = _saved_cycle
 	GameState.hub_survey_room_daily = _saved_room
 	GameState.hub_survey_achievements_claimed = _saved_achieve
+	GameState.enemy_codex = _saved_codex
+	GameState.gacha_token = _saved_token
 	GameState.debug_full_unlock = false
 
 
@@ -111,3 +118,55 @@ func test_speed_bonus_scales_with_combat_power() -> void:
 	assert_gte(with_role, boosted)
 	if adv.base_stats != null:
 		adv.base_stats.hp = saved_hp
+
+
+func test_bal_survey_token_ranges_below_clear() -> void:
+	## P3-BAL-SURVEY-001: 調査室石は潜行クリア帯（35–65）より一段下。
+	assert_lte(_SurveyConfig.TOKEN_SHORT_MAX, 30)
+	assert_lte(_SurveyConfig.TOKEN_STANDARD_MAX, 70)
+	assert_lt(_SurveyConfig.TOKEN_STANDARD_MAX, 80)
+	assert_lt(_SurveyConfig.TOKEN_SHORT_MAX, 35)
+
+
+func test_codex_stage_up_adds_mourngate_survey() -> void:
+	## P3-BAL-SURVEY-001: 図鑑段階アップが① SURVEY に加算される。
+	GameState.enemy_codex = {}
+	GameState.hub_survey_progress = {}
+	var eid: String = "sepia_hound"
+	assert_eq(GameState.get_enemy_stage(eid), 1)
+	GameState.mark_enemy_seen(eid)
+	assert_eq(GameState.get_enemy_stage(eid), 2)
+	assert_eq(_SurveySystem.get_survey_percent(Constants.MOURNGATE_DUNGEON_ID), _SurveyConfig.SURVEY_ADD_CODEX_STAGE)
+	GameState.add_enemy_kill(eid)
+	assert_eq(GameState.get_enemy_stage(eid), 3)
+	assert_eq(
+		_SurveySystem.get_survey_percent(Constants.MOURNGATE_DUNGEON_ID),
+		_SurveyConfig.SURVEY_ADD_CODEX_STAGE * 2.0
+	)
+
+
+func test_claim_over_cap_halves_tokens() -> void:
+	## 日次 SURVEY 上限到達後の受取は魔晶石半減。
+	GameState.hub_survey_room_daily = {
+		"day_key": DailyMissionSystem.current_day_key(),
+		"used": _SurveyConfig.SURVEY_ROOM_DAILY_CAP,
+	}
+	assert_true(_SurveySystem.is_room_daily_capped())
+	var ids: Array[String] = []
+	if not GameState.roster.is_empty() and GameState.roster[0] != null:
+		ids.append(str(GameState.roster[0].id))
+	var started: Dictionary = _SurveySystem.start_cycle(
+		Constants.MOURNGATE_DUNGEON_ID, _SurveyConfig.PRESET_SHORT, ids
+	)
+	assert_true(bool(started.get("ok", false)), str(started))
+	GameState.hub_survey_cycle["start_unix"] = Time.get_unix_time_from_system() - (
+		_SurveyConfig.SHORT_DURATION_SEC + 10.0
+	)
+	var before_token: int = GameState.gacha_token
+	var claimed: Dictionary = _SurveySystem.claim_cycle()
+	assert_true(bool(claimed.get("ok", false)), str(claimed))
+	assert_true(bool(claimed.get("token_over_cap", false)))
+	var gained: int = int(claimed.get("token", 0))
+	assert_gte(gained, 1)
+	assert_lte(gained, int(ceil(float(_SurveyConfig.TOKEN_SHORT_MAX) * _SurveyConfig.ROOM_OVER_CAP_TOKEN_MULT)))
+	assert_eq(GameState.gacha_token, before_token + gained)

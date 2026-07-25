@@ -43,6 +43,16 @@ static func _clamp_room_daily(amount: float) -> float:
 	return grant
 
 
+static func room_daily_remaining() -> float:
+	_refresh_room_daily()
+	var used: float = float(GameState.hub_survey_room_daily.get("used", 0.0))
+	return maxf(0.0, _SurveyConfig.SURVEY_ROOM_DAILY_CAP - used)
+
+
+static func is_room_daily_capped() -> bool:
+	return room_daily_remaining() <= 0.001
+
+
 static func _refresh_room_daily() -> void:
 	var day_key: String = DailyMissionSystem.current_day_key()
 	if str(GameState.hub_survey_room_daily.get("day_key", "")) == day_key:
@@ -65,11 +75,12 @@ static func on_stage_cleared(stage_id: String, first_clear: bool, has_boss_floor
 	add_survey_percent(biome_id, add, false)
 
 
-static func on_codex_stage_up(enemy_id: String) -> void:
-	## 撃破で段階が上がったとき（呼び出し側で上昇検知）。①調査に加算。
-	if enemy_id.is_empty():
+static func on_codex_stage_up(enemy_id: String, stages_gained: int = 1) -> void:
+	## 図鑑段階が上がったとき（GameState から呼ぶ）。① SURVEY に加算。
+	if enemy_id.is_empty() or stages_gained <= 0:
 		return
-	add_survey_percent(Constants.MOURNGATE_DUNGEON_ID, _SurveyConfig.SURVEY_ADD_CODEX_STAGE, false)
+	var add: float = _SurveyConfig.SURVEY_ADD_CODEX_STAGE * float(stages_gained)
+	add_survey_percent(Constants.MOURNGATE_DUNGEON_ID, add, false)
 
 
 ## 装備込みの総合戦闘力（ATK+DEF+HP）。調査速度ボーナスの比例元。
@@ -249,7 +260,9 @@ static func claim_cycle() -> Dictionary:
 		return {"ok": false, "reason": "まだ調査が完了していません"}
 	var dungeon_id: String = str(GameState.hub_survey_cycle.get("dungeon_id", ""))
 	var preset: String = str(GameState.hub_survey_cycle.get("preset", _SurveyConfig.PRESET_STANDARD))
-	var rewards: Dictionary = _roll_rewards(preset)
+	## 日次 SURVEY 上限到達後は魔晶石を半減（放置石稼ぎ抑制）。
+	var over_cap: bool = is_room_daily_capped()
+	var rewards: Dictionary = _roll_rewards(preset, over_cap)
 	## 付与
 	GameState.gacha_token += int(rewards.get("token", 0))
 	GameState.gold += int(rewards.get("gold", 0))
@@ -264,16 +277,19 @@ static func claim_cycle() -> Dictionary:
 	GameState.hub_survey_cycle = {}
 	rewards["ok"] = true
 	rewards["dungeon_id"] = dungeon_id
+	rewards["token_over_cap"] = over_cap
 	SaveManager.save_game()
 	return rewards
 
 
-static func _roll_rewards(preset: String) -> Dictionary:
+static func _roll_rewards(preset: String, over_cap: bool = false) -> Dictionary:
 	var short: bool = preset == _SurveyConfig.PRESET_SHORT
 	var token: int = randi_range(
 		_SurveyConfig.TOKEN_SHORT_MIN if short else _SurveyConfig.TOKEN_STANDARD_MIN,
 		_SurveyConfig.TOKEN_SHORT_MAX if short else _SurveyConfig.TOKEN_STANDARD_MAX
 	)
+	if over_cap:
+		token = maxi(1, int(floor(float(token) * _SurveyConfig.ROOM_OVER_CAP_TOKEN_MULT)))
 	var mat_qty: int = randi_range(
 		_SurveyConfig.MATERIAL_SHORT_MIN if short else _SurveyConfig.MATERIAL_STANDARD_MIN,
 		_SurveyConfig.MATERIAL_SHORT_MAX if short else _SurveyConfig.MATERIAL_STANDARD_MAX
