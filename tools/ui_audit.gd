@@ -19,7 +19,8 @@ const CODEX_TABS: Array = [
 	["codex_dungeon", "ButtonTabDungeon"],
 	["codex_weapon", "ButtonTabWeapon"],
 	["codex_history", "ButtonTabHistory"],
-	["codex_lore", "ButtonTabLore"],
+	["codex_worldview", "ButtonTabWorldview"],
+	["codex_character", "ButtonTabCharacter"],
 	["codex_guide", "ButtonTabGuide"],
 ]
 

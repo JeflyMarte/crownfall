@@ -123,7 +123,7 @@ func test_hub_and_field_guide_entries_exist() -> void:
 	var formation: String = str(by_id.get("COMBAT-G003", ""))
 	assert_true(formation.contains("ジャック"), "陣形にペット関係")
 	assert_true(formation.contains("密集"), "密集とジャックの関係")
-	assert_true(formation.contains("ペット") or formation.contains("随伴ペット"), "陣形のペット表記"), "密集とジャックの関係")
+	assert_true(formation.contains("ペット") or formation.contains("随伴ペット"), "陣形のペット表記")
 
 	var eq002: String = str(by_id.get("EQUIP-G002", ""))
 	assert_true(eq002.contains("限界突破"), "限界突破の厚み")
@@ -140,7 +140,7 @@ func test_cosmic_rift_flavor_uses_elda_rift() -> void:
 
 func test_world_guide_entries_cover_canon_basics() -> void:
 	var by_id: Dictionary = {}
-	for entry: Dictionary in GuideCatalog.get_entries():
+	for entry: Dictionary in GuideCatalog.get_world_entries():
 		by_id[str(entry.get("id", ""))] = str(entry.get("description", ""))
 
 	var required: Array[String] = [
@@ -165,6 +165,10 @@ func test_world_guide_entries_cover_canon_basics() -> void:
 		if str(wid).begins_with("WORLD-G"):
 			world_count += 1
 	assert_eq(world_count, 50, "世界観手引きは50件")
+
+	## 手引きタブ側には WORLD を載せない（案B）。
+	for entry: Dictionary in GuideCatalog.get_entries():
+		assert_false(str(entry.get("id", "")).begins_with("WORLD-G"), "手引きからWORLD除外")
 
 	assert_true(str(by_id.get("WORLD-G002", "")).contains("魔法"), "魔法不在に言及")
 	assert_true(str(by_id.get("WORLD-G002", "")).contains("エルダ"), "エルダ定義")

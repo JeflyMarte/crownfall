@@ -23,6 +23,15 @@ extends Resource
 ## 基礎ステータス（空欄なら Stats 既定）。
 @export var base_stats: Stats
 
+## 図鑑・人物録（所持時のみ開示）。
+@export var hometown: String = ""
+@export var height_cm: int = 0
+@export var likes: String = ""
+@export var dislikes: String = ""
+@export_multiline var backstory: String = ""
+## ギルド記録部の短い注記（余白・未確定メモ）。
+@export_multiline var record_note: String = ""
+
 func get_portrait_texture() -> Texture2D:
 	if not portrait_resource_path.is_empty() and ResourceLoader.exists(portrait_resource_path):
 		return load(portrait_resource_path) as Texture2D

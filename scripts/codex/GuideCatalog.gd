@@ -7,6 +7,27 @@ const _RT := preload("res://scripts/codex/CodexRichText.gd")
 
 
 static func get_entries() -> Array:
+	## 手引き＝戦闘／装備／システムのみ（世界観は `get_world_entries`）。
+	var out: Array = []
+	for entry: Dictionary in _all_guide_entries():
+		var eid: String = str(entry.get("id", ""))
+		if eid.begins_with("WORLD-G"):
+			continue
+		out.append(entry)
+	return out
+
+
+static func get_world_entries() -> Array:
+	## 世界観手引き WORLD-G001〜050（図鑑「世界観」タブ用）。
+	var out: Array = []
+	for entry: Dictionary in _all_guide_entries():
+		var eid: String = str(entry.get("id", ""))
+		if eid.begins_with("WORLD-G"):
+			out.append(entry)
+	return out
+
+
+static func _all_guide_entries() -> Array:
 	return [
 		_e("COMBAT-G001", "属性の基礎", _g001()),
 		_e("COMBAT-G002", "状態異常一覧", _g002()),
@@ -824,11 +845,12 @@ static func _world010() -> String:
 	return (
 		"図鑑はギルド%sが管理する調査記録の端末だ。\n" % _em("記録部")
 		+ "敵の生態段階、ダンジョンの概要、歴史の見出し、\n"
-		+ "野外で拾った%s、そして手引きが並ぶ。\n\n" % _em("記録断片")
+		+ "探索者の人物録（記録官・調査隊・随伴ペット・在野）、野外で拾った%sと世界観解説、\n" % _em("記録断片")
+		+ "そして戦闘・装備の手引きが並ぶ。\n\n"
 		+ "討伐そのものより、何を見て・何を残したかが評価につながる。\n"
 		+ "歴史タブの項目は基幹伝承の要約。\n"
-		+ "記録タブは探索で発見した断片だけが本文を開く。\n"
-		+ "手引きの世界観には、各土地の生態や崩落前後の伝承もある。\n"
+		+ "世界観タブは常時読める解説と、探索で開く断片が同居する。\n"
+		+ "キャラタブは遭遇・招待した探索者の人物録である。\n"
 		+ "断定しすぎず、空白を空白のまま残すのが記録部の流儀である。"
 	)
 
@@ -1088,13 +1110,13 @@ static func _world027() -> String:
 
 static func _world028() -> String:
 	return (
-		"図鑑の%sは、碑文・落書き・古記録・口伝の断片だ。\n" % _em("記録")
+		"世界観タブの%sは、碑文・落書き・古記録・口伝の断片だ。\n" % _em("記録断片")
 		+ "一つで世界を説明しない。複数が少しずつ補い合う。\n\n"
 		+ _s("読み方") + "\n"
 		+ "・食い違いは欠陥ではない。記録者の数だけ姿がある\n"
 		+ "・「〜と伝わる」「判読不能」は、余白を残すための言葉\n"
 		+ "・中核の謎（第十の王・灯火・世界樹など）は問いのまま残す\n"
-		+ "・歴史タブは骨格の要約。記録は現場で拾った断片\n\n"
+		+ "・歴史タブは骨格の要約。断片は現場で拾ったかけら\n\n"
 		+ "探索で見つけるほど本文が開く。\n"
 		+ "断定しすぎないことが、記録部の作法だ。"
 	)

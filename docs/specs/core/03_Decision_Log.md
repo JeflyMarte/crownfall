@@ -4672,5 +4672,20 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 
 ---
 
+## 図鑑 世界観＋キャラ人物録（2026-07-26 — P3-CODEX-CHAR-001）
+
+> **オーナー GO（案1）** — 図鑑タブ再編と人物録のみ。助っ人プール昇格／数値再設計は別 Decision。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-CODEX-CHAR-001-1 | **タブ** — 旧「記録」を廃し **「世界観」**（WORLD解説＋LF断片）＋ **「キャラ」**（人物録）を追加。手引きから WORLD-G を除外 | 案B・プレイヤー向け導線 |
+| P3-CODEX-CHAR-001-2 | **人物録開示** — 初期5＝解放時／ニーナ＝常時／ペット＝所持時／プール助っ人＝所持時。未所持は ??? | 招待状・進行と連動 |
+| P3-CODEX-CHAR-001-3 | **プロフィール項目** — 出身・身長・好き／苦手・生い立ち・記録メモ（＋助っ人は召喚セリフ・パッシブ要約）。初期5は `CharacterCodexProfiles`、助っ人は `GachaHelperData` | ゲームデータを正 |
+| P3-CODEX-CHAR-001-4 | **スコープ外** — staged 4体のプール昇格・★／ステ／パッシブ再設計・`pet_defense_mult`。`13` への staged 本載せも昇格時 | `08_GachaHelpersStaged` 維持 |
+
+**Closeout:** Impl 後に統合＋`main`。
+
+---
+
 
 

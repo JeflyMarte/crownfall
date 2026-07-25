@@ -12,14 +12,18 @@ const ENEMY_ART_SIZE: Vector2 = Vector2(256, 256)
 const _CodexRichText = preload("res://scripts/codex/CodexRichText.gd")
 
 ## 実績タブは `Constants.CODEX_ACHIEVE_PLAYABLE` で制御（P3-CODEX-ACHIEVE-OMIT）。
-const CATEGORIES_BASE: Array[String] = ["enemy", "dungeon", "weapon", "history", "lore", "guide"]
+## lore（旧「記録」）は worldview（世界観＝WORLD解説＋LF断片）へ統合。character＝人物録。
+const CATEGORIES_BASE: Array[String] = [
+	"enemy", "dungeon", "weapon", "history", "worldview", "character", "guide",
+]
 
 const CATEGORY_DISPLAY: Dictionary = {
 	"enemy": "モンスター",
 	"dungeon": "ダンジョン",
 	"weapon": "武器",
 	"history": "歴史",
-	"lore": "記録",
+	"worldview": "世界観",
+	"character": "キャラ",
 	"guide": "手引き",
 	"achieve": "実績",
 }
@@ -76,13 +80,16 @@ func _ready() -> void:
 	$MainScroll/MainVBox/TabRow/ButtonTabDungeon.pressed.connect(func(): _select_category("dungeon"))
 	$MainScroll/MainVBox/TabRow/ButtonTabWeapon.pressed.connect(func(): _select_category("weapon"))
 	$MainScroll/MainVBox/TabRow/ButtonTabHistory.pressed.connect(func(): _select_category("history"))
-	$MainScroll/MainVBox/TabRow/ButtonTabLore.pressed.connect(func(): _select_category("lore"))
+	$MainScroll/MainVBox/TabRow/ButtonTabWorldview.pressed.connect(func(): _select_category("worldview"))
+	$MainScroll/MainVBox/TabRow/ButtonTabCharacter.pressed.connect(func(): _select_category("character"))
 	$MainScroll/MainVBox/TabRow/ButtonTabGuide.pressed.connect(func(): _select_category("guide"))
 	if Constants.CODEX_ACHIEVE_PLAYABLE:
 		_ensure_achieve_tab_button()
 	else:
 		_hide_achieve_tab_button()
 	$MainScroll/MainVBox/TabRow/ButtonTabEnemy.text = str(CATEGORY_DISPLAY["enemy"])
+	$MainScroll/MainVBox/TabRow/ButtonTabWorldview.text = str(CATEGORY_DISPLAY["worldview"])
+	$MainScroll/MainVBox/TabRow/ButtonTabCharacter.text = str(CATEGORY_DISPLAY["character"])
 	$DetailOverlay/Dim.gui_input.connect(_on_detail_dim_input)
 	$DetailOverlay/DetailPanel/DetailVBox/DetailHeaderRow/ButtonDetailClose.pressed.connect(_hide_detail_popup)
 	_detail_overlay.visible = false
@@ -203,8 +210,10 @@ func _fetch_entries(category: String) -> Array:
 			return CatalogHelper.get_weapon_entries()
 		"history":
 			return CatalogHelper.get_history_entries()
-		"lore":
-			return CatalogHelper.get_lore_entries()
+		"worldview":
+			return CatalogHelper.get_worldview_entries()
+		"character":
+			return CatalogHelper.get_character_entries()
 		"guide":
 			return CatalogHelper.get_guide_entries()
 		"achieve":
@@ -225,7 +234,8 @@ func _update_tab_buttons() -> void:
 		"dungeon": $MainScroll/MainVBox/TabRow/ButtonTabDungeon,
 		"weapon": $MainScroll/MainVBox/TabRow/ButtonTabWeapon,
 		"history": $MainScroll/MainVBox/TabRow/ButtonTabHistory,
-		"lore": $MainScroll/MainVBox/TabRow/ButtonTabLore,
+		"worldview": $MainScroll/MainVBox/TabRow/ButtonTabWorldview,
+		"character": $MainScroll/MainVBox/TabRow/ButtonTabCharacter,
 		"guide": $MainScroll/MainVBox/TabRow/ButtonTabGuide,
 		"achieve": $MainScroll/MainVBox/TabRow.get_node_or_null("ButtonTabAchieve"),
 	}
@@ -297,6 +307,14 @@ func _entry_list_name(entry: Dictionary) -> String:
 		return str(entry.get("display_name", UNKNOWN_DISPLAY))
 	if not bool(entry.get("discovered", true)):
 		return UNKNOWN_DISPLAY
+	if _current_category == "character":
+		return str(entry.get("list_label", entry.get("display_name", UNKNOWN_DISPLAY)))
+	if _current_category == "worldview":
+		var prefix: String = str(entry.get("list_prefix", "")).strip_edges()
+		var name: String = str(entry.get("display_name", UNKNOWN_DISPLAY))
+		if prefix.is_empty():
+			return name
+		return "%s %s" % [prefix, name]
 	return str(entry.get("display_name", UNKNOWN_DISPLAY))
 
 func _entry_list_icon(entry: Dictionary) -> Texture2D:
@@ -306,7 +324,21 @@ func _entry_list_icon(entry: Dictionary) -> Texture2D:
 		return null
 	if _current_category != "enemy" and not bool(entry.get("discovered", true)):
 		return null
+	if _current_category == "character":
+		return _character_texture(entry)
+	if _current_category == "worldview":
+		if str(entry.get("section", "")) == "fragment":
+			return IconPaths.get_icon_texture(str(entry.get("id", "")), "lore")
+		return null
 	return IconPaths.get_icon_texture(str(entry.get("id", "")), _current_category)
+
+
+func _character_texture(entry: Dictionary) -> Texture2D:
+	var path: String = str(entry.get("portrait_path", ""))
+	if not path.is_empty() and ResourceLoader.exists(path):
+		return load(path) as Texture2D
+	return IconPaths.get_icon_texture(str(entry.get("id", "")), "chr")
+
 
 func _highlight_selected() -> void:
 	for i in _entry_rows.size():
@@ -366,7 +398,7 @@ func _show_detail(index: int) -> void:
 			_label_detail_name.text = "%s" % str(entry.get("display_name", ""))
 			_set_status("確認済み", true)
 			_set_detail_body(str(entry.get("description", "")))
-			_update_icon(IconPaths.get_icon_texture(str(entry.get("id", "")), _current_category))
+			_update_icon(_detail_icon_for_entry(entry))
 			_reset_art_frame_style()
 			_apply_bible_fields_discovered(entry)
 		else:
@@ -378,6 +410,16 @@ func _show_detail(index: int) -> void:
 			_apply_bible_fields_undiscovered()
 	_detail_overlay.visible = true
 	_detail_scroll.scroll_vertical = 0
+
+
+func _detail_icon_for_entry(entry: Dictionary) -> Texture2D:
+	if _current_category == "character":
+		return _character_texture(entry)
+	if _current_category == "worldview":
+		if str(entry.get("section", "")) == "fragment":
+			return IconPaths.get_icon_texture(str(entry.get("id", "")), "lore")
+		return null
+	return IconPaths.get_icon_texture(str(entry.get("id", "")), _current_category)
 
 func _hide_detail_popup() -> void:
 	_detail_overlay.visible = false
@@ -529,6 +571,44 @@ func _apply_bible_fields_discovered(entry: Dictionary) -> void:
 				_label_detail_extra_b.text = "テーマ: %s" % theme
 				_label_detail_extra_b.visible = true
 			_show_related("関連史:", entry.get("related_history", []))
+		"character":
+			_label_detail_overview_header.text = "人物録:"
+			_label_detail_overview_header.visible = true
+			var job_name: String = str(entry.get("job_name", ""))
+			var hometown: String = str(entry.get("hometown", ""))
+			var kind: String = str(entry.get("kind", ""))
+			var role_label: String = "役職" if kind == "npc" else (
+				"種別" if kind == "pet" else (
+					"伝承" if kind.begins_with("legend_") else "職"
+				)
+			)
+			if not job_name.is_empty() and not hometown.is_empty():
+				_label_detail_extra_a.text = "%s: %s　出身: %s" % [role_label, job_name, hometown]
+				_label_detail_extra_a.visible = true
+			elif not job_name.is_empty():
+				_label_detail_extra_a.text = "%s: %s" % [role_label, job_name]
+				_label_detail_extra_a.visible = true
+			var rarity: int = int(entry.get("rarity", 0))
+			var height_cm: int = int(entry.get("height_cm", 0))
+			var extra_b_parts: PackedStringArray = []
+			if rarity > 0:
+				extra_b_parts.append("レア: %s" % ("★".repeat(clampi(rarity, 1, 4))))
+			if height_cm > 0:
+				var hlab: String = "体高" if kind == "pet" else "身長"
+				extra_b_parts.append("%s: %dcm" % [hlab, height_cm])
+			if not extra_b_parts.is_empty():
+				_label_detail_extra_b.text = "　".join(extra_b_parts)
+				_label_detail_extra_b.visible = true
+		"worldview":
+			_label_detail_overview_header.text = "解説:"
+			_label_detail_overview_header.visible = true
+			var section: String = str(entry.get("section", ""))
+			if section == "world":
+				_label_detail_extra_a.text = "種別: 世界観解説"
+				_label_detail_extra_a.visible = true
+			elif section == "fragment":
+				_label_detail_extra_a.text = "種別: 記録断片"
+				_label_detail_extra_a.visible = true
 		_:
 			_label_detail_overview_header.text = "解説:"
 			_label_detail_overview_header.visible = true

@@ -14,7 +14,9 @@ func test_playable_categories_omit_achieve_when_flag_off() -> void:
 	assert_false(cats.has("achieve"), "フラグOFF時はカテゴリに実績を含めない")
 	assert_true(cats.has("enemy"))
 	assert_true(cats.has("guide"))
-	assert_true(cats.has("lore"), "記録タブは残す")
+	assert_true(cats.has("worldview"), "世界観タブは残す")
+	assert_true(cats.has("character"), "キャラタブを含む")
+	assert_false(cats.has("lore"), "旧記録タブキーは廃し")
 
 
 func test_guide_survey_copy_omits_achieve_tab() -> void:

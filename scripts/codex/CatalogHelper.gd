@@ -3,6 +3,7 @@ extends RefCounted
 
 const _CodexContent := preload("res://scripts/codex/CodexContentHelper.gd")
 const _GuideCatalog := preload("res://scripts/codex/GuideCatalog.gd")
+const _CharacterCodexProfiles := preload("res://scripts/codex/CharacterCodexProfiles.gd")
 
 ## M9 Codex カタログ取得（P2-Task046〜049）。
 
@@ -59,6 +60,19 @@ static func get_history_entries() -> Array:
 static func get_lore_entries() -> Array:
 	var helper: RefCounted = load("res://scripts/codex/CatalogHelper.gd").new()
 	return helper._build_lore_entries()
+
+
+## 世界観タブ＝WORLD 手引き（常時開示）＋記録断片 LF（発見制）。
+static func get_worldview_entries() -> Array:
+	var helper: RefCounted = load("res://scripts/codex/CatalogHelper.gd").new()
+	return helper._build_worldview_entries()
+
+
+## キャラタブ＝初期5＋排出助っ人（所持／遭遇のみ本文開示）。
+static func get_character_entries() -> Array:
+	var helper: RefCounted = load("res://scripts/codex/CatalogHelper.gd").new()
+	return helper._build_character_entries()
+
 
 static func get_lore_body(lore_id: String) -> String:
 	var helper: RefCounted = load("res://scripts/codex/CatalogHelper.gd").new()
@@ -195,6 +209,268 @@ func _build_lore_entries() -> Array:
 			description += "\n出自: " + source
 		entries.append(_make_entry(lf_id, str(raw.get("title", "")), "", description, "lore"))
 	return entries
+
+
+func _build_worldview_entries() -> Array:
+	var entries: Array = []
+	## 常時開示の世界観解説を先に。
+	for world: Dictionary in _GuideCatalog.get_world_entries():
+		var row: Dictionary = world.duplicate()
+		row["section"] = "world"
+		row["list_prefix"] = "【解説】"
+		entries.append(row)
+	## 探索発見制の記録断片。
+	for lore: Dictionary in _build_lore_entries():
+		var row: Dictionary = lore.duplicate()
+		row["section"] = "fragment"
+		row["list_prefix"] = "【断片】"
+		entries.append(row)
+	return entries
+
+
+const _STARTER_FLAVOR: Dictionary = {
+	"adventurer_0": "王炎の覇気を宿す剣士。前線で斬り込む隊の要。",
+	"adventurer_1": "毒矢と単独行動を得意とする狩人。影から仕留める。",
+	"adventurer_2": "野戦調合の錬成士。味方の傷をいち早く閉じる。",
+	"adventurer_3": "聖盾の砦を張る守護者。被弾しても反撃を忘れない。",
+	"adventurer_4": "相棒と共鳴する獣使い。ペットの力を引き出す。",
+}
+
+
+func _build_character_entries() -> Array:
+	var entries: Array = []
+	## 拠点NPC（常時開示）。
+	for npc_id: String in _CharacterCodexProfiles.NPC_ORDER:
+		entries.append(_build_npc_entry(npc_id))
+	for def: Variant in GameState.BASE_ROSTER_DEFS:
+		if def is not Dictionary:
+			continue
+		var adv_id: String = str(def.get("id", ""))
+		var job_id: String = str(def.get("job", ""))
+		var display: String = str(def.get("name", ""))
+		var owned: bool = GameState.is_starter_unlocked(adv_id)
+		var profile: Dictionary = _CharacterCodexProfiles.starter_profile(adv_id)
+		var rarity: int = int(profile.get("rarity", 3))
+		var body: String = _CharacterCodexProfiles.format_profile_body(
+			str(profile.get("hometown", "")),
+			int(profile.get("height_cm", 0)),
+			str(profile.get("likes", "")),
+			str(profile.get("dislikes", "")),
+			str(profile.get("backstory", _STARTER_FLAVOR.get(adv_id, ""))),
+			str(profile.get("record_note", "")),
+			"",
+			""
+		)
+		entries.append(_make_character_entry(
+			adv_id,
+			display,
+			job_id,
+			rarity,
+			body,
+			"",
+			owned,
+			"starter",
+			profile
+		))
+	## 随伴ペット（所持のみ開示）。
+	const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
+	for pet_id: String in ["pet_jack", "pet_ash", "pet_ink"]:
+		entries.append(_build_pet_entry(pet_id, _PetSystem.owns_pet(pet_id)))
+	## 排出プール助っ人のみ（staged `_omitted` は昇格まで非掲載）。
+	for helper: Resource in DataRegistry.get_all_gacha_helper_data():
+		if helper == null:
+			continue
+		var hid: String = str(helper.id)
+		if hid.is_empty():
+			continue
+		var owned_h: bool = int(GameState.owned_helpers.get(hid, 0)) > 0
+		var profile_h: Dictionary = {
+			"hometown": str(helper.hometown),
+			"height_cm": int(helper.height_cm),
+			"likes": str(helper.likes),
+			"dislikes": str(helper.dislikes),
+			"backstory": str(helper.backstory),
+			"record_note": str(helper.record_note),
+		}
+		var body_h: String = _CharacterCodexProfiles.format_profile_body(
+			str(helper.hometown),
+			int(helper.height_cm),
+			str(helper.likes),
+			str(helper.dislikes),
+			str(helper.backstory) if not str(helper.backstory).is_empty() else str(helper.origin_note),
+			str(helper.record_note),
+			str(helper.summon_quote),
+			str(helper.passive_id)
+		)
+		entries.append(_make_character_entry(
+			hid,
+			str(helper.display_name),
+			str(helper.job_id),
+			int(helper.rarity),
+			body_h,
+			str(helper.portrait_resource_path),
+			owned_h,
+			"helper",
+			profile_h
+		))
+	## 九王・九英雄（伝承・常時開示）。
+	for kid: String in _CharacterCodexProfiles.LEGEND_KING_ORDER:
+		entries.append(_build_legend_entry(kid, "legend_king"))
+	for hid2: String in _CharacterCodexProfiles.LEGEND_HERO_ORDER:
+		entries.append(_build_legend_entry(hid2, "legend_hero"))
+	return entries
+
+
+func _build_npc_entry(npc_id: String) -> Dictionary:
+	var profile: Dictionary = _CharacterCodexProfiles.npc_profile(npc_id)
+	var display: String = str(profile.get("display_name", npc_id))
+	var role: String = str(profile.get("role_name", "関係者"))
+	var body: String = _CharacterCodexProfiles.format_profile_body(
+		str(profile.get("hometown", "")),
+		int(profile.get("height_cm", 0)),
+		str(profile.get("likes", "")),
+		str(profile.get("dislikes", "")),
+		str(profile.get("backstory", "")),
+		str(profile.get("record_note", "")),
+		str(profile.get("quote", "")),
+		""
+	)
+	profile["role_name"] = role
+	return _make_character_entry(
+		npc_id,
+		display,
+		"",
+		int(profile.get("rarity", 0)),
+		body,
+		str(profile.get("portrait_path", "")),
+		true,
+		"npc",
+		profile
+	)
+
+
+func _build_legend_entry(legend_id: String, kind: String) -> Dictionary:
+	var profile: Dictionary = {}
+	if kind == "legend_king":
+		profile = _CharacterCodexProfiles.legend_king_profile(legend_id)
+	else:
+		profile = _CharacterCodexProfiles.legend_hero_profile(legend_id)
+	var display: String = str(profile.get("display_name", legend_id))
+	var role: String = str(profile.get("role_name", "伝承"))
+	var body: String = _CharacterCodexProfiles.format_profile_body(
+		str(profile.get("hometown", "")),
+		int(profile.get("height_cm", 0)),
+		str(profile.get("likes", "")),
+		str(profile.get("dislikes", "")),
+		str(profile.get("backstory", "")),
+		str(profile.get("record_note", "")),
+		str(profile.get("quote", "")),
+		""
+	)
+	profile["role_name"] = role
+	return _make_character_entry(
+		legend_id,
+		display,
+		"",
+		0,
+		body,
+		"",
+		true,
+		kind,
+		profile
+	)
+
+
+func _build_pet_entry(pet_id: String, owned: bool) -> Dictionary:
+	const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
+	var profile: Dictionary = _CharacterCodexProfiles.pet_profile(pet_id)
+	var pet_data: Resource = _PetSystem.get_pet_data(pet_id)
+	var display: String = str(pet_data.display_name) if pet_data != null else pet_id
+	var rarity: int = int(pet_data.rarity) if pet_data != null else int(profile.get("rarity", 1))
+	var role: String = str(profile.get("role_name", "随伴ペット"))
+	var backstory: String = str(profile.get("backstory", ""))
+	if backstory.is_empty() and pet_data != null:
+		backstory = str(pet_data.origin_note)
+	var body: String = _CharacterCodexProfiles.format_profile_body(
+		str(profile.get("hometown", "")),
+		int(profile.get("height_cm", 0)),
+		str(profile.get("likes", "")),
+		str(profile.get("dislikes", "")),
+		backstory,
+		str(profile.get("record_note", "")),
+		"",
+		"",
+		"体高"
+	)
+	profile["role_name"] = role
+	return _make_character_entry(
+		pet_id,
+		display,
+		"",
+		rarity,
+		body,
+		"",
+		owned,
+		"pet",
+		profile
+	)
+
+
+func _make_character_entry(
+	entry_id: String,
+	display_name: String,
+	job_id: String,
+	rarity: int,
+	description: String,
+	portrait_path: String,
+	owned: bool,
+	kind: String,
+	profile: Dictionary = {}
+) -> Dictionary:
+	var job_name: String = str(profile.get("role_name", ""))
+	if job_name.is_empty():
+		job_name = job_id
+		var job_data: Resource = DataRegistry.get_job_data(job_id)
+		if job_data != null:
+			job_name = str(job_data.display_name)
+	var stars: String = ""
+	if rarity > 0:
+		stars = "★".repeat(clampi(rarity, 1, 4))
+	if not owned:
+		return {
+			"id": entry_id,
+			"display_name": UNKNOWN_DISPLAY,
+			"description": "",
+			"discovered": false,
+			"job_id": job_id,
+			"job_name": "",
+			"rarity": rarity,
+			"portrait_path": "",
+			"kind": kind,
+			"list_label": UNKNOWN_DISPLAY,
+			"hometown": "",
+			"height_cm": 0,
+		}
+	var header: String
+	if stars.is_empty():
+		header = "%s  %s" % [job_name, display_name] if not job_name.is_empty() else display_name
+	else:
+		header = "%s  %s  %s" % [stars, job_name, display_name]
+	return {
+		"id": entry_id,
+		"display_name": display_name,
+		"description": description,
+		"discovered": true,
+		"job_id": job_id,
+		"job_name": job_name,
+		"rarity": rarity,
+		"portrait_path": portrait_path,
+		"kind": kind,
+		"list_label": header,
+		"hometown": str(profile.get("hometown", "")),
+		"height_cm": int(profile.get("height_cm", 0)),
+	}
+
 
 func _load_fragment_entries() -> Array:
 	if not _fragment_entries_cache.is_empty():

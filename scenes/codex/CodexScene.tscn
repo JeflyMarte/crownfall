@@ -184,11 +184,17 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "歴史"
 
-[node name="ButtonTabLore" type="Button" parent="MainScroll/MainVBox/TabRow"]
+[node name="ButtonTabWorldview" type="Button" parent="MainScroll/MainVBox/TabRow"]
 custom_minimum_size = Vector2(96, 52)
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "記録"
+text = "世界観"
+
+[node name="ButtonTabCharacter" type="Button" parent="MainScroll/MainVBox/TabRow"]
+custom_minimum_size = Vector2(96, 52)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "キャラ"
 
 [node name="ButtonTabGuide" type="Button" parent="MainScroll/MainVBox/TabRow"]
 custom_minimum_size = Vector2(96, 52)
