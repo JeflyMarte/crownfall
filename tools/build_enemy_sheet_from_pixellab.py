@@ -131,22 +131,27 @@ def trim_to_counts(frames: dict[str, list[Image.Image]]) -> list[Image.Image]:
 	return out
 
 
-def write_sheet(pascal: str, frames: list[Image.Image]) -> Path:
-	BATTLE.mkdir(parents=True, exist_ok=True)
+def write_sheet(pascal: str, frames: list[Image.Image], *, boss: bool = False) -> Path:
+	outdir = ROOT / "assets/battle/bosses" if boss else BATTLE
+	outdir.mkdir(parents=True, exist_ok=True)
 	sheet = Image.new("RGBA", (FRAME * len(frames), FRAME), (0, 0, 0, 0))
 	for i, fr in enumerate(frames):
 		sheet.paste(fr, (i * FRAME, 0), fr)
-	path = BATTLE / f"ENM_{pascal}_Sheet.png"
+	prefix = "BOSS" if boss else "ENM"
+	path = outdir / f"{prefix}_{pascal}_Sheet.png"
 	sheet.save(path)
 	return path
 
 
-def write_tres(pascal: str, n_frames: int) -> Path:
+def write_tres(pascal: str, n_frames: int, *, boss: bool = False) -> Path:
 	"""14-frame Undertaker layout: idle4 attack4 hurt2 death4."""
+	prefix = "BOSS" if boss else "ENM"
+	subdir = "bosses" if boss else "enemies"
+	tex_path = f"res://assets/battle/{subdir}/{prefix}_{pascal}_Sheet.png"
 	lines = [
 		'[gd_resource type="SpriteFrames" load_steps=2 format=3]',
 		"",
-		f'[ext_resource type="Texture2D" path="res://assets/battle/enemies/ENM_{pascal}_Sheet.png" id="1_sheet"]',
+		f'[ext_resource type="Texture2D" path="{tex_path}" id="1_sheet"]',
 		"",
 	]
 	for i in range(n_frames):
@@ -169,7 +174,7 @@ def write_tres(pascal: str, n_frames: int) -> Path:
 	)
 	lines += ["[resource]", f"animations = {anims}", ""]
 	ANIM.mkdir(parents=True, exist_ok=True)
-	path = ANIM / f"ENM_{pascal}.tres"
+	path = ANIM / f"{prefix}_{pascal}.tres"
 	path.write_text("\n".join(lines))
 	return path
 
@@ -178,14 +183,15 @@ def main() -> int:
 	ap = argparse.ArgumentParser()
 	ap.add_argument("--pascal", required=True)
 	ap.add_argument("--zip", type=Path, required=True)
+	ap.add_argument("--boss", action="store_true", help="Write BOSS_* under assets/battle/bosses")
 	args = ap.parse_args()
 	frames_map = collect_from_zip(args.zip)
 	# Print what we got
 	for k in ORDER:
 		print(f"  {k}: {len(frames_map.get(k) or [])} frames")
 	flat = trim_to_counts(frames_map)
-	sheet = write_sheet(args.pascal, flat)
-	tres = write_tres(args.pascal, len(flat))
+	sheet = write_sheet(args.pascal, flat, boss=args.boss)
+	tres = write_tres(args.pascal, len(flat), boss=args.boss)
 	print(f"wrote {sheet} ({sheet.stat().st_size} bytes)")
 	print(f"wrote {tres}")
 	return 0

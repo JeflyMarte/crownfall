@@ -14,9 +14,10 @@ const SCENE_BLACKSMITH: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
 const SCENE_GACHA: String = "res://scenes/gacha/GachaScene.tscn"
 const SCENE_CODEX: String = "res://scenes/codex/CodexScene.tscn"
 const SCENE_COMMANDER: String = "res://scenes/commander/CommanderScene.tscn"
+const SCENE_SHOWCASE: String = "res://scenes/showcase/ShowcaseScene.tscn"
 const SCENE_SETTINGS: String = "res://scenes/settings/SettingsScene.tscn"
 
-enum Tab { NONE, HOME, ADVENTURE, CHARACTER, PARTY, FORGE, GACHA, CODEX, MYPAGE }
+enum Tab { NONE, HOME, ADVENTURE, CHARACTER, PARTY, FORGE, GACHA, CODEX, MYPAGE, SHOWCASE }
 
 const COLOR_NAV_ACTIVE: Color = Color(0.95, 0.84, 0.4, 1)
 const COLOR_NAV_IDLE: Color = Color(0.92, 0.88, 0.78, 1)
@@ -88,21 +89,21 @@ const BOTTOM_NAV_ENTRIES: Array[Dictionary] = [
 		"locked": false,
 	},
 	{
+		"id": "showcase",
+		"title": "展示室",
+		"node": "NavShowcase",
+		"tab": Tab.SHOWCASE,
+		"icon_category": "nav",
+		"icon_id": "showcase",
+		"locked": false,
+	},
+	{
 		"id": "codex",
 		"title": "図鑑",
 		"node": "NavMenu",
 		"tab": Tab.CODEX,
 		"icon_category": "nav",
 		"icon_id": "codex",
-		"locked": false,
-	},
-	{
-		"id": "commander",
-		"title": "マイページ",
-		"node": "NavMyPage",
-		"tab": Tab.MYPAGE,
-		"icon_category": "nav",
-		"icon_id": "mypage",
 		"locked": false,
 	},
 ]
@@ -209,7 +210,7 @@ static func setup(nav_row: HBoxContainer, active_tab: Tab) -> void:
 
 
 ## BOTTOM_NAV_ENTRIES の順に子を並べ、未掲載ボタンは隠す。
-## 並び: ホーム → ダンジョン → … → 図鑑 → マイページ。
+## 並び: ホーム → ダンジョン → … → 展示室 → 図鑑。
 static func _reorder_nav_row(nav_row: HBoxContainer) -> void:
 	var kept: Dictionary = {}
 	for i in BOTTOM_NAV_ENTRIES.size():
@@ -311,16 +312,16 @@ static func _wire_nav_row(nav_row: HBoxContainer, active_tab: Tab) -> void:
 			codex_btn.disabled = false
 			NavUiTokens.set_bottom_nav_disabled_style(codex_btn, false)
 			_connect_if_needed(codex_btn, _go_codex)
-	var mypage_btn: Button = nav_row.get_node_or_null("NavMyPage") as Button
-	if mypage_btn != null:
-		if active_tab == Tab.MYPAGE:
-			mypage_btn.disabled = true
-			mypage_btn.tooltip_text = "マイページ"
-			NavUiTokens.set_bottom_nav_text_color(mypage_btn, COLOR_NAV_ACTIVE)
+	var showcase_btn: Button = nav_row.get_node_or_null("NavShowcase") as Button
+	if showcase_btn != null:
+		if active_tab == Tab.SHOWCASE:
+			showcase_btn.disabled = true
+			showcase_btn.tooltip_text = "展示室"
+			NavUiTokens.set_bottom_nav_text_color(showcase_btn, COLOR_NAV_ACTIVE)
 		else:
-			mypage_btn.disabled = false
-			NavUiTokens.set_bottom_nav_disabled_style(mypage_btn, false)
-			_connect_if_needed(mypage_btn, _go_mypage)
+			showcase_btn.disabled = false
+			NavUiTokens.set_bottom_nav_disabled_style(showcase_btn, false)
+			_connect_if_needed(showcase_btn, _go_showcase)
 
 static func _connect_if_needed(btn: Button, handler: Callable) -> void:
 	if btn == null or btn.disabled:
@@ -377,6 +378,10 @@ static func _go_gacha() -> void:
 static func _go_codex() -> void:
 	if ResourceLoader.exists(SCENE_CODEX):
 		_change_scene(SCENE_CODEX)
+
+static func _go_showcase() -> void:
+	if ResourceLoader.exists(SCENE_SHOWCASE):
+		_change_scene(SCENE_SHOWCASE)
 
 static func _go_mypage() -> void:
 	if ResourceLoader.exists(SCENE_COMMANDER):

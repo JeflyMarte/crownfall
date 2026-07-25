@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "samurai_fish"
-display_name = "サムライフィッシュ"
+display_name = "ロイヤルシャーク"
 max_hp = 672
 attack = 160
 defense = 56
@@ -32,7 +32,7 @@ escorts_minions = false
 codex_class = "魚類"
 codex_danger = 3
 codex_habitat = "沈没航路・潮境"
-codex_research_note = "カジキマグロを祖先とし、槍のような吻で獲物を貫く突進型。狙いを定めた獲物から離れない執拗さを、誰かが武士の一騎打ちに喩えた。"
+codex_research_note = "カジキマグロを祖先とし、槍のような吻で獲物を貫く突進型。潮境を統べるような気位と、狙いを定めた獲物から離れない執拗さから、探索者が「ロイヤルシャーク」と呼ぶ。"
 codex_materials = Array[String]([])
 skill_ids = Array[String](["enemy_tide_spear"])
 skill_use_chance = 0.25

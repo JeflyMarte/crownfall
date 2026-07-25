@@ -39,6 +39,8 @@ const _STAT_DISCOVERY_ICON_PATH: String = "res://assets/ui/batch2/ICO_Stat_Disco
 @onready var _label_menu_title: Label = $HubView/LeftMenuPanel/MenuScroll/MenuVBox/LabelMenuTitle
 
 var _field_survey_banner: PanelContainer
+var _field_survey_click_hint: TextureRect
+var _field_survey_click_hint_tween: Tween
 var _gift_badge: PanelContainer
 var _nina_nav: Control
 
@@ -171,7 +173,20 @@ func _setup_field_survey_banner() -> void:
 	timer.name = "LabelFieldTimer"
 	timer.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	row.add_child(timer)
+	## バナー右上に載せるタップ誘導ロゴ（バナー本体の上に少しはみ出す）。
+	_field_survey_click_hint = TextureRect.new()
+	_field_survey_click_hint.name = "FieldSurveyClickHint"
+	_field_survey_click_hint.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_field_survey_click_hint.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_field_survey_click_hint.mouse_filter = Control.MOUSE_FILTER_STOP
+	_field_survey_click_hint.tooltip_text = "タップでギルド情報誌を開く"
+	_field_survey_click_hint.gui_input.connect(_on_field_survey_banner_input)
+	_field_survey_click_hint.pivot_offset = Vector2(140.0, 48.0)
+	var hint_tex: Texture2D = IconPaths.get_icon_texture("guild_bulletin_click", "hub")
+	if hint_tex != null:
+		_field_survey_click_hint.texture = hint_tex
 	$HubView.add_child(_field_survey_banner)
+	$HubView.add_child(_field_survey_click_hint)
 	_place_field_survey_banner()
 
 func _place_field_survey_banner() -> void:
@@ -181,14 +196,26 @@ func _place_field_survey_banner() -> void:
 	if menu == null:
 		return
 	## 左メニュー直下・画面幅いっぱいに配置（メニューと重ねない）。
+	## 右上ロゴ分の余白を上に確保する。
+	const HINT_W: float = 280.0
+	const HINT_H: float = 96.0
+	const HINT_OVERLAP: float = 14.0
 	const BANNER_H: float = 40.0
 	const GAP: float = 8.0
-	var top: float = menu.offset_bottom + GAP
+	var top: float = menu.offset_bottom + GAP + (HINT_H - HINT_OVERLAP)
 	_field_survey_banner.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	_field_survey_banner.offset_left = 12.0
 	_field_survey_banner.offset_right = -12.0
 	_field_survey_banner.offset_top = top
 	_field_survey_banner.offset_bottom = top + BANNER_H
+	if _field_survey_click_hint != null:
+		_field_survey_click_hint.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+		_field_survey_click_hint.offset_left = -12.0 - HINT_W
+		_field_survey_click_hint.offset_right = -12.0
+		_field_survey_click_hint.offset_top = top - (HINT_H - HINT_OVERLAP)
+		_field_survey_click_hint.offset_bottom = top + HINT_OVERLAP
+		_field_survey_click_hint.z_index = _field_survey_banner.z_index + 1
+		_field_survey_click_hint.pivot_offset = Vector2(HINT_W * 0.5, HINT_H * 0.5)
 
 
 func _setup_nina_nav() -> void:
@@ -218,9 +245,15 @@ func _refresh_field_survey_banner() -> void:
 		return
 	if not EventSystem.PERIODIC_EVENTS_ENABLED or not EventSystem.is_event_running():
 		_field_survey_banner.visible = false
+		_stop_field_survey_click_hint_blink()
+		if _field_survey_click_hint != null:
+			_field_survey_click_hint.visible = false
 		return
 	_place_field_survey_banner()
 	_field_survey_banner.visible = true
+	if _field_survey_click_hint != null:
+		_field_survey_click_hint.visible = true
+		_start_field_survey_click_hint_blink()
 	var row: HBoxContainer = _field_survey_banner.get_child(0) as HBoxContainer
 	if row == null:
 		return
@@ -230,6 +263,9 @@ func _refresh_field_survey_banner() -> void:
 	var event_data: Resource = EventSystem.get_active_event()
 	if event_data == null:
 		_field_survey_banner.visible = false
+		_stop_field_survey_click_hint_blink()
+		if _field_survey_click_hint != null:
+			_field_survey_click_hint.visible = false
 		return
 	if tag != null:
 		UiTypography.apply_caption(tag, UiTypography.COLOR_GOLD)
@@ -239,6 +275,35 @@ func _refresh_field_survey_banner() -> void:
 	if timer != null:
 		timer.text = EventSystem.countdown_text()
 		UiTypography.apply_caption(timer)
+
+
+func _start_field_survey_click_hint_blink() -> void:
+	if _field_survey_click_hint == null:
+		return
+	if _field_survey_click_hint_tween != null and is_instance_valid(_field_survey_click_hint_tween):
+		return
+	## 透過で消さず、常時表示のまま拡縮＋明度で点滅する。
+	_field_survey_click_hint.modulate = Color(1, 1, 1, 1)
+	_field_survey_click_hint.scale = Vector2.ONE
+	_field_survey_click_hint_tween = create_tween().set_loops()
+	_field_survey_click_hint_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_field_survey_click_hint_tween.set_parallel(true)
+	_field_survey_click_hint_tween.tween_property(_field_survey_click_hint, "scale", Vector2(1.08, 1.08), 1.15)
+	_field_survey_click_hint_tween.tween_property(_field_survey_click_hint, "modulate", Color(1.25, 1.18, 0.95, 1.0), 1.15)
+	_field_survey_click_hint_tween.chain()
+	_field_survey_click_hint_tween.set_parallel(true)
+	_field_survey_click_hint_tween.tween_property(_field_survey_click_hint, "scale", Vector2.ONE, 1.15)
+	_field_survey_click_hint_tween.tween_property(_field_survey_click_hint, "modulate", Color(1, 1, 1, 1), 1.15)
+
+
+func _stop_field_survey_click_hint_blink() -> void:
+	if _field_survey_click_hint_tween != null and is_instance_valid(_field_survey_click_hint_tween):
+		_field_survey_click_hint_tween.kill()
+	_field_survey_click_hint_tween = null
+	if _field_survey_click_hint != null:
+		_field_survey_click_hint.modulate = Color(1, 1, 1, 1)
+		_field_survey_click_hint.scale = Vector2.ONE
+
 
 func _on_field_survey_banner_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:

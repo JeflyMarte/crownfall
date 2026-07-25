@@ -11,6 +11,7 @@ const _CommanderUiTokens = preload("res://scripts/commander/CommanderUiTokens.gd
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
 const CODEX_SCENE: String = "res://scenes/codex/CodexScene.tscn"
+const SHOWCASE_SCENE: String = "res://scenes/showcase/ShowcaseScene.tscn"
 const GOLD_ICON: String = "res://assets/ui/batch2/ICO_Gold.png"
 
 const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45)
@@ -78,12 +79,41 @@ func _rebuild_page() -> void:
 	var gift_section: Control = _build_gift_box_section()
 	if gift_section != null:
 		_content_host.add_child(gift_section)
+	_content_host.add_child(_build_showcase_section())
 	_content_host.add_child(_build_assets_section())
 	_content_host.add_child(_build_members_section())
 	_content_host.add_child(_build_records_section())
 	_content_host.add_child(_build_titles_section())
 	## rebuild 後に Button が STOP のままだと実機で縦スクロール不能になる。
 	ScrollTouchHelper.enable($MainScroll as ScrollContainer)
+
+
+# ---- 展示室 ----
+func _build_showcase_section() -> Control:
+	var sec: Dictionary = _begin_section("showcase", "展示室")
+	var body: VBoxContainer = sec["body"]
+	var blurb := Label.new()
+	blurb.text = "自慢の仲間を一枚で飾れます。スタッフ作例も閲覧できます。"
+	blurb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTypography.apply_caption(blurb, COLOR_SUB)
+	body.add_child(blurb)
+	var showcase_member: Resource = GameState.find_showcase_member()
+	var status := Label.new()
+	if showcase_member != null:
+		status.text = "展示中: %s  Lv.%d" % [
+			str(showcase_member.display_name),
+			int(showcase_member.level),
+		]
+	else:
+		status.text = "展示中: （未設定）"
+	UiTypography.apply_body(status, UiTypography.SIZE_BODY_SMALL, COLOR_GOLD)
+	body.add_child(status)
+	var go_btn := Button.new()
+	go_btn.text = "展示室を開く"
+	UiTypography.apply_menu_button(go_btn, false)
+	go_btn.pressed.connect(func(): SceneRouter.change_scene(SHOWCASE_SCENE))
+	body.add_child(go_btn)
+	return sec["panel"]
 
 
 # ---- 概要 ----

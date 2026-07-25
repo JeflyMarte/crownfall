@@ -21,7 +21,8 @@ const MAIN_BIOME_IDS: Array[String] = [
 	"frostridge",
 ]
 
-## id / weight / modifier_type / modifier_mult / title / banner_desc / description
+## id / weight / modifier_type / modifier_mult / title / banner_desc
+## / field_notes（現場メモ）/ article（情報誌本文）/ effect_summary（効果）/ description（調査部メモ）
 ## ＋任意: weather_id
 const SLOT_DEFINITIONS: Array[Dictionary] = [
 	{
@@ -31,7 +32,10 @@ const SLOT_DEFINITIONS: Array[Dictionary] = [
 		"modifier_mult": 1.0,
 		"title": "穏やかな野外",
 		"banner_desc": "特記なし",
-		"description": "ギルド報告：いまのところ大きな変化は観測されていない。いつもの調子で調査してよい。",
+		"field_notes": "・第2班：「異常なし。鳥もいつもどおり」\n・補給局：「追加配分の予定なし」\n・見張り台：「水平線は静穏」",
+		"article": "大きな偏りは観測されていない。平時の調査計画で問題ない。",
+		"effect_summary": "・特記事項なし",
+		"description": "平常運転でよい。出発前に装備耐久と回復薬だけ見直せ。無理な強行突破より、確実な周回のほうがギルド評価は安定する。",
 	},
 	{
 		"id": "weather_rain",
@@ -41,7 +45,10 @@ const SLOT_DEFINITIONS: Array[Dictionary] = [
 		"weather_id": "rain",
 		"title": "雨の気配",
 		"banner_desc": "天候：雨が続きやすい",
-		"description": "ギルド報告：広域で降雨が優勢。探索中の天候は雨に固定されやすい。",
+		"field_notes": "・第1班：「靴がすぐ重い。足跡は残る」\n・門番：「入構者のマントが全員びしょ濡れ」\n・気象係：「降雨帯が動かない」",
+		"article": "広域で降雨が優勢。靴も装備も濡れやすいが、足跡は読みやすい——との現場報告。",
+		"effect_summary": "・探索中の天候が雨に固定されやすい",
+		"description": "視界より足元を優先せよ。石床は滑りやすい。雨音で気配が紛れやすいので、隊列を詰め、合図を大きめにとれ。撤退路の水たまりにも注意。",
 	},
 	{
 		"id": "weather_night",
@@ -51,7 +58,10 @@ const SLOT_DEFINITIONS: Array[Dictionary] = [
 		"weather_id": "night",
 		"title": "夜の帳",
 		"banner_desc": "天候：夜が続きやすい",
-		"description": "ギルド報告：日照が弱く、夜寄りの気象が優勢。探索中の天候は夜に固定されやすい。",
+		"field_notes": "・第4班：「昼でも灯りが要る」\n・見張り台：「影の移動が多い」\n・図鑑係：「夜行性の反応が厚い」",
+		"article": "日照が弱く、夜寄りの気象が優勢。灯りに寄る個体と、闇に潜む個体の両方が増えている。",
+		"effect_summary": "・探索中の天候が夜に固定されやすい",
+		"description": "光源と索敵をセットで考えよ。先頭だけが先走ると夾撃を受ける。不意打ちに備え、回復枠を普段より多めに残せ。",
 	},
 	{
 		"id": "weather_fog",
@@ -61,7 +71,10 @@ const SLOT_DEFINITIONS: Array[Dictionary] = [
 		"weather_id": "fog",
 		"title": "霧の蔓延",
 		"banner_desc": "天候：霧が続きやすい",
-		"description": "ギルド報告：視程不良の霧が広がっている。探索中の天候は霧に固定されやすい。",
+		"field_notes": "・第3班：「十歩先が見えない」\n・門番：「呼び声が届きにくい」\n・測量係：「距離の感覚が狂う」",
+		"article": "視程不良の霧が広がっている。距離感が狂いやすく、隊列を崩さないことが肝要だ。",
+		"effect_summary": "・探索中の天候が霧に固定されやすい",
+		"description": "離れすぎ厳禁。合流合図と退避地点を出発前に決めろ。霧中では『見えたつもり』が増える——確認してから踏み込め。",
 	},
 	{
 		"id": "wander_duck",
@@ -70,7 +83,10 @@ const SLOT_DEFINITIONS: Array[Dictionary] = [
 		"modifier_mult": 4.0,
 		"title": "コズミックダック目撃増",
 		"banner_desc": "放浪ダック出現率↑",
-		"description": "ギルド報告：通常探索でもコズミックダックの目撃が増えている（日次裂け目とは別枠）。",
+		"field_notes": "・第3班：「上空に光跡。裂け目ではない」\n・見張り台：「羽ばたきが通常の倍」\n・補給局：「回収袋の予備を増やした」",
+		"article": "通常ルートでも、空に浮かぶ異形のダックが相次いで目撃されている。裂け目とは別枠の反応らしく、調査部は出没帯の拡大を警戒している。",
+		"effect_summary": "・通常探索での放浪ダック出現率↑",
+		"description": "日次裂け目のダックとは別カウントだ。通常探索でもコズミックダックが現れやすい。見かけたら距離を取りつつ記録し、無理な単独追撃は避けよ。戦利品より生存報告を優先。",
 	},
 	{
 		"id": "wander_raven",
@@ -79,7 +95,10 @@ const SLOT_DEFINITIONS: Array[Dictionary] = [
 		"modifier_mult": 4.0,
 		"title": "宝冠レイヴン目撃増",
 		"banner_desc": "放浪レイヴン出現率↑",
-		"description": "ギルド報告：通常探索でも宝冠レイヴンの目撃が増えている（日次の巣とは別枠）。",
+		"field_notes": "・第5班：「冠の光が樹間に落ちた」\n・見張り台：「巣の方角以外からも影」\n・鍛冶：「くちばし傷の報告が増」",
+		"article": "宝冠を戴くレイヴンの目撃が相次いでいる。巣とは別枠の出没で、探索路の上空にも影が落ちやすい。",
+		"effect_summary": "・通常探索での放浪レイヴン出現率↑",
+		"description": "日次の巣とは別枠。通常探索でも宝冠レイヴンと遭遇しうる。上空監視を怠るな。交戦するなら装備の余力と退却路を確保してから。",
 	},
 	{
 		"id": "enemy_level",
@@ -88,7 +107,10 @@ const SLOT_DEFINITIONS: Array[Dictionary] = [
 		"modifier_mult": 2.0,
 		"title": "強敵の波",
 		"banner_desc": "敵レベル +2",
-		"description": "ギルド報告：危険度の高い個体の比率が上がっている。敵レベルが一時的に上昇する。",
+		"field_notes": "・第2班：「同じ群れでも一回り大きい」\n・衛生班：「負傷報告が早い」\n・門番：「撤退隊が増えた」",
+		"article": "危険度の高い個体の比率が上がっている。いつもの編成でも、一段階強い相手に当たりやすい。",
+		"effect_summary": "・敵レベル ＋2",
+		"description": "無理押しは禁物。同じ部屋でも消耗が早い。撤退判断を早めに、回復タイミングも前倒しせよ。『いつも通り』は今日の基準ではない。",
 	},
 	{
 		"id": "swarm",
@@ -97,7 +119,10 @@ const SLOT_DEFINITIONS: Array[Dictionary] = [
 		"modifier_mult": 2.5,
 		"title": "群れの季節",
 		"banner_desc": "敵の群れ出現率↑",
-		"description": "ギルド報告：群れ行動が増えている。戦闘で複数体遭遇しやすくなる。",
+		"field_notes": "・第1班：「単体だと思ったら後続が来た」\n・見張り台：「足跡が束になっている」\n・補給局：「矢の消費が跳ねた」",
+		"article": "群れ行動が増えている。単体なら押し切れる相手でも、まとまると消耗が激しい——現場の定評だ。",
+		"effect_summary": "・戦闘で複数体遭遇しやすくなる",
+		"description": "範囲技と回復の順番を決め打ちせよ。散開されると詰む。先頭の引きつけと、後衛の一斉処理を意識した編成が安定する。",
 	},
 	{
 		"id": "elite_rooms",
@@ -106,7 +131,10 @@ const SLOT_DEFINITIONS: Array[Dictionary] = [
 		"modifier_mult": 2.0,
 		"title": "エリート目撃増",
 		"banner_desc": "エリート部屋出現↑",
-		"description": "ギルド報告：精鋭級の反応が強い。探索ルートでエリート遭遇が増えやすい。",
+		"field_notes": "・第6班：「精鋭の気配が濃い部屋が増」\n・測量係：「反応点がいつもより多い」\n・鍛冶：「良質素材の持ち込み増」",
+		"article": "精鋭級の反応が強い。探索ルート上で、いつもよりエリートの気配に遭遇しやすい。",
+		"effect_summary": "・エリート部屋の出現率が上がる",
+		"description": "エリートは強敵だが収穫も大きい。挑むなら耐久と回復を厚くし、スキップも選択肢に入れろ。連続交戦は事故の元だ。",
 	},
 	{
 		"id": "exp",
@@ -115,7 +143,10 @@ const SLOT_DEFINITIONS: Array[Dictionary] = [
 		"modifier_mult": 1.2,
 		"title": "経験記録の微増",
 		"banner_desc": "戦闘経験値 ×1.2",
-		"description": "ギルド報告：戦闘データの取得効率がわずかに上がっている。",
+		"field_notes": "・記録係：「同じ戦闘でも記録が厚い」\n・教官：「短時間班の伸びがよい」\n・第2班：「レベルが早い」",
+		"article": "戦闘データの取得効率がわずかに上がっている。同じ戦いでも、記録に残る経験が厚い。",
+		"effect_summary": "・戦闘経験値 ×1.2",
+		"description": "育成の好機。短時間周回でも経験値ののりがよい。レベルが近い仲間を優先して連れ出すと、枠のムダが減る。",
 	},
 	{
 		"id": "gold",
@@ -124,7 +155,10 @@ const SLOT_DEFINITIONS: Array[Dictionary] = [
 		"modifier_mult": 1.2,
 		"title": "調査報酬の微増",
 		"banner_desc": "戦闘ゴールド ×1.2",
-		"description": "ギルド報告：補給局が小規模な追加報酬を配分した。",
+		"field_notes": "・補給局：「上乗せ配分を開始」\n・会計：「検収袋が重い」\n・門番：「帰隊時の笑顔が増えた（主観）」",
+		"article": "補給局が小規模な追加報酬を配分した。現場回収分に上乗せがある、との通達。",
+		"effect_summary": "・戦闘ゴールド ×1.2",
+		"description": "小銭だが積もる。ゴールド上乗せ中は検収を丁寧に。補給局の通達はスロット終了で切れるので、先送りしすぎるな。",
 	},
 	{
 		"id": "weapon_drop",
@@ -133,7 +167,10 @@ const SLOT_DEFINITIONS: Array[Dictionary] = [
 		"modifier_mult": 1.2,
 		"title": "遺物反応の微増",
 		"banner_desc": "武器ドロップ率 ×1.2",
-		"description": "ギルド報告：遺物反応がやや活発。武器直ドロップ率がわずかに上がる。",
+		"field_notes": "・遺物係：「針が振れやすい」\n・第4班：「床に直落ちが増」\n・鍛冶：「持ち込み武器の検品が混む」",
+		"article": "遺物反応がやや活発。現場で武器が直に落ちる気配が、平時よりわずかに強い。",
+		"effect_summary": "・武器ドロップ率 ×1.2",
+		"description": "遺物反応が活発なあいだは拾得確認を急げ。所持枠が埋まりやすい。不要品の解体・売却を先に済ませてから潜れ。",
 	},
 	{
 		"id": "codex",
@@ -142,7 +179,10 @@ const SLOT_DEFINITIONS: Array[Dictionary] = [
 		"modifier_mult": 1.5,
 		"title": "生態活発のひととき",
 		"banner_desc": "図鑑調査 ×1.5",
-		"description": "ギルド報告：未確認個体の目撃が一時的に増えている。",
+		"field_notes": "・図鑑係：「未登録の影が多い」\n・第3班：「初めて見る模様」\n・見張り台：「観察向きの天候」",
+		"article": "未確認個体の目撃が一時的に増えている。図鑑係からは『記録の好機』との連絡。",
+		"effect_summary": "・図鑑調査効率 ×1.5",
+		"description": "図鑑係の依頼どおり、未登録・進捗の浅い個体を優先して記録せよ。討伐より観察が先、の場面もある。写真（記録）を残せ。",
 	},
 	{
 		"id": "featured_biome",
@@ -151,7 +191,10 @@ const SLOT_DEFINITIONS: Array[Dictionary] = [
 		"modifier_mult": 1.2,
 		"title": "注目区域調査",
 		"banner_desc": "注目区域 経験値/ゴールド ×1.2",
-		"description": "ギルド指定の重点調査区域。当該区域での報酬がわずかに増える。",
+		"field_notes": "・指令：「重点区域を掲示せよ」\n・補給局：「区域限定の上乗せあり」\n・門番：「行きと帰りで行き先を確認」",
+		"article": "ギルドが重点調査区域を指定。該当区域では記録・補給の効率がわずかに上がる。",
+		"effect_summary": "・注目区域の経験値／ゴールド ×1.2",
+		"description": "注目区域の表示を必ず確認せよ。区域外ではボーナスが乗らない。経験値とゴールドの両方を稼ぎたいなら、指定区域の周回を優先。",
 	},
 	{
 		"id": "elite_material",
@@ -160,7 +203,10 @@ const SLOT_DEFINITIONS: Array[Dictionary] = [
 		"modifier_mult": 1.2,
 		"title": "高品質素材のひととき",
 		"banner_desc": "エリート素材 ×1.2",
-		"description": "ギルド報告：エリート級からの素材採取が一時的に好調。",
+		"field_notes": "・鍛冶：「良品の持ち込みが続く」\n・第6班：「精鋭落ちが厚い」\n・倉庫：「仕分けが追いつかない」",
+		"article": "エリート級からの素材採取が一時的に好調。精錬・鍛冶向けの良品が集まりやすい。",
+		"effect_summary": "・エリート素材入手量 ×1.2",
+		"description": "鍛冶の在庫とレシピを見てから周回せよ。エリート素材が余っても、必要枠が分からぬと持ち帰りが雑になる。解体前に要件をメモれ。",
 	},
 ]
 
@@ -217,6 +263,12 @@ static func build_active_event(now_unix: int) -> Resource:
 	event.tag_text = EventSystem.DISPLAY_NAME
 	event.banner_desc = str(def.get("banner_desc", ""))
 	event.description = str(def.get("description", ""))
+	if "article" in event:
+		event.article = str(def.get("article", ""))
+	if "field_notes" in event:
+		event.field_notes = str(def.get("field_notes", ""))
+	if "effect_summary" in event:
+		event.effect_summary = str(def.get("effect_summary", ""))
 	event.modifier_type = str(def.get("modifier_type", ""))
 	event.modifier_mult = float(def.get("modifier_mult", 1.0))
 	var weather_id: String = str(def.get("weather_id", ""))
@@ -230,11 +282,19 @@ static func build_active_event(now_unix: int) -> Resource:
 		event.featured_biome_id = featured_biome_id(now_unix)
 		var biome: Resource = DataRegistry.get_dungeon_data(event.featured_biome_id)
 		if biome != null and not str(biome.display_name).is_empty():
-			event.title = "注目区域 — %s" % str(biome.display_name)
+			var biome_name: String = str(biome.display_name)
+			event.title = "注目区域 — %s" % biome_name
 			event.banner_desc = "%s で 経験値/ゴールド ×%.1f" % [
-				str(biome.display_name),
+				biome_name,
 				event.modifier_mult,
 			]
+			if "article" in event:
+				event.article = "ギルドが重点調査区域として『%s』を指定。該当区域では記録・補給の効率がわずかに上がる。" % biome_name
+			if "field_notes" in event:
+				event.field_notes = "・指令：「重点区域は %s」\n・補給局：「区域限定の上乗せあり」\n・門番：「行き先を掲示と照合」" % biome_name
+			if "effect_summary" in event:
+				event.effect_summary = "・%s の経験値／ゴールド ×%.1f" % [biome_name, event.modifier_mult]
+			event.description = "注目区域『%s』の表示を必ず確認せよ。区域外ではボーナスが乗らない。経験値とゴールドを稼ぎたいなら、指定区域の周回を優先。" % biome_name
 	return event
 
 

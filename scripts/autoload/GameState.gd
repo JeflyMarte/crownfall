@@ -37,6 +37,8 @@ var pending_starter_recruit_id: String = ""
 var gacha_token: int = 0  ## 魔晶石（ガチャ通貨・表示名は CurrencyHelper）
 ## EquipmentScene 起動時に選択するメンバー index（-1=先頭）。RosterScene 詳細ボタン用（P3-UI2-017）。
 var equipment_focus_member_index: int = -1
+## 展示室の自慢キャラ（roster の安定 id）。空=未設定。P3-SHOWCASE-001。
+var showcase_member_id: String = ""
 ## BaseScene 起動時ビュー: "hub" | "menu_grid"（下ナビ「メニュー」用・P3-UI-Base-A）。
 var base_initial_view: String = "hub"
 ## 拠点機能遷移時の NPC 1行台詞（P3-LORE-003）。{ npc, line }。
@@ -1727,6 +1729,20 @@ func consume_materials(required_materials: Dictionary) -> bool:
 
 func get_roster() -> Array:
 	return roster
+
+func set_showcase_member_id(member_id: String) -> void:
+	showcase_member_id = member_id.strip_edges()
+
+
+func find_showcase_member() -> Resource:
+	if showcase_member_id.is_empty():
+		return null
+	for adv: Resource in roster:
+		if adv != null and str(adv.id) == showcase_member_id:
+			return adv
+	## ロスターから消えていたらクリア。
+	showcase_member_id = ""
+	return null
 
 func is_member_active(adv: Resource) -> bool:
 	return adv != null and party_members.has(adv)

@@ -14,7 +14,7 @@ const SAVE_PATH: String = "user://save_data.json"
 ## `_migrate_save_data` に v(n)→v(n+1) の段階マイグレーションを追加する。
 ## v0 = バージョンフィールド無しの旧セーブ（レガシー party/equipment/job/dungeon id を含む）
 ## v1 = save_version フィールド導入（2026-07-02）
-const SAVE_VERSION: int = 10
+const SAVE_VERSION: int = 11
 
 func save_game() -> void:
 	var data: Dictionary = {
@@ -52,6 +52,7 @@ func save_game() -> void:
 		"starter_pick_pending": GameState.starter_pick_pending,
 		"pending_starter_recruit_id": GameState.pending_starter_recruit_id,
 		"debug_full_unlock": GameState.debug_full_unlock,
+		"showcase_member_id": GameState.showcase_member_id,
 	}
 	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file == null:
@@ -109,7 +110,16 @@ func _migrate_save_data(data: Dictionary) -> Dictionary:
 		data = _migrate_save_v8_to_v9(data)
 	if version < 10:
 		data = _migrate_save_v9_to_v10(data)
+	if version < 11:
+		data = _migrate_save_v10_to_v11(data)
 	data["save_version"] = SAVE_VERSION
+	return data
+
+
+## P3-SHOWCASE-001: 展示室自慢キャラ id
+func _migrate_save_v10_to_v11(data: Dictionary) -> Dictionary:
+	if not data.has("showcase_member_id"):
+		data["showcase_member_id"] = ""
 	return data
 
 
@@ -541,6 +551,10 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.pending_starter_recruit_id = str(data.get("pending_starter_recruit_id", "")).strip_edges()
 	else:
 		GameState.pending_starter_recruit_id = ""
+	if data.has("showcase_member_id"):
+		GameState.showcase_member_id = str(data.get("showcase_member_id", "")).strip_edges()
+	else:
+		GameState.showcase_member_id = ""
 	## 既に解放済みなら演出待ちを破棄（旧セーブ／二重防止）。
 	if (
 		not GameState.pending_starter_recruit_id.is_empty()
@@ -548,6 +562,8 @@ func _apply_save_data(data: Dictionary) -> void:
 	):
 		GameState.pending_starter_recruit_id = ""
 	_apply_roster_save(data)
+	## roster 適用後に展示 id を検証。
+	GameState.find_showcase_member()
 	GameState.migrate_starter_unlock_state()
 	if data.has("active_pet"):
 		GameState.active_pet = _deserialize_active_pet(data.get("active_pet"))

@@ -569,6 +569,7 @@ const ICON_MAP: Dictionary = {
 	"ui:survey":                   "res://assets/ui/hub/ICO_Hub_Survey.png",
 	"ui:missions":                 "res://assets/ui/menu/ICO_UI_Missions.png",
 	"hub:survey":                  "res://assets/ui/hub/ICO_Hub_Survey.png",
+	"hub:guild_bulletin_click":    "res://assets/ui/hub/ICO_Hub_GuildBulletin_ClickHint.png",
 	# 日課ジャンル（行先頭）
 	"daily:adventure":             "res://assets/ui/daily/ICO_Daily_Adventure.png",
 	"daily:forge":                 "res://assets/ui/daily/ICO_Daily_Forge.png",

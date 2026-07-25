@@ -189,15 +189,12 @@ func _build_chrome() -> void:
 	_survey_frame.mouse_filter = Control.MOUSE_FILTER_STOP
 	_survey_frame.clip_contents = true
 	_survey_frame.tooltip_text = "調査室"
-	var survey_sb := StyleBoxFlat.new()
-	survey_sb.bg_color = Color(0.08, 0.09, 0.14, 0.95)
-	survey_sb.set_border_width_all(3)
-	survey_sb.border_color = Color(0.72, 0.58, 0.28, 0.95)
-	survey_sb.set_corner_radius_all(12)
-	survey_sb.content_margin_left = SURVEY_FRAME_INSET
-	survey_sb.content_margin_top = SURVEY_FRAME_INSET
-	survey_sb.content_margin_right = SURVEY_FRAME_INSET
-	survey_sb.content_margin_bottom = SURVEY_FRAME_INSET
+	## アイコン自体が丸切り抜きなので、枠 StyleBox は置かない。
+	var survey_sb := StyleBoxEmpty.new()
+	survey_sb.content_margin_left = 0.0
+	survey_sb.content_margin_top = 0.0
+	survey_sb.content_margin_right = 0.0
+	survey_sb.content_margin_bottom = 0.0
 	_survey_frame.add_theme_stylebox_override("panel", survey_sb)
 	add_child(_survey_frame)
 

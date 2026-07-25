@@ -44,6 +44,24 @@ func test_pool_includes_weather_duck_raven_none() -> void:
 		assert_true(ids.has(need), need)
 
 
+func test_slot_copy_has_article_effect_and_memo() -> void:
+	for def: Dictionary in _WeekRotation.SLOT_DEFINITIONS:
+		var id: String = str(def.get("id", ""))
+		assert_false(str(def.get("article", "")).strip_edges().is_empty(), "article %s" % id)
+		assert_false(str(def.get("field_notes", "")).strip_edges().is_empty(), "field_notes %s" % id)
+		assert_false(str(def.get("effect_summary", "")).strip_edges().is_empty(), "effect %s" % id)
+		assert_false(str(def.get("description", "")).strip_edges().is_empty(), "memo %s" % id)
+		assert_true(str(def.get("effect_summary", "")).begins_with("・"), "bullet %s" % id)
+
+
+func test_build_active_event_copies_article() -> void:
+	EventSystem.set_debug_unix_for_tests(_anchor_unix() + 60)
+	var event: Resource = EventSystem.get_active_event()
+	assert_not_null(event)
+	assert_false(str(event.article).strip_edges().is_empty())
+	assert_false(str(event.effect_summary).strip_edges().is_empty())
+
+
 func test_slot_selection_is_stable() -> void:
 	assert_eq(_WeekRotation.definition_index_for_slot(12), _WeekRotation.definition_index_for_slot(12))
 	assert_eq(_WeekRotation.definition_index_for_slot(100), _WeekRotation.definition_index_for_slot(100))

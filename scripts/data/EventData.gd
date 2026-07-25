@@ -8,6 +8,12 @@ extends Resource
 @export var tag_text: String = "期間限定"
 @export var banner_desc: String = ""
 @export_multiline var description: String = ""
+## 情報誌本文（開催期間下）。P3-EVT-FIELD-001 拡張。
+@export_multiline var article: String = ""
+## 現場メモ／目撃抜粋（開催期間の直下）。
+@export_multiline var field_notes: String = ""
+## 効果サマリ（箇条書きテキスト）。
+@export_multiline var effect_summary: String = ""
 ## exp / gold / weapon_drop / codex / featured_biome / elite_material
 ## + none / weather / wander_duck / wander_raven / enemy_level / swarm / elite_rooms（P3-EVT-FIELD-001）
 @export var modifier_type: String = ""

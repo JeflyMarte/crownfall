@@ -1480,13 +1480,18 @@ func _play_battle_bgm() -> void:
 	AudioManager.play_bgm(_BgmCatalog.battle_bgm_for_dungeon(dungeon_id))
 
 
+func _play_boss_bgm() -> void:
+	var dungeon_id: String = GameState.get_active_dungeon_id()
+	AudioManager.play_bgm(_BgmCatalog.boss_bgm_for_dungeon(dungeon_id))
+
+
 func _sync_room_bgm() -> void:
-	## 非戦闘・探索中 = dungeon_explore（共通）。通常戦闘 = Biome 別／ボス = boss。
+	## 非戦闘・探索中 = dungeon_explore（共通）。通常戦闘 = Biome 別／ボス = boss or final_boss。
 	if not $DungeonController.is_combat_room():
 		AudioManager.play_bgm(_BgmCatalog.ID_DUNGEON_EXPLORE)
 		return
 	if $DungeonController.current_room_type == Enums.RoomType.BOSS:
-		AudioManager.play_bgm(_BgmCatalog.ID_BOSS)
+		_play_boss_bgm()
 	else:
 		_play_battle_bgm()
 

@@ -9,8 +9,11 @@ const REQUIRED_IDS: Array[String] = [
 	_BgmCatalog.ID_DUNGEON_EXPLORE,
 	_BgmCatalog.ID_WHISPERWOOD,
 	_BgmCatalog.ID_MISTFEN,
+	_BgmCatalog.ID_BLACKSHORE,
+	_BgmCatalog.ID_FROSTRIDGE,
 	_BgmCatalog.ID_BATTLE,
 	_BgmCatalog.ID_BOSS,
+	_BgmCatalog.ID_FINAL_BOSS,
 	_BgmCatalog.ID_RESULT,
 	_BgmCatalog.ID_RESULT_DEFEAT,
 	_BgmCatalog.ID_INTRODUCTION,
@@ -31,6 +34,9 @@ func test_explore_is_registered() -> void:
 	assert_true(_BgmCatalog.is_available(_BgmCatalog.ID_DUNGEON_EXPLORE))
 	assert_true(_BgmCatalog.is_available(_BgmCatalog.ID_WHISPERWOOD))
 	assert_true(_BgmCatalog.is_available(_BgmCatalog.ID_MISTFEN))
+	assert_true(_BgmCatalog.is_available(_BgmCatalog.ID_BLACKSHORE))
+	assert_true(_BgmCatalog.is_available(_BgmCatalog.ID_FROSTRIDGE))
+	assert_true(_BgmCatalog.is_available(_BgmCatalog.ID_FINAL_BOSS))
 
 
 func test_battle_bgm_for_dungeon_maps_biome() -> void:
@@ -51,8 +57,43 @@ func test_battle_bgm_for_dungeon_maps_biome() -> void:
 		_BgmCatalog.ID_MISTFEN
 	)
 	assert_eq(
+		_BgmCatalog.battle_bgm_for_dungeon("blackshore"),
+		_BgmCatalog.ID_BLACKSHORE
+	)
+	assert_eq(
+		_BgmCatalog.battle_bgm_for_dungeon("blackshore_abyss"),
+		_BgmCatalog.ID_BLACKSHORE
+	)
+	assert_eq(
+		_BgmCatalog.battle_bgm_for_dungeon("frostridge"),
+		_BgmCatalog.ID_FROSTRIDGE
+	)
+	assert_eq(
+		_BgmCatalog.battle_bgm_for_dungeon("north_reach"),
+		_BgmCatalog.ID_FROSTRIDGE
+	)
+	assert_eq(
 		_BgmCatalog.battle_bgm_for_dungeon("mourngate"),
 		_BgmCatalog.ID_BATTLE
+	)
+
+
+func test_boss_bgm_for_dungeon_final_on_frostridge() -> void:
+	assert_eq(
+		_BgmCatalog.boss_bgm_for_dungeon("frostridge"),
+		_BgmCatalog.ID_FINAL_BOSS
+	)
+	assert_eq(
+		_BgmCatalog.boss_bgm_for_dungeon("north_reach"),
+		_BgmCatalog.ID_BOSS
+	)
+	assert_eq(
+		_BgmCatalog.boss_bgm_for_dungeon("mourngate"),
+		_BgmCatalog.ID_BOSS
+	)
+	assert_eq(
+		_BgmCatalog.boss_bgm_for_dungeon("blackshore"),
+		_BgmCatalog.ID_BOSS
 	)
 
 
