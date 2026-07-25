@@ -51,7 +51,8 @@ func test_perform_alchemy_raises_base_and_removes_fodder() -> void:
 	assert_eq(GameState.inventory.size(), 1)
 	assert_true(base in GameState.inventory)
 	assert_false(fodder in GameState.inventory)
-	assert_eq(GameState.gold, 1000 - 100)
+	## Lv10素材 → +5 / 帯×1.0 → 150G
+	assert_eq(GameState.gold, 1000 - 150)
 
 
 func test_alchemy_rejects_different_categories() -> void:
@@ -74,7 +75,14 @@ func test_alchemy_caps_at_99() -> void:
 	assert_true(bool(result.get("ok", false)))
 	assert_eq(int(base.equip_level), 99)
 	assert_eq(int(result.get("gain", 0)), 2)
-	assert_eq(GameState.gold, 1000 - 40)
+	## Lv20素材 → 帯×1.0 → 2×30=60G
+	assert_eq(GameState.gold, 1000 - 60)
+
+
+func test_alchemy_gold_tier_mult() -> void:
+	assert_eq(EquipmentEnhancer.alchemy_gold_cost(5, 10), 150)
+	assert_eq(EquipmentEnhancer.alchemy_gold_cost(5, 21), 225)
+	assert_eq(EquipmentEnhancer.alchemy_gold_cost(5, 51), 300)
 
 
 func test_clamp_equip_level_to_member() -> void:

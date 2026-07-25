@@ -39,7 +39,14 @@ func test_daily_kill_enemies_has_gold_and_token() -> void:
 func test_forge_gold_sink_raised() -> void:
 	assert_eq(EquipmentEnhancer.get_gold_cost(1), 50)
 	assert_eq(EquipmentEnhancer.get_gold_cost(5), 280)
+	assert_eq(EquipmentEnhancer.get_gold_cost(5, Enums.Rarity.COMMON), 280)
+	assert_eq(EquipmentEnhancer.get_gold_cost(5, Enums.Rarity.RARE), 322)
+	assert_eq(EquipmentEnhancer.get_gold_cost(5, Enums.Rarity.EPIC), 364)
+	assert_eq(EquipmentEnhancer.get_gold_cost(5, Enums.Rarity.LEGENDARY), 420)
+	assert_eq(EquipmentEnhancer.get_gold_cost(3, Enums.Rarity.LEGENDARY), 120)
 	assert_eq(EquipmentEnhancer.ALCHEMY_GOLD_PER_GAIN, 30)
+	assert_eq(EquipmentEnhancer.alchemy_gold_cost(10, 20), 300)
+	assert_eq(EquipmentEnhancer.alchemy_gold_cost(10, 40), 450)
 
 
 func test_elite_and_boss_material_chances() -> void:

@@ -26,6 +26,7 @@ const DISMANTLE_CRAFT_RETURN_CAP: float = 0.6
 ## 錬成 — P3-FORGE-ALCHEMY-001
 const ALCHEMY_LEVEL_FACTOR: float = 0.5
 ## P3-BAL-ECO-001: 錬成金コスト 20→30／炉研ぎ金を約1.5〜1.6倍
+## P3-BAL-FORGE-002: 素材Lv帯で錬成金倍率（1–20×1.0／21–50×1.5／51+×2.0）
 const ALCHEMY_GOLD_PER_GAIN: int = 30
 const ALCHEMY_CONFIRM_ENHANCE_LEVEL: int = 3
 
@@ -35,6 +36,13 @@ const GOLD_BY_NEXT_LEVEL: Dictionary = {
 	3: 120,
 	4: 180,
 	5: 280,
+}
+## P3-BAL-FORGE-002: 炉研ぎ +4/+5 のみレア倍率（◇1.0／◆1.15／✦1.3／★1.5）
+const FORGE_GOLD_RARITY_MULT_HIGH: Dictionary = {
+	0: 1.0,
+	1: 1.15,
+	2: 1.3,
+	3: 1.5,
 }
 
 ## 炉研ぎ消費素材（P3-MAT-004）。供給レーンは P3-BAL-ECO-001 で明文化:
@@ -227,8 +235,20 @@ static func get_accessory_display_name(accessory: Resource) -> String:
 		name = "%s +%d" % [name, level]
 	return name + _EquipmentRollHelper.perfect_roll_suffix(accessory)
 
-static func get_gold_cost(next_level: int) -> int:
-	return int(GOLD_BY_NEXT_LEVEL.get(next_level, 0))
+static func get_gold_cost(next_level: int, item_rarity: int = Enums.Rarity.COMMON) -> int:
+	var base: int = int(GOLD_BY_NEXT_LEVEL.get(next_level, 0))
+	if base <= 0:
+		return 0
+	var mult: float = forge_gold_rarity_mult(next_level, item_rarity)
+	return int(round(float(base) * mult))
+
+
+static func forge_gold_rarity_mult(next_level: int, item_rarity: int) -> float:
+	if next_level < 4:
+		return 1.0
+	var rarity: int = clampi(item_rarity, Enums.Rarity.COMMON, Enums.Rarity.LEGENDARY)
+	return float(FORGE_GOLD_RARITY_MULT_HIGH.get(rarity, 1.0))
+
 
 static func can_enhance_item(item: Resource) -> Dictionary:
 	var fail := func(reason: String) -> Dictionary:
@@ -242,7 +262,7 @@ static func can_enhance_item(item: Resource) -> Dictionary:
 		return fail.call("炉研ぎ上限に達しています")
 	var next_level: int = current + 1
 	var rarity: int = item_rarity(item)
-	var gold_cost: int = get_gold_cost(next_level)
+	var gold_cost: int = get_gold_cost(next_level, rarity)
 	var materials: Dictionary = get_material_cost(next_level, rarity)
 	if GameState.gold < gold_cost:
 		return fail.call("ゴールドが足りません")
@@ -440,8 +460,18 @@ static func alchemy_level_gain(fodder: Resource) -> int:
 	return maxi(1, int(floor(float(get_equip_level(fodder)) * ALCHEMY_LEVEL_FACTOR)))
 
 
-static func alchemy_gold_cost(applied_gain: int) -> int:
-	return maxi(0, applied_gain) * ALCHEMY_GOLD_PER_GAIN
+static func alchemy_gold_tier_mult(fodder_level: int) -> float:
+	var lv: int = maxi(1, fodder_level)
+	if lv >= 51:
+		return 2.0
+	if lv >= 21:
+		return 1.5
+	return 1.0
+
+
+static func alchemy_gold_cost(applied_gain: int, fodder_level: int = 1) -> int:
+	var mult: float = alchemy_gold_tier_mult(fodder_level)
+	return int(ceil(float(maxi(0, applied_gain) * ALCHEMY_GOLD_PER_GAIN) * mult))
 
 
 static func alchemy_needs_confirm(fodder: Resource) -> bool:
@@ -468,7 +498,7 @@ static func alchemy_preview(base: Resource, fodder: Resource) -> Dictionary:
 	var gain_raw: int = alchemy_level_gain(fodder)
 	var to_lv: int = mini(EQUIP_MAX_LEVEL, from_lv + gain_raw)
 	var applied: int = to_lv - from_lv
-	var gold: int = alchemy_gold_cost(applied)
+	var gold: int = alchemy_gold_cost(applied, get_equip_level(fodder))
 	return {
 		"ok": true,
 		"reason": "",
@@ -508,7 +538,7 @@ static func can_alchemy(base: Resource, fodder: Resource) -> Dictionary:
 	var applied: int = to_lv - from_lv
 	if applied <= 0:
 		return fail.call("レベルが上がりません")
-	var gold: int = alchemy_gold_cost(applied)
+	var gold: int = alchemy_gold_cost(applied, get_equip_level(fodder))
 	if GameState.gold < gold:
 		return fail.call("ゴールドが足りません")
 	return {

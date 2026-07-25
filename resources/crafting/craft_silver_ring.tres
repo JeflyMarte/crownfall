@@ -10,4 +10,4 @@ required_materials = {"relic_shard": 1, "ancient_bone": 1, "elite_relic_shard": 
 gold_cost = 120
 output_type = "accessory"
 output_id = "silver_ring"
-unlock_condition = ""
+unlock_condition = "stage_cleared:mourngate_1_5"

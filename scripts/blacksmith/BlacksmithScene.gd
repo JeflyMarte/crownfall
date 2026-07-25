@@ -1459,7 +1459,7 @@ func _rebuild_enhance_detail() -> void:
 		return
 	var check: Dictionary = _EquipmentEnhancer.can_enhance_item(item)
 	var next_level: int = int(check.get("next_level", level + 1))
-	var gold_cost: int = int(check.get("gold_cost", _EquipmentEnhancer.get_gold_cost(next_level)))
+	var gold_cost: int = int(check.get("gold_cost", _EquipmentEnhancer.get_gold_cost(next_level, _EquipmentEnhancer.item_rarity(item))))
 	var materials: Dictionary = check.get(
 		"materials", _EquipmentEnhancer.get_material_cost(next_level, rarity)
 	)
@@ -1591,7 +1591,9 @@ func _rebuild_alchemy_detail() -> void:
 	var gain_raw: int = _EquipmentEnhancer.alchemy_level_gain(_selected_alchemy_fodder)
 	var to_lv: int = mini(_EquipmentEnhancer.EQUIP_MAX_LEVEL, from_lv + gain_raw)
 	var applied: int = maxi(0, to_lv - from_lv)
-	var gold_cost: int = _EquipmentEnhancer.alchemy_gold_cost(applied)
+	var gold_cost: int = _EquipmentEnhancer.alchemy_gold_cost(
+		applied, _EquipmentEnhancer.get_equip_level(_selected_alchemy_fodder)
+	)
 	_add_stat_row("結果レベル", "Lv.%d → Lv.%d（+%d）" % [from_lv, to_lv, applied])
 	_add_stat_row("消費素材", _EquipmentEnhancer.get_display_name(_selected_alchemy_fodder))
 	_add_stat_row("注意", "素材は消滅（分解報酬なし）")
@@ -2034,6 +2036,9 @@ func _update_bulk_dismantle_button() -> void:
 func _craft_button_label(craft: Resource, can_craft: bool) -> String:
 	if can_craft:
 		return "生産する"
+	var lock_reason: String = CraftHelper.craft_lock_reason(craft)
+	if not lock_reason.is_empty():
+		return lock_reason
 	if GameState.gold < craft.gold_cost:
 		return "ゴールド不足"
 	return "素材不足"
@@ -2044,6 +2049,10 @@ func _on_craft_pressed(craft: Resource) -> void:
 		return
 	if craft.output_id.is_empty() or not CraftHelper.craft_output_exists(craft):
 		_log_craft_error("作成できません（出力不正）")
+		return
+	var lock_reason: String = CraftHelper.craft_lock_reason(craft)
+	if not lock_reason.is_empty():
+		_log_craft_error(lock_reason)
 		return
 	if GameState.gold < craft.gold_cost:
 		_log_craft_error("ゴールドが足りません")

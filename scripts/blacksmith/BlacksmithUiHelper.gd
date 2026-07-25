@@ -246,6 +246,10 @@ static func recipes_for_category(category: String) -> Array:
 		if str(craft.output_type) == category:
 			out.append(craft)
 	out.sort_custom(func(a: Resource, b: Resource) -> bool:
+		var a_unlocked: bool = CraftHelper.is_craft_unlocked(a)
+		var b_unlocked: bool = CraftHelper.is_craft_unlocked(b)
+		if a_unlocked != b_unlocked:
+			return a_unlocked
 		var a_ok: bool = CraftHelper.can_craft(a)
 		var b_ok: bool = CraftHelper.can_craft(b)
 		if a_ok != b_ok:
