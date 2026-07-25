@@ -12,8 +12,10 @@ Suno AI などで作成した BGM をここに配置する。
 | `forge` | `forge.mp3` | 鍛冶屋 | YES |
 | `survey` | `survey.mp3` | 調査室 | YES |
 | `gacha` | `gacha.mp3` | ガチャ（招待状） | YES |
-| `dungeon_explore` | `dungeon_explore.mp3` | ダンジョン探索（非戦闘） | YES |
-| `battle` | `battle.mp3` | 通常・エリート戦闘 | YES |
+| `dungeon_explore` | `dungeon_explore.mp3` | ダンジョン探索（全ダンジョン共通） | YES |
+| `battle` | `battle.mp3` | 通常・エリート戦闘（未登録 Biome の既定） | YES |
+| `whisperwood` | `whisperwood.mp3` | ウィスパーウッド系 通常戦闘 | YES |
+| `mistfen` | `mistfen.mp3` | ミストフェン系 通常戦闘 | YES |
 | `boss` | `boss.mp3` | ボス戦 | YES |
 | `result` | `result.mp3` | リザルト（クリア／リタイア） | YES |
 | `result_defeat` | `result_defeat.mp3` | リザルト（全滅＝探索失敗） | YES |

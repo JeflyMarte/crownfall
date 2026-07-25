@@ -18,6 +18,7 @@ const CHR_BODY_TARGET_PX: float = 140.0
 ## オトモは味方より一回り小さく（P3-PET-OTOMO-001 polish）
 const PET_BODY_TARGET_PX: float = 92.0
 const _LOG_MAX: int = 60
+const _BgmCatalog := preload("res://scripts/audio/BgmCatalog.gd")
 
 const ENEMY_SPRITE_MAP: Dictionary = {
 	"abyssal_squid": "res://resources/animation/ENM_NinjaOctopus.tres",
@@ -629,8 +630,8 @@ const TURN_ORDER_SIDE_TOP: float = 36.0
 const TURN_ORDER_BADGE_FONT_PX: int = 12
 
 func _ready() -> void:
-	## 探索BGM（非戦闘ルームへ入るまで / dive 中も探索曲）。
-	AudioManager.play_bgm("dungeon_explore")
+	## 探索BGM（全ダンジョン共通。非戦闘ルームへ入るまで / dive 中も探索曲）。
+	AudioManager.play_bgm(_BgmCatalog.ID_DUNGEON_EXPLORE)
 	_btn_next_room.pressed.connect(_on_next_room_pressed)
 	_btn_finish.pressed.connect(_on_finish_button_pressed)
 	$CombatTimer.timeout.connect(_on_combat_timer_timeout)
@@ -1474,15 +1475,20 @@ func _room_transition_timing(room_type: int) -> Dictionary:
 			return {"fade": 0.2, "hold": 0.55}
 
 
+func _play_battle_bgm() -> void:
+	var dungeon_id: String = GameState.get_active_dungeon_id()
+	AudioManager.play_bgm(_BgmCatalog.battle_bgm_for_dungeon(dungeon_id))
+
+
 func _sync_room_bgm() -> void:
-	## 非戦闘・探索中 = dungeon_explore。戦闘 = battle / boss。
+	## 非戦闘・探索中 = dungeon_explore（共通）。通常戦闘 = Biome 別／ボス = boss。
 	if not $DungeonController.is_combat_room():
-		AudioManager.play_bgm("dungeon_explore")
+		AudioManager.play_bgm(_BgmCatalog.ID_DUNGEON_EXPLORE)
 		return
 	if $DungeonController.current_room_type == Enums.RoomType.BOSS:
-		AudioManager.play_bgm("boss")
+		AudioManager.play_bgm(_BgmCatalog.ID_BOSS)
 	else:
-		AudioManager.play_bgm("battle")
+		_play_battle_bgm()
 
 func _room_transition_caption() -> String:
 	var floor_text: String = $DungeonController.get_display_floor_text()
@@ -5049,7 +5055,7 @@ func _finalize_combat_cleared() -> void:
 	_update_next_room_button()
 	_show_chr_sprites(false)
 	# クリアBGMは ResultScene のみ。戦闘直後は探索へ戻す。
-	AudioManager.play_bgm("dungeon_explore")
+	AudioManager.play_bgm(_BgmCatalog.ID_DUNGEON_EXPLORE)
 	if $DungeonController.is_on_last_floor_before_exit():
 		_play_combat_clear_celebration(true)
 	else:

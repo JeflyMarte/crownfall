@@ -311,7 +311,7 @@ Task 明示指示がない限り作成しない:
 | パス | 内容 |
 |---|---|
 | `sfx/` | Kenney CC0・`SfxCatalog` 18 ID（**P3-AUDIO-SE-001**）。配線拡張 **P3-AUDIO-SE-002** |
-| `bgm/` | オーナー制作 MP3（title / introduction / hub / forge / survey / gacha / dungeon_explore / battle / boss / result / result_defeat）。`BgmCatalog`（**P3-AUDIO-BGM-001**）。Result は勝敗で切替 |
+| `bgm/` | オーナー制作 MP3（title / introduction / hub / forge / survey / gacha / dungeon_explore / battle / whisperwood / mistfen / boss / result / result_defeat）。`BgmCatalog`（**P3-AUDIO-BGM-001**）。通常戦闘は Biome 別（未登録は battle）。探索は共通。Result は勝敗で切替 |
 
 ---
 

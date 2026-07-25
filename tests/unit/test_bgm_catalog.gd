@@ -7,6 +7,8 @@ const REQUIRED_IDS: Array[String] = [
 	_BgmCatalog.ID_TITLE,
 	_BgmCatalog.ID_HUB,
 	_BgmCatalog.ID_DUNGEON_EXPLORE,
+	_BgmCatalog.ID_WHISPERWOOD,
+	_BgmCatalog.ID_MISTFEN,
 	_BgmCatalog.ID_BATTLE,
 	_BgmCatalog.ID_BOSS,
 	_BgmCatalog.ID_RESULT,
@@ -27,6 +29,31 @@ func test_required_bgm_files_exist() -> void:
 
 func test_explore_is_registered() -> void:
 	assert_true(_BgmCatalog.is_available(_BgmCatalog.ID_DUNGEON_EXPLORE))
+	assert_true(_BgmCatalog.is_available(_BgmCatalog.ID_WHISPERWOOD))
+	assert_true(_BgmCatalog.is_available(_BgmCatalog.ID_MISTFEN))
+
+
+func test_battle_bgm_for_dungeon_maps_biome() -> void:
+	assert_eq(
+		_BgmCatalog.battle_bgm_for_dungeon("whisperwood"),
+		_BgmCatalog.ID_WHISPERWOOD
+	)
+	assert_eq(
+		_BgmCatalog.battle_bgm_for_dungeon("green_hollow"),
+		_BgmCatalog.ID_WHISPERWOOD
+	)
+	assert_eq(
+		_BgmCatalog.battle_bgm_for_dungeon("mistfen"),
+		_BgmCatalog.ID_MISTFEN
+	)
+	assert_eq(
+		_BgmCatalog.battle_bgm_for_dungeon("mistfen_depths"),
+		_BgmCatalog.ID_MISTFEN
+	)
+	assert_eq(
+		_BgmCatalog.battle_bgm_for_dungeon("mourngate"),
+		_BgmCatalog.ID_BATTLE
+	)
 
 
 func test_audio_manager_play_bgm_does_not_crash() -> void:
@@ -59,8 +86,12 @@ func test_scene_bgm_maps_hub_and_facility() -> void:
 		_BgmCatalog.ID_FORGE
 	)
 	assert_eq(_BgmCatalog.bgm_for_scene("res://scenes/unknown/NoScene.tscn"), "")
-	## 結果画面は勝敗で切替するため SCENE_BGM 非掲載。
+	## 結果画面は勝敗で切替のため SCENE_BGM 非掲載。探索は共通なので DungeonScene は掲載。
 	assert_eq(_BgmCatalog.bgm_for_scene("res://scenes/result/ResultScene.tscn"), "")
+	assert_eq(
+		_BgmCatalog.bgm_for_scene("res://scenes/dungeon/DungeonScene.tscn"),
+		_BgmCatalog.ID_DUNGEON_EXPLORE
+	)
 
 
 func test_leaving_gacha_to_equipment_switches_to_hub() -> void:

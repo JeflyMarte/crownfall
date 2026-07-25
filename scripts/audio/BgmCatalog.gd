@@ -8,6 +8,8 @@ const DIR: String = "res://assets/audio/bgm/"
 const ID_TITLE: String = "title"
 const ID_HUB: String = "hub"
 const ID_DUNGEON_EXPLORE: String = "dungeon_explore"
+const ID_WHISPERWOOD: String = "whisperwood"
+const ID_MISTFEN: String = "mistfen"
 const ID_BATTLE: String = "battle"
 const ID_BOSS: String = "boss"
 const ID_RESULT: String = "result"
@@ -18,10 +20,13 @@ const ID_SURVEY: String = "survey"
 const ID_GACHA: String = "gacha"
 
 ## 現行登録（タイトル＋導入＋拠点施設＋探索／戦闘／ボス／リザルト）。
+## 通常戦闘は Biome 別曲あり（未登録は battle）。探索は全ダンジョン共通。
 const PATHS: Dictionary = {
 	ID_TITLE: DIR + "title.mp3",
 	ID_HUB: DIR + "hub.mp3",
 	ID_DUNGEON_EXPLORE: DIR + "dungeon_explore.mp3",
+	ID_WHISPERWOOD: DIR + "whisperwood.mp3",
+	ID_MISTFEN: DIR + "mistfen.mp3",
 	ID_BATTLE: DIR + "battle.mp3",
 	ID_BOSS: DIR + "boss.mp3",
 	ID_RESULT: DIR + "result.mp3",
@@ -36,6 +41,8 @@ const LOOP_IDS: Dictionary = {
 	ID_TITLE: true,
 	ID_HUB: true,
 	ID_DUNGEON_EXPLORE: true,
+	ID_WHISPERWOOD: true,
+	ID_MISTFEN: true,
 	ID_BATTLE: true,
 	ID_BOSS: true,
 	ID_RESULT: true,
@@ -44,6 +51,16 @@ const LOOP_IDS: Dictionary = {
 	ID_FORGE: true,
 	ID_SURVEY: true,
 	ID_GACHA: true,
+}
+
+## dungeon_id → 通常戦闘 BGM。寄り道／征討は親 Biome 曲を流用。ボスは共通 `boss`。
+const BATTLE_BY_DUNGEON: Dictionary = {
+	"whisperwood": ID_WHISPERWOOD,
+	"green_hollow": ID_WHISPERWOOD,
+	"red_ridge_mine": ID_WHISPERWOOD,
+	"mistfen": ID_MISTFEN,
+	"broken_marsh": ID_MISTFEN,
+	"mistfen_depths": ID_MISTFEN,
 }
 
 ## シーンパス → BGM ID。未登録は切替なし（呼び出し側の play_bgm に委ねる）。
@@ -93,6 +110,14 @@ static func bgm_for_scene(scene_path: String) -> String:
 	if scene_path.is_empty():
 		return ""
 	return str(SCENE_BGM.get(scene_path, ""))
+
+
+## 通常戦闘曲。専用曲が無ければ battle。ボス戦は呼び出し側で boss。
+static func battle_bgm_for_dungeon(dungeon_id: String) -> String:
+	var mapped: String = str(BATTLE_BY_DUNGEON.get(dungeon_id, ""))
+	if not mapped.is_empty() and is_available(mapped):
+		return mapped
+	return ID_BATTLE
 
 
 static func all_ids() -> Array[String]:
