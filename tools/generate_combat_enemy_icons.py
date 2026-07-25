@@ -11,11 +11,12 @@ import unicodedata
 from collections import deque
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC_DIR = Path.home() / "Desktop/CrownFall設定画像/モンスター/モンスター図鑑"
 FRAME_PATH = Path.home() / "Desktop/CrownFall設定画像/素材/モンスターフレーム.png"
+# 図鑑はバイオーム別サブフォルダに置く。rglob で探索する。
 OUT_DIR = ROOT / "assets/ui/combat/enemy_icons"
 PREVIEW_DIR = ROOT / "assets/ui/combat/enemy_icons/_preview"
 
@@ -163,20 +164,12 @@ def compose(frame: Image.Image, monster: Image.Image) -> Image.Image:
 	content = fit_monster(monster, box_w, box_h)
 
 	canvas = Image.new("RGBA", frame.size, (0, 0, 0, 0))
-	# Soft plate behind the portrait for readability on busy combat UI.
-	# Too-dark plates make turn-order icons look black in combat (avg RGB ~30).
-	plate = Image.new("RGBA", (box_w, box_h), (48, 36, 64, 200))
-	mask = Image.new("L", (box_w, box_h), 0)
-	draw = ImageDraw.Draw(mask)
-	rad = max(8, box_w // 10)
-	draw.rounded_rectangle((0, 0, box_w - 1, box_h - 1), radius=rad, fill=255)
-	plate.putalpha(mask)
-
+	# 穴内プレートは焼かない（不透明板が行動順で「透過してない」ように見える）。
+	# 可読性は枠＋リフトのみ。CombatUiFrames は baked 時に重ねない。
 	cx = (x0 + x1) // 2
 	cy = (y0 + y1) // 2
 	ox = cx - box_w // 2
 	oy = cy - box_h // 2
-	canvas.paste(plate, (ox, oy), plate)
 	lifted = _lift_shadows(content)
 	canvas.paste(lifted, (ox, oy), lifted)
 	canvas.alpha_composite(frame)
@@ -206,11 +199,13 @@ def resolve_sources() -> dict[str, Path]:
 	found: dict[str, Path] = {}
 	if not SRC_DIR.is_dir():
 		raise SystemExit(f"Source folder missing: {SRC_DIR}")
-	for path in SRC_DIR.iterdir():
-		if path.suffix.lower() != ".png" or path.name.startswith("."):
+	for path in SRC_DIR.rglob("*.png"):
+		if path.name.startswith("."):
 			continue
 		stem = nfc(path.stem)
 		for key in NAME_MAP:
+			if key in found:
+				continue
 			if stem == key or key in stem or stem in key:
 				found[key] = path
 				break

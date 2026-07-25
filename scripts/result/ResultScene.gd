@@ -103,7 +103,7 @@ var _levelup_pending_count: int = 0
 
 func _ready() -> void:
 	_levelup_panel_legacy.visible = false
-	AudioManager.play_bgm("result")
+	_play_outcome_bgm()
 	_apply_typography()
 	_apply_panel_styles()
 	_setup_wizard_roots()
@@ -119,6 +119,14 @@ func _ready() -> void:
 	_ensure_next_stage_button()
 	_enter_step(ResultFlowScript.Step.REWARDS)
 	call_deferred("_maybe_show_content_unlock")
+
+
+func _play_outcome_bgm() -> void:
+	## 全滅（敗北）は専用曲。クリア／リタイアは従来のリザルト BGM。
+	if GameState.last_run_outcome == GameState.RUN_OUTCOME_WIPE:
+		AudioManager.play_bgm("result_defeat")
+	else:
+		AudioManager.play_bgm("result")
 
 
 func _maybe_show_content_unlock() -> void:

@@ -538,6 +538,8 @@ var _cached_heal_vfx_frames: SpriteFrames
 const SWARM_SPACING_RATIO: float = 0.201
 const SWARM_CENTER_X_RATIO: float = 0.694
 const SWARM_Y_RATIO: float = 0.48
+## 群れを左上→右下の階段状に置く（スロットごとの Y 比率加算）。
+const SWARM_STAIR_Y_RATIO: float = 0.045
 ## 群れ配置の左右クリップ防止（左=味方帯／右=行動順アイコン列を避ける）。
 const SWARM_X_MIN_RATIO: float = 0.48
 const SWARM_X_MAX_RATIO: float = 0.82
@@ -547,9 +549,6 @@ const SWARM_BAR_HALF_W: float = 26.0
 const SWARM_BAR_HEIGHT: float = 8.0
 const SWARM_NAME_FONT_SIZE: int = 13
 const SWARM_NAME_HEIGHT: float = 20.0
-## 複数敵の名前が重ならないよう、スロットごとに右下へずらす（階段状）。
-const SWARM_NAME_STAIR_X: float = 24.0
-const SWARM_NAME_STAIR_Y: float = 16.0
 const SINGLE_BAR_HALF_W: float = 36.0
 const SINGLE_BAR_HEIGHT: float = 10.0
 const SINGLE_NAME_FONT_SIZE: int = 22
@@ -1758,6 +1757,20 @@ func _swarm_x_ratio_for_slot(slot: int, n: int) -> float:
 		start = SWARM_X_MAX_RATIO - needed
 	return start + float(slot) * spacing
 
+
+## 左上→右下の階段。slot0 が最も高く、右へいくほど下がる。
+func _swarm_y_ratio_for_slot(slot: int, n: int) -> float:
+	var base: float = _enemy_swarm_y_ratio()
+	if n <= 1 or slot <= 0:
+		return base
+	return base + float(slot) * SWARM_STAIR_Y_RATIO
+
+
+func _swarm_combat_position_for_slot(slot: int, n: int) -> Vector2:
+	return _battlefield_combat_position(
+		Vector2(_swarm_x_ratio_for_slot(slot, n), _swarm_y_ratio_for_slot(slot, n))
+	)
+
 func _global_to_root_pos(global_pos: Vector2) -> Vector2:
 	return get_global_transform_with_canvas().affine_inverse() * global_pos
 
@@ -2309,8 +2322,7 @@ func _enemy_overlay_stack_top_y_in_root(sprite: AnimatedSprite2D, enemy_slot: in
 	var bar_ty: float = _enemy_hp_bar_top_y_in_root(sprite)
 	var swarming: bool = $CombatController.swarm_data.size() > 1
 	var name_height: float = SWARM_NAME_HEIGHT if swarming else SINGLE_NAME_HEIGHT
-	var stair_y: float = _swarm_nameplate_stair_offset(enemy_slot).y
-	var name_ty: float = bar_ty - GAP_BAR_NAME - name_height + stair_y
+	var name_ty: float = bar_ty - GAP_BAR_NAME - name_height
 	var stack_top: float = name_ty
 	var is_elite_lead: bool = (
 		enemy_slot == 0
@@ -2320,14 +2332,6 @@ func _enemy_overlay_stack_top_y_in_root(sprite: AnimatedSprite2D, enemy_slot: in
 		stack_top = name_ty - GAP_NAME_BADGE - BADGE_H
 	return stack_top
 
-
-## 群れネームプレートの階段オフセット（slot0=基準、以降は右下へ）。
-func _swarm_nameplate_stair_offset(slot: int) -> Vector2:
-	if slot <= 0:
-		return Vector2.ZERO
-	if $CombatController.swarm_data.size() <= 1:
-		return Vector2.ZERO
-	return Vector2(float(slot) * SWARM_NAME_STAIR_X, float(slot) * SWARM_NAME_STAIR_Y)
 
 func _update_status_icons() -> void:
 	var in_combat: bool = $CombatController.is_in_combat
@@ -6389,14 +6393,11 @@ func _reposition_enemy_sprites() -> void:
 			break
 	if not any_visible:
 		return
-	var y_ratio: float = _enemy_swarm_y_ratio()
 	for i in n:
 		var spr: AnimatedSprite2D = _swarm_sprites[i]
 		if not spr.visible:
 			continue
-		spr.position = _battlefield_combat_position(
-			Vector2(_swarm_x_ratio_for_slot(i, n), y_ratio)
-		)
+		spr.position = _swarm_combat_position_for_slot(i, n)
 	_update_hp_bars()
 
 # 動的生成した 2体目以降のスロットを解放し、スロット配列を空に戻す（slot0 の既存ノードは残す）。
@@ -6477,7 +6478,6 @@ func _show_enemy_swarm(enemy_ids: Array) -> void:
 	_ensure_swarm_slots(n)
 	# 群れは名前が密集するため小さめフォントに、単体は従来サイズ。
 	var name_fs: int = SWARM_NAME_FONT_SIZE if n > 1 else SINGLE_NAME_FONT_SIZE
-	var y_ratio: float = _enemy_swarm_y_ratio()
 	for i in n:
 		_style_enemy_nameplate(_swarm_nameplates[i])
 		_swarm_nameplates[i].add_theme_font_size_override("font_size", name_fs)
@@ -6495,9 +6495,7 @@ func _show_enemy_swarm(enemy_ids: Array) -> void:
 		_normalize_enemy_scale(spr, frames, id)
 		if n > 1:
 			spr.scale *= SWARM_DISPLAY_SCALE
-		spr.position = _battlefield_combat_position(
-			Vector2(_swarm_x_ratio_for_slot(i, n), y_ratio)
-		)
+		spr.position = _swarm_combat_position_for_slot(i, n)
 		spr.play("idle")
 		spr.visible = true
 	for j in range(n, _swarm_sprites.size()):
@@ -6518,11 +6516,10 @@ func _position_swarm_overlay(slot: int) -> void:
 	var name_height: float = SWARM_NAME_HEIGHT if swarming else SINGLE_NAME_HEIGHT
 	const GAP_BAR_NAME: float = 6.0
 	var center: Vector2 = _sprite_center_in_root(sprite)
-	var cx: float = center.x
 	var bar_ty: float = _enemy_hp_bar_top_y_in_root(sprite)
-	bar.offset_left = cx - bar_half_w
+	bar.offset_left = center.x - bar_half_w
 	bar.offset_top = bar_ty
-	bar.offset_right = cx + bar_half_w
+	bar.offset_right = center.x + bar_half_w
 	bar.offset_bottom = bar_ty + bar_height
 	var data: Resource = $CombatController.get_enemy_data_at(slot)
 	if data == null:
@@ -6535,17 +6532,13 @@ func _position_swarm_overlay(slot: int) -> void:
 	var name_fs: int = SWARM_NAME_FONT_SIZE if swarming else SINGLE_NAME_FONT_SIZE
 	np.add_theme_font_size_override("font_size", name_fs)
 	var name_half_w: float = _nameplate_half_width(name_text, name_fs)
-	var stair: Vector2 = _swarm_nameplate_stair_offset(slot)
-	## HPバーはスプライト直上のまま。名前だけ階段状にずらす。
-	cx = clampf(center.x, name_half_w + 12.0, 720.0 - name_half_w - 12.0)
-	bar.offset_left = cx - bar_half_w
-	bar.offset_right = cx + bar_half_w
+	## 名前は各スプライト（階段配置済み）の HP 直上。別オフセットは付けない。
 	var name_cx: float = clampf(
-		center.x + stair.x,
+		center.x,
 		name_half_w + 12.0,
 		720.0 - name_half_w - 12.0
 	)
-	var name_ty: float = bar_ty - GAP_BAR_NAME - name_height + stair.y
+	var name_ty: float = bar_ty - GAP_BAR_NAME - name_height
 	np.offset_left = name_cx - name_half_w
 	np.offset_top = name_ty
 	np.offset_right = name_cx + name_half_w

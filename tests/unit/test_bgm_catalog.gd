@@ -10,6 +10,7 @@ const REQUIRED_IDS: Array[String] = [
 	_BgmCatalog.ID_BATTLE,
 	_BgmCatalog.ID_BOSS,
 	_BgmCatalog.ID_RESULT,
+	_BgmCatalog.ID_RESULT_DEFEAT,
 	_BgmCatalog.ID_INTRODUCTION,
 	_BgmCatalog.ID_FORGE,
 	_BgmCatalog.ID_SURVEY,
@@ -58,6 +59,8 @@ func test_scene_bgm_maps_hub_and_facility() -> void:
 		_BgmCatalog.ID_FORGE
 	)
 	assert_eq(_BgmCatalog.bgm_for_scene("res://scenes/unknown/NoScene.tscn"), "")
+	## 結果画面は勝敗で切替するため SCENE_BGM 非掲載。
+	assert_eq(_BgmCatalog.bgm_for_scene("res://scenes/result/ResultScene.tscn"), "")
 
 
 func test_leaving_gacha_to_equipment_switches_to_hub() -> void:

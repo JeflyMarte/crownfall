@@ -4349,3 +4349,19 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 **SSOT:** `docs/specs/decisions/06_EquipmentDiabloStats.md`
 
 **Closeout（2026-07-24）:** オーナー GO → 統合＋`main`。
+
+## ④ブラックショア追加4体・専用見た目（2026-07-25 — P3-ART-BS-ENM-001）
+> **オーナー GO** — 専用見た目＋表示名変更。内部 id は据置（`black_tide_shark` / `abyssal_squid`）。
+
+既存図鑑メモ・ブラックショア（黒砂／座礁船／潮境／灯台伝承）に合わせ、流用元と一眼で区別できるシルエットを正とする。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-ART-BS-ENM-001-1 | **ドレッドジョー**（旧称・黒潮シャーク／id=`black_tide_shark`）— 細長い黒鮫。体側に**黒砂の渦筋**（金紋なし）。瞳は濁った青白。群れ感。アンダーテイカーと差別化 | オーナー改名＋図鑑 |
+| P3-ART-BS-ENM-001-2 | **ヴォイドテンタクル**（旧称・深海スクイッド／id=`abyssal_squid`）— **虚空の触腕群**（蛸頭巾ではない）。藍黒〜虚紫。濃い潮＋虚ろ霧。旗艦影・単独。ニンジャオクトパスと差別化 | オーナー改名＋図鑑 |
+| P3-ART-BS-ENM-001-3 | **潮灯** — **クラゲ**。傘が青白く生物発光。長い冷気触手。背景に灯台シルエットのみ。ワイバーン流用廃止 | 図鑑: 刺胞・発光 |
+| P3-ART-BS-ENM-001-4 | **アンカーロード** — **ヤドカリ**。殻が**錆びた船錨**（鎖・錨爪）。片側巨大鋏。グレートクロウ流用廃止 | 図鑑: 錨殻 |
+| P3-ART-BS-ENM-001-5 | **納品** — `ART_ENM_DreadJaw` / `VoidTentacle` / `TideLamp` / `AnchorLord` ＋ `ENM_*_Sheet` ＋ tres。IconPaths／DungeonScene 切替 | P3-ENEMY-002-6 差替 |
+| P3-ART-BS-ENM-001-6 | **スコープ外** — ステ／スキル／スポーン率変更なし。id リネームなし | セーブ互換 |
+
+**Closeout:** アート配線後に統合＋`main`。

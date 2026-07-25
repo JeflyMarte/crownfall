@@ -494,8 +494,8 @@ Biome は、その両者が重なり合う場所である。
 | 雑魚 | **スカルタートル（skull_turtle）** | 亀 | V | holy | — | 沈没船の骨に擬態した硬甲の亀 |
 | 雑魚 | **アンダーテイカー（undertaker_shark）** | サメ | V | holy | bleed | 干潟の浅瀬を滑る小型サメ。奇襲 |
 | 雑魚 | **サムライフィッシュ（samurai_fish）** | カジキマグロ | V | holy | mark | 槍のような吻を持つ突進型。標的を仕留める |
-| 雑魚 | **黒潮シャーク（black_tide_shark）** | サメ | V | holy | bleed | 黒砂を巻く潮流に乗る沿岸サメ。群れ |
-| 雑魚 | **深海スクイッド（abyssal_squid）** | 烏賊 | V | holy | mark | 沈没旗艦の影で腕を伸ばす深部烏賊 |
+| 雑魚 | **ドレッドジョー（black_tide_shark）** | サメ | V | holy | bleed | 黒砂を巻く潮流に乗る沿岸サメ。群れ |
+| 雑魚 | **ヴォイドテンタクル（abyssal_squid）** | 頭足類 | V | holy | mark | 沈没旗艦の影で虚空の触腕を伸ばす深部種 |
 | 雑魚 | **潮灯（tide_lamp）** | クラゲ | V | holy | chill | 青白く発光する潮間帯クラゲ。夜の干潟を誘う |
 | Elite | **ニンジャオクトパス（ninja_octopus）** | 蛸 | V | holy | mark | 防波堤の影に潜む頭足類。煙幕のように墨を吐く |
 | Elite | **アンカーロード（anchor_lord）** | ヤドカリ | V | holy | stun | 沈没船の錨を殻にした巨大ヤドカリ |

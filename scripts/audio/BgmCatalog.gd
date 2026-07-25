@@ -11,6 +11,7 @@ const ID_DUNGEON_EXPLORE: String = "dungeon_explore"
 const ID_BATTLE: String = "battle"
 const ID_BOSS: String = "boss"
 const ID_RESULT: String = "result"
+const ID_RESULT_DEFEAT: String = "result_defeat"
 const ID_INTRODUCTION: String = "introduction"
 const ID_FORGE: String = "forge"
 const ID_SURVEY: String = "survey"
@@ -24,6 +25,7 @@ const PATHS: Dictionary = {
 	ID_BATTLE: DIR + "battle.mp3",
 	ID_BOSS: DIR + "boss.mp3",
 	ID_RESULT: DIR + "result.mp3",
+	ID_RESULT_DEFEAT: DIR + "result_defeat.mp3",
 	ID_INTRODUCTION: DIR + "introduction.mp3",
 	ID_FORGE: DIR + "forge.mp3",
 	ID_SURVEY: DIR + "survey.mp3",
@@ -37,6 +39,7 @@ const LOOP_IDS: Dictionary = {
 	ID_BATTLE: true,
 	ID_BOSS: true,
 	ID_RESULT: true,
+	ID_RESULT_DEFEAT: true,
 	ID_INTRODUCTION: true,
 	ID_FORGE: true,
 	ID_SURVEY: true,
@@ -45,6 +48,7 @@ const LOOP_IDS: Dictionary = {
 
 ## シーンパス → BGM ID。未登録は切替なし（呼び出し側の play_bgm に委ねる）。
 ## ガチャ／鍛冶は画面限定。拠点タブ群は hub に戻す（P3-AUDIO-BGM-001 後続）。
+## ResultScene は勝敗で曲が変わるため SCENE_BGM には載せない（ResultScene 側で再生）。
 const SCENE_BGM: Dictionary = {
 	"res://scenes/title/TitleScene.tscn": ID_TITLE,
 	"res://scenes/intro/IntroLoreScene.tscn": ID_INTRODUCTION,
@@ -65,7 +69,6 @@ const SCENE_BGM: Dictionary = {
 	"res://scenes/blacksmith/BlacksmithScene.tscn": ID_FORGE,
 	"res://scenes/survey/SurveyScene.tscn": ID_SURVEY,
 	"res://scenes/dungeon/DungeonScene.tscn": ID_DUNGEON_EXPLORE,
-	"res://scenes/result/ResultScene.tscn": ID_RESULT,
 }
 
 
