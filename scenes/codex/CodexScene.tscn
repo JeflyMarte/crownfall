@@ -176,7 +176,7 @@ text = "ダンジョン"
 custom_minimum_size = Vector2(96, 52)
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "武器"
+text = "装備品"
 
 [node name="ButtonTabHistory" type="Button" parent="MainScroll/MainVBox/TabRow"]
 custom_minimum_size = Vector2(96, 52)

@@ -55,11 +55,17 @@ func test_nina_and_pets_in_character_codex() -> void:
 	for e: Dictionary in CatalogHelper.get_character_entries():
 		by_id[str(e.get("id", ""))] = e
 	assert_true(by_id.has("npc_nina"), "ニーナ")
-	assert_true(bool(by_id["npc_nina"].get("discovered", false)), "ニーナは常時開示")
-	assert_true(str(by_id["npc_nina"].get("description", "")).contains("記録官") or str(by_id["npc_nina"].get("list_label", "")).contains("ニーナ"))
+	assert_true(bool(by_id["npc_nina"].get("discovered", false)), "ニーナは開示")
+	assert_eq(str(by_id["npc_nina"].get("list_label", "")), "ニーナ", "一覧は名前のみ")
+	assert_true(str(by_id["npc_nina"].get("portrait_path", "")).contains("Nina_Dialogue"), "セリフ用アイコン")
+	assert_true(by_id.has("npc_nonoka"), "ノノカ")
+	assert_true(bool(by_id["npc_nonoka"].get("discovered", false)), "ノノカは開示")
+	assert_eq(str(by_id["npc_nonoka"].get("list_label", "")), "ノノカ")
+	assert_true(str(by_id["npc_nonoka"].get("portrait_path", "")).contains("Nonoka"))
 	assert_true(str(by_id["npc_nina"].get("description", "")).contains("出身地"))
 	assert_true(by_id.has("pet_jack"), "ジャック")
 	assert_true(bool(by_id["pet_jack"].get("discovered", false)), "ジャックは貸与済で開示")
+	assert_eq(str(by_id["pet_jack"].get("list_label", "")), str(by_id["pet_jack"].get("display_name", "")))
 	assert_true(str(by_id["pet_jack"].get("description", "")).contains("体高") or str(by_id["pet_jack"].get("description", "")).contains("随伴"))
 	assert_true(by_id.has("pet_ash") and by_id.has("pet_ink"), "色変えオトモも枠あり")
 	if not _PetSystem.owns_pet("pet_ash"):
@@ -77,24 +83,38 @@ func test_hub_npcs_and_legends_in_character_codex() -> void:
 	var by_id: Dictionary = {}
 	for e: Dictionary in CatalogHelper.get_character_entries():
 		by_id[str(e.get("id", ""))] = e
-	for npc_id: String in ["npc_oren", "npc_nina", "npc_galo", "npc_selma", "npc_tobias", "npc_mael"]:
+	## 実装済み NPC は開示。
+	for npc_id: String in ["npc_nina", "npc_nonoka"]:
 		assert_true(by_id.has(npc_id), npc_id)
-		assert_true(bool(by_id[npc_id].get("discovered", false)), "%s 常時開示" % npc_id)
+		assert_true(bool(by_id[npc_id].get("discovered", false)), "%s 開示" % npc_id)
 		assert_false(str(by_id[npc_id].get("description", "")).is_empty(), "%s 本文" % npc_id)
-	assert_true(str(by_id["npc_oren"].get("display_name", "")).contains("オーレン"))
-	assert_true(str(by_id["npc_galo"].get("list_label", "")).contains("鍛冶"))
+	## 未実装拠点NPC／伝承は枠のみ（???）。
+	for npc_id: String in ["npc_oren", "npc_galo", "npc_selma", "npc_tobias", "npc_mael"]:
+		assert_true(by_id.has(npc_id), npc_id)
+		assert_false(bool(by_id[npc_id].get("discovered", true)), "%s は未実装で???" % npc_id)
+		assert_eq(str(by_id[npc_id].get("list_label", "")), "???")
 	assert_eq(_Profiles.LEGEND_KING_ORDER.size(), 9)
 	assert_eq(_Profiles.LEGEND_HERO_ORDER.size(), 9)
 	for kid: String in _Profiles.LEGEND_KING_ORDER:
 		assert_true(by_id.has(kid), kid)
-		assert_true(bool(by_id[kid].get("discovered", false)))
-		assert_false(str(by_id[kid].get("description", "")).is_empty(), "%s 本文" % kid)
-	assert_true(str(by_id["legend_king_orgran"].get("display_name", "")).contains("オルグラン"))
-	assert_true(str(by_id["legend_hero_ilia"].get("display_name", "")).contains("イリア"))
-	assert_true(str(by_id["legend_hero_nameless"].get("display_name", "")).contains("継承"))
+		assert_false(bool(by_id[kid].get("discovered", true)), "%s 伝承未実装" % kid)
 	for hid: String in _Profiles.LEGEND_HERO_ORDER:
 		assert_true(by_id.has(hid), hid)
-		assert_true(bool(by_id[hid].get("discovered", false)))
+		assert_false(bool(by_id[hid].get("discovered", true)), "%s 伝承未実装" % hid)
+
+
+func test_implemented_character_list_label_is_name_only() -> void:
+	GameState.seed_all_starters_unlocked()
+	var ald: Dictionary = {}
+	for e: Dictionary in CatalogHelper.get_character_entries():
+		if str(e.get("id", "")) == "adventurer_0":
+			ald = e
+			break
+	assert_false(ald.is_empty())
+	var label: String = str(ald.get("list_label", ""))
+	assert_eq(label, "アルド")
+	assert_false(label.contains("★"))
+	assert_false(label.contains("ソード"))
 
 
 func test_helper_profiles_filled_when_owned() -> void:

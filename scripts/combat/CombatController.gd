@@ -293,6 +293,9 @@ func add_ultimate_charge(member_index: int, amount: float) -> void:
 		return
 	if not is_member_alive(member_index):
 		return
+	## オトモは必殺対象外（P3-PET-ULT-OMIT-001）。
+	if GameState.is_pet_combatant(member_index):
+		return
 	member_ultimate_charge[member_index] = minf(
 		Constants.ULTIMATE_CHARGE_MAX,
 		float(member_ultimate_charge[member_index]) + amount

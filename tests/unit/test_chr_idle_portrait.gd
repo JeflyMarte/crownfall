@@ -3,6 +3,20 @@ extends GutTest
 const _ChrIdlePortrait = preload("res://scripts/ui/ChrIdlePortrait.gd")
 const _ChrIdlePortraitView = preload("res://scripts/ui/ChrIdlePortraitView.gd")
 
+func test_pet_idle_folder_resolves() -> void:
+	var pet: Resource = Adventurer.new()
+	pet.id = "pet_jack"
+	pet.job_id = ""
+	pet.display_name = "ジャック"
+	assert_eq(_ChrIdlePortrait.folder_id_for_member(pet), "pet_jack")
+	var paths: PackedStringArray = _ChrIdlePortrait.idle_frame_paths("pet_jack")
+	assert_gt(paths.size(), 0, "pet_jack south idle frames")
+	var texs: Array[Texture2D] = _ChrIdlePortrait.load_idle_textures_for_member(pet)
+	assert_gt(texs.size(), 0, "pet member loads UI idle")
+	assert_gt(_ChrIdlePortrait.idle_frame_paths("pet_ash").size(), 0)
+	assert_gt(_ChrIdlePortrait.idle_frame_paths("pet_ink").size(), 0)
+
+
 func test_helper_idle_folder_prefers_helper_id() -> void:
 	# Adventurer stub: gacha helper id resolves to helper_* idle folder.
 	var adv: Resource = Adventurer.new()

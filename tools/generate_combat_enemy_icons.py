@@ -164,8 +164,8 @@ def compose(frame: Image.Image, monster: Image.Image) -> Image.Image:
 	content = fit_monster(monster, box_w, box_h)
 
 	canvas = Image.new("RGBA", frame.size, (0, 0, 0, 0))
-	# 穴内プレートは焼かない（不透明板が行動順で「透過してない」ように見える）。
-	# 可読性は枠＋リフトのみ。CombatUiFrames は baked 時に重ねない。
+	# 穴内プレートは焼かない（旧: 紫板が「不透明の謎板」に見えた）。
+	# 穴の背景塗りは実行時 UI（DungeonScene._make_turn_order_enemy_hole_fill）。
 	cx = (x0 + x1) // 2
 	cy = (y0 + y1) // 2
 	ox = cx - box_w // 2

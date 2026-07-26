@@ -17,13 +17,18 @@ const MILD_HEIGHT_SLACK_PX: int = 2
 
 
 ## Adventurer から Idle フォルダ名を解決（助っ人優先、なければ職）。
+## ペットは `assets/characters/pet_{jack|ash|ink}/idle_*.png`（正面 south）。
 static func folder_id_for_member(member: Resource) -> String:
 	if member == null:
 		return ""
 	var member_id: String = str(member.id)
+	if Constants.is_pet_id(member_id):
+		if FileAccess.file_exists(FRAME_PATH % [member_id, 0]):
+			return member_id
+		return ""
 	if Constants.is_gacha_helper_id(member_id):
 		var helper_id: String = member_id.trim_prefix("gacha_")
-		if not helper_id.is_empty() and ResourceLoader.exists(FRAME_PATH % [helper_id, 0]):
+		if not helper_id.is_empty() and FileAccess.file_exists(FRAME_PATH % [helper_id, 0]):
 			return helper_id
 	return str(member.job_id)
 
@@ -35,7 +40,8 @@ static func idle_frame_paths(folder_id: String) -> PackedStringArray:
 	var i: int = 0
 	while i < 64:
 		var path: String = FRAME_PATH % [folder_id, i]
-		if not ResourceLoader.exists(path):
+		## FileAccess: 未インポートの新規 PNG でも検出できる（ResourceLoader は .ctex 必須）
+		if not FileAccess.file_exists(path):
 			break
 		out.append(path)
 		i += 1
@@ -45,10 +51,22 @@ static func idle_frame_paths(folder_id: String) -> PackedStringArray:
 static func load_idle_textures(folder_id: String) -> Array[Texture2D]:
 	var textures: Array[Texture2D] = []
 	for path in idle_frame_paths(folder_id):
-		var tex: Texture2D = load(path) as Texture2D
+		var tex: Texture2D = _load_idle_texture(path)
 		if tex != null:
 			textures.append(tex)
 	return _prepare_idle_textures(textures)
+
+
+static func _load_idle_texture(path: String) -> Texture2D:
+	## PNG 直読みを優先（未インポートでも ERROR を出さない）。ctex 生成後も同結果。
+	var abs_path: String = ProjectSettings.globalize_path(path)
+	if FileAccess.file_exists(abs_path):
+		var img: Image = Image.load_from_file(abs_path)
+		if img != null and img.get_width() > 0:
+			return ImageTexture.create_from_image(img)
+	if ResourceLoader.exists(path):
+		return load(path) as Texture2D
+	return null
 
 
 static func load_idle_textures_for_member(member: Resource) -> Array[Texture2D]:

@@ -179,8 +179,11 @@ static func make_side_menu_row(entry: Dictionary) -> Control:
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	btn.add_child(row)
 
-	var icon_box := _make_side_icon(str(entry.get("icon_category", "")), str(entry.get("icon_id", "")))
-	row.add_child(icon_box)
+	var icon_cat: String = str(entry.get("icon_category", ""))
+	var icon_id: String = str(entry.get("icon_id", ""))
+	if not icon_cat.is_empty() and not icon_id.is_empty():
+		var icon_box := _make_side_icon(icon_cat, icon_id)
+		row.add_child(icon_box)
 
 	var label := Label.new()
 	label.text = full_title

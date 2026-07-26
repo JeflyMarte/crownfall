@@ -12,15 +12,18 @@ const ENEMY_ART_SIZE: Vector2 = Vector2(256, 256)
 const _CodexRichText = preload("res://scripts/codex/CodexRichText.gd")
 
 ## 実績タブは `Constants.CODEX_ACHIEVE_PLAYABLE` で制御（P3-CODEX-ACHIEVE-OMIT）。
+## ダンジョンタブは `Constants.CODEX_DUNGEON_PLAYABLE` で制御（P3-CODEX-DG-OMIT-001）。
 ## lore（旧「記録」）は worldview（世界観＝WORLD解説＋LF断片）へ統合。character＝人物録。
+## equipment＝武器・防具・装飾の装備品カタログ（旧 weapon）。
 const CATEGORIES_BASE: Array[String] = [
-	"enemy", "dungeon", "weapon", "history", "worldview", "character", "guide",
+	"enemy", "equipment", "history", "worldview", "character", "guide",
 ]
 
 const CATEGORY_DISPLAY: Dictionary = {
 	"enemy": "モンスター",
 	"dungeon": "ダンジョン",
-	"weapon": "武器",
+	"equipment": "装備品",
+	"weapon": "装備品",
 	"history": "歴史",
 	"worldview": "世界観",
 	"character": "キャラ",
@@ -41,6 +44,12 @@ const ELEMENT_EMOJI: Dictionary = {
 
 static func playable_categories() -> Array[String]:
 	var cats: Array[String] = CATEGORIES_BASE.duplicate()
+	if Constants.CODEX_DUNGEON_PLAYABLE:
+		var idx: int = cats.find("equipment")
+		if idx >= 0:
+			cats.insert(idx, "dungeon")
+		else:
+			cats.insert(1, "dungeon")
 	if Constants.CODEX_ACHIEVE_PLAYABLE:
 		cats.append("achieve")
 	return cats
@@ -48,6 +57,7 @@ static func playable_categories() -> Array[String]:
 var _current_category: String = "enemy"
 var _entries: Array = []
 var _selected_index: int = -1
+var _unknown_list_icon: Texture2D
 var _entry_rows: Array = []
 
 @onready var _detail_overlay: Control = $DetailOverlay
@@ -78,7 +88,7 @@ func _ready() -> void:
 	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)
 	$MainScroll/MainVBox/TabRow/ButtonTabEnemy.pressed.connect(func(): _select_category("enemy"))
 	$MainScroll/MainVBox/TabRow/ButtonTabDungeon.pressed.connect(func(): _select_category("dungeon"))
-	$MainScroll/MainVBox/TabRow/ButtonTabWeapon.pressed.connect(func(): _select_category("weapon"))
+	$MainScroll/MainVBox/TabRow/ButtonTabWeapon.pressed.connect(func(): _select_category("equipment"))
 	$MainScroll/MainVBox/TabRow/ButtonTabHistory.pressed.connect(func(): _select_category("history"))
 	$MainScroll/MainVBox/TabRow/ButtonTabWorldview.pressed.connect(func(): _select_category("worldview"))
 	$MainScroll/MainVBox/TabRow/ButtonTabCharacter.pressed.connect(func(): _select_category("character"))
@@ -87,7 +97,12 @@ func _ready() -> void:
 		_ensure_achieve_tab_button()
 	else:
 		_hide_achieve_tab_button()
+	if Constants.CODEX_DUNGEON_PLAYABLE:
+		$MainScroll/MainVBox/TabRow/ButtonTabDungeon.visible = true
+	else:
+		$MainScroll/MainVBox/TabRow/ButtonTabDungeon.visible = false
 	$MainScroll/MainVBox/TabRow/ButtonTabEnemy.text = str(CATEGORY_DISPLAY["enemy"])
+	$MainScroll/MainVBox/TabRow/ButtonTabWeapon.text = str(CATEGORY_DISPLAY["equipment"])
 	$MainScroll/MainVBox/TabRow/ButtonTabWorldview.text = str(CATEGORY_DISPLAY["worldview"])
 	$MainScroll/MainVBox/TabRow/ButtonTabCharacter.text = str(CATEGORY_DISPLAY["character"])
 	$DetailOverlay/Dim.gui_input.connect(_on_detail_dim_input)
@@ -206,8 +221,8 @@ func _fetch_entries(category: String) -> Array:
 			return CatalogHelper.get_enemy_entries()
 		"dungeon":
 			return CatalogHelper.get_dungeon_entries()
-		"weapon":
-			return CatalogHelper.get_weapon_entries()
+		"equipment", "weapon":
+			return CatalogHelper.get_equipment_entries()
 		"history":
 			return CatalogHelper.get_history_entries()
 		"worldview":
@@ -232,13 +247,19 @@ func _update_tab_buttons() -> void:
 	var mapping: Dictionary = {
 		"enemy": $MainScroll/MainVBox/TabRow/ButtonTabEnemy,
 		"dungeon": $MainScroll/MainVBox/TabRow/ButtonTabDungeon,
-		"weapon": $MainScroll/MainVBox/TabRow/ButtonTabWeapon,
+		"equipment": $MainScroll/MainVBox/TabRow/ButtonTabWeapon,
 		"history": $MainScroll/MainVBox/TabRow/ButtonTabHistory,
 		"worldview": $MainScroll/MainVBox/TabRow/ButtonTabWorldview,
 		"character": $MainScroll/MainVBox/TabRow/ButtonTabCharacter,
 		"guide": $MainScroll/MainVBox/TabRow/ButtonTabGuide,
 		"achieve": $MainScroll/MainVBox/TabRow.get_node_or_null("ButtonTabAchieve"),
 	}
+	## 非プレイカテゴリのタブは隠す。
+	for cat_key: String in mapping.keys():
+		var hide_btn: Button = mapping[cat_key] as Button
+		if hide_btn == null:
+			continue
+		hide_btn.visible = playable_categories().has(cat_key)
 	for cat in playable_categories():
 		var btn: Button = mapping.get(cat) as Button
 		if btn == null:
@@ -309,6 +330,8 @@ func _entry_list_name(entry: Dictionary) -> String:
 		return UNKNOWN_DISPLAY
 	if _current_category == "character":
 		return str(entry.get("list_label", entry.get("display_name", UNKNOWN_DISPLAY)))
+	if _current_category == "equipment" or _current_category == "weapon":
+		return str(entry.get("list_label", entry.get("display_name", UNKNOWN_DISPLAY)))
 	if _current_category == "worldview":
 		var prefix: String = str(entry.get("list_prefix", "")).strip_edges()
 		var name: String = str(entry.get("display_name", UNKNOWN_DISPLAY))
@@ -322,15 +345,38 @@ func _entry_list_icon(entry: Dictionary) -> Texture2D:
 		return IconPaths.get_icon_texture("clue", "survey")
 	if _current_category == "enemy" and int(entry.get("stage", 1)) <= 1:
 		return null
+	if _current_category == "character" and not bool(entry.get("discovered", true)):
+		return _get_unknown_list_icon()
 	if _current_category != "enemy" and not bool(entry.get("discovered", true)):
 		return null
 	if _current_category == "character":
 		return _character_texture(entry)
+	if _current_category == "equipment" or _current_category == "weapon":
+		var kind: String = str(entry.get("equip_kind", "weapon"))
+		return IconPaths.get_icon_texture(str(entry.get("id", "")), kind)
 	if _current_category == "worldview":
 		if str(entry.get("section", "")) == "fragment":
 			return IconPaths.get_icon_texture(str(entry.get("id", "")), "lore")
 		return null
 	return IconPaths.get_icon_texture(str(entry.get("id", "")), _current_category)
+
+
+## 未実装／未所持キャラ一覧用の「？」枠（実装済み行と同じアイコン幅）。
+func _get_unknown_list_icon() -> Texture2D:
+	if _unknown_list_icon != null:
+		return _unknown_list_icon
+	const PATH: String = "res://assets/ui/codex/ICO_Codex_Unknown.png"
+	if ResourceLoader.exists(PATH):
+		_unknown_list_icon = load(PATH) as Texture2D
+	elif FileAccess.file_exists(PATH):
+		var img := Image.load_from_file(PATH)
+		if img != null and not img.is_empty():
+			_unknown_list_icon = ImageTexture.create_from_image(img)
+	if _unknown_list_icon == null:
+		var fallback := Image.create(64, 64, false, Image.FORMAT_RGBA8)
+		fallback.fill(Color(0.1, 0.09, 0.12, 0.92))
+		_unknown_list_icon = ImageTexture.create_from_image(fallback)
+	return _unknown_list_icon
 
 
 func _character_texture(entry: Dictionary) -> Texture2D:
@@ -407,6 +453,7 @@ func _show_detail(index: int) -> void:
 			_set_status("未確認", false)
 			_set_detail_body("調査中")
 			_update_icon(null)
+			_reset_art_frame_style()
 			_apply_bible_fields_undiscovered()
 	_detail_overlay.visible = true
 	_detail_scroll.scroll_vertical = 0
@@ -415,6 +462,9 @@ func _show_detail(index: int) -> void:
 func _detail_icon_for_entry(entry: Dictionary) -> Texture2D:
 	if _current_category == "character":
 		return _character_texture(entry)
+	if _current_category == "equipment" or _current_category == "weapon":
+		var kind: String = str(entry.get("equip_kind", "weapon"))
+		return IconPaths.get_icon_texture(str(entry.get("id", "")), kind)
 	if _current_category == "worldview":
 		if str(entry.get("section", "")) == "fragment":
 			return IconPaths.get_icon_texture(str(entry.get("id", "")), "lore")
@@ -445,11 +495,16 @@ func _apply_enemy_stage_fields(entry: Dictionary) -> void:
 		_label_detail_overview_header.visible = true
 		_set_detail_body("調査中")
 		_update_icon(null)
+		_reset_art_frame_style()
 		return
 	_label_detail_id.text = ""
 	_label_detail_name.text = "%s" % str(entry.get("display_name", ""))
 	_set_status("段階%d ｜ %s" % [stage, STAGE_LABELS[stage]], stage >= 3)
 	_update_icon(IconPaths.get_icon_texture(enemy_id, "enemy"), true)
+	## 敵詳細は意図的に金枠（キャラ詳細へ戻すときは `_reset_art_frame_style`）。
+	_art_frame.add_theme_stylebox_override(
+		"panel", _framed_box(COLOR_GOLD, 2, Color(0.05, 0.05, 0.06, 1.0))
+	)
 	_label_detail_overview_header.text = "調査記録:"
 	_label_detail_overview_header.visible = true
 	_set_detail_body("調査中")
@@ -571,6 +626,19 @@ func _apply_bible_fields_discovered(entry: Dictionary) -> void:
 				_label_detail_extra_b.text = "テーマ: %s" % theme
 				_label_detail_extra_b.visible = true
 			_show_related("関連史:", entry.get("related_history", []))
+		"equipment", "weapon":
+			_label_detail_overview_header.text = "装備記録:"
+			_label_detail_overview_header.visible = true
+			var kind_label: String = str(entry.get("equip_kind_label", ""))
+			var rarity_label: String = str(entry.get("rarity_label", ""))
+			if not kind_label.is_empty() or not rarity_label.is_empty():
+				var bits: PackedStringArray = []
+				if not kind_label.is_empty():
+					bits.append(kind_label)
+				if not rarity_label.is_empty():
+					bits.append(rarity_label)
+				_label_detail_extra_a.text = " ｜ ".join(bits)
+				_label_detail_extra_a.visible = true
 		"character":
 			_label_detail_overview_header.text = "人物録:"
 			_label_detail_overview_header.visible = true

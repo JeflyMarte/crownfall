@@ -79,15 +79,6 @@ static func weekday_label(weekday: int) -> String:
 	return str(WEEKDAY_LABEL_JA.get(weekday, "?"))
 
 
-static func open_schedule_label(dungeon_id: String) -> String:
-	if uses_hourly_windows(dungeon_id):
-		return "毎日 0/3/6/9時〜各1時間"
-	var primary: int = primary_weekday(dungeon_id)
-	if primary < 0:
-		return "毎日"
-	return "%s曜・土日" % weekday_label(primary)
-
-
 static func _now_unix_utc() -> int:
 	if debug_unix_override >= 0:
 		return debug_unix_override
@@ -115,7 +106,7 @@ static func current_jst_weekday() -> int:
 static func is_open_today(dungeon_id: String) -> bool:
 	if dungeon_id.is_empty():
 		return false
-	if debug_weekday_override == -2:
+	if _force_open_for_debug():
 		return true
 	if uses_hourly_windows(dungeon_id):
 		## 時間帯イベントは「今日ある」ではなく is_open_now で判定。
@@ -133,11 +124,30 @@ static func is_open_today(dungeon_id: String) -> bool:
 static func is_open_now(dungeon_id: String) -> bool:
 	if dungeon_id.is_empty():
 		return false
-	if debug_weekday_override == -2:
+	if _force_open_for_debug():
 		return true
 	if uses_hourly_windows(dungeon_id):
 		return _is_in_hourly_window(dungeon_id)
 	return is_open_today(dungeon_id)
+
+
+## タイトル「デバッグ」フル所持、またはテスト用 override=-2。
+static func _force_open_for_debug() -> bool:
+	if debug_weekday_override == -2:
+		return true
+	## Autoload。debug_full_unlock 中は曜日／時間帯を無視して常時開放。
+	return GameState != null and GameState.debug_full_unlock
+
+
+static func open_schedule_label(dungeon_id: String) -> String:
+	if _force_open_for_debug():
+		return "デバッグ常時開放"
+	if uses_hourly_windows(dungeon_id):
+		return "毎日 0/3/6/9時〜各1時間"
+	var primary: int = primary_weekday(dungeon_id)
+	if primary < 0:
+		return "毎日"
+	return "%s曜・土日" % weekday_label(primary)
 
 
 static func _is_in_hourly_window(dungeon_id: String) -> bool:

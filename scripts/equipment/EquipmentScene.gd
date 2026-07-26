@@ -2064,13 +2064,16 @@ func _rebuild_skill_tab() -> void:
 func _rebuild_pet_skill_tab(
 	member: Resource, slots_label: RichTextLabel, hint_label: Label, list: Node
 ) -> void:
+	var equipped: Array[String] = GameState.get_equipped_skill_ids(member)
 	var unlocked_ids: Array[String] = SkillProgression.get_unlocked_pet_skill_ids(member)
-	var unlocked_names: PackedStringArray = []
-	for sid in unlocked_ids:
-		unlocked_names.append(_skill_bbcode_name(sid))
-	var shown: String = " / ".join(unlocked_names) if not unlocked_names.is_empty() else "なし"
-	slots_label.text = "[center]習得スキル (%d): %s[/center]" % [unlocked_ids.size(), shown]
-	hint_label.text = "ペットのスキルはレベルで習得（変更不可・長押しで詳細）"
+	var equipped_names: PackedStringArray = []
+	for sid in equipped:
+		equipped_names.append(_skill_bbcode_name(sid))
+	var shown: String = " / ".join(equipped_names) if not equipped_names.is_empty() else "なし"
+	slots_label.text = "[center]装備中スキル (%d/%d): %s[/center]" % [
+		equipped.size(), Constants.MAX_EQUIPPED_SKILLS, shown
+	]
+	hint_label.text = "習得スキル（装備は1本。長押しで詳細／未習得はタップ可）"
 	var pet_data: Resource = PetSystem.get_pet_data(str(member.id))
 	for entry in SkillProgression.get_unlock_entries(pet_data):
 		if not entry is Dictionary:
@@ -2081,7 +2084,10 @@ func _rebuild_pet_skill_tab(
 			continue
 		var req_lv: int = maxi(1, int(entry.get("level", 1)))
 		var unlocked: bool = unlocked_ids.has(sid)
-		list.add_child(_make_pet_skill_list_row(sid, skill_data, member, unlocked, req_lv))
+		var is_equipped: bool = equipped.has(sid)
+		list.add_child(_make_skill_list_row(
+			sid, skill_data, member, unlocked, req_lv, is_equipped
+		))
 
 
 func _make_pet_skill_list_row(
@@ -2091,26 +2097,11 @@ func _make_pet_skill_list_row(
 	unlocked: bool,
 	req_lv: int
 ) -> Control:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 4)
-	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.custom_minimum_size.y = float(SKILL_ROW_ICON_PX)
-	row.add_child(_skill_row_icon(skill_id, member))
-	row.add_child(_make_skill_row_body(skill_id, skill_data, unlocked, req_lv, unlocked))
-	var tag := Label.new()
-	tag.text = "習得" if unlocked else "Lv%d" % req_lv
-	tag.custom_minimum_size.x = PASSIVE_ROW_BTN_W
-	tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	tag.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	UiTypography.apply_caption(tag, COLOR_SUB if unlocked else Color(0.55, 0.55, 0.55))
-	row.add_child(tag)
-	if not unlocked:
-		row.modulate = Color(0.78, 0.78, 0.78, 1.0)
-	var frame := PanelContainer.new()
-	frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	frame.add_theme_stylebox_override("panel", _skill_row_frame_style(unlocked))
-	frame.add_child(row)
-	return frame
+	## 互換: 旧呼び出しは人間と同じ装備行へ。
+	var equipped: Array[String] = GameState.get_equipped_skill_ids(member)
+	return _make_skill_list_row(
+		skill_id, skill_data, member, unlocked, req_lv, equipped.has(skill_id)
+	)
 
 func _make_skill_list_row(
 	skill_id: String,
@@ -2302,9 +2293,7 @@ func _skill_row_action(
 	is_equipped: bool
 ) -> void:
 	# 未習得（習得予定）は短押しでも詳細を開く。長押しは常に詳細。
-	# オトモは装備切替不可のため常に詳細。
-	var member: Resource = _get_view_adventurer()
-	if is_long_press or not unlocked or PetSystem.is_pet_member(member):
+	if is_long_press or not unlocked:
 		_show_skill_detail_overlay(skill_id, unlocked, req_lv, is_equipped)
 	else:
 		_on_skill_toggle_pressed(skill_id)
@@ -2421,6 +2410,8 @@ func _rebuild_ultimate_tab() -> void:
 
 func _get_member_ultimate_skill_data(member: Resource) -> Resource:
 	if member == null:
+		return null
+	if PetSystem.is_pet_member(member):
 		return null
 	var ult_id: String = Constants.DEFAULT_ULTIMATE_SKILL_ID
 	if not str(member.job_id).is_empty():
@@ -3399,7 +3390,7 @@ func _show_skill_detail_overlay(
 	)
 	var weapon_skill: Dictionary = WeaponSkillHelper.get_weapon_skill_display(member)
 	var is_weapon_skill: bool = str(weapon_skill.get("skill_id", "")) == skill_id
-	if is_weapon_skill or PetSystem.is_pet_member(member):
+	if is_weapon_skill:
 		_detail_equip_btn.visible = false
 	else:
 		_detail_equip_btn.text = "解除" if is_equipped else "装備"

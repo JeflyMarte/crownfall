@@ -43,12 +43,14 @@ var _btn_start_short: Button
 var _btn_start_std: Button
 var _btn_auto: Button
 var _btn_change_dungeon: Button
+var _target_drops: HBoxContainer
 var _pending_members: Array[String] = []
 var _target_dungeon_id: String = Constants.MOURNGATE_DUNGEON_ID
 var _tick: float = 0.0
 var _claim_fx_busy: bool = false
 var _start_confirm: ConfirmationDialog
 var _pending_start_preset: String = ""
+var _pick_overlay: Control = null
 
 
 func _ready() -> void:
@@ -89,6 +91,8 @@ func _raise_header_chrome() -> void:
 
 
 func _maybe_show_content_unlock() -> void:
+	if GameState.pending_clear_nina_merit:
+		return
 	const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
 	_ContentUnlockNotice.show_pending_on(self)
 
@@ -412,19 +416,11 @@ func _build_target_card() -> PanelContainer:
 	_label_target_desc = _make_caption("—")
 	_label_target_desc.autowrap_mode = TextServer.AUTOWRAP_OFF
 	mid.add_child(_label_target_desc)
-	var drops := HBoxContainer.new()
-	drops.add_theme_constant_override("separation", 6)
-	drops.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	for tex: Texture2D in _target_reward_textures():
-		var icon := TextureRect.new()
-		icon.custom_minimum_size = Vector2(REWARD_ICON_PX, REWARD_ICON_PX)
-		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.texture = tex
-		drops.add_child(icon)
-	mid.add_child(drops)
+	_target_drops = HBoxContainer.new()
+	_target_drops.add_theme_constant_override("separation", 6)
+	_target_drops.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_rebuild_target_drops()
+	mid.add_child(_target_drops)
 	row.add_child(mid)
 
 	var right := VBoxContainer.new()
@@ -453,6 +449,84 @@ func _build_target_card() -> PanelContainer:
 
 	target_panel.add_child(row)
 	return target_panel
+
+
+func _rebuild_target_drops() -> void:
+	if _target_drops == null:
+		return
+	for c in _target_drops.get_children():
+		c.queue_free()
+	## サイクル受取の基本予想（石／素材／魔晶石／武器）
+	for tex: Texture2D in _target_reward_textures():
+		_target_drops.add_child(_make_reward_texture_icon(tex))
+	## 完全調査（100%）景品プレビュー（P3-SURVEY-COMPLETE-001）
+	const _SurveyCompleteRewards := preload("res://scripts/survey/SurveyCompleteRewards.gd")
+	var did: String = _selected_dungeon_id()
+	for entry in _SurveyCompleteRewards.preview_entries(did):
+		_target_drops.add_child(_make_complete_reward_icon(entry))
+
+
+func _make_complete_reward_icon(entry: Dictionary) -> Control:
+	var kind: String = str(entry.get("kind", ""))
+	var host := Control.new()
+	host.custom_minimum_size = Vector2(REWARD_ICON_PX, REWARD_ICON_PX)
+	host.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	host.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var chance: String = str(entry.get("chance_note", ""))
+	match kind:
+		"pet":
+			var pet_id: String = str(entry.get("id", ""))
+			var idle_tex: Texture2D = ChrIdlePortrait.get_idle_texture(pet_id)
+			if idle_tex == null:
+				idle_tex = IconPaths.get_icon_texture(pet_id, "chr")
+			if idle_tex != null:
+				var portrait := ChrIdlePortraitView.new()
+				portrait.set_portrait_size(REWARD_ICON_PX)
+				portrait.set_static_texture(idle_tex)
+				portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				host.add_child(portrait)
+			else:
+				host.add_child(_make_reward_texture_icon(null))
+		"ticket":
+			var tid: String = str(entry.get("id", ""))
+			var ttex: Texture2D = IconPaths.get_icon_texture(tid, "ticket")
+			host.add_child(_make_reward_texture_icon(ttex))
+		"material":
+			var mid: String = str(entry.get("id", ""))
+			var mtex: Texture2D = IconPaths.get_icon_texture(mid, "material")
+			host.add_child(_make_reward_texture_icon(mtex))
+		"gold":
+			const GOLD_COIN_PATH: String = "res://assets/ui/batch2/ICO_Gold.png"
+			var gtex: Texture2D = null
+			if ResourceLoader.exists(GOLD_COIN_PATH):
+				gtex = load(GOLD_COIN_PATH) as Texture2D
+			host.add_child(_make_reward_texture_icon(gtex))
+		"token":
+			host.add_child(_make_reward_texture_icon(_CurrencyHelper.get_icon_texture()))
+		_:
+			pass
+	if not chance.is_empty():
+		var badge := Label.new()
+		badge.text = chance
+		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		badge.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+		badge.offset_left = -28.0
+		badge.offset_top = -12.0
+		UiTypography.apply_caption(badge, UiTypography.COLOR_GOLD)
+		host.add_child(badge)
+	return host
+
+
+func _make_reward_texture_icon(tex: Texture2D) -> TextureRect:
+	var icon := TextureRect.new()
+	icon.custom_minimum_size = Vector2(REWARD_ICON_PX, REWARD_ICON_PX)
+	icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.texture = tex
+	return icon
 
 
 func _target_reward_textures() -> Array[Texture2D]:
@@ -579,9 +653,28 @@ func _on_change_dungeon() -> void:
 	var ids: Array[String] = _unlocked_main_dungeon_ids()
 	if ids.size() <= 1:
 		return
-	var idx: int = ids.find(_target_dungeon_id)
-	_target_dungeon_id = ids[(idx + 1) % ids.size()]
-	_refresh()
+	var rows: Array[Dictionary] = []
+	var cur: String = _selected_dungeon_id()
+	for did in ids:
+		var data: Resource = DataRegistry.get_dungeon_data(did)
+		var name_str: String = did
+		if data != null and "display_name" in data and str(data.display_name) != "":
+			name_str = str(data.display_name)
+		var pct: float = _SurveySystem.get_survey_percent(did)
+		rows.append({
+			"id": did,
+			"title": name_str,
+			"subtitle": "調査進捗 %.0f%%" % pct,
+			"texture": _dungeon_icon_texture(did),
+			"selected": did == cur,
+			"disabled": false,
+		})
+	_open_pick_list("調査対象を選択", rows, func(picked_id: String) -> void:
+		if picked_id.is_empty() or picked_id == _target_dungeon_id:
+			return
+		_target_dungeon_id = picked_id
+		_refresh()
+	)
 
 
 func _refresh() -> void:
@@ -598,6 +691,7 @@ func _refresh() -> void:
 	var pct: float = _SurveySystem.get_survey_percent(did)
 	_label_survey_pct.text = "%.0f%%" % pct
 	_target_pct_bar.value = pct
+	_rebuild_target_drops()
 	var bonus: float = _SurveySystem.total_speed_bonus(_pending_as_entries())
 	_label_bonus.text = "合計ボーナス +%.0f%%" % (bonus * 100.0)
 	var unlocked_n: int = _unlocked_main_dungeon_ids().size()
@@ -647,7 +741,7 @@ func _pending_as_entries() -> Array:
 	var out: Array = []
 	var i: int = 0
 	for mid in _pending_members:
-		var role: String = _SurveyConfig.ROLE_IDS[mini(i, _SurveyConfig.ROLE_IDS.size() - 1)]
+		var role: String = _SurveySystem.role_for_assignee(mid, i)
 		out.append({"member_id": mid, "role_id": role})
 		i += 1
 	return out
@@ -750,7 +844,21 @@ func _build_assignee_card(slot: int, member_id: String, locked: bool, cycle_acti
 	var adv: Resource = null
 	if not member_id.is_empty():
 		adv = GameState.find_roster_member_by_id(member_id)
-	if adv == null:
+	if member_id.is_empty():
+		name_l.text = "空き"
+		stars_l.text = "—"
+		speed_l.text = "速度 —"
+	elif _SurveySystem.is_survey_staff(member_id):
+		var tex: Texture2D = _SurveySystem.investigator_portrait_texture(member_id)
+		if tex != null:
+			icon.texture = tex
+			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		name_l.text = _SurveySystem.investigator_display_name(member_id)
+		stars_l.text = "調査室"
+		var role: String = _SurveySystem.role_for_assignee(member_id, slot)
+		var bonus: float = _SurveySystem.investigator_speed_bonus(member_id, role)
+		speed_l.text = "+%.0f%%" % (bonus * 100.0)
+	elif adv == null:
 		name_l.text = "空き"
 		stars_l.text = "—"
 		speed_l.text = "速度 —"
@@ -761,7 +869,7 @@ func _build_assignee_card(slot: int, member_id: String, locked: bool, cycle_acti
 		name_l.text = str(adv.display_name)
 		var rarity: int = int(adv.rarity) if "rarity" in adv else 1
 		stars_l.text = _RosterUiHelper.stars_text(rarity)
-		var role: String = _SurveyConfig.ROLE_IDS[mini(slot, _SurveyConfig.ROLE_IDS.size() - 1)]
+		var role: String = _SurveySystem.role_for_assignee(member_id, slot)
 		var bonus: float = _SurveySystem.investigator_speed_bonus(member_id, role)
 		speed_l.text = "+%.0f%%" % (bonus * 100.0)
 
@@ -771,37 +879,55 @@ func _build_assignee_card(slot: int, member_id: String, locked: bool, cycle_acti
 	btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	btn.custom_minimum_size = Vector2(0, 36.0)
 	var slot_i: int = slot
-	btn.pressed.connect(func(): _cycle_member_at(slot_i))
+	btn.pressed.connect(func(): _open_member_pick_list(slot_i))
 	vb.add_child(btn)
 	card.add_child(vb)
 	return card
 
 
-func _cycle_member_at(slot: int) -> void:
-	var roster_ids: Array[String] = []
-	for adv in GameState.roster:
-		if adv != null and not str(adv.id).is_empty():
-			roster_ids.append(str(adv.id))
+func _open_member_pick_list(slot: int) -> void:
+	if _SurveySystem.has_active_cycle():
+		return
+	var roster_ids: Array[String] = _SurveySystem.investigator_candidate_ids()
 	if roster_ids.is_empty():
 		return
 	while _pending_members.size() <= slot:
 		_pending_members.append("")
 	var cur: String = _pending_members[slot]
-	var idx: int = roster_ids.find(cur)
-	var next_i: int = (idx + 1) % roster_ids.size()
-	## 重複回避
-	for _k in range(roster_ids.size()):
-		var cand: String = roster_ids[next_i]
-		var used: bool = false
-		for j in range(_pending_members.size()):
-			if j != slot and _pending_members[j] == cand:
-				used = true
-				break
-		if not used:
-			_pending_members[slot] = cand
-			break
-		next_i = (next_i + 1) % roster_ids.size()
-	_refresh()
+	var used_elsewhere: Dictionary = {}
+	for j in range(_pending_members.size()):
+		if j == slot:
+			continue
+		var mid: String = str(_pending_members[j])
+		if not mid.is_empty():
+			used_elsewhere[mid] = true
+	var rows: Array[Dictionary] = []
+	for cand in roster_ids:
+		var used: bool = used_elsewhere.has(cand)
+		var title: String = _SurveySystem.investigator_display_name(cand)
+		var role: String = _SurveySystem.role_for_assignee(cand, slot)
+		var bonus: float = _SurveySystem.investigator_speed_bonus(cand, role)
+		var subtitle: String = "+%.0f%%" % (bonus * 100.0)
+		if _SurveySystem.is_survey_staff(cand):
+			subtitle = "調査室  " + subtitle
+		elif used:
+			subtitle = "他スロット配置中"
+		rows.append({
+			"id": cand,
+			"title": title,
+			"subtitle": subtitle,
+			"texture": _SurveySystem.investigator_portrait_texture(cand),
+			"selected": cand == cur,
+			"disabled": used,
+		})
+	_open_pick_list("調査員を選択", rows, func(picked_id: String) -> void:
+		if picked_id.is_empty():
+			return
+		if used_elsewhere.has(picked_id):
+			return
+		_pending_members[slot] = picked_id
+		_refresh()
+	)
 
 
 func _on_auto_assign() -> void:
@@ -809,6 +935,116 @@ func _on_auto_assign() -> void:
 		return
 	_pending_members = _SurveySystem.auto_assign_members()
 	_refresh()
+
+
+## 一覧選択オーバーレイ（ダンジョン／調査員共通）。
+func _open_pick_list(title: String, rows: Array[Dictionary], on_pick: Callable) -> void:
+	_close_pick_list()
+	var overlay := Control.new()
+	overlay.name = "SurveyPickOverlay"
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	overlay.z_as_relative = false
+	overlay.z_index = 80
+	var dim := ColorRect.new()
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0.02, 0.02, 0.06, 0.72)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	dim.gui_input.connect(func(ev: InputEvent) -> void:
+		if ev is InputEventMouseButton and ev.pressed:
+			_close_pick_list()
+	)
+	overlay.add_child(dim)
+
+	var margin := MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 36)
+	margin.add_theme_constant_override("margin_right", 36)
+	margin.add_theme_constant_override("margin_top", 120)
+	margin.add_theme_constant_override("margin_bottom", 140)
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(margin)
+
+	var panel := _card_panel()
+	panel.clip_contents = true
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	margin.add_child(panel)
+
+	var root_vb := VBoxContainer.new()
+	root_vb.add_theme_constant_override("separation", 12)
+	root_vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root_vb.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	panel.add_child(root_vb)
+
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 8)
+	var title_l := Label.new()
+	title_l.text = title
+	title_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_display(title_l, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
+	head.add_child(title_l)
+	var close_btn := Button.new()
+	close_btn.text = "閉じる"
+	close_btn.pressed.connect(_close_pick_list)
+	head.add_child(close_btn)
+	root_vb.add_child(head)
+
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	root_vb.add_child(scroll)
+
+	var list := VBoxContainer.new()
+	list.add_theme_constant_override("separation", 8)
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(list)
+
+	for row in rows:
+		list.add_child(_build_pick_row(row, on_pick))
+
+	add_child(overlay)
+	move_child(overlay, get_child_count() - 1)
+	_pick_overlay = overlay
+	ScrollTouchHelper.enable(scroll)
+
+
+func _build_pick_row(row: Dictionary, on_pick: Callable) -> Button:
+	var btn := Button.new()
+	btn.disabled = bool(row.get("disabled", false))
+	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	btn.custom_minimum_size = Vector2(0, 72)
+	btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	btn.clip_text = false
+	btn.autowrap_mode = TextServer.AUTOWRAP_OFF
+	var title: String = str(row.get("title", ""))
+	var subtitle: String = str(row.get("subtitle", ""))
+	var selected: bool = bool(row.get("selected", false))
+	var mark: String = "  〔選択中〕" if selected else ""
+	btn.text = "%s%s\n%s" % [title, mark, subtitle]
+	var tex: Variant = row.get("texture", null)
+	if tex is Texture2D:
+		btn.icon = tex as Texture2D
+		btn.expand_icon = false
+		btn.add_theme_constant_override("icon_max_width", 48)
+	if selected:
+		btn.add_theme_color_override("font_color", UiTypography.COLOR_GOLD)
+		btn.add_theme_color_override("font_hover_color", UiTypography.COLOR_GOLD)
+	var picked_id: String = str(row.get("id", ""))
+	btn.pressed.connect(func() -> void:
+		_close_pick_list()
+		if on_pick.is_valid():
+			on_pick.call(picked_id)
+	)
+	return btn
+
+
+func _close_pick_list() -> void:
+	if _pick_overlay != null and is_instance_valid(_pick_overlay):
+		_pick_overlay.queue_free()
+	_pick_overlay = null
 
 
 func _setup_start_confirm() -> void:

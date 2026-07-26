@@ -54,7 +54,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | GachaScene | `scenes/gacha/GachaScene.tscn` | `scripts/gacha/GachaScene.gd`（**P3-UI-GACHA** モック chrome・Reveal・DetailOverlay） |
 | EventScene | `scenes/event/EventScene.tscn` | `scripts/event/EventScene.gd`（**P3-EVT-FIELD-001** ギルド情報誌／いまの野外詳細） |
 | ShowcaseScene | `scenes/showcase/ShowcaseScene.tscn` | `scripts/showcase/ShowcaseScene.gd`（**P3-SHOWCASE-001** 展示室・自慢キャラ） |
-| SurveyScene | `scenes/survey/SurveyScene.tscn` | `scripts/survey/SurveyScene.gd`（**P3-HUB-SURVEY-001** 調査室） |
+| SurveyScene | `scenes/survey/SurveyScene.tscn` | `scripts/survey/SurveyScene.gd`（**P3-HUB-SURVEY-001** 調査室。スタッフ＝`SurveyStaff` P3-SURVEY-STAFF-001） |
 | CommanderScene | `scenes/commander/CommanderScene.tscn` | `scripts/commander/CommanderScene.gd`（**P3-CMD-001** 隊長台帳・C級解放）・**P3-CMD-RANKUP-001** `CommanderRankUpOverlay`（拠点ランクアップ祝辞） |
 | SettingsScene | `scenes/settings/SettingsScene.tscn` | `scripts/settings/SettingsScene.gd`（設定 MVP・`SettingsPrefs`・特典コード P3-UX-REDEEM-001） |
 
@@ -133,7 +133,10 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `equipment/` | `EquipmentController.gd`, `EquipmentScene.gd`, **`EquipmentUiHelper.gd`**（P3-UI2-019）, **`EquipmentUiTokens.gd`**（装備 chrome）, **`BuildTagHelper.gd`**（P3-UI2-016）, **`EquipmentRandomMods.gd`**（P3-EQ-DIABLO-001）, **`AffixRoller.gd`**（レガシー）, **`AffixStatCalculator.gd`**, **`AffixDisplayFormatter.gd`**, **`JobStatCalculator.gd`** |
 | `blacksmith/` | `BlacksmithScene.gd`（生産／炉研ぎ／**錬成**／分解 — **P3-FORGE-ALCHEMY-001**）・`BlacksmithUiHelper.gd`・**`ForgeUiTokens.gd`** |
 | `gacha/` | **`GachaSystem.gd`**・**`GachaRarityConfig.gd`**・**`GachaLimitBreak.gd`**（**P3-GACHA-LIMIT-001**）・**`GachaRevealPresenter.gd`**（**P3-GACHA-REVEAL-001**）・**`GachaScene.gd`**（P3-UI2-020・**P3-GACHA-002/003**・**P3-UI-GACHA**・**P3-GACHA-FEATURE-IDLE-001** Featured idle）・**`GachaUiTokens.gd`**・**`GachaUiHelper.gd`** |
-| `pets/` | **`PetSystem.gd`**・**`PetData.gd`**（**P3-PET-OTOMO-001** 随伴オトモ・ジャック／**P3-PET-VARIANT-001** アッシュ・インク色変え・所持切替） |
+| `pets/` | **`PetSystem.gd`**・**`PetData.gd`**（ジャック／色変え・**P3-PET-SURVEY-UNLOCK-001** WW/BS調査100%解放） |
+| `survey/` | **`SurveySystem`**／**`SurveyScene`**／**`SurveyCompleteRewards`**（完全調査100%一回限り景品・P3-SURVEY-COMPLETE-001） |
+| `tickets/` | **`TicketIds`**／**`TicketInventory`**／**`TicketSystem`**（無料ガチャ・LB★2/3/4） |
+
 | `equipment/MythicLoot.gd` | 神話ドロップ SSOT（**P3-EQ-MYTHIC-001**） |
 | `guild/` | **`GuildScene.gd`**（P3-D052 ジョブ認定・**P3-UI2-024** 認定カードリスト polish） |
 | `crafting/` | **`CraftHelper.gd`**（`can_craft` / `get_craftable_recipes` — P3-D141） |

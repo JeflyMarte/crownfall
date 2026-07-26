@@ -4,9 +4,61 @@ extends RefCounted
 ## P3-HUB-SURVEY-001 — SURVEY／派遣サイクル／実績のロジック。
 
 const _SurveyConfig := preload("res://scripts/survey/SurveyConfig.gd")
+const _SurveyStaff := preload("res://scripts/survey/SurveyStaff.gd")
 const _WeaponStatResolver := preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _EquipmentEnhancer := preload("res://scripts/equipment/EquipmentEnhancer.gd")
 const _RosterUiHelper := preload("res://scripts/roster/RosterUiHelper.gd")
+
+
+static func is_survey_staff(member_id: String) -> bool:
+	return _SurveyStaff.is_staff_id(member_id)
+
+
+static func can_assign_investigator(member_id: String) -> bool:
+	if member_id.is_empty():
+		return false
+	if is_survey_staff(member_id):
+		return true
+	return GameState.find_roster_member_by_id(member_id) != null
+
+
+static func investigator_candidate_ids() -> Array[String]:
+	## スタッフ先頭＋戦闘ロスター（調査室候補リスト）。
+	var out: Array[String] = []
+	for sid: String in _SurveyStaff.all_ids():
+		out.append(sid)
+	for adv in GameState.roster:
+		if adv == null:
+			continue
+		var mid: String = str(adv.id)
+		if mid.is_empty() or out.has(mid):
+			continue
+		out.append(mid)
+	return out
+
+
+static func investigator_display_name(member_id: String) -> String:
+	if is_survey_staff(member_id):
+		return _SurveyStaff.display_name(member_id)
+	var adv: Resource = GameState.find_roster_member_by_id(member_id)
+	if adv != null:
+		return str(adv.display_name)
+	return member_id
+
+
+static func investigator_portrait_texture(member_id: String) -> Texture2D:
+	if is_survey_staff(member_id):
+		return _SurveyStaff.load_icon_texture(member_id)
+	var adv: Resource = GameState.find_roster_member_by_id(member_id)
+	if adv != null:
+		return _RosterUiHelper.get_member_portrait_texture(adv)
+	return null
+
+
+static func role_for_assignee(member_id: String, slot_index: int) -> String:
+	if is_survey_staff(member_id):
+		return _SurveyStaff.preferred_role(member_id)
+	return _SurveyConfig.ROLE_IDS[mini(slot_index, _SurveyConfig.ROLE_IDS.size() - 1)]
 
 
 static func get_survey_percent(dungeon_id: String) -> float:
@@ -30,6 +82,15 @@ static func add_survey_percent(dungeon_id: String, amount: float, from_room: boo
 	var cur: float = get_survey_percent(dungeon_id)
 	var nxt: float = clampf(cur + amount, 0.0, _SurveyConfig.SURVEY_COMPLETE_PERCENT)
 	GameState.hub_survey_progress[dungeon_id] = nxt
+	## 完全調査（100%）で色変えオトモ解放（P3-PET-SURVEY-UNLOCK-001）
+	const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
+	_PetSystem.sync_unlocks_from_survey_progress(true)
+	## 完全調査一回限り景品（P3-SURVEY-COMPLETE-001）
+	const _SurveyCompleteRewards := preload("res://scripts/survey/SurveyCompleteRewards.gd")
+	if nxt + 0.001 >= _SurveyConfig.SURVEY_COMPLETE_PERCENT and cur + 0.001 < _SurveyConfig.SURVEY_COMPLETE_PERCENT:
+		_SurveyCompleteRewards.try_claim(dungeon_id, true)
+	elif nxt + 0.001 >= _SurveyConfig.SURVEY_COMPLETE_PERCENT:
+		_SurveyCompleteRewards.try_claim(dungeon_id, false)
 	_ContentUnlockNotice.queue_newly_unlocked(unlock_before)
 	return nxt
 
@@ -93,6 +154,13 @@ static func investigator_combat_power(member_id: String) -> int:
 
 
 static func investigator_speed_bonus(member_id: String, role_id: String) -> float:
+	## 調査スタッフは研究力固定（P3-SURVEY-STAFF-001）。戦闘員は装備込みステ比例。
+	if is_survey_staff(member_id):
+		var staff_base: float = _SurveyStaff.STAFF_SPEED_BASE
+		if not role_id.is_empty():
+			staff_base += _SurveyConfig.SPEED_BONUS_ROLE
+		var staff_cap: float = _SurveyConfig.SPEED_BONUS_MAX + _SurveyConfig.SPEED_BONUS_ROLE
+		return clampf(staff_base, _SurveyConfig.SPEED_BONUS_MIN, staff_cap)
 	var power: float = float(investigator_combat_power(member_id))
 	if power <= 0.0:
 		return 0.0
@@ -114,13 +182,16 @@ static func total_speed_bonus(assignees: Array) -> float:
 	for entry in assignees:
 		if entry == null:
 			continue
-		var mid: String = str(entry) if entry is String else str(entry.get("member_id", ""))
-		var role: String = _SurveyConfig.ROLE_IDS[mini(i, _SurveyConfig.ROLE_IDS.size() - 1)]
-		if entry is Dictionary:
+		var mid: String = ""
+		if entry is String:
+			mid = str(entry)
+		elif entry is Dictionary:
 			mid = str(entry.get("member_id", ""))
-			role = str(entry.get("role_id", role))
 		if mid.is_empty():
 			continue
+		var role: String = role_for_assignee(mid, i)
+		if entry is Dictionary and not str(entry.get("role_id", "")).is_empty():
+			role = str(entry.get("role_id", role))
 		total += investigator_speed_bonus(mid, role)
 		i += 1
 	return clampf(total, 0.0, _SurveyConfig.MAX_SPEED_BONUS)
@@ -189,9 +260,9 @@ static func start_cycle(dungeon_id: String, preset: String, member_ids: Array[St
 	for mid in member_ids:
 		if mid.is_empty():
 			continue
-		if GameState.find_roster_member_by_id(mid) == null:
+		if not can_assign_investigator(mid):
 			continue
-		var role: String = _SurveyConfig.ROLE_IDS[mini(i, _SurveyConfig.ROLE_IDS.size() - 1)]
+		var role: String = role_for_assignee(mid, i)
 		assignees.append({"member_id": mid, "role_id": role})
 		i += 1
 		if assignees.size() >= _SurveyConfig.INVESTIGATOR_SLOTS:
@@ -206,13 +277,18 @@ static func start_cycle(dungeon_id: String, preset: String, member_ids: Array[St
 		"speed_bonus": speed,
 		"assignees": assignees,
 	}
-	## 派遣中メンバーを編成から外す
+	## 派遣中の戦闘メンバーのみ編成から外す（調査スタッフはロスター外のため無影響）。
 	_remove_dispatched_from_party()
 	return {"ok": true}
 
 
 static func _remove_dispatched_from_party() -> void:
-	var ids: Array[String] = dispatched_member_ids()
+	var ids: Array[String] = []
+	for mid: String in dispatched_member_ids():
+		## 調査スタッフは編成対象外。
+		if is_survey_staff(mid):
+			continue
+		ids.append(mid)
 	if ids.is_empty():
 		return
 	var kept: Array = []
@@ -233,23 +309,33 @@ static func _remove_dispatched_from_party() -> void:
 
 
 static func auto_assign_members() -> Array[String]:
-	## 総合戦闘力の高い順に埋める（調査速度＝ステ比例と整合）。
+	## スタッフ優先1人＋戦闘力上位で残りを埋める（P3-SURVEY-STAFF-001）。
+	var ids: Array[String] = []
+	for sid: String in _SurveyStaff.AUTO_PRIORITY:
+		if can_assign_investigator(sid):
+			ids.append(sid)
+			break
 	var scored: Array[Dictionary] = []
 	for adv in GameState.roster:
 		if adv == null:
 			continue
 		var mid: String = str(adv.id)
-		if mid.is_empty():
+		if mid.is_empty() or ids.has(mid):
 			continue
 		scored.append({"id": mid, "power": investigator_combat_power(mid)})
 	scored.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		return int(a.get("power", 0)) > int(b.get("power", 0))
 	)
-	var ids: Array[String] = []
 	for row: Dictionary in scored:
 		ids.append(str(row.get("id", "")))
 		if ids.size() >= _SurveyConfig.INVESTIGATOR_SLOTS:
 			break
+	## ロスターが空でもスタッフのみで開始可能にする。
+	if ids.is_empty():
+		for sid: String in _SurveyStaff.all_ids():
+			ids.append(sid)
+			if ids.size() >= _SurveyConfig.INVESTIGATOR_SLOTS:
+				break
 	return ids
 
 
@@ -348,11 +434,14 @@ static func _grant_weapon(weapon_id: String) -> void:
 static func enemy_codex_fill_percent() -> float:
 	var total: int = 0
 	var filled: int = 0
+	var playable: Dictionary = CatalogHelper.playable_enemy_id_set()
 	for data in DataRegistry.get_all_enemy_data():
 		if data == null:
 			continue
-		total += 1
 		var eid: String = str(data.id)
+		if not playable.has(eid):
+			continue
+		total += 1
 		if GameState.get_enemy_stage(eid) >= 5:
 			filled += 1
 	if total <= 0:

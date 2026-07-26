@@ -205,7 +205,10 @@ static func _stack_hub_bottom_panels(hub: Control) -> void:
 	if hub == null:
 		return
 	var daily: Control = hub.get_node_or_null("DailyMissionPanel") as Control
+	## CurrencyStrip（所持金〜発見）は撤去。日課を下端へ直接スタックする。
 	var strip: Control = hub.get_node_or_null("CurrencyStrip") as Control
+	if strip != null:
+		strip.visible = false
 	if daily != null:
 		daily.anchor_left = 0.0
 		daily.anchor_right = 1.0
@@ -215,15 +218,6 @@ static func _stack_hub_bottom_panels(hub: Control) -> void:
 		daily.offset_right = -CONTENT_MARGIN_H
 		daily.offset_top = -(HUB_DAILY_H + HUB_STACK_GAP)
 		daily.offset_bottom = -HUB_STACK_GAP
-	if strip != null:
-		strip.anchor_left = 0.0
-		strip.anchor_right = 1.0
-		strip.anchor_top = 1.0
-		strip.anchor_bottom = 1.0
-		strip.offset_left = CONTENT_MARGIN_H
-		strip.offset_right = -CONTENT_MARGIN_H
-		strip.offset_top = -(HUB_DAILY_H + HUB_STACK_GAP * 2.0 + HUB_STRIP_H)
-		strip.offset_bottom = -(HUB_DAILY_H + HUB_STACK_GAP * 2.0)
 
 
 static func _design_height(ctrl: Control, fallback: float) -> float:

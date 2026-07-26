@@ -41,6 +41,35 @@ static func get_enemy_entries() -> Array:
 	var helper: RefCounted = load("res://scripts/codex/CatalogHelper.gd").new()
 	return helper._build_enemy_entries()
 
+
+## プレイ可能なダンジョン（main / event / abyss 等）のプールに載る敵 ID。
+## 寄り道・征討オミット（SUB_DUNGEONS_PLAYABLE=false）やプール外の未実装敵は図鑑・達成率から除外。
+static func playable_enemy_id_set() -> Dictionary:
+	var ids: Dictionary = {}
+	for data in DataRegistry.get_all_dungeon_data():
+		if data == null:
+			continue
+		if not Constants.is_playable_dungeon_route(str(data.route_type)):
+			continue
+		for eid in data.enemy_pool:
+			var s: String = str(eid)
+			if not s.is_empty():
+				ids[s] = true
+		for eid in data.elite_pool:
+			var s2: String = str(eid)
+			if not s2.is_empty():
+				ids[s2] = true
+		var boss: String = str(data.boss_id)
+		if not boss.is_empty():
+			ids[boss] = true
+	return ids
+
+
+static func is_playable_codex_enemy(enemy_id: String) -> bool:
+	if enemy_id.is_empty():
+		return false
+	return playable_enemy_id_set().has(enemy_id)
+
 static func get_dungeon_entries() -> Array:
 	var helper: RefCounted = load("res://scripts/codex/CatalogHelper.gd").new()
 	return helper._build_dungeon_entries()
@@ -50,8 +79,14 @@ static func get_material_entries() -> Array:
 	return helper._build_material_entries()
 
 static func get_weapon_entries() -> Array:
+	## 互換: 旧「武器」呼び出しは装備品カタログへ。
+	return get_equipment_entries()
+
+
+## 武器・防具・装飾を横断した装備品カタログ（常時開示・説明付き）。
+static func get_equipment_entries() -> Array:
 	var helper: RefCounted = load("res://scripts/codex/CatalogHelper.gd").new()
-	return helper._build_weapon_entries()
+	return helper._build_equipment_entries()
 
 static func get_history_entries() -> Array:
 	var helper: RefCounted = load("res://scripts/codex/CatalogHelper.gd").new()
@@ -111,8 +146,11 @@ static func _registry_has(category: String, entry_id: String) -> bool:
 
 func _build_enemy_entries() -> Array:
 	var entries: Array = []
+	var playable: Dictionary = playable_enemy_id_set()
 	for data in DataRegistry.get_all_enemy_data():
 		if data == null or data.id.is_empty():
+			continue
+		if not playable.has(str(data.id)):
 			continue
 		var stage: int = GameState.get_enemy_stage(data.id)
 		entries.append({
@@ -170,19 +208,73 @@ func _build_material_entries() -> Array:
 	return entries
 
 func _build_weapon_entries() -> Array:
+	## 互換エイリアス。
+	return _build_equipment_entries()
+
+
+func _build_equipment_entries() -> Array:
 	var entries: Array = []
 	for data in DataRegistry.get_all_weapon_data():
-		if data == null or data.id.is_empty():
+		if data == null or str(data.id).is_empty():
 			continue
-		var description: String = _CodexContent.build_weapon_description(data)
-		entries.append(_make_entry(
-			data.id,
-			data.display_name,
-			"",
-			description,
-			"weapon"
+		entries.append(_make_equipment_entry(
+			str(data.id),
+			str(data.display_name),
+			_CodexContent.build_weapon_description(data),
+			"weapon",
+			"武器",
+			int(data.rarity)
+		))
+	for data in DataRegistry.get_all_armor_data():
+		if data == null:
+			continue
+		var armor_id: String = str(data.armor_id)
+		if armor_id.is_empty():
+			continue
+		entries.append(_make_equipment_entry(
+			armor_id,
+			str(data.display_name),
+			_CodexContent.build_armor_description(data),
+			"armor",
+			"防具",
+			int(data.rarity)
+		))
+	for data in DataRegistry.get_all_accessory_data():
+		if data == null or str(data.id).is_empty():
+			continue
+		entries.append(_make_equipment_entry(
+			str(data.id),
+			str(data.display_name),
+			_CodexContent.build_accessory_description(data),
+			"accessory",
+			"装飾",
+			int(data.rarity)
 		))
 	return entries
+
+
+func _make_equipment_entry(
+	entry_id: String,
+	display_name: String,
+	description: String,
+	equip_kind: String,
+	kind_label: String,
+	rarity: int
+) -> Dictionary:
+	## 装備品タブは図鑑カタログとして常時開示（説明対象＝全件）。
+	return {
+		"id": entry_id,
+		"display_name": display_name,
+		"icon": "",
+		"description": description,
+		"discovered": true,
+		"equip_kind": equip_kind,
+		"equip_kind_label": kind_label,
+		"rarity": rarity,
+		"rarity_label": _CodexContent.rarity_label(rarity),
+		"list_label": "【%s】%s" % [kind_label, display_name],
+	}
+
 
 func _build_history_entries() -> Array:
 	var entries: Array = []
@@ -325,6 +417,7 @@ func _build_npc_entry(npc_id: String) -> Dictionary:
 	var profile: Dictionary = _CharacterCodexProfiles.npc_profile(npc_id)
 	var display: String = str(profile.get("display_name", npc_id))
 	var role: String = str(profile.get("role_name", "関係者"))
+	var revealed: bool = bool(profile.get("codex_revealed", false))
 	var body: String = _CharacterCodexProfiles.format_profile_body(
 		str(profile.get("hometown", "")),
 		int(profile.get("height_cm", 0)),
@@ -343,7 +436,7 @@ func _build_npc_entry(npc_id: String) -> Dictionary:
 		int(profile.get("rarity", 0)),
 		body,
 		str(profile.get("portrait_path", "")),
-		true,
+		revealed,
 		"npc",
 		profile
 	)
@@ -368,6 +461,7 @@ func _build_legend_entry(legend_id: String, kind: String) -> Dictionary:
 		""
 	)
 	profile["role_name"] = role
+	## 伝承枠はデータ残置のみ。一覧は未実装扱い（???）。
 	return _make_character_entry(
 		legend_id,
 		display,
@@ -375,7 +469,7 @@ func _build_legend_entry(legend_id: String, kind: String) -> Dictionary:
 		0,
 		body,
 		"",
-		true,
+		false,
 		kind,
 		profile
 	)
@@ -433,9 +527,6 @@ func _make_character_entry(
 		var job_data: Resource = DataRegistry.get_job_data(job_id)
 		if job_data != null:
 			job_name = str(job_data.display_name)
-	var stars: String = ""
-	if rarity > 0:
-		stars = "★".repeat(clampi(rarity, 1, 4))
 	if not owned:
 		return {
 			"id": entry_id,
@@ -451,11 +542,7 @@ func _make_character_entry(
 			"hometown": "",
 			"height_cm": 0,
 		}
-	var header: String
-	if stars.is_empty():
-		header = "%s  %s" % [job_name, display_name] if not job_name.is_empty() else display_name
-	else:
-		header = "%s  %s  %s" % [stars, job_name, display_name]
+	## 一覧タイトルは名前のみ（職名・★は詳細側に残す）。
 	return {
 		"id": entry_id,
 		"display_name": display_name,
@@ -466,7 +553,7 @@ func _make_character_entry(
 		"rarity": rarity,
 		"portrait_path": portrait_path,
 		"kind": kind,
-		"list_label": header,
+		"list_label": display_name,
 		"hometown": str(profile.get("hometown", "")),
 		"height_cm": int(profile.get("height_cm", 0)),
 	}

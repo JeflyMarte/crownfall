@@ -23,11 +23,7 @@ const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
 const COMMANDER_SCENE: String = "res://scenes/commander/CommanderScene.tscn"
 const SETTINGS_SCENE: String = "res://scenes/settings/SettingsScene.tscn"
 const EVENT_SCENE: String = "res://scenes/event/EventScene.tscn"
-const _CURRENCY_STRIP_ICON_PX: int = 20
 const _GOLD_ICON_PATH: String = "res://assets/ui/batch2/ICO_Gold.png"
-const _STAT_ADVENTURERS_ICON_PATH: String = "res://assets/ui/batch2/ICO_Stat_Adventurers.png"
-const _STAT_DUNGEON_CLEAR_ICON_PATH: String = "res://assets/ui/batch2/ICO_Stat_DungeonClear.png"
-const _STAT_DISCOVERY_ICON_PATH: String = "res://assets/ui/batch2/ICO_Stat_Discovery.png"
 
 @onready var _menu_vbox: VBoxContainer = $HubView/LeftMenuPanel/MenuScroll/MenuVBox
 @onready var _label_gold: Label = $HubView/TopBar/TopBarRow/GoldChip/GoldRow/LabelGold
@@ -272,12 +268,14 @@ func _place_field_survey_banner() -> void:
 	if menu == null:
 		return
 	## 左メニュー直下・画面幅いっぱいに配置（メニューと重ねない）。
-	## 右上ロゴ分の余白を上に確保する。
+	## 右上ロゴ分の余白を上に確保する（CurrencyStrip 撤去後は少し上げる）。
 	const HINT_W: float = 280.0
 	const HINT_H: float = 96.0
-	const HINT_OVERLAP: float = 14.0
+	const HINT_OVERLAP: float = 36.0
+	## クリック誘導アイコンだけバナーより上へ（バナー位置は据え置き）。
+	const HINT_LIFT: float = 28.0
 	const BANNER_H: float = 40.0
-	const GAP: float = 8.0
+	const GAP: float = 4.0
 	var top: float = menu.offset_bottom + GAP + (HINT_H - HINT_OVERLAP)
 	_field_survey_banner.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	_field_survey_banner.offset_left = 12.0
@@ -288,8 +286,8 @@ func _place_field_survey_banner() -> void:
 		_field_survey_click_hint.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 		_field_survey_click_hint.offset_left = -12.0 - HINT_W
 		_field_survey_click_hint.offset_right = -12.0
-		_field_survey_click_hint.offset_top = top - (HINT_H - HINT_OVERLAP)
-		_field_survey_click_hint.offset_bottom = top + HINT_OVERLAP
+		_field_survey_click_hint.offset_top = top - (HINT_H - HINT_OVERLAP) - HINT_LIFT
+		_field_survey_click_hint.offset_bottom = top + HINT_OVERLAP - HINT_LIFT
 		_field_survey_click_hint.z_index = _field_survey_banner.z_index + 1
 		_field_survey_click_hint.pivot_offset = Vector2(HINT_W * 0.5, HINT_H * 0.5)
 
@@ -409,9 +407,10 @@ func _decorate_panels() -> void:
 	$HubView/DailyMissionPanel.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
 	)
-	$HubView/CurrencyStrip.add_theme_stylebox_override(
-		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
-	)
+	## CurrencyStrip（所持金〜発見）は非表示。データ帯は TopBar のみ。
+	var strip: Control = $HubView/CurrencyStrip as Control
+	if strip != null:
+		strip.visible = false
 	$HubView/TopBar/TopBarRow/PlayerCard/PlayerRow/PortraitFrame.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_NORMAL)
 	)
@@ -514,64 +513,6 @@ func _is_dungeon_available(dungeon_id: String) -> bool:
 func _update_display() -> void:
 	_update_currency()
 	_update_player_card()
-	_populate_currency_strip()
-
-## ホーム中段のリソース帯（モックの5列ステータス行 / P3-UI3-001）。
-## 空パネルのまま表示されていた CurrencyStrip を実データで埋める。
-## 5列とも数値の左にアイコンを添える（ゴールド／魔晶石と同サイズ）。
-func _populate_currency_strip() -> void:
-	var row: HBoxContainer = $HubView/CurrencyStrip/CurrencyRow
-	for child in row.get_children():
-		child.queue_free()
-	var cleared: int = 0
-	var total_dungeons: int = 0
-	for d in DataRegistry.get_all_dungeon_data():
-		if d == null:
-			continue
-		total_dungeons += 1
-		if GameState.is_dungeon_cleared(str(d.id)):
-			cleared += 1
-	var stats: Array = [
-		["%d" % GameState.gold, "ゴールド", _GOLD_ICON_PATH],
-		[CurrencyHelper.format_amount(), CurrencyHelper.DISPLAY_NAME, CurrencyHelper.ICON_PATH],
-		["%d人" % GameState.roster.size(), "冒険者", _STAT_ADVENTURERS_ICON_PATH],
-		["%d/%d" % [cleared, total_dungeons], "踏破", _STAT_DUNGEON_CLEAR_ICON_PATH],
-		["%d" % GameState.discovery_registry.size(), "発見", _STAT_DISCOVERY_ICON_PATH],
-	]
-	for pair in stats:
-		var col := VBoxContainer.new()
-		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		col.alignment = BoxContainer.ALIGNMENT_CENTER
-		var value_row := HBoxContainer.new()
-		value_row.alignment = BoxContainer.ALIGNMENT_CENTER
-		value_row.add_theme_constant_override("separation", 4)
-		value_row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		var icon_path: String = str(pair[2])
-		if not icon_path.is_empty() and ResourceLoader.exists(icon_path):
-			var icon := TextureRect.new()
-			icon.texture = load(icon_path) as Texture2D
-			icon.custom_minimum_size = Vector2(_CURRENCY_STRIP_ICON_PX, _CURRENCY_STRIP_ICON_PX)
-			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			value_row.add_child(icon)
-		var value := Label.new()
-		value.text = str(pair[0])
-		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		# HBox 内で clip_text=true だと最小幅が 0 になり数値が消える
-		value.clip_text = false
-		value.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		UiTypography.apply_body(value, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
-		value_row.add_child(value)
-		col.add_child(value_row)
-		var caption := Label.new()
-		caption.text = str(pair[1])
-		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		caption.clip_text = true
-		UiTypography.apply_caption(caption)
-		col.add_child(caption)
-		row.add_child(col)
 
 func _update_currency() -> void:
 	_label_gold.text = "%d" % GameState.gold
@@ -748,7 +689,6 @@ func _daily_claim_origin_global(index: int) -> Vector2:
 func _play_daily_claim_fx(from_global: Vector2, result: Dictionary) -> void:
 	var gold_chip: Control = $HubView/TopBar/TopBarRow/GoldChip as Control
 	var token_chip: Control = $HubView/TopBar/TopBarRow/TokenChip as Control
-	var strip: Control = $HubView/CurrencyStrip as Control
 	var rewards: Array = []
 	var gold: int = int(result.get("gold", 0))
 	if gold > 0:
@@ -764,7 +704,8 @@ func _play_daily_claim_fx(from_global: Vector2, result: Dictionary) -> void:
 	var mat_qty: int = int(result.get("material_qty", 0))
 	if not mat_id.is_empty() and mat_qty > 0:
 		var mat_tex: Texture2D = IconPaths.get_icon_texture(mat_id, "material")
-		var mat_target: Control = strip if strip != null else gold_chip
+		## CurrencyStrip 撤去後は TopBar 金チップへ飛ばす。
+		var mat_target: Control = gold_chip
 		if mat_tex != null and mat_target != null:
 			rewards.append({"texture": mat_tex, "target": mat_target, "amount": mat_qty})
 	if rewards.is_empty():

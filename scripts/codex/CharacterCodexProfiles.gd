@@ -81,9 +81,10 @@ const STARTER_PROFILES: Dictionary = {
 }
 
 
-## 拠点NPC（図鑑人物録・常時開示）。順序は `NPC_ORDER`。
+## 拠点NPC（図鑑人物録）。順序は `NPC_ORDER`。
+## `codex_revealed=true` のみ一覧で名前・アイコン開示（台詞／立ち絵実装済み）。
 const NPC_ORDER: Array[String] = [
-	"npc_oren", "npc_nina", "npc_galo", "npc_selma", "npc_tobias", "npc_mael",
+	"npc_oren", "npc_nina", "npc_nonoka", "npc_galo", "npc_selma", "npc_tobias", "npc_mael",
 ]
 
 const NPC_PROFILES: Dictionary = {
@@ -91,6 +92,7 @@ const NPC_PROFILES: Dictionary = {
 		"display_name": "オーレン",
 		"role_name": "ギルド長",
 		"portrait_path": "",
+		"codex_revealed": false,
 		"hometown": "アイアンヘイブン",
 		"height_cm": 172,
 		"likes": "静かな報告書、正しい空白",
@@ -107,7 +109,9 @@ const NPC_PROFILES: Dictionary = {
 	"npc_nina": {
 		"display_name": "ニーナ",
 		"role_name": "記録官",
-		"portrait_path": "res://assets/npc/ART_NPC_Nina.png",
+		## セリフ挿入時の対話バスト（NinaDialogueOverlay / IntroUiAssets.NINA_DIALOGUE_BUST）。
+		"portrait_path": "res://assets/npc/ICO_NPC_Nina_Dialogue.png",
+		"codex_revealed": true,
 		"hometown": "アイアンヘイブン",
 		"height_cm": 158,
 		"likes": "整った欄外メモ、新しい調査報告",
@@ -126,10 +130,31 @@ const NPC_PROFILES: Dictionary = {
 		"quote": "詳細は図鑑と現地で。",
 		"rarity": 0,
 	},
+	"npc_nonoka": {
+		"display_name": "ノノカ",
+		"role_name": "研究員",
+		## 調査室／手引きで使う顔アイコン（セリフ・案内の表示用）。
+		"portrait_path": "res://assets/npc/ICO_NPC_Nonoka.png",
+		"codex_revealed": true,
+		"hometown": "アイアンヘイブン",
+		"height_cm": 156,
+		"likes": "現場の資料あさり、仮説の並べ方",
+		"dislikes": "机に縛られただけの調査、根拠なしの断定",
+		"backstory": (
+			"記録庁系の新人研究員。丸メガネ越しに仮説を並べるおちゃめな調査員。\n"
+			+ "観察は真面目だが口は軽く、「データは嘘つかない。……たぶんね？」が口癖。\n"
+			+ "ニーナと同じ記録庁の廊下出身だが、机仕事より現場の資料あさりを好む。\n"
+			+ "調査室では考古担当として、隊長の調査サイクルに混成配置される。"
+		),
+		"record_note": "調査室専用スタッフ（戦闘ロスター外）。考古担当。",
+		"quote": "データは嘘つかない。……たぶんね？",
+		"rarity": 0,
+	},
 	"npc_galo": {
 		"display_name": "ガロ",
 		"role_name": "鍛冶師",
 		"portrait_path": "",
+		"codex_revealed": false,
 		"hometown": "レッドフォージ（廃都）→アイアンヘイブン",
 		"height_cm": 178,
 		"likes": "由来の分かる素材、使い継がれた刃",
@@ -147,6 +172,7 @@ const NPC_PROFILES: Dictionary = {
 		"display_name": "セルマ",
 		"role_name": "商人",
 		"portrait_path": "",
+		"codex_revealed": false,
 		"hometown": "王の大街道沿い（隊商育ち）",
 		"height_cm": 165,
 		"likes": "正しい値付け、各地の噂",
@@ -164,6 +190,7 @@ const NPC_PROFILES: Dictionary = {
 		"display_name": "トビアス",
 		"role_name": "宿の主",
 		"portrait_path": "",
+		"codex_revealed": false,
 		"hometown": "アイアンヘイブン",
 		"height_cm": 180,
 		"likes": "温かい席、灯皿の火、旅人の無事",
@@ -181,6 +208,7 @@ const NPC_PROFILES: Dictionary = {
 		"display_name": "マエル",
 		"role_name": "認定官",
 		"portrait_path": "",
+		"codex_revealed": false,
 		"hometown": "アイアンヘイブン（元・上級探索者）",
 		"height_cm": 176,
 		"likes": "正確な試験、一専門を究めた証",
@@ -197,7 +225,7 @@ const NPC_PROFILES: Dictionary = {
 }
 
 
-## 九王（伝承・常時開示）。人物台帳 `13_Characters` 要約。
+## 九王（伝承）。台詞・立ち絵未実装のため図鑑一覧は ???（データ残置）。
 const LEGEND_KING_ORDER: Array[String] = [
 	"legend_king_orgran", "legend_king_valkein", "legend_king_seradis",
 	"legend_king_eldion", "legend_king_aurex", "legend_king_luminas",
@@ -335,7 +363,7 @@ const LEGEND_KING_PROFILES: Dictionary = {
 }
 
 
-## 九英雄（伝承・常時開示）。
+## 九英雄（伝承）。台詞・立ち絵未実装のため図鑑一覧は ???（データ残置）。
 const LEGEND_HERO_ORDER: Array[String] = [
 	"legend_hero_astel", "legend_hero_elenas", "legend_hero_lucien",
 	"legend_hero_ilia", "legend_hero_ragna", "legend_hero_ceres",
@@ -493,9 +521,9 @@ const PET_PROFILES: Dictionary = {
 		"backstory": (
 			"ギルド随伴訓練舎の夜間索敵組。ジャックの同期で、灰白の毛並みが目印。\n"
 			+ "守り役として隊列の穴を埋める動きを訓練されてきた。"
-			+ "モーンゲート最深の調査を終えた隊へ、追加貸与されることがある。"
+			+ "ウィスパーウッドの完全調査を終えた隊へ、追加貸与されることがある。"
 		),
-		"record_note": "U1解放（mourngate 1-5）。ジャックとLv/EXP共有の色変え個体。",
+		"record_note": "ウィスパーウッド調査100%景品。ジャックとLv/EXP共有の色変え個体。",
 		"rarity": 1,
 	},
 	"pet_ink": {
@@ -507,9 +535,9 @@ const PET_PROFILES: Dictionary = {
 		"backstory": (
 			"訓練舎の珍毛個体。黒紫の影毛が特徴で、崩し役の伴侶獣として育てられた。\n"
 			+ "ジャックやアッシュと同型の骨格だが、間合いの取り方はより鋭い。"
-			+ "囁きの森の深部調査を終えた隊へ、追加貸与されることがある。"
+			+ "ブラックショアの完全調査を終えた隊へ、追加貸与されることがある。"
 		),
-		"record_note": "U1解放（whisperwood 2-5）。ジャックとLv/EXP共有の色変え個体。",
+		"record_note": "ブラックショア調査100%景品。ジャックとLv/EXP共有の色変え個体。",
 		"rarity": 1,
 	},
 }
