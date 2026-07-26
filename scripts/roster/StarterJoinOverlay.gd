@@ -35,6 +35,7 @@ var _stars_label: Label
 var _quote_host: Control
 var _quote_bg: TextureRect
 var _quote_label: Label
+var _quote_tap_label: Label
 var _showcase_tween: Tween
 
 var _reveal_root: Control
@@ -212,25 +213,52 @@ func _build_showcase() -> void:
 	_quote_host.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_child(_quote_host)
 
+	## 枠内の空洞／半透明を黒で塞ぐ（テクスチャより背面）。
+	var quote_fill := ColorRect.new()
+	quote_fill.name = "QuoteFill"
+	quote_fill.color = Color(0, 0, 0, 1)
+	quote_fill.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	quote_fill.offset_left = 36.0
+	quote_fill.offset_right = -36.0
+	quote_fill.offset_top = 18.0
+	quote_fill.offset_bottom = -18.0
+	quote_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_quote_host.add_child(quote_fill)
+
 	_quote_bg = TextureRect.new()
 	_quote_bg.texture = _StarterJoinUiTokens.quote_panel()
 	_quote_bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_quote_bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	## 縦短枠に合わせて拡縮（焼込タップは消済み。文言は Label）。
 	_quote_bg.stretch_mode = TextureRect.STRETCH_SCALE
 	_quote_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_quote_host.add_child(_quote_bg)
 
 	_quote_label = Label.new()
 	_quote_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_quote_label.offset_left = 36.0
-	_quote_label.offset_right = -36.0
-	_quote_label.offset_top = 28.0
-	_quote_label.offset_bottom = -56.0
+	_quote_label.offset_left = 40.0
+	_quote_label.offset_right = -40.0
+	_quote_label.offset_top = 20.0
+	_quote_label.offset_bottom = -44.0
 	_quote_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_quote_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_quote_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_quote_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_quote_host.add_child(_quote_label)
+
+	_quote_tap_label = Label.new()
+	_quote_tap_label.text = "タップで続ける"
+	_quote_tap_label.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	_quote_tap_label.offset_top = -40.0
+	_quote_tap_label.offset_bottom = -10.0
+	_quote_tap_label.offset_left = 32.0
+	_quote_tap_label.offset_right = -32.0
+	_quote_tap_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_quote_tap_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_quote_tap_label.clip_text = false
+	_quote_tap_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	_quote_tap_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_quote_host.add_child(_quote_tap_label)
 
 
 func _build_reveal() -> void:
@@ -299,6 +327,8 @@ func _build_reveal() -> void:
 	_portrait_frame.custom_minimum_size = Vector2(REVEAL_IDLE_PX + 24.0, REVEAL_IDLE_PX + 24.0)
 	_portrait_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_portrait_frame.visible = false
+	## テーマ既定の半透明パネルがドット上に乗るのを防ぐ（GachaScene と同方針）。
+	_portrait_frame.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	vbox.add_child(_portrait_frame)
 
 	_reveal_portrait_icon = TextureRect.new()
@@ -387,6 +417,8 @@ func _refresh_showcase() -> void:
 	UiTypography.apply_display(_stars_label, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
 	## 吹き出し下地が暗いので、本文色ではなく金で不透明表示。
 	UiTypography.apply_display(_quote_label, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
+	if _quote_tap_label != null:
+		UiTypography.apply_caption(_quote_tap_label, UiTypography.COLOR_GOLD)
 
 
 func _play_showcase_intro() -> void:

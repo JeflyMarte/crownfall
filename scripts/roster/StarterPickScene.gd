@@ -10,6 +10,7 @@ const PORTRAIT_SIZE := Vector2(112, 148)
 var _selected_id: String = ""
 var _confirm_btn: Button
 var _cards: Dictionary = {}
+var _start_confirm: ConfirmationDialog
 
 
 func _ready() -> void:
@@ -65,8 +66,16 @@ func _build_ui() -> void:
 	_confirm_btn.disabled = true
 	_confirm_btn.custom_minimum_size = Vector2(0, 52)
 	UiTypography.apply_button(_confirm_btn)
-	_confirm_btn.pressed.connect(_on_confirm)
+	_confirm_btn.pressed.connect(_on_confirm_pressed)
 	root.add_child(_confirm_btn)
+
+	_start_confirm = ConfirmationDialog.new()
+	_start_confirm.title = "確認"
+	_start_confirm.ok_button_text = "はい"
+	_start_confirm.cancel_button_text = "いいえ"
+	_start_confirm.confirmed.connect(_on_start_confirmed)
+	_start_confirm.canceled.connect(func() -> void: AudioManager.play_sfx("ui_cancel"))
+	add_child(_start_confirm)
 
 
 func _make_card(def: Dictionary) -> PanelContainer:
@@ -184,7 +193,26 @@ func _select(adventurer_id: String) -> void:
 		panel.add_theme_stylebox_override("panel", sb)
 
 
-func _on_confirm() -> void:
+func _selected_display_name() -> String:
+	if _selected_id.is_empty():
+		return ""
+	for def: Variant in GameState.BASE_ROSTER_DEFS:
+		var d: Dictionary = def as Dictionary
+		if str(d.get("id", "")) == _selected_id:
+			return str(d.get("name", _selected_id))
+	return _selected_id
+
+
+func _on_confirm_pressed() -> void:
+	if _selected_id.is_empty():
+		return
+	var name: String = _selected_display_name()
+	_start_confirm.dialog_text = "%s ではじめてよろしいですか？" % name
+	AudioManager.play_sfx("ui_confirm")
+	_start_confirm.popup_centered()
+
+
+func _on_start_confirmed() -> void:
 	if _selected_id.is_empty():
 		return
 	if not GameState.select_intro_starter(_selected_id):

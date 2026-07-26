@@ -13,8 +13,9 @@ const TITLE_WIDTH: float = 640.0
 const PORTRAIT_PX: float = 280.0
 const NAMEPLATE_WIDTH: float = 600.0
 const NAMEPLATE_HEIGHT: float = 72.0
-const QUOTE_WIDTH: float = 600.0
-const QUOTE_HEIGHT: float = 220.0
+## セリフ枠は縦を抑えめ（短いセリフ＋タップ誘導向け）。
+const QUOTE_WIDTH: float = 560.0
+const QUOTE_HEIGHT: float = 168.0
 const JOB_ICON_PX: float = 40.0
 
 

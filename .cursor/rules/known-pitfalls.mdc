@@ -140,6 +140,8 @@ alwaysApply: true
 | ダンジョン解放が質素＋変な改行 | 狭いパネル＋1ラベル自動折返しで「ウィスパー／ウッド」「！」単独行 | バナー主役（`BiomeBannerHelper`＋`BAN_DG_*`）。名前と「が解放された！」を分離し名前は折り返し禁止＋フォント縮小 |
 | 章クリア後いきなり加入セリフで唐突 | 拠点が解放→加入のみで記録官の橋渡し無し | 加入候補時はニーナ功績→解放→加入予告→加入（`pending_clear_nina_*`）。加入UI本体は別改修 |
 | 加入が旧小吹き出しのまま唐突 | モック（タイトル帯＋大アイコン＋名札＋セリフ）未配線 | `StarterJoinOverlay` はショーケース→ガチャ風リビール。枠は `assets/ui/join/` |
+| 合流リビールでドット上半分に半透明の灰板 | `PortraitFrame`（PanelContainer）がテーマ既定の半透明 panel のまま | `StyleBoxEmpty` を当てる（`GachaScene` と同方針） |
+| 加入セリフ枠が透ける／「タップで続ける」が横伸び | QuotePanel を横長に `STRETCH_SCALE`＋焼込文字 | 枠内は黒塗り＋アスペクト維持。タップ文言は Label |
 | 「自動戦闘中」行が戦闘で再表示される | `_update_combat_visibility` が `on_combat_floor` で `_auto_combat_row.visible=true` | 行は常時 `false`。停止はヘッダ ButtonStop |
 | aspect=keep なのに TopBar が低い／下ナビ下に黒余白 | SafeArea が inset=0 でも 54/24 を強制フォールバック | letterbox（keep）時はフォールバックしない |
 | `git checkout` / `mv` が `Operation not permitted` | Cursor サンドボックス | アセット・git 復元は `required_permissions: ["all"]` |

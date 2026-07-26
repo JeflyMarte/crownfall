@@ -24,6 +24,10 @@ const INK_GOLD: Color = Color(0.36, 0.20, 0.05, 1.0)
 ## ニーナのアイコン＋手引き見出しの上余白（全ページ共通・旧6P位置）。
 const HEADER_TOP_GAP: float = 28.0
 
+## 羊皮紙向け強調色（図鑑の水色は背景と合わないため専用）。
+const EMPH_PROPER: String = "#7A3E12"
+const EMPH_KEY: String = "#9A5018"
+
 ## 手引きアイコン（アイコン画像。欠落時は「？」）。
 const GUIDE_FACES: Array[Dictionary] = [
 	{
@@ -32,45 +36,45 @@ const GUIDE_FACES: Array[Dictionary] = [
 	},
 ]
 
-## 各1ページ。操作講習ではなく「何からやるか」（文量多め）。
+## 各1ページ。操作講習ではなく「何からやるか」。固有名詞・要点は BBCode 強調。
 const PAGES: Array[Dictionary] = [
 	{
 		"title": "1. 仲間を集めよう",
 		"body": (
-			"隊長、まずは招待状（ガチャ）を引いて、仲間を集めましょう。\n\n"
+			"隊長、まずは[color=#9A5018][b]招待状（ガチャ）[/b][/color]を引いて、仲間を集めましょう。\n\n"
 			+ "一人きりだと調査はすぐ行き詰まります。"
-			+ "助っ人がいるだけで、戦闘も探索もぐっと楽になりますよ。\n\n"
-			+ "拠点の「招待状」から、気になる探索者を迎えてみてください。"
+			+ "[color=#9A5018][b]助っ人[/b][/color]がいるだけで、戦闘も探索もぐっと楽になりますよ。\n\n"
+			+ "拠点の[color=#7A3E12][b]「招待状」[/b][/color]から、気になる探索者を迎えてみてください。"
 			+ "最初の一枚が、この隊の顔になります！"
 		),
 	},
 	{
 		"title": "2. ダンジョンへ潜ろう",
 		"body": (
-			"仲間が揃ったら、ダンジョンへ潜りましょう。\n\n"
+			"仲間が揃ったら、[color=#7A3E12][b]ダンジョン[/b][/color]へ潜りましょう。\n\n"
 			+ "レアな装備品を手に入れたり、レベルを上げたりするのは、"
-			+ "現場に出てこそです。まずは王都地下モーンゲートから、一歩ずつ。\n\n"
+			+ "現場に出てこそです。まずは[color=#7A3E12][b]王都地下モーンゲート[/b][/color]から、一歩ずつ。\n\n"
 			+ "無理に深く潜らなくて大丈夫。"
-			+ "戻って報告してくれれば、記録部でちゃんと残しておきますね。"
+			+ "戻って報告してくれれば、[color=#7A3E12][b]記録部[/b][/color]でちゃんと残しておきますね。"
 		),
 	},
 	{
 		"title": "3. 調査室で研究",
 		"body": (
-			"拠点に戻ったら、調査室にも立ち寄ってください。\n\n"
+			"拠点に戻ったら、[color=#7A3E12][b]調査室[/b][/color]にも立ち寄ってください。\n\n"
 			+ "記録官のわたしが調査の手伝いをします。"
-			+ "ダンジョンの研究を進めると、図鑑が厚くなり、"
-			+ "調査の進捗に応じた報酬も受け取れます。\n\n"
-			+ "現場の体験と机の記録——両方あって、はじめて「調査」です。"
+			+ "ダンジョンの研究を進めると、[color=#7A3E12][b]図鑑[/b][/color]が厚くなり、"
+			+ "調査の進捗に応じた[color=#9A5018][b]報酬[/b][/color]も受け取れます。\n\n"
+			+ "現場の体験と机の記録——両方あって、はじめて[color=#9A5018][b]「調査」[/b][/color]です。"
 			+ "抜けのある報告書は、文句を言いますからね。"
 		),
 	},
 	{
 		"title": "4. 鍛冶屋で強化",
 		"body": (
-			"手に入れた武器や防具は、鍛冶屋でさらに強くできます。\n\n"
-			+ "素材が揃ったら、ぜひ赤鉄の工房へ。"
-			+ "生産・炉研ぎ・錬成で、隊の装備を伸ばしていきましょう。\n\n"
+			"手に入れた武器や防具は、[color=#7A3E12][b]鍛冶屋[/b][/color]でさらに強くできます。\n\n"
+			+ "素材が揃ったら、ぜひ[color=#7A3E12][b]赤鉄の工房[/b][/color]へ。"
+			+ "[color=#9A5018][b]生産・炉研ぎ・錬成[/b][/color]で、隊の装備を伸ばしていきましょう。\n\n"
 			+ "強い装備は、次のダンジョンへの自信にもなります。"
 			+ "無理のない範囲で、少しずつ整えていってくださいね。"
 		),
@@ -78,7 +82,7 @@ const PAGES: Array[Dictionary] = [
 	{
 		"title": "5. 展示室で自慢",
 		"body": (
-			"お気に入りのキャラは、展示室で拠点の顔として飾れます。\n\n"
+			"お気に入りのキャラは、[color=#7A3E12][b]展示室[/b][/color]で拠点の顔として飾れます。\n\n"
 			+ "調査の合間に、隊の自慢を並べてみてください。"
 			+ "記録に残るのは成果だけじゃありません。"
 			+ "隊長の好みも、ちゃんと残しておきますからね。"
@@ -87,11 +91,11 @@ const PAGES: Array[Dictionary] = [
 	{
 		"title": "6. 頼れる相棒",
 		"body": (
-			"最後に——ギルドからの新人調査隊サポートです。\n\n"
-			+ "頼りになるペット「ジャック」が支給されます。"
+			"最後に——[color=#7A3E12][b]ギルド[/b][/color]からの新人調査隊サポートです。\n\n"
+			+ "頼りになるペット[color=#7A3E12][b]「ジャック」[/b][/color]が支給されます。"
 			+ "現場では人間の隊員と一緒に戦ってくれる、心強い相棒です。\n\n"
 			+ "手引きは以上！困ったらまた声をかけてください。"
-			+ "詳細は図鑑と現地で——いきましょう！"
+			+ "詳細は[color=#7A3E12][b]図鑑[/b][/color]と現地で——いきましょう！"
 		),
 	},
 ]
@@ -104,7 +108,7 @@ var _book_bg: TextureRect
 var _header_top_spacer: Control
 var _title_label: Label
 var _body_scroll: ScrollContainer
-var _body_label: Label
+var _body_label: RichTextLabel
 var _page_label: Label
 var _next_btn: Button
 var _skip_btn: Button
@@ -242,14 +246,6 @@ func _build() -> void:
 	UiTypography.apply_display(eyebrow, UiTypography.SIZE_CAPTION, INK_GOLD, 0)
 	header_col.add_child(eyebrow)
 
-	var name_line := Label.new()
-	name_line.text = "記録官 ニーナ"
-	name_line.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	name_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	name_line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	UiTypography.apply_display(name_line, UiTypography.SIZE_BODY_SMALL, INK_GOLD, 0)
-	header_col.add_child(name_line)
-
 	_title_label = Label.new()
 	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -267,14 +263,20 @@ func _build() -> void:
 	_body_scroll = body_scroll
 	inner.add_child(body_scroll)
 
-	_body_label = Label.new()
-	_body_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	_body_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	_body_label = RichTextLabel.new()
+	_body_label.bbcode_enabled = true
+	_body_label.fit_content = true
+	_body_label.scroll_active = false
 	_body_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_body_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_body_label.clip_text = false
-	_body_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	_body_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_body_label.add_theme_color_override("default_color", INK_BODY)
+	_body_label.add_theme_font_size_override("normal_font_size", 18)
+	_body_label.add_theme_font_size_override("bold_font_size", 18)
+	var body_font: Font = UiTypography.display_font()
+	if body_font != null:
+		_body_label.add_theme_font_override("normal_font", body_font)
+		_body_label.add_theme_font_override("bold_font", body_font)
 	body_scroll.add_child(_body_label)
 
 	_page_label = Label.new()
@@ -371,7 +373,7 @@ func _panel_bg_style() -> StyleBox:
 
 
 func _sync_body_label_wrap_width() -> void:
-	## Scroll 内 Label は幅が不定だと折返し前に横へ伸びて見切れる。
+	## Scroll 内本文は幅が不定だと折返し前に横へ伸びて見切れる。
 	if _body_scroll == null or _body_label == null:
 		return
 	var w: float = _body_scroll.size.x
@@ -387,8 +389,6 @@ func _refresh_page() -> void:
 		_title_label, 28, INK_TITLE, 0
 	)
 	_body_label.text = str(page.get("body", ""))
-	## タイトルと同じ Shippori（筆記・見出し系）で統一。
-	UiTypography.apply_display(_body_label, 18, INK_BODY, 0)
 	_page_label.text = "%d / %d" % [_page_index + 1, PAGES.size()]
 	var last: bool = _page_index >= PAGES.size() - 1
 	_next_btn.text = "はじめる" if last else "次へ"
