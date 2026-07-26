@@ -251,6 +251,7 @@
 
 | 機能 | 備考 / 想定移管 |
 |---|---|
+| **P3-SHOWCASE-ONLINE-001** 展示室「みんなの展示」 | β据置。サーバー公開自慢キャラ。自分／みんな／スタッフ3タブ。アップデート枠 |
 | Affix Reroll | Appraisal 一度きり（MVP） |
 | Legendary Affix 特殊ロジック | identity 演出 — Beta 以降 |
 | Curse Affix | MVP 対象外 |

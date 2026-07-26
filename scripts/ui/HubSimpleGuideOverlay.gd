@@ -14,15 +14,15 @@ const BG_PATH: String = "res://assets/ui/UI_BG_HubSimpleGuide.png"
 const PANEL_MIN: Vector2 = Vector2(700, 560)
 ## 手引きヘッダの顔アイコン（正方形 ICO）。
 const FACE_ICON_PX: float = 88.0
-## 背景フレームの 9-slice 余白（テクスチャ縁の装飾）。
-const BG_TEX_MARGIN: int = 56
-## 左のはみ出し防止のため内側余白を厚めにし、折り返し幅を短くする。
+## 背景フレームの内側余白（書籍イラスト直置き・9-slice しない）。
 const BG_CONTENT_MARGIN: int = 96
 ## 羊皮紙背景向けのインク色（通常UIの明るい本文色はコントラスト不足）。
 const INK_TITLE: Color = Color(0.22, 0.12, 0.05, 1.0)
 const INK_BODY: Color = Color(0.18, 0.11, 0.06, 1.0)
 const INK_META: Color = Color(0.38, 0.26, 0.14, 1.0)
 const INK_GOLD: Color = Color(0.36, 0.20, 0.05, 1.0)
+## 最終ページだけヘッダ（アイコン＋手引き）を少し下げる。
+const HEADER_TOP_GAP_LAST_PAGE: float = 28.0
 
 ## 手引きアイコン（アイコン画像。欠落時は「？」）。
 const GUIDE_FACES: Array[Dictionary] = [
@@ -99,6 +99,7 @@ const PAGES: Array[Dictionary] = [
 var _page_index: int = 0
 var _dim: ColorRect
 var _panel: PanelContainer
+var _header_top_spacer: Control
 var _title_label: Label
 var _body_label: Label
 var _page_label: Label
@@ -161,10 +162,21 @@ func _build() -> void:
 	_panel.custom_minimum_size = PANEL_MIN
 	_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	_panel.gui_input.connect(_on_dim_gui_input)
-	_panel.add_theme_stylebox_override("panel", _panel_bg_style())
+	## 書籍イラストは 9-slice しない（縁の黒マットが四角く伸びる）。
+	_panel.add_theme_stylebox_override("panel", _panel_empty_style())
 	center.add_child(_panel)
 
+	var bg := TextureRect.new()
+	bg.name = "BookBg"
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	bg.texture = _IntroUiAssets.load_tex(BG_PATH)
+	_panel.add_child(bg)
+
 	var margin := MarginContainer.new()
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	margin.add_theme_constant_override("margin_left", BG_CONTENT_MARGIN)
 	margin.add_theme_constant_override("margin_right", BG_CONTENT_MARGIN)
 	margin.add_theme_constant_override("margin_top", BG_CONTENT_MARGIN - 4)
@@ -176,6 +188,12 @@ func _build() -> void:
 	inner.add_theme_constant_override("separation", 14)
 	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	margin.add_child(inner)
+
+	_header_top_spacer = Control.new()
+	_header_top_spacer.name = "HeaderTopSpacer"
+	_header_top_spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_header_top_spacer.custom_minimum_size = Vector2(0, 0)
+	inner.add_child(_header_top_spacer)
 
 	## ヘッダ: ニーナのアイコン＋肩書き。
 	var header := HBoxContainer.new()
@@ -309,21 +327,18 @@ func _load_icon_or_null(path: String) -> Texture2D:
 	return _IntroUiAssets.load_tex(path)
 
 
-func _panel_bg_style() -> StyleBox:
-	var tex: Texture2D = _IntroUiAssets.load_tex(BG_PATH)
-	if tex == null:
-		return CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD_ACTIVE)
-	var sb := StyleBoxTexture.new()
-	sb.texture = tex
-	sb.texture_margin_left = BG_TEX_MARGIN
-	sb.texture_margin_top = BG_TEX_MARGIN
-	sb.texture_margin_right = BG_TEX_MARGIN
-	sb.texture_margin_bottom = BG_TEX_MARGIN
+func _panel_empty_style() -> StyleBoxEmpty:
+	var sb := StyleBoxEmpty.new()
 	sb.content_margin_left = 0
 	sb.content_margin_top = 0
 	sb.content_margin_right = 0
 	sb.content_margin_bottom = 0
 	return sb
+
+
+func _panel_bg_style() -> StyleBox:
+	## 互換用。書籍BGは TextureRect 直置き（9-slice禁止）。
+	return _panel_empty_style()
 
 
 func _refresh_page() -> void:
@@ -339,6 +354,10 @@ func _refresh_page() -> void:
 	var last: bool = _page_index >= PAGES.size() - 1
 	_next_btn.text = "はじめる" if last else "次へ"
 	_skip_btn.visible = not last
+	if _header_top_spacer != null:
+		_header_top_spacer.custom_minimum_size = Vector2(
+			0.0, HEADER_TOP_GAP_LAST_PAGE if last else 0.0
+		)
 
 
 func _play_intro() -> void:
@@ -387,6 +406,10 @@ func _finish() -> void:
 	if not _preview_only:
 		mark_done()
 	AudioManager.play_sfx("ui_confirm")
+	## 先に外してから通知（親が即ジャック支給できるようにする）。
+	var p: Node = get_parent()
+	if p != null:
+		p.remove_child(self)
 	dismissed.emit()
 	queue_free()
 

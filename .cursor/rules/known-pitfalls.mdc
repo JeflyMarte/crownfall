@@ -12,6 +12,9 @@ alwaysApply: true
 | 症状 | 原因 | 再発防止 |
 |---|---|---|
 | 鍛冶・錬成ボタン後にクリック不能／フリーズ | `AcceptDialog`（Window 排他）＋中身カスタム／ScrollTouch で入力が奪われる | 素材一覧は結果ポップ同様の **Control オーバーレイ**。行ボタンは ScrollTouch 後に `MOUSE_FILTER_STOP` を復元 |
+| はじめガイド閉じてもジャック／魔晶石がすぐ来ない | `dismissed` 時点で Overlay がまだツリーにあり、親が「ガイド中」判定で支給をスキップ | `_finish` で先に `remove_child`。支給は `call_deferred`＋`is_queued_for_deletion` 無視 |
+| はじめガイド周辺に黒い四角 | 書籍BGを `StyleBoxTexture` 9-slice。縁の黒マットが角に伸びる | 書籍は `TextureRect` 直置き（KEEP_ASPECT）。外側マットは透過 |
+| 加入セリフ（ジャック等）が透けて読めない | `UI_Join_QuotePanel` の吹き出し内が空洞（枠のみ） | 枠の下に不透明プレートを合成。文言は金の display |
 | タイトル「デバッグ」後に拠点で即終了 | `HubSimpleGuideOverlay.show_on` を1引数に戻したのに `BaseScene` が `show_on(self, true)` のまま → パース失敗で BaseScene 未実行 | API 差し戻し時は呼び出し側 arity を同時確認。`preview_only` は互換のため optional 第2引数を残す |
 | `Could not resolve class "CurrencyGainFx"`（起動パース失敗） | `tween_method(` に複数行ラムダ＋直後の `,` や、静的関数内の複雑なインライン Callable | 飛行更新は `_make_*` で Callable を返す。mutable カウンタは `Dictionary`。修正後 headless 起動確認 |
 | `Parser Error: Expected statement, found "else"` | Python の `for`/`else`・`while`/`else` | `gdscript.mdc` — フラグループを使う |

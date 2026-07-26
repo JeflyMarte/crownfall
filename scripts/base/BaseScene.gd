@@ -207,7 +207,8 @@ func _on_hub_simple_guide_dismissed() -> void:
 	if not _PetSystem.is_starter_pet_granted():
 		GameState.pending_hub_pet_grant_id = _PetSystem.STARTER_PET_ID
 		SaveManager.save_game()
-	_maybe_show_hub_pet_join()
+	## ガイドは queue_free 直後もツリーに残るため、次フレームでジャック支給へ。
+	call_deferred("_maybe_show_hub_pet_join")
 
 
 func _maybe_show_hub_pet_join() -> void:
@@ -215,17 +216,24 @@ func _maybe_show_hub_pet_join() -> void:
 	if pet_id.is_empty():
 		_maybe_grant_starting_tokens_fx()
 		return
-	if get_node_or_null("StarterJoinOverlay") != null:
+	if _hub_overlay_blocking("StarterJoinOverlay"):
 		return
-	if get_node_or_null("HubSimpleGuideOverlay") != null:
+	if _hub_overlay_blocking("HubSimpleGuideOverlay"):
 		return
-	if get_node_or_null("CommanderRankUpOverlay") != null:
+	if _hub_overlay_blocking("CommanderRankUpOverlay"):
 		return
-	if get_node_or_null("NinaDialogueOverlay") != null:
+	if _hub_overlay_blocking("NinaDialogueOverlay"):
 		return
 	var overlay: CanvasLayer = _StarterJoinOverlay.show_on(self, pet_id)
 	if overlay != null and not overlay.dismissed.is_connected(_on_starter_join_dismissed):
 		overlay.dismissed.connect(_on_starter_join_dismissed)
+
+
+func _hub_overlay_blocking(node_name: String) -> bool:
+	var n: Node = get_node_or_null(node_name)
+	if n == null:
+		return false
+	return not n.is_queued_for_deletion()
 
 
 const HUB_STARTING_TOKENS_FLAG: String = "hub_starting_tokens_granted"

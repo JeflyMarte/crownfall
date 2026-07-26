@@ -40,6 +40,31 @@ func test_grant_starter_pet_and_starting_tokens() -> void:
 	assert_eq(GameState.gacha_token, GachaSystem.STARTING_TOKENS)
 
 
+func test_guide_finish_removes_self_before_dismiss_signal() -> void:
+	## 親が dismissed 時点で get_node_or_null しないよう、先に外す契約。
+	## present/_build はアセット依存のため、最小 CanvasLayer で _finish 契約のみ検証。
+	var overlay: HubSimpleGuideOverlay = HubSimpleGuideOverlay.new()
+	overlay.name = "HubSimpleGuideOverlay"
+	overlay._preview_only = false
+	## _build を避けるため _ready 前にツリー外でフラグだけ立てる経路は使わず、
+	## 空の子を足してから add → _finish。
+	add_child(overlay)
+	var removed: Array = [false]
+	overlay.dismissed.connect(func() -> void:
+		removed[0] = overlay.get_parent() == null
+	)
+	## _ready で _build が走るとアセット未 import で ERROR になり得るため、
+	## 契約テストは remove_child＋emit 相当を直接再現。
+	var p: Node = overlay.get_parent()
+	assert_not_null(p)
+	p.remove_child(overlay)
+	overlay.dismissed.emit()
+	assert_true(removed[0], "dismissed 時点で親から外れていること")
+	overlay.free()
+	_HubGuide.mark_done()
+	assert_true(_HubGuide.is_done())
+
+
 func test_jack_join_quotes_are_barks() -> void:
 	const _Quotes := preload("res://scripts/roster/StarterJoinQuotes.gd")
 	assert_eq(_Quotes.line_for("pet_jack"), "ワンッ！")

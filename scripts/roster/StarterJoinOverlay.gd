@@ -385,7 +385,8 @@ func _refresh_showcase() -> void:
 	_quote_label.text = "「%s」" % _StarterJoinQuotes.line_for(_adventurer_id)
 	UiTypography.apply_display(_name_label, UiTypography.SIZE_DISPLAY, UiTypography.COLOR_GOLD)
 	UiTypography.apply_display(_stars_label, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
-	UiTypography.apply_body(_quote_label, UiTypography.SIZE_BODY, UiTypography.COLOR_BODY)
+	## 吹き出し下地が暗いので、本文色ではなく金で不透明表示。
+	UiTypography.apply_display(_quote_label, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
 
 
 func _play_showcase_intro() -> void:
