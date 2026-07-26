@@ -14,13 +14,26 @@ const PET_FORMATION_SLOT: int = 4
 ## 旧 0.55 は max_threat 選択下で人間（≥1.0）がいる限り一度も狙われず無敵に見えた。
 ## 雑魚職(1.0)より少し高く、剣士(2.0)／盾(4.0)より低く保つ。
 const PET_THREAT_BASE: float = 1.35
+## はじめガイド後のギルド支給完了フラグ（tutorial_flags）。
+const STARTER_PET_GRANTED_FLAG: String = "starter_pet_granted"
 
 ## ダンジョン SURVEY 100%（完全調査）→ 解放ペット id（P3-PET-SURVEY-UNLOCK-001）
-## ジャックは開始随伴のまま（本表に載せない）。
+## ジャックはガイド後のギルド支給（本表に載せない）。
 const UNLOCK_SURVEY_TO_PET: Dictionary = {
 	"whisperwood": PET_ASH_ID,
 	"blackshore": PET_INK_ID,
 }
+
+
+static func is_starter_pet_granted() -> bool:
+	return bool(GameState.tutorial_flags.get(STARTER_PET_GRANTED_FLAG, false))
+
+
+## ギルド支給（はじめガイド後の加入演出／テスト用）。既に所持なら active を整えるだけ。
+static func grant_starter_pet() -> Resource:
+	GameState.tutorial_flags[STARTER_PET_GRANTED_FLAG] = true
+	ensure_owned_pets_seeded()
+	return ensure_starter_pet()
 
 
 static func is_pet_id(member_id: String) -> bool:
@@ -89,6 +102,9 @@ static func create_pet_adventurer(pet_id: String = STARTER_PET_ID) -> Resource:
 
 
 static func ensure_owned_pets_seeded() -> void:
+	## ジャックはガイド後支給まで所持に入れない。
+	if not is_starter_pet_granted():
+		return
 	if GameState.owned_pet_ids.is_empty():
 		GameState.owned_pet_ids = [STARTER_PET_ID]
 	elif not GameState.owned_pet_ids.has(STARTER_PET_ID):
@@ -96,6 +112,8 @@ static func ensure_owned_pets_seeded() -> void:
 
 
 static func owns_pet(pet_id: String) -> bool:
+	if pet_id == STARTER_PET_ID and not is_starter_pet_granted():
+		return false
 	ensure_owned_pets_seeded()
 	return GameState.owned_pet_ids.has(pet_id)
 
@@ -117,6 +135,9 @@ static func owned_pet_ids_ordered() -> Array[String]:
 static func unlock_pet(pet_id: String, notify: bool = true) -> bool:
 	if not is_pet_id(pet_id) or get_pet_data(pet_id) == null:
 		return false
+	if pet_id == STARTER_PET_ID:
+		grant_starter_pet()
+		return true
 	ensure_owned_pets_seeded()
 	if GameState.owned_pet_ids.has(pet_id):
 		return false
@@ -174,6 +195,9 @@ static func set_active_pet_id(pet_id: String) -> bool:
 
 
 static func ensure_starter_pet() -> Resource:
+	if not is_starter_pet_granted():
+		GameState.active_pet = null
+		return null
 	ensure_owned_pets_seeded()
 	if GameState.active_pet != null and is_pet_member(GameState.active_pet):
 		## 所持外の id が残っていたらジャックへ戻す

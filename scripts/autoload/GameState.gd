@@ -21,7 +21,7 @@ var roster: Array = []
 
 ## 随伴オトモ（P3-PET-OTOMO-001）。roster/party_members 外。出撃は常時1体。
 var active_pet: Resource = null
-## 所持オトモ id 一覧（P3-PET-VARIANT-001）。常に pet_jack を含む。
+## 所持オトモ id 一覧（P3-PET-VARIANT-001）。ジャックはガイド後のギルド支給で入る。
 var owned_pet_ids: Array[String] = []
 
 ## 解放済みスターター id（P3-STORY-STARTER-001）。空かつストーリーON＝選択待ち。
@@ -34,6 +34,8 @@ var last_run_starter_recruited_name: String = ""
 var last_run_starter_recruited_id: String = ""
 ## 拠点で加入セリフ＋入手演出待ちのスターター id（セーブ永続）。
 var pending_starter_recruit_id: String = ""
+## はじめガイド後のジャック支給演出待ち（セーブ永続）。
+var pending_hub_pet_grant_id: String = ""
 ## 章クリア後ニーナ功績トーク待ち（加入候補があるとき）。
 var pending_clear_nina_merit: bool = false
 ## 章クリア後ニーナ加入予告待ち。
@@ -1375,7 +1377,8 @@ func _ready() -> void:
 ## タイトル「はじめから」用。永続＋ラン中状態を初期化し、スターター選択待ちにする。
 func reset_for_new_game() -> void:
 	gold = 0
-	gacha_token = GachaSystem.STARTING_TOKENS
+	## 魔晶石ははじめガイド完了後にギルド支給（CurrencyGainFx）。
+	gacha_token = 0
 	debug_full_unlock = false
 	owned_helpers = {}
 	ticket_inventory = {}
@@ -1430,6 +1433,7 @@ func reset_for_new_game() -> void:
 	last_run_starter_recruited_id = ""
 	last_run_starter_recruited_name = ""
 	pending_starter_recruit_id = ""
+	pending_hub_pet_grant_id = ""
 	pending_clear_nina_merit = false
 	pending_clear_nina_teaser = false
 	pending_clear_stage_id = ""
@@ -1476,7 +1480,7 @@ func seed_all_starters_unlocked() -> void:
 	normalize_all_equipped_skills()
 	normalize_all_equipped_passives()
 	migrate_formation_slots_if_needed()
-	_PetSystem.ensure_starter_pet()
+	_PetSystem.grant_starter_pet()
 
 func _init_party() -> void:
 	roster = []
@@ -1486,13 +1490,14 @@ func _init_party() -> void:
 	last_run_starter_recruited_id = ""
 	last_run_starter_recruited_name = ""
 	pending_starter_recruit_id = ""
+	pending_hub_pet_grant_id = ""
 	pending_clear_nina_merit = false
 	pending_clear_nina_teaser = false
 	pending_clear_stage_id = ""
 	if Constants.STARTER_STORY_RECRUIT:
 		starter_unlocked_ids = []
 		starter_pick_pending = true
-		_PetSystem.ensure_starter_pet()
+		## ジャックははじめガイド後に支給。
 		return
 	starter_unlocked_ids = []
 	for def in BASE_ROSTER_DEFS:
@@ -1507,7 +1512,7 @@ func _init_party() -> void:
 	_grant_starting_equipment()
 	normalize_all_equipped_skills()
 	normalize_all_equipped_passives()
-	_PetSystem.ensure_starter_pet()
+	_PetSystem.grant_starter_pet()
 
 
 func needs_starter_pick() -> bool:
@@ -1537,7 +1542,7 @@ func select_starting_adventurer(adventurer_id: String) -> bool:
 	normalize_all_equipped_skills()
 	normalize_all_equipped_passives()
 	migrate_formation_slots_if_needed()
-	_PetSystem.ensure_starter_pet()
+	## ジャックははじめガイド後に支給（ここでは付与しない）。
 	return true
 
 

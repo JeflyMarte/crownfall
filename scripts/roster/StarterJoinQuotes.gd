@@ -20,6 +20,7 @@ const JOIN_LINES: Dictionary = {
 	"adventurer_4": (
 		"ジャックと一緒に、生き物の声が聞こえる場所へ行きたい。だからこの調査隊に入るよ。"
 	),
+	"pet_jack": "わんわん！",
 }
 
 ## ロスター確定後。動機の繰り返しではなく、これからどう動くかの一言。
@@ -29,6 +30,7 @@ const REVEAL_LINES: Dictionary = {
 	"adventurer_2": "薬袋は開けてある。怪我人が出たら、すぐ呼んでくれ。",
 	"adventurer_3": "盾は預かった。お前たちの背中は、俺が守る。",
 	"adventurer_4": "ジャックも喜んでるよ。一緒にいこう！",
+	"pet_jack": "わん！",
 }
 
 
@@ -44,6 +46,11 @@ static func _line_from(table: Dictionary, adventurer_id: String) -> String:
 	var line: String = str(table.get(adventurer_id, "")).strip_edges()
 	if not line.is_empty():
 		return line
+	const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
+	if _PetSystem.is_pet_id(adventurer_id):
+		var pet: Resource = _PetSystem.get_pet_data(adventurer_id)
+		var nm: String = str(pet.display_name) if pet != null else "オトモ"
+		return "%sが調査隊に合流する。" % nm
 	var def: Variant = GameState.find_base_roster_def(adventurer_id)
 	if def is Dictionary:
 		return "%sが調査隊に合流する。" % str(def.get("name", "仲間"))

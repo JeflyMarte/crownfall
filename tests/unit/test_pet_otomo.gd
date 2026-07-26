@@ -8,6 +8,7 @@ func before_each() -> void:
 	GameState.reset_for_new_game()
 	if Constants.STARTER_STORY_RECRUIT:
 		assert_true(GameState.select_starting_adventurer("adventurer_0"))
+	_PetSystem.grant_starter_pet()
 
 
 func test_jack_exists_outside_party() -> void:

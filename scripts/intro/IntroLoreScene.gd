@@ -3,6 +3,7 @@ extends Control
 ## 世界観ナレーション（自動縦クロール・スキップ可）— P3-INTRO-001 / 002 / P3-INTRO-SCROLL-001。
 ## 案A polish: clip＋リスト移動で上→下クロール。上下フェード／緩急付き。
 ## 全文が1画面に収まる場合も、前後余白で必ずスクロール距離を確保する。
+## 画面どこでもタッチで即加速。本文末尾が中央より上で「TAP」→タップで次へ。
 
 const _IntroLoreContent := preload("res://scripts/intro/IntroLoreContent.gd")
 const _IntroUiAssets := preload("res://scripts/intro/IntroUiAssets.gd")
@@ -12,10 +13,8 @@ const NEXT_SCENE: String = "res://scenes/intro/IntroNameScene.tscn"
 ## 自動クロール基準速度（px/秒）。
 const CRAWL_SPEED_PX_PER_SEC: float = 50.0
 const CRAWL_START_DELAY_SEC: float = 0.5
-## 長押し中の速度倍率。
+## 画面タッチ中の速度倍率（どこを押しても即加速）。
 const CRAWL_BOOST_MULT: float = 4.0
-## 押し続けてから加速が始まるまでの秒（誤タップで一瞬加速しない）。
-const LONG_PRESS_BOOST_SEC: float = 0.18
 const PANEL_DWELL_RADIUS_PX: float = 56.0
 const PANEL_DWELL_SPEED_MULT: float = 0.42
 const EASE_EDGE_PX: float = 80.0
@@ -27,7 +26,7 @@ const LEAD_OUT_VIEW_RATIO: float = 0.85
 const INTRO_MIN_BOTTOM_MARGIN: float = 48.0
 const INTRO_BASE_TOP_MARGIN: float = 28.0
 const INTRO_BASE_BOTTOM_MARGIN: float = 24.0
-const TAP_PROMPT_TEXT: String = "TAP！"
+const TAP_PROMPT_TEXT: String = "TAP"
 
 var _clip: Control
 var _list: VBoxContainer
@@ -42,10 +41,9 @@ var _tap_catcher: ColorRect
 var _crawl_active: bool = false
 var _press_held: bool = false
 var _crawl_boost: bool = false
-var _press_hold_sec: float = 0.0
 var _reached_end: bool = false
 var _advance_ready: bool = false
-## 終端到達時に押したままの指を離しても進まない（新しいタップが必要）。
+## TAP 表示時に押したままの指を離しても進まない（新しいタップが必要）。
 var _suppress_release_advance: bool = false
 var _scroll_pos: float = 0.0
 var _layout_ready: bool = false
@@ -63,10 +61,28 @@ func _ready() -> void:
 	_start_crawl_after_delay()
 
 
+func _input(event: InputEvent) -> void:
+	## スキップ等の GUI より先に、画面全体のタッチで加速する（イベントは消費しない）。
+	if _advance_ready or _reached_end:
+		return
+	if event is InputEventMouseButton:
+		var mb: InputEventMouseButton = event as InputEventMouseButton
+		if mb.button_index == MOUSE_BUTTON_LEFT or mb.button_index == MOUSE_BUTTON_RIGHT:
+			if mb.pressed:
+				_begin_press()
+			else:
+				_end_press()
+	elif event is InputEventScreenTouch:
+		var st: InputEventScreenTouch = event as InputEventScreenTouch
+		if st.pressed:
+			_begin_press()
+		else:
+			_end_press()
+	elif event is InputEventScreenDrag:
+		_begin_press()
+
+
 func _process(delta: float) -> void:
-	if _press_held and not _reached_end:
-		_press_hold_sec += delta
-		_crawl_boost = _press_hold_sec >= LONG_PRESS_BOOST_SEC
 	if not _crawl_active or _reached_end or not _layout_ready:
 		return
 	if _clip == null or _list == null:
@@ -74,15 +90,18 @@ func _process(delta: float) -> void:
 	var max_v: float = _max_scroll()
 	if max_v <= 1.0:
 		# 余白調整後も距離が無いなら読み終わり扱い（固まるのを防ぐ）。
-		_on_reached_end()
+		_enable_tap_to_advance()
 		return
 	var speed: float = CRAWL_SPEED_PX_PER_SEC * _crawl_speed_mult(_scroll_pos, max_v)
 	var next_v: float = _scroll_pos + speed * delta
 	if next_v >= max_v:
 		_set_scroll_pos(max_v)
-		_on_reached_end()
-	else:
-		_set_scroll_pos(next_v)
+		_enable_tap_to_advance()
+		return
+	_set_scroll_pos(next_v)
+	## 本文末尾が画面中央より上に出たら TAP（スクロール終端より早く出ることがある）。
+	if _is_last_line_above_center():
+		_enable_tap_to_advance()
 
 
 func _max_scroll() -> float:
@@ -200,7 +219,7 @@ func _build_ui() -> void:
 	panel_wrap.add_child(_lore_body_lbl)
 
 	_hint_lbl = Label.new()
-	_hint_lbl.text = "長押しでスクロール加速"
+	_hint_lbl.text = "画面をタッチで加速"
 	_hint_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_caption(_hint_lbl)
 	_list.add_child(_hint_lbl)
@@ -362,66 +381,59 @@ func _prepare_crawl_layout() -> void:
 
 
 func _on_clip_gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton:
-		var mb: InputEventMouseButton = event
-		if mb.button_index == MOUSE_BUTTON_LEFT or mb.button_index == MOUSE_BUTTON_RIGHT:
-			if mb.pressed:
-				_begin_press()
-			else:
-				_end_press()
-				_check_manual_end()
-				_try_advance_after_end()
-	elif event is InputEventScreenTouch:
-		var st: InputEventScreenTouch = event
-		if st.pressed:
-			_begin_press()
-		else:
-			_end_press()
-			_check_manual_end()
-			_try_advance_after_end()
-	elif event is InputEventScreenDrag:
-		## ドラッグ中は長押し加速扱い（読み飛ばし用）。
-		_press_held = true
-		_press_hold_sec = LONG_PRESS_BOOST_SEC
-		_crawl_boost = true
+	## クリップ内ドラッグは手動スクロール＋加速。押下自体は `_input` でも拾う。
+	if event is InputEventScreenDrag:
+		_begin_press()
 		_set_scroll_pos(_scroll_pos - float(event.relative.y))
-		_check_manual_end()
+		if _is_last_line_above_center():
+			_enable_tap_to_advance()
+	elif event is InputEventMouseMotion:
+		var motion: InputEventMouseMotion = event as InputEventMouseMotion
+		if (motion.button_mask & MOUSE_BUTTON_MASK_LEFT) != 0:
+			_begin_press()
+			_set_scroll_pos(_scroll_pos - float(motion.relative.y))
+			if _is_last_line_above_center():
+				_enable_tap_to_advance()
 
 
 func _begin_press() -> void:
+	if _reached_end or _advance_ready:
+		return
 	_press_held = true
-	_press_hold_sec = 0.0
-	_crawl_boost = false
+	## どこを触っても即加速。
+	_crawl_boost = true
 
 
 func _end_press() -> void:
 	_press_held = false
-	_press_hold_sec = 0.0
 	_crawl_boost = false
 
 
-func _check_manual_end() -> void:
-	if _reached_end or not _layout_ready:
-		return
-	var max_v: float = _max_scroll()
-	if max_v <= 1.0:
-		return
-	if _scroll_pos >= max_v - 2.0:
-		_set_scroll_pos(max_v)
-		_on_reached_end()
+## 本文ブロック下端（＝最終行付近）が画面中央より上か。
+func _is_last_line_above_center() -> bool:
+	if _lore_body_lbl == null or not is_instance_valid(_lore_body_lbl):
+		return false
+	if not _layout_ready:
+		return false
+	var body_rect: Rect2 = _lore_body_lbl.get_global_rect()
+	if body_rect.size.y <= 1.0:
+		return false
+	var last_line_bottom: float = body_rect.position.y + body_rect.size.y
+	var mid_y: float = get_viewport_rect().get_center().y
+	return last_line_bottom < mid_y
 
 
-func _on_reached_end() -> void:
+func _enable_tap_to_advance() -> void:
 	if _reached_end:
 		return
 	_reached_end = true
 	_crawl_active = false
-	## 加速長押しのまま終端に来た場合、その release では進まない。
+	## 加速タッチのまま TAP 条件に達した場合、その release では進まない。
 	_suppress_release_advance = _press_held
 	_end_press()
 	_advance_ready = true
 	if _hint_lbl != null:
-		_hint_lbl.text = TAP_PROMPT_TEXT
+		_hint_lbl.visible = false
 	_show_tap_prompt()
 
 
@@ -451,7 +463,7 @@ func _ensure_tap_catcher() -> void:
 	_tap_catcher.z_index = 7
 	_tap_catcher.gui_input.connect(_on_tap_catcher_gui_input)
 	add_child(_tap_catcher)
-	## TAP! 文言はキャッチより前面。
+	## TAP 文言はキャッチより前面。
 	if _tap_prompt_lbl != null:
 		move_child(_tap_prompt_lbl, get_child_count() - 1)
 
@@ -470,21 +482,12 @@ func _on_tap_catcher_gui_input(event: InputEvent) -> void:
 		var st: InputEventScreenTouch = event as InputEventScreenTouch
 		pressed_now = st.pressed
 		released_now = not st.pressed
-	## 終端到達時に押したままの指は、離すだけで消費（進まない）。
+	## TAP 表示時に押したままの指は、離すだけで消費（進まない）。
 	if released_now and _suppress_release_advance:
 		_suppress_release_advance = false
 		return
 	if pressed_now and not _suppress_release_advance:
 		_go_next()
-
-
-func _try_advance_after_end() -> void:
-	if not _advance_ready or not _reached_end:
-		return
-	if _suppress_release_advance:
-		_suppress_release_advance = false
-		return
-	_go_next()
 
 
 func _notification(what: int) -> void:
@@ -495,6 +498,8 @@ func _notification(what: int) -> void:
 			var max_v: float = _max_scroll()
 			if max_v > 0.0:
 				_set_scroll_pos(minf(_scroll_pos, max_v))
+			if not _reached_end and _is_last_line_above_center():
+				_enable_tap_to_advance()
 
 
 func _go_next() -> void:

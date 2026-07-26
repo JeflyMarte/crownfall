@@ -22,6 +22,7 @@ func test_build_party_snapshots_includes_pet() -> void:
 	GameState.reset_for_new_game()
 	if Constants.STARTER_STORY_RECRUIT:
 		assert_true(GameState.select_starting_adventurer("adventurer_0"))
+	preload("res://scripts/pets/PetSystem.gd").grant_starter_pet()
 	assert_not_null(GameState.active_pet)
 	var snaps: Dictionary = _ExpRunSnapshot.build_party_snapshots(50)
 	assert_true(snaps.has("pet_jack"))
