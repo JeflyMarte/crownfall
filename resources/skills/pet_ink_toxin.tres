@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "pet_ink_toxin"
+display_name = "影毒"
+description = "影の牙に毒を乗せ、敵を蝕む。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 0.95
+cooldown = 3.8
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["melee", "pierce", "pet"])
+element = ""
+apply_status_id = "poison"
+apply_status_chance = 0.55
+slot_type = "skill"
+range_type = "melee"

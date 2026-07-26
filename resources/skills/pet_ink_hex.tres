@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "pet_ink_hex"
+display_name = "呪影"
+description = "影で印をつけ、味方の追撃を呼び込む。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 0.9
+cooldown = 5.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["melee", "pierce", "pet"])
+element = ""
+apply_status_id = "mark"
+apply_status_chance = 0.7
+slot_type = "skill"
+range_type = "melee"

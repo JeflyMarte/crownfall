@@ -15,6 +15,22 @@ id = "pet_ash"
 display_name = "アッシュ"
 rarity = 1
 base_stats = SubResource("Stats_ash")
-skill_ids = Array[String](["pet_ash_bark", "pet_ash_guard"])
+skill_ids = Array[String](["pet_ash_bark", "pet_ash_guard", "pet_ash_howl", "pet_ash_bulwark", "pet_ash_aegis"])
+skill_unlocks = Array[Dictionary]([{
+"skill_id": "pet_ash_bark",
+"level": 1
+}, {
+"skill_id": "pet_ash_guard",
+"level": 8
+}, {
+"skill_id": "pet_ash_howl",
+"level": 16
+}, {
+"skill_id": "pet_ash_bulwark",
+"level": 24
+}, {
+"skill_id": "pet_ash_aegis",
+"level": 32
+}])
 sprite_resource_path = "res://resources/animation/PET_Ash.tres"
 origin_note = "ギルド随伴訓練舎の夜間索敵組。ジャックの同期。灰白の毛並み。守り役。"

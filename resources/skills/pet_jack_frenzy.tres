@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "pet_jack_frenzy"
+display_name = "猛進"
+description = "気勢を高め、自身の与ダメージを上昇させる。"
+skill_type = "player"
+target_type = "self"
+power_multiplier = 1.0
+cooldown = 6.5
+trigger_type = "cooldown"
+effect_type = "buff"
+tags = Array[String](["support", "buff", "pet", "self"])
+element = ""
+apply_status_id = "empower"
+apply_status_chance = 1.0
+slot_type = "skill"
+range_type = "long"

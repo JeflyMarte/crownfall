@@ -98,4 +98,7 @@ static func grant_exp_to_party(amount: int) -> Dictionary:
 		var pet_gained: int = grant_exp(gs.active_pet, amount)
 		if pet_gained > 0:
 			result[gs.active_pet.id] = pet_gained
+			## Lv到達で即スキルが増える（P3-PET-SKILL-001）
+			const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
+			_PetSystem.sync_pet_runtime(gs.active_pet)
 	return result

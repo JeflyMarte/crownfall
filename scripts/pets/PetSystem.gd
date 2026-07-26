@@ -79,17 +79,11 @@ static func create_pet_adventurer(pet_id: String = STARTER_PET_ID) -> Resource:
 		stats.attack = 70
 		stats.defense = 35
 	adv.base_stats = stats
-	var skills: Array[String] = []
-	if data != null:
-		for sid in data.skill_ids:
-			var s: String = str(sid)
-			if not s.is_empty() and not skills.has(s):
-				skills.append(s)
-	# オトモは装備枠1の人間ルール外（固定スキル列をそのまま持つ）。
-	if skills.is_empty():
-		skills.append("pet_nibble")
-		skills.append("pet_pounce")
-	adv.equipped_skill_ids = skills
+	## オトモは装備枠1の人間ルール外。解放済み全本を装備（P3-PET-SKILL-001）。
+	SkillProgression.normalize_equipped_skills(adv)
+	if adv.equipped_skill_ids.is_empty():
+		var fallback: Array[String] = ["pet_nibble", "pet_pounce"]
+		adv.equipped_skill_ids = fallback
 	return adv
 
 
@@ -195,13 +189,8 @@ static func sync_pet_runtime(pet: Resource) -> void:
 	var data: Resource = get_pet_data(str(pet.id))
 	if data != null and not str(data.display_name).is_empty():
 		pet.display_name = str(data.display_name)
-	var skills: Array[String] = []
-	if data != null:
-		for sid in data.skill_ids:
-			var s: String = str(sid)
-			if not s.is_empty() and not skills.has(s):
-				skills.append(s)
-	if skills.is_empty():
-		skills.append("pet_nibble")
-		skills.append("pet_pounce")
-	pet.equipped_skill_ids = skills
+	## Lv から解放スキルを導出（切替持ち越し防止・セーブ非保存）
+	SkillProgression.normalize_equipped_skills(pet)
+	if pet.equipped_skill_ids.is_empty():
+		var fallback: Array[String] = ["pet_nibble", "pet_pounce"]
+		pet.equipped_skill_ids = fallback

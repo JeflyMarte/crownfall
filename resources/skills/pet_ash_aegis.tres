@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "pet_ash_aegis"
+display_name = "守護陣"
+description = "仲間を包む守りを張り、味方全体の被ダメージを軽減する。"
+skill_type = "player"
+target_type = "all_party"
+power_multiplier = 1.0
+cooldown = 8.0
+trigger_type = "cooldown"
+effect_type = "buff"
+tags = Array[String](["support", "buff", "pet"])
+element = ""
+apply_status_id = "guard"
+apply_status_chance = 1.0
+slot_type = "skill"
+range_type = "long"

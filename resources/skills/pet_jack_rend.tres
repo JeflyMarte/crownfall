@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "pet_jack_rend"
+display_name = "裂牙"
+description = "牙で裂き、敵に出血を残す。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 1.05
+cooldown = 3.5
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["melee", "pierce", "pet"])
+element = ""
+apply_status_id = "bleed"
+apply_status_chance = 0.5
+slot_type = "skill"
+range_type = "melee"

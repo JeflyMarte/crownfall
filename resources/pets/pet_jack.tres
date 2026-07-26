@@ -15,6 +15,22 @@ id = "pet_jack"
 display_name = "ジャック"
 rarity = 1
 base_stats = SubResource("Stats_jack")
-skill_ids = Array[String](["pet_nibble", "pet_pounce"])
+skill_ids = Array[String](["pet_nibble", "pet_pounce", "pet_jack_rend", "pet_jack_frenzy", "pet_jack_savage"])
+skill_unlocks = Array[Dictionary]([{
+"skill_id": "pet_nibble",
+"level": 1
+}, {
+"skill_id": "pet_pounce",
+"level": 8
+}, {
+"skill_id": "pet_jack_rend",
+"level": 16
+}, {
+"skill_id": "pet_jack_frenzy",
+"level": 24
+}, {
+"skill_id": "pet_jack_savage",
+"level": 32
+}])
 sprite_resource_path = "res://resources/animation/PET_Jack.tres"
 origin_note = "ギルド随伴訓練舎育ちの伴侶獣。隊長登録時から新人調査隊へ貸与される随伴ペット"
