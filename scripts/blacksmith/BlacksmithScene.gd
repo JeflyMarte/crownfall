@@ -811,6 +811,7 @@ func _framed_result_detail_opts() -> Dictionary:
 		"framed_icon": true,
 		"show_enhance_badge": false,
 		"content_pad_top": 18,
+		"meta_host": self,
 	}
 
 

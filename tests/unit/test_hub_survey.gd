@@ -133,6 +133,49 @@ func test_survey_staff_can_start_cycle_without_roster() -> void:
 	GameState.hub_survey_cycle = {}
 
 
+func test_investigator_slots_always_four() -> void:
+	assert_eq(_SurveyConfig.INVESTIGATOR_SLOTS, 4)
+	assert_eq(_SurveyConfig.INVESTIGATOR_UI_SLOTS, 4)
+
+
+func test_cannot_dispatch_all_combat_roster() -> void:
+	## 戦闘メンバー全員を調査へ出すと開始不可。編成用に1人残す。
+	assert_true(not GameState.roster.is_empty(), "roster required")
+	GameState.hub_survey_cycle = {}
+	var combat_ids: Array[String] = _SurveySystem.combat_roster_ids()
+	assert_gte(combat_ids.size(), 1)
+	assert_false(
+		_SurveySystem.leaves_combat_for_party(combat_ids),
+		"全員配置の仮想案は編成用が残らない"
+	)
+	if combat_ids.size() <= _SurveyConfig.INVESTIGATOR_SLOTS:
+		var rejected: Dictionary = _SurveySystem.start_cycle(
+			Constants.MOURNGATE_DUNGEON_ID,
+			_SurveyConfig.PRESET_SHORT,
+			combat_ids
+		)
+		assert_false(bool(rejected.get("ok", true)), "全員派遣は拒否")
+		assert_true(str(rejected.get("reason", "")).contains("編成"))
+	if combat_ids.size() >= 2:
+		GameState.hub_survey_cycle = {}
+		var partial: Array[String] = [combat_ids[0]]
+		var ok: Dictionary = _SurveySystem.start_cycle(
+			Constants.MOURNGATE_DUNGEON_ID,
+			_SurveyConfig.PRESET_SHORT,
+			partial
+		)
+		assert_true(bool(ok.get("ok", false)), str(ok))
+		assert_false(GameState.party_members.is_empty(), "編成が空にならない")
+		GameState.hub_survey_cycle = {}
+	var auto_ids: Array[String] = _SurveySystem.auto_assign_members()
+	assert_true(_SurveySystem.leaves_combat_for_party(auto_ids), "おまかせも編成用を残す")
+	if combat_ids.size() == 1:
+		assert_false(
+			_SurveySystem.can_place_without_emptying_party([], 0, combat_ids[0]),
+			"唯一の戦闘メンバーは編成用に残す"
+		)
+
+
 func test_achieve_entries_exist() -> void:
 	var rows: Array[Dictionary] = _SurveySystem.achieve_entries()
 	assert_gt(rows.size(), 0)

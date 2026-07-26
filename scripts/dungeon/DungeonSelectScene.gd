@@ -191,6 +191,7 @@ var _pending_enter_dungeon_id: String = ""
 var _enter_confirm_overlay: Control
 var _enter_confirm_yes: Button
 var _enter_confirm_no: Button
+var _party_empty_dialog: AcceptDialog
 
 const STAGE_CARD_MIN_SIZE: Vector2 = Vector2(136, 78)
 const STAGE_THUMB_SIZE: Vector2 = Vector2(44, 44)
@@ -248,6 +249,7 @@ func _ready() -> void:
 	_apply_typography()
 	_constrain_featured_text_labels()
 	_setup_enter_confirm()
+	_setup_party_empty_dialog()
 	_refresh_all()
 	call_deferred("_maybe_show_content_unlock")
 
@@ -257,6 +259,31 @@ func _maybe_show_content_unlock() -> void:
 	## 章クリア加入ストーリー中は拠点で功績→解放の順に出す。
 	if not GameState.pending_clear_nina_merit:
 		_ContentUnlockNotice.show_pending_on(self)
+
+func _setup_party_empty_dialog() -> void:
+	_party_empty_dialog = AcceptDialog.new()
+	_party_empty_dialog.title = "編成が空です"
+	_party_empty_dialog.dialog_text = (
+		"パーティに冒険者がいません。\n"
+		+ "調査室から戻すか、編成画面で仲間を入れてから潜ってください。"
+	)
+	_party_empty_dialog.ok_button_text = "閉じる"
+	add_child(_party_empty_dialog)
+
+
+func _party_has_adventurer() -> bool:
+	for adv in GameState.party_members:
+		if adv != null:
+			return true
+	return false
+
+
+func _show_party_empty_notice() -> void:
+	if _party_empty_dialog == null:
+		return
+	AudioManager.play_sfx("ui_error")
+	_party_empty_dialog.popup_centered()
+
 
 func _setup_enter_confirm() -> void:
 	_enter_confirm_overlay = Control.new()
@@ -1751,6 +1778,9 @@ func _prompt_enter_dungeon(dungeon_id: String) -> void:
 		return
 	if not GameState.can_attempt_event_dungeon(dungeon_id):
 		return
+	if not _party_has_adventurer():
+		_show_party_empty_notice()
+		return
 	if _uses_stage_cards(dungeon_id):
 		if _selected_stage_id.is_empty() or not GameState.is_stage_unlocked(_selected_stage_id):
 			return
@@ -1768,6 +1798,9 @@ func _do_enter_dungeon(dungeon_id: String) -> void:
 	if DataRegistry.get_dungeon_data(dungeon_id) == null:
 		return
 	if not GameState.is_dungeon_unlocked(dungeon_id):
+		return
+	if not _party_has_adventurer():
+		_show_party_empty_notice()
 		return
 	if not GameState.consume_event_dungeon_attempt(dungeon_id):
 		return

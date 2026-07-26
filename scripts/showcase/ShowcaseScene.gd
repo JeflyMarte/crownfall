@@ -706,7 +706,7 @@ func _show_equip_detail(item: Resource, category: String) -> void:
 		_detail_host,
 		item,
 		category,
-		{"show_owner": false, "header_icon_px": 72}
+		{"show_owner": false, "header_icon_px": 72, "meta_host": self}
 	)
 	_detail_overlay.visible = true
 

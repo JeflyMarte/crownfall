@@ -779,11 +779,10 @@ func _rebuild_assignees() -> void:
 	var cycle_active: bool = _SurveySystem.has_active_cycle()
 	_btn_auto.disabled = cycle_active
 	for i in range(_SurveyConfig.INVESTIGATOR_UI_SLOTS):
-		var locked: bool = i >= _SurveyConfig.INVESTIGATOR_SLOTS
 		var mid: String = ""
-		if not locked and i < show_ids.size():
+		if i < show_ids.size():
 			mid = show_ids[i]
-		_assignee_box.add_child(_build_assignee_card(i, mid, locked, cycle_active))
+		_assignee_box.add_child(_build_assignee_card(i, mid, false, cycle_active))
 
 
 func _build_assignee_card(slot: int, member_id: String, locked: bool, cycle_active: bool) -> PanelContainer:
@@ -926,22 +925,36 @@ func _open_member_pick_list(slot: int) -> void:
 		var role: String = _SurveySystem.role_for_assignee(cand, slot)
 		var bonus: float = _SurveySystem.investigator_speed_bonus(cand, role)
 		var subtitle: String = "+%.0f%%" % (bonus * 100.0)
+		var selected: bool = cand == cur and not cur.is_empty()
+		var disabled: bool = used
 		if _SurveySystem.is_survey_staff(cand):
 			subtitle = "調査室  " + subtitle
 		elif used:
 			subtitle = "他スロット配置中"
+		elif selected:
+			subtitle = "タップで外す"
+		elif not _SurveySystem.can_place_without_emptying_party(_pending_members, slot, cand):
+			disabled = true
+			subtitle = "編成用に残す"
 		rows.append({
 			"id": cand,
 			"title": title,
 			"subtitle": subtitle,
 			"texture": _SurveySystem.investigator_portrait_texture(cand),
-			"selected": cand == cur,
-			"disabled": used,
+			"selected": selected,
+			"disabled": disabled,
 		})
 	_open_pick_list("調査員を選択", rows, func(picked_id: String) -> void:
 		if picked_id.is_empty():
 			return
 		if used_elsewhere.has(picked_id):
+			return
+		## 選択中の同じキャラを再タップ → 枠から外す。
+		if picked_id == cur and not cur.is_empty():
+			_pending_members[slot] = ""
+			_refresh()
+			return
+		if not _SurveySystem.can_place_without_emptying_party(_pending_members, slot, picked_id):
 			return
 		_pending_members[slot] = picked_id
 		_refresh()

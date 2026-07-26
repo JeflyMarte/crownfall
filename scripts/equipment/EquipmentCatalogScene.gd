@@ -292,7 +292,7 @@ func _on_cell_pressed(item: Resource, category: String) -> void:
 	call_deferred("_rebuild_inventory_grid")
 
 func _refresh_detail_panel() -> void:
-	EquipmentItemDetailHelper.populate_stats_panel(_detail_host, _selected_item, _selected_category)
+	EquipmentItemDetailHelper.populate_stats_panel(_detail_host, _selected_item, _selected_category, self)
 
 func _sync_inventory_cell_size() -> void:
 	var sep: int = _inventory_grid.get_theme_constant("h_separation", "GridContainer")

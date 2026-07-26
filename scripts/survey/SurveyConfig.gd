@@ -12,10 +12,9 @@ const PRESET_STANDARD: String = "standard"
 const SHORT_DURATION_SEC: float = 20.0 * 60.0
 const STANDARD_DURATION_SEC: float = 3.0 * 60.0 * 60.0
 
-const INVESTIGATOR_SLOTS: int = 3
-## UI 表示枠（うち末尾は Phase1 ロック）。
+const INVESTIGATOR_SLOTS: int = 4
+## UI 表示枠（常時全開放）。
 const INVESTIGATOR_UI_SLOTS: int = 4
-const INVESTIGATOR_SLOT_LOCKED: int = 3 ## 4枠目はロック表示用 index
 const MAX_SPEED_BONUS: float = 0.40
 
 ## 調査員速度ボーナス（案A: 装備込み ATK+DEF+HP に比例）。
@@ -55,11 +54,12 @@ const MATERIAL_SHORT_MAX: int = 4
 const MATERIAL_STANDARD_MIN: int = 5
 const MATERIAL_STANDARD_MAX: int = 9
 
-const ROLE_IDS: Array[String] = ["archaeology", "geology", "documents"]
+const ROLE_IDS: Array[String] = ["archaeology", "geology", "documents", "liaison"]
 const ROLE_DISPLAY: Dictionary = {
 	"archaeology": "考古担当",
 	"geology": "地質担当",
 	"documents": "文書担当",
+	"liaison": "連絡担当",
 }
 
 ## 図鑑実績マイルストーン（埋め％ → 報酬）。

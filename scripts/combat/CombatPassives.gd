@@ -193,7 +193,7 @@ const _DEFS: Dictionary = {
 	},
 	"sian_silent_line": {
 		"display_name": "影からの号令",
-		"description": "戦闘開始時、味方全体に激励（empower）を付与する。",
+		"description": "戦闘開始時、味方全体に鼓舞（empower）を付与する。",
 		"trigger": "on_combat_start",
 		"condition": "always",
 		"effect": "apply_status",
@@ -314,7 +314,7 @@ const _DEFS: Dictionary = {
 	"eq_mourngate_royal": {
 		"display_name": "王家の覇気",
 		"category": "accessory",
-		"description": "戦闘開始時、自身に激励（empower）を付与する。",
+		"description": "戦闘開始時、自身に鼓舞（empower）を付与する。",
 		"trigger": "on_combat_start",
 		"condition": "always",
 		"effect": "apply_status", "status_id": "empower", "target": "self",
@@ -334,7 +334,7 @@ const _DEFS: Dictionary = {
 	"eq_silvaria_covenant": {
 		"display_name": "盟約の加護",
 		"category": "accessory",
-		"description": "戦闘開始時、味方全体に激励（empower）を付与する。",
+		"description": "戦闘開始時、味方全体に鼓舞（empower）を付与する。",
 		"trigger": "on_combat_start",
 		"condition": "always",
 		"effect": "apply_status", "status_id": "empower", "target": "party",

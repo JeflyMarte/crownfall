@@ -22,6 +22,63 @@ static func can_assign_investigator(member_id: String) -> bool:
 	return GameState.find_roster_member_by_id(member_id) != null
 
 
+## 戦闘ロスター（調査スタッフ以外）の ID 一覧。
+static func combat_roster_ids() -> Array[String]:
+	var out: Array[String] = []
+	for adv in GameState.roster:
+		if adv == null:
+			continue
+		var mid: String = str(adv.id)
+		if mid.is_empty() or is_survey_staff(mid):
+			continue
+		out.append(mid)
+	return out
+
+
+## 配置案のうち戦闘メンバー数（スタッフ除外・重複除外）。
+static func assigned_combat_count(member_ids: Array) -> int:
+	var seen: Dictionary = {}
+	var n: int = 0
+	for mid_v in member_ids:
+		var mid: String = ""
+		if mid_v is Dictionary:
+			mid = str((mid_v as Dictionary).get("member_id", ""))
+		else:
+			mid = str(mid_v)
+		if mid.is_empty() or is_survey_staff(mid) or seen.has(mid):
+			continue
+		if GameState.find_roster_member_by_id(mid) == null:
+			continue
+		seen[mid] = true
+		n += 1
+	return n
+
+
+## 配置後も編成用に戦闘メンバーが1人以上残るか（ロスター0人なら常に true）。
+static func leaves_combat_for_party(member_ids: Array) -> bool:
+	var combat_total: int = combat_roster_ids().size()
+	if combat_total <= 0:
+		return true
+	return assigned_combat_count(member_ids) < combat_total
+
+
+## スロットに cand を入れた仮想配置でも、編成用に1人残せるか。
+static func can_place_without_emptying_party(
+	pending_ids: Array,
+	slot_index: int,
+	cand_id: String
+) -> bool:
+	if cand_id.is_empty() or is_survey_staff(cand_id):
+		return true
+	var sim: Array[String] = []
+	for mid_v in pending_ids:
+		sim.append(str(mid_v))
+	while sim.size() <= slot_index:
+		sim.append("")
+	sim[slot_index] = cand_id
+	return leaves_combat_for_party(sim)
+
+
 static func investigator_candidate_ids() -> Array[String]:
 	## スタッフ先頭＋戦闘ロスター（調査室候補リスト）。
 	var out: Array[String] = []
@@ -262,6 +319,8 @@ static func start_cycle(dungeon_id: String, preset: String, member_ids: Array[St
 		i += 1
 		if assignees.size() >= _SurveyConfig.INVESTIGATOR_SLOTS:
 			break
+	if not leaves_combat_for_party(assignees):
+		return {"ok": false, "reason": "編成用に最低1人は残してください"}
 	var speed: float = total_speed_bonus(assignees)
 	var p: String = preset if preset == _SurveyConfig.PRESET_SHORT else _SurveyConfig.PRESET_STANDARD
 	GameState.hub_survey_cycle = {
@@ -293,23 +352,28 @@ static func _remove_dispatched_from_party() -> void:
 		if ids.has(str(adv.id)):
 			continue
 		kept.append(adv)
-	if kept.is_empty() and not GameState.roster.is_empty():
-		## 最低1人は残す（派遣以外の先頭）
+	if kept.is_empty():
+		## 編成が空にならないよう、未派遣の戦闘メンバーを補充。
 		for adv in GameState.roster:
-			if adv != null and not ids.has(str(adv.id)):
-				kept.append(adv)
-				break
-	if not kept.is_empty():
-		GameState.set_active_party(kept)
+			if adv == null or ids.has(str(adv.id)):
+				continue
+			kept.append(adv)
+			break
+	if kept.is_empty():
+		## 全員派遣は start_cycle で拒否済み。万一ここまで来たら編成を触らない。
+		return
+	GameState.set_active_party(kept)
 
 
 static func auto_assign_members() -> Array[String]:
-	## スタッフ優先1人＋戦闘力上位で残りを埋める（P3-SURVEY-STAFF-001）。
+	## スタッフ優先1人＋戦闘力上位で残りを埋める。戦闘は最低1人残す。
 	var ids: Array[String] = []
 	for sid: String in _SurveyStaff.AUTO_PRIORITY:
 		if can_assign_investigator(sid):
 			ids.append(sid)
 			break
+	var combat_total: int = combat_roster_ids().size()
+	var combat_taken: int = 0
 	var scored: Array[Dictionary] = []
 	for adv in GameState.roster:
 		if adv == null:
@@ -322,7 +386,10 @@ static func auto_assign_members() -> Array[String]:
 		return int(a.get("power", 0)) > int(b.get("power", 0))
 	)
 	for row: Dictionary in scored:
+		if combat_total > 0 and combat_taken + 1 >= combat_total:
+			break
 		ids.append(str(row.get("id", "")))
+		combat_taken += 1
 		if ids.size() >= _SurveyConfig.INVESTIGATOR_SLOTS:
 			break
 	## ロスターが空でもスタッフのみで開始可能にする。

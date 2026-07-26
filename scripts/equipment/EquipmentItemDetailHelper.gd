@@ -10,6 +10,7 @@ const _ArmorStatResolver = preload("res://scripts/equipment/ArmorStatResolver.gd
 const _AccessoryStatResolver = preload("res://scripts/equipment/AccessoryStatResolver.gd")
 const _EquipmentPerfectRollHelper = preload("res://scripts/equipment/EquipmentPerfectRollHelper.gd")
 const _EquipmentSetBonuses = preload("res://scripts/equipment/EquipmentSetBonuses.gd")
+const _StatusEffectLinkHelper = preload("res://scripts/ui/StatusEffectLinkHelper.gd")
 
 const COLOR_SUB: Color = Color(0.90, 0.87, 0.80)
 const COLOR_LABEL: Color = Color(0.97, 0.94, 0.87)
@@ -87,7 +88,12 @@ static func weapon_legendary_effect_text(item: Resource, category: String) -> St
 	var weapon_data: Resource = DataRegistry.get_weapon_data(str(item.weapon_id))
 	return weapon_legendary_effect_text_from_data(weapon_data)
 
-static func _append_legendary_effect_block(host: VBoxContainer, item: Resource, category: String) -> void:
+static func _append_legendary_effect_block(
+	host: VBoxContainer,
+	item: Resource,
+	category: String,
+	meta_host: Node = null
+) -> void:
 	var effect_text: String = equipment_legendary_effect_text(item, category)
 	if effect_text.is_empty():
 		return
@@ -96,15 +102,23 @@ static func _append_legendary_effect_block(host: VBoxContainer, item: Resource, 
 	title.text = "固有効果"
 	UiTypography.apply_caption(title, COLOR_WEAPON_EFFECT)
 	host.add_child(title)
-	var body := Label.new()
-	body.text = effect_text
-	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiTypography.apply_body(body, UiTypography.SIZE_CAPTION, COLOR_WEAPON_EFFECT)
-	host.add_child(body)
+	var popup_host: Node = meta_host if meta_host != null else host
+	host.add_child(
+		_StatusEffectLinkHelper.make_linked_richtext(
+			effect_text,
+			UiTypography.SIZE_CAPTION,
+			COLOR_WEAPON_EFFECT,
+			popup_host
+		)
+	)
 
 
-static func _append_set_bonus_block(host: VBoxContainer, item: Resource, category: String) -> void:
+static func _append_set_bonus_block(
+	host: VBoxContainer,
+	item: Resource,
+	category: String,
+	meta_host: Node = null
+) -> void:
 	if item == null:
 		return
 	var set_id: String = ""
@@ -126,12 +140,18 @@ static func _append_set_bonus_block(host: VBoxContainer, item: Resource, categor
 	title.text = "セット加護（3部位）"
 	UiTypography.apply_caption(title, Color(0.40, 0.90, 0.52))
 	host.add_child(title)
-	var body := Label.new()
-	body.text = "%s: %s" % [bonus_name, bonus_desc] if not bonus_name.is_empty() else bonus_desc
-	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiTypography.apply_body(body, UiTypography.SIZE_CAPTION, Color(0.62, 0.95, 0.70))
-	host.add_child(body)
+	var body_text: String = (
+		"%s: %s" % [bonus_name, bonus_desc] if not bonus_name.is_empty() else bonus_desc
+	)
+	var popup_host: Node = meta_host if meta_host != null else host
+	host.add_child(
+		_StatusEffectLinkHelper.make_linked_richtext(
+			body_text,
+			UiTypography.SIZE_CAPTION,
+			Color(0.62, 0.95, 0.70),
+			popup_host
+		)
+	)
 
 static func _stat_value(item: Resource, category: String, stat_key: String, value_text: String) -> String:
 	## 例: 会心率 30%(10〜40)⭐️ — ランダム上下限を値の直後へ。
@@ -212,16 +232,23 @@ static func _append_description_block(
 	host: VBoxContainer,
 	item: Resource,
 	category: String,
-	wrap_width: int = 0
+	wrap_width: int = 0,
+	meta_host: Node = null
 ) -> void:
 	var desc: String = description_text(item, category)
 	if desc.is_empty():
 		return
 	host.add_child(_make_rule())
-	var desc_lbl := Label.new()
-	desc_lbl.text = desc
-	UiTypography.apply_body(desc_lbl, UiTypography.SIZE_CAPTION, COLOR_SUB)
-	_add_wrapped_label(host, desc_lbl, wrap_width)
+	var popup_host: Node = meta_host if meta_host != null else host
+	var desc_rtl: RichTextLabel = _StatusEffectLinkHelper.make_linked_richtext(
+		desc,
+		UiTypography.SIZE_CAPTION,
+		COLOR_SUB,
+		popup_host
+	)
+	if wrap_width > 0:
+		desc_rtl.custom_minimum_size.x = float(wrap_width)
+	host.add_child(desc_rtl)
 
 static func hover_summary(item: Resource, category: String, member: Resource = null) -> String:
 	if item == null:
@@ -274,12 +301,18 @@ static func compare_summary(item: Resource, category: String, member: Resource) 
 			return _accessory_compare(item, equipped)
 	return ""
 
-static func populate_stats_panel(host: VBoxContainer, item: Resource, category: String) -> void:
+static func populate_stats_panel(
+	host: VBoxContainer,
+	item: Resource,
+	category: String,
+	meta_host: Node = null
+) -> void:
 	for child in host.get_children():
 		child.queue_free()
 	if item == null:
 		host.add_child(_make_caption_label("装備を選択してください"))
 		return
+	var popup_host: Node = meta_host if meta_host != null else host
 	var name_lbl := Label.new()
 	name_lbl.text = short_name(item, category)
 	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -288,18 +321,20 @@ static func populate_stats_panel(host: VBoxContainer, item: Resource, category: 
 	host.add_child(_make_rule())
 	for row in stat_rows(item, category):
 		host.add_child(_make_stat_row(str(row.get("key", "")), str(row.get("label", "")), str(row.get("value", ""))))
-	_append_description_block(host, item, category)
-	_append_legendary_effect_block(host, item, category)
-	_append_set_bonus_block(host, item, category)
+	_append_description_block(host, item, category, 0, popup_host)
+	_append_legendary_effect_block(host, item, category, popup_host)
+	_append_set_bonus_block(host, item, category, popup_host)
 	var affix: String = affix_text(item)
 	if not affix.is_empty():
 		host.add_child(_make_rule())
-		var affix_lbl := Label.new()
-		affix_lbl.text = affix
-		affix_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		affix_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		UiTypography.apply_body(affix_lbl, UiTypography.SIZE_CAPTION, COLOR_VALUE)
-		host.add_child(affix_lbl)
+		host.add_child(
+			_StatusEffectLinkHelper.make_linked_richtext(
+				affix,
+				UiTypography.SIZE_CAPTION,
+				COLOR_VALUE,
+				popup_host
+			)
+		)
 	_append_weapon_flavor_block(host, item, category)
 
 static func populate_panel(
@@ -325,6 +360,9 @@ static func populate_panel(
 	var value_color: Color = COLOR_VALUE
 	if options.has("value_color"):
 		value_color = options["value_color"] as Color
+	var popup_host: Node = options.get("meta_host", null) as Node
+	if popup_host == null:
+		popup_host = host
 	var content_host: VBoxContainer = host
 	if indent_left > 0 or indent_right > 0 or content_pad_top > 0:
 		var pad := MarginContainer.new()
@@ -398,16 +436,21 @@ static func populate_panel(
 				value_color
 			)
 		)
-	_append_description_block(content_host, item, category, desc_wrap_width)
-	_append_legendary_effect_block(content_host, item, category)
-	_append_set_bonus_block(content_host, item, category)
+	_append_description_block(content_host, item, category, desc_wrap_width, popup_host)
+	_append_legendary_effect_block(content_host, item, category, popup_host)
+	_append_set_bonus_block(content_host, item, category, popup_host)
 	var affix2: String = affix_text(item)
 	if not affix2.is_empty():
 		content_host.add_child(_make_rule())
-		var affix_lbl2 := Label.new()
-		affix_lbl2.text = affix2
-		UiTypography.apply_body(affix_lbl2, UiTypography.SIZE_CAPTION, value_color)
-		_add_wrapped_label(content_host, affix_lbl2, desc_wrap_width)
+		var affix_rtl: RichTextLabel = _StatusEffectLinkHelper.make_linked_richtext(
+			affix2,
+			UiTypography.SIZE_CAPTION,
+			value_color,
+			popup_host
+		)
+		if desc_wrap_width > 0:
+			affix_rtl.custom_minimum_size.x = float(desc_wrap_width)
+		content_host.add_child(affix_rtl)
 	_append_weapon_flavor_block(content_host, item, category, desc_wrap_width)
 
 

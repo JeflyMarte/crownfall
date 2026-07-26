@@ -1505,12 +1505,15 @@ func _show_relic_stats_overlay(relic_id: String, pinned: bool = false) -> void:
 	title.text = CombatPassives.relic_display_name(relic_id)
 	UiTypography.apply_body(title, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
 	_detail_host.add_child(title)
-	var desc := Label.new()
-	desc.text = CombatPassives.relic_description(relic_id)
-	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiTypography.apply_body(desc, UiTypography.SIZE_CAPTION, UiTypography.COLOR_BODY)
-	_detail_host.add_child(desc)
+	const _StatusLinkRelic := preload("res://scripts/ui/StatusEffectLinkHelper.gd")
+	_detail_host.add_child(
+		_StatusLinkRelic.make_linked_richtext(
+			CombatPassives.relic_description(relic_id),
+			UiTypography.SIZE_CAPTION,
+			UiTypography.COLOR_BODY,
+			self
+		)
+	)
 	var owner_idx: int = EquipmentUiHelper.relic_equipped_member_index(relic_id)
 	var party_idx: int = _party_index_for_view()
 	var is_on_self: bool = party_idx >= 0 and owner_idx == party_idx
@@ -1615,7 +1618,7 @@ func _show_item_stats_overlay(item: Resource, category: String, pinned: bool = f
 	_overlay_skill_id = ""
 	if _detail_title != null:
 		_detail_title.text = "装備性能"
-	EquipmentItemDetailHelper.populate_stats_panel(_detail_host, item, category)
+	EquipmentItemDetailHelper.populate_stats_panel(_detail_host, item, category, self)
 	var party_idx: int = _party_index_for_view()
 	var owner_idx: int = EquipmentUiHelper.equipped_member_index(item)
 	var member: Resource = GameState.get_member(party_idx) if party_idx >= 0 else null
@@ -2371,13 +2374,15 @@ func _rebuild_ultimate_tab() -> void:
 	header.add_child(desc_lbl)
 	var flavor: String = str(skill_data.description).strip_edges()
 	if not flavor.is_empty():
-		var flavor_lbl := Label.new()
-		flavor_lbl.text = flavor
-		flavor_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		flavor_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		flavor_lbl.add_theme_color_override("font_color", COLOR_SUB)
-		UiTypography.apply_body(flavor_lbl, UiTypography.SIZE_CAPTION)
-		header.add_child(flavor_lbl)
+		const _StatusLinkUlt := preload("res://scripts/ui/StatusEffectLinkHelper.gd")
+		header.add_child(
+			_StatusLinkUlt.make_linked_richtext(
+				flavor,
+				UiTypography.SIZE_CAPTION,
+				COLOR_SUB,
+				self
+			)
+		)
 	# 下段: 大きいアイコン | 効果
 	var body := HBoxContainer.new()
 	body.add_theme_constant_override("separation", 16)
@@ -2403,13 +2408,16 @@ func _rebuild_ultimate_tab() -> void:
 	fx_title.text = "効果"
 	UiTypography.apply_body(fx_title, UiTypography.SIZE_BODY, COLOR_GOLD)
 	fx_col.add_child(fx_title)
+	const _StatusLinkFx := preload("res://scripts/ui/StatusEffectLinkHelper.gd")
 	for line in _skill_stats_detail_lines(skill_data, true, 1):
-		var stat_lbl := Label.new()
-		stat_lbl.text = "・%s" % line
-		stat_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		stat_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		UiTypography.apply_body(stat_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_VALUE)
-		fx_col.add_child(stat_lbl)
+		fx_col.add_child(
+			_StatusLinkFx.make_linked_richtext(
+				"・%s" % line,
+				UiTypography.SIZE_BODY_SMALL,
+				COLOR_VALUE,
+				self
+			)
+		)
 	host.add_child(panel)
 
 func _get_member_ultimate_skill_data(member: Resource) -> Resource:
@@ -2524,13 +2532,15 @@ func _make_passive_detail_card(def: Dictionary, use_relic_icon: bool) -> PanelCo
 	name_lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	header.add_child(name_lbl)
 	var effect_text: String = _passive_effect_text(def)
-	var desc_lbl := Label.new()
-	desc_lbl.text = effect_text
-	desc_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc_lbl.add_theme_color_override("font_color", COLOR_VALUE)
-	UiTypography.apply_body(desc_lbl, UiTypography.SIZE_BODY_SMALL)
-	header.add_child(desc_lbl)
+	const _StatusLinkPas := preload("res://scripts/ui/StatusEffectLinkHelper.gd")
+	header.add_child(
+		_StatusLinkPas.make_linked_richtext(
+			effect_text,
+			UiTypography.SIZE_BODY_SMALL,
+			COLOR_VALUE,
+			self
+		)
+	)
 	var body := HBoxContainer.new()
 	body.add_theme_constant_override("separation", 16)
 	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -2560,12 +2570,14 @@ func _make_passive_detail_card(def: Dictionary, use_relic_icon: bool) -> PanelCo
 	UiTypography.apply_body(fx_title, UiTypography.SIZE_BODY, COLOR_GOLD)
 	fx_col.add_child(fx_title)
 	for line in _passive_effect_lines(effect_text):
-		var stat_lbl := Label.new()
-		stat_lbl.text = "・%s" % line
-		stat_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		stat_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		UiTypography.apply_body(stat_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_VALUE)
-		fx_col.add_child(stat_lbl)
+		fx_col.add_child(
+			_StatusLinkPas.make_linked_richtext(
+				"・%s" % line,
+				UiTypography.SIZE_BODY_SMALL,
+				COLOR_VALUE,
+				self
+			)
+		)
 	return panel
 
 func _passive_effect_lines(effect_text: String) -> Array[String]:
@@ -3370,25 +3382,30 @@ func _show_skill_detail_overlay(
 	perf_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	UiTypography.apply_body(perf_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_VALUE)
 	_detail_host.add_child(perf_lbl)
+	const _StatusLink := preload("res://scripts/ui/StatusEffectLinkHelper.gd")
 	var flavor: String = str(skill_data.description).strip_edges()
 	if not flavor.is_empty():
-		var desc_lbl := Label.new()
-		desc_lbl.text = flavor
-		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		desc_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		UiTypography.apply_body(desc_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_SUB)
-		_detail_host.add_child(desc_lbl)
+		_detail_host.add_child(
+			_StatusLink.make_linked_richtext(
+				flavor,
+				UiTypography.SIZE_BODY_SMALL,
+				COLOR_SUB,
+				self
+			)
+		)
 	var stats_title := Label.new()
 	stats_title.text = "効果"
 	UiTypography.apply_body(stats_title, UiTypography.SIZE_CAPTION, COLOR_GOLD)
 	_detail_host.add_child(stats_title)
 	for line in _skill_stats_detail_lines(skill_data, true, req_lv):
-		var stat_lbl := Label.new()
-		stat_lbl.text = "・%s" % line
-		stat_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		stat_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		UiTypography.apply_body(stat_lbl, UiTypography.SIZE_CAPTION, COLOR_SUB)
-		_detail_host.add_child(stat_lbl)
+		_detail_host.add_child(
+			_StatusLink.make_linked_richtext(
+				"・%s" % line,
+				UiTypography.SIZE_CAPTION,
+				COLOR_SUB,
+				self
+			)
+		)
 	var equipped: Array[String] = (
 		GameState.get_equipped_skill_ids(member) if member != null else []
 	)
