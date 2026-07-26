@@ -54,6 +54,41 @@ func test_preview_combat_stats_positive() -> void:
 	assert_false(GachaUiHelper.unique_line_for_helper(helpers[0]).is_empty())
 
 
+func test_feature_line_uses_origin_note_above_passive() -> void:
+	## P3-GACHA-FEATURE-BLURB-001: 特徴=origin_note、固有=パッシブ（重複フォールバックなし）。
+	var helpers: Array = GachaUiHelper.featured_helpers()
+	if helpers.is_empty():
+		return
+	var helper: Resource = helpers[0]
+	var feature: String = GachaUiHelper.feature_line_for_helper(helper)
+	var unique: String = GachaUiHelper.unique_line_for_helper(helper)
+	assert_false(feature.is_empty())
+	assert_eq(feature, GachaUiHelper.ensure_sentence_period(str(helper.origin_note)))
+	assert_ne(feature, unique)
+	assert_eq(GachaUiHelper.FEATURED_IDLE_LIFT_Y, 100.0)
+
+
+func test_build_featured_shell_has_feature_label() -> void:
+	var host := Control.new()
+	host.size = Vector2(680, 420)
+	add_child_autofree(host)
+	var shell: Dictionary = GachaUiHelper.build_featured_shell(host)
+	assert_true(shell.has("feature"))
+	assert_true(shell.has("unique"))
+	var feature_lbl: Label = shell.get("feature") as Label
+	var unique_lbl: Label = shell.get("unique") as Label
+	assert_not_null(feature_lbl)
+	assert_not_null(unique_lbl)
+	var helpers: Array = GachaUiHelper.featured_helpers()
+	if helpers.is_empty():
+		return
+	GachaUiHelper.apply_featured_helper(shell, helpers[0])
+	assert_eq(feature_lbl.text, GachaUiHelper.feature_line_for_helper(helpers[0]))
+	assert_true(feature_lbl.visible)
+	## StatsCol 内で特徴が固有より上。
+	assert_lt(feature_lbl.get_index(), unique_lbl.get_index())
+
+
 func test_make_lineup_row_has_name() -> void:
 	var helpers: Array = GachaUiHelper.sorted_helpers()
 	if helpers.is_empty():

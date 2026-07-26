@@ -19,7 +19,8 @@ const FEATURED_STATS_MIN_W: float = 220.0
 ## 台座中心向け。実機の短い枠でもキャラ全体が枠内に収まるよう host から算出。
 const FEATURED_IDLE_OFFSET_X: float = 0.0
 ## 【キャラ上下の主操作】大きいほど上へ。MIN/MAX は自動計算の下限／上限なので触っても効きにくい。
-const FEATURED_IDLE_LIFT_Y: float = 130.0
+## P3-GACHA-FEATURE-BLURB-001: 130 → 100（少し下げる）。
+const FEATURED_IDLE_LIFT_Y: float = 100.0
 const FEATURED_PEDESTAL_FOOT_PAD_MIN: float = 16.0
 const FEATURED_PEDESTAL_FOOT_PAD_MAX: float = 98.0
 ## 後方互換（オーラ初期値など）。実レイアウトは featured_foot_pad() を使う。
@@ -187,20 +188,26 @@ static func ensure_sentence_period(text: String) -> String:
 	return t + "。"
 
 
+## Featured 特徴1行（origin_note）。パッシブ説明の上に出す（P3-GACHA-FEATURE-BLURB-001）。
+static func feature_line_for_helper(helper: Resource) -> String:
+	if helper == null:
+		return ""
+	var note: String = str(helper.origin_note) if "origin_note" in helper else ""
+	return ensure_sentence_period(note)
+
+
+## Featured 固有パッシブ説明。特徴行と重複しないよう origin_note へは落とさない。
 static func unique_line_for_helper(helper: Resource) -> String:
 	if helper == null:
 		return ""
 	var pid: String = str(helper.passive_id) if "passive_id" in helper else ""
-	if not pid.is_empty():
-		var def: Dictionary = CombatPassives.get_def(pid)
-		var desc: String = str(def.get("description", "")).strip_edges()
-		if not desc.is_empty():
-			return desc
-		var pname: String = str(def.get("display_name", "")).strip_edges()
-		if not pname.is_empty():
-			return pname
-	var note: String = str(helper.origin_note) if "origin_note" in helper else ""
-	return ensure_sentence_period(note)
+	if pid.is_empty():
+		return ""
+	var def: Dictionary = CombatPassives.get_def(pid)
+	var desc: String = str(def.get("description", "")).strip_edges()
+	if not desc.is_empty():
+		return desc
+	return str(def.get("display_name", "")).strip_edges()
 
 
 static func banner_portrait_textures(max_count: int = BANNER_PORTRAIT_MAX) -> Array[Texture2D]:
@@ -517,6 +524,16 @@ static func build_featured_shell(host: Control) -> Dictionary:
 	UiTypography.apply_display(def_lbl, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	stats.add_child(def_lbl)
 
+	## 特徴（origin_note）→ 固有パッシブ説明の順（P3-GACHA-FEATURE-BLURB-001）。
+	var feature_lbl := Label.new()
+	feature_lbl.name = "LabelFeature"
+	feature_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	feature_lbl.max_lines_visible = 3
+	feature_lbl.clip_text = false
+	feature_lbl.custom_minimum_size = Vector2(FEATURED_STATS_MIN_W, 0)
+	UiTypography.apply_display(feature_lbl, UiTypography.SIZE_CAPTION, UiTypography.COLOR_BODY)
+	stats.add_child(feature_lbl)
+
 	var unique_lbl := Label.new()
 	unique_lbl.name = "LabelUnique"
 	unique_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -541,6 +558,7 @@ static func build_featured_shell(host: Control) -> Dictionary:
 		"hp": hp_lbl,
 		"atk": atk_lbl,
 		"def": def_lbl,
+		"feature": feature_lbl,
 		"unique": unique_lbl,
 	}
 
@@ -663,9 +681,16 @@ static func apply_featured_helper(shell: Dictionary, helper: Resource) -> void:
 	var def_lbl: Label = shell.get("def") as Label
 	if def_lbl != null:
 		def_lbl.text = "DEF  %d" % int(stats.get("defense", 1))
+	var feature_text: String = feature_line_for_helper(helper)
+	var feature_lbl: Label = shell.get("feature") as Label
+	if feature_lbl != null:
+		feature_lbl.text = feature_text
+		feature_lbl.visible = not feature_text.is_empty()
+	var unique_text: String = unique_line_for_helper(helper)
 	var unique_lbl: Label = shell.get("unique") as Label
 	if unique_lbl != null:
-		unique_lbl.text = unique_line_for_helper(helper)
+		unique_lbl.text = unique_text
+		unique_lbl.visible = not unique_text.is_empty()
 	var stats_wrap: Control = shell.get("stats_wrap") as Control
 	if stats_wrap != null:
 		stats_wrap.visible = true

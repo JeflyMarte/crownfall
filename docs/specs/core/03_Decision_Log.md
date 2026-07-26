@@ -4826,6 +4826,21 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 
 ---
 
+## 招待状 Featured 特徴文＋キャラ位置（2026-07-27 — P3-GACHA-FEATURE-BLURB-001）
+
+> **オーナー GO（案A）** — パッシブ上に特徴説明。キャラを少し下げる。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-GACHA-FEATURE-BLURB-001-1 | **特徴行** — Featured 右ステで `origin_note` をパッシブ説明の**上**に表示 | キャラの特徴が一目で分かる |
+| P3-GACHA-FEATURE-BLURB-001-2 | **固有行** — パッシブ説明は据置。`origin_note` へのフォールバックは廃止（重複防止） | 二行の役割分離 |
+| P3-GACHA-FEATURE-BLURB-001-3 | **位置** — `FEATURED_IDLE_LIFT_Y` 130→**100** | 少し下げる |
+| P3-GACHA-FEATURE-BLURB-001-4 | **スコープ外** — 新フィールド追加／全キャラ文面の書き直し | 既存 `origin_note` で足りる |
+
+**Closeout:** Impl 後に統合＋`main`。
+
+---
+
 
 
 ## 時環の共鳴龍クロノス・ウェーブ再設計（2026-07-26 — P3-LORE-CHRONOS-001）
