@@ -14,10 +14,11 @@ const ROTATE_SEC: float = 10.0
 const PANEL_W: float = 308.0
 const PANEL_H: float = 160.0
 const FACE_PX: float = 80.0
-const SURVEY_ICON_PX: float = 200.0
+const SURVEY_ICON_PX: float = 350.0
 const SURVEY_FRAME_INSET: float = 10.0
 const GAP_BELOW_PANEL: float = 40.0
-const SURVEY_MARGIN_RIGHT: float = 4.0
+## 親右端より外へはみ出して画面右端寄りに寄せる（負＝右方向）。
+const SURVEY_MARGIN_RIGHT: float = -80.0
 const MARGIN_RIGHT: float = 12.0
 ## TopBar 直下から下げて、指揮官カード／バナーと被りにくくする。
 const GAP_BELOW_TOP: float = 48.0

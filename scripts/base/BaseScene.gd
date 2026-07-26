@@ -8,6 +8,9 @@ const _CurrencyGainFx := preload("res://scripts/ui/CurrencyGainFx.gd")
 const _HubNinaNavigator := preload("res://scripts/ui/HubNinaNavigator.gd")
 const _StarterJoinOverlay := preload("res://scripts/roster/StarterJoinOverlay.gd")
 const _HubSimpleGuideOverlay := preload("res://scripts/ui/HubSimpleGuideOverlay.gd")
+const _NinaDialogueOverlay := preload("res://scripts/ui/NinaDialogueOverlay.gd")
+const _ChapterClearNinaLines := preload("res://scripts/ui/ChapterClearNinaLines.gd")
+const _HubDebugMenuOverlay := preload("res://scripts/debug/HubDebugMenuOverlay.gd")
 
 const DUNGEON_SELECT_SCENE: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
 const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
@@ -78,6 +81,19 @@ func _layout_hub_if_needed() -> void:
 
 
 func _maybe_show_rank_up() -> void:
+	## 章クリア加入があるとき: ニーナ功績 → 解放 → 等級 → 加入予告 → 加入。
+	if GameState.pending_clear_nina_merit:
+		if get_node_or_null("NinaDialogueOverlay") != null:
+			return
+		if get_node_or_null("DungeonUnlockOverlay") != null:
+			return
+		var stage_id: String = GameState.pending_clear_stage_id
+		var stage_name: String = _ChapterClearNinaLines.stage_display_name(stage_id)
+		var merit: CanvasLayer = _NinaDialogueOverlay.show_on(
+			self, _ChapterClearNinaLines.merit_lines_for_stage(stage_id, stage_name)
+		)
+		merit.dismissed.connect(_on_clear_nina_merit_dismissed)
+		return
 	const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
 	if _ContentUnlockNotice.has_pending():
 		var unlock_overlay: CanvasLayer = _ContentUnlockNotice.show_pending_on(
@@ -87,18 +103,50 @@ func _maybe_show_rank_up() -> void:
 			return
 	_CommanderProfile.bootstrap_acknowledged_rank_if_needed()
 	var pending: String = _CommanderProfile.pending_rank_up()
-	if pending.is_empty():
-		_maybe_show_starter_join()
+	if not pending.is_empty():
+		if get_node_or_null("CommanderRankUpOverlay") != null:
+			return
+		var overlay: CanvasLayer = _CommanderRankUpOverlay.show_on(self, pending)
+		overlay.dismissed.connect(_on_rank_up_dismissed)
 		return
-	if get_node_or_null("CommanderRankUpOverlay") != null:
-		return
-	var overlay: CanvasLayer = _CommanderRankUpOverlay.show_on(self, pending)
-	overlay.dismissed.connect(_on_rank_up_dismissed)
+	_maybe_show_clear_nina_teaser()
+
+
+func _on_clear_nina_merit_dismissed() -> void:
+	GameState.pending_clear_nina_merit = false
+	SaveManager.save_game()
+	_maybe_show_rank_up()
 
 
 func _on_rank_up_dismissed(_rank_code: String) -> void:
 	_update_player_card()
 	## 複数段ジャンプ時は次の到達分を続けて表示しない（到達等級を一括 ack 済み）。
+	_maybe_show_clear_nina_teaser()
+
+
+func _maybe_show_clear_nina_teaser() -> void:
+	if GameState.pending_clear_nina_teaser and not GameState.pending_starter_recruit_id.is_empty():
+		if get_node_or_null("NinaDialogueOverlay") != null:
+			return
+		if get_node_or_null("DungeonUnlockOverlay") != null:
+			return
+		if get_node_or_null("CommanderRankUpOverlay") != null:
+			return
+		var teaser: CanvasLayer = _NinaDialogueOverlay.show_on(
+			self,
+			_ChapterClearNinaLines.recruit_teaser_lines_for_stage(
+				GameState.pending_clear_stage_id
+			)
+		)
+		teaser.dismissed.connect(_on_clear_nina_teaser_dismissed)
+		return
+	GameState.pending_clear_nina_teaser = false
+	_maybe_show_starter_join()
+
+
+func _on_clear_nina_teaser_dismissed() -> void:
+	GameState.pending_clear_nina_teaser = false
+	SaveManager.save_game()
 	_maybe_show_starter_join()
 
 
@@ -112,6 +160,8 @@ func _maybe_show_starter_join() -> void:
 	if get_node_or_null("CommanderRankUpOverlay") != null:
 		return
 	if get_node_or_null("HubSimpleGuideOverlay") != null:
+		return
+	if get_node_or_null("NinaDialogueOverlay") != null:
 		return
 	var overlay: CanvasLayer = _StarterJoinOverlay.show_on(self, pending_id)
 	overlay.dismissed.connect(_on_starter_join_dismissed)
@@ -131,6 +181,12 @@ func _maybe_show_hub_simple_guide() -> void:
 	if get_node_or_null("CommanderRankUpOverlay") != null:
 		return
 	if get_node_or_null("StarterJoinOverlay") != null:
+		return
+	if get_node_or_null("NinaDialogueOverlay") != null:
+		return
+	if get_node_or_null("HubDebugMenuOverlay") != null:
+		return
+	if GameState.pending_clear_nina_merit or GameState.pending_clear_nina_teaser:
 		return
 	const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
 	if _ContentUnlockNotice.has_pending():
@@ -376,6 +432,19 @@ func _build_left_menu() -> void:
 		if btn != null and not bool(card_entry.get("locked", false)):
 			btn.pressed.connect(_on_menu_entry_pressed.bind(str(card_entry["id"])))
 		_menu_vbox.add_child(card)
+	if GameState.debug_full_unlock:
+		var debug_entry := {
+			"id": "debug",
+			"title": "デバッグ",
+			"icon_category": "",
+			"icon_id": "",
+			"locked": false,
+		}
+		var debug_card := NavUiTokens.make_side_menu_row(debug_entry)
+		var debug_btn := _find_side_menu_button(debug_card)
+		if debug_btn != null:
+			debug_btn.pressed.connect(_on_menu_entry_pressed.bind("debug"))
+		_menu_vbox.add_child(debug_card)
 
 func _find_side_menu_button(card: Control) -> Button:
 	for child in card.get_children():
@@ -384,7 +453,8 @@ func _find_side_menu_button(card: Control) -> Button:
 	return null
 
 func _on_menu_entry_pressed(entry_id: String) -> void:
-	_HubNpcHelper.queue_hint(entry_id)
+	if entry_id != "debug":
+		_HubNpcHelper.queue_hint(entry_id)
 	match entry_id:
 		"adventure":
 			_on_dungeon_button_pressed()
@@ -404,6 +474,33 @@ func _on_menu_entry_pressed(entry_id: String) -> void:
 			_on_commander_button_pressed()
 		"settings":
 			_on_settings_button_pressed()
+		"debug":
+			_on_debug_menu_pressed()
+
+
+func _on_debug_menu_pressed() -> void:
+	if not GameState.debug_full_unlock:
+		return
+	if get_node_or_null("HubDebugMenuOverlay") != null:
+		return
+	var overlay: CanvasLayer = _HubDebugMenuOverlay.show_on(self)
+	overlay.event_requested.connect(_on_debug_event_requested)
+	overlay.closed.connect(func() -> void: pass)
+
+
+func _on_debug_event_requested(entry_id: String) -> void:
+	## はじめガイドはキューではなく即表示（他演出待ちに埋もれない）。
+	if entry_id == "hub_guide":
+		call_deferred("_debug_show_hub_guide")
+		return
+	## キュー後に拠点の演出チェーンを開始。
+	call_deferred("_maybe_show_rank_up")
+
+
+func _debug_show_hub_guide() -> void:
+	GameState.tutorial_flags.erase(_HubSimpleGuideOverlay.FLAG_KEY)
+	_HubSimpleGuideOverlay.show_on(self, true)
+
 
 func _ensure_valid_dungeon_selection() -> void:
 	if not _is_dungeon_available(GameState.current_dungeon_id):

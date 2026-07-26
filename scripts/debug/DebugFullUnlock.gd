@@ -39,6 +39,11 @@ static func apply() -> void:
 	_PetSystem.unlock_pet(_PetSystem.PET_ASH_ID, false)
 	_PetSystem.unlock_pet(_PetSystem.PET_INK_ID, false)
 	_PetSystem.ensure_starter_pet()
+	## LvMAX 後に解放スキルを装備へ反映
+	if GameState.active_pet != null:
+		GameState.active_pet.level = LevelSystem.MAX_LEVEL
+		GameState.active_pet.exp = 0
+		_PetSystem.sync_pet_runtime(GameState.active_pet)
 	GameState.current_dungeon_id = Constants.MOURNGATE_DUNGEON_ID
 	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
 	var first_stage: Resource = DataRegistry.get_stage_by_chapter(Constants.MOURNGATE_DUNGEON_ID, 1)

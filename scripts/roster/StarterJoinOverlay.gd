@@ -1,11 +1,12 @@
 class_name StarterJoinOverlay
 extends CanvasLayer
 
-## 拠点でのスターター加入（セリフ → ガチャ入手と同型リビール）。
+## 拠点でのスターター加入（モックショーケース → ガチャ同型リビール）。
 
 const _GachaRevealPresenter := preload("res://scripts/gacha/GachaRevealPresenter.gd")
 const _ChrIdlePortraitView := preload("res://scripts/ui/ChrIdlePortraitView.gd")
 const _StarterJoinQuotes := preload("res://scripts/roster/StarterJoinQuotes.gd")
+const _StarterJoinUiTokens := preload("res://scripts/roster/StarterJoinUiTokens.gd")
 
 signal dismissed(adventurer_id: String)
 
@@ -13,21 +14,28 @@ const REVEAL_IDLE_PX: float = 220.0
 const REVEAL_PANEL_HALF_W: float = 300.0
 const REVEAL_PANEL_HALF_H: float = 420.0
 
-enum Phase { DIALOGUE, REVEAL, DONE }
+enum Phase { SHOWCASE, REVEAL, DONE }
 
 var _adventurer_id: String = ""
 var _display_name: String = ""
 var _job_id: String = ""
-var _phase: int = Phase.DIALOGUE
+var _phase: int = Phase.SHOWCASE
 var _reveal_can_dismiss: bool = false
 
 var _dim: ColorRect
-var _dialogue_root: Control
-var _dialogue_panel: PanelContainer
-var _dialogue_name: Label
-var _dialogue_line: Label
-var _dialogue_hint: Label
-var _dialogue_portrait: TextureRect
+var _showcase_root: Control
+var _title_banner: TextureRect
+var _portrait_glow: TextureRect
+var _portrait_icon: TextureRect
+var _nameplate_host: Control
+var _nameplate_bg: TextureRect
+var _job_icon: TextureRect
+var _name_label: Label
+var _stars_label: Label
+var _quote_host: Control
+var _quote_bg: TextureRect
+var _quote_label: Label
+var _showcase_tween: Tween
 
 var _reveal_root: Control
 var _invite_glow: TextureRect
@@ -35,7 +43,7 @@ var _reveal_panel: PanelContainer
 var _invite_art: TextureRect
 var _flash_icon: TextureRect
 var _portrait_frame: PanelContainer
-var _portrait_icon: TextureRect
+var _reveal_portrait_icon: TextureRect
 var _reveal_idle: Control
 var _label_banner: Label
 var _label_reveal_name: Label
@@ -61,91 +69,162 @@ func present(adventurer_id: String) -> void:
 	else:
 		_display_name = _adventurer_id
 		_job_id = ""
-	_phase = Phase.DIALOGUE
+	_phase = Phase.SHOWCASE
 	_reveal_can_dismiss = false
-	_refresh_dialogue()
-	_dialogue_root.visible = true
+	_refresh_showcase()
+	_showcase_root.visible = true
 	_reveal_root.visible = false
 	visible = true
+	_play_showcase_intro()
 	AudioManager.play_sfx("ui_confirm", 1.0, 0.0)
 
 
 func _build() -> void:
 	_dim = ColorRect.new()
 	_dim.name = "Dim"
-	_dim.color = Color(0.02, 0.03, 0.06, 0.78)
+	_dim.color = Color(0.02, 0.03, 0.06, 0.82)
 	_dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	_dim.gui_input.connect(_on_overlay_input)
 	add_child(_dim)
 
-	_build_dialogue()
+	_build_showcase()
 	_build_reveal()
 	visible = false
 
 
-func _build_dialogue() -> void:
-	_dialogue_root = Control.new()
-	_dialogue_root.name = "DialogueRoot"
-	_dialogue_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_dialogue_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_dialogue_root)
+func _build_showcase() -> void:
+	_showcase_root = Control.new()
+	_showcase_root.name = "ShowcaseRoot"
+	_showcase_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_showcase_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_showcase_root)
 
 	var center := CenterContainer.new()
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_dialogue_root.add_child(center)
-
-	_dialogue_panel = PanelContainer.new()
-	_dialogue_panel.custom_minimum_size = Vector2(520, 280)
-	_dialogue_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_dialogue_panel.add_theme_stylebox_override(
-		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD_ACTIVE)
-	)
-	center.add_child(_dialogue_panel)
-
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 20)
-	margin.add_theme_constant_override("margin_right", 20)
-	margin.add_theme_constant_override("margin_top", 20)
-	margin.add_theme_constant_override("margin_bottom", 16)
-	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_dialogue_panel.add_child(margin)
-
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 16)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	margin.add_child(row)
-
-	_dialogue_portrait = TextureRect.new()
-	_dialogue_portrait.custom_minimum_size = Vector2(96, 96)
-	_dialogue_portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_dialogue_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_dialogue_portrait.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	_dialogue_portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(_dialogue_portrait)
+	_showcase_root.add_child(center)
 
 	var col := VBoxContainer.new()
-	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	col.add_theme_constant_override("separation", 10)
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.add_theme_constant_override("separation", 14)
 	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(col)
+	center.add_child(col)
 
-	_dialogue_name = Label.new()
-	_dialogue_name.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	col.add_child(_dialogue_name)
+	_title_banner = TextureRect.new()
+	_title_banner.name = "TitleBanner"
+	_title_banner.texture = _StarterJoinUiTokens.title_banner()
+	_title_banner.custom_minimum_size = Vector2(_StarterJoinUiTokens.TITLE_WIDTH, 120.0)
+	_title_banner.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_title_banner.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_title_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.add_child(_title_banner)
 
-	_dialogue_line = Label.new()
-	_dialogue_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_dialogue_line.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_dialogue_line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	col.add_child(_dialogue_line)
+	var portrait_host := Control.new()
+	portrait_host.custom_minimum_size = Vector2(
+		_StarterJoinUiTokens.PORTRAIT_PX + 40.0,
+		_StarterJoinUiTokens.PORTRAIT_PX + 40.0
+	)
+	portrait_host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.add_child(portrait_host)
 
-	_dialogue_hint = Label.new()
-	_dialogue_hint.text = "タップで続ける"
-	_dialogue_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_dialogue_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	col.add_child(_dialogue_hint)
+	_portrait_glow = TextureRect.new()
+	_portrait_glow.texture = _StarterJoinUiTokens.portrait_glow()
+	_portrait_glow.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_portrait_glow.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_portrait_glow.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_portrait_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	portrait_host.add_child(_portrait_glow)
+
+	_portrait_icon = TextureRect.new()
+	_portrait_icon.set_anchors_preset(Control.PRESET_CENTER)
+	_portrait_icon.offset_left = -_StarterJoinUiTokens.PORTRAIT_PX * 0.5
+	_portrait_icon.offset_right = _StarterJoinUiTokens.PORTRAIT_PX * 0.5
+	_portrait_icon.offset_top = -_StarterJoinUiTokens.PORTRAIT_PX * 0.5
+	_portrait_icon.offset_bottom = _StarterJoinUiTokens.PORTRAIT_PX * 0.5
+	_portrait_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_portrait_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_portrait_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_portrait_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	portrait_host.add_child(_portrait_icon)
+
+	_nameplate_host = Control.new()
+	_nameplate_host.custom_minimum_size = Vector2(
+		_StarterJoinUiTokens.NAMEPLATE_WIDTH,
+		_StarterJoinUiTokens.NAMEPLATE_HEIGHT
+	)
+	_nameplate_host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.add_child(_nameplate_host)
+
+	_nameplate_bg = TextureRect.new()
+	_nameplate_bg.texture = _StarterJoinUiTokens.nameplate()
+	_nameplate_bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_nameplate_bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_nameplate_bg.stretch_mode = TextureRect.STRETCH_SCALE
+	_nameplate_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_nameplate_host.add_child(_nameplate_bg)
+
+	var name_row := HBoxContainer.new()
+	name_row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	name_row.offset_left = 36.0
+	name_row.offset_right = -36.0
+	name_row.offset_top = 8.0
+	name_row.offset_bottom = -8.0
+	name_row.add_theme_constant_override("separation", 12)
+	name_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	name_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_nameplate_host.add_child(name_row)
+
+	_job_icon = TextureRect.new()
+	_job_icon.custom_minimum_size = Vector2(
+		_StarterJoinUiTokens.JOB_ICON_PX, _StarterJoinUiTokens.JOB_ICON_PX
+	)
+	_job_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_job_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_job_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_job_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	name_row.add_child(_job_icon)
+
+	_name_label = Label.new()
+	_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_name_label.clip_text = false
+	_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	name_row.add_child(_name_label)
+
+	_stars_label = Label.new()
+	_stars_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_stars_label.clip_text = false
+	_stars_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	name_row.add_child(_stars_label)
+
+	_quote_host = Control.new()
+	_quote_host.custom_minimum_size = Vector2(
+		_StarterJoinUiTokens.QUOTE_WIDTH,
+		_StarterJoinUiTokens.QUOTE_HEIGHT
+	)
+	_quote_host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.add_child(_quote_host)
+
+	_quote_bg = TextureRect.new()
+	_quote_bg.texture = _StarterJoinUiTokens.quote_panel()
+	_quote_bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_quote_bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_quote_bg.stretch_mode = TextureRect.STRETCH_SCALE
+	_quote_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_quote_host.add_child(_quote_bg)
+
+	_quote_label = Label.new()
+	_quote_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_quote_label.offset_left = 36.0
+	_quote_label.offset_right = -36.0
+	_quote_label.offset_top = 28.0
+	_quote_label.offset_bottom = -56.0
+	_quote_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_quote_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_quote_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_quote_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_quote_host.add_child(_quote_label)
 
 
 func _build_reveal() -> void:
@@ -216,12 +295,12 @@ func _build_reveal() -> void:
 	_portrait_frame.visible = false
 	vbox.add_child(_portrait_frame)
 
-	_portrait_icon = TextureRect.new()
-	_portrait_icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_portrait_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_portrait_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_portrait_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_portrait_frame.add_child(_portrait_icon)
+	_reveal_portrait_icon = TextureRect.new()
+	_reveal_portrait_icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_reveal_portrait_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_reveal_portrait_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_reveal_portrait_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_portrait_frame.add_child(_reveal_portrait_icon)
 
 	_reveal_idle = _ChrIdlePortraitView.new()
 	_reveal_idle.name = "RevealIdle"
@@ -236,7 +315,6 @@ func _build_reveal() -> void:
 	_portrait_frame.add_child(_reveal_idle)
 
 	_label_banner = Label.new()
-	_label_banner.visible = false
 	_label_banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_label_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(_label_banner)
@@ -285,16 +363,38 @@ func _build_reveal() -> void:
 	)
 
 
-func _refresh_dialogue() -> void:
-	_dialogue_name.text = _display_name
-	UiTypography.apply_display(_dialogue_name, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
-	_dialogue_line.text = "「%s」" % _StarterJoinQuotes.line_for(_adventurer_id)
-	UiTypography.apply_body(_dialogue_line, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
-	UiTypography.apply_caption(_dialogue_hint, UiTypography.COLOR_MUTED)
+func _refresh_showcase() -> void:
 	var tex: Texture2D = IconPaths.get_icon_texture(_adventurer_id, "chr")
 	if tex == null and not _job_id.is_empty():
 		tex = IconPaths.get_icon_texture(_job_id, "chr")
-	_dialogue_portrait.texture = tex
+	_portrait_icon.texture = tex
+	_job_icon.texture = tex
+	_name_label.text = _display_name
+	_stars_label.text = RosterUiHelper.stars_text(Adventurer.STARTER_RARITY)
+	_quote_label.text = "「%s」" % _StarterJoinQuotes.line_for(_adventurer_id)
+	UiTypography.apply_display(_name_label, UiTypography.SIZE_DISPLAY, UiTypography.COLOR_GOLD)
+	UiTypography.apply_display(_stars_label, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
+	UiTypography.apply_body(_quote_label, UiTypography.SIZE_BODY, UiTypography.COLOR_BODY)
+
+
+func _play_showcase_intro() -> void:
+	_showcase_root.modulate.a = 0.0
+	_showcase_root.scale = Vector2(0.94, 0.94)
+	_showcase_root.pivot_offset = _showcase_root.size * 0.5
+	call_deferred("_sync_showcase_pivot")
+	if _showcase_tween != null and _showcase_tween.is_valid():
+		_showcase_tween.kill()
+	_showcase_tween = create_tween()
+	_showcase_tween.tween_property(_showcase_root, "modulate:a", 1.0, 0.2)
+	_showcase_tween.parallel().tween_property(_showcase_root, "scale", Vector2.ONE, 0.28).set_trans(
+		Tween.TRANS_BACK
+	).set_ease(Tween.EASE_OUT)
+
+
+func _sync_showcase_pivot() -> void:
+	if _showcase_root == null or not is_instance_valid(_showcase_root):
+		return
+	_showcase_root.pivot_offset = _showcase_root.size * 0.5
 
 
 func _on_overlay_input(event: InputEvent) -> void:
@@ -310,7 +410,7 @@ func _on_overlay_input(event: InputEvent) -> void:
 
 func _on_tap() -> void:
 	match _phase:
-		Phase.DIALOGUE:
+		Phase.SHOWCASE:
 			_begin_reveal()
 		Phase.REVEAL:
 			if not _reveal_can_dismiss:
@@ -324,7 +424,7 @@ func _on_tap() -> void:
 
 func _begin_reveal() -> void:
 	_phase = Phase.REVEAL
-	_dialogue_root.visible = false
+	_showcase_root.visible = false
 	_reveal_root.visible = true
 	_reveal_can_dismiss = false
 
@@ -343,13 +443,13 @@ func _begin_reveal() -> void:
 		RosterUiHelper.stars_text(Adventurer.STARTER_RARITY),
 		_job_label(),
 	]
-	var quote: String = _StarterJoinQuotes.line_for(_adventurer_id)
+	var quote: String = _StarterJoinQuotes.reveal_line_for(_adventurer_id)
 	_label_quote.text = "「%s」" % quote
 	_label_quote.visible = true
 	if _reveal_idle != null and member != null and _reveal_idle.has_method("set_from_member"):
 		_reveal_idle.call("set_from_member", member)
-	elif _portrait_icon != null:
-		_portrait_icon.texture = IconPaths.get_icon_texture(_adventurer_id, "chr")
+	elif _reveal_portrait_icon != null:
+		_reveal_portrait_icon.texture = IconPaths.get_icon_texture(_adventurer_id, "chr")
 
 	SaveManager.save_game()
 	if _reveal_presenter != null and _reveal_presenter.has_method("play"):

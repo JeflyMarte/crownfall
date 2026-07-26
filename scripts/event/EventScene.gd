@@ -4,6 +4,15 @@ extends Control
 
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const BG_PATH: String = "res://assets/ui/UI_BG_GuildBulletin.png"
+## 羊皮紙左上マスコット（テキスト中央レイアウトは維持。重ね表示）。
+const NONOKA_PATH: String = "res://assets/ui/UI_GuildBulletin_Nonoka.png"
+const NONOKA_W: float = 210.0
+const NONOKA_H: float = 250.0
+## FieldHost 左上からのオフセット（上へ寄せる）。
+const NONOKA_OFFSET: Vector2 = Vector2(12.0, -64.0)
+const NONOKA_LAYER: int = 12
+## 少し明るく・薄く（羊皮紙に馴染ませる）。
+const NONOKA_MODULATE: Color = Color(1.12, 1.1, 1.08, 0.78)
 
 ## 羊皮紙上のインク色（明るい UI 金ではなく濃色）。
 const INK: Color = Color(0.22, 0.14, 0.08, 1.0)
@@ -13,10 +22,6 @@ const INK_MUTED: Color = Color(0.35, 0.28, 0.20, 1.0)
 ## 固有名詞・強調語（羊皮紙上の赤茶インク）。
 const INK_EMPHASIS: Color = Color(0.58, 0.24, 0.08, 1.0)
 ## 背景アートを見せるため、いまの野外枠は塗りなし。
-const FIELD_OUTLINE: int = 5
-const FIELD_OUTLINE_COLOR: Color = Color(0.96, 0.90, 0.78, 0.92)
-## 羊皮紙上の文字を太く見せる（FontVariation 合成太字）。
-const FIELD_EMBOLDEN: float = 1.15
 const FIELD_SIZE_SECTION: int = 22
 const FIELD_SIZE_HEADLINE: int = 32
 const FIELD_SIZE_BODY: int = 24
@@ -30,11 +35,11 @@ const FIELD_MID_GAP_PX: float = 12.0
 const FIELD_TOP_PAD_PX: float = 255.0
 
 
-## 720×1280・COVERED 時の調査部メモ本文枠（背景アート基準）。
+## 720×1280・COVERED 時の調査部ノノカのメモ本文枠（背景アート基準）。
 const MEMO_LEFT: float = 108.0
 const MEMO_TOP: float = 940.0
 const MEMO_WIDTH: float = 560.0
-const MEMO_HEIGHT: float = 180.0
+const MEMO_HEIGHT: float = 230.0
 
 ## 長い語から置換（部分一致の取り違え防止）。
 const EMPHASIS_TERMS: Array[String] = [
@@ -74,11 +79,20 @@ const EMPHASIS_TERMS: Array[String] = [
 @onready var _label_desc: RichTextLabel = $LabelGuildReport
 
 var _countdown_timer: Timer
+var _field_panel: PanelContainer
+var _field_vbox: VBoxContainer
+var _field_host: Control
+var _nonoka_layer: CanvasLayer
+var _nonoka_rect: TextureRect
+var _nonoka_texture: Texture2D
 
 func _ready() -> void:
+	_field_panel = $MainScroll/MainVBox/SidePad/InnerVBox/FieldPanel as PanelContainer
+	_field_vbox = $MainScroll/MainVBox/SidePad/InnerVBox/FieldPanel/FieldVBox as VBoxContainer
 	_ensure_background()
 	_apply_field_panel_style()
 	_ensure_field_spacing()
+	_ensure_nonoka_mascot()
 	_layout_guild_report()
 	_apply_typography()
 	_layout_chrome()
@@ -92,6 +106,154 @@ func _ready() -> void:
 	add_child(_countdown_timer)
 	_countdown_timer.start()
 	_refresh()
+
+
+## ノノカは CanvasLayer で最前面。テクスチャはディスク直読み（import キャッシュ回避）。
+func _ensure_nonoka_mascot() -> void:
+	var inner: VBoxContainer = (
+		$MainScroll/MainVBox/SidePad/InnerVBox as VBoxContainer
+	)
+	if inner == null or _field_panel == null or _field_vbox == null:
+		return
+	_restore_field_labels_from_nonoka_row(_field_vbox)
+	var old_on_panel: Node = _field_panel.get_node_or_null("NonokaMascot")
+	if old_on_panel != null:
+		old_on_panel.queue_free()
+	## 旧 FieldHost 内マスコットがあれば除去し、ホスト構造は維持。
+	if inner.get_node_or_null("FieldHost") != null:
+		_field_host = inner.get_node("FieldHost") as Control
+		var old_in_host: Node = _field_host.get_node_or_null("NonokaMascot")
+		if old_in_host != null:
+			old_in_host.queue_free()
+	else:
+		var host := Control.new()
+		host.name = "FieldHost"
+		host.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		host.clip_contents = false
+		_field_host = host
+		var panel_index: int = _field_panel.get_index()
+		inner.remove_child(_field_panel)
+		host.add_child(_field_panel)
+		_field_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		_field_panel.offset_left = 0.0
+		_field_panel.offset_top = 0.0
+		_field_panel.offset_right = 0.0
+		_field_panel.offset_bottom = 0.0
+		inner.add_child(host)
+		inner.move_child(host, panel_index)
+		if not _field_panel.resized.is_connected(_on_field_panel_resized):
+			_field_panel.resized.connect(_on_field_panel_resized)
+
+	_nonoka_texture = _load_nonoka_texture()
+	_ensure_nonoka_layer()
+	_sync_field_host_min_size(_field_host, _field_panel)
+	call_deferred("_sync_field_host_min_size", _field_host, _field_panel)
+	call_deferred("_sync_nonoka_screen_pos")
+
+
+func _load_nonoka_texture() -> Texture2D:
+	## ResourceLoader キャッシュを避け、PNG を直読みする。
+	var abs_path: String = ProjectSettings.globalize_path(NONOKA_PATH)
+	if abs_path.is_empty() or not FileAccess.file_exists(abs_path):
+		if ResourceLoader.exists(NONOKA_PATH):
+			return load(NONOKA_PATH) as Texture2D
+		return null
+	var img := Image.new()
+	var err: Error = img.load(abs_path)
+	if err != OK:
+		push_warning("Nonoka image load failed: %s (%s)" % [abs_path, error_string(err)])
+		if ResourceLoader.exists(NONOKA_PATH):
+			return load(NONOKA_PATH) as Texture2D
+		return null
+	return ImageTexture.create_from_image(img)
+
+
+func _ensure_nonoka_layer() -> void:
+	if _nonoka_layer != null and is_instance_valid(_nonoka_layer):
+		if _nonoka_rect != null and _nonoka_texture != null:
+			_nonoka_rect.texture = _nonoka_texture
+		return
+	_nonoka_layer = CanvasLayer.new()
+	_nonoka_layer.name = "NonokaOverlayLayer"
+	_nonoka_layer.layer = NONOKA_LAYER
+	add_child(_nonoka_layer)
+	_nonoka_rect = TextureRect.new()
+	_nonoka_rect.name = "NonokaMascot"
+	_nonoka_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_nonoka_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_nonoka_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_nonoka_rect.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	_nonoka_rect.modulate = NONOKA_MODULATE
+	_nonoka_rect.custom_minimum_size = Vector2(NONOKA_W, NONOKA_H)
+	_nonoka_rect.size = Vector2(NONOKA_W, NONOKA_H)
+	if _nonoka_texture != null:
+		_nonoka_rect.texture = _nonoka_texture
+	_nonoka_layer.add_child(_nonoka_rect)
+
+
+func _sync_nonoka_screen_pos() -> void:
+	if _nonoka_rect == null or not is_instance_valid(_nonoka_rect):
+		return
+	if _field_host == null or not is_instance_valid(_field_host):
+		return
+	## FieldHost の画面座標へ追従（スクロール込み）。
+	var origin: Vector2 = _field_host.get_global_transform_with_canvas().origin
+	_nonoka_rect.global_position = origin + NONOKA_OFFSET
+	_nonoka_rect.size = Vector2(NONOKA_W, NONOKA_H)
+
+
+func _process(_delta: float) -> void:
+	if _nonoka_rect != null and is_instance_valid(_nonoka_rect):
+		_sync_nonoka_screen_pos()
+
+
+func _on_field_panel_resized() -> void:
+	if _field_host != null and _field_panel != null:
+		_sync_field_host_min_size(_field_host, _field_panel)
+	_sync_nonoka_screen_pos()
+
+
+func _sync_field_host_min_size(host: Control, panel: PanelContainer) -> void:
+	if host == null or panel == null or not is_instance_valid(host) or not is_instance_valid(panel):
+		return
+	var min_sz: Vector2 = panel.get_combined_minimum_size()
+	var top_extra: float = maxf(0.0, -NONOKA_OFFSET.y)
+	host.custom_minimum_size = Vector2(0.0, maxf(min_sz.y, NONOKA_H) + top_extra)
+
+
+func _apply_nonoka_rect(nonoka: TextureRect) -> void:
+	nonoka.offset_left = NONOKA_OFFSET.x
+	nonoka.offset_top = NONOKA_OFFSET.y
+	nonoka.offset_right = NONOKA_OFFSET.x + NONOKA_W
+	nonoka.offset_bottom = NONOKA_OFFSET.y + NONOKA_H
+	nonoka.custom_minimum_size = Vector2(NONOKA_W, NONOKA_H)
+
+
+## 旧 HBox 配置があればラベルを FieldVBox 中央並びに戻す。
+func _restore_field_labels_from_nonoka_row(field_vbox: VBoxContainer) -> void:
+	var row: Node = field_vbox.get_node_or_null("NonokaRow")
+	if row == null:
+		return
+	var head: Node = row.get_node_or_null("HeadCol")
+	var restored: Array[Label] = []
+	if head != null:
+		for child in head.get_children():
+			if child is Label:
+				restored.append(child as Label)
+	for lab in restored:
+		head.remove_child(lab)
+		field_vbox.add_child(lab)
+		lab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	## 先頭順: Section → Headline → Timer →（以降は既存ノード）
+	var order: Array[Label] = []
+	for lab in restored:
+		order.append(lab)
+	for i in order.size():
+		field_vbox.move_child(order[i], i)
+	row.queue_free()
+
 
 func _ensure_background() -> void:
 	if has_node("BgTexture"):
@@ -112,13 +274,12 @@ func _ensure_field_spacing() -> void:
 	var top_pad: Control = $MainScroll/MainVBox/TopPad as Control
 	if top_pad != null:
 		top_pad.custom_minimum_size = Vector2(0, FIELD_TOP_PAD_PX)
-	var field_vbox: VBoxContainer = $MainScroll/MainVBox/SidePad/InnerVBox/FieldPanel/FieldVBox as VBoxContainer
-	if field_vbox == null:
+	if _field_vbox == null:
 		return
-	field_vbox.add_theme_constant_override("separation", 10)
-	_ensure_gap_after(field_vbox, "MidPad", _label_field_notes, FIELD_MID_GAP_PX)
+	_field_vbox.add_theme_constant_override("separation", 10)
+	_ensure_gap_after(_field_vbox, "MidPad", _label_field_notes, FIELD_MID_GAP_PX)
 	## 旧 TailPad があれば除去（空白を増やすだけだった）。
-	var old_tail: Node = field_vbox.get_node_or_null("TailPad")
+	var old_tail: Node = _field_vbox.get_node_or_null("TailPad")
 	if old_tail != null:
 		old_tail.queue_free()
 
@@ -151,14 +312,13 @@ func _layout_guild_report() -> void:
 
 
 func _apply_typography() -> void:
-	var bold_body: Font = _make_bold_font(UiTypography.body_font())
-	var bold_display: Font = _make_bold_font(UiTypography.display_font())
-	_apply_field_label(_label_issue_date, bold_body, FIELD_SIZE_CAPTION, INK_MUTED)
-	_apply_field_label(_label_section, bold_display, FIELD_SIZE_SECTION, INK_GOLD)
-	_apply_field_label(_label_headline, bold_display, FIELD_SIZE_HEADLINE, INK)
-	_apply_field_label(_label_timer, bold_display, FIELD_SIZE_TIMER, INK_TIMER)
-	_apply_field_label(_label_schedule, bold_body, FIELD_SIZE_CAPTION, INK_MUTED)
-	_apply_field_label(_label_featured, bold_body, FIELD_SIZE_CAPTION, INK_GOLD)
+	## はじめガイドと同じ：Shippori（display）で統一。アウトライン無し。
+	_apply_guide_label(_label_issue_date, FIELD_SIZE_CAPTION, INK_MUTED)
+	_apply_guide_label(_label_section, FIELD_SIZE_SECTION, INK_GOLD)
+	_apply_guide_label(_label_headline, FIELD_SIZE_HEADLINE, INK)
+	_apply_guide_label(_label_timer, FIELD_SIZE_TIMER, INK_TIMER)
+	_apply_guide_label(_label_schedule, FIELD_SIZE_CAPTION, INK_MUTED)
+	_apply_guide_label(_label_featured, FIELD_SIZE_CAPTION, INK_GOLD)
 	if _label_timer != null:
 		_label_timer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_prepare_rich_label(_label_field_notes, FIELD_SIZE_FIELD_NOTES, INK_MUTED, true)
@@ -170,25 +330,24 @@ func _apply_typography() -> void:
 func _prepare_rich_label(rtl: RichTextLabel, size: int, color: Color, fit_content: bool = true) -> void:
 	if rtl == null:
 		return
-	var bold_body: Font = _make_bold_font(UiTypography.body_font())
+	var display: Font = UiTypography.display_font()
 	rtl.bbcode_enabled = true
 	rtl.fit_content = fit_content
 	rtl.scroll_active = false
 	rtl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	rtl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if bold_body != null:
-		rtl.add_theme_font_override("normal_font", bold_body)
-		rtl.add_theme_font_override("bold_font", bold_body)
+	if display != null:
+		rtl.add_theme_font_override("normal_font", display)
+		rtl.add_theme_font_override("bold_font", display)
 	rtl.add_theme_font_size_override("normal_font_size", size)
 	rtl.add_theme_font_size_override("bold_font_size", size)
 	rtl.add_theme_color_override("default_color", color)
-	rtl.add_theme_constant_override("outline_size", FIELD_OUTLINE)
-	rtl.add_theme_color_override("font_outline_color", FIELD_OUTLINE_COLOR)
+	## はじめガイド同様、アウトライン無し。
+	rtl.add_theme_constant_override("outline_size", 0)
 
 
 func _apply_field_panel_style() -> void:
-	var panel: PanelContainer = $MainScroll/MainVBox/SidePad/InnerVBox/FieldPanel as PanelContainer
-	if panel == null:
+	if _field_panel == null:
 		return
 	## 半透明パネルをやめ、ギルド情報誌の背景をそのまま見せる。
 	var sb := StyleBoxEmpty.new()
@@ -196,26 +355,13 @@ func _apply_field_panel_style() -> void:
 	sb.content_margin_top = 10.0
 	sb.content_margin_right = 12.0
 	sb.content_margin_bottom = 10.0
-	panel.add_theme_stylebox_override("panel", sb)
+	_field_panel.add_theme_stylebox_override("panel", sb)
 
 
-func _make_bold_font(base: Font) -> Font:
-	if base == null:
-		return null
-	var variation := FontVariation.new()
-	variation.base_font = base
-	variation.variation_embolden = FIELD_EMBOLDEN
-	return variation
-
-func _apply_field_label(lab: Label, font: Font, size: int, color: Color) -> void:
+func _apply_guide_label(lab: Label, size: int, color: Color) -> void:
 	if lab == null:
 		return
-	if font != null:
-		lab.add_theme_font_override("font", font)
-	lab.add_theme_font_size_override("font_size", size)
-	lab.add_theme_color_override("font_color", color)
-	lab.add_theme_constant_override("outline_size", FIELD_OUTLINE)
-	lab.add_theme_color_override("font_outline_color", FIELD_OUTLINE_COLOR)
+	UiTypography.apply_display(lab, size, color, 0)
 
 func _layout_chrome() -> void:
 	var top_inset: float = 0.0

@@ -34,6 +34,12 @@ var last_run_starter_recruited_name: String = ""
 var last_run_starter_recruited_id: String = ""
 ## 拠点で加入セリフ＋入手演出待ちのスターター id（セーブ永続）。
 var pending_starter_recruit_id: String = ""
+## 章クリア後ニーナ功績トーク待ち（加入候補があるとき）。
+var pending_clear_nina_merit: bool = false
+## 章クリア後ニーナ加入予告待ち。
+var pending_clear_nina_teaser: bool = false
+## 功績トーク用の章 id（表示名解決）。
+var pending_clear_stage_id: String = ""
 
 # ガチャ通貨（無償のみ） — P3-D036b
 var gacha_token: int = 0  ## 魔晶石（ガチャ通貨・表示名は CurrencyHelper）
@@ -279,7 +285,15 @@ func mark_stage_cleared(stage_id: String, tier: int = -1) -> void:
 			pending_starter_recruit_id = str(pick.get("id", ""))
 			last_run_starter_recruited_id = pending_starter_recruit_id
 			last_run_starter_recruited_name = str(pick.get("name", ""))
+			pending_clear_stage_id = stage_id
+			pending_clear_nina_merit = true
+			pending_clear_nina_teaser = true
 	_ContentUnlockNotice.queue_newly_unlocked(unlock_before)
+	## Hard/NM は Biome id が増えないため、章クリア時に次入口を明示キューする。
+	## （最終章→次帯入口は campaign_tiers 検知と重複しうるが _queue_entry で抑止）
+	if first_clear and (has_boss or (is_final_chapter and not is_abyss)):
+		if t == _DungeonTierConfig.TIER_HARD or t == _DungeonTierConfig.TIER_NIGHTMARE:
+			_ContentUnlockNotice.queue_next_after_main_biome_clear(biome_id, t)
 
 func count_cleared_stages(biome_id: String) -> int:
 	var count: int = 0
@@ -616,7 +630,7 @@ func get_equipped_skill_ids(member: Resource) -> Array[String]:
 	return get_default_skill_ids(member)
 
 # スキルの装備/解除トグル（最大 MAX_EQUIPPED_SKILLS）。未解放は不可。
-# 満枠時に別スキルを選ぶと先頭を置換（1枠運用向け）。
+# 満枠時に別スキルを選ぶと先頭を置換（1枠運用向け）。人間／ペット共通。
 func toggle_member_skill(member: Resource, skill_id: String) -> void:
 	if member == null or skill_id.is_empty():
 		return
@@ -725,6 +739,8 @@ func normalize_all_equipped_passives() -> void:
 func normalize_all_equipped_skills() -> void:
 	for member in roster:
 		SkillProgression.normalize_equipped_skills(member)
+	if active_pet != null:
+		SkillProgression.normalize_equipped_skills(active_pet)
 
 # ---- 戦術（AI設定・P3-D086） ----
 # メンバーの戦術 id（未設定/無効なら既定 "balanced"）。
@@ -1389,6 +1405,9 @@ func reset_for_new_game() -> void:
 	last_run_starter_recruited_id = ""
 	last_run_starter_recruited_name = ""
 	pending_starter_recruit_id = ""
+	pending_clear_nina_merit = false
+	pending_clear_nina_teaser = false
+	pending_clear_stage_id = ""
 	_run_combat_stats = null
 	active_pet = null
 	owned_pet_ids = []
@@ -1442,6 +1461,9 @@ func _init_party() -> void:
 	last_run_starter_recruited_id = ""
 	last_run_starter_recruited_name = ""
 	pending_starter_recruit_id = ""
+	pending_clear_nina_merit = false
+	pending_clear_nina_teaser = false
+	pending_clear_stage_id = ""
 	if Constants.STARTER_STORY_RECRUIT:
 		starter_unlocked_ids = []
 		starter_pick_pending = true
@@ -1527,6 +1549,9 @@ func commit_pending_starter_recruit() -> Resource:
 	pending_starter_recruit_id = ""
 	last_run_starter_recruited_id = ""
 	last_run_starter_recruited_name = ""
+	pending_clear_nina_merit = false
+	pending_clear_nina_teaser = false
+	pending_clear_stage_id = ""
 	return adv
 
 
@@ -1869,18 +1894,28 @@ func find_roster_member_by_id(member_id: String) -> Resource:
 	return null
 
 # アクティブ編成を更新。members は roster 内 Adventurer の配列（1〜ACTIVE_PARTY_SIZE）。
-# 無効（roster外/重複/数超過/空）なら false で現状維持。
+# 無効（roster外/重複/数超過/空/調査派遣中）なら false で現状維持。
 func set_active_party(members: Array) -> bool:
-	if members.is_empty() or members.size() > ACTIVE_PARTY_SIZE:
+	if not active_party_reject_reason(members).is_empty():
 		return false
+	party_members = members.duplicate()
+	migrate_formation_slots_if_needed()
+	return true
+
+
+## 空文字=採用可。失敗時はプレイヤー向け短文。
+func active_party_reject_reason(members: Array) -> String:
+	if members.is_empty() or members.size() > ACTIVE_PARTY_SIZE:
+		return "編成の変更に失敗しました（1〜%d名・重複不可）" % ACTIVE_PARTY_SIZE
 	const _SurveySystem := preload("res://scripts/survey/SurveySystem.gd")
 	var seen: Array = []
 	for adv in members:
 		if adv == null or not roster.has(adv) or seen.has(adv):
-			return false
+			return "編成の変更に失敗しました（1〜%d名・重複不可）" % ACTIVE_PARTY_SIZE
 		if _SurveySystem.is_member_dispatched(str(adv.id)):
-			return false
+			var nm: String = str(adv.display_name)
+			if nm.is_empty():
+				nm = "メンバー"
+			return "%sは調査中のため編成できません" % nm
 		seen.append(adv)
-	party_members = members.duplicate()
-	migrate_formation_slots_if_needed()
-	return true
+	return ""

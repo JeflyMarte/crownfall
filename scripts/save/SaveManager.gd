@@ -52,6 +52,9 @@ func save_game() -> void:
 		"starter_unlocked_ids": GameState.starter_unlocked_ids.duplicate(),
 		"starter_pick_pending": GameState.starter_pick_pending,
 		"pending_starter_recruit_id": GameState.pending_starter_recruit_id,
+		"pending_clear_nina_merit": GameState.pending_clear_nina_merit,
+		"pending_clear_nina_teaser": GameState.pending_clear_nina_teaser,
+		"pending_clear_stage_id": GameState.pending_clear_stage_id,
 		"debug_full_unlock": GameState.debug_full_unlock,
 		"showcase_member_id": GameState.showcase_member_id,
 		"tutorial_flags": GameState.tutorial_flags.duplicate(true),
@@ -574,6 +577,18 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.pending_starter_recruit_id = str(data.get("pending_starter_recruit_id", "")).strip_edges()
 	else:
 		GameState.pending_starter_recruit_id = ""
+	if data.has("pending_clear_nina_merit"):
+		GameState.pending_clear_nina_merit = bool(data.get("pending_clear_nina_merit", false))
+	else:
+		GameState.pending_clear_nina_merit = not GameState.pending_starter_recruit_id.is_empty()
+	if data.has("pending_clear_nina_teaser"):
+		GameState.pending_clear_nina_teaser = bool(data.get("pending_clear_nina_teaser", false))
+	else:
+		GameState.pending_clear_nina_teaser = not GameState.pending_starter_recruit_id.is_empty()
+	if data.has("pending_clear_stage_id"):
+		GameState.pending_clear_stage_id = str(data.get("pending_clear_stage_id", "")).strip_edges()
+	else:
+		GameState.pending_clear_stage_id = str(GameState.last_run_stage_id).strip_edges()
 	if data.has("showcase_member_id"):
 		GameState.showcase_member_id = str(data.get("showcase_member_id", "")).strip_edges()
 	else:
@@ -588,6 +603,9 @@ func _apply_save_data(data: Dictionary) -> void:
 		and GameState.is_starter_unlocked(GameState.pending_starter_recruit_id)
 	):
 		GameState.pending_starter_recruit_id = ""
+		GameState.pending_clear_nina_merit = false
+		GameState.pending_clear_nina_teaser = false
+		GameState.pending_clear_stage_id = ""
 	_apply_roster_save(data)
 	## roster 適用後に展示 id を検証。
 	GameState.find_showcase_member()
