@@ -40,3 +40,5 @@ const DEFAULT_RARITY: int = 1
 @export var formation_slot: int = 0
 ## ジョブ進化（到達形）済みか（P3-D037 / 手動ギルド認定で true）。
 @export var is_evolved: bool = false
+## 限界突破回数（0..5）。初期5人はここに保持。ガチャ助っ人は owned_helpers 由来を優先。
+@export var limit_breakthrough: int = 0

@@ -35,7 +35,7 @@ func test_new_four_rarities() -> void:
 func test_hodaka_in_pool_with_art() -> void:
 	var hodaka: Resource = DataRegistry.get_gacha_helper_data("helper_p")
 	assert_not_null(hodaka)
-	assert_eq(str(hodaka.display_name), "ホダカ")
+	assert_eq(str(hodaka.display_name), "火鷹")
 	assert_eq(int(hodaka.rarity), 4)
 	assert_false(str(hodaka.sprite_resource_path).is_empty())
 	assert_false(str(hodaka.portrait_resource_path).is_empty())

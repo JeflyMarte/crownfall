@@ -71,8 +71,37 @@ static func can_limit_break_helper(helper_id: String) -> Dictionary:
 	}
 
 
+static func can_limit_break_starter(member: Resource) -> Dictionary:
+	if member == null:
+		return {"ok": false, "reason": "no_helper"}
+	var mid: String = str(member.id)
+	if not GameState.is_starter_adventurer(mid):
+		return {"ok": false, "reason": "no_helper"}
+	var rarity: int = _GachaRarityConfig.clamp_rarity(int(member.rarity))
+	if rarity < Adventurer.STARTER_RARITY:
+		rarity = Adventurer.STARTER_RARITY
+	var ticket_id: String = ticket_id_for_limit_break_rarity(rarity)
+	if ticket_id.is_empty():
+		return {"ok": false, "reason": "no_ticket_for_rarity", "rarity": rarity}
+	if TicketInventory.get_qty(ticket_id) <= 0:
+		return {"ok": false, "reason": "no_ticket", "ticket_id": ticket_id, "rarity": rarity}
+	var bt: int = clampi(int(member.limit_breakthrough), 0, _GachaLimitBreak.MAX_BREAKTHROUGH)
+	if bt >= _GachaLimitBreak.MAX_BREAKTHROUGH:
+		return {"ok": false, "reason": "max_breakthrough", "ticket_id": ticket_id, "rarity": rarity}
+	return {
+		"ok": true,
+		"ticket_id": ticket_id,
+		"rarity": rarity,
+		"breakthrough": bt,
+		"member_id": mid,
+	}
+
+
 static func can_limit_break_member(member: Resource) -> Dictionary:
-	return can_limit_break_helper(helper_id_from_member(member))
+	var hid: String = helper_id_from_member(member)
+	if not hid.is_empty():
+		return can_limit_break_helper(hid)
+	return can_limit_break_starter(member)
 
 
 static func apply_limit_break_helper(helper_id: String) -> Dictionary:
@@ -95,8 +124,28 @@ static func apply_limit_break_helper(helper_id: String) -> Dictionary:
 	}
 
 
+static func apply_limit_break_starter(member: Resource) -> Dictionary:
+	var check: Dictionary = can_limit_break_starter(member)
+	if not bool(check.get("ok", false)):
+		return check
+	var ticket_id: String = str(check.get("ticket_id", ""))
+	if not TicketInventory.consume(ticket_id, 1):
+		return {"ok": false, "reason": "consume_failed", "ticket_id": ticket_id}
+	var next_bt: int = clampi(int(member.limit_breakthrough) + 1, 0, _GachaLimitBreak.MAX_BREAKTHROUGH)
+	member.limit_breakthrough = next_bt
+	return {
+		"ok": true,
+		"member_id": str(member.id),
+		"ticket_id": ticket_id,
+		"breakthrough": next_bt,
+	}
+
+
 static func apply_limit_break_member(member: Resource) -> Dictionary:
-	return apply_limit_break_helper(helper_id_from_member(member))
+	var hid: String = helper_id_from_member(member)
+	if not hid.is_empty():
+		return apply_limit_break_helper(hid)
+	return apply_limit_break_starter(member)
 
 
 static func display_name(ticket_id: String) -> String:

@@ -1,8 +1,9 @@
 site_name: Crownfall 攻略Wiki
 site_description: 2D見下ろし型 自動探索ハクスラRPG「Crownfall」の世界観・攻略・データ事典（現行バージョン準拠）
-site_url: https://jeflymarte.github.io/crownfall/
+site_url: https://crownfall-game.github.io/
+# ゲーム本体のソース（Wiki 編集リンク用）。公開サイト本体は crownfall-game.github.io
 repo_url: https://github.com/JeflyMarte/crownfall
-repo_name: JeflyMarte/crownfall
+repo_name: crownfall
 edit_uri: edit/main/wiki/docs/
 docs_dir: docs
 site_dir: site
@@ -59,7 +60,7 @@ plugins:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/JeflyMarte/crownfall
+      link: https://github.com/crownfall-game
     - icon: material/crown
       link: /
 

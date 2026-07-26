@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "helper_p"
-display_name = "ホダカ"
+display_name = "火鷹"
 job_id = "swordsman"
 origin_note = "規格外の剣腕を持つが、戦気に飲まれると時折体が動かなくなる剣士。"
 summon_quote = "斬れ。止められるまで。"

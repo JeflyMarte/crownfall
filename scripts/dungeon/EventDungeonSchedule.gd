@@ -183,3 +183,19 @@ static func next_open_label(dungeon_id: String) -> String:
 			return "次の出現 %d:00" % start_h
 	## 本日の枠は終了 → 翌日最初
 	return "次の出現 %d:00" % int(sorted_starts[0])
+
+
+## いま出現中の時間帯降臨イベント id（表示優先用）。
+static func open_hourly_event_ids() -> Array[String]:
+	var out: Array[String] = []
+	for dungeon_id_v in HOURLY_OPEN_START_HOURS.keys():
+		var dungeon_id: String = str(dungeon_id_v)
+		if is_open_now(dungeon_id):
+			out.append(dungeon_id)
+	return out
+
+
+## 一覧ソート用: 時間帯降臨を先、続けて難易度昇順。
+static func list_sort_key(dungeon_id: String, difficulty: int) -> int:
+	var hourly_boost: int = 0 if uses_hourly_windows(dungeon_id) else 1000
+	return hourly_boost + clampi(difficulty, 0, 999)

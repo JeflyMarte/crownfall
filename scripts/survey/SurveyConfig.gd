@@ -41,11 +41,12 @@ const WEAPON_P_STAR3: float = 0.015
 static func weapon_drop_chance() -> float:
 	return WEAPON_P_STAR1 + WEAPON_P_STAR2 + WEAPON_P_STAR3
 
-## P3-BAL-SURVEY-001: 潜行クリア（35–65）より一段下。
-const TOKEN_SHORT_MIN: int = 15
-const TOKEN_SHORT_MAX: int = 30
-const TOKEN_STANDARD_MIN: int = 40
-const TOKEN_STANDARD_MAX: int = 70
+## P3-BAL-SURVEY-001: 潜行クリア（35–65）より大幅に下＋確率付与。
+const TOKEN_GRANT_CHANCE: float = 0.40
+const TOKEN_SHORT_MIN: int = 4
+const TOKEN_SHORT_MAX: int = 10
+const TOKEN_STANDARD_MIN: int = 8
+const TOKEN_STANDARD_MAX: int = 18
 ## 調査室日次 SURVEY 上限到達後の受取は魔晶石（と連動 Gold）を半減。
 const ROOM_OVER_CAP_TOKEN_MULT: float = 0.5
 

@@ -477,6 +477,7 @@ func _serialize_adventurer(adv: Resource) -> Dictionary:
 		"job_id": adv.job_id,
 		"rarity": adv.rarity,
 		"is_evolved": adv.is_evolved,
+		"limit_breakthrough": int(adv.limit_breakthrough),
 		"base_stats": _serialize_stats(adv.base_stats),
 		"equipped_weapon": weapon_instance_id,
 		"equipped_armor": armor_instance_id,
@@ -786,6 +787,7 @@ func _deserialize_party(party_data: Array) -> Dictionary:
 		adv.job_id = _migrate_job_id(entry.get("job_id", ""))
 		adv.rarity = int(entry.get("rarity", Adventurer.DEFAULT_RARITY))
 		adv.is_evolved = bool(entry.get("is_evolved", false))
+		adv.limit_breakthrough = clampi(int(entry.get("limit_breakthrough", 0)), 0, 5)
 		var saved_skills: Array = entry.get("equipped_skills", [])
 		var skill_ids: Array[String] = []
 		for sid in saved_skills:

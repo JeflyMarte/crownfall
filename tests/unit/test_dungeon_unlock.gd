@@ -41,14 +41,10 @@ func test_side_routes_unlock_after_prior_main() -> void:
 func test_second_main_locked_until_first_cleared() -> void:
 	assert_false(GameState.is_dungeon_unlocked("whisperwood"), "①未クリアでは②ロック")
 	GameState.mark_dungeon_cleared("mourngate")
-	## P3-HUB-SURVEY-001: ①クリアだけでは不足。SURVEY≥70%が必要。
-	assert_false(GameState.is_dungeon_unlocked("whisperwood"), "SURVEY未達では②ロック")
-	GameState.hub_survey_progress["mourngate"] = 70.0
-	assert_true(GameState.is_dungeon_unlocked("whisperwood"), "①クリア＋SURVEY70%で②解放")
+	assert_true(GameState.is_dungeon_unlocked("whisperwood"), "①クリアで②解放（調査ゲージ条件なし）")
 
 func test_third_main_requires_second_not_first() -> void:
 	GameState.mark_dungeon_cleared("mourngate")
-	GameState.hub_survey_progress["mourngate"] = 70.0
 	assert_false(GameState.is_dungeon_unlocked("mistfen"), "②未クリアでは③ロック")
 	GameState.mark_dungeon_cleared("whisperwood")
 	if Constants.BETA_MOURNGATE_ONLY:

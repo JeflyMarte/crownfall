@@ -33,25 +33,24 @@ mkdocs build
 
 ## GitHub Pages 公開
 
-想定URL: **https://jeflymarte.github.io/crownfall/**
+想定URL: **https://crownfall-game.github.io/**
 
-### いまの公開方式（稼働）
+Org `crownfall-game` のユーザーサイト（リポジトリ `crownfall-game.github.io`）へ載せる。  
+手順の正: [`GITHUB_PAGES_ORG.md`](GITHUB_PAGES_ORG.md)
 
-静的サイトは **`gh-pages` ブランチ** に載せる方式。
+### 公開（移行後）
 
 ```bash
 cd wiki
 source .venv/bin/activate
-mkdocs gh-deploy --force
+mkdocs gh-deploy --force --no-history --remote-name wiki-pages --remote-branch main
 ```
 
-### 初回だけ（リポジトリ設定）
+（初回は Org／空リポジトリ作成のあと、上記ドキュメントの remote 追加を行う）
 
-1. GitHub → リポジトリ **Settings** → **Pages**
-2. **Build and deployment → Source** を **Deploy from a branch**
-3. Branch: **`gh-pages`** / folder: **`/ (root)`** → Save
+### 旧方式（JeflyMarte/crownfall の gh-pages）
 
-（Actions 用 Workflow ファイルはローカルに用意済みだが、PAT に `workflow` 権限が無いと push できない。Actions 運用に切り替えるときは権限付きトークンで `.github/workflows/wiki-pages.yml` を push し、Source を GitHub Actions に変更）
+移行完了まで残っていてもよい。新URL運用開始後は旧 Pages を止めるか案内を出す。
 
 ### 検索に載せるには
 

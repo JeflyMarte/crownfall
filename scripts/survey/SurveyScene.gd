@@ -314,42 +314,48 @@ func _build_expected_rewards_card() -> PanelContainer:
 	var vb := VBoxContainer.new()
 	vb.add_theme_constant_override("separation", 10)
 	vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 8)
+	head.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var title := Label.new()
 	title.text = "調査完了時の期待成果"
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	UiTypography.apply_display(title, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
-	vb.add_child(title)
+	head.add_child(title)
+	var list_btn := Button.new()
+	list_btn.text = "報酬一覧"
+	list_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
+	list_btn.pressed.connect(_on_reward_catalog_pressed)
+	UiTypography.apply_menu_button(list_btn, false)
+	head.add_child(list_btn)
+	vb.add_child(head)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 12)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	## 装備 → 魔晶石 → ゴールド → 素材
-	var weapon_pct: int = int(round(_SurveyConfig.weapon_drop_chance() * 100.0))
+	## アイコンのみ（確率％は報酬一覧ポップアップへ）
 	row.add_child(_make_reward_chance_cell(
 		IconPaths.get_icon_texture("iron_sword", "weapon"),
-		"装備",
-		weapon_pct
+		"装備"
 	))
 	row.add_child(_make_reward_chance_cell(
 		_CurrencyHelper.get_icon_texture(),
-		"魔晶石",
-		100
+		"魔晶石"
 	))
-	const GOLD_COIN_PATH: String = "res://assets/ui/batch2/ICO_Gold.png"
 	var gold_tex: Texture2D = null
-	if ResourceLoader.exists(GOLD_COIN_PATH):
-		gold_tex = load(GOLD_COIN_PATH) as Texture2D
-	row.add_child(_make_reward_chance_cell(gold_tex, "ゴールド", 100))
+	if ResourceLoader.exists(GOLD_ICON_PATH):
+		gold_tex = load(GOLD_ICON_PATH) as Texture2D
+	row.add_child(_make_reward_chance_cell(gold_tex, "ゴールド"))
 	row.add_child(_make_reward_chance_cell(
 		IconPaths.get_icon_texture("base_ore", "material"),
-		"素材",
-		100
+		"素材"
 	))
 	vb.add_child(row)
 	card.add_child(vb)
 	return card
 
 
-func _make_reward_chance_cell(tex: Texture2D, label_text: String, chance_pct: int) -> Control:
+func _make_reward_chance_cell(tex: Texture2D, label_text: String) -> Control:
 	var cell := VBoxContainer.new()
 	cell.add_theme_constant_override("separation", 4)
 	cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -368,11 +374,6 @@ func _make_reward_chance_cell(tex: Texture2D, label_text: String, chance_pct: in
 	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_caption(name_l)
 	cell.add_child(name_l)
-	var pct_l := Label.new()
-	pct_l.text = "%d%%" % chance_pct
-	pct_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UiTypography.apply_caption(pct_l, UiTypography.COLOR_GOLD)
-	cell.add_child(pct_l)
 	return cell
 
 
@@ -416,11 +417,22 @@ func _build_target_card() -> PanelContainer:
 	_label_target_desc = _make_caption("—")
 	_label_target_desc.autowrap_mode = TextServer.AUTOWRAP_OFF
 	mid.add_child(_label_target_desc)
+	var drops_row := HBoxContainer.new()
+	drops_row.add_theme_constant_override("separation", 8)
+	drops_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_target_drops = HBoxContainer.new()
 	_target_drops.add_theme_constant_override("separation", 6)
-	_target_drops.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_target_drops.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_rebuild_target_drops()
-	mid.add_child(_target_drops)
+	drops_row.add_child(_target_drops)
+	var drops_list_btn := Button.new()
+	drops_list_btn.text = "報酬一覧"
+	drops_list_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
+	drops_list_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	drops_list_btn.pressed.connect(_on_reward_catalog_pressed)
+	UiTypography.apply_menu_button(drops_list_btn, false)
+	drops_row.add_child(drops_list_btn)
+	mid.add_child(drops_row)
 	row.add_child(mid)
 
 	var right := VBoxContainer.new()
@@ -456,14 +468,35 @@ func _rebuild_target_drops() -> void:
 		return
 	for c in _target_drops.get_children():
 		c.queue_free()
-	## サイクル受取の基本予想（石／素材／魔晶石／武器）
-	for tex: Texture2D in _target_reward_textures():
+	var seen: Dictionary = {}
+	## サイクル基本報酬（重複キーで後続を抑止）
+	for pair in [
+		["gold", _gold_icon_texture()],
+		["material:base_ore", IconPaths.get_icon_texture("base_ore", "material")],
+		["token", _CurrencyHelper.get_icon_texture()],
+		["weapon", IconPaths.get_icon_texture("iron_sword", "weapon")],
+	]:
+		var key: String = str(pair[0])
+		var tex: Texture2D = pair[1] as Texture2D
+		if tex == null or seen.has(key):
+			continue
+		seen[key] = true
 		_target_drops.add_child(_make_reward_texture_icon(tex))
-	## 完全調査（100%）景品プレビュー（P3-SURVEY-COMPLETE-001）
+	## 完全調査景品（同種アイコンは重ねない。％バッジは出さない）
 	const _SurveyCompleteRewards := preload("res://scripts/survey/SurveyCompleteRewards.gd")
 	var did: String = _selected_dungeon_id()
 	for entry in _SurveyCompleteRewards.preview_entries(did):
+		var dkey: String = _SurveyCompleteRewards.preview_dedupe_key(entry)
+		if dkey.is_empty() or seen.has(dkey):
+			continue
+		seen[dkey] = true
 		_target_drops.add_child(_make_complete_reward_icon(entry))
+
+
+func _gold_icon_texture() -> Texture2D:
+	if ResourceLoader.exists(GOLD_ICON_PATH):
+		return load(GOLD_ICON_PATH) as Texture2D
+	return null
 
 
 func _make_complete_reward_icon(entry: Dictionary) -> Control:
@@ -473,7 +506,6 @@ func _make_complete_reward_icon(entry: Dictionary) -> Control:
 	host.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	host.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var chance: String = str(entry.get("chance_note", ""))
 	match kind:
 		"pet":
 			var pet_id: String = str(entry.get("id", ""))
@@ -497,24 +529,12 @@ func _make_complete_reward_icon(entry: Dictionary) -> Control:
 			var mtex: Texture2D = IconPaths.get_icon_texture(mid, "material")
 			host.add_child(_make_reward_texture_icon(mtex))
 		"gold":
-			const GOLD_COIN_PATH: String = "res://assets/ui/batch2/ICO_Gold.png"
-			var gtex: Texture2D = null
-			if ResourceLoader.exists(GOLD_COIN_PATH):
-				gtex = load(GOLD_COIN_PATH) as Texture2D
-			host.add_child(_make_reward_texture_icon(gtex))
+			host.add_child(_make_reward_texture_icon(_gold_icon_texture()))
 		"token":
 			host.add_child(_make_reward_texture_icon(_CurrencyHelper.get_icon_texture()))
 		_:
 			pass
-	if not chance.is_empty():
-		var badge := Label.new()
-		badge.text = chance
-		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		badge.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-		badge.offset_left = -28.0
-		badge.offset_top = -12.0
-		UiTypography.apply_caption(badge, UiTypography.COLOR_GOLD)
-		host.add_child(badge)
+	## ％バッジは報酬一覧ポップアップ側のみ（アイコン行は重複・％なし）
 	return host
 
 
@@ -530,13 +550,11 @@ func _make_reward_texture_icon(tex: Texture2D) -> TextureRect:
 
 
 func _target_reward_textures() -> Array[Texture2D]:
+	## 互換のため残置（一覧構築は _rebuild_target_drops 側）。
 	var out: Array[Texture2D] = []
-	## 拠点 TopBar と同じコイン（batch2/ICO_Gold）。
-	const GOLD_COIN_PATH: String = "res://assets/ui/batch2/ICO_Gold.png"
-	if ResourceLoader.exists(GOLD_COIN_PATH):
-		var gold: Texture2D = load(GOLD_COIN_PATH) as Texture2D
-		if gold != null:
-			out.append(gold)
+	var gold: Texture2D = _gold_icon_texture()
+	if gold != null:
+		out.append(gold)
 	var mat: Texture2D = IconPaths.get_icon_texture("base_ore", "material")
 	if mat != null:
 		out.append(mat)
@@ -935,6 +953,209 @@ func _on_auto_assign() -> void:
 		return
 	_pending_members = _SurveySystem.auto_assign_members()
 	_refresh()
+
+
+## 報酬一覧（アイコン＋確率）。
+func _on_reward_catalog_pressed() -> void:
+	_open_reward_catalog()
+
+
+func _open_reward_catalog() -> void:
+	_close_pick_list()
+	var overlay := Control.new()
+	overlay.name = "SurveyRewardCatalogOverlay"
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	overlay.z_as_relative = false
+	overlay.z_index = 80
+	var dim := ColorRect.new()
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0.02, 0.02, 0.06, 0.72)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	dim.gui_input.connect(func(ev: InputEvent) -> void:
+		if ev is InputEventMouseButton and ev.pressed:
+			_close_pick_list()
+	)
+	overlay.add_child(dim)
+
+	var margin := MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 36)
+	margin.add_theme_constant_override("margin_right", 36)
+	margin.add_theme_constant_override("margin_top", 120)
+	margin.add_theme_constant_override("margin_bottom", 140)
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(margin)
+
+	var panel := _card_panel()
+	panel.clip_contents = true
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	margin.add_child(panel)
+
+	var root_vb := VBoxContainer.new()
+	root_vb.add_theme_constant_override("separation", 12)
+	root_vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root_vb.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	panel.add_child(root_vb)
+
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 8)
+	var title_l := Label.new()
+	title_l.text = "報酬一覧"
+	title_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_display(title_l, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
+	head.add_child(title_l)
+	var close_btn := Button.new()
+	close_btn.text = "閉じる"
+	close_btn.pressed.connect(_close_pick_list)
+	head.add_child(close_btn)
+	root_vb.add_child(head)
+
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	root_vb.add_child(scroll)
+
+	var list := VBoxContainer.new()
+	list.add_theme_constant_override("separation", 8)
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(list)
+
+	for row in _reward_catalog_rows():
+		if bool(row.get("is_section", false)):
+			list.add_child(_make_reward_catalog_section(str(row.get("title", ""))))
+		else:
+			list.add_child(_make_reward_catalog_row(row))
+
+	add_child(overlay)
+	move_child(overlay, get_child_count() - 1)
+	_pick_overlay = overlay
+	ScrollTouchHelper.enable(scroll)
+
+
+func _make_reward_catalog_section(title: String) -> Label:
+	var l := Label.new()
+	l.text = title
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_display(l, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	return l
+
+
+func _make_reward_catalog_row(row: Dictionary) -> Control:
+	var wrap := PanelContainer.new()
+	wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	wrap.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD))
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 10)
+	h.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	wrap.add_child(h)
+	var icon_host := Control.new()
+	icon_host.custom_minimum_size = Vector2(48, 48)
+	icon_host.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	icon_host.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	h.add_child(icon_host)
+	var tex: Texture2D = row.get("texture", null) as Texture2D
+	if tex != null:
+		var icon := TextureRect.new()
+		icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.texture = tex
+		icon_host.add_child(icon)
+	var texts := VBoxContainer.new()
+	texts.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	texts.add_theme_constant_override("separation", 2)
+	var name_l := Label.new()
+	name_l.text = str(row.get("title", ""))
+	name_l.clip_text = false
+	name_l.autowrap_mode = TextServer.AUTOWRAP_OFF
+	UiTypography.apply_body(name_l, UiTypography.SIZE_BODY_SMALL)
+	texts.add_child(name_l)
+	var chance_l := Label.new()
+	chance_l.text = str(row.get("chance", ""))
+	UiTypography.apply_caption(chance_l, UiTypography.COLOR_GOLD)
+	texts.add_child(chance_l)
+	h.add_child(texts)
+	return wrap
+
+
+func _reward_catalog_rows() -> Array[Dictionary]:
+	const _SurveyCompleteRewards := preload("res://scripts/survey/SurveyCompleteRewards.gd")
+	var out: Array[Dictionary] = []
+	out.append({"is_section": true, "title": "毎回の調査サイクル"})
+	var token_pct: int = int(round(_SurveyConfig.TOKEN_GRANT_CHANCE * 100.0))
+	out.append({
+		"texture": _CurrencyHelper.get_icon_texture(),
+		"title": "魔晶石",
+		"chance": "%d%%（短 %d〜%d／標準 %d〜%d）" % [
+			token_pct,
+			_SurveyConfig.TOKEN_SHORT_MIN,
+			_SurveyConfig.TOKEN_SHORT_MAX,
+			_SurveyConfig.TOKEN_STANDARD_MIN,
+			_SurveyConfig.TOKEN_STANDARD_MAX,
+		],
+	})
+	out.append({
+		"texture": _gold_icon_texture(),
+		"title": "ゴールド",
+		"chance": "魔晶石と同タイミング（×5）",
+	})
+	out.append({
+		"texture": IconPaths.get_icon_texture("base_ore", "material"),
+		"title": "基礎鉱",
+		"chance": "確定（短 2〜4／標準 5〜9）",
+	})
+	var p1: int = int(round(_SurveyConfig.WEAPON_P_STAR1 * 100.0))
+	var p2: int = int(round(_SurveyConfig.WEAPON_P_STAR2 * 100.0))
+	var p3: float = _SurveyConfig.WEAPON_P_STAR3 * 100.0
+	out.append({
+		"texture": IconPaths.get_icon_texture("iron_sword", "weapon"),
+		"title": "装備（武器）",
+		"chance": "★1 %d%%／★2 %d%%／★3 %.1f%%（いずれか、または無し）" % [p1, p2, p3],
+	})
+	var did: String = _selected_dungeon_id()
+	var dg: Resource = DataRegistry.get_dungeon_data(did)
+	var dg_name: String = str(dg.display_name) if dg != null else did
+	out.append({"is_section": true, "title": "完全調査（100%%）— %s" % dg_name})
+	var entries: Array[Dictionary] = _SurveyCompleteRewards.preview_entries(did)
+	if entries.is_empty():
+		out.append({
+			"texture": null,
+			"title": "（このダンジョンの景品定義なし）",
+			"chance": "—",
+		})
+	else:
+		for entry in entries:
+			out.append({
+				"texture": _texture_for_complete_entry(entry),
+				"title": _SurveyCompleteRewards.preview_display_name(entry),
+				"chance": _SurveyCompleteRewards.preview_chance_label(entry),
+			})
+	return out
+
+
+func _texture_for_complete_entry(entry: Dictionary) -> Texture2D:
+	var kind: String = str(entry.get("kind", ""))
+	match kind:
+		"gold":
+			return _gold_icon_texture()
+		"token":
+			return _CurrencyHelper.get_icon_texture()
+		"material":
+			return IconPaths.get_icon_texture(str(entry.get("id", "")), "material")
+		"ticket":
+			return IconPaths.get_icon_texture(str(entry.get("id", "")), "ticket")
+		"pet":
+			var pet_id: String = str(entry.get("id", ""))
+			var idle: Texture2D = ChrIdlePortrait.get_idle_texture(pet_id)
+			if idle != null:
+				return idle
+			return IconPaths.get_icon_texture(pet_id, "chr")
+		_:
+			return null
 
 
 ## 一覧選択オーバーレイ（ダンジョン／調査員共通）。

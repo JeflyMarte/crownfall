@@ -257,6 +257,9 @@ static func recommend_line() -> String:
 	var early: Array[String] = early_hub_tips()
 	if not early.is_empty():
 		return early[0]
+	var descent: String = descent_event_line()
+	if not descent.is_empty():
+		return descent
 	DailyMissionSystem.ensure_refreshed()
 	if DailyMissionSystem.has_claimable():
 		return _pick_from(CLAIMABLE_LINES, 11)
@@ -275,7 +278,44 @@ static func recommend_line() -> String:
 	return _pick_from(FALLBACK_RECOMMEND_LINES, 23)
 
 
+## 時間帯降臨が出現中なら告知（未出現は空）。
+static func descent_event_line() -> String:
+	const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
+	var open_ids: Array[String] = _EventDungeonSchedule.open_hourly_event_ids()
+	if open_ids.is_empty():
+		return ""
+	var names: PackedStringArray = PackedStringArray()
+	for dungeon_id in open_ids:
+		var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
+		var label: String = str(data.display_name) if data != null else dungeon_id
+		if label.is_empty():
+			label = dungeon_id
+		names.append(label)
+	var joined: String = " / ".join(names)
+	return _pick_from([
+		"いま「%s」が降臨中です！イベントから急いで確認してくださいね！",
+		"速報です！「%s」が出現してます！時間内に挑戦を！",
+		"降臨の気配です！「%s」——下ナビのイベントからどうぞ！",
+		"記録官速報：「%s」降臨中！枠を逃さないでくださいね！",
+		"今だけです！「%s」が開いてます。装備整えたらすぐ出撃を！",
+		"降臨ウィンドウです！「%s」——無理せず、でも急いで！",
+	], 131) % joined
+
+
 static func field_or_weather_line() -> String:
+	var descent: String = descent_event_line()
+	if not descent.is_empty():
+		## おすすめ枠と別文言にしたいので、野外枠では短めの催促。
+		const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
+		var open_ids: Array[String] = _EventDungeonSchedule.open_hourly_event_ids()
+		if not open_ids.is_empty():
+			var data: Resource = DataRegistry.get_dungeon_data(open_ids[0])
+			var label: String = str(data.display_name) if data != null else "降臨イベント"
+			return _pick_from([
+				"野外も大事ですが、いまは降臨「%s」が優先ですよ！",
+				"降臨中は時間勝負です！「%s」を先に見てくださいね！",
+				"記録係としては、降臨「%s」の記録を先に取りたいです！",
+			], 137) % label
 	if EventSystem.PERIODIC_EVENTS_ENABLED and EventSystem.is_event_running():
 		var event_data: Resource = EventSystem.get_active_event()
 		if event_data != null:

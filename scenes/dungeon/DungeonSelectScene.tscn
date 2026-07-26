@@ -264,7 +264,7 @@ text = "イベントダンジョン"
 layout_mode = 2
 size_flags_horizontal = 3
 toggle_mode = true
-text = "深層"
+text = "無限"
 
 [node name="ScrollList" type="ScrollContainer" parent="MainColumn"]
 layout_mode = 2

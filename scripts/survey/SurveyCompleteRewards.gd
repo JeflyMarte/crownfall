@@ -1,52 +1,63 @@
 class_name SurveyCompleteRewards
 extends RefCounted
 
-## ダンジョン SURVEY 100%（完全調査）一回限り景品（P3-SURVEY-COMPLETE-001 / 案A'′）。
+## ダンジョン SURVEY 100%（完全調査）景品（P3-SURVEY-COMPLETE-001）。
+## 100%到達ごとに付与し、ゲージを 0% へ戻す（案Aサイクル）。
+## アッシュ／インクは未所持時のみ（2周目以降は出さない）。
+## 2026-07-26 厳格化: 魔晶石減／限界突破券は低確率（★2・★3=5%／★4=1%）。
 
 const _SurveyConfig := preload("res://scripts/survey/SurveyConfig.gd")
 const _TicketInventory := preload("res://scripts/tickets/TicketInventory.gd")
 const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
 
-## ★4抽選（確定にしない）
-const P_LB4_BLACKSHORE: float = 0.03
-const P_LB4_FROSTRIDGE: float = 0.08
-const P_GACHA_MISTFEN: float = 0.50
+## 限界突破券抽選（確定付与しない）
+const P_LB_STAR2: float = 0.05
+const P_LB_STAR3: float = 0.05
+const P_LB_STAR4: float = 0.01
+## ③ガチャ券追加抽選
+const P_GACHA_MISTFEN: float = 0.25
 
 ## dungeon_id → 確定報酬定義。
-## gold / token / materials{id:qty} / tickets{id:qty} / pet_id / lottery(kind)
+## gold / token / materials{id:qty} / tickets{id:qty} / pet_id
+## lb_rolls: Array[{id, p}] — 限界突破券の独立抽選
+## lottery: 旧互換キー（ガチャ券など）
 const TABLE: Dictionary = {
 	"mourngate": {
-		"gold": 500,
-		"token": 30,
+		"gold": 200,
+		"token": 10,
 		"tickets": {"ticket_gacha_free": 1},
 	},
 	"whisperwood": {
-		"gold": 800,
-		"token": 50,
-		"materials": {"base_ore": 8, "relic_shard": 4},
+		"gold": 350,
+		"token": 15,
+		"materials": {"base_ore": 5, "relic_shard": 2},
 		"tickets": {"ticket_gacha_free": 1},
 		"pet_id": "pet_ash",
 	},
 	"mistfen": {
-		"gold": 1200,
-		"token": 80,
-		"materials": {"base_ore": 12, "relic_shard": 8},
-		"tickets": {"ticket_lb_star2": 1},
+		"gold": 500,
+		"token": 20,
+		"materials": {"base_ore": 8, "relic_shard": 4},
+		"lb_rolls": [{"id": "ticket_lb_star2", "p": P_LB_STAR2}],
 		"lottery": "mistfen_gacha",
 	},
 	"blackshore": {
-		"gold": 1500,
-		"token": 100,
-		"materials": {"base_ore": 15, "relic_shard": 10},
-		"tickets": {"ticket_lb_star3": 1},
+		"gold": 650,
+		"token": 25,
+		"materials": {"base_ore": 10, "relic_shard": 5},
 		"pet_id": "pet_ink",
-		"lottery": "blackshore_lb4",
+		"lb_rolls": [
+			{"id": "ticket_lb_star3", "p": P_LB_STAR3},
+			{"id": "ticket_lb_star4", "p": P_LB_STAR4},
+		],
 	},
 	"frostridge": {
-		"gold": 2000,
-		"token": 150,
-		"tickets": {"ticket_lb_star3": 1},
-		"lottery": "frostridge_lb4",
+		"gold": 800,
+		"token": 30,
+		"lb_rolls": [
+			{"id": "ticket_lb_star3", "p": P_LB_STAR3},
+			{"id": "ticket_lb_star4", "p": P_LB_STAR4},
+		],
 	},
 }
 
@@ -55,6 +66,7 @@ static func has_table(dungeon_id: String) -> bool:
 	return TABLE.has(dungeon_id)
 
 
+## 一度でも完全調査を達成したか（セーブ互換・UI用。繰り返し景品の阻害には使わない）。
 static func is_claimed(dungeon_id: String) -> bool:
 	return bool(GameState.hub_survey_complete_claimed.get(dungeon_id, false))
 
@@ -63,7 +75,7 @@ static func mark_claimed(dungeon_id: String) -> void:
 	GameState.hub_survey_complete_claimed[dungeon_id] = true
 
 
-## UI 用: 確定景品の表示エントリ（抽選は「低確率★4」等の注記付き）。
+## UI 用: 確定景品の表示エントリ（抽選は chance_note 付き）。所持済みペットは出さない。
 static func preview_entries(dungeon_id: String) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	var def: Variant = TABLE.get(dungeon_id, {})
@@ -85,8 +97,25 @@ static func preview_entries(dungeon_id: String) -> Array[Dictionary]:
 		for tid in tickets.keys():
 			out.append({"kind": "ticket", "id": str(tid), "qty": int(tickets[tid]), "label": str(tid)})
 	var pet_id: String = str(d.get("pet_id", ""))
-	if not pet_id.is_empty():
+	if not pet_id.is_empty() and not _PetSystem.owns_pet(pet_id):
 		out.append({"kind": "pet", "id": pet_id, "qty": 1, "label": pet_id})
+	var lb_rolls: Variant = d.get("lb_rolls", [])
+	if lb_rolls is Array:
+		for roll_v in lb_rolls as Array:
+			if not (roll_v is Dictionary):
+				continue
+			var roll: Dictionary = roll_v
+			var tid: String = str(roll.get("id", ""))
+			var p: float = float(roll.get("p", 0.0))
+			if tid.is_empty() or p <= 0.0:
+				continue
+			out.append({
+				"kind": "ticket",
+				"id": tid,
+				"qty": 1,
+				"label": tid,
+				"chance_note": _pct_label(p),
+			})
 	var lottery: String = str(d.get("lottery", ""))
 	match lottery:
 		"mistfen_gacha":
@@ -95,33 +124,72 @@ static func preview_entries(dungeon_id: String) -> Array[Dictionary]:
 				"id": TicketIds.GACHA_FREE,
 				"qty": 1,
 				"label": "ガチャチケット",
-				"chance_note": "50%",
-			})
-		"blackshore_lb4":
-			out.append({
-				"kind": "ticket",
-				"id": TicketIds.LB_STAR4,
-				"qty": 1,
-				"label": "★4限界突破券",
-				"chance_note": "3%",
-			})
-		"frostridge_lb4":
-			out.append({
-				"kind": "ticket",
-				"id": TicketIds.LB_STAR4,
-				"qty": 1,
-				"label": "★4限界突破券",
-				"chance_note": "8%",
+				"chance_note": _pct_label(P_GACHA_MISTFEN),
 			})
 	return out
 
 
-## 100%到達時／ロード同期。未請求のみ付与。
+static func _pct_label(p: float) -> String:
+	var pct: float = p * 100.0
+	if is_equal_approx(pct, roundf(pct)):
+		return "%d%%" % int(round(pct))
+	return "%.1f%%" % pct
+
+
+## UI 表示名（個数付き）。
+static func preview_display_name(entry: Dictionary) -> String:
+	var kind: String = str(entry.get("kind", ""))
+	var qty: int = int(entry.get("qty", 1))
+	match kind:
+		"gold":
+			return "ゴールド ×%d" % qty
+		"token":
+			return "魔晶石 ×%d" % qty
+		"material":
+			var mid: String = str(entry.get("id", ""))
+			var mname: String = DataRegistry.get_material_name(mid)
+			if mname.is_empty():
+				mname = mid
+			return "%s ×%d" % [mname, qty]
+		"ticket":
+			var tid: String = str(entry.get("id", ""))
+			var tname: String = TicketSystem.display_name(tid)
+			if tname.is_empty():
+				tname = str(entry.get("label", tid))
+			return "%s ×%d" % [tname, qty]
+		"pet":
+			var pet_id: String = str(entry.get("id", ""))
+			var pet_data: Resource = _PetSystem.get_pet_data(pet_id)
+			var pname: String = str(pet_data.display_name) if pet_data != null else pet_id
+			return pname
+		_:
+			return str(entry.get("label", kind))
+
+
+## 確率表示（空なら確定）。
+static func preview_chance_label(entry: Dictionary) -> String:
+	var note: String = str(entry.get("chance_note", "")).strip_edges()
+	if note.is_empty():
+		return "確定"
+	return note
+
+
+## アイコン行の重複排除キー。
+static func preview_dedupe_key(entry: Dictionary) -> String:
+	var kind: String = str(entry.get("kind", ""))
+	match kind:
+		"gold", "token":
+			return kind
+		"material", "ticket", "pet":
+			return "%s:%s" % [kind, str(entry.get("id", ""))]
+		_:
+			return "%s:%s" % [kind, str(entry.get("label", ""))]
+
+
+## 100%到達時: 景品付与 → ゲージ 0% リセット。繰り返し可。ペットは未所持時のみ。
 static func try_claim(dungeon_id: String, notify: bool = true) -> Dictionary:
 	if dungeon_id.is_empty() or not has_table(dungeon_id):
 		return {"ok": false, "reason": "no_table"}
-	if is_claimed(dungeon_id):
-		return {"ok": false, "reason": "already_claimed"}
 	const _SurveySystem := preload("res://scripts/survey/SurveySystem.gd")
 	if _SurveySystem.get_survey_percent(dungeon_id) + 0.001 < _SurveyConfig.SURVEY_COMPLETE_PERCENT:
 		return {"ok": false, "reason": "not_complete"}
@@ -163,7 +231,23 @@ static func try_claim(dungeon_id: String, notify: bool = true) -> Dictionary:
 				continue
 			_TicketInventory.add(str(tid), qty)
 			ticket_out[str(tid)] = qty
-	## 抽選
+	## 限界突破券（独立抽選・外れ補償なし）
+	var lb_rolls: Variant = def.get("lb_rolls", [])
+	var lb_hits: PackedStringArray = PackedStringArray()
+	if lb_rolls is Array:
+		for roll_v in lb_rolls as Array:
+			if not (roll_v is Dictionary):
+				continue
+			var roll: Dictionary = roll_v
+			var tid: String = str(roll.get("id", ""))
+			var p: float = float(roll.get("p", 0.0))
+			if tid.is_empty() or p <= 0.0:
+				continue
+			if randf() < p:
+				_TicketInventory.add(tid, 1)
+				ticket_out[tid] = int(ticket_out.get(tid, 0)) + 1
+				lb_hits.append(tid)
+	## 追加抽選（ガチャ券など）
 	var lottery: String = str(def.get("lottery", ""))
 	match lottery:
 		"mistfen_gacha":
@@ -173,38 +257,33 @@ static func try_claim(dungeon_id: String, notify: bool = true) -> Dictionary:
 				granted["lottery"] = "gacha"
 			else:
 				granted["lottery"] = "miss"
-		"blackshore_lb4":
-			if randf() < P_LB4_BLACKSHORE:
-				_TicketInventory.add(TicketIds.LB_STAR4, 1)
-				ticket_out[TicketIds.LB_STAR4] = int(ticket_out.get(TicketIds.LB_STAR4, 0)) + 1
-				granted["lottery"] = "lb4"
-			else:
-				GameState.gacha_token += 40
-				granted["token"] = int(granted["token"]) + 40
-				granted["lottery"] = "token_bonus"
-		"frostridge_lb4":
-			if randf() < P_LB4_FROSTRIDGE:
-				_TicketInventory.add(TicketIds.LB_STAR4, 1)
-				ticket_out[TicketIds.LB_STAR4] = int(ticket_out.get(TicketIds.LB_STAR4, 0)) + 1
-				granted["lottery"] = "lb4"
-			else:
-				_TicketInventory.add(TicketIds.LB_STAR2, 1)
-				ticket_out[TicketIds.LB_STAR2] = int(ticket_out.get(TicketIds.LB_STAR2, 0)) + 1
-				granted["lottery"] = "lb2_consolation"
+	if not lb_hits.is_empty():
+		granted["lottery"] = "lb:" + ",".join(lb_hits)
 	granted["tickets"] = ticket_out
-	## ペット解放は PetSystem.sync_unlocks_from_survey_progress が担当。
+	## ペットは未所持時のみ解放・通知（2周目以降は出さない）
 	var pet_id: String = str(def.get("pet_id", ""))
-	if not pet_id.is_empty():
-		granted["pet_id"] = pet_id
+	if not pet_id.is_empty() and not _PetSystem.owns_pet(pet_id):
+		if _PetSystem.unlock_pet(pet_id, false):
+			granted["pet_id"] = pet_id
 	mark_claimed(dungeon_id)
+	## 案A: 付与後に通常調査（0%）へ戻す
+	GameState.hub_survey_progress[dungeon_id] = 0.0
 	if notify:
 		_queue_notice(dungeon_id, granted)
 	return granted
 
 
+## ロード時: 100%で止まっているセーブを清算（付与＋0%）。既に claimed なら付与せずリセットのみ。
 static func sync_all_pending(notify: bool = false) -> void:
+	const _SurveySystem := preload("res://scripts/survey/SurveySystem.gd")
 	for dungeon_id_v in TABLE.keys():
-		try_claim(str(dungeon_id_v), notify)
+		var dungeon_id: String = str(dungeon_id_v)
+		if _SurveySystem.get_survey_percent(dungeon_id) + 0.001 < _SurveyConfig.SURVEY_COMPLETE_PERCENT:
+			continue
+		if is_claimed(dungeon_id):
+			GameState.hub_survey_progress[dungeon_id] = 0.0
+		else:
+			try_claim(dungeon_id, notify)
 
 
 static func _queue_notice(dungeon_id: String, granted: Dictionary) -> void:

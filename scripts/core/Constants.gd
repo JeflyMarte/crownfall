@@ -16,7 +16,7 @@ const ABYSS_DUNGEONS_PLAYABLE: bool = true
 ## イベントダンジョン（route_type=event）をプレイ対象に含める（P3-DG-DUCK-EVENT-001）。
 const EVENT_DUNGEONS_PLAYABLE: bool = true
 ## 公開β範囲をモーンゲート中心にする（P3-BETA-SCOPE-001）。
-## 2026-07-23 オーナー指示: OFF（③以降も通常の直列解放）。②は引き続き SURVEY≥70%＋①クリア。
+## 2026-07-23 オーナー指示: OFF（③以降も通常の直列解放）。②は①クリアのみ（調査ゲージ条件なし）。
 const BETA_MOURNGATE_ONLY: bool = false
 ## コズミックダック日次イベントDG id。
 const COSMIC_RIFT_DUNGEON_ID: String = "cosmic_rift"

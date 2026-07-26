@@ -212,7 +212,7 @@ const _DEFS: Dictionary = {
 		"pet_outgoing_mult": 1.25,
 		"pet_defense_mult": 1.10,
 	},
-	## プール助っ人 — ホダカ★4（撃破鼓舞＋行動スキップ）
+	## プール助っ人 — 火鷹★4（撃破鼓舞＋行動スキップ）
 	"hodaka_blood_price": {
 		"display_name": "血潮の代償",
 		"description": "敵撃破時、自身の攻撃力が上昇する（鼓舞）。行動出番でたまに行動できなくなる。",
@@ -1287,7 +1287,7 @@ static func _base_passives_for_member(member: Resource) -> Array:
 	if _BASE_ROSTER_PASSIVES.has(adv_id):
 		var char_def: Dictionary = _def_with_id(str(_BASE_ROSTER_PASSIVES[adv_id]))
 		if not char_def.is_empty():
-			return [char_def]
+			return [_with_gacha_limit_break(member, char_def)]
 	var out: Array = []
 	if adv_id.begins_with("gacha_"):
 		var helper: Resource = DataRegistry.get_gacha_helper_data(adv_id.trim_prefix("gacha_"))

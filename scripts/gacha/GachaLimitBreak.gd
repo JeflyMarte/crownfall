@@ -1,8 +1,9 @@
 class_name GachaLimitBreak
 extends RefCounted
 
-## ガチャ助っ人の限界突破（P3-GACHA-LIMIT-001 / 案B）。
-## owned_helpers 所持数: 1=未凸、2..=+1〜。上限 +5（所持6以上は効果頭打ち）。
+## 助っ人（および初期5）の限界突破（P3-GACHA-LIMIT-001 / 案B）。
+## ガチャ: owned_helpers 所持数 1=未凸、2..=+1〜。上限 +5（所持6以上は効果頭打ち）。
+## 初期5: Adventurer.limit_breakthrough（0..5）。★3券で消費。
 
 const MAX_BREAKTHROUGH: int = 5
 const PER_STACK_EFFECT: float = 0.10
@@ -26,9 +27,10 @@ static func breakthrough_for_member(member: Resource) -> int:
 	if member == null:
 		return 0
 	var mid: String = str(member.id)
-	if not mid.begins_with("gacha_"):
-		return 0
-	return breakthrough_for_helper_id(mid.trim_prefix("gacha_"))
+	if mid.begins_with("gacha_"):
+		return breakthrough_for_helper_id(mid.trim_prefix("gacha_"))
+	## 初期5人など: Adventurer.limit_breakthrough
+	return clampi(int(member.limit_breakthrough), 0, MAX_BREAKTHROUGH)
 
 
 static func effect_scale(breakthrough: int) -> float:

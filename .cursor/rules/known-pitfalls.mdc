@@ -17,6 +17,7 @@ alwaysApply: true
 | はじめガイドでページごとにヘッダ位置がずれる | 本文長／スキップ有無でパネル高が変わり `CenterContainer` が上下に再中央寄せ | 外枠サイズ固定＋本文は Scroll。スキップは非表示ではなく透明／disabled |
 | 加入セリフ（ジャック等）が透けて読めない | `UI_Join_QuotePanel` の吹き出し内が空洞（枠のみ） | 枠の下に不透明プレートを合成。文言は金の display |
 | タイトル「デバッグ」後に拠点で即終了 | `HubSimpleGuideOverlay.show_on` を1引数に戻したのに `BaseScene` が `show_on(self, true)` のまま → パース失敗で BaseScene 未実行 | API 差し戻し時は呼び出し側 arity を同時確認。`preview_only` は互換のため optional 第2引数を残す |
+| ダンジョン選択を開くと強制終了（スクリプト未適用） | `sort_custom(func(...):` 内で外側ローカル `const` preload を参照 → `Identifier not found` でコンパイル失敗 | 比較は名前付きメソッドへ。ラムダで外側ローカル const を捕獲しない |
 | `Could not resolve class "CurrencyGainFx"`（起動パース失敗） | `tween_method(` に複数行ラムダ＋直後の `,` や、静的関数内の複雑なインライン Callable | 飛行更新は `_make_*` で Callable を返す。mutable カウンタは `Dictionary`。修正後 headless 起動確認 |
 | `Parser Error: Expected statement, found "else"` | Python の `for`/`else`・`while`/`else` | `gdscript.mdc` — フラグループを使う |
 | 編成の「おすすめ／陣形」が Header 金線に食い込む | タブが MainScroll 先頭で offset 余白だけに依存し潰れる | タブを Header 直下の固定 `ToolbarBand` に分離し、一覧スクロールはその下へ |

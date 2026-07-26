@@ -84,7 +84,8 @@ func test_hub_and_field_guide_entries_exist() -> void:
 
 	var survey: String = str(by_id.get("SYS-G001", ""))
 	assert_false(survey.is_empty(), "調査室の条がある")
-	assert_true(survey.contains("70"), "②解放の調査ゲージ条件")
+	assert_false(survey.contains("70"), "②解放に調査ゲージ条件を書かない")
+	assert_true(survey.contains("ボス"), "①ボス討伐で②解放")
 	assert_true(survey.contains("20"), "短調査20分")
 	assert_true(survey.contains("3 時間") or survey.contains("3時間"), "標準調査3時間")
 

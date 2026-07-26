@@ -3,15 +3,31 @@ extends GutTest
 
 const _Helper = preload("res://scripts/ui/HubNinaNavHelper.gd")
 const _Navigator = preload("res://scripts/ui/HubNinaNavigator.gd")
+const _EventDungeonSchedule = preload("res://scripts/dungeon/EventDungeonSchedule.gd")
 
 
 func before_each() -> void:
 	GameState.reset_for_new_game()
 	EventSystem.set_debug_unix_for_tests(-1)
+	## 降臨ウィンドウ外（JST 14:00）に固定し、通常おすすめ文案を安定させる。
+	_EventDungeonSchedule.set_debug_unix_override(_unix_jst(2026, 7, 26, 14, 0))
+	_EventDungeonSchedule.clear_debug_weekday_override()
+	GameState.debug_full_unlock = false
 
 
 func after_each() -> void:
 	EventSystem.set_debug_unix_for_tests(-1)
+	_EventDungeonSchedule.clear_debug_unix_override()
+	_EventDungeonSchedule.clear_debug_weekday_override()
+	GameState.debug_full_unlock = false
+
+
+func _unix_jst(year: int, month: int, day: int, hour: int, minute: int) -> int:
+	var dt := {
+		"year": year, "month": month, "day": day,
+		"hour": hour, "minute": minute, "second": 0,
+	}
+	return int(Time.get_unix_time_from_datetime_dict(dt)) - 9 * 3600
 
 
 func test_rotate_interval_is_ten_seconds() -> void:
@@ -143,3 +159,19 @@ func test_nina_panel_sits_below_top_bar_gap() -> void:
 func test_nina_portrait_asset_exists() -> void:
 	assert_true(FileAccess.file_exists("res://assets/npc/ART_NPC_Nina.png"))
 	assert_true(FileAccess.file_exists("res://assets/npc/ICO_NPC_Nina.png"))
+
+
+func test_descent_event_line_when_chronos_open() -> void:
+	GameState.owned_helpers["kaida"] = 1
+	GameState.hub_survey_progress[Constants.DEFAULT_DUNGEON_ID] = 1.0
+	_EventDungeonSchedule.set_debug_unix_override(_unix_jst(2026, 7, 26, 0, 30))
+	var line: String = _Helper.descent_event_line()
+	assert_true(line.contains("降臨"), line)
+	assert_true(line.contains("時環") or line.contains("共鳴龍"), line)
+	var rec: String = _Helper.recommend_line()
+	assert_true(rec.contains("降臨"), rec)
+
+
+func test_descent_event_line_empty_when_closed() -> void:
+	_EventDungeonSchedule.set_debug_unix_override(_unix_jst(2026, 7, 26, 14, 0))
+	assert_eq(_Helper.descent_event_line(), "")

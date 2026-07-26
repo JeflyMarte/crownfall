@@ -80,6 +80,27 @@ func test_limit_break_star3_ticket() -> void:
 	assert_eq(TicketInventory.get_qty(TicketIds.LB_STAR3), 0)
 
 
+func test_limit_break_starter_with_star3_ticket() -> void:
+	var member: Resource = GameState.unlock_starter_adventurer("adventurer_0")
+	assert_not_null(member, "初期隊員が解放できること")
+	assert_eq(int(member.rarity), Adventurer.STARTER_RARITY)
+	assert_eq(int(member.limit_breakthrough), 0)
+	TicketInventory.add(TicketIds.LB_STAR3, 1)
+	var check: Dictionary = TicketSystem.can_limit_break_member(member)
+	assert_true(bool(check.get("ok", false)), str(check))
+	assert_eq(str(check.get("ticket_id", "")), TicketIds.LB_STAR3)
+	var ok: Dictionary = TicketSystem.apply_limit_break_member(member)
+	assert_true(bool(ok.get("ok", false)), str(ok))
+	assert_eq(int(member.limit_breakthrough), 1)
+	assert_eq(TicketInventory.get_qty(TicketIds.LB_STAR3), 0)
+	assert_eq(GachaLimitBreak.breakthrough_for_member(member), 1)
+	member.limit_breakthrough = GachaLimitBreak.MAX_BREAKTHROUGH
+	TicketInventory.add(TicketIds.LB_STAR3, 1)
+	var blocked: Dictionary = TicketSystem.can_limit_break_member(member)
+	assert_false(bool(blocked.get("ok", true)))
+	assert_eq(str(blocked.get("reason", "")), "max_breakthrough")
+
+
 func test_limit_break_star4_ticket_and_max() -> void:
 	var helper: Resource = null
 	for h in DataRegistry.get_all_gacha_helper_data():

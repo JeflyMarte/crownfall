@@ -18,6 +18,16 @@ Crownfall（2D見下ろし型・自動探索ハクスラRPG）向け。Godot 4.6
 - 型注釈を付ける（`: int`, `: String`, `-> void` 等）
 - **Python の `for`/`else`・`while`/`else` は禁止**（GDScript 非対応。`Parser Error: Expected statement, found "else"` の原因）
 - **プロジェクトの Godot 版（4.6.3）に無い API を書かない**。Web の 4.x latest / PR マージ済み機能でも、未同梱なら実行時クラッシュする（例: `Control.custom_maximum_size`）
+- **`sort_custom` / インライン `func` で外側ローカル `const`（preload 含む）を参照しない** → `Identifier not found` でスクリプト全体が未適用になり画面オープンで落ちる
+
+```gdscript
+# ❌ BAD — ラムダが外側ローカル const を解決できない
+const _Sched := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
+out.sort_custom(func(a, b): return _Sched.list_sort_key(str(a.id), 0) < _Sched.list_sort_key(str(b.id), 0))
+
+# ✅ GOOD — 比較は名前付きメソッド
+out.sort_custom(_compare_open_event_dungeons)
+```
 
 ```gdscript
 # ❌ BAD — 4.6.3 に無いプロパティ（キャラ管理が _ready で即終了）

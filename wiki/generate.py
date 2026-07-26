@@ -23,8 +23,26 @@ RARITY = {
     2: "エピック",
     3: "レジェンダリー",
     4: "神話",
+    5: "セット",
 }
-RARITY_GEM = {0: "◇", 1: "◈", 2: "✦", 3: "★", 4: "✧"}
+RARITY_GEM = {0: "◇", 1: "◈", 2: "✦", 3: "★", 4: "✧", 5: "▣"}
+# 降臨など、tres に無いプレイヤー向け注記（再生成で残す）
+DUNGEON_EXTRA_ROWS: dict[str, list[tuple[str, str]]] = {
+    "chronos_mausoleum": [
+        ("出現", "毎日 JST 0/3/6/9時〜各1時間。N/H/NM"),
+        (
+            "専用報酬",
+            "セット「時環の刻」（武器／鎧／宝珠）。初回ボスで3部位、再周回40%。3部位でクロノスの加護",
+        ),
+    ],
+    "valgard_boundary": [
+        ("出現", "毎日 JST 1/4/7/10時〜各1時間。N/H/NM"),
+        (
+            "専用報酬",
+            "セット「アンティーク」（武器／鎧／アミュレット）。初回ボスで3部位、再周回40%。3部位でヴァルガードの加護",
+        ),
+    ],
+}
 ELEMENT = {
     "fire": "炎",
     "ice": "氷",
@@ -392,6 +410,8 @@ def gen_dungeons():
             "golden_nest": 2,
             "shadow_hunt": 3,
             "rock_stampede": 4,
+            "chronos_mausoleum": 5,
+            "valgard_boundary": 6,
         },
         "abyss": {
             "abyss_mourngate": 0,
@@ -443,8 +463,10 @@ def gen_dungeons():
                 f"| エリート | {elite or '—'} |",
                 f"| ボス | {boss} |",
                 f"| 影響属性 | {ELEMENT.get(d.get('favored_element', ''), '—')} |",
-                "",
             ]
+            for label, value in DUNGEON_EXTRA_ROWS.get(d.get("id", ""), []):
+                lines.append(f"| {label} | {value} |")
+            lines.append("")
             flavor = (d.get("flavor_text") or "").strip()
             if flavor:
                 lines += [f"*{flavor}*", ""]

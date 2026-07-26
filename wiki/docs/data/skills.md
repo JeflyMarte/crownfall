@@ -30,8 +30,8 @@
 | **沼毒の飛沫** | enemy | damage | 0.4 | 無 | 6.0 | poison (30%) |
 | **骨漁り** | enemy | damage | 1.15 | 無 | 4.5 | bleed (30%) |
 | **時歪の共鳴** | enemy | damage | 0.48 | 電気 | 6.0 | — |
-| **歯車の圧砕** | boss | damage | 0.62 | 電気 | 7.0 | stun (25%) |
-| **時環共鳴** | boss | damage | 0.55 | 電気 | 8.0 | shock (35%) |
+| **時環圧砕** | boss | damage | 1.15 | 電気 | 6.0 | stun (30%) |
+| **時環共鳴** | boss | damage | 0.62 | 電気 | 7.5 | shock (40%) |
 | **大爪の断頭刃** | enemy | damage | 1.1 | 無 | 5.0 | bleed (35%) |
 | **宝冠ガジり** | enemy | damage | 1.25 | 無 | 4.0 | — |
 | **晶砕爆散** | enemy | damage | 0.55 | 氷 | 5.5 | — |
@@ -83,8 +83,8 @@
 | **潮灯の冷光** | enemy | damage | 0.9 | 氷 | 5.0 | chill (40%) |
 | **潮穿ち** | enemy | damage | 1.0 | 無 | 5.0 | mark (30%) |
 | **極冠の角撃** | enemy | damage | 1.2 | 氷 | 5.5 | stun (35%) |
-| **境界槍** | boss | damage | 0.58 | 聖 | 7.0 | mark (30%) |
-| **境界の城壁** | boss | damage | 0.52 | 聖 | 9.0 | armor_break (30%) |
+| **界壁衝角** | boss | damage | 1.05 | 聖 | 6.5 | mark (30%) |
+| **城壁機関** | boss | damage | 0.58 | 聖 | 8.0 | armor_break (30%) |
 | **虚潮の巻縛** | enemy | damage | 0.42 | 闇 | 6.0 | mark (30%) |
 | **絡みつき** | player | damage | 1.15 | 無 | 4.0 | chill (55%) |
 | **恐怖追撃** | player | damage | 1.45 | 無 | 4.0 | fear (35%) |
@@ -104,13 +104,22 @@
 | **威嚇斬** | player | damage | 1.05 | 無 | 3.5 | fear (45%) |
 | **治癒** | player | heal | 1.0 | 無 | 5.0 | — |
 | **王牙列断** | player | damage | 2.8 | 無 | 28.0 | vulnerable (50%) |
+| **守護陣** | player | buff | 1.0 | 無 | 8.0 | guard (100%) |
 | **威嚇の吠え** | player | buff | 1.0 | 無 | 5.5 | guard (100%) |
+| **灰壁** | player | buff | 1.0 | 無 | 8.0 | guard (100%) |
 | **灰の守り** | player | buff | 1.0 | 無 | 7.0 | guard (100%) |
+| **灰の咆哮** | player | buff | 1.0 | 無 | 6.5 | empower (100%) |
 | **絆の守り** | player | buff | 1.0 | 無 | 7.0 | guard (100%) |
 | **相棒鼓舞** | player | buff | 1.0 | 無 | 5.5 | empower (100%) |
 | **指揮の牙** | player | damage | 0.9 | 無 | 4.0 | — |
 | **影噛み** | player | damage | 0.95 | 無 | 3.0 | bleed (55%) |
+| **呪影** | player | damage | 0.9 | 無 | 5.0 | mark (70%) |
+| **影裂** | player | damage | 1.3 | 無 | 7.0 | bleed (60%) |
 | **墨の足止め** | player | damage | 0.9 | 無 | 4.5 | slow (55%) |
+| **影毒** | player | damage | 0.95 | 無 | 3.8 | poison (55%) |
+| **猛進** | player | buff | 1.0 | 無 | 6.5 | empower (100%) |
+| **裂牙** | player | damage | 1.05 | 無 | 3.5 | bleed (50%) |
+| **猛襲** | player | damage | 1.35 | 無 | 7.0 | — |
 | **かじりつき** | player | damage | 0.85 | 無 | 2.2 | — |
 | **とびかかり** | player | damage | 1.2 | 無 | 4.5 | — |
 | **貫破斬** | player | damage | 1.7 | 無 | 4.5 | vulnerable (35%) |

@@ -91,7 +91,7 @@ var hub_survey_cycle: Dictionary = {}
 var hub_survey_room_daily: Dictionary = {}
 ## 図鑑実績の受取済み id { achieve_id: true }。
 var hub_survey_achievements_claimed: Dictionary = {}
-## ダンジョン完全調査（100%）景品の受取済み { dungeon_id: true }（P3-SURVEY-COMPLETE-001）。
+## ダンジョン完全調査を一度でも達成したか { dungeon_id: true }（繰り返し景品の阻害には使わない）。
 var hub_survey_complete_claimed: Dictionary = {}
 
 # 発見登録 { "category:entry_id": true } — Codex 基盤（P2-Task018）
@@ -488,9 +488,9 @@ func mark_dungeon_tier_cleared(dungeon_id: String, tier: int) -> void:
 	per_dungeon[str(t)] = true
 	dungeon_tier_cleared[dungeon_id] = per_dungeon
 
-# ダンジョン解放判定（P3-D157 / P3-HUB-SURVEY-001）。
-# メインルートは難易度順の直列解放。②は加えて① SURVEY≥70%。
-# β: ③以降のメインは封鎖。②は条件付き解禁可。
+# ダンジョン解放判定（P3-D157）。
+# メインルートは難易度順の直列解放（前 Biome クリア）。
+# β: ③以降のメインは封鎖。②は①クリアで解禁（調査ゲージ条件なし）。
 func is_dungeon_unlocked(dungeon_id: String) -> bool:
 	if dungeon_id.is_empty() or not ResourceLoader.exists(Constants.RESOURCE_DUNGEONS_PATH + dungeon_id + ".tres"):
 		return false
@@ -530,12 +530,7 @@ func is_dungeon_unlocked(dungeon_id: String) -> bool:
 			serial_ok = prev_id.is_empty() or is_dungeon_cleared(prev_id)
 			break
 		prev_id = str(d.id)
-	if not serial_ok:
-		return false
-	if dungeon_id == Constants.WHISPERWOOD_DUNGEON_ID:
-		const _SurveySystem := preload("res://scripts/survey/SurveySystem.gd")
-		return _SurveySystem.is_survey_clear(Constants.MOURNGATE_DUNGEON_ID)
-	return true
+	return serial_ok
 
 
 ## 深層の最高到達フロア（1始まり）。未到達は 0。

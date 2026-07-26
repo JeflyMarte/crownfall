@@ -4,6 +4,7 @@ extends GutTest
 
 const _SurveySystem := preload("res://scripts/survey/SurveySystem.gd")
 const _SurveyConfig := preload("res://scripts/survey/SurveyConfig.gd")
+const _SurveyCompleteRewards := preload("res://scripts/survey/SurveyCompleteRewards.gd")
 
 var _saved_progress: Dictionary = {}
 var _saved_survey: Dictionary = {}
@@ -42,12 +43,10 @@ func after_each() -> void:
 	GameState.debug_full_unlock = false
 
 
-func test_whisperwood_needs_survey_clear() -> void:
+func test_whisperwood_unlocks_on_mourngate_clear() -> void:
 	assert_false(GameState.is_dungeon_unlocked("whisperwood"))
 	GameState.mark_dungeon_cleared("mourngate")
-	assert_false(GameState.is_dungeon_unlocked("whisperwood"), "SURVEY未達では②ロック")
-	GameState.hub_survey_progress["mourngate"] = _SurveyConfig.SURVEY_CLEAR_PERCENT
-	assert_true(GameState.is_dungeon_unlocked("whisperwood"), "ボス相当クリア＋SURVEY70%で②解禁")
+	assert_true(GameState.is_dungeon_unlocked("whisperwood"), "①クリアで②解禁（調査ゲージ条件なし）")
 
 
 func test_later_mains_still_beta_locked() -> void:
@@ -64,7 +63,9 @@ func test_survey_add_and_cap() -> void:
 	_SurveySystem.add_survey_percent("mourngate", 10.0, false)
 	assert_eq(_SurveySystem.get_survey_percent("mourngate"), 10.0)
 	_SurveySystem.add_survey_percent("mourngate", 200.0, false)
-	assert_eq(_SurveySystem.get_survey_percent("mourngate"), 100.0)
+	## 100%到達で景品付与→0%リセット（案A）
+	assert_eq(_SurveySystem.get_survey_percent("mourngate"), 0.0)
+	assert_true(_SurveyCompleteRewards.is_claimed("mourngate"))
 
 
 func test_whisperwood_complete_unlocks_ash() -> void:
@@ -72,7 +73,7 @@ func test_whisperwood_complete_unlocks_ash() -> void:
 	GameState.owned_pet_ids = ["pet_jack"]
 	GameState.hub_survey_progress["whisperwood"] = 99.0
 	_SurveySystem.add_survey_percent("whisperwood", 2.0, false)
-	assert_eq(_SurveySystem.get_survey_percent("whisperwood"), 100.0)
+	assert_eq(_SurveySystem.get_survey_percent("whisperwood"), 0.0, "完全調査後は0%へ")
 	assert_true(_PetSystem.owns_pet("pet_ash"))
 	assert_false(_PetSystem.owns_pet("pet_ink"))
 
@@ -190,7 +191,7 @@ func test_codex_stage_up_adds_mourngate_survey() -> void:
 
 
 func test_claim_over_cap_halves_tokens() -> void:
-	## 日次 SURVEY 上限到達後の受取は魔晶石半減。
+	## 日次 SURVEY 上限到達後の受取は魔晶石半減（付与率があるので当たるまで再試行）。
 	GameState.hub_survey_room_daily = {
 		"day_key": DailyMissionSystem.current_day_key(),
 		"used": _SurveyConfig.SURVEY_ROOM_DAILY_CAP,
@@ -199,18 +200,25 @@ func test_claim_over_cap_halves_tokens() -> void:
 	var ids: Array[String] = []
 	if not GameState.roster.is_empty() and GameState.roster[0] != null:
 		ids.append(str(GameState.roster[0].id))
-	var started: Dictionary = _SurveySystem.start_cycle(
-		Constants.MOURNGATE_DUNGEON_ID, _SurveyConfig.PRESET_SHORT, ids
-	)
-	assert_true(bool(started.get("ok", false)), str(started))
-	GameState.hub_survey_cycle["start_unix"] = Time.get_unix_time_from_system() - (
-		_SurveyConfig.SHORT_DURATION_SEC + 10.0
-	)
-	var before_token: int = GameState.gacha_token
-	var claimed: Dictionary = _SurveySystem.claim_cycle()
-	assert_true(bool(claimed.get("ok", false)), str(claimed))
-	assert_true(bool(claimed.get("token_over_cap", false)))
-	var gained: int = int(claimed.get("token", 0))
-	assert_gte(gained, 1)
+	var gained: int = 0
+	var before_token: int = 0
+	var claimed: Dictionary = {}
+	for _i in 48:
+		GameState.hub_survey_cycle = {}
+		var started: Dictionary = _SurveySystem.start_cycle(
+			Constants.MOURNGATE_DUNGEON_ID, _SurveyConfig.PRESET_SHORT, ids
+		)
+		assert_true(bool(started.get("ok", false)), str(started))
+		GameState.hub_survey_cycle["start_unix"] = Time.get_unix_time_from_system() - (
+			_SurveyConfig.SHORT_DURATION_SEC + 10.0
+		)
+		before_token = GameState.gacha_token
+		claimed = _SurveySystem.claim_cycle()
+		assert_true(bool(claimed.get("ok", false)), str(claimed))
+		assert_true(bool(claimed.get("token_over_cap", false)))
+		gained = int(claimed.get("token", 0))
+		if gained > 0:
+			break
+	assert_gte(gained, 1, "魔晶石付与が一度も出ないのは異常")
 	assert_lte(gained, int(ceil(float(_SurveyConfig.TOKEN_SHORT_MAX) * _SurveyConfig.ROOM_OVER_CAP_TOKEN_MULT)))
 	assert_eq(GameState.gacha_token, before_token + gained)

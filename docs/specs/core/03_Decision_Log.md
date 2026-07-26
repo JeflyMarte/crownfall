@@ -2540,6 +2540,7 @@
 | P3-GACHA-LIMIT-001-6 | **カイダ／ガルム** — 空欄だった固有パッシブを付与（与ダメ+6%／被ダメ-6%） | ★2も凸対象にするため |
 | P3-GACHA-LIMIT-001-7 | **表示** — 召喚結果・ラインナップ・装備画面名に「限界突破 +N」 | 成長の可視化 |
 | P3-GACHA-LIMIT-001-8 | **β** — `GACHA_HELPERS_PLAYABLE=false` 据置。再有効化時に体験可能 | 現行スコープ |
+| P3-GACHA-LIMIT-001-9 | **対象拡張** — 初期5人も限界突破券対象（★3券）。突破数は `Adventurer.limit_breakthrough` に保存。パッシブ強化は助っ人と同じ ×(1+0.1N) | オーナー指示 2026-07-26。001-2 を上書き |
 
 ---
 
@@ -2789,6 +2790,8 @@
 | P3-SURVEY-COMPLETE-001-6 | **⑤** Gold2000＋石150＋**LB★3×1**、**LB★4 8%**（外れは LB★2×1） | ★4は確定しない |
 | P3-SURVEY-COMPLETE-001-7 | **`ticket_lb_star2` 新設**（★2助っ人限界突破） | S1 |
 | P3-SURVEY-COMPLETE-001-8 | 調査対象カードに完全調査景品アイコン（抽選は％バッジ）を表示 | 可読性 |
+| P3-SURVEY-COMPLETE-001-9 | **厳格化** — 魔晶石個数を約1/3。LB券は確定廃止。★2=5%／★3=5%／★4=1%（独立抽選・外れ補償なし）。サイクル魔晶石は40%付与・短4〜10／標準8〜18 | オーナー指示 2026-07-26。001-2〜6の数量・LB確定を上書き |
+| P3-SURVEY-COMPLETE-001-10 | **案Aサイクル** — 100%到達ごとに景品再付与 → ゲージ **0%**。`hub_survey_complete_claimed` は達成履歴のみ（阻害しない）。**アッシュ／インクは未所持時のみ**（プレビュー・付与・通知とも2周目以降なし） | 2026-07-26 オーナー GO。001-1 の一回限りを上書き |
 
 ---
 
@@ -4306,6 +4309,8 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-HUB-SURVEY-001-7 | **ACHIEVE** — 図鑑「実績」タブ・埋め％一回限り報酬 | 解放と分離 |
 | P3-HUB-SURVEY-001-8 | **β封鎖更新** — `BETA_MOURNGATE_ONLY` 恒久封鎖を条件付き②解禁へ | Q3=A |
 | P3-HUB-SURVEY-001-9 | **SSOT** — `docs/specs/decisions/05_HubSurveyRoom.md` | Decision 文書 |
+| P3-HUB-SURVEY-001-10 | **②解放から SURVEY 撤廃** — ①ボス初回討伐のみ。完全調査は解放非関与 | 2026-07-26 オーナー指示 |
+| P3-HUB-SURVEY-001-11 | **SURVEY サイクル** — 通常調査→完全調査100%→景品（案A毎回）→0%→通常調査。ペットは初回のみ（COMPLETE-001-10） | 2026-07-26 オーナー GO |
 ## Cursor 一本化（2026-07-22 — P3-OPS-CURSOR-001）
 > **オーナー指示** — 実装は Cursor に一本化。Claude Code / ChatGPT を使う運用ルールは削除。
 | P3-OPS-CURSOR-001-1 | **HQ / Impl とも Cursor のみ** | オーナー一本化 |
@@ -4643,8 +4648,10 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-DG-EVENT-WEEKDAY-001-1 | 境界は **JST 5:00**（日課・挑戦回数と同一） | 既存リセットと揃える |
 | P3-DG-EVENT-WEEKDAY-001-2 | **月** `cosmic_rift`／**火** `crown_rookery`／**水** `golden_nest`／**木** `shadow_hunt`／**金** `rock_stampede` | 適当割当 |
 | P3-DG-EVENT-WEEKDAY-001-3 | **土日は5本すべて開放** | オーナー指定 |
-| P3-DG-EVENT-WEEKDAY-001-4 | 未開放日は挑戦不可（一覧・説明は可視） | UX |
+| P3-DG-EVENT-WEEKDAY-001-4 | **未開放は一覧非表示**（挑戦不可は据置）。時間帯降臨もウィンドウ外は非表示 | オーナー指示 2026-07-26。旧「一覧可視」を上書き |
 | P3-DG-EVENT-WEEKDAY-001-5 | SSOT `EventDungeonSchedule.gd` | Impl |
+| P3-DG-EVENT-WEEKDAY-001-6 | **開催中一覧** — 時間帯降臨を最上、続けて難易度昇順 | オーナー指示 2026-07-26 |
+| P3-DG-EVENT-WEEKDAY-001-7 | **ニーナ** — 時間帯降臨の出現中はおすすめ／野外で告知 | オーナー指示 2026-07-26 |
 
 ## 敵スキル適合パス（2026-07-25 — P3-BAL-ENEMY-SKILL-FIT-001）
 > **オーナー指示** — バランス点検の推奨1〜5を実装。数値全面リバランスはしない。

@@ -7,12 +7,14 @@ const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedu
 
 func before_each() -> void:
 	_EventDungeonSchedule.clear_debug_weekday_override()
+	_EventDungeonSchedule.clear_debug_unix_override()
 	GameState.debug_full_unlock = false
 	GameState.event_dungeon_attempts.clear()
 
 
 func after_each() -> void:
 	_EventDungeonSchedule.clear_debug_weekday_override()
+	_EventDungeonSchedule.clear_debug_unix_override()
 	GameState.debug_full_unlock = false
 	GameState.event_dungeon_attempts.clear()
 
@@ -39,3 +41,35 @@ func test_weekend_opens_all() -> void:
 		for dungeon_id in _EventDungeonSchedule.PRIMARY_WEEKDAY.keys():
 			assert_true(_EventDungeonSchedule.is_open_today(str(dungeon_id)), "weekend %d %s" % [wd, dungeon_id])
 			assert_true(GameState.can_attempt_event_dungeon(str(dungeon_id)))
+
+
+func test_open_hourly_ids_and_list_sort_key() -> void:
+	_EventDungeonSchedule.set_debug_unix_override(_unix_jst(2026, 7, 26, 0, 30))
+	var open_ids: Array[String] = _EventDungeonSchedule.open_hourly_event_ids()
+	assert_true(open_ids.has(Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID), str(open_ids))
+	assert_false(open_ids.has(Constants.VALGARD_BOUNDARY_DUNGEON_ID), str(open_ids))
+	var chronos_key: int = _EventDungeonSchedule.list_sort_key(Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID, 7)
+	var weekday_key: int = _EventDungeonSchedule.list_sort_key("golden_nest", 3)
+	assert_lt(chronos_key, weekday_key)
+
+
+func test_closed_weekday_is_not_open_now() -> void:
+	_EventDungeonSchedule.set_debug_weekday_override(_EventDungeonSchedule.WEEKDAY_WED)
+	_EventDungeonSchedule.set_debug_unix_override(_unix_jst(2026, 7, 22, 14, 0)) ## 水曜想定＋降臨外
+	assert_true(_EventDungeonSchedule.is_open_now("golden_nest"))
+	assert_false(_EventDungeonSchedule.is_open_now("cosmic_rift"))
+	assert_false(_EventDungeonSchedule.is_open_now(Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID))
+
+
+func _unix_jst(year: int, month: int, day: int, hour: int, minute: int) -> int:
+	var as_utc_like: int = int(
+		Time.get_unix_time_from_datetime_dict({
+			"year": year,
+			"month": month,
+			"day": day,
+			"hour": hour,
+			"minute": minute,
+			"second": 0,
+		})
+	)
+	return as_utc_like - (9 * 3600)

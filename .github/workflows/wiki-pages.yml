@@ -3,7 +3,9 @@
 # 初回: リポジトリ Settings → Pages → Build and deployment → Source を
 # 「GitHub Actions」にする。
 #
-# 公開URL（想定）: https://jeflymarte.github.io/crownfall/
+# 公開URL（想定）: https://crownfall-game.github.io/
+# ※現行の本番公開は Org の crownfall-game.github.io へ mkdocs gh-deploy。
+#   本 Workflow は本体リポジトリ側の代替手段（未使用なら無視可）。
 
 name: Deploy Wiki
 

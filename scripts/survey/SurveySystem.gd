@@ -77,22 +77,17 @@ static func add_survey_percent(dungeon_id: String, amount: float, from_room: boo
 		if amount <= 0.0:
 			return get_survey_percent(dungeon_id)
 	const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
-	## ②解放など SURVEY 閾値越えを検知（章クリア経由でも dedupe される）。
+	## 解放通知の dedupe 用スナップショット（章クリア経由でも共有）。
 	var unlock_before: Dictionary = _ContentUnlockNotice.snapshot_unlocked()
 	var cur: float = get_survey_percent(dungeon_id)
 	var nxt: float = clampf(cur + amount, 0.0, _SurveyConfig.SURVEY_COMPLETE_PERCENT)
 	GameState.hub_survey_progress[dungeon_id] = nxt
-	## 完全調査（100%）で色変えオトモ解放（P3-PET-SURVEY-UNLOCK-001）
-	const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
-	_PetSystem.sync_unlocks_from_survey_progress(true)
-	## 完全調査一回限り景品（P3-SURVEY-COMPLETE-001）
+	## 完全調査（100%）: 景品付与 → 0% リセット（案A）。ペットは try_claim 内で未所持時のみ。
 	const _SurveyCompleteRewards := preload("res://scripts/survey/SurveyCompleteRewards.gd")
-	if nxt + 0.001 >= _SurveyConfig.SURVEY_COMPLETE_PERCENT and cur + 0.001 < _SurveyConfig.SURVEY_COMPLETE_PERCENT:
+	if nxt + 0.001 >= _SurveyConfig.SURVEY_COMPLETE_PERCENT:
 		_SurveyCompleteRewards.try_claim(dungeon_id, true)
-	elif nxt + 0.001 >= _SurveyConfig.SURVEY_COMPLETE_PERCENT:
-		_SurveyCompleteRewards.try_claim(dungeon_id, false)
 	_ContentUnlockNotice.queue_newly_unlocked(unlock_before)
-	return nxt
+	return get_survey_percent(dungeon_id)
 
 
 static func _clamp_room_daily(amount: float) -> float:
@@ -370,12 +365,14 @@ static func claim_cycle() -> Dictionary:
 
 static func _roll_rewards(preset: String, over_cap: bool = false) -> Dictionary:
 	var short: bool = preset == _SurveyConfig.PRESET_SHORT
-	var token: int = randi_range(
-		_SurveyConfig.TOKEN_SHORT_MIN if short else _SurveyConfig.TOKEN_STANDARD_MIN,
-		_SurveyConfig.TOKEN_SHORT_MAX if short else _SurveyConfig.TOKEN_STANDARD_MAX
-	)
-	if over_cap:
-		token = maxi(1, int(floor(float(token) * _SurveyConfig.ROOM_OVER_CAP_TOKEN_MULT)))
+	var token: int = 0
+	if randf() < _SurveyConfig.TOKEN_GRANT_CHANCE:
+		token = randi_range(
+			_SurveyConfig.TOKEN_SHORT_MIN if short else _SurveyConfig.TOKEN_STANDARD_MIN,
+			_SurveyConfig.TOKEN_SHORT_MAX if short else _SurveyConfig.TOKEN_STANDARD_MAX
+		)
+		if over_cap:
+			token = maxi(1, int(floor(float(token) * _SurveyConfig.ROOM_OVER_CAP_TOKEN_MULT)))
 	var mat_qty: int = randi_range(
 		_SurveyConfig.MATERIAL_SHORT_MIN if short else _SurveyConfig.MATERIAL_STANDARD_MIN,
 		_SurveyConfig.MATERIAL_SHORT_MAX if short else _SurveyConfig.MATERIAL_STANDARD_MAX

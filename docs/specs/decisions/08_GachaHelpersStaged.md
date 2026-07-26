@@ -11,7 +11,7 @@
 |---|---|---|
 | 2 | 5 | helper_b／f／i／**k（レノール）**／**o（ネリ）** |
 | 3 | 4 | helper_c／e／**m（シアン）**／**n（ボルグ）** |
-| 4 | 2 | helper_a／helper_p（ホダカ） |
+| 4 | 2 | helper_a／helper_p（火鷹） |
 
 排出率・天井・`GachaRarityConfig` は据置（個体数増のみ）。
 
@@ -43,6 +43,6 @@
 
 ## 4. 同期先
 
-- `13_Characters`／`08 §14`／`11_Glossary` — 昇格4＋ホダカを本載せ
+- `13_Characters`／`08 §14`／`11_Glossary` — 昇格4＋火鷹を本載せ
 - 図鑑人物録 — `GachaHelperData` プロフィール（P3-CODEX-CHAR-001）
 - アート — 立ち絵／戦闘シート／`CHR_Helper_*`

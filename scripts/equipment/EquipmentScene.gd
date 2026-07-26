@@ -676,11 +676,7 @@ func _update_character_card() -> void:
 		_label_stars.text = ""
 		_evolution_row.visible = false
 		return
-	_label_name.text = (
-		_GachaLimitBreak.format_member_name_plus(member)
-		if str(member.id).begins_with("gacha_")
-		else member.display_name
-	)
+	_label_name.text = _GachaLimitBreak.format_member_name_plus(member)
 	_label_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_label_name.max_lines_visible = 1
 	var job_name: String = RosterUiHelper.job_display_name(member)
@@ -741,7 +737,12 @@ func _ensure_lb_ticket_row() -> void:
 
 func _update_lb_ticket_row(member: Resource) -> void:
 	_ensure_lb_ticket_row()
-	if member == null or not str(member.id).begins_with("gacha_"):
+	if member == null:
+		_lb_ticket_row.visible = false
+		return
+	var mid: String = str(member.id)
+	var is_lb_target: bool = mid.begins_with("gacha_") or GameState.is_starter_adventurer(mid)
+	if not is_lb_target:
 		_lb_ticket_row.visible = false
 		return
 	var check: Dictionary = TicketSystem.can_limit_break_member(member)

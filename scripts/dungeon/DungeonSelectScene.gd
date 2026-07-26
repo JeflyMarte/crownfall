@@ -31,6 +31,9 @@ const DUNGEON_ICON_PATHS: Dictionary = {
 const COLOR_GOLD: Color = Color(0.95, 0.84, 0.4, 1)
 const COLOR_SUB: Color = Color(0.78, 0.74, 0.6, 1)
 const COLOR_CLEAR: Color = Color(0.45, 0.92, 0.55, 1)
+## クリア済みバッジ「CLEAR」用の黄。
+const COLOR_CLEAR_BADGE: Color = Color(1.0, 0.92, 0.28, 1.0)
+const COLOR_CLEAR_BADGE_HEX: String = "ffe84a"
 const COLOR_TEAL: Color = Color(0.6, 0.82, 0.78, 1)
 
 const ROUTE_TAB_MAIN: String = "main"
@@ -511,10 +514,32 @@ func _dungeons_for_route_tab() -> Array:
 		out.append_array(_sorted_dungeons("apex"))
 		return out
 	if _route_tab == ROUTE_TAB_EVENT:
-		return _sorted_dungeons("event")
+		return _sorted_open_event_dungeons()
 	if _route_tab == ROUTE_TAB_ABYSS:
 		return _sorted_dungeons("abyss")
 	return _sorted_dungeons("main")
+
+
+## 開催中のみ。時間帯降臨を最上、続けて難易度昇順。
+func _sorted_open_event_dungeons() -> Array:
+	const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
+	var out: Array = []
+	for data in DataRegistry.get_all_dungeon_data():
+		if data == null or str(data.route_type) != "event":
+			continue
+		var dungeon_id: String = str(data.id)
+		if not _EventDungeonSchedule.is_open_now(dungeon_id):
+			continue
+		out.append(data)
+	out.sort_custom(_compare_open_event_dungeons)
+	return out
+
+
+func _compare_open_event_dungeons(a: Variant, b: Variant) -> bool:
+	const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
+	var ka: int = _EventDungeonSchedule.list_sort_key(str(a.id), int(a.difficulty))
+	var kb: int = _EventDungeonSchedule.list_sort_key(str(b.id), int(b.difficulty))
+	return ka < kb
 
 
 func _clamp_selected_tier() -> void:
@@ -627,9 +652,12 @@ func _stage_list_line_bbcode(stage: Resource, unlocked: bool) -> String:
 	return "[color=#%s][b]%s[/b][/color]  [color=#e0dcd0]%s[/color]" % [name_color, name, meta]
 
 func _dungeon_list_line_bbcode(data: Resource, unlocked: bool) -> String:
-	var name: String = _dungeon_card_title(data, unlocked)
+	var name: String = _dungeon_display_name(data, unlocked)
 	if not unlocked:
 		return "[color=#c9c4b8][b]%s[/b][/color]  [color=#e0dcd0]未開[/color]" % name
+	var clear_bb: String = ""
+	if _is_biome_fully_cleared_for_ui(str(data.id)):
+		clear_bb = " [color=#%s][b]CLEAR[/b][/color]" % COLOR_CLEAR_BADGE_HEX
 	var parts: Array[String] = []
 	if int(data.floor_count) > 0:
 		parts.append("%dF" % int(data.floor_count))
@@ -641,8 +669,8 @@ func _dungeon_list_line_bbcode(data: Resource, unlocked: bool) -> String:
 	var meta: String = "  ".join(parts)
 	var name_color: String = "f5e07a"
 	if meta.is_empty():
-		return "[color=#%s][b]%s[/b][/color]" % [name_color, name]
-	return "[color=#%s][b]%s[/b][/color]  [color=#e0dcd0]%s[/color]" % [name_color, name, meta]
+		return "[color=#%s][b]%s[/b][/color]%s" % [name_color, name, clear_bb]
+	return "[color=#%s][b]%s[/b][/color]%s  [color=#e0dcd0]%s[/color]" % [name_color, name, clear_bb, meta]
 
 func _is_stage_cleared_for_ui(stage_id: String) -> bool:
 	if stage_id.is_empty():
@@ -718,7 +746,7 @@ func _make_stage_card(stage: Resource) -> Control:
 	if not unlocked:
 		status_text = "？"
 	elif cleared:
-		status_text = "✓ クリア"
+		status_text = "CLEAR"
 	elif bool(stage.has_boss_floor()):
 		status_text = "ボス"
 	if not status_text.is_empty():
@@ -730,7 +758,7 @@ func _make_stage_card(stage: Resource) -> Control:
 		status.text = status_text
 		status.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		status.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		UiTypography.apply_caption(status, COLOR_CLEAR if cleared else UiTypography.COLOR_SUB)
+		UiTypography.apply_caption(status, COLOR_CLEAR_BADGE if cleared else UiTypography.COLOR_SUB)
 		status_col.add_child(status)
 		content.add_child(status_col)
 	btn.pressed.connect(_on_stage_card_pressed.bind(stage_id))
@@ -798,12 +826,22 @@ func _refresh_featured() -> void:
 	elif stage != null and _uses_stage_cards(_featured_dungeon_id):
 		_label_featured_name.visible = true
 		_label_featured_name.text = "%s — %s" % [
-			_dungeon_card_title(data, true),
+			_dungeon_display_name(data, true),
 			str(stage.display_name),
 		]
+		if _is_biome_fully_cleared_for_ui(_featured_dungeon_id):
+			_label_featured_name.text += " CLEAR"
 	else:
 		_label_featured_name.visible = true
 		_label_featured_name.text = _dungeon_card_title(data, true)
+	if unlocked_featured and _is_biome_fully_cleared_for_ui(_featured_dungeon_id):
+		UiTypography.apply_display(
+			_label_featured_name, UiTypography.SIZE_BODY_SMALL, COLOR_CLEAR_BADGE
+		)
+	elif unlocked_featured:
+		UiTypography.apply_display(
+			_label_featured_name, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD
+		)
 	if unlocked_featured:
 		_label_featured_flavor.text = str(data.flavor_text)
 		_label_featured_flavor.visible = not str(data.flavor_text).is_empty()
@@ -1171,10 +1209,13 @@ func _make_biome_title_label(data: Resource, unlocked: bool) -> Control:
 	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	margin.add_theme_constant_override("margin_top", 2)
 	margin.add_theme_constant_override("margin_bottom", 2)
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 8)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var label := Label.new()
-	label.text = _dungeon_card_title(data, unlocked)
+	label.text = _dungeon_display_name(data, unlocked)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	if not unlocked:
 		label.modulate = Color(0.72, 0.72, 0.76, 1.0)
 	UiTypography.apply_display(
@@ -1182,41 +1223,60 @@ func _make_biome_title_label(data: Resource, unlocked: bool) -> Control:
 		UiTypography.SIZE_BODY_SMALL,
 		UiTypography.COLOR_GOLD if unlocked else UiTypography.COLOR_SUB
 	)
-	margin.add_child(label)
+	row.add_child(label)
+	if unlocked and data != null and _is_biome_fully_cleared_for_ui(str(data.id)):
+		var clear_lbl := Label.new()
+		clear_lbl.text = "CLEAR"
+		UiTypography.apply_display(clear_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_CLEAR_BADGE)
+		row.add_child(clear_lbl)
+	margin.add_child(row)
 	return margin
 
 ## バナー名は FULL_RECT 埋め込み禁止（実機でグリフが横方向に潰れて見える）。
 ## 中央寄せ＋自然サイズ。clip_text / 親 clip_contents と併用するとサイズ0で文字が消える（再発防止）。
-func _make_banner_overlay_title(data: Resource, unlocked: bool, dungeon_id: String) -> Label:
+func _make_banner_overlay_title(data: Resource, unlocked: bool, dungeon_id: String) -> Control:
+	var host := HBoxContainer.new()
+	host.alignment = BoxContainer.ALIGNMENT_CENTER
+	host.add_theme_constant_override("separation", 8)
+	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	host.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	host.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var title := Label.new()
-	title.text = _dungeon_card_title(data, unlocked)
+	title.text = _dungeon_display_name(data, unlocked)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	title.autowrap_mode = TextServer.AUTOWRAP_OFF
 	title.max_lines_visible = 1
-	## 中央アンカー Label は clip_text 禁止（サイズ0のまま全文がクリップされて消える）。
 	title.clip_text = false
 	title.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	title.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	UiTypography.apply_display(
 		title,
 		_banner_title_font_size(dungeon_id),
 		UiTypography.COLOR_GOLD if unlocked else UiTypography.COLOR_SUB
 	)
-	title.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.95))
-	title.add_theme_constant_override("shadow_offset_x", 1)
-	title.add_theme_constant_override("shadow_offset_y", 1)
-	title.add_theme_constant_override("shadow_outline_size", 5)
-	## 最小サイズで中央配置（PRESET_CENTER のみだと size=(0,0) のまま描画されないことがある）。
-	title.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
-	## ネームプレート中央よりわずかに上へ。
-	title.offset_top -= 2.0
-	title.offset_bottom -= 6.0
-	title.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	title.grow_vertical = Control.GROW_DIRECTION_BOTH
-	return title
+	_apply_banner_title_shadow(title)
+	host.add_child(title)
+	if unlocked and _is_biome_fully_cleared_for_ui(str(data.id)):
+		var clear_lbl := Label.new()
+		clear_lbl.text = "CLEAR"
+		clear_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		UiTypography.apply_display(clear_lbl, _banner_title_font_size(dungeon_id), COLOR_CLEAR_BADGE)
+		_apply_banner_title_shadow(clear_lbl)
+		host.add_child(clear_lbl)
+	host.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
+	host.offset_top -= 2.0
+	host.offset_bottom -= 6.0
+	host.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	host.grow_vertical = Control.GROW_DIRECTION_BOTH
+	return host
+
+
+func _apply_banner_title_shadow(label: Label) -> void:
+	label.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.95))
+	label.add_theme_constant_override("shadow_offset_x", 1)
+	label.add_theme_constant_override("shadow_offset_y", 1)
+	label.add_theme_constant_override("shadow_outline_size", 5)
 
 func _sync_featured_banner(dungeon_id: String) -> void:
 	for child in _featured_banner_host.get_children():
@@ -1246,7 +1306,7 @@ func _sync_featured_banner(dungeon_id: String) -> void:
 	if data == null:
 		return
 	var unlocked: bool = GameState.is_dungeon_unlocked(dungeon_id)
-	var title: Label = _make_banner_overlay_title(data, unlocked, dungeon_id)
+	var title: Control = _make_banner_overlay_title(data, unlocked, dungeon_id)
 	_featured_banner_host.add_child(title)
 
 func _banner_title_font_size(dungeon_id: String) -> int:
@@ -1463,15 +1523,16 @@ func _make_biome_card(data: Resource) -> PanelContainer:
 	action.add_child(btn)
 	return card
 
+func _dungeon_display_name(data: Resource, unlocked: bool = true) -> String:
+	if data == null or not unlocked:
+		return "？"
+	return str(data.display_name)
+
+
 func _dungeon_card_title(data: Resource, unlocked: bool = true) -> String:
-	if data == null:
-		return "？"
-	if not unlocked:
-		return "？"
-	var title: String = str(data.display_name)
-	## 絵文字（✅等）禁止。本文フォントで確実に出る「済」。
-	if _is_biome_fully_cleared_for_ui(str(data.id)):
-		title += " 済"
+	var title: String = _dungeon_display_name(data, unlocked)
+	if unlocked and data != null and _is_biome_fully_cleared_for_ui(str(data.id)):
+		title += " CLEAR"
 	return title
 
 ## 親 Biome の配下章がすべてクリア済みか（イベント／メイン共通。章無しは Biome クリア）。
@@ -1615,7 +1676,7 @@ func _make_thumb_with_ribbon(tex: Texture2D, show_clear: bool, locked: bool) -> 
 func _make_clear_ribbon() -> PanelContainer:
 	var ribbon := PanelContainer.new()
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.12, 0.45, 0.22, 0.92)
+	style.bg_color = Color(0.42, 0.32, 0.05, 0.92)
 	style.set_corner_radius_all(3)
 	style.content_margin_left = 4.0
 	style.content_margin_right = 4.0
@@ -1623,8 +1684,8 @@ func _make_clear_ribbon() -> PanelContainer:
 	style.content_margin_bottom = 1.0
 	ribbon.add_theme_stylebox_override("panel", style)
 	var label := Label.new()
-	label.text = "クリア"
-	UiTypography.apply_caption(label, COLOR_CLEAR)
+	label.text = "CLEAR"
+	UiTypography.apply_caption(label, COLOR_CLEAR_BADGE)
 	ribbon.add_child(label)
 	return ribbon
 
