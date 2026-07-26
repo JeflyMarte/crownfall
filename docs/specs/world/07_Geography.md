@@ -275,7 +275,7 @@
 |---|---|---|---|---|---|
 | mourngate | 王都地下モーンゲート | main | 王都アステリア地下 | Biome-01 | 実装済 |
 | astoria_ruins | 王都外郭アステリア廃墟 | side | 王都地上外郭 | Biome-01 寄り道 | 実装済 |
-| mourngate_deep | 未踏査層モーンゲート・ディープ | apex | モーンゲート最深 | Biome-01 征討 | 実装済 |
+| chronos_mausoleum | 時環の共鳴龍　降臨／時王の霊廟 | event | モーンゲート未踏査層 | Biome-01 イベント | 実装済 |
 | whisperwood | 囁きの森ウィスパーウッド | main | ヴェルディア大森林 | Biome-02 | 実装済 |
 | green_hollow | 翠の湿地グリーンホロウ | side | グリーンホロウ周辺 | Biome-02 寄り道 | 実装済 |
 | mistfen | 霧沼ミストフェン | main | 南部沼地 | Biome-03 | 実装済 |
@@ -305,7 +305,7 @@ mourngate → whisperwood → mistfen → blackshore → frostridge
 
 | 征討 id | 地理 | 征討 Boss | 解放条件 | 関連九王 |
 |---|---|---|---|---|
-| mourngate_deep | モーンゲート未踏査層 | 時環の共鳴龍クロノス・ウェーブ | frostridge | 継承王（王都地下） |
+| chronos_mausoleum | 時王の霊廟 | 時環の共鳴龍クロノス・ウェーブ | 時間帯（毎日） | 継承王（王都地下） |
 | storm_crown_ruins | ストームクラウン砦跡 | 境界の番ヴァルガード | mourngate | 守護王 |
 | red_ridge_mine | レッドリッジ廃坑 | 鉄殻の長スカルペディオン | whisperwood | 鍛冶王 |
 | mistfen_depths | 封緘書庫下 | 霧沼の古茸ミコルガ | mistfen | 学識王 |

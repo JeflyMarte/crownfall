@@ -24,7 +24,7 @@ const DUNGEON_ICON_PATHS: Dictionary = {
 	"westbay_flats": "res://assets/dungeon/westbay_flats/ICO_DG_WestbayFlats.png",
 	"frostridge": "res://assets/dungeon/frostridge/ICO_DG_Frostridge.png",
 	"frostwall_path": "res://assets/dungeon/frostwall_path/ICO_DG_FrostwallPath.png",
-	"mourngate_deep": "res://assets/dungeon/mourngate/ICO_DG_Mourngate.png",
+	"chronos_mausoleum": "res://assets/dungeon/mourngate/ICO_DG_Mourngate.png",
 }
 
 const COLOR_GOLD: Color = Color(0.95, 0.84, 0.4, 1)
@@ -111,7 +111,7 @@ const DROP_PREVIEW: Dictionary = {
 		["armor", "snowdrift_cloak"],
 		["accessory", "frost_fang_charm"],
 	],
-	"mourngate_deep": [
+	"chronos_mausoleum": [
 		["weapon", "storm_edge"],
 		["armor", "mourngate_plate"],
 		["accessory", "clockwing_brooch"],
@@ -198,43 +198,10 @@ const BIOME_BANNER_HEIGHT_MAX: float = 240.0
 const BIOME_BANNER_HEIGHT: float = 112.0
 ## 空 = バナー画像を使わずテキスト見出し（▶ ダンジョン名）に戻す。
 ## 雰囲気BGのみ（文字は UI ラベル重ね）。本番バナーは 1408×232（--strip-height 232）。
-## 表示高さはテクスチャ比で ~112px（680幅時）。イベントも同寸に揃える。
-const BIOME_BANNER_PATHS: Dictionary = {
-	"mourngate": "res://assets/ui/dungeon/BAN_DG_Mourngate.png",
-	"whisperwood": "res://assets/ui/dungeon/BAN_DG_Whisperwood.png",
-	"mistfen": "res://assets/ui/dungeon/BAN_DG_Mistfen.png",
-	"blackshore": "res://assets/ui/dungeon/BAN_DG_Blackshore.png",
-	"frostridge": "res://assets/ui/dungeon/BAN_DG_Frostridge.png",
-	"cosmic_rift": "res://assets/ui/dungeon/BAN_DG_CosmicRift.png",
-	"crown_rookery": "res://assets/ui/dungeon/BAN_DG_CrownRookery.png",
-	"golden_nest": "res://assets/ui/dungeon/BAN_DG_GoldenNest.png",
-	"shadow_hunt": "res://assets/ui/dungeon/BAN_DG_ShadowHunt.png",
-	"rock_stampede": "res://assets/ui/dungeon/BAN_DG_RockStampede.png",
-}
+## パス／フォールバック SSOT: BiomeBannerHelper
+const _BiomeBannerHelper = preload("res://scripts/ui/BiomeBannerHelper.gd")
 ## バナー画像にダンジョン名が焼き込まれている Biome（UI タイトルラベルを非表示）
 const BIOME_BANNER_TITLE_BAKED: Dictionary = {}
-## サブダンジョンに専用バナーが無い場合、親メイン Biome のバナーを流用
-## （枠＋中央ネームプレート込み。無限＝深層も親メインと同バナー）
-const SUB_BANNER_FALLBACK: Dictionary = {
-	"astoria_ruins": "mourngate",
-	"green_hollow": "whisperwood",
-	"broken_marsh": "mistfen",
-	"westbay_flats": "blackshore",
-	"frostwall_path": "frostridge",
-	"mourngate_deep": "mourngate",
-	"storm_crown_ruins": "mourngate",
-	"red_ridge_mine": "whisperwood",
-	"thunder_peak": "mistfen",
-	"mistfen_depths": "mistfen",
-	"blackshore_abyss": "blackshore",
-	"red_forge_depths": "frostridge",
-	"north_reach": "frostridge",
-	"abyss_mourngate": "mourngate",
-	"abyss_whisperwood": "whisperwood",
-	"abyss_mistfen": "mistfen",
-	"abyss_blackshore": "blackshore",
-	"abyss_frostridge": "frostridge",
-}
 
 func _ready() -> void:
 	$MainColumn/Header/HeaderRow/LabelTitle.text = ""
@@ -273,7 +240,9 @@ func _ready() -> void:
 
 func _maybe_show_content_unlock() -> void:
 	const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
-	_ContentUnlockNotice.show_pending_on(self)
+	## 章クリア加入ストーリー中は拠点で功績→解放の順に出す。
+	if not GameState.pending_clear_nina_merit:
+		_ContentUnlockNotice.show_pending_on(self)
 
 func _setup_enter_confirm() -> void:
 	_enter_confirm_overlay = Control.new()
@@ -390,7 +359,10 @@ func _apply_typography() -> void:
 
 func _refresh_all() -> void:
 	_featured_dungeon_id = _resolve_featured_dungeon_id()
-	if _expanded_biome_id.is_empty() and _uses_stage_cards(_featured_dungeon_id):
+	if _expanded_biome_id.is_empty() and (
+		_uses_stage_cards(_featured_dungeon_id)
+		or _featured_dungeon_id == Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID
+	):
 		_expanded_biome_id = _featured_dungeon_id
 	_sync_route_tab_to_featured()
 	_clamp_selected_tier()
@@ -522,6 +494,10 @@ func _clamp_selected_tier() -> void:
 	if dungeon_id.is_empty():
 		return
 	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
+	## 時王の霊廟はイベントだが N/H/NM すべて選択可（P3-DG-CHRONOS-DESCENT-001）。
+	if data != null and str(data.id) == Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID:
+		GameState.current_dungeon_tier = _DungeonTierConfig.clamp_tier(GameState.current_dungeon_tier)
+		return
 	if data != null and (str(data.route_type) == "event" or str(data.route_type) == "abyss"):
 		GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
 		return
@@ -533,13 +509,16 @@ func _clamp_selected_tier() -> void:
 func _refresh_tier_tabs() -> void:
 	var dungeon_id: String = _featured_dungeon_id
 	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
+	var chronos_tiers: bool = data != null and str(data.id) == Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID
 	var event_only_normal: bool = (
-		data != null and (str(data.route_type) == "event" or str(data.route_type) == "abyss")
+		data != null
+		and not chronos_tiers
+		and (str(data.route_type) == "event" or str(data.route_type) == "abyss")
 	)
 	var buttons: Array[Button] = [_btn_tier_normal, _btn_tier_hard, _btn_tier_nightmare]
 	for tier in _DungeonTierConfig.TIER_COUNT:
 		var btn: Button = buttons[tier]
-		var unlocked: bool = (
+		var unlocked: bool = true if chronos_tiers else (
 			tier == _DungeonTierConfig.TIER_NORMAL
 			if event_only_normal
 			else GameState.is_dungeon_tier_unlocked(dungeon_id, tier)
@@ -558,7 +537,8 @@ func _refresh_tier_tabs() -> void:
 
 func _on_tier_pressed(tier: int) -> void:
 	var dungeon_id: String = _featured_dungeon_id
-	if not GameState.is_dungeon_tier_unlocked(dungeon_id, tier):
+	var chronos_tiers: bool = dungeon_id == Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID
+	if not chronos_tiers and not GameState.is_dungeon_tier_unlocked(dungeon_id, tier):
 		return
 	GameState.current_dungeon_tier = _DungeonTierConfig.clamp_tier(tier)
 	_refresh_tier_tabs()
@@ -867,18 +847,25 @@ func _refresh_featured() -> void:
 	var attempt_ok: bool = true
 	if unlocked and data != null and str(data.route_type) == "event":
 		const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
-		if not _EventDungeonSchedule.is_open_today(_featured_dungeon_id):
-			_label_featured_discovery.text += " · 開放: %s" % _EventDungeonSchedule.open_schedule_label(
-				_featured_dungeon_id
-			)
-			_btn_featured_select.text = "本日は未開放（%s）" % _EventDungeonSchedule.open_schedule_label(
-				_featured_dungeon_id
-			)
+		if not _EventDungeonSchedule.is_open_now(_featured_dungeon_id):
+			var next_lbl: String = _EventDungeonSchedule.next_open_label(_featured_dungeon_id)
+			var sched: String = _EventDungeonSchedule.open_schedule_label(_featured_dungeon_id)
+			_label_featured_discovery.text += " · 開放: %s" % sched
+			if not next_lbl.is_empty():
+				_label_featured_discovery.text += " · %s" % next_lbl
+				_btn_featured_select.text = next_lbl
+			else:
+				_btn_featured_select.text = "出現時間外（%s）" % sched
 			_btn_featured_select.disabled = true
 			return
 		_label_featured_discovery.text += " · %s" % _EventDungeonSchedule.open_schedule_label(
 			_featured_dungeon_id
 		)
+		if str(data.id) == Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID:
+			_btn_featured_select.text = "難度を選んで出発"
+			_btn_featured_select.disabled = false
+			## バナー下の難度行から突入する（Featured 単体ではノーマル既定でも可）。
+			return
 	if unlocked and data != null and int(data.daily_attempt_limit) > 0:
 		var remaining: int = GameState.event_dungeon_attempts_remaining(_featured_dungeon_id)
 		_label_featured_discovery.text += " · 本日残り %d/%d（リセット %s）" % [
@@ -1050,20 +1037,63 @@ func _make_biome_accordion(data: Resource) -> Control:
 		var stages_box := VBoxContainer.new()
 		stages_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		stages_box.add_theme_constant_override("separation", 4)
-		for stage in DataRegistry.get_stages_for_biome(dungeon_id):
-			if stage != null:
-				stages_box.add_child(_make_stage_card(stage))
+		if dungeon_id == Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID:
+			for child in _make_chronos_mausoleum_tier_rows():
+				stages_box.add_child(child)
+		else:
+			for stage in DataRegistry.get_stages_for_biome(dungeon_id):
+				if stage != null:
+					stages_box.add_child(_make_stage_card(stage))
 		outer.add_child(stages_box)
 	return outer
 
+
+## 時王の霊廟 — バナー下のノーマル／ハード／ナイトメア行（P3-DG-CHRONOS-DESCENT-001）。
+func _make_chronos_mausoleum_tier_rows() -> Array[Control]:
+	const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
+	var open_now: bool = _EventDungeonSchedule.is_open_now(Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID)
+	var next_label: String = _EventDungeonSchedule.next_open_label(Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID)
+	var rows: Array[Control] = []
+	for tier in _DungeonTierConfig.TIER_COUNT:
+		var wrap := MarginContainer.new()
+		wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var btn := Button.new()
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn.custom_minimum_size = Vector2(0, 48)
+		btn.text = "時王の霊廟　%s" % _DungeonTierConfig.display_name(tier)
+		if GameState.is_dungeon_tier_cleared(Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID, tier):
+			btn.text += " ✓"
+		var selected: bool = (
+			_featured_dungeon_id == Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID
+			and GameState.current_dungeon_tier == tier
+		)
+		if not open_now:
+			btn.disabled = true
+			if not next_label.is_empty():
+				btn.text += "（%s）" % next_label
+		else:
+			btn.pressed.connect(_on_chronos_mausoleum_tier_pressed.bind(tier))
+		UiTypography.apply_button(btn, selected and open_now)
+		wrap.add_child(btn)
+		rows.append(wrap)
+	return rows
+
+
+func _on_chronos_mausoleum_tier_pressed(tier: int) -> void:
+	const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
+	if not _EventDungeonSchedule.is_open_now(Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID):
+		return
+	_featured_dungeon_id = Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID
+	_expanded_biome_id = Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID
+	GameState.current_dungeon_tier = _DungeonTierConfig.clamp_tier(tier)
+	_selected_stage_id = ""
+	GameState.current_stage_id = ""
+	_refresh_tier_tabs()
+	_refresh_featured()
+	_build_list()
+	_prompt_enter_dungeon(Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID)
 func _get_biome_banner_texture(dungeon_id: String) -> Texture2D:
-	var path: String = str(BIOME_BANNER_PATHS.get(dungeon_id, ""))
-	if path.is_empty():
-		var fallback_id: String = str(SUB_BANNER_FALLBACK.get(dungeon_id, ""))
-		if fallback_id.is_empty():
-			fallback_id = str(_AbyssDungeonConfig.parent_biome_id(dungeon_id))
-		if not fallback_id.is_empty():
-			path = str(BIOME_BANNER_PATHS.get(fallback_id, ""))
+	var path: String = _BiomeBannerHelper.resolve_path(dungeon_id)
 	if path.is_empty():
 		return null
 	return _load_texture_flexible(path)

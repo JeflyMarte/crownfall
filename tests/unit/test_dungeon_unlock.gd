@@ -75,12 +75,16 @@ func test_unknown_dungeon_locked() -> void:
 func test_apex_dungeons_unlock_after_main() -> void:
 	if not Constants.SUB_DUNGEONS_PLAYABLE:
 		GameState.mark_dungeon_cleared("mourngate")
-		assert_false(GameState.is_dungeon_unlocked("mourngate_deep"), "P3-DG-OMIT-001")
+		assert_false(GameState.is_dungeon_unlocked("north_reach"), "P3-DG-OMIT-001")
 		return
-	assert_false(GameState.is_dungeon_unlocked("mourngate_deep"), "⑤未クリアではモーンゲート深層ロック")
-	GameState.mark_dungeon_cleared("mourngate")
-	assert_false(GameState.is_dungeon_unlocked("mourngate_deep"), "①のみでは未解放（P3-LORE-CHRONOS-001）")
 	assert_false(GameState.is_dungeon_unlocked("north_reach"), "⑤未クリアではノースリーチロック")
 	GameState.mark_dungeon_cleared("frostridge")
-	assert_true(GameState.is_dungeon_unlocked("mourngate_deep"), "⑤クリアでモーンゲート深層解放")
 	assert_true(GameState.is_dungeon_unlocked("north_reach"), "⑤クリアでノースリーチ解放")
+
+
+func test_chronos_mausoleum_unlocked_from_start() -> void:
+	GameState.dungeon_progress = {}
+	assert_true(
+		GameState.is_dungeon_unlocked(Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID),
+		"時王の霊廟は進行解放なし（時間ゲートは can_attempt）"
+	)

@@ -72,9 +72,9 @@ const DUNGEON_CODEX_META: Dictionary = {
 		"exploration_theme": "雪原縦断の寄り道",
 		"related_history": ["HE-004"],
 	},
-	"mourngate_deep": {
-		"location": "モーンゲート未踏査層",
-		"exploration_theme": "時環・歯車の共鳴・征討調査",
+	"chronos_mausoleum": {
+		"location": "時王の霊廟（モーンゲート未踏査層）",
+		"exploration_theme": "時環の共鳴龍　降臨・時間帯イベント",
 		"related_history": ["HE-007", "HE-001"],
 	},
 	"storm_crown_ruins": {

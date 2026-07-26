@@ -2761,6 +2761,20 @@
 | P3-PET-SKILL-001-3 | Jack=火力3新／Ash=守り3新／Ink=崩し3新。`PetData.skill_unlocks`＋`SkillProgression` | JobData と同型 |
 | P3-PET-SKILL-001-4 | セーブにスキル配列を足さない（Lv導出）。専用アイコンアートは後差し可 | セーブ破壊回避 |
 
+### 色変えオトモ入手＝調査室完全調査（2026-07-26 — P3-PET-SURVEY-UNLOCK-001）
+
+> **オーナー GO** — ジャックは開始随伴据置。アッシュ／インクは調査ゲージ100%景品。調査対象カードに素材と同寸の停止 Idle を表示。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-PET-SURVEY-UNLOCK-001-1 | **ジャック**は NG 開始随伴のまま（変更なし） | 序盤体験・貸与ロア維持 |
+| P3-PET-SURVEY-UNLOCK-001-2 | **アッシュ**＝`whisperwood` SURVEY **100%** 到達で解放 | 調査室の長期目標 |
+| P3-PET-SURVEY-UNLOCK-001-3 | **インク**＝`blackshore` SURVEY **100%** 到達で解放 | 同上・④帯 |
+| P3-PET-SURVEY-UNLOCK-001-4 | 旧 U1（1-5／2-5クリア解放）は廃止。既所持セーブは維持 | ロールバックしない |
+| P3-PET-SURVEY-UNLOCK-001-5 | 調査対象カードの予想成果に、対象 DG の景品ペット Idle（**静止1フレーム**・素材アイコンと同寸）を表示 | 景品の可読性 |
+
+**上書き:** `P3-PET-VARIANT-001-5`（1-5／2-5クリア入手）
+
 ---
 
 ## BTオトモ連携スキル／パッシブ（2026-07-19 — P3-BT-PET-LINK-001）
@@ -4793,4 +4807,22 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-LORE-CHRONOS-001-12 | **フェーズ** — 45%/60%/80% ・ ×1.0/1.15/1.35 | 推奨GO |
 
 **SSOT:** `docs/specs/decisions/13_ChronosWaveDragon.md`
+
+
+## 時環の共鳴龍　降臨／時王の霊廟（2026-07-26 — P3-DG-CHRONOS-DESCENT-001）
+
+> **オーナー GO** — バナー＝降臨。潜る名＝時王の霊廟 N/H/NM。JST 0/3/6/9時から各1時間。最初から挑戦可。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-CHRONOS-DESCENT-001-1 | **バナー** — 時環の共鳴龍　降臨 | オーナー指定 |
+| P3-DG-CHRONOS-DESCENT-001-2 | **選択名** — 時王の霊廟　ノーマル／ハード／ナイトメア | オーナー指定 |
+| P3-DG-CHRONOS-DESCENT-001-3 | **枠** — `route_type=event`・id `chronos_mausoleum`（旧 mourngate_deep 置換） | 推奨＋イベント配信 |
+| P3-DG-CHRONOS-DESCENT-001-4 | **出現** — 毎日 JST 0/3/6/9 時〜各1時間 | オーナー指定 |
+| P3-DG-CHRONOS-DESCENT-001-5 | **進行解放なし** — 新規から挑戦可。ウィンドウ外は不可 | オーナー指定 |
+| P3-DG-CHRONOS-DESCENT-001-6 | **日次回数制限なし** — 出現中は再挑戦可 | HQ推奨・GO扱い |
+| P3-DG-CHRONOS-DESCENT-001-7 | **敵** — モーンゲート強化版＋クロックモス多め＋Bossクロノス | 推奨GO |
+| P3-DG-CHRONOS-DESCENT-001-8 | **H/NM** — ティア倍率流用。出現中は N/H/NM すべて選択可（キャンペーン条件なし） | UI指定＋最初から挑戦 |
+
+**SSOT:** `docs/specs/decisions/14_ChronosDescent.md`
 

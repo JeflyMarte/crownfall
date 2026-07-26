@@ -555,7 +555,7 @@ func event_dungeon_attempts_remaining(dungeon_id: String) -> int:
 
 func can_attempt_event_dungeon(dungeon_id: String) -> bool:
 	const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
-	if not _EventDungeonSchedule.is_open_today(dungeon_id):
+	if not _EventDungeonSchedule.is_open_now(dungeon_id):
 		return false
 	var remaining: int = event_dungeon_attempts_remaining(dungeon_id)
 	return remaining != 0
@@ -564,6 +564,9 @@ func can_attempt_event_dungeon(dungeon_id: String) -> bool:
 func consume_event_dungeon_attempt(dungeon_id: String) -> bool:
 	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
 	if data == null:
+		return false
+	const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
+	if not _EventDungeonSchedule.is_open_now(dungeon_id):
 		return false
 	var limit: int = int(data.daily_attempt_limit) if "daily_attempt_limit" in data else 0
 	if limit <= 0:

@@ -54,7 +54,8 @@ Biome は、その両者が重なり合う場所である。
 |---|---|
 | メイン×5 | mourngate / whisperwood / mistfen / blackshore / frostridge |
 | 寄り道×5 | astoria_ruins / green_hollow / broken_marsh / westbay_flats / frostwall_path |
-| 征討×8 | mourngate_deep / storm_crown_ruins / red_ridge_mine / mistfen_depths / thunder_peak / blackshore_abyss / red_forge_depths / north_reach |
+| 征討×7 | storm_crown_ruins / red_ridge_mine / mistfen_depths / thunder_peak / blackshore_abyss / red_forge_depths / north_reach |
+| イベント（降臨） | chronos_mausoleum（時環の共鳴龍　降臨／時王の霊廟） |
 | 深層×5（Decision済・未実装） | `abyss_mourngate` 等（表示名: 無限○○の最果て／**P3-DG-ABYSS-NAME-001**） |
 
 征討 Boss と解放条件の対応は `04_Classification §5.6`・`07_Geography §4.3`。  

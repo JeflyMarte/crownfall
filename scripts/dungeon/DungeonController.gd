@@ -63,7 +63,7 @@ const DISCOVERY_BOSS_BONUS: float = 0.20
 const MOURNGATE_EVENT_MATERIAL_POOL: Array[String] = ["base_ore", "relic_shard"]
 const MOURNGATE_ECOLOGY_DUNGEON_IDS: Array[String] = [
 	"mourngate",
-	"mourngate_deep",
+	"chronos_mausoleum",
 	"astoria_ruins",
 	"storm_crown_ruins",
 ]
@@ -438,7 +438,7 @@ const DUNGEON_EVENTS: Dictionary = {
 	"westbay_flats": EVENTS_BLACKSHORE + EVENTS_WESTBAY_FLATS,
 	"frostridge": EVENTS_FROSTRIDGE,
 	"frostwall_path": EVENTS_FROSTRIDGE + EVENTS_FROSTWALL_PATH,
-	"mourngate_deep": EVENTS_MOURNGATE,
+	"chronos_mausoleum": EVENTS_MOURNGATE,
 	"storm_crown_ruins": EVENTS_MOURNGATE,
 	"red_ridge_mine": EVENTS_WHISPERWOOD,
 	"mistfen_depths": EVENTS_MISTFEN,
