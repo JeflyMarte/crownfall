@@ -12,6 +12,10 @@ const REQUIRED_IDS: Array[String] = [
 	_BgmCatalog.ID_BLACKSHORE,
 	_BgmCatalog.ID_FROSTRIDGE,
 	_BgmCatalog.ID_BATTLE,
+	_BgmCatalog.ID_SHADOW_HUNT,
+	_BgmCatalog.ID_EVENT_DUNGEON,
+	_BgmCatalog.ID_CHRONOS_MAUSOLEUM,
+	_BgmCatalog.ID_CHRONOS_WAVE,
 	_BgmCatalog.ID_BOSS,
 	_BgmCatalog.ID_FINAL_BOSS,
 	_BgmCatalog.ID_RESULT,
@@ -76,6 +80,41 @@ func test_battle_bgm_for_dungeon_maps_biome() -> void:
 		_BgmCatalog.battle_bgm_for_dungeon("mourngate"),
 		_BgmCatalog.ID_BATTLE
 	)
+	assert_eq(
+		_BgmCatalog.battle_bgm_for_dungeon("shadow_hunt"),
+		_BgmCatalog.ID_SHADOW_HUNT
+	)
+	assert_eq(
+		_BgmCatalog.battle_bgm_for_dungeon("golden_nest"),
+		_BgmCatalog.ID_EVENT_DUNGEON
+	)
+	assert_eq(
+		_BgmCatalog.battle_bgm_for_dungeon("cosmic_rift"),
+		_BgmCatalog.ID_EVENT_DUNGEON
+	)
+	assert_eq(
+		_BgmCatalog.battle_bgm_for_dungeon("crown_rookery"),
+		_BgmCatalog.ID_EVENT_DUNGEON
+	)
+	assert_eq(
+		_BgmCatalog.battle_bgm_for_dungeon("rock_stampede"),
+		_BgmCatalog.ID_EVENT_DUNGEON
+	)
+	assert_eq(
+		_BgmCatalog.battle_bgm_for_dungeon("chronos_mausoleum"),
+		_BgmCatalog.ID_CHRONOS_MAUSOLEUM
+	)
+
+
+func test_explore_bgm_for_dungeon_chronos() -> void:
+	assert_eq(
+		_BgmCatalog.explore_bgm_for_dungeon("chronos_mausoleum"),
+		_BgmCatalog.ID_CHRONOS_MAUSOLEUM
+	)
+	assert_eq(
+		_BgmCatalog.explore_bgm_for_dungeon("mourngate"),
+		_BgmCatalog.ID_DUNGEON_EXPLORE
+	)
 
 
 func test_boss_bgm_for_dungeon_final_on_frostridge() -> void:
@@ -94,6 +133,10 @@ func test_boss_bgm_for_dungeon_final_on_frostridge() -> void:
 	assert_eq(
 		_BgmCatalog.boss_bgm_for_dungeon("blackshore"),
 		_BgmCatalog.ID_BOSS
+	)
+	assert_eq(
+		_BgmCatalog.boss_bgm_for_dungeon("chronos_mausoleum"),
+		_BgmCatalog.ID_CHRONOS_WAVE
 	)
 
 

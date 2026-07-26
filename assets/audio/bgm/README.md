@@ -14,10 +14,14 @@ Suno AI などで作成した BGM をここに配置する。
 | `gacha` | `gacha.mp3` | ガチャ（招待状） | YES |
 | `dungeon_explore` | `dungeon_explore.mp3` | ダンジョン探索（全ダンジョン共通） | YES |
 | `battle` | `battle.mp3` | 通常・エリート戦闘（未登録 Biome の既定） | YES |
+| `shadow_hunt` | `shadow_hunt.mp3` | 影狩戦のみ（イベントDG／放浪） | YES |
+| `event_dungeon` | `event_dungeon.mp3` | 日替わりイベントDG戦闘（影狩以外） | YES |
 | `whisperwood` | `whisperwood.mp3` | ウィスパーウッド系 通常戦闘 | YES |
 | `mistfen` | `mistfen.mp3` | ミストフェン系 通常戦闘 | YES |
 | `blackshore` | `blackshore.mp3` | ブラックショア系 通常戦闘 | YES |
 | `frostridge` | `frostridge.mp3` | フロストリッジ系 通常戦闘 | YES |
+| `chronos_mausoleum` | `chronos_mausoleum.mp3` | 時王の霊廟（探索＋雑魚戦闘） | YES |
+| `chronos_wave` | `chronos_wave.mp3` | 時王の霊廟ボス（クロノス・ウェーブ） | YES |
 | `boss` | `boss.mp3` | ボス戦（共通） | YES |
 | `final_boss` | `final_boss.mp3` | ラスボス戦（フロストリッジ本編＝エルディオン） | YES |
 | `result` | `result.mp3` | リザルト（クリア／リタイア） | YES |

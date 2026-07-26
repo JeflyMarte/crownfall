@@ -108,6 +108,7 @@ func test_event_biome_banners_are_unique() -> void:
 		"golden_nest": "res://assets/ui/dungeon/BAN_DG_GoldenNest.png",
 		"shadow_hunt": "res://assets/ui/dungeon/BAN_DG_ShadowHunt.png",
 		"rock_stampede": "res://assets/ui/dungeon/BAN_DG_RockStampede.png",
+		"chronos_mausoleum": "res://assets/ui/dungeon/BAN_DG_ChronosMausoleum.png",
 	}
 	for dungeon_id in expected.keys():
 		var path: String = str(expected[dungeon_id])

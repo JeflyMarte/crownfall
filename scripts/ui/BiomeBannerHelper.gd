@@ -14,6 +14,7 @@ const PATHS: Dictionary = {
 	"golden_nest": "res://assets/ui/dungeon/BAN_DG_GoldenNest.png",
 	"shadow_hunt": "res://assets/ui/dungeon/BAN_DG_ShadowHunt.png",
 	"rock_stampede": "res://assets/ui/dungeon/BAN_DG_RockStampede.png",
+	"chronos_mausoleum": "res://assets/ui/dungeon/BAN_DG_ChronosMausoleum.png",
 }
 
 ## 専用バナーが無いサブ／奈落は親 Biome を流用。
@@ -23,7 +24,6 @@ const SUB_FALLBACK: Dictionary = {
 	"broken_marsh": "mistfen",
 	"westbay_flats": "blackshore",
 	"frostwall_path": "frostridge",
-	"chronos_mausoleum": "mourngate",
 	"storm_crown_ruins": "mourngate",
 	"red_ridge_mine": "whisperwood",
 	"thunder_peak": "mistfen",

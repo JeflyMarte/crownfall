@@ -250,6 +250,7 @@ const BOSS_ENEMY_SPRITE_MAP: Dictionary = {
 	"nereion": "res://resources/animation/BOSS_Nereion.tres",
 	"nereion_depths": "res://resources/animation/BOSS_Nereion.tres",
 	"eldion": "res://resources/animation/BOSS_Eldion.tres",
+	"chronos_wave": "res://resources/animation/BOSS_ChronosWave.tres",
 }
 ## 体格正規化後の見た目倍率（1.0=標準）。ドットが他雑魚より大きく見える種を抑える。
 const ENEMY_BODY_SCALE_MULT: Dictionary = {
@@ -289,8 +290,8 @@ const BOSS_SPRITE_MAP_BY_TIER: Dictionary = {
 		2: "res://resources/animation/BOSS_Serdion_Nightmare.tres",
 	},
 	"chronos_mausoleum": {
-		1: "res://resources/animation/BOSS_Serdion_Hard.tres",
-		2: "res://resources/animation/BOSS_Serdion_Nightmare.tres",
+		1: "res://resources/animation/BOSS_ChronosWave.tres",
+		2: "res://resources/animation/BOSS_ChronosWave.tres",
 	},
 	"storm_crown_ruins": {
 		1: "res://resources/animation/BOSS_Serdion_Hard.tres",
@@ -380,7 +381,7 @@ const BOSS_SPRITE_MAP: Dictionary = {
 	"mourngate": "res://resources/animation/BOSS_Serdion.tres",
 	"westbay_flats": "res://resources/animation/ENM_ShipEaterCrab.tres",
 	"whisperwood": "res://resources/animation/BOSS_Granvel.tres",
-	"chronos_mausoleum": "res://resources/animation/BOSS_Serdion.tres",
+	"chronos_mausoleum": "res://resources/animation/BOSS_ChronosWave.tres",
 	"storm_crown_ruins": "res://resources/animation/BOSS_Serdion.tres",
 	"red_ridge_mine": "res://resources/animation/BOSS_Granvel.tres",
 	"mistfen_depths": "res://resources/animation/BOSS_Moldgar.tres",
@@ -407,7 +408,7 @@ const BATTLE_BG_MAP: Dictionary = {
 	"westbay_flats": "res://assets/dungeon/westbay_flats/env/BG_Battle_WestbayFlats.png",
 	"frostridge": "res://assets/dungeon/frostridge/env/BG_Battle_Frostridge.png",
 	"frostwall_path": "res://assets/dungeon/frostwall_path/env/BG_Battle_FrostwallPath.png",
-	"chronos_mausoleum": "res://assets/dungeon/mourngate/env/BG_Battle_Mourngate.png",
+	"chronos_mausoleum": "res://assets/dungeon/chronos_mausoleum/env/BG_Battle_ChronosMausoleum.png",
 	"storm_crown_ruins": "res://assets/dungeon/astoria_ruins/env/BG_Battle_AstoriaRuins.png",
 	"red_ridge_mine": "res://assets/dungeon/whisperwood/env/BG_Battle_Whisperwood.png",
 	"mistfen_depths": "res://assets/dungeon/mistfen/env/BG_Battle_Mistfen.png",
@@ -857,8 +858,8 @@ const TURN_ORDER_SIDE_TOP: float = 36.0
 const TURN_ORDER_BADGE_FONT_PX: int = 12
 
 func _ready() -> void:
-	## 探索BGM（全ダンジョン共通。非戦闘ルームへ入るまで / dive 中も探索曲）。
-	AudioManager.play_bgm(_BgmCatalog.ID_DUNGEON_EXPLORE)
+	## 探索BGM（ダンジョン別があれば優先。非戦闘ルームへ入るまで / dive 中も探索曲）。
+	AudioManager.play_bgm(_BgmCatalog.explore_bgm_for_dungeon(GameState.get_active_dungeon_id()))
 	_btn_next_room.pressed.connect(_on_next_room_pressed)
 	_btn_finish.pressed.connect(_on_finish_button_pressed)
 	$CombatTimer.timeout.connect(_on_combat_timer_timeout)
@@ -1708,9 +1709,9 @@ func _play_boss_bgm() -> void:
 
 
 func _sync_room_bgm() -> void:
-	## 非戦闘・探索中 = dungeon_explore（共通）。通常戦闘 = Biome 別／ボス = boss or final_boss。
+	## 非戦闘・探索中 = explore（共通 or ダンジョン別）／通常戦闘 = Biome 別／ボス = boss 系。
 	if not $DungeonController.is_combat_room():
-		AudioManager.play_bgm(_BgmCatalog.ID_DUNGEON_EXPLORE)
+		AudioManager.play_bgm(_BgmCatalog.explore_bgm_for_dungeon(GameState.get_active_dungeon_id()))
 		return
 	if $DungeonController.current_room_type == Enums.RoomType.BOSS:
 		_play_boss_bgm()
@@ -5472,7 +5473,7 @@ func _finalize_combat_cleared() -> void:
 	_update_next_room_button()
 	_show_chr_sprites(false)
 	# クリアBGMは ResultScene のみ。戦闘直後は探索へ戻す。
-	AudioManager.play_bgm(_BgmCatalog.ID_DUNGEON_EXPLORE)
+	AudioManager.play_bgm(_BgmCatalog.explore_bgm_for_dungeon(GameState.get_active_dungeon_id()))
 	if $DungeonController.is_on_last_floor_before_exit():
 		_play_combat_clear_celebration(true)
 	else:

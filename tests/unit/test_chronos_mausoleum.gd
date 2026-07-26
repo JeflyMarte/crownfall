@@ -76,6 +76,17 @@ func test_debug_always_open() -> void:
 	assert_true(_Sched.is_open_now(DID))
 
 
+func test_field_and_banner_assets() -> void:
+	assert_true(FileAccess.file_exists(
+		"res://assets/dungeon/chronos_mausoleum/env/BG_Battle_ChronosMausoleum.png"
+	))
+	assert_true(FileAccess.file_exists(
+		"res://assets/ui/dungeon/BAN_DG_ChronosMausoleum.png"
+	))
+	var ban_path: String = BiomeBannerHelper.resolve_path(DID)
+	assert_eq(ban_path, "res://assets/ui/dungeon/BAN_DG_ChronosMausoleum.png")
+
+
 func _unix_for_jst(year: int, month: int, day: int, hour: int, minute: int) -> int:
 	## datetime_dict はローカル扱いではなく「その壁時計を UTC として解釈」するので、
 	## JST 壁時計 → UTC unix は -9h。

@@ -268,7 +268,8 @@ const ICON_MAP: Dictionary = {
 	"enemy:eldion": "res://assets/codex/enemies/ART_BOSS_Eldion.png",
 	"enemy_turn:eldion": "res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_Eldion.png",
 
-	"enemy:chronos_wave":          "res://assets/codex/enemies/ART_BOSS_Serdion.png",
+	"enemy:chronos_wave":          "res://assets/codex/enemies/ART_BOSS_ChronosWave.png",
+	"enemy_turn:chronos_wave":     "res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_ChronosWave.png",
 	"enemy:valgard":               "res://assets/codex/enemies/ART_BOSS_Serdion.png",
 	"enemy:skarpedion":            "res://assets/codex/enemies/ART_BOSS_Granvel.png",
 	"enemy:mycolga_ancient":       "res://assets/codex/enemies/ART_BOSS_Moldgar.png",

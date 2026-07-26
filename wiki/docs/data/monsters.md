@@ -263,6 +263,8 @@
 
 ## 時環の共鳴龍クロノス・ウェーブ {#chronos_wave}
 
+<img src="../../assets/monsters/ART_BOSS_ChronosWave.png" alt="時環の共鳴龍クロノス・ウェーブ" width="280">
+
 | 項目 | 値 |
 |---|---|
 | 種別 | ボス |

@@ -13,6 +13,10 @@ const ID_MISTFEN: String = "mistfen"
 const ID_BLACKSHORE: String = "blackshore"
 const ID_FROSTRIDGE: String = "frostridge"
 const ID_BATTLE: String = "battle"
+const ID_SHADOW_HUNT: String = "shadow_hunt"
+const ID_EVENT_DUNGEON: String = "event_dungeon"
+const ID_CHRONOS_MAUSOLEUM: String = "chronos_mausoleum"
+const ID_CHRONOS_WAVE: String = "chronos_wave"
 const ID_BOSS: String = "boss"
 const ID_FINAL_BOSS: String = "final_boss"
 const ID_RESULT: String = "result"
@@ -34,6 +38,10 @@ const PATHS: Dictionary = {
 	ID_BLACKSHORE: DIR + "blackshore.mp3",
 	ID_FROSTRIDGE: DIR + "frostridge.mp3",
 	ID_BATTLE: DIR + "battle.mp3",
+	ID_SHADOW_HUNT: DIR + "shadow_hunt.mp3",
+	ID_EVENT_DUNGEON: DIR + "event_dungeon.mp3",
+	ID_CHRONOS_MAUSOLEUM: DIR + "chronos_mausoleum.mp3",
+	ID_CHRONOS_WAVE: DIR + "chronos_wave.mp3",
 	ID_BOSS: DIR + "boss.mp3",
 	ID_FINAL_BOSS: DIR + "final_boss.mp3",
 	ID_RESULT: DIR + "result.mp3",
@@ -53,6 +61,10 @@ const LOOP_IDS: Dictionary = {
 	ID_BLACKSHORE: true,
 	ID_FROSTRIDGE: true,
 	ID_BATTLE: true,
+	ID_SHADOW_HUNT: true,
+	ID_EVENT_DUNGEON: true,
+	ID_CHRONOS_MAUSOLEUM: true,
+	ID_CHRONOS_WAVE: true,
 	ID_BOSS: true,
 	ID_FINAL_BOSS: true,
 	ID_RESULT: true,
@@ -64,6 +76,7 @@ const LOOP_IDS: Dictionary = {
 }
 
 ## dungeon_id → 通常戦闘 BGM。寄り道／征討は親 Biome 曲を流用。
+## 日替わりイベントは event_dungeon（影狩のみ専用曲）。放浪影狩は DungeonScene 側で上書き。
 const BATTLE_BY_DUNGEON: Dictionary = {
 	"whisperwood": ID_WHISPERWOOD,
 	"green_hollow": ID_WHISPERWOOD,
@@ -78,6 +91,22 @@ const BATTLE_BY_DUNGEON: Dictionary = {
 	"frostwall_path": ID_FROSTRIDGE,
 	"north_reach": ID_FROSTRIDGE,
 	"red_forge_depths": ID_FROSTRIDGE,
+	"shadow_hunt": ID_SHADOW_HUNT,
+	"cosmic_rift": ID_EVENT_DUNGEON,
+	"crown_rookery": ID_EVENT_DUNGEON,
+	"golden_nest": ID_EVENT_DUNGEON,
+	"rock_stampede": ID_EVENT_DUNGEON,
+	"chronos_mausoleum": ID_CHRONOS_MAUSOLEUM,
+}
+
+## 探索曲のダンジョン別上書き（未登録は dungeon_explore）。
+const EXPLORE_BY_DUNGEON: Dictionary = {
+	"chronos_mausoleum": ID_CHRONOS_MAUSOLEUM,
+}
+
+## ボス曲のダンジョン別上書き（未登録は boss。FINAL_BOSS_DUNGEONS は final_boss）。
+const BOSS_BY_DUNGEON: Dictionary = {
+	"chronos_mausoleum": ID_CHRONOS_WAVE,
 }
 
 ## ラスボス曲を使うダンジョン（フロストリッジ本編＝エルディオン）。
@@ -135,6 +164,14 @@ static func bgm_for_scene(scene_path: String) -> String:
 	return str(SCENE_BGM.get(scene_path, ""))
 
 
+## 探索曲。専用曲が無ければ dungeon_explore。
+static func explore_bgm_for_dungeon(dungeon_id: String) -> String:
+	var mapped: String = str(EXPLORE_BY_DUNGEON.get(dungeon_id, ""))
+	if not mapped.is_empty() and is_available(mapped):
+		return mapped
+	return ID_DUNGEON_EXPLORE
+
+
 ## 通常戦闘曲。専用曲が無ければ battle。
 static func battle_bgm_for_dungeon(dungeon_id: String) -> String:
 	var mapped: String = str(BATTLE_BY_DUNGEON.get(dungeon_id, ""))
@@ -143,8 +180,11 @@ static func battle_bgm_for_dungeon(dungeon_id: String) -> String:
 	return ID_BATTLE
 
 
-## ボス戦曲。フロストリッジ本編はラスボス曲、他は共通 boss。
+## ボス戦曲。ダンジョン別 → フロストリッジ本編はラスボス曲 → 共通 boss。
 static func boss_bgm_for_dungeon(dungeon_id: String) -> String:
+	var mapped: String = str(BOSS_BY_DUNGEON.get(dungeon_id, ""))
+	if not mapped.is_empty() and is_available(mapped):
+		return mapped
 	if bool(FINAL_BOSS_DUNGEONS.get(dungeon_id, false)) and is_available(ID_FINAL_BOSS):
 		return ID_FINAL_BOSS
 	return ID_BOSS
