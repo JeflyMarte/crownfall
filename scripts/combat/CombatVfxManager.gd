@@ -89,7 +89,7 @@ static func unit_tint_from_statuses(statuses: Array) -> Color:
 static func is_buff_status(status_id: String) -> bool:
 	if status_id.is_empty():
 		return false
-	if status_id == "empower" or status_id == "guard":
+	if status_id == "empower" or status_id == "empower_minor" or status_id == "guard":
 		return true
 	var data: Resource = DataRegistry.get_status_effect(status_id)
 	if data == null:

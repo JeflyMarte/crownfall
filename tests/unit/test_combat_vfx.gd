@@ -45,6 +45,7 @@ func test_unit_tint_from_statuses() -> void:
 
 func test_is_buff_status_classification() -> void:
 	assert_true(_CombatVfxManager.is_buff_status("empower"))
+	assert_true(_CombatVfxManager.is_buff_status("empower_minor"))
 	assert_true(_CombatVfxManager.is_buff_status("guard"))
 	assert_false(_CombatVfxManager.is_buff_status("poison"))
 	assert_false(_CombatVfxManager.is_buff_status("ignite"))

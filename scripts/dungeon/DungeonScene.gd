@@ -985,6 +985,7 @@ func _ready() -> void:
 		GameState.current_stage_id = ""
 		$DungeonController.start_dungeon(dungeon_id)
 	$CombatController.reset_party_hp_for_run()
+	$CombatController.reset_member_ultimate_charge()
 	GameState.last_run_accessory_dropped = ""
 	GameState.last_run_relic_dropped = ""
 	GameState.last_run_outcome = ""
@@ -4474,13 +4475,14 @@ func _execute_member_buff(
 	if cast_index == 0:
 		_clear_member_skill_labels(member_idx)
 	if not suppress_resolve_label:
-		_spawn_skill_name(result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP)
-	var label: String = status_id
-	if not status_id.is_empty():
-		var effect: Resource = DataRegistry.get_status_effect(status_id)
-		if effect != null:
-			label = effect.display_name
-	if wants_taunt and self_only:
+		_spawn_skill_name(
+			result["display_name"],
+			member_idx,
+			float(cast_index) * SKILL_LABEL_STACK_GAP,
+			"",
+			false,
+			"combat_buff"
+		)
 		if status_id.is_empty():
 			return "\n【スキル】%s: 敵の注意を引いた" % result["display_name"]
 		return "\n【スキル】%s: 自身に[%s]・注意を引いた" % [result["display_name"], label]
@@ -5724,8 +5726,7 @@ func _finalize_combat_cleared() -> void:
 	_update_hp_bars()
 	_update_next_room_button()
 	_show_chr_sprites(false)
-	# クリアBGMは ResultScene のみ。戦闘直後は探索へ戻す。
-	AudioManager.play_bgm(_BgmCatalog.explore_bgm_for_dungeon(GameState.get_active_dungeon_id()))
+	# クリアBGMは ResultScene のみ。戦闘クリア直後は戦闘BGMを継続（次フロア／非戦闘で切替）。
 	if $DungeonController.is_on_last_floor_before_exit():
 		_play_combat_clear_celebration(true)
 	else:
@@ -6744,7 +6745,10 @@ func _handle_party_wipe() -> void:
 	GameState.last_run_accessory_dropped = ""
 	GameState.last_run_relic_dropped = ""
 	GameState.last_run_level_ups = {}
-	GameState.last_run_exp_snapshots = {}
+	## 敗北でも撃破分の経験値は付与する。
+	GameState.last_run_exp_snapshots = ExpRunSnapshotScript.build_party_snapshots(
+		$DungeonController.run_exp_reward
+	)
 	GameState.last_run_combat_stats = GameState.get_run_combat_stats().snapshot()
 	_commit_commander_run_stats(GameState.RUN_OUTCOME_WIPE)
 	GameState.last_run_outcome = GameState.RUN_OUTCOME_WIPE
@@ -9233,7 +9237,8 @@ func _spawn_skill_name(
 	member_idx: int,
 	stack_offset: float = 0.0,
 	element: String = "",
-	persist: bool = false
+	persist: bool = false,
+	sfx_id: String = "combat_skill"
 ) -> void:
 	if skill_name.is_empty():
 		return
@@ -9242,9 +9247,9 @@ func _spawn_skill_name(
 	var sprite: AnimatedSprite2D = _chr_sprites[member_idx]
 	if not sprite.visible:
 		return
-	## 詠唱中ラベルは静音。resolve / 即時発動のみ combat_skill（必殺は combat_ultimate）。
+	## 詠唱中ラベルは静音。resolve / 即時発動のみ SE（鼓舞などバフは combat_buff）。
 	if not persist:
-		AudioManager.play_sfx("combat_skill", 1.0, 0.08)
+		AudioManager.play_sfx(sfx_id, 1.0, 0.08)
 	const SKILL_FONT_SIZE: int = 28
 	var lbl := Label.new()
 	lbl.text = skill_name

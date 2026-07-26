@@ -3,7 +3,8 @@ extends RefCounted
 
 ## スキル／装備説明文中の状態異常名をリンク化し、タップで効果を表示する。
 
-const LINK_COLOR: Color = Color(0.91, 0.72, 0.29, 1.0) ## UiTypography.COLOR_GOLD 相当
+## RichText の [url] 内 [color] は効かないことがあるため、外側に [color] を置く。
+const LINK_COLOR: Color = UiTypography.COLOR_GOLD
 const _POPUP_NAME: String = "StatusEffectPopupOverlay"
 
 ## display_name 以外の表記ゆれ → status id
@@ -89,9 +90,9 @@ static func linkify_bbcode(text: String) -> String:
 				continue
 			if text.substr(i, alen) != alias:
 				continue
-			out += "[url=status:%s][color=#%s]%s[/color][/url]" % [
-				sid,
+			out += "[color=#%s][url=status:%s]%s[/url][/color]" % [
 				LINK_COLOR.to_html(false),
+				sid,
 				_escape_bbcode(alias),
 			]
 			i += alen
@@ -118,7 +119,8 @@ static func make_linked_richtext(
 	rtl.meta_underlined = true
 	rtl.mouse_filter = Control.MOUSE_FILTER_STOP
 	UiTypography.apply_log_rich(rtl, font_size, color)
-	rtl.text = linkify_bbcode(text)
+	## 既定色は本文。リンクは BBCode [color=金] で上書き。
+	rtl.parse_bbcode(linkify_bbcode(text))
 	var host: Node = meta_host
 	rtl.meta_clicked.connect(func(meta: Variant) -> void:
 		_on_meta_clicked(host, meta)

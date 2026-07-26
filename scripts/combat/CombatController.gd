@@ -154,7 +154,8 @@ func start_combat_group(enemies: Array, level: int = 1) -> void:
 	ensure_party_hp_for_combat()
 	_init_member_targets()
 	_init_member_skill_rotation()
-	_init_member_ultimate_charge()
+	## 必殺ゲージはフロア／戦闘をまたいで引き継ぐ（ダンジョン入場時のみリセット）。
+	_ensure_member_ultimate_charge()
 	init_ct()
 
 # 現行編成人数に対する敵ステ補正倍率（base=3人前提）。
@@ -275,6 +276,26 @@ func _init_member_ultimate_charge() -> void:
 	member_ultimate_charge.clear()
 	for i in party_combat_hp.size():
 		member_ultimate_charge.append(0.0)
+
+
+## パーティ人数に合わせて必殺ゲージ配列を整え、既存値は維持する。
+func _ensure_member_ultimate_charge() -> void:
+	var n: int = party_combat_hp.size()
+	if member_ultimate_charge.size() == n:
+		return
+	var old: Array[float] = member_ultimate_charge.duplicate()
+	member_ultimate_charge.clear()
+	for i: int in n:
+		if i < old.size():
+			member_ultimate_charge.append(float(old[i]))
+		else:
+			member_ultimate_charge.append(0.0)
+
+
+## ダンジョン入場時に必殺ゲージを0へ。
+func reset_member_ultimate_charge() -> void:
+	ensure_party_hp_for_combat()
+	_init_member_ultimate_charge()
 
 func get_ultimate_charge(member_index: int) -> float:
 	if member_index < 0 or member_index >= member_ultimate_charge.size():

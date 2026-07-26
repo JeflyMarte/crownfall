@@ -66,6 +66,22 @@ func test_armor_base_defense_fixed() -> void:
 	assert_eq(inst.random_mods.size(), int(load("res://scripts/equipment/EquipmentRollHelper.gd").random_stat_count(int(ad.rarity))))
 
 
+func test_status_chance_mods_roll_within_rarity_range() -> void:
+	## 冷却／感電／炎上／毒は固定25%ではなくレア度レンジでバラつく。
+	var seen: Dictionary = {}
+	for _i: int in 80:
+		var chill: Dictionary = _ERM._roll_status_chance_mod("chill_chance", "冷却付与", Enums.Rarity.COMMON)
+		var v: float = float(chill.get("value", 0.0))
+		assert_true(v >= 0.15 - 0.001 and v <= 0.25 + 0.001, "COMMON chill=%s" % v)
+		assert_almost_eq(float(chill.get("min_v", 0.0)), 0.15, 0.001)
+		assert_almost_eq(float(chill.get("max_v", 0.0)), 0.25, 0.001)
+		seen[snappedf(v, 0.01)] = true
+	assert_gt(seen.size(), 1, "付与率が複数値にバラけていること")
+	var epic: Dictionary = _ERM._roll_status_chance_mod("shock_chance", "感電付与", Enums.Rarity.EPIC)
+	var ev: float = float(epic.get("value", 0.0))
+	assert_true(ev >= 0.25 - 0.001 and ev <= 0.35 + 0.001, "EPIC shock=%s" % ev)
+
+
 func test_migrate_legacy_attack_roll_to_mod() -> void:
 	var wd: Resource = DataRegistry.get_weapon_data("iron_sword")
 	assert_not_null(wd)

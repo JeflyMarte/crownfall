@@ -9,6 +9,8 @@ func test_linkify_empower_and_alias_激励() -> void:
 	var linked: String = _Helper.linkify_bbcode("味方に鼓舞を付与する")
 	assert_true(linked.contains("url=status:empower"), linked)
 	assert_true(linked.contains("鼓舞"), linked)
+	assert_true(linked.contains("[color=#"), linked)
+	assert_true(linked.find("[color=") < linked.find("[url="), "金色が url の外側であること: %s" % linked)
 	var alias: String = _Helper.linkify_bbcode("激励を付与する")
 	assert_true(alias.contains("url=status:empower"), alias)
 

@@ -51,10 +51,26 @@ func test_ultimate_charge_dealt_and_taken() -> void:
 	ctrl._init_member_ultimate_charge()
 	assert_eq(ctrl.get_ultimate_charge(0), 0.0)
 	ctrl.add_ultimate_charge_from_damage_dealt(0, 100)
-	assert_almost_eq(ctrl.get_ultimate_charge(0), 10.0, 0.01)
+	assert_almost_eq(ctrl.get_ultimate_charge(0), 2.0, 0.01)
 	ctrl.add_ultimate_charge_from_damage_taken(0, 50)
-	assert_almost_eq(ctrl.get_ultimate_charge(0), 20.0, 0.01)
-	ctrl.add_ultimate_charge(0, 90.0)
+	assert_almost_eq(ctrl.get_ultimate_charge(0), 4.0, 0.01)
+	ctrl.add_ultimate_charge(0, 96.0)
 	assert_true(ctrl.is_ultimate_charge_ready(0))
 	ctrl.consume_ultimate_charge(0)
 	assert_eq(ctrl.get_ultimate_charge(0), 0.0)
+
+
+func test_ultimate_charge_persists_across_ensure() -> void:
+	var ctrl := CombatController.new()
+	add_child_autofree(ctrl)
+	ctrl.party_combat_hp = [100, 100]
+	ctrl.party_max_hp = [100, 100]
+	ctrl._init_member_ultimate_charge()
+	ctrl.add_ultimate_charge(0, 40.0)
+	ctrl._ensure_member_ultimate_charge()
+	assert_almost_eq(ctrl.get_ultimate_charge(0), 40.0, 0.01)
+	ctrl.party_combat_hp = [100, 100, 100]
+	ctrl.party_max_hp = [100, 100, 100]
+	ctrl._ensure_member_ultimate_charge()
+	assert_almost_eq(ctrl.get_ultimate_charge(0), 40.0, 0.01)
+	assert_eq(ctrl.get_ultimate_charge(2), 0.0)

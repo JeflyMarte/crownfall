@@ -346,13 +346,13 @@ static func _roll_weapon_pool_mod(pid: String, weapon_data: Resource, rarity: in
 		KIND_BANE:
 			return _make_bane_mod(weapon_data)
 		KIND_CHILL:
-			return _fixed_rate_mod(KIND_CHILL, "冷却付与", 0.25)
+			return _roll_status_chance_mod(KIND_CHILL, "冷却付与", rarity)
 		KIND_SHOCK:
-			return _fixed_rate_mod(KIND_SHOCK, "感電付与", 0.30)
+			return _roll_status_chance_mod(KIND_SHOCK, "感電付与", rarity)
 		KIND_IGNITE:
-			return _fixed_rate_mod(KIND_IGNITE, "炎上付与", 0.25)
+			return _roll_status_chance_mod(KIND_IGNITE, "炎上付与", rarity)
 		KIND_POISON:
-			return _fixed_rate_mod(KIND_POISON, "毒付与", 0.25)
+			return _roll_status_chance_mod(KIND_POISON, "毒付与", rarity)
 		_:
 			return {}
 
@@ -523,17 +523,15 @@ static func _roll_rate_table_mod(
 	}
 
 
-static func _fixed_rate_mod(kind: String, label: String, value: float) -> Dictionary:
-	return {
-		"id": kind,
-		"label": label,
-		"kind": kind,
-		"value": value,
-		"min_v": value,
-		"max_v": value,
-		"perfect": true,
-		"meta": {},
-	}
+## 冷却／感電／炎上／毒 — 状態付与率は on_hit_status と同レンジでレア度別ロール。
+static func _roll_status_chance_mod(kind: String, label: String, rarity: int) -> Dictionary:
+	return _roll_rate_table_mod(
+		kind,
+		label,
+		_WeaponStatResolver.STATUS_CHANCE_MIN_BY_RARITY,
+		_WeaponStatResolver.STATUS_CHANCE_MAX_BY_RARITY,
+		rarity
+	)
 
 
 static func element_power_label(element_id: String, fallback: String = "属性値") -> String:

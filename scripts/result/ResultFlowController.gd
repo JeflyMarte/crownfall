@@ -9,9 +9,8 @@ const STEP_AUTO_SEC: float = 30.0
 
 
 static func show_levelup_step(outcome: String, exp_reward: int) -> bool:
+	## クリア／リタイア／全滅いずれも、獲得EXPがあればレベルアップ表示＋付与。
 	if exp_reward <= 0:
-		return false
-	if outcome == GameState.RUN_OUTCOME_WIPE:
 		return false
 	return true
 

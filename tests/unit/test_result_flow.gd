@@ -15,8 +15,16 @@ func test_clear_with_exp_goes_through_levelup() -> void:
 	)
 
 
-func test_wipe_skips_levelup() -> void:
+func test_wipe_with_exp_goes_through_levelup() -> void:
 	assert_eq(
 		_ResultFlow.next_step(_ResultFlow.Step.REWARDS, GameState.RUN_OUTCOME_WIPE, 100),
+		_ResultFlow.Step.LEVELUP
+	)
+	assert_true(_ResultFlow.show_levelup_step(GameState.RUN_OUTCOME_WIPE, 100))
+
+
+func test_wipe_without_exp_skips_levelup() -> void:
+	assert_eq(
+		_ResultFlow.next_step(_ResultFlow.Step.REWARDS, GameState.RUN_OUTCOME_WIPE, 0),
 		_ResultFlow.Step.MVP
 	)
