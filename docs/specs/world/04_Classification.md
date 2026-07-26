@@ -279,7 +279,7 @@
 
 | id | 表示名 | 征討ダンジョン | 解放条件 |
 |---|---|---|---|
-| chronos_wave | 時環の共鳴体クロノス・ウェーブ | mourngate_deep | mourngate クリア |
+| chronos_wave | 時環の共鳴龍クロノス・ウェーブ | mourngate_deep | frostridge クリア |
 | valgard | 境界の番ヴァルガード | storm_crown_ruins | mourngate クリア |
 | skarpedion | 鉄殻の長スカルペディオン | red_ridge_mine | whisperwood クリア |
 | mycolga_ancient | 霧沼の古茸ミコルガ | mistfen_depths | mistfen クリア |
@@ -287,6 +287,8 @@
 | nereion_depths | 潮脈王ネレイオン・デプス | blackshore_abyss | blackshore クリア |
 | forgedormient | 星炉の寝主フォージ・ドルミエント | red_forge_depths | frostridge クリア |
 | albark | 白甲の古龍アルバーク | north_reach | frostridge クリア |
+
+> **chronos_wave（P3-LORE-CHRONOS-001）:** 古龍種の **生存個体**。クロノ庫の金属粉・歯車残滓を鉱物化適応で取り込み、鱗と時環が機械式時計に見える。セルディオン（死骸＋水晶寄生）とは別。ゴーレム／不死者ではない。時の王は民間俗称。継承との結びつきは伝承レベルの匂わせのみ。**戦闘はラスボス級**（アルバーク超え）。解放＝⑤ frostridge クリア後。
 
 > §5.5 の仮称のうち、白甲の古龍・鉄殻の長・燼竜・潮鳴りの主（深層）・霧沼の古茸は上表 id で **ゲーム実装済み**。霜角王は未実装のまま温存。各個体を実装する際は、`§5 設計枠`に従い HQ が祖先・Class・生態を確定し、名称をオーナーが確定する。確定までは仮称・未登録のまま保持する。
 
@@ -340,6 +342,8 @@ Biome 固有の頂点とは別に、野外圏のどこにでも稀に現れる *
 | 2026-06-28 | v1.2 | **P3-W-013** — §5 伝説個体（Legendary）と古龍種（定義・古龍種・カイル盟約↔ビーストテイマー・設計枠・伝承と実在）を追加 |
 | 2026-06-30 | v1.3 | **P3-W-028** — §5.5「各地方の伝説個体（伝承 / 未確認）」を追加。6地方に仮称の伝説個体（白甲の古龍／霜角王／鉄殻の長／燼竜／潮鳴りの主／霧沼の古茸）を伝承レベルで配置（名称はオーナー確定対象・Glossary 未登録） |
 | 2026-07-03 | v1.4 | **P3-LORE-005** — §5.6 征討ダンジョン採用の伝説個体8体を追加（chronos_wave / valgard / skarpedion / mycolga_ancient / karna_smoke / nereion_depths / forgedormient / albark） |
+| 2026-07-26 | v1.8 | **P3-LORE-CHRONOS-001** — chronos_wave を共鳴龍（古龍種・機械式時間適応）へ改稿 |
+| 2026-07-26 | v1.9 | **P3-LORE-CHRONOS-001 追補** — ラスボス級ステ／スキル。解放を frostridge クリアへ |
 | 2026-07-23 | v1.7 | **P3-DG-WANDER-EVENT-002** — §5.7 スカラベ／影狩りに日次イベントDG表記 |
 | 2026-07-23 | v1.6 | **P3-WANDER-004** — §5.7 にゴールデンスカラベ／影狩りを追加。Class I／IV 例示を更新 |
 | 2026-07-22 | v1.5 | **P3-W-031** — §5.7 遍在希少種（コズミックダック／宝冠レイヴン）と随伴オトモ・ジャックを追加。Class II 例示を更新 |

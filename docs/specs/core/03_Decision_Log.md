@@ -4761,3 +4761,36 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 ---
 
 
+
+## 時環の共鳴龍クロノス・ウェーブ再設計（2026-07-26 — P3-LORE-CHRONOS-001）
+
+> **オーナー GO** — 共鳴体→共鳴龍。機械式時間テーマの古龍種（生個体）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-LORE-CHRONOS-001-1 | **表示名** — 時環の共鳴龍クロノス・ウェーブ（id `chronos_wave` 据置） | オーナー指定 |
+| P3-LORE-CHRONOS-001-2 | **祖先** — 古龍種の生存個体（セルディオン＝死骸複合体と別） | 差別化 |
+| P3-LORE-CHRONOS-001-3 | **適応** — クロノ庫の金属粉・歯車残滓の鉱物化適応。機械に見える生物（ゴーレムではない） | 魔法なし |
+| P3-LORE-CHRONOS-001-4 | **外見** — 竜型・翼あり。時環2〜3。青銅〜真鍮＋石鉄。帯電金属粉の息 | アート指針 |
+| P3-LORE-CHRONOS-001-5 | **王ゆかり** — 時の王＝俗称。継承との結びつきは匂わせのみ | 既存方針 |
+| P3-LORE-CHRONOS-001-6 | **専用アート** — 後続。当面セルディオン流用可 | プレースホルダ |
+
+**SSOT:** `docs/specs/decisions/13_ChronosWaveDragon.md`
+
+---
+
+## クロノス・ウェーブ戦闘（ラスボス級）（2026-07-26 — P3-LORE-CHRONOS-001 追補）
+
+> **オーナー GO** — イベントボスとしてアルバーク超え。解放＝⑤クリア後。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-LORE-CHRONOS-001-7 | **役割** — ラスボス級イベントボス | オーナー指定 |
+| P3-LORE-CHRONOS-001-8 | **解放** — `mourngate_deep` ← frostridge クリア | 戦力帯 |
+| P3-LORE-CHRONOS-001-9 | **ステ** — HP4200/ATK240/DEF256/ASPD0.88/会心12%/EXP240/Gold360 | 推奨GO |
+| P3-LORE-CHRONOS-001-10 | **属性** — thunder／弱 fire+holy／耐 dark／付与 shock25% | 推奨GO |
+| P3-LORE-CHRONOS-001-11 | **スキル** — 時環共鳴0.62・時環圧砕1.15 | 推奨GO |
+| P3-LORE-CHRONOS-001-12 | **フェーズ** — 45%/60%/80% ・ ×1.0/1.15/1.35 | 推奨GO |
+
+**SSOT:** `docs/specs/decisions/13_ChronosWaveDragon.md`
+

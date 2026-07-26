@@ -121,11 +121,11 @@ const _DEFS: Dictionary = {
 		},
 	],
 	"chronos_wave": [
-		{"threshold": 1.0, "label": "第1形態", "skill_use_chance": 0.40, "attack_mult": 1.0},
-		{"threshold": 0.50, "label": "第2形態・時歪", "skill_use_chance": 0.55, "attack_mult": 1.10,
+		{"threshold": 1.0, "label": "第1形態", "skill_use_chance": 0.45, "attack_mult": 1.0},
+		{"threshold": 0.50, "label": "第2形態・時歪", "skill_use_chance": 0.60, "attack_mult": 1.15,
 			"log": "【フェーズ移行】歯車の共鳴が加速し、時間感覚が狂い始める！"},
-		{"threshold": 0.25, "label": "第3形態・時環の主", "skill_use_chance": 0.70, "attack_mult": 1.25,
-			"log": "【フェーズ移行】時環の共鳴体が全層を震わせる！",
+		{"threshold": 0.25, "label": "第3形態・時環暴走", "skill_use_chance": 0.80, "attack_mult": 1.35,
+			"log": "【フェーズ移行】時環の共鳴龍が全層を震わせる！",
 			"skill_weight": {"enemy_chronos_wave_resonance": 2.0, "enemy_chronos_wave_gear_crush": 2.0}},
 	],
 	"valgard": [

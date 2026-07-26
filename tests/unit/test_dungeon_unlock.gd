@@ -77,9 +77,10 @@ func test_apex_dungeons_unlock_after_main() -> void:
 		GameState.mark_dungeon_cleared("mourngate")
 		assert_false(GameState.is_dungeon_unlocked("mourngate_deep"), "P3-DG-OMIT-001")
 		return
-	assert_false(GameState.is_dungeon_unlocked("mourngate_deep"), "①未クリアでは征討ロック")
+	assert_false(GameState.is_dungeon_unlocked("mourngate_deep"), "⑤未クリアではモーンゲート深層ロック")
 	GameState.mark_dungeon_cleared("mourngate")
-	assert_true(GameState.is_dungeon_unlocked("mourngate_deep"), "①クリアでモーンゲート深層解放")
+	assert_false(GameState.is_dungeon_unlocked("mourngate_deep"), "①のみでは未解放（P3-LORE-CHRONOS-001）")
 	assert_false(GameState.is_dungeon_unlocked("north_reach"), "⑤未クリアではノースリーチロック")
 	GameState.mark_dungeon_cleared("frostridge")
+	assert_true(GameState.is_dungeon_unlocked("mourngate_deep"), "⑤クリアでモーンゲート深層解放")
 	assert_true(GameState.is_dungeon_unlocked("north_reach"), "⑤クリアでノースリーチ解放")

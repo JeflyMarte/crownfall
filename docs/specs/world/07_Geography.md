@@ -305,7 +305,7 @@ mourngate → whisperwood → mistfen → blackshore → frostridge
 
 | 征討 id | 地理 | 征討 Boss | 解放条件 | 関連九王 |
 |---|---|---|---|---|
-| mourngate_deep | モーンゲート未踏査層 | 時環の共鳴体クロノス・ウェーブ | mourngate | 継承王（王都地下） |
+| mourngate_deep | モーンゲート未踏査層 | 時環の共鳴龍クロノス・ウェーブ | frostridge | 継承王（王都地下） |
 | storm_crown_ruins | ストームクラウン砦跡 | 境界の番ヴァルガード | mourngate | 守護王 |
 | red_ridge_mine | レッドリッジ廃坑 | 鉄殻の長スカルペディオン | whisperwood | 鍛冶王 |
 | mistfen_depths | 封緘書庫下 | 霧沼の古茸ミコルガ | mistfen | 学識王 |
