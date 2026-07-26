@@ -3,7 +3,7 @@ extends Control
 ## 世界観ナレーション（自動縦クロール・スキップ可）— P3-INTRO-001 / 002 / P3-INTRO-SCROLL-001。
 ## 案A polish: clip＋リスト移動で上→下クロール。上下フェード／緩急付き。
 ## 全文が1画面に収まる場合も、前後余白で必ずスクロール距離を確保する。
-## 画面どこでもタッチで即加速。本文末尾が中央より上で「TAP」→タップで次へ。
+## 画面どこでもタッチで即加速。本文末尾が中央より上で「TAP」（クロールは末尾余白まで継続）→タップで次へ。
 
 const _IntroLoreContent := preload("res://scripts/intro/IntroLoreContent.gd")
 const _IntroUiAssets := preload("res://scripts/intro/IntroUiAssets.gd")
@@ -83,23 +83,25 @@ func _input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
-	if not _crawl_active or _reached_end or not _layout_ready:
+	if not _crawl_active or not _layout_ready:
 		return
 	if _clip == null or _list == null:
 		return
 	var max_v: float = _max_scroll()
 	if max_v <= 1.0:
 		# 余白調整後も距離が無いなら読み終わり扱い（固まるのを防ぐ）。
+		_stop_crawl_at_end()
 		_enable_tap_to_advance()
 		return
 	var speed: float = CRAWL_SPEED_PX_PER_SEC * _crawl_speed_mult(_scroll_pos, max_v)
 	var next_v: float = _scroll_pos + speed * delta
 	if next_v >= max_v:
 		_set_scroll_pos(max_v)
+		_stop_crawl_at_end()
 		_enable_tap_to_advance()
 		return
 	_set_scroll_pos(next_v)
-	## 本文末尾が画面中央より上に出たら TAP（スクロール終端より早く出ることがある）。
+	## 本文末尾が画面中央より上に出たら TAP。テキストはそのまま上へ流れ続ける。
 	if _is_last_line_above_center():
 		_enable_tap_to_advance()
 
@@ -423,11 +425,15 @@ func _is_last_line_above_center() -> bool:
 	return last_line_bottom < mid_y
 
 
-func _enable_tap_to_advance() -> void:
-	if _reached_end:
-		return
+func _stop_crawl_at_end() -> void:
 	_reached_end = true
 	_crawl_active = false
+
+
+func _enable_tap_to_advance() -> void:
+	if _advance_ready:
+		return
+	## TAP 表示後もクロールは止めない（末尾余白まで上へ流す）。
 	## 加速タッチのまま TAP 条件に達した場合、その release では進まない。
 	_suppress_release_advance = _press_held
 	_end_press()
@@ -469,7 +475,7 @@ func _ensure_tap_catcher() -> void:
 
 
 func _on_tap_catcher_gui_input(event: InputEvent) -> void:
-	if not _advance_ready or not _reached_end:
+	if not _advance_ready:
 		return
 	var pressed_now: bool = false
 	var released_now: bool = false
@@ -498,7 +504,7 @@ func _notification(what: int) -> void:
 			var max_v: float = _max_scroll()
 			if max_v > 0.0:
 				_set_scroll_pos(minf(_scroll_pos, max_v))
-			if not _reached_end and _is_last_line_above_center():
+			if not _advance_ready and _is_last_line_above_center():
 				_enable_tap_to_advance()
 
 

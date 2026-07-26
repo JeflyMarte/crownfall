@@ -199,8 +199,11 @@ static func craftable_strip_style(selected: bool) -> StyleBox:
 	return sb
 
 
-## 下段「作成可能／素材にする装備」帯。外枠の金フレームは付けない（アイコン枠は別）。
+## 下段「作成可能／素材にする装備」帯。オーナー下フレーム（UI_Forge_CraftablePanel）。
 static func craftable_panel_style() -> StyleBox:
+	var textured: StyleBox = ForgeUiTokens.craftable_band_style()
+	if _texture_style_ok(textured):
+		return textured
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.06, 0.05, 0.04, 0.55)
 	sb.set_border_width_all(0)
@@ -270,36 +273,7 @@ static func has_craftable_recipes() -> bool:
 	return not CraftHelper.get_craftable_recipes().is_empty()
 
 
-## 強化左一覧の並び用スコア（高いほど上）。
-static func enhance_list_stat_score(item: Resource) -> int:
-	if item == null:
-		return 0
-	match EquipmentEnhancer.item_category(item):
-		"weapon":
-			return EquipmentEnhancer.get_effective_attack(item)
-		"armor":
-			return (
-				EquipmentEnhancer.effective_armor_defense(item) * 10
-				+ EquipmentEnhancer.effective_armor_hp(item)
-			)
-		"accessory":
-			var data: Resource = DataRegistry.get_accessory_data(str(item.accessory_id))
-			var score: int = 0
-			score += EquipmentEnhancer.effective_accessory_int_bonus(item, "hp_bonus", data)
-			score += EquipmentEnhancer.effective_accessory_int_bonus(item, "attack_bonus", data) * 10
-			score += EquipmentEnhancer.effective_accessory_int_bonus(item, "defense_bonus", data) * 10
-			score += int(
-				round(
-					EquipmentEnhancer.effective_accessory_float_bonus(item, "critical_rate", data)
-					* 1000.0
-				)
-			)
-			return score
-		_:
-			return 0
-
-
-## 強化左一覧: 装備中優先 → ステ高い順 → レア → 炉研ぎLv → 名前。
+## 強化左一覧: 装備中優先 → レアリティ高い順 → 炉研ぎLv → 名前。
 static func enhance_list_sort_before(
 	a: Resource,
 	b: Resource,
@@ -308,10 +282,6 @@ static func enhance_list_sort_before(
 ) -> bool:
 	if a_equipped != b_equipped:
 		return a_equipped
-	var a_score: int = enhance_list_stat_score(a)
-	var b_score: int = enhance_list_stat_score(b)
-	if a_score != b_score:
-		return a_score > b_score
 	var a_rarity: int = EquipmentEnhancer.item_rarity(a)
 	var b_rarity: int = EquipmentEnhancer.item_rarity(b)
 	if a_rarity != b_rarity:
@@ -442,7 +412,8 @@ static func attach_item_icon(
 	category: String,
 	cell_px: int,
 	rarity: int = 0,
-	use_inv_cell_bg: bool = false
+	use_inv_cell_bg: bool = false,
+	with_underlay: bool = true
 ) -> void:
 	for child in host.get_children():
 		child.queue_free()
@@ -460,7 +431,43 @@ static func attach_item_icon(
 	var inset: int = _item_inset_px(item_id, category, cell_px)
 	var side: int = forge_icon_side_px(cell_px, inset, FORGE_ICON_SAFE_FILL)
 	inset = int(ceil((float(cell_px) - float(side)) * 0.5))
-	_attach_icon_full_rect_inset(host, tex, inset, rarity, use_inv_cell_bg)
+	_attach_icon_full_rect_inset(host, tex, inset, rarity, use_inv_cell_bg, with_underlay)
+
+
+## 作成可能／錬成素材帯向け。InvCell 不透明下地なし＋装備透過をそのまま見せる。
+static func make_strip_item_icon_cell(
+	item_id: String,
+	category: String,
+	rarity: int,
+	cell_px: int = -1,
+	highlight: bool = false
+) -> Control:
+	var px: int = cell_px if cell_px > 0 else list_cell_px()
+	var host := Control.new()
+	host.name = "ForgeStripItemIcon"
+	host.custom_minimum_size = Vector2(px, px)
+	host.size = Vector2(px, px)
+	host.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	host.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	host.clip_contents = true
+	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	attach_item_icon(host, item_id, category, px, rarity, false, false)
+	## 選択時のみ細いレア枠（attach 後に足す。背景は透明で下フレームが見える）。
+	if highlight:
+		var frame := Panel.new()
+		frame.name = "StripSelectFrame"
+		frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Color(0, 0, 0, 0)
+		sb.set_border_width_all(2)
+		sb.border_color = rarity_color(rarity).lerp(Color.WHITE, 0.28)
+		sb.set_corner_radius_all(maxi(4, int(round(float(px) * 0.08))))
+		sb.set_content_margin_all(0.0)
+		frame.add_theme_stylebox_override("panel", sb)
+		host.add_child(frame)
+	EquipmentUiHelper.apply_legendary_badge(host, rarity, Vector2(px, px))
+	return host
 
 
 static func make_item_icon_cell(
@@ -742,6 +749,33 @@ static func apply_mode_tab(btn: Button, active: bool) -> void:
 		"font_color",
 		Color(0.98, 0.88, 0.48, 1.0) if active else Color(0.88, 0.84, 0.78, 1.0)
 	)
+	_apply_mode_tab_icon(btn)
+
+
+static func _apply_mode_tab_icon(btn: Button) -> void:
+	var mode_key: String = str(btn.get_meta("forge_mode", ""))
+	if mode_key.is_empty():
+		match btn.name:
+			"BtnProduce":
+				mode_key = "produce"
+			"BtnEnhance":
+				mode_key = "enhance"
+			"BtnAlchemy":
+				mode_key = "alchemy"
+			"BtnDismantle":
+				mode_key = "dismantle"
+			_:
+				return
+	var tex: Texture2D = ForgeUiTokens.mode_icon(mode_key)
+	if tex == null:
+		btn.icon = null
+		return
+	btn.icon = tex
+	btn.expand_icon = true
+	btn.add_theme_constant_override("icon_max_width", ForgeUiTokens.MODE_ICON_PX)
+	btn.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	btn.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
+	btn.alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 static func output_subtitle(craft: Resource) -> String:
 	if craft == null:

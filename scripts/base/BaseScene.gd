@@ -427,20 +427,19 @@ func _refresh_field_survey_banner() -> void:
 func _start_field_survey_click_hint_blink() -> void:
 	if _field_survey_click_hint == null:
 		return
-	if _field_survey_click_hint_tween != null and is_instance_valid(_field_survey_click_hint_tween):
-		return
-	## 透過で消さず、常時表示のまま拡縮＋明度で点滅する。
+	_stop_field_survey_click_hint_blink()
+	## 調査室ショートカット（HubNinaNavigator.SURVEY_PULSE_SEC=0.75）と同じ速度で明滅。
+	const PULSE_SEC: float = 0.75
 	_field_survey_click_hint.modulate = Color(1, 1, 1, 1)
 	_field_survey_click_hint.scale = Vector2.ONE
 	_field_survey_click_hint_tween = create_tween().set_loops()
 	_field_survey_click_hint_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	_field_survey_click_hint_tween.set_parallel(true)
-	_field_survey_click_hint_tween.tween_property(_field_survey_click_hint, "scale", Vector2(1.08, 1.08), 1.15)
-	_field_survey_click_hint_tween.tween_property(_field_survey_click_hint, "modulate", Color(1.25, 1.18, 0.95, 1.0), 1.15)
-	_field_survey_click_hint_tween.chain()
-	_field_survey_click_hint_tween.set_parallel(true)
-	_field_survey_click_hint_tween.tween_property(_field_survey_click_hint, "scale", Vector2.ONE, 1.15)
-	_field_survey_click_hint_tween.tween_property(_field_survey_click_hint, "modulate", Color(1, 1, 1, 1), 1.15)
+	_field_survey_click_hint_tween.tween_property(
+		_field_survey_click_hint, "modulate:a", 0.42, PULSE_SEC
+	)
+	_field_survey_click_hint_tween.tween_property(
+		_field_survey_click_hint, "modulate:a", 1.0, PULSE_SEC
+	)
 
 
 func _stop_field_survey_click_hint_blink() -> void:

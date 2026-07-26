@@ -109,13 +109,22 @@ var _bulk_dismantle_btn: Button
 var _dismantle_confirm: ConfirmationDialog
 var _legendary_dismantle_confirm: ConfirmationDialog
 var _legendary_dismantle_final_confirm: ConfirmationDialog
+var _single_dismantle_confirm: ConfirmationDialog
 var _alchemy_confirm: ConfirmationDialog
+var _enhance_confirm: ConfirmationDialog
 var _craft_confirm: ConfirmationDialog
 var _pending_craft: Resource = null
+var _alchemy_fodder_overlay: Control = null
+var _alchemy_fodder_list: VBoxContainer = null
+var _pending_alchemy_fodder: Resource = null
 var _result_overlay: Control = null
+var _result_panel: PanelContainer = null
+var _result_margin: MarginContainer = null
+var _result_title_wrap: Control = null
 var _result_title_tex: TextureRect = null
 var _result_title_lbl: Label = null
 var _result_detail_host: VBoxContainer = null
+var _result_close_bottom_pad: Control = null
 var _pending_dismantle_item: Resource = null
 var _detail_scroll: ScrollContainer = null
 ## カテゴリ下〜下ナビ上の全体縦スクロール（MainSplit＋素材帯）。
@@ -147,11 +156,16 @@ func _ready() -> void:
 	_btn_enhance.pressed.connect(func(): _set_mode("enhance"))
 	_btn_alchemy.pressed.connect(func(): _set_mode("alchemy"))
 	_btn_dismantle.pressed.connect(func(): _set_mode("dismantle"))
+	_btn_produce.set_meta("forge_mode", "produce")
+	_btn_enhance.set_meta("forge_mode", "enhance")
+	_btn_alchemy.set_meta("forge_mode", "alchemy")
+	_btn_dismantle.set_meta("forge_mode", "dismantle")
 	_btn_dismantle.disabled = false
 	_btn_dismantle.text = "分解"
 	_btn_alchemy.text = "錬成"
 	_setup_dismantle_dialogs()
 	_setup_alchemy_confirm()
+	_setup_enhance_confirm()
 	_setup_craft_confirm()
 	_setup_result_dialog()
 	_setup_bulk_dismantle_button()
@@ -181,6 +195,9 @@ func _ready() -> void:
 	_setup_craftable_header()
 	_setup_tab_styles()
 	_setup_left_list_layout()
+	## 下帯はオミット。
+	if _craftable_panel != null:
+		_craftable_panel.visible = false
 	_set_mode("produce")
 	## カテゴリアイコン生成後の実寸で帯を再計算（生産／錬成の上下侵食防止）。
 	call_deferred("_layout_craftable_strip")
@@ -307,6 +324,25 @@ func _enable_forge_scroll_touch() -> void:
 			_craftable_row.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 			_craftable_row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		ScrollTouchHelper.enable(_craftable_scroll)
+	## ScrollTouch の PASS 化で主ボタンの pressed が落ちるのを防ぐ。
+	_restore_primary_button_input()
+
+
+func _restore_primary_button_input() -> void:
+	if _craft_button != null:
+		_craft_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	if _bulk_dismantle_btn != null:
+		_bulk_dismantle_btn.mouse_filter = Control.MOUSE_FILTER_STOP
+
+
+## マウス左クリック／タッチ開始の共通判定（実機は ScreenTouch のみのことがある）。
+func _is_primary_press(event: InputEvent) -> bool:
+	if event is InputEventMouseButton:
+		var mb: InputEventMouseButton = event as InputEventMouseButton
+		return mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT
+	if event is InputEventScreenTouch:
+		return (event as InputEventScreenTouch).pressed
+	return false
 
 
 func _setup_craftable_header() -> void:
@@ -315,12 +351,14 @@ func _setup_craftable_header() -> void:
 
 
 func _craftable_strip_natural_height() -> float:
-	## ヘッダ＋チップ全体が見切れない高さ（外枠マージン込み）。
+	## ヘッダ＋チップ全体が見切れない高さ（下フレームの content_margin 込み）。
 	var chip_h: float = float(BlacksmithUiHelper.CRAFTABLE_CHIP_HEIGHT)
 	var header_h: float = 22.0
 	if _craftable_header != null:
 		header_h = maxf(header_h, _craftable_header.get_combined_minimum_size().y)
-	return header_h + 4.0 + chip_h + 12.0
+	var m: Vector4i = ForgeUiTokens.CRAFTABLE_PANEL_CONTENT_MARGINS
+	var frame_pad: float = float(m.y + m.w)
+	return header_h + 4.0 + chip_h + frame_pad + 8.0
 
 
 func _layout_craftable_strip() -> void:
@@ -528,12 +566,102 @@ func _ensure_hero_to_title_gap() -> void:
 
 func _setup_alchemy_confirm() -> void:
 	_alchemy_confirm = ConfirmationDialog.new()
-	_alchemy_confirm.title = "装備錬成"
-	_alchemy_confirm.ok_button_text = "錬成する"
-	_alchemy_confirm.cancel_button_text = "やめる"
+	_alchemy_confirm.title = "錬成の確認"
+	_alchemy_confirm.ok_button_text = "はい"
+	_alchemy_confirm.cancel_button_text = "いいえ"
 	_alchemy_confirm.confirmed.connect(_execute_alchemy)
-	_alchemy_confirm.canceled.connect(_on_forge_confirm_canceled)
+	_alchemy_confirm.canceled.connect(_on_alchemy_confirm_canceled)
 	add_child(_alchemy_confirm)
+	_setup_alchemy_fodder_popup()
+
+
+func _on_alchemy_confirm_canceled() -> void:
+	_pending_alchemy_fodder = null
+	_selected_alchemy_fodder = null
+	_on_forge_confirm_canceled()
+
+
+func _setup_alchemy_fodder_popup() -> void:
+	## AcceptDialog（Window 排他）は実機で入力を食ってフリーズするため、
+	## 結果ポップと同じ Control オーバーレイで素材一覧を出す。
+	if _alchemy_fodder_overlay != null:
+		return
+	_alchemy_fodder_overlay = Control.new()
+	_alchemy_fodder_overlay.name = "AlchemyFodderOverlay"
+	_alchemy_fodder_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_alchemy_fodder_overlay.visible = false
+	_alchemy_fodder_overlay.z_index = 90
+	_alchemy_fodder_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(_alchemy_fodder_overlay)
+	var dim := ColorRect.new()
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0.0, 0.0, 0.0, 0.72)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	dim.gui_input.connect(_on_alchemy_fodder_dim_input)
+	_alchemy_fodder_overlay.add_child(dim)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_alchemy_fodder_overlay.add_child(center)
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(560, 780)
+	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	var panel_sb := StyleBoxFlat.new()
+	panel_sb.bg_color = Color(0.07, 0.06, 0.05, 0.97)
+	panel_sb.border_color = Color(0.55, 0.48, 0.32, 1.0)
+	panel_sb.set_border_width_all(2)
+	panel_sb.set_corner_radius_all(10)
+	panel_sb.set_content_margin_all(18.0)
+	panel.add_theme_stylebox_override("panel", panel_sb)
+	center.add_child(panel)
+	var outer := VBoxContainer.new()
+	outer.add_theme_constant_override("separation", 12)
+	outer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	outer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	panel.add_child(outer)
+	var title := Label.new()
+	title.text = "錬成素材を選ぶ"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_display(title, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
+	outer.add_child(title)
+	var hint := Label.new()
+	hint.text = "素材にする装備を選んでください"
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_caption(hint, COLOR_SUB_STRONG)
+	outer.add_child(hint)
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.custom_minimum_size = Vector2(0, 520)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	outer.add_child(scroll)
+	_alchemy_fodder_list = VBoxContainer.new()
+	_alchemy_fodder_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_alchemy_fodder_list.add_theme_constant_override("separation", 6)
+	scroll.add_child(_alchemy_fodder_list)
+	ScrollTouchHelper.enable(scroll)
+	var close_btn := Button.new()
+	close_btn.text = "閉じる"
+	close_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	close_btn.custom_minimum_size = Vector2(200, 48)
+	close_btn.mouse_filter = Control.MOUSE_FILTER_STOP
+	UiTypography.apply_menu_button(close_btn)
+	close_btn.pressed.connect(_hide_alchemy_fodder_picker)
+	outer.add_child(close_btn)
+
+
+func _on_alchemy_fodder_dim_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_hide_alchemy_fodder_picker()
+
+
+func _hide_alchemy_fodder_picker() -> void:
+	if _alchemy_fodder_overlay != null:
+		_alchemy_fodder_overlay.visible = false
+	AudioManager.play_sfx("ui_cancel")
 
 
 func _setup_craft_confirm() -> void:
@@ -544,6 +672,16 @@ func _setup_craft_confirm() -> void:
 	_craft_confirm.confirmed.connect(_on_craft_confirmed)
 	_craft_confirm.canceled.connect(_on_forge_confirm_canceled)
 	add_child(_craft_confirm)
+
+
+func _setup_enhance_confirm() -> void:
+	_enhance_confirm = ConfirmationDialog.new()
+	_enhance_confirm.title = "炉研ぎの確認"
+	_enhance_confirm.ok_button_text = "はい"
+	_enhance_confirm.cancel_button_text = "いいえ"
+	_enhance_confirm.confirmed.connect(_on_enhance_confirmed)
+	_enhance_confirm.canceled.connect(_on_forge_confirm_canceled)
+	add_child(_enhance_confirm)
 
 
 func _setup_result_dialog() -> void:
@@ -577,12 +715,14 @@ func _ensure_result_overlay() -> void:
 	panel.add_theme_stylebox_override("panel", ForgeUiTokens.result_panel_style())
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	center.add_child(panel)
+	_result_panel = panel
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 28)
 	margin.add_theme_constant_override("margin_top", 36)
 	margin.add_theme_constant_override("margin_right", 28)
 	margin.add_theme_constant_override("margin_bottom", 36)
 	panel.add_child(margin)
+	_result_margin = margin
 	var outer := VBoxContainer.new()
 	outer.add_theme_constant_override("separation", 12)
 	outer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -592,18 +732,18 @@ func _ensure_result_overlay() -> void:
 	title_wrap.custom_minimum_size = Vector2(0, 120)
 	title_wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	outer.add_child(title_wrap)
+	_result_title_wrap = title_wrap
 	_result_title_tex = TextureRect.new()
 	_result_title_tex.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_result_title_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_result_title_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_result_title_tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_result_title_tex.texture = ForgeUiTokens.title_complete_tex()
+	_result_title_tex.visible = false
 	title_wrap.add_child(_result_title_tex)
 	_result_title_lbl = Label.new()
 	_result_title_lbl.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_result_title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_result_title_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_result_title_lbl.visible = false
 	_result_title_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_display(_result_title_lbl, UiTypography.SIZE_DISPLAY_TITLE, UiTypography.COLOR_GOLD)
 	_result_title_lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
@@ -626,6 +766,10 @@ func _ensure_result_overlay() -> void:
 	UiTypography.apply_menu_button(close_btn)
 	close_btn.pressed.connect(_hide_result_overlay)
 	outer.add_child(close_btn)
+	_result_close_bottom_pad = Control.new()
+	_result_close_bottom_pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_result_close_bottom_pad.custom_minimum_size = Vector2(0, 0)
+	outer.add_child(_result_close_bottom_pad)
 
 
 func _on_result_overlay_dim_input(event: InputEvent) -> void:
@@ -642,7 +786,7 @@ func _hide_result_overlay() -> void:
 func _show_forge_result(title: String, body: String) -> void:
 	## テキストのみのフォールバック（アイテム無し経路）。
 	_ensure_result_overlay()
-	_apply_result_title(title, title == "生産完了")
+	_apply_result_chrome(title, "plain")
 	for child in _result_detail_host.get_children():
 		child.queue_free()
 	var body_lbl := Label.new()
@@ -655,29 +799,150 @@ func _show_forge_result(title: String, body: String) -> void:
 	_log_craft(body)
 
 
-func _show_forge_item_result(title: String, item: Resource, category: String) -> void:
+func _framed_result_detail_opts() -> Dictionary:
+	## 生産／強化／錬成の完了ポップ共通レイアウト（強化完了と同じ位置）。
+	return {
+		"show_owner": false,
+		"header_icon_px": 96,
+		"indent_left": 56,
+		"indent_right": 16,
+		"desc_wrap_width": 420,
+		"value_color": UiTypography.COLOR_GOLD,
+		"framed_icon": true,
+		"show_enhance_badge": false,
+		"content_pad_top": 18,
+	}
+
+
+func _show_forge_item_result(title: String, item: Resource, category: String, kind: String = "enhance") -> void:
 	_ensure_result_overlay()
-	_apply_result_title(title, title == "生産完了")
+	_apply_result_chrome(title, kind)
 	EquipmentItemDetailHelper.populate_panel(
 		_result_detail_host,
 		item,
 		category,
-		{"show_owner": false, "header_icon_px": 96}
+		_framed_result_detail_opts()
 	)
 	_result_overlay.visible = true
 	_log_craft("%s: %s" % [title, EquipmentItemDetailHelper.short_name(item, category)])
 
 
-func _apply_result_title(title: String, use_complete_art: bool) -> void:
-	var has_art: bool = (
-		use_complete_art
-		and _result_title_tex != null
-		and _result_title_tex.texture != null
+func _show_forge_dismantle_result(materials: Dictionary, headline: String = "") -> void:
+	_ensure_result_overlay()
+	_apply_result_chrome("分解完了", "dismantle")
+	for child in _result_detail_host.get_children():
+		child.queue_free()
+	var pad := MarginContainer.new()
+	pad.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	pad.add_theme_constant_override("margin_left", 56)
+	pad.add_theme_constant_override("margin_right", 16)
+	pad.add_theme_constant_override("margin_top", 18)
+	_result_detail_host.add_child(pad)
+	var col := VBoxContainer.new()
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	col.add_theme_constant_override("separation", 12)
+	pad.add_child(col)
+	if not headline.is_empty():
+		var head := Label.new()
+		head.text = headline
+		head.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		UiTypography.apply_body(head, UiTypography.SIZE_BODY_SMALL, COLOR_TEXT_STRONG)
+		col.add_child(head)
+	var gained := Label.new()
+	gained.text = "獲得素材"
+	UiTypography.apply_caption(gained, UiTypography.COLOR_GOLD)
+	col.add_child(gained)
+	var mat_ids: Array = materials.keys()
+	mat_ids.sort()
+	var any: bool = false
+	for mat_id_v in mat_ids:
+		var qty: int = int(materials[mat_id_v])
+		if qty <= 0:
+			continue
+		any = true
+		col.add_child(_make_dismantle_result_material_row(str(mat_id_v), qty))
+	if not any:
+		var empty := Label.new()
+		empty.text = "（素材なし）"
+		UiTypography.apply_caption(empty, COLOR_SUB_STRONG)
+		col.add_child(empty)
+	_result_overlay.visible = true
+	_log_craft("分解完了: %s" % _format_material_summary(materials))
+
+
+func _make_dismantle_result_material_row(mat_id: String, qty: int) -> Control:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 14)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var icon_cell: Control = _MaterialUiTokens.make_icon_cell(mat_id, 72, true)
+	icon_cell.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	icon_cell.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(icon_cell)
+	var text_col := VBoxContainer.new()
+	text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_col.add_theme_constant_override("separation", 2)
+	row.add_child(text_col)
+	var name_lbl := Label.new()
+	name_lbl.text = DataRegistry.get_material_name(mat_id)
+	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTypography.apply_body(name_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_TEXT_STRONG)
+	text_col.add_child(name_lbl)
+	var qty_lbl := Label.new()
+	qty_lbl.text = "×%d" % qty
+	UiTypography.apply_body(qty_lbl, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	text_col.add_child(qty_lbl)
+	return row
+
+
+func _apply_result_chrome(title: String, kind: String) -> void:
+	var use_ornate: bool = (
+		kind == "produce" or kind == "enhance" or kind == "alchemy" or kind == "dismantle"
 	)
+	if _result_panel != null:
+		if use_ornate:
+			_result_panel.add_theme_stylebox_override(
+				"panel", ForgeUiTokens.enhance_result_panel_style()
+			)
+			_result_panel.custom_minimum_size = Vector2(640, 920)
+		else:
+			_result_panel.add_theme_stylebox_override(
+				"panel", ForgeUiTokens.result_panel_style()
+			)
+			_result_panel.custom_minimum_size = Vector2(620, 900)
+	if _result_margin != null:
+		if use_ornate:
+			_result_margin.add_theme_constant_override("margin_left", 12)
+			_result_margin.add_theme_constant_override("margin_top", 44)
+			_result_margin.add_theme_constant_override("margin_right", 12)
+			_result_margin.add_theme_constant_override("margin_bottom", 12)
+		else:
+			_result_margin.add_theme_constant_override("margin_left", 28)
+			_result_margin.add_theme_constant_override("margin_top", 36)
+			_result_margin.add_theme_constant_override("margin_right", 28)
+			_result_margin.add_theme_constant_override("margin_bottom", 36)
+	if _result_close_bottom_pad != null:
+		_result_close_bottom_pad.custom_minimum_size = Vector2(0, 36 if use_ornate else 0)
+	var title_tex: Texture2D = ForgeUiTokens.title_tex_for_result_kind(kind) if use_ornate else null
+	var use_art: bool = use_ornate and title_tex != null
+	if _result_title_wrap != null:
+		_result_title_wrap.custom_minimum_size = Vector2(0, 100 if use_art else 120)
 	if _result_title_tex != null:
-		_result_title_tex.visible = has_art
+		_result_title_tex.texture = title_tex
+		_result_title_tex.visible = use_art
+		if use_art:
+			_result_title_tex.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			_result_title_tex.anchor_left = 0.18
+			_result_title_tex.anchor_right = 0.82
+			_result_title_tex.anchor_top = 0.12
+			_result_title_tex.anchor_bottom = 0.88
+			_result_title_tex.offset_left = 0.0
+			_result_title_tex.offset_right = 0.0
+			_result_title_tex.offset_top = 0.0
+			_result_title_tex.offset_bottom = 0.0
+		else:
+			_result_title_tex.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	if _result_title_lbl != null:
-		_result_title_lbl.visible = not has_art
+		_result_title_lbl.visible = not use_art
 		_result_title_lbl.text = title
 
 
@@ -687,24 +952,31 @@ func _on_forge_confirm_canceled() -> void:
 
 
 func _setup_dismantle_dialogs() -> void:
+	_single_dismantle_confirm = ConfirmationDialog.new()
+	_single_dismantle_confirm.title = "分解の確認"
+	_single_dismantle_confirm.ok_button_text = "はい"
+	_single_dismantle_confirm.cancel_button_text = "いいえ"
+	_single_dismantle_confirm.confirmed.connect(_on_single_dismantle_confirmed)
+	_single_dismantle_confirm.canceled.connect(_on_single_dismantle_canceled)
+	add_child(_single_dismantle_confirm)
 	_dismantle_confirm = ConfirmationDialog.new()
 	_dismantle_confirm.title = "ノーマル・レア一括分解"
-	_dismantle_confirm.ok_button_text = "分解する"
-	_dismantle_confirm.cancel_button_text = "やめる"
+	_dismantle_confirm.ok_button_text = "はい"
+	_dismantle_confirm.cancel_button_text = "いいえ"
 	_dismantle_confirm.confirmed.connect(_on_bulk_dismantle_confirmed)
 	_dismantle_confirm.canceled.connect(_on_forge_confirm_canceled)
 	add_child(_dismantle_confirm)
 	_legendary_dismantle_confirm = ConfirmationDialog.new()
 	_legendary_dismantle_confirm.title = "レジェンド装備の分解（1/2）"
-	_legendary_dismantle_confirm.ok_button_text = "続ける"
-	_legendary_dismantle_confirm.cancel_button_text = "やめる"
+	_legendary_dismantle_confirm.ok_button_text = "はい"
+	_legendary_dismantle_confirm.cancel_button_text = "いいえ"
 	_legendary_dismantle_confirm.confirmed.connect(_on_legendary_dismantle_step1)
 	_legendary_dismantle_confirm.canceled.connect(_on_forge_confirm_canceled)
 	add_child(_legendary_dismantle_confirm)
 	_legendary_dismantle_final_confirm = ConfirmationDialog.new()
 	_legendary_dismantle_final_confirm.title = "レジェンド装備の分解（2/2）"
-	_legendary_dismantle_final_confirm.ok_button_text = "分解する"
-	_legendary_dismantle_final_confirm.cancel_button_text = "やめる"
+	_legendary_dismantle_final_confirm.ok_button_text = "はい"
+	_legendary_dismantle_final_confirm.cancel_button_text = "いいえ"
 	_legendary_dismantle_final_confirm.confirmed.connect(_on_legendary_dismantle_final)
 	_legendary_dismantle_final_confirm.canceled.connect(_on_forge_confirm_canceled)
 	add_child(_legendary_dismantle_final_confirm)
@@ -751,7 +1023,9 @@ func _set_mode(mode: String) -> void:
 	_category_row.visible = (
 		mode == "produce" or mode == "enhance" or mode == "alchemy" or mode == "dismantle"
 	)
-	_craftable_panel.visible = mode == "produce" or mode == "alchemy"
+	## 作成可能／錬成素材の下帯はオミット（錬成素材はポップアップへ）。
+	if _craftable_panel != null:
+		_craftable_panel.visible = false
 	_bulk_dismantle_btn.visible = mode == "dismantle"
 	if mode == "enhance":
 		_selected_enhance_item = null
@@ -897,10 +1171,10 @@ func _refresh_all() -> void:
 	_update_mode_tab_dots()
 	_rebuild_left_list()
 	_rebuild_detail()
-	if _mode == "produce":
-		_rebuild_craftable_strip()
-	elif _mode == "alchemy":
-		_rebuild_alchemy_fodder_strip()
+	## 下帯（作成可能／錬成素材）はオミット。
+	if _craftable_panel != null:
+		_craftable_panel.visible = false
+	call_deferred("_layout_craftable_strip")
 	## 一覧再生成後も全タブでタッチスクロールを維持。
 	call_deferred("_enable_forge_scroll_touch")
 
@@ -1061,7 +1335,7 @@ func _make_recipe_list_card(craft: Resource) -> PanelContainer:
 	return panel
 
 func _on_recipe_card_input(event: InputEvent, craft: Resource) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+	if _is_primary_press(event):
 		_selected_craft = craft
 		_refresh_all()
 
@@ -1147,12 +1421,12 @@ func _apply_list_name_label(lbl: Label, color: Color) -> void:
 	UiTypography.apply_body(lbl, font_size, color)
 
 func _on_enhance_card_input(event: InputEvent, item: Resource) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+	if _is_primary_press(event):
 		_selected_enhance_item = item
 		_refresh_all()
 
 func _on_dismantle_card_input(event: InputEvent, item: Resource) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+	if _is_primary_press(event):
 		_selected_dismantle_item = item
 		_refresh_all()
 
@@ -1175,7 +1449,7 @@ func _make_alchemy_base_card(item: Resource) -> PanelContainer:
 
 
 func _on_alchemy_base_card_input(event: InputEvent, item: Resource) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+	if _is_primary_press(event):
 		if _selected_alchemy_base != item:
 			_selected_alchemy_fodder = null
 		_selected_alchemy_base = item
@@ -1569,8 +1843,7 @@ func _rebuild_alchemy_detail() -> void:
 	_update_hero_icon(_item_id_for_category(base, _category), _category, rarity)
 	_title_label.text = _EquipmentEnhancer.get_display_name(base)
 	_title_label.add_theme_color_override("font_color", BlacksmithUiHelper.rarity_name_color(rarity))
-	_subtitle_label.text = "素材を下段から選び、装備レベルを上げる"
-	## 長文が詳細枠左右へはみ出さないよう縮小＋折返し。
+	_subtitle_label.text = "「錬成する」で素材装備を選びます"
 	_subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_subtitle_label.clip_text = false
 	_subtitle_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -1578,36 +1851,17 @@ func _rebuild_alchemy_detail() -> void:
 	UiTypography.apply_caption(_subtitle_label, COLOR_SUB_STRONG)
 	_subtitle_label.add_theme_font_size_override("font_size", 12)
 	_add_stat_row("現在レベル", "Lv.%d" % _EquipmentEnhancer.get_equip_level(base))
-	if _selected_alchemy_fodder == null:
-		_cost_panel.visible = false
-		_craft_button.visible = true
-		_craft_button.text = "錬成する"
-		_craft_button.disabled = true
-		_reason_label.text = "下段から素材装備を選択してください"
-		_reason_label.visible = true
-		_layout_detail_action_anchor()
-		return
-	var from_lv: int = _EquipmentEnhancer.get_equip_level(base)
-	var gain_raw: int = _EquipmentEnhancer.alchemy_level_gain(_selected_alchemy_fodder)
-	var to_lv: int = mini(_EquipmentEnhancer.EQUIP_MAX_LEVEL, from_lv + gain_raw)
-	var applied: int = maxi(0, to_lv - from_lv)
-	var gold_cost: int = _EquipmentEnhancer.alchemy_gold_cost(
-		applied, _EquipmentEnhancer.get_equip_level(_selected_alchemy_fodder)
-	)
-	_add_stat_row("結果レベル", "Lv.%d → Lv.%d（+%d）" % [from_lv, to_lv, applied])
-	_add_stat_row("消費素材", _EquipmentEnhancer.get_display_name(_selected_alchemy_fodder))
-	_add_stat_row("注意", "素材は消滅（分解報酬なし）")
-	_update_cost_panel(gold_cost, {})
-	_cost_header_label.text = "錬成コスト"
+	_cost_panel.visible = false
+	_craft_button.visible = true
 	_craft_button.text = "錬成する"
-	var preview: Dictionary = _EquipmentEnhancer.alchemy_preview(base, _selected_alchemy_fodder)
-	var can_do: bool = bool(preview.get("ok", false))
-	_craft_button.disabled = not can_do
-	if can_do:
-		_reason_label.visible = false
+	var fodders: Array = _sorted_alchemy_fodder_candidates()
+	_craft_button.disabled = fodders.is_empty()
+	if fodders.is_empty():
+		_reason_label.text = "消費できる同種装備がありません"
+		_reason_label.visible = true
 	else:
-		_reason_label.text = str(preview.get("reason", ""))
-		_reason_label.visible = not _reason_label.text.is_empty()
+		_reason_label.text = "素材候補 %d 件" % _alchemy_fodder_grouped_rows().size()
+		_reason_label.visible = true
 	_layout_detail_action_anchor()
 
 
@@ -1645,14 +1899,195 @@ func _format_material_summary(materials: Dictionary) -> String:
 	return " / ".join(parts) if not parts.is_empty() else "なし"
 
 func _on_craft_button_pressed() -> void:
+	if _craft_button != null and _craft_button.disabled:
+		return
 	if _mode == "produce" and _selected_craft != null:
 		_on_craft_pressed(_selected_craft)
 	elif _mode == "enhance" and _selected_enhance_item != null:
 		_on_enhance_pressed()
-	elif _mode == "alchemy" and _selected_alchemy_base != null and _selected_alchemy_fodder != null:
-		_on_alchemy_pressed()
+	elif _mode == "alchemy" and _selected_alchemy_base != null:
+		_open_alchemy_fodder_picker()
 	elif _mode == "dismantle" and _selected_dismantle_item != null:
 		_on_dismantle_pressed()
+
+
+func _open_alchemy_fodder_picker() -> void:
+	if _selected_alchemy_base == null:
+		return
+	_setup_alchemy_fodder_popup()
+	if _alchemy_fodder_overlay == null or _alchemy_fodder_list == null:
+		return
+	for child in _alchemy_fodder_list.get_children():
+		child.queue_free()
+	var rows: Array = _alchemy_fodder_grouped_rows()
+	if rows.is_empty():
+		var empty := Label.new()
+		empty.text = "（消費できる同種装備がありません）"
+		UiTypography.apply_caption(empty, COLOR_SUB_STRONG)
+		_alchemy_fodder_list.add_child(empty)
+	else:
+		var index: int = 1
+		for row_data in rows:
+			var sample: Resource = row_data.get("sample") as Resource
+			var display_name: String = str(row_data.get("display_name", ""))
+			var count: int = int(row_data.get("count", 0))
+			var btn := Button.new()
+			btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			btn.custom_minimum_size = Vector2(0, 52)
+			btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			btn.text = "%d  %s　　所持 %d" % [index, display_name, count]
+			btn.clip_text = false
+			btn.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+			btn.add_theme_font_size_override("font_size", 18)
+			## ScrollTouch の PASS 化後もタップ確定できるよう STOP を明示。
+			btn.mouse_filter = Control.MOUSE_FILTER_STOP
+			btn.pressed.connect(_on_alchemy_fodder_row_pressed.bind(sample))
+			_alchemy_fodder_list.add_child(btn)
+			index += 1
+	_alchemy_fodder_overlay.visible = true
+	## 一覧追加後に ScrollTouch が PASS に戻すので、次フレームで STOP を復元。
+	call_deferred("_restore_alchemy_fodder_row_input")
+
+
+func _restore_alchemy_fodder_row_input() -> void:
+	if _alchemy_fodder_list == null:
+		return
+	for child in _alchemy_fodder_list.get_children():
+		if child is BaseButton:
+			(child as BaseButton).mouse_filter = Control.MOUSE_FILTER_STOP
+
+
+func _alchemy_fodder_grouped_rows() -> Array:
+	## 同一テンプレIDをまとめて所持数表示。サンプルはレベル高い個体。
+	var groups: Dictionary = {}
+	for item in _sorted_alchemy_fodder_candidates():
+		if item == null:
+			continue
+		var item_id: String = _item_id_for_category(item, _category)
+		if item_id.is_empty():
+			continue
+		if not groups.has(item_id):
+			groups[item_id] = {
+				"item_id": item_id,
+				"display_name": _EquipmentEnhancer.get_display_name(item),
+				"count": 1,
+				"sample": item,
+			}
+		else:
+			var row: Dictionary = groups[item_id]
+			row["count"] = int(row.get("count", 0)) + 1
+			var sample: Resource = row.get("sample") as Resource
+			if _EquipmentEnhancer.get_equip_level(item) > _EquipmentEnhancer.get_equip_level(sample):
+				row["sample"] = item
+			groups[item_id] = row
+	var out: Array = []
+	for key in groups.keys():
+		out.append(groups[key])
+	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return str(a.get("display_name", "")) < str(b.get("display_name", ""))
+	)
+	return out
+
+
+func _on_alchemy_fodder_row_pressed(fodder: Resource) -> void:
+	if fodder == null or _selected_alchemy_base == null:
+		return
+	if _alchemy_fodder_overlay != null and _alchemy_fodder_overlay.visible:
+		_alchemy_fodder_overlay.visible = false
+	_pending_alchemy_fodder = fodder
+	_selected_alchemy_fodder = fodder
+	_show_alchemy_fodder_confirm(fodder)
+
+
+func _show_alchemy_fodder_confirm(fodder: Resource) -> void:
+	if _selected_alchemy_base == null or fodder == null or _alchemy_confirm == null:
+		return
+	var preview: Dictionary = _EquipmentEnhancer.alchemy_preview(_selected_alchemy_base, fodder)
+	if not bool(preview.get("ok", false)):
+		_log_craft_error(str(preview.get("reason", "錬成できません")))
+		_pending_alchemy_fodder = null
+		_selected_alchemy_fodder = null
+		return
+	var lines: PackedStringArray = PackedStringArray()
+	lines.append("素材にしてよろしいですか？")
+	lines.append("")
+	lines.append("【素材】%s" % _EquipmentEnhancer.get_display_name(fodder))
+	for stat_line: String in _alchemy_item_stat_lines(fodder):
+		lines.append(stat_line)
+	lines.append("")
+	lines.append("【主材】%s" % _EquipmentEnhancer.get_display_name(_selected_alchemy_base))
+	lines.append(
+		"結果 Lv.%d → Lv.%d（Gold %d）"
+		% [
+			int(preview.get("from_level", 1)),
+			int(preview.get("to_level", 1)),
+			int(preview.get("gold_cost", 0)),
+		]
+	)
+	lines.append("素材は消滅します（分解報酬なし）。")
+	_alchemy_confirm.dialog_text = "\n".join(lines)
+	_alchemy_confirm.popup_centered()
+
+
+func _alchemy_item_stat_lines(item: Resource) -> PackedStringArray:
+	var lines: PackedStringArray = PackedStringArray()
+	if item == null:
+		return lines
+	var rarity: int = _EquipmentEnhancer.item_rarity(item)
+	lines.append(
+		"Lv.%d　%s"
+		% [_EquipmentEnhancer.get_equip_level(item), BlacksmithUiHelper.rarity_short_label(rarity)]
+	)
+	match _EquipmentEnhancer.item_category(item):
+		"weapon":
+			lines.append("攻撃力 %d" % _EquipmentEnhancer.get_effective_attack(item))
+			var wd: Resource = DataRegistry.get_weapon_data(str(item.weapon_id))
+			if wd != null:
+				lines.append("会心率 %.0f%%" % (float(wd.base_critical_rate) * 100.0))
+		"armor":
+			lines.append("防御力 %d" % _EquipmentEnhancer.effective_armor_defense(item))
+			lines.append("HP +%d" % _EquipmentEnhancer.effective_armor_hp(item))
+		"accessory":
+			var ac: Resource = DataRegistry.get_accessory_data(str(item.accessory_id))
+			var hp: int = _EquipmentEnhancer.effective_accessory_int_bonus(item, "hp_bonus", ac)
+			var atk: int = _EquipmentEnhancer.effective_accessory_int_bonus(item, "attack_bonus", ac)
+			if hp > 0:
+				lines.append("HP +%d" % hp)
+			if atk > 0:
+				lines.append("攻撃力 +%d" % atk)
+	var enhance_lv: int = _EquipmentEnhancer.get_enhance_level(item)
+	if enhance_lv > 0:
+		lines.append("炉研ぎ +%d" % enhance_lv)
+	return lines
+
+
+func _on_alchemy_pressed() -> void:
+	## 旧フロー互換。主ボタンは素材ピッカーを開く。
+	_open_alchemy_fodder_picker()
+
+
+func _execute_alchemy() -> void:
+	var fodder: Resource = _pending_alchemy_fodder
+	if fodder == null:
+		fodder = _selected_alchemy_fodder
+	if _selected_alchemy_base == null or fodder == null:
+		return
+	var base: Resource = _selected_alchemy_base
+	var result: Dictionary = _EquipmentEnhancer.perform_alchemy(base, fodder)
+	_pending_alchemy_fodder = null
+	if not bool(result.get("ok", false)):
+		_log_craft_error(str(result.get("reason", "錬成に失敗しました")))
+		return
+	_log_craft(
+		"錬成成功: Lv.%d → Lv.%d（Gold %d）"
+		% [int(result.get("from_level", 1)), int(result.get("to_level", 1)), int(result.get("gold_cost", 0))]
+	)
+	DailyMissionSystem.report_progress("alchemy_item")
+	_selected_alchemy_fodder = null
+	SaveManager.save_game()
+	_show_forge_item_result("錬成完了", base, _category, "alchemy")
+	_refresh_all()
+	_play_forge_success_feedback(FORGE_FLASH_ALCHEMY)
 
 func _rebuild_craftable_strip() -> void:
 	_craftable_header.text = "作成可能"
@@ -2092,58 +2527,39 @@ func _on_craft_confirmed() -> void:
 	DailyMissionSystem.report_progress("craft_item")
 	SaveManager.save_game()
 	if crafted != null:
-		_show_forge_item_result("生産完了", crafted, craft.output_type)
+		_show_forge_item_result("生産完了", crafted, craft.output_type, "produce")
 	else:
 		var item_name: String = DataRegistry.get_item_name(craft.output_id, craft.output_type)
 		_show_forge_result("生産完了", "生産しました。\n\n%s" % item_name)
 	_refresh_all()
 	_play_forge_success_feedback(FORGE_FLASH_CRAFT)
 
-func _on_alchemy_pressed() -> void:
-	if _selected_alchemy_base == null or _selected_alchemy_fodder == null:
-		return
-	var preview: Dictionary = _EquipmentEnhancer.alchemy_preview(
-		_selected_alchemy_base, _selected_alchemy_fodder
-	)
-	if not bool(preview.get("ok", false)):
-		_log_craft_error(str(preview.get("reason", "錬成できません")))
-		return
-	if bool(preview.get("needs_confirm", false)):
-		_alchemy_confirm.dialog_text = (
-			"%s を素材にして錬成します。\n素材は消滅します。よろしいですか？\n（Lv.%d → Lv.%d / Gold %d）"
-			% [
-				_EquipmentEnhancer.get_display_name(_selected_alchemy_fodder),
-				int(preview.get("from_level", 1)),
-				int(preview.get("to_level", 1)),
-				int(preview.get("gold_cost", 0)),
-			]
-		)
-		_alchemy_confirm.popup_centered()
-		return
-	_execute_alchemy()
-
-
-func _execute_alchemy() -> void:
-	if _selected_alchemy_base == null or _selected_alchemy_fodder == null:
-		return
-	var result: Dictionary = _EquipmentEnhancer.perform_alchemy(
-		_selected_alchemy_base, _selected_alchemy_fodder
-	)
-	if not bool(result.get("ok", false)):
-		_log_craft_error(str(result.get("reason", "錬成に失敗しました")))
-		return
-	_log_craft(
-		"錬成成功: Lv.%d → Lv.%d（Gold %d）"
-		% [int(result.get("from_level", 1)), int(result.get("to_level", 1)), int(result.get("gold_cost", 0))]
-	)
-	DailyMissionSystem.report_progress("alchemy_item")
-	_selected_alchemy_fodder = null
-	SaveManager.save_game()
-	_refresh_all()
-	_play_forge_success_feedback(FORGE_FLASH_ALCHEMY)
-
-
 func _on_enhance_pressed() -> void:
+	if _selected_enhance_item == null or _enhance_confirm == null:
+		return
+	var item: Resource = _selected_enhance_item
+	var check: Dictionary = _EquipmentEnhancer.can_enhance_item(item)
+	if not bool(check.get("ok", false)):
+		_log_craft_error(str(check.get("reason", "炉研ぎできません")))
+		return
+	var level: int = _EquipmentEnhancer.get_enhance_level(item)
+	var next_level: int = int(check.get("next_level", level + 1))
+	var gold_cost: int = int(check.get("gold_cost", 0))
+	var mat_summary: String = _format_material_summary(check.get("materials", {}))
+	_enhance_confirm.dialog_text = (
+		"「%s」を炉で研ぎますか？\n+%d → +%d\n必要ゴールド: %d\n素材: %s"
+		% [
+			_EquipmentEnhancer.get_display_name(item),
+			level,
+			next_level,
+			gold_cost,
+			mat_summary,
+		]
+	)
+	_enhance_confirm.popup_centered()
+
+
+func _on_enhance_confirmed() -> void:
 	if _selected_enhance_item == null:
 		return
 	var result: Dictionary = _EquipmentEnhancer.enhance_item(_selected_enhance_item)
@@ -2153,7 +2569,7 @@ func _on_enhance_pressed() -> void:
 		return
 	DailyMissionSystem.report_progress("enhance_item")
 	SaveManager.save_game()
-	_show_forge_item_result("強化完了", _selected_enhance_item, _category)
+	_show_forge_item_result("強化完了", _selected_enhance_item, _category, "enhance")
 	_refresh_all()
 	_play_forge_success_feedback(FORGE_FLASH_ENHANCE)
 
@@ -2169,7 +2585,30 @@ func _on_dismantle_pressed() -> void:
 		)
 		_legendary_dismantle_confirm.popup_centered()
 		return
+	_pending_dismantle_item = item
+	var preview: Dictionary = _EquipmentEnhancer.can_dismantle_item(item)
+	var mat_summary: String = _format_material_summary(preview.get("materials", {}))
+	if mat_summary.is_empty():
+		mat_summary = "（素材なし）"
+	_single_dismantle_confirm.dialog_text = (
+		"「%s」を分解しますか？\n獲得: %s\n分解すると元に戻せません。"
+		% [_EquipmentEnhancer.get_display_name(item), mat_summary]
+	)
+	_single_dismantle_confirm.popup_centered()
+
+
+func _on_single_dismantle_confirmed() -> void:
+	if _pending_dismantle_item == null:
+		return
+	var item: Resource = _pending_dismantle_item
+	_pending_dismantle_item = null
 	_execute_dismantle(item)
+
+
+func _on_single_dismantle_canceled() -> void:
+	_pending_dismantle_item = null
+	_on_forge_confirm_canceled()
+
 
 func _on_legendary_dismantle_step1() -> void:
 	if _pending_dismantle_item == null:
@@ -2196,7 +2635,8 @@ func _execute_dismantle(item: Resource) -> void:
 	SaveManager.save_game()
 	_selected_dismantle_item = null
 	_selected_enhance_item = null
-	_log_craft("分解完了: %s" % _format_material_summary(result.get("materials", {})))
+	var materials: Dictionary = result.get("materials", {})
+	_show_forge_dismantle_result(materials)
 	_refresh_all()
 	_play_forge_success_feedback(FORGE_FLASH_DISMANTLE)
 
@@ -2222,9 +2662,10 @@ func _on_bulk_dismantle_confirmed() -> void:
 	DailyMissionSystem.report_progress("dismantle_item", "", dismantled)
 	SaveManager.save_game()
 	_selected_dismantle_item = null
-	_log_craft(
-		"一括分解完了: %d件 / %s"
-		% [int(result.get("count", 0)), _format_material_summary(result.get("materials", {}))]
+	var materials: Dictionary = result.get("materials", {})
+	_show_forge_dismantle_result(
+		materials,
+		"ノーマル・レア装備 %d件を分解しました。" % int(result.get("count", 0))
 	)
 	_refresh_all()
 	_play_forge_success_feedback(FORGE_FLASH_DISMANTLE)
@@ -2292,6 +2733,7 @@ func _log_craft_error(msg: String) -> void:
 	_log_craft(msg)
 
 func _play_forge_success_feedback(flash_color: Color) -> void:
+	AudioManager.play_sfx("forge_action")
 	_flash_forge_screen(flash_color)
 	_pulse_hero_icon()
 

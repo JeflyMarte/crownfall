@@ -30,7 +30,12 @@ func test_forge_ui_asset_paths_exist() -> void:
 		ForgeUiTokens.BTN_ENHANCE,
 		ForgeUiTokens.BTN_ENHANCE_DISABLED,
 		ForgeUiTokens.TITLE_COMPLETE,
+		ForgeUiTokens.TITLE_ENHANCE_COMPLETE,
+		ForgeUiTokens.TITLE_PRODUCE_COMPLETE,
+		ForgeUiTokens.TITLE_ALCHEMY_COMPLETE,
+		ForgeUiTokens.TITLE_DISMANTLE_COMPLETE,
 		ForgeUiTokens.RESULT_PANEL,
+		ForgeUiTokens.RESULT_PANEL_ENHANCE,
 	]:
 		assert_true(ResourceLoader.exists(key), "missing forge chrome: %s" % key)
 	for path in ForgeUiTokens.ITEM_CELLS_RARITY:

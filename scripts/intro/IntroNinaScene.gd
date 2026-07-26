@@ -26,6 +26,23 @@ func _ready() -> void:
 	_start_line()
 
 
+func _input(event: InputEvent) -> void:
+	## 画面どこを押しても次へ（文字送り中は全文表示、完了後は次行／隊員選択）。
+	var pressed_now: bool = false
+	if event is InputEventMouseButton:
+		var mb: InputEventMouseButton = event as InputEventMouseButton
+		if (mb.button_index == MOUSE_BUTTON_LEFT or mb.button_index == MOUSE_BUTTON_RIGHT) and mb.pressed:
+			pressed_now = true
+	elif event is InputEventScreenTouch:
+		var st: InputEventScreenTouch = event as InputEventScreenTouch
+		if st.pressed:
+			pressed_now = true
+	if not pressed_now:
+		return
+	get_viewport().set_input_as_handled()
+	_on_next()
+
+
 func _process(delta: float) -> void:
 	if not _typing:
 		return

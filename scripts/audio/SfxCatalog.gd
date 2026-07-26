@@ -24,6 +24,7 @@ const ID_LEVEL_UP: String = "level_up"
 const ID_RANK_UP: String = "rank_up"
 const ID_GACHA_REVEAL: String = "gacha_reveal"
 const ID_LEGENDARY_DROP: String = "legendary_drop"
+const ID_FORGE_ACTION: String = "forge_action"
 
 const PATHS: Dictionary = {
 	ID_UI_CLICK: DIR + "ui_click.ogg",
@@ -49,6 +50,8 @@ const PATHS: Dictionary = {
 	ID_GACHA_REVEAL: DIR + "gacha_reveal.ogg",
 	## レジェンド／神話装備ドロップ（暫定: gacha_reveal 流用）
 	ID_LEGENDARY_DROP: DIR + "gacha_reveal.ogg",
+	## 鍛冶 生産／強化／錬成／分解（TomMusic Rock Wall 2）
+	ID_FORGE_ACTION: DIR + "forge_action.ogg",
 }
 
 

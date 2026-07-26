@@ -495,12 +495,95 @@ def draw_labeled_primary_button(
     return img
 
 
+def draw_mode_icon(kind: str, size: int = 96) -> Image.Image:
+    """Mode tab pictograms (produce/enhance/alchemy/dismantle), transparent."""
+    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    cx = cy = size // 2
+    metal = (210, 200, 175, 255)
+    metal_hi = (245, 235, 210, 255)
+    metal_lo = (120, 110, 90, 255)
+    gold = (*GOLD, 255)
+    gold_hi = (*GOLD_HI, 255)
+    scale = size / 96.0
+
+    def R(v: float) -> int:
+        return int(round(v * scale))
+
+    def ring(r: int, width: int, fill) -> None:
+        draw.ellipse([cx - r, cy - r, cx + r, cy + r], outline=fill, width=width)
+
+    if kind == "produce":
+        ring(R(34), max(2, R(3)), metal)
+        ring(R(28), max(1, R(2)), metal_lo)
+        pts = []
+        for i in range(16):
+            ang = math.radians(-90 + i * 22.5)
+            r = R(22) if i % 2 == 0 else R(10)
+            pts.append((cx + math.cos(ang) * r, cy + math.sin(ang) * r))
+        draw.polygon(pts, fill=gold_hi)
+        for i in range(4):
+            ang = math.radians(45 + i * 90)
+            x0 = cx + math.cos(ang) * R(30)
+            y0 = cy + math.sin(ang) * R(30)
+            x1 = cx + math.cos(ang) * R(38)
+            y1 = cy + math.sin(ang) * R(38)
+            draw.line([(x0, y0), (x1, y1)], fill=metal_hi, width=max(2, R(3)))
+    elif kind == "enhance":
+        ring(R(34), max(2, R(3)), metal)
+        draw.ellipse([cx - R(16), cy - R(22), cx + R(16), cy + R(22)], outline=gold, width=max(2, R(3)))
+        draw.rounded_rectangle([cx - R(10), cy - R(14), cx - R(4), cy + R(14)], radius=R(2), fill=gold_hi)
+        draw.rounded_rectangle([cx + R(4), cy - R(14), cx + R(10), cy + R(14)], radius=R(2), fill=gold_hi)
+        draw.ellipse([cx - R(5), cy - R(28), cx + R(5), cy - R(18)], fill=(180, 60, 50, 255), outline=gold, width=1)
+        for ang_deg in (30, 150, 210, 330):
+            ang = math.radians(ang_deg)
+            x = cx + math.cos(ang) * R(26)
+            y = cy + math.sin(ang) * R(26)
+            draw.ellipse([x - R(2), y - R(2), x + R(2), y + R(2)], fill=metal_hi)
+    elif kind == "alchemy":
+        draw.ellipse([cx - R(22), cy - R(26), cx + R(22), cy - R(2)], outline=metal, width=max(2, R(3)))
+        draw.arc([cx - R(22), cy - R(18), cx + R(22), cy + R(10)], 0, 180, fill=gold_hi, width=max(3, R(4)))
+        draw.ellipse([cx - R(14), cy - R(14), cx + R(14), cy - R(2)], fill=(80, 180, 120, 180))
+        draw.rectangle([cx - R(4), cy - R(2), cx + R(4), cy + R(18)], fill=metal)
+        draw.ellipse([cx - R(18), cy + R(14), cx + R(18), cy + R(28)], outline=gold, width=max(2, R(3)))
+        draw.ellipse([cx - R(12), cy + R(18), cx + R(12), cy + R(26)], fill=metal_lo)
+        draw.arc([cx - R(20), cy - R(26), cx + R(20), cy - R(6)], 200, 340, fill=metal_hi, width=max(1, R(2)))
+    else:  # dismantle
+        draw.polygon(
+            [
+                (cx - R(28), cy + R(8)), (cx + R(22), cy + R(8)), (cx + R(26), cy + R(18)),
+                (cx + R(10), cy + R(18)), (cx + R(10), cy + R(28)), (cx - R(10), cy + R(28)),
+                (cx - R(10), cy + R(18)), (cx - R(26), cy + R(18)),
+            ],
+            fill=metal_lo,
+            outline=metal,
+        )
+        draw.rectangle([cx - R(24), cy + R(2), cx + R(18), cy + R(10)], fill=metal)
+        draw.polygon(
+            [(cx + R(18), cy + R(4)), (cx + R(34), cy - R(2)), (cx + R(34), cy + R(6)), (cx + R(18), cy + R(10))],
+            fill=metal_hi,
+        )
+        hx, hy = cx - R(6), cy - R(18)
+        draw.rounded_rectangle([hx - R(16), hy - R(8), hx + R(10), hy + R(8)], radius=R(3), fill=gold_hi, outline=gold)
+        draw.line([(hx + R(6), hy + R(4)), (cx + R(18), cy + R(6))], fill=(140, 100, 60, 255), width=max(3, R(5)))
+        draw.line([(hx + R(6), hy + R(4)), (cx + R(18), cy + R(6))], fill=(190, 150, 90, 255), width=max(1, R(2)))
+    return img
+
+
 def main() -> int:
     save(draw_diamond(48), "UI_Ornament_Diamond.png")
     save(draw_back_arrow(48), "UI_Ico_Back_Gold.png")
 
     for kind in ("atk", "def", "crit", "hp"):
         save(draw_stat_icon(kind, 64), f"ICO_Forge_Stat_{kind.upper()}.png")
+
+    for kind, name in (
+        ("produce", "Produce"),
+        ("enhance", "Enhance"),
+        ("alchemy", "Alchemy"),
+        ("dismantle", "Dismantle"),
+    ):
+        save(draw_mode_icon(kind, 96), f"ICO_Forge_Mode_{name}.png")
 
     # Category tab icons are owner art — run tools/preprocess_category_icons.py --apply
 

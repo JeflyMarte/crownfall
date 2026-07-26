@@ -11,6 +11,7 @@ alwaysApply: true
 
 | 症状 | 原因 | 再発防止 |
 |---|---|---|
+| 鍛冶・錬成ボタン後にクリック不能／フリーズ | `AcceptDialog`（Window 排他）＋中身カスタム／ScrollTouch で入力が奪われる | 素材一覧は結果ポップ同様の **Control オーバーレイ**。行ボタンは ScrollTouch 後に `MOUSE_FILTER_STOP` を復元 |
 | タイトル「デバッグ」後に拠点で即終了 | `HubSimpleGuideOverlay.show_on` を1引数に戻したのに `BaseScene` が `show_on(self, true)` のまま → パース失敗で BaseScene 未実行 | API 差し戻し時は呼び出し側 arity を同時確認。`preview_only` は互換のため optional 第2引数を残す |
 | `Could not resolve class "CurrencyGainFx"`（起動パース失敗） | `tween_method(` に複数行ラムダ＋直後の `,` や、静的関数内の複雑なインライン Callable | 飛行更新は `_make_*` で Callable を返す。mutable カウンタは `Dictionary`。修正後 headless 起動確認 |
 | `Parser Error: Expected statement, found "else"` | Python の `for`/`else`・`while`/`else` | `gdscript.mdc` — フラグループを使う |

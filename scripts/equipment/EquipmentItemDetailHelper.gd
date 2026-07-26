@@ -208,17 +208,20 @@ static func flavor_text(item: Resource, category: String) -> String:
 		return ""
 	return _WeaponFlavorHelper.get_flavor_text_for_item(item)
 
-static func _append_description_block(host: VBoxContainer, item: Resource, category: String) -> void:
+static func _append_description_block(
+	host: VBoxContainer,
+	item: Resource,
+	category: String,
+	wrap_width: int = 0
+) -> void:
 	var desc: String = description_text(item, category)
 	if desc.is_empty():
 		return
 	host.add_child(_make_rule())
 	var desc_lbl := Label.new()
 	desc_lbl.text = desc
-	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	UiTypography.apply_body(desc_lbl, UiTypography.SIZE_CAPTION, COLOR_SUB)
-	host.add_child(desc_lbl)
+	_add_wrapped_label(host, desc_lbl, wrap_width)
 
 static func hover_summary(item: Resource, category: String, member: Resource = null) -> String:
 	if item == null:
@@ -313,25 +316,58 @@ static func populate_panel(
 	var compare_member: Resource = options.get("compare_member", null)
 	var show_owner: bool = bool(options.get("show_owner", true))
 	var header_icon_px: int = int(options.get("header_icon_px", HEADER_ICON_PX))
+	var indent_left: int = maxi(0, int(options.get("indent_left", 0)))
+	var indent_right: int = maxi(0, int(options.get("indent_right", 0)))
+	var desc_wrap_width: int = maxi(0, int(options.get("desc_wrap_width", 0)))
+	var content_pad_top: int = maxi(0, int(options.get("content_pad_top", 0)))
+	var framed_icon: bool = bool(options.get("framed_icon", false))
+	var show_enhance_badge: bool = bool(options.get("show_enhance_badge", true))
+	var value_color: Color = COLOR_VALUE
+	if options.has("value_color"):
+		value_color = options["value_color"] as Color
+	var content_host: VBoxContainer = host
+	if indent_left > 0 or indent_right > 0 or content_pad_top > 0:
+		var pad := MarginContainer.new()
+		pad.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		pad.add_theme_constant_override("margin_left", indent_left)
+		pad.add_theme_constant_override("margin_right", indent_right)
+		pad.add_theme_constant_override("margin_top", content_pad_top)
+		host.add_child(pad)
+		content_host = VBoxContainer.new()
+		content_host.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		content_host.add_theme_constant_override("separation", host.get_theme_constant("separation"))
+		pad.add_child(content_host)
 	var header := HBoxContainer.new()
 	header.add_theme_constant_override("separation", 10)
-	host.add_child(header)
+	content_host.add_child(header)
+	var rarity: int = _item_rarity(item, category)
+	var item_id: String = _item_id(item, category)
 	var icon_tex: Texture2D = _item_icon(item, category)
 	if icon_tex != null:
-		var icon_wrap := Control.new()
-		icon_wrap.custom_minimum_size = Vector2(header_icon_px, header_icon_px)
-		icon_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		header.add_child(icon_wrap)
-		var icon := TextureRect.new()
-		icon.texture = icon_tex
-		icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		icon_wrap.add_child(icon)
-		var icon_size := Vector2(header_icon_px, header_icon_px)
-		EquipmentUiHelper.apply_legendary_badge(icon_wrap, _item_rarity(item, category), icon_size)
-		EquipmentUiHelper.apply_enhance_badge(icon_wrap, item, category, icon_size)
+		if framed_icon:
+			var frame := _make_framed_item_icon(item_id, category, rarity, header_icon_px, icon_tex)
+			header.add_child(frame)
+			EquipmentUiHelper.apply_legendary_badge(frame, rarity, Vector2(header_icon_px, header_icon_px))
+			if show_enhance_badge:
+				EquipmentUiHelper.apply_enhance_badge(
+					frame, item, category, Vector2(header_icon_px, header_icon_px)
+				)
+		else:
+			var icon_wrap := Control.new()
+			icon_wrap.custom_minimum_size = Vector2(header_icon_px, header_icon_px)
+			icon_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			header.add_child(icon_wrap)
+			var icon := TextureRect.new()
+			icon.texture = icon_tex
+			icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			icon_wrap.add_child(icon)
+			var icon_size := Vector2(header_icon_px, header_icon_px)
+			EquipmentUiHelper.apply_legendary_badge(icon_wrap, rarity, icon_size)
+			if show_enhance_badge:
+				EquipmentUiHelper.apply_enhance_badge(icon_wrap, item, category, icon_size)
 	var title_col := VBoxContainer.new()
 	title_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_col.add_theme_constant_override("separation", 2)
@@ -342,34 +378,61 @@ static func populate_panel(
 	UiTypography.apply_display(name_lbl, UiTypography.SIZE_BODY_SMALL)
 	title_col.add_child(name_lbl)
 	var meta_lbl := Label.new()
-	var rarity: int = _item_rarity(item, category)
 	meta_lbl.text = "%s · %s" % [category_label(category), EquipmentUiHelper.rarity_label_text(rarity)]
 	UiTypography.apply_caption(meta_lbl, COLOR_SUB)
 	title_col.add_child(meta_lbl)
-	host.add_child(_make_rule())
+	content_host.add_child(_make_rule())
 	if show_owner:
-		host.add_child(_make_caption_label(owner_text(item)))
+		content_host.add_child(_make_caption_label(owner_text(item)))
 	var compare_member_res: Resource = compare_member
 	if compare_member_res != null:
 		var compare_lbl := _make_caption_label(compare_summary(item, category, compare_member_res))
 		compare_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		host.add_child(compare_lbl)
+		content_host.add_child(compare_lbl)
 	for row in stat_rows(item, category):
-		host.add_child(_make_stat_row(str(row.get("key", "")), str(row.get("label", "")), str(row.get("value", ""))))
-	_append_description_block(host, item, category)
-	_append_legendary_effect_block(host, item, category)
-	_append_set_bonus_block(host, item, category)
+		content_host.add_child(
+			_make_stat_row(
+				str(row.get("key", "")),
+				str(row.get("label", "")),
+				str(row.get("value", "")),
+				value_color
+			)
+		)
+	_append_description_block(content_host, item, category, desc_wrap_width)
+	_append_legendary_effect_block(content_host, item, category)
+	_append_set_bonus_block(content_host, item, category)
 	var affix2: String = affix_text(item)
 	if not affix2.is_empty():
-		host.add_child(_make_rule())
+		content_host.add_child(_make_rule())
 		var affix_lbl2 := Label.new()
 		affix_lbl2.text = affix2
-		affix_lbl2.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		UiTypography.apply_body(affix_lbl2, UiTypography.SIZE_CAPTION, COLOR_VALUE)
-		host.add_child(affix_lbl2)
-	_append_weapon_flavor_block(host, item, category)
+		UiTypography.apply_body(affix_lbl2, UiTypography.SIZE_CAPTION, value_color)
+		_add_wrapped_label(content_host, affix_lbl2, desc_wrap_width)
+	_append_weapon_flavor_block(content_host, item, category, desc_wrap_width)
 
-static func _make_stat_row(stat_key: String, label_text: String, value_text: String) -> HBoxContainer:
+
+static func _add_wrapped_label(parent: Control, lbl: Label, wrap_width: int) -> void:
+	if wrap_width <= 0:
+		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		parent.add_child(lbl)
+		return
+	var box := VBoxContainer.new()
+	box.custom_minimum_size = Vector2(wrap_width, 0)
+	box.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	box.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	box.add_child(lbl)
+	parent.add_child(box)
+
+
+static func _make_stat_row(
+	stat_key: String,
+	label_text: String,
+	value_text: String,
+	value_color: Color = COLOR_VALUE
+) -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -396,14 +459,13 @@ static func _make_stat_row(stat_key: String, label_text: String, value_text: Str
 	var val_lbl := Label.new()
 	val_lbl.text = value_text
 	val_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	val_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	## 数値行は折り返さず1行で見せる（毒付与の範囲表記など）。
+	val_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+	val_lbl.clip_text = false
+	val_lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	val_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiTypography.apply_body(val_lbl, UiTypography.SIZE_CAPTION, COLOR_VALUE)
+	UiTypography.apply_body(val_lbl, UiTypography.SIZE_CAPTION, value_color)
 	row.add_child(val_lbl)
-	var spacer := Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(spacer)
 	return row
 
 static func _make_caption_label(text: String) -> Label:
@@ -417,6 +479,64 @@ static func _make_rule() -> Control:
 	var gap := Control.new()
 	gap.custom_minimum_size = Vector2(0, 4)
 	return gap
+
+static func _item_id(item: Resource, category: String) -> String:
+	if item == null:
+		return ""
+	match category:
+		"weapon":
+			return str(item.weapon_id)
+		"armor":
+			return str(item.armor_id)
+		"accessory":
+			return str(item.accessory_id)
+	return ""
+
+
+static func _make_framed_item_icon(
+	item_id: String,
+	category: String,
+	rarity: int,
+	cell_px: int,
+	icon_tex: Texture2D
+) -> PanelContainer:
+	var frame := PanelContainer.new()
+	frame.custom_minimum_size = Vector2(cell_px, cell_px)
+	frame.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	frame.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	frame.clip_contents = true
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var style: StyleBox = EquipmentUiTokens.rarity_slot_style(rarity, false, cell_px)
+	if style != null:
+		style = style.duplicate()
+		style.set_content_margin_all(0.0)
+		frame.add_theme_stylebox_override("panel", style)
+	var host := Control.new()
+	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	frame.add_child(host)
+	var tex: Texture2D = icon_tex
+	if tex != null and category == "weapon" and not item_id.is_empty():
+		tex = IconPaths.display_texture_for_weapon(item_id, tex)
+	var inset: int = EquipmentUiTokens.icon_inset_for_item(
+		cell_px,
+		EquipmentUiTokens.INV_CELL_DESIGN_PX,
+		item_id,
+		category
+	)
+	var icon := TextureRect.new()
+	icon.texture = tex
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	icon.offset_left = float(inset)
+	icon.offset_top = float(inset)
+	icon.offset_right = -float(inset)
+	icon.offset_bottom = -float(inset)
+	host.add_child(icon)
+	return frame
+
 
 static func _item_icon(item: Resource, category: String) -> Texture2D:
 	match category:
@@ -444,17 +564,20 @@ static func _item_rarity(item: Resource, category: String) -> int:
 		return int(data.rarity)
 	return 0
 
-static func _append_weapon_flavor_block(host: VBoxContainer, item: Resource, category: String) -> void:
+static func _append_weapon_flavor_block(
+	host: VBoxContainer,
+	item: Resource,
+	category: String,
+	wrap_width: int = 0
+) -> void:
 	var flavor: String = flavor_text(item, category)
 	if flavor.is_empty():
 		return
 	host.add_child(_make_rule())
 	var flavor_lbl := Label.new()
 	flavor_lbl.text = "「%s」" % flavor
-	flavor_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	flavor_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	UiTypography.apply_body(flavor_lbl, UiTypography.SIZE_CAPTION, COLOR_FLAVOR)
-	host.add_child(flavor_lbl)
+	_add_wrapped_label(host, flavor_lbl, wrap_width)
 
 static func _armor_resist_text(item: Resource) -> String:
 	if item == null:

@@ -20,7 +20,7 @@ const JOIN_LINES: Dictionary = {
 	"adventurer_4": (
 		"ジャックと一緒に、生き物の声が聞こえる場所へ行きたい。だからこの調査隊に入るよ。"
 	),
-	"pet_jack": "わんわん！",
+	"pet_jack": "ワンッ！",
 }
 
 ## ロスター確定後。動機の繰り返しではなく、これからどう動くかの一言。
@@ -30,7 +30,7 @@ const REVEAL_LINES: Dictionary = {
 	"adventurer_2": "薬袋は開けてある。怪我人が出たら、すぐ呼んでくれ。",
 	"adventurer_3": "盾は預かった。お前たちの背中は、俺が守る。",
 	"adventurer_4": "ジャックも喜んでるよ。一緒にいこう！",
-	"pet_jack": "わん！",
+	"pet_jack": "ワンッ！",
 }
 
 

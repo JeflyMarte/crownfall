@@ -28,8 +28,17 @@ const BTN_BULK_DISMANTLE_DISABLED: String = ROOT + "UI_Forge_Btn_BulkDismantle_D
 const BTN_ENHANCE: String = ROOT + "UI_Forge_Btn_Enhance.png"
 const BTN_ENHANCE_DISABLED: String = ROOT + "UI_Forge_Btn_Enhance_Disabled.png"
 const TITLE_COMPLETE: String = ROOT + "UI_Forge_Title_Complete.png"
+const TITLE_ENHANCE_COMPLETE: String = ROOT + "UI_Forge_Title_EnhanceComplete.png"
+const TITLE_PRODUCE_COMPLETE: String = ROOT + "UI_Forge_Title_ProduceComplete.png"
+const TITLE_ALCHEMY_COMPLETE: String = ROOT + "UI_Forge_Title_AlchemyComplete.png"
+const TITLE_DISMANTLE_COMPLETE: String = ROOT + "UI_Forge_Title_DismantleComplete.png"
 const RESULT_PANEL: String = ROOT + "UI_Forge_ResultPanel.png"
+const RESULT_PANEL_ENHANCE: String = ROOT + "UI_Forge_ResultPanel_Enhance.png"
 const SUCCESS_RING: String = ROOT + "UI_Forge_SuccessRing.png"
+
+## 完了ポップ共通枠（Downloads「強化完了フレーム」）
+const RESULT_PANEL_ENHANCE_MARGINS: Vector4i = Vector4i(96, 110, 96, 110)
+const RESULT_PANEL_ENHANCE_CONTENT_MARGINS: Vector4i = Vector4i(36, 48, 36, 40)
 
 const PRIMARY_BTN_MARGINS: Vector4i = Vector4i(20, 16, 20, 16)
 
@@ -47,6 +56,14 @@ const CATEGORY_ICONS: Dictionary = {
 	"armor": ROOT + "ICO_Forge_Cat_Armor.png",
 	"accessory": ROOT + "ICO_Forge_Cat_Accessory.png",
 }
+
+const MODE_ICONS: Dictionary = {
+	"produce": ROOT + "ICO_Forge_Mode_Produce.png",
+	"enhance": ROOT + "ICO_Forge_Mode_Enhance.png",
+	"alchemy": ROOT + "ICO_Forge_Mode_Alchemy.png",
+	"dismantle": ROOT + "ICO_Forge_Mode_Dismantle.png",
+}
+const MODE_ICON_PX: int = 28
 
 const CATEGORY_MIN_SIZE: Vector2 = Vector2(72, 88)
 ## 詳細ヒーロー: 武器背景の上に透過アイコン。背景は少し大きめ。
@@ -66,7 +83,9 @@ const ITEM_CELL_MARGINS: Vector4i = Vector4i(12, 12, 12, 12)
 ## content は texture_margin 以上にしないとステ／素材行が左枠クロムに食い込む。
 const DETAIL_PANEL_MARGINS: Vector4i = Vector4i(36, 72, 36, 28)
 const DETAIL_PANEL_CONTENT_MARGINS: Vector4i = Vector4i(56, 56, 44, 28)
-const CRAFTABLE_PANEL_MARGINS: Vector4i = Vector4i(20, 22, 20, 18)
+const CRAFTABLE_PANEL_MARGINS: Vector4i = Vector4i(36, 40, 36, 32)
+## 下フレーム内側。左はアイコン帯、上はクレスト分を確保。
+const CRAFTABLE_PANEL_CONTENT_MARGINS: Vector4i = Vector4i(56, 28, 24, 20)
 const TAB_MARGINS: Vector4i = Vector4i(16, 12, 16, 14)
 ## 生産／強化など主ボタンの横幅上限（EXPAND せず中央寄せ）。
 const PRIMARY_BTN_WIDTH_PX: float = 240.0
@@ -88,6 +107,11 @@ static func stat_icon(stat_key: String) -> Texture2D:
 
 static func category_icon(category: String) -> Texture2D:
 	return load_tex(str(CATEGORY_ICONS.get(category, "")))
+
+
+static func mode_icon(mode: String) -> Texture2D:
+	return load_tex(str(MODE_ICONS.get(mode, "")))
+
 
 static func texture_stylebox(
 	path: String,
@@ -126,7 +150,17 @@ static func detail_panel_style() -> StyleBox:
 
 
 static func craftable_band_style() -> StyleBox:
-	return texture_stylebox(CRAFTABLE_PANEL, CRAFTABLE_PANEL_MARGINS, 10.0)
+	var sb: StyleBox = texture_stylebox(CRAFTABLE_PANEL, CRAFTABLE_PANEL_MARGINS, 10.0)
+	if sb is StyleBoxTexture:
+		var st := sb as StyleBoxTexture
+		st.content_margin_left = float(CRAFTABLE_PANEL_CONTENT_MARGINS.x)
+		st.content_margin_top = float(CRAFTABLE_PANEL_CONTENT_MARGINS.y)
+		st.content_margin_right = float(CRAFTABLE_PANEL_CONTENT_MARGINS.z)
+		st.content_margin_bottom = float(CRAFTABLE_PANEL_CONTENT_MARGINS.w)
+		## 帯は横に伸ばすので軸方向にタイルせずストレッチ。
+		st.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+		st.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+	return sb
 
 
 static func list_card_normal_style() -> StyleBox:
@@ -184,13 +218,70 @@ static func anvil_panel_style() -> StyleBox:
 	return texture_stylebox(ANVIL_PANEL, Vector4i(24, 20, 24, 28))
 
 
-## 生産／強化完了オーバーレイ枠（縦長オーナメントパネル）
+## 汎用結果オーバーレイ枠（黒の単純パネル）
 static func result_panel_style() -> StyleBox:
-	return texture_stylebox(RESULT_PANEL, Vector4i(72, 140, 72, 120), 20.0)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.05, 0.05, 0.06, 0.96)
+	sb.border_color = Color(0.22, 0.22, 0.24, 1.0)
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(8)
+	sb.content_margin_left = 8
+	sb.content_margin_top = 8
+	sb.content_margin_right = 8
+	sb.content_margin_bottom = 8
+	return sb
+
+
+## 完了ポップ専用枠（Downloads「強化完了フレーム」）
+static func enhance_result_panel_style() -> StyleBox:
+	var sb: StyleBox = texture_stylebox(
+		RESULT_PANEL_ENHANCE,
+		RESULT_PANEL_ENHANCE_MARGINS,
+		10.0
+	)
+	if sb is StyleBoxTexture:
+		var st := sb as StyleBoxTexture
+		st.content_margin_left = float(RESULT_PANEL_ENHANCE_CONTENT_MARGINS.x)
+		st.content_margin_top = float(RESULT_PANEL_ENHANCE_CONTENT_MARGINS.y)
+		st.content_margin_right = float(RESULT_PANEL_ENHANCE_CONTENT_MARGINS.z)
+		st.content_margin_bottom = float(RESULT_PANEL_ENHANCE_CONTENT_MARGINS.w)
+		st.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+		st.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+	return sb
 
 
 static func title_complete_tex() -> Texture2D:
 	return load_tex(TITLE_COMPLETE)
+
+
+static func title_enhance_complete_tex() -> Texture2D:
+	return load_tex(TITLE_ENHANCE_COMPLETE)
+
+
+static func title_produce_complete_tex() -> Texture2D:
+	return load_tex(TITLE_PRODUCE_COMPLETE)
+
+
+static func title_alchemy_complete_tex() -> Texture2D:
+	return load_tex(TITLE_ALCHEMY_COMPLETE)
+
+
+static func title_dismantle_complete_tex() -> Texture2D:
+	return load_tex(TITLE_DISMANTLE_COMPLETE)
+
+
+static func title_tex_for_result_kind(kind: String) -> Texture2D:
+	match kind:
+		"produce":
+			return title_produce_complete_tex()
+		"enhance":
+			return title_enhance_complete_tex()
+		"alchemy":
+			return title_alchemy_complete_tex()
+		"dismantle":
+			return title_dismantle_complete_tex()
+		_:
+			return null
 
 
 static func success_ring_tex() -> Texture2D:

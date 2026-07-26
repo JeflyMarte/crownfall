@@ -42,5 +42,5 @@ func test_grant_starter_pet_and_starting_tokens() -> void:
 
 func test_jack_join_quotes_are_barks() -> void:
 	const _Quotes := preload("res://scripts/roster/StarterJoinQuotes.gd")
-	assert_eq(_Quotes.line_for("pet_jack"), "わんわん！")
-	assert_eq(_Quotes.reveal_line_for("pet_jack"), "わん！")
+	assert_eq(_Quotes.line_for("pet_jack"), "ワンッ！")
+	assert_eq(_Quotes.reveal_line_for("pet_jack"), "ワンッ！")

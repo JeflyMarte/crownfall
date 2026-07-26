@@ -49,5 +49,6 @@ SE はこのフォルダ配下。出典は **Kenney.nl（CC0）** と **TomMusic
 | combat_ultimate.ogg | SFX / Fireball 2 |
 | treasure.ogg | SFX / Chest Open 1 |
 | room_enter.ogg | SFX / Door Open 1 |
+| forge_action.ogg | SFX / Spells / Rock Wall 2 |
 
 BGM: `assets/audio/bgm/`（オーナー制作）。
