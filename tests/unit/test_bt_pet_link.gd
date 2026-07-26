@@ -8,7 +8,7 @@ func before_each() -> void:
 	GameState.reset_for_new_game()
 	if Constants.STARTER_STORY_RECRUIT:
 		assert_true(GameState.select_starting_adventurer("adventurer_4"))
-	_PetSystem.ensure_starter_pet()
+	_PetSystem.grant_starter_pet()
 
 
 func test_beast_tamer_learns_pet_skills() -> void:

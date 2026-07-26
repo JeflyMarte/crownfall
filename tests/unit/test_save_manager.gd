@@ -271,6 +271,7 @@ func test_reset_for_new_game_clears_progress() -> void:
 	GameState.starter_pick_pending = false
 	GameState.reset_for_new_game()
 	assert_eq(GameState.gold, 0)
+	assert_eq(GameState.gacha_token, 0)
 	assert_eq(GameState.dungeon_progress.size(), 0)
 	if Constants.STARTER_STORY_RECRUIT:
 		assert_true(GameState.starter_pick_pending)

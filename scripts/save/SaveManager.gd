@@ -53,6 +53,7 @@ func save_game() -> void:
 		"starter_unlocked_ids": GameState.starter_unlocked_ids.duplicate(),
 		"starter_pick_pending": GameState.starter_pick_pending,
 		"pending_starter_recruit_id": GameState.pending_starter_recruit_id,
+		"pending_hub_pet_grant_id": GameState.pending_hub_pet_grant_id,
 		"pending_clear_nina_merit": GameState.pending_clear_nina_merit,
 		"pending_clear_nina_teaser": GameState.pending_clear_nina_teaser,
 		"pending_clear_stage_id": GameState.pending_clear_stage_id,
@@ -145,6 +146,34 @@ func _heal_hub_simple_guide_flag_if_progressed(data: Dictionary) -> void:
 	if not (prog is Dictionary) or (prog as Dictionary).is_empty():
 		return
 	GameState.tutorial_flags[FLAG] = true
+
+
+## 旧セーブ向け: ガイド完了／所持魔晶石あり → 初期トークン支給済み扱い。
+func _heal_hub_intro_ceremony_flags(data: Dictionary) -> void:
+	const GUIDE: String = "hub_simple_guide_done"
+	const TOKENS: String = "hub_starting_tokens_granted"
+	var guide_done: bool = bool(GameState.tutorial_flags.get(GUIDE, false))
+	var token_amt: int = int(data.get("gacha_token", GameState.gacha_token))
+	if not bool(GameState.tutorial_flags.get(TOKENS, false)):
+		if guide_done or token_amt > 0:
+			GameState.tutorial_flags[TOKENS] = true
+
+
+func _heal_starter_pet_granted_from_owned() -> void:
+	const PET: String = "starter_pet_granted"
+	const GUIDE: String = "hub_simple_guide_done"
+	var _PetSystem = preload("res://scripts/pets/PetSystem.gd")
+	var has_jack: bool = GameState.owned_pet_ids.has(_PetSystem.STARTER_PET_ID)
+	if GameState.active_pet != null and str(GameState.active_pet.id) == _PetSystem.STARTER_PET_ID:
+		has_jack = true
+	if has_jack:
+		GameState.tutorial_flags[PET] = true
+		if GameState.pending_hub_pet_grant_id == _PetSystem.STARTER_PET_ID:
+			GameState.pending_hub_pet_grant_id = ""
+		return
+	## ガイド済みなのにジャック未所持 → 支給演出を再開。
+	if bool(GameState.tutorial_flags.get(GUIDE, false)) and not bool(GameState.tutorial_flags.get(PET, false)):
+		GameState.pending_hub_pet_grant_id = _PetSystem.STARTER_PET_ID
 
 
 ## P3-PET-VARIANT-001: 所持オトモ一覧
@@ -595,6 +624,10 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.pending_starter_recruit_id = str(data.get("pending_starter_recruit_id", "")).strip_edges()
 	else:
 		GameState.pending_starter_recruit_id = ""
+	if data.has("pending_hub_pet_grant_id"):
+		GameState.pending_hub_pet_grant_id = str(data.get("pending_hub_pet_grant_id", "")).strip_edges()
+	else:
+		GameState.pending_hub_pet_grant_id = ""
 	if data.has("pending_clear_nina_merit"):
 		GameState.pending_clear_nina_merit = bool(data.get("pending_clear_nina_merit", false))
 	else:
@@ -617,6 +650,7 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.tutorial_flags = {}
 	## デバッグ再演でフラグが消えた進行済みセーブを修復（Continue でガイド再出防止）。
 	_heal_hub_simple_guide_flag_if_progressed(data)
+	_heal_hub_intro_ceremony_flags(data)
 	## 既に解放済みなら演出待ちを破棄（旧セーブ／二重防止）。
 	if (
 		not GameState.pending_starter_recruit_id.is_empty()
@@ -643,6 +677,8 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.active_pet = _deserialize_active_pet(data.get("active_pet"))
 	else:
 		GameState.active_pet = null
+	## owned / active を見てからジャック支給フラグを再判定。
+	_heal_starter_pet_granted_from_owned()
 	var _PetSystem = preload("res://scripts/pets/PetSystem.gd")
 	_PetSystem.ensure_owned_pets_seeded()
 	_PetSystem.sync_unlocks_from_stage_progress(false)

@@ -38,7 +38,7 @@ static func apply() -> void:
 	var _PetSystem = preload("res://scripts/pets/PetSystem.gd")
 	_PetSystem.unlock_pet(_PetSystem.PET_ASH_ID, false)
 	_PetSystem.unlock_pet(_PetSystem.PET_INK_ID, false)
-	_PetSystem.ensure_starter_pet()
+	_PetSystem.grant_starter_pet()
 	## LvMAX 後に解放スキルを装備へ反映
 	if GameState.active_pet != null:
 		GameState.active_pet.level = LevelSystem.MAX_LEVEL

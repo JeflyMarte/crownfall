@@ -163,14 +163,21 @@ func _maybe_show_starter_join() -> void:
 	overlay.dismissed.connect(_on_starter_join_dismissed)
 
 
-func _on_starter_join_dismissed(_adventurer_id: String) -> void:
+func _on_starter_join_dismissed(adventurer_id: String) -> void:
 	_update_display()
 	_refresh_nina_nav()
+	const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
+	if _PetSystem.is_pet_id(adventurer_id):
+		GameState.pending_hub_pet_grant_id = ""
+		SaveManager.save_game()
+		_maybe_grant_starting_tokens_fx()
+		return
 	_maybe_show_hub_simple_guide()
 
 
 func _maybe_show_hub_simple_guide() -> void:
 	if not _HubSimpleGuideOverlay.should_show():
+		_maybe_show_hub_pet_join()
 		return
 	if get_node_or_null("HubSimpleGuideOverlay") != null:
 		return
@@ -187,7 +194,73 @@ func _maybe_show_hub_simple_guide() -> void:
 	const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
 	if _ContentUnlockNotice.has_pending():
 		return
-	_HubSimpleGuideOverlay.show_on(self)
+	var overlay: CanvasLayer = _HubSimpleGuideOverlay.show_on(self)
+	if overlay != null and not overlay.dismissed.is_connected(_on_hub_simple_guide_dismissed):
+		overlay.dismissed.connect(_on_hub_simple_guide_dismissed)
+
+
+func _on_hub_simple_guide_dismissed() -> void:
+	## preview 再演はフラグを立てない → 支給しない。
+	if not _HubSimpleGuideOverlay.is_done():
+		return
+	const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
+	if not _PetSystem.is_starter_pet_granted():
+		GameState.pending_hub_pet_grant_id = _PetSystem.STARTER_PET_ID
+		SaveManager.save_game()
+	_maybe_show_hub_pet_join()
+
+
+func _maybe_show_hub_pet_join() -> void:
+	var pet_id: String = GameState.pending_hub_pet_grant_id.strip_edges()
+	if pet_id.is_empty():
+		_maybe_grant_starting_tokens_fx()
+		return
+	if get_node_or_null("StarterJoinOverlay") != null:
+		return
+	if get_node_or_null("HubSimpleGuideOverlay") != null:
+		return
+	if get_node_or_null("CommanderRankUpOverlay") != null:
+		return
+	if get_node_or_null("NinaDialogueOverlay") != null:
+		return
+	var overlay: CanvasLayer = _StarterJoinOverlay.show_on(self, pet_id)
+	if overlay != null and not overlay.dismissed.is_connected(_on_starter_join_dismissed):
+		overlay.dismissed.connect(_on_starter_join_dismissed)
+
+
+const HUB_STARTING_TOKENS_FLAG: String = "hub_starting_tokens_granted"
+
+
+func _maybe_grant_starting_tokens_fx() -> void:
+	if bool(GameState.tutorial_flags.get(HUB_STARTING_TOKENS_FLAG, false)):
+		return
+	if not _HubSimpleGuideOverlay.is_done():
+		return
+	const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
+	## ジャック支給演出が残っている間はトークンを後回し。
+	if not GameState.pending_hub_pet_grant_id.strip_edges().is_empty():
+		return
+	if not _PetSystem.is_starter_pet_granted():
+		return
+	GameState.tutorial_flags[HUB_STARTING_TOKENS_FLAG] = true
+	var amount: int = GachaSystem.STARTING_TOKENS
+	GameState.gacha_token += amount
+	SaveManager.save_game()
+	var token_chip: Control = $HubView/TopBar/TopBarRow/TokenChip as Control
+	var token_tex: Texture2D = CurrencyHelper.get_icon_texture()
+	var from_global: Vector2 = get_viewport_rect().get_center()
+	if token_tex == null or token_chip == null:
+		_update_display()
+		return
+	## 付与後に表示を一度 0→付与前相当へ戻し、飛込完了で最終値を見せる。
+	var shown_before: int = maxi(0, GameState.gacha_token - amount)
+	_label_token.text = CurrencyHelper.format_amount(shown_before)
+	_CurrencyGainFx.play(
+		self,
+		from_global,
+		[{"texture": token_tex, "target": token_chip, "amount": amount}],
+		_update_display
+	)
 
 
 func _setup_gift_badge() -> void:

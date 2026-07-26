@@ -62,13 +62,19 @@ func _ready() -> void:
 
 func present(adventurer_id: String) -> void:
 	_adventurer_id = adventurer_id.strip_edges()
-	var def: Variant = GameState.find_base_roster_def(_adventurer_id)
-	if def is Dictionary:
-		_display_name = str(def.get("name", _adventurer_id))
-		_job_id = str(def.get("job", ""))
-	else:
-		_display_name = _adventurer_id
+	const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
+	if _PetSystem.is_pet_id(_adventurer_id):
+		var pet_data: Resource = _PetSystem.get_pet_data(_adventurer_id)
+		_display_name = str(pet_data.display_name) if pet_data != null else _adventurer_id
 		_job_id = ""
+	else:
+		var def: Variant = GameState.find_base_roster_def(_adventurer_id)
+		if def is Dictionary:
+			_display_name = str(def.get("name", _adventurer_id))
+			_job_id = str(def.get("job", ""))
+		else:
+			_display_name = _adventurer_id
+			_job_id = ""
 	_phase = Phase.SHOWCASE
 	_reveal_can_dismiss = false
 	_refresh_showcase()
@@ -370,7 +376,12 @@ func _refresh_showcase() -> void:
 	_portrait_icon.texture = tex
 	_job_icon.texture = tex
 	_name_label.text = _display_name
-	_stars_label.text = RosterUiHelper.stars_text(Adventurer.STARTER_RARITY)
+	const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
+	var star_n: int = Adventurer.STARTER_RARITY
+	if _PetSystem.is_pet_id(_adventurer_id):
+		var pet_data: Resource = _PetSystem.get_pet_data(_adventurer_id)
+		star_n = clampi(int(pet_data.rarity) if pet_data != null else 1, 1, 5)
+	_stars_label.text = RosterUiHelper.stars_text(star_n)
 	_quote_label.text = "「%s」" % _StarterJoinQuotes.line_for(_adventurer_id)
 	UiTypography.apply_display(_name_label, UiTypography.SIZE_DISPLAY, UiTypography.COLOR_GOLD)
 	UiTypography.apply_display(_stars_label, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
@@ -428,21 +439,45 @@ func _begin_reveal() -> void:
 	_reveal_root.visible = true
 	_reveal_can_dismiss = false
 
-	var member: Resource = GameState.commit_pending_starter_recruit()
-	if member == null and not _adventurer_id.is_empty():
-		member = GameState.unlock_starter_adventurer(_adventurer_id)
-	if member != null:
-		_display_name = str(member.display_name)
-		_job_id = str(member.job_id)
+	const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
+	var member: Resource = null
+	var star_n: int = Adventurer.STARTER_RARITY
+	var sub_line: String = "ロスターに追加されました"
+	if _PetSystem.is_pet_id(_adventurer_id):
+		member = _PetSystem.grant_starter_pet() if _adventurer_id == _PetSystem.STARTER_PET_ID else null
+		if member == null:
+			_PetSystem.unlock_pet(_adventurer_id, false)
+			_PetSystem.set_active_pet_id(_adventurer_id)
+			member = GameState.active_pet
+		if member != null:
+			_display_name = str(member.display_name)
+		var pet_data: Resource = _PetSystem.get_pet_data(_adventurer_id)
+		star_n = clampi(int(pet_data.rarity) if pet_data != null else 1, 1, 5)
+		sub_line = "随伴オトモとして合流しました"
+		_job_id = ""
+	else:
+		member = GameState.commit_pending_starter_recruit()
+		if member == null and not _adventurer_id.is_empty():
+			member = GameState.unlock_starter_adventurer(_adventurer_id)
+		if member != null:
+			_display_name = str(member.display_name)
+			_job_id = str(member.job_id)
 
 	_label_banner.visible = false
 	_label_banner.text = ""
-	_label_reveal_sub.text = "ロスターに追加されました"
-	_label_reveal_name.text = "%s\n%s  %s" % [
-		_display_name,
-		RosterUiHelper.stars_text(Adventurer.STARTER_RARITY),
-		_job_label(),
-	]
+	_label_reveal_sub.text = sub_line
+	var job_bit: String = _job_label()
+	if job_bit.is_empty():
+		_label_reveal_name.text = "%s\n%s" % [
+			_display_name,
+			RosterUiHelper.stars_text(star_n),
+		]
+	else:
+		_label_reveal_name.text = "%s\n%s  %s" % [
+			_display_name,
+			RosterUiHelper.stars_text(star_n),
+			job_bit,
+		]
 	var quote: String = _StarterJoinQuotes.reveal_line_for(_adventurer_id)
 	_label_quote.text = "「%s」" % quote
 	_label_quote.visible = true
@@ -455,7 +490,7 @@ func _begin_reveal() -> void:
 	if _reveal_presenter != null and _reveal_presenter.has_method("play"):
 		_reveal_presenter.call(
 			"play",
-			Adventurer.STARTER_RARITY,
+			star_n,
 			Callable(self, "_on_reveal_done"),
 			Callable()
 		)
