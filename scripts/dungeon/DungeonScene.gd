@@ -608,6 +608,23 @@ const DIVE_INTRO_HOLD_SEC: float = 1.55
 const DIVE_INTRO_START_SEC: float = 0.85
 const RUN_HUD_HEIGHT: float = 28.0
 const BOSS_INTRO_WARNING_TEXT: String = "警告"
+const BOSS_INTRO_SUBTITLE_TEXT: String = "BOSS戦"
+## ボス警告テロップ（画面中央・大型）。
+const BOSS_WARNING_FONT_SIZE: int = 88
+const BOSS_WARNING_SUB_FONT_SIZE: int = 36
+const BOSS_WARNING_HALF_W: float = 360.0
+const BOSS_WARNING_HALF_H: float = 130.0
+## ボス入場：上からの落下距離（px）。
+const BOSS_DROP_OFFSET_Y: float = 460.0
+## 警告中の暗転スクリム（赤黒）。
+const BOSS_WARNING_SCRIM_ALPHA: float = 0.78
+const BOSS_WARNING_PULSE_SEC: float = 0.42
+const BOSS_WARNING_PULSE_SCALE_HI: Vector2 = Vector2(1.14, 1.14)
+const BOSS_WARNING_PULSE_SCALE_LO: Vector2 = Vector2(0.96, 0.96)
+## ボス大技カットイン（P3-COMBAT-BOSS-CUTIN-001）。
+const BOSS_SKILL_CUTIN_HOLD_SEC: float = 0.55
+const BOSS_SKILL_CUTIN_FADE_SEC: float = 0.14
+const BOSS_SKILL_CUTIN_FACE_PX: float = 168.0
 const ELITE_INTRO_TEXT: String = "エリート"
 ## 影狩り戦闘フロア専用の薄暗（BattlefieldArea 上の ColorRect）。
 const SHADOW_STALKER_FLOOR_DIM: Color = Color(0.04, 0.02, 0.12, 0.46)
@@ -681,7 +698,14 @@ var _run_hud_discovery: Label
 var _boss_intro_active: bool = false
 var _boss_intro_tween: Tween
 var _boss_warning_label: Label
+var _boss_warning_sub_label: Label
+var _boss_warning_root: Control
+var _boss_warning_scrim: ColorRect
+var _boss_warning_pulse_tween: Tween
 var _boss_intro_base_scale: Vector2 = Vector2.ONE
+var _boss_intro_base_position: Vector2 = Vector2.ZERO
+var _boss_skill_cutin_root: Control
+var _boss_skill_cutin_tween: Tween
 var _elite_intro_active: bool = false
 var _elite_intro_tween: Tween
 var _elite_intro_label: Label
@@ -692,6 +716,8 @@ var _event_telop_bg: TextureRect
 var _event_telop_dim: ColorRect
 var _event_telop_scene_label: Label
 var _event_telop_result_label: Label
+## 碑文成功テロップ用（ゴールド／加護など）。apply 直後に埋める。
+var _event_result_telop_override: String = ""
 
 @onready var _boss_sprite: AnimatedSprite2D = $BossSprite
 @onready var _enemy_sprite: AnimatedSprite2D = $EnemySprite
@@ -788,9 +814,9 @@ const SWARM_CENTER_X_RATIO: float = 0.694
 const SWARM_Y_RATIO: float = 0.48
 ## 群れを左上→右下の階段状に置く（スロットごとの Y 比率加算）。
 const SWARM_STAIR_Y_RATIO: float = 0.045
-## 群れ配置の左右クリップ防止（左=味方帯／右=行動順アイコン列を避ける）。
+## 群れ配置の左右クリップ防止（左=味方帯。敵行動順アイコンはオミット済み）。
 const SWARM_X_MIN_RATIO: float = 0.48
-const SWARM_X_MAX_RATIO: float = 0.82
+const SWARM_X_MAX_RATIO: float = 0.9
 ## 群れ時の見た目縮小（ドット／HPバー／名前）
 const SWARM_DISPLAY_SCALE: float = 0.82
 ## フロストリッジ系は単体時のみ大きめ（群れ時は SWARM_DISPLAY_SCALE のみ）。
@@ -3179,8 +3205,8 @@ func _ensure_event_telop_panel() -> PanelContainer:
 	_event_telop_panel.custom_minimum_size = Vector2(620, 0)
 	_event_telop_panel.offset_left = -310.0
 	_event_telop_panel.offset_right = 310.0
-	_event_telop_panel.offset_top = -88.0
-	_event_telop_panel.offset_bottom = 88.0
+	_event_telop_panel.offset_top = -120.0
+	_event_telop_panel.offset_bottom = 120.0
 	_event_telop_panel.add_theme_stylebox_override(
 		"panel",
 		CombatUiFrames.panel_style(CombatUiFrames.TIER_NORMAL)
@@ -3264,6 +3290,7 @@ func _play_event_room_presentation(event: Dictionary, outcome: Dictionary) -> St
 	var result_color: Color = EventPresentationScript.outcome_color(outcome_type)
 	var flash: Color = EventPresentationScript.flash_color(outcome_type)
 	var applied_log: String = ""
+	_event_result_telop_override = ""
 	_set_event_telop_lines(scene_text, "", result_color)
 	_set_event_telop_background(outcome_type)
 	panel.visible = true
@@ -3281,10 +3308,17 @@ func _play_event_room_presentation(event: Dictionary, outcome: Dictionary) -> St
 	if _event_telop_bg != null and _event_telop_bg.texture != null:
 		tw.tween_property(_event_telop_bg, "modulate:a", bg_alpha, float(timings["scene_fade_in"]))
 	tw.chain().tween_interval(float(timings["scene_hold"]))
+	## 結果行は適用後に確定（碑文はゴールド＋加護を成功画面へ出す）。
 	tw.tween_callback(func() -> void:
-		_set_event_telop_lines(scene_text, result_text, result_color)
+		applied_log = _apply_event_outcome(outcome)
+		var display_result: String = result_text
+		if not _event_result_telop_override.is_empty():
+			display_result = _event_result_telop_override
+			_event_result_telop_override = ""
+		_set_event_telop_lines(scene_text, display_result, result_color)
 		_event_telop_result_label.modulate.a = 0.0
 		_event_telop_result_label.scale = Vector2(0.92, 0.92)
+		_request_combat_shake(float(timings["shake"]))
 	)
 	tw.tween_property(_event_telop_result_label, "modulate:a", 1.0, float(timings["result_fade_in"]))
 	tw.parallel().tween_property(
@@ -3293,10 +3327,6 @@ func _play_event_room_presentation(event: Dictionary, outcome: Dictionary) -> St
 		Vector2.ONE,
 		float(timings["result_fade_in"])
 	).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_callback(func() -> void:
-		applied_log = _apply_event_outcome(outcome)
-		_request_combat_shake(float(timings["shake"]))
-	)
 	tw.tween_interval(float(timings["pre_fx"]))
 	tw.tween_callback(func() -> void:
 		_spawn_transition_sparkles(
@@ -3307,7 +3337,11 @@ func _play_event_room_presentation(event: Dictionary, outcome: Dictionary) -> St
 		_flash_battlefield(flash, 0.14)
 	)
 	tw.tween_interval(float(timings["fx"]))
-	tw.tween_interval(float(timings["result_hold"]))
+	## 碑文は複数行のため少し長めに見せる。
+	var result_hold: float = float(timings["result_hold"])
+	if outcome_type == "lore":
+		result_hold += 0.35 if not _fast_run_enabled else 0.18
+	tw.tween_interval(result_hold)
 	tw.tween_property(panel, "modulate:a", 0.0, float(timings["fade_out"]))
 	tw.parallel().tween_property(_event_telop_dim, "color:a", 0.0, float(timings["fade_out"]))
 	if _event_telop_bg != null:
@@ -3315,6 +3349,16 @@ func _play_event_room_presentation(event: Dictionary, outcome: Dictionary) -> St
 	tw.chain().tween_callback(_hide_event_telop)
 	await tw.finished
 	return applied_log
+
+
+func _format_lore_success_telop(outcome: Dictionary, bonus_lines: PackedStringArray) -> String:
+	var parts: PackedStringArray = []
+	parts.append("【碑文】%s" % str(outcome.get("label", "記録")))
+	for line: String in bonus_lines:
+		if line.is_empty():
+			continue
+		parts.append(line)
+	return "\n".join(parts)
 
 func _apply_event_outcome(outcome: Dictionary) -> String:
 	match outcome.get("type", "nothing"):
@@ -3344,6 +3388,7 @@ func _apply_event_outcome(outcome: Dictionary) -> String:
 			var body: String = CatalogHelper.get_lore_body(lore_id)
 			_try_register_discovery("lore", lore_id)
 			var bonus_lines: PackedStringArray = _apply_lore_success_bonuses(first_time)
+			_event_result_telop_override = _format_lore_success_telop(outcome, bonus_lines)
 			var base: String = ""
 			if not body.is_empty():
 				base = "【碑文】%s\n%s" % [outcome.get("label", "碑文"), body]
@@ -3818,7 +3863,8 @@ func _apply_lore_success_bonuses(first_time: bool) -> PackedStringArray:
 	if not bless.is_empty():
 		var label: String = str(bless.get("label", ""))
 		var mult: float = float(bless.get("mult", 1.1))
-		lines.append("碑文の加護: 次のフロアの%s ×%.1f" % [label, mult])
+		## 成功画面向けに短く（「次のフロアの経験値 ×1.1」）。
+		lines.append("加護: 次フロアの%s ×%.1f" % [label, mult])
 		_play_lore_floor_blessing_fx()
 		GameState.record_run_modifier("碑文の加護")
 	return lines
@@ -4916,10 +4962,110 @@ func _try_cast_enemy_skill(slot: int, skill: Resource) -> bool:
 	var turns: int = int(ceil(cast_time))
 	$CombatController.begin_enemy_cast(slot, skill.id, turns)
 	_play_enemy_slot_animation(slot, "attack")
+	if _should_show_boss_skill_cutin(skill):
+		_play_boss_skill_cutin(skill)
 	_spawn_enemy_cast_name(skill.display_name, slot)
 	_append_log("敵が【%s】を詠唱している" % skill.display_name)
 	_on_enemy_cast_threat_started(slot, skill)
 	return true
+
+
+func _should_show_boss_skill_cutin(skill: Resource) -> bool:
+	if skill == null:
+		return false
+	if $DungeonController.current_room_type != Enums.RoomType.BOSS:
+		return false
+	return float(skill.cast_time) > 0.0
+
+
+func _play_boss_skill_cutin(skill: Resource) -> void:
+	if skill == null:
+		return
+	_dismiss_boss_skill_cutin(0.0)
+	var enemy_id: String = ""
+	if $CombatController.current_enemy_data != null:
+		enemy_id = str($CombatController.current_enemy_data.id)
+	var root := Control.new()
+	root.name = "BossSkillCutin"
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.z_index = 42
+	root.modulate.a = 0.0
+	$TransitionLayer.add_child(root)
+	_boss_skill_cutin_root = root
+
+	var band := ColorRect.new()
+	band.color = Color(0.04, 0.0, 0.02, 0.88)
+	band.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	band.set_anchors_preset(Control.PRESET_CENTER_LEFT)
+	band.anchor_right = 1.0
+	band.offset_top = -110.0
+	band.offset_bottom = 110.0
+	band.offset_left = 0.0
+	band.offset_right = 0.0
+	root.add_child(band)
+
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 28)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	row.offset_left = 36.0
+	row.offset_right = -36.0
+	band.add_child(row)
+
+	var face := TextureRect.new()
+	face.custom_minimum_size = Vector2(BOSS_SKILL_CUTIN_FACE_PX, BOSS_SKILL_CUTIN_FACE_PX)
+	face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	face.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if not enemy_id.is_empty():
+		face.texture = IconPaths.get_icon_texture(enemy_id, "enemy")
+	row.add_child(face)
+
+	var col := VBoxContainer.new()
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.add_theme_constant_override("separation", 8)
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(col)
+
+	var tag := Label.new()
+	tag.text = "大技"
+	tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_display(tag, 22, Color(1.0, 0.55, 0.35), UiTypography.OUTLINE_STRONG)
+	col.add_child(tag)
+
+	var name_lbl := Label.new()
+	name_lbl.text = str(skill.display_name)
+	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	name_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+	name_lbl.clip_text = false
+	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_display(name_lbl, 42, Color(1.0, 0.92, 0.82), UiTypography.OUTLINE_STRONG)
+	col.add_child(name_lbl)
+
+	AudioManager.play_sfx("combat_skill", 0.88, 0.08)
+	var speed: float = maxf(0.75, _ultimate_presentation_speed_mult())
+	var hold: float = BOSS_SKILL_CUTIN_HOLD_SEC / speed
+	var fade: float = BOSS_SKILL_CUTIN_FADE_SEC / speed
+	_boss_skill_cutin_tween = create_tween()
+	_boss_skill_cutin_tween.tween_property(root, "modulate:a", 1.0, fade)
+	_boss_skill_cutin_tween.tween_interval(hold)
+	_boss_skill_cutin_tween.tween_property(root, "modulate:a", 0.0, fade)
+	_boss_skill_cutin_tween.tween_callback(_dismiss_boss_skill_cutin.bind(0.0))
+
+
+func _dismiss_boss_skill_cutin(_fade_ignored: float = 0.0) -> void:
+	if _boss_skill_cutin_tween != null and is_instance_valid(_boss_skill_cutin_tween):
+		_boss_skill_cutin_tween.kill()
+	_boss_skill_cutin_tween = null
+	if _boss_skill_cutin_root != null and is_instance_valid(_boss_skill_cutin_root):
+		_boss_skill_cutin_root.queue_free()
+	_boss_skill_cutin_root = null
+
 
 func _advance_enemy_cast(slot: int) -> void:
 	if $CombatController.should_enemy_skip_action_at(slot):
@@ -6830,6 +6976,7 @@ func _ensure_pause_overlay_layer() -> void:
 	## HPバー(COMBAT_OVERLAY_Z=25)／行動順(30)／脅威バナー(42)より前面へ。
 	## 同ツリーの z_index だけだと一時停止ポップの裏に貫通する。
 	if _pause_overlay.get_parent() != null and str(_pause_overlay.get_parent().name) == "PauseLayer":
+		_style_pause_overlay()
 		return
 	var layer := CanvasLayer.new()
 	layer.name = "PauseLayer"
@@ -6844,6 +6991,36 @@ func _ensure_pause_overlay_layer() -> void:
 	if dim != null:
 		dim.mouse_filter = Control.MOUSE_FILTER_STOP
 		dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_style_pause_overlay()
+
+
+func _style_pause_overlay() -> void:
+	## 一時停止パネル／文字を大きめに（タッチ可読優先）。
+	const PAUSE_TITLE_SIZE: int = 40
+	const PAUSE_BTN_SIZE: int = 32
+	const PAUSE_BTN_MIN: Vector2 = Vector2(320, 68)
+	var panel: PanelContainer = _pause_overlay.get_node_or_null("PausePanel") as PanelContainer
+	if panel != null:
+		panel.offset_left = -220.0
+		panel.offset_right = 220.0
+		panel.offset_top = -160.0
+		panel.offset_bottom = 160.0
+	var vbox: VBoxContainer = _pause_overlay.get_node_or_null("PausePanel/PauseVBox") as VBoxContainer
+	if vbox != null:
+		vbox.add_theme_constant_override("separation", 20)
+	var title: Label = _pause_overlay.get_node_or_null("PausePanel/PauseVBox/LabelPause") as Label
+	if title != null:
+		UiTypography.apply_display(title, PAUSE_TITLE_SIZE, UiTypography.COLOR_GOLD, UiTypography.OUTLINE_STRONG)
+		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	for btn_name: String in ["ButtonPauseResume", "ButtonPauseRetire"]:
+		var btn: Button = _pause_overlay.get_node_or_null("PausePanel/PauseVBox/%s" % btn_name) as Button
+		if btn == null:
+			continue
+		btn.custom_minimum_size = PAUSE_BTN_MIN
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn.focus_mode = Control.FOCUS_NONE
+		UiTypography.apply_button(btn, false)
+		btn.add_theme_font_size_override("font_size", PAUSE_BTN_SIZE)
 
 
 func _harden_header_menu_button() -> void:
@@ -6977,8 +7154,8 @@ func _set_paused(paused: bool) -> void:
 	var resume_label: String = "再開" if paused else "一時停止"
 	$MainVBox/PartyStatusPanel/PartyStatusVBox/AutoCombatRow/ButtonPause.text = resume_label
 	$MainVBox/HeaderBar/ButtonStop.text = "再開" if paused else "停止"
-	_pause_overlay.visible = paused
 	if paused:
+		_style_pause_overlay()
 		$CombatTimer.stop()
 		_auto_progress_paused_remaining = $AutoProgressTimer.time_left
 		$AutoProgressTimer.stop()
@@ -6988,6 +7165,7 @@ func _set_paused(paused: bool) -> void:
 		if _auto_progress_paused_remaining > 0:
 			$AutoProgressTimer.start(_auto_progress_paused_remaining)
 			_auto_progress_paused_remaining = 0.0
+	_pause_overlay.visible = paused
 
 func _on_pause_button_pressed() -> void:
 	_set_paused(not _is_paused)
@@ -8225,12 +8403,12 @@ func _update_turn_order_ui(order: Array) -> void:
 		_party_card_active_turn = -1
 		_update_party_cards_hp()
 		return
+	## 敵の行動順アイコンはオミット（味方左列のみ）。
 	for entry: Dictionary in order:
+		if entry["kind"] != "party":
+			continue
 		var holder: PanelContainer = _make_turn_order_cell(entry)
-		if entry["kind"] == "party":
-			_turn_order_col_left.add_child(holder)
-		else:
-			_turn_order_col_right.add_child(holder)
+		_turn_order_col_left.add_child(holder)
 		_turn_order_items.append({
 			"kind": entry["kind"],
 			"index": entry["index"],
@@ -8239,7 +8417,7 @@ func _update_turn_order_ui(order: Array) -> void:
 			"baked_frame": bool(holder.get_meta("baked_enemy_frame", false)),
 		})
 	_turn_order_col_left.visible = _turn_order_col_left.get_child_count() > 0
-	_turn_order_col_right.visible = _turn_order_col_right.get_child_count() > 0
+	_turn_order_col_right.visible = false
 	_layout_turn_order_columns()
 	_party_card_active_turn = -1
 	if not order.is_empty() and order[0].get("kind", "") == "party":
@@ -9568,22 +9746,22 @@ func _begin_elite_combat_entrance(lead: Resource) -> void:
 func _boss_intro_timings(short: bool) -> Dictionary:
 	if short:
 		return {
-			"warning": 0.18,
-			"hold": 0.12,
-			"reveal": 0.18,
-			"shake": 8.0,
-			"flash": 0.15,
-			"debris_amount": 28,
-			"debris_life": 0.75,
+			"warning": 1.15,
+			"hold": 0.28,
+			"reveal": 0.42,
+			"shake": 10.0,
+			"flash": 0.18,
+			"debris_amount": 36,
+			"debris_life": 0.9,
 		}
 	return {
-		"warning": 0.48,
-		"hold": 0.35,
-		"reveal": 0.38,
-		"shake": 14.0,
-		"flash": 0.24,
-		"debris_amount": 72,
-		"debris_life": 1.35,
+		"warning": 2.2,
+		"hold": 0.7,
+		"reveal": 0.72,
+		"shake": 18.0,
+		"flash": 0.28,
+		"debris_amount": 88,
+		"debris_life": 1.55,
 	}
 
 func _boss_debris_color(dungeon_id: String) -> Color:
@@ -9602,32 +9780,117 @@ func _make_debris_texture() -> Texture2D:
 	img.fill(Color(0.55, 0.52, 0.48, 0.95))
 	return ImageTexture.create_from_image(img)
 
-func _ensure_boss_warning_label() -> Label:
-	if _boss_warning_label != null and is_instance_valid(_boss_warning_label):
-		return _boss_warning_label
+func _ensure_boss_warning_label() -> Control:
+	if _boss_warning_root != null and is_instance_valid(_boss_warning_root):
+		_layout_boss_warning_root(_boss_warning_root)
+		return _boss_warning_root
+	_boss_warning_root = Control.new()
+	_boss_warning_root.name = "BossWarningRoot"
+	_boss_warning_root.visible = false
+	_boss_warning_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_boss_warning_root.z_index = 40
+	_layout_boss_warning_root(_boss_warning_root)
+
+	var col := VBoxContainer.new()
+	col.name = "WarnCol"
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.add_theme_constant_override("separation", 6)
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_boss_warning_root.add_child(col)
+
 	_boss_warning_label = Label.new()
 	_boss_warning_label.name = "BossWarningLabel"
-	_boss_warning_label.visible = false
 	_boss_warning_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_boss_warning_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_boss_warning_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_boss_warning_label.set_anchors_preset(Control.PRESET_CENTER)
-	_boss_warning_label.offset_left = -260.0
-	_boss_warning_label.offset_right = 260.0
-	_boss_warning_label.offset_top = -120.0
-	_boss_warning_label.offset_bottom = -40.0
-	$TransitionLayer.add_child(_boss_warning_label)
-	return _boss_warning_label
+	col.add_child(_boss_warning_label)
+
+	_boss_warning_sub_label = Label.new()
+	_boss_warning_sub_label.name = "BossWarningSubLabel"
+	_boss_warning_sub_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_boss_warning_sub_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_boss_warning_sub_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.add_child(_boss_warning_sub_label)
+
+	$TransitionLayer.add_child(_boss_warning_root)
+	return _boss_warning_root
+
+
+func _layout_boss_warning_root(root: Control) -> void:
+	## 画面ど真ん中（上下オフセットなし）。
+	root.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	root.offset_left = -BOSS_WARNING_HALF_W
+	root.offset_right = BOSS_WARNING_HALF_W
+	root.offset_top = -BOSS_WARNING_HALF_H
+	root.offset_bottom = BOSS_WARNING_HALF_H
+	root.pivot_offset = Vector2(BOSS_WARNING_HALF_W, BOSS_WARNING_HALF_H)
+
+
+func _ensure_boss_warning_scrim() -> ColorRect:
+	if _boss_warning_scrim != null and is_instance_valid(_boss_warning_scrim):
+		return _boss_warning_scrim
+	_boss_warning_scrim = ColorRect.new()
+	_boss_warning_scrim.name = "BossWarningScrim"
+	_boss_warning_scrim.color = Color(0.08, 0.0, 0.02, 1.0)
+	_boss_warning_scrim.modulate = Color(1, 1, 1, 0)
+	_boss_warning_scrim.visible = false
+	_boss_warning_scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_boss_warning_scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_boss_warning_scrim.z_index = 35
+	$TransitionLayer.add_child(_boss_warning_scrim)
+	## 警告文字より背面。
+	if _boss_warning_root != null and is_instance_valid(_boss_warning_root):
+		$TransitionLayer.move_child(_boss_warning_scrim, _boss_warning_root.get_index())
+	return _boss_warning_scrim
+
+
+func _start_boss_warning_pulse(root: Control) -> void:
+	_stop_boss_warning_pulse()
+	if root == null or not is_instance_valid(root):
+		return
+	root.scale = BOSS_WARNING_PULSE_SCALE_HI
+	root.modulate = Color(1.0, 0.16, 0.1, 1.0)
+	_boss_warning_pulse_tween = create_tween().set_loops()
+	_boss_warning_pulse_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_boss_warning_pulse_tween.tween_property(root, "scale", BOSS_WARNING_PULSE_SCALE_LO, BOSS_WARNING_PULSE_SEC)
+	_boss_warning_pulse_tween.parallel().tween_property(
+		root, "modulate", Color(1.0, 0.55, 0.28, 1.0), BOSS_WARNING_PULSE_SEC
+	)
+	_boss_warning_pulse_tween.tween_property(root, "scale", BOSS_WARNING_PULSE_SCALE_HI, BOSS_WARNING_PULSE_SEC)
+	_boss_warning_pulse_tween.parallel().tween_property(
+		root, "modulate", Color(1.0, 0.12, 0.08, 1.0), BOSS_WARNING_PULSE_SEC
+	)
+
+
+func _stop_boss_warning_pulse() -> void:
+	if _boss_warning_pulse_tween != null and is_instance_valid(_boss_warning_pulse_tween):
+		_boss_warning_pulse_tween.kill()
+	_boss_warning_pulse_tween = null
+
+
+func _play_boss_landing_impact() -> void:
+	## 着地衝撃：低ピッチの必殺＋ヒットで重さを出す。
+	AudioManager.play_sfx("combat_ultimate", 0.78, 0.05)
+	AudioManager.play_sfx("combat_hit", 0.86, 0.05)
+	_request_combat_shake(16.0)
+	_flash_battlefield(Color(1.0, 0.32, 0.18), 0.16)
+
 
 func _clear_boss_intro_fx() -> void:
-	if _boss_warning_label != null and is_instance_valid(_boss_warning_label):
-		_boss_warning_label.visible = false
-		_boss_warning_label.modulate = Color.WHITE
-		_boss_warning_label.scale = Vector2.ONE
+	_stop_boss_warning_pulse()
+	if _boss_warning_root != null and is_instance_valid(_boss_warning_root):
+		_boss_warning_root.visible = false
+		_boss_warning_root.modulate = Color.WHITE
+		_boss_warning_root.scale = Vector2.ONE
+	if _boss_warning_scrim != null and is_instance_valid(_boss_warning_scrim):
+		_boss_warning_scrim.visible = false
+		_boss_warning_scrim.modulate = Color(1, 1, 1, 0)
 	if _transition_fx_host != null and is_instance_valid(_transition_fx_host):
 		for c in _transition_fx_host.get_children():
 			if str(c.name).begins_with("BossDebris"):
 				c.queue_free()
+
 
 func _spawn_boss_debris_fall(short: bool) -> void:
 	_init_dungeon_presentation_ui()
@@ -9665,9 +9928,21 @@ func _spawn_boss_debris_fall(short: bool) -> void:
 func _reveal_boss_sprite(duration: float) -> void:
 	if not _boss_sprite.visible:
 		_boss_sprite.visible = true
-	var tw: Tween = create_tween().set_parallel(true)
-	tw.tween_property(_boss_sprite, "modulate:a", 1.0, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.tween_property(_boss_sprite, "scale", _boss_intro_base_scale, duration).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	## 上から落下して着地。着地瞬間に SE／シェイク／フラッシュ。
+	var land_pos: Vector2 = _boss_intro_base_position
+	var tw: Tween = create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(_boss_sprite, "modulate:a", 1.0, minf(0.18, duration * 0.35)).set_trans(
+		Tween.TRANS_QUAD
+	).set_ease(Tween.EASE_OUT)
+	tw.tween_property(_boss_sprite, "position", land_pos, duration).set_trans(
+		Tween.TRANS_CUBIC
+	).set_ease(Tween.EASE_IN)
+	tw.tween_property(_boss_sprite, "scale", _boss_intro_base_scale, duration).set_trans(
+		Tween.TRANS_BACK
+	).set_ease(Tween.EASE_OUT)
+	tw.chain().tween_callback(_play_boss_landing_impact)
+
 
 func _finish_boss_combat_entrance(lead: Resource) -> void:
 	_boss_intro_active = false
@@ -9690,29 +9965,52 @@ func _begin_boss_combat_entrance(lead: Resource) -> void:
 	var short: bool = _fast_run_enabled
 	var t: Dictionary = _boss_intro_timings(short)
 	_clear_boss_intro_fx()
-	var warn_lbl: Label = _ensure_boss_warning_label()
-	warn_lbl.text = BOSS_INTRO_WARNING_TEXT
-	warn_lbl.visible = true
-	warn_lbl.modulate = Color(1.0, 1.0, 1.0, 0.0)
-	warn_lbl.scale = Vector2(0.82, 0.82)
-	UiTypography.apply_display(
-		warn_lbl,
-		UiTypography.SIZE_DISPLAY_TITLE,
-		Color(1.0, 0.18, 0.14),
-		UiTypography.OUTLINE_STRONG
-	)
+	var warn_root: Control = _ensure_boss_warning_label()
+	var scrim: ColorRect = _ensure_boss_warning_scrim()
+	if _boss_warning_label != null:
+		_boss_warning_label.text = BOSS_INTRO_WARNING_TEXT
+		UiTypography.apply_display(
+			_boss_warning_label,
+			BOSS_WARNING_FONT_SIZE,
+			Color(1.0, 0.12, 0.08),
+			UiTypography.OUTLINE_STRONG
+		)
+	if _boss_warning_sub_label != null:
+		_boss_warning_sub_label.text = BOSS_INTRO_SUBTITLE_TEXT
+		UiTypography.apply_display(
+			_boss_warning_sub_label,
+			BOSS_WARNING_SUB_FONT_SIZE,
+			Color(1.0, 0.78, 0.55),
+			UiTypography.OUTLINE_STRONG
+		)
+	warn_root.visible = true
+	warn_root.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	warn_root.scale = Vector2(0.72, 0.72)
+	warn_root.pivot_offset = Vector2(BOSS_WARNING_HALF_W, BOSS_WARNING_HALF_H)
+	scrim.visible = true
+	scrim.modulate = Color(1, 1, 1, 0)
 	_spawn_boss_debris_fall(short)
 	_request_combat_shake(float(t.get("shake", 12.0)))
 	_flash_battlefield(Color(1.0, 0.28, 0.22), float(t.get("flash", 0.22)))
 	if _boss_intro_tween != null and is_instance_valid(_boss_intro_tween):
 		_boss_intro_tween.kill()
 	_boss_intro_tween = create_tween()
-	_boss_intro_tween.tween_property(warn_lbl, "modulate:a", 1.0, 0.12)
-	_boss_intro_tween.parallel().tween_property(warn_lbl, "scale", Vector2(1.06, 1.06), 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	_boss_intro_tween.tween_interval(float(t.get("warning", 0.4)))
-	_boss_intro_tween.tween_property(warn_lbl, "modulate:a", 0.0, 0.14)
-	_boss_intro_tween.tween_callback(func() -> void: _reveal_boss_sprite(float(t.get("reveal", 0.35))))
-	_boss_intro_tween.tween_interval(float(t.get("hold", 0.3)))
+	## 暗転＋警告表示（やや長めに見せてから戦闘へ）。
+	_boss_intro_tween.tween_property(scrim, "modulate:a", BOSS_WARNING_SCRIM_ALPHA, 0.18)
+	_boss_intro_tween.parallel().tween_property(warn_root, "modulate:a", 1.0, 0.16)
+	_boss_intro_tween.parallel().tween_property(warn_root, "scale", BOSS_WARNING_PULSE_SCALE_HI, 0.22).set_trans(
+		Tween.TRANS_BACK
+	).set_ease(Tween.EASE_OUT)
+	_boss_intro_tween.tween_callback(func() -> void: _start_boss_warning_pulse(warn_root))
+	_boss_intro_tween.tween_interval(float(t.get("warning", 2.2)))
+	_boss_intro_tween.tween_callback(_stop_boss_warning_pulse)
+	_boss_intro_tween.tween_property(warn_root, "modulate:a", 0.0, 0.2)
+	_boss_intro_tween.parallel().tween_property(scrim, "modulate:a", 0.0, 0.22)
+	var reveal_sec: float = float(t.get("reveal", 0.72))
+	var hold_sec: float = float(t.get("hold", 0.7))
+	_boss_intro_tween.tween_callback(func() -> void: _reveal_boss_sprite(reveal_sec))
+	## 落下完了を待ってから着地ホールド→戦闘開始。
+	_boss_intro_tween.tween_interval(reveal_sec + hold_sec)
 	_boss_intro_tween.tween_callback(func() -> void: _finish_boss_combat_entrance(lead))
 
 func _resolve_boss_sprite_path(enemy_id: String, dungeon_id: String) -> String:
@@ -9768,7 +10066,10 @@ func _prepare_boss_sprite_for_entrance(enemy_id: String) -> bool:
 	if not _load_boss_sprite(enemy_id):
 		return false
 	_boss_intro_base_scale = _boss_sprite.scale
-	_boss_sprite.scale = _boss_intro_base_scale * 0.28
+	_boss_intro_base_position = _boss_sprite.position
+	## やや大きく見せつつ、画面上から落下開始。
+	_boss_sprite.scale = _boss_intro_base_scale * 1.08
+	_boss_sprite.position = _boss_intro_base_position + Vector2(0.0, -BOSS_DROP_OFFSET_Y)
 	_boss_sprite.modulate = Color(1.0, 1.0, 1.0, 0.0)
 	_boss_sprite.visible = true
 	return true

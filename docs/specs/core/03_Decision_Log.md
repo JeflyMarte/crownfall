@@ -4889,6 +4889,18 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 
 **SSOT:** `docs/specs/decisions/16_ValgardDescent.md`
 
+## ボス大技カットイン（2026-07-26 — P3-COMBAT-BOSS-CUTIN-001）
+
+> **オーナー GO（案A）** — ボス戦の大技のみカットイン。全スキル／エリートは対象外。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-COMBAT-BOSS-CUTIN-001-1 | **対象部屋** — `RoomType.BOSS` のみ | ボス戦の可読性優先 |
+| P3-COMBAT-BOSS-CUTIN-001-2 | **大技定義** — `cast_time > 0` の敵スキル（詠唱開始時に1回） | 既存ボス専用技が詠唱付き。`boss_enrage` 等の即時は除外 |
+| P3-COMBAT-BOSS-CUTIN-001-3 | **表示** — 暗帯＋ボス図鑑顔＋技名。約0.7秒（戦闘速度で短縮） | 危険が伝わる最短 |
+| P3-COMBAT-BOSS-CUTIN-001-4 | **非対象** — エリート部屋・通常攻撃・詠唱中ティックの再表示 | くどさ防止 |
+| P3-COMBAT-BOSS-CUTIN-001-5 | **戦闘進行** — カットイン中も CT／詠唱は止めない（オーバーレイのみ） | テンポ維持 |
+
 ## 展示室オンライン閲覧の据置（2026-07-26 — P3-SHOWCASE-ONLINE-001）
 
 > **オーナー GO（案A）** — β／リリース仕上げでは実装しない。アップデート枠。
