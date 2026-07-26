@@ -46,7 +46,13 @@ func test_attribution_doc_exists() -> void:
 	assert_true(FileAccess.file_exists("res://assets/audio/sfx/ATTRIBUTION.md"))
 
 
-func test_gacha_reveal_not_shared_with_level_up() -> void:
+func test_heal_buff_debuff_paths() -> void:
+	assert_eq(_SfxCatalog.path_for(_SfxCatalog.ID_COMBAT_HEAL), "res://assets/audio/sfx/combat_heal.ogg")
+	assert_eq(_SfxCatalog.path_for(_SfxCatalog.ID_COMBAT_BUFF), "res://assets/audio/sfx/combat_buff.ogg")
+	assert_eq(_SfxCatalog.path_for(_SfxCatalog.ID_COMBAT_DEBUFF), "res://assets/audio/sfx/combat_debuff.ogg")
+	for sfx_id in [_SfxCatalog.ID_COMBAT_HEAL, _SfxCatalog.ID_COMBAT_BUFF, _SfxCatalog.ID_COMBAT_DEBUFF]:
+		assert_true(FileAccess.file_exists(_SfxCatalog.path_for(sfx_id)), sfx_id)
+
 	## P3-AUDIO-SE-003 — ガチャ入手 SE は level_up と分離
 	var gacha_path: String = _SfxCatalog.path_for(_SfxCatalog.ID_GACHA_REVEAL)
 	var level_path: String = _SfxCatalog.path_for(_SfxCatalog.ID_LEVEL_UP)

@@ -27,7 +27,9 @@ SE はこのフォルダ配下。出典は **Kenney.nl（CC0）** と **TomMusic
 | ui_open.ogg | Interface / open_001 |
 | ui_switch.ogg | Interface / switch_001 |
 | ui_equip.ogg | RPG / metalClick |
-| combat_heal.ogg | Interface / pluck_001 |
+| combat_heal.ogg | Interface / confirmation_004 |
+| combat_buff.ogg | Interface / maximize_005 |
+| combat_debuff.ogg | Interface / minimize_005 |
 | combat_death.ogg | Digital / phaserDown1 |
 | gacha_reveal.ogg | Digital / powerUp 系（ブースト再エンコード。ガチャ専用） |
 

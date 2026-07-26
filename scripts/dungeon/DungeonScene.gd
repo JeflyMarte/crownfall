@@ -678,7 +678,7 @@ var _treasure_presentation_active: bool = false
 var _event_presentation_active: bool = false
 var _combat_clear_active: bool = false
 var _combat_cinematic_lock: bool = false
-## true のときのみ combat_hit / combat_crit / combat_heal を鳴らす（入場〜開始遅延中の幽霊音防止）。
+## true のときのみ combat_hit / combat_crit / combat_heal / combat_buff / combat_debuff を鳴らす（入場〜開始遅延中の幽霊音防止）。
 var _combat_impact_sfx_enabled: bool = false
 ## 遅延ヒット／スキルが別戦闘へ食い込むのを防ぐ。開始・終了で必ず加算。
 var _combat_session_id: int = 0
@@ -2845,6 +2845,17 @@ func _play_status_apply_vfx(
 	if sprite == null or not is_instance_valid(sprite) or status_id.is_empty():
 		return
 	var is_buff: bool = CombatVfxManagerScript.is_buff_status(status_id)
+	if CombatImpactSfxGate.allow(
+		_combat_impact_sfx_enabled,
+		$CombatController.is_in_combat,
+		_boss_intro_active,
+		_elite_intro_active
+	):
+		AudioManager.play_sfx(
+			"combat_buff" if is_buff else "combat_debuff",
+			1.0,
+			0.04
+		)
 	_combat_vfx.spawn_apply_burst(self, world_pos, status_id)
 	if is_buff:
 		var buff_tint: Color = SUPPORT_VFX_TINT.get(status_id, SUPPORT_VFX_TINT["default_buff"])
@@ -9601,6 +9612,13 @@ func _spawn_member_heal_vfx(member_idx: int) -> void:
 	_flash_member_sprite(member_idx, Color(0.65, 1.0, 0.7))
 
 func _spawn_member_buff_vfx(member_idx: int, status_id: String = "") -> void:
+	if CombatImpactSfxGate.allow(
+		_combat_impact_sfx_enabled,
+		$CombatController.is_in_combat,
+		_boss_intro_active,
+		_elite_intro_active
+	):
+		AudioManager.play_sfx("combat_buff", 1.0, 0.04)
 	var tint: Color = SUPPORT_VFX_TINT.get(status_id, SUPPORT_VFX_TINT["default_buff"])
 	var pos: Vector2 = _member_sprite_world_pos(member_idx)
 	_spawn_support_sprite_vfx(pos, VFX_HEAL_PATH, tint)

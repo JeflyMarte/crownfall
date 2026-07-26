@@ -315,7 +315,7 @@ Task 明示指示がない限り作成しない:
 ### assets/audio/
 | パス | 内容 |
 |---|---|
-| `sfx/` | Kenney CC0・`SfxCatalog` 18 ID（**P3-AUDIO-SE-001**）。配線拡張 **P3-AUDIO-SE-002** |
+| `sfx/` | Kenney CC0・`SfxCatalog`（heal/buff/debuff 含む・**P3-AUDIO-SE-001**）。配線拡張 **P3-AUDIO-SE-002** |
 | `bgm/` | オーナー制作 MP3（title / introduction / hub / forge / survey / gacha / dungeon_explore / battle / whisperwood / mistfen / blackshore / frostridge / boss / final_boss / result / result_defeat）。`BgmCatalog`（**P3-AUDIO-BGM-001**）。通常戦闘は Biome 別（未登録は battle）。探索は共通。フロストリッジ本編ボスは final_boss。Result は勝敗で切替 |
 
 ---

@@ -15,6 +15,8 @@ const ID_UI_EQUIP: String = "ui_equip"
 const ID_COMBAT_HIT: String = "combat_hit"
 const ID_COMBAT_CRIT: String = "combat_crit"
 const ID_COMBAT_HEAL: String = "combat_heal"
+const ID_COMBAT_BUFF: String = "combat_buff"
+const ID_COMBAT_DEBUFF: String = "combat_debuff"
 const ID_COMBAT_SKILL: String = "combat_skill"
 const ID_COMBAT_ULTIMATE: String = "combat_ultimate"
 const ID_COMBAT_DEATH: String = "combat_death"
@@ -37,6 +39,8 @@ const PATHS: Dictionary = {
 	ID_COMBAT_HIT: DIR + "combat_hit.ogg",
 	ID_COMBAT_CRIT: DIR + "combat_crit.ogg",
 	ID_COMBAT_HEAL: DIR + "combat_heal.ogg",
+	ID_COMBAT_BUFF: DIR + "combat_buff.ogg",
+	ID_COMBAT_DEBUFF: DIR + "combat_debuff.ogg",
 	ID_COMBAT_SKILL: DIR + "combat_skill.ogg",
 	ID_COMBAT_ULTIMATE: DIR + "combat_ultimate.ogg",
 	ID_COMBAT_DEATH: DIR + "combat_death.ogg",
