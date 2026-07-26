@@ -6,6 +6,11 @@ const _JobCalc = preload("res://scripts/equipment/JobStatCalculator.gd")
 const _EquipCtrl = preload("res://scripts/equipment/EquipmentController.gd")
 
 
+func before_each() -> void:
+	## 先行テストの reset_for_new_game で1人編成残るため、職別検証前に5人揃える。
+	GameState.seed_all_starters_unlocked()
+
+
 func _make_weapon(weapon_id: String) -> Resource:
 	var inst: Resource = WeaponInstance.new()
 	inst.instance_id = "t_%s_%d" % [weapon_id, randi() % 100000]

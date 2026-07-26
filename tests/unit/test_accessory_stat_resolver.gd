@@ -25,7 +25,9 @@ func test_no_mandatory_stats_when_common() -> void:
 	var inst: Resource = _AccessoryInstance.new()
 	inst.accessory_id = "test_common"
 	_AccessoryStatResolver.apply_drop_stats(inst, data)
+	## COMMON はランダム枠1。healing はフィールド未転写で mods のみ残る。
 	assert_eq(inst.rolled_bonus_stats.size(), 1)
+	var kind: String = str(inst.rolled_bonus_stats[0])
 	var active: int = 0
 	if int(inst.hp_bonus) > 0:
 		active += 1
@@ -43,7 +45,10 @@ func test_no_mandatory_stats_when_common() -> void:
 		active += 1
 	if float(inst.evasion_rate) > 0.0:
 		active += 1
-	assert_eq(active, 1)
+	if kind == "healing":
+		assert_eq(active, 0, "healing はインスタンス欄に載せない")
+	else:
+		assert_eq(active, 1)
 
 func test_display_name_has_no_perfect_stars() -> void:
 	var inst: Resource = _AccessoryInstance.new()

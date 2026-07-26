@@ -5,7 +5,9 @@ const _PartyLogColors = preload("res://scripts/ui/PartyLogColors.gd")
 
 
 func test_party_color_by_job() -> void:
-	var member: Resource = GameState.roster[0]
+	## COLOR_BY_ADV が先に当たるため、スターター ID ではなく職色のみの仮メンバーで検証。
+	var member: Resource = Adventurer.new()
+	member.id = "job_color_probe"
 	member.job_id = "ranger"
 	assert_eq(_PartyLogColors.party_color(member), Color("#88C0D0"))
 

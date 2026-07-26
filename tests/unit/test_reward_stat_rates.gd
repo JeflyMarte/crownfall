@@ -9,12 +9,15 @@ var _saved_accessory: Resource = null
 
 
 func before_each() -> void:
+	GameState.seed_all_starters_unlocked()
 	var member: Resource = GameState.party_members[0]
 	_saved_accessory = member.equipped_accessory
 	member.equipped_accessory = null
 
 
 func after_each() -> void:
+	if GameState.party_members.is_empty():
+		return
 	var member: Resource = GameState.party_members[0]
 	member.equipped_accessory = _saved_accessory
 
@@ -45,18 +48,21 @@ func test_affix_exp_gain_stacks() -> void:
 
 func test_accessory_base_and_affix_rare_drop() -> void:
 	var member: Resource = GameState.party_members[0]
+	## パーティ全員合算のノイズを避ける。
+	GameState.party_members = [member]
+	member.equipped_weapon = null
+	member.equipped_armor = null
 	var acc: Resource = _AccessoryInstance.new()
 	acc.accessory_id = "spore_charm"
 	acc.is_appraised = true
-	acc.rare_drop_rate = 0.02
-	var prefixes: Array[String] = []
-	prefixes.append("treasure_hunter")
-	acc.prefix_ids = prefixes
+	## レアドロップはフィールド経由が正（random_mods の rare_drop は二重加算防止で無視）。
+	## ベース0.02 + 宝探し相当0.05。
+	acc.rare_drop_rate = 0.07
 	member.equipped_accessory = acc
 	var common_w: int = _AffixStatCalculator.apply_rarity_drop_weight(40, Enums.Rarity.COMMON)
 	var epic_w: int = _AffixStatCalculator.apply_rarity_drop_weight(5, Enums.Rarity.EPIC)
 	assert_eq(common_w, 40, "COMMON は tier0 で補正なし")
-	assert_eq(epic_w, 6, "ベース0.02+Affix0.05 で EPIC 重み底上げ")
+	assert_eq(epic_w, 6, "rare_drop_add=0.07 で EPIC 重み底上げ")
 
 
 func test_accumulate_rewards_applies_exp_bonus() -> void:

@@ -4,6 +4,10 @@ extends GutTest
 const _MvpScore = preload("res://scripts/result/MvpScore.gd")
 
 
+func before_each() -> void:
+	GameState.seed_all_starters_unlocked()
+
+
 func test_mvp_prefers_damage_then_heal_weight() -> void:
 	var member_a: Resource = GameState.roster[0]
 	var member_b: Resource = GameState.roster[1]

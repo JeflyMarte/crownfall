@@ -2820,7 +2820,7 @@ func _on_enemy_status_applied(slot: int, status_id: String) -> void:
 	_play_status_apply_vfx(sprite, _sprite_visual_center_global(sprite), status_id, statuses)
 	_update_status_icons()
 
-func _on_party_status_applied(member_idx: int, status_id: String) -> void:
+func _on_party_status_applied(member_idx: int, status_id: String, play_apply_sfx: bool = true) -> void:
 	if status_id.is_empty() or member_idx < 0 or member_idx >= _chr_sprites.size():
 		return
 	var sprite: AnimatedSprite2D = _chr_sprites[member_idx]
@@ -2832,7 +2832,8 @@ func _on_party_status_applied(member_idx: int, status_id: String) -> void:
 		_sprite_visual_center_global(sprite),
 		status_id,
 		statuses,
-		GameState.get_combatant(member_idx)
+		GameState.get_combatant(member_idx),
+		play_apply_sfx
 	)
 	_update_status_icons()
 
@@ -2841,12 +2842,13 @@ func _play_status_apply_vfx(
 	world_pos: Vector2,
 	status_id: String,
 	statuses_after: Array,
-	member: Resource = null
+	member: Resource = null,
+	play_apply_sfx: bool = true
 ) -> void:
 	if sprite == null or not is_instance_valid(sprite) or status_id.is_empty():
 		return
 	var is_buff: bool = CombatVfxManagerScript.is_buff_status(status_id)
-	if CombatImpactSfxGate.allow(
+	if play_apply_sfx and CombatImpactSfxGate.allow(
 		_combat_impact_sfx_enabled,
 		$CombatController.is_in_combat,
 		_boss_intro_active,
@@ -4450,38 +4452,40 @@ func _execute_member_buff(
 			if $CombatController.is_member_alive(member_idx):
 				if $CombatController.apply_status("party_%d" % member_idx, status_id, 1, 0):
 					applied = 1
-					_on_party_status_applied(member_idx, status_id)
+					_on_party_status_applied(member_idx, status_id, false)
 		elif pet_only:
-			applied = _apply_status_to_pet(status_id)
+			applied = _apply_status_to_pet(status_id, false)
 		elif skill_id == "herd_call":
-			applied = _apply_status_to_pet("empower")
+			applied = _apply_status_to_pet("empower", false)
 			for i: int in GameState.party_members.size():
 				if not $CombatController.is_member_alive(i):
 					continue
 				if $CombatController.apply_status("party_%d" % i, "empower_minor", 1, 0):
 					applied += 1
-					_on_party_status_applied(i, "empower_minor")
+					_on_party_status_applied(i, "empower_minor", false)
 		else:
 			for i: int in GameState.party_members.size():
 				if not $CombatController.is_member_alive(i):
 					continue
 				if $CombatController.apply_status("party_%d" % i, status_id, 1, 0):
 					applied += 1
-					_on_party_status_applied(i, status_id)
+					_on_party_status_applied(i, status_id, false)
 	if wants_taunt and $CombatController.is_member_alive(member_idx):
 		$CombatController.apply_taunt(member_idx)
 		_activate_taunt_link(member_idx)
 	_update_status_icons()
 	if cast_index == 0:
 		_clear_member_skill_labels(member_idx)
+	## バフ発動 SE はスキル名ポップと分離し、必ず combat_buff（ダメージ／combat_skill と混同しない）。
 	if not suppress_resolve_label:
+		AudioManager.play_sfx("combat_buff", 1.0, 0.08)
 		_spawn_skill_name(
 			result["display_name"],
 			member_idx,
 			float(cast_index) * SKILL_LABEL_STACK_GAP,
 			"",
 			false,
-			"combat_buff"
+			""
 		)
 	var label: String = status_id
 	if not status_id.is_empty():
@@ -4499,7 +4503,7 @@ func _execute_member_buff(
 	return "\n【スキル】%s: 味方%d体に[%s]" % [result["display_name"], applied, label]
 
 
-func _apply_status_to_pet(status_id: String) -> int:
+func _apply_status_to_pet(status_id: String, play_apply_sfx: bool = true) -> int:
 	if status_id.is_empty() or GameState.active_pet == null:
 		return 0
 	if GameState.party_members.is_empty():
@@ -4510,7 +4514,7 @@ func _apply_status_to_pet(status_id: String) -> int:
 	if not $CombatController.is_member_alive(pet_idx):
 		return 0
 	if $CombatController.apply_status("party_%d" % pet_idx, status_id, 1, 0):
-		_on_party_status_applied(pet_idx, status_id)
+		_on_party_status_applied(pet_idx, status_id, play_apply_sfx)
 		return 1
 	return 0
 
@@ -5878,13 +5882,14 @@ func _do_member_defend_slot(member_idx: int) -> bool:
 		return false
 	if not $CombatController.apply_status("party_%d" % member_idx, "guard", 1, 0):
 		return false
-	_on_party_status_applied(member_idx, "guard")
+	_on_party_status_applied(member_idx, "guard", false)
 	# 防御＝挑発（Threat スパイク・P3-D104）。身を固めて敵の attention を引く。
 	$CombatController.apply_taunt(member_idx)
 	_activate_taunt_link(member_idx)
 	_update_status_icons()
 	_clear_member_skill_labels(member_idx)
-	_spawn_skill_name("防御", member_idx, 0.0)
+	AudioManager.play_sfx("combat_buff", 1.0, 0.08)
+	_spawn_skill_name("防御", member_idx, 0.0, "", false, "")
 	var m: Resource = GameState.get_combatant(member_idx)
 	var nm: String = m.display_name if m != null else "?"
 	_append_log("[防御] %s は身を固めた" % nm)
@@ -9253,8 +9258,8 @@ func _spawn_skill_name(
 	var sprite: AnimatedSprite2D = _chr_sprites[member_idx]
 	if not sprite.visible:
 		return
-	## 詠唱中ラベルは静音。resolve / 即時発動のみ SE（鼓舞などバフは combat_buff）。
-	if not persist:
+	## 詠唱中ラベルは静音。resolve / 即時発動のみ SE（鼓舞などバフは combat_buff。空なら無音）。
+	if not persist and not sfx_id.is_empty():
 		AudioManager.play_sfx(sfx_id, 1.0, 0.08)
 	const SKILL_FONT_SIZE: int = 28
 	var lbl := Label.new()

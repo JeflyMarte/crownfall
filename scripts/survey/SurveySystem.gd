@@ -493,6 +493,7 @@ static func _grant_weapon(weapon_id: String) -> void:
 	_WeaponStatResolver.apply_drop_stats(instance, weapon_data)
 	instance.is_appraised = true
 	GameState.inventory.append(instance)
+	GameState.note_equipment_obtained(instance)
 
 
 static func enemy_codex_fill_percent() -> float:

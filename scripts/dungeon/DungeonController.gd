@@ -1807,6 +1807,7 @@ func _spawn_weapon(weapon_id: String) -> void:
 	GameState.inventory.append(instance)
 	last_weapon_dropped = weapon_id
 	EventBus.weapon_obtained.emit(weapon_id)
+	GameState.note_equipment_obtained(instance)
 
 func _generate_armor_loot() -> void:
 	# ダンジョン別プール（P3-D154）。未設定は従来: 革(rarity0)70% / 骨(rarity1)30%
@@ -1861,6 +1862,7 @@ func _spawn_armor(armor_id: String) -> void:
 	_auto_appraise(instance, _AffixRoller.CATEGORY_ARMOR, armor_data.rarity)
 	GameState.armor_inventory.append(instance)
 	last_armor_dropped = armor_id
+	GameState.note_equipment_obtained(instance)
 
 func _generate_accessory_loot() -> void:
 	# ダンジョン別プール（P3-D154）。未設定は従来: silver_ring のみ
@@ -1887,3 +1889,4 @@ func _spawn_accessory(accessory_id: String) -> void:
 	_auto_appraise(instance, _AffixRoller.CATEGORY_ACCESSORY, accessory_data.rarity)
 	GameState.accessory_inventory.append(instance)
 	last_accessory_dropped = accessory_id
+	GameState.note_equipment_obtained(instance)

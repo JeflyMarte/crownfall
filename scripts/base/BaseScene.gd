@@ -78,10 +78,13 @@ func _layout_hub_if_needed() -> void:
 
 func _maybe_show_rank_up() -> void:
 	## 章クリア加入があるとき: ニーナ功績 → 解放 → 等級 → 加入予告 → 加入。
+	## 直前オーバーレイの queue_free 待ちは _hub_overlay_blocking でスキップ判定。
 	if GameState.pending_clear_nina_merit:
-		if get_node_or_null("NinaDialogueOverlay") != null:
+		if _hub_overlay_blocking("NinaDialogueOverlay"):
 			return
-		if get_node_or_null("DungeonUnlockOverlay") != null:
+		if _hub_overlay_blocking("DungeonUnlockOverlay"):
+			return
+		if _hub_overlay_blocking("StarterJoinOverlay"):
 			return
 		var stage_id: String = GameState.pending_clear_stage_id
 		var stage_name: String = _ChapterClearNinaLines.stage_display_name(stage_id)
@@ -92,15 +95,31 @@ func _maybe_show_rank_up() -> void:
 		return
 	const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
 	if _ContentUnlockNotice.has_pending():
+		if _hub_overlay_blocking("DungeonUnlockOverlay"):
+			return
+		if _hub_overlay_blocking("NinaDialogueOverlay"):
+			return
 		var unlock_overlay: CanvasLayer = _ContentUnlockNotice.show_pending_on(
-			self, Callable(self, "_maybe_show_rank_up")
+			self, Callable(self, "_continue_hub_clear_flow")
 		)
 		if unlock_overlay != null:
 			return
+	const _NinaRareAcquireGuide := preload("res://scripts/ui/NinaRareAcquireGuide.gd")
+	if _NinaRareAcquireGuide.has_pending_guide():
+		if _hub_overlay_blocking("NinaDialogueOverlay"):
+			return
+		if _hub_overlay_blocking("DungeonUnlockOverlay"):
+			return
+		var guide_kind: String = _NinaRareAcquireGuide.peek_pending_guide_kind()
+		var rare_guide: CanvasLayer = _NinaDialogueOverlay.show_on(
+			self, _NinaRareAcquireGuide.guide_lines_for(guide_kind)
+		)
+		rare_guide.dismissed.connect(_on_nina_rare_guide_dismissed.bind(guide_kind))
+		return
 	_CommanderProfile.bootstrap_acknowledged_rank_if_needed()
 	var pending: String = _CommanderProfile.pending_rank_up()
 	if not pending.is_empty():
-		if get_node_or_null("CommanderRankUpOverlay") != null:
+		if _hub_overlay_blocking("CommanderRankUpOverlay"):
 			return
 		var overlay: CanvasLayer = _CommanderRankUpOverlay.show_on(self, pending)
 		overlay.dismissed.connect(_on_rank_up_dismissed)
@@ -108,25 +127,44 @@ func _maybe_show_rank_up() -> void:
 	_maybe_show_clear_nina_teaser()
 
 
+func _continue_hub_clear_flow() -> void:
+	## 解放キュー消化後／遅延再開用。
+	_maybe_show_rank_up()
+
+
 func _on_clear_nina_merit_dismissed() -> void:
 	GameState.pending_clear_nina_merit = false
 	SaveManager.save_game()
-	_maybe_show_rank_up()
+	## NinaDialogueOverlay の queue_free 後に解放→加入へ続ける。
+	call_deferred("_continue_hub_clear_flow")
+
+
+func _on_nina_rare_guide_dismissed(kind: String) -> void:
+	const _NinaRareAcquireGuide := preload("res://scripts/ui/NinaRareAcquireGuide.gd")
+	var pending_kind: String = _NinaRareAcquireGuide.pop_pending_guide_kind()
+	if pending_kind.is_empty():
+		pending_kind = kind
+	_NinaRareAcquireGuide.mark_guide_done(pending_kind)
+	SaveManager.save_game()
+	_refresh_nina_nav()
+	call_deferred("_continue_hub_clear_flow")
 
 
 func _on_rank_up_dismissed(_rank_code: String) -> void:
 	_update_player_card()
 	## 複数段ジャンプ時は次の到達分を続けて表示しない（到達等級を一括 ack 済み）。
-	_maybe_show_clear_nina_teaser()
+	call_deferred("_maybe_show_clear_nina_teaser")
 
 
 func _maybe_show_clear_nina_teaser() -> void:
 	if GameState.pending_clear_nina_teaser and not GameState.pending_starter_recruit_id.is_empty():
-		if get_node_or_null("NinaDialogueOverlay") != null:
+		if _hub_overlay_blocking("NinaDialogueOverlay"):
 			return
-		if get_node_or_null("DungeonUnlockOverlay") != null:
+		if _hub_overlay_blocking("DungeonUnlockOverlay"):
 			return
-		if get_node_or_null("CommanderRankUpOverlay") != null:
+		if _hub_overlay_blocking("CommanderRankUpOverlay"):
+			return
+		if _hub_overlay_blocking("StarterJoinOverlay"):
 			return
 		var teaser: CanvasLayer = _NinaDialogueOverlay.show_on(
 			self,
@@ -143,7 +181,7 @@ func _maybe_show_clear_nina_teaser() -> void:
 func _on_clear_nina_teaser_dismissed() -> void:
 	GameState.pending_clear_nina_teaser = false
 	SaveManager.save_game()
-	_maybe_show_starter_join()
+	call_deferred("_maybe_show_starter_join")
 
 
 func _maybe_show_starter_join() -> void:
@@ -151,13 +189,15 @@ func _maybe_show_starter_join() -> void:
 	if pending_id.is_empty():
 		_maybe_show_hub_simple_guide()
 		return
-	if get_node_or_null("StarterJoinOverlay") != null:
+	if _hub_overlay_blocking("StarterJoinOverlay"):
 		return
-	if get_node_or_null("CommanderRankUpOverlay") != null:
+	if _hub_overlay_blocking("CommanderRankUpOverlay"):
 		return
-	if get_node_or_null("HubSimpleGuideOverlay") != null:
+	if _hub_overlay_blocking("HubSimpleGuideOverlay"):
 		return
-	if get_node_or_null("NinaDialogueOverlay") != null:
+	if _hub_overlay_blocking("NinaDialogueOverlay"):
+		return
+	if _hub_overlay_blocking("DungeonUnlockOverlay"):
 		return
 	var overlay: CanvasLayer = _StarterJoinOverlay.show_on(self, pending_id)
 	overlay.dismissed.connect(_on_starter_join_dismissed)
@@ -392,8 +432,11 @@ func _place_nina_nav() -> void:
 func _refresh_nina_nav() -> void:
 	if _nina_nav == null:
 		return
+	var had_notices: bool = not GameState.pending_nina_nav_notices.is_empty()
 	if _nina_nav.has_method("refresh_messages"):
 		_nina_nav.call("refresh_messages")
+	if had_notices:
+		SaveManager.save_game()
 
 func _refresh_field_survey_banner() -> void:
 	if _field_survey_banner == null:
@@ -571,6 +614,10 @@ func _on_debug_event_requested(entry_id: String) -> void:
 	## はじめガイドはキューではなく即表示（他演出待ちに埋もれない）。
 	if entry_id == "hub_guide":
 		call_deferred("_debug_show_hub_guide")
+		return
+	## 2回目以降のレア入手通知は吹き出しへ即反映。
+	if entry_id.begins_with("nina_rare_nav:"):
+		call_deferred("_refresh_nina_nav")
 		return
 	## キュー後に拠点の演出チェーンを開始。
 	call_deferred("_maybe_show_rank_up")

@@ -55,6 +55,10 @@ var base_initial_view: String = "hub"
 var hub_npc_hint: Dictionary = {}
 ## 新規解放ポップアップ待ち（揮発）。{ kind, id, display_name }
 var pending_content_unlock_notices: Array = []
+## 初回レリック／レジェンド／ミシックのニーナ祝福キュー（kind 文字列）。
+var pending_nina_rare_guides: Array = []
+## 2回目以降の入手通知（拠点メニュー吹き出し文言）。
+var pending_nina_nav_notices: Array = []
 # ガチャ所持数 { helper_id: count }（重複＝凸用カウント。MVP は還元のみ）
 var owned_helpers: Dictionary = {}
 ## 消費チケット所持 { ticket_id: qty }（P3-TICKET-001）。
@@ -989,7 +993,17 @@ func unlock_relic(relic_id: String) -> bool:
 	if rid.is_empty() or rid in owned_relics:
 		return false
 	owned_relics.append(rid)
+	const _NinaRareAcquireGuide := preload("res://scripts/ui/NinaRareAcquireGuide.gd")
+	_NinaRareAcquireGuide.on_relic_unlocked(rid)
 	return true
+
+
+## 武器／防具／装飾を所持に入れたあとに呼ぶ（レジェンド／ミシック初回案内用）。
+func note_equipment_obtained(instance: Resource) -> void:
+	if instance == null:
+		return
+	const _NinaRareAcquireGuide := preload("res://scripts/ui/NinaRareAcquireGuide.gd")
+	_NinaRareAcquireGuide.on_equipment_obtained(instance)
 
 func unowned_relic_ids() -> Array:
 	var out: Array = []
@@ -1407,6 +1421,8 @@ func reset_for_new_game() -> void:
 	base_initial_view = "hub"
 	hub_npc_hint = {}
 	pending_content_unlock_notices = []
+	pending_nina_rare_guides = []
+	pending_nina_nav_notices = []
 	last_run_exp_reward = 0
 	last_run_gold_reward = 0
 	last_run_token_reward = 0

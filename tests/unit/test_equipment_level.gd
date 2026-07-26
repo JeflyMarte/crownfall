@@ -3,6 +3,27 @@ extends GutTest
 
 const _DungeonController = preload("res://scripts/dungeon/DungeonController.gd")
 const _EquipmentEnhancer = preload("res://scripts/equipment/EquipmentEnhancer.gd")
+const _WeekRotation = preload("res://scripts/event/EventWeekRotation.gd")
+const _EventSchedule = preload("res://scripts/event/EventScheduleHelper.gd")
+
+
+func _unix_for_none_field_slot() -> int:
+	var anchor: int = _EventSchedule.jst_day_start_unix(_WeekRotation.ANCHOR_DATE_JST)
+	for slot: int in range(0, 800):
+		var idx: int = _WeekRotation.definition_index_for_slot(slot)
+		if str(_WeekRotation.SLOT_DEFINITIONS[idx].get("id", "")) == "none":
+			return anchor + slot * _WeekRotation.SLOT_SECONDS + 60
+	return anchor + 60
+
+
+func before_each() -> void:
+	EventSystem.set_debug_unix_for_tests(_unix_for_none_field_slot())
+	GameState.current_dungeon_tier = 0
+
+
+func after_each() -> void:
+	EventSystem.clear_debug_unix_for_tests()
+	GameState.current_dungeon_tier = 0
 
 
 func test_scale_stat_grows_with_level() -> void:

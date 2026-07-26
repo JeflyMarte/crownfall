@@ -38,9 +38,9 @@ func test_omit_is_noop_when_playable() -> void:
 
 func test_gacha_pull_allowed_when_enabled() -> void:
 	assert_true(Constants.are_gacha_helpers_playable())
-	GameState.gacha_token = 10
+	GameState.gacha_token = GachaSystem.PULL_COST
 	var owned_before: int = GameState.owned_helpers.size()
 	var result: Dictionary = GachaSystem.pull()
-	assert_true(bool(result.get("ok", false)), "ENABLE 時は pull 可能")
+	assert_true(bool(result.get("ok", false)), "ENABLE 時は pull 可能 reason=%s" % str(result.get("reason", "")))
 	assert_true(str(result.get("helper_id", "")) != "")
 	assert_gte(GameState.owned_helpers.size(), owned_before)

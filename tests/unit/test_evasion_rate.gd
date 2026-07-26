@@ -14,6 +14,7 @@ var _saved_accessory: Resource = null
 
 
 func before_each() -> void:
+	GameState.seed_all_starters_unlocked()
 	var member: Resource = GameState.party_members[0]
 	_saved_armor = member.equipped_armor
 	_saved_accessory = member.equipped_accessory
@@ -22,6 +23,8 @@ func before_each() -> void:
 
 
 func after_each() -> void:
+	if GameState.party_members.is_empty():
+		return
 	var member: Resource = GameState.party_members[0]
 	member.equipped_armor = _saved_armor
 	member.equipped_accessory = _saved_accessory
@@ -64,7 +67,8 @@ func test_member_evasion_rate_stacks_and_caps() -> void:
 	armor.armor_id = "leather_armor"
 	armor.evasion_rate = 0.30
 	var acc: Resource = _AccessoryInstance.new()
-	acc.accessory_id = "test_ring"
+	## 実在マスタ ID（架空 test_ring は DataRegistry が ERROR を吐く）。
+	acc.accessory_id = "silver_ring"
 	acc.evasion_rate = 0.30
 	member.equipped_armor = armor
 	member.equipped_accessory = acc

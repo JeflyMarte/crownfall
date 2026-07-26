@@ -167,6 +167,7 @@ static func _grant_weapon(weapon_id: String) -> bool:
 	_WeaponStatResolver.apply_drop_stats(instance, weapon_data)
 	instance.is_appraised = true
 	GameState.inventory.append(instance)
+	GameState.note_equipment_obtained(instance)
 	if EventBus.has_signal("weapon_obtained"):
 		EventBus.weapon_obtained.emit(weapon_id)
 	return true
@@ -184,6 +185,7 @@ static func _grant_armor(armor_id: String) -> bool:
 	_ArmorStatResolver.apply_drop_stats(instance, armor_data)
 	instance.is_appraised = true
 	GameState.armor_inventory.append(instance)
+	GameState.note_equipment_obtained(instance)
 	return true
 
 
@@ -199,4 +201,5 @@ static func _grant_accessory(accessory_id: String) -> bool:
 	_AccessoryStatResolver.apply_drop_stats(instance, accessory_data)
 	instance.is_appraised = true
 	GameState.accessory_inventory.append(instance)
+	GameState.note_equipment_obtained(instance)
 	return true

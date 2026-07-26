@@ -38,3 +38,15 @@ func test_skill_unlocks_still_cap_at_job_data() -> void:
 	member.level = 99
 	var ids: Array[String] = SkillProgression.get_unlocked_job_skill_ids(member)
 	assert_eq(ids.size(), 10, "Lv50習得10のまま")
+
+func test_skill_ids_unlocked_between_levels() -> void:
+	var member: Resource = GameState.roster[0]
+	## アルケミスト以外でも skill_unlocks の Lv6 はある想定。Lv5→6 で1本。
+	var at_6: Array[String] = SkillProgression.skill_ids_unlocked_between(member, 5, 6)
+	assert_eq(at_6.size(), 1, "Lv6ちょうどで1本")
+	var none: Array[String] = SkillProgression.skill_ids_unlocked_between(member, 6, 6)
+	assert_eq(none.size(), 0)
+	var span: Array[String] = SkillProgression.skill_ids_unlocked_between(member, 1, 12)
+	assert_eq(span.size(), 2, "Lv6とLv12の2本（Lv1は before に含まれるため除外）")
+	var at_level: Array[String] = SkillProgression.skill_ids_unlocked_at_level(member, 12)
+	assert_eq(at_level.size(), 1)

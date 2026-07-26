@@ -57,6 +57,9 @@ func save_game() -> void:
 		"pending_clear_nina_merit": GameState.pending_clear_nina_merit,
 		"pending_clear_nina_teaser": GameState.pending_clear_nina_teaser,
 		"pending_clear_stage_id": GameState.pending_clear_stage_id,
+		"pending_content_unlock_notices": GameState.pending_content_unlock_notices.duplicate(true),
+		"pending_nina_rare_guides": GameState.pending_nina_rare_guides.duplicate(true),
+		"pending_nina_nav_notices": GameState.pending_nina_nav_notices.duplicate(true),
 		"debug_full_unlock": GameState.debug_full_unlock,
 		"showcase_member_id": GameState.showcase_member_id,
 		"tutorial_flags": GameState.tutorial_flags.duplicate(true),
@@ -641,6 +644,27 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.pending_clear_stage_id = str(data.get("pending_clear_stage_id", "")).strip_edges()
 	else:
 		GameState.pending_clear_stage_id = str(GameState.last_run_stage_id).strip_edges()
+	if data.has("pending_content_unlock_notices") and data["pending_content_unlock_notices"] is Array:
+		var notices: Array = []
+		for raw_notice: Variant in data["pending_content_unlock_notices"]:
+			if raw_notice is Dictionary:
+				notices.append((raw_notice as Dictionary).duplicate(true))
+		GameState.pending_content_unlock_notices = notices
+	else:
+		## 旧セーブはキュー無し。章クリア待ちがあれば次回検知に任せる。
+		pass
+	GameState.pending_nina_rare_guides = []
+	if data.has("pending_nina_rare_guides") and data["pending_nina_rare_guides"] is Array:
+		for raw_kind: Variant in data["pending_nina_rare_guides"]:
+			var kind_str: String = str(raw_kind).strip_edges()
+			if not kind_str.is_empty():
+				GameState.pending_nina_rare_guides.append(kind_str)
+	GameState.pending_nina_nav_notices = []
+	if data.has("pending_nina_nav_notices") and data["pending_nina_nav_notices"] is Array:
+		for raw_nav: Variant in data["pending_nina_nav_notices"]:
+			var nav_str: String = str(raw_nav).strip_edges()
+			if not nav_str.is_empty():
+				GameState.pending_nina_nav_notices.append(nav_str)
 	if data.has("showcase_member_id"):
 		GameState.showcase_member_id = str(data.get("showcase_member_id", "")).strip_edges()
 	else:
@@ -713,6 +737,8 @@ func _apply_save_data(data: Dictionary) -> void:
 			if not norm.is_empty() and norm not in relics:
 				relics.append(norm)
 		GameState.owned_relics = relics
+	const _NinaRareAcquireGuide := preload("res://scripts/ui/NinaRareAcquireGuide.gd")
+	_NinaRareAcquireGuide.heal_flags_from_progress()
 	if data.has("daily_mission_state") and data["daily_mission_state"] is Dictionary:
 		GameState.daily_mission_state = (data["daily_mission_state"] as Dictionary).duplicate(true)
 	if data.has("event_dungeon_attempts") and data["event_dungeon_attempts"] is Dictionary:

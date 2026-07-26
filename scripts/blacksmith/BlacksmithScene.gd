@@ -2696,6 +2696,7 @@ func _spawn_weapon(weapon_id: String) -> Resource:
 	_WeaponStatResolver.apply_drop_stats(instance, weapon_data)
 	_auto_appraise(instance, _AffixRoller.CATEGORY_WEAPON, weapon_data.rarity)
 	GameState.inventory.append(instance)
+	GameState.note_equipment_obtained(instance)
 	return instance
 
 func _spawn_armor(armor_id: String) -> Resource:
@@ -2709,6 +2710,7 @@ func _spawn_armor(armor_id: String) -> Resource:
 	instance.rarity = armor_data.rarity
 	_auto_appraise(instance, _AffixRoller.CATEGORY_ARMOR, armor_data.rarity)
 	GameState.armor_inventory.append(instance)
+	GameState.note_equipment_obtained(instance)
 	return instance
 
 func _spawn_accessory(accessory_id: String) -> Resource:
@@ -2721,6 +2723,7 @@ func _spawn_accessory(accessory_id: String) -> Resource:
 	_AccessoryStatResolver.apply_drop_stats(instance, accessory_data)
 	_auto_appraise(instance, _AffixRoller.CATEGORY_ACCESSORY, accessory_data.rarity)
 	GameState.accessory_inventory.append(instance)
+	GameState.note_equipment_obtained(instance)
 	return instance
 
 func _log_craft(msg: String) -> void:

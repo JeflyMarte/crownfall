@@ -8,9 +8,22 @@ var _saved_stage_id: String = ""
 var _saved_dungeon_progress: Dictionary = {}
 
 const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
+const _WeekRotation = preload("res://scripts/event/EventWeekRotation.gd")
+const _EventSchedule = preload("res://scripts/event/EventScheduleHelper.gd")
+
+
+func _unix_for_none_field_slot() -> int:
+	var anchor: int = _EventSchedule.jst_day_start_unix(_WeekRotation.ANCHOR_DATE_JST)
+	for slot: int in range(0, 800):
+		var idx: int = _WeekRotation.definition_index_for_slot(slot)
+		if str(_WeekRotation.SLOT_DEFINITIONS[idx].get("id", "")) == "none":
+			return anchor + slot * _WeekRotation.SLOT_SECONDS + 60
+	return anchor + 60
 
 
 func before_each() -> void:
+	EventSystem.set_debug_unix_for_tests(_unix_for_none_field_slot())
+	GameState.current_dungeon_tier = 0
 	_EventDungeonSchedule.set_debug_weekday_override(-2)
 	_saved_stage_progress = GameState.stage_progress.duplicate(true)
 	_saved_stage_id = GameState.current_stage_id
@@ -27,6 +40,7 @@ func after_each() -> void:
 	GameState.dungeon_progress = _saved_dungeon_progress
 	GameState.event_dungeon_attempts.clear()
 	_EventDungeonSchedule.clear_debug_weekday_override()
+	EventSystem.clear_debug_unix_for_tests()
 
 
 func test_event_biomes_have_one_stage() -> void:

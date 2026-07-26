@@ -9,7 +9,23 @@ var _saved_stage_id: String = ""
 var _saved_dungeon_progress: Dictionary = {}
 var _saved_survey: Dictionary = {}
 
+const _WeekRotation = preload("res://scripts/event/EventWeekRotation.gd")
+const _EventSchedule = preload("res://scripts/event/EventScheduleHelper.gd")
+
+
+func _unix_for_none_field_slot() -> int:
+	## 週イベントの enemy_level 加算を避ける（GUT は実時刻依存にしない）。
+	var anchor: int = _EventSchedule.jst_day_start_unix(_WeekRotation.ANCHOR_DATE_JST)
+	for slot: int in range(0, 800):
+		var idx: int = _WeekRotation.definition_index_for_slot(slot)
+		if str(_WeekRotation.SLOT_DEFINITIONS[idx].get("id", "")) == "none":
+			return anchor + slot * _WeekRotation.SLOT_SECONDS + 60
+	return anchor + 60
+
+
 func before_each() -> void:
+	EventSystem.set_debug_unix_for_tests(_unix_for_none_field_slot())
+	GameState.current_dungeon_tier = 0
 	_saved_stage_progress = GameState.stage_progress
 	_saved_stage_id = GameState.current_stage_id
 	_saved_dungeon_progress = GameState.dungeon_progress
@@ -24,6 +40,7 @@ func after_each() -> void:
 	GameState.current_stage_id = _saved_stage_id
 	GameState.dungeon_progress = _saved_dungeon_progress
 	GameState.hub_survey_progress = _saved_survey
+	EventSystem.clear_debug_unix_for_tests()
 
 func _make_controller() -> Node:
 	var dc: Node = _DungeonController.new()

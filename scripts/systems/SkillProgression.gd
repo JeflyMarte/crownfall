@@ -131,6 +131,33 @@ static func normalize_equipped_skills(member: Resource) -> void:
 	member.equipped_skill_ids = ids
 
 
+## レベルアップで新たに解放されるスキル ID（level_before < req <= level_after）。
+static func skill_ids_unlocked_between(member: Resource, level_before: int, level_after: int) -> Array[String]:
+	var out: Array[String] = []
+	if member == null or level_after <= level_before:
+		return out
+	var entries: Array = []
+	if Constants.is_pet_id(str(member.id)):
+		entries = get_unlock_entries(_load_pet_data(str(member.id)))
+	else:
+		entries = get_unlock_entries(DataRegistry.get_job_data(str(member.job_id)))
+	for entry in entries:
+		if not entry is Dictionary:
+			continue
+		var sid: String = str(entry.get("skill_id", ""))
+		if sid.is_empty() or out.has(sid):
+			continue
+		var req: int = maxi(1, int(entry.get("level", 1)))
+		if req > level_before and req <= level_after:
+			out.append(sid)
+	return out
+
+
+## 指定レベルちょうどで解放されるスキル ID。
+static func skill_ids_unlocked_at_level(member: Resource, level: int) -> Array[String]:
+	return skill_ids_unlocked_between(member, level - 1, level)
+
+
 ## レベルアップ時: 未装備なら新規解放を既定装備候補に載せない（枠1のため現状維持）。
 ## 装備が空／無効だけになったとき normalize で先頭へ。
 static func apply_pet_new_skill_unlocks(pet: Resource) -> void:

@@ -90,6 +90,7 @@ func test_apply_drop_stats_rolls_element_power_for_fire_weapon() -> void:
 	assert_true(rolled <= 2 + 8)
 
 func test_apply_element_power_bonus_plan_a() -> void:
+	GameState.seed_all_starters_unlocked()
 	var member: Resource = GameState.party_members[0]
 	var weapon: Resource = _WeaponInstance.new()
 	weapon.weapon_id = "ember_fang"

@@ -122,7 +122,7 @@ func _setup_reveal_quote_label() -> void:
 	_label_quote.clip_text = false
 	_label_quote.custom_minimum_size = Vector2(0, 0)
 	_label_quote.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiTypography.apply_display(_label_quote, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	UiTypography.apply_display(_label_quote, UiTypography.SIZE_CAPTION, UiTypography.COLOR_GOLD)
 	var insert_at: int = _label_reveal_name.get_index() + 1
 	vbox.add_child(_label_quote)
 	vbox.move_child(_label_quote, insert_at)
@@ -202,7 +202,7 @@ func _setup_gacha_chrome() -> void:
 	UiTypography.apply_display(_label_banner, UiTypography.SIZE_DISPLAY_TITLE)
 	UiTypography.apply_display(_label_reveal_name, UiTypography.SIZE_BODY, UiTypography.COLOR_BODY)
 	if _label_quote != null:
-		UiTypography.apply_display(_label_quote, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+		UiTypography.apply_display(_label_quote, UiTypography.SIZE_CAPTION, UiTypography.COLOR_GOLD)
 	UiTypography.apply_body(_label_reveal_sub, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_SUB)
 	UiTypography.apply_caption(_label_tap_hint, UiTypography.COLOR_MUTED)
 	UiTypography.apply_caption(_label_rate)

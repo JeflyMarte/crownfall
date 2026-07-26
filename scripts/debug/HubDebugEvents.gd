@@ -78,6 +78,49 @@ static func list_entries() -> Array[Dictionary]:
 			"hint": "確定景品内訳のポップを1件",
 		})
 	out.append({
+		"id": "section_rare_nina",
+		"title": "—— レア入手ニーナ ——",
+		"hint": "初回ガイド／2回目以降の吹き出し",
+		"section": true,
+	})
+	out.append_array([
+		{
+			"id": "nina_rare_guide:relic",
+			"title": "初回：レリック入手後",
+			"hint": "祝福＋説明オーバーレイ",
+		},
+		{
+			"id": "nina_rare_guide:legendary",
+			"title": "初回：レジェンド入手後",
+			"hint": "祝福＋説明オーバーレイ",
+		},
+		{
+			"id": "nina_rare_guide:mythic",
+			"title": "初回：ミシック入手後",
+			"hint": "祝福＋説明オーバーレイ",
+		},
+		{
+			"id": "nina_rare_nav:relic",
+			"title": "通知：レリック（2回目〜）",
+			"hint": "メニュー吹き出しのみ",
+		},
+		{
+			"id": "nina_rare_nav:legendary",
+			"title": "通知：レジェンド（2回目〜）",
+			"hint": "メニュー吹き出しのみ",
+		},
+		{
+			"id": "nina_rare_nav:mythic",
+			"title": "通知：ミシック（2回目〜）",
+			"hint": "メニュー吹き出しのみ",
+		},
+		{
+			"id": "nina_rare_flags_reset",
+			"title": "レア入手ガイドフラグをリセット",
+			"hint": "初回ガイドを再度出せるようにする",
+		},
+	])
+	out.append({
 		"id": "section_parts",
 		"title": "—— 部品単体 ——",
 		"hint": "個別確認用",
@@ -128,6 +171,10 @@ static func run(entry_id: String) -> String:
 		return _queue_dungeon_unlock_notice(entry_id.substr("dungeon_unlock:".length()))
 	if entry_id.begins_with("survey_complete:"):
 		return _queue_survey_complete_notice(entry_id.substr("survey_complete:".length()))
+	if entry_id.begins_with("nina_rare_guide:"):
+		return _queue_nina_rare_guide(entry_id.substr("nina_rare_guide:".length()))
+	if entry_id.begins_with("nina_rare_nav:"):
+		return _queue_nina_rare_nav(entry_id.substr("nina_rare_nav:".length()))
 	match entry_id:
 		"dungeon_unlock_hard_mourngate":
 			GameState.pending_content_unlock_notices.clear()
@@ -149,6 +196,8 @@ static func run(entry_id: String) -> String:
 			return _queue_rank_up()
 		"hub_guide":
 			return _queue_hub_guide()
+		"nina_rare_flags_reset":
+			return _reset_nina_rare_flags()
 		"clear_pending_story":
 			return _clear_pending_story()
 		## 後方互換
@@ -348,6 +397,65 @@ static func _queue_rank_up() -> String:
 static func _queue_hub_guide() -> String:
 	## 表示は BaseScene 側（preview）。セーブ済みフラグは触らない。
 	return ""
+
+
+static func _queue_nina_rare_guide(kind: String) -> String:
+	const _NinaRareAcquireGuide := preload("res://scripts/ui/NinaRareAcquireGuide.gd")
+	var kind_id: String = kind.strip_edges()
+	if _NinaRareAcquireGuide.flag_for(kind_id).is_empty():
+		return "不明な種別です: %s" % kind_id
+	## 再演用に初回フラグを戻し、同種キューを先頭に載せ替える。
+	var flag_key: String = _NinaRareAcquireGuide.flag_for(kind_id)
+	GameState.tutorial_flags[flag_key] = false
+	var kept: Array = []
+	for raw in GameState.pending_nina_rare_guides:
+		if str(raw) != kind_id:
+			kept.append(str(raw))
+	kept.insert(0, kind_id)
+	GameState.pending_nina_rare_guides = kept
+	SaveManager.save_game()
+	return ""
+
+
+static func _queue_nina_rare_nav(kind: String) -> String:
+	const _NinaRareAcquireGuide := preload("res://scripts/ui/NinaRareAcquireGuide.gd")
+	var kind_id: String = kind.strip_edges()
+	if _NinaRareAcquireGuide.flag_for(kind_id).is_empty():
+		return "不明な種別です: %s" % kind_id
+	## 2回目以降扱いにして吹き出しへ。
+	_NinaRareAcquireGuide.mark_guide_done(kind_id)
+	var sample: String = _debug_sample_name_for_rare(kind_id)
+	_NinaRareAcquireGuide._queue_nav_notice(kind_id, sample)
+	SaveManager.save_game()
+	return ""
+
+
+static func _reset_nina_rare_flags() -> String:
+	const _NinaRareAcquireGuide := preload("res://scripts/ui/NinaRareAcquireGuide.gd")
+	for kind in [
+		_NinaRareAcquireGuide.KIND_RELIC,
+		_NinaRareAcquireGuide.KIND_LEGENDARY,
+		_NinaRareAcquireGuide.KIND_MYTHIC,
+	]:
+		var key: String = _NinaRareAcquireGuide.flag_for(kind)
+		if not key.is_empty():
+			GameState.tutorial_flags[key] = false
+	GameState.pending_nina_rare_guides.clear()
+	GameState.pending_nina_nav_notices.clear()
+	SaveManager.save_game()
+	return ""
+
+
+static func _debug_sample_name_for_rare(kind: String) -> String:
+	match kind:
+		"relic":
+			return "王国軍旗"
+		"legendary":
+			return "ファロス・フレア"
+		"mythic":
+			return "深淵の牙"
+		_:
+			return "サンプル"
 
 
 static func _clear_pending_story() -> String:

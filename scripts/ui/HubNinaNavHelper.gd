@@ -229,13 +229,21 @@ const START_SURVEY_TIP: String = "調査室で派遣すると、調査ゲージ�
 
 ## ローテ用メッセージ列。先頭=おすすめ1件 → 野外/天候 → 雑談複数。
 ## 開始直後は招待状／調査室の優先案内を先に載せる。
+## レリック／レジェンド／ミシックの入手通知があれば最優先で載せる。
 static func build_rotation() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
+	const _NinaRareAcquireGuide := preload("res://scripts/ui/NinaRareAcquireGuide.gd")
+	var rare_notices: Array[String] = _NinaRareAcquireGuide.consume_nav_notices()
+	for notice in rare_notices:
+		out.append({"kind": KIND_RECOMMEND, "text": notice})
 	var early: Array[String] = early_hub_tips()
 	if not early.is_empty():
 		for tip in early:
 			out.append({"kind": KIND_RECOMMEND, "text": tip})
+	elif rare_notices.is_empty():
+		out.append({"kind": KIND_RECOMMEND, "text": recommend_line()})
 	else:
+		## 入手通知がある日も通常おすすめは1件残す。
 		out.append({"kind": KIND_RECOMMEND, "text": recommend_line()})
 	out.append({"kind": KIND_FIELD, "text": field_or_weather_line()})
 	for chat in pick_chat_lines(CHAT_IN_ROTATION):

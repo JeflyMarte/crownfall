@@ -137,11 +137,29 @@ func _build_showcase() -> void:
 
 	_portrait_glow = TextureRect.new()
 	_portrait_glow.texture = _StarterJoinUiTokens.portrait_glow()
+	## 顔より外側のオーラ用。中心の強い光が顔に重ならないよう少し拡大＋弱める。
 	_portrait_glow.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_portrait_glow.offset_left = -28.0
+	_portrait_glow.offset_top = -28.0
+	_portrait_glow.offset_right = 28.0
+	_portrait_glow.offset_bottom = 28.0
 	_portrait_glow.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_portrait_glow.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_portrait_glow.modulate = Color(1.0, 1.0, 1.0, 0.42)
 	_portrait_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	portrait_host.add_child(_portrait_glow)
+
+	## CHR アイコンの半透明ディザを通して Glow が顔に滲むのを防ぐ不透明板。
+	var portrait_plate := ColorRect.new()
+	portrait_plate.name = "PortraitPlate"
+	portrait_plate.color = Color(0.04, 0.05, 0.08, 1.0)
+	portrait_plate.set_anchors_preset(Control.PRESET_CENTER)
+	portrait_plate.offset_left = -_StarterJoinUiTokens.PORTRAIT_PX * 0.5
+	portrait_plate.offset_right = _StarterJoinUiTokens.PORTRAIT_PX * 0.5
+	portrait_plate.offset_top = -_StarterJoinUiTokens.PORTRAIT_PX * 0.5
+	portrait_plate.offset_bottom = _StarterJoinUiTokens.PORTRAIT_PX * 0.5
+	portrait_plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	portrait_host.add_child(portrait_plate)
 
 	_portrait_icon = TextureRect.new()
 	_portrait_icon.set_anchors_preset(Control.PRESET_CENTER)
@@ -379,7 +397,7 @@ func _build_reveal() -> void:
 	vbox.add_child(_label_tap_hint)
 
 	UiTypography.apply_display(_label_reveal_name, UiTypography.SIZE_BODY, UiTypography.COLOR_BODY)
-	UiTypography.apply_display(_label_quote, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	UiTypography.apply_display(_label_quote, UiTypography.SIZE_CAPTION, UiTypography.COLOR_GOLD)
 	UiTypography.apply_body(_label_reveal_sub, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_SUB)
 	UiTypography.apply_caption(_label_tap_hint, UiTypography.COLOR_MUTED)
 
@@ -416,7 +434,7 @@ func _refresh_showcase() -> void:
 	UiTypography.apply_display(_name_label, UiTypography.SIZE_DISPLAY, UiTypography.COLOR_GOLD)
 	UiTypography.apply_display(_stars_label, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
 	## 吹き出し下地が暗いので、本文色ではなく金で不透明表示。
-	UiTypography.apply_display(_quote_label, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
+	UiTypography.apply_display(_quote_label, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	if _quote_tap_label != null:
 		UiTypography.apply_caption(_quote_tap_label, UiTypography.COLOR_GOLD)
 

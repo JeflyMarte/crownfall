@@ -28,9 +28,8 @@ func test_lore_auto_crawl_params() -> void:
 	assert_lte(_IntroLoreSceneScript.CRAWL_START_DELAY_SEC, 2.0)
 	assert_gt(_IntroLoreSceneScript.CRAWL_BOOST_MULT, 1.0)
 	assert_gte(_IntroLoreSceneScript.CRAWL_BOOST_MULT, 3.0)
-	assert_gt(_IntroLoreSceneScript.LONG_PRESS_BOOST_SEC, 0.0)
-	assert_lt(_IntroLoreSceneScript.LONG_PRESS_BOOST_SEC, 1.0)
-	assert_eq(_IntroLoreSceneScript.TAP_PROMPT_TEXT, "TAP！")
+	## 画面タッチ即加速（旧 LONG_PRESS_BOOST は廃止）。
+	assert_eq(_IntroLoreSceneScript.TAP_PROMPT_TEXT, "TAP")
 	assert_gt(_IntroLoreSceneScript.FADE_BAND_PX, 24.0)
 	assert_lt(_IntroLoreSceneScript.PANEL_DWELL_SPEED_MULT, 1.0)
 
