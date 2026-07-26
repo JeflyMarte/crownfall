@@ -104,6 +104,7 @@ var _pending_take_relic_id: String = ""
 @onready var _tab_row: HBoxContainer = $VBoxContainer/TabRow
 @onready var _btn_sort: Button = $VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryHeaderRow/ButtonSort
 @onready var _btn_filter: Button = $VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryHeaderRow/ButtonFilter
+@onready var _btn_recommend: Button = $VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryHeaderRow/ButtonRecommend
 @onready var _nav_forge: Button = $BottomNav/NavRow/NavForge
 @onready var _character_card: PanelContainer = $VBoxContainer/CharacterCard
 @onready var _tabs: TabContainer = $VBoxContainer/TabContainer
@@ -193,6 +194,7 @@ func _ready() -> void:
 	_btn_promote.pressed.connect(_on_promote_pressed)
 	_btn_sort.pressed.connect(_on_sort_pressed)
 	_btn_filter.pressed.connect(_on_filter_pressed)
+	_btn_recommend.pressed.connect(_on_recommend_equip_pressed)
 	_inventory_grid.columns = GRID_COLUMNS
 	# Scroll 内で Grid が縦／横に EXPAND するとセルが伸び、
 	# InvCell の StyleBoxTexture 辺が巨大な金筋・隙間漏れになる（再発防止）。
@@ -284,6 +286,8 @@ func _setup_equipment_chrome() -> void:
 		$VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryHeaderRow/LabelInventoryTitle,
 		UiTypography.COLOR_BODY
 	)
+	UiTypography.apply_button(_btn_recommend)
+	_btn_recommend.custom_minimum_size = Vector2(120, 36)
 	UiTypography.apply_body(
 		$VBoxContainer/TabContainer/TabEquip/EquipContent/EffectsPanel/EffectsVBox/LabelEffectsTitle,
 		UiTypography.SIZE_BODY_SMALL,
@@ -405,10 +409,50 @@ func _on_filter_pressed() -> void:
 	_refresh_inventory_tools()
 	_rebuild_inventory_grid()
 
+func _on_recommend_equip_pressed() -> void:
+	if not _can_change_equipment_on_view():
+		AudioManager.play_sfx("ui_cancel")
+		return
+	var party_idx: int = _party_index_for_view()
+	var result: Dictionary = EquipmentRecommendHelper.apply_for_member(party_idx)
+	if not bool(result.get("ok", false)):
+		AudioManager.play_sfx("ui_cancel")
+		_flash_recommend_button("装備不可")
+		return
+	if bool(result.get("changed", false)):
+		AudioManager.play_sfx("ui_confirm")
+		_refresh_display()
+		_flash_recommend_button("装備した")
+	else:
+		AudioManager.play_sfx("ui_cancel")
+		_flash_recommend_button("変更なし")
+
+
+func _flash_recommend_button(msg: String) -> void:
+	if _btn_recommend == null:
+		return
+	_btn_recommend.text = msg
+	var tree: SceneTree = get_tree()
+	if tree == null:
+		_btn_recommend.text = "おすすめ装備"
+		return
+	tree.create_timer(1.2).timeout.connect(func() -> void:
+		if is_instance_valid(_btn_recommend):
+			_btn_recommend.text = "おすすめ装備"
+	, CONNECT_ONE_SHOT)
+
+
 func _refresh_inventory_tools() -> void:
 	_btn_sort.text = str(EquipmentUiHelper.SORT_LABELS.get(_inventory_sort, _inventory_sort))
 	_btn_filter.text = str(
 		EquipmentUiHelper.EQUIPPED_FILTER_LABELS.get(_inventory_equipped_filter, _inventory_equipped_filter)
+	)
+	var can_rec: bool = _can_change_equipment_on_view()
+	_btn_recommend.disabled = not can_rec
+	_btn_recommend.tooltip_text = (
+		"未装備の中から、このキャラが付けられる最も強い武・防・飾を装備"
+		if can_rec
+		else "このキャラは装備を変更できません"
 	)
 
 func _apply_panel_styles() -> void:

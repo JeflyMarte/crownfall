@@ -144,3 +144,36 @@ func test_sync_claimed_at_100_resets_without_regrant() -> void:
 	_SurveyCompleteRewards.sync_all_pending(false)
 	assert_eq(_SurveySystem.get_survey_percent("mourngate"), 0.0)
 	assert_eq(GameState.gacha_token, 0, "旧セーブの100%滞留はリセットのみ")
+
+
+func test_format_granted_detail_and_sample() -> void:
+	var sample: Dictionary = _SurveyCompleteRewards.sample_guaranteed_granted("mourngate")
+	assert_eq(int(sample.get("gold", 0)), 200)
+	assert_eq(int(sample.get("token", 0)), 10)
+	var detail: String = _SurveyCompleteRewards.format_granted_detail(sample)
+	assert_true(detail.contains("Gold 200"), detail)
+	assert_true(detail.contains("魔晶石 10"), detail)
+	assert_false(detail.begins_with("完全調査報酬"), "表示名はダンジョン側。詳細は内訳のみ")
+
+
+func test_queue_notice_uses_dungeon_name_and_detail() -> void:
+	GameState.pending_content_unlock_notices.clear()
+	GameState.hub_survey_progress["mourngate"] = 100.0
+	var r: Dictionary = _SurveyCompleteRewards.try_claim("mourngate", true)
+	assert_true(bool(r.get("ok", false)), str(r))
+	assert_eq(GameState.pending_content_unlock_notices.size(), 1)
+	var entry: Dictionary = GameState.pending_content_unlock_notices[0]
+	assert_eq(str(entry.get("kind", "")), "survey_complete")
+	assert_eq(str(entry.get("id", "")), "mourngate")
+	var name_str: String = str(entry.get("display_name", ""))
+	assert_false(name_str.contains("完全調査報酬"), name_str)
+	assert_false(name_str.contains("Gold"), name_str)
+	assert_true(str(entry.get("detail", "")).contains("Gold 200"), str(entry))
+	var rewards: Array = entry.get("rewards", []) as Array
+	assert_gte(rewards.size(), 2, "ゴールド／魔晶石などのアイコン用エントリ")
+	var kinds: PackedStringArray = []
+	for rv in rewards:
+		kinds.append(str((rv as Dictionary).get("kind", "")))
+	assert_true(kinds.has("gold"), str(kinds))
+	assert_true(kinds.has("token"), str(kinds))
+	GameState.pending_content_unlock_notices.clear()

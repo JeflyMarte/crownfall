@@ -286,35 +286,102 @@ static func sync_all_pending(notify: bool = false) -> void:
 			try_claim(dungeon_id, notify)
 
 
+## 付与結果 → ポップ用エントリ（実際に付与されたもののみ。抽選外れは出ない）。
+static func granted_entries(granted: Dictionary) -> Array:
+	var out: Array = []
+	var gold: int = int(granted.get("gold", 0))
+	if gold > 0:
+		out.append({"kind": "gold", "qty": gold, "label": "ゴールド"})
+	var token: int = int(granted.get("token", 0))
+	if token > 0:
+		out.append({"kind": "token", "qty": token, "label": "魔晶石"})
+	var mats: Variant = granted.get("materials", {})
+	if mats is Dictionary:
+		for mid in mats.keys():
+			var qty: int = int(mats[mid])
+			if qty <= 0:
+				continue
+			var mname: String = DataRegistry.get_material_name(str(mid))
+			if mname.is_empty():
+				mname = str(mid)
+			out.append({"kind": "material", "id": str(mid), "qty": qty, "label": mname})
+	var tickets: Variant = granted.get("tickets", {})
+	if tickets is Dictionary:
+		for tid in tickets.keys():
+			var tqty: int = int(tickets[tid])
+			if tqty <= 0:
+				continue
+			var td: Resource = DataRegistry.get_ticket_data(str(tid))
+			var tname: String = str(td.display_name) if td != null else str(tid)
+			out.append({"kind": "ticket", "id": str(tid), "qty": tqty, "label": tname})
+	var pet_id: String = str(granted.get("pet_id", "")).strip_edges()
+	if not pet_id.is_empty():
+		var pet: Resource = _PetSystem.get_pet_data(pet_id)
+		var pname: String = str(pet.display_name) if pet != null else pet_id
+		out.append({"kind": "pet", "id": pet_id, "qty": 1, "label": pname})
+	return out
+
+
+## 付与結果の表示用内訳（テキストフォールバック）。
+static func format_granted_detail(granted: Dictionary) -> String:
+	var parts: PackedStringArray = []
+	for entry_v in granted_entries(granted):
+		if not (entry_v is Dictionary):
+			continue
+		var entry: Dictionary = entry_v
+		var kind: String = str(entry.get("kind", ""))
+		var qty: int = int(entry.get("qty", 0))
+		var label: String = str(entry.get("label", ""))
+		match kind:
+			"gold":
+				parts.append("Gold %d" % qty)
+			"token":
+				parts.append("魔晶石 %d" % qty)
+			"pet":
+				parts.append(label)
+			_:
+				parts.append("%s ×%d" % [label, qty])
+	return "、".join(parts) if not parts.is_empty() else "報酬"
+
+
+## デバッグ／プレビュー用: 確定景品だけのサンプル付与辞書（抽選は含めない）。
+static func sample_guaranteed_granted(dungeon_id: String) -> Dictionary:
+	var def: Variant = TABLE.get(dungeon_id, {})
+	if not (def is Dictionary):
+		return {}
+	var d: Dictionary = def as Dictionary
+	var out: Dictionary = {}
+	var gold: int = int(d.get("gold", 0))
+	if gold > 0:
+		out["gold"] = gold
+	var token: int = int(d.get("token", 0))
+	if token > 0:
+		out["token"] = token
+	var mats: Variant = d.get("materials", {})
+	if mats is Dictionary and not (mats as Dictionary).is_empty():
+		out["materials"] = (mats as Dictionary).duplicate(true)
+	var tickets: Variant = d.get("tickets", {})
+	if tickets is Dictionary and not (tickets as Dictionary).is_empty():
+		out["tickets"] = (tickets as Dictionary).duplicate(true)
+	var pet_id: String = str(d.get("pet_id", ""))
+	if not pet_id.is_empty() and not _PetSystem.owns_pet(pet_id):
+		out["pet_id"] = pet_id
+	return out
+
+
 static func _queue_notice(dungeon_id: String, granted: Dictionary) -> void:
 	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
 	var name_str: String = dungeon_id
 	if data != null and "display_name" in data and str(data.display_name) != "":
 		name_str = str(data.display_name)
-	var parts: PackedStringArray = []
-	if int(granted.get("gold", 0)) > 0:
-		parts.append("Gold %d" % int(granted["gold"]))
-	if int(granted.get("token", 0)) > 0:
-		parts.append("魔晶石 %d" % int(granted["token"]))
-	var mats: Variant = granted.get("materials", {})
-	if mats is Dictionary:
-		for mid in mats.keys():
-			parts.append("%s ×%d" % [str(mid), int(mats[mid])])
-	var tickets: Variant = granted.get("tickets", {})
-	if tickets is Dictionary:
-		for tid in tickets.keys():
-			var td: Resource = DataRegistry.get_ticket_data(str(tid))
-			var tname: String = str(td.display_name) if td != null else str(tid)
-			parts.append("%s ×%d" % [tname, int(tickets[tid])])
-	var pet_id: String = str(granted.get("pet_id", ""))
-	if not pet_id.is_empty():
-		var pet: Resource = _PetSystem.get_pet_data(pet_id)
-		if pet != null:
-			parts.append(str(pet.display_name))
-	var detail: String = "、".join(parts) if not parts.is_empty() else "報酬"
+	var detail: String = format_granted_detail(granted)
+	var rewards: Array = granted_entries(granted)
 	const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
 	_ContentUnlockNotice._queue_entry(
 		"survey_complete",
 		dungeon_id,
-		"完全調査報酬（%s）: %s" % [name_str, detail]
+		name_str,
+		-1,
+		detail,
+		rewards
 	)

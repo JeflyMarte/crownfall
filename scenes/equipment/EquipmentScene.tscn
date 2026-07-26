@@ -445,6 +445,11 @@ theme_override_colors/font_color = Color(0.78, 0.74, 0.62, 1)
 theme_override_font_sizes/font_size = 14
 text = "装備一覧"
 
+[node name="ButtonRecommend" type="Button" parent="VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryHeaderRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 0)
+text = "おすすめ装備"
+
 [node name="ButtonSort" type="Button" parent="VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryHeaderRow"]
 layout_mode = 2
 text = "レアリティ"

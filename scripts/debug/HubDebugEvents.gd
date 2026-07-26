@@ -7,6 +7,7 @@ const _StarterRecruitment := preload("res://scripts/roster/StarterRecruitment.gd
 const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
 const _CommanderProfile := preload("res://scripts/commander/CommanderProfile.gd")
 const _DungeonTierConfig := preload("res://scripts/dungeon/DungeonTierConfig.gd")
+const _SurveyCompleteRewards := preload("res://scripts/survey/SurveyCompleteRewards.gd")
 
 ## メイン Biome の並び（表示用）。
 const MAIN_BIOME_ORDER: PackedStringArray = [
@@ -63,6 +64,20 @@ static func list_entries() -> Array[Dictionary]:
 		"hint": "章名の解放通知を1件",
 	})
 	out.append({
+		"id": "section_survey",
+		"title": "—— 完全調査報酬 ——",
+		"hint": "景品ポップのみ（付与なし）",
+		"section": true,
+	})
+	for biome_id in _main_biome_ids():
+		if not _SurveyCompleteRewards.has_table(biome_id):
+			continue
+		out.append({
+			"id": "survey_complete:%s" % biome_id,
+			"title": "完全調査：%s" % _dungeon_short_name(biome_id),
+			"hint": "確定景品内訳のポップを1件",
+		})
+	out.append({
 		"id": "section_parts",
 		"title": "—— 部品単体 ——",
 		"hint": "個別確認用",
@@ -111,6 +126,8 @@ static func run(entry_id: String) -> String:
 		return _queue_clear_ceremony(entry_id.substr("clear_ceremony:".length()))
 	if entry_id.begins_with("dungeon_unlock:"):
 		return _queue_dungeon_unlock_notice(entry_id.substr("dungeon_unlock:".length()))
+	if entry_id.begins_with("survey_complete:"):
+		return _queue_survey_complete_notice(entry_id.substr("survey_complete:".length()))
 	match entry_id:
 		"dungeon_unlock_hard_mourngate":
 			GameState.pending_content_unlock_notices.clear()
@@ -238,6 +255,23 @@ static func _queue_dungeon_unlock_notice(dungeon_id: String) -> String:
 		name_str = dungeon_id
 	GameState.pending_content_unlock_notices.clear()
 	_ContentUnlockNotice._queue_entry("dungeon", dungeon_id, name_str)
+	return ""
+
+
+static func _queue_survey_complete_notice(dungeon_id: String) -> String:
+	if not _SurveyCompleteRewards.has_table(dungeon_id):
+		return "完全調査テーブルがありません: %s" % dungeon_id
+	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
+	if data == null:
+		return "ダンジョンがありません: %s" % dungeon_id
+	var name_str: String = str(data.display_name)
+	if name_str.is_empty():
+		name_str = dungeon_id
+	var granted: Dictionary = _SurveyCompleteRewards.sample_guaranteed_granted(dungeon_id)
+	var detail: String = _SurveyCompleteRewards.format_granted_detail(granted)
+	var rewards: Array = _SurveyCompleteRewards.granted_entries(granted)
+	GameState.pending_content_unlock_notices.clear()
+	_ContentUnlockNotice._queue_entry("survey_complete", dungeon_id, name_str, -1, detail, rewards)
 	return ""
 
 

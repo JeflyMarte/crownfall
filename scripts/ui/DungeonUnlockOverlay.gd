@@ -1,7 +1,7 @@
 class_name DungeonUnlockOverlay
 extends CanvasLayer
 
-## 「○○が解放された！」ポップアップ（バナー主役）。
+## 「○○が解放された！」／完全調査報酬などのポップアップ（バナー主役）。
 ## ダンジョン名はバナー内ネームプレート位置に重ねる（選択画面と同ポリシー）。
 
 const _BiomeBannerHelper := preload("res://scripts/ui/BiomeBannerHelper.gd")
@@ -16,10 +16,14 @@ const NAME_FONT_MAX: int = 28
 const NAME_FONT_MIN: int = 16
 ## ネームプレート内の想定最大幅（枠左右余白）。
 const NAME_MAX_WIDTH_PAD: float = 72.0
+const REWARD_ICON_PX: float = 48.0
+const GOLD_ICON_PATH: String = "res://assets/ui/batch2/ICO_Gold.png"
 
 var _display_name: String = ""
 var _banner_id: String = ""
 var _kind: String = "dungeon"
+var _detail: String = ""
+var _rewards: Array = []
 var _dim: ColorRect
 var _panel: PanelContainer
 var _eyebrow: Label
@@ -27,6 +31,8 @@ var _banner_host: Control
 var _banner_rect: TextureRect
 var _name_label: Label
 var _suffix_label: Label
+var _reward_row: HBoxContainer
+var _detail_label: Label
 var _hint_label: Label
 var _tween: Tween
 
@@ -38,15 +44,26 @@ func _ready() -> void:
 
 
 ## banner_id: BiomeBannerHelper に渡すダンジョン／Biome id（空ならバナー無し）。
-func present(display_name: String, banner_id: String = "", kind: String = "dungeon") -> void:
+## detail: テキスト内訳（rewards が空のときのフォールバック）。
+## rewards: [{kind,id?,qty,label}] — アイコン＋個数表示。
+func present(
+	display_name: String,
+	banner_id: String = "",
+	kind: String = "dungeon",
+	detail: String = "",
+	rewards: Array = []
+) -> void:
 	_display_name = display_name.strip_edges()
 	_banner_id = banner_id.strip_edges()
 	_kind = kind.strip_edges()
+	_detail = detail.strip_edges()
+	_rewards = rewards.duplicate(true)
 	if _kind.is_empty():
 		_kind = "dungeon"
 	_eyebrow.text = _eyebrow_for_kind(_kind)
 	_name_label.text = _display_name
-	_suffix_label.text = "が解放された！"
+	_suffix_label.text = _suffix_for_kind(_kind)
+	_rebuild_rewards()
 	_apply_banner()
 	UiTypography.apply_caption(_eyebrow, UiTypography.COLOR_GOLD)
 	UiTypography.apply_display(
@@ -55,6 +72,7 @@ func present(display_name: String, banner_id: String = "", kind: String = "dunge
 	UiTypography.apply_display(
 		_suffix_label, 24, Color(1.0, 0.94, 0.72), UiTypography.OUTLINE_STRONG
 	)
+	UiTypography.apply_body(_detail_label, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	UiTypography.apply_caption(_hint_label, UiTypography.COLOR_SUB)
 	_fit_name_font()
 	call_deferred("_fit_name_font")
@@ -75,6 +93,106 @@ func _eyebrow_for_kind(kind: String) -> String:
 			return "危険度解放"
 		_:
 			return "ダンジョン解放"
+
+
+func _suffix_for_kind(kind: String) -> String:
+	match kind:
+		"survey_complete":
+			return "の完全調査を達成！"
+		_:
+			return "が解放された！"
+
+
+func _rebuild_rewards() -> void:
+	for child in _reward_row.get_children():
+		child.queue_free()
+	if not _rewards.is_empty():
+		_reward_row.visible = true
+		_detail_label.visible = false
+		_detail_label.text = ""
+		for entry_v in _rewards:
+			if not (entry_v is Dictionary):
+				continue
+			_reward_row.add_child(_make_reward_chip(entry_v as Dictionary))
+		return
+	_reward_row.visible = false
+	if _detail.is_empty():
+		_detail_label.visible = false
+		_detail_label.text = ""
+	else:
+		_detail_label.visible = true
+		_detail_label.text = _detail
+
+
+func _make_reward_chip(entry: Dictionary) -> Control:
+	var cell := VBoxContainer.new()
+	cell.alignment = BoxContainer.ALIGNMENT_CENTER
+	cell.add_theme_constant_override("separation", 4)
+	cell.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	cell.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	cell.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var icon_host := Control.new()
+	icon_host.custom_minimum_size = Vector2(REWARD_ICON_PX, REWARD_ICON_PX)
+	icon_host.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	icon_host.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	icon_host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cell.add_child(icon_host)
+
+	var kind: String = str(entry.get("kind", ""))
+	var tex: Texture2D = _reward_texture(entry)
+	if kind == "pet" and tex != null:
+		var portrait := ChrIdlePortraitView.new()
+		portrait.set_portrait_size(REWARD_ICON_PX)
+		portrait.set_static_texture(tex)
+		portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon_host.add_child(portrait)
+	else:
+		var icon := TextureRect.new()
+		icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		icon.texture = tex
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon_host.add_child(icon)
+
+	var qty: int = int(entry.get("qty", 0))
+	var qty_label := Label.new()
+	qty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	qty_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	qty_label.clip_text = false
+	qty_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if kind == "pet":
+		qty_label.text = str(entry.get("label", ""))
+	else:
+		qty_label.text = "×%d" % maxi(qty, 1)
+	UiTypography.apply_caption(qty_label, UiTypography.COLOR_GOLD)
+	cell.add_child(qty_label)
+	return cell
+
+
+func _reward_texture(entry: Dictionary) -> Texture2D:
+	var kind: String = str(entry.get("kind", ""))
+	match kind:
+		"gold":
+			if ResourceLoader.exists(GOLD_ICON_PATH):
+				return load(GOLD_ICON_PATH) as Texture2D
+			return IconPaths.get_icon_texture("gold", "ui")
+		"token":
+			return CurrencyHelper.get_icon_texture()
+		"material":
+			return IconPaths.get_icon_texture(str(entry.get("id", "")), "material")
+		"ticket":
+			return IconPaths.get_icon_texture(str(entry.get("id", "")), "ticket")
+		"pet":
+			var pet_id: String = str(entry.get("id", ""))
+			var idle_tex: Texture2D = ChrIdlePortrait.get_idle_texture(pet_id)
+			if idle_tex != null:
+				return idle_tex
+			return IconPaths.get_icon_texture(pet_id, "chr")
+		_:
+			return null
 
 
 func _apply_banner() -> void:
@@ -224,6 +342,25 @@ func _build() -> void:
 	_suffix_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	inner.add_child(_suffix_label)
 
+	_reward_row = HBoxContainer.new()
+	_reward_row.name = "RewardRow"
+	_reward_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_reward_row.add_theme_constant_override("separation", 14)
+	_reward_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_reward_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_reward_row.visible = false
+	inner.add_child(_reward_row)
+
+	_detail_label = Label.new()
+	_detail_label.name = "Detail"
+	_detail_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_detail_label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+	_detail_label.clip_text = false
+	_detail_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_detail_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_detail_label.visible = false
+	inner.add_child(_detail_label)
+
 	_hint_label = Label.new()
 	_hint_label.text = "タップして閉じる"
 	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -275,10 +412,12 @@ static func show_on(
 	parent: Node,
 	display_name: String,
 	banner_id: String = "",
-	kind: String = "dungeon"
+	kind: String = "dungeon",
+	detail: String = "",
+	rewards: Array = []
 ) -> CanvasLayer:
 	var overlay := new()
 	overlay.name = "DungeonUnlockOverlay"
 	parent.add_child(overlay)
-	overlay.present(display_name, banner_id, kind)
+	overlay.present(display_name, banner_id, kind, detail, rewards)
 	return overlay

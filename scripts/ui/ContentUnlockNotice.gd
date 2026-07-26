@@ -152,7 +152,14 @@ static func next_unlock_after_main_clear(biome_id: String, cleared_tier: int = -
 	return {}
 
 
-static func _queue_entry(kind: String, id: String, display_name: String, tier: int = -1) -> void:
+static func _queue_entry(
+	kind: String,
+	id: String,
+	display_name: String,
+	tier: int = -1,
+	detail: String = "",
+	rewards: Array = []
+) -> void:
 	if id.is_empty() or display_name.is_empty():
 		return
 	for raw in GameState.pending_content_unlock_notices:
@@ -173,6 +180,11 @@ static func _queue_entry(kind: String, id: String, display_name: String, tier: i
 	}
 	if tier >= 0:
 		payload["tier"] = tier
+	var detail_str: String = detail.strip_edges()
+	if not detail_str.is_empty():
+		payload["detail"] = detail_str
+	if not rewards.is_empty():
+		payload["rewards"] = rewards.duplicate(true)
 	GameState.pending_content_unlock_notices.append(payload)
 
 
@@ -209,7 +221,11 @@ static func show_pending_on(parent: Node, on_all_done: Callable = Callable()) ->
 		if on_all_done.is_valid():
 			on_all_done.call()
 		return null
-	if parent.get_node_or_null("DungeonUnlockOverlay") != null:
+	var existing: Node = parent.get_node_or_null("DungeonUnlockOverlay")
+	if existing != null:
+		## dismiss 直後は queue_free 待ち。同フレーム再入すると on_all_done が呼ばれず連鎖が止まる。
+		if existing.is_queued_for_deletion():
+			_defer_show_pending(parent, on_all_done)
 		return null
 	if not has_pending():
 		if on_all_done.is_valid():
@@ -224,16 +240,40 @@ static func show_pending_on(parent: Node, on_all_done: Callable = Callable()) ->
 		return show_pending_on(parent, on_all_done)
 	var content_id: String = str(entry.get("id", "")).strip_edges()
 	var kind: String = str(entry.get("kind", "dungeon")).strip_edges()
+	var detail: String = str(entry.get("detail", "")).strip_edges()
+	var rewards: Array = []
+	var rewards_v: Variant = entry.get("rewards", [])
+	if rewards_v is Array:
+		rewards = rewards_v as Array
 	var banner_id: String = _banner_id_for_entry(kind, content_id)
-	var overlay: CanvasLayer = _DungeonUnlockOverlay.show_on(parent, name_str, banner_id, kind)
+	var overlay: CanvasLayer = _DungeonUnlockOverlay.show_on(
+		parent, name_str, banner_id, kind, detail, rewards
+	)
 	overlay.dismissed.connect(func(_n: String) -> void:
-		show_pending_on(parent, on_all_done)
+		_defer_show_pending(parent, on_all_done)
 	)
 	return overlay
 
 
+static func _defer_show_pending(parent: Node, on_all_done: Callable) -> void:
+	if parent == null or not is_instance_valid(parent):
+		if on_all_done.is_valid():
+			on_all_done.call()
+		return
+	var tree: SceneTree = parent.get_tree()
+	if tree == null:
+		if on_all_done.is_valid():
+			on_all_done.call()
+		return
+	tree.create_timer(0.0).timeout.connect(
+		func() -> void:
+			show_pending_on(parent, on_all_done),
+		CONNECT_ONE_SHOT
+	)
+
+
 static func _banner_id_for_entry(kind: String, content_id: String) -> String:
-	if kind == "dungeon" or kind == "dungeon_tier":
+	if kind == "dungeon" or kind == "dungeon_tier" or kind == "survey_complete":
 		return content_id
 	if kind == "stage":
 		var stage: Resource = DataRegistry.get_stage_data(content_id)
