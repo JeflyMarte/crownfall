@@ -185,6 +185,66 @@ static func build_weapon_description(data: Resource) -> String:
 	return "\n".join(lines)
 
 
+static func build_armor_description(data: Resource) -> String:
+	if data == null:
+		return ""
+	var lines: PackedStringArray = []
+	lines.append("【防具】%s" % str(data.display_name))
+	var stats: PackedStringArray = []
+	stats.append("希少度: %s" % rarity_label(int(data.rarity)))
+	stats.append("防御: %d" % int(data.base_defense))
+	if int(data.base_hp_bonus) > 0:
+		stats.append("HP+%d" % int(data.base_hp_bonus))
+	var resists: Array = data.resist_elements if "resist_elements" in data else []
+	if resists is Array and not resists.is_empty():
+		var labels: PackedStringArray = []
+		for el in resists:
+			labels.append(element_label(str(el)))
+		stats.append("耐性: %s" % "・".join(labels))
+	lines.append(" ｜ ".join(stats))
+	var description: String = str(data.description).strip_edges() if "description" in data else ""
+	if not description.is_empty():
+		lines.append(description)
+	var passive_id: String = str(data.fixed_passive_id) if "fixed_passive_id" in data else ""
+	var passive_text: String = EquipmentItemDetailHelper.equipment_legendary_effect_text_from_passive_id(passive_id)
+	if not passive_text.is_empty():
+		lines.append("固有効果: %s" % passive_text)
+	return "\n".join(lines)
+
+
+static func build_accessory_description(data: Resource) -> String:
+	if data == null:
+		return ""
+	var lines: PackedStringArray = []
+	lines.append("【装飾】%s" % str(data.display_name))
+	var stats: PackedStringArray = []
+	stats.append("希少度: %s" % rarity_label(int(data.rarity)))
+	if int(data.hp_bonus) != 0:
+		stats.append("HP%+d" % int(data.hp_bonus))
+	if int(data.attack_bonus) != 0:
+		stats.append("攻撃%+d" % int(data.attack_bonus))
+	if int(data.defense_bonus) != 0:
+		stats.append("防御%+d" % int(data.defense_bonus))
+	if float(data.crit_rate_bonus) != 0.0:
+		stats.append("会心%+.0f%%" % (float(data.crit_rate_bonus) * 100.0))
+	if float(data.exp_gain_rate) != 0.0:
+		stats.append("EXP%+.0f%%" % (float(data.exp_gain_rate) * 100.0))
+	if float(data.gold_gain_rate) != 0.0:
+		stats.append("Gold%+.0f%%" % (float(data.gold_gain_rate) * 100.0))
+	if float(data.rare_drop_rate) != 0.0:
+		stats.append("レアドロ%+.0f%%" % (float(data.rare_drop_rate) * 100.0))
+	if not stats.is_empty():
+		lines.append(" ｜ ".join(stats))
+	var description: String = str(data.description).strip_edges() if "description" in data else ""
+	if not description.is_empty():
+		lines.append(description)
+	var passive_id: String = str(data.fixed_passive_id) if "fixed_passive_id" in data else ""
+	var passive_text: String = EquipmentItemDetailHelper.equipment_legendary_effect_text_from_passive_id(passive_id)
+	if not passive_text.is_empty():
+		lines.append("固有効果: %s" % passive_text)
+	return "\n".join(lines)
+
+
 static func _weapon_flavor_line(data: Resource) -> String:
 	var rarity: int = int(data.rarity)
 	var item_id: String = str(data.id)

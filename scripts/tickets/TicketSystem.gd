@@ -25,6 +25,8 @@ static func refund_free_gacha() -> void:
 
 static func ticket_id_for_limit_break_rarity(rarity: int) -> String:
 	match _GachaRarityConfig.clamp_rarity(rarity):
+		2:
+			return TicketIds.LB_STAR2
 		3:
 			return TicketIds.LB_STAR3
 		4:

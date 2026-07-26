@@ -67,6 +67,27 @@ func test_survey_add_and_cap() -> void:
 	assert_eq(_SurveySystem.get_survey_percent("mourngate"), 100.0)
 
 
+func test_whisperwood_complete_unlocks_ash() -> void:
+	const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
+	GameState.owned_pet_ids = ["pet_jack"]
+	GameState.hub_survey_progress["whisperwood"] = 99.0
+	_SurveySystem.add_survey_percent("whisperwood", 2.0, false)
+	assert_eq(_SurveySystem.get_survey_percent("whisperwood"), 100.0)
+	assert_true(_PetSystem.owns_pet("pet_ash"))
+	assert_false(_PetSystem.owns_pet("pet_ink"))
+
+
+func test_blackshore_complete_unlocks_ink() -> void:
+	const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
+	GameState.owned_pet_ids = ["pet_jack"]
+	GameState.hub_survey_progress["blackshore"] = 100.0
+	_PetSystem.sync_unlocks_from_survey_progress(false)
+	assert_true(_PetSystem.owns_pet("pet_ink"))
+	assert_eq(_PetSystem.complete_reward_pet_id("whisperwood"), "pet_ash")
+	assert_eq(_PetSystem.complete_reward_pet_id("blackshore"), "pet_ink")
+	assert_eq(_PetSystem.complete_reward_pet_id("mourngate"), "")
+
+
 func test_cycle_completes_with_time() -> void:
 	var ids: Array[String] = []
 	if not GameState.roster.is_empty() and GameState.roster[0] != null:
@@ -86,6 +107,29 @@ func test_cycle_completes_with_time() -> void:
 	assert_true(bool(claimed.get("ok", false)), str(claimed))
 	assert_false(_SurveySystem.has_active_cycle())
 	assert_gt(_SurveySystem.get_survey_percent(Constants.MOURNGATE_DUNGEON_ID), 0.0)
+
+
+func test_survey_staff_can_start_cycle_without_roster() -> void:
+	## P3-SURVEY-STAFF-001: ノノカ／ニーナはロスター外でも調査員として配置可。
+	const _SurveyStaff := preload("res://scripts/survey/SurveyStaff.gd")
+	assert_true(_SurveySystem.is_survey_staff(_SurveyStaff.ID_NONOKA))
+	assert_true(_SurveySystem.is_survey_staff(_SurveyStaff.ID_NINA))
+	assert_true(_SurveySystem.can_assign_investigator(_SurveyStaff.ID_NONOKA))
+	var bonus: float = _SurveySystem.investigator_speed_bonus(
+		_SurveyStaff.ID_NONOKA, _SurveyStaff.preferred_role(_SurveyStaff.ID_NONOKA)
+	)
+	assert_gt(bonus, 0.0)
+	var auto_ids: Array[String] = _SurveySystem.auto_assign_members()
+	assert_true(auto_ids.has(_SurveyStaff.ID_NONOKA), "おまかせはスタッフ優先1")
+	var started: Dictionary = _SurveySystem.start_cycle(
+		Constants.MOURNGATE_DUNGEON_ID,
+		_SurveyConfig.PRESET_SHORT,
+		[_SurveyStaff.ID_NONOKA, _SurveyStaff.ID_NINA] as Array[String]
+	)
+	assert_true(bool(started.get("ok", false)), str(started))
+	assert_true(_SurveySystem.is_member_dispatched(_SurveyStaff.ID_NONOKA))
+	## スタッフ派遣では編成人数を減らさない（ロスター外のため party 不変）。
+	GameState.hub_survey_cycle = {}
 
 
 func test_achieve_entries_exist() -> void:

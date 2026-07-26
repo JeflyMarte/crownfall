@@ -38,6 +38,9 @@ alwaysApply: false
 - 間隔 → `separation` は **4 の倍数**（4, 8, 12, 16, 24…）
 - 伸縮 → `size_flags_horizontal/vertical`（`EXPAND_FILL` 等）
 - **HBox 内の短い数値 Label に `clip_text=true` を付けない**（最小幅 0 で数値が消える。アイコン＋数値チップで再発済み）
+- **日本語の長い Label に `AUTOWRAP_WORD_SMART` だけを頼らない**（空白無し1語扱いで最小幅＝全文幅 → 画面が横に広がる。Featured／カード説明は `AUTOWRAP_ARBITRARY`＋`EXPAND_FILL`＋`custom_minimum_size.x=0`。横伸び対策で中央アンカータイトルに `clip_text` を付けない — 名前が消える）
+- **縦リストの `ScrollContainer.horizontal_scroll_mode=DISABLED` 禁止**（子の最小幅に追従して親まで横拡大する。`SHOW_NEVER`＋`clip_contents`）
+- **バナー重ねタイトル**は `PRESET_CENTER`＋`PRESET_MODE_MINSIZE`＋`clip_text=false`。親 `clip_contents` 禁止（size 0／クリップで文字消滅）
 - 絶対座標は **オーバーレイ・ポップアップ**程度に限定
 - `.tscn` 手編集は `scenes.mdc` に従い最小限。配置微調整は Godot エディタ推奨
 

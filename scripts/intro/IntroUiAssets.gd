@@ -9,6 +9,10 @@ const NINA_PORTRAIT: String = "res://assets/npc/ART_NPC_Nina.png"
 const NINA_ICON: String = "res://assets/npc/ICO_NPC_Nina.png"
 ## 簡易ガイド等の大きめドット立ち（SPR）。
 const NINA_DOT: String = "res://assets/npc/SPR_NPC_Nina.png"
+## セリフ／手引き用の立ち絵。
+const NINA_DIALOGUE: String = "res://assets/npc/ART_NPC_Nina_Stand.png"
+## 旧・対話バストアップ（フォールバック用）。
+const NINA_DIALOGUE_BUST: String = "res://assets/npc/ICO_NPC_Nina_Dialogue.png"
 const STARTER_CARD_FRAME: String = "res://assets/ui/intro/UI_Card_Starter_Frame.png"
 
 

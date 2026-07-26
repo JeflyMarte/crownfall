@@ -109,11 +109,12 @@ static func can_equip_job_skill(member: Resource, skill_id: String) -> bool:
 static func normalize_equipped_skills(member: Resource) -> void:
 	if member == null:
 		return
-	## オトモは解放済み全本を装備（枠上限なし・切替不可）（P3-PET-SKILL-001）
-	if Constants.is_pet_id(str(member.id)):
-		member.equipped_skill_ids = get_unlocked_pet_skill_ids(member)
-		return
-	var allowed: Array[String] = get_unlocked_job_skill_ids(member)
+	## ペットも人間と同じく装備枠1（解放済みからの選択）（P3-PET-SKILL-001）
+	var allowed: Array[String] = (
+		get_unlocked_pet_skill_ids(member)
+		if Constants.is_pet_id(str(member.id))
+		else get_unlocked_job_skill_ids(member)
+	)
 	var ids: Array[String] = []
 	if "equipped_skill_ids" in member:
 		for raw_id in member.equipped_skill_ids:
@@ -124,4 +125,15 @@ static func normalize_equipped_skills(member: Resource) -> void:
 				break
 			if not ids.has(sid):
 				ids.append(sid)
+	## 空なら解放済み先頭を既定装備
+	if ids.is_empty() and not allowed.is_empty():
+		ids.append(allowed[0])
 	member.equipped_skill_ids = ids
+
+
+## レベルアップ時: 未装備なら新規解放を既定装備候補に載せない（枠1のため現状維持）。
+## 装備が空／無効だけになったとき normalize で先頭へ。
+static func apply_pet_new_skill_unlocks(pet: Resource) -> void:
+	if pet == null or not Constants.is_pet_id(str(pet.id)):
+		return
+	normalize_equipped_skills(pet)

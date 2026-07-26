@@ -18,7 +18,7 @@ func after_each() -> void:
 
 
 func test_ticket_resources_and_icons_exist() -> void:
-	assert_eq(DataRegistry.get_all_ticket_data().size(), 3)
+	assert_eq(DataRegistry.get_all_ticket_data().size(), 4)
 	for tid in TicketIds.ALL:
 		assert_not_null(DataRegistry.get_ticket_data(tid), tid)
 		assert_not_null(IconPaths.get_icon_texture(tid, "ticket"), tid)
@@ -46,6 +46,22 @@ func test_token_pull_does_not_consume_ticket() -> void:
 	assert_false(bool(result.get("paid_with_ticket", false)))
 	assert_eq(GameState.gacha_token, 1)
 	assert_eq(TicketInventory.get_qty(TicketIds.GACHA_FREE), 3)
+
+
+func test_limit_break_star2_ticket() -> void:
+	var helper: Resource = null
+	for h in DataRegistry.get_all_gacha_helper_data():
+		if h != null and int(h.rarity) == 2:
+			helper = h
+			break
+	assert_not_null(helper, "★2 helper がプールにあること")
+	var hid: String = str(helper.id)
+	GameState.owned_helpers[hid] = 1
+	TicketInventory.add(TicketIds.LB_STAR2, 1)
+	var ok: Dictionary = TicketSystem.apply_limit_break_helper(hid)
+	assert_true(bool(ok.get("ok", false)), str(ok))
+	assert_eq(int(GameState.owned_helpers[hid]), 2)
+	assert_eq(TicketInventory.get_qty(TicketIds.LB_STAR2), 0)
 
 
 func test_limit_break_star3_ticket() -> void:

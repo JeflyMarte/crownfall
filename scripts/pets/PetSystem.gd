@@ -15,10 +15,11 @@ const PET_FORMATION_SLOT: int = 4
 ## 雑魚職(1.0)より少し高く、剣士(2.0)／盾(4.0)より低く保つ。
 const PET_THREAT_BASE: float = 1.35
 
-## stage_id → 解放ペット id（U1）
-const UNLOCK_STAGE_TO_PET: Dictionary = {
-	"mourngate_1_5": PET_ASH_ID,
-	"whisperwood_2_5": PET_INK_ID,
+## ダンジョン SURVEY 100%（完全調査）→ 解放ペット id（P3-PET-SURVEY-UNLOCK-001）
+## ジャックは開始随伴のまま（本表に載せない）。
+const UNLOCK_SURVEY_TO_PET: Dictionary = {
+	"whisperwood": PET_ASH_ID,
+	"blackshore": PET_INK_ID,
 }
 
 
@@ -79,10 +80,10 @@ static func create_pet_adventurer(pet_id: String = STARTER_PET_ID) -> Resource:
 		stats.attack = 70
 		stats.defense = 35
 	adv.base_stats = stats
-	## オトモは装備枠1の人間ルール外。解放済み全本を装備（P3-PET-SKILL-001）。
-	SkillProgression.normalize_equipped_skills(adv)
+	## オトモも装備枠1。解放済み先頭を既定装備（P3-PET-SKILL-001）。
+	SkillProgression.apply_pet_new_skill_unlocks(adv)
 	if adv.equipped_skill_ids.is_empty():
-		var fallback: Array[String] = ["pet_nibble", "pet_pounce"]
+		var fallback: Array[String] = ["pet_nibble"]
 		adv.equipped_skill_ids = fallback
 	return adv
 
@@ -128,14 +129,26 @@ static func unlock_pet(pet_id: String, notify: bool = true) -> bool:
 	return true
 
 
-static func sync_unlocks_from_stage_progress(notify: bool = true) -> void:
+static func complete_reward_pet_id(dungeon_id: String) -> String:
+	if dungeon_id.is_empty():
+		return ""
+	return str(UNLOCK_SURVEY_TO_PET.get(dungeon_id, ""))
+
+
+static func sync_unlocks_from_survey_progress(notify: bool = true) -> void:
 	ensure_owned_pets_seeded()
-	for stage_id_v in UNLOCK_STAGE_TO_PET.keys():
-		var stage_id: String = str(stage_id_v)
-		var pet_id: String = str(UNLOCK_STAGE_TO_PET[stage_id])
-		## ノーマル章クリア（tiers 無しの legacy cleared も可）
-		if GameState.is_stage_cleared(stage_id):
+	const _SurveySystem := preload("res://scripts/survey/SurveySystem.gd")
+	const _SurveyConfig := preload("res://scripts/survey/SurveyConfig.gd")
+	for dungeon_id_v in UNLOCK_SURVEY_TO_PET.keys():
+		var dungeon_id: String = str(dungeon_id_v)
+		var pet_id: String = str(UNLOCK_SURVEY_TO_PET[dungeon_id])
+		if _SurveySystem.get_survey_percent(dungeon_id) + 0.001 >= _SurveyConfig.SURVEY_COMPLETE_PERCENT:
 			unlock_pet(pet_id, notify)
+
+
+## 互換エイリアス（旧 stage 解放呼び出しを調査解放へリダイレクト）
+static func sync_unlocks_from_stage_progress(notify: bool = true) -> void:
+	sync_unlocks_from_survey_progress(notify)
 
 
 static func set_active_pet_id(pet_id: String) -> bool:
@@ -189,8 +202,8 @@ static func sync_pet_runtime(pet: Resource) -> void:
 	var data: Resource = get_pet_data(str(pet.id))
 	if data != null and not str(data.display_name).is_empty():
 		pet.display_name = str(data.display_name)
-	## Lv から解放スキルを導出（切替持ち越し防止・セーブ非保存）
-	SkillProgression.normalize_equipped_skills(pet)
+	## Lv から解放スキルを同期（新規解放は自動装備）
+	SkillProgression.apply_pet_new_skill_unlocks(pet)
 	if pet.equipped_skill_ids.is_empty():
-		var fallback: Array[String] = ["pet_nibble", "pet_pounce"]
+		var fallback: Array[String] = ["pet_nibble"]
 		pet.equipped_skill_ids = fallback

@@ -27,6 +27,7 @@ const COLOR_BACK: Color = Color(0.65, 0.85, 0.55)
 const COLOR_EMPTY: Color = Color(0.35, 0.33, 0.30)
 const COLOR_PICK: Color = Color(0.95, 0.78, 0.35)
 
+const _SurveySystem := preload("res://scripts/survey/SurveySystem.gd")
 const _FRONT_JOB_IDS: Array[String] = ["swordsman", "vanguard"]
 const _RECOMMENDED_JOB_ORDER: Array[String] = [
 	"vanguard", "swordsman", "ranger", "alchemist", "beast_tamer",
@@ -82,6 +83,7 @@ func _ready() -> void:
 		_on_formation_preset_pressed.bind("back")
 	)
 	_selected = GameState.party_members.duplicate()
+	_strip_dispatched_from_selection()
 	_init_formation_slots_from_party()
 	_apply_panel_styles()
 	_configure_layout()
@@ -515,6 +517,10 @@ func _on_active_card_input(event: InputEvent, slot_index: int) -> void:
 
 func _on_detail_pressed(member: Resource) -> void:
 	var party: Array = _ordered_party_from_formation()
+	var reject: String = GameState.active_party_reject_reason(party)
+	if not reject.is_empty():
+		_label_status.text = reject
+		return
 	if not GameState.set_active_party(party):
 		_label_status.text = "詳細を開くには有効な編成が必要です"
 		return
@@ -609,6 +615,7 @@ func _make_roster_grid_card(adv: Resource) -> Control:
 		and GameState.active_pet != null
 		and str(GameState.active_pet.id) == str(adv.id)
 	)
+	var dispatched: bool = (not is_pet) and _is_survey_dispatched(adv)
 	var in_party: bool = (not is_pet) and _selected.has(adv)
 	var picking: bool = (not is_pet) and _active_pick_slot >= 0
 	var cell_h: int = _grid_cell_height()
@@ -617,12 +624,14 @@ func _make_roster_grid_card(adv: Resource) -> Control:
 	wrapper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	if is_pet:
 		wrapper.add_theme_stylebox_override("panel", RosterUiHelper.card_panel_style(is_active_pet, false))
-	elif picking and not in_party:
+	elif picking and not in_party and not dispatched:
 		wrapper.add_theme_stylebox_override("panel", _pick_style())
 	else:
 		wrapper.add_theme_stylebox_override("panel", RosterUiHelper.card_panel_style(in_party, false))
 	# 入れ替え選択中はリストを暗くせず選べることを示す。通常時のみ編成中を暗くする。
-	if in_party and not picking:
+	if dispatched:
+		wrapper.modulate = Color(0.55, 0.52, 0.48, 1.0)
+	elif in_party and not picking:
 		wrapper.modulate = Color(0.42, 0.42, 0.42, 1.0)
 	elif is_pet and not is_active_pet:
 		wrapper.modulate = Color(0.72, 0.72, 0.72, 1.0)
@@ -680,11 +689,14 @@ func _make_roster_grid_card(adv: Resource) -> Control:
 	info_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bottom_bar.add_child(info_row)
 	var lv_lbl := Label.new()
-	lv_lbl.text = "Lv.%d" % int(adv.level)
-	if is_pet and is_active_pet:
-		lv_lbl.text = "出撃 Lv.%d" % int(adv.level)
+	if dispatched:
+		lv_lbl.text = "調査中"
+	else:
+		lv_lbl.text = "Lv.%d" % int(adv.level)
+		if is_pet and is_active_pet:
+			lv_lbl.text = "出撃 Lv.%d" % int(adv.level)
 	lv_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiTypography.apply_caption(lv_lbl)
+	UiTypography.apply_caption(lv_lbl, COLOR_GOLD if dispatched else UiTypography.COLOR_BODY)
 	lv_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	info_row.add_child(lv_lbl)
 	var star_lbl := Label.new()
@@ -694,6 +706,18 @@ func _make_roster_grid_card(adv: Resource) -> Control:
 	star_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	info_row.add_child(star_lbl)
 	return wrapper
+
+
+func _is_survey_dispatched(adv: Resource) -> bool:
+	return adv != null and _SurveySystem.is_member_dispatched(str(adv.id))
+
+
+func _strip_dispatched_from_selection() -> void:
+	var kept: Array = []
+	for adv in _selected:
+		if adv != null and not _is_survey_dispatched(adv):
+			kept.append(adv)
+	_selected = kept
 
 
 func _toggle_selection(adv: Resource) -> void:
@@ -715,6 +739,11 @@ func _toggle_selection(adv: Resource) -> void:
 		if _selected.size() > 1:
 			_selected.erase(adv)
 	else:
+		if _is_survey_dispatched(adv):
+			_label_status.text = "%sは調査中のため編成できません" % RosterUiHelper.short_display_name(
+				str(adv.display_name)
+			)
+			return
 		if _selected.size() < GameState.ACTIVE_PARTY_SIZE:
 			_selected.append(adv)
 	_sync_formation_slots_from_selection()
@@ -748,6 +777,13 @@ func _apply_active_pick_with_roster(adv: Resource) -> void:
 		_apply_formation_rows_from_slots()
 		_label_status.text = "パーティ内の並びを入れ替えました"
 	else:
+		if _is_survey_dispatched(adv):
+			_label_status.text = "%sは調査中のため編成できません" % RosterUiHelper.short_display_name(
+				str(adv.display_name)
+			)
+			_rebuild_active_party_row()
+			_rebuild_roster_grid()
+			return
 		if current != null:
 			_selected.erase(current)
 		if not _selected.has(adv):
@@ -816,6 +852,10 @@ func _on_save_pressed() -> void:
 	_sync_formation_slots_from_selection()
 	_apply_formation_rows_from_slots()
 	var party: Array = _ordered_party_from_formation()
+	var reject: String = GameState.active_party_reject_reason(party)
+	if not reject.is_empty():
+		_label_status.text = reject
+		return
 	if not GameState.set_active_party(party):
 		_label_status.text = "編成の変更に失敗しました（1〜%d名・重複不可）" % GameState.ACTIVE_PARTY_SIZE
 		return

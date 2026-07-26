@@ -2,7 +2,7 @@ class_name HubSimpleGuideOverlay
 extends CanvasLayer
 
 ## はじめから初回のみ — 拠点上の簡易ガイド（P3-UI-HUB-GUIDE-001）。
-## 案内役＝調査室スタッフ（ニーナ／ノノカ）。
+## 案内役＝記録官ニーナ。
 
 signal dismissed
 
@@ -14,8 +14,6 @@ const BG_PATH: String = "res://assets/ui/UI_BG_HubSimpleGuide.png"
 const PANEL_MIN: Vector2 = Vector2(700, 560)
 ## 手引きヘッダの顔アイコン（正方形 ICO）。
 const FACE_ICON_PX: float = 88.0
-## 画面右下の立ちドット。
-const NINA_DOT_PX: float = 200.0
 ## 背景フレームの 9-slice 余白（テクスチャ縁の装飾）。
 const BG_TEX_MARGIN: int = 56
 ## 左のはみ出し防止のため内側余白を厚めにし、折り返し幅を短くする。
@@ -30,13 +28,7 @@ const INK_GOLD: Color = Color(0.36, 0.20, 0.05, 1.0)
 const GUIDE_FACES: Array[Dictionary] = [
 	{
 		"id": "nina",
-		"label": "ニーナ",
 		"icon_path": "res://assets/npc/ICO_NPC_Nina.png",
-	},
-	{
-		"id": "nonoka",
-		"label": "ノノカ",
-		"icon_path": "res://assets/npc/ICO_NPC_Nonoka.png",
 	},
 ]
 
@@ -66,7 +58,7 @@ const PAGES: Array[Dictionary] = [
 		"title": "3. 調査室で研究",
 		"body": (
 			"拠点に戻ったら、調査室にも立ち寄ってください。\n\n"
-			+ "わたしたち（記録官ニーナと研究員ノノカ）が調査の手伝いをします。"
+			+ "記録官のわたしが調査の手伝いをします。"
 			+ "ダンジョンの研究を進めると、図鑑が厚くなり、"
 			+ "調査の進捗に応じた報酬も受け取れます。\n\n"
 			+ "現場の体験と机の記録——両方あって、はじめて「調査」です。"
@@ -87,9 +79,9 @@ const PAGES: Array[Dictionary] = [
 		"title": "5. 展示室で自慢",
 		"body": (
 			"最後に——展示室です。\n\n"
-			+ "お気に入りのキャラを拠点の顔として飾れます。"
+			+ 			"お気に入りのキャラを拠点の顔として飾れます。"
 			+ "調査の合間に、隊の自慢を並べてみてください。\n\n"
-			+ "以上が、ニーナとノノカからの手引きです。"
+			+ "以上が、記録官ニーナからの手引きです。"
 			+ "困ったらまた声をかけてください。詳細は図鑑と現地で——いきましょう！"
 		),
 	},
@@ -103,7 +95,6 @@ var _body_label: Label
 var _page_label: Label
 var _next_btn: Button
 var _skip_btn: Button
-var _nina_dot: TextureRect
 var _tween: Tween
 ## デバッグ再演時は閉じてもフラグを立てない。
 var _preview_only: bool = false
@@ -177,7 +168,7 @@ func _build() -> void:
 	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	margin.add_child(inner)
 
-	## ヘッダ: ニーナ／ノノカのアイコン＋肩書き。
+	## ヘッダ: ニーナのアイコン＋肩書き。
 	var header := HBoxContainer.new()
 	header.add_theme_constant_override("separation", 14)
 	header.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -201,7 +192,7 @@ func _build() -> void:
 	header.add_child(header_col)
 
 	var eyebrow := Label.new()
-	eyebrow.text = "ニーナ＆ノノカの手引き"
+	eyebrow.text = "記録官ニーナの手引き"
 	eyebrow.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	eyebrow.autowrap_mode = TextServer.AUTOWRAP_OFF
 	eyebrow.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -209,7 +200,7 @@ func _build() -> void:
 	header_col.add_child(eyebrow)
 
 	var name_line := Label.new()
-	name_line.text = "記録官 ニーナ ／ 研究員 ノノカ"
+	name_line.text = "記録官 ニーナ"
 	name_line.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	name_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	name_line.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -256,38 +247,16 @@ func _build() -> void:
 	_next_btn.pressed.connect(_on_next_pressed)
 	btn_row.add_child(_next_btn)
 
-	## 画面右下にニーナのドット立ち（パネル外・サイズ大きめ）。
-	_nina_dot = TextureRect.new()
-	_nina_dot.name = "NinaDot"
-	_nina_dot.custom_minimum_size = Vector2(NINA_DOT_PX, NINA_DOT_PX)
-	_nina_dot.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_nina_dot.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_nina_dot.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	_nina_dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_nina_dot.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	_nina_dot.offset_left = -NINA_DOT_PX - 16.0
-	_nina_dot.offset_top = -NINA_DOT_PX - 24.0
-	_nina_dot.offset_right = -16.0
-	_nina_dot.offset_bottom = -24.0
-	_nina_dot.texture = _load_nina_dot()
-	add_child(_nina_dot)
-
 	visible = false
 
 
 func _make_guide_face_icon(face: Dictionary) -> Control:
-	var col := VBoxContainer.new()
-	col.add_theme_constant_override("separation", 4)
-	col.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	col.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
 	var host := Control.new()
 	host.custom_minimum_size = Vector2(FACE_ICON_PX, FACE_ICON_PX)
 	host.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	host.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	host.clip_contents = true
 	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	col.add_child(host)
 
 	var tex: Texture2D = _load_icon_or_null(str(face.get("icon_path", "")))
 	if tex != null:
@@ -301,14 +270,7 @@ func _make_guide_face_icon(face: Dictionary) -> Control:
 		host.add_child(icon)
 	else:
 		host.add_child(_make_missing_icon_badge())
-
-	var name_l := Label.new()
-	name_l.text = str(face.get("label", "？"))
-	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	UiTypography.apply_display(name_l, 14, INK_META, 0)
-	col.add_child(name_l)
-	return col
+	return host
 
 
 func _make_missing_icon_badge() -> Control:
@@ -355,13 +317,6 @@ func _panel_bg_style() -> StyleBox:
 	return sb
 
 
-func _load_nina_dot() -> Texture2D:
-	var tex: Texture2D = _IntroUiAssets.load_tex(_IntroUiAssets.NINA_DOT)
-	if tex == null:
-		tex = _IntroUiAssets.load_tex(_IntroUiAssets.NINA_ICON)
-	return tex
-
-
 func _refresh_page() -> void:
 	var page: Dictionary = PAGES[_page_index]
 	_title_label.text = str(page.get("title", ""))
@@ -381,7 +336,6 @@ func _play_intro() -> void:
 	_panel.modulate.a = 0.0
 	_panel.scale = Vector2(0.86, 0.86)
 	_panel.pivot_offset = PANEL_MIN * 0.5
-	_nina_dot.modulate.a = 0.0
 	if _tween != null and _tween.is_valid():
 		_tween.kill()
 	_tween = create_tween()
@@ -389,7 +343,6 @@ func _play_intro() -> void:
 	_tween.parallel().tween_property(_panel, "scale", Vector2(1.04, 1.04), 0.24).set_trans(
 		Tween.TRANS_BACK
 	).set_ease(Tween.EASE_OUT)
-	_tween.parallel().tween_property(_nina_dot, "modulate:a", 1.0, 0.22)
 	_tween.chain().tween_property(_panel, "scale", Vector2.ONE, 0.1)
 
 

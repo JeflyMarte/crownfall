@@ -130,6 +130,9 @@ func _play_outcome_bgm() -> void:
 
 
 func _maybe_show_content_unlock() -> void:
+	## 章クリア加入ストーリーがあるときは拠点でニーナ功績の後に出す。
+	if GameState.pending_clear_nina_merit:
+		return
 	const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
 	_ContentUnlockNotice.show_pending_on(self)
 

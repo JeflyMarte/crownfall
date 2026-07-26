@@ -217,6 +217,7 @@ theme_override_font_sizes/font_size = 13
 layout_mode = 2
 
 [node name="CurrencyStrip" type="PanelContainer" parent="HubView"]
+visible = false
 layout_mode = 1
 offset_left = 12.0
 offset_top = 868.0
@@ -231,9 +232,9 @@ alignment = 1
 [node name="DailyMissionPanel" type="PanelContainer" parent="HubView"]
 layout_mode = 1
 offset_left = 12.0
-offset_top = 956.0
+offset_top = 868.0
 offset_right = 708.0
-offset_bottom = 1192.0
+offset_bottom = 1104.0
 
 [node name="DailyVBox" type="VBoxContainer" parent="HubView/DailyMissionPanel"]
 layout_mode = 2

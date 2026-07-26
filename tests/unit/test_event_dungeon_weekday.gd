@@ -5,8 +5,15 @@ extends GutTest
 const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
 
 
+func before_each() -> void:
+	_EventDungeonSchedule.clear_debug_weekday_override()
+	GameState.debug_full_unlock = false
+	GameState.event_dungeon_attempts.clear()
+
+
 func after_each() -> void:
 	_EventDungeonSchedule.clear_debug_weekday_override()
+	GameState.debug_full_unlock = false
 	GameState.event_dungeon_attempts.clear()
 
 

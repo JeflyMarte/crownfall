@@ -189,33 +189,39 @@ theme_override_constants/separation = 3
 
 [node name="LabelFeaturedName" type="Label" parent="MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo"]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.95, 0.84, 0.4, 1)
 theme_override_font_sizes/font_size = 17
 text = "—"
-autowrap_mode = 3
-max_lines_visible = 1
+autowrap_mode = 1
+max_lines_visible = 2
 
 [node name="LabelFeaturedFlavor" type="Label" parent="MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo"]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.72, 0.7, 0.62, 1)
 theme_override_font_sizes/font_size = 12
 text = ""
-autowrap_mode = 3
+autowrap_mode = 1
 max_lines_visible = 2
 
 [node name="LabelFeaturedMeta" type="Label" parent="MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo"]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.78, 0.74, 0.6, 1)
 theme_override_font_sizes/font_size = 14
 text = "推奨Lv —"
-autowrap_mode = 3
+autowrap_mode = 1
 max_lines_visible = 2
 
 [node name="LabelFeaturedDiscovery" type="Label" parent="MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo"]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.6, 0.82, 0.78, 1)
 theme_override_font_sizes/font_size = 14
 text = "発見率 0%"
+autowrap_mode = 1
+max_lines_visible = 2
 
 [node name="FeaturedDropRow" type="HBoxContainer" parent="MainColumn/FeaturedPanel/FeaturedVBox"]
 layout_mode = 2
@@ -264,7 +270,8 @@ text = "深層"
 layout_mode = 2
 size_flags_vertical = 3
 custom_minimum_size = Vector2(0, 120)
-horizontal_scroll_mode = 0
+horizontal_scroll_mode = 3
+clip_contents = true
 
 [node name="ListVBox" type="VBoxContainer" parent="MainColumn/ScrollList"]
 layout_mode = 2

@@ -31,6 +31,7 @@ SHEET_RES = "res://assets/dungeon/mourngate/PET_Jack_Sheet.png"
 
 # game anim → (keywords, preferred facings)
 # Idle zip は south（正面）のみ → 戦闘 idle は味方CHR同様、横向き walk を使う。
+# UI 正面 Idle は別途 `assets/characters/pet_jack/idle_*.png`（tools/import_pet_ui_idle.py）。
 ANIM_SPEC: list[tuple[str, bool, tuple[str, ...], tuple[str, ...]]] = [
 	("idle", True, ("steps_forward", "rhythmic_gait", "walk"), ("north-east", "north", "east", "south-east")),
 	("attack", False, ("attack_animation", "attack"), ("north-east", "north", "south-east", "east")),

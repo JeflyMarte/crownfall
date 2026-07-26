@@ -42,10 +42,13 @@ const GACHA_HELPERS_PLAYABLE: bool = true
 const SUB_STAGES_PLAYABLE: bool = true
 ## 図鑑「実績」タブを表示する（P3-CODEX-ACHIEVE-OMIT）。false=UI非表示・データ／Save 残置。
 const CODEX_ACHIEVE_PLAYABLE: bool = false
+## 図鑑「ダンジョン」タブを表示する（P3-CODEX-DG-OMIT-001）。false=UI非表示・データ残置。
+const CODEX_DUNGEON_PLAYABLE: bool = false
 const RESOURCE_STAGES_PATH: String = "res://resources/stages/"
 const COMBAT_TICK_INTERVAL: float = 1.5
 const DEFAULT_PLAYER_SKILL_ID: String = "slash_attack"
 ## 1キャラが装備できるスキル数（P3-COMBAT-GAUGE-001: 1本。旧 P3-D077=2）。
+## ペットも同枠（P3-PET-SKILL-001）。
 const MAX_EQUIPPED_SKILLS: int = 1
 ## 必殺ゲージ上限（P3-COMBAT-GAUGE-001）。
 const ULTIMATE_CHARGE_MAX: float = 100.0

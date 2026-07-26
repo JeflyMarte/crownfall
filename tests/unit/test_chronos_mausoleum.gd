@@ -9,11 +9,13 @@ const DID := "chronos_mausoleum"
 func before_each() -> void:
 	_Sched.clear_debug_weekday_override()
 	_Sched.clear_debug_unix_override()
+	GameState.debug_full_unlock = false
 
 
 func after_each() -> void:
 	_Sched.clear_debug_weekday_override()
 	_Sched.clear_debug_unix_override()
+	GameState.debug_full_unlock = false
 
 
 func test_tres_shape() -> void:
@@ -74,6 +76,14 @@ func test_debug_always_open() -> void:
 	_Sched.set_debug_weekday_override(-2)
 	_Sched.set_debug_unix_override(_unix_for_jst(2026, 7, 26, 14, 0))
 	assert_true(_Sched.is_open_now(DID))
+
+
+func test_debug_full_unlock_always_open() -> void:
+	## タイトル「デバッグ」フル所持と同じフラグで時間帯を無視。
+	GameState.debug_full_unlock = true
+	_Sched.set_debug_unix_override(_unix_for_jst(2026, 7, 26, 14, 0))
+	assert_true(_Sched.is_open_now(DID))
+	assert_eq(_Sched.open_schedule_label(DID), "デバッグ常時開放")
 
 
 func test_field_and_banner_assets() -> void:

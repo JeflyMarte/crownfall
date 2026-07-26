@@ -69,6 +69,8 @@ func _eyebrow_for_kind(kind: String) -> String:
 			return "章解放"
 		"pet":
 			return "仲間解放"
+		"survey_complete":
+			return "完全調査報酬"
 		"dungeon_tier":
 			return "危険度解放"
 		_:

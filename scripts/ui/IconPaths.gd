@@ -569,6 +569,7 @@ const ICON_MAP: Dictionary = {
 	"lore:frostwall_asten_margin":        "res://assets/ui/codex/ICO_CDX_LF_AncientRecord.png",
 	"currency:arcane_crystal":     "res://assets/ui/batch2/ICO_Currency_Arcanite.png",
 	"ticket:ticket_gacha_free":    "res://assets/ui/tickets/ICO_Ticket_GachaFree.png",
+	"ticket:ticket_lb_star2":      "res://assets/ui/tickets/ICO_Ticket_LimitBreakStar2.png",
 	"ticket:ticket_lb_star3":      "res://assets/ui/tickets/ICO_Ticket_LimitBreakStar3.png",
 	"ticket:ticket_lb_star4":      "res://assets/ui/tickets/ICO_Ticket_LimitBreakStar4.png",
 	# 下ナビ専用（64x64・余白統一）

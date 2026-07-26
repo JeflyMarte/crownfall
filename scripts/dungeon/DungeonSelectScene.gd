@@ -228,11 +228,21 @@ func _ready() -> void:
 	_featured_panel.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD_ACTIVE)
 	)
-	_featured_panel.clip_contents = false
+	## 横はみ出し防止: 子 Label の自然幅で Featured／画面全体が広がらないよう clip。
+	_featured_panel.clip_contents = true
+	_featured_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	## DISABLED(0) だと子の最小幅に Scroll が追従して画面全体が横に広がる。
+	_scroll_list.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	_scroll_list.clip_contents = true
+	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var main_col: Control = $MainColumn as Control
+	if main_col != null:
+		main_col.clip_contents = true
 	_footer_panel.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
 	)
 	_apply_typography()
+	_constrain_featured_text_labels()
 	_setup_enter_confirm()
 	_refresh_all()
 	call_deferred("_maybe_show_content_unlock")
@@ -356,6 +366,25 @@ func _apply_typography() -> void:
 	UiTypography.apply_body(_label_featured_discovery, UiTypography.SIZE_BODY_SMALL, COLOR_CLEAR)
 	UiTypography.apply_body(_label_bonus_value, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_caption(_label_bonus_timer)
+
+
+## Featured 文言は親幅に追従させる（日本語 WORD_SMART は空白無し1語扱いで最小幅＝全文幅になり画面を横に押し広げる）。
+## clip_text は付けない（幅未確定フレームで全文が消えることがある。折り返し＋min.x=0 で横伸びだけ抑止）。
+func _constrain_featured_text_labels() -> void:
+	var labels: Array[Label] = [
+		_label_featured_name,
+		_label_featured_flavor,
+		_label_featured_meta,
+		_label_featured_discovery,
+	]
+	for label in labels:
+		if label == null:
+			continue
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+		label.clip_text = false
+		label.custom_minimum_size.x = 0.0
+		label.visible = true
 
 func _refresh_all() -> void:
 	_featured_dungeon_id = _resolve_featured_dungeon_id()
@@ -676,9 +705,10 @@ func _make_stage_card(stage: Resource) -> Control:
 	line.bbcode_enabled = true
 	line.fit_content = true
 	line.scroll_active = false
-	line.autowrap_mode = TextServer.AUTOWRAP_OFF
+	## OFF＋fit_content だと最小幅＝全文幅で一覧が横に広がる。任意折り返し＋min.x=0。
+	line.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	line.custom_minimum_size.y = UiTypography.SIZE_BODY_SMALL + 6
+	line.custom_minimum_size = Vector2(0, UiTypography.SIZE_BODY_SMALL + 6)
 	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_apply_stage_list_rich_text(line, unlocked)
 	line.text = _stage_list_line_bbcode(stage, unlocked)
@@ -975,8 +1005,9 @@ func _make_event_tab_placeholder() -> Control:
 	var label := Label.new()
 	label.text = "開催中のイベントダンジョンはありません"
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	label.custom_minimum_size.x = 0.0
 	UiTypography.apply_body(label, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_SUB)
 	margin.add_child(label)
 	return margin
@@ -1098,43 +1129,19 @@ func _get_biome_banner_texture(dungeon_id: String) -> Texture2D:
 		return null
 	return _load_texture_flexible(path)
 
-func _biome_banner_header_size(banner_tex: Texture2D, for_width: float = BIOME_BANNER_LIST_WIDTH) -> Vector2:
+## 一覧・Featured ともデザイン幅基準の高さのみ（実幅追従禁止）。
+## host.size.x 連動＋resized 再計算は押下のたびにバナーが伸びる原因になる。
+func _biome_banner_header_size(banner_tex: Texture2D) -> Vector2:
 	if banner_tex == null:
 		return BIOME_HEADER_MIN_SIZE
 	var tw: int = banner_tex.get_width()
 	var th: int = banner_tex.get_height()
 	if tw <= 0 or th <= 0:
 		return BIOME_HEADER_MIN_SIZE
-	var width: float = for_width if for_width > 1.0 else BIOME_BANNER_LIST_WIDTH
-	var height: float = width * float(th) / float(tw)
+	var height: float = BIOME_BANNER_LIST_WIDTH * float(th) / float(tw)
 	height = clampf(height, BIOME_BANNER_HEIGHT_MIN, BIOME_BANNER_HEIGHT_MAX)
+	## x は必ず 0。テクスチャ実寸や実幅を min に入れると Scroll／画面が横に広がる。
 	return Vector2(0.0, height)
-
-## 実幅に合わせてバナー高さを縦横比どおりに直す（幅広のまま高さ固定だとネームプレートが潰れ、タイトルが横伸びして見える）。
-func _sync_biome_banner_host_height(host: Control, banner_tex: Texture2D) -> void:
-	if host == null or banner_tex == null or not is_instance_valid(host):
-		return
-	var width: float = host.size.x
-	if width <= 1.0:
-		## レイアウト前は次フレームで再試行。
-		_sync_biome_banner_host_height.call_deferred(host, banner_tex)
-		return
-	var next_min: Vector2 = _biome_banner_header_size(banner_tex, width)
-	if not host.custom_minimum_size.is_equal_approx(next_min):
-		host.custom_minimum_size = next_min
-	if not host.resized.is_connected(_on_biome_banner_host_resized.bind(host, banner_tex)):
-		host.resized.connect(_on_biome_banner_host_resized.bind(host, banner_tex))
-
-
-func _on_biome_banner_host_resized(host: Control, banner_tex: Texture2D) -> void:
-	if host == null or banner_tex == null or not is_instance_valid(host):
-		return
-	var width: float = host.size.x
-	if width <= 1.0:
-		return
-	var next_min: Vector2 = _biome_banner_header_size(banner_tex, width)
-	if not host.custom_minimum_size.is_equal_approx(next_min):
-		host.custom_minimum_size = next_min
 
 func _banner_hides_title(dungeon_id: String) -> bool:
 	return bool(BIOME_BANNER_TITLE_BAKED.get(dungeon_id, false))
@@ -1161,20 +1168,16 @@ func _make_biome_title_label(data: Resource, unlocked: bool) -> Control:
 	margin.add_child(label)
 	return margin
 
-## バナー名は FULL_RECT 埋め込み禁止（実機でグリフが横方向に潰れて見える）。自然サイズ＋中央寄せ。
+## バナー名は FULL_RECT 埋め込み禁止（実機でグリフが横方向に潰れて見える）。
+## 中央寄せ＋自然サイズ。clip_text / 親 clip_contents と併用するとサイズ0で文字が消える（再発防止）。
 func _make_banner_overlay_title(data: Resource, unlocked: bool, dungeon_id: String) -> Label:
 	var title := Label.new()
 	title.text = _dungeon_card_title(data, unlocked)
-	title.set_anchors_preset(Control.PRESET_CENTER)
-	title.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	title.grow_vertical = Control.GROW_DIRECTION_BOTH
-	## ネームプレート中央よりわずかに上へ（見出しフォントのアセント分は下へずらして相殺）。
-	title.offset_top = -2.0
-	title.offset_bottom = -6.0
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	title.autowrap_mode = TextServer.AUTOWRAP_OFF
 	title.max_lines_visible = 1
+	## 中央アンカー Label は clip_text 禁止（サイズ0のまま全文がクリップされて消える）。
 	title.clip_text = false
 	title.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1189,6 +1192,13 @@ func _make_banner_overlay_title(data: Resource, unlocked: bool, dungeon_id: Stri
 	title.add_theme_constant_override("shadow_offset_x", 1)
 	title.add_theme_constant_override("shadow_offset_y", 1)
 	title.add_theme_constant_override("shadow_outline_size", 5)
+	## 最小サイズで中央配置（PRESET_CENTER のみだと size=(0,0) のまま描画されないことがある）。
+	title.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
+	## ネームプレート中央よりわずかに上へ。
+	title.offset_top -= 2.0
+	title.offset_bottom -= 6.0
+	title.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	title.grow_vertical = Control.GROW_DIRECTION_BOTH
 	return title
 
 func _sync_featured_banner(dungeon_id: String) -> void:
@@ -1200,7 +1210,10 @@ func _sync_featured_banner(dungeon_id: String) -> void:
 		_featured_banner_host.custom_minimum_size = Vector2.ZERO
 		return
 	_featured_banner_host.visible = true
+	_featured_banner_host.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_featured_banner_host.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	## オーバーレイタイトルを切らない（バナー本体の TextureRect は FULL_RECT で収まる）。
+	_featured_banner_host.clip_contents = false
 	_featured_banner_host.custom_minimum_size = _biome_banner_header_size(banner_tex)
 	var banner := TextureRect.new()
 	banner.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -1211,16 +1224,13 @@ func _sync_featured_banner(dungeon_id: String) -> void:
 	_featured_banner_host.add_child(banner)
 	## 一覧バナーと同様、画像上にダンジョン名を重ねる（焼き込み無しの雰囲気BG向け）。
 	if _banner_hides_title(dungeon_id):
-		_sync_biome_banner_host_height.call_deferred(_featured_banner_host, banner_tex)
 		return
 	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
 	if data == null:
-		_sync_biome_banner_host_height.call_deferred(_featured_banner_host, banner_tex)
 		return
 	var unlocked: bool = GameState.is_dungeon_unlocked(dungeon_id)
 	var title: Label = _make_banner_overlay_title(data, unlocked, dungeon_id)
 	_featured_banner_host.add_child(title)
-	_sync_biome_banner_host_height.call_deferred(_featured_banner_host, banner_tex)
 
 func _banner_title_font_size(dungeon_id: String) -> int:
 	## 無限／長いイベント名はネームプレート内に収まるよう一段小さくする。
@@ -1242,6 +1252,8 @@ func _make_biome_banner_header(
 	var root := Control.new()
 	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	root.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	## オーバーレイタイトル（中央・自然サイズ）を切らない。横はみ出しは Scroll SHOW_NEVER 側で抑止。
+	root.clip_contents = false
 	root.custom_minimum_size = _biome_banner_header_size(banner_tex)
 	if not unlocked:
 		root.modulate = Color(0.72, 0.72, 0.76, 1.0)
@@ -1283,7 +1295,6 @@ func _make_biome_banner_header(
 	header_btn.pressed.connect(_on_biome_accordion_pressed.bind(dungeon_id))
 	UiTypography.apply_button(header_btn, is_featured or is_expanded)
 	root.add_child(header_btn)
-	_sync_biome_banner_host_height.call_deferred(root, banner_tex)
 	return root
 
 func _make_biome_text_header(
@@ -1360,9 +1371,9 @@ func _make_biome_card(data: Resource) -> PanelContainer:
 	title.bbcode_enabled = true
 	title.fit_content = true
 	title.scroll_active = false
-	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.custom_minimum_size.y = UiTypography.SIZE_BODY_SMALL + 6
+	title.custom_minimum_size = Vector2(0, UiTypography.SIZE_BODY_SMALL + 6)
 	_apply_stage_list_rich_text(title, unlocked)
 	title.text = _dungeon_list_line_bbcode(data, unlocked)
 	info.add_child(title)
@@ -1378,9 +1389,11 @@ func _make_biome_card(data: Resource) -> PanelContainer:
 	if unlocked and not str(data.flavor_text).is_empty():
 		var flavor := Label.new()
 		flavor.text = str(data.flavor_text)
-		flavor.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		flavor.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		flavor.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 		flavor.max_lines_visible = 2
 		flavor.clip_text = true
+		flavor.custom_minimum_size.x = 0.0
 		flavor.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		UiTypography.apply_caption(flavor, UiTypography.COLOR_MUTED)
 		info.add_child(flavor)
@@ -1439,9 +1452,9 @@ func _dungeon_card_title(data: Resource, unlocked: bool = true) -> String:
 	if not unlocked:
 		return "？"
 	var title: String = str(data.display_name)
-	## 配下章（ツリー）が現行難易度ですべてクリア済みなら親名に ✅。
+	## 絵文字（✅等）禁止。本文フォントで確実に出る「済」。
 	if _is_biome_fully_cleared_for_ui(str(data.id)):
-		title += " ✅"
+		title += " 済"
 	return title
 
 ## 親 Biome の配下章がすべてクリア済みか（イベント／メイン共通。章無しは Biome クリア）。

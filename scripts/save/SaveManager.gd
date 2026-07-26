@@ -29,6 +29,7 @@ func save_game() -> void:
 		"hub_survey_cycle": GameState.hub_survey_cycle.duplicate(true),
 		"hub_survey_room_daily": GameState.hub_survey_room_daily.duplicate(true),
 		"hub_survey_achievements_claimed": GameState.hub_survey_achievements_claimed.duplicate(true),
+		"hub_survey_complete_claimed": GameState.hub_survey_complete_claimed.duplicate(true),
 		"current_dungeon_id": GameState.current_dungeon_id,
 		"discovery_registry": GameState.discovery_registry,
 		"material_inventory": GameState.material_inventory.duplicate(),
@@ -159,6 +160,8 @@ func _migrate_save_v9_to_v10(data: Dictionary) -> Dictionary:
 		data["hub_survey_room_daily"] = {}
 	if not data.has("hub_survey_achievements_claimed") or not (data["hub_survey_achievements_claimed"] is Dictionary):
 		data["hub_survey_achievements_claimed"] = {}
+	if not data.has("hub_survey_complete_claimed") or not (data["hub_survey_complete_claimed"] is Dictionary):
+		data["hub_survey_complete_claimed"] = {}
 	return data
 
 
@@ -540,6 +543,10 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.hub_survey_achievements_claimed = (data["hub_survey_achievements_claimed"] as Dictionary).duplicate(true)
 	else:
 		GameState.hub_survey_achievements_claimed = {}
+	if data.has("hub_survey_complete_claimed") and data["hub_survey_complete_claimed"] is Dictionary:
+		GameState.hub_survey_complete_claimed = (data["hub_survey_complete_claimed"] as Dictionary).duplicate(true)
+	else:
+		GameState.hub_survey_complete_claimed = {}
 	if data.has("current_dungeon_id"):
 		GameState.current_dungeon_id = _migrate_dungeon_id(str(data["current_dungeon_id"]))
 	if data.has("current_dungeon_tier"):
@@ -626,6 +633,8 @@ func _apply_save_data(data: Dictionary) -> void:
 	var _PetSystem = preload("res://scripts/pets/PetSystem.gd")
 	_PetSystem.ensure_owned_pets_seeded()
 	_PetSystem.sync_unlocks_from_stage_progress(false)
+	const _SurveyCompleteRewards := preload("res://scripts/survey/SurveyCompleteRewards.gd")
+	_SurveyCompleteRewards.sync_all_pending(false)
 	if GameState.active_pet != null and Constants.is_pet_id(str(GameState.active_pet.id)):
 		_PetSystem.unlock_pet(str(GameState.active_pet.id), false)
 	GameState.ensure_starter_pet()

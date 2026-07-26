@@ -9,8 +9,10 @@ const HEAL_AMOUNT: int = BalanceConfig.ROOM_HEAL_AMOUNT
 const COMBAT_TICK_BASE: float = 1.0
 const AUTO_DELAY_BASE: float = 1.2
 const NON_COMBAT_FLOOR_GRACE_SEC: float = 1.6
+## 戦闘速度（設定 ×1 / ×1.5 / ×2 と揃える）。ヘッダボタンは ×1 と ×2。
 const SPEED_MULT_NORMAL: float = 1.0
-const SPEED_MULT_FAST: float = 1.5
+const SPEED_MULT_MID: float = 1.5
+const SPEED_MULT_FAST: float = 2.0
 const COMBAT_WAIT_GRIND: float = 0.28
 const AUTO_DELAY_GRIND: float = 0.6
 # 味方CHRの「見える体格」を揃える目標高さ（実体=α領域の高さ基準）
@@ -252,11 +254,23 @@ const BOSS_ENEMY_SPRITE_MAP: Dictionary = {
 	"eldion": "res://resources/animation/BOSS_Eldion.tres",
 	"chronos_wave": "res://resources/animation/BOSS_ChronosWave.tres",
 }
-## 体格正規化後の見た目倍率（1.0=標準）。ドットが他雑魚より大きく見える種を抑える。
+## 体格正規化後の見た目倍率（1.0=標準）。ドットが他雑魚より大きく／小さく見える種を補正。
 const ENEMY_BODY_SCALE_MULT: Dictionary = {
 	"crystal_hedgehog": 0.85,
 	"rune_roach": 0.85,
+	## エリートは基準132pxだと雑魚と同寸で貧弱。飛竜・大型はさらに強調。
+	"mist_wyvern": 1.42,
+	"mirror_boa": 1.30,
+	"clock_moth": 1.22,
+	"great_claw": 1.30,
+	"nightfen": 1.28,
+	"ninja_octopus": 1.28,
+	"anchor_lord": 1.32,
+	"greios": 1.30,
+	"polar_tricera": 1.28,
 }
+## LOG_ENEMY_TIER_BY_ID=elite かつ個別倍率未指定時の既定ブースト。
+const ELITE_BODY_SCALE_MULT_DEFAULT: float = 1.28
 ## ボス Hard/NM 限定（ノーマルは BOSS_ENEMY_SPRITE_MAP / BOSS_SPRITE_MAP）
 const BOSS_ENEMY_SPRITE_MAP_BY_TIER: Dictionary = {
 	"serdion": {
@@ -290,8 +304,8 @@ const BOSS_SPRITE_MAP_BY_TIER: Dictionary = {
 		2: "res://resources/animation/BOSS_Serdion_Nightmare.tres",
 	},
 	"chronos_mausoleum": {
-		1: "res://resources/animation/BOSS_ChronosWave.tres",
-		2: "res://resources/animation/BOSS_ChronosWave.tres",
+		1: "res://resources/animation/BOSS_Serdion_Hard.tres",
+		2: "res://resources/animation/BOSS_Serdion_Nightmare.tres",
 	},
 	"storm_crown_ruins": {
 		1: "res://resources/animation/BOSS_Serdion_Hard.tres",
@@ -774,6 +788,15 @@ const SWARM_X_MIN_RATIO: float = 0.48
 const SWARM_X_MAX_RATIO: float = 0.82
 ## 群れ時の見た目縮小（ドット／HPバー／名前）
 const SWARM_DISPLAY_SCALE: float = 0.82
+## フロストリッジ系は単体時のみ大きめ（群れ時は SWARM_DISPLAY_SCALE のみ）。
+const FROSTRIDGE_SOLO_DISPLAY_SCALE: float = 1.28
+const FROSTRIDGE_SOLO_DUNGEON_IDS: Dictionary = {
+	"frostridge": true,
+	"abyss_frostridge": true,
+	"north_reach": true,
+	"red_forge_depths": true,
+	"frostwall_path": true,
+}
 const SWARM_BAR_HALF_W: float = 26.0
 const SWARM_BAR_HEIGHT: float = 8.0
 const SWARM_NAME_FONT_SIZE: int = 13
@@ -820,8 +843,14 @@ const LoreRoomPresentationScript: Script = preload("res://scripts/dungeon/LoreRo
 const EventPresentationScript: Script = preload("res://scripts/dungeon/EventPresentation.gd")
 const PartyLogColorsScript: Script = preload("res://scripts/ui/PartyLogColors.gd")
 const ExpRunSnapshotScript: Script = preload("res://scripts/result/ExpRunSnapshot.gd")
-const BOSS_POSITION_RATIO: Vector2 = Vector2(0.688, 0.25)
-const BOSS_BODY_TARGET_PX: float = 360.0
+## 足元比率。低すぎると頭が Header／上端バーへ食い込む。
+const BOSS_POSITION_RATIO: Vector2 = Vector2(0.688, 0.34)
+## 正規化後の長辺目標。360 だと戦場高を超え Header まで貫通する。
+const BOSS_BODY_TARGET_PX: float = 280.0
+## 体格正規化後の見た目倍率（1.0=標準）。セルが大きい種だけ追加抑制。
+const BOSS_BODY_SCALE_MULT: Dictionary = {
+	"serdion": 0.92,
+}
 const COMBAT_UI_Z: int = 40
 const COMBAT_OVERLAY_Z: int = 25
 const PARTY_CARD_ICON_PX: float = 72.0
@@ -851,6 +880,8 @@ var _turn_order_items: Array = []  # [{kind, index, node, icon, badge}]
 var _label_now_playing: Label
 var _combat_now_playing_active: bool = false
 const TURN_ORDER_SIDE_ICON_PX: float = 52.0
+## 敵側（右列）は少し大きく（可読性）。味方左列は TURN_ORDER_SIDE_ICON_PX のまま。
+const TURN_ORDER_ENEMY_ICON_PX: float = 64.0
 const TURN_ORDER_SIDE_FRAME_PAD: float = 5.0
 const TURN_ORDER_SIDE_GAP: float = 4.0
 const TURN_ORDER_SIDE_MARGIN: float = 6.0
@@ -866,8 +897,9 @@ func _ready() -> void:
 	$AutoProgressTimer.timeout.connect(_on_auto_progress_timeout)
 	$MainVBox/HeaderBar/ButtonMenu.pressed.connect(_on_menu_button_pressed)
 	$MainVBox/HeaderBar/ButtonSpeedX1.pressed.connect(_on_speed_x1_pressed)
+	$MainVBox/HeaderBar/ButtonSpeedX15.pressed.connect(_on_speed_x15_pressed)
 	$MainVBox/HeaderBar/ButtonSpeedX2.pressed.connect(_on_speed_x2_pressed)
-	_ensure_fast_run_button()
+	_remove_fast_run_button()
 	$MainVBox/HeaderBar/ButtonStop.pressed.connect(_on_stop_pressed)
 	_menu_overlay.get_node("MenuVBox/ButtonFinishFromMenu").pressed.connect(_on_menu_finish_pressed)
 	_menu_overlay.get_node("MenuVBox/ButtonCloseMenu").pressed.connect(_on_close_menu_pressed)
@@ -903,6 +935,11 @@ func _ready() -> void:
 	$MainVBox/BattlefieldArea.resized.connect(_on_battlefield_resized)
 	_apply_scene_typography()
 	_setup_dungeon_header_icon()
+	_apply_dungeon_chrome_safe_area()
+	_ensure_menu_overlay_layer()
+	_ensure_pause_overlay_layer()
+	_harden_header_menu_button()
+	_transition_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	call_deferred("_setup_combat_sprite_layer")
 	var dungeon_id: String = GameState.get_active_dungeon_id()
 	if Constants.SUB_STAGES_PLAYABLE:
@@ -1659,7 +1696,9 @@ func _finish_dungeon_dive_intro() -> void:
 	_dive_intro_tween = null
 	if _dive_intro_panel != null and is_instance_valid(_dive_intro_panel):
 		_dive_intro_panel.visible = false
+		_dive_intro_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_transition_overlay.modulate.a = 0.0
+	_transition_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_update_run_hud()
 	_transition_to_current_room()
 
@@ -1699,8 +1738,22 @@ func _room_transition_timing(room_type: int) -> Dictionary:
 
 
 func _play_battle_bgm() -> void:
+	## 影狩戦のみ専用曲（イベントDG／放浪遭遇）。他戦闘では Biome 既定。
+	if _combat_has_shadow_stalker() and _BgmCatalog.is_available(_BgmCatalog.ID_SHADOW_HUNT):
+		AudioManager.play_bgm(_BgmCatalog.ID_SHADOW_HUNT)
+		return
 	var dungeon_id: String = GameState.get_active_dungeon_id()
 	AudioManager.play_bgm(_BgmCatalog.battle_bgm_for_dungeon(dungeon_id))
+
+
+func _combat_has_shadow_stalker() -> bool:
+	if not $CombatController.is_in_combat:
+		return false
+	for i: int in $CombatController.swarm_data.size():
+		var data: Resource = $CombatController.get_enemy_data_at(i)
+		if _WanderingEnemyConfig.is_shadow_stalker(data):
+			return true
+	return false
 
 
 func _play_boss_bgm() -> void:
@@ -2271,14 +2324,18 @@ func _apply_scene_typography() -> void:
 	UiTypography.apply_display(_label_discovery_text, UiTypography.SIZE_BODY_SMALL)
 	UiTypography.apply_button($MainVBox/HeaderBar/ButtonMenu, false)
 	UiTypography.apply_button($MainVBox/HeaderBar/ButtonSpeedX1, false)
+	UiTypography.apply_button($MainVBox/HeaderBar/ButtonSpeedX15, false)
 	UiTypography.apply_button($MainVBox/HeaderBar/ButtonSpeedX2, false)
 	$MainVBox/HeaderBar/ButtonSpeedX1.text = "×1"
-	$MainVBox/HeaderBar/ButtonSpeedX2.text = "×1.5"
+	$MainVBox/HeaderBar/ButtonSpeedX15.text = "×1.5"
+	$MainVBox/HeaderBar/ButtonSpeedX2.text = "×2"
 	$MainVBox/HeaderBar/ButtonSpeedX1.toggle_mode = true
+	$MainVBox/HeaderBar/ButtonSpeedX15.toggle_mode = true
 	$MainVBox/HeaderBar/ButtonSpeedX2.toggle_mode = true
 	UiTypography.apply_button($MainVBox/HeaderBar/ButtonStop, false)
 	UiTypography.apply_button($MainVBox/PartyStatusPanel/PartyStatusVBox/AutoCombatRow/ButtonPause, false)
 	_style_enemy_nameplate(_enemy_nameplate)
+	_style_menu_overlay_buttons()
 
 func _update_hp_bars() -> void:
 	var in_combat: bool = $CombatController.is_in_combat
@@ -3286,40 +3343,15 @@ func _apply_event_outcome(outcome: Dictionary) -> String:
 		_:
 			return "何も起こらなかった"
 
-# ---- 高速周回（P3-D118） ----
+# ---- 高速周回ボタンは廃止（ヘッダは ×1 / ×1.5 / ×2 のみ） ----
 
-func _ensure_fast_run_button() -> void:
+func _remove_fast_run_button() -> void:
+	_fast_run_enabled = false
+	_btn_fast_run = null
 	var header: HBoxContainer = $MainVBox/HeaderBar
-	if header.get_node_or_null("ButtonFastRun") != null:
-		_btn_fast_run = header.get_node("ButtonFastRun")
-		return
-	_btn_fast_run = Button.new()
-	_btn_fast_run.name = "ButtonFastRun"
-	_btn_fast_run.toggle_mode = true
-	var stop_idx: int = header.get_node("ButtonStop").get_index()
-	header.add_child(_btn_fast_run)
-	header.move_child(_btn_fast_run, stop_idx)
-	_btn_fast_run.pressed.connect(_on_fast_run_pressed)
-	_refresh_fast_run_button()
-
-func _on_fast_run_pressed() -> void:
-	var dungeon_id: String = GameState.get_active_dungeon_id()
-	if not CombatFastRun.can_enable(dungeon_id):
-		_fast_run_enabled = false
-		_refresh_fast_run_button()
-		return
-	_fast_run_enabled = _btn_fast_run.button_pressed if _btn_fast_run != null else false
-	if _fast_run_enabled:
-		_apply_combat_grind_speed()
-	_refresh_fast_run_button()
-
-func _refresh_fast_run_button() -> void:
-	if _btn_fast_run == null:
-		return
-	var can_use: bool = CombatFastRun.can_enable(GameState.get_active_dungeon_id())
-	_btn_fast_run.disabled = not can_use
-	_btn_fast_run.button_pressed = _fast_run_enabled and can_use
-	_btn_fast_run.text = "周回ON" if _btn_fast_run.button_pressed else "周回"
+	var existing: Node = header.get_node_or_null("ButtonFastRun")
+	if existing != null:
+		existing.queue_free()
 
 func _try_combat_skip() -> bool:
 	var room_type: int = $DungeonController.current_room_type
@@ -5862,9 +5894,12 @@ func _do_member_basic_attack(member_idx: int) -> void:
 	})
 
 # 必殺技スロットのスキル（ジョブ ultimate_skill_id → 既定 ultimate_strike）。
+# オトモは職なしのため DEFAULT に落ちて撃ててしまうため除外（P3-PET-ULT-OMIT-001）。
 func _get_member_ultimate_skill(member_idx: int) -> Resource:
 	var member: Resource = GameState.get_combatant(member_idx)
 	if member == null:
+		return null
+	if GameState.is_pet_combatant(member_idx) or Constants.is_pet_id(str(member.id)):
 		return null
 	var ult_id: String = Constants.DEFAULT_ULTIMATE_SKILL_ID
 	if not str(member.job_id).is_empty():
@@ -6652,7 +6687,112 @@ func _on_finish_button_pressed() -> void:
 
 # ---- Menu Overlay ----
 
+func _apply_dungeon_chrome_safe_area() -> void:
+	## ノッチ下に ≡ が沈むとタップ不能になるため、実機のみ MainVBox を下げる。
+	if not SafeAreaHelper.should_apply_chrome():
+		return
+	var top: float = SafeAreaHelper.top_inset()
+	var bottom: float = SafeAreaHelper.bottom_inset()
+	var main: Control = $MainVBox
+	main.offset_top = top
+	main.offset_bottom = -bottom
+
+
+func _ensure_menu_overlay_layer() -> void:
+	## TransitionLayer(30) より上へ。メニューが黒幕レイヤの下に隠れて押せないのを防ぐ。
+	if _menu_overlay.get_parent() != null and str(_menu_overlay.get_parent().name) == "MenuLayer":
+		return
+	var layer := CanvasLayer.new()
+	layer.name = "MenuLayer"
+	layer.layer = 40
+	add_child(layer)
+	_menu_overlay.reparent(layer)
+	_menu_overlay.z_index = 0
+	_menu_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	_ensure_menu_settings_button()
+
+
+func _ensure_pause_overlay_layer() -> void:
+	## HPバー(COMBAT_OVERLAY_Z=25)／行動順(30)／脅威バナー(42)より前面へ。
+	## 同ツリーの z_index だけだと一時停止ポップの裏に貫通する。
+	if _pause_overlay.get_parent() != null and str(_pause_overlay.get_parent().name) == "PauseLayer":
+		return
+	var layer := CanvasLayer.new()
+	layer.name = "PauseLayer"
+	layer.layer = 55
+	add_child(layer)
+	_pause_overlay.reparent(layer)
+	_pause_overlay.z_index = 0
+	_pause_overlay.z_as_relative = false
+	_pause_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	_pause_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var dim: ColorRect = _pause_overlay.get_node_or_null("Dimmer") as ColorRect
+	if dim != null:
+		dim.mouse_filter = Control.MOUSE_FILTER_STOP
+		dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+
+func _harden_header_menu_button() -> void:
+	var btn: Button = $MainVBox/HeaderBar/ButtonMenu
+	btn.disabled = false
+	btn.mouse_filter = Control.MOUSE_FILTER_STOP
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.custom_minimum_size = Vector2(64, 48)
+	btn.text = "≡"
+	## テーマ Display フォントに ≡ が無い場合があるため本文フォントを明示。
+	UiTypography.apply_button(btn, false)
+	$MainVBox/HeaderBar.mouse_filter = Control.MOUSE_FILTER_STOP
+
+
+func _ensure_menu_settings_button() -> void:
+	var menu_vbox: VBoxContainer = _menu_overlay.get_node_or_null("MenuVBox") as VBoxContainer
+	if menu_vbox == null:
+		return
+	if menu_vbox.get_node_or_null("ButtonSettingsFromMenu") == null:
+		var btn := Button.new()
+		btn.name = "ButtonSettingsFromMenu"
+		btn.text = "設定"
+		btn.pressed.connect(_on_menu_settings_pressed)
+		menu_vbox.add_child(btn)
+		menu_vbox.move_child(btn, 0)
+	_menu_overlay.offset_top = -120.0
+	_menu_overlay.offset_bottom = 120.0
+	_style_menu_overlay_buttons()
+
+
+func _style_menu_overlay_buttons() -> void:
+	## ≡ メニュー内（設定／リタイア／閉じる）のフォント・サイズを統一。
+	var menu_vbox: VBoxContainer = _menu_overlay.get_node_or_null("MenuVBox") as VBoxContainer
+	if menu_vbox == null:
+		return
+	menu_vbox.add_theme_constant_override("separation", 12)
+	const MENU_BTN_MIN: Vector2 = Vector2(240, 52)
+	for child in menu_vbox.get_children():
+		var btn: Button = child as Button
+		if btn == null:
+			continue
+		btn.custom_minimum_size = MENU_BTN_MIN
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn.focus_mode = Control.FOCUS_NONE
+		UiTypography.apply_button(btn, false)
+		btn.add_theme_font_size_override("font_size", UiTypography.SIZE_BODY)
+
+
+func _on_menu_settings_pressed() -> void:
+	_menu_overlay.visible = false
+	var overlay: CanvasLayer = InGameSettingsOverlay.show_on(self)
+	if overlay == null:
+		return
+	if overlay.has_signal("closed") and not overlay.closed.is_connected(_on_ingame_settings_closed):
+		overlay.closed.connect(_on_ingame_settings_closed)
+
+
+func _on_ingame_settings_closed() -> void:
+	_apply_combat_speed(SettingsPrefs.get_combat_speed_mult())
+
+
 func _on_menu_button_pressed() -> void:
+	_style_menu_overlay_buttons()
 	_menu_overlay.visible = true
 
 func _on_close_menu_pressed() -> void:
@@ -6680,35 +6820,26 @@ func _auto_delay_for_mult(speed_mult: float) -> float:
 	return AUTO_DELAY_BASE / speed_mult
 
 func _refresh_speed_buttons() -> void:
-	var btn_normal: Button = $MainVBox/HeaderBar/ButtonSpeedX1
-	var btn_fast: Button = $MainVBox/HeaderBar/ButtonSpeedX2
-	var is_normal: bool = is_equal_approx(_combat_speed_mult, SPEED_MULT_NORMAL)
-	var is_fast: bool = is_equal_approx(_combat_speed_mult, SPEED_MULT_FAST)
-	btn_normal.button_pressed = is_normal
-	btn_fast.button_pressed = is_fast
-	UiTypography.apply_button(btn_normal, is_normal)
-	UiTypography.apply_button(btn_fast, is_fast)
+	var btn_x1: Button = $MainVBox/HeaderBar/ButtonSpeedX1
+	var btn_x15: Button = $MainVBox/HeaderBar/ButtonSpeedX15
+	var btn_x2: Button = $MainVBox/HeaderBar/ButtonSpeedX2
+	var is_x1: bool = is_equal_approx(_combat_speed_mult, SPEED_MULT_NORMAL)
+	var is_x15: bool = is_equal_approx(_combat_speed_mult, SPEED_MULT_MID)
+	var is_x2: bool = is_equal_approx(_combat_speed_mult, SPEED_MULT_FAST)
+	btn_x1.button_pressed = is_x1
+	btn_x15.button_pressed = is_x15
+	btn_x2.button_pressed = is_x2
+	UiTypography.apply_button(btn_x1, is_x1)
+	UiTypography.apply_button(btn_x15, is_x15)
+	UiTypography.apply_button(btn_x2, is_x2)
 
 func _apply_combat_speed(speed_mult: float) -> void:
 	_combat_speed_mult = speed_mult
 	$CombatTimer.wait_time = _combat_wait_for_mult(speed_mult)
 	_auto_delay = _auto_delay_for_mult(speed_mult)
 	_refresh_speed_buttons()
-	## 周回中の切替も次回探索の既定に反映（×1 / ×1.5）。
-	if is_equal_approx(speed_mult, SPEED_MULT_NORMAL) or is_equal_approx(speed_mult, SPEED_MULT_FAST):
-		SettingsPrefs.set_combat_speed_mult(speed_mult)
-	if _is_paused:
-		return
-	if $CombatController.is_in_combat:
-		$CombatTimer.start()
-	if $AutoProgressTimer.time_left > 0:
-		$AutoProgressTimer.start(_auto_delay)
-
-func _apply_combat_grind_speed() -> void:
-	_combat_speed_mult = 0.0
-	$CombatTimer.wait_time = COMBAT_WAIT_GRIND
-	_auto_delay = AUTO_DELAY_GRIND
-	_refresh_speed_buttons()
+	## ヘッダ／設定の切替を次回探索の既定に反映（×1 / ×1.5 / ×2）。
+	SettingsPrefs.set_combat_speed_mult(speed_mult)
 	if _is_paused:
 		return
 	if $CombatController.is_in_combat:
@@ -6718,6 +6849,9 @@ func _apply_combat_grind_speed() -> void:
 
 func _on_speed_x1_pressed() -> void:
 	_apply_combat_speed(SPEED_MULT_NORMAL)
+
+func _on_speed_x15_pressed() -> void:
+	_apply_combat_speed(SPEED_MULT_MID)
 
 func _on_speed_x2_pressed() -> void:
 	_apply_combat_speed(SPEED_MULT_FAST)
@@ -6838,6 +6972,9 @@ func _normalize_enemy_scale(sprite: AnimatedSprite2D, frames: SpriteFrames, enem
 			top_inset = float(used.position.y)
 	var s: float = clampf(ENEMY_BODY_TARGET_PX / body_h, 0.05, 20.0)
 	var mult: float = float(ENEMY_BODY_SCALE_MULT.get(enemy_id, 1.0))
+	if not ENEMY_BODY_SCALE_MULT.has(enemy_id) \
+			and str(LOG_ENEMY_TIER_BY_ID.get(enemy_id, "")) == "elite":
+		mult = ELITE_BODY_SCALE_MULT_DEFAULT
 	s *= clampf(mult, 0.05, 2.0)
 	sprite.scale = Vector2(s, s)
 	sprite.centered = true
@@ -6933,6 +7070,11 @@ func _enemy_group_is_mixed(group: Array) -> bool:
 			return true
 	return false
 
+func _is_frostridge_solo_scale_dungeon() -> bool:
+	if $DungeonController.current_dungeon_data == null:
+		return false
+	return FROSTRIDGE_SOLO_DUNGEON_IDS.has(str($DungeonController.current_dungeon_data.id))
+
 # 群れ（または単体）の敵スプライトを横並びで表示する。ボス戦は BossSprite を使うため対象外。
 func _show_enemy_swarm(enemy_ids: Array) -> void:
 	_clear_swarm_slots()
@@ -6971,6 +7113,8 @@ func _show_enemy_swarm(enemy_ids: Array) -> void:
 		_normalize_enemy_scale(spr, frames, id)
 		if n > 1:
 			spr.scale *= SWARM_DISPLAY_SCALE
+		elif _is_frostridge_solo_scale_dungeon():
+			spr.scale *= FROSTRIDGE_SOLO_DISPLAY_SCALE
 		spr.position = _swarm_combat_position_for_slot(i, n)
 		spr.play("idle")
 		spr.visible = true
@@ -7177,7 +7321,7 @@ func _apply_chr_sprite_modulate(member_idx: int, sprite: CanvasItem) -> void:
 	sprite.modulate.a = alpha
 
 # 足元Yから深度 z_index を算出（下＝手前＝大）。味方4スロット（y≈668〜748）を
-# 10〜14 に収め、PauseOverlay(z=15) より下・従来帯(10〜12)と互換の範囲に留める。
+# 10〜14 に収める。一時停止 UI は CanvasLayer 55 のためこの帯と衝突しない。
 func _chr_depth_z_index(foot_y: float) -> int:
 	var bf_h: float = maxf(1.0, _battlefield_size().y)
 	var ratio: float = foot_y / bf_h
@@ -7861,8 +8005,26 @@ func _make_turn_order_frame_style(active: bool) -> StyleBoxTexture:
 		CombatUiFrames.TIER_CARD_ACTIVE if active else CombatUiFrames.TIER_CARD
 	)
 
-func _turn_order_side_cell_size() -> float:
-	return TURN_ORDER_SIDE_ICON_PX + TURN_ORDER_SIDE_FRAME_PAD * 2.0
+
+## 敵ターンアイコン（枠焼込PNG）の穴を戦場から切り離す。紫板の焼込は禁止（pitfalls）。
+func _make_turn_order_enemy_hole_fill() -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.12, 0.10, 0.09, 0.94)
+	style.set_corner_radius_all(6)
+	style.content_margin_left = 0.0
+	style.content_margin_top = 0.0
+	style.content_margin_right = 0.0
+	style.content_margin_bottom = 0.0
+	style.border_width_left = 0
+	style.border_width_top = 0
+	style.border_width_right = 0
+	style.border_width_bottom = 0
+	return style
+
+
+func _turn_order_side_cell_size(for_enemy: bool = false) -> float:
+	var icon_px: float = TURN_ORDER_ENEMY_ICON_PX if for_enemy else TURN_ORDER_SIDE_ICON_PX
+	return icon_px + TURN_ORDER_SIDE_FRAME_PAD * 2.0
 
 # ---- 行動順（CT プレビュー）表示（P3-D084 / P3-UX-002 G） ----
 
@@ -7884,7 +8046,9 @@ func _init_turn_order_row() -> void:
 	battlefield.add_child(_turn_order_col_right)
 
 func _make_turn_order_cell(entry: Dictionary) -> PanelContainer:
-	var cell: float = _turn_order_side_cell_size()
+	var is_enemy: bool = entry["kind"] != "party"
+	var icon_px: float = TURN_ORDER_ENEMY_ICON_PX if is_enemy else TURN_ORDER_SIDE_ICON_PX
+	var cell: float = _turn_order_side_cell_size(is_enemy)
 	var holder := PanelContainer.new()
 	holder.custom_minimum_size = Vector2(cell, cell)
 	var icon := TextureRect.new()
@@ -7892,11 +8056,11 @@ func _make_turn_order_cell(entry: Dictionary) -> PanelContainer:
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	var tex: Texture2D = null
 	var baked_enemy_frame: bool = false
-	if entry["kind"] == "party":
+	if not is_enemy:
 		var m: Resource = GameState.get_combatant(entry["index"])
 		if m != null:
 			tex = _get_member_icon_texture(m)
-		icon.custom_minimum_size = Vector2(TURN_ORDER_SIDE_ICON_PX, TURN_ORDER_SIDE_ICON_PX)
+		icon.custom_minimum_size = Vector2(icon_px, icon_px)
 		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		holder.add_theme_stylebox_override("panel", _make_turn_order_frame_style(false))
 	else:
@@ -7905,12 +8069,12 @@ func _make_turn_order_cell(entry: Dictionary) -> PanelContainer:
 			baked_enemy_frame = _get_enemy_turn_icon_texture(d.id) != null
 			tex = _get_enemy_icon_texture(d.id)
 		if baked_enemy_frame:
-			# 枠はテクスチャに焼込済み。汎用 CombatUiFrames を重ねない。
+			# 枠はテクスチャに焼込済み。汎用 CombatUiFrames は重ねない。穴は暗い Flat で埋める。
 			icon.custom_minimum_size = Vector2(cell, cell)
 			icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-			holder.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+			holder.add_theme_stylebox_override("panel", _make_turn_order_enemy_hole_fill())
 		else:
-			icon.custom_minimum_size = Vector2(TURN_ORDER_SIDE_ICON_PX, TURN_ORDER_SIDE_ICON_PX)
+			icon.custom_minimum_size = Vector2(icon_px, icon_px)
 			icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 			holder.add_theme_stylebox_override("panel", _make_turn_order_frame_style(false))
 	holder.set_meta("baked_enemy_frame", baked_enemy_frame)
@@ -7925,10 +8089,10 @@ func _layout_turn_order_columns() -> void:
 	if _turn_order_col_left == null or _turn_order_col_right == null:
 		return
 	var bf_size: Vector2 = _battlefield_size()
-	var cell: float = _turn_order_side_cell_size()
+	var enemy_cell: float = _turn_order_side_cell_size(true)
 	_turn_order_col_left.position = Vector2(TURN_ORDER_SIDE_MARGIN, TURN_ORDER_SIDE_TOP)
 	_turn_order_col_right.position = Vector2(
-		maxf(TURN_ORDER_SIDE_MARGIN, bf_size.x - cell - TURN_ORDER_SIDE_MARGIN),
+		maxf(TURN_ORDER_SIDE_MARGIN, bf_size.x - enemy_cell - TURN_ORDER_SIDE_MARGIN),
 		TURN_ORDER_SIDE_TOP
 	)
 
@@ -7978,7 +8142,7 @@ func _set_turn_order_active(entry: Dictionary) -> void:
 		var active: bool = item["kind"] == entry["kind"] and item["index"] == entry["index"]
 		var baked: bool = bool(item.get("baked_frame", false))
 		if baked:
-			frame.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+			frame.add_theme_stylebox_override("panel", _make_turn_order_enemy_hole_fill())
 		else:
 			frame.add_theme_stylebox_override("panel", _make_turn_order_frame_style(active))
 		frame.scale = Vector2(1.06, 1.06) if active else Vector2.ONE
@@ -8927,12 +9091,12 @@ func _play_relic_get_celebration(relic_id: String) -> void:
 # P3-D074 / 撃破ドロップ演出: 実際の入手物（金・素材・装備）ごとにアイコンをポップ。
 const GOLD_DROP_ICON_PATH: String = "res://assets/ui/batch2/ICO_Gold.png"
 const MATERIAL_DROP_FALLBACK_ICON_PATH: String = "res://assets/ui/materials/ICO_Drop_Ore.png"
-## 128px 素材／金アイコンは scale=1.0 だと戦場で過大。武器より一回り小さくする。
-const MATERIAL_DROP_PEAK_SCALE: float = 0.7
-const GOLD_DROP_PEAK_SCALE: float = 0.7
-const EQUIPMENT_DROP_PEAK_SCALE: float = 1.0
-const LEGENDARY_DROP_PEAK_SCALE: float = 1.55
-const DROP_FAN_SPACING_PX: float = 28.0
+## 128px 素材／金アイコンは scale=1.0 だと戦場で過大。装備・鉱石は一回り小さく。
+const MATERIAL_DROP_PEAK_SCALE: float = 0.5
+const GOLD_DROP_PEAK_SCALE: float = 0.5
+const EQUIPMENT_DROP_PEAK_SCALE: float = 0.72
+const LEGENDARY_DROP_PEAK_SCALE: float = 1.15
+const DROP_FAN_SPACING_PX: float = 22.0
 const DROP_ICON_MAX_PER_KIND: int = 4
 
 
@@ -9472,6 +9636,8 @@ func _load_boss_sprite(enemy_id: String) -> bool:
 		spr.visible = false
 	_enemy_sprite.visible = false
 	_boss_sprite.sprite_frames = frames
+	if not enemy_id.is_empty():
+		_boss_sprite.set_meta("boss_id", enemy_id)
 	_apply_boss_sprite_transform()
 	_boss_sprite.play("idle")
 	_boss_sprite.z_index = 14
@@ -9511,17 +9677,23 @@ func _update_boss_sprite_visibility() -> void:
 	_show_boss_sprite(enemy_id)
 
 func _apply_boss_sprite_transform() -> void:
+	var boss_id: String = ""
+	if $CombatController.is_in_combat and $CombatController.current_enemy_data != null:
+		boss_id = str($CombatController.current_enemy_data.id)
+	elif _boss_sprite.has_meta("boss_id"):
+		boss_id = str(_boss_sprite.get_meta("boss_id"))
 	if _boss_sprite.sprite_frames != null:
-		_normalize_boss_scale(_boss_sprite, _boss_sprite.sprite_frames)
+		_normalize_boss_scale(_boss_sprite, _boss_sprite.sprite_frames, boss_id)
 	else:
 		_boss_sprite.scale = Vector2(3.0, 3.0)
 	_boss_sprite.centered = true
+	## 足元オフセットは使わずフレーム中心基準（従来）。上下ずれを防ぐ。
 	_boss_sprite.offset = Vector2.ZERO
 	_boss_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_boss_sprite.position = _battlefield_combat_position(BOSS_POSITION_RATIO)
 	_boss_sprite.z_index = 14
 
-func _normalize_boss_scale(sprite: AnimatedSprite2D, frames: SpriteFrames) -> void:
+func _normalize_boss_scale(sprite: AnimatedSprite2D, frames: SpriteFrames, boss_id: String = "") -> void:
 	var tex: Texture2D = frames.get_frame_texture("idle", 0)
 	if tex == null:
 		return
@@ -9545,11 +9717,15 @@ func _normalize_boss_scale(sprite: AnimatedSprite2D, frames: SpriteFrames) -> vo
 			top_inset = float(used.position.y)
 	var body_max: float = maxf(body_w, body_h)
 	var s: float = clampf(BOSS_BODY_TARGET_PX / body_max, 0.05, 20.0)
+	var mult: float = float(BOSS_BODY_SCALE_MULT.get(boss_id, 1.0))
+	s *= clampf(mult, 0.05, 2.0)
 	sprite.scale = Vector2(s, s)
 	sprite.centered = true
 	sprite.offset = Vector2(frame_w / 2.0 - body_cx, frame_h / 2.0 - body_bottom)
 	sprite.set_meta("body_frame_h", frame_h)
 	sprite.set_meta("body_top_inset", top_inset)
+	if not boss_id.is_empty():
+		sprite.set_meta("boss_id", boss_id)
 
 func _play_boss_animation(anim: String) -> void:
 	if not _boss_sprite.visible:
