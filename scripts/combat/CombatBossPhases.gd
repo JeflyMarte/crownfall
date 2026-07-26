@@ -130,10 +130,10 @@ const _DEFS: Dictionary = {
 	],
 	"valgard": [
 		{"threshold": 1.0, "label": "第1形態", "skill_use_chance": 0.40, "attack_mult": 1.0},
-		{"threshold": 0.50, "label": "第2形態・砦壁", "skill_use_chance": 0.55, "attack_mult": 1.10,
-			"log": "【フェーズ移行】境界の番が砦壁と一体化し、守りが強まる！"},
-		{"threshold": 0.25, "label": "第3形態・越えさせぬ", "skill_use_chance": 0.70, "attack_mult": 1.25,
-			"log": "【フェーズ移行】盾は退かず、槍は越えさせず——境界そのものが動く！",
+		{"threshold": 0.50, "label": "第2形態・城壁展開", "skill_use_chance": 0.55, "attack_mult": 1.12,
+			"log": "【フェーズ移行】境界の番が城壁機関を展開し、守りが強まる！"},
+		{"threshold": 0.25, "label": "第3形態・機関暴走", "skill_use_chance": 0.72, "attack_mult": 1.28,
+			"log": "【フェーズ移行】擬機械の機関が暴走し、境界廊全体が軋む！",
 			"skill_weight": {"enemy_valgard_rampart": 2.0, "enemy_valgard_boundary_spear": 2.0}},
 	],
 	"skarpedion": [

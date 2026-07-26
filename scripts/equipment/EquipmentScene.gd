@@ -48,9 +48,10 @@ const RARITY_COLORS: Array[Color] = [
 	Color(0.70, 0.45, 0.95),
 	Color(0.95, 0.75, 0.25),
 	Color(0.35, 0.88, 1.0),
+	Color(0.28, 0.86, 0.42),
 ]
-# レアリティ隅マーカー（COMMON/RARE/EPIC/LEGENDARY/MYTHIC）。
-const RARITY_GEMS: Array[String] = ["◇", "◆", "✦", "★", "❖"]
+# レアリティ隅マーカー（COMMON/RARE/EPIC/LEGENDARY/MYTHIC/SET）。
+const RARITY_GEMS: Array[String] = ["◇", "◆", "✦", "★", "❖", "▣"]
 
 const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45)
 const COLOR_SUB: Color = Color(0.72, 0.69, 0.62)
@@ -1827,6 +1828,8 @@ func _add_corner_badge(
 	pos: Vector2,
 	font_size: int = 13
 ) -> void:
+	if text.is_empty():
+		return
 	var lbl := Label.new()
 	lbl.text = text
 	lbl.add_theme_color_override("font_color", color)

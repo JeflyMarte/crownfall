@@ -25,6 +25,10 @@ static func rank_members(stats: Dictionary, party_members: Array) -> Array:
 			"damage_max_skill_id": str(row.get("damage_max_skill_id", "")),
 			"damage_max_skill_name": str(row.get("damage_max_skill_name", "")),
 			"heal_total": heal_total,
+			"kill_count": int(row.get("kill_count", 0)),
+			"damage_taken": int(row.get("damage_taken", 0)),
+			"ultimate_count": int(row.get("ultimate_count", 0)),
+			"crit_count": int(row.get("crit_count", 0)),
 			"score": float(damage_total) + float(heal_total) * HEAL_WEIGHT,
 		})
 	entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:

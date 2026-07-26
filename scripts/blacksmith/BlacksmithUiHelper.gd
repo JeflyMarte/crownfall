@@ -1,8 +1,8 @@
 class_name BlacksmithUiHelper
 extends RefCounted
 
-const RARITY_GEMS: Array[String] = ["◇", "◆", "✦", "★", "❖"]
-const RARITY_SHORT: Array[String] = ["N", "R", "SR", "SSR", "MY"]
+const RARITY_GEMS: Array[String] = ["◇", "◆", "✦", "★", "❖", "▣"]
+const RARITY_SHORT: Array[String] = ["N", "R", "SR", "SSR", "MY", "SET"]
 
 ## モック寄せ: 行はやや詰め、選択枠は Texture 側で厚く見せる。
 const LIST_CARD_MIN_HEIGHT: int = 112
@@ -33,6 +33,7 @@ const RARITY_COLORS: Array[Color] = [
 	Color(0.70, 0.45, 0.95),
 	Color(0.95, 0.75, 0.25),
 	Color(0.35, 0.88, 1.0),
+	Color(0.28, 0.86, 0.42), # SET — 緑
 ]
 
 ## 暗背景向けの名前色（レアリティ対応・可読性優先）。
@@ -42,6 +43,7 @@ const RARITY_NAME_COLORS: Array[Color] = [
 	Color(0.86, 0.58, 1.0),
 	Color(1.0, 0.86, 0.38),
 	Color(0.55, 0.95, 1.0),
+	Color(0.55, 0.95, 0.62),
 ]
 
 const CATEGORY_LABELS: Dictionary = {

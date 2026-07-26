@@ -27,14 +27,14 @@ WIP（任意）: `assets/ui/equipment/_wip/ICO_WPN_*.png`
 | # | Biome | weapon_id | 出力ファイル | 表示名 | 型 | element | 作画の軸（フレーバー） |
 |---|---|---|---|---|---|---|---|
 | 1 | ① mourngate | `sanctified_dagger` | `ICO_WPN_SanctifiedDagger.png` | 霊廟の聖別刃 | dagger | holy | 霊廟の聖別・細身の儀式短刃・淡い金属光 |
-| 2 | ① mourngate | `consecrated_maul` | `ICO_WPN_ConsecratedMaul.png` | 祝聖の大槌 | greatsword | holy | 王都祭祀の大槌・重厚・祝福の刻印 |
-| 3 | ② whisperwood | `silvaria_oathblade` | `ICO_WPN_SilvariaOathblade.png` | 森護王の誓剣シルヴァリア | greatsword | fire | 森護王の誓い・蔦/花弁が巻き付く大剣 |
+| 2 | ① mourngate | `consecrated_maul` | `ICO_WPN_ConsecratedMaul.png` | 祝聖の大槌 | sword | holy | 王都祭祀の大槌・重厚・祝福の刻印 |
+| 3 | ② whisperwood | `silvaria_oathblade` | `ICO_WPN_SilvariaOathblade.png` | 森護王の誓剣シルヴァリア | sword | fire | 森護王の誓い・蔦/花弁が巻き付く大剣 |
 | 4 | ② whisperwood | `veld_branch_staff` | `ICO_WPN_VeldBranchStaff.png` | 翠杖ヴェルドの枝 | staff | fire | 生命の枝・胞子の微光・自然の曲線 |
-| 5 | ③ mistfen | `volgrave_thunderblade` | `ICO_WPN_VolgraveThunderblade.png` | 沼王断ちの雷剣ヴォルグレイヴ | greatsword | thunder | 沼王を断つ雷刃・鱗/泥と稲妻の筋 |
+| 5 | ③ mistfen | `volgrave_thunderblade` | `ICO_WPN_VolgraveThunderblade.png` | 沼王断ちの雷剣ヴォルグレイヴ | sword | thunder | 沼王を断つ雷刃・鱗/泥と稲妻の筋 |
 | 6 | ③ mistfen | `seradion_storm_staff` | `ICO_WPN_SeradionStormStaff.png` | 学識王の雷典杖セラディオン | staff | thunder | 沈没書庫・封印誌・雷の導体 |
 | 7 | ④ blackshore | `nereidas_tideblade` | `ICO_WPN_NereidasTideblade.png` | 海統王の潮汐刃ネレイダス | dual_blades | holy | 潮汐の双剣・潮目・潮沫の弧 |
 | 8 | ④ blackshore | `pharoslight_staff` | `ICO_WPN_PharoslightStaff.png` | 灯守の聖杖ファロスライト | staff | holy | 灯台の光・潮灯・聖なる灯芯 |
-| 9 | ⑤ frostridge | `eldion_frostbrand` | `ICO_WPN_EldionFrostbrand.png` | 始祖竜の氷焔剣エルディオン・ブランド | greatsword | ice | 氷河晶の刃・古龍の冷炎・霜の欠片 |
+| 9 | ⑤ frostridge | `eldion_frostbrand` | `ICO_WPN_EldionFrostbrand.png` | 始祖竜の氷焔剣エルディオン・ブランド | sword | ice | 氷河晶の刃・古龍の冷炎・霜の欠片 |
 | 10 | ⑤ frostridge | `umbra_terminus_staff` | `ICO_WPN_UmbraTerminusStaff.png` | 終末の闇杖ウンブラ・テルミナス | staff | dark | 極寒の終末・闇と氷晶・不気味な先端 |
 
 **差別化の目安:** ✦ より装飾 1 段増・Biome モチーフ 1 点・発光/二色。同型（大剣×4 等）でも **シルエットと装飾** で区別すること。

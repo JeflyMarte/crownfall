@@ -38,8 +38,8 @@ ELEMENT = {
     "": "無",
 }
 WTYPE = {
-    "sword": "片手剣",
-    "greatsword": "大剣",
+    "sword": "剣",
+    "greatsword": "剣",  # 旧互換
     "dagger": "短剣",
     "knife": "短刀",
     "dual_blades": "双刃",

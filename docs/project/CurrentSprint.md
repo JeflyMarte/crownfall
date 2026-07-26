@@ -84,6 +84,10 @@
 | — | **P3-EQ-JOB-WPN-001** | 職別武器種制限（preferred＝装備可能リスト） | ✅ GO・統合＋main |
 | — | **P3-UI-FORGE-CHROME-001** | 鍛冶屋モック寄せ（枠／タブ／リスト／ボタン Texture 化）＋詳細ステアイコン／武器背景フォロー | ✅ GO・統合＋main |
 | — | **P3-DG-ROCK-STAMPEDE-001** | 岩角の群れ道（ロックバイソン日次イベント） | ✅ GO・統合＋main |
+| — | **P3-DG-VALGARD-DESCENT-001** | 境界の番　降臨／ストームクラウン境界廊（JST 1/4/7/10・N/H/NM） | ✅ Impl（専用ドット／BGMは後続） |
+| — | **P3-LORE-VALGARD-001** | ヴァルガード＝擬機械ゴーレム改稿＋戦力（クロノス一段下） | ✅ Impl |
+| — | **P3-DG-EVENT-SET-001** | 降臨セット装備（時環の刻／アンティーク・レア「セット」・3部位加護・レリック廃止） | ✅ Impl |
+| — | **P3-DG-EVENT-REWARD-001** | 降臨専用単品＋レリック（旧） | ❌ Superseded by SET-001 |
 | — | **P3-UX-REDEEM-001** | 設定・特典コード受取（`CROWNFALL-BETA`） | ✅ GO・統合＋main |
 | — | **P3-ENEMY-ROCK-BISON-001** | ロックバイソン（素材率×1.75・全DG・仮アート） | ✅ GO・統合＋main |
 | 1 | P3-BETA-SCOPE-001 | βプレイ範囲＝モーンゲートのみ（案B 🔒） | ✅ |

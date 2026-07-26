@@ -9,6 +9,8 @@ const INV_VISIBLE_ROWS: int = 4
 const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45)
 const COLOR_SUB: Color = Color(0.72, 0.69, 0.62)
 const COLOR_ACCENT: Color = Color(0.75, 0.82, 0.95, 1)
+## ScrollTouch の PASS 化後も短押しを拾う（装備画面と同ポリシー）。
+const CELL_PRESS_MOVE_CANCEL_PX: float = 20.0
 
 @onready var _button_back: Button = $Header/HeaderRow/ButtonBack
 @onready var _label_gold: Label = $Header/HeaderRow/GoldChip/GoldRow/LabelGold
@@ -30,12 +32,19 @@ var _category_panels: Dictionary = {}
 var _selected_item: Resource = null
 var _selected_category: String = ""
 var _last_layout_width: float = -1.0
+var _cell_pointer_down: bool = false
+var _cell_press_origin: Vector2 = Vector2.ZERO
+var _cell_press_item: Resource = null
+var _cell_press_category: String = ""
 
 func _ready() -> void:
 	$Header/HeaderRow/LabelTitle.text = ""
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.NONE)
 	EquipmentUiTokens.apply_tooltip_theme(self)
 	_setup_chrome()
+	var bg := get_node_or_null("BgTexture") as TextureRect
+	if bg != null:
+		bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_button_back.pressed.connect(_on_back_pressed)
 	_btn_sort.pressed.connect(_on_sort_pressed)
 	_btn_filter.pressed.connect(_on_filter_pressed)
@@ -184,6 +193,8 @@ func _rebuild_inventory_grid() -> void:
 		return
 	for e in EquipmentUiHelper.sort_inventory_entries(entries, _inventory_sort):
 		_inventory_grid.add_child(_make_item_cell(e["item"], str(e["category"])))
+	## rebuild 後も Scroll 内 Button を PASS 化（スクロール＋短押し両立）。
+	ScrollTouchHelper.enable(_inventory_scroll)
 
 func _make_hint_label(text: String) -> Label:
 	var lbl := Label.new()
@@ -208,7 +219,8 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 	var owner_idx: int = EquipmentUiHelper.equipped_member_index(item)
 	var is_equipped: bool = owner_idx >= 0
 	btn.tooltip_text = EquipmentItemDetailHelper.short_name(item, category)
-	btn.pressed.connect(_on_cell_pressed.bind(item, category))
+	## ScrollTouch が mouse_filter=PASS にするため pressed は不発になりやすい。gui_input で短押しを取る。
+	btn.gui_input.connect(_on_item_cell_gui_input.bind(item, category))
 	var selected: bool = item == _selected_item and category == _selected_category
 	if selected:
 		btn.modulate = Color(0.85, 0.92, 1.0, 1.0)
@@ -218,11 +230,66 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 		_add_owner_portrait_badge(btn, owner_idx, cell_size)
 	return btn
 
+func _on_item_cell_gui_input(event: InputEvent, item: Resource, category: String) -> void:
+	if _cell_pointer_down and _should_cancel_cell_press_for_move(event):
+		_cancel_cell_press()
+		return
+	if not _is_cell_pointer_event(event):
+		return
+	if event.pressed:
+		_cell_pointer_down = true
+		_cell_press_origin = _cell_event_position(event)
+		_cell_press_item = item
+		_cell_press_category = category
+	else:
+		if _cell_pointer_down and _cell_press_item == item and _cell_press_category == category:
+			_on_cell_pressed(item, category)
+		_cancel_cell_press()
+	if event is InputEventMouseButton or event is InputEventScreenTouch:
+		accept_event()
+
+func _is_cell_pointer_event(event: InputEvent) -> bool:
+	if event is InputEventMouseButton:
+		return event.button_index == MOUSE_BUTTON_LEFT
+	if event is InputEventScreenTouch:
+		return true
+	return false
+
+func _cell_event_position(event: InputEvent) -> Vector2:
+	if event is InputEventScreenTouch:
+		return (event as InputEventScreenTouch).position
+	if event is InputEventMouseButton:
+		return (event as InputEventMouseButton).position
+	if event is InputEventScreenDrag:
+		return (event as InputEventScreenDrag).position
+	if event is InputEventMouseMotion:
+		return (event as InputEventMouseMotion).position
+	return Vector2.ZERO
+
+func _should_cancel_cell_press_for_move(event: InputEvent) -> bool:
+	if event is InputEventScreenDrag:
+		return (
+			_cell_press_origin.distance_to((event as InputEventScreenDrag).position)
+			>= CELL_PRESS_MOVE_CANCEL_PX
+		)
+	if event is InputEventMouseMotion:
+		var motion: InputEventMouseMotion = event as InputEventMouseMotion
+		if (motion.button_mask & MOUSE_BUTTON_MASK_LEFT) == 0:
+			return false
+		return _cell_press_origin.distance_to(motion.position) >= CELL_PRESS_MOVE_CANCEL_PX
+	return false
+
+func _cancel_cell_press() -> void:
+	_cell_pointer_down = false
+	_cell_press_item = null
+	_cell_press_category = ""
+
 func _on_cell_pressed(item: Resource, category: String) -> void:
 	_selected_item = item
 	_selected_category = category
-	_rebuild_inventory_grid()
+	## 詳細は即更新。グリッド再構築は遅延（入力中の Button を queue_free しない）。
 	_refresh_detail_panel()
+	call_deferred("_rebuild_inventory_grid")
 
 func _refresh_detail_panel() -> void:
 	EquipmentItemDetailHelper.populate_stats_panel(_detail_host, _selected_item, _selected_category)
@@ -308,6 +375,8 @@ func _add_corner_badge(
 	pos: Vector2,
 	font_size: int = 13
 ) -> void:
+	if text.is_empty():
+		return
 	var lbl := Label.new()
 	lbl.text = text
 	lbl.add_theme_color_override("font_color", color)

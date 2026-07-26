@@ -1,27 +1,30 @@
 # 職別武器種制限（P3-EQ-JOB-WPN-001）
 
-**Status:** Decision 承認済（2026-07-24 オーナー GO・推奨案A）  
-**上書き:** `06_キャラクター_ジョブ.md` Alpha「武器種制限なし」（P3-D024e）および `preferred`＝ボーナスのみの前提。
+**Status:** Decision 承認済（2026-07-24）／**各職2種へ更新（2026-07-26 オーナー指定）**／**greatsword→sword 統一（同日）**  
+**上書き:** `06_キャラクター_ジョブ.md` Alpha「武器種制限なし」（P3-D024e）および旧 preferred＝ボーナスのみの前提。
 
 ---
 
-## 1. 方針（案A・厳格）
+## 1. 方針（厳格）
 
 - 各職の `JobData.preferred_weapon_types` を **装備可能リスト** とする
-- リスト外の武器種は **装備不可**（UI で区別＋サーバ側でも拒否）
-- 適合ボーナス（ATK ×1.05）は従来どおり維持（装備できた時点で適合）
-- **防具／装飾は制限しない**（今回スコープ外）
+- リスト外の武器種は **装備不可**（UI で区別＋装備時拒否）
+- 適合ボーナス（ATK ×1.05）は従来どおり維持
+- **防具／装飾は制限しない**
 
 ---
 
-## 2. 許可表（現行 JobData）
+## 2. 許可表（オーナー指定）
 
-| 職 | 許可 `weapon_type` |
-|---|---|
-| swordsman / vanguard | `sword`, `greatsword`, `dual_blades` |
-| ranger | `bow` |
-| alchemist | `staff` |
-| beast_tamer | `bow`, `staff` |
+表示「剣」＝データ `sword`（旧 `greatsword` は `sword` に統一済み）。
+
+| 職 | 表示 | 許可 `weapon_type` |
+|---|---|---|
+| swordsman | 剣・双剣 | `sword`, `dual_blades` |
+| vanguard | 剣・杖 | `sword`, `staff` |
+| beast_tamer | 杖・弓 | `staff`, `bow` |
+| alchemist | 杖・双剣 | `staff`, `dual_blades` |
+| ranger | 弓・剣 | `bow`, `sword` |
 
 `weapon_type` 空の武器は装備不可。
 

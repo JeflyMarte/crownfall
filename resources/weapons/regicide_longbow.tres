@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "regicide_longbow"
+display_name = "王討ちの長弓"
+description = "王と竜を討つために鍛えられた長弓。巨体の急所だけを見据え、一矢で戦況を傾ける。"
+fixed_skill_id = ""
+fixed_passive_id = "eq_wpn_regicide_longbow"
+base_attack = 400
+rarity = 3
+base_attack_speed = 1.2
+base_critical_rate = 0.11
+base_knockback = 0.1
+base_stagger_power = 0.1
+base_attack_range = 3.0
+weight = 0.75
+element = "dark"
+weapon_type = "bow"
+tags = Array[String](["pierce", "dark"])

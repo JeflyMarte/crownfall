@@ -81,6 +81,7 @@ alwaysApply: true
 | カテゴリタブが差し替わる | 装備品 PNG を `ICO_*_Cat_*` に誤適用 | **本体アイコン**（`ICO_WPN_*` / `ICO_ARM_*` / skills）と **Cat タブ**を混同しない |
 | 武器アイコンが一部だけ | `weapon_id` フィールドを探す誤り | 武器 tres の ID は **`id`**。種別は `weapon_type`（greatsword/bow 等） |
 | 見た目が変わらない | `.godot` キャッシュ | アセット差替後は **Godot 完全終了→再起動**。壊れた import は該当 `.ctex` を消して再インポート |
+| 新規 PNG が `stat_icon` null／ERR_CANT_OPEN | 手書き `.import` だけ置いて `.ctex` 未生成、または params キーが現行 importer と不一致 | `.import` は Godot に生成させる（削除→`--import`）。手書き禁止。確認は `.godot/imported/*.ctex` の有無 |
 | 鍛冶クラッシュ（Metal） | import サイズ不正（例: 220×88 が 1536×1024 キャッシュ） | chrome 差替後に解像度を確認。異常なら `.godot/imported` を該当分クリア |
 | 黒／暗い板が残る | キーイング閾値が甘い | 透過処理後に目視。弓など暗い背景は閾値を広げて再適用 |
 | 所持チケットが白マット | AI PNG の白背景がエッジ非連結で残存 | 透過隣接＋エッジから light matte flood-fill。枠は `StyleBox` 既定パネルを使わず rarity 枠 |
@@ -102,6 +103,7 @@ alwaysApply: true
 | ビーストテイマーだけ所持アイコンの列がずれる | 職名を省略禁止のまま `AUTOWRAP_OFF` → Label 最小幅が CardRow/Equip を viewport 超に押し広げ、グリッドが横にはみ出す | 職名は1行のまま。長い場合のみフォント縮小で収める（改行禁止。改行するとスロット／ステが下にずれる） |
 | キャラ画面の全タブが左右にはみ出す | CharacterCard（Portrait◀▶＋Stack＋Slots）の最小幅が 720 超。VBox/Tab 全体が引きずられる。OwnerBadge が CHR 原寸(~1250px)に戻ることも | `◀▶` は 28px 固定。Badge は size 直指定せずアンカー固定。Tab Scroll は横スクロール禁止＋clip |
 | 特定職だけ装備が拡大して見える | その職の装備（例: 弓）アートが枠内占有率が高い。レイアウト差ではない | 武器種別アイコン取込で `SAFE_SCALE` 余白を確保。セルサイズ固定と切り分けて確認。**小さく見える弓は** `EquipmentUiTokens.icon_inset_for_item`（`BOW_ICON_INSET_SCALE`）で鍛冶と同ポリシー |
+| ガチャが歩行／MVP・キャラが顔アイコン | Idle 検出を `FileAccess`／PNG 直読み優先にした。実機エクスポートは `.ctex` のみで PNG が無く、Idle が空→walk／ICO フォールバック | `ChrIdlePortrait` は **ResourceLoader 優先**＋FileAccess は未インポート時のみ。UI は walk へ落とさない（`known-pitfalls`／`ui-layout` CHR Idle） |
 | MVP 画面で即落ち（`texture` on Nil） | `ChrIdlePortraitView` を `_ready` 前に `set_from_entry`（親未入場の動的生成） | `ui-layout.mdc` — 子ノードは `_ensure_nodes()` で遅延生成。ツリー投入前 API を想定する |
 | ガチャ枠下に同じ聖堂背景が二重 | 全画面 `UI_BG_Gacha` ＋枠内 `Banner_BG` | 画面下地は暗色 `ColorRect`。キーアートは枠内のみ |
 | 結果のレベルアップにオトモが出ない | EXP 付与は `active_pet` 済みだが `ExpRunSnapshot`／UI が `party_members` のみ | スナップショットと行構築は `exp_recipients()`（人間＋オトモ）を使う |
@@ -119,7 +121,7 @@ alwaysApply: true
 | 症状 | 原因 | 再発防止 |
 |---|---|---|
 | iPhone でタッチスクロール不能（ダンジョン他） | Scroll 内 Button／STOP がドラッグを吸収 | `ScrollTouchHelper`（deadzone＋子孫を PASS）。`BottomNavHelper.setup` と一覧 rebuild 後に適用 |
-| 装備／キャラ管理オープンで ERROR→強制終了 | `ScrollTouchHelper` が `process_frame`+`CONNECT_ONE_SHOT` で refresh。refresh 中の再 queue が ONE_SHOT 解除前に同 Callable を再 connect | refresh は `call_deferred`。`process_frame.connect` 禁止（装備グリッド大量追加時に再発） |
+| 装備一覧でセルを押しても詳細が変わらない | ScrollTouch が Button を PASS 化 → `pressed` 不発。加えて選択時に即 `rebuild` で入力中 Button を queue_free | Catalog も装備画面同様 `gui_input` 短押し。選択後の rebuild は `call_deferred`。BgTexture は IGNORE |
 | イベントDGバナーが全部モーンゲート | `SUB_BANNER_FALLBACK` で mourngate 流用のみ | 各イベントに `BAN_DG_*` を用意し `BIOME_BANNER_PATHS` へ登録。フォールバックから外す |
 | イベントDGバナーだけ大きい（240px）／枠なし | キーアート全高のまま、または strip のみで金枠未合成 | `generate_biome_banner.py --strip-height 232`（枠は既定 ON）。`BAN_DG_Frame_Strip` を重ねメインと同寸・同枠に |
 | 戦闘フロア入場前に謎の SE | ①次部屋へ進む瞬間の `room_enter` ②黒幕中の戦闘BGM切替 ③罠／入場遅延／前戦闘遅延ヒット／`combat_heal` | 戦闘行きは `room_enter` スキップ。BGMは一幕後。Hit/Healは Gate＋CT開始後。遅延は `_combat_session_id` |
@@ -149,6 +151,7 @@ alwaysApply: true
 | 招待状で下ナビが潰れる／隊長バーが中段に落ちる | 全画面で `apply_chrome_safe_area`＋Mac simulate ON | chrome は実機のみ。Mac はシーン座標を触らない |
 | 招待状が黒画面・下ナビにアイコン無し・BG／タイトル無し | `GachaScene.gd` が欠落メンバ（`TITLE_ART` 等）でパース失敗→スクリプト未実行で chrome／ナビ装飾が走らない | ガチャ画面は HEAD の `_setup_gacha_atmosphere` / `setup_banner_header` を維持。トークン定数は参照前に必ず定義。変更後 headless で GachaScene ロード確認 |
 | アプリアイコンが金の矢印 | iOS 向けに仮 `icon.png`（矢印）を追加したまま放置 | 正は `Downloads/アプリアイコン` → `assets/ui/UI_AppIcon.png`＋`icon.png`（1024²）。iOS は `AppIcon.appiconset` も更新し再ビルド／再インストール |
+| つづきからで拠点はじめガイドが再出 | デバッグ再演が `hub_simple_guide_done` を erase＋save／preview 終了で戻さない | 再演は preview のみでフラグ非接触。進行済みセーブは load 時に修復 |
 | `HubLayoutHelper` が `SafeAreaHelper` 未解決でコンパイル失敗 | class_name 同士の早期参照／`-s` ツールからの preload 順 | `HubLayoutHelper` は `SafeAreaHelper` を `preload` する |
 | `balance_sim` が即死／平均EXP=0（`GameState` Identifier not found、または全滅100%・行動0） | ①`-s` 時 autoload 未注入で `LevelSystem` が `GameState` 識別子参照 ②`STARTER_STORY_RECRUIT` で roster 空のままシム | `LevelSystem` は実行時解決。sim 開始時に `seed_all_starters_unlocked`（P3-BAL-EXP-001-G） |
 | Mac では正しいのに iPhone だけアイコン位置がズレる | `stretch/aspect=expand` で論理画面の縦横比が実機に合わせて伸びる | 案A: `aspect=keep` で 720×1280 を維持（上下黒帯はエンジンが付与）。自前の黒帯 UI は作らない |

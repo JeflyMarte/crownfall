@@ -18,6 +18,8 @@ extends RefCounted
 ## weather_bonus（P3-EQ-WEATHER-LEG-001）: weather_id → element_outgoing_mult / outgoing_mult / crit_rate_add / refund_ct_fraction
 ## effect 追加: "chance_cast_equipped_skill"（攻撃後に装備スキルを確率発動）
 ## action_skip_chance（常時）: 行動出番でこの確率で行動スキップ（状態異常スキップと独立）
+## weapon 拡張: basic_attack_hits_all / basic_aoe_splash_mult / basic_attack_mult /
+##   disable_basic_attack / outgoing_vs_boss_mult / passive_condition=front_row_only（与・被）
 ## cooldown: CT 秒（0 = 都度発火可。on_combat_start は実質1回）
 
 const _DEFS: Dictionary = {
@@ -672,6 +674,41 @@ const _DEFS: Dictionary = {
 		"effect": "abyss_ice_shell_counter",
 		"cooldown": 6.0,
 	},
+	# ---- 弓／杖レジェンド数揃え（P3-EQ-LEG-WPN-FILL-001） ----
+	"eq_wpn_volley_horizon_bow": {
+		"display_name": "地平の斉射",
+		"category": "weapon",
+		"description": "通常攻撃が敵全体へ届く（主対象以外は55%）。",
+		"basic_attack_hits_all": true,
+		"basic_aoe_splash_mult": 0.55,
+	},
+	"eq_wpn_vanguard_war_bow": {
+		"display_name": "戦列の猛矢",
+		"category": "weapon",
+		"description": "前衛のとき与ダメ×2.0／被ダメ×1.5。",
+		"outgoing_mult": 2.0,
+		"incoming_mult": 1.5,
+		"passive_condition": "front_row_only",
+	},
+	"eq_wpn_regicide_longbow": {
+		"display_name": "王討ちの矢",
+		"category": "weapon",
+		"description": "ボスへの与ダメ×1.5。",
+		"outgoing_vs_boss_mult": 1.5,
+	},
+	"eq_wpn_amplify_orb_staff": {
+		"display_name": "増幅の珠",
+		"category": "weapon",
+		"description": "通常攻撃の与ダメ +35%。",
+		"basic_attack_mult": 1.35,
+	},
+	"eq_wpn_silent_rite_staff": {
+		"display_name": "黙撃の秘儀",
+		"category": "weapon",
+		"description": "通常攻撃不可。装備スキルの与ダメ×2.0。",
+		"disable_basic_attack": true,
+		"skill_power_mult": 2.0,
+	},
 }
 
 # 基本5職ロスター adventurer_id → キャラ固有パッシブ id
@@ -781,6 +818,11 @@ static func weapon_stat_modifiers_for_member(member_index: int) -> Dictionary:
 		"incoming_block_chance": 0.0,
 		"incoming_block_mult": 1.0,
 		"element_outgoing_mult": {},
+		"basic_attack_mult": 1.0,
+		"outgoing_vs_boss_mult": 1.0,
+		"basic_attack_hits_all": false,
+		"basic_aoe_splash_mult": 1.0,
+		"disable_basic_attack": false,
 	}
 	if member_index < 0 or member_index >= GameState.party_members.size():
 		return out
@@ -803,6 +845,16 @@ static func weapon_stat_modifiers_for_member(member_index: int) -> Dictionary:
 		out["incoming_block_chance"] = float(def["incoming_block_chance"])
 	if def.has("incoming_block_mult"):
 		out["incoming_block_mult"] = float(def["incoming_block_mult"])
+	if def.has("basic_attack_mult"):
+		out["basic_attack_mult"] = float(def["basic_attack_mult"])
+	if def.has("outgoing_vs_boss_mult"):
+		out["outgoing_vs_boss_mult"] = float(def["outgoing_vs_boss_mult"])
+	if def.has("basic_attack_hits_all"):
+		out["basic_attack_hits_all"] = bool(def["basic_attack_hits_all"])
+	if def.has("basic_aoe_splash_mult"):
+		out["basic_aoe_splash_mult"] = float(def["basic_aoe_splash_mult"])
+	if def.has("disable_basic_attack"):
+		out["disable_basic_attack"] = bool(def["disable_basic_attack"])
 	if def.has("element_outgoing_mult") and def["element_outgoing_mult"] is Dictionary:
 		out["element_outgoing_mult"] = (def["element_outgoing_mult"] as Dictionary).duplicate()
 	_merge_weapon_weather_bonus(def, out)
@@ -871,14 +923,39 @@ static func character_stat_modifiers_for_member(member_index: int, hp_ratio: flo
 					out["outgoing_mult"] *= float(def["outgoing_mult"])
 			else:
 				out["outgoing_mult"] *= float(def["outgoing_mult"])
-	# 武器常時 outgoing（神話など）＋天候シンクロ outgoing
+	# 武器常時 outgoing／incoming（神話・前列限定など）＋天候シンクロ outgoing
 	var wdef: Dictionary = weapon_passive_def_for_member(member)
-	if wdef.has("outgoing_mult") and str(wdef.get("trigger", "")) != "on_attack":
-		out["outgoing_mult"] *= float(wdef["outgoing_mult"])
+	var front_only: bool = str(wdef.get("passive_condition", "")) == "front_row_only"
+	var row_ok: bool = (not front_only) or (not GameState.is_member_back_row(member_index))
+	if row_ok:
+		if wdef.has("outgoing_mult") and str(wdef.get("trigger", "")) != "on_attack":
+			out["outgoing_mult"] *= float(wdef["outgoing_mult"])
+		if wdef.has("incoming_mult"):
+			out["incoming_mult"] *= float(wdef["incoming_mult"])
 	var wbonus: Dictionary = _active_weather_bonus(wdef)
 	if wbonus.has("outgoing_mult"):
 		out["outgoing_mult"] *= float(wbonus["outgoing_mult"])
 	return out
+
+
+static func weapon_disables_basic_attack(member_index: int) -> bool:
+	return bool(weapon_stat_modifiers_for_member(member_index).get("disable_basic_attack", false))
+
+
+static func weapon_basic_attack_mult(member_index: int) -> float:
+	return maxf(0.0, float(weapon_stat_modifiers_for_member(member_index).get("basic_attack_mult", 1.0)))
+
+
+static func weapon_basic_hits_all(member_index: int) -> bool:
+	return bool(weapon_stat_modifiers_for_member(member_index).get("basic_attack_hits_all", false))
+
+
+static func weapon_basic_aoe_splash_mult(member_index: int) -> float:
+	return clampf(float(weapon_stat_modifiers_for_member(member_index).get("basic_aoe_splash_mult", 1.0)), 0.0, 1.0)
+
+
+static func weapon_outgoing_vs_boss_mult(member_index: int) -> float:
+	return maxf(0.0, float(weapon_stat_modifiers_for_member(member_index).get("outgoing_vs_boss_mult", 1.0)))
 
 static func party_outgoing_mult() -> float:
 	var mult: float = 1.0

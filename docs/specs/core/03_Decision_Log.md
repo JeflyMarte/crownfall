@@ -3586,6 +3586,18 @@ ELITE/BOSS/遍在希少種（P3-D166）は別枠。重みは **当該 Biome 雑�
 | P3-WPN-LEG-EFFECT-3 | **重複** — 装備者ごとに独立発火（案A） | 前回GO |
 | P3-WPN-LEG-EFFECT-4 | **`leg_*` 廃止** — 第3系統武器スキルはレジェンドから外す | 固有効果へ移行 |
 
+## 弓／杖レジェンド数揃え（2026-07-26 — P3-EQ-LEG-WPN-FILL-001）
+
+> **オーナー GO** — ★3 を剣と同数（各7）へ。弓+3／杖+2。数値はHQ調整可。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-LEG-WPN-FILL-001-1 | **斉射の地平弓** — 通常攻撃全体（主対象100%／他55%） | フル全体は群れで過剰 |
+| P3-EQ-LEG-WPN-FILL-001-2 | **戦列の猛弓** — 前衛のみ与×2.0／被×1.5 | オーナー指定。後衛では無効 |
+| P3-EQ-LEG-WPN-FILL-001-3 | **王討ちの長弓** — ボス（`EnemyType.BOSS`）与×1.5 | オーナー指定 |
+| P3-EQ-LEG-WPN-FILL-001-4 | **増幅珠の杖** — 通常攻撃 +35% | 既存スキル★（+35%）に揃える |
+| P3-EQ-LEG-WPN-FILL-001-5 | **黙撃の秘杖** — 通常不可／スキル×2.0 | オーナー指定。通常不可が代償 |
+
 ## 指揮官・調査許可等級（2026-07-11 — P3-CMD-001）
 
 > **オーナー GO** — 指揮官（隊長）プロフィール・調査点（SP）・D〜S級。メインBiome/章/ティア解放は現行クリア連鎖を維持。
@@ -4503,13 +4515,13 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | # | 決定 | 根拠 |
 |---|---|---|
 | P3-EQ-JOB-WPN-001-1 | **厳格制限** — `preferred_weapon_types` 外の武器は装備不可 | 職アイデンティティの整理 |
-| P3-EQ-JOB-WPN-001-2 | **許可表** — 近接2職=大剣/双刃系、レンジャー=弓、アルケ=杖、BT=弓+杖（JobData 据置） | 現行 preferred を正 |
+| P3-EQ-JOB-WPN-001-2 | **許可表（2026-07-26）** — 各職2種。剣＝`sword`（旧 greatsword 統一）。SM=剣+双剣／VG=剣+杖／BT=杖+弓／AL=杖+双剣／RG=弓+剣 | オーナー指定 |
 | P3-EQ-JOB-WPN-001-3 | **セーブ** — ロード後に非適合を外す（所持残置・自動付け替えなし） | 破壊しない移行 |
 | P3-EQ-JOB-WPN-001-4 | **スコープ外** — 防具／装飾の職制限 | オーナー確認済み |
 
 **SSOT:** `docs/specs/decisions/07_JobWeaponRestrict.md`
 
-**Closeout（2026-07-24）:** オーナー一括 GO → 統合＋`main`。
+**Closeout（2026-07-24）:** オーナー一括 GO → 統合＋`main`。**2026-07-26:** 各職2種表へ更新。**同日:** `weapon_type` の `greatsword` を `sword` に統一。
 
 ## 装備ステ・ディアブロ寄せ（2026-07-24 — P3-EQ-DIABLO-001）
 > **オーナー GO** — 固定主ステ行＋レア別ランダム。Affix をランダム枠へ統合。セーブ移行案A。
@@ -4586,7 +4598,7 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 
 | # | 決定 | 根拠 |
 |---|---|---|
-| P3-DG-ABYSS-LEG-001-1 | **虚脈の大剣**（`abyss_veinblade`／greatsword）— 撃破裂傷＋低HP与ダメ↑。**攻撃** | モーン深層・鉱物化 |
+| P3-DG-ABYSS-LEG-001-1 | **虚脈の大剣**（`abyss_veinblade`／sword）— 撃破裂傷＋低HP与ダメ↑。**攻撃** | モーン深層・鉱物化 |
 | P3-DG-ABYSS-LEG-001-2 | **根葬の双刃**（`abyss_rootfang`／dual_blades）— 同一敵連続ヒットで与ダメ段階↑。**攻撃** | ウィスパー深層 |
 | P3-DG-ABYSS-LEG-001-3 | **澱みの封杖**（`abyss_mirestaff`／staff）— 被弾時霧ガード。**生存** | ミストフェン深層 |
 | P3-DG-ABYSS-LEG-001-4 | **虚潮の長弓**（`abyss_netherbow`／bow）— 潮汐印→爆発。**攻撃** | ブラックショア深層 |
@@ -4840,4 +4852,54 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-DG-CHRONOS-DESCENT-001-8 | **H/NM** — ティア倍率流用。出現中は N/H/NM すべて選択可（キャンペーン条件なし） | UI指定＋最初から挑戦 |
 
 **SSOT:** `docs/specs/decisions/14_ChronosDescent.md`
+
+
+## 境界の番ヴァルガード再設計（2026-07-26 — P3-LORE-VALGARD-001）
+
+> **オーナー GO** — 巨大機械式ゴーレム（境界残滓の鉱物化適応）。クロノス一段下のエンドイベント。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-LORE-VALGARD-001-1 | **表示名** — 境界の番ヴァルガード（id `valgard` 据置） | オーナー指定 |
+| P3-LORE-VALGARD-001-2 | **形態** — 巨大機械式ゴーレム | オーナー指定 |
+| P3-LORE-VALGARD-001-3 | **適応** — 境界岩鉄・城壁残滓の鉱物化適応。魔法人形ではない | 魔法なし |
+| P3-LORE-VALGARD-001-4 | **ステ** — HP3600/ATK210/DEF220/ASPD0.90/会心10%/EXP210/Gold300 | 実装案 |
+| P3-LORE-VALGARD-001-5 | **属性** — holy／弱 thunder+fire／耐 dark | 実装案 |
+| P3-LORE-VALGARD-001-6 | **スキル** — 城壁機関0.58・界壁衝角1.05 | 実装案 |
+| P3-LORE-VALGARD-001-7 | **フェーズ** — 40%/55%/72% ・ ×1.0/1.12/1.28 | 実装案 |
+
+**SSOT:** `docs/specs/decisions/15_ValgardGolem.md`
+
+
+## 境界の番　降臨／ストームクラウン境界廊（2026-07-26 — P3-DG-VALGARD-DESCENT-001）
+
+> **オーナー GO** — バナー＝降臨。潜る名＝ストームクラウン境界廊 N/H/NM。JST 1/4/7/10時から各1時間（クロノスとずらす）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-VALGARD-DESCENT-001-1 | **バナー** — 境界の番　降臨 | 実装案 |
+| P3-DG-VALGARD-DESCENT-001-2 | **選択名** — ストームクラウン境界廊　ノーマル／ハード／ナイトメア | 実装案 |
+| P3-DG-VALGARD-DESCENT-001-3 | **枠** — `route_type=event`・id `valgard_boundary`（旧 storm_crown_ruins 置換） | クロノス同型 |
+| P3-DG-VALGARD-DESCENT-001-4 | **出現** — 毎日 JST 1/4/7/10 時〜各1時間 | クロノス非重複 |
+| P3-DG-VALGARD-DESCENT-001-5 | **進行解放なし** — 新規から挑戦可。ウィンドウ外は不可 | クロノス同型 |
+| P3-DG-VALGARD-DESCENT-001-6 | **日次回数制限なし** | クロノス同型 |
+| P3-DG-VALGARD-DESCENT-001-7 | **H/NM** — ティア倍率流用。出現中はすべて選択可 | クロノス同型 |
+| P3-DG-VALGARD-DESCENT-001-8 | **雑魚／Elite** — ウィスパーウッド寄り（`rock_bison` 厚め＋`mist_wyvern`）。旧モーンゲート寄りは撤回 | オーナー指示 2026-07-26 |
+
+**SSOT:** `docs/specs/decisions/16_ValgardDescent.md`
+
+## 降臨イベント専用報酬（2026-07-26 — P3-DG-EVENT-REWARD-001）
+
+> **オーナー GO** — クロノス／ヴァルガード降臨に専用武器・装飾・レリック。ボス主入手。深層未満。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-EVENT-REWARD-001-1 | **対象** — `chronos_mausoleum`／`valgard_boundary` のみ（曜日は後続） | 実装案 |
+| P3-DG-EVENT-REWARD-001-2 | **品目** — 各DG＝武器1＋装飾1＋レリック1 | 実装案 |
+| P3-DG-EVENT-REWARD-001-3 | **初回ティア** — 武器＋装飾確定。再周回40%でどちらか1 | 実装案 |
+| P3-DG-EVENT-REWARD-001-4 | **レリック** — ボス撃破で未所持確定解放。汎用抽選除外 | 実装案 |
+| P3-DG-EVENT-REWARD-001-5 | **除外** — 鍛冶・通常／放浪レジェンド抽選に載せない | 深層と同ポリシー |
+| P3-DG-EVENT-REWARD-001-6 | **強さ** — クロノス★3／ヴァルガード★2。深層未満 | 実装案 |
+
+**SSOT:** `docs/specs/decisions/18_EventDescentRewards.md`
 

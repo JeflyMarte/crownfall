@@ -11,6 +11,7 @@ const RANDOM_STAT_COUNT: Dictionary = {
 	Enums.Rarity.EPIC: 3,
 	Enums.Rarity.LEGENDARY: 4,
 	Enums.Rarity.MYTHIC: 4,
+	Enums.Rarity.SET: 4,
 }
 
 static func random_stat_count(rarity: int) -> int:

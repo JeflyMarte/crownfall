@@ -23,14 +23,24 @@ static func folder_id_for_member(member: Resource) -> String:
 		return ""
 	var member_id: String = str(member.id)
 	if Constants.is_pet_id(member_id):
-		if FileAccess.file_exists(FRAME_PATH % [member_id, 0]):
+		if idle_frame_exists(FRAME_PATH % [member_id, 0]):
 			return member_id
 		return ""
 	if Constants.is_gacha_helper_id(member_id):
 		var helper_id: String = member_id.trim_prefix("gacha_")
-		if not helper_id.is_empty() and FileAccess.file_exists(FRAME_PATH % [helper_id, 0]):
+		if not helper_id.is_empty() and idle_frame_exists(FRAME_PATH % [helper_id, 0]):
 			return helper_id
 	return str(member.job_id)
+
+
+## Idle フレームの有無。エクスポート先は PNG 原寸が無いことがあるので ResourceLoader を優先。
+## FileAccess はエディタで未インポート PNG を拾う用途。
+static func idle_frame_exists(path: String) -> bool:
+	if path.is_empty():
+		return false
+	if ResourceLoader.exists(path):
+		return true
+	return FileAccess.file_exists(path)
 
 
 static func idle_frame_paths(folder_id: String) -> PackedStringArray:
@@ -40,8 +50,7 @@ static func idle_frame_paths(folder_id: String) -> PackedStringArray:
 	var i: int = 0
 	while i < 64:
 		var path: String = FRAME_PATH % [folder_id, i]
-		## FileAccess: 未インポートの新規 PNG でも検出できる（ResourceLoader は .ctex 必須）
-		if not FileAccess.file_exists(path):
+		if not idle_frame_exists(path):
 			break
 		out.append(path)
 		i += 1
@@ -58,14 +67,17 @@ static func load_idle_textures(folder_id: String) -> Array[Texture2D]:
 
 
 static func _load_idle_texture(path: String) -> Texture2D:
-	## PNG 直読みを優先（未インポートでも ERROR を出さない）。ctex 生成後も同結果。
+	## ResourceLoader 優先（iOS 等のエクスポートでは .ctex のみで PNG 直読み不可）。
+	if ResourceLoader.exists(path):
+		var imported: Texture2D = load(path) as Texture2D
+		if imported != null:
+			return imported
+	## エディタ／未インポート PNG 向けフォールバック。
 	var abs_path: String = ProjectSettings.globalize_path(path)
 	if FileAccess.file_exists(abs_path):
 		var img: Image = Image.load_from_file(abs_path)
 		if img != null and img.get_width() > 0:
 			return ImageTexture.create_from_image(img)
-	if ResourceLoader.exists(path):
-		return load(path) as Texture2D
 	return null
 
 

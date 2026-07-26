@@ -35,11 +35,35 @@ func test_heal_room_percent_floor() -> void:
 
 
 func test_fail_penalty_fractions() -> void:
-	assert_almost_eq(BalanceConfig.NONCOMBAT_FAIL_TREASURE_HP_FRAC, 0.12, 0.0001)
-	assert_almost_eq(BalanceConfig.NONCOMBAT_FAIL_HEAL_HP_FRAC, 0.10, 0.0001)
-	assert_almost_eq(BalanceConfig.NONCOMBAT_FAIL_LORE_HP_FRAC, 0.08, 0.0001)
+	## 罠以外を緩和（罠部屋割合は TRAP_* 据置）。
+	assert_almost_eq(BalanceConfig.NONCOMBAT_FAIL_TREASURE_HP_FRAC, 0.08, 0.0001)
+	assert_almost_eq(BalanceConfig.NONCOMBAT_FAIL_HEAL_HP_FRAC, 0.07, 0.0001)
+	assert_almost_eq(BalanceConfig.NONCOMBAT_FAIL_LORE_HP_FRAC, 0.05, 0.0001)
 
 
 func test_lore_bonus_gold() -> void:
 	assert_eq(BalanceConfig.LORE_FIRST_GOLD, 20)
 	assert_eq(BalanceConfig.LORE_REPEAT_GOLD, 10)
+
+
+func test_lore_floor_blessing_mult() -> void:
+	assert_almost_eq(BalanceConfig.LORE_FLOOR_BLESSING_MULT, 1.1, 0.0001)
+	assert_eq(BalanceConfig.LORE_FLOOR_BLESSING_KINDS.size(), 3)
+
+
+func test_lore_floor_blessing_applies_on_next_room_only() -> void:
+	var dc = _DungeonController.new()
+	dc.current_room_index = 2
+	dc.floor_blessing_kind = ""
+	dc.floor_blessing_room_index = -1
+	var granted: Dictionary = dc.grant_lore_floor_blessing()
+	assert_false(granted.is_empty())
+	assert_eq(int(dc.floor_blessing_room_index), 3)
+	assert_almost_eq(dc.floor_blessing_mult_for(str(granted["kind"])), 1.0, 0.0001)
+	dc.current_room_index = 3
+	assert_almost_eq(dc.floor_blessing_mult_for(str(granted["kind"])), 1.1, 0.0001)
+	assert_almost_eq(dc.floor_blessing_mult_for("nope"), 1.0, 0.0001)
+	dc.current_room_index = 4
+	dc._expire_floor_blessing_if_needed()
+	assert_eq(dc.floor_blessing_kind, "")
+	dc.free()

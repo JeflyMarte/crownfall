@@ -28,15 +28,41 @@ func test_pick_subtitle_prefers_heal_when_dominant() -> void:
 	assert_true("守りの要" in _MvpPresentation.pick_subtitle(entry))
 
 
-func test_stat_cards_omit_score() -> void:
-	var cards: Array = _MvpPresentation.stat_cards({"damage_total": 10, "damage_max_hit": 5, "heal_total": 2, "score": 11})
-	assert_eq(cards.size(), 3)
-	assert_eq(cards[0]["key"], "与ダメージ")
-	assert_eq(cards[1]["key"], "最大ヒット")
-	assert_eq(cards[2]["key"], "回復量")
+func test_stat_cards_omit_zero_and_score() -> void:
+	var cards: Array = _MvpPresentation.stat_cards({
+		"damage_total": 10,
+		"damage_max_hit": 5,
+		"heal_total": 0,
+		"kill_count": 2,
+		"damage_taken": 0,
+		"ultimate_count": 1,
+		"crit_count": 0,
+		"score": 11,
+	})
+	assert_eq(cards.size(), 4)
+	var keys: Array = []
 	for card: Dictionary in cards:
+		keys.append(str(card.get("key", "")))
 		assert_ne(str(card.get("key", "")), "MVPスコア")
+		assert_ne(str(card.get("value", "")), "0")
+	assert_true("与ダメージ" in keys)
+	assert_true("最大ヒット" in keys)
+	assert_true("撃破数" in keys)
+	assert_true("必殺回数" in keys)
+	assert_false("回復量" in keys)
 
+
+func test_stat_cards_cap_at_six() -> void:
+	var cards: Array = _MvpPresentation.stat_cards({
+		"damage_total": 1,
+		"damage_max_hit": 1,
+		"kill_count": 1,
+		"damage_taken": 1,
+		"ultimate_count": 1,
+		"crit_count": 1,
+		"heal_total": 1,
+	})
+	assert_eq(cards.size(), _MvpPresentation.STAT_CARD_MAX)
 
 func test_backdrop_style_has_opaque_fill() -> void:
 	var header: StyleBoxFlat = _MvpPresentation.backdrop_style("header")

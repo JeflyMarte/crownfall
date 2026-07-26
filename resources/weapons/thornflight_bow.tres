@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "thornflight_bow"
+display_name = "荊飛の弓"
+description = "共生の荊を矢として飛ばす火色の弓。命中した荊が熱を帯び、獲物の動きを封じる。"
+fixed_skill_id = "kindling_strike"
+base_attack = 280
+rarity = 2
+base_attack_speed = 1.2
+base_critical_rate = 0.1
+base_knockback = 0.15
+base_stagger_power = 0.1
+base_attack_range = 3.0
+weight = 0.75
+element = "fire"
+weapon_type = "bow"
+tags = Array[String](["pierce", "fire"])

@@ -18,3 +18,5 @@ extends Resource
 @export var rare_drop_rate: float = 0.0
 ## レジェンド装飾品の固有パッシブ id（`CombatPassives` SSOT / 空ならなし）。
 @export var fixed_passive_id: String = ""
+## セット装備 id（空=非セット）。P3-DG-EVENT-SET-001。
+@export var set_id: String = ""

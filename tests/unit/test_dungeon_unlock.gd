@@ -88,3 +88,10 @@ func test_chronos_mausoleum_unlocked_from_start() -> void:
 		GameState.is_dungeon_unlocked(Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID),
 		"時王の霊廟は進行解放なし（時間ゲートは can_attempt）"
 	)
+
+func test_valgard_boundary_unlocked_from_start() -> void:
+	GameState.dungeon_progress = {}
+	assert_true(
+		GameState.is_dungeon_unlocked(Constants.VALGARD_BOUNDARY_DUNGEON_ID),
+		"境界廊は進行解放なし（時間ゲートは can_attempt）"
+	)

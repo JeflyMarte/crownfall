@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "duskcord_bow"
+display_name = "薄暮弦の弓"
+description = "薄暮の影を弦に織った弓。放たれた矢は輪郭だけを残し、光の薄い場所で真価を発揮する。"
+fixed_skill_id = "hex_bolt"
+base_attack = 200
+rarity = 1
+base_attack_speed = 1.2
+base_critical_rate = 0.1
+base_knockback = 0.15
+base_stagger_power = 0.1
+base_attack_range = 3.0
+weight = 0.75
+element = "dark"
+weapon_type = "bow"
+tags = Array[String](["pierce", "dark"])

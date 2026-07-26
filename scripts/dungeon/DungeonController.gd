@@ -11,6 +11,7 @@ const _WanderingEnemyConfig = preload("res://scripts/dungeon/WanderingEnemyConfi
 const _EvolutionTraits = preload("res://scripts/systems/EvolutionTraits.gd")
 const MythicLoot = preload("res://scripts/equipment/MythicLoot.gd")
 const _AbyssLegendaryWeapons = preload("res://scripts/dungeon/AbyssLegendaryWeapons.gd")
+const _EventExclusiveRewards = preload("res://scripts/dungeon/EventExclusiveRewards.gd")
 
 const ROOM_SEQUENCE: Array[int] = [
 	Enums.RoomType.START,
@@ -65,7 +66,6 @@ const MOURNGATE_ECOLOGY_DUNGEON_IDS: Array[String] = [
 	"mourngate",
 	"chronos_mausoleum",
 	"astoria_ruins",
-	"storm_crown_ruins",
 ]
 
 const EVENTS: Array = [
@@ -439,7 +439,7 @@ const DUNGEON_EVENTS: Dictionary = {
 	"frostridge": EVENTS_FROSTRIDGE,
 	"frostwall_path": EVENTS_FROSTRIDGE + EVENTS_FROSTWALL_PATH,
 	"chronos_mausoleum": EVENTS_MOURNGATE,
-	"storm_crown_ruins": EVENTS_MOURNGATE,
+	"valgard_boundary": EVENTS_WHISPERWOOD,
 	"red_ridge_mine": EVENTS_WHISPERWOOD,
 	"mistfen_depths": EVENTS_MISTFEN,
 	"thunder_peak": EVENTS_MISTFEN,
@@ -505,6 +505,9 @@ var last_accessory_dropped: String = ""
 var last_relic_dropped: String = ""
 var current_event: Dictionary = {}
 var run_damage_multiplier: float = 1.0
+## 碑文加護: 次フロア（部屋）限定。kind = exp|gold|equip。
+var floor_blessing_kind: String = ""
+var floor_blessing_room_index: int = -1
 var _seen_event_ids: Array[String] = []
 ## ラン開始時に COMBAT 部屋ごとの放浪出現を事前抽選（予兆表示用）。未計画時はライブ抽選。
 var _wander_plan_ready: bool = false
@@ -558,6 +561,7 @@ func _reset_run_state() -> void:
 	last_relic_dropped = ""
 	current_event = {}
 	run_damage_multiplier = 1.0
+	_clear_floor_blessing()
 	_seen_event_ids.clear()
 	GameState.set_weather(_roll_run_weather())
 	_init_discovery()
@@ -684,6 +688,7 @@ func set_policy(policy: int) -> void:
 
 func advance_room() -> void:
 	current_room_index += 1
+	_expire_floor_blessing_if_needed()
 	if current_room_index >= room_sequence.size():
 		if _is_abyss_run():
 			_extend_abyss_chunk()
@@ -695,6 +700,59 @@ func advance_room() -> void:
 	if _is_abyss_run():
 		_sync_abyss_tier_for_current_floor()
 		_note_abyss_progress()
+
+
+func _clear_floor_blessing() -> void:
+	floor_blessing_kind = ""
+	floor_blessing_room_index = -1
+
+
+func _expire_floor_blessing_if_needed() -> void:
+	if floor_blessing_kind.is_empty():
+		return
+	if current_room_index > floor_blessing_room_index:
+		_clear_floor_blessing()
+
+
+## 碑文成功時。次フロア向けに EXP／Gold／装備ドロップのいずれか ×1.1。
+func grant_lore_floor_blessing() -> Dictionary:
+	var kinds: Array[String] = BalanceConfig.LORE_FLOOR_BLESSING_KINDS.duplicate()
+	if kinds.is_empty():
+		return {}
+	floor_blessing_kind = str(kinds[randi() % kinds.size()])
+	floor_blessing_room_index = current_room_index + 1
+	return {
+		"kind": floor_blessing_kind,
+		"mult": BalanceConfig.LORE_FLOOR_BLESSING_MULT,
+		"label": floor_blessing_label(floor_blessing_kind),
+	}
+
+
+static func floor_blessing_label(kind: String) -> String:
+	match kind:
+		"exp":
+			return "経験値"
+		"gold":
+			return "ゴールド"
+		"equip":
+			return "装備ドロップ"
+		_:
+			return kind
+
+
+func floor_blessing_mult_for(kind: String) -> float:
+	if floor_blessing_kind.is_empty() or floor_blessing_kind != kind:
+		return 1.0
+	if current_room_index != floor_blessing_room_index:
+		return 1.0
+	return BalanceConfig.LORE_FLOOR_BLESSING_MULT
+
+
+func has_active_floor_blessing() -> bool:
+	return (
+		not floor_blessing_kind.is_empty()
+		and current_room_index == floor_blessing_room_index
+	)
 
 func get_total_rooms() -> int:
 	return room_sequence.size()
@@ -952,12 +1010,18 @@ func is_on_last_floor_before_exit() -> bool:
 func accumulate_rewards(exp: int, gold: int) -> void:
 	if exp > 0:
 		exp = _AffixStatCalculator.apply_exp_bonus(exp)
+		var exp_bless: float = floor_blessing_mult_for("exp")
+		if exp_bless > 1.0:
+			exp = maxi(1, int(round(float(exp) * exp_bless)))
 	run_exp_reward += exp
 	if gold > 0:
 		gold = _AffixStatCalculator.apply_gold_bonus(gold)
 		# 探索方針（素材優先）gold +15%（P3-D098）
 		if GameState.get_exploration_policy() == "material":
 			gold = int(round(float(gold) * 1.15))
+		var gold_bless: float = floor_blessing_mult_for("gold")
+		if gold_bless > 1.0:
+			gold = maxi(1, int(round(float(gold) * gold_bless)))
 	run_gold_reward += gold
 
 func get_enemy_level() -> int:
@@ -1279,11 +1343,13 @@ func update_discovery(bonus: float = 0.0) -> void:
 func generate_treasure_loot() -> Dictionary:
 	accumulate_rewards(0, TREASURE_GOLD)
 	var accessory_id: String = ""
-	if randf() < TREASURE_ACCESSORY_CHANCE:
+	var acc_chance: float = TREASURE_ACCESSORY_CHANCE * floor_blessing_mult_for("equip")
+	if randf() < acc_chance:
 		_generate_accessory_loot()
 		accessory_id = last_accessory_dropped
 	var weapon_id: String = ""
-	if randf() < TREASURE_WEAPON_CHANCE:
+	var wpn_chance: float = TREASURE_WEAPON_CHANCE * floor_blessing_mult_for("equip")
+	if randf() < wpn_chance:
 		weapon_id = _pick_weighted_weapon(null)
 		if not weapon_id.is_empty():
 			_spawn_weapon(weapon_id)
@@ -1376,6 +1442,28 @@ func apply_boss_mythic_loot(stage: Resource) -> Dictionary:
 	bonus["id"] = item_id
 	return bonus
 
+## 降臨イベント専用（P3-DG-EVENT-SET-001）。stage 無し DG のボス撃破で呼ぶ。
+func apply_event_exclusive_boss_loot() -> Dictionary:
+	var empty: Dictionary = {"weapon_id": "", "armor_id": "", "accessory_id": "", "relic_id": ""}
+	if current_dungeon_data == null:
+		return empty
+	var dungeon_id: String = str(current_dungeon_data.id)
+	if not _EventExclusiveRewards.is_event_dungeon(dungeon_id):
+		return empty
+	var granted: Dictionary = _EventExclusiveRewards.apply_boss_loot(
+		dungeon_id, GameState.current_dungeon_tier
+	)
+	var weapon_id: String = str(granted.get("weapon_id", ""))
+	var armor_id: String = str(granted.get("armor_id", ""))
+	var accessory_id: String = str(granted.get("accessory_id", ""))
+	if not weapon_id.is_empty():
+		last_weapon_dropped = weapon_id
+	if not armor_id.is_empty():
+		last_armor_dropped = armor_id
+	if not accessory_id.is_empty():
+		last_accessory_dropped = accessory_id
+	return granted
+
 const WEAPON_POOL: Array[String] = [
 	"iron_sword",
 	"rusted_blade",
@@ -1403,12 +1491,22 @@ const RARITY_DROP_WEIGHT: Dictionary = {
 
 # P3-D074: 武器はラン終了一括ではなく撃破時に直ドロップ。ここでは防具/装飾のみ。
 func generate_run_loot() -> void:
+	## 降臨セットは Result 表示用に保持（ラン終了抽選で潰さない）。
+	var keep_weapon: String = last_weapon_dropped if _EventExclusiveRewards.is_event_exclusive_weapon(last_weapon_dropped) else ""
+	var keep_armor: String = last_armor_dropped if _EventExclusiveRewards.is_event_exclusive_armor(last_armor_dropped) else ""
+	var keep_accessory: String = last_accessory_dropped if _EventExclusiveRewards.is_event_exclusive_accessory(last_accessory_dropped) else ""
 	last_armor_dropped = ""
 	last_accessory_dropped = ""
 	if randf() < RUN_ARMOR_DROP_CHANCE:
 		_generate_armor_loot()
 	if randf() < RUN_ACCESSORY_DROP_CHANCE:
 		_generate_accessory_loot()
+	if not keep_weapon.is_empty():
+		last_weapon_dropped = keep_weapon
+	if not keep_armor.is_empty():
+		last_armor_dropped = keep_armor
+	if not keep_accessory.is_empty():
+		last_accessory_dropped = keep_accessory
 
 # P3-D074 / P3-WANDER-002: 撃破時装備ドロップ。
 # 戻り値: {category, id}。空 Dictionary = なし。
@@ -1428,6 +1526,7 @@ func _roll_multi_category_equip_drop(enemy_data: Resource) -> Dictionary:
 		float(enemy_data.weapon_drop_chance)
 		* EventSystem.get_modifier_mult(EventSystem.MOD_WEAPON_DROP)
 		* _EvolutionTraits.party_weapon_drop_mult()
+		* floor_blessing_mult_for("equip")
 	)
 	if chance <= 0.0 or randf() > chance:
 		return {}
@@ -1568,6 +1667,15 @@ func _all_legendary_ids(category: String) -> Array[String]:
 			continue
 		if category == "weapon" and _AbyssLegendaryWeapons.is_abyss_legendary_id(item_id):
 			continue
+		if category == "weapon" and _EventExclusiveRewards.is_event_exclusive_weapon(item_id):
+			continue
+		if category == "armor" and _EventExclusiveRewards.is_event_exclusive_armor(item_id):
+			continue
+		if category == "accessory" and _EventExclusiveRewards.is_event_exclusive_accessory(item_id):
+			continue
+		## SET レアは通常レジェンド抽選に載せない
+		if int(data.rarity) == Enums.Rarity.SET:
+			continue
 		out.append(item_id)
 	return out
 
@@ -1584,19 +1692,27 @@ func roll_kill_weapon_drop(room_type: int, enemy_data: Resource = null) -> Strin
 	return weapon_id
 
 func _resolve_weapon_drop_chance(room_type: int, enemy_data: Resource) -> float:
+	var bless: float = floor_blessing_mult_for("equip")
 	if enemy_data != null and float(enemy_data.weapon_drop_chance) >= 0.0:
 		return minf(
 			1.0,
 			float(enemy_data.weapon_drop_chance)
 			* EventSystem.get_modifier_mult(EventSystem.MOD_WEAPON_DROP)
 			* _EvolutionTraits.party_weapon_drop_mult()
+			* bless
 		)
 	var chance: float = COMBAT_WEAPON_DROP_CHANCE
 	if room_type == Enums.RoomType.BOSS:
 		chance = BOSS_WEAPON_DROP_CHANCE
 	elif room_type == Enums.RoomType.ELITE:
 		chance = ELITE_WEAPON_DROP_CHANCE
-	return minf(1.0, chance * EventSystem.get_modifier_mult(EventSystem.MOD_WEAPON_DROP) * _EvolutionTraits.party_weapon_drop_mult())
+	return minf(
+		1.0,
+		chance
+		* EventSystem.get_modifier_mult(EventSystem.MOD_WEAPON_DROP)
+		* _EvolutionTraits.party_weapon_drop_mult()
+		* bless
+	)
 
 # P3-D093: 撃破時の遺物ドロップ（解放型）。未所持の遺物から1つ解放する。
 const RELIC_DROP_CHANCE_BOSS: float = 0.10
@@ -1605,6 +1721,12 @@ const RELIC_DROP_POLICY_BONUS: float = 0.05
 
 func roll_kill_relic_drop(room_type: int) -> String:
 	var pool: Array = GameState.unowned_relic_ids()
+	## 降臨専用レリックは汎用抽選から除外（専用ボス付与のみ）。
+	var filtered: Array = []
+	for rid in pool:
+		if not _EventExclusiveRewards.is_event_exclusive_relic(str(rid)):
+			filtered.append(rid)
+	pool = filtered
 	if pool.is_empty():
 		return ""
 	var chance: float = 0.0

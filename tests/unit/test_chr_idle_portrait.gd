@@ -30,6 +30,30 @@ func test_helper_idle_folder_prefers_helper_id() -> void:
 	assert_gt(texs.size(), 0, "helper member loads own idle")
 
 
+func test_idle_loader_prefers_resource_loader_path() -> void:
+	## エクスポート先では PNG 直読み不可でも ResourceLoader で Idle を解決できること。
+	assert_true(_ChrIdlePortrait.idle_frame_exists("res://assets/characters/swordsman/idle_0.png"))
+	var texs: Array[Texture2D] = _ChrIdlePortrait.load_idle_textures("swordsman")
+	assert_gt(texs.size(), 0, "imported idle must load via ResourceLoader")
+	var view: Control = _ChrIdlePortraitView.new()
+	add_child_autofree(view)
+	view.set_from_helper_id("helper_a", "vanguard")
+	assert_true(view.has_idle_texture(), "featured must use front idle, not walk/icon")
+
+
+func test_set_from_helper_id_does_not_use_walk() -> void:
+	## Idle がある助っ人は walk（背面歩行）へ落とさない。
+	var view: Control = _ChrIdlePortraitView.new()
+	add_child_autofree(view)
+	view.set_from_helper_id("helper_a", "vanguard")
+	assert_true(view.has_idle_texture())
+	## Idle ループは複数フレーム。walk 静的1枚フォールバックではない。
+	var art: TextureRect = view.get_child(0) as TextureRect
+	assert_not_null(art)
+	assert_not_null(art.texture)
+	assert_true(view.has_method("_process"))
+
+
 func test_swordsman_idle_frames_exist() -> void:
 	var paths: PackedStringArray = _ChrIdlePortrait.idle_frame_paths("swordsman")
 	assert_gt(paths.size(), 0, "swordsman idle frames")

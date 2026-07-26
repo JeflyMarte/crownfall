@@ -9,6 +9,7 @@ const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.
 const _ArmorStatResolver = preload("res://scripts/equipment/ArmorStatResolver.gd")
 const _AccessoryStatResolver = preload("res://scripts/equipment/AccessoryStatResolver.gd")
 const _EquipmentPerfectRollHelper = preload("res://scripts/equipment/EquipmentPerfectRollHelper.gd")
+const _EquipmentSetBonuses = preload("res://scripts/equipment/EquipmentSetBonuses.gd")
 
 const COLOR_SUB: Color = Color(0.90, 0.87, 0.80)
 const COLOR_LABEL: Color = Color(0.97, 0.94, 0.87)
@@ -102,6 +103,36 @@ static func _append_legendary_effect_block(host: VBoxContainer, item: Resource, 
 	UiTypography.apply_body(body, UiTypography.SIZE_CAPTION, COLOR_WEAPON_EFFECT)
 	host.add_child(body)
 
+
+static func _append_set_bonus_block(host: VBoxContainer, item: Resource, category: String) -> void:
+	if item == null:
+		return
+	var set_id: String = ""
+	match category:
+		"weapon":
+			set_id = _EquipmentSetBonuses.set_id_of_weapon(str(item.weapon_id))
+		"armor":
+			set_id = _EquipmentSetBonuses.set_id_of_armor(str(item.armor_id))
+		"accessory":
+			set_id = _EquipmentSetBonuses.set_id_of_accessory(str(item.accessory_id))
+	if set_id.is_empty():
+		return
+	var bonus_name: String = _EquipmentSetBonuses.display_name(set_id)
+	var bonus_desc: String = _EquipmentSetBonuses.description(set_id)
+	if bonus_name.is_empty() and bonus_desc.is_empty():
+		return
+	host.add_child(_make_rule())
+	var title := Label.new()
+	title.text = "セット加護（3部位）"
+	UiTypography.apply_caption(title, Color(0.40, 0.90, 0.52))
+	host.add_child(title)
+	var body := Label.new()
+	body.text = "%s: %s" % [bonus_name, bonus_desc] if not bonus_name.is_empty() else bonus_desc
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_body(body, UiTypography.SIZE_CAPTION, Color(0.62, 0.95, 0.70))
+	host.add_child(body)
+
 static func _stat_value(item: Resource, category: String, stat_key: String, value_text: String) -> String:
 	## 例: 会心率 30%(10〜40)⭐️ — ランダム上下限を値の直後へ。
 	var with_range: String = value_text + _EquipmentPerfectRollHelper.range_suffix(item, category, stat_key)
@@ -139,7 +170,7 @@ static func stat_rows(item: Resource, category: String) -> Array:
 			continue
 		var line: String = _EquipmentRandomMods.format_mod_line(mod as Dictionary)
 		rows.append({
-			"key": str(mod.get("kind", "mod")),
+			"key": EquipmentUiTokens.detail_stat_icon_key(mod as Dictionary),
 			"label": "",
 			"value": line,
 		})
@@ -256,6 +287,7 @@ static func populate_stats_panel(host: VBoxContainer, item: Resource, category: 
 		host.add_child(_make_stat_row(str(row.get("key", "")), str(row.get("label", "")), str(row.get("value", ""))))
 	_append_description_block(host, item, category)
 	_append_legendary_effect_block(host, item, category)
+	_append_set_bonus_block(host, item, category)
 	var affix: String = affix_text(item)
 	if not affix.is_empty():
 		host.add_child(_make_rule())
@@ -311,7 +343,7 @@ static func populate_panel(
 	title_col.add_child(name_lbl)
 	var meta_lbl := Label.new()
 	var rarity: int = _item_rarity(item, category)
-	meta_lbl.text = "%s · %s" % [category_label(category), EquipmentUiHelper.rarity_stars_text(rarity)]
+	meta_lbl.text = "%s · %s" % [category_label(category), EquipmentUiHelper.rarity_label_text(rarity)]
 	UiTypography.apply_caption(meta_lbl, COLOR_SUB)
 	title_col.add_child(meta_lbl)
 	host.add_child(_make_rule())
@@ -326,6 +358,7 @@ static func populate_panel(
 		host.add_child(_make_stat_row(str(row.get("key", "")), str(row.get("label", "")), str(row.get("value", ""))))
 	_append_description_block(host, item, category)
 	_append_legendary_effect_block(host, item, category)
+	_append_set_bonus_block(host, item, category)
 	var affix2: String = affix_text(item)
 	if not affix2.is_empty():
 		host.add_child(_make_rule())

@@ -12,6 +12,8 @@ const SkillIconHelperScript: Script = preload("res://scripts/ui/SkillIconHelper.
 const _MaterialUiTokens = preload("res://scripts/equipment/MaterialUiTokens.gd")
 const _ChrIdlePortraitView = preload("res://scripts/ui/ChrIdlePortraitView.gd")
 const CLEAR_BANNER_TEX: Texture2D = preload("res://assets/ui/result/UI_Result_Clear.png")
+const LEVELUP_BANNER_TEX: Texture2D = preload("res://assets/ui/result/UI_Result_LevelUp.png")
+const LEVELUP_BANNER_H: float = 168.0
 
 const COLOR_GOLD: Color = Color(0.85, 0.74, 0.45, 1)
 const COLOR_TEXT: Color = Color(0.82, 0.84, 0.9, 1)
@@ -78,7 +80,7 @@ var _button_next: Button
 var _button_next_stage: Button
 var _step_levelup_root: MarginContainer
 var _step_mvp_root: MarginContainer
-var _levelup_header: Label
+var _levelup_header: TextureRect
 var _levelup_member_list: VBoxContainer
 var _mvp_header: Label
 var _mvp_body: VBoxContainer
@@ -175,10 +177,14 @@ func _setup_wizard_roots() -> void:
 	var levelup_vbox := VBoxContainer.new()
 	levelup_vbox.add_theme_constant_override("separation", 16)
 	_step_levelup_root.add_child(levelup_vbox)
-	_levelup_header = Label.new()
-	_levelup_header.text = "レベルアップ！！"
-	_levelup_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UiTypography.apply_display(_levelup_header, 42, COLOR_LEVELUP, UiTypography.OUTLINE_STRONG)
+	_levelup_header = TextureRect.new()
+	_levelup_header.name = "LevelUpBanner"
+	_levelup_header.texture = LEVELUP_BANNER_TEX
+	_levelup_header.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_levelup_header.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_levelup_header.custom_minimum_size = Vector2(0, LEVELUP_BANNER_H)
+	_levelup_header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_levelup_header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	levelup_vbox.add_child(_levelup_header)
 	_levelup_member_list = VBoxContainer.new()
 	_levelup_member_list.add_theme_constant_override("separation", 14)
@@ -1199,7 +1205,7 @@ func _add_rare_row(item_id: String, category: String) -> int:
 		col.add_child(stats_label)
 	row.add_child(col)
 	var star: Label = Label.new()
-	star.text = EquipmentUiHelper.rarity_stars_text(rarity)
+	star.text = EquipmentUiHelper.rarity_label_text(rarity)
 	star.add_theme_font_size_override("font_size", FS_RARE_STAR)
 	star.add_theme_color_override("font_color", BlacksmithUiHelper.rarity_name_color(rarity))
 	star.size_flags_vertical = Control.SIZE_SHRINK_BEGIN

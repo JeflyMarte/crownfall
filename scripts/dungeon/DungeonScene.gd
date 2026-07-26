@@ -21,6 +21,9 @@ const CHR_BODY_TARGET_PX: float = 140.0
 const PET_BODY_TARGET_PX: float = 92.0
 const _LOG_MAX: int = 60
 const _BgmCatalog := preload("res://scripts/audio/BgmCatalog.gd")
+const CLEAR_BANNER_TEX: Texture2D = preload("res://assets/ui/result/UI_Result_Clear.png")
+const CLEAR_BANNER_W: float = 560.0
+const CLEAR_BANNER_H: float = 280.0
 
 const ENEMY_SPRITE_MAP: Dictionary = {
 	"abyssal_squid": "res://resources/animation/ENM_VoidTentacle.tres",
@@ -253,6 +256,7 @@ const BOSS_ENEMY_SPRITE_MAP: Dictionary = {
 	"nereion_depths": "res://resources/animation/BOSS_Nereion.tres",
 	"eldion": "res://resources/animation/BOSS_Eldion.tres",
 	"chronos_wave": "res://resources/animation/BOSS_ChronosWave.tres",
+	"valgard": "res://resources/animation/BOSS_Valgard.tres",
 }
 ## 体格正規化後の見た目倍率（1.0=標準）。ドットが他雑魚より大きく／小さく見える種を補正。
 const ENEMY_BODY_SCALE_MULT: Dictionary = {
@@ -304,12 +308,12 @@ const BOSS_SPRITE_MAP_BY_TIER: Dictionary = {
 		2: "res://resources/animation/BOSS_Serdion_Nightmare.tres",
 	},
 	"chronos_mausoleum": {
-		1: "res://resources/animation/BOSS_Serdion_Hard.tres",
-		2: "res://resources/animation/BOSS_Serdion_Nightmare.tres",
+		1: "res://resources/animation/BOSS_ChronosWave.tres",
+		2: "res://resources/animation/BOSS_ChronosWave.tres",
 	},
-	"storm_crown_ruins": {
-		1: "res://resources/animation/BOSS_Serdion_Hard.tres",
-		2: "res://resources/animation/BOSS_Serdion_Nightmare.tres",
+	"valgard_boundary": {
+		1: "res://resources/animation/BOSS_Valgard.tres",
+		2: "res://resources/animation/BOSS_Valgard.tres",
 	},
 	"whisperwood": {
 		1: "res://resources/animation/BOSS_Granvel_Hard.tres",
@@ -396,7 +400,7 @@ const BOSS_SPRITE_MAP: Dictionary = {
 	"westbay_flats": "res://resources/animation/ENM_ShipEaterCrab.tres",
 	"whisperwood": "res://resources/animation/BOSS_Granvel.tres",
 	"chronos_mausoleum": "res://resources/animation/BOSS_ChronosWave.tres",
-	"storm_crown_ruins": "res://resources/animation/BOSS_Serdion.tres",
+	"valgard_boundary": "res://resources/animation/BOSS_Valgard.tres",
 	"red_ridge_mine": "res://resources/animation/BOSS_Granvel.tres",
 	"mistfen_depths": "res://resources/animation/BOSS_Moldgar.tres",
 	"thunder_peak": "res://resources/animation/BOSS_Moldgar.tres",
@@ -423,7 +427,7 @@ const BATTLE_BG_MAP: Dictionary = {
 	"frostridge": "res://assets/dungeon/frostridge/env/BG_Battle_Frostridge.png",
 	"frostwall_path": "res://assets/dungeon/frostwall_path/env/BG_Battle_FrostwallPath.png",
 	"chronos_mausoleum": "res://assets/dungeon/chronos_mausoleum/env/BG_Battle_ChronosMausoleum.png",
-	"storm_crown_ruins": "res://assets/dungeon/astoria_ruins/env/BG_Battle_AstoriaRuins.png",
+	"valgard_boundary": "res://assets/dungeon/valgard_boundary/env/BG_Battle_ValgardBoundary.png",
 	"red_ridge_mine": "res://assets/dungeon/whisperwood/env/BG_Battle_Whisperwood.png",
 	"mistfen_depths": "res://assets/dungeon/mistfen/env/BG_Battle_Mistfen.png",
 	"thunder_peak": "res://assets/dungeon/broken_marsh/env/BG_Battle_BrokenMarsh.png",
@@ -449,7 +453,7 @@ const TREASURE_CLOSED_OBJ_MAP: Dictionary = {
 	"frostridge": "res://assets/dungeon/frostridge/env/OBJ_TreasureChest_Closed.png",
 	"frostwall_path": "res://assets/dungeon/frostwall_path/env/OBJ_TreasureChest_Closed.png",
 	"chronos_mausoleum": "res://assets/dungeon/mourngate/env/OBJ_TreasureChest_Closed.png",
-	"storm_crown_ruins": "res://assets/dungeon/astoria_ruins/env/OBJ_TreasureChest_Closed.png",
+	"valgard_boundary": "res://assets/dungeon/astoria_ruins/env/OBJ_TreasureChest_Closed.png",
 	"red_ridge_mine": "res://assets/dungeon/whisperwood/env/OBJ_TreasureChest_Closed.png",
 	"mistfen_depths": "res://assets/dungeon/mistfen/env/OBJ_TreasureChest_Closed.png",
 	"thunder_peak": "res://assets/dungeon/broken_marsh/env/OBJ_TreasureChest_Closed.png",
@@ -469,7 +473,7 @@ const EXIT_OBJ_MAP: Dictionary = {
 	"frostridge": "res://assets/dungeon/frostridge/env/OBJ_ExitGate_Frostridge.png",
 	"frostwall_path": "res://assets/dungeon/frostwall_path/env/OBJ_ExitGate_FrostwallPath.png",
 	"chronos_mausoleum": "res://assets/dungeon/mourngate/env/OBJ_ExitGate_Mourngate.png",
-	"storm_crown_ruins": "res://assets/dungeon/astoria_ruins/env/OBJ_ExitGate_AstoriaRuins.png",
+	"valgard_boundary": "res://assets/dungeon/astoria_ruins/env/OBJ_ExitGate_AstoriaRuins.png",
 	"red_ridge_mine": "res://assets/dungeon/whisperwood/env/OBJ_ExitGate_Whisperwood.png",
 	"mistfen_depths": "res://assets/dungeon/mistfen/env/OBJ_ExitGate_Mistfen.png",
 	"thunder_peak": "res://assets/dungeon/broken_marsh/env/OBJ_ExitGate_BrokenMarsh.png",
@@ -489,7 +493,7 @@ const FLOOR_TILE_MAP: Dictionary = {
 	"frostridge": "res://assets/dungeon/frostridge/env/TILE_Floor.png",
 	"frostwall_path": "res://assets/dungeon/frostwall_path/env/TILE_Floor.png",
 	"chronos_mausoleum": "res://assets/dungeon/mourngate/env/TILE_Floor.png",
-	"storm_crown_ruins": "res://assets/dungeon/astoria_ruins/env/TILE_Floor.png",
+	"valgard_boundary": "res://assets/dungeon/astoria_ruins/env/TILE_Floor.png",
 	"red_ridge_mine": "res://assets/dungeon/whisperwood/env/TILE_Floor.png",
 	"mistfen_depths": "res://assets/dungeon/mistfen/env/TILE_Floor.png",
 	"thunder_peak": "res://assets/dungeon/broken_marsh/env/TILE_Floor.png",
@@ -635,6 +639,7 @@ const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 const _WanderingEnemyConfig = preload("res://scripts/dungeon/WanderingEnemyConfig.gd")
 const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd")
 const _AbyssWeaponEffects = preload("res://scripts/combat/AbyssWeaponEffects.gd")
+const _EquipmentSetBonuses = preload("res://scripts/equipment/EquipmentSetBonuses.gd")
 
 var _auto_delay: float = AUTO_DELAY_BASE / SPEED_MULT_NORMAL
 var _auto_progress_paused_remaining: float = 0.0
@@ -2941,6 +2946,13 @@ func _end_combat_session() -> void:
 func _enter_current_room() -> void:
 	_update_room_label()
 	_update_room_art()
+	if $DungeonController.has_active_floor_blessing():
+		var kind: String = $DungeonController.floor_blessing_kind
+		var label: String = $DungeonController.floor_blessing_label(kind)
+		_append_log(
+			"[加護] 碑文の加護（%s ×%.1f）がこのフロアで有効"
+			% [label, BalanceConfig.LORE_FLOOR_BLESSING_MULT]
+		)
 	## 戦闘は黒幕一幕のあと（画面が見えてから）BGM 切替。幕中の「謎SE」感を避ける。
 	if not $DungeonController.is_combat_room():
 		_sync_room_bgm()
@@ -3802,7 +3814,23 @@ func _apply_lore_success_bonuses(first_time: bool) -> PackedStringArray:
 	else:
 		$DungeonController.accumulate_rewards(0, BalanceConfig.LORE_REPEAT_GOLD)
 		lines.append("ゴールド +%d（既知の記録）" % BalanceConfig.LORE_REPEAT_GOLD)
+	var bless: Dictionary = $DungeonController.grant_lore_floor_blessing()
+	if not bless.is_empty():
+		var label: String = str(bless.get("label", ""))
+		var mult: float = float(bless.get("mult", 1.1))
+		lines.append("碑文の加護: 次のフロアの%s ×%.1f" % [label, mult])
+		_play_lore_floor_blessing_fx()
+		GameState.record_run_modifier("碑文の加護")
 	return lines
+
+
+func _play_lore_floor_blessing_fx() -> void:
+	## 味方全体に短い加護演出（戦闘バフではない）。
+	for i: int in GameState.combatant_count():
+		if not $CombatController.is_member_alive(i):
+			continue
+		_spawn_member_heal_vfx(i)
+		_spawn_skill_name("✝加護", i, 0.0)
 
 
 func _member_max_hp_for_trap(index: int) -> int:
@@ -4037,6 +4065,7 @@ func _process_status_ticks() -> void:
 			var idx: int = int(unit_id.substr(7))
 			$CombatController.apply_damage_to_member(idx, dmg)
 			if dmg > 0:
+				GameState.record_run_damage_taken(idx, dmg)
 				$CombatController.add_ultimate_charge_from_damage_taken(idx, dmg)
 			if idx < _chr_sprites.size():
 				var party_pos: Vector2 = _sprite_visual_center_global(_chr_sprites[idx])
@@ -4167,7 +4196,8 @@ func _execute_member_skill(
 		is_critical,
 		CRITICAL_MULTIPLIER,
 		run_mult,
-		cd_key
+		cd_key,
+		_EquipmentSetBonuses.skill_cd_mult(member_idx)
 	)
 	if not result.get("executed", false):
 		return ""
@@ -4287,7 +4317,9 @@ func _execute_member_heal(
 	if target_idx < 0:
 		return ""
 	var cd_key: String = _member_skill_cd_key(member_idx, skill_data)
-	var result: Dictionary = _skill_executor.execute_support_skill(skill_data, cd_key)
+	var result: Dictionary = _skill_executor.execute_support_skill(
+		skill_data, cd_key, _EquipmentSetBonuses.skill_cd_mult(member_idx)
+	)
 	if not result.get("executed", false):
 		return ""
 	var heal_amount: int = _apply_healing_bonus(int(round(skill_data.power_multiplier * float(HEAL_SKILL_BASE))), member_idx)
@@ -4339,7 +4371,9 @@ func _execute_member_buff(
 	if skill_data.apply_status_id.is_empty() and not wants_taunt:
 		return ""
 	var cd_key: String = _member_skill_cd_key(member_idx, skill_data)
-	var result: Dictionary = _skill_executor.execute_support_skill(skill_data, cd_key)
+	var result: Dictionary = _skill_executor.execute_support_skill(
+		skill_data, cd_key, _EquipmentSetBonuses.skill_cd_mult(member_idx)
+	)
 	if not result.get("executed", false):
 		return ""
 	var applied: int = 0
@@ -4455,7 +4489,9 @@ func _try_cast_player_skill() -> String:
 		base_info["base_damage"],
 		is_critical,
 		CRITICAL_MULTIPLIER,
-		run_mult
+		run_mult,
+		"",
+		_EquipmentSetBonuses.skill_cd_mult(member_idx)
 	)
 	if not result.get("executed", false):
 		return ""
@@ -4485,15 +4521,16 @@ func _try_cast_player_skill() -> String:
 		)
 	)
 	final_dmg += _consume_combo_bonus(member_idx, final_dmg, _member_action_tags(member_idx, skill_data), skill_data)
+	var skill_is_crit: bool = result.get("is_critical", false)
 	GameState.record_run_damage(
 		member_idx,
 		final_dmg,
 		str(skill_data.id) if skill_data != null else "",
-		str(result.get("display_name", "スキル"))
+		str(result.get("display_name", "スキル")),
+		skill_is_crit
 	)
 	$CombatController.apply_damage_to_enemy(final_dmg)
 	$CombatController.add_threat(member_idx, float(final_dmg) * CombatController.THREAT_DAMAGE_K)
-	var skill_is_crit: bool = result.get("is_critical", false)
 	var skill_spawn_pos: Vector2 = _active_enemy_pos()
 	_spawn_hit_vfx(skill_spawn_pos, attack_element, 1.0, skill_is_crit)
 	_spawn_damage_number(
@@ -4544,7 +4581,9 @@ func _try_cast_secondary_skill(primary_skill_id: String) -> String:
 		base_info["base_damage"],
 		is_critical,
 		CRITICAL_MULTIPLIER,
-		run_mult
+		run_mult,
+		"",
+		_EquipmentSetBonuses.skill_cd_mult(member_idx)
 	)
 	if not result.get("executed", false):
 		return ""
@@ -4574,15 +4613,16 @@ func _try_cast_secondary_skill(primary_skill_id: String) -> String:
 		)
 	)
 	final_dmg += _consume_combo_bonus(member_idx, final_dmg, _member_action_tags(member_idx, skill_data), skill_data)
+	var sec_is_crit: bool = result.get("is_critical", false)
 	GameState.record_run_damage(
 		member_idx,
 		final_dmg,
 		str(skill_data.id) if skill_data != null else "",
-		str(result.get("display_name", "スキル"))
+		str(result.get("display_name", "スキル")),
+		sec_is_crit
 	)
 	$CombatController.apply_damage_to_enemy(final_dmg)
 	$CombatController.add_threat(member_idx, float(final_dmg) * CombatController.THREAT_DAMAGE_K)
-	var sec_is_crit: bool = result.get("is_critical", false)
 	var sec_spawn_pos: Vector2 = _active_enemy_pos()
 	_spawn_hit_vfx(sec_spawn_pos, attack_element, 1.0, sec_is_crit)
 	_spawn_damage_number(
@@ -4768,13 +4808,14 @@ func _deal_member_damage_to_enemy(
 	damage: int,
 	target_slot: int = -1,
 	skill_id: String = "basic_attack",
-	skill_name: String = "通常攻撃"
+	skill_name: String = "通常攻撃",
+	is_critical: bool = false
 ) -> bool:
 	if target_slot < 0:
 		target_slot = $CombatController.get_member_target_slot(member_idx)
 	if not $CombatController.is_enemy_slot_alive(target_slot):
 		return false
-	GameState.record_run_damage(member_idx, damage, skill_id, skill_name)
+	GameState.record_run_damage(member_idx, damage, skill_id, skill_name, is_critical)
 	$CombatController.apply_damage_to_enemy_slot(target_slot, damage)
 	$CombatController.add_threat(member_idx, float(damage) * CombatController.THREAT_DAMAGE_K)
 	# 必殺自身の与ダメではチャージしない（P3-COMBAT-GAUGE-001）。
@@ -4801,6 +4842,7 @@ func _deal_member_damage_to_enemy(
 		_fire_member_passives(
 			member_idx, "on_kill", {"damage": damage, "target_slot": target_slot}
 		)
+		GameState.record_run_kill(member_idx)
 		_AbyssWeaponEffects.clear_focus_on_enemy_death(target_slot)
 		return _on_enemy_slot_killed(target_slot)
 	return false
@@ -5029,6 +5071,7 @@ func _apply_enemy_damage_to_targets(
 		$CombatController.apply_damage_to_member(ti, dmg)
 		$CombatController.add_threat(ti, float(dmg) * CombatController.THREAT_TAKEN_K)
 		if dmg > 0:
+			GameState.record_run_damage_taken(ti, dmg)
 			$CombatController.add_ultimate_charge_from_damage_taken(ti, dmg)
 		_play_chr_hurt(ti)
 		if dmg > 0 and ti < _chr_sprites.size():
@@ -5188,6 +5231,7 @@ func _resolve_enemy_attack_impact_async(payload: Dictionary) -> void:
 	$CombatController.apply_damage_to_member(target_idx, enemy_result["final"])
 	$CombatController.add_threat(target_idx, float(enemy_result["final"]) * CombatController.THREAT_TAKEN_K)
 	if int(enemy_result["final"]) > 0:
+		GameState.record_run_damage_taken(target_idx, int(enemy_result["final"]))
 		$CombatController.add_ultimate_charge_from_damage_taken(target_idx, int(enemy_result["final"]))
 	_play_chr_hurt(target_idx)
 	if enemy_result["final"] > 0 and target_idx < _chr_sprites.size():
@@ -5417,6 +5461,25 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 						log_lines.append("神話の招き: 装飾品 %s" % DataRegistry.get_accessory_name(mythic_id))
 				_append_equipment_drop_icon(drop_icons, mythic_id, mythic_cat)
 				_maybe_celebrate_rare_equip_drop(mythic_id, mythic_cat, true)
+		var event_bonus: Dictionary = $DungeonController.apply_event_exclusive_boss_loot()
+		var evt_wpn: String = str(event_bonus.get("weapon_id", ""))
+		var evt_arm: String = str(event_bonus.get("armor_id", ""))
+		var evt_acc: String = str(event_bonus.get("accessory_id", ""))
+		if not evt_wpn.is_empty():
+			GameState.last_run_weapon_dropped = evt_wpn
+			log_lines.append("降臨報酬: 武器 %s" % DataRegistry.get_weapon_name(evt_wpn))
+			_append_equipment_drop_icon(drop_icons, evt_wpn, "weapon")
+			_maybe_celebrate_rare_equip_drop(evt_wpn, "weapon", false)
+		if not evt_arm.is_empty():
+			GameState.last_run_armor_dropped = evt_arm
+			log_lines.append("降臨報酬: 防具 %s" % DataRegistry.get_armor_name(evt_arm))
+			_append_equipment_drop_icon(drop_icons, evt_arm, "armor")
+			_maybe_celebrate_rare_equip_drop(evt_arm, "armor", false)
+		if not evt_acc.is_empty():
+			GameState.last_run_accessory_dropped = evt_acc
+			log_lines.append("降臨報酬: 装飾品 %s" % DataRegistry.get_accessory_name(evt_acc))
+			_append_equipment_drop_icon(drop_icons, evt_acc, "accessory")
+			_maybe_celebrate_rare_equip_drop(evt_acc, "accessory", false)
 		var boss_mat: Dictionary = $DungeonController.apply_boss_material_loot()
 		var boss_mat_id: String = str(boss_mat.get("material_id", "elite_relic_shard"))
 		var boss_mat_amt: int = int(boss_mat.get("amount", 1))
@@ -5746,7 +5809,7 @@ func _try_cast_member_skill(member_idx: int, skill_data: Resource, is_ultimate: 
 				return false
 	if is_ultimate:
 		$CombatController.consume_ultimate_charge(member_idx)
-	var cast_time: float = float(skill_data.cast_time)
+	var cast_time: float = float(skill_data.cast_time) * _EquipmentSetBonuses.skill_cast_mult(member_idx)
 	if cast_time <= 0.0:
 		var log_text: String = _execute_member_skill(member_idx, skill_data, 0).strip_edges()
 		if log_text.is_empty():
@@ -5842,7 +5905,10 @@ func _apply_basic_attack_passive_mult(member_idx: int, damage: int) -> int:
 			float(CombatPassives.character_stat_modifiers_for_member(member_idx).get("first_attack_mult", 1.0))
 		)
 		_passive_first_attack_used[member_idx] = true
-	if mult <= 1.0:
+	var wpn_basic: float = CombatPassives.weapon_basic_attack_mult(member_idx)
+	if wpn_basic > 0.0:
+		mult *= wpn_basic
+	if is_equal_approx(mult, 1.0):
 		return damage
 	return maxi(1, int(round(float(damage) * mult)))
 
@@ -5871,6 +5937,15 @@ func _execute_counter_attack(member_idx: int, target_slot: int, passive_name: St
 	return dmg > 0
 
 func _do_member_basic_attack(member_idx: int) -> void:
+	if CombatPassives.weapon_disables_basic_attack(member_idx):
+		if _try_member_equipped_skill(member_idx):
+			return
+		if _try_member_weapon_skill(member_idx):
+			return
+		var blocked: Resource = GameState.get_combatant(member_idx)
+		var bname: String = blocked.display_name if blocked != null else "?"
+		_append_log("%s は通常攻撃できない（黙撃）" % bname)
+		return
 	if not _member_has_living_target(member_idx):
 		return
 	var target_slot: int = $CombatController.get_member_target_slot(member_idx)
@@ -5880,6 +5955,22 @@ func _do_member_basic_attack(member_idx: int) -> void:
 	)
 	var dmg: int = _apply_basic_attack_passive_mult(member_idx, int(result["damage"]))
 	result["damage"] = dmg
+	var splash_hits: Array = []
+	if CombatPassives.weapon_basic_hits_all(member_idx):
+		var splash_mult: float = CombatPassives.weapon_basic_aoe_splash_mult(member_idx)
+		for slot: int in $CombatController.get_living_enemy_indices():
+			if slot == target_slot:
+				continue
+			var splash_result: Dictionary = _calc_damage(member_idx, slot)
+			var splash_dmg: int = _apply_basic_attack_passive_mult(
+				member_idx, int(splash_result.get("damage", 0))
+			)
+			splash_dmg = maxi(1, int(round(float(splash_dmg) * splash_mult)))
+			splash_hits.append({
+				"slot": slot,
+				"dmg": splash_dmg,
+				"is_critical": bool(splash_result.get("is_critical", false)),
+			})
 	# アニメを先に開始し、ダメージはヒットタイミングまで遅延（見た目上の先行ダメージを防ぐ）
 	_play_chr_attack_one(member_idx)
 	_resolve_party_attack_impact_async({
@@ -5890,6 +5981,7 @@ func _do_member_basic_attack(member_idx: int) -> void:
 		"is_critical": bool(result.get("is_critical", false)),
 		"element_tag": str(result.get("element_tag", "")),
 		"formation_tag": str(result.get("formation_tag", "")),
+		"splash_hits": splash_hits,
 		"session_id": _combat_session_id,
 	})
 
@@ -6353,7 +6445,7 @@ func _resolve_party_attack_impact_async(payload: Dictionary) -> void:
 	if kind == "counter":
 		_append_log("%s の反撃: %dダメージ%s" % [mname, dmg, crit_tag])
 		var killed: bool = _deal_member_damage_to_enemy(
-			member_idx, dmg, target_slot, "counter_attack", "反撃"
+			member_idx, dmg, target_slot, "counter_attack", "反撃", is_critical
 		)
 		if not killed and dmg > 0 and $CombatController.is_enemy_slot_alive(target_slot):
 			_play_enemy_slot_animation(target_slot, "hurt")
@@ -6365,11 +6457,31 @@ func _resolve_party_attack_impact_async(payload: Dictionary) -> void:
 		var form_tag: String = str(payload.get("formation_tag", ""))
 		var tgt_tag: String = _member_target_tag(member_idx)
 		_append_log("%s の攻撃: %dダメージ%s%s%s%s" % [mname, dmg, crit_tag, elem_tag, form_tag, tgt_tag])
-		if not _deal_member_damage_to_enemy(member_idx, dmg, target_slot):
+		if not _deal_member_damage_to_enemy(member_idx, dmg, target_slot, "basic_attack", "通常攻撃", is_critical):
 			if $CombatController.is_enemy_slot_alive(target_slot):
 				_play_enemy_slot_animation(target_slot, "hurt")
 			_try_apply_affix_statuses(member_idx)
 			_try_apply_weapon_on_hit_status(member_idx)
+		var splash_hits: Array = payload.get("splash_hits", []) as Array
+		for raw_hit: Variant in splash_hits:
+			if raw_hit is not Dictionary:
+				continue
+			var hit: Dictionary = raw_hit
+			var s_slot: int = int(hit.get("slot", -1))
+			var s_dmg: int = int(hit.get("dmg", 0))
+			var s_crit: bool = bool(hit.get("is_critical", false))
+			if s_slot < 0 or s_dmg <= 0 or not $CombatController.is_enemy_slot_alive(s_slot):
+				continue
+			_spawn_damage_number(
+				str(s_dmg),
+				_enemy_slot_pos(s_slot),
+				_outgoing_damage_telop_color(s_crit),
+				1.1 if s_crit else 0.95
+			)
+			_append_log("%s の斉射: %dダメージ" % [mname, s_dmg])
+			if not _deal_member_damage_to_enemy(member_idx, s_dmg, s_slot, "basic_attack", "通常攻撃", s_crit):
+				if $CombatController.is_enemy_slot_alive(s_slot):
+					_play_enemy_slot_animation(s_slot, "hurt")
 	_update_hp_bars()
 	_end_combat_cinematic_lock()
 
@@ -6411,7 +6523,9 @@ func _resolve_party_skill_damage_impact_async(payload: Dictionary) -> void:
 		)
 	if not log_line.is_empty():
 		_append_log(log_line)
-	if not _deal_member_damage_to_enemy(member_idx, final_dmg, target_slot, skill_id, display_name):
+	if not _deal_member_damage_to_enemy(
+		member_idx, final_dmg, target_slot, skill_id, display_name, skill_is_crit
+	):
 		if $CombatController.is_enemy_slot_alive(target_slot):
 			_play_enemy_slot_animation(target_slot, "hurt")
 		_apply_skill_status(member_idx, skill_data)
@@ -7691,7 +7805,7 @@ func _party_card_skill_cd_info(member_idx: int, skill_slot: int) -> Dictionary:
 	if skill_data == null or float(skill_data.cooldown) <= 0.0:
 		return {"cd_key": "", "max_cd": 0.0, "ready": true, "has_skill": true}
 	var cd_key: String = _member_skill_cd_key(member_idx, skill_data)
-	var max_cd: float = float(skill_data.cooldown)
+	var max_cd: float = float(skill_data.cooldown) * _EquipmentSetBonuses.skill_cd_mult(member_idx)
 	var rem: float = _skill_executor.get_cooldown_remaining(cd_key)
 	return {
 		"cd_key": cd_key,
@@ -8274,38 +8388,39 @@ func _play_combat_clear_celebration(finish_dungeon_after: bool = false) -> void:
 	if _combat_clear_active:
 		return
 	_combat_clear_active = true
-	# クリアBGMは結果ウィザード（ResultScene）入室時のみ。
-	AudioManager.play_sfx("victory")
+	# クリアBGMは結果ウィザード（ResultScene）入室時のみ。クリア専用 SE は使わない。
 	$AutoProgressTimer.stop()
 	if _combat_clear_tween != null and is_instance_valid(_combat_clear_tween):
 		_combat_clear_tween.kill()
 	var battlefield: Control = $MainVBox/BattlefieldArea
 	_spawn_combat_clear_confetti(64)
-	var lbl := Label.new()
-	lbl.name = "CombatClearLabel"
-	lbl.text = "クリア!!"
-	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	UiTypography.apply_display(lbl, 56, Color(1.0, 0.92, 0.38), UiTypography.OUTLINE_STRONG)
-	lbl.set_anchors_preset(Control.PRESET_CENTER)
-	lbl.offset_left = -220.0
-	lbl.offset_right = 220.0
-	lbl.offset_top = -36.0
-	lbl.offset_bottom = 36.0
-	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	lbl.modulate.a = 0.0
-	lbl.scale = Vector2(0.55, 0.55)
-	lbl.z_index = 48
-	battlefield.add_child(lbl)
+	var banner := TextureRect.new()
+	banner.name = "CombatClearBanner"
+	banner.texture = CLEAR_BANNER_TEX
+	banner.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	banner.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	banner.custom_minimum_size = Vector2(CLEAR_BANNER_W, CLEAR_BANNER_H)
+	banner.size = Vector2(CLEAR_BANNER_W, CLEAR_BANNER_H)
+	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	banner.set_anchors_preset(Control.PRESET_CENTER)
+	banner.offset_left = -CLEAR_BANNER_W * 0.5
+	banner.offset_right = CLEAR_BANNER_W * 0.5
+	banner.offset_top = -CLEAR_BANNER_H * 0.5
+	banner.offset_bottom = CLEAR_BANNER_H * 0.5
+	banner.modulate.a = 0.0
+	banner.scale = Vector2(0.55, 0.55)
+	banner.pivot_offset = Vector2(CLEAR_BANNER_W * 0.5, CLEAR_BANNER_H * 0.5)
+	banner.z_index = 48
+	battlefield.add_child(banner)
 	_combat_clear_tween = create_tween()
-	_combat_clear_tween.tween_property(lbl, "modulate:a", 1.0, 0.18)
-	_combat_clear_tween.parallel().tween_property(lbl, "scale", Vector2(1.12, 1.12), 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	_combat_clear_tween.chain().tween_property(lbl, "scale", Vector2.ONE, 0.1)
+	_combat_clear_tween.tween_property(banner, "modulate:a", 1.0, 0.18)
+	_combat_clear_tween.parallel().tween_property(banner, "scale", Vector2(1.12, 1.12), 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_combat_clear_tween.chain().tween_property(banner, "scale", Vector2.ONE, 0.1)
 	_combat_clear_tween.chain().tween_interval(1.35)
-	_combat_clear_tween.chain().tween_property(lbl, "modulate:a", 0.0, 0.22)
+	_combat_clear_tween.chain().tween_property(banner, "modulate:a", 0.0, 0.22)
 	_combat_clear_tween.chain().tween_callback(func() -> void:
-		if is_instance_valid(lbl):
-			lbl.queue_free()
+		if is_instance_valid(banner):
+			banner.queue_free()
 		_combat_clear_active = false
 		_combat_clear_tween = null
 		if finish_dungeon_after:
@@ -8639,6 +8754,7 @@ func _play_ultimate_presentation_async(payload: Dictionary) -> void:
 	var element: String = str(payload.get("attack_element", ""))
 	var is_heal: bool = kind == "heal"
 	AudioManager.play_sfx("combat_ultimate")
+	GameState.record_run_ultimate(member_idx)
 	_show_ultimate_center_telop(display_name, element, member_idx, is_heal)
 	_pulse_member_ultimate(member_idx)
 	_shake_battlefield(6.5)
@@ -8696,7 +8812,8 @@ func _apply_ultimate_damage_impact(payload: Dictionary) -> void:
 		final_dmg,
 		target_slot,
 		str(payload.get("skill_id", "")),
-		str(payload.get("display_name", "スキル"))
+		str(payload.get("display_name", "スキル")),
+		skill_is_crit
 	):
 		pass
 	else:
@@ -9187,15 +9304,19 @@ func _maybe_celebrate_rare_equip_drop(item_id: String, category: String, force_m
 	var rarity: int = _equip_drop_rarity(item_id, category)
 	if not force_mythic and rarity < Enums.Rarity.LEGENDARY:
 		return
-	var is_mythic: bool = force_mythic or rarity >= Enums.Rarity.MYTHIC
+	var is_set: bool = rarity == Enums.Rarity.SET
+	var is_mythic: bool = force_mythic or (rarity >= Enums.Rarity.MYTHIC and not is_set)
 	var display: String = _equip_drop_display_name(item_id, category)
 	if display.is_empty():
 		display = item_id
-	var tier_label: String = "神話" if is_mythic else "レジェンド"
+	var tier_label: String = "セット" if is_set else ("神話" if is_mythic else "レジェンド")
 	AudioManager.play_sfx("legendary_drop", 1.0, 0.0)
 	AudioManager.play_sfx("treasure", 1.05, 0.0)
 	_spawn_relic_confetti(40 if is_mythic else 28)
-	_flash_battlefield(Color(1.0, 0.88, 0.42, 1.0) if not is_mythic else Color(0.95, 0.72, 1.0, 1.0), 0.38)
+	var flash_col: Color = Color(0.42, 0.95, 0.55, 1.0) if is_set else (
+		Color(0.95, 0.72, 1.0, 1.0) if is_mythic else Color(1.0, 0.88, 0.42, 1.0)
+	)
+	_flash_battlefield(flash_col, 0.38)
 	_play_relic_get_telop("%s %s Get!!" % [tier_label, display])
 
 

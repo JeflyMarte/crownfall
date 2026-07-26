@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "valgard_antique_arrow"
+display_name = "アンティークアロー"
+description = "境界廊のセット武器。アンティークアロー。"
+fixed_skill_id = ""
+fixed_passive_id = ""
+base_attack = 90
+rarity = 5
+base_attack_speed = 1.0
+base_critical_rate = 0.06
+base_knockback = 0.3
+base_stagger_power = 0.2
+base_attack_range = 1.5
+weight = 1.0
+element = "holy"
+weapon_type = "bow"
+base_element_power = 10
+tags = Array[String](["pierce", "holy"])
+flavor_text = "降臨セット装備。武器・防具・装飾を揃えると加護が発動する。"
+set_id = "valgard_antique"

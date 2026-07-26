@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "gale_hook_blades"
+display_name = "疾風鉤刃"
+description = "沼上の突風を鉤に封じた双刃。振り下ろすたび湿った空気が裂け、甲殻の隙間へ鉤が食い込む。"
+fixed_skill_id = "static_strike"
+base_attack = 216
+rarity = 2
+base_attack_speed = 1.1
+base_critical_rate = 0.08
+base_knockback = 0.3
+base_stagger_power = 0.15
+base_attack_range = 1.0
+weight = 0.9
+element = "thunder"
+weapon_type = "dual_blades"
+tags = Array[String](["pierce", "lightning"])

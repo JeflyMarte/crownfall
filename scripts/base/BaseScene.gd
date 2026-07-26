@@ -497,7 +497,7 @@ func _on_debug_event_requested(entry_id: String) -> void:
 
 
 func _debug_show_hub_guide() -> void:
-	GameState.tutorial_flags.erase(_HubSimpleGuideOverlay.FLAG_KEY)
+	## 再演は preview のみ。済みフラグを消すと Continue で再発する（既知バグ）。
 	_HubSimpleGuideOverlay.show_on(self, true)
 
 

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "cinder_orb_staff"
+display_name = "熾火珠の杖"
+description = "焚き火の熾きを珠に封じた杖。振るうたび熱気が広がり、湿った蔓を乾かし裂く。"
+fixed_skill_id = "kindling_strike"
+base_attack = 88
+rarity = 2
+base_attack_speed = 0.95
+base_critical_rate = 0.05
+base_knockback = 0.2
+base_stagger_power = 0.12
+base_attack_range = 2.5
+weight = 0.9
+element = "fire"
+weapon_type = "staff"
+tags = Array[String](["blunt", "fire"])

@@ -12,7 +12,7 @@ base_hp_modifier = 0.85
 base_attack_modifier = 1.0
 base_defense_modifier = 0.9
 base_initiative_modifier = 1.0
-preferred_weapon_types = Array[String](["staff"])
+preferred_weapon_types = Array[String](["staff", "dual_blades"])
 starting_skill_ids = Array[String]([])
 skill_unlocks = Array[Dictionary]([{
 "skill_id": "hex_bolt",

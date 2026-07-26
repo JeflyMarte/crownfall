@@ -16,6 +16,8 @@ const REQUIRED_IDS: Array[String] = [
 	_BgmCatalog.ID_EVENT_DUNGEON,
 	_BgmCatalog.ID_CHRONOS_MAUSOLEUM,
 	_BgmCatalog.ID_CHRONOS_WAVE,
+	_BgmCatalog.ID_VALGARD_BOUNDARY,
+	_BgmCatalog.ID_VALGARD,
 	_BgmCatalog.ID_BOSS,
 	_BgmCatalog.ID_FINAL_BOSS,
 	_BgmCatalog.ID_RESULT,
@@ -104,12 +106,20 @@ func test_battle_bgm_for_dungeon_maps_biome() -> void:
 		_BgmCatalog.battle_bgm_for_dungeon("chronos_mausoleum"),
 		_BgmCatalog.ID_CHRONOS_MAUSOLEUM
 	)
+	assert_eq(
+		_BgmCatalog.battle_bgm_for_dungeon("valgard_boundary"),
+		_BgmCatalog.ID_VALGARD_BOUNDARY
+	)
 
 
 func test_explore_bgm_for_dungeon_chronos() -> void:
 	assert_eq(
 		_BgmCatalog.explore_bgm_for_dungeon("chronos_mausoleum"),
 		_BgmCatalog.ID_CHRONOS_MAUSOLEUM
+	)
+	assert_eq(
+		_BgmCatalog.explore_bgm_for_dungeon("valgard_boundary"),
+		_BgmCatalog.ID_VALGARD_BOUNDARY
 	)
 	assert_eq(
 		_BgmCatalog.explore_bgm_for_dungeon("mourngate"),
@@ -137,6 +147,10 @@ func test_boss_bgm_for_dungeon_final_on_frostridge() -> void:
 	assert_eq(
 		_BgmCatalog.boss_bgm_for_dungeon("chronos_mausoleum"),
 		_BgmCatalog.ID_CHRONOS_WAVE
+	)
+	assert_eq(
+		_BgmCatalog.boss_bgm_for_dungeon("valgard_boundary"),
+		_BgmCatalog.ID_VALGARD
 	)
 
 

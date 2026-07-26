@@ -1,7 +1,7 @@
 class_name EquipmentUiHelper
 extends RefCounted
 
-const RARITY_GEMS: Array[String] = ["◇", "◆", "✦", "★", "❖"]
+const RARITY_GEMS: Array[String] = ["◇", "◆", "✦", "★", "❖", "▣"]
 const LEVEL_CAP: int = LevelSystem.MAX_LEVEL
 
 const SORT_LABELS: Dictionary = {
@@ -35,12 +35,21 @@ static func stars_text(rarity: int) -> String:
 static func level_line(level: int, max_level: int = LEVEL_CAP) -> String:
 	return "Lv.%d / %d" % [clampi(level, 1, max_level), max_level]
 
+## アイコン隅の★表示。セットは緑枠のみで文字を重ねない。
 static func rarity_stars_text(rarity: int) -> String:
+	if rarity == Enums.Rarity.SET:
+		return ""
 	var count: int = clampi(rarity + 1, 1, 5)
 	var out: String = ""
 	for _i in count:
 		out += "★"
 	return out
+
+## 詳細・結果などテキスト行用（セットは「セット」表記）。
+static func rarity_label_text(rarity: int) -> String:
+	if rarity == Enums.Rarity.SET:
+		return "セット"
+	return rarity_stars_text(rarity)
 
 static func enhance_badge(item: Resource, category: String) -> String:
 	if category != "weapon" or item == null:
@@ -77,11 +86,11 @@ static func apply_enhance_badge(
 static func apply_legendary_badge(parent: Control, rarity: int, cell_size: Vector2) -> void:
 	if parent == null or rarity < Enums.Rarity.LEGENDARY:
 		return
-	var tex: Texture2D = (
-		EquipmentUiTokens.mythic_badge()
-		if rarity >= Enums.Rarity.MYTHIC
-		else EquipmentUiTokens.legendary_badge()
-	)
+	var tex: Texture2D = EquipmentUiTokens.legendary_badge()
+	if rarity == Enums.Rarity.MYTHIC:
+		tex = EquipmentUiTokens.mythic_badge()
+	elif rarity == Enums.Rarity.SET:
+		tex = EquipmentUiTokens.legendary_badge()
 	if tex == null:
 		return
 	var badge_size: Vector2 = EquipmentUiTokens.legendary_badge_size(cell_size)

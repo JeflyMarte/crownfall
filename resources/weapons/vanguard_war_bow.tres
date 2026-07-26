@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "vanguard_war_bow"
+display_name = "戦列の猛弓"
+description = "前衛が構えるための重い戦弓。至近で引き絞るほど矢は猛く、同時に射手は敵の視線を一身に浴びる。"
+fixed_skill_id = ""
+fixed_passive_id = "eq_wpn_vanguard_war_bow"
+base_attack = 340
+rarity = 3
+base_attack_speed = 1.2
+base_critical_rate = 0.11
+base_knockback = 0.1
+base_stagger_power = 0.1
+base_attack_range = 3.0
+weight = 0.75
+element = "fire"
+weapon_type = "bow"
+tags = Array[String](["pierce", "fire"])

@@ -10,6 +10,7 @@ const _StatusResolver = preload("res://scripts/combat/StatusResolver.gd")
 const _EvolutionTraits = preload("res://scripts/systems/EvolutionTraits.gd")
 const _PetSystem = preload("res://scripts/pets/PetSystem.gd")
 const _AbyssWeaponEffects = preload("res://scripts/combat/AbyssWeaponEffects.gd")
+const _EquipmentSetBonuses = preload("res://scripts/equipment/EquipmentSetBonuses.gd")
 
 var is_in_combat: bool = false
 var current_enemy_data: Resource = null
@@ -517,6 +518,7 @@ func _init_party_hp() -> void:
 		max_hp += LevelSystem.level_hp_bonus(member.level)
 		var job_mods: Dictionary = _JobStatCalculator.get_member_modifiers(member)
 		var hp_mult: float = float(job_mods.get("hp_multiplier", _JobStatCalculator.DEFAULT_MULTIPLIER))
+		hp_mult *= _EquipmentSetBonuses.hp_mult(i)
 		max_hp = maxi(1, int(round(float(max_hp) * hp_mult)))
 		party_combat_hp.append(max_hp)
 		party_max_hp.append(max_hp)
@@ -888,7 +890,13 @@ func get_member_outgoing_damage_multiplier(
 			mult *= float(elem_mults[attack_element])
 	if target_slot >= 0 and enemy_slot_has_debuff(target_slot):
 		mult *= CombatPassives.outgoing_vs_status_mult_for_member(member_index)
+	var boss_mult: float = CombatPassives.weapon_outgoing_vs_boss_mult(member_index)
+	if target_slot >= 0 and not is_equal_approx(boss_mult, 1.0):
+		var ed: Resource = get_enemy_data_at(target_slot)
+		if ed != null and int(ed.enemy_type) == Enums.EnemyType.BOSS:
+			mult *= boss_mult
 	mult *= _AbyssWeaponEffects.outgoing_multiplier(member_index, target_slot, hp_ratio)
+	mult *= _EquipmentSetBonuses.outgoing_mult(member_index)
 	return mult
 
 # 被ダメ補正（防御=guard 等）。1.0=等倍。P3-D085 で配線。遺物 incoming_mult も乗算（P3-D090）。
@@ -918,6 +926,7 @@ func get_member_incoming_damage_multiplier(member_index: int) -> float:
 	)
 	mult *= _EvolutionTraits.member_incoming_mult(member_index)
 	mult *= _AbyssWeaponEffects.incoming_shell_multiplier(member_index)
+	mult *= _EquipmentSetBonuses.incoming_mult(member_index)
 	return mult
 
 func get_density_log_tag(member_index: int) -> String:
@@ -1014,7 +1023,8 @@ func get_member_initiative_score(i: int) -> float:
 				job_mod = job_data.base_initiative_modifier
 	var affix_mult: float = float(_AffixStatCalculator.get_bonuses(i).get("attack_speed_mult_add", 0.0))
 	var relic_speed: float = float(_member_relic_effects(i).get("speed_mult", 1.0))
-	return spd * job_mod * (1.0 + affix_mult) * relic_speed
+	var set_speed: float = _EquipmentSetBonuses.speed_mult(i)
+	return spd * job_mod * (1.0 + affix_mult) * relic_speed * set_speed
 
 func get_party_initiative_score() -> float:
 	var best: float = 0.0

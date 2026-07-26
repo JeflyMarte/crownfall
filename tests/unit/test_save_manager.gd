@@ -232,6 +232,24 @@ func test_migrate_save_data_stamps_current_version() -> void:
 	var migrated: Dictionary = SaveManager._migrate_save_data({"gold": 1})
 	assert_eq(int(migrated["save_version"]), SaveManager.SAVE_VERSION, "マイグレーション後は現行バージョンが刻印されること")
 
+
+func test_heal_hub_guide_flag_when_progressed_save_missing_it() -> void:
+	GameState.tutorial_flags = {}
+	SaveManager._heal_hub_simple_guide_flag_if_progressed({
+		"stage_progress": {"mourngate_1_1": {"cleared": true}},
+	})
+	assert_true(bool(GameState.tutorial_flags.get("hub_simple_guide_done", false)))
+
+
+func test_heal_hub_guide_flag_skips_fresh_save() -> void:
+	GameState.tutorial_flags = {}
+	SaveManager._heal_hub_simple_guide_flag_if_progressed({
+		"stage_progress": {},
+		"gold": 100,
+	})
+	assert_false(bool(GameState.tutorial_flags.get("hub_simple_guide_done", false)))
+
+
 func test_load_future_version_is_best_effort() -> void:
 	_write_raw_save(JSON.stringify({"save_version": 999, "gold": 654}))
 	SaveManager.load_game()

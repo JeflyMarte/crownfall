@@ -15,7 +15,7 @@ const _JOB_TRAIT_IDS: Dictionary = {
 const _DEFS: Dictionary = {
 	"evo_saber_blade_art": {
 		"display_name": "剣術極意",
-		"description": "与ダメ+8%（剣/大剣装備時+12%）",
+		"description": "与ダメ+8%（剣装備時+12%）",
 	},
 	"evo_saber_element_edge": {
 		"display_name": "属性刃",
@@ -125,7 +125,7 @@ static func member_outgoing_mult(member_index: int, is_skill: bool = false, atta
 	var job_id: String = str(member.job_id)
 	var weapon_type: String = _member_weapon_type(member_index)
 	if job_id == "swordsman" and _member_has_trait(member, "evo_saber_blade_art"):
-		mult *= 1.12 if weapon_type in ["sword", "greatsword"] else 1.08
+		mult *= 1.12 if weapon_type == "sword" else 1.08
 	if job_id == "vanguard" and _member_has_trait(member, "evo_paladin_smite"):
 		mult *= 1.10 if attack_element == "holy" else 1.05
 	if job_id == "alchemist" and _member_has_trait(member, "evo_sage_arcane"):

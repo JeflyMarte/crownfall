@@ -54,7 +54,7 @@ Biome は、その両者が重なり合う場所である。
 |---|---|
 | メイン×5 | mourngate / whisperwood / mistfen / blackshore / frostridge |
 | 寄り道×5 | astoria_ruins / green_hollow / broken_marsh / westbay_flats / frostwall_path |
-| 征討×7 | storm_crown_ruins / red_ridge_mine / mistfen_depths / thunder_peak / blackshore_abyss / red_forge_depths / north_reach |
+| 征討×6 | red_ridge_mine / mistfen_depths / thunder_peak / blackshore_abyss / red_forge_depths / north_reach（旧 storm_crown は `valgard_boundary` イベントへ） |
 | イベント（降臨） | chronos_mausoleum（時環の共鳴龍　降臨／時王の霊廟） |
 | 深層×5（Decision済・未実装） | `abyss_mourngate` 等（表示名: 無限○○の最果て／**P3-DG-ABYSS-NAME-001**） |
 
@@ -789,7 +789,7 @@ Biome は敵を配置する場所ではなく、生態系を表現する単位�
 | 九王 | 守護王ヴァルケイン |
 | 適応テーマ（案） | **高所適応** — 強風・低酸素・雷雲。吹雪（⑤）より **風と雷** を主軸 |
 | メイン Boss 候補（案） | 砦跡を縄張りとする大型飛竜／風を纏う頂点個体 |
-| 征討（実装済） | `storm_crown_ruins` — 境界の番ヴァルガード。解放=mourngate クリア |
+| 征討（実装済） | （ヴァルガードはイベント `valgard_boundary` へ移行。旧 `storm_crown_ruins` 削除） |
 | LF フック | 境界標・砦壁の刻印・クラウンリバー源流 |
 
 ### 6.3. Biome-08：盟約平原（アイゼンプレイン）

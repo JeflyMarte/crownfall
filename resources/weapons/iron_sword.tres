@@ -16,4 +16,4 @@ base_stagger_power = 0.3
 base_attack_range = 1.0
 weight = 1.0
 element = ""
-weapon_type = "greatsword"
+weapon_type = "sword"

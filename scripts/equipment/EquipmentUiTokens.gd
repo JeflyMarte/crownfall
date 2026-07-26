@@ -30,11 +30,34 @@ const STAT_ICONS: Dictionary = {
 	"speed": ROOT + "ICO_Equip_Stat_SPD.png",
 	"crit_rate": ROOT + "ICO_Equip_Stat_CRIT.png",
 	"crit_damage": ROOT + "ICO_Equip_Stat_CRITDMG.png",
-	"evasion_rate": ROOT + "ICO_Equip_Stat_SPD.png",
+	## ランダム行（kind キーと 1:1。ステータス内でファイルを被らせない）
+	"attack_up": ROOT + "ICO_Equip_Stat_ATKUP.png",
+	"defense_up": ROOT + "ICO_Equip_Stat_DEFUP.png",
+	"hp_up": ROOT + "ICO_Equip_Stat_HPUP.png",
+	"attack_speed": ROOT + "ICO_Equip_Stat_ATKSPD.png",
+	"on_hit_status": ROOT + "ICO_Equip_Stat_ONHIT.png",
+	"gold_gain": ROOT + "ICO_Equip_Stat_GOLD.png",
+	"exp_gain": ROOT + "ICO_Equip_Stat_EXP.png",
+	"rare_drop": ROOT + "ICO_Equip_Stat_RAREDROP.png",
+	"healing": ROOT + "ICO_Equip_Stat_HEAL.png",
+	"evasion": ROOT + "ICO_Equip_Stat_EVADE.png",
+	"evasion_rate": ROOT + "ICO_Equip_Stat_EVADE.png",
+	"resist_elements": ROOT + "ICO_Equip_Stat_RESIST.png",
+	"resist": ROOT + "ICO_Equip_Stat_RESIST.png",
+	"status_immunities": ROOT + "ICO_Equip_Stat_IMMUNE.png",
+	"chill_chance": ROOT + "ICO_Equip_Stat_CHILL.png",
+	"shock_chance": ROOT + "ICO_Equip_Stat_SHOCK.png",
+	"ignite_chance": ROOT + "ICO_Equip_Stat_IGNITE.png",
+	"poison_chance": ROOT + "ICO_Equip_Stat_POISON.png",
+	"bane": ROOT + "ICO_Equip_Stat_BANE.png",
+	## 属性値（汎用フォールバック＋属性別）
 	"element": ROOT + "ICO_Equip_Stat_ELEMENT.png",
 	"element_power": ROOT + "ICO_Equip_Stat_ELEMENT.png",
-	"bane": ROOT + "ICO_Equip_Stat_BANE.png",
-	"resist": ROOT + "ICO_Equip_Stat_ELEMENT.png",
+	"element_power:fire": ROOT + "ICO_Equip_Stat_FIRE.png",
+	"element_power:ice": ROOT + "ICO_Equip_Stat_ICE.png",
+	"element_power:thunder": ROOT + "ICO_Equip_Stat_THUNDER.png",
+	"element_power:dark": ROOT + "ICO_Equip_Stat_DARK.png",
+	"element_power:holy": ROOT + "ICO_Equip_Stat_HOLY.png",
 }
 
 const EFFECT_STAT_KEYS: Dictionary = {
@@ -60,6 +83,7 @@ const INV_CELLS: Array[String] = [
 	ROOT + "UI_Equip_InvCell_SR.png",
 	ROOT + "UI_Equip_InvCell_SSR.png",
 	ROOT + "UI_Equip_InvCell_MYTHIC.png",
+	ROOT + "UI_Equip_InvCell_SET.png", # SET — 緑枠
 ]
 
 const CATEGORY_MIN_SIZE: Vector2 = Vector2(64, 76)
@@ -83,13 +107,14 @@ const INV_CELL_MARGINS: Vector4i = Vector4i(12, 12, 12, 12)
 const ICON_FRAME_MARGIN_PX: int = 18
 ## 弓は透過余白が多く小さく見えるため、inset をこの倍率へ縮小（鍛冶屋と同バランス）。
 const BOW_ICON_INSET_SCALE: float = 0.55
-## 装備セル枠線色（COMMON/RARE/EPIC/LEGENDARY/MYTHIC）。背景は INV_CELLS の金属質ティント。
+## 装備セル枠線色（COMMON/RARE/EPIC/LEGENDARY/MYTHIC/SET）。背景は INV_CELLS の金属質ティント。
 const RARITY_BORDER_COLORS: Array[Color] = [
 	Color(0.60, 0.60, 0.60),
 	Color(0.30, 0.55, 0.95),
 	Color(0.70, 0.45, 0.95),
 	Color(0.95, 0.75, 0.25),
 	Color(0.35, 0.88, 1.0), # MYTHIC — 水色
+	Color(0.28, 0.86, 0.42), # SET — 緑
 ]
 
 static func load_tex(path: String) -> Texture2D:
@@ -101,7 +126,38 @@ static func back_icon() -> Texture2D:
 	return load_tex(ICO_BACK)
 
 static func stat_icon(stat_key: String) -> Texture2D:
-	return load_tex(str(STAT_ICONS.get(stat_key, "")))
+	if stat_key.is_empty():
+		return null
+	var path: String = str(STAT_ICONS.get(stat_key, ""))
+	if path.is_empty() and stat_key.begins_with("element_power:"):
+		path = str(STAT_ICONS.get("element_power", ""))
+	return load_tex(path)
+
+
+## 詳細行用。属性値は element_power:fire 等へ展開し専用アイコンを使う。
+static func detail_stat_icon_key(mod: Dictionary) -> String:
+	var kind: String = str(mod.get("kind", ""))
+	if kind.is_empty():
+		return "mod"
+	if kind == "element_power":
+		var elem: String = str(mod.get("meta", {}).get("element", ""))
+		if not elem.is_empty():
+			return "element_power:%s" % elem
+		return kind
+	if kind == "on_hit_status":
+		var sid: String = str(mod.get("meta", {}).get("status_id", ""))
+		match sid:
+			"chill":
+				return "chill_chance"
+			"shock":
+				return "shock_chance"
+			"ignite":
+				return "ignite_chance"
+			"poison":
+				return "poison_chance"
+			_:
+				return kind
+	return kind
 
 static func category_icon(category: String) -> Texture2D:
 	return load_tex(str(CATEGORY_ICONS.get(category, "")))

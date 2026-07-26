@@ -29,4 +29,6 @@ extends Resource
 @export var bane_class: String = ""
 @export var bane_multiplier: float = 1.3
 ## 公開断片フレーバー（P3-LORE-002）。空なら `WeaponFlavorHelper` の既定文案を参照。
-@export_multiline var flavor_text: String = ""
+@export var flavor_text: String = ""
+## セット装備 id（空=非セット）。P3-DG-EVENT-SET-001。
+@export var set_id: String = ""

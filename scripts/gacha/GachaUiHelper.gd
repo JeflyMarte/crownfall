@@ -637,15 +637,11 @@ static func apply_featured_helper(shell: Dictionary, helper: Resource) -> void:
 		idle.call("set_from_helper_id", str(helper.id), str(helper.job_id))
 		idle.visible = true
 		idle.modulate = Color.WHITE
-		## Idle が空なら立ち絵／歩行1コマへフォールバック。
+		## Idle が空なら職／助っ人アイコンのみ（walk＝背面歩行は UI に使わない）。
 		if idle.has_method("has_idle_texture") and not bool(idle.call("has_idle_texture")):
 			var fallback: Texture2D = null
 			if helper.has_method("get_portrait_texture"):
 				fallback = helper.call("get_portrait_texture") as Texture2D
-			if fallback == null:
-				var walk_path: String = "res://assets/characters/%s/walk_0.png" % str(helper.id)
-				if ResourceLoader.exists(walk_path):
-					fallback = load(walk_path) as Texture2D
 			if fallback != null and idle.has_method("set_static_texture"):
 				idle.call("set_static_texture", fallback)
 	var name_lbl: Label = shell.get("name") as Label

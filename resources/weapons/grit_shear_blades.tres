@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "grit_shear_blades"
+display_name = "砂切の双刃"
+description = "黒砂を研ぎ粉にした双刃。潮風でざらつく刃が外骨格の継ぎ目を削り、硬い殻をこじ開ける。"
+base_attack = 200
+rarity = 0
+base_attack_speed = 1.1
+base_critical_rate = 0.08
+base_knockback = 0.3
+base_stagger_power = 0.15
+base_attack_range = 1.0
+weight = 0.9
+element = ""
+weapon_type = "dual_blades"
+tags = Array[String](["pierce"])

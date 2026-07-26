@@ -287,7 +287,7 @@
 | frostridge | 最果て氷裂フロストリッジ | main | フロストリッジ | Biome-05 | 実装済 |
 | frostwall_path | フロストウォール雪道 | side | フロストウォール周辺 | Biome-05 寄り道 | 実装済 |
 | north_reach | 地図の余白ノースリーチ | apex | ノースリーチ | Biome-05 征討 | 実装済 |
-| storm_crown_ruins | 境界遺構ストームクラウン | apex | ストームクラウン砦跡 | （Biome-07 候補） | 実装済 |
+| valgard_boundary | ストームクラウン境界廊 | event | ストームクラウン砦跡 | （Biome-07 候補） | 実装済・時間帯イベント |
 | red_ridge_mine | レッドリッジ廃坑 | apex | レッドリッジ峡谷 | （Biome-06 候補） | 実装済 |
 | thunder_peak | サンダーピーク火口 | apex | サンダーピーク | 横穴候補 E | 実装済 |
 | red_forge_depths | 星炉廃坑レッドフォージ・デプス | apex | レッドフォージ | Biome-06 候補 | 実装済 |
@@ -306,7 +306,7 @@ mourngate → whisperwood → mistfen → blackshore → frostridge
 | 征討 id | 地理 | 征討 Boss | 解放条件 | 関連九王 |
 |---|---|---|---|---|
 | chronos_mausoleum | 時王の霊廟 | 時環の共鳴龍クロノス・ウェーブ | 時間帯（毎日） | 継承王（王都地下） |
-| storm_crown_ruins | ストームクラウン砦跡 | 境界の番ヴァルガード | mourngate | 守護王 |
+| valgard_boundary | ストームクラウン砦跡 | 境界の番ヴァルガード | 時間帯イベント | 守護王 |
 | red_ridge_mine | レッドリッジ廃坑 | 鉄殻の長スカルペディオン | whisperwood | 鍛冶王 |
 | mistfen_depths | 封緘書庫下 | 霧沼の古茸ミコルガ | mistfen | 学識王 |
 | thunder_peak | サンダーピーク火口 | 燼竜カルナ・スモーク | broken_marsh | （帰属不明） |
@@ -335,7 +335,7 @@ mourngate → whisperwood → mistfen → blackshore → frostridge
 | # | 候補名 | 地理 | 想定 Biome | 九王 | 備考 |
 |---|---|---|---|---|---|
 | 1 | **星炉峡谷レッドフォージ** | レッドフォージ／大鞴場 | Biome-06 | 鍛冶王 | 炉印 LF 本丸。`05_Biomes §6.1` |
-| 2 | **砦跡ストームクラウン** | ストームクラウン最高峰・要塞跡 | Biome-07 | 守護王 | 征討 `storm_crown_ruins` は先行実装。`§6.2` |
+| 2 | **砦跡ストームクラウン** | ストームクラウン最高峰・要塞跡 | Biome-07 | 守護王 | イベント `valgard_boundary` は先行実装。`§6.2` |
 | 3 | **盟約平原アイゼンプレイン** | 中央平原・王の大街道 | Biome-08 | 信義王 | 開放地・群れ生態。`§6.3` |
 
 #### Tier B — 海・港（④の横展開）
@@ -378,7 +378,7 @@ mourngate → whisperwood → mistfen → blackshore → frostridge
 | 順 | 候補 | 理由 |
 |---|---|---|
 | 1 | Biome-06 レッドフォージ | P3-D5DG-001 で温存済。炉印・鍛冶王・征討 `red_forge_depths` と一体設計 |
-| 2 | Biome-07 ストームクラウン | 守護王・クラウンリバー源流。征討 `storm_crown_ruins` 先行 |
+| 2 | Biome-07 ストームクラウン | 守護王・クラウンリバー源流。イベント `valgard_boundary` 先行 |
 | 3 | アステリア地上回廊（#8） | `astoria_ruins` 実装済。王都縦軸の地上版で①の深掘り |
 | 4 | シーゲート地下港（#4） | ④ブラックショアの港側ハブ。海統王 LF 密度が高い |
 | 5 | Biome-08 アイゼンプレイン | 中央空白地帯。信義王・盟約で王都周辺の地理を完結 |

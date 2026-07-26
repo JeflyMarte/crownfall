@@ -125,15 +125,20 @@ Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` �
 
 ## CHR Idle ポートレート（再発防止・必須）
 
-`assets/characters/{job}/idle_*.png` は職によってフレーム間の描画サイズが不安定（特に beast_tamer / vanguard）。
+`assets/characters/{job|helper_*|pet_*}/idle_*.png` は **UI 正面 Idle**（ガチャ Featured／MVP／キャラ画面）。
+戦闘 SpriteFrames の `idle`（=walk・背面歩行）とは別系統。混ぜない。
 
 ❌ BAD
+- Idle 有無を `FileAccess`／`Image.load_from_file` だけに依存 → **iOS 等エクスポートで Idle 空**（PNG 原寸未梱包）→ walk／顔アイコンへフォールバック
+- UI 欠落時に `walk_*.png` をドット代替にする（背面歩行に見える）
 - 不安定 Idle をそのままループ → 拡縮に見える
 - 全フレームを「キャンバス中央寄せ」で再配置 → 左右に跳ぶ
 - 応急で静止画だけにして放置（その場アニメができなくなる）
 - 軽微な高さ揺れ（~1.08）までフル再配置して横跳びを再発させる
 
 ✅ GOOD（`ChrIdlePortrait`）
+- フレーム検出・読込は **`ResourceLoader` 優先**（エクスポートで `.ctex` を使う）。`FileAccess`／PNG 直読みは未インポート時の補助のみ
+- 新規 Idle PNG 追加後は Godot 再インポート／iOS 再エクスポートまでセット（`.import` 無しのまま実機確認しない）
 - 高さ比がほぼ安定 → 元テクスチャのまま
 - **軽微**（目安 max/min が 1.12 未満）→ 縮んだフレームを **間引き**（元配置を壊さない）
 - **重度**（ビーストテイマー級）→ **足元固定**で全フレーム正規化（中央寄せ禁止）
@@ -144,9 +149,12 @@ Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` �
 ✅ GOOD（`ChrIdlePortraitView`）
 - `_ready` 前に `set_from_entry` / `set_from_member` され得る（MVP 表彰台など）
 - 子 `TextureRect` / `Label` は `_ensure_nodes()` で遅延生成し、Nil へ texture 代入しない
+- `has_idle_texture()` は Idle フレーム配列の有無（アイコン載せて true にしない）
+- Idle 欠落時の最終手段は職アイコン。**walk 禁止**
 
 ❌ BAD（`ChrIdlePortraitView`）
 - `_ready` でのみ子を作り、呼び出し側がツリー投入前に texture を載せる想定にする → MVP 即落ち
+- Featured／MVP／キャラで walk フォールバックを復活させる
 
 ## 職名・本文タイポ
 

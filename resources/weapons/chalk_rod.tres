@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "chalk_rod"
+display_name = "白墨の杖"
+description = "書記官見習いが帳簿に印を付けるための白墨杖。軽い一撃でも印が残り、誤記を正しやすくする。"
+base_attack = 64
+rarity = 0
+base_attack_speed = 0.95
+base_critical_rate = 0.05
+base_knockback = 0.2
+base_stagger_power = 0.12
+base_attack_range = 2.5
+weight = 0.9
+element = ""
+weapon_type = "staff"
+tags = Array[String](["blunt"])

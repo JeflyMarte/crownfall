@@ -52,7 +52,8 @@ func execute_damage_skill(
 	is_critical: bool,
 	critical_multiplier: float,
 	run_multiplier: float,
-	cooldown_key: String = ""
+	cooldown_key: String = "",
+	cooldown_scale: float = 1.0
 ) -> Dictionary:
 	var key: String = cooldown_key if not cooldown_key.is_empty() else skill_data.id
 	if not can_cast(skill_data, key):
@@ -61,7 +62,7 @@ func execute_damage_skill(
 		skill_data, base_damage, is_critical, critical_multiplier, run_multiplier
 	)
 	if str(skill_data.slot_type) != "ultimate":
-		_cooldown_remaining[key] = skill_data.cooldown
+		_cooldown_remaining[key] = float(skill_data.cooldown) * maxf(0.05, cooldown_scale)
 	return {
 		"executed": true,
 		"damage": damage,
@@ -72,14 +73,18 @@ func execute_damage_skill(
 
 ## heal / buff など非ダメージスキルの発動。CD判定→CDセットのみ行う。
 ## 効果の適用（回復量・状態付与）は呼び出し側（DungeonScene）で行う。
-func execute_support_skill(skill_data: Resource, cooldown_key: String = "") -> Dictionary:
+func execute_support_skill(
+	skill_data: Resource,
+	cooldown_key: String = "",
+	cooldown_scale: float = 1.0
+) -> Dictionary:
 	if skill_data == null:
 		return {"executed": false}
 	var key: String = cooldown_key if not cooldown_key.is_empty() else skill_data.id
 	if not can_cast(skill_data, key):
 		return {"executed": false}
 	if str(skill_data.slot_type) != "ultimate":
-		_cooldown_remaining[key] = skill_data.cooldown
+		_cooldown_remaining[key] = float(skill_data.cooldown) * maxf(0.05, cooldown_scale)
 	return {
 		"executed": true,
 		"display_name": skill_data.display_name,

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "votary_twin_blades"
+display_name = "奉納の双刃"
+description = "灯台守が夜の奉納に用いた一対の聖刃。交わるたび薄い光輪が生まれ、闇を退ける。"
+fixed_skill_id = "sanctal_strike"
+base_attack = 96
+rarity = 2
+base_attack_speed = 1.1
+base_critical_rate = 0.08
+base_knockback = 0.3
+base_stagger_power = 0.15
+base_attack_range = 1.0
+weight = 0.9
+element = "holy"
+weapon_type = "dual_blades"
+tags = Array[String](["pierce", "holy"])
