@@ -7,6 +7,7 @@ const _TrapPresentation = preload("res://scripts/dungeon/TrapPresentation.gd")
 
 
 func test_trap_damage_fractions_raised() -> void:
+	## ハード帯エイリアス＝旧 NONCOMBAT 据置（P3-BAL-TRAP-TIER-001）。
 	assert_almost_eq(BalanceConfig.TRAP_MAX_HP_FRAC_COMBAT_SINGLE, 0.15, 0.0001)
 	assert_almost_eq(BalanceConfig.TRAP_MAX_HP_FRAC_ROOM_SINGLE, 0.25, 0.0001)
 	assert_almost_eq(BalanceConfig.TRAP_MAX_HP_FRAC_COMBAT_AOE, 0.08, 0.0001)
@@ -14,13 +15,16 @@ func test_trap_damage_fractions_raised() -> void:
 
 
 func test_trap_room_damage_numbers() -> void:
-	assert_eq(ExplorationSkills.trap_damage_for_max_hp(800, false, false), 120)
-	assert_eq(ExplorationSkills.trap_damage_for_max_hp(800, true, false), 200)
-	assert_eq(ExplorationSkills.trap_damage_for_max_hp(1000, true, true), 120)
+	## ハード帯で旧数値を維持。
+	assert_eq(ExplorationSkills.trap_damage_for_max_hp(800, false, false, 1), 120)
+	assert_eq(ExplorationSkills.trap_damage_for_max_hp(800, true, false, 1), 200)
+	assert_eq(ExplorationSkills.trap_damage_for_max_hp(1000, true, true, 1), 120)
 
 
 func test_trap_trigger_chance_raised() -> void:
-	assert_almost_eq(_TrapPresentation.TRIGGER_CHANCE, 0.7, 0.0001)
+	## ハード帯エイリアス（旧 70% → ティア別 65%）。
+	assert_almost_eq(_TrapPresentation.TRIGGER_CHANCE, 0.65, 0.0001)
+	assert_almost_eq(_TrapPresentation.trigger_chance(1), 0.65, 0.0001)
 
 
 func test_treasure_success_rewards() -> void:

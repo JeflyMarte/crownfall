@@ -3634,7 +3634,8 @@ func _try_exploration_trap() -> void:
 	var room_type: int = $DungeonController.current_room_type
 	if room_type != Enums.RoomType.COMBAT and room_type != Enums.RoomType.ELITE:
 		return
-	if not ExplorationSkills.should_roll_trap():
+	var tier: int = GameState.current_dungeon_tier
+	if not ExplorationSkills.should_roll_trap(tier):
 		return
 	var members: Array = GameState.party_members
 	if ExplorationSkills.can_disarm(members):
@@ -3644,7 +3645,7 @@ func _try_exploration_trap() -> void:
 	if living.is_empty():
 		_append_log("[探索] 罠: 辺境の踏破により被害なし")
 		return
-	var aoe: bool = ExplorationSkills.roll_trap_aoe()
+	var aoe: bool = ExplorationSkills.roll_trap_aoe(null, tier)
 	var targets: Array[int] = []
 	if aoe:
 		targets = living.duplicate()
@@ -3665,7 +3666,8 @@ func _resolve_trap_room_async() -> void:
 	_set_trap_setup_narrative(setup_text)
 	var setup_hold: float = float(TrapPresentationScript.timings(_fast_run_enabled).get("setup_hold", 1.0))
 	await get_tree().create_timer(setup_hold).timeout
-	if not TrapPresentationScript.is_triggered():
+	var tier: int = GameState.current_dungeon_tier
+	if not TrapPresentationScript.is_triggered(null, tier):
 		var avoid_text: String = TrapPresentationScript.pick_avoid_line()
 		_set_non_combat_phase_bg(TrapPresentationScript.bg_path_for_phase("avoid"))
 		_set_trap_avoid_narrative(avoid_text)
@@ -3684,7 +3686,7 @@ func _resolve_trap_room_async() -> void:
 		_reset_narrative_typography()
 		_finish_room_and_continue()
 		return
-	var aoe: bool = ExplorationSkills.roll_trap_aoe()
+	var aoe: bool = ExplorationSkills.roll_trap_aoe(null, tier)
 	var hit_text: String = (
 		TrapPresentationScript.pick_hit_line_aoe()
 		if aoe
@@ -3699,7 +3701,7 @@ func _resolve_trap_room_async() -> void:
 		var preview_m: Resource = GameState.get_combatant(preview_target)
 		var preview_nm: String = preview_m.display_name if preview_m != null else "?"
 		var preview_dmg: int = ExplorationSkills.trap_damage_for_max_hp(
-			_member_max_hp_for_trap(preview_target), true, false
+			_member_max_hp_for_trap(preview_target), true, false, tier
 		)
 		_set_trap_hit_narrative(hit_text, preview_nm, preview_dmg)
 		## 単体はナラティブ用に選んだ対象へ固定
@@ -3758,11 +3760,12 @@ func _apply_trap_damage_hits(
 ) -> void:
 	if targets.is_empty():
 		return
+	var tier: int = GameState.current_dungeon_tier
 	if aoe:
 		_append_trap_hit_log("%s: パーティ全体にダメージ！" % log_prefix)
 	for target: int in targets:
 		var max_hp: int = _member_max_hp_for_trap(target)
-		var dmg: int = ExplorationSkills.trap_damage_for_max_hp(max_hp, trap_room, aoe)
+		var dmg: int = ExplorationSkills.trap_damage_for_max_hp(max_hp, trap_room, aoe, tier)
 		var m: Resource = GameState.get_combatant(target)
 		var nm: String = m.display_name if m != null else "?"
 		$CombatController.apply_damage_to_member(target, dmg)
@@ -3770,7 +3773,17 @@ func _apply_trap_damage_hits(
 		## 死亡時のみ死亡SE・on_ally_death を通す（skip_hit_taken）。
 		_on_member_damaged(target, {"skip_hit_taken": true})
 		_apply_trap_hit_feedback(target, dmg, trap_room)
-		_append_trap_hit_log("%s: %s に %d ダメージ！" % [log_prefix, nm, dmg])
+		var status_id: String = ExplorationSkills.roll_trap_status(tier)
+		var status_label: String = ""
+		if not status_id.is_empty():
+			$CombatController.apply_status("party_%d" % target, status_id, 1, 0)
+			status_label = _noncombat_status_display_name(status_id)
+		if status_label.is_empty():
+			_append_trap_hit_log("%s: %s に %d ダメージ！" % [log_prefix, nm, dmg])
+		else:
+			_append_trap_hit_log(
+				"%s: %s に %d ダメージ＋[%s]！" % [log_prefix, nm, dmg, status_label]
+			)
 
 
 ## P3-BAL-NONCOMBAT-001: 宝箱／泉／碑文の失敗ペナルティ（死亡させない）。

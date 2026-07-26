@@ -8,8 +8,8 @@ const ROOM_BG_HIT_PATH: String = "res://assets/dungeon/common/trap/BG_Room_Trap_
 const ROOM_BG_AVOID_PATH: String = "res://assets/dungeon/common/trap/BG_Room_Trap_Avoid.png"
 ## 後方互換（旧名）
 const ROOM_BG_PATH: String = ROOM_BG_SETUP_PATH
-## P3-BAL-NONCOMBAT-001: 50% → 70%。
-const TRIGGER_CHANCE: float = 0.7
+## 後方互換: ハード帯の罠部屋発動率（ティア別は trigger_chance）。
+const TRIGGER_CHANCE: float = 0.65
 
 const COLOR_AVOID: Color = Color(0.45, 0.92, 0.58)
 const COLOR_HIT: Color = Color(1.0, 0.35, 0.35)
@@ -75,10 +75,15 @@ static func pick_avoid_line(rng: RandomNumberGenerator = null) -> String:
 	return _pick_line(AVOID_LINES, rng)
 
 
-static func is_triggered(rng: RandomNumberGenerator = null) -> bool:
+static func trigger_chance(tier: int = 0) -> float:
+	return BalanceConfig.trap_room_trigger_chance(tier)
+
+
+static func is_triggered(rng: RandomNumberGenerator = null, tier: int = 0) -> bool:
+	var chance: float = trigger_chance(tier)
 	if rng != null:
-		return rng.randf() < TRIGGER_CHANCE
-	return randf() < TRIGGER_CHANCE
+		return rng.randf() < chance
+	return randf() < chance
 
 
 static func format_hit_narrative(hit_line: String, member_name: String, dmg: int) -> String:

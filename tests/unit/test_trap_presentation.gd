@@ -31,16 +31,18 @@ func test_bg_path_for_phase() -> void:
 
 
 func test_trigger_chance_is_raised() -> void:
-	# P3-BAL-NONCOMBAT-001: 50% → 70%
-	assert_almost_eq(_TrapPresentation.TRIGGER_CHANCE, 0.7, 0.001)
+	# P3-BAL-TRAP-TIER-001: ハード帯エイリアス 65%
+	assert_almost_eq(_TrapPresentation.TRIGGER_CHANCE, 0.65, 0.001)
+	assert_almost_eq(_TrapPresentation.trigger_chance(0), 0.50, 0.001)
+	assert_almost_eq(_TrapPresentation.trigger_chance(2), 0.80, 0.001)
 
 
 func test_is_triggered_is_deterministic_with_rng() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 12345
-	var first: bool = _TrapPresentation.is_triggered(rng)
+	var first: bool = _TrapPresentation.is_triggered(rng, 1)
 	rng.seed = 12345
-	assert_eq(first, _TrapPresentation.is_triggered(rng))
+	assert_eq(first, _TrapPresentation.is_triggered(rng, 1))
 
 
 func test_pick_lines_use_rng() -> void:

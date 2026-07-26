@@ -53,15 +53,65 @@ const ROOM_HEAL_AMOUNT: int = 10 * STAT_SCALE
 ## 泉成功時の回復割合（各生存者）。
 const ROOM_HEAL_MAX_HP_FRAC: float = 0.18
 
-# ── 探索罠（最大HP割合 / P3-TRAP-PCT-001 → P3-BAL-NONCOMBAT-001） ─────
-## 単体被弾
+# ── 探索罠（最大HP割合 / P3-BAL-TRAP-TIER-001） ───────────────────────
+## 配列 index = DungeonTierConfig TIER_NORMAL / HARD / NIGHTMARE
+## 単体被弾（探索／罠部屋）
+const TRAP_MAX_HP_FRAC_COMBAT_SINGLE_BY_TIER: Array[float] = [0.10, 0.15, 0.22]
+const TRAP_MAX_HP_FRAC_ROOM_SINGLE_BY_TIER: Array[float] = [0.15, 0.25, 0.35]
+## 全体被弾（単体より低め）
+const TRAP_MAX_HP_FRAC_COMBAT_AOE_BY_TIER: Array[float] = [0.05, 0.08, 0.12]
+const TRAP_MAX_HP_FRAC_ROOM_AOE_BY_TIER: Array[float] = [0.08, 0.12, 0.18]
+## 発動時に全体パターンになる確率
+const TRAP_AOE_CHANCE_BY_TIER: Array[float] = [0.25, 0.35, 0.45]
+## 戦闘／エリート入室時の探索罠ロール
+const TRAP_EXPLORE_CHANCE_BY_TIER: Array[float] = [0.12, 0.20, 0.28]
+## 罠部屋の発動率
+const TRAP_ROOM_TRIGGER_CHANCE_BY_TIER: Array[float] = [0.50, 0.65, 0.80]
+## 被弾時に毒 or 出血を付与する確率（N=なし）
+const TRAP_STATUS_CHANCE_BY_TIER: Array[float] = [0.0, 0.40, 0.60]
+const TRAP_STATUS_POOL: Array[String] = ["poison", "bleed"]
+## 後方互換エイリアス（ハード帯＝旧 NONCOMBAT 据置値）
 const TRAP_MAX_HP_FRAC_COMBAT_SINGLE: float = 0.15
 const TRAP_MAX_HP_FRAC_ROOM_SINGLE: float = 0.25
-## 全体被弾（単体より低め）
 const TRAP_MAX_HP_FRAC_COMBAT_AOE: float = 0.08
 const TRAP_MAX_HP_FRAC_ROOM_AOE: float = 0.12
-## 発動時に全体パターンになる確率
 const TRAP_AOE_CHANCE: float = 0.35
+
+
+static func _trap_tier_index(tier: int) -> int:
+	return clampi(tier, 0, TRAP_MAX_HP_FRAC_ROOM_SINGLE_BY_TIER.size() - 1)
+
+
+static func trap_max_hp_frac_combat_single(tier: int) -> float:
+	return TRAP_MAX_HP_FRAC_COMBAT_SINGLE_BY_TIER[_trap_tier_index(tier)]
+
+
+static func trap_max_hp_frac_room_single(tier: int) -> float:
+	return TRAP_MAX_HP_FRAC_ROOM_SINGLE_BY_TIER[_trap_tier_index(tier)]
+
+
+static func trap_max_hp_frac_combat_aoe(tier: int) -> float:
+	return TRAP_MAX_HP_FRAC_COMBAT_AOE_BY_TIER[_trap_tier_index(tier)]
+
+
+static func trap_max_hp_frac_room_aoe(tier: int) -> float:
+	return TRAP_MAX_HP_FRAC_ROOM_AOE_BY_TIER[_trap_tier_index(tier)]
+
+
+static func trap_aoe_chance(tier: int) -> float:
+	return TRAP_AOE_CHANCE_BY_TIER[_trap_tier_index(tier)]
+
+
+static func trap_explore_chance(tier: int) -> float:
+	return TRAP_EXPLORE_CHANCE_BY_TIER[_trap_tier_index(tier)]
+
+
+static func trap_room_trigger_chance(tier: int) -> float:
+	return TRAP_ROOM_TRIGGER_CHANCE_BY_TIER[_trap_tier_index(tier)]
+
+
+static func trap_status_chance(tier: int) -> float:
+	return TRAP_STATUS_CHANCE_BY_TIER[_trap_tier_index(tier)]
 
 # ── 非戦闘失敗ペナルティ（P3-BAL-NONCOMBAT-001 → 罠以外を緩和） ─────────
 ## 宝箱／泉／碑文の失敗HP割合（罠部屋・探索罠は上表のまま）。
