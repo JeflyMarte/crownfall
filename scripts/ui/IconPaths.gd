@@ -338,7 +338,7 @@ const ICON_MAP: Dictionary = {
 	"dungeon:westbay_flats":       "res://assets/dungeon/westbay_flats/ICO_DG_WestbayFlats.png",
 	"dungeon:frostridge":          "res://assets/dungeon/frostridge/ICO_DG_Frostridge.png",
 	"dungeon:frostwall_path":      "res://assets/dungeon/frostwall_path/ICO_DG_FrostwallPath.png",
-	"dungeon:chronos_mausoleum":      "res://assets/dungeon/mourngate/ICO_DG_Mourngate.png",
+	"dungeon:chronos_mausoleum":      "res://assets/dungeon/chronos_mausoleum/ICO_DG_ChronosMausoleum.png",
 	"dungeon:storm_crown_ruins":   "res://assets/dungeon/astoria_ruins/ICO_DG_AstoriaRuins.png",
 	"dungeon:red_ridge_mine":      "res://assets/dungeon/whisperwood/ICO_DG_Whisperwood.png",
 	"dungeon:mistfen_depths":      "res://assets/dungeon/mistfen/ICO_DG_Mistfen.png",

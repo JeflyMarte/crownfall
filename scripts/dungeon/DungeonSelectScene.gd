@@ -24,7 +24,7 @@ const DUNGEON_ICON_PATHS: Dictionary = {
 	"westbay_flats": "res://assets/dungeon/westbay_flats/ICO_DG_WestbayFlats.png",
 	"frostridge": "res://assets/dungeon/frostridge/ICO_DG_Frostridge.png",
 	"frostwall_path": "res://assets/dungeon/frostwall_path/ICO_DG_FrostwallPath.png",
-	"chronos_mausoleum": "res://assets/dungeon/mourngate/ICO_DG_Mourngate.png",
+	"chronos_mausoleum": "res://assets/dungeon/chronos_mausoleum/ICO_DG_ChronosMausoleum.png",
 }
 
 const COLOR_GOLD: Color = Color(0.95, 0.84, 0.4, 1)

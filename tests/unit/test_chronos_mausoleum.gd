@@ -83,8 +83,15 @@ func test_field_and_banner_assets() -> void:
 	assert_true(FileAccess.file_exists(
 		"res://assets/ui/dungeon/BAN_DG_ChronosMausoleum.png"
 	))
+	assert_true(FileAccess.file_exists(
+		"res://assets/dungeon/chronos_mausoleum/ICO_DG_ChronosMausoleum.png"
+	))
 	var ban_path: String = BiomeBannerHelper.resolve_path(DID)
 	assert_eq(ban_path, "res://assets/ui/dungeon/BAN_DG_ChronosMausoleum.png")
+	assert_eq(
+		str(IconPaths.ICON_MAP.get("dungeon:chronos_mausoleum", "")),
+		"res://assets/dungeon/chronos_mausoleum/ICO_DG_ChronosMausoleum.png"
+	)
 
 
 func _unix_for_jst(year: int, month: int, day: int, hour: int, minute: int) -> int:
