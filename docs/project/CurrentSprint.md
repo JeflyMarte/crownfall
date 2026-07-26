@@ -89,6 +89,7 @@
 | — | **P3-DG-ROCK-STAMPEDE-001** | 岩角の群れ道（ロックバイソン日次イベント） | ✅ GO・統合＋main |
 | — | **P3-DG-VALGARD-DESCENT-001** | 境界の番　降臨／ストームクラウン境界廊（JST 1/4/7/10・N/H/NM） | ✅ Impl（専用ドット／BGMは後続） |
 | — | **P3-LORE-VALGARD-001** | ヴァルガード＝擬機械ゴーレム改稿＋戦力（クロノス一段下） | ✅ Impl |
+| — | **P3-GACHA-FEATURE-BLURB-001** | 招待状 Featured 特徴行＋キャラ下げ | ✅ GO・Impl |
 | — | **P3-BAL-TRAP-TIER-001** | 罠 N/H/NM 段階化（発動・ダメ・状態異常） | ✅ GO・Impl |
 | — | **P3-DG-EVENT-SET-001** | 降臨セット装備（時環の刻／アンティーク・レア「セット」・3部位加護・レリック廃止） | ✅ Impl |
 | — | **P3-DG-EVENT-REWARD-001** | 降臨専用単品＋レリック（旧） | ❌ Superseded by SET-001 |
