@@ -38,8 +38,10 @@ const ROOM_MIN_COMBAT: int = 3     # COMBAT最低数（肩慣らし含む / BOSS
 
 
 
-const TREASURE_GOLD: int = 30
-const TREASURE_ACCESSORY_CHANCE: float = 0.2
+## P3-BAL-NONCOMBAT-001
+const TREASURE_GOLD: int = 40
+const TREASURE_ACCESSORY_CHANCE: float = 0.35
+const TREASURE_WEAPON_CHANCE: float = BalanceConfig.TREASURE_WEAPON_CHANCE
 const ELITE_REWARD_MULTIPLIER: float = 1.5
 const ELITE_ARMOR_CHANCE: float = 0.35
 const ELITE_ACCESSORY_CHANCE: float = 0.25
@@ -1263,7 +1265,12 @@ func generate_treasure_loot() -> Dictionary:
 	if randf() < TREASURE_ACCESSORY_CHANCE:
 		_generate_accessory_loot()
 		accessory_id = last_accessory_dropped
-	return {"gold": TREASURE_GOLD, "accessory_id": accessory_id}
+	var weapon_id: String = ""
+	if randf() < TREASURE_WEAPON_CHANCE:
+		weapon_id = _pick_weighted_weapon(null)
+		if not weapon_id.is_empty():
+			_spawn_weapon(weapon_id)
+	return {"gold": TREASURE_GOLD, "accessory_id": accessory_id, "weapon_id": weapon_id}
 
 func generate_treasure_loot_failure() -> Dictionary:
 	var gold: int = maxi(1, int(round(float(TREASURE_GOLD) * 0.5)))

@@ -24,9 +24,9 @@ const SUCCESS_LINES: Array[String] = [
 	"宝箱は満ちていた。戦利品を回収した。",
 ]
 const FAIL_LINES: Array[String] = [
-	"箱は空だった。わずかなゴールドだけが残っていた。",
-	"中身は朽ち、取れるものはほとんどなかった。",
-	"罠の跡だけが残り、宝物は既に奪われていた。",
+	"箱の仕掛けが跳ね、中身はほとんど残っていなかった。",
+	"蓋の裏から棘が走り、わずかなゴールドだけが落ちた。",
+	"罠の跡が残り、触れた手が焼けるような痛みを残した。",
 ]
 
 
@@ -68,8 +68,12 @@ static func failure_gold_amount(base_gold: int) -> int:
 	return maxi(1, int(round(float(base_gold) * FAILURE_GOLD_RATIO)))
 
 
-static func format_success_narrative(success_line: String, gold: int, accessory_name: String) -> String:
+static func format_success_narrative(
+	success_line: String, gold: int, accessory_name: String, weapon_name: String = ""
+) -> String:
 	var text: String = "%s\nゴールド +%d" % [success_line, gold]
+	if not weapon_name.is_empty():
+		text += "\n武器: %s" % weapon_name
 	if not accessory_name.is_empty():
 		text += "\n装飾品: %s" % accessory_name
 	return text

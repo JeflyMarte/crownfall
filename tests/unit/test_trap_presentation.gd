@@ -30,8 +30,9 @@ func test_bg_path_for_phase() -> void:
 	assert_eq(_TrapPresentation.bg_path_for_phase("avoid"), _TrapPresentation.ROOM_BG_AVOID_PATH)
 
 
-func test_trigger_chance_is_half() -> void:
-	assert_almost_eq(_TrapPresentation.TRIGGER_CHANCE, 0.5, 0.001)
+func test_trigger_chance_is_raised() -> void:
+	# P3-BAL-NONCOMBAT-001: 50% → 70%
+	assert_almost_eq(_TrapPresentation.TRIGGER_CHANCE, 0.7, 0.001)
 
 
 func test_is_triggered_is_deterministic_with_rng() -> void:

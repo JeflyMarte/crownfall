@@ -3029,9 +3029,15 @@ func _handle_event_room_async() -> void:
 	await get_tree().create_timer(setup_hold).timeout
 	if not LoreRoomPresentationScript.is_deciphered():
 		var fail_text: String = LoreRoomPresentationScript.pick_fail_line()
+		var penalty_line: String = _apply_noncombat_fail_penalty(
+			"lore",
+			BalanceConfig.NONCOMBAT_FAIL_LORE_HP_FRAC,
+			["curse", "vulnerable"]
+		)
 		_set_non_combat_phase_bg(LoreRoomPresentationScript.bg_path_for_phase("fail"))
-		_set_room_narrative(fail_text, LoreRoomPresentationScript.COLOR_FAIL)
-		_append_log("[碑文] %s" % fail_text)
+		var fail_full: String = fail_text if penalty_line.is_empty() else "%s\n%s" % [fail_text, penalty_line]
+		_set_room_narrative(fail_full, LoreRoomPresentationScript.COLOR_FAIL)
+		_append_log("[碑文] %s" % fail_full)
 		_event_presentation_active = false
 		_reset_narrative_typography()
 		_finish_room_and_continue()
@@ -3253,11 +3259,18 @@ func _apply_event_outcome(outcome: Dictionary) -> String:
 			return _format_material_reward_log(mat_id, mat_amount, outcome.get("label", ""))
 		"lore":
 			var lore_id: String = outcome.get("discovery_id", "unknown_lore")
+			var first_time: bool = not DiscoveryRegistry.is_discovered("lore", lore_id)
 			var body: String = CatalogHelper.get_lore_body(lore_id)
 			_try_register_discovery("lore", lore_id)
+			var bonus_lines: PackedStringArray = _apply_lore_success_bonuses(first_time)
+			var base: String = ""
 			if not body.is_empty():
-				return "【碑文】%s\n%s" % [outcome.get("label", "碑文"), body]
-			return "%s を記録した。" % outcome.get("label", "碑文")
+				base = "【碑文】%s\n%s" % [outcome.get("label", "碑文"), body]
+			else:
+				base = "%s を記録した。" % outcome.get("label", "碑文")
+			for line: String in bonus_lines:
+				base += "\n%s" % line
+			return base
 		_:
 			return "何も起こらなかった"
 
@@ -3364,22 +3377,30 @@ func _resolve_heal_room_async() -> void:
 	await get_tree().create_timer(setup_hold).timeout
 	if not HealRoomPresentationScript.is_successful():
 		var fail_text: String = HealRoomPresentationScript.pick_fail_line()
+		var penalty_line: String = _apply_noncombat_fail_penalty(
+			"heal", BalanceConfig.NONCOMBAT_FAIL_HEAL_HP_FRAC, ["poison"]
+		)
 		_set_non_combat_phase_bg(HealRoomPresentationScript.bg_path_for_phase("fail"))
-		_set_room_narrative(fail_text, HealRoomPresentationScript.COLOR_FAIL)
-		_append_log("[回復] %s" % fail_text)
+		var fail_full: String = fail_text if penalty_line.is_empty() else "%s\n%s" % [fail_text, penalty_line]
+		_set_room_narrative(fail_full, HealRoomPresentationScript.COLOR_FAIL)
+		_append_log("[回復] %s" % fail_full)
 		_heal_presentation_active = false
 		_reset_narrative_typography()
 		_finish_room_and_continue()
 		return
-	var heal_amount: int = _apply_healing_bonus(HEAL_AMOUNT)
-	$CombatController.heal_party(heal_amount)
+	var healed_total: int = _apply_heal_room_success()
 	_play_heal_vfx()
 	_update_hp_bars()
 	_set_non_combat_phase_bg(HealRoomPresentationScript.bg_path_for_phase("success"))
 	var success_line: String = HealRoomPresentationScript.pick_success_line()
-	var narrative: String = HealRoomPresentationScript.format_success_narrative(success_line, heal_amount)
+	var cleanse_line: String = _cleanse_one_party_debuff()
+	var narrative: String = HealRoomPresentationScript.format_success_narrative(success_line, healed_total)
+	if not cleanse_line.is_empty():
+		narrative += "\n%s" % cleanse_line
 	_set_room_narrative(narrative, HealRoomPresentationScript.COLOR_SUCCESS)
 	_append_log("[回復] %s" % success_line)
+	if not cleanse_line.is_empty():
+		_append_log("[回復] %s" % cleanse_line)
 	_heal_presentation_active = false
 	_reset_narrative_typography()
 	_finish_room_and_continue()
@@ -3402,12 +3423,21 @@ func _resolve_treasure_room_async() -> void:
 	if not TreasureRoomPresentationScript.is_successful():
 		var treasure_fail: Dictionary = $DungeonController.generate_treasure_loot_failure()
 		var fail_line: String = TreasureRoomPresentationScript.pick_fail_line()
+		var penalty_line: String = _apply_noncombat_fail_penalty(
+			"treasure",
+			BalanceConfig.NONCOMBAT_FAIL_TREASURE_HP_FRAC,
+			["poison", "bleed"]
+		)
 		var fail_text: String = TreasureRoomPresentationScript.format_fail_narrative(
 			fail_line, int(treasure_fail.get("gold", 0))
 		)
+		if not penalty_line.is_empty():
+			fail_text += "\n%s" % penalty_line
 		_set_non_combat_phase_bg(TreasureRoomPresentationScript.bg_path_for_phase("fail"))
 		_set_room_narrative(fail_text, TreasureRoomPresentationScript.COLOR_FAIL)
 		_append_log("[宝箱] %s" % fail_line)
+		if not penalty_line.is_empty():
+			_append_log("[宝箱] %s" % penalty_line)
 		_treasure_presentation_active = false
 		_reset_narrative_typography()
 		_finish_room_and_continue()
@@ -3418,16 +3448,22 @@ func _resolve_treasure_room_async() -> void:
 	if not (treasure["accessory_id"] as String).is_empty():
 		accessory_name = DataRegistry.get_accessory_name(treasure["accessory_id"])
 		GameState.last_run_accessory_dropped = treasure["accessory_id"]
+	var weapon_name: String = ""
+	var weapon_id: String = str(treasure.get("weapon_id", ""))
+	if not weapon_id.is_empty():
+		weapon_name = DataRegistry.get_weapon_name(weapon_id)
+		GameState.last_run_weapon_dropped = weapon_id
 	var success_line: String = TreasureRoomPresentationScript.pick_success_line()
 	var log_text: String = TreasureRoomPresentationScript.format_success_narrative(
-		success_line, int(treasure["gold"]), accessory_name
+		success_line, int(treasure["gold"]), accessory_name, weapon_name
 	)
 	for line: String in explore_treasure:
 		log_text += "\n" + line
 	var has_accessory: bool = not (treasure["accessory_id"] as String).is_empty()
+	var has_weapon: bool = not weapon_id.is_empty()
 	_set_non_combat_phase_bg(TreasureRoomPresentationScript.bg_path_for_phase("success"))
 	AudioManager.play_sfx("treasure")
-	await _play_treasure_open_presentation(has_accessory)
+	await _play_treasure_open_presentation(has_accessory or has_weapon)
 	_set_room_narrative(log_text, TreasureRoomPresentationScript.COLOR_SUCCESS)
 	_treasure_presentation_active = false
 	_reset_narrative_typography()
@@ -3620,6 +3656,109 @@ func _apply_trap_damage_hits(
 		_on_member_damaged(target, {"skip_hit_taken": true})
 		_apply_trap_hit_feedback(target, dmg, trap_room)
 		_append_trap_hit_log("%s: %s に %d ダメージ！" % [log_prefix, nm, dmg])
+
+
+## P3-BAL-NONCOMBAT-001: 宝箱／泉／碑文の失敗ペナルティ（死亡させない）。
+func _apply_noncombat_fail_penalty(
+	room_kind: String, hp_frac: float, status_pool: Array
+) -> String:
+	$CombatController.ensure_party_hp_for_combat()
+	var living: Array[int] = _living_exploration_damage_targets()
+	if living.is_empty():
+		return ""
+	var target: int = living[randi() % living.size()]
+	var max_hp: int = _member_max_hp_for_trap(target)
+	var raw_dmg: int = maxi(1, int(round(float(max_hp) * hp_frac)))
+	var cur_hp: int = int($CombatController.party_combat_hp[target])
+	var dmg: int = mini(raw_dmg, maxi(0, cur_hp - 1))
+	var m: Resource = GameState.get_combatant(target)
+	var nm: String = m.display_name if m != null else "?"
+	if dmg > 0:
+		$CombatController.apply_damage_to_member(target, dmg)
+		_on_member_damaged(target, {"skip_hit_taken": true})
+		_apply_trap_hit_feedback(target, dmg, true)
+	var status_id: String = ""
+	if not status_pool.is_empty():
+		status_id = str(status_pool[randi() % status_pool.size()])
+		$CombatController.apply_status("party_%d" % target, status_id, 1, 0)
+	_update_hp_bars()
+	var status_label: String = _noncombat_status_display_name(status_id)
+	if status_label.is_empty():
+		return "%s に %d ダメージ！" % [nm, dmg]
+	return "%s に %d ダメージ＋[%s]！" % [nm, dmg, status_label]
+
+
+func _noncombat_status_display_name(status_id: String) -> String:
+	if status_id.is_empty():
+		return ""
+	var eff: Resource = DataRegistry.get_status_effect(status_id)
+	if eff != null and not str(eff.display_name).is_empty():
+		return str(eff.display_name)
+	return status_id
+
+
+func _apply_heal_room_success() -> int:
+	$CombatController.ensure_party_hp_for_combat()
+	var total: int = 0
+	for i: int in $CombatController.party_combat_hp.size():
+		if int($CombatController.party_combat_hp[i]) <= 0:
+			continue
+		var max_hp: int = maxi(1, int($CombatController.party_max_hp[i]))
+		var amount: int = maxi(
+			BalanceConfig.ROOM_HEAL_AMOUNT,
+			int(round(float(max_hp) * BalanceConfig.ROOM_HEAL_MAX_HP_FRAC))
+		)
+		amount = _apply_healing_bonus(amount)
+		total += $CombatController.heal_member(i, amount)
+	return total
+
+
+const _NONCOMBAT_CLEANSE_DEBUFFS: Array[String] = [
+	"poison", "bleed", "curse", "vulnerable", "chill", "slow", "fear", "stun",
+	"armor_break", "mark", "ignite", "shock",
+]
+
+
+func _cleanse_one_party_debuff() -> String:
+	var candidates: Array[Dictionary] = []
+	for i: int in $CombatController.party_combat_hp.size():
+		if int($CombatController.party_combat_hp[i]) <= 0:
+			continue
+		var unit_id: String = "party_%d" % i
+		for sid: String in _NONCOMBAT_CLEANSE_DEBUFFS:
+			if $CombatController.get_member_status_stacks(i, sid) > 0:
+				candidates.append({"index": i, "status_id": sid})
+	if candidates.is_empty():
+		return ""
+	var pick: Dictionary = candidates[randi() % candidates.size()]
+	var idx: int = int(pick["index"])
+	var sid: String = str(pick["status_id"])
+	$CombatController.consume_member_status(idx, sid)
+	var m: Resource = GameState.get_combatant(idx)
+	var nm: String = m.display_name if m != null else "?"
+	return "%s の[%s]が晴れた" % [nm, _noncombat_status_display_name(sid)]
+
+
+func _apply_lore_success_bonuses(first_time: bool) -> PackedStringArray:
+	var lines: PackedStringArray = []
+	if first_time:
+		$DungeonController.accumulate_rewards(0, BalanceConfig.LORE_FIRST_GOLD)
+		lines.append("ゴールド +%d" % BalanceConfig.LORE_FIRST_GOLD)
+		if randf() < BalanceConfig.LORE_FIRST_MATERIAL_CHANCE:
+			var mat_id: String = "relic_shard"
+			var amt: int = _apply_material_bonus(1)
+			GameState.add_material(mat_id, amt)
+			_try_register_discovery("material", mat_id)
+			lines.append(_format_material_reward_log(mat_id, amt, ""))
+		if randf() < BalanceConfig.LORE_FIRST_ACCESSORY_CHANCE:
+			var acc_id: String = $DungeonController.generate_accessory_loot()
+			if not acc_id.is_empty():
+				GameState.last_run_accessory_dropped = acc_id
+				lines.append("装飾品: %s" % DataRegistry.get_accessory_name(acc_id))
+	else:
+		$DungeonController.accumulate_rewards(0, BalanceConfig.LORE_REPEAT_GOLD)
+		lines.append("ゴールド +%d（既知の記録）" % BalanceConfig.LORE_REPEAT_GOLD)
+	return lines
 
 
 func _member_max_hp_for_trap(index: int) -> int:

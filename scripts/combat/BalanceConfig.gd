@@ -48,18 +48,32 @@ const ATTACK_PER_LEVEL_MASTER: int = 1 * STAT_SCALE
 
 # ── 回復スキル基準値（旧 DungeonScene 定数） ─────────────────────────────
 const HEAL_SKILL_BASE: int = 14 * STAT_SCALE
-## 回復部屋の固定回復（旧 10）
+## 回復部屋の最低回復（P3-BAL-NONCOMBAT-001: 各員 maxHP×割合と比較）
 const ROOM_HEAL_AMOUNT: int = 10 * STAT_SCALE
+## 泉成功時の回復割合（各生存者）。
+const ROOM_HEAL_MAX_HP_FRAC: float = 0.18
 
-# ── 探索罠（最大HP割合 / P3-TRAP-PCT-001） ───────────────────────────────
+# ── 探索罠（最大HP割合 / P3-TRAP-PCT-001 → P3-BAL-NONCOMBAT-001） ─────
 ## 単体被弾
-const TRAP_MAX_HP_FRAC_COMBAT_SINGLE: float = 0.10
-const TRAP_MAX_HP_FRAC_ROOM_SINGLE: float = 0.15
+const TRAP_MAX_HP_FRAC_COMBAT_SINGLE: float = 0.15
+const TRAP_MAX_HP_FRAC_ROOM_SINGLE: float = 0.25
 ## 全体被弾（単体より低め）
-const TRAP_MAX_HP_FRAC_COMBAT_AOE: float = 0.05
-const TRAP_MAX_HP_FRAC_ROOM_AOE: float = 0.08
+const TRAP_MAX_HP_FRAC_COMBAT_AOE: float = 0.08
+const TRAP_MAX_HP_FRAC_ROOM_AOE: float = 0.12
 ## 発動時に全体パターンになる確率
 const TRAP_AOE_CHANCE: float = 0.35
+
+# ── 非戦闘失敗ペナルティ（P3-BAL-NONCOMBAT-001） ─────────────────────────
+const NONCOMBAT_FAIL_TREASURE_HP_FRAC: float = 0.12
+const NONCOMBAT_FAIL_HEAL_HP_FRAC: float = 0.10
+const NONCOMBAT_FAIL_LORE_HP_FRAC: float = 0.08
+## 宝箱成功の武器ドロップ率。
+const TREASURE_WEAPON_CHANCE: float = 0.12
+## 碑文成功（初回）の素材／装飾。
+const LORE_FIRST_GOLD: int = 20
+const LORE_REPEAT_GOLD: int = 10
+const LORE_FIRST_MATERIAL_CHANCE: float = 0.10
+const LORE_FIRST_ACCESSORY_CHANCE: float = 0.08
 
 # ── 敵レベルスケール（P3-D081） ──────────────────────────────────────────
 const ENEMY_LEVEL_HP_K: float = 0.10

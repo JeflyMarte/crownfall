@@ -4705,5 +4705,48 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 
 ---
 
+## 拠点初回簡易ガイド（2026-07-26 — P3-UI-HUB-GUIDE-001）
+
+> **オーナー指定 GO** — はじめから初回のみ。拠点上の大きめポップ＋右下ニーナ・ドット。5ページ各1P。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UI-HUB-GUIDE-001-1 | **5ページ** — ①招待状で仲間 ②DGで装備・Lv ③調査室 ④鍛冶 ⑤展示室。各1P | オーナー指定 |
+| P3-UI-HUB-GUIDE-001-2 | **UI** — 画面切替なし。拠点メニュー上に大きめポップ。右下に `SPR_NPC_Nina` | オーナー指定 |
+| P3-UI-HUB-GUIDE-001-3 | **表示** — 新規のみ（`tutorial_flags.hub_simple_guide_done`）。既存セーブは済み。スキップ可 | Continue 非侵入 |
+| P3-UI-HUB-GUIDE-001-4 | **非採用** — 操作講習・強制ハイライト遷移（`02_NewGameIntro` 維持） | 既存方針 |
+
+**SSOT:** `docs/specs/decisions/10_HubSimpleGuide.md`
+
+---
+
+## 探索方針・地形有利・自動戦闘行オミット（2026-07-26）
+
+> **オーナー実機フィードバック** — 不要システムの非表示／無効化。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| UX-OMIT-POLICY | **探索方針オミット** — `EXPLORATION_POLICY_PLAYABLE=false`。UI非表示・効果無効。セーブキー残置 | オーナー指定 |
+| UX-OMIT-TERRAIN | **地形属性（Biome有利）効果削除** — 与ダメ×1.15と表示を廃止。`favored_element` データ残置 | オーナー指定 |
+| UX-OMIT-AUTO-ROW | **戦闘下「自動戦闘中」行非表示** — 右上「停止」のみ | オーナー指定 |
+
+---
+
+## 非戦闘フロア緊張感（2026-07-26 — P3-BAL-NONCOMBAT-001）
+
+> **オーナー GO** — 罠強化＋宝箱／泉／碑文の失敗ペナルティ＋成功報酬に装備。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-NONCOMBAT-001-1 | **罠** — 部屋25%/12%・探索15%/8%・発動70%。全体率35%据置 | 緊張感 |
+| P3-BAL-NONCOMBAT-001-2 | **失敗** — 宝箱12%+毒/出血／泉10%+毒／碑文8%+呪詛/脆弱。成功率据置。失敗ダメはHP1残し | ギャンブル化 |
+| P3-BAL-NONCOMBAT-001-3 | **成功** — 宝箱40G・装飾35%・武器12%／泉 maxHP18%(min80)+解毒1／碑文初回20G+素材10%+装飾8%・再10G | リスク対価 |
+| P3-BAL-NONCOMBAT-001-4 | **スコープ外** — 部屋重み変更・碑文プール拡張・新状態異常 | MVP |
+
+**SSOT:** `docs/specs/decisions/10_NonCombatTension.md`
+
+**Closeout:** Impl 後に統合＋`main`。
+
+---
 
 

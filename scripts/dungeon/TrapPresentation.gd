@@ -8,7 +8,8 @@ const ROOM_BG_HIT_PATH: String = "res://assets/dungeon/common/trap/BG_Room_Trap_
 const ROOM_BG_AVOID_PATH: String = "res://assets/dungeon/common/trap/BG_Room_Trap_Avoid.png"
 ## 後方互換（旧名）
 const ROOM_BG_PATH: String = ROOM_BG_SETUP_PATH
-const TRIGGER_CHANCE: float = 0.5
+## P3-BAL-NONCOMBAT-001: 50% → 70%。
+const TRIGGER_CHANCE: float = 0.7
 
 const COLOR_AVOID: Color = Color(0.45, 0.92, 0.58)
 const COLOR_HIT: Color = Color(1.0, 0.35, 0.35)

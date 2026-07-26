@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-07-26（**P3-BAL-NONCOMBAT-001 GO**: 非戦闘緊張感 — 罠強化／宝箱・泉・碑文の失敗ペナルティ／成功に装備・Gold厚み。統合＋`main`）
 2026-07-26（**リカバリーポイント** `rp/2026-07-26-codex-char-helper-promote` @ `38d1409` — 図鑑人物録＋助っ人昇格後。復元: `git checkout rp/2026-07-26-codex-char-helper-promote`）
 2026-07-26（**P3-GACHA-PROMOTE-001 GO**: レノール／シアン／ボルグ／ネリを排出プールへ＋数値再設計・アート。プール11体。トルヴァは `_omitted`。統合＋`main`）
 2026-07-26（**P3-CODEX-CHAR-001 GO**: 図鑑「世界観」＋「キャラ」人物録。旧「記録」統合。プール助っ人プロフィール追記。staged 昇格は据置。統合＋`main`）
