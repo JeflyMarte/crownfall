@@ -15,3 +15,5 @@ extends Resource
 @export var rarity: int = 0
 ## レジェンド防具の固有パッシブ id（`CombatPassives` SSOT / 空ならなし）。
 @export var fixed_passive_id: String = ""
+## セット装備 id（空=非セット）。P3-DG-EVENT-SET-001。
+@export var set_id: String = ""

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "shrine_flight_bow"
+display_name = "社渡りの弓"
+description = "森の社へ届ける矢文を模した聖弓。矢羽に祈りが宿り、梢を越えて遠くの的へ届く。"
+fixed_skill_id = "sanctal_strike"
+base_attack = 240
+rarity = 1
+base_attack_speed = 1.2
+base_critical_rate = 0.1
+base_knockback = 0.15
+base_stagger_power = 0.1
+base_attack_range = 3.0
+weight = 0.75
+element = "holy"
+weapon_type = "bow"
+tags = Array[String](["pierce", "holy"])

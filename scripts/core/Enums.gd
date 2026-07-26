@@ -7,6 +7,7 @@ enum Rarity {
 	EPIC,
 	LEGENDARY,
 	MYTHIC,
+	SET,
 }
 
 enum ItemType {

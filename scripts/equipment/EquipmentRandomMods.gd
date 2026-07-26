@@ -9,6 +9,7 @@ const _EquipmentRollHelper = preload("res://scripts/equipment/EquipmentRollHelpe
 const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _ArmorStatResolver = preload("res://scripts/equipment/ArmorStatResolver.gd")
 const _AccessoryStatResolver = preload("res://scripts/equipment/AccessoryStatResolver.gd")
+const _ElementResolver = preload("res://scripts/combat/ElementResolver.gd")
 
 const KIND_ATTACK_UP: String = "attack_up"
 const KIND_DEFENSE_UP: String = "defense_up"
@@ -40,8 +41,63 @@ static func get_mods(item: Resource) -> Array:
 		return []
 	var raw: Variant = item.random_mods
 	if raw is Array:
-		return raw as Array
+		return _sanitize_mods_inplace(item, raw as Array)
 	return []
+
+
+## 既存セーブの 0UP を最低1（率は 0.01）へ補正して書き戻す。
+static func _sanitize_mods_inplace(item: Resource, mods: Array) -> Array:
+	var changed: bool = false
+	var out: Array = []
+	for mod: Variant in mods:
+		if not mod is Dictionary:
+			out.append(mod)
+			continue
+		var m: Dictionary = (mod as Dictionary).duplicate(true)
+		if _sanitize_mod_dict(m):
+			changed = true
+		out.append(m)
+	if changed and item != null and "random_mods" in item:
+		item.random_mods = out
+		## 武器属性値フィールドも同期
+		if "element_power" in item:
+			for m2: Variant in out:
+				if m2 is Dictionary and str(m2.get("kind", "")) == KIND_ELEMENT_POWER:
+					item.element_power = int(m2.get("value", 1))
+					break
+	return out
+
+
+static func _sanitize_mod_dict(mod: Dictionary) -> bool:
+	var kind: String = str(mod.get("kind", ""))
+	var changed: bool = false
+	match kind:
+		KIND_ATTACK_UP, KIND_DEFENSE_UP, KIND_HP_UP, KIND_HEALING, KIND_ELEMENT_POWER:
+			var v: int = int(mod.get("value", 0))
+			var lo: int = maxi(1, int(mod.get("min_v", 1)))
+			var hi: int = maxi(lo, int(mod.get("max_v", v)))
+			if v < 1:
+				mod["value"] = 1
+				changed = true
+			if int(mod.get("min_v", 0)) < 1:
+				mod["min_v"] = lo
+				changed = true
+			if int(mod.get("max_v", 0)) < lo:
+				mod["max_v"] = hi
+				changed = true
+		KIND_ATTACK_SPEED, KIND_CRIT_RATE, KIND_CRIT_DAMAGE, KIND_GOLD_GAIN, KIND_EXP_GAIN, \
+		KIND_RARE_DROP, KIND_EVASION, KIND_ON_HIT, KIND_CHILL, KIND_SHOCK, KIND_IGNITE, KIND_POISON:
+			var vf: float = float(mod.get("value", 0.0))
+			var flo: float = maxf(0.01, float(mod.get("min_v", 0.01)))
+			if vf <= 0.0:
+				mod["value"] = flo
+				changed = true
+			if float(mod.get("min_v", 0.0)) <= 0.0:
+				mod["min_v"] = flo
+				changed = true
+		_:
+			pass
+	return changed
 
 
 static func sum_kind_int(item: Resource, kind: String) -> int:
@@ -148,6 +204,8 @@ static func format_mod_line(mod: Dictionary) -> String:
 	var min_v: float = float(mod.get("min_v", value))
 	var max_v: float = float(mod.get("max_v", value))
 	var star: String = "⭐️" if bool(mod.get("perfect", false)) else ""
+	if kind == KIND_ELEMENT_POWER:
+		label = element_power_label(str(mod.get("meta", {}).get("element", "")), label)
 	match kind:
 		KIND_ATTACK_UP, KIND_DEFENSE_UP, KIND_HP_UP, KIND_HEALING, KIND_ELEMENT_POWER:
 			return "%s +%d (%d〜%d)%s" % [label, int(value), int(min_v), int(max_v), star]
@@ -408,10 +466,12 @@ static func _roll_accessory_pool_mod(pid: String, rarity: int) -> Dictionary:
 			return {}
 
 
+## 整数アップ系は最低 +1（0UP 禁止）。
 static func _roll_int_mod(kind: String, label: String, min_v: int, max_v: int) -> Dictionary:
+	min_v = maxi(1, min_v)
 	max_v = maxi(min_v, max_v)
 	var roll: Dictionary = _EquipmentRollHelper.roll_int_bonus(max_v - min_v)
-	var value: int = min_v + int(roll.get("value", 0))
+	var value: int = maxi(1, min_v + int(roll.get("value", 0)))
 	var perfect: bool = value >= max_v
 	return {
 		"id": kind,
@@ -425,10 +485,12 @@ static func _roll_int_mod(kind: String, label: String, min_v: int, max_v: int) -
 	}
 
 
+## 率アップ系は最低 min_v（既定 0.01）。0% UP 禁止。
 static func _roll_float_mod(kind: String, label: String, min_v: float, max_v: float) -> Dictionary:
+	min_v = maxf(0.01, min_v)
 	max_v = maxf(min_v, max_v)
 	var roll: Dictionary = _EquipmentRollHelper.roll_float_bonus(max_v - min_v)
-	var value: float = min_v + float(roll.get("value", 0.0))
+	var value: float = maxf(min_v, min_v + float(roll.get("value", 0.0)))
 	var perfect: bool = value >= max_v - 0.0001
 	return {
 		"id": kind,
@@ -446,9 +508,9 @@ static func _roll_rate_table_mod(
 	kind: String, label: String, min_table: Dictionary, max_table: Dictionary, rarity: int
 ) -> Dictionary:
 	var roll: Dictionary = _EquipmentRollHelper.roll_rate_value(rarity, min_table, max_table)
-	var value: float = float(roll.get("value", 0.0))
-	var min_v: float = float(min_table.get(rarity, 0.01))
-	var max_v: float = float(max_table.get(rarity, 0.02))
+	var min_v: float = maxf(0.01, float(min_table.get(rarity, 0.01)))
+	var max_v: float = maxf(min_v, float(max_table.get(rarity, 0.02)))
+	var value: float = maxf(min_v, float(roll.get("value", 0.0)))
 	return {
 		"id": kind,
 		"label": label,
@@ -474,22 +536,23 @@ static func _fixed_rate_mod(kind: String, label: String, value: float) -> Dictio
 	}
 
 
+static func element_power_label(element_id: String, fallback: String = "属性値") -> String:
+	var nm: String = _ElementResolver.get_display_name(element_id)
+	if nm.is_empty():
+		return fallback if not fallback.is_empty() else "属性値"
+	return "%s属性値" % nm
+
+
 static func _roll_element_power_mod(weapon_data: Resource, rarity: int) -> Dictionary:
+	## base_element_power=0 でも表示・付与は最低1（0UP禁止）。
 	var base_power: int = maxi(0, int(weapon_data.base_element_power) if "base_element_power" in weapon_data else 0)
 	var roll_max: int = int(_WeaponStatResolver.ELEMENT_POWER_ROLL_MAX.get(rarity, 5))
-	var roll: Dictionary = _EquipmentRollHelper.roll_int_bonus(roll_max)
-	var bonus: int = int(roll.get("value", 0))
-	var value: int = base_power + bonus
-	return {
-		"id": KIND_ELEMENT_POWER,
-		"label": "属性値",
-		"kind": KIND_ELEMENT_POWER,
-		"value": value,
-		"min_v": base_power,
-		"max_v": base_power + roll_max,
-		"perfect": bonus >= roll_max,
-		"meta": {"element": str(weapon_data.element)},
-	}
+	var min_v: int = maxi(1, base_power)
+	var max_v: int = maxi(min_v, base_power + roll_max)
+	var elem: String = str(weapon_data.element)
+	var mod: Dictionary = _roll_int_mod(KIND_ELEMENT_POWER, element_power_label(elem), min_v, max_v)
+	mod["meta"] = {"element": elem}
+	return mod
 
 
 static func _make_bane_mod(weapon_data: Resource) -> Dictionary:
@@ -864,7 +927,9 @@ static func _mods_from_weapon_rolled_fields(item: Resource, data: Resource) -> A
 		})
 	if int(item.element_power) > 0 and not str(item.element).is_empty():
 		mods.append({
-			"id": KIND_ELEMENT_POWER, "label": "属性値", "kind": KIND_ELEMENT_POWER,
+			"id": KIND_ELEMENT_POWER,
+			"label": element_power_label(str(item.element)),
+			"kind": KIND_ELEMENT_POWER,
 			"value": int(item.element_power), "min_v": 0, "max_v": int(item.element_power),
 			"perfect": false, "meta": {"element": str(item.element)},
 		})

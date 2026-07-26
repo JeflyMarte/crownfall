@@ -136,6 +136,17 @@ func _migrate_save_v12_to_v13(data: Dictionary) -> Dictionary:
 	return data
 
 
+## 進行済みなのに hub_simple_guide_done が無いセーブを修復。
+func _heal_hub_simple_guide_flag_if_progressed(data: Dictionary) -> void:
+	const FLAG: String = "hub_simple_guide_done"
+	if bool(GameState.tutorial_flags.get(FLAG, false)):
+		return
+	var prog: Variant = data.get("stage_progress", {})
+	if not (prog is Dictionary) or (prog as Dictionary).is_empty():
+		return
+	GameState.tutorial_flags[FLAG] = true
+
+
 ## P3-PET-VARIANT-001: 所持オトモ一覧
 func _migrate_save_v11_to_v12(data: Dictionary) -> Dictionary:
 	if not data.has("owned_pet_ids") or not (data["owned_pet_ids"] is Array):
@@ -604,6 +615,8 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.tutorial_flags = (data["tutorial_flags"] as Dictionary).duplicate(true)
 	else:
 		GameState.tutorial_flags = {}
+	## デバッグ再演でフラグが消えた進行済みセーブを修復（Continue でガイド再出防止）。
+	_heal_hub_simple_guide_flag_if_progressed(data)
 	## 既に解放済みなら演出待ちを破棄（旧セーブ／二重防止）。
 	if (
 		not GameState.pending_starter_recruit_id.is_empty()

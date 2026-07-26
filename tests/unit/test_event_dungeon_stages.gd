@@ -109,6 +109,7 @@ func test_event_biome_banners_are_unique() -> void:
 		"shadow_hunt": "res://assets/ui/dungeon/BAN_DG_ShadowHunt.png",
 		"rock_stampede": "res://assets/ui/dungeon/BAN_DG_RockStampede.png",
 		"chronos_mausoleum": "res://assets/ui/dungeon/BAN_DG_ChronosMausoleum.png",
+		"valgard_boundary": "res://assets/ui/dungeon/BAN_DG_ValgardBoundary.png",
 	}
 	for dungeon_id in expected.keys():
 		var path: String = str(expected[dungeon_id])

@@ -62,6 +62,19 @@ LEGENDARY_HAND_DRAWN_WEAPON_IDS: set[str] = {
 	"abyss_mirestaff",
 	"abyss_netherbow",
 	"abyss_riftclaw",
+	"volley_horizon_bow",
+	"vanguard_war_bow",
+	"regicide_longbow",
+	"amplify_orb_staff",
+	"silent_rite_staff",
+	"chronos_toki_sword",
+	"chronos_toki_dual",
+	"chronos_toki_staff",
+	"chronos_toki_bow",
+	"valgard_antique_blade",
+	"valgard_antique_dual",
+	"valgard_antique_rod",
+	"valgard_antique_arrow",
 }
 
 ## 専用生成済みレジェンド防具（テンプレ流用防止）。
@@ -72,6 +85,8 @@ LEGENDARY_HAND_DRAWN_ARMOR_IDS: set[str] = {
 	"nereion_tide_plate",
 	"eldion_glacier_aegis",
 	"immortal_cenotaph_plate",
+	"chronos_toki_armor",
+	"valgard_antique_armor",
 }
 
 ## 専用生成済みレジェンド装飾。
@@ -82,11 +97,14 @@ LEGENDARY_HAND_DRAWN_ACCESSORY_IDS: set[str] = {
 	"frostridge_boundary_signet",
 	"pharos_beacon_ring",
 	"council_hegemony_seal",
+	"chronos_toki_orb",
+	"valgard_antique_amulet",
 }
 
 CANONICAL_TEMPLATES = {
     "weapon": {
-        "greatsword": TEMPLATE_DIR / "equipment/ICO_WPN_IronSword.png",
+        "sword": TEMPLATE_DIR / "equipment/ICO_WPN_IronSword.png",
+        "greatsword": TEMPLATE_DIR / "equipment/ICO_WPN_IronSword.png",  # 旧互換
         "bow": TEMPLATE_DIR / "equipment/ICO_WPN_HuntingBow.png",
         "staff": TEMPLATE_DIR / "equipment/ICO_WPN_ApprenticeStaff.png",
         "dual_blades": TEMPLATE_DIR / "equipment/ICO_WPN_BoltKnife.png",
@@ -384,7 +402,7 @@ def generate_equipment() -> list[tuple[str, str, str]]:
 				continue
 
 			if category == "weapon":
-				template = pick_weapon_template(item_id, data.get("weapon_type", "greatsword"))
+				template = pick_weapon_template(item_id, data.get("weapon_type", "sword"))
 			elif category == "armor":
 				template = pick_armor_template(rarity)
 			else:

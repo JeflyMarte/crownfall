@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "umbra_needle"
+display_name = "穿影弓ウンブラニードル"
+description = "影を貫く細い矢を射る弓。的の輪郭だけを穿ち、続く闇を導火とする。"
+fixed_skill_id = "hex_bolt"
+base_attack = 152
+rarity = 2
+base_attack_speed = 1.2
+base_critical_rate = 0.1
+base_knockback = 0.15
+base_stagger_power = 0.1
+base_attack_range = 3.0
+weight = 0.75
+element = "dark"
+weapon_type = "bow"
+tags = Array[String](["pierce", "dark"])

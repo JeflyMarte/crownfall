@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "silent_rite_staff"
+display_name = "黙撃の秘杖"
+description = "素振りを禁じ、秘儀のみを許す杖。沈黙の戒めのもと、解き放たれる術だけが二倍の威を帯びる。"
+fixed_skill_id = ""
+fixed_passive_id = "eq_wpn_silent_rite_staff"
+base_attack = 220
+rarity = 3
+base_attack_speed = 0.95
+base_critical_rate = 0.06
+base_knockback = 0.15
+base_stagger_power = 0.12
+base_attack_range = 2.5
+weight = 0.9
+element = "dark"
+weapon_type = "staff"
+tags = Array[String](["blunt", "dark"])

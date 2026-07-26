@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "umbra_orb_staff"
+display_name = "影珠の杖"
+description = "影を凝らした黒珠の杖。振るうたび足元が沈み、敵の輪郭だけが残る。"
+fixed_skill_id = "hex_bolt"
+base_attack = 88
+rarity = 2
+base_attack_speed = 0.95
+base_critical_rate = 0.05
+base_knockback = 0.2
+base_stagger_power = 0.12
+base_attack_range = 2.5
+weight = 0.9
+element = "dark"
+weapon_type = "staff"
+tags = Array[String](["blunt", "dark"])

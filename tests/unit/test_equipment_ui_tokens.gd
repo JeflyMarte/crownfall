@@ -88,6 +88,9 @@ func test_rarity_stars_text_maps_equipment_tier() -> void:
 	assert_eq(EquipmentUiHelper.rarity_stars_text(0), "★")
 	assert_eq(EquipmentUiHelper.rarity_stars_text(1), "★★")
 	assert_eq(EquipmentUiHelper.rarity_stars_text(3), "★★★★")
+	## セットはアイコンに文字を重ねない（緑枠のみ）。
+	assert_eq(EquipmentUiHelper.rarity_stars_text(Enums.Rarity.SET), "")
+	assert_eq(EquipmentUiHelper.rarity_label_text(Enums.Rarity.SET), "セット")
 
 func test_character_stars_text_is_star_count() -> void:
 	## Adventurer.rarity は ★個数（スターター=3）。装備 Enums.Rarity とは別。

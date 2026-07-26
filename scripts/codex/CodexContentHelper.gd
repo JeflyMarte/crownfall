@@ -4,7 +4,8 @@ extends RefCounted
 ## 図鑑表示用テキスト生成（武器・ダンジョン等）。
 
 const WEAPON_TYPE_NAMES: Dictionary = {
-	"greatsword": "大剣",
+	"sword": "剣",
+	"greatsword": "剣",  ## 旧セーブ／表示互換（データは sword に統一）
 	"bow": "弓",
 	"staff": "杖",
 	"dual_blades": "双刃",
@@ -19,7 +20,7 @@ const ELEMENT_NAMES: Dictionary = {
 	"dark": "闇",
 }
 
-const RARITY_NAMES: Array[String] = ["通常", "上質", "希少", "伝説", "神話"]
+const RARITY_NAMES: Array[String] = ["通常", "上質", "希少", "伝説", "神話", "セット"]
 
 const DUNGEON_CODEX_META: Dictionary = {
 	"mourngate": {
@@ -77,9 +78,9 @@ const DUNGEON_CODEX_META: Dictionary = {
 		"exploration_theme": "時環の共鳴龍　降臨・時間帯イベント",
 		"related_history": ["HE-007", "HE-001"],
 	},
-	"storm_crown_ruins": {
-		"location": "王都近郊・王冠遺構",
-		"exploration_theme": "境界の番・守護王伝承・征討調査",
+	"valgard_boundary": {
+		"location": "ストームクラウン境界廊",
+		"exploration_theme": "境界の番　降臨・時間帯イベント",
 		"related_history": ["HE-002", "HE-007"],
 	},
 	"red_ridge_mine": {

@@ -63,10 +63,11 @@ const TRAP_MAX_HP_FRAC_ROOM_AOE: float = 0.12
 ## 発動時に全体パターンになる確率
 const TRAP_AOE_CHANCE: float = 0.35
 
-# ── 非戦闘失敗ペナルティ（P3-BAL-NONCOMBAT-001） ─────────────────────────
-const NONCOMBAT_FAIL_TREASURE_HP_FRAC: float = 0.12
-const NONCOMBAT_FAIL_HEAL_HP_FRAC: float = 0.10
-const NONCOMBAT_FAIL_LORE_HP_FRAC: float = 0.08
+# ── 非戦闘失敗ペナルティ（P3-BAL-NONCOMBAT-001 → 罠以外を緩和） ─────────
+## 宝箱／泉／碑文の失敗HP割合（罠部屋・探索罠は上表のまま）。
+const NONCOMBAT_FAIL_TREASURE_HP_FRAC: float = 0.08
+const NONCOMBAT_FAIL_HEAL_HP_FRAC: float = 0.07
+const NONCOMBAT_FAIL_LORE_HP_FRAC: float = 0.05
 ## 宝箱成功の武器ドロップ率。
 const TREASURE_WEAPON_CHANCE: float = 0.12
 ## 碑文成功（初回）の素材／装飾。
@@ -74,6 +75,9 @@ const LORE_FIRST_GOLD: int = 20
 const LORE_REPEAT_GOLD: int = 10
 const LORE_FIRST_MATERIAL_CHANCE: float = 0.10
 const LORE_FIRST_ACCESSORY_CHANCE: float = 0.08
+## 碑文成功時: 次フロアの EXP／Gold／装備ドロップ率のいずれか ×1.1。
+const LORE_FLOOR_BLESSING_MULT: float = 1.1
+const LORE_FLOOR_BLESSING_KINDS: Array[String] = ["exp", "gold", "equip"]
 
 # ── 敵レベルスケール（P3-D081） ──────────────────────────────────────────
 const ENEMY_LEVEL_HP_K: float = 0.10

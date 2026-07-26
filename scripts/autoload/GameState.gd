@@ -147,18 +147,37 @@ func record_run_damage(
 	member_index: int,
 	amount: int,
 	skill_id: String = "",
-	skill_name: String = ""
+	skill_name: String = "",
+	is_critical: bool = false
 ) -> void:
 	var member: Resource = get_combatant(member_index)
 	if member == null:
 		return
-	get_run_combat_stats().record_damage(str(member.id), amount, skill_id, skill_name)
+	get_run_combat_stats().record_damage(str(member.id), amount, skill_id, skill_name, is_critical)
 
 func record_run_heal(member_index: int, amount: int) -> void:
 	var member: Resource = get_combatant(member_index)
 	if member == null:
 		return
 	get_run_combat_stats().record_heal(str(member.id), amount)
+
+func record_run_kill(member_index: int) -> void:
+	var member: Resource = get_combatant(member_index)
+	if member == null:
+		return
+	get_run_combat_stats().record_kill(str(member.id))
+
+func record_run_damage_taken(member_index: int, amount: int) -> void:
+	var member: Resource = get_combatant(member_index)
+	if member == null:
+		return
+	get_run_combat_stats().record_damage_taken(str(member.id), amount)
+
+func record_run_ultimate(member_index: int) -> void:
+	var member: Resource = get_combatant(member_index)
+	if member == null:
+		return
+	get_run_combat_stats().record_ultimate(str(member.id))
 
 func record_run_modifier(label: String) -> void:
 	if label.is_empty():

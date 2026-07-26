@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "votive_shard_blades"
+display_name = "祭欠片の双刃"
+description = "潮見の祭壇から落ちた聖片を刃にした双刃。祈りを刻むたび淡い光が走り、穢れを静かに削ぎ落とす。"
+fixed_skill_id = "sanctal_strike"
+base_attack = 200
+rarity = 1
+base_attack_speed = 1.1
+base_critical_rate = 0.08
+base_knockback = 0.3
+base_stagger_power = 0.15
+base_attack_range = 1.0
+weight = 0.9
+element = "holy"
+weapon_type = "dual_blades"
+tags = Array[String](["pierce", "holy"])

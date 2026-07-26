@@ -6,7 +6,6 @@ extends RefCounted
 const _StarterRecruitment := preload("res://scripts/roster/StarterRecruitment.gd")
 const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
 const _CommanderProfile := preload("res://scripts/commander/CommanderProfile.gd")
-const _HubSimpleGuideOverlay := preload("res://scripts/ui/HubSimpleGuideOverlay.gd")
 const _DungeonTierConfig := preload("res://scripts/dungeon/DungeonTierConfig.gd")
 
 ## メイン Biome の並び（表示用）。
@@ -93,7 +92,7 @@ static func list_entries() -> Array[Dictionary]:
 		{
 			"id": "hub_guide",
 			"title": "拠点はじめガイド",
-			"hint": "初回ガイドを今すぐ表示（再演可）",
+			"hint": "初回ガイドをプレビュー表示（セーブ済みフラグは触らない）",
 		},
 		{
 			"id": "clear_pending_story",
@@ -313,9 +312,7 @@ static func _queue_rank_up() -> String:
 
 
 static func _queue_hub_guide() -> String:
-	## 即時表示は BaseScene 側。フラグだけ戻しておく。
-	GameState.tutorial_flags.erase(_HubSimpleGuideOverlay.FLAG_KEY)
-	SaveManager.save_game()
+	## 表示は BaseScene 側（preview）。セーブ済みフラグは触らない。
 	return ""
 
 

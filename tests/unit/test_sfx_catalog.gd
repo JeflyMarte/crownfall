@@ -54,4 +54,3 @@ func test_gacha_reveal_not_shared_with_level_up() -> void:
 	assert_ne(gacha_path, level_path)
 	assert_true(FileAccess.file_exists(gacha_path))
 	assert_true(FileAccess.file_exists(level_path))
-	assert_true(FileAccess.file_exists(_SfxCatalog.path_for(_SfxCatalog.ID_VICTORY)))

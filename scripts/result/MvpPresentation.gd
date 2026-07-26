@@ -12,16 +12,25 @@ const COLOR_GOLD: Color = Color(0.92, 0.78, 0.34)
 const COLOR_STAT_DAMAGE: Color = Color(1.0, 0.55, 0.42)
 const COLOR_STAT_HIT: Color = Color(1.0, 0.86, 0.38)
 const COLOR_STAT_HEAL: Color = Color(0.45, 0.95, 0.58)
+const COLOR_STAT_KILL: Color = Color(0.95, 0.72, 0.42)
+const COLOR_STAT_TAKEN: Color = Color(0.55, 0.72, 0.95)
+const COLOR_STAT_ULT: Color = Color(0.95, 0.82, 0.45)
+const COLOR_STAT_CRIT: Color = Color(1.0, 0.78, 0.35)
 
 const HERO_PORTRAIT_PX: float = 168.0
 const RUNNER_PORTRAIT_PX: float = 112.0
 const PORTRAIT_FRAME_PAD: float = 14.0
 const PODIUM_MIN_HEIGHT: float = 380.0
 const PODIUM_WIDTH: float = 600.0
+const STAT_CARD_MAX: int = 6
 
 const STAT_DAMAGE_ICON: String = "res://assets/ui/batch2/ICO_WPN_IronSword.png"
 const STAT_HIT_ICON: String = "res://assets/ui/batch2/ICO_WPN_FrostBlade.png"
 const STAT_HEAL_ICON: String = "res://assets/ui/batch2/ICO_HP.png"
+const STAT_KILL_ICON: String = "res://assets/ui/equipment_ui/ICO_Equip_Stat_ATK.png"
+const STAT_TAKEN_ICON: String = "res://assets/ui/equipment_ui/ICO_Equip_Stat_DEF.png"
+const STAT_ULT_ICON: String = "res://assets/ui/equipment_ui/ICO_Equip_Stat_CRITDMG.png"
+const STAT_CRIT_ICON: String = "res://assets/ui/equipment_ui/ICO_Equip_Stat_CRIT.png"
 
 const BACKDROP_HEADER_BG: Color = Color(0.04, 0.05, 0.1, 0.9)
 const BACKDROP_BODY_BG: Color = Color(0.03, 0.04, 0.08, 0.86)
@@ -92,27 +101,66 @@ static func pick_subtitle(entry: Dictionary) -> String:
 
 
 static func stat_cards(entry: Dictionary) -> Array:
+	## 値が 0 のカードは出さない。最大 STAT_CARD_MAX（P3-UX-MVP-DETAIL-001）。
 	## MVPスコアは内部選出用のみ表示しない（P3-UX-RESULT-004-2）。
-	return [
+	var candidates: Array = [
 		{
 			"key": "与ダメージ",
-			"value": str(int(entry.get("damage_total", 0))),
+			"value": int(entry.get("damage_total", 0)),
 			"icon": STAT_DAMAGE_ICON,
 			"color": COLOR_STAT_DAMAGE,
 		},
 		{
 			"key": "最大ヒット",
-			"value": str(int(entry.get("damage_max_hit", 0))),
+			"value": int(entry.get("damage_max_hit", 0)),
 			"icon": STAT_HIT_ICON,
 			"color": COLOR_STAT_HIT,
 		},
 		{
+			"key": "撃破数",
+			"value": int(entry.get("kill_count", 0)),
+			"icon": STAT_KILL_ICON,
+			"color": COLOR_STAT_KILL,
+		},
+		{
+			"key": "被ダメージ",
+			"value": int(entry.get("damage_taken", 0)),
+			"icon": STAT_TAKEN_ICON,
+			"color": COLOR_STAT_TAKEN,
+		},
+		{
+			"key": "必殺回数",
+			"value": int(entry.get("ultimate_count", 0)),
+			"icon": STAT_ULT_ICON,
+			"color": COLOR_STAT_ULT,
+		},
+		{
+			"key": "会心回数",
+			"value": int(entry.get("crit_count", 0)),
+			"icon": STAT_CRIT_ICON,
+			"color": COLOR_STAT_CRIT,
+		},
+		{
 			"key": "回復量",
-			"value": str(int(entry.get("heal_total", 0))),
+			"value": int(entry.get("heal_total", 0)),
 			"icon": STAT_HEAL_ICON,
 			"color": COLOR_STAT_HEAL,
 		},
 	]
+	var out: Array = []
+	for card: Dictionary in candidates:
+		var v: int = int(card.get("value", 0))
+		if v <= 0:
+			continue
+		out.append({
+			"key": str(card.get("key", "")),
+			"value": str(v),
+			"icon": str(card.get("icon", "")),
+			"color": card.get("color", COLOR_STAT_DAMAGE),
+		})
+		if out.size() >= STAT_CARD_MAX:
+			break
+	return out
 
 
 static func backdrop_style(tier: String = "body") -> StyleBoxFlat:

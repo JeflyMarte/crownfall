@@ -9,6 +9,30 @@ const _Detail = preload("res://scripts/equipment/EquipmentItemDetailHelper.gd")
 const _ERM = preload("res://scripts/equipment/EquipmentRandomMods.gd")
 
 
+func test_stat_icon_keys_cover_random_kinds() -> void:
+	var _Tokens = load("res://scripts/equipment/EquipmentUiTokens.gd")
+	var kinds: Array[String] = [
+		"attack_up", "defense_up", "hp_up", "attack_speed", "crit_rate", "crit_damage",
+		"on_hit_status", "gold_gain", "exp_gain", "rare_drop", "healing", "evasion",
+		"resist_elements", "status_immunities", "chill_chance", "shock_chance",
+		"ignite_chance", "poison_chance", "bane",
+		"element_power:fire", "element_power:ice", "element_power:thunder",
+		"element_power:dark", "element_power:holy",
+	]
+	for k in kinds:
+		assert_not_null(_Tokens.stat_icon(k), k)
+
+
+func test_element_power_detail_key_uses_element() -> void:
+	var _Tokens = load("res://scripts/equipment/EquipmentUiTokens.gd")
+	var key: String = _Tokens.detail_stat_icon_key({
+		"kind": "element_power",
+		"meta": {"element": "fire"},
+	})
+	assert_eq(key, "element_power:fire")
+	assert_not_null(_Tokens.stat_icon(key))
+
+
 func test_weapon_base_attack_fixed_and_has_mods() -> void:
 	var wd: Resource = DataRegistry.get_weapon_data("iron_sword")
 	assert_not_null(wd)

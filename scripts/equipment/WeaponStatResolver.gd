@@ -254,9 +254,12 @@ static func _roll_element_power_result(weapon_data: Resource, rarity: int) -> Di
 		return {"value": 0, "perfect": false}
 	var base: int = int(weapon_data.base_element_power) if "base_element_power" in weapon_data else 0
 	var roll_max: int = int(ELEMENT_POWER_ROLL_MAX.get(rarity, ELEMENT_POWER_ROLL_MAX[Enums.Rarity.COMMON]))
-	var bonus_roll: Dictionary = _EquipmentRollHelper.roll_int_bonus(roll_max)
+	var min_v: int = maxi(1, base)
+	var max_v: int = maxi(min_v, base + roll_max)
+	var bonus_roll: Dictionary = _EquipmentRollHelper.roll_int_bonus(max_v - min_v)
+	var value: int = min_v + int(bonus_roll.get("value", 0))
 	return {
-		"value": base + int(bonus_roll.get("value", 0)),
+		"value": value,
 		"perfect": bool(bonus_roll.get("perfect", false)),
 	}
 

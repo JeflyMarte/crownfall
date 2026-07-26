@@ -17,6 +17,8 @@ const ID_SHADOW_HUNT: String = "shadow_hunt"
 const ID_EVENT_DUNGEON: String = "event_dungeon"
 const ID_CHRONOS_MAUSOLEUM: String = "chronos_mausoleum"
 const ID_CHRONOS_WAVE: String = "chronos_wave"
+const ID_VALGARD_BOUNDARY: String = "valgard_boundary"
+const ID_VALGARD: String = "valgard"
 const ID_BOSS: String = "boss"
 const ID_FINAL_BOSS: String = "final_boss"
 const ID_RESULT: String = "result"
@@ -42,6 +44,8 @@ const PATHS: Dictionary = {
 	ID_EVENT_DUNGEON: DIR + "event_dungeon.mp3",
 	ID_CHRONOS_MAUSOLEUM: DIR + "chronos_mausoleum.mp3",
 	ID_CHRONOS_WAVE: DIR + "chronos_wave.mp3",
+	ID_VALGARD_BOUNDARY: DIR + "valgard_boundary.mp3",
+	ID_VALGARD: DIR + "valgard.mp3",
 	ID_BOSS: DIR + "boss.mp3",
 	ID_FINAL_BOSS: DIR + "final_boss.mp3",
 	ID_RESULT: DIR + "result.mp3",
@@ -65,6 +69,8 @@ const LOOP_IDS: Dictionary = {
 	ID_EVENT_DUNGEON: true,
 	ID_CHRONOS_MAUSOLEUM: true,
 	ID_CHRONOS_WAVE: true,
+	ID_VALGARD_BOUNDARY: true,
+	ID_VALGARD: true,
 	ID_BOSS: true,
 	ID_FINAL_BOSS: true,
 	ID_RESULT: true,
@@ -97,16 +103,19 @@ const BATTLE_BY_DUNGEON: Dictionary = {
 	"golden_nest": ID_EVENT_DUNGEON,
 	"rock_stampede": ID_EVENT_DUNGEON,
 	"chronos_mausoleum": ID_CHRONOS_MAUSOLEUM,
+	"valgard_boundary": ID_VALGARD_BOUNDARY,
 }
 
 ## 探索曲のダンジョン別上書き（未登録は dungeon_explore）。
 const EXPLORE_BY_DUNGEON: Dictionary = {
 	"chronos_mausoleum": ID_CHRONOS_MAUSOLEUM,
+	"valgard_boundary": ID_VALGARD_BOUNDARY,
 }
 
 ## ボス曲のダンジョン別上書き（未登録は boss。FINAL_BOSS_DUNGEONS は final_boss）。
 const BOSS_BY_DUNGEON: Dictionary = {
 	"chronos_mausoleum": ID_CHRONOS_WAVE,
+	"valgard_boundary": ID_VALGARD,
 }
 
 ## ラスボス曲を使うダンジョン（フロストリッジ本編＝エルディオン）。

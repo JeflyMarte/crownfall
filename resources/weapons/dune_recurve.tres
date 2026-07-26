@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "dune_recurve"
+display_name = "砂丘の反弓"
+description = "黒砂丘で張られた反り弓。塩風に耐える弦が、波間を飛ぶ獲物を低く捉える。"
+base_attack = 200
+rarity = 0
+base_attack_speed = 1.2
+base_critical_rate = 0.1
+base_knockback = 0.15
+base_stagger_power = 0.1
+base_attack_range = 3.0
+weight = 0.75
+element = ""
+weapon_type = "bow"
+tags = Array[String](["pierce"])

@@ -22,6 +22,8 @@ Suno AI などで作成した BGM をここに配置する。
 | `frostridge` | `frostridge.mp3` | フロストリッジ系 通常戦闘 | YES |
 | `chronos_mausoleum` | `chronos_mausoleum.mp3` | 時王の霊廟（探索＋雑魚戦闘） | YES |
 | `chronos_wave` | `chronos_wave.mp3` | 時王の霊廟ボス（クロノス・ウェーブ） | YES |
+| `valgard_boundary` | `valgard_boundary.mp3` | ストームクラウン境界廊（探索＋雑魚戦闘） | YES |
+| `valgard` | `valgard.mp3` | 境界廊ボス（境界の番ヴァルガード） | YES |
 | `boss` | `boss.mp3` | ボス戦（共通） | YES |
 | `final_boss` | `final_boss.mp3` | ラスボス戦（フロストリッジ本編＝エルディオン） | YES |
 | `result` | `result.mp3` | リザルト（クリア／リタイア） | YES |

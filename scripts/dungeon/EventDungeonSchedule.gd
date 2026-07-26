@@ -28,6 +28,7 @@ const PRIMARY_WEEKDAY: Dictionary = {
 ## 時間帯イベント（開始時 JST → 継続時間時間）。例: 0/3/6/9 時から各1時間。
 const HOURLY_OPEN_START_HOURS: Dictionary = {
 	"chronos_mausoleum": [0, 3, 6, 9],
+	"valgard_boundary": [1, 4, 7, 10],
 }
 const HOURLY_WINDOW_HOURS: int = 1
 

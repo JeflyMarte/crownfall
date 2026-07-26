@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "static_orb_staff"
+display_name = "静電珠の杖"
+description = "沼気を帯電させた珠杖。触れずとも空気がびりつき、次の雷を呼び込む。"
+fixed_skill_id = "static_strike"
+base_attack = 88
+rarity = 2
+base_attack_speed = 0.95
+base_critical_rate = 0.05
+base_knockback = 0.2
+base_stagger_power = 0.12
+base_attack_range = 2.5
+weight = 0.9
+element = "thunder"
+weapon_type = "staff"
+tags = Array[String](["blunt", "lightning"])

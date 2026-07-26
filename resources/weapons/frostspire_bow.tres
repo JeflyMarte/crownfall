@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "frostspire_bow"
+display_name = "氷尖の長弓"
+description = "氷河の尖塔から採った弦の弓。矢は白い軌跡を残し、着弾点に霜の花を咲かせる。"
+fixed_skill_id = "rime_touch"
+base_attack = 280
+rarity = 2
+base_attack_speed = 1.2
+base_critical_rate = 0.1
+base_knockback = 0.15
+base_stagger_power = 0.1
+base_attack_range = 3.0
+weight = 0.75
+element = "ice"
+weapon_type = "bow"
+tags = Array[String](["pierce", "ice"])

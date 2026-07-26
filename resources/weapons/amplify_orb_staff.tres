@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "amplify_orb_staff"
+display_name = "増幅珠の杖"
+description = "一撃の余韻を増幅する珠を冠した杖。素振りでも空気が震え、通常の打撃が重く響く。"
+fixed_skill_id = ""
+fixed_passive_id = "eq_wpn_amplify_orb_staff"
+base_attack = 200
+rarity = 3
+base_attack_speed = 0.95
+base_critical_rate = 0.06
+base_knockback = 0.15
+base_stagger_power = 0.12
+base_attack_range = 2.5
+weight = 0.9
+element = "holy"
+weapon_type = "staff"
+tags = Array[String](["blunt", "holy"])

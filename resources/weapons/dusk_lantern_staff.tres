@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "dusk_lantern_staff"
+display_name = "薄暮灯の杖"
+description = "薄暮だけ灯る影の灯火を芯にした杖。光が弱いほど輪郭が浮かび、闇の隙間を指し示す。"
+fixed_skill_id = "hex_bolt"
+base_attack = 200
+rarity = 1
+base_attack_speed = 0.95
+base_critical_rate = 0.05
+base_knockback = 0.2
+base_stagger_power = 0.12
+base_attack_range = 2.5
+weight = 0.9
+element = "dark"
+weapon_type = "staff"
+tags = Array[String](["blunt", "dark"])
