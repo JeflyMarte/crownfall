@@ -3,8 +3,9 @@ extends RefCounted
 
 ## 探索スキル群（P3-D117）。編成ロールが特定部屋で自動発動し、報酬/安全にボーナス。
 ## 戦闘スキルとは別枠。ロール判定は CombatSynergy と同型（1人以上で発動可）。
-## 罠ダメージは最大HP割合（P3-TRAP-PCT-001）。
+## 罠ダメージは最大HP割合（P3-TRAP-PCT-001 → P3-BAL-TRAP-TIER-001）。
 
+## 後方互換: ハード帯の探索罠発生率。
 const TRAP_CHANCE: float = 0.20
 
 const _SKILLS: Dictionary = {
@@ -53,30 +54,48 @@ static func has_skill_for_room(members: Array, skill_id: String, room_type: int)
 static func can_disarm(members: Array) -> bool:
 	return has_skill_for_room(members, "disarm", Enums.RoomType.COMBAT)
 
-static func should_roll_trap() -> bool:
-	return randf() < TRAP_CHANCE
+static func should_roll_trap(tier: int = 0) -> bool:
+	return randf() < BalanceConfig.trap_explore_chance(tier)
 
-static func roll_trap_aoe(rng: RandomNumberGenerator = null) -> bool:
+static func roll_trap_aoe(rng: RandomNumberGenerator = null, tier: int = 0) -> bool:
 	var roll: float = rng.randf() if rng != null else randf()
-	return roll < BalanceConfig.TRAP_AOE_CHANCE
+	return roll < BalanceConfig.trap_aoe_chance(tier)
 
-static func trap_max_hp_fraction(trap_room: bool, aoe: bool) -> float:
+static func trap_max_hp_fraction(trap_room: bool, aoe: bool, tier: int = 0) -> float:
 	if trap_room:
 		return (
-			BalanceConfig.TRAP_MAX_HP_FRAC_ROOM_AOE
+			BalanceConfig.trap_max_hp_frac_room_aoe(tier)
 			if aoe
-			else BalanceConfig.TRAP_MAX_HP_FRAC_ROOM_SINGLE
+			else BalanceConfig.trap_max_hp_frac_room_single(tier)
 		)
 	return (
-		BalanceConfig.TRAP_MAX_HP_FRAC_COMBAT_AOE
+		BalanceConfig.trap_max_hp_frac_combat_aoe(tier)
 		if aoe
-		else BalanceConfig.TRAP_MAX_HP_FRAC_COMBAT_SINGLE
+		else BalanceConfig.trap_max_hp_frac_combat_single(tier)
 	)
 
 ## 対象の最大HPに対する罠ダメージ（最低1）。
-static func trap_damage_for_max_hp(max_hp: int, trap_room: bool, aoe: bool) -> int:
-	var frac: float = trap_max_hp_fraction(trap_room, aoe)
+static func trap_damage_for_max_hp(
+	max_hp: int, trap_room: bool, aoe: bool, tier: int = 0
+) -> int:
+	var frac: float = trap_max_hp_fraction(trap_room, aoe, tier)
 	return maxi(1, int(round(float(maxi(1, max_hp)) * frac)))
+
+## 被弾時の状態異常 id（空文字＝付与なし）。毒／出血から抽選。
+static func roll_trap_status(
+	tier: int = 0, rng: RandomNumberGenerator = null
+) -> String:
+	var chance: float = BalanceConfig.trap_status_chance(tier)
+	if chance <= 0.0:
+		return ""
+	var roll: float = rng.randf() if rng != null else randf()
+	if roll >= chance:
+		return ""
+	var pool: Array[String] = BalanceConfig.TRAP_STATUS_POOL
+	if pool.is_empty():
+		return ""
+	var idx: int = rng.randi() % pool.size() if rng != null else randi() % pool.size()
+	return str(pool[idx])
 
 # 装備画面用：編成で使える探索スキル一覧。
 static func active_labels(members: Array) -> PackedStringArray:
