@@ -15,11 +15,14 @@ func test_playable_enemy_set_excludes_apex_only_when_sub_omitted() -> void:
 		pass_test("SUB 有効時は apex 専用敵も掲載対象になりうる")
 		return
 	var playable: Dictionary = CatalogHelper.playable_enemy_id_set()
+	## 征討専用ボス（イベント降臨の chronos_wave / valgard は event のため掲載対象）。
 	for eid: String in [
-		"chronos_wave", "valgard", "skarpedion", "mycolga_ancient",
+		"skarpedion", "mycolga_ancient",
 		"karna_smoke", "nereion_depths", "forgedormient", "albark",
 	]:
 		assert_false(playable.has(eid), "%s は征討専用のため図鑑からオミット" % eid)
+	assert_true(playable.has("chronos_wave"), "時環降臨ボスは event のため図鑑対象")
+	assert_true(playable.has("valgard"), "境界廊降臨ボスは event のため図鑑対象")
 
 
 func test_enemy_entries_match_playable_set() -> void:

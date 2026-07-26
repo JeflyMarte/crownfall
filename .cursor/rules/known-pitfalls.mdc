@@ -11,6 +11,8 @@ alwaysApply: true
 
 | 症状 | 原因 | 再発防止 |
 |---|---|---|
+| `DungeonScene` パース失敗 `Identifier "label" not declared` | `_execute_member_buff` の `_spawn_skill_name` 差し替え時に `var label`／`wants_taunt` 分岐を誤って削った | バフ SE 等の引数追加時は return 文言ブロックを残す。変更後 headless で DungeonScene ロード確認 |
+| `balance_sim` で `is_pet_member` が GDScript 未解決 | autoload から `preload` Script へ静的呼出が `-s` で欠けることがある | `PetSystem.is_pet_member`（class_name）を使う |
 | 鍛冶・錬成ボタン後にクリック不能／フリーズ | `AcceptDialog`（Window 排他）＋中身カスタム／ScrollTouch で入力が奪われる | 素材一覧は結果ポップ同様の **Control オーバーレイ**。行ボタンは ScrollTouch 後に `MOUSE_FILTER_STOP` を復元 |
 | はじめガイド閉じてもジャック／魔晶石がすぐ来ない | `dismissed` 時点で Overlay がまだツリーにあり、親が「ガイド中」判定で支給をスキップ | `_finish` で先に `remove_child`。支給は `call_deferred`＋`is_queued_for_deletion` 無視 |
 | はじめガイド周辺に黒い四角 | 書籍BGを `StyleBoxTexture` 9-slice。縁の黒マットが角に伸びる | 書籍は `TextureRect` 直置き（KEEP_ASPECT）。外側マットは透過 |

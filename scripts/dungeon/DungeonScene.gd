@@ -4483,6 +4483,12 @@ func _execute_member_buff(
 			false,
 			"combat_buff"
 		)
+	var label: String = status_id
+	if not status_id.is_empty():
+		var effect: Resource = DataRegistry.get_status_effect(status_id)
+		if effect != null:
+			label = effect.display_name
+	if wants_taunt and self_only:
 		if status_id.is_empty():
 			return "\n【スキル】%s: 敵の注意を引いた" % result["display_name"]
 		return "\n【スキル】%s: 自身に[%s]・注意を引いた" % [result["display_name"], label]

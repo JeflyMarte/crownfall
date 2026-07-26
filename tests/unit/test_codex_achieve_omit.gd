@@ -29,4 +29,5 @@ func test_guide_survey_copy_omits_achieve_tab() -> void:
 			break
 	assert_false(desc.is_empty(), "調査室の条がある")
 	assert_false(desc.contains("実績」タブ"), "手引きから実績タブ案内を撤去")
-	assert_true(desc.contains("70"), "②解放条件は維持")
+	assert_true(desc.contains("解放条件には使わない") or desc.contains("ボス初回"), "②解放はボス／調査は非関与")
+	assert_false(desc.contains("70"), "旧 SURVEY70% 解放条件を残さない")

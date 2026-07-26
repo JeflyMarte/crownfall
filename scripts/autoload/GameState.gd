@@ -1715,7 +1715,8 @@ func get_combatant(i: int) -> Resource:
 	return combatants[i]
 
 func is_pet_combatant(member_index: int) -> bool:
-	return _PetSystem.is_pet_member(get_combatant(member_index))
+	## class_name 経由（-s ツールでも静的メソッド解決が安定）。
+	return PetSystem.is_pet_member(get_combatant(member_index))
 
 func ensure_starter_pet() -> Resource:
 	return _PetSystem.ensure_starter_pet()

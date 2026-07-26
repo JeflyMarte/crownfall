@@ -90,9 +90,9 @@ func test_blackshore_complete_unlocks_ink() -> void:
 
 
 func test_cycle_completes_with_time() -> void:
-	var ids: Array[String] = []
-	if not GameState.roster.is_empty() and GameState.roster[0] != null:
-		ids.append(str(GameState.roster[0].id))
+	const _SurveyStaff := preload("res://scripts/survey/SurveyStaff.gd")
+	## スタッフのみ配置（戦闘編成を空にしない）。
+	var ids: Array[String] = [_SurveyStaff.ID_NONOKA]
 	var started: Dictionary = _SurveySystem.start_cycle(
 		Constants.MOURNGATE_DUNGEON_ID, _SurveyConfig.PRESET_SHORT, ids
 	)
@@ -235,14 +235,13 @@ func test_codex_stage_up_adds_mourngate_survey() -> void:
 
 func test_claim_over_cap_halves_tokens() -> void:
 	## 日次 SURVEY 上限到達後の受取は魔晶石半減（付与率があるので当たるまで再試行）。
+	const _SurveyStaff := preload("res://scripts/survey/SurveyStaff.gd")
 	GameState.hub_survey_room_daily = {
 		"day_key": DailyMissionSystem.current_day_key(),
 		"used": _SurveyConfig.SURVEY_ROOM_DAILY_CAP,
 	}
 	assert_true(_SurveySystem.is_room_daily_capped())
-	var ids: Array[String] = []
-	if not GameState.roster.is_empty() and GameState.roster[0] != null:
-		ids.append(str(GameState.roster[0].id))
+	var ids: Array[String] = [_SurveyStaff.ID_NONOKA]
 	var gained: int = 0
 	var before_token: int = 0
 	var claimed: Dictionary = {}

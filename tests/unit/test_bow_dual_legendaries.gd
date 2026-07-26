@@ -38,9 +38,8 @@ func test_new_legendary_icons_resolve() -> void:
 
 
 func test_biome_pools_include_new_legendaries() -> void:
-	var mg: Resource = DataRegistry.get_dungeon_data("mourngate")
-	assert_true(mg.weapon_pool.has("shadowcord"), "mourngate has shadowcord")
 	var ww: Resource = DataRegistry.get_dungeon_data("whisperwood")
+	assert_true(ww.weapon_pool.has("shadowcord"), "whisperwood has shadowcord")
 	assert_true(ww.weapon_pool.has("silvaria_fang"), "whisperwood has silvaria_fang")
 	var bs: Resource = DataRegistry.get_dungeon_data("blackshore")
 	assert_true(bs.weapon_pool.has("pharos_flare"), "blackshore has pharos_flare")
