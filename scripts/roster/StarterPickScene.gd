@@ -107,12 +107,19 @@ func _make_card(def: Dictionary) -> PanelContainer:
 	var frame_tex: Texture2D = _IntroUiAssets.load_tex(_IntroUiAssets.STARTER_CARD_FRAME)
 	if frame_tex != null:
 		var frame := TextureRect.new()
+		## フレーム原寸は縦長（約2:3）。CENTERED だと横がアイコンより狭く見える。
+		## COVERED でポートレート幅いっぱいに広げ、キラ枠の装飾を横へ出す。
+		const FRAME_H_OVERHANG: float = 10.0
 		frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		frame.offset_left = -FRAME_H_OVERHANG
+		frame.offset_right = FRAME_H_OVERHANG
 		frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		frame.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		frame.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 		frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		frame.texture = frame_tex
 		portrait_stack.add_child(frame)
+		## はみ出しを親カード内で見せる（stack は clip しない）
+		portrait_stack.clip_contents = false
 
 	var col := VBoxContainer.new()
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL

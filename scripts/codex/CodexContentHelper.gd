@@ -24,52 +24,52 @@ const RARITY_NAMES: Array[String] = ["通常", "上質", "希少", "伝説", "�
 const DUNGEON_CODEX_META: Dictionary = {
 	"mourngate": {
 		"location": "王都アステリア・地下排水網",
-		"exploration_theme": "鉱物化適応・遺構回収・闇属性有利",
+		"exploration_theme": "鉱物化適応・遺構回収",
 		"related_history": ["HE-007", "HE-001"],
 	},
 	"astoria_ruins": {
 		"location": "王都アステリア外郭",
-		"exploration_theme": "地表廃墟・歴史調査・闇属性有利",
+		"exploration_theme": "地表廃墟・歴史調査",
 		"related_history": ["HE-007", "HE-005"],
 	},
 	"whisperwood": {
 		"location": "大陸西部ヴェルディア・原生林",
-		"exploration_theme": "共生適応・森の生態調査・炎属性有利",
+		"exploration_theme": "共生適応・森の生態調査",
 		"related_history": ["HE-004", "HE-009"],
 	},
 	"green_hollow": {
 		"location": "翠の湿地帯・ウィスパーウッド近郊",
-		"exploration_theme": "湿地の寄り道・耐性整備・雷属性有利",
+		"exploration_theme": "湿地の寄り道・耐性整備",
 		"related_history": ["HE-004"],
 	},
 	"mistfen": {
 		"location": "霧沼・沈没封緘区ミストフェン",
-		"exploration_theme": "封緘書庫伝承・沼地踏破・雷属性有利",
+		"exploration_theme": "封緘書庫伝承・沼地踏破",
 		"related_history": ["HE-003", "HE-004"],
 	},
 	"broken_marsh": {
 		"location": "崩落街道橋・旧王都街道",
-		"exploration_theme": "巡礼街道の枝道・雷属性有利",
+		"exploration_theme": "巡礼街道の枝道",
 		"related_history": ["HE-009", "HE-007"],
 	},
 	"blackshore": {
 		"location": "沈没航路・ブラックショア潮間帯",
-		"exploration_theme": "海統王の防波堤・潮のエルダ・聖属性有利",
+		"exploration_theme": "海統王の防波堤・潮のエルダ",
 		"related_history": ["HE-004", "HE-005"],
 	},
 	"westbay_flats": {
 		"location": "ウェストベイ干潟",
-		"exploration_theme": "潮間帯の寄り道・聖属性有利",
+		"exploration_theme": "潮間帯の寄り道",
 		"related_history": ["HE-004"],
 	},
 	"frostridge": {
 		"location": "最果て・氷裂フロストリッジ",
-		"exploration_theme": "開拓王の境界・極寒踏破・氷属性有利",
+		"exploration_theme": "開拓王の境界・極寒踏破",
 		"related_history": ["HE-005", "HE-004"],
 	},
 	"frostwall_path": {
 		"location": "フロストウォール・雪道",
-		"exploration_theme": "雪原縦断の寄り道・氷属性有利",
+		"exploration_theme": "雪原縦断の寄り道",
 		"related_history": ["HE-004"],
 	},
 	"mourngate_deep": {
@@ -141,7 +141,10 @@ static func weapon_type_label(weapon_type: String) -> String:
 static func element_label(element: String) -> String:
 	if element.is_empty():
 		return "無属性"
-	return str(ELEMENT_NAMES.get(element, element))
+	var jp: String = ElementResolver.get_display_name(element)
+	if not jp.is_empty():
+		return jp
+	return str(ELEMENT_NAMES.get(element, "属性"))
 
 
 static func rarity_label(rarity: int) -> String:
@@ -224,9 +227,7 @@ static func dungeon_exploration_theme(data: Resource) -> String:
 	var theme: String = str(meta.get("exploration_theme", ""))
 	if not theme.is_empty():
 		return theme
-	var favored: String = element_label(str(data.favored_element))
-	if favored != "無属性":
-		return "%sが有利" % favored
+	## 地形有利属性（favored_element）はオミット。フォールバックしない。
 	return ""
 
 

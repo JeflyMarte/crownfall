@@ -14,7 +14,7 @@ const SAVE_PATH: String = "user://save_data.json"
 ## `_migrate_save_data` に v(n)→v(n+1) の段階マイグレーションを追加する。
 ## v0 = バージョンフィールド無しの旧セーブ（レガシー party/equipment/job/dungeon id を含む）
 ## v1 = save_version フィールド導入（2026-07-02）
-const SAVE_VERSION: int = 12
+const SAVE_VERSION: int = 13
 
 func save_game() -> void:
 	var data: Dictionary = {
@@ -54,6 +54,7 @@ func save_game() -> void:
 		"pending_starter_recruit_id": GameState.pending_starter_recruit_id,
 		"debug_full_unlock": GameState.debug_full_unlock,
 		"showcase_member_id": GameState.showcase_member_id,
+		"tutorial_flags": GameState.tutorial_flags.duplicate(true),
 	}
 	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file == null:
@@ -115,7 +116,19 @@ func _migrate_save_data(data: Dictionary) -> Dictionary:
 		data = _migrate_save_v10_to_v11(data)
 	if version < 12:
 		data = _migrate_save_v11_to_v12(data)
+	if version < 13:
+		data = _migrate_save_v12_to_v13(data)
 	data["save_version"] = SAVE_VERSION
+	return data
+
+
+## P3-UI-HUB-GUIDE-001: tutorial_flags 永続化（既存は簡易ガイド済み）
+func _migrate_save_v12_to_v13(data: Dictionary) -> Dictionary:
+	var flags: Dictionary = {}
+	if data.has("tutorial_flags") and data["tutorial_flags"] is Dictionary:
+		flags = (data["tutorial_flags"] as Dictionary).duplicate(true)
+	flags["hub_simple_guide_done"] = true
+	data["tutorial_flags"] = flags
 	return data
 
 
@@ -565,6 +578,10 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.showcase_member_id = str(data.get("showcase_member_id", "")).strip_edges()
 	else:
 		GameState.showcase_member_id = ""
+	if data.has("tutorial_flags") and data["tutorial_flags"] is Dictionary:
+		GameState.tutorial_flags = (data["tutorial_flags"] as Dictionary).duplicate(true)
+	else:
+		GameState.tutorial_flags = {}
 	## 既に解放済みなら演出待ちを破棄（旧セーブ／二重防止）。
 	if (
 		not GameState.pending_starter_recruit_id.is_empty()

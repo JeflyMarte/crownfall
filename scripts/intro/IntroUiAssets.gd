@@ -7,6 +7,8 @@ const BG_STARTER: String = "res://assets/ui/intro/BG_Intro_Starter.png"
 const NINA_PORTRAIT: String = "res://assets/npc/ART_NPC_Nina.png"
 ## 拠点ナビ用ドット絵アイコン（PixelLab）。
 const NINA_ICON: String = "res://assets/npc/ICO_NPC_Nina.png"
+## 簡易ガイド等の大きめドット立ち（SPR）。
+const NINA_DOT: String = "res://assets/npc/SPR_NPC_Nina.png"
 const STARTER_CARD_FRAME: String = "res://assets/ui/intro/UI_Card_Starter_Frame.png"
 
 

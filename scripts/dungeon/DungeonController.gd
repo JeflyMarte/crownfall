@@ -511,15 +511,13 @@ var _wander_plan_ready: bool = false
 var _planned_wander_by_room: Dictionary = {}
 
 func start_dungeon(dungeon_id: String) -> void:
-	## 深層は章分割しない（親 Biome の stage へ寄せない）。
-	const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
-	if not _AbyssDungeonConfig.is_abyss_dungeon_id(dungeon_id):
-		## メイン Biome は章データがあるとき start_stage へ寄せる（単体DGだと x-5 ボスが常時付く）。
-		if Constants.SUB_STAGES_PLAYABLE:
-			var stage_id: String = GameState.resolve_stage_for_run(dungeon_id)
-			if not stage_id.is_empty():
-				start_stage(stage_id)
-				return
+	## 章データがあれば start_stage（深層含む。無限延長は route_type=abyss で維持）。
+	## 深層の biome_id は abyss_* なので親メイン章へ誤誘導しない。
+	if Constants.SUB_STAGES_PLAYABLE:
+		var stage_id: String = GameState.resolve_stage_for_run(dungeon_id)
+		if not stage_id.is_empty():
+			start_stage(stage_id)
+			return
 	current_stage_data = null
 	current_dungeon_data = DataRegistry.get_dungeon_data(dungeon_id)
 	if current_dungeon_data == null:
@@ -543,6 +541,9 @@ func start_stage(stage_id: String) -> void:
 		return
 	room_sequence = _build_room_sequence_for_stage(current_stage_data)
 	_reset_run_state()
+	if _is_abyss_run():
+		_sync_abyss_tier_for_current_floor()
+		_note_abyss_progress()
 
 func _reset_run_state() -> void:
 	current_room_index = 0
@@ -581,8 +582,8 @@ func _plan_wandering_encounters() -> void:
 
 
 func _shadow_stalker_allowed_on_current_stage() -> bool:
-	## 1-1〜1-3 は影狩りのみ除外（予兆計画・ライブ抽選の共通判定）。
-	if current_stage_data == null:
+	## 1-1〜1-3 は影狩りのみ除外（予兆計画・ライブ抽選の共通判定）。深層は制限しない。
+	if current_stage_data == null or _is_abyss_run():
 		return true
 	return _WanderingEnemyConfig.is_shadow_stalker_allowed_on_stage(
 		int(current_stage_data.biome_index),
@@ -620,9 +621,9 @@ func get_run_chapter_label() -> String:
 		return ""
 	return "%d-%d" % [int(current_stage_data.biome_index), int(current_stage_data.chapter_index)]
 
-## 1-1〜1-3 のみ群れ率を下げる（イベント forced_swarm は対象外）。
+## 1-1〜1-3 のみ群れ率を下げる（イベント forced_swarm／深層は対象外）。
 func _early_stage_swarm_chance_mult() -> float:
-	if current_stage_data == null:
+	if current_stage_data == null or _is_abyss_run():
 		return 1.0
 	var biome_i: int = int(current_stage_data.biome_index)
 	var chapter_i: int = int(current_stage_data.chapter_index)
@@ -912,6 +913,22 @@ func _enforce_min_combat(seq: Array[int]) -> void:
 
 func is_combat_room() -> bool:
 	return current_room_type in [
+		Enums.RoomType.COMBAT,
+		Enums.RoomType.ELITE,
+		Enums.RoomType.BOSS,
+	]
+
+
+func peek_next_room_type() -> int:
+	var next_i: int = current_room_index + 1
+	if next_i < 0 or next_i >= room_sequence.size():
+		return -1
+	return int(room_sequence[next_i])
+
+
+func is_next_room_combat() -> bool:
+	var rt: int = peek_next_room_type()
+	return rt in [
 		Enums.RoomType.COMBAT,
 		Enums.RoomType.ELITE,
 		Enums.RoomType.BOSS,

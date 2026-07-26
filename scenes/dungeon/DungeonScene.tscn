@@ -76,7 +76,7 @@ text = "×1"
 [node name="ButtonSpeedX2" type="Button" parent="MainVBox/HeaderBar"]
 layout_mode = 2
 toggle_mode = true
-text = "×1.5"
+text = "×2"
 
 [node name="ButtonStop" type="Button" parent="MainVBox/HeaderBar"]
 layout_mode = 2
@@ -234,6 +234,7 @@ text = "出発"
 
 [node name="ButtonFinish" type="Button" parent="MainVBox/BottomZone/NonCombatZone"]
 layout_mode = 2
+visible = false
 text = "探索終了"
 
 [node name="BossSprite" type="AnimatedSprite2D" parent="."]
@@ -299,7 +300,7 @@ layout_mode = 2
 
 [node name="ButtonFinishFromMenu" type="Button" parent="MenuOverlay/MenuVBox"]
 layout_mode = 2
-text = "探索終了"
+text = "リタイア"
 
 [node name="ButtonCloseMenu" type="Button" parent="MenuOverlay/MenuVBox"]
 layout_mode = 2

@@ -31,12 +31,12 @@ SE はこのフォルダ配下。出典は **Kenney.nl（CC0）** と **TomMusic
 | combat_death.ogg | Digital / phaserDown1 |
 | gacha_reveal.ogg | Digital / powerUp 系（ブースト再エンコード。ガチャ専用） |
 
-### クリア／レベルアップ（P3-AUDIO-SE-003）
+### クリア／レベルアップ／ランクアップ（P3-AUDIO-SE-003）
 
-| File | Mix |
+| File | Mix / Original |
 |---|---|
 | victory.ogg | Music Jingles / Steel `jingles_STEEL07` ＋ オーナー `bgm/result.mp3` 冒頭スティング |
-| level_up.ogg | Music Jingles / Hit `jingles_HIT15` ＋ Pizzicato `jingles_PIZZI07` ＋ Interface `confirmation_002` |
+| level_up.ogg | Music Jingles / Steel `jingles_STEEL10`（レベルアップ・隊長ランクアップ共用） |
 
 ### TomMusic（戦闘ヒット／スキル／宝箱／部屋）
 

@@ -7,6 +7,7 @@ const _CommanderRankUpOverlay := preload("res://scripts/commander/CommanderRankU
 const _CurrencyGainFx := preload("res://scripts/ui/CurrencyGainFx.gd")
 const _HubNinaNavigator := preload("res://scripts/ui/HubNinaNavigator.gd")
 const _StarterJoinOverlay := preload("res://scripts/roster/StarterJoinOverlay.gd")
+const _HubSimpleGuideOverlay := preload("res://scripts/ui/HubSimpleGuideOverlay.gd")
 
 const DUNGEON_SELECT_SCENE: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
 const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
@@ -104,10 +105,13 @@ func _on_rank_up_dismissed(_rank_code: String) -> void:
 func _maybe_show_starter_join() -> void:
 	var pending_id: String = GameState.pending_starter_recruit_id.strip_edges()
 	if pending_id.is_empty():
+		_maybe_show_hub_simple_guide()
 		return
 	if get_node_or_null("StarterJoinOverlay") != null:
 		return
 	if get_node_or_null("CommanderRankUpOverlay") != null:
+		return
+	if get_node_or_null("HubSimpleGuideOverlay") != null:
 		return
 	var overlay: CanvasLayer = _StarterJoinOverlay.show_on(self, pending_id)
 	overlay.dismissed.connect(_on_starter_join_dismissed)
@@ -116,6 +120,22 @@ func _maybe_show_starter_join() -> void:
 func _on_starter_join_dismissed(_adventurer_id: String) -> void:
 	_update_display()
 	_refresh_nina_nav()
+	_maybe_show_hub_simple_guide()
+
+
+func _maybe_show_hub_simple_guide() -> void:
+	if not _HubSimpleGuideOverlay.should_show():
+		return
+	if get_node_or_null("HubSimpleGuideOverlay") != null:
+		return
+	if get_node_or_null("CommanderRankUpOverlay") != null:
+		return
+	if get_node_or_null("StarterJoinOverlay") != null:
+		return
+	const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
+	if _ContentUnlockNotice.has_pending():
+		return
+	_HubSimpleGuideOverlay.show_on(self)
 
 
 func _setup_gift_badge() -> void:

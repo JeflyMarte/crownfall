@@ -48,11 +48,12 @@ func test_event_biomes_have_one_stage() -> void:
 
 
 func test_uses_stage_cards_is_route_agnostic() -> void:
-	## 章データがあれば main / event ともサブ章 UI 対象。
+	## 章データがあれば main / event / abyss ともサブ章 UI 対象。
 	assert_true(Constants.SUB_STAGES_PLAYABLE)
 	assert_false(DataRegistry.get_stages_for_biome("cosmic_rift").is_empty())
 	assert_false(DataRegistry.get_stages_for_biome("crown_rookery").is_empty())
 	assert_false(DataRegistry.get_stages_for_biome("mourngate").is_empty())
+	assert_false(DataRegistry.get_stages_for_biome("abyss_mourngate").is_empty())
 
 
 func test_event_single_stage_unlocked_and_clears_biome() -> void:
@@ -124,23 +125,24 @@ func test_start_event_stage_builds_sequence_without_boss() -> void:
 	assert_eq(dc.room_sequence.size(), 5)
 	assert_false(Enums.RoomType.BOSS in dc.room_sequence)
 	assert_eq(dc.get_enemy_level(), 3)
-	assert_eq(dc.get_run_display_name(), "1-1 コズミックダックの裂け目")
+	assert_eq(dc.get_run_display_name(), "1-1 濃エルダの浅瀬")
 	dc.start_stage("crown_rookery_1_1")
 	assert_eq(dc.room_sequence.size(), 5)
 	assert_false(Enums.RoomType.BOSS in dc.room_sequence)
 	assert_eq(dc.get_enemy_level(), 10)
+	assert_eq(dc.get_run_display_name(), "1-1 葬列路の塒")
 	dc.start_stage("golden_nest_1_1")
 	assert_eq(dc.room_sequence.size(), 5)
 	assert_false(Enums.RoomType.BOSS in dc.room_sequence)
 	assert_eq(dc.get_enemy_level(), 4)
-	assert_eq(dc.get_run_display_name(), "1-1 砂金の巣穴")
+	assert_eq(dc.get_run_display_name(), "1-1 金屑の巣室")
 	dc.start_stage("shadow_hunt_1_1")
 	assert_eq(dc.room_sequence.size(), 5)
 	assert_false(Enums.RoomType.BOSS in dc.room_sequence)
 	assert_eq(dc.get_enemy_level(), 14)
-	assert_eq(dc.get_run_display_name(), "1-1 影狩りの狩場")
+	assert_eq(dc.get_run_display_name(), "1-1 薄闇の獣道")
 	dc.start_stage("rock_stampede_1_1")
 	assert_eq(dc.room_sequence.size(), 5)
 	assert_false(Enums.RoomType.BOSS in dc.room_sequence)
 	assert_eq(dc.get_enemy_level(), 8)
-	assert_eq(dc.get_run_display_name(), "1-1 岩角の群れ道")
+	assert_eq(dc.get_run_display_name(), "1-1 角突きの斜面")

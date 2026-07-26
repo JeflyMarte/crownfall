@@ -4,7 +4,6 @@ const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const DUNGEON_SELECT_SCENE: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
 const DUNGEON_SCENE: String = "res://scenes/dungeon/DungeonScene.tscn"
 
-const _ElementResolver: Script = preload("res://scripts/combat/ElementResolver.gd")
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 const _AbyssDungeonConfig = preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
 
@@ -567,7 +566,7 @@ func _on_tier_pressed(tier: int) -> void:
 	_build_list()
 
 func _uses_stage_cards(dungeon_id: String) -> bool:
-	## ダンジョン共通: 章データがあればバナー展開でサブダンジョン一覧（main/side/event 共通）。
+	## ダンジョン共通: 章データがあればバナー展開でサブダンジョン一覧（main/event/abyss 共通）。
 	if not Constants.SUB_STAGES_PLAYABLE or dungeon_id.is_empty():
 		return false
 	if DataRegistry.get_dungeon_data(dungeon_id) == null:
@@ -787,10 +786,13 @@ func _refresh_featured() -> void:
 		_label_featured_name.text = str(stage.display_name) if stage != null else ""
 	elif stage != null and _uses_stage_cards(_featured_dungeon_id):
 		_label_featured_name.visible = true
-		_label_featured_name.text = "%s — %s" % [str(data.display_name), str(stage.display_name)]
+		_label_featured_name.text = "%s — %s" % [
+			_dungeon_card_title(data, true),
+			str(stage.display_name),
+		]
 	else:
 		_label_featured_name.visible = true
-		_label_featured_name.text = str(data.display_name)
+		_label_featured_name.text = _dungeon_card_title(data, true)
 	if unlocked_featured:
 		_label_featured_flavor.text = str(data.flavor_text)
 		_label_featured_flavor.visible = not str(data.flavor_text).is_empty()
@@ -800,7 +802,9 @@ func _refresh_featured() -> void:
 		if stage != null and _uses_stage_cards(_featured_dungeon_id):
 			if not title_baked:
 				meta_parts.append(str(stage.display_name))
-			meta_parts.append("%dF" % int(stage.floor_count))
+			## 深層は無限階表示を使う（初期チャンクの floor_count を出さない）。
+			if str(data.route_type) != "abyss":
+				meta_parts.append("%dF" % int(stage.floor_count))
 			var stage_rec: int = _DungeonTierConfig.apply_tier_level(
 				int(stage.recommended_level), GameState.current_dungeon_tier
 			)
@@ -834,11 +838,6 @@ func _refresh_featured() -> void:
 			if not stage_label.is_empty():
 				meta_parts.append(stage_label)
 		meta_parts.append(_make_stars_text(int(data.difficulty)))
-		if not str(data.favored_element).is_empty():
-			meta_parts.append("%s 有利" % _ElementResolver.get_display_name(str(data.favored_element)))
-		var policy: String = GameState.get_exploration_policy()
-		if not policy.is_empty():
-			meta_parts.append("方針:%s" % GameState.exploration_policy_label(policy))
 	else:
 		meta_parts.append("？")
 	_label_featured_meta.text = " · ".join(meta_parts)
@@ -1069,16 +1068,43 @@ func _get_biome_banner_texture(dungeon_id: String) -> Texture2D:
 		return null
 	return _load_texture_flexible(path)
 
-func _biome_banner_header_size(banner_tex: Texture2D) -> Vector2:
+func _biome_banner_header_size(banner_tex: Texture2D, for_width: float = BIOME_BANNER_LIST_WIDTH) -> Vector2:
 	if banner_tex == null:
 		return BIOME_HEADER_MIN_SIZE
 	var tw: int = banner_tex.get_width()
 	var th: int = banner_tex.get_height()
 	if tw <= 0 or th <= 0:
 		return BIOME_HEADER_MIN_SIZE
-	var height: float = BIOME_BANNER_LIST_WIDTH * float(th) / float(tw)
+	var width: float = for_width if for_width > 1.0 else BIOME_BANNER_LIST_WIDTH
+	var height: float = width * float(th) / float(tw)
 	height = clampf(height, BIOME_BANNER_HEIGHT_MIN, BIOME_BANNER_HEIGHT_MAX)
 	return Vector2(0.0, height)
+
+## 実幅に合わせてバナー高さを縦横比どおりに直す（幅広のまま高さ固定だとネームプレートが潰れ、タイトルが横伸びして見える）。
+func _sync_biome_banner_host_height(host: Control, banner_tex: Texture2D) -> void:
+	if host == null or banner_tex == null or not is_instance_valid(host):
+		return
+	var width: float = host.size.x
+	if width <= 1.0:
+		## レイアウト前は次フレームで再試行。
+		_sync_biome_banner_host_height.call_deferred(host, banner_tex)
+		return
+	var next_min: Vector2 = _biome_banner_header_size(banner_tex, width)
+	if not host.custom_minimum_size.is_equal_approx(next_min):
+		host.custom_minimum_size = next_min
+	if not host.resized.is_connected(_on_biome_banner_host_resized.bind(host, banner_tex)):
+		host.resized.connect(_on_biome_banner_host_resized.bind(host, banner_tex))
+
+
+func _on_biome_banner_host_resized(host: Control, banner_tex: Texture2D) -> void:
+	if host == null or banner_tex == null or not is_instance_valid(host):
+		return
+	var width: float = host.size.x
+	if width <= 1.0:
+		return
+	var next_min: Vector2 = _biome_banner_header_size(banner_tex, width)
+	if not host.custom_minimum_size.is_equal_approx(next_min):
+		host.custom_minimum_size = next_min
 
 func _banner_hides_title(dungeon_id: String) -> bool:
 	return bool(BIOME_BANNER_TITLE_BAKED.get(dungeon_id, false))
@@ -1105,45 +1131,25 @@ func _make_biome_title_label(data: Resource, unlocked: bool) -> Control:
 	margin.add_child(label)
 	return margin
 
-func _sync_featured_banner(dungeon_id: String) -> void:
-	for child in _featured_banner_host.get_children():
-		child.queue_free()
-	var banner_tex: Texture2D = _get_biome_banner_texture(dungeon_id)
-	if banner_tex == null:
-		_featured_banner_host.visible = false
-		_featured_banner_host.custom_minimum_size = Vector2.ZERO
-		return
-	_featured_banner_host.visible = true
-	_featured_banner_host.custom_minimum_size = _biome_banner_header_size(banner_tex)
-	var banner := TextureRect.new()
-	banner.set_anchors_preset(Control.PRESET_FULL_RECT)
-	banner.texture = banner_tex
-	banner.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	banner.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_featured_banner_host.add_child(banner)
-	## 一覧バナーと同様、画像上にダンジョン名を重ねる（焼き込み無しの雰囲気BG向け）。
-	## ネームプレート中央よりわずかに上へ（見出しフォントのアセント分は下余白で相殺）。
-	if _banner_hides_title(dungeon_id):
-		return
-	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
-	if data == null:
-		return
-	var unlocked: bool = GameState.is_dungeon_unlocked(dungeon_id)
+## バナー名は FULL_RECT 埋め込み禁止（実機でグリフが横方向に潰れて見える）。自然サイズ＋中央寄せ。
+func _make_banner_overlay_title(data: Resource, unlocked: bool, dungeon_id: String) -> Label:
 	var title := Label.new()
 	title.text = _dungeon_card_title(data, unlocked)
-	title.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	title.offset_left = 12.0
-	title.offset_right = -12.0
-	title.offset_top = 6.0
-	title.offset_bottom = -10.0
+	title.set_anchors_preset(Control.PRESET_CENTER)
+	title.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	title.grow_vertical = Control.GROW_DIRECTION_BOTH
+	## ネームプレート中央よりわずかに上へ（見出しフォントのアセント分は下へずらして相殺）。
+	title.offset_top = -2.0
+	title.offset_bottom = -6.0
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	title.autowrap_mode = TextServer.AUTOWRAP_OFF
 	title.max_lines_visible = 1
-	title.clip_text = true
-	title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	title.clip_text = false
+	title.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	title.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	UiTypography.apply_display(
 		title,
 		_banner_title_font_size(dungeon_id),
@@ -1153,11 +1159,45 @@ func _sync_featured_banner(dungeon_id: String) -> void:
 	title.add_theme_constant_override("shadow_offset_x", 1)
 	title.add_theme_constant_override("shadow_offset_y", 1)
 	title.add_theme_constant_override("shadow_outline_size", 5)
+	return title
+
+func _sync_featured_banner(dungeon_id: String) -> void:
+	for child in _featured_banner_host.get_children():
+		child.queue_free()
+	var banner_tex: Texture2D = _get_biome_banner_texture(dungeon_id)
+	if banner_tex == null:
+		_featured_banner_host.visible = false
+		_featured_banner_host.custom_minimum_size = Vector2.ZERO
+		return
+	_featured_banner_host.visible = true
+	_featured_banner_host.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	_featured_banner_host.custom_minimum_size = _biome_banner_header_size(banner_tex)
+	var banner := TextureRect.new()
+	banner.set_anchors_preset(Control.PRESET_FULL_RECT)
+	banner.texture = banner_tex
+	banner.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	banner.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_featured_banner_host.add_child(banner)
+	## 一覧バナーと同様、画像上にダンジョン名を重ねる（焼き込み無しの雰囲気BG向け）。
+	if _banner_hides_title(dungeon_id):
+		_sync_biome_banner_host_height.call_deferred(_featured_banner_host, banner_tex)
+		return
+	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
+	if data == null:
+		_sync_biome_banner_host_height.call_deferred(_featured_banner_host, banner_tex)
+		return
+	var unlocked: bool = GameState.is_dungeon_unlocked(dungeon_id)
+	var title: Label = _make_banner_overlay_title(data, unlocked, dungeon_id)
 	_featured_banner_host.add_child(title)
+	_sync_biome_banner_host_height.call_deferred(_featured_banner_host, banner_tex)
 
 func _banner_title_font_size(dungeon_id: String) -> int:
-	## 無限は表示名が長いため、ネームプレート内に収まるよう一段小さくする。
+	## 無限／長いイベント名はネームプレート内に収まるよう一段小さくする。
 	if _AbyssDungeonConfig.is_abyss_dungeon_id(dungeon_id):
+		return UiTypography.SIZE_BODY_SMALL
+	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
+	if data != null and str(data.display_name).length() >= 12:
 		return UiTypography.SIZE_BODY_SMALL
 	return UiTypography.SIZE_BODY
 
@@ -1171,6 +1211,7 @@ func _make_biome_banner_header(
 	var dungeon_id: String = str(data.id)
 	var root := Control.new()
 	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	root.custom_minimum_size = _biome_banner_header_size(banner_tex)
 	if not unlocked:
 		root.modulate = Color(0.72, 0.72, 0.76, 1.0)
@@ -1180,37 +1221,12 @@ func _make_biome_banner_header(
 	banner.texture = banner_tex
 	banner.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	banner.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	banner.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(banner)
 
-	## タイトルは Featured と同様バナー全面中央。シェブロンは左オーバーレイ（HBox だと右寄りになる）。
-	## ネームプレート中央よりわずかに上へ（見出しフォントのアセント分は下余白で相殺）。
+	## タイトルは Featured と同様・自然サイズ中央。シェブロンは左オーバーレイ（HBox だと右寄りになる）。
 	if not _banner_hides_title(dungeon_id):
-		var title := Label.new()
-		title.text = _dungeon_card_title(data, unlocked)
-		title.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		title.offset_left = 36.0
-		title.offset_right = -36.0
-		title.offset_top = 6.0
-		title.offset_bottom = -10.0
-		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		title.autowrap_mode = TextServer.AUTOWRAP_OFF
-		title.max_lines_visible = 1
-		title.clip_text = true
-		title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		UiTypography.apply_display(
-			title,
-			_banner_title_font_size(dungeon_id),
-			UiTypography.COLOR_GOLD if unlocked else UiTypography.COLOR_SUB
-		)
-		title.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.95))
-		title.add_theme_constant_override("shadow_offset_x", 1)
-		title.add_theme_constant_override("shadow_offset_y", 1)
-		title.add_theme_constant_override("shadow_outline_size", 5)
-		root.add_child(title)
+		root.add_child(_make_banner_overlay_title(data, unlocked, dungeon_id))
 
 	var chevron := Label.new()
 	chevron.text = "▼" if is_expanded else "▶"
@@ -1237,6 +1253,7 @@ func _make_biome_banner_header(
 	header_btn.pressed.connect(_on_biome_accordion_pressed.bind(dungeon_id))
 	UiTypography.apply_button(header_btn, is_featured or is_expanded)
 	root.add_child(header_btn)
+	_sync_biome_banner_host_height.call_deferred(root, banner_tex)
 	return root
 
 func _make_biome_text_header(
@@ -1391,7 +1408,32 @@ func _dungeon_card_title(data: Resource, unlocked: bool = true) -> String:
 		return "？"
 	if not unlocked:
 		return "？"
-	return str(data.display_name)
+	var title: String = str(data.display_name)
+	## 配下章（ツリー）が現行難易度ですべてクリア済みなら親名に ✅。
+	if _is_biome_fully_cleared_for_ui(str(data.id)):
+		title += " ✅"
+	return title
+
+## 親 Biome の配下章がすべてクリア済みか（イベント／メイン共通。章無しは Biome クリア）。
+func _is_biome_fully_cleared_for_ui(dungeon_id: String) -> bool:
+	if dungeon_id.is_empty() or not GameState.is_dungeon_unlocked(dungeon_id):
+		return false
+	if _uses_stage_cards(dungeon_id):
+		var stages: Array = DataRegistry.get_stages_for_biome(dungeon_id)
+		if stages.is_empty():
+			return false
+		for stage in stages:
+			if stage == null:
+				continue
+			if not _is_stage_cleared_for_ui(str(stage.id)):
+				return false
+		return true
+	if GameState.is_dungeon_tier_cleared(dungeon_id, GameState.current_dungeon_tier):
+		return true
+	return (
+		GameState.current_dungeon_tier == _DungeonTierConfig.TIER_NORMAL
+		and GameState.is_dungeon_cleared(dungeon_id)
+	)
 
 func _on_card_preview_input(event: InputEvent, dungeon_id: String, unlocked: bool) -> void:
 	if not unlocked:

@@ -108,13 +108,13 @@ static func preview_lines(craft: Resource) -> PackedStringArray:
 			lines.append("攻撃力 %d" % int(wd.base_attack))
 			lines.append("会心率 %.0f%%" % (float(wd.base_critical_rate) * 100.0))
 			if not str(wd.weapon_type).is_empty():
-				lines.append("種別 %s" % str(wd.weapon_type))
+				lines.append("種別 %s" % CodexContentHelper.weapon_type_label(str(wd.weapon_type)))
 			var effect_text: String = EquipmentItemDetailHelper.weapon_legendary_effect_text_from_data(wd)
 			if not effect_text.is_empty():
 				lines.append("固有効果 %s" % effect_text)
 			elif not str(wd.fixed_skill_id).is_empty():
 				var skill: Resource = DataRegistry.get_skill_data(str(wd.fixed_skill_id))
-				var skill_name: String = str(skill.display_name) if skill != null else str(wd.fixed_skill_id)
+				var skill_name: String = str(skill.display_name) if skill != null and not str(skill.display_name).is_empty() else "武器スキル"
 				lines.append("武器スキル %s" % skill_name)
 		"armor":
 			var ad: Resource = DataRegistry.get_armor_data(str(craft.output_id))
@@ -123,7 +123,13 @@ static func preview_lines(craft: Resource) -> PackedStringArray:
 			lines.append("防御力 %d" % int(ad.base_defense))
 			lines.append("HP +%d" % int(ad.base_hp_bonus))
 			if ad.resist_elements.size() > 0:
-				lines.append("耐性 %s" % ", ".join(ad.resist_elements))
+				var resist_names: PackedStringArray = []
+				for e: String in ad.resist_elements:
+					var nm: String = ElementResolver.get_display_name(str(e))
+					if not nm.is_empty():
+						resist_names.append(nm)
+				if not resist_names.is_empty():
+					lines.append("耐性 %s" % ", ".join(resist_names))
 		"accessory":
 			var ac: Resource = DataRegistry.get_accessory_data(str(craft.output_id))
 			if ac == null:

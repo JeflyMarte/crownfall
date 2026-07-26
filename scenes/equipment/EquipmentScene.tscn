@@ -133,6 +133,7 @@ horizontal_alignment = 1
 [node name="BtnCatalog" type="Button" parent="Header/HeaderRow"]
 layout_mode = 2
 size_flags_vertical = 4
+visible = false
 text = "一覧"
 
 [node name="GoldChip" type="PanelContainer" parent="Header/HeaderRow"]

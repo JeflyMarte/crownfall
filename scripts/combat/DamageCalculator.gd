@@ -42,12 +42,10 @@ static func resolve_skill_element(skill_data: Resource, member_index: int = -1) 
 static func weapon_bane(member_index: int) -> Dictionary:
 	return _WeaponStatResolver.resolve_bane(GameState.get_member_equipped_weapon(member_index))
 
-# ── Biome 属性相性（P3-D099） ────────────────────────────────────────────
+# ── Biome 属性相性（P3-D099）— オミット済み。データ残置・効果なし ────────
 
-static func is_biome_favored(attack_element: String, dungeon_data: Resource) -> bool:
-	if attack_element.is_empty() or dungeon_data == null:
-		return false
-	return str(dungeon_data.favored_element) == attack_element
+static func is_biome_favored(_attack_element: String, _dungeon_data: Resource) -> bool:
+	return false
 
 # ── 敵防御（逓減軽減） ───────────────────────────────────────────────────
 
@@ -138,7 +136,7 @@ static func apply_job_attack_multiplier(base_damage: int, member_index: int) -> 
 
 # ── 敵側軽減（属性/特効/シナジー/地形/天候/防御） ────────────────────────
 
-## 敵の属性(弱点×1.25 / 耐性×0.75)・特効・シナジー・地形・天候・防御を与ダメへ反映する。
+## 敵の属性(弱点×1.25 / 耐性×0.75)・特効・シナジー・天候・防御を与ダメへ反映する。
 ## 戻り値: {damage, element_tag}
 static func enemy_mitigation(
 	combat: CombatController,
@@ -189,10 +187,6 @@ static func enemy_mitigation(
 	if synergy > 0.0:
 		damage = maxi(1, int(round(float(damage) * (1.0 + synergy))))
 		element_tag += "  [シナジー:%s]" % ElementResolver.get_display_name(attack_element)
-	# Biome 属性相性（P3-D099）: ダンジョンの有利属性と一致なら与ダメ増幅。
-	if is_biome_favored(attack_element, dungeon_data):
-		damage = maxi(1, int(round(float(damage) * BalanceConfig.BIOME_FAVORED_BONUS)))
-		element_tag += "  [地形:%s]" % ElementResolver.get_display_name(attack_element)
 	# 天候（環境変化・P3-D101）: 属性別補正＋全体与ダメ補正。
 	var weather: String = GameState.get_weather()
 	var weather_mult: float = CombatWeather.element_multiplier(weather, attack_element) * CombatWeather.outgoing_multiplier(weather)

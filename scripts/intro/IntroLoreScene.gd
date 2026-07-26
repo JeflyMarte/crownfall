@@ -35,7 +35,7 @@ var _lead_in: Control
 var _lead_out: Control
 ## 読みやすさ用の dwell 対象（全文を収めた単一パネル）。
 var _panel_nodes: Array[Control] = []
-var _lore_body_lbl: Label
+var _lore_body_lbl: RichTextLabel
 var _hint_lbl: Label
 var _tap_prompt_lbl: Label
 var _tap_catcher: ColorRect
@@ -188,11 +188,15 @@ func _build_ui() -> void:
 	_list.add_child(panel_wrap)
 	_panel_nodes.append(panel_wrap)
 
-	_lore_body_lbl = Label.new()
-	_lore_body_lbl.text = "\n\n".join(_IntroLoreContent.PANELS)
+	_lore_body_lbl = RichTextLabel.new()
+	_lore_body_lbl.bbcode_enabled = true
+	_lore_body_lbl.fit_content = true
+	_lore_body_lbl.scroll_active = false
 	_lore_body_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_lore_body_lbl.custom_minimum_size = Vector2(0, 72)
-	UiTypography.apply_body(_lore_body_lbl, 22, Color(0.92, 0.90, 0.84))
+	_lore_body_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_log_rich(_lore_body_lbl, 22, Color(0.92, 0.90, 0.84))
+	_lore_body_lbl.text = "\n\n".join(_IntroLoreContent.PANELS)
 	panel_wrap.add_child(_lore_body_lbl)
 
 	_hint_lbl = Label.new()
@@ -217,13 +221,14 @@ func _build_tap_prompt() -> void:
 	_tap_prompt_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_tap_prompt_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_tap_prompt_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_tap_prompt_lbl.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	_tap_prompt_lbl.offset_top = -120.0
-	_tap_prompt_lbl.offset_bottom = -48.0
-	_tap_prompt_lbl.offset_left = -160.0
-	_tap_prompt_lbl.offset_right = 160.0
+	## 全文クロール完了後、画面中央に点滅表示。
+	_tap_prompt_lbl.set_anchors_preset(Control.PRESET_CENTER)
+	_tap_prompt_lbl.offset_left = -180.0
+	_tap_prompt_lbl.offset_right = 180.0
+	_tap_prompt_lbl.offset_top = -40.0
+	_tap_prompt_lbl.offset_bottom = 40.0
 	_tap_prompt_lbl.z_index = 8
-	UiTypography.apply_display(_tap_prompt_lbl, 36, UiTypography.COLOR_GOLD)
+	UiTypography.apply_display(_tap_prompt_lbl, 48, UiTypography.COLOR_GOLD)
 	add_child(_tap_prompt_lbl)
 
 
@@ -343,7 +348,11 @@ func _prepare_crawl_layout() -> void:
 		panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	if _lore_body_lbl != null:
 		_lore_body_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_lore_body_lbl.custom_minimum_size = Vector2(maxf(0.0, view_w - 36.0), 72.0)
+		var body_w: float = maxf(0.0, view_w - 36.0)
+		_lore_body_lbl.custom_minimum_size = Vector2(body_w, 0.0)
+		## fit_content 再計算のため幅確定後にテキストを載せ直す。
+		var body_text: String = _lore_body_lbl.text
+		_lore_body_lbl.text = body_text
 	_list.custom_minimum_size = Vector2(view_w, 0.0)
 	_list.size.x = view_w
 	_list.reset_size()
@@ -450,17 +459,23 @@ func _ensure_tap_catcher() -> void:
 func _on_tap_catcher_gui_input(event: InputEvent) -> void:
 	if not _advance_ready or not _reached_end:
 		return
-	var release: bool = false
+	var pressed_now: bool = false
+	var released_now: bool = false
 	if event is InputEventMouseButton:
 		var mb: InputEventMouseButton = event
-		release = (
-			(mb.button_index == MOUSE_BUTTON_LEFT or mb.button_index == MOUSE_BUTTON_RIGHT)
-			and not mb.pressed
-		)
+		if mb.button_index == MOUSE_BUTTON_LEFT or mb.button_index == MOUSE_BUTTON_RIGHT:
+			pressed_now = mb.pressed
+			released_now = not mb.pressed
 	elif event is InputEventScreenTouch:
-		release = not (event as InputEventScreenTouch).pressed
-	if release:
-		_try_advance_after_end()
+		var st: InputEventScreenTouch = event as InputEventScreenTouch
+		pressed_now = st.pressed
+		released_now = not st.pressed
+	## 終端到達時に押したままの指は、離すだけで消費（進まない）。
+	if released_now and _suppress_release_advance:
+		_suppress_release_advance = false
+		return
+	if pressed_now and not _suppress_release_advance:
+		_go_next()
 
 
 func _try_advance_after_end() -> void:

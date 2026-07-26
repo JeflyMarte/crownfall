@@ -43,8 +43,9 @@ const PATHS: Dictionary = {
 	ID_TREASURE: DIR + "treasure.ogg",
 	ID_ROOM_ENTER: DIR + "room_enter.ogg",
 	ID_VICTORY: DIR + "victory.ogg",
+	## Kenney Music Jingles Steel `jingles_STEEL10`
 	ID_LEVEL_UP: DIR + "level_up.ogg",
-	## 隊長ランクアップはレベルアップと同音（P3-CMD-RANKUP-001）
+	## 隊長ランクアップはレベルアップと同音
 	ID_RANK_UP: DIR + "level_up.ogg",
 	## ガチャ入手は専用 SE（レベルアップと分離 — P3-AUDIO-SE-003）
 	ID_GACHA_REVEAL: DIR + "gacha_reveal.ogg",

@@ -21,6 +21,7 @@ alwaysApply: true
 | 設定の音声パネルが Header に食い込む | MainScroll `offset_top` が Header 下端に追従していない／余白不足 | Header 実サイズ下端＋`HEADER_CONTENT_GAP`（≧24）へ同期。chrome 前に meta を入れる |
 | キャラ管理オープンで即終了 | `Control.custom_maximum_size` を参照（**Godot 4.6.3 未実装**。4.x latest/PR のみ） | `gdscript.mdc` / `ui-layout.mdc` — 現行エンジンに無い API を使わない。固定サイズは `custom_minimum_size` + `SIZE_SHRINK_*` + 親も SHRINK |
 | Biome バナーが潰れる／タイトル欠ける | 2:1 キーアートを薄い strip（112px）に中央クロップ | `generate_biome_banner.py` は **アスペクト維持が既定**。タイトル焼込は `BIOME_BANNER_TITLE_BAKED`＋一覧ヘッダ高さは縦横比から算出 |
+| イベントDGクリア後に一覧バナー名が横伸び | バナー高さを想定幅680固定のまま実幅へ伸ばし、タイトル Label を FULL_RECT 埋め込み。遅延 fit が size.x≈0 で極小フォント化することもある | 高さは実幅×縦横比（`_sync_biome_banner_host_height`）。タイトルは自然サイズ＋中央寄せ（FULL_RECT／レイアウト前 fit 禁止） |
 | HBox 内の数値が消える（アイコンだけ残る） | Label の `clip_text=true` は最小幅 0 → SHRINK の HBox で幅が潰れる | `ui-layout.mdc` — 短い数値は `clip_text=false`。必要なら `EXPAND_FILL` |
 | 戦闘下カードで名前が「アル…」等に切れる | `clip_text`＋ellipsis。長い表示名がカード幅を超える | 省略禁止＋幅に合わせて font_size 縮小（`_fit_party_card_name_font`）。レイアウト後に deferred 再計算 |
 | 戦闘が全体的にカクつく／歩行が飛ぶ | `_process` で HPバー位置更新のたび `Texture2D.get_image()`＋`get_used_rect()` | 正規化時に `body_frame_h` / `body_top_inset` を meta キャッシュしホットパスでは使わない |
@@ -34,7 +35,7 @@ alwaysApply: true
 | 未開ダンジョンに実名・バナーが出る | ロック中でも `display_name`／バナー／ドロップを表示 | `unlocked==false` は「？」表示。バナー・敵／ドロップ非表示 |
 | 結果の素材獲得でスクロールが効かない | `ResultScene` に `ScrollTouchHelper` 未適用 | `_ready`／素材 rebuild 後に `ScrollTouchHelper.enable` |
 | 状態異常アイコンが「？」 | `bleed`/`slow`/`enrage` が `STATUS_ICON_DEF`・`IconPaths` 欠落 | DEF＋ICO_STA_*＋IconPaths を追加。`empower_minor` は empower 流用 |
-| 戦闘速度が ×0.75 のまま／設定と不一致 | `SPEED_MULT_NORMAL=0.75` と設定の3択 | ×1(1.0)／×1.5 の2択に統一。旧 ×2 は ×1.5 へ移行 |
+| 戦闘速度が ×0.75 のまま／設定と不一致 | `SPEED_MULT_NORMAL=0.75` と設定の不一致 | ×1／×1.5／×2 の3択に統一。旧 ×0.75 は ×1 へ |
 | レジェンド武器が落ちても気づかない | 通常装備と同じ小アイコンのみで SE／テロップ無し | ★以上は `legendary_drop` SE＋フラッシュ＋テロップ＋大きめアイコン（P3-EQ-LEG-DROP-001） |
 | キャラ画面の装備スロットで効果が見えない | 短押しは所持フィルタのみ。詳細オーバーレイは未配線 | 長押しで既存 `_show_item_stats_overlay`（固有効果含む）を開く |
 | iPhoneで装備長押しが効かない | ①所持グリッドが `pressed` のみで長押し未配線 ②微細 `ScreenDrag` で即キャンセル | 所持も `_bind_inventory_cell_interaction`。移動キャンセルは deadzone（≈20px）以上のみ |
@@ -101,6 +102,9 @@ alwaysApply: true
 | ボタン画像の文字が読めない | ラベル焼込 PNG＋非表示テキスト、または極小オーバーレイ | 可読優先。焼込文字に頼らず Godot テキスト（炉研ぎ同様）か、画像化を撤回 |
 | 職名が「ビーストテ…」になる | `OVERRUN_TRIM_ELLIPSIS`＋狭い JobRow／巨大 JobIcon | 職名は省略しない（必要なら折返し）。JobIcon は固定小サイズ（~22px） |
 | キャラスキル名が「鋼斬…」等に省略 | スキル行 Name Label に `clip_text`＋`OVERRUN_TRIM_ELLIPSIS`＋固定最小幅 | スキル名は1行全文（`clip_text=false` / `OVERRUN_NO_TRIMMING` / `AUTOWRAP_OFF`）。説明側を ellipsis |
+| 最終フロア等で「探索終了」がクリア扱い | 非戦闘 `ButtonFinish`／メニューが `is_completed` 無しでクリア経路を呼んだ | 手動終了はリタイア確認のみ。クリアは撃破演出後（`is_completed`）のみ |
+| アルケミスト等の固有パッシブが剣アイコン | キャラ固有 id に `ICO_PASSIVE_*` が無く `BattleFervor` フォールバック | `PassiveIconHelper.ICON_ALIAS`／`ICON_PATH_OVERRIDE` で職帯・毒ベースへ |
+| スキル詳細に「属性: dark」等の英語 | `EquipmentScene` が element id をそのまま表示 | `ElementResolver.get_display_name`（炎/氷/雷/闇/聖）を使う |
 | Noto 本文が薄い | Variable `wght` 600/700 のまま、または `UiTypography` 未適用／テーマ未同期。700 でも Mobile＋小サイズでは体感薄い | `BODY_FONT_WEIGHT=800`＋`variation_embolden`。`production_theme.tres` の FontVariation も同値。本文は必ず `UiTypography.body_font()`。変更はコミットする（未コミットだと再起動・別セッションで 600 に戻って見える） |
 | キャラ切替 ◀▶ が消える | テーマ Button フォントが DelaGothic（矢印グリフ無し）＋ StyleBox 余白＋ `clip_text`＋過小 font | nav は flat＋`StyleBoxEmpty`＋Noto body＋十分な font_size。幅圧縮だけしてグリフを潰さない |
 
@@ -112,7 +116,8 @@ alwaysApply: true
 | 装備／キャラ管理オープンで ERROR→強制終了 | `ScrollTouchHelper` が `process_frame`+`CONNECT_ONE_SHOT` で refresh。refresh 中の再 queue が ONE_SHOT 解除前に同 Callable を再 connect | refresh は `call_deferred`。`process_frame.connect` 禁止（装備グリッド大量追加時に再発） |
 | イベントDGバナーが全部モーンゲート | `SUB_BANNER_FALLBACK` で mourngate 流用のみ | 各イベントに `BAN_DG_*` を用意し `BIOME_BANNER_PATHS` へ登録。フォールバックから外す |
 | イベントDGバナーだけ大きい（240px）／枠なし | キーアート全高のまま、または strip のみで金枠未合成 | `generate_biome_banner.py --strip-height 232`（枠は既定 ON）。`BAN_DG_Frame_Strip` を重ねメインと同寸・同枠に |
-| 戦闘フロア入場直後に謎の Hit 音 | 探索罠被弾→`on_hit_taken` 反撃が `_spawn_hit_vfx` で `combat_hit`。入場遅延中も SE 可だった | 罠は `skip_hit_taken`。ヒットSEは `_combat_impact_sfx_enabled`（CT開始後のみ） |
+| 戦闘フロア入場前に謎の SE | ①次部屋へ進む瞬間の `room_enter`（ドア音）が戦闘画面より先に鳴る ②黒幕中に戦闘BGM切替 ③探索罠→反撃Hit／入場遅延中SE／前戦闘遅延ヒット／`on_combat_start` の `combat_heal` | 戦闘行きは `room_enter` スキップ（`is_next_room_combat`）。戦闘BGMは一幕終了後。Hit/Healは `CombatImpactSfxGate`＋CT開始後のみ。遅延ヒットは `_combat_session_id`。`test_combat_impact_sfx_gate` |
+| 「自動戦闘中」行が戦闘で再表示される | `_update_combat_visibility` が `on_combat_floor` で `_auto_combat_row.visible=true` | 行は常時 `false`。停止はヘッダ ButtonStop |
 | aspect=keep なのに TopBar が低い／下ナビ下に黒余白 | SafeArea が inset=0 でも 54/24 を強制フォールバック | letterbox（keep）時はフォールバックしない |
 | `git checkout` / `mv` が `Operation not permitted` | Cursor サンドボックス | アセット・git 復元は `required_permissions: ["all"]` |
 | WIP が消えた | cloud agent / stash | `git-wip-safety.mdc` |

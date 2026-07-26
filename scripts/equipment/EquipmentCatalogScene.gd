@@ -325,13 +325,22 @@ func _add_owner_portrait_badge(btn: Button, owner_idx: int, cell_size: Vector2) 
 	var tex: Texture2D = RosterUiHelper.get_member_portrait_texture(member)
 	if tex == null:
 		return
+	var badge_px: float = 28.0
 	var icon := TextureRect.new()
+	icon.name = "OwnerBadge"
 	icon.texture = tex
-	icon.custom_minimum_size = Vector2(18, 18)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	icon.position = Vector2(cell_size.x - 18.0, 2.0)
+	icon.z_index = 3
+	icon.anchor_left = 1.0
+	icon.anchor_top = 0.0
+	icon.anchor_right = 1.0
+	icon.anchor_bottom = 0.0
+	icon.offset_left = -badge_px - 2.0
+	icon.offset_top = 2.0
+	icon.offset_right = -2.0
+	icon.offset_bottom = 2.0 + badge_px
 	btn.add_child(icon)
 
 func _item_icon(item: Resource, category: String) -> Texture2D:

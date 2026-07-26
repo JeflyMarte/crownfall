@@ -19,12 +19,14 @@ const BUS_MASTER: String = "Master"
 const BUS_BGM: String = "BGM"
 const BUS_SFX: String = "SFX"
 
-## DungeonScene の SPEED_MULT_* と揃える（×1 / ×1.5 の2択）。
+## DungeonScene の SPEED_MULT_* と揃える（×1 / ×1.5 / ×2）。
 const SPEED_X1: float = 1.0
 const SPEED_X15: float = 1.5
+const SPEED_X2: float = 2.0
 
 const SPEED_ID_X1: String = "x1"
 const SPEED_ID_X15: String = "x1_5"
+const SPEED_ID_X2: String = "x2"
 
 static var _loaded: bool = false
 static var _master: float = 1.0
@@ -225,6 +227,8 @@ static func set_vibration_enabled(v: bool) -> void:
 
 static func speed_mult_for_id(speed_id: String) -> float:
 	match _normalize_speed_id(speed_id):
+		SPEED_ID_X2:
+			return SPEED_X2
 		SPEED_ID_X15:
 			return SPEED_X15
 		_:
@@ -232,7 +236,8 @@ static func speed_mult_for_id(speed_id: String) -> float:
 
 
 static func speed_id_for_mult(mult: float) -> String:
-	## 旧 ×2(1.5) / 旧 ×1.5(1.125) / 新 ×1.5 をまとめて ×1.5 扱い。
+	if mult >= 1.75:
+		return SPEED_ID_X2
 	if mult >= 1.25:
 		return SPEED_ID_X15
 	return SPEED_ID_X1
@@ -240,6 +245,8 @@ static func speed_id_for_mult(mult: float) -> String:
 
 static func speed_label(speed_id: String) -> String:
 	match _normalize_speed_id(speed_id):
+		SPEED_ID_X2:
+			return "×2"
 		SPEED_ID_X15:
 			return "×1.5"
 		_:
@@ -248,11 +255,13 @@ static func speed_label(speed_id: String) -> String:
 
 static func _normalize_speed_id(speed_id: String) -> String:
 	match speed_id:
-		SPEED_ID_X15, "x1.5", "1.5", "medium", "x2", "2", "fast":
-			## 旧 ×2 設定は ×1.5 へ統合。
+		SPEED_ID_X2, "x2", "2", "fast":
+			return SPEED_ID_X2
+		SPEED_ID_X15, "x1.5", "1.5", "medium":
 			return SPEED_ID_X15
 		_:
 			return SPEED_ID_X1
+
 
 static func app_version_text() -> String:
 	return str(ProjectSettings.get_setting("application/config/version", "0.1.0"))

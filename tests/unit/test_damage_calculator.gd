@@ -52,11 +52,11 @@ func test_armor_break_reduction_clamped() -> void:
 
 # ── Biome 属性相性 ───────────────────────────────────────────────────────
 
-func test_biome_favored_match() -> void:
+func test_biome_favored_omitted() -> void:
 	var dg: Resource = DungeonDataScript.new()
 	dg.favored_element = "dark"
-	assert_true(DamageCalculator.is_biome_favored("dark", dg), "有利属性一致で true")
-	assert_false(DamageCalculator.is_biome_favored("fire", dg), "不一致で false")
+	assert_false(DamageCalculator.is_biome_favored("dark", dg), "地形有利はオミットで常に false")
+	assert_false(DamageCalculator.is_biome_favored("fire", dg), "不一致も false")
 
 func test_biome_favored_empty_or_null() -> void:
 	assert_false(DamageCalculator.is_biome_favored("", DungeonDataScript.new()), "無属性は false")

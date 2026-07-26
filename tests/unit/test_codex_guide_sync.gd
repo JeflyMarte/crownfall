@@ -118,7 +118,7 @@ func test_hub_and_field_guide_entries_exist() -> void:
 	var rooms: String = str(by_id.get("SYS-G007", ""))
 	assert_false(rooms.is_empty(), "部屋と罠の条がある")
 	assert_true(rooms.contains("罠"), "罠に言及")
-	assert_true(rooms.contains("安全優先"), "探索方針との関係")
+	assert_true(rooms.contains("抽選") or rooms.contains("部屋"), "部屋抽選に言及")
 
 	var formation: String = str(by_id.get("COMBAT-G003", ""))
 	assert_true(formation.contains("ジャック"), "陣形にペット関係")

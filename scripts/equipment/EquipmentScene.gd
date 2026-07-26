@@ -184,8 +184,7 @@ func _ready() -> void:
 	_member_row.visible = false
 	_ensure_combat_setup_panel()
 	_button_back.pressed.connect(_on_back_pressed)
-	_btn_catalog.pressed.connect(_on_catalog_pressed)
-	UiTypography.apply_menu_button(_btn_catalog)
+	_btn_catalog.visible = false
 	_ensure_item_detail_overlay()
 	_ensure_take_equip_confirm()
 	_btn_member_prev.pressed.connect(_on_member_prev_pressed)
@@ -218,6 +217,7 @@ func _ready() -> void:
 	_apply_panel_styles()
 	_decorate_portrait()
 	_compact_member_nav_buttons()
+	PetSystem.ensure_starter_pet()
 	if GameState.equipment_focus_member_index >= 0:
 		_selected_member_index = _clamp_roster_index(GameState.equipment_focus_member_index)
 		GameState.equipment_focus_member_index = -1
@@ -579,35 +579,58 @@ func _on_member_prev_pressed() -> void:
 func _on_member_next_pressed() -> void:
 	_cycle_member(1)
 
+## キャラ画面の ◀▶ 対象（ロスター＋随伴ペット）。
+func _get_view_members() -> Array:
+	var out: Array = []
+	for m in GameState.get_roster():
+		if m != null:
+			out.append(m)
+	if GameState.active_pet != null and not out.has(GameState.active_pet):
+		out.append(GameState.active_pet)
+	return out
+
+
+func _is_viewing_pet() -> bool:
+	return PetSystem.is_pet_member(_get_view_adventurer())
+
+
+func _can_change_equipment_on_view() -> bool:
+	## ペット／編成外は装備着脱不可（閲覧のみ）。
+	if _is_viewing_pet():
+		return false
+	return _party_index_for_view() >= 0
+
+
 func _cycle_member(delta: int) -> void:
-	var count: int = GameState.get_roster().size()
+	var members: Array = _get_view_members()
+	var count: int = members.size()
 	if count <= 0:
 		return
 	var next_index: int = (_selected_member_index + delta + count) % count
 	_on_member_selected(next_index)
 
 func _clamp_roster_index(index: int) -> int:
-	var roster: Array = GameState.get_roster()
-	if roster.is_empty():
+	var members: Array = _get_view_members()
+	if members.is_empty():
 		return 0
-	if index >= 0 and index < roster.size():
+	if index >= 0 and index < members.size():
 		return index
 	var party_idx: int = clampi(index, 0, maxi(0, GameState.party_members.size() - 1))
 	if party_idx < GameState.party_members.size():
 		var adv: Resource = GameState.party_members[party_idx]
-		var roster_idx: int = roster.find(adv)
-		if roster_idx >= 0:
-			return roster_idx
-	return clampi(index, 0, roster.size() - 1)
+		var view_idx: int = members.find(adv)
+		if view_idx >= 0:
+			return view_idx
+	return clampi(index, 0, members.size() - 1)
 
 func _get_view_adventurer() -> Resource:
-	var roster: Array = GameState.get_roster()
-	if _selected_member_index < 0 or _selected_member_index >= roster.size():
+	var members: Array = _get_view_members()
+	if _selected_member_index < 0 or _selected_member_index >= members.size():
 		return null
-	return roster[_selected_member_index]
+	return members[_selected_member_index]
 
 func _party_index_for(adv: Resource) -> int:
-	if adv == null:
+	if adv == null or PetSystem.is_pet_member(adv):
 		return -1
 	return GameState.party_members.find(adv)
 
@@ -659,8 +682,7 @@ func _update_character_card() -> void:
 	)
 	_label_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_label_name.max_lines_visible = 1
-	var job_mods: Dictionary = _JobStatCalculator.get_member_modifiers(member)
-	var job_name: String = str(job_mods.get("display_name", member.job_id))
+	var job_name: String = RosterUiHelper.job_display_name(member)
 	_label_level.text = EquipmentUiHelper.level_line(int(member.level))
 	_label_job.text = job_name
 	_configure_job_label_one_line()
@@ -679,6 +701,12 @@ func _update_character_card() -> void:
 	var stats: Dictionary = _compute_member_stats(party_idx if party_idx >= 0 else -1, member)
 	_populate_stat_grid(stats)
 	_update_lb_ticket_row(member)
+	if PetSystem.is_pet_member(member):
+		_evolution_row.visible = false
+		if _label_evolution_traits != null:
+			_label_evolution_traits.visible = false
+		if _lb_ticket_row != null:
+			_lb_ticket_row.visible = false
 
 func _ensure_lb_ticket_row() -> void:
 	if _lb_ticket_row != null:
@@ -987,10 +1015,17 @@ func _rebuild_equip_slots() -> void:
 	for child in _slots_row.get_children():
 		child.queue_free()
 	var member: Resource = _get_view_adventurer()
-	var can_equip: bool = _party_index_for(member) >= 0
+	var can_equip: bool = _can_change_equipment_on_view()
 	if member == null:
 		return
 	var cell_size: Vector2 = _slot_cell_size_vec()
+	if PetSystem.is_pet_member(member):
+		## 装備枠は空のまま表示し、着脱不可であることを示す。
+		_slots_row.add_child(_make_slot("武器", "weapon", null, false, cell_size))
+		_slots_row.add_child(_make_slot("防具", "armor", null, false, cell_size))
+		_slots_row.add_child(_make_slot("装飾", "accessory", null, false, cell_size))
+		_slots_row.add_child(_make_relic_slot(cell_size, null, false))
+		return
 	_slots_row.add_child(_make_slot("武器", "weapon", member.equipped_weapon, can_equip, cell_size))
 	_slots_row.add_child(_make_slot("防具", "armor", member.equipped_armor, can_equip, cell_size))
 	_slots_row.add_child(_make_slot("装飾", "accessory", member.equipped_accessory, can_equip, cell_size))
@@ -1291,7 +1326,7 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 		btn.tooltip_text = "%s\n（長押しで効果）" % summary
 	## 短押し=着脱、長押し=効果オーバーレイ（Button.pressed は使わず gui_input で統一）。
 	_bind_inventory_cell_interaction(btn, _inventory_item_action.bind(item, category))
-	btn.disabled = party_idx < 0
+	btn.disabled = not _can_change_equipment_on_view()
 	if is_on_self:
 		btn.modulate = Color(0.72, 0.72, 0.72, 0.85)
 		_apply_item_cell_styles(btn, rarity, cell_px, true)
@@ -1321,7 +1356,7 @@ func _make_relic_cell(relic_id: String) -> Button:
 	var is_on_self: bool = party_idx >= 0 and owner_idx == party_idx
 	btn.tooltip_text = "%s\n（長押しで詳細）" % EquipmentItemDetailHelper.relic_hover_summary(relic_id)
 	_bind_inventory_cell_interaction(btn, _inventory_relic_action.bind(relic_id))
-	btn.disabled = party_idx < 0
+	btn.disabled = not _can_change_equipment_on_view()
 	if is_on_self:
 		btn.modulate = Color(0.72, 0.72, 0.72, 0.85)
 		_apply_item_cell_styles(btn, 2, cell_px, true)
@@ -1490,7 +1525,7 @@ func _add_owner_portrait_badge(btn: Button, owner_idx: int, cell_size: Vector2) 
 	var tex: Texture2D = RosterUiHelper.get_member_portrait_texture(member)
 	if tex == null:
 		return
-	var badge_px: float = 18.0
+	var badge_px: float = 28.0
 	var icon := TextureRect.new()
 	icon.name = "OwnerBadge"
 	icon.texture = tex
@@ -1993,6 +2028,9 @@ func _rebuild_skill_tab() -> void:
 	if member == null:
 		slots_label.text = "装備中スキル: —"
 		return
+	if PetSystem.is_pet_member(member):
+		_rebuild_pet_skill_tab(member, slots_label, hint_label, list)
+		return
 	var equipped: Array[String] = GameState.get_equipped_skill_ids(member)
 	var equipped_names: PackedStringArray = []
 	for sid in equipped:
@@ -2021,6 +2059,49 @@ func _rebuild_skill_tab() -> void:
 	var weapon_skill: Dictionary = WeaponSkillHelper.get_weapon_skill_display(member)
 	if not str(weapon_skill.get("skill_id", "")).is_empty():
 		list.add_child(_make_weapon_skill_list_row(member, weapon_skill))
+
+
+func _rebuild_pet_skill_tab(
+	member: Resource, slots_label: RichTextLabel, hint_label: Label, list: Node
+) -> void:
+	var equipped: Array[String] = []
+	if "equipped_skill_ids" in member:
+		for sid_v in member.equipped_skill_ids:
+			var sid: String = str(sid_v)
+			if not sid.is_empty() and not equipped.has(sid):
+				equipped.append(sid)
+	var equipped_names: PackedStringArray = []
+	for sid in equipped:
+		equipped_names.append(_skill_bbcode_name(sid))
+	var shown: String = " / ".join(equipped_names) if not equipped_names.is_empty() else "なし"
+	slots_label.text = "[center]固定スキル (%d): %s[/center]" % [equipped.size(), shown]
+	hint_label.text = "ペットのスキルは固定です（変更不可・長押しで詳細）"
+	for sid in equipped:
+		var skill_data: Resource = DataRegistry.get_skill_data(sid)
+		if skill_data == null:
+			continue
+		list.add_child(_make_pet_skill_list_row(sid, skill_data, member))
+
+
+func _make_pet_skill_list_row(skill_id: String, skill_data: Resource, member: Resource) -> Control:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 4)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.custom_minimum_size.y = float(SKILL_ROW_ICON_PX)
+	row.add_child(_skill_row_icon(skill_id, member))
+	row.add_child(_make_skill_row_body(skill_id, skill_data, true, 1, true))
+	var tag := Label.new()
+	tag.text = "固定"
+	tag.custom_minimum_size.x = PASSIVE_ROW_BTN_W
+	tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tag.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	UiTypography.apply_caption(tag, COLOR_SUB)
+	row.add_child(tag)
+	var frame := PanelContainer.new()
+	frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	frame.add_theme_stylebox_override("panel", _skill_row_frame_style(true))
+	frame.add_child(row)
+	return frame
 
 func _make_skill_list_row(
 	skill_id: String,
@@ -2231,6 +2312,13 @@ func _rebuild_ultimate_tab() -> void:
 	var member: Resource = _get_view_adventurer()
 	if member == null:
 		return
+	if PetSystem.is_pet_member(member):
+		var empty := Label.new()
+		empty.text = "ペットに必殺技はありません"
+		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		UiTypography.apply_body(empty, UiTypography.SIZE_BODY_SMALL, COLOR_SUB)
+		host.add_child(empty)
+		return
 	var skill_data: Resource = _get_member_ultimate_skill_data(member)
 	if skill_data == null:
 		var empty := Label.new()
@@ -2347,6 +2435,13 @@ func _rebuild_passive_tab() -> void:
 	for child in list.get_children():
 		child.queue_free()
 	if member == null:
+		return
+	if PetSystem.is_pet_member(member):
+		var empty := Label.new()
+		empty.text = "ペットにパッシブはありません"
+		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		UiTypography.apply_body(empty, UiTypography.SIZE_BODY_SMALL, COLOR_SUB)
+		list.add_child(empty)
 		return
 	var char_ids: Array[String] = GameState.get_equipped_character_passive_ids(member)
 	for pid in CombatPassives.selectable_passive_ids(member):
@@ -2518,8 +2613,9 @@ func _on_relic_passive_toggle_pressed(passive_id: String) -> void:
 # ---- 戦術タブ（P3-D086 戦術・ガンビット） ----
 func _rebuild_tactics_tab() -> void:
 	var member: Resource = _get_view_adventurer()
-	_ensure_exploration_policy_ui()
-	_sync_policy_option()
+	if GameState.EXPLORATION_POLICY_PLAYABLE:
+		_ensure_exploration_policy_ui()
+		_sync_policy_option()
 	_ensure_tactics_ui()
 	_refresh_tactics_ui(member)
 
@@ -3130,7 +3226,7 @@ func _skill_target_label(target_type: String) -> String:
 		"self":
 			return "自身"
 		_:
-			return target_type
+			return "対象"
 
 func _skill_range_label(range_type: String) -> String:
 	match range_type:
@@ -3143,7 +3239,7 @@ func _skill_range_label(range_type: String) -> String:
 		"global":
 			return "全体"
 		_:
-			return range_type
+			return "射程"
 
 func _skill_slot_label(slot_type: String) -> String:
 	match slot_type:
@@ -3171,7 +3267,7 @@ func _skill_status_line(status_id: String, chance: float) -> String:
 	if status_id.is_empty() or chance <= 0.0:
 		return ""
 	var eff: Resource = DataRegistry.get_status_effect(status_id)
-	var st_name: String = eff.display_name if eff != null else status_id
+	var st_name: String = eff.display_name if eff != null else "状態異常"
 	var pct: int = int(round(chance * 100.0))
 	if pct >= 100:
 		return "%sを付与" % st_name
@@ -3204,8 +3300,9 @@ func _skill_stats_detail_lines(skill_data: Resource, unlocked: bool = true, req_
 				lines.append("持続: %dtick" % eff_b.duration_ticks)
 		_:
 			lines.append("威力: x%.2f" % skill_data.power_multiplier)
-			if not str(skill_data.element).is_empty():
-				lines.append("属性: %s" % str(skill_data.element))
+			var elem_label: String = _ElementResolver.get_display_name(str(skill_data.element))
+			if not elem_label.is_empty():
+				lines.append("属性: %s" % elem_label)
 			for status_key: String in ["apply_status_id", "apply_status_id2"]:
 				var chance_key: String = status_key.replace("id", "chance")
 				var status_line: String = _skill_status_line(
@@ -3321,15 +3418,16 @@ func _skill_detail_text(skill_data: Resource, unlocked: bool = true, req_lv: int
 				"威力x%.2f" % skill_data.power_multiplier,
 				"CD；%.1f" % skill_data.cooldown,
 			]
-			if not str(skill_data.element).is_empty():
-				parts.append("属性:%s" % skill_data.element)
+			var elem_short: String = _ElementResolver.get_display_name(str(skill_data.element))
+			if not elem_short.is_empty():
+				parts.append("属性:%s" % elem_short)
 			if not str(skill_data.apply_status_id).is_empty() and skill_data.apply_status_chance > 0.0:
 				var eff: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id)
-				var st_name: String = eff.display_name if eff != null else str(skill_data.apply_status_id)
+				var st_name: String = eff.display_name if eff != null else "状態異常"
 				parts.append("%s%.0f%%" % [st_name, skill_data.apply_status_chance * 100.0])
 			if not str(skill_data.apply_status_id2).is_empty() and skill_data.apply_status_chance2 > 0.0:
 				var eff2: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id2)
-				var st_name2: String = eff2.display_name if eff2 != null else str(skill_data.apply_status_id2)
+				var st_name2: String = eff2.display_name if eff2 != null else "状態異常"
 				parts.append("%s%.0f%%" % [st_name2, skill_data.apply_status_chance2 * 100.0])
 			body = "。".join(parts)
 	if not unlocked:

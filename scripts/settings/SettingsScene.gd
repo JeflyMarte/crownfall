@@ -130,6 +130,7 @@ func _build_gameplay_section() -> Control:
 	for pair in [
 		[_SettingsPrefs.SPEED_ID_X1, "×1"],
 		[_SettingsPrefs.SPEED_ID_X15, "×1.5"],
+		[_SettingsPrefs.SPEED_ID_X2, "×2"],
 	]:
 		var btn := Button.new()
 		btn.toggle_mode = true
@@ -153,11 +154,12 @@ func _build_gameplay_section() -> Control:
 	UiTypography.apply_button(log_btn, false)
 	body.add_child(log_btn)
 	var vib := CheckButton.new()
-	vib.text = "振動（対応端末のみ）"
+	vib.text = "振動"
 	vib.button_pressed = _SettingsPrefs.is_vibration_enabled()
 	vib.toggled.connect(_on_vibration_toggled)
 	UiTypography.apply_button(vib, false)
 	body.add_child(vib)
+	_add_caption(body, "オフにすると戦闘ヒット時の振動を止めます（対応端末のみ）")
 	return sec["panel"]
 
 

@@ -88,6 +88,21 @@ while cond:
 - 巨大 Singleton の新設
 - `.tscn` / `.tres` / `project.godot` の手編集（Agent Tools MCP が使える場合は API 経由）
 
+## 戦闘フィードバック SE
+
+入場〜CT 開始前に `combat_hit` / `combat_crit` / `combat_heal` を鳴らすと「謎の Hit 音」になる（再発済み）。
+
+```gdscript
+# ❌ BAD — 入場直後・前戦闘の遅延ヒット・on_combat_start 回復で直鳴らし
+AudioManager.play_sfx("combat_hit")
+_spawn_hit_vfx(pos)  # ゲート無し時代は常に SE
+
+# ✅ GOOD — CT 開始後のみ（CombatImpactSfxGate）＋遅延ヒットは session_id 照合
+if _should_play_combat_impact_sfx():
+	AudioManager.play_sfx("combat_hit")
+# 罠部屋以外の探索罠は skip_hit_taken。直接 combat_hit を鳴らさない
+```
+
 ## テスト
 
 - ロジック変更時は `res://tests/unit/` に GUT テストを追加・更新

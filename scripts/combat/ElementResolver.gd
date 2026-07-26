@@ -14,6 +14,12 @@ const ELEMENT_NAMES: Dictionary = {
 	"holy": "聖",
 }
 
+## 別名 → 正規 id（表示・判定の両方で正規化）。
+const ELEMENT_ALIASES: Dictionary = {
+	"lightning": "thunder",
+	"light": "holy",
+}
+
 ## 武器名先頭用（「炎の」形式）。UI 表示名と戦闘内属性表示名は分離。
 const ELEMENT_WEAPON_PREFIX: Dictionary = {
 	"fire": "炎の",
@@ -23,26 +29,35 @@ const ELEMENT_WEAPON_PREFIX: Dictionary = {
 	"holy": "聖の",
 }
 
+static func normalize_element_id(element_id: String) -> String:
+	if element_id.is_empty():
+		return ""
+	return str(ELEMENT_ALIASES.get(element_id, element_id))
+
 static func is_valid_element(element_id: String) -> bool:
-	return ELEMENT_NAMES.has(element_id)
+	return ELEMENT_NAMES.has(normalize_element_id(element_id))
 
 static func get_display_name(element_id: String) -> String:
-	return str(ELEMENT_NAMES.get(element_id, ""))
+	return str(ELEMENT_NAMES.get(normalize_element_id(element_id), ""))
 
 static func get_weapon_prefix(element_id: String) -> String:
-	if element_id.is_empty() or not is_valid_element(element_id):
+	var eid: String = normalize_element_id(element_id)
+	if eid.is_empty() or not ELEMENT_NAMES.has(eid):
 		return ""
-	return str(ELEMENT_WEAPON_PREFIX.get(element_id, ""))
+	return str(ELEMENT_WEAPON_PREFIX.get(eid, ""))
 
 static func get_damage_multiplier(
 	attack_element: String,
 	weakness: Array[String],
 	resist: Array[String] = []
 ) -> float:
-	if attack_element.is_empty() or not is_valid_element(attack_element):
+	var eid: String = normalize_element_id(attack_element)
+	if eid.is_empty() or not ELEMENT_NAMES.has(eid):
 		return 1.0
-	if attack_element in weakness:
-		return WEAKNESS_MULTIPLIER
-	if attack_element in resist:
-		return RESIST_MULTIPLIER
+	for w: String in weakness:
+		if normalize_element_id(str(w)) == eid:
+			return WEAKNESS_MULTIPLIER
+	for r: String in resist:
+		if normalize_element_id(str(r)) == eid:
+			return RESIST_MULTIPLIER
 	return 1.0

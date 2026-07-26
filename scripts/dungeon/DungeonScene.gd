@@ -641,8 +641,10 @@ var _treasure_presentation_active: bool = false
 var _event_presentation_active: bool = false
 var _combat_clear_active: bool = false
 var _combat_cinematic_lock: bool = false
-## true のときのみ combat_hit / combat_crit を鳴らす（入場〜開始遅延中の幽霊ヒット音防止）。
+## true のときのみ combat_hit / combat_crit / combat_heal を鳴らす（入場〜開始遅延中の幽霊音防止）。
 var _combat_impact_sfx_enabled: bool = false
+## 遅延ヒット／スキルが別戦闘へ食い込むのを防ぐ。開始・終了で必ず加算。
+var _combat_session_id: int = 0
 var _ultimate_presentation_active: bool = false
 var _ultimate_center_telop: Control = null
 var _combat_clear_tween: Tween
@@ -1315,13 +1317,8 @@ func _party_card_visual_tier(member_idx: int, alive: bool) -> String:
 		return CombatUiFrames.TIER_CARD_CRITICAL
 	return CombatUiFrames.TIER_CARD
 
-func _party_card_state_badge_text(member_idx: int, alive: bool) -> String:
-	if not alive:
-		return ""
-	if _member_hp_ratio(member_idx) <= PARTY_CARD_CRITICAL_HP_RATIO:
-		return "瀕死"
-	if _is_member_ultimate_ready(member_idx) and member_idx != _party_card_active_turn:
-		return "必殺"
+func _party_card_state_badge_text(_member_idx: int, _alive: bool) -> String:
+	## 下カードの「必殺／瀕死」バッジは非表示（オーナー方針）。
 	return ""
 
 func _stop_party_card_pulse(member_idx: int) -> void:
@@ -1851,6 +1848,8 @@ func _on_room_transition_finished() -> void:
 	_clear_transition_fx()
 	_room_transition_busy = false
 	_update_run_hud()
+	if $DungeonController.is_combat_room() and $CombatController.is_in_combat:
+		_sync_room_bgm()
 	if not $CombatController.is_in_combat and not _auto_progress_finishes:
 		if _room_handles_own_progression($DungeonController.current_room_type):
 			return
@@ -2871,16 +2870,28 @@ func _advance_to_next_room() -> void:
 	$DungeonController.advance_room()
 	_enter_current_room()
 
+func _begin_combat_session() -> void:
+	_combat_session_id += 1
+	_combat_impact_sfx_enabled = false
+
+
+func _end_combat_session() -> void:
+	_combat_session_id += 1
+	_combat_impact_sfx_enabled = false
+
+
 func _enter_current_room() -> void:
 	_update_room_label()
 	_update_room_art()
-	_sync_room_bgm()
+	## 戦闘は黒幕一幕のあと（画面が見えてから）BGM 切替。幕中の「謎SE」感を避ける。
+	if not $DungeonController.is_combat_room():
+		_sync_room_bgm()
 	_set_shadow_stalker_floor_dim(false)
 	if $DungeonController.is_combat_room():
 		var group: Array[Resource] = $DungeonController.pick_combat_enemy_group()
 		if not group.is_empty():
 			var lead: Resource = group[0]
-			_combat_impact_sfx_enabled = false
+			_begin_combat_session()
 			$CombatController.start_combat_group(group, $DungeonController.get_enemy_level())
 			_update_combat_visibility()
 			_sync_shadow_stalker_floor_dim(group)
@@ -2907,7 +2918,7 @@ func _enter_current_room() -> void:
 			_try_exploration_trap()
 			_update_turn_order_ui($CombatController.get_ct_order())
 			_log_party_passives_on_combat_enter()
-			_fire_combat_start_passives()
+			## on_combat_start 回復等の SE/VFX は出現遅延後（画面が見えてから）。
 			if $DungeonController.current_room_type == Enums.RoomType.BOSS:
 				_begin_boss_combat_entrance(lead)
 				return
@@ -4174,6 +4185,7 @@ func _execute_member_skill(
 			"spawn_pos": spawn_pos,
 			"log_line": log_line,
 			"skill_id": str(skill_data.id) if skill_data != null else "",
+			"session_id": _combat_session_id,
 		})
 		return ""
 	_play_chr_attack_one(member_idx)
@@ -4192,6 +4204,7 @@ func _execute_member_skill(
 		"log_line": log_line,
 		"display_name": str(result.get("display_name", "スキル")),
 		"skill_id": str(skill_data.id) if skill_data != null else "",
+		"session_id": _combat_session_id,
 	})
 	return ""
 
@@ -4261,6 +4274,7 @@ func _execute_member_heal(
 			"target_idx": target_idx,
 			"target_name": target_name,
 			"heal_amount": heal_amount,
+			"session_id": _combat_session_id,
 		})
 		return ""
 	var healed: int = $CombatController.heal_member(target_idx, heal_amount)
@@ -5437,7 +5451,7 @@ func _on_active_enemy_killed() -> bool:
 # 群れ全滅で戦闘を終了する（P3-D083）。
 func _finalize_combat_cleared() -> void:
 	$CombatTimer.stop()
-	_combat_impact_sfx_enabled = false
+	_end_combat_session()
 	$CombatController.end_combat()
 	_combat_vfx.clear_all()
 	_clear_all_member_skill_labels()
@@ -5467,6 +5481,7 @@ func _finalize_combat_cleared() -> void:
 # 放浪個体が逃走して戦闘が空になった場合（報酬・日課なし）。
 func _finalize_combat_fled() -> void:
 	$CombatTimer.stop()
+	_end_combat_session()
 	$CombatController.end_combat()
 	_combat_vfx.clear_all()
 	_clear_all_member_skill_labels()
@@ -5818,6 +5833,7 @@ func _execute_counter_attack(member_idx: int, target_slot: int, passive_name: St
 		"dmg": dmg,
 		"is_critical": bool(result.get("is_critical", false)),
 		"passive_name": passive_name,
+		"session_id": _combat_session_id,
 	})
 	return dmg > 0
 
@@ -5841,6 +5857,7 @@ func _do_member_basic_attack(member_idx: int) -> void:
 		"is_critical": bool(result.get("is_critical", false)),
 		"element_tag": str(result.get("element_tag", "")),
 		"formation_tag": str(result.get("formation_tag", "")),
+		"session_id": _combat_session_id,
 	})
 
 # 必殺技スロットのスキル（ジョブ ultimate_skill_id → 既定 ultimate_strike）。
@@ -6268,12 +6285,13 @@ func _resolve_party_attack_impact_async(payload: Dictionary) -> void:
 	var kind: String = str(payload.get("kind", "basic"))
 	var dmg: int = int(payload.get("dmg", 0))
 	var is_critical: bool = bool(payload.get("is_critical", false))
+	var session_id: int = int(payload.get("session_id", -1))
 	_begin_combat_cinematic_lock()
 	var sprite: AnimatedSprite2D = null
 	if member_idx >= 0 and member_idx < _chr_sprites.size():
 		sprite = _chr_sprites[member_idx]
 	await get_tree().create_timer(_attack_anim_impact_delay(sprite)).timeout
-	if not $CombatController.is_in_combat:
+	if session_id != _combat_session_id or not $CombatController.is_in_combat:
 		if kind == "counter":
 			_passive_counter_depth = maxi(0, _passive_counter_depth - 1)
 		_end_combat_cinematic_lock()
@@ -6332,12 +6350,13 @@ func _resolve_party_skill_damage_impact_async(payload: Dictionary) -> void:
 	var skill_data: Resource = payload.get("skill_data") as Resource
 	var skill_id: String = str(payload.get("skill_id", ""))
 	var display_name: String = str(payload.get("display_name", "スキル"))
+	var session_id: int = int(payload.get("session_id", -1))
 	_begin_combat_cinematic_lock()
 	var sprite: AnimatedSprite2D = null
 	if member_idx >= 0 and member_idx < _chr_sprites.size():
 		sprite = _chr_sprites[member_idx]
 	await get_tree().create_timer(_attack_anim_impact_delay(sprite)).timeout
-	if not $CombatController.is_in_combat:
+	if session_id != _combat_session_id or not $CombatController.is_in_combat:
 		_end_combat_cinematic_lock()
 		return
 	if not $CombatController.is_member_alive(member_idx):
@@ -6399,7 +6418,7 @@ func _commit_commander_run_stats(outcome: String) -> void:
 
 func _handle_party_wipe() -> void:
 	$CombatTimer.stop()
-	_combat_impact_sfx_enabled = false
+	_end_combat_session()
 	$CombatController.end_combat()
 	_update_status_labels()
 	_clear_turn_order_ui()
@@ -6473,7 +6492,8 @@ func _update_combat_visibility() -> void:
 	# 非戦闘フロアに入った時点で初めて消す（敵味方位置のズレ防止）。
 	var on_combat_floor: bool = $DungeonController.is_combat_room()
 	_non_combat_zone.visible = not on_combat_floor
-	_auto_combat_row.visible = on_combat_floor
+	## 「自動戦闘中／一時停止」行は常時非表示（停止はヘッダ ButtonStop）。
+	_auto_combat_row.visible = false
 	$MainVBox/BattleLogPanel.visible = on_combat_floor
 	_party_status_panel.visible = on_combat_floor
 	_narrative_panel.visible = not on_combat_floor
@@ -6580,7 +6600,9 @@ func _on_auto_progress_timeout() -> void:
 func _transition_to_next_room() -> void:
 	if _room_transition_busy or _dive_intro_active or _combat_clear_active:
 		return
-	AudioManager.play_sfx("room_enter", 1.0, 0.2)
+	## 戦闘フロアへは door SE を鳴らさない（画面が出る前の「謎SE」になるため）。
+	if not $DungeonController.is_next_room_combat():
+		AudioManager.play_sfx("room_enter", 1.0, 0.2)
 	_room_transition_busy = true
 	$AutoProgressTimer.stop()
 	var tw: Tween = create_tween()
@@ -8167,7 +8189,12 @@ func _play_hit_vfx(element: String = "", is_critical: bool = false) -> void:
 # 属性専用VFX(ELEMENT_VFX_PATH)があればそれを無着色で再生、無ければ
 # FX_Hit_Normal を ELEMENT_COLOR でティント着色してフォールバックする。
 func _spawn_hit_vfx(world_pos: Vector2, element: String = "", scale_mult: float = 1.0, is_critical: bool = false) -> void:
-	if _combat_impact_sfx_enabled:
+	if CombatImpactSfxGate.allow(
+		_combat_impact_sfx_enabled,
+		$CombatController.is_in_combat,
+		_boss_intro_active,
+		_elite_intro_active
+	):
 		AudioManager.play_sfx("combat_crit" if is_critical else "combat_hit", 1.0, 0.03)
 	if is_critical and ResourceLoader.exists(VFX_CRIT_PATH):
 		var crit_frames: SpriteFrames = load(VFX_CRIT_PATH) as SpriteFrames
@@ -8279,15 +8306,19 @@ func _end_combat_cinematic_lock() -> void:
 
 ## 敵出現ログのあと、実際のCT戦闘開始まで間を空ける。
 func _start_combat_after_appear_delay() -> void:
+	var session: int = _combat_session_id
 	$CombatTimer.stop()
 	_combat_cinematic_lock = true
 	_combat_impact_sfx_enabled = false
 	await get_tree().create_timer(COMBAT_START_DELAY_SEC).timeout
+	if session != _combat_session_id:
+		return
 	_combat_cinematic_lock = false
 	if not $CombatController.is_in_combat or _is_paused:
 		return
 	if _boss_intro_active or _elite_intro_active:
 		return
+	_fire_combat_start_passives()
 	_combat_impact_sfx_enabled = true
 	$CombatTimer.start()
 
@@ -8434,6 +8465,7 @@ func _dismiss_ultimate_center_telop(fade_sec: float = 0.25) -> void:
 func _play_ultimate_presentation_async(payload: Dictionary) -> void:
 	var speed: float = _ultimate_presentation_speed_mult()
 	var t: Dictionary = UltimatePresentationConfigScript.scaled(speed)
+	var session_id: int = int(payload.get("session_id", -1))
 	_begin_combat_cinematic_lock()
 	var member_idx: int = int(payload.get("member_idx", -1))
 	var skill_data: Resource = payload.get("skill_data") as Resource
@@ -8446,7 +8478,7 @@ func _play_ultimate_presentation_async(payload: Dictionary) -> void:
 	_pulse_member_ultimate(member_idx)
 	_shake_battlefield(6.5)
 	await get_tree().create_timer(float(t["announce"])).timeout
-	if not $CombatController.is_in_combat:
+	if session_id != _combat_session_id or not $CombatController.is_in_combat:
 		_dismiss_ultimate_center_telop(0.1)
 		_end_combat_cinematic_lock()
 		return
@@ -8461,7 +8493,7 @@ func _play_ultimate_presentation_async(payload: Dictionary) -> void:
 	_flash_member_sprite(member_idx, ring_tint)
 	_maybe_vibrate(35)
 	await get_tree().create_timer(float(t["windup"])).timeout
-	if not $CombatController.is_in_combat:
+	if session_id != _combat_session_id or not $CombatController.is_in_combat:
 		_dismiss_ultimate_center_telop(0.1)
 		_end_combat_cinematic_lock()
 		return
@@ -9092,7 +9124,14 @@ func _flash_member_sprite(member_idx: int, flash_color: Color) -> void:
 	tw.tween_property(sprite, "modulate", orig, 0.22)
 
 func _spawn_member_heal_vfx(member_idx: int) -> void:
-	AudioManager.play_sfx("combat_heal", 1.0, 0.05)
+	## 戦闘入場パッシブ回復など、CT開始前は SE を鳴らさない（謎ヒット音の再発防止）。
+	if CombatImpactSfxGate.allow(
+		_combat_impact_sfx_enabled,
+		$CombatController.is_in_combat,
+		_boss_intro_active,
+		_elite_intro_active
+	):
+		AudioManager.play_sfx("combat_heal", 1.0, 0.05)
 	var pos: Vector2 = _member_sprite_world_pos(member_idx)
 	_spawn_support_sprite_vfx(pos, VFX_HEAL_PATH, SUPPORT_VFX_TINT["heal"])
 	_flash_member_sprite(member_idx, Color(0.65, 1.0, 0.7))

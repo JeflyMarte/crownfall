@@ -33,7 +33,7 @@ func present(rank_code: String) -> void:
 	visible = true
 	_play_intro()
 	_spawn_confetti(72)
-	## hub BGM 開始直後でも確実に聞こえるよう1フレーム遅延。音源は level_up と同一。
+	## hub BGM 開始直後でも確実に聞こえるよう1フレーム遅延。音源は level_up（STEEL10）と同一。
 	call_deferred("_play_rank_up_sfx")
 
 

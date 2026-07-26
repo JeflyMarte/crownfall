@@ -67,3 +67,41 @@ func test_highest_floor_save() -> void:
 	assert_eq(GameState.get_abyss_highest_floor("abyss_mourngate"), 12, "後退しない")
 	GameState.note_abyss_floor_reached("abyss_mourngate", 40)
 	assert_eq(GameState.get_abyss_highest_floor("abyss_mourngate"), 40)
+
+
+func test_abyss_biomes_have_one_stage_distinct_from_parent() -> void:
+	## イベント同様: 親バナー下に1章。章名は親「無限〜の最果て」と分離。
+	var expected: Dictionary = {
+		"abyss_mourngate": ["abyss_mourngate_1_1", "虚脈の深廊"],
+		"abyss_whisperwood": ["abyss_whisperwood_1_1", "根葬の暗路"],
+		"abyss_mistfen": ["abyss_mistfen_1_1", "封緘の澱井戸"],
+		"abyss_blackshore": ["abyss_blackshore_1_1", "灯なき潮溝"],
+		"abyss_frostridge": ["abyss_frostridge_1_1", "氷裂の底縁"],
+	}
+	for abyss_id in expected.keys():
+		var stages: Array = DataRegistry.get_stages_for_biome(str(abyss_id))
+		assert_eq(stages.size(), 1, abyss_id)
+		var stage: Resource = stages[0]
+		var parent: Resource = DataRegistry.get_dungeon_data(str(abyss_id))
+		assert_eq(str(stage.id), str(expected[abyss_id][0]), abyss_id)
+		assert_eq(str(stage.display_name), str(expected[abyss_id][1]), abyss_id)
+		assert_ne(str(stage.display_name), str(parent.display_name), abyss_id)
+		GameState.mark_dungeon_cleared(_AbyssDungeonConfig.parent_biome_id(str(abyss_id)))
+		assert_true(GameState.is_stage_unlocked(str(stage.id)), abyss_id)
+
+
+func test_start_abyss_stage_keeps_endless_and_run_name() -> void:
+	GameState.mark_dungeon_cleared("mourngate")
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	dc.start_stage("abyss_mourngate_1_1")
+	assert_eq(dc.room_sequence.size(), 10)
+	assert_false(Enums.RoomType.BOSS in dc.room_sequence)
+	assert_eq(dc.get_run_display_name(), "1-1 虚脈の深廊")
+	## チャンク末尾を超えても完走せず延長する。
+	dc.current_room_index = dc.room_sequence.size() - 1
+	dc.advance_room()
+	assert_false(dc.is_completed)
+	assert_gt(dc.room_sequence.size(), 10)
+	assert_eq(GameState.get_stage_progress_label("abyss_mourngate"), "")

@@ -256,12 +256,16 @@ func mark_stage_cleared(stage_id: String, tier: int = -1) -> void:
 		and int(stage.chapter_index) >= int(stages[stages.size() - 1].chapter_index)
 	)
 	var has_boss: bool = bool(stage.has_boss_floor())
+	var dungeon_data: Resource = DataRegistry.get_dungeon_data(biome_id)
+	var is_abyss: bool = (
+		dungeon_data != null and str(dungeon_data.route_type) == "abyss"
+	)
 	if has_boss:
 		mark_dungeon_tier_cleared(biome_id, t)
 		if t == _DungeonTierConfig.TIER_NORMAL:
 			mark_dungeon_cleared(biome_id)
-	elif is_final_chapter:
-		## Boss 無し最終章（イベントDG等）も Biome クリア扱い。
+	elif is_final_chapter and not is_abyss:
+		## Boss 無し最終章（イベントDG等）も Biome クリア扱い。深層は無限のため対象外。
 		mark_dungeon_tier_cleared(biome_id, t)
 		if t == _DungeonTierConfig.TIER_NORMAL:
 			mark_dungeon_cleared(biome_id)
@@ -286,6 +290,10 @@ func count_cleared_stages(biome_id: String) -> int:
 
 func get_stage_progress_label(biome_id: String) -> String:
 	if not Constants.SUB_STAGES_PLAYABLE:
+		return ""
+	var dungeon: Resource = DataRegistry.get_dungeon_data(biome_id)
+	## 深層は無限階のため「章 n/m」進捗を出さない。
+	if dungeon != null and str(dungeon.route_type) == "abyss":
 		return ""
 	var stages: Array = DataRegistry.get_stages_for_biome(biome_id)
 	if stages.is_empty():
@@ -961,15 +969,21 @@ func unowned_relic_ids() -> Array:
 const COMBAT_PRESET_SLOTS: int = 3
 var combat_presets: Array = []
 
-# 探索方針（P3-D098）。run 単位で1つ。プリセットに内包され、適用時にここへ反映される。
+# 探索方針（P3-D098）。βではオミット（UI・効果とも無効。データ／セーブキーは残置）。
+const EXPLORATION_POLICY_PLAYABLE: bool = false
 # ""=なし / safe=安全優先 / material=素材優先 / relic=遺物優先 / codex=図鑑優先
 const EXPLORATION_POLICIES: Array = ["", "safe", "material", "relic", "codex"]
 var current_exploration_policy: String = ""
 
 func get_exploration_policy() -> String:
+	if not EXPLORATION_POLICY_PLAYABLE:
+		return ""
 	return current_exploration_policy
 
 func set_exploration_policy(policy: String) -> void:
+	if not EXPLORATION_POLICY_PLAYABLE:
+		current_exploration_policy = ""
+		return
 	current_exploration_policy = policy if policy in EXPLORATION_POLICIES else ""
 
 static func exploration_policy_label(policy: String) -> String:
@@ -990,7 +1004,7 @@ static func exploration_policy_hint(policy: String) -> String:
 
 # 安全優先＝被ダメ軽減倍率（CombatController が乗算）。
 func exploration_incoming_multiplier() -> float:
-	return 0.92 if current_exploration_policy == "safe" else 1.0
+	return 0.92 if get_exploration_policy() == "safe" else 1.0
 
 # 天候（環境変化・P3-D101）。run 開始時に DungeonController が抽選してセット。run 揮発。
 var current_weather: String = ""
@@ -1030,9 +1044,10 @@ func get_combat_preset_summary(slot: int) -> String:
 	var parts: PackedStringArray = PackedStringArray()
 	if equip_count > 0:
 		parts.append("装備%d" % equip_count)
-	var policy: String = str((combat_presets[slot] as Dictionary).get("exploration_policy", ""))
-	if not policy.is_empty():
-		parts.append(exploration_policy_label(policy))
+	if EXPLORATION_POLICY_PLAYABLE:
+		var policy: String = str((combat_presets[slot] as Dictionary).get("exploration_policy", ""))
+		if not policy.is_empty():
+			parts.append(exploration_policy_label(policy))
 	var custom_count: int = 0
 	for raw in settings.values():
 		if not raw is Dictionary:

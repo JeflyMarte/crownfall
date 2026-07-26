@@ -518,6 +518,12 @@ func _on_detail_pressed(member: Resource) -> void:
 	if not GameState.set_active_party(party):
 		_label_status.text = "詳細を開くには有効な編成が必要です"
 		return
+	if PetSystem.is_pet_member(member):
+		PetSystem.ensure_starter_pet()
+		## EquipmentScene の ◀▶ 一覧は roster の末尾に active_pet を付ける。
+		GameState.equipment_focus_member_index = GameState.get_roster().size()
+		SceneRouter.change_scene(EQUIPMENT_SCENE)
+		return
 	var roster: Array = GameState.get_roster()
 	var roster_idx: int = roster.find(member)
 	if roster_idx < 0:

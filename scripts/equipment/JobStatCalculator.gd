@@ -111,6 +111,8 @@ static func weapon_type_of_item(weapon_item: Resource) -> String:
 static func can_equip_weapon_data(adventurer: Resource, weapon_data: Resource) -> bool:
 	if adventurer == null or weapon_data == null:
 		return false
+	if PetSystem.is_pet_member(adventurer):
+		return false
 	var weapon_type: String = str(weapon_data.weapon_type)
 	if weapon_type.is_empty():
 		return false
