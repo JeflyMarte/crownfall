@@ -10,19 +10,19 @@ const _IntroUiAssets := preload("res://scripts/intro/IntroUiAssets.gd")
 
 const FLAG_KEY: String = "hub_simple_guide_done"
 const BG_PATH: String = "res://assets/ui/UI_BG_HubSimpleGuide.png"
-## 背景アート（約 4:3）に合わせて横長寄り。720幅画面で余白を残しつつ本文を収める。
-const PANEL_MIN: Vector2 = Vector2(700, 560)
+## 背景アート（約 4:3）。縦を伸ばして本文の見切れを防ぐ。
+const PANEL_MIN: Vector2 = Vector2(700, 680)
 ## 手引きヘッダの顔アイコン（正方形 ICO）。
 const FACE_ICON_PX: float = 88.0
 ## 背景フレームの内側余白（書籍イラスト直置き・9-slice しない）。
-const BG_CONTENT_MARGIN: int = 96
+const BG_CONTENT_MARGIN: int = 88
 ## 羊皮紙背景向けのインク色（通常UIの明るい本文色はコントラスト不足）。
 const INK_TITLE: Color = Color(0.22, 0.12, 0.05, 1.0)
 const INK_BODY: Color = Color(0.18, 0.11, 0.06, 1.0)
 const INK_META: Color = Color(0.38, 0.26, 0.14, 1.0)
 const INK_GOLD: Color = Color(0.36, 0.20, 0.05, 1.0)
-## 最終ページだけヘッダ（アイコン＋手引き）を少し下げる。
-const HEADER_TOP_GAP_LAST_PAGE: float = 28.0
+## ニーナのアイコン＋手引き見出しの上余白（全ページ共通・旧6P位置）。
+const HEADER_TOP_GAP: float = 28.0
 
 ## 手引きアイコン（アイコン画像。欠落時は「？」）。
 const GUIDE_FACES: Array[Dictionary] = [
@@ -98,9 +98,12 @@ const PAGES: Array[Dictionary] = [
 
 var _page_index: int = 0
 var _dim: ColorRect
+var _panel_shell: Control
 var _panel: PanelContainer
+var _book_bg: TextureRect
 var _header_top_spacer: Control
 var _title_label: Label
+var _body_scroll: ScrollContainer
 var _body_label: Label
 var _page_label: Label
 var _next_btn: Button
@@ -157,22 +160,33 @@ func _build() -> void:
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(center)
 
+	## ページ本文の長短で高さが変わると中央寄せでヘッダが上下するため、外枠サイズを固定。
+	_panel_shell = Control.new()
+	_panel_shell.name = "PanelShell"
+	_panel_shell.custom_minimum_size = PANEL_MIN
+	_panel_shell.clip_contents = true
+	_panel_shell.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	center.add_child(_panel_shell)
+
 	_panel = PanelContainer.new()
 	_panel.name = "Panel"
-	_panel.custom_minimum_size = PANEL_MIN
+	_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	_panel.clip_contents = true
 	_panel.gui_input.connect(_on_dim_gui_input)
 	## 書籍イラストは 9-slice しない（縁の黒マットが四角く伸びる）。
 	_panel.add_theme_stylebox_override("panel", _panel_empty_style())
-	center.add_child(_panel)
+	_panel_shell.add_child(_panel)
 
 	var bg := TextureRect.new()
 	bg.name = "BookBg"
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	## パネルを縦に伸ばした分、書籍枠も下方向へ伸ばして埋める。
+	bg.stretch_mode = TextureRect.STRETCH_SCALE
 	bg.texture = _IntroUiAssets.load_tex(BG_PATH)
+	_book_bg = bg
 	_panel.add_child(bg)
 
 	var margin := MarginContainer.new()
@@ -180,25 +194,27 @@ func _build() -> void:
 	margin.add_theme_constant_override("margin_left", BG_CONTENT_MARGIN)
 	margin.add_theme_constant_override("margin_right", BG_CONTENT_MARGIN)
 	margin.add_theme_constant_override("margin_top", BG_CONTENT_MARGIN - 4)
-	margin.add_theme_constant_override("margin_bottom", BG_CONTENT_MARGIN - 8)
+	margin.add_theme_constant_override("margin_bottom", BG_CONTENT_MARGIN - 16)
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_panel.add_child(margin)
 
 	var inner := VBoxContainer.new()
 	inner.add_theme_constant_override("separation", 14)
+	inner.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	margin.add_child(inner)
 
 	_header_top_spacer = Control.new()
 	_header_top_spacer.name = "HeaderTopSpacer"
 	_header_top_spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_header_top_spacer.custom_minimum_size = Vector2(0, 0)
+	_header_top_spacer.custom_minimum_size = Vector2(0, HEADER_TOP_GAP)
 	inner.add_child(_header_top_spacer)
 
 	## ヘッダ: ニーナのアイコン＋肩書き。
 	var header := HBoxContainer.new()
 	header.add_theme_constant_override("separation", 14)
 	header.alignment = BoxContainer.ALIGNMENT_CENTER
+	header.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	inner.add_child(header)
 
@@ -237,21 +253,33 @@ func _build() -> void:
 	_title_label = Label.new()
 	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_title_label.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	inner.add_child(_title_label)
+
+	var body_scroll := ScrollContainer.new()
+	body_scroll.name = "BodyScroll"
+	body_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	body_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	body_scroll.mouse_filter = Control.MOUSE_FILTER_STOP
+	body_scroll.resized.connect(_sync_body_label_wrap_width)
+	_body_scroll = body_scroll
+	inner.add_child(body_scroll)
 
 	_body_label = Label.new()
 	_body_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	_body_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	_body_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_body_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_body_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_body_label.clip_text = false
 	_body_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	_body_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	inner.add_child(_body_label)
+	body_scroll.add_child(_body_label)
 
 	_page_label = Label.new()
 	_page_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_page_label.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_page_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_display(_page_label, UiTypography.SIZE_CAPTION, INK_META, 0)
 	inner.add_child(_page_label)
@@ -259,6 +287,7 @@ func _build() -> void:
 	var btn_row := HBoxContainer.new()
 	btn_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	btn_row.add_theme_constant_override("separation", 20)
+	btn_row.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	btn_row.mouse_filter = Control.MOUSE_FILTER_STOP
 	inner.add_child(btn_row)
 
@@ -341,6 +370,16 @@ func _panel_bg_style() -> StyleBox:
 	return _panel_empty_style()
 
 
+func _sync_body_label_wrap_width() -> void:
+	## Scroll 内 Label は幅が不定だと折返し前に横へ伸びて見切れる。
+	if _body_scroll == null or _body_label == null:
+		return
+	var w: float = _body_scroll.size.x
+	if w <= 1.0:
+		return
+	_body_label.custom_minimum_size = Vector2(w, 0.0)
+
+
 func _refresh_page() -> void:
 	var page: Dictionary = PAGES[_page_index]
 	_title_label.text = str(page.get("title", ""))
@@ -353,25 +392,31 @@ func _refresh_page() -> void:
 	_page_label.text = "%d / %d" % [_page_index + 1, PAGES.size()]
 	var last: bool = _page_index >= PAGES.size() - 1
 	_next_btn.text = "はじめる" if last else "次へ"
-	_skip_btn.visible = not last
+	## visible=false だと行幅が変わりヘッダ相対位置がずれるため、非表示ではなく無効化。
+	_skip_btn.disabled = last
+	_skip_btn.modulate = Color(1, 1, 1, 0) if last else Color.WHITE
+	_skip_btn.mouse_filter = (
+		Control.MOUSE_FILTER_IGNORE if last else Control.MOUSE_FILTER_STOP
+	)
 	if _header_top_spacer != null:
-		_header_top_spacer.custom_minimum_size = Vector2(
-			0.0, HEADER_TOP_GAP_LAST_PAGE if last else 0.0
-		)
-
+		_header_top_spacer.custom_minimum_size = Vector2(0.0, HEADER_TOP_GAP)
+	if _panel_shell != null:
+		_panel_shell.custom_minimum_size = PANEL_MIN
+	call_deferred("_sync_body_label_wrap_width")
 
 func _play_intro() -> void:
-	_panel.modulate.a = 0.0
-	_panel.scale = Vector2(0.86, 0.86)
-	_panel.pivot_offset = PANEL_MIN * 0.5
+	var anim_target: Control = _panel_shell if _panel_shell != null else _panel
+	anim_target.modulate.a = 0.0
+	anim_target.scale = Vector2(0.86, 0.86)
+	anim_target.pivot_offset = PANEL_MIN * 0.5
 	if _tween != null and _tween.is_valid():
 		_tween.kill()
 	_tween = create_tween()
-	_tween.tween_property(_panel, "modulate:a", 1.0, 0.16)
-	_tween.parallel().tween_property(_panel, "scale", Vector2(1.04, 1.04), 0.24).set_trans(
+	_tween.tween_property(anim_target, "modulate:a", 1.0, 0.16)
+	_tween.parallel().tween_property(anim_target, "scale", Vector2(1.04, 1.04), 0.24).set_trans(
 		Tween.TRANS_BACK
 	).set_ease(Tween.EASE_OUT)
-	_tween.chain().tween_property(_panel, "scale", Vector2.ONE, 0.1)
+	_tween.chain().tween_property(anim_target, "scale", Vector2.ONE, 0.1)
 
 
 func _on_dim_gui_input(event: InputEvent) -> void:
