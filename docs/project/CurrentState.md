@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-07-27（**P3-UX-NONCOMBAT-POLISH-001 GO**: 碑文加護テロップ維持／回復泉緑数字・VFX／宝箱結果色分け。統合＋`main`）
 2026-07-27（**P3-UX-SURVEY-CANCEL-001 GO**: 調査室の進行中派遣を「調査を中止」で破棄可（報酬なし）。統合＋`main`）
 2026-07-27（**P3-UX-WIPE-CAUSE-001 GO**: 全滅リザルトに敗因1〜2行（階層・部屋・主因/ヒント）。統合＋`main`）
 2026-07-27（**P3-UX-EQUIP-SCROLL-PERF-001 GO**: キャラ画面スクロール軽量化 — 入れ子廃止／StyleBox・Idleキャッシュ／tooltip短縮。統合＋`main`）

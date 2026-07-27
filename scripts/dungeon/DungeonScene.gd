@@ -3091,6 +3091,7 @@ func _end_combat_session() -> void:
 
 
 func _enter_current_room() -> void:
+	_hide_event_telop()
 	_update_room_label()
 	_update_room_art()
 	if $DungeonController.has_active_floor_blessing():
@@ -3293,7 +3294,7 @@ func _handle_event_room_async() -> void:
 		LoreRoomPresentationScript.COLOR_SUCCESS
 	)
 	_event_presentation_active = false
-	_reset_narrative_typography()
+	## 碑文成功の加護表示は次フロアまで残す（typography リセットで薄くしない）。
 	_finish_room_and_continue()
 
 func _ensure_event_telop_panel() -> PanelContainer:
@@ -3458,10 +3459,13 @@ func _play_event_room_presentation(event: Dictionary, outcome: Dictionary) -> St
 		_flash_battlefield(flash, 0.14)
 	)
 	tw.tween_interval(float(timings["fx"]))
-	## 碑文は複数行のため少し長めに見せる。
+	## 碑文の加護／報酬は読めるまで残す（自動フェードしない）。
+	var keep_telop: bool = outcome_type == "lore"
+	if keep_telop:
+		await tw.finished
+		return applied_log
+	## 碑文以外は複数行のため少し長めに見せてから閉じる。
 	var result_hold: float = float(timings["result_hold"])
-	if outcome_type == "lore":
-		result_hold += 0.35 if not _fast_run_enabled else 0.18
 	tw.tween_interval(result_hold)
 	tw.tween_property(panel, "modulate:a", 0.0, float(timings["fade_out"]))
 	tw.parallel().tween_property(_event_telop_dim, "color:a", 0.0, float(timings["fade_out"]))
@@ -3610,10 +3614,16 @@ func _resolve_heal_room_async() -> void:
 		_reset_narrative_typography()
 		_finish_room_and_continue()
 		return
-	var healed_total: int = _apply_heal_room_success()
-	_play_heal_vfx()
+	_party_status_panel.visible = true
+	_show_chr_sprites()
+	_update_hp_bars()
+	var heal_amounts: Dictionary = _apply_heal_room_success_amounts()
+	_play_heal_room_vfx(heal_amounts)
 	_update_hp_bars()
 	_set_non_combat_phase_bg(HealRoomPresentationScript.bg_path_for_phase("success"))
+	var healed_total: int = 0
+	for k in heal_amounts.keys():
+		healed_total += int(heal_amounts[k])
 	var success_line: String = HealRoomPresentationScript.pick_success_line()
 	var cleanse_line: String = _cleanse_one_party_debuff()
 	var narrative: String = HealRoomPresentationScript.format_success_narrative(success_line, healed_total)
@@ -3623,7 +3633,10 @@ func _resolve_heal_room_async() -> void:
 	_append_log("[回復] %s" % success_line)
 	if not cleanse_line.is_empty():
 		_append_log("[回復] %s" % cleanse_line)
+	await get_tree().create_timer(0.85 if not _fast_run_enabled else 0.45).timeout
+	_hide_chr_sprites()
 	_heal_presentation_active = false
+	_update_combat_visibility()
 	_reset_narrative_typography()
 	_finish_room_and_continue()
 
@@ -3679,16 +3692,22 @@ func _resolve_treasure_room_async() -> void:
 	var log_text: String = TreasureRoomPresentationScript.format_success_narrative(
 		success_line, int(treasure["gold"]), accessory_name, weapon_name
 	)
+	var narrative_bb: String = TreasureRoomPresentationScript.format_success_narrative_bbcode(
+		success_line, int(treasure["gold"]), accessory_name, weapon_name
+	)
 	for line: String in explore_treasure:
 		log_text += "\n" + line
+		narrative_bb += "\n[color=#%s]%s[/color]" % [
+			TreasureRoomPresentationScript.COLOR_BODY_HEX, line
+		]
 	var has_accessory: bool = not (treasure["accessory_id"] as String).is_empty()
 	var has_weapon: bool = not weapon_id.is_empty()
 	_set_non_combat_phase_bg(TreasureRoomPresentationScript.bg_path_for_phase("success"))
 	AudioManager.play_sfx("treasure")
 	await _play_treasure_open_presentation(has_accessory or has_weapon)
-	_set_room_narrative(log_text, TreasureRoomPresentationScript.COLOR_SUCCESS)
+	_set_room_narrative_bbcode(narrative_bb)
+	_append_log("[宝箱] %s" % log_text)
 	_treasure_presentation_active = false
-	_reset_narrative_typography()
 	_finish_room_and_continue()
 
 func _dungeon_treasure_open_path(dungeon_id: String) -> String:
@@ -3933,8 +3952,17 @@ func _noncombat_status_display_name(status_id: String) -> String:
 
 
 func _apply_heal_room_success() -> int:
-	$CombatController.ensure_party_hp_for_combat()
+	var amounts: Dictionary = _apply_heal_room_success_amounts()
 	var total: int = 0
+	for k in amounts.keys():
+		total += int(amounts[k])
+	return total
+
+
+## メンバー index → 実際の回復量。
+func _apply_heal_room_success_amounts() -> Dictionary:
+	$CombatController.ensure_party_hp_for_combat()
+	var amounts: Dictionary = {}
 	for i: int in $CombatController.party_combat_hp.size():
 		if int($CombatController.party_combat_hp[i]) <= 0:
 			continue
@@ -3944,8 +3972,27 @@ func _apply_heal_room_success() -> int:
 			int(round(float(max_hp) * BalanceConfig.ROOM_HEAL_MAX_HP_FRAC))
 		)
 		amount = _apply_healing_bonus(amount)
-		total += $CombatController.heal_member(i, amount)
-	return total
+		var healed: int = $CombatController.heal_member(i, amount)
+		if healed > 0:
+			amounts[i] = healed
+	return amounts
+
+
+func _play_heal_room_vfx(heal_amounts: Dictionary) -> void:
+	## 泉は緑の回復数字＋緑VFX（戦闘スキル回復と同系統）。
+	const HEAL_NUM_GREEN: Color = Color(0.35, 1.0, 0.48, 1.0)
+	const HEAL_VFX_GREEN: Color = Color(0.28, 1.0, 0.42, 1.0)
+	if not heal_amounts.is_empty():
+		AudioManager.play_sfx("combat_heal", 1.0, 0.05)
+	for i: int in heal_amounts.keys():
+		var idx: int = int(i)
+		var healed: int = int(heal_amounts[i])
+		if healed <= 0:
+			continue
+		var pos: Vector2 = _member_sprite_world_pos(idx)
+		_spawn_support_sprite_vfx(pos, VFX_HEAL_PATH, HEAL_VFX_GREEN)
+		_flash_member_sprite(idx, HEAL_VFX_GREEN)
+		_spawn_damage_number("+%d" % healed, pos + Vector2(0.0, -CHR_BODY_TARGET_PX * 0.45), HEAL_NUM_GREEN, 1.15, healed, true)
 
 
 const _NONCOMBAT_CLEANSE_DEBUFFS: Array[String] = [
@@ -4019,10 +4066,46 @@ func _member_max_hp_for_trap(index: int) -> int:
 	return 1
 
 func _set_room_narrative(text: String, accent: Color = UiTypography.COLOR_BODY) -> void:
+	_ensure_narrative_label_mode()
 	_label_narrative.text = text
 	UiTypography.apply_body(_label_narrative, UiTypography.SIZE_BODY, accent)
 
+
+func _set_room_narrative_bbcode(bbcode: String) -> void:
+	var rich: RichTextLabel = _ensure_narrative_rich()
+	rich.clear()
+	rich.append_text(bbcode)
+	rich.visible = true
+	_label_narrative.visible = false
+
+
+func _ensure_narrative_label_mode() -> void:
+	_label_narrative.visible = true
+	var rich: RichTextLabel = _narrative_panel.get_node_or_null("LabelNarrativeRich") as RichTextLabel
+	if rich != null:
+		rich.visible = false
+		rich.clear()
+
+
+func _ensure_narrative_rich() -> RichTextLabel:
+	var existing: RichTextLabel = _narrative_panel.get_node_or_null("LabelNarrativeRich") as RichTextLabel
+	if existing != null:
+		return existing
+	var rich := RichTextLabel.new()
+	rich.name = "LabelNarrativeRich"
+	rich.bbcode_enabled = true
+	rich.fit_content = true
+	rich.scroll_active = false
+	rich.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	rich.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	rich.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_log_rich(rich, UiTypography.SIZE_BODY, UiTypography.COLOR_BODY)
+	_narrative_panel.add_child(rich)
+	return rich
+
+
 func _reset_narrative_typography() -> void:
+	_ensure_narrative_label_mode()
 	UiTypography.apply_body(_label_narrative, UiTypography.SIZE_BODY_SMALL)
 	_label_narrative.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	if _label_now_playing != null:
