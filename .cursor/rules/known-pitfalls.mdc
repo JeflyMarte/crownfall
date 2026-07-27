@@ -31,6 +31,7 @@ alwaysApply: true
 | キャラ管理オープンで即終了 | `Control.custom_maximum_size` を参照（**Godot 4.6.3 未実装**。4.x latest/PR のみ） | `gdscript.mdc` / `ui-layout.mdc` — 現行エンジンに無い API を使わない。固定サイズは `custom_minimum_size` + `SIZE_SHRINK_*` + 親も SHRINK |
 | Biome バナーが潰れる／タイトル欠ける | 2:1 キーアートを薄い strip（112px）に中央クロップ | `generate_biome_banner.py` は **アスペクト維持が既定**。タイトル焼込は `BIOME_BANNER_TITLE_BAKED`＋一覧ヘッダ高さは縦横比から算出 |
 | イベントDGクリア後に一覧バナー名が横伸び | タイトル Label を FULL_RECT 埋め込み | タイトルは自然サイズ＋中央寄せ（FULL_RECT／レイアウト前 fit 禁止）。親は `clip_contents` |
+| ダンジョンバナー名の大きさがBiomeごとに違う | `display_name.length()>=12` でウィスパーウッド／フロストリッジだけ SMALL 化 | 文字数閾値禁止。`BiomeBannerHelper.title_font_size` で幅フィット。深層のみ初段 SMALL |
 | イベントDGバナーを押すと大きくなる／画面が横にはみ出す | ①`ScrollContainer.horizontal_scroll_mode=DISABLED` が子最小幅に追従 ②日本語 `AUTOWRAP_WORD_SMART` が空白無し1語扱いで Label 最小幅＝全文幅（Featured flavor 等）③バナー高さの `host.size.x` 同期＋`resized.bind` 多重接続 | Scroll は `SHOW_NEVER`。Featured Label は `EXPAND_FILL`＋`AUTOWRAP_ARBITRARY`＋`min.x=0`（**clip_text は付けない**）。バナー高さはデザイン幅680固定（`min.x=0`・実幅／resized 同期禁止） |
 | ダンジョン選択バナーの名前が全部消える | 中央アンカー Label に `clip_text`／親 `clip_contents`、または `PRESET_CENTER` のみで size=(0,0) | タイトルは `PRESET_CENTER`＋`PRESET_MODE_MINSIZE`＋`clip_text=false`。バナー親の `clip_contents` 禁止。横はみ出しは Scroll／Featured 側で抑止 |
 | HBox 内の数値が消える（アイコンだけ残る） | Label の `clip_text=true` は最小幅 0 → SHRINK の HBox で幅が潰れる | `ui-layout.mdc` — 短い数値は `clip_text=false`。必要なら `EXPAND_FILL` |
