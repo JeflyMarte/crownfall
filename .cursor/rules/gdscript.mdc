@@ -72,6 +72,9 @@ while cond:
 ❌ `get_name` / `set_name` を独自 API にしない（Script 組み込み void と衝突し、呼び出しが null になる）  
 ✅ `get_commander_name` / `set_commander_name` のように衝突しない名前にする
 
+❌ 静的ヘルパに `wrap` / `lerp` / `clamp` 等のグローバル関数名を付け、同ファイルから `wrap(a, b)` と呼ぶ（組み込み `wrap(value,min,max)` が優先され Parse Error → 依存シーン未ロード）  
+✅ `bb_wrap` など衝突しない名前にする
+
 ❌ `extends Control` なスクリプトを `.tscn` の `Node` ルートへ付ける（起動黒画面・Errors に型不一致）  
 ✅ `extends` とシーンルート型を一致させる。`BootScene` はルート `Node` ＋ `extends Node`
 
@@ -113,6 +116,16 @@ if _should_play_combat_impact_sfx():
 # 罠部屋以外の探索罠は skip_hit_taken。直接 combat_hit を鳴らさない
 ```
 
+```gdscript
+# ❌ BAD — 回復／パッシブ／加護の名ポップに既定 combat_skill（ヒット寄り）
+_spawn_skill_name(skill_name, member_idx)
+
+# ✅ GOOD — 名ポップは無音。SE は heal / buff / hit 側
+_spawn_skill_name(skill_name, member_idx, 0.0, "", false, "")
+```
+
+非戦闘ナラティブ・VFX 位置の詳細: `docs/specs/implementation/14_Presentation_Pitfalls.md`
+
 ## テスト
 
 - ロジック変更時は `res://tests/unit/` に GUT テストを追加・更新
@@ -122,5 +135,6 @@ if _should_play_combat_impact_sfx():
 
 - 実装マップ: `docs/specs/implementation/CODEMAP.md`
 - コーディングルール: `docs/specs/implementation/07_コーディングルール.md`
+- 演出落とし穴: `docs/specs/implementation/14_Presentation_Pitfalls.md`
 - アーキテクチャ: `docs/specs/implementation/01_Godotアーキテクチャ.md`
 - `docs/archives/` は Proposal。実装根拠にしない

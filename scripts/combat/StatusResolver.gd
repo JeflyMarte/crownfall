@@ -2,6 +2,14 @@ class_name StatusResolver
 extends RefCounted
 
 const MAX_DISTINCT_STATUSES: int = 3
+## 同系統の弱い／強い状態は共存させない（与ダメ乗算の二重掛け防止）。
+const MUTUALLY_EXCLUSIVE: Dictionary = {
+	"curse": ["major_curse"],
+	"major_curse": ["curse"],
+	"empower": ["empower_minor"],
+	"empower_minor": ["empower"],
+	"empower_pet": [],
+}
 
 var _active: Dictionary = {}  # unit_id -> Array[StatusInstance]
 
@@ -26,6 +34,7 @@ func apply_status(
 	if not _active.has(unit_id):
 		_active[unit_id] = []
 	var instances: Array = _active[unit_id]
+	_remove_exclusive_statuses(instances, effect_id)
 	for inst: StatusInstance in instances:
 		if inst.effect_id == effect_id:
 			inst.stacks = mini(effect.max_stacks, inst.stacks + stacks_to_add)
@@ -42,6 +51,17 @@ func apply_status(
 	new_inst.source_attack = source_attack
 	instances.append(new_inst)
 	return true
+
+
+func _remove_exclusive_statuses(instances: Array, effect_id: String) -> void:
+	var blocked: Array = MUTUALLY_EXCLUSIVE.get(effect_id, [])
+	if blocked.is_empty():
+		return
+	var i: int = instances.size() - 1
+	while i >= 0:
+		if str((instances[i] as StatusInstance).effect_id) in blocked:
+			instances.remove_at(i)
+		i -= 1
 
 func tick_unit(unit_id: String) -> Array[Dictionary]:
 	var results: Array[Dictionary] = []

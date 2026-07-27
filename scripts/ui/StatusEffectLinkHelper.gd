@@ -11,6 +11,8 @@ const _POPUP_NAME: String = "StatusEffectPopupOverlay"
 const EXTRA_ALIASES: Dictionary = {
 	"激励": "empower",
 	"小さな激励": "empower_minor",
+	"相棒鼓舞": "empower_pet",
+	"重呪": "major_curse",
 	"防御低下": "armor_break",
 	"防御ダウン": "armor_break",
 	"防御Down": "armor_break",

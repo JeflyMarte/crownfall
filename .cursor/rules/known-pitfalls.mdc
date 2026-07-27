@@ -11,6 +11,10 @@ alwaysApply: true
 
 | 症状 | 原因 | 再発防止 |
 |---|---|---|
+| ダンジョン入場で即終了（`DungeonScene` コンパイル失敗） | `NonCombatNarrativeColors.wrap` が組み込み `wrap(value,min,max)` と衝突し「Too few arguments」 | 静的ヘルパは `bb_wrap` 等、グローバル／組み込みと被らない名前にする。変更後 headless で DungeonScene ロード確認 |
+| 宝箱／泉／碑文の結果コメントが「探索を開始した」に戻る | 結果 BBCode 直後の `_reset_narrative_typography` が Label モードへ戻し、入場時の旧文が再表示 | 結果表示後はリセットしない。BBCode 時は Label 平文同期。Rich 表示中は reset を no-op。詳細: `14_Presentation_Pitfalls.md` |
+| 非戦闘失敗／入場パッシブのダメージ・回復数字が変な位置／見えない | 味方ドット非表示のまま VFX。`_member_sprite_world_pos` が ZERO | `_begin_noncombat_party_feedback`。位置はカードへフォールバック。詳細: `14_Presentation_Pitfalls.md` |
+| 戦闘開始直後にパッシブ名（野戦調合など）と一緒にダメージ音が鳴る | `_spawn_skill_name` 既定 `combat_skill`。回復スキル／加護／武器名ポップも同様 | 名ポップは `sfx_id=""`。SE は heal/buff/hit 側。詳細: `14_Presentation_Pitfalls.md` |
 | `DungeonScene` パース失敗 `Identifier "label" not declared` | `_execute_member_buff` の `_spawn_skill_name` 差し替え時に `var label`／`wants_taunt` 分岐を誤って削った | バフ SE 等の引数追加時は return 文言ブロックを残す。変更後 headless で DungeonScene ロード確認 |
 | `balance_sim` で `is_pet_member` が GDScript 未解決 | autoload から `preload` Script へ静的呼出が `-s` で欠けることがある | `PetSystem.is_pet_member`（class_name）を使う |
 | 鍛冶・錬成ボタン後にクリック不能／フリーズ | `AcceptDialog`（Window 排他）＋中身カスタム／ScrollTouch で入力が奪われる | 素材一覧は結果ポップ同様の **Control オーバーレイ**。行ボタンは ScrollTouch 後に `MOUSE_FILTER_STOP` を復元 |
@@ -39,7 +43,11 @@ alwaysApply: true
 | 戦闘下カードで名前が「アル…」等に切れる | `clip_text`＋ellipsis。長い表示名がカード幅を超える | 省略禁止＋幅に合わせて font_size 縮小（`_fit_party_card_name_font`）。レイアウト後に deferred 再計算 |
 | 戦闘が全体的にカクつく／歩行が飛ぶ | `_process` で HPバー位置更新のたび `Texture2D.get_image()`＋`get_used_rect()` | 正規化時に `body_frame_h` / `body_top_inset` を meta キャッシュしホットパスでは使わない |
 | 攻撃モーション寸前に一瞬カクつく | 必殺 resolve 同フレームで攻撃開始＋フラッシュ／シェイク／リング／ヒット VFX／ダメージ数字が集中。VFX の都度 `load` | windup 開始で攻撃開始。ダメージ必殺の resolve はヒット側のみ。Heal VFX／attack テクスチャは入場時にウォーム |
-| 【エリート】が敵名と離れて見える | `CombatTierFrame` 上部中央ラベルで戦場全体の上端に出ていた | 先頭敵ネームプレート直上バッジへ。枠ボーダーは維持 |
+| 状態異常レジェンドの背景四角 | Panel に半透明 StyleBoxFlat | `StyleBoxEmpty`（アイコン＋効果文言のみ） |
+| 本編 x-1〜x-5 で戦闘BGが全部同じ | Biome 単枚のみ／章切替未配線 | Early＝章1〜3／Late＝4〜5。⑤x-5ボスのみ FinalBoss |
+| 影狩予兆の次が別敵→その次が影狩 | 予兆を `current+1`（前フロア）で出していた | 予兆は出現フロア入場時（計画インデックス＝現在） |
+| エリート前に中央「エリート」謎文字 | `_begin_elite_combat_entrance` の中央 Label | 中央テロップ禁止。遷移 `[エリート]`＋ネームバッジのみ |
+| 部屋遷移の「[戦闘] F」が消える | ボス／エリートで部屋名を省略しすぎた | 戦闘／エリートは `[種別]\nF` を出す。ボスのみ専用入場のため省略可 |
 | 戦闘が継続的にカクつく | `_process` の CDバー更新が毎フレーム `StyleBoxFlat.new()`。`CombatUiFrames.panel_style` も都度 new＋load | CD/パネル StyleBox をキャッシュ。HPバー追従は position/offset 差分時のみ。ホットパスで `get_image` 禁止 |
 | 攻撃アニメと同時にダメージ数字／HP減少 | 通常攻撃が `play("attack")` とダメージ適用を同フレームで実行 | ヒットは `ATTACK_IMPACT_FRAME_RATIO` まで遅延＋cinematic lock（`_resolve_party_attack_impact_async`） |
 | アルド攻撃が「動いてない」ように見える | 背面アングル＋序盤フレームが立ち姿に近く、ヒットが早すぎて剣の振り上がり前にダメ数字が目立つ | ヒット比を中盤寄りに。静止に近い先頭フレームを攻撃から外す。短い踏み込み（`_play_chr_attack_lunge`）で可読性を補う |
@@ -141,7 +149,8 @@ alwaysApply: true
 | iPhone でタッチスクロール不能（ダンジョン他） | Scroll 内 Button／STOP がドラッグを吸収 | `ScrollTouchHelper`（deadzone＋子孫を PASS）。`BottomNavHelper.setup` と一覧 rebuild 後に適用 |
 | 装備一覧でセルを押しても詳細が変わらない | ScrollTouch が Button を PASS 化 → `pressed` 不発。加えて選択時に即 `rebuild` で入力中 Button を queue_free | Catalog も装備画面同様 `gui_input` 短押し。選択はハイライト差替のみ（全再生成しない）。BgTexture は IGNORE |
 | 装備一覧が重い／タップでカクつく | 選択のたび全セル `rebuild`＋幅連動 `cell_px` で StyleBox／ノード再生成 | セルは `INV_CELL_PX` 固定。選択は詳細＋枠ハイライトのみ更新。Grid は `SIZE_SHRINK_*` |
-| スキル／装備説明の状態異常リンクが押せない | `ScrollTouchHelper` が `RichTextLabel` も `PASS` 化し `meta_clicked` が届かない | RTL（と `_cf_keep_mouse_stop`）は STOP 維持。`StatusEffectLinkHelper` で meta 付与 |
+| スキル／装備説明の状態異常リンクが押せない | `ScrollTouchHelper` が `RichTextLabel` も `PASS` 化し `meta_clicked` が届かない | リンク RTL だけ `_cf_keep_mouse_stop`＋STOP（`StatusEffectLinkHelper`）。**全 RTL を STOP 化禁止**（章カード名 IGNORE 越しタップが潰れる） |
+| ダンジョン章カード名を押しても入場できない | ScrollTouch が全 `RichTextLabel` を STOP 化し、親 Button へタップが届かない | IGNORE の RTL はそのまま。STOP 維持は `_cf_keep_mouse_stop` のみ |
 | イベントDGバナーが全部モーンゲート | `SUB_BANNER_FALLBACK` で mourngate 流用のみ | 各イベントに `BAN_DG_*` を用意し `BIOME_BANNER_PATHS` へ登録。フォールバックから外す |
 | イベントDGバナーだけ大きい（240px）／枠なし | キーアート全高のまま、または strip のみで金枠未合成 | `generate_biome_banner.py --strip-height 232`（枠は既定 ON）。`BAN_DG_Frame_Strip` を重ねメインと同寸・同枠に |
 | 戦闘フロア入場前に謎の SE | ①次部屋へ進む瞬間の `room_enter` ②黒幕中の戦闘BGM切替 ③罠／入場遅延／前戦闘遅延ヒット／`combat_heal` | 戦闘行きは `room_enter` スキップ。BGMは一幕後。Hit/Healは Gate＋CT開始後。遅延は `_combat_session_id` |
@@ -151,7 +160,7 @@ alwaysApply: true
 | 一時停止ポップの裏に HPバーが貫通 | PauseOverlay `z_index=15` ＜ HPバー `COMBAT_OVERLAY_Z=25`／行動順30 | Pause を CanvasLayer 55（`_ensure_pause_overlay_layer`）へ |
 | ボスが Header／上端バーまで貫通 | `BOSS_BODY_TARGET_PX=360`＋足元 `y=0.25` で戦場高を超過。セルディオンは128セルで体感最大 | 目標280＋足元0.34。`BOSS_BODY_SCALE_MULT`で種別抑制（serdion=0.92） |
 | エリート（特にワイバーン）が雑魚と同寸で小さい | 敵正規化が全種 `ENEMY_BODY_TARGET_PX=132` のみ | `ENEMY_BODY_SCALE_MULT`でエリート拡大（mist_wyvern=1.42 等）。未指定エリートは `ELITE_BODY_SCALE_MULT_DEFAULT=1.28` |
-| フロストリッジ敵が単体でも貧弱 | 単体も雑魚基準132のまま／群れ縮小のみ | フロストリッジ系DGは単体時 `FROSTRIDGE_SOLO_DISPLAY_SCALE=1.28`。群れ時は従来どおり `SWARM_DISPLAY_SCALE` |
+| フロストリッジ敵が単体でも貧弱 | 単体も雑魚基準132のまま／群れ縮小のみ | フロストリッジ系DGは単体時 `FROSTRIDGE_SOLO_DISPLAY_SCALE=1.28`。群れは体数スケール（1=1.0／4+=`SWARM_DISPLAY_SCALE_MIN`） |
 | ダンジョン解放が質素＋変な改行 | 狭いパネル＋1ラベル自動折返しで「ウィスパー／ウッド」「！」単独行 | バナー主役（`BiomeBannerHelper`＋`BAN_DG_*`）。名前と「が解放された！」を分離し名前は折り返し禁止＋フォント縮小 |
 | 章クリア後いきなり加入セリフで唐突 | 拠点が解放→加入のみで記録官の橋渡し無し | 加入候補時はニーナ功績→解放→加入予告→加入（`pending_clear_nina_*`）。加入UI本体は別改修 |
 | 加入が旧小吹き出しのまま唐突 | モック（タイトル帯＋大アイコン＋名札＋セリフ）未配線 | `StarterJoinOverlay` はショーケース→ガチャ風リビール。枠は `assets/ui/join/` |

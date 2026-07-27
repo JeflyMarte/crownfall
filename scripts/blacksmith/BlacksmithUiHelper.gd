@@ -1,8 +1,8 @@
 class_name BlacksmithUiHelper
 extends RefCounted
 
-const RARITY_GEMS: Array[String] = ["◇", "◆", "✦", "★", "❖", "▣"]
-const RARITY_SHORT: Array[String] = ["N", "R", "SR", "SSR", "MY", "SET"]
+## 装備レア表示（P3-UI-RARITY-NREL-001）。N＜R＜E＜L（＋M／セット）。
+const RARITY_SHORT: Array[String] = ["N", "R", "E", "L", "M", "セット"]
 
 ## モック寄せ: 行はやや詰め、選択枠は Texture 側で厚く見せる。
 const LIST_CARD_MIN_HEIGHT: int = 112
@@ -53,7 +53,7 @@ const CATEGORY_LABELS: Dictionary = {
 }
 
 static func rarity_gem(rarity: int) -> String:
-	return RARITY_GEMS[clampi(rarity, 0, RARITY_GEMS.size() - 1)]
+	return rarity_short_label(rarity)
 
 static func rarity_short_label(rarity: int) -> String:
 	return RARITY_SHORT[clampi(rarity, 0, RARITY_SHORT.size() - 1)]

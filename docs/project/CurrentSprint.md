@@ -92,6 +92,7 @@
 | — | **P3-UX-STATUS-LEGEND-001** | 戦闘右上・発生中状態異常レジェンド | ✅ GO・Impl |
 | — | **P3-UX-STATUS-TELOP-001** | 状態付与「を付与！」テロップ＋DoT頭上 | ✅ GO・Impl |
 | — | **P3-UX-SKILL-LEARN-PERSIST-001** | 経験値画面・スキル習得をキャラ名横に常時表示 | ✅ GO・Impl |
+| — | **P3-UX-PRESENTATION-AUDIT-001** | ダンジョン演出総点検（ナラティブ巻き戻り／VFX位置／誤SE）＋再発防止SSOT | ✅ GO・統合＋main＋Xcode |
 | — | **P3-UX-COMBAT-VFX-001** | 戦闘バフデバフ視認／武器別ヒット／鼓舞SE | ✅ GO・統合＋main |
 | — | **P3-UX-NONCOMBAT-POLISH-001** | 非戦闘フロア（碑文／泉／宝箱）表示 polish | ✅ GO・Impl |
 | — | **P3-UX-SURVEY-CANCEL-001** | 調査室・進行中調査の中止ボタン | ✅ GO・Impl |

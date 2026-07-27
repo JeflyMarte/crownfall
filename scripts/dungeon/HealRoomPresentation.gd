@@ -67,6 +67,21 @@ static func format_success_narrative(success_line: String, heal_amount: int) -> 
 	return "%s\n生存メンバーを %d 回復した。" % [success_line, heal_amount]
 
 
+static func format_success_narrative_bbcode(
+	success_line: String, heal_amount: int, cleanse_line: String = ""
+) -> String:
+	var parts: PackedStringArray = []
+	parts.append(NonCombatNarrativeColors.body(success_line))
+	parts.append(NonCombatNarrativeColors.heal("生存メンバーを %d 回復した。" % heal_amount))
+	if not cleanse_line.is_empty():
+		parts.append(NonCombatNarrativeColors.buff(cleanse_line))
+	return "\n".join(parts)
+
+
+static func format_fail_narrative_bbcode(fail_line: String, penalty_line: String = "") -> String:
+	return NonCombatNarrativeColors.format_fail_bbcode(fail_line, penalty_line)
+
+
 static func _pick_line(lines: Array[String], rng: RandomNumberGenerator) -> String:
 	if lines.is_empty():
 		return ""

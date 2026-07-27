@@ -75,11 +75,10 @@ static func _make_descendants_scroll_friendly(node: Node, nest_inner_scrolls: bo
 			continue
 		if child is BaseButton:
 			(child as BaseButton).mouse_filter = Control.MOUSE_FILTER_PASS
-		elif child is RichTextLabel:
-			## 状態異常リンク等の meta_clicked 用。PASS にするとタップが届かない。
-			(child as RichTextLabel).mouse_filter = Control.MOUSE_FILTER_STOP
 		elif child is Control:
 			var c: Control = child as Control
+			## 状態異常リンク等: meta で STOP 維持（一律 RichTextLabel→STOP は章カード名の
+			## IGNORE 越しタップを潰すので禁止。StatusEffectLinkHelper が meta を付ける）。
 			if bool(c.get_meta(&"_cf_keep_mouse_stop", false)):
 				c.mouse_filter = Control.MOUSE_FILTER_STOP
 			## カード等の STOP がドラッグを奪う。IGNORE はそのまま。

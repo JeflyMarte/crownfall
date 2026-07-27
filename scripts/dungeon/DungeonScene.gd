@@ -441,6 +441,29 @@ const BATTLE_BG_MAP: Dictionary = {
 	"shadow_hunt": "res://assets/dungeon/event/env/BG_Battle_Event.png",
 	"rock_stampede": "res://assets/dungeon/event/env/BG_Battle_Event.png",
 }
+## 本編 Biome の序盤章（x-1〜x-3）。未登録は BATTLE_BG_MAP（x-4〜x-5＝後半）へ。
+const BATTLE_BG_EARLY_MAP: Dictionary = {
+	"mourngate": "res://assets/dungeon/mourngate/env/BG_Battle_Mourngate_Early.png",
+	"whisperwood": "res://assets/dungeon/whisperwood/env/BG_Battle_Whisperwood_Early.png",
+	"mistfen": "res://assets/dungeon/mistfen/env/BG_Battle_Mistfen_Early.png",
+	"blackshore": "res://assets/dungeon/blackshore/env/BG_Battle_Blackshore_Early.png",
+	"frostridge": "res://assets/dungeon/frostridge/env/BG_Battle_Frostridge_Early.png",
+	"red_ridge_mine": "res://assets/dungeon/whisperwood/env/BG_Battle_Whisperwood_Early.png",
+	"mistfen_depths": "res://assets/dungeon/mistfen/env/BG_Battle_Mistfen_Early.png",
+	"blackshore_abyss": "res://assets/dungeon/blackshore/env/BG_Battle_Blackshore_Early.png",
+	"red_forge_depths": "res://assets/dungeon/frostridge/env/BG_Battle_Frostridge_Early.png",
+	"north_reach": "res://assets/dungeon/frostridge/env/BG_Battle_Frostridge_Early.png",
+}
+## フロストリッジ x-5 ボス戦専用（Hard/NM 含む）。
+const BATTLE_BG_FINAL_BOSS: String = "res://assets/dungeon/frostridge/env/BG_Battle_FinalBoss.png"
+## ラスボス背景を使う本編 Biome（親 ID）。
+const BATTLE_BG_FINAL_BOSS_BIOMES: Dictionary = {
+	"frostridge": true,
+	"north_reach": true,
+	"red_forge_depths": true,
+}
+const BATTLE_BG_EARLY_CHAPTER_MAX: int = 3
+const BATTLE_BG_FINAL_BOSS_CHAPTER: int = 5
 const TREASURE_CLOSED_OBJ_MAP: Dictionary = {
 	"mourngate": "res://assets/dungeon/mourngate/env/OBJ_TreasureChest_Closed.png",
 	"astoria_ruins": "res://assets/dungeon/astoria_ruins/env/OBJ_TreasureChest_Closed.png",
@@ -521,6 +544,7 @@ const STATUS_ICON_DEF: Dictionary = {
 	"shock": {"abbrev": "感", "color": Color(0.95, 0.85, 0.2)},
 	"ignite": {"abbrev": "炎", "color": Color(0.95, 0.4, 0.15)},
 	"curse": {"abbrev": "呪", "color": Color(0.55, 0.25, 0.75)},
+	"major_curse": {"abbrev": "重呪", "color": Color(0.45, 0.15, 0.7)},
 	"stun": {"abbrev": "麻", "color": Color(0.7, 0.7, 0.75)},
 	"fear": {"abbrev": "恐", "color": Color(0.55, 0.35, 0.6)},
 	"vulnerable": {"abbrev": "脆", "color": Color(0.95, 0.45, 0.45)},
@@ -528,6 +552,7 @@ const STATUS_ICON_DEF: Dictionary = {
 	"mark": {"abbrev": "標", "color": Color(0.95, 0.35, 0.55)},
 	"empower": {"abbrev": "攻", "color": Color(0.95, 0.55, 0.2)},
 	"empower_minor": {"abbrev": "攻", "color": Color(0.85, 0.6, 0.35)},
+	"empower_pet": {"abbrev": "絆", "color": Color(0.95, 0.5, 0.25)},
 	"guard": {"abbrev": "防", "color": Color(0.4, 0.55, 0.85)},
 	"bleed": {"abbrev": "出血", "color": Color(0.9, 0.28, 0.28)},
 	"slow": {"abbrev": "鈍", "color": Color(0.47, 0.67, 0.82)},
@@ -541,6 +566,8 @@ const STATUS_LEGEND_ICON_PX: float = 22.0
 const STATUS_LEGEND_WIDTH: float = 248.0
 const STATUS_LEGEND_PAD: float = 8.0
 const STATUS_LEGEND_ROW_GAP: int = 4
+## 右端からの余白（負＝さらに右へはみ出し寄り）。
+const STATUS_LEGEND_SIDE_INSET: float = -40.0
 const VFX_HIT_PATH: String = "res://resources/animation/FX_Hit_Normal.tres"
 const VFX_CRIT_PATH: String = "res://resources/animation/FX_Hit_Critical.tres"
 const VFX_HEAL_PATH: String = "res://resources/animation/FX_Heal.tres"
@@ -548,6 +575,7 @@ const SUPPORT_VFX_TINT: Dictionary = {
 	"heal": Color(0.5, 1.0, 0.55, 1.0),
 	"empower": Color(1.0, 0.72, 0.25, 1.0),
 	"empower_minor": Color(0.92, 0.7, 0.4, 1.0),
+	"empower_pet": Color(1.0, 0.68, 0.3, 1.0),
 	"guard": Color(0.45, 0.78, 1.0, 1.0),
 	"default_buff": Color(1.0, 0.9, 0.45, 1.0),
 }
@@ -630,7 +658,6 @@ const BOSS_WARNING_PULSE_SCALE_LO: Vector2 = Vector2(0.96, 0.96)
 const BOSS_SKILL_CUTIN_HOLD_SEC: float = 0.55
 const BOSS_SKILL_CUTIN_FADE_SEC: float = 0.14
 const BOSS_SKILL_CUTIN_FACE_PX: float = 168.0
-const ELITE_INTRO_TEXT: String = "エリート"
 ## 影狩り戦闘フロア専用の薄暗（BattlefieldArea 上の ColorRect）。
 const SHADOW_STALKER_FLOOR_DIM: Color = Color(0.04, 0.02, 0.12, 0.46)
 ## 属性ごとの演出色（命中VFXの modulate / スキル名フォント色に共用）。
@@ -829,9 +856,12 @@ const SWARM_STAIR_Y_RATIO: float = 0.045
 ## 群れ配置の左右クリップ防止（左=味方帯。敵行動順アイコンはオミット済み）。
 const SWARM_X_MIN_RATIO: float = 0.48
 const SWARM_X_MAX_RATIO: float = 0.9
-## 群れ時の見た目縮小（ドット／HPバー／名前）
-const SWARM_DISPLAY_SCALE: float = 0.82
-## フロストリッジ系は単体時のみ大きめ（群れ時は SWARM_DISPLAY_SCALE のみ）。
+## 群れ時の見た目縮小（1体=MAX／4体以上=最小。2・3は線形）。
+const SWARM_DISPLAY_SCALE_MIN: float = 0.82
+const SWARM_DISPLAY_SCALE_AT_COUNT: int = 4
+## 互換: 旧一律縮小値（=4体時の最小）。
+const SWARM_DISPLAY_SCALE: float = SWARM_DISPLAY_SCALE_MIN
+## フロストリッジ系は単体時のみ大きめ（群れ時は体数スケールのみ）。
 const FROSTRIDGE_SOLO_DISPLAY_SCALE: float = 1.28
 const FROSTRIDGE_SOLO_DUNGEON_IDS: Dictionary = {
 	"frostridge": true,
@@ -932,8 +962,8 @@ const TURN_ORDER_SIDE_TOP: float = 36.0
 const TURN_ORDER_BADGE_FONT_PX: int = 12
 
 func _ready() -> void:
-	## P3-AUDIO-BGM-EXPLORE-OMIT-001: 探索曲オミット。入場時から戦闘BGM（ボス／影狩は部屋同期で上書き）。
-	_play_battle_bgm()
+	## 入場時は探索BGM。戦闘／ボス／影狩は部屋同期で切替。
+	AudioManager.play_bgm(_BgmCatalog.explore_bgm_for_dungeon(GameState.get_active_dungeon_id()))
 	_btn_next_room.pressed.connect(_on_next_room_pressed)
 	_btn_finish.pressed.connect(_on_finish_button_pressed)
 	$CombatTimer.timeout.connect(_on_combat_timer_timeout)
@@ -1808,7 +1838,10 @@ func _play_boss_bgm() -> void:
 
 
 func _sync_room_bgm() -> void:
-	## P3-AUDIO-BGM-EXPLORE-OMIT-001: 基本は常に戦闘BGM。例外＝ボス戦／影狩戦のみ。
+	## 非戦闘・探索中 = explore／通常戦闘 = Biome 別／ボス = boss 系（影狩は battle 側で上書き）。
+	if not $DungeonController.is_combat_room():
+		AudioManager.play_bgm(_BgmCatalog.explore_bgm_for_dungeon(GameState.get_active_dungeon_id()))
+		return
 	if $DungeonController.current_room_type == Enums.RoomType.BOSS:
 		_play_boss_bgm()
 		return
@@ -1817,12 +1850,11 @@ func _sync_room_bgm() -> void:
 func _room_transition_caption() -> String:
 	var floor_text: String = $DungeonController.get_display_floor_text()
 	var room_type: int = $DungeonController.current_room_type
-	## ボス／エリートは専用入場テロップがあるため、ここでは部屋名を出さない（二重表示防止）。
-	var caption: String = floor_text
-	if (
-		room_type != Enums.RoomType.BOSS
-		and room_type != Enums.RoomType.ELITE
-	):
+	## ボスは専用「BOSS戦」入場があるため部屋名は出さない。戦闘／エリートは [戦闘] F 等を出す。
+	var caption: String
+	if room_type == Enums.RoomType.BOSS:
+		caption = floor_text
+	else:
 		caption = "[%s]\n%s" % [_get_room_type_name(), floor_text]
 	if $DungeonController.should_show_shadow_stalker_omen():
 		caption += "\n%s" % _WanderingEnemyConfig.SHADOW_STALKER_OMEN_LINE
@@ -2325,8 +2357,14 @@ func _style_hp_bar_readable(bar: ProgressBar, fill_color: Color) -> void:
 func _style_readable_label(label: Label, color: Color, outline_size: int = UiTypography.OUTLINE_BODY) -> void:
 	UiTypography.apply_body(label, UiTypography.SIZE_BODY_SMALL, color, outline_size)
 
-func _style_enemy_nameplate(label: Label) -> void:
-	UiTypography.apply_display(label, UiTypography.SIZE_BODY_SMALL, Color(1.0, 0.97, 0.88, 1.0), UiTypography.OUTLINE_STRONG)
+func _style_enemy_nameplate(label: Label, dense: bool = false) -> void:
+	## 4体群れはフォントサイズ据置のまま縁・色を濃くして可読性を確保。
+	var color: Color = Color(1.0, 0.97, 0.88, 1.0)
+	var outline: int = UiTypography.OUTLINE_STRONG
+	if dense:
+		color = Color(1.0, 1.0, 0.94, 1.0)
+		outline = 8
+	UiTypography.apply_display(label, UiTypography.SIZE_BODY_SMALL, color, outline)
 	label.clip_text = false
 	label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 
@@ -2729,13 +2767,8 @@ func _init_status_legend() -> void:
 	_status_legend_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_status_legend_panel.z_index = COMBAT_OVERLAY_Z + 4
 	_status_legend_panel.custom_minimum_size = Vector2(STATUS_LEGEND_WIDTH, 0.0)
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.04, 0.03, 0.05, 0.72)
-	sb.set_corner_radius_all(8)
-	sb.set_content_margin_all(STATUS_LEGEND_PAD)
-	sb.set_border_width_all(1)
-	sb.border_color = Color(0.55, 0.48, 0.32, 0.55)
-	_status_legend_panel.add_theme_stylebox_override("panel", sb)
+	## 背景四角なし（アイコン＋効果文言のみ）。
+	_status_legend_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	battlefield.add_child(_status_legend_panel)
 	_status_legend_list = VBoxContainer.new()
 	_status_legend_list.name = "StatusLegendList"
@@ -2750,7 +2783,7 @@ func _layout_status_legend() -> void:
 		return
 	var bf_size: Vector2 = _battlefield_size()
 	_status_legend_panel.position = Vector2(
-		maxf(STATUS_LEGEND_PAD, bf_size.x - STATUS_LEGEND_WIDTH - TURN_ORDER_SIDE_MARGIN),
+		bf_size.x - STATUS_LEGEND_WIDTH - STATUS_LEGEND_SIDE_INSET,
 		TURN_ORDER_SIDE_TOP
 	)
 
@@ -3183,7 +3216,10 @@ func _enter_current_room() -> void:
 		_boss_sprite.visible = false
 		_hide_enemy_sprite()
 		_hide_chr_sprites()
+		## 入場パッシブ回復の VFX／数字は味方表示中に出す（非表示だと位置ゼロで消える）。
+		_begin_noncombat_party_feedback()
 		_fire_noncombat_enter_passives()
+		_end_noncombat_party_feedback()
 		match $DungeonController.current_room_type:
 			Enums.RoomType.HEAL:
 				_resolve_heal_room()
@@ -3267,33 +3303,43 @@ func _handle_event_room_async() -> void:
 	$AutoProgressTimer.stop()
 	_set_non_combat_phase_bg(LoreRoomPresentationScript.bg_path_for_phase("setup"))
 	var setup_text: String = LoreRoomPresentationScript.pick_setup_line()
-	_set_room_narrative(setup_text)
+	_set_room_narrative_bbcode(
+		NonCombatNarrativeColors.format_setup_bbcode(setup_text),
+		UiTypography.SIZE_BODY_SMALL
+	)
 	var setup_hold: float = float(
 		LoreRoomPresentationScript.timings(_fast_run_enabled).get("setup_hold", 1.0)
 	)
 	await get_tree().create_timer(setup_hold).timeout
 	if not LoreRoomPresentationScript.is_deciphered():
 		var fail_text: String = LoreRoomPresentationScript.pick_fail_line()
+		_begin_noncombat_party_feedback()
 		var penalty_line: String = _apply_noncombat_fail_penalty(
 			"lore",
 			BalanceConfig.NONCOMBAT_FAIL_LORE_HP_FRAC,
 			["curse", "vulnerable"]
 		)
 		_set_non_combat_phase_bg(LoreRoomPresentationScript.bg_path_for_phase("fail"))
+		_set_room_narrative_bbcode(
+			LoreRoomPresentationScript.format_fail_narrative_bbcode(fail_text, penalty_line),
+			UiTypography.SIZE_BODY_SMALL
+		)
 		var fail_full: String = fail_text if penalty_line.is_empty() else "%s\n%s" % [fail_text, penalty_line]
-		_set_room_narrative(fail_full, LoreRoomPresentationScript.COLOR_FAIL)
 		_append_log("[碑文] %s" % fail_full)
+		await get_tree().create_timer(0.75 if not _fast_run_enabled else 0.4).timeout
+		_end_noncombat_party_feedback()
 		_event_presentation_active = false
-		_reset_narrative_typography()
 		_finish_room_and_continue()
 		return
 	var event: Dictionary = $DungeonController.pick_event()
 	if event.is_empty():
 		var empty_text: String = "碑文は見つからなかった"
 		_set_non_combat_phase_bg(LoreRoomPresentationScript.bg_path_for_phase("fail"))
-		_set_room_narrative(empty_text, LoreRoomPresentationScript.COLOR_FAIL)
+		_set_room_narrative_bbcode(
+			NonCombatNarrativeColors.fail(empty_text),
+			UiTypography.SIZE_BODY_SMALL
+		)
 		_event_presentation_active = false
-		_reset_narrative_typography()
 		_finish_room_and_continue()
 		return
 	var event_id: String = event.get("id", "")
@@ -3301,17 +3347,40 @@ func _handle_event_room_async() -> void:
 		_try_register_discovery("event", event_id)
 	_set_non_combat_phase_bg(LoreRoomPresentationScript.bg_path_for_phase("success"))
 	var outcome: Dictionary = $DungeonController.auto_resolve_event()
-	var log_text: String = await _play_event_room_presentation(event, outcome)
+	## 碑文は宝箱と同様・下の Narrative のみ（中央テロップなし）。
+	## 案A: タイトル＋報酬のみ。図鑑本文は戦場に出さない。
+	var log_text: String = await _play_lore_room_bottom_only(event, outcome)
 	var explore_lines: PackedStringArray = _apply_exploration_event_skills(outcome)
 	for line: String in explore_lines:
 		log_text += "\n" + line
-	_set_room_narrative(
-		"%s\n%s" % [event["description"], log_text],
-		LoreRoomPresentationScript.COLOR_SUCCESS
+	_set_room_narrative_bbcode(
+		LoreRoomPresentationScript.format_success_narrative_bbcode(log_text),
+		UiTypography.SIZE_BODY_SMALL
 	)
+	_append_log("[碑文] %s" % log_text.replace("\n", " / "))
 	_event_presentation_active = false
 	## 碑文成功の加護表示は次フロアまで残す（typography リセットで薄くしない）。
 	_finish_room_and_continue()
+
+
+## 碑文成功: 中央テロップなし。適用＋軽い閃光のみ（宝箱のオープン演出と同方針）。
+func _play_lore_room_bottom_only(event: Dictionary, outcome: Dictionary) -> String:
+	_init_dungeon_presentation_ui()
+	_hide_event_telop()
+	_event_result_telop_override = ""
+	var applied_log: String = _apply_event_outcome(outcome)
+	var flash: Color = EventPresentationScript.flash_color("lore")
+	_spawn_transition_sparkles(
+		flash,
+		EventPresentationScript.spark_amount("lore"),
+		_event_presentation_anchor()
+	)
+	_flash_battlefield(flash, 0.14)
+	_request_combat_shake(6.0)
+	var hold: float = 0.55 if not _fast_run_enabled else 0.28
+	await get_tree().create_timer(hold).timeout
+	return applied_log
+
 
 func _ensure_event_telop_panel() -> PanelContainer:
 	if _event_telop_panel != null and is_instance_valid(_event_telop_panel):
@@ -3506,6 +3575,7 @@ func _apply_event_outcome(outcome: Dictionary) -> String:
 		"heal":
 			var amount: int = _apply_healing_bonus(outcome.get("amount", 5))
 			$CombatController.heal_party(amount)
+			_begin_noncombat_party_feedback()
 			_play_heal_vfx()
 			_update_hp_bars()
 			return "パーティが%dHP回復した" % amount
@@ -3526,18 +3596,10 @@ func _apply_event_outcome(outcome: Dictionary) -> String:
 		"lore":
 			var lore_id: String = outcome.get("discovery_id", "unknown_lore")
 			var first_time: bool = not DiscoveryRegistry.is_discovered("lore", lore_id)
-			var body: String = CatalogHelper.get_lore_body(lore_id)
 			_try_register_discovery("lore", lore_id)
 			var bonus_lines: PackedStringArray = _apply_lore_success_bonuses(first_time)
-			_event_result_telop_override = _format_lore_success_telop(outcome, bonus_lines)
-			var base: String = ""
-			if not body.is_empty():
-				base = "【碑文】%s\n%s" % [outcome.get("label", "碑文"), body]
-			else:
-				base = "%s を記録した。" % outcome.get("label", "碑文")
-			for line: String in bonus_lines:
-				base += "\n%s" % line
-			return base
+			## 戦場下帯はタイトル＋報酬のみ（本文は図鑑へ。P3 案A）。
+			return _format_lore_success_telop(outcome, bonus_lines)
 		_:
 			return "何も起こらなかった"
 
@@ -3612,22 +3674,26 @@ func _resolve_heal_room_async() -> void:
 	$CombatController.ensure_party_hp_for_combat()
 	_set_non_combat_phase_bg(HealRoomPresentationScript.bg_path_for_phase("setup"))
 	var setup_text: String = HealRoomPresentationScript.pick_setup_line()
-	_set_room_narrative(setup_text)
+	_set_room_narrative_bbcode(NonCombatNarrativeColors.format_setup_bbcode(setup_text))
 	var setup_hold: float = float(
 		HealRoomPresentationScript.timings(_fast_run_enabled).get("setup_hold", 1.0)
 	)
 	await get_tree().create_timer(setup_hold).timeout
 	if not HealRoomPresentationScript.is_successful():
 		var fail_text: String = HealRoomPresentationScript.pick_fail_line()
+		_begin_noncombat_party_feedback()
 		var penalty_line: String = _apply_noncombat_fail_penalty(
 			"heal", BalanceConfig.NONCOMBAT_FAIL_HEAL_HP_FRAC, ["poison"]
 		)
 		_set_non_combat_phase_bg(HealRoomPresentationScript.bg_path_for_phase("fail"))
+		_set_room_narrative_bbcode(
+			HealRoomPresentationScript.format_fail_narrative_bbcode(fail_text, penalty_line)
+		)
 		var fail_full: String = fail_text if penalty_line.is_empty() else "%s\n%s" % [fail_text, penalty_line]
-		_set_room_narrative(fail_full, HealRoomPresentationScript.COLOR_FAIL)
 		_append_log("[回復] %s" % fail_full)
+		await get_tree().create_timer(0.75 if not _fast_run_enabled else 0.4).timeout
+		_end_noncombat_party_feedback()
 		_heal_presentation_active = false
-		_reset_narrative_typography()
 		_finish_room_and_continue()
 		return
 	_party_status_panel.visible = true
@@ -3642,10 +3708,11 @@ func _resolve_heal_room_async() -> void:
 		healed_total += int(heal_amounts[k])
 	var success_line: String = HealRoomPresentationScript.pick_success_line()
 	var cleanse_line: String = _cleanse_one_party_debuff()
-	var narrative: String = HealRoomPresentationScript.format_success_narrative(success_line, healed_total)
-	if not cleanse_line.is_empty():
-		narrative += "\n%s" % cleanse_line
-	_set_room_narrative(narrative, HealRoomPresentationScript.COLOR_SUCCESS)
+	_set_room_narrative_bbcode(
+		HealRoomPresentationScript.format_success_narrative_bbcode(
+			success_line, healed_total, cleanse_line
+		)
+	)
 	_append_log("[回復] %s" % success_line)
 	if not cleanse_line.is_empty():
 		_append_log("[回復] %s" % cleanse_line)
@@ -3653,7 +3720,7 @@ func _resolve_heal_room_async() -> void:
 	_hide_chr_sprites()
 	_heal_presentation_active = false
 	_update_combat_visibility()
-	_reset_narrative_typography()
+	## 成功コメントは次フロアまで残す。
 	_finish_room_and_continue()
 
 # ---- 宝箱開封（P3-UX-006 / P3-UX-TREASURE-001） ----
@@ -3666,7 +3733,7 @@ func _resolve_treasure_room_async() -> void:
 	$AutoProgressTimer.stop()
 	_set_non_combat_phase_bg(TreasureRoomPresentationScript.bg_path_for_phase("setup"))
 	var setup_text: String = TreasureRoomPresentationScript.pick_setup_line()
-	_set_room_narrative(setup_text)
+	_set_room_narrative_bbcode(NonCombatNarrativeColors.format_setup_bbcode(setup_text))
 	var setup_hold: float = float(
 		TreasureRoomPresentationScript.timings(_fast_run_enabled).get("setup_hold", 1.0)
 	)
@@ -3674,23 +3741,27 @@ func _resolve_treasure_room_async() -> void:
 	if not TreasureRoomPresentationScript.is_successful():
 		var treasure_fail: Dictionary = $DungeonController.generate_treasure_loot_failure()
 		var fail_line: String = TreasureRoomPresentationScript.pick_fail_line()
+		## ダメージ数字は味方ドット上に出す（非表示のままだと位置がずれる／見えない）。
+		_begin_noncombat_party_feedback()
 		var penalty_line: String = _apply_noncombat_fail_penalty(
 			"treasure",
 			BalanceConfig.NONCOMBAT_FAIL_TREASURE_HP_FRAC,
 			["poison", "bleed"]
 		)
-		var fail_text: String = TreasureRoomPresentationScript.format_fail_narrative(
-			fail_line, int(treasure_fail.get("gold", 0))
-		)
-		if not penalty_line.is_empty():
-			fail_text += "\n%s" % penalty_line
+		var fail_gold: int = int(treasure_fail.get("gold", 0))
 		_set_non_combat_phase_bg(TreasureRoomPresentationScript.bg_path_for_phase("fail"))
-		_set_room_narrative(fail_text, TreasureRoomPresentationScript.COLOR_FAIL)
+		_set_room_narrative_bbcode(
+			TreasureRoomPresentationScript.format_fail_narrative_bbcode(
+				fail_line, fail_gold, penalty_line
+			)
+		)
 		_append_log("[宝箱] %s" % fail_line)
 		if not penalty_line.is_empty():
 			_append_log("[宝箱] %s" % penalty_line)
+		await get_tree().create_timer(0.75 if not _fast_run_enabled else 0.4).timeout
+		_end_noncombat_party_feedback()
 		_treasure_presentation_active = false
-		_reset_narrative_typography()
+		## 結果コメントは次フロアまで残す（typography リセットで入場文に戻さない）。
 		_finish_room_and_continue()
 		return
 	var treasure: Dictionary = $DungeonController.generate_treasure_loot()
@@ -3713,9 +3784,7 @@ func _resolve_treasure_room_async() -> void:
 	)
 	for line: String in explore_treasure:
 		log_text += "\n" + line
-		narrative_bb += "\n[color=#%s]%s[/color]" % [
-			TreasureRoomPresentationScript.COLOR_BODY_HEX, line
-		]
+		narrative_bb += "\n%s" % NonCombatNarrativeColors.colorize_line(line)
 	var has_accessory: bool = not (treasure["accessory_id"] as String).is_empty()
 	var has_weapon: bool = not weapon_id.is_empty()
 	_set_non_combat_phase_bg(TreasureRoomPresentationScript.bg_path_for_phase("success"))
@@ -3815,7 +3884,6 @@ func _resolve_trap_room_async() -> void:
 		_set_trap_avoid_narrative(avoid_text)
 		_append_log("[罠] %s" % avoid_text)
 		_trap_presentation_active = false
-		_reset_narrative_typography()
 		_finish_room_and_continue()
 		return
 	var living: Array[int] = _living_exploration_damage_targets()
@@ -3825,7 +3893,6 @@ func _resolve_trap_room_async() -> void:
 		_set_trap_avoid_narrative(avoid_immune)
 		_append_log("[罠] %s" % avoid_immune)
 		_trap_presentation_active = false
-		_reset_narrative_typography()
 		_finish_room_and_continue()
 		return
 	var aoe: bool = ExplorationSkills.roll_trap_aoe(null, tier)
@@ -3874,26 +3941,25 @@ func _begin_trap_hit_presentation() -> void:
 
 func _end_trap_hit_presentation() -> void:
 	_trap_presentation_active = false
-	_reset_narrative_typography()
 	_hide_chr_sprites()
 	_update_combat_visibility()
 
 func _set_trap_setup_narrative(text: String) -> void:
-	_label_narrative.text = text
-	UiTypography.apply_body(_label_narrative, UiTypography.SIZE_BODY, UiTypography.COLOR_BODY)
+	_set_room_narrative_bbcode(NonCombatNarrativeColors.format_setup_bbcode(text))
 
 func _set_trap_avoid_narrative(text: String) -> void:
-	_label_narrative.text = text
-	UiTypography.apply_body(_label_narrative, UiTypography.SIZE_BODY, TrapPresentationScript.COLOR_AVOID)
+	_set_room_narrative_bbcode(TrapPresentationScript.format_avoid_narrative_bbcode(text))
 
 func _set_trap_hit_narrative(hit_line: String, member_name: String, dmg: int) -> void:
-	_label_narrative.text = TrapPresentationScript.format_hit_narrative(hit_line, member_name, dmg)
-	UiTypography.apply_body(_label_narrative, UiTypography.SIZE_BODY, TrapPresentationScript.COLOR_HIT)
+	_set_room_narrative_bbcode(
+		TrapPresentationScript.format_hit_narrative_bbcode(hit_line, member_name, dmg)
+	)
 
 
 func _set_trap_aoe_hit_narrative(hit_line: String, hit_count: int) -> void:
-	_label_narrative.text = TrapPresentationScript.format_aoe_hit_narrative(hit_line, hit_count)
-	UiTypography.apply_body(_label_narrative, UiTypography.SIZE_BODY, TrapPresentationScript.COLOR_HIT)
+	_set_room_narrative_bbcode(
+		TrapPresentationScript.format_aoe_hit_narrative_bbcode(hit_line, hit_count)
+	)
 
 
 ## 罠ダメージ適用（最大HP割合・単体/全体）。log_prefix 例: "[罠]" / "[探索] 罠"
@@ -3926,6 +3992,18 @@ func _apply_trap_damage_hits(
 			_append_trap_hit_log(
 				"%s: %s に %d ダメージ＋[%s]！" % [log_prefix, nm, dmg, status_label]
 			)
+
+
+## 非戦闘失敗ペナルティ用: 味方を見せてダメージ数字の位置を正しくする。
+func _begin_noncombat_party_feedback() -> void:
+	_party_status_panel.visible = true
+	_show_chr_sprites()
+	_update_hp_bars()
+
+
+func _end_noncombat_party_feedback() -> void:
+	_hide_chr_sprites()
+	_update_combat_visibility()
 
 
 ## P3-BAL-NONCOMBAT-001: 宝箱／泉／碑文の失敗ペナルティ（死亡させない）。
@@ -4012,7 +4090,7 @@ func _play_heal_room_vfx(heal_amounts: Dictionary) -> void:
 
 
 const _NONCOMBAT_CLEANSE_DEBUFFS: Array[String] = [
-	"poison", "bleed", "curse", "vulnerable", "chill", "slow", "fear", "stun",
+	"poison", "bleed", "curse", "major_curse", "vulnerable", "chill", "slow", "fear", "stun",
 	"armor_break", "mark", "ignite", "shock",
 ]
 
@@ -4068,12 +4146,14 @@ func _apply_lore_success_bonuses(first_time: bool) -> PackedStringArray:
 
 
 func _play_lore_floor_blessing_fx() -> void:
-	## 味方全体に短い加護演出（戦闘バフではない）。
+	## 味方全体に短い加護演出（戦闘バフではない）。味方非表示だと VFX が消える。
+	_begin_noncombat_party_feedback()
 	for i: int in GameState.combatant_count():
 		if not $CombatController.is_member_alive(i):
 			continue
 		_spawn_member_heal_vfx(i)
-		_spawn_skill_name("✝加護", i, 0.0)
+		## 名ポップは無音（combat_skill＝ヒット寄りを避ける）。
+		_spawn_skill_name("✝加護", i, 0.0, "", false, "")
 
 
 func _member_max_hp_for_trap(index: int) -> int:
@@ -4081,18 +4161,26 @@ func _member_max_hp_for_trap(index: int) -> int:
 		return maxi(1, int($CombatController.party_max_hp[index]))
 	return 1
 
-func _set_room_narrative(text: String, accent: Color = UiTypography.COLOR_BODY) -> void:
+func _set_room_narrative(
+	text: String,
+	accent: Color = UiTypography.COLOR_BODY,
+	font_size: int = UiTypography.SIZE_BODY
+) -> void:
 	_ensure_narrative_label_mode()
 	_label_narrative.text = text
-	UiTypography.apply_body(_label_narrative, UiTypography.SIZE_BODY, accent)
+	UiTypography.apply_body(_label_narrative, font_size, accent)
 
 
-func _set_room_narrative_bbcode(bbcode: String) -> void:
-	var rich: RichTextLabel = _ensure_narrative_rich()
+func _set_room_narrative_bbcode(
+	bbcode: String, font_size: int = UiTypography.SIZE_BODY
+) -> void:
+	var rich: RichTextLabel = _ensure_narrative_rich(font_size)
 	rich.clear()
 	rich.append_text(bbcode)
 	rich.visible = true
 	_label_narrative.visible = false
+	## Label 側にも平文を同期（誤って typography リセットされても旧「探索を開始した」が戻らない）。
+	_label_narrative.text = NonCombatNarrativeColors.strip_bbcode(bbcode)
 
 
 func _ensure_narrative_label_mode() -> void:
@@ -4103,9 +4191,11 @@ func _ensure_narrative_label_mode() -> void:
 		rich.clear()
 
 
-func _ensure_narrative_rich() -> RichTextLabel:
+func _ensure_narrative_rich(font_size: int = UiTypography.SIZE_BODY) -> RichTextLabel:
 	var existing: RichTextLabel = _narrative_panel.get_node_or_null("LabelNarrativeRich") as RichTextLabel
 	if existing != null:
+		UiTypography.apply_log_rich(existing, font_size, UiTypography.COLOR_BODY)
+		existing.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		return existing
 	var rich := RichTextLabel.new()
 	rich.name = "LabelNarrativeRich"
@@ -4115,12 +4205,16 @@ func _ensure_narrative_rich() -> RichTextLabel:
 	rich.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	rich.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	rich.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	UiTypography.apply_log_rich(rich, UiTypography.SIZE_BODY, UiTypography.COLOR_BODY)
+	rich.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_log_rich(rich, font_size, UiTypography.COLOR_BODY)
 	_narrative_panel.add_child(rich)
 	return rich
 
-
 func _reset_narrative_typography() -> void:
+	## 結果 BBCode が表示中なら Label モードへ戻さない（「探索を開始した」巻き戻り防止）。
+	var rich_busy: RichTextLabel = _narrative_panel.get_node_or_null("LabelNarrativeRich") as RichTextLabel
+	if rich_busy != null and rich_busy.visible and not str(rich_busy.get_parsed_text()).strip_edges().is_empty():
+		return
 	_ensure_narrative_label_mode()
 	UiTypography.apply_body(_label_narrative, UiTypography.SIZE_BODY_SMALL)
 	_label_narrative.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -4484,6 +4578,10 @@ func _apply_skill_on_hit_self_effects(member_idx: int, skill_data: Resource) -> 
 	if skill_data.tags.has("pet_empower_on_hit"):
 		_apply_status_to_pet("empower", false)
 		_update_status_icons()
+	## ダメージ技の taunt タグ（威嚇斬など）— バフ技と同じ Threat スパイク。
+	if skill_data.tags.has("taunt"):
+		$CombatController.apply_taunt(member_idx)
+		_activate_taunt_link(member_idx)
 
 
 func _apply_skill_status_to_enemy_slot(member_idx: int, skill_data: Resource, target_slot: int) -> void:
@@ -4775,7 +4873,10 @@ func _execute_member_heal(
 	if cast_index == 0:
 		_clear_member_skill_labels(member_idx)
 	if not suppress_resolve_label:
-		_spawn_skill_name(result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP)
+		## 回復 SE は _spawn_member_heal_vfx 側。名ポップは combat_skill（ヒット寄り）を鳴らさない。
+		_spawn_skill_name(
+			result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP, "", false, ""
+		)
 	if healed > 0:
 		_spawn_member_heal_vfx(target_idx)
 		if target_idx >= 0 and target_idx < _chr_sprites.size() and _chr_sprites[target_idx].visible:
@@ -5278,7 +5379,7 @@ func _deal_member_damage_to_enemy(
 			$CombatController.add_threat(member_idx, float(tide_burst) * CombatController.THREAT_DAMAGE_K)
 			GameState.record_run_damage(member_idx, tide_burst, "abyss_tide_burst", "虚潮爆発")
 			_update_hp_bars()
-			_spawn_skill_name("⚔虚潮爆発", member_idx, 0.0)
+			_spawn_skill_name("⚔虚潮爆発", member_idx, 0.0, "", false, "")
 			_append_log("[武器] 虚潮の印 爆発")
 			_check_boss_phase_transition(target_slot)
 	if $CombatController.get_enemy_hp_at(target_slot) <= 0:
@@ -5550,8 +5651,15 @@ func _execute_enemy_damage(skill: Resource) -> void:
 				$CombatController.active_enemy_index
 			)
 		)
-		for ti: int in targets:
-			shares[ti] = 1.0
+		## 全体技も Threat 按分（タンクが矢面）。列AoEと同型。単体は share=1。
+		if target_type == CombatFormation.TARGET_ALL_PARTY and targets.size() > 1:
+			shares = CombatFormation.threat_damage_shares(
+				targets, Callable($CombatController, "get_member_threat")
+			)
+			dist_tag = CombatFormation.column_distribution_log_tag(targets)
+		else:
+			for ti: int in targets:
+				shares[ti] = 1.0
 	if targets.is_empty():
 		var empty_tag: String = CombatFormation.enemy_target_row_log_tag(target_type, used_fallback)
 		_append_log("敵スキル【%s】%s\n  対象なし" % [skill.display_name, empty_tag])
@@ -6654,7 +6762,7 @@ func _on_member_damaged(target_idx: int, ctx: Dictionary = {}) -> void:
 		if max_hp > 0:
 			var ratio: float = float($CombatController.party_combat_hp[target_idx]) / float(max_hp)
 			if _AbyssWeaponEffects.try_low_hp_ice_shell(target_idx, ratio):
-				_spawn_skill_name("⚔裂氷の氷殻", target_idx, 0.0)
+				_spawn_skill_name("⚔裂氷の氷殻", target_idx, 0.0, "", false, "")
 				_append_log("[武器] 裂氷の氷殻 発動")
 		return
 	AudioManager.play_sfx("combat_death", 1.0, 0.06)
@@ -6873,7 +6981,8 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 	_clear_member_skill_labels(member_idx)
 	var prefix: String = "◈" if is_relic else ("⚔" if is_weapon else "◇")
 	var tag: String = "レリック" if is_relic else ("武器" if is_weapon else "パッシブ")
-	_spawn_skill_name(prefix + str(p.get("display_name", "")), member_idx, 0.0)
+	## パッシブ名ポップは combat_skill（ヒット寄り）を鳴らさない。回復／バフ SE は各 VFX 側。
+	_spawn_skill_name(prefix + str(p.get("display_name", "")), member_idx, 0.0, "", false, "")
 	_append_log("[%s] %s 発動" % [tag, str(p.get("display_name", ""))])
 
 # ---- パーティ連携連鎖（P3-D115） ----
@@ -7859,6 +7968,19 @@ func _is_frostridge_solo_scale_dungeon() -> bool:
 		return false
 	return FROSTRIDGE_SOLO_DUNGEON_IDS.has(str($DungeonController.current_dungeon_data.id))
 
+
+## 1体=1.0（MAX）。4体以上=SWARM_DISPLAY_SCALE_MIN。2〜3は線形補間。
+func _swarm_display_scale_for_count(n: int) -> float:
+	if n <= 1:
+		return 1.0
+	var t: float = clampf(
+		float(n - 1) / float(SWARM_DISPLAY_SCALE_AT_COUNT - 1),
+		0.0,
+		1.0
+	)
+	return lerpf(1.0, SWARM_DISPLAY_SCALE_MIN, t)
+
+
 # 群れ（または単体）の敵スプライトを横並びで表示する。ボス戦は BossSprite を使うため対象外。
 func _show_enemy_swarm(enemy_ids: Array) -> void:
 	_clear_swarm_slots()
@@ -7880,8 +8002,10 @@ func _show_enemy_swarm(enemy_ids: Array) -> void:
 	_ensure_swarm_slots(n)
 	# 群れは名前が密集するため小さめフォントに、単体は従来サイズ。
 	var name_fs: int = SWARM_NAME_FONT_SIZE if n > 1 else SINGLE_NAME_FONT_SIZE
+	var name_dense: bool = n >= SWARM_DISPLAY_SCALE_AT_COUNT
+	var body_scale: float = _swarm_display_scale_for_count(n)
 	for i in n:
-		_style_enemy_nameplate(_swarm_nameplates[i])
+		_style_enemy_nameplate(_swarm_nameplates[i], name_dense)
 		_swarm_nameplates[i].add_theme_font_size_override("font_size", name_fs)
 		var spr: AnimatedSprite2D = _swarm_sprites[i]
 		var id: String = str(enemy_ids[i])
@@ -7896,7 +8020,7 @@ func _show_enemy_swarm(enemy_ids: Array) -> void:
 		spr.sprite_frames = frames
 		_normalize_enemy_scale(spr, frames, id)
 		if n > 1:
-			spr.scale *= SWARM_DISPLAY_SCALE
+			spr.scale *= body_scale
 		elif _is_frostridge_solo_scale_dungeon():
 			spr.scale *= FROSTRIDGE_SOLO_DISPLAY_SCALE
 		spr.position = _swarm_combat_position_for_slot(i, n)
@@ -9974,9 +10098,9 @@ func _format_equip_drop_log(kind_label: String, item_id: String, category: Strin
 	var rarity: int = _equip_drop_rarity(item_id, category)
 	var name: String = _equip_drop_display_name(item_id, category)
 	if rarity >= Enums.Rarity.MYTHIC:
-		return "★神話%sドロップ: %s" % [kind_label, name]
+		return "M %sドロップ: %s" % [kind_label, name]
 	if rarity >= Enums.Rarity.LEGENDARY:
-		return "★レジェンド%sドロップ: %s" % [kind_label, name]
+		return "L %sドロップ: %s" % [kind_label, name]
 	return "%sドロップ: %s" % [kind_label, name]
 
 
@@ -10006,7 +10130,7 @@ func _maybe_celebrate_rare_equip_drop(item_id: String, category: String, force_m
 	var display: String = _equip_drop_display_name(item_id, category)
 	if display.is_empty():
 		display = item_id
-	var tier_label: String = "セット" if is_set else ("神話" if is_mythic else "レジェンド")
+	var tier_label: String = "セット" if is_set else ("M" if is_mythic else "L")
 	AudioManager.play_sfx("legendary_drop", 1.0, 0.0)
 	AudioManager.play_sfx("treasure", 1.05, 0.0)
 	_spawn_relic_confetti(40 if is_mythic else 28)
@@ -10076,9 +10200,10 @@ func _member_sprite_world_pos(member_idx: int, height_ratio: float = 0.5) -> Vec
 	if member_idx < 0 or member_idx >= _chr_sprites.size():
 		return Vector2.ZERO
 	var sprite: AnimatedSprite2D = _chr_sprites[member_idx]
-	if not sprite.visible:
-		return Vector2.ZERO
-	return sprite.global_position + Vector2(0.0, -CHR_BODY_TARGET_PX * height_ratio)
+	if sprite.visible:
+		return sprite.global_position + Vector2(0.0, -CHR_BODY_TARGET_PX * height_ratio)
+	## 非表示時は罠フィードバックと同フォールバック（非戦闘パッシブ回復など）。
+	return _trap_feedback_world_pos(member_idx)
 
 func _spawn_support_sprite_vfx(world_pos: Vector2, vfx_path: String, tint: Color) -> void:
 	if world_pos == Vector2.ZERO or not ResourceLoader.exists(vfx_path):
@@ -10268,26 +10393,13 @@ func _begin_elite_combat_entrance(lead: Resource) -> void:
 			_elite_enemy_slide_sprite.position = _elite_enemy_slide_target + Vector2(slide_offset, 0.0)
 	_update_combat_tier_frame()
 	_pulse_elite_tier_frame_once()
-	var intro_lbl: Label = _ensure_elite_intro_label()
-	intro_lbl.text = ELITE_INTRO_TEXT
-	intro_lbl.visible = true
-	intro_lbl.modulate = Color(1.0, 1.0, 1.0, 0.0)
-	intro_lbl.scale = Vector2(0.88, 0.88)
-	UiTypography.apply_display(
-		intro_lbl,
-		UiTypography.SIZE_DISPLAY,
-		Color(1.0, 0.82, 0.28),
-		UiTypography.OUTLINE_STRONG
-	)
+	## 画面中央の「エリート」文字は出さない（遷移の [エリート]＋ネームバッジで足りる）。
 	_request_combat_shake(float(t.get("shake", 8.0)))
 	_flash_battlefield(Color(1.0, 0.72, 0.28), float(t.get("flash", 0.18)))
 	if _elite_intro_tween != null and is_instance_valid(_elite_intro_tween):
 		_elite_intro_tween.kill()
 	_elite_intro_tween = create_tween()
-	_elite_intro_tween.tween_property(intro_lbl, "modulate:a", 1.0, 0.1)
-	_elite_intro_tween.parallel().tween_property(intro_lbl, "scale", Vector2(1.04, 1.04), 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	_elite_intro_tween.tween_interval(float(t.get("warning", 0.32)))
-	_elite_intro_tween.tween_property(intro_lbl, "modulate:a", 0.0, 0.12)
 	_elite_intro_tween.tween_callback(func() -> void: _reveal_elite_enemy(float(t.get("reveal", 0.28))))
 	_elite_intro_tween.tween_interval(float(t.get("hold", 0.18)))
 	_elite_intro_tween.tween_callback(func() -> void: _finish_elite_combat_entrance(lead))
@@ -10718,7 +10830,34 @@ func _dungeon_env_obj_path(dungeon_id: String, room_type: int) -> String:
 
 func _dungeon_battle_bg_path(dungeon_id: String) -> String:
 	var fallback_id: String = Constants.MOURNGATE_DUNGEON_ID
-	return BATTLE_BG_MAP.get(dungeon_id, BATTLE_BG_MAP[fallback_id])
+	var late_path: String = str(BATTLE_BG_MAP.get(dungeon_id, BATTLE_BG_MAP[fallback_id]))
+	## ⑤ x-5 ボス戦のみラスボス専用背景（Hard/NM 含む）。
+	if (
+		$DungeonController.current_room_type == Enums.RoomType.BOSS
+		and _uses_final_boss_battle_bg(dungeon_id)
+	):
+		if ResourceLoader.exists(BATTLE_BG_FINAL_BOSS) or FileAccess.file_exists(BATTLE_BG_FINAL_BOSS):
+			return BATTLE_BG_FINAL_BOSS
+	var chapter: int = 0
+	if $DungeonController.current_stage_data != null:
+		chapter = int($DungeonController.current_stage_data.chapter_index)
+	if chapter >= 1 and chapter <= BATTLE_BG_EARLY_CHAPTER_MAX:
+		var early_path: String = str(BATTLE_BG_EARLY_MAP.get(dungeon_id, ""))
+		if (
+			not early_path.is_empty()
+			and (ResourceLoader.exists(early_path) or FileAccess.file_exists(early_path))
+		):
+			return early_path
+	return late_path
+
+
+func _uses_final_boss_battle_bg(dungeon_id: String) -> bool:
+	if not bool(BATTLE_BG_FINAL_BOSS_BIOMES.get(dungeon_id, false)):
+		return false
+	if $DungeonController.current_stage_data == null:
+		return false
+	return int($DungeonController.current_stage_data.chapter_index) == BATTLE_BG_FINAL_BOSS_CHAPTER
+
 
 func _phase_bg_setup_path(room_type: int) -> String:
 	match room_type:
@@ -10779,7 +10918,7 @@ func _apply_room_object_layout(room_type: int) -> void:
 	_room_object.offset_bottom = half
 
 func _set_room_texture_tiled(node: TextureRect, path: String) -> void:
-	if path.is_empty() or not ResourceLoader.exists(path):
+	if path.is_empty() or not _room_texture_path_exists(path):
 		node.texture = null
 		node.visible = false
 		return
@@ -10789,7 +10928,7 @@ func _set_room_texture_tiled(node: TextureRect, path: String) -> void:
 	node.visible = true
 
 func _set_room_texture(node: TextureRect, path: String) -> void:
-	if path.is_empty() or not ResourceLoader.exists(path):
+	if path.is_empty() or not _room_texture_path_exists(path):
 		node.texture = null
 		node.visible = false
 		return
@@ -10799,7 +10938,7 @@ func _set_room_texture(node: TextureRect, path: String) -> void:
 	node.visible = true
 
 func _set_room_texture_covered(node: TextureRect, path: String) -> void:
-	if path.is_empty() or not ResourceLoader.exists(path):
+	if path.is_empty() or not _room_texture_path_exists(path):
 		node.texture = null
 		node.visible = false
 		return
@@ -10807,3 +10946,7 @@ func _set_room_texture_covered(node: TextureRect, path: String) -> void:
 	node.texture_repeat = CanvasItem.TEXTURE_REPEAT_DISABLED
 	node.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	node.visible = true
+
+
+func _room_texture_path_exists(path: String) -> bool:
+	return ResourceLoader.exists(path) or FileAccess.file_exists(path)

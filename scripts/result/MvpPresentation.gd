@@ -7,6 +7,9 @@ const BG_PATH: String = "res://assets/ui/result/BG_Result_Mvp.png"
 const DEFAULT_BG_PATH: String = "res://assets/ui/UI_BG_Result.png"
 const FRAME_HERO_PATH: String = "res://assets/ui/result/FRAME_Mvp_Hero.png"
 const CROWN_ICON_PATH: String = "res://assets/ui/result/ICO_Mvp_Crown.png"
+const TITLE_LOGO_PATH: String = "res://assets/ui/result/UI_Result_Mvp.png"
+## 結果 MVP 見出しロゴの表示高さ（LevelUp バナーと同系統）。
+const TITLE_LOGO_H: float = 160.0
 
 const COLOR_GOLD: Color = Color(0.92, 0.78, 0.34)
 const COLOR_STAT_DAMAGE: Color = Color(1.0, 0.55, 0.42)

@@ -8,6 +8,7 @@ const DIR: String = "res://assets/audio/bgm/"
 const ID_TITLE: String = "title"
 const ID_HUB: String = "hub"
 const ID_DUNGEON_EXPLORE: String = "dungeon_explore"
+const ID_MOURNGATE: String = "mourngate"
 const ID_WHISPERWOOD: String = "whisperwood"
 const ID_MISTFEN: String = "mistfen"
 const ID_BLACKSHORE: String = "blackshore"
@@ -30,12 +31,13 @@ const ID_GACHA: String = "gacha"
 
 ## 現行登録（タイトル＋導入＋拠点施設＋探索／戦闘／ボス／リザルト）。
 ## 通常戦闘は Biome 別曲あり（未登録は battle）。
-## P3-AUDIO-BGM-EXPLORE-OMIT-001: ダンジョン内は探索曲を使わず戦闘BGMを常時（ボス／影狩は例外）。
-## dungeon_explore アセットは残置（未配線）。フロストリッジ本編ボスは final_boss。
+## ダンジョン内は非戦闘＝探索曲／戦闘＝battle 系／ボス＝boss 系（影狩は専用）。
+## フロストリッジ本編ボスは final_boss。
 const PATHS: Dictionary = {
 	ID_TITLE: DIR + "title.mp3",
 	ID_HUB: DIR + "hub.mp3",
 	ID_DUNGEON_EXPLORE: DIR + "dungeon_explore.mp3",
+	ID_MOURNGATE: DIR + "mourngate.mp3",
 	ID_WHISPERWOOD: DIR + "whisperwood.mp3",
 	ID_MISTFEN: DIR + "mistfen.mp3",
 	ID_BLACKSHORE: DIR + "blackshore.mp3",
@@ -61,6 +63,7 @@ const LOOP_IDS: Dictionary = {
 	ID_TITLE: true,
 	ID_HUB: true,
 	ID_DUNGEON_EXPLORE: true,
+	ID_MOURNGATE: true,
 	ID_WHISPERWOOD: true,
 	ID_MISTFEN: true,
 	ID_BLACKSHORE: true,
@@ -85,6 +88,8 @@ const LOOP_IDS: Dictionary = {
 ## dungeon_id → 通常戦闘 BGM。寄り道／征討は親 Biome 曲を流用。
 ## 日替わりイベントは event_dungeon（影狩のみ専用曲）。放浪影狩は DungeonScene 側で上書き。
 const BATTLE_BY_DUNGEON: Dictionary = {
+	"mourngate": ID_MOURNGATE,
+	"astoria_ruins": ID_MOURNGATE,
 	"whisperwood": ID_WHISPERWOOD,
 	"green_hollow": ID_WHISPERWOOD,
 	"red_ridge_mine": ID_WHISPERWOOD,
@@ -107,7 +112,7 @@ const BATTLE_BY_DUNGEON: Dictionary = {
 	"valgard_boundary": ID_VALGARD_BOUNDARY,
 }
 
-## 探索曲のダンジョン別上書き（未使用・P3-AUDIO-BGM-EXPLORE-OMIT-001。アセット／API 残置）。
+## 探索曲のダンジョン別上書き（未登録は dungeon_explore）。
 const EXPLORE_BY_DUNGEON: Dictionary = {
 	"chronos_mausoleum": ID_CHRONOS_MAUSOLEUM,
 	"valgard_boundary": ID_VALGARD_BOUNDARY,
@@ -147,7 +152,7 @@ const SCENE_BGM: Dictionary = {
 	"res://scenes/gacha/GachaScene.tscn": ID_GACHA,
 	"res://scenes/blacksmith/BlacksmithScene.tscn": ID_FORGE,
 	"res://scenes/survey/SurveyScene.tscn": ID_SURVEY,
-	## DungeonScene は SCENE_BGM 非掲載（DungeonScene 側で battle／boss／影狩を同期）。
+	## DungeonScene は SCENE_BGM 非掲載（入場時 explore → 部屋同期で battle／boss／影狩）。
 }
 
 
@@ -174,7 +179,7 @@ static func bgm_for_scene(scene_path: String) -> String:
 	return str(SCENE_BGM.get(scene_path, ""))
 
 
-## 探索曲 API（互換残置）。ダンジョン内再生は戦闘BGMへ寄せたため呼び出し側では使わない。
+## 探索曲。ダンジョン別があれば優先、なければ dungeon_explore。
 static func explore_bgm_for_dungeon(dungeon_id: String) -> String:
 	var mapped: String = str(EXPLORE_BY_DUNGEON.get(dungeon_id, ""))
 	if not mapped.is_empty() and is_available(mapped):

@@ -348,7 +348,7 @@ func get_member_target_slot(member_index: int) -> int:
 
 # 生存敵から target ルールで1体選ぶ（P3-D100/D111）。
 const DEBUFF_STATUS_IDS: Array[String] = [
-	"stun", "fear", "poison", "bleed", "vulnerable", "armor_break", "curse", "chill", "slow", "mark",
+	"stun", "fear", "poison", "bleed", "vulnerable", "armor_break", "curse", "major_curse", "chill", "slow", "mark",
 ]
 
 func _pick_debuff_priority_slots(living: Array[int]) -> Array[int]:

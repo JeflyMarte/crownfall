@@ -84,6 +84,7 @@ Task 種別に応じて `.cursor/skills/` を使う:
 
 - DevelopmentHQ 運用: `docs/specs/core/06_DevelopmentHQ_Operations.md`
 - 実装ルール: `docs/specs/implementation/06_Impl運用ルール.md`, `07_コーディングルール.md`
+- ダンジョン演出落とし穴: `docs/specs/implementation/14_Presentation_Pitfalls.md`
 - Task 依頼形式: `docs/specs/implementation/10_Impl依頼テンプレート.md`
 - Cursor ルール: `.cursor/rules/developmenthq-operations.mdc`, `.cursor/rules/hq-response-minimal.mdc`, `.cursor/rules/ui-layout.mdc`, `.cursor/rules/git-wip-safety.mdc`
 

@@ -58,6 +58,14 @@ static func is_deciphered(rng: RandomNumberGenerator = null) -> bool:
 	return randf() < SUCCESS_CHANCE
 
 
+static func format_success_narrative_bbcode(plain_lines: String) -> String:
+	return NonCombatNarrativeColors.colorize_multiline(plain_lines)
+
+
+static func format_fail_narrative_bbcode(fail_line: String, penalty_line: String = "") -> String:
+	return NonCombatNarrativeColors.format_fail_bbcode(fail_line, penalty_line)
+
+
 static func _pick_line(lines: Array[String], rng: RandomNumberGenerator) -> String:
 	if lines.is_empty():
 		return ""

@@ -317,7 +317,7 @@ Task 明示指示がない限り作成しない:
 | パス | 内容 |
 |---|---|
 | `sfx/` | Kenney CC0・`SfxCatalog`（heal/buff/debuff 含む・**P3-AUDIO-SE-001**）。配線拡張 **P3-AUDIO-SE-002** |
-| `bgm/` | オーナー制作 MP3（title / introduction / hub / forge / survey / gacha / dungeon_explore / battle / whisperwood / mistfen / blackshore / frostridge / boss / final_boss / result / result_defeat）。`BgmCatalog`（**P3-AUDIO-BGM-001**／**P3-AUDIO-BGM-EXPLORE-OMIT-001**）。ダンジョン内は戦闘BGM常時（探索オミット。例外＝ボス／影狩）。通常戦闘は Biome 別（未登録は battle）。フロストリッジ本編ボスは final_boss。Result は勝敗で切替 |
+| `bgm/` | オーナー制作 MP3（title / introduction / hub / forge / survey / gacha / dungeon_explore / battle / whisperwood / mistfen / blackshore / frostridge / boss / final_boss / result / result_defeat）。`BgmCatalog`（**P3-AUDIO-BGM-001**／**P3-AUDIO-BGM-EXPLORE-RESTORE-001**）。ダンジョン内は非戦闘＝探索／戦闘＝Biome 別（未登録は battle）。例外＝ボス／影狩。フロストリッジ本編ボスは final_boss。Result は勝敗で切替 |
 
 ---
 

@@ -961,21 +961,21 @@ func _setup_dismantle_dialogs() -> void:
 	_single_dismantle_confirm.canceled.connect(_on_single_dismantle_canceled)
 	add_child(_single_dismantle_confirm)
 	_dismantle_confirm = ConfirmationDialog.new()
-	_dismantle_confirm.title = "ノーマル・レア一括分解"
+	_dismantle_confirm.title = "N・R一括分解"
 	_dismantle_confirm.ok_button_text = "はい"
 	_dismantle_confirm.cancel_button_text = "いいえ"
 	_dismantle_confirm.confirmed.connect(_on_bulk_dismantle_confirmed)
 	_dismantle_confirm.canceled.connect(_on_forge_confirm_canceled)
 	add_child(_dismantle_confirm)
 	_legendary_dismantle_confirm = ConfirmationDialog.new()
-	_legendary_dismantle_confirm.title = "レジェンド装備の分解（1/2）"
+	_legendary_dismantle_confirm.title = "L装備の分解（1/2）"
 	_legendary_dismantle_confirm.ok_button_text = "はい"
 	_legendary_dismantle_confirm.cancel_button_text = "いいえ"
 	_legendary_dismantle_confirm.confirmed.connect(_on_legendary_dismantle_step1)
 	_legendary_dismantle_confirm.canceled.connect(_on_forge_confirm_canceled)
 	add_child(_legendary_dismantle_confirm)
 	_legendary_dismantle_final_confirm = ConfirmationDialog.new()
-	_legendary_dismantle_final_confirm.title = "レジェンド装備の分解（2/2）"
+	_legendary_dismantle_final_confirm.title = "L装備の分解（2/2）"
 	_legendary_dismantle_final_confirm.ok_button_text = "はい"
 	_legendary_dismantle_final_confirm.cancel_button_text = "いいえ"
 	_legendary_dismantle_final_confirm.confirmed.connect(_on_legendary_dismantle_final)
@@ -984,7 +984,7 @@ func _setup_dismantle_dialogs() -> void:
 
 func _setup_bulk_dismantle_button() -> void:
 	_bulk_dismantle_btn = Button.new()
-	_bulk_dismantle_btn.text = "ノーマル・レアを一括分解"
+	_bulk_dismantle_btn.text = "N・Rを一括分解"
 	_bulk_dismantle_btn.visible = false
 	_bulk_dismantle_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_bulk_dismantle_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -2462,9 +2462,9 @@ func _update_bulk_dismantle_button() -> void:
 	var count: int = int(preview.get("count", 0))
 	_bulk_dismantle_btn.disabled = count <= 0
 	_bulk_dismantle_btn.text = (
-		"ノーマル・レアを一括分解（%d件）" % count
+		"N・Rを一括分解（%d件）" % count
 		if count > 0
-		else "ノーマル・レアを一括分解"
+		else "N・Rを一括分解"
 	)
 	_bulk_dismantle_btn.tooltip_text = _bulk_dismantle_btn.text
 	BlacksmithUiHelper.apply_bulk_dismantle_button(_bulk_dismantle_btn)
@@ -2581,7 +2581,7 @@ func _on_dismantle_pressed() -> void:
 	if _EquipmentEnhancer.item_rarity(item) >= Enums.Rarity.LEGENDARY:
 		_pending_dismantle_item = item
 		_legendary_dismantle_confirm.dialog_text = (
-			"レジェンド装備「%s」を分解します。\n本当によろしいですか？（1/2）"
+			"L装備「%s」を分解します。\n本当によろしいですか？（1/2）"
 			% _EquipmentEnhancer.get_display_name(item)
 		)
 		_legendary_dismantle_confirm.popup_centered()
@@ -2648,7 +2648,7 @@ func _on_bulk_dismantle_pressed() -> void:
 		_log_craft_error("分解対象がありません")
 		return
 	_dismantle_confirm.dialog_text = (
-		"ノーマル・レア装備 %d件を分解します。\n獲得: %s\nよろしいですか？"
+		"N・R装備 %d件を分解します。\n獲得: %s\nよろしいですか？"
 		% [count, _format_material_summary(preview.get("materials", {}))]
 	)
 	_dismantle_confirm.popup_centered()
@@ -2666,7 +2666,7 @@ func _on_bulk_dismantle_confirmed() -> void:
 	var materials: Dictionary = result.get("materials", {})
 	_show_forge_dismantle_result(
 		materials,
-		"ノーマル・レア装備 %d件を分解しました。" % int(result.get("count", 0))
+		"N・R装備 %d件を分解しました。" % int(result.get("count", 0))
 	)
 	_refresh_all()
 	_play_forge_success_feedback(FORGE_FLASH_DISMANTLE)

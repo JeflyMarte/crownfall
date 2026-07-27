@@ -19,5 +19,5 @@ slot_type = "skill"
 range_type = "long"
 apply_status_id = "armor_break"
 apply_status_chance = 0.45
-apply_status_id2 = "mark"
-apply_status_chance2 = 0.4
+apply_status_id2 = ""
+apply_status_chance2 = 0.0

@@ -317,7 +317,7 @@ func test_shadow_stalker_mythic_drop_can_succeed() -> void:
 	assert_true(saw, "影狩りの神話ドロップが成立しうる")
 
 
-func test_shadow_stalker_omen_on_previous_floor() -> void:
+func test_shadow_stalker_omen_on_stalker_floor() -> void:
 	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
 	var dc: Node = dc_script.new()
 	add_child_autofree(dc)
@@ -331,16 +331,17 @@ func test_shadow_stalker_omen_on_previous_floor() -> void:
 	dc.current_dungeon_data = DataRegistry.get_dungeon_data("mourngate")
 	dc._wander_plan_ready = true
 	dc._planned_wander_by_room = {2: _WanderingEnemyConfig.ID_SHADOW_STALKER}
+	## 出現フロア入場時のみ予兆（前フロアでは出さない）。
 	dc.current_room_index = 1
 	dc.current_room_type = Enums.RoomType.ELITE
+	assert_false(dc.should_show_shadow_stalker_omen())
+	dc.current_room_index = 2
+	dc.current_room_type = Enums.RoomType.COMBAT
 	assert_true(dc.should_show_shadow_stalker_omen())
 	assert_eq(
 		_WanderingEnemyConfig.SHADOW_STALKER_OMEN_LINE,
 		"──死を告げる羽音が近づく。この気配…影狩だ。"
 	)
-	dc.current_room_index = 2
-	dc.current_room_type = Enums.RoomType.COMBAT
-	assert_false(dc.should_show_shadow_stalker_omen())
 	dc.current_room_index = 0
 	assert_false(dc.should_show_shadow_stalker_omen())
 

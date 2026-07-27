@@ -60,6 +60,7 @@ Task 種別に応じた Bundle を使う。各 Bundle の **Read** のみ読む�
 - `docs/project/CurrentSprint.md`
 - `docs/specs/implementation/CODEMAP.md`
 - `docs/specs/game/05_ダンジョン.md`
+- `docs/specs/implementation/14_Presentation_Pitfalls.md`（非戦闘演出・ナラティブ）
 - 該当 Decision: `docs/specs/decisions/01_MVP方針決定.md`, `docs/specs/core/03_Decision_Log.md`（該当行のみ）
 
 **Do Not Read**
@@ -91,6 +92,7 @@ Task 種別に応じた Bundle を使う。各 Bundle の **Read** のみ読む�
 - `docs/project/CurrentState.md`
 - `docs/specs/implementation/CODEMAP.md`
 - `docs/specs/game/08_戦闘_AI.md`
+- `docs/specs/implementation/14_Presentation_Pitfalls.md`（SE／名ポップ／入場演出）
 
 **Do Not Read**
 - World/Lore 文書（`docs/specs/game/29`〜`37`）

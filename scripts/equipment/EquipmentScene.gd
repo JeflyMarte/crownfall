@@ -52,8 +52,8 @@ const RARITY_COLORS: Array[Color] = [
 	Color(0.35, 0.88, 1.0),
 	Color(0.28, 0.86, 0.42),
 ]
-# レアリティ隅マーカー（COMMON/RARE/EPIC/LEGENDARY/MYTHIC/SET）。
-const RARITY_GEMS: Array[String] = ["◇", "◆", "✦", "★", "❖", "▣"]
+# レアリティ隅マーカー（N/R/E/L/M/セット — P3-UI-RARITY-NREL-001）。
+const RARITY_GEMS: Array[String] = ["N", "R", "E", "L", "M", "セット"]
 
 const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45)
 const COLOR_SUB: Color = Color(0.72, 0.69, 0.62)
@@ -764,7 +764,7 @@ func _update_character_card() -> void:
 	call_deferred("_fit_job_label_font_to_width")
 	_job_icon.texture = RosterUiHelper.get_member_portrait_texture(member)
 	_set_character_portrait(member)
-	## キャラ★は 1〜4 の個数体系。装備ティア用 rarity_stars_text（0=★）を使わない。
+	## キャラ★は 1〜4 の個数体系。装備ティア用 rarity_stars_text（N/R/E/L）を使わない。
 	_label_stars.text = EquipmentUiHelper.stars_text(int(member.rarity))
 	_label_stars.visible = true
 	UiTypography.apply_body(_label_stars, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
@@ -1904,7 +1904,7 @@ func _framed_box(border: Color, width: int, bg: Color) -> StyleBoxFlat:
 	sb.set_content_margin_all(4.0)
 	return sb
 
-# ボタン隅にバッジ（レアリティ星 / Legend / 炉研ぎ / 装備中）を重ねる。
+# ボタン隅にバッジ（レアリティ N/R/E/L / Legend / 炉研ぎ / 装備中）を重ねる。
 func _apply_item_badges(
 	btn: Button,
 	item: Resource,

@@ -13,6 +13,7 @@ Suno AI などで作成した BGM をここに配置する。
 | `survey` | `survey.mp3` | 調査室 | YES |
 | `gacha` | `gacha.mp3` | ガチャ（招待状） | YES |
 | `dungeon_explore` | `dungeon_explore.mp3` | ダンジョン探索（全ダンジョン共通） | YES |
+| `mourngate` | `mourngate.mp3` | モーンゲート系 通常戦闘 | YES |
 | `battle` | `battle.mp3` | 通常・エリート戦闘（未登録 Biome の既定） | YES |
 | `shadow_hunt` | `shadow_hunt.mp3` | 影狩戦のみ（イベントDG／放浪） | YES |
 | `event_dungeon` | `event_dungeon.mp3` | 日替わりイベントDG戦闘（影狩以外） | YES |
@@ -25,7 +26,7 @@ Suno AI などで作成した BGM をここに配置する。
 | `valgard_boundary` | `valgard_boundary.mp3` | ストームクラウン境界廊（探索＋雑魚戦闘） | YES |
 | `valgard` | `valgard.mp3` | 境界廊ボス（境界の番ヴァルガード） | YES |
 | `boss` | `boss.mp3` | ボス戦（共通） | YES |
-| `final_boss` | `final_boss.mp3` | ラスボス戦（フロストリッジ本編＝エルディオン） | YES |
+| `final_boss` | `final_boss.mp3` | ラスボス戦（フロストリッジ本編＝エルディオン。旧モーンゲート既定戦闘曲） | YES |
 | `result` | `result.mp3` | リザルト（クリア／リタイア） | YES |
 | `result_defeat` | `result_defeat.mp3` | リザルト（全滅＝探索失敗） | YES |
 

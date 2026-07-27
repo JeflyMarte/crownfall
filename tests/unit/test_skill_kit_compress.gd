@@ -42,6 +42,47 @@ func test_conditional_followup_tags() -> void:
 	assert_true(pursuit.tags.has("vs_mark"))
 
 
+func test_aimed_shot_is_armor_break_only() -> void:
+	var aimed: Resource = DataRegistry.get_skill_data("aimed_shot")
+	assert_eq(str(aimed.apply_status_id), "armor_break")
+	assert_true(str(aimed.apply_status_id2).is_empty())
+
+
+func test_menace_strike_has_taunt() -> void:
+	var menace: Resource = DataRegistry.get_skill_data("menace_strike")
+	assert_true(menace.tags.has("taunt"))
+
+
+func test_pet_bond_rally_stronger_than_herd() -> void:
+	var bond: Resource = DataRegistry.get_skill_data("pet_bond_rally")
+	var herd: Resource = DataRegistry.get_skill_data("herd_call")
+	assert_eq(str(bond.apply_status_id), "empower_pet")
+	assert_lt(float(bond.cooldown), float(herd.cooldown))
+	var pet_emp: Resource = DataRegistry.get_status_effect("empower_pet")
+	var emp: Resource = DataRegistry.get_status_effect("empower")
+	assert_gt(float(pet_emp.outgoing_damage_multiplier), float(emp.outgoing_damage_multiplier))
+
+
+func test_curse_sigil_uses_major_curse() -> void:
+	var sigil: Resource = DataRegistry.get_skill_data("curse_sigil")
+	assert_eq(str(sigil.apply_status_id), "major_curse")
+	var major: Resource = DataRegistry.get_status_effect("major_curse")
+	var curse: Resource = DataRegistry.get_status_effect("curse")
+	assert_lt(float(major.outgoing_damage_multiplier), float(curse.outgoing_damage_multiplier))
+	assert_gt(int(major.duration_ticks), int(curse.duration_ticks))
+
+
+func test_grave_bell_is_front_row_soft_stun() -> void:
+	var bell: Resource = DataRegistry.get_skill_data("enemy_grave_bell_peal")
+	assert_eq(str(bell.target_type), "party_front")
+	assert_lte(float(bell.apply_status_chance), 0.15)
+
+
+func test_decree_wave_power_softened() -> void:
+	var decree: Resource = DataRegistry.get_skill_data("boss_decree_wave")
+	assert_lte(float(decree.power_multiplier), 0.6)
+
+
 func test_swordsman_description_is_offense_frontline() -> void:
 	var job: Resource = DataRegistry.get_job_data("swordsman")
 	assert_false(str(job.description).contains("被弾を引き受ける"))

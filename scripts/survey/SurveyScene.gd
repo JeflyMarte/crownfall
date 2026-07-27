@@ -1145,7 +1145,7 @@ func _reward_catalog_rows() -> Array[Dictionary]:
 	out.append({
 		"texture": IconPaths.get_icon_texture("iron_sword", "weapon"),
 		"title": "装備（武器）",
-		"chance": "★1 %d%%／★2 %d%%／★3 %.1f%%（いずれか、または無し）" % [p1, p2, p3],
+		"chance": "N %d%%／R %d%%／E %.1f%%（いずれか、または無し）" % [p1, p2, p3],
 	})
 	var did: String = _selected_dungeon_id()
 	var dg: Resource = DataRegistry.get_dungeon_data(did)

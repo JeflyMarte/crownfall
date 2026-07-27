@@ -599,11 +599,13 @@ func _shadow_stalker_allowed_on_current_stage() -> bool:
 
 
 func should_show_shadow_stalker_omen() -> bool:
-	## 次の部屋が影狩りの放浪出現予定なら、現フロアの部屋種別一幕で予兆を出す。
-	var next_i: int = current_room_index + 1
-	if next_i >= room_sequence.size():
+	## 影狩り出現フロアの入場一幕で予兆を出す（前フロアだと次が別敵になり演出と不一致）。
+	if current_room_index < 0 or current_room_index >= room_sequence.size():
 		return false
-	return str(_planned_wander_by_room.get(next_i, "")) == _WanderingEnemyConfig.ID_SHADOW_STALKER
+	return (
+		str(_planned_wander_by_room.get(current_room_index, ""))
+		== _WanderingEnemyConfig.ID_SHADOW_STALKER
+	)
 
 
 func _roll_run_weather() -> String:

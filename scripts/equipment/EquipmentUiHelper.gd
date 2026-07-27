@@ -1,7 +1,9 @@
 class_name EquipmentUiHelper
 extends RefCounted
 
-const RARITY_GEMS: Array[String] = ["◇", "◆", "✦", "★", "❖", "▣"]
+## 装備レア表示 SSOT（P3-UI-RARITY-NREL-001）。キャラ★個数とは別。
+## N＜R＜E＜L（＋M神話／セット）。旧 ◇◆✦★ 宝石記号は使わない。
+const RARITY_CODES: Array[String] = ["N", "R", "E", "L", "M", "セット"]
 const LEVEL_CAP: int = LevelSystem.MAX_LEVEL
 
 const SORT_LABELS: Dictionary = {
@@ -26,30 +28,28 @@ const CATEGORY_LABELS: Dictionary = {
 static func category_label(category: String) -> String:
 	return str(CATEGORY_LABELS.get(category, category))
 
-static func rarity_gem(rarity: int) -> String:
-	return RARITY_GEMS[clampi(rarity, 0, RARITY_GEMS.size() - 1)]
+static func rarity_code(rarity: int) -> String:
+	return RARITY_CODES[clampi(rarity, 0, RARITY_CODES.size() - 1)]
 
+static func rarity_gem(rarity: int) -> String:
+	return rarity_code(rarity)
+
+## キャラ／助っ人用★個数（装備レアではない）。
 static func stars_text(rarity: int) -> String:
 	return RosterUiHelper.stars_text(clampi(rarity, 1, 5))
 
 static func level_line(level: int, max_level: int = LEVEL_CAP) -> String:
 	return "Lv.%d / %d" % [clampi(level, 1, max_level), max_level]
 
-## アイコン隅の★表示。セットは緑枠のみで文字を重ねない。
+## アイコン隅バッジ用。セットは緑枠のみで文字を重ねない。
 static func rarity_stars_text(rarity: int) -> String:
 	if rarity == Enums.Rarity.SET:
 		return ""
-	var count: int = clampi(rarity + 1, 1, 5)
-	var out: String = ""
-	for _i in count:
-		out += "★"
-	return out
+	return rarity_code(rarity)
 
 ## 詳細・結果などテキスト行用（セットは「セット」表記）。
 static func rarity_label_text(rarity: int) -> String:
-	if rarity == Enums.Rarity.SET:
-		return "セット"
-	return rarity_stars_text(rarity)
+	return rarity_code(rarity)
 
 static func enhance_badge(item: Resource, category: String) -> String:
 	if category != "weapon" or item == null:

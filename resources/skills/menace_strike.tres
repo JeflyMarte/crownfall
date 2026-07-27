@@ -6,14 +6,14 @@
 script = ExtResource("1")
 id = "menace_strike"
 display_name = "威嚇斬"
-description = "威圧的な一撃で敵の戦意を削ぐ。怯ませて味方を守る。"
+description = "威圧的な一撃でヘイトを奪い、怯ませて矢面に立つ。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.05
 cooldown = 3.5
 trigger_type = "cooldown"
 effect_type = "damage"
-tags = Array[String](["melee", "guard", "shield"])
+tags = Array[String](["melee", "guard", "shield", "taunt"])
 element = ""
 apply_status_id = "fear"
 apply_status_chance = 0.45

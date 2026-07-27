@@ -4856,6 +4856,36 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 
 ---
 
+## ダンジョン探索／戦闘 BGM 再分離（2026-07-27 — P3-AUDIO-BGM-EXPLORE-RESTORE-001）
+
+> **オーナー指示** — 探索と戦闘で BGM を分ける（P3-AUDIO-BGM-EXPLORE-OMIT-001 を撤回）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-AUDIO-BGM-EXPLORE-RESTORE-001-1 | **非戦闘** — `explore_bgm_for_dungeon`（共通 or ダンジョン別） | 探索の空気を戻す |
+| P3-AUDIO-BGM-EXPLORE-RESTORE-001-2 | **通常戦闘** — `battle_bgm_for_dungeon`／影狩は `shadow_hunt` | 既存戦闘曲 |
+| P3-AUDIO-BGM-EXPLORE-RESTORE-001-3 | **ボス** — `boss_bgm_for_dungeon` | 既存 |
+| P3-AUDIO-BGM-EXPLORE-RESTORE-001-4 | **OMIT-001** — 撤回（アセット残置は継続） | オーナー指示 |
+
+**Closeout:** Impl 後に統合＋`main`。
+
+---
+
+## 本編戦闘背景の章段階切替（2026-07-27 — P3-ART-BATTLE-BG-STAGE-001）
+
+> **オーナー指示** — Desktop「背景/ダンジョン」：名1＝x-1〜x-3、名2＝x-4〜x-5、ラスボス＝⑤の x-5 ボスのみ。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-ART-BATTLE-BG-STAGE-001-1 | **①〜⑤** — Early＝章1〜3／Late＝章4〜5 | Desktop 名1／名2 |
+| P3-ART-BATTLE-BG-STAGE-001-2 | **ラスボス背景** — フロストリッジ x-5 のボス部屋のみ（Hard/NM 含む） | Desktop「ラスボス」 |
+| P3-ART-BATTLE-BG-STAGE-001-3 | **①〜④の x-5 ボス** — Late（名2）据置 | ラスボス専用は⑤のみ |
+| P3-ART-BATTLE-BG-STAGE-001-4 | **深層／寄り道／降臨／イベント** — 既存専用 or 単枚据置 | 本編段階の対象外 |
+
+**Closeout:** Impl 後に統合＋`main`。
+
+---
+
 ## 戦闘右上・発生中状態異常レジェンド（2026-07-27 — P3-UX-STATUS-LEGEND-001）
 
 > **オーナー GO（案A＋文言）** — 旧敵行動順位置に、発生中状態異常のアイコン＋1行説明。
@@ -4912,6 +4942,34 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-UX-NONCOMBAT-POLISH-001-1 | **碑文** — 成功テロップ（加護含む）は自動フェードせず、次フロア入場まで表示 | 「閉じるのが早い」 |
 | P3-UX-NONCOMBAT-POLISH-001-2 | **回復泉** — 回復VFXと頭上数字を緑。成功時は一時的に味方表示 | 視認性 |
 | P3-UX-NONCOMBAT-POLISH-001-3 | **宝箱** — ゴールド＝金／武器＝水色／装飾＝紫の BBCode | 報酬の区別 |
+
+**Closeout:** Impl 後に統合＋`main`。
+
+---
+
+## 碑文下帯の短縮・案A（2026-07-27 — P3-UX-LORE-NARRATIVE-A）
+
+> **オーナー GO** — 戦場下帯の文字過多を、タイトル＋報酬のみに短縮（図鑑本文は出さない）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-LORE-NARRATIVE-A-1 | **下帯** — `【碑文】タイトル`＋ゴールド／素材／加護など報酬行のみ | 宝箱と同型・テンポ優先 |
+| P3-UX-LORE-NARRATIVE-A-2 | **本文** — 図鑑（世界観）に残置。戦場には出さない | 文字過多の主因を除去 |
+| P3-UX-LORE-NARRATIVE-A-3 | **中央テロップ** — 出さない（下帯のみ。宝箱方針） | 二重表示回避 |
+
+**Closeout:** Impl 後に統合＋`main`。
+
+---
+
+## 非戦闘下帯の行色分け（2026-07-27 — P3-UX-NONCOMBAT-NARRATIVE-COLOR-001）
+
+> **オーナー GO（案A）** — 非戦闘フロア全般で行ごとに色分け。宝箱の黄／水色／紫を共通化し、ダメージ＝赤・回復＝緑・加護／EXP＝青。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-NONCOMBAT-NARRATIVE-COLOR-001-1 | **SSOT** — `NonCombatNarrativeColors`（HEX）を碑文／泉／罠／宝箱で共用 | 一貫性 |
+| P3-UX-NONCOMBAT-NARRATIVE-COLOR-001-2 | **本文**＝オフ白／**ゴールド**＝黄／**ダメージ**＝赤／**回復**＝緑／**加護・EXP**＝青／**素材**＝琥珀／**武器**＝水色／**装飾**＝紫／**碑文タイトル**＝薄紫 | オーナー例＋宝箱既存 |
+| P3-UX-NONCOMBAT-NARRATIVE-COLOR-001-3 | **実装** — 下帯は BBCode（`_set_room_narrative_bbcode`） | 行単位の色 |
 
 **Closeout:** Impl 後に統合＋`main`。
 
@@ -5114,6 +5172,20 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-BAL-DEAD-EXP-001-3 | 装備EXPも戦闘クリア時の生存人間のみ | 死者の装備成長を止める |
 | P3-BAL-DEAD-EXP-001-4 | 結果表示の合計EXPは撃破プール（`run_exp_reward`）据置。個人は `run_exp_by_member` | UI互換 |
 
+## 戦闘バランス点検 案A（2026-07-28 — P3-BAL-COMBAT-AUDIT-001）
+
+> **オーナー GO** — キット整合＋①全体技のタンク価値。数値パッチ最小。案B/Cは後続。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-COMBAT-AUDIT-001-1 | **スナイプ**から標的付与を外す（甲砕のみ） | Lv1が狩人の標／追標を食う |
+| P3-BAL-COMBAT-AUDIT-001-2 | **威嚇斬**に `taunt`（Threatスパイク） | 案Aヘイト再取得の実体化 |
+| P3-BAL-COMBAT-AUDIT-001-3 | **相棒鼓舞**＝`empower_pet`（×1.45・4tick）＋CD4.0 | 号令との差別化 |
+| P3-BAL-COMBAT-AUDIT-001-4 | **呪印**＝`major_curse`（与ダメ×0.65・6tick） | 高強度呪の実体。通常呪と排他 |
+| P3-BAL-COMBAT-AUDIT-001-5 | 敵 **`all_party` は Threat按分**（列AoEと同型） | タンク無効化の解消 |
+| P3-BAL-COMBAT-AUDIT-001-6 | **断罪** power 0.7→0.6 | 全体圧の緩和 |
+| P3-BAL-COMBAT-AUDIT-001-7 | **墓鐘**＝前列＋stun 0.15 | 全体硬直の軟ロック緩和 |
+
 ## スキルキット圧縮＋全体技（2026-07-27 — P3-SKILL-KIT-001）
 
 > **オーナー GO** — 装備1枠維持（A）＋習得7本（D）。役割案A。Lv1も終盤選択肢（同型威力階段禁止）。敵全体ダメ／敵全体状態／味方全体バフ。
@@ -5136,7 +5208,7 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 |---|---|---|
 | P3-UX-COMBAT-VFX-001-1 | **付与視認** — テロップ大型化＋バフ橙／デバフ状態色。付与バーストはバフ上昇・デバフ下降。鼓舞・防御・標的等も常駐オーラ | ログ無しで分かる |
 | P3-UX-COMBAT-VFX-001-2 | **武器別ヒット** — VFXはスケール／回転／ティントで剣＝斬撃・弓＝刺突・杖＝魔法寄り。SEは `combat_hit` / `combat_hit_bow` / `combat_hit_staff` | 剣と弓が同じ問題の解消 |
-| P3-UX-COMBAT-VFX-001-3 | **鼓舞SE** — `combat_buff` を Kenney Digital `powerUp1` へ差し替え（剣ヒットと別音色） | ヒット音に聞こえる問題 |
+| P3-UX-COMBAT-VFX-001-3 | **鼓舞SE** — `combat_buff` を Kenney Digital **`phaserUp1`** へ差し替え（剣ヒットと別音色） | ヒット音に聞こえる問題。旧 powerUp1 から変更 |
 | P3-UX-COMBAT-VFX-001-4 | **スコープ外** — 武器別専用スプライト新規描画／クリティカルSEの武器分岐／誰に付いているかのレジェンド個別表示 | アセット増を抑える |
 
 ## ジョブ到達形βオミット（2026-07-27 — P3-JOB-EVO-OMIT-001）
@@ -5149,3 +5221,23 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-JOB-EVO-OMIT-001-2 | 新規認定不可・UI非表示（キャラ昇格行／ギルド認定リスト） | 完全オミット |
 | P3-JOB-EVO-OMIT-001-3 | 専門深化・昇格特質・進化着色は不発（セーブの `is_evolved` があっても無視） | 既存セーブの巻き戻り防止しつつ効果ゼロ |
 | P3-JOB-EVO-OMIT-001-4 | `JobData`／コード／セーブ項目は残置（再有効化用） | データ削除しない |
+
+## ダンジョン演出総点検（2026-07-27 — P3-UX-PRESENTATION-AUDIT-001）
+
+> **オーナー指示:** 宝箱コメント巻き戻りと同種のコード誤りを総点検し、再発防止を文書化。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-PRESENTATION-AUDIT-001-1 | **SSOT** — `docs/specs/implementation/14_Presentation_Pitfalls.md` を演出レビュー用チェックリストとする | 宝箱ミスの再発防止 |
+| P3-UX-PRESENTATION-AUDIT-001-2 | **修正** — 非戦闘入場パッシブ／碑文回復・加護の味方表示、回復・加護・武器名ポップの `combat_skill` 無音化、Rich 表示中の typography reset 抑止 | 監査で確定した残存バグ |
+| P3-UX-PRESENTATION-AUDIT-001-3 | **ルール連携** — `known-pitfalls.mdc` / `gdscript.mdc` / `07_コーディングルール.md` に同方針を追記 | Impl セッション横断 |
+
+## 装備レア表示 N/R/E/L（2026-07-28 — P3-UI-RARITY-NREL-001）
+
+> **オーナー GO（案B）** — 装備は N＜R＜E＜L。キャラ／助っ人は★個数のまま。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UI-RARITY-NREL-001-1 | 装備UI・図鑑・鍛冶短号・調査文言・ドロップ表記を **N/R/E/L**（＋M／セット）に統一 | ◇◆✦★／SR・SSR が分かりにくい |
+| P3-UI-RARITY-NREL-001-2 | キャラ★個数・ダンジョン難度★は変更しない | 別系統 |
+| P3-UI-RARITY-NREL-001-3 | SSOT=`EquipmentUiHelper`／`BlacksmithUiHelper`／`CodexContentHelper`。Decision=`20_EquipmentRarityLabels.md` | 表示のみ・数値非変更 |

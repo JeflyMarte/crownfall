@@ -90,8 +90,26 @@ static func format_hit_narrative(hit_line: String, member_name: String, dmg: int
 	return "%s\n%s に %d ダメージ！" % [hit_line, member_name, dmg]
 
 
+static func format_hit_narrative_bbcode(hit_line: String, member_name: String, dmg: int) -> String:
+	return "%s\n%s" % [
+		NonCombatNarrativeColors.body(hit_line),
+		NonCombatNarrativeColors.damage("%s に %d ダメージ！" % [member_name, dmg]),
+	]
+
+
 static func format_aoe_hit_narrative(hit_line: String, hit_count: int) -> String:
 	return "%s\nパーティ全体に罠ダメージ！（%d人）" % [hit_line, hit_count]
+
+
+static func format_aoe_hit_narrative_bbcode(hit_line: String, hit_count: int) -> String:
+	return "%s\n%s" % [
+		NonCombatNarrativeColors.body(hit_line),
+		NonCombatNarrativeColors.damage("パーティ全体に罠ダメージ！（%d人）" % hit_count),
+	]
+
+
+static func format_avoid_narrative_bbcode(avoid_line: String) -> String:
+	return NonCombatNarrativeColors.avoid(avoid_line)
 
 
 static func pulse_count(trap_room: bool, fast_run: bool) -> int:

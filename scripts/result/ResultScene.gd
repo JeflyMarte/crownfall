@@ -14,6 +14,7 @@ const _MaterialUiTokens = preload("res://scripts/equipment/MaterialUiTokens.gd")
 const _ChrIdlePortraitView = preload("res://scripts/ui/ChrIdlePortraitView.gd")
 const CLEAR_BANNER_TEX: Texture2D = preload("res://assets/ui/result/UI_Result_Clear.png")
 const LEVELUP_BANNER_TEX: Texture2D = preload("res://assets/ui/result/UI_Result_LevelUp.png")
+const MVP_TITLE_TEX: Texture2D = preload("res://assets/ui/result/UI_Result_Mvp.png")
 const LEVELUP_BANNER_H: float = 168.0
 
 const COLOR_GOLD: Color = Color(0.85, 0.74, 0.45, 1)
@@ -83,7 +84,7 @@ var _step_levelup_root: MarginContainer
 var _step_mvp_root: MarginContainer
 var _levelup_header: TextureRect
 var _levelup_member_list: VBoxContainer
-var _mvp_header: Label
+var _mvp_header: TextureRect
 var _mvp_body: VBoxContainer
 var _mvp_context_row: HBoxContainer
 var _mvp_context_backdrop: PanelContainer
@@ -239,11 +240,19 @@ func _setup_wizard_roots() -> void:
 	_mvp_context_row.add_child(_mvp_context_stars)
 	_mvp_context_backdrop = _make_mvp_backdrop(_mvp_context_row, "header")
 	mvp_vbox.add_child(_mvp_context_backdrop)
-	_mvp_header = Label.new()
-	_mvp_header.text = "★ MVP ★"
-	_mvp_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UiTypography.apply_display(_mvp_header, 40, COLOR_GOLD, UiTypography.OUTLINE_STRONG)
-	_mvp_header_backdrop = _make_mvp_backdrop(_mvp_header, "header")
+	_mvp_header = TextureRect.new()
+	_mvp_header.name = "MvpTitleLogo"
+	_mvp_header.texture = MVP_TITLE_TEX
+	_mvp_header.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_mvp_header.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_mvp_header.custom_minimum_size = Vector2(0, MvpPresentationScript.TITLE_LOGO_H)
+	_mvp_header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_mvp_header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	## ロゴ自体に枠があるため暗いヘッダ板は付けず、演出用に空パネルで包む。
+	_mvp_header_backdrop = PanelContainer.new()
+	_mvp_header_backdrop.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_mvp_header_backdrop.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	_mvp_header_backdrop.add_child(_mvp_header)
 	mvp_vbox.add_child(_mvp_header_backdrop)
 	_mvp_podium_host = CenterContainer.new()
 	_mvp_podium_host.custom_minimum_size = Vector2(0, MvpPresentationScript.PODIUM_MIN_HEIGHT)

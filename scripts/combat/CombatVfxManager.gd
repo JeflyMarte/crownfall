@@ -5,9 +5,9 @@ extends RefCounted
 ## 付与バースト（ワンショット CPUParticles2D）と常駐オーラを管理する。
 
 const AURA_STATUS_IDS: Array[String] = [
-	"poison", "chill", "shock", "ignite", "curse", "bleed", "stun", "fear",
+	"poison", "chill", "shock", "ignite", "curse", "major_curse", "bleed", "stun", "fear",
 	## P3-UX-COMBAT-VFX-001: バフ／攻防デバフも常駐オーラでログ無し視認
-	"empower", "empower_minor", "guard", "mark", "vulnerable", "armor_break", "slow", "enrage",
+	"empower", "empower_minor", "empower_pet", "guard", "mark", "vulnerable", "armor_break", "slow", "enrage",
 ]
 
 const STATUS_COLOR: Dictionary = {
@@ -16,6 +16,7 @@ const STATUS_COLOR: Dictionary = {
 	"shock": Color(0.95, 0.85, 0.2),
 	"ignite": Color(0.95, 0.4, 0.15),
 	"curse": Color(0.55, 0.25, 0.75),
+	"major_curse": Color(0.45, 0.15, 0.7),
 	"stun": Color(0.7, 0.7, 0.75),
 	"fear": Color(0.55, 0.35, 0.6),
 	"vulnerable": Color(0.95, 0.45, 0.45),
@@ -23,6 +24,7 @@ const STATUS_COLOR: Dictionary = {
 	"mark": Color(0.95, 0.35, 0.55),
 	"empower": Color(0.95, 0.55, 0.2),
 	"empower_minor": Color(0.85, 0.6, 0.35),
+	"empower_pet": Color(0.95, 0.5, 0.25),
 	"guard": Color(0.4, 0.55, 0.85),
 	"bleed": Color(0.9, 0.28, 0.28),
 	"slow": Color(0.47, 0.67, 0.82),
@@ -40,6 +42,7 @@ const DOT_TELOP_COLOR: Dictionary = {
 	"chill": Color(0.55, 0.82, 1.0),
 	"shock": Color(0.98, 0.9, 0.35),
 	"curse": Color(0.78, 0.48, 0.95),
+	"major_curse": Color(0.72, 0.38, 0.92),
 }
 
 ## 状態異常中ユニットのスプライト着色（複数時は優先度で1色）。
@@ -52,13 +55,14 @@ const STATUS_UNIT_TINT: Dictionary = {
 	"chill": Color(0.72, 0.88, 1.0),
 	"shock": Color(1.0, 0.95, 0.62),
 	"curse": Color(0.82, 0.62, 0.95),
+	"major_curse": Color(0.78, 0.55, 0.92),
 	"vulnerable": Color(1.0, 0.78, 0.78),
 	"armor_break": Color(0.95, 0.82, 0.62),
 	"mark": Color(1.0, 0.72, 0.82),
 }
 
 const STATUS_TINT_PRIORITY: Array[String] = [
-	"stun", "fear", "ignite", "poison", "bleed", "chill", "shock", "curse", "vulnerable", "armor_break", "mark",
+	"stun", "fear", "ignite", "poison", "bleed", "chill", "shock", "major_curse", "curse", "vulnerable", "armor_break", "mark",
 ]
 
 const STATUS_ELEMENT: Dictionary = {
@@ -66,6 +70,7 @@ const STATUS_ELEMENT: Dictionary = {
 	"chill": "ice",
 	"shock": "thunder",
 	"curse": "dark",
+	"major_curse": "dark",
 }
 
 var _aura_nodes: Dictionary = {}  # unit_key -> { status_id: CPUParticles2D }
@@ -143,7 +148,7 @@ static func unit_tint_from_statuses(statuses: Array) -> Color:
 static func is_buff_status(status_id: String) -> bool:
 	if status_id.is_empty():
 		return false
-	if status_id == "empower" or status_id == "empower_minor" or status_id == "guard":
+	if status_id == "empower" or status_id == "empower_minor" or status_id == "empower_pet" or status_id == "guard":
 		return true
 	var data: Resource = DataRegistry.get_status_effect(status_id)
 	if data == null:
@@ -286,7 +291,7 @@ func _apply_burst_profile(status_id: String) -> Dictionary:
 			return {"amount": 32, "spread": 180.0, "velocity_min": 90.0, "velocity_max": 220.0, "gravity_y": 0.0}
 		"poison":
 			return {"amount": 26, "spread": 40.0, "velocity_min": 40.0, "velocity_max": 110.0, "gravity_y": -25.0}
-		"curse", "fear":
+		"curse", "major_curse", "fear":
 			return {"amount": 22, "spread": 120.0, "velocity_min": 50.0, "velocity_max": 130.0, "gravity_y": 20.0}
 		"stun":
 			return {"amount": 30, "spread": 180.0, "velocity_min": 70.0, "velocity_max": 160.0, "gravity_y": -10.0}
@@ -314,7 +319,7 @@ func _aura_profile(status_id: String) -> Dictionary:
 			return {"amount": 12, "lifetime": 0.35, "velocity_min": 30.0, "velocity_max": 70.0, "gravity_y": 0.0, "spread": 180.0}
 		"poison":
 			return {"amount": 9, "lifetime": 0.75, "velocity_min": 10.0, "velocity_max": 28.0, "gravity_y": -22.0, "spread": 30.0}
-		"curse":
+		"curse", "major_curse":
 			return {"amount": 8, "lifetime": 0.8, "velocity_min": 12.0, "velocity_max": 30.0, "gravity_y": 15.0, "spread": 120.0}
 		"bleed":
 			return {"amount": 7, "lifetime": 0.65, "velocity_min": 20.0, "velocity_max": 45.0, "gravity_y": 55.0, "spread": 35.0}
@@ -322,7 +327,7 @@ func _aura_profile(status_id: String) -> Dictionary:
 			return {"amount": 10, "lifetime": 0.45, "velocity_min": 25.0, "velocity_max": 55.0, "gravity_y": -5.0, "spread": 180.0}
 		"fear":
 			return {"amount": 8, "lifetime": 0.7, "velocity_min": 14.0, "velocity_max": 36.0, "gravity_y": 10.0, "spread": 100.0}
-		"empower", "empower_minor":
+		"empower", "empower_minor", "empower_pet":
 			return {"amount": 7, "lifetime": 0.7, "velocity_min": 14.0, "velocity_max": 32.0, "gravity_y": -28.0, "spread": 35.0}
 		"guard":
 			return {"amount": 6, "lifetime": 0.85, "velocity_min": 6.0, "velocity_max": 18.0, "gravity_y": -8.0, "spread": 50.0}
