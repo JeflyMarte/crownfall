@@ -9,12 +9,15 @@ const _META_HOOKED: StringName = &"_cf_scroll_touch_hooked"
 const _META_REFRESH_QUEUED: StringName = &"_cf_scroll_touch_refresh_queued"
 
 
-static func enable(scroll: ScrollContainer) -> void:
+## nest_inner_scrolls=false なら内側 ScrollContainer を別スクロールとして enable しない
+## （キャラ装備タブの入れ子競合・実機でスクロールが重い／効かない対策）。
+static func enable(scroll: ScrollContainer, nest_inner_scrolls: bool = true) -> void:
 	if scroll == null:
 		return
 	if scroll.scroll_deadzone < TOUCH_DEADZONE:
 		scroll.scroll_deadzone = TOUCH_DEADZONE
-	_make_descendants_scroll_friendly(scroll)
+	scroll.set_meta(&"_cf_scroll_nest_inner", nest_inner_scrolls)
+	_make_descendants_scroll_friendly(scroll, nest_inner_scrolls)
 	_hook_content_mutations(scroll)
 
 
@@ -57,13 +60,18 @@ static func _refresh_once(scroll: ScrollContainer) -> void:
 	if not is_instance_valid(scroll):
 		return
 	scroll.set_meta(_META_REFRESH_QUEUED, false)
-	_make_descendants_scroll_friendly(scroll)
+	var nest: bool = bool(scroll.get_meta(&"_cf_scroll_nest_inner", true))
+	_make_descendants_scroll_friendly(scroll, nest)
 
 
-static func _make_descendants_scroll_friendly(node: Node) -> void:
+static func _make_descendants_scroll_friendly(node: Node, nest_inner_scrolls: bool = true) -> void:
 	for child in node.get_children():
 		if child is ScrollContainer:
-			enable(child as ScrollContainer)
+			if nest_inner_scrolls:
+				enable(child as ScrollContainer, nest_inner_scrolls)
+			else:
+				## 内側はスクロール対象にせず、ボタンだけ PASS 化して外スクロールへ渡す。
+				_make_descendants_scroll_friendly(child, false)
 			continue
 		if child is BaseButton:
 			(child as BaseButton).mouse_filter = Control.MOUSE_FILTER_PASS
@@ -72,4 +80,4 @@ static func _make_descendants_scroll_friendly(node: Node) -> void:
 			## カード等の STOP がドラッグを奪う。IGNORE はそのまま。
 			if c.mouse_filter == Control.MOUSE_FILTER_STOP:
 				c.mouse_filter = Control.MOUSE_FILTER_PASS
-		_make_descendants_scroll_friendly(child)
+		_make_descendants_scroll_friendly(child, nest_inner_scrolls)

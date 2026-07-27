@@ -27,6 +27,8 @@ const BASE_MEMBER_HP: int = BalanceConfig.BASE_MEMBER_HP
 # クリティカルダメージ倍率（BalanceConfig 準拠）。
 const CRIT_DAMAGE_MULT: float = BalanceConfig.CRITICAL_MULTIPLIER
 const GRID_COLUMNS: int = 6
+## 旧: 所持を内側 Scroll の3行窓にしていた（TabEquip との入れ子で実機スクロール悪化）。
+## 現在は自然高＋外側 TabEquip のみスクロール。定数は高さ推定フォールバック用に残置。
 const INV_VISIBLE_ROWS: int = 3
 const STAT_VALUE_FONT_SIZE: int = 24
 const STAT_LABEL_FONT_SIZE: int = 20
@@ -97,6 +99,7 @@ var _pending_take_relic_id: String = ""
 @onready var _slots_panel: VBoxContainer = $VBoxContainer/CharacterCard/CardRow/SlotsPanel
 @onready var _slots_row: GridContainer = $VBoxContainer/CharacterCard/CardRow/SlotsPanel/EquipSlotsGrid
 @onready var _equip_content: VBoxContainer = $VBoxContainer/TabContainer/TabEquip/EquipContent
+@onready var _tab_equip_scroll: ScrollContainer = $VBoxContainer/TabContainer/TabEquip
 @onready var _effects_panel: PanelContainer = $VBoxContainer/TabContainer/TabEquip/EquipContent/EffectsPanel
 @onready var _effects_rule: TextureRect = $VBoxContainer/TabContainer/TabEquip/EquipContent/EffectsPanel/EffectsVBox/EffectsRule
 @onready var _effects_grid: GridContainer = $VBoxContainer/TabContainer/TabEquip/EquipContent/EffectsPanel/EffectsVBox/EffectsGrid
@@ -200,10 +203,13 @@ func _ready() -> void:
 	# InvCell の StyleBoxTexture 辺が巨大な金筋・隙間漏れになる（再発防止）。
 	_inventory_grid.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	_inventory_grid.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	_inventory_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_inventory_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	## 入れ子スクロール廃止: 所持は自然高、縦スクロールは TabEquip のみ。
+	_inventory_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	_inventory_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_inventory_scroll.scroll_deadzone = 12
-	_inventory_scroll.clip_contents = true
+	_inventory_scroll.clip_contents = false
+	## BottomNav の enable_in_subtree で内側も enable 済みなので、入力は外へ通す。
+	_inventory_scroll.mouse_filter = Control.MOUSE_FILTER_PASS
 	_category_row.clip_contents = true
 	# ルート／タブが CharacterCard の最小幅に引きずられて横はみ出ししないようにする。
 	clip_contents = true
@@ -212,9 +218,12 @@ func _ready() -> void:
 	for tab_child in _tabs.get_children():
 		if tab_child is ScrollContainer:
 			var sc: ScrollContainer = tab_child
-			sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+			sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 			sc.clip_contents = true
 			sc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			sc.scroll_deadzone = maxi(sc.scroll_deadzone, ScrollTouchHelper.TOUCH_DEADZONE)
+	## BottomNav の subtree enable 後も、装備タブは内側所持 Scroll をネスト enable しない。
+	ScrollTouchHelper.enable(_tab_equip_scroll, false)
 	_setup_equipment_chrome()
 	_build_category_chips()
 	_apply_panel_styles()
@@ -343,6 +352,7 @@ func _set_active_tab(tab_idx: int) -> void:
 	_active_tab = tab_idx
 	_tabs.current_tab = _TAB_CONTAINER_INDICES[tab_idx]
 	_update_tab_styles()
+	_rebuild_active_side_tab()
 
 func _update_tab_styles() -> void:
 	for i in _tab_buttons.size():
@@ -690,11 +700,22 @@ func _refresh_display() -> void:
 	_refresh_category_buttons()
 	_refresh_inventory_tools()
 	_rebuild_inventory_grid()
-	_rebuild_skill_tab()
-	_rebuild_ultimate_tab()
-	_rebuild_passive_tab()
-	_rebuild_tactics_tab()
-	_update_forge_nav_dot()
+	## 非表示タブは開いたときだけ再構築（装備タブのスクロール／メモリ負荷軽減）。
+	_rebuild_active_side_tab()
+	call_deferred("_update_forge_nav_dot")
+
+func _rebuild_active_side_tab() -> void:
+	match _active_tab:
+		TAB_SKILL:
+			_rebuild_skill_tab()
+		TAB_ULTIMATE:
+			_rebuild_ultimate_tab()
+		TAB_PASSIVE:
+			_rebuild_passive_tab()
+		TAB_TACTICS:
+			_rebuild_tactics_tab()
+		_:
+			pass
 
 func _update_forge_nav_dot() -> void:
 	NavUiTokens.set_bottom_nav_text(
@@ -1232,14 +1253,25 @@ func _sync_inventory_cell_size() -> void:
 	_update_inventory_viewport_height()
 
 func _update_inventory_viewport_height() -> void:
-	var cell_size: Vector2 = _inv_cell_size_vec()
-	var v_sep: int = _inventory_grid.get_theme_constant("v_separation", "GridContainer")
-	var height: float = cell_size.y * float(INV_VISIBLE_ROWS) + float(v_sep * maxi(0, INV_VISIBLE_ROWS - 1))
-	_inventory_scroll.custom_minimum_size.y = height
+	## 入れ子廃止: 固定3行窓にせず、グリッド自然高まで伸ばして外スクロールへ渡す。
+	_inventory_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_inventory_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	_inventory_scroll.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	# 行数が少なくても Grid を Scroll 高さまで伸ばさない（StyleBox 縦筋の再発防止）。
 	_inventory_grid.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_inventory_grid.custom_minimum_size = Vector2(0, 0)
+	_fit_inventory_scroll_to_grid()
+
+func _fit_inventory_scroll_to_grid() -> void:
+	if _inventory_scroll == null or _inventory_grid == null:
+		return
+	var grid_min: Vector2 = _inventory_grid.get_combined_minimum_size()
+	var height: float = grid_min.y
+	if height < 1.0:
+		var cell_size: Vector2 = _inv_cell_size_vec()
+		var v_sep: int = _inventory_grid.get_theme_constant("v_separation", "GridContainer")
+		var rows: int = maxi(1, int(ceil(float(_inventory_grid.get_child_count()) / float(GRID_COLUMNS))))
+		height = cell_size.y * float(rows) + float(v_sep * maxi(0, rows - 1))
+	_inventory_scroll.custom_minimum_size.y = height
 
 func _sync_slot_cell_size() -> void:
 	# パネル幅連動だとキャラ切替・再レイアウトでセルが肥大化しアイコンが拡大して見える。
@@ -1334,14 +1366,18 @@ func _rebuild_inventory_grid() -> void:
 		if _inventory_filter == "relic":
 			empty_msg = "所持しているレリックがありません"
 		_inventory_grid.add_child(_make_dim_label(empty_msg))
+		_fit_inventory_scroll_to_grid()
+		ScrollTouchHelper.enable(_tab_equip_scroll, false)
 		return
 	for e in EquipmentUiHelper.sort_inventory_entries(entries, _inventory_sort):
 		if str(e.get("category", "")) == "relic":
 			_inventory_grid.add_child(_make_relic_cell(str(e.get("relic_id", ""))))
 		else:
 			_inventory_grid.add_child(_make_item_cell(e["item"], str(e["category"])))
-	## rebuild 後も Scroll 内 Button を PASS 化（長押し＋スクロール両立）。
-	ScrollTouchHelper.enable(_inventory_scroll)
+	_fit_inventory_scroll_to_grid()
+	## 外スクロール（TabEquip）のみ。内側所持 Scroll はネスト enable しない。
+	ScrollTouchHelper.enable(_tab_equip_scroll, false)
+	call_deferred("_fit_inventory_scroll_to_grid")
 
 func _make_item_cell(item: Resource, category: String) -> Button:
 	var cell_size: Vector2 = _inv_cell_size_vec()
@@ -1360,16 +1396,17 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 	var party_idx: int = _party_index_for_view()
 	var is_on_self: bool = party_idx >= 0 and owner_idx == party_idx
 	var member: Resource = _get_view_adventurer()
-	var summary: String = EquipmentItemDetailHelper.hover_summary(item, category, member)
+	## フル hover_summary はセル数ぶん重い（ステ集計＋load）。名＋操作ヒントのみ。詳細は長押し。
+	var item_name: String = _item_display_name(item, category)
 	var job_blocked: bool = (
 		category == "weapon"
 		and member != null
 		and not JobStatCalculator.can_equip_weapon(member, item)
 	)
 	if job_blocked:
-		btn.tooltip_text = "%s\n（%s）" % [summary, JobStatCalculator.unequip_reason_weapon(member, item)]
+		btn.tooltip_text = "%s\n（%s）" % [item_name, JobStatCalculator.unequip_reason_weapon(member, item)]
 	else:
-		btn.tooltip_text = "%s\n（長押しで効果）" % summary
+		btn.tooltip_text = "%s\n（長押しで効果）" % item_name
 	## 短押し=着脱、長押し=効果オーバーレイ（Button.pressed は使わず gui_input で統一）。
 	_bind_inventory_cell_interaction(btn, _inventory_item_action.bind(item, category))
 	btn.disabled = not _can_change_equipment_on_view()
@@ -1936,6 +1973,14 @@ func _item_id(item: Resource, category: String) -> String:
 		"accessory":
 			return str(item.accessory_id)
 	return ""
+
+func _item_display_name(item: Resource, category: String) -> String:
+	if item == null:
+		return "装備"
+	var nm: String = str(_EquipmentEnhancer.get_display_name(item))
+	if nm.is_empty():
+		return _item_id(item, category)
+	return nm
 
 func _item_icon(item: Resource, category: String) -> Texture2D:
 	match category:
