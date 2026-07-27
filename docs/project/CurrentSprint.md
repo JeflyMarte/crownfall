@@ -97,6 +97,11 @@
 | — | **P3-UX-WIPE-CAUSE-001** | 全滅リザルト・敗因分析（1〜2行） | ✅ GO・Impl |
 | — | **P3-UX-EQUIP-SCROLL-PERF-001** | キャラ画面スクロール軽量化（入れ子・キャッシュ） | ✅ GO・Impl |
 | — | **P3-AUDIO-BGM-EXPLORE-OMIT-001** | ダンジョン探索BGMオミット・戦闘BGM常時 | ✅ GO・Impl |
+| — | **P3-EQ-ROSTER-PRESET-001** | ベンチ装備＋パーティ戦闘プリセット保存／適用 | ✅ GO・統合＋main |
+| — | **P3-SURVEY-NONOKA-JOIN-001** | ノノカ＝ミストフェン初回クリア後に調査室合流 | ✅ GO・統合＋main |
+| — | **P3-UI-BANNER-TITLE-001** | ダンジョンバナー名フォント幅フィット統一 | ✅ GO・統合＋main |
+| — | **P3-BAL-DEAD-EXP-001** | 死者は後続撃破EXPなし（生存者のみ積立） | ✅ GO・統合＋main |
+| — | **P3-EQ-ELDION-GLYPH-001** | 始祖竜の氷鱗鎧の簡体字混入修正 | ✅ GO・統合＋main |
 | — | **P3-GACHA-FEATURE-BLURB-001** | 招待状 Featured 特徴行＋キャラ下げ | ✅ GO・Impl |
 | — | **P3-BAL-TRAP-TIER-001** | 罠 N/H/NM 段階化（発動・ダメ・状態異常） | ✅ GO・Impl |
 | — | **P3-DG-EVENT-SET-001** | 降臨セット装備（時環の刻／アンティーク・レア「セット」・3部位加護・レリック廃止） | ✅ Impl |
