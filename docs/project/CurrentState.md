@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-07-27（**P3-UX-EQUIP-SCROLL-PERF-001 GO**: キャラ画面スクロール軽量化 — 入れ子廃止／StyleBox・Idleキャッシュ／tooltip短縮。統合＋`main`）
 2026-07-27（**P3-UX-SKILL-LEARN-PERSIST-001 GO**: 経験値画面のスキル習得をキャラ名横に常時表示。複数は最後の習得名。統合＋`main`）
 2026-07-27（**P3-UX-STATUS-LEGEND-001 GO**: 戦闘右上に発生中状態異常のアイコン＋1行説明（DoTは「1秒ごと」）。統合＋`main`）
 2026-07-27（**P3-UX-STATUS-TELOP-001 GO**: 状態付与「〇〇を付与！」をダメージ数字風に。DoT色付きを頭上へ。統合＋`main`）

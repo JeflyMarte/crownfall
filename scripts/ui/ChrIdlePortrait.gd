@@ -15,6 +15,9 @@ const MILD_HEIGHT_RATIO: float = 1.12
 ## 軽微補正で残す高さ（max からの許容 px）。
 const MILD_HEIGHT_SLACK_PX: int = 2
 
+## folder_id → 正規化済みテクスチャ列。キャラ切替のたび get_image しない。
+static var _prepared_idle_cache: Dictionary = {}
+
 
 ## Adventurer から Idle フォルダ名を解決（助っ人優先、なければ職）。
 ## ペットは `assets/characters/pet_{jack|ash|ink}/idle_*.png`（正面 south）。
@@ -58,12 +61,21 @@ static func idle_frame_paths(folder_id: String) -> PackedStringArray:
 
 
 static func load_idle_textures(folder_id: String) -> Array[Texture2D]:
+	var out: Array[Texture2D] = []
+	if folder_id.is_empty():
+		return out
+	if _prepared_idle_cache.has(folder_id):
+		out.assign(_prepared_idle_cache[folder_id] as Array)
+		return out
 	var textures: Array[Texture2D] = []
 	for path in idle_frame_paths(folder_id):
 		var tex: Texture2D = _load_idle_texture(path)
 		if tex != null:
 			textures.append(tex)
-	return _prepare_idle_textures(textures)
+	var prepared: Array[Texture2D] = _prepare_idle_textures(textures)
+	_prepared_idle_cache[folder_id] = prepared
+	out.assign(prepared)
+	return out
 
 
 static func _load_idle_texture(path: String) -> Texture2D:
