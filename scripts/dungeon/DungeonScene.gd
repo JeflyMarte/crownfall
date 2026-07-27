@@ -920,8 +920,8 @@ const TURN_ORDER_SIDE_TOP: float = 36.0
 const TURN_ORDER_BADGE_FONT_PX: int = 12
 
 func _ready() -> void:
-	## 探索BGM（ダンジョン別があれば優先。非戦闘ルームへ入るまで / dive 中も探索曲）。
-	AudioManager.play_bgm(_BgmCatalog.explore_bgm_for_dungeon(GameState.get_active_dungeon_id()))
+	## P3-AUDIO-BGM-EXPLORE-OMIT-001: 探索曲オミット。入場時から戦闘BGM（ボス／影狩は部屋同期で上書き）。
+	_play_battle_bgm()
 	_btn_next_room.pressed.connect(_on_next_room_pressed)
 	_btn_finish.pressed.connect(_on_finish_button_pressed)
 	$CombatTimer.timeout.connect(_on_combat_timer_timeout)
@@ -1794,14 +1794,11 @@ func _play_boss_bgm() -> void:
 
 
 func _sync_room_bgm() -> void:
-	## 非戦闘・探索中 = explore（共通 or ダンジョン別）／通常戦闘 = Biome 別／ボス = boss 系。
-	if not $DungeonController.is_combat_room():
-		AudioManager.play_bgm(_BgmCatalog.explore_bgm_for_dungeon(GameState.get_active_dungeon_id()))
-		return
+	## P3-AUDIO-BGM-EXPLORE-OMIT-001: 基本は常に戦闘BGM。例外＝ボス戦／影狩戦のみ。
 	if $DungeonController.current_room_type == Enums.RoomType.BOSS:
 		_play_boss_bgm()
-	else:
-		_play_battle_bgm()
+		return
+	_play_battle_bgm()
 
 func _room_transition_caption() -> String:
 	var floor_text: String = $DungeonController.get_display_floor_text()

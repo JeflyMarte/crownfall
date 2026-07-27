@@ -184,11 +184,18 @@ func test_scene_bgm_maps_hub_and_facility() -> void:
 		_BgmCatalog.ID_FORGE
 	)
 	assert_eq(_BgmCatalog.bgm_for_scene("res://scenes/unknown/NoScene.tscn"), "")
-	## 結果画面は勝敗で切替のため SCENE_BGM 非掲載。探索は共通なので DungeonScene は掲載。
+	## 結果／ダンジョンは SCENE_BGM 非掲載（勝敗切替／DungeonScene 側で battle 同期）。
 	assert_eq(_BgmCatalog.bgm_for_scene("res://scenes/result/ResultScene.tscn"), "")
+	assert_eq(_BgmCatalog.bgm_for_scene("res://scenes/dungeon/DungeonScene.tscn"), "")
+
+
+func test_dungeon_explore_bgm_omitted_from_scene_map() -> void:
+	## P3-AUDIO-BGM-EXPLORE-OMIT-001: 探索曲アセットは残るがダンジョン入場では使わない。
+	assert_true(_BgmCatalog.is_available(_BgmCatalog.ID_DUNGEON_EXPLORE))
+	assert_eq(_BgmCatalog.bgm_for_scene("res://scenes/dungeon/DungeonScene.tscn"), "")
 	assert_eq(
-		_BgmCatalog.bgm_for_scene("res://scenes/dungeon/DungeonScene.tscn"),
-		_BgmCatalog.ID_DUNGEON_EXPLORE
+		_BgmCatalog.battle_bgm_for_dungeon("mourngate"),
+		_BgmCatalog.ID_BATTLE
 	)
 
 
