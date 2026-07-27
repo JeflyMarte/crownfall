@@ -4897,6 +4897,7 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-UX-STATUS-LEGEND-001-3 | **行** — アイコン＋主効果1行（持続／重ね省略） | 可読性 |
 | P3-UX-STATUS-LEGEND-001-4 | **DoT文言** — 「1秒ごとにダメージ」（「刻ごと」禁止） | プレイヤー向け平易語 |
 | P3-UX-STATUS-LEGEND-001-5 | **スコープ外** — 誰に付いているかの個別表示／タップ詳細 | MVP |
+| P3-UX-STATUS-LEGEND-001-6 | **行文言** — `表示名:効果`（例: `毒:1秒ごとにダメージ`） | 2026-07-27 オーナー：どの状態か分かるように |
 
 **Closeout:** Impl 後に統合＋`main`。
 

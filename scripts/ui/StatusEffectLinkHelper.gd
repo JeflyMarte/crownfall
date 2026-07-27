@@ -65,7 +65,18 @@ static func effect_summary(status_id: String) -> String:
 
 
 ## 戦闘右上レジェンド用の主効果1行（P3-UX-STATUS-LEGEND-001）。
+## 形式: 「毒:1秒ごとにダメージ」（名前:効果）。
 static func effect_one_line(status_id: String) -> String:
+	var effect: String = _effect_one_line_body(status_id)
+	if effect.is_empty():
+		return ""
+	var name_str: String = display_name_for(status_id).strip_edges()
+	if name_str.is_empty():
+		return effect
+	return "%s:%s" % [name_str, effect]
+
+
+static func _effect_one_line_body(status_id: String) -> String:
 	var data: Resource = DataRegistry.get_status_effect(status_id)
 	if data == null:
 		return ""

@@ -33,22 +33,24 @@ func test_effect_summary_armor_break() -> void:
 
 
 func test_effect_one_line_dot_uses_per_second() -> void:
-	## P3-UX-STATUS-LEGEND-001: 「刻」ではなく「1秒ごと」。
+	## P3-UX-STATUS-LEGEND-001: 「刻」ではなく「1秒ごと」。名前付き。
 	var poison: String = _Helper.effect_one_line("poison")
-	assert_eq(poison, "1秒ごとにダメージ")
+	assert_eq(poison, "毒:1秒ごとにダメージ")
 	assert_false(poison.contains("刻"))
 	var ignite: String = _Helper.effect_one_line("ignite")
-	assert_eq(ignite, "1秒ごとにダメージ")
+	assert_true(ignite.ends_with(":1秒ごとにダメージ"), ignite)
+	assert_true(ignite.contains(":"), ignite)
 	var bleed: String = _Helper.effect_one_line("bleed")
-	assert_eq(bleed, "1秒ごとにダメージ")
+	assert_true(bleed.ends_with(":1秒ごとにダメージ"), bleed)
 
 
 func test_effect_one_line_stat_mod() -> void:
 	var empower: String = _Helper.effect_one_line("empower")
 	assert_true(empower.contains("与ダメ"), empower)
+	assert_true(empower.contains(":"), "名前:効果の形式")
 	assert_false(empower.contains("・"), "1行は主効果のみ")
 	var stun: String = _Helper.effect_one_line("stun")
-	assert_eq(stun, "行動不能")
+	assert_eq(stun, "スタン:行動不能")
 	var summary_poison: String = _Helper.effect_summary("poison")
 	assert_true(summary_poison.contains("1秒ごと"), summary_poison)
 	assert_false(summary_poison.contains("刻ごと"), summary_poison)

@@ -563,7 +563,8 @@ const STATUS_ICON_SIZE: float = 26.0
 const STATUS_ICON_GAP: float = 3.0
 ## 戦闘右上の発生中状態異常レジェンド（P3-UX-STATUS-LEGEND-001）。
 const STATUS_LEGEND_ICON_PX: float = 22.0
-const STATUS_LEGEND_WIDTH: float = 248.0
+## 名前付き「毒:1秒ごとにダメージ」が収まる幅。
+const STATUS_LEGEND_WIDTH: float = 300.0
 const STATUS_LEGEND_PAD: float = 8.0
 const STATUS_LEGEND_ROW_GAP: int = 4
 ## 右端からの余白（負＝さらに右へはみ出し寄り）。
