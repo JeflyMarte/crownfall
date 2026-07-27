@@ -56,6 +56,8 @@ const _DEFS: Dictionary = {
 }
 
 static func for_member(member: Resource) -> Array:
+	if not Constants.JOB_EVOLUTION_PLAYABLE:
+		return []
 	if member == null or not bool(member.is_evolved):
 		return []
 	var job_id: String = str(member.job_id)
@@ -69,6 +71,8 @@ static func for_member(member: Resource) -> Array:
 	return out
 
 static func preview_for_job(job_id: String) -> Array:
+	if not Constants.JOB_EVOLUTION_PLAYABLE:
+		return []
 	var out: Array = []
 	for raw_id in _JOB_TRAIT_IDS.get(job_id, []):
 		var def: Dictionary = _def_with_id(str(raw_id))
@@ -96,6 +100,8 @@ static func _def_with_id(trait_id: String) -> Dictionary:
 	return def
 
 static func _member_has_trait(member: Resource, trait_id: String) -> bool:
+	if not Constants.JOB_EVOLUTION_PLAYABLE:
+		return false
 	if member == null or not bool(member.is_evolved):
 		return false
 	for t: Dictionary in for_member(member):

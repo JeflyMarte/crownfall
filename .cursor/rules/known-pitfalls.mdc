@@ -185,6 +185,7 @@ alwaysApply: true
 | ダンジョン Featured バナーが無い | 一覧にバナーがある Biome は Featured 上段を意図的に非表示 | Featured でもバナー表示（アスペクト比の高さ） |
 | 図鑑／DG概要が「魔法」「亡霊」「異界の裂け目」になる | 旧フレーバーや民間俗称を正典として書いた | 正称はエルダ／鉱物化適応等（`world/03`・`05`）。異界は俗称のみ。差し替え後 `test_codex_guide_sync` で確認 |
 | 図鑑に「実績」タブが再出現する | `CODEX_ACHIEVE_PLAYABLE` を true にした／タブ生成をフラグ外で呼んだ | βは `false` 据置（P3-CODEX-ACHIEVE-OMIT）。データ残置。`test_codex_achieve_omit` |
+| ジョブ到達形（昇格名／金tint／特質）がβに戻る | `JOB_EVOLUTION_PLAYABLE` を true にした／`is_evolved` をフラグ無しで参照 | βは `false`（P3-JOB-EVO-OMIT-001）。効果は `JobEvolution`／`JobStatCalculator`／`EvolutionTraits`／`EvolutionVisual` 経由。UIはキャラ昇格行＋ギルド認定。`test_job_evolution_omit` |
 | 図鑑にプール外／征討専用の未実装敵が出る | `get_all_enemy_data()` を無フィルタで一覧化 | `CatalogHelper.playable_enemy_id_set`（プレイ可能 DG プールのみ）。達成率も同セット。`test_codex_enemy_omit` |
 | 図鑑キャラに金枠が二重／残る | PNG に金枠焼込、または敵詳細の ArtFrame をキャラで未リセット | ICO は枠除去。詳細はキャラで `_reset_art_frame_style`（未確認含む） |
 | 図鑑にダンジョンタブが再出現／武器のみ | `CODEX_DUNGEON_PLAYABLE` を true にした／装備を weapon のみ構築 | βは dungeon=false。装備は `get_equipment_entries`（武・防・飾）。`test_codex_equipment` |

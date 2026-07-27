@@ -102,6 +102,7 @@
 | — | **P3-UI-BANNER-TITLE-001** | ダンジョンバナー名フォント幅フィット統一 | ✅ GO・統合＋main |
 | — | **P3-BAL-DEAD-EXP-001** | 死者は後続撃破EXPなし（生存者のみ積立） | ✅ GO・統合＋main |
 | — | **P3-EQ-ELDION-GLYPH-001** | 始祖竜の氷鱗鎧の簡体字混入修正 | ✅ GO・統合＋main |
+| — | **P3-JOB-EVO-OMIT-001** | ジョブ到達形（昇格）β完全オミット | ✅ GO・Impl |
 | — | **P3-GACHA-FEATURE-BLURB-001** | 招待状 Featured 特徴行＋キャラ下げ | ✅ GO・Impl |
 | — | **P3-BAL-TRAP-TIER-001** | 罠 N/H/NM 段階化（発動・ダメ・状態異常） | ✅ GO・Impl |
 | — | **P3-DG-EVENT-SET-001** | 降臨セット装備（時環の刻／アンティーク・レア「セット」・3部位加護・レリック廃止） | ✅ Impl |
