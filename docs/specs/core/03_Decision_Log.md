@@ -4281,6 +4281,21 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 
 ---
 
+## ギルド情報誌・ノノカメモ文面バリエ（2026-07-28 — P3-EVT-NONOKA-MEMO-001）
+
+> **オーナー GO（案A）** — 同じ項目（特記なし含む）でもノノカコメントのバリエを増やす。プール＋スロット決定的抽選。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EVT-NONOKA-MEMO-001-1 | **種別ごと `descriptions` プール**。1スロット1文面を決定的に選ぶ | 案A・端末間一致 |
+| P3-EVT-NONOKA-MEMO-001-2 | **none（特記なし）を最厚**（12本以上）。他種別も複数 | 最頻枠の飽き対策 |
+| P3-EVT-NONOKA-MEMO-001-3 | **注目区域は Biome 名テンプレプール** | 既存埋め込み維持 |
+| P3-EVT-NONOKA-MEMO-001-4 | article／field_notes／effect_summary は単一文面のまま | スコープ最小化 |
+
+SSOT: `docs/specs/decisions/04_FieldSurveySlots.md` §3／`EventWeekRotation.gd`
+
+---
+
 ## 日課文言・プール抽選・撃破（2026-07-22 — P3-DAILY-002）
 
 > **オーナー GO** — 1行 title／撃破20（ボス・エリート含む）／プールから毎日3件抽選。P3-DAILY-001-5 の「抽選プール Beta」を本 Decision で上書き。
