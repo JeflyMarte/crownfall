@@ -11,6 +11,11 @@ const FAILURE_GOLD_RATIO: float = 0.5
 
 const COLOR_SUCCESS: Color = Color(1.0, 0.86, 0.28)
 const COLOR_FAIL: Color = Color(0.72, 0.70, 0.66)
+## 結果行の色分け（BBCode）。
+const COLOR_GOLD_HEX: String = "ffe14a"
+const COLOR_WEAPON_HEX: String = "7ec8ff"
+const COLOR_ACCESSORY_HEX: String = "d4a0ff"
+const COLOR_BODY_HEX: String = "ebe6dc"
 
 const SETUP_LINES: Array[String] = [
 	"部屋の奥に、古びた宝箱が沈黙している…",
@@ -77,6 +82,20 @@ static func format_success_narrative(
 	if not accessory_name.is_empty():
 		text += "\n装飾品: %s" % accessory_name
 	return text
+
+
+## ナラティブ用 BBCode（ゴールド＝金／武器＝水色／装飾＝紫）。
+static func format_success_narrative_bbcode(
+	success_line: String, gold: int, accessory_name: String, weapon_name: String = ""
+) -> String:
+	var parts: PackedStringArray = []
+	parts.append("[color=#%s]%s[/color]" % [COLOR_BODY_HEX, success_line])
+	parts.append("[color=#%s][b]ゴールド +%d[/b][/color]" % [COLOR_GOLD_HEX, gold])
+	if not weapon_name.is_empty():
+		parts.append("[color=#%s]武器: %s[/color]" % [COLOR_WEAPON_HEX, weapon_name])
+	if not accessory_name.is_empty():
+		parts.append("[color=#%s]装飾品: %s[/color]" % [COLOR_ACCESSORY_HEX, accessory_name])
+	return "\n".join(parts)
 
 
 static func format_fail_narrative(fail_line: String, gold: int) -> String:
