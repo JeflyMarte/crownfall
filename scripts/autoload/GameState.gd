@@ -40,6 +40,10 @@ var pending_hub_pet_grant_id: String = ""
 var pending_clear_nina_merit: bool = false
 ## 章クリア後ニーナ加入予告待ち。
 var pending_clear_nina_teaser: bool = false
+## ミストフェンクリア後のノノカ調査室合流トーク待ち（P3-SURVEY-NONOKA-JOIN-001）。
+var pending_nonoka_survey_join: bool = false
+## 調査室スタッフ・ノノカ解放済み（未解放時は配置不可）。
+var survey_staff_nonoka_unlocked: bool = false
 ## 功績トーク用の章 id（表示名解決）。
 var pending_clear_stage_id: String = ""
 
@@ -317,6 +321,13 @@ func mark_stage_cleared(stage_id: String, tier: int = -1) -> void:
 			pending_clear_stage_id = stage_id
 			pending_clear_nina_merit = true
 			pending_clear_nina_teaser = true
+		## ③ミストフェン初回クリア → ノノカ調査室合流（加入ストーリーの後に拠点で表示）。
+		if (
+			biome_id == "mistfen"
+			and t == _DungeonTierConfig.TIER_NORMAL
+			and (has_boss or (is_final_chapter and not is_abyss))
+		):
+			queue_nonoka_survey_join_if_needed()
 	_ContentUnlockNotice.queue_newly_unlocked(unlock_before)
 	## Hard/NM は Biome id が増えないため、章クリア時に次入口を明示キューする。
 	## （最終章→次帯入口は campaign_tiers 検知と重複しうるが _queue_entry で抑止）
@@ -1451,6 +1462,8 @@ func reset_for_new_game() -> void:
 	pending_clear_nina_merit = false
 	pending_clear_nina_teaser = false
 	pending_clear_stage_id = ""
+	pending_nonoka_survey_join = false
+	survey_staff_nonoka_unlocked = false
 	_run_combat_stats = null
 	active_pet = null
 	owned_pet_ids = []
@@ -1508,6 +1521,8 @@ func _init_party() -> void:
 	pending_clear_nina_merit = false
 	pending_clear_nina_teaser = false
 	pending_clear_stage_id = ""
+	pending_nonoka_survey_join = false
+	survey_staff_nonoka_unlocked = false
 	if Constants.STARTER_STORY_RECRUIT:
 		starter_unlocked_ids = []
 		starter_pick_pending = true
@@ -1597,6 +1612,49 @@ func commit_pending_starter_recruit() -> Resource:
 	pending_clear_nina_teaser = false
 	pending_clear_stage_id = ""
 	return adv
+
+
+## ミストフェン初回クリア時など。既解放／待ち済みなら何もしない。
+func queue_nonoka_survey_join_if_needed() -> void:
+	if survey_staff_nonoka_unlocked:
+		return
+	if pending_nonoka_survey_join:
+		return
+	pending_nonoka_survey_join = true
+
+
+## ニーナ合流トーク後に呼ぶ。調査室へノノカを解放。
+func commit_nonoka_survey_join() -> void:
+	survey_staff_nonoka_unlocked = true
+	pending_nonoka_survey_join = false
+
+
+## 調査室スタッフが配置可能か（ニーナ常時／ノノカは解放後）。
+func is_survey_staff_unlocked(member_id: String) -> bool:
+	const _SurveyStaff := preload("res://scripts/survey/SurveyStaff.gd")
+	if member_id == _SurveyStaff.ID_NINA:
+		return true
+	if member_id == _SurveyStaff.ID_NONOKA:
+		return survey_staff_nonoka_unlocked or debug_full_unlock
+	return false
+
+
+## ロード後: 調査室スタッフ解放フラグの修復。
+func migrate_survey_staff_unlock_state() -> void:
+	## デバッグ全解放はノノカも使える。
+	if debug_full_unlock:
+		survey_staff_nonoka_unlocked = true
+		pending_nonoka_survey_join = false
+		return
+	## 既にミストフェンをクリア済みなら合流演出を飛ばして解放。
+	if is_dungeon_cleared("mistfen"):
+		if not survey_staff_nonoka_unlocked and not pending_nonoka_survey_join:
+			survey_staff_nonoka_unlocked = true
+		## 待ち中フラグがある場合は拠点で会話を出す（進行中クリア）。
+		return
+	## 未クリアなら未解放に揃える（不正セーブ対策）。
+	if not pending_nonoka_survey_join:
+		survey_staff_nonoka_unlocked = false
 
 
 ## ロード後: セーブに unlocked が無ければロスター内スターターから復元。空なら選択待ち。

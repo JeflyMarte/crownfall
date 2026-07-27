@@ -25,6 +25,8 @@ const DEBUG_MATERIAL_QTY: int = 999
 static func apply() -> void:
 	GameState.reset_for_new_game()
 	GameState.debug_full_unlock = true
+	GameState.survey_staff_nonoka_unlocked = true
+	GameState.pending_nonoka_survey_join = false
 	GameState.gold = DEBUG_GOLD
 	GameState.gacha_token = DEBUG_GACHA_TOKEN
 	_unlock_all_starters_and_helpers()

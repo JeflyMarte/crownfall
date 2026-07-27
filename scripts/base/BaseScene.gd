@@ -77,7 +77,7 @@ func _layout_hub_if_needed() -> void:
 
 
 func _maybe_show_rank_up() -> void:
-	## 章クリア加入があるとき: ニーナ功績 → 解放 → 等級 → 加入予告 → 加入。
+	## 章クリア加入があるとき: ニーナ功績 → 解放 → 等級 → 加入予告 → 加入 → ノノカ合流。
 	## 直前オーバーレイの queue_free 待ちは _hub_overlay_blocking でスキップ判定。
 	if GameState.pending_clear_nina_merit:
 		if _hub_overlay_blocking("NinaDialogueOverlay"):
@@ -187,7 +187,7 @@ func _on_clear_nina_teaser_dismissed() -> void:
 func _maybe_show_starter_join() -> void:
 	var pending_id: String = GameState.pending_starter_recruit_id.strip_edges()
 	if pending_id.is_empty():
-		_maybe_show_hub_simple_guide()
+		_maybe_show_nonoka_survey_join()
 		return
 	if _hub_overlay_blocking("StarterJoinOverlay"):
 		return
@@ -212,7 +212,41 @@ func _on_starter_join_dismissed(adventurer_id: String) -> void:
 		SaveManager.save_game()
 		_maybe_grant_starting_tokens_fx()
 		return
-	_maybe_show_hub_simple_guide()
+	## 初期キャラ加入の直後にノノカ調査室合流（ミストフェン初回クリア時）。
+	call_deferred("_maybe_show_nonoka_survey_join")
+
+
+func _maybe_show_nonoka_survey_join() -> void:
+	if not GameState.pending_nonoka_survey_join:
+		_maybe_show_hub_simple_guide()
+		return
+	if GameState.survey_staff_nonoka_unlocked and not GameState.debug_full_unlock:
+		## 解放済みなら待ちを落とす（二重表示防止）。
+		GameState.pending_nonoka_survey_join = false
+		SaveManager.save_game()
+		_maybe_show_hub_simple_guide()
+		return
+	if _hub_overlay_blocking("NinaDialogueOverlay"):
+		return
+	if _hub_overlay_blocking("StarterJoinOverlay"):
+		return
+	if _hub_overlay_blocking("DungeonUnlockOverlay"):
+		return
+	if _hub_overlay_blocking("CommanderRankUpOverlay"):
+		return
+	if _hub_overlay_blocking("HubSimpleGuideOverlay"):
+		return
+	var join_lines: CanvasLayer = _NinaDialogueOverlay.show_on(
+		self, _ChapterClearNinaLines.nonoka_survey_join_lines()
+	)
+	join_lines.dismissed.connect(_on_nonoka_survey_join_dismissed)
+
+
+func _on_nonoka_survey_join_dismissed() -> void:
+	GameState.commit_nonoka_survey_join()
+	SaveManager.save_game()
+	_refresh_nina_nav()
+	call_deferred("_maybe_show_hub_simple_guide")
 
 
 func _maybe_show_hub_simple_guide() -> void:
@@ -230,6 +264,8 @@ func _maybe_show_hub_simple_guide() -> void:
 	if get_node_or_null("HubDebugMenuOverlay") != null:
 		return
 	if GameState.pending_clear_nina_merit or GameState.pending_clear_nina_teaser:
+		return
+	if GameState.pending_nonoka_survey_join:
 		return
 	const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
 	if _ContentUnlockNotice.has_pending():

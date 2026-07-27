@@ -24,7 +24,7 @@ static func list_entries() -> Array[Dictionary]:
 	out.append({
 		"id": "section_clear",
 		"title": "—— 章クリア加入ストーリー ——",
-		"hint": "ニーナ功績→解放→加入予告→加入",
+		"hint": "ニーナ功績→解放→加入予告→加入（③はノノカ合流も）",
 		"section": true,
 	})
 	for biome_id in _main_biome_ids():
@@ -285,6 +285,10 @@ static func _queue_clear_ceremony(biome_id: String) -> String:
 	GameState.pending_clear_stage_id = stage_id
 	GameState.pending_clear_nina_merit = true
 	GameState.pending_clear_nina_teaser = true
+	## ③クリア相当のプレビューではノノカ合流も続けて出す。
+	if biome_id == "mistfen":
+		GameState.survey_staff_nonoka_unlocked = false
+		GameState.queue_nonoka_survey_join_if_needed()
 	## 古い解放キューが残ると常にウィスパーウッドが出るため、次解放だけにする。
 	GameState.pending_content_unlock_notices.clear()
 	if not _ContentUnlockNotice.queue_next_after_main_biome_clear(

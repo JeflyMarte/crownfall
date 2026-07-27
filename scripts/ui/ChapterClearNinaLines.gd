@@ -88,6 +88,15 @@ static func recruit_teaser_lines_for_stage(stage_id: String) -> Array[String]:
 			]
 
 
+## ミストフェン初回クリア後・初期キャラ加入に続くノノカ調査室合流（P3-SURVEY-NONOKA-JOIN-001）。
+static func nonoka_survey_join_lines() -> Array[String]:
+	return [
+		"隊長、ミストフェンの報告を受けて——記録庁から、もう一人調査室に入ってもらうことになりました。",
+		"研究員のノノカです。考古担当で、机より現場の資料あさりが得意な子です。",
+		"これからは調査室で、ノノカも一緒に配置できます。よろしくお願いしますね。",
+	]
+
+
 static func stage_display_name(stage_id: String) -> String:
 	if stage_id.is_empty():
 		return ""
