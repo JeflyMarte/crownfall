@@ -4856,6 +4856,21 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 
 ---
 
+## 状態異常付与・DoTテロップ（2026-07-27 — P3-UX-STATUS-TELOP-001）
+
+> **オーナー GO（案A）** — 付与時に「〇〇を付与！」をダメージ数字風に。DoTは色付き＋頭上へ。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-STATUS-TELOP-001-1 | **付与** — `display_name`＋「を付与！」を `_spawn_damage_number` で頭上表示（バフ緑／デバフは状態色） | ダメージ数字と同等の可読性 |
+| P3-UX-STATUS-TELOP-001-2 | **シェイクなし** — 付与テロップは `skip_impact_feedback` | くどさ防止 |
+| P3-UX-STATUS-TELOP-001-3 | **DoT** — 色付き数字は据置。表示位置を足元→視覚中心（頭上）へ。tick シェイクなし | 視認性 |
+| P3-UX-STATUS-TELOP-001-4 | **スコープ外** — DoTへの状態名併記（「毒 32」）／新規色表 | 案Cは非採用 |
+
+**Closeout:** Impl 後に統合＋`main`。
+
+---
+
 
 
 ## 時環の共鳴龍クロノス・ウェーブ再設計（2026-07-26 — P3-LORE-CHRONOS-001）

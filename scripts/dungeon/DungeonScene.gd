@@ -2913,34 +2913,20 @@ func _flash_sprite_status_apply(
 	tw.tween_property(sprite, "modulate", settle, 0.24)
 
 func _spawn_status_apply_name(world_pos: Vector2, status_id: String, is_buff: bool) -> void:
+	## P3-UX-STATUS-TELOP-001: ダメージ数字と同系統で「〇〇を付与！」。シェイクなし。
 	var effect: Resource = DataRegistry.get_status_effect(status_id)
 	var label_text: String = effect.display_name if effect != null else status_id
-	if label_text.is_empty():
+	var text: String = CombatVfxManagerScript.status_apply_telop_text(label_text)
+	if text.is_empty():
 		return
-	const FONT_SIZE: int = 20
-	var lbl := Label.new()
-	lbl.text = label_text
-	var af: Font = UiTypography.impact_font()
-	if af != null:
-		lbl.add_theme_font_override("font", af)
-	lbl.add_theme_font_size_override("font_size", FONT_SIZE)
-	var color: Color = Color(0.55, 0.95, 0.55) if is_buff else CombatVfxManagerScript.status_color(status_id).lightened(0.25)
-	lbl.add_theme_color_override("font_color", color)
-	lbl.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.92))
-	lbl.add_theme_constant_override("outline_size", 6)
-	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	lbl.pivot_offset = Vector2(float(label_text.length()) * FONT_SIZE * 0.28, FONT_SIZE * 0.5)
-	lbl.position = world_pos + Vector2(-lbl.pivot_offset.x, -72.0)
-	lbl.scale = Vector2(0.7, 0.7)
-	lbl.modulate.a = 0.0
-	_damage_numbers_layer.add_child(lbl)
-	var tw: Tween = create_tween()
-	tw.tween_property(lbl, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.parallel().tween_property(lbl, "modulate:a", 1.0, 0.1)
-	tw.chain().set_parallel(true)
-	tw.tween_property(lbl, "position:y", lbl.position.y - 22.0, 0.55).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.tween_property(lbl, "modulate:a", 0.0, 0.4).set_delay(0.2)
-	tw.chain().tween_callback(lbl.queue_free)
+	var color: Color = (
+		Color(0.55, 0.95, 0.55)
+		if is_buff
+		else CombatVfxManagerScript.status_color(status_id).lightened(0.25)
+	)
+	## world_pos は視覚中心。少し上に出して頭上感を出す。
+	## scale は 1.0 固定（>1.0 だとクリティカル扱いになる）。
+	_spawn_damage_number(text, world_pos + Vector2(0.0, -28.0), color, 1.0, 0, true)
 
 func _get_room_type_name() -> String:
 	match $DungeonController.current_room_type:
@@ -4111,10 +4097,14 @@ func _process_status_ticks() -> void:
 			if slot < _swarm_sprites.size() and _swarm_sprites[slot].visible:
 				var tick_pos: Vector2 = _sprite_visual_center_global(_swarm_sprites[slot])
 				var effect_id: String = str(result.get("effect_id", ""))
+				## P3-UX-STATUS-TELOP-001: DoT 数字は頭上（視覚中心）＋色付き。tick シェイクなし。
 				_spawn_damage_number(
 					str(dmg),
-					_swarm_sprites[slot].global_position,
-					CombatVfxManager.dot_telop_color(effect_id)
+					tick_pos + Vector2(0.0, -20.0),
+					CombatVfxManager.dot_telop_color(effect_id),
+					0.95,
+					dmg,
+					true
 				)
 				if not effect_id.is_empty():
 					_combat_vfx.spawn_dot_tick(self, tick_pos, effect_id)
@@ -4123,8 +4113,11 @@ func _process_status_ticks() -> void:
 				var boss_effect: String = str(result.get("effect_id", ""))
 				_spawn_damage_number(
 					str(dmg),
-					_boss_sprite.global_position,
-					CombatVfxManager.dot_telop_color(boss_effect)
+					boss_pos + Vector2(0.0, -20.0),
+					CombatVfxManager.dot_telop_color(boss_effect),
+					0.95,
+					dmg,
+					true
 				)
 				if not boss_effect.is_empty():
 					_combat_vfx.spawn_dot_tick(self, boss_pos, boss_effect)
@@ -4142,8 +4135,11 @@ func _process_status_ticks() -> void:
 				var party_effect: String = str(result.get("effect_id", ""))
 				_spawn_damage_number(
 					str(dmg),
-					_chr_sprites[idx].global_position,
-					CombatVfxManager.dot_telop_color(party_effect)
+					party_pos + Vector2(0.0, -20.0),
+					CombatVfxManager.dot_telop_color(party_effect),
+					0.95,
+					dmg,
+					true
 				)
 				if not party_effect.is_empty():
 					_combat_vfx.spawn_dot_tick(self, party_pos, party_effect)
@@ -8761,11 +8757,14 @@ func _spawn_damage_number(
 	lbl.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.55))
 	lbl.add_theme_constant_override("shadow_offset_x", 3)
 	lbl.add_theme_constant_override("shadow_offset_y", 4)
-	lbl.pivot_offset = Vector2(DMG_FONT_SIZE * 0.5, DMG_FONT_SIZE * 0.5)
-	lbl.position = world_pos + Vector2(-DMG_FONT_SIZE * 0.5, -DMG_FONT_SIZE)
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_damage_numbers_layer.add_child(lbl)
+	## 実サイズで中央寄せ（「毒を付与！」等の長文テロップ対応）。
+	var min_sz: Vector2 = lbl.get_minimum_size()
+	lbl.pivot_offset = min_sz * 0.5
+	lbl.position = world_pos + Vector2(-min_sz.x * 0.5, -DMG_FONT_SIZE)
 	var target_scale: Vector2 = Vector2(scale, scale)
 	lbl.scale = target_scale * 0.35
-	_damage_numbers_layer.add_child(lbl)
 	var rise: float = -64.0 if is_crit else -56.0
 	var tw: Tween = create_tween()
 	# 出現: ポップ（オーバーシュート）

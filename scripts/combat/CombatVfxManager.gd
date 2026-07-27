@@ -73,6 +73,14 @@ static func dot_telop_color(status_id: String) -> Color:
 	return DOT_TELOP_COLOR.get(status_id, status_color(status_id).lightened(0.25))
 
 
+## P3-UX-STATUS-TELOP-001: 付与テロップ文言。
+static func status_apply_telop_text(display_name: String) -> String:
+	var n: String = display_name.strip_edges()
+	if n.is_empty():
+		return ""
+	return "%sを付与！" % n
+
+
 static func unit_tint_from_statuses(statuses: Array) -> Color:
 	var active: Dictionary = {}
 	for entry: Variant in statuses:
