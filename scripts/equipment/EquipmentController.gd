@@ -26,56 +26,91 @@ func get_appraised_armors_for_member(member_index: int) -> Array:
 func get_appraised_accessories_for_member(member_index: int) -> Array:
 	return _filter_items_for_member(get_appraised_accessories(), member_index)
 
-func equip_weapon(item: Resource, member_index: int) -> void:
-	if not _is_valid_member_index(member_index):
+func equip_weapon_for_member(item: Resource, member: Resource) -> void:
+	if member == null or item == null:
 		return
-	var member: Resource = GameState.party_members[member_index]
 	if not JobStatCalculator.can_equip_weapon(member, item):
 		return
-	GameState.clear_item_from_other_members(item, member_index)
+	GameState.clear_item_from_other_roster_members(item, member)
 	EquipmentEnhancer.clamp_equip_level_to_member(item, member)
 	member.equipped_weapon = item
 	SaveManager.save_game()
 
+func equip_armor_for_member(item: Resource, member: Resource) -> void:
+	if member == null or item == null:
+		return
+	GameState.clear_item_from_other_roster_members(item, member)
+	EquipmentEnhancer.clamp_equip_level_to_member(item, member)
+	member.equipped_armor = item
+	SaveManager.save_game()
+
+func equip_accessory_for_member(item: Resource, member: Resource) -> void:
+	if member == null or item == null:
+		return
+	GameState.clear_item_from_other_roster_members(item, member)
+	EquipmentEnhancer.clamp_equip_level_to_member(item, member)
+	member.equipped_accessory = item
+	SaveManager.save_game()
+
+func unequip_weapon_for_member(member: Resource) -> void:
+	if member == null:
+		return
+	member.equipped_weapon = null
+	SaveManager.save_game()
+
+func unequip_armor_for_member(member: Resource) -> void:
+	if member == null:
+		return
+	member.equipped_armor = null
+	SaveManager.save_game()
+
+func unequip_accessory_for_member(member: Resource) -> void:
+	if member == null:
+		return
+	member.equipped_accessory = null
+	SaveManager.save_game()
+
+func equip_weapon(item: Resource, member_index: int) -> void:
+	if not _is_valid_member_index(member_index):
+		return
+	var member: Resource = GameState.party_members[member_index]
+	equip_weapon_for_member(item, member)
+
 func equip_armor(item: Resource, member_index: int) -> void:
 	if not _is_valid_member_index(member_index):
 		return
-	GameState.clear_item_from_other_members(item, member_index)
-	EquipmentEnhancer.clamp_equip_level_to_member(item, GameState.party_members[member_index])
-	GameState.party_members[member_index].equipped_armor = item
-	SaveManager.save_game()
+	var member: Resource = GameState.party_members[member_index]
+	equip_armor_for_member(item, member)
 
 func equip_accessory(item: Resource, member_index: int) -> void:
 	if not _is_valid_member_index(member_index):
 		return
-	GameState.clear_item_from_other_members(item, member_index)
-	EquipmentEnhancer.clamp_equip_level_to_member(item, GameState.party_members[member_index])
-	GameState.party_members[member_index].equipped_accessory = item
-	SaveManager.save_game()
+	var member: Resource = GameState.party_members[member_index]
+	equip_accessory_for_member(item, member)
 
 func unequip_weapon(member_index: int) -> void:
 	if not _is_valid_member_index(member_index):
 		return
-	GameState.party_members[member_index].equipped_weapon = null
-	SaveManager.save_game()
+	unequip_weapon_for_member(GameState.party_members[member_index])
 
 func unequip_armor(member_index: int) -> void:
 	if not _is_valid_member_index(member_index):
 		return
-	GameState.party_members[member_index].equipped_armor = null
-	SaveManager.save_game()
+	unequip_armor_for_member(GameState.party_members[member_index])
 
 func unequip_accessory(member_index: int) -> void:
 	if not _is_valid_member_index(member_index):
 		return
-	GameState.party_members[member_index].equipped_accessory = null
-	SaveManager.save_game()
+	unequip_accessory_for_member(GameState.party_members[member_index])
 
 func _filter_items_for_member(items: Array, member_index: int) -> Array:
 	var out: Array = []
+	var member: Resource = null
+	if _is_valid_member_index(member_index):
+		member = GameState.party_members[member_index]
 	for item in items:
-		var owner_index: int = GameState.find_item_equipped_member_index(item)
-		if owner_index < 0 or owner_index == member_index:
+		var owner: Resource = GameState.find_item_equipped_owner(item)
+		if owner == null or owner == member:
 			out.append(item)
 	return out
 

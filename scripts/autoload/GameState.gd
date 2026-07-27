@@ -842,7 +842,7 @@ func set_member_relic(member: Resource, relic_id: String) -> void:
 		return
 	if not has_relic(pid):
 		return
-	for other in party_members:
+	for other in roster:
 		if other != null and other != member and get_equipped_relic_passive_id(other) == pid:
 			toggle_member_relic_passive(other, "")
 	toggle_member_relic_passive(member, pid)
@@ -1295,7 +1295,7 @@ func _apply_preset_equipment_slot(
 		skipped.append({"member_name": member_name, "kind": kind, "reason": "conflict"})
 		return
 	claimed_items[instance_id] = member_index
-	clear_item_from_other_members(item, member_index)
+	clear_item_from_other_roster_members(item, member)
 	match kind:
 		"weapon":
 			if not JobStatCalculator.can_equip_weapon(member, item):
@@ -1353,6 +1353,48 @@ func clear_item_from_other_members(item: Resource, keep_member_index: int) -> vo
 			member.equipped_armor = null
 		if member.equipped_accessory == item:
 			member.equipped_accessory = null
+
+## ロスター全体（編成外含む）で、他メンバーの装備を外す。
+## `EquipmentScene` の「編成外キャラにも装備できる」機能用（重複所持を避ける）。
+func clear_item_from_other_roster_members(item: Resource, keep_member: Resource) -> void:
+	if item == null:
+		return
+	for adv in roster:
+		if adv == null or adv == keep_member:
+			continue
+		if adv.equipped_weapon == item:
+			adv.equipped_weapon = null
+		if adv.equipped_armor == item:
+			adv.equipped_armor = null
+		if adv.equipped_accessory == item:
+			adv.equipped_accessory = null
+
+## 所持しているメンバー（編成外含む）を返す。見つからなければ null。
+func find_item_equipped_owner(item: Resource) -> Resource:
+	if item == null:
+		return null
+	for adv in roster:
+		if adv == null:
+			continue
+		if (
+			adv.equipped_weapon == item
+			or adv.equipped_armor == item
+			or adv.equipped_accessory == item
+		):
+			return adv
+	return null
+
+## 所持しているレリック所持者（編成外含む）を返す。見つからなければ null。
+func find_relic_equipped_owner(relic_id: String) -> Resource:
+	var pid: String = CombatPassives.migrate_relic_passive_id(relic_id)
+	if pid.is_empty():
+		return null
+	for adv in roster:
+		if adv == null:
+			continue
+		if get_equipped_relic_passive_id(adv) == pid:
+			return adv
+	return null
 
 # 新規ゲーム時にジョブごとへ付与する初期武器 { job_id: weapon_id }
 const STARTING_WEAPON_BY_JOB: Dictionary = {

@@ -153,6 +153,13 @@ var _tab_buttons: Array[Button] = []
 var _category_panels: Dictionary = {}
 var _active_tab: int = 0
 
+# ---- 作戦プリセット（パーティ単位の保存） ----
+var _combat_preset_option: OptionButton = null
+var _btn_apply_combat_preset: Button = null
+var _btn_save_combat_preset: Button = null
+var _combat_preset_status_label: Label = null
+var _combat_preset_selected_slot: int = 0
+
 const _TAB_LABELS: Array[String] = ["装備", "スキル", "必殺技", "パッシブ", "戦術"]
 const _TAB_CONTAINER_INDICES: Array[int] = [0, 2, 3, 4, 5]
 const _TAB_LOCKED: Array[bool] = [false, false, false, false, false]
@@ -457,7 +464,9 @@ func _refresh_inventory_tools() -> void:
 	_btn_filter.text = str(
 		EquipmentUiHelper.EQUIPPED_FILTER_LABELS.get(_inventory_equipped_filter, _inventory_equipped_filter)
 	)
-	var can_rec: bool = _can_change_equipment_on_view()
+	# おすすめ装備は現状「編成内（party_members）」前提（member_index）なので、
+	# 編成外（ロスター）閲覧時は無効化する。
+	var can_rec: bool = _can_change_equipment_on_view() and _party_index_for_view() >= 0
 	_btn_recommend.disabled = not can_rec
 	_btn_recommend.tooltip_text = (
 		"未装備の中から、このキャラが付けられる最も強い武・防・飾を装備"
@@ -650,10 +659,13 @@ func _is_viewing_pet() -> bool:
 
 
 func _can_change_equipment_on_view() -> bool:
-	## ペット／編成外は装備着脱不可（閲覧のみ）。
+	## ペットのみ装備着脱不可。編成外（ロスター）は閲覧＋着脱可能。
+	var member: Resource = _get_view_adventurer()
+	if member == null:
+		return false
 	if _is_viewing_pet():
 		return false
-	return _party_index_for_view() >= 0
+	return true
 
 
 func _cycle_member(delta: int) -> void:
@@ -1358,9 +1370,30 @@ func _rebuild_inventory_grid() -> void:
 			if relic_id.is_empty():
 				continue
 			entries.append({"relic_id": relic_id, "category": "relic"})
-	entries = EquipmentUiHelper.filter_by_equipped_state(
-		entries, _inventory_equipped_filter, _party_index_for_view()
-	)
+	if _inventory_equipped_filter != "all":
+		var filtered: Array = []
+		for entry in entries:
+			if entry is not Dictionary:
+				continue
+			var category: String = str(entry.get("category", ""))
+			var owner_member: Resource = null
+			if category == "relic":
+				var rid: String = str(entry.get("relic_id", ""))
+				owner_member = GameState.find_relic_equipped_owner(rid)
+			else:
+				var item: Resource = entry.get("item")
+				owner_member = GameState.find_item_equipped_owner(item)
+			var is_equipped: bool = owner_member != null
+			match _inventory_equipped_filter:
+				"equipped":
+					if is_equipped:
+						filtered.append(entry)
+				"unequipped":
+					if not is_equipped:
+						filtered.append(entry)
+				_:
+					filtered.append(entry)
+		entries = filtered
 	if entries.is_empty():
 		var empty_msg: String = "該当する装備がありません"
 		if _inventory_filter == "relic":
@@ -1392,19 +1425,18 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 		btn, icon, cell_px, EquipmentUiTokens.INV_CELL_DESIGN_PX, _item_id(item, category), category
 	)
 	var rarity: int = _item_rarity(item, category)
-	var owner_idx: int = EquipmentUiHelper.equipped_member_index(item)
-	var party_idx: int = _party_index_for_view()
-	var is_on_self: bool = party_idx >= 0 and owner_idx == party_idx
-	var member: Resource = _get_view_adventurer()
+	var owner_member: Resource = GameState.find_item_equipped_owner(item)
+	var view_member: Resource = _get_view_adventurer()
+	var is_on_self: bool = owner_member != null and owner_member == view_member
 	## フル hover_summary はセル数ぶん重い（ステ集計＋load）。名＋操作ヒントのみ。詳細は長押し。
 	var item_name: String = _item_display_name(item, category)
 	var job_blocked: bool = (
 		category == "weapon"
-		and member != null
-		and not JobStatCalculator.can_equip_weapon(member, item)
+		and view_member != null
+		and not JobStatCalculator.can_equip_weapon(view_member, item)
 	)
 	if job_blocked:
-		btn.tooltip_text = "%s\n（%s）" % [item_name, JobStatCalculator.unequip_reason_weapon(member, item)]
+		btn.tooltip_text = "%s\n（%s）" % [item_name, JobStatCalculator.unequip_reason_weapon(view_member, item)]
 	else:
 		btn.tooltip_text = "%s\n（長押しで効果）" % item_name
 	## 短押し=着脱、長押し=効果オーバーレイ（Button.pressed は使わず gui_input で統一）。
@@ -1419,8 +1451,8 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 	else:
 		_apply_item_cell_styles(btn, rarity, cell_px)
 	_apply_item_badges(btn, item, category, cell_size, is_on_self)
-	if owner_idx >= 0:
-		_add_owner_portrait_badge(btn, owner_idx, cell_size)
+	if owner_member != null:
+		_add_owner_portrait_badge(btn, owner_member, cell_size)
 	return btn
 
 func _make_relic_cell(relic_id: String) -> Button:
@@ -1434,9 +1466,9 @@ func _make_relic_cell(relic_id: String) -> Button:
 	var icon_key: String = CombatPassives.relic_icon_key(relic_id)
 	var tex: Texture2D = IconPaths.get_icon_texture(icon_key, "relic")
 	_attach_item_icon(btn, tex, cell_px, EquipmentUiTokens.INV_CELL_DESIGN_PX)
-	var owner_idx: int = EquipmentUiHelper.relic_equipped_member_index(relic_id)
-	var party_idx: int = _party_index_for_view()
-	var is_on_self: bool = party_idx >= 0 and owner_idx == party_idx
+	var owner_member: Resource = GameState.find_relic_equipped_owner(relic_id)
+	var view_member: Resource = _get_view_adventurer()
+	var is_on_self: bool = owner_member != null and owner_member == view_member
 	btn.tooltip_text = "%s\n（長押しで詳細）" % EquipmentItemDetailHelper.relic_hover_summary(relic_id)
 	_bind_inventory_cell_interaction(btn, _inventory_relic_action.bind(relic_id))
 	btn.disabled = not _can_change_equipment_on_view()
@@ -1445,8 +1477,8 @@ func _make_relic_cell(relic_id: String) -> Button:
 		_apply_item_cell_styles(btn, 2, cell_px, true)
 	else:
 		_apply_item_cell_styles(btn, 2, cell_px)
-	if owner_idx >= 0:
-		_add_owner_portrait_badge(btn, owner_idx, cell_size)
+	if owner_member != null:
+		_add_owner_portrait_badge(btn, owner_member, cell_size)
 	return btn
 
 func _inventory_item_action(is_long_press: bool, item: Resource, category: String) -> void:
@@ -1550,26 +1582,21 @@ func _cancel_inventory_press() -> void:
 	_inv_press_action = Callable()
 
 func _tap_inventory_item(item: Resource, category: String) -> void:
-	var party_idx: int = _party_index_for_view()
-	if party_idx < 0:
+	var view_member: Resource = _get_view_adventurer()
+	if view_member == null or item == null:
 		return
-	var owner_idx: int = EquipmentUiHelper.equipped_member_index(item)
-	if owner_idx == party_idx:
+	var owner_member: Resource = GameState.find_item_equipped_owner(item)
+	if owner_member == view_member:
 		match category:
 			"weapon":
-				$EquipmentController.unequip_weapon(party_idx)
+				$EquipmentController.unequip_weapon_for_member(view_member)
 			"armor":
-				$EquipmentController.unequip_armor(party_idx)
+				$EquipmentController.unequip_armor_for_member(view_member)
 			"accessory":
-				$EquipmentController.unequip_accessory(party_idx)
+				$EquipmentController.unequip_accessory_for_member(view_member)
 		_refresh_display()
 	else:
-		if category == "weapon":
-			var member: Resource = GameState.get_member(party_idx)
-			if not JobStatCalculator.can_equip_weapon(member, item):
-				AudioManager.play_sfx("ui_error")
-				return
-		_on_cell_pressed(item, category)
+		_request_equip_item(item, category)
 
 func _show_relic_stats_overlay(relic_id: String, pinned: bool = false) -> void:
 	_ensure_item_detail_overlay()
@@ -1595,20 +1622,19 @@ func _show_relic_stats_overlay(relic_id: String, pinned: bool = false) -> void:
 			self
 		)
 	)
-	var owner_idx: int = EquipmentUiHelper.relic_equipped_member_index(relic_id)
-	var party_idx: int = _party_index_for_view()
-	var is_on_self: bool = party_idx >= 0 and owner_idx == party_idx
+	var member: Resource = _get_view_adventurer()
+	var owner_member: Resource = GameState.find_relic_equipped_owner(relic_id)
+	var is_on_self: bool = owner_member != null and owner_member == member
 	_detail_equip_btn.text = "外す" if is_on_self else "装備する"
-	_detail_equip_btn.visible = party_idx >= 0
+	_detail_equip_btn.visible = member != null
 	## 他人装備中も付け替え確認経由で装備可。
-	_detail_equip_btn.disabled = party_idx < 0
+	_detail_equip_btn.disabled = member == null
 	_detail_overlay.visible = true
 
-func _add_owner_portrait_badge(btn: Button, owner_idx: int, cell_size: Vector2) -> void:
-	var member: Resource = GameState.get_member(owner_idx)
-	if member == null:
+func _add_owner_portrait_badge(btn: Button, owner_member: Resource, cell_size: Vector2) -> void:
+	if owner_member == null:
 		return
-	var tex: Texture2D = RosterUiHelper.get_member_portrait_texture(member)
+	var tex: Texture2D = RosterUiHelper.get_member_portrait_texture(owner_member)
 	if tex == null:
 		return
 	var badge_px: float = 28.0
@@ -1700,15 +1726,15 @@ func _show_item_stats_overlay(item: Resource, category: String, pinned: bool = f
 	if _detail_title != null:
 		_detail_title.text = "装備性能"
 	EquipmentItemDetailHelper.populate_stats_panel(_detail_host, item, category, self)
-	var party_idx: int = _party_index_for_view()
-	var owner_idx: int = EquipmentUiHelper.equipped_member_index(item)
-	var member: Resource = GameState.get_member(party_idx) if party_idx >= 0 else null
+	var view_member: Resource = _get_view_adventurer()
+	var owner_member: Resource = GameState.find_item_equipped_owner(item)
+	var member: Resource = view_member
 	var job_ok: bool = category != "weapon" or JobStatCalculator.can_equip_weapon(member, item)
-	var can_equip: bool = party_idx >= 0 and owner_idx != party_idx and job_ok
-	_detail_equip_btn.visible = party_idx >= 0 and owner_idx != party_idx
+	var can_equip: bool = view_member != null and owner_member != view_member and job_ok
+	_detail_equip_btn.visible = view_member != null and owner_member != view_member
 	_detail_equip_btn.disabled = not can_equip
-	if category == "weapon" and party_idx >= 0 and owner_idx != party_idx and not job_ok:
-		_detail_equip_btn.tooltip_text = JobStatCalculator.unequip_reason_weapon(member, item)
+	if category == "weapon" and view_member != null and owner_member != view_member and not job_ok:
+		_detail_equip_btn.tooltip_text = JobStatCalculator.unequip_reason_weapon(view_member, item)
 	else:
 		_detail_equip_btn.tooltip_text = ""
 	_detail_overlay.visible = true
@@ -1730,32 +1756,26 @@ func _on_detail_equip_pressed() -> void:
 	_hide_item_detail_overlay()
 
 func _on_relic_equip_pressed(relic_id: String) -> void:
-	var party_idx: int = _party_index_for_view()
-	if party_idx < 0:
-		return
-	var member: Resource = GameState.get_member(party_idx)
-	if member == null:
+	var member: Resource = _get_view_adventurer()
+	if member == null or _is_viewing_pet():
 		return
 	var pid: String = CombatPassives.migrate_relic_passive_id(relic_id)
 	if GameState.get_equipped_relic_passive_id(member) == pid:
 		GameState.set_member_relic(member, "")
 		_refresh_display()
 		return
-	var owner_idx: int = EquipmentUiHelper.relic_equipped_member_index(relic_id)
-	if owner_idx >= 0 and owner_idx != party_idx:
+	var owner_member: Resource = GameState.find_relic_equipped_owner(relic_id)
+	if owner_member != null and owner_member != member:
 		_pending_take_item = null
 		_pending_take_category = ""
 		_pending_take_relic_id = relic_id
-		_popup_take_equip_confirm(owner_idx)
+		_popup_take_equip_confirm(owner_member)
 		return
 	_apply_equip_relic(relic_id)
 
 func _apply_equip_relic(relic_id: String) -> void:
-	var party_idx: int = _party_index_for_view()
-	if party_idx < 0:
-		return
-	var member: Resource = GameState.get_member(party_idx)
-	if member == null:
+	var member: Resource = _get_view_adventurer()
+	if member == null or _is_viewing_pet():
 		return
 	GameState.set_member_relic(member, relic_id)
 	AudioManager.play_sfx("ui_equip")
@@ -1797,48 +1817,47 @@ func _clear_pending_take_equip() -> void:
 	_pending_take_category = ""
 	_pending_take_relic_id = ""
 
-func _owner_display_name(owner_idx: int) -> String:
-	var owner: Resource = GameState.get_member(owner_idx)
-	if owner == null or str(owner.display_name).is_empty():
+func _owner_display_name(owner_member: Resource) -> String:
+	if owner_member == null or str(owner_member.display_name).is_empty():
 		return "別の隊員"
-	return RosterUiHelper.short_display_name(str(owner.display_name))
+	return RosterUiHelper.short_display_name(str(owner_member.display_name))
 
-func _popup_take_equip_confirm(owner_idx: int) -> void:
+func _popup_take_equip_confirm(owner_member: Resource) -> void:
 	_ensure_take_equip_confirm()
 	_confirm_take_equip.dialog_text = (
-		"この装備は%sが装備してます。\n付け替えますか？" % _owner_display_name(owner_idx)
+		"この装備は%sが装備してます。\n付け替えますか？"
+		% _owner_display_name(owner_member)
 	)
 	_confirm_take_equip.popup_centered()
 
 func _request_equip_item(item: Resource, category: String) -> void:
-	var party_idx: int = _party_index_for_view()
-	if party_idx < 0 or item == null:
+	var member: Resource = _get_view_adventurer()
+	if member == null or item == null:
 		return
 	if category == "weapon":
-		var member: Resource = GameState.get_member(party_idx)
 		if not JobStatCalculator.can_equip_weapon(member, item):
 			AudioManager.play_sfx("ui_error")
 			return
-	var owner_idx: int = EquipmentUiHelper.equipped_member_index(item)
-	if owner_idx >= 0 and owner_idx != party_idx:
+	var owner_member: Resource = GameState.find_item_equipped_owner(item)
+	if owner_member != null and owner_member != member:
 		_pending_take_item = item
 		_pending_take_category = category
 		_pending_take_relic_id = ""
-		_popup_take_equip_confirm(owner_idx)
+		_popup_take_equip_confirm(owner_member)
 		return
 	_apply_equip_item(item, category)
 
 func _apply_equip_item(item: Resource, category: String) -> void:
-	var party_idx: int = _party_index_for_view()
-	if party_idx < 0 or item == null:
+	var member: Resource = _get_view_adventurer()
+	if member == null or item == null:
 		return
 	match category:
 		"weapon":
-			$EquipmentController.equip_weapon(item, party_idx)
+			$EquipmentController.equip_weapon_for_member(item, member)
 		"armor":
-			$EquipmentController.equip_armor(item, party_idx)
+			$EquipmentController.equip_armor_for_member(item, member)
 		"accessory":
-			$EquipmentController.equip_accessory(item, party_idx)
+			$EquipmentController.equip_accessory_for_member(item, member)
 	AudioManager.play_sfx("ui_equip")
 	_refresh_display()
 
@@ -2718,12 +2737,132 @@ func _on_relic_passive_toggle_pressed(passive_id: String) -> void:
 	_rebuild_equip_slots()
 
 # ---- 戦術タブ（P3-D086 戦術・ガンビット） ----
+func _ensure_combat_preset_ui() -> void:
+	if _combat_preset_option != null and is_instance_valid(_combat_preset_option):
+		return
+	if _combat_setup_content == null:
+		return
+	var row := HBoxContainer.new()
+	row.name = "CombatPresetRow"
+	row.add_theme_constant_override("separation", 8)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+	var label := Label.new()
+	label.text = "作戦:"
+	UiTypography.apply_body(label, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
+	row.add_child(label)
+
+	var opt := OptionButton.new()
+	opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	opt.item_selected.connect(_on_combat_preset_selected)
+	_combat_preset_option = opt
+	row.add_child(opt)
+
+	var apply_btn := Button.new()
+	apply_btn.text = "適用"
+	UiTypography.apply_menu_button(apply_btn)
+	apply_btn.pressed.connect(_on_combat_preset_apply_pressed)
+	_btn_apply_combat_preset = apply_btn
+	row.add_child(apply_btn)
+
+	var save_btn := Button.new()
+	save_btn.text = "保存"
+	UiTypography.apply_menu_button(save_btn)
+	save_btn.pressed.connect(_on_combat_preset_save_pressed)
+	_btn_save_combat_preset = save_btn
+	row.add_child(save_btn)
+
+	var status := Label.new()
+	status.name = "CombatPresetStatus"
+	status.text = ""
+	status.visible = false
+	status.size_flags_horizontal = Control.SIZE_SHRINK_END
+	UiTypography.apply_body(status, UiTypography.SIZE_CAPTION, COLOR_SUB)
+	_combat_preset_status_label = status
+	row.add_child(status)
+
+	_combat_setup_content.add_child(row)
+
+
+func _sync_combat_preset_ui() -> void:
+	if _combat_preset_option == null or _combat_setup_content == null:
+		return
+	var slots: int = GameState.COMBAT_PRESET_SLOTS
+	_combat_preset_selected_slot = clampi(_combat_preset_selected_slot, 0, maxi(0, slots - 1))
+
+	_combat_preset_option.clear()
+	for slot in range(slots):
+		var name: String = GameState.get_combat_preset_name(slot)
+		if name.is_empty():
+			name = "作戦%d" % (slot + 1)
+		var summary: String = GameState.get_combat_preset_summary(slot)
+		if summary.is_empty():
+			summary = "未保存"
+		# 一行で表示（OptionButton は改行が崩れることがある）
+		var text: String = "%s  %s" % [name, summary]
+		_combat_preset_option.add_item(text, slot)
+	_combat_preset_option.select(_combat_preset_selected_slot)
+
+	var interactive: bool = not _is_viewing_pet()
+	if _btn_apply_combat_preset != null and is_instance_valid(_btn_apply_combat_preset):
+		_btn_apply_combat_preset.disabled = not interactive
+	if _btn_save_combat_preset != null and is_instance_valid(_btn_save_combat_preset):
+		_btn_save_combat_preset.disabled = not interactive
+
+
+func _on_combat_preset_selected(slot: int) -> void:
+	_combat_preset_selected_slot = slot
+
+
+func _flash_combat_preset_status(text: String) -> void:
+	if _combat_preset_status_label == null or not is_instance_valid(_combat_preset_status_label):
+		return
+	_combat_preset_status_label.text = text
+	_combat_preset_status_label.visible = true
+	get_tree().create_timer(1.2).timeout.connect(func() -> void:
+		if _combat_preset_status_label != null and is_instance_valid(_combat_preset_status_label):
+			_combat_preset_status_label.visible = false
+	, CONNECT_ONE_SHOT)
+
+
+func _on_combat_preset_apply_pressed() -> void:
+	if _combat_preset_option == null:
+		return
+	if _is_viewing_pet():
+		return
+	var slot: int = _combat_preset_selected_slot
+	var result: Dictionary = GameState.apply_combat_preset(slot)
+	SaveManager.save_game()
+	_refresh_display()
+	_sync_combat_preset_ui()
+	var skipped: Array = result.get("skipped", []) if result.has("skipped") else []
+	if bool(result.get("ok", false)) and skipped.size() > 0:
+		_flash_combat_preset_status("適用：一部スキップ %d件" % skipped.size())
+	elif bool(result.get("ok", false)):
+		_flash_combat_preset_status("適用：完了")
+	else:
+		_flash_combat_preset_status("適用：失敗")
+
+
+func _on_combat_preset_save_pressed() -> void:
+	if _combat_preset_option == null:
+		return
+	if _is_viewing_pet():
+		return
+	var slot: int = _combat_preset_selected_slot
+	GameState.save_combat_preset(slot, "")
+	SaveManager.save_game()
+	_sync_combat_preset_ui()
+	_flash_combat_preset_status("保存：完了")
+
 func _rebuild_tactics_tab() -> void:
 	var member: Resource = _get_view_adventurer()
 	if GameState.EXPLORATION_POLICY_PLAYABLE:
 		_ensure_exploration_policy_ui()
 		_sync_policy_option()
 	_ensure_tactics_ui()
+	_ensure_combat_preset_ui()
+	_sync_combat_preset_ui()
 	_refresh_tactics_ui(member)
 
 func _ensure_combat_setup_panel() -> void:
