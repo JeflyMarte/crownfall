@@ -616,7 +616,10 @@ func _apply_pending_exp() -> void:
 	if _exp_applied:
 		return
 	_exp_applied = true
-	GameState.last_run_level_ups = LevelSystem.grant_exp_to_party(GameState.last_run_exp_reward)
+	GameState.last_run_level_ups = LevelSystem.grant_exp_by_member(GameState.last_run_exp_by_member)
+	if GameState.last_run_level_ups.is_empty() and GameState.last_run_exp_reward > 0 and GameState.last_run_exp_by_member.is_empty():
+		## 旧経路互換（メンバー別が空で合計のみある場合）。
+		GameState.last_run_level_ups = LevelSystem.grant_exp_to_party(GameState.last_run_exp_reward)
 
 func _apply_mvp_background(use_mvp: bool) -> void:
 	if _bg_texture == null:
