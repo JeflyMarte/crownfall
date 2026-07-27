@@ -147,6 +147,7 @@ alwaysApply: true
 | 最終フロア等で「探索終了」がクリア扱い | 非戦闘 `ButtonFinish`／メニューが `is_completed` 無しでクリア経路を呼んだ | 手動終了はリタイア確認のみ。クリアは撃破演出後（`is_completed`）のみ |
 | アルケミスト等の固有パッシブが剣アイコン | キャラ固有 id に `ICO_PASSIVE_*` が無く `BattleFervor` フォールバック | `PassiveIconHelper.ICON_ALIAS`／`ICON_PATH_OVERRIDE` で職帯・毒ベースへ |
 | スキル詳細に「属性: dark」等の英語 | `EquipmentScene` が element id をそのまま表示 | `ElementResolver.get_display_name`（炎/氷/雷/闇/聖）を使う |
+| イベント／無限の仕組みが伝わらない | タブだけあって説明導線なし。解放もバナーのみ | `DungeonRouteGuideOverlay`（？ボタン＋降臨／無限の初回P分け）。再表示は preview |
 | Noto 本文が薄い | Variable `wght` 600/700 のまま、または `UiTypography` 未適用／テーマ未同期。700 でも Mobile＋小サイズでは体感薄い | `BODY_FONT_WEIGHT=800`＋`variation_embolden`。`production_theme.tres` の FontVariation も同値。本文は必ず `UiTypography.body_font()`。変更はコミットする（未コミットだと再起動・別セッションで 600 に戻って見える） |
 | キャラ切替 ◀▶ が消える | テーマ Button フォントが DelaGothic（矢印グリフ無し）＋ StyleBox 余白＋ `clip_text`＋過小 font | nav は flat＋`StyleBoxEmpty`＋Noto body＋十分な font_size。幅圧縮だけしてグリフを潰さない |
 

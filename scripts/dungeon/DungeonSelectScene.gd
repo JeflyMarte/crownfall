@@ -213,6 +213,12 @@ const BIOME_BANNER_HEIGHT: float = 112.0
 const _BiomeBannerHelper = preload("res://scripts/ui/BiomeBannerHelper.gd")
 ## バナー画像にダンジョン名が焼き込まれている Biome（UI タイトルラベルを非表示）
 const BIOME_BANNER_TITLE_BAKED: Dictionary = {}
+const _DungeonRouteGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
+
+var _guide_help_row: HBoxContainer
+var _btn_guide_event: Button
+var _btn_guide_descent: Button
+var _btn_guide_abyss: Button
 
 func _ready() -> void:
 	$MainColumn/Header/HeaderRow/LabelTitle.text = ""
@@ -256,6 +262,7 @@ func _ready() -> void:
 	_constrain_featured_text_labels()
 	_setup_enter_confirm()
 	_setup_party_empty_dialog()
+	_setup_route_guide_help()
 	_refresh_all()
 	call_deferred("_maybe_show_content_unlock")
 
@@ -264,7 +271,87 @@ func _maybe_show_content_unlock() -> void:
 	const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
 	## 章クリア加入ストーリー中は拠点で功績→解放の順に出す。
 	if not GameState.pending_clear_nina_merit:
-		_ContentUnlockNotice.show_pending_on(self)
+		_ContentUnlockNotice.show_pending_on(
+			self, Callable(self, "_after_unlock_notices_for_guides")
+		)
+	else:
+		call_deferred("_maybe_show_descent_route_guide")
+
+
+func _after_unlock_notices_for_guides() -> void:
+	_maybe_show_descent_route_guide()
+
+
+func _setup_route_guide_help() -> void:
+	var main_col: Node = $MainColumn
+	var tabs: Node = $MainColumn/RouteTabsRow
+	if main_col == null or tabs == null:
+		return
+	_guide_help_row = HBoxContainer.new()
+	_guide_help_row.name = "RouteGuideHelpRow"
+	_guide_help_row.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	_guide_help_row.add_theme_constant_override("separation", 8)
+	_guide_help_row.visible = false
+	var insert_at: int = tabs.get_index() + 1
+	main_col.add_child(_guide_help_row)
+	main_col.move_child(_guide_help_row, insert_at)
+
+	_btn_guide_event = _make_route_guide_help_button("イベントとは？")
+	_btn_guide_event.pressed.connect(_on_route_guide_help_pressed.bind(_DungeonRouteGuide.GUIDE_EVENT))
+	_guide_help_row.add_child(_btn_guide_event)
+
+	_btn_guide_descent = _make_route_guide_help_button("降臨とは？")
+	_btn_guide_descent.pressed.connect(
+		_on_route_guide_help_pressed.bind(_DungeonRouteGuide.GUIDE_DESCENT)
+	)
+	_guide_help_row.add_child(_btn_guide_descent)
+
+	_btn_guide_abyss = _make_route_guide_help_button("無限とは？")
+	_btn_guide_abyss.pressed.connect(_on_route_guide_help_pressed.bind(_DungeonRouteGuide.GUIDE_ABYSS))
+	_guide_help_row.add_child(_btn_guide_abyss)
+
+
+func _make_route_guide_help_button(label: String) -> Button:
+	var btn := Button.new()
+	btn.text = label
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.custom_minimum_size = Vector2(0, 40)
+	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_button(btn, false)
+	return btn
+
+
+func _refresh_route_guide_help() -> void:
+	if _guide_help_row == null:
+		return
+	var on_event: bool = _route_tab == ROUTE_TAB_EVENT
+	var on_abyss: bool = _route_tab == ROUTE_TAB_ABYSS and Constants.ABYSS_DUNGEONS_PLAYABLE
+	_guide_help_row.visible = on_event or on_abyss
+	if _btn_guide_event != null:
+		_btn_guide_event.visible = on_event
+	if _btn_guide_descent != null:
+		_btn_guide_descent.visible = on_event
+	if _btn_guide_abyss != null:
+		_btn_guide_abyss.visible = on_abyss
+
+
+func _on_route_guide_help_pressed(guide_id: String) -> void:
+	## 再表示は preview（自動初回フラグを触らない）。
+	_DungeonRouteGuide.show_on(self, guide_id, true)
+
+
+func _maybe_show_descent_route_guide() -> void:
+	if _DungeonRouteGuide.is_seen(_DungeonRouteGuide.GUIDE_DESCENT):
+		return
+	if get_node_or_null("DungeonRouteGuideOverlay") != null:
+		return
+	if get_node_or_null("DungeonUnlockOverlay") != null:
+		return
+	const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
+	if _EventDungeonSchedule.open_hourly_event_ids().is_empty():
+		return
+	_DungeonRouteGuide.show_on(self, _DungeonRouteGuide.GUIDE_DESCENT, false)
+
 
 func _setup_party_empty_dialog() -> void:
 	_party_empty_dialog = AcceptDialog.new()
@@ -435,6 +522,7 @@ func _refresh_all() -> void:
 	_update_currency()
 	_refresh_tier_tabs()
 	_refresh_route_tabs()
+	_refresh_route_guide_help()
 	_refresh_featured()
 	_refresh_event_footer()
 	_build_list()
@@ -448,6 +536,7 @@ func _refresh_route_tabs() -> void:
 		var selected: bool = _route_tab == tabs[i]
 		buttons[i].button_pressed = selected
 		UiTypography.apply_button(buttons[i], selected)
+	_refresh_route_guide_help()
 
 
 func _on_route_tab_pressed(tab: String) -> void:
@@ -476,6 +565,8 @@ func _on_route_tab_pressed(tab: String) -> void:
 		_refresh_featured()
 	_refresh_route_tabs()
 	_build_list()
+	if tab == ROUTE_TAB_EVENT:
+		call_deferred("_maybe_show_descent_route_guide")
 	call_deferred("_reset_scroll_list_top")
 
 

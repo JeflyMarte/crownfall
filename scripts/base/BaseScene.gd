@@ -97,6 +97,8 @@ func _maybe_show_rank_up() -> void:
 	if _ContentUnlockNotice.has_pending():
 		if _hub_overlay_blocking("DungeonUnlockOverlay"):
 			return
+		if _hub_overlay_blocking("DungeonRouteGuideOverlay"):
+			return
 		if _hub_overlay_blocking("NinaDialogueOverlay"):
 			return
 		var unlock_overlay: CanvasLayer = _ContentUnlockNotice.show_pending_on(
@@ -104,11 +106,25 @@ func _maybe_show_rank_up() -> void:
 		)
 		if unlock_overlay != null:
 			return
+	## 無限ガイドなど、解放ポップ後の手引きが残っていれば先に出す。
+	const _DungeonRouteGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
+	if _DungeonRouteGuide.has_pending_auto():
+		if _hub_overlay_blocking("DungeonRouteGuideOverlay"):
+			return
+		if _hub_overlay_blocking("DungeonUnlockOverlay"):
+			return
+		var route_guide: CanvasLayer = _DungeonRouteGuide.try_show_pending_on(
+			self, Callable(self, "_continue_hub_clear_flow")
+		)
+		if route_guide != null:
+			return
 	const _NinaRareAcquireGuide := preload("res://scripts/ui/NinaRareAcquireGuide.gd")
 	if _NinaRareAcquireGuide.has_pending_guide():
 		if _hub_overlay_blocking("NinaDialogueOverlay"):
 			return
 		if _hub_overlay_blocking("DungeonUnlockOverlay"):
+			return
+		if _hub_overlay_blocking("DungeonRouteGuideOverlay"):
 			return
 		var guide_kind: String = _NinaRareAcquireGuide.peek_pending_guide_kind()
 		var rare_guide: CanvasLayer = _NinaDialogueOverlay.show_on(
