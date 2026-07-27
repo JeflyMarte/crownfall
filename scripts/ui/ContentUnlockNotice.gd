@@ -215,7 +215,11 @@ static func has_pending() -> bool:
 
 
 ## 結果／ダンジョン選択では出さず、拠点（メインメニュー）で出す kind。
-const DEFER_TO_HUB_KINDS: PackedStringArray = PackedStringArray(["survey_complete"])
+const KIND_SURVEY_COMPLETE: String = "survey_complete"
+
+
+static func _defer_to_hub_kinds() -> PackedStringArray:
+	return PackedStringArray([KIND_SURVEY_COMPLETE])
 
 
 ## キュー先頭を1件表示。dismiss で次があれば続けて出す。
@@ -288,7 +292,7 @@ static func show_pending_on_except_hub_deferred(
 	parent: Node,
 	on_all_done: Callable = Callable()
 ) -> CanvasLayer:
-	return show_pending_on(parent, on_all_done, DEFER_TO_HUB_KINDS)
+	return show_pending_on(parent, on_all_done, _defer_to_hub_kinds())
 
 
 static func _defer_show_pending(
