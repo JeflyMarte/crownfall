@@ -29,8 +29,9 @@ const ID_SURVEY: String = "survey"
 const ID_GACHA: String = "gacha"
 
 ## 現行登録（タイトル＋導入＋拠点施設＋探索／戦闘／ボス／リザルト）。
-## 通常戦闘は Biome 別曲あり（未登録は battle）。探索は全ダンジョン共通。
-## フロストリッジ本編ボス（エルディオン）は final_boss。
+## 通常戦闘は Biome 別曲あり（未登録は battle）。
+## P3-AUDIO-BGM-EXPLORE-OMIT-001: ダンジョン内は探索曲を使わず戦闘BGMを常時（ボス／影狩は例外）。
+## dungeon_explore アセットは残置（未配線）。フロストリッジ本編ボスは final_boss。
 const PATHS: Dictionary = {
 	ID_TITLE: DIR + "title.mp3",
 	ID_HUB: DIR + "hub.mp3",
@@ -106,7 +107,7 @@ const BATTLE_BY_DUNGEON: Dictionary = {
 	"valgard_boundary": ID_VALGARD_BOUNDARY,
 }
 
-## 探索曲のダンジョン別上書き（未登録は dungeon_explore）。
+## 探索曲のダンジョン別上書き（未使用・P3-AUDIO-BGM-EXPLORE-OMIT-001。アセット／API 残置）。
 const EXPLORE_BY_DUNGEON: Dictionary = {
 	"chronos_mausoleum": ID_CHRONOS_MAUSOLEUM,
 	"valgard_boundary": ID_VALGARD_BOUNDARY,
@@ -146,7 +147,7 @@ const SCENE_BGM: Dictionary = {
 	"res://scenes/gacha/GachaScene.tscn": ID_GACHA,
 	"res://scenes/blacksmith/BlacksmithScene.tscn": ID_FORGE,
 	"res://scenes/survey/SurveyScene.tscn": ID_SURVEY,
-	"res://scenes/dungeon/DungeonScene.tscn": ID_DUNGEON_EXPLORE,
+	## DungeonScene は SCENE_BGM 非掲載（DungeonScene 側で battle／boss／影狩を同期）。
 }
 
 
@@ -173,7 +174,7 @@ static func bgm_for_scene(scene_path: String) -> String:
 	return str(SCENE_BGM.get(scene_path, ""))
 
 
-## 探索曲。専用曲が無ければ dungeon_explore。
+## 探索曲 API（互換残置）。ダンジョン内再生は戦闘BGMへ寄せたため呼び出し側では使わない。
 static func explore_bgm_for_dungeon(dungeon_id: String) -> String:
 	var mapped: String = str(EXPLORE_BY_DUNGEON.get(dungeon_id, ""))
 	if not mapped.is_empty() and is_available(mapped):

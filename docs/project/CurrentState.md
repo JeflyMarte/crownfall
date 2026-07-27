@@ -5,7 +5,11 @@
 ## Last Update
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+2026-07-27（**P3-AUDIO-BGM-EXPLORE-OMIT-001 GO**: ダンジョン探索BGMオミット。非戦闘も戦闘BGM常時。例外＝ボス／影狩。統合＋`main`）
+>>>>>>> cursor/bgm-explore-omit-c613
 2026-07-27（**P3-GACHA-FEATURE-BLURB-001 GO**: 招待状 Featured に特徴行（origin_note）をパッシブ上へ。Idle LIFT 130→100。統合＋`main`）
 >>>>>>> cursor/gacha-feature-blurb-c613
 2026-07-27（**P3-BAL-TRAP-TIER-001 GO**: 罠を N/H/NM で段階化 — ノーマル緩和／ハード≈旧値／ナイトメア強化＋毒or出血。統合＋`main`）

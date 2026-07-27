@@ -4841,6 +4841,21 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 
 ---
 
+## ダンジョン探索BGMオミット（2026-07-27 — P3-AUDIO-BGM-EXPLORE-OMIT-001）
+
+> **オーナー指示** — 探索BGMは使わず、基本は戦闘BGMを常時。ボス／一部敵のみ例外。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-AUDIO-BGM-EXPLORE-OMIT-001-1 | **既定** — ダンジョン内（非戦闘含む）は `battle_bgm_for_dungeon` を継続再生 | 探索曲の抑揚をやめる |
+| P3-AUDIO-BGM-EXPLORE-OMIT-001-2 | **例外** — `RoomType.BOSS` → boss 系／影狩遭遇 → `shadow_hunt` | 既存専用曲を維持 |
+| P3-AUDIO-BGM-EXPLORE-OMIT-001-3 | **SCENE_BGM** — `DungeonScene` を非掲載（入場時は DungeonScene が battle を再生） | 探索曲への一瞬切替を防ぐ |
+| P3-AUDIO-BGM-EXPLORE-OMIT-001-4 | **残置** — `dungeon_explore` アセット／`explore_bgm_for_dungeon` API。削除しない | 再利用余地 |
+
+**Closeout:** Impl 後に統合＋`main`。
+
+---
+
 
 
 ## 時環の共鳴龍クロノス・ウェーブ再設計（2026-07-26 — P3-LORE-CHRONOS-001）
