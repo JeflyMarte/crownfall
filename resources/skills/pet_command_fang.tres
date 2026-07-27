@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "pet_command_fang"
 display_name = "指揮の牙"
-description = "合図とともにペットへ追撃を命じる。自身も軽い一撃を加える。"
+description = "合図とともにオトモへ追撃を命じる。自身も軽い一撃を加える。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 0.9

@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "power_shot"
 display_name = "強射"
-description = "弓を限界まで引き絞った一射。レンジャーの主力火力。"
+description = "弓を限界まで引き絞った一射。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.8

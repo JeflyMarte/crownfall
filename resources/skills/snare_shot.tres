@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "snare_shot"
 display_name = "スネアアロー"
-description = "動線を読んで急所を射抜き、CTを伸ばして鈍化させる（レンジャー担当）。"
+description = "急所を射抜き、敵の動きを鈍らせる。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.2

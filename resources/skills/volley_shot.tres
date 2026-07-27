@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "volley_shot"
 display_name = "斉射"
-description = "矢を扇状に放ち、敵全体を射抜く。群れ掃討向き。"
+description = "矢を扇状に放ち、敵全体を射抜く。群れ掃除向き。"
 skill_type = "player"
 target_type = "all_enemies"
 power_multiplier = 0.95

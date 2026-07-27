@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "curse_sigil"
 display_name = "呪印"
-description = "重呪を刻む。通常の呪より長く・強く敵の出力を落とす。張り直しはアンブラへ。"
+description = "重い呪いを刻む。長く強く、敵の攻撃を落とす。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.0

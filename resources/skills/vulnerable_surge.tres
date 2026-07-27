@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "vulnerable_surge"
 display_name = "崩呪"
-description = "呪力で防御の隙を突く追撃。単体でも軽い脆弱を付与し、既に脆い敵には特に効く。"
+description = "呪力で防御の隙を突く追撃。軽い脆弱を付けやすく、脆い敵に特に効く。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.5

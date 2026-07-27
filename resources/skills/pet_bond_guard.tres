@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "pet_bond_guard"
 display_name = "絆の守り"
-description = "ペットを守りの態勢に入れ、被ダメージを大きく軽減する。"
+description = "オトモを守りの態勢に入れ、被ダメージを大きく軽減する。"
 skill_type = "player"
 target_type = "pet"
 power_multiplier = 1.0

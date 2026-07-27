@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "fear_chain"
 display_name = "恐怖追撃"
-description = "怯ませながらの追い打ち。単体でも軽い恐怖を付与し、既に怯んでいる敵には特に効く。"
+description = "怯ませながらの追い打ち。軽い恐怖を付けやすく、怯んでいる敵に特に効く。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.45

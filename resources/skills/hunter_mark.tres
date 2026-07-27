@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "hunter_mark"
 display_name = "狩人の標"
-description = "ダメージを抑え、確実に標的を付ける。追標や味方の集中砲火の起点。"
+description = "威力は控えめだが、確実に標的を付ける。味方が集まりやすい印。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 0.45

@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "plague_bolt"
 display_name = "疫呪弾"
-description = "呪いと蝕みを込めた強力な魔力弾。敵を呪詛し弱点を突く。"
+description = "呪いと蝕みを込めた強力な魔力弾。敵を弱らせ弱点を突く。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.6

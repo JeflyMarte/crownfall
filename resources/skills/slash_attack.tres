@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "slash_attack"
 display_name = "一閃"
-description = "短い間合いで繰り出す回転斬り。長い戦いでは総ダメージで極意に勝ることもある。"
+description = "素早く斬りつける基本技。間が短く、長い戦いでも何度も繰り出せる。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.45

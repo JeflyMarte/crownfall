@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "rime_touch"
 display_name = "フロストエッジ"
-description = "武器の属性ダメージとは別に、冷却状態異常を付与する。スキル自体は無属性。"
+description = "冷却を付与する追撃。武器の属性とは別に、敵の動きを鈍らせる。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.3

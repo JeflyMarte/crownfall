@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "empower"
 display_name = "鼓舞"
-description = "味方全体を鼓舞し、一定時間 与ダメージを上昇させる。"
+description = "味方全体を鼓舞し、しばらくのあいだ与ダメージを上げる。"
 skill_type = "player"
 target_type = "ally"
 power_multiplier = 1.0

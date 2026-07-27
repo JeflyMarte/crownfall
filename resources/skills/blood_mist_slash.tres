@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "blood_mist_slash"
 display_name = "血煙斬"
-description = "血煙をまとい、敵全体に裂傷を撒く。付与率は単体より控えめ。"
+description = "血煙をまとい、敵全体に出血を撒く。単体技より付与しにくい。"
 skill_type = "player"
 target_type = "all_enemies"
 power_multiplier = 0.75

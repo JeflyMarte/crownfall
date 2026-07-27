@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "grand_elixir"
 display_name = "グランドエリクサー"
-description = "錬成術の極致。最も傷ついた仲間へ、生命を満たす大いなる一滴を注ぐ。"
+description = "錬成術の極致。いちばん傷ついた仲間へ、生命を満たす大いなる一滴を注ぐ。"
 skill_type = "player"
 target_type = "ally"
 power_multiplier = 4.0

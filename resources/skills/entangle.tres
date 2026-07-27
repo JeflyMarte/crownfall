@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "entangle"
 display_name = "絡みつき"
-description = "生物の糸や蔓の如く敵の動きを封じ、冷却状態を付与する。"
+description = "糸や蔓のように敵の動きを封じ、冷却を付与する。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.15

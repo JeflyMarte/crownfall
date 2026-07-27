@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "venom_burst"
 display_name = "猛毒噴射"
-description = "毒を浴びせて弱点を突く。単体でも軽い毒を残し、既に毒の敵には特に効く。"
+description = "毒を浴びせて弱点を突く。軽い毒を残し、すでに毒の敵に特に効く。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.5

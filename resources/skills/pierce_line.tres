@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "pierce_line"
 display_name = "貫破斬"
-description = "一気に突き通す貫き。装甲の隙を突き弱点を露わにする。"
+description = "一気に突き通す貫き。装甲の隙を突き、弱点を露わにする。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.7

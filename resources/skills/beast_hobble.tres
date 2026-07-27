@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "beast_hobble"
 display_name = "絡み矢"
-description = "生物の関節を狙い、冷却で行動をスキップさせやすくする（テイマー担当）。"
+description = "関節を狙って射抜き、敵の動きを鈍らせる。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.2

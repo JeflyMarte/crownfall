@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "static_strike"
 display_name = "ボルトエッジ"
-description = "武器の属性ダメージとは別に、感電状態異常を付与する。スキル自体は無属性。"
+description = "感電を付与する追撃。武器の属性とは別に、敵を痺れさせる。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.35

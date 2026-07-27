@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "fierce_slash"
 display_name = "猛撃"
-description = "全身の力を込めた一撃。ソードマンの主力火力技。"
+description = "全身の力を込めた重い一撃。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.85
