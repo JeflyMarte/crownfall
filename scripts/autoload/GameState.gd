@@ -138,6 +138,8 @@ var last_run_stage_id: String = ""
 # 直近ランで発動した戦闘補正の回数 { 表示ラベル: 回数 }（P3-UX-001 戦闘可読性）。
 # DungeonScene のログ経路で集計し、Result で上位を「効いた戦闘要素」として表示する。
 var last_run_modifier_counts: Dictionary = {}
+## 直近ランの全滅敗因（Result 表示用 — P3-UX-WIPE-CAUSE-001）。
+var last_run_wipe_cause: Dictionary = {}
 
 var _run_combat_stats: RefCounted = null
 
@@ -1441,6 +1443,7 @@ func reset_for_new_game() -> void:
 	last_run_weather = ""
 	last_run_stage_id = ""
 	last_run_modifier_counts = {}
+	last_run_wipe_cause = {}
 	last_run_starter_recruited_id = ""
 	last_run_starter_recruited_name = ""
 	pending_starter_recruit_id = ""
