@@ -10,6 +10,9 @@ const HERO_GLOW: String = ROOT + "UI_Forge_HeroGlow.png"
 const HERO_ITEM_BG: String = ROOT + "UI_Forge_HeroItemBg.png"
 const TAB_ACTIVE: String = ROOT + "UI_Forge_Tab_Active.png"
 const TAB_INACTIVE: String = ROOT + "UI_Forge_Tab_Inactive.png"
+## 武器／防具／装飾のカテゴリパネル枠（Downloads「武器・防具・装飾品タブフレーム」）。
+const CAT_TAB_ACTIVE: String = ROOT + "UI_Forge_CatTab_Active.png"
+const CAT_TAB_INACTIVE: String = ROOT + "UI_Forge_CatTab_Inactive.png"
 const DETAIL_PANEL: String = ROOT + "UI_Forge_DetailPanel.png"
 const CRAFTABLE_PANEL: String = ROOT + "UI_Forge_CraftablePanel.png"
 const LIST_CARD_NORMAL: String = ROOT + "UI_Forge_ListCard_Normal.png"
@@ -63,9 +66,11 @@ const MODE_ICONS: Dictionary = {
 	"alchemy": ROOT + "ICO_Forge_Mode_Alchemy.png",
 	"dismantle": ROOT + "ICO_Forge_Mode_Dismantle.png",
 }
-const MODE_ICON_PX: int = 28
+const MODE_ICON_PX: int = 44
+## モードタブ内アイコンを左端から右へ少し寄せる。
+const MODE_ICON_NUDGE_X_PX: float = 18.0
 
-const CATEGORY_MIN_SIZE: Vector2 = Vector2(72, 88)
+const CATEGORY_MIN_SIZE: Vector2 = Vector2(96, 120)
 ## 詳細ヒーロー: 武器背景の上に透過アイコン。背景は少し大きめ。
 const HERO_PEDESTAL_PX: int = 200
 const HERO_DISPLAY_PX: int = 168
@@ -86,7 +91,12 @@ const DETAIL_PANEL_CONTENT_MARGINS: Vector4i = Vector4i(56, 56, 44, 28)
 const CRAFTABLE_PANEL_MARGINS: Vector4i = Vector4i(36, 40, 36, 32)
 ## 下フレーム内側。左はアイコン帯、上はクレスト分を確保。
 const CRAFTABLE_PANEL_CONTENT_MARGINS: Vector4i = Vector4i(56, 28, 24, 20)
-const TAB_MARGINS: Vector4i = Vector4i(16, 12, 16, 14)
+## 左右を薄めにして中央を横ストレッチしやすくする。
+const TAB_MARGINS: Vector4i = Vector4i(3, 8, 3, 8)
+const TAB_CONTENT_MARGIN: float = 4.0
+## カテゴリタブ: 縦に伸ばすため上下 texture_margin を薄めに。
+const CAT_TAB_MARGINS: Vector4i = Vector4i(10, 4, 10, 4)
+const CAT_TAB_CONTENT_MARGINS: Vector4i = Vector4i(14, 14, 14, 14)
 ## 生産／強化など主ボタンの横幅上限（EXPAND せず中央寄せ）。
 const PRIMARY_BTN_WIDTH_PX: float = 240.0
 const PRIMARY_BTN_HEIGHT_PX: float = 64.0
@@ -131,11 +141,49 @@ static func texture_stylebox(
 	return sb
 
 static func tab_active_style() -> StyleBox:
-	return texture_stylebox(TAB_ACTIVE, TAB_MARGINS, 8.0)
+	var sb: StyleBox = texture_stylebox(TAB_ACTIVE, TAB_MARGINS, TAB_CONTENT_MARGIN)
+	if sb is StyleBoxTexture:
+		var st := sb as StyleBoxTexture
+		st.content_margin_left = TAB_CONTENT_MARGIN + MODE_ICON_NUDGE_X_PX
+		st.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+		st.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+	return sb
 
 
 static func tab_inactive_style() -> StyleBox:
-	return texture_stylebox(TAB_INACTIVE, TAB_MARGINS, 8.0)
+	var sb: StyleBox = texture_stylebox(TAB_INACTIVE, TAB_MARGINS, TAB_CONTENT_MARGIN)
+	if sb is StyleBoxTexture:
+		var st := sb as StyleBoxTexture
+		st.content_margin_left = TAB_CONTENT_MARGIN + MODE_ICON_NUDGE_X_PX
+		st.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+		st.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+	return sb
+
+
+static func cat_tab_active_style() -> StyleBox:
+	var sb: StyleBox = texture_stylebox(CAT_TAB_ACTIVE, CAT_TAB_MARGINS, 8.0)
+	if sb is StyleBoxTexture:
+		var st := sb as StyleBoxTexture
+		st.content_margin_left = float(CAT_TAB_CONTENT_MARGINS.x)
+		st.content_margin_top = float(CAT_TAB_CONTENT_MARGINS.y)
+		st.content_margin_right = float(CAT_TAB_CONTENT_MARGINS.z)
+		st.content_margin_bottom = float(CAT_TAB_CONTENT_MARGINS.w)
+		st.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+		st.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+	return sb
+
+
+static func cat_tab_inactive_style() -> StyleBox:
+	var sb: StyleBox = texture_stylebox(CAT_TAB_INACTIVE, CAT_TAB_MARGINS, 8.0)
+	if sb is StyleBoxTexture:
+		var st := sb as StyleBoxTexture
+		st.content_margin_left = float(CAT_TAB_CONTENT_MARGINS.x)
+		st.content_margin_top = float(CAT_TAB_CONTENT_MARGINS.y)
+		st.content_margin_right = float(CAT_TAB_CONTENT_MARGINS.z)
+		st.content_margin_bottom = float(CAT_TAB_CONTENT_MARGINS.w)
+		st.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+		st.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+	return sb
 
 
 static func detail_panel_style() -> StyleBox:

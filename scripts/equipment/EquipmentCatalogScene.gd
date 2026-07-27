@@ -372,7 +372,7 @@ func _apply_item_badges(
 		btn,
 		EquipmentUiHelper.rarity_stars_text(rarity),
 		Color(0.96, 0.82, 0.35, 1.0),
-		Vector2(3.0, 2.0),
+		EquipmentUiHelper.RARITY_BADGE_POS,
 		star_font
 	)
 	EquipmentUiHelper.apply_legendary_badge(btn, rarity, size)

@@ -23,6 +23,15 @@ const FORGE_ICON_SAFE_FILL: float = 0.52
 const HERO_ICON_INSET_RATIO: float = 0.03
 const HERO_ICON_INSET_MIN_PX: int = 4
 const HERO_ICON_SAFE_FILL: float = 0.94
+## StyleBox / get_image 結果のキャッシュ（選択ごとの再生成コスト削減）。
+static var _list_card_style_cache: Dictionary = {}
+static var _texture_alpha_ok_cache: Dictionary = {}
+static var _cached_tab_active: StyleBox = null
+static var _cached_tab_inactive: StyleBox = null
+static var _cached_cat_tab_active: StyleBox = null
+static var _cached_cat_tab_inactive: StyleBox = null
+static var _cached_craftable_panel: StyleBox = null
+static var _list_icon_frame_cache: Dictionary = {}
 ## ヒーローは暗下地なし。武器背景（ペデスタル）の上に透過で武器本体。
 const HERO_USE_UNDERLAY: bool = false
 const HERO_USE_PEDESTAL: bool = true
@@ -152,18 +161,30 @@ static func card_style(selected: bool, craftable: bool = false) -> StyleBox:
 	return CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
 
 static func list_card_style(selected: bool, craftable: bool, rarity: int) -> StyleBox:
+	var cache_key: String = "%d_%d_%d" % [
+		1 if selected else 0,
+		1 if craftable else 0,
+		clampi(rarity, 0, 99),
+	]
+	if _list_card_style_cache.has(cache_key):
+		return _list_card_style_cache[cache_key] as StyleBox
 	var textured: StyleBox = (
 		ForgeUiTokens.list_card_selected_style()
 		if selected
 		else ForgeUiTokens.list_card_normal_style()
 	)
+	var out: StyleBox
 	if _texture_style_ok(textured):
 		if craftable and not selected and textured is StyleBoxTexture:
 			var tinted: StyleBoxTexture = (textured as StyleBoxTexture).duplicate() as StyleBoxTexture
 			tinted.modulate_color = Color(0.88, 1.0, 0.84, 1.0)
-			return tinted
-		return textured
-	return simple_list_card_style(selected, craftable, rarity)
+			out = tinted
+		else:
+			out = textured
+	else:
+		out = simple_list_card_style(selected, craftable, rarity)
+	_list_card_style_cache[cache_key] = out
+	return out
 
 static func simple_list_card_style(selected: bool, craftable: bool, rarity: int) -> StyleBox:
 	# Texture 欠落時のフォールバック。選択時のみ薄いハイライト。
@@ -201,14 +222,18 @@ static func craftable_strip_style(selected: bool) -> StyleBox:
 
 ## 下段「作成可能／素材にする装備」帯。オーナー下フレーム（UI_Forge_CraftablePanel）。
 static func craftable_panel_style() -> StyleBox:
+	if _cached_craftable_panel != null:
+		return _cached_craftable_panel
 	var textured: StyleBox = ForgeUiTokens.craftable_band_style()
 	if _texture_style_ok(textured):
+		_cached_craftable_panel = textured
 		return textured
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.06, 0.05, 0.04, 0.55)
 	sb.set_border_width_all(0)
 	sb.set_corner_radius_all(8)
 	sb.set_content_margin_all(6.0)
+	_cached_craftable_panel = sb
 	return sb
 
 static func material_chip_style(rarity: int, sufficient: bool, cell_px: int = -1) -> StyleBox:
@@ -516,6 +541,9 @@ static func make_item_icon_cell(
 
 static func _list_icon_flat_frame(rarity: int, highlight: bool, cell_px: int) -> StyleBoxFlat:
 	## 下地は ItemBg（InvCell）。StyleBox は選択ハイライト枠のみ。
+	var cache_key: String = "%d_%d_%d" % [clampi(rarity, 0, 99), 1 if highlight else 0, cell_px]
+	if _list_icon_frame_cache.has(cache_key):
+		return _list_icon_frame_cache[cache_key] as StyleBoxFlat
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.0, 0.0, 0.0, 0.0)
 	var col: Color = rarity_color(rarity)
@@ -528,7 +556,26 @@ static func _list_icon_flat_frame(rarity: int, highlight: bool, cell_px: int) ->
 	sb.set_corner_radius_all(maxi(4, int(round(float(cell_px) * 0.08))))
 	sb.set_content_margin_all(0.0)
 	## shadow は親カード外へ描画され「左はみ出し」に見えるので付けない。
+	_list_icon_frame_cache[cache_key] = sb
 	return sb
+
+
+## 左一覧の選択ハイライトだけ差し替え（アイコン再生成なし）。
+static func apply_list_icon_selection(cell: Control, rarity: int, selected: bool) -> void:
+	if cell == null or not (cell is Button):
+		return
+	var btn := cell as Button
+	var px: int = maxi(1, int(btn.custom_minimum_size.x))
+	var style: StyleBox
+	if px > 88:
+		style = EquipmentUiTokens.rarity_slot_style(rarity, selected, px)
+		if style != null:
+			style = style.duplicate()
+			style.set_content_margin_all(0.0)
+	else:
+		style = _list_icon_flat_frame(rarity, selected, px)
+	for state in ["normal", "pressed", "hover", "disabled", "focus"]:
+		btn.add_theme_stylebox_override(state, style)
 
 
 static func make_plain_item_icon(
@@ -697,7 +744,7 @@ static func mode_tab_style(active: bool) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.14, 0.11, 0.07, 0.94) if active else Color(0.08, 0.07, 0.06, 0.82)
 	sb.set_corner_radius_all(6)
-	sb.content_margin_left = 10.0
+	sb.content_margin_left = 10.0 + ForgeUiTokens.MODE_ICON_NUDGE_X_PX
 	sb.content_margin_top = 6.0
 	sb.content_margin_right = 10.0
 	sb.content_margin_bottom = 6.0
@@ -705,20 +752,32 @@ static func mode_tab_style(active: bool) -> StyleBoxFlat:
 	sb.border_color = Color(0.95, 0.78, 0.28, 1.0) if active else Color(0.38, 0.34, 0.30, 0.7)
 	return sb
 
-static func category_tab_style(active: bool) -> StyleBoxFlat:
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.16, 0.13, 0.09, 0.94) if active else Color(0.09, 0.08, 0.07, 0.82)
-	sb.set_corner_radius_all(6)
-	sb.content_margin_left = 8.0
-	sb.content_margin_top = 4.0
-	sb.content_margin_right = 8.0
-	sb.content_margin_bottom = 4.0
-	sb.set_border_width_all(1)
-	sb.border_color = Color(0.95, 0.82, 0.38, 1.0) if active else Color(0.40, 0.36, 0.30, 0.72)
+static func category_tab_style(active: bool) -> StyleBox:
+	if active and _cached_cat_tab_active != null:
+		return _cached_cat_tab_active
+	if not active and _cached_cat_tab_inactive != null:
+		return _cached_cat_tab_inactive
+	var flat := StyleBoxFlat.new()
+	flat.bg_color = Color(0.16, 0.13, 0.09, 0.94) if active else Color(0.09, 0.08, 0.07, 0.82)
+	flat.set_corner_radius_all(6)
+	flat.content_margin_left = 8.0
+	flat.content_margin_top = 4.0
+	flat.content_margin_right = 8.0
+	flat.content_margin_bottom = 4.0
+	flat.set_border_width_all(1)
+	flat.border_color = Color(0.95, 0.82, 0.38, 1.0) if active else Color(0.40, 0.36, 0.30, 0.72)
 	if active:
-		sb.shadow_color = Color(0.85, 0.65, 0.2, 0.25)
-		sb.shadow_size = 1
-	return sb
+		flat.shadow_color = Color(0.85, 0.65, 0.2, 0.25)
+		flat.shadow_size = 1
+	var textured: StyleBox = (
+		ForgeUiTokens.cat_tab_active_style() if active else ForgeUiTokens.cat_tab_inactive_style()
+	)
+	var out: StyleBox = textured if _texture_style_ok(textured) else flat
+	if active:
+		_cached_cat_tab_active = out
+	else:
+		_cached_cat_tab_inactive = out
+	return out
 
 static func notify_dot_style() -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
@@ -728,18 +787,31 @@ static func notify_dot_style() -> StyleBoxFlat:
 	return sb
 
 static func apply_mode_tab(btn: Button, active: bool) -> void:
-	var style: StyleBox = mode_tab_style(active)
-	var textured: StyleBox = (
-		ForgeUiTokens.tab_active_style() if active else ForgeUiTokens.tab_inactive_style()
-	)
-	if _texture_style_ok(textured):
-		style = textured
+	var style: StyleBox
+	if active and _cached_tab_active != null:
+		style = _cached_tab_active
+	elif not active and _cached_tab_inactive != null:
+		style = _cached_tab_inactive
+	else:
+		style = mode_tab_style(active)
+		var textured: StyleBox = (
+			ForgeUiTokens.tab_active_style() if active else ForgeUiTokens.tab_inactive_style()
+		)
+		if _texture_style_ok(textured):
+			style = textured
+		if active:
+			_cached_tab_active = style
+		else:
+			_cached_tab_inactive = style
 	btn.add_theme_stylebox_override("normal", style)
 	btn.add_theme_stylebox_override("hover", style)
 	btn.add_theme_stylebox_override("pressed", style)
-	if btn.custom_minimum_size.y < 52.0:
-		btn.custom_minimum_size = Vector2(btn.custom_minimum_size.x, 52.0)
-	btn.add_theme_font_size_override("font_size", 18 if active else 16)
+	if btn.custom_minimum_size.y < 72.0:
+		btn.custom_minimum_size = Vector2(btn.custom_minimum_size.x, 72.0)
+	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	btn.size_flags_stretch_ratio = 1.0
+	btn.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	btn.add_theme_font_size_override("font_size", 22 if active else 20)
 	var tab_font: Font = UiTypography.display_font()
 	if tab_font != null:
 		btn.add_theme_font_override("font", tab_font)
@@ -841,12 +913,17 @@ static func craft_stat_entries(craft: Resource) -> Array:
 static func _texture_has_usable_alpha(tex: Texture2D) -> bool:
 	if tex == null:
 		return false
+	var cache_id: int = tex.get_instance_id()
+	if _texture_alpha_ok_cache.has(cache_id):
+		return bool(_texture_alpha_ok_cache[cache_id])
 	var img: Image = tex.get_image()
 	if img == null or img.is_empty():
+		_texture_alpha_ok_cache[cache_id] = true
 		return true
 	var w: int = img.get_width()
 	var h: int = img.get_height()
 	if w <= 0 or h <= 0:
+		_texture_alpha_ok_cache[cache_id] = false
 		return false
 	var step: int = maxi(1, int(sqrt(float(w * h) / 256.0)))
 	var transparent: int = 0
@@ -856,7 +933,9 @@ static func _texture_has_usable_alpha(tex: Texture2D) -> bool:
 			samples += 1
 			if img.get_pixel(x, y).a < 16:
 				transparent += 1
-	return float(transparent) / float(samples) >= 0.05
+	var ok: bool = float(transparent) / float(samples) >= 0.05
+	_texture_alpha_ok_cache[cache_id] = ok
+	return ok
 
 static func _texture_style_ok(sb: StyleBox) -> bool:
 	if not (sb is StyleBoxTexture):
@@ -865,7 +944,7 @@ static func _texture_style_ok(sb: StyleBox) -> bool:
 	return tex != null and _texture_has_usable_alpha(tex)
 
 static func apply_category_tab(btn: Button, active: bool) -> void:
-	var style := category_tab_style(active)
+	var style: StyleBox = category_tab_style(active)
 	btn.add_theme_stylebox_override("normal", style)
 	btn.add_theme_stylebox_override("hover", style)
 	btn.add_theme_stylebox_override("pressed", style)

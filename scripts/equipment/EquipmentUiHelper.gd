@@ -4,6 +4,8 @@ extends RefCounted
 ## 装備レア表示 SSOT（P3-UI-RARITY-NREL-001）。キャラ★個数とは別。
 ## N＜R＜E＜L（＋M神話／セット）。旧 ◇◆✦★ 宝石記号は使わない。
 const RARITY_CODES: Array[String] = ["N", "R", "E", "L", "M", "セット"]
+## 装備セル左上の N/R/E/L バッジ位置（少し右寄せ）。
+const RARITY_BADGE_POS: Vector2 = Vector2(7.0, 2.0)
 const LEVEL_CAP: int = LevelSystem.MAX_LEVEL
 
 const SORT_LABELS: Dictionary = {

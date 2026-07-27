@@ -46,12 +46,24 @@ const FORGE_FLASH_PEAK_ALPHA: float = 0.32
 ## チップ高(112)＋ヘッダ分。外枠テクスチャ無しなので余白は控えめ。
 const CRAFTABLE_STRIP_HEIGHT_PX: float = 148.0
 const CRAFTABLE_SCROLL_MIN_H: float = 118.0
-## カテゴリタブ下端〜 MainSplit 上端の隙間（一覧ヘッダがタブに食われるのを防ぐ）。
-const MAIN_SPLIT_TOP_GAP_PX: float = 40.0
+## カテゴリタブ下端〜 MainSplit 上端の隙間。
+const MAIN_SPLIT_TOP_GAP_PX: float = 2.0
 ## MainSplit 下端〜素材帯の隙間。
 const MAIN_TO_STRIP_GAP_PX: float = 14.0
-## CategoryRow の設計高さ。
-const CATEGORY_ROW_DESIGN_H_PX: float = 100.0
+## CategoryRow の設計高さ（アイコン横並び・縦に伸ばす）。
+const CATEGORY_ROW_DESIGN_H_PX: float = 124.0
+## モードタブ行の高さ。
+const MODE_TABS_HEIGHT_PX: float = 72.0
+## モードタブ下端〜カテゴリタブ上端。
+const MODE_TO_CATEGORY_GAP_PX: float = 0.0
+## ヘッダ下端〜モードタブ上端。
+const HEADER_TO_MODE_GAP_PX: float = 2.0
+## モードタブ同士の隙間（被らない最小）。
+const MODE_TAB_SEPARATION_PX: int = 0
+## モードタブ行を左右にはみ出させて各タブ幅を稼ぐ。
+const MODE_TAB_SIDE_BLEED_PX: float = 14.0
+## カテゴリタブ同士の隙間。
+const CATEGORY_TAB_SEPARATION_PX: int = 2
 const BOTTOM_NAV_FALLBACK_H_PX: float = 84.0
 const LEFT_LIST_MIN_WIDTH_PX: float = 248.0
 const LEFT_LIST_STRETCH_RATIO: float = 0.40
@@ -447,12 +459,12 @@ func _layout_craftable_strip() -> void:
 func _fit_category_row_height() -> void:
 	## タブ内容が行高を押し広げて MainSplit に食い込むのを防ぐ。
 	var top: float = _category_row.offset_top
-	if top < 80.0:
-		top = 112.0
-		_category_row.offset_top = top
 	var need_h: float = maxf(
 		CATEGORY_ROW_DESIGN_H_PX,
-		_category_row.get_combined_minimum_size().y
+		maxf(
+			ForgeUiTokens.CATEGORY_MIN_SIZE.y,
+			_category_row.get_combined_minimum_size().y
+		)
 	)
 	_category_row.offset_bottom = top + need_h
 	_category_row.clip_contents = true
@@ -490,18 +502,37 @@ func _setup_left_list_layout() -> void:
 
 
 func _fit_mode_tabs_height() -> void:
-	## モック寄せ: モードタブを金属板の高さに。
+	## モードタブをヘッダ直下へ密着させ、カテゴリ／本文を続けて上へ積む。
 	var mode_tabs: Control = $ModeTabs
 	if mode_tabs == null:
 		return
-	var top: float = mode_tabs.offset_top
-	if top < 40.0:
-		top = 54.0
-		mode_tabs.offset_top = top
-	mode_tabs.offset_bottom = top + 64.0
-	mode_tabs.add_theme_constant_override("separation", 6)
-	## カテゴリ行はモードタブ直下へ。
-	var cat_top: float = mode_tabs.offset_bottom + 8.0
+	var header: Control = get_node_or_null("Header") as Control
+	var header_bottom: float = 46.0
+	if header != null:
+		header_bottom = maxf(header_bottom, header.offset_bottom)
+		if header.size.y > 1.0:
+			header_bottom = maxf(header_bottom, header.position.y + header.size.y)
+	var top: float = header_bottom + HEADER_TO_MODE_GAP_PX
+	mode_tabs.offset_top = top
+	mode_tabs.offset_bottom = top + MODE_TABS_HEIGHT_PX
+	## 左右へ少しはみ出して各タブの実効幅を広げる（カテゴリより広い帯）。
+	mode_tabs.offset_left = -MODE_TAB_SIDE_BLEED_PX
+	mode_tabs.offset_right = MODE_TAB_SIDE_BLEED_PX
+	mode_tabs.add_theme_constant_override("separation", MODE_TAB_SEPARATION_PX)
+	mode_tabs.clip_contents = false
+	for child in mode_tabs.get_children():
+		var tab := child as Control
+		if tab == null:
+			continue
+		tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tab.size_flags_stretch_ratio = 1.0
+		tab.clip_contents = false
+		if tab is Button:
+			var btn := tab as Button
+			btn.custom_minimum_size = Vector2(0.0, maxf(btn.custom_minimum_size.y, MODE_TABS_HEIGHT_PX))
+			btn.add_theme_constant_override("h_separation", 4)
+	## カテゴリ行はモードタブ直下へ（隙間ゼロ）。
+	var cat_top: float = mode_tabs.offset_bottom + MODE_TO_CATEGORY_GAP_PX
 	_category_row.offset_top = cat_top
 	_fit_category_row_height()
 
@@ -1083,12 +1114,15 @@ func _build_category_icons() -> void:
 	for child in _category_row.get_children():
 		child.queue_free()
 	_category_panels.clear()
-	## カテゴリアイコンは固定辺。VBox の FILL で伸びると枠を食い込む（再発防止）。
+	## アイコンと文言を横並び（左アイコン・右ラベル）。縦は行高まで伸ばす。
 	const CAT_ICON_PX: int = 40
+	_category_row.offset_left = 0.0
+	_category_row.offset_right = 0.0
+	_category_row.add_theme_constant_override("separation", CATEGORY_TAB_SEPARATION_PX)
 	for cat in ["weapon", "armor", "accessory"]:
 		var wrap := PanelContainer.new()
 		wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		wrap.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		wrap.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		wrap.custom_minimum_size = ForgeUiTokens.CATEGORY_MIN_SIZE
 		wrap.clip_contents = true
 		wrap.add_theme_stylebox_override(
@@ -1096,16 +1130,16 @@ func _build_category_icons() -> void:
 		)
 		_category_row.add_child(wrap)
 		_category_panels[cat] = wrap
-		var col := VBoxContainer.new()
-		col.set_anchors_preset(Control.PRESET_FULL_RECT)
-		col.offset_left = 4
-		col.offset_top = 4
-		col.offset_right = -4
-		col.offset_bottom = -4
-		col.add_theme_constant_override("separation", 2)
-		col.alignment = BoxContainer.ALIGNMENT_CENTER
-		col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		wrap.add_child(col)
+		var row := HBoxContainer.new()
+		row.set_anchors_preset(Control.PRESET_FULL_RECT)
+		row.offset_left = 12
+		row.offset_top = 10
+		row.offset_right = -12
+		row.offset_bottom = -10
+		row.add_theme_constant_override("separation", 12)
+		row.alignment = BoxContainer.ALIGNMENT_CENTER
+		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		wrap.add_child(row)
 		var icon := TextureRect.new()
 		icon.custom_minimum_size = Vector2(CAT_ICON_PX, CAT_ICON_PX)
 		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -1114,15 +1148,16 @@ func _build_category_icons() -> void:
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.texture = ForgeUiTokens.category_icon(cat)
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		col.add_child(icon)
+		row.add_child(icon)
 		var lbl := Label.new()
 		lbl.text = BlacksmithUiHelper.category_label(cat)
-		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		lbl.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		UiTypography.apply_caption(lbl)
-		col.add_child(lbl)
+		row.add_child(lbl)
 		var btn := Button.new()
 		btn.set_anchors_preset(Control.PRESET_FULL_RECT)
 		btn.flat = true
@@ -1179,6 +1214,61 @@ func _refresh_all() -> void:
 	## 一覧再生成後も全タブでタッチスクロールを維持。
 	call_deferred("_enable_forge_scroll_touch")
 
+
+## 一覧タップ時: 左一覧は作り直さずハイライト＋詳細のみ更新（体感のカクつき対策）。
+func _refresh_selection() -> void:
+	_sync_left_list_selection_styles()
+	_rebuild_detail()
+
+
+func _tag_list_card(
+	panel: PanelContainer,
+	kind: String,
+	ref: Variant,
+	rarity: int,
+	craftable: bool = false
+) -> void:
+	panel.set_meta("forge_list_kind", kind)
+	panel.set_meta("forge_list_ref", ref)
+	panel.set_meta("forge_rarity", rarity)
+	panel.set_meta("forge_craftable", craftable)
+
+
+func _sync_left_list_selection_styles() -> void:
+	for child in _left_list.get_children():
+		if not (child is PanelContainer):
+			continue
+		var panel := child as PanelContainer
+		if not panel.has_meta("forge_list_kind"):
+			continue
+		var kind: String = str(panel.get_meta("forge_list_kind"))
+		var ref: Variant = panel.get_meta("forge_list_ref")
+		var rarity: int = int(panel.get_meta("forge_rarity"))
+		var craftable: bool = bool(panel.get_meta("forge_craftable"))
+		var selected: bool = false
+		match kind:
+			"recipe":
+				selected = ref == _selected_craft
+			"enhance":
+				selected = ref == _selected_enhance_item
+			"dismantle":
+				selected = ref == _selected_dismantle_item
+			"alchemy":
+				selected = ref == _selected_alchemy_base
+			_:
+				continue
+		panel.add_theme_stylebox_override(
+			"panel", BlacksmithUiHelper.list_card_style(selected, craftable, rarity)
+		)
+		if panel.get_child_count() < 1:
+			continue
+		var row := panel.get_child(0) as HBoxContainer
+		if row == null or row.get_child_count() < 1:
+			continue
+		BlacksmithUiHelper.apply_list_icon_selection(
+			row.get_child(0) as Control, rarity, selected
+		)
+
 func _update_currency() -> void:
 	_label_gold.text = "%d" % GameState.gold
 	_label_token.text = CurrencyHelper.format_amount()
@@ -1191,11 +1281,7 @@ func _update_mode_tab_dots() -> void:
 func _rebuild_left_list() -> void:
 	for child in _left_list.get_children():
 		child.queue_free()
-	## カテゴリタブとの隙間（生産で「武器一覧」がタブに重なるのを防ぐ）。
-	var top_pad := Control.new()
-	top_pad.custom_minimum_size = Vector2(0, 10)
-	top_pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_left_list.add_child(top_pad)
+	## カテゴリタブ直下に一覧を密着（余白パッド無し）。
 	_left_list.add_child(_make_list_section_header())
 	if _mode == "produce":
 		_rebuild_produce_left_list()
@@ -1318,6 +1404,7 @@ func _make_recipe_list_card(craft: Resource) -> PanelContainer:
 	var selected: bool = craft == _selected_craft
 	var rarity: int = BlacksmithUiHelper.output_rarity(craft)
 	var panel := _make_owned_list_card_shell(selected, rarity)
+	_tag_list_card(panel, "recipe", craft, rarity, can_craft)
 	panel.add_theme_stylebox_override(
 		"panel", BlacksmithUiHelper.list_card_style(selected, can_craft, rarity)
 	)
@@ -1337,8 +1424,10 @@ func _make_recipe_list_card(craft: Resource) -> PanelContainer:
 
 func _on_recipe_card_input(event: InputEvent, craft: Resource) -> void:
 	if _is_primary_press(event):
+		if craft == _selected_craft:
+			return
 		_selected_craft = craft
-		_refresh_all()
+		_refresh_selection()
 
 func _make_enhance_list_card(item: Resource) -> PanelContainer:
 	var selected: bool = item == _selected_enhance_item
@@ -1347,6 +1436,7 @@ func _make_enhance_list_card(item: Resource) -> PanelContainer:
 	var item_id: String = _item_id_for_category(item, category)
 	var rarity: int = _EquipmentEnhancer.item_rarity(item)
 	var panel := _make_owned_list_card_shell(selected, rarity)
+	_tag_list_card(panel, "enhance", item, rarity)
 	panel.gui_input.connect(_on_enhance_card_input.bind(item))
 	var row: HBoxContainer = panel.get_child(0) as HBoxContainer
 	row.add_child(_make_selectable_list_icon(item_id, category, rarity, selected))
@@ -1366,6 +1456,7 @@ func _make_dismantle_list_card(item: Resource) -> PanelContainer:
 	var item_id: String = _item_id_for_category(item, category)
 	var rarity: int = _EquipmentEnhancer.item_rarity(item)
 	var panel := _make_owned_list_card_shell(selected, rarity)
+	_tag_list_card(panel, "dismantle", item, rarity)
 	panel.gui_input.connect(_on_dismantle_card_input.bind(item))
 	var row: HBoxContainer = panel.get_child(0) as HBoxContainer
 	row.add_child(_make_selectable_list_icon(item_id, category, rarity, selected))
@@ -1423,13 +1514,17 @@ func _apply_list_name_label(lbl: Label, color: Color) -> void:
 
 func _on_enhance_card_input(event: InputEvent, item: Resource) -> void:
 	if _is_primary_press(event):
+		if item == _selected_enhance_item:
+			return
 		_selected_enhance_item = item
-		_refresh_all()
+		_refresh_selection()
 
 func _on_dismantle_card_input(event: InputEvent, item: Resource) -> void:
 	if _is_primary_press(event):
+		if item == _selected_dismantle_item:
+			return
 		_selected_dismantle_item = item
-		_refresh_all()
+		_refresh_selection()
 
 
 func _make_alchemy_base_card(item: Resource) -> PanelContainer:
@@ -1438,6 +1533,7 @@ func _make_alchemy_base_card(item: Resource) -> PanelContainer:
 	var item_id: String = _item_id_for_category(item, category)
 	var rarity: int = _EquipmentEnhancer.item_rarity(item)
 	var panel := _make_owned_list_card_shell(selected, rarity)
+	_tag_list_card(panel, "alchemy", item, rarity)
 	panel.gui_input.connect(_on_alchemy_base_card_input.bind(item))
 	var row: HBoxContainer = panel.get_child(0) as HBoxContainer
 	row.add_child(_make_selectable_list_icon(item_id, category, rarity, selected))
@@ -1451,10 +1547,12 @@ func _make_alchemy_base_card(item: Resource) -> PanelContainer:
 
 func _on_alchemy_base_card_input(event: InputEvent, item: Resource) -> void:
 	if _is_primary_press(event):
+		if item == _selected_alchemy_base:
+			return
 		if _selected_alchemy_base != item:
 			_selected_alchemy_fodder = null
 		_selected_alchemy_base = item
-		_refresh_all()
+		_refresh_selection()
 
 
 func _rebuild_detail() -> void:
