@@ -3037,20 +3037,24 @@ func _flash_sprite_status_apply(
 	tw.tween_property(sprite, "modulate", settle, 0.24)
 
 func _spawn_status_apply_name(world_pos: Vector2, status_id: String, is_buff: bool) -> void:
-	## P3-UX-STATUS-TELOP-001: ダメージ数字と同系統で「〇〇を付与！」。シェイクなし。
+	## P3-UX-STATUS-TELOP-001 + P3-UX-COMBAT-VFX-001: 大きめ「〇〇を付与！」。シェイクなし。
 	var effect: Resource = DataRegistry.get_status_effect(status_id)
 	var label_text: String = effect.display_name if effect != null else status_id
 	var text: String = CombatVfxManagerScript.status_apply_telop_text(label_text)
 	if text.is_empty():
 		return
-	var color: Color = (
-		Color(0.55, 0.95, 0.55)
-		if is_buff
-		else CombatVfxManagerScript.status_color(status_id).lightened(0.25)
-	)
+	var color: Color = CombatVfxManagerScript.status_apply_telop_color(status_id)
 	## world_pos は視覚中心。少し上に出して頭上感を出す。
-	## scale は 1.0 固定（>1.0 だとクリティカル扱いになる）。
-	_spawn_damage_number(text, world_pos + Vector2(0.0, -28.0), color, 1.0, 0, true)
+	## scale は 1.0 固定（>1.0 だとクリティカル扱いになる）。font は通常ダメより大きめ。
+	_spawn_damage_number(
+		text,
+		world_pos + Vector2(0.0, -32.0),
+		color,
+		1.0,
+		0,
+		true,
+		48
+	)
 
 func _get_room_type_name() -> String:
 	match $DungeonController.current_room_type:
@@ -4814,7 +4818,7 @@ func _try_cast_player_skill() -> String:
 	$CombatController.apply_damage_to_enemy(final_dmg)
 	$CombatController.add_threat(member_idx, float(final_dmg) * CombatController.THREAT_DAMAGE_K)
 	var skill_spawn_pos: Vector2 = _active_enemy_pos()
-	_spawn_hit_vfx(skill_spawn_pos, attack_element, 1.0, skill_is_crit)
+	_spawn_hit_vfx(skill_spawn_pos, attack_element, 1.0, skill_is_crit, _get_weapon_type(member_idx))
 	_spawn_damage_number(
 		str(final_dmg),
 		skill_spawn_pos + Vector2(12.0, 0.0),
@@ -4906,7 +4910,7 @@ func _try_cast_secondary_skill(primary_skill_id: String) -> String:
 	$CombatController.apply_damage_to_enemy(final_dmg)
 	$CombatController.add_threat(member_idx, float(final_dmg) * CombatController.THREAT_DAMAGE_K)
 	var sec_spawn_pos: Vector2 = _active_enemy_pos()
-	_spawn_hit_vfx(sec_spawn_pos, attack_element, 1.0, sec_is_crit)
+	_spawn_hit_vfx(sec_spawn_pos, attack_element, 1.0, sec_is_crit, _get_weapon_type(member_idx))
 	_spawn_damage_number(
 		str(final_dmg),
 		sec_spawn_pos + Vector2(-12.0, 8.0),
@@ -4925,6 +4929,17 @@ func _try_cast_secondary_skill(primary_skill_id: String) -> String:
 
 func _get_weapon_element(member_index: int = -1) -> String:
 	return DamageCalculator.weapon_element(member_index)
+
+
+func _get_weapon_type(member_index: int = -1) -> String:
+	var weapon: Resource = GameState.get_member_equipped_weapon(member_index)
+	if weapon == null:
+		return ""
+	var data: Resource = DataRegistry.get_weapon_data(str(weapon.weapon_id))
+	if data == null:
+		return ""
+	return str(data.weapon_type)
+
 
 func _resolve_skill_element(skill_data: Resource, member_index: int = -1) -> String:
 	return DamageCalculator.resolve_skill_element(skill_data, member_index)
@@ -6856,7 +6871,7 @@ func _resolve_party_attack_impact_async(payload: Dictionary) -> void:
 	var mname: String = member.display_name if member != null else "?"
 	var crit_tag: String = "  CRITICAL!" if is_critical else ""
 	if dmg > 0 and target_slot >= 0 and $CombatController.is_enemy_slot_alive(target_slot):
-		_play_hit_vfx(_get_weapon_element(member_idx), is_critical)
+		_play_hit_vfx(_get_weapon_element(member_idx), is_critical, _get_weapon_type(member_idx))
 		_spawn_damage_number(
 			str(dmg),
 			_enemy_slot_pos(target_slot),
@@ -6935,7 +6950,7 @@ func _resolve_party_skill_damage_impact_async(payload: Dictionary) -> void:
 		target_slot = $CombatController.get_member_target_slot(member_idx)
 		spawn_pos = _enemy_slot_pos(target_slot)
 	if final_dmg > 0 and target_slot >= 0 and $CombatController.is_enemy_slot_alive(target_slot):
-		_spawn_hit_vfx(spawn_pos, attack_element, 1.0, skill_is_crit)
+		_spawn_hit_vfx(spawn_pos, attack_element, 1.0, skill_is_crit, _get_weapon_type(member_idx))
 		_spawn_damage_number(
 			str(final_dmg),
 			spawn_pos + Vector2(12.0, 0.0),
@@ -8914,30 +8929,45 @@ func _spawn_combat_clear_confetti(piece_count: int = 56) -> void:
 		tw.tween_property(piece, "modulate:a", 0.0, 0.5).set_delay(maxf(0.0, duration - 0.5))
 		tw.chain().tween_callback(piece.queue_free)
 
-func _play_hit_vfx(element: String = "", is_critical: bool = false) -> void:
+func _play_hit_vfx(element: String = "", is_critical: bool = false, weapon_type: String = "") -> void:
 	# 後方互換: 引数なし呼び出しは敵スプライト位置で発火
 	if not _enemy_sprite.visible and not _boss_sprite.visible:
 		return
 	var enemy_pos: Vector2 = _active_enemy_pos()
-	_spawn_hit_vfx(enemy_pos, element, 1.0, is_critical)
+	_spawn_hit_vfx(enemy_pos, element, 1.0, is_critical, weapon_type)
 
 # 命中ごとに使い捨ての Hit VFX を生成（敵味方両対応・同一tick内の複数ヒットも個別表示）。
 # 属性専用VFX(ELEMENT_VFX_PATH)があればそれを無着色で再生、無ければ
 # FX_Hit_Normal を ELEMENT_COLOR でティント着色してフォールバックする。
-func _spawn_hit_vfx(world_pos: Vector2, element: String = "", scale_mult: float = 1.0, is_critical: bool = false) -> void:
+# weapon_type で見た目・SEを分岐（P3-UX-COMBAT-VFX-001）。
+func _spawn_hit_vfx(
+	world_pos: Vector2,
+	element: String = "",
+	scale_mult: float = 1.0,
+	is_critical: bool = false,
+	weapon_type: String = ""
+) -> void:
 	if CombatImpactSfxGate.allow(
 		_combat_impact_sfx_enabled,
 		$CombatController.is_in_combat,
 		_boss_intro_active,
 		_elite_intro_active
 	):
-		AudioManager.play_sfx("combat_crit" if is_critical else "combat_hit", 1.0, 0.03)
+		var hit_sfx: String = (
+			"combat_crit" if is_critical else SfxCatalog.hit_sfx_for_weapon(weapon_type)
+		)
+		AudioManager.play_sfx(hit_sfx, 1.0, 0.03)
+	var wpn_style: Dictionary = CombatVfxManagerScript.weapon_hit_style(weapon_type)
+	var style_scale: Vector2 = wpn_style.get("scale", Vector2.ONE) as Vector2
+	var style_rot: float = float(wpn_style.get("rotation_deg", 0.0))
+	var style_tint: Color = wpn_style.get("tint", Color.WHITE) as Color
 	if is_critical and ResourceLoader.exists(VFX_CRIT_PATH):
 		var crit_frames: SpriteFrames = load(VFX_CRIT_PATH) as SpriteFrames
 		if crit_frames != null:
 			var crit_spr := AnimatedSprite2D.new()
 			crit_spr.sprite_frames = crit_frames
-			crit_spr.scale = _hit_vfx_sprite.scale * maxf(scale_mult, 1.15)
+			crit_spr.scale = _hit_vfx_sprite.scale * style_scale * maxf(scale_mult, 1.15)
+			crit_spr.rotation_degrees = style_rot
 			_spawn_transient_vfx_sprite(crit_spr, world_pos, Color.WHITE)
 			crit_spr.play("default")
 			crit_spr.animation_finished.connect(func() -> void: crit_spr.queue_free())
@@ -8957,8 +8987,11 @@ func _spawn_hit_vfx(world_pos: Vector2, element: String = "", scale_mult: float 
 		return
 	var spr := AnimatedSprite2D.new()
 	spr.sprite_frames = frames
-	spr.scale = _hit_vfx_sprite.scale * scale_mult
+	spr.scale = _hit_vfx_sprite.scale * style_scale * scale_mult
+	spr.rotation_degrees = style_rot
 	var tint: Color = Color.WHITE if use_dedicated else ELEMENT_COLOR.get(element, Color.WHITE)
+	if not use_dedicated and element.is_empty() and style_tint != Color.WHITE:
+		tint = style_tint
 	_spawn_transient_vfx_sprite(spr, world_pos, tint)
 	spr.play("default")
 	spr.animation_finished.connect(func() -> void: spr.queue_free())
@@ -8972,10 +9005,12 @@ func _spawn_damage_number(
 	color: Color = Color.WHITE,
 	scale: float = 1.0,
 	damage_value: int = 0,
-	skip_impact_feedback: bool = false
+	skip_impact_feedback: bool = false,
+	font_size_override: int = 0
 ) -> void:
 	const DMG_FONT_SIZE: int = 40
 	const DMG_OUTLINE_SIZE: int = 10
+	var font_size: int = font_size_override if font_size_override > 0 else DMG_FONT_SIZE
 	var is_crit: bool = scale > 1.0
 	if is_crit and scale < COMBAT_CRIT_DAMAGE_SCALE:
 		scale = COMBAT_CRIT_DAMAGE_SCALE
@@ -8996,7 +9031,7 @@ func _spawn_damage_number(
 	var af: Font = UiTypography.impact_font()
 	if af != null:
 		lbl.add_theme_font_override("font", af)
-	lbl.add_theme_font_size_override("font_size", DMG_FONT_SIZE)
+	lbl.add_theme_font_size_override("font_size", font_size)
 	lbl.add_theme_color_override("font_color", color)
 	lbl.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.95))
 	lbl.add_theme_constant_override("outline_size", DMG_OUTLINE_SIZE)
@@ -9008,10 +9043,10 @@ func _spawn_damage_number(
 	## 実サイズで中央寄せ（「毒を付与！」等の長文テロップ対応）。
 	var min_sz: Vector2 = lbl.get_minimum_size()
 	lbl.pivot_offset = min_sz * 0.5
-	lbl.position = world_pos + Vector2(-min_sz.x * 0.5, -DMG_FONT_SIZE)
+	lbl.position = world_pos + Vector2(-min_sz.x * 0.5, -float(font_size))
 	var target_scale: Vector2 = Vector2(scale, scale)
 	lbl.scale = target_scale * 0.35
-	var rise: float = -64.0 if is_crit else -56.0
+	var rise: float = -72.0 if font_size_override > 0 else (-64.0 if is_crit else -56.0)
 	var tw: Tween = create_tween()
 	# 出現: ポップ（オーバーシュート）
 	tw.tween_property(lbl, "scale", target_scale, 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -9021,8 +9056,10 @@ func _spawn_damage_number(
 		tw.tween_property(lbl, "rotation_degrees", 5.0, 0.05)
 		tw.tween_property(lbl, "rotation_degrees", 0.0, 0.05)
 	# 上昇＋減衰（フェードは上昇に並列）
-	tw.tween_property(lbl, "position:y", lbl.position.y + rise, 0.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.parallel().tween_property(lbl, "modulate:a", 0.0, 0.5).set_delay(0.2)
+	var rise_dur: float = 0.72 if font_size_override > 0 else 0.6
+	var fade_dur: float = 0.58 if font_size_override > 0 else 0.5
+	tw.tween_property(lbl, "position:y", lbl.position.y + rise, rise_dur).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(lbl, "modulate:a", 0.0, fade_dur).set_delay(0.22)
 	tw.chain().tween_callback(lbl.queue_free)
 
 func _ultimate_presentation_speed_mult() -> float:
@@ -9357,7 +9394,7 @@ func _spawn_ultimate_ring_burst(world_pos: Vector2, tint: Color, peak_scale: flo
 	tw.tween_property(spr, "modulate:a", 0.0, 0.32).set_delay(0.08)
 	tw.chain().tween_callback(spr.queue_free)
 
-func _spawn_ultimate_impact_vfx(world_pos: Vector2, element: String = "") -> void:
+func _spawn_ultimate_impact_vfx(world_pos: Vector2, element: String = "", weapon_type: String = "") -> void:
 	if world_pos == Vector2.ZERO:
 		return
 	var offsets: Array[Vector2] = [Vector2(-26.0, -10.0), Vector2.ZERO, Vector2(30.0, -14.0)]
@@ -9366,7 +9403,7 @@ func _spawn_ultimate_impact_vfx(world_pos: Vector2, element: String = "") -> voi
 		var delay: float = float(i) * 0.055
 		var tw: Tween = create_tween()
 		tw.tween_interval(delay)
-		tw.tween_callback(func() -> void: _spawn_hit_vfx(hit_pos, element, 1.5))
+		tw.tween_callback(func() -> void: _spawn_hit_vfx(hit_pos, element, 1.5, false, weapon_type))
 
 func _play_ultimate_cast_vfx(member_idx: int, skill_data: Resource) -> void:
 	var caster_pos: Vector2 = _member_sprite_world_pos(member_idx, 0.35)
@@ -9399,7 +9436,7 @@ func _play_ultimate_resolve_vfx(
 	_request_combat_shake(14.0)
 	_shake_battlefield(12.0)
 	if focus_pos != Vector2.ZERO:
-		_spawn_ultimate_impact_vfx(focus_pos, element)
+		_spawn_ultimate_impact_vfx(focus_pos, element, _get_weapon_type(member_idx))
 		_spawn_ultimate_ring_burst(focus_pos, ULTIMATE_GOLD, 1.85)
 	_maybe_vibrate(40)
 
