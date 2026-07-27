@@ -148,6 +148,8 @@ static func make_linked_richtext(
 	rtl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	rtl.meta_underlined = true
 	rtl.mouse_filter = Control.MOUSE_FILTER_STOP
+	## ScrollTouchHelper の PASS 化対象外（状態異常リンクのタップを維持）。
+	rtl.set_meta(&"_cf_keep_mouse_stop", true)
 	UiTypography.apply_log_rich(rtl, font_size, color)
 	## 既定色は本文。リンクは BBCode [color=金] で上書き。
 	rtl.parse_bbcode(linkify_bbcode(text))

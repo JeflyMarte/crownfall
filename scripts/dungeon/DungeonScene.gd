@@ -717,6 +717,9 @@ var _elite_intro_tween: Tween
 var _elite_intro_label: Label
 var _elite_enemy_slide_sprite: AnimatedSprite2D
 var _elite_enemy_slide_target: Vector2 = Vector2.ZERO
+## 部屋遷移一幕と専用入場テロップの二重表示防止。遷移中は保留し終了後に開始。
+var _pending_special_combat_kind: String = ""
+var _pending_special_combat_lead: Resource = null
 var _event_telop_panel: PanelContainer
 var _event_telop_bg: TextureRect
 var _event_telop_dim: ColorRect
@@ -1813,7 +1816,14 @@ func _sync_room_bgm() -> void:
 
 func _room_transition_caption() -> String:
 	var floor_text: String = $DungeonController.get_display_floor_text()
-	var caption: String = "[%s]\n%s" % [_get_room_type_name(), floor_text]
+	var room_type: int = $DungeonController.current_room_type
+	## ボス／エリートは専用入場テロップがあるため、ここでは部屋名を出さない（二重表示防止）。
+	var caption: String = floor_text
+	if (
+		room_type != Enums.RoomType.BOSS
+		and room_type != Enums.RoomType.ELITE
+	):
+		caption = "[%s]\n%s" % [_get_room_type_name(), floor_text]
 	if $DungeonController.should_show_shadow_stalker_omen():
 		caption += "\n%s" % _WanderingEnemyConfig.SHADOW_STALKER_OMEN_LINE
 	return caption
@@ -1941,9 +1951,11 @@ func _on_room_transition_finished() -> void:
 	_restore_transition_overlay_color()
 	_clear_transition_fx()
 	_room_transition_busy = false
+	_label_transition.text = ""
 	_update_run_hud()
 	if $DungeonController.is_combat_room() and $CombatController.is_in_combat:
 		_sync_room_bgm()
+	_flush_pending_special_combat_entrance()
 	if not $CombatController.is_in_combat and not _auto_progress_finishes:
 		if _room_handles_own_progression($DungeonController.current_room_type):
 			return
@@ -3142,10 +3154,10 @@ func _enter_current_room() -> void:
 			_log_party_passives_on_combat_enter()
 			## on_combat_start 回復等の SE/VFX は出現遅延後（画面が見えてから）。
 			if $DungeonController.current_room_type == Enums.RoomType.BOSS:
-				_begin_boss_combat_entrance(lead)
+				_queue_or_begin_special_combat_entrance("boss", lead)
 				return
 			if $DungeonController.current_room_type == Enums.RoomType.ELITE:
-				_begin_elite_combat_entrance(lead)
+				_queue_or_begin_special_combat_entrance("elite", lead)
 				return
 			if group.size() > 1:
 				if _enemy_group_is_mixed(group):
@@ -10202,6 +10214,31 @@ func _pulse_elite_tier_frame_once() -> void:
 	var tw: Tween = create_tween()
 	tw.tween_property(_combat_tier_frame, "modulate", Color(1.15, 1.05, 0.65), 0.22)
 	tw.tween_property(_combat_tier_frame, "modulate", Color.WHITE, 0.28)
+
+func _queue_or_begin_special_combat_entrance(kind: String, lead: Resource) -> void:
+	## 部屋遷移一幕中は専用テロップを保留（遷移キャプションとの二重表示を防ぐ）。
+	if _room_transition_busy:
+		_pending_special_combat_kind = kind
+		_pending_special_combat_lead = lead
+		return
+	_pending_special_combat_kind = ""
+	_pending_special_combat_lead = null
+	if kind == "boss":
+		_begin_boss_combat_entrance(lead)
+	elif kind == "elite":
+		_begin_elite_combat_entrance(lead)
+
+
+func _flush_pending_special_combat_entrance() -> void:
+	var kind: String = _pending_special_combat_kind
+	var lead: Resource = _pending_special_combat_lead
+	_pending_special_combat_kind = ""
+	_pending_special_combat_lead = null
+	if kind == "boss":
+		_begin_boss_combat_entrance(lead)
+	elif kind == "elite":
+		_begin_elite_combat_entrance(lead)
+
 
 func _finish_elite_combat_entrance(lead: Resource) -> void:
 	_elite_intro_active = false

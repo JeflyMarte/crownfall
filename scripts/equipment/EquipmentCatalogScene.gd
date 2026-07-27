@@ -31,7 +31,7 @@ var _inv_cell_size: Vector2 = Vector2(EquipmentUiTokens.INV_CELL_PX, EquipmentUi
 var _category_panels: Dictionary = {}
 var _selected_item: Resource = null
 var _selected_category: String = ""
-var _last_layout_width: float = -1.0
+var _selected_cell_btn: Button = null
 var _cell_pointer_down: bool = false
 var _cell_press_origin: Vector2 = Vector2.ZERO
 var _cell_press_item: Resource = null
@@ -51,31 +51,33 @@ func _ready() -> void:
 	_inventory_grid.columns = GRID_COLUMNS
 	_inventory_grid.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	_inventory_grid.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	_inventory_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_inventory_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	_inventory_scroll.clip_contents = true
 	_detail_panel.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
 	)
 	_build_category_chips()
 	_update_sort_filter_labels()
-	call_deferred("_handle_layout_resized")
+	call_deferred("_sync_inventory_scroll_height")
 	_refresh_display()
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
-		call_deferred("_handle_layout_resized")
+		call_deferred("_sync_inventory_scroll_height")
 
-func _handle_layout_resized() -> void:
+
+func _sync_inventory_scroll_height() -> void:
 	if not is_node_ready():
 		return
-	# ルート幅が実際に変化したときだけ再計算する（詳細パネル更新による
-	# レイアウト通知でセルが再拡大していく無限ループを防ぐ）。
-	var width: float = size.x
-	if width < 100.0 or absf(width - _last_layout_width) < 1.0:
-		return
-	_last_layout_width = width
-	_sync_inventory_cell_size()
-	_rebuild_inventory_grid()
+	## セルは固定 px。幅連動の再計算／全再生成はしない（重さ・枠肥大の再発防止）。
+	_inv_cell_size = Vector2(EquipmentUiTokens.INV_CELL_PX, EquipmentUiTokens.INV_CELL_PX)
+	var v_sep: int = _inventory_grid.get_theme_constant("v_separation", "GridContainer")
+	var height: float = (
+		_inv_cell_size.y * float(INV_VISIBLE_ROWS)
+		+ float(v_sep * maxi(0, INV_VISIBLE_ROWS - 1))
+	)
+	_inventory_scroll.custom_minimum_size.y = height
+
 
 func _setup_chrome() -> void:
 	var back_tex: Texture2D = EquipmentUiTokens.back_icon()
@@ -171,6 +173,7 @@ func _refresh_display() -> void:
 	_refresh_detail_panel()
 
 func _rebuild_inventory_grid() -> void:
+	_selected_cell_btn = null
 	for child in _inventory_grid.get_children():
 		child.queue_free()
 	var entries: Array = []
@@ -216,21 +219,27 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 	var icon: Texture2D = _item_icon(item, category)
 	_attach_item_icon(btn, icon, cell_px, EquipmentUiTokens.INV_CELL_DESIGN_PX, item, category)
 	var rarity: int = _item_rarity(item, category)
+	btn.set_meta("cf_rarity", rarity)
+	btn.set_meta("cf_item", item)
+	btn.set_meta("cf_category", category)
 	var owner_member: Resource = GameState.find_item_equipped_owner(item)
 	var is_equipped: bool = owner_member != null
 	btn.tooltip_text = EquipmentItemDetailHelper.short_name(item, category)
 	## ScrollTouch が mouse_filter=PASS にするため pressed は不発になりやすい。gui_input で短押しを取る。
-	btn.gui_input.connect(_on_item_cell_gui_input.bind(item, category))
+	btn.gui_input.connect(_on_item_cell_gui_input.bind(item, category, btn))
 	var selected: bool = item == _selected_item and category == _selected_category
 	if selected:
 		btn.modulate = Color(0.85, 0.92, 1.0, 1.0)
+		_selected_cell_btn = btn
 	_apply_item_cell_styles(btn, rarity, cell_px, false, selected)
 	_apply_item_badges(btn, item, category, cell_size, is_equipped)
 	if owner_member != null:
 		_add_owner_portrait_badge(btn, owner_member, cell_size)
 	return btn
 
-func _on_item_cell_gui_input(event: InputEvent, item: Resource, category: String) -> void:
+func _on_item_cell_gui_input(
+	event: InputEvent, item: Resource, category: String, btn: Button
+) -> void:
 	if _cell_pointer_down and _should_cancel_cell_press_for_move(event):
 		_cancel_cell_press()
 		return
@@ -243,7 +252,7 @@ func _on_item_cell_gui_input(event: InputEvent, item: Resource, category: String
 		_cell_press_category = category
 	else:
 		if _cell_pointer_down and _cell_press_item == item and _cell_press_category == category:
-			_on_cell_pressed(item, category)
+			_on_cell_pressed(item, category, btn)
 		_cancel_cell_press()
 	if event is InputEventMouseButton or event is InputEventScreenTouch:
 		accept_event()
@@ -284,26 +293,35 @@ func _cancel_cell_press() -> void:
 	_cell_press_item = null
 	_cell_press_category = ""
 
-func _on_cell_pressed(item: Resource, category: String) -> void:
+func _on_cell_pressed(item: Resource, category: String, btn: Button) -> void:
+	## 詳細だけ更新。グリッド全再生成はしない（所持数が多いと実機で重い）。
+	if item == _selected_item and category == _selected_category:
+		_refresh_detail_panel()
+		return
+	_clear_selected_cell_visual()
 	_selected_item = item
 	_selected_category = category
-	## 詳細は即更新。グリッド再構築は遅延（入力中の Button を queue_free しない）。
+	_selected_cell_btn = btn
+	if btn != null and is_instance_valid(btn):
+		var rarity: int = int(btn.get_meta("cf_rarity", 0))
+		var cell_px: int = int(_inv_cell_size.x)
+		btn.modulate = Color(0.85, 0.92, 1.0, 1.0)
+		_apply_item_cell_styles(btn, rarity, cell_px, false, true)
 	_refresh_detail_panel()
-	call_deferred("_rebuild_inventory_grid")
+
+
+func _clear_selected_cell_visual() -> void:
+	if _selected_cell_btn == null or not is_instance_valid(_selected_cell_btn):
+		_selected_cell_btn = null
+		return
+	var rarity: int = int(_selected_cell_btn.get_meta("cf_rarity", 0))
+	var cell_px: int = int(_inv_cell_size.x)
+	_selected_cell_btn.modulate = Color.WHITE
+	_apply_item_cell_styles(_selected_cell_btn, rarity, cell_px, false, false)
+	_selected_cell_btn = null
 
 func _refresh_detail_panel() -> void:
 	EquipmentItemDetailHelper.populate_stats_panel(_detail_host, _selected_item, _selected_category, self)
-
-func _sync_inventory_cell_size() -> void:
-	var sep: int = _inventory_grid.get_theme_constant("h_separation", "GridContainer")
-	# ルート幅を基準に算出する。スクロール実サイズは詳細パネルの高さ変化に
-	# 引きずられて揺れるため使わない。
-	var width: float = size.x - 16.0
-	var cell_px: int = EquipmentUiTokens.cell_px_for_grid_width(width, GRID_COLUMNS, sep)
-	_inv_cell_size = Vector2(cell_px, cell_px)
-	var v_sep: int = _inventory_grid.get_theme_constant("v_separation", "GridContainer")
-	var height: float = _inv_cell_size.y * float(INV_VISIBLE_ROWS) + float(v_sep * maxi(0, INV_VISIBLE_ROWS - 1))
-	_inventory_scroll.custom_minimum_size.y = height
 
 func _attach_item_icon(
 	btn: Button,

@@ -1146,7 +1146,8 @@ func _make_relic_slot(cell_size: Vector2, member: Resource, can_equip: bool) -> 
 			CombatPassives.relic_display_name(relic_id),
 			CombatPassives.relic_description(relic_id),
 		]
-		_apply_item_cell_styles(btn, 0, cell_px)
+		## 所持一覧と同じ紫枠（EPIC）。装備後も枠色を落とさない。
+		_apply_item_cell_styles(btn, Enums.Rarity.EPIC, cell_px)
 	else:
 		btn.text = EMPTY_SLOT_TEXT
 		btn.add_theme_font_size_override("font_size", maxi(18, int(float(cell_px) * 0.34)))
@@ -1482,9 +1483,9 @@ func _make_relic_cell(relic_id: String) -> Button:
 	btn.disabled = not _can_change_equipment_on_view()
 	if is_on_self:
 		btn.modulate = Color(0.72, 0.72, 0.72, 0.85)
-		_apply_item_cell_styles(btn, 2, cell_px, true)
+		_apply_item_cell_styles(btn, Enums.Rarity.EPIC, cell_px, true)
 	else:
-		_apply_item_cell_styles(btn, 2, cell_px)
+		_apply_item_cell_styles(btn, Enums.Rarity.EPIC, cell_px)
 	if owner_member != null:
 		_add_owner_portrait_badge(btn, owner_member, cell_size)
 	return btn

@@ -139,7 +139,9 @@ alwaysApply: true
 | 症状 | 原因 | 再発防止 |
 |---|---|---|
 | iPhone でタッチスクロール不能（ダンジョン他） | Scroll 内 Button／STOP がドラッグを吸収 | `ScrollTouchHelper`（deadzone＋子孫を PASS）。`BottomNavHelper.setup` と一覧 rebuild 後に適用 |
-| 装備一覧でセルを押しても詳細が変わらない | ScrollTouch が Button を PASS 化 → `pressed` 不発。加えて選択時に即 `rebuild` で入力中 Button を queue_free | Catalog も装備画面同様 `gui_input` 短押し。選択後の rebuild は `call_deferred`。BgTexture は IGNORE |
+| 装備一覧でセルを押しても詳細が変わらない | ScrollTouch が Button を PASS 化 → `pressed` 不発。加えて選択時に即 `rebuild` で入力中 Button を queue_free | Catalog も装備画面同様 `gui_input` 短押し。選択はハイライト差替のみ（全再生成しない）。BgTexture は IGNORE |
+| 装備一覧が重い／タップでカクつく | 選択のたび全セル `rebuild`＋幅連動 `cell_px` で StyleBox／ノード再生成 | セルは `INV_CELL_PX` 固定。選択は詳細＋枠ハイライトのみ更新。Grid は `SIZE_SHRINK_*` |
+| スキル／装備説明の状態異常リンクが押せない | `ScrollTouchHelper` が `RichTextLabel` も `PASS` 化し `meta_clicked` が届かない | RTL（と `_cf_keep_mouse_stop`）は STOP 維持。`StatusEffectLinkHelper` で meta 付与 |
 | イベントDGバナーが全部モーンゲート | `SUB_BANNER_FALLBACK` で mourngate 流用のみ | 各イベントに `BAN_DG_*` を用意し `BIOME_BANNER_PATHS` へ登録。フォールバックから外す |
 | イベントDGバナーだけ大きい（240px）／枠なし | キーアート全高のまま、または strip のみで金枠未合成 | `generate_biome_banner.py --strip-height 232`（枠は既定 ON）。`BAN_DG_Frame_Strip` を重ねメインと同寸・同枠に |
 | 戦闘フロア入場前に謎の SE | ①次部屋へ進む瞬間の `room_enter` ②黒幕中の戦闘BGM切替 ③罠／入場遅延／前戦闘遅延ヒット／`combat_heal` | 戦闘行きは `room_enter` スキップ。BGMは一幕後。Hit/Healは Gate＋CT開始後。遅延は `_combat_session_id` |
