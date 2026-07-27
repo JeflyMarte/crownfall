@@ -89,6 +89,7 @@
 | — | **P3-DG-ROCK-STAMPEDE-001** | 岩角の群れ道（ロックバイソン日次イベント） | ✅ GO・統合＋main |
 | — | **P3-DG-VALGARD-DESCENT-001** | 境界の番　降臨／ストームクラウン境界廊（JST 1/4/7/10・N/H/NM） | ✅ Impl（専用ドット／BGMは後続） |
 | — | **P3-LORE-VALGARD-001** | ヴァルガード＝擬機械ゴーレム改稿＋戦力（クロノス一段下） | ✅ Impl |
+| — | **P3-UX-STATUS-LEGEND-001** | 戦闘右上・発生中状態異常レジェンド | ✅ GO・Impl |
 | — | **P3-UX-STATUS-TELOP-001** | 状態付与「を付与！」テロップ＋DoT頭上 | ✅ GO・Impl |
 | — | **P3-AUDIO-BGM-EXPLORE-OMIT-001** | ダンジョン探索BGMオミット・戦闘BGM常時 | ✅ GO・Impl |
 | — | **P3-GACHA-FEATURE-BLURB-001** | 招待状 Featured 特徴行＋キャラ下げ | ✅ GO・Impl |

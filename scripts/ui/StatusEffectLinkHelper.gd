@@ -46,19 +46,49 @@ static func effect_summary(status_id: String) -> String:
 	var dot_flat: int = int(data.dot_flat)
 	var dot_pct: float = float(data.dot_percent_of_attack)
 	if dot_flat > 0 or dot_pct > 0.001:
+		## P3-UX-STATUS-LEGEND-001: 「刻」はプレイヤー向けに使わない。
 		if dot_pct > 0.001:
-			parts.append("刻ごとに与ダメの一部が続く")
+			parts.append("1秒ごとにダメージが続く")
 		else:
-			parts.append("刻ごとにダメージ（%d）" % dot_flat)
+			parts.append("1秒ごとにダメージ（%d）" % dot_flat)
 	var ticks: int = int(data.duration_ticks)
 	if ticks > 0:
-		parts.append("持続 %d 刻" % ticks)
+		parts.append("しばらく続く")
 	var stacks: int = int(data.max_stacks)
 	if stacks > 1:
 		parts.append("最大 %d 重ね" % stacks)
 	if parts.is_empty():
 		return "戦闘中に一時的にかかる効果。"
 	return "・".join(parts)
+
+
+## 戦闘右上レジェンド用の主効果1行（P3-UX-STATUS-LEGEND-001）。
+static func effect_one_line(status_id: String) -> String:
+	var data: Resource = DataRegistry.get_status_effect(status_id)
+	if data == null:
+		return ""
+	var dot_flat: int = int(data.dot_flat)
+	var dot_pct: float = float(data.dot_percent_of_attack)
+	if dot_flat > 0 or dot_pct > 0.001:
+		return "1秒ごとにダメージ"
+	var skip: float = float(data.skip_action_chance)
+	if skip >= 0.999:
+		return "行動不能"
+	if skip > 0.001:
+		return "行動スキップ 約%d%%" % int(round(skip * 100.0))
+	var def_r: float = float(data.defense_reduction) if "defense_reduction" in data else 0.0
+	if def_r > 0.001:
+		return "相手の防御 −%d%%" % int(round(def_r * 100.0))
+	var out_m: float = float(data.outgoing_damage_multiplier)
+	if not is_equal_approx(out_m, 1.0):
+		return "与ダメ %+d%%" % int(round((out_m - 1.0) * 100.0))
+	var in_m: float = float(data.incoming_damage_multiplier)
+	if not is_equal_approx(in_m, 1.0):
+		return "被ダメ %+d%%" % int(round((in_m - 1.0) * 100.0))
+	var interval: float = float(data.interval_multiplier)
+	if interval > 1.001:
+		return "行動が遅くなる"
+	return "一時的な効果"
 
 
 static func display_name_for(status_id: String) -> String:
