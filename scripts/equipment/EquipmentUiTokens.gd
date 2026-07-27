@@ -266,6 +266,10 @@ static func attach_item_cell_layers(
 	tex_rect.offset_bottom = half
 	btn.add_child(tex_rect)
 
+## 所持／スロット枠はセル数ぶん StyleBox を new すると実機で重い・メモリ圧迫の原因になる。
+static var _rarity_cell_style_cache: Dictionary = {}
+
+
 static func texture_stylebox(
 	path: String,
 	margins: Vector4i = Vector4i(12, 12, 12, 12),
@@ -311,13 +315,20 @@ static func rarity_slot_style(rarity: int, highlight: bool, cell_px: int = INV_C
 	return _rarity_cell_style(rarity, highlight, cell_px)
 
 static func _rarity_cell_style(rarity: int, highlight: bool, cell_px: int = INV_CELL_DESIGN_PX) -> StyleBox:
+	var cache_key: String = "%d_%d_%d" % [clampi(rarity, 0, 99), 1 if highlight else 0, cell_px]
+	if _rarity_cell_style_cache.has(cache_key):
+		return _rarity_cell_style_cache[cache_key] as StyleBox
 	var idx: int = clampi(rarity, 0, INV_CELLS.size() - 1)
 	var content_margin: float = scaled_content_margin(INV_CELL_DESIGN_PX, cell_px, 4.0)
 	var sb_tex: StyleBoxTexture = texture_stylebox(INV_CELLS[idx], INV_CELL_MARGINS, content_margin)
+	var out: StyleBox
 	if sb_tex.texture != null:
 		sb_tex.modulate_color = Color(1.12, 1.10, 1.05, 1.0) if highlight else Color.WHITE
-		return sb_tex
-	return _rarity_border_style_fallback(rarity, highlight, cell_px)
+		out = sb_tex
+	else:
+		out = _rarity_border_style_fallback(rarity, highlight, cell_px)
+	_rarity_cell_style_cache[cache_key] = out
+	return out
 
 static func category_tab_style(active: bool) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()

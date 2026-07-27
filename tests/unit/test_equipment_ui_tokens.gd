@@ -31,6 +31,13 @@ func test_inv_cell_style_uses_metallic_background() -> void:
 	elif sb is StyleBoxFlat:
 		assert_gt((sb as StyleBoxFlat).bg_color.a, 0.5)
 
+func test_inv_cell_style_is_cached() -> void:
+	var a: StyleBox = EquipmentUiTokens.inv_cell_style(2, false, 96)
+	var b: StyleBox = EquipmentUiTokens.inv_cell_style(2, false, 96)
+	assert_eq(a, b, "同一 rarity/highlight/cell_px は StyleBox を共有")
+	var c: StyleBox = EquipmentUiTokens.inv_cell_style(2, true, 96)
+	assert_ne(a, c, "highlight 違いで別キャッシュ")
+
 func test_inv_cell_styles_differ_by_rarity() -> void:
 	var common: StyleBox = EquipmentUiTokens.inv_cell_style(0, false)
 	var epic: StyleBox = EquipmentUiTokens.inv_cell_style(2, false)

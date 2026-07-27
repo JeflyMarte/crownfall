@@ -4887,6 +4887,22 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 
 ---
 
+## キャラ画面スクロール性能（2026-07-27 — P3-UX-EQUIP-SCROLL-PERF-001）
+
+> **オーナー報告** — キャラ画面のスクロールが重い／効きが悪い。一度強制終了。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-EQUIP-SCROLL-PERF-001-1 | **入れ子廃止** — 所持 InventoryScroll は縦 DISABLED＋自然高。縦スクロールは TabEquip のみ | 二重ジェスチャが主因 |
+| P3-UX-EQUIP-SCROLL-PERF-001-2 | **ScrollTouch** — `enable(TabEquip, nest_inner=false)`。内側を別スクロールとして enable しない | 競合・強制終了リスク |
+| P3-UX-EQUIP-SCROLL-PERF-001-3 | **StyleBox／Idle キャッシュ** — レア枠・Idle 正規化結果を再利用 | セル数×new／切替 get_image の負荷 |
+| P3-UX-EQUIP-SCROLL-PERF-001-4 | **tooltip 軽量化** — 所持セルは表示名のみ。詳細は長押しオーバーレイ | hover_summary 全セル集計を避ける |
+| P3-UX-EQUIP-SCROLL-PERF-001-5 | **非表示タブは遅延再構築** — スキル等はアクティブ時のみ | 装備タブ中の無駄 rebuild |
+
+**Closeout:** Impl 後に統合＋`main`。
+
+---
+
 ## 経験値画面・スキル習得の常時表示（2026-07-27 — P3-UX-SKILL-LEARN-PERSIST-001）
 
 > **オーナー GO** — 習得したスキルは中央ポップで消さず、キャラ名の横に残す。複数なら最後の習得名。
