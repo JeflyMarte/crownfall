@@ -2784,7 +2784,6 @@ func _make_status_legend_row(status_id: String) -> HBoxContainer:
 		"stacks": 1,
 		"display_name": _StatusEffectLinkHelper.display_name_for(status_id),
 	})
-	icon.custom_minimum_size = Vector2(STATUS_LEGEND_ICON_PX, STATUS_LEGEND_ICON_PX)
 	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(icon)
 	var line: String = _StatusEffectLinkHelper.effect_one_line(status_id)
