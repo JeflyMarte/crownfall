@@ -26,6 +26,8 @@ const COLOR_FRONT: Color = Color(0.55, 0.72, 0.95)
 const COLOR_BACK: Color = Color(0.65, 0.85, 0.55)
 const COLOR_EMPTY: Color = Color(0.35, 0.33, 0.30)
 const COLOR_PICK: Color = Color(0.95, 0.78, 0.35)
+## NOTIFICATION_RESIZED での再構築を抑止する幅差（px）。微小差での連鎖再生成を防ぐ。
+const _RESIZE_REBUILD_EPSILON_PX: float = 2.0
 
 const _SurveySystem := preload("res://scripts/survey/SurveySystem.gd")
 const _FRONT_JOB_IDS: Array[String] = ["swordsman", "vanguard"]
@@ -38,11 +40,16 @@ var _selected: Array = []
 var _formation_slots: Array = [null, null, null, null]
 var _formation_pick_slot: int = -1
 var _active_pick_slot: int = -1
+## 下リスト先行の入れ替え候補（一覧タップ → パーティ枠タップ）。
+var _roster_pick_member: Resource = null
 var _sort_by_rarity: bool = true
 var _role_filter_index: int = 0
 ## false=冒険者一覧 / true=ペット（オトモ）一覧
 var _show_pets: bool = false
 var _formation_cells: Array[PanelContainer] = []
+## 再構築の再入・RESIZED 連鎖でセルが積み上がり「押すたび拡大」するのを防ぐ。
+var _roster_ui_rebuilding: bool = false
+var _last_layout_content_w: float = -1.0
 
 @onready var _main_vbox: VBoxContainer = $MainScroll/MainVBox
 @onready var _main_scroll: ScrollContainer = $MainScroll
@@ -121,12 +128,12 @@ func _configure_layout() -> void:
 	_roster_grid.add_theme_constant_override("v_separation", GRID_H_SEPARATION)
 	_active_party_row.add_theme_constant_override("separation", SLOT_H_SEPARATION)
 	_main_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var content_w: float = _layout_content_width()
-	if content_w > 1.0:
-		_main_vbox.custom_minimum_size.x = content_w
+	## コンテンツ幅を VBox の min に書き戻すと Grid と循環し押すたびに拡大する。禁止。
+	_main_vbox.custom_minimum_size.x = 0.0
 	_roster_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_active_party_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_active_party_row.custom_minimum_size = Vector2(0, _active_card_min_height())
+	_last_layout_content_w = _layout_content_width()
 
 
 ## おすすめ編成／陣形を Header 直下の固定帯へ移し、スクロール本文と分離する。
@@ -275,22 +282,46 @@ func _apply_panel_styles() -> void:
 	)
 
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_RESIZED and is_node_ready():
+	if what != NOTIFICATION_RESIZED or not is_node_ready():
+		return
+	if _roster_ui_rebuilding:
+		return
+	var content_w: float = _layout_content_width()
+	## 幅がほぼ変わっていないのに rebuild すると queue_free 残存と連鎖して拡大する。
+	if _last_layout_content_w >= 0.0 and absf(content_w - _last_layout_content_w) < _RESIZE_REBUILD_EPSILON_PX:
 		_configure_layout()
-		_rebuild_active_party_row()
-		_rebuild_roster_grid()
-
-func _refresh_all() -> void:
-	_update_currency()
-	_refresh_power_label()
+		return
+	_configure_layout()
+	_last_layout_content_w = content_w
 	_rebuild_active_party_row()
 	_rebuild_roster_grid()
-	_refresh_formation_grid()
-	_update_save_button()
+
+
+## 子をツリーから即外す（レイアウトに残さない）。破棄は queue_free。
+## pressed / gui_input の呼び出し中に free() するとデバッガ Abort でゲーム終了する。
+func _clear_children_immediate(parent: Node) -> void:
+	if parent == null:
+		return
+	var children: Array = parent.get_children()
+	for child in children:
+		parent.remove_child(child)
+		child.queue_free()
+
+
+func _rebuild_active_party_row() -> void:
+	if _roster_ui_rebuilding:
+		return
+	_roster_ui_rebuilding = true
+	_clear_children_immediate(_active_party_row)
+	for slot_index in FORMATION_SLOT_COUNT:
+		_active_party_row.add_child(_make_active_party_card(slot_index))
+	_roster_ui_rebuilding = false
+
 
 func _update_currency() -> void:
 	_label_gold.text = "%d" % GameState.gold
 	_label_token.text = CurrencyHelper.format_amount()
+
 
 func _refresh_power_label() -> void:
 	var members: Array = _active_members_in_slot_order()
@@ -379,11 +410,20 @@ func _party_index_for_member(member: Resource) -> int:
 		return -1
 	return GameState.party_members.find(member)
 
-func _rebuild_active_party_row() -> void:
-	for child in _active_party_row.get_children():
-		child.queue_free()
+func _refresh_all() -> void:
+	_update_currency()
+	_refresh_power_label()
+	if _roster_ui_rebuilding:
+		return
+	_roster_ui_rebuilding = true
+	_clear_children_immediate(_active_party_row)
 	for slot_index in FORMATION_SLOT_COUNT:
 		_active_party_row.add_child(_make_active_party_card(slot_index))
+	_clear_children_immediate(_roster_grid)
+	_populate_roster_grid()
+	_roster_ui_rebuilding = false
+	_refresh_formation_grid()
+	_update_save_button()
 
 func _make_active_party_card(slot_index: int) -> Control:
 	var member: Resource = _formation_slots[slot_index]
@@ -391,12 +431,16 @@ func _make_active_party_card(slot_index: int) -> Control:
 	var panel := PanelContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.size_flags_stretch_ratio = 1.0
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	panel.set_meta(&"_cf_keep_mouse_stop", true)
+	panel.clip_contents = true
 	panel.add_theme_stylebox_override(
 		"panel",
 		RosterUiHelper.card_panel_style(member != null, slot_index == 0)
 	)
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 3)
+	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(vbox)
 	if member == null:
 		var empty := Label.new()
@@ -406,33 +450,34 @@ func _make_active_party_card(slot_index: int) -> Control:
 		empty.custom_minimum_size = Vector2(0, _active_card_min_height() - 8)
 		empty.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		empty.add_theme_color_override("font_color", COLOR_EMPTY)
+		empty.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		UiTypography.apply_body(empty, UiTypography.SIZE_CAPTION, COLOR_EMPTY)
 		vbox.add_child(empty)
 		panel.gui_input.connect(_on_active_card_input.bind(slot_index))
+		if _roster_pick_member != null:
+			panel.add_theme_stylebox_override("panel", RosterUiHelper.pick_panel_style())
 		return panel
 	var portrait_tex: Texture2D = RosterUiHelper.get_member_portrait_texture(member)
-	var portrait_px: int = clampi(card_w - 8, 56, 92)
+	## 枠幅は据え置き。肖像だけ枠内いっぱい（余白は content_margin 分のみ）。
+	var portrait_px: int = maxi(card_w - 12, 72)
 	if portrait_tex != null:
-		var portrait := TextureRect.new()
-		portrait.texture = portrait_tex
-		portrait.custom_minimum_size = Vector2(portrait_px, portrait_px)
-		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		portrait.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		vbox.add_child(portrait)
+		vbox.add_child(RosterUiHelper.make_clamped_portrait(portrait_tex, portrait_px, true))
 	var name_lbl := Label.new()
 	name_lbl.text = RosterUiHelper.member_name_with_limit_break(member)
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_body(name_lbl, UiTypography.SIZE_CAPTION, UiTypography.COLOR_BODY)
 	vbox.add_child(name_lbl)
 	var stars := Label.new()
 	stars.text = "%s  Lv%d" % [RosterUiHelper.stars_text(int(member.rarity)), int(member.level)]
 	stars.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stars.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_body(stars, UiTypography.SIZE_CAPTION, UiTypography.COLOR_GOLD)
 	vbox.add_child(stars)
 	var job_lbl := Label.new()
 	job_lbl.text = RosterUiHelper.job_display_name(member)
 	job_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	job_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_body(job_lbl, UiTypography.SIZE_CAPTION)
 	vbox.add_child(job_lbl)
 	var stats: Dictionary = RosterUiHelper.compute_member_stats(member, _party_index_for_member(member))
@@ -443,6 +488,7 @@ func _make_active_party_card(slot_index: int) -> Control:
 	var is_back: bool = GameState.get_member_formation_row(member) == GameState.FORMATION_BACK
 	row_lbl.text = "後列" if is_back else "前列"
 	row_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	row_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_caption(row_lbl, COLOR_BACK if is_back else COLOR_FRONT)
 	vbox.add_child(row_lbl)
 	var detail := Button.new()
@@ -452,15 +498,17 @@ func _make_active_party_card(slot_index: int) -> Control:
 	detail.pressed.connect(_on_detail_pressed.bind(member))
 	vbox.add_child(detail)
 	panel.gui_input.connect(_on_active_card_input.bind(slot_index))
-	if _active_pick_slot == slot_index:
-		panel.add_theme_stylebox_override("panel", _pick_style())
+	if _active_pick_slot == slot_index or _roster_pick_member != null:
+		panel.add_theme_stylebox_override("panel", RosterUiHelper.pick_panel_style())
 	return panel
+
 
 func _make_card_stat_row(stat_key: String, label_text: String, value: int) -> Control:
 	const CARD_STAT_ICON_PX: int = 16
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 4)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var tex: Texture2D = EquipmentUiTokens.stat_icon(stat_key)
 	if tex != null:
 		var icon := TextureRect.new()
@@ -473,34 +521,40 @@ func _make_card_stat_row(stat_key: String, label_text: String, value: int) -> Co
 	var name_lbl := Label.new()
 	name_lbl.text = label_text
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_body(name_lbl, UiTypography.SIZE_CAPTION, COLOR_SUB)
 	row.add_child(name_lbl)
 	var val_lbl := Label.new()
 	val_lbl.text = str(value)
 	val_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	val_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_body(val_lbl, UiTypography.SIZE_CAPTION, UiTypography.COLOR_BODY)
 	row.add_child(val_lbl)
 	return row
 
 func _pick_style() -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.08, 0.07, 0.05, 0.94)
-	style.border_color = COLOR_PICK
-	style.set_border_width_all(3)
-	style.set_corner_radius_all(10)
-	style.content_margin_left = 8
-	style.content_margin_top = 8
-	style.content_margin_right = 8
-	style.content_margin_bottom = 8
-	return style
+	## 互換ラッパ。選択でセル最小サイズが変わらないよう Helper 側で margin 固定。
+	return RosterUiHelper.pick_panel_style()
 
 func _on_active_card_input(event: InputEvent, slot_index: int) -> void:
 	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
+		return
+	## gui_input 中に当該カードを破棄しないよう deferred。
+	_on_active_card_pressed.call_deferred(slot_index)
+
+
+func _on_active_card_pressed(slot_index: int) -> void:
+	if not is_instance_valid(self):
+		return
+	## 一覧先行: 下で選んだメンバーをこの枠へ入れる／入れ替える。
+	if _roster_pick_member != null:
+		_apply_roster_pick_to_slot(slot_index)
 		return
 	if _formation_slots[slot_index] == null:
 		return
 	if _active_pick_slot < 0:
 		_active_pick_slot = slot_index
+		_roster_pick_member = null
 		_label_status.text = "入れ替え先を下のリストから選んでください"
 	else:
 		if _active_pick_slot != slot_index:
@@ -538,8 +592,15 @@ func _on_detail_pressed(member: Resource) -> void:
 	SceneRouter.change_scene(EQUIPMENT_SCENE)
 
 func _rebuild_roster_grid() -> void:
-	for child in _roster_grid.get_children():
-		child.queue_free()
+	if _roster_ui_rebuilding:
+		return
+	_roster_ui_rebuilding = true
+	_clear_children_immediate(_roster_grid)
+	_populate_roster_grid()
+	_roster_ui_rebuilding = false
+
+
+func _populate_roster_grid() -> void:
 	if _show_pets:
 		PetSystem.ensure_starter_pet()
 		PetSystem.sync_unlocks_from_stage_progress(false)
@@ -586,6 +647,7 @@ func _passes_role_filter(adv: Resource) -> bool:
 func _on_pet_tab_pressed() -> void:
 	_show_pets = true
 	_active_pick_slot = -1
+	_roster_pick_member = null
 	_update_list_header_title()
 	_rebuild_roster_grid()
 	_rebuild_active_party_row()
@@ -617,15 +679,21 @@ func _make_roster_grid_card(adv: Resource) -> Control:
 	)
 	var dispatched: bool = (not is_pet) and _is_survey_dispatched(adv)
 	var in_party: bool = (not is_pet) and _selected.has(adv)
-	var picking: bool = (not is_pet) and _active_pick_slot >= 0
+	var picking: bool = (not is_pet) and (_active_pick_slot >= 0 or _roster_pick_member != null)
+	var list_picked: bool = (not is_pet) and _roster_pick_member == adv
 	var cell_h: int = _grid_cell_height()
+	var cell_w: int = _grid_cell_width()
+	## 枠高さのみ固定。幅は Grid 列に EXPAND（cell_w を min に書くと列合計が循環拡大する）。
+	var icon_px: int = clampi(mini(cell_w - 8, cell_h - 30), 64, RosterUiHelper.portrait_hard_max_px())
 	var wrapper := PanelContainer.new()
 	wrapper.custom_minimum_size = Vector2(0, cell_h)
 	wrapper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	wrapper.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	wrapper.clip_contents = true
 	if is_pet:
 		wrapper.add_theme_stylebox_override("panel", RosterUiHelper.card_panel_style(is_active_pet, false))
-	elif picking and not in_party and not dispatched:
-		wrapper.add_theme_stylebox_override("panel", _pick_style())
+	elif list_picked or (picking and _active_pick_slot >= 0 and not in_party and not dispatched):
+		wrapper.add_theme_stylebox_override("panel", RosterUiHelper.pick_panel_style())
 	else:
 		wrapper.add_theme_stylebox_override("panel", RosterUiHelper.card_panel_style(in_party, false))
 	# 入れ替え選択中はリストを暗くせず選べることを示す。通常時のみ編成中を暗くする。
@@ -635,46 +703,32 @@ func _make_roster_grid_card(adv: Resource) -> Control:
 		wrapper.modulate = Color(0.42, 0.42, 0.42, 1.0)
 	elif is_pet and not is_active_pet:
 		wrapper.modulate = Color(0.72, 0.72, 0.72, 1.0)
-	var btn := Button.new()
-	btn.flat = true
-	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	btn.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	btn.custom_minimum_size = Vector2(0, cell_h)
-	btn.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
-	btn.add_theme_stylebox_override("hover", StyleBoxEmpty.new())
-	btn.add_theme_stylebox_override("pressed", StyleBoxEmpty.new())
-	btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
-	btn.pressed.connect(_toggle_selection.bind(adv))
-	wrapper.add_child(btn)
-	var margin := MarginContainer.new()
-	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 4)
-	margin.add_theme_constant_override("margin_top", 4)
-	margin.add_theme_constant_override("margin_right", 4)
-	margin.add_theme_constant_override("margin_bottom", 4)
-	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	btn.add_child(margin)
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 0)
-	vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	margin.add_child(vbox)
+	## 肖像は Button の子にしない（押下スタイル／min size 伝播で原寸逃げする）。
+	## PanelContainer は1子のみ。中身＋透明タップは stack に載せる。
+	var stack := Control.new()
+	stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	stack.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stack.clip_contents = true
+	wrapper.add_child(stack)
+	var body := VBoxContainer.new()
+	body.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	body.add_theme_constant_override("separation", 0)
+	body.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stack.add_child(body)
 	var tex: Texture2D = RosterUiHelper.get_member_portrait_texture(adv)
-	var icon_area := Control.new()
+	var icon_area := CenterContainer.new()
+	icon_area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	icon_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	icon_area.custom_minimum_size = Vector2(0, cell_h - 34)
+	icon_area.custom_minimum_size = Vector2(0, maxi(cell_h - 28, 40))
 	icon_area.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vbox.add_child(icon_area)
+	icon_area.clip_contents = true
+	body.add_child(icon_area)
 	if tex != null:
-		var icon := TextureRect.new()
-		icon.texture = tex
-		icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		icon_area.add_child(icon)
+		icon_area.add_child(RosterUiHelper.make_clamped_portrait(tex, icon_px, true))
 	var bottom_bar := PanelContainer.new()
 	bottom_bar.custom_minimum_size = Vector2(0, 24)
+	bottom_bar.size_flags_vertical = Control.SIZE_SHRINK_END
 	bottom_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var bar_style := StyleBoxFlat.new()
 	bar_style.bg_color = Color(0.04, 0.03, 0.02, 0.82)
@@ -683,7 +737,7 @@ func _make_roster_grid_card(adv: Resource) -> Control:
 	bar_style.content_margin_right = 4
 	bar_style.content_margin_bottom = 1
 	bottom_bar.add_theme_stylebox_override("panel", bar_style)
-	vbox.add_child(bottom_bar)
+	body.add_child(bottom_bar)
 	var info_row := HBoxContainer.new()
 	info_row.add_theme_constant_override("separation", 4)
 	info_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -705,6 +759,18 @@ func _make_roster_grid_card(adv: Resource) -> Control:
 	UiTypography.apply_caption(star_lbl, UiTypography.COLOR_GOLD)
 	star_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	info_row.add_child(star_lbl)
+	## 透明タップ面（子なし）— 肖像の min size に影響させない。
+	var btn := Button.new()
+	btn.flat = true
+	btn.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.mouse_filter = Control.MOUSE_FILTER_STOP
+	btn.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
+	btn.add_theme_stylebox_override("hover", StyleBoxEmpty.new())
+	btn.add_theme_stylebox_override("pressed", StyleBoxEmpty.new())
+	btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	btn.pressed.connect(_toggle_selection.bind(adv))
+	stack.add_child(btn)
 	return wrapper
 
 
@@ -721,6 +787,13 @@ func _strip_dispatched_from_selection() -> void:
 
 
 func _toggle_selection(adv: Resource) -> void:
+	## Button.pressed 内でカードを破棄すると落ちるため、入れ替え処理は次フレームへ。
+	_toggle_selection_deferred.call_deferred(adv)
+
+
+func _toggle_selection_deferred(adv: Resource) -> void:
+	if not is_instance_valid(self):
+		return
 	if PetSystem.is_pet_member(adv):
 		var name_short: String = RosterUiHelper.short_display_name(str(adv.display_name))
 		if GameState.active_pet != null and str(GameState.active_pet.id) == str(adv.id):
@@ -733,28 +806,51 @@ func _toggle_selection(adv: Resource) -> void:
 			_label_status.text = "ペットの切り替えに失敗しました"
 		return
 	if _active_pick_slot >= 0:
+		_roster_pick_member = null
 		_apply_active_pick_with_roster(adv)
+		return
+	## 一覧先行の入れ替え: 同じメンバー再タップで解除。
+	if _roster_pick_member == adv:
+		_roster_pick_member = null
+		_label_status.text = ""
+		_rebuild_active_party_row()
+		_rebuild_roster_grid()
 		return
 	if _selected.has(adv):
 		if _selected.size() > 1:
 			_selected.erase(adv)
-	else:
-		if _is_survey_dispatched(adv):
-			_label_status.text = "%sは調査中のため編成できません" % RosterUiHelper.short_display_name(
-				str(adv.display_name)
-			)
-			return
-		if _selected.size() < GameState.ACTIVE_PARTY_SIZE:
-			_selected.append(adv)
-	_sync_formation_slots_from_selection()
+			_roster_pick_member = null
+			_sync_formation_slots_from_selection()
+			_active_pick_slot = -1
+			_refresh_all()
+		else:
+			_label_status.text = "パーティには最低1人必要です"
+		return
+	if _is_survey_dispatched(adv):
+		_label_status.text = "%sは調査中のため編成できません" % RosterUiHelper.short_display_name(
+			str(adv.display_name)
+		)
+		return
+	## 空きがあれば追加。満員なら一覧→パーティ入れ替えモードへ。
+	if _selected.size() < GameState.ACTIVE_PARTY_SIZE:
+		_selected.append(adv)
+		_roster_pick_member = null
+		_sync_formation_slots_from_selection()
+		_active_pick_slot = -1
+		_refresh_all()
+		return
 	_active_pick_slot = -1
-	_refresh_all()
+	_roster_pick_member = adv
+	_label_status.text = "入れ替えたいパーティの枠を選んでください"
+	_rebuild_active_party_row()
+	_rebuild_roster_grid()
 
 
 ## 上段パーティ枠を選んだあとに下リストを押すと、その枠のメンバーを入れ替える。
 func _apply_active_pick_with_roster(adv: Resource) -> void:
 	var slot: int = _active_pick_slot
 	_active_pick_slot = -1
+	_roster_pick_member = null
 	if slot < 0 or slot >= FORMATION_SLOT_COUNT or adv == null:
 		_rebuild_active_party_row()
 		_rebuild_roster_grid()
@@ -793,6 +889,50 @@ func _apply_active_pick_with_roster(adv: Resource) -> void:
 		_label_status.text = "メンバーを入れ替えました"
 	_refresh_all()
 
+
+## 下リスト先行: 選んだメンバーを指定パーティ枠へ入れる／入れ替える。
+func _apply_roster_pick_to_slot(slot_index: int) -> void:
+	var adv: Resource = _roster_pick_member
+	_roster_pick_member = null
+	_active_pick_slot = -1
+	if adv == null or slot_index < 0 or slot_index >= FORMATION_SLOT_COUNT:
+		_rebuild_active_party_row()
+		_rebuild_roster_grid()
+		return
+	if _is_survey_dispatched(adv):
+		_label_status.text = "%sは調査中のため編成できません" % RosterUiHelper.short_display_name(
+			str(adv.display_name)
+		)
+		_rebuild_active_party_row()
+		_rebuild_roster_grid()
+		return
+	var current: Resource = _formation_slots[slot_index]
+	if adv == current:
+		_label_status.text = ""
+		_rebuild_active_party_row()
+		_rebuild_roster_grid()
+		return
+	if _selected.has(adv):
+		var other_slot: int = -1
+		for i in FORMATION_SLOT_COUNT:
+			if _formation_slots[i] == adv:
+				other_slot = i
+				break
+		if other_slot >= 0:
+			_formation_slots[slot_index] = adv
+			_formation_slots[other_slot] = current
+		_apply_formation_rows_from_slots()
+		_label_status.text = "パーティ内の並びを入れ替えました"
+	else:
+		if current != null:
+			_selected.erase(current)
+		if not _selected.has(adv):
+			_selected.append(adv)
+		_formation_slots[slot_index] = adv
+		_apply_formation_rows_from_slots()
+		_label_status.text = "メンバーを入れ替えました"
+	_refresh_all()
+
 func _on_recommend_pressed() -> void:
 	var roster: Array = GameState.get_roster()
 	var picked: Array = []
@@ -809,6 +949,7 @@ func _on_recommend_pressed() -> void:
 	_selected = picked.slice(0, mini(GameState.ACTIVE_PARTY_SIZE, picked.size()))
 	_assign_formation_by_role(_selected, true)
 	_active_pick_slot = -1
+	_roster_pick_member = null
 	_formation_pick_slot = -1
 	_label_status.text = "おすすめ編成を適用しました"
 	_refresh_all()
@@ -821,6 +962,7 @@ func _on_reset_pressed() -> void:
 	_place_members_in_slots(_selected, [0, 1, 2, 3])
 	_apply_formation_rows_from_slots()
 	_active_pick_slot = -1
+	_roster_pick_member = null
 	_formation_pick_slot = -1
 	_label_status.text = "編成を初期状態に戻しました"
 	_refresh_all()
@@ -989,13 +1131,7 @@ func _refresh_formation_grid() -> void:
 		vbox.add_theme_constant_override("separation", 3)
 		var icon_tex: Texture2D = RosterUiHelper.get_member_portrait_texture(member)
 		if icon_tex != null:
-			var portrait := TextureRect.new()
-			portrait.texture = icon_tex
-			portrait.custom_minimum_size = Vector2(64, 64)
-			portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			portrait.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-			vbox.add_child(portrait)
+			vbox.add_child(RosterUiHelper.make_clamped_portrait(icon_tex, 96, true))
 		var name_lbl := Label.new()
 		name_lbl.text = RosterUiHelper.member_name_with_limit_break(member)
 		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

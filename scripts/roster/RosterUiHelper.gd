@@ -30,6 +30,12 @@ const ROLE_FILTER_LABELS: Dictionary = {
 	"support": "サポート",
 }
 
+## 編成カード枠の共通寸法。選択ハイライトで変えるとセルが「拡大」して見えるので固定。
+const CARD_CONTENT_MARGIN: float = 3.0
+const CARD_BORDER_W: int = 2
+## CHR アイコン原寸（~1254）を絶対に超えない描画辺キャップ。
+const PORTRAIT_PX_HARD_MAX: int = 180
+
 static func leader_skill_display(member: Resource) -> Dictionary:
 	if member == null:
 		return {"name": "—", "description": "リーダーを編成してください。"}
@@ -242,8 +248,65 @@ static func compute_member_stats(member: Resource, _party_index: int = -1) -> Di
 	}
 
 static func card_panel_style(active: bool, leader: bool) -> StyleBox:
-	var tier: String = CombatUiFrames.TIER_CARD_ACTIVE if active else CombatUiFrames.TIER_CARD
-	var style: StyleBox = CombatUiFrames.panel_style(tier)
-	if leader and style is StyleBoxTexture:
-		(style as StyleBoxTexture).modulate_color = Color(1.1, 0.92, 0.42, 1.0)
+	## CombatUiFrames のキャッシュを直接 mutate すると全カードの色が汚染されるため複製する。
+	## 枠は StyleBoxFlat で明示（薄い 9-slice が背景に沈んで「消えた」ように見える対策）。
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.08, 0.07, 0.05, 0.94)
+	if leader:
+		style.border_color = Color(0.95, 0.82, 0.38, 1.0)
+	elif active:
+		style.border_color = Color(0.86, 0.74, 0.45, 0.98)
+	else:
+		style.border_color = Color(0.55, 0.48, 0.36, 0.92)
+	## 選択／リーダーで border・margin を変えるとセル最小サイズが膨らみ「拡大」に見える。幅は常に同一。
+	style.set_border_width_all(CARD_BORDER_W)
+	style.set_corner_radius_all(10)
+	style.content_margin_left = CARD_CONTENT_MARGIN
+	style.content_margin_top = CARD_CONTENT_MARGIN
+	style.content_margin_right = CARD_CONTENT_MARGIN
+	style.content_margin_bottom = CARD_CONTENT_MARGIN
 	return style
+
+
+## 入れ替え選択ハイライト。card_panel_style と margin／border 幅を一致させ、選択でセルが膨らまないようにする。
+static func pick_panel_style() -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.08, 0.07, 0.05, 0.94)
+	style.border_color = Color(0.95, 0.78, 0.35)
+	style.set_border_width_all(CARD_BORDER_W)
+	style.set_corner_radius_all(10)
+	style.content_margin_left = CARD_CONTENT_MARGIN
+	style.content_margin_top = CARD_CONTENT_MARGIN
+	style.content_margin_right = CARD_CONTENT_MARGIN
+	style.content_margin_bottom = CARD_CONTENT_MARGIN
+	return style
+
+
+## CHR 肖像（1254px 級）を固定枠に拘束する。選択・再レイアウトでも原寸へ逃げない。
+## px は枠内描画辺。PORTRAIT_PX_HARD_MAX で絶対キャップ。
+## resized で set_size しない（親レイアウトと闘って拡大連鎖の原因になる）。
+static func make_clamped_portrait(tex: Texture2D, px: int, fill_cover: bool = false) -> Control:
+	var side: int = clampi(px, 24, PORTRAIT_PX_HARD_MAX)
+	var host := Control.new()
+	host.custom_minimum_size = Vector2(side, side)
+	host.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	host.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	host.clip_contents = true
+	var art := TextureRect.new()
+	art.name = "PortraitArt"
+	art.texture = tex
+	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	art.stretch_mode = (
+		TextureRect.STRETCH_KEEP_ASPECT_COVERED if fill_cover
+		else TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	)
+	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	art.custom_minimum_size = Vector2.ZERO
+	art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	host.add_child(art)
+	return host
+
+
+static func portrait_hard_max_px() -> int:
+	return PORTRAIT_PX_HARD_MAX

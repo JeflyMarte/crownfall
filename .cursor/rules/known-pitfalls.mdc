@@ -11,6 +11,7 @@ alwaysApply: true
 
 | 症状 | 原因 | 再発防止 |
 |---|---|---|
+| 鍛冶屋入場で即終了（`BlacksmithScene` パース失敗） | `maxf(a, b, c)` は GDScript 非対応（最大2引数） | `maxf(a, maxf(b, c))` にネスト。変更後 headless で BlacksmithScene instantiate 確認 |
 | ダンジョン入場で即終了（`DungeonScene` コンパイル失敗） | `NonCombatNarrativeColors.wrap` が組み込み `wrap(value,min,max)` と衝突し「Too few arguments」 | 静的ヘルパは `bb_wrap` 等、グローバル／組み込みと被らない名前にする。変更後 headless で DungeonScene ロード確認 |
 | 宝箱／泉／碑文の結果コメントが「探索を開始した」に戻る | 結果 BBCode 直後の `_reset_narrative_typography` が Label モードへ戻し、入場時の旧文が再表示 | 結果表示後はリセットしない。BBCode 時は Label 平文同期。Rich 表示中は reset を no-op。詳細: `14_Presentation_Pitfalls.md` |
 | 非戦闘失敗／入場パッシブのダメージ・回復数字が変な位置／見えない | 味方ドット非表示のまま VFX。`_member_sprite_world_pos` が ZERO | `_begin_noncombat_party_feedback`。位置はカードへフォールバック。詳細: `14_Presentation_Pitfalls.md` |
@@ -28,6 +29,9 @@ alwaysApply: true
 | `Parser Error: Expected statement, found "else"` | Python の `for`/`else`・`while`/`else` | `gdscript.mdc` — フラグループを使う |
 | `GUT compile error Identifier "COLOR_BODY" not declared` | `EquipmentScene` の作戦プリセットUIで未定義の `COLOR_BODY` を参照（`UiTypography.COLOR_BODY` へ誤置換） | 色定数は `COLOR_*` と `UiTypography.COLOR_*` を混同しない。SMOKE/GUT（headless）で即 compile 確認 |
 | 編成の「おすすめ／陣形」が Header 金線に食い込む | タブが MainScroll 先頭で offset 余白だけに依存し潰れる | タブを Header 直下の固定 `ToolbarBand` に分離し、一覧スクロールはその下へ |
+| 編成でキャラ枠が消える／アイコンクリックで巨大化／一覧→パーティ入れ替え不能 | ①`card_panel_style` が薄い 9-slice＋キャッシュ mutate ②CHR 1254px が VBox 縦 FILL／COVERED で原寸逃げ ③満員時一覧タップが no-op、肖像 STOP で枠の `gui_input` 奪取 | カード枠は StyleBoxFlat 明示。肖像は `RosterUiHelper.make_clamped_portrait`（HARD_MAX＋clip＋resized 拘束）。満員は `_roster_pick_member`→枠タップで入替 |
+| 編成で下キャラ選択のたびアイコン／セルが拡大する | ①選択 `_pick_style` の content_margin／border が通常より大きい→Grid 最小サイズ膨張 ②肖像を Button 子に載せ CHR 原寸が min size に乗る ③`queue_free` 残存のまま add→セル倍増→RESIZED 連鎖。`main_vbox.min.x=content_w` の循環 | `pick_panel_style` は margin/border 幅同一。肖像は `make_clamped_portrait`＋Button 外。**remove_child 即時＋queue_free**（`free()` 禁止）。RESIZED は幅変化時のみ。VBox min.x 書き戻し禁止 |
+| 編成で入れ替えするとゲーム終了（Abort） | タップ中 Button／カードを `free()` で即破棄。`pressed`/`gui_input` スタック上で解放 | 破棄は `remove_child`＋`queue_free`。入れ替え処理は `call_deferred` |
 | 起動時黒画面・`inherits from Control, can't assign to Node` | `BootScene.gd` が `extends Control` なのに `.tscn` ルートが `Node` | スクリプトの `extends` とシーンルート型を一致させる。Boot は `Node` が正 |
 | 起動時 autoload 失敗 / 壊れた UID | `project.godot` の空 autoload・不正 `uid://`（例: `_MCPGameBridge`） | autoload は実在パスのみ。UID 直書きを壊さない。変更後 headless 起動確認 |
 | 図鑑/装備カタログのパースエラー | `EquipmentUiTokens` 等の **参照メソッド欠落** | public API 削除・リネーム時は呼び出し側を一括検索 |

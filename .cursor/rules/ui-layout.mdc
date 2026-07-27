@@ -156,6 +156,26 @@ Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` �
 - `_ready` でのみ子を作り、呼び出し側がツリー投入前に texture を載せる想定にする → MVP 即落ち
 - Featured／MVP／キャラで walk フォールバックを復活させる
 
+## 編成 CHR 顔アイコン（再発防止・必須）
+
+`ICO_CHR_*` / `ART_HELPER_*` は **~1254px**。編成グリッドで選択のたびにセル／アイコンが巨大化する事故が再発しやすい。
+
+❌ BAD
+- 選択用 StyleBox だけ `content_margin`／`border_width` を大きくする → Grid の最小サイズが膨らみ「拡大した」ように見える
+- `TextureRect`（CHR）を **Button の子**に置く → 押下・min size 伝播で原寸逃げ
+- `EXPAND_IGNORE_SIZE` 無し／ホスト無しでテクスチャ直置き
+- セルを `EXPAND_FILL` のまま肖像 min を拘束しない
+
+✅ GOOD（`RosterUiHelper.make_clamped_portrait` / `pick_panel_style`）
+- 選択ハイライトは **色だけ**変える（margin・border 幅は `card_panel_style` と同一）
+- 肖像は固定辺＋`SIZE_SHRINK_*`＋`clip_contents`。絶対キャップ `PORTRAIT_PX_HARD_MAX`（`resized` で `set_size` しない）
+- タップ用 Button は **子なしオーバーレイ**（肖像の外）
+- グリッド再構築は **`remove_child` 即時＋`queue_free`**（ツリーから外して拡大連鎖を防ぎ、`free()` は信号中 Abort の原因なので禁止）
+- 入れ替え／選択の rebuild は **`call_deferred`**（`pressed` / `gui_input` 中に当該ノードを破棄しない）
+- `MainVBox.custom_minimum_size.x` に content 幅を書き戻さない（循環拡大）
+- `NOTIFICATION_RESIZED` は幅が実質変わったときだけカード再生成
+- 回帰: `tests/unit/test_roster_portrait_clamp.gd`
+
 ## 職名・本文タイポ
 
 - 職名ラベルは **省略（ellipsis）しない**（「ビーストテイマー」全文）
