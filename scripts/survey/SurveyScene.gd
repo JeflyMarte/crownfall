@@ -1414,6 +1414,9 @@ func _perform_claim() -> void:
 	if _btn_claim != null:
 		_btn_claim.disabled = true
 		_btn_claim.text = "受取中..."
+	if _btn_cancel != null:
+		_btn_cancel.visible = false
+		_btn_cancel.disabled = true
 	_label_status.text = "成果を懐へ…"
 	_play_claim_fx(from_global, result)
 
