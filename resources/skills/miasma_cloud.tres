@@ -4,20 +4,23 @@
 
 [resource]
 script = ExtResource("1")
-id = "curse_sigil"
-display_name = "呪印"
-description = "重い呪印を刻む。付与は強いが間が空き、速攻の張り直しはアンブラへ。"
+id = "miasma_cloud"
+display_name = "瘴気の霧"
+description = "瘴気の霧を展開し、敵全体に呪いをまとう。"
 skill_type = "player"
-target_type = "enemy"
-power_multiplier = 1.0
+target_type = "all_enemies"
+power_multiplier = 0.7
 cooldown = 5.5
 trigger_type = "cooldown"
 effect_type = "damage"
-tags = Array[String](["magic", "debuff", "blunt"])
+tags = Array[String](["magic", "debuff", "aoe"])
 element = "dark"
 apply_status_id = "curse"
-apply_status_chance = 0.65
+apply_status_chance = 0.3
 apply_status_id2 = ""
 apply_status_chance2 = 0.0
 slot_type = "skill"
 range_type = "mid"
+cast_time = 0.0
+reserve_condition = ""
+reserve_value = ""

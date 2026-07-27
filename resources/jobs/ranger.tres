@@ -6,46 +6,37 @@
 script = ExtResource("1")
 id = "ranger"
 display_name = "レンジャー"
-description = "弓による遠隔攻撃で後方から火力を出す。"
+description = "弓による遠隔攻撃で後方から火力と狙いを担う。"
 role = "scout"
 base_hp_modifier = 0.9
 base_attack_modifier = 1.05
 base_defense_modifier = 0.9
 base_initiative_modifier = 1.2
 preferred_weapon_types = Array[String](["bow", "sword"])
-starting_skill_ids = Array[String]([])
+starting_skill_ids = Array[String](["aimed_shot"])
 skill_unlocks = Array[Dictionary]([{
 "skill_id": "aimed_shot",
 "level": 1
 }, {
-"skill_id": "quick_shot",
-"level": 6
-}, {
 "skill_id": "snare_shot",
-"level": 12
-}, {
-"skill_id": "power_shot",
-"level": 18
+"level": 8
 }, {
 "skill_id": "hunter_mark",
-"level": 24
+"level": 15
+}, {
+"skill_id": "volley_shot",
+"level": 22
 }, {
 "skill_id": "mark_pursuit",
 "level": 30
 }, {
-"skill_id": "hex_bolt",
-"level": 36
-}, {
-"skill_id": "break_arrow",
-"level": 42
-}, {
-"skill_id": "vital_shot",
-"level": 48
+"skill_id": "hunting_ground_mark",
+"level": 40
 }, {
 "skill_id": "apex_shot",
 "level": 50
 }])
-learnable_skill_ids = Array[String](["aimed_shot", "quick_shot", "snare_shot", "power_shot", "hunter_mark", "mark_pursuit", "hex_bolt", "break_arrow", "vital_shot", "apex_shot"])
+learnable_skill_ids = Array[String](["aimed_shot", "snare_shot", "hunter_mark", "volley_shot", "mark_pursuit", "hunting_ground_mark", "apex_shot"])
 passive_tag_ids = Array[String](["recon"])
 ultimate_skill_id = "dead_eye"
 evolved_display_name = "スナイパー"

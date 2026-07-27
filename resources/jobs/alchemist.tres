@@ -6,46 +6,37 @@
 script = ExtResource("1")
 id = "alchemist"
 display_name = "アルケミスト"
-description = "杖で魔法ダメージ・デバフに加え、回復と鼓舞で味方を支える支援役。"
+description = "杖で味方を支え、呪いと薬煙で戦況を整える支援役。"
 role = "support"
 base_hp_modifier = 0.85
 base_attack_modifier = 1.0
 base_defense_modifier = 0.9
 base_initiative_modifier = 1.0
 preferred_weapon_types = Array[String](["staff", "dual_blades"])
-starting_skill_ids = Array[String]([])
+starting_skill_ids = Array[String](["hex_bolt"])
 skill_unlocks = Array[Dictionary]([{
 "skill_id": "hex_bolt",
 "level": 1
 }, {
-"skill_id": "arc_bolt",
-"level": 6
-}, {
-"skill_id": "curse_sigil",
-"level": 12
-}, {
 "skill_id": "mend",
-"level": 18
+"level": 8
 }, {
 "skill_id": "frail_dust",
-"level": 24
+"level": 15
 }, {
-"skill_id": "empower",
+"skill_id": "rally_vapors",
+"level": 22
+}, {
+"skill_id": "curse_sigil",
 "level": 30
 }, {
-"skill_id": "vulnerable_surge",
-"level": 36
+"skill_id": "miasma_cloud",
+"level": 40
 }, {
 "skill_id": "salve_burst",
-"level": 42
-}, {
-"skill_id": "plague_bolt",
-"level": 48
-}, {
-"skill_id": "apex_hex",
 "level": 50
 }])
-learnable_skill_ids = Array[String](["hex_bolt", "arc_bolt", "curse_sigil", "mend", "frail_dust", "empower", "vulnerable_surge", "salve_burst", "plague_bolt", "apex_hex"])
+learnable_skill_ids = Array[String](["hex_bolt", "mend", "frail_dust", "rally_vapors", "curse_sigil", "miasma_cloud", "salve_burst"])
 passive_tag_ids = Array[String](["caster"])
 ultimate_skill_id = "grand_elixir"
 evolved_display_name = "セージ"

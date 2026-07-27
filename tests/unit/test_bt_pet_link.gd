@@ -17,20 +17,22 @@ func test_beast_tamer_learns_pet_skills() -> void:
 	var learnable: Array = job.learnable_skill_ids
 	assert_true(learnable.has("pet_bond_rally"))
 	assert_true(learnable.has("pet_command_fang"))
-	assert_true(learnable.has("pet_bond_guard"))
 	assert_true(learnable.has("apex_tame"))
 	assert_true(learnable.has("herd_call"))
+	assert_true(learnable.has("venom_spray"))
 	assert_false(learnable.has("beast_bite"))
 	assert_false(learnable.has("alpha_strike"))
 	assert_false(learnable.has("hex_bolt"))
 	assert_not_null(DataRegistry.get_skill_data("pet_bond_rally"))
 	assert_not_null(DataRegistry.get_skill_data("pet_command_fang"))
-	assert_not_null(DataRegistry.get_skill_data("pet_bond_guard"))
 	assert_not_null(DataRegistry.get_skill_data("apex_tame"))
+	assert_not_null(DataRegistry.get_skill_data("venom_spray"))
 	var herd: Resource = DataRegistry.get_skill_data("herd_call")
 	assert_eq(str(herd.display_name), "群れの號令")
-	## Lv50 到達技は他職と同様 apex_*（オトモ3種は Lv6/42/48 に維持）
+	assert_eq(str(herd.target_type), "all_party")
+	## Lv50 到達技は他職と同様 apex_*
 	var unlocks: Array = job.skill_unlocks
+	assert_eq(unlocks.size(), 7, "職キット7本")
 	var lv50: Dictionary = {}
 	for entry: Variant in unlocks:
 		if int(entry.get("level", 0)) == 50:

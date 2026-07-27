@@ -4,18 +4,23 @@
 
 [resource]
 script = ExtResource("1")
-id = "apex_shot"
-display_name = "極意射"
-description = "重い一矢の極意。ボスの窓向け。甲砕の回転はスナイプに譲る。"
+id = "volley_shot"
+display_name = "斉射"
+description = "矢を扇状に放ち、敵全体を射抜く。群れ掃討向き。"
 skill_type = "player"
-target_type = "enemy"
-power_multiplier = 2.35
-cooldown = 7.0
+target_type = "all_enemies"
+power_multiplier = 0.95
+cooldown = 5.0
 trigger_type = "cooldown"
 effect_type = "damage"
-tags = Array[String](["ranged", "pierce"])
+tags = Array[String](["ranged", "pierce", "aoe"])
 element = ""
 apply_status_id = ""
 apply_status_chance = 0.0
+apply_status_id2 = ""
+apply_status_chance2 = 0.0
 slot_type = "skill"
 range_type = "long"
+cast_time = 0.0
+reserve_condition = ""
+reserve_value = ""

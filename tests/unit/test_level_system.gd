@@ -37,19 +37,19 @@ func test_skill_unlocks_still_cap_at_job_data() -> void:
 	var member: Resource = GameState.roster[0]
 	member.level = 99
 	var ids: Array[String] = SkillProgression.get_unlocked_job_skill_ids(member)
-	assert_eq(ids.size(), 10, "Lv50習得10のまま")
+	assert_eq(ids.size(), 7, "Lv50習得7（P3-SKILL-KIT-001）")
 
 func test_skill_ids_unlocked_between_levels() -> void:
 	var member: Resource = GameState.roster[0]
-	## アルケミスト以外でも skill_unlocks の Lv6 はある想定。Lv5→6 で1本。
-	var at_6: Array[String] = SkillProgression.skill_ids_unlocked_between(member, 5, 6)
-	assert_eq(at_6.size(), 1, "Lv6ちょうどで1本")
-	var none: Array[String] = SkillProgression.skill_ids_unlocked_between(member, 6, 6)
+	## P3-SKILL-KIT-001: 解放 Lv=1/8/15/22/30/40/50
+	var at_8: Array[String] = SkillProgression.skill_ids_unlocked_between(member, 7, 8)
+	assert_eq(at_8.size(), 1, "Lv8ちょうどで1本")
+	var none: Array[String] = SkillProgression.skill_ids_unlocked_between(member, 8, 8)
 	assert_eq(none.size(), 0)
-	var span: Array[String] = SkillProgression.skill_ids_unlocked_between(member, 1, 12)
-	assert_eq(span.size(), 2, "Lv6とLv12の2本（Lv1は before に含まれるため除外）")
+	var span: Array[String] = SkillProgression.skill_ids_unlocked_between(member, 1, 15)
+	assert_eq(span.size(), 2, "Lv8とLv15の2本（Lv1は before に含まれるため除外）")
 	## 経験値画面は複数習得時に最後の1本だけ表示する（P3-UX-SKILL-LEARN-PERSIST-001）。
-	assert_eq(span[span.size() - 1], span[1], "最後＝Lv12解放")
-	var at_level: Array[String] = SkillProgression.skill_ids_unlocked_at_level(member, 12)
+	assert_eq(span[span.size() - 1], span[1], "最後＝Lv15解放")
+	var at_level: Array[String] = SkillProgression.skill_ids_unlocked_at_level(member, 15)
 	assert_eq(at_level.size(), 1)
 	assert_eq(at_level[0], span[span.size() - 1])

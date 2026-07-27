@@ -4,20 +4,23 @@
 
 [resource]
 script = ExtResource("1")
-id = "chain_slash"
-display_name = "連刃"
-description = "追い刃の連携斬。出血した敵に特に効く。未出血では本領を出せない。"
+id = "blood_mist_slash"
+display_name = "血煙斬"
+description = "血煙をまとい、敵全体に裂傷を撒く。付与率は単体より控えめ。"
 skill_type = "player"
-target_type = "enemy"
-power_multiplier = 1.25
-cooldown = 4.0
+target_type = "all_enemies"
+power_multiplier = 0.75
+cooldown = 5.5
 trigger_type = "cooldown"
 effect_type = "damage"
-tags = Array[String](["melee", "slash", "vs_bleed"])
+tags = Array[String](["melee", "slash", "aoe"])
 element = ""
 apply_status_id = "bleed"
-apply_status_chance = 0.25
+apply_status_chance = 0.28
+apply_status_id2 = ""
+apply_status_chance2 = 0.0
 slot_type = "skill"
 range_type = "melee"
+cast_time = 0.0
 reserve_condition = ""
 reserve_value = ""
