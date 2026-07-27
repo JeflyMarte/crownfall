@@ -5732,6 +5732,43 @@ func _roll_enhancement_material_drops(
 	_try_register_discovery("material", mat_id)
 	_append_material_drop_icons(drop_icons, mat_id, amount)
 
+## 撃破時点で生存している戦闘参加者 id（人間＋オトモ）。
+func _alive_exp_recipient_ids() -> Array[String]:
+	var out: Array[String] = []
+	var n: int = $CombatController.party_combat_hp.size()
+	for i: int in n:
+		if not $CombatController.is_member_alive(i):
+			continue
+		var member: Resource = GameState.get_combatant(i)
+		if member == null:
+			continue
+		var mid: String = str(member.id).strip_edges()
+		if mid.is_empty() or out.has(mid):
+			continue
+		out.append(mid)
+	return out
+
+
+## 戦闘クリア時の装備EXPは生存人間のみ（死者の装備は伸ばさない）。
+func _alive_party_members_for_equip_exp() -> Array:
+	var out: Array = []
+	for i: int in GameState.party_members.size():
+		if not $CombatController.is_member_alive(i):
+			continue
+		var member: Resource = GameState.party_members[i]
+		if member != null:
+			out.append(member)
+	return out
+
+
+func _commit_run_exp_state_to_gamestate() -> void:
+	GameState.last_run_exp_reward = $DungeonController.run_exp_reward
+	GameState.last_run_exp_by_member = $DungeonController.run_exp_by_member.duplicate(true)
+	GameState.last_run_exp_snapshots = ExpRunSnapshotScript.build_party_snapshots_by_member(
+		$DungeonController.run_exp_by_member
+	)
+
+
 # アクティブ敵 1体の撃破ブックキーピング（P3-D082/D083/D111）。
 func _award_enemy_kill_at(killed_slot: int) -> void:
 	var room_type: int = $DungeonController.current_room_type
@@ -5767,7 +5804,9 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 	var final_gold: int = int($CombatController.last_gold_reward * mult * gold_event_mult * tier_reward_mult)
 	if codex_investigation:
 		final_exp = int(round(float(final_exp) * CODEX_INVESTIGATION_EXP_BONUS))
-	$DungeonController.accumulate_rewards(final_exp, final_gold)
+	var awarded_exp: int = $DungeonController.accumulate_rewards(final_exp, final_gold)
+	## 撃破時点の生存者のみ個別積立（死者は以降の撃破EXPを受け取らない）。
+	$DungeonController.accumulate_exp_for_members(awarded_exp, _alive_exp_recipient_ids())
 	if room_type == Enums.RoomType.BOSS:
 		$DungeonController.update_discovery($DungeonController.DISCOVERY_BOSS_BONUS)
 		_play_boss_animation("death")
@@ -5784,7 +5823,7 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 	if codex_investigation:
 		bonus_tag += " [図鑑調査]"
 	var log_lines: PackedStringArray = [
-		"撃破!  経験値 +%d  ゴールド +%d%s" % [final_exp, final_gold, bonus_tag],
+		"撃破!  経験値 +%d  ゴールド +%d%s" % [awarded_exp, final_gold, bonus_tag],
 	]
 	var kill_pos: Vector2 = _enemy_slot_pos(killed_slot)
 	var drop_icons: Array = []
@@ -5940,7 +5979,7 @@ func _finalize_combat_cleared() -> void:
 		enemy_lv = int($DungeonController.current_stage_data.enemy_level)
 	elif $DungeonController.current_dungeon_data != null:
 		enemy_lv = int($DungeonController.current_dungeon_data.enemy_level)
-	EquipmentEnhancer.grant_party_combat_exp(enemy_lv, GameState.party_members)
+	EquipmentEnhancer.grant_party_combat_exp(enemy_lv, _alive_party_members_for_equip_exp())
 	_append_log("累計  経験値 %d  ゴールド %d" % [
 		$DungeonController.run_exp_reward,
 		$DungeonController.run_gold_reward,
@@ -6965,7 +7004,6 @@ func _handle_party_wipe(cause_kind: String = "") -> void:
 	_update_combat_visibility()
 	_non_combat_zone.visible = false
 	_append_log("全員が倒れた... 探索失敗")
-	GameState.last_run_exp_reward = $DungeonController.run_exp_reward
 	GameState.last_run_gold_reward = $DungeonController.run_gold_reward
 	## 深層マイルストーンの魔晶石はラン中加算分を残す。
 	GameState.last_run_weapon_dropped = ""
@@ -6973,10 +7011,8 @@ func _handle_party_wipe(cause_kind: String = "") -> void:
 	GameState.last_run_accessory_dropped = ""
 	GameState.last_run_relic_dropped = ""
 	GameState.last_run_level_ups = {}
-	## 敗北でも撃破分の経験値は付与する。
-	GameState.last_run_exp_snapshots = ExpRunSnapshotScript.build_party_snapshots(
-		$DungeonController.run_exp_reward
-	)
+	## 敗北でも撃破分の経験値は付与する（生存中に稼いだ分のみ）。
+	_commit_run_exp_state_to_gamestate()
 	GameState.last_run_combat_stats = GameState.get_run_combat_stats().snapshot()
 	_commit_commander_run_stats(GameState.RUN_OUTCOME_WIPE)
 	GameState.last_run_outcome = GameState.RUN_OUTCOME_WIPE
@@ -7160,8 +7196,7 @@ func _on_finish_button_pressed() -> void:
 	_clear_turn_order_ui()
 	$CombatController.end_combat()
 	$DungeonController.generate_run_loot()
-	GameState.last_run_exp_reward = $DungeonController.run_exp_reward
-	GameState.last_run_exp_snapshots = ExpRunSnapshotScript.build_party_snapshots($DungeonController.run_exp_reward)
+	_commit_run_exp_state_to_gamestate()
 	GameState.last_run_level_ups = {}
 	GameState.last_run_gold_reward = $DungeonController.run_gold_reward
 	## P3-BAL-ECO-001 / P3-BAL-TIER-001: 基礎35–65 × ティア報酬倍率（H×1.2／NM×1.4）
@@ -7440,8 +7475,7 @@ func _retire_from_dungeon() -> void:
 			GameState.current_dungeon_id,
 			$DungeonController.get_display_floor_current()
 		)
-	GameState.last_run_exp_reward = $DungeonController.run_exp_reward
-	GameState.last_run_exp_snapshots = ExpRunSnapshotScript.build_party_snapshots($DungeonController.run_exp_reward)
+	_commit_run_exp_state_to_gamestate()
 	GameState.last_run_level_ups = {}
 	GameState.last_run_gold_reward = $DungeonController.run_gold_reward
 	## last_run_token_reward はラン中マイルストーン等で加算済み。上書きしない。

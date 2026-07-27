@@ -2,7 +2,8 @@ class_name LevelSystem
 extends RefCounted
 
 ## キャラクターのレベル制（P3-D035 / P3-LV-099）。
-## EXP はラン成功時にパーティ全員へ付与。レベルアップで HP/ATK が成長する。
+## EXP はラン成功／敗北時に付与。撃破時点の生存者のみ積立（P3-BAL-DEAD-EXP-001）。
+## レベルアップで HP/ATK が成長する。
 ## Lv1〜50: BalanceConfig.HP/ATTACK_PER_LEVEL、Lv51〜99: *_MASTER（スキル習得は Lv50 まで据置）。
 ##
 ## `-s` ツール（balance_sim）から load されてもパースできるよう、autoload / 他 class_name は
@@ -83,22 +84,43 @@ static func grant_exp(adventurer: Resource, amount: int) -> int:
 
 ## パーティ全員へ同量の EXP を付与。{ member_id: gained_levels } を返す（成長者のみ）。
 static func grant_exp_to_party(amount: int) -> Dictionary:
-	var result: Dictionary = {}
+	var by_member: Dictionary = {}
 	var gs: Node = _game_state()
 	if gs == null:
+		return {}
+	for member in gs.party_members:
+		if member == null:
+			continue
+		by_member[str(member.id)] = amount
+	if gs.active_pet != null:
+		by_member[str(gs.active_pet.id)] = amount
+	return grant_exp_by_member(by_member)
+
+
+## メンバー別 EXP を付与。{ member_id: gained_levels }（成長者のみ）。
+static func grant_exp_by_member(exp_by_member: Dictionary) -> Dictionary:
+	var result: Dictionary = {}
+	var gs: Node = _game_state()
+	if gs == null or exp_by_member.is_empty():
 		return result
 	for member in gs.party_members:
 		if member == null:
 			continue
+		var mid: String = str(member.id)
+		var amount: int = int(exp_by_member.get(mid, 0))
+		if amount <= 0:
+			continue
 		var gained: int = grant_exp(member, amount)
 		if gained > 0:
-			result[member.id] = gained
-	## 随伴オトモも共有EXP（P3-PET-OTOMO-001）
+			result[mid] = gained
+	## 随伴オトモも個別積立分のみ（P3-PET-OTOMO-001）
 	if gs.active_pet != null:
-		var pet_gained: int = grant_exp(gs.active_pet, amount)
-		if pet_gained > 0:
-			result[gs.active_pet.id] = pet_gained
-			## Lv到達で即スキルが増える（P3-PET-SKILL-001）
-			const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
-			_PetSystem.sync_pet_runtime(gs.active_pet)
+		var pet_id: String = str(gs.active_pet.id)
+		var pet_amount: int = int(exp_by_member.get(pet_id, 0))
+		if pet_amount > 0:
+			var pet_gained: int = grant_exp(gs.active_pet, pet_amount)
+			if pet_gained > 0:
+				result[pet_id] = pet_gained
+				const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
+				_PetSystem.sync_pet_runtime(gs.active_pet)
 	return result

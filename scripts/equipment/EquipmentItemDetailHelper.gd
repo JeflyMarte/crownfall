@@ -39,13 +39,10 @@ static func category_label(category: String) -> String:
 	return EquipmentUiHelper.category_label(category)
 
 static func owner_text(item: Resource) -> String:
-	var idx: int = EquipmentUiHelper.equipped_member_index(item)
-	if idx < 0:
+	var owner: Resource = GameState.find_item_equipped_owner(item)
+	if owner == null:
 		return "装備者: なし"
-	var member: Resource = GameState.get_member(idx)
-	if member == null:
-		return "装備者: なし"
-	return "装備者: %s" % str(member.display_name)
+	return "装備者: %s" % str(owner.display_name)
 
 static func weapon_legendary_effect_text_from_data(weapon_data: Resource) -> String:
 	if weapon_data == null:

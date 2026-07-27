@@ -542,9 +542,9 @@ static func can_alchemy(base: Resource, fodder: Resource) -> Dictionary:
 		return fail.call("神話装備は錬成素材にできません")
 	if item_rarity(base) >= Enums.Rarity.MYTHIC:
 		return fail.call("神話装備は錬成できません")
-	if GameState.find_item_equipped_member_index(base) >= 0:
+	if GameState.find_item_equipped_owner(base) != null:
 		return fail.call("主材が装備中です。外してから行ってください")
-	if GameState.find_item_equipped_member_index(fodder) >= 0:
+	if GameState.find_item_equipped_owner(fodder) != null:
 		return fail.call("素材が装備中です。外してから行ってください")
 	var from_lv: int = get_equip_level(base)
 	if from_lv >= EQUIP_MAX_LEVEL:
@@ -596,7 +596,7 @@ static func can_dismantle_item(item: Resource) -> Dictionary:
 		return fail.call("装備が選択されていません")
 	if not bool(item.is_appraised):
 		return fail.call("未鑑定の装備は分解できません")
-	if GameState.find_item_equipped_member_index(item) >= 0:
+	if GameState.find_item_equipped_owner(item) != null:
 		return fail.call("装備中のアイテムは分解できません")
 	return {"ok": true, "reason": ""}
 

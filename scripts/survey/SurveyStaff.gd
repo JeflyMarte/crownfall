@@ -6,7 +6,7 @@ extends RefCounted
 const ID_NINA: String = "staff_nina"
 const ID_NONOKA: String = "staff_nonoka"
 
-## おまかせ時のスタッフ優先順（先頭1人を採用）。
+## おまかせ時のスタッフ優先順（先頭1人を採用）。解放済みのみ候補。
 const AUTO_PRIORITY: Array[String] = [ID_NONOKA, ID_NINA]
 
 ## 研究速度（戦闘ステ非依存）。担当一致で +ROLE。

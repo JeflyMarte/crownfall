@@ -19,8 +19,11 @@ enum Phase { SHOWCASE, REVEAL, DONE }
 var _adventurer_id: String = ""
 var _display_name: String = ""
 var _job_id: String = ""
+var _job_label_override: String = ""
 var _phase: int = Phase.SHOWCASE
 var _reveal_can_dismiss: bool = false
+## true のときショーケースのみ（ガチャ風リビールなし）。調査スタッフ合流用。
+var _showcase_only: bool = false
 
 var _dim: ColorRect
 var _showcase_root: Control
@@ -61,10 +64,18 @@ func _ready() -> void:
 	_build()
 
 
-func present(adventurer_id: String) -> void:
+func present(adventurer_id: String, showcase_only: bool = false) -> void:
 	_adventurer_id = adventurer_id.strip_edges()
+	_showcase_only = showcase_only
+	_job_label_override = ""
 	const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
-	if _PetSystem.is_pet_id(_adventurer_id):
+	const _SurveyStaff := preload("res://scripts/survey/SurveyStaff.gd")
+	if _SurveyStaff.is_staff_id(_adventurer_id):
+		_display_name = _SurveyStaff.display_name(_adventurer_id)
+		_job_id = ""
+		_job_label_override = _SurveyStaff.job_label(_adventurer_id)
+		_showcase_only = true
+	elif _PetSystem.is_pet_id(_adventurer_id):
 		var pet_data: Resource = _PetSystem.get_pet_data(_adventurer_id)
 		_display_name = str(pet_data.display_name) if pet_data != null else _adventurer_id
 		_job_id = ""
@@ -83,6 +94,8 @@ func present(adventurer_id: String) -> void:
 	_reveal_root.visible = false
 	visible = true
 	_play_showcase_intro()
+	if _quote_tap_label != null:
+		_quote_tap_label.text = "タップで閉じる" if _showcase_only else "タップで続ける"
 	AudioManager.play_sfx("ui_confirm", 1.0, 0.0)
 
 
@@ -418,18 +431,34 @@ func _build_reveal() -> void:
 
 
 func _refresh_showcase() -> void:
-	var tex: Texture2D = IconPaths.get_icon_texture(_adventurer_id, "chr")
-	if tex == null and not _job_id.is_empty():
-		tex = IconPaths.get_icon_texture(_job_id, "chr")
+	const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
+	const _SurveyStaff := preload("res://scripts/survey/SurveyStaff.gd")
+	var tex: Texture2D = null
+	if _SurveyStaff.is_staff_id(_adventurer_id):
+		tex = _SurveyStaff.load_icon_texture(_adventurer_id)
+		if tex == null:
+			var ppath: String = _SurveyStaff.portrait_path(_adventurer_id)
+			if not ppath.is_empty() and ResourceLoader.exists(ppath):
+				tex = load(ppath) as Texture2D
+	else:
+		tex = IconPaths.get_icon_texture(_adventurer_id, "chr")
+		if tex == null and not _job_id.is_empty():
+			tex = IconPaths.get_icon_texture(_job_id, "chr")
 	_portrait_icon.texture = tex
 	_job_icon.texture = tex
 	_name_label.text = _display_name
-	const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
 	var star_n: int = Adventurer.STARTER_RARITY
-	if _PetSystem.is_pet_id(_adventurer_id):
+	var show_stars: bool = true
+	if _SurveyStaff.is_staff_id(_adventurer_id):
+		show_stars = false
+		_stars_label.text = _job_label_override if not _job_label_override.is_empty() else ""
+	elif _PetSystem.is_pet_id(_adventurer_id):
 		var pet_data: Resource = _PetSystem.get_pet_data(_adventurer_id)
 		star_n = clampi(int(pet_data.rarity) if pet_data != null else 1, 1, 5)
-	_stars_label.text = RosterUiHelper.stars_text(star_n)
+		_stars_label.text = RosterUiHelper.stars_text(star_n)
+	else:
+		_stars_label.text = RosterUiHelper.stars_text(star_n)
+	_stars_label.visible = show_stars or not _stars_label.text.is_empty()
 	_quote_label.text = "「%s」" % _StarterJoinQuotes.line_for(_adventurer_id)
 	UiTypography.apply_display(_name_label, UiTypography.SIZE_DISPLAY, UiTypography.COLOR_GOLD)
 	UiTypography.apply_display(_stars_label, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
@@ -473,6 +502,9 @@ func _on_overlay_input(event: InputEvent) -> void:
 func _on_tap() -> void:
 	match _phase:
 		Phase.SHOWCASE:
+			if _showcase_only:
+				_close()
+				return
 			_begin_reveal()
 		Phase.REVEAL:
 			if not _reveal_can_dismiss:
@@ -603,9 +635,14 @@ func _close() -> void:
 	queue_free()
 
 
-static func show_on(parent: Node, adventurer_id: String) -> CanvasLayer:
+static func show_on(parent: Node, adventurer_id: String, showcase_only: bool = false) -> CanvasLayer:
 	var overlay := new()
 	overlay.name = "StarterJoinOverlay"
 	parent.add_child(overlay)
-	overlay.present(adventurer_id)
+	overlay.present(adventurer_id, showcase_only)
 	return overlay
+
+
+## 調査スタッフなどショーケースのみの合流演出。
+static func show_showcase_only(parent: Node, member_id: String) -> CanvasLayer:
+	return show_on(parent, member_id, true)

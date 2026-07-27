@@ -216,8 +216,8 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 	var icon: Texture2D = _item_icon(item, category)
 	_attach_item_icon(btn, icon, cell_px, EquipmentUiTokens.INV_CELL_DESIGN_PX, item, category)
 	var rarity: int = _item_rarity(item, category)
-	var owner_idx: int = EquipmentUiHelper.equipped_member_index(item)
-	var is_equipped: bool = owner_idx >= 0
+	var owner_member: Resource = GameState.find_item_equipped_owner(item)
+	var is_equipped: bool = owner_member != null
 	btn.tooltip_text = EquipmentItemDetailHelper.short_name(item, category)
 	## ScrollTouch が mouse_filter=PASS にするため pressed は不発になりやすい。gui_input で短押しを取る。
 	btn.gui_input.connect(_on_item_cell_gui_input.bind(item, category))
@@ -226,8 +226,8 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 		btn.modulate = Color(0.85, 0.92, 1.0, 1.0)
 	_apply_item_cell_styles(btn, rarity, cell_px, false, selected)
 	_apply_item_badges(btn, item, category, cell_size, is_equipped)
-	if owner_idx >= 0:
-		_add_owner_portrait_badge(btn, owner_idx, cell_size)
+	if owner_member != null:
+		_add_owner_portrait_badge(btn, owner_member, cell_size)
 	return btn
 
 func _on_item_cell_gui_input(event: InputEvent, item: Resource, category: String) -> void:
@@ -387,11 +387,10 @@ func _add_corner_badge(
 	lbl.position = pos
 	btn.add_child(lbl)
 
-func _add_owner_portrait_badge(btn: Button, owner_idx: int, cell_size: Vector2) -> void:
-	var member: Resource = GameState.get_member(owner_idx)
-	if member == null:
+func _add_owner_portrait_badge(btn: Button, owner_member: Resource, cell_size: Vector2) -> void:
+	if owner_member == null:
 		return
-	var tex: Texture2D = RosterUiHelper.get_member_portrait_texture(member)
+	var tex: Texture2D = RosterUiHelper.get_member_portrait_texture(owner_member)
 	if tex == null:
 		return
 	var badge_px: float = 28.0

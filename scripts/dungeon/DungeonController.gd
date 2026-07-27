@@ -498,6 +498,8 @@ var current_room_type: int = Enums.RoomType.START
 var is_completed: bool = false
 var current_exploration_policy: int = Enums.ExplorationPolicy.EXPLORE
 var run_exp_reward: int = 0
+## 撃破時点の生存者ごとの累積EXP（死者は以降の撃破分を受け取らない）。
+var run_exp_by_member: Dictionary = {}
 var run_gold_reward: int = 0
 var last_weapon_dropped: String = ""
 var last_armor_dropped: String = ""
@@ -554,6 +556,7 @@ func _reset_run_state() -> void:
 	is_completed = false
 	current_exploration_policy = Enums.ExplorationPolicy.EXPLORE
 	run_exp_reward = 0
+	run_exp_by_member = {}
 	run_gold_reward = 0
 	last_weapon_dropped = ""
 	last_armor_dropped = ""
@@ -1007,7 +1010,8 @@ func is_on_last_floor() -> bool:
 func is_on_last_floor_before_exit() -> bool:
 	return is_on_last_floor()
 
-func accumulate_rewards(exp: int, gold: int) -> void:
+func accumulate_rewards(exp: int, gold: int) -> int:
+	## ボーナス適用後の EXP 量を返す（生存者への個別積立用）。
 	if exp > 0:
 		exp = _AffixStatCalculator.apply_exp_bonus(exp)
 		var exp_bless: float = floor_blessing_mult_for("exp")
@@ -1023,6 +1027,22 @@ func accumulate_rewards(exp: int, gold: int) -> void:
 		if gold_bless > 1.0:
 			gold = maxi(1, int(round(float(gold) * gold_bless)))
 	run_gold_reward += gold
+	return exp
+
+
+## 撃破時点の生存メンバーへ同額を積む（分割しない＝従来の全員同額付与と同じ単位）。
+func accumulate_exp_for_members(exp: int, member_ids: Array) -> void:
+	if exp <= 0:
+		return
+	for raw_id in member_ids:
+		var mid: String = str(raw_id).strip_edges()
+		if mid.is_empty():
+			continue
+		run_exp_by_member[mid] = int(run_exp_by_member.get(mid, 0)) + exp
+
+
+func get_member_run_exp(member_id: String) -> int:
+	return int(run_exp_by_member.get(member_id, 0))
 
 func get_enemy_level() -> int:
 	var base: int = 1

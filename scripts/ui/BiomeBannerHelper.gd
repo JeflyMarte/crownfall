@@ -56,3 +56,39 @@ static func load_texture(dungeon_id: String) -> Texture2D:
 	if path.is_empty() or not ResourceLoader.exists(path):
 		return null
 	return load(path) as Texture2D
+
+
+## バナー重ねタイトル用フォントサイズ。
+## メイン帯は同一サイズを優先し、深層／はみ出し時のみ段階縮小（文字数閾値は使わない）。
+const TITLE_MAX_WIDTH: float = 520.0
+const TITLE_MAX_WIDTH_WITH_CLEAR: float = 440.0
+
+
+static func title_font_size(
+	dungeon_id: String,
+	title_text: String,
+	with_clear: bool = false
+) -> int:
+	var text: String = title_text.strip_edges()
+	if text.is_empty():
+		text = "？"
+	var max_w: float = TITLE_MAX_WIDTH_WITH_CLEAR if with_clear else TITLE_MAX_WIDTH
+	var sizes: Array[int] = [
+		UiTypography.SIZE_BODY,
+		UiTypography.SIZE_BODY_SMALL,
+		UiTypography.SIZE_CAPTION,
+	]
+	const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
+	## 深層の「無限〜の最果て」は最初から一段小さく。
+	if _AbyssDungeonConfig.is_abyss_dungeon_id(dungeon_id):
+		sizes = [UiTypography.SIZE_BODY_SMALL, UiTypography.SIZE_CAPTION]
+	var font: Font = UiTypography.display_font()
+	if font == null:
+		return sizes[0]
+	for sz: int in sizes:
+		var measured: float = font.get_string_size(
+			text, HORIZONTAL_ALIGNMENT_LEFT, -1, sz
+		).x
+		if measured <= max_w:
+			return sz
+	return sizes[sizes.size() - 1]

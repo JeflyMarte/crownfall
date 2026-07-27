@@ -16,13 +16,23 @@ static func exp_recipients() -> Array:
 
 
 static func build_party_snapshots(exp_amount: int) -> Dictionary:
-	var out: Dictionary = {}
-	if exp_amount <= 0:
-		return out
+	## 後方互換: 全員に同額（旧挙動）。新規は build_party_snapshots_by_member を使う。
+	var by_member: Dictionary = {}
 	for member: Resource in exp_recipients():
 		var member_id: String = str(member.id)
 		if member_id.is_empty():
 			continue
+		by_member[member_id] = exp_amount
+	return build_party_snapshots_by_member(by_member)
+
+
+static func build_party_snapshots_by_member(exp_by_member: Dictionary) -> Dictionary:
+	var out: Dictionary = {}
+	for member: Resource in exp_recipients():
+		var member_id: String = str(member.id)
+		if member_id.is_empty():
+			continue
+		var exp_amount: int = int(exp_by_member.get(member_id, 0))
 		var sim: Dictionary = simulate_member_exp(member, exp_amount)
 		out[member_id] = {
 			"member_id": member_id,

@@ -1268,8 +1268,11 @@ func _make_banner_overlay_title(data: Resource, unlocked: bool, dungeon_id: Stri
 	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	host.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	host.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var title_text: String = _dungeon_display_name(data, unlocked)
+	var show_clear: bool = unlocked and data != null and _is_biome_fully_cleared_for_ui(str(data.id))
+	var title_size: int = _banner_title_font_size(dungeon_id, title_text, show_clear)
 	var title := Label.new()
-	title.text = _dungeon_display_name(data, unlocked)
+	title.text = title_text
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	title.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -1279,16 +1282,16 @@ func _make_banner_overlay_title(data: Resource, unlocked: bool, dungeon_id: Stri
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_display(
 		title,
-		_banner_title_font_size(dungeon_id),
+		title_size,
 		UiTypography.COLOR_GOLD if unlocked else UiTypography.COLOR_SUB
 	)
 	_apply_banner_title_shadow(title)
 	host.add_child(title)
-	if unlocked and _is_biome_fully_cleared_for_ui(str(data.id)):
+	if show_clear:
 		var clear_lbl := Label.new()
 		clear_lbl.text = "CLEAR"
 		clear_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		UiTypography.apply_display(clear_lbl, _banner_title_font_size(dungeon_id), COLOR_CLEAR_BADGE)
+		UiTypography.apply_display(clear_lbl, title_size, COLOR_CLEAR_BADGE)
 		_apply_banner_title_shadow(clear_lbl)
 		host.add_child(clear_lbl)
 	host.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
@@ -1336,14 +1339,12 @@ func _sync_featured_banner(dungeon_id: String) -> void:
 	var title: Control = _make_banner_overlay_title(data, unlocked, dungeon_id)
 	_featured_banner_host.add_child(title)
 
-func _banner_title_font_size(dungeon_id: String) -> int:
-	## 無限／長いイベント名はネームプレート内に収まるよう一段小さくする。
-	if _AbyssDungeonConfig.is_abyss_dungeon_id(dungeon_id):
-		return UiTypography.SIZE_BODY_SMALL
-	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
-	if data != null and str(data.display_name).length() >= 12:
-		return UiTypography.SIZE_BODY_SMALL
-	return UiTypography.SIZE_BODY
+func _banner_title_font_size(
+	dungeon_id: String,
+	title_text: String = "",
+	with_clear: bool = false
+) -> int:
+	return _BiomeBannerHelper.title_font_size(dungeon_id, title_text, with_clear)
 
 func _make_biome_banner_header(
 	data: Resource,

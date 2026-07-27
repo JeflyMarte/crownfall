@@ -2,8 +2,10 @@ class_name NinaDialogueOverlay
 extends CanvasLayer
 
 ## 拠点での記録官ニーナ会話（功績／加入予告など）。
+## 行は String（ニーナ）または { "speaker": "nina"|"nonoka", "text": "..." }。
 
 const _IntroUiAssets := preload("res://scripts/intro/IntroUiAssets.gd")
+const _SurveyStaff := preload("res://scripts/survey/SurveyStaff.gd")
 
 signal dismissed
 
@@ -13,7 +15,10 @@ const PANEL_MIN: Vector2 = Vector2(600, 320)
 const PORTRAIT_W: float = 120.0
 const PORTRAIT_H: float = 180.0
 
-var _lines: Array[String] = []
+const SPEAKER_NINA: String = "nina"
+const SPEAKER_NONOKA: String = "nonoka"
+
+var _entries: Array[Dictionary] = []
 var _line_index: int = 0
 var _dim: ColorRect
 var _panel: PanelContainer
@@ -22,6 +27,8 @@ var _body_label: Label
 var _hint_label: Label
 var _portrait: TextureRect
 var _tween: Tween
+var _nina_portrait_tex: Texture2D = null
+var _nonoka_portrait_tex: Texture2D = null
 
 
 func _ready() -> void:
@@ -31,18 +38,35 @@ func _ready() -> void:
 
 
 func present(lines: Array) -> void:
-	_lines.clear()
+	_entries.clear()
 	for raw in lines:
-		var text: String = str(raw).strip_edges()
-		if not text.is_empty():
-			_lines.append(text)
-	if _lines.is_empty():
-		_lines.append("…")
+		var entry: Dictionary = _normalize_entry(raw)
+		if entry.is_empty():
+			continue
+		_entries.append(entry)
+	if _entries.is_empty():
+		_entries.append({"speaker": SPEAKER_NINA, "text": "…"})
 	_line_index = 0
 	_refresh_line()
 	visible = true
 	_play_intro()
 	call_deferred("_play_sfx")
+
+
+func _normalize_entry(raw: Variant) -> Dictionary:
+	if raw is Dictionary:
+		var d: Dictionary = raw as Dictionary
+		var text: String = str(d.get("text", "")).strip_edges()
+		if text.is_empty():
+			return {}
+		var speaker: String = str(d.get("speaker", SPEAKER_NINA)).strip_edges().to_lower()
+		if speaker != SPEAKER_NONOKA:
+			speaker = SPEAKER_NINA
+		return {"speaker": speaker, "text": text}
+	var text_s: String = str(raw).strip_edges()
+	if text_s.is_empty():
+		return {}
+	return {"speaker": SPEAKER_NINA, "text": text_s}
 
 
 func _play_sfx() -> void:
@@ -92,12 +116,17 @@ func _build() -> void:
 	_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_portrait.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	_portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var tex: Texture2D = _IntroUiAssets.load_tex(PORTRAIT_PATH)
-	if tex == null:
-		tex = _IntroUiAssets.load_tex(_IntroUiAssets.NINA_DIALOGUE_BUST)
-	if tex == null:
-		tex = _IntroUiAssets.load_tex(_IntroUiAssets.NINA_ICON)
-	_portrait.texture = tex
+	_nina_portrait_tex = _IntroUiAssets.load_tex(PORTRAIT_PATH)
+	if _nina_portrait_tex == null:
+		_nina_portrait_tex = _IntroUiAssets.load_tex(_IntroUiAssets.NINA_DIALOGUE_BUST)
+	if _nina_portrait_tex == null:
+		_nina_portrait_tex = _IntroUiAssets.load_tex(_IntroUiAssets.NINA_ICON)
+	_nonoka_portrait_tex = _SurveyStaff.load_icon_texture(_SurveyStaff.ID_NONOKA)
+	if _nonoka_portrait_tex == null:
+		var npath: String = _SurveyStaff.portrait_path(_SurveyStaff.ID_NONOKA)
+		if not npath.is_empty() and ResourceLoader.exists(npath):
+			_nonoka_portrait_tex = load(npath) as Texture2D
+	_portrait.texture = _nina_portrait_tex
 	row.add_child(_portrait)
 
 	var col := VBoxContainer.new()
@@ -129,12 +158,22 @@ func _build() -> void:
 
 
 func _refresh_line() -> void:
-	var text: String = _lines[_line_index] if _line_index < _lines.size() else "…"
+	var entry: Dictionary = _entries[_line_index] if _line_index < _entries.size() else {}
+	var speaker: String = str(entry.get("speaker", SPEAKER_NINA))
+	var text: String = str(entry.get("text", "…"))
 	_body_label.text = text
+	if speaker == SPEAKER_NONOKA:
+		_name_label.text = "研究員 ノノカ"
+		if _nonoka_portrait_tex != null:
+			_portrait.texture = _nonoka_portrait_tex
+	else:
+		_name_label.text = "記録官 ニーナ"
+		if _nina_portrait_tex != null:
+			_portrait.texture = _nina_portrait_tex
 	UiTypography.apply_display(_name_label, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
 	UiTypography.apply_body(_body_label, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	UiTypography.apply_caption(_hint_label, UiTypography.COLOR_MUTED)
-	if _line_index >= _lines.size() - 1:
+	if _line_index >= _entries.size() - 1:
 		_hint_label.text = "タップで続ける"
 	else:
 		_hint_label.text = "タップで次へ"
@@ -171,7 +210,7 @@ func _on_dim_gui_input(event: InputEvent) -> void:
 
 
 func _advance() -> void:
-	if _line_index < _lines.size() - 1:
+	if _line_index < _entries.size() - 1:
 		_line_index += 1
 		_refresh_line()
 		AudioManager.play_sfx("ui_confirm")
