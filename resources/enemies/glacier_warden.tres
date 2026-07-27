@@ -33,5 +33,5 @@ codex_danger = 4
 codex_habitat = "最果て氷裂・氷河縁"
 codex_research_note = "マンモスを祖先とし、氷河の割れ目に縄張りを張る大型種。肩から背へ氷晶の板を背負い、動かぬときは氷壁に擬態する。開拓者の境界標を守るように見えるが、王の使いではない。"
 codex_materials = Array[String]([])
-skill_ids = Array[String]([])
-skill_use_chance = 0.0
+skill_ids = Array[String](["enemy_shrapnel_slam"])
+skill_use_chance = 0.28

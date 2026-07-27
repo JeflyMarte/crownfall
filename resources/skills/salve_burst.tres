@@ -6,11 +6,11 @@
 script = ExtResource("1")
 id = "salve_burst"
 display_name = "大治癒"
-description = "濃縮した薬液で最も負傷した味方を大きく回復する。"
+description = "濃縮薬液による緊急大回復。平時の維持は治癒、ここはピンチ専用。"
 skill_type = "player"
 target_type = "ally"
-power_multiplier = 1.35
-cooldown = 5.5
+power_multiplier = 1.9
+cooldown = 8.5
 trigger_type = "cooldown"
 effect_type = "heal"
 tags = Array[String](["support", "heal"])

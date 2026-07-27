@@ -20,7 +20,7 @@ func test_passive_defs_for_new_four() -> void:
 	assert_almost_eq(float(lenore.get("incoming_mult", 1.0)), 1.12, 0.001)
 	var sian: Dictionary = CombatPassives.get_def("sian_silent_line")
 	assert_eq(str(sian.get("trigger", "")), "on_combat_start")
-	assert_eq(str(sian.get("status_id", "")), "empower")
+	assert_eq(str(sian.get("status_id", "")), "empower_minor")
 	assert_eq(str(sian.get("target", "")), "party")
 	var neri: Dictionary = CombatPassives.get_def("neri_waterfowl_call")
 	assert_almost_eq(float(neri.get("pet_outgoing_mult", 1.0)), 1.25, 0.001)

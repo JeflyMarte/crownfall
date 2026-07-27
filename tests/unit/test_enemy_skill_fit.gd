@@ -30,6 +30,8 @@ func test_main_biome_2_to_4_trash_have_skills() -> void:
 		"whisperwood": ["moss_boar", "moss_shell", "spore_widow", "iron_horn", "blood_bloom", "rune_carcinos"],
 		"mistfen": ["blood_leech", "dead_poison_frog", "mist_mantis", "marsh_king", "bone_picker", "mire_strider_spider", "spore_needle_wasp"],
 		"blackshore": ["ship_eater_crab", "skull_turtle", "undertaker_shark", "samurai_fish", "black_tide_shark", "abyssal_squid", "tide_lamp"],
+		## P3-BAL-COMBAT-AUDIT-001 案C: ⑤無スキル穴を埋める（バイソン除外）
+		"frostridge": ["frost_claw_raptor", "vergaron", "storm_joe", "oldrex", "glacier_warden", "wind_ripper"],
 	}
 	for biome_id: String in pools.keys():
 		for enemy_id: String in pools[biome_id]:
@@ -39,6 +41,12 @@ func test_main_biome_2_to_4_trash_have_skills() -> void:
 			assert_gt(float(data.skill_use_chance), 0.0, "%s skill_use_chance" % enemy_id)
 			for sid: String in data.skill_ids:
 				assert_not_null(DataRegistry.get_skill_data(str(sid)), "missing skill %s" % sid)
+
+
+func test_greios_is_elite_only_in_frostridge_pool() -> void:
+	var dg: Resource = DataRegistry.get_dungeon_data("frostridge")
+	assert_false(dg.enemy_pool.has("greios"))
+	assert_true(dg.elite_pool.has("greios"))
 
 
 func test_element_status_alignment_fixes() -> void:

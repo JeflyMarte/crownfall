@@ -46,6 +46,8 @@ func test_passive_numbers() -> void:
 	var war: Dictionary = CombatPassives.get_def("eq_wpn_vanguard_war_bow")
 	assert_almost_eq(float(war.get("outgoing_mult", 1.0)), 2.0, 0.001)
 	assert_almost_eq(float(war.get("incoming_mult", 1.0)), 1.5, 0.001)
+	assert_almost_eq(float(war.get("back_row_outgoing_mult", 1.0)), 1.25, 0.001)
+	assert_almost_eq(float(war.get("back_row_incoming_mult", 1.0)), 1.1, 0.001)
 	assert_eq(str(war.get("passive_condition", "")), "front_row_only")
 	var reg: Dictionary = CombatPassives.get_def("eq_wpn_regicide_longbow")
 	assert_almost_eq(float(reg.get("outgoing_vs_boss_mult", 1.0)), 1.5, 0.001)
@@ -63,8 +65,8 @@ func test_vanguard_war_bow_front_only() -> void:
 	assert_almost_eq(float(front.get("incoming_mult", 1.0)), 1.5, 0.001)
 	GameState.party_members[0].formation_row = GameState.FORMATION_BACK
 	var back: Dictionary = CombatPassives.character_stat_modifiers_for_member(0)
-	assert_almost_eq(float(back.get("outgoing_mult", 1.0)), 1.0, 0.001)
-	assert_almost_eq(float(back.get("incoming_mult", 1.0)), 1.0, 0.001)
+	assert_almost_eq(float(back.get("outgoing_mult", 1.0)), 1.25, 0.001)
+	assert_almost_eq(float(back.get("incoming_mult", 1.0)), 1.1, 0.001)
 
 
 func test_helpers_expose_flags() -> void:

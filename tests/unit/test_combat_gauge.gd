@@ -51,10 +51,18 @@ func test_ultimate_charge_dealt_and_taken() -> void:
 	ctrl._init_member_ultimate_charge()
 	assert_eq(ctrl.get_ultimate_charge(0), 0.0)
 	ctrl.add_ultimate_charge_from_damage_dealt(0, 100)
-	assert_almost_eq(ctrl.get_ultimate_charge(0), 2.0, 0.01)
+	assert_almost_eq(
+		ctrl.get_ultimate_charge(0),
+		100.0 * Constants.ULTIMATE_CHARGE_DEALT_K,
+		0.01
+	)
 	ctrl.add_ultimate_charge_from_damage_taken(0, 50)
-	assert_almost_eq(ctrl.get_ultimate_charge(0), 4.0, 0.01)
-	ctrl.add_ultimate_charge(0, 96.0)
+	assert_almost_eq(
+		ctrl.get_ultimate_charge(0),
+		100.0 * Constants.ULTIMATE_CHARGE_DEALT_K + 50.0 * Constants.ULTIMATE_CHARGE_TAKEN_K,
+		0.01
+	)
+	ctrl.add_ultimate_charge(0, Constants.ULTIMATE_CHARGE_MAX)
 	assert_true(ctrl.is_ultimate_charge_ready(0))
 	ctrl.consume_ultimate_charge(0)
 	assert_eq(ctrl.get_ultimate_charge(0), 0.0)

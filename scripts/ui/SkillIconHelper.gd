@@ -90,6 +90,7 @@ const SKILL_TO_BASE: Dictionary = {
 	"toxin_dart": "poison",
 	"venom_burst": "poison",
 	"venom_spray": "poison",
+	"beast_hobble": "snare",
 	"snare_shot": "snare",
 	"entangle": "snare",
 	"hamstring_slash": "snare",

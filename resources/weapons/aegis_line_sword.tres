@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "aegis_line_sword"
+display_name = "防壁の戦剣"
+description = "戦列の盾代わりに振るう重めの剣。敵の視線を一身に集め、斬るたびに守りが厚くなる。"
+fixed_skill_id = ""
+fixed_passive_id = "eq_wpn_aegis_line_sword"
+base_attack = 260
+rarity = 3
+base_attack_speed = 1.0
+base_critical_rate = 0.07
+base_knockback = 0.45
+base_stagger_power = 0.28
+base_attack_range = 1.0
+weight = 1.1
+element = "holy"
+weapon_type = "sword"
+tags = Array[String](["slash", "holy"])

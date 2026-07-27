@@ -27,12 +27,12 @@ const _DEFS: Dictionary = {
 	"eq_mythic_burial_crown": {
 		"display_name": "葬冠の連鎖",
 		"category": "weapon",
-		"description": "与ダメージ+25%。敵撃破時、自身の行動待ちを大きく短縮する。",
+		"description": "与ダメージ+25%。敵撃破時、自身の行動待ちをやや短縮する。",
 		"outgoing_mult": 1.25,
 		"trigger": "on_kill",
 		"condition": "always",
 		"effect": "refund_ct",
-		"refund_ct_fraction": 0.85,
+		"refund_ct_fraction": 0.45,
 		"cooldown": 0.0,
 	},
 	"eq_mythic_cenotaph": {
@@ -193,11 +193,11 @@ const _DEFS: Dictionary = {
 	},
 	"sian_silent_line": {
 		"display_name": "影からの号令",
-		"description": "戦闘開始時、味方全体に鼓舞（empower）を付与する。",
+		"description": "戦闘開始時、味方全体に小さな鼓舞を付与する。",
 		"trigger": "on_combat_start",
 		"condition": "always",
 		"effect": "apply_status",
-		"status_id": "empower",
+		"status_id": "empower_minor",
 		"target": "party",
 		"cooldown": 0.0,
 	},
@@ -314,10 +314,10 @@ const _DEFS: Dictionary = {
 	"eq_mourngate_royal": {
 		"display_name": "王家の覇気",
 		"category": "accessory",
-		"description": "戦闘開始時、自身に鼓舞（empower）を付与する。",
+		"description": "戦闘開始時、自身に小さな鼓舞を付与する。",
 		"trigger": "on_combat_start",
 		"condition": "always",
-		"effect": "apply_status", "status_id": "empower", "target": "self",
+		"effect": "apply_status", "status_id": "empower_minor", "target": "self",
 		"cooldown": 0.0,
 	},
 	"eq_granvel_bark": {
@@ -334,10 +334,10 @@ const _DEFS: Dictionary = {
 	"eq_silvaria_covenant": {
 		"display_name": "盟約の加護",
 		"category": "accessory",
-		"description": "戦闘開始時、味方全体に鼓舞（empower）を付与する。",
+		"description": "戦闘開始時、味方全体に小さな鼓舞を付与する。",
 		"trigger": "on_combat_start",
 		"condition": "always",
-		"effect": "apply_status", "status_id": "empower", "target": "party",
+		"effect": "apply_status", "status_id": "empower_minor", "target": "party",
 		"cooldown": 0.0,
 	},
 	"eq_moldgar_abyss": {
@@ -548,23 +548,31 @@ const _DEFS: Dictionary = {
 	"eq_wpn_eldion_spine": {
 		"display_name": "始祖の霜矢",
 		"category": "weapon",
-		"description": "属性値ロール確定 + 氷属性攻撃の与ダメ +25%。",
+		"description": "属性値ロール確定 + 氷属性攻撃の与ダメ +25%。後列の通常攻撃 +15%。",
 		"forced_element": "ice",
 		"guaranteed_element_power_roll": true,
 		"element_outgoing_mult": {"ice": 1.25},
+		"back_row_basic_attack_mult": 1.15,
 	},
 	"eq_wpn_pharos_flare": {
-		"display_name": "烽火の極意",
+		"display_name": "烽火の鼓動",
 		"category": "weapon",
-		"description": "装備スキルの与ダメージ +35%。",
-		"skill_power_mult": 1.35,
+		"description": "与ダメから溜まる必殺チャージ +75%。装備スキル与ダメ +15%。",
+		"ultimate_charge_dealt_mult": 1.75,
+		"skill_power_mult": 1.15,
 	},
 	"eq_wpn_shadowcord": {
 		"display_name": "影弦の急所",
 		"category": "weapon",
-		"description": "会心率 +10% / 会心ダメ +40%。",
+		"description": "会心率 +10% / 会心ダメ +40%。撃破時に自身へ鼓舞。",
 		"crit_rate_add": 0.10,
 		"crit_damage_add": 0.40,
+		"trigger": "on_kill",
+		"condition": "always",
+		"effect": "apply_status",
+		"status_id": "empower",
+		"target": "self",
+		"cooldown": 0.0,
 	},
 	"eq_wpn_silvaria_fang": {
 		"display_name": "黒陽の双牙",
@@ -577,10 +585,18 @@ const _DEFS: Dictionary = {
 	"eq_wpn_eldion_claw": {
 		"display_name": "始祖の霜爪",
 		"category": "weapon",
-		"description": "属性値ロール確定 + 氷属性攻撃の与ダメ +25%。",
+		"description": "属性値ロール確定 + 氷属性攻撃の与ダメ +15%。3撃ごとに冷却を付与。",
 		"forced_element": "ice",
 		"guaranteed_element_power_roll": true,
-		"element_outgoing_mult": {"ice": 1.25},
+		"element_outgoing_mult": {"ice": 1.15},
+		"trigger": "on_attack",
+		"condition": "always",
+		"effect": "apply_status",
+		"status_id": "chill",
+		"target": "enemy",
+		"status_chance": 1.0,
+		"every_n": 3,
+		"cooldown": 0.0,
 	},
 	# ---- 天候シンクロ・レジェンド（P3-EQ-WEATHER-LEG-001） ----
 	"eq_wpn_stormveil_needle": {
@@ -685,9 +701,11 @@ const _DEFS: Dictionary = {
 	"eq_wpn_vanguard_war_bow": {
 		"display_name": "戦列の猛矢",
 		"category": "weapon",
-		"description": "前衛のとき与ダメ×2.0／被ダメ×1.5。",
+		"description": "前列: 与ダメ×2.0／被ダメ×1.5。後列: 与ダメ×1.25／被ダメ×1.1。",
 		"outgoing_mult": 2.0,
 		"incoming_mult": 1.5,
+		"back_row_outgoing_mult": 1.25,
+		"back_row_incoming_mult": 1.1,
 		"passive_condition": "front_row_only",
 	},
 	"eq_wpn_regicide_longbow": {
@@ -708,6 +726,46 @@ const _DEFS: Dictionary = {
 		"description": "通常攻撃不可。装備スキルの与ダメ×2.0。",
 		"disable_basic_attack": true,
 		"skill_power_mult": 2.0,
+	},
+	## P3-BAL-LEG-WPN-A001 — ビルド穴埋めレジェンド
+	"eq_wpn_packbond_staff": {
+		"display_name": "絆笛の号令",
+		"category": "weapon",
+		"description": "オトモの与ダメ +30%／防御 +10%。",
+		"pet_outgoing_mult": 1.30,
+		"pet_defense_mult": 1.10,
+	},
+	"eq_wpn_blightcord_bow": {
+		"display_name": "腐血の影弦",
+		"category": "weapon",
+		"description": "毒・出血の敵へ与ダメ +35%。攻撃時25%で毒か出血を付与。",
+		"outgoing_vs_status_mult": 1.35,
+		"outgoing_vs_status_ids": ["poison", "bleed"],
+		"trigger": "on_attack",
+		"condition": "always",
+		"effect": "random_enemy_status",
+		"status_pool": ["poison", "bleed"],
+		"status_chance": 0.25,
+		"cooldown": 0.0,
+	},
+	"eq_wpn_pulsekeen_edge": {
+		"display_name": "脈打つ閃刃",
+		"category": "weapon",
+		"description": "会心時、必殺ゲージ+8＆ヒットの35%を追加ダメージ。",
+		"crit_rate_add": 0.05,
+		"trigger": "on_attack",
+		"condition": "is_critical",
+		"effect": "crit_pulse",
+		"ultimate_charge_flat": 8.0,
+		"bonus_damage_fraction": 0.35,
+		"cooldown": 0.0,
+	},
+	"eq_wpn_aegis_line_sword": {
+		"display_name": "防壁の戦剣",
+		"category": "weapon",
+		"description": "Threat基礎 +120。被ダメ -12%。",
+		"threat_base_add": 120.0,
+		"incoming_mult": 0.88,
 	},
 }
 
@@ -926,8 +984,19 @@ static func character_stat_modifiers_for_member(member_index: int, hp_ratio: flo
 	# 武器常時 outgoing／incoming（神話・前列限定など）＋天候シンクロ outgoing
 	var wdef: Dictionary = weapon_passive_def_for_member(member)
 	var front_only: bool = str(wdef.get("passive_condition", "")) == "front_row_only"
-	var row_ok: bool = (not front_only) or (not GameState.is_member_back_row(member_index))
-	if row_ok:
+	var is_back: bool = GameState.is_member_back_row(member_index)
+	if front_only:
+		if is_back:
+			if wdef.has("back_row_outgoing_mult"):
+				out["outgoing_mult"] *= float(wdef["back_row_outgoing_mult"])
+			if wdef.has("back_row_incoming_mult"):
+				out["incoming_mult"] *= float(wdef["back_row_incoming_mult"])
+		else:
+			if wdef.has("outgoing_mult") and str(wdef.get("trigger", "")) != "on_attack":
+				out["outgoing_mult"] *= float(wdef["outgoing_mult"])
+			if wdef.has("incoming_mult"):
+				out["incoming_mult"] *= float(wdef["incoming_mult"])
+	else:
 		if wdef.has("outgoing_mult") and str(wdef.get("trigger", "")) != "on_attack":
 			out["outgoing_mult"] *= float(wdef["outgoing_mult"])
 		if wdef.has("incoming_mult"):
@@ -943,7 +1012,13 @@ static func weapon_disables_basic_attack(member_index: int) -> bool:
 
 
 static func weapon_basic_attack_mult(member_index: int) -> float:
-	return maxf(0.0, float(weapon_stat_modifiers_for_member(member_index).get("basic_attack_mult", 1.0)))
+	var mult: float = maxf(0.0, float(weapon_stat_modifiers_for_member(member_index).get("basic_attack_mult", 1.0)))
+	if member_index < 0 or member_index >= GameState.party_members.size():
+		return mult
+	var def: Dictionary = weapon_passive_def_for_member(GameState.party_members[member_index])
+	if def.has("back_row_basic_attack_mult") and GameState.is_member_back_row(member_index):
+		mult *= float(def["back_row_basic_attack_mult"])
+	return mult
 
 
 static func weapon_basic_hits_all(member_index: int) -> bool:
@@ -1080,8 +1155,10 @@ static func member_ignores_exploration_damage(member: Resource) -> bool:
 	return false
 
 
-## 状態異常持ち敵への与ダメ倍率（該当パッシブがなければ 1.0）。
-static func outgoing_vs_status_mult_for_member(member_index: int) -> float:
+## 状態異常持ち敵への与ダメ倍率。
+## `present_status_ids` に現在の敵デバフ id を渡す。空なら従来どおり「何らかのデバフあり」前提で呼び出し側が制御。
+## パッシブに `outgoing_vs_status_ids` がある場合は、そのいずれかが present に含まれるときだけ乗算。
+static func outgoing_vs_status_mult_for_member(member_index: int, present_status_ids: Array = []) -> float:
 	if member_index < 0 or member_index >= GameState.party_members.size():
 		return 1.0
 	var mult: float = 1.0
@@ -1089,9 +1166,28 @@ static func outgoing_vs_status_mult_for_member(member_index: int) -> float:
 	for raw_def: Variant in for_member(member):
 		if raw_def is not Dictionary:
 			continue
-		if raw_def.has("outgoing_vs_status_mult"):
-			mult *= float(raw_def["outgoing_vs_status_mult"])
+		if not raw_def.has("outgoing_vs_status_mult"):
+			continue
+		var filter_ids: Array = raw_def.get("outgoing_vs_status_ids", [])
+		if not filter_ids.is_empty():
+			var matched: bool = false
+			for sid: Variant in filter_ids:
+				if present_status_ids.has(str(sid)):
+					matched = true
+					break
+			if not matched:
+				continue
+		mult *= float(raw_def["outgoing_vs_status_mult"])
 	return mult
+
+
+static func weapon_ultimate_charge_dealt_mult(member_index: int) -> float:
+	var def: Dictionary = weapon_passive_def_for_member(
+		GameState.party_members[member_index] if member_index >= 0 and member_index < GameState.party_members.size() else null
+	)
+	if def.is_empty() or not def.has("ultimate_charge_dealt_mult"):
+		return 1.0
+	return maxf(0.0, float(def["ultimate_charge_dealt_mult"]))
 
 static func on_kill_refund_fraction(member_index: int) -> float:
 	var def: Dictionary = weapon_passive_def_for_member(

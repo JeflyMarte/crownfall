@@ -137,20 +137,12 @@ func test_frostridge_5_5_is_d4_only() -> void:
 		assert_true(enemy_id in _FR_D4_IDS, "5-5 は D4 のみ")
 		assert_false(enemy_id in _FR_D3_IDS, "5-5 に D3 は出ない")
 
-func test_frostridge_5_1_d3_ratio_near_ssot() -> void:
-	seed(12345)
+func test_frostridge_5_1_is_d4_only_after_greios_elite_only() -> void:
+	## P3-BAL-COMBAT-AUDIT-001: greios は elite 専用。通常プールは D4 のみ。
 	var dc: Node = _make_controller("frostridge_5_1")
-	var d3_count: int = 0
-	var d4_count: int = 0
-	for enemy_id in _pick_many(dc, 2000):
-		if enemy_id in _FR_D3_IDS:
-			d3_count += 1
-		elif enemy_id in _FR_D4_IDS:
-			d4_count += 1
-	var total: int = d3_count + d4_count
-	assert_gt(total, 0)
-	var d3_ratio: float = float(d3_count) / float(total)
-	assert_true(d3_ratio > 0.42 and d3_ratio < 0.58, "5-1 D3 比率 ~50%% (got %.2f)" % d3_ratio)
+	for enemy_id in _pick_many(dc, 200):
+		assert_true(enemy_id in _FR_D4_IDS, "5-1 は D4 のみ")
+		assert_false(enemy_id == "greios", "greios は通常スポーンしない")
 
 func test_missing_danger_tier_is_renormalized() -> void:
 	var dc: Node = _DungeonController.new()

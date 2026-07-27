@@ -5186,6 +5186,26 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-BAL-COMBAT-AUDIT-001-6 | **断罪** power 0.7→0.6 | 全体圧の緩和 |
 | P3-BAL-COMBAT-AUDIT-001-7 | **墓鐘**＝前列＋stun 0.15 | 全体硬直の軟ロック緩和 |
 
+### 案B（2026-07-28 オーナー GO）
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-COMBAT-AUDIT-001-B1 | 連刃／追標＝付与率↑＋ベース威力↑＋条件倍率×1.6 | 枠1でも自己完結 |
+| P3-BAL-COMBAT-AUDIT-001-B2 | 狩人の標＝低ダメ・標的100% | 付与専門 |
+| P3-BAL-COMBAT-AUDIT-001-B3 | 脆弱の粉＝`armor_break`（脆弱はアンブラ） | 役割分離 |
+| P3-BAL-COMBAT-AUDIT-001-B4 | 大治癒＝pwr1.9／CD8.5（治癒と緊急分離） | 同型階段解消 |
+| P3-BAL-COMBAT-AUDIT-001-B5 | モスATK160→140／断罪CD6→8 | 1-4擬似ボス緩和 |
+
+### 案C（2026-07-28 オーナー GO）
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-COMBAT-AUDIT-001-C1 | RGスネア＝slow／BT＝絡み矢(chill) | 制御経路の分担 |
+| P3-BAL-COMBAT-AUDIT-001-C2 | 開幕味全／自己鼓舞装備＋シアン＝`empower_minor` | スキル鼓舞と棲み分け |
+| P3-BAL-COMBAT-AUDIT-001-C3 | 葬冠 CT返却 0.85→0.45 | 周回テンポ格差の抑制 |
+| P3-BAL-COMBAT-AUDIT-001-C4 | 必殺チャージ DEALT_K 0.02→0.028 | 必殺ビルド現実化 |
+| P3-BAL-COMBAT-AUDIT-001-C5 | ⑤無スキル4種に既存技を付与／greiosはelite専用 | ⑤のばらつき是正 |
+
 ## スキルキット圧縮＋全体技（2026-07-27 — P3-SKILL-KIT-001）
 
 > **オーナー GO** — 装備1枠維持（A）＋習得7本（D）。役割案A。Lv1も終盤選択肢（同型威力階段禁止）。敵全体ダメ／敵全体状態／味方全体バフ。
@@ -5241,3 +5261,19 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-UI-RARITY-NREL-001-1 | 装備UI・図鑑・鍛冶短号・調査文言・ドロップ表記を **N/R/E/L**（＋M／セット）に統一 | ◇◆✦★／SR・SSR が分かりにくい |
 | P3-UI-RARITY-NREL-001-2 | キャラ★個数・ダンジョン難度★は変更しない | 別系統 |
 | P3-UI-RARITY-NREL-001-3 | SSOT=`EquipmentUiHelper`／`BlacksmithUiHelper`／`CodexContentHelper`。Decision=`20_EquipmentRarityLabels.md` | 表示のみ・数値非変更 |
+
+## レジェンド武器差別化＋穴埋め（2026-07-28 — P3-BAL-LEG-WPN-A001）
+
+> **オーナー GO（案A＋新規4本）** — 既存★の差別化とビルド穴埋め。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-LEG-WPN-A001-1 | **始祖の霜矢** — 氷+25%＋後列通常+15% | 後列RGでも死なない |
+| P3-BAL-LEG-WPN-A001-2 | **始祖の霜爪** — 氷+15%＋3撃ごと chill | 氷3本の差別化 |
+| P3-BAL-LEG-WPN-A001-3 | **影弦** — 会心維持＋撃破時 empower | 会心下位互換の解消 |
+| P3-BAL-LEG-WPN-A001-4 | **烽火弓** — 必殺チャージ×1.75＋スキル+15%（旧+35%廃止） | EXP×2のみの解消 |
+| P3-BAL-LEG-WPN-A001-5 | **戦列猛弓** — 前列×2/1.5、後列×1.25/1.1 | 後列でも使える |
+| P3-BAL-LEG-WPN-A001-6 | **絆笛の号令杖** — オトモ与ダメ+30%／防+10% | オトモ与ダメ穴 |
+| P3-BAL-LEG-WPN-A001-7 | **腐血の影弦** — 毒出血敵+35%＋25%付与 | DoTシナジー弓 |
+| P3-BAL-LEG-WPN-A001-8 | **脈打つ閃刃** — 会心時ゲージ+8＆35%追撃 | 会心追撃／ゲージ加速 |
+| P3-BAL-LEG-WPN-A001-9 | **防壁の戦剣** — Threat+120／被ダメ-12% | VG脅威＋減ダメ |

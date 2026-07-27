@@ -110,6 +110,11 @@ const ICON_MAP: Dictionary = {
 	"weapon:regicide_longbow":            "res://assets/ui/equipment/ICO_WPN_RegicideLongbow.png",
 	"weapon:amplify_orb_staff":           "res://assets/ui/equipment/ICO_WPN_AmplifyOrbStaff.png",
 	"weapon:silent_rite_staff":           "res://assets/ui/equipment/ICO_WPN_SilentRiteStaff.png",
+	# ビルド穴埋めレジェンド（P3-BAL-LEG-WPN-A001）
+	"weapon:packbond_staff":             "res://assets/ui/equipment/ICO_WPN_PackbondStaff.png",
+	"weapon:blightcord_bow":             "res://assets/ui/equipment/ICO_WPN_BlightcordBow.png",
+	"weapon:pulsekeen_edge":             "res://assets/ui/equipment/ICO_WPN_PulsekeenEdge.png",
+	"weapon:aegis_line_sword":           "res://assets/ui/equipment/ICO_WPN_AegisLineSword.png",
 	# 種別数揃え（非レジェンド拡充・アイコンは既存流用）
 	"weapon:ash_twin_blades":             "res://assets/ui/equipment/ICO_WPN_BarkRender.png",
 	"weapon:grit_shear_blades":           "res://assets/ui/equipment/ICO_WPN_BarkRender.png",
