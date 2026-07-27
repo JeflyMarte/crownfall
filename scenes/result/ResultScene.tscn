@@ -196,12 +196,13 @@ theme_override_constants/separation = 8
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.74, 0.45, 1)
 theme_override_font_sizes/font_size = 24
-text = "レア入手"
+text = "入手装備"
 horizontal_alignment = 1
 
-[node name="RareList" type="VBoxContainer" parent="Scroll/Margin/Main/RarePanel/RareVBox"]
+[node name="RareList" type="HFlowContainer" parent="Scroll/Margin/Main/RarePanel/RareVBox"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
 
 [node name="InfoPanel" type="PanelContainer" parent="Scroll/Margin/Main"]
 layout_mode = 2

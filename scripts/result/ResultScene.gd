@@ -34,16 +34,16 @@ const FS_REWARD_NAME: int = 18
 const FS_REWARD_VALUE: int = 22
 const FS_REWARD_GLYPH: int = 28
 const FS_INFO: int = 20
-const FS_RARE_NAME: int = 21
-const FS_RARE_DESC: int = 17
-const FS_RARE_STAR: int = 26
 const FS_CRAFTABLE: int = 19
 const FS_BUTTON: int = 24
 const REWARD_CELL_WIDTH: int = 88
 const REWARD_ICON_PX: int = 72
 const MATERIAL_ICON_PX: int = 48
-## 装備一覧の InvCell に近いサイズ（小さすぎるとレア枠が見えない）。
-const RARE_EQUIP_ICON_PX: int = 88
+## 入手装備グリッド（通常／★以上でサイズ差）。
+const DROP_EQUIP_ICON_PX: int = 72
+const DROP_EQUIP_ICON_PX_LEGENDARY: int = 88
+const DROP_EQUIP_CELL_WIDTH: int = 96
+const DROP_EQUIP_NAME_FS: int = 14
 
 @onready var _scroll_rewards: ScrollContainer = $Scroll
 @onready var _label_title: Label = $Scroll/Margin/Main/HeaderPanel/HeaderVBox/LabelTitle
@@ -56,7 +56,7 @@ const RARE_EQUIP_ICON_PX: int = 88
 @onready var _material_row: HFlowContainer = $Scroll/Margin/Main/MaterialPanel/MaterialVBox/MaterialRow
 @onready var _label_craftable: Label = $Scroll/Margin/Main/MaterialPanel/MaterialVBox/LabelCraftable
 @onready var _rare_panel: PanelContainer = $Scroll/Margin/Main/RarePanel
-@onready var _rare_list: VBoxContainer = $Scroll/Margin/Main/RarePanel/RareVBox/RareList
+@onready var _rare_list: HFlowContainer = $Scroll/Margin/Main/RarePanel/RareVBox/RareList
 @onready var _info_grid: GridContainer = $Scroll/Margin/Main/InfoPanel/InfoVBox/InfoGrid
 @onready var _levelup_panel_legacy: PanelContainer = $Scroll/Margin/Main/LevelUpPanel
 @onready var _button_retry: Button = $FooterRow/Footer/ButtonRetry
@@ -117,7 +117,7 @@ func _ready() -> void:
 	_build_header()
 	_build_rewards()
 	_build_materials()
-	_build_rare_items()
+	_build_equipment_drops()
 	_build_info()
 	ScrollTouchHelper.enable(_scroll_rewards)
 	_button_retry.pressed.connect(_on_retry_pressed)
@@ -1124,18 +1124,7 @@ func _build_rewards() -> void:
 			CurrencyHelper.get_icon_texture(), "", CurrencyHelper.DISPLAY_NAME,
 			str(GameState.last_run_token_reward)
 		))
-	var weapon: String = GameState.last_run_weapon_dropped
-	if not weapon.is_empty():
-		_reward_row.add_child(_make_reward_cell(
-			null, "", DataRegistry.get_weapon_name(weapon), "1", weapon, "weapon"))
-	var armor: String = GameState.last_run_armor_dropped
-	if not armor.is_empty():
-		_reward_row.add_child(_make_reward_cell(
-			null, "", DataRegistry.get_armor_name(armor), "1", armor, "armor"))
-	var accessory: String = GameState.last_run_accessory_dropped
-	if not accessory.is_empty():
-		_reward_row.add_child(_make_reward_cell(
-			null, "", DataRegistry.get_accessory_name(accessory), "1", accessory, "accessory"))
+	## 武／防／飾は「入手装備」グリッドへ集約（重複表示しない）。
 	var relic: String = GameState.last_run_relic_dropped
 	if not relic.is_empty():
 		var relic_icon: String = CombatPassives.relic_icon_key(relic)
@@ -1269,18 +1258,29 @@ func _build_craftable_hint(had_material_gains: bool) -> void:
 	_label_craftable.text = "赤鉄の工房で作成可能: " + " / ".join(names)
 	_label_craftable.visible = true
 
-func _build_rare_items() -> void:
+## P3-UX-RESULT-DROP-LIST-001: ラン中ドロップ全件をアイコングリッドで表示。
+func _build_equipment_drops() -> void:
 	for child in _rare_list.get_children():
 		child.queue_free()
-	var rows: int = 0
-	rows += _add_rare_row(GameState.last_run_weapon_dropped, "weapon")
-	rows += _add_rare_row(GameState.last_run_armor_dropped, "armor")
-	rows += _add_rare_row(GameState.last_run_accessory_dropped, "accessory")
-	_rare_panel.visible = rows > 0
+	_label_rare_title.text = "入手装備"
+	var drops: Array = GameState.last_run_equipment_drops
+	if drops.is_empty():
+		_rare_panel.visible = false
+		return
+	for raw: Variant in drops:
+		if not (raw is Dictionary):
+			continue
+		var entry: Dictionary = raw
+		var category: String = str(entry.get("category", "")).strip_edges()
+		var item_id: String = str(entry.get("item_id", "")).strip_edges()
+		var instance_id: String = str(entry.get("instance_id", "")).strip_edges()
+		if category.is_empty() or item_id.is_empty():
+			continue
+		_rare_list.add_child(_make_equipment_drop_cell(item_id, category, instance_id))
+	_rare_panel.visible = _rare_list.get_child_count() > 0
 
-func _add_rare_row(item_id: String, category: String) -> int:
-	if item_id.is_empty():
-		return 0
+
+func _make_equipment_drop_cell(item_id: String, category: String, instance_id: String) -> Control:
 	var item_name: String = ""
 	match category:
 		"weapon":
@@ -1290,117 +1290,47 @@ func _add_rare_row(item_id: String, category: String) -> int:
 		"accessory":
 			item_name = DataRegistry.get_accessory_name(item_id)
 	var rarity: int = _equipment_rarity(item_id, category)
-	var row: HBoxContainer = HBoxContainer.new()
-	row.add_theme_constant_override("separation", 10)
+	var icon_px: int = DROP_EQUIP_ICON_PX
+	if rarity >= Enums.Rarity.LEGENDARY:
+		icon_px = DROP_EQUIP_ICON_PX_LEGENDARY
+	var cell := VBoxContainer.new()
+	cell.custom_minimum_size = Vector2(DROP_EQUIP_CELL_WIDTH, 0)
+	cell.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	cell.add_theme_constant_override("separation", 4)
+	var icon_wrap := CenterContainer.new()
+	icon_wrap.custom_minimum_size = Vector2(icon_px, icon_px)
+	icon_wrap.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var icon_cell: Control = BlacksmithUiHelper.make_item_icon_cell(
-		item_id, category, rarity, RARE_EQUIP_ICON_PX, false
+		item_id, category, rarity, icon_px, false
 	)
-	icon_cell.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	icon_cell.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(icon_cell)
-	var col: VBoxContainer = VBoxContainer.new()
-	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	col.add_theme_constant_override("separation", 2)
-	var name_label: Label = Label.new()
+	icon_wrap.add_child(icon_cell)
+	cell.add_child(icon_wrap)
+	var name_label := Label.new()
 	name_label.text = item_name
-	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_label.add_theme_font_size_override("font_size", FS_RARE_NAME)
-	name_label.add_theme_color_override("font_color", BlacksmithUiHelper.rarity_name_color(rarity))
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	name_label.clip_text = true
 	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	col.add_child(name_label)
-	var stats_text: String = _rare_equipment_stats_text(item_id, category)
-	if not stats_text.is_empty():
-		var stats_label: Label = Label.new()
-		stats_label.text = stats_text
-		stats_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		stats_label.add_theme_font_size_override("font_size", FS_RARE_DESC)
-		stats_label.add_theme_color_override("font_color", COLOR_SUB)
-		stats_label.autowrap_mode = TextServer.AUTOWRAP_OFF
-		col.add_child(stats_label)
-	row.add_child(col)
-	var star: Label = Label.new()
-	star.text = EquipmentUiHelper.rarity_label_text(rarity)
-	star.add_theme_font_size_override("font_size", FS_RARE_STAR)
-	star.add_theme_color_override("font_color", BlacksmithUiHelper.rarity_name_color(rarity))
-	star.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	row.add_child(star)
-	_rare_list.add_child(row)
-	return 1
+	name_label.custom_minimum_size = Vector2(DROP_EQUIP_CELL_WIDTH, 0)
+	name_label.add_theme_font_size_override("font_size", DROP_EQUIP_NAME_FS)
+	name_label.add_theme_color_override("font_color", BlacksmithUiHelper.rarity_name_color(rarity))
+	cell.add_child(name_label)
+	var rarity_label := Label.new()
+	rarity_label.text = EquipmentUiHelper.rarity_label_text(rarity)
+	rarity_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	rarity_label.add_theme_font_size_override("font_size", maxi(12, DROP_EQUIP_NAME_FS - 1))
+	rarity_label.add_theme_color_override("font_color", BlacksmithUiHelper.rarity_name_color(rarity))
+	cell.add_child(rarity_label)
+	## instance_id は将来タップ詳細用に保持（現状は表示のみ）。
+	cell.set_meta("drop_instance_id", instance_id)
+	cell.set_meta("drop_category", category)
+	cell.set_meta("drop_item_id", item_id)
+	return cell
 
-
-## ドロップした個体があればその性能、なければマスタ基本値を表示する。
-func _rare_equipment_stats_text(item_id: String, category: String) -> String:
-	var instance: Resource = _find_dropped_equipment_instance(item_id, category)
-	if instance != null:
-		var lines: PackedStringArray = PackedStringArray()
-		for row: Dictionary in EquipmentItemDetailHelper.stat_rows(instance, category):
-			if lines.size() >= 4:
-				break
-			lines.append("%s %s" % [str(row.get("label", "")), str(row.get("value", ""))])
-		return "\n".join(lines)
-	return "\n".join(_catalog_equipment_stat_lines(item_id, category))
-
-
-func _find_dropped_equipment_instance(item_id: String, category: String) -> Resource:
-	var bag: Array = []
-	var id_key: String = ""
-	match category:
-		"weapon":
-			bag = GameState.inventory
-			id_key = "weapon_id"
-		"armor":
-			bag = GameState.armor_inventory
-			id_key = "armor_id"
-		"accessory":
-			bag = GameState.accessory_inventory
-			id_key = "accessory_id"
-		_:
-			return null
-	var found: Resource = null
-	for item: Variant in bag:
-		if item == null:
-			continue
-		if str(item.get(id_key)) == item_id:
-			found = item as Resource
-	return found
-
-
-func _catalog_equipment_stat_lines(item_id: String, category: String) -> PackedStringArray:
-	var lines: PackedStringArray = PackedStringArray()
-	match category:
-		"weapon":
-			var wd: Resource = DataRegistry.get_weapon_data(item_id)
-			if wd == null:
-				return lines
-			lines.append("攻撃力 %d" % int(wd.base_attack))
-			if float(wd.base_critical_rate) > 0.0:
-				lines.append("会心率 %.0f%%" % (float(wd.base_critical_rate) * 100.0))
-			if float(wd.base_attack_speed) > 0.0:
-				lines.append("攻撃速度 %.1f" % float(wd.base_attack_speed))
-		"armor":
-			var ad: Resource = DataRegistry.get_armor_data(item_id)
-			if ad == null:
-				return lines
-			lines.append("防御力 %d" % int(ad.base_defense))
-			if int(ad.base_hp_bonus) > 0:
-				lines.append("HP +%d" % int(ad.base_hp_bonus))
-		"accessory":
-			var ac: Resource = DataRegistry.get_accessory_data(item_id)
-			if ac == null:
-				return lines
-			if int(ac.hp_bonus) > 0:
-				lines.append("HP +%d" % int(ac.hp_bonus))
-			if int(ac.attack_bonus) > 0:
-				lines.append("攻撃力 +%d" % int(ac.attack_bonus))
-			if int(ac.defense_bonus) > 0:
-				lines.append("防御力 +%d" % int(ac.defense_bonus))
-			if float(ac.crit_rate_bonus) > 0.0:
-				lines.append("会心率 +%.0f%%" % (float(ac.crit_rate_bonus) * 100.0))
-	return lines
 
 func _is_equipment_category(category: String) -> bool:
 	return category in ["weapon", "armor", "accessory"]
+
 
 func _equipment_rarity(item_id: String, category: String) -> int:
 	var data: Resource = null
