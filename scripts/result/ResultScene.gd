@@ -102,9 +102,6 @@ var _mvp_intro_active: bool = false
 var _mvp_anim_nodes: Array = []
 var _levelup_rows: Array = []
 var _levelup_pending_count: int = 0
-var _skill_learn_popup: Label = null
-var _skill_learn_popup_tween: Tween = null
-var _skill_learn_busy: bool = false
 
 func _ready() -> void:
 	_levelup_panel_legacy.visible = false
@@ -193,26 +190,6 @@ func _setup_wizard_roots() -> void:
 	_levelup_member_list.add_theme_constant_override("separation", 14)
 	_levelup_member_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	levelup_vbox.add_child(_levelup_member_list)
-	_skill_learn_popup = Label.new()
-	_skill_learn_popup.name = "SkillLearnPopup"
-	_skill_learn_popup.visible = false
-	_skill_learn_popup.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_skill_learn_popup.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_skill_learn_popup.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_skill_learn_popup.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_skill_learn_popup.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	_skill_learn_popup.offset_left = -300.0
-	_skill_learn_popup.offset_right = 300.0
-	_skill_learn_popup.offset_top = 200.0
-	_skill_learn_popup.offset_bottom = 280.0
-	_skill_learn_popup.z_index = 20
-	UiTypography.apply_display(
-		_skill_learn_popup,
-		UiTypography.SIZE_BODY,
-		COLOR_LEVELUP,
-		UiTypography.OUTLINE_STRONG
-	)
-	_step_levelup_root.add_child(_skill_learn_popup)
 	_step_mvp_root = MarginContainer.new()
 	_step_mvp_root.name = "StepMvp"
 	_step_mvp_root.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -412,16 +389,36 @@ func _build_levelup_rows() -> void:
 		var col := VBoxContainer.new()
 		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		col.add_theme_constant_override("separation", 4)
+		var name_row := HBoxContainer.new()
+		name_row.add_theme_constant_override("separation", 8)
+		name_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var name_label := Label.new()
 		var lv_before: int = int(snap.get("level_before", member.level))
 		name_label.text = "%s  Lv%d" % [str(snap.get("display_name", member.display_name)), lv_before]
+		name_label.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		name_label.clip_text = false
 		UiTypography.apply_body(
 			name_label,
 			UiTypography.SIZE_BODY,
 			PartyLogColorsScript.party_color(member),
 			UiTypography.OUTLINE_BODY
 		)
-		col.add_child(name_label)
+		name_row.add_child(name_label)
+		var skill_learn_label := Label.new()
+		skill_learn_label.name = "SkillLearnLabel"
+		skill_learn_label.visible = false
+		skill_learn_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		skill_learn_label.clip_text = false
+		skill_learn_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+		skill_learn_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		UiTypography.apply_display(
+			skill_learn_label,
+			UiTypography.SIZE_CAPTION,
+			COLOR_LEVELUP,
+			UiTypography.OUTLINE_STRONG
+		)
+		name_row.add_child(skill_learn_label)
+		col.add_child(name_row)
 		var bar := ProgressBar.new()
 		bar.custom_minimum_size = Vector2(0, 16)
 		bar.show_percentage = false
@@ -448,6 +445,7 @@ func _build_levelup_rows() -> void:
 			"snap": snap,
 			"member": member,
 			"name_label": name_label,
+			"skill_learn_label": skill_learn_label,
 			"bar": bar,
 			"exp_label": exp_label,
 			"levelup_flash": levelup_flash,
@@ -544,48 +542,36 @@ func _animate_member_exp_row(row: Dictionary, timings: Dictionary) -> void:
 				for sid: String in unlocked:
 					if _levelup_skip_requested:
 						break
-					await _show_skill_learn_popup(display_name, sid)
+					_set_skill_learn_label(row, sid, true)
 
-func _show_skill_learn_popup(member_name: String, skill_id: String) -> void:
-	if skill_id.is_empty() or _skill_learn_popup == null:
-		return
-	while _skill_learn_busy and not _levelup_skip_requested:
-		await get_tree().process_frame
-	if _levelup_skip_requested:
-		return
-	_skill_learn_busy = true
-	var skill_name: String = skill_id
+func _skill_display_name(skill_id: String) -> String:
+	if skill_id.is_empty():
+		return ""
 	var skill_data: Resource = DataRegistry.get_skill_data(skill_id)
 	if skill_data != null and not str(skill_data.display_name).is_empty():
-		skill_name = str(skill_data.display_name)
-	_skill_learn_popup.text = "%sは%sを習得した！" % [member_name, skill_name]
-	_skill_learn_popup.visible = true
-	_skill_learn_popup.reset_size()
-	_skill_learn_popup.pivot_offset = _skill_learn_popup.size * 0.5
-	_skill_learn_popup.modulate.a = 0.0
-	_skill_learn_popup.scale = Vector2(0.85, 0.85)
-	if _skill_learn_popup_tween != null and is_instance_valid(_skill_learn_popup_tween):
-		_skill_learn_popup_tween.kill()
-	AudioManager.play_sfx("ui_confirm", 1.0, 0.05)
-	_skill_learn_popup_tween = create_tween()
-	_skill_learn_popup_tween.set_parallel(true)
-	_skill_learn_popup_tween.tween_property(_skill_learn_popup, "modulate:a", 1.0, 0.15)
-	_skill_learn_popup_tween.tween_property(_skill_learn_popup, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	await _skill_learn_popup_tween.finished
-	if _levelup_skip_requested:
-		_skill_learn_popup.visible = false
-		_skill_learn_busy = false
-		return
-	await get_tree().create_timer(1.1).timeout
-	if _skill_learn_popup == null or not is_instance_valid(_skill_learn_popup):
-		_skill_learn_busy = false
-		return
-	_skill_learn_popup_tween = create_tween()
-	_skill_learn_popup_tween.tween_property(_skill_learn_popup, "modulate:a", 0.0, 0.2)
-	await _skill_learn_popup_tween.finished
-	_skill_learn_popup.visible = false
-	_skill_learn_busy = false
+		return str(skill_data.display_name)
+	return skill_id
 
+func _set_skill_learn_label(row: Dictionary, skill_id: String, play_sfx: bool = false) -> void:
+	var label: Label = row.get("skill_learn_label") as Label
+	if label == null or skill_id.is_empty():
+		return
+	var skill_name: String = _skill_display_name(skill_id)
+	label.text = "%sを習得！" % skill_name
+	label.visible = true
+	label.modulate.a = 1.0
+	if play_sfx:
+		AudioManager.play_sfx("ui_confirm", 1.0, 0.05)
+
+func _apply_last_skill_learn_for_row(row: Dictionary, member: Resource, level_before: int, level_after: int) -> void:
+	if member == null:
+		return
+	var unlocked: Array[String] = SkillProgression.skill_ids_unlocked_between(
+		member, level_before, level_after
+	)
+	if unlocked.is_empty():
+		return
+	_set_skill_learn_label(row, unlocked[unlocked.size() - 1], false)
 
 func _finalize_levelup_rows_from_party() -> void:
 	for row: Dictionary in _levelup_rows:
@@ -594,6 +580,7 @@ func _finalize_levelup_rows_from_party() -> void:
 		var member: Resource = _find_exp_member(member_id)
 		if member == null:
 			continue
+		var lv_before: int = int(snap.get("level_before", member.level))
 		var lv_after: int = int(member.level)
 		var exp_after: int = int(member.exp)
 		var bar: ProgressBar = row.get("bar")
@@ -609,10 +596,7 @@ func _finalize_levelup_rows_from_party() -> void:
 			exp_label.text = "%d / %d 経験値" % [exp_after, LevelSystem.exp_to_next(lv_after)]
 		if flash != null:
 			flash.visible = false
-	if _skill_learn_popup != null:
-		_skill_learn_popup.visible = false
-		_skill_learn_popup.modulate.a = 0.0
-	_skill_learn_busy = false
+		_apply_last_skill_learn_for_row(row, member, lv_before, lv_after)
 
 
 func _find_exp_member(member_id: String) -> Resource:
