@@ -536,6 +536,11 @@ const STATUS_ICON_DEF: Dictionary = {
 const HEAL_SKILL_BASE: int = BalanceConfig.HEAL_SKILL_BASE
 const STATUS_ICON_SIZE: float = 26.0
 const STATUS_ICON_GAP: float = 3.0
+## 戦闘右上の発生中状態異常レジェンド（P3-UX-STATUS-LEGEND-001）。
+const STATUS_LEGEND_ICON_PX: float = 22.0
+const STATUS_LEGEND_WIDTH: float = 248.0
+const STATUS_LEGEND_PAD: float = 8.0
+const STATUS_LEGEND_ROW_GAP: int = 4
 const VFX_HIT_PATH: String = "res://resources/animation/FX_Hit_Normal.tres"
 const VFX_CRIT_PATH: String = "res://resources/animation/FX_Hit_Critical.tres"
 const VFX_HEAL_PATH: String = "res://resources/animation/FX_Heal.tres"
@@ -648,6 +653,7 @@ const ELEMENT_VFX_PATH: Dictionary = {
 }
 const SkillExecutorScript: Script = preload("res://scripts/combat/SkillExecutor.gd")
 const CombatVfxManagerScript: Script = preload("res://scripts/combat/CombatVfxManager.gd")
+const _StatusEffectLinkHelper = preload("res://scripts/ui/StatusEffectLinkHelper.gd")
 const EvolutionVisualScript: Script = preload("res://scripts/systems/EvolutionVisual.gd")
 const ElementResolverScript: Script = preload("res://scripts/combat/ElementResolver.gd")
 const AffixStatCalculatorScript: Script = preload("res://scripts/equipment/AffixStatCalculator.gd")
@@ -798,6 +804,9 @@ var _party_card_pulse_tweens: Array = []
 var _combat_shake_cooldown_until: float = 0.0
 var _status_icon_swarm_rows: Array[HBoxContainer] = []
 var _status_icon_chr_rows: Array[HBoxContainer] = []
+## 旧敵行動順位置の発生中状態異常説明（P3-UX-STATUS-LEGEND-001）。
+var _status_legend_panel: PanelContainer
+var _status_legend_list: VBoxContainer
 var _combat_sprites_host: Node2D
 
 # 群れ（複数敵）表示スロット（P3-D082）。slot0 は既存ノード（_enemy_sprite/_hp_bar_enemy/_enemy_nameplate）を流用し、
@@ -944,6 +953,7 @@ func _ready() -> void:
 	_chr_hp_bars = [_hp_bar_chr0, _hp_bar_chr1, _hp_bar_chr2, _hp_bar_chr3, _hp_bar_chr4]
 	_init_status_icon_rows()
 	_init_turn_order_row()
+	_init_status_legend()
 	for sprite: AnimatedSprite2D in _chr_sprites:
 		sprite.animation_finished.connect(func():
 			if sprite.visible and sprite.sprite_frames != null:
@@ -2662,6 +2672,7 @@ func _update_status_icons() -> void:
 			row.visible = false
 		for row: HBoxContainer in _status_icon_chr_rows:
 			row.visible = false
+		_update_status_legend()
 		return
 	# ボスはドット絵が大きく状態異常アイコンが重なるため非表示。
 	if _boss_sprite.visible:
@@ -2694,6 +2705,119 @@ func _update_status_icons() -> void:
 		)
 	_sync_status_auras()
 	_sync_status_sprite_tints()
+	_update_status_legend()
+
+
+func _init_status_legend() -> void:
+	var battlefield: Control = $MainVBox/BattlefieldArea
+	_status_legend_panel = PanelContainer.new()
+	_status_legend_panel.name = "StatusLegendPanel"
+	_status_legend_panel.visible = false
+	_status_legend_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_status_legend_panel.z_index = COMBAT_OVERLAY_Z + 4
+	_status_legend_panel.custom_minimum_size = Vector2(STATUS_LEGEND_WIDTH, 0.0)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.04, 0.03, 0.05, 0.72)
+	sb.set_corner_radius_all(8)
+	sb.set_content_margin_all(STATUS_LEGEND_PAD)
+	sb.set_border_width_all(1)
+	sb.border_color = Color(0.55, 0.48, 0.32, 0.55)
+	_status_legend_panel.add_theme_stylebox_override("panel", sb)
+	battlefield.add_child(_status_legend_panel)
+	_status_legend_list = VBoxContainer.new()
+	_status_legend_list.name = "StatusLegendList"
+	_status_legend_list.add_theme_constant_override("separation", STATUS_LEGEND_ROW_GAP)
+	_status_legend_list.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_status_legend_panel.add_child(_status_legend_list)
+	_layout_status_legend()
+
+
+func _layout_status_legend() -> void:
+	if _status_legend_panel == null:
+		return
+	var bf_size: Vector2 = _battlefield_size()
+	_status_legend_panel.position = Vector2(
+		maxf(STATUS_LEGEND_PAD, bf_size.x - STATUS_LEGEND_WIDTH - TURN_ORDER_SIDE_MARGIN),
+		TURN_ORDER_SIDE_TOP
+	)
+
+
+func _collect_active_status_ids() -> Array[String]:
+	var seen: Dictionary = {}
+	for i: int in GameState.party_members.size():
+		if not $CombatController.is_member_alive(i):
+			continue
+		for entry: Variant in $CombatController.get_member_status_list(i):
+			if entry is Dictionary:
+				var sid: String = str(entry.get("effect_id", ""))
+				if not sid.is_empty():
+					seen[sid] = true
+	var enemy_count: int = $CombatController.swarm_count()
+	for slot: int in enemy_count:
+		if not $CombatController.is_enemy_slot_alive(slot):
+			continue
+		for entry: Variant in $CombatController.get_enemy_status_list_at(slot):
+			if entry is Dictionary:
+				var esid: String = str(entry.get("effect_id", ""))
+				if not esid.is_empty():
+					seen[esid] = true
+	var out: Array[String] = []
+	for sid: Variant in STATUS_ICON_DEF.keys():
+		var key: String = str(sid)
+		if seen.has(key):
+			out.append(key)
+			seen.erase(key)
+	var rest: Array = seen.keys()
+	rest.sort()
+	for sid2: Variant in rest:
+		out.append(str(sid2))
+	return out
+
+
+func _make_status_legend_row(status_id: String) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var icon: PanelContainer = _build_status_icon({
+		"effect_id": status_id,
+		"stacks": 1,
+		"display_name": _StatusEffectLinkHelper.display_name_for(status_id),
+	})
+	icon.custom_minimum_size = Vector2(STATUS_LEGEND_ICON_PX, STATUS_LEGEND_ICON_PX)
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(icon)
+	var line: String = _StatusEffectLinkHelper.effect_one_line(status_id)
+	if line.is_empty():
+		line = _StatusEffectLinkHelper.display_name_for(status_id)
+	var lbl := Label.new()
+	lbl.text = line
+	lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+	lbl.clip_text = false
+	lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	UiTypography.apply_body(lbl, UiTypography.SIZE_CAPTION, UiTypography.COLOR_BODY)
+	row.add_child(lbl)
+	return row
+
+
+func _update_status_legend() -> void:
+	if _status_legend_panel == null or _status_legend_list == null:
+		return
+	for child: Node in _status_legend_list.get_children():
+		child.queue_free()
+	if not $CombatController.is_in_combat:
+		_status_legend_panel.visible = false
+		return
+	var ids: Array[String] = _collect_active_status_ids()
+	if ids.is_empty():
+		_status_legend_panel.visible = false
+		return
+	for status_id: String in ids:
+		_status_legend_list.add_child(_make_status_legend_row(status_id))
+	_layout_status_legend()
+	_status_legend_panel.visible = true
 
 func _sync_status_sprite_tints() -> void:
 	if not $CombatController.is_in_combat:
@@ -8419,6 +8543,7 @@ func _layout_turn_order_columns() -> void:
 		maxf(TURN_ORDER_SIDE_MARGIN, bf_size.x - enemy_cell - TURN_ORDER_SIDE_MARGIN),
 		TURN_ORDER_SIDE_TOP
 	)
+	_layout_status_legend()
 
 # CT 順アイコン列を再構築する（味方=左縦列 / 敵=右縦列）。
 func _update_turn_order_ui(order: Array) -> void:
