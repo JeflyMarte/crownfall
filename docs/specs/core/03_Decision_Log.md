@@ -5114,6 +5114,17 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-BAL-DEAD-EXP-001-3 | 装備EXPも戦闘クリア時の生存人間のみ | 死者の装備成長を止める |
 | P3-BAL-DEAD-EXP-001-4 | 結果表示の合計EXPは撃破プール（`run_exp_reward`）据置。個人は `run_exp_by_member` | UI互換 |
 
+## 戦闘VFX／SE polish（2026-07-27 — P3-UX-COMBAT-VFX-001）
+
+> **オーナー GO（推奨案すべて）** — バフデバフ視認／武器別ヒット／鼓舞SE差し替え。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-COMBAT-VFX-001-1 | **付与視認** — テロップ大型化＋バフ橙／デバフ状態色。付与バーストはバフ上昇・デバフ下降。鼓舞・防御・標的等も常駐オーラ | ログ無しで分かる |
+| P3-UX-COMBAT-VFX-001-2 | **武器別ヒット** — VFXはスケール／回転／ティントで剣＝斬撃・弓＝刺突・杖＝魔法寄り。SEは `combat_hit` / `combat_hit_bow` / `combat_hit_staff` | 剣と弓が同じ問題の解消 |
+| P3-UX-COMBAT-VFX-001-3 | **鼓舞SE** — `combat_buff` を Kenney Digital `powerUp1` へ差し替え（剣ヒットと別音色） | ヒット音に聞こえる問題 |
+| P3-UX-COMBAT-VFX-001-4 | **スコープ外** — 武器別専用スプライト新規描画／クリティカルSEの武器分岐／誰に付いているかのレジェンド個別表示 | アセット増を抑える |
+
 ## ジョブ到達形βオミット（2026-07-27 — P3-JOB-EVO-OMIT-001）
 
 > **オーナー GO（案A・完全オミット）** — 見た目変化がなくややこしいだけのため、到達形（昇格／認定）をβから外す。

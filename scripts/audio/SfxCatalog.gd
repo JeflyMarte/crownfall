@@ -13,6 +13,9 @@ const ID_UI_OPEN: String = "ui_open"
 const ID_UI_SWITCH: String = "ui_switch"
 const ID_UI_EQUIP: String = "ui_equip"
 const ID_COMBAT_HIT: String = "combat_hit"
+## 武器種別ヒット（P3-UX-COMBAT-VFX-001）。未指定は ID_COMBAT_HIT。
+const ID_COMBAT_HIT_BOW: String = "combat_hit_bow"
+const ID_COMBAT_HIT_STAFF: String = "combat_hit_staff"
 const ID_COMBAT_CRIT: String = "combat_crit"
 const ID_COMBAT_HEAL: String = "combat_heal"
 const ID_COMBAT_BUFF: String = "combat_buff"
@@ -37,6 +40,8 @@ const PATHS: Dictionary = {
 	ID_UI_SWITCH: DIR + "ui_switch.ogg",
 	ID_UI_EQUIP: DIR + "ui_equip.ogg",
 	ID_COMBAT_HIT: DIR + "combat_hit.ogg",
+	ID_COMBAT_HIT_BOW: DIR + "combat_hit_bow.ogg",
+	ID_COMBAT_HIT_STAFF: DIR + "combat_hit_staff.ogg",
 	ID_COMBAT_CRIT: DIR + "combat_crit.ogg",
 	ID_COMBAT_HEAL: DIR + "combat_heal.ogg",
 	ID_COMBAT_BUFF: DIR + "combat_buff.ogg",
@@ -61,6 +66,18 @@ const PATHS: Dictionary = {
 
 static func path_for(sfx_id: String) -> String:
 	return str(PATHS.get(sfx_id, ""))
+
+
+## 武器種 → 通常ヒット SE（crit は別途 ID_COMBAT_CRIT）。
+static func hit_sfx_for_weapon(weapon_type: String) -> String:
+	match str(weapon_type):
+		"bow":
+			return ID_COMBAT_HIT_BOW
+		"staff":
+			return ID_COMBAT_HIT_STAFF
+		_:
+			## sword / dual_blades / 空 → 斬撃系
+			return ID_COMBAT_HIT
 
 
 static func all_ids() -> Array[String]:

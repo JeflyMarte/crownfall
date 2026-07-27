@@ -60,3 +60,19 @@ func test_heal_buff_debuff_paths() -> void:
 	assert_ne(gacha_path, level_path)
 	assert_true(FileAccess.file_exists(gacha_path))
 	assert_true(FileAccess.file_exists(level_path))
+
+
+func test_weapon_hit_sfx_ids() -> void:
+	## P3-UX-COMBAT-VFX-001
+	assert_eq(_SfxCatalog.hit_sfx_for_weapon("sword"), _SfxCatalog.ID_COMBAT_HIT)
+	assert_eq(_SfxCatalog.hit_sfx_for_weapon("dual_blades"), _SfxCatalog.ID_COMBAT_HIT)
+	assert_eq(_SfxCatalog.hit_sfx_for_weapon("bow"), _SfxCatalog.ID_COMBAT_HIT_BOW)
+	assert_eq(_SfxCatalog.hit_sfx_for_weapon("staff"), _SfxCatalog.ID_COMBAT_HIT_STAFF)
+	assert_eq(_SfxCatalog.hit_sfx_for_weapon(""), _SfxCatalog.ID_COMBAT_HIT)
+	for sfx_id in [_SfxCatalog.ID_COMBAT_HIT_BOW, _SfxCatalog.ID_COMBAT_HIT_STAFF]:
+		assert_true(FileAccess.file_exists(_SfxCatalog.path_for(sfx_id)), sfx_id)
+	## 鼓舞用 buff はヒットと別ファイル
+	assert_ne(
+		FileAccess.get_file_as_bytes(_SfxCatalog.path_for(_SfxCatalog.ID_COMBAT_BUFF)),
+		FileAccess.get_file_as_bytes(_SfxCatalog.path_for(_SfxCatalog.ID_COMBAT_HIT))
+	)
