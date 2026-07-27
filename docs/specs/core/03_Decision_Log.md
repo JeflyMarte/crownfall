@@ -5277,3 +5277,13 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-BAL-LEG-WPN-A001-7 | **腐血の影弦** — 毒出血敵+35%＋25%付与 | DoTシナジー弓 |
 | P3-BAL-LEG-WPN-A001-8 | **脈打つ閃刃** — 会心時ゲージ+8＆35%追撃 | 会心追撃／ゲージ加速 |
 | P3-BAL-LEG-WPN-A001-9 | **防壁の戦剣** — Threat+120／被ダメ-12% | VG脅威＋減ダメ |
+
+## 助っ人肖像の焼き込み枠除去（2026-07-28 — P3-UI-HELPER-PORTRAIT-FRAME-001）
+
+> **オーナー GO（案A）** — 編成で一部だけ枠付きに見える問題を、**焼き込み枠なし**に揃えて解消。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UI-HELPER-PORTRAIT-FRAME-001-1 | `ART_HELPER_*.png` に金枠・装飾コーナーを焼き込まない | UI クロムと二重／個体差が出る |
+| P3-UI-HELPER-PORTRAIT-FRAME-001-2 | 既存の枠付き（helper_g/h/j/m）はアセット側で除去 | シアン（helper_m）が特に目立つ |
+| P3-UI-HELPER-PORTRAIT-FRAME-001-3 | 再発時は `tools/strip_helper_portrait_frames.py` | 納品差の補正用 |
