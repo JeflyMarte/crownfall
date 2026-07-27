@@ -775,12 +775,15 @@ func _update_character_card() -> void:
 	var stats: Dictionary = _compute_member_stats(party_idx if party_idx >= 0 else -1, member)
 	_populate_stat_grid(stats)
 	_update_lb_ticket_row(member)
-	if PetSystem.is_pet_member(member):
+	if not Constants.JOB_EVOLUTION_PLAYABLE or PetSystem.is_pet_member(member):
 		_evolution_row.visible = false
 		if _label_evolution_traits != null:
 			_label_evolution_traits.visible = false
-		if _lb_ticket_row != null:
+		if PetSystem.is_pet_member(member) and _lb_ticket_row != null:
 			_lb_ticket_row.visible = false
+		if PetSystem.is_pet_member(member):
+			return
+	_update_evolution_row(member)
 
 func _ensure_lb_ticket_row() -> void:
 	if _lb_ticket_row != null:
@@ -864,6 +867,11 @@ func _on_lb_ticket_confirmed() -> void:
 	_refresh_display()
 
 func _update_evolution_row(member: Resource) -> void:
+	if not Constants.JOB_EVOLUTION_PLAYABLE:
+		_evolution_row.visible = false
+		if _label_evolution_traits != null:
+			_label_evolution_traits.visible = false
+		return
 	var target_name: String = _JobEvolution.get_evolved_name(member)
 	if target_name.is_empty():
 		_evolution_row.visible = false
@@ -3459,6 +3467,8 @@ func _skill_target_label(target_type: String) -> String:
 	match target_type:
 		"enemy":
 			return "敵1体"
+		"all_enemies":
+			return "敵全体"
 		"ally":
 			return "味方1体"
 		"party":
@@ -3471,6 +3481,8 @@ func _skill_target_label(target_type: String) -> String:
 			return "味方後列"
 		"self":
 			return "自身"
+		"pet":
+			return "オトモ"
 		_:
 			return "対象"
 

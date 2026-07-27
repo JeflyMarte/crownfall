@@ -6,6 +6,8 @@ extends RefCounted
 
 const AURA_STATUS_IDS: Array[String] = [
 	"poison", "chill", "shock", "ignite", "curse", "bleed", "stun", "fear",
+	## P3-UX-COMBAT-VFX-001: バフ／攻防デバフも常駐オーラでログ無し視認
+	"empower", "empower_minor", "guard", "mark", "vulnerable", "armor_break", "slow", "enrage",
 ]
 
 const STATUS_COLOR: Dictionary = {
@@ -20,9 +22,15 @@ const STATUS_COLOR: Dictionary = {
 	"armor_break": Color(0.8, 0.6, 0.3),
 	"mark": Color(0.95, 0.35, 0.55),
 	"empower": Color(0.95, 0.55, 0.2),
+	"empower_minor": Color(0.85, 0.6, 0.35),
 	"guard": Color(0.4, 0.55, 0.85),
 	"bleed": Color(0.9, 0.28, 0.28),
+	"slow": Color(0.47, 0.67, 0.82),
+	"enrage": Color(0.9, 0.35, 0.16),
 }
+
+## 付与テロップ色（バフ＝橙／デバフ＝状態色）。
+const APPLY_TELOP_BUFF: Color = Color(1.0, 0.72, 0.28)
 
 ## DoT ダメージテロップ用（視認性優先の明るめ色）。
 const DOT_TELOP_COLOR: Dictionary = {
@@ -79,6 +87,44 @@ static func status_apply_telop_text(display_name: String) -> String:
 	if n.is_empty():
 		return ""
 	return "%sを付与！" % n
+
+
+## P3-UX-COMBAT-VFX-001: 付与テロップ色（バフ橙／デバフは状態色）。
+static func status_apply_telop_color(status_id: String) -> Color:
+	if is_buff_status(status_id):
+		return APPLY_TELOP_BUFF
+	return status_color(status_id).lightened(0.25)
+
+
+## 武器種ごとのヒット見た目（新規スプライト無し・スケール／回転／ティント）。
+## 戻り: { "scale": Vector2, "rotation_deg": float, "tint": Color }（tint=WHITE は無変更）
+static func weapon_hit_style(weapon_type: String) -> Dictionary:
+	match str(weapon_type):
+		"bow":
+			return {
+				"scale": Vector2(0.62, 1.22),
+				"rotation_deg": 0.0,
+				"tint": Color(0.82, 0.94, 1.0),
+			}
+		"staff":
+			return {
+				"scale": Vector2(1.05, 1.05),
+				"rotation_deg": 0.0,
+				"tint": Color(0.88, 0.72, 1.0),
+			}
+		"dual_blades":
+			return {
+				"scale": Vector2(1.2, 0.82),
+				"rotation_deg": -18.0,
+				"tint": Color.WHITE,
+			}
+		_:
+			## sword / 空 → 横長の斬撃感
+			return {
+				"scale": Vector2(1.38, 0.72),
+				"rotation_deg": 22.0,
+				"tint": Color.WHITE,
+			}
 
 
 static func unit_tint_from_statuses(statuses: Array) -> Color:
@@ -222,6 +268,15 @@ func _ensure_aura_host(anchor: Node2D) -> Node2D:
 
 
 func _apply_burst_profile(status_id: String) -> Dictionary:
+	## バフは上昇・デバフは下降で「かかった」方向感を出す（P3-UX-COMBAT-VFX-001）。
+	if is_buff_status(status_id):
+		return {
+			"amount": 30,
+			"spread": 42.0,
+			"velocity_min": 70.0,
+			"velocity_max": 160.0,
+			"gravity_y": -95.0,
+		}
 	match status_id:
 		"ignite":
 			return {"amount": 28, "spread": 35.0, "velocity_min": 60.0, "velocity_max": 140.0, "gravity_y": -40.0}
@@ -238,7 +293,8 @@ func _apply_burst_profile(status_id: String) -> Dictionary:
 		"bleed":
 			return {"amount": 20, "spread": 55.0, "velocity_min": 50.0, "velocity_max": 120.0, "gravity_y": 90.0}
 		_:
-			return {"amount": 20, "spread": 80.0, "velocity_min": 60.0, "velocity_max": 150.0, "gravity_y": 30.0}
+			## その他デバフは下降バースト
+			return {"amount": 24, "spread": 70.0, "velocity_min": 55.0, "velocity_max": 140.0, "gravity_y": 85.0}
 
 
 func _dot_tick_profile(status_id: String) -> Dictionary:
@@ -266,6 +322,16 @@ func _aura_profile(status_id: String) -> Dictionary:
 			return {"amount": 10, "lifetime": 0.45, "velocity_min": 25.0, "velocity_max": 55.0, "gravity_y": -5.0, "spread": 180.0}
 		"fear":
 			return {"amount": 8, "lifetime": 0.7, "velocity_min": 14.0, "velocity_max": 36.0, "gravity_y": 10.0, "spread": 100.0}
+		"empower", "empower_minor":
+			return {"amount": 7, "lifetime": 0.7, "velocity_min": 14.0, "velocity_max": 32.0, "gravity_y": -28.0, "spread": 35.0}
+		"guard":
+			return {"amount": 6, "lifetime": 0.85, "velocity_min": 6.0, "velocity_max": 18.0, "gravity_y": -8.0, "spread": 50.0}
+		"mark", "vulnerable", "armor_break":
+			return {"amount": 7, "lifetime": 0.65, "velocity_min": 12.0, "velocity_max": 28.0, "gravity_y": 22.0, "spread": 55.0}
+		"slow":
+			return {"amount": 6, "lifetime": 0.9, "velocity_min": 5.0, "velocity_max": 14.0, "gravity_y": 28.0, "spread": 40.0}
+		"enrage":
+			return {"amount": 9, "lifetime": 0.5, "velocity_min": 20.0, "velocity_max": 48.0, "gravity_y": -20.0, "spread": 40.0}
 		_:
 			return {"amount": 8, "lifetime": 0.6, "velocity_min": 12.0, "velocity_max": 30.0, "gravity_y": 0.0, "spread": 60.0}
 

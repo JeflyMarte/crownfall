@@ -28,7 +28,7 @@ SE はこのフォルダ配下。出典は **Kenney.nl（CC0）** と **TomMusic
 | ui_switch.ogg | Interface / switch_001 |
 | ui_equip.ogg | RPG / metalClick |
 | combat_heal.ogg | Interface / confirmation_004 |
-| combat_buff.ogg | Interface / maximize_005 |
+| combat_buff.ogg | Digital / powerUp1（P3-UX-COMBAT-VFX-001・鼓舞用に差し替え。旧 Interface maximize_005） |
 | combat_debuff.ogg | Interface / minimize_005 |
 | combat_death.ogg | Digital / phaserDown1 |
 | gacha_reveal.ogg | Digital / powerUp 系（ブースト再エンコード。ガチャ専用） |
@@ -46,6 +46,8 @@ SE はこのフォルダ配下。出典は **Kenney.nl（CC0）** と **TomMusic
 | File | Original |
 |---|---|
 | combat_hit.ogg | SFX / Sword Impact Hit 1 |
+| combat_hit_bow.ogg | Kenney Impact / impactGeneric_light_000（弓・刺突系・P3-UX-COMBAT-VFX-001） |
+| combat_hit_staff.ogg | SFX / Spell Impact 1（杖・`combat_skill` と同音源） |
 | combat_crit.ogg | SFX / Sword Impact Hit 3 |
 | combat_skill.ogg | SFX / Spell Impact 1 |
 | combat_ultimate.ogg | SFX / Fireball 2 |

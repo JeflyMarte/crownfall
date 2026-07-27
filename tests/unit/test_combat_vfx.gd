@@ -18,6 +18,29 @@ func test_aura_status_list_covers_core_debuffs() -> void:
 		assert_true(sid in mgr.AURA_STATUS_IDS, sid)
 
 
+func test_aura_includes_buff_and_combat_debuffs() -> void:
+	## P3-UX-COMBAT-VFX-001
+	var mgr: RefCounted = _CombatVfxManager.new()
+	for sid in ["empower", "empower_minor", "guard", "mark", "vulnerable", "armor_break", "slow", "enrage"]:
+		assert_true(sid in mgr.AURA_STATUS_IDS, sid)
+
+
+func test_status_apply_telop_color_buff_is_orange() -> void:
+	var buff_c: Color = _CombatVfxManager.status_apply_telop_color("empower")
+	assert_true(buff_c.r > 0.9)
+	assert_true(buff_c.g > 0.6 and buff_c.g < 0.85)
+	var debuff_c: Color = _CombatVfxManager.status_apply_telop_color("poison")
+	assert_ne(buff_c, debuff_c)
+
+
+func test_weapon_hit_style_differs_sword_vs_bow() -> void:
+	var sword: Dictionary = _CombatVfxManager.weapon_hit_style("sword")
+	var bow: Dictionary = _CombatVfxManager.weapon_hit_style("bow")
+	assert_ne(sword.get("scale"), bow.get("scale"))
+	assert_true(float((bow.get("scale") as Vector2).y) > float((bow.get("scale") as Vector2).x))
+	assert_true(float((sword.get("scale") as Vector2).x) > float((sword.get("scale") as Vector2).y))
+
+
 func test_spawn_burst_without_crash() -> void:
 	var host := Node2D.new()
 	add_child_autofree(host)
