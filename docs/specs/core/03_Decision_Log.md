@@ -4903,6 +4903,20 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 
 ---
 
+## 非戦闘フロア表示 polish（2026-07-27 — P3-UX-NONCOMBAT-POLISH-001）
+
+> **オーナー GO** — 碑文バフ表示の維持／回復泉の緑演出／宝箱結果の色分け。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-NONCOMBAT-POLISH-001-1 | **碑文** — 成功テロップ（加護含む）は自動フェードせず、次フロア入場まで表示 | 「閉じるのが早い」 |
+| P3-UX-NONCOMBAT-POLISH-001-2 | **回復泉** — 回復VFXと頭上数字を緑。成功時は一時的に味方表示 | 視認性 |
+| P3-UX-NONCOMBAT-POLISH-001-3 | **宝箱** — ゴールド＝金／武器＝水色／装飾＝紫の BBCode | 報酬の区別 |
+
+**Closeout:** Impl 後に統合＋`main`。
+
+---
+
 ## 調査室・進行中調査の中止（2026-07-27 — P3-UX-SURVEY-CANCEL-001）
 
 > **オーナー GO** — 調査室で始めた派遣サイクルを途中で止められるボタン。

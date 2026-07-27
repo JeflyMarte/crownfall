@@ -92,6 +92,7 @@
 | — | **P3-UX-STATUS-LEGEND-001** | 戦闘右上・発生中状態異常レジェンド | ✅ GO・Impl |
 | — | **P3-UX-STATUS-TELOP-001** | 状態付与「を付与！」テロップ＋DoT頭上 | ✅ GO・Impl |
 | — | **P3-UX-SKILL-LEARN-PERSIST-001** | 経験値画面・スキル習得をキャラ名横に常時表示 | ✅ GO・Impl |
+| — | **P3-UX-NONCOMBAT-POLISH-001** | 非戦闘フロア（碑文／泉／宝箱）表示 polish | ✅ GO・Impl |
 | — | **P3-UX-SURVEY-CANCEL-001** | 調査室・進行中調査の中止ボタン | ✅ GO・Impl |
 | — | **P3-UX-WIPE-CAUSE-001** | 全滅リザルト・敗因分析（1〜2行） | ✅ GO・Impl |
 | — | **P3-UX-EQUIP-SCROLL-PERF-001** | キャラ画面スクロール軽量化（入れ子・キャッシュ） | ✅ GO・Impl |

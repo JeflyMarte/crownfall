@@ -46,6 +46,7 @@ alwaysApply: true
 | 未開ダンジョンに実名・バナーが出る | ロック中でも `display_name`／バナー／ドロップを表示 | `unlocked==false` は「？」表示。バナー・敵／ドロップ非表示 |
 | 結果の素材獲得でスクロールが効かない | `ResultScene` に `ScrollTouchHelper` 未適用 | `_ready`／素材 rebuild 後に `ScrollTouchHelper.enable` |
 | 全滅リザルトに「なぜ負けたか」が無い | wipe 時の階層／部屋／敵を保存していない | `WipeCauseHelper`＋`last_run_wipe_cause`。全滅時のみ Header に1〜2行 |
+| 碑文加護テロップがすぐ消える／泉の回復が見えない／宝箱報酬が単色 | 碑文も自動フェード、泉は味方非表示＋数字無し、宝箱は1色 Label | 碑文は次フロアまで残す。泉は緑VFX＋緑数字。宝箱は BBCode で金／武／飾色分け |
 | 調査室で進行中調査を止められない | cancel API／ボタン無し | `SurveySystem.cancel_cycle`＋調査中のみ「調査を中止」（完了後は受取必須・報酬なし） |
 | 状態異常アイコンが「？」 | `bleed`/`slow`/`enrage` が `STATUS_ICON_DEF`・`IconPaths` 欠落 | DEF＋ICO_STA_*＋IconPaths を追加。`empower_minor` は empower 流用 |
 | 戦闘速度が ×0.75 のまま／設定と不一致 | `SPEED_MULT_NORMAL=0.75` と設定の不一致 | ×1／×1.5／×2 の3択に統一。旧 ×0.75 は ×1 へ |
