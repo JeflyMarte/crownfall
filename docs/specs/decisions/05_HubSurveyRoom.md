@@ -160,8 +160,9 @@ DG サムネは既存ダンジョン選択アートを流用。報酬プレビ�
 | 項目 | 内容 |
 |---|---|
 | 解放条件 | メイン③ミストフェン（Normal）初回クリア |
-| 演出順 | 既存: ニーナ功績 → 解放 → 加入予告 → 初期キャラ加入 → **ノノカ合流トーク** →（はじめガイド等） |
-| 会話 | `ChapterClearNinaLines.nonoka_survey_join_lines`（ニーナ口調・3吹き出し） |
+| 演出順 | 既存: ニーナ功績 → 解放 → 加入予告 → 初期キャラ加入 → **ノノカ合流トーク（ニーナ＋ノノカ）** → **加入ショーケース（リビールなし）** →（はじめガイド等） |
+| 会話 | `ChapterClearNinaLines.nonoka_survey_join_lines`（speaker 付き。`NinaDialogueOverlay` が立ち絵切替） |
+| 加入ポップ | `StarterJoinOverlay.show_showcase_only(staff_nonoka)`。セリフは `StarterJoinQuotes` |
 | フラグ | `pending_nonoka_survey_join` / `survey_staff_nonoka_unlocked`（セーブ v14） |
 | 旧セーブ | 既に mistfen クリア済みなら合流演出なしで即解放 |
 | 情報誌 | ギルド情報誌のノノカメモ／マスコットは合流前も据置（本部寄稿扱い） |

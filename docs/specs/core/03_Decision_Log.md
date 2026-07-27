@@ -5095,7 +5095,8 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 |---|---|---|
 | P3-SURVEY-NONOKA-JOIN-001-1 | **ニーナ**＝調査室開始時から常駐 | 案内役・文書担当 |
 | P3-SURVEY-NONOKA-JOIN-001-2 | **ノノカ**＝`mistfen` Normal 初回クリア後に解放 | 考古担当の中盤合流 |
-| P3-SURVEY-NONOKA-JOIN-001-3 | **演出**＝功績→解放→加入予告→初期キャラ加入→**ノノカ合流トーク** | オーナー指定 |
+| P3-SURVEY-NONOKA-JOIN-001-3 | **演出**＝功績→解放→加入予告→初期キャラ加入→**ノノカ合流トーク（ニーナ＋ノノカ）**→**ショーケースのみ加入ポップ** | オーナー指定（A案） |
+| P3-SURVEY-NONOKA-JOIN-001-3b | **加入ポップ**は初期キャラ同型のショーケースのみ（ガチャ風リビールなし） | スタッフ合流に合わせる |
 | P3-SURVEY-NONOKA-JOIN-001-4 | **未解放時**は候補／おまかせ／配置から除外 | 調査室 UI と一致 |
 | P3-SURVEY-NONOKA-JOIN-001-5 | **旧セーブ**で mistfen クリア済みなら即解放（会話スキップ） | 巻き戻り防止 |
 | P3-SURVEY-NONOKA-JOIN-001-6 | **情報誌**のノノカは合流前も据置 | 本部寄稿扱い |

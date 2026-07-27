@@ -226,6 +226,26 @@ func test_mistfen_clear_queues_nonoka_join() -> void:
 	assert_true(GameState.pending_nonoka_survey_join)
 
 
+func test_nonoka_join_lines_include_nonoka_speaker() -> void:
+	const _ChapterClearNinaLines := preload("res://scripts/ui/ChapterClearNinaLines.gd")
+	const _StarterJoinQuotes := preload("res://scripts/roster/StarterJoinQuotes.gd")
+	const _SurveyStaff := preload("res://scripts/survey/SurveyStaff.gd")
+	var lines: Array = _ChapterClearNinaLines.nonoka_survey_join_lines()
+	assert_gte(lines.size(), 4)
+	var has_nonoka: bool = false
+	for raw in lines:
+		assert_typeof(raw, TYPE_DICTIONARY)
+		var speaker: String = str((raw as Dictionary).get("speaker", ""))
+		var text: String = str((raw as Dictionary).get("text", "")).strip_edges()
+		assert_false(text.is_empty())
+		if speaker == "nonoka":
+			has_nonoka = true
+	assert_true(has_nonoka, "ノノカ本人のセリフが必要")
+	var quote: String = _StarterJoinQuotes.line_for(_SurveyStaff.ID_NONOKA)
+	assert_false(quote.is_empty())
+	assert_true(quote.find("たぶん") >= 0 or quote.find("ノート") >= 0)
+
+
 func test_investigator_slots_always_four() -> void:
 	assert_eq(_SurveyConfig.INVESTIGATOR_SLOTS, 4)
 	assert_eq(_SurveyConfig.INVESTIGATOR_UI_SLOTS, 4)

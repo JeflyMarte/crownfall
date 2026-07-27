@@ -243,6 +243,32 @@ func _maybe_show_nonoka_survey_join() -> void:
 
 
 func _on_nonoka_survey_join_dismissed() -> void:
+	## 会話の次に加入ショーケース（ガチャ風リビールなし）。解放はショーケース閉じ後。
+	call_deferred("_maybe_show_nonoka_join_showcase")
+
+
+func _maybe_show_nonoka_join_showcase() -> void:
+	if not GameState.pending_nonoka_survey_join:
+		_maybe_show_hub_simple_guide()
+		return
+	if _hub_overlay_blocking("StarterJoinOverlay"):
+		return
+	if _hub_overlay_blocking("NinaDialogueOverlay"):
+		return
+	if _hub_overlay_blocking("DungeonUnlockOverlay"):
+		return
+	if _hub_overlay_blocking("CommanderRankUpOverlay"):
+		return
+	if _hub_overlay_blocking("HubSimpleGuideOverlay"):
+		return
+	const _SurveyStaff := preload("res://scripts/survey/SurveyStaff.gd")
+	var overlay: CanvasLayer = _StarterJoinOverlay.show_showcase_only(
+		self, _SurveyStaff.ID_NONOKA
+	)
+	overlay.dismissed.connect(_on_nonoka_join_showcase_dismissed)
+
+
+func _on_nonoka_join_showcase_dismissed(_member_id: String) -> void:
 	GameState.commit_nonoka_survey_join()
 	SaveManager.save_game()
 	_refresh_nina_nav()

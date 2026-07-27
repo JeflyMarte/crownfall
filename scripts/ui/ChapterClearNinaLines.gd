@@ -89,11 +89,25 @@ static func recruit_teaser_lines_for_stage(stage_id: String) -> Array[String]:
 
 
 ## ミストフェン初回クリア後・初期キャラ加入に続くノノカ調査室合流（P3-SURVEY-NONOKA-JOIN-001）。
-static func nonoka_survey_join_lines() -> Array[String]:
+## NinaDialogueOverlay 向け。speaker 付き Dictionary（nina / nonoka）。
+static func nonoka_survey_join_lines() -> Array:
 	return [
-		"隊長、ミストフェンの報告を受けて——記録庁から、もう一人調査室に入ってもらうことになりました。",
-		"研究員のノノカです。考古担当で、机より現場の資料あさりが得意な子です。",
-		"これからは調査室で、ノノカも一緒に配置できます。よろしくお願いしますね。",
+		{
+			"speaker": "nina",
+			"text": "隊長、ミストフェンの報告を受けて——記録庁から、もう一人調査室に入ってもらうことになりました。",
+		},
+		{
+			"speaker": "nina",
+			"text": "研究員のノノカです。考古担当で、机より現場の資料あさりが得意な子です。",
+		},
+		{
+			"speaker": "nonoka",
+			"text": "はーい！ノノカですっ。遺跡のホコリより仮説のほうが好き……たぶんね？ これから調査、よろしくっ！",
+		},
+		{
+			"speaker": "nina",
+			"text": "これからは調査室で、ノノカも一緒に配置できます。よろしくお願いしますね。",
+		},
 	]
 
 
