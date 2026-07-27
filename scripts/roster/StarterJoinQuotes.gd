@@ -21,6 +21,10 @@ const JOIN_LINES: Dictionary = {
 		"ジャックと一緒に、生き物の声が聞こえる場所へ行きたい。だからこの調査隊に入るよ。"
 	),
 	"pet_jack": "ワンッ！",
+	## 調査室スタッフ合流（ショーケースのみ・P3-SURVEY-NONOKA-JOIN-001）。
+	"staff_nonoka": (
+		"データは嘘つかない。……たぶんね？ 隊長の調査、ノートにびっしり書いちゃうね！"
+	),
 }
 
 ## ロスター確定後。動機の繰り返しではなく、これからどう動くかの一言。
@@ -46,6 +50,9 @@ static func _line_from(table: Dictionary, adventurer_id: String) -> String:
 	var line: String = str(table.get(adventurer_id, "")).strip_edges()
 	if not line.is_empty():
 		return line
+	const _SurveyStaff := preload("res://scripts/survey/SurveyStaff.gd")
+	if _SurveyStaff.is_staff_id(adventurer_id):
+		return "%sが調査室に合流する。" % _SurveyStaff.display_name(adventurer_id)
 	const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
 	if _PetSystem.is_pet_id(adventurer_id):
 		var pet: Resource = _PetSystem.get_pet_data(adventurer_id)

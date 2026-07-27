@@ -18,7 +18,7 @@ static func can_assign_investigator(member_id: String) -> bool:
 	if member_id.is_empty():
 		return false
 	if is_survey_staff(member_id):
-		return true
+		return GameState.is_survey_staff_unlocked(member_id)
 	return GameState.find_roster_member_by_id(member_id) != null
 
 
@@ -80,9 +80,11 @@ static func can_place_without_emptying_party(
 
 
 static func investigator_candidate_ids() -> Array[String]:
-	## スタッフ先頭＋戦闘ロスター（調査室候補リスト）。
+	## 解放済みスタッフ先頭＋戦闘ロスター（調査室候補リスト）。
 	var out: Array[String] = []
 	for sid: String in _SurveyStaff.all_ids():
+		if not can_assign_investigator(sid):
+			continue
 		out.append(sid)
 	for adv in GameState.roster:
 		if adv == null:
@@ -392,9 +394,11 @@ static func auto_assign_members() -> Array[String]:
 		combat_taken += 1
 		if ids.size() >= _SurveyConfig.INVESTIGATOR_SLOTS:
 			break
-	## ロスターが空でもスタッフのみで開始可能にする。
+	## ロスターが空でも解放済みスタッフのみで開始可能にする。
 	if ids.is_empty():
 		for sid: String in _SurveyStaff.all_ids():
+			if not can_assign_investigator(sid):
+				continue
 			ids.append(sid)
 			if ids.size() >= _SurveyConfig.INVESTIGATOR_SLOTS:
 				break

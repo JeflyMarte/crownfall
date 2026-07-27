@@ -12,7 +12,10 @@ var _saved_cycle: Dictionary = {}
 var _saved_room: Dictionary = {}
 var _saved_achieve: Dictionary = {}
 var _saved_codex: Dictionary = {}
+var _saved_stage: Dictionary = {}
 var _saved_token: int = 0
+var _saved_nonoka_unlocked: bool = false
+var _saved_nonoka_pending: bool = false
 
 
 func before_each() -> void:
@@ -22,7 +25,10 @@ func before_each() -> void:
 	_saved_room = GameState.hub_survey_room_daily.duplicate(true)
 	_saved_achieve = GameState.hub_survey_achievements_claimed.duplicate(true)
 	_saved_codex = GameState.enemy_codex.duplicate(true)
+	_saved_stage = GameState.stage_progress.duplicate(true)
 	_saved_token = GameState.gacha_token
+	_saved_nonoka_unlocked = GameState.survey_staff_nonoka_unlocked
+	_saved_nonoka_pending = GameState.pending_nonoka_survey_join
 	GameState.dungeon_progress = {}
 	GameState.hub_survey_progress = {}
 	GameState.hub_survey_cycle = {}
@@ -30,6 +36,9 @@ func before_each() -> void:
 	GameState.hub_survey_achievements_claimed = {}
 	GameState.enemy_codex = {}
 	GameState.debug_full_unlock = false
+	## 既存サイクル系テストはノノカ解放済み前提。
+	GameState.survey_staff_nonoka_unlocked = true
+	GameState.pending_nonoka_survey_join = false
 
 
 func after_each() -> void:
@@ -39,8 +48,11 @@ func after_each() -> void:
 	GameState.hub_survey_room_daily = _saved_room
 	GameState.hub_survey_achievements_claimed = _saved_achieve
 	GameState.enemy_codex = _saved_codex
+	GameState.stage_progress = _saved_stage
 	GameState.gacha_token = _saved_token
 	GameState.debug_full_unlock = false
+	GameState.survey_staff_nonoka_unlocked = _saved_nonoka_unlocked
+	GameState.pending_nonoka_survey_join = _saved_nonoka_pending
 
 
 func test_whisperwood_unlocks_on_mourngate_clear() -> void:
@@ -156,6 +168,7 @@ func test_cancel_cycle_rejects_when_complete() -> void:
 func test_survey_staff_can_start_cycle_without_roster() -> void:
 	## P3-SURVEY-STAFF-001: ノノカ／ニーナはロスター外でも調査員として配置可。
 	const _SurveyStaff := preload("res://scripts/survey/SurveyStaff.gd")
+	GameState.survey_staff_nonoka_unlocked = true
 	assert_true(_SurveySystem.is_survey_staff(_SurveyStaff.ID_NONOKA))
 	assert_true(_SurveySystem.is_survey_staff(_SurveyStaff.ID_NINA))
 	assert_true(_SurveySystem.can_assign_investigator(_SurveyStaff.ID_NONOKA))
@@ -174,6 +187,63 @@ func test_survey_staff_can_start_cycle_without_roster() -> void:
 	assert_true(_SurveySystem.is_member_dispatched(_SurveyStaff.ID_NONOKA))
 	## スタッフ派遣では編成人数を減らさない（ロスター外のため party 不変）。
 	GameState.hub_survey_cycle = {}
+
+
+func test_nonoka_locked_until_mistfen_join() -> void:
+	## P3-SURVEY-NONOKA-JOIN-001: 未解放時はノノカ配置不可／ニーナのみ。
+	const _SurveyStaff := preload("res://scripts/survey/SurveyStaff.gd")
+	GameState.debug_full_unlock = false
+	GameState.survey_staff_nonoka_unlocked = false
+	GameState.pending_nonoka_survey_join = false
+	assert_false(_SurveySystem.can_assign_investigator(_SurveyStaff.ID_NONOKA))
+	assert_true(_SurveySystem.can_assign_investigator(_SurveyStaff.ID_NINA))
+	var cands: Array[String] = _SurveySystem.investigator_candidate_ids()
+	assert_false(cands.has(_SurveyStaff.ID_NONOKA))
+	assert_true(cands.has(_SurveyStaff.ID_NINA))
+	var auto_ids: Array[String] = _SurveySystem.auto_assign_members()
+	assert_false(auto_ids.has(_SurveyStaff.ID_NONOKA))
+	assert_true(auto_ids.has(_SurveyStaff.ID_NINA) or not auto_ids.is_empty())
+	GameState.queue_nonoka_survey_join_if_needed()
+	assert_true(GameState.pending_nonoka_survey_join)
+	GameState.commit_nonoka_survey_join()
+	assert_true(GameState.survey_staff_nonoka_unlocked)
+	assert_false(GameState.pending_nonoka_survey_join)
+	assert_true(_SurveySystem.can_assign_investigator(_SurveyStaff.ID_NONOKA))
+
+
+func test_mistfen_clear_queues_nonoka_join() -> void:
+	## ③ mistfen_3_5 Normal 初回クリアで合流待ちが立つ。
+	GameState.debug_full_unlock = false
+	GameState.survey_staff_nonoka_unlocked = false
+	GameState.pending_nonoka_survey_join = false
+	GameState.stage_progress.erase("mistfen_3_5")
+	GameState.dungeon_progress.erase("mistfen")
+	GameState.mark_stage_cleared("mistfen_3_5", 0)
+	assert_true(GameState.pending_nonoka_survey_join)
+	assert_false(GameState.survey_staff_nonoka_unlocked)
+	## 二重クリアでは待ちのまま（解放は拠点会話後）。
+	GameState.mark_stage_cleared("mistfen_3_5", 0)
+	assert_true(GameState.pending_nonoka_survey_join)
+
+
+func test_nonoka_join_lines_include_nonoka_speaker() -> void:
+	const _ChapterClearNinaLines := preload("res://scripts/ui/ChapterClearNinaLines.gd")
+	const _StarterJoinQuotes := preload("res://scripts/roster/StarterJoinQuotes.gd")
+	const _SurveyStaff := preload("res://scripts/survey/SurveyStaff.gd")
+	var lines: Array = _ChapterClearNinaLines.nonoka_survey_join_lines()
+	assert_gte(lines.size(), 4)
+	var has_nonoka: bool = false
+	for raw in lines:
+		assert_typeof(raw, TYPE_DICTIONARY)
+		var speaker: String = str((raw as Dictionary).get("speaker", ""))
+		var text: String = str((raw as Dictionary).get("text", "")).strip_edges()
+		assert_false(text.is_empty())
+		if speaker == "nonoka":
+			has_nonoka = true
+	assert_true(has_nonoka, "ノノカ本人のセリフが必要")
+	var quote: String = _StarterJoinQuotes.line_for(_SurveyStaff.ID_NONOKA)
+	assert_false(quote.is_empty())
+	assert_true(quote.find("たぶん") >= 0 or quote.find("ノート") >= 0)
 
 
 func test_investigator_slots_always_four() -> void:

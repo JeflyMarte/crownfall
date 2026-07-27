@@ -14,7 +14,7 @@ const SAVE_PATH: String = "user://save_data.json"
 ## `_migrate_save_data` に v(n)→v(n+1) の段階マイグレーションを追加する。
 ## v0 = バージョンフィールド無しの旧セーブ（レガシー party/equipment/job/dungeon id を含む）
 ## v1 = save_version フィールド導入（2026-07-02）
-const SAVE_VERSION: int = 13
+const SAVE_VERSION: int = 14
 
 func save_game() -> void:
 	var data: Dictionary = {
@@ -57,6 +57,8 @@ func save_game() -> void:
 		"pending_clear_nina_merit": GameState.pending_clear_nina_merit,
 		"pending_clear_nina_teaser": GameState.pending_clear_nina_teaser,
 		"pending_clear_stage_id": GameState.pending_clear_stage_id,
+		"pending_nonoka_survey_join": GameState.pending_nonoka_survey_join,
+		"survey_staff_nonoka_unlocked": GameState.survey_staff_nonoka_unlocked,
 		"pending_content_unlock_notices": GameState.pending_content_unlock_notices.duplicate(true),
 		"pending_nina_rare_guides": GameState.pending_nina_rare_guides.duplicate(true),
 		"pending_nina_nav_notices": GameState.pending_nina_nav_notices.duplicate(true),
@@ -126,7 +128,19 @@ func _migrate_save_data(data: Dictionary) -> Dictionary:
 		data = _migrate_save_v11_to_v12(data)
 	if version < 13:
 		data = _migrate_save_v12_to_v13(data)
+	if version < 14:
+		data = _migrate_save_v13_to_v14(data)
 	data["save_version"] = SAVE_VERSION
+	return data
+
+
+## P3-SURVEY-NONOKA-JOIN-001: ノノカ調査室合流フラグ。
+func _migrate_save_v13_to_v14(data: Dictionary) -> Dictionary:
+	## キーが無ければ適用時に mistfen クリア済みから修復する。
+	if not data.has("survey_staff_nonoka_unlocked"):
+		data["survey_staff_nonoka_unlocked"] = false
+	if not data.has("pending_nonoka_survey_join"):
+		data["pending_nonoka_survey_join"] = false
 	return data
 
 
@@ -644,6 +658,10 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.pending_clear_stage_id = str(data.get("pending_clear_stage_id", "")).strip_edges()
 	else:
 		GameState.pending_clear_stage_id = str(GameState.last_run_stage_id).strip_edges()
+	GameState.pending_nonoka_survey_join = bool(data.get("pending_nonoka_survey_join", false))
+	GameState.survey_staff_nonoka_unlocked = bool(data.get("survey_staff_nonoka_unlocked", false))
+	## mistfen クリア済み旧セーブ等はここで修復（stage_progress 適用後）。
+	GameState.migrate_survey_staff_unlock_state()
 	if data.has("pending_content_unlock_notices") and data["pending_content_unlock_notices"] is Array:
 		var notices: Array = []
 		for raw_notice: Variant in data["pending_content_unlock_notices"]:
