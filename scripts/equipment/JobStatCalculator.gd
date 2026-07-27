@@ -32,7 +32,9 @@ func _get_member_modifiers(adventurer: Resource) -> Dictionary:
 	var job_data: Resource = DataRegistry.get_job_data(job_id)
 	if job_data == null:
 		return _fallback_for_missing_job(job_id)
-	var evolved: bool = bool(adventurer.is_evolved)
+	var evolved: bool = (
+		Constants.JOB_EVOLUTION_PLAYABLE and bool(adventurer.is_evolved)
+	)
 	var hp_mult: float = _safe_multiplier(job_data.base_hp_modifier)
 	var atk_mult: float = _safe_multiplier(job_data.base_attack_modifier)
 	var def_mult: float = _safe_multiplier(job_data.base_defense_modifier)

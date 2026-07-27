@@ -46,6 +46,9 @@ const SUB_STAGES_PLAYABLE: bool = true
 const CODEX_ACHIEVE_PLAYABLE: bool = false
 ## 図鑑「ダンジョン」タブを表示する（P3-CODEX-DG-OMIT-001）。false=UI非表示・データ残置。
 const CODEX_DUNGEON_PLAYABLE: bool = false
+## ジョブ到達形（昇格／認定）をプレイ対象に含める（P3-JOB-EVO-OMIT-001）。
+## false=UI非表示・進化不可・補正／特質／着色なし。データ・セーブ項目は残置。
+const JOB_EVOLUTION_PLAYABLE: bool = false
 const RESOURCE_STAGES_PATH: String = "res://resources/stages/"
 const COMBAT_TICK_INTERVAL: float = 1.5
 const DEFAULT_PLAYER_SKILL_ID: String = "slash_attack"

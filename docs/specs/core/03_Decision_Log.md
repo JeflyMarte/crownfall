@@ -5113,3 +5113,14 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-BAL-DEAD-EXP-001-2 | 死亡前に稼いだ分は結果で付与する | 不利益の過大化を避ける |
 | P3-BAL-DEAD-EXP-001-3 | 装備EXPも戦闘クリア時の生存人間のみ | 死者の装備成長を止める |
 | P3-BAL-DEAD-EXP-001-4 | 結果表示の合計EXPは撃破プール（`run_exp_reward`）据置。個人は `run_exp_by_member` | UI互換 |
+
+## ジョブ到達形βオミット（2026-07-27 — P3-JOB-EVO-OMIT-001）
+
+> **オーナー GO（案A・完全オミット）** — 見た目変化がなくややこしいだけのため、到達形（昇格／認定）をβから外す。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-JOB-EVO-OMIT-001-1 | `Constants.JOB_EVOLUTION_PLAYABLE=false` | 他オミットと同型 |
+| P3-JOB-EVO-OMIT-001-2 | 新規認定不可・UI非表示（キャラ昇格行／ギルド認定リスト） | 完全オミット |
+| P3-JOB-EVO-OMIT-001-3 | 専門深化・昇格特質・進化着色は不発（セーブの `is_evolved` があっても無視） | 既存セーブの巻き戻り防止しつつ効果ゼロ |
+| P3-JOB-EVO-OMIT-001-4 | `JobData`／コード／セーブ項目は残置（再有効化用） | データ削除しない |

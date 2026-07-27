@@ -10,6 +10,8 @@ const MODULATE_DIMMED: Color = Color(0.55, 0.55, 0.55, 0.65)
 
 
 static func is_evolved(member: Resource) -> bool:
+	if not Constants.JOB_EVOLUTION_PLAYABLE:
+		return false
 	return member != null and bool(member.is_evolved)
 
 
