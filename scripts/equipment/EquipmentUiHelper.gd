@@ -84,6 +84,42 @@ static func apply_enhance_badge(
 		font_size
 	)
 
+## ドロップ直後の New バッジ（アイコン中央・点滅）。次のダンジョン潜行まで。
+static func apply_new_badge(parent: Control, item: Resource, cell_size: Vector2) -> void:
+	if parent == null or item == null:
+		return
+	if not GameState.is_equipment_new(item):
+		return
+	var existing: Node = parent.get_node_or_null("NewEquipBadgeHost")
+	if existing != null:
+		existing.queue_free()
+	var host := Control.new()
+	host.name = "NewEquipBadgeHost"
+	host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	host.z_index = 6
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	host.add_child(center)
+	var lbl := Label.new()
+	lbl.name = "NewEquipBadge"
+	lbl.text = "New"
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var font_size: int = maxi(12, int(cell_size.y * 0.24))
+	UiTypography.apply_display(
+		lbl, font_size, Color(1.0, 0.92, 0.35, 1.0), UiTypography.OUTLINE_STRONG
+	)
+	center.add_child(lbl)
+	parent.add_child(host)
+	var tween: Tween = parent.create_tween()
+	tween.set_loops()
+	tween.tween_property(lbl, "modulate:a", 0.2, 0.55).set_trans(Tween.TRANS_SINE)
+	tween.tween_property(lbl, "modulate:a", 1.0, 0.55).set_trans(Tween.TRANS_SINE)
+
+
 ## レジェンド装備アイコンの左下に Legend リボンを重ねる。
 static func apply_legendary_badge(parent: Control, rarity: int, cell_size: Vector2) -> void:
 	if parent == null or rarity < Enums.Rarity.LEGENDARY:

@@ -73,6 +73,9 @@ var redeemed_codes: Dictionary = {}
 # 所持アイテムリスト（WeaponInstance）
 var inventory: Array = []
 
+## ダンジョンドロップ直後の New 表示対象 { instance_id: true }。次の潜行開始まで。
+var new_equipment_instance_ids: Dictionary = {}
+
 # 現在選択中のダンジョンID
 var current_dungeon_id: String = ""
 
@@ -1020,6 +1023,30 @@ func note_equipment_obtained(instance: Resource) -> void:
 	const _NinaRareAcquireGuide := preload("res://scripts/ui/NinaRareAcquireGuide.gd")
 	_NinaRareAcquireGuide.on_equipment_obtained(instance)
 
+
+## ダンジョンドロップ装備を New 表示対象にする（鍛冶／調査室は対象外）。
+func mark_equipment_new(instance: Resource) -> void:
+	if instance == null or not ("instance_id" in instance):
+		return
+	var iid: String = str(instance.instance_id).strip_edges()
+	if iid.is_empty():
+		return
+	new_equipment_instance_ids[iid] = true
+
+
+func is_equipment_new(instance: Resource) -> bool:
+	if instance == null or not ("instance_id" in instance):
+		return false
+	var iid: String = str(instance.instance_id).strip_edges()
+	if iid.is_empty():
+		return false
+	return bool(new_equipment_instance_ids.get(iid, false))
+
+
+## 次のダンジョン潜行開始時に New を消す。
+func clear_new_equipment_marks() -> void:
+	new_equipment_instance_ids.clear()
+
 func unowned_relic_ids() -> Array:
 	var out: Array = []
 	for rid: String in CombatPassives.relic_passive_ids():
@@ -1453,6 +1480,7 @@ func reset_for_new_game() -> void:
 	inventory = []
 	armor_inventory = []
 	accessory_inventory = []
+	new_equipment_instance_ids = {}
 	material_inventory = {}
 	dungeon_progress = {}
 	hub_survey_progress = {}
