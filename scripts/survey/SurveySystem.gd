@@ -430,6 +430,17 @@ static func claim_cycle() -> Dictionary:
 	return rewards
 
 
+## 進行中の調査サイクルを中止（報酬・SURVEY加算なし）。完了済みは受け取りを促す。
+static func cancel_cycle() -> Dictionary:
+	if not has_active_cycle():
+		return {"ok": false, "reason": "進行中の調査がありません"}
+	if is_cycle_complete():
+		return {"ok": false, "reason": "完了報酬を受け取ってください"}
+	GameState.hub_survey_cycle = {}
+	SaveManager.save_game()
+	return {"ok": true}
+
+
 static func _roll_rewards(preset: String, over_cap: bool = false) -> Dictionary:
 	var short: bool = preset == _SurveyConfig.PRESET_SHORT
 	var token: int = 0
