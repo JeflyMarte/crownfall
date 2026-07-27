@@ -31,9 +31,9 @@ const DUNGEON_ICON_PATHS: Dictionary = {
 const COLOR_GOLD: Color = Color(0.95, 0.84, 0.4, 1)
 const COLOR_SUB: Color = Color(0.78, 0.74, 0.6, 1)
 const COLOR_CLEAR: Color = Color(0.45, 0.92, 0.55, 1)
-## クリア済みバッジ「CLEAR」用の黄。
-const COLOR_CLEAR_BADGE: Color = Color(1.0, 0.92, 0.28, 1.0)
-const COLOR_CLEAR_BADGE_HEX: String = "ffe84a"
+## クリア済みバッジ「CLEAR」用。ダンジョン名の金と分ける（緑）。
+const COLOR_CLEAR_BADGE: Color = COLOR_CLEAR
+const COLOR_CLEAR_BADGE_HEX: String = "73eb8c"
 const COLOR_TEAL: Color = Color(0.6, 0.82, 0.78, 1)
 ## 降臨ダンジョン名（通常ゴールドより薔薇金寄り）。
 const COLOR_EVENT_TITLE: Color = Color(1.0, 0.74, 0.56, 1.0)
@@ -621,7 +621,54 @@ func _refresh_tier_tabs() -> void:
 			btn.text = "%s ✓" % label
 		else:
 			btn.text = label
-		UiTypography.apply_button(btn, selected)
+		_apply_tier_tab(btn, selected, unlocked)
+
+
+## 難度タブ（鍛冶カテゴリタブ同型）。選択＝金枠＋明るい地＋金文字。
+func _tier_tab_style(active: bool, locked: bool) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	if locked:
+		sb.bg_color = Color(0.07, 0.06, 0.05, 0.72)
+		sb.border_color = Color(0.28, 0.26, 0.22, 0.55)
+	elif active:
+		sb.bg_color = Color(0.16, 0.13, 0.09, 0.94)
+		sb.border_color = Color(0.95, 0.82, 0.38, 1.0)
+		sb.shadow_color = Color(0.85, 0.65, 0.2, 0.25)
+		sb.shadow_size = 1
+	else:
+		sb.bg_color = Color(0.09, 0.08, 0.07, 0.82)
+		sb.border_color = Color(0.40, 0.36, 0.30, 0.72)
+	sb.set_corner_radius_all(6)
+	sb.content_margin_left = 10.0
+	sb.content_margin_top = 6.0
+	sb.content_margin_right = 10.0
+	sb.content_margin_bottom = 6.0
+	sb.set_border_width_all(1 if not active or locked else 2)
+	return sb
+
+
+func _apply_tier_tab(btn: Button, selected: bool, unlocked: bool) -> void:
+	var active: bool = selected and unlocked
+	var style: StyleBoxFlat = _tier_tab_style(active, not unlocked)
+	btn.add_theme_stylebox_override("normal", style)
+	btn.add_theme_stylebox_override("hover", style)
+	btn.add_theme_stylebox_override("pressed", style)
+	btn.add_theme_stylebox_override("disabled", _tier_tab_style(false, true))
+	if btn.custom_minimum_size.y < 44.0:
+		btn.custom_minimum_size = Vector2(btn.custom_minimum_size.x, 44.0)
+	var tab_font: Font = UiTypography.display_font()
+	if tab_font != null:
+		btn.add_theme_font_override("font", tab_font)
+	btn.add_theme_font_size_override("font_size", 18 if active else 16)
+	btn.add_theme_constant_override("outline_size", UiTypography.OUTLINE_BODY)
+	btn.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	var font_color: Color = UiTypography.COLOR_LOCKED
+	if unlocked:
+		font_color = UiTypography.COLOR_GOLD if active else UiTypography.COLOR_SUB
+	btn.add_theme_color_override("font_color", font_color)
+	btn.add_theme_color_override("font_pressed_color", font_color)
+	btn.add_theme_color_override("font_hover_color", font_color)
+	btn.add_theme_color_override("font_disabled_color", UiTypography.COLOR_LOCKED)
 
 func _on_tier_pressed(tier: int) -> void:
 	var dungeon_id: String = _featured_dungeon_id
@@ -862,16 +909,11 @@ func _refresh_featured() -> void:
 			_dungeon_display_name(data, true),
 			str(stage.display_name),
 		]
-		if _is_biome_fully_cleared_for_ui(_featured_dungeon_id):
-			_label_featured_name.text += " CLEAR"
 	else:
 		_label_featured_name.visible = true
-		_label_featured_name.text = _dungeon_card_title(data, true)
-	if unlocked_featured and _is_biome_fully_cleared_for_ui(_featured_dungeon_id):
-		UiTypography.apply_display(
-			_label_featured_name, UiTypography.SIZE_BODY_SMALL, COLOR_CLEAR_BADGE
-		)
-	elif unlocked_featured and _is_event_dungeon(data):
+		## CLEAR は一覧バナー側で緑表示。名前ラベルは金のみ（同色連結禁止）。
+		_label_featured_name.text = _dungeon_display_name(data, true)
+	if unlocked_featured and _is_event_dungeon(data):
 		_apply_event_dungeon_title_style(_label_featured_name, UiTypography.SIZE_BODY_SMALL, true)
 	elif unlocked_featured:
 		UiTypography.apply_display(
@@ -1450,18 +1492,53 @@ func _make_biome_text_header(
 	if not unlocked:
 		header_wrap.modulate = Color(0.72, 0.72, 0.76, 1.0)
 
+	var root := Control.new()
+	root.custom_minimum_size = BIOME_HEADER_MIN_SIZE
+	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header_wrap.add_child(root)
+
+	var title_row := HBoxContainer.new()
+	title_row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	title_row.alignment = BoxContainer.ALIGNMENT_BEGIN
+	title_row.add_theme_constant_override("separation", 8)
+	title_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var chevron_lbl := Label.new()
+	chevron_lbl.text = "▼" if is_expanded else "▶"
+	if not unlocked:
+		chevron_lbl.text = "？"
+	chevron_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	chevron_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_body(chevron_lbl, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
+	title_row.add_child(chevron_lbl)
+	var name_lbl := Label.new()
+	name_lbl.text = _dungeon_card_title(data, unlocked)
+	name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if _is_event_dungeon(data):
+		_apply_event_dungeon_title_style(name_lbl, UiTypography.SIZE_BODY_SMALL, unlocked)
+	else:
+		UiTypography.apply_display(
+			name_lbl,
+			UiTypography.SIZE_BODY_SMALL,
+			UiTypography.COLOR_GOLD if unlocked else UiTypography.COLOR_SUB
+		)
+	title_row.add_child(name_lbl)
+	if unlocked and _is_biome_fully_cleared_for_ui(dungeon_id):
+		var clear_lbl := Label.new()
+		clear_lbl.text = "CLEAR"
+		clear_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		clear_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		UiTypography.apply_display(clear_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_CLEAR_BADGE)
+		title_row.add_child(clear_lbl)
+	root.add_child(title_row)
+
 	var header_btn := Button.new()
 	header_btn.set_anchors_preset(Control.PRESET_FULL_RECT)
 	header_btn.flat = true
 	header_btn.disabled = not unlocked
-	header_btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	var chevron: String = "▼" if is_expanded else "▶"
-	if not unlocked:
-		chevron = "？"
-	header_btn.text = "%s  %s" % [chevron, _dungeon_card_title(data, unlocked)]
 	header_btn.pressed.connect(_on_biome_accordion_pressed.bind(dungeon_id))
 	UiTypography.apply_button(header_btn, is_featured or is_expanded)
-	header_wrap.add_child(header_btn)
+	root.add_child(header_btn)
 	return header_wrap
 
 func _make_biome_card(data: Resource) -> PanelContainer:
@@ -1587,10 +1664,8 @@ func _dungeon_display_name(data: Resource, unlocked: bool = true) -> String:
 
 
 func _dungeon_card_title(data: Resource, unlocked: bool = true) -> String:
-	var title: String = _dungeon_display_name(data, unlocked)
-	if unlocked and data != null and _is_biome_fully_cleared_for_ui(str(data.id)):
-		title += " CLEAR"
-	return title
+	## 名前のみ。CLEAR は別ラベル／BBCode で緑表示（同色連結禁止）。
+	return _dungeon_display_name(data, unlocked)
 
 ## 親 Biome の配下章がすべてクリア済みか（イベント／メイン共通。章無しは Biome クリア）。
 func _is_biome_fully_cleared_for_ui(dungeon_id: String) -> bool:
