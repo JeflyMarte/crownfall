@@ -80,7 +80,11 @@ alwaysApply: true
 | マイページがタッチスクロール不能 | `BottomNavHelper` の ScrollTouch 適用後に `_rebuild_page` で Button が再生成され STOP のまま | rebuild 後に `ScrollTouchHelper.enable(MainScroll)` を再実行 |
 | 陣形で前→後に動かすとキャラが複製表示 | 空き枠を `party_members[i]` で埋めて同一メンバーが複数スロットに入る | 未配置メンバーから埋める＋スロット重複除去 |
 | 編成保存が「1〜4名・重複不可」なのに見た目は正しい | `set_active_party` が調査派遣中も拒否するが文言は人数・重複のみ。編成UIも派遣中を選べた | 失敗は `active_party_reject_reason` で理由別。派遣中は選択不可＋「調査中」表示 |
-| 2人を後列にしたのに戦闘では前列 | `_sync_formation_slots_from_selection` が空き前列を詰めて slot0/1 へ移し、`_apply_formation_rows_from_slots` で前列化 | sync は空きスロットを保持。後衛プリセットは後ろ最大2を後列（前列空可） |
+| 陣形UIを触ると未保存なのに戦闘前列が変わる／外側タップで確定扱い | オーバーレイ操作のたび `_apply_formation_rows_from_slots` で GameState 即書き | スロットは下書き。本反映は保存成功時のみ。Dim＝キャンセル（スナップショット復元）／確定＝下書き維持 |
+| おすすめ／リセットで調査中メンバーが入る | 全 roster から選んでいた | `_eligible_roster_for_party()`（派遣中除外）を使う |
+| 詳細ボタンで未保存編成が本反映される | 遷移前に `set_active_party` | 詳細は `equipment_focus_member_index`＋遷移のみ |
+| 調査中を含むセーブで編成復元失敗 | `_restore_active_party` が派遣中もセットしようとして拒否 | 復元時に派遣中をスキップ＋フォールバックも除外 |
+| 2人を後列にしたのに戦闘では前列 | `_sync_formation_slots_from_selection` が空き前列を詰めて slot0/1 へ移し、`_apply_formation_rows_from_slots` で前列化 | sync は空きスロットを保持。後衛プリセットは後ろ最大2を後列（前列空可）。GameState 書きは保存時のみ |
 | ジャックがほぼ被弾せず無敵に見える | `PET_THREAT_BASE=0.55`＋max_threat 選択で人間（≥1.0）がいる限り未選択。被ダメ計算も `party_members` 限定でオトモ DEF 未加算 | Threat を前衛相当（盾未満）へ。ダメ計算は `get_combatant`。HPバーは PET スロット短尺 |
 | オトモが「渾身の一撃」等の必殺を撃つ | 職なし＋`DEFAULT_ULTIMATE_SKILL_ID` フォールバック。balanced 戦術がボス／エリートで必殺 | `_get_member_ultimate_skill` でペット除外。`add_ultimate_charge` もスキップ（P3-PET-ULT-OMIT-001） |
 | 行動順の敵アイコンが不透明の紫板に見える | `generate_combat_enemy_icons` が穴内に `(48,36,64)` プレートを焼込 | **PNG へのプレート焼込禁止**。差替後 `.godot/imported` の `ICO_ENM_Turn_*` を消して再インポート |
@@ -153,6 +157,7 @@ alwaysApply: true
 | iPhone でタッチスクロール不能（ダンジョン他） | Scroll 内 Button／STOP がドラッグを吸収 | `ScrollTouchHelper`（deadzone＋子孫を PASS）。`BottomNavHelper.setup` と一覧 rebuild 後に適用 |
 | 装備一覧でセルを押しても詳細が変わらない | ScrollTouch が Button を PASS 化 → `pressed` 不発。加えて選択時に即 `rebuild` で入力中 Button を queue_free | Catalog も装備画面同様 `gui_input` 短押し。選択はハイライト差替のみ（全再生成しない）。BgTexture は IGNORE |
 | 装備一覧が重い／タップでカクつく | 選択のたび全セル `rebuild`＋幅連動 `cell_px` で StyleBox／ノード再生成 | セルは `INV_CELL_PX` 固定。選択は詳細＋枠ハイライトのみ更新。Grid は `SIZE_SHRINK_*` |
+| 鍛冶屋が重い／一覧タップでカクつく | 選択のたび `_refresh_all` で左一覧全再生成＋`list_card_style` 毎に `get_image` 透過検査 | 選択は `_refresh_selection`（ハイライト＋詳細のみ）。Style／alpha はキャッシュ。モード／カテゴリ切替・作成後のみ全再構築 |
 | スキル／装備説明の状態異常リンクが押せない | `ScrollTouchHelper` が `RichTextLabel` も `PASS` 化し `meta_clicked` が届かない | リンク RTL だけ `_cf_keep_mouse_stop`＋STOP（`StatusEffectLinkHelper`）。**全 RTL を STOP 化禁止**（章カード名 IGNORE 越しタップが潰れる） |
 | ダンジョン章カード名を押しても入場できない | ScrollTouch が全 `RichTextLabel` を STOP 化し、親 Button へタップが届かない | IGNORE の RTL はそのまま。STOP 維持は `_cf_keep_mouse_stop` のみ |
 | イベントDGバナーが全部モーンゲート | `SUB_BANNER_FALLBACK` で mourngate 流用のみ | 各イベントに `BAN_DG_*` を用意し `BIOME_BANNER_PATHS` へ登録。フォールバックから外す |

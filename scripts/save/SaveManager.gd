@@ -7,6 +7,7 @@ const _AccessoryStatResolver = preload("res://scripts/equipment/AccessoryStatRes
 const _EquipmentRandomMods = preload("res://scripts/equipment/EquipmentRandomMods.gd")
 const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd")
 const _CommanderProfile = preload("res://scripts/commander/CommanderProfile.gd")
+const _SurveySystem = preload("res://scripts/survey/SurveySystem.gd")
 
 const SAVE_PATH: String = "user://save_data.json"
 
@@ -920,18 +921,29 @@ func _restore_active_party(data: Dictionary) -> void:
 			if active.size() >= GameState.ACTIVE_PARTY_SIZE:
 				break
 			var m: Resource = GameState.find_roster_member_by_id(str(raw_id))
-			if m != null and not active.has(m):
-				active.append(m)
+			if m == null or active.has(m):
+				continue
+			## 調査中は編成から除外（不整合セーブの復元失敗を防ぐ）。
+			if _SurveySystem.is_member_dispatched(str(m.id)):
+				continue
+			active.append(m)
 	if active.is_empty():
-		var limit: int = mini(GameState.ACTIVE_PARTY_SIZE, GameState.roster.size())
-		for i in limit:
-			active.append(GameState.roster[i])
+		active = _fallback_party_excluding_dispatched()
 	if not GameState.set_active_party(active):
-		var fallback: Array = []
-		var fb_limit: int = mini(GameState.ACTIVE_PARTY_SIZE, GameState.roster.size())
-		for i in fb_limit:
-			fallback.append(GameState.roster[i])
-		GameState.set_active_party(fallback)
+		GameState.set_active_party(_fallback_party_excluding_dispatched())
+
+
+func _fallback_party_excluding_dispatched() -> Array:
+	var fallback: Array = []
+	for adv in GameState.roster:
+		if adv == null:
+			continue
+		if _SurveySystem.is_member_dispatched(str(adv.id)):
+			continue
+		fallback.append(adv)
+		if fallback.size() >= GameState.ACTIVE_PARTY_SIZE:
+			break
+	return fallback
 
 func _apply_gacha_save(data: Dictionary) -> void:
 	if data.has("gacha_token"):

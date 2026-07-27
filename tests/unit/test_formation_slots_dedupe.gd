@@ -53,10 +53,14 @@ func test_dedupe_clears_duplicate_slot_refs() -> void:
 
 
 func test_sync_preserves_back_only_two_member_party() -> void:
-	## 前列空き＋後列2人を sync しても前列へ詰めないこと。
+	## 前列空き＋後列2人を sync しても前列へ詰めないこと（下書きのみ。GameState は保存まで変えない）。
 	assert_gte(GameState.roster.size(), 2)
 	var a: Resource = GameState.roster[0]
 	var b: Resource = GameState.roster[1]
+	GameState.set_member_formation_slot(a, 0)
+	GameState.set_member_formation_row(a, GameState.FORMATION_FRONT)
+	GameState.set_member_formation_slot(b, 1)
+	GameState.set_member_formation_row(b, GameState.FORMATION_FRONT)
 	var scene: Node = load(ROSTER_SCENE).instantiate()
 	add_child_autofree(scene)
 	await get_tree().process_frame
@@ -67,6 +71,10 @@ func test_sync_preserves_back_only_two_member_party() -> void:
 	assert_eq(scene._formation_slots[1], null)
 	assert_eq(scene._formation_slots[2], a)
 	assert_eq(scene._formation_slots[3], b)
+	## 未保存のため GameState は旧値のまま
+	assert_eq(GameState.get_member_formation_row(a), GameState.FORMATION_FRONT)
+	assert_eq(GameState.get_member_formation_slot(a), 0)
+	scene._on_save_pressed()
 	assert_eq(GameState.get_member_formation_row(a), GameState.FORMATION_BACK)
 	assert_eq(GameState.get_member_formation_row(b), GameState.FORMATION_BACK)
 	assert_eq(GameState.get_member_formation_slot(a), 2)
@@ -74,9 +82,12 @@ func test_sync_preserves_back_only_two_member_party() -> void:
 
 
 func test_back_preset_places_two_members_in_back_row() -> void:
+	## プリセットは下書きのみ。GameState 行は保存後に反映。
 	assert_gte(GameState.roster.size(), 2)
 	var a: Resource = GameState.roster[0]
 	var b: Resource = GameState.roster[1]
+	GameState.set_member_formation_row(a, GameState.FORMATION_FRONT)
+	GameState.set_member_formation_row(b, GameState.FORMATION_FRONT)
 	var scene: Node = load(ROSTER_SCENE).instantiate()
 	add_child_autofree(scene)
 	await get_tree().process_frame
@@ -87,6 +98,9 @@ func test_back_preset_places_two_members_in_back_row() -> void:
 	assert_eq(scene._formation_slots[1], null)
 	assert_true(scene._formation_slots[2] != null)
 	assert_true(scene._formation_slots[3] != null)
+	assert_eq(GameState.get_member_formation_row(a), GameState.FORMATION_FRONT)
+	assert_eq(GameState.get_member_formation_row(b), GameState.FORMATION_FRONT)
+	scene._on_save_pressed()
 	assert_eq(GameState.get_member_formation_row(scene._formation_slots[2]), GameState.FORMATION_BACK)
 	assert_eq(GameState.get_member_formation_row(scene._formation_slots[3]), GameState.FORMATION_BACK)
 

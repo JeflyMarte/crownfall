@@ -50,6 +50,8 @@ var _formation_cells: Array[PanelContainer] = []
 ## 再構築の再入・RESIZED 連鎖でセルが積み上がり「押すたび拡大」するのを防ぐ。
 var _roster_ui_rebuilding: bool = false
 var _last_layout_content_w: float = -1.0
+## 陣形オーバーレイ開始時のスロット下書き（Dim キャンセル用）。
+var _formation_overlay_snapshot: Array = []
 
 @onready var _main_vbox: VBoxContainer = $MainScroll/MainVBox
 @onready var _main_scroll: ScrollContainer = $MainScroll
@@ -395,7 +397,7 @@ func _sync_formation_slots_from_selection() -> void:
 				seen[adv] = true
 				break
 	_dedupe_formation_slots_local()
-	_apply_formation_rows_from_slots()
+	## GameState への前列／後列書き込みは保存時のみ（下書きと本反映を分離）。
 
 func _active_members_in_slot_order() -> Array:
 	var members: Array = []
@@ -485,7 +487,8 @@ func _make_active_party_card(slot_index: int) -> Control:
 	vbox.add_child(_make_card_stat_row("attack", "攻撃力", int(stats.get("attack", 0))))
 	vbox.add_child(_make_card_stat_row("defense", "防御力", int(stats.get("defense", 0))))
 	var row_lbl := Label.new()
-	var is_back: bool = GameState.get_member_formation_row(member) == GameState.FORMATION_BACK
+	## 表示は下書きスロット位置基準（GameState 未保存でも前列／後列が正しい）。
+	var is_back: bool = _slot_row_for_index(slot_index) == GameState.FORMATION_BACK
 	row_lbl.text = "後列" if is_back else "前列"
 	row_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	row_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -561,7 +564,6 @@ func _on_active_card_pressed(slot_index: int) -> void:
 			var tmp = _formation_slots[_active_pick_slot]
 			_formation_slots[_active_pick_slot] = _formation_slots[slot_index]
 			_formation_slots[slot_index] = tmp
-			_apply_formation_rows_from_slots()
 			_label_status.text = "パーティ内の並びを入れ替えました"
 		else:
 			_label_status.text = ""
@@ -570,13 +572,8 @@ func _on_active_card_pressed(slot_index: int) -> void:
 	_rebuild_roster_grid()
 
 func _on_detail_pressed(member: Resource) -> void:
-	var party: Array = _ordered_party_from_formation()
-	var reject: String = GameState.active_party_reject_reason(party)
-	if not reject.is_empty():
-		_label_status.text = reject
-		return
-	if not GameState.set_active_party(party):
-		_label_status.text = "詳細を開くには有効な編成が必要です"
+	## 詳細は閲覧遷移のみ。未保存の下書き編成を set_active_party しない。
+	if member == null:
 		return
 	if PetSystem.is_pet_member(member):
 		PetSystem.ensure_starter_pet()
@@ -870,7 +867,6 @@ func _apply_active_pick_with_roster(adv: Resource) -> void:
 		if other_slot >= 0:
 			_formation_slots[slot] = adv
 			_formation_slots[other_slot] = current
-		_apply_formation_rows_from_slots()
 		_label_status.text = "パーティ内の並びを入れ替えました"
 	else:
 		if _is_survey_dispatched(adv):
@@ -885,7 +881,6 @@ func _apply_active_pick_with_roster(adv: Resource) -> void:
 		if not _selected.has(adv):
 			_selected.append(adv)
 		_formation_slots[slot] = adv
-		_apply_formation_rows_from_slots()
 		_label_status.text = "メンバーを入れ替えました"
 	_refresh_all()
 
@@ -921,7 +916,6 @@ func _apply_roster_pick_to_slot(slot_index: int) -> void:
 		if other_slot >= 0:
 			_formation_slots[slot_index] = adv
 			_formation_slots[other_slot] = current
-		_apply_formation_rows_from_slots()
 		_label_status.text = "パーティ内の並びを入れ替えました"
 	else:
 		if current != null:
@@ -929,12 +923,11 @@ func _apply_roster_pick_to_slot(slot_index: int) -> void:
 		if not _selected.has(adv):
 			_selected.append(adv)
 		_formation_slots[slot_index] = adv
-		_apply_formation_rows_from_slots()
 		_label_status.text = "メンバーを入れ替えました"
 	_refresh_all()
 
 func _on_recommend_pressed() -> void:
-	var roster: Array = GameState.get_roster()
+	var roster: Array = _eligible_roster_for_party()
 	var picked: Array = []
 	for job_id in _RECOMMENDED_JOB_ORDER:
 		for adv in roster:
@@ -951,20 +944,25 @@ func _on_recommend_pressed() -> void:
 	_active_pick_slot = -1
 	_roster_pick_member = null
 	_formation_pick_slot = -1
-	_label_status.text = "おすすめ編成を適用しました"
+	if _selected.is_empty():
+		_label_status.text = "編成可能なメンバーがいません（調査中を除く）"
+	else:
+		_label_status.text = "おすすめ編成を適用しました（未保存）"
 	_refresh_all()
 
 func _on_reset_pressed() -> void:
-	var roster: Array = GameState.get_roster()
+	var roster: Array = _eligible_roster_for_party()
 	_selected = []
 	for i in mini(GameState.ACTIVE_PARTY_SIZE, roster.size()):
 		_selected.append(roster[i])
 	_place_members_in_slots(_selected, [0, 1, 2, 3])
-	_apply_formation_rows_from_slots()
 	_active_pick_slot = -1
 	_roster_pick_member = null
 	_formation_pick_slot = -1
-	_label_status.text = "編成を初期状態に戻しました"
+	if _selected.is_empty():
+		_label_status.text = "編成可能なメンバーがいません（調査中を除く）"
+	else:
+		_label_status.text = "編成を初期状態に戻しました（未保存）"
 	_refresh_all()
 
 func _on_sort_pressed() -> void:
@@ -992,7 +990,6 @@ func _on_role_filter_pressed() -> void:
 
 func _on_save_pressed() -> void:
 	_sync_formation_slots_from_selection()
-	_apply_formation_rows_from_slots()
 	var party: Array = _ordered_party_from_formation()
 	var reject: String = GameState.active_party_reject_reason(party)
 	if not reject.is_empty():
@@ -1001,6 +998,8 @@ func _on_save_pressed() -> void:
 	if not GameState.set_active_party(party):
 		_label_status.text = "編成の変更に失敗しました（1〜%d名・重複不可）" % GameState.ACTIVE_PARTY_SIZE
 		return
+	## 本反映: 下書きスロットを GameState の前列／後列へ書くのは保存成功時のみ。
+	_apply_formation_rows_from_slots()
 	SaveManager.save_game()
 	_label_status.text = "編成を保存しました"
 
@@ -1017,24 +1016,69 @@ func _ordered_party_from_formation() -> Array:
 
 func _update_save_button() -> void:
 	var count: int = _selected.size()
-	_button_save.disabled = count < 1 or count > GameState.ACTIVE_PARTY_SIZE
+	var can_save: bool = count >= 1 and count <= GameState.ACTIVE_PARTY_SIZE
+	if can_save:
+		var reject: String = GameState.active_party_reject_reason(_ordered_party_from_formation())
+		can_save = reject.is_empty()
+	_button_save.disabled = not can_save
+
+func _eligible_roster_for_party() -> Array:
+	var out: Array = []
+	for adv in GameState.get_roster():
+		if adv == null or PetSystem.is_pet_member(adv):
+			continue
+		if _is_survey_dispatched(adv):
+			continue
+		out.append(adv)
+	return out
+
+func _snapshot_formation_slots() -> Array:
+	return _formation_slots.duplicate()
+
+func _restore_formation_slots(snapshot: Array) -> void:
+	_formation_slots = [null, null, null, null]
+	for i in mini(FORMATION_SLOT_COUNT, snapshot.size()):
+		_formation_slots[i] = snapshot[i]
+	_dedupe_formation_slots_local()
 
 func _open_formation_overlay() -> void:
 	_sync_formation_slots_from_selection()
+	_formation_overlay_snapshot = _snapshot_formation_slots()
 	_formation_pick_slot = -1
 	_refresh_formation_grid()
+	var close_btn: Button = $FormationOverlay/FormationPanel/FormationVBox/ButtonFormationClose
+	if close_btn != null:
+		close_btn.text = "確定"
+	var hint: Label = $FormationOverlay/FormationPanel/FormationVBox/LabelFormationHint
+	if hint != null:
+		hint.text = "マスをタップして入れ替え。確定で下書きに反映／外側タップでキャンセル。保存は画面下の保存ボタン。"
 	_formation_overlay.visible = true
 
 func _close_formation_overlay() -> void:
+	## 閉じるボタン＝確定（下書き維持）。GameState 本反映は保存時。
 	_formation_overlay.visible = false
 	_formation_pick_slot = -1
+	_formation_overlay_snapshot.clear()
 	_refresh_formation_grid()
 	_rebuild_active_party_row()
 	_refresh_power_label()
+	_label_status.text = "陣形を下書きに反映しました（未保存）"
+
+func _cancel_formation_overlay() -> void:
+	## Dim タップ＝キャンセル（オープン時スナップショットへ戻す）。
+	if not _formation_overlay_snapshot.is_empty():
+		_restore_formation_slots(_formation_overlay_snapshot)
+	_formation_overlay.visible = false
+	_formation_pick_slot = -1
+	_formation_overlay_snapshot.clear()
+	_refresh_formation_grid()
+	_rebuild_active_party_row()
+	_refresh_power_label()
+	_label_status.text = "陣形の変更をキャンセルしました"
 
 func _on_formation_dim_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		_close_formation_overlay()
+		_cancel_formation_overlay()
 
 func _build_formation_grid() -> void:
 	for child in _formation_board.get_children():
@@ -1104,7 +1148,6 @@ func _on_formation_cell_pressed(slot_index: int) -> void:
 			_formation_slots[_formation_pick_slot] = _formation_slots[slot_index]
 			_formation_slots[slot_index] = tmp
 		_formation_pick_slot = -1
-		_apply_formation_rows_from_slots()
 	_refresh_formation_grid()
 
 func _refresh_formation_grid() -> void:
@@ -1181,7 +1224,6 @@ func _on_formation_preset_pressed(preset: String) -> void:
 		_:
 			## 均衡=最後尾1人後列（P3-D106）
 			_place_members_with_back_count(members, 1)
-	_apply_formation_rows_from_slots()
 	_formation_pick_slot = -1
 	_refresh_formation_grid()
 	_rebuild_active_party_row()
