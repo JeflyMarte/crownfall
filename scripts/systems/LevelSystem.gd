@@ -2,7 +2,8 @@ class_name LevelSystem
 extends RefCounted
 
 ## キャラクターのレベル制（P3-D035 / P3-LV-099）。
-## EXP はラン成功時にパーティ全員へ付与。レベルアップで HP/ATK が成長する。
+## EXP はラン成功／敗北時に付与。撃破時点の生存者のみ積立（P3-BAL-DEAD-EXP-001）。
+## レベルアップで HP/ATK が成長する。
 ## Lv1〜50: BalanceConfig.HP/ATTACK_PER_LEVEL、Lv51〜99: *_MASTER（スキル習得は Lv50 まで据置）。
 ##
 ## `-s` ツール（balance_sim）から load されてもパースできるよう、autoload / 他 class_name は
