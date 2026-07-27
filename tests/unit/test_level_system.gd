@@ -48,5 +48,8 @@ func test_skill_ids_unlocked_between_levels() -> void:
 	assert_eq(none.size(), 0)
 	var span: Array[String] = SkillProgression.skill_ids_unlocked_between(member, 1, 12)
 	assert_eq(span.size(), 2, "Lv6とLv12の2本（Lv1は before に含まれるため除外）")
+	## 経験値画面は複数習得時に最後の1本だけ表示する（P3-UX-SKILL-LEARN-PERSIST-001）。
+	assert_eq(span[span.size() - 1], span[1], "最後＝Lv12解放")
 	var at_level: Array[String] = SkillProgression.skill_ids_unlocked_at_level(member, 12)
 	assert_eq(at_level.size(), 1)
+	assert_eq(at_level[0], span[span.size() - 1])

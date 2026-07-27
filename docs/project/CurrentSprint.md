@@ -91,6 +91,7 @@
 | — | **P3-LORE-VALGARD-001** | ヴァルガード＝擬機械ゴーレム改稿＋戦力（クロノス一段下） | ✅ Impl |
 | — | **P3-UX-STATUS-LEGEND-001** | 戦闘右上・発生中状態異常レジェンド | ✅ GO・Impl |
 | — | **P3-UX-STATUS-TELOP-001** | 状態付与「を付与！」テロップ＋DoT頭上 | ✅ GO・Impl |
+| — | **P3-UX-SKILL-LEARN-PERSIST-001** | 経験値画面・スキル習得をキャラ名横に常時表示 | ✅ GO・Impl |
 | — | **P3-AUDIO-BGM-EXPLORE-OMIT-001** | ダンジョン探索BGMオミット・戦闘BGM常時 | ✅ GO・Impl |
 | — | **P3-GACHA-FEATURE-BLURB-001** | 招待状 Featured 特徴行＋キャラ下げ | ✅ GO・Impl |
 | — | **P3-BAL-TRAP-TIER-001** | 罠 N/H/NM 段階化（発動・ダメ・状態異常） | ✅ GO・Impl |
