@@ -89,6 +89,7 @@ alwaysApply: true
 
 | 症状 | 原因 | 再発防止 |
 |---|---|---|
+| 装備名が□／豆腐・文字化け（例: 始祖竜の氷鳞鎧） | 簡体字（`鳞`）を日本語表示名に混入。JP フォントに無い字形 | 表示文言は日本語字形のみ（`鳞`→`鱗`）。装備名・パッシブ・説明を一括 grep |
 | 別 Mac でアイコンが戻る | Desktop 直参照、または **未コミット** | 必ず `res://assets/...` にコピー。参照は `IconPaths` / Tokens。同期は commit/push |
 | ガチャ背景が星空プレースホルダに戻る | `generate_gacha_ui_assets.py` が `UI_BG_Gacha.png` を上書き／本番アート未コミット／art 一括で誤削除 | Desktop→`tools/import_gacha_screen_art.py`。生成スクリプトは本番BG/Title/Catchcopyを保護。`GachaUiTokens.bg_looks_production()`＋unit test。差替は必ず commit |
 | カテゴリタブが差し替わる | 装備品 PNG を `ICO_*_Cat_*` に誤適用 | **本体アイコン**（`ICO_WPN_*` / `ICO_ARM_*` / skills）と **Cat タブ**を混同しない |
