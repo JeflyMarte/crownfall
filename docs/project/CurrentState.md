@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-07-27（**P3-UX-SURVEY-CANCEL-001 GO**: 調査室の進行中派遣を「調査を中止」で破棄可（報酬なし）。統合＋`main`）
 2026-07-27（**P3-UX-WIPE-CAUSE-001 GO**: 全滅リザルトに敗因1〜2行（階層・部屋・主因/ヒント）。統合＋`main`）
 2026-07-27（**P3-UX-EQUIP-SCROLL-PERF-001 GO**: キャラ画面スクロール軽量化 — 入れ子廃止／StyleBox・Idleキャッシュ／tooltip短縮。統合＋`main`）
 2026-07-27（**P3-UX-SKILL-LEARN-PERSIST-001 GO**: 経験値画面のスキル習得をキャラ名横に常時表示。複数は最後の習得名。統合＋`main`）

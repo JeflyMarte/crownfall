@@ -110,6 +110,49 @@ func test_cycle_completes_with_time() -> void:
 	assert_gt(_SurveySystem.get_survey_percent(Constants.MOURNGATE_DUNGEON_ID), 0.0)
 
 
+func test_cancel_cycle_aborts_without_rewards() -> void:
+	const _SurveyStaff := preload("res://scripts/survey/SurveyStaff.gd")
+	var survey_before: float = _SurveySystem.get_survey_percent(Constants.MOURNGATE_DUNGEON_ID)
+	var gold_before: int = GameState.gold
+	var token_before: int = GameState.gacha_token
+	var ids: Array[String] = [_SurveyStaff.ID_NONOKA]
+	var started: Dictionary = _SurveySystem.start_cycle(
+		Constants.MOURNGATE_DUNGEON_ID, _SurveyConfig.PRESET_SHORT, ids
+	)
+	assert_true(bool(started.get("ok", false)), str(started))
+	assert_true(_SurveySystem.has_active_cycle())
+	assert_true(_SurveySystem.is_member_dispatched(_SurveyStaff.ID_NONOKA))
+	var canceled: Dictionary = _SurveySystem.cancel_cycle()
+	assert_true(bool(canceled.get("ok", false)), str(canceled))
+	assert_false(_SurveySystem.has_active_cycle())
+	assert_false(_SurveySystem.is_member_dispatched(_SurveyStaff.ID_NONOKA))
+	assert_eq(_SurveySystem.get_survey_percent(Constants.MOURNGATE_DUNGEON_ID), survey_before)
+	assert_eq(GameState.gold, gold_before)
+	assert_eq(GameState.gacha_token, token_before)
+	## 中止後は再開始できる
+	var restarted: Dictionary = _SurveySystem.start_cycle(
+		Constants.MOURNGATE_DUNGEON_ID, _SurveyConfig.PRESET_SHORT, ids
+	)
+	assert_true(bool(restarted.get("ok", false)), str(restarted))
+	_SurveySystem.cancel_cycle()
+
+
+func test_cancel_cycle_rejects_when_complete() -> void:
+	const _SurveyStaff := preload("res://scripts/survey/SurveyStaff.gd")
+	var ids: Array[String] = [_SurveyStaff.ID_NONOKA]
+	assert_true(bool(_SurveySystem.start_cycle(
+		Constants.MOURNGATE_DUNGEON_ID, _SurveyConfig.PRESET_SHORT, ids
+	).get("ok", false)))
+	GameState.hub_survey_cycle["start_unix"] = Time.get_unix_time_from_system() - (
+		_SurveyConfig.SHORT_DURATION_SEC + 10.0
+	)
+	assert_true(_SurveySystem.is_cycle_complete())
+	var rejected: Dictionary = _SurveySystem.cancel_cycle()
+	assert_false(bool(rejected.get("ok", false)))
+	assert_true(_SurveySystem.has_active_cycle(), "完了済みは受取まで残す")
+	_SurveySystem.claim_cycle()
+
+
 func test_survey_staff_can_start_cycle_without_roster() -> void:
 	## P3-SURVEY-STAFF-001: ノノカ／ニーナはロスター外でも調査員として配置可。
 	const _SurveyStaff := preload("res://scripts/survey/SurveyStaff.gd")

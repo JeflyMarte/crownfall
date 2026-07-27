@@ -39,6 +39,7 @@ var _label_status: Label
 var _label_bonus: Label
 var _assignee_box: HBoxContainer
 var _btn_claim: Button
+var _btn_cancel: Button
 var _btn_start_short: Button
 var _btn_start_std: Button
 var _btn_auto: Button
@@ -49,6 +50,7 @@ var _target_dungeon_id: String = Constants.MOURNGATE_DUNGEON_ID
 var _tick: float = 0.0
 var _claim_fx_busy: bool = false
 var _start_confirm: ConfirmationDialog
+var _cancel_confirm: ConfirmationDialog
 var _pending_start_preset: String = ""
 var _pick_overlay: Control = null
 
@@ -63,6 +65,7 @@ func _ready() -> void:
 	_ensure_background()
 	_raise_header_chrome()
 	_setup_start_confirm()
+	_setup_cancel_confirm()
 	_build_ui()
 	_pending_members = _SurveySystem.auto_assign_members()
 	_update_currency()
@@ -178,6 +181,11 @@ func _build_ui() -> void:
 	_btn_claim.text = "調査中..."
 	_btn_claim.pressed.connect(_on_claim)
 	_content.add_child(_btn_claim)
+	_btn_cancel = Button.new()
+	_btn_cancel.text = "調査を中止"
+	_btn_cancel.visible = false
+	_btn_cancel.pressed.connect(_on_cancel_pressed)
+	_content.add_child(_btn_cancel)
 
 
 func _build_hero_lead() -> Control:
@@ -728,6 +736,9 @@ func _refresh_progress_only() -> void:
 		_label_timer.text = "調査完了まで: —（未開始）"
 		_btn_claim.text = "調査を開始してください"
 		_btn_claim.disabled = true
+		if _btn_cancel != null:
+			_btn_cancel.visible = false
+			_btn_cancel.disabled = true
 		_btn_start_short.disabled = false
 		_btn_start_std.disabled = false
 		if _btn_change_dungeon != null:
@@ -742,9 +753,16 @@ func _refresh_progress_only() -> void:
 	if complete:
 		_btn_claim.text = "調査完了 — 受け取る"
 		_btn_claim.disabled = false
+		if _btn_cancel != null:
+			_btn_cancel.visible = false
+			_btn_cancel.disabled = true
 	else:
 		_btn_claim.text = "調査中..."
 		_btn_claim.disabled = true
+		if _btn_cancel != null:
+			_btn_cancel.visible = true
+			_btn_cancel.disabled = false
+			_btn_cancel.text = "調査を中止"
 
 
 func _format_hms(sec: float) -> String:
@@ -1289,6 +1307,42 @@ func _setup_start_confirm() -> void:
 	_start_confirm.confirmed.connect(_execute_start)
 	_start_confirm.canceled.connect(_on_start_confirm_canceled)
 	add_child(_start_confirm)
+
+
+func _setup_cancel_confirm() -> void:
+	_cancel_confirm = ConfirmationDialog.new()
+	_cancel_confirm.title = "調査中止"
+	_cancel_confirm.ok_button_text = "中止する"
+	_cancel_confirm.cancel_button_text = "続ける"
+	_cancel_confirm.dialog_text = (
+		"進行中の調査を中止しますか？\n\n報酬は得られません。\n配置した隊員は調査から戻ります。"
+	)
+	_cancel_confirm.confirmed.connect(_execute_cancel)
+	add_child(_cancel_confirm)
+
+
+func _on_cancel_pressed() -> void:
+	if _claim_fx_busy:
+		return
+	if not _SurveySystem.has_active_cycle() or _SurveySystem.is_cycle_complete():
+		_label_status.text = "中止不可: 進行中の調査がありません"
+		_refresh_progress_only()
+		return
+	_cancel_confirm.popup_centered()
+
+
+func _execute_cancel() -> void:
+	if _claim_fx_busy:
+		return
+	var result: Dictionary = _SurveySystem.cancel_cycle()
+	if not bool(result.get("ok", false)):
+		_label_status.text = "中止不可: %s" % str(result.get("reason", ""))
+		_refresh()
+		return
+	AudioManager.play_sfx("ui_cancel")
+	_label_status.text = "調査を中止しました"
+	_pending_members = _SurveySystem.auto_assign_members()
+	_refresh()
 
 
 func _on_start(preset: String) -> void:
