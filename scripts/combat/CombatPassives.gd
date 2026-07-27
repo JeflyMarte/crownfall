@@ -379,7 +379,7 @@ const _DEFS: Dictionary = {
 		"cooldown": 0.0,
 	},
 	"eq_eldion_glacier": {
-		"display_name": "氷鳞の凍結",
+		"display_name": "氷鱗の凍結",
 		"category": "armor",
 		"description": "被弾時20%で攻撃敵に冷却（chill）を付与する（CD 5秒）。",
 		"trigger": "on_hit_taken",
