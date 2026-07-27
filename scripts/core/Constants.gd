@@ -57,8 +57,8 @@ const DEFAULT_PLAYER_SKILL_ID: String = "slash_attack"
 const MAX_EQUIPPED_SKILLS: int = 1
 ## 必殺ゲージ上限（P3-COMBAT-GAUGE-001）。
 const ULTIMATE_CHARGE_MAX: float = 100.0
-## 与ダメ → 必殺チャージ係数（目安: 5戦闘で1回溜まる）。
-const ULTIMATE_CHARGE_DEALT_K: float = 0.02
+## 与ダメ → 必殺チャージ係数（目安: 必殺ビルドが現実的な帯）。
+const ULTIMATE_CHARGE_DEALT_K: float = 0.028
 ## 被ダメ → 必殺チャージ係数。
 const ULTIMATE_CHARGE_TAKEN_K: float = 0.04
 ## 1キャラが装備できるパッシブ数（キャラ/ジョブ由来。装備固定パッシブは別）。

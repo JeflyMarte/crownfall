@@ -4556,7 +4556,8 @@ func _try_apply_weapon_on_hit_status(member_index: int) -> void:
 # cast_index: この tick でそのメンバーが発動した順番（0始まり）。ラベル段組みに使用。
 # suppress_resolve_label: 詠唱完了後の再表示を抑止（詠唱中ラベルは呼び出し側で除去済み）。
 ## P3-SKILL-KIT-001: vs_bleed / vs_mark 時の威力ボーナス（条件付き追撃）。
-const CONDITIONAL_STATUS_POWER_MULT: float = 1.45
+## P3-BAL-COMBAT-AUDIT-001 案B: 条件付き追撃を枠1でも報われる帯へ。
+const CONDITIONAL_STATUS_POWER_MULT: float = 1.6
 
 func _conditional_skill_power_mult(skill_data: Resource, target_slot: int) -> float:
 	if skill_data == null or target_slot < 0:
@@ -5371,7 +5372,11 @@ func _deal_member_damage_to_enemy(
 	_check_boss_phase_transition(target_slot)
 	if damage > 0:
 		_fire_member_passives(
-			member_idx, "on_attack", {"damage": damage, "target_slot": target_slot}
+			member_idx, "on_attack", {
+				"damage": damage,
+				"target_slot": target_slot,
+				"is_critical": is_critical,
+			}
 		)
 		var tide_burst: int = _AbyssWeaponEffects.after_attack_hit(member_idx, target_slot, damage)
 		if tide_burst > 0 and $CombatController.is_enemy_slot_alive(target_slot):
@@ -6807,6 +6812,9 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 				ratio = float($CombatController.party_combat_hp[member_idx]) / float(maxhp)
 		if ratio >= float(p.get("value", 0.0)):
 			return
+	elif str(p.get("condition", "always")) == "is_critical":
+		if not bool(ctx.get("is_critical", false)):
+			return
 	# 効果
 	var applied: bool = false
 	match str(p.get("effect", "")):
@@ -6842,6 +6850,8 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 					_on_party_status_applied(member_idx, sid)
 			_update_status_icons()
 		"random_enemy_status":
+			if p.has("status_chance") and randf() > float(p.get("status_chance", 1.0)):
+				return
 			var pool: Array = p.get("status_pool", [])
 			if pool.is_empty():
 				return
@@ -6851,6 +6861,23 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 			)
 			if enemy_slot >= 0 and $CombatController.is_enemy_slot_alive(enemy_slot):
 				applied = $CombatController.apply_status_to_enemy_slot(enemy_slot, rand_sid, 1, 0)
+				if applied:
+					_update_status_icons()
+		"crit_pulse":
+			var charge_flat: float = float(p.get("ultimate_charge_flat", 0.0))
+			if charge_flat > 0.0:
+				$CombatController.add_ultimate_charge(member_idx, charge_flat)
+				applied = true
+			var frac: float = float(p.get("bonus_damage_fraction", 0.0))
+			var base_dmg: int = int(ctx.get("damage", 0))
+			var pulse_slot: int = int(ctx.get("target_slot", -1))
+			if frac > 0.0 and base_dmg > 0 and pulse_slot >= 0 and $CombatController.is_enemy_slot_alive(pulse_slot):
+				var bonus: int = maxi(1, int(round(float(base_dmg) * frac)))
+				$CombatController.apply_damage_to_enemy_slot(pulse_slot, bonus)
+				$CombatController.add_threat(member_idx, float(bonus) * CombatController.THREAT_DAMAGE_K)
+				GameState.record_run_damage(member_idx, bonus, "crit_pulse", "会心追撃")
+				_update_hp_bars()
+				applied = true
 		"heal":
 			# heal_value: condition 閾値の "value" と衝突する場合の回復量キー（P3-D155）
 			var frac: float = float(p.get("heal_max_hp_fraction", -1.0))

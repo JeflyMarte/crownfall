@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "pulsekeen_edge"
+display_name = "脈打つ閃刃"
+description = "会心の瞬間に刃が脈打ち、追撃の閃光と必殺の鼓動を同時に呼び覚ます鋭剣。"
+fixed_skill_id = ""
+fixed_passive_id = "eq_wpn_pulsekeen_edge"
+base_attack = 280
+rarity = 3
+base_attack_speed = 1.15
+base_critical_rate = 0.12
+base_knockback = 0.35
+base_stagger_power = 0.22
+base_attack_range = 1.0
+weight = 0.95
+element = "thunder"
+weapon_type = "sword"
+tags = Array[String](["slash", "thunder"])

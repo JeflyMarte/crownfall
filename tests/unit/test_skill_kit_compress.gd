@@ -81,6 +81,40 @@ func test_grave_bell_is_front_row_soft_stun() -> void:
 func test_decree_wave_power_softened() -> void:
 	var decree: Resource = DataRegistry.get_skill_data("boss_decree_wave")
 	assert_lte(float(decree.power_multiplier), 0.6)
+	assert_gte(float(decree.cooldown), 8.0)
+
+
+func test_followup_skills_self_sufficient() -> void:
+	var chain: Resource = DataRegistry.get_skill_data("chain_slash")
+	assert_gte(float(chain.apply_status_chance), 0.45)
+	assert_gte(float(chain.power_multiplier), 1.35)
+	var pursuit: Resource = DataRegistry.get_skill_data("mark_pursuit")
+	assert_gte(float(pursuit.apply_status_chance), 0.45)
+	var hunter: Resource = DataRegistry.get_skill_data("hunter_mark")
+	assert_eq(float(hunter.apply_status_chance), 1.0)
+	assert_lt(float(hunter.power_multiplier), 0.6)
+
+
+func test_frail_dust_is_armor_break() -> void:
+	var dust: Resource = DataRegistry.get_skill_data("frail_dust")
+	assert_eq(str(dust.apply_status_id), "armor_break")
+
+
+func test_salve_burst_is_emergency_heal() -> void:
+	var salve: Resource = DataRegistry.get_skill_data("salve_burst")
+	var mend: Resource = DataRegistry.get_skill_data("mend")
+	assert_gt(float(salve.power_multiplier), float(mend.power_multiplier) + 0.4)
+	assert_gt(float(salve.cooldown), float(mend.cooldown) + 2.0)
+
+
+func test_snare_rg_slow_bt_chill() -> void:
+	var snare: Resource = DataRegistry.get_skill_data("snare_shot")
+	assert_eq(str(snare.apply_status_id), "slow")
+	var hobble: Resource = DataRegistry.get_skill_data("beast_hobble")
+	assert_eq(str(hobble.apply_status_id), "chill")
+	var bt: Resource = DataRegistry.get_job_data("beast_tamer")
+	assert_true(bt.learnable_skill_ids.has("beast_hobble"))
+	assert_false(bt.learnable_skill_ids.has("snare_shot"))
 
 
 func test_swordsman_description_is_offense_frontline() -> void:

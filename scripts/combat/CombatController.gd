@@ -326,7 +326,9 @@ func add_ultimate_charge(member_index: int, amount: float) -> void:
 func add_ultimate_charge_from_damage_dealt(member_index: int, damage: int) -> void:
 	if damage <= 0:
 		return
-	add_ultimate_charge(member_index, float(damage) * Constants.ULTIMATE_CHARGE_DEALT_K)
+	var k: float = Constants.ULTIMATE_CHARGE_DEALT_K
+	k *= CombatPassives.weapon_ultimate_charge_dealt_mult(member_index)
+	add_ultimate_charge(member_index, float(damage) * k)
 
 func add_ultimate_charge_from_damage_taken(member_index: int, damage: int) -> void:
 	if damage <= 0:
@@ -909,8 +911,13 @@ func get_member_outgoing_damage_multiplier(
 		var elem_mults: Dictionary = CombatPassives.weapon_stat_modifiers_for_member(member_index).get("element_outgoing_mult", {})
 		if elem_mults is Dictionary and elem_mults.has(attack_element):
 			mult *= float(elem_mults[attack_element])
-	if target_slot >= 0 and enemy_slot_has_debuff(target_slot):
-		mult *= CombatPassives.outgoing_vs_status_mult_for_member(member_index)
+	if target_slot >= 0:
+		var present_statuses: Array = []
+		for status_id: String in DEBUFF_STATUS_IDS:
+			if get_enemy_status_stacks_at(target_slot, status_id) > 0:
+				present_statuses.append(status_id)
+		if not present_statuses.is_empty():
+			mult *= CombatPassives.outgoing_vs_status_mult_for_member(member_index, present_statuses)
 	var boss_mult: float = CombatPassives.weapon_outgoing_vs_boss_mult(member_index)
 	if target_slot >= 0 and not is_equal_approx(boss_mult, 1.0):
 		var ed: Resource = get_enemy_data_at(target_slot)
