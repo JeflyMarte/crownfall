@@ -55,6 +55,12 @@ func _run() -> void:
 
 	# 全滅リザルトも確認
 	gs.set("last_run_outcome", "wipe")
+	gs.set("last_run_wipe_cause", {
+		"floor_text": "F3/5",
+		"cause_kind": "combat",
+		"room_type": 3,
+		"enemy_name": "霧のワイバーン",
+	})
 	gs.set("last_run_gold_reward", 40)
 	gs.set("last_run_token_reward", 0)
 	gs.set("last_run_weapon_dropped", "")
