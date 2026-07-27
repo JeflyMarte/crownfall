@@ -5103,3 +5103,13 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 
 **SSOT:** `docs/specs/decisions/05_HubSurveyRoom.md` §12.1
 
+## 死者の撃破EXP除外（2026-07-27 — P3-BAL-DEAD-EXP-001）
+
+> **オーナー GO** — ダンジョン中に倒れたキャラは、その後の撃破経験値を受け取らない。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-DEAD-EXP-001-1 | 撃破時点の**生存者のみ**に当該撃破EXPを積む（分割せず各人へ同額＝従来単位） | オーナー要望 |
+| P3-BAL-DEAD-EXP-001-2 | 死亡前に稼いだ分は結果で付与する | 不利益の過大化を避ける |
+| P3-BAL-DEAD-EXP-001-3 | 装備EXPも戦闘クリア時の生存人間のみ | 死者の装備成長を止める |
+| P3-BAL-DEAD-EXP-001-4 | 結果表示の合計EXPは撃破プール（`run_exp_reward`）据置。個人は `run_exp_by_member` | UI互換 |
