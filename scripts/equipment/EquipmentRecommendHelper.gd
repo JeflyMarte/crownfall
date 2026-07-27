@@ -89,7 +89,7 @@ static func _unequipped_candidates(member: Resource, category: String) -> Array:
 		var item: Resource = raw as Resource
 		if "is_appraised" in item and not bool(item.is_appraised):
 			continue
-		if EquipmentUiHelper.equipped_member_index(item) >= 0:
+		if GameState.find_item_equipped_owner(item) != null:
 			continue
 		if category == "weapon" and not JobStatCalculator.can_equip_weapon(member, item):
 			continue
