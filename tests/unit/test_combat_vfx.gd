@@ -33,6 +33,15 @@ func test_dot_telop_color_mapping() -> void:
 	assert_true(_CombatVfxManager.dot_telop_color("ignite").g < 0.5)
 
 
+func test_status_apply_telop_text() -> void:
+	## P3-UX-STATUS-TELOP-001
+	assert_eq(_CombatVfxManager.status_apply_telop_text("毒"), "毒を付与！")
+	assert_eq(_CombatVfxManager.status_apply_telop_text("炎上"), "炎上を付与！")
+	assert_eq(_CombatVfxManager.status_apply_telop_text("鼓舞"), "鼓舞を付与！")
+	assert_eq(_CombatVfxManager.status_apply_telop_text(""), "")
+	assert_eq(_CombatVfxManager.status_apply_telop_text("  "), "")
+
+
 func test_unit_tint_from_statuses() -> void:
 	var poison_only: Array = [{"effect_id": "poison", "stacks": 1}]
 	var ignite_only: Array = [{"effect_id": "ignite", "stacks": 1}]
