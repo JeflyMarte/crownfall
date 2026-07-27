@@ -65,7 +65,8 @@ alwaysApply: true
 | 状態異常アイコンが「？」 | `bleed`/`slow`/`enrage` が `STATUS_ICON_DEF`・`IconPaths` 欠落 | DEF＋ICO_STA_*＋IconPaths を追加。`empower_minor` は empower 流用 |
 | 戦闘速度が ×0.75 のまま／設定と不一致 | `SPEED_MULT_NORMAL=0.75` と設定の不一致 | ×1／×1.5／×2 の3択に統一。旧 ×0.75 は ×1 へ |
 | レジェンド武器が落ちても気づかない | 通常装備と同じ小アイコンのみで SE／テロップ無し | ★以上は `legendary_drop` SE＋フラッシュ＋テロップ＋大きめアイコン（P3-EQ-LEG-DROP-001） |
-| キャラ画面のスクロールが重い／効かない・実機で落ちる | TabEquip＋InventoryScroll の入れ子＋セル毎 StyleBox new＋hover_summary＋Idle 毎切替 get_image。BottomNav が内側も enable | 所持は自然高で縦スクロールは TabEquip のみ（内側 DISABLED＋PASS）。`ScrollTouchHelper.enable(tab, false)`。StyleBox／Idle をキャッシュ。tooltip は名のみ（詳細は長押し） |
+| キャラ画面のスクロールが重い／効かない・実機で落ちる | TabEquip＋InventoryScroll の入れ子＋セル毎 StyleBox new＋hover_summary＋Idle 毎切替 get_image。BottomNav が内側も enable | 所持ホストは **非 Scroll**（MarginContainer）＋自然高。縦は TabEquip のみ。`ScrollTouchHelper.enable(tab, false)`。StyleBox／Idle をキャッシュ。tooltip は名のみ（詳細は長押し） |
+| キャラ／装備一覧でセル上スクロールが効かない | 長押し用 `gui_input` で press 時に `accept_event()` → 親 Scroll がドラッグ開始できない | セルは `accept_event` しない（PASS＋gui_input で短タップ／長押し）。スクロールは親に任せる |
 | iPhoneで装備長押しが効かない | ①所持グリッドが `pressed` のみで長押し未配線 ②微細 `ScreenDrag` で即キャンセル | 所持も `_bind_inventory_cell_interaction`。移動キャンセルは deadzone（≈20px）以上のみ |
 | 他人装備を黙って奪う | 付け替え確認なしで即装備 | 他人装備中は「〇〇が装備してます。付け替えますか？」確認後に装備 |
 | ミレイ習得スキルのアイコンが空白 | `pet_bond_*` が `SkillIconHelper.SKILL_TO_BASE` 未登録 → ally アイコン null | 相棒鼓舞=buff／指揮の牙=mark／絆の守り=guard。ベース無し時は個別アートへフォールバック |

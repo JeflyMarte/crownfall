@@ -5277,3 +5277,13 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md`
 | P3-BAL-LEG-WPN-A001-7 | **腐血の影弦** — 毒出血敵+35%＋25%付与 | DoTシナジー弓 |
 | P3-BAL-LEG-WPN-A001-8 | **脈打つ閃刃** — 会心時ゲージ+8＆35%追撃 | 会心追撃／ゲージ加速 |
 | P3-BAL-LEG-WPN-A001-9 | **防壁の戦剣** — Threat+120／被ダメ-12% | VG脅威＋減ダメ |
+
+## キャラスクロール効き改善（2026-07-27 — P3-UX-EQUIP-SCROLL-002）
+
+> **オーナー GO** — セル上でスクロールしにくい主因を入力奪取と判定し修正。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-EQUIP-SCROLL-002-1 | 所持／装備セルの `gui_input` で **`accept_event` しない**（短タップ・長押しは gui_input のまま） | press 消費が親 Scroll のドラッグ開始を阻害 |
+| P3-UX-EQUIP-SCROLL-002-2 | キャラ装備の内側所持ホストを **ScrollContainer→MarginContainer**（外 TabEquip のみスクロール） | BottomNav subtree enable と入れ子ノイズを除去 |
+| P3-UX-EQUIP-SCROLL-002-3 | 装備一覧（Catalog）も同様に `accept_event` 廃止 | 同症状 |

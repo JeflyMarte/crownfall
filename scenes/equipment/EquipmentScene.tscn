@@ -487,13 +487,11 @@ layout_mode = 2
 disabled = true
 text = "足具 🔒"
 
-[node name="InventoryScroll" type="ScrollContainer" parent="VBoxContainer/TabContainer/TabEquip/EquipContent"]
+[node name="InventoryScroll" type="MarginContainer" parent="VBoxContainer/TabContainer/TabEquip/EquipContent"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 0
 mouse_filter = 1
-horizontal_scroll_mode = 3
-vertical_scroll_mode = 0
 
 [node name="InventoryGrid" type="GridContainer" parent="VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryScroll"]
 layout_mode = 2

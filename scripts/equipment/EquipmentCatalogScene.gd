@@ -254,8 +254,7 @@ func _on_item_cell_gui_input(
 		if _cell_pointer_down and _cell_press_item == item and _cell_press_category == category:
 			_on_cell_pressed(item, category, btn)
 		_cancel_cell_press()
-	if event is InputEventMouseButton or event is InputEventScreenTouch:
-		accept_event()
+	## accept_event しない: セル上ドラッグを親 InventoryScroll へ渡す（タップは gui_input で処理）。
 
 func _is_cell_pointer_event(event: InputEvent) -> bool:
 	if event is InputEventMouseButton:
