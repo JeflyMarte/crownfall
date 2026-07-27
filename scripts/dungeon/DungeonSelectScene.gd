@@ -35,6 +35,12 @@ const COLOR_CLEAR: Color = Color(0.45, 0.92, 0.55, 1)
 const COLOR_CLEAR_BADGE: Color = Color(1.0, 0.92, 0.28, 1.0)
 const COLOR_CLEAR_BADGE_HEX: String = "ffe84a"
 const COLOR_TEAL: Color = Color(0.6, 0.82, 0.78, 1)
+## 降臨ダンジョン名（通常ゴールドより薔薇金寄り）。
+const COLOR_EVENT_TITLE: Color = Color(1.0, 0.74, 0.56, 1.0)
+## 降臨名の金赤アウトライン（縁を立てる）。
+const COLOR_EVENT_TITLE_OUTLINE: Color = Color(0.78, 0.36, 0.18, 1.0)
+const EVENT_TITLE_OUTLINE_SIZE: int = 7
+const EVENT_TITLE_SHADOW_OUTLINE: int = 8
 
 const ROUTE_TAB_MAIN: String = "main"
 const ROUTE_TAB_SUB: String = "sub"
@@ -865,6 +871,8 @@ func _refresh_featured() -> void:
 		UiTypography.apply_display(
 			_label_featured_name, UiTypography.SIZE_BODY_SMALL, COLOR_CLEAR_BADGE
 		)
+	elif unlocked_featured and _is_event_dungeon(data):
+		_apply_event_dungeon_title_style(_label_featured_name, UiTypography.SIZE_BODY_SMALL, true)
 	elif unlocked_featured:
 		UiTypography.apply_display(
 			_label_featured_name, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD
@@ -1245,11 +1253,14 @@ func _make_biome_title_label(data: Resource, unlocked: bool) -> Control:
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	if not unlocked:
 		label.modulate = Color(0.72, 0.72, 0.76, 1.0)
-	UiTypography.apply_display(
-		label,
-		UiTypography.SIZE_BODY_SMALL,
-		UiTypography.COLOR_GOLD if unlocked else UiTypography.COLOR_SUB
-	)
+	if _is_event_dungeon(data):
+		_apply_event_dungeon_title_style(label, UiTypography.SIZE_BODY_SMALL, unlocked)
+	else:
+		UiTypography.apply_display(
+			label,
+			UiTypography.SIZE_BODY_SMALL,
+			UiTypography.COLOR_GOLD if unlocked else UiTypography.COLOR_SUB
+		)
 	row.add_child(label)
 	if unlocked and data != null and _is_biome_fully_cleared_for_ui(str(data.id)):
 		var clear_lbl := Label.new()
@@ -1280,12 +1291,15 @@ func _make_banner_overlay_title(data: Resource, unlocked: bool, dungeon_id: Stri
 	title.clip_text = false
 	title.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	UiTypography.apply_display(
-		title,
-		title_size,
-		UiTypography.COLOR_GOLD if unlocked else UiTypography.COLOR_SUB
-	)
-	_apply_banner_title_shadow(title)
+	if _is_event_dungeon(data):
+		_apply_event_dungeon_title_style(title, title_size, unlocked)
+	else:
+		UiTypography.apply_display(
+			title,
+			title_size,
+			UiTypography.COLOR_GOLD if unlocked else UiTypography.COLOR_SUB
+		)
+		_apply_banner_title_shadow(title)
 	host.add_child(title)
 	if show_clear:
 		var clear_lbl := Label.new()
@@ -1302,11 +1316,26 @@ func _make_banner_overlay_title(data: Resource, unlocked: bool, dungeon_id: Stri
 	return host
 
 
-func _apply_banner_title_shadow(label: Label) -> void:
+func _is_event_dungeon(data: Resource) -> bool:
+	return data != null and str(data.route_type) == "event"
+
+
+## 降臨名: 薔薇金＋銅赤アウトライン＋強めの黒影（通常バイオームと差別化）。
+func _apply_event_dungeon_title_style(label: Label, size: int, unlocked: bool) -> void:
+	var color: Color = COLOR_EVENT_TITLE if unlocked else UiTypography.COLOR_SUB
+	UiTypography.apply_display(label, size, color, EVENT_TITLE_OUTLINE_SIZE)
+	if unlocked:
+		label.add_theme_color_override("font_outline_color", COLOR_EVENT_TITLE_OUTLINE)
+	_apply_banner_title_shadow(label, true)
+
+
+func _apply_banner_title_shadow(label: Label, strong: bool = false) -> void:
 	label.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.95))
-	label.add_theme_constant_override("shadow_offset_x", 1)
-	label.add_theme_constant_override("shadow_offset_y", 1)
-	label.add_theme_constant_override("shadow_outline_size", 5)
+	label.add_theme_constant_override("shadow_offset_x", 2 if strong else 1)
+	label.add_theme_constant_override("shadow_offset_y", 2 if strong else 1)
+	label.add_theme_constant_override(
+		"shadow_outline_size", EVENT_TITLE_SHADOW_OUTLINE if strong else 5
+	)
 
 func _sync_featured_banner(dungeon_id: String) -> void:
 	for child in _featured_banner_host.get_children():
