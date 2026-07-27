@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "shield_quake"
+display_name = "盾撃波"
+description = "盾を叩きつけ衝撃を走らせる。敵全体に弱い打撃と甲砕を与える。"
+skill_type = "player"
+target_type = "all_enemies"
+power_multiplier = 0.7
+cooldown = 5.5
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["melee", "guard", "shield", "blunt", "aoe"])
+element = ""
+apply_status_id = "armor_break"
+apply_status_chance = 0.3
+apply_status_id2 = ""
+apply_status_chance2 = 0.0
+slot_type = "skill"
+range_type = "melee"
+cast_time = 0.0
+reserve_condition = ""
+reserve_value = ""

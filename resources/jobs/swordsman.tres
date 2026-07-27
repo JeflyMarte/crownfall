@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "swordsman"
 display_name = "ソードマン"
-description = "剣で前線を支え、被弾を引き受ける近接アタッカー。"
+description = "剣で前線を切り開く近接の主火力。切れ味と出血で敵を削る。"
 role = "dps"
 base_hp_modifier = 1.05
 base_attack_modifier = 1.1
@@ -19,33 +19,24 @@ skill_unlocks = Array[Dictionary]([{
 "level": 1
 }, {
 "skill_id": "rend_slash",
-"level": 6
-}, {
-"skill_id": "swift_slash",
-"level": 12
-}, {
-"skill_id": "fierce_slash",
-"level": 18
-}, {
-"skill_id": "focus_mark",
-"level": 24
-}, {
-"skill_id": "hamstring_slash",
-"level": 30
+"level": 8
 }, {
 "skill_id": "chain_slash",
-"level": 36
+"level": 15
+}, {
+"skill_id": "blade_tempest",
+"level": 22
 }, {
 "skill_id": "armor_cleave",
-"level": 42
+"level": 30
 }, {
-"skill_id": "pierce_line",
-"level": 48
+"skill_id": "blood_mist_slash",
+"level": 40
 }, {
 "skill_id": "apex_slash",
 "level": 50
 }])
-learnable_skill_ids = Array[String](["slash_attack", "rend_slash", "swift_slash", "fierce_slash", "focus_mark", "hamstring_slash", "chain_slash", "armor_cleave", "pierce_line", "apex_slash"])
+learnable_skill_ids = Array[String](["slash_attack", "rend_slash", "chain_slash", "blade_tempest", "armor_cleave", "blood_mist_slash", "apex_slash"])
 passive_tag_ids = Array[String](["frontline"])
 ultimate_skill_id = "ouga_retsudan"
 evolved_display_name = "ソードセイバー"

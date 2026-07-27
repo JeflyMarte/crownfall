@@ -3459,6 +3459,8 @@ func _skill_target_label(target_type: String) -> String:
 	match target_type:
 		"enemy":
 			return "敵1体"
+		"all_enemies":
+			return "敵全体"
 		"ally":
 			return "味方1体"
 		"party":
@@ -3471,6 +3473,8 @@ func _skill_target_label(target_type: String) -> String:
 			return "味方後列"
 		"self":
 			return "自身"
+		"pet":
+			return "オトモ"
 		_:
 			return "対象"
 

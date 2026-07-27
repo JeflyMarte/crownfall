@@ -4,20 +4,23 @@
 
 [resource]
 script = ExtResource("1")
-id = "mark_pursuit"
-display_name = "追標射"
-description = "標を追う追い矢。標的付きの敵に特に効く。未標的では本領を出せない。"
+id = "venom_spray"
+display_name = "猛毒噴霧"
+description = "毒霧を噴きかけ、敵全体を蝕む。"
 skill_type = "player"
-target_type = "enemy"
-power_multiplier = 1.25
-cooldown = 4.0
+target_type = "all_enemies"
+power_multiplier = 0.7
+cooldown = 5.5
 trigger_type = "cooldown"
 effect_type = "damage"
-tags = Array[String](["ranged", "pierce", "vs_mark"])
+tags = Array[String](["ranged", "poison", "aoe"])
 element = ""
-apply_status_id = "mark"
-apply_status_chance = 0.25
+apply_status_id = "poison"
+apply_status_chance = 0.32
+apply_status_id2 = ""
+apply_status_chance2 = 0.0
 slot_type = "skill"
 range_type = "long"
+cast_time = 0.0
 reserve_condition = ""
 reserve_value = ""

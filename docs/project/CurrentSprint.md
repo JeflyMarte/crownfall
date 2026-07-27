@@ -97,6 +97,7 @@
 | — | **P3-UX-WIPE-CAUSE-001** | 全滅リザルト・敗因分析（1〜2行） | ✅ GO・Impl |
 | — | **P3-UX-EQUIP-SCROLL-PERF-001** | キャラ画面スクロール軽量化（入れ子・キャッシュ） | ✅ GO・Impl |
 | — | **P3-AUDIO-BGM-EXPLORE-OMIT-001** | ダンジョン探索BGMオミット・戦闘BGM常時 | ✅ GO・Impl |
+| — | **P3-SKILL-KIT-001** | 職スキル7本＋全体技（役割案A・Lv1並立） | ✅ GO・Impl |
 | — | **P3-EQ-ROSTER-PRESET-001** | ベンチ装備＋パーティ戦闘プリセット保存／適用 | ✅ GO・統合＋main |
 | — | **P3-SURVEY-NONOKA-JOIN-001** | ノノカ＝ミストフェン初回クリア後に調査室合流 | ✅ GO・統合＋main |
 | — | **P3-UI-BANNER-TITLE-001** | ダンジョンバナー名フォント幅フィット統一 | ✅ GO・統合＋main |

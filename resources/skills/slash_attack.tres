@@ -6,11 +6,11 @@
 script = ExtResource("1")
 id = "slash_attack"
 display_name = "一閃"
-description = "敵にダメージを与える基本スキル"
+description = "短い間合いで繰り出す回転斬り。長い戦いでは総ダメージで極意に勝ることもある。"
 skill_type = "player"
 target_type = "enemy"
-power_multiplier = 1.5
-cooldown = 3.0
+power_multiplier = 1.45
+cooldown = 2.5
 trigger_type = "cooldown"
 effect_type = "damage"
 tags = Array[String](["melee", "slash"])

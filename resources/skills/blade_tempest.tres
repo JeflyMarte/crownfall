@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "blade_tempest"
+display_name = "剣嵐"
+description = "剣気を解き放ち、眼前の敵全体を斬り払う。単体より一打は軽いが群れに効く。"
+skill_type = "player"
+target_type = "all_enemies"
+power_multiplier = 0.95
+cooldown = 5.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["melee", "slash", "aoe"])
+element = ""
+apply_status_id = ""
+apply_status_chance = 0.0
+apply_status_id2 = ""
+apply_status_chance2 = 0.0
+slot_type = "skill"
+range_type = "melee"
+cast_time = 0.0
+reserve_condition = ""
+reserve_value = ""

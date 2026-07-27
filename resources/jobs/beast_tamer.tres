@@ -6,46 +6,37 @@
 script = ExtResource("1")
 id = "beast_tamer"
 display_name = "ビーストテイマー"
-description = "弓・杖を扱い、生物の生態とペットを指揮して戦う支援職。"
+description = "生物の生態とオトモを指揮し、誘導と弱体化で戦う特殊職。"
 role = "support"
 base_hp_modifier = 1.0
 base_attack_modifier = 0.95
 base_defense_modifier = 0.95
 base_initiative_modifier = 1.05
 preferred_weapon_types = Array[String](["staff", "bow"])
-starting_skill_ids = Array[String](["snare_shot"])
+starting_skill_ids = Array[String](["toxin_dart"])
 skill_unlocks = Array[Dictionary]([{
-"skill_id": "snare_shot",
+"skill_id": "toxin_dart",
 "level": 1
 }, {
 "skill_id": "pet_bond_rally",
-"level": 6
+"level": 8
 }, {
-"skill_id": "toxin_dart",
-"level": 12
-}, {
-"skill_id": "aimed_shot",
-"level": 18
+"skill_id": "snare_shot",
+"level": 15
 }, {
 "skill_id": "herd_call",
-"level": 24
-}, {
-"skill_id": "entangle",
-"level": 30
-}, {
-"skill_id": "venom_burst",
-"level": 36
+"level": 22
 }, {
 "skill_id": "pet_command_fang",
-"level": 42
+"level": 30
 }, {
-"skill_id": "pet_bond_guard",
-"level": 48
+"skill_id": "venom_spray",
+"level": 40
 }, {
 "skill_id": "apex_tame",
 "level": 50
 }])
-learnable_skill_ids = Array[String](["snare_shot", "pet_bond_rally", "toxin_dart", "aimed_shot", "herd_call", "entangle", "venom_burst", "pet_command_fang", "pet_bond_guard", "apex_tame"])
+learnable_skill_ids = Array[String](["toxin_dart", "pet_bond_rally", "snare_shot", "herd_call", "pet_command_fang", "venom_spray", "apex_tame"])
 passive_tag_ids = Array[String](["tamer"])
 ultimate_skill_id = "beast_dominion"
 evolved_display_name = "ビーストロード"

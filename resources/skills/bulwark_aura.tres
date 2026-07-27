@@ -4,18 +4,23 @@
 
 [resource]
 script = ExtResource("1")
-id = "herd_call"
-display_name = "群れの號令"
-description = "號令をかけ、味方全体とオトモに鼓舞を届ける。"
+id = "bulwark_aura"
+display_name = "壁守り"
+description = "盾の意志を広げ、味方全体に防御を付与する。"
 skill_type = "player"
 target_type = "all_party"
 power_multiplier = 1.0
-cooldown = 6.0
+cooldown = 7.0
 trigger_type = "cooldown"
 effect_type = "buff"
-tags = Array[String](["support", "buff", "pet"])
+tags = Array[String](["support", "buff", "guard"])
 element = ""
-apply_status_id = "empower"
+apply_status_id = "guard"
 apply_status_chance = 1.0
+apply_status_id2 = ""
+apply_status_chance2 = 0.0
 slot_type = "skill"
-range_type = "long"
+range_type = "mid"
+cast_time = 0.0
+reserve_condition = ""
+reserve_value = ""

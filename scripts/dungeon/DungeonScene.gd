@@ -4445,6 +4445,139 @@ func _try_apply_weapon_on_hit_status(member_index: int) -> void:
 # 単一スキルの発動（ダメージ＋状態異常付与）。CDはメンバー×スキルで独立管理。
 # cast_index: この tick でそのメンバーが発動した順番（0始まり）。ラベル段組みに使用。
 # suppress_resolve_label: 詠唱完了後の再表示を抑止（詠唱中ラベルは呼び出し側で除去済み）。
+## P3-SKILL-KIT-001: vs_bleed / vs_mark 時の威力ボーナス（条件付き追撃）。
+const CONDITIONAL_STATUS_POWER_MULT: float = 1.45
+
+func _conditional_skill_power_mult(skill_data: Resource, target_slot: int) -> float:
+	if skill_data == null or target_slot < 0:
+		return 1.0
+	if skill_data.tags.has("vs_bleed") and $CombatController.get_enemy_status_stacks_at(target_slot, "bleed") > 0:
+		return CONDITIONAL_STATUS_POWER_MULT
+	if skill_data.tags.has("vs_mark") and $CombatController.get_enemy_status_stacks_at(target_slot, "mark") > 0:
+		return CONDITIONAL_STATUS_POWER_MULT
+	return 1.0
+
+
+func _apply_skill_on_hit_self_effects(member_idx: int, skill_data: Resource) -> void:
+	if skill_data == null or not $CombatController.is_member_alive(member_idx):
+		return
+	if skill_data.tags.has("self_guard_on_hit"):
+		if $CombatController.apply_status("party_%d" % member_idx, "guard", 1, 0):
+			_on_party_status_applied(member_idx, "guard", false)
+			_update_status_icons()
+	if skill_data.tags.has("pet_empower_on_hit"):
+		_apply_status_to_pet("empower", false)
+		_update_status_icons()
+
+
+func _apply_skill_status_to_enemy_slot(member_idx: int, skill_data: Resource, target_slot: int) -> void:
+	if skill_data == null or target_slot < 0 or not $CombatController.is_enemy_slot_alive(target_slot):
+		return
+	var base_info: Dictionary = _calc_attack_base(member_idx)
+	if not skill_data.apply_status_id.is_empty() and skill_data.apply_status_chance > 0.0:
+		if randf() <= EvolutionTraits.effective_status_chance(member_idx, skill_data.apply_status_chance):
+			if $CombatController.apply_status_to_enemy_slot(
+				target_slot, skill_data.apply_status_id, 1, base_info["base_damage"]
+			):
+				if CombatLinks.is_debuff_mark_status(skill_data.apply_status_id):
+					_debuff_marks[target_slot] = member_idx
+				_on_enemy_status_applied(target_slot, skill_data.apply_status_id)
+				var effect: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id)
+				var label: String = skill_data.apply_status_id
+				if effect != null:
+					label = effect.display_name
+				_append_log("[%s] 付与" % label)
+	if not skill_data.apply_status_id2.is_empty() and skill_data.apply_status_chance2 > 0.0:
+		if randf() <= EvolutionTraits.effective_status_chance(member_idx, skill_data.apply_status_chance2):
+			if $CombatController.apply_status_to_enemy_slot(
+				target_slot, skill_data.apply_status_id2, 1, base_info["base_damage"]
+			):
+				if CombatLinks.is_debuff_mark_status(skill_data.apply_status_id2):
+					_debuff_marks[target_slot] = member_idx
+				_on_enemy_status_applied(target_slot, skill_data.apply_status_id2)
+				var effect2: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id2)
+				var label2: String = skill_data.apply_status_id2
+				if effect2 != null:
+					label2 = effect2.display_name
+				_append_log("[%s] 付与" % label2)
+
+
+## 敵全体ダメージスキル（P3-SKILL-KIT-001）。CDは1回、各生存敵へ威力を適用。
+func _execute_member_aoe_damage_skill(
+	member_idx: int,
+	skill_data: Resource,
+	cast_index: int = 0,
+	suppress_resolve_label: bool = false
+) -> String:
+	var living: Array = $CombatController.get_living_enemy_indices()
+	if living.is_empty():
+		return ""
+	var cd_key: String = _member_skill_cd_key(member_idx, skill_data)
+	var base_info: Dictionary = _calc_attack_base(member_idx)
+	var is_critical: bool = randf() < base_info["crit_rate"]
+	var run_mult: float = $DungeonController.run_damage_multiplier
+	var result: Dictionary = _skill_executor.execute_damage_skill(
+		skill_data,
+		base_info["base_damage"],
+		is_critical,
+		CRITICAL_MULTIPLIER,
+		run_mult,
+		cd_key,
+		_EquipmentSetBonuses.skill_cd_mult(member_idx)
+	)
+	if not result.get("executed", false):
+		return ""
+	var attack_element: String = _resolve_skill_element(skill_data, member_idx)
+	var action_range: String = CombatRange.resolve_for_action(member_idx, skill_data)
+	var form_tag: String = GameState.formation_range_log_tag(member_idx, action_range)
+	var wpn_skill_mods: Dictionary = CombatPassives.skill_stat_modifiers_for_member(member_idx)
+	var weapon_skill_mult: float = float(wpn_skill_mods.get("skill_power_mult", 1.0))
+	var hits: Array = []
+	var total_dmg: int = 0
+	for slot_v in living:
+		var slot: int = int(slot_v)
+		var skill_dmg: int = maxi(
+			1,
+			int(float(result["damage"]) * $CombatController.get_member_outgoing_damage_multiplier(
+				member_idx, action_range, true, attack_element, slot
+			))
+		)
+		skill_dmg = maxi(1, int(round(float(skill_dmg) * weapon_skill_mult)))
+		skill_dmg = maxi(1, int(round(float(skill_dmg) * _conditional_skill_power_mult(skill_data, slot))))
+		var elem_result: Dictionary = _apply_enemy_mitigation(skill_dmg, attack_element, member_idx, slot)
+		var final_dmg: int = maxi(
+			1,
+			int(float(elem_result["damage"]) * $CombatController.get_enemy_incoming_damage_multiplier_at(slot))
+		)
+		final_dmg += _consume_combo_bonus(
+			member_idx, final_dmg, _member_action_tags(member_idx, skill_data), skill_data, slot
+		)
+		hits.append({"slot": slot, "dmg": final_dmg, "pos": _enemy_slot_pos(slot)})
+		total_dmg += final_dmg
+	var skill_is_crit: bool = result.get("is_critical", false)
+	var crit_tag: String = "  CRITICAL!" if skill_is_crit else ""
+	var log_line: String = "\n【スキル】%s: 敵全体へ計%dダメージ%s%s（%d体）" % [
+		result["display_name"], total_dmg, crit_tag, form_tag, hits.size(),
+	]
+	_play_chr_attack_one(member_idx)
+	if cast_index == 0:
+		_clear_member_skill_labels(member_idx)
+	if not suppress_resolve_label:
+		_spawn_skill_name(result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP, attack_element)
+	_resolve_party_aoe_skill_damage_impact_async({
+		"member_idx": member_idx,
+		"skill_data": skill_data,
+		"hits": hits,
+		"attack_element": attack_element,
+		"skill_is_crit": skill_is_crit,
+		"log_line": log_line,
+		"display_name": str(result.get("display_name", "スキル")),
+		"skill_id": str(skill_data.id) if skill_data != null else "",
+		"session_id": _combat_session_id,
+	})
+	return ""
+
+
 func _execute_member_skill(
 	member_idx: int,
 	skill_data: Resource,
@@ -4456,6 +4589,8 @@ func _execute_member_skill(
 			return _execute_member_heal(member_idx, skill_data, cast_index, suppress_resolve_label)
 		"buff":
 			return _execute_member_buff(member_idx, skill_data, cast_index, suppress_resolve_label)
+	if str(skill_data.target_type) == "all_enemies":
+		return _execute_member_aoe_damage_skill(member_idx, skill_data, cast_index, suppress_resolve_label)
 	if not _member_has_living_target(member_idx):
 		return ""
 	var target_slot: int = $CombatController.get_member_target_slot(member_idx)
@@ -4490,6 +4625,7 @@ func _execute_member_skill(
 	else:
 		weapon_skill_mult = float(wpn_skill_mods.get("skill_power_mult", 1.0))
 	skill_dmg = maxi(1, int(round(float(skill_dmg) * float(weapon_skill_mult))))
+	skill_dmg = maxi(1, int(round(float(skill_dmg) * _conditional_skill_power_mult(skill_data, target_slot))))
 	var elem_result: Dictionary = _apply_enemy_mitigation(skill_dmg, attack_element, member_idx, target_slot)
 	var final_dmg: int = maxi(
 		1,
@@ -4668,14 +4804,15 @@ func _execute_member_buff(
 					_on_party_status_applied(member_idx, status_id, false)
 		elif pet_only:
 			applied = _apply_status_to_pet(status_id, false)
-		elif skill_id == "herd_call":
-			applied = _apply_status_to_pet("empower", false)
+		elif skill_id == "herd_call" or str(skill_data.target_type) == "all_party":
+			## 味方全体バフ（P3-SKILL-KIT-001）。herd_call も同強度で人＋オトモへ。
 			for i: int in GameState.party_members.size():
 				if not $CombatController.is_member_alive(i):
 					continue
-				if $CombatController.apply_status("party_%d" % i, "empower_minor", 1, 0):
+				if $CombatController.apply_status("party_%d" % i, status_id, 1, 0):
 					applied += 1
-					_on_party_status_applied(i, "empower_minor", false)
+					_on_party_status_applied(i, status_id, false)
+			applied += _apply_status_to_pet(status_id, false)
 		else:
 			for i: int in GameState.party_members.size():
 				if not $CombatController.is_member_alive(i):
@@ -4711,8 +4848,8 @@ func _execute_member_buff(
 		return "\n【スキル】%s: 自身に[%s]・注意を引いた" % [result["display_name"], label]
 	if pet_only:
 		return "\n【スキル】%s: ペットに[%s]" % [result["display_name"], label]
-	if skill_id == "herd_call":
-		return "\n【スキル】%s: ペット鼓舞＋味方%d" % [result["display_name"], applied]
+	if skill_id == "herd_call" or str(skill_data.target_type) == "all_party":
+		return "\n【スキル】%s: 味方全体に[%s]（%d）" % [result["display_name"], label, applied]
 	return "\n【スキル】%s: 味方%d体に[%s]" % [result["display_name"], applied, label]
 
 
@@ -6951,6 +7088,57 @@ func _resolve_party_skill_damage_impact_async(payload: Dictionary) -> void:
 			_play_enemy_slot_animation(target_slot, "hurt")
 		_apply_skill_status(member_idx, skill_data)
 		_apply_skill_secondary_status(member_idx, skill_data)
+		_apply_skill_on_hit_self_effects(member_idx, skill_data)
+	if skill_data != null and skill_data.tags.has("pet_followup"):
+		_queue_pet_followup_attack()
+	_update_hp_bars()
+	_end_combat_cinematic_lock()
+
+
+func _resolve_party_aoe_skill_damage_impact_async(payload: Dictionary) -> void:
+	var member_idx: int = int(payload.get("member_idx", -1))
+	var skill_data: Resource = payload.get("skill_data") as Resource
+	var hits: Array = payload.get("hits", []) as Array
+	var attack_element: String = str(payload.get("attack_element", ""))
+	var skill_is_crit: bool = bool(payload.get("skill_is_crit", false))
+	var log_line: String = str(payload.get("log_line", ""))
+	var skill_id: String = str(payload.get("skill_id", ""))
+	var display_name: String = str(payload.get("display_name", "スキル"))
+	var session_id: int = int(payload.get("session_id", -1))
+	_begin_combat_cinematic_lock()
+	var sprite: AnimatedSprite2D = null
+	if member_idx >= 0 and member_idx < _chr_sprites.size():
+		sprite = _chr_sprites[member_idx]
+	await get_tree().create_timer(_attack_anim_impact_delay(sprite)).timeout
+	if session_id != _combat_session_id or not $CombatController.is_in_combat:
+		_end_combat_cinematic_lock()
+		return
+	if not $CombatController.is_member_alive(member_idx):
+		_end_combat_cinematic_lock()
+		return
+	if not log_line.is_empty():
+		_append_log(log_line)
+	for hit_v in hits:
+		if typeof(hit_v) != TYPE_DICTIONARY:
+			continue
+		var hit: Dictionary = hit_v
+		var slot: int = int(hit.get("slot", -1))
+		var dmg: int = int(hit.get("dmg", 0))
+		var spawn_pos: Vector2 = hit.get("pos", Vector2.ZERO) as Vector2
+		if slot < 0 or dmg <= 0 or not $CombatController.is_enemy_slot_alive(slot):
+			continue
+		_spawn_hit_vfx(spawn_pos, attack_element, 0.9, skill_is_crit)
+		_spawn_damage_number(
+			str(dmg),
+			spawn_pos + Vector2(12.0, 0.0),
+			_outgoing_damage_telop_color(skill_is_crit),
+			1.15 if skill_is_crit else 0.95
+		)
+		if not _deal_member_damage_to_enemy(member_idx, dmg, slot, skill_id, display_name, skill_is_crit):
+			if $CombatController.is_enemy_slot_alive(slot):
+				_play_enemy_slot_animation(slot, "hurt")
+			_apply_skill_status_to_enemy_slot(member_idx, skill_data, slot)
+	_apply_skill_on_hit_self_effects(member_idx, skill_data)
 	if skill_data != null and skill_data.tags.has("pet_followup"):
 		_queue_pet_followup_attack()
 	_update_hp_bars()
