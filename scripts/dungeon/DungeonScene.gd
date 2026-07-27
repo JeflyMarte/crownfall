@@ -1003,6 +1003,7 @@ func _ready() -> void:
 	GameState.last_run_starter_recruited_name = ""
 	GameState.last_run_exploration_policy = ""
 	GameState.last_run_modifier_counts = {}
+	GameState.last_run_wipe_cause = {}
 	GameState.reset_run_combat_stats()
 	GameState.begin_run_material_tracking()
 	_CommanderLifetime.record_run_started()
@@ -3819,7 +3820,7 @@ func _resolve_trap_room_async() -> void:
 	if $CombatController.is_party_wiped():
 		await get_tree().create_timer(TRAP_HIT_PAUSE_SEC).timeout
 		_end_trap_hit_presentation()
-		_handle_party_wipe()
+		_handle_party_wipe("trap")
 		return
 	await get_tree().create_timer(TRAP_HIT_PAUSE_SEC).timeout
 	_end_trap_hit_presentation()
@@ -6864,9 +6865,13 @@ func _commit_commander_run_stats(outcome: String) -> void:
 		context
 	)
 
-func _handle_party_wipe() -> void:
+func _handle_party_wipe(cause_kind: String = "") -> void:
 	$CombatTimer.stop()
 	_end_combat_session()
+	const _WipeCauseHelper = preload("res://scripts/result/WipeCauseHelper.gd")
+	GameState.last_run_wipe_cause = _WipeCauseHelper.build_snapshot(
+		$DungeonController, $CombatController, cause_kind
+	)
 	$CombatController.end_combat()
 	_update_status_labels()
 	_clear_turn_order_ui()

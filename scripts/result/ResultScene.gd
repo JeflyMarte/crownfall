@@ -6,6 +6,7 @@ const PartyLogColorsScript: Script = preload("res://scripts/ui/PartyLogColors.gd
 const ResultFlowScript: Script = preload("res://scripts/result/ResultFlowController.gd")
 const ExpRunSnapshotScript: Script = preload("res://scripts/result/ExpRunSnapshot.gd")
 const ExpBarPresenterScript: Script = preload("res://scripts/result/ExpBarPresenter.gd")
+const _WipeCauseHelper = preload("res://scripts/result/WipeCauseHelper.gd")
 const MvpScoreScript: Script = preload("res://scripts/result/MvpScore.gd")
 const MvpPresentationScript: Script = preload("res://scripts/result/MvpPresentation.gd")
 const SkillIconHelperScript: Script = preload("res://scripts/ui/SkillIconHelper.gd")
@@ -102,6 +103,8 @@ var _mvp_intro_active: bool = false
 var _mvp_anim_nodes: Array = []
 var _levelup_rows: Array = []
 var _levelup_pending_count: int = 0
+var _wipe_cause_summary: Label = null
+var _wipe_cause_detail: Label = null
 
 func _ready() -> void:
 	_levelup_panel_legacy.visible = false
@@ -1022,6 +1025,46 @@ func _build_header() -> void:
 	_label_dungeon.text = name_text
 	_apply_outcome_banner()
 	_build_stars(difficulty)
+	_build_wipe_cause()
+
+func _build_wipe_cause() -> void:
+	if _wipe_cause_summary != null and is_instance_valid(_wipe_cause_summary):
+		_wipe_cause_summary.queue_free()
+		_wipe_cause_summary = null
+	if _wipe_cause_detail != null and is_instance_valid(_wipe_cause_detail):
+		_wipe_cause_detail.queue_free()
+		_wipe_cause_detail = null
+	if GameState.last_run_outcome != GameState.RUN_OUTCOME_WIPE:
+		return
+	var snap: Dictionary = GameState.last_run_wipe_cause
+	var summary: String = _WipeCauseHelper.summary_line(snap)
+	if summary.is_empty():
+		return
+	var header_vbox: VBoxContainer = _header_panel.get_node("HeaderVBox") as VBoxContainer
+	if header_vbox == null:
+		return
+	_wipe_cause_summary = Label.new()
+	_wipe_cause_summary.name = "WipeCauseSummary"
+	_wipe_cause_summary.text = summary
+	_wipe_cause_summary.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_wipe_cause_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTypography.apply_body(
+		_wipe_cause_summary,
+		UiTypography.SIZE_BODY,
+		COLOR_FAIL,
+		UiTypography.OUTLINE_BODY
+	)
+	header_vbox.add_child(_wipe_cause_summary)
+	var detail: String = _WipeCauseHelper.detail_line(snap, GameState.last_run_combat_stats)
+	if detail.is_empty():
+		return
+	_wipe_cause_detail = Label.new()
+	_wipe_cause_detail.name = "WipeCauseDetail"
+	_wipe_cause_detail.text = detail
+	_wipe_cause_detail.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_wipe_cause_detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTypography.apply_body(_wipe_cause_detail, UiTypography.SIZE_CAPTION, COLOR_SUB)
+	header_vbox.add_child(_wipe_cause_detail)
 
 func _apply_outcome_banner() -> void:
 	var outcome: String = GameState.last_run_outcome
