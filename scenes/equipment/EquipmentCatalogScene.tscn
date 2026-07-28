@@ -176,6 +176,10 @@ text = "レアリティ"
 layout_mode = 2
 text = "すべて"
 
+[node name="ButtonEffect" type="Button" parent="MainVBox/InventoryHeaderRow"]
+layout_mode = 2
+text = "効果"
+
 [node name="InventoryScroll" type="ScrollContainer" parent="MainVBox"]
 layout_mode = 2
 size_flags_vertical = 3
