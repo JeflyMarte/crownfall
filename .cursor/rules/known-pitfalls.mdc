@@ -46,6 +46,7 @@ alwaysApply: true
 | HBox 内の数値が消える（アイコンだけ残る） | Label の `clip_text=true` は最小幅 0 → SHRINK の HBox で幅が潰れる | `ui-layout.mdc` — 短い数値は `clip_text=false`。必要なら `EXPAND_FILL` |
 | 戦闘下カードで名前が「アル…」等に切れる | `clip_text`＋ellipsis。長い表示名がカード幅を超える | 省略禁止＋幅に合わせて font_size 縮小（`_fit_party_card_name_font`）。レイアウト後に deferred 再計算 |
 | 戦闘が全体的にカクつく／歩行が飛ぶ | `_process` で HPバー位置更新のたび `Texture2D.get_image()`＋`get_used_rect()` | 正規化時に `body_frame_h` / `body_top_inset` を meta キャッシュしホットパスでは使わない |
+| 敵の攻撃タイミングが分かりにくい | 予告なしでアニメ開始 | 攻撃／ダメージスキル直前にドット左へ赤い `❗`（`_spawn_enemy_attack_mark`）。詠唱技は既存カットイン／詠唱名 |
 | 攻撃モーション寸前に一瞬カクつく | 必殺 resolve 同フレームで攻撃開始＋フラッシュ／シェイク／リング／ヒット VFX／ダメージ数字が集中。VFX の都度 `load` | windup 開始で攻撃開始。ダメージ必殺の resolve はヒット側のみ。Heal VFX／attack テクスチャは入場時にウォーム |
 | 状態異常レジェンドの背景四角 | Panel に半透明 StyleBoxFlat | `StyleBoxEmpty`（アイコン＋効果文言のみ） |
 | 本編 x-1〜x-5 で戦闘BGが全部同じ | Biome 単枚のみ／章切替未配線 | Early＝章1〜3／Late＝4〜5。⑤x-5ボスのみ FinalBoss |
