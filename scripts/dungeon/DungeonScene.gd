@@ -686,6 +686,7 @@ const ELEMENT_VFX_PATH: Dictionary = {
 }
 const SkillExecutorScript: Script = preload("res://scripts/combat/SkillExecutor.gd")
 const CombatVfxManagerScript: Script = preload("res://scripts/combat/CombatVfxManager.gd")
+const CombatBandVfxScript: Script = preload("res://scripts/combat/CombatBandVfx.gd")
 const _StatusEffectLinkHelper = preload("res://scripts/ui/StatusEffectLinkHelper.gd")
 const _SkillEffectOneLineHelper = preload("res://scripts/ui/SkillEffectOneLineHelper.gd")
 const EvolutionVisualScript: Script = preload("res://scripts/systems/EvolutionVisual.gd")
@@ -5729,6 +5730,8 @@ func _resolve_enemy_skill_damage_impact_async(payload: Dictionary) -> void:
 	if skill != null:
 		_spawn_enemy_skill_name(skill.display_name)
 	var sprite: AnimatedSprite2D = _active_enemy_sprite()
+	## 全体／詠唱大技は帯VFXを攻撃アニメと同時に開始（ヒット前に画面を覆う）。
+	_play_enemy_skill_band_vfx(skill)
 	await get_tree().create_timer(_attack_anim_impact_delay(sprite)).timeout
 	if not $CombatController.is_in_combat:
 		_end_combat_cinematic_lock()
@@ -5740,6 +5743,74 @@ func _resolve_enemy_skill_damage_impact_async(payload: Dictionary) -> void:
 		_handle_party_wipe()
 		return
 	_end_combat_cinematic_lock()
+
+
+## 敵全体／列／詠唱ダメージの帯・波動・霧（P3-UX-COMBAT-BAND-001）。
+func _play_enemy_skill_band_vfx(skill: Resource) -> void:
+	var style: String = CombatBandVfxScript.classify_enemy_skill(skill)
+	if style.is_empty():
+		return
+	var from: Vector2 = _active_enemy_pos()
+	if from == Vector2.ZERO and _active_enemy_sprite() != null:
+		from = _sprite_visual_center_global(_active_enemy_sprite())
+	var band: Rect2 = _party_combat_band_rect()
+	var element: String = str(skill.element) if skill != null else ""
+	var spd: float = _combat_speed_mult if _combat_speed_mult > 0.0 else 1.0
+	var dur: float = CombatBandVfxScript.play_enemy_band(
+		self, _damage_numbers_layer, from, band, style, element, spd
+	)
+	if dur > 0.0:
+		_flash_battlefield(CombatBandVfxScript.element_color(element), 0.22)
+		if style in [CombatBandVfxScript.STYLE_PULSE, CombatBandVfxScript.STYLE_TIDE, CombatBandVfxScript.STYLE_QUAKE]:
+			_shake_battlefield(7.0)
+
+
+func _party_combat_band_rect() -> Rect2:
+	var min_p := Vector2(INF, INF)
+	var max_p := Vector2(-INF, -INF)
+	var any: bool = false
+	for i: int in _chr_sprites.size():
+		if i >= GameState.combatant_count():
+			break
+		if not $CombatController.is_member_alive(i):
+			continue
+		var spr: AnimatedSprite2D = _chr_sprites[i]
+		if spr == null or not spr.visible:
+			continue
+		var c: Vector2 = _sprite_visual_center_global(spr)
+		min_p = Vector2(minf(min_p.x, c.x - 40.0), minf(min_p.y, c.y - 50.0))
+		max_p = Vector2(maxf(max_p.x, c.x + 40.0), maxf(max_p.y, c.y + 40.0))
+		any = true
+	if not any:
+		var bf: Vector2 = _battlefield_size()
+		return Rect2(Vector2(40.0, bf.y * 0.45), Vector2(maxf(bf.x * 0.45, 200.0), 160.0))
+	return Rect2(min_p, max_p - min_p)
+
+
+func _enemy_combat_band_rect() -> Rect2:
+	var min_p := Vector2(INF, INF)
+	var max_p := Vector2(-INF, -INF)
+	var any: bool = false
+	for slot: int in _swarm_sprites.size():
+		if not $CombatController.is_enemy_slot_alive(slot):
+			continue
+		var spr: AnimatedSprite2D = _swarm_sprites[slot]
+		if spr == null or not spr.visible:
+			continue
+		var c: Vector2 = _sprite_visual_center_global(spr)
+		min_p = Vector2(minf(min_p.x, c.x - 36.0), minf(min_p.y, c.y - 48.0))
+		max_p = Vector2(maxf(max_p.x, c.x + 36.0), maxf(max_p.y, c.y + 36.0))
+		any = true
+	if not any and _boss_sprite != null and _boss_sprite.visible:
+		var bc: Vector2 = _sprite_visual_center_global(_boss_sprite)
+		return Rect2(bc - Vector2(80.0, 100.0), Vector2(160.0, 180.0))
+	if not any and _enemy_sprite != null and _enemy_sprite.visible:
+		var ec: Vector2 = _sprite_visual_center_global(_enemy_sprite)
+		return Rect2(ec - Vector2(60.0, 80.0), Vector2(120.0, 140.0))
+	if not any:
+		var bf: Vector2 = _battlefield_size()
+		return Rect2(Vector2(bf.x * 0.5, bf.y * 0.35), Vector2(maxf(bf.x * 0.4, 180.0), 160.0))
+	return Rect2(min_p, max_p - min_p)
 
 func _apply_enemy_damage_to_targets(
 	skill: Resource,
@@ -7381,6 +7452,8 @@ func _resolve_party_aoe_skill_damage_impact_async(payload: Dictionary) -> void:
 	var sprite: AnimatedSprite2D = null
 	if member_idx >= 0 and member_idx < _chr_sprites.size():
 		sprite = _chr_sprites[member_idx]
+	## 味方全体技の帯VFX（剣嵐／斉射／霧など）。
+	_play_ally_aoe_band_vfx(member_idx, skill_data, attack_element)
 	await get_tree().create_timer(_attack_anim_impact_delay(sprite)).timeout
 	if session_id != _combat_session_id or not $CombatController.is_in_combat:
 		_end_combat_cinematic_lock()
@@ -7416,6 +7489,20 @@ func _resolve_party_aoe_skill_damage_impact_async(payload: Dictionary) -> void:
 	_update_hp_bars()
 	_end_combat_cinematic_lock()
 
+
+func _play_ally_aoe_band_vfx(member_idx: int, skill_data: Resource, attack_element: String) -> void:
+	var style: String = CombatBandVfxScript.classify_ally_aoe_skill(skill_data)
+	if style.is_empty():
+		return
+	var from: Vector2 = _member_sprite_world_pos(member_idx, 0.35)
+	var band: Rect2 = _enemy_combat_band_rect()
+	var spd: float = _combat_speed_mult if _combat_speed_mult > 0.0 else 1.0
+	CombatBandVfxScript.play_ally_band(
+		self, _damage_numbers_layer, from, band, style, attack_element, spd
+	)
+	_flash_battlefield(CombatBandVfxScript.element_color(attack_element), 0.18)
+	if style == CombatBandVfxScript.STYLE_QUAKE:
+		_shake_battlefield(8.0)
 
 func _is_active_pet_alive() -> bool:
 	if GameState.active_pet == null or GameState.party_members.is_empty():
@@ -9914,6 +10001,14 @@ func _play_ultimate_resolve_vfx(
 	_flash_battlefield(ULTIMATE_FLASH_DAMAGE, 0.48)
 	_request_combat_shake(14.0)
 	_shake_battlefield(12.0)
+	## 必殺ごとの帯追加（斬／狙撃ビーム／咆哮リング）。
+	var ult_style: String = CombatBandVfxScript.classify_ultimate(skill_data)
+	if not ult_style.is_empty():
+		var from: Vector2 = _member_sprite_world_pos(member_idx, 0.35)
+		var spd: float = _combat_speed_mult if _combat_speed_mult > 0.0 else 1.0
+		CombatBandVfxScript.play_ultimate_band(
+			self, _damage_numbers_layer, from, focus_pos, ult_style, element, spd
+		)
 	if focus_pos != Vector2.ZERO:
 		_spawn_ultimate_impact_vfx(focus_pos, element, _get_weapon_type(member_idx))
 		_spawn_ultimate_ring_burst(focus_pos, ULTIMATE_GOLD, 1.85)
