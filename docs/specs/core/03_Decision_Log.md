@@ -5308,3 +5308,15 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 | P3-BAL-LEG-WPN-A001-7 | **腐血の影弦** — 毒出血敵+35%＋25%付与 | DoTシナジー弓 |
 | P3-BAL-LEG-WPN-A001-8 | **脈打つ閃刃** — 会心時ゲージ+8＆35%追撃 | 会心追撃／ゲージ加速 |
 | P3-BAL-LEG-WPN-A001-9 | **防壁の戦剣** — Threat+120／被ダメ-12% | VG脅威＋減ダメ |
+
+## 戦闘帯VFX（2026-07-28 — P3-UX-COMBAT-BAND-001）
+
+> **オーナー GO** — ボス詠唱全体の帯演出＋味方全体技／必殺の派手演出を両方実装。専用スプライト無し（手続き生成）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-COMBAT-BAND-001-1 | SSOT=`CombatBandVfx`。スタイル=breath／pulse／tide／mist／fan／volley／quake／slash／shot／roar | 既存スキル名から分類 |
+| P3-UX-COMBAT-BAND-001-2 | **敵** — `all_party`／列／詠唱ダメージに帯VFX＋属性フラッシュ | 吐息・波動・泥潮・霧 |
+| P3-UX-COMBAT-BAND-001-3 | **味方** — `all_enemies` スキルに帯VFX（剣嵐扇／斉射／霧／盾撃波） | 全体技7本をカバー |
+| P3-UX-COMBAT-BAND-001-4 | **必殺** — 斬撃弧／狙撃ビーム／咆哮リングを既存リング演出に追加 | 見せ場強化 |
+| P3-UX-COMBAT-BAND-001-5 | 数値・CD・ヒット判定は変更しない。アセット差し替えは後続可 | 体験リスクを演出側に閉じる |

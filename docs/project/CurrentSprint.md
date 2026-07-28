@@ -82,6 +82,7 @@
 
 | 順 | ID | 内容 | 状態 |
 |---|---|---|---|
+| — | **P3-UX-COMBAT-BAND-001** | ボス詠唱帯VFX＋味方全体／必殺派手演出 | ✅ Impl（要実機） |
 | — | **P3-CODEX-HIST-GUIDE-050** | 図鑑 歴史50／世界観手引き50（HE-001〜050・WORLD-G001〜050） | ✅ GO・統合＋main |
 | — | **P3-EQ-DIABLO-001** | 装備ステ・ディアブロ寄せ（固定ATK/DEF＋random_mods／Affix統合） | ✅ GO・統合＋main |
 | — | **P3-EQ-JOB-WPN-001** | 職別武器種制限（preferred＝装備可能リスト） | ✅ GO・統合＋main |
