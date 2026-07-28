@@ -5400,3 +5400,15 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 | P3-UX-RESULT-DROP-LIST-001-3 | **対象** — ダンジョンドロップ武／防／飾（降臨・深層含む）。レリックは従来どおり報酬行 | 装備一覧に集約 |
 | P3-UX-RESULT-DROP-LIST-001-4 | **全滅／リタイア** — 途中入手があれば同じ一覧を出す | 途中成果の可視化 |
 | P3-UX-RESULT-DROP-LIST-001-5 | **★以上** — アイコンをやや大きく | 目立ち優先 |
+
+---
+
+## キャラスクロール効き改善（2026-07-27 — P3-UX-EQUIP-SCROLL-002）
+
+> **オーナー GO** — セル上でスクロールしにくい主因を入力奪取と判定し修正。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-EQUIP-SCROLL-002-1 | 所持／装備セルの `gui_input` で **`accept_event` しない**（短タップ・長押しは gui_input のまま） | press 消費が親 Scroll のドラッグ開始を阻害 |
+| P3-UX-EQUIP-SCROLL-002-2 | キャラ装備の内側所持ホストを **ScrollContainer→MarginContainer**（外 TabEquip のみスクロール） | BottomNav subtree enable と入れ子ノイズを除去 |
+| P3-UX-EQUIP-SCROLL-002-3 | 装備一覧（Catalog）も同様に `accept_event` 廃止 | 同症状 |

@@ -103,7 +103,8 @@ var _pending_take_relic_id: String = ""
 @onready var _effects_panel: PanelContainer = $VBoxContainer/TabContainer/TabEquip/EquipContent/EffectsPanel
 @onready var _effects_rule: TextureRect = $VBoxContainer/TabContainer/TabEquip/EquipContent/EffectsPanel/EffectsVBox/EffectsRule
 @onready var _effects_grid: GridContainer = $VBoxContainer/TabContainer/TabEquip/EquipContent/EffectsPanel/EffectsVBox/EffectsGrid
-@onready var _inventory_scroll: ScrollContainer = $VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryScroll
+## 所持ホスト（旧 ScrollContainer）。外 TabEquip のみスクロールするため非 Scroll 化。
+@onready var _inventory_scroll: Control = $VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryScroll
 @onready var _tab_row: HBoxContainer = $VBoxContainer/TabRow
 @onready var _btn_sort: Button = $VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryHeaderRow/ButtonSort
 @onready var _btn_filter: Button = $VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryHeaderRow/ButtonFilter
@@ -210,12 +211,8 @@ func _ready() -> void:
 	# InvCell の StyleBoxTexture 辺が巨大な金筋・隙間漏れになる（再発防止）。
 	_inventory_grid.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	_inventory_grid.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	## 入れ子スクロール廃止: 所持は自然高、縦スクロールは TabEquip のみ。
-	_inventory_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
-	_inventory_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_inventory_scroll.scroll_deadzone = 12
+	## 所持は自然高ホスト。縦スクロールは TabEquip のみ（内側は非 Scroll）。
 	_inventory_scroll.clip_contents = false
-	## BottomNav の enable_in_subtree で内側も enable 済みなので、入力は外へ通す。
 	_inventory_scroll.mouse_filter = Control.MOUSE_FILTER_PASS
 	_category_row.clip_contents = true
 	# ルート／タブが CharacterCard の最小幅に引きずられて横はみ出ししないようにする。
@@ -229,7 +226,7 @@ func _ready() -> void:
 			sc.clip_contents = true
 			sc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			sc.scroll_deadzone = maxi(sc.scroll_deadzone, ScrollTouchHelper.TOUCH_DEADZONE)
-	## BottomNav の subtree enable 後も、装備タブは内側所持 Scroll をネスト enable しない。
+	## BottomNav の subtree enable 後も、装備タブは外スクロールのみ有効。
 	ScrollTouchHelper.enable(_tab_equip_scroll, false)
 	_setup_equipment_chrome()
 	_build_category_chips()
@@ -1274,9 +1271,7 @@ func _sync_inventory_cell_size() -> void:
 	_update_inventory_viewport_height()
 
 func _update_inventory_viewport_height() -> void:
-	## 入れ子廃止: 固定3行窓にせず、グリッド自然高まで伸ばして外スクロールへ渡す。
-	_inventory_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_inventory_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	## 固定3行窓にせず、グリッド自然高まで伸ばして外スクロールへ渡す。
 	_inventory_scroll.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_inventory_grid.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_inventory_grid.custom_minimum_size = Vector2(0, 0)
@@ -1518,9 +1513,8 @@ func _on_inventory_cell_gui_input(event: InputEvent, action: Callable) -> void:
 		_begin_inventory_press(action)
 	else:
 		_end_inventory_press()
-	if event is InputEventMouseButton or event is InputEventScreenTouch:
-		## InputEvent には accept_event が無い。Control 側で消費する。
-		accept_event()
+	## accept_event しない: ScrollTouch の PASS 経由で親 TabEquip がドラッグ開始できるようにする。
+	## （press で消費するとセル上スクロールが効かない）
 
 func _is_inventory_pointer_event(event: InputEvent) -> bool:
 	if event is InputEventMouseButton:
