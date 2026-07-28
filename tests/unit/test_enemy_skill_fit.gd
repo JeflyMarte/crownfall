@@ -76,14 +76,40 @@ func test_element_status_alignment_fixes() -> void:
 
 
 func test_frostridge_enemies_are_fire_weak() -> void:
-	## オーナー指示: フロストリッジ敵は基本 fire 弱点（氷弱点の砕氷方針は撤回）。
-	var frost_ids: Array[String] = [
-		"frost_claw_raptor", "vergaron", "storm_joe", "oldrex", "greios",
-		"glacier_warden", "wind_ripper", "polar_tricera", "eldion", "albark",
+	## P3-BAL-FROST-WEAK-FIRE-001＋P3-BAL-ELEM-REBAL-001:
+	## 霜敵は基本 fire。嵐系（storm_joe / wind_ripper）のみ thunder。
+	var fire_ids: Array[String] = [
+		"frost_claw_raptor", "vergaron", "oldrex", "greios",
+		"glacier_warden", "polar_tricera", "eldion", "albark",
 		"ice_tail_fox",
 	]
-	for eid: String in frost_ids:
+	for eid: String in fire_ids:
 		var data: Resource = DataRegistry.get_enemy_data(eid)
 		assert_not_null(data)
 		assert_true(data.element_weakness.has("fire"), "%s should be fire-weak" % eid)
 		assert_false(data.element_weakness.has("ice"), "%s should not be ice-weak" % eid)
+	for eid: String in ["storm_joe", "wind_ripper"]:
+		var data: Resource = DataRegistry.get_enemy_data(eid)
+		assert_not_null(data)
+		assert_true(data.element_weakness.has("thunder"), "%s should be thunder-weak" % eid)
+		assert_false(data.element_weakness.has("ice"), "%s should not be ice-weak" % eid)
+
+
+func test_element_weakness_rebalance_mainline() -> void:
+	## P3-BAL-ELEM-REBAL-001 — 既存敵の弱点付け替え（新キャラなし）。
+	assert_true(DataRegistry.get_enemy_data("crown_eater_rat").element_weakness.has("dark"))
+	assert_true(DataRegistry.get_enemy_data("sepia_hound").element_weakness.has("dark"))
+	assert_true(DataRegistry.get_enemy_data("spore_widow").element_weakness.has("holy"))
+	assert_true(DataRegistry.get_enemy_data("iron_horn").element_weakness.has("thunder"))
+	assert_true(DataRegistry.get_enemy_data("bone_picker").element_weakness.has("dark"))
+	assert_true(DataRegistry.get_enemy_data("ship_eater_crab").element_weakness.has("ice"))
+	assert_true(DataRegistry.get_enemy_data("serdion").element_weakness.has("dark"))
+	assert_false(DataRegistry.get_enemy_data("serdion").element_resist.has("dark"))
+	assert_true(DataRegistry.get_enemy_data("chronos_wave").element_weakness.has("thunder"))
+	assert_true(DataRegistry.get_enemy_data("valgard").element_weakness.has("holy"))
+	assert_true(DataRegistry.get_enemy_data("nereion").element_weakness.has("ice"))
+	assert_true(DataRegistry.get_enemy_data("moldgar").element_weakness.has("dark"))
+	var fr: Resource = DataRegistry.get_dungeon_data("frostridge")
+	assert_eq(str(fr.favored_element), "fire")
+	var mg: Resource = DataRegistry.get_dungeon_data("mourngate")
+	assert_eq(str(mg.favored_element), "dark")

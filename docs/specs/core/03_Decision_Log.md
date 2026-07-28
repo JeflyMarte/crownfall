@@ -5309,11 +5309,18 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 | P3-BAL-LEG-WPN-A001-8 | **脈打つ閃刃** — 会心時ゲージ+8＆35%追撃 | 会心追撃／ゲージ加速 |
 | P3-BAL-LEG-WPN-A001-9 | **防壁の戦剣** — Threat+120／被ダメ-12% | VG脅威＋減ダメ |
 
-## 敵スキル厚み C→A（2026-07-28 — P3-BAL-ENEMY-SKILL-CA-001）
+## 属性弱点再配分（2026-07-28 — P3-BAL-ELEM-REBAL-001）
 
-> **オーナー GO（C→A）** — まずボス／エリートのキットを厚くし、後続で雑魚を2本化。
+> **オーナー GO（推奨案Aすべて）** — 新キャラなし。既存弱点の付け替えで炎偏重を緩和。ボスは地形有利と整合。
 | # | 決定 | 根拠 |
 |---|---|---|
+| P3-BAL-ELEM-REBAL-001-1 | **新敵追加なし**。`element_weakness` / 一部 `element_resist` / 霜系 `favored_element` のみ変更 | キャラ増より既存の偏り是正 |
+| P3-BAL-ELEM-REBAL-001-2 | **雑魚** — ①一部→闇／②一部→聖・雷／③一部→闇・炎／④一部→氷／⑤嵐系→雷（他は火据置） | Biome主色は残しつつ第2色を混ぜる |
+| P3-BAL-ELEM-REBAL-001-3 | **ボス** — セルディオン=雷＋闇（闇耐性撤去）／クロノス=雷＋聖／ヴァルガード=聖＋雷／ネレイオン系=聖＋氷／モルドガル=雷＋闇 | 地形有利・テーマ整合。氷・闇の穴埋め |
+| P3-BAL-ELEM-REBAL-001-4 | **霜地形** — `frostridge`／`north_reach`／`frostwall_path`／`abyss_frostridge` の `favored_element` を **fire** へ（弱点火と一致）。氷竜を氷弱点にはしない | P3-BAL-FROST-WEAK-FIRE-001 を維持しつつねじれ解消 |
+| P3-BAL-ELEM-REBAL-001-5 | 弱点／耐性倍率・スキル威力は据置 | 体験リスクを属性選択側に閉じる |
+## 敵スキル厚み C→A（2026-07-28 — P3-BAL-ENEMY-SKILL-CA-001）
+> **オーナー GO（C→A）** — まずボス／エリートのキットを厚くし、後続で雑魚を2本化。
 | P3-BAL-ENEMY-SKILL-CA-001-1 | **順序** — Phase **C**（ボス／エリート）→ Phase **A**（通常雑魚を2本） | 脅威の高い戦から厚みを付ける |
 | P3-BAL-ENEMY-SKILL-CA-001-2 | **Phase C（本Impl）** — プレイ可能エリート（`enemy_type=1`）でスキル1本の個体に **第2スキル**を追加。役割は既存と補完（単↔列／状態差）。威力・CDは既存エリート帯を超えない | clock_moth は既に2本。polar_tricera は FR 除外のため対象外 |
 | P3-BAL-ENEMY-SKILL-CA-001-3 | **ボス** — 既に enrage＋専用2本（計3）のため Phase C では数値・本数を据置 | 過剰強化を避ける |
