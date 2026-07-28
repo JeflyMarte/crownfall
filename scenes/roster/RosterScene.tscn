@@ -192,14 +192,15 @@ size_flags_horizontal = 3
 text = "陣形"
 clip_text = true
 
-[node name="ActivePartyScroll" type="ScrollContainer" parent="MainScroll/MainVBox"]
+## 縦スクロールは MainScroll のみ。内側 ScrollContainer はドラッグを奪い重い／不能の原因。
+[node name="ActivePartyHost" type="MarginContainer" parent="MainScroll/MainVBox"]
 custom_minimum_size = Vector2(0, 210)
 layout_mode = 2
-horizontal_scroll_mode = 2
-vertical_scroll_mode = 0
+size_flags_horizontal = 3
 
-[node name="ActivePartyRow" type="HBoxContainer" parent="MainScroll/MainVBox/ActivePartyScroll"]
+[node name="ActivePartyRow" type="HBoxContainer" parent="MainScroll/MainVBox/ActivePartyHost"]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
 [node name="ListHeader" type="HBoxContainer" parent="MainScroll/MainVBox"]

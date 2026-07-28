@@ -59,7 +59,7 @@ var _formation_overlay_snapshot: Array = []
 @onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
 @onready var _label_power: Label = $Header/HeaderRow/LabelTitle
 @onready var _label_power_legacy: Label = $MainScroll/MainVBox/PowerSection/LabelPower
-@onready var _active_party_row: HBoxContainer = $MainScroll/MainVBox/ActivePartyScroll/ActivePartyRow
+@onready var _active_party_row: HBoxContainer = $MainScroll/MainVBox/ActivePartyHost/ActivePartyRow
 @onready var _roster_grid: GridContainer = $MainScroll/MainVBox/RosterGrid
 @onready var _label_status: Label = $MainScroll/MainVBox/LabelStatus
 @onready var _formation_overlay: CanvasLayer = $FormationOverlay
@@ -318,6 +318,14 @@ func _rebuild_active_party_row() -> void:
 	for slot_index in FORMATION_SLOT_COUNT:
 		_active_party_row.add_child(_make_active_party_card(slot_index))
 	_roster_ui_rebuilding = false
+	_reapply_scroll_touch()
+
+
+func _reapply_scroll_touch() -> void:
+	## BottomNav の初回 enable 後にカードが再生成されるため、rebuild のたびに再 PASS 化。
+	## 内側に別 Scroll を置かない（ActivePartyHost は非 Scroll）。nest は false で固定。
+	if _main_scroll != null:
+		ScrollTouchHelper.enable(_main_scroll, false)
 
 
 func _update_currency() -> void:
@@ -421,6 +429,7 @@ func _refresh_all() -> void:
 	_roster_ui_rebuilding = false
 	_refresh_formation_grid()
 	_update_save_button()
+	_reapply_scroll_touch()
 
 func _make_active_party_card(slot_index: int) -> Control:
 	var member: Resource = _formation_slots[slot_index]
@@ -428,8 +437,8 @@ func _make_active_party_card(slot_index: int) -> Control:
 	var panel := PanelContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.size_flags_stretch_ratio = 1.0
+	## STOP のままだと縦ドラッグを奪う。ScrollTouch が PASS 化し、タップは gui_input で受ける。
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	panel.set_meta(&"_cf_keep_mouse_stop", true)
 	panel.clip_contents = true
 	panel.add_theme_stylebox_override(
 		"panel",
@@ -590,6 +599,7 @@ func _rebuild_roster_grid() -> void:
 	_clear_children_immediate(_roster_grid)
 	_populate_roster_grid()
 	_roster_ui_rebuilding = false
+	_reapply_scroll_touch()
 
 
 func _populate_roster_grid() -> void:
@@ -722,13 +732,7 @@ func _make_roster_grid_card(adv: Resource) -> Control:
 	bottom_bar.custom_minimum_size = Vector2(0, 24)
 	bottom_bar.size_flags_vertical = Control.SIZE_SHRINK_END
 	bottom_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var bar_style := StyleBoxFlat.new()
-	bar_style.bg_color = Color(0.04, 0.03, 0.02, 0.82)
-	bar_style.content_margin_left = 4
-	bar_style.content_margin_top = 1
-	bar_style.content_margin_right = 4
-	bar_style.content_margin_bottom = 1
-	bottom_bar.add_theme_stylebox_override("panel", bar_style)
+	bottom_bar.add_theme_stylebox_override("panel", RosterUiHelper.roster_bottom_bar_style())
 	body.add_child(bottom_bar)
 	var info_row := HBoxContainer.new()
 	info_row.add_theme_constant_override("separation", 4)

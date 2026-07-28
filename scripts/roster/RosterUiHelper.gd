@@ -36,6 +36,13 @@ const CARD_BORDER_W: int = 2
 ## CHR アイコン原寸（~1254）を絶対に超えない描画辺キャップ。
 const PORTRAIT_PX_HARD_MAX: int = 180
 
+## StyleBox は mutate しない前提で共有キャッシュ（カード毎 new は編成画面の重さの主因）。
+static var _cached_card_idle: StyleBoxFlat
+static var _cached_card_active: StyleBoxFlat
+static var _cached_card_leader: StyleBoxFlat
+static var _cached_pick: StyleBoxFlat
+static var _cached_roster_bottom_bar: StyleBoxFlat
+
 static func leader_skill_display(member: Resource) -> Dictionary:
 	if member == null:
 		return {"name": "—", "description": "リーダーを編成してください。"}
@@ -276,16 +283,25 @@ static func compute_member_stats(member: Resource, _party_index: int = -1) -> Di
 	}
 
 static func card_panel_style(active: bool, leader: bool) -> StyleBox:
-	## CombatUiFrames のキャッシュを直接 mutate すると全カードの色が汚染されるため複製する。
 	## 枠は StyleBoxFlat で明示（薄い 9-slice が背景に沈んで「消えた」ように見える対策）。
+	## 返却後に mutate しないこと（共有キャッシュ）。
+	if leader:
+		if _cached_card_leader == null:
+			_cached_card_leader = _make_card_panel_style(Color(0.95, 0.82, 0.38, 1.0))
+		return _cached_card_leader
+	if active:
+		if _cached_card_active == null:
+			_cached_card_active = _make_card_panel_style(Color(0.86, 0.74, 0.45, 0.98))
+		return _cached_card_active
+	if _cached_card_idle == null:
+		_cached_card_idle = _make_card_panel_style(Color(0.55, 0.48, 0.36, 0.92))
+	return _cached_card_idle
+
+
+static func _make_card_panel_style(border: Color) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.08, 0.07, 0.05, 0.94)
-	if leader:
-		style.border_color = Color(0.95, 0.82, 0.38, 1.0)
-	elif active:
-		style.border_color = Color(0.86, 0.74, 0.45, 0.98)
-	else:
-		style.border_color = Color(0.55, 0.48, 0.36, 0.92)
+	style.border_color = border
 	## 選択／リーダーで border・margin を変えるとセル最小サイズが膨らみ「拡大」に見える。幅は常に同一。
 	style.set_border_width_all(CARD_BORDER_W)
 	style.set_corner_radius_all(10)
@@ -298,16 +314,22 @@ static func card_panel_style(active: bool, leader: bool) -> StyleBox:
 
 ## 入れ替え選択ハイライト。card_panel_style と margin／border 幅を一致させ、選択でセルが膨らまないようにする。
 static func pick_panel_style() -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.08, 0.07, 0.05, 0.94)
-	style.border_color = Color(0.95, 0.78, 0.35)
-	style.set_border_width_all(CARD_BORDER_W)
-	style.set_corner_radius_all(10)
-	style.content_margin_left = CARD_CONTENT_MARGIN
-	style.content_margin_top = CARD_CONTENT_MARGIN
-	style.content_margin_right = CARD_CONTENT_MARGIN
-	style.content_margin_bottom = CARD_CONTENT_MARGIN
-	return style
+	if _cached_pick == null:
+		_cached_pick = _make_card_panel_style(Color(0.95, 0.78, 0.35))
+	return _cached_pick
+
+
+## 一覧カード下段の暗い帯（セル毎 new しない）。
+static func roster_bottom_bar_style() -> StyleBoxFlat:
+	if _cached_roster_bottom_bar == null:
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color(0.04, 0.03, 0.02, 0.82)
+		style.content_margin_left = 4
+		style.content_margin_top = 1
+		style.content_margin_right = 4
+		style.content_margin_bottom = 1
+		_cached_roster_bottom_bar = style
+	return _cached_roster_bottom_bar
 
 
 ## CHR 肖像（1254px 級）を固定枠に拘束する。選択・再レイアウトでも原寸へ逃げない。
