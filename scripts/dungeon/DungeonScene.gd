@@ -3186,6 +3186,7 @@ func _enter_current_room() -> void:
 			_passive_once_fired.clear()
 			_passive_counter_depth = 0
 			_passive_skill_echo_depth = 0
+			_basic_only_actions_left.clear()
 			_AbyssWeaponEffects.reset_combat()
 			_clear_party_links()
 			_set_paused(false)
@@ -4299,6 +4300,8 @@ var _passive_next_attack_mult: Dictionary = {}
 var _passive_once_fired: Dictionary = {}
 var _passive_counter_depth: int = 0
 var _passive_skill_echo_depth: int = 0
+## 斥候の片眼: 残り「通常攻撃のみ」行動数（member_idx → count）。
+var _basic_only_actions_left: Dictionary = {}
 # パーティ連携連鎖（P3-D115）。
 var _taunt_link_source: int = -1
 var _taunt_link_charges: int = 0
@@ -4650,7 +4653,7 @@ func _execute_member_aoe_damage_skill(
 		CRITICAL_MULTIPLIER,
 		run_mult,
 		cd_key,
-		_EquipmentSetBonuses.skill_cd_mult(member_idx)
+		(_EquipmentSetBonuses.skill_cd_mult(member_idx) * CombatPassives.relic_skill_cd_mult(member_idx))
 	)
 	if not result.get("executed", false):
 		return ""
@@ -4663,6 +4666,7 @@ func _execute_member_aoe_damage_skill(
 	var total_dmg: int = 0
 	for slot_v in living:
 		var slot: int = int(slot_v)
+		_apply_relic_pre_hit_status(member_idx, slot)
 		var skill_dmg: int = maxi(
 			1,
 			int(float(result["damage"]) * $CombatController.get_member_outgoing_damage_multiplier(
@@ -4732,13 +4736,14 @@ func _execute_member_skill(
 		CRITICAL_MULTIPLIER,
 		run_mult,
 		cd_key,
-		_EquipmentSetBonuses.skill_cd_mult(member_idx)
+		(_EquipmentSetBonuses.skill_cd_mult(member_idx) * CombatPassives.relic_skill_cd_mult(member_idx))
 	)
 	if not result.get("executed", false):
 		return ""
 	var attack_element: String = _resolve_skill_element(skill_data, member_idx)
 	var action_range: String = CombatRange.resolve_for_action(member_idx, skill_data)
 	var form_tag: String = GameState.formation_range_log_tag(member_idx, action_range)
+	_apply_relic_pre_hit_status(member_idx, target_slot)
 	var skill_dmg: int = maxi(
 		1,
 		int(float(result["damage"]) * $CombatController.get_member_outgoing_damage_multiplier(
@@ -4854,7 +4859,7 @@ func _execute_member_heal(
 		return ""
 	var cd_key: String = _member_skill_cd_key(member_idx, skill_data)
 	var result: Dictionary = _skill_executor.execute_support_skill(
-		skill_data, cd_key, _EquipmentSetBonuses.skill_cd_mult(member_idx)
+		skill_data, cd_key, (_EquipmentSetBonuses.skill_cd_mult(member_idx) * CombatPassives.relic_skill_cd_mult(member_idx))
 	)
 	if not result.get("executed", false):
 		return ""
@@ -4911,7 +4916,7 @@ func _execute_member_buff(
 		return ""
 	var cd_key: String = _member_skill_cd_key(member_idx, skill_data)
 	var result: Dictionary = _skill_executor.execute_support_skill(
-		skill_data, cd_key, _EquipmentSetBonuses.skill_cd_mult(member_idx)
+		skill_data, cd_key, (_EquipmentSetBonuses.skill_cd_mult(member_idx) * CombatPassives.relic_skill_cd_mult(member_idx))
 	)
 	if not result.get("executed", false):
 		return ""
@@ -5040,7 +5045,7 @@ func _try_cast_player_skill() -> String:
 		CRITICAL_MULTIPLIER,
 		run_mult,
 		"",
-		_EquipmentSetBonuses.skill_cd_mult(member_idx)
+		(_EquipmentSetBonuses.skill_cd_mult(member_idx) * CombatPassives.relic_skill_cd_mult(member_idx))
 	)
 	if not result.get("executed", false):
 		return ""
@@ -5048,6 +5053,7 @@ func _try_cast_player_skill() -> String:
 	var action_range: String = CombatRange.resolve_for_action(member_idx, skill_data)
 	var form_tag: String = GameState.formation_range_log_tag(member_idx, action_range)
 	var player_target: int = $CombatController.get_member_target_slot(member_idx)
+	_apply_relic_pre_hit_status(member_idx, player_target)
 	var skill_dmg: int = maxi(
 		1,
 		int(float(result["damage"]) * $CombatController.get_member_outgoing_damage_multiplier(
@@ -5132,7 +5138,7 @@ func _try_cast_secondary_skill(primary_skill_id: String) -> String:
 		CRITICAL_MULTIPLIER,
 		run_mult,
 		"",
-		_EquipmentSetBonuses.skill_cd_mult(member_idx)
+		(_EquipmentSetBonuses.skill_cd_mult(member_idx) * CombatPassives.relic_skill_cd_mult(member_idx))
 	)
 	if not result.get("executed", false):
 		return ""
@@ -5140,6 +5146,7 @@ func _try_cast_secondary_skill(primary_skill_id: String) -> String:
 	var action_range: String = CombatRange.resolve_for_action(member_idx, skill_data)
 	var form_tag: String = GameState.formation_range_log_tag(member_idx, action_range)
 	var sec_target: int = $CombatController.get_member_target_slot(member_idx)
+	_apply_relic_pre_hit_status(member_idx, sec_target)
 	var skill_dmg: int = maxi(
 		1,
 		int(float(result["damage"]) * $CombatController.get_member_outgoing_damage_multiplier(
@@ -6125,10 +6132,25 @@ func _try_apply_enemy_hit_status(target_idx: int, attacker_slot: int = -1) -> vo
 	_append_log("[%s] %s に付与" % [label, member_name])
 
 func _calc_damage(member_index: int = -1, target_slot: int = -1) -> Dictionary:
+	if member_index >= 0 and target_slot >= 0:
+		_apply_relic_pre_hit_status(member_index, target_slot)
 	return DamageCalculator.member_attack_damage(
 		$CombatController, $DungeonController.current_dungeon_data,
 		$DungeonController.run_damage_multiplier, member_index, target_slot
 	)
+
+
+func _apply_relic_pre_hit_status(member_idx: int, target_slot: int) -> void:
+	var sid: String = CombatPassives.relic_pre_hit_status_id(member_idx)
+	if sid.is_empty() or target_slot < 0:
+		return
+	if not $CombatController.is_enemy_slot_alive(target_slot):
+		return
+	if $CombatController.get_enemy_status_stacks_at(target_slot, sid) > 0:
+		return
+	if $CombatController.apply_status_to_enemy_slot(target_slot, sid, 1, 0):
+		_on_enemy_status_applied(target_slot, sid)
+		_update_status_icons()
 
 func _calc_enemy_damage_to_member(
 	target_index: int,
@@ -6482,6 +6504,12 @@ func _do_member_turn(member_idx: int) -> void:
 	_fire_member_passives(member_idx, "on_action_start")
 	var member: Resource = GameState.get_combatant(member_idx)
 	$CombatController.resolve_member_target(member_idx, CombatGambit.target_from_member(member))
+	## 斥候の片眼: 最初のN行動は通常攻撃のみ。
+	var basic_left: int = int(_basic_only_actions_left.get(member_idx, 0))
+	if basic_left > 0:
+		_basic_only_actions_left[member_idx] = basic_left - 1
+		_do_member_basic_attack(member_idx)
+		return
 	var ctx: Dictionary = _build_tactics_context(member_idx)
 	var any_condition_met: bool = false
 	for rule: Dictionary in CombatGambit.plan_from_member(member):
@@ -6976,6 +7004,10 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 		return
 	if bool(p.get("once_per_combat", false)) and bool(_passive_once_fired.get(key, false)):
 		return
+	## 前列限定トリガー（王盾など）。
+	if str(p.get("passive_condition", "")) == "front_row_only":
+		if GameState.is_member_back_row(member_idx):
+			return
 	# 条件
 	if str(p.get("condition", "always")) == "self_hp_below":
 		var ratio: float = 1.0
@@ -7126,7 +7158,51 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 			if counter_slot < 0 or not $CombatController.is_enemy_slot_alive(counter_slot):
 				counter_slot = $CombatController.get_member_target_slot(member_idx)
 			applied = _execute_counter_attack(member_idx, counter_slot, str(p.get("display_name", "")))
-		"grant_next_attack_mult":
+			if applied:
+				var ct_pen: float = float(p.get("counter_ct_penalty_fraction", 0.0))
+				if ct_pen > 0.0:
+					$CombatController.penalize_member_ct(member_idx, ct_pen)
+		"taunt_and_guard":
+			if $CombatController.apply_status("party_%d" % member_idx, "guard", 1, 0):
+				_on_party_status_applied(member_idx, "guard")
+				applied = true
+			$CombatController.apply_taunt(member_idx)
+			applied = true
+			_update_status_icons()
+		"party_rally":
+			var sid: String = str(p.get("status_id", "empower"))
+			var charge_flat: float = float(p.get("ultimate_charge_flat", 0.0))
+			for i: int in GameState.party_members.size():
+				if not $CombatController.is_member_alive(i):
+					continue
+				if not sid.is_empty() and $CombatController.apply_status("party_%d" % i, sid, 1, 0):
+					_on_party_status_applied(i, sid)
+					applied = true
+				if charge_flat > 0.0:
+					$CombatController.add_ultimate_charge(i, charge_flat)
+					applied = true
+			_update_status_icons()
+		"opening_strike":
+			var living: Array[int] = $CombatController.get_living_enemy_indices()
+			if living.is_empty():
+				return
+			var slot: int = living[0]
+			var power: float = float(p.get("opening_damage_atk_mult", 2.0))
+			var base: Dictionary = _calc_damage(member_idx, slot)
+			var dmg: int = maxi(1, int(round(float(base.get("damage", 1)) * power)))
+			$CombatController.apply_damage_to_enemy_slot(slot, dmg)
+			$CombatController.add_threat(member_idx, float(dmg) * CombatController.THREAT_DAMAGE_K)
+			GameState.record_run_damage(member_idx, dmg, "relic_opening_strike", "開幕狙撃")
+			_spawn_hit_vfx(_enemy_slot_pos(slot))
+			_update_hp_bars()
+			_check_boss_phase_transition(slot)
+			if $CombatController.get_enemy_hp_at(slot) <= 0:
+				_on_enemy_slot_killed(slot)
+			var lock_n: int = int(p.get("basic_only_actions", 0))
+			if lock_n > 0:
+				_basic_only_actions_left[member_idx] = lock_n
+			applied = true
+			_append_log("[レリック] 開幕狙撃 %d ダメージ" % dmg)		"grant_next_attack_mult":
 			var mult: float = float(p.get("mult", 2.0))
 			var target_kind: String = str(p.get("target", "self"))
 			if target_kind == "party_alive":
@@ -8823,7 +8899,7 @@ func _party_card_skill_cd_info(member_idx: int, skill_slot: int) -> Dictionary:
 	if skill_data == null or float(skill_data.cooldown) <= 0.0:
 		return {"cd_key": "", "max_cd": 0.0, "ready": true, "has_skill": true}
 	var cd_key: String = _member_skill_cd_key(member_idx, skill_data)
-	var max_cd: float = float(skill_data.cooldown) * _EquipmentSetBonuses.skill_cd_mult(member_idx)
+	var max_cd: float = float(skill_data.cooldown) * (_EquipmentSetBonuses.skill_cd_mult(member_idx) * CombatPassives.relic_skill_cd_mult(member_idx))
 	var rem: float = _skill_executor.get_cooldown_remaining(cd_key)
 	return {
 		"cd_key": cd_key,

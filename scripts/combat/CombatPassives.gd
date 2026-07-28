@@ -398,71 +398,81 @@ const _DEFS: Dictionary = {
 		"once_per_combat": true,
 		"cooldown": 0.0,
 	},
-	# ---- レリック（解放型パッシブ・P3-RELIC-PASSIVE） ----
+	# ---- レリック（P3-UX-RELIC-TACTICS-B001・尖鋭案B） ----
 	"relic_war_banner": {
 		"display_name": "王国軍旗",
 		"category": "relic",
-		"description": "与ダメージ +10%（前列のみ）",
-		"outgoing_mult": 1.10,
-		"passive_condition": "front_row_only",
+		"description": "撃破時、味方全体に鼓舞。自身の与ダメ -15%（指揮役）",
+		"outgoing_mult": 0.85,
+		"trigger": "on_kill",
+		"effect": "apply_status",
+		"status_id": "empower",
+		"target": "party",
+		"cooldown": 0.0,
 	},
 	"relic_aegis_shard": {
 		"display_name": "王盾の欠片",
 		"category": "relic",
-		"description": "被ダメージ -10%",
-		"incoming_mult": 0.90,
+		"description": "前列で被弾時、自身に防御し敵の注目を集める",
+		"trigger": "on_hit_taken",
+		"effect": "taunt_and_guard",
+		"passive_condition": "front_row_only",
+		"cooldown": 0.0,
 	},
 	"relic_old_hourglass": {
 		"display_name": "古い砂時計",
 		"category": "relic",
-		"description": "行動が10%早くなる",
-		"speed_mult": 1.10,
+		"description": "必殺チャージ速度 ×2。スキル再使用が 30% 遅くなる",
+		"ultimate_charge_dealt_mult": 2.0,
+		"skill_cd_mult": 1.30,
 	},
 	"relic_berserker_charm": {
 		"display_name": "狂戦士の護符",
 		"category": "relic",
-		"description": "与ダメ +20% / 被ダメ +15%",
-		"outgoing_mult": 1.20,
-		"incoming_mult": 1.15,
+		"description": "HPが低いほど与ダメ上昇（半分で+40%、1/4で+80%）。受けた回復半減",
+		"outgoing_hp_tiers": [
+			{"hp_below": 0.50, "outgoing_mult": 1.40},
+			{"hp_below": 0.25, "outgoing_mult": 1.80},
+		],
+		"heal_received_mult": 0.5,
 	},
 	"relic_hunter_sigil": {
 		"display_name": "狩人の印",
 		"category": "relic",
-		"description": "4回与ダメごとに追撃（30%）",
-		"trigger": "on_attack",
-		"every_n": 4,
-		"effect": "bonus_damage",
-		"bonus_fraction": 0.30,
-		"cooldown": 0.0,
+		"description": "標的の敵へ与ダメ +50%。それ以外 -25%。攻撃前に標的を付与",
+		"pre_hit_status_id": "mark",
+		"outgoing_vs_status_mult": 1.50,
+		"outgoing_vs_status_ids": ["mark"],
+		"outgoing_without_status_mult": 0.75,
 	},
 	"relic_reactive_aegis": {
 		"display_name": "反応の盾片",
 		"category": "relic",
-		"description": "被弾時 HP50%未満で防御付与",
+		"description": "被弾時に反撃する。反撃後、次の行動が遅れる",
 		"trigger": "on_hit_taken",
-		"condition": "self_hp_below",
-		"value": 0.5,
-		"effect": "apply_status",
-		"status_id": "guard",
-		"target": "self",
-		"cooldown": 8.0,
+		"effect": "counter_attack",
+		"counter_ct_penalty_fraction": 0.35,
+		"cooldown": 0.8,
 	},
 	"relic_lament_ring": {
 		"display_name": "弔鐘の指輪",
 		"category": "relic",
-		"description": "味方戦闘不能時に自身を鼓舞",
+		"description": "味方戦闘不能時、残った味方の必殺ゲージを回復し鼓舞する",
 		"trigger": "on_ally_death",
-		"effect": "apply_status",
+		"effect": "party_rally",
 		"status_id": "empower",
-		"target": "self",
+		"ultimate_charge_flat": 40.0,
 		"cooldown": 0.0,
 	},
 	"relic_scout_lens": {
 		"display_name": "斥候の片眼",
 		"category": "relic",
-		"description": "行動速度 +5% / 与ダメ +5%",
-		"outgoing_mult": 1.05,
-		"speed_mult": 1.05,
+		"description": "戦闘開始時に敵1体へ大ダメージ。最初の2行動は通常攻撃のみ",
+		"trigger": "on_combat_start",
+		"effect": "opening_strike",
+		"opening_damage_atk_mult": 2.2,
+		"basic_only_actions": 2,
+		"once_per_combat": true,
 	},
 	"eq_wpn_consecrated_maul": {
 		"display_name": "祝槌の癒し",
@@ -1168,6 +1178,9 @@ static func outgoing_vs_status_mult_for_member(member_index: int, present_status
 			continue
 		if not raw_def.has("outgoing_vs_status_mult"):
 			continue
+		## 狩人など without 分岐付きは relic_mark_focus_outgoing_mult 側で処理。
+		if raw_def.has("outgoing_without_status_mult"):
+			continue
 		var filter_ids: Array = raw_def.get("outgoing_vs_status_ids", [])
 		if not filter_ids.is_empty():
 			var matched: bool = false
@@ -1185,9 +1198,85 @@ static func weapon_ultimate_charge_dealt_mult(member_index: int) -> float:
 	var def: Dictionary = weapon_passive_def_for_member(
 		GameState.party_members[member_index] if member_index >= 0 and member_index < GameState.party_members.size() else null
 	)
-	if def.is_empty() or not def.has("ultimate_charge_dealt_mult"):
+	var mult: float = 1.0
+	if not def.is_empty() and def.has("ultimate_charge_dealt_mult"):
+		mult *= maxf(0.0, float(def["ultimate_charge_dealt_mult"]))
+	mult *= equipped_relic_float(member_index, "ultimate_charge_dealt_mult", 1.0)
+	return mult
+
+
+## 装備中レリック定義（無ければ空）。
+static func equipped_relic_def(member_index: int) -> Dictionary:
+	if member_index < 0 or member_index >= GameState.party_members.size():
+		return {}
+	var member: Resource = GameState.party_members[member_index]
+	var relic_id: String = GameState.get_equipped_relic_passive_id(member)
+	if relic_id.is_empty():
+		return {}
+	return get_def(relic_id)
+
+
+static func equipped_relic_float(member_index: int, key: String, default_value: float = 1.0) -> float:
+	var def: Dictionary = equipped_relic_def(member_index)
+	if def.is_empty() or not def.has(key):
+		return default_value
+	return float(def[key])
+
+
+## レリックのスキルCD倍率（>1で遅延）。セットは呼び出し側で乗算。
+static func relic_skill_cd_mult(member_index: int) -> float:
+	return maxf(0.05, equipped_relic_float(member_index, "skill_cd_mult", 1.0))
+
+
+## HP帯による与ダメ倍率（狂戦士）。hp_below を満たす帯のうち最大倍率。
+static func relic_outgoing_hp_tier_mult(member_index: int, hp_ratio: float) -> float:
+	var def: Dictionary = equipped_relic_def(member_index)
+	if def.is_empty():
 		return 1.0
-	return maxf(0.0, float(def["ultimate_charge_dealt_mult"]))
+	var tiers: Array = def.get("outgoing_hp_tiers", [])
+	if tiers.is_empty():
+		return 1.0
+	var best: float = 1.0
+	for raw: Variant in tiers:
+		if raw is not Dictionary:
+			continue
+		var threshold: float = float(raw.get("hp_below", 0.0))
+		if hp_ratio < threshold:
+			best = maxf(best, float(raw.get("outgoing_mult", 1.0)))
+	return best
+
+
+## 標的フォーカス（狩人）。mark あり=vs／なし=without。
+static func relic_mark_focus_outgoing_mult(member_index: int, present_status_ids: Array) -> float:
+	var def: Dictionary = equipped_relic_def(member_index)
+	if def.is_empty():
+		return 1.0
+	if not def.has("outgoing_without_status_mult") and not def.has("outgoing_vs_status_mult"):
+		return 1.0
+	var filter_ids: Array = def.get("outgoing_vs_status_ids", [])
+	var has_focus: bool = false
+	if filter_ids.is_empty():
+		has_focus = not present_status_ids.is_empty()
+	else:
+		for sid: Variant in filter_ids:
+			if present_status_ids.has(str(sid)):
+				has_focus = true
+				break
+	if has_focus and def.has("outgoing_vs_status_mult"):
+		return float(def["outgoing_vs_status_mult"])
+	if def.has("outgoing_without_status_mult"):
+		return float(def["outgoing_without_status_mult"])
+	return 1.0
+
+
+static func relic_heal_received_mult(member_index: int) -> float:
+	return maxf(0.0, equipped_relic_float(member_index, "heal_received_mult", 1.0))
+
+
+static func relic_pre_hit_status_id(member_index: int) -> String:
+	var def: Dictionary = equipped_relic_def(member_index)
+	return str(def.get("pre_hit_status_id", ""))
+
 
 static func on_kill_refund_fraction(member_index: int) -> float:
 	var def: Dictionary = weapon_passive_def_for_member(

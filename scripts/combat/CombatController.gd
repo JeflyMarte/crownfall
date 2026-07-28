@@ -624,6 +624,19 @@ func refund_member_ct(member_index: int, fraction: float) -> void:
 	var full: float = get_unit_action_ct("party", member_index)
 	unit_ct[key] = full * (1.0 - frac)
 
+
+## 行動待ちを延ばす（反撃ペナルティ等）。fraction=1 で満タン待ちに近い。
+func penalize_member_ct(member_index: int, fraction: float) -> void:
+	var frac: float = clampf(fraction, 0.0, 1.0)
+	if frac <= 0.0:
+		return
+	var key: String = _ct_unit_key("party", member_index)
+	if not unit_ct.has(key):
+		return
+	var full: float = get_unit_action_ct("party", member_index)
+	var cur: float = float(unit_ct[key])
+	unit_ct[key] = minf(full, cur + full * frac)
+
 func is_enemy_slot_defeated(slot: int) -> bool:
 	return is_in_combat and not is_enemy_slot_alive(slot)
 
@@ -643,8 +656,14 @@ func heal_member(index: int, amount: int) -> int:
 		return 0
 	if party_combat_hp[index] <= 0:
 		return 0
+	var adjusted: int = amount
+	var heal_mult: float = CombatPassives.relic_heal_received_mult(index)
+	if not is_equal_approx(heal_mult, 1.0):
+		adjusted = int(round(float(amount) * heal_mult))
+	if adjusted <= 0:
+		return 0
 	var before: int = party_combat_hp[index]
-	party_combat_hp[index] = min(before + amount, party_max_hp[index])
+	party_combat_hp[index] = min(before + adjusted, party_max_hp[index])
 	return party_combat_hp[index] - before
 
 ## 最も負傷している生存メンバーのindexを返す（負傷者なしは -1）。
@@ -899,6 +918,7 @@ func get_member_outgoing_damage_multiplier(
 	if member_index < party_max_hp.size() and party_max_hp[member_index] > 0:
 		hp_ratio = float(party_combat_hp[member_index]) / float(party_max_hp[member_index])
 	mult *= float(CombatPassives.character_stat_modifiers_for_member(member_index, hp_ratio).get("outgoing_mult", 1.0))
+	mult *= CombatPassives.relic_outgoing_hp_tier_mult(member_index, hp_ratio)
 	mult *= CombatPassives.party_outgoing_mult()
 	if GameState.is_pet_combatant(member_index) and is_member_alive(member_index):
 		mult *= CombatPassives.pet_outgoing_mult_from_party()
@@ -916,6 +936,9 @@ func get_member_outgoing_damage_multiplier(
 		for status_id: String in DEBUFF_STATUS_IDS:
 			if get_enemy_status_stacks_at(target_slot, status_id) > 0:
 				present_statuses.append(status_id)
+		var mark_focus: float = CombatPassives.relic_mark_focus_outgoing_mult(member_index, present_statuses)
+		if not is_equal_approx(mark_focus, 1.0):
+			mult *= mark_focus
 		if not present_statuses.is_empty():
 			mult *= CombatPassives.outgoing_vs_status_mult_for_member(member_index, present_statuses)
 	var boss_mult: float = CombatPassives.weapon_outgoing_vs_boss_mult(member_index)
