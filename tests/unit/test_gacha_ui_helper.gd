@@ -55,7 +55,7 @@ func test_preview_combat_stats_positive() -> void:
 
 
 func test_feature_line_uses_origin_note_above_passive() -> void:
-	## P3-GACHA-FEATURE-BLURB-001: 特徴=origin_note、固有=パッシブ（重複フォールバックなし）。
+	## P3-GACHA-FEATURE-TEASE-001: 特徴=origin_note（煽り）、固有=パッシブ。
 	var helpers: Array = GachaUiHelper.featured_helpers()
 	if helpers.is_empty():
 		return
@@ -75,18 +75,40 @@ func test_build_featured_shell_has_feature_label() -> void:
 	var shell: Dictionary = GachaUiHelper.build_featured_shell(host)
 	assert_true(shell.has("feature"))
 	assert_true(shell.has("unique"))
+	assert_true(shell.has("blurb_wrap"))
 	var feature_lbl: Label = shell.get("feature") as Label
 	var unique_lbl: Label = shell.get("unique") as Label
+	var blurb_wrap: Control = shell.get("blurb_wrap") as Control
+	var stats_wrap: Control = shell.get("stats_wrap") as Control
 	assert_not_null(feature_lbl)
 	assert_not_null(unique_lbl)
+	assert_not_null(blurb_wrap)
+	assert_not_null(stats_wrap)
+	## 煽りは左パネル、パッシブは右ステ内。
+	assert_eq(feature_lbl.get_parent(), blurb_wrap)
+	assert_eq(unique_lbl.get_parent().name, "StatsCol")
+	assert_lt(blurb_wrap.offset_left, 40.0)
+	assert_gt(stats_wrap.offset_left, -400.0)
 	var helpers: Array = GachaUiHelper.featured_helpers()
 	if helpers.is_empty():
 		return
 	GachaUiHelper.apply_featured_helper(shell, helpers[0])
 	assert_eq(feature_lbl.text, GachaUiHelper.feature_line_for_helper(helpers[0]))
 	assert_true(feature_lbl.visible)
-	## StatsCol 内で特徴が固有より上。
-	assert_lt(feature_lbl.get_index(), unique_lbl.get_index())
+	assert_true(blurb_wrap.visible)
+
+
+func test_feature_blurbs_end_with_exclamation() -> void:
+	for helper in GachaUiHelper.sorted_helpers():
+		if helper == null:
+			continue
+		var note: String = str(helper.origin_note).strip_edges()
+		if note.is_empty():
+			continue
+		assert_true(
+			note.ends_with("！") or note.ends_with("!"),
+			"%s origin_note should be tease-style" % str(helper.id)
+		)
 
 
 func test_make_lineup_row_has_name() -> void:

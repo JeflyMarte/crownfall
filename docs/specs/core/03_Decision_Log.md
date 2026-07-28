@@ -5361,3 +5361,13 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 | P3-UI-COMBAT-POWER-001-2 | **適用** — 編成ヘッダ／調査速度比例／展示室で同一式 | 表示の食い違い防止 |
 | P3-UI-COMBAT-POWER-001-3 | **除外** — スキル・属性・経済 Affix・付与率 | 状況依存／非戦闘を混ぜない |
 | P3-UI-COMBAT-POWER-001-4 | **推奨戦力** — ダンジョン選択の式は据置 | 必要なら後続で再キャリブ |
+
+---
+
+## 招待状 Featured 煽り文の左配置（2026-07-28 — P3-GACHA-FEATURE-TEASE-001）
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-GACHA-FEATURE-TEASE-001-1 | **左** — `origin_note`（煽り文）のみをキャラ左へ | オーナー指定。ステ／★／パッシブは右据置 |
+| P3-GACHA-FEATURE-TEASE-001-2 | **文面** — 本文のみ・！止めの煽り調へ改稿 | 例「稀に行動しないが最強クラスのステータスを誇る剣士！」 |
+| P3-GACHA-FEATURE-TEASE-001-3 | **上書き** — P3-GACHA-FEATURE-BLURB-001 の右ステ内配置 | 役割は特徴行のまま、位置のみ変更 |

@@ -53,13 +53,20 @@ func test_starter_jobs_have_one_line_blurb() -> void:
 
 
 func test_gacha_origin_notes_end_with_period() -> void:
+	## P3-GACHA-FEATURE-TEASE-001: Featured 煽り文は！止め（。も許容）。
 	for helper in DataRegistry.get_all_gacha_helper_data():
 		if helper == null:
 			continue
 		var note: String = str(helper.origin_note).strip_edges()
 		if note.is_empty():
 			continue
-		assert_true(note.ends_with("。"), "%s origin_note" % str(helper.id))
+		var ok: bool = (
+			note.ends_with("。")
+			or note.ends_with("！")
+			or note.ends_with("!")
+			or note.ends_with("？")
+		)
+		assert_true(ok, "%s origin_note" % str(helper.id))
 
 
 func test_battle_log_font_is_readable_body_small() -> void:
