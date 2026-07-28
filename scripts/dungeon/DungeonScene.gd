@@ -822,6 +822,8 @@ const SKILL_LABEL_STACK_GAP: float = 34.0
 const SKILL_NAME_FONT_SIZE: int = 28
 ## パッシブ／レリック／武器パッシブ名ポップ（通常スキルより小さく）。
 const PASSIVE_NAME_FONT_SIZE: int = 18
+## 状態付与「〇〇を付与！」テロップ（ダメージ数字より小さく、パッシブ名よりやや大きめ）。
+const STATUS_APPLY_TELOP_FONT_SIZE: int = 22
 var _chr_hp_bars: Array[ProgressBar] = []
 var _party_card_hp_bars: Array[ProgressBar] = []
 var _party_card_hp_labels: Array[Label] = []
@@ -3095,7 +3097,7 @@ func _flash_sprite_status_apply(
 	tw.tween_property(sprite, "modulate", settle, 0.24)
 
 func _spawn_status_apply_name(world_pos: Vector2, status_id: String, is_buff: bool) -> void:
-	## P3-UX-STATUS-TELOP-001 + P3-UX-COMBAT-VFX-001: 大きめ「〇〇を付与！」。シェイクなし。
+	## P3-UX-STATUS-TELOP-001 + P3-UX-COMBAT-VFX-001: 「〇〇を付与！」。シェイクなし。
 	var effect: Resource = DataRegistry.get_status_effect(status_id)
 	var label_text: String = effect.display_name if effect != null else status_id
 	var text: String = CombatVfxManagerScript.status_apply_telop_text(label_text)
@@ -3103,7 +3105,7 @@ func _spawn_status_apply_name(world_pos: Vector2, status_id: String, is_buff: bo
 		return
 	var color: Color = CombatVfxManagerScript.status_apply_telop_color(status_id)
 	## world_pos は視覚中心。少し上に出して頭上感を出す。
-	## scale は 1.0 固定（>1.0 だとクリティカル扱いになる）。font は通常ダメより大きめ。
+	## scale は 1.0 固定（>1.0 だとクリティカル扱いになる）。font はダメ数字より小さく。
 	_spawn_damage_number(
 		text,
 		world_pos + Vector2(0.0, -32.0),
@@ -3111,7 +3113,7 @@ func _spawn_status_apply_name(world_pos: Vector2, status_id: String, is_buff: bo
 		1.0,
 		0,
 		true,
-		48
+		STATUS_APPLY_TELOP_FONT_SIZE
 	)
 
 func _get_room_type_name() -> String:
