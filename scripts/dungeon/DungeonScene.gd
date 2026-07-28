@@ -681,6 +681,7 @@ const ELEMENT_VFX_PATH: Dictionary = {
 const SkillExecutorScript: Script = preload("res://scripts/combat/SkillExecutor.gd")
 const CombatVfxManagerScript: Script = preload("res://scripts/combat/CombatVfxManager.gd")
 const _StatusEffectLinkHelper = preload("res://scripts/ui/StatusEffectLinkHelper.gd")
+const _SkillEffectOneLineHelper = preload("res://scripts/ui/SkillEffectOneLineHelper.gd")
 const EvolutionVisualScript: Script = preload("res://scripts/systems/EvolutionVisual.gd")
 const ElementResolverScript: Script = preload("res://scripts/combat/ElementResolver.gd")
 const AffixStatCalculatorScript: Script = preload("res://scripts/equipment/AffixStatCalculator.gd")
@@ -9453,14 +9454,17 @@ func _show_ultimate_center_telop(
 	skill_name: String,
 	element: String = "",
 	member_idx: int = -1,
-	is_heal: bool = false
+	is_heal: bool = false,
+	skill_data: Resource = null
 ) -> void:
 	_dismiss_ultimate_center_telop(0.0)
 	if skill_name.is_empty():
 		return
 	const TITLE_FONT_SIZE: int = 20
 	const NAME_FONT_SIZE: int = 44
+	const EFFECT_FONT_SIZE: int = 22
 	const FACE_PX: float = 112.0
+	var effect_line: String = _SkillEffectOneLineHelper.for_combat_ultimate(skill_data)
 	var member: Resource = GameState.get_combatant(member_idx)
 	var accent: Color = (
 		Color(0.55, 1.0, 0.78) if is_heal else ELEMENT_COLOR.get(element, ULTIMATE_GOLD)
@@ -9480,7 +9484,7 @@ func _show_ultimate_center_telop(
 	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	dim.color = Color(0.02, 0.02, 0.06, 0.0)
 	layer.add_child(dim)
-	## 横帯カットイン（フレーム無しの顔＋必殺名）
+	## 横帯カットイン（フレーム無しの顔＋必殺名＋効果1行 — P3-UX-ULTIMATE-EFFECT-001）
 	var band := Control.new()
 	band.name = "UltimateCutinBand"
 	band.anchor_left = 0.0
@@ -9489,8 +9493,10 @@ func _show_ultimate_center_telop(
 	band.anchor_bottom = 0.5
 	band.offset_left = -560.0
 	band.offset_right = 200.0
-	band.offset_top = -70.0
-	band.offset_bottom = 70.0
+	## 効果1行分だけ帯を高くする（名下に収める）
+	var band_half: float = 86.0 if not effect_line.is_empty() else 70.0
+	band.offset_top = -band_half
+	band.offset_bottom = band_half
 	band.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var band_bg := ColorRect.new()
 	band_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -9564,6 +9570,20 @@ func _show_ultimate_center_telop(
 	name_lbl.add_theme_constant_override("shadow_offset_x", 4)
 	name_lbl.add_theme_constant_override("shadow_offset_y", 5)
 	text_col.add_child(name_lbl)
+	if not effect_line.is_empty():
+		var effect_lbl := Label.new()
+		effect_lbl.name = "UltimateEffectLine"
+		effect_lbl.text = effect_line
+		effect_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		effect_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		effect_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+		effect_lbl.clip_text = false
+		effect_lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		UiTypography.apply_body(effect_lbl, EFFECT_FONT_SIZE)
+		effect_lbl.add_theme_color_override("font_color", Color(0.96, 0.92, 0.82, 0.95))
+		effect_lbl.add_theme_color_override("font_outline_color", Color(0.06, 0.02, 0.0, 0.9))
+		effect_lbl.add_theme_constant_override("outline_size", 5)
+		text_col.add_child(effect_lbl)
 	layer.add_child(band)
 	$TransitionLayer.add_child(layer)
 	_ultimate_center_telop = layer
@@ -9602,7 +9622,7 @@ func _play_ultimate_presentation_async(payload: Dictionary) -> void:
 	var is_heal: bool = kind == "heal"
 	AudioManager.play_sfx("combat_ultimate")
 	GameState.record_run_ultimate(member_idx)
-	_show_ultimate_center_telop(display_name, element, member_idx, is_heal)
+	_show_ultimate_center_telop(display_name, element, member_idx, is_heal, skill_data)
 	_pulse_member_ultimate(member_idx)
 	_shake_battlefield(6.5)
 	await get_tree().create_timer(float(t["announce"])).timeout
