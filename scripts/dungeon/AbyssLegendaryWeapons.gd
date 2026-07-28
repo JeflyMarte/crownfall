@@ -53,7 +53,8 @@ static func grant_weapon(weapon_id: String) -> Resource:
 	instance.is_appraised = true
 	GameState.inventory.append(instance)
 	GameState.note_equipment_obtained(instance)
-	GameState.mark_equipment_new(instance)
+GameState.mark_equipment_new(instance)
+	GameState.record_last_run_equipment_drop(instance, "weapon")
 	if EventBus.has_signal("weapon_obtained"):
 		EventBus.weapon_obtained.emit(weapon_id)
 	return instance

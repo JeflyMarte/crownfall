@@ -125,6 +125,9 @@ var last_run_abyss_notices: Array = []
 var last_run_weapon_dropped: String = ""
 var last_run_armor_dropped: String = ""
 var last_run_accessory_dropped: String = ""
+## 直近ランでドロップした装備全件（入手順）。{category, instance_id, item_id}
+## P3-UX-RESULT-DROP-LIST-001: 結果「入手装備」グリッド用。
+var last_run_equipment_drops: Array = []
 # 直近ランで入手（新規解放）した遺物 id（P3-D093）。Result 表示用。
 var last_run_relic_dropped: String = ""
 # 直近ランの獲得レベル { member_id: gained_levels } — Result 表示用（P3-D035）
@@ -222,6 +225,49 @@ func begin_run_material_tracking() -> void:
 	last_run_material_gains = {}
 	last_run_token_reward = 0
 	last_run_abyss_notices = []
+	## 潜行開始で前回ランの入手装備一覧もリセット。
+	clear_last_run_equipment_drops()
+
+
+func clear_last_run_equipment_drops() -> void:
+	last_run_equipment_drops = []
+
+
+## ダンジョンドロップ装備を結果一覧へ積む（入手順）。
+func record_last_run_equipment_drop(instance: Resource, category: String = "") -> void:
+	if instance == null:
+		return
+	var cat: String = category.strip_edges()
+	var item_id: String = ""
+	var instance_id: String = ""
+	if "instance_id" in instance:
+		instance_id = str(instance.instance_id).strip_edges()
+	if cat.is_empty():
+		if "weapon_id" in instance and not str(instance.weapon_id).is_empty():
+			cat = "weapon"
+		elif "armor_id" in instance and not str(instance.armor_id).is_empty():
+			cat = "armor"
+		elif "accessory_id" in instance and not str(instance.accessory_id).is_empty():
+			cat = "accessory"
+	match cat:
+		"weapon":
+			if "weapon_id" in instance:
+				item_id = str(instance.weapon_id)
+		"armor":
+			if "armor_id" in instance:
+				item_id = str(instance.armor_id)
+		"accessory":
+			if "accessory_id" in instance:
+				item_id = str(instance.accessory_id)
+		_:
+			return
+	if item_id.is_empty():
+		return
+	last_run_equipment_drops.append({
+		"category": cat,
+		"instance_id": instance_id,
+		"item_id": item_id,
+	})
 
 func _compute_run_material_gains() -> Dictionary:
 	var gains: Dictionary = {}
@@ -1516,6 +1562,7 @@ func reset_for_new_game() -> void:
 	last_run_weapon_dropped = ""
 	last_run_armor_dropped = ""
 	last_run_accessory_dropped = ""
+	last_run_equipment_drops = []
 	last_run_relic_dropped = ""
 	last_run_level_ups = {}
 	last_run_exp_snapshots = {}
