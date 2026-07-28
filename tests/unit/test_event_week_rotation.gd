@@ -50,8 +50,37 @@ func test_slot_copy_has_article_effect_and_memo() -> void:
 		assert_false(str(def.get("article", "")).strip_edges().is_empty(), "article %s" % id)
 		assert_false(str(def.get("field_notes", "")).strip_edges().is_empty(), "field_notes %s" % id)
 		assert_false(str(def.get("effect_summary", "")).strip_edges().is_empty(), "effect %s" % id)
-		assert_false(str(def.get("description", "")).strip_edges().is_empty(), "memo %s" % id)
+		var pool: Variant = def.get("descriptions", [])
+		assert_true(typeof(pool) == TYPE_ARRAY and (pool as Array).size() > 0, "memo pool %s" % id)
+		for memo: Variant in pool as Array:
+			assert_false(str(memo).strip_edges().is_empty(), "memo empty %s" % id)
 		assert_true(str(def.get("effect_summary", "")).begins_with("・"), "bullet %s" % id)
+
+
+func test_none_memo_pool_is_thick() -> void:
+	for def: Dictionary in _WeekRotation.SLOT_DEFINITIONS:
+		if str(def.get("id", "")) != "none":
+			continue
+		assert_gte((def.get("descriptions", []) as Array).size(), 12)
+		return
+	assert_true(false, "none def missing")
+
+
+func test_nonoka_memo_pick_is_stable_and_varies() -> void:
+	var none_def: Dictionary = {}
+	for def: Dictionary in _WeekRotation.SLOT_DEFINITIONS:
+		if str(def.get("id", "")) == "none":
+			none_def = def
+			break
+	assert_false(none_def.is_empty())
+	var a: String = _WeekRotation.pick_description(none_def, 10)
+	var b: String = _WeekRotation.pick_description(none_def, 10)
+	assert_eq(a, b)
+	assert_false(a.strip_edges().is_empty())
+	var seen: Dictionary = {}
+	for slot: int in range(0, 64):
+		seen[_WeekRotation.pick_description(none_def, slot)] = true
+	assert_gte(seen.size(), 3, "same none should yield multiple memos across slots")
 
 
 func test_build_active_event_copies_article() -> void:
