@@ -225,9 +225,37 @@ static func _unlock_all_codex() -> void:
 		if did.is_empty():
 			continue
 		_DiscoveryRegistry.register("dungeon", did)
+	for data in DataRegistry.get_all_weapon_data():
+		if data == null:
+			continue
+		var wid: String = str(data.id)
+		if not wid.is_empty():
+			_DiscoveryRegistry.register("weapon", wid)
+	for data in DataRegistry.get_all_armor_data():
+		if data == null:
+			continue
+		var aid: String = str(data.armor_id)
+		if not aid.is_empty():
+			_DiscoveryRegistry.register("armor", aid)
+	for data in DataRegistry.get_all_accessory_data():
+		if data == null:
+			continue
+		var xid: String = str(data.id)
+		if not xid.is_empty():
+			_DiscoveryRegistry.register("accessory", xid)
+	for data in DataRegistry.get_all_material_data():
+		if data == null:
+			continue
+		var mid: String = str(data.id)
+		if mid.is_empty():
+			continue
+		if EquipmentEnhancer.is_enhancement_material(mid):
+			_DiscoveryRegistry.register("material", mid)
 	for lore in _CatalogHelper.get_lore_entries():
 		var lid: String = str(lore.get("id", ""))
 		if not lid.is_empty():
 			_DiscoveryRegistry.register("lore", lid)
+	for he_id in _CatalogHelper.STARTER_HISTORY_IDS:
+		_DiscoveryRegistry.register("history", str(he_id))
 	for room_id in ["heal", "treasure", "merchant", "event", "elite", "trap"]:
 		_DiscoveryRegistry.register("room", room_id)

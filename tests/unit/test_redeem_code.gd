@@ -6,6 +6,7 @@ const SAVE_PATH: String = "user://save_data.json"
 
 
 func before_each() -> void:
+	SaveManager.use_normal_slot()
 	if FileAccess.file_exists(SAVE_PATH):
 		DirAccess.remove_absolute(SAVE_PATH)
 	GameState.reset_for_new_game()

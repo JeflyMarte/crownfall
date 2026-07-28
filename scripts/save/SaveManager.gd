@@ -9,13 +9,44 @@ const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd
 const _CommanderProfile = preload("res://scripts/commander/CommanderProfile.gd")
 const _SurveySystem = preload("res://scripts/survey/SurveySystem.gd")
 
-const SAVE_PATH: String = "user://save_data.json"
+## 本編セーブ（はじめから／つづきから）。デバッグは別ファイル。
+const SAVE_PATH_NORMAL: String = "user://save_data.json"
+const SAVE_PATH_DEBUG: String = "user://save_data_debug.json"
+## 互換エイリアス＝本編パス（設定表示・旧テストの「本編セーブ有無」判定向け）。
+const SAVE_PATH: String = SAVE_PATH_NORMAL
+
+const SLOT_NORMAL: String = "normal"
+const SLOT_DEBUG: String = "debug"
 
 ## セーブスキーマバージョン。構造変更時にインクリメントし、
 ## `_migrate_save_data` に v(n)→v(n+1) の段階マイグレーションを追加する。
 ## v0 = バージョンフィールド無しの旧セーブ（レガシー party/equipment/job/dungeon id を含む）
 ## v1 = save_version フィールド導入（2026-07-02）
 const SAVE_VERSION: int = 14
+
+## セッション中の読み書き先。タイトルで本編／デバッグを切り替える。
+var _active_slot: String = SLOT_NORMAL
+
+
+func get_active_save_path() -> String:
+	return SAVE_PATH_DEBUG if _active_slot == SLOT_DEBUG else SAVE_PATH_NORMAL
+
+
+func use_normal_slot() -> void:
+	_active_slot = SLOT_NORMAL
+
+
+func use_debug_slot() -> void:
+	_active_slot = SLOT_DEBUG
+
+
+func is_debug_slot() -> bool:
+	return _active_slot == SLOT_DEBUG
+
+
+func get_active_slot() -> String:
+	return _active_slot
+
 
 func save_game() -> void:
 	var data: Dictionary = {
@@ -68,25 +99,46 @@ func save_game() -> void:
 		"tutorial_flags": GameState.tutorial_flags.duplicate(true),
 		"new_equipment_instance_ids": GameState.new_equipment_instance_ids.duplicate(true),
 	}
-	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	var path: String = get_active_save_path()
+	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
 	if file == null:
 		return
 	file.store_string(JSON.stringify(data))
 	file.close()
 
+
 func has_save() -> bool:
-	return FileAccess.file_exists(SAVE_PATH)
+	return FileAccess.file_exists(get_active_save_path())
+
+
+func has_normal_save() -> bool:
+	return FileAccess.file_exists(SAVE_PATH_NORMAL)
+
+
+func has_debug_save() -> bool:
+	return FileAccess.file_exists(SAVE_PATH_DEBUG)
 
 
 func delete_save() -> void:
-	if FileAccess.file_exists(SAVE_PATH):
-		DirAccess.remove_absolute(SAVE_PATH)
+	var path: String = get_active_save_path()
+	if FileAccess.file_exists(path):
+		DirAccess.remove_absolute(path)
+
+
+func delete_normal_save() -> void:
+	if FileAccess.file_exists(SAVE_PATH_NORMAL):
+		DirAccess.remove_absolute(SAVE_PATH_NORMAL)
+
+
+func delete_debug_save() -> void:
+	if FileAccess.file_exists(SAVE_PATH_DEBUG):
+		DirAccess.remove_absolute(SAVE_PATH_DEBUG)
 
 
 func load_game() -> void:
 	if not has_save():
 		return
-	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.READ)
+	var file: FileAccess = FileAccess.open(get_active_save_path(), FileAccess.READ)
 	if file == null:
 		return
 	var text: String = file.get_as_text()

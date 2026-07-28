@@ -7,6 +7,7 @@ const _WeaponInstance := preload("res://scripts/domain/WeaponInstance.gd")
 
 
 func before_each() -> void:
+	SaveManager.use_normal_slot()
 	GameState.reset_for_new_game()
 	GameState.seed_all_starters_unlocked()
 	GameState.new_equipment_instance_ids.clear()

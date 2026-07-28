@@ -3865,7 +3865,8 @@ ELITE/BOSS/遍在希少種（P3-D166）は別枠。重みは **当該 Biome 雑�
 | P3-UI-TITLE-001-1 | **起動** — Boot はロードせず Title へ。Continue 時のみ `load_game` | New Game を綺麗に開始 |
 | P3-UI-TITLE-001-2 | **つづきから** — セーブあり時のみ。ロード後はスターター選択待ちなら Pick、否則拠点 | 既存進行の継続 |
 | P3-UI-TITLE-001-3 | **はじめから** — セーブ削除＋`reset_for_new_game`→スターター選択。セーブあり時は確認ダイアログ | 検証・リセット用途 |
-| P3-UI-TITLE-001-4 | **スロット** — 単一セーブ（`user://save_data.json`）のみ。複数スロットはスコープ外 | オーナー指定 |
+| P3-UI-TITLE-001-4 | **スロット** — 本編は単一（`user://save_data.json`）。プレイヤー向け複数スロットはスコープ外 | オーナー指定 |
+| P3-UI-TITLE-001-4b | **デバッグ専用スロット** — `user://save_data_debug.json`。タイトル「デバッグ」は本編を上書きしない。図鑑は `debug_full_unlock` で全開示 | 2026-07-28 オーナー |
 | P3-UI-TITLE-001-5 | **設定戻り** — Title から開いた設定は Title へ戻る（下ナビ非表示） | 空拠点への誤遷移防止 |
 
 ---

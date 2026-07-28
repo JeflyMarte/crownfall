@@ -1980,6 +1980,8 @@ func get_boss_phases_seen(enemy_id: String) -> Array:
 
 func get_enemy_stage(enemy_id: String) -> int:
 	enemy_id = _canonical_enemy_id(enemy_id)
+	if debug_full_unlock:
+		return 5
 	if not enemy_codex.has(enemy_id):
 		return 1
 	var entry: Dictionary = enemy_codex[enemy_id]

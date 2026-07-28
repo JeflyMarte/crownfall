@@ -24,6 +24,7 @@ func after_all() -> void:
 		DirAccess.rename_absolute(BACKUP_PATH, SAVE_PATH)
 
 func before_each() -> void:
+	SaveManager.use_normal_slot()
 	if FileAccess.file_exists(SAVE_PATH):
 		DirAccess.remove_absolute(SAVE_PATH)
 	_reset_game_state()
