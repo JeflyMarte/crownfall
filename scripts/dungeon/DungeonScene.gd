@@ -6771,7 +6771,7 @@ func _on_member_damaged(target_idx: int, ctx: Dictionary = {}) -> void:
 		if max_hp > 0:
 			var ratio: float = float($CombatController.party_combat_hp[target_idx]) / float(max_hp)
 			if _AbyssWeaponEffects.try_low_hp_ice_shell(target_idx, ratio):
-				_spawn_skill_name("⚔裂氷の氷殻", target_idx, 0.0, "", false, "")
+				_spawn_skill_name("⚔裂氷の氷殻", target_idx, 0.0, "", false, "", PASSIVE_NAME_FONT_SIZE)
 				_append_log("[武器] 裂氷の氷殻 発動")
 		return
 	AudioManager.play_sfx("combat_death", 1.0, 0.06)
