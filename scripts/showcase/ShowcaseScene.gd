@@ -547,6 +547,28 @@ func _populate_stage(member: Resource) -> void:
 	portrait.set_from_member(member)
 
 	var stats: Dictionary = RosterUiHelper.compute_member_stats(member)
+	var power: int = RosterUiHelper.combat_power_from_stats(stats)
+	var power_top: float = ShowcaseUiTokensScript.STAT_POWER_TOP
+	var power_h: float = ShowcaseUiTokensScript.STAT_POWER_H
+	var power_label := Label.new()
+	power_label.text = "総合戦力"
+	power_label.position = Vector2(8.0, power_top)
+	power_label.size = Vector2(maxf(40.0, _stats_panel.size.x - 16.0), power_h * 0.45)
+	power_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	power_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_caption(power_label, COLOR_GOLD)
+	_stats_col.add_child(power_label)
+	var power_val := Label.new()
+	power_val.text = RosterUiHelper.format_combat_power(power)
+	power_val.position = Vector2(8.0, power_top + power_h * 0.42)
+	power_val.size = Vector2(maxf(40.0, _stats_panel.size.x - 16.0), power_h * 0.55)
+	power_val.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	power_val.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_display(
+		power_val, ShowcaseUiTokensScript.STAT_POWER_FONT_SIZE, COLOR_GOLD
+	)
+	_stats_col.add_child(power_val)
+
 	var values: Array[String] = [
 		"%d" % int(stats.get("hp", 0)),
 		"%d" % int(stats.get("attack", 0)),

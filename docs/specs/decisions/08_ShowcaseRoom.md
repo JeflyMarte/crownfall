@@ -11,11 +11,12 @@
 
 | 項目 | 内容 |
 |---|---|
-| 構図 | 左=装備（武／防／装）／中央=Idle／右=実効ステ |
+| 構図 | 左=装備（武／防／装）／中央=Idle／右=**総合戦力**＋実効ステ |
 | 自枠 | `GameState.showcase_member_id`（roster の安定 id）最大1 |
 | スタッフ | ローカルプリセット（セーブ非汚染） |
 | 導線 | 下ナビ「展示室」（マイページは下ナビからオミット。拠点左メニュー等から到達可） |
 | BGM | hub |
+| 総合戦力 | **P3-UI-COMBAT-POWER-001**（`docs/specs/decisions/22_CombatPower.md`） |
 
 ## 非要件（本 Decision 外）
 

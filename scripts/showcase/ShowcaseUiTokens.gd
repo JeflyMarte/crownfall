@@ -32,13 +32,17 @@ const EQUIP_ICON_OFFSETS: Array[Vector2] = [
 	Vector2(54, 490),
 ]
 const EQUIP_CELL_PX: int = 56
-const STAT_HEADER_PAD: float = 142.0
-const STAT_ROW_H: float = 45.0
+## 焼込見出し直下に総合戦力、その下に個別ステ。
+const STAT_POWER_TOP: float = 102.0
+const STAT_POWER_H: float = 36.0
+const STAT_HEADER_PAD: float = 148.0
+const STAT_ROW_H: float = 42.0
 const STAT_ICON_LEFT: float = 10.0
 const STAT_ICON_PX: float = 26.0
 const STAT_VALUE_LEFT: float = 44.0
 const STAGE_IDLE_PX: float = 228.0
 const STAT_VALUE_FONT_SIZE: int = 20
+const STAT_POWER_FONT_SIZE: int = 22
 const STAT_KEYS: Array[String] = [
 	"hp",
 	"attack",
