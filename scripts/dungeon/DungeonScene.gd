@@ -587,6 +587,10 @@ const HEAL_NUM_GREEN: Color = Color(0.35, 1.0, 0.48, 1.0)
 ## 攻撃アニメ中のヒット位置（全体尺に対する比率）。ダメージ／ヒットVFXはここまで遅延。
 const ATTACK_IMPACT_FRAME_RATIO: float = 0.58
 const ATTACK_IMPACT_FALLBACK_SEC: float = 0.22
+## 敵攻撃前の赤い❗️予告（×1 基準。戦闘速度で短縮）。
+const ENEMY_ATTACK_MARK_HOLD_SEC: float = 0.42
+const ENEMY_ATTACK_MARK_FONT_SIZE: int = 40
+const ENEMY_ATTACK_MARK_COLOR: Color = Color(1.0, 0.18, 0.18, 1.0)
 const CHR_ATTACK_LUNGE_PX: float = 22.0
 const CHR_ATTACK_LUNGE_OUT_SEC: float = 0.10
 const CHR_ATTACK_LUNGE_BACK_SEC: float = 0.16
@@ -5654,8 +5658,6 @@ func _execute_enemy_buff(skill: Resource) -> void:
 
 # 敵の攻撃スキル（全体/列/単体）。power_multiplier 分のダメージを対象へ。
 func _execute_enemy_damage(skill: Resource) -> void:
-	_play_active_enemy_animation("attack")
-	_spawn_enemy_skill_name(skill.display_name)
 	var party_size: int = $CombatController.party_combat_hp.size()
 	var target_type: String = str(skill.target_type)
 	var used_fallback: bool = false
@@ -5697,6 +5699,7 @@ func _execute_enemy_damage(skill: Resource) -> void:
 		var empty_tag: String = CombatFormation.enemy_target_row_log_tag(target_type, used_fallback)
 		_append_log("敵スキル【%s】%s\n  対象なし" % [skill.display_name, empty_tag])
 		return
+	## アニメ／技名は予告❗️の後（`_resolve_enemy_skill_damage_impact_async`）。
 	_resolve_enemy_skill_damage_impact_async({
 		"skill": skill,
 		"targets": targets,
@@ -5715,6 +5718,16 @@ func _resolve_enemy_skill_damage_impact_async(payload: Dictionary) -> void:
 	var target_type: String = str(payload.get("target_type", ""))
 	var used_fallback: bool = bool(payload.get("used_fallback", false))
 	_begin_combat_cinematic_lock()
+	var atk_slot: int = $CombatController.active_enemy_index
+	var mark: Label = _spawn_enemy_attack_mark(atk_slot)
+	await get_tree().create_timer(_enemy_attack_telegraph_delay()).timeout
+	_free_enemy_attack_mark(mark)
+	if not $CombatController.is_in_combat:
+		_end_combat_cinematic_lock()
+		return
+	_play_active_enemy_animation("attack")
+	if skill != null:
+		_spawn_enemy_skill_name(skill.display_name)
 	var sprite: AnimatedSprite2D = _active_enemy_sprite()
 	await get_tree().create_timer(_attack_anim_impact_delay(sprite)).timeout
 	if not $CombatController.is_in_combat:
@@ -5874,10 +5887,7 @@ func _do_enemy_attack(slot: int = -1) -> void:
 	var target_idx: int = $CombatController.pick_enemy_target_for_melee_attack(slot)
 	if target_idx < 0:
 		return
-	if slot >= 0:
-		_play_enemy_slot_animation(slot, "attack")
-	else:
-		_play_active_enemy_animation("attack")
+	## 攻撃アニメは予告❗️の後（`_resolve_enemy_attack_impact_async`）。
 	_resolve_enemy_attack_impact_async({
 		"slot": slot,
 		"target_idx": target_idx,
@@ -5888,6 +5898,16 @@ func _resolve_enemy_attack_impact_async(payload: Dictionary) -> void:
 	var slot: int = int(payload.get("slot", -1))
 	var target_idx: int = int(payload.get("target_idx", -1))
 	_begin_combat_cinematic_lock()
+	var mark: Label = _spawn_enemy_attack_mark(slot)
+	await get_tree().create_timer(_enemy_attack_telegraph_delay()).timeout
+	_free_enemy_attack_mark(mark)
+	if not $CombatController.is_in_combat:
+		_end_combat_cinematic_lock()
+		return
+	if slot >= 0:
+		_play_enemy_slot_animation(slot, "attack")
+	else:
+		_play_active_enemy_animation("attack")
 	var sprite: AnimatedSprite2D = null
 	if slot >= 0 and slot < _swarm_sprites.size() and _swarm_sprites[slot].visible:
 		sprite = _swarm_sprites[slot]
@@ -5950,6 +5970,59 @@ func _resolve_enemy_attack_impact_async(payload: Dictionary) -> void:
 		_handle_party_wipe()
 		return
 	_end_combat_cinematic_lock()
+
+
+func _enemy_attack_telegraph_delay() -> float:
+	var combat_speed: float = _combat_speed_mult if _combat_speed_mult > 0.0 else 1.0
+	return maxf(0.12, ENEMY_ATTACK_MARK_HOLD_SEC / combat_speed)
+
+
+func _enemy_sprite_for_attack_mark(slot: int) -> AnimatedSprite2D:
+	if slot >= 0 and slot < _swarm_sprites.size() and _swarm_sprites[slot].visible:
+		return _swarm_sprites[slot]
+	if _boss_sprite != null and _boss_sprite.visible:
+		return _boss_sprite
+	if _enemy_sprite != null and _enemy_sprite.visible:
+		return _enemy_sprite
+	return null
+
+
+## 敵攻撃直前の赤い❗️（ドット絵の左＝味方側）。
+func _spawn_enemy_attack_mark(slot: int) -> Label:
+	var sprite: AnimatedSprite2D = _enemy_sprite_for_attack_mark(slot)
+	if sprite == null:
+		return null
+	var lbl := Label.new()
+	lbl.text = "❗"
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	lbl.z_index = 12
+	var af: Font = UiTypography.impact_font()
+	if af != null:
+		lbl.add_theme_font_override("font", af)
+	lbl.add_theme_font_size_override("font_size", ENEMY_ATTACK_MARK_FONT_SIZE)
+	lbl.add_theme_color_override("font_color", ENEMY_ATTACK_MARK_COLOR)
+	lbl.add_theme_color_override("font_outline_color", Color(0.15, 0.0, 0.0, 0.95))
+	lbl.add_theme_constant_override("outline_size", 8)
+	lbl.reset_size()
+	var center: Vector2 = _sprite_visual_center_global(sprite)
+	var half_w: float = maxf(28.0, lbl.size.x * 0.5)
+	## 敵は画面右寄りなので、左隣（パーティ側）に出す。
+	lbl.position = Vector2(center.x - half_w - 36.0, center.y - float(ENEMY_ATTACK_MARK_FONT_SIZE) * 0.85)
+	lbl.pivot_offset = lbl.size * 0.5
+	lbl.scale = Vector2(0.55, 0.55)
+	lbl.modulate.a = 0.0
+	_damage_numbers_layer.add_child(lbl)
+	var tw: Tween = create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(lbl, "modulate:a", 1.0, 0.08)
+	tw.tween_property(lbl, "scale", Vector2(1.15, 1.15), 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.chain().tween_property(lbl, "scale", Vector2.ONE, 0.1)
+	return lbl
+
+
+func _free_enemy_attack_mark(mark: Label) -> void:
+	if mark != null and is_instance_valid(mark):
+		mark.queue_free()
 
 func _try_apply_enemy_hit_status(target_idx: int, attacker_slot: int = -1) -> void:
 	var slot: int = attacker_slot if attacker_slot >= 0 else $CombatController.active_enemy_index
