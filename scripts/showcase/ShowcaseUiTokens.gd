@@ -23,6 +23,8 @@ const IDLE_HOST_SIZE := Vector2(260, 320)
 const FOOTER_RECT := Rect2(100, 1030, 520, 90)
 ## 総合戦力（旧・キャラ変更位置＝名前の少し上）。
 const POWER_RECT := Rect2(230, 930, 260, 56)
+## 名札枠上辺の欠けた横線を補完（焼込角飾り ≈ y1033・左右内側）。
+const NAME_FRAME_TOP_RULE := Rect2(242, 1032, 236, 3)
 ## 自分の展示：キャラ変更（左装備枠と右ステ枠のあいだ・上寄り）。
 const CHANGE_MEMBER_RECT := Rect2(248, 248, 224, 44)
 const EMPTY_RECT := Rect2(90, 210, 540, 400)

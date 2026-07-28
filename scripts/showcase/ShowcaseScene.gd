@@ -48,6 +48,7 @@ var _btn_change_member: Button = null
 var _power_panel: PanelContainer = null
 var _power_caption: Label = null
 var _power_value: Label = null
+var _name_frame_top_rule: Control = null
 var _pick_overlay: Control = null
 var _pick_list: VBoxContainer = null
 
@@ -65,6 +66,7 @@ func _ready() -> void:
 	_setup_chrome()
 	_ensure_staff_caption()
 	_ensure_power_panel()
+	_ensure_name_frame_top_rule()
 	_ensure_change_member_button()
 	_apply_layout_rects()
 	_build_staff_strip()
@@ -176,6 +178,12 @@ func _apply_layout_rects() -> void:
 		_power_panel.size = power_r.size
 		_power_panel.custom_minimum_size = power_r.size
 
+	if _name_frame_top_rule != null:
+		var rule_r: Rect2 = ShowcaseUiTokensScript.NAME_FRAME_TOP_RULE
+		_name_frame_top_rule.position = rule_r.position
+		_name_frame_top_rule.size = rule_r.size
+		_name_frame_top_rule.queue_redraw()
+
 	if _btn_change_member != null:
 		var change_r: Rect2 = ShowcaseUiTokensScript.CHANGE_MEMBER_RECT
 		_btn_change_member.position = change_r.position
@@ -242,6 +250,52 @@ func _ensure_staff_caption() -> void:
 	_staff_caption.visible = false
 	UiTypography.apply_caption(_staff_caption, COLOR_GOLD)
 	add_child(_staff_caption)
+
+
+func _ensure_name_frame_top_rule() -> void:
+	## 背景焼込の名札枠は上辺横線が欠けているため、金線＋中央菱で補完する。
+	if _name_frame_top_rule != null:
+		return
+	_name_frame_top_rule = Control.new()
+	_name_frame_top_rule.name = "NameFrameTopRule"
+	_name_frame_top_rule.z_index = 4
+	_name_frame_top_rule.visible = false
+	_name_frame_top_rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_name_frame_top_rule.draw.connect(_on_name_frame_top_rule_draw)
+	add_child(_name_frame_top_rule)
+
+
+func _on_name_frame_top_rule_draw() -> void:
+	if _name_frame_top_rule == null:
+		return
+	var sz: Vector2 = _name_frame_top_rule.size
+	if sz.x < 8.0 or sz.y < 1.0:
+		return
+	var y_mid: float = sz.y * 0.5
+	var gold := Color(0.90, 0.74, 0.38, 0.92)
+	var gold_dim := Color(0.72, 0.56, 0.28, 0.75)
+	## 左右から中央菱へ向かう横線（中央は菱で切る）。
+	var diamond_half: float = 5.0
+	var cx: float = sz.x * 0.5
+	_name_frame_top_rule.draw_line(
+		Vector2(0.0, y_mid), Vector2(cx - diamond_half - 1.0, y_mid), gold, 1.5, true
+	)
+	_name_frame_top_rule.draw_line(
+		Vector2(cx + diamond_half + 1.0, y_mid), Vector2(sz.x, y_mid), gold, 1.5, true
+	)
+	var diamond := PackedVector2Array([
+		Vector2(cx, y_mid - diamond_half * 0.7),
+		Vector2(cx + diamond_half, y_mid),
+		Vector2(cx, y_mid + diamond_half * 0.7),
+		Vector2(cx - diamond_half, y_mid),
+	])
+	_name_frame_top_rule.draw_colored_polygon(diamond, gold)
+	_name_frame_top_rule.draw_polyline(
+		PackedVector2Array([diamond[0], diamond[1], diamond[2], diamond[3], diamond[0]]),
+		gold_dim,
+		1.0,
+		true
+	)
 
 
 func _ensure_power_panel() -> void:
@@ -395,6 +449,10 @@ func _set_stage_visible(on: bool) -> void:
 	_footer.visible = on
 	if _power_panel != null:
 		_power_panel.visible = on
+	if _name_frame_top_rule != null:
+		_name_frame_top_rule.visible = on
+		if on:
+			_name_frame_top_rule.queue_redraw()
 
 
 func _show_empty_own() -> void:
