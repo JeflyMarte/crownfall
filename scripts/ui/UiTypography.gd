@@ -173,6 +173,9 @@ static func apply_display_rich(
 ) -> void:
 	var font: Font = display_font()
 	if font != null:
+		## Shippori は Bold 単体のため、[b] 行も同じ書体に揃える。
 		entry.add_theme_font_override("normal_font", font)
+		entry.add_theme_font_override("bold_font", font)
 	entry.add_theme_font_size_override("normal_font_size", size)
+	entry.add_theme_font_size_override("bold_font_size", size)
 	entry.add_theme_color_override("default_color", color)
