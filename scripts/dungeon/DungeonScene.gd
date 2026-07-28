@@ -2418,7 +2418,8 @@ func _apply_scene_typography() -> void:
 	_label_dungeon_name.clip_text = true
 	_label_dungeon_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_label_room.visible = false
-	UiTypography.apply_body(_label_narrative, UiTypography.SIZE_BODY_SMALL)
+	## 非戦闘ナラティブは図鑑登録テロップと同じ display（Shippori）へ統一。
+	UiTypography.apply_display(_label_narrative, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_display(_label_combat_tier, UiTypography.SIZE_DISPLAY_TITLE)
 	UiTypography.apply_body(_label_enemy, UiTypography.SIZE_BODY_SMALL)
 	UiTypography.apply_body(_label_status_enemy, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
@@ -4175,12 +4176,12 @@ func _member_max_hp_for_trap(index: int) -> int:
 
 func _set_room_narrative(
 	text: String,
-	accent: Color = UiTypography.COLOR_BODY,
+	accent: Color = UiTypography.COLOR_GOLD,
 	font_size: int = UiTypography.SIZE_BODY
 ) -> void:
 	_ensure_narrative_label_mode()
 	_label_narrative.text = text
-	UiTypography.apply_body(_label_narrative, font_size, accent)
+	UiTypography.apply_display(_label_narrative, font_size, accent)
 
 
 func _set_room_narrative_bbcode(
@@ -4206,7 +4207,7 @@ func _ensure_narrative_label_mode() -> void:
 func _ensure_narrative_rich(font_size: int = UiTypography.SIZE_BODY) -> RichTextLabel:
 	var existing: RichTextLabel = _narrative_panel.get_node_or_null("LabelNarrativeRich") as RichTextLabel
 	if existing != null:
-		UiTypography.apply_log_rich(existing, font_size, UiTypography.COLOR_BODY)
+		UiTypography.apply_display_rich(existing, font_size, UiTypography.COLOR_GOLD)
 		existing.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		return existing
 	var rich := RichTextLabel.new()
@@ -4218,7 +4219,7 @@ func _ensure_narrative_rich(font_size: int = UiTypography.SIZE_BODY) -> RichText
 	rich.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	rich.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	rich.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UiTypography.apply_log_rich(rich, font_size, UiTypography.COLOR_BODY)
+	UiTypography.apply_display_rich(rich, font_size, UiTypography.COLOR_GOLD)
 	_narrative_panel.add_child(rich)
 	return rich
 
@@ -4228,7 +4229,7 @@ func _reset_narrative_typography() -> void:
 	if rich_busy != null and rich_busy.visible and not str(rich_busy.get_parsed_text()).strip_edges().is_empty():
 		return
 	_ensure_narrative_label_mode()
-	UiTypography.apply_body(_label_narrative, UiTypography.SIZE_BODY_SMALL)
+	UiTypography.apply_display(_label_narrative, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	_label_narrative.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	if _label_now_playing != null:
 		_label_now_playing.visible = false

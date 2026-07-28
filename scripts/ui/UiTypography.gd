@@ -164,3 +164,15 @@ static func apply_log_rich(entry: RichTextLabel, size: int = SIZE_LOG, color: Co
 		entry.add_theme_font_override("normal_font", font)
 	entry.add_theme_font_size_override("normal_font_size", size)
 	entry.add_theme_color_override("default_color", color)
+
+## 非戦闘ナラティブ（碑文／宝箱／泉など）用。図鑑登録テロップと同じ金セリフ。
+static func apply_display_rich(
+	entry: RichTextLabel,
+	size: int = SIZE_BODY_SMALL,
+	color: Color = COLOR_GOLD
+) -> void:
+	var font: Font = display_font()
+	if font != null:
+		entry.add_theme_font_override("normal_font", font)
+	entry.add_theme_font_size_override("normal_font_size", size)
+	entry.add_theme_color_override("default_color", color)
