@@ -27,6 +27,7 @@ var _speed_buttons: Dictionary = {}
 var _redeem_input: LineEdit = null
 var _redeem_status: Label = null
 var _redeem_dialog: AcceptDialog = null
+var _confirm_title: ConfirmationDialog = null
 
 
 func _ready() -> void:
@@ -47,6 +48,7 @@ func _ready() -> void:
 	else:
 		BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.NONE)
 	_ensure_redeem_dialog()
+	_ensure_title_confirm()
 	_rebuild_page()
 	_configure_layout()
 	call_deferred("_configure_layout")
@@ -197,11 +199,24 @@ func _build_system_section() -> Control:
 	var body: VBoxContainer = sec["body"]
 	_add_caption(body, "バージョン: %s" % _SettingsPrefs.app_version_text())
 	_add_caption(body, _SettingsPrefs.save_status_text())
-	var home_btn := Button.new()
-	home_btn.text = "タイトルへ戻る" if _opened_from_title() else "拠点へ戻る"
-	home_btn.pressed.connect(_on_back_pressed)
-	UiTypography.apply_button(home_btn, false)
-	body.add_child(home_btn)
+	if _opened_from_title():
+		var title_btn := Button.new()
+		title_btn.text = "タイトルへ戻る"
+		title_btn.pressed.connect(_on_back_pressed)
+		UiTypography.apply_button(title_btn, false)
+		body.add_child(title_btn)
+	else:
+		var home_btn := Button.new()
+		home_btn.text = "拠点へ戻る"
+		home_btn.pressed.connect(_on_back_pressed)
+		UiTypography.apply_button(home_btn, false)
+		body.add_child(home_btn)
+		var to_title := Button.new()
+		to_title.text = "タイトルへ戻る"
+		to_title.pressed.connect(_on_title_pressed)
+		UiTypography.apply_button(to_title, false)
+		body.add_child(to_title)
+		_add_caption(body, "セーブしてタイトル画面に戻ります")
 	return sec["panel"]
 
 
@@ -323,6 +338,19 @@ func _ensure_redeem_dialog() -> void:
 	add_child(_redeem_dialog)
 
 
+func _ensure_title_confirm() -> void:
+	if _confirm_title != null:
+		return
+	_confirm_title = ConfirmationDialog.new()
+	_confirm_title.title = "タイトルへ戻る"
+	_confirm_title.dialog_text = "セーブしてタイトル画面に戻ります。\nよろしいですか？"
+	_confirm_title.ok_button_text = "タイトルへ"
+	_confirm_title.cancel_button_text = "やめる"
+	_confirm_title.confirmed.connect(_go_to_title)
+	_confirm_title.canceled.connect(func() -> void: AudioManager.play_sfx("ui_cancel"))
+	add_child(_confirm_title)
+
+
 func _on_redeem_pressed() -> void:
 	if _redeem_input == null:
 		return
@@ -350,3 +378,16 @@ func _on_back_pressed() -> void:
 	if path.is_empty():
 		path = HOME_SCENE
 	SceneRouter.change_scene(path)
+
+
+func _on_title_pressed() -> void:
+	AudioManager.play_sfx("ui_switch", 1.0, 0.08)
+	_ensure_title_confirm()
+	_confirm_title.popup_centered()
+
+
+func _go_to_title() -> void:
+	## 拠点／探索中からタイトルへ。進行を落さないよう先にセーブ。
+	SaveManager.save_game()
+	AudioManager.play_sfx("ui_confirm", 1.0, 0.08)
+	SceneRouter.change_scene(TITLE_SCENE)
