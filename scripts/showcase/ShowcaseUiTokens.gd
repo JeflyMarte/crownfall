@@ -25,13 +25,14 @@ const FOOTER_RECT := Rect2(100, 1030, 520, 90)
 const CHANGE_MEMBER_RECT := Rect2(230, 940, 260, 44)
 const EMPTY_RECT := Rect2(90, 210, 540, 400)
 const BODY_BOTTOM_PAD: float = 128.0
-## 背景焼込枠内の相対オフセット（パネル左上基準）。防具・装飾は下寄せ。
+## 装備セル相対オフセット（パネル左上基準）。レア枠付きセル中央寄せ。
 const EQUIP_ICON_OFFSETS: Array[Vector2] = [
-	Vector2(54, 180),
-	Vector2(54, 330),
-	Vector2(54, 490),
+	Vector2(44, 168),
+	Vector2(44, 318),
+	Vector2(44, 478),
 ]
-const EQUIP_CELL_PX: int = 56
+## 装備品一覧に近い可読サイズ（レア枠・背景・N/R/E/L 表示）。
+const EQUIP_CELL_PX: int = 80
 const STAT_HEADER_PAD: float = 142.0
 const STAT_ROW_H: float = 45.0
 const STAT_ICON_LEFT: float = 10.0

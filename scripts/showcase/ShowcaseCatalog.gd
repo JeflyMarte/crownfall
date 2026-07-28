@@ -9,7 +9,7 @@ const _AccessoryStatResolver = preload("res://scripts/equipment/AccessoryStatRes
 
 ## 構図は ShowcaseUiTokens（背景モック座標）を正とする。
 const STAGE_IDLE_PX: float = 228.0
-const EQUIP_CELL_PX: int = 64
+const EQUIP_CELL_PX: int = 80
 const STAGE_H_PX: float = 460.0
 const SIDE_COL_W: float = 168.0
 
