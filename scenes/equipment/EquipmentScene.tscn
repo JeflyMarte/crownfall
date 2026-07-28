@@ -299,11 +299,25 @@ size_flags_horizontal = 3
 size_flags_stretch_ratio = 1.2
 theme_override_constants/separation = 3
 
-[node name="LabelName" type="Label" parent="VBoxContainer/CharacterCard/CardRow/InfoBox"]
+[node name="NameRow" type="HBoxContainer" parent="VBoxContainer/CharacterCard/CardRow/InfoBox"]
 layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="LabelName" type="Label" parent="VBoxContainer/CharacterCard/CardRow/InfoBox/NameRow"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.93, 0.86, 0.66, 1)
 theme_override_font_sizes/font_size = 26
 text = "—"
+clip_text = true
+text_overrun_behavior = 3
+max_lines_visible = 1
+
+[node name="BtnMemberList" type="Button" parent="VBoxContainer/CharacterCard/CardRow/InfoBox/NameRow"]
+custom_minimum_size = Vector2(72, 36)
+layout_mode = 2
+size_flags_vertical = 4
+text = "一覧"
 
 [node name="LabelLevel" type="Label" parent="VBoxContainer/CharacterCard/CardRow/InfoBox"]
 layout_mode = 2

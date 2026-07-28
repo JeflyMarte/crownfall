@@ -5415,6 +5415,18 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 
 ---
 
+## キャラ画面の一覧切替（2026-07-28 — P3-UX-CHR-MEMBER-LIST-001）
+
+> **オーナー指示** — ◀▶ だけでなく一覧からキャラを切り替えたい。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-CHR-MEMBER-LIST-001-1 | 名前横に「一覧」ボタン。シートでロスター＋オトモを選択 | ◀▶ 連打は人数増で不便 |
+| P3-UX-CHR-MEMBER-LIST-001-2 | ◀▶ は残置。対象は既存 `_get_view_members` と同一 | 切替対象の食い違い防止 |
+| P3-UX-CHR-MEMBER-LIST-001-3 | AcceptDialog 禁止。Control オーバーレイ＋ScrollTouch | 鍛冶と同様の入力奪取回避 |
+
+---
+
 ## ロックバイソン出現抑制（2026-07-28 — P3-BAL-ROCK-BISON-SPAWN-001）
 
 > **オーナー GO（案B＋C）** — 全域配置は維持。D2帯内の重みと群れを弱めて序盤の偏りを抑える。
