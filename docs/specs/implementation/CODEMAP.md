@@ -147,7 +147,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `result/` | `ResultScene.gd`（**P3-UX-WIPE-CAUSE-001** 全滅敗因・素材アイコン P3-D135・作成可能レシピ P3-D141・**P3-UI2-023** パネル/フッター polish・**P3-UX-SKILL-LEARN-PERSIST-001** 習得を名横に常時表示） |
 | `save/` | `SaveManager.gd` |
 | `systems/` | **`LevelSystem.gd`**（**Lv99上限** P3-LV-099・Lv51+逓減成長）・**`SkillProgression.gd`**・**`WeaponSkillHelper.gd`**・`JobEvolution.gd`／**`EvolutionTraits.gd`**／`EvolutionVisual.gd`（到達形・βは `JOB_EVOLUTION_PLAYABLE=false`／P3-JOB-EVO-OMIT-001） |
-| `ui/` | **`IconPaths.gd`** …（Phase3-A — static class、ICON_MAP による `category:id` → `ICO_*.png` 解決）・**`CurrencyHelper.gd`**（魔晶石表示 SSOT）・**`BottomNavHelper.gd`**（全拠点系6タブ遷移・**P3-UI-Base-A**）・**`NavIconHelper.gd`**（下ナビ/左メニューアイコン）・**`UiTypography.gd`**・**`StatusEffectLinkHelper.gd`**（説明文の状態異常タップ→効果ポップ） |
+| `ui/` | **`IconPaths.gd`** …（Phase3-A — static class、ICON_MAP による `category:id` → `ICO_*.png` 解決）・**`CurrencyHelper.gd`**（魔晶石表示 SSOT）・**`BottomNavHelper.gd`**（全拠点系6タブ遷移・**P3-UI-Base-A**）・**`NavIconHelper.gd`**（下ナビ/左メニューアイコン）・**`UiTypography.gd`**・**`StatusEffectLinkHelper.gd`**（説明文の状態異常タップ→効果ポップ）・**`SkillEffectOneLineHelper.gd`**（必殺カットイン効果1行・**P3-UX-ULTIMATE-EFFECT-001**） |
 | `audio/` | **`AudioManager.gd`**（Autoload）・**`SfxCatalog.gd`**（武器別ヒット `combat_hit_bow`/`staff`・**P3-UX-COMBAT-VFX-001**）・**`BgmCatalog.gd`**（**P3-AUDIO-SE-001/002 / BGM-001**） |
 
 ### プレースホルダのみ（.gitkeep、コードなし）
