@@ -1,8 +1,8 @@
 class_name BlacksmithUiHelper
 extends RefCounted
 
-## 装備レア表示（P3-UI-RARITY-NREL-001）。N＜R＜E＜L（＋M／セット）。
-const RARITY_SHORT: Array[String] = ["N", "R", "E", "L", "M", "セット"]
+## 装備レア表示（P3-UI-RARITY-NREL-001）。N＜R＜E＜L（＋M／エンシェントレア）。
+const RARITY_SHORT: Array[String] = ["N", "R", "E", "L", "M", "エンシェントレア"]
 
 ## モック寄せ: 行はやや詰め、選択枠は Texture 側で厚く見せる。
 const LIST_CARD_MIN_HEIGHT: int = 112
@@ -18,7 +18,8 @@ const ITEM_ICON_FRAME_MARGIN_PX: int = 18
 const ITEM_ICON_MODULATE: Color = Color(1.24, 1.18, 1.10, 1.0)
 const ITEM_ICON_UNDERLAY_COLOR: Color = Color(0.04, 0.03, 0.02, 0.58)
 ## InvCell の texture_margin(12/144)＋余白。これを超える描画は枠左右にはみ出して見える。
-const FORGE_ICON_SAFE_FILL: float = 0.52
+## 一覧は武器可読性優先（プレビュー v4: ≈0.78）。
+const FORGE_ICON_SAFE_FILL: float = 0.78
 ## 詳細ヒーローは大きく見せるが、枠いっぱいに食い込ませない。
 const HERO_ICON_INSET_RATIO: float = 0.03
 const HERO_ICON_INSET_MIN_PX: int = 4
@@ -42,7 +43,7 @@ const RARITY_COLORS: Array[Color] = [
 	Color(0.70, 0.45, 0.95),
 	Color(0.95, 0.75, 0.25),
 	Color(0.35, 0.88, 1.0),
-	Color(0.28, 0.86, 0.42), # SET — 緑
+	Color(0.28, 0.86, 0.42), # SET / エンシェントレア — 緑
 ]
 
 ## 暗背景向けの名前色（レアリティ対応・可読性優先）。
@@ -168,11 +169,8 @@ static func list_card_style(selected: bool, craftable: bool, rarity: int) -> Sty
 	]
 	if _list_card_style_cache.has(cache_key):
 		return _list_card_style_cache[cache_key] as StyleBox
-	var textured: StyleBox = (
-		ForgeUiTokens.list_card_selected_style()
-		if selected
-		else ForgeUiTokens.list_card_normal_style()
-	)
+	## 行外枠はモードタブ枠を流用。中のレアリティセル／ロゴは別途。
+	var textured: StyleBox = ForgeUiTokens.list_row_from_tab_style(selected)
 	var out: StyleBox
 	if _texture_style_ok(textured):
 		if craftable and not selected and textured is StyleBoxTexture:
@@ -491,7 +489,7 @@ static func make_strip_item_icon_cell(
 		sb.set_content_margin_all(0.0)
 		frame.add_theme_stylebox_override("panel", sb)
 		host.add_child(frame)
-	EquipmentUiHelper.apply_legendary_badge(host, rarity, Vector2(px, px))
+	EquipmentUiHelper.apply_rarity_badges(host, rarity, Vector2(px, px))
 	return host
 
 
@@ -535,7 +533,7 @@ static func make_item_icon_cell(
 	btn.add_theme_color_override("font_focus_color", Color(1, 1, 1, 0))
 	btn.text = ""
 	attach_item_icon(btn, item_id, category, px, rarity, not use_stylebox_cell)
-	EquipmentUiHelper.apply_legendary_badge(btn, rarity, Vector2(px, px))
+	EquipmentUiHelper.apply_rarity_badges(btn, rarity, Vector2(px, px))
 	return btn
 
 

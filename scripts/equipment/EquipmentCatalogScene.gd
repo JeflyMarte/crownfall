@@ -366,15 +366,7 @@ func _apply_item_badges(
 	_is_equipped: bool
 ) -> void:
 	var rarity: int = _item_rarity(item, category)
-	var star_font: int = maxi(11, int(size.y * 0.17))
-	_add_corner_badge(
-		btn,
-		EquipmentUiHelper.rarity_stars_text(rarity),
-		Color(0.96, 0.82, 0.35, 1.0),
-		EquipmentUiHelper.RARITY_BADGE_POS,
-		star_font
-	)
-	EquipmentUiHelper.apply_legendary_badge(btn, rarity, size)
+	EquipmentUiHelper.apply_rarity_badges(btn, rarity, size)
 	if category == "weapon":
 		EquipmentUiHelper.apply_enhance_badge(btn, item, category, size, COLOR_GOLD)
 	## 装備中の「装」は出さない。ドロップ直後は中央 New 点滅。

@@ -42,8 +42,18 @@ func test_staff_presets_build_members() -> void:
 			var cell_px: int = ShowcaseUiTokens.EQUIP_CELL_PX
 			var style: StyleBox = EquipmentUiTokens.rarity_slot_style(rarity, false, cell_px)
 			assert_not_null(style)
-			if rarity != Enums.Rarity.SET:
-				assert_false(EquipmentUiHelper.rarity_stars_text(rarity).is_empty())
+			## セル上の文字バッジはロゴ画像へ置換済み（常に空）。
+			assert_eq(EquipmentUiHelper.rarity_stars_text(rarity), "")
+			if rarity == Enums.Rarity.SET:
+				assert_eq(EquipmentUiHelper.rarity_label_text(rarity), "エンシェントレア")
+				assert_not_null(EquipmentUiTokens.tier_badge(rarity))
+			elif rarity <= Enums.Rarity.EPIC:
+				assert_not_null(EquipmentUiTokens.corner_rarity_badge(rarity))
+			elif rarity == Enums.Rarity.MYTHIC:
+				assert_not_null(EquipmentUiTokens.tier_badge(rarity))
+			elif rarity == Enums.Rarity.LEGENDARY:
+				assert_not_null(EquipmentUiTokens.tier_badge(rarity))
+				assert_null(EquipmentUiTokens.corner_rarity_badge(rarity))
 
 
 func test_showcase_equip_cell_size_matches_catalog_style_inputs() -> void:

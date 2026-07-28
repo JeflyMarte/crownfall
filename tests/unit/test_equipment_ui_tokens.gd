@@ -92,14 +92,25 @@ func test_effect_stat_key_mapping() -> void:
 	assert_eq(str(EquipmentUiTokens.EFFECT_STAT_KEYS.get("攻撃速度", "")), "speed")
 
 func test_rarity_stars_text_maps_equipment_tier() -> void:
-	assert_eq(EquipmentUiHelper.rarity_stars_text(0), "N")
-	assert_eq(EquipmentUiHelper.rarity_stars_text(1), "R")
-	assert_eq(EquipmentUiHelper.rarity_stars_text(2), "E")
-	assert_eq(EquipmentUiHelper.rarity_stars_text(3), "L")
+	## セル上はロゴ画像のため文字バッジは空。テキスト行は rarity_label_text。
+	assert_eq(EquipmentUiHelper.rarity_stars_text(0), "")
+	assert_eq(EquipmentUiHelper.rarity_stars_text(1), "")
+	assert_eq(EquipmentUiHelper.rarity_stars_text(2), "")
+	assert_eq(EquipmentUiHelper.rarity_stars_text(3), "")
 	assert_eq(EquipmentUiHelper.rarity_code(Enums.Rarity.MYTHIC), "M")
-	## セットはアイコンに文字を重ねない（緑枠のみ）。
 	assert_eq(EquipmentUiHelper.rarity_stars_text(Enums.Rarity.SET), "")
-	assert_eq(EquipmentUiHelper.rarity_label_text(Enums.Rarity.SET), "セット")
+	assert_eq(EquipmentUiHelper.rarity_label_text(Enums.Rarity.SET), "エンシェントレア")
+	assert_eq(EquipmentUiHelper.rarity_label_text(Enums.Rarity.COMMON), "N")
+	assert_true(EquipmentUiTokens.corner_rarity_badge(Enums.Rarity.COMMON) != null)
+	assert_true(EquipmentUiTokens.corner_rarity_badge(Enums.Rarity.RARE) != null)
+	assert_true(EquipmentUiTokens.corner_rarity_badge(Enums.Rarity.EPIC) != null)
+	assert_true(EquipmentUiTokens.corner_rarity_badge(Enums.Rarity.LEGENDARY) == null)
+	assert_true(EquipmentUiTokens.tier_badge(Enums.Rarity.LEGENDARY) != null)
+	assert_true(EquipmentUiTokens.tier_badge(Enums.Rarity.MYTHIC) != null)
+	assert_true(EquipmentUiTokens.tier_badge(Enums.Rarity.SET) != null)
+	assert_true(ResourceLoader.exists(EquipmentUiTokens.LEGENDARY_BADGE))
+	assert_true(ResourceLoader.exists(EquipmentUiTokens.ANCIENT_BADGE))
+	assert_true(ResourceLoader.exists(EquipmentUiTokens.INV_CELLS[Enums.Rarity.SET]))
 
 func test_character_stars_text_is_star_count() -> void:
 	## Adventurer.rarity は ★個数（スターター=3）。装備 Enums.Rarity とは別。

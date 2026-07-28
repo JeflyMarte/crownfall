@@ -16,12 +16,20 @@ const BTN_UNEQUIP: String = ROOT + "UI_Equip_Btn_Unequip.png"
 const BTN_STAT_DETAIL: String = ROOT + "UI_Equip_Btn_StatDetail_Disabled.png"
 const FILTER_ICON: String = ROOT + "ICO_Equip_Filter.png"
 const SECTION_RULE: String = ROOT + "UI_Equip_SectionRule.png"
-## レジェンド装備セル左下の「Legend」リボン。
+## レア文字ロゴ（N/R/E＝左上）。
+const RARITY_BADGE_N: String = ROOT + "ICO_Equip_Rarity_N.png"
+const RARITY_BADGE_R: String = ROOT + "ICO_Equip_Rarity_R.png"
+const RARITY_BADGE_E: String = ROOT + "ICO_Equip_Rarity_E.png"
+## L／ミシック／エンシェントは左下ワードマーク。
 const LEGENDARY_BADGE: String = ROOT + "ICO_Equip_LegendaryBadge.png"
 const MYTHIC_BADGE: String = ROOT + "ICO_Equip_MythicBadge.png"
-## セル幅に対するバッジ幅比率（左下寄せ）。
+const ANCIENT_BADGE: String = ROOT + "ICO_Equip_AncientBadge.png"
+## セル幅に対する下段バッジ幅比率（左下寄せ）。
 const LEGENDARY_BADGE_WIDTH_RATIO: float = 0.72
 const LEGENDARY_BADGE_MARGIN_PX: float = 3.0
+## 左上 N/R/E ロゴのセル辺に対する比率（鍛冶屋一覧と同値）。
+const CORNER_RARITY_BADGE_RATIO: float = 0.20
+const CORNER_RARITY_BADGE_MARGIN_PX: float = 0.0
 
 const STAT_ICONS: Dictionary = {
 	"hp": ROOT + "ICO_Equip_Stat_HP.png",
@@ -83,7 +91,7 @@ const INV_CELLS: Array[String] = [
 	ROOT + "UI_Equip_InvCell_SR.png",
 	ROOT + "UI_Equip_InvCell_SSR.png",
 	ROOT + "UI_Equip_InvCell_MYTHIC.png",
-	ROOT + "UI_Equip_InvCell_SET.png", # SET — 緑枠
+	ROOT + "UI_Equip_InvCell_SET.png", # SET（エンシェントレア）— 緑枠
 ]
 
 const CATEGORY_MIN_SIZE: Vector2 = Vector2(64, 76)
@@ -114,7 +122,7 @@ const RARITY_BORDER_COLORS: Array[Color] = [
 	Color(0.70, 0.45, 0.95),
 	Color(0.95, 0.75, 0.25),
 	Color(0.35, 0.88, 1.0), # MYTHIC — 水色
-	Color(0.28, 0.86, 0.42), # SET — 緑
+	Color(0.28, 0.86, 0.42), # SET / エンシェントレア — 緑
 ]
 
 static func load_tex(path: String) -> Texture2D:
@@ -169,18 +177,45 @@ static func legendary_badge() -> Texture2D:
 	return load_tex(LEGENDARY_BADGE)
 
 static func mythic_badge() -> Texture2D:
-	var tex: Texture2D = load_tex(MYTHIC_BADGE)
-	if tex != null:
-		return tex
-	return legendary_badge()
+	return load_tex(MYTHIC_BADGE)
 
-static func legendary_badge_size(cell_size: Vector2) -> Vector2:
-	var tex: Texture2D = legendary_badge()
-	if tex == null or cell_size.x <= 0.0:
+static func ancient_badge() -> Texture2D:
+	return load_tex(ANCIENT_BADGE)
+
+static func corner_rarity_badge(rarity: int) -> Texture2D:
+	match clampi(rarity, 0, 5):
+		Enums.Rarity.COMMON:
+			return load_tex(RARITY_BADGE_N)
+		Enums.Rarity.RARE:
+			return load_tex(RARITY_BADGE_R)
+		Enums.Rarity.EPIC:
+			return load_tex(RARITY_BADGE_E)
+		_:
+			return null
+
+static func tier_badge(rarity: int) -> Texture2D:
+	## 左下ワードマーク。L／ミシック／エンシェント。
+	if rarity == Enums.Rarity.LEGENDARY:
+		return legendary_badge()
+	if rarity == Enums.Rarity.MYTHIC:
+		return mythic_badge()
+	if rarity == Enums.Rarity.SET:
+		return ancient_badge()
+	return null
+
+static func legendary_badge_size(cell_size: Vector2, tex: Texture2D = null) -> Vector2:
+	var badge_tex: Texture2D = tex if tex != null else legendary_badge()
+	if badge_tex == null or cell_size.x <= 0.0:
 		return Vector2.ZERO
 	var badge_w: float = cell_size.x * LEGENDARY_BADGE_WIDTH_RATIO
-	var aspect: float = float(tex.get_height()) / maxf(1.0, float(tex.get_width()))
+	var aspect: float = float(badge_tex.get_height()) / maxf(1.0, float(badge_tex.get_width()))
 	return Vector2(badge_w, badge_w * aspect)
+
+static func corner_rarity_badge_size(cell_size: Vector2) -> Vector2:
+	if cell_size.x <= 0.0 or cell_size.y <= 0.0:
+		return Vector2.ZERO
+	var side: float = minf(cell_size.x, cell_size.y) * CORNER_RARITY_BADGE_RATIO
+	return Vector2(side, side)
 
 static func scaled_margin(design_px: int, cell_px: int, design_margin: int) -> int:
 	if design_px <= 0:

@@ -52,8 +52,8 @@ const RARITY_COLORS: Array[Color] = [
 	Color(0.35, 0.88, 1.0),
 	Color(0.28, 0.86, 0.42),
 ]
-# レアリティ隅マーカー（N/R/E/L/M/セット — P3-UI-RARITY-NREL-001）。
-const RARITY_GEMS: Array[String] = ["N", "R", "E", "L", "M", "セット"]
+# レアリティ隅マーカー（N/R/E/L/M/エンシェントレア — P3-UI-RARITY-NREL-001）。
+const RARITY_GEMS: Array[String] = ["N", "R", "E", "L", "M", "エンシェントレア"]
 
 const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45)
 const COLOR_SUB: Color = Color(0.72, 0.69, 0.62)
@@ -1898,7 +1898,7 @@ func _framed_box(border: Color, width: int, bg: Color) -> StyleBoxFlat:
 	sb.set_content_margin_all(4.0)
 	return sb
 
-# ボタン隅にバッジ（レアリティ N/R/E/L / Legend / 炉研ぎ / New）を重ねる。
+# ボタン隅にバッジ（レアリティロゴ / 炉研ぎ / New）を重ねる。
 func _apply_item_badges(
 	btn: Button,
 	item: Resource,
@@ -1907,15 +1907,7 @@ func _apply_item_badges(
 	_is_equipped: bool
 ) -> void:
 	var rarity: int = _item_rarity(item, category)
-	var star_font: int = maxi(11, int(size.y * 0.17))
-	_add_corner_badge(
-		btn,
-		EquipmentUiHelper.rarity_stars_text(rarity),
-		Color(0.96, 0.82, 0.35, 1.0),
-		EquipmentUiHelper.RARITY_BADGE_POS,
-		star_font
-	)
-	EquipmentUiHelper.apply_legendary_badge(btn, rarity, size)
+	EquipmentUiHelper.apply_rarity_badges(btn, rarity, size)
 	if category == "weapon":
 		EquipmentUiHelper.apply_enhance_badge(btn, item, category, size, COLOR_GOLD)
 	## 装備中の「装」は出さない。ドロップ直後は中央 New 点滅。

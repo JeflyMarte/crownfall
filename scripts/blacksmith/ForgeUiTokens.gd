@@ -217,6 +217,19 @@ static func list_card_normal_style() -> StyleBox:
 static func list_card_selected_style() -> StyleBox:
 	return texture_stylebox(LIST_CARD_SELECTED, LIST_CARD_MARGINS, 8.0)
 
+
+## 左一覧行枠。モードタブと同アセット（アイコン用左余白は付けない）。
+const LIST_ROW_CONTENT_MARGIN: float = 8.0
+
+static func list_row_from_tab_style(selected: bool) -> StyleBox:
+	var path: String = TAB_ACTIVE if selected else TAB_INACTIVE
+	var sb: StyleBox = texture_stylebox(path, TAB_MARGINS, LIST_ROW_CONTENT_MARGIN)
+	if sb is StyleBoxTexture:
+		var st := sb as StyleBoxTexture
+		st.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+		st.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+	return sb
+
 static func craft_chip_style(selected: bool) -> StyleBox:
 	var path: String = CRAFT_CHIP_SELECTED if selected else CRAFT_CHIP_NORMAL
 	return texture_stylebox(path, ITEM_CELL_MARGINS, 6.0)

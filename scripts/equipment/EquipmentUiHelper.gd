@@ -2,10 +2,10 @@ class_name EquipmentUiHelper
 extends RefCounted
 
 ## 装備レア表示 SSOT（P3-UI-RARITY-NREL-001）。キャラ★個数とは別。
-## N＜R＜E＜L（＋M神話／セット）。旧 ◇◆✦★ 宝石記号は使わない。
-const RARITY_CODES: Array[String] = ["N", "R", "E", "L", "M", "セット"]
-## 装備セル左上の N/R/E/L バッジ位置（少し右寄せ）。
-const RARITY_BADGE_POS: Vector2 = Vector2(7.0, 2.0)
+## N＜R＜E＜L（＋M神話／エンシェントレア）。セル上の文字バッジはロゴ画像へ置換。
+const RARITY_CODES: Array[String] = ["N", "R", "E", "L", "M", "エンシェントレア"]
+## 装備セル左上の N/R/E ロゴ位置（鍛冶屋一覧と同値）。
+const RARITY_BADGE_POS: Vector2 = Vector2(5.0, 3.0)
 const LEVEL_CAP: int = LevelSystem.MAX_LEVEL
 
 const SORT_LABELS: Dictionary = {
@@ -43,13 +43,11 @@ static func stars_text(rarity: int) -> String:
 static func level_line(level: int, max_level: int = LEVEL_CAP) -> String:
 	return "Lv.%d / %d" % [clampi(level, 1, max_level), max_level]
 
-## アイコン隅バッジ用。セットは緑枠のみで文字を重ねない。
-static func rarity_stars_text(rarity: int) -> String:
-	if rarity == Enums.Rarity.SET:
-		return ""
-	return rarity_code(rarity)
+## アイコン隅バッジ用。ロゴ画像を使うため文字は重ねない。
+static func rarity_stars_text(_rarity: int) -> String:
+	return ""
 
-## 詳細・結果などテキスト行用（セットは「セット」表記）。
+## 詳細・結果などテキスト行用（SET＝エンシェントレア）。
 static func rarity_label_text(rarity: int) -> String:
 	return rarity_code(rarity)
 
@@ -120,18 +118,41 @@ static func apply_new_badge(parent: Control, item: Resource, cell_size: Vector2)
 	tween.tween_property(lbl, "modulate:a", 1.0, 0.55).set_trans(Tween.TRANS_SINE)
 
 
-## レジェンド装備アイコンの左下に Legend リボンを重ねる。
-static func apply_legendary_badge(parent: Control, rarity: int, cell_size: Vector2) -> void:
-	if parent == null or rarity < Enums.Rarity.LEGENDARY:
+## レアリティロゴをセルへ重ねる。
+## N/R/E＝左上ロゴ。L／M／エンシェント＝左下ワードマーク。
+static func apply_rarity_badges(parent: Control, rarity: int, cell_size: Vector2) -> void:
+	if parent == null:
 		return
-	var tex: Texture2D = EquipmentUiTokens.legendary_badge()
-	if rarity == Enums.Rarity.MYTHIC:
-		tex = EquipmentUiTokens.mythic_badge()
-	elif rarity == Enums.Rarity.SET:
-		tex = EquipmentUiTokens.legendary_badge()
+	_apply_corner_rarity_logo(parent, rarity, cell_size)
+	_apply_tier_wordmark_badge(parent, rarity, cell_size)
+
+
+static func _apply_corner_rarity_logo(parent: Control, rarity: int, cell_size: Vector2) -> void:
+	var tex: Texture2D = EquipmentUiTokens.corner_rarity_badge(rarity)
 	if tex == null:
 		return
-	var badge_size: Vector2 = EquipmentUiTokens.legendary_badge_size(cell_size)
+	var badge_size: Vector2 = EquipmentUiTokens.corner_rarity_badge_size(cell_size)
+	if badge_size.x <= 0.0 or badge_size.y <= 0.0:
+		return
+	var margin: float = EquipmentUiTokens.CORNER_RARITY_BADGE_MARGIN_PX
+	var icon := TextureRect.new()
+	icon.name = "RarityCornerBadge"
+	icon.texture = tex
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.z_index = 2
+	icon.position = Vector2(RARITY_BADGE_POS.x + margin, RARITY_BADGE_POS.y + margin)
+	icon.size = badge_size
+	icon.custom_minimum_size = badge_size
+	parent.add_child(icon)
+
+
+static func _apply_tier_wordmark_badge(parent: Control, rarity: int, cell_size: Vector2) -> void:
+	var tex: Texture2D = EquipmentUiTokens.tier_badge(rarity)
+	if tex == null:
+		return
+	var badge_size: Vector2 = EquipmentUiTokens.legendary_badge_size(cell_size, tex)
 	if badge_size.x <= 0.0 or badge_size.y <= 0.0:
 		return
 	var margin: float = EquipmentUiTokens.LEGENDARY_BADGE_MARGIN_PX
@@ -151,6 +172,11 @@ static func apply_legendary_badge(parent: Control, rarity: int, cell_size: Vecto
 	icon.offset_right = margin + badge_size.x
 	icon.offset_bottom = -margin
 	parent.add_child(icon)
+
+
+## 互換: 旧名。内部は apply_rarity_badges。
+static func apply_legendary_badge(parent: Control, rarity: int, cell_size: Vector2) -> void:
+	apply_rarity_badges(parent, rarity, cell_size)
 
 static func add_corner_badge(
 	parent: Control,

@@ -747,15 +747,7 @@ func _make_equip_icon_cell(item: Resource, category: String) -> Control:
 	EquipmentUiTokens.attach_item_cell_layers(
 		btn, tex, cell_px, EquipmentUiTokens.INV_CELL_DESIGN_PX, item_id, category
 	)
-	var star_font: int = maxi(11, int(cell_size.y * 0.17))
-	_add_equip_corner_badge(
-		btn,
-		EquipmentUiHelper.rarity_stars_text(rarity),
-		Color(0.96, 0.82, 0.35, 1.0),
-		EquipmentUiHelper.RARITY_BADGE_POS,
-		star_font
-	)
-	EquipmentUiHelper.apply_legendary_badge(btn, rarity, cell_size)
+	EquipmentUiHelper.apply_rarity_badges(btn, rarity, cell_size)
 	if category == "weapon":
 		EquipmentUiHelper.apply_enhance_badge(btn, item, category, cell_size, COLOR_GOLD)
 	btn.pressed.connect(_on_equip_icon_pressed.bind(item, category))

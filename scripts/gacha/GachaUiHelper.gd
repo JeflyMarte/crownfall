@@ -19,7 +19,10 @@ const FEATURED_STATS_MIN_W: float = 220.0
 ## Featured 左の煽り文パネル幅（P3-GACHA-FEATURE-TEASE-001）。
 const FEATURED_BLURB_MIN_W: float = 240.0
 const FEATURED_BLURB_TOP: float = 220.0
-const FEATURED_BLURB_SIDE_PAD: float = 8.0
+## キャラに被りすぎないよう少し右へ。
+const FEATURED_BLURB_SIDE_PAD: float = 22.0
+const FEATURED_BLURB_FONT_SIZE: int = 24
+const FEATURED_BLURB_OUTLINE: int = 4
 ## 台座中心向け。実機の短い枠でもキャラ全体が枠内に収まるよう host から算出。
 const FEATURED_IDLE_OFFSET_X: float = 0.0
 ## 【キャラ上下の主操作】大きいほど上へ。MIN/MAX は自動計算の下限／上限なので触っても効きにくい。
@@ -198,6 +201,19 @@ static func feature_line_for_helper(helper: Resource) -> String:
 		return ""
 	var note: String = str(helper.origin_note) if "origin_note" in helper else ""
 	return ensure_sentence_period(note.strip_edges())
+
+
+## 枠なし煽り文用。DelaGothic＋強い縁取りで可読性を確保。
+static func _apply_feature_blurb_style(label: Label) -> void:
+	var font: Font = UiTypography.impact_font()
+	if font == null:
+		font = UiTypography.display_font()
+	if font != null:
+		label.add_theme_font_override("font", font)
+	label.add_theme_font_size_override("font_size", FEATURED_BLURB_FONT_SIZE)
+	label.add_theme_color_override("font_color", UiTypography.COLOR_GOLD)
+	label.add_theme_constant_override("outline_size", FEATURED_BLURB_OUTLINE)
+	label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.92))
 
 
 ## Featured 固有パッシブ説明。特徴行と重複しないよう origin_note へは落とさない。
@@ -464,7 +480,7 @@ static func build_featured_shell(host: Control) -> Dictionary:
 	idle.offset_bottom = -foot
 	stage.add_child(idle)
 
-	## 左：煽り文のみ（名前／★／ステ／パッシブは右に残す）。
+	## 左：煽り文のみ（枠なし・インパクト書体。名前／★／ステ／パッシブは右）。
 	var blurb_wrap := PanelContainer.new()
 	blurb_wrap.name = "FeatureBlurbWrap"
 	blurb_wrap.set_anchors_preset(Control.PRESET_TOP_LEFT)
@@ -474,13 +490,7 @@ static func build_featured_shell(host: Control) -> Dictionary:
 	blurb_wrap.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	blurb_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	blurb_wrap.z_index = 8
-	var blurb_sb := StyleBoxFlat.new()
-	blurb_sb.bg_color = Color(0.04, 0.03, 0.05, 0.78)
-	blurb_sb.set_corner_radius_all(8)
-	blurb_sb.set_content_margin_all(10.0)
-	blurb_sb.set_border_width_all(1)
-	blurb_sb.border_color = Color(0.72, 0.62, 0.38, 0.75)
-	blurb_wrap.add_theme_stylebox_override("panel", blurb_sb)
+	blurb_wrap.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	fade.add_child(blurb_wrap)
 
 	var feature_lbl := Label.new()
@@ -488,9 +498,9 @@ static func build_featured_shell(host: Control) -> Dictionary:
 	feature_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	feature_lbl.max_lines_visible = 4
 	feature_lbl.clip_text = false
-	feature_lbl.custom_minimum_size = Vector2(FEATURED_BLURB_MIN_W - 20.0, 0)
+	feature_lbl.custom_minimum_size = Vector2(FEATURED_BLURB_MIN_W, 0)
 	feature_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiTypography.apply_display(feature_lbl, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	_apply_feature_blurb_style(feature_lbl)
 	blurb_wrap.add_child(feature_lbl)
 
 	var stats_wrap := PanelContainer.new()
