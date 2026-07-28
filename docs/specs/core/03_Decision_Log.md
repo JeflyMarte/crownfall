@@ -5308,3 +5308,15 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 | P3-BAL-LEG-WPN-A001-7 | **腐血の影弦** — 毒出血敵+35%＋25%付与 | DoTシナジー弓 |
 | P3-BAL-LEG-WPN-A001-8 | **脈打つ閃刃** — 会心時ゲージ+8＆35%追撃 | 会心追撃／ゲージ加速 |
 | P3-BAL-LEG-WPN-A001-9 | **防壁の戦剣** — Threat+120／被ダメ-12% | VG脅威＋減ダメ |
+
+## 属性弱点再配分（2026-07-28 — P3-BAL-ELEM-REBAL-001）
+
+> **オーナー GO（推奨案Aすべて）** — 新キャラなし。既存弱点の付け替えで炎偏重を緩和。ボスは地形有利と整合。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-ELEM-REBAL-001-1 | **新敵追加なし**。`element_weakness` / 一部 `element_resist` / 霜系 `favored_element` のみ変更 | キャラ増より既存の偏り是正 |
+| P3-BAL-ELEM-REBAL-001-2 | **雑魚** — ①一部→闇／②一部→聖・雷／③一部→闇・炎／④一部→氷／⑤嵐系→雷（他は火据置） | Biome主色は残しつつ第2色を混ぜる |
+| P3-BAL-ELEM-REBAL-001-3 | **ボス** — セルディオン=雷＋闇（闇耐性撤去）／クロノス=雷＋聖／ヴァルガード=聖＋雷／ネレイオン系=聖＋氷／モルドガル=雷＋闇 | 地形有利・テーマ整合。氷・闇の穴埋め |
+| P3-BAL-ELEM-REBAL-001-4 | **霜地形** — `frostridge`／`north_reach`／`frostwall_path`／`abyss_frostridge` の `favored_element` を **fire** へ（弱点火と一致）。氷竜を氷弱点にはしない | P3-BAL-FROST-WEAK-FIRE-001 を維持しつつねじれ解消 |
+| P3-BAL-ELEM-REBAL-001-5 | 弱点／耐性倍率・スキル威力は据置 | 体験リスクを属性選択側に閉じる |
