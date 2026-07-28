@@ -120,6 +120,10 @@ var _pending_take_relic_id: String = ""
 @onready var _skill_content: VBoxContainer = $VBoxContainer/TabContainer/TabSkill/SkillContent
 @onready var _ultimate_content: VBoxContainer = $VBoxContainer/TabContainer/TabUltimate/UltimateContent
 @onready var _passive_content: VBoxContainer = $VBoxContainer/TabContainer/TabPassive/PassiveContent
+@onready var _tab_skill_scroll: ScrollContainer = $VBoxContainer/TabContainer/TabSkill
+@onready var _tab_ultimate_scroll: ScrollContainer = $VBoxContainer/TabContainer/TabUltimate
+@onready var _tab_passive_scroll: ScrollContainer = $VBoxContainer/TabContainer/TabPassive
+@onready var _tab_tactics_scroll: ScrollContainer = $VBoxContainer/TabContainer/TabTactics
 
 var _combat_setup_panel: PanelContainer = null
 var _combat_setup_content: VBoxContainer = null
@@ -228,6 +232,10 @@ func _ready() -> void:
 			sc.scroll_deadzone = maxi(sc.scroll_deadzone, ScrollTouchHelper.TOUCH_DEADZONE)
 	## BottomNav の subtree enable 後も、装備タブは外スクロールのみ有効。
 	ScrollTouchHelper.enable(_tab_equip_scroll, false)
+	ScrollTouchHelper.enable(_tab_skill_scroll)
+	ScrollTouchHelper.enable(_tab_ultimate_scroll)
+	ScrollTouchHelper.enable(_tab_passive_scroll)
+	ScrollTouchHelper.enable(_tab_tactics_scroll)
 	_setup_equipment_chrome()
 	_build_category_chips()
 	_apply_panel_styles()
@@ -2146,6 +2154,7 @@ func _rebuild_skill_tab() -> void:
 	hint_label.text = "習得スキル（装備は1本。長押しで詳細／未習得はタップ可）"
 	var job: Resource = DataRegistry.get_job_data(member.job_id)
 	if job == null:
+		ScrollTouchHelper.enable(_tab_skill_scroll)
 		return
 	for entry in SkillProgression.get_unlock_entries(job):
 		if not entry is Dictionary:
@@ -2163,6 +2172,7 @@ func _rebuild_skill_tab() -> void:
 	var weapon_skill: Dictionary = WeaponSkillHelper.get_weapon_skill_display(member)
 	if not str(weapon_skill.get("skill_id", "")).is_empty():
 		list.add_child(_make_weapon_skill_list_row(member, weapon_skill))
+	ScrollTouchHelper.enable(_tab_skill_scroll)
 
 
 func _rebuild_pet_skill_tab(
@@ -2192,6 +2202,7 @@ func _rebuild_pet_skill_tab(
 		list.add_child(_make_skill_list_row(
 			sid, skill_data, member, unlocked, req_lv, is_equipped
 		))
+	ScrollTouchHelper.enable(_tab_skill_scroll)
 
 
 func _make_pet_skill_list_row(
@@ -2415,6 +2426,7 @@ func _rebuild_ultimate_tab() -> void:
 		child.queue_free()
 	var member: Resource = _get_view_adventurer()
 	if member == null:
+		ScrollTouchHelper.enable(_tab_ultimate_scroll)
 		return
 	if PetSystem.is_pet_member(member):
 		var empty := Label.new()
@@ -2422,6 +2434,7 @@ func _rebuild_ultimate_tab() -> void:
 		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		UiTypography.apply_body(empty, UiTypography.SIZE_BODY_SMALL, COLOR_SUB)
 		host.add_child(empty)
+		ScrollTouchHelper.enable(_tab_ultimate_scroll)
 		return
 	var skill_data: Resource = _get_member_ultimate_skill_data(member)
 	if skill_data == null:
@@ -2430,6 +2443,7 @@ func _rebuild_ultimate_tab() -> void:
 		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		UiTypography.apply_body(empty, UiTypography.SIZE_BODY_SMALL, COLOR_SUB)
 		host.add_child(empty)
+		ScrollTouchHelper.enable(_tab_ultimate_scroll)
 		return
 	var skill_id: String = str(skill_data.id)
 	var panel := PanelContainer.new()
@@ -2516,6 +2530,7 @@ func _rebuild_ultimate_tab() -> void:
 			)
 		)
 	host.add_child(panel)
+	ScrollTouchHelper.enable(_tab_ultimate_scroll)
 
 func _get_member_ultimate_skill_data(member: Resource) -> Resource:
 	if member == null:
@@ -2532,20 +2547,23 @@ func _get_member_ultimate_skill_data(member: Resource) -> Resource:
 	return DataRegistry.get_skill_data(ult_id)
 
 # ---- パッシブタブ ----
-const PASSIVE_CARD_ICON_PX: int = 144
+## 一覧はスキル行と同尺。大アイコン＋多重 RTL はタッチスクロールを奪い重い。
+const PASSIVE_CARD_ICON_PX: int = 56
 const PASSIVE_ROW_BTN_W: int = 64
 ## スキル一覧行など行向き UI 用の小アイコン尺。
 const SKILL_ROW_ICON_PX: int = 56
+var _passive_card_style: StyleBoxFlat = null
 
 func _rebuild_passive_tab() -> void:
 	_sync_slot_cell_size()
 	var member: Resource = _get_view_adventurer()
 	var list: Node = _passive_content.get_node("PassiveList")
 	if list is VBoxContainer:
-		(list as VBoxContainer).add_theme_constant_override("separation", 12)
+		(list as VBoxContainer).add_theme_constant_override("separation", 8)
 	for child in list.get_children():
 		child.queue_free()
 	if member == null:
+		ScrollTouchHelper.enable(_tab_passive_scroll)
 		return
 	if PetSystem.is_pet_member(member):
 		var empty := Label.new()
@@ -2553,6 +2571,7 @@ func _rebuild_passive_tab() -> void:
 		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		UiTypography.apply_body(empty, UiTypography.SIZE_BODY_SMALL, COLOR_SUB)
 		list.add_child(empty)
+		ScrollTouchHelper.enable(_tab_passive_scroll)
 		return
 	var char_ids: Array[String] = GameState.get_equipped_character_passive_ids(member)
 	for pid in CombatPassives.selectable_passive_ids(member):
@@ -2562,6 +2581,12 @@ func _rebuild_passive_tab() -> void:
 		list.add_child(_make_passive_equip_card(def, char_ids.has(pid)))
 	for eq_def: Dictionary in CombatPassives.equipment_passives_for_member(member):
 		list.add_child(_make_passive_info_card(eq_def, "装備固定"))
+	ScrollTouchHelper.enable(_tab_passive_scroll)
+
+func _passive_list_card_style() -> StyleBoxFlat:
+	if _passive_card_style == null:
+		_passive_card_style = _framed_box(COLOR_GOLD, 2, Color(0.08, 0.07, 0.05, 0.92))
+	return _passive_card_style
 
 func _make_passive_equip_card(def: Dictionary, is_equipped: bool) -> Control:
 	var pid: String = str(def.get("id", ""))
@@ -2594,54 +2619,28 @@ func _make_passive_info_card(def: Dictionary, tag_text: String) -> Control:
 	body.add_child(tag_lbl)
 	return card
 
-## 必殺技タブと同型: 上=名前/説明、下=大アイコン|効果。
+## スキル一覧に近いコンパクト行。説明は Label（STOP な RTL でドラッグを奪わない）。
 func _make_passive_detail_card(def: Dictionary, use_relic_icon: bool) -> PanelContainer:
 	var pid: String = str(def.get("id", ""))
 	var panel := PanelContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	panel.add_theme_stylebox_override(
-		"panel", _framed_box(COLOR_GOLD, 2, Color(0.08, 0.07, 0.05, 0.92))
-	)
+	panel.add_theme_stylebox_override("panel", _passive_list_card_style())
 	var margin := MarginContainer.new()
 	margin.name = "Margin"
-	margin.add_theme_constant_override("margin_left", 16)
-	margin.add_theme_constant_override("margin_top", 16)
-	margin.add_theme_constant_override("margin_right", 16)
-	margin.add_theme_constant_override("margin_bottom", 16)
+	margin.add_theme_constant_override("margin_left", 10)
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_right", 10)
+	margin.add_theme_constant_override("margin_bottom", 10)
 	panel.add_child(margin)
 	var outer := VBoxContainer.new()
 	outer.name = "Outer"
-	outer.add_theme_constant_override("separation", 16)
+	outer.add_theme_constant_override("separation", 8)
 	outer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	margin.add_child(outer)
-	var header := VBoxContainer.new()
-	header.add_theme_constant_override("separation", 8)
-	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	outer.add_child(header)
-	var name_lbl := Label.new()
-	name_lbl.text = str(def.get("display_name", "—"))
-	var name_font: Font = UiTypography.display_font()
-	if name_font != null:
-		name_lbl.add_theme_font_override("font", name_font)
-	name_lbl.add_theme_font_size_override("font_size", UiTypography.SIZE_DISPLAY_TITLE)
-	name_lbl.add_theme_color_override("font_color", COLOR_GOLD)
-	name_lbl.add_theme_constant_override("outline_size", 3)
-	name_lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
-	header.add_child(name_lbl)
-	var effect_text: String = _passive_effect_text(def)
-	const _StatusLinkPas := preload("res://scripts/ui/StatusEffectLinkHelper.gd")
-	header.add_child(
-		_StatusLinkPas.make_linked_richtext(
-			effect_text,
-			UiTypography.SIZE_BODY_SMALL,
-			COLOR_VALUE,
-			self
-		)
-	)
-	var body := HBoxContainer.new()
-	body.add_theme_constant_override("separation", 16)
-	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	outer.add_child(body)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	outer.add_child(row)
 	var icon: Control = null
 	if use_relic_icon and CombatPassives.is_relic_passive(pid):
 		icon = _make_relic_passive_icon(pid, PASSIVE_CARD_ICON_PX)
@@ -2649,32 +2648,29 @@ func _make_passive_detail_card(def: Dictionary, use_relic_icon: bool) -> PanelCo
 		icon = _make_passive_icon(pid, Vector2(PASSIVE_CARD_ICON_PX, PASSIVE_CARD_ICON_PX))
 	if icon != null:
 		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		icon.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-		body.add_child(icon)
+		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(icon)
 	else:
 		var ph := Control.new()
 		ph.custom_minimum_size = Vector2(PASSIVE_CARD_ICON_PX, PASSIVE_CARD_ICON_PX)
-		ph.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		ph.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-		body.add_child(ph)
-	var fx_col := VBoxContainer.new()
-	fx_col.add_theme_constant_override("separation", 8)
-	fx_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	fx_col.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	body.add_child(fx_col)
-	var fx_title := Label.new()
-	fx_title.text = "効果"
-	UiTypography.apply_body(fx_title, UiTypography.SIZE_BODY, COLOR_GOLD)
-	fx_col.add_child(fx_title)
-	for line in _passive_effect_lines(effect_text):
-		fx_col.add_child(
-			_StatusLinkPas.make_linked_richtext(
-				"・%s" % line,
-				UiTypography.SIZE_BODY_SMALL,
-				COLOR_VALUE,
-				self
-			)
-		)
+		row.add_child(ph)
+	var text_col := VBoxContainer.new()
+	text_col.add_theme_constant_override("separation", 4)
+	text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(text_col)
+	var name_lbl := Label.new()
+	name_lbl.text = str(def.get("display_name", "—"))
+	name_lbl.clip_text = false
+	name_lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	UiTypography.apply_display(name_lbl, UiTypography.SIZE_BODY, COLOR_GOLD)
+	text_col.add_child(name_lbl)
+	var effect_lbl := Label.new()
+	effect_lbl.text = _passive_effect_text(def)
+	effect_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	effect_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	effect_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_body(effect_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_VALUE)
+	text_col.add_child(effect_lbl)
 	return panel
 
 func _passive_effect_lines(effect_text: String) -> Array[String]:
@@ -2853,6 +2849,7 @@ func _rebuild_tactics_tab() -> void:
 	_ensure_combat_preset_ui()
 	_sync_combat_preset_ui()
 	_refresh_tactics_ui(member)
+	ScrollTouchHelper.enable(_tab_tactics_scroll)
 
 func _ensure_combat_setup_panel() -> void:
 	if _combat_setup_panel != null and is_instance_valid(_combat_setup_panel):
