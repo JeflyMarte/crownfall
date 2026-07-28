@@ -5,8 +5,10 @@ const BG_LORE: String = "res://assets/ui/intro/BG_Intro_Lore.png"
 const BG_NAME: String = "res://assets/ui/intro/BG_Intro_Name.png"
 const BG_STARTER: String = "res://assets/ui/intro/BG_Intro_Starter.png"
 const NINA_PORTRAIT: String = "res://assets/npc/ART_NPC_Nina.png"
-## 拠点ナビ／調査室用の顔アイコン（ART から正方形クロップ）。
+## 調査室／セリフ用の顔アイコン（Downloads ニーナアイコン）。
 const NINA_ICON: String = "res://assets/npc/ICO_NPC_Nina.png"
+## 拠点ナビ用の顔ドット（PixelLab 128px）。
+const NINA_ICON_DOT: String = "res://assets/npc/ICO_NPC_Nina_Dot.png"
 ## 簡易ガイド等のドット立ち（SPR）。
 const NINA_DOT: String = "res://assets/npc/SPR_NPC_Nina.png"
 ## セリフ／手引き用の立ち絵。

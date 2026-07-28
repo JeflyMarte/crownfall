@@ -159,12 +159,20 @@ func test_nina_panel_sits_below_top_bar_gap() -> void:
 func test_nina_portrait_asset_exists() -> void:
 	assert_true(FileAccess.file_exists("res://assets/npc/ART_NPC_Nina.png"))
 	assert_true(FileAccess.file_exists("res://assets/npc/ICO_NPC_Nina.png"))
-	## 調査室／ナビ用 ICO は ART 顔クロップ（旧 128px ドットではない）。
+	assert_true(FileAccess.file_exists("res://assets/npc/ICO_NPC_Nina_Dot.png"))
+	## 調査室用 ICO は Downloads ニーナアイコン（透過済み）。
 	var tex: Texture2D = load("res://assets/npc/ICO_NPC_Nina.png") as Texture2D
 	assert_true(tex != null)
 	assert_gte(tex.get_width(), 256)
 	assert_gte(tex.get_height(), 256)
 	assert_eq(tex.get_width(), tex.get_height())
+	## 拠点ナビは旧 128px ドット。
+	var dot: Texture2D = load("res://assets/npc/ICO_NPC_Nina_Dot.png") as Texture2D
+	assert_true(dot != null)
+	assert_eq(dot.get_width(), 128)
+	assert_eq(dot.get_height(), 128)
+	const _IntroUiAssets := preload("res://scripts/intro/IntroUiAssets.gd")
+	assert_eq(_IntroUiAssets.NINA_ICON_DOT, "res://assets/npc/ICO_NPC_Nina_Dot.png")
 
 
 func test_survey_staff_nina_uses_portrait_icon() -> void:
