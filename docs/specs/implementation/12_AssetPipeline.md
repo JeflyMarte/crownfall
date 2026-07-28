@@ -38,6 +38,7 @@ Scene へ組み込み（Impl）
 | UI フレーム / ボタン | `UI_{PascalName}.png` | `UI_Btn_Normal.png` |
 | アイコン | `ICO_{PREFIX}_{PascalName}.png` | `ICO_WPN_IronSword.png` |
 | VFX | `FX_{PascalName}.png` | `FX_Hit_Normal.png` |
+| 帯VFX | `FX_Band_{Style}.png` | `FX_Band_Breath.png`（`assets/vfx/band/`） |
 
 **サイズ:**
 

@@ -1,6 +1,6 @@
 extends GutTest
 
-## P3-UX-COMBAT-BAND-001 — 帯VFXスタイル分類。
+## P3-UX-COMBAT-BAND-001／ART-001 — 帯VFXスタイル分類＋本番シート未配置は無演出。
 
 
 func _fake_skill(id: String, display_name: String, target: String, element: String = "", cast: float = 0.0, slot: String = "skill", effect: String = "damage") -> Resource:
@@ -80,4 +80,36 @@ func test_ultimate_styles() -> void:
 	assert_eq(
 		CombatBandVfx.classify_ultimate(_fake_skill("grand_elixir", "グランドエリクサー", "ally", "", 0.0, "ultimate", "heal")),
 		""
+	)
+
+
+func test_p0_frames_paths_and_missing_means_no_play() -> void:
+	assert_eq(
+		CombatBandVfx.frames_path_for_style(CombatBandVfx.STYLE_BREATH),
+		"res://resources/animation/FX_Band_Breath.tres"
+	)
+	assert_eq(
+		CombatBandVfx.frames_path_for_style(CombatBandVfx.STYLE_PULSE),
+		"res://resources/animation/FX_Band_Pulse.tres"
+	)
+	assert_eq(
+		CombatBandVfx.frames_path_for_style(CombatBandVfx.STYLE_SLASH),
+		"res://resources/animation/FX_Band_Slash.tres"
+	)
+	## 未配置時は has_band_frames=false／play は 0（四角に戻さない）。
+	assert_false(CombatBandVfx.has_band_frames(CombatBandVfx.STYLE_BREATH))
+	assert_false(CombatBandVfx.has_band_frames(CombatBandVfx.STYLE_FAN))
+	var host: Node = add_child_autoqfree(Node.new())
+	var layer: Node = add_child_autoqfree(Node2D.new())
+	assert_eq(
+		CombatBandVfx.play_enemy_band(
+			host, layer, Vector2(100, 100), Rect2(0, 0, 200, 120), CombatBandVfx.STYLE_BREATH, "ice", 1.0
+		),
+		0.0
+	)
+	assert_eq(
+		CombatBandVfx.play_ultimate_band(
+			host, layer, Vector2(40, 80), Vector2(200, 80), CombatBandVfx.STYLE_SLASH, "", 1.0
+		),
+		0.0
 	)
