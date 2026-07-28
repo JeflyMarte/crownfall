@@ -344,7 +344,8 @@ func _build() -> void:
 	var face := TextureRect.new()
 	face.custom_minimum_size = Vector2(FACE_ICON_PX, FACE_ICON_PX)
 	face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	face.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	face.texture = _IntroUiAssets.load_tex("res://assets/npc/ICO_NPC_Nina.png")
 	header.add_child(face)

@@ -159,7 +159,20 @@ func test_nina_panel_sits_below_top_bar_gap() -> void:
 func test_nina_portrait_asset_exists() -> void:
 	assert_true(FileAccess.file_exists("res://assets/npc/ART_NPC_Nina.png"))
 	assert_true(FileAccess.file_exists("res://assets/npc/ICO_NPC_Nina.png"))
+	## 調査室／ナビ用 ICO は ART 顔クロップ（旧 128px ドットではない）。
+	var img := Image.load_from_file("res://assets/npc/ICO_NPC_Nina.png")
+	assert_true(img != null and not img.is_empty())
+	assert_gte(img.get_width(), 256)
+	assert_gte(img.get_height(), 256)
+	assert_eq(img.get_width(), img.get_height())
 
+
+func test_survey_staff_nina_uses_portrait_icon() -> void:
+	const _SurveyStaff := preload("res://scripts/survey/SurveyStaff.gd")
+	assert_eq(_SurveyStaff.icon_path(_SurveyStaff.ID_NINA), "res://assets/npc/ICO_NPC_Nina.png")
+	var tex: Texture2D = _SurveyStaff.load_icon_texture(_SurveyStaff.ID_NINA)
+	assert_true(tex != null)
+	assert_gte(tex.get_width(), 256)
 
 func test_descent_event_line_when_chronos_open() -> void:
 	GameState.owned_helpers["kaida"] = 1

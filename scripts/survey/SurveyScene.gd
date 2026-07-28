@@ -887,7 +887,8 @@ func _build_assignee_card(slot: int, member_id: String, locked: bool, cycle_acti
 		var tex: Texture2D = _SurveySystem.investigator_portrait_texture(member_id)
 		if tex != null:
 			icon.texture = tex
-			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 		name_l.text = _SurveySystem.investigator_display_name(member_id)
 		stars_l.text = "調査室"
 		var role: String = _SurveySystem.role_for_assignee(member_id, slot)
@@ -1093,7 +1094,8 @@ func _make_reward_catalog_row(row: Dictionary) -> Control:
 		var icon := TextureRect.new()
 		icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 		icon.texture = tex
 		icon_host.add_child(icon)
 	var texts := VBoxContainer.new()
