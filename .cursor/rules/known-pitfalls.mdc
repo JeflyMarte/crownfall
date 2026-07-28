@@ -50,6 +50,7 @@ alwaysApply: true
 | 状態異常レジェンドの背景四角 | Panel に半透明 StyleBoxFlat | `StyleBoxEmpty`（アイコン＋効果文言のみ） |
 | 本編 x-1〜x-5 で戦闘BGが全部同じ | Biome 単枚のみ／章切替未配線 | Early＝章1〜3／Late＝4〜5。⑤x-5ボスのみ FinalBoss |
 | 影狩予兆の次が別敵→その次が影狩 | 予兆を `current+1`（前フロア）で出していた | 予兆は出現フロア入場時（計画インデックス＝現在） |
+| ボス大技バナーが味方必殺より短く弱い | 旧 `BOSS_SKILL_CUTIN_HOLD≈0.55` 固定 | 表示尺は `UltimatePresentationConfig` の announce+windup。効果1行＋`combat_ultimate`（P3-UX-BOSS-ULTIMATE-001） |
 | エリート前に中央「エリート」謎文字 | `_begin_elite_combat_entrance` の中央 Label | 中央テロップ禁止。遷移 `[エリート]`＋ネームバッジのみ |
 | 部屋遷移の「[戦闘] F」が消える | ボス／エリートで部屋名を省略しすぎた | 戦闘／エリートは `[種別]\nF` を出す。ボスのみ専用入場のため省略可 |
 | 戦闘が継続的にカクつく | `_process` の CDバー更新が毎フレーム `StyleBoxFlat.new()`。`CombatUiFrames.panel_style` も都度 new＋load | CD/パネル StyleBox をキャッシュ。HPバー追従は position/offset 差分時のみ。ホットパスで `get_image` 禁止 |

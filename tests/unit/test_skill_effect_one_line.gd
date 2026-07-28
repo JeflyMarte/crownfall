@@ -26,3 +26,9 @@ func test_damage_without_status() -> void:
 	var skill: Resource = DataRegistry.get_skill_data("ultimate_strike")
 	assert_not_null(skill)
 	assert_eq(_Helper.for_combat_ultimate(skill), "敵1体に大ダメージ")
+
+
+func test_boss_aoe_one_line() -> void:
+	var skill: Resource = DataRegistry.get_skill_data("boss_decree_wave")
+	assert_not_null(skill)
+	assert_eq(_Helper.for_combat_ultimate(skill), "味方全体に大ダメージ")
