@@ -175,13 +175,12 @@ func _build_chrome() -> void:
 	var face := TextureRect.new()
 	face.custom_minimum_size = Vector2(FACE_PX, FACE_PX)
 	face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	face.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	face.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var icon_tex: Texture2D = _IntroUiAssets.load_tex(_IntroUiAssets.NINA_ICON)
 	if icon_tex == null:
 		icon_tex = _IntroUiAssets.load_tex(_IntroUiAssets.NINA_PORTRAIT)
-		face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	face.texture = icon_tex
 	face_frame.add_child(face)
 
