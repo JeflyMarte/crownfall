@@ -582,6 +582,8 @@ const SUPPORT_VFX_TINT: Dictionary = {
 const ULTIMATE_GOLD: Color = Color(1.0, 0.78, 0.22)
 const ULTIMATE_FLASH_DAMAGE: Color = Color(1.0, 0.88, 0.45)
 const ULTIMATE_FLASH_HEAL: Color = Color(0.55, 1.0, 0.72)
+## 戦闘上の回復数字は緑（必殺も同色。金はダメージ必殺用）。
+const HEAL_NUM_GREEN: Color = Color(0.35, 1.0, 0.48, 1.0)
 ## 攻撃アニメ中のヒット位置（全体尺に対する比率）。ダメージ／ヒットVFXはここまで遅延。
 const ATTACK_IMPACT_FRAME_RATIO: float = 0.58
 const ATTACK_IMPACT_FALLBACK_SEC: float = 0.22
@@ -4075,7 +4077,6 @@ func _apply_heal_room_success_amounts() -> Dictionary:
 
 func _play_heal_room_vfx(heal_amounts: Dictionary) -> void:
 	## 泉は緑の回復数字＋緑VFX（戦闘スキル回復と同系統）。
-	const HEAL_NUM_GREEN: Color = Color(0.35, 1.0, 0.48, 1.0)
 	const HEAL_VFX_GREEN: Color = Color(0.28, 1.0, 0.42, 1.0)
 	if not heal_amounts.is_empty():
 		AudioManager.play_sfx("combat_heal", 1.0, 0.05)
@@ -4883,7 +4884,7 @@ func _execute_member_heal(
 		_spawn_member_heal_vfx(target_idx)
 		if target_idx >= 0 and target_idx < _chr_sprites.size() and _chr_sprites[target_idx].visible:
 			var heal_pos: Vector2 = _chr_sprites[target_idx].global_position + Vector2(0.0, -CHR_BODY_TARGET_PX * 0.5)
-			_spawn_damage_number("+%d" % healed, heal_pos, Color(0.45, 1.0, 0.5), 1.1)
+			_spawn_damage_number("+%d" % healed, heal_pos, HEAL_NUM_GREEN, 1.1)
 	return "\n【スキル】%s: %s を %d回復" % [result["display_name"], target_name, healed]
 
 # バフスキル: 生存中のメイン編成全員に apply_status_id（鼓舞=与ダメ上昇）を付与する。
@@ -9725,7 +9726,7 @@ func _apply_ultimate_heal_impact(payload: Dictionary) -> void:
 		_spawn_member_heal_vfx(target_idx)
 		if target_idx >= 0 and target_idx < _chr_sprites.size() and _chr_sprites[target_idx].visible:
 			var heal_pos: Vector2 = _chr_sprites[target_idx].global_position + Vector2(0.0, -CHR_BODY_TARGET_PX * 0.5)
-			_spawn_damage_number("+%d" % healed, heal_pos, ULTIMATE_GOLD, 1.65)
+			_spawn_damage_number("+%d" % healed, heal_pos, HEAL_NUM_GREEN, 1.65)
 	_append_log(
 		"【必殺】"
 		+ ("\n【スキル】%s: %s を %d回復" % [display_name, target_name, healed]).trim_prefix("【スキル】")
