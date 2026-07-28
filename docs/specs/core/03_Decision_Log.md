@@ -5412,3 +5412,17 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 | P3-UX-EQUIP-SCROLL-002-1 | 所持／装備セルの `gui_input` で **`accept_event` しない**（短タップ・長押しは gui_input のまま） | press 消費が親 Scroll のドラッグ開始を阻害 |
 | P3-UX-EQUIP-SCROLL-002-2 | キャラ装備の内側所持ホストを **ScrollContainer→MarginContainer**（外 TabEquip のみスクロール） | BottomNav subtree enable と入れ子ノイズを除去 |
 | P3-UX-EQUIP-SCROLL-002-3 | 装備一覧（Catalog）も同様に `accept_event` 廃止 | 同症状 |
+
+---
+
+## ロックバイソン出現抑制（2026-07-28 — P3-BAL-ROCK-BISON-SPAWN-001）
+
+> **オーナー GO（案B＋C）** — 全域配置は維持。D2帯内の重みと群れを弱めて序盤の偏りを抑える。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-ROCK-BISON-SPAWN-001-1 | **B** — `EnemyData.spawn_weight_mult`（既定1.0）。帯内抽選に使用。ロックバイソン=**0.4** | ③④序盤でD2が2種だけのとき半分がバイソンになる問題を緩和 |
+| P3-BAL-ROCK-BISON-SPAWN-001-2 | **C** — 群れ **1〜2**（旧2〜3）。`swarm_min` 下限クランプを1許可。イベント `forced_swarm`（岩角）は2〜3据置 | 画面上の体感頭数を抑制 |
+| P3-BAL-ROCK-BISON-SPAWN-001-3 | **据置** — 全非イベント pool 配置・素材率×1.75・岩角専任イベント | 補給役は残す |
+| P3-BAL-ROCK-BISON-SPAWN-001-4 | 境界廊の二重エントリは維持（重み0.4×2でなお厚め） | 降臨の岩鉄感 |
+
