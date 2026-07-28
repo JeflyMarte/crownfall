@@ -328,18 +328,13 @@ func _update_currency() -> void:
 func _refresh_power_label() -> void:
 	var members: Array = _active_members_in_slot_order()
 	_label_power.text = UiTypography.decorate_title_text(
-		"総合戦力 %s" % _format_number(RosterUiHelper.compute_combat_power(members))
+		"総合戦力 %s" % RosterUiHelper.format_combat_power(
+			RosterUiHelper.compute_combat_power(members)
+		)
 	)
 
 func _format_number(value: int) -> String:
-	var text: String = str(value)
-	if text.length() <= 3:
-		return text
-	var out: String = ""
-	while text.length() > 3:
-		out = "," + text.substr(text.length() - 3, 3) + out
-		text = text.substr(0, text.length() - 3)
-	return text + out
+	return RosterUiHelper.format_combat_power(value)
 
 func _init_formation_slots_from_party() -> void:
 	for i in FORMATION_SLOT_COUNT:

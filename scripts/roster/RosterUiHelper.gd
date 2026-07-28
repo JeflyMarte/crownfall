@@ -175,11 +175,39 @@ static func compute_combat_power(members: Array) -> int:
 	for member in members:
 		if member == null:
 			continue
-		var stats: Dictionary = compute_member_stats(member, -1)
-		total += int(stats.get("attack", 0))
-		total += int(stats.get("defense", 0))
-		total += int(stats.get("hp", 0))
+		total += compute_member_combat_power(member)
 	return total
+
+
+## 1人分の総合戦力（P3-UI-COMBAT-POWER-001）。
+## HP + 防御 + 攻撃×速度×(1 + 会心率×(会心ダメ−1))。
+static func compute_member_combat_power(member: Resource) -> int:
+	return combat_power_from_stats(compute_member_stats(member, -1))
+
+
+static func combat_power_from_stats(stats: Dictionary) -> int:
+	if stats.is_empty():
+		return 0
+	var hp: float = float(stats.get("hp", 0))
+	var defense: float = float(stats.get("defense", 0))
+	var attack: float = float(stats.get("attack", 0))
+	var speed: float = maxf(0.0, float(stats.get("speed", 1.0)))
+	var crit_rate: float = clampf(float(stats.get("crit_rate", 0.0)), 0.0, 1.0)
+	var crit_damage: float = maxf(1.0, float(stats.get("crit_damage", 1.5)))
+	var offense: float = attack * speed * (1.0 + crit_rate * (crit_damage - 1.0))
+	return int(round(hp + defense + offense))
+
+
+static func format_combat_power(value: int) -> String:
+	var text: String = str(maxi(0, value))
+	if text.length() <= 3:
+		return text
+	var out: String = ""
+	while text.length() > 3:
+		out = "," + text.substr(text.length() - 3, 3) + out
+		text = text.substr(0, text.length() - 3)
+	return text + out
+
 
 ## party_index は互換のため残す（未使用）。装備由来は常にメンバー本体から集計。
 static func compute_member_stats(member: Resource, _party_index: int = -1) -> Dictionary:

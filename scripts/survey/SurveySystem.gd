@@ -198,14 +198,12 @@ static func on_codex_stage_up(enemy_id: String, stages_gained: int = 1) -> void:
 	add_survey_percent(Constants.MOURNGATE_DUNGEON_ID, add, false)
 
 
-## 装備込みの総合戦闘力（ATK+DEF+HP）。調査速度ボーナスの比例元。
+## 装備込みの総合戦闘力（P3-UI-COMBAT-POWER-001）。調査速度ボーナスの比例元。
 static func investigator_combat_power(member_id: String) -> int:
 	var adv: Resource = GameState.find_roster_member_by_id(member_id)
 	if adv == null:
 		return 0
-	var stats: Dictionary = _RosterUiHelper.compute_member_stats(adv, -1)
-	return int(stats.get("attack", 0)) + int(stats.get("defense", 0)) + int(stats.get("hp", 0))
-
+	return _RosterUiHelper.compute_member_combat_power(adv)
 
 static func investigator_speed_bonus(member_id: String, role_id: String) -> float:
 	## 調査スタッフは研究力固定（P3-SURVEY-STAFF-001）。戦闘員は装備込みステ比例。

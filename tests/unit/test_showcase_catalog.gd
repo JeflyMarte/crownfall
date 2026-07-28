@@ -59,3 +59,22 @@ func test_showcase_member_id_roundtrip_helpers() -> void:
 	GameState.set_showcase_member_id("")
 	assert_eq(GameState.showcase_member_id, "")
 	GameState.showcase_member_id = prev
+
+
+func test_power_and_change_member_layout_rects() -> void:
+	## 総合戦力＝旧キャラ変更帯、キャラ変更＝装備とステのあいだ。
+	var power: Rect2 = ShowcaseUiTokens.POWER_RECT
+	var change: Rect2 = ShowcaseUiTokens.CHANGE_MEMBER_RECT
+	var equip: Rect2 = ShowcaseUiTokens.EQUIP_RECT
+	var stats: Rect2 = ShowcaseUiTokens.STATS_RECT
+	assert_gt(power.position.y, change.position.y)
+	assert_gt(change.position.x, equip.position.x + equip.size.x - 8.0)
+	assert_lt(change.position.x + change.size.x, stats.position.x + 8.0)
+
+
+func test_name_frame_top_rule_sits_above_footer_name() -> void:
+	var rule: Rect2 = ShowcaseUiTokens.NAME_FRAME_TOP_RULE
+	var footer: Rect2 = ShowcaseUiTokens.FOOTER_RECT
+	assert_gte(rule.position.y, footer.position.y - 2.0)
+	assert_lt(rule.position.y, footer.position.y + 20.0)
+	assert_gt(rule.size.x, 100.0)

@@ -5350,3 +5350,14 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 | P3-UI-HELPER-PORTRAIT-FRAME-001-1 | `ART_HELPER_*.png` に金枠・装飾コーナーを焼き込まない | UI クロムと二重／個体差が出る |
 | P3-UI-HELPER-PORTRAIT-FRAME-001-2 | 既存の枠付き（helper_g/h/j/m）はアセット側で除去 | シアン（helper_m）が特に目立つ |
 | P3-UI-HELPER-PORTRAIT-FRAME-001-3 | 再発時は `tools/strip_helper_portrait_frames.py` | 納品差の補正用 |
+
+---
+
+## 総合戦力の戦闘ステ全反映（2026-07-28 — P3-UI-COMBAT-POWER-001）
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UI-COMBAT-POWER-001-1 | **式** — `HP + 防御 + 攻撃×速度×(1+会心率×(会心ダメ−1))` | プラス戦闘ステをすべて反映。単純合計では速度・会心が無視される |
+| P3-UI-COMBAT-POWER-001-2 | **適用** — 編成ヘッダ／調査速度比例／展示室で同一式 | 表示の食い違い防止 |
+| P3-UI-COMBAT-POWER-001-3 | **除外** — スキル・属性・経済 Affix・付与率 | 状況依存／非戦闘を混ぜない |
+| P3-UI-COMBAT-POWER-001-4 | **推奨戦力** — ダンジョン選択の式は据置 | 必要なら後続で再キャリブ |

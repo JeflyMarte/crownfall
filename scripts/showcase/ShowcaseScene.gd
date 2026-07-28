@@ -45,6 +45,10 @@ var _detail_title: Label = null
 var _staff_caption: Label = null
 var _staff_player_name: String = ""
 var _btn_change_member: Button = null
+var _power_panel: PanelContainer = null
+var _power_caption: Label = null
+var _power_value: Label = null
+var _name_frame_top_rule: Control = null
 var _pick_overlay: Control = null
 var _pick_list: VBoxContainer = null
 
@@ -61,6 +65,8 @@ func _ready() -> void:
 	_btn_staff.pressed.connect(func(): _set_mode(Mode.STAFF))
 	_setup_chrome()
 	_ensure_staff_caption()
+	_ensure_power_panel()
+	_ensure_name_frame_top_rule()
 	_ensure_change_member_button()
 	_apply_layout_rects()
 	_build_staff_strip()
@@ -166,6 +172,18 @@ func _apply_layout_rects() -> void:
 	_footer.position = footer.position
 	_footer.size = footer.size
 
+	if _power_panel != null:
+		var power_r: Rect2 = ShowcaseUiTokensScript.POWER_RECT
+		_power_panel.position = power_r.position
+		_power_panel.size = power_r.size
+		_power_panel.custom_minimum_size = power_r.size
+
+	if _name_frame_top_rule != null:
+		var rule_r: Rect2 = ShowcaseUiTokensScript.NAME_FRAME_TOP_RULE
+		_name_frame_top_rule.position = rule_r.position
+		_name_frame_top_rule.size = rule_r.size
+		_name_frame_top_rule.queue_redraw()
+
 	if _btn_change_member != null:
 		var change_r: Rect2 = ShowcaseUiTokensScript.CHANGE_MEMBER_RECT
 		_btn_change_member.position = change_r.position
@@ -232,6 +250,102 @@ func _ensure_staff_caption() -> void:
 	_staff_caption.visible = false
 	UiTypography.apply_caption(_staff_caption, COLOR_GOLD)
 	add_child(_staff_caption)
+
+
+func _ensure_name_frame_top_rule() -> void:
+	## 背景焼込の名札枠は上辺横線が欠けているため、金線＋中央菱で補完する。
+	if _name_frame_top_rule != null:
+		return
+	_name_frame_top_rule = Control.new()
+	_name_frame_top_rule.name = "NameFrameTopRule"
+	_name_frame_top_rule.z_index = 4
+	_name_frame_top_rule.visible = false
+	_name_frame_top_rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_name_frame_top_rule.draw.connect(_on_name_frame_top_rule_draw)
+	add_child(_name_frame_top_rule)
+
+
+func _on_name_frame_top_rule_draw() -> void:
+	if _name_frame_top_rule == null:
+		return
+	var sz: Vector2 = _name_frame_top_rule.size
+	if sz.x < 8.0 or sz.y < 1.0:
+		return
+	var y_mid: float = sz.y * 0.5
+	var gold := Color(0.90, 0.74, 0.38, 0.92)
+	var gold_dim := Color(0.72, 0.56, 0.28, 0.75)
+	## 左右から中央菱へ向かう横線（中央は菱で切る）。
+	var diamond_half: float = 5.0
+	var cx: float = sz.x * 0.5
+	_name_frame_top_rule.draw_line(
+		Vector2(0.0, y_mid), Vector2(cx - diamond_half - 1.0, y_mid), gold, 1.5, true
+	)
+	_name_frame_top_rule.draw_line(
+		Vector2(cx + diamond_half + 1.0, y_mid), Vector2(sz.x, y_mid), gold, 1.5, true
+	)
+	var diamond := PackedVector2Array([
+		Vector2(cx, y_mid - diamond_half * 0.7),
+		Vector2(cx + diamond_half, y_mid),
+		Vector2(cx, y_mid + diamond_half * 0.7),
+		Vector2(cx - diamond_half, y_mid),
+	])
+	_name_frame_top_rule.draw_colored_polygon(diamond, gold)
+	_name_frame_top_rule.draw_polyline(
+		PackedVector2Array([diamond[0], diamond[1], diamond[2], diamond[3], diamond[0]]),
+		gold_dim,
+		1.0,
+		true
+	)
+
+
+func _ensure_power_panel() -> void:
+	if _power_panel != null:
+		return
+	_power_panel = PanelContainer.new()
+	_power_panel.name = "PowerPanel"
+	_power_panel.z_index = 6
+	_power_panel.visible = false
+	_power_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_power_panel.add_theme_stylebox_override("panel", _power_panel_style())
+	var vb := VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 0)
+	vb.alignment = BoxContainer.ALIGNMENT_CENTER
+	vb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_power_panel.add_child(vb)
+	_power_caption = Label.new()
+	_power_caption.text = "総合戦力"
+	_power_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_power_caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_caption(_power_caption, COLOR_GOLD)
+	vb.add_child(_power_caption)
+	_power_value = Label.new()
+	_power_value.text = "0"
+	_power_value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_power_value.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_display(
+		_power_value, ShowcaseUiTokensScript.STAT_POWER_FONT_SIZE, COLOR_GOLD
+	)
+	vb.add_child(_power_value)
+	add_child(_power_panel)
+
+
+func _power_panel_style() -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.05, 0.04, 0.07, 0.82)
+	sb.set_border_width_all(1)
+	sb.border_color = Color(0.86, 0.72, 0.36, 0.85)
+	sb.set_corner_radius_all(6)
+	sb.content_margin_left = 10.0
+	sb.content_margin_top = 4.0
+	sb.content_margin_right = 10.0
+	sb.content_margin_bottom = 4.0
+	return sb
+
+
+func _set_power_display(power: int) -> void:
+	_ensure_power_panel()
+	if _power_value != null:
+		_power_value.text = RosterUiHelper.format_combat_power(power)
 
 
 func _ensure_change_member_button() -> void:
@@ -333,6 +447,12 @@ func _set_stage_visible(on: bool) -> void:
 	_stats_panel.visible = on
 	_idle_host.visible = on
 	_footer.visible = on
+	if _power_panel != null:
+		_power_panel.visible = on
+	if _name_frame_top_rule != null:
+		_name_frame_top_rule.visible = on
+		if on:
+			_name_frame_top_rule.queue_redraw()
 
 
 func _show_empty_own() -> void:
@@ -547,6 +667,8 @@ func _populate_stage(member: Resource) -> void:
 	portrait.set_from_member(member)
 
 	var stats: Dictionary = RosterUiHelper.compute_member_stats(member)
+	_set_power_display(RosterUiHelper.combat_power_from_stats(stats))
+
 	var values: Array[String] = [
 		"%d" % int(stats.get("hp", 0)),
 		"%d" % int(stats.get("attack", 0)),

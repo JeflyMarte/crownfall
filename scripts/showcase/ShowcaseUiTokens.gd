@@ -21,8 +21,12 @@ const IDLE_CENTER := Vector2(360, 688)
 const IDLE_HOST_SIZE := Vector2(260, 320)
 ## 名前テキストのみ（枠なし）。台座下〜下ナビ上へ。
 const FOOTER_RECT := Rect2(100, 1030, 520, 90)
-## 自分の展示：キャラ変更ボタン（名前の少し上）。
-const CHANGE_MEMBER_RECT := Rect2(230, 940, 260, 44)
+## 総合戦力（旧・キャラ変更位置＝名前の少し上）。
+const POWER_RECT := Rect2(230, 930, 260, 56)
+## 名札枠上辺の欠けた横線を補完（焼込角飾り ≈ y1033・左右内側）。
+const NAME_FRAME_TOP_RULE := Rect2(242, 1032, 236, 3)
+## 自分の展示：キャラ変更（左装備枠と右ステ枠のあいだ・上寄り）。
+const CHANGE_MEMBER_RECT := Rect2(248, 248, 224, 44)
 const EMPTY_RECT := Rect2(90, 210, 540, 400)
 const BODY_BOTTOM_PAD: float = 128.0
 ## 装備セル相対オフセット（パネル左上基準）。レア枠付きセル中央寄せ。
@@ -33,6 +37,7 @@ const EQUIP_ICON_OFFSETS: Array[Vector2] = [
 ]
 ## 装備品一覧に近い可読サイズ（レア枠・背景・N/R/E/L 表示）。
 const EQUIP_CELL_PX: int = 80
+## 個別ステは焼込見出し直下から（総合戦力は POWER_RECT）。
 const STAT_HEADER_PAD: float = 142.0
 const STAT_ROW_H: float = 45.0
 const STAT_ICON_LEFT: float = 10.0
@@ -40,6 +45,7 @@ const STAT_ICON_PX: float = 26.0
 const STAT_VALUE_LEFT: float = 44.0
 const STAGE_IDLE_PX: float = 228.0
 const STAT_VALUE_FONT_SIZE: int = 20
+const STAT_POWER_FONT_SIZE: int = 24
 const STAT_KEYS: Array[String] = [
 	"hp",
 	"attack",
