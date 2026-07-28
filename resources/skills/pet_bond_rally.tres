@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "pet_bond_rally"
 display_name = "相棒鼓舞"
-description = "オトモ専用の強い鼓舞。号令より短CD・高倍率で相棒を主軸に押す。"
+description = "オトモを強く鼓舞する。相棒を主軸に攻めたいときに。"
 skill_type = "player"
 target_type = "pet"
 power_multiplier = 1.0

@@ -3452,7 +3452,7 @@ func _skill_applies_status(skill_data: Resource) -> bool:
 		return true
 	return not str(skill_data.apply_status_id2).is_empty() and float(skill_data.apply_status_chance2) > 0.0
 
-## 一覧行用の性能一行（例: 威力x1.50。CD；2.0）。
+## 一覧行用の性能一行（例: 威力×1.5／再使用2秒）。
 func _skill_performance_text(skill_data: Resource, unlocked: bool = true, req_lv: int = 1) -> String:
 	if skill_data == null:
 		return ""
@@ -3555,10 +3555,11 @@ func _skill_stats_detail_lines(skill_data: Resource, unlocked: bool = true, req_
 			if eff_b != null:
 				var up: int = int(round((eff_b.outgoing_damage_multiplier - 1.0) * 100.0))
 				if up != 0:
-					lines.append("味方与ダメ: +%d%%" % up)
-				lines.append("持続: %dtick" % eff_b.duration_ticks)
+					lines.append("味方の与ダメージ: +%d%%" % up)
+				if int(eff_b.duration_ticks) > 0:
+					lines.append("持続: しばらく続く")
 		_:
-			lines.append("威力: x%.2f" % skill_data.power_multiplier)
+			lines.append("威力: ×%.1f" % skill_data.power_multiplier)
 			var elem_label: String = _ElementResolver.get_display_name(str(skill_data.element))
 			if not elem_label.is_empty():
 				lines.append("属性: %s" % elem_label)
@@ -3570,7 +3571,7 @@ func _skill_stats_detail_lines(skill_data: Resource, unlocked: bool = true, req_
 				)
 				if not status_line.is_empty():
 					lines.append("付与: %s" % status_line)
-	lines.append("再使用: %.1fs" % skill_data.cooldown)
+	lines.append("再使用: %.0f秒" % skill_data.cooldown)
 	if float(skill_data.cast_time) >= 1.0:
 		lines.append("詠唱: %dターン" % int(skill_data.cast_time))
 	var reserve: String = _skill_reserve_label(str(skill_data.reserve_condition))
@@ -3666,7 +3667,7 @@ func _skill_detail_text(skill_data: Resource, unlocked: bool = true, req_lv: int
 	match skill_data.effect_type:
 		"heal":
 			var amt: int = int(round(skill_data.power_multiplier * 14.0))
-			body = "回復+%d。CD；%.1f" % [amt, skill_data.cooldown]
+			body = "回復+%d／再使用%.0f秒" % [amt, skill_data.cooldown]
 		"buff":
 			var parts_buff: PackedStringArray = []
 			var eff_b: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id)
@@ -3674,13 +3675,14 @@ func _skill_detail_text(skill_data: Resource, unlocked: bool = true, req_lv: int
 				var up: int = int(round((eff_b.outgoing_damage_multiplier - 1.0) * 100.0))
 				if up != 0:
 					parts_buff.append("味方与ダメ+%d%%" % up)
-				parts_buff.append("%dtick" % eff_b.duration_ticks)
-			parts_buff.append("CD；%.1f" % skill_data.cooldown)
-			body = "。".join(parts_buff)
+				if int(eff_b.duration_ticks) > 0:
+					parts_buff.append("しばらく続く")
+			parts_buff.append("再使用%.0f秒" % skill_data.cooldown)
+			body = "／".join(parts_buff)
 		_:
 			var parts: PackedStringArray = [
-				"威力x%.2f" % skill_data.power_multiplier,
-				"CD；%.1f" % skill_data.cooldown,
+				"威力×%.1f" % skill_data.power_multiplier,
+				"再使用%.0f秒" % skill_data.cooldown,
 			]
 			var elem_short: String = _ElementResolver.get_display_name(str(skill_data.element))
 			if not elem_short.is_empty():
@@ -3693,7 +3695,7 @@ func _skill_detail_text(skill_data: Resource, unlocked: bool = true, req_lv: int
 				var eff2: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id2)
 				var st_name2: String = eff2.display_name if eff2 != null else "状態異常"
 				parts.append("%s%.0f%%" % [st_name2, skill_data.apply_status_chance2 * 100.0])
-			body = "。".join(parts)
+			body = "／".join(parts)
 	if not unlocked:
 		return "🔒 Lv%d  %s" % [req_lv, body]
 	return body

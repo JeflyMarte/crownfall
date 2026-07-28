@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "chain_slash"
 display_name = "連刃"
-description = "追い刃の連携斬。自身でも出血を付けやすく、出血中はさらに効く。"
+description = "追い打ちの斬撃。出血している敵に特に効き、自分でも出血を付けやすい。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.35

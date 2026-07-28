@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "ultimate_strike"
 display_name = "渾身の一撃"
-description = "力を解き放つ大技。長い再使用時間を要するが、絶大な威力で敵を打ち砕く。"
+description = "力を解き放つ大技。次に使えるまで長いが、絶大な威力で敵を打ち砕く。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 3.0

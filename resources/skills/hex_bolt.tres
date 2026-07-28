@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "hex_bolt"
 display_name = "アンブラボルト"
-description = "速い呪い弾。呪を何度も張り直す速攻役。重い呪は呪印へ。"
+description = "素早い呪いの弾。敵の攻撃を弱め、短い間隔で何度も張り直せる。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.3

@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "mark_pursuit"
 display_name = "追標射"
-description = "標を追う追い矢。自身でも標的を付けやすく、標的中はさらに効く。"
+description = "標を追う追い矢。標的が付いている敵に特に効き、自分でも標的を付けやすい。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.35

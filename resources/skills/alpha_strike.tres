@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "alpha_strike"
 display_name = "統率の一撃"
-description = "群れの長として獲物に標的を付け、狩りの起点を作る。"
+description = "獲物に標的を付け、狩りの合図を出す。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.55

@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "rend_slash"
 display_name = "裂傷斬"
-description = "刃で深く切り込み、敵に出血を負わせる。斬撃連携の起点となる。"
+description = "刃で深く切り込み、敵に出血を負わせる。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.35

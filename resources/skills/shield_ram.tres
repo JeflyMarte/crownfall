@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "shield_ram"
 display_name = "盾殴り"
-description = "盾で叩きつけ敵の装甲を砕く。硬い敵への切り札。"
+description = "盾で叩きつけ、敵の装甲を砕く。硬い敵への切り札。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.4

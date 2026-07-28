@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "frail_dust"
 display_name = "脆弱の粉"
-description = "錬成した粉末で敵の装甲を溶かし、防御を大きく下げる。脆弱はアンブラへ。"
+description = "錬成した粉末で敵の装甲を溶かし、防御を大きく下げる。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.15

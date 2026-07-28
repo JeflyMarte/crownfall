@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "apex_slash"
 display_name = "極意斬"
-description = "重い構えから放つ極意の一閃。威力は高いが間が空き、回転役の一閃とは役割が違う。"
+description = "力を溜めて放つ重い一閃。威力は高いが、次に撃てるまで時間がかかる。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 2.35

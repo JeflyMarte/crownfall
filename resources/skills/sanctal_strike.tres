@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "sanctal_strike"
 display_name = "サンクトエッジ"
-description = "武器の属性ダメージとは別に、聖光の一撃で敵の守りを崩す。スキル自体は無属性。"
+description = "聖なる一撃で敵の守りを崩す。武器の属性とは別に効く。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.35

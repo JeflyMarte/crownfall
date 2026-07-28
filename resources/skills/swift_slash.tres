@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "swift_slash"
 display_name = "疾風斬"
-description = "素早い一閃で間合いを保ちながら切り込む。短い間隔で何度も放てる。"
+description = "素早い一閃で間合いを保ちながら切り込む。短い間隔で何度も撃てる。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.2

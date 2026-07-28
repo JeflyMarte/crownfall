@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "arc_bolt"
 display_name = "魔力弾"
-description = "杖先から凝縮した魔力弾を放つ。アルケミストの基本攻撃魔法。"
+description = "杖先から凝縮した魔力弾を放つ。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.2

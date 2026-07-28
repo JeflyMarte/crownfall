@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "focus_mark"
 display_name = "見切り"
-description = "敵の急所を見抜き標的を付ける。味方の集中砲火を誘導する。"
+description = "敵の急所を見抜き標的を付ける。味方が集まりやすい印。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.15

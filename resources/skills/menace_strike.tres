@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "menace_strike"
 display_name = "威嚇斬"
-description = "威圧的な一撃でヘイトを奪い、怯ませて矢面に立つ。"
+description = "威圧的な一撃で敵の注意を引き、怯ませて矢面に立つ。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.05

@@ -81,7 +81,7 @@ const _DEFS: Dictionary = {
 	},
 	"galen_sacred_bastion": {
 		"display_name": "聖盾の砦",
-		"description": "攻撃を受けたとき、反撃する（CD 3秒）。",
+		"description": "攻撃を受けたとき、反撃する（再使用3秒）。",
 		"trigger": "on_hit_taken",
 		"condition": "always",
 		"effect": "counter_attack",
@@ -89,13 +89,13 @@ const _DEFS: Dictionary = {
 	},
 	"mirei_swarm_resonance": {
 		"display_name": "相棒共鳴",
-		"description": "ペットが生存中、ペットの与ダメージが20%上昇する。",
+		"description": "オトモが生存中、オトモの与ダメージが20%上昇する。",
 		"pet_outgoing_mult": 1.20,
 	},
 	# ---- ジョブフォールバック（非基本ロスター・助っ人等） ----
 	"bulwark": {
 		"display_name": "鉄壁",
-		"description": "攻撃を受けたとき、反撃する（CD 4秒）。",
+		"description": "攻撃を受けたとき、反撃する（再使用4秒）。",
 		"trigger": "on_hit_taken",
 		"condition": "always",
 		"effect": "counter_attack",
@@ -113,7 +113,7 @@ const _DEFS: Dictionary = {
 	},
 	"pack_instinct": {
 		"display_name": "群れの指揮",
-		"description": "ペットが生存中、ペットの与ダメージが10%上昇する。",
+		"description": "オトモが生存中、オトモの与ダメージが10%上昇する。",
 		"pet_outgoing_mult": 1.10,
 	},
 	# ---- ガチャ助っ人固有（P3-GACHA-005 / P3-PASSIVE-CHAR-001） ----
@@ -208,7 +208,7 @@ const _DEFS: Dictionary = {
 	},
 	"neri_waterfowl_call": {
 		"display_name": "水鳥の指揮",
-		"description": "ペットが生存中、ペットの与ダメージが25%上昇し、防御が10%上昇する。",
+		"description": "オトモが生存中、オトモの与ダメージが25%上昇し、防御が10%上昇する。",
 		"pet_outgoing_mult": 1.25,
 		"pet_defense_mult": 1.10,
 	},
@@ -243,7 +243,7 @@ const _DEFS: Dictionary = {
 	},
 	"spare_vial": {
 		"display_name": "予備薬瓶",
-		"description": "HPが50%を下回ったとき、自身を96回復する（CD 10秒）。",
+		"description": "HPが50%を下回ったとき、自身を96回復する（再使用10秒）。",
 		"trigger": "on_hit_taken",
 		"condition": "self_hp_below", "value": 0.5,
 		"effect": "heal", "target": "self", "heal_value": BalanceConfig.SPARE_VIAL_HEAL,
@@ -305,7 +305,7 @@ const _DEFS: Dictionary = {
 	"eq_serdion_ward": {
 		"display_name": "霊廟の守護",
 		"category": "armor",
-		"description": "被弾時、HP50%未満なら自身に防御（guard）を付与する（CD 6秒）。",
+		"description": "被弾時、HPが半分未満なら自身に防御を付与する（再使用6秒）。",
 		"trigger": "on_hit_taken",
 		"condition": "self_hp_below", "value": 0.5,
 		"effect": "apply_status", "status_id": "guard", "target": "self",
@@ -323,7 +323,7 @@ const _DEFS: Dictionary = {
 	"eq_granvel_bark": {
 		"display_name": "共生の樹皮",
 		"category": "armor",
-		"description": "被弾時、最大HPの4%を回復する（CD 5秒）。",
+		"description": "被弾時、最大HPの4%を回復する（再使用5秒）。",
 		"trigger": "on_hit_taken",
 		"condition": "always",
 		"effect": "heal",
@@ -343,7 +343,7 @@ const _DEFS: Dictionary = {
 	"eq_moldgar_abyss": {
 		"display_name": "深淵鱗の反毒",
 		"category": "armor",
-		"description": "被弾時30%で攻撃敵に毒（poison）を付与する。",
+		"description": "被弾時30%で攻撃してきた敵に毒を付与する。",
 		"trigger": "on_hit_taken",
 		"condition": "always",
 		"effect": "apply_status", "status_id": "poison", "target": "enemy",
@@ -353,16 +353,16 @@ const _DEFS: Dictionary = {
 	"eq_seradis_archive": {
 		"display_name": "封緘の加護",
 		"category": "accessory",
-		"description": "戦闘開始時、味方全体に防御（guard）を付与する。",
+		"description": "戦闘開始時、味方全体に防御を付与する。",
 		"trigger": "on_combat_start",
 		"condition": "always",
 		"effect": "apply_status", "status_id": "guard", "target": "party",
 		"cooldown": 0.0,
 	},
 	"eq_nereion_tide": {
-		"display_name": "潮铠の冷却",
+		"display_name": "潮鎧の冷却",
 		"category": "armor",
-		"description": "被弾時25%で攻撃敵に冷却（chill）を付与する（CD 4秒）。",
+		"description": "被弾時25%で攻撃してきた敵に冷却を付与する（再使用4秒）。",
 		"trigger": "on_hit_taken",
 		"condition": "always",
 		"effect": "apply_status", "status_id": "chill", "target": "enemy",
@@ -372,7 +372,7 @@ const _DEFS: Dictionary = {
 	"eq_pharos_beacon": {
 		"display_name": "潮灯の標照",
 		"category": "accessory",
-		"description": "戦闘開始時、敵全体に標的（mark）を付与する。",
+		"description": "戦闘開始時、敵全体に標的を付与する。",
 		"trigger": "on_combat_start",
 		"condition": "always",
 		"effect": "apply_status", "status_id": "mark", "target": "enemy_all",
@@ -381,7 +381,7 @@ const _DEFS: Dictionary = {
 	"eq_eldion_glacier": {
 		"display_name": "氷鱗の凍結",
 		"category": "armor",
-		"description": "被弾時20%で攻撃敵に冷却（chill）を付与する（CD 5秒）。",
+		"description": "被弾時20%で攻撃してきた敵に冷却を付与する（再使用5秒）。",
 		"trigger": "on_hit_taken",
 		"condition": "always",
 		"effect": "apply_status", "status_id": "chill", "target": "enemy",
@@ -391,7 +391,7 @@ const _DEFS: Dictionary = {
 	"eq_frostridge_boundary": {
 		"display_name": "境界の鉄壁",
 		"category": "accessory",
-		"description": "味方が倒れたとき、生存味方全体に防御（guard）を付与する（戦闘中1回）。",
+		"description": "味方が倒れたとき、残った味方全体に防御を付与する（戦闘中1回）。",
 		"trigger": "on_ally_death",
 		"condition": "always",
 		"effect": "apply_status", "status_id": "guard", "target": "party",
@@ -415,7 +415,7 @@ const _DEFS: Dictionary = {
 	"relic_old_hourglass": {
 		"display_name": "古い砂時計",
 		"category": "relic",
-		"description": "行動速度 +10%（CT短縮）",
+		"description": "行動が10%早くなる",
 		"speed_mult": 1.10,
 	},
 	"relic_berserker_charm": {
@@ -663,7 +663,7 @@ const _DEFS: Dictionary = {
 	"eq_abyss_mirestaff": {
 		"display_name": "澱みの霧ガード",
 		"category": "weapon",
-		"description": "被弾時に霧ガード（被ダメ半減）を付与する（CD 8秒）。",
+		"description": "被弾時に霧ガード（被ダメ半減）を付与する（再使用8秒）。",
 		"trigger": "on_hit_taken",
 		"condition": "always",
 		"effect": "apply_status",
@@ -681,7 +681,7 @@ const _DEFS: Dictionary = {
 	"eq_abyss_riftclaw": {
 		"display_name": "裂氷の氷殻",
 		"category": "weapon",
-		"description": "被弾時またはHP40%未満で氷殻（被ダメ-35%、4秒）。氷殻中は反撃する（CD 6秒）。",
+		"description": "被弾時またはHP40%未満で氷殻（被ダメ-35%、4秒）。氷殻中は反撃する（再使用6秒）。",
 		"ice_shell_incoming_mult": 0.65,
 		"ice_shell_duration_sec": 4.0,
 		"ice_shell_hp_threshold": 0.40,
@@ -763,7 +763,7 @@ const _DEFS: Dictionary = {
 	"eq_wpn_aegis_line_sword": {
 		"display_name": "防壁の戦剣",
 		"category": "weapon",
-		"description": "Threat基礎 +120。被ダメ -12%。",
+		"description": "敵の注目を集めやすくなり、被ダメージが12%軽減する。",
 		"threat_base_add": 120.0,
 		"incoming_mult": 0.88,
 	},
@@ -1288,9 +1288,9 @@ static func _passive_effect_summary(def: Dictionary) -> String:
 	if float(def.get("outgoing_mult", 1.0)) > 1.0:
 		parts.append("与ダメ +%d%%" % int(round((float(def["outgoing_mult"]) - 1.0) * 100.0)))
 	if float(def.get("pet_outgoing_mult", 1.0)) > 1.0:
-		parts.append("ペット与ダメ +%d%%" % int(round((float(def["pet_outgoing_mult"]) - 1.0) * 100.0)))
+		parts.append("オトモ与ダメ +%d%%" % int(round((float(def["pet_outgoing_mult"]) - 1.0) * 100.0)))
 	if float(def.get("pet_defense_mult", 1.0)) > 1.0:
-		parts.append("ペット防御 +%d%%" % int(round((float(def["pet_defense_mult"]) - 1.0) * 100.0)))
+		parts.append("オトモ防御 +%d%%" % int(round((float(def["pet_defense_mult"]) - 1.0) * 100.0)))
 	if float(def.get("incoming_mult", 1.0)) < 1.0:
 		parts.append("被ダメ -%d%%" % int(round((1.0 - float(def["incoming_mult"])) * 100.0)))
 	if float(def.get("incoming_mult", 1.0)) > 1.0:
@@ -1302,7 +1302,7 @@ static func _passive_effect_summary(def: Dictionary) -> String:
 	if float(def.get("first_attack_mult", 1.0)) > 1.0:
 		parts.append("初撃 ×%.1f" % float(def["first_attack_mult"]))
 	if float(def.get("threat_base_add", 0.0)) > 0.0:
-		parts.append("Threat +%.1f" % float(def["threat_base_add"]))
+		parts.append("敵の注目 +%.0f" % float(def["threat_base_add"]))
 	if float(def.get("ultimate_power_mult", 1.0)) > 1.0:
 		parts.append("必殺 +%d%%" % int(round((float(def["ultimate_power_mult"]) - 1.0) * 100.0)))
 	if float(def.get("exp_gain_mult", 1.0)) > 1.0:

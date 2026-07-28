@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "blade_tempest"
 display_name = "剣嵐"
-description = "剣気を解き放ち、眼前の敵全体を斬り払う。単体より一打は軽いが群れに効く。"
+description = "剣気を解き放ち、敵全体を斬り払う。一打は控えめだが、群れに効く。"
 skill_type = "player"
 target_type = "all_enemies"
 power_multiplier = 0.95

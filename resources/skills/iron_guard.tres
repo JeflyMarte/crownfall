@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "iron_guard"
 display_name = "鉄盾斬"
-description = "盾の要領で切り込み、自身に防御をまとう。自保が必要なときの要。"
+description = "盾の要領で切り込み、自身に防御をまとう。守りを固めたいときに。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.15
