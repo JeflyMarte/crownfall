@@ -270,8 +270,9 @@ func _ready() -> void:
 func _maybe_show_content_unlock() -> void:
 	const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
 	## 章クリア加入ストーリー中は拠点で功績→解放の順に出す。
+	## 完全調査達成も拠点（メインメニュー）まで残す。
 	if not GameState.pending_clear_nina_merit:
-		_ContentUnlockNotice.show_pending_on(
+		_ContentUnlockNotice.show_pending_on_except_hub_deferred(
 			self, Callable(self, "_after_unlock_notices_for_guides")
 		)
 	else:
@@ -351,7 +352,6 @@ func _maybe_show_descent_route_guide() -> void:
 	if _EventDungeonSchedule.open_hourly_event_ids().is_empty():
 		return
 	_DungeonRouteGuide.show_on(self, _DungeonRouteGuide.GUIDE_DESCENT, false)
-
 
 func _setup_party_empty_dialog() -> void:
 	_party_empty_dialog = AcceptDialog.new()

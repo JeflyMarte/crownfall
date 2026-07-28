@@ -218,9 +218,22 @@ static func has_pending() -> bool:
 	return not GameState.pending_content_unlock_notices.is_empty()
 
 
+## 結果／ダンジョン選択では出さず、拠点（メインメニュー）で出す kind。
+const KIND_SURVEY_COMPLETE: String = "survey_complete"
+
+
+static func _defer_to_hub_kinds() -> PackedStringArray:
+	return PackedStringArray([KIND_SURVEY_COMPLETE])
+
+
 ## キュー先頭を1件表示。dismiss で次があれば続けて出す。
 ## on_all_done: キュー消化後（または空のとき）に1回呼ぶ。
-static func show_pending_on(parent: Node, on_all_done: Callable = Callable()) -> CanvasLayer:
+## skip_kinds: 表示せずキューに残す kind（拠点へ持ち越し）。
+static func show_pending_on(
+	parent: Node,
+	on_all_done: Callable = Callable(),
+	skip_kinds: PackedStringArray = PackedStringArray()
+) -> CanvasLayer:
 	if parent == null:
 		if on_all_done.is_valid():
 			on_all_done.call()
@@ -229,7 +242,7 @@ static func show_pending_on(parent: Node, on_all_done: Callable = Callable()) ->
 	if existing != null:
 		## dismiss 直後は queue_free 待ち。同フレーム再入すると on_all_done が呼ばれず連鎖が止まる。
 		if existing.is_queued_for_deletion():
-			_defer_show_pending(parent, on_all_done)
+			_defer_show_pending(parent, on_all_done, skip_kinds)
 		return null
 	if not has_pending():
 		## 解放ポップのあとに無限／降臨ガイド（pending）があれば先に出す。
@@ -238,31 +251,62 @@ static func show_pending_on(parent: Node, on_all_done: Callable = Callable()) ->
 		if on_all_done.is_valid():
 			on_all_done.call()
 		return null
-	var raw: Variant = GameState.pending_content_unlock_notices.pop_front()
-	if not raw is Dictionary:
-		return show_pending_on(parent, on_all_done)
-	var entry: Dictionary = raw
-	var name_str: String = str(entry.get("display_name", "")).strip_edges()
-	if name_str.is_empty():
-		return show_pending_on(parent, on_all_done)
+	var deferred: Array = []
+	var entry: Dictionary = {}
+	var found: bool = false
+	while not GameState.pending_content_unlock_notices.is_empty():
+		var raw: Variant = GameState.pending_content_unlock_notices.pop_front()
+		if not raw is Dictionary:
+			continue
+		var candidate: Dictionary = raw
+		var name_str: String = str(candidate.get("display_name", "")).strip_edges()
+		if name_str.is_empty():
+			continue
+		var kind: String = str(candidate.get("kind", "dungeon")).strip_edges()
+		if skip_kinds.has(kind):
+			deferred.append(candidate)
+			continue
+		entry = candidate
+		found = true
+		break
+	## スキップした通知は元の相対順を保って先頭へ戻す。
+	for i in range(deferred.size() - 1, -1, -1):
+		GameState.pending_content_unlock_notices.push_front(deferred[i])
+	if not found:
+		if on_all_done.is_valid():
+			on_all_done.call()
+		return null
 	var content_id: String = str(entry.get("id", "")).strip_edges()
-	var kind: String = str(entry.get("kind", "dungeon")).strip_edges()
+	var shown_kind: String = str(entry.get("kind", "dungeon")).strip_edges()
 	var detail: String = str(entry.get("detail", "")).strip_edges()
+	var display_name: String = str(entry.get("display_name", "")).strip_edges()
 	var rewards: Array = []
 	var rewards_v: Variant = entry.get("rewards", [])
 	if rewards_v is Array:
 		rewards = rewards_v as Array
-	var banner_id: String = _banner_id_for_entry(kind, content_id)
+	var banner_id: String = _banner_id_for_entry(shown_kind, content_id)
 	var overlay: CanvasLayer = _DungeonUnlockOverlay.show_on(
-		parent, name_str, banner_id, kind, detail, rewards
+		parent, display_name, banner_id, shown_kind, detail, rewards
 	)
 	overlay.dismissed.connect(func(_n: String) -> void:
-		_defer_show_pending(parent, on_all_done)
+		_defer_show_pending(parent, on_all_done, skip_kinds)
 	)
 	return overlay
 
 
-static func _defer_show_pending(parent: Node, on_all_done: Callable) -> void:
+## 結果／選択画面用。完全調査などは拠点まで残す。
+static func show_pending_on_except_hub_deferred(
+	parent: Node,
+	on_all_done: Callable = Callable()
+) -> CanvasLayer:
+	return show_pending_on(parent, on_all_done, _defer_to_hub_kinds())
+
+
+static func _defer_show_pending(
+	parent: Node,
+	on_all_done: Callable,
+	skip_kinds: PackedStringArray = PackedStringArray()
+) -> void:
 	if parent == null or not is_instance_valid(parent):
 		if on_all_done.is_valid():
 			on_all_done.call()
@@ -274,7 +318,7 @@ static func _defer_show_pending(parent: Node, on_all_done: Callable) -> void:
 		return
 	tree.create_timer(0.0).timeout.connect(
 		func() -> void:
-			show_pending_on(parent, on_all_done),
+			show_pending_on(parent, on_all_done, skip_kinds),
 		CONNECT_ONE_SHOT
 	)
 

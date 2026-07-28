@@ -140,7 +140,8 @@ func _maybe_show_content_unlock() -> void:
 	if GameState.pending_clear_nina_merit:
 		return
 	const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
-	_ContentUnlockNotice.show_pending_on(self)
+	## 完全調査達成は結果ではなく拠点（メインメニュー）で出す。
+	_ContentUnlockNotice.show_pending_on_except_hub_deferred(self)
 
 func _process(delta: float) -> void:
 	if _step_timer_sec <= 0.0:
