@@ -654,10 +654,10 @@ const BOSS_WARNING_SCRIM_ALPHA: float = 0.78
 const BOSS_WARNING_PULSE_SEC: float = 0.42
 const BOSS_WARNING_PULSE_SCALE_HI: Vector2 = Vector2(1.14, 1.14)
 const BOSS_WARNING_PULSE_SCALE_LO: Vector2 = Vector2(0.96, 0.96)
-## ボス大技カットイン（P3-COMBAT-BOSS-CUTIN-001）。
-const BOSS_SKILL_CUTIN_HOLD_SEC: float = 0.55
-const BOSS_SKILL_CUTIN_FADE_SEC: float = 0.14
+## ボス大技カットイン（P3-COMBAT-BOSS-CUTIN-001 / P3-UX-BOSS-ULTIMATE-001）。
+## 表示時間は味方必殺カットインと同尺（UltimatePresentationConfig）。
 const BOSS_SKILL_CUTIN_FACE_PX: float = 168.0
+const BOSS_SKILL_CUTIN_FADE_IN_SEC: float = 0.18
 ## 影狩り戦闘フロア専用の薄暗（BattlefieldArea 上の ColorRect）。
 const SHADOW_STALKER_FLOOR_DIM: Color = Color(0.04, 0.02, 0.12, 0.46)
 ## 属性ごとの演出色（命中VFXの modulate / スキル名フォント色に共用）。
@@ -5492,6 +5492,7 @@ func _play_boss_skill_cutin(skill: Resource) -> void:
 	var enemy_id: String = ""
 	if $CombatController.current_enemy_data != null:
 		enemy_id = str($CombatController.current_enemy_data.id)
+	var effect_line: String = _SkillEffectOneLineHelper.for_combat_ultimate(skill)
 	var root := Control.new()
 	root.name = "BossSkillCutin"
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -5506,8 +5507,10 @@ func _play_boss_skill_cutin(skill: Resource) -> void:
 	band.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	band.set_anchors_preset(Control.PRESET_CENTER_LEFT)
 	band.anchor_right = 1.0
-	band.offset_top = -110.0
-	band.offset_bottom = 110.0
+	## 効果1行分だけ帯を高くする（味方必殺カットインと同方針）
+	var band_half: float = 124.0 if not effect_line.is_empty() else 110.0
+	band.offset_top = -band_half
+	band.offset_bottom = band_half
 	band.offset_left = 0.0
 	band.offset_right = 0.0
 	root.add_child(band)
@@ -5533,13 +5536,13 @@ func _play_boss_skill_cutin(skill: Resource) -> void:
 
 	var col := VBoxContainer.new()
 	col.alignment = BoxContainer.ALIGNMENT_CENTER
-	col.add_theme_constant_override("separation", 8)
+	col.add_theme_constant_override("separation", 6)
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(col)
 
 	var tag := Label.new()
-	tag.text = "大技"
+	tag.text = "必殺技"
 	tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_display(tag, 22, Color(1.0, 0.55, 0.35), UiTypography.OUTLINE_STRONG)
@@ -5554,14 +5557,33 @@ func _play_boss_skill_cutin(skill: Resource) -> void:
 	UiTypography.apply_display(name_lbl, 42, Color(1.0, 0.92, 0.82), UiTypography.OUTLINE_STRONG)
 	col.add_child(name_lbl)
 
-	AudioManager.play_sfx("combat_skill", 0.88, 0.08)
-	var speed: float = maxf(0.75, _ultimate_presentation_speed_mult())
-	var hold: float = BOSS_SKILL_CUTIN_HOLD_SEC / speed
-	var fade: float = BOSS_SKILL_CUTIN_FADE_SEC / speed
+	if not effect_line.is_empty():
+		var effect_lbl := Label.new()
+		effect_lbl.name = "BossUltimateEffectLine"
+		effect_lbl.text = effect_line
+		effect_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		effect_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		effect_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+		effect_lbl.clip_text = false
+		effect_lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		UiTypography.apply_body(effect_lbl, 22)
+		effect_lbl.add_theme_color_override("font_color", Color(0.96, 0.88, 0.78, 0.95))
+		effect_lbl.add_theme_color_override("font_outline_color", Color(0.08, 0.0, 0.0, 0.9))
+		effect_lbl.add_theme_constant_override("outline_size", 5)
+		col.add_child(effect_lbl)
+
+	## 味方必殺と同系の決めSE（通常スキル音は使わない）
+	AudioManager.play_sfx("combat_ultimate", 0.92, 0.06)
+	var speed: float = _ultimate_presentation_speed_mult()
+	var t: Dictionary = UltimatePresentationConfigScript.scaled(speed)
+	## 味方必殺バナー可視尺 = announce + windup。フェードアウト = release。
+	var fade_in: float = BOSS_SKILL_CUTIN_FADE_IN_SEC / maxf(speed if speed > 0.0 else 1.0, 0.01)
+	var hold: float = float(t["announce"]) + float(t["windup"])
+	var fade_out: float = float(t["release"])
 	_boss_skill_cutin_tween = create_tween()
-	_boss_skill_cutin_tween.tween_property(root, "modulate:a", 1.0, fade)
+	_boss_skill_cutin_tween.tween_property(root, "modulate:a", 1.0, fade_in)
 	_boss_skill_cutin_tween.tween_interval(hold)
-	_boss_skill_cutin_tween.tween_property(root, "modulate:a", 0.0, fade)
+	_boss_skill_cutin_tween.tween_property(root, "modulate:a", 0.0, fade_out)
 	_boss_skill_cutin_tween.tween_callback(_dismiss_boss_skill_cutin.bind(0.0))
 
 

@@ -5317,6 +5317,16 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 | P3-UX-ULTIMATE-EFFECT-001-1 | カットイン帯に **技名直下1行**（対象＋主効果＋付与状態名） | 発動瞬間に何をする技か分かる |
 | P3-UX-ULTIMATE-EFFECT-001-2 | 文言は `SkillEffectOneLineHelper` で自動生成（手書きフィールドなし） | 5職メンテ不要・数値変更に追随 |
 | P3-UX-ULTIMATE-EFFECT-001-3 | CD・威力xは出さない。状態は表示名を `／` 連結（付与率％なし） | 戦闘中の可読性優先 |
+
+## ボス詠唱大技の必殺格上げ（2026-07-28 — P3-UX-BOSS-ULTIMATE-001）
+> **オーナー GO（案A）** — 既存の詠唱大技をボス必殺として演出格上げ。数値は据置。バナー尺は味方必殺と同長。
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-BOSS-ULTIMATE-001-1 | 対象は従来どおり `RoomType.BOSS` かつ `cast_time>0`（激昂等の即時は除外） | 既存キャリア流用 |
+| P3-UX-BOSS-ULTIMATE-001-2 | カットイン表示尺 = 味方必殺の announce+windup（`UltimatePresentationConfig`）。フェードアウト=release | 「短すぎる」解消・同尺 |
+| P3-UX-BOSS-ULTIMATE-001-3 | ラベル「必殺技」＋技名直下に効果1行（`SkillEffectOneLineHelper`）＋SE `combat_ultimate` | 味方必殺と同型の読みやすさ |
+| P3-UX-BOSS-ULTIMATE-001-4 | 戦闘進行は止めない（オーバーレイのみ）据置 | P3-COMBAT-BOSS-CUTIN-001-5 |
+| P3-UX-BOSS-ULTIMATE-001-5 | 威力・CD・新規スキルは本Taskスコープ外（数値据置） | 体験リスクを演出側に閉じる |
 ## 助っ人肖像の焼き込み枠除去（2026-07-28 — P3-UI-HELPER-PORTRAIT-FRAME-001）
 > **オーナー GO（案A）** — 編成で一部だけ枠付きに見える問題を、**焼き込み枠なし**に揃えて解消。
 | P3-UI-HELPER-PORTRAIT-FRAME-001-1 | `ART_HELPER_*.png` に金枠・装飾コーナーを焼き込まない | UI クロムと二重／個体差が出る |
