@@ -16,6 +16,10 @@ const BANNER_PORTRAIT_MIN_W: int = 96
 const FEATURED_MIN_RARITY: int = 3
 const FEATURED_IDLE_PX: float = 196.0
 const FEATURED_STATS_MIN_W: float = 220.0
+## Featured 左の煽り文パネル幅（P3-GACHA-FEATURE-TEASE-001）。
+const FEATURED_BLURB_MIN_W: float = 240.0
+const FEATURED_BLURB_TOP: float = 220.0
+const FEATURED_BLURB_SIDE_PAD: float = 8.0
 ## 台座中心向け。実機の短い枠でもキャラ全体が枠内に収まるよう host から算出。
 const FEATURED_IDLE_OFFSET_X: float = 0.0
 ## 【キャラ上下の主操作】大きいほど上へ。MIN/MAX は自動計算の下限／上限なので触っても効きにくい。
@@ -188,12 +192,12 @@ static func ensure_sentence_period(text: String) -> String:
 	return t + "。"
 
 
-## Featured 特徴1行（origin_note）。パッシブ説明の上に出す（P3-GACHA-FEATURE-BLURB-001）。
+## Featured 煽り文（origin_note）。本文のみ・！止め推奨（P3-GACHA-FEATURE-TEASE-001）。
 static func feature_line_for_helper(helper: Resource) -> String:
 	if helper == null:
 		return ""
 	var note: String = str(helper.origin_note) if "origin_note" in helper else ""
-	return ensure_sentence_period(note)
+	return ensure_sentence_period(note.strip_edges())
 
 
 ## Featured 固有パッシブ説明。特徴行と重複しないよう origin_note へは落とさない。
@@ -432,7 +436,8 @@ static func build_featured_shell(host: Control) -> Dictionary:
 	banner_bg.texture = GachaUiTokens.load_tex(GachaUiTokens.BANNER_BG)
 	fade.add_child(banner_bg)
 
-	## 台座は枠全体の中央。ステージを全面にしてキャラを台座上へ置く（ステは右オーバーレイ）。
+	## 台座は枠全体の中央。ステージを全面にしてキャラを台座上へ置く。
+	## ステは右、煽り文は左（P3-GACHA-FEATURE-TEASE-001）。
 	var stage := Control.new()
 	stage.name = "FeaturedStage"
 	stage.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -458,6 +463,35 @@ static func build_featured_shell(host: Control) -> Dictionary:
 	idle.offset_top = -idle_px - foot
 	idle.offset_bottom = -foot
 	stage.add_child(idle)
+
+	## 左：煽り文のみ（名前／★／ステ／パッシブは右に残す）。
+	var blurb_wrap := PanelContainer.new()
+	blurb_wrap.name = "FeatureBlurbWrap"
+	blurb_wrap.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	blurb_wrap.offset_left = FEATURED_BLURB_SIDE_PAD
+	blurb_wrap.offset_right = FEATURED_BLURB_SIDE_PAD + FEATURED_BLURB_MIN_W
+	blurb_wrap.offset_top = FEATURED_BLURB_TOP
+	blurb_wrap.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	blurb_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	blurb_wrap.z_index = 8
+	var blurb_sb := StyleBoxFlat.new()
+	blurb_sb.bg_color = Color(0.04, 0.03, 0.05, 0.78)
+	blurb_sb.set_corner_radius_all(8)
+	blurb_sb.set_content_margin_all(10.0)
+	blurb_sb.set_border_width_all(1)
+	blurb_sb.border_color = Color(0.72, 0.62, 0.38, 0.75)
+	blurb_wrap.add_theme_stylebox_override("panel", blurb_sb)
+	fade.add_child(blurb_wrap)
+
+	var feature_lbl := Label.new()
+	feature_lbl.name = "LabelFeature"
+	feature_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	feature_lbl.max_lines_visible = 4
+	feature_lbl.clip_text = false
+	feature_lbl.custom_minimum_size = Vector2(FEATURED_BLURB_MIN_W - 20.0, 0)
+	feature_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_display(feature_lbl, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	blurb_wrap.add_child(feature_lbl)
 
 	var stats_wrap := PanelContainer.new()
 	stats_wrap.name = "StatsWrap"
@@ -524,16 +558,7 @@ static func build_featured_shell(host: Control) -> Dictionary:
 	UiTypography.apply_display(def_lbl, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	stats.add_child(def_lbl)
 
-	## 特徴（origin_note）→ 固有パッシブ説明の順（P3-GACHA-FEATURE-BLURB-001）。
-	var feature_lbl := Label.new()
-	feature_lbl.name = "LabelFeature"
-	feature_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	feature_lbl.max_lines_visible = 3
-	feature_lbl.clip_text = false
-	feature_lbl.custom_minimum_size = Vector2(FEATURED_STATS_MIN_W, 0)
-	UiTypography.apply_display(feature_lbl, UiTypography.SIZE_CAPTION, UiTypography.COLOR_BODY)
-	stats.add_child(feature_lbl)
-
+	## 右は固有パッシブ説明のみ（煽り文は左へ分離）。
 	var unique_lbl := Label.new()
 	unique_lbl.name = "LabelUnique"
 	unique_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -550,6 +575,7 @@ static func build_featured_shell(host: Control) -> Dictionary:
 		"fade": fade,
 		"stage": stage,
 		"stats_wrap": stats_wrap,
+		"blurb_wrap": blurb_wrap,
 		"idle": idle,
 		"pool_strip": pool_strip,
 		"name": name_lbl,
@@ -686,6 +712,9 @@ static func apply_featured_helper(shell: Dictionary, helper: Resource) -> void:
 	if feature_lbl != null:
 		feature_lbl.text = feature_text
 		feature_lbl.visible = not feature_text.is_empty()
+	var blurb_wrap: Control = shell.get("blurb_wrap") as Control
+	if blurb_wrap != null:
+		blurb_wrap.visible = not feature_text.is_empty()
 	var unique_text: String = unique_line_for_helper(helper)
 	var unique_lbl: Label = shell.get("unique") as Label
 	if unique_lbl != null:

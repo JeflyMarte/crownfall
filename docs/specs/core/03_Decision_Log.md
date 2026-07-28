@@ -5308,3 +5308,13 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 | P3-BAL-LEG-WPN-A001-7 | **腐血の影弦** — 毒出血敵+35%＋25%付与 | DoTシナジー弓 |
 | P3-BAL-LEG-WPN-A001-8 | **脈打つ閃刃** — 会心時ゲージ+8＆35%追撃 | 会心追撃／ゲージ加速 |
 | P3-BAL-LEG-WPN-A001-9 | **防壁の戦剣** — Threat+120／被ダメ-12% | VG脅威＋減ダメ |
+
+---
+
+## 招待状 Featured 煽り文の左配置（2026-07-28 — P3-GACHA-FEATURE-TEASE-001）
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-GACHA-FEATURE-TEASE-001-1 | **左** — `origin_note`（煽り文）のみをキャラ左へ | オーナー指定。ステ／★／パッシブは右据置 |
+| P3-GACHA-FEATURE-TEASE-001-2 | **文面** — 本文のみ・！止めの煽り調へ改稿 | 例「稀に行動しないが最強クラスのステータスを誇る剣士！」 |
+| P3-GACHA-FEATURE-TEASE-001-3 | **上書き** — P3-GACHA-FEATURE-BLURB-001 の右ステ内配置 | 役割は特徴行のまま、位置のみ変更 |
