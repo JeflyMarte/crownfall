@@ -66,6 +66,7 @@ func save_game() -> void:
 		"debug_full_unlock": GameState.debug_full_unlock,
 		"showcase_member_id": GameState.showcase_member_id,
 		"tutorial_flags": GameState.tutorial_flags.duplicate(true),
+		"new_equipment_instance_ids": GameState.new_equipment_instance_ids.duplicate(true),
 	}
 	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file == null:
@@ -692,6 +693,15 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.tutorial_flags = (data["tutorial_flags"] as Dictionary).duplicate(true)
 	else:
 		GameState.tutorial_flags = {}
+	if data.has("new_equipment_instance_ids") and data["new_equipment_instance_ids"] is Dictionary:
+		var new_ids: Dictionary = {}
+		for key_v in (data["new_equipment_instance_ids"] as Dictionary).keys():
+			var key: String = str(key_v).strip_edges()
+			if not key.is_empty():
+				new_ids[key] = true
+		GameState.new_equipment_instance_ids = new_ids
+	else:
+		GameState.new_equipment_instance_ids = {}
 	## デバッグ再演でフラグが消えた進行済みセーブを修復（Continue でガイド再出防止）。
 	_heal_hub_simple_guide_flag_if_progressed(data)
 	_heal_hub_intro_ceremony_flags(data)

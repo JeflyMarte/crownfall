@@ -364,7 +364,7 @@ func _apply_item_badges(
 	item: Resource,
 	category: String,
 	size: Vector2,
-	is_equipped: bool
+	_is_equipped: bool
 ) -> void:
 	var rarity: int = _item_rarity(item, category)
 	var star_font: int = maxi(11, int(size.y * 0.17))
@@ -378,13 +378,8 @@ func _apply_item_badges(
 	EquipmentUiHelper.apply_legendary_badge(btn, rarity, size)
 	if category == "weapon":
 		EquipmentUiHelper.apply_enhance_badge(btn, item, category, size, COLOR_GOLD)
-	if is_equipped:
-		var eq_font: int = maxi(10, int(size.y * 0.14))
-		var eq_y: float = size.y - float(eq_font) - 4.0
-		if rarity >= Enums.Rarity.LEGENDARY:
-			var badge_h: float = EquipmentUiTokens.legendary_badge_size(size).y
-			eq_y = size.y - badge_h - float(eq_font) - 6.0
-		_add_corner_badge(btn, "装", COLOR_ACCENT, Vector2(3.0, eq_y), eq_font)
+	## 装備中の「装」は出さない。ドロップ直後は中央 New 点滅。
+	EquipmentUiHelper.apply_new_badge(btn, item, size)
 
 func _add_corner_badge(
 	btn: Button,
