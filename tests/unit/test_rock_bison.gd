@@ -1,7 +1,8 @@
 extends GutTest
 
-## P3-ENEMY-ROCK-BISON-001 — ロックバイソン（素材ドロップ率↑・全DG配置・専用アート）。
+## P3-ENEMY-ROCK-BISON-001 / P3-BAL-ROCK-BISON-SPAWN-001 — ロックバイソン。
 
+const _DungeonController = preload("res://scripts/dungeon/DungeonController.gd")
 
 const _EVENT_ONLY: Array[String] = [
 	"golden_nest",
@@ -18,11 +19,18 @@ func test_rock_bison_data_shape() -> void:
 	assert_eq(str(data.id), "rock_bison")
 	assert_eq(str(data.display_name), "ロックバイソン")
 	assert_true(bool(data.can_swarm))
-	assert_eq(int(data.swarm_min), 2)
-	assert_eq(int(data.swarm_max), 3)
+	assert_eq(int(data.swarm_min), 1)
+	assert_eq(int(data.swarm_max), 2)
 	assert_eq(int(data.codex_danger), 2)
 	assert_almost_eq(float(data.material_drop_chance_mult), 1.75, 0.0001)
+	assert_almost_eq(float(data.spawn_weight_mult), 0.4, 0.0001)
 	assert_true(data.codex_materials.is_empty())
+
+
+func test_default_enemy_spawn_weight_is_one() -> void:
+	var boar: Resource = DataRegistry.get_enemy_data("moss_boar")
+	assert_not_null(boar)
+	assert_almost_eq(float(boar.spawn_weight_mult), 1.0, 0.0001)
 
 
 func test_default_enemy_material_mult_is_one() -> void:
@@ -63,4 +71,23 @@ func test_rock_bison_dedicated_art() -> void:
 	assert_ne(
 		str(IconPaths.ICON_MAP["enemy:rock_bison"]),
 		str(IconPaths.ICON_MAP["enemy:moss_boar"])
+	)
+
+
+func test_rock_bison_spawn_weight_thins_mistfen_d2() -> void:
+	## D2= bone_picker(1.0) + rock_bison(0.4) → バイソン ≈22%（旧50%）。全体≈11%（旧25%）。
+	seed(424242)
+	var dc: Node = _DungeonController.new()
+	add_child_autofree(dc)
+	dc.start_stage("mistfen_3_1")
+	var bison: int = 0
+	var total: int = 3000
+	for _i in total:
+		var enemy: Resource = dc.pick_enemy_data()
+		if str(enemy.id) == "rock_bison":
+			bison += 1
+	var ratio: float = float(bison) / float(total)
+	assert_true(
+		ratio > 0.06 and ratio < 0.18,
+		"mistfen_3_1 bison ~11%% after weight 0.4 (got %.2f)" % ratio
 	)

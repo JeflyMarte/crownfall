@@ -41,6 +41,8 @@ extends Resource
 @export var codex_materials: Array[String] = []
 ## 通常COMBAT素材ドロップ率倍率（P3-ENEMY-ROCK-BISON-001）。1.0=既定。種類は共通プールのまま。
 @export var material_drop_chance_mult: float = 1.0
+## 同 danger 帯内の出現重み（P3-BAL-ROCK-BISON-SPAWN-001）。1.0=均等。pool 重複と乗算。
+@export var spawn_weight_mult: float = 1.0
 ## 味方狙いの偏重（P3-D145）。max_threat=最大Threat / lowest_hp=低HP優先 / back_row=後列優先 / lowest_threat=最小Threat
 @export var threat_target_bias: String = "max_threat"
 ## 遍在希少種（放浪個体 / P3-WANDER-001）。全 Biome の COMBAT に低確率差し込み。

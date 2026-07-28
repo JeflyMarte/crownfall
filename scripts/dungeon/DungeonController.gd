@@ -1078,10 +1078,10 @@ func pick_enemy_data() -> Resource:
 	if current_stage_data != null and not current_stage_data.spawn_weights.is_empty():
 		return _pick_weighted_pool_enemy(pool, current_stage_data.spawn_weights)
 	return _EnemyTierVariantConfig.apply_for_current_tier(
-		DataRegistry.get_enemy_data(pool[randi() % pool.size()] as String)
+		_pick_enemy_from_pool_entries(pool)
 	)
 
-## COMBAT 雑魚: `spawn_weights` × `codex_danger` で tier 抽選 → tier 内均等（P3-ENEMY-001）。
+## COMBAT 雑魚: `spawn_weights` × `codex_danger` で tier 抽選 → tier 内は `spawn_weight_mult`（P3-ENEMY-001 / P3-BAL-ROCK-BISON-SPAWN-001）。
 ## プールに該当 danger が無い tier は重みから除外して再正規化。
 func _pick_weighted_pool_enemy(pool: Array, spawn_weights: Dictionary) -> Resource:
 	var by_danger: Dictionary = {}
@@ -1106,21 +1106,53 @@ func _pick_weighted_pool_enemy(pool: Array, spawn_weights: Dictionary) -> Resour
 		total_weight += tier_weight
 	if total_weight <= 0 or tier_entries.is_empty():
 		return _EnemyTierVariantConfig.apply_for_current_tier(
-			DataRegistry.get_enemy_data(pool[randi() % pool.size()] as String)
+			_pick_enemy_from_pool_entries(pool)
 		)
 	var roll: int = randi() % total_weight
 	var cumulative: int = 0
 	for entry in tier_entries:
 		cumulative += int(entry["weight"])
 		if roll < cumulative:
-			var tier_enemies: Array = entry["enemies"]
 			return _EnemyTierVariantConfig.apply_for_current_tier(
-				tier_enemies[randi() % tier_enemies.size()]
+				_pick_enemy_data_weighted(entry["enemies"] as Array)
 			)
 	var fallback_enemies: Array = tier_entries[tier_entries.size() - 1]["enemies"]
 	return _EnemyTierVariantConfig.apply_for_current_tier(
-		fallback_enemies[randi() % fallback_enemies.size()]
+		_pick_enemy_data_weighted(fallback_enemies)
 	)
+
+
+## pool の id 列から EnemyData を集め、`spawn_weight_mult` で1体選ぶ。
+func _pick_enemy_from_pool_entries(pool: Array) -> Resource:
+	var enemies: Array = []
+	for raw_id in pool:
+		var enemy_data: Resource = DataRegistry.get_enemy_data(str(raw_id))
+		if enemy_data != null:
+			enemies.append(enemy_data)
+	return _pick_enemy_data_weighted(enemies)
+
+
+## 帯内／pool 内の重み抽選。`spawn_weight_mult`（既定1.0）。0以下は除外。
+func _pick_enemy_data_weighted(enemies: Array) -> Resource:
+	if enemies.is_empty():
+		return null
+	var total: float = 0.0
+	var weights: Array[float] = []
+	for ed in enemies:
+		var w: float = 1.0
+		if ed != null:
+			w = maxf(0.0, float(ed.spawn_weight_mult))
+		weights.append(w)
+		total += w
+	if total <= 0.0:
+		return enemies[randi() % enemies.size()] as Resource
+	var roll: float = randf() * total
+	var acc: float = 0.0
+	for i in enemies.size():
+		acc += weights[i]
+		if roll <= acc:
+			return enemies[i] as Resource
+	return enemies[enemies.size() - 1] as Resource
 
 func pick_elite_enemy_data() -> Resource:
 	if current_dungeon_data == null:
@@ -1131,7 +1163,7 @@ func pick_elite_enemy_data() -> Resource:
 	if pool.is_empty():
 		return null
 	return _EnemyTierVariantConfig.apply_for_current_tier(
-		DataRegistry.get_enemy_data(pool[randi() % pool.size()] as String)
+		_pick_enemy_from_pool_entries(pool)
 	)
 
 func pick_boss_enemy_data() -> Resource:
@@ -1220,7 +1252,8 @@ func pick_combat_enemy_group() -> Array[Resource]:
 	swarm_chance = minf(0.95, swarm_chance * EventSystem.get_swarm_chance_mult())
 	if randf() >= swarm_chance:
 		return group
-	var lo: int = maxi(2, int(base.swarm_min))
+	## 敵ごとの swarm_min を尊重（1許可）。イベント forced_swarm は従来どおり下限2。
+	var lo: int = maxi(1, int(base.swarm_min))
 	var hi: int = maxi(lo, int(base.swarm_max))
 	if forced_swarm:
 		lo = maxi(2, int(current_dungeon_data.forced_swarm_min))
@@ -1832,7 +1865,7 @@ func _spawn_weapon(weapon_id: String) -> void:
 	last_weapon_dropped = weapon_id
 	EventBus.weapon_obtained.emit(weapon_id)
 	GameState.note_equipment_obtained(instance)
-GameState.mark_equipment_new(instance)
+	GameState.mark_equipment_new(instance)
 	GameState.record_last_run_equipment_drop(instance, "weapon")
 
 func _generate_armor_loot() -> void:
@@ -1889,7 +1922,7 @@ func _spawn_armor(armor_id: String) -> void:
 	GameState.armor_inventory.append(instance)
 	last_armor_dropped = armor_id
 	GameState.note_equipment_obtained(instance)
-GameState.mark_equipment_new(instance)
+	GameState.mark_equipment_new(instance)
 	GameState.record_last_run_equipment_drop(instance, "armor")
 
 func _generate_accessory_loot() -> void:
@@ -1918,5 +1951,5 @@ func _spawn_accessory(accessory_id: String) -> void:
 	GameState.accessory_inventory.append(instance)
 	last_accessory_dropped = accessory_id
 	GameState.note_equipment_obtained(instance)
-GameState.mark_equipment_new(instance)
+	GameState.mark_equipment_new(instance)
 	GameState.record_last_run_equipment_drop(instance, "accessory")
