@@ -88,13 +88,15 @@ UI 用バスト立ち絵（召喚演出・編成・装備）。戦闘スプラ�
 
 | 項目 | 規格 |
 |---|---|
-| 形式 | 透過 PNG |
-| 推奨サイズ | **512×512** 以上（HQ が UI スケール調整） |
+| 形式 | 透過 PNG（または黒マット外周） |
+| 推奨サイズ | **512×512** 以上（現行 ART_HELPER は 1254×1254） |
 | 命名 | `ART_HELPER_{helper_id}.png`（例: `ART_HELPER_helper_a.png`） |
 | 配置 | `assets/gacha/portraits/` |
 | 差し込み | `resources/gacha_helpers/{helper_id}.tres` の `portrait_resource_path` を更新 |
+| 枠 | **焼き込み金枠・装飾コーナー禁止**（編成／ガチャ UI 側のクロムに任せる） |
 
-> 暫定は職バストのコピー。オーナー作画納品時は同名パスへ上書きするだけで反映される。
+> 暫定は職バストのコピー。オーナー作画納品時は同名パスへ上書きするだけで反映される。  
+> 既存の焼き込み枠除去: `tools/strip_helper_portrait_frames.py --apply`
 
 ## 5b. ガチャ助っ人戦闘／Idle ドット
 

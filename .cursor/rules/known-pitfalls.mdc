@@ -210,6 +210,7 @@ alwaysApply: true
 | ジョブ到達形（昇格名／金tint／特質）がβに戻る | `JOB_EVOLUTION_PLAYABLE` を true にした／`is_evolved` をフラグ無しで参照 | βは `false`（P3-JOB-EVO-OMIT-001）。効果は `JobEvolution`／`JobStatCalculator`／`EvolutionTraits`／`EvolutionVisual` 経由。UIはキャラ昇格行＋ギルド認定。`test_job_evolution_omit` |
 | 図鑑にプール外／征討専用の未実装敵が出る | `get_all_enemy_data()` を無フィルタで一覧化 | `CatalogHelper.playable_enemy_id_set`（プレイ可能 DG プールのみ）。達成率も同セット。`test_codex_enemy_omit` |
 | 図鑑キャラに金枠が二重／残る | PNG に金枠焼込、または敵詳細の ArtFrame をキャラで未リセット | ICO は枠除去。詳細はキャラで `_reset_art_frame_style`（未確認含む） |
+| 編成で助っ人だけ金枠付き／個体差 | `ART_HELPER_*.png` に装飾枠焼き込み（特に helper_m/g/h/j） | 肖像は枠なし納品。既存は `tools/strip_helper_portrait_frames.py --apply`。差替後 `.godot/imported` の該当分を消して再インポート |
 | 図鑑にダンジョンタブが再出現／武器のみ | `CODEX_DUNGEON_PLAYABLE` を true にした／装備を weapon のみ構築 | βは dungeon=false。装備は `get_equipment_entries`（武・防・飾）。`test_codex_equipment` |
 | 解放ポップで名がバナー下にずれ／どの章でもウィスパーウッド | 名を VBox 下段配置＋`_next_main_biome_id` 最終フォールバックが whisperwood／古いキュー残存 | 名はバナー内中央重ね（FULL_RECT禁止）。次解放は `ContentUnlockNotice.next_unlock_after_main_clear`（最終→Hard/NM入口）。デバッグ儀式はキューを clear してから1件 |
 | ギルド情報誌オープンで即終了 | `Control.LAYOUT_MODE_POSITION` は Godot 4.6.3 GDScript に無い（Parse Error→スクリプト未ロード） | コンテナ外の `Control` ホスト＋アンカー配置。未実装の layout_mode 定数を使わない |
