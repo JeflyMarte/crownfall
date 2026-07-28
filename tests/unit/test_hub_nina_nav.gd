@@ -160,11 +160,11 @@ func test_nina_portrait_asset_exists() -> void:
 	assert_true(FileAccess.file_exists("res://assets/npc/ART_NPC_Nina.png"))
 	assert_true(FileAccess.file_exists("res://assets/npc/ICO_NPC_Nina.png"))
 	## 調査室／ナビ用 ICO は ART 顔クロップ（旧 128px ドットではない）。
-	var img := Image.load_from_file("res://assets/npc/ICO_NPC_Nina.png")
-	assert_true(img != null and not img.is_empty())
-	assert_gte(img.get_width(), 256)
-	assert_gte(img.get_height(), 256)
-	assert_eq(img.get_width(), img.get_height())
+	var tex: Texture2D = load("res://assets/npc/ICO_NPC_Nina.png") as Texture2D
+	assert_true(tex != null)
+	assert_gte(tex.get_width(), 256)
+	assert_gte(tex.get_height(), 256)
+	assert_eq(tex.get_width(), tex.get_height())
 
 
 func test_survey_staff_nina_uses_portrait_icon() -> void:
