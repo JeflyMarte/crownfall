@@ -6,12 +6,29 @@ extends GutTest
 func test_mirror_boa_has_dedicated_fang() -> void:
 	var data: Resource = DataRegistry.get_enemy_data("mirror_boa")
 	assert_not_null(data)
-	assert_eq(data.skill_ids.size(), 1)
+	assert_eq(data.skill_ids.size(), 2)
 	assert_eq(str(data.skill_ids[0]), "enemy_mirror_fang")
+	assert_true(data.skill_ids.has("enemy_mirror_glare"))
 	var skill: Resource = DataRegistry.get_skill_data("enemy_mirror_fang")
 	assert_not_null(skill)
 	assert_eq(str(skill.target_type), "party_back")
 	assert_eq(str(skill.apply_status_id), "poison")
+
+
+func test_playable_elites_have_two_skills() -> void:
+	## P3-BAL-ENEMY-SKILL-CA-001 Phase C: プレイ可能エリートは2本以上（clock_moth 既存含む）。
+	## polar_tricera は FR 除外のため対象外。
+	var elites: Array[String] = [
+		"mist_wyvern", "mirror_boa", "greios", "great_claw",
+		"nightfen", "ninja_octopus", "anchor_lord", "clock_moth",
+	]
+	for eid: String in elites:
+		var data: Resource = DataRegistry.get_enemy_data(eid)
+		assert_not_null(data, "missing elite %s" % eid)
+		assert_eq(int(data.enemy_type), 1, "%s should be elite" % eid)
+		assert_gte(data.skill_ids.size(), 2, "%s needs >=2 skills" % eid)
+		for sid: String in data.skill_ids:
+			assert_not_null(DataRegistry.get_skill_data(str(sid)), "missing skill %s" % sid)
 
 
 func test_golden_scarab_uses_gold_dust_not_crystal_sting() -> void:

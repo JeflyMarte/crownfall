@@ -33,5 +33,5 @@ codex_danger = 4
 codex_habitat = "沈没航路・古防波堤"
 codex_research_note = "蛸を祖先とし、防波堤の影に潜む大型の頭足類。煙幕のように墨を吐き、腕ごとに別の獲物を搦め捕る。深い潮の底で儀式めいた動きをする姿から、探索者が「深海司祭」と呼ぶ。"
 codex_materials = Array[String]([])
-skill_ids = Array[String](["enemy_ink_veil"])
+skill_ids = Array[String](["enemy_ink_veil", "enemy_ink_lash"])
 skill_use_chance = 0.35

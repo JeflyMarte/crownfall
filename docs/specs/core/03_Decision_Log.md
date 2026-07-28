@@ -5308,3 +5308,15 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 | P3-BAL-LEG-WPN-A001-7 | **腐血の影弦** — 毒出血敵+35%＋25%付与 | DoTシナジー弓 |
 | P3-BAL-LEG-WPN-A001-8 | **脈打つ閃刃** — 会心時ゲージ+8＆35%追撃 | 会心追撃／ゲージ加速 |
 | P3-BAL-LEG-WPN-A001-9 | **防壁の戦剣** — Threat+120／被ダメ-12% | VG脅威＋減ダメ |
+
+## 敵スキル厚み C→A（2026-07-28 — P3-BAL-ENEMY-SKILL-CA-001）
+
+> **オーナー GO（C→A）** — まずボス／エリートのキットを厚くし、後続で雑魚を2本化。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-ENEMY-SKILL-CA-001-1 | **順序** — Phase **C**（ボス／エリート）→ Phase **A**（通常雑魚を2本） | 脅威の高い戦から厚みを付ける |
+| P3-BAL-ENEMY-SKILL-CA-001-2 | **Phase C（本Impl）** — プレイ可能エリート（`enemy_type=1`）でスキル1本の個体に **第2スキル**を追加。役割は既存と補完（単↔列／状態差）。威力・CDは既存エリート帯を超えない | clock_moth は既に2本。polar_tricera は FR 除外のため対象外 |
+| P3-BAL-ENEMY-SKILL-CA-001-3 | **ボス** — 既に enrage＋専用2本（計3）のため Phase C では数値・本数を据置 | 過剰強化を避ける |
+| P3-BAL-ENEMY-SKILL-CA-001-4 | **`skill_use_chance` 据置**（エリート 0.35） | 発動頻度は変えず、発動時の技選択に幅を出す |
+| P3-BAL-ENEMY-SKILL-CA-001-5 | **Phase A（後続）** — 通常雑魚を「嫌がらせ＋個性」の2本へ。本Taskスコープ外 | C 承認・通し後に別 Task |
