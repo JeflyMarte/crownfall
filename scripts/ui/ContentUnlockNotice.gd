@@ -5,6 +5,7 @@ extends RefCounted
 
 const _DungeonUnlockOverlay := preload("res://scripts/ui/DungeonUnlockOverlay.gd")
 const _DungeonTierConfig := preload("res://scripts/dungeon/DungeonTierConfig.gd")
+const _DungeonRouteGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
 
 ## キャンペーン次帯解放時に代表表示する Biome（ハード／NM の入口）。
 const CAMPAIGN_TIER_ENTRY_BIOME_ID: String = "mourngate"
@@ -55,6 +56,9 @@ static func queue_newly_unlocked(before: Dictionary) -> void:
 			continue
 		new_dungeon_ids.append(id_str)
 		_queue_entry("dungeon", id_str, _dungeon_display_name(id_str))
+		## 無限（深層）初回解放 → 手引きを解放ポップのあとに出す。
+		if _is_abyss_dungeon(id_str):
+			_DungeonRouteGuide.queue_auto_if_unseen(_DungeonRouteGuide.GUIDE_ABYSS)
 	for sid in after_stages.keys():
 		var stage_id: String = str(sid)
 		if before_stages.has(stage_id):
@@ -228,6 +232,9 @@ static func show_pending_on(parent: Node, on_all_done: Callable = Callable()) ->
 			_defer_show_pending(parent, on_all_done)
 		return null
 	if not has_pending():
+		## 解放ポップのあとに無限／降臨ガイド（pending）があれば先に出す。
+		if _DungeonRouteGuide.has_pending_auto():
+			return _DungeonRouteGuide.try_show_pending_on(parent, on_all_done)
 		if on_all_done.is_valid():
 			on_all_done.call()
 		return null
@@ -280,3 +287,10 @@ static func _banner_id_for_entry(kind: String, content_id: String) -> String:
 		if stage != null and "biome_id" in stage:
 			return str(stage.biome_id)
 	return ""
+
+
+static func _is_abyss_dungeon(dungeon_id: String) -> bool:
+	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
+	if data == null:
+		return dungeon_id.begins_with("abyss_")
+	return str(data.route_type) == "abyss" or dungeon_id.begins_with("abyss_")

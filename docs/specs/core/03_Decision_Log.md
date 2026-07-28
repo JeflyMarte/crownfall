@@ -4296,6 +4296,22 @@ SSOT: `docs/specs/decisions/04_FieldSurveySlots.md` §3／`EventWeekRotation.gd`
 
 ---
 
+## ダンジョン枠ガイド（2026-07-28 — P3-DG-ROUTE-GUIDE-001）
+
+> **オーナー GO（推奨案一式）** — イベント／降臨／無限の説明ボタン＋降臨・無限の初回P分けガイド。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-ROUTE-GUIDE-001-1 | **イベントタブに「イベントとは？」「降臨とは？」／無限タブに「無限とは？」** | 案A |
+| P3-DG-ROUTE-GUIDE-001-2 | **降臨初回＝降臨が一覧に初めて出たとき**／**無限初回＝深層初回解放後（解放ポップのあと）** | 推奨トリガー |
+| P3-DG-ROUTE-GUIDE-001-3 | **口調＝記録官ニーナ**・書籍オーバーレイ・各3P | はじめガイド同系統 |
+| P3-DG-ROUTE-GUIDE-001-4 | **表示名は「無限」**（内部語「深層」は出さない） | タブ表記と一致 |
+| P3-DG-ROUTE-GUIDE-001-5 | ボタン再表示は preview（seen フラグ非接触） | 何度でも読める |
+
+SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
+
+---
+
 ## 日課文言・プール抽選・撃破（2026-07-22 — P3-DAILY-002）
 
 > **オーナー GO** — 1行 title／撃破20（ボス・エリート含む）／プールから毎日3件抽選。P3-DAILY-001-5 の「抽選プール Beta」を本 Decision で上書き。

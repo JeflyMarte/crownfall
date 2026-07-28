@@ -82,6 +82,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 
 **BaseScene ノード（P3-UI-Base-A / 003_01 Phase A）:**
 - `HubView` — 城背景・`TopBar`（**指揮官カード** P3-CMD-001 + Gold/魔晶石）・`LeftMenuPanel`（調査室はオミット）・**NinaNavPanel**（**P3-UI-NINA-NAV-001** 右上顔＋吹き出し・10秒／タップ。吹き出し下に調査室ショートカット）・**FieldSurveyBanner**（**P3-EVT-FIELD-001** ギルド情報誌・30分スロット・タップで EventScene）＋右上クリック誘導ロゴ（拡縮点滅・タップ可）・`CurrencyStrip`・`DailyMissionPanel`（ジャンルアイコン）。初回のみ **HubSimpleGuideOverlay**（P3-UI-HUB-GUIDE-001）
+- `DungeonSelectScene` — ルートタブ（メイン／イベント／無限）。**DungeonRouteGuideOverlay**（P3-DG-ROUTE-GUIDE-001: イベント／降臨／無限の手引きボタン＋初回P分け）
 - `MenuGridView` — 003_02 系 3×3 メニュー（下ナビ「メニュー」で切替）
 - `BottomNav` — 6タブ（ホーム/パーティ/冒険/強化/ショップ/メニュー）・`BottomNavHelper` + `NavIconHelper`
 - 検証: `tools/verify_base_hub.gd` / `tools/verify_bottom_nav.gd`

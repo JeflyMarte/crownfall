@@ -1,0 +1,504 @@
+class_name DungeonRouteGuideOverlay
+extends CanvasLayer
+
+## イベント／降臨／無限ダンジョンの手引き（P3-DG-ROUTE-GUIDE-001）。
+## 書籍UIは HubSimpleGuideOverlay と同系統。記録官ニーナ。
+
+signal dismissed
+
+const _IntroUiAssets := preload("res://scripts/intro/IntroUiAssets.gd")
+
+const GUIDE_EVENT: String = "event"
+const GUIDE_DESCENT: String = "descent"
+const GUIDE_ABYSS: String = "abyss"
+
+const FLAG_DESCENT: String = "dungeon_guide_descent_seen"
+const FLAG_ABYSS: String = "dungeon_guide_abyss_seen"
+const PENDING_KEY: String = "pending_dungeon_route_guide"
+
+const BG_PATH: String = "res://assets/ui/UI_BG_HubSimpleGuide.png"
+const PANEL_MIN: Vector2 = Vector2(700, 680)
+const FACE_ICON_PX: float = 88.0
+const BG_CONTENT_MARGIN: int = 88
+const HEADER_TOP_GAP: float = 28.0
+const INK_TITLE: Color = Color(0.22, 0.12, 0.05, 1.0)
+const INK_BODY: Color = Color(0.18, 0.11, 0.06, 1.0)
+const INK_META: Color = Color(0.38, 0.26, 0.14, 1.0)
+const INK_GOLD: Color = Color(0.36, 0.20, 0.05, 1.0)
+const EMPH_PROPER: String = "#7A3E12"
+const EMPH_KEY: String = "#9A5018"
+
+static func _all_guides() -> Dictionary:
+	return {
+	GUIDE_EVENT: {
+		"topic": "イベントダンジョンとは",
+		"flag_key": "",
+		"pages": [
+			{
+				"title": "1. 期間限定の短編",
+				"body": (
+					"隊長、[color=#9A5018][b]イベントダンジョン[/b][/color]は、"
+					+ "メイン進行とは別の[color=#9A5018][b]期間限定の短編[/b][/color]です。\n\n"
+					+ "開催中のあいだだけ、ダンジョン選択の"
+					+ "[color=#7A3E12][b]イベント[/b][/color]タブに並びます。"
+					+ "閉まっているときは一覧に出ません。"
+				),
+			},
+			{
+				"title": "2. いつ挑戦できるか",
+				"body": (
+					"曜日や時間帯で門が開くものがあります。"
+					+ "多くは[color=#9A5018][b]一日1回[/b][/color]までの挑戦です"
+					+ "（朝5時・日本時間でリセット）。\n\n"
+					+ "[color=#7A3E12][b]コズミックダックの裂け目[/b][/color]や"
+					+ "[color=#7A3E12][b]宝冠レイヴンの巣[/b][/color]などは、"
+					+ "育成や装備の足しにしやすい短編です。"
+				),
+			},
+			{
+				"title": "3. メインとの違い",
+				"body": (
+					"メインルートの章クリアとは別枠です。"
+					+ "無理に全部取らなくても大丈夫。\n\n"
+					+ "開催中だけサッと覗く、くらいの使い方で十分です。"
+					+ "なお時間帯だけの[color=#9A5018][b]降臨[/b][/color]は別枠なので、"
+					+ "「降臨とは？」からも確認してくださいね。"
+				),
+			},
+		],
+	},
+	GUIDE_DESCENT: {
+		"topic": "降臨ダンジョンとは",
+		"flag_key": FLAG_DESCENT,
+		"pages": [
+			{
+				"title": "1. 時間帯だけの強敵",
+				"body": (
+					"[color=#9A5018][b]降臨[/b][/color]は、決まった時間帯だけ門が開く"
+					+ "[color=#9A5018][b]強敵イベント[/b][/color]です。\n\n"
+					+ "例：[color=#7A3E12][b]時環の共鳴龍　降臨[/b][/color]（時王の霊廟）、"
+					+ "[color=#7A3E12][b]境界の番　降臨[/b][/color]（ストームクラウン境界廊）。\n\n"
+					+ "曜日の短編イベントとも、探索中の放浪とも別物です。"
+				),
+			},
+			{
+				"title": "2. 門と難度",
+				"body": (
+					"門が開いているあいだだけ挑戦できます。"
+					+ "閉まっているときは入れません。\n\n"
+					+ "降臨は[color=#9A5018][b]ノーマル／ハード／ナイトメア[/b][/color]があり、"
+					+ "戦力に合わせて選べます。"
+					+ "出現中はイベント一覧の[color=#9A5018][b]いちばん上[/b][/color]に並びます。"
+					+ "拠点のわたしも、気づいたらお知らせしますね。"
+				),
+			},
+			{
+				"title": "3. 報酬の位置づけ",
+				"body": (
+					"ここでしか手に入りにくい[color=#9A5018][b]専用の装備[/b][/color]や報酬があります。"
+					+ "メインや無限の頂点より手前の、特別枠だと思ってください。\n\n"
+					+ "時間勝負になりやすいので、無理な編成は禁物。"
+					+ "準備ができたら、門が開いているうちにどうぞ！"
+				),
+			},
+		],
+	},
+	GUIDE_ABYSS: {
+		"topic": "無限ダンジョンとは",
+		"flag_key": FLAG_ABYSS,
+		"pages": [
+			{
+				"title": "1. 終わりの先へ",
+				"body": (
+					"[color=#9A5018][b]無限ダンジョン[/b][/color]は、メインのボスを倒したあとに開く"
+					+ "[color=#9A5018][b]エンド向けの長い探索[/b][/color]です。\n\n"
+					+ "名前のとおり階がどこまでも伸びます。"
+					+ "表示名は「[color=#7A3E12][b]無限〇〇の最果て[/b][/color]」の形です。"
+				),
+			},
+			{
+				"title": "2. 解放と難度",
+				"body": (
+					"対応するメインダンジョンの[color=#9A5018][b]ノーマルBossクリア[/b][/color]で、"
+					+ "その無限が解放されます。\n\n"
+					+ "階が上がるほど敵も強くなります。"
+					+ "途中で戻っても、[color=#9A5018][b]最高到達階[/b][/color]は記録されます。"
+					+ "焦らず、届くところまでで大丈夫です。"
+				),
+			},
+			{
+				"title": "3. 節目と本命報酬",
+				"body": (
+					"[color=#9A5018][b]33／66／99階[/b][/color]に節目の報酬があります。"
+					+ "99階では、その土地だけの[color=#9A5018][b]専用の伝説装備[/b][/color]が本命です。\n\n"
+					+ "99を越えても続けられます。"
+					+ "メインの周回とは別の、長く挑む枠——そう覚えておいてくださいね。"
+				),
+			},
+		],
+	},
+}
+
+
+
+var _guide_id: String = GUIDE_EVENT
+var _pages: Array = []
+var _flag_key: String = ""
+var _page_index: int = 0
+var _preview_only: bool = false
+var _dim: ColorRect
+var _panel_shell: Control
+var _panel: PanelContainer
+var _header_top_spacer: Control
+var _title_label: Label
+var _topic_label: Label
+var _body_scroll: ScrollContainer
+var _body_label: RichTextLabel
+var _page_label: Label
+var _next_btn: Button
+var _skip_btn: Button
+var _tween: Tween
+
+
+func _ready() -> void:
+	layer = 89
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	_build()
+
+
+static func is_seen(guide_id: String) -> bool:
+	var flag: String = _flag_for(guide_id)
+	if flag.is_empty():
+		return false
+	return bool(GameState.tutorial_flags.get(flag, false))
+
+
+static func mark_seen(guide_id: String) -> void:
+	var flag: String = _flag_for(guide_id)
+	if flag.is_empty():
+		return
+	GameState.tutorial_flags[flag] = true
+	SaveManager.save_game()
+
+
+static func queue_auto_if_unseen(guide_id: String) -> void:
+	if guide_id != GUIDE_DESCENT and guide_id != GUIDE_ABYSS:
+		return
+	if is_seen(guide_id):
+		return
+	GameState.tutorial_flags[PENDING_KEY] = guide_id
+
+
+static func has_pending_auto() -> bool:
+	var pending: String = str(GameState.tutorial_flags.get(PENDING_KEY, "")).strip_edges()
+	if pending.is_empty():
+		return false
+	if is_seen(pending):
+		GameState.tutorial_flags.erase(PENDING_KEY)
+		return false
+	return _all_guides().has(pending)
+
+
+static func peek_pending_auto() -> String:
+	if not has_pending_auto():
+		return ""
+	return str(GameState.tutorial_flags.get(PENDING_KEY, ""))
+
+
+static func clear_pending_auto() -> void:
+	GameState.tutorial_flags.erase(PENDING_KEY)
+
+
+static func _flag_for(guide_id: String) -> String:
+	var def: Variant = _all_guides().get(guide_id, {})
+	if not def is Dictionary:
+		return ""
+	return str((def as Dictionary).get("flag_key", ""))
+
+
+static func show_on(
+	parent: Node, guide_id: String, preview_only: bool = false
+) -> CanvasLayer:
+	if parent == null or not _all_guides().has(guide_id):
+		return null
+	var existing: Node = parent.get_node_or_null("DungeonRouteGuideOverlay")
+	if existing != null:
+		existing.queue_free()
+	var overlay := new()
+	overlay.name = "DungeonRouteGuideOverlay"
+	parent.add_child(overlay)
+	overlay.present(guide_id, preview_only)
+	return overlay
+
+
+## 解放キュー消化後など。pending があれば表示し、なければ on_done。
+static func try_show_pending_on(parent: Node, on_done: Callable = Callable()) -> CanvasLayer:
+	if parent == null:
+		if on_done.is_valid():
+			on_done.call()
+		return null
+	var pending: String = peek_pending_auto()
+	if pending.is_empty():
+		if on_done.is_valid():
+			on_done.call()
+		return null
+	clear_pending_auto()
+	var overlay: CanvasLayer = show_on(parent, pending, false)
+	if overlay == null:
+		if on_done.is_valid():
+			on_done.call()
+		return null
+	overlay.dismissed.connect(func() -> void:
+		if on_done.is_valid():
+			on_done.call()
+	)
+	return overlay
+
+
+func present(guide_id: String, preview_only: bool = false) -> void:
+	_guide_id = guide_id
+	_preview_only = preview_only
+	var def: Dictionary = _all_guides().get(guide_id, {}) as Dictionary
+	_pages = def.get("pages", []) as Array
+	_flag_key = str(def.get("flag_key", ""))
+	_page_index = 0
+	if _topic_label != null:
+		_topic_label.text = str(def.get("topic", "手引き"))
+	_refresh_page()
+	visible = true
+	_play_intro()
+	call_deferred("_play_sfx")
+
+
+func _play_sfx() -> void:
+	AudioManager.play_sfx("ui_confirm")
+
+
+func _build() -> void:
+	_dim = ColorRect.new()
+	_dim.name = "Dim"
+	_dim.color = Color(0.02, 0.03, 0.06, 0.72)
+	_dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	_dim.gui_input.connect(_on_dim_gui_input)
+	add_child(_dim)
+
+	var center := CenterContainer.new()
+	center.name = "Center"
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(center)
+
+	_panel_shell = Control.new()
+	_panel_shell.name = "PanelShell"
+	_panel_shell.custom_minimum_size = PANEL_MIN
+	_panel_shell.clip_contents = true
+	_panel_shell.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	center.add_child(_panel_shell)
+
+	_panel = PanelContainer.new()
+	_panel.name = "Panel"
+	_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	_panel.clip_contents = true
+	_panel.gui_input.connect(_on_dim_gui_input)
+	var empty := StyleBoxEmpty.new()
+	_panel.add_theme_stylebox_override("panel", empty)
+	_panel_shell.add_child(_panel)
+
+	var bg := TextureRect.new()
+	bg.name = "BookBg"
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bg.stretch_mode = TextureRect.STRETCH_SCALE
+	bg.texture = _IntroUiAssets.load_tex(BG_PATH)
+	_panel.add_child(bg)
+
+	var margin := MarginContainer.new()
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", BG_CONTENT_MARGIN)
+	margin.add_theme_constant_override("margin_right", BG_CONTENT_MARGIN)
+	margin.add_theme_constant_override("margin_top", BG_CONTENT_MARGIN - 4)
+	margin.add_theme_constant_override("margin_bottom", BG_CONTENT_MARGIN - 16)
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_panel.add_child(margin)
+
+	var inner := VBoxContainer.new()
+	inner.add_theme_constant_override("separation", 14)
+	inner.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_child(inner)
+
+	_header_top_spacer = Control.new()
+	_header_top_spacer.custom_minimum_size = Vector2(0, HEADER_TOP_GAP)
+	_header_top_spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	inner.add_child(_header_top_spacer)
+
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 14)
+	header.alignment = BoxContainer.ALIGNMENT_CENTER
+	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	inner.add_child(header)
+
+	var face := TextureRect.new()
+	face.custom_minimum_size = Vector2(FACE_ICON_PX, FACE_ICON_PX)
+	face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	face.texture = _IntroUiAssets.load_tex("res://assets/npc/ICO_NPC_Nina.png")
+	header.add_child(face)
+
+	var header_col := VBoxContainer.new()
+	header_col.add_theme_constant_override("separation", 4)
+	header_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	header.add_child(header_col)
+
+	var eyebrow := Label.new()
+	eyebrow.text = "記録官ニーナの手引き"
+	eyebrow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_display(eyebrow, UiTypography.SIZE_CAPTION, INK_GOLD, 0)
+	header_col.add_child(eyebrow)
+
+	_topic_label = Label.new()
+	_topic_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_topic_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_display(_topic_label, UiTypography.SIZE_BODY_SMALL, INK_TITLE, 0)
+	header_col.add_child(_topic_label)
+
+	_title_label = Label.new()
+	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	inner.add_child(_title_label)
+
+	_body_scroll = ScrollContainer.new()
+	_body_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_body_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_body_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_body_scroll.mouse_filter = Control.MOUSE_FILTER_STOP
+	_body_scroll.resized.connect(_sync_body_label_wrap_width)
+	inner.add_child(_body_scroll)
+
+	_body_label = RichTextLabel.new()
+	_body_label.bbcode_enabled = true
+	_body_label.fit_content = true
+	_body_label.scroll_active = false
+	_body_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_body_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_body_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_body_label.add_theme_color_override("default_color", INK_BODY)
+	_body_label.add_theme_font_size_override("normal_font_size", 18)
+	_body_label.add_theme_font_size_override("bold_font_size", 18)
+	var body_font: Font = UiTypography.display_font()
+	if body_font != null:
+		_body_label.add_theme_font_override("normal_font", body_font)
+		_body_label.add_theme_font_override("bold_font", body_font)
+	_body_scroll.add_child(_body_label)
+
+	_page_label = Label.new()
+	_page_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_page_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_display(_page_label, UiTypography.SIZE_CAPTION, INK_META, 0)
+	inner.add_child(_page_label)
+
+	var btn_row := HBoxContainer.new()
+	btn_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	btn_row.add_theme_constant_override("separation", 20)
+	btn_row.mouse_filter = Control.MOUSE_FILTER_STOP
+	inner.add_child(btn_row)
+
+	_skip_btn = Button.new()
+	_skip_btn.text = "スキップ"
+	_skip_btn.custom_minimum_size = Vector2(140, 48)
+	_skip_btn.pressed.connect(_on_skip_pressed)
+	UiTypography.apply_button(_skip_btn)
+	btn_row.add_child(_skip_btn)
+
+	_next_btn = Button.new()
+	_next_btn.text = "次へ"
+	_next_btn.custom_minimum_size = Vector2(160, 48)
+	_next_btn.pressed.connect(_on_next_pressed)
+	UiTypography.apply_button(_next_btn)
+	btn_row.add_child(_next_btn)
+
+
+func _refresh_page() -> void:
+	if _pages.is_empty():
+		return
+	var page: Dictionary = _pages[_page_index] as Dictionary
+	_title_label.text = str(page.get("title", ""))
+	UiTypography.apply_display(_title_label, UiTypography.SIZE_DISPLAY, INK_TITLE, 0)
+	_body_label.text = str(page.get("body", ""))
+	_page_label.text = "%d / %d" % [_page_index + 1, _pages.size()]
+	var last: bool = _page_index >= _pages.size() - 1
+	_next_btn.text = "閉じる" if last else "次へ"
+	## スキップは非表示ではなく透明（ページ高さのブレ防止）。
+	_skip_btn.modulate.a = 0.0 if last else 1.0
+	_skip_btn.disabled = last
+	_skip_btn.mouse_filter = Control.MOUSE_FILTER_IGNORE if last else Control.MOUSE_FILTER_STOP
+	call_deferred("_sync_body_label_wrap_width")
+
+
+func _sync_body_label_wrap_width() -> void:
+	if _body_scroll == null or _body_label == null:
+		return
+	var w: float = _body_scroll.size.x
+	if w > 4.0:
+		_body_label.custom_minimum_size.x = w
+
+
+func _play_intro() -> void:
+	var anim_target: Control = _panel_shell if _panel_shell != null else _panel
+	anim_target.modulate.a = 0.0
+	anim_target.scale = Vector2(0.86, 0.86)
+	anim_target.pivot_offset = PANEL_MIN * 0.5
+	if _tween != null and _tween.is_valid():
+		_tween.kill()
+	_tween = create_tween()
+	_tween.tween_property(anim_target, "modulate:a", 1.0, 0.16)
+	_tween.parallel().tween_property(anim_target, "scale", Vector2(1.04, 1.04), 0.24).set_trans(
+		Tween.TRANS_BACK
+	).set_ease(Tween.EASE_OUT)
+	_tween.chain().tween_property(anim_target, "scale", Vector2.ONE, 0.1)
+
+
+func _on_dim_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		var mb: InputEventMouseButton = event as InputEventMouseButton
+		if mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
+			_advance_or_close()
+	elif event is InputEventScreenTouch:
+		var st: InputEventScreenTouch = event as InputEventScreenTouch
+		if st.pressed:
+			_advance_or_close()
+
+
+func _on_next_pressed() -> void:
+	_advance_or_close()
+
+
+func _on_skip_pressed() -> void:
+	_finish()
+
+
+func _advance_or_close() -> void:
+	if _page_index < _pages.size() - 1:
+		_page_index += 1
+		_refresh_page()
+		AudioManager.play_sfx("ui_confirm", 0.9, 0.0)
+		return
+	_finish()
+
+
+func _finish() -> void:
+	if not _preview_only and not _flag_key.is_empty():
+		GameState.tutorial_flags[_flag_key] = true
+		SaveManager.save_game()
+	AudioManager.play_sfx("ui_confirm")
+	var p: Node = get_parent()
+	if p != null:
+		p.remove_child(self)
+	dismissed.emit()
+	queue_free()
