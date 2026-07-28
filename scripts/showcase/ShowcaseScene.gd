@@ -45,6 +45,9 @@ var _detail_title: Label = null
 var _staff_caption: Label = null
 var _staff_player_name: String = ""
 var _btn_change_member: Button = null
+var _power_panel: PanelContainer = null
+var _power_caption: Label = null
+var _power_value: Label = null
 var _pick_overlay: Control = null
 var _pick_list: VBoxContainer = null
 
@@ -61,6 +64,7 @@ func _ready() -> void:
 	_btn_staff.pressed.connect(func(): _set_mode(Mode.STAFF))
 	_setup_chrome()
 	_ensure_staff_caption()
+	_ensure_power_panel()
 	_ensure_change_member_button()
 	_apply_layout_rects()
 	_build_staff_strip()
@@ -166,6 +170,12 @@ func _apply_layout_rects() -> void:
 	_footer.position = footer.position
 	_footer.size = footer.size
 
+	if _power_panel != null:
+		var power_r: Rect2 = ShowcaseUiTokensScript.POWER_RECT
+		_power_panel.position = power_r.position
+		_power_panel.size = power_r.size
+		_power_panel.custom_minimum_size = power_r.size
+
 	if _btn_change_member != null:
 		var change_r: Rect2 = ShowcaseUiTokensScript.CHANGE_MEMBER_RECT
 		_btn_change_member.position = change_r.position
@@ -232,6 +242,56 @@ func _ensure_staff_caption() -> void:
 	_staff_caption.visible = false
 	UiTypography.apply_caption(_staff_caption, COLOR_GOLD)
 	add_child(_staff_caption)
+
+
+func _ensure_power_panel() -> void:
+	if _power_panel != null:
+		return
+	_power_panel = PanelContainer.new()
+	_power_panel.name = "PowerPanel"
+	_power_panel.z_index = 6
+	_power_panel.visible = false
+	_power_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_power_panel.add_theme_stylebox_override("panel", _power_panel_style())
+	var vb := VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 0)
+	vb.alignment = BoxContainer.ALIGNMENT_CENTER
+	vb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_power_panel.add_child(vb)
+	_power_caption = Label.new()
+	_power_caption.text = "総合戦力"
+	_power_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_power_caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_caption(_power_caption, COLOR_GOLD)
+	vb.add_child(_power_caption)
+	_power_value = Label.new()
+	_power_value.text = "0"
+	_power_value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_power_value.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_display(
+		_power_value, ShowcaseUiTokensScript.STAT_POWER_FONT_SIZE, COLOR_GOLD
+	)
+	vb.add_child(_power_value)
+	add_child(_power_panel)
+
+
+func _power_panel_style() -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.05, 0.04, 0.07, 0.82)
+	sb.set_border_width_all(1)
+	sb.border_color = Color(0.86, 0.72, 0.36, 0.85)
+	sb.set_corner_radius_all(6)
+	sb.content_margin_left = 10.0
+	sb.content_margin_top = 4.0
+	sb.content_margin_right = 10.0
+	sb.content_margin_bottom = 4.0
+	return sb
+
+
+func _set_power_display(power: int) -> void:
+	_ensure_power_panel()
+	if _power_value != null:
+		_power_value.text = RosterUiHelper.format_combat_power(power)
 
 
 func _ensure_change_member_button() -> void:
@@ -333,6 +393,8 @@ func _set_stage_visible(on: bool) -> void:
 	_stats_panel.visible = on
 	_idle_host.visible = on
 	_footer.visible = on
+	if _power_panel != null:
+		_power_panel.visible = on
 
 
 func _show_empty_own() -> void:
@@ -547,27 +609,7 @@ func _populate_stage(member: Resource) -> void:
 	portrait.set_from_member(member)
 
 	var stats: Dictionary = RosterUiHelper.compute_member_stats(member)
-	var power: int = RosterUiHelper.combat_power_from_stats(stats)
-	var power_top: float = ShowcaseUiTokensScript.STAT_POWER_TOP
-	var power_h: float = ShowcaseUiTokensScript.STAT_POWER_H
-	var power_label := Label.new()
-	power_label.text = "総合戦力"
-	power_label.position = Vector2(8.0, power_top)
-	power_label.size = Vector2(maxf(40.0, _stats_panel.size.x - 16.0), power_h * 0.45)
-	power_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	power_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	UiTypography.apply_caption(power_label, COLOR_GOLD)
-	_stats_col.add_child(power_label)
-	var power_val := Label.new()
-	power_val.text = RosterUiHelper.format_combat_power(power)
-	power_val.position = Vector2(8.0, power_top + power_h * 0.42)
-	power_val.size = Vector2(maxf(40.0, _stats_panel.size.x - 16.0), power_h * 0.55)
-	power_val.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	power_val.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	UiTypography.apply_display(
-		power_val, ShowcaseUiTokensScript.STAT_POWER_FONT_SIZE, COLOR_GOLD
-	)
-	_stats_col.add_child(power_val)
+	_set_power_display(RosterUiHelper.combat_power_from_stats(stats))
 
 	var values: Array[String] = [
 		"%d" % int(stats.get("hp", 0)),
