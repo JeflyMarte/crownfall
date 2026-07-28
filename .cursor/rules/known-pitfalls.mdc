@@ -34,6 +34,7 @@ alwaysApply: true
 | 編成で下キャラ選択のたびアイコン／セルが拡大する | ①選択 `_pick_style` の content_margin／border が通常より大きい→Grid 最小サイズ膨張 ②肖像を Button 子に載せ CHR 原寸が min size に乗る ③`queue_free` 残存のまま add→セル倍増→RESIZED 連鎖。`main_vbox.min.x=content_w` の循環 | `pick_panel_style` は margin/border 幅同一。肖像は `make_clamped_portrait`＋Button 外。**remove_child 即時＋queue_free**（`free()` 禁止）。RESIZED は幅変化時のみ。VBox min.x 書き戻し禁止 |
 | 編成で入れ替えするとゲーム終了（Abort） | タップ中 Button／カードを `free()` で即破棄。`pressed`/`gui_input` スタック上で解放 | 破棄は `remove_child`＋`queue_free`。入れ替え処理は `call_deferred` |
 | パーティ画面が重い／スクロール不能 | ①`ActivePartyScroll` 入れ子が縦ドラッグ奪取 ②rebuild 後 ScrollTouch 未再適用＋枠 `_cf_keep_mouse_stop` ③カード毎 `StyleBoxFlat.new` | 上段は非 Scroll（`ActivePartyHost`）。rebuild 後 `enable(MainScroll, false)`。枠は PASS 可。StyleBox は Helper キャッシュ |
+| `.tscn` で親ノードが vanish（子だけ残る） | `.tscn` に GDScript 風の `##` コメントを書いた | `.tscn` コメントは `;` のみ。`##` 禁止 |
 | 起動時黒画面・`inherits from Control, can't assign to Node` | `BootScene.gd` が `extends Control` なのに `.tscn` ルートが `Node` | スクリプトの `extends` とシーンルート型を一致させる。Boot は `Node` が正 |
 | 起動時 autoload 失敗 / 壊れた UID | `project.godot` の空 autoload・不正 `uid://`（例: `_MCPGameBridge`） | autoload は実在パスのみ。UID 直書きを壊さない。変更後 headless 起動確認 |
 | 図鑑/装備カタログのパースエラー | `EquipmentUiTokens` 等の **参照メソッド欠落** | public API 削除・リネーム時は呼び出し側を一括検索 |
