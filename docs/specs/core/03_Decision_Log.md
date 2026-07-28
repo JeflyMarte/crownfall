@@ -5309,19 +5309,23 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 | P3-BAL-LEG-WPN-A001-8 | **脈打つ閃刃** — 会心時ゲージ+8＆35%追撃 | 会心追撃／ゲージ加速 |
 | P3-BAL-LEG-WPN-A001-9 | **防壁の戦剣** — Threat+120／被ダメ-12% | VG脅威＋減ダメ |
 
-## 必殺カットイン効果1行（2026-07-28 — P3-UX-ULTIMATE-EFFECT-001）
+## 敵スキル厚み C→A（2026-07-28 — P3-BAL-ENEMY-SKILL-CA-001）
 
-> **オーナー GO（案A）** — 戦闘の必殺カットインで技名の下に効果1行を自動表示。
+> **オーナー GO（C→A）** — まずボス／エリートのキットを厚くし、後続で雑魚を2本化。
 | # | 決定 | 根拠 |
 |---|---|---|
+| P3-BAL-ENEMY-SKILL-CA-001-1 | **順序** — Phase **C**（ボス／エリート）→ Phase **A**（通常雑魚を2本） | 脅威の高い戦から厚みを付ける |
+| P3-BAL-ENEMY-SKILL-CA-001-2 | **Phase C（本Impl）** — プレイ可能エリート（`enemy_type=1`）でスキル1本の個体に **第2スキル**を追加。役割は既存と補完（単↔列／状態差）。威力・CDは既存エリート帯を超えない | clock_moth は既に2本。polar_tricera は FR 除外のため対象外 |
+| P3-BAL-ENEMY-SKILL-CA-001-3 | **ボス** — 既に enrage＋専用2本（計3）のため Phase C では数値・本数を据置 | 過剰強化を避ける |
+| P3-BAL-ENEMY-SKILL-CA-001-4 | **`skill_use_chance` 据置**（エリート 0.35） | 発動頻度は変えず、発動時の技選択に幅を出す |
+| P3-BAL-ENEMY-SKILL-CA-001-5 | **Phase A（後続）** — 通常雑魚を「嫌がらせ＋個性」の2本へ。本Taskスコープ外 | C 承認・通し後に別 Task |
+## 必殺カットイン効果1行（2026-07-28 — P3-UX-ULTIMATE-EFFECT-001）
+> **オーナー GO（案A）** — 戦闘の必殺カットインで技名の下に効果1行を自動表示。
 | P3-UX-ULTIMATE-EFFECT-001-1 | カットイン帯に **技名直下1行**（対象＋主効果＋付与状態名） | 発動瞬間に何をする技か分かる |
 | P3-UX-ULTIMATE-EFFECT-001-2 | 文言は `SkillEffectOneLineHelper` で自動生成（手書きフィールドなし） | 5職メンテ不要・数値変更に追随 |
 | P3-UX-ULTIMATE-EFFECT-001-3 | CD・威力xは出さない。状態は表示名を `／` 連結（付与率％なし） | 戦闘中の可読性優先 |
-
 ## ボス詠唱大技の必殺格上げ（2026-07-28 — P3-UX-BOSS-ULTIMATE-001）
 > **オーナー GO（案A）** — 既存の詠唱大技をボス必殺として演出格上げ。数値は据置。バナー尺は味方必殺と同長。
-| # | 決定 | 根拠 |
-|---|---|---|
 | P3-UX-BOSS-ULTIMATE-001-1 | 対象は従来どおり `RoomType.BOSS` かつ `cast_time>0`（激昂等の即時は除外） | 既存キャリア流用 |
 | P3-UX-BOSS-ULTIMATE-001-2 | カットイン表示尺 = 味方必殺の announce+windup（`UltimatePresentationConfig`）。フェードアウト=release | 「短すぎる」解消・同尺 |
 | P3-UX-BOSS-ULTIMATE-001-3 | ラベル「必殺技」＋技名直下に効果1行（`SkillEffectOneLineHelper`）＋SE `combat_ultimate` | 味方必殺と同型の読みやすさ |

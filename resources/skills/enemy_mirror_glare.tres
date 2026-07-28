@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_mirror_glare"
+display_name = "鏡鱗の眩光"
+description = "鏡鱗が閃光をはね返し、前列の足取りを乱す。"
+skill_type = "enemy"
+target_type = "party_front"
+power_multiplier = 0.5
+cooldown = 6.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["aoe","elite"])
+element = ""
+apply_status_id = "slow"
+apply_status_chance = 0.3
