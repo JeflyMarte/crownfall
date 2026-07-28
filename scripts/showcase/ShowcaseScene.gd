@@ -525,7 +525,7 @@ func _populate_stage(member: Resource) -> void:
 	for child in _stats_col.get_children():
 		child.queue_free()
 
-	## 枠・見出しは背景焼込。Godot はアイコン／数値のみ重ねる。
+	## 装備は装備品一覧と同系のレア枠・背景・レア表記。見出し／帯は背景焼込。
 	var equip_items: Array = [
 		member.equipped_weapon,
 		member.equipped_armor,
@@ -534,7 +534,7 @@ func _populate_stage(member: Resource) -> void:
 	var equip_cats: Array[String] = ["weapon", "armor", "accessory"]
 	var offsets: Array = ShowcaseUiTokensScript.EQUIP_ICON_OFFSETS
 	for i in range(mini(equip_items.size(), offsets.size())):
-		var icon: Control = _make_equip_icon_only(equip_items[i], equip_cats[i])
+		var icon: Control = _make_equip_icon_cell(equip_items[i], equip_cats[i])
 		if icon == null:
 			continue
 		var off: Vector2 = offsets[i]
@@ -594,8 +594,9 @@ func _populate_stage(member: Resource) -> void:
 	UiTypography.apply_caption(_footer_credit, COLOR_SUB)
 
 
-func _make_equip_icon_only(item: Resource, category: String) -> Control:
+func _make_equip_icon_cell(item: Resource, category: String) -> Control:
 	var cell_px: int = ShowcaseUiTokensScript.EQUIP_CELL_PX
+	var cell_size := Vector2(cell_px, cell_px)
 	if item == null:
 		return null
 	var item_id: String = _item_id(item, category)
@@ -604,28 +605,77 @@ func _make_equip_icon_only(item: Resource, category: String) -> Control:
 		tex = IconPaths.display_texture_for_weapon(item_id, tex)
 	if tex == null:
 		return null
+	var rarity: int = _item_rarity(item, category)
 	var btn := Button.new()
-	btn.custom_minimum_size = Vector2(cell_px, cell_px)
-	btn.size = Vector2(cell_px, cell_px)
-	btn.flat = true
+	btn.custom_minimum_size = cell_size
+	btn.size = cell_size
 	btn.focus_mode = Control.FOCUS_NONE
 	btn.clip_contents = true
 	btn.tooltip_text = "%s\n（タップで詳細）" % EquipmentItemDetailHelper.short_name(item, category)
-	var empty_sb: StyleBox = ShowcaseUiTokensScript.transparent_button_style()
-	for state in ["normal", "hover", "pressed", "focus", "disabled"]:
-		btn.add_theme_stylebox_override(state, empty_sb)
 	btn.add_theme_color_override("font_color", Color(0, 0, 0, 0))
 	btn.add_theme_color_override("font_hover_color", Color(0, 0, 0, 0))
 	btn.add_theme_color_override("font_pressed_color", Color(0, 0, 0, 0))
-	var tr := TextureRect.new()
-	tr.texture = tex
-	tr.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	btn.add_child(tr)
+	var normal: StyleBox = EquipmentUiTokens.rarity_slot_style(rarity, false, cell_px)
+	var hover: StyleBox = EquipmentUiTokens.rarity_slot_style(rarity, true, cell_px)
+	btn.add_theme_stylebox_override("normal", normal)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_stylebox_override("pressed", hover)
+	btn.add_theme_stylebox_override("focus", normal)
+	btn.add_theme_stylebox_override("disabled", normal)
+	EquipmentUiTokens.attach_item_cell_layers(
+		btn, tex, cell_px, EquipmentUiTokens.INV_CELL_DESIGN_PX, item_id, category
+	)
+	var star_font: int = maxi(11, int(cell_size.y * 0.17))
+	_add_equip_corner_badge(
+		btn,
+		EquipmentUiHelper.rarity_stars_text(rarity),
+		Color(0.96, 0.82, 0.35, 1.0),
+		EquipmentUiHelper.RARITY_BADGE_POS,
+		star_font
+	)
+	EquipmentUiHelper.apply_legendary_badge(btn, rarity, cell_size)
+	if category == "weapon":
+		EquipmentUiHelper.apply_enhance_badge(btn, item, category, cell_size, COLOR_GOLD)
 	btn.pressed.connect(_on_equip_icon_pressed.bind(item, category))
 	return btn
+
+
+func _item_rarity(item: Resource, category: String) -> int:
+	if item == null:
+		return 0
+	var data: Resource = null
+	match category:
+		"weapon":
+			data = DataRegistry.get_weapon_data(str(item.weapon_id))
+		"armor":
+			data = DataRegistry.get_armor_data(str(item.armor_id))
+		"accessory":
+			data = DataRegistry.get_accessory_data(str(item.accessory_id))
+	if data != null and "rarity" in data:
+		return int(data.rarity)
+	if "rarity" in item:
+		return int(item.rarity)
+	return 0
+
+
+func _add_equip_corner_badge(
+	btn: Button,
+	text: String,
+	color: Color,
+	pos: Vector2,
+	font_size: int
+) -> void:
+	if text.is_empty() or btn == null:
+		return
+	var lbl := Label.new()
+	lbl.text = text
+	lbl.add_theme_color_override("font_color", color)
+	lbl.add_theme_font_size_override("font_size", font_size)
+	lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	lbl.add_theme_constant_override("outline_size", 3)
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	lbl.position = pos
+	btn.add_child(lbl)
 
 
 func _on_equip_icon_pressed(item: Resource, category: String) -> void:
