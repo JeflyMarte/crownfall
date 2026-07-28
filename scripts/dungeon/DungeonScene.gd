@@ -812,6 +812,10 @@ var _chr_idle_tweens: Array = [null, null, null, null, null]
 var _chr_skill_labels: Array = [[], [], [], [], []]
 # 同一メンバーが同 tick に複数スキルを発動した際、ラベルを縦にずらす間隔(px)
 const SKILL_LABEL_STACK_GAP: float = 34.0
+## 味方スキル名ポップ（通常）。
+const SKILL_NAME_FONT_SIZE: int = 28
+## パッシブ／レリック／武器パッシブ名ポップ（通常スキルより小さく）。
+const PASSIVE_NAME_FONT_SIZE: int = 18
 var _chr_hp_bars: Array[ProgressBar] = []
 var _party_card_hp_bars: Array[ProgressBar] = []
 var _party_card_hp_labels: Array[Label] = []
@@ -4155,7 +4159,7 @@ func _play_lore_floor_blessing_fx() -> void:
 			continue
 		_spawn_member_heal_vfx(i)
 		## 名ポップは無音（combat_skill＝ヒット寄りを避ける）。
-		_spawn_skill_name("✝加護", i, 0.0, "", false, "")
+		_spawn_skill_name("✝加護", i, 0.0, "", false, "", PASSIVE_NAME_FONT_SIZE)
 
 
 func _member_max_hp_for_trap(index: int) -> int:
@@ -5386,7 +5390,7 @@ func _deal_member_damage_to_enemy(
 			$CombatController.add_threat(member_idx, float(tide_burst) * CombatController.THREAT_DAMAGE_K)
 			GameState.record_run_damage(member_idx, tide_burst, "abyss_tide_burst", "虚潮爆発")
 			_update_hp_bars()
-			_spawn_skill_name("⚔虚潮爆発", member_idx, 0.0, "", false, "")
+			_spawn_skill_name("⚔虚潮爆発", member_idx, 0.0, "", false, "", PASSIVE_NAME_FONT_SIZE)
 			_append_log("[武器] 虚潮の印 爆発")
 			_check_boss_phase_transition(target_slot)
 	if $CombatController.get_enemy_hp_at(target_slot) <= 0:
@@ -6791,7 +6795,7 @@ func _on_member_damaged(target_idx: int, ctx: Dictionary = {}) -> void:
 		if max_hp > 0:
 			var ratio: float = float($CombatController.party_combat_hp[target_idx]) / float(max_hp)
 			if _AbyssWeaponEffects.try_low_hp_ice_shell(target_idx, ratio):
-				_spawn_skill_name("⚔裂氷の氷殻", target_idx, 0.0, "", false, "")
+				_spawn_skill_name("⚔裂氷の氷殻", target_idx, 0.0, "", false, "", PASSIVE_NAME_FONT_SIZE)
 				_append_log("[武器] 裂氷の氷殻 発動")
 		return
 	AudioManager.play_sfx("combat_death", 1.0, 0.06)
@@ -7033,7 +7037,15 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 	var prefix: String = "◈" if is_relic else ("⚔" if is_weapon else "◇")
 	var tag: String = "レリック" if is_relic else ("武器" if is_weapon else "パッシブ")
 	## パッシブ名ポップは combat_skill（ヒット寄り）を鳴らさない。回復／バフ SE は各 VFX 側。
-	_spawn_skill_name(prefix + str(p.get("display_name", "")), member_idx, 0.0, "", false, "")
+	_spawn_skill_name(
+		prefix + str(p.get("display_name", "")),
+		member_idx,
+		0.0,
+		"",
+		false,
+		"",
+		PASSIVE_NAME_FONT_SIZE
+	)
 	_append_log("[%s] %s 発動" % [tag, str(p.get("display_name", ""))])
 
 # ---- パーティ連携連鎖（P3-D115） ----
@@ -9929,13 +9941,15 @@ func _spawn_ultimate_skill_name(
 
 # スキル発動時、発動者(ドット絵)の頭上にスキル名をポップ表示する。
 # persist=true のときは詠唱中ラベルとして表示を維持（_clear_member_skill_labels で除去）。
+# font_size_override>0 でサイズ指定（パッシブは PASSIVE_NAME_FONT_SIZE）。
 func _spawn_skill_name(
 	skill_name: String,
 	member_idx: int,
 	stack_offset: float = 0.0,
 	element: String = "",
 	persist: bool = false,
-	sfx_id: String = "combat_skill"
+	sfx_id: String = "combat_skill",
+	font_size_override: int = 0
 ) -> void:
 	if skill_name.is_empty():
 		return
@@ -9947,7 +9961,7 @@ func _spawn_skill_name(
 	## 詠唱中ラベルは静音。resolve / 即時発動のみ SE（鼓舞などバフは combat_buff。空なら無音）。
 	if not persist and not sfx_id.is_empty():
 		AudioManager.play_sfx(sfx_id, 1.0, 0.08)
-	const SKILL_FONT_SIZE: int = 28
+	var skill_font_size: int = font_size_override if font_size_override > 0 else SKILL_NAME_FONT_SIZE
 	var lbl := Label.new()
 	lbl.text = skill_name
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -9955,15 +9969,15 @@ func _spawn_skill_name(
 	var af: Font = UiTypography.impact_font()
 	if af != null:
 		lbl.add_theme_font_override("font", af)
-	lbl.add_theme_font_size_override("font_size", SKILL_FONT_SIZE)
+	lbl.add_theme_font_size_override("font_size", skill_font_size)
 	lbl.add_theme_color_override("font_color", ELEMENT_COLOR.get(element, Color(0.72, 0.93, 1.0)))
 	lbl.add_theme_color_override("font_outline_color", Color(0.0, 0.05, 0.12, 0.95))
-	lbl.add_theme_constant_override("outline_size", 8)
+	lbl.add_theme_constant_override("outline_size", 8 if skill_font_size >= 24 else 5)
 	lbl.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.5))
 	lbl.add_theme_constant_override("shadow_offset_x", 2)
 	lbl.add_theme_constant_override("shadow_offset_y", 3)
 	lbl.reset_size()
-	var text_w: float = maxf(lbl.size.x, float(skill_name.length()) * float(SKILL_FONT_SIZE) * 0.55)
+	var text_w: float = maxf(lbl.size.x, float(skill_name.length()) * float(skill_font_size) * 0.55)
 	var head_center: Vector2 = _sprite_visual_center_global(sprite)
 	var head_top: float = _sprite_top_y_global(sprite) - 44.0 + stack_offset
 	var base_x: float = head_center.x - text_w * 0.5
