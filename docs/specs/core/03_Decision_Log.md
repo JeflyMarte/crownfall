@@ -5333,6 +5333,7 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 | P3-UX-COMBAT-BAND-ART-001-3 | **P0** — breath／pulse／slash。属性はティント兼用 | ボス吐息・波動＋必殺斬を先に |
 | P3-UX-COMBAT-BAND-ART-001-4 | **P1** — mist／tide／fan／volley／quake。**P2** — shot／roar | 発注を段階化 |
 | P3-UX-COMBAT-BAND-ART-001-5 | 配置=`assets/vfx/band/FX_Band_{Style}.png` → `resources/animation/FX_Band_{Style}.tres`。暗縁キー必須 | Hit VFX パイプライン踏襲 |
+| P3-UX-COMBAT-BAND-ART-001-6 | **P0+P1 Cursor試作**（2026-07-29）— 全10スタイルを AI 生成→透過→接続。オーナー見た目確認後に本番採用／差し戻し | 図形オミット後の埋め |
 
 ## 属性弱点再配分（2026-07-28 — P3-BAL-ELEM-REBAL-001）
 > **オーナー GO（推奨案Aすべて）** — 新キャラなし。既存弱点の付け替えで炎偏重を緩和。ボスは地形有利と整合。
