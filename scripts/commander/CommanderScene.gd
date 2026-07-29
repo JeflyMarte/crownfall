@@ -5,7 +5,6 @@ extends Control
 const _CommanderProfile = preload("res://scripts/commander/CommanderProfile.gd")
 const _CommanderTitles = preload("res://scripts/commander/CommanderTitles.gd")
 const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd")
-const _CommanderSurveyPoints = preload("res://scripts/commander/CommanderSurveyPoints.gd")
 const _CommanderGiftBox = preload("res://scripts/commander/CommanderGiftBox.gd")
 const _CommanderUiTokens = preload("res://scripts/commander/CommanderUiTokens.gd")
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
@@ -30,12 +29,21 @@ const BODY_SEP: int = 8
 const INNER_PAD: int = 10
 const HEADING_ROW_H: int = 36
 const HEADING_ICON_PX: int = 32
+const CHIP_LONG_PRESS_SEC: float = 0.45
+const CHIP_PRESS_MOVE_CANCEL_PX: float = 20.0
 
 @onready var _label_title: Label = $Header/HeaderRow/LabelTitle
 @onready var _btn_back: Button = $Header/HeaderRow/ButtonBack
 @onready var _bg_texture: TextureRect = $BgTexture
 @onready var _content_host: VBoxContainer = $MainScroll/MainVBox/ContentHost
 var _name_edit_dialog: ConfirmationDialog
+var _chip_pointer_down: bool = false
+var _chip_long_press_fired: bool = false
+var _chip_press_timer: SceneTreeTimer = null
+var _chip_press_name: String = ""
+var _chip_press_origin: Vector2 = Vector2.ZERO
+var _name_toast: Label = null
+var _name_toast_tween: Tween = null
 
 
 func _ready() -> void:
@@ -412,12 +420,19 @@ func _make_currency_chip(icon_path: String, amount_text: String) -> HBoxContaine
 func _make_material_chip(material_id: String, qty: int) -> VBoxContainer:
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 2)
-	col.add_child(MaterialUiTokens.make_icon_cell(material_id, MAT_CELL_PX, true))
+	var cell: Control = MaterialUiTokens.make_icon_cell(material_id, MAT_CELL_PX, true)
+	## 子 STOP だと長押し gui_input が親に届かない。
+	_set_mouse_filter_tree(cell, Control.MOUSE_FILTER_IGNORE)
+	col.add_child(cell)
 	var qty_lbl := Label.new()
 	qty_lbl.text = "x%d" % qty
 	qty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	qty_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_caption(qty_lbl, COLOR_SUB)
 	col.add_child(qty_lbl)
+	var mat_name: String = DataRegistry.get_material_name(material_id)
+	col.tooltip_text = mat_name
+	_bind_chip_long_press(col, mat_name)
 	return col
 
 
@@ -434,7 +449,8 @@ func _owned_ticket_rows() -> Array:
 func _make_ticket_chip(ticket_id: String, qty: int) -> VBoxContainer:
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 2)
-	col.tooltip_text = TicketSystem.display_name(ticket_id)
+	var ticket_name: String = TicketSystem.display_name(ticket_id)
+	col.tooltip_text = ticket_name
 	var frame := PanelContainer.new()
 	frame.custom_minimum_size = Vector2(MAT_CELL_PX, MAT_CELL_PX)
 	var rarity: int = 0
@@ -447,6 +463,8 @@ func _make_ticket_chip(ticket_id: String, qty: int) -> VBoxContainer:
 		"panel",
 		EquipmentUiTokens.rarity_slot_style(rarity, false, MAT_CELL_PX)
 	)
+	## 長押しは親 col で受ける（frame が STOP だとイベントを奪う）。
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var host := Control.new()
 	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -477,8 +495,10 @@ func _make_ticket_chip(ticket_id: String, qty: int) -> VBoxContainer:
 	var qty_lbl := Label.new()
 	qty_lbl.text = "x%d" % qty
 	qty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	qty_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_caption(qty_lbl, COLOR_GOLD)
 	col.add_child(qty_lbl)
+	_bind_chip_long_press(col, ticket_name)
 	return col
 
 
@@ -595,14 +615,147 @@ func _build_records_section() -> Control:
 			int(row.get("percent", 0)),
 		])
 	grid.add_child(_make_record_block("図鑑進捗", codex_lines))
-	var detail_lines: PackedStringArray = []
-	if _CommanderProfile.is_rank_at_least(_CommanderProfile.EXTENDED_RECORDS_UNLOCK_RANK):
-		detail_lines.append("調査点 %d SP" % _CommanderProfile.survey_points())
-		detail_lines.append("発見登録 %d 件" % _CommanderSurveyPoints.discovery_count())
-	else:
-		detail_lines.append("A級で詳細解放")
-	grid.add_child(_make_record_block("詳細", detail_lines))
+	## 詳細（SP／発見件数）はオミット。代わりに累計プレイ時間を出す。
+	var play_sec: int = _CommanderLifetime.total_play_time_sec()
+	grid.add_child(_make_record_block("プレイ時間", [
+		_CommanderLifetime.format_play_time(play_sec),
+	]))
 	return sec["panel"]
+
+
+func _set_mouse_filter_tree(node: Node, filter: Control.MouseFilter) -> void:
+	if node is Control:
+		(node as Control).mouse_filter = filter
+	for child in node.get_children():
+		_set_mouse_filter_tree(child, filter)
+
+
+func _bind_chip_long_press(host: Control, display_name: String) -> void:
+	if host == null or display_name.is_empty():
+		return
+	## ScrollTouch 後も PASS 経由で gui_input を受け取る（装備所持と同方針）。
+	host.mouse_filter = Control.MOUSE_FILTER_STOP
+	host.gui_input.connect(_on_chip_gui_input.bind(display_name))
+
+
+func _on_chip_gui_input(event: InputEvent, display_name: String) -> void:
+	if _chip_pointer_down and _should_cancel_chip_press_for_move(event):
+		_cancel_chip_press()
+		return
+	if not _is_chip_pointer_event(event):
+		return
+	if event.pressed:
+		_chip_press_origin = _chip_event_position(event)
+		_begin_chip_press(display_name)
+	else:
+		_end_chip_press()
+
+
+func _is_chip_pointer_event(event: InputEvent) -> bool:
+	if event is InputEventMouseButton:
+		return event.button_index == MOUSE_BUTTON_LEFT
+	if event is InputEventScreenTouch:
+		return true
+	return false
+
+
+func _chip_event_position(event: InputEvent) -> Vector2:
+	if event is InputEventScreenTouch:
+		return (event as InputEventScreenTouch).position
+	if event is InputEventMouseButton:
+		return (event as InputEventMouseButton).position
+	if event is InputEventScreenDrag:
+		return (event as InputEventScreenDrag).position
+	if event is InputEventMouseMotion:
+		return (event as InputEventMouseMotion).position
+	return Vector2.ZERO
+
+
+func _should_cancel_chip_press_for_move(event: InputEvent) -> bool:
+	if event is InputEventScreenDrag:
+		return (
+			_chip_press_origin.distance_to((event as InputEventScreenDrag).position)
+			>= CHIP_PRESS_MOVE_CANCEL_PX
+		)
+	if event is InputEventMouseMotion:
+		var motion: InputEventMouseMotion = event as InputEventMouseMotion
+		if (motion.button_mask & MOUSE_BUTTON_MASK_LEFT) == 0:
+			return false
+		return _chip_press_origin.distance_to(motion.position) >= CHIP_PRESS_MOVE_CANCEL_PX
+	return false
+
+
+func _begin_chip_press(display_name: String) -> void:
+	_cancel_chip_press()
+	_chip_pointer_down = true
+	_chip_long_press_fired = false
+	_chip_press_name = display_name
+	_chip_press_timer = get_tree().create_timer(CHIP_LONG_PRESS_SEC)
+	_chip_press_timer.timeout.connect(_on_chip_long_press_timeout)
+
+
+func _on_chip_long_press_timeout() -> void:
+	if not _chip_pointer_down:
+		return
+	_chip_long_press_fired = true
+	_show_chip_name(_chip_press_name)
+
+
+func _end_chip_press() -> void:
+	if not _chip_pointer_down:
+		return
+	_chip_pointer_down = false
+	_cancel_chip_press_timer_only()
+	_chip_press_name = ""
+
+
+func _cancel_chip_press_timer_only() -> void:
+	if _chip_press_timer != null:
+		if _chip_press_timer.timeout.is_connected(_on_chip_long_press_timeout):
+			_chip_press_timer.timeout.disconnect(_on_chip_long_press_timeout)
+		_chip_press_timer = null
+
+
+func _cancel_chip_press() -> void:
+	_chip_pointer_down = false
+	_chip_long_press_fired = false
+	_cancel_chip_press_timer_only()
+	_chip_press_name = ""
+
+
+func _ensure_name_toast() -> void:
+	if _name_toast != null and is_instance_valid(_name_toast):
+		return
+	_name_toast = Label.new()
+	_name_toast.name = "ChipNameToast"
+	_name_toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_name_toast.z_index = 60
+	_name_toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_name_toast.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_name_toast.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	_name_toast.offset_left = 24.0
+	_name_toast.offset_right = -24.0
+	_name_toast.offset_top = -168.0
+	_name_toast.offset_bottom = -120.0
+	_name_toast.visible = false
+	UiTypography.apply_body(_name_toast, UiTypography.SIZE_BODY, COLOR_GOLD)
+	add_child(_name_toast)
+
+
+func _show_chip_name(name_text: String) -> void:
+	if name_text.is_empty():
+		return
+	_ensure_name_toast()
+	_name_toast.text = name_text
+	_name_toast.visible = true
+	if _name_toast_tween != null and is_instance_valid(_name_toast_tween):
+		_name_toast_tween.kill()
+	_name_toast_tween = create_tween()
+	_name_toast_tween.tween_interval(1.6)
+	_name_toast_tween.tween_callback(func() -> void:
+		if _name_toast != null and is_instance_valid(_name_toast) and _name_toast.text == name_text:
+			_name_toast.visible = false
+	)
 
 
 func _battle_record_lines(lifetime: Dictionary) -> PackedStringArray:

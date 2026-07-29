@@ -20,6 +20,8 @@ static func default_lifetime_dict() -> Dictionary:
 		"heal_max_run_total": 0,
 		"mvp_counts": {},
 		"deployment_counts": {},
+		## 累計プレイ時間（秒）。セッション計測は CommanderLifetime が加算する。
+		"play_time_sec": 0,
 	}
 
 

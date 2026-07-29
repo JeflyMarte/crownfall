@@ -251,6 +251,20 @@ static func codex_rates() -> Dictionary:
 	}
 
 
+## 図鑑分母（プレイ可能敵）に含まれる発見のみを数える。プール外登録で 100% 超を防ぐ。
+static func count_playable_enemy_discoveries() -> int:
+	var playable: Dictionary = CatalogHelper.playable_enemy_id_set()
+	var n: int = 0
+	for key: Variant in GameState.discovery_registry.keys():
+		var s: String = str(key)
+		if not s.begins_with("enemy:"):
+			continue
+		var eid: String = s.substr("enemy:".length())
+		if playable.has(eid):
+			n += 1
+	return n
+
+
 static func top_materials(limit: int = 8) -> Array:
 	var rows: Array = []
 	for mat_id: Variant in GameState.material_inventory.keys():
@@ -295,13 +309,19 @@ static func top_deployed_members(limit: int = 5) -> Array:
 
 
 static func _rate(category: String, total: int) -> Dictionary:
-	var discovered: int = DiscoveryRegistry.count_by_category(category)
+	var discovered: int = (
+		count_playable_enemy_discoveries()
+		if category == "enemy"
+		else DiscoveryRegistry.count_by_category(category)
+	)
 	if total <= 0:
 		return {"discovered": discovered, "total": 0, "percent": 0}
+	## 表示用に分母でクランプ（旧セーブの余剰登録でも 100% 超を出さない）。
+	var shown: int = mini(discovered, total)
 	return {
-		"discovered": discovered,
+		"discovered": shown,
 		"total": total,
-		"percent": int(round(float(discovered) * 100.0 / float(total))),
+		"percent": mini(100, int(round(float(shown) * 100.0 / float(total)))),
 	}
 
 
@@ -316,8 +336,12 @@ static func _sanitize_commander() -> void:
 	if not GameState.commander is Dictionary:
 		GameState.commander = _CommanderDefaults.default_commander_dict()
 		return
-	if not GameState.commander.has("lifetime"):
+	if not GameState.commander.has("lifetime") or not GameState.commander["lifetime"] is Dictionary:
 		GameState.commander["lifetime"] = _CommanderDefaults.default_lifetime_dict()
+	else:
+		var lifetime: Dictionary = GameState.commander["lifetime"] as Dictionary
+		if not lifetime.has("play_time_sec"):
+			lifetime["play_time_sec"] = 0
 	if not GameState.commander.has("titles_unlocked"):
 		GameState.commander["titles_unlocked"] = []
 	if not GameState.commander.has("recent_highlights"):
