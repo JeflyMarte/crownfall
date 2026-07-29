@@ -7,7 +7,12 @@ const _ArmorInstance := preload("res://scripts/domain/ArmorInstance.gd")
 func test_kind_maps_to_expected_families() -> void:
 	var w: Resource = _WeaponInstance.new()
 	w.weapon_id = "iron_sword"
-	w.random_mods = [{"kind": EquipmentRandomMods.KIND_POISON, "value": 0.1, "label": "毒"}]
+	w.random_mods = [{
+		"kind": EquipmentRandomMods.KIND_ON_HIT,
+		"value": 0.1,
+		"label": "状態付与",
+		"meta": {"status_id": "poison"},
+	}]
 	assert_true(
 		EquipmentEffectFamilyFilter.item_matches_family(
 			w, "weapon", EquipmentEffectFamilyFilter.FAMILY_STATUS
