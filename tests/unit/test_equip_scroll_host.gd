@@ -16,3 +16,5 @@ func test_equipment_inventory_host_is_not_scroll_container() -> void:
 	assert_true(host is MarginContainer or host is Control)
 	var tab: Node = scene.get_node_or_null("VBoxContainer/TabContainer/TabEquip")
 	assert_true(tab is ScrollContainer, "外 TabEquip がスクロール本体")
+	var passive: Node = scene.get_node_or_null("VBoxContainer/TabContainer/TabPassive")
+	assert_true(passive is ScrollContainer, "パッシブタブも外 Scroll")

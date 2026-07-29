@@ -34,13 +34,25 @@ static func _hook_content_mutations(scroll: ScrollContainer) -> void:
 	if scroll.get_meta(_META_HOOKED, false):
 		return
 	scroll.set_meta(_META_HOOKED, true)
-	## 直下のコンテンツ（VBox 等）へ項目が追加されたら再 PASS 化。
-	for child in scroll.get_children():
-		if child is Node and not child.child_entered_tree.is_connected(_on_content_child_entered.bind(scroll)):
-			child.child_entered_tree.connect(_on_content_child_entered.bind(scroll))
+	## 直下だけでなく深い VBox（PassiveList 等）への追加も拾う。
+	_hook_subtree_mutations(scroll, scroll)
 
 
-static func _on_content_child_entered(_node: Node, scroll: ScrollContainer) -> void:
+static func _hook_subtree_mutations(node: Node, scroll: ScrollContainer) -> void:
+	if node == null or not is_instance_valid(node) or not is_instance_valid(scroll):
+		return
+	## 別スクロール境界は越えない（入れ子 Scroll は各自 enable）。
+	if node is ScrollContainer and node != scroll:
+		return
+	if not node.child_entered_tree.is_connected(_on_content_child_entered.bind(scroll)):
+		node.child_entered_tree.connect(_on_content_child_entered.bind(scroll))
+	for child in node.get_children():
+		_hook_subtree_mutations(child, scroll)
+
+
+static func _on_content_child_entered(node: Node, scroll: ScrollContainer) -> void:
+	## 追加された枝にもフックを伸ばし、孫以降の Button も PASS 化対象にする。
+	_hook_subtree_mutations(node, scroll)
 	_queue_refresh(scroll)
 
 
