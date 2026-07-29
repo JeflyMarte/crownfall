@@ -34,5 +34,5 @@ codex_danger = 3
 codex_habitat = "沈没航路・潮境"
 codex_research_note = "カジキマグロを祖先とし、槍のような吻で獲物を貫く突進型。潮境を統べるような気位と、狙いを定めた獲物から離れない執拗さから、探索者が「ロイヤルシャーク」と呼ぶ。"
 codex_materials = Array[String]([])
-skill_ids = Array[String](["enemy_tide_spear"])
+skill_ids = Array[String](["enemy_tide_spear", "enemy_fin_slash"])
 skill_use_chance = 0.25

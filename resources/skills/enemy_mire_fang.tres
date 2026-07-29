@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_mire_fang"
+display_name = "沼牙"
+description = "泥の脚で近づき、一人に毒牙を突き立てる。"
+skill_type = "enemy"
+target_type = "party"
+power_multiplier = 1.05
+cooldown = 4.5
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["single"])
+element = ""
+apply_status_id = "poison"
+apply_status_chance = 0.3

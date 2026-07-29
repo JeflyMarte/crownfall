@@ -41,23 +41,47 @@ func test_golden_scarab_uses_gold_dust_not_crystal_sting() -> void:
 	assert_eq(str(skill.apply_status_id), "slow")
 
 
-func test_main_biome_2_to_4_trash_have_skills() -> void:
-	## ロックバイソンは横断フィラーのため除外。
+func test_main_biome_trash_have_two_skills() -> void:
+	## P3-BAL-ENEMY-SKILL-CA-001 Phase A: プレイ可能メイン雑魚は2本（嫌がらせ＋個性）。
+	## ロックバイソンは横断フィラーのため除外。crystal_hedgehog は既存2本。
 	var pools: Dictionary = {
+		"mourngate": ["sepia_hound", "crown_eater_rat", "crystal_hedgehog", "grave_bell_bat", "rune_roach", "crystal_scorpion"],
 		"whisperwood": ["moss_boar", "moss_shell", "spore_widow", "iron_horn", "blood_bloom", "rune_carcinos"],
 		"mistfen": ["blood_leech", "dead_poison_frog", "mist_mantis", "marsh_king", "bone_picker", "mire_strider_spider", "spore_needle_wasp"],
 		"blackshore": ["ship_eater_crab", "skull_turtle", "undertaker_shark", "samurai_fish", "black_tide_shark", "abyssal_squid", "tide_lamp"],
-		## P3-BAL-COMBAT-AUDIT-001 案C: ⑤無スキル穴を埋める（バイソン除外）
 		"frostridge": ["frost_claw_raptor", "vergaron", "storm_joe", "oldrex", "glacier_warden", "wind_ripper"],
 	}
 	for biome_id: String in pools.keys():
 		for enemy_id: String in pools[biome_id]:
 			var data: Resource = DataRegistry.get_enemy_data(enemy_id)
 			assert_not_null(data, "missing enemy %s" % enemy_id)
-			assert_gt(data.skill_ids.size(), 0, "%s (%s) needs >=1 skill" % [enemy_id, biome_id])
+			assert_eq(int(data.enemy_type), 0, "%s should be normal trash" % enemy_id)
+			assert_gte(data.skill_ids.size(), 2, "%s (%s) needs >=2 skills" % [enemy_id, biome_id])
 			assert_gt(float(data.skill_use_chance), 0.0, "%s skill_use_chance" % enemy_id)
 			for sid: String in data.skill_ids:
 				assert_not_null(DataRegistry.get_skill_data(str(sid)), "missing skill %s" % sid)
+
+
+func test_phase_a_second_skills_complement_first() -> void:
+	## 代表: 単体寄り↔列／状態差になっていること。
+	var hound: Resource = DataRegistry.get_enemy_data("sepia_hound")
+	assert_eq(str(hound.skill_ids[0]), "enemy_memory_howl")
+	assert_eq(str(hound.skill_ids[1]), "enemy_memory_bite")
+	var bite: Resource = DataRegistry.get_skill_data("enemy_memory_bite")
+	assert_eq(str(bite.target_type), "party")
+	assert_eq(str(bite.apply_status_id), "bleed")
+	var frog: Resource = DataRegistry.get_enemy_data("dead_poison_frog")
+	assert_true(frog.skill_ids.has("enemy_bog_spray"))
+	assert_true(frog.skill_ids.has("enemy_frog_tongue"))
+	var tongue: Resource = DataRegistry.get_skill_data("enemy_frog_tongue")
+	assert_eq(str(tongue.target_type), "party")
+	assert_eq(str(tongue.apply_status_id), "poison")
+	var joe: Resource = DataRegistry.get_enemy_data("storm_joe")
+	assert_true(joe.skill_ids.has("enemy_blizzard_howl"))
+	assert_true(joe.skill_ids.has("enemy_gale_cut"))
+	var gale: Resource = DataRegistry.get_skill_data("enemy_gale_cut")
+	assert_eq(str(gale.element), "thunder")
+	assert_eq(str(gale.apply_status_id), "shock")
 
 
 func test_greios_is_elite_only_in_frostridge_pool() -> void:

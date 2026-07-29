@@ -33,5 +33,5 @@ codex_danger = 4
 codex_habitat = "霧沼・瘴胞の樹冠"
 codex_research_note = "蜂を祖先とし、産卵管に共生胞子を蓄えた巨大種。刺突で胞子を注入し、宿主の体液を菌糸の苗床にする。後列の術者を選んで急襲する記録が多い。"
 codex_materials = Array[String]([])
-skill_ids = Array[String](["enemy_spore_needle"])
+skill_ids = Array[String](["enemy_spore_needle", "enemy_spore_buzz"])
 skill_use_chance = 0.28

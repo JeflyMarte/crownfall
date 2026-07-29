@@ -33,5 +33,5 @@ codex_danger = 4
 codex_habitat = "最果て氷裂・遺構帯"
 codex_research_note = "大型恐竜を祖先とし、氷河期の遺構に似た甲殻状の鱗を持つ。氷柱の間で動かぬこと数日、縄張りに入った者だけを尾の一撃で打ち据える。"
 codex_materials = Array[String]([])
-skill_ids = Array[String](["enemy_blizzard_howl"])
+skill_ids = Array[String](["enemy_blizzard_howl", "enemy_ancient_stomp"])
 skill_use_chance = 0.2

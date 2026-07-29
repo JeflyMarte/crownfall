@@ -33,5 +33,5 @@ codex_danger = 3
 codex_habitat = "霧沼・腐水域"
 codex_research_note = "蛭を祖先とし、腐水に群れ棲む吸血種。獲物の体温と振動を感知して泥中から一斉に吸着する。剥がした痕は膿みやすく、探索者は帯電した刃で焼き切ることを覚えた。"
 codex_materials = Array[String]([])
-skill_ids = Array[String](["enemy_blood_drain"])
+skill_ids = Array[String](["enemy_blood_drain", "enemy_leech_swarm"])
 skill_use_chance = 0.26
