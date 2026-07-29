@@ -145,3 +145,29 @@ func test_detail_ui_text_truncate_for_forge_result() -> void:
 	var cut: String = EquipmentItemDetailHelper._truncate_ui_text(long_text, 28)
 	assert_true(cut.ends_with("…"))
 	assert_lte(cut.length(), 28)
+
+func test_forge_stat_snapshot_delta_for_enhance() -> void:
+	## 素材消費なしで差分文言だけ検証（enhance_level を直接進める）。
+	var armor := ArmorInstance.new()
+	armor.armor_id = "leather_armor"
+	armor.equip_level = 1
+	armor.enhance_level = 0
+	armor.is_appraised = true
+	armor.rolled_defense = 40
+	armor.hp_bonus = 120
+	var before: Dictionary = EquipmentItemDetailHelper.forge_stat_snapshot(armor, "armor")
+	assert_eq(int(before.get("enhance_level", -1)), 0)
+	assert_true((before.get("cores", {}) as Dictionary).has("defense"))
+	assert_true((before.get("cores", {}) as Dictionary).has("hp"))
+	armor.enhance_level = 1
+	var after: Dictionary = EquipmentItemDetailHelper.forge_stat_snapshot(armor, "armor")
+	assert_eq(int(after.get("enhance_level", -1)), 1)
+	var level_text: String = EquipmentItemDetailHelper.forge_level_delta_text(before, after)
+	assert_true(level_text.contains("炉研ぎ +0 → +1"), level_text)
+	var def_before: int = int(((before.get("cores", {}) as Dictionary)["defense"] as Dictionary).get("v", 0))
+	var def_after: int = int(((after.get("cores", {}) as Dictionary)["defense"] as Dictionary).get("v", 0))
+	assert_gt(def_after, def_before)
+	assert_eq(
+		EquipmentItemDetailHelper._forge_core_delta_value(before, "defense", def_after),
+		"%d → %d" % [def_before, def_after]
+	)

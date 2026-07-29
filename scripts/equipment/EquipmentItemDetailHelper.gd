@@ -227,6 +227,87 @@ static func stat_rows(item: Resource, category: String) -> Array:
 		})
 	return rows
 
+
+## 鍛冶完了差分用。コア数値＋装備Lv／炉研ぎLv。
+static func forge_stat_snapshot(item: Resource, category: String) -> Dictionary:
+	var snap: Dictionary = {
+		"equip_level": 0,
+		"enhance_level": 0,
+		"cores": {},
+	}
+	if item == null:
+		return snap
+	snap["equip_level"] = _EquipmentEnhancer.get_equip_level(item)
+	snap["enhance_level"] = _EquipmentEnhancer.get_enhance_level(item)
+	var cores: Dictionary = {}
+	match category:
+		"weapon":
+			cores["attack"] = {
+				"label": "攻撃力",
+				"v": _EquipmentEnhancer.get_effective_attack(item),
+			}
+		"armor":
+			cores["defense"] = {
+				"label": "防御力",
+				"v": _EquipmentEnhancer.effective_armor_defense(item),
+			}
+			cores["hp"] = {
+				"label": "HP",
+				"v": _EquipmentEnhancer.effective_armor_hp(item),
+			}
+		"accessory":
+			var acc_data: Resource = DataRegistry.get_accessory_data(str(item.accessory_id))
+			for field_pair: Array in [
+				["hp_bonus", "hp", "HP"],
+				["attack_bonus", "attack", "攻撃力"],
+				["defense_bonus", "defense", "防御力"],
+			]:
+				var raw: int = _AccessoryStatResolver.resolve_int_stat(
+					item, str(field_pair[0]), acc_data
+				)
+				if raw <= 0:
+					continue
+				cores[str(field_pair[1])] = {
+					"label": str(field_pair[2]),
+					"v": _EquipmentEnhancer.effective_accessory_int_bonus(
+						item, str(field_pair[0]), acc_data
+					),
+				}
+	snap["cores"] = cores
+	return snap
+
+
+static func forge_level_delta_text(before: Dictionary, after: Dictionary) -> String:
+	if before.is_empty() or after.is_empty():
+		return ""
+	var parts: PackedStringArray = PackedStringArray()
+	var enh_a: int = int(before.get("enhance_level", 0))
+	var enh_b: int = int(after.get("enhance_level", 0))
+	if enh_b != enh_a:
+		parts.append("炉研ぎ +%d → +%d" % [enh_a, enh_b])
+	var eq_a: int = int(before.get("equip_level", 0))
+	var eq_b: int = int(after.get("equip_level", 0))
+	if eq_b != eq_a:
+		parts.append("装備Lv %d → %d" % [eq_a, eq_b])
+	return "　".join(parts)
+
+
+static func _forge_core_delta_value(before: Dictionary, key: String, after_v: int) -> String:
+	var cores: Dictionary = before.get("cores", {}) as Dictionary
+	if not cores.has(key):
+		return str(after_v)
+	var prev: int = int((cores[key] as Dictionary).get("v", after_v))
+	if prev == after_v:
+		return str(after_v)
+	return "%d → %d" % [prev, after_v]
+
+
+static func _forge_core_changed(before: Dictionary, key: String, after_v: int) -> bool:
+	var cores: Dictionary = before.get("cores", {}) as Dictionary
+	if not cores.has(key):
+		return false
+	return int((cores[key] as Dictionary).get("v", after_v)) != after_v
+
 static func _append_rate_row(
 	rows: Array,
 	item: Resource,
@@ -393,6 +474,9 @@ static func populate_panel(
 	var show_enhance_badge: bool = bool(options.get("show_enhance_badge", true))
 	## レアロゴ基準辺。未指定時はアイコン辺。完了ポップは装備一覧 INV_CELL に合わせる。
 	var badge_ref_px: int = maxi(1, int(options.get("badge_ref_px", header_icon_px)))
+	var forge_before: Dictionary = {}
+	if options.get("forge_before", null) is Dictionary:
+		forge_before = options["forge_before"] as Dictionary
 	var value_color: Color = COLOR_VALUE
 	if options.has("value_color"):
 		value_color = options["value_color"] as Color
@@ -461,15 +545,50 @@ static func populate_panel(
 		var compare_lbl := _make_caption_label(compare_summary(item, category, compare_member_res))
 		compare_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		content_host.add_child(compare_lbl)
+	var forge_after: Dictionary = {}
+	if not forge_before.is_empty():
+		forge_after = forge_stat_snapshot(item, category)
+		var level_delta: String = forge_level_delta_text(forge_before, forge_after)
+		if not level_delta.is_empty():
+			var lv_lbl := _make_caption_label(level_delta)
+			UiTypography.apply_body(lv_lbl, UiTypography.SIZE_CAPTION, COLOR_POS)
+			content_host.add_child(lv_lbl)
+	var shown_core_keys: Dictionary = {}
 	for row in stat_rows(item, category):
+		var row_key: String = str(row.get("key", ""))
+		var row_label: String = str(row.get("label", ""))
+		var row_value: String = str(row.get("value", ""))
+		var row_color: Color = value_color
+		if not forge_before.is_empty() and not row_key.is_empty():
+			var after_cores: Dictionary = forge_after.get("cores", {}) as Dictionary
+			if after_cores.has(row_key):
+				var after_v: int = int((after_cores[row_key] as Dictionary).get("v", 0))
+				row_value = _forge_core_delta_value(forge_before, row_key, after_v)
+				if _forge_core_changed(forge_before, row_key, after_v):
+					row_color = COLOR_POS
+				shown_core_keys[row_key] = true
 		content_host.add_child(
-			_make_stat_row(
-				str(row.get("key", "")),
-				str(row.get("label", "")),
-				str(row.get("value", "")),
-				value_color
-			)
+			_make_stat_row(row_key, row_label, row_value, row_color)
 		)
+	## 防具HPなど、通常詳細行に無いコア差分を追記。
+	if not forge_before.is_empty():
+		var after_cores2: Dictionary = forge_after.get("cores", {}) as Dictionary
+		for core_key_v in after_cores2.keys():
+			var core_key: String = str(core_key_v)
+			if shown_core_keys.has(core_key):
+				continue
+			var core_info: Dictionary = after_cores2[core_key] as Dictionary
+			var after_v2: int = int(core_info.get("v", 0))
+			if not _forge_core_changed(forge_before, core_key, after_v2):
+				continue
+			content_host.add_child(
+				_make_stat_row(
+					core_key,
+					str(core_info.get("label", core_key)),
+					_forge_core_delta_value(forge_before, core_key, after_v2),
+					COLOR_POS
+				)
+			)
 	_append_description_block(
 		content_host, item, category, desc_wrap_width, popup_host, desc_max_chars
 	)

@@ -850,14 +850,23 @@ func _framed_result_detail_opts() -> Dictionary:
 	}
 
 
-func _show_forge_item_result(title: String, item: Resource, category: String, kind: String = "enhance") -> void:
+func _show_forge_item_result(
+	title: String,
+	item: Resource,
+	category: String,
+	kind: String = "enhance",
+	forge_before: Dictionary = {}
+) -> void:
 	_ensure_result_overlay()
 	_apply_result_chrome(title, kind)
+	var opts: Dictionary = _framed_result_detail_opts()
+	if not forge_before.is_empty():
+		opts["forge_before"] = forge_before
 	EquipmentItemDetailHelper.populate_panel(
 		_result_detail_host,
 		item,
 		category,
-		_framed_result_detail_opts()
+		opts
 	)
 	_result_overlay.visible = true
 	_log_craft("%s: %s" % [title, EquipmentItemDetailHelper.short_name(item, category)])
@@ -2176,6 +2185,7 @@ func _execute_alchemy() -> void:
 	if _selected_alchemy_base == null or fodder == null:
 		return
 	var base: Resource = _selected_alchemy_base
+	var forge_before: Dictionary = EquipmentItemDetailHelper.forge_stat_snapshot(base, _category)
 	var result: Dictionary = _EquipmentEnhancer.perform_alchemy(base, fodder)
 	_pending_alchemy_fodder = null
 	if not bool(result.get("ok", false)):
@@ -2188,7 +2198,7 @@ func _execute_alchemy() -> void:
 	DailyMissionSystem.report_progress("alchemy_item")
 	_selected_alchemy_fodder = null
 	SaveManager.save_game()
-	_show_forge_item_result("錬成完了", base, _category, "alchemy")
+	_show_forge_item_result("錬成完了", base, _category, "alchemy", forge_before)
 	_refresh_all()
 	_play_forge_success_feedback(FORGE_FLASH_ALCHEMY)
 
@@ -2665,6 +2675,9 @@ func _on_enhance_pressed() -> void:
 func _on_enhance_confirmed() -> void:
 	if _selected_enhance_item == null:
 		return
+	var forge_before: Dictionary = EquipmentItemDetailHelper.forge_stat_snapshot(
+		_selected_enhance_item, _category
+	)
 	var result: Dictionary = _EquipmentEnhancer.enhance_item(_selected_enhance_item)
 	if not bool(result.get("ok", false)):
 		_log_craft_error(str(result.get("reason", "炉研ぎに失敗しました")))
@@ -2672,7 +2685,9 @@ func _on_enhance_confirmed() -> void:
 		return
 	DailyMissionSystem.report_progress("enhance_item")
 	SaveManager.save_game()
-	_show_forge_item_result("強化完了", _selected_enhance_item, _category, "enhance")
+	_show_forge_item_result(
+		"強化完了", _selected_enhance_item, _category, "enhance", forge_before
+	)
 	_refresh_all()
 	_play_forge_success_feedback(FORGE_FLASH_ENHANCE)
 
