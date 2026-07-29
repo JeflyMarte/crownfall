@@ -826,6 +826,9 @@ const SKILL_NAME_FONT_SIZE: int = 28
 const PASSIVE_NAME_FONT_SIZE: int = 18
 ## 状態付与「〇〇を付与！」テロップ（ダメージ数字より小さく、パッシブ名よりやや大きめ）。
 const STATUS_APPLY_TELOP_FONT_SIZE: int = 22
+## 敵スキル名テロップ（味方 SKILL_NAME と同寸。頭上ポップ）。
+const ENEMY_SKILL_NAME_FONT_SIZE: int = 28
+const ENEMY_CAST_NAME_FONT_SIZE: int = 24
 var _chr_hp_bars: Array[ProgressBar] = []
 var _party_card_hp_bars: Array[ProgressBar] = []
 var _party_card_hp_labels: Array[Label] = []
@@ -5686,7 +5689,7 @@ func _execute_enemy_skill(skill: Resource) -> bool:
 # 敵の自己強化スキル（激昂など）。enemy ユニットに状態付与し与ダメを上昇。
 func _execute_enemy_buff(skill: Resource) -> void:
 	_play_active_enemy_animation("attack")
-	_spawn_enemy_skill_name(skill.display_name)
+	_spawn_enemy_skill_name(skill.display_name, $CombatController.active_enemy_index)
 	var label: String = skill.display_name
 	if not skill.apply_status_id.is_empty():
 		if $CombatController.apply_status_to_active_enemy(skill.apply_status_id, 1, 0):
@@ -5767,7 +5770,7 @@ func _resolve_enemy_skill_damage_impact_async(payload: Dictionary) -> void:
 		return
 	_play_active_enemy_animation("attack")
 	if skill != null:
-		_spawn_enemy_skill_name(skill.display_name)
+		_spawn_enemy_skill_name(str(skill.display_name), atk_slot)
 	var sprite: AnimatedSprite2D = _active_enemy_sprite()
 	## 全体／詠唱大技は帯VFXを攻撃アニメと同時に開始（ヒット前に画面を覆う）。
 	_play_enemy_skill_band_vfx(skill)
@@ -5909,86 +5912,104 @@ func _try_apply_enemy_skill_hit_statuses(skill: Resource, member_idx: int, base_
 		if randf() <= float(skill.apply_status_chance2):
 			_apply_status_to_member_target(member_idx, str(skill.apply_status_id2), 1, base_damage)
 
-# 敵スキル発動時、敵ドット絵の頭上にスキル名を赤系でポップ表示
-func _spawn_enemy_skill_name(skill_name: String) -> void:
+## 敵スキル発動時の技名テロップ（味方 `_spawn_skill_name` と同型の頭上ポップ）。
+## slot>=0 ならそのスロット、未満ならアクティブ敵。
+func _spawn_enemy_skill_name(skill_name: String, slot: int = -1) -> void:
 	if skill_name.is_empty():
 		return
-	var spr: AnimatedSprite2D = _active_enemy_sprite()
-	if not spr.visible:
+	var spr: AnimatedSprite2D = _enemy_sprite_for_attack_mark(slot)
+	if spr == null:
+		spr = _active_enemy_sprite()
+	if spr == null or not is_instance_valid(spr):
 		return
-	const ENEMY_SKILL_FONT_SIZE: int = 26
+	var text: String = "【%s】" % skill_name
 	var lbl := Label.new()
-	lbl.text = skill_name
+	lbl.text = text
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
 	lbl.clip_text = false
 	lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	lbl.z_index = 12
 	var af: Font = UiTypography.impact_font()
 	if af != null:
 		lbl.add_theme_font_override("font", af)
-	lbl.add_theme_font_size_override("font_size", ENEMY_SKILL_FONT_SIZE)
-	lbl.add_theme_color_override("font_color", Color(1.0, 0.45, 0.35))
-	lbl.add_theme_color_override("font_outline_color", Color(0.1, 0.0, 0.0, 0.95))
+	lbl.add_theme_font_size_override("font_size", ENEMY_SKILL_NAME_FONT_SIZE)
+	lbl.add_theme_color_override("font_color", Color(1.0, 0.42, 0.32))
+	lbl.add_theme_color_override("font_outline_color", Color(0.12, 0.0, 0.0, 0.95))
 	lbl.add_theme_constant_override("outline_size", 8)
-	lbl.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.5))
+	lbl.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.55))
 	lbl.add_theme_constant_override("shadow_offset_x", 2)
 	lbl.add_theme_constant_override("shadow_offset_y", 3)
 	lbl.reset_size()
-	var text_w: float = maxf(lbl.size.x, float(skill_name.length()) * ENEMY_SKILL_FONT_SIZE * 0.55)
-	var base_y: float = spr.global_position.y - 150.0
-	lbl.pivot_offset = Vector2(text_w * 0.5, ENEMY_SKILL_FONT_SIZE * 0.5)
-	lbl.position = Vector2(
-		spr.global_position.x - text_w * 0.5,
-		base_y
-	)
-	# ボス/敵技は一瞬大きく出して威圧感を出す
-	lbl.scale = Vector2(1.3, 1.3)
+	var text_w: float = maxf(lbl.size.x, float(text.length()) * float(ENEMY_SKILL_NAME_FONT_SIZE) * 0.55)
+	var head_center: Vector2 = _sprite_visual_center_global(spr)
+	var head_top: float = _sprite_top_y_global(spr) - 44.0
+	## スプライト未可視でも座標があれば出す（群れ切替直後の取りこぼし防止）。
+	if head_center == Vector2.ZERO:
+		head_center = spr.global_position
+		head_top = spr.global_position.y - 120.0
+	var base_x: float = head_center.x - text_w * 0.5
+	lbl.custom_minimum_size = Vector2(text_w, lbl.size.y)
+	lbl.pivot_offset = Vector2(text_w * 0.5, lbl.size.y * 0.5)
+	lbl.position = Vector2(base_x, head_top)
+	lbl.scale = Vector2(0.75, 0.75)
 	lbl.modulate.a = 0.0
 	_damage_numbers_layer.add_child(lbl)
 	var tw: Tween = create_tween()
-	tw.tween_property(lbl, "scale", Vector2.ONE, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
-	tw.parallel().tween_property(lbl, "modulate:a", 1.0, 0.12)
+	tw.set_parallel(true)
+	tw.tween_property(lbl, "scale", Vector2.ONE, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(lbl, "modulate:a", 1.0, 0.12)
 	tw.chain().set_parallel(true)
-	tw.tween_property(lbl, "position:y", base_y - 26.0, 0.7)
-	tw.tween_property(lbl, "modulate:a", 0.0, 0.5).set_delay(0.35)
+	tw.tween_property(lbl, "position:y", head_top - 30.0, 0.8)
+	tw.tween_property(lbl, "modulate:a", 0.0, 0.55).set_delay(0.45)
 	tw.chain().tween_callback(lbl.queue_free)
 
 # 敵の詠唱中ポップ（P3-D112・紫系で通常スキル名と差別化）
 func _spawn_enemy_cast_name(skill_name: String, slot: int) -> void:
 	if skill_name.is_empty():
 		return
-	if slot < 0 or slot >= _swarm_sprites.size():
-		_spawn_enemy_skill_name(skill_name)
+	var spr: AnimatedSprite2D = _enemy_sprite_for_attack_mark(slot)
+	if spr == null:
+		_spawn_enemy_skill_name(skill_name, slot)
 		return
-	var spr: AnimatedSprite2D = _swarm_sprites[slot]
-	if not spr.visible:
-		_spawn_enemy_skill_name(skill_name)
-		return
-	const CAST_FONT_SIZE: int = 22
+	var text: String = "◆ %s" % skill_name
 	var lbl := Label.new()
-	lbl.text = "◆ %s" % skill_name
+	lbl.text = text
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
 	lbl.clip_text = false
 	lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	lbl.z_index = 12
 	var af: Font = UiTypography.impact_font()
 	if af != null:
 		lbl.add_theme_font_override("font", af)
-	lbl.add_theme_font_size_override("font_size", CAST_FONT_SIZE)
-	lbl.add_theme_color_override("font_color", Color(0.75, 0.55, 1.0))
+	lbl.add_theme_font_size_override("font_size", ENEMY_CAST_NAME_FONT_SIZE)
+	lbl.add_theme_color_override("font_color", Color(0.78, 0.58, 1.0))
 	lbl.add_theme_color_override("font_outline_color", Color(0.08, 0.0, 0.12, 0.95))
-	lbl.add_theme_constant_override("outline_size", 6)
+	lbl.add_theme_constant_override("outline_size", 7)
 	lbl.reset_size()
-	var base_y: float = spr.global_position.y - 130.0
-	lbl.position = Vector2(
-		spr.global_position.x - maxf(lbl.size.x, float(lbl.text.length()) * CAST_FONT_SIZE * 0.55) * 0.5,
-		base_y
-	)
+	var text_w: float = maxf(lbl.size.x, float(text.length()) * float(ENEMY_CAST_NAME_FONT_SIZE) * 0.55)
+	var head_center: Vector2 = _sprite_visual_center_global(spr)
+	var head_top: float = _sprite_top_y_global(spr) - 40.0
+	if head_center == Vector2.ZERO:
+		head_center = spr.global_position
+		head_top = spr.global_position.y - 110.0
+	var base_x: float = head_center.x - text_w * 0.5
+	lbl.custom_minimum_size = Vector2(text_w, lbl.size.y)
+	lbl.pivot_offset = Vector2(text_w * 0.5, lbl.size.y * 0.5)
+	lbl.position = Vector2(base_x, head_top)
+	lbl.scale = Vector2(0.8, 0.8)
 	lbl.modulate.a = 0.0
 	_damage_numbers_layer.add_child(lbl)
 	var tw: Tween = create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(lbl, "scale", Vector2.ONE, 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.tween_property(lbl, "modulate:a", 1.0, 0.12)
 	tw.chain().set_parallel(true)
-	tw.tween_property(lbl, "position:y", base_y - 18.0, 0.55)
-	tw.tween_property(lbl, "modulate:a", 0.0, 0.4).set_delay(0.25)
+	tw.tween_property(lbl, "position:y", head_top - 22.0, 0.65)
+	tw.tween_property(lbl, "modulate:a", 0.0, 0.45).set_delay(0.3)
 	tw.chain().tween_callback(lbl.queue_free)
 
 func _do_enemy_attack(slot: int = -1) -> void:
@@ -7233,7 +7254,8 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 			if lock_n > 0:
 				_basic_only_actions_left[member_idx] = lock_n
 			applied = true
-			_append_log("[レリック] 開幕狙撃 %d ダメージ" % dmg)		"grant_next_attack_mult":
+			_append_log("[レリック] 開幕狙撃 %d ダメージ" % dmg)
+		"grant_next_attack_mult":
 			var mult: float = float(p.get("mult", 2.0))
 			var target_kind: String = str(p.get("target", "self"))
 			if target_kind == "party_alive":
