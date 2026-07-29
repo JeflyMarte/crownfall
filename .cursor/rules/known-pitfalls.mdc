@@ -79,6 +79,7 @@ alwaysApply: true
 | パッシブタブが重い／スクロール不能 | 再構築後 ScrollTouch 未再適用＋巨大カード上の STOP RTL（状態異常リンク）がドラッグを奪う | rebuild 後 `ScrollTouchHelper.enable(TabPassive)`。一覧は小アイコン＋Label。`ScrollTouchHelper` は深い VBox 追加もフック |
 | キャラ／装備一覧でセル上スクロールが効かない | 長押し用 `gui_input` で press 時に `accept_event()` → 親 Scroll がドラッグ開始できない | セルは `accept_event` しない（PASS＋gui_input で短タップ／長押し）。スクロールは親に任せる |
 | iPhoneで装備長押しが効かない | ①所持グリッドが `pressed` のみで長押し未配線 ②微細 `ScreenDrag` で即キャンセル | 所持も `_bind_inventory_cell_interaction`。移動キャンセルは deadzone（≈20px）以上のみ |
+| 武器に「炎上付与」と「状態付与 炎上」が二重 | 専用 `*_chance` と `on_hit_status` が併存抽選 | **P3-EQ-STATUS-UNIFY-001**: 状態付与のみ。専用行は sanitize で統合。`test_unify_legacy_ignite_into_on_hit` |
 | 他人装備を黙って奪う | 付け替え確認なしで即装備 | 他人装備中は「〇〇が装備してます。付け替えますか？」確認後に装備 |
 | ミレイ習得スキルのアイコンが空白 | `pet_bond_*` が `SkillIconHelper.SKILL_TO_BASE` 未登録 → ally アイコン null | 相棒鼓舞=buff／指揮の牙=mark／絆の守り=guard。ベース無し時は個別アートへフォールバック |
 | 報酬受取後に所持金／魔晶石アイコンが拡大したまま | `CurrencyGainFx` のパルスが複数モートで重なり、途中 scale を基準に積み上がる | 元 scale を meta 保存。旧 tween kill 後に元へ戻してからパルス |
