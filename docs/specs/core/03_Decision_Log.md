@@ -5444,7 +5444,6 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 ## 装備効果ファミリーフィルター（2026-07-28 — P3-UX-EQ-EFFECT-FAMILY-001）
 
 > **オーナー GO（案B）** — 装備一覧で効果を大分類チップで絞り込む。
-
 | # | 決定 | 根拠 |
 |---|---|---|
 | P3-UX-EQ-EFFECT-FAMILY-001-1 | **案B** — 効果ファミリー（火力／耐久／会心／状態異常／稼ぎ／固有） | kind 直指定は項目過多 |
@@ -5452,9 +5451,13 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 | P3-UX-EQ-EFFECT-FAMILY-001-3 | **主軸** — `random_mods.kind`。固有＝`fixed_passive_id`。セットは対象外 | Diablo 化後の正 |
 | P3-UX-EQ-EFFECT-FAMILY-001-4 | **範囲** — 装備一覧（Catalog）のみ。キャラ所持は後続 | β最小 |
 | P3-UX-EQ-EFFECT-FAMILY-001-5 | **マスタ補完** — 武器 element／bane、防具 resist も対応ファミリーに含める | mod 無し旧品の抜け防止 |
-
 ---
-
+## キャラ画面の一覧切替（2026-07-28 — P3-UX-CHR-MEMBER-LIST-001）
+> **オーナー指示** — ◀▶ だけでなく一覧からキャラを切り替えたい。
+| P3-UX-CHR-MEMBER-LIST-001-1 | 名前横に「一覧」ボタン。シートでロスター＋オトモを選択 | ◀▶ 連打は人数増で不便 |
+| P3-UX-CHR-MEMBER-LIST-001-2 | ◀▶ は残置。対象は既存 `_get_view_members` と同一 | 切替対象の食い違い防止 |
+| P3-UX-CHR-MEMBER-LIST-001-3 | AcceptDialog 禁止。Control オーバーレイ＋ScrollTouch | 鍛冶と同様の入力奪取回避 |
+## ロックバイソン出現抑制（2026-07-28 — P3-BAL-ROCK-BISON-SPAWN-001）
 
 > **オーナー GO（案B＋C）** — 全域配置は維持。D2帯内の重みと群れを弱めて序盤の偏りを抑える。
 

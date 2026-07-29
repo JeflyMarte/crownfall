@@ -78,7 +78,8 @@ const EMPTY_SLOT_TEXT: String = "空"
 @onready var _label_stars: Label = $VBoxContainer/CharacterCard/CardRow/PortraitBox/LabelStars
 @onready var _portrait_art: TextureRect = $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/PortraitStack/Portrait/PortraitArt
 @onready var _portrait_glyph: Label = $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/PortraitStack/Portrait/PortraitGlyph
-@onready var _label_name: Label = $VBoxContainer/CharacterCard/CardRow/InfoBox/LabelName
+@onready var _label_name: Label = $VBoxContainer/CharacterCard/CardRow/InfoBox/NameRow/LabelName
+@onready var _btn_member_list: Button = $VBoxContainer/CharacterCard/CardRow/InfoBox/NameRow/BtnMemberList
 @onready var _label_level: Label = $VBoxContainer/CharacterCard/CardRow/InfoBox/LabelLevel
 @onready var _job_icon: TextureRect = $VBoxContainer/CharacterCard/CardRow/InfoBox/JobRow/JobIcon
 @onready var _label_job: Label = $VBoxContainer/CharacterCard/CardRow/InfoBox/JobRow/LabelJob
@@ -192,6 +193,7 @@ var _detail_pinned: bool = false
 var _portrait_idle_textures: Array[Texture2D] = []
 var _portrait_idle_frame: int = 0
 var _portrait_idle_accum: float = 0.0
+var _member_list_sheet: CanvasLayer = null
 
 func _ready() -> void:
 	$Header/HeaderRow/LabelTitle.text = ""
@@ -206,6 +208,7 @@ func _ready() -> void:
 	_ensure_take_equip_confirm()
 	_btn_member_prev.pressed.connect(_on_member_prev_pressed)
 	_btn_member_next.pressed.connect(_on_member_next_pressed)
+	_btn_member_list.pressed.connect(_on_member_list_pressed)
 	_btn_promote.pressed.connect(_on_promote_pressed)
 	_btn_sort.pressed.connect(_on_sort_pressed)
 	_btn_filter.pressed.connect(_on_filter_pressed)
@@ -295,6 +298,10 @@ func _setup_equipment_chrome() -> void:
 	_btn_stat_detail.add_theme_color_override("font_disabled_color", Color(0.62, 0.58, 0.52, 1.0))
 	_evolution_row.add_theme_constant_override("separation", 4)
 	UiTypography.apply_display(_label_name, UiTypography.SIZE_DISPLAY_TITLE, UiTypography.COLOR_GOLD)
+	UiTypography.apply_menu_button(_btn_member_list, false)
+	_btn_member_list.add_theme_font_size_override("font_size", UiTypography.SIZE_CAPTION)
+	_btn_member_list.custom_minimum_size = Vector2(72, 36)
+	_btn_member_list.clip_text = true
 	UiTypography.apply_body(_label_level, UiTypography.SIZE_BODY, UiTypography.COLOR_BODY)
 	UiTypography.apply_body(_label_job, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	_configure_job_label_one_line()
@@ -680,6 +687,131 @@ func _cycle_member(delta: int) -> void:
 		return
 	var next_index: int = (_selected_member_index + delta + count) % count
 	_on_member_selected(next_index)
+
+
+func _on_member_list_pressed() -> void:
+	_open_member_list_sheet()
+
+
+func _open_member_list_sheet() -> void:
+	_close_member_list_sheet()
+	var members: Array = _get_view_members()
+	if members.is_empty():
+		return
+	var layer := CanvasLayer.new()
+	layer.name = "MemberListSheet"
+	layer.layer = 60
+	add_child(layer)
+	_member_list_sheet = layer
+	var root := Control.new()
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.mouse_filter = Control.MOUSE_FILTER_STOP
+	layer.add_child(root)
+	var dim := ColorRect.new()
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0.0, 0.0, 0.0, 0.55)
+	dim.gui_input.connect(_on_member_list_dim_input)
+	root.add_child(dim)
+	var panel := PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.custom_minimum_size = Vector2(560, 720)
+	panel.offset_left = -280
+	panel.offset_right = 280
+	panel.offset_top = -360
+	panel.offset_bottom = 360
+	panel.add_theme_stylebox_override(
+		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
+	)
+	root.add_child(panel)
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 10)
+	panel.add_child(vbox)
+	var title := Label.new()
+	title.text = "キャラを選ぶ"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_body(title, UiTypography.SIZE_BODY, COLOR_GOLD)
+	vbox.add_child(title)
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.custom_minimum_size = Vector2(0, 560)
+	vbox.add_child(scroll)
+	var list := VBoxContainer.new()
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list.add_theme_constant_override("separation", 6)
+	scroll.add_child(list)
+	for i in members.size():
+		list.add_child(_make_member_list_row(members[i], i))
+	ScrollTouchHelper.enable(scroll)
+	var btn_close := Button.new()
+	btn_close.text = "閉じる"
+	btn_close.custom_minimum_size = Vector2(0, 44)
+	UiTypography.apply_menu_button(btn_close, false)
+	btn_close.pressed.connect(_close_member_list_sheet)
+	vbox.add_child(btn_close)
+
+
+func _make_member_list_row(member: Resource, view_index: int) -> Control:
+	var selected: bool = view_index == _selected_member_index
+	var row := Button.new()
+	row.custom_minimum_size = Vector2(0, 72)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.focus_mode = Control.FOCUS_NONE
+	row.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	UiTypography.apply_menu_button(row, selected)
+	row.pressed.connect(_on_member_list_pick.bind(view_index))
+	var h := HBoxContainer.new()
+	h.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	h.offset_left = 10
+	h.offset_right = -10
+	h.offset_top = 6
+	h.offset_bottom = -6
+	h.add_theme_constant_override("separation", 10)
+	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(h)
+	var tex: Texture2D = RosterUiHelper.get_member_portrait_texture(member)
+	if tex != null:
+		h.add_child(RosterUiHelper.make_clamped_portrait(tex, 56, true))
+	var col := VBoxContainer.new()
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	col.add_theme_constant_override("separation", 2)
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	h.add_child(col)
+	var name_lbl := Label.new()
+	name_lbl.text = _GachaLimitBreak.format_member_name_plus(member)
+	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_body(name_lbl, UiTypography.SIZE_BODY, COLOR_GOLD if selected else UiTypography.COLOR_BODY)
+	col.add_child(name_lbl)
+	var sub := Label.new()
+	var is_pet: bool = PetSystem.is_pet_member(member)
+	var job: String = RosterUiHelper.job_display_name(member)
+	if is_pet:
+		sub.text = "オトモ  Lv.%d" % int(member.level)
+	elif SurveySystem.is_member_dispatched(str(member.id)):
+		sub.text = "調査中  Lv.%d  %s" % [int(member.level), job]
+	else:
+		sub.text = "Lv.%d  %s" % [int(member.level), job]
+	sub.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_caption(sub, COLOR_SUB)
+	col.add_child(sub)
+	return row
+
+
+func _on_member_list_pick(view_index: int) -> void:
+	_close_member_list_sheet()
+	_on_member_selected(view_index)
+
+
+func _on_member_list_dim_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_close_member_list_sheet()
+
+
+func _close_member_list_sheet() -> void:
+	if _member_list_sheet != null and is_instance_valid(_member_list_sheet):
+		_member_list_sheet.queue_free()
+	_member_list_sheet = null
+
 
 func _clamp_roster_index(index: int) -> int:
 	var members: Array = _get_view_members()
@@ -3708,6 +3840,7 @@ func _on_skill_toggle_pressed(skill_id: String) -> void:
 	_refresh_tactics_ui(member)
 
 func _on_back_pressed() -> void:
+	_close_member_list_sheet()
 	SaveManager.save_game()
 	_go_to(HOME_SCENE)
 
