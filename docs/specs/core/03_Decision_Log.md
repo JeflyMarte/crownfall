@@ -5463,6 +5463,12 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 | P3-UX-RUN-HUD-FLOOR-PCT-001-2 | 分母・分子は `get_display_floor_*`（部屋バーと一致） | F表示との食い違い防止 |
 | P3-UX-RUN-HUD-FLOOR-PCT-001-3 | `dungeon_progress.discovery` の内部加算は据置（UIのみ変更） | 隠し解放用データの破壊を避ける |
 | P3-UX-RUN-HUD-FLOOR-PCT-001-4 | ダンジョン選択の「発見率」は対象外 | 別UI。必要なら後続 |
+## 展示室スタッフ作例一覧化／キャラ変更左寄せ（2026-07-29 — P3-UX-SHOWCASE-STAFF-LIST-001）
+> **オーナー指示** — スタッフ名横並びが総合戦力と重なる／キャラ変更を少し左へ。
+| P3-UX-SHOWCASE-STAFF-LIST-001-1 | 横並び StaffStrip 廃止。左の「作例一覧」ボタン＋シートで切替 | 総合戦力との重なり解消 |
+| P3-UX-SHOWCASE-STAFF-LIST-001-2 | ボタン文言は選択中 `player_name` | 誰の作例か一目で分かる |
+| P3-UX-SHOWCASE-STAFF-LIST-001-3 | キャラ変更を左へ約32px（x248→216） | オーナー指定 |
+| P3-UX-SHOWCASE-STAFF-LIST-001-4 | AcceptDialog 禁止。既存ピックオーバーレイ流用 | 入力奪取回避 |
 ## ロックバイソン出現抑制（2026-07-28 — P3-BAL-ROCK-BISON-SPAWN-001）
 
 > **オーナー GO（案B＋C）** — 全域配置は維持。D2帯内の重みと群れを弱めて序盤の偏りを抑える。

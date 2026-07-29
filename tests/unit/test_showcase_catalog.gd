@@ -72,14 +72,37 @@ func test_showcase_member_id_roundtrip_helpers() -> void:
 
 
 func test_power_and_change_member_layout_rects() -> void:
-	## 総合戦力＝旧キャラ変更帯、キャラ変更＝装備とステのあいだ。
+	## 総合戦力＝名札上、キャラ変更＝装備とステのあいだ（やや左寄せ可）。
 	var power: Rect2 = ShowcaseUiTokens.POWER_RECT
 	var change: Rect2 = ShowcaseUiTokens.CHANGE_MEMBER_RECT
 	var equip: Rect2 = ShowcaseUiTokens.EQUIP_RECT
 	var stats: Rect2 = ShowcaseUiTokens.STATS_RECT
 	assert_gt(power.position.y, change.position.y)
-	assert_gt(change.position.x, equip.position.x + equip.size.x - 8.0)
+	assert_gt(change.position.x, equip.position.x)
 	assert_lt(change.position.x + change.size.x, stats.position.x + 8.0)
+	## 左寄せしてもステ枠を食い込まない。
+	assert_lt(change.position.x + change.size.x, stats.position.x)
+
+
+func test_staff_list_button_does_not_overlap_power() -> void:
+	var staff: Rect2 = ShowcaseUiTokens.STAFF_LIST_RECT
+	var power: Rect2 = ShowcaseUiTokens.POWER_RECT
+	assert_lt(staff.position.x + staff.size.x, power.position.x + 1.0)
+	assert_eq(staff.position.y, power.position.y)
+
+
+func test_showcase_scene_has_staff_list_button() -> void:
+	var packed: PackedScene = load("res://scenes/showcase/ShowcaseScene.tscn")
+	assert_not_null(packed)
+	var scene: Node = packed.instantiate()
+	add_child_autofree(scene)
+	await get_tree().process_frame
+	scene.call("_set_mode", scene.Mode.STAFF)
+	await get_tree().process_frame
+	var btn: Button = scene.get("_btn_staff_list") as Button
+	assert_not_null(btn)
+	assert_true(btn.visible)
+	assert_false(bool(scene.get_node("StaffStrip").visible))
 
 
 func test_name_frame_top_rule_sits_above_footer_name() -> void:
