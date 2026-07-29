@@ -126,3 +126,22 @@ func test_enhance_badge_hides_until_first_enhance() -> void:
 	weapon.enhance_level = 2
 	assert_eq(EquipmentUiHelper.enhance_badge(weapon, "weapon"), "+2")
 	assert_eq(EquipmentUiHelper.enhance_badge(weapon, "armor"), "")
+
+func test_framed_item_icon_is_free_layout_host_for_rarity_badges() -> void:
+	## PanelContainer 直下にレアロゴを足すと全面伸長する。外側は Control。
+	var tex: Texture2D = EquipmentUiTokens.load_tex(EquipmentUiTokens.INV_CELLS[0])
+	assert_not_null(tex)
+	var framed: Control = EquipmentItemDetailHelper._make_framed_item_icon(
+		"kelp_weave_cloak", "armor", Enums.Rarity.RARE, 96, tex
+	)
+	assert_false(framed is PanelContainer)
+	assert_eq(framed.custom_minimum_size, Vector2(96, 96))
+	assert_true(framed.clip_contents)
+	framed.free()
+
+func test_detail_ui_text_truncate_for_forge_result() -> void:
+	assert_eq(EquipmentItemDetailHelper._truncate_ui_text("短い文", 28), "短い文")
+	var long_text: String = "海藻を乾かして織った外套。潮の香りが残り、岸風を和らげる。"
+	var cut: String = EquipmentItemDetailHelper._truncate_ui_text(long_text, 28)
+	assert_true(cut.ends_with("…"))
+	assert_lte(cut.length(), 28)

@@ -11,6 +11,8 @@ alwaysApply: true
 
 | 症状 | 原因 | 再発防止 |
 |---|---|---|
+| 鍛冶完了ポップで N/R/E・Legend ロゴがアイコン全面に巨大化 | レアロゴを `PanelContainer` 直下に `add_child` → コンテナが子を全面伸長 | 枠アイコンは外側 `Control` にバッジ。`badge_ref_px` は装備一覧 `INV_CELL_PX` |
+| 鍛冶完了の説明／セット文が枠からはみ出す | 日本語＋`AUTOWRAP_WORD_SMART` で最小幅＝全文幅。完了ポップの長文 | `AUTOWRAP_ARBITRARY`＋`desc_wrap_width`。完了は `desc_max_chars`／`effect_max_chars` で短縮 |
 | 鍛冶屋入場で即終了（`BlacksmithScene` パース失敗） | `maxf(a, b, c)` は GDScript 非対応（最大2引数） | `maxf(a, maxf(b, c))` にネスト。変更後 headless で BlacksmithScene instantiate 確認 |
 | ダンジョン入場で即終了（`DungeonScene` コンパイル失敗） | `NonCombatNarrativeColors.wrap` が組み込み `wrap(value,min,max)` と衝突し「Too few arguments」 | 静的ヘルパは `bb_wrap` 等、グローバル／組み込みと被らない名前にする。変更後 headless で DungeonScene ロード確認 |
 | 宝箱／泉／碑文の結果コメントが「探索を開始した」に戻る | 結果 BBCode 直後の `_reset_narrative_typography` が Label モードへ戻し、入場時の旧文が再表示 | 結果表示後はリセットしない。BBCode 時は Label 平文同期。Rich 表示中は reset を no-op。詳細: `14_Presentation_Pitfalls.md` |

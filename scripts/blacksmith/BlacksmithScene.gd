@@ -835,9 +835,13 @@ func _framed_result_detail_opts() -> Dictionary:
 	return {
 		"show_owner": false,
 		"header_icon_px": 96,
+		## レアロゴは装備一覧セルと同寸（PanelContainer 直下配置は禁止）。
+		"badge_ref_px": EquipmentUiTokens.INV_CELL_PX,
 		"indent_left": 56,
-		"indent_right": 16,
-		"desc_wrap_width": 420,
+		"indent_right": 24,
+		"desc_wrap_width": 360,
+		"desc_max_chars": 28,
+		"effect_max_chars": 36,
 		"value_color": UiTypography.COLOR_GOLD,
 		"framed_icon": true,
 		"show_enhance_badge": false,

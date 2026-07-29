@@ -39,14 +39,14 @@ const DUNGEON_SET: Dictionary = {
 const BONUS: Dictionary = {
 	SET_CHRONOS_TOKI: {
 		"display_name": "クロノスの加護",
-		"description": "行動速度 +15%／スキルCD・詠唱 −15%",
+		"description": "速度+15%／CD・詠唱−15%",
 		"speed_mult": 1.15,
 		"skill_cd_mult": 0.85,
 		"skill_cast_mult": 0.85,
 	},
 	SET_VALGARD_ANTIQUE: {
 		"display_name": "ヴァルガードの加護",
-		"description": "HP・与ダメ +12%／被ダメ −11%",
+		"description": "HP・与ダメ+12%／被ダメ−11%",
 		"hp_mult": 1.12,
 		"outgoing_mult": 1.12,
 		"incoming_mult": 0.89,
