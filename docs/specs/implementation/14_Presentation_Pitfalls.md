@@ -13,6 +13,7 @@
 | BBCode だけ更新し Label を放置 | `_set_room_narrative_bbcode` で Label にも平文同期（`strip_bbcode`） |
 | 入場文を上書きせずにモード切替 | `_reset_narrative_typography` は Rich 表示中は no-op |
 | 非戦闘ナラティブだけ本文フォント（Noto） | 図鑑登録テロップと同じ `apply_display` / `apply_display_rich`（Shippori） |
+| 下帯サイズが部屋／段階で変わる（22↔26） | `NARRATIVE_BAND_FONT_SIZE` 固定。`_set_room_narrative_bbcode` に size 引数を持たせない |
 
 **症状:** 宝箱／泉／碑文／罠の直後に「〜の探索を開始した」や空帯が出る。
 
