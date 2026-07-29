@@ -5327,7 +5327,6 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 ## 戦闘帯VFX本番差し替え（2026-07-28 — P3-UX-COMBAT-BAND-ART-001）
 
 > **オーナー GO（案A）** — ColorRect 仮置きを即オフ。P0 本番シートから順に差し替え。四角フォールバック禁止。
-
 | # | 決定 | 根拠 |
 |---|---|---|
 | P3-UX-COMBAT-BAND-ART-001-1 | **ColorRect 帯VFXを廃止**。`FX_Band_*.tres` があるときだけ `AnimatedSprite2D` 再生 | 図形に見える仮置きが体験を損なう |
@@ -5336,6 +5335,17 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 | P3-UX-COMBAT-BAND-ART-001-4 | **P1** — mist／tide／fan／volley／quake。**P2** — shot／roar | 発注を段階化 |
 | P3-UX-COMBAT-BAND-ART-001-5 | 配置=`assets/vfx/band/FX_Band_{Style}.png` → `resources/animation/FX_Band_{Style}.tres`。暗縁キー必須 | Hit VFX パイプライン踏襲 |
 | P3-UX-COMBAT-BAND-ART-001-6 | **P0+P1 Cursor試作**（2026-07-29）— 全10スタイルを AI 生成→透過→接続。オーナー見た目確認後に本番採用／差し戻し | 図形オミット後の埋め |
+## レリック尖鋭化（2026-07-28 — P3-UX-RELIC-TACTICS-B001）
+> **オーナー GO（B全面）** — 常時％をやめ、装備で戦い方が変わる発火＋制約へ。弔鐘は B1（蘇生制約なし）。
+| P3-UX-RELIC-TACTICS-B001-1 | **B全面** — 既存8 ID の効果・説明を差し替え。入手・装備枠は据置 | 地味な常時%を解消 |
+| P3-UX-RELIC-TACTICS-B001-2 | **王国軍旗** — 撃破時パーティ鼓舞／自身与ダメ-15% | 指揮専任 |
+| P3-UX-RELIC-TACTICS-B001-3 | **王盾** — 前列被弾で防御＋Threatスパイク | 絶対壁 |
+| P3-UX-RELIC-TACTICS-B001-4 | **砂時計** — 必殺チャージ×2／スキルCD+30% | 必殺砲台 |
+| P3-UX-RELIC-TACTICS-B001-5 | **狂戦士** — HP帯与ダメ上昇（50%で+40%/25%で+80%）／被回復×0.5 | 濒死特化 |
+| P3-UX-RELIC-TACTICS-B001-6 | **狩人** — 標的+50%/他-25%／攻撃前に標的付与 | 単体フォーカス |
+| P3-UX-RELIC-TACTICS-B001-7 | **反応盾** — 被弾反撃＋CT遅延 | 返しタンク |
+| P3-UX-RELIC-TACTICS-B001-8 | **弔鐘 B1** — 味方戦闘不能時、生存者へ必殺ゲージ＋鼓舞（蘇生制約なし） | 尖鋭だが体験破壊を避ける |
+| P3-UX-RELIC-TACTICS-B001-9 | **斥候** — 開幕大ダメージ／最初2行動は通常攻撃のみ | 開幕バースト |
 
 ## 属性弱点再配分（2026-07-28 — P3-BAL-ELEM-REBAL-001）
 > **オーナー GO（推奨案Aすべて）** — 新キャラなし。既存弱点の付け替えで炎偏重を緩和。ボスは地形有利と整合。

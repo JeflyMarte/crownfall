@@ -1,5 +1,5 @@
 extends GutTest
-## レリック解放型パッシブ（P3-RELIC-PASSIVE・案A）。
+## レリック解放型パッシブ（P3-RELIC-PASSIVE）＋尖鋭案B（P3-UX-RELIC-TACTICS-B001）。
 
 
 func _make_member(id: String, job_id: String = "swordsman") -> Resource:
@@ -57,30 +57,55 @@ func test_toggle_relic_passive_exclusive_slot() -> void:
 	assert_eq(GameState.get_equipped_relic_passive_id(member), "")
 
 
-func test_stat_multipliers_front_row_only() -> void:
+func test_war_banner_plan_b_outgoing_penalty() -> void:
 	if GameState.party_members.is_empty():
 		return
 	var member: Resource = GameState.party_members[0]
-	var saved_row: int = member.formation_row
 	var saved_relic: String = GameState.get_equipped_relic_passive_id(member)
 	GameState.owned_relics = ["relic_war_banner"]
 	GameState.toggle_member_relic_passive(member, "relic_war_banner")
-	member.formation_row = GameState.FORMATION_FRONT
-	var front: Dictionary = CombatPassives.stat_multipliers_for_member(member, 0)
-	assert_eq(float(front["outgoing_mult"]), 1.10)
-	member.formation_row = GameState.FORMATION_BACK
-	var back: Dictionary = CombatPassives.stat_multipliers_for_member(member, 0)
-	assert_eq(float(back["outgoing_mult"]), 1.0)
-	member.formation_row = saved_row
+	var eff: Dictionary = CombatPassives.stat_multipliers_for_member(member, 0)
+	assert_eq(float(eff["outgoing_mult"]), 0.85)
+	var def: Dictionary = CombatPassives.get_def("relic_war_banner")
+	assert_eq(str(def.get("trigger", "")), "on_kill")
+	assert_eq(str(def.get("effect", "")), "apply_status")
+	assert_eq(str(def.get("target", "")), "party")
 	GameState.toggle_member_relic_passive(member, "")
 	if not saved_relic.is_empty():
 		GameState.toggle_member_relic_passive(member, saved_relic)
 
 
-func test_combat_relics_effects_for() -> void:
+func test_combat_relics_effects_for_aegis_no_flat_incoming() -> void:
 	var eff: Dictionary = CombatRelics.effects_for("relic_aegis_shard")
-	assert_eq(float(eff["incoming_mult"]), 0.90)
+	assert_eq(float(eff["incoming_mult"]), 1.0)
 	assert_eq(float(eff["outgoing_mult"]), 1.0)
+	var def: Dictionary = CombatPassives.get_def("relic_aegis_shard")
+	assert_eq(str(def.get("effect", "")), "taunt_and_guard")
+
+
+func test_plan_b_helper_curves() -> void:
+	assert_eq(CombatPassives.relic_outgoing_hp_tier_mult(-1, 0.2), 1.0)
+	## 装備なしでも 1.0
+	if GameState.party_members.is_empty():
+		return
+	var member: Resource = GameState.party_members[0]
+	var saved: String = GameState.get_equipped_relic_passive_id(member)
+	GameState.owned_relics = ["relic_berserker_charm", "relic_hunter_sigil", "relic_old_hourglass"]
+	GameState.toggle_member_relic_passive(member, "relic_berserker_charm")
+	assert_eq(CombatPassives.relic_outgoing_hp_tier_mult(0, 0.60), 1.0)
+	assert_eq(CombatPassives.relic_outgoing_hp_tier_mult(0, 0.40), 1.40)
+	assert_eq(CombatPassives.relic_outgoing_hp_tier_mult(0, 0.20), 1.80)
+	assert_eq(CombatPassives.relic_heal_received_mult(0), 0.5)
+	GameState.toggle_member_relic_passive(member, "relic_hunter_sigil")
+	assert_eq(CombatPassives.relic_mark_focus_outgoing_mult(0, ["mark"]), 1.50)
+	assert_eq(CombatPassives.relic_mark_focus_outgoing_mult(0, []), 0.75)
+	assert_eq(CombatPassives.relic_pre_hit_status_id(0), "mark")
+	GameState.toggle_member_relic_passive(member, "relic_old_hourglass")
+	assert_eq(CombatPassives.relic_skill_cd_mult(0), 1.30)
+	assert_eq(CombatPassives.equipped_relic_float(0, "ultimate_charge_dealt_mult", 1.0), 2.0)
+	GameState.toggle_member_relic_passive(member, "")
+	if not saved.is_empty():
+		GameState.toggle_member_relic_passive(member, saved)
 
 
 func test_save_v4_migrates_relic_id_field() -> void:

@@ -84,6 +84,8 @@
 |---|---|---|---|
 | — | **P3-UX-COMBAT-BAND-ART-001** | 帯VFX本番差し替え（案A: ColorRect即オフ→P0 breath/pulse/slash） | ✅ Impl（P0アート待ち） |
 | — | **P3-UX-COMBAT-BAND-001** | ボス詠唱帯VFX＋味方全体／必殺派手演出 | ✅ Impl → ART-001 で仮置きオフ |
+| — | **P3-UX-RELIC-TACTICS-B001** | レリック尖鋭案B全面（発火＋制約） | ✅ Impl（要実機） |
+| — | **P3-UX-COMBAT-BAND-001** | ボス詠唱帯VFX＋味方全体／必殺派手演出 | ✅ Impl（要実機） |
 | — | **P3-BAL-ELEM-REBAL-001** | 属性弱点再配分（既存付け替え・新キャラなし）。ボス／地形整合 | ✅ Impl（要実機） |
 | — | **P3-BAL-ENEMY-SKILL-CA-001** | 敵スキル厚み C→A。Phase C＝エリート第2スキル（本線）。Phase A＝雑魚2本化は後続 | ✅ Phase C Impl（要実機） |
 | — | **P3-CODEX-HIST-GUIDE-050** | 図鑑 歴史50／世界観手引き50（HE-001〜050・WORLD-G001〜050） | ✅ GO・統合＋main |
