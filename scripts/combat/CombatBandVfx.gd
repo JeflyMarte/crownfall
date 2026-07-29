@@ -1,8 +1,8 @@
 class_name CombatBandVfx
 extends RefCounted
 
-## 戦闘の帯・波動・霧など「画面を横切る」系 VFX（P3-UX-COMBAT-BAND-001）。
-## 専用スプライト無しで ColorRect／簡易リングを procedurally 生成する。
+## 戦闘の帯・波動・霧など「画面を横切る」系 VFX（P3-UX-COMBAT-BAND-001／ART-001）。
+## ColorRect 仮置きは廃止。SpriteFrames があるスタイルのみ再生し、無ければ無演出。
 
 const STYLE_BREATH := "breath"
 const STYLE_PULSE := "pulse"
@@ -15,18 +15,60 @@ const STYLE_SLASH := "slash"
 const STYLE_SHOT := "shot"
 const STYLE_ROAR := "roar"
 
-const ELEMENT_COLOR: Dictionary = {
-	"fire": Color(1.0, 0.42, 0.12, 0.72),
-	"ice": Color(0.45, 0.82, 1.0, 0.7),
-	"thunder": Color(1.0, 0.92, 0.28, 0.68),
-	"dark": Color(0.62, 0.28, 0.92, 0.7),
-	"holy": Color(1.0, 0.94, 0.7, 0.68),
-	"": Color(0.9, 0.55, 0.35, 0.65),
+## P0 本番シート（未配置時は無演出）。命名: FX_Band_{Style}.tres
+const FRAMES_PATH: Dictionary = {
+	STYLE_BREATH: "res://resources/animation/FX_Band_Breath.tres",
+	STYLE_PULSE: "res://resources/animation/FX_Band_Pulse.tres",
+	STYLE_SLASH: "res://resources/animation/FX_Band_Slash.tres",
 }
+
+## P1 以降。未配置の間は空＝無演出（四角フォールバック禁止）。
+const FRAMES_PATH_P1: Dictionary = {
+	STYLE_TIDE: "res://resources/animation/FX_Band_Tide.tres",
+	STYLE_MIST: "res://resources/animation/FX_Band_Mist.tres",
+	STYLE_FAN: "res://resources/animation/FX_Band_Fan.tres",
+	STYLE_VOLLEY: "res://resources/animation/FX_Band_Volley.tres",
+	STYLE_QUAKE: "res://resources/animation/FX_Band_Quake.tres",
+	STYLE_SHOT: "res://resources/animation/FX_Band_Shot.tres",
+	STYLE_ROAR: "res://resources/animation/FX_Band_Roar.tres",
+}
+
+## 属性は別シート必須にせずティント（Hit VFX と同方針）。
+const ELEMENT_COLOR: Dictionary = {
+	"fire": Color(1.0, 0.42, 0.12, 0.92),
+	"ice": Color(0.45, 0.82, 1.0, 0.9),
+	"thunder": Color(1.0, 0.92, 0.28, 0.9),
+	"dark": Color(0.72, 0.42, 1.0, 0.9),
+	"holy": Color(1.0, 0.94, 0.7, 0.9),
+	"": Color(1.0, 1.0, 1.0, 0.95),
+}
+
+const ANIM_NAME := &"default"
+const DEFAULT_FPS: float = 12.0
 
 
 static func element_color(element: String) -> Color:
 	return ELEMENT_COLOR.get(element, ELEMENT_COLOR[""]) as Color
+
+
+static func frames_path_for_style(style: String) -> String:
+	if FRAMES_PATH.has(style):
+		return str(FRAMES_PATH[style])
+	if FRAMES_PATH_P1.has(style):
+		return str(FRAMES_PATH_P1[style])
+	return ""
+
+
+static func has_band_frames(style: String) -> bool:
+	var path: String = frames_path_for_style(style)
+	return not path.is_empty() and ResourceLoader.exists(path)
+
+
+static func load_band_frames(style: String) -> SpriteFrames:
+	var path: String = frames_path_for_style(style)
+	if path.is_empty() or not ResourceLoader.exists(path):
+		return null
+	return load(path) as SpriteFrames
 
 
 ## 敵ダメージスキル → 帯スタイル。単体は空（帯VFXなし）。
@@ -107,8 +149,8 @@ static func _id_has_any(sid: String, display_name: String, keys: Array) -> bool:
 	return false
 
 
-## 敵→味方帯。from=敵位置、band=味方帯の中心帯 Rect（グローバル）。
-## 戻り値は演出尺（秒）。
+## 敵→味方帯。from=敵位置、band=味方帯 Rect（グローバル）。
+## 戻り値は演出尺（秒）。シート未配置なら 0（無演出）。
 static func play_enemy_band(
 	host: Node,
 	layer: Node,
@@ -118,21 +160,19 @@ static func play_enemy_band(
 	element: String,
 	speed_mult: float = 1.0
 ) -> float:
-	if host == null or layer == null or style.is_empty() or from == Vector2.ZERO:
+	if host == null or layer == null or style.is_empty():
+		return 0.0
+	var frames: SpriteFrames = load_band_frames(style)
+	if frames == null:
 		return 0.0
 	var spd: float = maxf(0.35, speed_mult)
 	var tint: Color = element_color(element)
-	match style:
-		STYLE_BREATH:
-			return _spawn_breath(host, layer, from, band, tint, spd, true)
-		STYLE_PULSE:
-			return _spawn_pulse(host, layer, from, band, tint, spd)
-		STYLE_TIDE:
-			return _spawn_tide(host, layer, band, tint, spd)
-		STYLE_MIST:
-			return _spawn_mist(host, layer, band, tint, spd)
-		_:
-			return _spawn_pulse(host, layer, from, band, tint, spd)
+	var dest: Vector2 = band.get_center() if band.size != Vector2.ZERO else from
+	var pos: Vector2 = dest if style != STYLE_PULSE else from
+	if pos == Vector2.ZERO:
+		pos = from if from != Vector2.ZERO else dest
+	var scale: Vector2 = _scale_for_style(style, band, true)
+	return _play_frames(host, layer, frames, pos, tint, scale, spd)
 
 
 ## 味方→敵帯。
@@ -145,26 +185,26 @@ static func play_ally_band(
 	element: String,
 	speed_mult: float = 1.0
 ) -> float:
-	if host == null or layer == null or style.is_empty() or from == Vector2.ZERO:
+	if host == null or layer == null or style.is_empty():
+		return 0.0
+	var frames: SpriteFrames = load_band_frames(style)
+	if frames == null:
 		return 0.0
 	var spd: float = maxf(0.35, speed_mult)
 	var tint: Color = element_color(element)
 	if tint.a < 0.5:
-		tint = Color(0.95, 0.78, 0.35, 0.7)
-	match style:
-		STYLE_QUAKE:
-			return _spawn_quake(host, layer, enemy_band, tint, spd)
-		STYLE_VOLLEY:
-			return _spawn_volley(host, layer, from, enemy_band, tint, spd)
-		STYLE_MIST:
-			return _spawn_mist(host, layer, enemy_band, tint, spd)
-		STYLE_FAN:
-			return _spawn_breath(host, layer, from, enemy_band, tint, spd, false)
-		_:
-			return _spawn_breath(host, layer, from, enemy_band, tint, spd, false)
+		tint = Color(0.95, 0.78, 0.35, 0.92)
+	var dest: Vector2 = enemy_band.get_center() if enemy_band.size != Vector2.ZERO else from
+	var pos: Vector2 = dest
+	if style == STYLE_VOLLEY or style == STYLE_FAN:
+		pos = dest
+	elif from != Vector2.ZERO:
+		pos = from.lerp(dest, 0.55)
+	var scale: Vector2 = _scale_for_style(style, enemy_band, false)
+	return _play_frames(host, layer, frames, pos, tint, scale, spd)
 
 
-## 必殺の追加帯（既存リング／フラッシュと併用）。
+## 必殺の追加帯（既存リング／フラッシュと併用）。シート未配置なら 0。
 static func play_ultimate_band(
 	host: Node,
 	layer: Node,
@@ -176,276 +216,78 @@ static func play_ultimate_band(
 ) -> float:
 	if host == null or layer == null or style.is_empty():
 		return 0.0
+	var frames: SpriteFrames = load_band_frames(style)
+	if frames == null:
+		return 0.0
 	var spd: float = maxf(0.35, speed_mult)
 	var tint: Color = element_color(element)
 	if tint.a < 0.4:
-		tint = Color(1.0, 0.82, 0.28, 0.75)
+		tint = Color(1.0, 0.82, 0.28, 0.95)
+	var pos: Vector2 = focus if focus != Vector2.ZERO else from
+	if style == STYLE_ROAR:
+		pos = from if from != Vector2.ZERO else focus
+	elif style == STYLE_SLASH and from != Vector2.ZERO and focus != Vector2.ZERO:
+		pos = from.lerp(focus, 0.55)
+	var band := Rect2(pos - Vector2(120, 80), Vector2(240, 160))
+	var scale: Vector2 = _scale_for_style(style, band, false)
+	return _play_frames(host, layer, frames, pos, tint, scale, spd)
+
+
+static func _scale_for_style(style: String, band: Rect2, _enemy_to_party: bool) -> Vector2:
+	var base: float = 2.8
 	match style:
-		STYLE_SHOT:
-			return _spawn_shot_beam(host, layer, from, focus, tint, spd)
-		STYLE_ROAR:
-			return _spawn_roar_rings(host, layer, from, tint, spd)
+		STYLE_BREATH, STYLE_FAN, STYLE_TIDE:
+			base = 3.4
+		STYLE_PULSE, STYLE_ROAR, STYLE_QUAKE:
+			base = 3.0
+		STYLE_MIST:
+			base = 3.6
+		STYLE_VOLLEY, STYLE_SHOT:
+			base = 2.4
 		STYLE_SLASH:
-			return _spawn_slash_arc(host, layer, from, focus, tint, spd)
+			base = 2.6
 		_:
-			return 0.0
+			base = 2.8
+	if band.size.x > 1.0:
+		base = clampf(band.size.x / 96.0, 2.2, 4.2)
+	return Vector2(base, base)
 
 
-static func _spawn_breath(
+static func _play_frames(
 	host: Node,
 	layer: Node,
-	from: Vector2,
-	band: Rect2,
+	frames: SpriteFrames,
+	pos: Vector2,
 	tint: Color,
-	spd: float,
-	enemy_to_party: bool
-) -> float:
-	var dest: Vector2 = band.get_center()
-	var dur: float = 0.42 / spd
-	var bar := ColorRect.new()
-	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	bar.z_index = 18
-	var h: float = maxf(72.0, band.size.y * 0.85)
-	var w0: float = 36.0
-	bar.size = Vector2(w0, h)
-	bar.pivot_offset = Vector2(w0 * 0.5, h * 0.5)
-	bar.global_position = Vector2(from.x - w0 * 0.5, from.y - h * 0.5)
-	bar.color = Color(tint.r, tint.g, tint.b, 0.0)
-	layer.add_child(bar)
-	var end_w: float = maxf(band.size.x * 0.95, 220.0)
-	var end_x: float = dest.x - end_w * 0.5
-	var end_y: float = dest.y - h * 0.5
-	if not enemy_to_party:
-		end_x = band.position.x
-		end_y = band.position.y + band.size.y * 0.1
-		end_w = maxf(band.size.x, 260.0)
-		h = maxf(band.size.y * 0.9, 100.0)
-		bar.size = Vector2(w0, h)
-		bar.pivot_offset = Vector2(w0 * 0.5, h * 0.5)
-	var tw: Tween = host.create_tween()
-	tw.set_parallel(true)
-	tw.tween_property(bar, "color:a", tint.a, 0.08)
-	tw.tween_property(bar, "global_position", Vector2(end_x, end_y), dur).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.tween_property(bar, "size", Vector2(end_w, h), dur).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.chain().tween_property(bar, "color:a", 0.0, 0.18)
-	tw.chain().tween_callback(bar.queue_free)
-	return dur + 0.18
-
-
-static func _spawn_pulse(
-	host: Node,
-	layer: Node,
-	from: Vector2,
-	band: Rect2,
-	tint: Color,
+	scale: Vector2,
 	spd: float
 ) -> float:
-	var dur: float = 0.48 / spd
-	var rings: int = 3
-	for i: int in rings:
-		var ring := ColorRect.new()
-		ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		ring.z_index = 17
-		var side0: float = 28.0
-		ring.size = Vector2(side0, side0)
-		ring.pivot_offset = Vector2(side0 * 0.5, side0 * 0.5)
-		ring.global_position = from - Vector2(side0 * 0.5, side0 * 0.5)
-		ring.color = Color(tint.r, tint.g, tint.b, 0.0)
-		layer.add_child(ring)
-		var reach: float = maxf(band.size.x, band.size.y) * (1.1 + float(i) * 0.15)
-		var delay: float = float(i) * (0.07 / spd)
-		var tw: Tween = host.create_tween()
-		tw.tween_interval(delay)
-		tw.set_parallel(true)
-		tw.tween_property(ring, "color:a", tint.a * (0.85 - float(i) * 0.18), 0.06)
-		tw.tween_property(ring, "size", Vector2(reach, reach), dur).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		tw.tween_property(
-			ring,
-			"global_position",
-			from - Vector2(reach * 0.5, reach * 0.5),
-			dur
-		).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		tw.chain().tween_property(ring, "color:a", 0.0, 0.16)
-		tw.chain().tween_callback(ring.queue_free)
-	return dur + 0.22
-
-
-static func _spawn_tide(
-	host: Node,
-	layer: Node,
-	band: Rect2,
-	tint: Color,
-	spd: float
-) -> float:
-	var dur: float = 0.5 / spd
-	var wave := ColorRect.new()
-	wave.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	wave.z_index = 17
-	var w: float = maxf(band.size.x * 1.15, 280.0)
-	var h0: float = 24.0
-	wave.size = Vector2(w, h0)
-	wave.global_position = Vector2(band.position.x - 20.0, band.end.y - 8.0)
-	wave.color = Color(tint.r, tint.g, tint.b, 0.0)
-	layer.add_child(wave)
-	var h1: float = maxf(band.size.y * 1.05, 140.0)
-	var tw: Tween = host.create_tween()
-	tw.set_parallel(true)
-	tw.tween_property(wave, "color:a", tint.a, 0.1)
-	tw.tween_property(wave, "size:y", h1, dur).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(wave, "global_position:y", band.position.y - 12.0, dur).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.chain().tween_property(wave, "color:a", 0.0, 0.22)
-	tw.chain().tween_callback(wave.queue_free)
-	return dur + 0.22
-
-
-static func _spawn_mist(
-	host: Node,
-	layer: Node,
-	band: Rect2,
-	tint: Color,
-	spd: float
-) -> float:
-	var dur: float = 0.55 / spd
-	var fog := ColorRect.new()
-	fog.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	fog.z_index = 16
-	fog.size = Vector2(maxf(band.size.x * 1.2, 300.0), maxf(band.size.y * 1.15, 120.0))
-	fog.global_position = band.position - Vector2(24.0, 16.0)
-	fog.color = Color(tint.r, tint.g, tint.b, 0.0)
-	layer.add_child(fog)
-	var tw: Tween = host.create_tween()
-	tw.tween_property(fog, "color:a", minf(0.55, tint.a), 0.18)
-	tw.tween_property(fog, "color:a", 0.0, dur).set_delay(0.12)
-	tw.chain().tween_callback(fog.queue_free)
-	return dur + 0.2
-
-
-static func _spawn_quake(
-	host: Node,
-	layer: Node,
-	band: Rect2,
-	tint: Color,
-	spd: float
-) -> float:
-	var dur: float = 0.4 / spd
-	var plate := ColorRect.new()
-	plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	plate.z_index = 16
-	var w: float = maxf(band.size.x * 1.1, 260.0)
-	plate.size = Vector2(w, 34.0)
-	plate.global_position = Vector2(band.get_center().x - w * 0.5, band.end.y - 20.0)
-	plate.color = Color(tint.r, tint.g, tint.b, 0.0)
-	layer.add_child(plate)
-	var tw: Tween = host.create_tween()
-	tw.set_parallel(true)
-	tw.tween_property(plate, "color:a", tint.a, 0.06)
-	tw.tween_property(plate, "size:y", 90.0, dur).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
-	tw.tween_property(plate, "global_position:y", band.position.y + band.size.y * 0.25, dur)
-	tw.chain().tween_property(plate, "color:a", 0.0, 0.18)
-	tw.chain().tween_callback(plate.queue_free)
-	return dur + 0.18
-
-
-static func _spawn_volley(
-	host: Node,
-	layer: Node,
-	from: Vector2,
-	band: Rect2,
-	tint: Color,
-	spd: float
-) -> float:
-	var bolts: int = 5
-	var dur: float = 0.38 / spd
-	for i: int in bolts:
-		var bolt := ColorRect.new()
-		bolt.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		bolt.z_index = 18
-		bolt.size = Vector2(18.0, 8.0)
-		bolt.pivot_offset = Vector2(9.0, 4.0)
-		var start: Vector2 = from + Vector2(-8.0, float(i - 2) * 10.0)
-		var end: Vector2 = Vector2(
-			band.position.x + band.size.x * (0.15 + float(i) * 0.18),
-			band.position.y + band.size.y * (0.2 + float(i % 3) * 0.25)
-		)
-		bolt.global_position = start
-		bolt.color = Color(tint.r, tint.g, tint.b, 0.0)
-		bolt.rotation = (end - start).angle()
-		layer.add_child(bolt)
-		var delay: float = float(i) * (0.04 / spd)
-		var tw: Tween = host.create_tween()
-		tw.tween_interval(delay)
-		tw.set_parallel(true)
-		tw.tween_property(bolt, "color:a", tint.a, 0.05)
-		tw.tween_property(bolt, "global_position", end, dur).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-		tw.chain().tween_property(bolt, "color:a", 0.0, 0.1)
-		tw.chain().tween_callback(bolt.queue_free)
-	return dur + 0.25
-
-
-static func _spawn_slash_arc(
-	host: Node,
-	layer: Node,
-	from: Vector2,
-	focus: Vector2,
-	tint: Color,
-	spd: float
-) -> float:
-	var dur: float = 0.34 / spd
-	var blade := ColorRect.new()
-	blade.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	blade.z_index = 19
-	blade.size = Vector2(28.0, 120.0)
-	blade.pivot_offset = Vector2(14.0, 60.0)
-	blade.global_position = from - Vector2(14.0, 60.0)
-	blade.rotation_degrees = -55.0
-	blade.color = Color(tint.r, tint.g, tint.b, 0.0)
-	layer.add_child(blade)
-	var mid: Vector2 = focus if focus != Vector2.ZERO else from + Vector2(180.0, -20.0)
-	var tw: Tween = host.create_tween()
-	tw.set_parallel(true)
-	tw.tween_property(blade, "color:a", tint.a, 0.05)
-	tw.tween_property(blade, "global_position", mid - Vector2(14.0, 60.0), dur).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.tween_property(blade, "rotation_degrees", 50.0, dur).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.tween_property(blade, "size", Vector2(40.0, 200.0), dur)
-	tw.chain().tween_property(blade, "color:a", 0.0, 0.14)
-	tw.chain().tween_callback(blade.queue_free)
-	return dur + 0.14
-
-
-static func _spawn_shot_beam(
-	host: Node,
-	layer: Node,
-	from: Vector2,
-	focus: Vector2,
-	tint: Color,
-	spd: float
-) -> float:
-	var dur: float = 0.28 / spd
-	var to: Vector2 = focus if focus != Vector2.ZERO else from + Vector2(220.0, 0.0)
-	var beam := ColorRect.new()
-	beam.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	beam.z_index = 19
-	var length: float = from.distance_to(to)
-	beam.size = Vector2(maxf(length, 40.0), 10.0)
-	beam.pivot_offset = Vector2(0.0, 5.0)
-	beam.global_position = from - Vector2(0.0, 5.0)
-	beam.rotation = (to - from).angle()
-	beam.color = Color(tint.r, tint.g, tint.b, 0.0)
-	layer.add_child(beam)
-	var tw: Tween = host.create_tween()
-	tw.set_parallel(true)
-	tw.tween_property(beam, "color:a", tint.a, 0.04)
-	tw.tween_property(beam, "size:y", 22.0, dur * 0.5)
-	tw.chain().tween_property(beam, "color:a", 0.0, 0.16)
-	tw.chain().tween_callback(beam.queue_free)
-	return dur + 0.16
-
-
-static func _spawn_roar_rings(
-	host: Node,
-	layer: Node,
-	from: Vector2,
-	tint: Color,
-	spd: float
-) -> float:
-	return _spawn_pulse(host, layer, from, Rect2(from - Vector2(80, 80), Vector2(160, 160)), tint, spd)
+	if frames == null or not frames.has_animation(ANIM_NAME):
+		return 0.0
+	var spr := AnimatedSprite2D.new()
+	spr.sprite_frames = frames
+	spr.animation = ANIM_NAME
+	spr.centered = true
+	spr.z_index = 18
+	spr.modulate = tint
+	spr.scale = scale
+	spr.global_position = pos
+	spr.speed_scale = spd
+	layer.add_child(spr)
+	spr.play(ANIM_NAME)
+	var fps: float = frames.get_animation_speed(ANIM_NAME)
+	if fps <= 0.0:
+		fps = DEFAULT_FPS
+	var frame_n: int = frames.get_frame_count(ANIM_NAME)
+	var dur: float = float(frame_n) / maxf(fps * spd, 0.1)
+	spr.animation_finished.connect(func() -> void:
+		if is_instance_valid(spr):
+			spr.queue_free()
+	)
+	## animation_finished 欠落時の安全弁
+	var timer: SceneTreeTimer = host.get_tree().create_timer(dur + 0.35)
+	timer.timeout.connect(func() -> void:
+		if is_instance_valid(spr):
+			spr.queue_free()
+	)
+	return dur

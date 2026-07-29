@@ -7498,12 +7498,14 @@ func _play_ally_aoe_band_vfx(member_idx: int, skill_data: Resource, attack_eleme
 	var from: Vector2 = _member_sprite_world_pos(member_idx, 0.35)
 	var band: Rect2 = _enemy_combat_band_rect()
 	var spd: float = _combat_speed_mult if _combat_speed_mult > 0.0 else 1.0
-	CombatBandVfxScript.play_ally_band(
+	## 本番シート未配置時は無演出（ColorRect 四角フォールバック禁止）。
+	var dur: float = CombatBandVfxScript.play_ally_band(
 		self, _damage_numbers_layer, from, band, style, attack_element, spd
 	)
-	_flash_battlefield(CombatBandVfxScript.element_color(attack_element), 0.18)
-	if style == CombatBandVfxScript.STYLE_QUAKE:
-		_shake_battlefield(8.0)
+	if dur > 0.0:
+		_flash_battlefield(CombatBandVfxScript.element_color(attack_element), 0.18)
+		if style == CombatBandVfxScript.STYLE_QUAKE:
+			_shake_battlefield(8.0)
 
 func _is_active_pet_alive() -> bool:
 	if GameState.active_pet == null or GameState.party_members.is_empty():
