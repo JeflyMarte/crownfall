@@ -142,7 +142,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `equipment/EquipmentSetBonuses.gd` | 降臨セット加護・3部位判定（**P3-DG-EVENT-SET-001**） |
 | `guild/` | **`GuildScene.gd`**（P3-D052 ジョブ認定・**P3-UI2-024** polish。βは `JOB_EVOLUTION_PLAYABLE=false` でオミット案内のみ／P3-JOB-EVO-OMIT-001） |
 | `crafting/` | **`CraftHelper.gd`**（`can_craft` / `get_craftable_recipes` — P3-D141） |
-| `codex/` | **`CatalogHelper.gd`** / **`GuideCatalog.gd`** / **`CharacterCodexProfiles.gd`**（初期5人物録）/ **`CodexRichText.gd`**, **`CodexScene.gd`**（タブ＝敵／DG／武器／歴史／**世界観**／**キャラ**（プロフィール表＋生い立ち）／手引き。実績は `CODEX_ACHIEVE_PLAYABLE` でオミット可） |
+| `codex/` | **`CatalogHelper.gd`**（歴史／断片は `resources/codex/*.json` bake 優先・`tools/bake_codex_bible.py`）／**`GuideCatalog.gd`**／**`CharacterCodexProfiles.gd`**（初期5人物録）／**`CodexRichText.gd`**, **`CodexScene.gd`**（タブ＝敵／装備／歴史／**世界観**／**キャラ**／手引き。実績は `CODEX_ACHIEVE_PLAYABLE` でオミット可） |
 | `result/` | `WipeCauseHelper.gd`（全滅敗因スナップショット） |
 | `result/` | `ResultScene.gd`（**P3-UX-WIPE-CAUSE-001** 全滅敗因・素材アイコン P3-D135・作成可能レシピ P3-D141・**P3-UI2-023** パネル/フッター polish・**P3-UX-SKILL-LEARN-PERSIST-001** 習得を名横に常時表示） |
 | `save/` | `SaveManager.gd` |

@@ -223,6 +223,7 @@ alwaysApply: true
 | ガチャ Featured が消える／説明も無い | ①HEAD の `foot_pad=260` で idle が host 外 ②`SummonActionBar` 分を HubLayout が確保せず MainColumn がボタン背面へ ③StatsWrap の center-anchor 0 高さ | 動的 `featured_foot_pad()`＋`SummonActionBar` を Footer 同様に inset。StatsWrap は右上固定 |
 | ダンジョン Featured バナーが無い | 一覧にバナーがある Biome は Featured 上段を意図的に非表示 | Featured でもバナー表示（アスペクト比の高さ） |
 | 図鑑／DG概要が「魔法」「亡霊」「異界の裂け目」になる | 旧フレーバーや民間俗称を正典として書いた | 正称はエルダ／鉱物化適応等（`world/03`・`05`）。異界は俗称のみ。差し替え後 `test_codex_guide_sync` で確認 |
+| 図鑑「歴史」が実機で「（項目なし）」 | HE／LF を `docs/specs/world/*.md` から FileAccess 直読み。エクスポートに docs が無い | 実行時は `resources/codex/*.json`（`tools/bake_codex_bible.py`）。MD 更新後は bake 再実行＋コミット。`test_codex_history_bake` |
 | 図鑑に「実績」タブが再出現する | `CODEX_ACHIEVE_PLAYABLE` を true にした／タブ生成をフラグ外で呼んだ | βは `false` 据置（P3-CODEX-ACHIEVE-OMIT）。データ残置。`test_codex_achieve_omit` |
 | ジョブ到達形（昇格名／金tint／特質）がβに戻る | `JOB_EVOLUTION_PLAYABLE` を true にした／`is_evolved` をフラグ無しで参照 | βは `false`（P3-JOB-EVO-OMIT-001）。効果は `JobEvolution`／`JobStatCalculator`／`EvolutionTraits`／`EvolutionVisual` 経由。UIはキャラ昇格行＋ギルド認定。`test_job_evolution_omit` |
 | 図鑑にプール外／征討専用の未実装敵が出る | `get_all_enemy_data()` を無フィルタで一覧化 | `CatalogHelper.playable_enemy_id_set`（プレイ可能 DG プールのみ）。達成率も同セット。`test_codex_enemy_omit` |

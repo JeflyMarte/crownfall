@@ -8,7 +8,10 @@ const _CharacterCodexProfiles := preload("res://scripts/codex/CharacterCodexProf
 ## M9 Codex カタログ取得（P2-Task046〜049）。
 
 const UNKNOWN_DISPLAY: String = "???"
-# History Entry（HE-001〜009）は world/01_History の機械可読ブロックを解析する（旧 16/37 は削除）。
+# 実行時はエクスポート同梱の bake JSON を読む（docs/ は実機に載らない）。
+# SSOT Markdown は tools/bake_codex_bible.py で再生成。開発時のみ MD フォールバック。
+const HISTORY_BAKE_PATH: String = "res://resources/codex/history_entries.json"
+const FRAGMENTS_BAKE_PATH: String = "res://resources/codex/fragment_entries.json"
 const HISTORY_BIBLE_PATH: String = "res://docs/specs/world/01_History.md"
 # 旧 22_DungeonBible は削除。DUNGEON_ID_TO_BIBLE が空のため未使用（file_exists=false で graceful に {} を返す）。
 const DUNGEON_BIBLE_PATH: String = ""
@@ -567,6 +570,10 @@ func _make_character_entry(
 func _load_fragment_entries() -> Array:
 	if not _fragment_entries_cache.is_empty():
 		return _fragment_entries_cache
+	var baked: Array = _load_json_array(FRAGMENTS_BAKE_PATH)
+	if not baked.is_empty():
+		_fragment_entries_cache = baked
+		return _fragment_entries_cache
 	if not FileAccess.file_exists(FRAGMENTS_PATH):
 		_fragment_entries_cache = []
 		return _fragment_entries_cache
@@ -639,8 +646,24 @@ func _make_dungeon_entry(entry_id: String, display_name: String, overview: Strin
 	entry["related_history"] = related
 	return entry
 
+func _load_json_array(path: String) -> Array:
+	if path.is_empty() or not FileAccess.file_exists(path):
+		return []
+	var raw: String = FileAccess.get_file_as_string(path)
+	if raw.is_empty():
+		return []
+	var parsed: Variant = JSON.parse_string(raw)
+	if parsed is Array:
+		return parsed
+	return []
+
+
 func _load_history_bible_entries() -> Array:
 	if not _history_entries_cache.is_empty():
+		return _history_entries_cache
+	var baked: Array = _load_json_array(HISTORY_BAKE_PATH)
+	if not baked.is_empty():
+		_history_entries_cache = baked
 		return _history_entries_cache
 	if not FileAccess.file_exists(HISTORY_BIBLE_PATH):
 		_history_entries_cache = []
