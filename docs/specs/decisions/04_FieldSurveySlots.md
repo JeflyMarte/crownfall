@@ -19,7 +19,7 @@
 | 種別 | 重み目安 | 効果 |
 |---|---|---|
 | **none（穏やか）** | **最大** | 補正なし。バナーは「穏やか／特記なし」 |
-| weather_rain / night / fog | 中 | ラン開始天候を当該に固定 |
+| weather_rain / night / fog / heat / snow | 中 | ラン開始天候を当該に固定 |
 | wander_duck | 中 | コズミックダック放浪率↑（イベントDGとは別） |
 | wander_raven | 中 | 宝冠レイヴン放浪率↑ |
 | enemy_level | 小〜中 | 敵Lv +2 |

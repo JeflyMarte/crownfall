@@ -38,6 +38,8 @@ func test_pool_includes_weather_duck_raven_none() -> void:
 		"weather_rain",
 		"weather_night",
 		"weather_fog",
+		"weather_heat",
+		"weather_snow",
 		"wander_duck",
 		"wander_raven",
 	]:

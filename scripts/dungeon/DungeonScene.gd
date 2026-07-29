@@ -1120,10 +1120,42 @@ func _setup_weather() -> void:
 			rain.modulate = Color(0.75, 0.82, 1.0, 0.7)
 			rain.emitting = true
 			layer.add_child(rain)
+		CombatWeather.HEAT:
+			var heat := ColorRect.new()
+			heat.color = Color(0.55, 0.22, 0.08, 0.14)
+			heat.set_anchors_preset(Control.PRESET_FULL_RECT)
+			heat.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			layer.add_child(heat)
+			var heat_tw := create_tween().set_loops()
+			heat_tw.tween_property(heat, "color:a", 0.20, 2.4).set_trans(Tween.TRANS_SINE)
+			heat_tw.tween_property(heat, "color:a", 0.10, 2.4).set_trans(Tween.TRANS_SINE)
+		CombatWeather.SNOW:
+			var snow := CPUParticles2D.new()
+			snow.texture = _make_snowflake_texture()
+			snow.amount = 90
+			snow.lifetime = 2.4
+			snow.local_coords = false
+			snow.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+			snow.emission_rect_extents = Vector2(view.x * 0.6, 2.0)
+			snow.position = Vector2(view.x * 0.5, -12.0)
+			snow.direction = Vector2(0.15, 1.0)
+			snow.spread = 18.0
+			snow.gravity = Vector2(8.0, 40.0)
+			snow.initial_velocity_min = 36.0
+			snow.initial_velocity_max = 72.0
+			snow.modulate = Color(0.92, 0.96, 1.0, 0.75)
+			snow.emitting = true
+			layer.add_child(snow)
 
 func _make_raindrop_texture() -> Texture2D:
 	var img := Image.create(2, 14, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0.8, 0.86, 1.0, 0.55))
+	return ImageTexture.create_from_image(img)
+
+
+func _make_snowflake_texture() -> Texture2D:
+	var img := Image.create(4, 4, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0.95, 0.97, 1.0, 0.65))
 	return ImageTexture.create_from_image(img)
 
 func _process(delta: float) -> void:
