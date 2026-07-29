@@ -34,7 +34,7 @@ static func _hook_content_mutations(scroll: ScrollContainer) -> void:
 	if scroll.get_meta(_META_HOOKED, false):
 		return
 	scroll.set_meta(_META_HOOKED, true)
-	## 直下だけでなく深い VBox（PassiveList 等）への追加も拾う。
+	## 直下だけでなく深い VBox／Grid（RosterGrid・PassiveList 等）への追加も拾う。
 	_hook_subtree_mutations(scroll, scroll)
 
 
