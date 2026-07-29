@@ -5469,3 +5469,17 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 | P3-WEATHER-BIOME-BIAS-001-5 | **UI** — 選択画面に傾向表示はしない。情報誌早見に「DGで出やすさが変わる」1行のみ | 事前表示は従来スコープ外 |
 | P3-WEATHER-BIOME-BIAS-001-6 | **SSOT** — `CombatWeather.weights_for_dungeon` / `roll(dungeon_id)`。`DungeonController._roll_run_weather` が DG id を渡す | 散在回避 |
 
+---
+
+## 降臨ダンジョン難度タブ化＋アイコン（2026-07-29 — P3-UX-DESCENT-TIER-TABS-001）
+
+> **オーナー GO** — 降臨をノーマル／ハード／ナイトメアの縦3行から、他ダンジョンと同型の難度タブ切替へ。アイコン新規作成・セット。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-DESCENT-TIER-TABS-001-1 | **難度UI** — 上部 TabsRow（N/H/NM）で切替。バナー下は **現在難度の進入行1つ**（アイコン＋進入名＋難度名） | メインと同型。縦3行の冗長さを解消 |
+| P3-UX-DESCENT-TIER-TABS-001-2 | **Featured CTA** — 「選択して出発」（難度は TabsRow） | 進入導線を統一 |
+| P3-UX-DESCENT-TIER-TABS-001-3 | **アイコン** — `ICO_DG_ChronosMausoleum` / `ICO_DG_ValgardBoundary` を円形枠アイコンへ差替。`IconPaths`／`DUNGEON_ICON_PATHS` 据置 | 一覧進入行で視認 |
+| P3-UX-DESCENT-TIER-TABS-001-4 | **上書き** — Chronos/Valgard Decision の「難度3行」表記を本 Decision が置換 | 14／16 更新 |
+| P3-UX-DESCENT-TIER-TABS-001-5 | **据置** — 出現スケジュール・難度解放（降臨は N/H/NM 常時選択可）・報酬 | 戦闘／スケジュール非変更 |
+
