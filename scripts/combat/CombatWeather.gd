@@ -48,6 +48,55 @@ static func label(weather: String) -> String:
 		return str(_DEFS[weather]["label"])
 	return "晴れ"
 
+
+## プレイヤー向け効果行（ギルド情報誌・図鑑と共有）。先頭に「・」は付けない。
+static func effect_bullet_lines(weather: String) -> PackedStringArray:
+	match normalize(weather):
+		RAIN:
+			return PackedStringArray([
+				"雷属性の与ダメ +15%",
+				"炎属性の与ダメ −10%",
+			])
+		NIGHT:
+			return PackedStringArray([
+				"闇属性の与ダメ +15%",
+				"聖属性の与ダメ −10%",
+			])
+		FOG:
+			return PackedStringArray([
+				"味方の与ダメ ×0.95",
+				"味方の被ダメ ×0.95（視界不良で双方手探り）",
+			])
+		_:
+			return PackedStringArray(["戦闘補正なし"])
+
+
+## 野外速報の「効果」欄用（固定されやすい＋戦闘効果）。
+static func field_event_effect_summary(weather: String) -> String:
+	var wid: String = normalize(weather)
+	var lines: PackedStringArray = PackedStringArray()
+	if wid == CLEAR:
+		lines.append("・特記事項なし")
+		return "\n".join(lines)
+	lines.append("・探索中の天候が%sに固定されやすい" % label(wid))
+	for line: String in effect_bullet_lines(wid):
+		lines.append("・%s" % line)
+	return "\n".join(lines)
+
+
+## 情報誌常設の天候早見（晴れ／雨／夜／霧）。
+static func bulletin_reference_text() -> String:
+	var lines: PackedStringArray = PackedStringArray([
+		"【天候の効果】",
+		"探索開始時に1つ抽選され、その探索中は変わりません。",
+		"・晴れ：戦闘補正なし（いちばん出やすい）",
+		"・雨：雷与ダメ+15%／炎与ダメ−10%",
+		"・夜：闇与ダメ+15%／聖与ダメ−10%",
+		"・霧：与ダメ・被ダメとも×0.95",
+	])
+	return "\n".join(lines)
+
+
 # attack_element に対する天候の与ダメ倍率（既定 1.0）。
 static func element_multiplier(weather: String, attack_element: String) -> float:
 	if attack_element.is_empty() or not _DEFS.has(weather):

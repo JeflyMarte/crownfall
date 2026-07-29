@@ -64,6 +64,11 @@ const EMPHASIS_TERMS: Array[String] = [
 	"鍛冶",
 	"図鑑",
 	"ギルド",
+	"雷属性",
+	"炎属性",
+	"闇属性",
+	"聖属性",
+	"天候",
 ]
 
 @onready var _header: PanelContainer = $Header
@@ -86,6 +91,7 @@ var _field_host: Control
 var _nonoka_layer: CanvasLayer
 var _nonoka_rect: TextureRect
 var _nonoka_texture: Texture2D
+var _label_weather_guide: RichTextLabel = null
 
 func _ready() -> void:
 	_field_panel = $MainScroll/MainVBox/SidePad/InnerVBox/FieldPanel as PanelContainer
@@ -93,6 +99,7 @@ func _ready() -> void:
 	_ensure_background()
 	_apply_field_panel_style()
 	_ensure_field_spacing()
+	_ensure_weather_guide()
 	_ensure_nonoka_mascot()
 	_layout_guild_report()
 	_apply_typography()
@@ -312,6 +319,26 @@ func _layout_guild_report() -> void:
 	_prepare_rich_label(_label_desc, FIELD_SIZE_CAPTION, INK, false)
 
 
+func _ensure_weather_guide() -> void:
+	if _field_vbox == null:
+		return
+	if _label_weather_guide != null and is_instance_valid(_label_weather_guide):
+		return
+	var existing: Node = _field_vbox.get_node_or_null("LabelWeatherGuide")
+	if existing is RichTextLabel:
+		_label_weather_guide = existing as RichTextLabel
+	else:
+		_label_weather_guide = RichTextLabel.new()
+		_label_weather_guide.name = "LabelWeatherGuide"
+		_field_vbox.add_child(_label_weather_guide)
+	## 効果欄の直後（注目区域の前）へ。
+	if _label_effect != null:
+		var effect_i: int = _label_effect.get_index()
+		_field_vbox.move_child(_label_weather_guide, effect_i + 1)
+	_prepare_rich_label(_label_weather_guide, FIELD_SIZE_FIELD_NOTES, INK_MUTED, true)
+	_label_weather_guide.text = _emphasize_bbcode(CombatWeather.bulletin_reference_text())
+
+
 func _apply_typography() -> void:
 	## はじめガイドと同じ：Shippori（display）で統一。アウトライン無し。
 	_apply_guide_label(_label_issue_date, FIELD_SIZE_CAPTION, INK_MUTED)
@@ -325,6 +352,8 @@ func _apply_typography() -> void:
 	_prepare_rich_label(_label_field_notes, FIELD_SIZE_FIELD_NOTES, INK_MUTED, true)
 	_prepare_rich_label(_label_article, FIELD_SIZE_ARTICLE, INK, true)
 	_prepare_rich_label(_label_effect, FIELD_SIZE_EFFECT, INK_GOLD, true)
+	if _label_weather_guide != null:
+		_prepare_rich_label(_label_weather_guide, FIELD_SIZE_FIELD_NOTES, INK_MUTED, true)
 	_prepare_rich_label(_label_desc, FIELD_SIZE_CAPTION, INK, false)
 
 
@@ -392,6 +421,8 @@ func _refresh() -> void:
 	_label_field_notes.text = _emphasize_bbcode(_event_field_notes(event_data))
 	_label_article.text = _emphasize_bbcode(_event_article(event_data))
 	_label_effect.text = _emphasize_bbcode(_event_effect_summary(event_data))
+	if _label_weather_guide != null:
+		_label_weather_guide.text = _emphasize_bbcode(CombatWeather.bulletin_reference_text())
 	_label_desc.text = _emphasize_bbcode(_guild_report_body(event_data))
 	if EventSystem.is_featured_biome_week():
 		var biome_id: String = EventSystem.get_featured_biome_id()

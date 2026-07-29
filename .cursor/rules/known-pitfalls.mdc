@@ -222,6 +222,7 @@ alwaysApply: true
 | 解放ポップで名がバナー下にずれ／どの章でもウィスパーウッド | 名を VBox 下段配置＋`_next_main_biome_id` 最終フォールバックが whisperwood／古いキュー残存 | 名はバナー内中央重ね（FULL_RECT禁止）。次解放は `ContentUnlockNotice.next_unlock_after_main_clear`（最終→Hard/NM入口）。デバッグ儀式はキューを clear してから1件 |
 | ギルド情報誌オープンで即終了 | `Control.LAYOUT_MODE_POSITION` は Godot 4.6.3 GDScript に無い（Parse Error→スクリプト未ロード） | コンテナ外の `Control` ホスト＋アンカー配置。未実装の layout_mode 定数を使わない |
 | 情報誌ノノカが羊皮紙に透ける／黒縁 | 黒マット flood が暗い服まで透過／`load()` が古い import を参照 | rembg で切り抜き＋`Image.load` 直読み。表示は CanvasLayer 最前面 |
+| 情報誌に天候の戦闘効果が載らない | effect_summary が「固定されやすい」のみ | `CombatWeather` SSOT＋常設早見（P3-UX-GUILD-WEATHER-FX-001） |
 
 ## ルール化フロー
 
