@@ -18,11 +18,13 @@ const FEATURED_IDLE_PX: float = 196.0
 const FEATURED_STATS_MIN_W: float = 220.0
 ## Featured 左の煽り文パネル幅（P3-GACHA-FEATURE-TEASE-001）。
 const FEATURED_BLURB_MIN_W: float = 240.0
-const FEATURED_BLURB_TOP: float = 220.0
+## タイトル帯・右ステより下（キャラ中腹付近）。Shippori 見出しと揃える。
+const FEATURED_BLURB_TOP: float = 340.0
 ## キャラに被りすぎないよう少し右へ。
 const FEATURED_BLURB_SIDE_PAD: float = 22.0
-const FEATURED_BLURB_FONT_SIZE: int = 24
-const FEATURED_BLURB_OUTLINE: int = 4
+## 右名前（SIZE_DISPLAY=24）より一段小さく。
+const FEATURED_BLURB_FONT_SIZE: int = 20
+const FEATURED_BLURB_OUTLINE: int = 3
 ## 台座中心向け。実機の短い枠でもキャラ全体が枠内に収まるよう host から算出。
 const FEATURED_IDLE_OFFSET_X: float = 0.0
 ## 【キャラ上下の主操作】大きいほど上へ。MIN/MAX は自動計算の下限／上限なので触っても効きにくい。
@@ -203,17 +205,14 @@ static func feature_line_for_helper(helper: Resource) -> String:
 	return ensure_sentence_period(note.strip_edges())
 
 
-## 枠なし煽り文用。DelaGothic＋強い縁取りで可読性を確保。
+## 枠なし煽り文用。Shippori（招待状／右ステと同系）＋控えめ縁取り。
 static func _apply_feature_blurb_style(label: Label) -> void:
-	var font: Font = UiTypography.impact_font()
-	if font == null:
-		font = UiTypography.display_font()
-	if font != null:
-		label.add_theme_font_override("font", font)
-	label.add_theme_font_size_override("font_size", FEATURED_BLURB_FONT_SIZE)
-	label.add_theme_color_override("font_color", UiTypography.COLOR_GOLD)
-	label.add_theme_constant_override("outline_size", FEATURED_BLURB_OUTLINE)
-	label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.92))
+	UiTypography.apply_display(
+		label,
+		FEATURED_BLURB_FONT_SIZE,
+		UiTypography.COLOR_GOLD,
+		FEATURED_BLURB_OUTLINE
+	)
 
 
 ## Featured 固有パッシブ説明。特徴行と重複しないよう origin_note へは落とさない。
@@ -480,7 +479,7 @@ static func build_featured_shell(host: Control) -> Dictionary:
 	idle.offset_bottom = -foot
 	stage.add_child(idle)
 
-	## 左：煽り文のみ（枠なし・インパクト書体。名前／★／ステ／パッシブは右）。
+	## 左：煽り文のみ（枠なし・Shippori。名前／★／ステ／パッシブは右）。
 	var blurb_wrap := PanelContainer.new()
 	blurb_wrap.name = "FeatureBlurbWrap"
 	blurb_wrap.set_anchors_preset(Control.PRESET_TOP_LEFT)

@@ -84,10 +84,13 @@ func test_build_featured_shell_has_feature_label() -> void:
 	assert_not_null(unique_lbl)
 	assert_not_null(blurb_wrap)
 	assert_not_null(stats_wrap)
-	## 煽りは左パネル、パッシブは右ステ内。
+	## 煽りは左パネル、パッシブは右ステ内。Shippori・小さめ・右ステより下。
 	assert_eq(feature_lbl.get_parent(), blurb_wrap)
 	assert_eq(unique_lbl.get_parent().name, "StatsCol")
 	assert_lt(blurb_wrap.offset_left, 40.0)
+	assert_gt(blurb_wrap.offset_top, stats_wrap.offset_top)
+	assert_eq(int(feature_lbl.get_theme_font_size("font_size")), GachaUiHelper.FEATURED_BLURB_FONT_SIZE)
+	assert_eq(feature_lbl.get_theme_font("font"), UiTypography.display_font())
 	assert_gt(stats_wrap.offset_left, -400.0)
 	var helpers: Array = GachaUiHelper.featured_helpers()
 	if helpers.is_empty():
