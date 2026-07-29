@@ -420,10 +420,14 @@ func _make_currency_chip(icon_path: String, amount_text: String) -> HBoxContaine
 func _make_material_chip(material_id: String, qty: int) -> VBoxContainer:
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 2)
-	col.add_child(MaterialUiTokens.make_icon_cell(material_id, MAT_CELL_PX, true))
+	var cell: Control = MaterialUiTokens.make_icon_cell(material_id, MAT_CELL_PX, true)
+	## 子 STOP だと長押し gui_input が親に届かない。
+	_set_mouse_filter_tree(cell, Control.MOUSE_FILTER_IGNORE)
+	col.add_child(cell)
 	var qty_lbl := Label.new()
 	qty_lbl.text = "x%d" % qty
 	qty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	qty_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_caption(qty_lbl, COLOR_SUB)
 	col.add_child(qty_lbl)
 	var mat_name: String = DataRegistry.get_material_name(material_id)
@@ -459,6 +463,8 @@ func _make_ticket_chip(ticket_id: String, qty: int) -> VBoxContainer:
 		"panel",
 		EquipmentUiTokens.rarity_slot_style(rarity, false, MAT_CELL_PX)
 	)
+	## 長押しは親 col で受ける（frame が STOP だとイベントを奪う）。
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var host := Control.new()
 	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -489,6 +495,7 @@ func _make_ticket_chip(ticket_id: String, qty: int) -> VBoxContainer:
 	var qty_lbl := Label.new()
 	qty_lbl.text = "x%d" % qty
 	qty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	qty_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_caption(qty_lbl, COLOR_GOLD)
 	col.add_child(qty_lbl)
 	_bind_chip_long_press(col, ticket_name)
@@ -614,6 +621,13 @@ func _build_records_section() -> Control:
 		_CommanderLifetime.format_play_time(play_sec),
 	]))
 	return sec["panel"]
+
+
+func _set_mouse_filter_tree(node: Node, filter: Control.MouseFilter) -> void:
+	if node is Control:
+		(node as Control).mouse_filter = filter
+	for child in node.get_children():
+		_set_mouse_filter_tree(child, filter)
 
 
 func _bind_chip_long_press(host: Control, display_name: String) -> void:
