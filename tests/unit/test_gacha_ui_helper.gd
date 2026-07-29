@@ -99,6 +99,14 @@ func test_build_featured_shell_has_feature_label() -> void:
 	assert_eq(feature_lbl.text, GachaUiHelper.feature_line_for_helper(helpers[0]))
 	assert_true(feature_lbl.visible)
 	assert_true(blurb_wrap.visible)
+	var stage: Control = shell.get("stage") as Control
+	if stage != null:
+		var mote_n: int = 0
+		for child in stage.get_children():
+			if str(child.name).begins_with("FeaturedMote_"):
+				mote_n += 1
+		assert_eq(mote_n, GachaUiHelper.FEATURED_MOTE_COUNT)
+		assert_not_null(stage.get_node_or_null("FeaturedBeamHaze"))
 
 
 func test_feature_blurbs_end_with_exclamation() -> void:
