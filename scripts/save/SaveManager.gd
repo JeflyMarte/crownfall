@@ -49,6 +49,8 @@ func get_active_slot() -> String:
 
 
 func save_game() -> void:
+	## セーブ直前にセッション分のプレイ時間を lifetime へ確定する。
+	_CommanderLifetime.flush_play_time()
 	var data: Dictionary = {
 		"save_version": SAVE_VERSION,
 		"gold": GameState.gold,
@@ -147,6 +149,8 @@ func load_game() -> void:
 	if not result is Dictionary:
 		return
 	_apply_save_data(_migrate_save_data(result))
+	## ロード後は累計済み時間の上にセッション計測を再開する。
+	_CommanderLifetime.begin_play_session()
 	DailyMissionSystem.ensure_refreshed()
 	EventSystem.ensure_active()
 

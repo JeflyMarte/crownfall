@@ -10,9 +10,51 @@ const _CommanderTitles := preload("res://scripts/commander/CommanderTitles.gd")
 
 const HIGHLIGHT_LIMIT: int = 3
 
+## 現セッションのプレイ時間アンカー（unix 秒）。0=未開始。
+static var _play_session_anchor_unix: int = 0
+
 
 static func default_lifetime_dict() -> Dictionary:
 	return _CommanderDefaults.default_lifetime_dict()
+
+
+## セッション計測を開始／再開する（ロード直後・起動時）。
+static func begin_play_session() -> void:
+	_play_session_anchor_unix = int(Time.get_unix_time_from_system())
+
+
+## アンカーからの経過を lifetime.play_time_sec へ加算し、アンカーを現在へ進める。
+static func flush_play_time() -> void:
+	if _play_session_anchor_unix <= 0:
+		begin_play_session()
+		return
+	var now: int = int(Time.get_unix_time_from_system())
+	var delta: int = maxi(now - _play_session_anchor_unix, 0)
+	_play_session_anchor_unix = now
+	if delta <= 0:
+		return
+	_CommanderProfile.ensure_commander()
+	var lifetime: Dictionary = _CommanderProfile.get_lifetime()
+	## get_lifetime がデフォルト新規 dict を返した場合に備えて書き戻す。
+	if not (GameState.commander.get("lifetime", null) is Dictionary):
+		GameState.commander["lifetime"] = lifetime
+	lifetime["play_time_sec"] = int(lifetime.get("play_time_sec", 0)) + delta
+	GameState.commander["lifetime"] = lifetime
+
+
+static func total_play_time_sec() -> int:
+	flush_play_time()
+	return int(_CommanderProfile.get_lifetime().get("play_time_sec", 0))
+
+
+static func format_play_time(total_sec: int = -1) -> String:
+	var sec: int = total_sec if total_sec >= 0 else total_play_time_sec()
+	sec = maxi(sec, 0)
+	var hours: int = int(sec / 3600)
+	var minutes: int = int((sec % 3600) / 60)
+	if hours > 0:
+		return "%d時間%d分" % [hours, minutes]
+	return "%d分" % minutes
 
 
 static func default_commander_dict() -> Dictionary:

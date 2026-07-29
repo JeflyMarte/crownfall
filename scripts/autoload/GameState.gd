@@ -5,6 +5,7 @@ const _RunCombatStats = preload("res://scripts/result/RunCombatStats.gd")
 const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _PassiveProgression = preload("res://scripts/systems/PassiveProgression.gd")
 const _CommanderProfile = preload("res://scripts/commander/CommanderProfile.gd")
+const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd")
 const _StarterRecruitment = preload("res://scripts/roster/StarterRecruitment.gd")
 const _PetSystem = preload("res://scripts/pets/PetSystem.gd")
 
@@ -1508,9 +1509,16 @@ const COMBAT_SLOT_MAX: int = 5
 func _ready() -> void:
 	_init_party()
 	_CommanderProfile.ensure_commander()
+	_CommanderLifetime.begin_play_session()
 	# GUT は従来どおり基本5人がいる前提のため、自動テスト時のみ全解放シードする。
 	if Constants.STARTER_STORY_RECRUIT and _is_gut_cmdline():
 		seed_all_starters_unlocked()
+
+
+func _notification(what: int) -> void:
+	## バックグラウンド／終了時にプレイ時間を確定（未セーブでも累計が薄れないように）。
+	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_WM_CLOSE_REQUEST:
+		_CommanderLifetime.flush_play_time()
 
 
 ## タイトル「はじめから」用。永続＋ラン中状態を初期化し、スターター選択待ちにする。
@@ -1589,6 +1597,7 @@ func reset_for_new_game() -> void:
 	owned_pet_ids = []
 	_init_party()
 	_CommanderProfile.ensure_commander()
+	_CommanderLifetime.begin_play_session()
 
 
 ## 導入フロー用の隊長名設定（等級ロック無視 / P3-INTRO-001）。
