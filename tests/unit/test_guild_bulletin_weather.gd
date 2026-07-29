@@ -42,10 +42,25 @@ func test_field_event_effect_summary_includes_combat() -> void:
 
 func test_bulletin_reference_lists_all_weathers() -> void:
 	var text: String = CombatWeather.bulletin_reference_text()
-	for term: String in ["晴れ", "雨", "夜", "霧", "炎天", "吹雪", "天候の効果"]:
+	for term: String in ["晴れ", "雨", "夜", "霧", "炎天", "吹雪", "天候の効果", "ダンジョン"]:
 		assert_true(term in text, term)
 	assert_true("+10%" in text)
 	assert_true("×0.97" in text)
+
+
+func test_biome_weather_bias_keys() -> void:
+	assert_eq(CombatWeather.weather_biome_key("frostridge"), "frostridge")
+	assert_eq(CombatWeather.weather_biome_key("abyss_frostridge"), "frostridge")
+	assert_eq(CombatWeather.weather_biome_key("mistfen_depths"), "mistfen")
+	assert_eq(CombatWeather.weather_biome_key("cosmic_rift"), "")
+	var frost: Dictionary = CombatWeather.weights_for_dungeon("frostridge")
+	var base: Dictionary = CombatWeather.weights_for_dungeon("")
+	assert_gt(int(frost.get(CombatWeather.SNOW, 0)), int(base.get(CombatWeather.SNOW, 0)))
+	var mist: Dictionary = CombatWeather.weights_for_dungeon("mistfen")
+	assert_gt(int(mist.get(CombatWeather.FOG, 0)), int(base.get(CombatWeather.FOG, 0)))
+	## 全天候が正の重み（案A＝禁止なし）。
+	for w: String in [CombatWeather.CLEAR, CombatWeather.RAIN, CombatWeather.NIGHT, CombatWeather.FOG, CombatWeather.HEAT, CombatWeather.SNOW]:
+		assert_gt(int(frost.get(w, 0)), 0, w)
 
 
 func test_weather_slot_event_gets_combat_effect_summary() -> void:

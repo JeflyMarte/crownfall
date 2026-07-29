@@ -614,7 +614,10 @@ func _roll_run_weather() -> String:
 	var forced: String = EventSystem.forced_weather_id()
 	if not forced.is_empty():
 		return CombatWeather.normalize(forced)
-	return CombatWeather.roll()
+	var dungeon_id: String = ""
+	if current_dungeon_data != null:
+		dungeon_id = str(current_dungeon_data.id)
+	return CombatWeather.roll(dungeon_id)
 
 func get_run_display_name() -> String:
 	if current_stage_data != null and not str(current_stage_data.display_name).is_empty():

@@ -5441,3 +5441,18 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 | P3-WEATHER-W1-A-001-5 | **SSOT** — 数値・文言は `CombatWeather`。HUD／情報誌／ニーナtips／procedural VFX を追従。天候レジェンド武器ボーナスは据置 | 図鑑・戦闘との食い違い防止 |
 | P3-WEATHER-W1-A-001-6 | **スコープ外** — 天候レジェンド新作・時間帯変化・敵側補正・Biome別出現・選択画面事前表示 | P3-D101-5／凍結枠据置 |
 
+---
+
+## 天候の Biome 偏り（2026-07-29 — P3-WEATHER-BIOME-BIAS-001）
+
+> **オーナー GO（案A）** — 全天候は出るが、メイン Biome で抽選重みを偏らせる。情報誌の天候固定は偏りより優先。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-WEATHER-BIOME-BIAS-001-1 | **案A** — Biome 別重みテーブル。禁止なし（霜でも炎天は低確率で出る） | 世界観の体感を足しつつ編成を縛らない |
+| P3-WEATHER-BIOME-BIAS-001-2 | **対象** — メイン5＋無限（親 Biome）＋同系統深層／寄り道エイリアス。イベント専用 DG は共通テーブル | 霜＝吹雪、霧沼＝霧が効く範囲を明確に |
+| P3-WEATHER-BIOME-BIAS-001-3 | **偏り目安** — 名物天候を厚く（霜の吹雪≈28、霧沼の霧≈30）、相性の悪い天候を薄く。晴れは各 Biome で最大帯を維持 | 提案GOの数値を SSOT 化 |
+| P3-WEATHER-BIOME-BIAS-001-4 | **優先** — 野外速報の天候固定 ＞ Biome 偏り | 情報誌効果を壊さない |
+| P3-WEATHER-BIOME-BIAS-001-5 | **UI** — 選択画面に傾向表示はしない。情報誌早見に「DGで出やすさが変わる」1行のみ | 事前表示は従来スコープ外 |
+| P3-WEATHER-BIOME-BIAS-001-6 | **SSOT** — `CombatWeather.weights_for_dungeon` / `roll(dungeon_id)`。`DungeonController._roll_run_weather` が DG id を渡す | 散在回避 |
+
