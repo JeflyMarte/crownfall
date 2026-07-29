@@ -171,6 +171,7 @@ alwaysApply: true
 |---|---|---|
 | iPhone でタッチスクロール不能（ダンジョン他） | Scroll 内 Button／STOP がドラッグを吸収 | `ScrollTouchHelper`（deadzone＋子孫を PASS）。`BottomNavHelper.setup` と一覧 rebuild 後に適用 |
 | 装備一覧でセルを押しても詳細が変わらない | ScrollTouch が Button を PASS 化 → `pressed` 不発。加えて選択時に即 `rebuild` で入力中 Button を queue_free | Catalog も装備画面同様 `gui_input` 短押し。選択はハイライト差替のみ（全再生成しない）。BgTexture は IGNORE |
+| 装備一覧の効果絞り込みが kind 連打／未配線 | サイクルボタンでは項目過多。Affix ID は廃止済み | ファミリーシート（案B）。`EquipmentEffectFamilyFilter`＋Catalog「効果」ボタン |
 | 装備一覧が重い／タップでカクつく | 選択のたび全セル `rebuild`＋幅連動 `cell_px` で StyleBox／ノード再生成 | セルは `INV_CELL_PX` 固定。選択は詳細＋枠ハイライトのみ更新。Grid は `SIZE_SHRINK_*` |
 | 鍛冶屋が重い／一覧タップでカクつく | 選択のたび `_refresh_all` で左一覧全再生成＋`list_card_style` 毎に `get_image` 透過検査 | 選択は `_refresh_selection`（ハイライト＋詳細のみ）。Style／alpha はキャッシュ。モード／カテゴリ切替・作成後のみ全再構築 |
 | スキル／装備説明の状態異常リンクが押せない | `ScrollTouchHelper` が `RichTextLabel` も `PASS` 化し `meta_clicked` が届かない | リンク RTL だけ `_cf_keep_mouse_stop`＋STOP（`StatusEffectLinkHelper`）。**全 RTL を STOP 化禁止**（章カード名 IGNORE 越しタップが潰れる） |

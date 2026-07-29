@@ -5441,7 +5441,20 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 
 ---
 
-## ロックバイソン出現抑制（2026-07-28 — P3-BAL-ROCK-BISON-SPAWN-001）
+## 装備効果ファミリーフィルター（2026-07-28 — P3-UX-EQ-EFFECT-FAMILY-001）
+
+> **オーナー GO（案B）** — 装備一覧で効果を大分類チップで絞り込む。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-EQ-EFFECT-FAMILY-001-1 | **案B** — 効果ファミリー（火力／耐久／会心／状態異常／稼ぎ／固有） | kind 直指定は項目過多 |
+| P3-UX-EQ-EFFECT-FAMILY-001-2 | **UI** — シートで複数選択。カテゴリ・装備中とは AND。ファミリー同士は OR | サイクルボタン不可 |
+| P3-UX-EQ-EFFECT-FAMILY-001-3 | **主軸** — `random_mods.kind`。固有＝`fixed_passive_id`。セットは対象外 | Diablo 化後の正 |
+| P3-UX-EQ-EFFECT-FAMILY-001-4 | **範囲** — 装備一覧（Catalog）のみ。キャラ所持は後続 | β最小 |
+| P3-UX-EQ-EFFECT-FAMILY-001-5 | **マスタ補完** — 武器 element／bane、防具 resist も対応ファミリーに含める | mod 無し旧品の抜け防止 |
+
+---
+
 
 > **オーナー GO（案B＋C）** — 全域配置は維持。D2帯内の重みと群れを弱めて序盤の偏りを抑える。
 

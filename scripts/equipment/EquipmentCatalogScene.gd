@@ -18,6 +18,7 @@ const CELL_PRESS_MOVE_CANCEL_PX: float = 20.0
 @onready var _category_row: HBoxContainer = $MainVBox/CategoryRow
 @onready var _btn_sort: Button = $MainVBox/InventoryHeaderRow/ButtonSort
 @onready var _btn_filter: Button = $MainVBox/InventoryHeaderRow/ButtonFilter
+@onready var _btn_effect: Button = $MainVBox/InventoryHeaderRow/ButtonEffect
 @onready var _label_count: Label = $MainVBox/InventoryHeaderRow/LabelCount
 @onready var _inventory_scroll: ScrollContainer = $MainVBox/InventoryScroll
 @onready var _inventory_grid: GridContainer = $MainVBox/InventoryScroll/InventoryGrid
@@ -27,6 +28,9 @@ const CELL_PRESS_MOVE_CANCEL_PX: float = 20.0
 var _inventory_filter: String = "all"
 var _inventory_sort: String = "rarity"
 var _inventory_equipped_filter: String = "all"
+## 効果ファミリー id の複数選択（空＝指定なし）。
+var _effect_families: Array[String] = []
+var _effect_sheet: CanvasLayer = null
 var _inv_cell_size: Vector2 = Vector2(EquipmentUiTokens.INV_CELL_PX, EquipmentUiTokens.INV_CELL_PX)
 var _category_panels: Dictionary = {}
 var _selected_item: Resource = null
@@ -48,6 +52,7 @@ func _ready() -> void:
 	_button_back.pressed.connect(_on_back_pressed)
 	_btn_sort.pressed.connect(_on_sort_pressed)
 	_btn_filter.pressed.connect(_on_filter_pressed)
+	_btn_effect.pressed.connect(_on_effect_pressed)
 	_inventory_grid.columns = GRID_COLUMNS
 	_inventory_grid.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	_inventory_grid.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
@@ -160,11 +165,15 @@ func _on_filter_pressed() -> void:
 	_update_sort_filter_labels()
 	_rebuild_inventory_grid()
 
+func _on_effect_pressed() -> void:
+	_open_effect_family_sheet()
+
 func _update_sort_filter_labels() -> void:
 	_btn_sort.text = str(EquipmentUiHelper.SORT_LABELS.get(_inventory_sort, _inventory_sort))
 	_btn_filter.text = str(
 		EquipmentUiHelper.EQUIPPED_FILTER_LABELS.get(_inventory_equipped_filter, _inventory_equipped_filter)
 	)
+	_btn_effect.text = EquipmentEffectFamilyFilter.button_summary(_effect_families)
 
 func _refresh_display() -> void:
 	_label_gold.text = "%d" % GameState.gold
@@ -187,12 +196,14 @@ func _rebuild_inventory_grid() -> void:
 		for it in $EquipmentController.get_appraised_accessories():
 			entries.append({"item": it, "category": "accessory"})
 	entries = EquipmentUiHelper.filter_by_equipped_state(entries, _inventory_equipped_filter, -1)
+	entries = EquipmentEffectFamilyFilter.filter_entries(entries, _effect_families)
 	_label_count.text = "%d件" % entries.size()
 	if entries.is_empty():
 		_inventory_grid.add_child(_make_hint_label("該当する装備がありません"))
 		_selected_item = null
 		_selected_category = ""
 		_refresh_detail_panel()
+		ScrollTouchHelper.enable(_inventory_scroll)
 		return
 	for e in EquipmentUiHelper.sort_inventory_entries(entries, _inventory_sort):
 		_inventory_grid.add_child(_make_item_cell(e["item"], str(e["category"])))
@@ -440,5 +451,116 @@ func _item_rarity(item: Resource, category: String) -> int:
 		return int(data.rarity)
 	return 0
 
+
+func _open_effect_family_sheet() -> void:
+	_close_effect_family_sheet()
+	var layer := CanvasLayer.new()
+	layer.name = "EffectFamilySheet"
+	layer.layer = 60
+	add_child(layer)
+	_effect_sheet = layer
+	var root := Control.new()
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.mouse_filter = Control.MOUSE_FILTER_STOP
+	layer.add_child(root)
+	var dim := ColorRect.new()
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0.0, 0.0, 0.0, 0.55)
+	dim.gui_input.connect(_on_effect_sheet_dim_input)
+	root.add_child(dim)
+	var panel := PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.custom_minimum_size = Vector2(520, 0)
+	panel.offset_left = -260
+	panel.offset_right = 260
+	panel.offset_top = -220
+	panel.offset_bottom = 220
+	panel.add_theme_stylebox_override(
+		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
+	)
+	root.add_child(panel)
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 10)
+	panel.add_child(vbox)
+	var title := Label.new()
+	title.text = "効果で絞り込み"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_body(title, UiTypography.SIZE_BODY, COLOR_GOLD)
+	vbox.add_child(title)
+	var hint := Label.new()
+	hint.text = "複数選択可（いずれかに該当）"
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_caption(hint, COLOR_SUB)
+	vbox.add_child(hint)
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 8)
+	vbox.add_child(grid)
+	var draft: Array[String] = EquipmentEffectFamilyFilter.normalize_selection(_effect_families)
+	for fid in EquipmentEffectFamilyFilter.FAMILY_ORDER:
+		var chip := Button.new()
+		chip.toggle_mode = true
+		chip.button_pressed = draft.has(fid)
+		chip.text = EquipmentEffectFamilyFilter.family_label(fid)
+		chip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		chip.custom_minimum_size = Vector2(0, 44)
+		UiTypography.apply_menu_button(chip, false)
+		chip.toggled.connect(_on_effect_chip_toggled.bind(fid, draft))
+		grid.add_child(chip)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	vbox.add_child(row)
+	var btn_clear := Button.new()
+	btn_clear.text = "クリア"
+	btn_clear.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_menu_button(btn_clear, false)
+	btn_clear.pressed.connect(_on_effect_sheet_clear.bind(draft, grid))
+	row.add_child(btn_clear)
+	var btn_ok := Button.new()
+	btn_ok.text = "決定"
+	btn_ok.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_menu_button(btn_ok, true)
+	btn_ok.pressed.connect(_on_effect_sheet_confirm.bind(draft))
+	row.add_child(btn_ok)
+
+
+func _on_effect_chip_toggled(pressed: bool, family_id: String, draft: Array) -> void:
+	var fid: String = str(family_id)
+	if pressed:
+		if not draft.has(fid):
+			draft.append(fid)
+	else:
+		draft.erase(fid)
+
+
+func _on_effect_sheet_clear(draft: Array, grid: GridContainer) -> void:
+	draft.clear()
+	if grid == null:
+		return
+	for child in grid.get_children():
+		if child is Button:
+			(child as Button).set_pressed_no_signal(false)
+
+
+func _on_effect_sheet_confirm(draft: Array) -> void:
+	_effect_families = EquipmentEffectFamilyFilter.normalize_selection(draft)
+	_close_effect_family_sheet()
+	_update_sort_filter_labels()
+	_rebuild_inventory_grid()
+
+
+func _on_effect_sheet_dim_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_close_effect_family_sheet()
+
+
+func _close_effect_family_sheet() -> void:
+	if _effect_sheet != null and is_instance_valid(_effect_sheet):
+		_effect_sheet.queue_free()
+	_effect_sheet = null
+
+
 func _on_back_pressed() -> void:
+	_close_effect_family_sheet()
 	SceneRouter.change_scene(HOME_SCENE)
