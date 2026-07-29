@@ -1619,10 +1619,8 @@ func _init_run_hud() -> void:
 	$MainVBox.add_child(_run_hud_panel)
 	$MainVBox.move_child(_run_hud_panel, $MainVBox/BattlefieldArea.get_index())
 
-func _run_discovery_percent() -> int:
-	var dungeon_id: String = GameState.get_active_dungeon_id()
-	var prog: Dictionary = GameState.dungeon_progress.get(dungeon_id, {})
-	return int(round(float(prog.get("discovery", 0.0)) * 100.0))
+func _run_floor_progress_percent() -> int:
+	return $DungeonController.get_display_floor_progress_percent()
 
 func _room_type_chip_color(room_type: int) -> Color:
 	match room_type:
@@ -1663,7 +1661,8 @@ func _update_run_hud() -> void:
 		UiTypography.SIZE_CAPTION,
 		_room_type_chip_color(room_type)
 	)
-	_run_hud_discovery.text = "発見 %d%%" % _run_discovery_percent()
+	## 発見度メーターではなく、フロア進行度（現在F／最大F）。
+	_run_hud_discovery.text = "進行 %d%%" % _run_floor_progress_percent()
 
 func _dungeon_meta_line(data: Resource) -> String:
 	var parts: PackedStringArray = []

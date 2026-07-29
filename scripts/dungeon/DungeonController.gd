@@ -672,6 +672,16 @@ func get_display_floor_text() -> String:
 		return "F%d" % get_display_floor_current()
 	return "F%d/%d" % [get_display_floor_current(), get_display_floor_max()]
 
+
+## ランHUD用。現在フロア／最大フロア（例: 5/10 → 50%）。深層も部屋列長を分母にする。
+func get_display_floor_progress_percent() -> int:
+	var floor_max: int = get_display_floor_max()
+	if floor_max <= 0:
+		return 0
+	var floor_current: int = get_display_floor_current()
+	return clampi(int(round(float(floor_current) * 100.0 / float(floor_max))), 0, 100)
+
+
 func get_run_biome_display_name() -> String:
 	if current_dungeon_data != null:
 		return str(current_dungeon_data.display_name)

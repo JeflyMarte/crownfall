@@ -182,6 +182,7 @@ alwaysApply: true
 | 戦闘フロア入場前に謎の SE | ①次部屋へ進む瞬間の `room_enter` ②黒幕中の戦闘BGM切替 ③罠／入場遅延／前戦闘遅延ヒット／`combat_heal` | 戦闘行きは `room_enter` スキップ。BGMは一幕後。Hit/Healは Gate＋CT開始後。遅延は `_combat_session_id` |
 | ダンジョンヘッダの ×2 が効かない／「周回」が残る | `.tscn`×2 なのに GD が ×1.5 上書き、または FastRun ボタンを動的追加 | ヘッダは ×1／×1.5／×2 のみ。`ButtonFastRun` は削除。`SPEED_MULT_FAST=2.0` |
 | ダンジョン左上 ≡ が押せない | ①ノッチ未対応でタップ不能 ②MenuOverlay が TransitionLayer(30) より下 | `SafeAreaHelper` で MainVBox inset。Menu は CanvasLayer 40。ボタン min 64×48＋本文フォント |
+| ランHUD「発見100%」が意味不明 | 累積 discovery メーターで進行と無関係 | 「進行 N%」＝`display_floor_current/max`（P3-UX-RUN-HUD-FLOOR-PCT-001） |
 | ≡メニューの設定／リタイアでフォントがバラバラ | 動的「設定」だけ別適用、またはテーマ Display 混在 | `_style_menu_overlay_buttons` で全ボタン本文フォント＋SIZE_BODY＋同 min サイズ |
 | 一時停止ポップの裏に HPバーが貫通 | PauseOverlay `z_index=15` ＜ HPバー `COMBAT_OVERLAY_Z=25`／行動順30 | Pause を CanvasLayer 55（`_ensure_pause_overlay_layer`）へ |
 | ボスが Header／上端バーまで貫通 | `BOSS_BODY_TARGET_PX=360`＋足元 `y=0.25` で戦場高を超過。セルディオンは128セルで体感最大 | 目標280＋足元0.34。`BOSS_BODY_SCALE_MULT`で種別抑制（serdion=0.92） |
