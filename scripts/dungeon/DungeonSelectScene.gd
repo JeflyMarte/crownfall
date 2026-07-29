@@ -1099,9 +1099,9 @@ func _refresh_featured() -> void:
 			_featured_dungeon_id
 		)
 		if _is_hourly_tier_event_dungeon(str(data.id)):
-			_btn_featured_select.text = "難度を選んで出発"
+			_btn_featured_select.text = "選択して出発"
 			_btn_featured_select.disabled = false
-			## バナー下の難度行から突入する（Featured 単体ではノーマル既定でも可）。
+			## 難度は上部 TabsRow（N/H/NM）。進入行／Featured とも同じ tier を使う。
 			return
 	if unlocked and data != null and int(data.daily_attempt_limit) > 0:
 		var remaining: int = GameState.event_dungeon_attempts_remaining(_featured_dungeon_id)
@@ -1276,8 +1276,7 @@ func _make_biome_accordion(data: Resource) -> Control:
 		stages_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		stages_box.add_theme_constant_override("separation", 4)
 		if _is_hourly_tier_event_dungeon(dungeon_id):
-			for child in _make_hourly_tier_event_rows(dungeon_id):
-				stages_box.add_child(child)
+			stages_box.add_child(_make_hourly_tier_enter_card(dungeon_id))
 		else:
 			for stage in DataRegistry.get_stages_for_biome(dungeon_id):
 				if stage != null:
@@ -1286,7 +1285,7 @@ func _make_biome_accordion(data: Resource) -> Control:
 	return outer
 
 
-## 時間帯降臨イベント — バナー下のノーマル／ハード／ナイトメア行。
+## 時間帯降臨イベント — TabsRow の難度に連動する進入行（縦3行は廃止）。
 func _is_hourly_tier_event_dungeon(dungeon_id: String) -> bool:
 	return (
 		dungeon_id == Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID
@@ -1300,44 +1299,98 @@ func _hourly_tier_enter_label(dungeon_id: String) -> String:
 	return "時王の霊廟"
 
 
-func _make_hourly_tier_event_rows(dungeon_id: String) -> Array[Control]:
+func _make_hourly_tier_enter_card(dungeon_id: String) -> Control:
 	const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
 	var open_now: bool = _EventDungeonSchedule.is_open_now(dungeon_id)
 	var next_label: String = _EventDungeonSchedule.next_open_label(dungeon_id)
 	var enter_name: String = _hourly_tier_enter_label(dungeon_id)
-	var rows: Array[Control] = []
-	for tier in _DungeonTierConfig.TIER_COUNT:
-		var wrap := MarginContainer.new()
-		wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var btn := Button.new()
-		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		btn.custom_minimum_size = Vector2(0, 48)
-		btn.text = "%s　%s" % [enter_name, _DungeonTierConfig.display_name(tier)]
-		if GameState.is_dungeon_tier_cleared(dungeon_id, tier):
-			btn.text += " ✓"
-		var selected: bool = (
-			_featured_dungeon_id == dungeon_id
-			and GameState.current_dungeon_tier == tier
+	var tier: int = _DungeonTierConfig.clamp_tier(GameState.current_dungeon_tier)
+	var cleared: bool = GameState.is_dungeon_tier_cleared(dungeon_id, tier)
+	var selected: bool = _featured_dungeon_id == dungeon_id
+	var wrap := PanelContainer.new()
+	wrap.custom_minimum_size = Vector2(0, STAGE_CARD_MIN_SIZE.y)
+	wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	wrap.add_theme_stylebox_override(
+		"panel",
+		CombatUiFrames.panel_style(
+			CombatUiFrames.TIER_CARD_ACTIVE if selected and open_now else CombatUiFrames.TIER_CARD
 		)
-		if not open_now:
-			btn.disabled = true
-			if not next_label.is_empty():
-				btn.text += "（%s）" % next_label
-		else:
-			btn.pressed.connect(_on_hourly_tier_event_pressed.bind(dungeon_id, tier))
-		UiTypography.apply_button(btn, selected and open_now)
-		wrap.add_child(btn)
-		rows.append(wrap)
-	return rows
+	)
+	if not open_now:
+		wrap.modulate = Color(0.72, 0.72, 0.76, 1.0)
+	var btn := Button.new()
+	btn.set_anchors_preset(Control.PRESET_FULL_RECT)
+	btn.flat = true
+	btn.disabled = not open_now
+	btn.toggle_mode = true
+	btn.button_pressed = selected and open_now
+	var content := HBoxContainer.new()
+	content.set_anchors_preset(Control.PRESET_FULL_RECT)
+	content.offset_left = 4
+	content.offset_top = 4
+	content.offset_right = -4
+	content.offset_bottom = -4
+	content.add_theme_constant_override("separation", 6)
+	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	btn.add_child(content)
+	var thumb := TextureRect.new()
+	thumb.custom_minimum_size = STAGE_THUMB_SIZE
+	thumb.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	thumb.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	thumb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if open_now:
+		thumb.texture = _get_dungeon_thumb_texture(dungeon_id)
+	content.add_child(thumb)
+	var text_col := VBoxContainer.new()
+	text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_col.add_theme_constant_override("separation", 1)
+	text_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content.add_child(text_col)
+	var line := RichTextLabel.new()
+	line.bbcode_enabled = true
+	line.fit_content = true
+	line.scroll_active = false
+	line.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+	line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	line.custom_minimum_size = Vector2(0, UiTypography.SIZE_BODY_SMALL + 6)
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_apply_stage_list_rich_text(line, open_now)
+	var title_text: String = "%s　%s" % [enter_name, _DungeonTierConfig.display_name(tier)]
+	if not open_now and not next_label.is_empty():
+		title_text += "（%s）" % next_label
+	var name_color: String = "f5e07a" if open_now else "c9c4b8"
+	line.text = "[color=#%s][b]%s[/b][/color]" % [name_color, title_text]
+	text_col.add_child(line)
+	var status_text: String = ""
+	if not open_now:
+		status_text = "？"
+	elif cleared:
+		status_text = "CLEAR"
+	if not status_text.is_empty():
+		var status_col := VBoxContainer.new()
+		status_col.size_flags_horizontal = Control.SIZE_SHRINK_END
+		status_col.alignment = BoxContainer.ALIGNMENT_CENTER
+		status_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var status := Label.new()
+		status.text = status_text
+		status.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		status.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		UiTypography.apply_caption(status, COLOR_CLEAR_BADGE if cleared else UiTypography.COLOR_SUB)
+		status_col.add_child(status)
+		content.add_child(status_col)
+	if open_now:
+		btn.pressed.connect(_on_hourly_tier_enter_pressed.bind(dungeon_id))
+	UiTypography.apply_button(btn, selected and open_now)
+	wrap.add_child(btn)
+	return wrap
 
 
-func _on_hourly_tier_event_pressed(dungeon_id: String, tier: int) -> void:
+func _on_hourly_tier_enter_pressed(dungeon_id: String) -> void:
 	const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
 	if not _EventDungeonSchedule.is_open_now(dungeon_id):
 		return
 	_featured_dungeon_id = dungeon_id
 	_expanded_biome_id = dungeon_id
-	GameState.current_dungeon_tier = _DungeonTierConfig.clamp_tier(tier)
 	_selected_stage_id = ""
 	GameState.current_stage_id = ""
 	_refresh_tier_tabs()
