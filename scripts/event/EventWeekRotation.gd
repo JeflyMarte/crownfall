@@ -427,6 +427,10 @@ static func build_active_event(now_unix: int) -> Resource:
 	var weather_id: String = str(def.get("weather_id", ""))
 	if "weather_id" in event:
 		event.weather_id = weather_id
+	## 天候スロットは戦闘効果を CombatWeather SSOT で付与（情報誌に載せる）。
+	if str(def.get("modifier_type", "")) == "weather" and not weather_id.is_empty():
+		if "effect_summary" in event:
+			event.effect_summary = CombatWeather.field_event_effect_summary(weather_id)
 	var start_unix: int = _Schedule.jst_day_start_unix(ANCHOR_DATE_JST) + slot * SLOT_SECONDS
 	var end_unix: int = start_unix + SLOT_SECONDS
 	event.start_date_jst = _unix_to_jst_datetime(start_unix)
