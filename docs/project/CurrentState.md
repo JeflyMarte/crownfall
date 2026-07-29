@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-07-29（**P3-UX-EVENT-TITLE-TWOTONE-001 案B**: 降臨名を本体テーマ色＋「降臨」共通薔薇金の2色に。曜日イベントは単色据置。要実機）
 2026-07-29（**帯VFX P1 Cursor試作 GO／統合＋main**: tide/mist/fan/volley/quake/shot/roar 接続。要実機）
 2026-07-29（**P3-WEATHER-W1-A-001 / BIOME-BIAS-001 GO／統合＋main**: 天候弱体＋炎天／吹雪＋Biome偏り。情報誌固定優先。要実機）
 2026-07-29（**P3-WEATHER-BIOME-BIAS-001**: 天候抽選をメインBiomeで偏らせる（案A）。霜=吹雪多め／霧沼=霧多め。情報誌固定は優先。要実機）
