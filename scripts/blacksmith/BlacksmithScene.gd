@@ -156,6 +156,7 @@ func _ready() -> void:
 	_label_title.text = ""
 	AudioManager.play_bgm("forge")
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.FORGE)
+	HeaderCurrencyHelper.apply_to_row($Header/HeaderRow)
 	_ensure_body_scroll()
 	_ensure_detail_scroll()
 	_mode_button_group = ButtonGroup.new()

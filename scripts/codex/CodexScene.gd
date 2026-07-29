@@ -84,6 +84,7 @@ var _entry_rows: Array = []
 func _ready() -> void:
 	$Header/HeaderRow/LabelTitle.text = ""
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.CODEX)
+	HeaderCurrencyHelper.apply_to_row($Header/HeaderRow)
 	_decorate_static()
 	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)
 	$MainScroll/MainVBox/TabRow/ButtonTabEnemy.pressed.connect(func(): _select_category("enemy"))
