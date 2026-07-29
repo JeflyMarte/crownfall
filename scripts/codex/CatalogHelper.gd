@@ -130,6 +130,9 @@ static func get_guide_entries() -> Array:
 static func is_discovered(category: String, entry_id: String) -> bool:
 	if entry_id.is_empty() or category.is_empty():
 		return false
+	## デバッグフル所持中は図鑑を全開示（セーブ欠落でも UI で欠けない）。
+	if GameState.debug_full_unlock:
+		return true
 	if category == "history":
 		if entry_id in STARTER_HISTORY_IDS:
 			return true
@@ -521,6 +524,8 @@ func _make_character_entry(
 	kind: String,
 	profile: Dictionary = {}
 ) -> Dictionary:
+	if GameState.debug_full_unlock:
+		owned = true
 	var job_name: String = str(profile.get("role_name", ""))
 	if job_name.is_empty():
 		job_name = job_id

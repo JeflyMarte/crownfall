@@ -268,6 +268,13 @@ static func app_version_text() -> String:
 
 
 static func save_status_text() -> String:
-	if FileAccess.file_exists(SaveManager.SAVE_PATH):
-		return "セーブデータあり"
-	return "セーブデータなし"
+	var parts: PackedStringArray = []
+	if SaveManager.has_normal_save():
+		parts.append("本編あり")
+	else:
+		parts.append("本編なし")
+	if SaveManager.has_debug_save():
+		parts.append("デバッグあり")
+	else:
+		parts.append("デバッグなし")
+	return "セーブ: " + " / ".join(parts)

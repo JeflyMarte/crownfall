@@ -122,7 +122,7 @@ func _build_ui() -> void:
 	_confirm_debug = ConfirmationDialog.new()
 	_confirm_debug.title = "デバッグ"
 	_confirm_debug.dialog_text = (
-		"セーブを上書きしてデバッグ用データで開始します。\n"
+		"デバッグ専用セーブで開始します（本編のセーブは消えません）。\n"
 		+"（図鑑全開放・全装備・キャラLvMAX・金999999・魔晶石9999・進行解放）\nよろしいですか？"
 	)
 	_confirm_debug.ok_button_text = "デバッグ開始"
@@ -196,7 +196,8 @@ func _make_menu_button(text: String) -> Button:
 
 
 func _refresh_continue() -> void:
-	var has: bool = SaveManager.has_save()
+	SaveManager.use_normal_slot()
+	var has: bool = SaveManager.has_normal_save()
 	_btn_continue.disabled = not has
 	if has:
 		_btn_continue.text = "つづきから"
@@ -205,7 +206,8 @@ func _refresh_continue() -> void:
 
 
 func _on_continue() -> void:
-	if not SaveManager.has_save():
+	SaveManager.use_normal_slot()
+	if not SaveManager.has_normal_save():
 		return
 	SaveManager.load_game()
 	if GameState.needs_starter_pick():
@@ -215,14 +217,16 @@ func _on_continue() -> void:
 
 
 func _on_new_game_pressed() -> void:
-	if SaveManager.has_save():
+	SaveManager.use_normal_slot()
+	if SaveManager.has_normal_save():
 		_confirm_new.popup_centered()
 	else:
 		_on_new_game_confirmed()
 
 
 func _on_new_game_confirmed() -> void:
-	SaveManager.delete_save()
+	SaveManager.use_normal_slot()
+	SaveManager.delete_normal_save()
 	GameState.reset_for_new_game()
 	DailyMissionSystem.ensure_refreshed()
 	EventSystem.ensure_active()
@@ -230,13 +234,11 @@ func _on_new_game_confirmed() -> void:
 
 
 func _on_debug_pressed() -> void:
-	if SaveManager.has_save():
-		_confirm_debug.popup_centered()
-	else:
-		_on_debug_confirmed()
+	_confirm_debug.popup_centered()
 
 
 func _on_debug_confirmed() -> void:
+	SaveManager.use_debug_slot()
 	_DebugFullUnlock.apply()
 	DailyMissionSystem.ensure_refreshed()
 	EventSystem.ensure_active()

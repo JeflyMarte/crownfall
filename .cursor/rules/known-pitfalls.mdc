@@ -189,7 +189,7 @@ alwaysApply: true
 | 「自動戦闘中」行が戦闘で再表示される | `_update_combat_visibility` が `on_combat_floor` で `_auto_combat_row.visible=true` | 行は常時 `false`。停止はヘッダ ButtonStop |
 | aspect=keep なのに TopBar が低い／下ナビ下に黒余白 | SafeArea が inset=0 でも 54/24 を強制フォールバック | letterbox（keep）時はフォールバックしない |
 | `git checkout` / `mv` が `Operation not permitted` | Cursor サンドボックス | アセット・git 復元は `required_permissions: ["all"]` |
-| WIP が消えた | cloud agent / stash | `git-wip-safety.mdc` |
+| デバッグ開始で本編セーブが消える | 単一 `save_data.json` をデバッグが上書き | デバッグは `save_data_debug.json`。`SaveManager.use_debug_slot()`。本編は `use_normal_slot()` |
 | GUT で武器ドロップ率が `1.0`（期待 `0.85`） | `weapon_drop` 週のイベント×1.5が加算され `minf(1.0, …)` | イベント依存アサーションは `EventSystem.set_debug_unix_for_tests` で非該当週に固定（`test_wandering_enemy` 参照） |
 | GUT で `get_enemy_level` が章データより +2 | 週イベント `MOD_ENEMY_LEVEL` が実時刻で乗る | 敵Lv／装備ドロップLvのテストは `none` スロットへ `set_debug_unix_for_tests`＋`current_dungeon_tier=0` |
 | GUT で `party_members[0]` / 職メンバーが null | 先行テストの `reset_for_new_game` が1人編成のまま残る | パーティ前提のテストは `before_each` で `seed_all_starters_unlocked()` |
