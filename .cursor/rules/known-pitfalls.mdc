@@ -17,6 +17,7 @@ alwaysApply: true
 | 非戦闘失敗／入場パッシブのダメージ・回復数字が変な位置／見えない | 味方ドット非表示のまま VFX。`_member_sprite_world_pos` が ZERO | `_begin_noncombat_party_feedback`。位置はカードへフォールバック。詳細: `14_Presentation_Pitfalls.md` |
 | パッシブ名ポップがスキル名と同大で邪魔 | `_spawn_skill_name` が一律28px | パッシブ／武器／加護は `PASSIVE_NAME_FONT_SIZE`（18）。通常スキルは28 |
 | 帯VFXが半透明の四角にしか見えない | `CombatBandVfx` が ColorRect 手続き生成 | ColorRect 禁止。`FX_Band_*.tres` があるときだけ再生。未配置は無演出（P3-UX-COMBAT-BAND-ART-001） |
+| 状態付与「〇〇を付与！」が戦闘開始で大きすぎる | `_spawn_status_apply_name` が48px（ダメ数字より大） | `STATUS_APPLY_TELOP_FONT_SIZE`（22）。パッシブ名18よりやや大きめ |
 | 戦闘開始直後にパッシブ名（野戦調合など）と一緒にダメージ音が鳴る | `_spawn_skill_name` 既定 `combat_skill`。回復スキル／加護／武器名ポップも同様 | 名ポップは `sfx_id=""`。SE は heal/buff/hit 側。詳細: `14_Presentation_Pitfalls.md` |
 | `DungeonScene` パース失敗 `Identifier "label" not declared` | `_execute_member_buff` の `_spawn_skill_name` 差し替え時に `var label`／`wants_taunt` 分岐を誤って削った | バフ SE 等の引数追加時は return 文言ブロックを残す。変更後 headless で DungeonScene ロード確認 |
 | `balance_sim` で `is_pet_member` が GDScript 未解決 | autoload から `preload` Script へ静的呼出が `-s` で欠けることがある | `PetSystem.is_pet_member`（class_name）を使う |
