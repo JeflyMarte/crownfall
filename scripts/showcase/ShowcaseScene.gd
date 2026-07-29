@@ -34,7 +34,6 @@ var _credit_text: String = ""
 @onready var _empty_panel: PanelContainer = $EmptyPanel
 @onready var _empty_label: Label = $EmptyPanel/EmptyVBox/EmptyLabel
 @onready var _empty_actions: VBoxContainer = $EmptyPanel/EmptyVBox/EmptyActions
-@onready var _staff_strip: HBoxContainer = $StaffStrip/StaffRow
 @onready var _staff_scroll: ScrollContainer = $StaffStrip
 @onready var _mode_row: Control = $ModeRow
 @onready var _bottom_nav: PanelContainer = $BottomNav
@@ -42,15 +41,18 @@ var _credit_text: String = ""
 var _detail_overlay: Control = null
 var _detail_host: VBoxContainer = null
 var _detail_title: Label = null
-var _staff_caption: Label = null
 var _staff_player_name: String = ""
 var _btn_change_member: Button = null
+var _btn_staff_list: Button = null
 var _power_panel: PanelContainer = null
 var _power_caption: Label = null
 var _power_value: Label = null
 var _name_frame_top_rule: Control = null
 var _pick_overlay: Control = null
 var _pick_list: VBoxContainer = null
+var _pick_title: Label = null
+## "member" | "staff"
+var _pick_mode: String = "member"
 
 
 func _ready() -> void:
@@ -64,16 +66,14 @@ func _ready() -> void:
 	_btn_own.pressed.connect(func(): _set_mode(Mode.OWN))
 	_btn_staff.pressed.connect(func(): _set_mode(Mode.STAFF))
 	_setup_chrome()
-	_ensure_staff_caption()
 	_ensure_power_panel()
 	_ensure_name_frame_top_rule()
 	_ensure_change_member_button()
+	_ensure_staff_list_button()
 	_apply_layout_rects()
-	_build_staff_strip()
 	if ShowcaseCatalogScript.STAFF_PRESETS.size() > 0:
 		_staff_preset_id = str(ShowcaseCatalogScript.STAFF_PRESETS[0].get("id", ""))
 	_set_mode(Mode.OWN)
-	ScrollTouchHelper.enable(_staff_scroll)
 
 
 func _setup_chrome() -> void:
@@ -115,6 +115,7 @@ func _setup_chrome() -> void:
 
 	_apply_layout_rects()
 	_empty_panel.visible = false
+	## 横並びスタッフ名は廃止。一覧ボタンへ。
 	_staff_scroll.visible = false
 	_refresh_mode_tab_styles()
 
@@ -147,13 +148,14 @@ func _apply_layout_rects() -> void:
 	_btn_staff.position = staff_r.position - mode.position
 	_btn_staff.size = staff_r.size
 
-	var staff: Rect2 = ShowcaseUiTokensScript.STAFF_STRIP
-	_staff_scroll.position = staff.position
-	_staff_scroll.size = staff.size
-	if _staff_caption != null:
-		var cap: Rect2 = ShowcaseUiTokensScript.STAFF_CAPTION_RECT
-		_staff_caption.position = cap.position
-		_staff_caption.size = cap.size
+	## 旧 StaffStrip は非表示のまま（一覧ボタンに置換）。
+	_staff_scroll.visible = false
+
+	if _btn_staff_list != null:
+		var staff_list_r: Rect2 = ShowcaseUiTokensScript.STAFF_LIST_RECT
+		_btn_staff_list.position = staff_list_r.position
+		_btn_staff_list.size = staff_list_r.size
+		_btn_staff_list.custom_minimum_size = staff_list_r.size
 
 	var equip: Rect2 = ShowcaseUiTokensScript.EQUIP_RECT
 	_equip_panel.position = equip.position
@@ -229,27 +231,11 @@ func _set_mode(mode: Mode) -> void:
 	_mode = mode
 	_btn_own.button_pressed = mode == Mode.OWN
 	_btn_staff.button_pressed = mode == Mode.STAFF
-	_staff_scroll.visible = mode == Mode.STAFF
-	if _staff_caption != null:
-		_staff_caption.visible = mode == Mode.STAFF
+	_staff_scroll.visible = false
 	_refresh_mode_tab_styles()
 	_refresh_display()
 	_update_change_member_button()
-
-
-func _ensure_staff_caption() -> void:
-	if _staff_caption != null:
-		return
-	_staff_caption = Label.new()
-	_staff_caption.name = "StaffPlayerCaption"
-	_staff_caption.text = "プレイヤー名"
-	_staff_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	_staff_caption.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_staff_caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_staff_caption.z_index = 6
-	_staff_caption.visible = false
-	UiTypography.apply_caption(_staff_caption, COLOR_GOLD)
-	add_child(_staff_caption)
+	_update_staff_list_button()
 
 
 func _ensure_name_frame_top_rule() -> void:
@@ -373,23 +359,34 @@ func _update_change_member_button() -> void:
 	)
 
 
-func _build_staff_strip() -> void:
-	for child in _staff_strip.get_children():
-		child.queue_free()
-	for raw: Variant in ShowcaseCatalogScript.staff_presets():
-		if not (raw is Dictionary):
-			continue
-		var preset: Dictionary = raw
-		var btn := Button.new()
-		btn.text = str(preset.get("player_name", preset.get("display_name", "？")))
-		btn.toggle_mode = true
-		btn.custom_minimum_size = Vector2(88, 40)
-		UiTypography.apply_menu_button(btn, false)
-		var pid: String = str(preset.get("id", ""))
-		btn.pressed.connect(_on_staff_preset_pressed.bind(pid))
-		btn.set_meta("preset_id", pid)
-		_staff_strip.add_child(btn)
-		_apply_staff_chip_style(btn, false)
+func _ensure_staff_list_button() -> void:
+	if _btn_staff_list != null:
+		return
+	_btn_staff_list = Button.new()
+	_btn_staff_list.name = "BtnStaffList"
+	_btn_staff_list.text = "作例一覧"
+	_btn_staff_list.z_index = 6
+	_btn_staff_list.visible = false
+	_btn_staff_list.focus_mode = Control.FOCUS_NONE
+	_btn_staff_list.clip_text = true
+	UiTypography.apply_menu_button(_btn_staff_list, false)
+	_apply_staff_chip_style(_btn_staff_list, true)
+	_btn_staff_list.pressed.connect(_on_staff_list_pressed)
+	add_child(_btn_staff_list)
+
+
+func _update_staff_list_button() -> void:
+	if _btn_staff_list == null:
+		return
+	var show_btn: bool = _mode == Mode.STAFF and not _empty_panel.visible
+	_btn_staff_list.visible = show_btn
+	if not show_btn:
+		return
+	var label: String = _staff_player_name
+	if label.is_empty():
+		label = "作例一覧"
+	_btn_staff_list.text = label
+	_btn_staff_list.tooltip_text = "スタッフ作例を切り替える"
 
 
 func _apply_staff_chip_style(btn: Button, active: bool) -> void:
@@ -404,14 +401,14 @@ func _apply_staff_chip_style(btn: Button, active: bool) -> void:
 	btn.add_theme_color_override("font_pressed_color", col)
 
 
+func _on_staff_list_pressed() -> void:
+	AudioManager.play_sfx("ui_select")
+	_show_staff_preset_overlay()
+
+
 func _on_staff_preset_pressed(preset_id: String) -> void:
 	_staff_preset_id = preset_id
-	for child in _staff_strip.get_children():
-		if child is Button:
-			var b: Button = child as Button
-			var on: bool = str(b.get_meta("preset_id", "")) == preset_id
-			b.button_pressed = on
-			_apply_staff_chip_style(b, on)
+	_hide_pick_member_overlay()
 	if _mode == Mode.STAFF:
 		_refresh_display()
 
@@ -440,6 +437,7 @@ func _refresh_display() -> void:
 	_set_stage_visible(true)
 	_populate_stage(_display_member)
 	_update_change_member_button()
+	_update_staff_list_button()
 
 
 func _set_stage_visible(on: bool) -> void:
@@ -499,6 +497,7 @@ func _show_empty_own() -> void:
 	_footer_meta.text = ""
 	_footer_credit.text = ""
 	_update_change_member_button()
+	_update_staff_list_button()
 
 
 func _show_empty_message(msg: String) -> void:
@@ -511,6 +510,7 @@ func _show_empty_message(msg: String) -> void:
 	_footer_meta.text = ""
 	_footer_credit.text = ""
 	_update_change_member_button()
+	_update_staff_list_button()
 
 
 func _on_set_party_lead() -> void:
@@ -579,6 +579,7 @@ func _ensure_pick_member_overlay() -> void:
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_display(title, UiTypography.SIZE_BODY, COLOR_GOLD)
 	outer.add_child(title)
+	_pick_title = title
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -602,6 +603,9 @@ func _ensure_pick_member_overlay() -> void:
 
 func _show_pick_member_overlay() -> void:
 	_ensure_pick_member_overlay()
+	_pick_mode = "member"
+	if _pick_title != null:
+		_pick_title.text = "展示するキャラを選ぶ"
 	for child in _pick_list.get_children():
 		child.queue_free()
 	var current_id: String = str(GameState.showcase_member_id)
@@ -622,6 +626,42 @@ func _show_pick_member_overlay() -> void:
 		UiTypography.apply_menu_button(row, false)
 		_apply_staff_chip_style(row, mid == current_id)
 		row.pressed.connect(_on_pick_member.bind(mid))
+		_pick_list.add_child(row)
+	_pick_overlay.visible = true
+
+
+func _show_staff_preset_overlay() -> void:
+	_ensure_pick_member_overlay()
+	_pick_mode = "staff"
+	if _pick_title != null:
+		_pick_title.text = "スタッフ作例を選ぶ"
+	for child in _pick_list.get_children():
+		child.queue_free()
+	for raw: Variant in ShowcaseCatalogScript.staff_presets():
+		if not (raw is Dictionary):
+			continue
+		var preset: Dictionary = raw
+		var pid: String = str(preset.get("id", ""))
+		if pid.is_empty():
+			continue
+		var row := Button.new()
+		var pname: String = str(preset.get("player_name", preset.get("display_name", "？")))
+		var char_name: String = str(preset.get("display_name", ""))
+		var mark: String = "（表示中）" if pid == _staff_preset_id else ""
+		if char_name.is_empty():
+			row.text = "%s%s" % [pname, ("  " + mark) if not mark.is_empty() else ""]
+		else:
+			row.text = "%s  —  %s%s" % [
+				pname,
+				char_name,
+				("  " + mark) if not mark.is_empty() else "",
+			]
+		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.custom_minimum_size = Vector2(0, 48)
+		row.clip_text = true
+		UiTypography.apply_menu_button(row, false)
+		_apply_staff_chip_style(row, pid == _staff_preset_id)
+		row.pressed.connect(_on_staff_preset_pressed.bind(pid))
 		_pick_list.add_child(row)
 	_pick_overlay.visible = true
 
