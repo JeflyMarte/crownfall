@@ -5361,6 +5361,7 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 | P3-BAL-ENEMY-SKILL-CA-001-3 | **ボス** — 既に enrage＋専用2本（計3）のため Phase C では数値・本数を据置 | 過剰強化を避ける |
 | P3-BAL-ENEMY-SKILL-CA-001-4 | **`skill_use_chance` 据置**（エリート 0.35） | 発動頻度は変えず、発動時の技選択に幅を出す |
 | P3-BAL-ENEMY-SKILL-CA-001-5 | **Phase A（後続）** — 通常雑魚を「嫌がらせ＋個性」の2本へ。本Taskスコープ外 | C 承認・通し後に別 Task |
+| P3-BAL-ENEMY-SKILL-CA-001-6 | **Phase A Impl（2026-07-29）** — メイン①〜⑤プレイ可能雑魚（バイソン除外・31体）に第2スキル追加。`skill_use_chance` 据置。単↔列／状態差で補完。威力・CDは雑魚帯（エリート第2を超えない） | オーナー「雑魚スキル2本化進めよう」 |
 ## 必殺カットイン効果1行（2026-07-28 — P3-UX-ULTIMATE-EFFECT-001）
 > **オーナー GO（案A）** — 戦闘の必殺カットインで技名の下に効果1行を自動表示。
 | P3-UX-ULTIMATE-EFFECT-001-1 | カットイン帯に **技名直下1行**（対象＋主効果＋付与状態名） | 発動瞬間に何をする技か分かる |

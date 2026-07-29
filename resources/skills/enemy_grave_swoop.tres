@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_grave_swoop"
+display_name = "墓陰の急襲"
+description = "鐘の残響に紛れて後列へ舞い降りる。"
+skill_type = "enemy"
+target_type = "party_back"
+power_multiplier = 1.05
+cooldown = 5.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["single"])
+element = "dark"
+apply_status_id = ""
+apply_status_chance = 0.0

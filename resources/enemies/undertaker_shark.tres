@@ -34,5 +34,5 @@ codex_danger = 3
 codex_habitat = "沈没航路・浅瀬"
 codex_research_note = "サメを祖先とし、干潟のわずかな水深を滑るように進む小型ザメ。弱った獲物を選んで襲う習性から、船乗りは葬儀屋と呼んで忌んだ。"
 codex_materials = Array[String]([])
-skill_ids = Array[String](["enemy_tide_spear"])
+skill_ids = Array[String](["enemy_tide_spear", "enemy_undertow"])
 skill_use_chance = 0.22

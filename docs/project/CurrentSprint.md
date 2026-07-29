@@ -87,7 +87,7 @@
 | — | **P3-UX-RELIC-TACTICS-B001** | レリック尖鋭案B全面（発火＋制約） | ✅ Impl（要実機） |
 | — | **P3-UX-COMBAT-BAND-001** | ボス詠唱帯VFX＋味方全体／必殺派手演出 | ✅ Impl（要実機） |
 | — | **P3-BAL-ELEM-REBAL-001** | 属性弱点再配分（既存付け替え・新キャラなし）。ボス／地形整合 | ✅ Impl（要実機） |
-| — | **P3-BAL-ENEMY-SKILL-CA-001** | 敵スキル厚み C→A。Phase C＝エリート第2スキル（本線）。Phase A＝雑魚2本化は後続 | ✅ Phase C Impl（要実機） |
+| — | **P3-BAL-ENEMY-SKILL-CA-001** | 敵スキル厚み C→A。Phase C＝エリート第2／Phase A＝雑魚2本化 | ✅ Phase C+A Impl（要実機） |
 | — | **P3-CODEX-HIST-GUIDE-050** | 図鑑 歴史50／世界観手引き50（HE-001〜050・WORLD-G001〜050） | ✅ GO・統合＋main |
 | — | **P3-EQ-DIABLO-001** | 装備ステ・ディアブロ寄せ（固定ATK/DEF＋random_mods／Affix統合） | ✅ GO・統合＋main |
 | — | **P3-EQ-JOB-WPN-001** | 職別武器種制限（preferred＝装備可能リスト） | ✅ GO・統合＋main |

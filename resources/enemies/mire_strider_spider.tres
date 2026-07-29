@@ -34,5 +34,5 @@ codex_danger = 3
 codex_habitat = "霧沼・停滞水面"
 codex_research_note = "蜘蛛を祖先とし、脚先の細毛と油膜で水面張力を渡る巨大種。静かな水面を歩いて接近し、泥底へ引きずり込む。波紋だけが気配となる。"
 codex_materials = Array[String]([])
-skill_ids = Array[String](["enemy_mire_web"])
+skill_ids = Array[String](["enemy_mire_web", "enemy_mire_fang"])
 skill_use_chance = 0.26

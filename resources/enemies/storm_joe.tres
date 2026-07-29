@@ -34,5 +34,5 @@ codex_danger = 4
 codex_habitat = "最果て氷裂・氷河縁"
 codex_research_note = "中型恐竜を祖先とし、吹雪の中を真っ直ぐに突進する。視界の利かない白闇で正確に獲物へ届く理由は、雪面の振動を顎で読むためだと考えられている。"
 codex_materials = Array[String]([])
-skill_ids = Array[String](["enemy_blizzard_howl"])
+skill_ids = Array[String](["enemy_blizzard_howl", "enemy_gale_cut"])
 skill_use_chance = 0.22

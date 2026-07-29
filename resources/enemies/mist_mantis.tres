@@ -33,5 +33,5 @@ codex_danger = 3
 codex_habitat = "霧沼・倒木帯"
 codex_research_note = "カマキリを祖先とし、濃霧に紛れて待ち伏せる大型捕食者。鎌の内側に腐生菌の毒を宿し、霧の薄い日は狩りをしない。後衛から仕留める狡猾さが報告されている。"
 codex_materials = Array[String]([])
-skill_ids = Array[String](["enemy_mist_reap"])
+skill_ids = Array[String](["enemy_mist_reap", "enemy_mist_scythe"])
 skill_use_chance = 0.28
