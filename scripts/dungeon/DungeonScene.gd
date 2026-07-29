@@ -9,6 +9,8 @@ const HEAL_AMOUNT: int = BalanceConfig.ROOM_HEAL_AMOUNT
 const COMBAT_TICK_BASE: float = 1.0
 const AUTO_DELAY_BASE: float = 1.2
 const NON_COMBAT_FLOOR_GRACE_SEC: float = 1.6
+## 非戦闘下帯（碑文／宝箱／泉／罠）の文字サイズ。図鑑登録テロップと同寸で固定。
+const NARRATIVE_BAND_FONT_SIZE: int = UiTypography.SIZE_BODY_SMALL
 ## 戦闘速度（設定 ×1 / ×1.5 / ×2 と揃える）。ヘッダボタンは ×1 と ×2。
 const SPEED_MULT_NORMAL: float = 1.0
 const SPEED_MULT_MID: float = 1.5
@@ -2452,7 +2454,8 @@ func _apply_scene_typography() -> void:
 	_label_dungeon_name.clip_text = true
 	_label_dungeon_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_label_room.visible = false
-	UiTypography.apply_body(_label_narrative, UiTypography.SIZE_BODY_SMALL)
+	## 非戦闘ナラティブは図鑑登録テロップと同じ display（Shippori）・同寸で固定。
+	UiTypography.apply_display(_label_narrative, NARRATIVE_BAND_FONT_SIZE, UiTypography.COLOR_GOLD)
 	UiTypography.apply_display(_label_combat_tier, UiTypography.SIZE_DISPLAY_TITLE)
 	UiTypography.apply_body(_label_enemy, UiTypography.SIZE_BODY_SMALL)
 	UiTypography.apply_body(_label_status_enemy, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
@@ -3352,8 +3355,7 @@ func _handle_event_room_async() -> void:
 	_set_non_combat_phase_bg(LoreRoomPresentationScript.bg_path_for_phase("setup"))
 	var setup_text: String = LoreRoomPresentationScript.pick_setup_line()
 	_set_room_narrative_bbcode(
-		NonCombatNarrativeColors.format_setup_bbcode(setup_text),
-		UiTypography.SIZE_BODY_SMALL
+		NonCombatNarrativeColors.format_setup_bbcode(setup_text)
 	)
 	var setup_hold: float = float(
 		LoreRoomPresentationScript.timings(_fast_run_enabled).get("setup_hold", 1.0)
@@ -3369,8 +3371,7 @@ func _handle_event_room_async() -> void:
 		)
 		_set_non_combat_phase_bg(LoreRoomPresentationScript.bg_path_for_phase("fail"))
 		_set_room_narrative_bbcode(
-			LoreRoomPresentationScript.format_fail_narrative_bbcode(fail_text, penalty_line),
-			UiTypography.SIZE_BODY_SMALL
+			LoreRoomPresentationScript.format_fail_narrative_bbcode(fail_text, penalty_line)
 		)
 		var fail_full: String = fail_text if penalty_line.is_empty() else "%s\n%s" % [fail_text, penalty_line]
 		_append_log("[碑文] %s" % fail_full)
@@ -3384,8 +3385,7 @@ func _handle_event_room_async() -> void:
 		var empty_text: String = "碑文は見つからなかった"
 		_set_non_combat_phase_bg(LoreRoomPresentationScript.bg_path_for_phase("fail"))
 		_set_room_narrative_bbcode(
-			NonCombatNarrativeColors.fail(empty_text),
-			UiTypography.SIZE_BODY_SMALL
+			NonCombatNarrativeColors.fail(empty_text)
 		)
 		_event_presentation_active = false
 		_finish_room_and_continue()
@@ -3402,8 +3402,7 @@ func _handle_event_room_async() -> void:
 	for line: String in explore_lines:
 		log_text += "\n" + line
 	_set_room_narrative_bbcode(
-		LoreRoomPresentationScript.format_success_narrative_bbcode(log_text),
-		UiTypography.SIZE_BODY_SMALL
+		LoreRoomPresentationScript.format_success_narrative_bbcode(log_text)
 	)
 	_append_log("[碑文] %s" % log_text.replace("\n", " / "))
 	_event_presentation_active = false
@@ -4210,24 +4209,23 @@ func _member_max_hp_for_trap(index: int) -> int:
 
 func _set_room_narrative(
 	text: String,
-	accent: Color = UiTypography.COLOR_BODY,
-	font_size: int = UiTypography.SIZE_BODY
+	accent: Color = UiTypography.COLOR_GOLD
 ) -> void:
 	_ensure_narrative_label_mode()
 	_label_narrative.text = text
-	UiTypography.apply_body(_label_narrative, font_size, accent)
+	UiTypography.apply_display(_label_narrative, NARRATIVE_BAND_FONT_SIZE, accent)
 
 
-func _set_room_narrative_bbcode(
-	bbcode: String, font_size: int = UiTypography.SIZE_BODY
-) -> void:
-	var rich: RichTextLabel = _ensure_narrative_rich(font_size)
+func _set_room_narrative_bbcode(bbcode: String) -> void:
+	var rich: RichTextLabel = _ensure_narrative_rich()
 	rich.clear()
 	rich.append_text(bbcode)
 	rich.visible = true
 	_label_narrative.visible = false
 	## Label 側にも平文を同期（誤って typography リセットされても旧「探索を開始した」が戻らない）。
 	_label_narrative.text = NonCombatNarrativeColors.strip_bbcode(bbcode)
+	## Rich 表示中も Label 側のサイズを同寸に保つ（モード切替時のジャンプ防止）。
+	UiTypography.apply_display(_label_narrative, NARRATIVE_BAND_FONT_SIZE, UiTypography.COLOR_GOLD)
 
 
 func _ensure_narrative_label_mode() -> void:
@@ -4238,10 +4236,10 @@ func _ensure_narrative_label_mode() -> void:
 		rich.clear()
 
 
-func _ensure_narrative_rich(font_size: int = UiTypography.SIZE_BODY) -> RichTextLabel:
+func _ensure_narrative_rich() -> RichTextLabel:
 	var existing: RichTextLabel = _narrative_panel.get_node_or_null("LabelNarrativeRich") as RichTextLabel
 	if existing != null:
-		UiTypography.apply_log_rich(existing, font_size, UiTypography.COLOR_BODY)
+		UiTypography.apply_display_rich(existing, NARRATIVE_BAND_FONT_SIZE, UiTypography.COLOR_GOLD)
 		existing.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		return existing
 	var rich := RichTextLabel.new()
@@ -4253,7 +4251,7 @@ func _ensure_narrative_rich(font_size: int = UiTypography.SIZE_BODY) -> RichText
 	rich.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	rich.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	rich.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UiTypography.apply_log_rich(rich, font_size, UiTypography.COLOR_BODY)
+	UiTypography.apply_display_rich(rich, NARRATIVE_BAND_FONT_SIZE, UiTypography.COLOR_GOLD)
 	_narrative_panel.add_child(rich)
 	return rich
 
@@ -4263,7 +4261,7 @@ func _reset_narrative_typography() -> void:
 	if rich_busy != null and rich_busy.visible and not str(rich_busy.get_parsed_text()).strip_edges().is_empty():
 		return
 	_ensure_narrative_label_mode()
-	UiTypography.apply_body(_label_narrative, UiTypography.SIZE_BODY_SMALL)
+	UiTypography.apply_display(_label_narrative, NARRATIVE_BAND_FONT_SIZE, UiTypography.COLOR_GOLD)
 	_label_narrative.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	if _label_now_playing != null:
 		_label_now_playing.visible = false
