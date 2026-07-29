@@ -2,7 +2,7 @@
 
 P3-UX-COMBAT-BAND-ART-001。ColorRect 仮置きは廃止済み。ここに PNG を置き、`resources/animation/FX_Band_*.tres` を作ると再生される。
 
-## P0（優先）
+## P0
 
 | ファイル | スタイル | 用途 |
 |---|---|---|
@@ -10,28 +10,29 @@ P3-UX-COMBAT-BAND-ART-001。ColorRect 仮置きは廃止済み。ここに PNG �
 | `FX_Band_Pulse.png` | pulse | 敵波動・詠唱全体 |
 | `FX_Band_Slash.png` | slash | 必殺斬 |
 
-## 仕様（発注用）
+## P1
+
+| ファイル | スタイル | 用途 |
+|---|---|---|
+| `FX_Band_Tide.png` | tide | 泥潮・深淵サージ |
+| `FX_Band_Mist.png` | mist | 霧・墨煙・瘴気 |
+| `FX_Band_Fan.png` | fan | 剣嵐など味方全体斬 |
+| `FX_Band_Volley.png` | volley | 斉射 |
+| `FX_Band_Quake.png` | quake | 盾撃波 |
+| `FX_Band_Shot.png` | shot | 必殺狙撃 |
+| `FX_Band_Roar.png` | roar | 必殺咆哮 |
+
+## 仕様
 
 | 項目 | 値 |
 |---|---|
-| 形式 | 横長スプライトシート（1行・6〜8フレーム） |
-| 推奨フレーム | **128×128**（帯が足りなければ 160×128） |
-| 背景 | 完全透過。暗縁・マット禁止（Hit VFX と同じ落とし穴） |
+| 形式 | 個別フレーム 4 枚／スタイル（または横長シート） |
+| 推奨フレーム | **128×128** |
+| 背景 | 完全透過。暗縁・マット禁止 |
 | 色 | ニュートラル白〜薄い色。属性はゲーム側ティント |
 | ループ | なし（ワンショット） |
 
-## 取込後
+## 現状（Cursor 試作）
 
-1. PNG を本ディレクトリへ
-2. Godot で `SpriteFrames` → `res://resources/animation/FX_Band_{Style}.tres`（anim=`default`）
-3. 暗縁があれば `tools/generate_env_and_vfx.py` の `clean_vfx_image` 相当で再処理
-4. `.godot/imported` の該当を消して再インポート
-5. 戦闘でボス詠唱／必殺を実機確認
-
-未配置のスタイルは **無演出**（四角に戻さない）。
-
-## 現状（Cursor 試作・案A）
-
-- `frames/{breath,pulse,slash}/*_0..3.png` + `FX_Band_*.png` シート＋`resources/animation/FX_Band_*.tres` を配置済み
-- AI 生成 → 緑クロマキー → 128² フィット。属性はゲーム側ティント
-- 世界観に合わなければシート／tres を外して無演出に戻す（コード変更不要）
+- P0+P1 全スタイルを `frames/{style}/*_0..3.png` + `FX_Band_*.tres` で配置済み
+- AI 生成 → 緑クロマキー → 128²。合わなければシート／tres を外して無演出に戻す

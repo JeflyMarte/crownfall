@@ -15,15 +15,12 @@ const STYLE_SLASH := "slash"
 const STYLE_SHOT := "shot"
 const STYLE_ROAR := "roar"
 
-## P0 本番シート（未配置時は無演出）。命名: FX_Band_{Style}.tres
+## 本番シート（未配置時は無演出）。命名: FX_Band_{Style}.tres
+## P0=breath/pulse/slash。P1=tide/mist/fan/volley/quake/shot/roar。
 const FRAMES_PATH: Dictionary = {
 	STYLE_BREATH: "res://resources/animation/FX_Band_Breath.tres",
 	STYLE_PULSE: "res://resources/animation/FX_Band_Pulse.tres",
 	STYLE_SLASH: "res://resources/animation/FX_Band_Slash.tres",
-}
-
-## P1 以降。未配置の間は空＝無演出（四角フォールバック禁止）。
-const FRAMES_PATH_P1: Dictionary = {
 	STYLE_TIDE: "res://resources/animation/FX_Band_Tide.tres",
 	STYLE_MIST: "res://resources/animation/FX_Band_Mist.tres",
 	STYLE_FAN: "res://resources/animation/FX_Band_Fan.tres",
@@ -32,6 +29,9 @@ const FRAMES_PATH_P1: Dictionary = {
 	STYLE_SHOT: "res://resources/animation/FX_Band_Shot.tres",
 	STYLE_ROAR: "res://resources/animation/FX_Band_Roar.tres",
 }
+
+## 予約枠（将来追加用）。現状は空。
+const FRAMES_PATH_P1: Dictionary = {}
 
 ## 属性は別シート必須にせずティント（Hit VFX と同方針）。
 const ELEMENT_COLOR: Dictionary = {

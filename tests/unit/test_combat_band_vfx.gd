@@ -83,24 +83,28 @@ func test_ultimate_styles() -> void:
 	)
 
 
-func test_p0_frames_paths_and_missing_means_no_play() -> void:
+func test_p0_and_p1_frames_present() -> void:
 	assert_eq(
 		CombatBandVfx.frames_path_for_style(CombatBandVfx.STYLE_BREATH),
 		"res://resources/animation/FX_Band_Breath.tres"
 	)
 	assert_eq(
-		CombatBandVfx.frames_path_for_style(CombatBandVfx.STYLE_PULSE),
-		"res://resources/animation/FX_Band_Pulse.tres"
+		CombatBandVfx.frames_path_for_style(CombatBandVfx.STYLE_FAN),
+		"res://resources/animation/FX_Band_Fan.tres"
 	)
-	assert_eq(
-		CombatBandVfx.frames_path_for_style(CombatBandVfx.STYLE_SLASH),
-		"res://resources/animation/FX_Band_Slash.tres"
-	)
-	## P0 はシート配置済み。P1（fan 等）は未配置＝無演出（四角に戻さない）。
-	assert_true(CombatBandVfx.has_band_frames(CombatBandVfx.STYLE_BREATH))
-	assert_true(CombatBandVfx.has_band_frames(CombatBandVfx.STYLE_PULSE))
-	assert_true(CombatBandVfx.has_band_frames(CombatBandVfx.STYLE_SLASH))
-	assert_false(CombatBandVfx.has_band_frames(CombatBandVfx.STYLE_FAN))
+	for style in [
+		CombatBandVfx.STYLE_BREATH,
+		CombatBandVfx.STYLE_PULSE,
+		CombatBandVfx.STYLE_SLASH,
+		CombatBandVfx.STYLE_TIDE,
+		CombatBandVfx.STYLE_MIST,
+		CombatBandVfx.STYLE_FAN,
+		CombatBandVfx.STYLE_VOLLEY,
+		CombatBandVfx.STYLE_QUAKE,
+		CombatBandVfx.STYLE_SHOT,
+		CombatBandVfx.STYLE_ROAR,
+	]:
+		assert_true(CombatBandVfx.has_band_frames(style), "missing frames for %s" % style)
 	var host: Node = add_child_autoqfree(Node.new())
 	var layer: Node = add_child_autoqfree(Node2D.new())
 	assert_gt(
@@ -115,9 +119,15 @@ func test_p0_frames_paths_and_missing_means_no_play() -> void:
 		),
 		0.0
 	)
-	assert_eq(
+	assert_gt(
 		CombatBandVfx.play_ally_band(
 			host, layer, Vector2(40, 80), Rect2(100, 40, 200, 120), CombatBandVfx.STYLE_FAN, "fire", 1.0
+		),
+		0.0
+	)
+	assert_gt(
+		CombatBandVfx.play_ultimate_band(
+			host, layer, Vector2(40, 80), Vector2(200, 80), CombatBandVfx.STYLE_SHOT, "", 1.0
 		),
 		0.0
 	)
