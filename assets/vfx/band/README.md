@@ -29,3 +29,9 @@ P3-UX-COMBAT-BAND-ART-001。ColorRect 仮置きは廃止済み。ここに PNG �
 5. 戦闘でボス詠唱／必殺を実機確認
 
 未配置のスタイルは **無演出**（四角に戻さない）。
+
+## 現状（Cursor 試作・案A）
+
+- `frames/{breath,pulse,slash}/*_0..3.png` + `FX_Band_*.png` シート＋`resources/animation/FX_Band_*.tres` を配置済み
+- AI 生成 → 緑クロマキー → 128² フィット。属性はゲーム側ティント
+- 世界観に合わなければシート／tres を外して無演出に戻す（コード変更不要）

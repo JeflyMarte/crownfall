@@ -96,20 +96,28 @@ func test_p0_frames_paths_and_missing_means_no_play() -> void:
 		CombatBandVfx.frames_path_for_style(CombatBandVfx.STYLE_SLASH),
 		"res://resources/animation/FX_Band_Slash.tres"
 	)
-	## 未配置時は has_band_frames=false／play は 0（四角に戻さない）。
-	assert_false(CombatBandVfx.has_band_frames(CombatBandVfx.STYLE_BREATH))
+	## P0 はシート配置済み。P1（fan 等）は未配置＝無演出（四角に戻さない）。
+	assert_true(CombatBandVfx.has_band_frames(CombatBandVfx.STYLE_BREATH))
+	assert_true(CombatBandVfx.has_band_frames(CombatBandVfx.STYLE_PULSE))
+	assert_true(CombatBandVfx.has_band_frames(CombatBandVfx.STYLE_SLASH))
 	assert_false(CombatBandVfx.has_band_frames(CombatBandVfx.STYLE_FAN))
 	var host: Node = add_child_autoqfree(Node.new())
 	var layer: Node = add_child_autoqfree(Node2D.new())
-	assert_eq(
+	assert_gt(
 		CombatBandVfx.play_enemy_band(
 			host, layer, Vector2(100, 100), Rect2(0, 0, 200, 120), CombatBandVfx.STYLE_BREATH, "ice", 1.0
 		),
 		0.0
 	)
-	assert_eq(
+	assert_gt(
 		CombatBandVfx.play_ultimate_band(
 			host, layer, Vector2(40, 80), Vector2(200, 80), CombatBandVfx.STYLE_SLASH, "", 1.0
+		),
+		0.0
+	)
+	assert_eq(
+		CombatBandVfx.play_ally_band(
+			host, layer, Vector2(40, 80), Rect2(100, 40, 200, 120), CombatBandVfx.STYLE_FAN, "fire", 1.0
 		),
 		0.0
 	)
