@@ -4248,6 +4248,16 @@ ELITE/BOSS/遍在希少種（P3-D166）は別枠。重みは **当該 Biome 雑�
 | P3-BAL-SWARM-002-4 | ELITE/BOSS・放浪・イベント `forced_swarm` は従来どおり（ティア倍率は通常群れ抽選にのみ） | 既存特例を壊さない |
 | P3-BAL-SWARM-002-5 | タンク寄りの単体維持（モスシェル／スカルタートル／オールドレックス／氷河看守など） | 役割差を残す |
 
+## モーンゲート序盤群れ頭数上限（2026-07-30 — P3-BAL-SWARM-EARLY-CAP-001）
+
+> **オーナー指示** — モーンゲート 1-1〜1-3・ノーマルのみ群れ最高2体。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-SWARM-EARLY-CAP-001-1 | **対象** — `biome_index=1` かつ `chapter_index` 1〜3、かつ `TIER_NORMAL` のみ | ①序盤ノーマルの圧を抑える |
+| P3-BAL-SWARM-EARLY-CAP-001-2 | **頭数** — 群れ抽選後の `hi` を **最大2**（`EARLY_STAGE_SWARM_SIZE_CAP`）。既存の群れ率半減（1-1〜1-3）は維持 | 「群は最高2体」 |
+| P3-BAL-SWARM-EARLY-CAP-001-3 | **除外** — Hard／Nightmare・1-4以降・他Biome・深層・イベント `forced_swarm` | スコープ外を壊さない |
+
 ---
 
 ## 拠点ニーナ案内ナビ（2026-07-21 — P3-UI-NINA-NAV-001）
