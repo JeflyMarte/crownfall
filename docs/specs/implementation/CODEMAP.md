@@ -286,6 +286,8 @@ Task 明示指示がない限り作成しない:
 
 `whisperwood/ICO_DG_Whisperwood.png`・`mistfen/ICO_DG_Mistfen.png`・`broken_marsh/ICO_DG_BrokenMarsh.png`・`blackshore/ICO_DG_Blackshore.png`・`frostridge/ICO_DG_Frostridge.png`（各 1024×1024・IconPaths `dungeon:` 登録済）
 
+章アイコン（`*/stages/ICO_DG_*_*_*.png`）: ① Mourngate / ② Whisperwood / ③ Mistfen / ④ Blackshore / ⑤ Frostridge 各 1〜5（1024×1024・IconPaths `stage:`）。③〜⑤は Biome 別アート（Whisperwood 複製禁止。正規化は `tools/generate_biome_stage_icons.py`）
+
 ### assets/dungeon/royal_ruins/
 
 | パス | 内容 | import |
