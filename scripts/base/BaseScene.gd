@@ -435,39 +435,30 @@ func _maybe_grant_starting_tokens_fx() -> void:
 
 
 func _setup_gift_badge() -> void:
-	## PanelContainer は全子を同矩形に敷くため、バッジを直置きするとカード全体が赤くなる。
-	## 単一ホスト Control の上に PlayerRow＋バッジを重ねる。
-	var host: Control = _player_card.get_node_or_null("PlayerCardHost") as Control
-	if host == null:
-		host = Control.new()
-		host.name = "PlayerCardHost"
-		host.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var row: Control = _player_card.get_node("PlayerRow") as Control
-		_player_card.remove_child(row)
-		host.add_child(row)
-		row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		row.grow_horizontal = Control.GROW_DIRECTION_BOTH
-		row.grow_vertical = Control.GROW_DIRECTION_BOTH
-		_player_card.add_child(host)
+	## 名前末尾に追従するよう、氏名行 HBox の右に置く（PlayerCard 直下禁止）。
+	var name_row: HBoxContainer = _player_info.get_node_or_null("PlayerNameRow") as HBoxContainer
+	if name_row == null:
+		name_row = HBoxContainer.new()
+		name_row.name = "PlayerNameRow"
+		name_row.add_theme_constant_override("separation", 4)
+		name_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		name_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var name_idx: int = _label_player_name.get_index()
+		_player_info.remove_child(_label_player_name)
+		name_row.add_child(_label_player_name)
+		_label_player_name.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		_player_info.add_child(name_row)
+		_player_info.move_child(name_row, name_idx)
 	_gift_badge = PanelContainer.new()
 	_gift_badge.name = "GiftBadge"
 	_gift_badge.visible = false
 	_gift_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_gift_badge.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	_gift_badge.anchor_left = 1.0
-	_gift_badge.anchor_top = 0.0
-	_gift_badge.anchor_right = 1.0
-	_gift_badge.anchor_bottom = 0.0
-	_gift_badge.offset_left = -24.0
-	_gift_badge.offset_top = -6.0
-	_gift_badge.offset_right = 4.0
-	_gift_badge.offset_bottom = 14.0
-	_gift_badge.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	_gift_badge.grow_vertical = Control.GROW_DIRECTION_END
+	_gift_badge.custom_minimum_size = Vector2(18, 18)
+	_gift_badge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.82, 0.22, 0.18, 0.95)
-	sb.set_corner_radius_all(8)
-	sb.set_content_margin_all(2.0)
+	sb.set_corner_radius_all(9)
+	sb.set_content_margin_all(1.0)
 	_gift_badge.add_theme_stylebox_override("panel", sb)
 	var lbl := Label.new()
 	lbl.name = "GiftBadgeLabel"
@@ -475,7 +466,7 @@ func _setup_gift_badge() -> void:
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	UiTypography.apply_display(lbl, 10, Color(1.0, 0.95, 0.9), UiTypography.OUTLINE_STRONG)
 	_gift_badge.add_child(lbl)
-	host.add_child(_gift_badge)
+	name_row.add_child(_gift_badge)
 
 func _setup_field_survey_banner() -> void:
 	if not EventSystem.PERIODIC_EVENTS_ENABLED:
@@ -843,7 +834,6 @@ func _update_player_card() -> void:
 	var frame_tier: String = CombatUiFrames.TIER_NORMAL
 	if _CommanderProfile.is_rank_at_least(_CommanderProfile.GOLD_SEAL_RANK):
 		frame_tier = CombatUiFrames.TIER_CARD_ACTIVE
-	## PlayerRow は配布バッジ用ホストへ reparent 済み。パス文字列ではなく参照を使う。
 	_portrait_frame.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(frame_tier)
 	)

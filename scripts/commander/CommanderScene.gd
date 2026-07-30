@@ -8,6 +8,7 @@ const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd
 const _CommanderGiftBox = preload("res://scripts/commander/CommanderGiftBox.gd")
 const _CommanderSurveyPoints = preload("res://scripts/commander/CommanderSurveyPoints.gd")
 const _CommanderUiTokens = preload("res://scripts/commander/CommanderUiTokens.gd")
+const _CurrencyGainFx = preload("res://scripts/ui/CurrencyGainFx.gd")
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
 const CODEX_SCENE: String = "res://scenes/codex/CodexScene.tscn"
@@ -45,6 +46,9 @@ var _chip_press_name: String = ""
 var _chip_press_origin: Vector2 = Vector2.ZERO
 var _name_toast: Label = null
 var _name_toast_tween: Tween = null
+var _fx_gold_target: Control = null
+var _fx_token_target: Control = null
+var _gift_claim_fx_busy: bool = false
 
 
 func _ready() -> void:
@@ -266,7 +270,7 @@ func _build_gift_box_section() -> Control:
 		var claim_all_btn := Button.new()
 		claim_all_btn.text = "すべて受け取る"
 		UiTypography.apply_menu_button(claim_all_btn, false)
-		claim_all_btn.pressed.connect(_on_gift_claim_all_pressed)
+		claim_all_btn.pressed.connect(_on_gift_claim_all_pressed.bind(claim_all_btn))
 		claim_all_row.add_child(claim_all_btn)
 	for entry: Dictionary in pending:
 		body.add_child(_make_gift_row(entry))
@@ -303,25 +307,104 @@ func _make_gift_row(entry: Dictionary) -> PanelContainer:
 	var claim_btn := Button.new()
 	claim_btn.text = "受け取る"
 	UiTypography.apply_menu_button(claim_btn, false)
-	claim_btn.pressed.connect(_on_gift_claim_pressed.bind(str(entry.get("id", ""))))
+	claim_btn.pressed.connect(_on_gift_claim_pressed.bind(str(entry.get("id", "")), claim_btn))
 	row.add_child(claim_btn)
 	return block
 
 
-func _on_gift_claim_pressed(entry_id: String) -> void:
+func _on_gift_claim_pressed(entry_id: String, claim_btn: Button) -> void:
+	if _gift_claim_fx_busy:
+		return
+	var from_global: Vector2 = get_viewport_rect().get_center()
+	if claim_btn != null and is_instance_valid(claim_btn):
+		from_global = claim_btn.get_global_rect().get_center()
 	var result: Dictionary = _CommanderGiftBox.claim(entry_id)
 	if not bool(result.get("ok", false)):
 		return
 	SaveManager.save_game()
+	var rewards: Dictionary = {}
+	if result.get("rewards") is Dictionary:
+		rewards = result["rewards"] as Dictionary
 	_rebuild_page()
+	_play_gift_claim_fx(from_global, rewards)
 
 
-func _on_gift_claim_all_pressed() -> void:
+func _on_gift_claim_all_pressed(claim_btn: Button = null) -> void:
+	if _gift_claim_fx_busy:
+		return
+	var from_global: Vector2 = get_viewport_rect().get_center()
+	if claim_btn != null and is_instance_valid(claim_btn):
+		from_global = claim_btn.get_global_rect().get_center()
 	var result: Dictionary = _CommanderGiftBox.claim_all()
 	if not bool(result.get("ok", false)):
 		return
 	SaveManager.save_game()
+	var merged: Dictionary = {"gold": 0, "gacha_token": 0, "materials": {}}
+	var claimed: Array = []
+	if result.get("claimed") is Array:
+		claimed = result["claimed"] as Array
+	for entry: Variant in claimed:
+		if not entry is Dictionary:
+			continue
+		var rewards: Variant = (entry as Dictionary).get("rewards", {})
+		if not rewards is Dictionary:
+			continue
+		merged["gold"] = int(merged["gold"]) + int((rewards as Dictionary).get("gold", 0))
+		merged["gacha_token"] = int(merged["gacha_token"]) + int(
+			(rewards as Dictionary).get("gacha_token", 0)
+		)
+		var mats: Variant = (rewards as Dictionary).get("materials", {})
+		if mats is Dictionary:
+			var dest: Dictionary = merged["materials"] as Dictionary
+			for mat_id: Variant in mats:
+				var mid: String = str(mat_id)
+				dest[mid] = int(dest.get(mid, 0)) + int(mats[mat_id])
+			merged["materials"] = dest
 	_rebuild_page()
+	_play_gift_claim_fx(from_global, merged)
+
+
+func _play_gift_claim_fx(from_global: Vector2, rewards: Dictionary) -> void:
+	var fx_rewards: Array = []
+	var gold: int = int(rewards.get("gold", 0))
+	if gold > 0 and _fx_gold_target != null and ResourceLoader.exists(GOLD_ICON):
+		fx_rewards.append({
+			"texture": load(GOLD_ICON) as Texture2D,
+			"target": _fx_gold_target,
+			"amount": gold,
+		})
+	var tokens: int = int(rewards.get("gacha_token", 0))
+	if tokens > 0 and _fx_token_target != null:
+		var token_tex: Texture2D = CurrencyHelper.get_icon_texture()
+		if token_tex != null:
+			fx_rewards.append({
+				"texture": token_tex,
+				"target": _fx_token_target,
+				"amount": tokens,
+			})
+	var materials: Variant = rewards.get("materials", {})
+	if materials is Dictionary and _fx_gold_target != null:
+		for mat_id: Variant in materials:
+			var qty: int = int(materials[mat_id])
+			if qty <= 0:
+				continue
+			var mat_tex: Texture2D = IconPaths.get_icon_texture(str(mat_id), "material")
+			if mat_tex == null:
+				continue
+			fx_rewards.append({
+				"texture": mat_tex,
+				"target": _fx_gold_target,
+				"amount": qty,
+			})
+	if fx_rewards.is_empty():
+		return
+	_gift_claim_fx_busy = true
+	AudioManager.play_sfx("ui_confirm")
+	_CurrencyGainFx.play(self, from_global, fx_rewards, _on_gift_claim_fx_done)
+
+
+func _on_gift_claim_fx_done() -> void:
+	_gift_claim_fx_busy = false
 
 
 # ---- 資産 ----
@@ -335,11 +418,13 @@ func _build_assets_section() -> Control:
 	currency.add_theme_constant_override("separation", 16)
 	currency.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	currency_body.add_child(currency)
-	currency.add_child(_make_currency_chip(GOLD_ICON, "%d" % GameState.gold))
-	currency.add_child(_make_currency_chip(
+	_fx_gold_target = _make_currency_chip(GOLD_ICON, "%d" % GameState.gold)
+	currency.add_child(_fx_gold_target)
+	_fx_token_target = _make_currency_chip(
 		CurrencyHelper.ICON_PATH,
 		CurrencyHelper.format_amount()
-	))
+	)
+	currency.add_child(_fx_token_target)
 	_add_subheading(body, "所持チケット")
 	var tickets: Array = _owned_ticket_rows()
 	if tickets.is_empty():
