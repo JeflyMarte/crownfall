@@ -5793,3 +5793,12 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-CMD-RANK-REWARD-001-3 | **報酬α** — 到達時配布箱に Gold（C500/B1000/A1500/S3000）。称号枠 C=1/B=2/S=3。B「遠域調査官」・S「広域調査官」。Aで記録詳細（SP／発見件数）。ダンジョン解放は据置 | 経済％なし・二重ゲート回避 |
 | P3-CMD-RANK-REWARD-001-4 | **TopBar** — 隊長カード氏名下に次等級までの細いSPバー（数値は台帳）。Sは満タン | UI-1 |
 
+## 戦闘レジェンド位置を右下へ（2026-07-30 — P3-UX-STATUS-LEGEND-004）
+
+> **オーナー依頼** — 状態異常／天候説明を戦闘画面の右下へ。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-STATUS-LEGEND-004-1 | **位置** — Battlefield 右下（下端・右端 inset）。高さに応じて底上げ | 右上から移動 |
+| P3-UX-STATUS-LEGEND-004-2 | **据置** — 内容・天候行先行・StyleBoxEmpty | 表示仕様は既存 |
+

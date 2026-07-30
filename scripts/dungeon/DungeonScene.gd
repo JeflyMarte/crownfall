@@ -563,14 +563,15 @@ const STATUS_ICON_DEF: Dictionary = {
 const HEAL_SKILL_BASE: int = BalanceConfig.HEAL_SKILL_BASE
 const STATUS_ICON_SIZE: float = 26.0
 const STATUS_ICON_GAP: float = 3.0
-## 戦闘右上の発生中状態異常レジェンド（P3-UX-STATUS-LEGEND-001）。
+## 戦闘右下の発生中状態異常／天候レジェンド（P3-UX-STATUS-LEGEND-001）。
 const STATUS_LEGEND_ICON_PX: float = 22.0
 ## 名前付き「毒:1秒ごとにダメージ」が収まる幅。
 const STATUS_LEGEND_WIDTH: float = 300.0
 const STATUS_LEGEND_PAD: float = 8.0
 const STATUS_LEGEND_ROW_GAP: int = 4
-## 右端からの余白（正＝内側。負は Battlefield の clip で説明文が切れる）。
+## 右端・下端からの余白（正＝内側。負は Battlefield の clip で説明文が切れる）。
 const STATUS_LEGEND_SIDE_INSET: float = 8.0
+const STATUS_LEGEND_BOTTOM_INSET: float = 8.0
 const VFX_HIT_PATH: String = "res://resources/animation/FX_Hit_Normal.tres"
 const VFX_CRIT_PATH: String = "res://resources/animation/FX_Hit_Critical.tres"
 const VFX_HEAL_PATH: String = "res://resources/animation/FX_Heal.tres"
@@ -854,7 +855,7 @@ var _party_card_pulse_tweens: Array = []
 var _combat_shake_cooldown_until: float = 0.0
 var _status_icon_swarm_rows: Array[HBoxContainer] = []
 var _status_icon_chr_rows: Array[HBoxContainer] = []
-## 旧敵行動順位置の発生中状態異常説明（P3-UX-STATUS-LEGEND-001）。
+## 旧敵行動順位置の発生中状態異常説明（P3-UX-STATUS-LEGEND-001・右下）。
 var _status_legend_panel: PanelContainer
 var _status_legend_list: VBoxContainer
 var _combat_sprites_host: Node2D
@@ -2834,9 +2835,15 @@ func _layout_status_legend() -> void:
 	if _status_legend_panel == null:
 		return
 	var bf_size: Vector2 = _battlefield_size()
+	## 内容変更直後は size が古いことがあるので最小サイズも見る。
+	_status_legend_panel.reset_size()
+	var panel_h: float = maxf(
+		_status_legend_panel.size.y,
+		_status_legend_panel.get_combined_minimum_size().y
+	)
 	_status_legend_panel.position = Vector2(
 		bf_size.x - STATUS_LEGEND_WIDTH - STATUS_LEGEND_SIDE_INSET,
-		TURN_ORDER_SIDE_TOP
+		maxf(STATUS_LEGEND_SIDE_INSET, bf_size.y - panel_h - STATUS_LEGEND_BOTTOM_INSET)
 	)
 
 
@@ -2984,8 +2991,10 @@ func _update_status_legend() -> void:
 		_status_legend_list.add_child(_make_weather_legend_row(weather))
 	for status_id: String in ids:
 		_status_legend_list.add_child(_make_status_legend_row(status_id))
-	_layout_status_legend()
 	_status_legend_panel.visible = true
+	_layout_status_legend()
+	## 行追加後の実高で右下再配置。
+	call_deferred("_layout_status_legend")
 
 func _sync_status_sprite_tints() -> void:
 	if not $CombatController.is_in_combat:
