@@ -3,7 +3,7 @@
 **Status:** **Decision 承認済（オーナー GO 2026-07-27）** — Impl 進行中  
 **Date:** 2026-07-27  
 **Overrides:** P3-SKILL-002〜006 の「職あたり習得10」／同型単体スキルの量産方針  
-**Maintains:** P3-COMBAT-GAUGE-001（**装備スキル枠＝1**）／必殺別ゲージ／レジェンド武器 `fixed_skill_id`（枠外）
+**Maintains:** P3-COMBAT-GAUGE-001（**装備スキル枠＝1**）／必殺別ゲージ／レジェンド武器 `fixed_passive_id`（枠外・パッシブ・P3-WPN-LEG-EFFECT）
 
 ---
 

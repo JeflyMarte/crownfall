@@ -53,6 +53,16 @@ func test_guide_lines_nonempty() -> void:
 		assert_true(lines[0].contains("祝福") or lines[0].contains("神話"), kind)
 
 
+func test_legendary_guide_describes_passive_not_skill() -> void:
+	## DOC-LEG-PASSIVE-001: レジェンド個性は fixed_passive_id（専用スキル言及禁止）。
+	var lines: Array[String] = _Guide.guide_lines_for(_Guide.KIND_LEGENDARY)
+	var joined: String = "\n".join(lines)
+	assert_true(joined.contains("固有効果") or joined.contains("パッシブ"), joined)
+	assert_false(joined.contains("専用スキル"), joined)
+	assert_false(joined.contains("武器スキル"), joined)
+	assert_false(joined.contains("固有スキル"), joined)
+
+
 func test_nav_notices_consumed_into_rotation() -> void:
 	_Guide.mark_guide_done(_Guide.KIND_LEGENDARY)
 	_Guide.on_equipment_obtained(_make_legendary_weapon())

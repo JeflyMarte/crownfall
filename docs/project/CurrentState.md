@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-07-30（**DOC-LEG-PASSIVE-001 GO／統合＋main**: レジェンド説明を固有効果（パッシブ）へ追随。ニーナ／図鑑手引き／ジョブ・装備仕様。WeaponSkillHelper削除なし）
 2026-07-30（**P3-OPS-PITFALLS-P2-001 GO／統合＋main**: 戦闘演出／バナー／βフラグ／GUT を領域ルールへ昇格。カタログさらにポインタ圧縮）
 2026-07-30（**P3-OPS-PITFALLS-P1-001 GO／統合＋main**: 編成・陣形／アセット／ホットパスを領域ルールへ昇格。カタログをポインタ圧縮（P0下部漏れ含む））
 2026-07-30（**P3-OPS-PITFALLS-P0-001 GO／統合＋main**: 起動即死を `pitfalls-startup` 常時注入へ分離。`known-pitfalls` は按需。ScrollTouch／SafeArea を `ui-layout` 昇格＋アーカイブ方針）
