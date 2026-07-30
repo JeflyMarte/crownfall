@@ -573,8 +573,9 @@ const STATUS_LEGEND_ROW_GAP: int = 4
 ## 右端・下端からの余白（0＝右端寄せ。負は Battlefield clip で欠けやすい）。
 const STATUS_LEGEND_SIDE_INSET: float = 0.0
 const STATUS_LEGEND_BOTTOM_INSET: float = 8.0
-## ダンジョン効果レジェンドの上端余白（右上）。
+## ダンジョン効果レジェンドの上端／右端余白（右上・画面右端寄せ）。
 const FIELD_LEGEND_TOP_INSET: float = 8.0
+const FIELD_LEGEND_SIDE_INSET: float = 4.0
 const STATUS_LEGEND_FONT_PX: int = 15
 const STATUS_LEGEND_TEXT_W: float = 230.0
 const STATUS_LEGEND_MAX_LINES: int = 2
@@ -2846,23 +2847,25 @@ func _init_status_legend() -> void:
 	_status_legend_panel.add_child(_status_legend_list)
 	_status_legend_signature = ""
 
-	## 天候などダンジョン効果＝右上（同じく clip 外）。
+	## 天候などダンジョン効果＝右上（同じく clip 外）。幅は内容に縮めて右端寄せ。
 	_field_legend_panel = PanelContainer.new()
 	_field_legend_panel.name = "FieldLegendPanel"
 	_field_legend_panel.visible = false
 	_field_legend_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_field_legend_panel.z_index = COMBAT_OVERLAY_Z + 4
-	_field_legend_panel.custom_minimum_size = Vector2(STATUS_LEGEND_WIDTH, 0.0)
+	_field_legend_panel.custom_minimum_size = Vector2(0.0, 0.0)
 	_field_legend_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	_field_legend_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	_field_legend_panel.grow_horizontal = Control.GROW_DIRECTION_END
+	_field_legend_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_field_legend_panel.grow_vertical = Control.GROW_DIRECTION_END
 	add_child(_field_legend_panel)
 	_field_legend_list = VBoxContainer.new()
 	_field_legend_list.name = "FieldLegendList"
 	_field_legend_list.add_theme_constant_override("separation", STATUS_LEGEND_ROW_GAP)
 	_field_legend_list.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_field_legend_list.custom_minimum_size = Vector2(STATUS_LEGEND_WIDTH, 0.0)
+	_field_legend_list.custom_minimum_size = Vector2(0.0, 0.0)
+	_field_legend_list.size_flags_horizontal = Control.SIZE_SHRINK_END
+	_field_legend_list.alignment = BoxContainer.ALIGNMENT_END
 	_field_legend_panel.add_child(_field_legend_list)
 	_field_legend_signature = ""
 	_layout_status_legend()
@@ -2881,6 +2884,18 @@ func _legend_panel_content_height(panel: PanelContainer, list: VBoxContainer) ->
 	if panel != null:
 		h = maxf(h, panel.get_combined_minimum_size().y)
 	return maxf(h, 1.0)
+
+
+func _legend_panel_content_width(panel: PanelContainer, list: VBoxContainer) -> float:
+	var w: float = 0.0
+	if list != null:
+		for child: Node in list.get_children():
+			if child is Control:
+				w = maxf(w, (child as Control).get_combined_minimum_size().x)
+		w = maxf(w, list.get_combined_minimum_size().x)
+	if panel != null:
+		w = maxf(w, panel.get_combined_minimum_size().x)
+	return maxf(w, 1.0)
 
 
 func _battlefield_rect_in_self() -> Rect2:
@@ -2908,12 +2923,18 @@ func _layout_status_legend() -> void:
 func _layout_field_legend() -> void:
 	if _field_legend_panel == null:
 		return
+	## 内容幅に縮め、画面右端へ寄せる（固定280幅だと左に空いて見える）。
 	_field_legend_panel.reset_size()
 	var panel_h: float = _legend_panel_content_height(_field_legend_panel, _field_legend_list)
+	var panel_w: float = mini(
+		STATUS_LEGEND_WIDTH,
+		_legend_panel_content_width(_field_legend_panel, _field_legend_list)
+	)
 	var bf_r: Rect2 = _battlefield_rect_in_self()
-	_field_legend_panel.size = Vector2(STATUS_LEGEND_WIDTH, panel_h)
+	var right_edge: float = maxf(bf_r.position.x + bf_r.size.x, size.x) - FIELD_LEGEND_SIDE_INSET
+	_field_legend_panel.size = Vector2(panel_w, panel_h)
 	_field_legend_panel.position = Vector2(
-		bf_r.position.x + bf_r.size.x - STATUS_LEGEND_WIDTH - STATUS_LEGEND_SIDE_INSET,
+		right_edge - panel_w,
 		bf_r.position.y + FIELD_LEGEND_TOP_INSET
 	)
 
@@ -3004,15 +3025,17 @@ func _make_status_legend_row(status_id: String) -> HBoxContainer:
 
 
 func _make_weather_legend_row(weather: String) -> HBoxContainer:
-	## 状態異常行と同型。ICO があれば Texture、無ければ略称バッジ。
+	## 状態異常行と同型。ICO があれば Texture、無ければ略称バッジ。右寄せ。
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.size_flags_horizontal = Control.SIZE_SHRINK_END
+	row.alignment = BoxContainer.ALIGNMENT_END
 	var def: Dictionary = CombatWeather.legend_icon_def(weather)
 	var icon := PanelContainer.new()
 	icon.custom_minimum_size = Vector2(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
 	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	icon.size_flags_horizontal = Control.SIZE_SHRINK_END
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon.tooltip_text = CombatWeather.label(weather)
 	var icon_tex: Texture2D = null
@@ -3053,7 +3076,7 @@ func _make_weather_legend_row(weather: String) -> HBoxContainer:
 		line = CombatWeather.label(weather)
 	var lbl := Label.new()
 	lbl.text = line
-	_style_status_legend_label(lbl)
+	_style_field_legend_label(lbl)
 	row.add_child(lbl)
 	return row
 
@@ -3067,6 +3090,18 @@ func _style_status_legend_label(lbl: Label) -> void:
 	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lbl.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	lbl.custom_minimum_size = Vector2(STATUS_LEGEND_TEXT_W, 0.0)
+	UiTypography.apply_body(lbl, STATUS_LEGEND_FONT_PX, UiTypography.COLOR_BODY)
+
+
+func _style_field_legend_label(lbl: Label) -> void:
+	## 右上ダンジョン効果は1行・幅縮め・右寄せ。
+	lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+	lbl.max_lines_visible = 1
+	lbl.clip_text = false
+	lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	lbl.size_flags_horizontal = Control.SIZE_SHRINK_END
+	lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	UiTypography.apply_body(lbl, STATUS_LEGEND_FONT_PX, UiTypography.COLOR_BODY)
 
 
