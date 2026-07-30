@@ -135,3 +135,20 @@ func test_start_abyss_stage_keeps_endless_and_run_name() -> void:
 	assert_false(dc.is_completed)
 	assert_gt(dc.room_sequence.size(), 10)
 	assert_eq(GameState.get_stage_progress_label("abyss_mourngate"), "")
+
+
+func test_abyss_select_meta_hides_fixed_floor_and_rec_level() -> void:
+	## 選択UIは固定10F／推奨Lvを出さず？？表記（無限の性質）。
+	var packed: PackedScene = load("res://scenes/dungeon/DungeonSelectScene.tscn")
+	assert_not_null(packed)
+	var scene: Node = packed.instantiate()
+	add_child_autofree(scene)
+	var stage: Resource = DataRegistry.get_stage_data("abyss_mourngate_1_1")
+	assert_not_null(stage)
+	var meta: String = scene.call("_format_stage_meta_text", stage)
+	assert_eq(meta, "？？F  推奨レベル？？")
+	var main_stage: Resource = DataRegistry.get_stage_data("mourngate_1_1")
+	if main_stage != null:
+		var main_meta: String = scene.call("_format_stage_meta_text", main_stage)
+		assert_true(main_meta.contains("F"), main_meta)
+		assert_false(main_meta.begins_with("？？"), main_meta)
