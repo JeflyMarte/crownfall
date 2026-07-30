@@ -18,11 +18,15 @@ const FEATURED_IDLE_PX: float = 196.0
 const FEATURED_STATS_MIN_W: float = 220.0
 ## Featured 左の煽り文パネル幅（P3-GACHA-FEATURE-TEASE-001）。
 const FEATURED_BLURB_MIN_W: float = 240.0
-const FEATURED_BLURB_TOP: float = 220.0
+## タイトル帯・右ステより下（キャラ中腹付近）。Shippori 見出しと揃える。
+const FEATURED_BLURB_TOP: float = 340.0
 ## キャラに被りすぎないよう少し右へ。
 const FEATURED_BLURB_SIDE_PAD: float = 22.0
-const FEATURED_BLURB_FONT_SIZE: int = 24
-const FEATURED_BLURB_OUTLINE: int = 4
+## 右名前（SIZE_DISPLAY=24）より一段小さく。
+const FEATURED_BLURB_FONT_SIZE: int = 20
+const FEATURED_BLURB_OUTLINE: int = 3
+## Featured 背後の紫上昇塵（多いほど召喚感が強い）。
+const FEATURED_MOTE_COUNT: int = 18
 ## 台座中心向け。実機の短い枠でもキャラ全体が枠内に収まるよう host から算出。
 const FEATURED_IDLE_OFFSET_X: float = 0.0
 ## 【キャラ上下の主操作】大きいほど上へ。MIN/MAX は自動計算の下限／上限なので触っても効きにくい。
@@ -203,17 +207,14 @@ static func feature_line_for_helper(helper: Resource) -> String:
 	return ensure_sentence_period(note.strip_edges())
 
 
-## 枠なし煽り文用。DelaGothic＋強い縁取りで可読性を確保。
+## 枠なし煽り文用。Shippori（招待状／右ステと同系）＋控えめ縁取り。
 static func _apply_feature_blurb_style(label: Label) -> void:
-	var font: Font = UiTypography.impact_font()
-	if font == null:
-		font = UiTypography.display_font()
-	if font != null:
-		label.add_theme_font_override("font", font)
-	label.add_theme_font_size_override("font_size", FEATURED_BLURB_FONT_SIZE)
-	label.add_theme_color_override("font_color", UiTypography.COLOR_GOLD)
-	label.add_theme_constant_override("outline_size", FEATURED_BLURB_OUTLINE)
-	label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.92))
+	UiTypography.apply_display(
+		label,
+		FEATURED_BLURB_FONT_SIZE,
+		UiTypography.COLOR_GOLD,
+		FEATURED_BLURB_OUTLINE
+	)
 
 
 ## Featured 固有パッシブ説明。特徴行と重複しないよう origin_note へは落とさない。
@@ -318,7 +319,7 @@ static func _add_featured_purple_aura(stage: Control, foot_pad: float = FEATURED
 	beam.offset_right = beam_w * 0.5 + FEATURED_IDLE_OFFSET_X
 	beam.offset_top = -beam_h
 	beam.offset_bottom = -foot + 36.0
-	beam.modulate = Color(1.15, 1.0, 1.25, 0.52)
+	beam.modulate = Color(1.15, 1.0, 1.25, 0.62)
 	stage.add_child(beam)
 
 	var beam_soft := TextureRect.new()
@@ -330,19 +331,40 @@ static func _add_featured_purple_aura(stage: Control, foot_pad: float = FEATURED
 	beam_soft.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
 	beam_soft.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	beam_soft.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	var soft_w: float = 300.0
+	var soft_w: float = 340.0
 	beam_soft.offset_left = -soft_w * 0.5 + FEATURED_IDLE_OFFSET_X
 	beam_soft.offset_right = soft_w * 0.5 + FEATURED_IDLE_OFFSET_X
 	beam_soft.offset_top = -beam_h * 0.92
 	beam_soft.offset_bottom = -foot + 48.0
-	beam_soft.modulate = Color(0.85, 0.55, 1.2, 0.28)
+	beam_soft.modulate = Color(0.85, 0.55, 1.2, 0.38)
 	stage.add_child(beam_soft)
 	stage.move_child(beam_soft, 0)
 	stage.move_child(beam, 1)
 
+	## 外側のもや柱を1本追加（紫の量感）。
+	var beam_haze := TextureRect.new()
+	beam_haze.name = "FeaturedBeamHaze"
+	beam_haze.texture = beam_tex
+	beam_haze.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	beam_haze.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	beam_haze.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	beam_haze.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	beam_haze.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	beam_haze.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	var haze_w: float = 420.0
+	beam_haze.offset_left = -haze_w * 0.5 + FEATURED_IDLE_OFFSET_X
+	beam_haze.offset_right = haze_w * 0.5 + FEATURED_IDLE_OFFSET_X
+	beam_haze.offset_top = -beam_h * 0.85
+	beam_haze.offset_bottom = -foot + 56.0
+	beam_haze.modulate = Color(0.7, 0.4, 1.15, 0.2)
+	stage.add_child(beam_haze)
+	stage.move_child(beam_haze, 0)
+	stage.move_child(beam_soft, 1)
+	stage.move_child(beam, 2)
+
 	var mote_tex: Texture2D = GachaUiTokens.load_tex(GachaUiTokens.FEATURED_MOTE)
 	if mote_tex != null:
-		for i in 7:
+		for i in FEATURED_MOTE_COUNT:
 			var mote := TextureRect.new()
 			mote.name = "FeaturedMote_%d" % i
 			mote.texture = mote_tex
@@ -350,20 +372,22 @@ static func _add_featured_purple_aura(stage: Control, foot_pad: float = FEATURED
 			mote.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			mote.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			mote.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-			var mote_px: float = 10.0 + float(i % 3) * 4.0
-			var x_off: float = FEATURED_IDLE_OFFSET_X + float((i % 5) - 2) * 22.0
-			var y0: float = -foot - 24.0 - float(i) * 10.0
+			var mote_px: float = 9.0 + float(i % 4) * 3.5
+			var x_off: float = FEATURED_IDLE_OFFSET_X + float((i % 7) - 3) * 18.0
+			var y0: float = -foot - 18.0 - float(i % 9) * 12.0
 			mote.offset_left = x_off - mote_px * 0.5
 			mote.offset_right = x_off + mote_px * 0.5
 			mote.offset_top = y0 - mote_px
 			mote.offset_bottom = y0
 			mote.modulate = Color(1.1, 0.9, 1.3, 0.0)
 			stage.add_child(mote)
-			stage.move_child(mote, mini(2 + i, stage.get_child_count() - 1))
-			_start_mote_rise(mote, y0, mote_px, 1.8 + float(i) * 0.35)
+			stage.move_child(mote, mini(3 + i, stage.get_child_count() - 1))
+			## 周期をずらして同時に見える粒を増やす。
+			_start_mote_rise(mote, y0, mote_px, 1.35 + float(i % 6) * 0.22)
 
-	_start_beam_pulse(beam, 0.48, 0.78, 1.55)
-	_start_beam_pulse(beam_soft, 0.22, 0.42, 2.1)
+	_start_beam_pulse(beam, 0.55, 0.88, 1.45)
+	_start_beam_pulse(beam_soft, 0.28, 0.52, 1.9)
+	_start_beam_pulse(beam_haze, 0.12, 0.28, 2.4)
 
 
 static func _start_beam_pulse(beam: CanvasItem, a_lo: float, a_hi: float, period: float) -> void:
@@ -388,10 +412,10 @@ static func _start_mote_rise(mote: TextureRect, y0: float, mote_px: float, durat
 	var start := func() -> void:
 		if not is_instance_valid(mote) or not mote.is_inside_tree():
 			return
-		var rise: float = 110.0 + mote_px * 2.0
+		var rise: float = 130.0 + mote_px * 2.4
 		var tw: Tween = mote.create_tween()
 		tw.set_loops()
-		tw.tween_property(mote, "modulate:a", 0.7, duration * 0.2)
+		tw.tween_property(mote, "modulate:a", 0.85, duration * 0.18)
 		tw.parallel().tween_property(mote, "offset_top", y0 - rise - mote_px, duration)
 		tw.parallel().tween_property(mote, "offset_bottom", y0 - rise, duration)
 		tw.tween_property(mote, "modulate:a", 0.0, duration * 0.25)
@@ -480,7 +504,7 @@ static func build_featured_shell(host: Control) -> Dictionary:
 	idle.offset_bottom = -foot
 	stage.add_child(idle)
 
-	## 左：煽り文のみ（枠なし・インパクト書体。名前／★／ステ／パッシブは右）。
+	## 左：煽り文のみ（枠なし・Shippori。名前／★／ステ／パッシブは右）。
 	var blurb_wrap := PanelContainer.new()
 	blurb_wrap.name = "FeatureBlurbWrap"
 	blurb_wrap.set_anchors_preset(Control.PRESET_TOP_LEFT)
