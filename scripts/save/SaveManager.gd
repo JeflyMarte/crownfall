@@ -792,6 +792,9 @@ func _apply_save_data(data: Dictionary) -> void:
 	var _PetSystem = preload("res://scripts/pets/PetSystem.gd")
 	_PetSystem.ensure_owned_pets_seeded()
 	_PetSystem.sync_unlocks_from_stage_progress(false)
+	## デバッグフル所持セーブはオトモも全所持に揃える。
+	if GameState.debug_full_unlock:
+		_PetSystem.unlock_all_pets_for_debug()
 	const _SurveyCompleteRewards := preload("res://scripts/survey/SurveyCompleteRewards.gd")
 	_SurveyCompleteRewards.sync_all_pending(false)
 	if GameState.active_pet != null and Constants.is_pet_id(str(GameState.active_pet.id)):
