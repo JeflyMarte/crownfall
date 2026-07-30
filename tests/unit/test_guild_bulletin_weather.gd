@@ -33,19 +33,23 @@ func test_weather_effect_bullets_match_combat_math() -> void:
 	assert_eq(CombatWeather.element_multiplier(CombatWeather.SNOW, "fire"), 0.95)
 
 
+func test_bulletin_active_weather_only() -> void:
+	var rain: String = CombatWeather.bulletin_active_weather_text(CombatWeather.RAIN)
+	assert_true(rain.begins_with("【天候の効果】"))
+	assert_true("雨" in rain)
+	assert_true("雷" in rain)
+	assert_true("炎" in rain)
+	assert_false("吹雪" in rain)
+	assert_false("晴れ" in rain)
+	assert_eq(CombatWeather.bulletin_active_weather_text(""), "")
+	assert_eq(CombatWeather.bulletin_active_weather_text("clear"), "")
+
+
 func test_field_event_effect_summary_includes_combat() -> void:
 	var summary: String = CombatWeather.field_event_effect_summary(CombatWeather.RAIN)
 	assert_true(summary.begins_with("・"))
 	assert_true("固定" in summary)
 	assert_true("雷" in summary)
-
-
-func test_bulletin_reference_lists_all_weathers() -> void:
-	var text: String = CombatWeather.bulletin_reference_text()
-	for term: String in ["晴れ", "雨", "夜", "霧", "炎天", "吹雪", "天候の効果", "ダンジョン"]:
-		assert_true(term in text, term)
-	assert_true("+10%" in text)
-	assert_true("×0.97" in text)
 
 
 func test_biome_weather_bias_keys() -> void:
@@ -63,7 +67,7 @@ func test_biome_weather_bias_keys() -> void:
 		assert_gt(int(frost.get(w, 0)), 0, w)
 
 
-func test_weather_slot_event_gets_combat_effect_summary() -> void:
+func test_weather_slot_shows_active_weather_combat() -> void:
 	var _WeekRotation = preload("res://scripts/event/EventWeekRotation.gd")
 	var _Schedule = preload("res://scripts/event/EventScheduleHelper.gd")
 	var fog_slot: int = -1
@@ -82,5 +86,11 @@ func test_weather_slot_event_gets_combat_effect_summary() -> void:
 	var event: Resource = EventSystem.get_active_event()
 	assert_not_null(event)
 	assert_eq(str(event.modifier_type), "weather")
-	assert_true("0.97" in str(event.effect_summary), str(event.effect_summary))
+	assert_eq(EventSystem.forced_weather_id(), CombatWeather.FOG)
+	assert_true("固定" in str(event.effect_summary), str(event.effect_summary))
+	assert_false("0.97" in str(event.effect_summary), str(event.effect_summary))
+	var guide: String = CombatWeather.bulletin_active_weather_text(EventSystem.forced_weather_id())
+	assert_true("0.97" in guide, guide)
+	assert_true("霧" in guide)
+	assert_false("炎天" in guide)
 	EventSystem.clear_debug_unix_for_tests()

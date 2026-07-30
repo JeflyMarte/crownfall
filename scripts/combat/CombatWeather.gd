@@ -170,7 +170,21 @@ static func field_event_effect_summary(weather: String) -> String:
 	return "\n".join(lines)
 
 
-## 情報誌常設の天候早見（晴れ／雨／夜／霧／炎天／吹雪）。
+## 情報誌：いま出ている天候だけの効果（非天候スロットでは出さない）。
+static func bulletin_active_weather_text(weather: String) -> String:
+	var wid: String = normalize(weather)
+	if wid == CLEAR:
+		return ""
+	var lines: PackedStringArray = PackedStringArray([
+		"【天候の効果】",
+		"・%s" % label(wid),
+	])
+	for line: String in effect_bullet_lines(wid):
+		lines.append("・%s" % line)
+	return "\n".join(lines)
+
+
+## 旧・全天候早見（情報誌では使わない。テスト／参照用）。
 static func bulletin_reference_text() -> String:
 	var lines: PackedStringArray = PackedStringArray([
 		"【天候の効果】",

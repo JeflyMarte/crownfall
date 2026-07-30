@@ -286,7 +286,15 @@ func _ensure_field_spacing() -> void:
 	if _field_vbox == null:
 		return
 	_field_vbox.add_theme_constant_override("separation", 10)
-	_ensure_gap_after(_field_vbox, "MidPad", _label_field_notes, FIELD_MID_GAP_PX)
+	## 現場班コメント（field_notes）は非表示。ノノカメモと表記がぶれるため。
+	## 記事・効果は開催期間の直後へ寄せる（メモ枠位置は固定のまま）。
+	if _label_field_notes != null:
+		_label_field_notes.visible = false
+		_label_field_notes.text = ""
+		_label_field_notes.custom_minimum_size = Vector2.ZERO
+		_label_field_notes.fit_content = false
+	var mid_after: Node = _label_schedule if _label_schedule != null else _label_field_notes
+	_ensure_gap_after(_field_vbox, "MidPad", mid_after, FIELD_MID_GAP_PX)
 	## 旧 TailPad があれば除去（空白を増やすだけだった）。
 	var old_tail: Node = _field_vbox.get_node_or_null("TailPad")
 	if old_tail != null:
@@ -337,7 +345,25 @@ func _ensure_weather_guide() -> void:
 		var effect_i: int = _label_effect.get_index()
 		_field_vbox.move_child(_label_weather_guide, effect_i + 1)
 	_prepare_rich_label(_label_weather_guide, FIELD_SIZE_FIELD_NOTES, INK_MUTED, true)
-	_label_weather_guide.text = _emphasize_bbcode(CombatWeather.bulletin_reference_text())
+	_label_weather_guide.visible = false
+	_label_weather_guide.text = ""
+
+
+func _refresh_weather_guide() -> void:
+	if _label_weather_guide == null:
+		return
+	var wid: String = EventSystem.forced_weather_id()
+	if wid.is_empty():
+		_label_weather_guide.visible = false
+		_label_weather_guide.text = ""
+		return
+	var body: String = CombatWeather.bulletin_active_weather_text(wid)
+	if body.is_empty():
+		_label_weather_guide.visible = false
+		_label_weather_guide.text = ""
+		return
+	_label_weather_guide.visible = true
+	_label_weather_guide.text = _emphasize_bbcode(body)
 
 
 func _apply_typography() -> void:
@@ -419,11 +445,13 @@ func _refresh() -> void:
 		_label_headline.text = str(event_data.title)
 	_refresh_countdown()
 	_label_schedule.text = "開催期間: %s" % EventSystem.schedule_text(event_data)
-	_label_field_notes.text = _emphasize_bbcode(_event_field_notes(event_data))
+	## field_notes（第○班／鍛冶など）は非表示。記事・効果・天候のみ。
+	if _label_field_notes != null:
+		_label_field_notes.visible = false
+		_label_field_notes.text = ""
 	_label_article.text = _emphasize_bbcode(_event_article(event_data))
 	_label_effect.text = _emphasize_bbcode(_event_effect_summary(event_data))
-	if _label_weather_guide != null:
-		_label_weather_guide.text = _emphasize_bbcode(CombatWeather.bulletin_reference_text())
+	_refresh_weather_guide()
 	_label_desc.text = _emphasize_bbcode(_guild_report_body(event_data))
 	if EventSystem.is_featured_biome_week():
 		var biome_id: String = EventSystem.get_featured_biome_id()
@@ -436,7 +464,6 @@ func _refresh() -> void:
 		_label_featured.text = "注目区域: %s" % biome_name
 		if not biome_name.is_empty():
 			var extras: Array = [biome_name]
-			_label_field_notes.text = _emphasize_bbcode(_event_field_notes(event_data), extras)
 			_label_article.text = _emphasize_bbcode(_event_article(event_data), extras)
 			_label_effect.text = _emphasize_bbcode(_event_effect_summary(event_data), extras)
 			_label_desc.text = _emphasize_bbcode(_guild_report_body(event_data), extras)
