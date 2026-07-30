@@ -32,6 +32,7 @@ static func apply() -> void:
 	_unlock_all_starters_and_helpers()
 	_max_all_character_levels()
 	_grant_all_equipment()
+	_unlock_all_craft_recipes()
 	_grant_all_materials()
 	_grant_all_relics()
 	TicketInventory.grant_debug_stock(Constants.DEBUG_TICKET_GRANT_EACH)
@@ -151,6 +152,30 @@ static func _grant_all_equipment() -> void:
 		member.equipped_armor = null
 		member.equipped_accessory = null
 		GameState._grant_member_starting_weapon(member)
+
+
+## 生産レシピ解放（P3-CRAFT-DISCOVER-001）。所持同期＋クラフト可能マスタ全解放。
+static func _unlock_all_craft_recipes() -> void:
+	const _CraftHelper := preload("res://scripts/crafting/CraftHelper.gd")
+	_CraftHelper.sync_unlocks_from_owned()
+	for data in DataRegistry.get_all_weapon_data():
+		if data == null:
+			continue
+		var wid: String = str(data.id)
+		if not wid.is_empty():
+			_CraftHelper.try_unlock("weapon", wid)
+	for data in DataRegistry.get_all_armor_data():
+		if data == null:
+			continue
+		var aid: String = str(data.armor_id)
+		if not aid.is_empty():
+			_CraftHelper.try_unlock("armor", aid)
+	for data in DataRegistry.get_all_accessory_data():
+		if data == null:
+			continue
+		var xid: String = str(data.id)
+		if not xid.is_empty():
+			_CraftHelper.try_unlock("accessory", xid)
 
 
 static func _grant_all_materials() -> void:
