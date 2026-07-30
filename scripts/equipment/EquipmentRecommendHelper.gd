@@ -57,6 +57,10 @@ static func pick_best_unequipped(member: Resource) -> Dictionary:
 static func _best_for_category(member: Resource, category: String) -> Resource:
 	var current: Resource = _get_equipped(member, category)
 	var baseline: float = _item_power(member, category, current)
+	## 空スロットは power 0 扱いだと「能力0の装飾」等が空より強くないと判定され装着されない。
+	## 未装備時は「何もなし（−1）」より任意の候補を優先する。
+	if current == null:
+		baseline = -1.0
 	var best_item: Resource = null
 	var best_score: float = baseline
 	for item in _unequipped_candidates(member, category):
@@ -68,6 +72,10 @@ static func _best_for_category(member: Resource, category: String) -> Resource:
 		if best_item != null and is_equal_approx(score, best_score):
 			if _tiebreak_better(item, best_item, category):
 				best_item = item
+		elif best_item == null and current == null and score >= 0.0:
+			## 同点帯でも空よりは候補を1つ取る（tiebreak 用の起点）。
+			best_item = item
+			best_score = score
 	return best_item
 
 
@@ -147,7 +155,9 @@ static func _accessory_power(item: Resource) -> float:
 	atk += float(_Mods.sum_kind_int(item, _Mods.KIND_ATTACK_UP))
 	defense += float(_Mods.sum_kind_int(item, _Mods.KIND_DEFENSE_UP))
 	crt += float(_Mods.sum_kind_float(item, _Mods.KIND_CRIT_RATE))
-	return hp + atk + defense + crt * 100.0
+	## 平ステ0の固有効果飾りでも空スロットより優先できるようレアを微小加点。
+	var rarity: float = float(int(item.rarity)) if "rarity" in item else 0.0
+	return hp + atk + defense + crt * 100.0 + rarity * 0.01
 
 
 static func _tiebreak_better(a: Resource, b: Resource, category: String) -> bool:
