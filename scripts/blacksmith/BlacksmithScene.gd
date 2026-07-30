@@ -1964,7 +1964,9 @@ func _populate_enhance_stats(item: Resource) -> void:
 
 
 func _populate_reforge_mod_rows(item: Resource) -> void:
-	if _category != "weapon" or item == null:
+	if item == null:
+		return
+	if _category != "weapon" and _category != "armor" and _category != "accessory":
 		return
 	var mods: Array = _EquipmentRandomMods.get_mods(item)
 	if mods.is_empty():
@@ -2069,7 +2071,12 @@ func _on_reforge_mod_pressed(mod_index: int) -> void:
 func _update_reforge_action(item: Resource, forge_at_max: bool) -> void:
 	if _reforge_button == null:
 		return
-	if _category != "weapon" or item == null:
+	if _category != "weapon" and _category != "armor" and _category != "accessory":
+		_reforge_button.visible = false
+		if forge_at_max:
+			_cost_panel.visible = false
+		return
+	if item == null:
 		_reforge_button.visible = false
 		if forge_at_max:
 			_cost_panel.visible = false

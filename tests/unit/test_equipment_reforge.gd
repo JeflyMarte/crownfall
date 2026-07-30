@@ -142,18 +142,37 @@ func test_reforge_mod_consumes_and_works_at_max_forge() -> void:
 	assert_eq(inst.enhance_level, 5)
 
 
-func test_armor_rejected() -> void:
+func test_armor_and_accessory_can_reforge() -> void:
+	var _ASR = preload("res://scripts/equipment/ArmorStatResolver.gd")
+	var _XSR = preload("res://scripts/equipment/AccessoryStatResolver.gd")
 	var ad: Resource = DataRegistry.get_armor_data("leather_armor")
+	assert_not_null(ad)
 	var arm: Resource = ArmorInstance.new()
 	arm.instance_id = "reforge_armor"
 	arm.armor_id = str(ad.armor_id)
 	arm.is_appraised = true
-	arm.random_mods = [{
-		"id": "hp_up", "label": "HPアップ", "kind": "hp_up",
-		"value": 10, "min_v": 4, "max_v": 20, "perfect": false, "meta": {},
-	}]
-	var check: Dictionary = _Reforge.can_reforge(arm, 0)
-	assert_false(bool(check.get("ok", false)))
+	_ASR.apply_drop_stats(arm, ad)
+	var aidx: int = _first_reforgeable_index(arm)
+	assert_gte(aidx, 0)
+	var acheck: Dictionary = _Reforge.can_reforge(arm, aidx)
+	assert_true(bool(acheck.get("ok", false)), str(acheck))
+	var ares: Dictionary = _Reforge.reforge_mod(arm, aidx)
+	assert_true(bool(ares.get("ok", false)), str(ares))
+	assert_eq(str(ares.get("category", "")), "armor")
+
+	var xd: Resource = DataRegistry.get_accessory_data("silver_ring")
+	assert_not_null(xd)
+	var acc: Resource = AccessoryInstance.new()
+	acc.instance_id = "reforge_acc"
+	acc.accessory_id = str(xd.id)
+	acc.is_appraised = true
+	_XSR.apply_drop_stats(acc, xd)
+	var xidx: int = _first_reforgeable_index(acc)
+	assert_gte(xidx, 0)
+	var xcheck: Dictionary = _Reforge.can_reforge(acc, xidx)
+	assert_true(bool(xcheck.get("ok", false)), str(xcheck))
+	var xres: Dictionary = _ERM.reroll_mod_at(acc, xidx)
+	assert_true(bool(xres.get("ok", false)), str(xres))
 
 
 func test_cost_table_by_rarity() -> void:
