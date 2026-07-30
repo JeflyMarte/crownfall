@@ -13,8 +13,8 @@ const BACK_RECT := Rect2(66, 36, 52, 52)
 const MODE_TAB_OWN := Rect2(78, 152, 282, 72)
 const MODE_TAB_STAFF := Rect2(360, 152, 282, 72)
 const MODE_ROW := Rect2(78, 152, 564, 72)
-## スタッフ作例の切替（一覧ボタン）。総合戦力の左・非重複。
-const STAFF_LIST_RECT := Rect2(72, 924, 148, 56)
+## スタッフ作例の切替（一覧ボタン「スタッフキャラ」）。総合戦力の左・非重複。
+const STAFF_LIST_RECT := Rect2(52, 924, 168, 56)
 const EQUIP_RECT := Rect2(70, 175, 168, 580)
 const STATS_RECT := Rect2(482, 175, 168, 460)
 const IDLE_CENTER := Vector2(360, 688)

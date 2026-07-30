@@ -111,6 +111,7 @@ func test_showcase_scene_has_staff_list_button() -> void:
 	var btn: Button = scene.get("_btn_staff_list") as Button
 	assert_not_null(btn)
 	assert_true(btn.visible)
+	assert_eq(btn.text, "スタッフキャラ")
 	assert_false(bool(scene.get_node("StaffStrip").visible))
 
 

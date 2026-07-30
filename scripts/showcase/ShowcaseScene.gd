@@ -363,12 +363,13 @@ func _ensure_staff_list_button() -> void:
 		return
 	_btn_staff_list = Button.new()
 	_btn_staff_list.name = "BtnStaffList"
-	_btn_staff_list.text = "作例一覧"
+	_btn_staff_list.text = "スタッフキャラ"
 	_btn_staff_list.z_index = 6
 	_btn_staff_list.visible = false
 	_btn_staff_list.focus_mode = Control.FOCUS_NONE
 	_btn_staff_list.clip_text = true
 	UiTypography.apply_menu_button(_btn_staff_list, false)
+	_btn_staff_list.add_theme_font_size_override("font_size", UiTypography.SIZE_CAPTION)
 	_apply_staff_chip_style(_btn_staff_list, true)
 	_btn_staff_list.pressed.connect(_on_staff_list_pressed)
 	add_child(_btn_staff_list)
@@ -381,10 +382,7 @@ func _update_staff_list_button() -> void:
 	_btn_staff_list.visible = show_btn
 	if not show_btn:
 		return
-	var label: String = _staff_player_name
-	if label.is_empty():
-		label = "作例一覧"
-	_btn_staff_list.text = label
+	_btn_staff_list.text = "スタッフキャラ"
 	_btn_staff_list.tooltip_text = "スタッフ作例を切り替える"
 
 
