@@ -72,7 +72,7 @@ func test_showcase_member_id_roundtrip_helpers() -> void:
 
 
 func test_power_and_change_member_layout_rects() -> void:
-	## 総合戦力＝名札上、キャラ変更＝装備とステのあいだ（やや左寄せ可）。
+	## 総合戦力＝名札上、キャラ変更＝装備とステのあいだ（やや右寄せ・短め）。
 	var power: Rect2 = ShowcaseUiTokens.POWER_RECT
 	var change: Rect2 = ShowcaseUiTokens.CHANGE_MEMBER_RECT
 	var equip: Rect2 = ShowcaseUiTokens.EQUIP_RECT
@@ -80,8 +80,15 @@ func test_power_and_change_member_layout_rects() -> void:
 	assert_gt(power.position.y, change.position.y)
 	assert_gt(change.position.x, equip.position.x)
 	assert_lt(change.position.x + change.size.x, stats.position.x + 8.0)
-	## 左寄せしてもステ枠を食い込まない。
+	## ステ枠を食い込まない。
 	assert_lt(change.position.x + change.size.x, stats.position.x)
+
+
+func test_power_frame_asset_exists() -> void:
+	assert_true(ResourceLoader.exists(ShowcaseUiTokens.POWER_FRAME))
+	var style: StyleBox = ShowcaseUiTokens.power_frame_style()
+	assert_not_null(style)
+	assert_true(style is StyleBoxTexture)
 
 
 func test_staff_list_button_does_not_overlap_power() -> void:

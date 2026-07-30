@@ -36,9 +36,9 @@ mouse_filter = 2
 z_index = 30
 layout_mode = 0
 offset_left = 66.0
-offset_top = 22.0
+offset_top = 36.0
 offset_right = 118.0
-offset_bottom = 74.0
+offset_bottom = 88.0
 flat = true
 text = ""
 

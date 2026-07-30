@@ -292,7 +292,7 @@ func _ensure_power_panel() -> void:
 	_power_panel.z_index = 6
 	_power_panel.visible = false
 	_power_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_power_panel.add_theme_stylebox_override("panel", _power_panel_style())
+	_power_panel.add_theme_stylebox_override("panel", ShowcaseUiTokensScript.power_frame_style())
 	var vb := VBoxContainer.new()
 	vb.add_theme_constant_override("separation", 0)
 	vb.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -313,19 +313,6 @@ func _ensure_power_panel() -> void:
 	)
 	vb.add_child(_power_value)
 	add_child(_power_panel)
-
-
-func _power_panel_style() -> StyleBoxFlat:
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.05, 0.04, 0.07, 0.82)
-	sb.set_border_width_all(1)
-	sb.border_color = Color(0.86, 0.72, 0.36, 0.85)
-	sb.set_corner_radius_all(6)
-	sb.content_margin_left = 10.0
-	sb.content_margin_top = 4.0
-	sb.content_margin_right = 10.0
-	sb.content_margin_bottom = 4.0
-	return sb
 
 
 func _set_power_display(power: int) -> void:
