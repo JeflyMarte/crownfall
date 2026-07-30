@@ -118,12 +118,21 @@ func test_character_stat_modifiers_aggregate() -> void:
 
 
 func test_starter_and_gacha_passive_redesign() -> void:
+	var ald: Dictionary = CombatPassives.get_def("ald_royal_flame")
+	assert_eq(str(ald.get("status_id", "")), "bleed")
+	assert_eq(float(ald.get("status_chance", 0.0)), 0.25)
+	assert_false(ald.has("outgoing_mult"), "平与ダメはスキル核寄せで廃止")
 	var riva: Dictionary = CombatPassives.get_def("riva_lone_focus")
-	assert_eq(str(riva.get("status_id", "")), "poison")
+	assert_eq(str(riva.get("status_id", "")), "mark")
 	assert_eq(float(riva.get("status_chance", 0.0)), 0.25)
+	assert_eq(str(riva.get("display_name", "")), "狙印の刻")
 	var elias: Dictionary = CombatPassives.get_def("elias_field_elixir")
 	assert_eq(str(elias.get("trigger", "")), "on_combat_start")
 	assert_eq(float(elias.get("heal_max_hp_fraction", 0.0)), 0.20)
+	var galen: Dictionary = CombatPassives.get_def("galen_sacred_bastion")
+	assert_eq(float(galen.get("incoming_mult", 0.0)), 0.90)
+	assert_eq(float(galen.get("threat_base_add", 0.0)), 80.0)
+	assert_ne(str(galen.get("effect", "")), "counter_attack")
 	var kaida: Dictionary = CombatPassives.get_def("kaida_arena_edge")
 	assert_eq(float(kaida.get("outgoing_mult", 0.0)), 1.30)
 	assert_eq(float(kaida.get("outgoing_mult_requires_hp_below", -1.0)), 0.5)

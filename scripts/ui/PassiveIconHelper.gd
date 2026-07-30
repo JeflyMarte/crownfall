@@ -34,7 +34,8 @@ const ICON_ALIAS: Dictionary = {
 
 ## パッシブ群に近い絵が無い場合の直接パス（スキルベース等）。
 const ICON_PATH_OVERRIDE: Dictionary = {
-	"riva_lone_focus": "res://assets/ui/skills/base/ICO_SKILL_BASE_Poison_fg.png",
+	"ald_royal_flame": "res://assets/ui/status/ICO_STA_Bleed.png",
+	"riva_lone_focus": "res://assets/ui/skills/base/ICO_SKILL_BASE_Mark_fg.png",
 }
 
 

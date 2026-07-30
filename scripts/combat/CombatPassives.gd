@@ -52,19 +52,25 @@ const _DEFS: Dictionary = {
 		"party_exp_gain_mult": 1.25,
 	},
 
-	# ---- 基本5職キャラ固有 ----
+	# ---- 基本5職キャラ固有（P3-PASSIVE-SKILL-CORE-001: スキル核寄せ） ----
 	"ald_royal_flame": {
 		"display_name": "王炎の覇気",
-		"description": "与ダメージが常時10%上昇する。",
-		"outgoing_mult": 1.10,
-	},
-	"riva_lone_focus": {
-		"display_name": "毒矢の刻印",
-		"description": "攻撃時25%の確率で敵に毒を付与する。",
+		"description": "攻撃時25%の確率で敵に出血を付与する。",
 		"trigger": "on_attack",
 		"condition": "always",
 		"effect": "apply_status",
-		"status_id": "poison",
+		"status_id": "bleed",
+		"target": "enemy",
+		"status_chance": 0.25,
+		"cooldown": 0.0,
+	},
+	"riva_lone_focus": {
+		"display_name": "狙印の刻",
+		"description": "攻撃時25%の確率で敵に標的を付与する。",
+		"trigger": "on_attack",
+		"condition": "always",
+		"effect": "apply_status",
+		"status_id": "mark",
 		"target": "enemy",
 		"status_chance": 0.25,
 		"cooldown": 0.0,
@@ -81,11 +87,9 @@ const _DEFS: Dictionary = {
 	},
 	"galen_sacred_bastion": {
 		"display_name": "聖盾の砦",
-		"description": "攻撃を受けたとき、反撃する（再使用3秒）。",
-		"trigger": "on_hit_taken",
-		"condition": "always",
-		"effect": "counter_attack",
-		"cooldown": 3.0,
+		"description": "被ダメージが10%軽減され、敵の注目を集めやすい。",
+		"incoming_mult": 0.90,
+		"threat_base_add": 80.0,
 	},
 	"mirei_swarm_resonance": {
 		"display_name": "相棒共鳴",
