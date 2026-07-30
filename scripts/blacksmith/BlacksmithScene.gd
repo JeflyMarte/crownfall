@@ -1968,16 +1968,23 @@ func _populate_reforge_mod_rows(item: Resource) -> void:
 		return
 	var mods: Array = _EquipmentRandomMods.get_mods(item)
 	if mods.is_empty():
+		_selected_reforge_mod_index = -1
 		return
+	## 未選択なら焼直し可能な先頭枠を自動選択（ボタンが常時グレーになるのを防ぐ）。
+	if _selected_reforge_mod_index < 0 or _selected_reforge_mod_index >= mods.size():
+		_selected_reforge_mod_index = _first_reforgeable_mod_index(mods)
+	elif not (
+		mods[_selected_reforge_mod_index] is Dictionary
+		and _EquipmentReforgeHelper.is_mod_reforgeable(mods[_selected_reforge_mod_index] as Dictionary)
+	):
+		_selected_reforge_mod_index = _first_reforgeable_mod_index(mods)
 	var header := Label.new()
-	header.text = "ランダム効果（焼直し対象を選択）"
+	header.text = "ランダム効果（タップで焼直し対象を変更）"
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	UiTypography.apply_caption(header, COLOR_SUB_STRONG)
 	header.add_theme_font_size_override("font_size", 14)
 	_stats_grid.add_child(header)
-	if _selected_reforge_mod_index >= mods.size():
-		_selected_reforge_mod_index = -1
 	for i: int in mods.size():
 		if not mods[i] is Dictionary:
 			continue
@@ -1985,70 +1992,73 @@ func _populate_reforge_mod_rows(item: Resource) -> void:
 		_stats_grid.add_child(_make_reforge_mod_row(mod, i))
 
 
-func _make_reforge_mod_row(mod: Dictionary, mod_index: int) -> PanelContainer:
+func _first_reforgeable_mod_index(mods: Array) -> int:
+	for i: int in mods.size():
+		if mods[i] is Dictionary and _EquipmentReforgeHelper.is_mod_reforgeable(mods[i] as Dictionary):
+			return i
+	return -1
+
+
+func _make_reforge_mod_row(mod: Dictionary, mod_index: int) -> Control:
 	var can_pick: bool = _EquipmentReforgeHelper.is_mod_reforgeable(mod)
 	var selected: bool = can_pick and mod_index == _selected_reforge_mod_index
-	var panel := PanelContainer.new()
-	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	## ScrollTouch に PASS 化されないよう STOP 維持（タップで選択できない再発防止）。
-	panel.set_meta(&"_cf_keep_mouse_stop", true)
-	panel.mouse_filter = Control.MOUSE_FILTER_STOP if can_pick else Control.MOUSE_FILTER_IGNORE
-	var sb := StyleBoxFlat.new()
-	sb.set_content_margin_all(8.0)
-	sb.set_corner_radius_all(6)
-	if selected:
-		sb.bg_color = Color(0.42, 0.32, 0.08, 0.55)
-		sb.set_border_width_all(2)
-		sb.border_color = Color(0.95, 0.82, 0.38, 1.0)
-	elif can_pick:
-		sb.bg_color = Color(0.12, 0.11, 0.09, 0.75)
-		sb.set_border_width_all(1)
-		sb.border_color = Color(0.55, 0.45, 0.18, 0.55)
-	else:
-		sb.bg_color = Color(0.08, 0.08, 0.1, 0.55)
-		sb.set_border_width_all(1)
-		sb.border_color = Color(0.35, 0.32, 0.28, 0.45)
-	panel.add_theme_stylebox_override("panel", sb)
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var icon_host := Control.new()
-	icon_host.custom_minimum_size = Vector2(_DETAIL_STAT_ICON_PX, _DETAIL_STAT_ICON_PX)
-	icon_host.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var icon_key: String = _EquipmentUiTokens.detail_stat_icon_key(mod)
-	var tex: Texture2D = _EquipmentUiTokens.stat_icon(icon_key)
-	if tex != null:
-		var icon := TextureRect.new()
-		icon.texture = tex
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		icon_host.add_child(icon)
-	row.add_child(icon_host)
-	var lbl := Label.new()
 	var line: String = _EquipmentRandomMods.format_mod_line(mod)
 	if not can_pick:
 		line = "%s（固定）" % line
-	lbl.text = line
-	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	UiTypography.apply_caption(lbl, COLOR_TEXT_STRONG if can_pick else COLOR_SUB)
-	lbl.add_theme_font_size_override("font_size", _DETAIL_STAT_FONT_PX)
-	row.add_child(lbl)
-	panel.add_child(row)
+	## Button の pressed の方が ScrollTouch 下でも安定（gui_input だけだと選択できないことがある）。
+	var btn := Button.new()
+	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	btn.custom_minimum_size = Vector2(0, 44)
+	btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	btn.text = ("▶ " if selected else "　") + line
+	btn.clip_text = false
+	btn.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	btn.add_theme_font_size_override("font_size", _DETAIL_STAT_FONT_PX)
+	btn.set_meta(&"_cf_keep_mouse_stop", true)
+	btn.mouse_filter = Control.MOUSE_FILTER_STOP
+	btn.disabled = not can_pick
+	var sb_n := StyleBoxFlat.new()
+	sb_n.set_content_margin_all(8.0)
+	sb_n.set_corner_radius_all(6)
+	var sb_h := sb_n.duplicate() as StyleBoxFlat
+	var sb_p := sb_n.duplicate() as StyleBoxFlat
+	var sb_d := sb_n.duplicate() as StyleBoxFlat
+	if selected:
+		sb_n.bg_color = Color(0.42, 0.32, 0.08, 0.55)
+		sb_n.set_border_width_all(2)
+		sb_n.border_color = Color(0.95, 0.82, 0.38, 1.0)
+	elif can_pick:
+		sb_n.bg_color = Color(0.12, 0.11, 0.09, 0.75)
+		sb_n.set_border_width_all(1)
+		sb_n.border_color = Color(0.55, 0.45, 0.18, 0.55)
+	else:
+		sb_n.bg_color = Color(0.08, 0.08, 0.1, 0.55)
+		sb_n.set_border_width_all(1)
+		sb_n.border_color = Color(0.35, 0.32, 0.28, 0.45)
+	sb_h.bg_color = Color(0.32, 0.26, 0.12, 0.7)
+	sb_h.set_border_width_all(1)
+	sb_h.border_color = Color(0.85, 0.72, 0.28, 0.9)
+	sb_p.bg_color = Color(0.42, 0.32, 0.08, 0.65)
+	sb_p.set_border_width_all(2)
+	sb_p.border_color = Color(0.95, 0.82, 0.38, 1.0)
+	sb_d.bg_color = Color(0.08, 0.08, 0.1, 0.45)
+	sb_d.set_border_width_all(1)
+	sb_d.border_color = Color(0.3, 0.28, 0.26, 0.4)
+	btn.add_theme_stylebox_override("normal", sb_n)
+	btn.add_theme_stylebox_override("hover", sb_h if can_pick else sb_d)
+	btn.add_theme_stylebox_override("pressed", sb_p if can_pick else sb_d)
+	btn.add_theme_stylebox_override("disabled", sb_d)
+	btn.add_theme_color_override(
+		"font_color", COLOR_TEXT_STRONG if can_pick else COLOR_SUB
+	)
+	btn.add_theme_color_override("font_disabled_color", COLOR_SUB)
 	if can_pick:
-		panel.gui_input.connect(_on_reforge_mod_row_input.bind(mod_index))
-	return panel
+		btn.pressed.connect(_on_reforge_mod_pressed.bind(mod_index))
+	return btn
 
 
-func _on_reforge_mod_row_input(event: InputEvent, mod_index: int) -> void:
-	if not _is_primary_press(event):
-		return
-	## 外側 BodyScroll／DetailScroll にタップを渡さない。
-	if event is InputEventMouseButton or event is InputEventScreenTouch:
-		get_viewport().set_input_as_handled()
+func _on_reforge_mod_pressed(mod_index: int) -> void:
 	if _selected_reforge_mod_index == mod_index:
 		return
 	_selected_reforge_mod_index = mod_index
@@ -2066,31 +2076,34 @@ func _update_reforge_action(item: Resource, forge_at_max: bool) -> void:
 	_reforge_button.visible = true
 	_reforge_button.text = "焼直し"
 	var check: Dictionary = _EquipmentReforgeHelper.can_reforge(item, _selected_reforge_mod_index)
-	_reforge_button.disabled = not bool(check.get("ok", false))
+	var can_do: bool = bool(check.get("ok", false))
+	_reforge_button.disabled = not can_do
+	## 焼直し不可理由を明示（常時グレーで理由不明を防ぐ）。炉研ぎ失敗理由より優先。
+	if not can_do:
+		var reason: String = str(check.get("reason", ""))
+		if reason.is_empty():
+			reason = "焼直しできません"
+		_reason_label.text = reason
+		_reason_label.visible = true
+	elif not forge_at_max:
+		## 炉研ぎ側が理由を出していないときだけ消す（両方OKなら非表示）。
+		pass
+	else:
+		_reason_label.visible = false
 	if forge_at_max:
 		## +5 時は焼直しコストを詳細に出す（炉研ぎコストは無し）。
+		var rarity: int = _EquipmentEnhancer.item_rarity(item)
+		var gold_cost: int = int(check.get("gold_cost", _EquipmentReforgeHelper.get_gold_cost(rarity)))
+		var materials: Dictionary = check.get(
+			"materials", _EquipmentReforgeHelper.get_material_cost(rarity)
+		)
 		if _selected_reforge_mod_index >= 0:
-			var gold_cost: int = int(check.get(
-				"gold_cost", _EquipmentReforgeHelper.get_gold_cost(_EquipmentEnhancer.item_rarity(item))
-			))
-			var materials: Dictionary = check.get(
-				"materials",
-				_EquipmentReforgeHelper.get_material_cost(_EquipmentEnhancer.item_rarity(item))
-			)
 			_update_cost_panel(gold_cost, materials)
 			_cost_panel.visible = true
 		else:
 			_cost_panel.visible = false
-		if not bool(check.get("ok", false)):
-			_reason_label.text = str(check.get("reason", ""))
-			_reason_label.visible = not _reason_label.text.is_empty()
-		else:
-			_reason_label.visible = false
-	elif not bool(check.get("ok", false)) and _selected_reforge_mod_index >= 0:
-		## 炉研ぎコスト表示中でも、選択済みで焼直し不可なら理由を出す。
-		if not _reason_label.visible:
-			_reason_label.text = str(check.get("reason", ""))
-			_reason_label.visible = not _reason_label.text.is_empty()
+	## 詳細内に増やした効果 Button も STOP 維持。
+	_restore_primary_button_input()
 
 
 func _rebuild_dismantle_detail() -> void:
