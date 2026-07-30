@@ -111,3 +111,24 @@ func test_equips_stronger_armor() -> void:
 	GameState.armor_inventory = [weak, strong]
 	_Helper.apply_for_member(idx)
 	assert_eq(member.equipped_armor, strong)
+
+
+func _make_accessory(accessory_id: String) -> Resource:
+	var inst: Resource = AccessoryInstance.new()
+	inst.instance_id = "rec_x_%s_%d" % [accessory_id, randi() % 100000]
+	inst.accessory_id = accessory_id
+	inst.is_appraised = true
+	inst.random_mods = [{"kind": "hp_up", "value": 0, "label": "t"}]
+	return inst
+
+
+func test_equips_accessory_when_slot_empty() -> void:
+	## 空スロットでも、未装備の鑑定済み装飾は装着する（能力0相当でも空より優先）。
+	var idx: int = _swordsman_index()
+	var member: Resource = GameState.party_members[idx]
+	assert_eq(member.equipped_accessory, null)
+	var acc: Resource = _make_accessory("silver_ring")
+	GameState.accessory_inventory = [acc]
+	var result: Dictionary = _Helper.apply_for_member(idx)
+	assert_true(bool(result.get("changed", false)), str(result))
+	assert_eq(member.equipped_accessory, acc)
