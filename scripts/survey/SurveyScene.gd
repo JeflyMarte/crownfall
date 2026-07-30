@@ -53,6 +53,7 @@ var _start_confirm: ConfirmationDialog
 var _cancel_confirm: ConfirmationDialog
 var _pending_start_preset: String = ""
 var _pick_overlay: Control = null
+var _claim_result_overlay: SurveyClaimResultOverlay = null
 
 
 func _ready() -> void:
@@ -1420,7 +1421,7 @@ func _perform_claim() -> void:
 	if _btn_cancel != null:
 		_btn_cancel.visible = false
 		_btn_cancel.disabled = true
-	_label_status.text = "成果を懐へ…"
+	_label_status.text = "調査完了…"
 	_play_claim_fx(from_global, result)
 
 
@@ -1432,49 +1433,22 @@ func _claim_fx_origin_global() -> Vector2:
 	return get_global_rect().get_center()
 
 
-func _play_claim_fx(from_global: Vector2, result: Dictionary) -> void:
-	var rewards: Array = []
-	var gold: int = int(result.get("gold", 0))
-	if gold > 0:
-		var gold_tex: Texture2D = null
-		if ResourceLoader.exists(GOLD_ICON_PATH):
-			gold_tex = load(GOLD_ICON_PATH) as Texture2D
-		if gold_tex != null and _gold_chip != null:
-			rewards.append({"texture": gold_tex, "target": _gold_chip, "amount": gold})
-	var tokens: int = int(result.get("token", 0))
-	if tokens > 0:
-		var token_tex: Texture2D = _CurrencyHelper.get_icon_texture()
-		if token_tex != null and _token_chip != null:
-			rewards.append({"texture": token_tex, "target": _token_chip, "amount": tokens})
-	var mat_id: String = str(result.get("material_id", ""))
-	var mat_qty: int = int(result.get("material_qty", 0))
-	var pocket: Control = _pocket_nav_target()
-	if not mat_id.is_empty() and mat_qty > 0:
-		var mat_tex: Texture2D = IconPaths.get_icon_texture(mat_id, "material")
-		var mat_target: Control = pocket if pocket != null else _gold_chip
-		if mat_tex != null and mat_target != null:
-			rewards.append({"texture": mat_tex, "target": mat_target, "amount": mat_qty})
-	var weapon_id: String = str(result.get("weapon_id", ""))
-	if not weapon_id.is_empty():
-		var wpn_tex: Texture2D = IconPaths.get_icon_texture(weapon_id, "weapon")
-		var equip_nav: Control = get_node_or_null("BottomNav/NavRow/NavEquipmentCatalog") as Control
-		var wpn_target: Control = equip_nav if equip_nav != null else pocket
-		if wpn_target == null:
-			wpn_target = _gold_chip
-		if wpn_tex != null and wpn_target != null:
-			rewards.append({"texture": wpn_tex, "target": wpn_target, "amount": 1})
-	if rewards.is_empty():
-		_finish_claim(result)
-		return
-	CurrencyGainFx.play(self, from_global, rewards, func() -> void: _finish_claim(result))
+func _play_claim_fx(_from_global: Vector2, result: Dictionary) -> void:
+	## 分解完了と同型の結果ポップ（枠＋調査完了ロゴ＋獲得一覧）。
+	_update_currency()
+	if _claim_result_overlay != null and is_instance_valid(_claim_result_overlay):
+		_claim_result_overlay.queue_free()
+		_claim_result_overlay = null
+	var overlay := SurveyClaimResultOverlay.new()
+	_claim_result_overlay = overlay
+	add_child(overlay)
+	overlay.dismissed.connect(_on_claim_result_dismissed.bind(result))
+	overlay.present(result)
 
 
-func _pocket_nav_target() -> Control:
-	## 素材はキャラ（所持）側のナビへ「懐」として飛ばす。
-	var nav: Control = get_node_or_null("BottomNav/NavRow/NavCharacter") as Control
-	if nav != null:
-		return nav
-	return get_node_or_null("BottomNav/NavRow/NavForge") as Control
+func _on_claim_result_dismissed(result: Dictionary) -> void:
+	_claim_result_overlay = null
+	_finish_claim(result)
 
 
 func _finish_claim(result: Dictionary) -> void:
