@@ -186,9 +186,9 @@ const _DEFS: Dictionary = {
 	## P3-GACHA 追加4体（レノール／シアン／ネリ／ボルグ）
 	"lenore_seal_echo": {
 		"display_name": "封緘の切っ先",
-		"description": "与ダメージが18%上昇する。被ダメージが12%増加する。",
-		"outgoing_mult": 1.18,
-		"incoming_mult": 1.12,
+		"description": "与ダメージが12%上昇する。被ダメージが10%増加する。",
+		"outgoing_mult": 1.12,
+		"incoming_mult": 1.10,
 	},
 	"torva_frost_breath": {
 		"display_name": "霜刃の一息",
@@ -197,7 +197,7 @@ const _DEFS: Dictionary = {
 	},
 	"sian_silent_line": {
 		"display_name": "影からの号令",
-		"description": "戦闘開始時、味方全体に小さな鼓舞を付与する。",
+		"description": "戦闘開始時、味方全体に小さな鼓舞を付与する。必殺と組み合わせると小さな追加ダメージになる。",
 		"trigger": "on_combat_start",
 		"condition": "always",
 		"effect": "apply_status",
@@ -212,9 +212,9 @@ const _DEFS: Dictionary = {
 	},
 	"neri_waterfowl_call": {
 		"display_name": "水鳥の指揮",
-		"description": "オトモが生存中、オトモの与ダメージが25%上昇し、防御が10%上昇する。",
-		"pet_outgoing_mult": 1.25,
-		"pet_defense_mult": 1.10,
+		"description": "オトモが生存中、オトモの与ダメージが15%上昇し、防御が5%上昇する。",
+		"pet_outgoing_mult": 1.15,
+		"pet_defense_mult": 1.05,
 	},
 	## プール助っ人 — 火鷹★4（撃破鼓舞＋行動スキップ）
 	"hodaka_blood_price": {

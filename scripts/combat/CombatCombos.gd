@@ -24,6 +24,7 @@ const _RULES: Dictionary = {
 const _ORDER: Array = ["poison", "bleed", "chill", "shock"]
 
 # 味方自身のバフを消費するコンボ（P3-D109）。敵コンボ不成立時のみ評価。
+# empower_minor は本鼓舞より弱い追加（P3-BAL-HELPER-PASSIVE-B001／AUDIT-C2 棲み分け維持）。
 const _ALLY_RULES: Dictionary = {
 	"empower": {
 		"label": "鼓舞必殺",
@@ -31,9 +32,15 @@ const _ALLY_RULES: Dictionary = {
 		"hit_fraction": 0.35,
 		"require_tag": "ultimate",
 	},
+	"empower_minor": {
+		"label": "小鼓舞必殺",
+		"per_stack": 0,
+		"hit_fraction": 0.20,
+		"require_tag": "ultimate",
+	},
 }
 
-const _ALLY_ORDER: Array = ["empower"]
+const _ALLY_ORDER: Array = ["empower", "empower_minor"]
 
 static func trigger_ids() -> Array:
 	return _ORDER
