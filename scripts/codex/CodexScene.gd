@@ -358,7 +358,7 @@ func _entry_list_icon(entry: Dictionary) -> Texture2D:
 	if _current_category == "worldview":
 		if str(entry.get("section", "")) == "fragment":
 			return IconPaths.get_icon_texture(str(entry.get("id", "")), "lore")
-		return null
+		return IconPaths.get_icon_texture(str(entry.get("id", "")), "worldview")
 	return IconPaths.get_icon_texture(str(entry.get("id", "")), _current_category)
 
 
@@ -469,7 +469,7 @@ func _detail_icon_for_entry(entry: Dictionary) -> Texture2D:
 	if _current_category == "worldview":
 		if str(entry.get("section", "")) == "fragment":
 			return IconPaths.get_icon_texture(str(entry.get("id", "")), "lore")
-		return null
+		return IconPaths.get_icon_texture(str(entry.get("id", "")), "worldview")
 	return IconPaths.get_icon_texture(str(entry.get("id", "")), _current_category)
 
 func _hide_detail_popup() -> void:
