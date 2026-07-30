@@ -150,6 +150,16 @@ Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` �
 - カテゴリ Chip の TextureRect は縦横とも `SIZE_SHRINK_CENTER`＋固定 px（~40）
 - 完了ポップの枠アイコンは外側 `Control` にレアロゴ。`badge_ref_px=INV_CELL_PX`。説明は `AUTOWRAP_ARBITRARY`＋短縮
 
+## PanelContainer 上の角バッジ（再発防止）
+
+`PanelContainer` は **全子ノードを同じ content 矩形に敷く**。角バッジを直の子にすると、バッジの塗りがカード全面になる。
+
+❌ BAD
+- `_player_card.add_child(gift_badge)`（配布未受取で隊長カード全体が赤くなる）
+
+✅ GOOD
+- `PanelContainer` 直下はホスト `Control` 1つだけ。`PlayerRow` とバッジはホスト上でアンカー重ね（`BaseScene._setup_gift_badge`）
+
 ## CHR Idle ポートレート（再発防止・必須）
 
 `assets/characters/{job|helper_*|pet_*}/idle_*.png` は **UI 正面 Idle**（ガチャ Featured／MVP／キャラ画面）。
