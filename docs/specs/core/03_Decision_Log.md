@@ -4362,6 +4362,19 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 | P3-OPS-CURSOR-001-3 | **入口は `AGENTS.md`**。旧 Claude/ChatGPT 専用文書・配布スクリプトを削除／ポインタ化 | 運用単純化 |
 | P3-OPS-CURSOR-001-4 | **依頼テンプレ** — `10_Impl依頼テンプレート.md` / `06_Impl運用ルール.md` | 旧 `10_Claude*` / `06_Claude*` から改名 |
 
+## 修正＝統合セット既定（2026-07-30 — P3-OPS-FIX-MERGE-SET-001）
+
+> **オーナー方針** — 特筆しない限り、修正完了とコミット／統合／`main` 反映はセット。別途 GO 待ちにしない。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-OPS-FIX-MERGE-SET-001-1 | **既定** — 実装・修正完了は同ターンで commit → 統合マージ → `main` マージ → push | 「直したのにプレイに無い」防止・GO 往復削減 |
+| P3-OPS-FIX-MERGE-SET-001-2 | **例外** — オーナーが「マージしない／レビューだけ／WIP／PR だけ」と明示したとき、STOP、壊れている WIP（`main` 禁止）、Decision のみ | 意図的な保留を残す |
+| P3-OPS-FIX-MERGE-SET-001-3 | **同ターン必須の付帯** — `CurrentState`（該当時 Decision／CODEMAP／再発防止ルール） | ダッシュボードと本線のズレ防止 |
+| P3-OPS-FIX-MERGE-SET-001-4 | **セット外になりやすいもの** — 実機確認・iOS 再ビルド・Godot 再インポートはリポジトリ外。「残り」に明示 | 誤解防止 |
+
+SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
+
 ## 遍在希少種追加（2026-07-23 — P3-WANDER-004）
 
 > オーナー GO: 推奨値（案A・P1）。ゴールデンスカラベ＝金逃走／影狩り＝強敵総取り。イベントDG・野外速報は後続。

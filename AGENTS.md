@@ -56,6 +56,7 @@ Cursor 上の HQ / Impl 共通の入口指示。**実装も HQ も Cursor に一
 - 指定 Task スコープ外の実装・仕様外機能の追加をしない
 - 仕様不足・矛盾・曖昧な指示は推測せず確認する
 - 体験・面白さ・システムへの懸念がある指示は **STOP してオーナー確認**（詳細: `.cursor/rules/hq-response-minimal.mdc`）
+- **修正完了の既定**はコミット＋統合ブランチ＋`main` を同ターンでセット（オーナーが止めた場合／STOP／WIP を除く）。詳細: `06_DevelopmentHQ_Operations.md` §7.1.1
 
 ---
 

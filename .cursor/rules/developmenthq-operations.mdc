@@ -17,7 +17,7 @@ Crownfall の DevelopmentHQ と Impl は **どちらも Cursor**。外部ツー�
 
 ## Impl セッション完了時（HQ が確認）
 
-Impl 報告を受けたら、**リポジトリで以下を確認**してから承認する:
+Impl 報告を受けたら、**リポジトリで以下を確認**してから本線反映する:
 
 1. 変更ファイル数・Task スコープ一致
 2. 該当 spec / Decision Log との整合
@@ -25,19 +25,35 @@ Impl 報告を受けたら、**リポジトリで以下を確認**してから�
 4. Exit Criteria 充足
 5. Known Issues への悪影響なし
 
-## 承認後のブランチ反映（必須）
+## 修正 ＝ コミット＋統合＋`main`（既定・セット）
 
-詳細 SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1
+詳細 SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1 / §7.1.1
 
-| 承認 | 動作 |
+オーナーが **特に止めない限り**、実装・修正完了は同じターンで:
+
+1. コミット（＋ feature push）
+2. **統合ブランチへマージ → push**
+3. **同じタイミングで `main` へ → push**
+4. `CurrentState`（必要なら Decision／CODEMAP）更新
+
+別途「GO」待ちにしない。
+
+| 例外（セットにしない） | 例 |
 |---|---|
-| Decision のみ | マージなし（仕様のみ） |
-| **Impl GO** | **統合ブランチへマージ → 同じタイミングで `main` へ → push** |
-| 未検証 WIP | 統合への仮置き可。`main` 禁止 |
+| オーナー明示 | 「マージしない」「レビューだけ」「WIP」「PR だけ」 |
+| STOP | 体験・面白さ・システム懸念／曖昧 → 実装せず確認 |
+| 壊れている WIP | 統合仮置き可。`main` 禁止 |
+| Decision のみ | 仕様更新のみ。マージなし |
 
 - 現行統合ブランチ: `cursor/sub-mac-ui-integration-cca2`
 - 後修正は本線先端のみ（統合と `main` の二重メンテ禁止）
-- 「承認したのにプレイに無い」状態を残して Closeout しない
+- 「直したのにプレイに無い」状態を残して Closeout しない
+
+### セットでも漏れやすいもの（§7.1.2）
+
+- **同ターン必須:** CurrentState／該当 Decision・CODEMAP／再発防止ルール／可能な GUT・smoke
+- **リポジトリ外（「残り」に書く）:** 実機確認・iOS 再ビルド／再インストール・Godot 再インポート
+- **任意:** PR クローズ（本線が正）、未依頼の横展開候補
 
 ## Impl 報告に含めるもの
 
@@ -48,8 +64,8 @@ Impl 報告を受けたら、**リポジトリで以下を確認**してから�
 
 ## 禁止
 
-- 報告のみで承認（diff 未確認）
+- 報告のみで本線反映（diff 未確認）
 - Decision 未承認の仕様変更
-- Impl GO 後に統合／`main` へ入れないまま放置
+- 修正完了後に統合／`main` へ入れないまま放置（例外明示時を除く）
 - オーナー指示の無批判な実装（体験・面白さ・システム懸念時は STOP → 確認。`hq-response-minimal.mdc`）
 - 承認依頼・Impl 依頼・「何をしたか／残り」以外の長文応答
