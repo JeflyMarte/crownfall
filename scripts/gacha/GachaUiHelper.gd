@@ -20,8 +20,8 @@ const FEATURED_STATS_MIN_W: float = 220.0
 const FEATURED_BLURB_MIN_W: float = 240.0
 ## タイトル帯・右ステより下（キャラ中腹付近）。Shippori 見出しと揃える。
 const FEATURED_BLURB_TOP: float = 340.0
-## キャラに被りすぎないよう少し右へ。
-const FEATURED_BLURB_SIDE_PAD: float = 22.0
+## キャラに被りすぎないよう右へ（少し余白）。
+const FEATURED_BLURB_SIDE_PAD: float = 48.0
 ## 右名前（SIZE_DISPLAY=24）より一段小さく。
 const FEATURED_BLURB_FONT_SIZE: int = 20
 const FEATURED_BLURB_OUTLINE: int = 3
@@ -217,18 +217,35 @@ static func _apply_feature_blurb_style(label: Label) -> void:
 	)
 
 
-## Featured 固有パッシブ説明。特徴行と重複しないよう origin_note へは落とさない。
-static func unique_line_for_helper(helper: Resource) -> String:
+## Featured 固有パッシブのタイトル（display_name）。
+static func unique_title_for_helper(helper: Resource) -> String:
 	if helper == null:
 		return ""
 	var pid: String = str(helper.passive_id) if "passive_id" in helper else ""
 	if pid.is_empty():
 		return ""
-	var def: Dictionary = CombatPassives.get_def(pid)
-	var desc: String = str(def.get("description", "")).strip_edges()
-	if not desc.is_empty():
+	return str(CombatPassives.get_def(pid).get("display_name", "")).strip_edges()
+
+
+## Featured 固有パッシブ説明。特徴行と重複しないよう origin_note へは落とさない。
+static func unique_desc_for_helper(helper: Resource) -> String:
+	if helper == null:
+		return ""
+	var pid: String = str(helper.passive_id) if "passive_id" in helper else ""
+	if pid.is_empty():
+		return ""
+	return str(CombatPassives.get_def(pid).get("description", "")).strip_edges()
+
+
+## Featured 固有パッシブ。タイトル＋説明（テスト／互換用の結合文字列）。
+static func unique_line_for_helper(helper: Resource) -> String:
+	var title: String = unique_title_for_helper(helper)
+	var desc: String = unique_desc_for_helper(helper)
+	if title.is_empty():
 		return desc
-	return str(def.get("display_name", "")).strip_edges()
+	if desc.is_empty():
+		return title
+	return "%s\n%s" % [title, desc]
 
 
 static func banner_portrait_textures(max_count: int = BANNER_PORTRAIT_MAX) -> Array[Texture2D]:
@@ -592,11 +609,19 @@ static func build_featured_shell(host: Control) -> Dictionary:
 	UiTypography.apply_display(def_lbl, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	stats.add_child(def_lbl)
 
-	## 右は固有パッシブ説明のみ（煽り文は左へ分離）。
+	## 右は固有パッシブ（タイトル＋説明。煽り文は左へ分離）。
+	var unique_title_lbl := Label.new()
+	unique_title_lbl.name = "LabelUniqueTitle"
+	unique_title_lbl.clip_text = false
+	unique_title_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+	unique_title_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	UiTypography.apply_display(unique_title_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_GOLD)
+	stats.add_child(unique_title_lbl)
+
 	var unique_lbl := Label.new()
 	unique_lbl.name = "LabelUnique"
 	unique_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	unique_lbl.max_lines_visible = 4
+	unique_lbl.max_lines_visible = 5
 	unique_lbl.clip_text = false
 	unique_lbl.custom_minimum_size = Vector2(FEATURED_STATS_MIN_W, 0)
 	UiTypography.apply_display(unique_lbl, UiTypography.SIZE_CAPTION, COLOR_SUB)
@@ -619,6 +644,7 @@ static func build_featured_shell(host: Control) -> Dictionary:
 		"atk": atk_lbl,
 		"def": def_lbl,
 		"feature": feature_lbl,
+		"unique_title": unique_title_lbl,
 		"unique": unique_lbl,
 	}
 
@@ -749,11 +775,22 @@ static func apply_featured_helper(shell: Dictionary, helper: Resource) -> void:
 	var blurb_wrap: Control = shell.get("blurb_wrap") as Control
 	if blurb_wrap != null:
 		blurb_wrap.visible = not feature_text.is_empty()
-	var unique_text: String = unique_line_for_helper(helper)
+	var unique_title: String = unique_title_for_helper(helper)
+	var unique_desc: String = unique_desc_for_helper(helper)
+	var unique_title_lbl: Label = shell.get("unique_title") as Label
+	if unique_title_lbl != null:
+		unique_title_lbl.text = unique_title
+		unique_title_lbl.visible = not unique_title.is_empty()
 	var unique_lbl: Label = shell.get("unique") as Label
 	if unique_lbl != null:
-		unique_lbl.text = unique_text
-		unique_lbl.visible = not unique_text.is_empty()
+		unique_lbl.text = unique_desc
+		unique_lbl.visible = not unique_desc.is_empty()
+		## タイトル無しのとき説明だけでも見えるよう、フォールバック。
+		if unique_desc.is_empty() and not unique_title.is_empty():
+			unique_lbl.text = unique_title
+			unique_lbl.visible = true
+			if unique_title_lbl != null:
+				unique_title_lbl.visible = false
 	var stats_wrap: Control = shell.get("stats_wrap") as Control
 	if stats_wrap != null:
 		stats_wrap.visible = true
