@@ -2889,12 +2889,7 @@ func _make_status_legend_row(status_id: String) -> HBoxContainer:
 		line = _StatusEffectLinkHelper.display_name_for(status_id)
 	var lbl := Label.new()
 	lbl.text = line
-	lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
-	lbl.clip_text = false
-	lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
-	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	UiTypography.apply_body(lbl, UiTypography.SIZE_CAPTION, UiTypography.COLOR_BODY)
+	_style_status_legend_label(lbl)
 	row.add_child(lbl)
 	return row
 
@@ -2949,14 +2944,25 @@ func _make_weather_legend_row(weather: String) -> HBoxContainer:
 		line = CombatWeather.label(weather)
 	var lbl := Label.new()
 	lbl.text = line
-	lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
-	lbl.clip_text = false
-	lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
-	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	UiTypography.apply_body(lbl, UiTypography.SIZE_CAPTION, UiTypography.COLOR_BODY)
+	_style_status_legend_label(lbl)
 	row.add_child(lbl)
 	return row
+
+
+func _style_status_legend_label(lbl: Label) -> void:
+	## 長い行は最大2行で折り返し（はみ出し防止）。
+	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl.max_lines_visible = 2
+	lbl.clip_text = true
+	lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	## HBox 内で折り返し幅を確保（アイコン＋余白を除く）。
+	lbl.custom_minimum_size = Vector2(
+		maxf(80.0, STATUS_LEGEND_WIDTH - STATUS_ICON_SIZE - 24.0),
+		0.0
+	)
+	UiTypography.apply_body(lbl, UiTypography.SIZE_CAPTION, UiTypography.COLOR_BODY)
 
 
 func _update_status_legend() -> void:
