@@ -135,6 +135,35 @@ func test_feature_blurbs_end_with_exclamation() -> void:
 		)
 
 
+func test_origin_note_matches_passive_role() -> void:
+	## DOC-CHAR-PASSIVE-SYNC-001: 煽りは passive_id の役割と一致（id／名前取り違え防止）。
+	var expect: Dictionary = {
+		"helper_a": "盾",
+		"helper_b": "探索",
+		"helper_c": "回復",
+		"helper_e": "遅く",
+		"helper_f": "HP",
+		"helper_i": "致死",
+		"helper_k": "被ダメも増",
+		"helper_m": "戦闘開始",
+		"helper_n": "回避",
+		"helper_o": "オトモ",
+		"helper_p": "撃破",
+	}
+	for helper in DataRegistry.get_all_gacha_helper_data():
+		if helper == null:
+			continue
+		var hid: String = str(helper.id)
+		if not expect.has(hid):
+			continue
+		var note: String = str(helper.origin_note)
+		var needle: String = str(expect[hid])
+		assert_true(note.contains(needle), "%s note=%s expect=%s" % [hid, note, needle])
+		var pid: String = str(helper.passive_id)
+		assert_false(pid.is_empty(), hid)
+		assert_false(CombatPassives.get_def(pid).is_empty(), pid)
+
+
 func test_make_lineup_row_has_name() -> void:
 	var helpers: Array = GachaUiHelper.sorted_helpers()
 	if helpers.is_empty():

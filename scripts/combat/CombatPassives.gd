@@ -840,6 +840,12 @@ const _BASE_ROSTER_PASSIVES: Dictionary = {
 	"adventurer_4": "mirei_swarm_resonance",
 }
 
+
+## 基本ロスターの固有パッシブ id（図鑑／UI 用）。未登録は空文字。
+static func base_roster_passive_id(adventurer_id: String) -> String:
+	return str(_BASE_ROSTER_PASSIVES.get(adventurer_id, ""))
+
+
 # ジョブ → パッシブ id（基本ロスター以外のフォールバック）
 const _JOB_PASSIVES: Dictionary = {
 	"vanguard": ["bulwark"],

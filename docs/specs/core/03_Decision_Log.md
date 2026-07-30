@@ -5712,3 +5712,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | DOC-LEG-PASSIVE-001-3 | `WeaponSkillHelper` 削除はしない（後続） | β前は文言のみ |
 | DOC-LEG-PASSIVE-001-4 | Decision Log 過去エントリは改変しない | 履歴保持 |
 
+## キャラパッシブ表示同期（2026-07-30 — DOC-CHAR-PASSIVE-SYNC-001）
+
+> **オーナー GO** — 人物録／図鑑固有行／助っ人煽りを現行パッシブに合わせる。数値変更なし。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| DOC-CHAR-PASSIVE-SYNC-001-1 | **リーヴァ／ガレン人物録** — 毒・反撃表記を標的／聖盾（注目）へ | P3-PASSIVE-SKILL-CORE 後の文案残存 |
+| DOC-CHAR-PASSIVE-SYNC-001-2 | **図鑑スターター** — `format_profile_body` に固有パッシブ行を出す | Decision 001-7 未完の解消 |
+| DOC-CHAR-PASSIVE-SYNC-001-3 | **助っ人 origin_note** — helper id とパッシブ役割の取り違えを修正（Decision `24` 表も追随） | 招待状煽りが別人効果になっていた |
+| DOC-CHAR-PASSIVE-SYNC-001-4 | **据置** — パッシブ数値・エリアス／ミレイ効果 | 表示同期のみ |
+
