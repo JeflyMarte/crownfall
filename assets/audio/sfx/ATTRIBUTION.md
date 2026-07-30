@@ -46,7 +46,7 @@ SE はこのフォルダ配下。出典は **Kenney.nl（CC0）** と **TomMusic
 | File | Original |
 |---|---|
 | combat_hit.ogg | SFX / Sword Impact Hit 1 |
-| combat_hit_bow.ogg | Kenney Impact / impactGeneric_light_000（弓・刺突系・P3-UX-COMBAT-VFX-001） |
+| combat_hit_bow.ogg | SFX / Bow Impact Hit 1（弓・刺突系・P3-UX-COMBAT-VFX-001） |
 | combat_hit_staff.ogg | SFX / Spell Impact 1（杖・`combat_skill` と同音源） |
 | combat_crit.ogg | SFX / Sword Impact Hit 3 |
 | combat_skill.ogg | SFX / Spell Impact 1 |
