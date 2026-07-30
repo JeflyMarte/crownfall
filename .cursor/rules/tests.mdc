@@ -26,6 +26,23 @@ bash tools/run_tests.sh
 - `preload` でテスト対象や定数クラスを読み込む
 - アサーション: `assert_eq`, `assert_true`, `assert_false`, `assert_null` 等（GUT 標準）
 
+## フレーク防止（再発防止・必須）
+
+週イベントや先行テストの状態が乗ると「正しい実装なのに落ちる」。
+
+❌ BAD
+- 実時刻のまま `weapon_drop` 週イベント×1.5を受けてドロップ率アサーション
+- 敵Lv／装備ドロップLvを週イベント `MOD_ENEMY_LEVEL` 込みのまま比較
+- 先行 `reset_for_new_game` の1人編成のまま `party_members[0]`／職メンバーを前提にする
+- ガチャ pull で `gacha_token=10`（`PULL_COST=500`）のまま ENABLE アサーション
+
+✅ GOOD
+- イベント依存は `EventSystem.set_debug_unix_for_tests` で非該当週／`none` スロットへ固定（`test_wandering_enemy` 参照）
+- 敵Lv系は `set_debug_unix_for_tests`＋`current_dungeon_tier=0`
+- パーティ前提は `before_each` で `seed_all_starters_unlocked()`
+- トークンは `GachaSystem.PULL_COST` 以上を渡す
+- デバッグセーブは `save_data_debug.json`（`SaveManager.use_debug_slot`）。本編スロットを上書きしない
+
 ## 追加タイミング
 
 - ロジック変更時は対応する unit test を追加・更新する

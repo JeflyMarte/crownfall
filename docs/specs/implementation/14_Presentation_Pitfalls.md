@@ -1,7 +1,7 @@
 # 14 — ダンジョン演出・ナラティブ落とし穴（再発防止）
 
 宝箱結果コメントが「探索を開始した」に戻る類のミスを、同系統ごと防ぐためのチェックリスト。  
-詳細既往表: `.cursor/rules/known-pitfalls.mdc`。本ファイルは **レビュー／Impl 前の確認用**。
+詳細既往表: `.cursor/rules/known-pitfalls.mdc`（按需・ポインタ）。本ファイルは **レビュー／Impl 前の確認用 SSOT**。
 
 ---
 
@@ -14,6 +14,7 @@
 | 入場文を上書きせずにモード切替 | `_reset_narrative_typography` は Rich 表示中は no-op |
 | 非戦闘ナラティブだけ本文フォント（Noto） | 図鑑登録テロップと同じ `apply_display` / `apply_display_rich`（Shippori） |
 | 下帯サイズが部屋／段階で変わる（22↔26） | `NARRATIVE_BAND_FONT_SIZE` 固定。`_set_room_narrative_bbcode` に size 引数を持たせない |
+| 碑文加護を自動フェードで消す／泉に緑数字無し／宝箱を単色 Label | 碑文は次フロアまで。泉は緑VFX＋緑数字。宝箱は BBCode で金／武／飾色分け |
 
 **症状:** 宝箱／泉／碑文／罠の直後に「〜の探索を開始した」や空帯が出る。
 
@@ -31,32 +32,64 @@
 
 ---
 
-## 3. スキル名ポップの SE
+## 3. スキル名ポップの SE・サイズ
 
 `_spawn_skill_name` の既定 `sfx_id` は **`combat_skill`（ヒット寄り）**。
 
-| 用途 | 渡す sfx |
+| 用途 | 渡す sfx / サイズ |
 |---|---|
-| 通常攻撃・ダメージスキル resolve | `combat_skill`（既定）で可 |
-| 回復・バフ・パッシブ名・加護・武器名ポップ | `""`（無音）。SE は heal/buff/hit 側 |
+| 通常攻撃・ダメージスキル resolve | `combat_skill`（既定）で可。フォント28 |
+| 回復・バフ・パッシブ名・加護・武器名ポップ | `""`（無音）。SE は heal/buff/hit 側。`PASSIVE_NAME_FONT_SIZE`（18） |
+| 状態付与「〇〇を付与！」 | `STATUS_APPLY_TELOP_FONT_SIZE`（22）。48px 禁止 |
+| 敵スキル名 | 味方と同型で `_sprite_top_y_global`／スロット指定。`【技名】`＋同寸。`global_position-150` 固定＋`visible` 即 return 禁止 |
 | 詠唱中 `persist=true` | もともと無音 |
 
-**症状:** 回復やパッシブ名と同時にダメージ音が鳴る。
+**症状:** 回復やパッシブ名と同時にダメージ音／敵技名が見えない／付与テロップがダメ数字より大きい。
 
 ---
 
-## 4. 戦闘開始前の impact SE
+## 4. 戦闘開始前の impact SE・入場音
 
 | BAD | GOOD |
 |---|---|
 | CT 開始前に `combat_hit` / `combat_heal` / `combat_buff` 直鳴らし | `CombatImpactSfxGate` + `_combat_impact_sfx_enabled` |
 | 遅延ヒットで前戦闘の SE | `_combat_session_id` 照合 |
+| 戦闘行きで `room_enter`／黒幕中に戦闘 BGM 切替 | 戦闘行きは `room_enter` スキップ。BGM は一幕後 |
+| 帯VFXを `ColorRect` 手続き生成 | ColorRect 禁止。`FX_Band_*.tres` があるときだけ再生。未配置は無演出 |
 
 例外（導入演出）: ボス着地・罠部屋ヒットなど。新規に Gate 外で鳴らすときは Decision／コメント必須。
 
 ---
 
-## 5. グローバル／組み込み名の衝突
+## 5. ヒットタイミング・必殺・入場テロップ
+
+| BAD | GOOD |
+|---|---|
+| `play("attack")` と同フレームでダメ適用 | ヒットは `ATTACK_IMPACT_FRAME_RATIO` まで遅延＋cinematic lock |
+| 必殺 resolve 同フレームで攻撃開始＋全 VFX／ダメ数字 | windup 開始で攻撃開始。ダメ必殺の resolve はヒット側。Heal／attack テクスチャは入場時ウォーム |
+| 必殺回復数字を `ULTIMATE_GOLD` | 回復は `HEAL_NUM_GREEN`。金はダメージ必殺用 |
+| ボス大技バナーを短い固定 hold | `UltimatePresentationConfig` の announce+windup。効果1行＋`combat_ultimate` |
+| エリート入場で中央「エリート」Label | 中央テロップ禁止。遷移 `[エリート]`＋ネームバッジのみ |
+| 戦闘／エリートで部屋名を省略しすぎ | `[種別]\nF` を出す。ボスのみ専用入場で省略可 |
+| 「自動戦闘中」行を戦闘で再表示 | 行は常時 `false`。停止はヘッダ ButtonStop |
+
+---
+
+## 6. オーバーレイ z・敵サイズ・行動順
+
+| BAD | GOOD |
+|---|---|
+| PauseOverlay `z_index` ＜ HPバー／行動順 | Pause は CanvasLayer 55 |
+| 状態異常アイコンが敵HPバー裏／ネーム帯と同帯 | `COMBAT_OVERLAY_Z+3`＋ネーム（エリートはバッジ）上端より上 |
+| ボス／エリートを雑魚と同寸、またはボス過大で Header 貫通 | `BOSS_BODY_*`／`ENEMY_BODY_SCALE_MULT`／`FROSTRIDGE_SOLO_DISPLAY_SCALE`。群れは体数スケール |
+| 複数敵が右にはみ出す（ratio>0.9） | `_swarm_x_ratio_for_slot` で MIN/MAX 内 |
+| 行動順敵アイコンに紫板を PNG 焼込 | 焼込禁止。穴は UI の暗い StyleBoxFlat。差替後 `.godot/imported` の `ICO_ENM_Turn_*` を消して再インポート |
+| 状態異常レジェンドに半透明 Panel | `StyleBoxEmpty`（アイコン＋文言のみ） |
+| 戦闘ログ最上行が見切れる | `BATTLE_LOG_LINE_HEIGHT` と上余白を本文サイズに同期 |
+
+---
+
+## 7. グローバル／組み込み名の衝突
 
 | BAD | GOOD |
 |---|---|
@@ -76,11 +109,17 @@
 4. [ ] 入場〜CT開始前に幽霊 SE が増えていないか
 5. [ ] headless で `DungeonScene` ロードが通るか
 
+戦闘演出／テロップ／敵サイズを触ったら:
+
+6. [ ] ヒットがアニメ中盤以降か／必殺 resolve が同フレーム集中していないか
+7. [ ] Pause／状態異常アイコンの z が HPバーより上か
+8. [ ] 帯VFXに ColorRect を戻していないか
+
 ---
 
 ## 関連
 
-- `.cursor/rules/known-pitfalls.mdc`
-- `.cursor/rules/gdscript.mdc`（命名衝突・SE）
+- `.cursor/rules/known-pitfalls.mdc`（按需）
+- `.cursor/rules/gdscript.mdc`（命名衝突・SE・ホットパス）
 - `.cursor/rules/recurrence-prevention.mdc`
 - Decision: 非戦闘ナラティブ色分け / 宝箱演出（`03_Decision_Log.md`）

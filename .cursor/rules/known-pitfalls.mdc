@@ -15,63 +15,37 @@ alwaysApply: false
 | 症状 | 原因 | 再発防止 |
 |---|---|---|
 | 鍛冶完了ポップでレアロゴ巨大化／説明はみ出し | PanelContainer直下バッジ・WORD_SMART | → **`ui-layout.mdc` 鍛冶屋アイコン** |
-| 鍛冶屋入場で即終了（`BlacksmithScene` パース失敗） | `maxf(a, b, c)` は GDScript 非対応（最大2引数） | `maxf(a, maxf(b, c))` にネスト。変更後 headless で BlacksmithScene instantiate 確認 |
-| ダンジョン入場で即終了（`DungeonScene` コンパイル失敗） | `NonCombatNarrativeColors.wrap` が組み込み `wrap(value,min,max)` と衝突し「Too few arguments」 | 静的ヘルパは `bb_wrap` 等、グローバル／組み込みと被らない名前にする。変更後 headless で DungeonScene ロード確認 |
-| 宝箱／泉／碑文の結果コメントが「探索を開始した」に戻る | 結果 BBCode 直後の `_reset_narrative_typography` が Label モードへ戻し、入場時の旧文が再表示 | 結果表示後はリセットしない。BBCode 時は Label 平文同期。Rich 表示中は reset を no-op。詳細: `14_Presentation_Pitfalls.md` |
-| 非戦闘失敗／入場パッシブのダメージ・回復数字が変な位置／見えない | 味方ドット非表示のまま VFX。`_member_sprite_world_pos` が ZERO | `_begin_noncombat_party_feedback`。位置はカードへフォールバック。詳細: `14_Presentation_Pitfalls.md` |
-| パッシブ名ポップがスキル名と同大で邪魔 | `_spawn_skill_name` が一律28px | パッシブ／武器／加護は `PASSIVE_NAME_FONT_SIZE`（18）。通常スキルは28 |
-| 帯VFXが半透明の四角にしか見えない | `CombatBandVfx` が ColorRect 手続き生成 | ColorRect 禁止。`FX_Band_*.tres` があるときだけ再生。未配置は無演出（P3-UX-COMBAT-BAND-ART-001） |
-| 状態付与「〇〇を付与！」が戦闘開始で大きすぎる | `_spawn_status_apply_name` が48px（ダメ数字より大） | `STATUS_APPLY_TELOP_FONT_SIZE`（22）。パッシブ名18よりやや大きめ |
+| 鍛冶／ダンジョン入場で即終了（maxf3引・wrap名衝突） | パース失敗 | → **`pitfalls-startup.mdc`**／`gdscript.mdc` |
+| 非戦闘ナラティブ戻る／VFX位置／名ポップサイズ・帯VFX・付与テロップ | reset誤用・味方非表示・一律28/48・ColorRect | → **`14_Presentation_Pitfalls.md`** |
 | レリックが地味で装備意味が薄い | 常時±5〜20%のみ | 尖鋭案B: 発火＋制約。`P3-UX-RELIC-TACTICS-B001` |
-| 戦闘開始直後にパッシブ名（野戦調合など）と一緒にダメージ音が鳴る | `_spawn_skill_name` 既定 `combat_skill`。回復スキル／加護／武器名ポップも同様 | 名ポップは `sfx_id=""`。SE は heal/buff/hit 側。詳細: `14_Presentation_Pitfalls.md` |
-| 敵スキル名が頭上に出ない／見えない | `_spawn_enemy_skill_name` が `global_position-150` 固定＋`visible` 即 return。群れ切替で取りこぼし | 味方と同型で `_sprite_top_y_global`／スロット指定。`【技名】`＋同寸フォント |
-| `DungeonScene` パース失敗 `Identifier "label" not declared` | `_execute_member_buff` の `_spawn_skill_name` 差し替え時に `var label`／`wants_taunt` 分岐を誤って削った | バフ SE 等の引数追加時は return 文言ブロックを残す。変更後 headless で DungeonScene ロード確認 |
-| `balance_sim` で `is_pet_member` が GDScript 未解決 | autoload から `preload` Script へ静的呼出が `-s` で欠けることがある | `PetSystem.is_pet_member`（class_name）を使う |
+| パッシブ名と同時にダメ音／敵スキル名が見えない | 既定 combat_skill・固定Y | → **`14_Presentation_Pitfalls.md`** §3 |
+| DungeonScene `label` not declared／balance_sim pet 未解決 | 差し替え削り・-s autoload | → **`pitfalls-startup.mdc`** |
 | 鍛冶・錬成ボタン後にクリック不能／フリーズ | `AcceptDialog`＋ScrollTouch で入力奪取 | → `ui-layout.mdc` ScrollTouch。素材は Control オーバーレイ＋STOP 復元 |
 | はじめガイド閉じてもジャック／魔晶石がすぐ来ない | `dismissed` 時点で Overlay がまだツリーにあり、親が「ガイド中」判定で支給をスキップ | `_finish` で先に `remove_child`。支給は `call_deferred`＋`is_queued_for_deletion` 無視 |
 | はじめガイド周辺に黒い四角 | 書籍BGを `StyleBoxTexture` 9-slice。縁の黒マットが角に伸びる | 書籍は `TextureRect` 直置き（KEEP_ASPECT）。外側マットは透過 |
 | はじめガイドでページごとにヘッダ位置がずれる | 本文長／スキップ有無でパネル高が変わり `CenterContainer` が上下に再中央寄せ | 外枠サイズ固定＋本文は Scroll。スキップは非表示ではなく透明／disabled |
 | 加入セリフ（ジャック等）が透けて読めない | `UI_Join_QuotePanel` の吹き出し内が空洞（枠のみ） | 枠の下に不透明プレートを合成。文言は金の display |
-| タイトル「デバッグ」後に拠点で即終了 | `HubSimpleGuideOverlay.show_on` を1引数に戻したのに `BaseScene` が `show_on(self, true)` のまま → パース失敗で BaseScene 未実行 | API 差し戻し時は呼び出し側 arity を同時確認。`preview_only` は互換のため optional 第2引数を残す |
-| ダンジョン選択を開くと強制終了（スクリプト未適用） | `sort_custom(func(...):` 内で外側ローカル `const` preload を参照 → `Identifier not found` でコンパイル失敗 | 比較は名前付きメソッドへ。ラムダで外側ローカル const を捕獲しない |
-| `Could not resolve class "CurrencyGainFx"`（起動パース失敗） | `tween_method(` に複数行ラムダ＋直後の `,` や、静的関数内の複雑なインライン Callable | 飛行更新は `_make_*` で Callable を返す。mutable カウンタは `Dictionary`。修正後 headless 起動確認 |
-| `Parser Error: Expected statement, found "else"` | Python の `for`/`else`・`while`/`else` | `gdscript.mdc` — フラグループを使う |
-| `GUT compile error Identifier "COLOR_BODY" not declared` | `EquipmentScene` の作戦プリセットUIで未定義の `COLOR_BODY` を参照（`UiTypography.COLOR_BODY` へ誤置換） | 色定数は `COLOR_*` と `UiTypography.COLOR_*` を混同しない。SMOKE/GUT（headless）で即 compile 確認 |
+| API arity／sort_custom const／CurrencyGainFx／for-else／COLOR_BODY（起動即死系） | パース・未解決 | → **`pitfalls-startup.mdc`**／`gdscript.mdc` |
 | 編成でアイコン巨大化／入替 Abort／Toolbar 食い込み（CHR・破棄） | 選択 Style 膨張・Button 子肖像・`free()`・Scroll 先頭タブ | → **`ui-layout.mdc` 編成 CHR／編成・陣形** |
 | パーティ画面が重い／スクロール不能 | 入れ子 Scroll＋rebuild 後 ScrollTouch 未再適用＋StyleBox new | → `ui-layout.mdc` ScrollTouch。上段は非 Scroll。StyleBox キャッシュ |
-| `.tscn` で親ノードが vanish（子だけ残る） | `.tscn` に GDScript 風の `##` コメントを書いた | `.tscn` コメントは `;` のみ。`##` 禁止 |
-| 起動時黒画面・`inherits from Control, can't assign to Node` | `BootScene.gd` が `extends Control` なのに `.tscn` ルートが `Node` | スクリプトの `extends` とシーンルート型を一致させる。Boot は `Node` が正 |
-| 起動時 autoload 失敗 / 壊れた UID | `project.godot` の空 autoload・不正 `uid://`（例: `_MCPGameBridge`） | autoload は実在パスのみ。UID 直書きを壊さない。変更後 headless 起動確認 |
+| `.tscn` ##／Boot extends不一致／壊れた autoload UID | シーン未ロード | → **`pitfalls-startup.mdc`** |
 | 図鑑/装備カタログのパースエラー | `EquipmentUiTokens` 等の **参照メソッド欠落** | public API 削除・リネーム時は呼び出し側を一括検索 |
 | 設定画面下に謎の横線（ーーー） | `UI_BG_Commander` 等の罫線テクスチャが空き領域に見える | 設定はテクスチャBG禁止。単色 `ColorRect` のみ |
 | 設定の音声パネルが Header に食い込む | MainScroll `offset_top` が Header 下端に追従していない／余白不足 | Header 実サイズ下端＋`HEADER_CONTENT_GAP`（≧24）へ同期。chrome 前に meta を入れる |
-| キャラ管理オープンで即終了 | `Control.custom_maximum_size` を参照（**Godot 4.6.3 未実装**。4.x latest/PR のみ） | `gdscript.mdc` / `ui-layout.mdc` — 現行エンジンに無い API を使わない。固定サイズは `custom_minimum_size` + `SIZE_SHRINK_*` + 親も SHRINK |
-| Biome バナーが潰れる／タイトル欠ける | 2:1 キーアートを薄い strip（112px）に中央クロップ | `generate_biome_banner.py` は **アスペクト維持が既定**。タイトル焼込は `BIOME_BANNER_TITLE_BAKED`＋一覧ヘッダ高さは縦横比から算出 |
-| イベントDGクリア後に一覧バナー名が横伸び | タイトル Label を FULL_RECT 埋め込み | タイトルは自然サイズ＋中央寄せ（FULL_RECT／レイアウト前 fit 禁止）。親は `clip_contents` |
-| ダンジョンバナー名の大きさがBiomeごとに違う | `display_name.length()>=12` でウィスパーウッド／フロストリッジだけ SMALL 化 | 文字数閾値禁止。`BiomeBannerHelper.title_font_size` で幅フィット。深層のみ初段 SMALL |
-| イベントDGバナーを押すと大きくなる／画面が横にはみ出す | ①`ScrollContainer.horizontal_scroll_mode=DISABLED` が子最小幅に追従 ②日本語 `AUTOWRAP_WORD_SMART` が空白無し1語扱いで Label 最小幅＝全文幅（Featured flavor 等）③バナー高さの `host.size.x` 同期＋`resized.bind` 多重接続 | Scroll は `SHOW_NEVER`。Featured Label は `EXPAND_FILL`＋`AUTOWRAP_ARBITRARY`＋`min.x=0`（**clip_text は付けない**）。バナー高さはデザイン幅680固定（`min.x=0`・実幅／resized 同期禁止） |
-| ダンジョン選択バナーの名前が全部消える | 中央アンカー Label に `clip_text`／親 `clip_contents`、または `PRESET_CENTER` のみで size=(0,0) | タイトルは `PRESET_CENTER`＋`PRESET_MODE_MINSIZE`＋`clip_text=false`。バナー親の `clip_contents` 禁止。横はみ出しは Scroll／Featured 側で抑止 |
+| キャラ管理オープンで即終了 | `custom_maximum_size` | → **`pitfalls-startup.mdc`**／`gdscript.mdc` |
+| Biome／イベントバナー名消滅・横伸び・サイズ不揃い | FULL_RECT・DISABLED横Scr・文字数閾値・高さ同期 | → **`ui-layout.mdc` Biome／イベントバナー** |
 | HBox 内の数値が消える（アイコンだけ残る） | Label の `clip_text=true` は最小幅 0 → SHRINK の HBox で幅が潰れる | `ui-layout.mdc` — 短い数値は `clip_text=false`。必要なら `EXPAND_FILL` |
 | 戦闘下カードで名前が「アル…」等に切れる | `clip_text`＋ellipsis。長い表示名がカード幅を超える | 省略禁止＋幅に合わせて font_size 縮小（`_fit_party_card_name_font`）。レイアウト後に deferred 再計算 |
 | 戦闘が全体的にカクつく／歩行が飛ぶ | `_process` で `get_image`／`get_used_rect` | → **`gdscript.mdc` ホットパス**（meta キャッシュ） |
-| 敵の攻撃タイミングが分かりにくい | 予告なしでアニメ開始 | 攻撃／ダメージスキル直前にドット左へ赤い `❗`（`_spawn_enemy_attack_mark`）。詠唱技は既存カットイン／詠唱名 |
-| 攻撃モーション寸前に一瞬カクつく | 必殺 resolve 同フレームで攻撃開始＋フラッシュ／シェイク／リング／ヒット VFX／ダメージ数字が集中。VFX の都度 `load` | windup 開始で攻撃開始。ダメージ必殺の resolve はヒット側のみ。Heal VFX／attack テクスチャは入場時にウォーム |
-| 状態異常レジェンドの背景四角 | Panel に半透明 StyleBoxFlat | `StyleBoxEmpty`（アイコン＋効果文言のみ） |
-| 本編 x-1〜x-5 で戦闘BGが全部同じ | Biome 単枚のみ／章切替未配線 | Early＝章1〜3／Late＝4〜5。⑤x-5ボスのみ FinalBoss |
-| 影狩予兆の次が別敵→その次が影狩 | 予兆を `current+1`（前フロア）で出していた | 予兆は出現フロア入場時（計画インデックス＝現在） |
-| ボス大技バナーが味方必殺より短く弱い | 旧 `BOSS_SKILL_CUTIN_HOLD≈0.55` 固定 | 表示尺は `UltimatePresentationConfig` の announce+windup。効果1行＋`combat_ultimate`（P3-UX-BOSS-ULTIMATE-001） |
-| エリート前に中央「エリート」謎文字 | `_begin_elite_combat_entrance` の中央 Label | 中央テロップ禁止。遷移 `[エリート]`＋ネームバッジのみ |
-| 部屋遷移の「[戦闘] F」が消える | ボス／エリートで部屋名を省略しすぎた | 戦闘／エリートは `[種別]\nF` を出す。ボスのみ専用入場のため省略可 |
+| 攻撃予告／必殺カクつき／ボス大技／エリート中央テロップ／部屋名省略／戦闘BG・影狩予兆 | resolve同フレ・固定hold・中央Label | → **`14_Presentation_Pitfalls.md`** §5–6 |
 | 戦闘が継続的にカクつく | 毎フレーム `StyleBoxFlat.new()`／load | → **`gdscript.mdc` ホットパス** |
-| 攻撃アニメと同時にダメージ数字／HP減少 | 通常攻撃が `play("attack")` とダメージ適用を同フレームで実行 | ヒットは `ATTACK_IMPACT_FRAME_RATIO` まで遅延＋cinematic lock（`_resolve_party_attack_impact_async`） |
-| アルド攻撃が「動いてない」ように見える | 背面アングル＋序盤フレームが立ち姿に近く、ヒットが早すぎて剣の振り上がり前にダメ数字が目立つ | ヒット比を中盤寄りに。静止に近い先頭フレームを攻撃から外す。短い踏み込み（`_play_chr_attack_lunge`）で可読性を補う |
-| 1-1（初回ラン）からボス（セルディオン）が出る | `SUB_STAGES_PLAYABLE=false` で単体 `mourngate` 運用になり `boss_id` が毎回付く。章別 `spawn_weights` も無効 | メインは `SUB_STAGES_PLAYABLE=true`。1-1〜x-4 は Boss なし／x-5 のみ。`start_dungeon` も章へ誘導 |
+| 攻撃と同フレダメ／アルドが動いて見えない | ヒット比が早すぎ | → **`14_Presentation_Pitfalls.md`** §5 |
+| 1-1 からボスが出る | `SUB_STAGES_PLAYABLE=false` | → **`content-flags.mdc`**（βは true） |
 | 世界観イントロの「続ける」が実機で押せない | Home Indicator 下に沈む／`disabled` がタップを落とす／aspect=keep で inset=0 | Intro 専用下余白下限＋到達後は `disabled` 禁止。全面透明キャッチ＋中央「TAP」点滅で `_advance_ready` ガード。加速は `_input` で画面全体。TAP 表示は本文末尾が中央より上になった時点 |
-| 未開ダンジョンに実名・バナーが出る | ロック中でも `display_name`／バナー／ドロップを表示 | `unlocked==false` は「？」表示。バナー・敵／ドロップ非表示 |
+| 未開ダンジョンに実名・バナーが出る | ロック中も表示 | → `ui-layout.mdc` Biomeバナー（「？」のみ） |
 | 結果の素材獲得でスクロールが効かない | ScrollTouch 未適用 | → `ui-layout.mdc` ScrollTouch（rebuild 後 enable） |
 | 全滅リザルトに「なぜ負けたか」が無い | wipe 時の階層／部屋／敵を保存していない | `WipeCauseHelper`＋`last_run_wipe_cause`。全滅時のみ Header に1〜2行 |
-| 必殺回復の数字が黄色／金 | `_apply_ultimate_heal_impact` が `ULTIMATE_GOLD` | 回復数字は `HEAL_NUM_GREEN`（スキル／泉と同色）。金はダメージ必殺用 |
-| 碑文加護テロップがすぐ消える／泉の回復が見えない／宝箱報酬が単色 | 碑文も自動フェード、泉は味方非表示＋数字無し、宝箱は1色 Label | 碑文は次フロアまで残す。泉は緑VFX＋緑数字。宝箱は BBCode で金／武／飾色分け |
+| 必殺回復が金／碑文即消／泉数字無し／宝箱単色 | 色・フェード・味方非表示 | → **`14_Presentation_Pitfalls.md`** |
 | 調査室で進行中調査を止められない | cancel API／ボタン無し | `SurveySystem.cancel_cycle`＋調査中のみ「調査を中止」（完了後は受取必須・報酬なし） |
 | 調査室のニーナだけ低解像ドットで不自然 | `ICO_NPC_Nina.png` が PixelLab 128px ドットのまま（パス連携済みだが中身が SPR 相当） | ICO は Downloads「ニーナアイコン」（黒マット透過・ノノカと同系）。表示は `TEXTURE_FILTER_LINEAR`＋COVERED。拠点ナビ顔は `ICO_NPC_Nina_Dot`（NEAREST）。ドット立ちは `SPR_NPC_Nina` |
 | 状態異常アイコンが「？」 | `bleed`/`slow`/`enrage` が `STATUS_ICON_DEF`・`IconPaths` 欠落 | DEF＋ICO_STA_*＋IconPaths を追加。`empower_minor` は empower 流用 |
@@ -96,17 +70,15 @@ alwaysApply: false
 | 陣形複製／前列化／調査中混入／未保存本反映（編成ロジック） | 即 GameState 書き・空き詰め・全 roster・詳細前 set | → **`ui-layout.mdc` 編成・陣形** |
 | ジャックがほぼ被弾せず無敵に見える | `PET_THREAT_BASE=0.55`＋max_threat 選択で人間（≥1.0）がいる限り未選択。被ダメ計算も `party_members` 限定でオトモ DEF 未加算 | Threat を前衛相当（盾未満）へ。ダメ計算は `get_combatant`。HPバーは PET スロット短尺 |
 | オトモが「渾身の一撃」等の必殺を撃つ | 職なし＋`DEFAULT_ULTIMATE_SKILL_ID` フォールバック。balanced 戦術がボス／エリートで必殺 | `_get_member_ultimate_skill` でペット除外。`add_ultimate_charge` もスキップ（P3-PET-ULT-OMIT-001） |
-| 行動順の敵アイコンが不透明の紫板に見える | `generate_combat_enemy_icons` が穴内に `(48,36,64)` プレートを焼込 | **PNG へのプレート焼込禁止**。差替後 `.godot/imported` の `ICO_ENM_Turn_*` を消して再インポート |
-| 行動順の敵アイコン穴が戦場透過で不自然 | 焼込プレート廃止後、穴が透明のまま | UI で暗い `StyleBoxFlat`（`_make_turn_order_enemy_hole_fill`）。紫板の再焼込はしない |
+| 行動順敵アイコンの紫板／穴透過 | PNG焼込プレート | → **`14_Presentation_Pitfalls.md`** §6／`asset-import` |
 | 装備一覧の攻・防・会心アイコンが古い | `equipment_ui/` 本番が procedural 小アイコンのまま。更新アートは `preview/` に滞留 | `preprocess_equipment_stat_icons.py --apply` で preview→本番＋forge へ反映 |
 | レジェンド防具／装飾／杖がデフォルト同アイコン | `generate_equipment_icons.py` がテンプレ流用のまま。専用PNG未差替 | PixelLab等で専用生成→`assets/ui/equipment` 上書き。`LEGENDARY_HAND_DRAWN_*_IDS` に入れて再生成で潰さない |
 | キャラ画面の★が灰色 | LabelStars に見出しフォント（Shippori）を当てると ★ 欠落でフォールバックが灰色に見える | 本文フォント＋`UiTypography.COLOR_GOLD`（ガチャと同ポリシー） |
-| ガチャ／鍛冶BGMが他画面に残る | Equipment 等の拠点画面が `play_bgm` せず継続再生 | `BgmCatalog.SCENE_BGM`＋`SceneRouter.change_scene` で画面入場時に切替（拠点=hub） |
-| 調査隊員選択でイントロBGMが切れる | `StarterPickScene` が `SCENE_BGM` で hub になっていた | 導入フローは `introduction`（同ID再生中は継続）。拠点入りで hub へ |
+| ガチャ／鍛冶BGM残存／イントロBGM切断 | SCENE_BGM 未配線・導入を hub | → **`content-flags.mdc` BGM** |
 | 鍛冶詳細のステ重なり／アイコン欠落／枠食い込み | 横並び reparent・content_margin不足・TextureRect直置き | → **`ui-layout.mdc` 鍛冶屋アイコン**（縦並び・preload） |
 | 生産の「武器一覧」がカテゴリタブに重なる | `MainSplit.grow_vertical=BOTH` で最小高超過時に上方向へ伸長 | `GROW_DIRECTION_END` のみ。タブ下 gap≧40 |
 | 鍛冶タブ切替で装備アイコンが消える | layout 後に visible 上書き | → `ui-layout` 鍛冶（layout→詳細の順、visible非接触） |
-| 装備（防具等）タップで強制終了 | `InputEvent.accept_event()` は存在しない（SCRIPT ERROR→デバッガで Abort） | `Control.accept_event()` を使う |
+| 装備タップで強制終了 | `InputEvent.accept_event` | → **`pitfalls-startup.mdc`**／`gdscript.mdc` |
 | 鍛冶「作成可能」金枠／素材帯見切れ | Texture金枠・下端固定帯・EXPAND | → `ui-layout` 鍛冶（Flat無枠・BodyScroll） |
 | 編成とキャラ画面でステが食い違う | 表示経路が分裂 | → `ui-layout.mdc` 編成・陣形（`compute_member_stats` 統一） |
 | キャラ画面で他スキルを装備できない | `MAX_EQUIPPED_SKILLS=1` なのに満枠で「装備」ボタンを disabled | 未解放のみ disabled。満枠は `toggle_member_skill` で置換 |
@@ -117,10 +89,7 @@ alwaysApply: false
 |---|---|---|
 | 装備名が□／豆腐・文字化け（例: 始祖竜の氷鳞鎧） | 簡体字（`鳞`）を日本語表示名に混入。JP フォントに無い字形 | 表示文言は日本語字形のみ（`鳞`→`鱗`）。装備名・パッシブ・説明を一括 grep |
 | アセット取込・透過・import・Cat取り違え・ガチャBG上書き一式 | Desktop直参照・手書き import・過キーイング・未コミット | → **`asset-import.mdc`** |
-| ダンジョン選択の Featured バナーに名前が無い | `_sync_featured_banner` が画像のみで、一覧ヘッダのタイトル重ねを省略していた | 一覧と同様に `display_name` ラベルを中央重ね（焼き込み Banner は従来どおり非表示） |
-| 戦闘ログ最上行が見切れる | 本文サイズ拡大後も行高／上余白が旧フォント想定のまま | `BATTLE_LOG_LINE_HEIGHT`・パネル／Margin の上余白を本文サイズに合わせて確保。`SIZE_LOG` 変更時は行高も同期 |
-| 状態異常アイコンが敵HPバーの裏／ネームと重なる | 行の z 未設定、または敵アイコンYをバー直上だけにしてネーム帯と同帯 | `COMBAT_OVERLAY_Z+3`＋ネーム（エリートはバッジ）上端より上（`_enemy_overlay_stack_top_y_in_root`） |
-| 複数敵が右にはみ出す | 固定 spacing で右端 ratio>0.9 | `_swarm_x_ratio_for_slot` で MIN/MAX 内に収める |
+| Featured名欠／戦闘ログ見切れ／状態異常z／群れ右はみ出し | 重ね省略・行高・z・spacing | → **`14_Presentation_Pitfalls.md`**／`ui-layout` バナー |
 | Idle拡縮／装備セル肥大／鍛冶枠食い込み／キャラ画面はみ出し（UIレイアウト系） | EXPAND・幅連動 cell・Idle PNG直読み・ヒーロー過大 | → **`ui-layout.mdc`**（Idle／装備セル／鍛冶／職名） |
 | ガチャ枠下に同じ聖堂背景が二重 | 全画面 `UI_BG_Gacha` ＋枠内 `Banner_BG` | 画面下地は暗色 `ColorRect`。キーアートは枠内のみ |
 | 結果のレベルアップにオトモが出ない | EXP 付与は `active_pet` 済みだが `ExpRunSnapshot`／UI が `party_members` のみ | スナップショットと行構築は `exp_recipients()`（人間＋オトモ）を使う |
@@ -145,30 +114,22 @@ alwaysApply: false
 | 装備一覧が重い／タップでカクつく | 選択のたび全セル rebuild＋幅連動 cell | → `ui-layout.mdc` 装備セルサイズ |
 | 鍛冶屋が重い／一覧タップでカクつく | 選択のたび全再生成＋毎行 get_image | → `ui-layout` 鍛冶＋選択は `_refresh_selection` のみ |
 | 状態異常リンク不能／章カード名タップ不能（ScrollTouch RTL） | 全 RTL を STOP／PASS 化 | → **`ui-layout.mdc` ScrollTouch** |
-| イベントDGバナーが全部モーンゲート | `SUB_BANNER_FALLBACK` で mourngate 流用のみ | 各イベントに `BAN_DG_*` を用意し `BIOME_BANNER_PATHS` へ登録。フォールバックから外す |
-| イベントDGバナーだけ大きい（240px）／枠なし | キーアート全高のまま、または strip のみで金枠未合成 | `generate_biome_banner.py --strip-height 232`（枠は既定 ON）。`BAN_DG_Frame_Strip` を重ねメインと同寸・同枠に |
-| 戦闘フロア入場前に謎の SE | ①次部屋へ進む瞬間の `room_enter` ②黒幕中の戦闘BGM切替 ③罠／入場遅延／前戦闘遅延ヒット／`combat_heal` | 戦闘行きは `room_enter` スキップ。BGMは一幕後。Hit/Healは Gate＋CT開始後。遅延は `_combat_session_id` |
+| イベントバナー取り違え・枠なし／戦闘入場前の謎SE | mourngate流用・room_enter・Gate外SE | → `ui-layout` バナー／**`14_Presentation_Pitfalls.md`** §4 |
 | ダンジョンヘッダの ×2 が効かない／「周回」が残る | `.tscn`×2 なのに GD が ×1.5 上書き、または FastRun ボタンを動的追加 | ヘッダは ×1／×1.5／×2 のみ。`ButtonFastRun` は削除。`SPEED_MULT_FAST=2.0` |
 | ダンジョン左上 ≡ が押せない | ノッチ未対応＋Menu z 不足 | → `ui-layout.mdc` SafeArea。Menu CanvasLayer 40 |
 | ランHUD「発見100%」が意味不明 | 累積 discovery メーターで進行と無関係 | 「進行 N%」＝`display_floor_current/max`（P3-UX-RUN-HUD-FLOOR-PCT-001） |
 | ≡メニューの設定／リタイアでフォントがバラバラ | 動的「設定」だけ別適用、またはテーマ Display 混在 | `_style_menu_overlay_buttons` で全ボタン本文フォント＋SIZE_BODY＋同 min サイズ |
-| 一時停止ポップの裏に HPバーが貫通 | PauseOverlay `z_index=15` ＜ HPバー `COMBAT_OVERLAY_Z=25`／行動順30 | Pause を CanvasLayer 55（`_ensure_pause_overlay_layer`）へ |
-| ボスが Header／上端バーまで貫通 | `BOSS_BODY_TARGET_PX=360`＋足元 `y=0.25` で戦場高を超過。セルディオンは128セルで体感最大 | 目標280＋足元0.34。`BOSS_BODY_SCALE_MULT`で種別抑制（serdion=0.92） |
-| エリート（特にワイバーン）が雑魚と同寸で小さい | 敵正規化が全種 `ENEMY_BODY_TARGET_PX=132` のみ | `ENEMY_BODY_SCALE_MULT`でエリート拡大（mist_wyvern=1.42 等）。未指定エリートは `ELITE_BODY_SCALE_MULT_DEFAULT=1.28` |
-| フロストリッジ敵が単体でも貧弱 | 単体も雑魚基準132のまま／群れ縮小のみ | フロストリッジ系DGは単体時 `FROSTRIDGE_SOLO_DISPLAY_SCALE=1.28`。群れは体数スケール（1=1.0／4+=`SWARM_DISPLAY_SCALE_MIN`） |
-| ダンジョン解放が質素＋変な改行 | 狭いパネル＋1ラベル自動折返しで「ウィスパー／ウッド」「！」単独行 | バナー主役（`BiomeBannerHelper`＋`BAN_DG_*`）。名前と「が解放された！」を分離し名前は折り返し禁止＋フォント縮小 |
+| Pause貫通／ボス過大／エリート・霜敵が小さすぎ | z不足・単一スケール | → **`14_Presentation_Pitfalls.md`** §6 |
+| ダンジョン解放が質素＋変な改行 | 狭い1ラベル折返し | → `ui-layout.mdc` Biomeバナー |
 | 章クリア後いきなり加入セリフで唐突 | 拠点が解放→加入のみで記録官の橋渡し無し | 加入候補時はニーナ功績→解放→加入予告→加入（`pending_clear_nina_*`）。加入UI本体は別改修 |
 | 加入が旧小吹き出しのまま唐突 | モック（タイトル帯＋大アイコン＋名札＋セリフ）未配線 | `StarterJoinOverlay` はショーケース→ガチャ風リビール。枠は `assets/ui/join/` |
 | 合流リビールでドット上半分に半透明の灰板 | `PortraitFrame`（PanelContainer）がテーマ既定の半透明 panel のまま | `StyleBoxEmpty` を当てる（`GachaScene` と同方針） |
 | 加入セリフ枠が透ける／「タップで続ける」が横伸び | QuotePanel を横長に `STRETCH_SCALE`＋焼込文字 | 枠内は黒塗り＋アスペクト維持。タップ文言は Label |
-| 「自動戦闘中」行が戦闘で再表示される | `_update_combat_visibility` が `on_combat_floor` で `_auto_combat_row.visible=true` | 行は常時 `false`。停止はヘッダ ButtonStop |
+| 「自動戦闘中」行が戦闘で再表示 | on_combat で visible=true | → `14_Presentation_Pitfalls.md` §5 |
 | aspect=keep なのに TopBar が低い／下ナビ下に黒余白 | inset=0 でも強制フォールバック | → `ui-layout.mdc` SafeArea |
 | `git checkout` / `mv` が `Operation not permitted` | Cursor サンドボックス | アセット・git 復元は `required_permissions: ["all"]` |
-| デバッグ開始で本編セーブが消える | 単一 `save_data.json` をデバッグが上書き | デバッグは `save_data_debug.json`。`SaveManager.use_debug_slot()`。本編は `use_normal_slot()` |
-| GUT で武器ドロップ率が `1.0`（期待 `0.85`） | `weapon_drop` 週のイベント×1.5が加算され `minf(1.0, …)` | イベント依存アサーションは `EventSystem.set_debug_unix_for_tests` で非該当週に固定（`test_wandering_enemy` 参照） |
-| GUT で `get_enemy_level` が章データより +2 | 週イベント `MOD_ENEMY_LEVEL` が実時刻で乗る | 敵Lv／装備ドロップLvのテストは `none` スロットへ `set_debug_unix_for_tests`＋`current_dungeon_tier=0` |
-| GUT で `party_members[0]` / 職メンバーが null | 先行テストの `reset_for_new_game` が1人編成のまま残る | パーティ前提のテストは `before_each` で `seed_all_starters_unlocked()` |
-| ガチャ pull テストが ENABLE なのに失敗 | `gacha_token=10` のまま（`PULL_COST=500`） | トークンは `GachaSystem.PULL_COST` 以上を渡す |
+| デバッグ開始で本編セーブが消える | 単一スロット上書き | → `tests.mdc`（`use_debug_slot`） |
+| GUT フレーク（週イベント・編成残存・ガチャトークン不足） | 実時刻イベント・1人編成・token=10 | → **`tests.mdc` フレーク防止** |
 | iOS Personal Team で Push 署名エラー | `entitlements/push_notifications=false` が文字列 `"false"` 扱いになり `aps-environment` が付く | 値は `"Disabled"`。entitlements から Push キーを外す |
 | セーフエリア／ノッチ／Mac simulate／拠点 chrome／Idle拡縮（代表） | chrome誤適用・Headerのみ移動・`size.y`・モバイル一律スキップ | → **`ui-layout.mdc` SafeArea／CHR Idle** |
 | 拠点に所持金〜発見の中段帯が再出現する | `CurrencyStrip` を再表示／`_populate_currency_strip` を復活 | 帯は非表示のまま（TopBar のみ）。日課は下端スタック（`HubLayoutHelper._stack_hub_bottom_panels`）。ギルド情報誌は左メニュー直下 |
@@ -179,21 +140,14 @@ alwaysApply: false
 | アプリアイコンが金の矢印 | iOS 向けに仮 `icon.png`（矢印）を追加したまま放置 | 正は `Downloads/アプリアイコン` → `assets/ui/UI_AppIcon.png`＋`icon.png`（1024²）。iOS は `AppIcon.appiconset` も更新し再ビルド／再インストール |
 | つづきからで拠点はじめガイドが再出 | デバッグ再演が `hub_simple_guide_done` を erase＋save／preview 終了で戻さない | 再演は preview のみでフラグ非接触。進行済みセーブは load 時に修復 |
 | `HubLayoutHelper` が `SafeAreaHelper` 未解決 | class_name 早期参照 | → `pitfalls-startup.mdc`／`ui-layout`（preload） |
-| `balance_sim` が即死／平均EXP=0（`GameState` Identifier not found、または全滅100%・行動0） | ①`-s` 時 autoload 未注入で `LevelSystem` が `GameState` 識別子参照 ②`STARTER_STORY_RECRUIT` で roster 空のままシム | `LevelSystem` は実行時解決。sim 開始時に `seed_all_starters_unlocked`（P3-BAL-EXP-001-G） |
+| `balance_sim` 即死／EXP=0 | -s autoload／roster空 | → **`pitfalls-startup.mdc`** |
 | Mac では正しいのに iPhone だけアイコン位置がズレる | `stretch/aspect=expand` で論理画面の縦横比が実機に合わせて伸びる | 案A: `aspect=keep` で 720×1280 を維持（上下黒帯はエンジンが付与）。自前の黒帯 UI は作らない |
 | iPhone 上バー侵食／隊長名重なり／aspect・simulate 無効 | Mac inset=0・TopBarのみ・キー汚染 | → **`ui-layout.mdc` SafeArea** |
-| ガチャ Featured が消える／説明も無い | ①HEAD の `foot_pad=260` で idle が host 外 ②`SummonActionBar` 分を HubLayout が確保せず MainColumn がボタン背面へ ③StatsWrap の center-anchor 0 高さ | 動的 `featured_foot_pad()`＋`SummonActionBar` を Footer 同様に inset。StatsWrap は右上固定 |
-| ダンジョン Featured バナーが無い | 一覧にバナーがある Biome は Featured 上段を意図的に非表示 | Featured でもバナー表示（アスペクト比の高さ） |
-| 図鑑／DG概要が「魔法」「亡霊」「異界の裂け目」になる | 旧フレーバーや民間俗称を正典として書いた | 正称はエルダ／鉱物化適応等（`world/03`・`05`）。異界は俗称のみ。差し替え後 `test_codex_guide_sync` で確認 |
-| 図鑑「歴史」が実機で「（項目なし）」 | HE／LF を `docs/specs/world/*.md` から FileAccess 直読み。エクスポートに docs が無い | 実行時は `resources/codex/*.json`（`tools/bake_codex_bible.py`）。MD 更新後は bake 再実行＋コミット。`test_codex_history_bake` |
-| 図鑑に「実績」タブが再出現する | `CODEX_ACHIEVE_PLAYABLE` を true にした／タブ生成をフラグ外で呼んだ | βは `false` 据置（P3-CODEX-ACHIEVE-OMIT）。データ残置。`test_codex_achieve_omit` |
-| ジョブ到達形（昇格名／金tint／特質）がβに戻る | `JOB_EVOLUTION_PLAYABLE` を true にした／`is_evolved` をフラグ無しで参照 | βは `false`（P3-JOB-EVO-OMIT-001）。効果は `JobEvolution`／`JobStatCalculator`／`EvolutionTraits`／`EvolutionVisual` 経由。UIはキャラ昇格行＋ギルド認定。`test_job_evolution_omit` |
-| 図鑑にプール外／征討専用の未実装敵が出る | `get_all_enemy_data()` を無フィルタで一覧化 | `CatalogHelper.playable_enemy_id_set`（プレイ可能 DG プールのみ）。達成率も同セット。`test_codex_enemy_omit` |
-| 図鑑キャラに金枠が二重／残る | PNG に金枠焼込、または敵詳細の ArtFrame をキャラで未リセット | ICO は枠除去。詳細はキャラで `_reset_art_frame_style`（未確認含む） |
+| ガチャ Featured 消失／DG Featured 非表示 | foot_pad・inset・意図的非表示 | → `ui-layout` Idle／Biomeバナー |
+| 図鑑オミット戻る／歴史空／俗称／未実装敵／金枠二重 | フラグ true・docs直読・無フィルタ | → **`content-flags.mdc`** |
 | 編成で助っ人だけ金枠付き／個体差 | 肖像に枠焼込 | → `asset-import.mdc`（strip_helper） |
-| 図鑑にダンジョンタブが再出現／武器のみ | `CODEX_DUNGEON_PLAYABLE` を true にした／装備を weapon のみ構築 | βは dungeon=false。装備は `get_equipment_entries`（武・防・飾）。`test_codex_equipment` |
-| 解放ポップで名がバナー下にずれ／どの章でもウィスパーウッド | 名を VBox 下段配置＋`_next_main_biome_id` 最終フォールバックが whisperwood／古いキュー残存 | 名はバナー内中央重ね（FULL_RECT禁止）。次解放は `ContentUnlockNotice.next_unlock_after_main_clear`（最終→Hard/NM入口）。デバッグ儀式はキューを clear してから1件 |
-| ギルド情報誌オープンで即終了 | `Control.LAYOUT_MODE_POSITION` は Godot 4.6.3 GDScript に無い（Parse Error→スクリプト未ロード） | コンテナ外の `Control` ホスト＋アンカー配置。未実装の layout_mode 定数を使わない |
+| 解放ポップ名ずれ／常にウィスパーウッド | VBox下段・whisperwoodフォールバック | → `ui-layout.mdc` Biomeバナー |
+| ギルド情報誌オープンで即終了 | `LAYOUT_MODE_*` | → **`pitfalls-startup.mdc`**／`gdscript.mdc` |
 | 情報誌ノノカが羊皮紙に透ける／黒縁 | 黒マット flood が暗い服まで透過／`load()` が古い import を参照 | rembg で切り抜き＋`Image.load` 直読み。表示は CanvasLayer 最前面 |
 
 ## ルール化フロー

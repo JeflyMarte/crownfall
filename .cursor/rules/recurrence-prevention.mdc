@@ -13,7 +13,7 @@ alwaysApply: true
 |---|---|---|
 | 起動・パース即死 | `pitfalls-startup.mdc` | **alwaysApply**（短冊・Top のみ） |
 | 全既往カタログ | `known-pitfalls.mdc` | **按需**（`alwaysApply: false`） |
-| 領域規約 | `gdscript.mdc` / `ui-layout.mdc` / `14_Presentation_Pitfalls.md` 等 | globs または Task 按需 |
+| 領域規約 | `gdscript.mdc` / `ui-layout.mdc` / `asset-import.mdc` / `content-flags.mdc` / `tests.mdc` / `14_Presentation_Pitfalls.md` 等 | globs または Task 按需 |
 
 ## 必須フロー
 

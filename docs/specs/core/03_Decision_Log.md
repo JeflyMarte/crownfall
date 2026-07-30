@@ -4398,6 +4398,18 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-OPS-PITFALLS-P1-001-3 | **戦闘ホットパス**（`get_image`／毎フレーム StyleBox.new）は `gdscript.mdc` | 演出仕様ではなくコーディング規約 |
 | P3-OPS-PITFALLS-P1-001-4 | Idle／装備セル／鍛冶枠など **既昇格 UI** のカタログ長文もポインタ化。ScrollTouch／SafeArea の下部漏れも同ターン修復 | P0 アーカイブ方針の完遂 |
 
+## 再発防止カタログ P2 昇格（2026-07-30 — P3-OPS-PITFALLS-P2-001）
+
+> オーナー GO: 戦闘演出／バナー／βフラグ／GUT フレークを領域ルールへ。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-OPS-PITFALLS-P2-001-1 | **戦闘演出**（ナラティブ・名ポップSE／ヒット尺・Pause z・敵サイズ・帯VFX）は `14_Presentation_Pitfalls.md` を拡充しカタログはポインタ | Impl 前チェックリストを正とする |
+| P3-OPS-PITFALLS-P2-001-2 | **Biome／イベントバナー**は `ui-layout.mdc` に節追加 | 名消滅・横伸びの再発多 |
+| P3-OPS-PITFALLS-P2-001-3 | **βオミットフラグ・図鑑 bake・BGM SCENE_BGM**は新 `content-flags.mdc` | フラグ true 戻し／docs 直読を防ぐ |
+| P3-OPS-PITFALLS-P2-001-4 | **GUT フレーク**（週イベント・編成 seed・ガチャ token・デバッグセーブ）は `tests.mdc` | 正しい実装が落ちる事故の再発防止 |
+| P3-OPS-PITFALLS-P2-001-5 | 起動即死のカタログ長文も `pitfalls-startup` ポインタへ圧縮 | 二重詳細の削減 |
+
 ## 遍在希少種追加（2026-07-23 — P3-WANDER-004）
 
 > オーナー GO: 推奨値（案A・P1）。ゴールデンスカラベ＝金逃走／影狩り＝強敵総取り。イベントDG・野外速報は後続。
