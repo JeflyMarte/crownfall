@@ -5007,7 +5007,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-STATUS-LEGEND-002-4 | **文言 SSOT** — `CombatWeather.effect_one_line` | 情報誌と数値整合 |
 | P3-UX-STATUS-LEGEND-002-5 | **アイコン** — `assets/ui/weather/ICO_WTH_*.png`（雨／夜／霧／炎天／吹雪／快晴）。欠落時は略称バッジ | オーナー原画取り込み |
 
-**Closeout:** Impl 後に統合＋`main`。
+## 戦闘右上レジェンド文言短縮（2026-07-30 — P3-UX-STATUS-LEGEND-003）
+
+> **オーナー GO** — 天候案A短縮＋長い行は2行折り返し。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-STATUS-LEGEND-003-1 | **天候** — `雷+10%／炎−5%` 形式（「与ダメ」省略）。霧は `与被×0.97` | 右上はみ出し |
+| P3-UX-STATUS-LEGEND-003-2 | **レイアウト** — レジェンド Label は最大2行折り返し＋ellipsis | 長い状態名対策 |
+
+**Closeout:** 統合＋`main` 反映済み。
 
 ---
 

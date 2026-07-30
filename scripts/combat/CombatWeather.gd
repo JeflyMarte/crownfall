@@ -126,18 +126,19 @@ static func label(weather: String) -> String:
 
 
 ## 戦闘レジェンド用の短い効果要約（`表示名:効果` の右側）。
+## 右上はみ出し防止のため「与ダメ」等を省略（案A）。
 static func effect_summary_compact(weather: String) -> String:
 	match normalize(weather):
 		RAIN:
-			return "雷与ダメ+10%／炎与ダメ−5%"
+			return "雷+10%／炎−5%"
 		NIGHT:
-			return "闇与ダメ+10%／聖与ダメ−5%"
+			return "闇+10%／聖−5%"
 		FOG:
-			return "与ダメ・被ダメとも×0.97"
+			return "与被×0.97"
 		HEAT:
-			return "炎与ダメ+10%／氷与ダメ−5%"
+			return "炎+10%／氷−5%"
 		SNOW:
-			return "氷与ダメ+10%／炎与ダメ−5%"
+			return "氷+10%／炎−5%"
 		_:
 			return ""
 
