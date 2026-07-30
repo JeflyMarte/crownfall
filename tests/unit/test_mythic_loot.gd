@@ -99,9 +99,9 @@ func test_mythic_pool_covers_four_weapon_types() -> void:
 
 func test_mythic_icons_and_cyan_frame_exist() -> void:
 	assert_true(ResourceLoader.exists("res://assets/ui/equipment/ICO_WPN_BurialCrownGreatsword.png"))
-	assert_true(ResourceLoader.exists("res://assets/ui/equipment/ICO_WPN_VolleyHorizonBow.png"))
-	assert_true(ResourceLoader.exists("res://assets/ui/equipment/ICO_WPN_SeradionStormStaff.png"))
-	assert_true(ResourceLoader.exists("res://assets/ui/equipment/ICO_WPN_NoctumbraFang.png"))
+	assert_true(ResourceLoader.exists("res://assets/ui/equipment/ICO_WPN_PilgrimBowLumen.png"))
+	assert_true(ResourceLoader.exists("res://assets/ui/equipment/ICO_WPN_WisdomStaffNoesis.png"))
+	assert_true(ResourceLoader.exists("res://assets/ui/equipment/ICO_WPN_AbyssFangsLucian.png"))
 	assert_true(ResourceLoader.exists("res://assets/ui/equipment/ICO_ARM_ImmortalCenotaphPlate.png"))
 	assert_true(ResourceLoader.exists("res://assets/ui/equipment/ICO_ACC_CouncilHegemonySeal.png"))
 	assert_true(ResourceLoader.exists(EquipmentUiTokens.INV_CELLS[Enums.Rarity.MYTHIC]))
@@ -114,3 +114,16 @@ func test_mythic_icons_and_cyan_frame_exist() -> void:
 	assert_not_null(IconPaths.get_icon_texture("pilgrim_bow_lumen", "weapon"))
 	assert_not_null(IconPaths.get_icon_texture("wisdom_staff_noesis", "weapon"))
 	assert_not_null(IconPaths.get_icon_texture("abyss_fangs_lucian", "weapon"))
+	## 固有パス（流用解除）
+	assert_eq(
+		str(IconPaths.ICON_MAP.get("weapon:pilgrim_bow_lumen", "")),
+		"res://assets/ui/equipment/ICO_WPN_PilgrimBowLumen.png"
+	)
+	assert_eq(
+		str(IconPaths.ICON_MAP.get("weapon:wisdom_staff_noesis", "")),
+		"res://assets/ui/equipment/ICO_WPN_WisdomStaffNoesis.png"
+	)
+	assert_eq(
+		str(IconPaths.ICON_MAP.get("weapon:abyss_fangs_lucian", "")),
+		"res://assets/ui/equipment/ICO_WPN_AbyssFangsLucian.png"
+	)

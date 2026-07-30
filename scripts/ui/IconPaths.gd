@@ -39,9 +39,9 @@ const ICON_MAP: Dictionary = {
 	"weapon:valgard_antique_arrow": "res://assets/ui/equipment/ICO_WPN_ValgardAntiqueArrow.png",
 	"weapon:burial_crown_greatsword": "res://assets/ui/equipment/ICO_WPN_BurialCrownGreatsword.png",
 	## 神話弓／杖／双剣 — 固有アート前は既存Lアイコン流用（P3-EQ-MYTHIC-WPN-TYPES-001-7）
-	"weapon:pilgrim_bow_lumen": "res://assets/ui/equipment/ICO_WPN_VolleyHorizonBow.png",
-	"weapon:wisdom_staff_noesis": "res://assets/ui/equipment/ICO_WPN_SeradionStormStaff.png",
-	"weapon:abyss_fangs_lucian": "res://assets/ui/equipment/ICO_WPN_NoctumbraFang.png",
+	"weapon:pilgrim_bow_lumen": "res://assets/ui/equipment/ICO_WPN_PilgrimBowLumen.png",
+	"weapon:wisdom_staff_noesis": "res://assets/ui/equipment/ICO_WPN_WisdomStaffNoesis.png",
+	"weapon:abyss_fangs_lucian": "res://assets/ui/equipment/ICO_WPN_AbyssFangsLucian.png",
 	"weapon:stormveil_needle":     "res://assets/ui/equipment/ICO_WPN_StormveilNeedle.png",
 	"weapon:noctumbra_fang":       "res://assets/ui/equipment/ICO_WPN_NoctumbraFang.png",
 	"weapon:mistpierce_halberd":   "res://assets/ui/equipment/ICO_WPN_MistpierceHalberd.png",
