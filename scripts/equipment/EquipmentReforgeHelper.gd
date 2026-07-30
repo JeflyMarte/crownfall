@@ -1,7 +1,7 @@
 class_name EquipmentReforgeHelper
 extends RefCounted
 
-## 鍛冶屋「焼直し」— 武器 random_mods 1枠の再抽選（P3-FORGE-REFORGE-001）。
+## 鍛冶屋「焼直し」— 武器／防具／装飾の random_mods 1枠再抽選（P3-FORGE-REFORGE-001）。
 
 const _ERM = preload("res://scripts/equipment/EquipmentRandomMods.gd")
 const _Enh = preload("res://scripts/equipment/EquipmentEnhancer.gd")
@@ -50,8 +50,9 @@ static func can_reforge(item: Resource, mod_index: int) -> Dictionary:
 		return {"ok": false, "reason": reason, "gold_cost": 0, "materials": {}}
 	if item == null:
 		return fail.call("装備が選択されていません")
-	if _Enh.item_category(item) != "weapon":
-		return fail.call("焼直しは武器のみです")
+	var category: String = _Enh.item_category(item)
+	if category != "weapon" and category != "armor" and category != "accessory":
+		return fail.call("焼直しできない装備です")
 	if not bool(item.is_appraised):
 		return fail.call("未鑑定の装備は焼直しできません")
 	if mod_index < 0:
@@ -83,6 +84,7 @@ static func can_reforge(item: Resource, mod_index: int) -> Dictionary:
 		"reason": "",
 		"gold_cost": gold_cost,
 		"materials": materials,
+		"category": category,
 	}
 
 
@@ -92,7 +94,8 @@ static func reforge_mod(item: Resource, mod_index: int) -> Dictionary:
 		return check
 	var gold_cost: int = int(check.get("gold_cost", 0))
 	var materials: Dictionary = check.get("materials", {})
-	var rolled: Dictionary = _ERM.reroll_weapon_mod_at(item, mod_index)
+	var category: String = str(check.get("category", _Enh.item_category(item)))
+	var rolled: Dictionary = _ERM.reroll_mod_at(item, mod_index)
 	if not bool(rolled.get("ok", false)):
 		return {
 			"ok": false,
@@ -110,5 +113,5 @@ static func reforge_mod(item: Resource, mod_index: int) -> Dictionary:
 		"old_mod": rolled.get("old_mod", {}),
 		"new_mod": rolled.get("new_mod", {}),
 		"display_name": _Enh.get_display_name(item),
-		"category": "weapon",
+		"category": category,
 	}

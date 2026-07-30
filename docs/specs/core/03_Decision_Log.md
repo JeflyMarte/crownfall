@@ -5876,3 +5876,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-FORGE-REFORGE-001-6 | **コスト** — N:50G+欠片1+基礎鉱1／R:80G+同／SR:120G+欠片2+骨鉱1／★:200G+欠片2+王墓1。失敗なし | 気軽シンク |
 | P3-FORGE-REFORGE-001-7 | **UI** —「炉で研ぐ」直下に同スタイル「焼直し」。コストは確認ダイアログ明示（+5時は詳細に焼直しコスト） | 指示どおり |
 | P3-FORGE-REFORGE-001-8 | **SSOT** — `EquipmentReforgeHelper`＋`EquipmentRandomMods` 再抽選。日次ミッション紐付けなし（初版） | 単一責務 |
+
+## 焼直しを防具・装飾へ拡張（2026-07-31 — P3-FORGE-REFORGE-002）
+
+> **オーナー指示** — 武器に続き防具・装飾品にも焼直しを適用。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-FORGE-REFORGE-002-1 | **対象** — 武器・防具・装飾（強化タブの全カテゴリ）。鑑定済み必須 | オーナー指示 |
+| P3-FORGE-REFORGE-002-2 | **ルール据置** — 枠ごと再抽選／他枠 kind 重複禁止／bane 不可／属性値は数値のみ／コスト表・+5可 | 001 をカテゴリ拡張のみ |
+| P3-FORGE-REFORGE-002-3 | **上書き** — `P3-FORGE-REFORGE-001-1` の「武器のみ」 | 本 Decision が正 |
+| P3-FORGE-REFORGE-002-4 | **SSOT** — `EquipmentRandomMods.reroll_mod_at`（weapon/armor/accessory） | 単一入口 |

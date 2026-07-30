@@ -301,6 +301,19 @@ static func is_mod_reforgeable(mod: Dictionary) -> bool:
 	return true
 
 
+## 装備カテゴリ共通: random_mods[mod_index] を再抽選して書き戻す（コスト消費なし）。
+static func reroll_mod_at(instance: Resource, mod_index: int) -> Dictionary:
+	match _item_category(instance):
+		"weapon":
+			return reroll_weapon_mod_at(instance, mod_index)
+		"armor":
+			return _reroll_armor_mod_at(instance, mod_index)
+		"accessory":
+			return _reroll_accessory_mod_at(instance, mod_index)
+		_:
+			return {"ok": false, "reason": "焼直しできない装備です"}
+
+
 ## 武器の random_mods[mod_index] を再抽選して書き戻す（コスト消費なし）。
 ## 属性値は数値のみ。他枠 kind は重複禁止。選択枠の kind は再候補に含めてよい。
 static func reroll_weapon_mod_at(instance: Resource, mod_index: int) -> Dictionary:
@@ -311,31 +324,18 @@ static func reroll_weapon_mod_at(instance: Resource, mod_index: int) -> Dictiona
 		return {"ok": false, "reason": "武器データがありません"}
 	ensure_migrated(instance)
 	var mods: Array = get_mods(instance)
-	if mod_index < 0 or mod_index >= mods.size():
-		return {"ok": false, "reason": "効果の選択が不正です"}
-	var old_mod: Variant = mods[mod_index]
-	if not old_mod is Dictionary:
-		return {"ok": false, "reason": "効果の選択が不正です"}
-	var old_dict: Dictionary = (old_mod as Dictionary).duplicate(true)
-	if not is_mod_reforgeable(old_dict):
-		return {"ok": false, "reason": "この効果は焼直しできません"}
+	var gate: Dictionary = _reforge_slot_gate(mods, mod_index)
+	if not bool(gate.get("ok", false)):
+		return gate
+	var old_dict: Dictionary = gate.get("old_mod", {})
 	var rarity: int = int(weapon_data.rarity)
 	var new_mod: Dictionary = {}
 	var old_kind: String = str(old_dict.get("kind", ""))
 	if old_kind == KIND_ELEMENT_POWER:
 		new_mod = _roll_element_power_mod(weapon_data, rarity)
 	else:
-		var used: Dictionary = {}
-		for i: int in mods.size():
-			if i == mod_index:
-				continue
-			var other: Variant = mods[i]
-			if other is Dictionary:
-				var okind: String = str((other as Dictionary).get("kind", ""))
-				if not okind.is_empty():
-					used[okind] = true
+		var used: Dictionary = _used_kinds_excluding(mods, mod_index)
 		var pool: Array[String] = _weapon_pool_ids(weapon_data, used)
-		## bane はプールに入りうるが焼直し先としては出さない。
 		var filtered: Array[String] = []
 		for pid: String in pool:
 			if pid == KIND_BANE:
@@ -360,6 +360,131 @@ static func reroll_weapon_mod_at(instance: Resource, mod_index: int) -> Dictiona
 		"old_mod": old_dict,
 		"new_mod": new_mod.duplicate(true),
 	}
+
+
+static func _reroll_armor_mod_at(instance: Resource, mod_index: int) -> Dictionary:
+	if instance == null or not ("armor_id" in instance):
+		return {"ok": false, "reason": "防具ではありません"}
+	var armor_data: Resource = DataRegistry.get_armor_data(str(instance.armor_id))
+	if armor_data == null:
+		return {"ok": false, "reason": "防具データがありません"}
+	ensure_migrated(instance)
+	var mods: Array = get_mods(instance)
+	var gate: Dictionary = _reforge_slot_gate(mods, mod_index)
+	if not bool(gate.get("ok", false)):
+		return gate
+	var old_dict: Dictionary = gate.get("old_mod", {})
+	var rarity: int = int(armor_data.rarity) if "rarity" in armor_data else Enums.Rarity.COMMON
+	var used: Dictionary = _used_kinds_excluding(mods, mod_index)
+	var pool: Array[String] = _armor_pool_ids(used)
+	if pool.is_empty():
+		return {"ok": false, "reason": "再抽選できる効果がありません"}
+	var picked: Array[String] = _EquipmentRollHelper.pick_random_stats(pool, 1)
+	if picked.is_empty():
+		return {"ok": false, "reason": "再抽選できる効果がありません"}
+	var new_mod: Dictionary = _roll_armor_pool_mod(picked[0], rarity)
+	if new_mod.is_empty():
+		return {"ok": false, "reason": "再抽選に失敗しました"}
+	mods[mod_index] = new_mod
+	_apply_armor_mods_to_fields(instance, armor_data, mods)
+	instance.random_mods = mods
+	instance.rolled_bonus_stats = _ids_from_mods(mods)
+	instance.perfect_roll_count = _count_perfect(mods)
+	return {
+		"ok": true,
+		"reason": "",
+		"old_mod": old_dict,
+		"new_mod": new_mod.duplicate(true),
+	}
+
+
+static func _reroll_accessory_mod_at(instance: Resource, mod_index: int) -> Dictionary:
+	if instance == null or not ("accessory_id" in instance):
+		return {"ok": false, "reason": "装飾品ではありません"}
+	var accessory_data: Resource = DataRegistry.get_accessory_data(str(instance.accessory_id))
+	if accessory_data == null:
+		return {"ok": false, "reason": "装飾データがありません"}
+	ensure_migrated(instance)
+	var mods: Array = get_mods(instance)
+	var gate: Dictionary = _reforge_slot_gate(mods, mod_index)
+	if not bool(gate.get("ok", false)):
+		return gate
+	var old_dict: Dictionary = gate.get("old_mod", {})
+	var rarity: int = (
+		int(accessory_data.rarity) if "rarity" in accessory_data else Enums.Rarity.COMMON
+	)
+	var used: Dictionary = _used_kinds_excluding(mods, mod_index)
+	var pool: Array[String] = _accessory_pool_ids(used)
+	if pool.is_empty():
+		return {"ok": false, "reason": "再抽選できる効果がありません"}
+	var picked: Array[String] = _EquipmentRollHelper.pick_random_stats(pool, 1)
+	if picked.is_empty():
+		return {"ok": false, "reason": "再抽選できる効果がありません"}
+	var new_mod: Dictionary = _roll_accessory_pool_mod(picked[0], rarity)
+	if new_mod.is_empty():
+		return {"ok": false, "reason": "再抽選に失敗しました"}
+	mods[mod_index] = new_mod
+	_apply_accessory_mods_to_fields(instance, accessory_data, mods)
+	instance.random_mods = mods
+	instance.rolled_bonus_stats = _ids_from_mods(mods)
+	instance.perfect_roll_count = _count_perfect(mods)
+	return {
+		"ok": true,
+		"reason": "",
+		"old_mod": old_dict,
+		"new_mod": new_mod.duplicate(true),
+	}
+
+
+static func _reforge_slot_gate(mods: Array, mod_index: int) -> Dictionary:
+	if mod_index < 0 or mod_index >= mods.size():
+		return {"ok": false, "reason": "効果の選択が不正です"}
+	var old_mod: Variant = mods[mod_index]
+	if not old_mod is Dictionary:
+		return {"ok": false, "reason": "効果の選択が不正です"}
+	var old_dict: Dictionary = (old_mod as Dictionary).duplicate(true)
+	if not is_mod_reforgeable(old_dict):
+		return {"ok": false, "reason": "この効果は焼直しできません"}
+	return {"ok": true, "old_mod": old_dict}
+
+
+static func _used_kinds_excluding(mods: Array, exclude_index: int) -> Dictionary:
+	var used: Dictionary = {}
+	for i: int in mods.size():
+		if i == exclude_index:
+			continue
+		var other: Variant = mods[i]
+		if other is Dictionary:
+			var okind: String = str((other as Dictionary).get("kind", ""))
+			if not okind.is_empty():
+				used[okind] = true
+	return used
+
+
+static func _armor_pool_ids(used: Dictionary) -> Array[String]:
+	var pool: Array[String] = [
+		KIND_HP_UP, KIND_DEFENSE_UP, KIND_RESIST, KIND_EVASION,
+		KIND_EXP_GAIN, KIND_GOLD_GAIN, KIND_RARE_DROP, KIND_IMMUNITY, KIND_HEALING,
+	]
+	var out: Array[String] = []
+	for id: String in pool:
+		if used.has(id):
+			continue
+		out.append(id)
+	return out
+
+
+static func _accessory_pool_ids(used: Dictionary) -> Array[String]:
+	var pool: Array[String] = [
+		KIND_HP_UP, KIND_ATTACK_UP, KIND_DEFENSE_UP, KIND_CRIT_RATE, KIND_EVASION,
+		KIND_EXP_GAIN, KIND_GOLD_GAIN, KIND_RARE_DROP, KIND_HEALING,
+	]
+	var out: Array[String] = []
+	for id: String in pool:
+		if used.has(id):
+			continue
+		out.append(id)
+	return out
 
 
 static func format_mod_line(mod: Dictionary) -> String:
