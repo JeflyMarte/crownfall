@@ -45,6 +45,8 @@ var _field_survey_click_hint_tween: Tween
 var _gift_badge: PanelContainer
 var _nina_nav: Control
 var _rank_sp_bar: ProgressBar
+var _rank_sp_label: Label
+var _rank_sp_row: HBoxContainer
 
 func _ready() -> void:
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.HOME)
@@ -76,6 +78,11 @@ func _ensure_rank_sp_bar() -> void:
 	if _rank_sp_bar != null and is_instance_valid(_rank_sp_bar):
 		return
 	_label_player_level.visible = false
+	_rank_sp_row = HBoxContainer.new()
+	_rank_sp_row.name = "RankSpRow"
+	_rank_sp_row.add_theme_constant_override("separation", 4)
+	_rank_sp_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_rank_sp_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_rank_sp_bar = ProgressBar.new()
 	_rank_sp_bar.name = "RankSpBar"
 	_rank_sp_bar.min_value = 0.0
@@ -84,6 +91,7 @@ func _ensure_rank_sp_bar() -> void:
 	_rank_sp_bar.show_percentage = false
 	_rank_sp_bar.custom_minimum_size = Vector2(0, 8)
 	_rank_sp_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_rank_sp_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_rank_sp_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var bg := StyleBoxFlat.new()
 	bg.bg_color = Color(0.08, 0.1, 0.14, 0.9)
@@ -93,7 +101,16 @@ func _ensure_rank_sp_bar() -> void:
 	fill.set_corner_radius_all(3)
 	_rank_sp_bar.add_theme_stylebox_override("background", bg)
 	_rank_sp_bar.add_theme_stylebox_override("fill", fill)
-	_player_info.add_child(_rank_sp_bar)
+	_rank_sp_row.add_child(_rank_sp_bar)
+	_rank_sp_label = Label.new()
+	_rank_sp_label.name = "RankSpLabel"
+	_rank_sp_label.text = "0/200"
+	_rank_sp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_rank_sp_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_rank_sp_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_caption(_rank_sp_label, UiTypography.COLOR_SUB)
+	_rank_sp_row.add_child(_rank_sp_label)
+	_player_info.add_child(_rank_sp_row)
 
 
 func _layout_hub_if_needed() -> void:
@@ -786,13 +803,17 @@ func _update_player_card() -> void:
 	_ensure_rank_sp_bar()
 	var progress: Dictionary = _CommanderProfile.progress_to_next_rank()
 	_rank_sp_bar.value = float(progress.get("progress", 0.0))
+	var current_sp: int = int(progress.get("current_sp", 0))
+	var next_threshold: int = int(progress.get("next_threshold", current_sp))
+	_rank_sp_label.text = "%d/%d" % [current_sp, next_threshold]
 	var next_rank: String = str(progress.get("next_rank", ""))
 	var sp_tip: String = ""
 	if next_rank.is_empty():
-		sp_tip = "調査許可・最大等級"
+		sp_tip = "調査許可・最大等級 %d/%d" % [current_sp, next_threshold]
 	else:
-		sp_tip = "次等級 %s級まで %s" % [next_rank, str(progress.get("label", ""))]
+		sp_tip = "次等級 %s級まで %d/%d SP" % [next_rank, current_sp, next_threshold]
 	_rank_sp_bar.tooltip_text = sp_tip
+	_rank_sp_label.tooltip_text = sp_tip
 	_portrait_art.texture = _CommanderProfile.rank_icon_texture()
 	var has_rank_icon: bool = _portrait_art.texture != null
 	_portrait_art.visible = has_rank_icon
