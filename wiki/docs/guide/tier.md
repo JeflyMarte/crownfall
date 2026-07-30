@@ -73,4 +73,4 @@
 
 ---
 
-関連: [ビルド構成例](builds.md)／[おすすめ装備](recommended-gear.md)／[強くするには](power-up.md)
+関連: [ビルド例](builds.md)／[おすすめ装備](recommended-gear.md)／[強くするには](power-up.md)
