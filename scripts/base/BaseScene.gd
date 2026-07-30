@@ -33,6 +33,9 @@ const _GOLD_ICON_PATH: String = "res://assets/ui/batch2/ICO_Gold.png"
 @onready var _portrait_art: TextureRect = $HubView/TopBar/TopBarRow/PlayerCard/PlayerRow/PortraitFrame/PortraitArt
 @onready var _portrait_glyph: Label = $HubView/TopBar/TopBarRow/PlayerCard/PlayerRow/PortraitFrame/PortraitGlyph
 @onready var _player_card: PanelContainer = $HubView/TopBar/TopBarRow/PlayerCard
+@onready var _player_info: VBoxContainer = $HubView/TopBar/TopBarRow/PlayerCard/PlayerRow/PlayerInfo
+
+var _rank_sp_bar: ProgressBar
 @onready var _label_daily_reset: Label = $HubView/DailyMissionPanel/DailyVBox/DailyHeader/LabelDailyReset
 @onready var _mission_list: VBoxContainer = $HubView/DailyMissionPanel/DailyVBox/MissionList
 @onready var _label_daily_title: Label = $HubView/DailyMissionPanel/DailyVBox/DailyHeader/LabelDailyTitle
@@ -65,8 +68,33 @@ func _ready() -> void:
 	GameState.base_initial_view = "hub"
 	_player_card.gui_input.connect(_on_player_card_gui_input)
 	_setup_gift_badge()
+	_ensure_rank_sp_bar()
 	call_deferred("_layout_hub_if_needed")
 	call_deferred("_maybe_show_rank_up")
+
+
+func _ensure_rank_sp_bar() -> void:
+	if _rank_sp_bar != null and is_instance_valid(_rank_sp_bar):
+		return
+	_label_player_level.visible = false
+	_rank_sp_bar = ProgressBar.new()
+	_rank_sp_bar.name = "RankSpBar"
+	_rank_sp_bar.min_value = 0.0
+	_rank_sp_bar.max_value = 1.0
+	_rank_sp_bar.value = 0.0
+	_rank_sp_bar.show_percentage = false
+	_rank_sp_bar.custom_minimum_size = Vector2(0, 8)
+	_rank_sp_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_rank_sp_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.08, 0.1, 0.14, 0.9)
+	bg.set_corner_radius_all(3)
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = Color(0.86, 0.74, 0.45, 0.95)
+	fill.set_corner_radius_all(3)
+	_rank_sp_bar.add_theme_stylebox_override("background", bg)
+	_rank_sp_bar.add_theme_stylebox_override("fill", fill)
+	_player_info.add_child(_rank_sp_bar)
 
 
 func _layout_hub_if_needed() -> void:
@@ -692,6 +720,10 @@ func _on_debug_event_requested(entry_id: String) -> void:
 	if entry_id == "hub_guide":
 		call_deferred("_debug_show_hub_guide")
 		return
+	## 調査室サイクル受取ポップも即表示（付与なしプレビュー）。
+	if entry_id == "survey_claim_result":
+		call_deferred("_debug_show_survey_claim_result")
+		return
 	## 2回目以降のレア入手通知は吹き出しへ即反映。
 	if entry_id.begins_with("nina_rare_nav:"):
 		call_deferred("_refresh_nina_nav")
@@ -703,6 +735,22 @@ func _on_debug_event_requested(entry_id: String) -> void:
 func _debug_show_hub_guide() -> void:
 	## 再演は preview のみ。済みフラグを消すと Continue で再発する（既知バグ）。
 	_HubSimpleGuideOverlay.show_on(self, true)
+
+
+func _debug_show_survey_claim_result() -> void:
+	## サンプル成果のみ。セーブ／所持は触らない。
+	if get_node_or_null("SurveyClaimResultOverlay") != null:
+		return
+	var overlay := SurveyClaimResultOverlay.new()
+	overlay.name = "SurveyClaimResultOverlay"
+	add_child(overlay)
+	overlay.present({
+		"material_id": EquipmentEnhancer.BASE_ORE_ID,
+		"material_qty": 24,
+		"gold": 50,
+		"token": 10,
+		"weapon_id": "",
+	})
 
 
 func _ensure_valid_dungeon_selection() -> void:
@@ -730,12 +778,23 @@ func _update_player_card() -> void:
 	_CommanderProfile.ensure_commander()
 	var rank_text: String = _CommanderProfile.rank_display(false)
 	var commander_name: String = _CommanderProfile.get_commander_name()
-	## 隊長カードは等級＋名前のみ。通貨名が混入しないよう明示上書き。
+	## 隊長カードは等級＋名前。下段に次等級までの SP バー（P3-CMD-RANK-REWARD-001-4）。
 	_label_player_name.text = "%s %s" % [rank_text, commander_name]
 	_label_player_name.clip_text = false
 	_label_player_name.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	_label_player_level.text = ""
 	_label_player_level.visible = false
+	_ensure_rank_sp_bar()
+	var progress: Dictionary = _CommanderProfile.progress_to_next_rank()
+	_rank_sp_bar.value = float(progress.get("progress", 0.0))
+	var next_rank: String = str(progress.get("next_rank", ""))
+	if next_rank.is_empty():
+		_rank_sp_bar.tooltip_text = "調査許可・最大等級"
+	else:
+		_rank_sp_bar.tooltip_text = "次等級 %s級まで %s" % [
+			next_rank,
+			str(progress.get("label", "")),
+		]
 	_portrait_art.texture = _CommanderProfile.rank_icon_texture()
 	var has_rank_icon: bool = _portrait_art.texture != null
 	_portrait_art.visible = has_rank_icon
@@ -751,6 +810,11 @@ func _update_player_card() -> void:
 	var pending: int = _CommanderGiftBox.pending_count()
 	if pending > 0:
 		tooltip += "（配布物 %d）" % pending
+	var sp_tip: String = ""
+	if _rank_sp_bar != null:
+		sp_tip = str(_rank_sp_bar.tooltip_text)
+	if not sp_tip.is_empty():
+		tooltip += "\n%s" % sp_tip
 	_player_card.tooltip_text = tooltip
 	if _gift_badge != null:
 		var lbl: Label = _gift_badge.get_node_or_null("GiftBadgeLabel") as Label
