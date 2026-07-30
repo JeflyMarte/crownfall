@@ -4387,6 +4387,17 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-OPS-PITFALLS-P0-001-4 | **昇格後アーカイブ** — 領域ルールへ移したらカタログの長文クラスタはポインタ1行に圧縮（`recurrence-prevention.mdc`） | 二重メンテ禁止 |
 | P3-OPS-PITFALLS-P0-001-5 | `known-pitfalls.mdc` を再び `alwaysApply: true` に戻さない | 肥大の再発防止 |
 
+## 再発防止カタログ P1 昇格（2026-07-30 — P3-OPS-PITFALLS-P1-001）
+
+> オーナー承認: P0 に続くクラスタ昇格（編成・陣形／Idle・装備セル／アセット／ホットパス）＋ P0 下部ポインタ漏れの修復。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-OPS-PITFALLS-P1-001-1 | **編成 CHR＋陣形／調査派遣**は `ui-layout.mdc` に BAD/GOOD。`RosterUiHelper` globs 追加。カタログはポインタ | 再発頻度高・ルール未到達を防ぐ |
+| P3-OPS-PITFALLS-P1-001-2 | **アセット取込・透過・import**は `asset-import.mdc` に必須節を拡充。カタログの取込クラスタはポインタ | 領域ルールが按需で当たる |
+| P3-OPS-PITFALLS-P1-001-3 | **戦闘ホットパス**（`get_image`／毎フレーム StyleBox.new）は `gdscript.mdc` | 演出仕様ではなくコーディング規約 |
+| P3-OPS-PITFALLS-P1-001-4 | Idle／装備セル／鍛冶枠など **既昇格 UI** のカタログ長文もポインタ化。ScrollTouch／SafeArea の下部漏れも同ターン修復 | P0 アーカイブ方針の完遂 |
+
 ## 遍在希少種追加（2026-07-23 — P3-WANDER-004）
 
 > オーナー GO: 推奨値（案A・P1）。ゴールデンスカラベ＝金逃走／影狩り＝強敵総取り。イベントDG・野外速報は後続。

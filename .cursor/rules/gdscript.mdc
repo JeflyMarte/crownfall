@@ -153,6 +153,27 @@ _spawn_skill_name(skill_name, member_idx, 0.0, "", false, "")
 
 非戦闘ナラティブ・VFX 位置の詳細: `docs/specs/implementation/14_Presentation_Pitfalls.md`
 
+## ホットパス（再発防止・必須）
+
+`_process` / 戦闘中の毎フレーム処理で **画像デコードや StyleBox 新規生成をしない**。
+
+```gdscript
+# ❌ BAD — HPバー追従のたび get_image / get_used_rect
+var img := tex.get_image()
+var used := img.get_used_rect()
+
+# ✅ GOOD — 正規化時に meta キャッシュ（body_frame_h / body_top_inset）
+var h: float = float(sprite.get_meta("body_frame_h", 0.0))
+```
+
+```gdscript
+# ❌ BAD — CDバー／パネルのたび StyleBoxFlat.new()＋load
+bar.add_theme_stylebox_override("fill", StyleBoxFlat.new())
+
+# ✅ GOOD — 画面入場時にキャッシュし差分時のみ position/offset 更新
+bar.add_theme_stylebox_override("fill", _cached_cd_fill)
+```
+
 ## テスト
 
 - ロジック変更時は `res://tests/unit/` に GUT テストを追加・更新
