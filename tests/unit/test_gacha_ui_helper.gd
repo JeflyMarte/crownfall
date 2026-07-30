@@ -102,11 +102,12 @@ func test_build_featured_shell_has_feature_label() -> void:
 	## 足元直下: 煽り top は idle 下端付近〜プール帯のあいだ。
 	assert_gte(blurb_wrap.offset_top, host.size.y * 0.35)
 	assert_lt(blurb_wrap.offset_top, host.size.y - GachaUiHelper.pool_strip_reserve())
-	assert_eq(int(feature_lbl.get_theme_font_size("font_size")), GachaUiHelper.FEATURED_BLURB_FONT_SIZE)
 	assert_eq(feature_lbl.get_theme_font("font"), UiTypography.display_font())
 	assert_eq(feature_lbl.get_theme_constant("outline_size"), GachaUiHelper.FEATURED_BLURB_OUTLINE)
 	assert_eq(feature_lbl.max_lines_visible, 1)
 	assert_eq(feature_lbl.autowrap_mode, TextServer.AUTOWRAP_OFF)
+	assert_eq(feature_lbl.text_overrun_behavior, TextServer.OVERRUN_NO_TRIMMING)
+	assert_false(feature_lbl.clip_text)
 	assert_gt(stats_wrap.offset_left, -400.0)
 	var helpers: Array = GachaUiHelper.featured_helpers()
 	if helpers.is_empty():

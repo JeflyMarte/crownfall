@@ -320,7 +320,8 @@ static func format_mod_line(mod: Dictionary) -> String:
 			var elems: Array = mod.get("meta", {}).get("elements", [])
 			var names: PackedStringArray = PackedStringArray()
 			for e: Variant in elems:
-				names.append(str(e))
+				var nm: String = _ElementResolver.get_display_name(str(e))
+				names.append(nm if not nm.is_empty() else str(e))
 			return "%s %s ×%.2f%s" % [label, "・".join(names), value, star]
 		KIND_IMMUNITY:
 			var ids: Array = mod.get("meta", {}).get("status_ids", [])

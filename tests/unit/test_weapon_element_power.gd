@@ -23,6 +23,23 @@ func test_element_power_label_includes_element_name() -> void:
 	assert_true(line.begins_with("炎属性値"), line)
 
 
+func test_resist_mod_line_uses_japanese_element_names() -> void:
+	var _ERM = preload("res://scripts/equipment/EquipmentRandomMods.gd")
+	var line: String = _ERM.format_mod_line({
+		"label": "属性耐性",
+		"kind": "resist_elements",
+		"value": 0.75,
+		"min_v": 0.75,
+		"max_v": 0.75,
+		"perfect": false,
+		"meta": {"elements": ["dark", "lightning"]},
+	})
+	assert_true(line.contains("闇"), line)
+	assert_true(line.contains("電気"), line)
+	assert_false(line.contains("dark"), line)
+	assert_false(line.contains("lightning"), line)
+
+
 func test_element_power_roll_never_zero_when_element_set() -> void:
 	var data: Resource = _WeaponData.new()
 	data.id = "t_fire"
