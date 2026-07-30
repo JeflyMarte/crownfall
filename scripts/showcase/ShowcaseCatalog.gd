@@ -14,7 +14,7 @@ const STAGE_H_PX: float = 460.0
 const SIDE_COL_W: float = 168.0
 
 ## スタッフ作例。装備 id はカタログ実在分のみ。
-## player_name = 展示している隊長名（一覧ボタン表示）。display_name = 展示キャラ名。
+## player_name = 展示している隊長名（名札表示）。display_name = 展示キャラ名。
 const STAFF_PRESETS: Array = [
 	{
 		"id": "staff_aldo_blade",
