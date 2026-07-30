@@ -17,11 +17,13 @@ const FEATURED_MIN_RARITY: int = 3
 const FEATURED_IDLE_PX: float = 196.0
 const FEATURED_STATS_MIN_W: float = 220.0
 ## Featured 煽り文パネル幅（大きい字の1行向け）。
-const FEATURED_BLURB_MIN_W: float = 520.0
+const FEATURED_BLURB_MIN_W: float = 560.0
 ## キャラ足元から煽りまでの余白（もう少し下へ）。
 const FEATURED_BLURB_BELOW_IDLE_PAD: float = 32.0
 ## 名前帯に近い見出しサイズ＋強め縁取りで強調。
 const FEATURED_BLURB_FONT_SIZE: int = 22
+## 長い煽りは … 省略せずこの下限までフォント縮小。
+const FEATURED_BLURB_FONT_MIN: int = 15
 const FEATURED_BLURB_OUTLINE: int = 6
 const FEATURED_BLURB_COLOR := Color(1.0, 0.92, 0.52, 1.0)
 const FEATURED_BLURB_SHADOW := Color(0.04, 0.02, 0.08, 0.9)
@@ -118,6 +120,7 @@ static func _relayout_feature_blurb(shell: Dictionary, host: Control) -> void:
 	var blurb_wrap: Control = shell.get("blurb_wrap") as Control
 	if blurb_wrap == null:
 		return
+	var feature_lbl: Label = shell.get("feature") as Label
 	var h: float = maxf(host.size.y, 1.0)
 	var w: float = maxf(host.size.x, FEATURED_BLURB_MIN_W)
 	var idle_px: float = featured_idle_px(h)
@@ -129,14 +132,38 @@ static func _relayout_feature_blurb(shell: Dictionary, host: Control) -> void:
 	## プール帯に食い込まない。
 	var max_top: float = h - pool_strip_reserve() - float(FEATURED_BLURB_FONT_SIZE) - 6.0
 	top = minf(top, max_top)
-	## キャラ中心下に1行を置く。
+	## キャラ中心下に1行を置く（長い文はフォント縮小で全文表示）。
 	var center_x: float = w * 0.5 + FEATURED_IDLE_OFFSET_X
-	var half_w: float = FEATURED_BLURB_MIN_W * 0.5
+	var blurb_w: float = minf(FEATURED_BLURB_MIN_W, w - 16.0)
+	var half_w: float = blurb_w * 0.5
 	blurb_wrap.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	blurb_wrap.offset_left = center_x - half_w
 	blurb_wrap.offset_right = center_x + half_w
 	blurb_wrap.offset_top = top
 	blurb_wrap.offset_bottom = top + float(FEATURED_BLURB_FONT_SIZE) + 14.0
+	if feature_lbl != null:
+		feature_lbl.custom_minimum_size = Vector2(blurb_w, 0)
+		_fit_feature_blurb_font(feature_lbl, blurb_w)
+
+
+## 煽り文は省略（…）せず、幅に収まるまでフォントを下げる。
+static func _fit_feature_blurb_font(label: Label, avail_w: float) -> void:
+	if label == null:
+		return
+	_apply_feature_blurb_style(label)
+	var text: String = label.text
+	if text.is_empty() or avail_w <= 1.0:
+		return
+	var font: Font = label.get_theme_font("font")
+	if font == null:
+		return
+	var fs: int = FEATURED_BLURB_FONT_SIZE
+	while fs > FEATURED_BLURB_FONT_MIN:
+		var tw: float = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		if tw <= avail_w:
+			break
+		fs -= 1
+	label.add_theme_font_size_override("font_size", fs)
 
 
 static func _relayout_pool_strip(strip: Control) -> void:
@@ -566,11 +593,11 @@ static func build_featured_shell(host: Control) -> Dictionary:
 
 	var feature_lbl := Label.new()
 	feature_lbl.name = "LabelFeature"
-	## 1行固定（案B）。収まらない場合のみ末尾省略。
+	## 1行固定（案B）。長い文はフォント縮小で全文表示（…省略しない）。
 	feature_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
 	feature_lbl.max_lines_visible = 1
-	feature_lbl.clip_text = true
-	feature_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	feature_lbl.clip_text = false
+	feature_lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	feature_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	feature_lbl.custom_minimum_size = Vector2(FEATURED_BLURB_MIN_W, 0)
 	feature_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -807,6 +834,11 @@ static func apply_featured_helper(shell: Dictionary, helper: Resource) -> void:
 	if feature_lbl != null:
 		feature_lbl.text = feature_text
 		feature_lbl.visible = not feature_text.is_empty()
+		var avail_w: float = FEATURED_BLURB_MIN_W
+		var blurb_for_fit: Control = shell.get("blurb_wrap") as Control
+		if blurb_for_fit != null and blurb_for_fit.size.x > 1.0:
+			avail_w = blurb_for_fit.size.x
+		_fit_feature_blurb_font(feature_lbl, avail_w)
 	var blurb_wrap: Control = shell.get("blurb_wrap") as Control
 	if blurb_wrap != null:
 		blurb_wrap.visible = not feature_text.is_empty()
