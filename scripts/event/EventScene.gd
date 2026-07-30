@@ -6,11 +6,11 @@ const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const BG_PATH: String = "res://assets/ui/UI_BG_GuildBulletin.png"
 ## 羊皮紙左上マスコット（テキスト中央レイアウトは維持。重ね表示）。
 const NONOKA_PATH: String = "res://assets/ui/UI_GuildBulletin_Nonoka.png"
-## 本文と被らないよう小さめ＋左寄せ（旧 210×250 / offset.x=12）。
-const NONOKA_W: float = 138.0
-const NONOKA_H: float = 164.0
-## FieldHost 左上からのオフセット（左へ・やや上）。
-const NONOKA_OFFSET: Vector2 = Vector2(-22.0, -52.0)
+## 本文と被らないよう小さめ＋やや右（旧 138×164 / offset -22,-52）。
+const NONOKA_W: float = 108.0
+const NONOKA_H: float = 134.0
+## FieldHost 左上からのオフセット。
+const NONOKA_OFFSET: Vector2 = Vector2(20.0, -10.0)
 const NONOKA_LAYER: int = 12
 ## 少し明るく・薄く（羊皮紙に馴染ませる）。
 const NONOKA_MODULATE: Color = Color(1.12, 1.1, 1.08, 0.78)
