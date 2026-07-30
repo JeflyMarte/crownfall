@@ -5005,7 +5005,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-STATUS-LEGEND-002-2 | **晴れ** — 非表示。非晴れのみ先頭行 | 効果があるときだけ |
 | P3-UX-STATUS-LEGEND-002-3 | **行** — 状態異常と同型（略称バッジ暫定＋`名前:効果`）。状態0件でも天候ありならパネル表示 | 一貫性 |
 | P3-UX-STATUS-LEGEND-002-4 | **文言 SSOT** — `CombatWeather.effect_one_line` | 情報誌と数値整合 |
-| P3-UX-STATUS-LEGEND-002-5 | **アイコン** — 専用ICO未配置時は略称バッジ。後差替可 | P3-D101 アセット0の延長 |
+| P3-UX-STATUS-LEGEND-002-5 | **アイコン** — `assets/ui/weather/ICO_WTH_*.png`（雨／夜／霧／炎天／吹雪／快晴）。欠落時は略称バッジ | オーナー原画取り込み |
 
 **Closeout:** Impl 後に統合＋`main`。
 

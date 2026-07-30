@@ -2900,7 +2900,7 @@ func _make_status_legend_row(status_id: String) -> HBoxContainer:
 
 
 func _make_weather_legend_row(weather: String) -> HBoxContainer:
-	## 状態異常行と同型。専用ICOは未配置のため略称バッジ（後差替可）。
+	## 状態異常行と同型。ICO があれば Texture、無ければ略称バッジ。
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -2909,26 +2909,37 @@ func _make_weather_legend_row(weather: String) -> HBoxContainer:
 	var icon := PanelContainer.new()
 	icon.custom_minimum_size = Vector2(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
 	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var style := StyleBoxFlat.new()
-	style.bg_color = def.get("color", Color(0.5, 0.5, 0.5))
-	style.set_corner_radius_all(4)
-	style.set_border_width_all(1)
-	style.border_color = Color(0, 0, 0, 0.85)
-	icon.add_theme_stylebox_override("panel", style)
-	var glyph := Label.new()
-	glyph.text = str(def.get("abbrev", "天"))
-	glyph.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	glyph.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	glyph.add_theme_font_size_override("font_size", 14)
-	glyph.add_theme_color_override("font_color", Color.WHITE)
-	glyph.add_theme_constant_override("outline_size", 2)
-	glyph.add_theme_color_override("font_outline_color", Color.BLACK)
-	glyph.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	glyph.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	glyph.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	icon.add_child(glyph)
-	icon.tooltip_text = CombatWeather.label(weather)
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.tooltip_text = CombatWeather.label(weather)
+	var icon_tex: Texture2D = IconPaths.get_icon_texture(CombatWeather.normalize(weather), "weather")
+	if icon_tex != null:
+		icon.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+		var tr := TextureRect.new()
+		tr.texture = icon_tex
+		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tr.custom_minimum_size = Vector2(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+		tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon.add_child(tr)
+	else:
+		var style := StyleBoxFlat.new()
+		style.bg_color = def.get("color", Color(0.5, 0.5, 0.5))
+		style.set_corner_radius_all(4)
+		style.set_border_width_all(1)
+		style.border_color = Color(0, 0, 0, 0.85)
+		icon.add_theme_stylebox_override("panel", style)
+		var glyph := Label.new()
+		glyph.text = str(def.get("abbrev", "天"))
+		glyph.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		glyph.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		glyph.add_theme_font_size_override("font_size", 14)
+		glyph.add_theme_color_override("font_color", Color.WHITE)
+		glyph.add_theme_constant_override("outline_size", 2)
+		glyph.add_theme_color_override("font_outline_color", Color.BLACK)
+		glyph.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		glyph.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		glyph.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon.add_child(glyph)
 	row.add_child(icon)
 	var line: String = CombatWeather.effect_one_line(weather)
 	if line.is_empty():
