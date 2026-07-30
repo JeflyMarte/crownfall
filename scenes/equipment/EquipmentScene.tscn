@@ -305,17 +305,18 @@ theme_override_constants/separation = 6
 
 [node name="LabelName" type="Label" parent="VBoxContainer/CharacterCard/CardRow/InfoBox/NameRow"]
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 0
 theme_override_colors/font_color = Color(0.93, 0.86, 0.66, 1)
 theme_override_font_sizes/font_size = 26
 text = "—"
-clip_text = true
-text_overrun_behavior = 3
+clip_text = false
+text_overrun_behavior = 0
 max_lines_visible = 1
 
 [node name="BtnMemberList" type="Button" parent="VBoxContainer/CharacterCard/CardRow/InfoBox/NameRow"]
 custom_minimum_size = Vector2(72, 36)
 layout_mode = 2
+size_flags_horizontal = 0
 size_flags_vertical = 4
 text = "一覧"
 
@@ -471,6 +472,10 @@ text = "レアリティ"
 [node name="ButtonFilter" type="Button" parent="VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryHeaderRow"]
 layout_mode = 2
 text = "すべて"
+
+[node name="ButtonEffect" type="Button" parent="VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryHeaderRow"]
+layout_mode = 2
+text = "効果"
 
 [node name="CategoryRow" type="HBoxContainer" parent="VBoxContainer/TabContainer/TabEquip/EquipContent"]
 layout_mode = 2

@@ -256,6 +256,7 @@ Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` �
 
 - 職名ラベルは **省略（ellipsis）しない**（「ビーストテイマー」全文）
 - 長い職名は **改行しない**（InfoBox が高さ増でスロット／ステが下ずれる）。必要ならフォント縮小で1行に収める
+- キャラ名＋一覧ボタン（`NameRow`）は名前を `EXPAND_FILL`＋ellipsis にしない。名前は実幅・`一覧`は末尾追従
 - JobIcon は巨大 CHR 原寸を載せない（固定 ~22px）
 - 本文 Noto は `UiTypography.BODY_FONT_WEIGHT = 800`＋軽い `variation_embolden`（テーマ `production_theme.tres` も同値）
 - キャラ切替 ◀▶ はテーマ Button（DelaGothic）を使わず、flat＋Noto body で描く
