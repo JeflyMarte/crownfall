@@ -104,6 +104,7 @@ func test_build_featured_shell_has_feature_label() -> void:
 	assert_lt(blurb_wrap.offset_top, host.size.y - GachaUiHelper.pool_strip_reserve())
 	assert_eq(int(feature_lbl.get_theme_font_size("font_size")), GachaUiHelper.FEATURED_BLURB_FONT_SIZE)
 	assert_eq(feature_lbl.get_theme_font("font"), UiTypography.display_font())
+	assert_eq(feature_lbl.get_theme_constant("outline_size"), GachaUiHelper.FEATURED_BLURB_OUTLINE)
 	assert_eq(feature_lbl.max_lines_visible, 1)
 	assert_eq(feature_lbl.autowrap_mode, TextServer.AUTOWRAP_OFF)
 	assert_gt(stats_wrap.offset_left, -400.0)

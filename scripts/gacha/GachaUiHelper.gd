@@ -16,13 +16,15 @@ const BANNER_PORTRAIT_MIN_W: int = 96
 const FEATURED_MIN_RARITY: int = 3
 const FEATURED_IDLE_PX: float = 196.0
 const FEATURED_STATS_MIN_W: float = 220.0
-## Featured 左の煽り文パネル幅（1行全文向けに広め）。
-const FEATURED_BLURB_MIN_W: float = 420.0
-## キャラ足元から煽りまでの余白（ドット絵の直下）。
-const FEATURED_BLURB_BELOW_IDLE_PAD: float = 8.0
-## 右名前より一段小さく。長い1行を収めるため 16。
-const FEATURED_BLURB_FONT_SIZE: int = 16
-const FEATURED_BLURB_OUTLINE: int = 3
+## Featured 煽り文パネル幅（大きい字の1行向け）。
+const FEATURED_BLURB_MIN_W: float = 520.0
+## キャラ足元から煽りまでの余白（もう少し下へ）。
+const FEATURED_BLURB_BELOW_IDLE_PAD: float = 32.0
+## 名前帯に近い見出しサイズ＋強め縁取りで強調。
+const FEATURED_BLURB_FONT_SIZE: int = 22
+const FEATURED_BLURB_OUTLINE: int = 6
+const FEATURED_BLURB_COLOR := Color(1.0, 0.92, 0.52, 1.0)
+const FEATURED_BLURB_SHADOW := Color(0.04, 0.02, 0.08, 0.9)
 ## Featured 背後の紫上昇塵（多いほど召喚感が強い）。
 const FEATURED_MOTE_COUNT: int = 18
 ## 台座中心向け。実機の短い枠でもキャラ全体が枠内に収まるよう host から算出。
@@ -134,7 +136,7 @@ static func _relayout_feature_blurb(shell: Dictionary, host: Control) -> void:
 	blurb_wrap.offset_left = center_x - half_w
 	blurb_wrap.offset_right = center_x + half_w
 	blurb_wrap.offset_top = top
-	blurb_wrap.offset_bottom = top + float(FEATURED_BLURB_FONT_SIZE) + 8.0
+	blurb_wrap.offset_bottom = top + float(FEATURED_BLURB_FONT_SIZE) + 14.0
 
 
 static func _relayout_pool_strip(strip: Control) -> void:
@@ -234,14 +236,18 @@ static func feature_line_for_helper(helper: Resource) -> String:
 	return ensure_sentence_period(note.strip_edges())
 
 
-## 枠なし煽り文用。Shippori（招待状／右ステと同系）＋控えめ縁取り。
+## 枠なし煽り文用。Shippori＋太い縁取り＋影で強調。
 static func _apply_feature_blurb_style(label: Label) -> void:
 	UiTypography.apply_display(
 		label,
 		FEATURED_BLURB_FONT_SIZE,
-		UiTypography.COLOR_GOLD,
+		FEATURED_BLURB_COLOR,
 		FEATURED_BLURB_OUTLINE
 	)
+	label.add_theme_color_override("font_shadow_color", FEATURED_BLURB_SHADOW)
+	label.add_theme_constant_override("shadow_offset_x", 2)
+	label.add_theme_constant_override("shadow_offset_y", 3)
+	label.add_theme_constant_override("shadow_outline_size", 2)
 
 
 ## Featured 固有パッシブのタイトル（display_name）。
