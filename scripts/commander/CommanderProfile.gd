@@ -303,6 +303,27 @@ static func _grant_rank_rewards_between(from_idx: int, to_idx: int) -> void:
 	_CommanderTitles.refresh_unlocks()
 
 
+## 未配布の到達手当 Gold 合計（祝辞表示用。ack〜到達の未付与分）。
+static func pending_rank_gift_gold(to_rank: String = "") -> int:
+	ensure_commander()
+	var code: String = to_rank.strip_edges().to_upper() if not to_rank.is_empty() else current_rank()
+	var to_idx: int = RANK_ORDER.find(code)
+	if to_idx < 0:
+		return 0
+	var ack: String = str(GameState.commander.get("acknowledged_rank", "D")).strip_edges().to_upper()
+	var from_idx: int = RANK_ORDER.find(ack)
+	if from_idx < 0:
+		from_idx = 0
+	var rewarded: Array = _rank_reward_ranks()
+	var total: int = 0
+	for i in range(from_idx + 1, to_idx + 1):
+		var rank_code: String = RANK_ORDER[i]
+		if rank_code in rewarded:
+			continue
+		total += int(RANK_GIFT_GOLD.get(rank_code, 0))
+	return total
+
+
 static func get_equipped_title() -> String:
 	ensure_commander()
 	return str(GameState.commander.get("equipped_title", ""))
