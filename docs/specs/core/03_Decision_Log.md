@@ -5820,6 +5820,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-STATUS-LEGEND-006-1 | **状態異常** — 右下パネル据置（発生中ユニーク集合） | 現状維持 |
 | P3-UX-STATUS-LEGEND-006-2 | **ダンジョン効果** — 右上パネル（現状は天候のみ・晴れ非表示）。地形有利はオミット維持 | 混在を解消 |
 | P3-UX-STATUS-LEGEND-006-3 | **更新方針** — 各パネル独立シグネチャ＋即 `free` | LEGEND-005 と同型 |
+| P3-UX-STATUS-LEGEND-006-4 | **配置親** — 両レジェンドはシーン直下（BattlefieldArea の `clip_contents` 外）。BF 矩形の右下／右上へ position | 分割後に状態行が欠けた再発防止 |
 
 
 ## 敵スキル点検フォロー 1〜4（2026-07-30 — P3-BAL-ENEMY-SKILL-AUDIT-001）
