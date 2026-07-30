@@ -75,11 +75,11 @@ python3 tools/verify_icon_paths.py
 
 | # | Biome | weapon_id | 出力ファイル | 表示名 | 型 | element | 固有効果 |
 |---|---|---|---|---|---|---|---|
-| 11 | ⑤ frostridge | `eldion_spine` | `ICO_WPN_EldionSpine.png` | 霜穿ちの長弓エルディオン・スパイン | bow | ice | 氷与ダメ+25%＋属性ロール確定 |
+| 11 | ⑤ frostridge | `eldion_spine` | `ICO_WPN_EldionSpine.png` | 霜穿ちの長弓エルディオン・スパイン | bow | ice | 後列通常+25%＋冷却敵+20%（P3-BAL-LEG-ATTR-B001） |
 | 12 | ④ blackshore | `pharos_flare` | `ICO_WPN_PharosFlare.png` | 灯守の烽火弓ファロス・フレア | bow | fire | 装備スキル与ダメ+35% |
 | 13 | ① mourngate | `shadowcord` | `ICO_WPN_Shadowcord.png` | 葬冠の影弦シャドウコード | bow | dark | 会心+10%／会心ダメ+40% |
-| 14 | ② whisperwood | `silvaria_fang` | `ICO_WPN_SilvariaFang.png` | 黒陽の双牙シルヴァリア・ファング | dual_blades | fire | 炎与ダメ+25%＋属性ロール確定 |
-| 15 | ⑤ frostridge | `eldion_claw` | `ICO_WPN_EldionClaw.png` | 始祖の霜爪エルディオン・クロー | dual_blades | ice | 氷与ダメ+25%＋属性ロール確定 |
+| 14 | ② whisperwood | `silvaria_fang` | `ICO_WPN_SilvariaFang.png` | 黒陽の双牙シルヴァリア・ファング | dual_blades | fire | 炎上シナジー（P3-BAL-LEG-ATTR-B001） |
+| 15 | ⑤ frostridge | `eldion_claw` | `ICO_WPN_EldionClaw.png` | 始祖の霜爪エルディオン・クロー | dual_blades | ice | 3撃冷却＋冷却敵+30%（P3-BAL-LEG-ATTR-B001） |
 
 差し替え時は WIP 上書き → `import_legendary_weapon_icons.py` 再実行。
 
