@@ -357,7 +357,7 @@ func _build_character_entries() -> Array:
 			str(profile.get("backstory", _STARTER_FLAVOR.get(adv_id, ""))),
 			str(profile.get("record_note", "")),
 			"",
-			""
+			CombatPassives.base_roster_passive_id(adv_id)
 		)
 		entries.append(_make_character_entry(
 			adv_id,

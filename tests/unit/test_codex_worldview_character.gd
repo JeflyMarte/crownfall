@@ -35,7 +35,17 @@ func test_character_entries_include_starters_and_helpers() -> void:
 	var ald_body: String = str(by_id["adventurer_0"].get("description", ""))
 	assert_true(ald_body.contains("出身地"), "初期もプロフィール表")
 	assert_true(ald_body.contains("生い立ち"), "生い立ち見出し")
+	assert_true(ald_body.contains("固有:"), "スターターも固有パッシブ行")
+	assert_true(ald_body.contains("王炎の覇気") or ald_body.contains("出血"), "アルド固有")
 	assert_eq(int(by_id["adventurer_0"].get("height_cm", 0)), 182)
+	var riva_body: String = str(by_id["adventurer_1"].get("description", ""))
+	assert_false(riva_body.contains("毒薬"), "リーヴァ人物録は標的核へ追随")
+	assert_true(riva_body.contains("標") or riva_body.contains("狙"), "リーヴァは標／狙い")
+	assert_true(riva_body.contains("狙印の刻") or riva_body.contains("標的"), "リーヴァ固有行")
+	var galen_body: String = str(by_id["adventurer_3"].get("description", ""))
+	assert_false(galen_body.contains("反撃の間合い"), "ガレン人物録は聖盾核へ追随")
+	assert_true(galen_body.contains("聖盾") or galen_body.contains("注目"), "ガレンは聖盾／注目")
+	assert_true(galen_body.contains("聖盾の砦") or galen_body.contains("軽減"), "ガレン固有行")
 	## 未所持助っ人は ???。
 	var helper_found: bool = false
 	for e: Dictionary in entries:
