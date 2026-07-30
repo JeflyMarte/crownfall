@@ -24,9 +24,9 @@ extends RefCounted
 ## cooldown: CT 秒（0 = 都度発火可。on_combat_start は実質1回）
 
 const _DEFS: Dictionary = {
-	# ---- 神話装備（P3-EQ-MYTHIC-001） ----
+	# ---- 神話装備（P3-EQ-MYTHIC-001 / P3-EQ-MYTHIC-WPN-TYPES-001） ----
 	"eq_mythic_burial_crown": {
-		"display_name": "葬冠の連鎖",
+		"display_name": "レガートの継承",
 		"category": "weapon",
 		"description": "与ダメージ+25%。敵撃破時、自身の行動待ちをやや短縮する。",
 		"outgoing_mult": 1.25,
@@ -34,6 +34,34 @@ const _DEFS: Dictionary = {
 		"condition": "always",
 		"effect": "refund_ct",
 		"refund_ct_fraction": 0.45,
+		"cooldown": 0.0,
+	},
+	"eq_mythic_lumen": {
+		"display_name": "ルーメンの道標",
+		"category": "weapon",
+		"description": "与ダメージ+20%。標的状態の敵への与ダメージがさらに上昇する。",
+		"outgoing_mult": 1.20,
+		"outgoing_vs_status_mult": 1.30,
+		"outgoing_vs_status_ids": ["mark"],
+	},
+	"eq_mythic_noesis": {
+		"display_name": "ノエシスの理解",
+		"category": "weapon",
+		"description": "与ダメージ+15%。スキル威力が上昇する。",
+		"outgoing_mult": 1.15,
+		"skill_power_mult": 1.25,
+	},
+	"eq_mythic_lucian": {
+		"display_name": "リュシアンの深淵",
+		"category": "weapon",
+		"description": "与ダメージ+15%。攻撃時、敵に出血を付与することがある。",
+		"outgoing_mult": 1.15,
+		"trigger": "on_attack",
+		"condition": "always",
+		"effect": "apply_status",
+		"status_id": "bleed",
+		"target": "enemy",
+		"status_chance": 0.30,
 		"cooldown": 0.0,
 	},
 	"eq_mythic_cenotaph": {

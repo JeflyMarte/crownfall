@@ -1,24 +1,39 @@
 class_name MythicLoot
 extends RefCounted
 
-## 神話装備ドロップ SSOT（P3-EQ-MYTHIC-001）。通常レア抽選には載せない。
+## 神話装備ドロップ SSOT（P3-EQ-MYTHIC-001 / P3-EQ-MYTHIC-WPN-TYPES-001）。通常レア抽選には載せない。
 
 const CHANCE: float = 0.01
 const BIOME_ID: String = "mourngate"
 
+## 互換: 旧単体定数＝継承剣レガート（旧称・葬冠の大剣）
 const WEAPON_ID: String = "burial_crown_greatsword"
 const ARMOR_ID: String = "immortal_cenotaph_plate"
 const ACCESSORY_ID: String = "council_hegemony_seal"
 
+const WEAPON_IDS: Array[String] = [
+	"burial_crown_greatsword",
+	"pilgrim_bow_lumen",
+	"wisdom_staff_noesis",
+	"abyss_fangs_lucian",
+]
+
 const POOL: Array[Dictionary] = [
-	{"category": "weapon", "id": WEAPON_ID},
+	{"category": "weapon", "id": "burial_crown_greatsword"},
+	{"category": "weapon", "id": "pilgrim_bow_lumen"},
+	{"category": "weapon", "id": "wisdom_staff_noesis"},
+	{"category": "weapon", "id": "abyss_fangs_lucian"},
 	{"category": "armor", "id": ARMOR_ID},
 	{"category": "accessory", "id": ACCESSORY_ID},
 ]
 
 
 static func is_mythic_id(item_id: String) -> bool:
-	return item_id == WEAPON_ID or item_id == ARMOR_ID or item_id == ACCESSORY_ID
+	if item_id.is_empty():
+		return false
+	if item_id in WEAPON_IDS:
+		return true
+	return item_id == ARMOR_ID or item_id == ACCESSORY_ID
 
 
 static func owns_id(item_id: String) -> bool:

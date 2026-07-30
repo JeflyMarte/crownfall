@@ -8,12 +8,20 @@ const _MythicLoot = preload("res://scripts/equipment/MythicLoot.gd")
 const _EquipmentEnhancer = preload("res://scripts/equipment/EquipmentEnhancer.gd")
 
 func test_mythic_resources_exist() -> void:
-	assert_true(ResourceLoader.exists("res://resources/weapons/%s.tres" % _MythicLoot.WEAPON_ID))
+	for wid: String in _MythicLoot.WEAPON_IDS:
+		assert_true(ResourceLoader.exists("res://resources/weapons/%s.tres" % wid), wid)
+		var w: Resource = DataRegistry.get_weapon_data(wid)
+		assert_not_null(w, wid)
+		assert_eq(int(w.rarity), Enums.Rarity.MYTHIC, wid)
 	assert_true(ResourceLoader.exists("res://resources/armors/%s.tres" % _MythicLoot.ARMOR_ID))
 	assert_true(ResourceLoader.exists("res://resources/accessories/%s.tres" % _MythicLoot.ACCESSORY_ID))
-	var w: Resource = DataRegistry.get_weapon_data(_MythicLoot.WEAPON_ID)
-	assert_eq(int(w.rarity), Enums.Rarity.MYTHIC)
 	assert_eq(Enums.Rarity.MYTHIC, 4)
+	var sword: Resource = DataRegistry.get_weapon_data(_MythicLoot.WEAPON_ID)
+	assert_eq(str(sword.display_name), "継承剣レガート")
+	assert_eq(str(sword.weapon_type), "sword")
+	assert_eq(str(DataRegistry.get_weapon_data("pilgrim_bow_lumen").weapon_type), "bow")
+	assert_eq(str(DataRegistry.get_weapon_data("wisdom_staff_noesis").weapon_type), "staff")
+	assert_eq(str(DataRegistry.get_weapon_data("abyss_fangs_lucian").weapon_type), "dual_blades")
 
 func test_first_clear_skips_mythic() -> void:
 	GameState.stage_progress.erase("mourngate_1_5")
@@ -68,12 +76,32 @@ func test_alchemy_blocks_mythic_fodder() -> void:
 
 func test_mythic_passive_defs_exist() -> void:
 	assert_false(CombatPassives.get_def("eq_mythic_burial_crown").is_empty())
+	assert_false(CombatPassives.get_def("eq_mythic_lumen").is_empty())
+	assert_false(CombatPassives.get_def("eq_mythic_noesis").is_empty())
+	assert_false(CombatPassives.get_def("eq_mythic_lucian").is_empty())
 	assert_false(CombatPassives.get_def("eq_mythic_cenotaph").is_empty())
 	assert_false(CombatPassives.get_def("eq_mythic_hegemony").is_empty())
 	assert_true(bool(CombatPassives.get_def("eq_mythic_cenotaph").get("death_save_once", false)))
+	assert_eq(str(CombatPassives.get_def("eq_mythic_burial_crown").get("display_name", "")), "レガートの継承")
+	assert_almost_eq(float(CombatPassives.get_def("eq_mythic_lumen").get("outgoing_mult", 0.0)), 1.20, 0.001)
+	assert_almost_eq(float(CombatPassives.get_def("eq_mythic_noesis").get("skill_power_mult", 0.0)), 1.25, 0.001)
+	assert_eq(str(CombatPassives.get_def("eq_mythic_lucian").get("status_id", "")), "bleed")
+
+
+func test_mythic_pool_covers_four_weapon_types() -> void:
+	assert_eq(_MythicLoot.POOL.size(), 6)
+	var weapon_entries: int = 0
+	for entry: Dictionary in _MythicLoot.POOL:
+		if str(entry.get("category", "")) == "weapon":
+			weapon_entries += 1
+			assert_true(_MythicLoot.is_mythic_id(str(entry.get("id", ""))))
+	assert_eq(weapon_entries, 4)
 
 func test_mythic_icons_and_cyan_frame_exist() -> void:
 	assert_true(ResourceLoader.exists("res://assets/ui/equipment/ICO_WPN_BurialCrownGreatsword.png"))
+	assert_true(ResourceLoader.exists("res://assets/ui/equipment/ICO_WPN_VolleyHorizonBow.png"))
+	assert_true(ResourceLoader.exists("res://assets/ui/equipment/ICO_WPN_SeradionStormStaff.png"))
+	assert_true(ResourceLoader.exists("res://assets/ui/equipment/ICO_WPN_NoctumbraFang.png"))
 	assert_true(ResourceLoader.exists("res://assets/ui/equipment/ICO_ARM_ImmortalCenotaphPlate.png"))
 	assert_true(ResourceLoader.exists("res://assets/ui/equipment/ICO_ACC_CouncilHegemonySeal.png"))
 	assert_true(ResourceLoader.exists(EquipmentUiTokens.INV_CELLS[Enums.Rarity.MYTHIC]))
@@ -82,5 +110,7 @@ func test_mythic_icons_and_cyan_frame_exist() -> void:
 		EquipmentUiTokens.INV_CELLS[Enums.Rarity.MYTHIC],
 		"res://assets/ui/equipment_ui/UI_Equip_InvCell_MYTHIC.png"
 	)
-	var w: Texture2D = IconPaths.get_icon_texture("burial_crown_greatsword", "weapon")
-	assert_not_null(w)
+	assert_not_null(IconPaths.get_icon_texture("burial_crown_greatsword", "weapon"))
+	assert_not_null(IconPaths.get_icon_texture("pilgrim_bow_lumen", "weapon"))
+	assert_not_null(IconPaths.get_icon_texture("wisdom_staff_noesis", "weapon"))
+	assert_not_null(IconPaths.get_icon_texture("abyss_fangs_lucian", "weapon"))
