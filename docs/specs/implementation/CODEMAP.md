@@ -55,7 +55,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | EventScene | `scenes/event/EventScene.tscn` | `scripts/event/EventScene.gd`（**P3-EVT-FIELD-001** ギルド情報誌／いまの野外詳細） |
 | ShowcaseScene | `scenes/showcase/ShowcaseScene.tscn` | `scripts/showcase/ShowcaseScene.gd`（**P3-SHOWCASE-001** 展示室・自慢キャラ） |
 | SurveyScene | `scenes/survey/SurveyScene.tscn` | `scripts/survey/SurveyScene.gd`（**P3-HUB-SURVEY-001** 調査室。スタッフ＝`SurveyStaff`。ノノカは **P3-SURVEY-NONOKA-JOIN-001** で③クリア後合流） |
-| CommanderScene | `scenes/commander/CommanderScene.tscn` | `scripts/commander/CommanderScene.gd`（**P3-CMD-001** 隊長台帳・C級解放）・**P3-CMD-RANKUP-001** `CommanderRankUpOverlay`（拠点ランクアップ祝辞） |
+| CommanderScene | `scenes/commander/CommanderScene.tscn` | `scripts/commander/CommanderScene.gd`（**P3-CMD-001** 隊長台帳・**P3-CMD-RANK-REWARD-001** 閾値D0/C200/B700/A1500/S2800・到達手当・称号枠）・**P3-CMD-RANKUP-001** `CommanderRankUpOverlay`（拠点ランクアップ祝辞） |
 | SettingsScene | `scenes/settings/SettingsScene.tscn` | `scripts/settings/SettingsScene.gd`（設定 MVP・`SettingsPrefs`・特典コード P3-UX-REDEEM-001） |
 
 **遷移:** Boot → Title →（Continue: load→ Base / Pick｜New Game: reset→ Pick→ Base）→ Dungeon → Result →（Equipment / **Blacksmith** / **Codex**）→ Base
@@ -81,7 +81,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 - 状態異常アイコン: ルート直下 HBox（敵 + Chr0〜2 + 群れ行）— HP バー上に追従（P3-UI2-013 / P3-D110 群れ行）。`StatusResolver.get_active_status_list()`
 
 **BaseScene ノード（P3-UI-Base-A / 003_01 Phase A）:**
-- `HubView` — 城背景・`TopBar`（**指揮官カード** P3-CMD-001 + Gold/魔晶石）・`LeftMenuPanel`（調査室はオミット）・**NinaNavPanel**（**P3-UI-NINA-NAV-001** 右上顔＋吹き出し・10秒／タップ。吹き出し下に調査室ショートカット）・**FieldSurveyBanner**（**P3-EVT-FIELD-001** ギルド情報誌・30分スロット・タップで EventScene）＋右上クリック誘導ロゴ（拡縮点滅・タップ可）・`CurrencyStrip`・`DailyMissionPanel`（ジャンルアイコン）。初回のみ **HubSimpleGuideOverlay**（P3-UI-HUB-GUIDE-001）
+- `HubView` — 城背景・`TopBar`（**指揮官カード** P3-CMD-001 + **SP進捗バー** P3-CMD-RANK-REWARD-001 + Gold/魔晶石）・`LeftMenuPanel`（調査室はオミット）・**NinaNavPanel**（**P3-UI-NINA-NAV-001** 右上顔＋吹き出し・10秒／タップ。吹き出し下に調査室ショートカット）・**FieldSurveyBanner**（**P3-EVT-FIELD-001** ギルド情報誌・30分スロット・タップで EventScene）＋右上クリック誘導ロゴ（拡縮点滅・タップ可）・`CurrencyStrip`・`DailyMissionPanel`（ジャンルアイコン）。初回のみ **HubSimpleGuideOverlay**（P3-UI-HUB-GUIDE-001）
 - `DungeonSelectScene` — ルートタブ（メイン／イベント／無限）。**DungeonRouteGuideOverlay**（P3-DG-ROUTE-GUIDE-001: イベント／降臨／無限の手引きボタン＋初回P分け）
 - `MenuGridView` — 003_02 系 3×3 メニュー（下ナビ「メニュー」で切替）
 - `BottomNav` — 6タブ（ホーム/パーティ/冒険/強化/ショップ/メニュー）・`BottomNavHelper` + `NavIconHelper`
