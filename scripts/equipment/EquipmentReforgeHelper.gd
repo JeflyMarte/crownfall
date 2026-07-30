@@ -55,6 +55,13 @@ static func can_reforge(item: Resource, mod_index: int) -> Dictionary:
 	if not bool(item.is_appraised):
 		return fail.call("未鑑定の装備は焼直しできません")
 	if mod_index < 0:
+		var any_reforgeable: bool = false
+		for m: Variant in _ERM.get_mods(item):
+			if m is Dictionary and is_mod_reforgeable(m as Dictionary):
+				any_reforgeable = true
+				break
+		if not any_reforgeable:
+			return fail.call("焼直しできる効果がありません")
 		return fail.call("再抽選する効果を選んでください")
 	var mods: Array = _ERM.get_mods(item)
 	if mod_index >= mods.size():
