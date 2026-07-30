@@ -14,22 +14,19 @@ const MODE_TAB_OWN := Rect2(78, 152, 282, 72)
 const MODE_TAB_STAFF := Rect2(360, 152, 282, 72)
 const MODE_ROW := Rect2(78, 152, 564, 72)
 ## スタッフ作例の切替（一覧ボタン）。総合戦力の左・非重複。
-const STAFF_LIST_RECT := Rect2(72, 930, 148, 56)
+const STAFF_LIST_RECT := Rect2(72, 924, 148, 56)
 const EQUIP_RECT := Rect2(70, 175, 168, 580)
 const STATS_RECT := Rect2(482, 175, 168, 460)
 const IDLE_CENTER := Vector2(360, 688)
 const IDLE_HOST_SIZE := Vector2(260, 320)
 ## 名前テキストのみ（枠なし）。台座下〜下ナビ上へ。
 const FOOTER_RECT := Rect2(100, 1030, 520, 90)
-## 総合戦力（名札上。文言より少し長い横幅＋先端オーナメント分）。
-const POWER_RECT := Rect2(222, 924, 380, 54)
+## 総合戦力（名札上）。横幅は「自分の展示」タブと同寸。9-slice 禁止（黒マット伸び）。
+const POWER_RECT := Rect2(222, 918, 282, 68)
 ## 名札枠上辺の欠けた横線を補完（焼込角飾り ≈ y1033・左右内側）。
 const NAME_FRAME_TOP_RULE := Rect2(242, 1032, 236, 3)
 ## 自分の展示：キャラ変更（装備とステのあいだ・やや右寄せ・短め）。
 const CHANGE_MEMBER_RECT := Rect2(248, 248, 188, 44)
-## 総合戦力フレームの 9-slice（先端オーナメント保護）。
-const POWER_FRAME_MARGINS := Vector4i(148, 36, 148, 36)
-const POWER_FRAME_CONTENT_MARGIN: float = 40.0
 const EMPTY_RECT := Rect2(90, 210, 540, 400)
 const BODY_BOTTOM_PAD: float = 128.0
 ## 装備セル相対オフセット（パネル左上基準）。レア枠付きセル中央寄せ。
@@ -75,29 +72,9 @@ static func load_tex(path: String) -> Texture2D:
 	return load(path) as Texture2D
 
 
-static func power_frame_style() -> StyleBox:
-	var tex: Texture2D = load_tex(POWER_FRAME)
-	if tex == null:
-		var fallback := StyleBoxFlat.new()
-		fallback.bg_color = Color(0.05, 0.04, 0.07, 0.82)
-		fallback.set_border_width_all(1)
-		fallback.border_color = Color(0.86, 0.72, 0.36, 0.85)
-		fallback.set_corner_radius_all(6)
-		fallback.set_content_margin_all(10.0)
-		return fallback
-	var sb := StyleBoxTexture.new()
-	sb.texture = tex
-	sb.texture_margin_left = float(POWER_FRAME_MARGINS.x)
-	sb.texture_margin_top = float(POWER_FRAME_MARGINS.y)
-	sb.texture_margin_right = float(POWER_FRAME_MARGINS.z)
-	sb.texture_margin_bottom = float(POWER_FRAME_MARGINS.w)
-	sb.content_margin_left = POWER_FRAME_CONTENT_MARGIN
-	sb.content_margin_top = 4.0
-	sb.content_margin_right = POWER_FRAME_CONTENT_MARGIN
-	sb.content_margin_bottom = 4.0
-	sb.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
-	sb.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
-	return sb
+static func power_frame_texture() -> Texture2D:
+	## 黒マット付き枠は StyleBoxTexture 9-slice 禁止（角に黒が伸びる）。TextureRect 直置き。
+	return load_tex(POWER_FRAME)
 
 
 static func content_panel_style() -> StyleBoxEmpty:

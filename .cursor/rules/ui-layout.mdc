@@ -53,6 +53,7 @@ alwaysApply: false
 - 装備セルのアイコン余白は `EquipmentUiTokens.ICON_FRAME_MARGIN_PX`（**18**）。全面キャンバス絵で枠食い込みを再発させない
 - **弓のみ** `BOW_ICON_INSET_SCALE`（0.55）で inset 縮小し大きく見せる（鍛冶屋と同ポリシー。`icon_inset_for_item`）
 - ホームのイベントバナー等は **左メニューと重ねない**（メニュー下端＋余白）
+- **黒マット付き装飾枠を `StyleBoxTexture` 9-slice しない**（角／帯に黒が伸び、金枠だけ短く見える）。書籍・展示室総合戦力は `TextureRect` 直置き
 
 ## 拠点 Hub × セーフエリア（再発防止・必須）
 
