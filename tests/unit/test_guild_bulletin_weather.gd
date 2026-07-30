@@ -45,6 +45,16 @@ func test_bulletin_active_weather_only() -> void:
 	assert_eq(CombatWeather.bulletin_active_weather_text("clear"), "")
 
 
+func test_weather_effect_one_line_for_legend() -> void:
+	assert_eq(CombatWeather.effect_one_line(CombatWeather.CLEAR), "")
+	assert_eq(CombatWeather.effect_one_line(""), "")
+	assert_eq(CombatWeather.effect_one_line(CombatWeather.RAIN), "雨:雷与ダメ+10%／炎与ダメ−5%")
+	assert_eq(CombatWeather.effect_one_line(CombatWeather.FOG), "霧:与ダメ・被ダメとも×0.97")
+	assert_eq(CombatWeather.effect_one_line(CombatWeather.SNOW), "吹雪:氷与ダメ+10%／炎与ダメ−5%")
+	var rain_def: Dictionary = CombatWeather.legend_icon_def(CombatWeather.RAIN)
+	assert_eq(str(rain_def.get("abbrev", "")), "雨")
+
+
 func test_field_event_effect_summary_includes_combat() -> void:
 	var summary: String = CombatWeather.field_event_effect_summary(CombatWeather.RAIN)
 	assert_true(summary.begins_with("・"))
