@@ -22,7 +22,7 @@ func test_set_resources_and_rarity() -> void:
 	assert_not_null(DataRegistry.get_accessory_data("valgard_antique_amulet"))
 	assert_eq(int(DataRegistry.get_weapon_data("chronos_toki_sword").rarity), Enums.Rarity.SET)
 	assert_eq(int(DataRegistry.get_armor_data("valgard_antique_armor").rarity), Enums.Rarity.SET)
-	assert_eq(CodexContentHelper.rarity_label(Enums.Rarity.SET), "セット")
+	assert_eq(CodexContentHelper.rarity_label(Enums.Rarity.SET), "エンシェントレア")
 
 
 func test_old_exclusives_removed() -> void:

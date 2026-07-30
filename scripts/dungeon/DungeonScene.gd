@@ -10514,7 +10514,7 @@ func _maybe_celebrate_rare_equip_drop(item_id: String, category: String, force_m
 	var display: String = _equip_drop_display_name(item_id, category)
 	if display.is_empty():
 		display = item_id
-	var tier_label: String = "セット" if is_set else ("M" if is_mythic else "L")
+	var tier_label: String = "エンシェントレア" if is_set else ("M" if is_mythic else "L")
 	AudioManager.play_sfx("legendary_drop", 1.0, 0.0)
 	AudioManager.play_sfx("treasure", 1.05, 0.0)
 	_spawn_relic_confetti(40 if is_mythic else 28)

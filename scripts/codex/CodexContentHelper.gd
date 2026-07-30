@@ -21,7 +21,7 @@ const ELEMENT_NAMES: Dictionary = {
 }
 
 ## 装備レア表示（P3-UI-RARITY-NREL-001）。キャラ★とは別。
-const RARITY_NAMES: Array[String] = ["N", "R", "E", "L", "M", "セット"]
+const RARITY_NAMES: Array[String] = ["N", "R", "E", "L", "M", "エンシェントレア"]
 
 const DUNGEON_CODEX_META: Dictionary = {
 	"mourngate": {
