@@ -5608,3 +5608,14 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 | P3-UI-CHR-GLOW-JOB-001-5 | **ツール** — `tools/recolor_chr_icon_job_glow.py` | 再実行・差分再焼用 |
 | P3-UI-CHR-GLOW-JOB-001-6 | **後続** — 肩／縁の食い込みが目立つ個体は手動磨き | 塗りつぶし放射＋暖色リムの限界 |
 
+## CHRアイコン焼き込み枠除去（2026-07-30 — P3-UI-CHR-FRAME-STRIP-001）
+
+> **オーナー GO（案A）** — Ald／Garen だけ焼き込み枠があり他と不一致。助っ人同様に枠除去して統一。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UI-CHR-FRAME-STRIP-001-1 | **方針** — Ald／Garen の焼き込み枠を除去（他キャラに枠を足さない） | 案A・UIクロム二重回避 |
+| P3-UI-CHR-FRAME-STRIP-001-2 | **対象** — `ICO_CHR_Ald`／`ICO_CHR_Garen` のみ | 他は枠なし |
+| P3-UI-CHR-FRAME-STRIP-001-3 | **ツール** — `tools/strip_chr_icon_frames.py` | 再実行用。縁接続＋角幾何で金／紫枠を消去 |
+| P3-UI-CHR-FRAME-STRIP-001-4 | **保護** — 顔／肩（獅子紋）は変更しない | キャラ金装飾を消さない |
+

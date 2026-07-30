@@ -169,6 +169,7 @@ alwaysApply: true
 | Noto 本文が薄い | Variable `wght` 600/700 のまま、または `UiTypography` 未適用／テーマ未同期。700 でも Mobile＋小サイズでは体感薄い | `BODY_FONT_WEIGHT=800`＋`variation_embolden`。`production_theme.tres` の FontVariation も同値。本文は必ず `UiTypography.body_font()`。変更はコミットする（未コミットだと再起動・別セッションで 600 に戻って見える） |
 | キャラ切替 ◀▶ が消える | テーマ Button フォントが DelaGothic（矢印グリフ無し）＋ StyleBox 余白＋ `clip_text`＋過小 font | nav は flat＋`StyleBoxEmpty`＋Noto body＋十分な font_size。幅圧縮だけしてグリフを潰さない |
 | キャラアイコンの放射だけ色を変えたつもりが顔／鎧まで染まる | `modulate`／単純色置換は暖色リムと放射が同系色 | PNG焼き直し。`tools/recolor_chr_icon_job_glow.py`（bust ellipse＋非glow保護）。色は `PartyLogColors` |
+| Ald／Garen だけアイコンに枠があり他キャラと不一致 | 差替PNGに焼き込み枠。ジョブ色焼きで枠が紫寄せになることも | 枠は UI 側。焼き込みは `tools/strip_chr_icon_frames.py` で除去（顔／獅子紋は保護） |
 | キャラ切替が ◀▶ のみで人数増に不便 | 旧 MemberSelectRow は非表示のまま | 名前横「一覧」シート（`_get_view_members` と同一）。AcceptDialog 禁止 |
 
 ## Git / ツール
