@@ -125,6 +125,51 @@ static func label(weather: String) -> String:
 	return "晴れ"
 
 
+## 戦闘レジェンド用の短い効果要約（`表示名:効果` の右側）。
+static func effect_summary_compact(weather: String) -> String:
+	match normalize(weather):
+		RAIN:
+			return "雷与ダメ+10%／炎与ダメ−5%"
+		NIGHT:
+			return "闇与ダメ+10%／聖与ダメ−5%"
+		FOG:
+			return "与ダメ・被ダメとも×0.97"
+		HEAT:
+			return "炎与ダメ+10%／氷与ダメ−5%"
+		SNOW:
+			return "氷与ダメ+10%／炎与ダメ−5%"
+		_:
+			return ""
+
+
+## 状態異常レジェンドと同型の1行（晴れ／不明は空）。
+static func effect_one_line(weather: String) -> String:
+	var wid: String = normalize(weather)
+	if wid == CLEAR:
+		return ""
+	var summary: String = effect_summary_compact(wid)
+	if summary.is_empty():
+		return label(wid)
+	return "%s:%s" % [label(wid), summary]
+
+
+## レジェンド暫定バッジ（専用ICO未配置時）。abbrev / color。
+static func legend_icon_def(weather: String) -> Dictionary:
+	match normalize(weather):
+		RAIN:
+			return {"abbrev": "雨", "color": Color(0.35, 0.55, 0.85)}
+		NIGHT:
+			return {"abbrev": "夜", "color": Color(0.45, 0.35, 0.7)}
+		FOG:
+			return {"abbrev": "霧", "color": Color(0.55, 0.58, 0.62)}
+		HEAT:
+			return {"abbrev": "炎", "color": Color(0.95, 0.45, 0.2)}
+		SNOW:
+			return {"abbrev": "雪", "color": Color(0.55, 0.75, 0.95)}
+		_:
+			return {"abbrev": "天", "color": Color(0.5, 0.5, 0.5)}
+
+
 ## プレイヤー向け効果行（ギルド情報誌・図鑑と共有）。先頭に「・」は付けない。
 static func effect_bullet_lines(weather: String) -> PackedStringArray:
 	match normalize(weather):

@@ -2899,6 +2899,52 @@ func _make_status_legend_row(status_id: String) -> HBoxContainer:
 	return row
 
 
+func _make_weather_legend_row(weather: String) -> HBoxContainer:
+	## 状態異常行と同型。専用ICOは未配置のため略称バッジ（後差替可）。
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var def: Dictionary = CombatWeather.legend_icon_def(weather)
+	var icon := PanelContainer.new()
+	icon.custom_minimum_size = Vector2(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var style := StyleBoxFlat.new()
+	style.bg_color = def.get("color", Color(0.5, 0.5, 0.5))
+	style.set_corner_radius_all(4)
+	style.set_border_width_all(1)
+	style.border_color = Color(0, 0, 0, 0.85)
+	icon.add_theme_stylebox_override("panel", style)
+	var glyph := Label.new()
+	glyph.text = str(def.get("abbrev", "天"))
+	glyph.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	glyph.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	glyph.add_theme_font_size_override("font_size", 14)
+	glyph.add_theme_color_override("font_color", Color.WHITE)
+	glyph.add_theme_constant_override("outline_size", 2)
+	glyph.add_theme_color_override("font_outline_color", Color.BLACK)
+	glyph.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	glyph.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	glyph.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.add_child(glyph)
+	icon.tooltip_text = CombatWeather.label(weather)
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(icon)
+	var line: String = CombatWeather.effect_one_line(weather)
+	if line.is_empty():
+		line = CombatWeather.label(weather)
+	var lbl := Label.new()
+	lbl.text = line
+	lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+	lbl.clip_text = false
+	lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	UiTypography.apply_body(lbl, UiTypography.SIZE_CAPTION, UiTypography.COLOR_BODY)
+	row.add_child(lbl)
+	return row
+
+
 func _update_status_legend() -> void:
 	if _status_legend_panel == null or _status_legend_list == null:
 		return
@@ -2907,10 +2953,15 @@ func _update_status_legend() -> void:
 	if not $CombatController.is_in_combat:
 		_status_legend_panel.visible = false
 		return
+	var weather: String = CombatWeather.normalize(GameState.get_weather())
+	var show_weather: bool = weather != CombatWeather.CLEAR
 	var ids: Array[String] = _collect_active_status_ids()
-	if ids.is_empty():
+	if not show_weather and ids.is_empty():
 		_status_legend_panel.visible = false
 		return
+	## 天候などラン環境効果を状態異常より上に（P3-UX-STATUS-LEGEND-002）。
+	if show_weather:
+		_status_legend_list.add_child(_make_weather_legend_row(weather))
 	for status_id: String in ids:
 		_status_legend_list.add_child(_make_status_legend_row(status_id))
 	_layout_status_legend()
