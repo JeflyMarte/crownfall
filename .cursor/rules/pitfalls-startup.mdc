@@ -1,0 +1,34 @@
+---
+description: 起動・パース即死の既往（常時注入・短冊）。詳細カタログは known-pitfalls.mdc（按需）
+alwaysApply: true
+---
+
+# 起動即死ピットフォール（常時）
+
+パース／autoload／シーンロードで即死する既往のみ。UI・演出の詳細は `known-pitfalls.mdc`（按需）と領域 `.mdc`。
+
+| 症状 | 再発防止 |
+|---|---|
+| 鍛冶屋入場で即終了 | `maxf` は最大2引数 → `maxf(a, maxf(b, c))`。変更後 headless で BlacksmithScene |
+| ダンジョン入場で即終了（Too few arguments） | 静的ヘルパ名を組み込みと被らせない（`wrap`→`bb_wrap`）。DungeonScene ロード確認 |
+| `sort_custom(func(...):` で Identifier not found | ラムダで外側ローカル `const` を捕獲しない。名前付きメソッドへ |
+| `CurrencyGainFx` 未解決／tween パース失敗 | 複数行ラムダ＋`,` や複雑なインライン Callable 禁止。`_make_*` で Callable 返却 |
+| `Expected statement, found "else"` | Python の `for`/`else`・`while`/`else` 禁止。フラグループ（`gdscript.mdc`） |
+| GUT `COLOR_BODY` not declared | `COLOR_*` と `UiTypography.COLOR_*` を混同しない |
+| `.tscn` で親 vanish | `.tscn` コメントは `;` のみ。`##` 禁止 |
+| Boot 黒画面・`inherits from Control, can't assign to Node` | スクリプト `extends` とシーンルート型を一致。Boot は `Node` |
+| autoload 失敗／壊れた UID | 実在パスのみ。空 autoload・不正 `uid://` 禁止。headless 起動確認 |
+| `custom_maximum_size` で即終了 | Godot 4.6.3 未実装。`custom_minimum_size`＋`SIZE_SHRINK_*`（`gdscript.mdc`） |
+| `LAYOUT_MODE_POSITION` 等で即終了 | 4.6.3 GDScript に無い定数禁止。コンテナ外はアンカー配置 |
+| `InputEvent.accept_event()` で Abort | `Control.accept_event()` を使う |
+| API 差し戻し後に arity 不一致でパース失敗 | 呼び出し側 arity を同時確認。optional 第2引数で互換を残す場合あり |
+| 図鑑等で参照メソッド欠落 | public API 削除・リネーム時は呼び出し側を一括検索 |
+| `HubLayoutHelper` が `SafeAreaHelper` 未解決 | class_name 同士は `preload`（`-s` ツール順対策） |
+| ダンジョン選択で外側 const＋ラムダ | 上記 `sort_custom` と同じ。比較はメソッドへ |
+| `_execute_member_buff` 差し替えで `label` not declared | 引数追加時に return 文言ブロックを残す。DungeonScene ロード確認 |
+| ガチャ画面メンバ欠落でパース失敗→黒画面 | HEAD の `_setup_gacha_atmosphere` 等を維持。定数は参照前に定義 |
+| `balance_sim` で `GameState` / `is_pet_member` 未解決 | `-s` は autoload 欠けることあり。実行時解決／`PetSystem` class_name。sim は seed |
+
+## 変更後の最低確認
+
+起動経路を触ったら **headless で該当シーン instantiate／プロジェクト起動**。UI 系は領域ルール＋按需カタログへ。
