@@ -5595,3 +5595,16 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 | P3-BAL-RELIC-ACC-CD-001-D2 | **盟約の加護** — 全体小鼓舞 → 開幕味方必殺ゲージ+25 | 開幕必殺／サポ核 |
 | P3-BAL-RELIC-ACC-CD-001-D3 | **据置** — 封緘（全体防御）／潮灯（全体標）／境界（倒時防御） | 既に役割が異なる |
 
+## キャラアイコン放射のジョブ色分け（2026-07-30 — P3-UI-CHR-GLOW-JOB-001）
+
+> **オーナー指示** — 背景の放射光（サンバースト）をジョブ／ペット色へ。全キャラ＋ペット＋助っ人。焼き直し（案A）。色は `PartyLogColors` 流用。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UI-CHR-GLOW-JOB-001-1 | **方式** — PNG 焼き直し（単純 modulate 禁止） | 顔／鎧まで染まるため |
+| P3-UI-CHR-GLOW-JOB-001-2 | **色** — `PartyLogColors`（職5色＋pet_jack/ash/ink） | UI名色と一致 |
+| P3-UI-CHR-GLOW-JOB-001-3 | **範囲** — 基本5＋Jack/Ash/Ink＋全 `ART_HELPER_*`（omitted含む肖像） | オーナー: 全キャラ・ペット含む |
+| P3-UI-CHR-GLOW-JOB-001-4 | **枠** — 既定は放射のみ（金枠クロムは据置。`--frame` で任意） | 二重クロム回避 |
+| P3-UI-CHR-GLOW-JOB-001-5 | **ツール** — `tools/recolor_chr_icon_job_glow.py` | 再実行・差分再焼用 |
+| P3-UI-CHR-GLOW-JOB-001-6 | **後続** — 肩／縁の食い込みが目立つ個体は手動磨き | 塗りつぶし放射＋暖色リムの限界 |
+
