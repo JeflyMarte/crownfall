@@ -203,9 +203,10 @@ def build_monster_art_map() -> dict[str, str]:
     return mapped
 
 
-def gen_monsters(monster_art: dict[str, str], materials):
+def gen_monsters(monster_art: dict[str, str], materials, skills):
     enemies = load_dir("enemies")
     mat_by_id = {m["id"]: m for m in materials}
+    sk_name = {s["id"]: s["display_name"] for s in skills}
     lines = [
         "# モンスター図鑑",
         "",
@@ -213,6 +214,7 @@ def gen_monsters(monster_art: dict[str, str], materials):
         "",
         "!!! note \"数値について\"",
         "    表の HP・攻撃はリソース上の基礎値。Hard／Nightmare・深層では敵レベル補正が乗ります。",
+        "    スキル名は `skill_ids` の現行データ。詳細倍率は[スキル一覧](skills.md)。",
         "",
         "| モンスター | 種別 | HP | 攻撃 | 弱点 | 危険度 | 生息地 |",
         "|---|---|---:|---:|---|---|---|",
@@ -236,6 +238,13 @@ def gen_monsters(monster_art: dict[str, str], materials):
             )
             lines.append("")
         danger = "★" * int(e.get("codex_danger", 0)) or "—"
+        skill_ids = e.get("skill_ids") or []
+        if isinstance(skill_ids, str):
+            skill_ids = [skill_ids] if skill_ids else []
+        skill_txt = (
+            " / ".join(sk_name.get(sid, sid) for sid in skill_ids) if skill_ids else "—"
+        )
+        chance = e.get("skill_use_chance")
         lines += [
             "| 項目 | 値 |",
             "|---|---|",
@@ -249,6 +258,11 @@ def gen_monsters(monster_art: dict[str, str], materials):
             f"| クリティカル率 | {pct(e.get('critical_rate'))} |",
             f"| 弱点属性 | {fmt_elements(e.get('element_weakness'))} |",
             f"| 耐性属性 | {fmt_elements(e.get('element_resist'))} |",
+            f"| スキル | {skill_txt} |",
+        ]
+        if chance not in (None, "", 0, 0.0):
+            lines.append(f"| スキル使用率 | {pct(chance)} |")
+        lines += [
             f"| 経験値 | {e.get('exp_reward', '?')} |",
             f"| ゴールド | {e.get('gold_reward', '?')} |",
             f"| 生息地 | {e.get('codex_habitat', '—')} |",
@@ -518,7 +532,7 @@ def main():
     skills = load_dir("skills")
     materials = load_dir("materials")
     print("Generating data pages...")
-    gen_monsters(monster_art, materials)
+    gen_monsters(monster_art, materials, skills)
     gen_weapons(skills)
     gen_equipment()
     gen_jobs(skills)
