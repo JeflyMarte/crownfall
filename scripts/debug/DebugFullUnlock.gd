@@ -2,7 +2,7 @@ class_name DebugFullUnlock
 extends RefCounted
 
 ## タイトル「デバッグ」用フル所持プリセット。
-## 金 999999 / 魔晶石 9999・全装備（武／防／装）・全キャラ LvMAX・図鑑全開放・進行解放。
+## 金 999999 / 魔晶石 9999・全装備（武／防／装）・全キャラ LvMAX・図鑑全開放・ペット全開放・進行解放。
 
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
@@ -37,15 +37,7 @@ static func apply() -> void:
 	TicketInventory.grant_debug_stock(Constants.DEBUG_TICKET_GRANT_EACH)
 	_unlock_all_progress()
 	_unlock_all_codex()
-	var _PetSystem = preload("res://scripts/pets/PetSystem.gd")
-	_PetSystem.unlock_pet(_PetSystem.PET_ASH_ID, false)
-	_PetSystem.unlock_pet(_PetSystem.PET_INK_ID, false)
-	_PetSystem.grant_starter_pet()
-	## LvMAX 後に解放スキルを装備へ反映
-	if GameState.active_pet != null:
-		GameState.active_pet.level = LevelSystem.MAX_LEVEL
-		GameState.active_pet.exp = 0
-		_PetSystem.sync_pet_runtime(GameState.active_pet)
+	_unlock_all_pets()
 	GameState.current_dungeon_id = Constants.MOURNGATE_DUNGEON_ID
 	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
 	var first_stage: Resource = DataRegistry.get_stage_by_chapter(Constants.MOURNGATE_DUNGEON_ID, 1)
@@ -255,7 +247,27 @@ static func _unlock_all_codex() -> void:
 		var lid: String = str(lore.get("id", ""))
 		if not lid.is_empty():
 			_DiscoveryRegistry.register("lore", lid)
+	## 歴史・断片は bake 全件を登録（STARTER のみだと欠ける）。
+	var catalog := _CatalogHelper.new()
+	for raw in catalog._load_history_bible_entries():
+		var he_id: String = str(raw.get("id", ""))
+		if not he_id.is_empty():
+			_DiscoveryRegistry.register("history", he_id)
+	for raw2 in catalog._load_fragment_entries():
+		var lf_id: String = str(raw2.get("id", ""))
+		if not lf_id.is_empty():
+			_DiscoveryRegistry.register("lore", lf_id)
 	for he_id in _CatalogHelper.STARTER_HISTORY_IDS:
 		_DiscoveryRegistry.register("history", str(he_id))
 	for room_id in ["heal", "treasure", "merchant", "event", "elite", "trap"]:
 		_DiscoveryRegistry.register("room", room_id)
+
+
+static func _unlock_all_pets() -> void:
+	var _PetSystem = preload("res://scripts/pets/PetSystem.gd")
+	_PetSystem.unlock_all_pets_for_debug()
+	## LvMAX 後に解放スキルを装備へ反映
+	if GameState.active_pet != null:
+		GameState.active_pet.level = LevelSystem.MAX_LEVEL
+		GameState.active_pet.exp = 0
+		_PetSystem.sync_pet_runtime(GameState.active_pet)

@@ -6,6 +6,8 @@ extends RefCounted
 const STARTER_PET_ID: String = "pet_jack"
 const PET_ASH_ID: String = "pet_ash"
 const PET_INK_ID: String = "pet_ink"
+## プレイ可能オトモ全ID（デバッグ全開放・編成順）。
+const ALL_PET_IDS: Array[String] = [STARTER_PET_ID, PET_ASH_ID, PET_INK_ID]
 const PET_DATA_PATH: String = "res://resources/pets/%s.tres"
 const PLACEHOLDER_SPRITE: String = "res://resources/animation/PET_Jack.tres"
 ## 陣形UI外の固定前衛スロット（DungeonScene FORMATION_SLOT_RATIOS[4]）
@@ -112,6 +114,11 @@ static func ensure_owned_pets_seeded() -> void:
 
 
 static func owns_pet(pet_id: String) -> bool:
+	if pet_id.is_empty() or not is_pet_id(pet_id):
+		return false
+	## デバッグフル所持中は全オトモを所持扱い（図鑑／編成）。
+	if GameState.debug_full_unlock and get_pet_data(pet_id) != null:
+		return true
 	if pet_id == STARTER_PET_ID and not is_starter_pet_granted():
 		return false
 	ensure_owned_pets_seeded()
@@ -120,16 +127,23 @@ static func owns_pet(pet_id: String) -> bool:
 
 static func owned_pet_ids_ordered() -> Array[String]:
 	ensure_owned_pets_seeded()
-	var order: Array[String] = [STARTER_PET_ID, PET_ASH_ID, PET_INK_ID]
+	var order: Array[String] = ALL_PET_IDS.duplicate()
 	var out: Array[String] = []
 	for pid in order:
-		if GameState.owned_pet_ids.has(pid):
+		if owns_pet(pid):
 			out.append(pid)
 	for pid_v in GameState.owned_pet_ids:
 		var pid: String = str(pid_v)
-		if not out.has(pid) and is_pet_id(pid):
+		if not out.has(pid) and is_pet_id(pid) and owns_pet(pid):
 			out.append(pid)
 	return out
+
+
+## デバッグ用: 全オトモを所持に入れる（通知なし）。
+static func unlock_all_pets_for_debug() -> void:
+	grant_starter_pet()
+	for pid in ALL_PET_IDS:
+		unlock_pet(str(pid), false)
 
 
 static func unlock_pet(pet_id: String, notify: bool = true) -> bool:

@@ -63,11 +63,27 @@ func test_debug_full_unlock_max_levels_and_codex() -> void:
 	var armors: Array = DataRegistry.get_all_armor_data()
 	assert_gt(armors.size(), 0)
 	assert_true(CatalogHelper.is_discovered("armor", str(armors[0].armor_id)))
+	## 歴史 bake 全件も開示
+	assert_true(CatalogHelper.is_discovered("history", "HE-001"))
+	assert_true(CatalogHelper.is_discovered("history", "HE-050"))
 	## debug_full_unlock フラグだけで図鑑開示が立つ
 	GameState.discovery_registry.clear()
 	GameState.enemy_codex.clear()
 	assert_true(CatalogHelper.is_discovered("dungeon", "mistfen"))
 	assert_eq(GameState.get_enemy_stage("serdion"), 5)
+	assert_true(CatalogHelper.is_discovered("history", "HE-025"))
+
+
+func test_debug_full_unlock_all_pets() -> void:
+	const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
+	_DebugFullUnlock.apply()
+	for pid in _PetSystem.ALL_PET_IDS:
+		assert_true(_PetSystem.owns_pet(str(pid)), str(pid))
+	assert_eq(_PetSystem.owned_pet_ids_ordered().size(), _PetSystem.ALL_PET_IDS.size())
+	## フラグだけで所持扱い（セーブ欠落でも編成で欠けない）
+	GameState.owned_pet_ids = ["pet_jack"]
+	assert_true(_PetSystem.owns_pet("pet_ash"))
+	assert_true(_PetSystem.owns_pet("pet_ink"))
 
 
 func test_debug_save_uses_separate_slot_without_touching_normal() -> void:

@@ -123,7 +123,7 @@ func _build_ui() -> void:
 	_confirm_debug.title = "デバッグ"
 	_confirm_debug.dialog_text = (
 		"デバッグ専用セーブで開始します（本編のセーブは消えません）。\n"
-		+"（図鑑全開放・全装備・キャラLvMAX・金999999・魔晶石9999・進行解放）\nよろしいですか？"
+		+"（図鑑全開放・ペット全開放・全装備・キャラLvMAX・金999999・魔晶石9999・進行解放）\nよろしいですか？"
 	)
 	_confirm_debug.ok_button_text = "デバッグ開始"
 	_confirm_debug.cancel_button_text = "やめる"
