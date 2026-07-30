@@ -34,5 +34,5 @@ codex_danger = 4
 codex_habitat = "最果て氷裂・吹雪帯"
 codex_research_note = "猛禽を祖先とし、翼で真空の刃を起こす高空種。吹雪の筋に乗り、後列を切り裂いて去る。姿より先に風の裂け目が来る、と報告される。"
 codex_materials = Array[String]([])
-skill_ids = Array[String](["enemy_mist_breath", "enemy_wind_slash"])
+skill_ids = Array[String](["enemy_rift_gust", "enemy_wind_slash"])
 skill_use_chance = 0.32
