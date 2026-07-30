@@ -16,6 +16,8 @@ const DEFINITIONS: Array[Dictionary] = [
 	{"id": "title_max_hit_5k", "label": "規格外の戦果", "description": "最大一撃が5000を超えた"},
 	{"id": "title_hard_clear", "label": "危険区域指定", "description": "ハード難易度を初クリアした"},
 	{"id": "title_mvp_streak", "label": "右腕の証", "description": "同一仲間がMVPを10回取った"},
+	{"id": "title_rank_b", "label": "遠域調査官", "description": "調査許可B級に到達した"},
+	{"id": "title_rank_s", "label": "広域調査官", "description": "調査許可S級に到達した"},
 	{"id": "title_nameless", "label": "無名の継承者", "description": "名前を変えずにS級に到達した", "hidden": true},
 ]
 
@@ -58,6 +60,10 @@ static func _is_unlocked(title_id: String) -> bool:
 			return _any_hard_cleared()
 		"title_mvp_streak":
 			return _any_mvp_count_at_least(10)
+		"title_rank_b":
+			return _CommanderProfile.is_rank_at_least("B")
+		"title_rank_s":
+			return _CommanderProfile.is_rank_at_least("S")
 		"title_nameless":
 			return (
 				_CommanderProfile.current_rank() == "S"

@@ -3,14 +3,25 @@ extends RefCounted
 
 const _CommanderDefaults := preload("res://scripts/commander/CommanderDefaults.gd")
 const _CommanderSurveyPoints := preload("res://scripts/commander/CommanderSurveyPoints.gd")
+const _CommanderGiftBox := preload("res://scripts/commander/CommanderGiftBox.gd")
 
-## 指揮官（隊長）プロフィール SSOT（P3-CMD-001）。
+## 指揮官（隊長）プロフィール SSOT（P3-CMD-001 / P3-CMD-RANK-REWARD-001）。
 
 const DEFAULT_NAME: String = _CommanderDefaults.DEFAULT_NAME
 
 const RANK_ORDER: Array[String] = ["D", "C", "B", "A", "S"]
 
+## 現行閾値（P3-CMD-RANK-REWARD-001-1）。
 const RANK_THRESHOLDS: Dictionary = {
+	"D": 0,
+	"C": 200,
+	"B": 700,
+	"A": 1500,
+	"S": 2800,
+}
+
+## 改定前閾値（既存セーブ据置用）。
+const LEGACY_RANK_THRESHOLDS: Dictionary = {
 	"D": 0,
 	"C": 100,
 	"B": 350,
@@ -26,16 +37,27 @@ const RANK_SUBTITLES: Dictionary = {
 	"S": "広域調査許可",
 }
 
+## 到達時配布 Gold（配布ボックス経由・P3-CMD-RANK-REWARD-001-3）。
+const RANK_GIFT_GOLD: Dictionary = {
+	"C": 500,
+	"B": 1000,
+	"A": 1500,
+	"S": 3000,
+}
+
 const EXTENDED_RECORDS_UNLOCK_RANK: String = "A"
 const GOLD_SEAL_RANK: String = "S"
+const RANK_CURVE_FLAG: String = "rank_curve_v2"
 
 
 static func ensure_commander() -> void:
 	if GameState.commander is Dictionary and not GameState.commander.is_empty():
 		_sanitize_commander()
+		migrate_rank_curve_v2_if_needed()
 		return
 	GameState.commander = _CommanderDefaults.default_commander_dict()
 	_sanitize_commander()
+	migrate_rank_curve_v2_if_needed()
 
 
 static func get_commander_name() -> String:
@@ -71,15 +93,43 @@ static func survey_points() -> int:
 
 
 static func rank_for_sp(sp: int) -> String:
+	return rank_for_sp_with(RANK_THRESHOLDS, sp)
+
+
+static func rank_for_sp_with(thresholds: Dictionary, sp: int) -> String:
 	var rank: String = "D"
 	for code: String in RANK_ORDER:
-		if sp >= int(RANK_THRESHOLDS.get(code, 0)):
+		if sp >= int(thresholds.get(code, 0)):
 			rank = code
 	return rank
 
 
-static func current_rank() -> String:
+static func higher_rank(a: String, b: String) -> String:
+	var ai: int = RANK_ORDER.find(a.strip_edges().to_upper())
+	var bi: int = RANK_ORDER.find(b.strip_edges().to_upper())
+	if ai < 0:
+		ai = 0
+	if bi < 0:
+		bi = 0
+	return RANK_ORDER[maxi(ai, bi)]
+
+
+## SP のみからの等級（据置フロアなし）。
+static func rank_from_sp_only() -> String:
 	return rank_for_sp(survey_points())
+
+
+## 表示等級。SP等級と acknowledged（据置下限）の高い方（P3-CMD-RANK-REWARD-001-2）。
+static func current_rank() -> String:
+	ensure_commander()
+	var sp_rank: String = rank_from_sp_only()
+	## bootstrap 中は SP のみ（ack 循環を避ける）。
+	if bool(GameState.commander.get("_ack_needs_bootstrap", false)):
+		return sp_rank
+	var ack: String = str(GameState.commander.get("acknowledged_rank", "D")).strip_edges().to_upper()
+	if RANK_ORDER.find(ack) < 0:
+		ack = "D"
+	return higher_rank(sp_rank, ack)
 
 
 ## 拠点で祝辞表示済みの等級。未設定セーブは現行等級で埋めて二重表示を避ける。
@@ -95,14 +145,14 @@ static func get_acknowledged_rank() -> String:
 ## 未表示のランクアップがある場合、到達等級コードを返す（無ければ空）。
 static func pending_rank_up() -> String:
 	bootstrap_acknowledged_rank_if_needed()
-	var current: String = current_rank()
+	var sp_rank: String = rank_from_sp_only()
 	var acknowledged: String = get_acknowledged_rank()
-	if RANK_ORDER.find(current) > RANK_ORDER.find(acknowledged):
-		return current
+	if RANK_ORDER.find(sp_rank) > RANK_ORDER.find(acknowledged):
+		return sp_rank
 	return ""
 
 
-static func acknowledge_rank(rank_code: String = "") -> void:
+static func acknowledge_rank(rank_code: String = "", grant_rewards: bool = true) -> void:
 	ensure_commander()
 	GameState.commander.erase("_ack_needs_bootstrap")
 	var code: String = rank_code.strip_edges().to_upper() if not rank_code.is_empty() else current_rank()
@@ -114,6 +164,8 @@ static func acknowledge_rank(rank_code: String = "") -> void:
 		ack_idx = 0
 	var new_idx: int = RANK_ORDER.find(code)
 	if new_idx >= ack_idx:
+		if grant_rewards:
+			_grant_rank_rewards_between(ack_idx, new_idx)
 		GameState.commander["acknowledged_rank"] = code
 
 
@@ -124,7 +176,35 @@ static func bootstrap_acknowledged_rank_if_needed() -> void:
 	if not bool(GameState.commander.get("_ack_needs_bootstrap", false)):
 		return
 	GameState.commander.erase("_ack_needs_bootstrap")
-	GameState.commander["acknowledged_rank"] = current_rank()
+	GameState.commander["acknowledged_rank"] = rank_from_sp_only()
+
+
+## 閾値改定の一度きりの移行。旧閾値到達分を ack 下限にし、ギフトは出さない。
+static func migrate_rank_curve_v2_if_needed() -> void:
+	if not GameState.commander is Dictionary:
+		return
+	if bool(GameState.commander.get(RANK_CURVE_FLAG, false)):
+		return
+	## evaluate→get_lifetime→ensure 再入を防ぐため先にフラグを立てる。
+	GameState.commander[RANK_CURVE_FLAG] = true
+	var sp: int = _CommanderSurveyPoints.evaluate()
+	var legacy: String = rank_for_sp_with(LEGACY_RANK_THRESHOLDS, sp)
+	var ack: String = str(GameState.commander.get("acknowledged_rank", "D")).strip_edges().to_upper()
+	if RANK_ORDER.find(ack) < 0:
+		ack = "D"
+	## bootstrap 待ちは旧閾値到達で埋める（新閾値で下げない）。
+	if bool(GameState.commander.get("_ack_needs_bootstrap", false)):
+		GameState.commander.erase("_ack_needs_bootstrap")
+		ack = "D"
+	GameState.commander["acknowledged_rank"] = higher_rank(ack, legacy)
+	## 既到達分はギフト再配布しない。
+	var rewarded: Array = _rank_reward_ranks()
+	var floor_idx: int = RANK_ORDER.find(str(GameState.commander.get("acknowledged_rank", "D")))
+	for i in range(1, maxi(floor_idx, 0) + 1):
+		var code: String = RANK_ORDER[i]
+		if code not in rewarded:
+			rewarded.append(code)
+	GameState.commander["rank_reward_ranks"] = rewarded
 
 
 static func is_rank_at_least(rank_code: String) -> bool:
@@ -189,9 +269,38 @@ static func rank_icon_texture(rank_code: String = "") -> Texture2D:
 static func title_slot_limit() -> int:
 	if is_rank_at_least("S"):
 		return 3
+	if is_rank_at_least("B"):
+		return 2
 	if is_rank_at_least("C"):
 		return 1
 	return 0
+
+
+static func _rank_reward_ranks() -> Array:
+	var raw: Variant = GameState.commander.get("rank_reward_ranks", [])
+	return (raw as Array).duplicate() if raw is Array else []
+
+
+static func _grant_rank_rewards_between(from_idx: int, to_idx: int) -> void:
+	if to_idx <= from_idx:
+		return
+	var rewarded: Array = _rank_reward_ranks()
+	for i in range(from_idx + 1, to_idx + 1):
+		var code: String = RANK_ORDER[i]
+		if code in rewarded:
+			continue
+		var gold: int = int(RANK_GIFT_GOLD.get(code, 0))
+		if gold > 0:
+			_CommanderGiftBox.enqueue({
+				"title": "%s級到達手当" % code,
+				"message": "調査許可等級が%s級に上がった祝いです。" % code,
+				"gold": gold,
+				"source": "rank_up",
+			})
+		rewarded.append(code)
+	GameState.commander["rank_reward_ranks"] = rewarded
+	const _CommanderTitles := preload("res://scripts/commander/CommanderTitles.gd")
+	_CommanderTitles.refresh_unlocks()
 
 
 static func get_equipped_title() -> String:
@@ -348,6 +457,8 @@ static func _sanitize_commander() -> void:
 		GameState.commander["recent_highlights"] = []
 	if not GameState.commander.has("gift_box") or not GameState.commander["gift_box"] is Array:
 		GameState.commander["gift_box"] = []
+	if not GameState.commander.has("rank_reward_ranks") or not GameState.commander["rank_reward_ranks"] is Array:
+		GameState.commander["rank_reward_ranks"] = []
 	if not GameState.commander.has("name") or str(GameState.commander.get("name", "")).strip_edges().is_empty():
 		GameState.commander["name"] = DEFAULT_NAME
 	## 既存セーブ: キー欠落は仮 D＋bootstrap フラグ。評価は ensure 外で行う。
@@ -359,3 +470,4 @@ static func _sanitize_commander() -> void:
 		if RANK_ORDER.find(ack) < 0:
 			GameState.commander["acknowledged_rank"] = "D"
 			GameState.commander["_ack_needs_bootstrap"] = true
+	## rank_curve_v2 欠落は migrate 側で処理（ここでは触らない）。

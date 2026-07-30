@@ -6,6 +6,7 @@ const _CommanderProfile = preload("res://scripts/commander/CommanderProfile.gd")
 const _CommanderTitles = preload("res://scripts/commander/CommanderTitles.gd")
 const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd")
 const _CommanderGiftBox = preload("res://scripts/commander/CommanderGiftBox.gd")
+const _CommanderSurveyPoints = preload("res://scripts/commander/CommanderSurveyPoints.gd")
 const _CommanderUiTokens = preload("res://scripts/commander/CommanderUiTokens.gd")
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
@@ -615,11 +616,19 @@ func _build_records_section() -> Control:
 			int(row.get("percent", 0)),
 		])
 	grid.add_child(_make_record_block("図鑑進捗", codex_lines))
-	## 詳細（SP／発見件数）はオミット。代わりに累計プレイ時間を出す。
 	var play_sec: int = _CommanderLifetime.total_play_time_sec()
 	grid.add_child(_make_record_block("プレイ時間", [
 		_CommanderLifetime.format_play_time(play_sec),
 	]))
+	## A級以上で SP／発見件数の詳細を解放（P3-CMD-RANK-REWARD-001-3）。
+	if _CommanderProfile.is_rank_at_least(_CommanderProfile.EXTENDED_RECORDS_UNLOCK_RANK):
+		grid.add_child(_make_record_block("調査点", [
+			"%d SP" % _CommanderProfile.survey_points(),
+			str(_CommanderProfile.progress_to_next_rank().get("label", "")),
+		]))
+		grid.add_child(_make_record_block("発見件数", [
+			"%d 件" % _CommanderSurveyPoints.discovery_count(),
+		]))
 	return sec["panel"]
 
 
