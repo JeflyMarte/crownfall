@@ -109,6 +109,7 @@ var _pending_take_relic_id: String = ""
 @onready var _tab_row: HBoxContainer = $VBoxContainer/TabRow
 @onready var _btn_sort: Button = $VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryHeaderRow/ButtonSort
 @onready var _btn_filter: Button = $VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryHeaderRow/ButtonFilter
+@onready var _btn_effect: Button = $VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryHeaderRow/ButtonEffect
 @onready var _btn_recommend: Button = $VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryHeaderRow/ButtonRecommend
 @onready var _nav_forge: Button = $BottomNav/NavRow/NavForge
 @onready var _character_card: PanelContainer = $VBoxContainer/CharacterCard
@@ -133,6 +134,9 @@ var _selected_member_index: int = 0
 var _inventory_filter: String = "all"
 var _inventory_sort: String = "rarity"
 var _inventory_equipped_filter: String = "all"
+## 効果ファミリー id の複数選択（空＝指定なし）。装備一覧と同仕様。
+var _effect_families: Array[String] = []
+var _effect_sheet: CanvasLayer = null
 # 戦術セレクタ（P3-D086・スキルタブ上部に動的生成）
 var _tactics_option: OptionButton = null
 var _tactics_ids: Array[String] = []
@@ -213,6 +217,7 @@ func _ready() -> void:
 	_btn_promote.pressed.connect(_on_promote_pressed)
 	_btn_sort.pressed.connect(_on_sort_pressed)
 	_btn_filter.pressed.connect(_on_filter_pressed)
+	_btn_effect.pressed.connect(_on_effect_pressed)
 	_btn_recommend.pressed.connect(_on_recommend_equip_pressed)
 	_inventory_grid.columns = GRID_COLUMNS
 	# Scroll 内で Grid が縦／横に EXPAND するとセルが伸び、
@@ -299,10 +304,11 @@ func _setup_equipment_chrome() -> void:
 	_btn_stat_detail.add_theme_color_override("font_disabled_color", Color(0.62, 0.58, 0.52, 1.0))
 	_evolution_row.add_theme_constant_override("separation", 4)
 	UiTypography.apply_display(_label_name, UiTypography.SIZE_DISPLAY_TITLE, UiTypography.COLOR_GOLD)
+	_configure_name_row()
 	UiTypography.apply_menu_button(_btn_member_list, false)
 	_btn_member_list.add_theme_font_size_override("font_size", UiTypography.SIZE_CAPTION)
 	_btn_member_list.custom_minimum_size = Vector2(72, 36)
-	_btn_member_list.clip_text = true
+	_btn_member_list.clip_text = false
 	UiTypography.apply_body(_label_level, UiTypography.SIZE_BODY, UiTypography.COLOR_BODY)
 	UiTypography.apply_body(_label_job, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	_configure_job_label_one_line()
@@ -439,6 +445,9 @@ func _on_filter_pressed() -> void:
 	_refresh_inventory_tools()
 	_rebuild_inventory_grid()
 
+func _on_effect_pressed() -> void:
+	_open_effect_family_sheet()
+
 func _on_recommend_equip_pressed() -> void:
 	if not _can_change_equipment_on_view():
 		AudioManager.play_sfx("ui_cancel")
@@ -477,6 +486,7 @@ func _refresh_inventory_tools() -> void:
 	_btn_filter.text = str(
 		EquipmentUiHelper.EQUIPPED_FILTER_LABELS.get(_inventory_equipped_filter, _inventory_equipped_filter)
 	)
+	_btn_effect.text = EquipmentEffectFamilyFilter.button_summary(_effect_families)
 	# おすすめ装備は現状「編成内（party_members）」前提（member_index）なので、
 	# 編成外（ロスター）閲覧時は無効化する。
 	var can_rec: bool = _can_change_equipment_on_view() and _party_index_for_view() >= 0
@@ -489,6 +499,16 @@ func _refresh_inventory_tools() -> void:
 
 func _apply_panel_styles() -> void:
 	_character_card.add_theme_stylebox_override("panel", EquipmentUiTokens.char_card_style())
+
+func _configure_name_row() -> void:
+	# 名前は実幅で縮み、一覧ボタンが末尾に追従する（EXPAND+ellipsis で名前が切れるのを防ぐ）。
+	_label_name.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_label_name.clip_text = false
+	_label_name.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	_label_name.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_label_name.max_lines_visible = 1
+	_btn_member_list.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_btn_member_list.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
 func _configure_job_label_one_line() -> void:
 	# 折返しすると InfoBox が高くなり、装備スロット／ステータスが下にずれる。
@@ -696,6 +716,7 @@ func _on_member_list_pressed() -> void:
 
 func _open_member_list_sheet() -> void:
 	_close_member_list_sheet()
+	_close_effect_family_sheet()
 	var members: Array = _get_view_members()
 	if members.is_empty():
 		return
@@ -814,6 +835,116 @@ func _close_member_list_sheet() -> void:
 	_member_list_sheet = null
 
 
+func _open_effect_family_sheet() -> void:
+	_close_effect_family_sheet()
+	_close_member_list_sheet()
+	var layer := CanvasLayer.new()
+	layer.name = "EffectFamilySheet"
+	layer.layer = 60
+	add_child(layer)
+	_effect_sheet = layer
+	var root := Control.new()
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.mouse_filter = Control.MOUSE_FILTER_STOP
+	layer.add_child(root)
+	var dim := ColorRect.new()
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0.0, 0.0, 0.0, 0.55)
+	dim.gui_input.connect(_on_effect_sheet_dim_input)
+	root.add_child(dim)
+	var panel := PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.custom_minimum_size = Vector2(520, 0)
+	panel.offset_left = -260
+	panel.offset_right = 260
+	panel.offset_top = -220
+	panel.offset_bottom = 220
+	panel.add_theme_stylebox_override(
+		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
+	)
+	root.add_child(panel)
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 10)
+	panel.add_child(vbox)
+	var title := Label.new()
+	title.text = "効果で絞り込み"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_body(title, UiTypography.SIZE_BODY, COLOR_GOLD)
+	vbox.add_child(title)
+	var hint := Label.new()
+	hint.text = "複数選択可（いずれかに該当）"
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_caption(hint, COLOR_SUB)
+	vbox.add_child(hint)
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 8)
+	vbox.add_child(grid)
+	var draft: Array[String] = EquipmentEffectFamilyFilter.normalize_selection(_effect_families)
+	for fid in EquipmentEffectFamilyFilter.FAMILY_ORDER:
+		var chip := Button.new()
+		chip.toggle_mode = true
+		chip.button_pressed = draft.has(fid)
+		chip.text = EquipmentEffectFamilyFilter.family_label(fid)
+		chip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		chip.custom_minimum_size = Vector2(0, 44)
+		UiTypography.apply_menu_button(chip, false)
+		chip.toggled.connect(_on_effect_chip_toggled.bind(fid, draft))
+		grid.add_child(chip)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	vbox.add_child(row)
+	var btn_clear := Button.new()
+	btn_clear.text = "クリア"
+	btn_clear.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_menu_button(btn_clear, false)
+	btn_clear.pressed.connect(_on_effect_sheet_clear.bind(draft, grid))
+	row.add_child(btn_clear)
+	var btn_ok := Button.new()
+	btn_ok.text = "決定"
+	btn_ok.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_menu_button(btn_ok, true)
+	btn_ok.pressed.connect(_on_effect_sheet_confirm.bind(draft))
+	row.add_child(btn_ok)
+
+
+func _on_effect_chip_toggled(pressed: bool, family_id: String, draft: Array) -> void:
+	var fid: String = str(family_id)
+	if pressed:
+		if not draft.has(fid):
+			draft.append(fid)
+	else:
+		draft.erase(fid)
+
+
+func _on_effect_sheet_clear(draft: Array, grid: GridContainer) -> void:
+	draft.clear()
+	if grid == null:
+		return
+	for child in grid.get_children():
+		if child is Button:
+			(child as Button).set_pressed_no_signal(false)
+
+
+func _on_effect_sheet_confirm(draft: Array) -> void:
+	_effect_families = EquipmentEffectFamilyFilter.normalize_selection(draft)
+	_close_effect_family_sheet()
+	_refresh_inventory_tools()
+	_rebuild_inventory_grid()
+
+
+func _on_effect_sheet_dim_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_close_effect_family_sheet()
+
+
+func _close_effect_family_sheet() -> void:
+	if _effect_sheet != null and is_instance_valid(_effect_sheet):
+		_effect_sheet.queue_free()
+	_effect_sheet = null
+
+
 func _clamp_roster_index(index: int) -> int:
 	var members: Array = _get_view_members()
 	if members.is_empty():
@@ -892,8 +1023,7 @@ func _update_character_card() -> void:
 		_evolution_row.visible = false
 		return
 	_label_name.text = _GachaLimitBreak.format_member_name_plus(member)
-	_label_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	_label_name.max_lines_visible = 1
+	_configure_name_row()
 	var job_name: String = RosterUiHelper.job_display_name(member)
 	_label_level.text = EquipmentUiHelper.level_line(int(member.level))
 	_label_job.text = job_name
@@ -1539,6 +1669,9 @@ func _rebuild_inventory_grid() -> void:
 				_:
 					filtered.append(entry)
 		entries = filtered
+	## レリックは効果ファミリー対象外（装備一覧と同ヘルパ・武防飾のみ）。
+	if _inventory_filter != "relic":
+		entries = EquipmentEffectFamilyFilter.filter_entries(entries, _effect_families)
 	if entries.is_empty():
 		var empty_msg: String = "該当する装備がありません"
 		if _inventory_filter == "relic":
@@ -3842,6 +3975,7 @@ func _on_skill_toggle_pressed(skill_id: String) -> void:
 
 func _on_back_pressed() -> void:
 	_close_member_list_sheet()
+	_close_effect_family_sheet()
 	SaveManager.save_game()
 	_go_to(HOME_SCENE)
 

@@ -3,6 +3,7 @@ extends RefCounted
 
 ## 装備一覧の効果ファミリー絞り込み（P3-UX-EQ-EFFECT-FAMILY-001 案B）。
 ## 選択ファミリーは OR。カテゴリ／装備中フィルターとは AND。
+## 適用先: EquipmentCatalogScene／EquipmentScene（レリックタブ除く）。
 
 const FAMILY_OFFENSE: String = "offense"
 const FAMILY_DEFENSE: String = "defense"

@@ -85,6 +85,18 @@ func test_catalog_has_effect_button() -> void:
 	assert_true(btn is Button)
 
 
+func test_equipment_scene_has_effect_button() -> void:
+	var packed: PackedScene = load("res://scenes/equipment/EquipmentScene.tscn")
+	assert_not_null(packed)
+	var scene: Node = packed.instantiate()
+	add_child_autofree(scene)
+	var btn: Node = scene.get_node_or_null(
+		"VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryHeaderRow/ButtonEffect"
+	)
+	assert_not_null(btn)
+	assert_true(btn is Button)
+
+
 func test_armor_resist_counts_as_defense_family() -> void:
 	var armor: Resource = _ArmorInstance.new()
 	armor.armor_id = "bone_armor"

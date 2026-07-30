@@ -5521,7 +5521,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-EQ-EFFECT-FAMILY-001-1 | **案B** — 効果ファミリー（火力／耐久／会心／状態異常／稼ぎ／固有） | kind 直指定は項目過多 |
 | P3-UX-EQ-EFFECT-FAMILY-001-2 | **UI** — シートで複数選択。カテゴリ・装備中とは AND。ファミリー同士は OR | サイクルボタン不可 |
 | P3-UX-EQ-EFFECT-FAMILY-001-3 | **主軸** — `random_mods.kind`。固有＝`fixed_passive_id`。セットは対象外 | Diablo 化後の正 |
-| P3-UX-EQ-EFFECT-FAMILY-001-4 | **範囲** — 装備一覧（Catalog）のみ。キャラ所持は後続 | β最小 |
+| P3-UX-EQ-EFFECT-FAMILY-001-4 | **範囲** — 装備一覧（Catalog）＋キャラ画面所持グリッド。レリックタブは対象外 | オーナー追指示でキャラへ拡張 |
 | P3-UX-EQ-EFFECT-FAMILY-001-5 | **マスタ補完** — 武器 element／bane、防具 resist も対応ファミリーに含める | mod 無し旧品の抜け防止 |
 ---
 ## キャラ画面の一覧切替（2026-07-28 — P3-UX-CHR-MEMBER-LIST-001）
