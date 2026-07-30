@@ -227,6 +227,30 @@ Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` �
 - 復元は派遣中スキップ＋フォールバックも除外
 - タブは Header 直下の固定 `ToolbarBand`。ステ表示は `RosterUiHelper.compute_member_stats`＋`AffixStatCalculator.get_bonuses_for_member`
 
+## Biome／イベントバナー（再発防止・必須）
+
+ダンジョン選択・解放ポップのバナー名消滅／横伸び／Biome 取り違え。
+
+❌ BAD
+- タイトルを `FULL_RECT` 埋め込み／`clip_text`／親 `clip_contents`／`PRESET_CENTER` のみで size 0
+- `display_name.length()>=12` などで一部 Biome だけ SMALL 化
+- `ScrollContainer.horizontal_scroll_mode=DISABLED`（子最小幅に追従して横拡大）
+- Featured 日本語を `AUTOWRAP_WORD_SMART` のみ（空白無し1語＝全文幅）
+- バナー高さを `host.size.x`／`resized` 同期で毎回変える
+- イベントDGを `SUB_BANNER_FALLBACK` の mourngate 流用のみ／枠なし全高キーアート
+- Featured 上段を「一覧にバナーがあるから」と非表示にする
+- 解放ポップ名を VBox 下段配置＋次解放フォールバックを whisperwood 固定
+
+✅ GOOD
+- タイトルは `PRESET_CENTER`＋`PRESET_MODE_MINSIZE`＋`clip_text=false`。自然サイズ＋中央寄せ
+- `BiomeBannerHelper.title_font_size` で幅フィット。深層のみ初段 SMALL
+- Scroll は `SHOW_NEVER`。Featured Label は `EXPAND_FILL`＋`AUTOWRAP_ARBITRARY`＋`min.x=0`
+- バナー高さはデザイン幅680固定（実幅同期禁止）
+- 各イベントに `BAN_DG_*`＋`BIOME_BANNER_PATHS`。`generate_biome_banner.py --strip-height 232`（枠既定 ON）
+- Featured でもバナー表示。`_sync_featured_banner` も `display_name` 中央重ね
+- 解放名はバナー内中央重ね。次解放は `ContentUnlockNotice.next_unlock_after_main_clear`
+- ロック中は「？」のみ（実名・バナー・ドロップ非表示）
+
 ## 職名・本文タイポ
 
 - 職名ラベルは **省略（ellipsis）しない**（「ビーストテイマー」全文）
