@@ -569,8 +569,8 @@ const STATUS_LEGEND_ICON_PX: float = 22.0
 const STATUS_LEGEND_WIDTH: float = 300.0
 const STATUS_LEGEND_PAD: float = 8.0
 const STATUS_LEGEND_ROW_GAP: int = 4
-## 右端からの余白（負＝さらに右へはみ出し寄り）。
-const STATUS_LEGEND_SIDE_INSET: float = -40.0
+## 右端からの余白（正＝内側。負は Battlefield の clip で説明文が切れる）。
+const STATUS_LEGEND_SIDE_INSET: float = 8.0
 const VFX_HIT_PATH: String = "res://resources/animation/FX_Hit_Normal.tres"
 const VFX_CRIT_PATH: String = "res://resources/animation/FX_Hit_Critical.tres"
 const VFX_HEAL_PATH: String = "res://resources/animation/FX_Heal.tres"
@@ -2950,14 +2950,14 @@ func _make_weather_legend_row(weather: String) -> HBoxContainer:
 
 
 func _style_status_legend_label(lbl: Label) -> void:
-	## 長い行は最大2行で折り返し（はみ出し防止）。
-	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	## 説明は省略・clip しない（HBox＋clip_text でアイコンだけ残る既知バグを避ける）。
+	## 長い行のみ任意折り返し（日本語の WORD_SMART＝1語扱いを避ける）。
+	lbl.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	lbl.max_lines_visible = 2
-	lbl.clip_text = true
-	lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	lbl.clip_text = false
+	lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	## HBox 内で折り返し幅を確保（アイコン＋余白を除く）。
 	lbl.custom_minimum_size = Vector2(
 		maxf(80.0, STATUS_LEGEND_WIDTH - STATUS_ICON_SIZE - 24.0),
 		0.0
