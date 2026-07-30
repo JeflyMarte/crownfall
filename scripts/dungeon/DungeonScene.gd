@@ -563,15 +563,18 @@ const STATUS_ICON_DEF: Dictionary = {
 const HEAL_SKILL_BASE: int = BalanceConfig.HEAL_SKILL_BASE
 const STATUS_ICON_SIZE: float = 26.0
 const STATUS_ICON_GAP: float = 3.0
-## 戦闘右下の発生中状態異常／天候レジェンド（P3-UX-STATUS-LEGEND-001）。
+## 戦闘右下の発生中状態異常／天候レジェンド（P3-UX-STATUS-LEGEND-001／004）。
 const STATUS_LEGEND_ICON_PX: float = 22.0
 ## 名前付き「毒:1秒ごとにダメージ」が収まる幅。
-const STATUS_LEGEND_WIDTH: float = 300.0
+const STATUS_LEGEND_WIDTH: float = 280.0
 const STATUS_LEGEND_PAD: float = 8.0
 const STATUS_LEGEND_ROW_GAP: int = 4
-## 右端・下端からの余白（正＝内側。負は Battlefield の clip で説明文が切れる）。
-const STATUS_LEGEND_SIDE_INSET: float = 8.0
+## 右端・下端からの余白（0＝右端寄せ。負は Battlefield clip で欠けやすい）。
+const STATUS_LEGEND_SIDE_INSET: float = 0.0
 const STATUS_LEGEND_BOTTOM_INSET: float = 8.0
+const STATUS_LEGEND_FONT_PX: int = 15
+const STATUS_LEGEND_TEXT_W: float = 230.0
+const STATUS_LEGEND_MAX_LINES: int = 2
 const VFX_HIT_PATH: String = "res://resources/animation/FX_Hit_Normal.tres"
 const VFX_CRIT_PATH: String = "res://resources/animation/FX_Hit_Critical.tres"
 const VFX_HEAL_PATH: String = "res://resources/animation/FX_Heal.tres"
@@ -858,6 +861,7 @@ var _status_icon_chr_rows: Array[HBoxContainer] = []
 ## 旧敵行動順位置の発生中状態異常説明（P3-UX-STATUS-LEGEND-001・右下）。
 var _status_legend_panel: PanelContainer
 var _status_legend_list: VBoxContainer
+var _status_legend_signature: String = ""
 var _combat_sprites_host: Node2D
 
 # 群れ（複数敵）表示スロット（P3-D082）。slot0 は既存ノード（_enemy_sprite/_hp_bar_enemy/_enemy_nameplate）を流用し、
@@ -2822,29 +2826,58 @@ func _init_status_legend() -> void:
 	_status_legend_panel.custom_minimum_size = Vector2(STATUS_LEGEND_WIDTH, 0.0)
 	## 背景四角なし（アイコン＋効果文言のみ）。
 	_status_legend_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	## 右下基準。高さは内容に応じて上方向へ伸びる。
+	_status_legend_panel.anchor_left = 1.0
+	_status_legend_panel.anchor_top = 1.0
+	_status_legend_panel.anchor_right = 1.0
+	_status_legend_panel.anchor_bottom = 1.0
+	_status_legend_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_status_legend_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	battlefield.add_child(_status_legend_panel)
 	_status_legend_list = VBoxContainer.new()
 	_status_legend_list.name = "StatusLegendList"
 	_status_legend_list.add_theme_constant_override("separation", STATUS_LEGEND_ROW_GAP)
 	_status_legend_list.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_status_legend_list.custom_minimum_size = Vector2(STATUS_LEGEND_WIDTH, 0.0)
 	_status_legend_panel.add_child(_status_legend_list)
+	_status_legend_signature = ""
 	_layout_status_legend()
 
 
 func _layout_status_legend() -> void:
 	if _status_legend_panel == null:
 		return
-	var bf_size: Vector2 = _battlefield_size()
-	## 内容変更直後は size が古いことがあるので最小サイズも見る。
+	## 固定幅＋実高で右下アンカー offset を更新（position 直書きだと毎ヒットでずれる）。
 	_status_legend_panel.reset_size()
 	var panel_h: float = maxf(
-		_status_legend_panel.size.y,
-		_status_legend_panel.get_combined_minimum_size().y
+		_status_legend_panel.get_combined_minimum_size().y,
+		_status_legend_list.get_combined_minimum_size().y if _status_legend_list != null else 0.0
 	)
-	_status_legend_panel.position = Vector2(
-		bf_size.x - STATUS_LEGEND_WIDTH - STATUS_LEGEND_SIDE_INSET,
-		maxf(STATUS_LEGEND_SIDE_INSET, bf_size.y - panel_h - STATUS_LEGEND_BOTTOM_INSET)
-	)
+	panel_h = maxf(panel_h, 1.0)
+	_status_legend_panel.size = Vector2(STATUS_LEGEND_WIDTH, panel_h)
+	_status_legend_panel.offset_left = -(STATUS_LEGEND_WIDTH + STATUS_LEGEND_SIDE_INSET)
+	_status_legend_panel.offset_right = -STATUS_LEGEND_SIDE_INSET
+	_status_legend_panel.offset_top = -(panel_h + STATUS_LEGEND_BOTTOM_INSET)
+	_status_legend_panel.offset_bottom = -STATUS_LEGEND_BOTTOM_INSET
+
+
+func _clear_status_legend_rows() -> void:
+	if _status_legend_list == null:
+		return
+	## queue_free だと同フレームに新旧が同居し高さが倍→上へ跳ねる。即 free する。
+	while _status_legend_list.get_child_count() > 0:
+		var child: Node = _status_legend_list.get_child(0)
+		_status_legend_list.remove_child(child)
+		child.free()
+
+
+func _status_legend_content_signature(weather: String, show_weather: bool, ids: Array[String]) -> String:
+	var parts: PackedStringArray = []
+	if show_weather:
+		parts.append("w:%s" % weather)
+	for status_id: String in ids:
+		parts.append(status_id)
+	return "|".join(parts)
 
 
 func _collect_active_status_ids() -> Array[String]:
@@ -2957,35 +2990,39 @@ func _make_weather_legend_row(weather: String) -> HBoxContainer:
 
 
 func _style_status_legend_label(lbl: Label) -> void:
-	## 説明は省略・clip しない（HBox＋clip_text でアイコンだけ残る既知バグを避ける）。
-	## 長い行のみ任意折り返し（日本語の WORD_SMART＝1語扱いを避ける）。
+	## 固定折り返し幅＋小さめ字。HBox＋clip_text はアイコンだけ残るため使わない。
 	lbl.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
-	lbl.max_lines_visible = 2
+	lbl.max_lines_visible = STATUS_LEGEND_MAX_LINES
 	lbl.clip_text = false
 	lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	lbl.custom_minimum_size = Vector2(
-		maxf(80.0, STATUS_LEGEND_WIDTH - STATUS_ICON_SIZE - 24.0),
-		0.0
-	)
-	UiTypography.apply_body(lbl, UiTypography.SIZE_CAPTION, UiTypography.COLOR_BODY)
+	lbl.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	lbl.custom_minimum_size = Vector2(STATUS_LEGEND_TEXT_W, 0.0)
+	UiTypography.apply_body(lbl, STATUS_LEGEND_FONT_PX, UiTypography.COLOR_BODY)
 
 
 func _update_status_legend() -> void:
 	if _status_legend_panel == null or _status_legend_list == null:
 		return
-	for child: Node in _status_legend_list.get_children():
-		child.queue_free()
 	if not $CombatController.is_in_combat:
+		_clear_status_legend_rows()
+		_status_legend_signature = ""
 		_status_legend_panel.visible = false
 		return
 	var weather: String = CombatWeather.normalize(GameState.get_weather())
 	var show_weather: bool = weather != CombatWeather.CLEAR
 	var ids: Array[String] = _collect_active_status_ids()
 	if not show_weather and ids.is_empty():
+		_clear_status_legend_rows()
+		_status_legend_signature = ""
 		_status_legend_panel.visible = false
 		return
+	var signature: String = _status_legend_content_signature(weather, show_weather, ids)
+	## ダメージごとに同じ内容を作り直すと高さ二重計算で上へずれる。
+	if signature == _status_legend_signature and _status_legend_panel.visible:
+		return
+	_status_legend_signature = signature
+	_clear_status_legend_rows()
 	## 天候などラン環境効果を状態異常より上に（P3-UX-STATUS-LEGEND-002）。
 	if show_weather:
 		_status_legend_list.add_child(_make_weather_legend_row(weather))
@@ -2993,7 +3030,6 @@ func _update_status_legend() -> void:
 		_status_legend_list.add_child(_make_status_legend_row(status_id))
 	_status_legend_panel.visible = true
 	_layout_status_legend()
-	## 行追加後の実高で右下再配置。
 	call_deferred("_layout_status_legend")
 
 func _sync_status_sprite_tints() -> void:
