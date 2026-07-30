@@ -92,12 +92,16 @@ func test_build_featured_shell_has_feature_label() -> void:
 	assert_not_null(unique_title_lbl)
 	assert_not_null(blurb_wrap)
 	assert_not_null(stats_wrap)
-	## 煽りは左パネル、パッシブは右ステ内。Shippori・小さめ・右ステより下。
+	## 煽りはキャラ足元直下（中央寄せ）、パッシブは右ステ内。
 	assert_eq(feature_lbl.get_parent(), blurb_wrap)
 	assert_eq(unique_lbl.get_parent().name, "StatsCol")
 	assert_eq(unique_title_lbl.get_parent().name, "StatsCol")
-	assert_eq(blurb_wrap.offset_left, GachaUiHelper.FEATURED_BLURB_SIDE_PAD)
-	assert_gt(blurb_wrap.offset_top, stats_wrap.offset_top)
+	GachaUiHelper.relayout_featured_shell(shell, host)
+	var idle: Control = shell.get("idle") as Control
+	assert_not_null(idle)
+	## 足元直下: 煽り top は idle 下端付近〜プール帯のあいだ。
+	assert_gte(blurb_wrap.offset_top, host.size.y * 0.35)
+	assert_lt(blurb_wrap.offset_top, host.size.y - GachaUiHelper.pool_strip_reserve())
 	assert_eq(int(feature_lbl.get_theme_font_size("font_size")), GachaUiHelper.FEATURED_BLURB_FONT_SIZE)
 	assert_eq(feature_lbl.get_theme_font("font"), UiTypography.display_font())
 	assert_eq(feature_lbl.max_lines_visible, 1)

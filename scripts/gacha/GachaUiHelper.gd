@@ -18,10 +18,8 @@ const FEATURED_IDLE_PX: float = 196.0
 const FEATURED_STATS_MIN_W: float = 220.0
 ## Featured 左の煽り文パネル幅（1行全文向けに広め）。
 const FEATURED_BLURB_MIN_W: float = 420.0
-## タイトル帯・右ステより下（キャラ中腹付近）。Shippori 見出しと揃える。
-const FEATURED_BLURB_TOP: float = 340.0
-## キャラに被りすぎないよう右へ（少し余白）。
-const FEATURED_BLURB_SIDE_PAD: float = 48.0
+## キャラ足元から煽りまでの余白（ドット絵の直下）。
+const FEATURED_BLURB_BELOW_IDLE_PAD: float = 8.0
 ## 右名前より一段小さく。長い1行を収めるため 16。
 const FEATURED_BLURB_FONT_SIZE: int = 16
 const FEATURED_BLURB_OUTLINE: int = 3
@@ -108,6 +106,35 @@ static func relayout_featured_shell(shell: Dictionary, host: Control) -> void:
 		beam_soft.offset_top = -soft_h * 0.92
 		beam_soft.offset_bottom = bottom + 48.0
 	_relayout_pool_strip(shell.get("pool_strip") as Control)
+	_relayout_feature_blurb(shell, host)
+
+
+## 煽り文をキャラドット足元の直下へ（プール帯の上）。
+static func _relayout_feature_blurb(shell: Dictionary, host: Control) -> void:
+	if shell.is_empty() or host == null:
+		return
+	var blurb_wrap: Control = shell.get("blurb_wrap") as Control
+	if blurb_wrap == null:
+		return
+	var h: float = maxf(host.size.y, 1.0)
+	var w: float = maxf(host.size.x, FEATURED_BLURB_MIN_W)
+	var idle_px: float = featured_idle_px(h)
+	var foot: float = featured_foot_pad(h)
+	var bottom: float = _featured_bottom_offset(foot, h, idle_px)
+	## idle は CENTER_BOTTOM。足元の Y（上端基準）＝ host 高さ＋bottom。
+	var feet_y: float = h + bottom
+	var top: float = feet_y + FEATURED_BLURB_BELOW_IDLE_PAD
+	## プール帯に食い込まない。
+	var max_top: float = h - pool_strip_reserve() - float(FEATURED_BLURB_FONT_SIZE) - 6.0
+	top = minf(top, max_top)
+	## キャラ中心下に1行を置く。
+	var center_x: float = w * 0.5 + FEATURED_IDLE_OFFSET_X
+	var half_w: float = FEATURED_BLURB_MIN_W * 0.5
+	blurb_wrap.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	blurb_wrap.offset_left = center_x - half_w
+	blurb_wrap.offset_right = center_x + half_w
+	blurb_wrap.offset_top = top
+	blurb_wrap.offset_bottom = top + float(FEATURED_BLURB_FONT_SIZE) + 8.0
 
 
 static func _relayout_pool_strip(strip: Control) -> void:
@@ -521,13 +548,10 @@ static func build_featured_shell(host: Control) -> Dictionary:
 	idle.offset_bottom = -foot
 	stage.add_child(idle)
 
-	## 左：煽り文のみ（枠なし・Shippori。名前／★／ステ／パッシブは右）。
+	## 煽り文（キャラドット足元直下。座標は relayout で確定）。
 	var blurb_wrap := PanelContainer.new()
 	blurb_wrap.name = "FeatureBlurbWrap"
 	blurb_wrap.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	blurb_wrap.offset_left = FEATURED_BLURB_SIDE_PAD
-	blurb_wrap.offset_right = FEATURED_BLURB_SIDE_PAD + FEATURED_BLURB_MIN_W
-	blurb_wrap.offset_top = FEATURED_BLURB_TOP
 	blurb_wrap.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	blurb_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	blurb_wrap.z_index = 8
@@ -541,6 +565,7 @@ static func build_featured_shell(host: Control) -> Dictionary:
 	feature_lbl.max_lines_visible = 1
 	feature_lbl.clip_text = true
 	feature_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	feature_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	feature_lbl.custom_minimum_size = Vector2(FEATURED_BLURB_MIN_W, 0)
 	feature_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_apply_feature_blurb_style(feature_lbl)
@@ -632,7 +657,7 @@ static func build_featured_shell(host: Control) -> Dictionary:
 	_add_banner_title_overlay(fade)
 	var pool_strip: Control = _build_pool_icon_strip(fade)
 
-	return {
+	var shell: Dictionary = {
 		"fade": fade,
 		"stage": stage,
 		"stats_wrap": stats_wrap,
@@ -649,6 +674,8 @@ static func build_featured_shell(host: Control) -> Dictionary:
 		"unique_title": unique_title_lbl,
 		"unique": unique_lbl,
 	}
+	relayout_featured_shell(shell, host)
+	return shell
 
 
 ## 枠内下部に出現プールの顔アイコン帯を置く。
