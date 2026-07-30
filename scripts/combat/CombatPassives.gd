@@ -13,7 +13,8 @@ extends RefCounted
 ## stat_mod（常時）: evasion_rate_add / outgoing_mult / incoming_mult / first_attack_mult /
 ##   ultimate_power_mult / exp_gain_mult / party_exp_gain_mult /
 ##   party_outgoing_mult / party_incoming_mult / death_save_once / death_save_chance /
-##   exploration_damage_immune / outgoing_mult_requires_hp_below / outgoing_vs_status_mult /
+##   exploration_damage_immune / exploration_damage_party_mult /
+##   outgoing_mult_requires_hp_below / outgoing_vs_status_mult /
 ##   pet_outgoing_mult / pet_defense_mult / threat_base_add
 ## weather_bonus（P3-EQ-WEATHER-LEG-001）: weather_id → element_outgoing_mult / outgoing_mult / crit_rate_add / refund_ct_fraction
 ## effect 追加: "chance_cast_equipped_skill"（攻撃後に装備スキルを確率発動）
@@ -137,8 +138,9 @@ const _DEFS: Dictionary = {
 	},
 	"ivar_trail_sight": {
 		"display_name": "辺境の踏破",
-		"description": "非戦闘（罠・探索ダメージ）を受けない。",
+		"description": "自分は非戦闘（罠・探索）ダメージを受けない。パーティが罠ダメージを受けたとき、ダメージ半減。",
 		"exploration_damage_immune": true,
+		"exploration_damage_party_mult": 0.5,
 	},
 	"serin_quick_mend": {
 		"display_name": "野営の調合",
@@ -1205,6 +1207,29 @@ static func member_ignores_exploration_damage(member: Resource) -> bool:
 		if bool(raw_def.get("exploration_damage_immune", false)):
 			return true
 	return false
+
+
+## 単一メンバの罠パーティ軽減倍率（未所持は 1.0）。
+static func exploration_damage_party_mult_for_member(member: Resource) -> float:
+	if member == null:
+		return 1.0
+	var mult: float = 1.0
+	for raw_def: Variant in for_member(member):
+		if raw_def is not Dictionary:
+			continue
+		if raw_def.has("exploration_damage_party_mult"):
+			mult *= float(raw_def["exploration_damage_party_mult"])
+	return mult
+
+
+## 編成全体の罠ダメージ倍率（辺境の踏破など）。複数所持は積算。
+static func party_exploration_damage_mult() -> float:
+	var mult: float = 1.0
+	for member: Resource in GameState.party_members:
+		if member == null:
+			continue
+		mult *= exploration_damage_party_mult_for_member(member)
+	return mult
 
 
 ## 状態異常持ち敵への与ダメ倍率。

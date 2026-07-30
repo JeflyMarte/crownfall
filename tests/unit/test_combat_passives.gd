@@ -138,6 +138,7 @@ func test_starter_and_gacha_passive_redesign() -> void:
 	assert_eq(float(kaida.get("outgoing_mult_requires_hp_below", -1.0)), 0.5)
 	var ivar: Dictionary = CombatPassives.get_def("ivar_trail_sight")
 	assert_true(bool(ivar.get("exploration_damage_immune", false)))
+	assert_eq(float(ivar.get("exploration_damage_party_mult", 1.0)), 0.5)
 	var garm: Dictionary = CombatPassives.get_def("garm_caravan_guard")
 	assert_eq(float(garm.get("death_save_chance", 0.0)), 0.10)
 	var serin: Dictionary = CombatPassives.get_def("serin_quick_mend")
@@ -166,6 +167,13 @@ func test_kaida_outgoing_requires_low_hp() -> void:
 func test_ivar_exploration_immunity_flag() -> void:
 	var member: Resource = _make_member("gacha_helper_b", "ranger", 2)
 	assert_true(CombatPassives.member_ignores_exploration_damage(member))
+	assert_eq(float(CombatPassives.exploration_damage_party_mult_for_member(member)), 0.5)
+	var ivar_def: Dictionary = CombatPassives.get_def("ivar_trail_sight")
+	assert_eq(float(ivar_def.get("exploration_damage_party_mult", 1.0)), 0.5)
+	var prev_party: Array = GameState.party_members.duplicate()
+	GameState.party_members = [member]
+	assert_eq(float(CombatPassives.party_exploration_damage_mult()), 0.5)
+	GameState.party_members = prev_party
 
 
 func test_star1_omitted_helper_passives() -> void:

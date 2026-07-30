@@ -4012,6 +4012,7 @@ func _resolve_trap_room_async() -> void:
 		var preview_dmg: int = ExplorationSkills.trap_damage_for_max_hp(
 			_member_max_hp_for_trap(preview_target), true, false, tier
 		)
+		preview_dmg = _apply_ivar_trap_party_mult(preview_dmg)
 		_set_trap_hit_narrative(hit_text, preview_nm, preview_dmg)
 		## 単体はナラティブ用に選んだ対象へ固定
 		var single_targets: Array[int] = []
@@ -4074,6 +4075,7 @@ func _apply_trap_damage_hits(
 	for target: int in targets:
 		var max_hp: int = _member_max_hp_for_trap(target)
 		var dmg: int = ExplorationSkills.trap_damage_for_max_hp(max_hp, trap_room, aoe, tier)
+		dmg = _apply_ivar_trap_party_mult(dmg)
 		var m: Resource = GameState.get_combatant(target)
 		var nm: String = m.display_name if m != null else "?"
 		$CombatController.apply_damage_to_member(target, dmg)
@@ -4092,6 +4094,24 @@ func _apply_trap_damage_hits(
 			_append_trap_hit_log(
 				"%s: %s に %d ダメージ＋[%s]！" % [log_prefix, nm, dmg, status_label]
 			)
+
+
+## 生存中の辺境の踏破持ちがいるとき罠ダメを半減（本人無効は別経路）。
+func _apply_ivar_trap_party_mult(dmg: int) -> int:
+	var mult: float = _living_exploration_damage_party_mult()
+	if mult >= 0.999:
+		return dmg
+	return maxi(1, int(round(float(dmg) * mult)))
+
+
+func _living_exploration_damage_party_mult() -> float:
+	var mult: float = 1.0
+	for i: int in GameState.party_members.size():
+		if not $CombatController.is_member_alive(i):
+			continue
+		var m: Resource = GameState.get_combatant(i)
+		mult *= CombatPassives.exploration_damage_party_mult_for_member(m)
+	return mult
 
 
 ## 非戦闘失敗ペナルティ用: 味方を見せてダメージ数字の位置を正しくする。
