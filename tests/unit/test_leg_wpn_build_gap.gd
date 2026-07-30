@@ -61,7 +61,7 @@ func test_passive_numbers() -> void:
 
 func test_plan_a_weapon_retunes() -> void:
 	var spine: Dictionary = CombatPassives.get_def("eq_wpn_eldion_spine")
-	assert_almost_eq(float(spine.get("back_row_basic_attack_mult", 1.0)), 1.15, 0.001)
+	assert_almost_eq(float(spine.get("back_row_basic_attack_mult", 1.0)), 1.25, 0.001)
 	var flare: Dictionary = CombatPassives.get_def("eq_wpn_pharos_flare")
 	assert_almost_eq(float(flare.get("ultimate_charge_dealt_mult", 1.0)), 1.75, 0.001)
 	assert_almost_eq(float(flare.get("skill_power_mult", 1.0)), 1.15, 0.001)
@@ -69,7 +69,7 @@ func test_plan_a_weapon_retunes() -> void:
 	assert_eq(str(cord.get("trigger", "")), "on_kill")
 	assert_eq(str(cord.get("status_id", "")), "empower")
 	var claw: Dictionary = CombatPassives.get_def("eq_wpn_eldion_claw")
-	assert_almost_eq(float(claw["element_outgoing_mult"]["ice"]), 1.15, 0.001)
+	assert_almost_eq(float(claw["element_outgoing_mult"]["ice"]), 1.05, 0.001)
 	assert_eq(int(claw.get("every_n", 0)), 3)
 	var war: Dictionary = CombatPassives.get_def("eq_wpn_vanguard_war_bow")
 	assert_almost_eq(float(war.get("back_row_outgoing_mult", 1.0)), 1.25, 0.001)
@@ -89,7 +89,7 @@ func test_runtime_helpers() -> void:
 	_equip("eldion_spine")
 	assert_almost_eq(CombatPassives.weapon_basic_attack_mult(0), 1.0, 0.001)
 	_equip("eldion_spine", true)
-	assert_almost_eq(CombatPassives.weapon_basic_attack_mult(0), 1.15, 0.001)
+	assert_almost_eq(CombatPassives.weapon_basic_attack_mult(0), 1.25, 0.001)
 	_equip("vanguard_war_bow")
 	var front: Dictionary = CombatPassives.character_stat_modifiers_for_member(0)
 	assert_almost_eq(float(front.get("outgoing_mult", 1.0)), 2.0, 0.001)
