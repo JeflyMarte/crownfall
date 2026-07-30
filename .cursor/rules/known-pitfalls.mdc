@@ -131,6 +131,7 @@ alwaysApply: false
 | 「自動戦闘中」行が戦闘で再表示 | on_combat で visible=true | → `14_Presentation_Pitfalls.md` §5 |
 | aspect=keep なのに TopBar が低い／下ナビ下に黒余白 | inset=0 でも強制フォールバック | → `ui-layout.mdc` SafeArea |
 | `git checkout` / `mv` が `Operation not permitted` | Cursor サンドボックス | アセット・git 復元は `required_permissions: ["all"]` |
+| Wiki `mkdocs gh-deploy --remote-branch main` 後、本体が空／全部 untracked | ローカル分岐名 `main` が Pages orphan tip に付け替わる | デプロイ後 `git checkout <作業ブランチ> && git branch -f main origin/main`。手順は `wiki/GITHUB_PAGES_ORG.md` |
 | デバッグ開始で本編セーブが消える | 単一スロット上書き | → `tests.mdc`（`use_debug_slot`） |
 | GUT フレーク（週イベント・編成残存・ガチャトークン不足） | 実時刻イベント・1人編成・token=10 | → **`tests.mdc` フレーク防止** |
 | iOS Personal Team で Push 署名エラー | `entitlements/push_notifications=false` が文字列 `"false"` 扱いになり `aps-environment` が付く | 値は `"Disabled"`。entitlements から Push キーを外す |
