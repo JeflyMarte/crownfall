@@ -57,14 +57,108 @@ static func _sanitize_mods_inplace(item: Resource, mods: Array) -> Array:
 		if _sanitize_mod_dict(m):
 			changed = true
 		out.append(m)
+	var unified: Array = _unify_status_chance_mods(out)
+	if unified.size() != out.size():
+		changed = true
+		out = unified
+	else:
+		for i in out.size():
+			if not out[i] is Dictionary or not unified[i] is Dictionary:
+				continue
+			if str((out[i] as Dictionary).get("kind", "")) != str((unified[i] as Dictionary).get("kind", "")):
+				changed = true
+				out = unified
+				break
+			if str((out[i] as Dictionary).get("label", "")) != str((unified[i] as Dictionary).get("label", "")):
+				changed = true
+				out = unified
+				break
 	if changed and item != null and "random_mods" in item:
 		item.random_mods = out
-		## 武器属性値フィールドも同期
+		## 武器属性値／状態付与フィールドも同期
 		if "element_power" in item:
 			for m2: Variant in out:
 				if m2 is Dictionary and str(m2.get("kind", "")) == KIND_ELEMENT_POWER:
 					item.element_power = int(m2.get("value", 1))
 					break
+		if "on_hit_status_id" in item:
+			var data: Resource = null
+			if "weapon_id" in item:
+				data = DataRegistry.get_weapon_data(str(item.weapon_id))
+			if data != null:
+				_apply_weapon_mods_to_fields(item, data, out)
+	return out
+
+
+## P3-EQ-STATUS-UNIFY-001: 冷却／感電／炎上／毒付与 → 状態付与へ一本化。
+static func _status_id_for_chance_kind(kind: String) -> String:
+	match kind:
+		KIND_CHILL:
+			return "chill"
+		KIND_SHOCK:
+			return "shock"
+		KIND_IGNITE:
+			return "ignite"
+		KIND_POISON:
+			return "poison"
+		_:
+			return ""
+
+
+static func _make_on_hit_mod_from_chance(mod: Dictionary, status_id: String) -> Dictionary:
+	var value: float = float(mod.get("value", 0.15))
+	var min_v: float = float(mod.get("min_v", value))
+	var max_v: float = float(mod.get("max_v", value))
+	return {
+		"id": KIND_ON_HIT,
+		"label": "状態付与",
+		"kind": KIND_ON_HIT,
+		"value": value,
+		"min_v": min_v,
+		"max_v": max_v,
+		"perfect": bool(mod.get("perfect", false)),
+		"meta": {"status_id": status_id},
+	}
+
+
+static func _unify_status_chance_mods(mods: Array) -> Array:
+	var out: Array = []
+	var on_hit: Dictionary = {}
+	var candidates: Array = []
+	for mod: Variant in mods:
+		if not mod is Dictionary:
+			out.append(mod)
+			continue
+		var m: Dictionary = mod as Dictionary
+		var kind: String = str(m.get("kind", ""))
+		if kind == KIND_ON_HIT:
+			if on_hit.is_empty() or float(m.get("value", 0.0)) > float(on_hit.get("value", 0.0)):
+				on_hit = m.duplicate(true)
+				on_hit["label"] = "状態付与"
+				on_hit["id"] = KIND_ON_HIT
+			continue
+		var sid: String = _status_id_for_chance_kind(kind)
+		if not sid.is_empty():
+			candidates.append(m)
+			continue
+		out.append(m)
+	for c: Variant in candidates:
+		if not c is Dictionary:
+			continue
+		var cm: Dictionary = c as Dictionary
+		var sid2: String = _status_id_for_chance_kind(str(cm.get("kind", "")))
+		if sid2.is_empty():
+			continue
+		var val: float = float(cm.get("value", 0.0))
+		if on_hit.is_empty():
+			on_hit = _make_on_hit_mod_from_chance(cm, sid2)
+			continue
+		var existing_sid: String = str(on_hit.get("meta", {}).get("status_id", ""))
+		## 同一状態は高い方。別状態は既存の状態付与を正とし専用行は捨てる。
+		if existing_sid == sid2 and val > float(on_hit.get("value", 0.0)):
+			on_hit = _make_on_hit_mod_from_chance(cm, sid2)
+	if not on_hit.is_empty():
+		out.append(on_hit)
 	return out
 
 
@@ -299,9 +393,10 @@ static func _roll_accessory_mods(_accessory_data: Resource, rarity: int) -> Arra
 
 
 static func _weapon_pool_ids(weapon_data: Resource, used: Dictionary) -> Array[String]:
+	## 状態系は KIND_ON_HIT（状態付与）のみ。冷却／感電／炎上／毒の専用行は廃止。
 	var pool: Array[String] = [
 		KIND_ATTACK_UP, KIND_DEFENSE_UP, KIND_ATTACK_SPEED, KIND_CRIT_RATE, KIND_CRIT_DAMAGE,
-		KIND_ON_HIT, KIND_GOLD_GAIN, KIND_CHILL, KIND_SHOCK, KIND_IGNITE, KIND_POISON,
+		KIND_ON_HIT, KIND_GOLD_GAIN,
 	]
 	if not str(weapon_data.element).is_empty() and not used.has(KIND_ELEMENT_POWER):
 		pool.append(KIND_ELEMENT_POWER)
@@ -345,14 +440,9 @@ static func _roll_weapon_pool_mod(pid: String, weapon_data: Resource, rarity: in
 			return _roll_element_power_mod(weapon_data, rarity)
 		KIND_BANE:
 			return _make_bane_mod(weapon_data)
-		KIND_CHILL:
-			return _roll_status_chance_mod(KIND_CHILL, "冷却付与", rarity)
-		KIND_SHOCK:
-			return _roll_status_chance_mod(KIND_SHOCK, "感電付与", rarity)
-		KIND_IGNITE:
-			return _roll_status_chance_mod(KIND_IGNITE, "炎上付与", rarity)
-		KIND_POISON:
-			return _roll_status_chance_mod(KIND_POISON, "毒付与", rarity)
+		## 旧専用付与は抽選しない（既存は sanitize で状態付与へ統合）。
+		KIND_CHILL, KIND_SHOCK, KIND_IGNITE, KIND_POISON:
+			return {}
 		_:
 			return {}
 
@@ -662,7 +752,7 @@ static func _apply_weapon_mods_to_fields(instance: Resource, weapon_data: Resour
 				instance.bane_class = str(meta.get("bane_class", ""))
 				instance.bane_multiplier = float(meta.get("bane_mult", 1.3))
 			KIND_CHILL, KIND_SHOCK, KIND_IGNITE, KIND_POISON:
-				## 戦闘側は AffixStatCalculator 経由。フィールドには書かない。
+				## 廃止。sanitize で on_hit へ統合済みのはず。
 				pass
 			_:
 				pass
@@ -865,17 +955,29 @@ static func _affix_data_to_mod(data: Resource) -> Dictionary:
 			kind = KIND_HEALING
 			label = "回復量アップ"
 		"Chill":
-			kind = KIND_CHILL
-			label = "冷却付与"
+			return {
+				"id": KIND_ON_HIT, "label": "状態付与", "kind": KIND_ON_HIT,
+				"value": value, "min_v": value, "max_v": value, "perfect": false,
+				"meta": {"status_id": "chill"},
+			}
 		"Shock":
-			kind = KIND_SHOCK
-			label = "感電付与"
+			return {
+				"id": KIND_ON_HIT, "label": "状態付与", "kind": KIND_ON_HIT,
+				"value": value, "min_v": value, "max_v": value, "perfect": false,
+				"meta": {"status_id": "shock"},
+			}
 		"Ignite":
-			kind = KIND_IGNITE
-			label = "炎上付与"
+			return {
+				"id": KIND_ON_HIT, "label": "状態付与", "kind": KIND_ON_HIT,
+				"value": value, "min_v": value, "max_v": value, "perfect": false,
+				"meta": {"status_id": "ignite"},
+			}
 		"Poison":
-			kind = KIND_POISON
-			label = "毒付与"
+			return {
+				"id": KIND_ON_HIT, "label": "状態付与", "kind": KIND_ON_HIT,
+				"value": value, "min_v": value, "max_v": value, "perfect": false,
+				"meta": {"status_id": "poison"},
+			}
 		_:
 			pass
 	return {

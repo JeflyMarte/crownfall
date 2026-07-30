@@ -192,14 +192,10 @@ func _apply_affix_to_bonuses(affix_data: Resource, bonuses: Dictionary) -> void:
 			bonuses["material_gain_bonus"] += int(affix_data.value)
 		STAT_HEALING:
 			bonuses["healing_bonus"] += int(affix_data.value)
-		STAT_SHOCK:
-			bonuses["shock_chance"] += float(affix_data.value)
-		STAT_IGNITE:
-			bonuses["ignite_chance"] += float(affix_data.value)
-		STAT_CHILL:
-			bonuses["chill_chance"] += float(affix_data.value)
-		STAT_POISON:
-			bonuses["poison_chance"] += float(affix_data.value)
+		## P3-EQ-STATUS-UNIFY-001: 状態付与は武器 on_hit に一本化。レガシー Affix の
+		## Shock/Ignite/Chill/Poison は random_mods 移行時に on_hit 化されるためここでは加算しない。
+		STAT_SHOCK, STAT_IGNITE, STAT_CHILL, STAT_POISON:
+			pass
 		STAT_ATTACK_SPEED:
 			bonuses["attack_speed_mult_add"] += float(affix_data.value)
 		_:
@@ -255,13 +251,8 @@ func _apply_random_mod_to_bonuses(mod: Dictionary, category: String, bonuses: Di
 			return
 		"healing":
 			bonuses["healing_bonus"] += int(value)
-		"chill_chance":
-			bonuses["chill_chance"] += value
-		"shock_chance":
-			bonuses["shock_chance"] += value
-		"ignite_chance":
-			bonuses["ignite_chance"] += value
-		"poison_chance":
-			bonuses["poison_chance"] += value
+		## 旧専用付与行は表示統合後も残存しうるが戦闘加算しない（on_hit 側へ移行）。
+		"chill_chance", "shock_chance", "ignite_chance", "poison_chance", "on_hit_status":
+			pass
 		_:
 			pass

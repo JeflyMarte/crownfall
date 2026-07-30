@@ -66,20 +66,59 @@ func test_armor_base_defense_fixed() -> void:
 	assert_eq(inst.random_mods.size(), int(load("res://scripts/equipment/EquipmentRollHelper.gd").random_stat_count(int(ad.rarity))))
 
 
-func test_status_chance_mods_roll_within_rarity_range() -> void:
-	## 冷却／感電／炎上／毒は固定25%ではなくレア度レンジでバラつく。
+func test_on_hit_status_rolls_within_rarity_range() -> void:
+	## 状態付与はレア度レンジでバラつく（専用 炎上付与 等は廃止）。
 	var seen: Dictionary = {}
 	for _i: int in 80:
-		var chill: Dictionary = _ERM._roll_status_chance_mod("chill_chance", "冷却付与", Enums.Rarity.COMMON)
-		var v: float = float(chill.get("value", 0.0))
-		assert_true(v >= 0.15 - 0.001 and v <= 0.25 + 0.001, "COMMON chill=%s" % v)
-		assert_almost_eq(float(chill.get("min_v", 0.0)), 0.15, 0.001)
-		assert_almost_eq(float(chill.get("max_v", 0.0)), 0.25, 0.001)
+		var hit: Dictionary = _ERM._roll_on_hit_mod(Enums.Rarity.COMMON)
+		var v: float = float(hit.get("value", 0.0))
+		assert_eq(str(hit.get("kind", "")), "on_hit_status")
+		assert_true(v >= 0.15 - 0.001 and v <= 0.25 + 0.001, "COMMON on_hit=%s" % v)
 		seen[snappedf(v, 0.01)] = true
 	assert_gt(seen.size(), 1, "付与率が複数値にバラけていること")
-	var epic: Dictionary = _ERM._roll_status_chance_mod("shock_chance", "感電付与", Enums.Rarity.EPIC)
+	var epic: Dictionary = _ERM._roll_on_hit_mod(Enums.Rarity.EPIC)
 	var ev: float = float(epic.get("value", 0.0))
-	assert_true(ev >= 0.25 - 0.001 and ev <= 0.35 + 0.001, "EPIC shock=%s" % ev)
+	assert_true(ev >= 0.25 - 0.001 and ev <= 0.35 + 0.001, "EPIC on_hit=%s" % ev)
+
+
+func test_unify_legacy_ignite_into_on_hit() -> void:
+	var wd: Resource = DataRegistry.get_weapon_data("iron_sword")
+	assert_not_null(wd)
+	var inst: Resource = WeaponInstance.new()
+	inst.instance_id = "t_status_unify"
+	inst.weapon_id = str(wd.id)
+	inst.is_appraised = true
+	inst.rolled_attack = int(wd.base_attack)
+	inst.random_mods = [
+		{
+			"kind": "ignite_chance", "label": "炎上付与", "value": 0.37,
+			"min_v": 0.30, "max_v": 0.60, "perfect": false, "meta": {},
+		},
+		{
+			"kind": "on_hit_status", "label": "状態付与", "value": 0.34,
+			"min_v": 0.20, "max_v": 0.40, "perfect": false,
+			"meta": {"status_id": "ignite"},
+		},
+	]
+	var mods: Array = _ERM.get_mods(inst)
+	var on_hit_n: int = 0
+	var legacy_n: int = 0
+	var best: float = 0.0
+	for m: Variant in mods:
+		if not m is Dictionary:
+			continue
+		var kind: String = str(m.get("kind", ""))
+		if kind == "on_hit_status":
+			on_hit_n += 1
+			best = float(m.get("value", 0.0))
+			assert_eq(str(m.get("meta", {}).get("status_id", "")), "ignite")
+		elif kind.ends_with("_chance"):
+			legacy_n += 1
+	assert_eq(on_hit_n, 1, "状態付与は1行")
+	assert_eq(legacy_n, 0, "専用付与行は消える")
+	assert_almost_eq(best, 0.37, 0.001, "同一状態は高い方を残す")
+	assert_eq(str(inst.on_hit_status_id), "ignite")
+	assert_almost_eq(float(inst.on_hit_status_chance), 0.37, 0.001)
 
 
 func test_migrate_legacy_attack_roll_to_mod() -> void:
