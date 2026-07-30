@@ -31,7 +31,7 @@ Featured 左の `origin_note` を、出身・物語調ではなく **ユーザ�
 | ID | 名前 | passive_id | origin_note |
 |---|---|---|---|
 | helper_a | ヴァルデン | valden_iron_oath | 鉄壁の守りを誇る、頼れる守護神！！ |
-| helper_b | イヴァル | ivar_trail_sight | 罠ダメを受けない探索狩人！ |
+| helper_b | イヴァル | ivar_trail_sight | 罠ダメを半減し、自分は無効。探索向き狩人！ |
 | helper_c | セリン | serin_quick_mend | 長期戦ダンジョンが得意なヒーラー！ |
 | helper_e | ミラ | mira_beast_call | 敵を拘束するデバフが得意な弓使い！ |
 | helper_f | カイダ | kaida_arena_edge | ピンチになれば火力が上がるベテラン剣士！ |
