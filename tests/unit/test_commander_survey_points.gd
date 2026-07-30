@@ -112,3 +112,14 @@ func test_title_slot_limits_by_rank() -> void:
 		GameState.discovery_registry["enemy:slot_b_%d" % i] = true
 	_CommanderProfile.acknowledge_rank("B", false)
 	assert_eq(_CommanderProfile.title_slot_limit(), 2)
+
+
+func test_pending_rank_gift_gold_sums_unrewarded() -> void:
+	GameState.commander["acknowledged_rank"] = "D"
+	GameState.commander["rank_reward_ranks"] = []
+	assert_eq(_CommanderProfile.pending_rank_gift_gold("C"), 500)
+	assert_eq(_CommanderProfile.pending_rank_gift_gold("B"), 1500)
+	_CommanderProfile.acknowledge_rank("C")
+	assert_eq(_CommanderGiftBox.pending_count(), 1)
+	assert_eq(_CommanderProfile.pending_rank_gift_gold("C"), 0)
+	assert_eq(_CommanderProfile.pending_rank_gift_gold("B"), 1000)

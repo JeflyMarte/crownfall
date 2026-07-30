@@ -14,6 +14,7 @@ var _confetti_host: Control
 var _panel: PanelContainer
 var _title_label: Label
 var _subtitle_label: Label
+var _reward_label: Label
 var _icon: TextureRect
 var _hint_label: Label
 var _tween: Tween
@@ -64,7 +65,7 @@ func _build() -> void:
 
 	_panel = PanelContainer.new()
 	_panel.name = "Panel"
-	_panel.custom_minimum_size = Vector2(320, 220)
+	_panel.custom_minimum_size = Vector2(320, 248)
 	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_panel.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD_ACTIVE)
@@ -110,6 +111,12 @@ func _build() -> void:
 	_subtitle_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	inner.add_child(_subtitle_label)
 
+	_reward_label = Label.new()
+	_reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_reward_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_reward_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	inner.add_child(_reward_label)
+
 	_hint_label = Label.new()
 	_hint_label.text = "タップして閉じる"
 	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -126,6 +133,14 @@ func _refresh_copy() -> void:
 	)
 	_subtitle_label.text = str(_CommanderProfile.RANK_SUBTITLES.get(_rank_code, ""))
 	UiTypography.apply_body(_subtitle_label, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	var gift_gold: int = _CommanderProfile.pending_rank_gift_gold(_rank_code)
+	if gift_gold > 0:
+		_reward_label.visible = true
+		_reward_label.text = "配布ボックスへ ゴールド %d" % gift_gold
+		UiTypography.apply_body(_reward_label, UiTypography.SIZE_BODY_SMALL, Color(0.95, 0.82, 0.45))
+	else:
+		_reward_label.visible = false
+		_reward_label.text = ""
 	UiTypography.apply_caption(_hint_label, UiTypography.COLOR_SUB)
 	_icon.texture = _CommanderUiTokens.rank_icon(_rank_code)
 
