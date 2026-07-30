@@ -16,18 +16,33 @@ func test_helper_personal_bonuses() -> void:
 
 func test_passive_defs_for_new_four() -> void:
 	var lenore: Dictionary = CombatPassives.get_def("lenore_seal_echo")
-	assert_almost_eq(float(lenore.get("outgoing_mult", 1.0)), 1.18, 0.001)
-	assert_almost_eq(float(lenore.get("incoming_mult", 1.0)), 1.12, 0.001)
+	assert_almost_eq(float(lenore.get("outgoing_mult", 1.0)), 1.12, 0.001)
+	assert_almost_eq(float(lenore.get("incoming_mult", 1.0)), 1.10, 0.001)
 	var sian: Dictionary = CombatPassives.get_def("sian_silent_line")
 	assert_eq(str(sian.get("trigger", "")), "on_combat_start")
 	assert_eq(str(sian.get("status_id", "")), "empower_minor")
 	assert_eq(str(sian.get("target", "")), "party")
 	var neri: Dictionary = CombatPassives.get_def("neri_waterfowl_call")
-	assert_almost_eq(float(neri.get("pet_outgoing_mult", 1.0)), 1.25, 0.001)
-	assert_almost_eq(float(neri.get("pet_defense_mult", 1.0)), 1.10, 0.001)
+	assert_almost_eq(float(neri.get("pet_outgoing_mult", 1.0)), 1.15, 0.001)
+	assert_almost_eq(float(neri.get("pet_defense_mult", 1.0)), 1.05, 0.001)
+	## ★2ネリ ＜ スターターミレイ（相棒共鳴 +20%）
+	var mirei: Dictionary = CombatPassives.get_def("mirei_swarm_resonance")
+	assert_true(
+		float(neri.get("pet_outgoing_mult", 1.0)) < float(mirei.get("pet_outgoing_mult", 1.0))
+	)
 	var borg: Dictionary = CombatPassives.get_def("borg_gate_voice")
 	assert_almost_eq(float(borg.get("evasion_rate_add", 0.0)), 0.18, 0.001)
 	assert_false(borg.has("threat_base_add"))
+
+
+func test_empower_minor_ally_combo_weaker_than_empower() -> void:
+	## シアン開幕バフが必殺ビルドに接続（本鼓舞より弱い追加）。
+	assert_true(CombatCombos.ally_trigger_ids().has("empower_minor"))
+	var full: Dictionary = CombatCombos.ally_rule("empower")
+	var minor: Dictionary = CombatCombos.ally_rule("empower_minor")
+	assert_almost_eq(float(full.get("hit_fraction", 0.0)), 0.35, 0.001)
+	assert_almost_eq(float(minor.get("hit_fraction", 0.0)), 0.20, 0.001)
+	assert_eq(str(minor.get("require_tag", "")), "ultimate")
 
 
 func test_helper_tres_passive_wired() -> void:
@@ -71,5 +86,5 @@ func test_neri_pet_defense_mult_from_party() -> void:
 	var pet = pet_class.new()
 	pet.id = "pet_jack"
 	GameState.active_pet = pet
-	assert_almost_eq(CombatPassives.pet_outgoing_mult_from_party(), 1.25, 0.001)
-	assert_almost_eq(CombatPassives.pet_defense_mult_from_party(), 1.10, 0.001)
+	assert_almost_eq(CombatPassives.pet_outgoing_mult_from_party(), 1.15, 0.001)
+	assert_almost_eq(CombatPassives.pet_defense_mult_from_party(), 1.05, 0.001)
