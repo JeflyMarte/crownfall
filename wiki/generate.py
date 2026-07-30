@@ -23,9 +23,13 @@ RARITY = {
     2: "エピック",
     3: "レジェンダリー",
     4: "神話",
-    5: "セット",
+    5: "エンシェントレア",  # Enums.Rarity.SET の表示名
 }
 RARITY_GEM = {0: "◇", 1: "◈", 2: "✦", 3: "★", 4: "✧", 5: "▣"}
+PASSIVE_NAME_RE = re.compile(
+    r'"([^"]+)"\s*:\s*\{[^}]*?"display_name"\s*:\s*"((?:[^"\\]|\\.)*)"',
+    re.DOTALL,
+)
 # 降臨など、tres に無いプレイヤー向け注記（再生成で残す）
 DUNGEON_EXTRA_ROWS: dict[str, list[tuple[str, str]]] = {
     "chronos_mausoleum": [
@@ -133,6 +137,15 @@ def load_dir(name: str) -> list[dict]:
     for f in sorted(d.glob("*.tres")):
         out.append(parse_tres(f))
     return out
+
+
+def load_passive_display_names() -> dict[str, str]:
+    """CombatPassives.gd から id → display_name を拾う（レジェンド固有効果用）。"""
+    path = REPO / "scripts" / "combat" / "CombatPassives.gd"
+    if not path.exists():
+        return {}
+    text = path.read_text(encoding="utf-8")
+    return {pid: name for pid, name in PASSIVE_NAME_RE.findall(text)}
 
 
 def rarity_cell(r) -> str:
@@ -264,16 +277,26 @@ def gen_monsters(monster_art: dict[str, str], materials):
 def gen_weapons(skills):
     weapons = load_dir("weapons")
     sk = {s["id"]: s["display_name"] for s in skills}
+    passives = load_passive_display_names()
     lines = [
         "# 武器一覧",
         "",
         "ドロップ・鍛冶生産で入手できる武器の基礎値。個体ごとにランダム補正（属性値・特効・会心など）が乗ります（[装備と鍛冶](../guide/equipment.md)）。",
         "",
-        "| 武器 | 種別 | レア度 | 攻撃 | 属性 | クリ | 固有スキル | 特効 |",
+        "レジェンド等の **固有効果** はパッシブ（常時／発火）。一部の非レジェンドは装備スキル名が載る。",
+        "",
+        "| 武器 | 種別 | レア度 | 攻撃 | 属性 | クリ | 固有効果 | 特効 |",
         "|---|---|---|---:|---|---:|---|---|",
     ]
     for w in weapons:
-        skill = sk.get(w.get("fixed_skill_id", ""), w.get("fixed_skill_id", "—") or "—")
+        pid = w.get("fixed_passive_id", "") or ""
+        sid = w.get("fixed_skill_id", "") or ""
+        if pid:
+            effect = passives.get(pid, pid)
+        elif sid:
+            effect = sk.get(sid, sid)
+        else:
+            effect = "—"
         bane = "—"
         if w.get("bane_class"):
             bane = f"{w['bane_class']} ×{w.get('bane_multiplier', '?')}"
@@ -281,7 +304,7 @@ def gen_weapons(skills):
             f"| **{w['display_name']}** | {WTYPE.get(w.get('weapon_type', ''), w.get('weapon_type', '—'))} "
             f"| {rarity_cell(w.get('rarity'))} | {w.get('base_attack', '?')} "
             f"| {ELEMENT.get(w.get('element', ''), '無')} | {pct(w.get('base_critical_rate'))} "
-            f"| {skill} | {bane} |"
+            f"| {effect} | {bane} |"
         )
     lines.append("")
     lines.append(
@@ -338,7 +361,10 @@ def gen_jobs(skills):
     lines = [
         "# ジョブ",
         "",
-        "探索隊メンバーの職能。**装備できる武器種**と習得スキルが異なります。一定レベルで上位職へ進化します。",
+        "探索隊メンバーの職能。**装備できる武器種**と習得スキルが異なります。",
+        "",
+        "!!! note \"ジョブ到達形（昇格）\"",
+        "    データ上の上位職は残置されていますが、**現行βでは昇格はオミット**（プレイ不可）。",
         "",
     ]
     for j in jobs:
@@ -349,6 +375,8 @@ def gen_jobs(skills):
         learn = " / ".join(sk.get(s, s) for s in (j.get("learnable_skill_ids") or []))
         start = " / ".join(sk.get(s, s) for s in (j.get("starting_skill_ids") or []))
         pref = " / ".join(WTYPE.get(t, t) for t in (j.get("preferred_weapon_types") or []))
+        evo_name = j.get("evolved_display_name", "—")
+        evo_lv = j.get("evolution_level", "?")
         lines += [
             "| 項目 | 内容 |",
             "|---|---|",
@@ -356,7 +384,7 @@ def gen_jobs(skills):
             f"| 装備可能武器 | {pref or '—'} |",
             f"| 初期スキル | {start or '—'} |",
             f"| 習得スキル | {learn or '—'} |",
-            f"| 進化先 | {j.get('evolved_display_name', '—')}（Lv{j.get('evolution_level', '?')}）|",
+            f"| 到達形（未解放） | {evo_name}（Lv{evo_lv}・βオミット）|",
             "",
         ]
     write(DATA / "jobs.md", "\n".join(lines))
