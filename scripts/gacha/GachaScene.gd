@@ -170,6 +170,7 @@ func _setup_reveal_presenter() -> void:
 
 func _setup_gacha_chrome() -> void:
 	_setup_gacha_atmosphere()
+	HeaderCurrencyHelper.apply_to_row($Header/HeaderRow)
 	## 枠上のロゴが正。ヘッダ文言「ギルドへの招待状」は出さない（スペーサのみ）。
 	_label_title.text = ""
 	$DetailOverlay/DetailPanel/DetailVBox/DetailHeader/LabelDetailTitle.text = (

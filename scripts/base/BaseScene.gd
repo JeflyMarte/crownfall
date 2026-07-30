@@ -591,8 +591,7 @@ func _apply_typography() -> void:
 	## 隊長名は本文フォント（可読優先）。装飾見出しだと誤読・溢れやすい。
 	UiTypography.apply_body(_label_player_name, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_body(_label_player_level, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
-	UiTypography.apply_body(_label_gold, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
-	UiTypography.apply_body(_label_token, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	HeaderCurrencyHelper.apply_to_row($HubView/TopBar/TopBarRow)
 	UiTypography.apply_display(_label_daily_title, UiTypography.SIZE_BODY_SMALL)
 	UiTypography.apply_caption(_label_daily_reset)
 	UiTypography.apply_display(_portrait_glyph, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)

@@ -44,6 +44,7 @@ var _cell_press_category: String = ""
 func _ready() -> void:
 	$Header/HeaderRow/LabelTitle.text = ""
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.NONE)
+	HeaderCurrencyHelper.apply_to_row($Header/HeaderRow)
 	EquipmentUiTokens.apply_tooltip_theme(self)
 	_setup_chrome()
 	var bg := get_node_or_null("BgTexture") as TextureRect

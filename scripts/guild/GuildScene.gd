@@ -23,6 +23,7 @@ const COLOR_ACCENT: Color = Color(0.75, 0.82, 0.95, 1)
 
 func _ready() -> void:
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.NONE)
+	HeaderCurrencyHelper.apply_to_row($Header/HeaderRow)
 	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)
 	_info_panel.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_NORMAL)

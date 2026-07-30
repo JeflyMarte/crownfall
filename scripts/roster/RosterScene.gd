@@ -195,8 +195,7 @@ func _apply_typography() -> void:
 	_label_power_legacy.visible = false
 	_label_power.text = "総合戦力 0"
 	UiTypography.apply_screen_title(_label_power)
-	UiTypography.apply_body(_label_gold, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
-	UiTypography.apply_body(_label_token, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	HeaderCurrencyHelper.apply_to_row($Header/HeaderRow)
 	UiTypography.apply_body(
 		$MainScroll/MainVBox/ListHeader/LabelListTitle,
 		UiTypography.SIZE_CAPTION

@@ -198,6 +198,7 @@ var _member_list_sheet: CanvasLayer = null
 func _ready() -> void:
 	$Header/HeaderRow/LabelTitle.text = ""
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.CHARACTER)
+	HeaderCurrencyHelper.apply_to_row($Header/HeaderRow)
 	_tabs.tabs_visible = false
 	_build_tab_row()
 	_member_row.visible = false

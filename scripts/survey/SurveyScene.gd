@@ -64,6 +64,7 @@ func _ready() -> void:
 	_hide_legacy_event_nodes()
 	_ensure_background()
 	_raise_header_chrome()
+	HeaderCurrencyHelper.apply_to_row($Header/HeaderRow)
 	_setup_start_confirm()
 	_setup_cancel_confirm()
 	_build_ui()

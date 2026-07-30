@@ -484,8 +484,7 @@ func _apply_typography() -> void:
 	UiTypography.apply_button(_btn_route_sub, _route_tab == ROUTE_TAB_SUB)
 	UiTypography.apply_button(_btn_route_event, _route_tab == ROUTE_TAB_EVENT)
 	UiTypography.apply_button(_btn_route_abyss, _route_tab == ROUTE_TAB_ABYSS)
-	UiTypography.apply_body(_label_gold, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
-	UiTypography.apply_body(_label_token, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	HeaderCurrencyHelper.apply_to_row($MainColumn/Header/HeaderRow)
 	UiTypography.apply_display(_label_featured_name, UiTypography.SIZE_BODY_SMALL)
 	_label_featured_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_body(_label_featured_flavor, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
