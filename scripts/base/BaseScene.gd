@@ -434,15 +434,35 @@ func _maybe_grant_starting_tokens_fx() -> void:
 
 
 func _setup_gift_badge() -> void:
+	## PanelContainer は全子を同矩形に敷くため、バッジを直置きするとカード全体が赤くなる。
+	## 単一ホスト Control の上に PlayerRow＋バッジを重ねる。
+	var host: Control = _player_card.get_node_or_null("PlayerCardHost") as Control
+	if host == null:
+		host = Control.new()
+		host.name = "PlayerCardHost"
+		host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var row: Control = _player_card.get_node("PlayerRow") as Control
+		_player_card.remove_child(row)
+		host.add_child(row)
+		row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		row.grow_horizontal = Control.GROW_DIRECTION_BOTH
+		row.grow_vertical = Control.GROW_DIRECTION_BOTH
+		_player_card.add_child(host)
 	_gift_badge = PanelContainer.new()
 	_gift_badge.name = "GiftBadge"
 	_gift_badge.visible = false
 	_gift_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_gift_badge.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_gift_badge.anchor_left = 1.0
+	_gift_badge.anchor_top = 0.0
+	_gift_badge.anchor_right = 1.0
+	_gift_badge.anchor_bottom = 0.0
 	_gift_badge.offset_left = -24.0
 	_gift_badge.offset_top = -6.0
 	_gift_badge.offset_right = 4.0
 	_gift_badge.offset_bottom = 14.0
+	_gift_badge.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_gift_badge.grow_vertical = Control.GROW_DIRECTION_END
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.82, 0.22, 0.18, 0.95)
 	sb.set_corner_radius_all(8)
@@ -454,7 +474,7 @@ func _setup_gift_badge() -> void:
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	UiTypography.apply_display(lbl, 10, Color(1.0, 0.95, 0.9), UiTypography.OUTLINE_STRONG)
 	_gift_badge.add_child(lbl)
-	_player_card.add_child(_gift_badge)
+	host.add_child(_gift_badge)
 
 func _setup_field_survey_banner() -> void:
 	if not EventSystem.PERIODIC_EVENTS_ENABLED:

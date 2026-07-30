@@ -15,6 +15,7 @@ alwaysApply: false
 | 症状 | 原因 | 再発防止 |
 |---|---|---|
 | 鍛冶完了ポップでレアロゴ巨大化／説明はみ出し | PanelContainer直下バッジ・WORD_SMART | → **`ui-layout.mdc` 鍛冶屋アイコン** |
+| 隊長カード全体が赤くなる | `PanelContainer` 直下に赤配布バッジ | → **`ui-layout.mdc` PanelContainer 上の角バッジ** |
 | 鍛冶／ダンジョン入場で即終了（maxf3引・wrap名衝突） | パース失敗 | → **`pitfalls-startup.mdc`**／`gdscript.mdc` |
 | ダンジョン入場 SCRIPT ERROR（`rarity_weight_mult` not found） | preload Script へ静的メソッド呼び出し | → **`pitfalls-startup.mdc`**（定数配列を直接読む） |
 | 非戦闘ナラティブ戻る／VFX位置／名ポップサイズ・帯VFX・付与テロップ | reset誤用・味方非表示・一律28/48・ColorRect | → **`14_Presentation_Pitfalls.md`** |
