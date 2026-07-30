@@ -351,8 +351,13 @@ func _enable_forge_scroll_touch() -> void:
 
 func _restore_primary_button_input() -> void:
 	if _craft_button != null:
+		_craft_button.set_meta(&"_cf_keep_mouse_stop", true)
 		_craft_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	if _reforge_button != null:
+		_reforge_button.set_meta(&"_cf_keep_mouse_stop", true)
+		_reforge_button.mouse_filter = Control.MOUSE_FILTER_STOP
 	if _bulk_dismantle_btn != null:
+		_bulk_dismantle_btn.set_meta(&"_cf_keep_mouse_stop", true)
 		_bulk_dismantle_btn.mouse_filter = Control.MOUSE_FILTER_STOP
 
 
@@ -741,6 +746,8 @@ func _setup_reforge_button() -> void:
 	_reforge_button.custom_minimum_size = Vector2(240, 64)
 	_reforge_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_reforge_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_reforge_button.set_meta(&"_cf_keep_mouse_stop", true)
+	_reforge_button.mouse_filter = Control.MOUSE_FILTER_STOP
 	BlacksmithUiHelper.apply_primary_button(
 		_reforge_button, BlacksmithUiHelper.PRIMARY_KIND_ENHANCE
 	)
@@ -753,6 +760,7 @@ func _setup_reforge_button() -> void:
 	detail_vbox.move_child(_reforge_button, _craft_button.get_index() + 1)
 	if _bulk_dismantle_btn != null and is_instance_valid(_bulk_dismantle_btn):
 		detail_vbox.move_child(_bulk_dismantle_btn, _craft_button.get_index() + 2)
+	_restore_primary_button_input()
 
 
 func _setup_result_dialog() -> void:
@@ -1914,6 +1922,9 @@ func _rebuild_enhance_detail() -> void:
 		else:
 			_reason_label.visible = false
 	_update_reforge_action(item, at_max)
+	## ScrollTouch が詳細 rebuild 後に主ボタンを PASS 化するため STOP を戻す。
+	_restore_primary_button_input()
+	call_deferred("_restore_primary_button_input")
 
 func _populate_enhance_stats(item: Resource) -> void:
 	match _category:
@@ -1979,6 +1990,8 @@ func _make_reforge_mod_row(mod: Dictionary, mod_index: int) -> PanelContainer:
 	var selected: bool = can_pick and mod_index == _selected_reforge_mod_index
 	var panel := PanelContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	## ScrollTouch に PASS 化されないよう STOP 維持（タップで選択できない再発防止）。
+	panel.set_meta(&"_cf_keep_mouse_stop", true)
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP if can_pick else Control.MOUSE_FILTER_IGNORE
 	var sb := StyleBoxFlat.new()
 	sb.set_content_margin_all(8.0)
@@ -2033,6 +2046,9 @@ func _make_reforge_mod_row(mod: Dictionary, mod_index: int) -> PanelContainer:
 func _on_reforge_mod_row_input(event: InputEvent, mod_index: int) -> void:
 	if not _is_primary_press(event):
 		return
+	## 外側 BodyScroll／DetailScroll にタップを渡さない。
+	if event is InputEventMouseButton or event is InputEventScreenTouch:
+		get_viewport().set_input_as_handled()
 	if _selected_reforge_mod_index == mod_index:
 		return
 	_selected_reforge_mod_index = mod_index
