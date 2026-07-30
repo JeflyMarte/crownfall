@@ -100,6 +100,8 @@ func test_build_featured_shell_has_feature_label() -> void:
 	assert_gt(blurb_wrap.offset_top, stats_wrap.offset_top)
 	assert_eq(int(feature_lbl.get_theme_font_size("font_size")), GachaUiHelper.FEATURED_BLURB_FONT_SIZE)
 	assert_eq(feature_lbl.get_theme_font("font"), UiTypography.display_font())
+	assert_eq(feature_lbl.max_lines_visible, 1)
+	assert_eq(feature_lbl.autowrap_mode, TextServer.AUTOWRAP_OFF)
 	assert_gt(stats_wrap.offset_left, -400.0)
 	var helpers: Array = GachaUiHelper.featured_helpers()
 	if helpers.is_empty():
@@ -136,19 +138,19 @@ func test_feature_blurbs_end_with_exclamation() -> void:
 
 
 func test_origin_note_matches_passive_role() -> void:
-	## DOC-CHAR-PASSIVE-SYNC-001: 煽りは passive_id の役割と一致（id／名前取り違え防止）。
+	## 煽りは passive_id の役割と一致（id／名前取り違え防止）。案B文面のキーワード。
 	var expect: Dictionary = {
-		"helper_a": "盾",
+		"helper_a": "守護",
 		"helper_b": "探索",
-		"helper_c": "回復",
-		"helper_e": "遅く",
-		"helper_f": "HP",
-		"helper_i": "致死",
-		"helper_k": "被ダメも増",
-		"helper_m": "戦闘開始",
+		"helper_c": "ヒーラー",
+		"helper_e": "デバフ",
+		"helper_f": "ピンチ",
+		"helper_i": "不屈",
+		"helper_k": "砲台",
+		"helper_m": "バフ",
 		"helper_n": "回避",
-		"helper_o": "オトモ",
-		"helper_p": "撃破",
+		"helper_o": "ペット",
+		"helper_p": "ピーキー",
 	}
 	for helper in DataRegistry.get_all_gacha_helper_data():
 		if helper == null:

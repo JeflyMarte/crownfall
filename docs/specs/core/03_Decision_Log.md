@@ -5486,7 +5486,19 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-GACHA-TEASE-PLAYSTYLE-001-1 | **トーン** — ユーザー目線の役割・トリガー・リスク一行 | 「どういうキャラか」が一目で分かる |
 | P3-GACHA-TEASE-PLAYSTYLE-001-2 | **形式** — 本文のみ・`！`止め（TEASE 規約維持） | レイアウト／テスト互換 |
 | P3-GACHA-TEASE-PLAYSTYLE-001-3 | **対象** — プール11体のみ。`_omitted`／パッシブ数値／UIレイアウトは外 | 最小差分 |
-| P3-GACHA-TEASE-PLAYSTYLE-001-4 | **文面** — Decision `24_GachaTeasePlaystyle.md` の案A表を正 | オーナー承認文面 |
+| P3-GACHA-TEASE-PLAYSTYLE-001-4 | **文面** — Decision `24_GachaTeasePlaystyle.md` の表を正 | オーナー承認文面 |
+
+---
+
+## 招待状煽り 案B短文化＋1行UI（2026-07-30 — P3-GACHA-TEASE-ONELINE-001）
+
+> **オーナー GO（案B）** — 文面改稿＋折り返し禁止の1行表示。イヴァル／ボルグは推奨案。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-GACHA-TEASE-ONELINE-001-1 | **文面** — Decision `24` 案B表（オーナー提示＋イヴァル／ボルグ推奨） | 役割が一目・パッシブ対応 |
+| P3-GACHA-TEASE-ONELINE-001-2 | **UI** — 折り返しOFF・`max_lines=1`・字16・幅420・溢れは… | 見た目を必ず1行に |
+| P3-GACHA-TEASE-ONELINE-001-3 | **上書き** — PLAYSTYLE-001 の案A文面／「UIレイアウト外」 | 本 Decision が正 |
 
 ---
 
@@ -5715,7 +5727,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-GACHA-TEASE-PLAYSTYLE-001-1 | **トーン** — ユーザー目線の役割・トリガー・リスク一行 | 「どういうキャラか」が一目で分かる |
 | P3-GACHA-TEASE-PLAYSTYLE-001-2 | **形式** — 本文のみ・`！`止め（TEASE 規約維持） | レイアウト／テスト互換 |
 | P3-GACHA-TEASE-PLAYSTYLE-001-3 | **対象** — プール11体のみ。`_omitted`／パッシブ数値／UIレイアウトは外 | 最小差分 |
-| P3-GACHA-TEASE-PLAYSTYLE-001-4 | **文面** — Decision `24_GachaTeasePlaystyle.md` の案A表を正 | オーナー承認文面 |
+| P3-GACHA-TEASE-PLAYSTYLE-001-4 | **文面** — Decision `24_GachaTeasePlaystyle.md` の表を正（案Bは ONELINE-001） | オーナー承認文面 |
 
 ## レジェンド説明のパッシブ追随（2026-07-30 — DOC-LEG-PASSIVE-001）
 
@@ -5749,4 +5761,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-HELPER-PASSIVE-B001-2 | **シアン** — `empower_minor` 据置＋**小鼓舞必殺**（与ダメの20%追加・本鼓舞35%より弱） | AUDIT-C2の棲み分け維持しつつ必殺ビルド接続 |
 | P3-BAL-HELPER-PASSIVE-B001-3 | **レノール** — 与×1.18／被×1.12 → **×1.12／×1.10** | ★2の平火力を抑制（紙耐久アイデンティティは維持） |
 | P3-BAL-HELPER-PASSIVE-B001-4 | **据置** — 他助っ人パッシブ・個人ステ・排出 | スコープ1→3のみ |
+
+## イヴァル罠パッシブ隊半減（2026-07-30 — P3-BAL-IVAR-TRAP-PARTY-001）
+
+> **オーナー GO（案B）** — 本人無効は維持。パーティの罠ダメージを半減。宝箱／泉／碑文の失敗ペナルティは据置（本人無効のみ）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-IVAR-TRAP-PARTY-001-1 | **本人** — `exploration_damage_immune` 据置（罠・探索・非戦闘失敗） | 既存アイデンティティ |
+| P3-BAL-IVAR-TRAP-PARTY-001-2 | **パーティ** — 生存中イヴァルがいるとき罠ダメ ×0.5（`exploration_damage_party_mult`） | 全面無効は強すぎ／解除ロールと共存 |
+| P3-BAL-IVAR-TRAP-PARTY-001-3 | **対象** — 罠部屋＋探索罠のみ。宝箱／泉／碑文失敗は半減しない | 罠核に限定 |
+| P3-BAL-IVAR-TRAP-PARTY-001-4 | **文言** — パッシブ説明・origin_note・wiki 追随 | 表示と実装一致 |
 
