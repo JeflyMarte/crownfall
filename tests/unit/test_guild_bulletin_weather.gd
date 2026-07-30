@@ -55,6 +55,19 @@ func test_weather_effect_one_line_for_legend() -> void:
 	assert_eq(str(rain_def.get("abbrev", "")), "雨")
 
 
+func test_weather_legend_icons_exist() -> void:
+	for wid in [
+		CombatWeather.RAIN,
+		CombatWeather.NIGHT,
+		CombatWeather.FOG,
+		CombatWeather.HEAT,
+		CombatWeather.SNOW,
+		"clear",
+	]:
+		var tex: Texture2D = IconPaths.get_icon_texture(str(wid), "weather")
+		assert_not_null(tex, wid)
+
+
 func test_field_event_effect_summary_includes_combat() -> void:
 	var summary: String = CombatWeather.field_event_effect_summary(CombatWeather.RAIN)
 	assert_true(summary.begins_with("・"))
