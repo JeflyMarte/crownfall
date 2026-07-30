@@ -30,6 +30,7 @@ const _GOLD_ICON_PATH: String = "res://assets/ui/batch2/ICO_Gold.png"
 @onready var _label_token: Label = $HubView/TopBar/TopBarRow/TokenChip/TokenRow/LabelToken
 @onready var _label_player_name: Label = $HubView/TopBar/TopBarRow/PlayerCard/PlayerRow/PlayerInfo/LabelPlayerName
 @onready var _label_player_level: Label = $HubView/TopBar/TopBarRow/PlayerCard/PlayerRow/PlayerInfo/LabelPlayerLevel
+@onready var _portrait_frame: PanelContainer = $HubView/TopBar/TopBarRow/PlayerCard/PlayerRow/PortraitFrame
 @onready var _portrait_art: TextureRect = $HubView/TopBar/TopBarRow/PlayerCard/PlayerRow/PortraitFrame/PortraitArt
 @onready var _portrait_glyph: Label = $HubView/TopBar/TopBarRow/PlayerCard/PlayerRow/PortraitFrame/PortraitGlyph
 @onready var _player_card: PanelContainer = $HubView/TopBar/TopBarRow/PlayerCard
@@ -675,7 +676,7 @@ func _decorate_panels() -> void:
 	var strip: Control = $HubView/CurrencyStrip as Control
 	if strip != null:
 		strip.visible = false
-	$HubView/TopBar/TopBarRow/PlayerCard/PlayerRow/PortraitFrame.add_theme_stylebox_override(
+	_portrait_frame.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_NORMAL)
 	)
 
@@ -842,7 +843,8 @@ func _update_player_card() -> void:
 	var frame_tier: String = CombatUiFrames.TIER_NORMAL
 	if _CommanderProfile.is_rank_at_least(_CommanderProfile.GOLD_SEAL_RANK):
 		frame_tier = CombatUiFrames.TIER_CARD_ACTIVE
-	$HubView/TopBar/TopBarRow/PlayerCard/PlayerRow/PortraitFrame.add_theme_stylebox_override(
+	## PlayerRow は配布バッジ用ホストへ reparent 済み。パス文字列ではなく参照を使う。
+	_portrait_frame.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(frame_tier)
 	)
 	var tooltip := "マイページを開く"
