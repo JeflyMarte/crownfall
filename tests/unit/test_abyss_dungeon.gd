@@ -53,10 +53,40 @@ func test_synthetic_tier_bands() -> void:
 	assert_eq(_AbyssDungeonConfig.synthetic_tier_for_floor(120), _DungeonTierConfig.TIER_NIGHTMARE)
 
 
-func test_endless_level_bonus_ramps() -> void:
-	var at_99: int = _AbyssDungeonConfig.enemy_level_bonus_for_floor(99)
-	var at_104: int = _AbyssDungeonConfig.enemy_level_bonus_for_floor(104)
+func test_floor_level_curve_anchors() -> void:
+	assert_eq(_AbyssDungeonConfig.enemy_level_for_floor(1), 1)
+	assert_eq(_AbyssDungeonConfig.enemy_level_for_floor(2), 2)
+	assert_eq(_AbyssDungeonConfig.enemy_level_for_floor(10), 5)
+	assert_eq(_AbyssDungeonConfig.enemy_level_for_floor(32), 28)
+	assert_eq(_AbyssDungeonConfig.enemy_level_for_floor(33), 32)
+	assert_eq(_AbyssDungeonConfig.enemy_level_for_floor(66), 80)
+	assert_eq(_AbyssDungeonConfig.enemy_level_for_floor(99), 110)
+	## 階数＝Lv ではない（例: 20F≠20）。
+	assert_ne(_AbyssDungeonConfig.enemy_level_for_floor(20), 20)
+	assert_lt(_AbyssDungeonConfig.enemy_level_for_floor(20), 20)
+	## 単調非減少。
+	var prev: int = 0
+	for f in [1, 2, 10, 20, 32, 33, 50, 65, 66, 80, 99]:
+		var lv: int = _AbyssDungeonConfig.enemy_level_for_floor(f)
+		assert_gte(lv, prev, "F%d Lvが下がらない" % f)
+		prev = lv
+
+
+func test_endless_level_ramps() -> void:
+	var at_99: int = _AbyssDungeonConfig.enemy_level_for_floor(99)
+	var at_104: int = _AbyssDungeonConfig.enemy_level_for_floor(104)
 	assert_gt(at_104, at_99, "100F以降は緩やかに上積み")
+
+
+func test_abyss_get_enemy_level_ignores_biome_base() -> void:
+	GameState.mark_dungeon_cleared("whisperwood")
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	dc.start_stage("abyss_whisperwood_1_1")
+	## 章リソースの enemy_level=10 でも 1F は絶対Lv=1。
+	assert_eq(dc.get_display_floor_current(), 1)
+	assert_eq(dc.get_enemy_level(), 1)
 
 
 func test_highest_floor_save() -> void:

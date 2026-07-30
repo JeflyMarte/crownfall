@@ -1062,15 +1062,19 @@ func get_member_run_exp(member_id: String) -> int:
 	return int(run_exp_by_member.get(member_id, 0))
 
 func get_enemy_level() -> int:
+	## 深層は表示階の絶対Lv（P3-DG-ABYSS-LV-001）。Biome基準＋Hard/NMボーナスは使わない。
+	if _is_abyss_run():
+		const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
+		return (
+			_AbyssDungeonConfig.enemy_level_for_floor(get_display_floor_current())
+			+ EventSystem.get_enemy_level_bonus()
+		)
 	var base: int = 1
 	if current_stage_data != null:
 		base = maxi(1, int(current_stage_data.enemy_level))
 	elif current_dungeon_data != null:
 		base = maxi(1, int(current_dungeon_data.enemy_level))
 	var tier_bonus: int = _DungeonTierConfig.enemy_level_bonus(GameState.current_dungeon_tier)
-	if _is_abyss_run():
-		const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
-		tier_bonus = _AbyssDungeonConfig.enemy_level_bonus_for_floor(get_display_floor_current())
 	return base + tier_bonus + EventSystem.get_enemy_level_bonus()
 
 func get_tier_rarity_weight(base_weight: int) -> int:
