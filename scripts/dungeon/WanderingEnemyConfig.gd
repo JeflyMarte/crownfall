@@ -106,7 +106,10 @@ static func canonical_enemy_id(enemy_id: String) -> String:
 
 
 static func spawn_mult_for_tier(tier: int) -> float:
-	return _DungeonTierConfig.rarity_weight_mult(tier)
+	## preload Script への静的メソッド呼び出しは環境によって失敗する。
+	## 定数配列を直接読む（ダンジョン入場時の放浪抽選で必須）。
+	var t: int = clampi(tier, 0, _DungeonTierConfig.RARITY_WEIGHT_MULT.size() - 1)
+	return float(_DungeonTierConfig.RARITY_WEIGHT_MULT[t])
 
 
 static func spawn_chance_cosmic_duck(tier: int = _DungeonTierConfig.TIER_NORMAL) -> float:

@@ -1092,7 +1092,8 @@ func get_enemy_level() -> int:
 	return base + tier_bonus + EventSystem.get_enemy_level_bonus()
 
 func get_tier_rarity_weight(base_weight: int) -> int:
-	var mult: float = _DungeonTierConfig.rarity_weight_mult(GameState.current_dungeon_tier)
+	var t: int = clampi(GameState.current_dungeon_tier, 0, _DungeonTierConfig.RARITY_WEIGHT_MULT.size() - 1)
+	var mult: float = float(_DungeonTierConfig.RARITY_WEIGHT_MULT[t])
 	return maxi(1, int(round(float(base_weight) * mult)))
 
 func get_reward_multiplier() -> float:

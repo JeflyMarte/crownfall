@@ -2911,7 +2911,10 @@ func _make_weather_legend_row(weather: String) -> HBoxContainer:
 	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon.tooltip_text = CombatWeather.label(weather)
-	var icon_tex: Texture2D = IconPaths.get_icon_texture(CombatWeather.normalize(weather), "weather")
+	var icon_tex: Texture2D = null
+	var wid: String = CombatWeather.normalize(weather)
+	if not wid.is_empty():
+		icon_tex = IconPaths.get_icon_texture(wid, "weather")
 	if icon_tex != null:
 		icon.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 		var tr := TextureRect.new()
