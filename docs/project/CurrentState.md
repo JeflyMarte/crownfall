@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-07-30（**P3-GACHA-TEASE-PLAYSTYLE-001 GO／統合＋main**: 招待状 Featured 左煽りをプレイ目線の役割一行へ（プール11体）。要実機）
 2026-07-30（**P3-OPS-FIX-MERGE-SET-001 GO／統合＋main**: 修正完了＝コミット＋統合＋`main` を既定セット。別途 GO 待ち廃止（明示停止／STOP／WIP 除く））
 2026-07-30（**モーンゲート序盤群れ上限 GO／統合＋main #186**: 1-1〜1-3ノーマルのみ群れ最高2体。H/NM・1-4以降据置。要実機）
 2026-07-30（**P3-UI-CHR-FRAME-STRIP-001 GO／統合＋main**: Ald／Garen の焼き込み枠を除去し他キャラと統一。要実機）
