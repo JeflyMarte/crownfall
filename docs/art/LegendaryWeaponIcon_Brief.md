@@ -83,6 +83,14 @@ python3 tools/verify_icon_paths.py
 
 差し替え時は WIP 上書き → `import_legendary_weapon_icons.py` 再実行。
 
+### 案B固有化（2026-07-30）
+
+テンプレ剣7本共有＋影弦／腐血弓共有を解消。64×64 透過で差し替え済:
+
+`silvaria_oathblade` / `volgrave_thunderblade` / `eldion_frostbrand` / `nereidas_tideblade` / `consecrated_maul` / `aegis_line_sword` / `pulsekeen_edge` / `shadowcord` / `blightcord_bow`
+
+`LEGENDARY_HAND_DRAWN_WEAPON_IDS` に穴埋め4本（`packbond_staff` 含む）を追加。検証: `test_legendary_weapon_icon_unique.gd`。
+
 ---
 
 ## 6. 関連（別 Task）
