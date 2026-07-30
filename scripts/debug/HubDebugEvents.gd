@@ -64,6 +64,17 @@ static func list_entries() -> Array[Dictionary]:
 		"hint": "章名の解放通知を1件",
 	})
 	out.append({
+		"id": "section_survey_claim",
+		"title": "—— 調査室受取 ——",
+		"hint": "サイクル完了ポップ（付与なし）",
+		"section": true,
+	})
+	out.append({
+		"id": "survey_claim_result",
+		"title": "調査完了",
+		"hint": "分解完了同型の受取ポップをプレビュー",
+	})
+	out.append({
 		"id": "section_survey",
 		"title": "—— 完全調査報酬 ——",
 		"hint": "景品ポップのみ（付与なし）",
@@ -196,6 +207,9 @@ static func run(entry_id: String) -> String:
 			return _queue_rank_up()
 		"hub_guide":
 			return _queue_hub_guide()
+		"survey_claim_result":
+			## 表示は BaseScene 側（即ポップ・付与なし）。
+			return ""
 		"nina_rare_flags_reset":
 			return _reset_nina_rare_flags()
 		"clear_pending_story":
