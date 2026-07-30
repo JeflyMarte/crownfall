@@ -24,6 +24,31 @@ func test_early_stage_swarm_chance_mult_for_1_1_to_1_3() -> void:
 	assert_almost_eq(dc._early_stage_swarm_chance_mult(), 1.0, 0.001)
 
 
+func test_mourngate_early_normal_swarm_size_cap() -> void:
+	## モーンゲート 1-1〜1-3 ノーマルのみ群れ最高2。H/NM・1-4以降はキャップなし。
+	assert_eq(BalanceConfig.EARLY_STAGE_SWARM_SIZE_CAP, 2)
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	var prev_tier: int = int(GameState.current_dungeon_tier)
+	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
+	dc.current_stage_data = DataRegistry.get_stage_data("mourngate_1_1")
+	assert_eq(dc._early_normal_swarm_size_cap(), 2)
+	dc.current_stage_data = DataRegistry.get_stage_data("mourngate_1_3")
+	assert_eq(dc._early_normal_swarm_size_cap(), 2)
+	dc.current_stage_data = DataRegistry.get_stage_data("mourngate_1_4")
+	assert_eq(dc._early_normal_swarm_size_cap(), -1)
+	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_HARD
+	dc.current_stage_data = DataRegistry.get_stage_data("mourngate_1_1")
+	assert_eq(dc._early_normal_swarm_size_cap(), -1)
+	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NIGHTMARE
+	assert_eq(dc._early_normal_swarm_size_cap(), -1)
+	dc.current_stage_data = DataRegistry.get_stage_data("whisperwood_2_1")
+	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
+	assert_eq(dc._early_normal_swarm_size_cap(), -1)
+	GameState.current_dungeon_tier = prev_tier
+
+
 func test_tier_swarm_scalars() -> void:
 	assert_almost_eq(_DungeonTierConfig.swarm_chance_mult(_DungeonTierConfig.TIER_NORMAL), 1.0, 0.001)
 	assert_almost_eq(_DungeonTierConfig.swarm_chance_mult(_DungeonTierConfig.TIER_HARD), 1.25, 0.001)

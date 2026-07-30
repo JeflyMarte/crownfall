@@ -635,15 +635,29 @@ func get_run_chapter_label() -> String:
 		return ""
 	return "%d-%d" % [int(current_stage_data.biome_index), int(current_stage_data.chapter_index)]
 
-## 1-1〜1-3 のみ群れ率を下げる（イベント forced_swarm／深層は対象外）。
-func _early_stage_swarm_chance_mult() -> float:
+## モーンゲート 1-1〜1-3（深層・他Biome除外）。
+func _is_mourngate_early_chapter() -> bool:
 	if current_stage_data == null or _is_abyss_run():
-		return 1.0
+		return false
 	var biome_i: int = int(current_stage_data.biome_index)
 	var chapter_i: int = int(current_stage_data.chapter_index)
-	if biome_i == 1 and chapter_i >= 1 and chapter_i <= 3:
+	return biome_i == 1 and chapter_i >= 1 and chapter_i <= 3
+
+
+## 1-1〜1-3 のみ群れ率を下げる（イベント forced_swarm／深層は対象外）。
+func _early_stage_swarm_chance_mult() -> float:
+	if _is_mourngate_early_chapter():
 		return BalanceConfig.EARLY_STAGE_SWARM_CHANCE_MULT
 	return 1.0
+
+
+## モーンゲート 1-1〜1-3・ノーマルのみ群れ頭数上限。非該当は -1（無制限＝既存キャップのみ）。
+func _early_normal_swarm_size_cap() -> int:
+	if not _is_mourngate_early_chapter():
+		return -1
+	if int(GameState.current_dungeon_tier) != _DungeonTierConfig.TIER_NORMAL:
+		return -1
+	return BalanceConfig.EARLY_STAGE_SWARM_SIZE_CAP
 
 func get_run_recommended_level() -> int:
 	var base: int = 0
@@ -1277,6 +1291,11 @@ func pick_combat_enemy_group() -> Array[Resource]:
 		hi = maxi(lo, int(current_dungeon_data.forced_swarm_max))
 	var size_bonus: int = _DungeonTierConfig.swarm_size_bonus(GameState.current_dungeon_tier)
 	hi = mini(_DungeonTierConfig.swarm_size_cap(), hi + size_bonus)
+	## モーンゲート 1-1〜1-3 ノーマル: 群れ最高2体（forced_swarm イベントは対象外）。
+	if not forced_swarm:
+		var early_cap: int = _early_normal_swarm_size_cap()
+		if early_cap > 0:
+			hi = mini(hi, early_cap)
 	lo = mini(lo, hi)
 	var size: int = randi_range(lo, hi)
 	var capable: Array[Resource] = _swarm_capable_enemies()
