@@ -6,6 +6,7 @@ const DUNGEON_SCENE: String = "res://scenes/dungeon/DungeonScene.tscn"
 
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 const _AbyssDungeonConfig = preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
+const _EventDungeonTitleHelper = preload("res://scripts/ui/EventDungeonTitleHelper.gd")
 
 const THUMB_SIZE: Vector2 = Vector2(72, 72)
 const ENEMY_ICON_PX: int = 26
@@ -35,9 +36,9 @@ const COLOR_CLEAR: Color = Color(0.45, 0.92, 0.55, 1)
 const COLOR_CLEAR_BADGE: Color = COLOR_CLEAR
 const COLOR_CLEAR_BADGE_HEX: String = "73eb8c"
 const COLOR_TEAL: Color = Color(0.6, 0.82, 0.78, 1)
-## 降臨ダンジョン名（通常ゴールドより薔薇金寄り）。
+## イベント名の共通薔薇金（曜日イベント単色・互換エイリアス）。
+## 降臨の2色分けは EventDungeonTitleHelper（案B）。
 const COLOR_EVENT_TITLE: Color = Color(1.0, 0.74, 0.56, 1.0)
-## 降臨名の金赤アウトライン（縁を立てる）。
 const COLOR_EVENT_TITLE_OUTLINE: Color = Color(0.78, 0.36, 0.18, 1.0)
 const EVENT_TITLE_OUTLINE_SIZE: int = 7
 const EVENT_TITLE_SHADOW_OUTLINE: int = 8
@@ -198,6 +199,8 @@ var _enter_confirm_overlay: Control
 var _enter_confirm_yes: Button
 var _enter_confirm_no: Button
 var _party_empty_dialog: AcceptDialog
+## Featured 名の2色行（LabelFeaturedName の代替表示）。
+var _featured_name_twotone: HBoxContainer = null
 
 const STAGE_CARD_MIN_SIZE: Vector2 = Vector2(136, 78)
 const STAGE_THUMB_SIZE: Vector2 = Vector2(44, 44)
@@ -838,10 +841,14 @@ func _dungeon_list_line_bbcode(data: Resource, unlocked: bool) -> String:
 	if rec_lv > 0:
 		parts.append("推奨Lv%d〜" % rec_lv)
 	var meta: String = "  ".join(parts)
-	var name_color: String = "f5e07a"
+	var name_bb: String = name
+	if _is_event_dungeon(data):
+		name_bb = _EventDungeonTitleHelper.title_bbcode(str(data.id), name, true)
+	else:
+		name_bb = "[color=#f5e07a][b]%s[/b][/color]" % name
 	if meta.is_empty():
-		return "[color=#%s][b]%s[/b][/color]%s" % [name_color, name, clear_bb]
-	return "[color=#%s][b]%s[/b][/color]%s  [color=#e0dcd0]%s[/color]" % [name_color, name, clear_bb, meta]
+		return "%s%s" % [name_bb, clear_bb]
+	return "%s%s  [color=#e0dcd0]%s[/color]" % [name_bb, clear_bb, meta]
 
 func _is_stage_cleared_for_ui(stage_id: String) -> bool:
 	if stage_id.is_empty():
@@ -987,29 +994,38 @@ func _refresh_featured() -> void:
 	var title_baked: bool = _banner_hides_title(_featured_dungeon_id)
 	var unlocked_featured: bool = GameState.is_dungeon_unlocked(_featured_dungeon_id)
 	if not unlocked_featured:
+		_hide_featured_name_twotone()
 		_label_featured_name.visible = true
 		_label_featured_name.text = "？"
 		_label_featured_flavor.text = "未開のダンジョン"
 		_label_featured_flavor.visible = true
+		UiTypography.apply_display(
+			_label_featured_name, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_SUB
+		)
 	elif title_baked:
+		_hide_featured_name_twotone()
 		_label_featured_name.visible = stage != null and _uses_stage_cards(_featured_dungeon_id)
 		_label_featured_name.text = str(stage.display_name) if stage != null else ""
+		if _label_featured_name.visible:
+			UiTypography.apply_display(
+				_label_featured_name, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD
+			)
 	elif stage != null and _uses_stage_cards(_featured_dungeon_id):
+		_hide_featured_name_twotone()
 		_label_featured_name.visible = true
 		_label_featured_name.text = "%s — %s" % [
 			_dungeon_display_name(data, true),
 			str(stage.display_name),
 		]
+		if _is_event_dungeon(data):
+			_apply_event_dungeon_title_style(_label_featured_name, UiTypography.SIZE_BODY_SMALL, true)
+		else:
+			UiTypography.apply_display(
+				_label_featured_name, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD
+			)
 	else:
-		_label_featured_name.visible = true
-		## CLEAR は一覧バナー側で緑表示。名前ラベルは金のみ（同色連結禁止）。
-		_label_featured_name.text = _dungeon_display_name(data, true)
-	if unlocked_featured and _is_event_dungeon(data):
-		_apply_event_dungeon_title_style(_label_featured_name, UiTypography.SIZE_BODY_SMALL, true)
-	elif unlocked_featured:
-		UiTypography.apply_display(
-			_label_featured_name, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD
-		)
+		## CLEAR は一覧バナー側で緑表示。降臨は本体／「降臨」の2色。
+		_set_featured_dungeon_title(data, true)
 	if unlocked_featured:
 		_label_featured_flavor.text = str(data.flavor_text)
 		_label_featured_flavor.visible = not str(data.flavor_text).is_empty()
@@ -1434,20 +1450,7 @@ func _make_biome_title_label(data: Resource, unlocked: bool) -> Control:
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 8)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var label := Label.new()
-	label.text = _dungeon_display_name(data, unlocked)
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	if not unlocked:
-		label.modulate = Color(0.72, 0.72, 0.76, 1.0)
-	if _is_event_dungeon(data):
-		_apply_event_dungeon_title_style(label, UiTypography.SIZE_BODY_SMALL, unlocked)
-	else:
-		UiTypography.apply_display(
-			label,
-			UiTypography.SIZE_BODY_SMALL,
-			UiTypography.COLOR_GOLD if unlocked else UiTypography.COLOR_SUB
-		)
-	row.add_child(label)
+	_add_dungeon_title_labels(row, data, unlocked, UiTypography.SIZE_BODY_SMALL, false)
 	if unlocked and data != null and _is_biome_fully_cleared_for_ui(str(data.id)):
 		var clear_lbl := Label.new()
 		clear_lbl.text = "CLEAR"
@@ -1468,25 +1471,7 @@ func _make_banner_overlay_title(data: Resource, unlocked: bool, dungeon_id: Stri
 	var title_text: String = _dungeon_display_name(data, unlocked)
 	var show_clear: bool = unlocked and data != null and _is_biome_fully_cleared_for_ui(str(data.id))
 	var title_size: int = _banner_title_font_size(dungeon_id, title_text, show_clear)
-	var title := Label.new()
-	title.text = title_text
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	title.autowrap_mode = TextServer.AUTOWRAP_OFF
-	title.max_lines_visible = 1
-	title.clip_text = false
-	title.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
-	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if _is_event_dungeon(data):
-		_apply_event_dungeon_title_style(title, title_size, unlocked)
-	else:
-		UiTypography.apply_display(
-			title,
-			title_size,
-			UiTypography.COLOR_GOLD if unlocked else UiTypography.COLOR_SUB
-		)
-		_apply_banner_title_shadow(title)
-	host.add_child(title)
+	_add_dungeon_title_labels(host, data, unlocked, title_size, true)
 	if show_clear:
 		var clear_lbl := Label.new()
 		clear_lbl.text = "CLEAR"
@@ -1506,13 +1491,143 @@ func _is_event_dungeon(data: Resource) -> bool:
 	return data != null and str(data.route_type) == "event"
 
 
-## 降臨名: 薔薇金＋銅赤アウトライン＋強めの黒影（通常バイオームと差別化）。
+## タイトル Label 群を host に追加（降臨は本体＋「降臨」の2色）。
+func _add_dungeon_title_labels(
+	host: Control,
+	data: Resource,
+	unlocked: bool,
+	size: int,
+	banner_shadow: bool
+) -> void:
+	var title_text: String = _dungeon_display_name(data, unlocked)
+	var dungeon_id: String = str(data.id) if data != null else ""
+	if unlocked and _is_event_dungeon(data):
+		var parts: Dictionary = _EventDungeonTitleHelper.split_title(title_text)
+		var suffix: String = str(parts.get("suffix", ""))
+		if not suffix.is_empty():
+			var body_lbl := _make_title_piece_label(
+				str(parts.get("body", "")),
+				size,
+				_EventDungeonTitleHelper.body_color(dungeon_id, true),
+				_EventDungeonTitleHelper.body_outline_color(dungeon_id),
+				banner_shadow
+			)
+			var mark_lbl := _make_title_piece_label(
+				suffix,
+				size,
+				_EventDungeonTitleHelper.suffix_color(true),
+				_EventDungeonTitleHelper.suffix_outline_color(),
+				banner_shadow
+			)
+			host.add_child(body_lbl)
+			host.add_child(mark_lbl)
+			return
+		var plain := _make_title_piece_label(
+			title_text,
+			size,
+			_EventDungeonTitleHelper.plain_event_color(true),
+			_EventDungeonTitleHelper.COLOR_EVENT_PLAIN_OUTLINE,
+			banner_shadow
+		)
+		host.add_child(plain)
+		return
+	var label := _make_title_piece_label(
+		title_text,
+		size,
+		UiTypography.COLOR_GOLD if unlocked else UiTypography.COLOR_SUB,
+		Color(0, 0, 0, 0.9),
+		banner_shadow and not unlocked
+	)
+	if not unlocked:
+		label.modulate = Color(0.72, 0.72, 0.76, 1.0)
+	if banner_shadow and unlocked and not _is_event_dungeon(data):
+		_apply_banner_title_shadow(label, false)
+	host.add_child(label)
+
+
+func _make_title_piece_label(
+	text: String,
+	size: int,
+	color: Color,
+	outline: Color,
+	strong_shadow: bool
+) -> Label:
+	var label := Label.new()
+	label.text = text
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	label.max_lines_visible = 1
+	label.clip_text = false
+	label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var outline_size: int = EVENT_TITLE_OUTLINE_SIZE if strong_shadow else UiTypography.OUTLINE_BODY
+	UiTypography.apply_display(label, size, color, outline_size)
+	label.add_theme_color_override("font_outline_color", outline)
+	if strong_shadow:
+		_apply_banner_title_shadow(label, true)
+	return label
+
+
+## 曜日イベント等の単色スタイル（Featured の非2色時）。
 func _apply_event_dungeon_title_style(label: Label, size: int, unlocked: bool) -> void:
-	var color: Color = COLOR_EVENT_TITLE if unlocked else UiTypography.COLOR_SUB
+	var color: Color = _EventDungeonTitleHelper.plain_event_color(unlocked)
 	UiTypography.apply_display(label, size, color, EVENT_TITLE_OUTLINE_SIZE)
 	if unlocked:
-		label.add_theme_color_override("font_outline_color", COLOR_EVENT_TITLE_OUTLINE)
+		label.add_theme_color_override(
+			"font_outline_color", _EventDungeonTitleHelper.COLOR_EVENT_PLAIN_OUTLINE
+		)
 	_apply_banner_title_shadow(label, true)
+
+
+func _ensure_featured_name_twotone() -> HBoxContainer:
+	if _featured_name_twotone != null and is_instance_valid(_featured_name_twotone):
+		return _featured_name_twotone
+	var parent: Node = _label_featured_name.get_parent()
+	_featured_name_twotone = HBoxContainer.new()
+	_featured_name_twotone.name = "FeaturedNameTwotone"
+	_featured_name_twotone.add_theme_constant_override("separation", 0)
+	_featured_name_twotone.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	parent.add_child(_featured_name_twotone)
+	parent.move_child(_featured_name_twotone, _label_featured_name.get_index() + 1)
+	return _featured_name_twotone
+
+
+func _hide_featured_name_twotone() -> void:
+	if _featured_name_twotone != null and is_instance_valid(_featured_name_twotone):
+		_featured_name_twotone.visible = false
+		for child in _featured_name_twotone.get_children():
+			child.queue_free()
+
+
+func _set_featured_dungeon_title(data: Resource, unlocked: bool) -> void:
+	var title_text: String = _dungeon_display_name(data, unlocked)
+	var dungeon_id: String = str(data.id) if data != null else ""
+	if (
+		unlocked
+		and _is_event_dungeon(data)
+		and _EventDungeonTitleHelper.is_descent_twotone(title_text)
+	):
+		var host: HBoxContainer = _ensure_featured_name_twotone()
+		for child in host.get_children():
+			child.queue_free()
+		_label_featured_name.visible = false
+		host.visible = true
+		_add_dungeon_title_labels(host, data, unlocked, UiTypography.SIZE_BODY_SMALL, true)
+		return
+	_hide_featured_name_twotone()
+	_label_featured_name.visible = true
+	_label_featured_name.text = title_text
+	if unlocked and _is_event_dungeon(data):
+		_apply_event_dungeon_title_style(_label_featured_name, UiTypography.SIZE_BODY_SMALL, true)
+	elif unlocked:
+		UiTypography.apply_display(
+			_label_featured_name, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD
+		)
+	else:
+		UiTypography.apply_display(
+			_label_featured_name, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_SUB
+		)
 
 
 func _apply_banner_title_shadow(label: Label, strong: bool = false) -> void:
@@ -1654,19 +1769,13 @@ func _make_biome_text_header(
 	chevron_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_body(chevron_lbl, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
 	title_row.add_child(chevron_lbl)
-	var name_lbl := Label.new()
-	name_lbl.text = _dungeon_card_title(data, unlocked)
-	name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if _is_event_dungeon(data):
-		_apply_event_dungeon_title_style(name_lbl, UiTypography.SIZE_BODY_SMALL, unlocked)
-	else:
-		UiTypography.apply_display(
-			name_lbl,
-			UiTypography.SIZE_BODY_SMALL,
-			UiTypography.COLOR_GOLD if unlocked else UiTypography.COLOR_SUB
-		)
-	title_row.add_child(name_lbl)
+	var name_host := HBoxContainer.new()
+	name_host.add_theme_constant_override("separation", 0)
+	name_host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_add_dungeon_title_labels(
+		name_host, data, unlocked, UiTypography.SIZE_BODY_SMALL, false
+	)
+	title_row.add_child(name_host)
 	if unlocked and _is_biome_fully_cleared_for_ui(dungeon_id):
 		var clear_lbl := Label.new()
 		clear_lbl.text = "CLEAR"

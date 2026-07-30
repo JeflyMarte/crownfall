@@ -94,7 +94,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 - `ContentVBox/BuildChipRow` — 同上 + `LabelBuildSummary`（Task037）
 - スキルタブ — 戦術プリセット・陣形行・**🔒Lv解放表示**（P3-SKILL-001）・武器スキル行（P3-SKILL-004）・探索スキル一覧（P3-D117）・連携 hint（P3-D115）・ガンビット（P3-D122）
 
-**DungeonSelectScene** — `scenes/dungeon/DungeonSelectScene.tscn` / `scripts/dungeon/DungeonSelectScene.gd`（P3-D080・**P3-UI-DG-001** Featuredバナー+Biome直列カード+Event Footer・**P3-DG-TIER** TabsRow）
+**DungeonSelectScene** — `scenes/dungeon/DungeonSelectScene.tscn` / `scripts/dungeon/DungeonSelectScene.gd`（P3-D080・**P3-UI-DG-001** Featuredバナー+Biome直列カード+Event Footer・**P3-DG-TIER** TabsRow・**P3-UX-EVENT-TITLE-TWOTONE-001** 降臨名2色=`EventDungeonTitleHelper`）
 
 **GuildScene** — `scenes/guild/GuildScene.tscn` / `scripts/guild/GuildScene.gd`（P3-D052 手動認定・**P3-UI2-024** Header/BottomNav・認定カードリスト）
 

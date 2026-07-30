@@ -5525,3 +5525,19 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 | P3-UX-DESCENT-TIER-TABS-001-4 | **上書き** — Chronos/Valgard Decision の「難度3行」表記を本 Decision が置換 | 14／16 更新 |
 | P3-UX-DESCENT-TIER-TABS-001-5 | **据置** — 出現スケジュール・難度解放（降臨は N/H/NM 常時選択可）・報酬 | 戦闘／スケジュール非変更 |
 
+---
+
+## イベント名2色分け・案B（2026-07-29 — P3-UX-EVENT-TITLE-TWOTONE-001）
+
+> **オーナー GO（案B）** — 降臨タイトルのみ名前内で色分け。曜日イベントは従来の単色薔薇金。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-EVENT-TITLE-TWOTONE-001-1 | **分割** — `display_name` が「…降臨」で終わるとき本体／`降臨` を2色 | 降臨ブランドを揃えつつ個体差を出す |
+| P3-UX-EVENT-TITLE-TWOTONE-001-2 | **接尾色** — `降臨` は全降臨共通の薔薇金（従来イベント名色） | バッジ感 |
+| P3-UX-EVENT-TITLE-TWOTONE-001-3 | **本体色** — クロノス＝時シアン、ヴァルガード＝琥珀。追加降臨は `_BODY_THEME` に追記 | 世界観色 |
+| P3-UX-EVENT-TITLE-TWOTONE-001-4 | **曜日イベント** — 単色（従来薔薇金）据置 | 「降臨」無しのため |
+| P3-UX-EVENT-TITLE-TWOTONE-001-5 | **適用面** — 選択画面のバナー重ね／Featured／テキストヘッダ／一覧 BBCode | 見え方の一貫 |
+| P3-UX-EVENT-TITLE-TWOTONE-001-6 | **SSOT** — `EventDungeonTitleHelper` | 散在回避 |
+
+
