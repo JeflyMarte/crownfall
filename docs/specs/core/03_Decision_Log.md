@@ -5701,3 +5701,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-GACHA-TEASE-PLAYSTYLE-001-3 | **対象** — プール11体のみ。`_omitted`／パッシブ数値／UIレイアウトは外 | 最小差分 |
 | P3-GACHA-TEASE-PLAYSTYLE-001-4 | **文面** — Decision `24_GachaTeasePlaystyle.md` の案A表を正 | オーナー承認文面 |
 
+## レジェンド説明のパッシブ追随（2026-07-30 — DOC-LEG-PASSIVE-001）
+
+> **オーナー GO** — プレイヤー文言・現行 SSOT を P3-WPN-LEG-EFFECT に合わせる。挙動・死コード削除はしない。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| DOC-LEG-PASSIVE-001-1 | レジェンド個性の正は **`fixed_passive_id`（固有効果）**。文言から「専用スキル／武器スキル」を除去 | 実装と説明の一致 |
+| DOC-LEG-PASSIVE-001-2 | 非レジェンドの `fixed_skill_id` は据置 | EPIC 属性武器等の互換 |
+| DOC-LEG-PASSIVE-001-3 | `WeaponSkillHelper` 削除はしない（後続） | β前は文言のみ |
+| DOC-LEG-PASSIVE-001-4 | Decision Log 過去エントリは改変しない | 履歴保持 |
+
