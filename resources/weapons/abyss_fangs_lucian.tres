@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "abyss_fangs_lucian"
+display_name = "深淵双牙リュシアン"
+description = "九英雄・深淵を踏破した者リュシアンの伝承に連なる双牙、と記録部は仮登録する。王遺産の九対には含まれないが、王座の深淵と縁深い品とされる。"
+fixed_skill_id = ""
+fixed_passive_id = "eq_mythic_lucian"
+base_attack = 168
+rarity = 4
+base_attack_speed = 1.15
+base_critical_rate = 0.12
+base_knockback = 0.25
+base_stagger_power = 0.15
+base_attack_range = 1.0
+weight = 0.85
+element = "dark"
+weapon_type = "dual_blades"
+tags = Array[String](["slash", "dark"])
+bane_class = ""
+bane_multiplier = 1.0

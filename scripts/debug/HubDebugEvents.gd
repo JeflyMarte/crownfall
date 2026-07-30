@@ -471,7 +471,7 @@ static func _debug_sample_name_for_rare(kind: String) -> String:
 		"legendary":
 			return "ファロス・フレア"
 		"mythic":
-			return "深淵の牙"
+			return "継承剣レガート"
 		_:
 			return "サンプル"
 

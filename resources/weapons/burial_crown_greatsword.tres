@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 id = "burial_crown_greatsword"
-display_name = "葬冠の大剣"
-description = "墓門の冠を鍛え直した神話の大剣。斬った魂が次の一振りを引き寄せると伝えられる。"
+display_name = "継承剣レガート"
+description = "継承王カエルムの伝承に連なる剣、と記録部は仮登録する。真の王遺産かは未確定。王都アステリア地下で発掘され、「次の者へ」の理念を宿すと語られる。"
 fixed_skill_id = ""
 fixed_passive_id = "eq_mythic_burial_crown"
 base_attack = 176
@@ -20,3 +20,5 @@ weight = 1.15
 element = "dark"
 weapon_type = "sword"
 tags = Array[String](["slash", "dark"])
+bane_class = ""
+bane_multiplier = 1.0
