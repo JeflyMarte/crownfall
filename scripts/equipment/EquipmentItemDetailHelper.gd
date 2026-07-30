@@ -216,15 +216,19 @@ static func stat_rows(item: Resource, category: String) -> Array:
 			pass
 		_:
 			return rows
+	var mod_i: int = 0
 	for mod: Variant in _EquipmentRandomMods.get_mods(item):
 		if not mod is Dictionary:
+			mod_i += 1
 			continue
 		var line: String = _EquipmentRandomMods.format_mod_line(mod as Dictionary)
 		rows.append({
 			"key": EquipmentUiTokens.detail_stat_icon_key(mod as Dictionary),
 			"label": "",
 			"value": line,
+			"mod_index": mod_i,
 		})
+		mod_i += 1
 	return rows
 
 
@@ -477,6 +481,9 @@ static func populate_panel(
 	var forge_before: Dictionary = {}
 	if options.get("forge_before", null) is Dictionary:
 		forge_before = options["forge_before"] as Dictionary
+	var reforge_mod_index: int = int(options.get("reforge_mod_index", -1))
+	var reforge_old_line: String = str(options.get("reforge_old_line", ""))
+	var reforge_new_line: String = str(options.get("reforge_new_line", ""))
 	var value_color: Color = COLOR_VALUE
 	if options.has("value_color"):
 		value_color = options["value_color"] as Color
@@ -553,12 +560,26 @@ static func populate_panel(
 			var lv_lbl := _make_caption_label(level_delta)
 			UiTypography.apply_body(lv_lbl, UiTypography.SIZE_CAPTION, COLOR_POS)
 			content_host.add_child(lv_lbl)
+	if reforge_mod_index >= 0 and (not reforge_old_line.is_empty() or not reforge_new_line.is_empty()):
+		var change_lbl := _make_caption_label(
+			"焼直し ◆ %s → %s" % [
+				reforge_old_line if not reforge_old_line.is_empty() else "？",
+				reforge_new_line if not reforge_new_line.is_empty() else "？",
+			]
+		)
+		change_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		UiTypography.apply_body(change_lbl, UiTypography.SIZE_CAPTION, COLOR_POS)
+		content_host.add_child(change_lbl)
 	var shown_core_keys: Dictionary = {}
 	for row in stat_rows(item, category):
 		var row_key: String = str(row.get("key", ""))
 		var row_label: String = str(row.get("label", ""))
 		var row_value: String = str(row.get("value", ""))
 		var row_color: Color = value_color
+		var row_mod_index: int = int(row.get("mod_index", -1))
+		if reforge_mod_index >= 0 and row_mod_index == reforge_mod_index:
+			row_value = "◆ %s" % row_value
+			row_color = COLOR_POS
 		if not forge_before.is_empty() and not row_key.is_empty():
 			var after_cores: Dictionary = forge_after.get("cores", {}) as Dictionary
 			if after_cores.has(row_key):

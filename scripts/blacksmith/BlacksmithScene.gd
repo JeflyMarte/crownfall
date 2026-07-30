@@ -903,13 +903,16 @@ func _show_forge_item_result(
 	item: Resource,
 	category: String,
 	kind: String = "enhance",
-	forge_before: Dictionary = {}
+	forge_before: Dictionary = {},
+	extra_opts: Dictionary = {}
 ) -> void:
 	_ensure_result_overlay()
 	_apply_result_chrome(title, kind)
 	var opts: Dictionary = _framed_result_detail_opts()
 	if not forge_before.is_empty():
 		opts["forge_before"] = forge_before
+	for k: Variant in extra_opts.keys():
+		opts[k] = extra_opts[k]
 	EquipmentItemDetailHelper.populate_panel(
 		_result_detail_host,
 		item,
@@ -2949,16 +2952,28 @@ func _on_reforge_confirmed() -> void:
 	var forge_before: Dictionary = EquipmentItemDetailHelper.forge_stat_snapshot(
 		_selected_enhance_item, _category
 	)
+	var mod_index: int = _selected_reforge_mod_index
 	var result: Dictionary = _EquipmentReforgeHelper.reforge_mod(
-		_selected_enhance_item, _selected_reforge_mod_index
+		_selected_enhance_item, mod_index
 	)
 	if not bool(result.get("ok", false)):
 		_log_craft_error(str(result.get("reason", "焼直しに失敗しました")))
 		_refresh_all()
 		return
+	var old_mod: Dictionary = {}
+	var new_mod: Dictionary = {}
+	if result.get("old_mod", null) is Dictionary:
+		old_mod = result["old_mod"] as Dictionary
+	if result.get("new_mod", null) is Dictionary:
+		new_mod = result["new_mod"] as Dictionary
+	var extra: Dictionary = {
+		"reforge_mod_index": mod_index,
+		"reforge_old_line": _EquipmentRandomMods.format_mod_line(old_mod) if not old_mod.is_empty() else "",
+		"reforge_new_line": _EquipmentRandomMods.format_mod_line(new_mod) if not new_mod.is_empty() else "",
+	}
 	SaveManager.save_game()
 	_show_forge_item_result(
-		"焼直し完了", _selected_enhance_item, _category, "enhance", forge_before
+		"焼直し完了", _selected_enhance_item, _category, "enhance", forge_before, extra
 	)
 	_refresh_all()
 	_play_forge_success_feedback(FORGE_FLASH_ENHANCE)

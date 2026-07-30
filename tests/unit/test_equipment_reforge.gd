@@ -183,3 +183,16 @@ func test_cost_table_by_rarity() -> void:
 	var epic_mats: Dictionary = _Reforge.get_material_cost(Enums.Rarity.EPIC)
 	assert_eq(int(epic_mats.get("relic_shard", 0)), 2)
 	assert_eq(int(epic_mats.get("ancient_bone", 0)), 1)
+
+
+func test_stat_rows_include_mod_index_for_reforge_mark() -> void:
+	var inst: Resource = _make_weapon("iron_sword")
+	var rows: Array = EquipmentItemDetailHelper.stat_rows(inst, "weapon")
+	var saw_mod: bool = false
+	for row: Variant in rows:
+		if not row is Dictionary:
+			continue
+		if int((row as Dictionary).get("mod_index", -1)) >= 0:
+			saw_mod = true
+			break
+	assert_true(saw_mod)
