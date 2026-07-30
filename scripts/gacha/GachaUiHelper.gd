@@ -16,14 +16,14 @@ const BANNER_PORTRAIT_MIN_W: int = 96
 const FEATURED_MIN_RARITY: int = 3
 const FEATURED_IDLE_PX: float = 196.0
 const FEATURED_STATS_MIN_W: float = 220.0
-## Featured 左の煽り文パネル幅（P3-GACHA-FEATURE-TEASE-001）。
-const FEATURED_BLURB_MIN_W: float = 240.0
+## Featured 左の煽り文パネル幅（1行全文向けに広め）。
+const FEATURED_BLURB_MIN_W: float = 420.0
 ## タイトル帯・右ステより下（キャラ中腹付近）。Shippori 見出しと揃える。
 const FEATURED_BLURB_TOP: float = 340.0
 ## キャラに被りすぎないよう右へ（少し余白）。
 const FEATURED_BLURB_SIDE_PAD: float = 48.0
-## 右名前（SIZE_DISPLAY=24）より一段小さく。
-const FEATURED_BLURB_FONT_SIZE: int = 20
+## 右名前より一段小さく。長い1行を収めるため 16。
+const FEATURED_BLURB_FONT_SIZE: int = 16
 const FEATURED_BLURB_OUTLINE: int = 3
 ## Featured 背後の紫上昇塵（多いほど召喚感が強い）。
 const FEATURED_MOTE_COUNT: int = 18
@@ -536,9 +536,11 @@ static func build_featured_shell(host: Control) -> Dictionary:
 
 	var feature_lbl := Label.new()
 	feature_lbl.name = "LabelFeature"
-	feature_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	feature_lbl.max_lines_visible = 4
-	feature_lbl.clip_text = false
+	## 1行固定（案B）。収まらない場合のみ末尾省略。
+	feature_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+	feature_lbl.max_lines_visible = 1
+	feature_lbl.clip_text = true
+	feature_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	feature_lbl.custom_minimum_size = Vector2(FEATURED_BLURB_MIN_W, 0)
 	feature_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_apply_feature_blurb_style(feature_lbl)
