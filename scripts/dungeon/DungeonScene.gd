@@ -2824,7 +2824,8 @@ func _update_status_icons() -> void:
 
 
 func _init_status_legend() -> void:
-	var battlefield: Control = $MainVBox/BattlefieldArea
+	## BattlefieldArea は clip_contents=true。右下レジェンドが欠けるため、
+	## 状態アイコン行と同様にシーン直下へ置き、BF 矩形基準で配置する。
 	_status_legend_panel = PanelContainer.new()
 	_status_legend_panel.name = "StatusLegendPanel"
 	_status_legend_panel.visible = false
@@ -2833,14 +2834,10 @@ func _init_status_legend() -> void:
 	_status_legend_panel.custom_minimum_size = Vector2(STATUS_LEGEND_WIDTH, 0.0)
 	## 背景四角なし（アイコン＋効果文言のみ）。
 	_status_legend_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
-	## 状態異常＝右下。高さは内容に応じて上方向へ伸びる。
-	_status_legend_panel.anchor_left = 1.0
-	_status_legend_panel.anchor_top = 1.0
-	_status_legend_panel.anchor_right = 1.0
-	_status_legend_panel.anchor_bottom = 1.0
-	_status_legend_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	_status_legend_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	battlefield.add_child(_status_legend_panel)
+	_status_legend_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	_status_legend_panel.grow_horizontal = Control.GROW_DIRECTION_END
+	_status_legend_panel.grow_vertical = Control.GROW_DIRECTION_END
+	add_child(_status_legend_panel)
 	_status_legend_list = VBoxContainer.new()
 	_status_legend_list.name = "StatusLegendList"
 	_status_legend_list.add_theme_constant_override("separation", STATUS_LEGEND_ROW_GAP)
@@ -2849,7 +2846,7 @@ func _init_status_legend() -> void:
 	_status_legend_panel.add_child(_status_legend_list)
 	_status_legend_signature = ""
 
-	## 天候などダンジョン効果＝右上。
+	## 天候などダンジョン効果＝右上（同じく clip 外）。
 	_field_legend_panel = PanelContainer.new()
 	_field_legend_panel.name = "FieldLegendPanel"
 	_field_legend_panel.visible = false
@@ -2857,13 +2854,10 @@ func _init_status_legend() -> void:
 	_field_legend_panel.z_index = COMBAT_OVERLAY_Z + 4
 	_field_legend_panel.custom_minimum_size = Vector2(STATUS_LEGEND_WIDTH, 0.0)
 	_field_legend_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
-	_field_legend_panel.anchor_left = 1.0
-	_field_legend_panel.anchor_top = 0.0
-	_field_legend_panel.anchor_right = 1.0
-	_field_legend_panel.anchor_bottom = 0.0
-	_field_legend_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_field_legend_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	_field_legend_panel.grow_horizontal = Control.GROW_DIRECTION_END
 	_field_legend_panel.grow_vertical = Control.GROW_DIRECTION_END
-	battlefield.add_child(_field_legend_panel)
+	add_child(_field_legend_panel)
 	_field_legend_list = VBoxContainer.new()
 	_field_legend_list.name = "FieldLegendList"
 	_field_legend_list.add_theme_constant_override("separation", STATUS_LEGEND_ROW_GAP)
@@ -2875,37 +2869,53 @@ func _init_status_legend() -> void:
 	_layout_field_legend()
 
 
+func _legend_panel_content_height(panel: PanelContainer, list: VBoxContainer) -> float:
+	var h: float = 0.0
+	if list != null:
+		for child: Node in list.get_children():
+			if child is Control:
+				h += (child as Control).get_combined_minimum_size().y
+		if list.get_child_count() > 1:
+			h += float(STATUS_LEGEND_ROW_GAP) * float(list.get_child_count() - 1)
+		h = maxf(h, list.get_combined_minimum_size().y)
+	if panel != null:
+		h = maxf(h, panel.get_combined_minimum_size().y)
+	return maxf(h, 1.0)
+
+
+func _battlefield_rect_in_self() -> Rect2:
+	var bf: Control = $MainVBox/BattlefieldArea as Control
+	if bf == null:
+		return Rect2(Vector2.ZERO, size)
+	var gr: Rect2 = bf.get_global_rect()
+	return Rect2(_global_to_root_pos(gr.position), gr.size)
+
+
 func _layout_status_legend() -> void:
 	if _status_legend_panel == null:
 		return
-	## 固定幅＋実高で右下アンカー offset を更新（position 直書きだと毎ヒットでずれる）。
+	## シーン直下＋BF 右下（clip 回避）。
 	_status_legend_panel.reset_size()
-	var panel_h: float = maxf(
-		_status_legend_panel.get_combined_minimum_size().y,
-		_status_legend_list.get_combined_minimum_size().y if _status_legend_list != null else 0.0
-	)
-	panel_h = maxf(panel_h, 1.0)
+	var panel_h: float = _legend_panel_content_height(_status_legend_panel, _status_legend_list)
+	var bf_r: Rect2 = _battlefield_rect_in_self()
 	_status_legend_panel.size = Vector2(STATUS_LEGEND_WIDTH, panel_h)
-	_status_legend_panel.offset_left = -(STATUS_LEGEND_WIDTH + STATUS_LEGEND_SIDE_INSET)
-	_status_legend_panel.offset_right = -STATUS_LEGEND_SIDE_INSET
-	_status_legend_panel.offset_top = -(panel_h + STATUS_LEGEND_BOTTOM_INSET)
-	_status_legend_panel.offset_bottom = -STATUS_LEGEND_BOTTOM_INSET
+	_status_legend_panel.position = Vector2(
+		bf_r.position.x + bf_r.size.x - STATUS_LEGEND_WIDTH - STATUS_LEGEND_SIDE_INSET,
+		bf_r.position.y + bf_r.size.y - panel_h - STATUS_LEGEND_BOTTOM_INSET
+	)
 
 
 func _layout_field_legend() -> void:
 	if _field_legend_panel == null:
 		return
 	_field_legend_panel.reset_size()
-	var panel_h: float = maxf(
-		_field_legend_panel.get_combined_minimum_size().y,
-		_field_legend_list.get_combined_minimum_size().y if _field_legend_list != null else 0.0
-	)
-	panel_h = maxf(panel_h, 1.0)
+	var panel_h: float = _legend_panel_content_height(_field_legend_panel, _field_legend_list)
+	var bf_r: Rect2 = _battlefield_rect_in_self()
 	_field_legend_panel.size = Vector2(STATUS_LEGEND_WIDTH, panel_h)
-	_field_legend_panel.offset_left = -(STATUS_LEGEND_WIDTH + STATUS_LEGEND_SIDE_INSET)
-	_field_legend_panel.offset_right = -STATUS_LEGEND_SIDE_INSET
-	_field_legend_panel.offset_top = FIELD_LEGEND_TOP_INSET
-	_field_legend_panel.offset_bottom = FIELD_LEGEND_TOP_INSET + panel_h
+	_field_legend_panel.position = Vector2(
+		bf_r.position.x + bf_r.size.x - STATUS_LEGEND_WIDTH - STATUS_LEGEND_SIDE_INSET,
+		bf_r.position.y + FIELD_LEGEND_TOP_INSET
+	)
 
 
 func _clear_legend_list_rows(list: VBoxContainer) -> void:

@@ -39,6 +39,7 @@ alwaysApply: false
 | Biome／イベントバナー名消滅・横伸び・サイズ不揃い | FULL_RECT・DISABLED横Scr・文字数閾値・高さ同期 | → **`ui-layout.mdc` Biome／イベントバナー** |
 | HBox 内の数値が消える（アイコンだけ残る） | Label の `clip_text=true` は最小幅 0 → SHRINK の HBox で幅が潰れる | `ui-layout.mdc` — 短い数値は `clip_text=false`。必要なら `EXPAND_FILL` |
 | 戦闘右上の状態異常レジェンドで説明だけ消える | `_style_status_legend_label` の `clip_text`＋WORD_SMART、または `STATUS_LEGEND_SIDE_INSET` 負で Battlefield `clip_contents` 切れ | 説明は `clip_text=false`／`AUTOWRAP_ARBITRARY`。inset は正（内側余白） |
+| 戦闘レジェンド分割後に状態異常行ごと消える | 右下パネルを `BattlefieldArea`（`clip_contents=true`）直下に置いた | レジェンドはシーン直下＋BF 矩形基準で position（天候右上／状態右下） |
 | 戦闘下カードで名前が「アル…」等に切れる | `clip_text`＋ellipsis。長い表示名がカード幅を超える | 省略禁止＋幅に合わせて font_size 縮小（`_fit_party_card_name_font`）。レイアウト後に deferred 再計算 |
 | 戦闘が全体的にカクつく／歩行が飛ぶ | `_process` で `get_image`／`get_used_rect` | → **`gdscript.mdc` ホットパス**（meta キャッシュ） |
 | 攻撃予告／必殺カクつき／ボス大技／エリート中央テロップ／部屋名省略／戦闘BG・影狩予兆 | resolve同フレ・固定hold・中央Label | → **`14_Presentation_Pitfalls.md`** §5–6 |
