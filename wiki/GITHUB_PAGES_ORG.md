@@ -60,6 +60,8 @@ source .venv/bin/activate
 mkdocs gh-deploy --force --no-history --remote-name wiki-pages --remote-branch main
 ```
 
+**注意:** `gh-deploy --remote-branch main` は、本体リポジトリのローカル分岐 `main` を Pages 用 tip に付け替えることがある。デプロイ後は作業ブランチへ戻り、`git branch -f main origin/main` で本体 `main` を戻す。
+
 ---
 
 ## 旧URL
