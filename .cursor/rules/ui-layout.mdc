@@ -1,6 +1,6 @@
 ---
-description: Godot UI レイアウト・モック寄せの実装規約（Container / Tokens / 確認ゲート）
-globs: ["scenes/**/*.tscn", "scripts/**/*Scene.gd", "scripts/**/*UiTokens.gd", "scripts/**/*UiHelper.gd", "scripts/ui/ChrIdlePortrait.gd", "scripts/ui/ChrIdlePortraitView.gd", "scripts/ui/UiTypography.gd"]
+description: Godot UI レイアウト・モック寄せの実装規約（Container / Tokens / ScrollTouch / SafeArea）
+globs: ["scenes/**/*.tscn", "scripts/**/*Scene.gd", "scripts/**/*UiTokens.gd", "scripts/**/*UiHelper.gd", "scripts/ui/ChrIdlePortrait.gd", "scripts/ui/ChrIdlePortraitView.gd", "scripts/ui/UiTypography.gd", "scripts/ui/ScrollTouchHelper.gd", "scripts/ui/SafeAreaHelper.gd", "scripts/ui/HubLayoutHelper.gd", "scripts/ui/BottomNavHelper.gd", "scripts/ui/StatusEffectLinkHelper.gd", "scripts/ui/BiomeBannerHelper.gd"]
 alwaysApply: false
 ---
 
@@ -56,23 +56,46 @@ alwaysApply: false
 
 ## 拠点 Hub × セーフエリア（再発防止・必須）
 
-Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` が動く。
+Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` が動く。既往の詳細カタログは `known-pitfalls.mdc`（按需）のポインタ行。
 
 ❌ BAD
 - Mac で `simulate_mobile_safe_area=true` のまま TopBar／左メニューを動的に下げる
 - 全画面の `BottomNavHelper.setup` で無条件に chrome を当て、招待状の下ナビを潰す
 - `LeftMenuPanel` 高さを Scroll 子の **`size.y`** で決める
+- letterbox（`aspect=keep`）で inset=0 なのに 54/24 等の強制フォールバック
+- Header だけ inset して本文／MainColumn を旧位置のまま残す（ノッチ食い込み・白紙）
+- `HubLayoutHelper` から `SafeAreaHelper` を class_name 直参照のみ（`-s` で未解決）→ **preload**
 
 ✅ GOOD
 - Mac: シーン設計座標を尊重（隊長バー top≈0、左メニュー top≈96）
 - 実機: `SafeAreaHelper.should_apply_chrome()` が true のときだけ chrome
 - 実機 Hub: `layout_hub_home_content` で左メニューを TopBar に追従、日課・通貨は HubView **下端アンカー**
+- `DisplayServer` セーフ矩形を `get_final_transform` で換算＋iOS 最低 inset
+- ルート Header と上端アンカー本文を **同じ top** で下降
 - 検証: `tools/verify_base_hub.gd`
 
 ❌ BAD（実機）
 - TopBar だけ `offset_top = inset` して LeftMenu を設計 Y のまま残す → 隊長名と重なる
 - 日課を絶対 Y（例: 956）のまま、BottomNav だけ Home Indicator 分高くする → 日課がナビに侵食
 - `project.godot` に日本語コメントをキーへ混ぜる（aspect / simulate が未設定になる）
+
+## ScrollTouch（再発防止・必須）
+
+タッチ縦スクロールとタップ競合。`ScrollTouchHelper.enable` 後の再生成を忘れると同症状が画面横断で再発する。
+
+❌ BAD
+- Scroll 内の Button／STOP コントロールがドラッグを吸収したまま（`enable` 未適用）
+- `_rebuild_*` / BottomNav 後に Button を再生成して STOP のまま放置
+- `ScrollTouchHelper` が全 `RichTextLabel` を STOP 化 → 章カード名の親 Button タップ不能／リンク以外の RTL がドラッグ奪取
+- ScrollTouch で Button を PASS 化したあと `pressed` だけに依存（詳細が変わらない）
+- 入れ子 Scroll（Tab＋内側 InventoryScroll 等）で両方 enable して重い／効かない
+
+✅ GOOD
+- `_ready`・一覧 rebuild・`BottomNavHelper.setup` の **直後**に `ScrollTouchHelper.enable(scroll)`
+- 内側リストが不要なら `enable(outer, false)` や所持を **非 Scroll**（自然高）にする
+- 状態異常リンク RTL だけ `_cf_keep_mouse_stop`＋STOP（`StatusEffectLinkHelper`）。IGNORE の RTL はそのまま
+- Catalog／装備セルは `gui_input` 短押し（PASS＋deadzone）。選択はハイライト差替のみ（全セル rebuild 禁止）
+- オーバーレイ行ボタンは ScrollTouch 後に `MOUSE_FILTER_STOP` を復元（鍛冶素材一覧）
 
 ## 装備セルサイズ（再発防止・必須）
 

@@ -19,6 +19,9 @@ Crownfall（2D見下ろし型・自動探索ハクスラRPG）向け。Godot 4.6
 - **Python の `for`/`else`・`while`/`else` は禁止**（GDScript 非対応。`Parser Error: Expected statement, found "else"` の原因）
 - **プロジェクトの Godot 版（4.6.3）に無い API を書かない**。Web の 4.x latest / PR マージ済み機能でも、未同梱なら実行時クラッシュする（例: `Control.custom_maximum_size`）
 - **`sort_custom` / インライン `func` で外側ローカル `const`（preload 含む）を参照しない** → `Identifier not found` でスクリプト全体が未適用になり画面オープンで落ちる
+- **`maxf` / `minf` / `maxi` / `mini` は最大2引数**（3引数はパース失敗→シーン未ロード）
+- **`InputEvent.accept_event()` は存在しない** → `Control.accept_event()`（SCRIPT ERROR→Abort）
+- **`Control.LAYOUT_MODE_*` 等、4.6.3 GDScript に無い定数を参照しない**（Parse Error→スクリプト未ロード）
 
 ```gdscript
 # ❌ BAD — ラムダが外側ローカル const を解決できない
@@ -37,6 +40,30 @@ btn.custom_maximum_size = cell_size
 btn.custom_minimum_size = cell_size
 btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+```
+
+```gdscript
+# ❌ BAD — maxf 3引数（鍛冶屋入場で即終了）
+var x := maxf(a, b, c)
+
+# ✅ GOOD
+var x := maxf(a, maxf(b, c))
+```
+
+```gdscript
+# ❌ BAD — InputEvent に accept_event は無い
+event.accept_event()
+
+# ✅ GOOD
+accept_event()  # Control メソッド
+```
+
+```gdscript
+# ❌ BAD — 4.6.3 に無い定数（情報誌オープンで即終了）
+host.layout_mode = Control.LAYOUT_MODE_POSITION
+
+# ✅ GOOD — コンテナ外はアンカー配置
+host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 ```
 
 ```gdscript
