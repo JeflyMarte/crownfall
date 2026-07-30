@@ -6,7 +6,7 @@
 script = ExtResource("1")
 armor_id = "valgard_antique_armor"
 display_name = "アンティークアーマー"
-description = "城壁残滓の古鎧。セットでヴァルガードの加護。"
+description = "城壁残滓の古鎧。3部位でヴァルガードの加護。"
 base_defense = 88
 base_hp_bonus = 140
 base_resistance = 0.0

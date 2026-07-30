@@ -89,9 +89,13 @@ static func _append_legendary_effect_block(
 	host: VBoxContainer,
 	item: Resource,
 	category: String,
-	meta_host: Node = null
+	meta_host: Node = null,
+	wrap_width: int = 0,
+	max_chars: int = 0
 ) -> void:
-	var effect_text: String = equipment_legendary_effect_text(item, category)
+	var effect_text: String = _truncate_ui_text(
+		equipment_legendary_effect_text(item, category), max_chars
+	)
 	if effect_text.is_empty():
 		return
 	host.add_child(_make_rule())
@@ -101,11 +105,12 @@ static func _append_legendary_effect_block(
 	host.add_child(title)
 	var popup_host: Node = meta_host if meta_host != null else host
 	host.add_child(
-		_StatusEffectLinkHelper.make_linked_richtext(
+		_make_detail_richtext(
 			effect_text,
 			UiTypography.SIZE_CAPTION,
 			COLOR_WEAPON_EFFECT,
-			popup_host
+			popup_host,
+			wrap_width
 		)
 	)
 
@@ -114,7 +119,9 @@ static func _append_set_bonus_block(
 	host: VBoxContainer,
 	item: Resource,
 	category: String,
-	meta_host: Node = null
+	meta_host: Node = null,
+	wrap_width: int = 0,
+	max_chars: int = 0
 ) -> void:
 	if item == null:
 		return
@@ -137,18 +144,45 @@ static func _append_set_bonus_block(
 	title.text = "セット加護（3部位）"
 	UiTypography.apply_caption(title, Color(0.40, 0.90, 0.52))
 	host.add_child(title)
-	var body_text: String = (
-		"%s: %s" % [bonus_name, bonus_desc] if not bonus_name.is_empty() else bonus_desc
+	var body_text: String = _truncate_ui_text(
+		"%s: %s" % [bonus_name, bonus_desc] if not bonus_name.is_empty() else bonus_desc,
+		max_chars
 	)
 	var popup_host: Node = meta_host if meta_host != null else host
 	host.add_child(
-		_StatusEffectLinkHelper.make_linked_richtext(
+		_make_detail_richtext(
 			body_text,
 			UiTypography.SIZE_CAPTION,
 			Color(0.62, 0.95, 0.70),
-			popup_host
+			popup_host,
+			wrap_width
 		)
 	)
+
+
+static func _truncate_ui_text(text: String, max_chars: int) -> String:
+	var trimmed: String = text.strip_edges()
+	if max_chars <= 0 or trimmed.length() <= max_chars:
+		return trimmed
+	return trimmed.substr(0, maxi(1, max_chars - 1)) + "…"
+
+
+static func _make_detail_richtext(
+	text: String,
+	font_size: int,
+	color: Color,
+	meta_host: Node,
+	wrap_width: int = 0
+) -> RichTextLabel:
+	var rtl: RichTextLabel = _StatusEffectLinkHelper.make_linked_richtext(
+		text, font_size, color, meta_host
+	)
+	if wrap_width > 0:
+		## 日本語は WORD_SMART だと1語扱いになり最小幅＝全文幅ではみ出す。
+		rtl.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+		rtl.custom_minimum_size = Vector2(float(wrap_width), 0)
+		rtl.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	return rtl
 
 static func _stat_value(item: Resource, category: String, stat_key: String, value_text: String) -> String:
 	## 例: 会心率 30%(10〜40)⭐️ — ランダム上下限を値の直後へ。
@@ -193,6 +227,87 @@ static func stat_rows(item: Resource, category: String) -> Array:
 		})
 	return rows
 
+
+## 鍛冶完了差分用。コア数値＋装備Lv／炉研ぎLv。
+static func forge_stat_snapshot(item: Resource, category: String) -> Dictionary:
+	var snap: Dictionary = {
+		"equip_level": 0,
+		"enhance_level": 0,
+		"cores": {},
+	}
+	if item == null:
+		return snap
+	snap["equip_level"] = _EquipmentEnhancer.get_equip_level(item)
+	snap["enhance_level"] = _EquipmentEnhancer.get_enhance_level(item)
+	var cores: Dictionary = {}
+	match category:
+		"weapon":
+			cores["attack"] = {
+				"label": "攻撃力",
+				"v": _EquipmentEnhancer.get_effective_attack(item),
+			}
+		"armor":
+			cores["defense"] = {
+				"label": "防御力",
+				"v": _EquipmentEnhancer.effective_armor_defense(item),
+			}
+			cores["hp"] = {
+				"label": "HP",
+				"v": _EquipmentEnhancer.effective_armor_hp(item),
+			}
+		"accessory":
+			var acc_data: Resource = DataRegistry.get_accessory_data(str(item.accessory_id))
+			for field_pair: Array in [
+				["hp_bonus", "hp", "HP"],
+				["attack_bonus", "attack", "攻撃力"],
+				["defense_bonus", "defense", "防御力"],
+			]:
+				var raw: int = _AccessoryStatResolver.resolve_int_stat(
+					item, str(field_pair[0]), acc_data
+				)
+				if raw <= 0:
+					continue
+				cores[str(field_pair[1])] = {
+					"label": str(field_pair[2]),
+					"v": _EquipmentEnhancer.effective_accessory_int_bonus(
+						item, str(field_pair[0]), acc_data
+					),
+				}
+	snap["cores"] = cores
+	return snap
+
+
+static func forge_level_delta_text(before: Dictionary, after: Dictionary) -> String:
+	if before.is_empty() or after.is_empty():
+		return ""
+	var parts: PackedStringArray = PackedStringArray()
+	var enh_a: int = int(before.get("enhance_level", 0))
+	var enh_b: int = int(after.get("enhance_level", 0))
+	if enh_b != enh_a:
+		parts.append("炉研ぎ +%d → +%d" % [enh_a, enh_b])
+	var eq_a: int = int(before.get("equip_level", 0))
+	var eq_b: int = int(after.get("equip_level", 0))
+	if eq_b != eq_a:
+		parts.append("装備Lv %d → %d" % [eq_a, eq_b])
+	return "　".join(parts)
+
+
+static func _forge_core_delta_value(before: Dictionary, key: String, after_v: int) -> String:
+	var cores: Dictionary = before.get("cores", {}) as Dictionary
+	if not cores.has(key):
+		return str(after_v)
+	var prev: int = int((cores[key] as Dictionary).get("v", after_v))
+	if prev == after_v:
+		return str(after_v)
+	return "%d → %d" % [prev, after_v]
+
+
+static func _forge_core_changed(before: Dictionary, key: String, after_v: int) -> bool:
+	var cores: Dictionary = before.get("cores", {}) as Dictionary
+	if not cores.has(key):
+		return false
+	return int((cores[key] as Dictionary).get("v", after_v)) != after_v
+
 static func _append_rate_row(
 	rows: Array,
 	item: Resource,
@@ -230,22 +345,23 @@ static func _append_description_block(
 	item: Resource,
 	category: String,
 	wrap_width: int = 0,
-	meta_host: Node = null
+	meta_host: Node = null,
+	max_chars: int = 0
 ) -> void:
-	var desc: String = description_text(item, category)
+	var desc: String = _truncate_ui_text(description_text(item, category), max_chars)
 	if desc.is_empty():
 		return
 	host.add_child(_make_rule())
 	var popup_host: Node = meta_host if meta_host != null else host
-	var desc_rtl: RichTextLabel = _StatusEffectLinkHelper.make_linked_richtext(
-		desc,
-		UiTypography.SIZE_CAPTION,
-		COLOR_SUB,
-		popup_host
+	host.add_child(
+		_make_detail_richtext(
+			desc,
+			UiTypography.SIZE_CAPTION,
+			COLOR_SUB,
+			popup_host,
+			wrap_width
+		)
 	)
-	if wrap_width > 0:
-		desc_rtl.custom_minimum_size.x = float(wrap_width)
-	host.add_child(desc_rtl)
 
 static func hover_summary(item: Resource, category: String, member: Resource = null) -> String:
 	if item == null:
@@ -351,9 +467,16 @@ static func populate_panel(
 	var indent_left: int = maxi(0, int(options.get("indent_left", 0)))
 	var indent_right: int = maxi(0, int(options.get("indent_right", 0)))
 	var desc_wrap_width: int = maxi(0, int(options.get("desc_wrap_width", 0)))
+	var desc_max_chars: int = maxi(0, int(options.get("desc_max_chars", 0)))
+	var effect_max_chars: int = maxi(0, int(options.get("effect_max_chars", 0)))
 	var content_pad_top: int = maxi(0, int(options.get("content_pad_top", 0)))
 	var framed_icon: bool = bool(options.get("framed_icon", false))
 	var show_enhance_badge: bool = bool(options.get("show_enhance_badge", true))
+	## レアロゴ基準辺。未指定時はアイコン辺。完了ポップは装備一覧 INV_CELL に合わせる。
+	var badge_ref_px: int = maxi(1, int(options.get("badge_ref_px", header_icon_px)))
+	var forge_before: Dictionary = {}
+	if options.get("forge_before", null) is Dictionary:
+		forge_before = options["forge_before"] as Dictionary
 	var value_color: Color = COLOR_VALUE
 	if options.has("value_color"):
 		value_color = options["value_color"] as Color
@@ -378,15 +501,14 @@ static func populate_panel(
 	var rarity: int = _item_rarity(item, category)
 	var item_id: String = _item_id(item, category)
 	var icon_tex: Texture2D = _item_icon(item, category)
+	var badge_size := Vector2(float(badge_ref_px), float(badge_ref_px))
 	if icon_tex != null:
 		if framed_icon:
 			var frame := _make_framed_item_icon(item_id, category, rarity, header_icon_px, icon_tex)
 			header.add_child(frame)
-			EquipmentUiHelper.apply_legendary_badge(frame, rarity, Vector2(header_icon_px, header_icon_px))
+			EquipmentUiHelper.apply_rarity_badges(frame, rarity, badge_size)
 			if show_enhance_badge:
-				EquipmentUiHelper.apply_enhance_badge(
-					frame, item, category, Vector2(header_icon_px, header_icon_px)
-				)
+				EquipmentUiHelper.apply_enhance_badge(frame, item, category, badge_size)
 		else:
 			var icon_wrap := Control.new()
 			icon_wrap.custom_minimum_size = Vector2(header_icon_px, header_icon_px)
@@ -399,10 +521,9 @@ static func populate_panel(
 			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			icon_wrap.add_child(icon)
-			var icon_size := Vector2(header_icon_px, header_icon_px)
-			EquipmentUiHelper.apply_legendary_badge(icon_wrap, rarity, icon_size)
+			EquipmentUiHelper.apply_rarity_badges(icon_wrap, rarity, badge_size)
 			if show_enhance_badge:
-				EquipmentUiHelper.apply_enhance_badge(icon_wrap, item, category, icon_size)
+				EquipmentUiHelper.apply_enhance_badge(icon_wrap, item, category, badge_size)
 	var title_col := VBoxContainer.new()
 	title_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_col.add_theme_constant_override("separation", 2)
@@ -424,30 +545,71 @@ static func populate_panel(
 		var compare_lbl := _make_caption_label(compare_summary(item, category, compare_member_res))
 		compare_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		content_host.add_child(compare_lbl)
+	var forge_after: Dictionary = {}
+	if not forge_before.is_empty():
+		forge_after = forge_stat_snapshot(item, category)
+		var level_delta: String = forge_level_delta_text(forge_before, forge_after)
+		if not level_delta.is_empty():
+			var lv_lbl := _make_caption_label(level_delta)
+			UiTypography.apply_body(lv_lbl, UiTypography.SIZE_CAPTION, COLOR_POS)
+			content_host.add_child(lv_lbl)
+	var shown_core_keys: Dictionary = {}
 	for row in stat_rows(item, category):
+		var row_key: String = str(row.get("key", ""))
+		var row_label: String = str(row.get("label", ""))
+		var row_value: String = str(row.get("value", ""))
+		var row_color: Color = value_color
+		if not forge_before.is_empty() and not row_key.is_empty():
+			var after_cores: Dictionary = forge_after.get("cores", {}) as Dictionary
+			if after_cores.has(row_key):
+				var after_v: int = int((after_cores[row_key] as Dictionary).get("v", 0))
+				row_value = _forge_core_delta_value(forge_before, row_key, after_v)
+				if _forge_core_changed(forge_before, row_key, after_v):
+					row_color = COLOR_POS
+				shown_core_keys[row_key] = true
 		content_host.add_child(
-			_make_stat_row(
-				str(row.get("key", "")),
-				str(row.get("label", "")),
-				str(row.get("value", "")),
-				value_color
-			)
+			_make_stat_row(row_key, row_label, row_value, row_color)
 		)
-	_append_description_block(content_host, item, category, desc_wrap_width, popup_host)
-	_append_legendary_effect_block(content_host, item, category, popup_host)
-	_append_set_bonus_block(content_host, item, category, popup_host)
-	var affix2: String = affix_text(item)
+	## 防具HPなど、通常詳細行に無いコア差分を追記。
+	if not forge_before.is_empty():
+		var after_cores2: Dictionary = forge_after.get("cores", {}) as Dictionary
+		for core_key_v in after_cores2.keys():
+			var core_key: String = str(core_key_v)
+			if shown_core_keys.has(core_key):
+				continue
+			var core_info: Dictionary = after_cores2[core_key] as Dictionary
+			var after_v2: int = int(core_info.get("v", 0))
+			if not _forge_core_changed(forge_before, core_key, after_v2):
+				continue
+			content_host.add_child(
+				_make_stat_row(
+					core_key,
+					str(core_info.get("label", core_key)),
+					_forge_core_delta_value(forge_before, core_key, after_v2),
+					COLOR_POS
+				)
+			)
+	_append_description_block(
+		content_host, item, category, desc_wrap_width, popup_host, desc_max_chars
+	)
+	_append_legendary_effect_block(
+		content_host, item, category, popup_host, desc_wrap_width, effect_max_chars
+	)
+	_append_set_bonus_block(
+		content_host, item, category, popup_host, desc_wrap_width, effect_max_chars
+	)
+	var affix2: String = _truncate_ui_text(affix_text(item), effect_max_chars)
 	if not affix2.is_empty():
 		content_host.add_child(_make_rule())
-		var affix_rtl: RichTextLabel = _StatusEffectLinkHelper.make_linked_richtext(
-			affix2,
-			UiTypography.SIZE_CAPTION,
-			value_color,
-			popup_host
+		content_host.add_child(
+			_make_detail_richtext(
+				affix2,
+				UiTypography.SIZE_CAPTION,
+				value_color,
+				popup_host,
+				desc_wrap_width
+			)
 		)
-		if desc_wrap_width > 0:
-			affix_rtl.custom_minimum_size.x = float(desc_wrap_width)
-		content_host.add_child(affix_rtl)
 	_append_weapon_flavor_block(content_host, item, category, desc_wrap_width)
 
 
@@ -462,7 +624,8 @@ static func _add_wrapped_label(parent: Control, lbl: Label, wrap_width: int) -> 
 	box.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	box.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	## 日本語は空白無し1語扱いで WORD_SMART が全文幅になる。
+	lbl.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	box.add_child(lbl)
 	parent.add_child(box)
 
@@ -539,18 +702,23 @@ static func _make_framed_item_icon(
 	rarity: int,
 	cell_px: int,
 	icon_tex: Texture2D
-) -> PanelContainer:
+) -> Control:
+	## 外側は自由配置の Control。PanelContainer 直下にレアロゴを足すと全面伸長する。
+	var wrap := Control.new()
+	wrap.custom_minimum_size = Vector2(cell_px, cell_px)
+	wrap.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	wrap.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	wrap.clip_contents = true
+	wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var frame := PanelContainer.new()
-	frame.custom_minimum_size = Vector2(cell_px, cell_px)
-	frame.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	frame.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	frame.clip_contents = true
+	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var style: StyleBox = EquipmentUiTokens.rarity_slot_style(rarity, false, cell_px)
 	if style != null:
 		style = style.duplicate()
 		style.set_content_margin_all(0.0)
 		frame.add_theme_stylebox_override("panel", style)
+	wrap.add_child(frame)
 	var host := Control.new()
 	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -575,7 +743,7 @@ static func _make_framed_item_icon(
 	icon.offset_right = -float(inset)
 	icon.offset_bottom = -float(inset)
 	host.add_child(icon)
-	return frame
+	return wrap
 
 
 static func _item_icon(item: Resource, category: String) -> Texture2D:
