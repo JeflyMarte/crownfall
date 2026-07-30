@@ -67,9 +67,9 @@ func test_war_banner_plan_b_outgoing_penalty() -> void:
 	var eff: Dictionary = CombatPassives.stat_multipliers_for_member(member, 0)
 	assert_eq(float(eff["outgoing_mult"]), 0.85)
 	var def: Dictionary = CombatPassives.get_def("relic_war_banner")
-	assert_eq(str(def.get("trigger", "")), "on_kill")
-	assert_eq(str(def.get("effect", "")), "apply_status")
-	assert_eq(str(def.get("target", "")), "party")
+	assert_almost_eq(float(def.get("pet_outgoing_mult", 1.0)), 1.35, 0.001)
+	assert_almost_eq(float(def.get("pet_defense_mult", 1.0)), 1.15, 0.001)
+	assert_false(def.has("trigger"), "軍旗は常時オトモ核（撃破鼓舞を廃止）")
 	GameState.toggle_member_relic_passive(member, "")
 	if not saved_relic.is_empty():
 		GameState.toggle_member_relic_passive(member, saved_relic)
