@@ -62,9 +62,14 @@ func test_feature_line_uses_origin_note_above_passive() -> void:
 	var helper: Resource = helpers[0]
 	var feature: String = GachaUiHelper.feature_line_for_helper(helper)
 	var unique: String = GachaUiHelper.unique_line_for_helper(helper)
+	var unique_title: String = GachaUiHelper.unique_title_for_helper(helper)
+	var unique_desc: String = GachaUiHelper.unique_desc_for_helper(helper)
 	assert_false(feature.is_empty())
 	assert_eq(feature, GachaUiHelper.ensure_sentence_period(str(helper.origin_note)))
 	assert_ne(feature, unique)
+	assert_false(unique_title.is_empty())
+	assert_false(unique_desc.is_empty())
+	assert_eq(unique, "%s\n%s" % [unique_title, unique_desc])
 	assert_eq(GachaUiHelper.FEATURED_IDLE_LIFT_Y, 100.0)
 
 
@@ -75,19 +80,23 @@ func test_build_featured_shell_has_feature_label() -> void:
 	var shell: Dictionary = GachaUiHelper.build_featured_shell(host)
 	assert_true(shell.has("feature"))
 	assert_true(shell.has("unique"))
+	assert_true(shell.has("unique_title"))
 	assert_true(shell.has("blurb_wrap"))
 	var feature_lbl: Label = shell.get("feature") as Label
 	var unique_lbl: Label = shell.get("unique") as Label
+	var unique_title_lbl: Label = shell.get("unique_title") as Label
 	var blurb_wrap: Control = shell.get("blurb_wrap") as Control
 	var stats_wrap: Control = shell.get("stats_wrap") as Control
 	assert_not_null(feature_lbl)
 	assert_not_null(unique_lbl)
+	assert_not_null(unique_title_lbl)
 	assert_not_null(blurb_wrap)
 	assert_not_null(stats_wrap)
 	## 煽りは左パネル、パッシブは右ステ内。Shippori・小さめ・右ステより下。
 	assert_eq(feature_lbl.get_parent(), blurb_wrap)
 	assert_eq(unique_lbl.get_parent().name, "StatsCol")
-	assert_lt(blurb_wrap.offset_left, 40.0)
+	assert_eq(unique_title_lbl.get_parent().name, "StatsCol")
+	assert_eq(blurb_wrap.offset_left, GachaUiHelper.FEATURED_BLURB_SIDE_PAD)
 	assert_gt(blurb_wrap.offset_top, stats_wrap.offset_top)
 	assert_eq(int(feature_lbl.get_theme_font_size("font_size")), GachaUiHelper.FEATURED_BLURB_FONT_SIZE)
 	assert_eq(feature_lbl.get_theme_font("font"), UiTypography.display_font())
@@ -97,6 +106,10 @@ func test_build_featured_shell_has_feature_label() -> void:
 		return
 	GachaUiHelper.apply_featured_helper(shell, helpers[0])
 	assert_eq(feature_lbl.text, GachaUiHelper.feature_line_for_helper(helpers[0]))
+	assert_eq(unique_title_lbl.text, GachaUiHelper.unique_title_for_helper(helpers[0]))
+	assert_eq(unique_lbl.text, GachaUiHelper.unique_desc_for_helper(helpers[0]))
+	assert_false(unique_title_lbl.text.is_empty())
+	assert_false(unique_lbl.text.is_empty())
 	assert_true(feature_lbl.visible)
 	assert_true(blurb_wrap.visible)
 	var stage: Control = shell.get("stage") as Control
