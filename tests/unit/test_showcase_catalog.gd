@@ -77,6 +77,8 @@ func test_power_and_change_member_layout_rects() -> void:
 	var change: Rect2 = ShowcaseUiTokens.CHANGE_MEMBER_RECT
 	var equip: Rect2 = ShowcaseUiTokens.EQUIP_RECT
 	var stats: Rect2 = ShowcaseUiTokens.STATS_RECT
+	var own_tab: Rect2 = ShowcaseUiTokens.MODE_TAB_OWN
+	assert_eq(power.size.x, own_tab.size.x)
 	assert_gt(power.position.y, change.position.y)
 	assert_gt(change.position.x, equip.position.x)
 	assert_lt(change.position.x + change.size.x, stats.position.x + 8.0)
@@ -86,16 +88,16 @@ func test_power_and_change_member_layout_rects() -> void:
 
 func test_power_frame_asset_exists() -> void:
 	assert_true(ResourceLoader.exists(ShowcaseUiTokens.POWER_FRAME))
-	var style: StyleBox = ShowcaseUiTokens.power_frame_style()
-	assert_not_null(style)
-	assert_true(style is StyleBoxTexture)
+	var tex: Texture2D = ShowcaseUiTokens.power_frame_texture()
+	assert_not_null(tex)
 
 
 func test_staff_list_button_does_not_overlap_power() -> void:
 	var staff: Rect2 = ShowcaseUiTokens.STAFF_LIST_RECT
 	var power: Rect2 = ShowcaseUiTokens.POWER_RECT
 	assert_lt(staff.position.x + staff.size.x, power.position.x + 1.0)
-	assert_eq(staff.position.y, power.position.y)
+	## 縦は帯の中央付近で揃える（高さ差あり）。
+	assert_lt(absf(staff.get_center().y - power.get_center().y), 4.0)
 
 
 func test_showcase_scene_has_staff_list_button() -> void:

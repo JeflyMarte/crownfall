@@ -44,7 +44,8 @@ var _detail_title: Label = null
 var _staff_player_name: String = ""
 var _btn_change_member: Button = null
 var _btn_staff_list: Button = null
-var _power_panel: PanelContainer = null
+var _power_panel: Control = null
+var _power_frame: TextureRect = null
 var _power_caption: Label = null
 var _power_value: Label = null
 var _name_frame_top_rule: Control = null
@@ -179,6 +180,9 @@ func _apply_layout_rects() -> void:
 		_power_panel.position = power_r.position
 		_power_panel.size = power_r.size
 		_power_panel.custom_minimum_size = power_r.size
+		if _power_frame != null:
+			_power_frame.position = Vector2.ZERO
+			_power_frame.size = power_r.size
 
 	if _name_frame_top_rule != null:
 		var rule_r: Rect2 = ShowcaseUiTokensScript.NAME_FRAME_TOP_RULE
@@ -287,14 +291,22 @@ func _on_name_frame_top_rule_draw() -> void:
 func _ensure_power_panel() -> void:
 	if _power_panel != null:
 		return
-	_power_panel = PanelContainer.new()
+	_power_panel = Control.new()
 	_power_panel.name = "PowerPanel"
 	_power_panel.z_index = 6
 	_power_panel.visible = false
 	_power_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_power_panel.add_theme_stylebox_override("panel", ShowcaseUiTokensScript.power_frame_style())
+	_power_panel.clip_contents = false
+	_power_frame = TextureRect.new()
+	_power_frame.name = "PowerFrame"
+	_power_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_power_frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_power_frame.stretch_mode = TextureRect.STRETCH_SCALE
+	_power_frame.texture = ShowcaseUiTokensScript.power_frame_texture()
+	_power_panel.add_child(_power_frame)
 	var vb := VBoxContainer.new()
-	vb.add_theme_constant_override("separation", 0)
+	vb.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	vb.add_theme_constant_override("separation", -2)
 	vb.alignment = BoxContainer.ALIGNMENT_CENTER
 	vb.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_power_panel.add_child(vb)
