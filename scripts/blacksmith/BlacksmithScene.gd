@@ -2062,7 +2062,8 @@ func _on_reforge_mod_pressed(mod_index: int) -> void:
 	if _selected_reforge_mod_index == mod_index:
 		return
 	_selected_reforge_mod_index = mod_index
-	_refresh_selection()
+	## pressed 中に StatsGrid を free すると発信元 Button ごと破棄され Abort する。
+	call_deferred("_refresh_selection")
 
 
 func _update_reforge_action(item: Resource, forge_at_max: bool) -> void:

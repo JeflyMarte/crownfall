@@ -98,6 +98,7 @@ Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` �
 - Catalog／装備セルは `gui_input` 短押し（PASS＋deadzone）。選択はハイライト差替のみ（全セル rebuild 禁止）
 - オーバーレイ行ボタンは ScrollTouch 後に `MOUSE_FILTER_STOP` を復元（鍛冶素材一覧）
 - 鍛冶主ボタン（炉研ぎ／**焼直し**／一括分解）は `_cf_keep_mouse_stop`＋`_restore_primary_button_input`（詳細 rebuild 後も deferred で再適用）。焼直し効果行も同 meta
+- 焼直し効果 Button の `pressed` から詳細を即 rebuild しない（`free` で発信元破棄→Abort）。`call_deferred("_refresh_selection")`
 
 ## 装備セルサイズ（再発防止・必須）
 
