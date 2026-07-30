@@ -654,19 +654,21 @@ static func _cap_dismantle_by_craft_return(item: Resource, yields: Dictionary) -
 	var output_id: String = _item_master_id(item)
 	if category.is_empty() or output_id.is_empty():
 		return yields
-	for craft in DataRegistry.get_all_craft_data():
-		if str(craft.output_type) != category or str(craft.output_id) != output_id:
-			continue
-		var capped: Dictionary = {}
-		for mat_id in yields:
-			var recipe_qty: int = int(craft.required_materials.get(mat_id, 0))
-			if recipe_qty <= 0:
-				capped[mat_id] = int(yields[mat_id])
-			else:
-				var max_return: int = int(floor(float(recipe_qty) * DISMANTLE_CRAFT_RETURN_CAP))
-				capped[mat_id] = mini(int(yields[mat_id]), max_return)
-		return capped
-	return yields
+	const _CraftHelper := preload("res://scripts/crafting/CraftHelper.gd")
+	if not _CraftHelper.is_craftable_master(category, output_id):
+		return yields
+	var craft: Resource = _CraftHelper.build_craft_data(category, output_id)
+	if craft == null:
+		return yields
+	var capped: Dictionary = {}
+	for mat_id in yields:
+		var recipe_qty: int = int(craft.required_materials.get(mat_id, 0))
+		if recipe_qty <= 0:
+			capped[mat_id] = int(yields[mat_id])
+		else:
+			var max_return: int = int(floor(float(recipe_qty) * DISMANTLE_CRAFT_RETURN_CAP))
+			capped[mat_id] = mini(int(yields[mat_id]), max_return)
+	return capped
 
 static func dismantle_preview(item: Resource) -> Dictionary:
 	var check: Dictionary = can_dismantle_item(item)
