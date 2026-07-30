@@ -327,10 +327,10 @@ func _build_worldview_entries() -> Array:
 
 
 const _STARTER_FLAVOR: Dictionary = {
-	"adventurer_0": "王炎の覇気を宿す剣士。前線で斬り込む隊の要。",
-	"adventurer_1": "毒矢と単独行動を得意とする狩人。影から仕留める。",
+	"adventurer_0": "王炎の覇気を宿す剣士。切れ味と出血で前線を切り開く。",
+	"adventurer_1": "狙印の刻で標を付ける狩人。影から追い討つ。",
 	"adventurer_2": "野戦調合の錬成士。味方の傷をいち早く閉じる。",
-	"adventurer_3": "聖盾の砦を張る守護者。被弾しても反撃を忘れない。",
+	"adventurer_3": "聖盾の砦を張る守護者。敵の注目を集め、被弾を抑える。",
 	"adventurer_4": "相棒と共鳴する獣使い。ペットの力を引き出す。",
 }
 

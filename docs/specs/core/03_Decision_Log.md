@@ -5541,3 +5541,19 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 | P3-UX-EVENT-TITLE-TWOTONE-001-6 | **SSOT** — `EventDungeonTitleHelper` | 散在回避 |
 
 
+
+## 基本5職パッシブをスキル核へ寄せる（2026-07-30 — P3-PASSIVE-SKILL-CORE-001）
+
+> **オーナー GO（案1）** — 数を増やさず、スターター固有パッシブを職スキル核に合わせる。レジェンド／レリック寄せは後続。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-PASSIVE-SKILL-CORE-001-1 | **方針** — パッシブ差し替えのみ（新規パッシブ枠・スキル増はしない） | ビルド点検案1 |
+| P3-PASSIVE-SKILL-CORE-001-2 | **アルド** — 平与ダメ+10% → 攻撃時25%で出血 | ソードマン核＝裂傷／出血 |
+| P3-PASSIVE-SKILL-CORE-001-3 | **リーヴァ** — 攻撃時25%毒 → 攻撃時25%標的。表示名「狙印の刻」 | レンジャー核＝標 |
+| P3-PASSIVE-SKILL-CORE-001-4 | **ガレン** — 被弾反撃 → 被ダメ-10%＋threat+80 | ヴァンガード核＝注目／耐久 |
+| P3-PASSIVE-SKILL-CORE-001-5 | **エリアス／ミレイ** — 据置（入場回復／オトモ与ダメ） | 既にスキル核と一致 |
+| P3-PASSIVE-SKILL-CORE-001-6 | **ID据置** — `ald_royal_flame` 等の id は変更しない（セーブ互換） | 表示名・効果のみ |
+| P3-PASSIVE-SKILL-CORE-001-7 | **図鑑／はじめガイド** — フレーバーと例示を新効果に同期 | 文言齟齬防止 |
+| P3-PASSIVE-SKILL-CORE-001-8 | **後続** — レジェンド属性偏り（案B）／レリック職接続（案C）は別 Task | スコープ分離 |
+
