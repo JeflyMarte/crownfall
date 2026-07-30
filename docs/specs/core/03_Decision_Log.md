@@ -4375,6 +4375,18 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 
 SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 
+## 再発防止カタログ二層化（2026-07-30 — P3-OPS-PITFALLS-P0-001）
+
+> オーナー承認: 再発防止監査の P0（起動即死常時／全カタログ按需／ScrollTouch・SafeArea 昇格）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-OPS-PITFALLS-P0-001-1 | **起動・パース即死**は `pitfalls-startup.mdc` のみ `alwaysApply`（短冊） | 全カタログ常時注入のトークン肥大を止める |
+| P3-OPS-PITFALLS-P0-001-2 | **`known-pitfalls.mdc` は按需**（`alwaysApply: false`）。全文詳細の正 | Task が該当症状／領域に触れるときだけ読む |
+| P3-OPS-PITFALLS-P0-001-3 | **ScrollTouch／SafeArea** は `ui-layout.mdc` に BAD/GOOD 昇格。Helper globs を追加。カタログはポインタ行 | 重複クラスタ解消・Helper 編集時にも規則が当たる |
+| P3-OPS-PITFALLS-P0-001-4 | **昇格後アーカイブ** — 領域ルールへ移したらカタログの長文クラスタはポインタ1行に圧縮（`recurrence-prevention.mdc`） | 二重メンテ禁止 |
+| P3-OPS-PITFALLS-P0-001-5 | `known-pitfalls.mdc` を再び `alwaysApply: true` に戻さない | 肥大の再発防止 |
+
 ## 遍在希少種追加（2026-07-23 — P3-WANDER-004）
 
 > オーナー GO: 推奨値（案A・P1）。ゴールデンスカラベ＝金逃走／影狩り＝強敵総取り。イベントDG・野外速報は後続。

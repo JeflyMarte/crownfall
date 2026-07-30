@@ -1,11 +1,14 @@
 ---
-description: Crownfall 既往エラー／落とし穴カタログ（再発防止）
-alwaysApply: true
+description: Crownfall 既往エラー／落とし穴の全カタログ（按需）。起動即死の常時要約は pitfalls-startup.mdc
+alwaysApply: false
 ---
 
 # 既往エラー・落とし穴
 
 一度発生し修正済みの事故。同じパターンを繰り返さない。詳細規約は各領域ルールへ。
+
+**常時注入:** 起動・パース即死のみ → `pitfalls-startup.mdc`  
+**本ファイル:** 按需（Task が UI／演出／アセット／該当症状に触れるとき）。昇格済みクラスタはポインタ行に圧縮（詳細は領域 `.mdc`）。
 
 ## GDScript / 起動
 
@@ -25,7 +28,7 @@ alwaysApply: true
 | 敵スキル名が頭上に出ない／見えない | `_spawn_enemy_skill_name` が `global_position-150` 固定＋`visible` 即 return。群れ切替で取りこぼし | 味方と同型で `_sprite_top_y_global`／スロット指定。`【技名】`＋同寸フォント |
 | `DungeonScene` パース失敗 `Identifier "label" not declared` | `_execute_member_buff` の `_spawn_skill_name` 差し替え時に `var label`／`wants_taunt` 分岐を誤って削った | バフ SE 等の引数追加時は return 文言ブロックを残す。変更後 headless で DungeonScene ロード確認 |
 | `balance_sim` で `is_pet_member` が GDScript 未解決 | autoload から `preload` Script へ静的呼出が `-s` で欠けることがある | `PetSystem.is_pet_member`（class_name）を使う |
-| 鍛冶・錬成ボタン後にクリック不能／フリーズ | `AcceptDialog`（Window 排他）＋中身カスタム／ScrollTouch で入力が奪われる | 素材一覧は結果ポップ同様の **Control オーバーレイ**。行ボタンは ScrollTouch 後に `MOUSE_FILTER_STOP` を復元 |
+| 鍛冶・錬成ボタン後にクリック不能／フリーズ | `AcceptDialog`＋ScrollTouch で入力奪取 | → `ui-layout.mdc` ScrollTouch。素材は Control オーバーレイ＋STOP 復元 |
 | はじめガイド閉じてもジャック／魔晶石がすぐ来ない | `dismissed` 時点で Overlay がまだツリーにあり、親が「ガイド中」判定で支給をスキップ | `_finish` で先に `remove_child`。支給は `call_deferred`＋`is_queued_for_deletion` 無視 |
 | はじめガイド周辺に黒い四角 | 書籍BGを `StyleBoxTexture` 9-slice。縁の黒マットが角に伸びる | 書籍は `TextureRect` 直置き（KEEP_ASPECT）。外側マットは透過 |
 | はじめガイドでページごとにヘッダ位置がずれる | 本文長／スキップ有無でパネル高が変わり `CenterContainer` が上下に再中央寄せ | 外枠サイズ固定＋本文は Scroll。スキップは非表示ではなく透明／disabled |
@@ -39,7 +42,7 @@ alwaysApply: true
 | 編成でキャラ枠が消える／アイコンクリックで巨大化／一覧→パーティ入れ替え不能 | ①`card_panel_style` が薄い 9-slice＋キャッシュ mutate ②CHR 1254px が VBox 縦 FILL／COVERED で原寸逃げ ③満員時一覧タップが no-op、肖像 STOP で枠の `gui_input` 奪取 | カード枠は StyleBoxFlat 明示。肖像は `RosterUiHelper.make_clamped_portrait`（HARD_MAX＋clip＋resized 拘束）。満員は `_roster_pick_member`→枠タップで入替 |
 | 編成で下キャラ選択のたびアイコン／セルが拡大する | ①選択 `_pick_style` の content_margin／border が通常より大きい→Grid 最小サイズ膨張 ②肖像を Button 子に載せ CHR 原寸が min size に乗る ③`queue_free` 残存のまま add→セル倍増→RESIZED 連鎖。`main_vbox.min.x=content_w` の循環 | `pick_panel_style` は margin/border 幅同一。肖像は `make_clamped_portrait`＋Button 外。**remove_child 即時＋queue_free**（`free()` 禁止）。RESIZED は幅変化時のみ。VBox min.x 書き戻し禁止 |
 | 編成で入れ替えするとゲーム終了（Abort） | タップ中 Button／カードを `free()` で即破棄。`pressed`/`gui_input` スタック上で解放 | 破棄は `remove_child`＋`queue_free`。入れ替え処理は `call_deferred` |
-| パーティ画面が重い／スクロール不能 | ①`ActivePartyScroll` 入れ子が縦ドラッグ奪取 ②rebuild 後 ScrollTouch 未再適用＋枠 `_cf_keep_mouse_stop` ③カード毎 `StyleBoxFlat.new` | 上段は非 Scroll（`ActivePartyHost`）。rebuild 後 `enable(MainScroll, false)`。枠は PASS 可。StyleBox は Helper キャッシュ |
+| パーティ画面が重い／スクロール不能 | 入れ子 Scroll＋rebuild 後 ScrollTouch 未再適用＋StyleBox new | → `ui-layout.mdc` ScrollTouch。上段は非 Scroll。StyleBox キャッシュ |
 | `.tscn` で親ノードが vanish（子だけ残る） | `.tscn` に GDScript 風の `##` コメントを書いた | `.tscn` コメントは `;` のみ。`##` 禁止 |
 | 起動時黒画面・`inherits from Control, can't assign to Node` | `BootScene.gd` が `extends Control` なのに `.tscn` ルートが `Node` | スクリプトの `extends` とシーンルート型を一致させる。Boot は `Node` が正 |
 | 起動時 autoload 失敗 / 壊れた UID | `project.godot` の空 autoload・不正 `uid://`（例: `_MCPGameBridge`） | autoload は実在パスのみ。UID 直書きを壊さない。変更後 headless 起動確認 |
@@ -69,7 +72,7 @@ alwaysApply: true
 | 1-1（初回ラン）からボス（セルディオン）が出る | `SUB_STAGES_PLAYABLE=false` で単体 `mourngate` 運用になり `boss_id` が毎回付く。章別 `spawn_weights` も無効 | メインは `SUB_STAGES_PLAYABLE=true`。1-1〜x-4 は Boss なし／x-5 のみ。`start_dungeon` も章へ誘導 |
 | 世界観イントロの「続ける」が実機で押せない | Home Indicator 下に沈む／`disabled` がタップを落とす／aspect=keep で inset=0 | Intro 専用下余白下限＋到達後は `disabled` 禁止。全面透明キャッチ＋中央「TAP」点滅で `_advance_ready` ガード。加速は `_input` で画面全体。TAP 表示は本文末尾が中央より上になった時点 |
 | 未開ダンジョンに実名・バナーが出る | ロック中でも `display_name`／バナー／ドロップを表示 | `unlocked==false` は「？」表示。バナー・敵／ドロップ非表示 |
-| 結果の素材獲得でスクロールが効かない | `ResultScene` に `ScrollTouchHelper` 未適用 | `_ready`／素材 rebuild 後に `ScrollTouchHelper.enable` |
+| 結果の素材獲得でスクロールが効かない | ScrollTouch 未適用 | → `ui-layout.mdc` ScrollTouch（rebuild 後 enable） |
 | 全滅リザルトに「なぜ負けたか」が無い | wipe 時の階層／部屋／敵を保存していない | `WipeCauseHelper`＋`last_run_wipe_cause`。全滅時のみ Header に1〜2行 |
 | 必殺回復の数字が黄色／金 | `_apply_ultimate_heal_impact` が `ULTIMATE_GOLD` | 回復数字は `HEAL_NUM_GREEN`（スキル／泉と同色）。金はダメージ必殺用 |
 | 碑文加護テロップがすぐ消える／泉の回復が見えない／宝箱報酬が単色 | 碑文も自動フェード、泉は味方非表示＋数字無し、宝箱は1色 Label | 碑文は次フロアまで残す。泉は緑VFX＋緑数字。宝箱は BBCode で金／武／飾色分け |
@@ -78,8 +81,8 @@ alwaysApply: true
 | 状態異常アイコンが「？」 | `bleed`/`slow`/`enrage` が `STATUS_ICON_DEF`・`IconPaths` 欠落 | DEF＋ICO_STA_*＋IconPaths を追加。`empower_minor` は empower 流用 |
 | 戦闘速度が ×0.75 のまま／設定と不一致 | `SPEED_MULT_NORMAL=0.75` と設定の不一致 | ×1／×1.5／×2 の3択に統一。旧 ×0.75 は ×1 へ |
 | レジェンド武器が落ちても気づかない | 通常装備と同じ小アイコンのみで SE／テロップ無し | ★以上は `legendary_drop` SE＋フラッシュ＋テロップ＋大きめアイコン（P3-EQ-LEG-DROP-001） |
-| キャラ画面のスクロールが重い／効かない・実機で落ちる | TabEquip＋InventoryScroll の入れ子＋セル毎 StyleBox new＋hover_summary＋Idle 毎切替 get_image。BottomNav が内側も enable | 所持ホストは **非 Scroll**（MarginContainer）＋自然高。縦は TabEquip のみ。`ScrollTouchHelper.enable(tab, false)`。StyleBox／Idle をキャッシュ。tooltip は名のみ（詳細は長押し） |
-| パッシブタブが重い／スクロール不能 | 再構築後 ScrollTouch 未再適用＋巨大カード上の STOP RTL（状態異常リンク）がドラッグを奪う | rebuild 後 `ScrollTouchHelper.enable(TabPassive)`。一覧は小アイコン＋Label。`ScrollTouchHelper` は深い VBox 追加もフック |
+| キャラ画面のスクロールが重い／効かない・実機で落ちる | 入れ子 Scroll＋セル毎 new＋内側 enable | → `ui-layout.mdc` ScrollTouch。所持は非 Scroll。StyleBox／Idle キャッシュ |
+| パッシブタブが重い／スクロール不能 | rebuild 後未再適用＋STOP RTL がドラッグ奪取 | → `ui-layout.mdc` ScrollTouch（リンク RTL のみ `_cf_keep_mouse_stop`） |
 | キャラ／装備一覧でセル上スクロールが効かない | 長押し用 `gui_input` で press 時に `accept_event()` → 親 Scroll がドラッグ開始できない | セルは `accept_event` しない（PASS＋gui_input で短タップ／長押し）。スクロールは親に任せる |
 | iPhoneで装備長押しが効かない | ①所持グリッドが `pressed` のみで長押し未配線 ②微細 `ScreenDrag` で即キャンセル | 所持も `_bind_inventory_cell_interaction`。移動キャンセルは deadzone（≈20px）以上のみ |
 | 武器に「炎上付与」と「状態付与 炎上」が二重 | 専用 `*_chance` と `on_hit_status` が併存抽選 | **P3-EQ-STATUS-UNIFY-001**: 状態付与のみ。専用行は sanitize で統合。`test_unify_legacy_ignite_into_on_hit` |
@@ -93,7 +96,7 @@ alwaysApply: true
 | 加入ショーケースで顔に金のノイズ | `UI_Join_PortraitGlow` が CHR 半透明ディザ越しに顔へ滲む | アイコン下に不透明板＋Glow を弱め／外側へ |
 | 鍛冶の必要コスト素材が iPhone で何かわからない | 名前が `tooltip_text` のみで、タッチでは長押し確認できない | **現行方針（オーナー）**: 鍛冶コストはアイコン＋個数のみ（窮屈さ優先）。名前は tooltip 残置。識別が足りなければ後続でアイコン拡大／キャプション再検討 |
 | 拠点左上に「魔晶石」が見える／隊長名に見える | TokenChip の `tooltip_text=魔晶石` がタッチ環境で残る、または隊長名 Label に通貨名が混入 | TopBar の魔晶石は数値のみ（tooltip 空）。`LabelPlayerName` は等級＋隊長名のみを毎フレーム明示上書き。`verify_base_hub` で混入検査 |
-| マイページがタッチスクロール不能 | `BottomNavHelper` の ScrollTouch 適用後に `_rebuild_page` で Button が再生成され STOP のまま | rebuild 後に `ScrollTouchHelper.enable(MainScroll)` を再実行 |
+| マイページがタッチスクロール不能 | rebuild 後 Button が STOP のまま | → `ui-layout.mdc` ScrollTouch（rebuild 後 enable 再実行） |
 | 陣形で前→後に動かすとキャラが複製表示 | 空き枠を `party_members[i]` で埋めて同一メンバーが複数スロットに入る | 未配置メンバーから埋める＋スロット重複除去 |
 | 編成保存が「1〜4名・重複不可」なのに見た目は正しい | `set_active_party` が調査派遣中も拒否するが文言は人数・重複のみ。編成UIも派遣中を選べた | 失敗は `active_party_reject_reason` で理由別。派遣中は選択不可＋「調査中」表示 |
 | 陣形UIを触ると未保存なのに戦闘前列が変わる／外側タップで確定扱い | オーバーレイ操作のたび `_apply_formation_rows_from_slots` で GameState 即書き | スロットは下書き。本反映は保存成功時のみ。Dim＝キャンセル（スナップショット復元）／確定＝下書き維持 |
@@ -242,4 +245,4 @@ alwaysApply: true
 
 ## ルール化フロー
 
-新しいエラーを直したら: 修正 → **この表に1行追加** → 必要なら領域 `.mdc` に BAD/GOOD 例。手順は `recurrence-prevention.mdc`。
+新しいエラーを直したら: 修正 → **該当層へ追記**（即死＝`pitfalls-startup`＋本カタログ／その他＝本カタログ）→ 領域 `.mdc` に BAD/GOOD → 昇格後は本表をポインタ化。手順は `recurrence-prevention.mdc`。
