@@ -1,6 +1,6 @@
 ---
-description: Godot UI レイアウト・モック寄せの実装規約（Container / Tokens / ScrollTouch / SafeArea）
-globs: ["scenes/**/*.tscn", "scripts/**/*Scene.gd", "scripts/**/*UiTokens.gd", "scripts/**/*UiHelper.gd", "scripts/ui/ChrIdlePortrait.gd", "scripts/ui/ChrIdlePortraitView.gd", "scripts/ui/UiTypography.gd", "scripts/ui/ScrollTouchHelper.gd", "scripts/ui/SafeAreaHelper.gd", "scripts/ui/HubLayoutHelper.gd", "scripts/ui/BottomNavHelper.gd", "scripts/ui/StatusEffectLinkHelper.gd", "scripts/ui/BiomeBannerHelper.gd"]
+description: Godot UI レイアウト・モック寄せの実装規約（Container / Tokens / ScrollTouch / SafeArea / 編成）
+globs: ["scenes/**/*.tscn", "scripts/**/*Scene.gd", "scripts/**/*UiTokens.gd", "scripts/**/*UiHelper.gd", "scripts/ui/ChrIdlePortrait.gd", "scripts/ui/ChrIdlePortraitView.gd", "scripts/ui/UiTypography.gd", "scripts/ui/ScrollTouchHelper.gd", "scripts/ui/SafeAreaHelper.gd", "scripts/ui/HubLayoutHelper.gd", "scripts/ui/BottomNavHelper.gd", "scripts/ui/StatusEffectLinkHelper.gd", "scripts/ui/BiomeBannerHelper.gd", "scripts/roster/RosterUiHelper.gd", "scripts/roster/RosterScene.gd"]
 alwaysApply: false
 ---
 
@@ -201,6 +201,31 @@ Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` �
 - `MainVBox.custom_minimum_size.x` に content 幅を書き戻さない（循環拡大）
 - `NOTIFICATION_RESIZED` は幅が実質変わったときだけカード再生成
 - 回帰: `tests/unit/test_roster_portrait_clamp.gd`
+
+## 編成・陣形（再発防止・必須）
+
+パーティ選択・陣形オーバーレイ・調査派遣の競合。見た目だけ正しく本反映が壊れる事故が再発しやすい。
+
+❌ BAD
+- 陣形スロット操作のたび `_apply_formation_rows_from_slots` で GameState 即書き
+- Dim（外側）タップを確定扱い／スナップショット復元しない
+- 空き枠を `party_members[i]` で埋めて同一メンバーを複数スロットに入れる
+- `_sync_formation_slots_from_selection` が空き前列を詰めて後列指定を前列化する
+- おすすめ／リセットが全 roster から選ぶ（調査派遣中を含む）
+- 詳細遷移前に `set_active_party`（未保存編成が本反映）
+- 復元時に派遣中メンバーを無理に `set_active_party` して失敗
+- Toolbar（おすすめ／陣形）を MainScroll 先頭だけに置き Header 金線に食い込ませる
+
+✅ GOOD
+- スロットは **下書き**。GameState 書きは **保存成功時のみ**
+- Dim＝キャンセル（スナップショット復元）。確定＝下書き維持→保存で本反映
+- 空きは未配置メンバーから埋める＋スロット重複除去。sync は空きスロット保持
+- 後衛プリセットは後ろ最大2を後列（前列空可）
+- 候補は `_eligible_roster_for_party()`（派遣中除外）。派遣中は選択不可＋「調査中」
+- 失敗理由は `active_party_reject_reason` で出し分ける
+- 詳細は `equipment_focus_member_index`＋遷移のみ
+- 復元は派遣中スキップ＋フォールバックも除外
+- タブは Header 直下の固定 `ToolbarBand`。ステ表示は `RosterUiHelper.compute_member_stats`＋`AffixStatCalculator.get_bonuses_for_member`
 
 ## 職名・本文タイポ
 

@@ -1,6 +1,6 @@
 ---
 description: Desktop アセット取込の誤適用防止（Crownfall）
-globs: ["assets/**", "tools/import_*.py", "tools/generate_*.py", "scripts/ui/IconPaths.gd"]
+globs: ["assets/**", "tools/import_*.py", "tools/generate_*.py", "tools/repair_*.py", "tools/strip_*.py", "tools/bake_*.py", "scripts/ui/IconPaths.gd"]
 alwaysApply: false
 ---
 
@@ -10,7 +10,7 @@ alwaysApply: false
 
 - ゲーム参照は **`res://assets/...` のみ**。`/Users/.../Desktop` をコードや `.tres` に書かない
 - 取込後はプロジェクト内にコピー。別 Mac 反映は **commit / push** 前提
-- 差替後は Godot **完全終了→再起動**（import キャッシュ）
+- 差替後は Godot **完全終了→再起動**（import キャッシュ）。壊れた `.ctex` は該当分削除→再インポート
 
 ## 適用先の取り違え禁止
 
@@ -33,20 +33,37 @@ alwaysApply: false
 
 - **本番背景を generate スクリプトで上書きしない**（ガチャは保護済み。上書きは `--force`）
 - 取込後は **commit**（未コミットのまま Mac 移行すると出戻り）
+- `GachaUiTokens.bg_looks_production()`＋unit test を維持
 
 ## データ突合
 
 - 武器 ID: tres の **`id`**（`weapon_id` ではない）
 - まとめ適用: `weapon_type`（`greatsword` / `bow` 等）
 - パス解決: `IconPaths.gd` を正とする
+- 表示文言は **日本語字形のみ**（簡体字 `鳞`→`鱗` 等。JP フォント欠落で豆腐になる）
 
-## 透過・サイズ
+## 透過・サイズ・import（再発防止・必須）
 
-- AI 生成の黒／暗い板背景はキーイングしてから配置。甘いと再作業になる
+❌ BAD
+- 手書き `.import` だけ置いて `.ctex` 未生成／params キーが現行 importer と不一致
+- `remove_black` 過処理で金属影が透過穴（暗い装備がセル背景に透ける）
+- AI PNG の白マットをエッジ非連結のまま残す（チケット／MVP 枠）
+- VFX を `remove_black_bg(threshold=24)` のみで処理（暗青緑マット残存）
+- 肖像／助っ人／CHR アイコンに装飾枠を焼き込む（UI 側枠と二重）
+- chrome 差替後の異常解像度キャッシュを放置（鍛冶 Metal クラッシュ）
+
+✅ GOOD
+- `.import` は Godot に生成させる（削除→`--import`）。確認は `.godot/imported/*.ctex`
+- 暗い装備の穴埋めは `tools/repair_equipment_icon_alpha_holes.py --apply`（大開口は残す）
+- 白マットはエッジ＋中心穴の flood-fill（`import_forge_ui_assets.strip_edge_background` 相当）
+- 戦闘 VFX は `tools/generate_env_and_vfx.py` の `clean_vfx_image`＋`sanitize_alpha`
+- 枠除去は `tools/strip_helper_portrait_frames.py` / `tools/strip_chr_icon_frames.py`
+- 放射色だけ変えるときは `tools/recolor_chr_icon_job_glow.py`（bust 保護）。単純 `modulate` 禁止
+- chrome 差替後はピクセルサイズ確認。異常なら該当 `.godot/imported` をクリア
 - セル全面絵は `ICON_FRAME_MARGIN_PX=18` 前提。余白を勝手に詰めない
-- chrome 差替後はピクセルサイズを確認（異常巨大キャッシュ → 鍛冶 Metal クラッシュの既往）
 
 ## 参照
 
-- 既往一覧: `known-pitfalls.mdc`
+- 既往カタログ（按需）: `known-pitfalls.mdc`（昇格済みはポインタ）
+- UI Idle／装備セル: `ui-layout.mdc`
 - 取込スクリプト例: `tools/import_job_chr_sprites.py`
