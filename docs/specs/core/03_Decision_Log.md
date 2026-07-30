@@ -5802,3 +5802,12 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-STATUS-LEGEND-004-1 | **位置** — Battlefield 右下（下端・右端 inset）。高さに応じて底上げ | 右上から移動 |
 | P3-UX-STATUS-LEGEND-004-2 | **据置** — 内容・天候行先行・StyleBoxEmpty | 表示仕様は既存 |
 
+## 戦闘レジェンド右下の安定化（2026-07-30 — P3-UX-STATUS-LEGEND-005）
+
+> **オーナー** — ダメージのたび説明が上へずれる／もう少し右／長文はみ出し。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-STATUS-LEGEND-005-1 | **更新** — 内容シグネチャ同一なら再構築しない。行クリアは即 `free`（`queue_free` 同居禁止） | 高さ二重で上ずり |
+| P3-UX-STATUS-LEGEND-005-2 | **配置** — 右下アンカー＋右 inset 0。字15px・固定折り返し幅 | 右寄せ＋はみ出し抑制 |
+
