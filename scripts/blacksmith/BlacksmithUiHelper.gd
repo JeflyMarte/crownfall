@@ -273,17 +273,9 @@ static func add_corner_badge(
 	parent.add_child(lbl)
 
 static func recipes_for_category(category: String) -> Array:
-	var out: Array = []
-	for craft in DataRegistry.get_all_craft_data():
-		if craft == null:
-			continue
-		if str(craft.output_type) == category:
-			out.append(craft)
+	## 解放済みレシピのみ（入手解放・P3-CRAFT-DISCOVER-001）。
+	var out: Array = CraftHelper.list_unlocked_crafts(category)
 	out.sort_custom(func(a: Resource, b: Resource) -> bool:
-		var a_unlocked: bool = CraftHelper.is_craft_unlocked(a)
-		var b_unlocked: bool = CraftHelper.is_craft_unlocked(b)
-		if a_unlocked != b_unlocked:
-			return a_unlocked
 		var a_ok: bool = CraftHelper.can_craft(a)
 		var b_ok: bool = CraftHelper.can_craft(b)
 		if a_ok != b_ok:

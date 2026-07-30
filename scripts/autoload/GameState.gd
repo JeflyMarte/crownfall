@@ -108,6 +108,8 @@ var hub_survey_complete_claimed: Dictionary = {}
 
 # 発見登録 { "category:entry_id": true } — Codex 基盤（P2-Task018）
 var discovery_registry: Dictionary = {}
+## 生産レシピ解放（P3-CRAFT-DISCOVER-001）。キー "weapon:id" / "armor:id" / "accessory:id"。
+var unlocked_craft_outputs: Dictionary = {}
 
 # チュートリアル進行フラグ { flag_name: bool }
 var tutorial_flags: Dictionary = {}
@@ -1063,10 +1065,12 @@ func unlock_relic(relic_id: String) -> bool:
 	return true
 
 
-## 武器／防具／装飾を所持に入れたあとに呼ぶ（レジェンド／ミシック初回案内用）。
+## 武器／防具／装飾を所持に入れたあとに呼ぶ（レジェンド／ミシック初回案内・生産レシピ解放）。
 func note_equipment_obtained(instance: Resource) -> void:
 	if instance == null:
 		return
+	const _CraftHelper := preload("res://scripts/crafting/CraftHelper.gd")
+	_CraftHelper.note_equipment_obtained(instance)
 	const _NinaRareAcquireGuide := preload("res://scripts/ui/NinaRareAcquireGuide.gd")
 	_NinaRareAcquireGuide.on_equipment_obtained(instance)
 
@@ -1543,6 +1547,7 @@ func reset_for_new_game() -> void:
 	hub_survey_achievements_claimed = {}
 	hub_survey_complete_claimed = {}
 	discovery_registry = {}
+	unlocked_craft_outputs = {}
 	tutorial_flags = {}
 	stage_progress = {}
 	dungeon_tier_cleared = {}

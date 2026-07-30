@@ -1,9 +1,201 @@
 class_name CraftHelper
 extends RefCounted
 
-## unlock_condition 形式:
-## - 空: 常時解放
-## - "stage_cleared:<stage_id>": 当該ステージのクリア（ノーマル相当・legacy cleared）
+## 生産レシピ SSOT（P3-CRAFT-DISCOVER-001）。
+## - 解放: 装備を一度入手したら永続解放
+## - 対象: N〜LEGENDARY（MYTHIC / SET / イベント専売は除外）
+## - ★は重いコスト（L1）
+
+const _MythicLoot := preload("res://scripts/equipment/MythicLoot.gd")
+const _EventExclusiveRewards := preload("res://scripts/dungeon/EventExclusiveRewards.gd")
+const _EquipmentSetBonuses := preload("res://scripts/equipment/EquipmentSetBonuses.gd")
+const _EquipmentEnhancer := preload("res://scripts/equipment/EquipmentEnhancer.gd")
+
+## レア別コスト（L1: LEGENDARY を重く）。
+const GOLD_BY_RARITY: Dictionary = {
+	Enums.Rarity.COMMON: 40,
+	Enums.Rarity.RARE: 80,
+	Enums.Rarity.EPIC: 150,
+	Enums.Rarity.LEGENDARY: 400,
+}
+const MATERIALS_BY_RARITY: Dictionary = {
+	Enums.Rarity.COMMON: {"relic_shard": 1, "base_ore": 1},
+	Enums.Rarity.RARE: {"relic_shard": 2, "ancient_bone": 1},
+	Enums.Rarity.EPIC: {"relic_shard": 2, "ancient_bone": 1, "epic_ore": 1},
+	Enums.Rarity.LEGENDARY: {
+		"relic_shard": 3,
+		"epic_ore": 2,
+		"elite_relic_shard": 2,
+	},
+}
+
+
+static func craft_key(output_type: String, output_id: String) -> String:
+	return "%s:%s" % [output_type, output_id]
+
+
+static func parse_craft_key(key: String) -> Dictionary:
+	var parts: PackedStringArray = key.split(":", false, 1)
+	if parts.size() != 2:
+		return {}
+	return {"output_type": str(parts[0]), "output_id": str(parts[1])}
+
+
+static func is_craftable_master(output_type: String, output_id: String) -> bool:
+	if output_id.is_empty():
+		return false
+	if _MythicLoot.is_mythic_id(output_id):
+		return false
+	if _EventExclusiveRewards.is_event_exclusive_equip(output_id):
+		return false
+	if _EquipmentSetBonuses.is_set_piece_id(output_id):
+		return false
+	var data: Resource = _master_data(output_type, output_id)
+	if data == null:
+		return false
+	var rarity: int = int(data.rarity) if "rarity" in data else Enums.Rarity.COMMON
+	## SET(5) / MYTHIC(4) 以上は除外。LEGENDARY(3) まで可。
+	if rarity >= Enums.Rarity.MYTHIC:
+		return false
+	if rarity > Enums.Rarity.LEGENDARY:
+		return false
+	return true
+
+
+static func _master_data(output_type: String, output_id: String) -> Resource:
+	match output_type:
+		"weapon":
+			return DataRegistry.get_weapon_data(output_id)
+		"armor":
+			return DataRegistry.get_armor_data(output_id)
+		"accessory":
+			return DataRegistry.get_accessory_data(output_id)
+		_:
+			return null
+
+
+static func master_rarity(output_type: String, output_id: String) -> int:
+	var data: Resource = _master_data(output_type, output_id)
+	if data == null or not ("rarity" in data):
+		return Enums.Rarity.COMMON
+	return clampi(int(data.rarity), Enums.Rarity.COMMON, Enums.Rarity.LEGENDARY)
+
+
+static func is_unlocked(output_type: String, output_id: String) -> bool:
+	if output_type.is_empty() or output_id.is_empty():
+		return false
+	return bool(GameState.unlocked_craft_outputs.get(craft_key(output_type, output_id), false))
+
+
+static func try_unlock(output_type: String, output_id: String) -> bool:
+	if not is_craftable_master(output_type, output_id):
+		return false
+	var key: String = craft_key(output_type, output_id)
+	if bool(GameState.unlocked_craft_outputs.get(key, false)):
+		return false
+	GameState.unlocked_craft_outputs[key] = true
+	return true
+
+
+## 装備入手時フック。初回解放なら true。
+static func note_equipment_obtained(instance: Resource) -> bool:
+	if instance == null:
+		return false
+	var cat: String = _EquipmentEnhancer.item_category(instance)
+	var mid: String = _EquipmentEnhancer._item_master_id(instance)
+	if cat.is_empty() or mid.is_empty():
+		return false
+	return try_unlock(cat, mid)
+
+
+## 所持インベントリ／装備中から解放を同期（旧セーブ移行用）。
+static func sync_unlocks_from_owned() -> void:
+	var bags: Array = [
+		GameState.inventory,
+		GameState.armor_inventory,
+		GameState.accessory_inventory,
+	]
+	for bag: Variant in bags:
+		if not (bag is Array):
+			continue
+		for raw: Variant in bag:
+			if raw is Resource:
+				note_equipment_obtained(raw as Resource)
+	for member: Variant in GameState.party_members:
+		if member == null or not (member is Resource):
+			continue
+		var m: Resource = member as Resource
+		if "equipped_weapon" in m and m.equipped_weapon != null:
+			note_equipment_obtained(m.equipped_weapon)
+		if "equipped_armor" in m and m.equipped_armor != null:
+			note_equipment_obtained(m.equipped_armor)
+		if "equipped_accessory" in m and m.equipped_accessory != null:
+			note_equipment_obtained(m.equipped_accessory)
+	for member2: Variant in GameState.roster:
+		if member2 == null or not (member2 is Resource):
+			continue
+		var m2: Resource = member2 as Resource
+		if "equipped_weapon" in m2 and m2.equipped_weapon != null:
+			note_equipment_obtained(m2.equipped_weapon)
+		if "equipped_armor" in m2 and m2.equipped_armor != null:
+			note_equipment_obtained(m2.equipped_armor)
+		if "equipped_accessory" in m2 and m2.equipped_accessory != null:
+			note_equipment_obtained(m2.equipped_accessory)
+
+
+static func costs_for_rarity(rarity: int) -> Dictionary:
+	var r: int = clampi(rarity, Enums.Rarity.COMMON, Enums.Rarity.LEGENDARY)
+	var gold: int = int(GOLD_BY_RARITY.get(r, 40))
+	var mats: Dictionary = (MATERIALS_BY_RARITY.get(r, {"relic_shard": 1}) as Dictionary).duplicate()
+	return {"gold_cost": gold, "required_materials": mats}
+
+
+static func build_craft_data(output_type: String, output_id: String) -> Resource:
+	if not is_craftable_master(output_type, output_id):
+		return null
+	var data: Resource = _master_data(output_type, output_id)
+	if data == null:
+		return null
+	var rarity: int = master_rarity(output_type, output_id)
+	var costs: Dictionary = costs_for_rarity(rarity)
+	var craft: Resource = CraftData.new()
+	craft.id = "craft_%s_%s" % [output_type, output_id]
+	var base_name: String = str(data.display_name) if "display_name" in data else output_id
+	craft.display_name = "%sの作成" % base_name
+	craft.output_type = output_type
+	craft.output_id = output_id
+	craft.gold_cost = int(costs.get("gold_cost", 40))
+	craft.required_materials = costs.get("required_materials", {})
+	craft.unlock_condition = "obtained"
+	return craft
+
+
+static func list_unlocked_crafts(category: String = "") -> Array:
+	var out: Array = []
+	for key: Variant in GameState.unlocked_craft_outputs.keys():
+		if not bool(GameState.unlocked_craft_outputs.get(key, false)):
+			continue
+		var parsed: Dictionary = parse_craft_key(str(key))
+		if parsed.is_empty():
+			continue
+		var otype: String = str(parsed.get("output_type", ""))
+		var oid: String = str(parsed.get("output_id", ""))
+		if not category.is_empty() and otype != category:
+			continue
+		if not is_craftable_master(otype, oid):
+			continue
+		var craft: Resource = build_craft_data(otype, oid)
+		if craft != null:
+			out.append(craft)
+	out.sort_custom(func(a: Resource, b: Resource) -> bool:
+		var ra: int = master_rarity(str(a.output_type), str(a.output_id))
+		var rb: int = master_rarity(str(b.output_type), str(b.output_id))
+		if ra != rb:
+			return ra < rb
+		return str(a.display_name) < str(b.display_name)
+	)
+	return out
+
 
 static func craft_output_exists(craft: Resource) -> bool:
 	if craft == null:
@@ -17,6 +209,7 @@ static func craft_output_exists(craft: Resource) -> bool:
 			return DataRegistry.get_weapon_data(craft.output_id) != null
 		_:
 			return false
+
 
 static func has_enough_materials(required: Dictionary) -> bool:
 	for mat_id in required:
@@ -32,19 +225,23 @@ static func is_craft_unlocked(craft: Resource) -> bool:
 static func craft_lock_reason(craft: Resource) -> String:
 	if craft == null:
 		return "レシピが不正です"
+	var otype: String = str(craft.output_type)
+	var oid: String = str(craft.output_id)
+	if not is_craftable_master(otype, oid):
+		return "生産できない装備です"
+	if not is_unlocked(otype, oid):
+		return "未入手のため生産不可"
+	## 旧 stage_cleared 互換（動的レシピは obtained）。
 	var cond: String = str(craft.unlock_condition).strip_edges()
-	if cond.is_empty():
-		return ""
 	if cond.begins_with("stage_cleared:"):
 		var stage_id: String = cond.trim_prefix("stage_cleared:").strip_edges()
-		if stage_id.is_empty():
-			return "解放条件が不正です"
-		if GameState.is_stage_cleared(stage_id):
-			return ""
-		var stage: Resource = DataRegistry.get_stage_data(stage_id)
-		var stage_name: String = str(stage.display_name) if stage != null and "display_name" in stage else stage_id
-		return "%s クリアで解放" % stage_name
-	return "未対応の解放条件です"
+		if not stage_id.is_empty() and not GameState.is_stage_cleared(stage_id):
+			var stage: Resource = DataRegistry.get_stage_data(stage_id)
+			var stage_name: String = (
+				str(stage.display_name) if stage != null and "display_name" in stage else stage_id
+			)
+			return "%s クリアで解放" % stage_name
+	return ""
 
 
 static func can_craft(craft: Resource, gold: int = -1) -> bool:
@@ -61,9 +258,10 @@ static func can_craft(craft: Resource, gold: int = -1) -> bool:
 		return false
 	return has_enough_materials(craft.required_materials)
 
+
 static func get_craftable_recipes(gold: int = -1) -> Array:
 	var out: Array = []
-	for craft in DataRegistry.get_all_craft_data():
+	for craft in list_unlocked_crafts():
 		if can_craft(craft, gold):
 			out.append(craft)
 	out.sort_custom(func(a: Resource, b: Resource) -> bool:

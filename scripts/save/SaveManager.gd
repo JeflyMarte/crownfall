@@ -66,6 +66,7 @@ func save_game() -> void:
 		"hub_survey_complete_claimed": GameState.hub_survey_complete_claimed.duplicate(true),
 		"current_dungeon_id": GameState.current_dungeon_id,
 		"discovery_registry": GameState.discovery_registry,
+		"unlocked_craft_outputs": GameState.unlocked_craft_outputs.duplicate(true),
 		"material_inventory": GameState.material_inventory.duplicate(),
 		"inventory": _serialize_inventory(),
 		"armor_inventory": _serialize_armor_inventory(),
@@ -678,6 +679,10 @@ func _apply_save_data(data: Dictionary) -> void:
 	if data.has("discovery_registry") and data["discovery_registry"] is Dictionary:
 		GameState.discovery_registry = data["discovery_registry"]
 		GameState.sanitize_discovery_registry()
+	if data.has("unlocked_craft_outputs") and data["unlocked_craft_outputs"] is Dictionary:
+		GameState.unlocked_craft_outputs = (data["unlocked_craft_outputs"] as Dictionary).duplicate(true)
+	else:
+		GameState.unlocked_craft_outputs = {}
 	if data.has("material_inventory") and data["material_inventory"] is Dictionary:
 		GameState.material_inventory = data["material_inventory"].duplicate()
 		GameState.sanitize_material_inventory()
@@ -771,6 +776,9 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.pending_clear_nina_teaser = false
 		GameState.pending_clear_stage_id = ""
 	_apply_roster_save(data)
+	## roster／所持復元後に生産レシピ解放を同期（旧セーブ移行）。
+	const _CraftHelperLoad := preload("res://scripts/crafting/CraftHelper.gd")
+	_CraftHelperLoad.sync_unlocks_from_owned()
 	## roster 適用後に展示 id を検証。
 	GameState.find_showcase_member()
 	GameState.migrate_starter_unlock_state()
