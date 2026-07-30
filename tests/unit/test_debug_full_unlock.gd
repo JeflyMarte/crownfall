@@ -36,6 +36,10 @@ func test_debug_full_unlock_grants_currency_roster_and_gear() -> void:
 	assert_gte(GameState.inventory.size(), DataRegistry.get_all_weapon_data().size())
 	assert_eq(GameState.armor_inventory.size(), DataRegistry.get_all_armor_data().size())
 	assert_eq(GameState.accessory_inventory.size(), DataRegistry.get_all_accessory_data().size())
+	## 生産は入手解放制。デバッグではクラフト可能レシピが並ぶこと。
+	assert_gt(CraftHelper.list_unlocked_crafts().size(), 0)
+	assert_true(CraftHelper.is_unlocked("weapon", "iron_sword"))
+	assert_false(CraftHelper.get_craftable_recipes().is_empty())
 	assert_true(GameState.is_dungeon_unlocked("whisperwood"), "デバッグ時はβ外メインも解放")
 	assert_eq(TicketInventory.get_qty(TicketIds.GACHA_FREE), Constants.DEBUG_TICKET_GRANT_EACH)
 	assert_eq(TicketInventory.get_qty(TicketIds.LB_STAR3), Constants.DEBUG_TICKET_GRANT_EACH)
