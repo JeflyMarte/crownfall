@@ -159,8 +159,8 @@ Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` �
 - reparent 後も `$PlayerCard/PlayerRow/...` のパス文字列で `get_node`（ランクアップ閉じで null 参照→デバッガ終了）
 
 ✅ GOOD
-- `PanelContainer` 直下はホスト `Control` 1つだけ。`PlayerRow` とバッジはホスト上でアンカー重ね（`BaseScene._setup_gift_badge`）
-- 肖像枠などは `@onready` 参照を保持し、reparent 後もパス文字列を使わない
+- バッジは氏名行 `HBox` の名前直後（`BaseScene._setup_gift_badge`）。`PlayerCard`（PanelContainer）直下に置かない
+- ノードを reparent する場合は `@onready` 参照を使い、パス文字列に依存しない
 
 ## CHR Idle ポートレート（再発防止・必須）
 
