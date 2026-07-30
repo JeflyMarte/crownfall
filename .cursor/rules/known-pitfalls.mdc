@@ -14,8 +14,7 @@ alwaysApply: false
 
 | 症状 | 原因 | 再発防止 |
 |---|---|---|
-| 鍛冶完了ポップで N/R/E・Legend ロゴがアイコン全面に巨大化 | レアロゴを `PanelContainer` 直下に `add_child` → コンテナが子を全面伸長 | 枠アイコンは外側 `Control` にバッジ。`badge_ref_px` は装備一覧 `INV_CELL_PX` |
-| 鍛冶完了の説明／セット文が枠からはみ出す | 日本語＋`AUTOWRAP_WORD_SMART` で最小幅＝全文幅。完了ポップの長文 | `AUTOWRAP_ARBITRARY`＋`desc_wrap_width`。完了は `desc_max_chars`／`effect_max_chars` で短縮 |
+| 鍛冶完了ポップでレアロゴ巨大化／説明はみ出し | PanelContainer直下バッジ・WORD_SMART | → **`ui-layout.mdc` 鍛冶屋アイコン** |
 | 鍛冶屋入場で即終了（`BlacksmithScene` パース失敗） | `maxf(a, b, c)` は GDScript 非対応（最大2引数） | `maxf(a, maxf(b, c))` にネスト。変更後 headless で BlacksmithScene instantiate 確認 |
 | ダンジョン入場で即終了（`DungeonScene` コンパイル失敗） | `NonCombatNarrativeColors.wrap` が組み込み `wrap(value,min,max)` と衝突し「Too few arguments」 | 静的ヘルパは `bb_wrap` 等、グローバル／組み込みと被らない名前にする。変更後 headless で DungeonScene ロード確認 |
 | 宝箱／泉／碑文の結果コメントが「探索を開始した」に戻る | 結果 BBCode 直後の `_reset_narrative_typography` が Label モードへ戻し、入場時の旧文が再表示 | 結果表示後はリセットしない。BBCode 時は Label 平文同期。Rich 表示中は reset を no-op。詳細: `14_Presentation_Pitfalls.md` |
@@ -38,10 +37,7 @@ alwaysApply: false
 | `Could not resolve class "CurrencyGainFx"`（起動パース失敗） | `tween_method(` に複数行ラムダ＋直後の `,` や、静的関数内の複雑なインライン Callable | 飛行更新は `_make_*` で Callable を返す。mutable カウンタは `Dictionary`。修正後 headless 起動確認 |
 | `Parser Error: Expected statement, found "else"` | Python の `for`/`else`・`while`/`else` | `gdscript.mdc` — フラグループを使う |
 | `GUT compile error Identifier "COLOR_BODY" not declared` | `EquipmentScene` の作戦プリセットUIで未定義の `COLOR_BODY` を参照（`UiTypography.COLOR_BODY` へ誤置換） | 色定数は `COLOR_*` と `UiTypography.COLOR_*` を混同しない。SMOKE/GUT（headless）で即 compile 確認 |
-| 編成の「おすすめ／陣形」が Header 金線に食い込む | タブが MainScroll 先頭で offset 余白だけに依存し潰れる | タブを Header 直下の固定 `ToolbarBand` に分離し、一覧スクロールはその下へ |
-| 編成でキャラ枠が消える／アイコンクリックで巨大化／一覧→パーティ入れ替え不能 | ①`card_panel_style` が薄い 9-slice＋キャッシュ mutate ②CHR 1254px が VBox 縦 FILL／COVERED で原寸逃げ ③満員時一覧タップが no-op、肖像 STOP で枠の `gui_input` 奪取 | カード枠は StyleBoxFlat 明示。肖像は `RosterUiHelper.make_clamped_portrait`（HARD_MAX＋clip＋resized 拘束）。満員は `_roster_pick_member`→枠タップで入替 |
-| 編成で下キャラ選択のたびアイコン／セルが拡大する | ①選択 `_pick_style` の content_margin／border が通常より大きい→Grid 最小サイズ膨張 ②肖像を Button 子に載せ CHR 原寸が min size に乗る ③`queue_free` 残存のまま add→セル倍増→RESIZED 連鎖。`main_vbox.min.x=content_w` の循環 | `pick_panel_style` は margin/border 幅同一。肖像は `make_clamped_portrait`＋Button 外。**remove_child 即時＋queue_free**（`free()` 禁止）。RESIZED は幅変化時のみ。VBox min.x 書き戻し禁止 |
-| 編成で入れ替えするとゲーム終了（Abort） | タップ中 Button／カードを `free()` で即破棄。`pressed`/`gui_input` スタック上で解放 | 破棄は `remove_child`＋`queue_free`。入れ替え処理は `call_deferred` |
+| 編成でアイコン巨大化／入替 Abort／Toolbar 食い込み（CHR・破棄） | 選択 Style 膨張・Button 子肖像・`free()`・Scroll 先頭タブ | → **`ui-layout.mdc` 編成 CHR／編成・陣形** |
 | パーティ画面が重い／スクロール不能 | 入れ子 Scroll＋rebuild 後 ScrollTouch 未再適用＋StyleBox new | → `ui-layout.mdc` ScrollTouch。上段は非 Scroll。StyleBox キャッシュ |
 | `.tscn` で親ノードが vanish（子だけ残る） | `.tscn` に GDScript 風の `##` コメントを書いた | `.tscn` コメントは `;` のみ。`##` 禁止 |
 | 起動時黒画面・`inherits from Control, can't assign to Node` | `BootScene.gd` が `extends Control` なのに `.tscn` ルートが `Node` | スクリプトの `extends` とシーンルート型を一致させる。Boot は `Node` が正 |
@@ -57,7 +53,7 @@ alwaysApply: false
 | ダンジョン選択バナーの名前が全部消える | 中央アンカー Label に `clip_text`／親 `clip_contents`、または `PRESET_CENTER` のみで size=(0,0) | タイトルは `PRESET_CENTER`＋`PRESET_MODE_MINSIZE`＋`clip_text=false`。バナー親の `clip_contents` 禁止。横はみ出しは Scroll／Featured 側で抑止 |
 | HBox 内の数値が消える（アイコンだけ残る） | Label の `clip_text=true` は最小幅 0 → SHRINK の HBox で幅が潰れる | `ui-layout.mdc` — 短い数値は `clip_text=false`。必要なら `EXPAND_FILL` |
 | 戦闘下カードで名前が「アル…」等に切れる | `clip_text`＋ellipsis。長い表示名がカード幅を超える | 省略禁止＋幅に合わせて font_size 縮小（`_fit_party_card_name_font`）。レイアウト後に deferred 再計算 |
-| 戦闘が全体的にカクつく／歩行が飛ぶ | `_process` で HPバー位置更新のたび `Texture2D.get_image()`＋`get_used_rect()` | 正規化時に `body_frame_h` / `body_top_inset` を meta キャッシュしホットパスでは使わない |
+| 戦闘が全体的にカクつく／歩行が飛ぶ | `_process` で `get_image`／`get_used_rect` | → **`gdscript.mdc` ホットパス**（meta キャッシュ） |
 | 敵の攻撃タイミングが分かりにくい | 予告なしでアニメ開始 | 攻撃／ダメージスキル直前にドット左へ赤い `❗`（`_spawn_enemy_attack_mark`）。詠唱技は既存カットイン／詠唱名 |
 | 攻撃モーション寸前に一瞬カクつく | 必殺 resolve 同フレームで攻撃開始＋フラッシュ／シェイク／リング／ヒット VFX／ダメージ数字が集中。VFX の都度 `load` | windup 開始で攻撃開始。ダメージ必殺の resolve はヒット側のみ。Heal VFX／attack テクスチャは入場時にウォーム |
 | 状態異常レジェンドの背景四角 | Panel に半透明 StyleBoxFlat | `StyleBoxEmpty`（アイコン＋効果文言のみ） |
@@ -66,7 +62,7 @@ alwaysApply: false
 | ボス大技バナーが味方必殺より短く弱い | 旧 `BOSS_SKILL_CUTIN_HOLD≈0.55` 固定 | 表示尺は `UltimatePresentationConfig` の announce+windup。効果1行＋`combat_ultimate`（P3-UX-BOSS-ULTIMATE-001） |
 | エリート前に中央「エリート」謎文字 | `_begin_elite_combat_entrance` の中央 Label | 中央テロップ禁止。遷移 `[エリート]`＋ネームバッジのみ |
 | 部屋遷移の「[戦闘] F」が消える | ボス／エリートで部屋名を省略しすぎた | 戦闘／エリートは `[種別]\nF` を出す。ボスのみ専用入場のため省略可 |
-| 戦闘が継続的にカクつく | `_process` の CDバー更新が毎フレーム `StyleBoxFlat.new()`。`CombatUiFrames.panel_style` も都度 new＋load | CD/パネル StyleBox をキャッシュ。HPバー追従は position/offset 差分時のみ。ホットパスで `get_image` 禁止 |
+| 戦闘が継続的にカクつく | 毎フレーム `StyleBoxFlat.new()`／load | → **`gdscript.mdc` ホットパス** |
 | 攻撃アニメと同時にダメージ数字／HP減少 | 通常攻撃が `play("attack")` とダメージ適用を同フレームで実行 | ヒットは `ATTACK_IMPACT_FRAME_RATIO` まで遅延＋cinematic lock（`_resolve_party_attack_impact_async`） |
 | アルド攻撃が「動いてない」ように見える | 背面アングル＋序盤フレームが立ち姿に近く、ヒットが早すぎて剣の振り上がり前にダメ数字が目立つ | ヒット比を中盤寄りに。静止に近い先頭フレームを攻撃から外す。短い踏み込み（`_play_chr_attack_lunge`）で可読性を補う |
 | 1-1（初回ラン）からボス（セルディオン）が出る | `SUB_STAGES_PLAYABLE=false` で単体 `mourngate` 運用になり `boss_id` が毎回付く。章別 `spawn_weights` も無効 | メインは `SUB_STAGES_PLAYABLE=true`。1-1〜x-4 は Boss なし／x-5 のみ。`start_dungeon` も章へ誘導 |
@@ -94,16 +90,10 @@ alwaysApply: false
 | 章クリア後ニーナのあと解放／加入が止まり、再入場でやっと出る | `DungeonUnlockOverlay` dismiss 同フレームで `show_pending_on` が残存ノードを見て `on_all_done` 未実行 | dismiss 後は timer/deferred で再入。blocking は `is_queued_for_deletion` 考慮。解放キューはセーブする |
 | ミストフェンクリア後にノノカが調査室に出ない／序盤から出る | 常時 `all_ids` 配置、またはクリア時に `pending_nonoka_survey_join` 未セット／加入後キュー未接続 | ③初回クリアで queue。候補は `is_survey_staff_unlocked`。拠点は加入→ノノカ合流トーク→解放。旧セーブは mistfen クリア済みなら即解放 |
 | 加入ショーケースで顔に金のノイズ | `UI_Join_PortraitGlow` が CHR 半透明ディザ越しに顔へ滲む | アイコン下に不透明板＋Glow を弱め／外側へ |
-| 鍛冶の必要コスト素材が iPhone で何かわからない | 名前が `tooltip_text` のみで、タッチでは長押し確認できない | **現行方針（オーナー）**: 鍛冶コストはアイコン＋個数のみ（窮屈さ優先）。名前は tooltip 残置。識別が足りなければ後続でアイコン拡大／キャプション再検討 |
+| 鍛冶コスト素材名がタッチで不明 | 名前は tooltip のみ | → `ui-layout` 鍛冶（現行: アイコン＋個数のみ） |
 | 拠点左上に「魔晶石」が見える／隊長名に見える | TokenChip の `tooltip_text=魔晶石` がタッチ環境で残る、または隊長名 Label に通貨名が混入 | TopBar の魔晶石は数値のみ（tooltip 空）。`LabelPlayerName` は等級＋隊長名のみを毎フレーム明示上書き。`verify_base_hub` で混入検査 |
 | マイページがタッチスクロール不能 | rebuild 後 Button が STOP のまま | → `ui-layout.mdc` ScrollTouch（rebuild 後 enable 再実行） |
-| 陣形で前→後に動かすとキャラが複製表示 | 空き枠を `party_members[i]` で埋めて同一メンバーが複数スロットに入る | 未配置メンバーから埋める＋スロット重複除去 |
-| 編成保存が「1〜4名・重複不可」なのに見た目は正しい | `set_active_party` が調査派遣中も拒否するが文言は人数・重複のみ。編成UIも派遣中を選べた | 失敗は `active_party_reject_reason` で理由別。派遣中は選択不可＋「調査中」表示 |
-| 陣形UIを触ると未保存なのに戦闘前列が変わる／外側タップで確定扱い | オーバーレイ操作のたび `_apply_formation_rows_from_slots` で GameState 即書き | スロットは下書き。本反映は保存成功時のみ。Dim＝キャンセル（スナップショット復元）／確定＝下書き維持 |
-| おすすめ／リセットで調査中メンバーが入る | 全 roster から選んでいた | `_eligible_roster_for_party()`（派遣中除外）を使う |
-| 詳細ボタンで未保存編成が本反映される | 遷移前に `set_active_party` | 詳細は `equipment_focus_member_index`＋遷移のみ |
-| 調査中を含むセーブで編成復元失敗 | `_restore_active_party` が派遣中もセットしようとして拒否 | 復元時に派遣中をスキップ＋フォールバックも除外 |
-| 2人を後列にしたのに戦闘では前列 | `_sync_formation_slots_from_selection` が空き前列を詰めて slot0/1 へ移し、`_apply_formation_rows_from_slots` で前列化 | sync は空きスロットを保持。後衛プリセットは後ろ最大2を後列（前列空可）。GameState 書きは保存時のみ |
+| 陣形複製／前列化／調査中混入／未保存本反映（編成ロジック） | 即 GameState 書き・空き詰め・全 roster・詳細前 set | → **`ui-layout.mdc` 編成・陣形** |
 | ジャックがほぼ被弾せず無敵に見える | `PET_THREAT_BASE=0.55`＋max_threat 選択で人間（≥1.0）がいる限り未選択。被ダメ計算も `party_members` 限定でオトモ DEF 未加算 | Threat を前衛相当（盾未満）へ。ダメ計算は `get_combatant`。HPバーは PET スロット短尺 |
 | オトモが「渾身の一撃」等の必殺を撃つ | 職なし＋`DEFAULT_ULTIMATE_SKILL_ID` フォールバック。balanced 戦術がボス／エリートで必殺 | `_get_member_ultimate_skill` でペット除外。`add_ultimate_charge` もスキップ（P3-PET-ULT-OMIT-001） |
 | 行動順の敵アイコンが不透明の紫板に見える | `generate_combat_enemy_icons` が穴内に `(48,36,64)` プレートを焼込 | **PNG へのプレート焼込禁止**。差替後 `.godot/imported` の `ICO_ENM_Turn_*` を消して再インポート |
@@ -113,84 +103,53 @@ alwaysApply: false
 | キャラ画面の★が灰色 | LabelStars に見出しフォント（Shippori）を当てると ★ 欠落でフォールバックが灰色に見える | 本文フォント＋`UiTypography.COLOR_GOLD`（ガチャと同ポリシー） |
 | ガチャ／鍛冶BGMが他画面に残る | Equipment 等の拠点画面が `play_bgm` せず継続再生 | `BgmCatalog.SCENE_BGM`＋`SceneRouter.change_scene` で画面入場時に切替（拠点=hub） |
 | 調査隊員選択でイントロBGMが切れる | `StarterPickScene` が `SCENE_BGM` で hub になっていた | 導入フローは `introduction`（同ID再生中は継続）。拠点入りで hub へ |
-| 鍛冶詳細ステにアイコンが付かない／見えない | `EquipmentUiTokens.stat_icon` の実行時 load 欠落、または TextureRect を HBox に直置きして寸法 0、必要コスト被り | `BlacksmithScene` は `ICO_Equip_Stat_*` を **preload**＋固定 `Control` ホスト（36px）。コスト前スペーサ≧24。差替後は `.godot/imported` 再インポート |
-| 鍛冶詳細がぐちゃぐちゃ（名前／ステが武器画像に重なる） | ヒーローと名前／ステを `HeroStatsRow` で横並びに runtime reparent すると詳細枠幅で重なる | 詳細は **縦並び**（ヒーロー上→レア／名前／ステ下）。横並び reparent 禁止 |
-| 鍛冶詳細のステ／基礎鉱が左枠に食い込む | `DetailPanel` の `content_margin`≪`texture_margin`（例: 10 vs 36）。加えてタイトル中央・ステ左寄せのズレ | content_margin を枠クロム以上に。ステ行は **中央寄せ** |
+| 鍛冶詳細のステ重なり／アイコン欠落／枠食い込み | 横並び reparent・content_margin不足・TextureRect直置き | → **`ui-layout.mdc` 鍛冶屋アイコン**（縦並び・preload） |
 | 生産の「武器一覧」がカテゴリタブに重なる | `MainSplit.grow_vertical=BOTH` で最小高超過時に上方向へ伸長 | `GROW_DIRECTION_END` のみ。タブ下 gap≧40 |
-| 鍛冶タブ切替で装備アイコンが消える | `_setup_hero_display_layout` を `_refresh_all` 後に呼び `visible=false` で上書き | レイアウト調整→詳細再構築の順。layout では visible を触らない |
+| 鍛冶タブ切替で装備アイコンが消える | layout 後に visible 上書き | → `ui-layout` 鍛冶（layout→詳細の順、visible非接触） |
 | 装備（防具等）タップで強制終了 | `InputEvent.accept_event()` は存在しない（SCRIPT ERROR→デバッガで Abort） | `Control.accept_event()` を使う |
-| 鍛冶「作成可能」の黄色い外枠 | `CraftablePanel` の Texture 金枠 | `craftable_panel_style` は無枠 Flat。武器アイコン枠は残す |
-| 鍛冶素材帯が下見切れ／全体スクロール不能 | 帯を下端固定＋`clip`、または `CraftableRow` が EXPAND で潰れる | `BodyScroll` で MainSplit＋帯。Row は `SHRINK_BEGIN`。帯高はチップが見切れない natural |
-| 編成とキャラ画面でステが食い違う | 編成は `_selected` index→`party_members` の Affix、キャラは別経路／ベンチは Affix 空 | 表示は `RosterUiHelper.compute_member_stats`＋`AffixStatCalculator.get_bonuses_for_member` に統一 |
+| 鍛冶「作成可能」金枠／素材帯見切れ | Texture金枠・下端固定帯・EXPAND | → `ui-layout` 鍛冶（Flat無枠・BodyScroll） |
+| 編成とキャラ画面でステが食い違う | 表示経路が分裂 | → `ui-layout.mdc` 編成・陣形（`compute_member_stats` 統一） |
 | キャラ画面で他スキルを装備できない | `MAX_EQUIPPED_SKILLS=1` なのに満枠で「装備」ボタンを disabled | 未解放のみ disabled。満枠は `toggle_member_skill` で置換 |
 
-## アセット取込（Desktop → プロジェクト）
+## アセット／UI昇格ポインタ
 
 | 症状 | 原因 | 再発防止 |
 |---|---|---|
 | 装備名が□／豆腐・文字化け（例: 始祖竜の氷鳞鎧） | 簡体字（`鳞`）を日本語表示名に混入。JP フォントに無い字形 | 表示文言は日本語字形のみ（`鳞`→`鱗`）。装備名・パッシブ・説明を一括 grep |
-| 別 Mac でアイコンが戻る | Desktop 直参照、または **未コミット** | 必ず `res://assets/...` にコピー。参照は `IconPaths` / Tokens。同期は commit/push |
-| ガチャ背景が星空プレースホルダに戻る | `generate_gacha_ui_assets.py` が `UI_BG_Gacha.png` を上書き／本番アート未コミット／art 一括で誤削除 | Desktop→`tools/import_gacha_screen_art.py`。生成スクリプトは本番BG/Title/Catchcopyを保護。`GachaUiTokens.bg_looks_production()`＋unit test。差替は必ず commit |
-| カテゴリタブが差し替わる | 装備品 PNG を `ICO_*_Cat_*` に誤適用 | **本体アイコン**（`ICO_WPN_*` / `ICO_ARM_*` / skills）と **Cat タブ**を混同しない |
-| 武器アイコンが一部だけ | `weapon_id` フィールドを探す誤り | 武器 tres の ID は **`id`**。種別は `weapon_type`（greatsword/bow 等） |
-| 見た目が変わらない | `.godot` キャッシュ | アセット差替後は **Godot 完全終了→再起動**。壊れた import は該当 `.ctex` を消して再インポート |
-| 新規 PNG が `stat_icon` null／ERR_CANT_OPEN | 手書き `.import` だけ置いて `.ctex` 未生成、または params キーが現行 importer と不一致 | `.import` は Godot に生成させる（削除→`--import`）。手書き禁止。確認は `.godot/imported/*.ctex` の有無 |
-| 鍛冶クラッシュ（Metal） | import サイズ不正（例: 220×88 が 1536×1024 キャッシュ） | chrome 差替後に解像度を確認。異常なら `.godot/imported` を該当分クリア |
-| 黒／暗い板が残る | キーイング閾値が甘い | 透過処理後に目視。弓など暗い背景は閾値を広げて再適用 |
-| アンティーク等の暗い装備がセル背景に透ける／重なる | `remove_black` 過処理で金属影が透過穴（エッジ連結トンネル含む） | `tools/repair_equipment_icon_alpha_holes.py --apply`。閉じた小穴のみ埋め、弓の弦内など大開口は残す。差替後 `.godot/imported` 該当分クリア |
-| 所持チケットが白マット | AI PNG の白背景がエッジ非連結で残存 | 透過隣接＋エッジから light matte flood-fill。枠は `StyleBox` 既定パネルを使わず rarity 枠 |
-| MVP 表彰枠が白／灰の不透明板 | AI 生成 PNG が RGB 白マットのまま（内外の穴も非連結） | エッジ＋中心穴の flood-fill で透過化（`import_forge_ui_assets.strip_edge_background` 相当）。差替後 `.godot/imported` を該当分クリア |
-| 戦闘ヒット／回復 VFX に暗縁 | `remove_black_bg(threshold=24)` では暗青緑マット `(14,21,25)` が残る | `tools/generate_env_and_vfx.py` の `clean_vfx_image`（`fix_batch6_vfx`）で再生成。alpha=0 の RGB ゴミも `sanitize_alpha` |
+| アセット取込・透過・import・Cat取り違え・ガチャBG上書き一式 | Desktop直参照・手書き import・過キーイング・未コミット | → **`asset-import.mdc`** |
 | ダンジョン選択の Featured バナーに名前が無い | `_sync_featured_banner` が画像のみで、一覧ヘッダのタイトル重ねを省略していた | 一覧と同様に `display_name` ラベルを中央重ね（焼き込み Banner は従来どおり非表示） |
 | 戦闘ログ最上行が見切れる | 本文サイズ拡大後も行高／上余白が旧フォント想定のまま | `BATTLE_LOG_LINE_HEIGHT`・パネル／Margin の上余白を本文サイズに合わせて確保。`SIZE_LOG` 変更時は行高も同期 |
 | 状態異常アイコンが敵HPバーの裏／ネームと重なる | 行の z 未設定、または敵アイコンYをバー直上だけにしてネーム帯と同帯 | `COMBAT_OVERLAY_Z+3`＋ネーム（エリートはバッジ）上端より上（`_enemy_overlay_stack_top_y_in_root`） |
 | 複数敵が右にはみ出す | 固定 spacing で右端 ratio>0.9 | `_swarm_x_ratio_for_slot` で MIN/MAX 内に収める |
-| 枠にアイコンが食い込む | inset 不足 | `EquipmentUiTokens.ICON_FRAME_MARGIN_PX`（現行 18）を維持。全面キャンバス絵は余白を減らさない |
-| UI idle が拡縮／左右に跳ぶ | `idle_*.png` のフレーム間で描画サイズ・中心が不安定。安易な再配置や静止固定の行き来 | `ui-layout.mdc`「CHR Idle ポートレート」— 軽微は間引き、重度のみ足元固定。横跳びする再中央寄せをしない |
-| キャラ切替で装備アイコンが拡大 | Grid/`EXPAND_FILL` でセルが伸びる、または幅から `cell_px` を再計算して肥大化 | `ui-layout.mdc`「装備セルサイズ」— スロット/`INV_CELL` とも固定 px＋親子 `SIZE_SHRINK_*` |
-| 鍛冶詳細の必要コストで素材名を常時表示していたが枠が窮屈 | オーナー方針で個数のみ表示へ | 鍛冶コストは **アイコン＋`0/1` のみ**。名前は `tooltip_text` に残す |
-| 鍛冶詳細ヒーローが右にはみ出す | 台座／武器枠が詳細ペイン幅より大きい、または clip 無し | HeroStack をペイン内サイズに収め `clip_contents`。アイコンは対称 inset |
-| 鍛冶カテゴリ（武器/防具/装飾）アイコンが枠を食い込む | TextureRect が VBox で縦 FILL 伸長＋`EXPAND_IGNORE_SIZE` で枠いっぱいに拡大 | 縦横とも `SIZE_SHRINK_CENTER`＋固定 px（40）。親 Panel は `clip_contents`。`ui-layout` 鍛冶屋アイコン節 |
-| キャラ画面に金の縦筋／巨大フレーム断片 | `InventoryGrid` が Scroll 高さまで縦伸び → InvCell `StyleBoxTexture` の左右辺が引き伸ばされる | Grid は縦横 `SIZE_SHRINK_BEGIN`（Scroll 内で EXPAND 禁止）。セル Button は `clip_contents`。SectionRule は COVERED 禁止 |
-| キャラ画面の背景が消える | `BgTexture` を `KEEP_ASPECT_CENTERED` にした | フルブリード背景は `KEEP_ASPECT_COVERED` を維持 |
-| ビーストテイマーだけ装備アイコンが大きい | 長い職名で CardRow 再配分＋スロット Grid が `EXPAND_FILL`、または弓アートの枠占有 | スロット Grid/Panel は `SHRINK`。弓は SAFE_SCALE 余白（fill≲0.55） |
-| ビーストテイマーだけ所持アイコンの列がずれる | 職名を省略禁止のまま `AUTOWRAP_OFF` → Label 最小幅が CardRow/Equip を viewport 超に押し広げ、グリッドが横にはみ出す | 職名は1行のまま。長い場合のみフォント縮小で収める（改行禁止。改行するとスロット／ステが下にずれる） |
-| キャラ画面の全タブが左右にはみ出す | CharacterCard（Portrait◀▶＋Stack＋Slots）の最小幅が 720 超。VBox/Tab 全体が引きずられる。OwnerBadge が CHR 原寸(~1250px)に戻ることも | `◀▶` は 28px 固定。Badge は size 直指定せずアンカー固定。Tab Scroll は横スクロール禁止＋clip |
-| 特定職だけ装備が拡大して見える | その職の装備（例: 弓）アートが枠内占有率が高い。レイアウト差ではない | 武器種別アイコン取込で `SAFE_SCALE` 余白を確保。セルサイズ固定と切り分けて確認。**小さく見える弓は** `EquipmentUiTokens.icon_inset_for_item`（`BOW_ICON_INSET_SCALE`）で鍛冶と同ポリシー |
-| ガチャが歩行／MVP・キャラが顔アイコン | Idle 検出を `FileAccess`／PNG 直読み優先にした。実機エクスポートは `.ctex` のみで PNG が無く、Idle が空→walk／ICO フォールバック | `ChrIdlePortrait` は **ResourceLoader 優先**＋FileAccess は未インポート時のみ。UI は walk へ落とさない（`known-pitfalls`／`ui-layout` CHR Idle） |
-| MVP 画面で即落ち（`texture` on Nil） | `ChrIdlePortraitView` を `_ready` 前に `set_from_entry`（親未入場の動的生成） | `ui-layout.mdc` — 子ノードは `_ensure_nodes()` で遅延生成。ツリー投入前 API を想定する |
+| Idle拡縮／装備セル肥大／鍛冶枠食い込み／キャラ画面はみ出し（UIレイアウト系） | EXPAND・幅連動 cell・Idle PNG直読み・ヒーロー過大 | → **`ui-layout.mdc`**（Idle／装備セル／鍛冶／職名） |
 | ガチャ枠下に同じ聖堂背景が二重 | 全画面 `UI_BG_Gacha` ＋枠内 `Banner_BG` | 画面下地は暗色 `ColorRect`。キーアートは枠内のみ |
 | 結果のレベルアップにオトモが出ない | EXP 付与は `active_pet` 済みだが `ExpRunSnapshot`／UI が `party_members` のみ | スナップショットと行構築は `exp_recipients()`（人間＋オトモ）を使う |
 | ボタン画像の文字が読めない | ラベル焼込 PNG＋非表示テキスト、または極小オーバーレイ | 可読優先。焼込文字に頼らず Godot テキスト（炉研ぎ同様）か、画像化を撤回 |
-| 職名が「ビーストテ…」になる | `OVERRUN_TRIM_ELLIPSIS`＋狭い JobRow／巨大 JobIcon | 職名は省略しない（必要なら折返し）。JobIcon は固定小サイズ（~22px） |
+| 職名が「ビーストテ…」になる | ellipsis＋巨大 JobIcon | → `ui-layout.mdc` 職名・本文タイポ |
 | キャラスキル名が「鋼斬…」等に省略 | スキル行 Name Label に `clip_text`＋`OVERRUN_TRIM_ELLIPSIS`＋固定最小幅 | スキル名は1行全文（`clip_text=false` / `OVERRUN_NO_TRIMMING` / `AUTOWRAP_OFF`）。説明側を ellipsis |
 | 最終フロア等で「探索終了」がクリア扱い | 非戦闘 `ButtonFinish`／メニューが `is_completed` 無しでクリア経路を呼んだ | 手動終了はリタイア確認のみ。クリアは撃破演出後（`is_completed`）のみ |
 | アルケミスト等の固有パッシブが剣アイコン | キャラ固有 id に `ICO_PASSIVE_*` が無く `BattleFervor` フォールバック | `PassiveIconHelper.ICON_ALIAS`／`ICON_PATH_OVERRIDE` で職帯・毒ベースへ |
 | スキル詳細に「属性: dark」等の英語 | `EquipmentScene` が element id をそのまま表示 | `ElementResolver.get_display_name`（炎/氷/雷/闇/聖）を使う |
 | キャラのスキル説明が開発メモっぽい | キット設計メモ（「〇〇へ譲る」／担当）や UI の `CD；`／`tick`／英語状態ID | 説明は効果の平易語のみ。一覧は「再使用○秒」／持続は「しばらく続く」。状態名は日本語表示名 |
 | イベント／無限の仕組みが伝わらない | タブだけあって説明導線なし。解放もバナーのみ | `DungeonRouteGuideOverlay`（？ボタン＋降臨／無限の初回P分け）。再表示は preview |
-| Noto 本文が薄い | Variable `wght` 600/700 のまま、または `UiTypography` 未適用／テーマ未同期。700 でも Mobile＋小サイズでは体感薄い | `BODY_FONT_WEIGHT=800`＋`variation_embolden`。`production_theme.tres` の FontVariation も同値。本文は必ず `UiTypography.body_font()`。変更はコミットする（未コミットだと再起動・別セッションで 600 に戻って見える） |
-| キャラ切替 ◀▶ が消える | テーマ Button フォントが DelaGothic（矢印グリフ無し）＋ StyleBox 余白＋ `clip_text`＋過小 font | nav は flat＋`StyleBoxEmpty`＋Noto body＋十分な font_size。幅圧縮だけしてグリフを潰さない |
-| キャラアイコンの放射だけ色を変えたつもりが顔／鎧まで染まる | `modulate`／単純色置換は暖色リムと放射が同系色 | PNG焼き直し。`tools/recolor_chr_icon_job_glow.py`（bust ellipse＋非glow保護）。色は `PartyLogColors` |
-| Ald／Garen だけアイコンに枠があり他キャラと不一致 | 差替PNGに焼き込み枠。ジョブ色焼きで枠が紫寄せになることも | 枠は UI 側。焼き込みは `tools/strip_chr_icon_frames.py` で除去（顔／獅子紋は保護） |
+| Noto 本文が薄い／キャラ切替 ◀▶ が消える | wght不足・DelaGothic・過小 font | → `ui-layout.mdc` 職名・本文タイポ |
+| CHR 放射色が顔まで染まる／焼き込み枠残存 | modulate・枠焼込 | → **`asset-import.mdc`**（recolor／strip ツール） |
 | キャラ切替が ◀▶ のみで人数増に不便 | 旧 MemberSelectRow は非表示のまま | 名前横「一覧」シート（`_get_view_members` と同一）。AcceptDialog 禁止 |
 
-## Git / ツール
+## ツール / タッチUI / セーフエリア
 
 | 症状 | 原因 | 再発防止 |
 |---|---|---|
-| iPhone でタッチスクロール不能（ダンジョン他） | Scroll 内 Button／STOP がドラッグを吸収 | `ScrollTouchHelper`（deadzone＋子孫を PASS）。`BottomNavHelper.setup` と一覧 rebuild 後に適用 |
-| 装備一覧でセルを押しても詳細が変わらない | ScrollTouch が Button を PASS 化 → `pressed` 不発。加えて選択時に即 `rebuild` で入力中 Button を queue_free | Catalog も装備画面同様 `gui_input` 短押し。選択はハイライト差替のみ（全再生成しない）。BgTexture は IGNORE |
+| タッチスクロール不能／セルタップ無効（ScrollTouch 系・代表） | Scroll 内 STOP・rebuild 後未再適用・PASS 後 `pressed` のみ | → **`ui-layout.mdc` ScrollTouch** |
 | 装備一覧の効果絞り込みが kind 連打／未配線 | サイクルボタンでは項目過多。Affix ID は廃止済み | ファミリーシート（案B）。`EquipmentEffectFamilyFilter`＋Catalog「効果」ボタン |
-| 装備一覧が重い／タップでカクつく | 選択のたび全セル `rebuild`＋幅連動 `cell_px` で StyleBox／ノード再生成 | セルは `INV_CELL_PX` 固定。選択は詳細＋枠ハイライトのみ更新。Grid は `SIZE_SHRINK_*` |
-| 鍛冶屋が重い／一覧タップでカクつく | 選択のたび `_refresh_all` で左一覧全再生成＋`list_card_style` 毎に `get_image` 透過検査 | 選択は `_refresh_selection`（ハイライト＋詳細のみ）。Style／alpha はキャッシュ。モード／カテゴリ切替・作成後のみ全再構築 |
-| スキル／装備説明の状態異常リンクが押せない | `ScrollTouchHelper` が `RichTextLabel` も `PASS` 化し `meta_clicked` が届かない | リンク RTL だけ `_cf_keep_mouse_stop`＋STOP（`StatusEffectLinkHelper`）。**全 RTL を STOP 化禁止**（章カード名 IGNORE 越しタップが潰れる） |
-| ダンジョン章カード名を押しても入場できない | ScrollTouch が全 `RichTextLabel` を STOP 化し、親 Button へタップが届かない | IGNORE の RTL はそのまま。STOP 維持は `_cf_keep_mouse_stop` のみ |
+| 装備一覧が重い／タップでカクつく | 選択のたび全セル rebuild＋幅連動 cell | → `ui-layout.mdc` 装備セルサイズ |
+| 鍛冶屋が重い／一覧タップでカクつく | 選択のたび全再生成＋毎行 get_image | → `ui-layout` 鍛冶＋選択は `_refresh_selection` のみ |
+| 状態異常リンク不能／章カード名タップ不能（ScrollTouch RTL） | 全 RTL を STOP／PASS 化 | → **`ui-layout.mdc` ScrollTouch** |
 | イベントDGバナーが全部モーンゲート | `SUB_BANNER_FALLBACK` で mourngate 流用のみ | 各イベントに `BAN_DG_*` を用意し `BIOME_BANNER_PATHS` へ登録。フォールバックから外す |
 | イベントDGバナーだけ大きい（240px）／枠なし | キーアート全高のまま、または strip のみで金枠未合成 | `generate_biome_banner.py --strip-height 232`（枠は既定 ON）。`BAN_DG_Frame_Strip` を重ねメインと同寸・同枠に |
 | 戦闘フロア入場前に謎の SE | ①次部屋へ進む瞬間の `room_enter` ②黒幕中の戦闘BGM切替 ③罠／入場遅延／前戦闘遅延ヒット／`combat_heal` | 戦闘行きは `room_enter` スキップ。BGMは一幕後。Hit/Healは Gate＋CT開始後。遅延は `_combat_session_id` |
 | ダンジョンヘッダの ×2 が効かない／「周回」が残る | `.tscn`×2 なのに GD が ×1.5 上書き、または FastRun ボタンを動的追加 | ヘッダは ×1／×1.5／×2 のみ。`ButtonFastRun` は削除。`SPEED_MULT_FAST=2.0` |
-| ダンジョン左上 ≡ が押せない | ①ノッチ未対応でタップ不能 ②MenuOverlay が TransitionLayer(30) より下 | `SafeAreaHelper` で MainVBox inset。Menu は CanvasLayer 40。ボタン min 64×48＋本文フォント |
+| ダンジョン左上 ≡ が押せない | ノッチ未対応＋Menu z 不足 | → `ui-layout.mdc` SafeArea。Menu CanvasLayer 40 |
 | ランHUD「発見100%」が意味不明 | 累積 discovery メーターで進行と無関係 | 「進行 N%」＝`display_floor_current/max`（P3-UX-RUN-HUD-FLOOR-PCT-001） |
 | ≡メニューの設定／リタイアでフォントがバラバラ | 動的「設定」だけ別適用、またはテーマ Display 混在 | `_style_menu_overlay_buttons` で全ボタン本文フォント＋SIZE_BODY＋同 min サイズ |
 | 一時停止ポップの裏に HPバーが貫通 | PauseOverlay `z_index=15` ＜ HPバー `COMBAT_OVERLAY_Z=25`／行動順30 | Pause を CanvasLayer 55（`_ensure_pause_overlay_layer`）へ |
@@ -203,7 +162,7 @@ alwaysApply: false
 | 合流リビールでドット上半分に半透明の灰板 | `PortraitFrame`（PanelContainer）がテーマ既定の半透明 panel のまま | `StyleBoxEmpty` を当てる（`GachaScene` と同方針） |
 | 加入セリフ枠が透ける／「タップで続ける」が横伸び | QuotePanel を横長に `STRETCH_SCALE`＋焼込文字 | 枠内は黒塗り＋アスペクト維持。タップ文言は Label |
 | 「自動戦闘中」行が戦闘で再表示される | `_update_combat_visibility` が `on_combat_floor` で `_auto_combat_row.visible=true` | 行は常時 `false`。停止はヘッダ ButtonStop |
-| aspect=keep なのに TopBar が低い／下ナビ下に黒余白 | SafeArea が inset=0 でも 54/24 を強制フォールバック | letterbox（keep）時はフォールバックしない |
+| aspect=keep なのに TopBar が低い／下ナビ下に黒余白 | inset=0 でも強制フォールバック | → `ui-layout.mdc` SafeArea |
 | `git checkout` / `mv` が `Operation not permitted` | Cursor サンドボックス | アセット・git 復元は `required_permissions: ["all"]` |
 | デバッグ開始で本編セーブが消える | 単一 `save_data.json` をデバッグが上書き | デバッグは `save_data_debug.json`。`SaveManager.use_debug_slot()`。本編は `use_normal_slot()` |
 | GUT で武器ドロップ率が `1.0`（期待 `0.85`） | `weapon_drop` 週のイベント×1.5が加算され `minf(1.0, …)` | イベント依存アサーションは `EventSystem.set_debug_unix_for_tests` で非該当週に固定（`test_wandering_enemy` 参照） |
@@ -211,24 +170,18 @@ alwaysApply: false
 | GUT で `party_members[0]` / 職メンバーが null | 先行テストの `reset_for_new_game` が1人編成のまま残る | パーティ前提のテストは `before_each` で `seed_all_starters_unlocked()` |
 | ガチャ pull テストが ENABLE なのに失敗 | `gacha_token=10` のまま（`PULL_COST=500`） | トークンは `GachaSystem.PULL_COST` 以上を渡す |
 | iOS Personal Team で Push 署名エラー | `entitlements/push_notifications=false` が文字列 `"false"` 扱いになり `aps-environment` が付く | 値は `"Disabled"`。entitlements から Push キーを外す |
-| iPhone で上部UI見切れ／下ナビ不反応／ガチャ台座キャラ消失 | セーフエリア未対応＋日課の絶対Y＋`FEATURED_PEDESTAL_FOOT_PAD` 過大で clip／モバイル `get_image` 正規化 | `SafeAreaHelper`＋`HubLayoutHelper.apply_chrome_safe_area`。日課は下端アンカー。台座は host 高さで foot pad。Idle 正規化は get_image 失敗時のみフォールバック（モバイル一律スキップ禁止） |
-| ミレイ（ビーストテイマー）Idle が拡縮して見える | フレーム間 used 高さ比≈1.15。モバイル一律スキップで未正規化ループ | 足元固定正規化＋重度職は `tools/bake_chr_idle_stabilize.gd` で PNG 焼き。モバイルは失敗時のみ素通し |
-| ダンジョン選択が白紙（特に実機） | VBox 内 `MainColumn/Header` の offset をセーフエリアで上書きしレイアウト崩壊。併せて MainColumn 下端がフッタ分不足 | Header はルート直下のみ inset。MainColumn は `offset_top`＋フッタ高を残した `offset_bottom` |
-| 図鑑／装備一覧などで通貨・タブがノッチに食い込む | Header だけずらして本文が旧位置のまま重なる。または stretch 換算失敗で inset=0 | `DisplayServer` セーフ矩形を `get_final_transform` で換算＋iOS 最低 inset。ルート Header と上端アンカー本文を同じ top で下降（鍛冶の複数帯も含む） |
-| Mac DEBUG で拠点左メニューが空の縦長板／下〜中央が黒帯／ボタン無効 | Hub safe area 後に `LeftMenuPanel` 高さを Scroll 子の `size.y` で再計測→パネルだけ伸びて中身が空に見える。併せて BottomNav と `hub.offset_bottom` の二重計算 | 左メニュー高さは `get_combined_minimum_size()` のみ（`size.y` 禁止）。Mac では `simulate_mobile_safe_area=false` 既定。chrome は `SafeAreaHelper.should_apply_chrome()`（実機のみ）。検証: `tools/verify_base_hub.gd` |
+| セーフエリア／ノッチ／Mac simulate／拠点 chrome／Idle拡縮（代表） | chrome誤適用・Headerのみ移動・`size.y`・モバイル一律スキップ | → **`ui-layout.mdc` SafeArea／CHR Idle** |
 | 拠点に所持金〜発見の中段帯が再出現する | `CurrencyStrip` を再表示／`_populate_currency_strip` を復活 | 帯は非表示のまま（TopBar のみ）。日課は下端スタック（`HubLayoutHelper._stack_hub_bottom_panels`）。ギルド情報誌は左メニュー直下 |
 | 展示室でスタッフ名と総合戦力が重なる | StaffStrip 横並びが POWER_RECT と同帯 | 作例は一覧ボタン（左）＋シート。Strip 廃止（P3-UX-SHOWCASE-STAFF-LIST-001） |
 | デバッグ中なのに時間限定イベントDGが閉じている | `EventDungeonSchedule.is_open_now` が `debug_full_unlock` を見ない | `debug_full_unlock`（または override=-2）で曜日／時間帯を常時開放。表示は「デバッグ常時開放」 |
-| 招待状で下ナビが潰れる／隊長バーが中段に落ちる | 全画面で `apply_chrome_safe_area`＋Mac simulate ON | chrome は実機のみ。Mac はシーン座標を触らない |
+| 招待状で下ナビが潰れる／隊長バーが中段に落ちる | chrome＋Mac simulate ON | → `ui-layout.mdc` SafeArea |
 | 招待状が黒画面・下ナビにアイコン無し・BG／タイトル無し | `GachaScene.gd` が欠落メンバ（`TITLE_ART` 等）でパース失敗→スクリプト未実行で chrome／ナビ装飾が走らない | ガチャ画面は HEAD の `_setup_gacha_atmosphere` / `setup_banner_header` を維持。トークン定数は参照前に必ず定義。変更後 headless で GachaScene ロード確認 |
 | アプリアイコンが金の矢印 | iOS 向けに仮 `icon.png`（矢印）を追加したまま放置 | 正は `Downloads/アプリアイコン` → `assets/ui/UI_AppIcon.png`＋`icon.png`（1024²）。iOS は `AppIcon.appiconset` も更新し再ビルド／再インストール |
 | つづきからで拠点はじめガイドが再出 | デバッグ再演が `hub_simple_guide_done` を erase＋save／preview 終了で戻さない | 再演は preview のみでフラグ非接触。進行済みセーブは load 時に修復 |
-| `HubLayoutHelper` が `SafeAreaHelper` 未解決でコンパイル失敗 | class_name 同士の早期参照／`-s` ツールからの preload 順 | `HubLayoutHelper` は `SafeAreaHelper` を `preload` する |
+| `HubLayoutHelper` が `SafeAreaHelper` 未解決 | class_name 早期参照 | → `pitfalls-startup.mdc`／`ui-layout`（preload） |
 | `balance_sim` が即死／平均EXP=0（`GameState` Identifier not found、または全滅100%・行動0） | ①`-s` 時 autoload 未注入で `LevelSystem` が `GameState` 識別子参照 ②`STARTER_STORY_RECRUIT` で roster 空のままシム | `LevelSystem` は実行時解決。sim 開始時に `seed_all_starters_unlocked`（P3-BAL-EXP-001-G） |
 | Mac では正しいのに iPhone だけアイコン位置がズレる | `stretch/aspect=expand` で論理画面の縦横比が実機に合わせて伸びる | 案A: `aspect=keep` で 720×1280 を維持（上下黒帯はエンジンが付与）。自前の黒帯 UI は作らない |
-| Mac では正しいのに iPhone だけ上バー侵食 | Mac の safe area は常に全画面（inset=0）。ノッチ分が開発時に見えない | `SafeAreaHelper` は実機のみ。Mac simulate は既定 OFF（`crownfall/ui/simulate_mobile_safe_area`） |
-| iPhone で隊長名と左メニューが重なる／日課が下ナビに食い込む | `apply_chrome` が TopBar だけ下げ、LeftMenu／日課の絶対Yが未追従。Home Indicator でナビが高くなる | 実機のみ `HubLayoutHelper.layout_hub_home_content`（左メニュー=top+96、日課・通貨は HubView 下端アンカー） |
-| `project.godot` の aspect／simulate が効かない | 日本語コメントをキー文字列に混ぜて設定キーが壊れる | コメントは `;` 行のみ。キーは `window/stretch/aspect` / `ui/simulate_mobile_safe_area` 単体 |
+| iPhone 上バー侵食／隊長名重なり／aspect・simulate 無効 | Mac inset=0・TopBarのみ・キー汚染 | → **`ui-layout.mdc` SafeArea** |
 | ガチャ Featured が消える／説明も無い | ①HEAD の `foot_pad=260` で idle が host 外 ②`SummonActionBar` 分を HubLayout が確保せず MainColumn がボタン背面へ ③StatsWrap の center-anchor 0 高さ | 動的 `featured_foot_pad()`＋`SummonActionBar` を Footer 同様に inset。StatsWrap は右上固定 |
 | ダンジョン Featured バナーが無い | 一覧にバナーがある Biome は Featured 上段を意図的に非表示 | Featured でもバナー表示（アスペクト比の高さ） |
 | 図鑑／DG概要が「魔法」「亡霊」「異界の裂け目」になる | 旧フレーバーや民間俗称を正典として書いた | 正称はエルダ／鉱物化適応等（`world/03`・`05`）。異界は俗称のみ。差し替え後 `test_codex_guide_sync` で確認 |
@@ -237,7 +190,7 @@ alwaysApply: false
 | ジョブ到達形（昇格名／金tint／特質）がβに戻る | `JOB_EVOLUTION_PLAYABLE` を true にした／`is_evolved` をフラグ無しで参照 | βは `false`（P3-JOB-EVO-OMIT-001）。効果は `JobEvolution`／`JobStatCalculator`／`EvolutionTraits`／`EvolutionVisual` 経由。UIはキャラ昇格行＋ギルド認定。`test_job_evolution_omit` |
 | 図鑑にプール外／征討専用の未実装敵が出る | `get_all_enemy_data()` を無フィルタで一覧化 | `CatalogHelper.playable_enemy_id_set`（プレイ可能 DG プールのみ）。達成率も同セット。`test_codex_enemy_omit` |
 | 図鑑キャラに金枠が二重／残る | PNG に金枠焼込、または敵詳細の ArtFrame をキャラで未リセット | ICO は枠除去。詳細はキャラで `_reset_art_frame_style`（未確認含む） |
-| 編成で助っ人だけ金枠付き／個体差 | `ART_HELPER_*.png` に装飾枠焼き込み（特に helper_m/g/h/j） | 肖像は枠なし納品。既存は `tools/strip_helper_portrait_frames.py --apply`。差替後 `.godot/imported` の該当分を消して再インポート |
+| 編成で助っ人だけ金枠付き／個体差 | 肖像に枠焼込 | → `asset-import.mdc`（strip_helper） |
 | 図鑑にダンジョンタブが再出現／武器のみ | `CODEX_DUNGEON_PLAYABLE` を true にした／装備を weapon のみ構築 | βは dungeon=false。装備は `get_equipment_entries`（武・防・飾）。`test_codex_equipment` |
 | 解放ポップで名がバナー下にずれ／どの章でもウィスパーウッド | 名を VBox 下段配置＋`_next_main_biome_id` 最終フォールバックが whisperwood／古いキュー残存 | 名はバナー内中央重ね（FULL_RECT禁止）。次解放は `ContentUnlockNotice.next_unlock_after_main_clear`（最終→Hard/NM入口）。デバッグ儀式はキューを clear してから1件 |
 | ギルド情報誌オープンで即終了 | `Control.LAYOUT_MODE_POSITION` は Godot 4.6.3 GDScript に無い（Parse Error→スクリプト未ロード） | コンテナ外の `Control` ホスト＋アンカー配置。未実装の layout_mode 定数を使わない |
