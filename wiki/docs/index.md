@@ -38,7 +38,7 @@
 
 - :material-podium-gold: **Tier／敵／ビルド**
 
-    キャラ評価、ウザい敵、ゴールビルド、残すべき装備。
+    キャラ評価、ウザい敵、キャラ単位のゴールビルド、残すべき装備。
 
     [→ Tier](guide/tier.md) · [要注意敵](guide/threats.md) · [ビルド例](guide/builds.md) · [装備](guide/recommended-gear.md)
 
