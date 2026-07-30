@@ -5426,6 +5426,19 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 
 ---
 
+## 招待状煽り文のプレイ目線化（2026-07-30 — P3-GACHA-TEASE-PLAYSTYLE-001）
+
+> **オーナー GO（案A）** — 出身・物語調ではなく、役割／戦い方が分かる一行へ。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-GACHA-TEASE-PLAYSTYLE-001-1 | **トーン** — ユーザー目線の役割・トリガー・リスク一行 | 「どういうキャラか」が一目で分かる |
+| P3-GACHA-TEASE-PLAYSTYLE-001-2 | **形式** — 本文のみ・`！`止め（TEASE 規約維持） | レイアウト／テスト互換 |
+| P3-GACHA-TEASE-PLAYSTYLE-001-3 | **対象** — プール11体のみ。`_omitted`／パッシブ数値／UIレイアウトは外 | 最小差分 |
+| P3-GACHA-TEASE-PLAYSTYLE-001-4 | **文面** — Decision `24_GachaTeasePlaystyle.md` の案A表を正 | オーナー承認文面 |
+
+---
+
 ## 装備 New バッジ／装文字削除（2026-07-27 — P3-UX-EQUIP-NEW-001）
 
 > **オーナー指示** — ドロップ装備の気づき／装備中表示の整理。
