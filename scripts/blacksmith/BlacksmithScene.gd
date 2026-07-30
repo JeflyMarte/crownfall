@@ -2960,16 +2960,8 @@ func _on_reforge_confirmed() -> void:
 		_log_craft_error(str(result.get("reason", "焼直しに失敗しました")))
 		_refresh_all()
 		return
-	var old_mod: Dictionary = {}
-	var new_mod: Dictionary = {}
-	if result.get("old_mod", null) is Dictionary:
-		old_mod = result["old_mod"] as Dictionary
-	if result.get("new_mod", null) is Dictionary:
-		new_mod = result["new_mod"] as Dictionary
 	var extra: Dictionary = {
 		"reforge_mod_index": mod_index,
-		"reforge_old_line": _EquipmentRandomMods.format_mod_line(old_mod) if not old_mod.is_empty() else "",
-		"reforge_new_line": _EquipmentRandomMods.format_mod_line(new_mod) if not new_mod.is_empty() else "",
 	}
 	SaveManager.save_game()
 	_show_forge_item_result(
