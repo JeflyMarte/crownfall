@@ -229,7 +229,18 @@ theme_override_constants/separation = 6
 
 [node name="FeaturedActionRow" type="HBoxContainer" parent="MainColumn/FeaturedPanel/FeaturedVBox"]
 layout_mode = 2
+theme_override_constants/separation = 10
 alignment = 2
+
+[node name="LabelFeaturedAbyssBest" type="Label" parent="MainColumn/FeaturedPanel/FeaturedVBox/FeaturedActionRow"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+text = "最高到達 —"
+horizontal_alignment = 2
+vertical_alignment = 1
 
 [node name="BtnFeaturedSelect" type="Button" parent="MainColumn/FeaturedPanel/FeaturedVBox/FeaturedActionRow"]
 layout_mode = 2

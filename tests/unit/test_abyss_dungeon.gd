@@ -99,6 +99,31 @@ func test_highest_floor_save() -> void:
 	assert_eq(GameState.get_abyss_highest_floor("abyss_mourngate"), 40)
 
 
+func test_select_scene_shows_abyss_best_left_of_depart() -> void:
+	if not Constants.ABYSS_DUNGEONS_PLAYABLE:
+		pass_test("ABYSS off")
+		return
+	GameState.mark_dungeon_cleared("mourngate")
+	GameState.note_abyss_floor_reached("abyss_mourngate", 66)
+	var packed: PackedScene = load("res://scenes/dungeon/DungeonSelectScene.tscn")
+	assert_not_null(packed)
+	var scene: Node = packed.instantiate()
+	add_child_autofree(scene)
+	await get_tree().process_frame
+	scene.set("_featured_dungeon_id", "abyss_mourngate")
+	scene.set("_route_tab", "abyss")
+	scene.call("_refresh_featured")
+	await get_tree().process_frame
+	var best_lbl: Label = scene.get("_label_featured_abyss_best") as Label
+	var btn: Button = scene.get("_btn_featured_select") as Button
+	assert_not_null(best_lbl)
+	assert_not_null(btn)
+	assert_true(best_lbl.visible)
+	assert_eq(best_lbl.text, "最高到達 F66")
+	assert_eq(best_lbl.get_index(), btn.get_index() - 1, "出発ボタンの左")
+	assert_false(str(scene.get("_label_featured_meta").text).contains("最高到達"), "メタ行には載せない")
+
+
 func test_abyss_biomes_have_one_stage_distinct_from_parent() -> void:
 	## イベント同様: 親バナー下に1章。章名は親「無限〜の最果て」と分離。
 	var expected: Dictionary = {

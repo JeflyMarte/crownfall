@@ -178,6 +178,7 @@ const DROP_PREVIEW: Dictionary = {
 @onready var _label_featured_meta: Label = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo/LabelFeaturedMeta
 @onready var _label_featured_discovery: Label = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo/LabelFeaturedDiscovery
 @onready var _featured_drop_row: HBoxContainer = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedDropRow
+@onready var _label_featured_abyss_best: Label = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedActionRow/LabelFeaturedAbyssBest
 @onready var _btn_featured_select: Button = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedActionRow/BtnFeaturedSelect
 @onready var _btn_route_main: Button = $MainColumn/RouteTabsRow/ButtonMainRoute
 @onready var _btn_route_sub: Button = $MainColumn/RouteTabsRow/ButtonSubDungeon
@@ -490,6 +491,12 @@ func _apply_typography() -> void:
 	UiTypography.apply_body(_label_featured_flavor, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	UiTypography.apply_body(_label_featured_meta, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
 	UiTypography.apply_body(_label_featured_discovery, UiTypography.SIZE_BODY_SMALL, COLOR_CLEAR)
+	if _label_featured_abyss_best != null:
+		UiTypography.apply_display(
+			_label_featured_abyss_best, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD
+		)
+		_label_featured_abyss_best.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		_label_featured_abyss_best.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	UiTypography.apply_body(_label_bonus_value, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_caption(_label_bonus_timer)
 
@@ -992,6 +999,7 @@ func _refresh_featured() -> void:
 	if data == null:
 		_featured_panel.visible = false
 		_btn_featured_select.disabled = true
+		_refresh_featured_abyss_best(null, false)
 		return
 	_sync_selected_stage_for_biome(_featured_dungeon_id)
 	_featured_panel.visible = true
@@ -1074,9 +1082,6 @@ func _refresh_featured() -> void:
 			meta_parts.append(_EventDungeonSchedule.open_schedule_label(_featured_dungeon_id))
 		if str(data.route_type) == "abyss":
 			meta_parts.append("無限階")
-			var best_f: int = GameState.get_abyss_highest_floor(_featured_dungeon_id)
-			if best_f > 0:
-				meta_parts.append("最高到達 F%d" % best_f)
 		elif not _uses_stage_cards(_featured_dungeon_id) and int(data.floor_count) > 0:
 			meta_parts.append("%dF" % int(data.floor_count))
 		if _uses_stage_cards(_featured_dungeon_id):
@@ -1087,6 +1092,7 @@ func _refresh_featured() -> void:
 	else:
 		meta_parts.append("？")
 	_label_featured_meta.text = " · ".join(meta_parts)
+	_refresh_featured_abyss_best(data, unlocked_featured)
 
 	if unlocked_featured:
 		var discovery_pct: int = _discovery_percent(_featured_dungeon_id)
@@ -1146,6 +1152,23 @@ func _refresh_featured() -> void:
 			return
 	_btn_featured_select.text = "選択して出発" if unlocked else "未開"
 	_btn_featured_select.disabled = not unlocked or not stage_ready or not attempt_ok
+
+
+## 無限ダンジョンのみ、出発ボタン左に最高到達 F を出す。
+func _refresh_featured_abyss_best(data: Resource, unlocked: bool) -> void:
+	if _label_featured_abyss_best == null:
+		return
+	var is_abyss: bool = data != null and str(data.route_type) == "abyss"
+	_label_featured_abyss_best.visible = is_abyss and unlocked
+	if not _label_featured_abyss_best.visible:
+		_label_featured_abyss_best.text = ""
+		return
+	var best_f: int = GameState.get_abyss_highest_floor(_featured_dungeon_id)
+	if best_f > 0:
+		_label_featured_abyss_best.text = "最高到達 F%d" % best_f
+	else:
+		_label_featured_abyss_best.text = "最高到達 —"
+
 
 func _resolve_featured_dungeon_id() -> String:
 	if not _featured_dungeon_id.is_empty():
