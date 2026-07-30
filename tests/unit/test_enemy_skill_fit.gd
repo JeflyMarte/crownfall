@@ -45,7 +45,7 @@ func test_main_biome_trash_have_two_skills() -> void:
 	## P3-BAL-ENEMY-SKILL-CA-001 Phase A: プレイ可能メイン雑魚は2本（嫌がらせ＋個性）。
 	## ロックバイソンは横断フィラーのため除外。crystal_hedgehog は既存2本。
 	var pools: Dictionary = {
-		"mourngate": ["sepia_hound", "crown_eater_rat", "crystal_hedgehog", "grave_bell_bat", "rune_roach", "crystal_scorpion"],
+		"mourngate": ["sepia_hound", "crown_eater_rat", "crystal_hedgehog", "grave_bell_bat", "rune_roach", "crystal_scorpion", "skullface_mantis"],
 		"whisperwood": ["moss_boar", "moss_shell", "spore_widow", "iron_horn", "blood_bloom", "rune_carcinos"],
 		"mistfen": ["blood_leech", "dead_poison_frog", "mist_mantis", "marsh_king", "bone_picker", "mire_strider_spider", "spore_needle_wasp"],
 		"blackshore": ["ship_eater_crab", "skull_turtle", "undertaker_shark", "samurai_fish", "black_tide_shark", "abyssal_squid", "tide_lamp"],
@@ -82,6 +82,34 @@ func test_phase_a_second_skills_complement_first() -> void:
 	var gale: Resource = DataRegistry.get_skill_data("enemy_gale_cut")
 	assert_eq(str(gale.element), "thunder")
 	assert_eq(str(gale.apply_status_id), "shock")
+	var mantis: Resource = DataRegistry.get_enemy_data("skullface_mantis")
+	assert_eq(mantis.skill_ids.size(), 2)
+	assert_true(mantis.skill_ids.has("enemy_skullface_reap"))
+	assert_true(mantis.skill_ids.has("enemy_skullface_slash"))
+	var slash: Resource = DataRegistry.get_skill_data("enemy_skullface_slash")
+	assert_eq(str(slash.target_type), "party_front")
+	assert_eq(str(slash.apply_status_id), "bleed")
+	var raptor: Resource = DataRegistry.get_enemy_data("frost_claw_raptor")
+	assert_true(raptor.skill_ids.has("enemy_frost_pounce"))
+	assert_false(raptor.skill_ids.has("enemy_skullface_reap"))
+	var pounce: Resource = DataRegistry.get_skill_data("enemy_frost_pounce")
+	assert_eq(str(pounce.target_type), "party_back")
+	assert_eq(str(pounce.element), "ice")
+	var ripper: Resource = DataRegistry.get_enemy_data("wind_ripper")
+	assert_true(ripper.skill_ids.has("enemy_rift_gust"))
+	assert_false(ripper.skill_ids.has("enemy_mist_breath"))
+	var gust: Resource = DataRegistry.get_skill_data("enemy_rift_gust")
+	assert_eq(str(gust.target_type), "party_front")
+	assert_eq(str(gust.apply_status_id), "chill")
+	var hedgehog: Resource = DataRegistry.get_enemy_data("crystal_hedgehog")
+	assert_true(hedgehog.skill_ids.has("enemy_crystal_rain"))
+	assert_true(hedgehog.skill_ids.has("enemy_crystal_burst"))
+	var rain: Resource = DataRegistry.get_skill_data("enemy_crystal_rain")
+	var burst: Resource = DataRegistry.get_skill_data("enemy_crystal_burst")
+	assert_eq(str(rain.target_type), "party_back")
+	assert_eq(str(burst.target_type), "party_front")
+	assert_eq(str(rain.apply_status_id), "chill")
+	assert_eq(str(burst.apply_status_id), "chill")
 
 
 func test_greios_is_elite_only_in_frostridge_pool() -> void:

@@ -46,8 +46,8 @@
 | **連爪の薙ぎ** | enemy | damage | 0.55 | 無 | 5.5 | bleed (20%) |
 | **宝冠ガジり** | enemy | damage | 1.25 | 無 | 4.0 | — |
 | **群齧り** | enemy | damage | 0.48 | 無 | 5.5 | — |
-| **晶砕爆散** | enemy | damage | 0.55 | 氷 | 5.5 | — |
-| **晶刺しの雨** | enemy | damage | 0.5 | 氷 | 5.0 | — |
+| **晶砕爆散** | enemy | damage | 0.55 | 氷 | 5.5 | chill (20%) |
+| **晶刺しの雨** | enemy | damage | 0.5 | 氷 | 5.0 | chill (25%) |
 | **晶毒針** | enemy | damage | 1.15 | 氷 | 4.0 | bleed (35%) |
 | **晶尾薙ぎ** | enemy | damage | 0.5 | 氷 | 5.5 | chill (20%) |
 | **戦慄の顎** | enemy | damage | 1.2 | 無 | 5.0 | bleed (40%) |
@@ -60,6 +60,7 @@
 | **死毒の舌** | enemy | damage | 1.05 | 無 | 5.0 | poison (35%) |
 | **凍牙** | enemy | damage | 1.1 | 氷 | 5.0 | chill (30%) |
 | **霜爪薙ぎ** | enemy | damage | 0.52 | 氷 | 5.5 | chill (25%) |
+| **霜爪の躍襲** | enemy | damage | 1.15 | 氷 | 5.0 | bleed (35%) |
 | **嵐切り** | enemy | damage | 1.1 | 電気 | 5.0 | shock (25%) |
 | **金粉散らし** | enemy | damage | 0.25 | 無 | 4.0 | slow (40%) |
 | **茨鉄の薙ぎ払い** | boss | damage | 0.6 | 無 | 6.0 | bleed (20%) |
@@ -114,6 +115,8 @@
 | **髑髏打ち** | enemy | damage | 1.05 | 無 | 5.0 | stun (20%) |
 | **骨殻硬化** | enemy | buff | 1.0 | 無 | 8.0 | enrage (100%) |
 | **骸面斬り** | enemy | damage | 1.3 | 無 | 5.0 | bleed (40%) |
+| **骸鎌薙ぎ** | enemy | damage | 0.52 | 無 | 5.5 | bleed (20%) |
+| **裂空の息吹** | enemy | damage | 0.55 | 氷 | 5.0 | chill (25%) |
 | **胞針の群れ** | enemy | damage | 0.5 | 無 | 5.5 | poison (25%) |
 | **胞子霞** | enemy | damage | 0.36 | 無 | 6.5 | poison (25%) |
 | **胞針連射** | enemy | damage | 1.1 | 無 | 4.5 | poison (40%) |

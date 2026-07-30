@@ -5811,3 +5811,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-STATUS-LEGEND-005-1 | **更新** — 内容シグネチャ同一なら再構築しない。行クリアは即 `free`（`queue_free` 同居禁止） | 高さ二重で上ずり |
 | P3-UX-STATUS-LEGEND-005-2 | **配置** — 右下アンカー＋右 inset 0。字15px・固定折り返し幅 | 右寄せ＋はみ出し抑制 |
 
+
+## 敵スキル点検フォロー 1〜4（2026-07-30 — P3-BAL-ENEMY-SKILL-AUDIT-001）
+
+> **オーナー GO（点検候補1〜4）** — 夜間監査の所見を最小差分で修正。ステ数値は据置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-ENEMY-SKILL-AUDIT-001-1 | **骸面マンティス** — 第2スキル `enemy_skullface_slash`（骸鎌薙ぎ＝前列・出血）を追加。chance 据置 | Phase A 漏れ。後列斬りと列差で補完 |
+| P3-BAL-ENEMY-SKILL-AUDIT-001-2 | **霜爪ラプター** — `enemy_skullface_reap` を `enemy_frost_pounce`（霜爪の躍襲）へ差替 | 他Biome技名の流用解消。後列・氷・出血 |
+| P3-BAL-ENEMY-SKILL-AUDIT-001-3 | **スノーストーム** — `enemy_mist_breath` を `enemy_rift_gust`（裂空の息吹）へ差替 | WWエリート固有の流用解消。前列・冷却 |
+| P3-BAL-ENEMY-SKILL-AUDIT-001-4 | **水晶ハリネズミ** — 晶刺しの雨＝後列＋冷却／晶砕爆散＝前列＋冷却。chance 据置 | 同型2本を列差＋状態で「嫌がらせ＋個性」へ |
+| P3-BAL-ENEMY-SKILL-AUDIT-001-5 | **スコープ外** — オルドレクス前列偏重（候補5）・敵ステ数値・chance 変更 | 今回 GO は1〜4のみ |
