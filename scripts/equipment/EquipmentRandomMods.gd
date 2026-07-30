@@ -291,6 +291,77 @@ static func ensure_migrated(item: Resource) -> void:
 			pass
 
 
+## 焼直し可能か（P3-FORGE-REFORGE-001）。bane はマスタ固定のため不可。
+static func is_mod_reforgeable(mod: Dictionary) -> bool:
+	if mod.is_empty():
+		return false
+	var kind: String = str(mod.get("kind", ""))
+	if kind.is_empty() or kind == KIND_BANE:
+		return false
+	return true
+
+
+## 武器の random_mods[mod_index] を再抽選して書き戻す（コスト消費なし）。
+## 属性値は数値のみ。他枠 kind は重複禁止。選択枠の kind は再候補に含めてよい。
+static func reroll_weapon_mod_at(instance: Resource, mod_index: int) -> Dictionary:
+	if instance == null or not ("weapon_id" in instance):
+		return {"ok": false, "reason": "武器ではありません"}
+	var weapon_data: Resource = DataRegistry.get_weapon_data(str(instance.weapon_id))
+	if weapon_data == null:
+		return {"ok": false, "reason": "武器データがありません"}
+	ensure_migrated(instance)
+	var mods: Array = get_mods(instance)
+	if mod_index < 0 or mod_index >= mods.size():
+		return {"ok": false, "reason": "効果の選択が不正です"}
+	var old_mod: Variant = mods[mod_index]
+	if not old_mod is Dictionary:
+		return {"ok": false, "reason": "効果の選択が不正です"}
+	var old_dict: Dictionary = (old_mod as Dictionary).duplicate(true)
+	if not is_mod_reforgeable(old_dict):
+		return {"ok": false, "reason": "この効果は焼直しできません"}
+	var rarity: int = int(weapon_data.rarity)
+	var new_mod: Dictionary = {}
+	var old_kind: String = str(old_dict.get("kind", ""))
+	if old_kind == KIND_ELEMENT_POWER:
+		new_mod = _roll_element_power_mod(weapon_data, rarity)
+	else:
+		var used: Dictionary = {}
+		for i: int in mods.size():
+			if i == mod_index:
+				continue
+			var other: Variant = mods[i]
+			if other is Dictionary:
+				var okind: String = str((other as Dictionary).get("kind", ""))
+				if not okind.is_empty():
+					used[okind] = true
+		var pool: Array[String] = _weapon_pool_ids(weapon_data, used)
+		## bane はプールに入りうるが焼直し先としては出さない。
+		var filtered: Array[String] = []
+		for pid: String in pool:
+			if pid == KIND_BANE:
+				continue
+			filtered.append(pid)
+		if filtered.is_empty():
+			return {"ok": false, "reason": "再抽選できる効果がありません"}
+		var picked: Array[String] = _EquipmentRollHelper.pick_random_stats(filtered, 1)
+		if picked.is_empty():
+			return {"ok": false, "reason": "再抽選できる効果がありません"}
+		new_mod = _roll_weapon_pool_mod(picked[0], weapon_data, rarity)
+	if new_mod.is_empty():
+		return {"ok": false, "reason": "再抽選に失敗しました"}
+	mods[mod_index] = new_mod
+	_apply_weapon_mods_to_fields(instance, weapon_data, mods)
+	instance.random_mods = mods
+	instance.rolled_bonus_stats = _ids_from_mods(mods)
+	instance.perfect_roll_count = _count_perfect(mods)
+	return {
+		"ok": true,
+		"reason": "",
+		"old_mod": old_dict,
+		"new_mod": new_mod.duplicate(true),
+	}
+
+
 static func format_mod_line(mod: Dictionary) -> String:
 	var label: String = str(mod.get("label", ""))
 	var kind: String = str(mod.get("kind", ""))

@@ -18,9 +18,12 @@ const COLOR_ACCENT: Color = Color(0.82, 0.9, 1.0, 1)
 
 const _AffixRoller = preload("res://scripts/equipment/AffixRoller.gd")
 const _EquipmentEnhancer = preload("res://scripts/equipment/EquipmentEnhancer.gd")
+const _EquipmentReforgeHelper = preload("res://scripts/equipment/EquipmentReforgeHelper.gd")
+const _EquipmentRandomMods = preload("res://scripts/equipment/EquipmentRandomMods.gd")
 const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _ArmorStatResolver = preload("res://scripts/equipment/ArmorStatResolver.gd")
 const _AccessoryStatResolver = preload("res://scripts/equipment/AccessoryStatResolver.gd")
+const _EquipmentUiTokens = preload("res://scripts/equipment/EquipmentUiTokens.gd")
 
 ## 装備画面と同じステアイコンを preload（class_name 経由の欠落を防ぐ）。
 const _STAT_ICON_ATK: Texture2D = preload("res://assets/ui/equipment_ui/ICO_Equip_Stat_ATK.png")
@@ -118,14 +121,17 @@ var _mode_button_group: ButtonGroup
 var _category_panels: Dictionary = {}
 var _hero_pulse_base_scale: Vector2 = Vector2.ONE
 var _bulk_dismantle_btn: Button
+var _reforge_button: Button
 var _dismantle_confirm: ConfirmationDialog
 var _legendary_dismantle_confirm: ConfirmationDialog
 var _legendary_dismantle_final_confirm: ConfirmationDialog
 var _single_dismantle_confirm: ConfirmationDialog
 var _alchemy_confirm: ConfirmationDialog
 var _enhance_confirm: ConfirmationDialog
+var _reforge_confirm: ConfirmationDialog
 var _craft_confirm: ConfirmationDialog
 var _pending_craft: Resource = null
+var _selected_reforge_mod_index: int = -1
 var _alchemy_fodder_overlay: Control = null
 var _alchemy_fodder_list: VBoxContainer = null
 var _pending_alchemy_fodder: Resource = null
@@ -179,9 +185,11 @@ func _ready() -> void:
 	_setup_dismantle_dialogs()
 	_setup_alchemy_confirm()
 	_setup_enhance_confirm()
+	_setup_reforge_confirm()
 	_setup_craft_confirm()
 	_setup_result_dialog()
 	_setup_bulk_dismantle_button()
+	_setup_reforge_button()
 	_detail_panel.add_theme_stylebox_override(
 		"panel", BlacksmithUiHelper.detail_panel_style()
 	)
@@ -716,6 +724,37 @@ func _setup_enhance_confirm() -> void:
 	add_child(_enhance_confirm)
 
 
+func _setup_reforge_confirm() -> void:
+	_reforge_confirm = ConfirmationDialog.new()
+	_reforge_confirm.title = "焼直しの確認"
+	_reforge_confirm.ok_button_text = "はい"
+	_reforge_confirm.cancel_button_text = "いいえ"
+	_reforge_confirm.confirmed.connect(_on_reforge_confirmed)
+	_reforge_confirm.canceled.connect(_on_forge_confirm_canceled)
+	add_child(_reforge_confirm)
+
+
+func _setup_reforge_button() -> void:
+	_reforge_button = Button.new()
+	_reforge_button.text = "焼直し"
+	_reforge_button.visible = false
+	_reforge_button.custom_minimum_size = Vector2(240, 64)
+	_reforge_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_reforge_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	BlacksmithUiHelper.apply_primary_button(
+		_reforge_button, BlacksmithUiHelper.PRIMARY_KIND_ENHANCE
+	)
+	_reforge_button.pressed.connect(_on_reforge_pressed)
+	var detail_vbox: VBoxContainer = _detail_vbox()
+	if detail_vbox == null:
+		return
+	detail_vbox.add_child(_reforge_button)
+	## 炉で研ぐ直下（CraftButton の次）。一括分解より前に置く。
+	detail_vbox.move_child(_reforge_button, _craft_button.get_index() + 1)
+	if _bulk_dismantle_btn != null and is_instance_valid(_bulk_dismantle_btn):
+		detail_vbox.move_child(_bulk_dismantle_btn, _craft_button.get_index() + 2)
+
+
 func _setup_result_dialog() -> void:
 	_ensure_result_overlay()
 
@@ -1073,6 +1112,9 @@ func _set_mode(mode: String) -> void:
 	if _craftable_panel != null:
 		_craftable_panel.visible = false
 	_bulk_dismantle_btn.visible = mode == "dismantle"
+	if _reforge_button != null:
+		_reforge_button.visible = false
+	_selected_reforge_mod_index = -1
 	if mode == "enhance":
 		_selected_enhance_item = null
 	elif mode == "alchemy":
@@ -1097,6 +1139,10 @@ func _apply_craft_button_style() -> void:
 			BlacksmithUiHelper.apply_primary_button(
 				_craft_button, BlacksmithUiHelper.PRIMARY_KIND_ENHANCE
 			)
+			if _reforge_button != null:
+				BlacksmithUiHelper.apply_primary_button(
+					_reforge_button, BlacksmithUiHelper.PRIMARY_KIND_ENHANCE
+				)
 		"dismantle":
 			BlacksmithUiHelper.apply_primary_button(
 				_craft_button, BlacksmithUiHelper.PRIMARY_KIND_DISMANTLE
@@ -1114,6 +1160,7 @@ func _set_category(category: String) -> void:
 		_category = category
 		if _mode == "enhance":
 			_selected_enhance_item = null
+			_selected_reforge_mod_index = -1
 		elif _mode == "alchemy":
 			_selected_alchemy_base = null
 			_selected_alchemy_fodder = null
@@ -1531,6 +1578,7 @@ func _on_enhance_card_input(event: InputEvent, item: Resource) -> void:
 		if item == _selected_enhance_item:
 			return
 		_selected_enhance_item = item
+		_selected_reforge_mod_index = -1
 		_refresh_selection()
 
 func _on_dismantle_card_input(event: InputEvent, item: Resource) -> void:
@@ -1577,6 +1625,8 @@ func _rebuild_detail() -> void:
 	_reason_label.visible = false
 	_cost_panel.visible = true
 	_craft_button.visible = true
+	if _reforge_button != null:
+		_reforge_button.visible = false
 	## 錬成以外は説明文の縮小設定を戻す。
 	if _mode != "alchemy":
 		_subtitle_label.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -1622,6 +1672,8 @@ func _set_detail_empty(message: String) -> void:
 	_hero_pedestal.visible = false
 	_cost_panel.visible = false
 	_craft_button.visible = false
+	if _reforge_button != null:
+		_reforge_button.visible = false
 
 func _add_stat_row(key: String, value: String, stat_key: String = "") -> void:
 	## [アイコン][固定幅ラベル][数値]。ラベル列を左揃え（攻撃力／クリティカル率が縦に揃う）。
@@ -1839,23 +1891,29 @@ func _rebuild_enhance_detail() -> void:
 	_populate_enhance_stats(item)
 	if _is_item_equipped(item):
 		_add_stat_row("状態", "装備中")
+	_add_stats_section_spacer(12.0)
+	_populate_reforge_mod_rows(item)
 	_add_stats_section_spacer(24.0)
-	if level >= _EquipmentEnhancer.MAX_FORGE_LEVEL:
-		_cost_panel.visible = false
+	var at_max: bool = level >= _EquipmentEnhancer.MAX_FORGE_LEVEL
+	if at_max:
 		_craft_button.visible = false
-		return
-	var check: Dictionary = _EquipmentEnhancer.can_enhance_item(item)
-	var next_level: int = int(check.get("next_level", level + 1))
-	var gold_cost: int = int(check.get("gold_cost", _EquipmentEnhancer.get_gold_cost(next_level, _EquipmentEnhancer.item_rarity(item))))
-	var materials: Dictionary = check.get(
-		"materials", _EquipmentEnhancer.get_material_cost(next_level, rarity)
-	)
-	_update_cost_panel(gold_cost, materials)
-	_craft_button.text = "炉で研ぐ（+%d）" % next_level
-	_craft_button.disabled = not bool(check.get("ok", false))
-	if not bool(check.get("ok", false)):
-		_reason_label.text = str(check.get("reason", ""))
-		_reason_label.visible = not _reason_label.text.is_empty()
+	else:
+		var check: Dictionary = _EquipmentEnhancer.can_enhance_item(item)
+		var next_level: int = int(check.get("next_level", level + 1))
+		var gold_cost: int = int(check.get("gold_cost", _EquipmentEnhancer.get_gold_cost(next_level, rarity)))
+		var materials: Dictionary = check.get(
+			"materials", _EquipmentEnhancer.get_material_cost(next_level, rarity)
+		)
+		_update_cost_panel(gold_cost, materials)
+		_craft_button.visible = true
+		_craft_button.text = "炉で研ぐ（+%d）" % next_level
+		_craft_button.disabled = not bool(check.get("ok", false))
+		if not bool(check.get("ok", false)):
+			_reason_label.text = str(check.get("reason", ""))
+			_reason_label.visible = not _reason_label.text.is_empty()
+		else:
+			_reason_label.visible = false
+	_update_reforge_action(item, at_max)
 
 func _populate_enhance_stats(item: Resource) -> void:
 	match _category:
@@ -1892,6 +1950,132 @@ func _populate_enhance_stats(item: Resource) -> void:
 					_add_stat_row(field_pair[1], "%d（上限）" % now, field_pair[2])
 				else:
 					_add_stat_row(field_pair[1], "%d → %d" % [now, now + forge_flat], field_pair[2])
+
+
+func _populate_reforge_mod_rows(item: Resource) -> void:
+	if _category != "weapon" or item == null:
+		return
+	var mods: Array = _EquipmentRandomMods.get_mods(item)
+	if mods.is_empty():
+		return
+	var header := Label.new()
+	header.text = "ランダム効果（焼直し対象を選択）"
+	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_caption(header, COLOR_SUB_STRONG)
+	header.add_theme_font_size_override("font_size", 14)
+	_stats_grid.add_child(header)
+	if _selected_reforge_mod_index >= mods.size():
+		_selected_reforge_mod_index = -1
+	for i: int in mods.size():
+		if not mods[i] is Dictionary:
+			continue
+		var mod: Dictionary = mods[i] as Dictionary
+		_stats_grid.add_child(_make_reforge_mod_row(mod, i))
+
+
+func _make_reforge_mod_row(mod: Dictionary, mod_index: int) -> PanelContainer:
+	var can_pick: bool = _EquipmentReforgeHelper.is_mod_reforgeable(mod)
+	var selected: bool = can_pick and mod_index == _selected_reforge_mod_index
+	var panel := PanelContainer.new()
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP if can_pick else Control.MOUSE_FILTER_IGNORE
+	var sb := StyleBoxFlat.new()
+	sb.set_content_margin_all(8.0)
+	sb.set_corner_radius_all(6)
+	if selected:
+		sb.bg_color = Color(0.42, 0.32, 0.08, 0.55)
+		sb.set_border_width_all(2)
+		sb.border_color = Color(0.95, 0.82, 0.38, 1.0)
+	elif can_pick:
+		sb.bg_color = Color(0.12, 0.11, 0.09, 0.75)
+		sb.set_border_width_all(1)
+		sb.border_color = Color(0.55, 0.45, 0.18, 0.55)
+	else:
+		sb.bg_color = Color(0.08, 0.08, 0.1, 0.55)
+		sb.set_border_width_all(1)
+		sb.border_color = Color(0.35, 0.32, 0.28, 0.45)
+	panel.add_theme_stylebox_override("panel", sb)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var icon_host := Control.new()
+	icon_host.custom_minimum_size = Vector2(_DETAIL_STAT_ICON_PX, _DETAIL_STAT_ICON_PX)
+	icon_host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var icon_key: String = _EquipmentUiTokens.detail_stat_icon_key(mod)
+	var tex: Texture2D = _EquipmentUiTokens.stat_icon(icon_key)
+	if tex != null:
+		var icon := TextureRect.new()
+		icon.texture = tex
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		icon_host.add_child(icon)
+	row.add_child(icon_host)
+	var lbl := Label.new()
+	var line: String = _EquipmentRandomMods.format_mod_line(mod)
+	if not can_pick:
+		line = "%s（固定）" % line
+	lbl.text = line
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_caption(lbl, COLOR_TEXT_STRONG if can_pick else COLOR_SUB)
+	lbl.add_theme_font_size_override("font_size", _DETAIL_STAT_FONT_PX)
+	row.add_child(lbl)
+	panel.add_child(row)
+	if can_pick:
+		panel.gui_input.connect(_on_reforge_mod_row_input.bind(mod_index))
+	return panel
+
+
+func _on_reforge_mod_row_input(event: InputEvent, mod_index: int) -> void:
+	if not _is_primary_press(event):
+		return
+	if _selected_reforge_mod_index == mod_index:
+		return
+	_selected_reforge_mod_index = mod_index
+	_refresh_selection()
+
+
+func _update_reforge_action(item: Resource, forge_at_max: bool) -> void:
+	if _reforge_button == null:
+		return
+	if _category != "weapon" or item == null:
+		_reforge_button.visible = false
+		if forge_at_max:
+			_cost_panel.visible = false
+		return
+	_reforge_button.visible = true
+	_reforge_button.text = "焼直し"
+	var check: Dictionary = _EquipmentReforgeHelper.can_reforge(item, _selected_reforge_mod_index)
+	_reforge_button.disabled = not bool(check.get("ok", false))
+	if forge_at_max:
+		## +5 時は焼直しコストを詳細に出す（炉研ぎコストは無し）。
+		if _selected_reforge_mod_index >= 0:
+			var gold_cost: int = int(check.get(
+				"gold_cost", _EquipmentReforgeHelper.get_gold_cost(_EquipmentEnhancer.item_rarity(item))
+			))
+			var materials: Dictionary = check.get(
+				"materials",
+				_EquipmentReforgeHelper.get_material_cost(_EquipmentEnhancer.item_rarity(item))
+			)
+			_update_cost_panel(gold_cost, materials)
+			_cost_panel.visible = true
+		else:
+			_cost_panel.visible = false
+		if not bool(check.get("ok", false)):
+			_reason_label.text = str(check.get("reason", ""))
+			_reason_label.visible = not _reason_label.text.is_empty()
+		else:
+			_reason_label.visible = false
+	elif not bool(check.get("ok", false)) and _selected_reforge_mod_index >= 0:
+		## 炉研ぎコスト表示中でも、選択済みで焼直し不可なら理由を出す。
+		if not _reason_label.visible:
+			_reason_label.text = str(check.get("reason", ""))
+			_reason_label.visible = not _reason_label.text.is_empty()
+
 
 func _rebuild_dismantle_detail() -> void:
 	if _selected_dismantle_item == null:
@@ -2688,6 +2872,56 @@ func _on_enhance_confirmed() -> void:
 	SaveManager.save_game()
 	_show_forge_item_result(
 		"強化完了", _selected_enhance_item, _category, "enhance", forge_before
+	)
+	_refresh_all()
+	_play_forge_success_feedback(FORGE_FLASH_ENHANCE)
+
+
+func _on_reforge_pressed() -> void:
+	if _selected_enhance_item == null or _reforge_confirm == null:
+		return
+	var item: Resource = _selected_enhance_item
+	var check: Dictionary = _EquipmentReforgeHelper.can_reforge(item, _selected_reforge_mod_index)
+	if not bool(check.get("ok", false)):
+		_log_craft_error(str(check.get("reason", "焼直しできません")))
+		return
+	var mods: Array = _EquipmentRandomMods.get_mods(item)
+	var mod_line: String = ""
+	if _selected_reforge_mod_index >= 0 and _selected_reforge_mod_index < mods.size():
+		if mods[_selected_reforge_mod_index] is Dictionary:
+			mod_line = _EquipmentRandomMods.format_mod_line(
+				mods[_selected_reforge_mod_index] as Dictionary
+			)
+	var gold_cost: int = int(check.get("gold_cost", 0))
+	var mat_summary: String = _format_material_summary(check.get("materials", {}))
+	_reforge_confirm.dialog_text = (
+		"「%s」の効果を焼直しますか？\n%s\n必要ゴールド: %d\n素材: %s"
+		% [
+			_EquipmentEnhancer.get_display_name(item),
+			mod_line,
+			gold_cost,
+			mat_summary,
+		]
+	)
+	_reforge_confirm.popup_centered()
+
+
+func _on_reforge_confirmed() -> void:
+	if _selected_enhance_item == null:
+		return
+	var forge_before: Dictionary = EquipmentItemDetailHelper.forge_stat_snapshot(
+		_selected_enhance_item, _category
+	)
+	var result: Dictionary = _EquipmentReforgeHelper.reforge_mod(
+		_selected_enhance_item, _selected_reforge_mod_index
+	)
+	if not bool(result.get("ok", false)):
+		_log_craft_error(str(result.get("reason", "焼直しに失敗しました")))
+		_refresh_all()
+		return
+	SaveManager.save_game()
+	_show_forge_item_result(
+		"焼直し完了", _selected_enhance_item, _category, "enhance", forge_before
 	)
 	_refresh_all()
 	_play_forge_success_feedback(FORGE_FLASH_ENHANCE)
