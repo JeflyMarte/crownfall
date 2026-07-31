@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "greios"
 display_name = "グレイオス"
+basic_attack_name = "氷翼打ち"
 max_hp = 1480
 attack = 232
 defense = 112

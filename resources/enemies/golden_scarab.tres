@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "golden_scarab"
 display_name = "ゴールデンスカラベ"
+basic_attack_name = "金甲打ち"
 max_hp = 192
 attack = 48
 defense = 24

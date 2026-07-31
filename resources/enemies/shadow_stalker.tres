@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "shadow_stalker"
 display_name = "影狩り"
+basic_attack_name = "影噛み"
 max_hp = 2270
 attack = 330
 defense = 188

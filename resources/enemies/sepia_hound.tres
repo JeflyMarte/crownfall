@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "sepia_hound"
 display_name = "セピアハウンド"
+basic_attack_name = "追憶噛み"
 max_hp = 520
 attack = 96
 defense = 32

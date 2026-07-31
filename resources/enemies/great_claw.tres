@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "great_claw"
 display_name = "大爪刀"
+basic_attack_name = "大爪打ち"
 max_hp = 1480
 attack = 232
 defense = 96

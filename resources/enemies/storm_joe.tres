@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "storm_joe"
 display_name = "ストームジョー"
+basic_attack_name = "嵐噛み"
 max_hp = 720
 attack = 152
 defense = 72

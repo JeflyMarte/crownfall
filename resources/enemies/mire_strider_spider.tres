@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "mire_strider_spider"
 display_name = "沼脚スパイダー"
+basic_attack_name = "沼脚打ち"
 max_hp = 640
 attack = 144
 defense = 48

@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "tide_lamp"
 display_name = "潮灯"
+basic_attack_name = "冷光刺し"
 max_hp = 464
 attack = 128
 defense = 32

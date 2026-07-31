@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "anchor_lord"
 display_name = "アンカーロード"
+basic_attack_name = "錨爪"
 max_hp = 1640
 attack = 216
 defense = 136

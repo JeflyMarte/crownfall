@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "crystal_scorpion"
 display_name = "水晶スコーピオン"
+basic_attack_name = "晶鋏"
 max_hp = 656
 attack = 88
 defense = 72

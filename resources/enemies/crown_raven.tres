@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "crown_raven"
 display_name = "宝冠レイヴン"
+basic_attack_name = "宝冠嘴"
 max_hp = 1080
 attack = 176
 defense = 112

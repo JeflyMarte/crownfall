@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "ship_eater_crab"
 display_name = "船喰らい"
+basic_attack_name = "蟹鋏"
 max_hp = 608
 attack = 128
 defense = 72
