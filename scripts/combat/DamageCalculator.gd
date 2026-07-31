@@ -273,7 +273,7 @@ static func roll_member_evasion(member_index: int, rng: RandomNumberGenerator = 
 	var roll: float = rng.randf() if rng != null else randf()
 	return roll < rate
 
-## 戻り値: {final, base, mitigated, elem_resisted, missed}
+## 戻り値: {final, base, mitigated, elem_resisted, missed, is_critical, blocked}
 static func enemy_damage_to_member(
 	combat: CombatController,
 	target_index: int,
@@ -284,7 +284,15 @@ static func enemy_damage_to_member(
 	attack_element_override: String = ""
 ) -> Dictionary:
 	if roll_member_evasion(target_index, rng):
-		return {"final": 0, "base": 0, "mitigated": 0, "elem_resisted": false, "missed": true}
+		return {
+			"final": 0,
+			"base": 0,
+			"mitigated": 0,
+			"elem_resisted": false,
+			"missed": true,
+			"is_critical": false,
+			"blocked": false,
+		}
 	var atk: int = attacker_atk if attacker_atk >= 0 else combat.get_enemy_attack()
 	var base_dmg: int = int(float(atk) * power_multiplier)
 	var out_slot: int = attacker_slot if attacker_slot >= 0 else combat.active_enemy_index
@@ -294,6 +302,17 @@ static func enemy_damage_to_member(
 	)
 	base_dmg = maxi(1, int(round(float(base_dmg) * phase_mult)))
 	base_dmg = maxi(1, int(float(base_dmg) * combat.get_enemy_outgoing_damage_multiplier_at(out_slot)))
+	## 敵クリティカル（EnemyData.critical_rate・P3-FIX-COMBAT-AUDIT-E-001）。
+	var is_critical: bool = false
+	var enemy_data: Resource = combat.get_enemy_data_at(out_slot)
+	var crit_rate: float = 0.0
+	if enemy_data != null and "critical_rate" in enemy_data:
+		crit_rate = float(enemy_data.critical_rate)
+	if crit_rate > 0.0:
+		var crit_roll: float = rng.randf() if rng != null else randf()
+		if crit_roll < crit_rate:
+			is_critical = true
+			base_dmg = maxi(1, int(round(float(base_dmg) * BalanceConfig.CRITICAL_MULTIPLIER)))
 	var defense: int = 0
 	var armor: Resource = GameState.get_member_equipped_armor(target_index)
 	if armor != null:
@@ -324,11 +343,13 @@ static func enemy_damage_to_member(
 	var incoming_mult: float = combat.get_member_incoming_damage_multiplier(target_index)
 	if not is_equal_approx(incoming_mult, 1.0):
 		final_dmg = maxi(0, int(round(float(final_dmg) * incoming_mult)))
+	var blocked: bool = false
 	var wpn_block: Dictionary = CombatPassives.weapon_stat_modifiers_for_member(target_index)
 	var block_chance: float = float(wpn_block.get("incoming_block_chance", 0.0))
 	if block_chance > 0.0 and final_dmg > 0:
 		var block_roll: float = rng.randf() if rng != null else randf()
 		if block_roll < block_chance:
+			blocked = true
 			final_dmg = maxi(0, int(round(float(final_dmg) * float(wpn_block.get("incoming_block_mult", 1.0)))))
 	# 防具の属性耐性（P3-D103）: 敵攻撃属性が防具 resist_elements と一致なら軽減。
 	# スキル element があれば通常攻撃属性より優先（VFX と耐性を一致）。
@@ -350,6 +371,8 @@ static func enemy_damage_to_member(
 		"mitigated": mitigated,
 		"elem_resisted": elem_resisted,
 		"missed": false,
+		"is_critical": is_critical,
+		"blocked": blocked,
 	}
 
 static func enemy_attack_element_at(combat: CombatController, slot: int) -> String:
