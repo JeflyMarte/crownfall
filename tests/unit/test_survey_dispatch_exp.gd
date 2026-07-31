@@ -121,6 +121,12 @@ func test_claim_cycle_includes_exp_entries() -> void:
 	assert_eq(entries.size(), 1)
 	assert_eq(str((entries[0] as Dictionary).get("member_id", "")), combat_id)
 	assert_gt(int((entries[0] as Dictionary).get("exp", 0)), 0)
+	## 受取後は派遣員が編成に戻り、EXP 付与時にパーティ参照可能。
+	var back_in_party: bool = false
+	for m in GameState.party_members:
+		if m != null and str(m.id) == combat_id:
+			back_in_party = true
+	assert_true(back_in_party)
 
 
 func _ensure_two_combat_members() -> void:

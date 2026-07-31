@@ -6250,3 +6250,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-FIX-GACHA-SEAL-AUDIT-A-001-2 | **ヘッダ確率表示** — `rate_display_text` は生 `%`（`%%` 禁止） | フォーマット無し文字列で二重 `%` 表示 |
 | P3-FIX-GACHA-SEAL-AUDIT-A-001-3 | **据置** — KAIWAN-004 限定mod／固有パッシブ／`moldgar_abyss_*` 除外拡大／部位重み | GO済未実装またはバランス要GO |
 
+## 調査室・派遣監査案A（2026-07-31 — P3-FIX-SURVEY-AUDIT-A-001）
+
+> **オーナー指示** — 封蔵の次＝調査室・派遣監査。確定配線のみ。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-FIX-SURVEY-AUDIT-A-001-1 | **編成復元** — 開始時に `party_ids_before` 保存。受取／中止で復元してから EXP 付与 | 中止文「戻ります」と不一致。編成外だと本人 EXP パッシブ不発 |
+| P3-FIX-SURVEY-AUDIT-A-001-2 | **調査員必須** — `start_cycle` は1人以上 | 0人放置で報酬だけ取れる穴 |
+| P3-FIX-SURVEY-AUDIT-A-001-3 | **武器抽選** — 派遣先 `weapon_pool` が空なら武器なし（全カタログ禁止） | プール外落下の事故予防 |
+| P3-FIX-SURVEY-AUDIT-A-001-4 | **期待成果UI** — ゴールドは「石連動」表示 | 常時確定に見える誤認防止 |
+| P3-FIX-SURVEY-AUDIT-A-001-5 | **完全調査メタ** — `lb_hits` を分離し `lottery` を上書きしない | 招待券結果メタの消失 |
+| P3-FIX-SURVEY-AUDIT-A-001-6 | **据置** — EXP量・素材帯・③招待券25%↔50%・超過％キャリー | バランス／Decision要GO |
+

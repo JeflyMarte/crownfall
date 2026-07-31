@@ -30,7 +30,6 @@ func test_roll_material_id_respects_weights() -> void:
 
 func test_pick_weapon_uses_target_dungeon_pool() -> void:
 	## whisperwood プールに無い鉄剣（モーン）を引かないよう、レア0で森プールのみ。
-	var seen_outside: bool = false
 	var ww: Resource = DataRegistry.get_dungeon_data("whisperwood")
 	assert_not_null(ww)
 	var pool: Dictionary = {}
@@ -40,10 +39,6 @@ func test_pick_weapon_uses_target_dungeon_pool() -> void:
 		var wid: String = _SurveySystem._pick_weapon_id(0, "whisperwood")
 		if wid.is_empty():
 			continue
-		if not pool.has(wid):
-			## フォールバック全武器になった場合はレア0が森に無い可能性 — 許容しつつ記録。
-			seen_outside = true
-			break
 		assert_true(pool.has(wid), wid)
 	## 少なくとも森プールから取れるレアがあること。
 	var any_r0: bool = false
@@ -53,8 +48,16 @@ func test_pick_weapon_uses_target_dungeon_pool() -> void:
 			any_r0 = true
 			break
 	assert_true(any_r0, "whisperwood should have rarity0 weapons")
-	if seen_outside:
-		fail_test("picked weapon outside whisperwood pool")
+
+
+func test_pick_weapon_empty_pool_returns_empty() -> void:
+	## 全カタログへフォールバックしない（P3-FIX-SURVEY-AUDIT-A-001）。
+	var empty_dg: Resource = DataRegistry.get_dungeon_data("rock_stampede")
+	assert_not_null(empty_dg)
+	assert_true(empty_dg.weapon_pool.is_empty())
+	assert_eq(_SurveySystem._pick_weapon_id(0, "rock_stampede"), "")
+	assert_eq(_SurveySystem._pick_weapon_id(1, "rock_stampede"), "")
+	assert_eq(_SurveySystem._pick_weapon_id(2, "rock_stampede"), "")
 
 
 func test_roll_rewards_material_not_always_base_ore() -> void:

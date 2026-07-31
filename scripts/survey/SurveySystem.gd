@@ -321,10 +321,18 @@ static func start_cycle(dungeon_id: String, preset: String, member_ids: Array[St
 		i += 1
 		if assignees.size() >= _SurveyConfig.INVESTIGATOR_SLOTS:
 			break
+	if assignees.is_empty():
+		return {"ok": false, "reason": "調査員を1人以上配置してください"}
 	if not leaves_combat_for_party(assignees):
 		return {"ok": false, "reason": "編成用に最低1人は残してください"}
 	var speed: float = total_speed_bonus(assignees)
 	var p: String = preset if preset == _SurveyConfig.PRESET_SHORT else _SurveyConfig.PRESET_STANDARD
+	## 受取／中止後に戻すため、派遣前の編成を保存する。
+	var party_ids_before: Array = []
+	for adv_before: Variant in GameState.party_members:
+		if adv_before == null:
+			continue
+		party_ids_before.append(str((adv_before as Resource).id))
 	GameState.hub_survey_cycle = {
 		"dungeon_id": dungeon_id,
 		"preset": p,
@@ -332,6 +340,7 @@ static func start_cycle(dungeon_id: String, preset: String, member_ids: Array[St
 		"duration_sec": _SurveyConfig.duration_sec(p),
 		"speed_bonus": speed,
 		"assignees": assignees,
+		"party_ids_before": party_ids_before,
 	}
 	## 派遣中の戦闘メンバーのみ編成から外す（調査スタッフはロスター外のため無影響）。
 	_remove_dispatched_from_party()
@@ -365,6 +374,35 @@ static func _remove_dispatched_from_party() -> void:
 		## 全員派遣は start_cycle で拒否済み。万一ここまで来たら編成を触らない。
 		return
 	GameState.set_active_party(kept)
+
+
+## サイクル終了後に派遣前編成を復元。cycle クリア後に呼ぶ（派遣中は set_active_party 拒否）。
+static func _restore_party_after_dispatch(party_ids_before: Array, assignees: Array) -> void:
+	if party_ids_before is Array and not party_ids_before.is_empty():
+		var restored: Array = []
+		for mid_v: Variant in party_ids_before:
+			var adv: Resource = GameState.find_roster_member_by_id(str(mid_v))
+			if adv != null:
+				restored.append(adv)
+		if not restored.is_empty() and GameState.set_active_party(restored):
+			return
+	## 旧セーブ（party_ids_before 無し）: 現編成へ派遣していた戦闘員を空き枠に戻す。
+	var kept: Array = GameState.party_members.duplicate()
+	for mid: String in combat_assignee_ids(assignees):
+		if kept.size() >= GameState.ACTIVE_PARTY_SIZE:
+			break
+		var adv2: Resource = GameState.find_roster_member_by_id(mid)
+		if adv2 == null:
+			continue
+		var already: bool = false
+		for m: Variant in kept:
+			if m != null and str((m as Resource).id) == mid:
+				already = true
+				break
+		if not already:
+			kept.append(adv2)
+	if not kept.is_empty():
+		GameState.set_active_party(kept)
 
 
 static func auto_assign_members() -> Array[String]:
@@ -413,6 +451,7 @@ static func claim_cycle() -> Dictionary:
 	var dungeon_id: String = str(GameState.hub_survey_cycle.get("dungeon_id", ""))
 	var preset: String = str(GameState.hub_survey_cycle.get("preset", _SurveyConfig.PRESET_STANDARD))
 	var assignees: Array = GameState.hub_survey_cycle.get("assignees", []) as Array
+	var party_ids_before: Array = GameState.hub_survey_cycle.get("party_ids_before", []) as Array
 	## 日次 SURVEY 上限到達後は魔晶石を半減（放置石稼ぎ抑制）。
 	var over_cap: bool = is_room_daily_capped()
 	var rewards: Dictionary = _roll_rewards(preset, over_cap, dungeon_id)
@@ -426,11 +465,13 @@ static func claim_cycle() -> Dictionary:
 	var weapon_id: String = str(rewards.get("weapon_id", ""))
 	if not weapon_id.is_empty():
 		_grant_weapon(weapon_id)
+	## 派遣解除→編成復元→EXP（編成外だと本人パッシブが効かない）。
+	GameState.hub_survey_cycle = {}
+	_restore_party_after_dispatch(party_ids_before, assignees)
 	var exp_result: Dictionary = grant_dispatch_exp(dungeon_id, preset, assignees)
 	rewards["exp_pool"] = int(exp_result.get("pool", 0))
 	rewards["exp_entries"] = exp_result.get("entries", [])
 	add_survey_percent(dungeon_id, _SurveyConfig.cycle_survey_add(preset), true)
-	GameState.hub_survey_cycle = {}
 	rewards["ok"] = true
 	rewards["dungeon_id"] = dungeon_id
 	rewards["token_over_cap"] = over_cap
@@ -527,7 +568,10 @@ static func cancel_cycle() -> Dictionary:
 		return {"ok": false, "reason": "進行中の調査がありません"}
 	if is_cycle_complete():
 		return {"ok": false, "reason": "完了報酬を受け取ってください"}
+	var assignees: Array = GameState.hub_survey_cycle.get("assignees", []) as Array
+	var party_ids_before: Array = GameState.hub_survey_cycle.get("party_ids_before", []) as Array
 	GameState.hub_survey_cycle = {}
+	_restore_party_after_dispatch(party_ids_before, assignees)
 	SaveManager.save_game()
 	return {"ok": true}
 
@@ -568,7 +612,7 @@ static func _roll_rewards(
 	}
 
 
-## 派遣先 Biome の weapon_pool から rarity 一致を抽選。空なら全武器フォールバック。
+## 派遣先 Biome の weapon_pool から rarity 一致を抽選。空なら武器なし（全カタログへ落とさない）。
 static func _pick_weapon_id(rarity: int, dungeon_id: String = "") -> String:
 	var pool: Array[String] = []
 	var lookup_id: String = dungeon_id.strip_edges()
@@ -580,15 +624,6 @@ static func _pick_weapon_id(rarity: int, dungeon_id: String = "") -> String:
 			var data: Resource = DataRegistry.get_weapon_data(str(wid))
 			if data != null and int(data.rarity) == rarity:
 				pool.append(str(wid))
-	if pool.is_empty():
-		for data in DataRegistry.get_all_weapon_data():
-			if data == null:
-				continue
-			if int(data.rarity) != rarity:
-				continue
-			var wid: String = str(data.id)
-			if not wid.is_empty():
-				pool.append(wid)
 	if pool.is_empty():
 		return ""
 	return pool[randi() % pool.size()]

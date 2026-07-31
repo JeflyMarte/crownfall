@@ -299,8 +299,11 @@ static func try_claim(dungeon_id: String, notify: bool = true) -> Dictionary:
 				granted["lottery"] = "gacha"
 			else:
 				granted["lottery"] = "miss"
+	## LB 結果は別キー。lottery（招待券など）を上書きしない。
 	if not lb_hits.is_empty():
-		granted["lottery"] = "lb:" + ",".join(lb_hits)
+		granted["lb_hits"] = lb_hits.duplicate()
+		if str(granted.get("lottery", "")).is_empty():
+			granted["lottery"] = "lb:" + ",".join(lb_hits)
 	granted["tickets"] = ticket_out
 	## ペットは未所持時のみ解放・通知（2周目以降は出さない）
 	var pet_id: String = str(def.get("pet_id", ""))

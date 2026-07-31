@@ -149,6 +149,56 @@ func test_cancel_cycle_aborts_without_rewards() -> void:
 	_SurveySystem.cancel_cycle()
 
 
+func test_start_cycle_rejects_empty_assignees() -> void:
+	var rejected: Dictionary = _SurveySystem.start_cycle(
+		Constants.MOURNGATE_DUNGEON_ID,
+		_SurveyConfig.PRESET_SHORT,
+		[] as Array[String]
+	)
+	assert_false(bool(rejected.get("ok", false)))
+	assert_false(_SurveySystem.has_active_cycle())
+
+
+func test_cancel_restores_dispatched_combat_to_party() -> void:
+	## 派遣で外した戦闘員が中止後に編成へ戻る（P3-FIX-SURVEY-AUDIT-A-001）。
+	GameState.reset_for_new_game()
+	if Constants.STARTER_STORY_RECRUIT:
+		GameState.select_starting_adventurer("adventurer_0")
+	GameState.unlock_starter_adventurer("adventurer_1")
+	GameState.hub_survey_cycle = {}
+	GameState.survey_staff_nonoka_unlocked = true
+	var combat_ids: Array[String] = []
+	for adv in GameState.roster:
+		if adv == null or _SurveySystem.is_survey_staff(str(adv.id)):
+			continue
+		combat_ids.append(str(adv.id))
+		if combat_ids.size() >= 2:
+			break
+	assert_eq(combat_ids.size(), 2)
+	var party: Array = [
+		GameState.find_roster_member_by_id(combat_ids[0]),
+		GameState.find_roster_member_by_id(combat_ids[1]),
+	]
+	assert_true(GameState.set_active_party(party))
+	var started: Dictionary = _SurveySystem.start_cycle(
+		Constants.MOURNGATE_DUNGEON_ID,
+		_SurveyConfig.PRESET_SHORT,
+		[combat_ids[0]] as Array[String]
+	)
+	assert_true(bool(started.get("ok", false)), str(started))
+	var in_party_during: bool = false
+	for m in GameState.party_members:
+		if m != null and str(m.id) == combat_ids[0]:
+			in_party_during = true
+	assert_false(in_party_during, "派遣中は編成から外れる")
+	assert_true(bool(_SurveySystem.cancel_cycle().get("ok", false)))
+	var restored: bool = false
+	for m2 in GameState.party_members:
+		if m2 != null and str(m2.id) == combat_ids[0]:
+			restored = true
+	assert_true(restored, "中止後は編成に戻る")
+
+
 func test_cancel_cycle_rejects_when_complete() -> void:
 	const _SurveyStaff := preload("res://scripts/survey/SurveyStaff.gd")
 	var ids: Array[String] = [_SurveyStaff.ID_NONOKA]

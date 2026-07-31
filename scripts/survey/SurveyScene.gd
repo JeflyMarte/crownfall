@@ -355,7 +355,8 @@ func _build_expected_rewards_card() -> PanelContainer:
 	var gold_tex: Texture2D = null
 	if ResourceLoader.exists(GOLD_ICON_PATH):
 		gold_tex = load(GOLD_ICON_PATH) as Texture2D
-	row.add_child(_make_reward_chance_cell(gold_tex, "ゴールド"))
+	## ゴールドは魔晶石ヒット時のみ（×5）。常時確定に見せない。
+	row.add_child(_make_reward_chance_cell(gold_tex, "ゴールド（石連動）"))
 	row.add_child(_make_reward_chance_cell(
 		IconPaths.get_icon_texture("base_ore", "material"),
 		"素材"
