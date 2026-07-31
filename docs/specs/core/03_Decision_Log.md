@@ -6087,3 +6087,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-GACHA-EQ-SEAL-UI-001-3 | **単価** — 封蔵 300 魔晶石。招待無料券は使わない（v1） | 招待500と分離 |
 | P3-GACHA-EQ-SEAL-UI-001-4 | **排出** — 灰冠武防飾27のみ。真王遺産／神話／降臨セット除外 | Decision 28 |
 | P3-GACHA-EQ-SEAL-UI-001-5 | **SSOT** — `decisions/29_SealGachaUI.md` | UI の正 |
+
+## 状態異常横断点検（2026-07-31 — P3-FIX-STATUS-AUDIT-001）
+
+> **オーナー指示** — 出血・毒以外の状態異常もバグがないか点検。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-FIX-STATUS-AUDIT-001-1 | **味方防御DOWN** — `get_member_defense_reduction` を敵→味方ダメに配線（敵側と同型 ×(1−r)） | アイコンのみで被ダメ不変だった |
+| P3-FIX-STATUS-AUDIT-001-2 | **鈍化** — `skip_action_chance=0`。行動遅延は `interval_multiplier` 代理のみ。Resolver は同一効果で二重抽選しない | ~75%スキップの過剰 |
+| P3-FIX-STATUS-AUDIT-001-3 | **OK確認** — stun/fear/chill/shock スキップ、curse/vulnerable/mark/guard/empower 乗算、ignite flat DoT、付与先誤配線（前 Task 済） | 横断点検 |
+| P3-FIX-STATUS-AUDIT-001-4 | **既知制限** — 同時ユニーク状態は最大3（既存）。満杯時の新規付与は失敗 | 仕様据置 |

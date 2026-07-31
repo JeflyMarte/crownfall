@@ -50,6 +50,16 @@ func test_armor_break_reduction_clamped() -> void:
 	## clamp 0.95 → DEF=K*0.05: 100×(K/(K+0.05K))=95
 	assert_eq(full, 95, "def_reduction は 0.95 で頭打ち")
 
+
+func test_member_defense_reduction_mirrors_enemy_formula() -> void:
+	## 味方 DEF にも armor_break と同型の ×(1−r) を掛ける想定（DamageCalculator 敵経路と同値）。
+	var k: int = int(BalanceConfig.DEFENSE_MITIGATION_K)
+	var base: int = DamageCalculator.apply_member_defense(100, k)
+	var reduced_def: int = int(round(float(k) * 0.5))
+	var broken: int = DamageCalculator.apply_member_defense(100, reduced_def)
+	assert_gt(broken, base, "味方防御DOWN でも被ダメ増")
+	assert_eq(broken, 67, "DEF半減は敵側 armor_break と同値")
+
 # ── Biome 属性相性 ───────────────────────────────────────────────────────
 
 func test_biome_favored_omitted() -> void:

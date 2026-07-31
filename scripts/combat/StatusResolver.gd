@@ -127,9 +127,11 @@ func should_skip_action(unit_id: String) -> bool:
 		var effect: Resource = DataRegistry.get_status_effect(inst.effect_id)
 		if effect == null:
 			continue
-		if effect.skip_action_chance > 0.0 and randf() < effect.skip_action_chance:
-			return true
-		if effect.effect_type == "stat_mod" and effect.interval_multiplier > 1.0:
+		## skip_action_chance と interval_multiplier 代理は同一効果で二重抽選しない。
+		if effect.skip_action_chance > 0.0:
+			if randf() < effect.skip_action_chance:
+				return true
+		elif effect.effect_type == "stat_mod" and effect.interval_multiplier > 1.0:
 			if randf() < 0.5:
 				return true
 	return false

@@ -170,3 +170,5 @@ alwaysApply: false
 
 | 調査室受取が常に基礎鉱＋モーン武器 | DISPATCHが固定プール | 素材はBiome重み／武器は派遣先pool（P3-SURVEY-REWARD-VAR-001） |
 | 出血アイコンはあるが tick ダメ無し／毒スキル付与が効かない | 敵スキルが `_apply_status_to_member_target`（敵向け）へ誤配線。出血は `source_attack=0` だと percent DoT=0 | 敵スキルは `party_%d`＋敵ATK。罠／Affix／パッシブも source を渡す |
+| 味方の防御DOWNが被ダメに効かない | `get_defense_reduction` が敵側のみ配線 | `get_member_defense_reduction`→`enemy_damage_to_member`（P3-FIX-STATUS-AUDIT-001） |
+| 鈍化で行動スキップが過剰 | `skip_action_chance` と `interval_multiplier` 代理を二重抽選 | slow は interval のみ／Resolver は同一効果で elif |

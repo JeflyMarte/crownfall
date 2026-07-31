@@ -1005,6 +1005,13 @@ func get_enemy_defense_reduction() -> float:
 func get_enemy_defense_reduction_at(slot: int) -> float:
 	return _status_resolver.get_defense_reduction(enemy_status_unit_id(slot))
 
+
+## 味方の DEF 減少率（armor_break 等）。0.0=なし。敵側と同型。
+func get_member_defense_reduction(member_index: int) -> float:
+	if member_index < 0 or member_index >= party_combat_hp.size():
+		return 0.0
+	return _status_resolver.get_defense_reduction("party_%d" % member_index)
+
 # 同系統タグ・シナジー（P3-D095）。指定属性をパーティで複数人が共有する時の与ダメボーナス（0.0=なし）。
 func get_element_synergy_bonus(element: String) -> float:
 	if element.is_empty():

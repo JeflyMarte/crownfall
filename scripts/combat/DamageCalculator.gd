@@ -314,6 +314,10 @@ static func enemy_damage_to_member(
 			defense = maxi(0, int(round(float(defense) * def_mult)))
 			if GameState.is_pet_combatant(target_index):
 				defense = maxi(0, int(round(float(defense) * CombatPassives.pet_defense_mult_from_party())))
+	## 防御DOWN（armor_break）: 味方側も敵と同型に実効 DEF を下げる（P3-FIX-STATUS-AUDIT-001）。
+	var def_reduction: float = combat.get_member_defense_reduction(target_index)
+	if def_reduction > 0.0:
+		defense = int(round(float(defense) * (1.0 - clampf(def_reduction, 0.0, 0.95))))
 	var final_dmg: int = apply_member_defense(base_dmg, defense)
 	# 防御(guard)等の被ダメ補正（P3-D085）。
 	var incoming_mult: float = combat.get_member_incoming_damage_multiplier(target_index)
