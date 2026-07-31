@@ -196,11 +196,44 @@ func _sync_pool_strip_for_page() -> void:
 		GachaUiHelper.fill_pool_strip_equipment(strip)
 		strip.visible = true
 		_wire_pool_icon_buttons()
+		if strip is ScrollContainer:
+			ScrollTouchHelper.enable(strip as ScrollContainer, false)
+			if not strip.gui_input.is_connected(_on_pool_strip_gui_input):
+				strip.gui_input.connect(_on_pool_strip_gui_input)
+		GachaUiHelper.set_equip_icon_back_visible(_featured_shell, true)
+		GachaUiHelper.relayout_featured_shell(_featured_shell, _banner_art_host)
 		call_deferred("_start_pool_marquee")
 	else:
 		GachaUiHelper.fill_pool_strip_helpers(strip)
 		strip.visible = true
 		_wire_pool_icon_buttons()
+		GachaUiHelper.set_equip_icon_back_visible(_featured_shell, false)
+		GachaUiHelper.relayout_featured_shell(_featured_shell, _banner_art_host)
+
+
+func _on_pool_strip_gui_input(event: InputEvent) -> void:
+	## 手動ドラッグ中は自動スクロールを一時停止。
+	if event is InputEventScreenDrag:
+		_pause_pool_marquee_temporarily()
+	elif event is InputEventMouseMotion and (event as InputEventMouseMotion).button_mask != 0:
+		_pause_pool_marquee_temporarily()
+
+
+func _pause_pool_marquee_temporarily() -> void:
+	if not _is_seal_page():
+		return
+	_pool_marquee_active = false
+	set_process(false)
+	if has_meta("_pool_marquee_resume_queued") and bool(get_meta("_pool_marquee_resume_queued")):
+		return
+	set_meta("_pool_marquee_resume_queued", true)
+	get_tree().create_timer(1.6).timeout.connect(_resume_pool_marquee_after_drag)
+
+
+func _resume_pool_marquee_after_drag() -> void:
+	set_meta("_pool_marquee_resume_queued", false)
+	if _is_seal_page():
+		_start_pool_marquee()
 
 
 func _start_pool_marquee() -> void:
@@ -210,13 +243,30 @@ func _start_pool_marquee() -> void:
 	var strip: Control = _featured_shell.get("pool_strip") as Control
 	var loop_w: float = GachaUiHelper.pool_marquee_loop_width(strip)
 	if loop_w < 8.0:
+		## レイアウト未確定のときは再試行。
+		call_deferred("_retry_pool_marquee_width")
+		return
+	_pool_marquee_loop_w = loop_w
+	_pool_marquee_active = true
+	set_process(true)
+
+
+func _retry_pool_marquee_width() -> void:
+	if not _is_seal_page() or _featured_shell.is_empty():
+		return
+	var strip: Control = _featured_shell.get("pool_strip") as Control
+	if strip != null:
+		var row: Control = strip.get_node_or_null("PoolIconRow") as Control
+		if row != null:
+			row.queue_sort()
+	var loop_w: float = GachaUiHelper.pool_marquee_loop_width(strip)
+	if loop_w < 8.0:
 		_pool_marquee_active = false
 		set_process(false)
 		return
 	_pool_marquee_loop_w = loop_w
 	_pool_marquee_active = true
 	set_process(true)
-
 
 func _stop_pool_marquee() -> void:
 	_pool_marquee_active = false

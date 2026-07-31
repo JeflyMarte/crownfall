@@ -44,6 +44,15 @@ const POOL_ICON_PX: int = 52
 const POOL_STRIP_HEIGHT: float = 60.0
 const POOL_STRIP_BOTTOM_PAD: float = 8.0
 const POOL_STRIP_SIDE_PAD: float = 12.0
+## 封蔵 Featured 装備アイコンの下地（暗背景への溶け込み防止）。
+const EQUIP_ICON_BACK_PAD: float = 18.0
+const EQUIP_ICON_BACK_COLOR := Color(0.94, 0.90, 0.78, 0.94)
+const EQUIP_ICON_BACK_BORDER := Color(0.78, 0.62, 0.28, 0.95)
+## 封蔵プール帯の下地。
+const POOL_STRIP_BACK_COLOR := Color(0.10, 0.08, 0.06, 0.72)
+const POOL_STRIP_BACK_BORDER := Color(0.72, 0.58, 0.30, 0.55)
+## 封蔵アイコン表示時の明るさ補正。
+const EQUIP_ICON_MODULATE := Color(1.25, 1.22, 1.18, 1.0)
 
 
 static func featured_idle_px(host_height: float) -> float:
@@ -94,6 +103,7 @@ static func relayout_featured_shell(shell: Dictionary, host: Control) -> void:
 		idle.visible = true
 		idle.modulate = Color.WHITE
 		idle.z_index = 5
+	_relayout_equip_icon_back(shell, idle_px, bottom)
 	var fade: Control = shell.get("fade") as Control
 	if fade == null:
 		return
@@ -111,6 +121,7 @@ static func relayout_featured_shell(shell: Dictionary, host: Control) -> void:
 		beam_soft.offset_top = -soft_h * 0.92
 		beam_soft.offset_bottom = bottom + 48.0
 	_relayout_pool_strip(shell.get("pool_strip") as Control)
+	_relayout_pool_strip_back(shell)
 	_relayout_feature_blurb(shell, host)
 
 
@@ -176,6 +187,108 @@ static func _relayout_pool_strip(strip: Control) -> void:
 	strip.offset_top = -(POOL_STRIP_HEIGHT + POOL_STRIP_BOTTOM_PAD)
 	strip.offset_bottom = -POOL_STRIP_BOTTOM_PAD
 	strip.custom_minimum_size = Vector2(0, POOL_STRIP_HEIGHT)
+
+
+static func _ensure_pool_strip_back(fade: Control) -> PanelContainer:
+	if fade == null:
+		return null
+	var back: PanelContainer = fade.get_node_or_null("PoolStripBack") as PanelContainer
+	if back != null:
+		return back
+	back = PanelContainer.new()
+	back.name = "PoolStripBack"
+	back.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	back.z_index = 11
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = POOL_STRIP_BACK_COLOR
+	sb.set_corner_radius_all(8)
+	sb.set_border_width_all(1)
+	sb.border_color = POOL_STRIP_BACK_BORDER
+	back.add_theme_stylebox_override("panel", sb)
+	fade.add_child(back)
+	return back
+
+
+static func _relayout_pool_strip_back(shell: Dictionary) -> void:
+	var fade: Control = shell.get("fade") as Control
+	var strip: Control = shell.get("pool_strip") as Control
+	var back: PanelContainer = shell.get("pool_strip_back") as PanelContainer
+	if fade == null:
+		return
+	if back == null:
+		back = _ensure_pool_strip_back(fade)
+		shell["pool_strip_back"] = back
+	if back == null or strip == null:
+		return
+	back.visible = strip.visible and str(strip.get_meta("strip_mode", "")) == "equipment"
+	back.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	back.offset_left = maxf(POOL_STRIP_SIDE_PAD - 4.0, 0.0)
+	back.offset_right = -maxf(POOL_STRIP_SIDE_PAD - 4.0, 0.0)
+	back.offset_top = -(POOL_STRIP_HEIGHT + POOL_STRIP_BOTTOM_PAD + 4.0)
+	back.offset_bottom = -maxf(POOL_STRIP_BOTTOM_PAD - 4.0, 0.0)
+
+
+static func _ensure_equip_icon_back(stage: Control) -> PanelContainer:
+	if stage == null:
+		return null
+	var back: PanelContainer = stage.get_node_or_null("EquipIconBack") as PanelContainer
+	if back != null:
+		return back
+	back = PanelContainer.new()
+	back.name = "EquipIconBack"
+	back.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	back.z_index = 4
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = EQUIP_ICON_BACK_COLOR
+	sb.set_corner_radius_all(18)
+	sb.set_border_width_all(2)
+	sb.border_color = EQUIP_ICON_BACK_BORDER
+	sb.shadow_color = Color(0, 0, 0, 0.35)
+	sb.shadow_size = 6
+	back.add_theme_stylebox_override("panel", sb)
+	back.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	back.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	back.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	back.visible = false
+	stage.add_child(back)
+	## idle より奥に。
+	var idle: Node = stage.get_node_or_null("FeaturedIdle")
+	if idle != null:
+		stage.move_child(back, idle.get_index())
+	return back
+
+
+static func _relayout_equip_icon_back(shell: Dictionary, idle_px: float, bottom: float) -> void:
+	var stage: Control = null
+	var fade: Control = shell.get("fade") as Control
+	if fade != null:
+		stage = fade.get_node_or_null("FeaturedStage") as Control
+	var back: PanelContainer = shell.get("equip_icon_back") as PanelContainer
+	if back == null and stage != null:
+		back = _ensure_equip_icon_back(stage)
+		shell["equip_icon_back"] = back
+	if back == null:
+		return
+	var side: float = idle_px * 0.5 + EQUIP_ICON_BACK_PAD
+	back.offset_left = -side + FEATURED_IDLE_OFFSET_X
+	back.offset_right = side + FEATURED_IDLE_OFFSET_X
+	back.offset_top = -idle_px - EQUIP_ICON_BACK_PAD + bottom
+	back.offset_bottom = EQUIP_ICON_BACK_PAD + bottom
+
+
+static func set_equip_icon_back_visible(shell: Dictionary, visible: bool) -> void:
+	var back: PanelContainer = shell.get("equip_icon_back") as PanelContainer
+	if back == null:
+		var fade: Control = shell.get("fade") as Control
+		var stage: Control = fade.get_node_or_null("FeaturedStage") as Control if fade != null else null
+		if stage != null:
+			back = _ensure_equip_icon_back(stage)
+			shell["equip_icon_back"] = back
+	if back != null:
+		back.visible = visible
+	var strip_back: PanelContainer = shell.get("pool_strip_back") as PanelContainer
+	if strip_back != null:
+		strip_back.visible = visible
 
 
 static func sorted_helpers() -> Array:
@@ -839,7 +952,11 @@ static func make_pool_equip_icon_button(entry: Dictionary) -> Button:
 	btn.set_meta("equip_kind", kind)
 	btn.tooltip_text = _GachaEquipSystem.display_name_for(kind, item_id)
 	_decorate_pool_icon_button(btn)
+	var icon: TextureRect = null
 	_add_pool_icon_texture(btn, IconPaths.get_icon_texture(item_id, kind))
+	icon = btn.get_node_or_null("Frame/Icon") as TextureRect
+	if icon != null:
+		icon.modulate = EQUIP_ICON_MODULATE
 	return btn
 
 
@@ -901,6 +1018,7 @@ static func apply_featured_helper(shell: Dictionary, helper: Resource) -> void:
 	if shell.is_empty() or helper == null:
 		return
 	_set_featured_banner_bg(shell, false)
+	set_equip_icon_back_visible(shell, false)
 	var pool_strip_h: Control = shell.get("pool_strip") as Control
 	if pool_strip_h != null:
 		pool_strip_h.visible = true
@@ -1025,6 +1143,7 @@ static func apply_featured_equipment(shell: Dictionary, entry: Dictionary) -> vo
 	if shell.is_empty() or entry.is_empty():
 		return
 	_set_featured_banner_bg(shell, true)
+	set_equip_icon_back_visible(shell, true)
 	var kind: String = str(entry.get("kind", "weapon"))
 	var item_id: String = str(entry.get("id", ""))
 	var idle: Control = shell.get("idle") as Control
@@ -1033,16 +1152,17 @@ static func apply_featured_equipment(shell: Dictionary, entry: Dictionary) -> vo
 		if idle.has_method("set_static_texture") and tex != null:
 			idle.call("set_static_texture", tex)
 		idle.visible = true
-		idle.modulate = Color.WHITE
+		idle.modulate = EQUIP_ICON_MODULATE
 	var name_lbl: Label = shell.get("name") as Label
 	if name_lbl != null:
 		name_lbl.text = _GachaEquipSystem.display_name_for(kind, item_id)
 	var stars_lbl: Label = shell.get("stars") as Label
 	if stars_lbl != null:
-		stars_lbl.text = "L"
+		stars_lbl.text = "LEGEND"
 	var job_lbl: Label = shell.get("job") as Label
 	if job_lbl != null:
-		job_lbl.text = "%s・%s" % [str(entry.get("seat", "")), _GachaEquipSystem.kind_label(kind)]
+		job_lbl.text = ""
+		job_lbl.visible = false
 	var hp_lbl: Label = shell.get("hp") as Label
 	if hp_lbl != null:
 		hp_lbl.text = ""
@@ -1065,17 +1185,22 @@ static func apply_featured_equipment(shell: Dictionary, entry: Dictionary) -> vo
 		blurb_wrap.visible = not feature_text.is_empty()
 	var unique_title_lbl: Label = shell.get("unique_title") as Label
 	if unique_title_lbl != null:
-		unique_title_lbl.text = _GachaEquipSystem.effect_title()
-		unique_title_lbl.visible = true
+		## 効果文を本文にまとめるため、タイトル行は出さない。
+		unique_title_lbl.text = ""
+		unique_title_lbl.visible = false
 	var unique_lbl: Label = shell.get("unique") as Label
 	if unique_lbl != null:
 		unique_lbl.text = _GachaEquipSystem.effect_text_for(entry)
 		unique_lbl.visible = not unique_lbl.text.is_empty()
-		unique_lbl.max_lines_visible = 6
+		unique_lbl.max_lines_visible = 8
+		unique_lbl.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	var pool_strip: Control = shell.get("pool_strip") as Control
 	if pool_strip != null:
 		pool_strip.visible = true
 		highlight_pool_icon(pool_strip, item_id)
+	var strip_back: PanelContainer = shell.get("pool_strip_back") as PanelContainer
+	if strip_back != null:
+		strip_back.visible = true
 	var stats_wrap: Control = shell.get("stats_wrap") as Control
 	if stats_wrap != null:
 		stats_wrap.visible = true
