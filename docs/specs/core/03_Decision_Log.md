@@ -6014,3 +6014,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-ABYSS-PROGRESS-HIDE-001-2 | **バー** — 進行バーは空（value=0） | 「空にして」指示 |
 | P3-UX-ABYSS-PROGRESS-HIDE-001-3 | **据置** — F表示（F12 等）・部屋チップ・本編進行％ | 階数そのものは有用 |
 | P3-UX-ABYSS-PROGRESS-HIDE-001-4 | **上書き** — P3-UX-RUN-HUD-FLOOR-PCT-001 の深層分母扱い | 本 Decision が深層UIの正 |
+
+## 灰冠限定武器9本（2026-07-31 — P3-GACHA-EQ-KAIWAN-002）
+
+> **オーナー GO** — 二つ名＋カタカナ。メリデメ対。#1＝塞図クロスリット（初撃特化）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-GACHA-EQ-KAIWAN-002-1 | **命名** — 二つ名（漢字）＋カタカナ固有名 | オーナー指定 |
+| P3-GACHA-EQ-KAIWAN-002-2 | **9本** — 塞図クロスリット／売境ヴェンディクト／裂鍵サイレント／違約パーフィディ／灯断ノクス／偽星フォルス／奪潮サルティーン／枯翠ウィルテス／断継レリクトス | オーナー GO |
+| P3-GACHA-EQ-KAIWAN-002-3 | **種** — 剣×3・双剣×2・弓×2・杖×2（槌・槍は未使用） | 職制限に整合 |
+| P3-GACHA-EQ-KAIWAN-002-4 | **効果** — メリット／デメリットを対で明示。数値は方針値・実装時調整可 | 悪い武器の可読性 |
+| P3-GACHA-EQ-KAIWAN-002-5 | **席タグ** — 将来の灰冠防具・装飾・限定ランダムステと同軸 | ビルド拡張の布石 |
+| P3-GACHA-EQ-KAIWAN-002-6 | **SSOT** — `decisions/28_KaiwanNineGachaRelics.md` §3 | 品目の正 |
