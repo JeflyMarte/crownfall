@@ -19,4 +19,4 @@ base_attack_range = 1.0
 weight = 0.95
 element = "thunder"
 weapon_type = "sword"
-tags = Array[String](["slash", "thunder"])
+tags = Array[String](["slash", "lightning"])

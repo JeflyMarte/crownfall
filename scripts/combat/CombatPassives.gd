@@ -914,6 +914,10 @@ static func tier_def_for(job_id: String, rarity: int) -> Dictionary:
 static func get_def(passive_id: String) -> Dictionary:
 	return _def_with_id(passive_id)
 
+
+static func all_def_ids() -> Array:
+	return _DEFS.keys()
+
 static func migrate_relic_passive_id(raw_id: String) -> String:
 	var pid: String = str(raw_id)
 	if pid.is_empty():
