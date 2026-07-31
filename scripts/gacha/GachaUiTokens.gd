@@ -153,8 +153,9 @@ static func apply_pull_button(btn: Button, enabled: bool) -> void:
 	btn.add_theme_stylebox_override("disabled", pull_disabled_style())
 	btn.disabled = not enabled
 	btn.custom_minimum_size = Vector2(PULL_BTN_MIN_WIDTH, PULL_BTN_HEIGHT)
-	## 横いっぱいに伸ばすとボタン間が空いて見える。枠幅は MIN_WIDTH のみ。
-	btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	## Expand 禁止。並びは GachaScene の CenterContainer で中央寄せ。
+	btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	btn.size_flags_stretch_ratio = 0.0
 
 static func decorate_title(label: Label) -> void:
 	UiTypography.apply_screen_title(label, UiTypography.SIZE_DISPLAY)

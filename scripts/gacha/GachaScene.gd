@@ -38,8 +38,8 @@ const REVEAL_CONFETTI_DUP: int = 48
 @onready var _lineup_container: VBoxContainer = $DetailOverlay/DetailPanel/DetailVBox/LineupScrollContainer/LineupContainer
 @onready var _btn_detail_close: Button = $DetailOverlay/DetailPanel/DetailVBox/DetailHeader/BtnDetailClose
 @onready var _label_result: Label = $SummonActionBar/LabelResult
-@onready var _button_pull: Button = $SummonActionBar/PullRow/ButtonPull
-@onready var _button_pull_ticket: Button = $SummonActionBar/PullRow/ButtonPullTicket
+@onready var _button_pull: Button = $SummonActionBar/PullRowCenter/PullRow/ButtonPull
+@onready var _button_pull_ticket: Button = $SummonActionBar/PullRowCenter/PullRow/ButtonPullTicket
 @onready var _summon_layer: CanvasLayer = $SummonRevealLayer
 @onready var _summon_dim: ColorRect = $SummonRevealLayer/Dim
 @onready var _invite_glow: TextureRect = $SummonRevealLayer/InviteGlow
@@ -379,6 +379,7 @@ func _setup_gacha_chrome() -> void:
 	)
 	GachaUiHelper.setup_pull_button(_button_pull, true)
 	GachaUiHelper.setup_ticket_pull_button(_button_pull_ticket, true)
+	_pack_pull_row()
 	_apply_button_style(_btn_rate_detail, GachaUiTokens.detail_button_style())
 	_apply_button_style(_btn_detail_close, GachaUiTokens.detail_button_style())
 	UiTypography.apply_body(_label_result, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
@@ -468,6 +469,26 @@ func _apply_button_style(btn: Button, style: StyleBox) -> void:
 		btn.add_theme_stylebox_override("hover", style)
 		btn.add_theme_stylebox_override("pressed", style)
 
+
+## 引きボタンを隣同士に詰めて中央寄せ（枠の長さは MIN_WIDTH のまま）。
+func _pack_pull_row() -> void:
+	var row: HBoxContainer = get_node_or_null("SummonActionBar/PullRowCenter/PullRow") as HBoxContainer
+	if row == null:
+		return
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 4)
+	row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	for btn: Button in [_button_pull, _button_pull_ticket]:
+		if btn == null:
+			continue
+		btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		btn.size_flags_stretch_ratio = 0.0
+		btn.custom_minimum_size = Vector2(
+			GachaUiTokens.PULL_BTN_MIN_WIDTH,
+			GachaUiTokens.PULL_BTN_HEIGHT
+		)
+
+
 func _refresh() -> void:
 	_label_gold.text = "%d" % GameState.gold
 	_label_token.text = CurrencyHelper.format_amount()
@@ -501,6 +522,7 @@ func _refresh() -> void:
 	else:
 		GachaUiHelper.setup_pull_button(_button_pull, not _button_pull.disabled)
 		GachaUiHelper.setup_ticket_pull_button(_button_pull_ticket, not _button_pull_ticket.disabled)
+	_pack_pull_row()
 	if not _summon_active:
 		if _is_seal_page():
 			var seal_n: int = TicketSystem.free_seal_qty()
