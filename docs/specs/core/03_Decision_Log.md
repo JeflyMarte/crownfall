@@ -6066,6 +6066,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-GACHA-EQ-KAIWAN-004-6 | **焼直し** — 同プール。席枠は自席のまま | 既存鍛冶と整合 |
 | P3-GACHA-EQ-KAIWAN-004-7 | **SSOT** — `decisions/28_KaiwanNineGachaRelics.md` §6 | 品目の正 |
 
+<<<<<<< HEAD
 ## 出血・毒 DoT 誤配線修正（2026-07-31 — P3-FIX-DOT-SOURCE-001）
 
 > **オーナー点検** — 出血／毒ダメージが入っているように見えない。
@@ -6075,3 +6076,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-FIX-DOT-SOURCE-001-1 | **敵スキル付与** — ヒットしたパーティへ `apply_status(party_*)`（`_apply_status_to_member_target` は敵向けのため禁止） | 誤配線で味方に乗らなかった |
 | P3-FIX-DOT-SOURCE-001-2 | **出血 source** — 罠／非戦闘失敗／Affix／パッシブ付与でも source_attack を渡す | percent DoT は 0 基準だと tick 0 |
 | P3-FIX-DOT-SOURCE-001-3 | **据置** — 毒 flat／プレイヤー技・武器 on_hit の既存 source 配線／通常攻撃 on_hit | 非回帰 |
+=======
+## 封蔵の匣 UI（2026-07-31 — P3-GACHA-EQ-SEAL-UI-001）
+
+> **オーナー GO** — 招待状と同骨格。→／←で招き↔封蔵。単価300。無料券なし（v1）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-GACHA-EQ-SEAL-UI-001-1 | **同一シーン** — `GachaScene` 内ページ切替。新規シーンなし | 骨格共有 |
+| P3-GACHA-EQ-SEAL-UI-001-2 | **切替** — Featured 枠の →／←（循環）。上タブなし | オーナー指定 |
+| P3-GACHA-EQ-SEAL-UI-001-3 | **単価** — 封蔵 300 魔晶石。招待無料券は使わない（v1） | 招待500と分離 |
+| P3-GACHA-EQ-SEAL-UI-001-4 | **排出** — 灰冠武防飾27のみ。真王遺産／神話／降臨セット除外 | Decision 28 |
+| P3-GACHA-EQ-SEAL-UI-001-5 | **SSOT** — `decisions/29_SealGachaUI.md` | UI の正 |
+>>>>>>> cursor/kaiwan-seal-gacha-ui-8446

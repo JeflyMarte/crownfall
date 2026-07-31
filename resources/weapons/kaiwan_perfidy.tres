@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "kaiwan_perfidy"
+display_name = "違約パーフィディ"
+description = "盟約を破るための双刃。"
+fixed_skill_id = ""
+fixed_passive_id = ""
+base_attack = 205
+rarity = 3
+base_attack_speed = 1.1
+base_critical_rate = 0.1
+base_knockback = 0.1
+base_stagger_power = 0.1
+base_attack_range = 1.0
+weight = 1.0
+element = "dark"
+weapon_type = "dual_blades"
+tags = Array[String](["dark", "kaiwan"])
+flavor_text = "灰冠の九・破約・デバフ特攻。盗まれた炉の武具。正義の刃ではない。"

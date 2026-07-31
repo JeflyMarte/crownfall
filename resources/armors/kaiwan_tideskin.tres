@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ArmorData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ArmorData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+armor_id = "kaiwan_tideskin"
+display_name = "奪潮タイドスキン"
+description = "灰冠の九が私兵化した防具。欠け王冠の模刻が残る。"
+base_defense = 135
+base_hp_bonus = 225
+base_resistance = 0.0
+resist_elements = Array[String](["dark"])
+weight = 1.0
+rarity = 3
+fixed_passive_id = ""
