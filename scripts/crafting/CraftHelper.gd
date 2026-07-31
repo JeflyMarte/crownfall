@@ -98,14 +98,23 @@ static func try_unlock(output_type: String, output_id: String) -> bool:
 
 
 ## 装備入手時フック。初回解放なら true。
-static func note_equipment_obtained(instance: Resource) -> bool:
+## record_run=true のとき Result 用 `last_run_craft_unlocks` にも積む（セーブ同期は false）。
+static func note_equipment_obtained(instance: Resource, record_run: bool = true) -> bool:
 	if instance == null:
 		return false
 	var cat: String = _EquipmentEnhancer.item_category(instance)
 	var mid: String = _EquipmentEnhancer._item_master_id(instance)
 	if cat.is_empty() or mid.is_empty():
 		return false
-	return try_unlock(cat, mid)
+	if not try_unlock(cat, mid):
+		return false
+	if record_run:
+		var label: String = mid
+		var data: Resource = _master_data(cat, mid)
+		if data != null and "display_name" in data:
+			label = str(data.display_name)
+		GameState.record_last_run_craft_unlock(cat, mid, label)
+	return true
 
 
 ## 所持インベントリ／装備中から解放を同期（旧セーブ移行用）。
@@ -120,27 +129,27 @@ static func sync_unlocks_from_owned() -> void:
 			continue
 		for raw: Variant in bag:
 			if raw is Resource:
-				note_equipment_obtained(raw as Resource)
+				note_equipment_obtained(raw as Resource, false)
 	for member: Variant in GameState.party_members:
 		if member == null or not (member is Resource):
 			continue
 		var m: Resource = member as Resource
 		if "equipped_weapon" in m and m.equipped_weapon != null:
-			note_equipment_obtained(m.equipped_weapon)
+			note_equipment_obtained(m.equipped_weapon, false)
 		if "equipped_armor" in m and m.equipped_armor != null:
-			note_equipment_obtained(m.equipped_armor)
+			note_equipment_obtained(m.equipped_armor, false)
 		if "equipped_accessory" in m and m.equipped_accessory != null:
-			note_equipment_obtained(m.equipped_accessory)
+			note_equipment_obtained(m.equipped_accessory, false)
 	for member2: Variant in GameState.roster:
 		if member2 == null or not (member2 is Resource):
 			continue
 		var m2: Resource = member2 as Resource
 		if "equipped_weapon" in m2 and m2.equipped_weapon != null:
-			note_equipment_obtained(m2.equipped_weapon)
+			note_equipment_obtained(m2.equipped_weapon, false)
 		if "equipped_armor" in m2 and m2.equipped_armor != null:
-			note_equipment_obtained(m2.equipped_armor)
+			note_equipment_obtained(m2.equipped_armor, false)
 		if "equipped_accessory" in m2 and m2.equipped_accessory != null:
-			note_equipment_obtained(m2.equipped_accessory)
+			note_equipment_obtained(m2.equipped_accessory, false)
 
 
 static func costs_for_rarity(rarity: int) -> Dictionary:
