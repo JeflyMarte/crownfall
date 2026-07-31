@@ -5932,3 +5932,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-CMD-RANK-CURVE-002-2 | **既存セーブ据置** — v2閾値到達分を下限に（表示等級は下がらない）。`rank_curve_v3` で一度だけ移行 | REWARD-001 と同型 |
 | P3-CMD-RANK-CURVE-002-3 | **上書き** — `P3-CMD-RANK-REWARD-001-1` の閾値表 | 本 Decision が正 |
 | P3-CMD-RANK-CURVE-002-4 | **据置** — SP重み／到達Gold手当／称号枠／TopBarバー | 速度のみ調整 |
+
+## 調査室・派遣 EXP（2026-07-31 — P3-SURVEY-DISPATCH-EXP-001）
+
+> **オーナー GO（推奨パッケージ）** — 調査に出た戦闘員へ EXP。結果は調査完了ポップで分かる。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-SURVEY-DISPATCH-EXP-001-1 | **対象** — 配置した戦闘ロスターのみ。ニーナ／ノノカ除外。オトモなし | 依頼どおり |
+| P3-SURVEY-DISPATCH-EXP-001-2 | **量** — 対象 DG 雑魚クリア相当 × 短20%／標準45% | 潜行比（案B）。潜行より一段下 |
+| P3-SURVEY-DISPATCH-EXP-001-3 | **割** — プール固定→均等（端数は先頭から） | 人数で総量が増えない |
+| P3-SURVEY-DISPATCH-EXP-001-4 | **付与** — 受取時のみ。中止は無し。`LevelSystem.grant_exp` | 潜行と同パッシブ乗算 |
+| P3-SURVEY-DISPATCH-EXP-001-5 | **UI** — 調査完了ポップに顔＋`+N EXP`／Lv↑ | UI-1 コンパクト |
+| P3-SURVEY-DISPATCH-EXP-001-6 | **SSOT** — `05_HubSurveyRoom.md` §13／`SurveyConfig` EXP 定数 | 数値の正 |

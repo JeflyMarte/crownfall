@@ -8,6 +8,8 @@ const _SurveyStaff := preload("res://scripts/survey/SurveyStaff.gd")
 const _WeaponStatResolver := preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _EquipmentEnhancer := preload("res://scripts/equipment/EquipmentEnhancer.gd")
 const _RosterUiHelper := preload("res://scripts/roster/RosterUiHelper.gd")
+const _LevelSystem := preload("res://scripts/systems/LevelSystem.gd")
+const _BalanceConfig := preload("res://scripts/combat/BalanceConfig.gd")
 
 
 static func is_survey_staff(member_id: String) -> bool:
@@ -410,6 +412,7 @@ static func claim_cycle() -> Dictionary:
 		return {"ok": false, "reason": "まだ調査が完了していません"}
 	var dungeon_id: String = str(GameState.hub_survey_cycle.get("dungeon_id", ""))
 	var preset: String = str(GameState.hub_survey_cycle.get("preset", _SurveyConfig.PRESET_STANDARD))
+	var assignees: Array = GameState.hub_survey_cycle.get("assignees", []) as Array
 	## 日次 SURVEY 上限到達後は魔晶石を半減（放置石稼ぎ抑制）。
 	var over_cap: bool = is_room_daily_capped()
 	var rewards: Dictionary = _roll_rewards(preset, over_cap)
@@ -423,6 +426,9 @@ static func claim_cycle() -> Dictionary:
 	var weapon_id: String = str(rewards.get("weapon_id", ""))
 	if not weapon_id.is_empty():
 		_grant_weapon(weapon_id)
+	var exp_result: Dictionary = grant_dispatch_exp(dungeon_id, preset, assignees)
+	rewards["exp_pool"] = int(exp_result.get("pool", 0))
+	rewards["exp_entries"] = exp_result.get("entries", [])
 	add_survey_percent(dungeon_id, _SurveyConfig.cycle_survey_add(preset), true)
 	GameState.hub_survey_cycle = {}
 	rewards["ok"] = true
@@ -430,6 +436,89 @@ static func claim_cycle() -> Dictionary:
 	rewards["token_over_cap"] = over_cap
 	SaveManager.save_game()
 	return rewards
+
+
+## 対象 DG の雑魚クリア相当 EXP（ボス除外の推定）。
+static func reference_trash_clear_exp(dungeon_id: String) -> int:
+	var dungeon: Resource = DataRegistry.get_dungeon_data(dungeon_id)
+	if dungeon == null:
+		return 100
+	var total: int = 0
+	var n: int = 0
+	for eid_v in dungeon.enemy_pool:
+		var data: Resource = DataRegistry.get_enemy_data(str(eid_v))
+		if data == null:
+			continue
+		total += maxi(0, int(data.exp_reward))
+		n += 1
+	var avg: float = 10.0 if n <= 0 else float(total) / float(n)
+	var enemy_lv: int = maxi(1, int(dungeon.enemy_level))
+	var lf: float = float(enemy_lv - 1)
+	avg *= 1.0 + _BalanceConfig.ENEMY_LEVEL_EXP_K * lf
+	var rooms: int = maxi(1, int(dungeon.room_count) - 1)
+	return maxi(1, int(round(avg * float(rooms) * _SurveyConfig.EXP_TRASH_SWARM_AVG)))
+
+
+static func dispatch_exp_pool(dungeon_id: String, preset: String) -> int:
+	var ratio: float = (
+		_SurveyConfig.EXP_RATIO_SHORT
+		if preset == _SurveyConfig.PRESET_SHORT
+		else _SurveyConfig.EXP_RATIO_STANDARD
+	)
+	return maxi(0, int(round(float(reference_trash_clear_exp(dungeon_id)) * ratio)))
+
+
+## 配置のうち戦闘ロスターのみ（スタッフ除外・重複除外・順序維持）。
+static func combat_assignee_ids(assignees: Array) -> Array[String]:
+	var out: Array[String] = []
+	var seen: Dictionary = {}
+	for entry in assignees:
+		var mid: String = ""
+		if entry is String:
+			mid = str(entry)
+		elif entry is Dictionary:
+			mid = str(entry.get("member_id", ""))
+		if mid.is_empty() or is_survey_staff(mid) or seen.has(mid):
+			continue
+		if GameState.find_roster_member_by_id(mid) == null:
+			continue
+		seen[mid] = true
+		out.append(mid)
+	return out
+
+
+## プール固定→均等割で付与。entries は UI 用。
+static func grant_dispatch_exp(dungeon_id: String, preset: String, assignees: Array) -> Dictionary:
+	var recipients: Array[String] = combat_assignee_ids(assignees)
+	var pool: int = dispatch_exp_pool(dungeon_id, preset) if not recipients.is_empty() else 0
+	var entries: Array = []
+	if recipients.is_empty() or pool <= 0:
+		return {"pool": 0, "entries": entries}
+	var n: int = recipients.size()
+	var base: int = int(pool / n)
+	var rem: int = pool - base * n
+	var exp_by: Dictionary = {}
+	for i: int in n:
+		var share: int = base + (1 if i < rem else 0)
+		exp_by[recipients[i]] = share
+	for mid: String in recipients:
+		var adv: Resource = GameState.find_roster_member_by_id(mid)
+		if adv == null:
+			continue
+		var amount: int = int(exp_by.get(mid, 0))
+		var lv_before: int = int(adv.level)
+		var exp_before: int = int(adv.exp)
+		var levels: int = _LevelSystem.grant_exp(adv, amount)
+		entries.append({
+			"member_id": mid,
+			"exp": amount,
+			"levels_gained": levels,
+			"level_before": lv_before,
+			"level_after": int(adv.level),
+			"exp_before": exp_before,
+			"exp_after": int(adv.exp),
+		})
+	return {"pool": pool, "entries": entries}
 
 
 ## 進行中の調査サイクルを中止（報酬・SURVEY加算なし）。完了済みは受け取りを促す。

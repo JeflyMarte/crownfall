@@ -54,6 +54,13 @@ const MATERIAL_SHORT_MAX: int = 4
 const MATERIAL_STANDARD_MIN: int = 5
 const MATERIAL_STANDARD_MAX: int = 9
 
+## P3-SURVEY-DISPATCH-EXP-001 — 戦闘員向け EXP（プール固定→均等割）。
+## 参照＝対象 DG 雑魚クリア相当 EXP。スタッフ／オトモは対象外。
+const EXP_RATIO_SHORT: float = 0.20
+const EXP_RATIO_STANDARD: float = 0.45
+## 雑魚クリア推定: 平均EXP × (room_count-1) × 群れ平均。
+const EXP_TRASH_SWARM_AVG: float = 1.5
+
 const ROLE_IDS: Array[String] = ["archaeology", "geology", "documents", "liaison"]
 const ROLE_DISPLAY: Dictionary = {
 	"archaeology": "考古担当",

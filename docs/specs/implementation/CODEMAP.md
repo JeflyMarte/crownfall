@@ -136,7 +136,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `blacksmith/` | `BlacksmithScene.gd`（生産／炉研ぎ／**焼直し**／**錬成**／分解 — **P3-FORGE-ALCHEMY-001**／**P3-FORGE-REFORGE-001**）・`BlacksmithUiHelper.gd`・**`ForgeUiTokens.gd`** |
 | `gacha/` | **`GachaSystem.gd`**・**`GachaRarityConfig.gd`**・**`GachaLimitBreak.gd`**（**P3-GACHA-LIMIT-001**）・**`GachaRevealPresenter.gd`**（**P3-GACHA-REVEAL-001**）・**`GachaScene.gd`**（P3-UI2-020・**P3-GACHA-002/003**・**P3-UI-GACHA**・**P3-GACHA-FEATURE-IDLE-001** Featured idle・**P3-GACHA-FEATURE-BLURB-001** 特徴行）・**`GachaUiTokens.gd`**・**`GachaUiHelper.gd`** |
 | `pets/` | **`PetSystem.gd`**・**`PetData.gd`**（ジャック／色変え・**P3-PET-SURVEY-UNLOCK-001** WW/BS調査100%解放） |
-| `survey/` | **`SurveySystem`**／**`SurveyScene`**／**`SurveyClaimResultOverlay`**（サイクル受取＝鍛冶分解同型ポップ）／**`SurveyCompleteRewards`**（完全調査100%ごと景品→0%・ペット初回のみ・P3-SURVEY-COMPLETE-001） |
+| `survey/` | **`SurveySystem`**／**`SurveyScene`**／**`SurveyClaimResultOverlay`**（サイクル受取＝鍛冶分解同型ポップ＋派遣EXP表示）／**`SurveyCompleteRewards`**（完全調査100%ごと景品→0%・ペット初回のみ・P3-SURVEY-COMPLETE-001）。派遣EXP＝P3-SURVEY-DISPATCH-EXP-001 |
 | `tickets/` | **`TicketIds`**／**`TicketInventory`**／**`TicketSystem`**（無料ガチャ・LB★2/3/4） |
 
 | `equipment/MythicLoot.gd` | 神話ドロップ SSOT（**P3-EQ-MYTHIC-001**） |

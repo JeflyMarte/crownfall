@@ -778,6 +778,10 @@ func _debug_show_survey_claim_result() -> void:
 		"gold": 50,
 		"token": 10,
 		"weapon_id": "",
+		"exp_entries": [
+			{"member_id": "adventurer_0", "exp": 48, "levels_gained": 0, "level_after": 5},
+			{"member_id": "adventurer_1", "exp": 48, "levels_gained": 1, "level_after": 4},
+		],
 	})
 
 

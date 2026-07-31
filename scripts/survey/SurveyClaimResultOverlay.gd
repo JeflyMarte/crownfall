@@ -155,11 +155,59 @@ func _populate(result: Dictionary) -> void:
 	if not weapon_id.is_empty():
 		any = true
 		col.add_child(_make_weapon_row(weapon_id))
+	var exp_entries: Array = result.get("exp_entries", []) as Array
+	if not exp_entries.is_empty():
+		any = true
+		col.add_child(_make_exp_section(exp_entries))
 	if not any:
 		var empty := Label.new()
 		empty.text = "（成果なし）"
 		UiTypography.apply_caption(empty, UiTypography.COLOR_SUB)
 		col.add_child(empty)
+
+
+func _make_exp_section(entries: Array) -> Control:
+	var box := VBoxContainer.new()
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.add_theme_constant_override("separation", 8)
+	var header := Label.new()
+	header.text = "経験値"
+	UiTypography.apply_caption(header, UiTypography.COLOR_GOLD)
+	box.add_child(header)
+	for entry_v in entries:
+		if not (entry_v is Dictionary):
+			continue
+		box.add_child(_make_exp_row(entry_v as Dictionary))
+	return box
+
+
+func _make_exp_row(entry: Dictionary) -> Control:
+	var mid: String = str(entry.get("member_id", ""))
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 14)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var tex: Texture2D = SurveySystem.investigator_portrait_texture(mid)
+	row.add_child(_make_plain_icon(tex, 64))
+	var text_col := VBoxContainer.new()
+	text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_col.add_theme_constant_override("separation", 2)
+	var name_lbl := Label.new()
+	name_lbl.text = SurveySystem.investigator_display_name(mid)
+	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTypography.apply_body(name_lbl, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
+	text_col.add_child(name_lbl)
+	var amount: int = int(entry.get("exp", 0))
+	var levels: int = int(entry.get("levels_gained", 0))
+	var lv_after: int = int(entry.get("level_after", 0))
+	var detail := Label.new()
+	if levels > 0:
+		detail.text = "+%d EXP  Lv.%d↑" % [amount, lv_after]
+	else:
+		detail.text = "+%d EXP" % amount
+	UiTypography.apply_body(detail, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	text_col.add_child(detail)
+	row.add_child(text_col)
+	return row
 
 
 func _make_material_row(mat_id: String, qty: int) -> Control:
