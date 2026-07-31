@@ -5918,3 +5918,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-ENEMY-BASIC-NAME-001-2 | **命名** — 敵ごと1語（`EnemyData.basic_attack_name`）。全敵一括。自スキル名と重複禁止。未設定フォールバック＝「攻撃」 | 案B。学習しやすい |
 | P3-UX-ENEMY-BASIC-NAME-001-3 | **表示** — 既存 `_spawn_enemy_skill_name` と同型（`【技名】`・❗️予告は残す） | スキルと見た目統一 |
 | P3-UX-ENEMY-BASIC-NAME-001-4 | **ログ** — `敵の攻撃【技名】:` に技名を含める | テロップと対応 |
+
+## 調査許可等級カーブ再調整（2026-07-31 — P3-CMD-RANK-CURVE-002）
+
+> **オーナー GO（推奨案X）** — 5-5ノーマルクリア前後でS到達。SP重み据置・閾値のみ変更。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-CMD-RANK-CURVE-002-1 | **閾値** — D0 / C300 / B650 / A1050 / S1450 | 5-5前後でS。章進行に合わせて配分 |
+| P3-CMD-RANK-CURVE-002-2 | **既存セーブ据置** — v2閾値到達分を下限に（表示等級は下がらない）。`rank_curve_v3` で一度だけ移行 | REWARD-001 と同型 |
+| P3-CMD-RANK-CURVE-002-3 | **上書き** — `P3-CMD-RANK-REWARD-001-1` の閾値表 | 本 Decision が正 |
+| P3-CMD-RANK-CURVE-002-4 | **据置** — SP重み／到達Gold手当／称号枠／TopBarバー | 速度のみ調整 |

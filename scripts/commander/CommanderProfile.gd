@@ -11,22 +11,31 @@ const DEFAULT_NAME: String = _CommanderDefaults.DEFAULT_NAME
 
 const RANK_ORDER: Array[String] = ["D", "C", "B", "A", "S"]
 
-## 現行閾値（P3-CMD-RANK-REWARD-001-1）。
+## 現行閾値（P3-CMD-RANK-CURVE-002 — 5-5前後でS）。
 const RANK_THRESHOLDS: Dictionary = {
 	"D": 0,
-	"C": 200,
-	"B": 700,
-	"A": 1500,
-	"S": 2800,
+	"C": 300,
+	"B": 650,
+	"A": 1050,
+	"S": 1450,
 }
 
-## 改定前閾値（既存セーブ据置用）。
+## 初版閾値（rank_curve_v2 移行の据置用）。
 const LEGACY_RANK_THRESHOLDS: Dictionary = {
 	"D": 0,
 	"C": 100,
 	"B": 350,
 	"A": 750,
 	"S": 1200,
+}
+
+## v2 閾値（P3-CMD-RANK-REWARD-001 / rank_curve_v3 移行の据置用）。
+const RANK_THRESHOLDS_V2: Dictionary = {
+	"D": 0,
+	"C": 200,
+	"B": 700,
+	"A": 1500,
+	"S": 2800,
 }
 
 const RANK_SUBTITLES: Dictionary = {
@@ -48,16 +57,19 @@ const RANK_GIFT_GOLD: Dictionary = {
 const EXTENDED_RECORDS_UNLOCK_RANK: String = "A"
 const GOLD_SEAL_RANK: String = "S"
 const RANK_CURVE_FLAG: String = "rank_curve_v2"
+const RANK_CURVE_V3_FLAG: String = "rank_curve_v3"
 
 
 static func ensure_commander() -> void:
 	if GameState.commander is Dictionary and not GameState.commander.is_empty():
 		_sanitize_commander()
 		migrate_rank_curve_v2_if_needed()
+		migrate_rank_curve_v3_if_needed()
 		return
 	GameState.commander = _CommanderDefaults.default_commander_dict()
 	_sanitize_commander()
 	migrate_rank_curve_v2_if_needed()
+	migrate_rank_curve_v3_if_needed()
 
 
 static func get_commander_name() -> String:
@@ -181,14 +193,23 @@ static func bootstrap_acknowledged_rank_if_needed() -> void:
 
 ## 閾値改定の一度きりの移行。旧閾値到達分を ack 下限にし、ギフトは出さない。
 static func migrate_rank_curve_v2_if_needed() -> void:
+	_migrate_rank_curve_if_needed(RANK_CURVE_FLAG, LEGACY_RANK_THRESHOLDS)
+
+
+## P3-CMD-RANK-CURVE-002: v2→現行。表示等級は下げない。
+static func migrate_rank_curve_v3_if_needed() -> void:
+	_migrate_rank_curve_if_needed(RANK_CURVE_V3_FLAG, RANK_THRESHOLDS_V2)
+
+
+static func _migrate_rank_curve_if_needed(flag_key: String, previous_thresholds: Dictionary) -> void:
 	if not GameState.commander is Dictionary:
 		return
-	if bool(GameState.commander.get(RANK_CURVE_FLAG, false)):
+	if bool(GameState.commander.get(flag_key, false)):
 		return
 	## evaluate→get_lifetime→ensure 再入を防ぐため先にフラグを立てる。
-	GameState.commander[RANK_CURVE_FLAG] = true
+	GameState.commander[flag_key] = true
 	var sp: int = _CommanderSurveyPoints.evaluate()
-	var legacy: String = rank_for_sp_with(LEGACY_RANK_THRESHOLDS, sp)
+	var previous_rank: String = rank_for_sp_with(previous_thresholds, sp)
 	var ack: String = str(GameState.commander.get("acknowledged_rank", "D")).strip_edges().to_upper()
 	if RANK_ORDER.find(ack) < 0:
 		ack = "D"
@@ -196,7 +217,7 @@ static func migrate_rank_curve_v2_if_needed() -> void:
 	if bool(GameState.commander.get("_ack_needs_bootstrap", false)):
 		GameState.commander.erase("_ack_needs_bootstrap")
 		ack = "D"
-	GameState.commander["acknowledged_rank"] = higher_rank(ack, legacy)
+	GameState.commander["acknowledged_rank"] = higher_rank(ack, previous_rank)
 	## 既到達分はギフト再配布しない。
 	var rewarded: Array = _rank_reward_ranks()
 	var floor_idx: int = RANK_ORDER.find(str(GameState.commander.get("acknowledged_rank", "D")))
@@ -491,4 +512,4 @@ static func _sanitize_commander() -> void:
 		if RANK_ORDER.find(ack) < 0:
 			GameState.commander["acknowledged_rank"] = "D"
 			GameState.commander["_ack_needs_bootstrap"] = true
-	## rank_curve_v2 欠落は migrate 側で処理（ここでは触らない）。
+	## rank_curve_v2 / v3 欠落は migrate 側で処理（ここでは触らない）。
