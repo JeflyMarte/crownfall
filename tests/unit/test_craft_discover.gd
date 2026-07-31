@@ -23,6 +23,25 @@ func test_mythic_not_craftable() -> void:
 	assert_false(CraftHelper.try_unlock("weapon", "burial_crown_greatsword"))
 
 
+func test_kaiwan_and_abyss_not_craftable_or_unlocked() -> void:
+	## 灰冠／深層は封蔵・専用枠。入手しても生産解放しない（P3-FIX-EQ-META-AUDIT-A-001）。
+	assert_false(CraftHelper.is_craftable_master("weapon", "kaiwan_crosslit"))
+	assert_false(CraftHelper.is_craftable_master("weapon", "abyss_netherbow"))
+	assert_false(CraftHelper.try_unlock("weapon", "kaiwan_crosslit"))
+	GameState.reset_for_new_game()
+	GameState.unlocked_craft_outputs.clear()
+	var kaiwan: Resource = WeaponInstance.new()
+	kaiwan.instance_id = "t_kaiwan_1"
+	kaiwan.weapon_id = "kaiwan_crosslit"
+	assert_false(CraftHelper.note_equipment_obtained(kaiwan))
+	assert_false(CraftHelper.is_unlocked("weapon", "kaiwan_crosslit"))
+	var abyss: Resource = WeaponInstance.new()
+	abyss.instance_id = "t_abyss_1"
+	abyss.weapon_id = "abyss_netherbow"
+	assert_false(CraftHelper.note_equipment_obtained(abyss))
+	assert_false(CraftHelper.is_unlocked("weapon", "abyss_netherbow"))
+
+
 func test_legendary_costs_heavier_than_epic() -> void:
 	var epic: Dictionary = CraftHelper.costs_for_rarity(Enums.Rarity.EPIC)
 	var leg: Dictionary = CraftHelper.costs_for_rarity(Enums.Rarity.LEGENDARY)

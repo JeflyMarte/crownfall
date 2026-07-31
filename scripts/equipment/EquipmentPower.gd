@@ -66,6 +66,9 @@ static func _accessory_score(accessory: Resource) -> float:
 	var defense: float = 0.0
 	var crt: float = 0.0
 	if data != null:
+		## effective_* はフィールド反映済みの random_mods（HP/ATK/DEF/会心）を含む。
+		## sum_kind の再加算は二重評価になる（P3-FIX-EQ-META-AUDIT-A-001）。
+		_Mods.ensure_migrated(accessory)
 		hp = float(_EquipmentEnhancer.effective_accessory_int_bonus(accessory, "hp_bonus", data))
 		atk = float(_EquipmentEnhancer.effective_accessory_int_bonus(accessory, "attack_bonus", data))
 		defense = float(
@@ -74,11 +77,6 @@ static func _accessory_score(accessory: Resource) -> float:
 		crt = float(
 			_EquipmentEnhancer.effective_accessory_float_bonus(accessory, "crit_rate_bonus", data)
 		)
-	_Mods.ensure_migrated(accessory)
-	hp += float(_Mods.sum_kind_int(accessory, _Mods.KIND_HP_UP))
-	atk += float(_Mods.sum_kind_int(accessory, _Mods.KIND_ATTACK_UP))
-	defense += float(_Mods.sum_kind_int(accessory, _Mods.KIND_DEFENSE_UP))
-	crt += float(_Mods.sum_kind_float(accessory, _Mods.KIND_CRIT_RATE))
 	## 装飾は速度1.0・会心ダメ既定で攻撃寄与を近似。レアは同点時のみ別途 tiebreak。
 	var cdmg: float = BalanceConfig.DEFAULT_WEAPON_CRITICAL_DAMAGE
 	return combat_contribution(hp, defense, atk, 1.0, crt, cdmg)

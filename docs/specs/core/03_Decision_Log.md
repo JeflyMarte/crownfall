@@ -6230,3 +6230,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-FIX-COMBAT-AUDIT-H-001-2 | **効果** — デバフ優先標的／追い込み連携／雷勢・牙などの vs状態与ダメが作動 | クレンズ集合には既に含まれていた |
 | P3-FIX-COMBAT-AUDIT-H-001-3 | **据置** — cinematic lock 深度／再使用「秒」文言／knockback・敵AI死データ | 侵襲大・将来仕様。他に確定配線なし |
 
+## 装備メタ監査案A（2026-07-31 — P3-FIX-EQ-META-AUDIT-A-001）
+
+> **オーナー指示** — 装備メタ監査候補のうち案1（装備メタ）から着手。確定配線のみ。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-FIX-EQ-META-AUDIT-A-001-1 | **装飾おすすめ** — `_accessory_score` は `effective_accessory_*` のみ。フィールド反映済み mods の `sum_kind` 再加算を廃止 | 二重評価でおすすめ順位が歪む |
+| P3-FIX-EQ-META-AUDIT-A-001-2 | **分解確認** — 確認ダイアログの獲得素材は `dismantle_preview`（`can_dismantle_item` は可否のみ） | materials 無し API を確認文に使うと「素材なし」誤表示 |
+| P3-FIX-EQ-META-AUDIT-A-001-3 | **灰冠／深層生産除外** — `kaiwan_`／`abyss_` は `is_craftable_master` で除外（入手解放しない） | 封蔵・専用枠。鍛冶生産の別ルートにしない |
+

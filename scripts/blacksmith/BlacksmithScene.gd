@@ -3076,19 +3076,23 @@ func _on_dismantle_pressed() -> void:
 	if _selected_dismantle_item == null:
 		return
 	var item: Resource = _selected_dismantle_item
+	## 確認文の素材は dismantle_preview（can_dismantle には materials が無い）。
+	var preview: Dictionary = _EquipmentEnhancer.dismantle_preview(item)
+	if not bool(preview.get("ok", false)):
+		_log_craft_error(str(preview.get("reason", "分解できません")))
+		return
+	var mat_summary: String = _format_material_summary(preview.get("materials", {}))
+	if mat_summary.is_empty():
+		mat_summary = "（素材なし）"
 	if _EquipmentEnhancer.item_rarity(item) >= Enums.Rarity.LEGENDARY:
 		_pending_dismantle_item = item
 		_legendary_dismantle_confirm.dialog_text = (
-			"L装備「%s」を分解します。\n本当によろしいですか？（1/2）"
-			% _EquipmentEnhancer.get_display_name(item)
+			"L装備「%s」を分解します。\n獲得: %s\n本当によろしいですか？（1/2）"
+			% [_EquipmentEnhancer.get_display_name(item), mat_summary]
 		)
 		_legendary_dismantle_confirm.popup_centered()
 		return
 	_pending_dismantle_item = item
-	var preview: Dictionary = _EquipmentEnhancer.can_dismantle_item(item)
-	var mat_summary: String = _format_material_summary(preview.get("materials", {}))
-	if mat_summary.is_empty():
-		mat_summary = "（素材なし）"
 	_single_dismantle_confirm.dialog_text = (
 		"「%s」を分解しますか？\n獲得: %s\n分解すると元に戻せません。"
 		% [_EquipmentEnhancer.get_display_name(item), mat_summary]
@@ -3112,9 +3116,13 @@ func _on_single_dismantle_canceled() -> void:
 func _on_legendary_dismantle_step1() -> void:
 	if _pending_dismantle_item == null:
 		return
+	var preview: Dictionary = _EquipmentEnhancer.dismantle_preview(_pending_dismantle_item)
+	var mat_summary: String = _format_material_summary(preview.get("materials", {}))
+	if mat_summary.is_empty():
+		mat_summary = "（素材なし）"
 	_legendary_dismantle_final_confirm.dialog_text = (
-		"「%s」を分解すると元に戻せません。\n最終確認です。（2/2）"
-		% _EquipmentEnhancer.get_display_name(_pending_dismantle_item)
+		"「%s」を分解すると元に戻せません。\n獲得: %s\n最終確認です。（2/2）"
+		% [_EquipmentEnhancer.get_display_name(_pending_dismantle_item), mat_summary]
 	)
 	_legendary_dismantle_final_confirm.popup_centered()
 

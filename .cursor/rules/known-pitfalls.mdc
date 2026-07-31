@@ -25,6 +25,9 @@ alwaysApply: false
 | 鍛冶・錬成ボタン後にクリック不能／フリーズ | `AcceptDialog`＋ScrollTouch で入力奪取 | → `ui-layout.mdc` ScrollTouch。素材は Control オーバーレイ＋STOP 復元 |
 | 鍛冶「焼直し」が押せない／効果が選べない | ScrollTouch が詳細内 Button／STOP 行を PASS 化。焼直しは restore 対象外だった | `_cf_keep_mouse_stop`＋`_restore_primary_button_input` に焼直し／効果行を含める。詳細 rebuild 後 deferred 再適用 |
 | デバッグで鍛冶生産が0件 | 装備付与しても `unlocked_craft_outputs` 未同期（入手解放制） | `DebugFullUnlock` で `CraftHelper.sync_unlocks_from_owned`＋クラフト可能マスタ `try_unlock` |
+| 装飾おすすめがランダムATK付きで過大評価 | `_accessory_score` が `effective_*`（フィールド反映済み）のあと `sum_kind` を再加算 | 装飾は effective のみ。防具 DEF はフィールド非積なので別扱い（`P3-FIX-EQ-META-AUDIT-A-001`） |
+| 分解確認が「素材なし」／獲得が空 | `can_dismantle_item` は `{ok,reason}` のみ。materials は `dismantle_preview` | 確認文・L確認は必ず preview |
+| 灰冠／深層が生産解放に出る | 入手フックが全装備を unlock | `is_craftable_master` で `kaiwan_`／`abyss_` 除外 |
 | はじめガイド閉じてもジャック／魔晶石がすぐ来ない | `dismissed` 時点で Overlay がまだツリーにあり、親が「ガイド中」判定で支給をスキップ | `_finish` で先に `remove_child`。支給は `call_deferred`＋`is_queued_for_deletion` 無視 |
 | はじめガイド周辺に黒い四角 | 書籍BGを `StyleBoxTexture` 9-slice。縁の黒マットが角に伸びる | 書籍は `TextureRect` 直置き（KEEP_ASPECT）。外側マットは透過 |
 | 展示室・総合戦力が短い金枠＋黒い四角 | 汎用フレームを `StyleBoxTexture` 9-slice。黒マットが帯状に伸び先端だけ短く見える | `TextureRect` 直置き＋幅は `MODE_TAB_OWN` 同寸。塗りは半透明 |

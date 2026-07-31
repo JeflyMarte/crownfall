@@ -51,6 +51,21 @@ func test_dismantle_common_weapon_yields_base_and_common() -> void:
 	assert_eq(preview["materials"].get(_Enh.COMMON_MATERIAL_ID), 1)
 
 
+func test_can_dismantle_has_no_materials_preview_has() -> void:
+	## 確認UIは dismantle_preview（materials 付き）。can_dismantle は可否のみ。
+	var weapon: Resource = load("res://scripts/domain/WeaponInstance.gd").new()
+	weapon.weapon_id = "iron_sword"
+	weapon.is_appraised = true
+	GameState.inventory.append(weapon)
+	var can: Dictionary = _Enh.can_dismantle_item(weapon)
+	assert_true(bool(can.get("ok", false)))
+	assert_false(can.has("materials"))
+	var preview: Dictionary = _Enh.dismantle_preview(weapon)
+	assert_true(bool(preview.get("ok", false)))
+	assert_true(preview.has("materials"))
+	assert_gt((preview.get("materials", {}) as Dictionary).size(), 0)
+
+
 func test_dismantle_craft_cap_is_eighty_percent_with_min_one() -> void:
 	assert_eq(_Enh.DISMANTLE_CRAFT_RETURN_CAP, 0.8)
 	var weapon: Resource = load("res://scripts/domain/WeaponInstance.gd").new()

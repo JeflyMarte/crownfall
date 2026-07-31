@@ -102,3 +102,36 @@ func test_job_preferred_weapon_gets_boost() -> void:
 	var with_job: float = _Power.score(sword, "weapon", member)
 	var bare: float = _Power.score(sword, "weapon", null)
 	assert_gt(with_job, bare)
+
+
+func test_accessory_score_does_not_double_count_field_mods() -> void:
+	## フィールド反映済み mods を sum_kind で再加算しない（P3-FIX-EQ-META-AUDIT-A-001）。
+	const _Enh := preload("res://scripts/equipment/EquipmentEnhancer.gd")
+	var acc: Resource = AccessoryInstance.new()
+	acc.instance_id = "pow_acc_dbl"
+	acc.accessory_id = "silver_ring"
+	acc.is_appraised = true
+	acc.enhance_level = 0
+	acc.equip_level = 1
+	acc.attack_bonus = 20
+	acc.hp_bonus = 0
+	acc.defense_bonus = 0
+	acc.crit_rate_bonus = 0.0
+	acc.random_mods = [{
+		"kind": "attack_up",
+		"value": 20,
+		"label": "攻撃力アップ",
+	}]
+	var data: Resource = DataRegistry.get_accessory_data("silver_ring")
+	assert_not_null(data)
+	var atk: float = float(_Enh.effective_accessory_int_bonus(acc, "attack_bonus", data))
+	assert_gt(atk, 0.0)
+	var expected: float = _Power.combat_contribution(
+		0.0, 0.0, atk, 1.0, 0.0, BalanceConfig.DEFAULT_WEAPON_CRITICAL_DAMAGE
+	)
+	assert_eq(_Power.score(acc, "accessory"), expected)
+	## 二重評価だと攻撃寄与が約2倍になる。
+	var doubled: float = _Power.combat_contribution(
+		0.0, 0.0, atk * 2.0, 1.0, 0.0, BalanceConfig.DEFAULT_WEAPON_CRITICAL_DAMAGE
+	)
+	assert_lt(_Power.score(acc, "accessory"), doubled)
