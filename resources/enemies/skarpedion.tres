@@ -35,4 +35,4 @@ codex_habitat = "レッドリッジ廃坑"
 codex_research_note = "鉄殻虫を祖先とする古代型の長大個体。酸素欠乏の廃坑で殻が金属化し、斬撃で装甲を剥がす。鉄殻の長の名は坑夫の俗称であり、王との関わりはない。不死者ではない。"
 codex_materials = Array[String]([])
 skill_ids = Array[String](["boss_enrage", "enemy_skarpedion_carapace_ram", "enemy_skarpedion_iron_molt"])
-skill_use_chance = 0.4
+skill_use_chance = 0.55

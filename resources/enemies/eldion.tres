@@ -35,4 +35,4 @@ codex_habitat = "最果て氷裂・氷河最深部"
 codex_research_note = "竜を祖先とする古龍種の頂点個体。体内に氷河晶を宿し、吐息は空気ごと凍らせる。開拓王の名は後世の俗称であり、王との関わりは確認されていない。不死者ではない。"
 codex_materials = Array[String]([])
 skill_ids = Array[String](["boss_enrage", "enemy_eldion_glacial_breath", "enemy_eldion_crevasse"])
-skill_use_chance = 0.4
+skill_use_chance = 0.55
