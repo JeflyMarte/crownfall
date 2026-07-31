@@ -192,6 +192,7 @@ alwaysApply: false
 | 詠唱1なのに余分に「詠唱中」 | `advance_pending_cast` が減算後も chant | 減算後 `left<=0` で ready（G-001／P3-D112） |
 | パッシブ追撃後に戦闘が二重進行 | 撃破 return 無視 | `_try_fire_passive` が終了を返し発火ループ打ち切り |
 | 斉射／余波が数字だけ／無演出 | splash・aoe_burst に VFX 欠落 | 主対象と同型の hit／CRITICAL／余波ログ |
+| 感電／炎上でデバフ優先や与ダメ条件が無効 | `DEBUFF_STATUS_IDS`／連携武装集合から漏れ | shock/ignite を追加（H-001）。クレンズ集合は既に含有 |
 | スキル会心が武器クリダメ無視 | `CRITICAL_MULTIPLIER` 固定 | `_skill_critical_multiplier`（通常攻撃と同式） |
 | 敵スキル属性が防具耐性に未反映 | 耐性は `attack_element` のみ／VFXは skill.element | `attack_element_override` |
 | 必殺詠唱中断でチャージ消失 | 詠唱開始時に consume | 即時のみ開始時消費／詠唱は解決時 |

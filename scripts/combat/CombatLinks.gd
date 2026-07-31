@@ -4,8 +4,10 @@ extends RefCounted
 ## パーティ連携連鎖（P3-D115）。メンバー間の協力ボーナス。
 ## 状態コンボ（CombatCombos）とは別枠。1ヒットで link は1種のみ（コンボとは併用可）。
 
+## 追い込み武装対象。shock/ignite もデバフ（クレンズ集合と同型に含める）。
 const DEBUFF_MARK_STATUSES: Array = [
-	"mark", "poison", "bleed", "vulnerable", "fear", "armor_break", "curse", "major_curse", "slow", "stun", "chill",
+	"mark", "poison", "bleed", "vulnerable", "fear", "armor_break", "curse", "major_curse",
+	"slow", "stun", "chill", "shock", "ignite",
 ]
 
 const _RULES: Dictionary = {

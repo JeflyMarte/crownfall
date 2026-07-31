@@ -6220,4 +6220,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-FIX-COMBAT-AUDIT-G-001-5 | **オトモ発火** — combat_start／ally_death／探索被弾対象を `party_combat_hp` | 案D/F 境界の続き |
 | P3-FIX-COMBAT-AUDIT-G-001-6 | **据置** — reactive cinematic lock 深度／再使用「秒」文言／死データ接続 | 侵襲大・将来仕様 |
 
+## 戦闘システム監査案H（2026-07-31 — P3-FIX-COMBAT-AUDIT-H-001）
+
+> **オーナー指示（案H）** — 残スコープ点検のうえ、確定配線のみ実装。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-FIX-COMBAT-AUDIT-H-001-1 | **shock／ignite** — `DEBUFF_STATUS_IDS` と `CombatLinks.DEBUFF_MARK_STATUSES` に追加 | 付与・説明・vs状態倍率はあるのに集合漏れで無効化 |
+| P3-FIX-COMBAT-AUDIT-H-001-2 | **効果** — デバフ優先標的／追い込み連携／雷勢・牙などの vs状態与ダメが作動 | クレンズ集合には既に含まれていた |
+| P3-FIX-COMBAT-AUDIT-H-001-3 | **据置** — cinematic lock 深度／再使用「秒」文言／knockback・敵AI死データ | 侵襲大・将来仕様。他に確定配線なし |
 
