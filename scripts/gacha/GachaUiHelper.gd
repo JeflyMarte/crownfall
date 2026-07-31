@@ -1310,7 +1310,7 @@ static func _set_featured_banner_title_art(fade: Node, seal: bool) -> void:
 
 
 static func ticket_pull_title() -> String:
-	return "チケットで招待"
+	return "チケットで開く"
 
 
 static func setup_ticket_pull_button(btn: Button, enabled: bool) -> void:
