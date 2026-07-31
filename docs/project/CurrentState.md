@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-07-31（**P3-EQ-POWER-RECOMMEND-001 GO／統合＋main**: 装備総合力（非表示）でおすすめ装備。要実機）
 2026-07-31（**P3-UX-CHR-STAT-PAGES-001 GO／統合＋main**: キャラカードステを基本／特殊／詳細の3ページ切替。要実機）
 2026-07-31（**P3-BAL-DISMANTLE-001 GO／統合＋main**: 分解＝80%キャップ＋最低1／◇基礎鉱3。要実機）
 2026-07-31（**P3-SURVEY-DISPATCH-EXP-001 GO／統合＋main**: 調査参加戦闘員に EXP（プール均等）＋完了ポップ表示。要実機）

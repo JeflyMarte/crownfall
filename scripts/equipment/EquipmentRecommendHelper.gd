@@ -2,7 +2,9 @@ class_name EquipmentRecommendHelper
 extends RefCounted
 
 ## キャラ画面「おすすめ装備」— 未装備かつ装備可能な中から、
-## 総合能力が最も高い武／防／飾をそのキャラへ装備する。
+## 装備総合力（EquipmentPower）が最も高い武／防／飾をそのキャラへ装備する。
+
+const _EquipmentPower := preload("res://scripts/equipment/EquipmentPower.gd")
 
 const CATEGORIES: PackedStringArray = ["weapon", "armor", "accessory"]
 
@@ -126,59 +128,9 @@ static func _unequipped_candidates(member: Resource, category: String) -> Array:
 	return out
 
 
-## スロット単体の能力スコア（メンバーを書き換えない）。
+## スロット単体の装備総合力（非表示・P3-EQ-POWER-RECOMMEND-001）。
 static func _item_power(member: Resource, category: String, item: Resource) -> float:
-	if item == null:
-		return 0.0
-	match category:
-		"weapon":
-			var atk: float = float(EquipmentEnhancer.get_effective_attack(item))
-			## 職適性（preferred 外は候補に入れないが、倍率差は反映）。
-			var wdata: Resource = DataRegistry.get_weapon_data(str(item.weapon_id))
-			var mult: float = JobStatCalculator.get_preferred_weapon_multiplier(member, wdata)
-			atk *= mult
-			var spd: float = float(item.attack_speed) if "attack_speed" in item else 1.0
-			var crt: float = float(item.critical_rate) if "critical_rate" in item else 0.0
-			return atk + crt * 100.0 + spd * 10.0
-		"armor":
-			return (
-				float(EquipmentEnhancer.effective_armor_defense(item))
-				+ float(EquipmentEnhancer.effective_armor_hp(item))
-			)
-		"accessory":
-			return _accessory_power(item)
-		_:
-			return 0.0
-
-
-static func _accessory_power(item: Resource) -> float:
-	if item == null:
-		return 0.0
-	var data: Resource = null
-	if "accessory_id" in item and not str(item.accessory_id).is_empty():
-		data = DataRegistry.get_accessory_data(str(item.accessory_id))
-	var hp: float = 0.0
-	var atk: float = 0.0
-	var defense: float = 0.0
-	var crt: float = 0.0
-	if data != null:
-		hp = float(EquipmentEnhancer.effective_accessory_int_bonus(item, "hp_bonus", data))
-		atk = float(EquipmentEnhancer.effective_accessory_int_bonus(item, "attack_bonus", data))
-		defense = float(
-			EquipmentEnhancer.effective_accessory_int_bonus(item, "defense_bonus", data)
-		)
-		crt = float(
-			EquipmentEnhancer.effective_accessory_float_bonus(item, "crit_rate_bonus", data)
-		)
-	const _Mods := preload("res://scripts/equipment/EquipmentRandomMods.gd")
-	_Mods.ensure_migrated(item)
-	hp += float(_Mods.sum_kind_int(item, _Mods.KIND_HP_UP))
-	atk += float(_Mods.sum_kind_int(item, _Mods.KIND_ATTACK_UP))
-	defense += float(_Mods.sum_kind_int(item, _Mods.KIND_DEFENSE_UP))
-	crt += float(_Mods.sum_kind_float(item, _Mods.KIND_CRIT_RATE))
-	## 平ステ0の固有効果飾りでも空スロットより優先できるようレアを微小加点。
-	var rarity: float = float(int(item.rarity)) if "rarity" in item else 0.0
-	return hp + atk + defense + crt * 100.0 + rarity * 0.01
+	return _EquipmentPower.score(item, category, member)
 
 
 static func _tiebreak_better(a: Resource, b: Resource, category: String) -> bool:
