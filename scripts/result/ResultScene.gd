@@ -1238,26 +1238,40 @@ func _build_materials() -> void:
 		var mat_key: String = str(mat_id)
 		_material_row.add_child(_make_material_reward_cell(mat_key, str(qty)))
 		count += 1
-	_material_panel.visible = count > 0
-	_build_craftable_hint(count > 0)
+	var unlock_count: int = _build_craft_unlock_hint()
+	_material_panel.visible = count > 0 or unlock_count > 0
+	if _label_material_title != null:
+		_label_material_title.visible = count > 0
+	_material_row.visible = count > 0
 	## 素材セル追加後にタッチスクロールを再適用（STOP 吸収対策）。
 	ScrollTouchHelper.enable(_scroll_rewards)
 
-func _build_craftable_hint(had_material_gains: bool) -> void:
-	if not had_material_gains:
+## 今回ランで新規解放した生産レシピのみ表示（P3-D141 作成可能全件表示を上書き）。
+## 戻り値: 表示した解放件数。
+func _build_craft_unlock_hint() -> int:
+	var unlocks: Array = GameState.last_run_craft_unlocks
+	if unlocks.is_empty():
 		_label_craftable.visible = false
 		_label_craftable.text = ""
-		return
-	var recipes: Array = CraftHelper.get_craftable_recipes()
-	if recipes.is_empty():
-		_label_craftable.visible = false
-		_label_craftable.text = ""
-		return
+		return 0
 	var names: PackedStringArray = []
-	for craft in recipes:
-		names.append(str(craft.display_name))
-	_label_craftable.text = "赤鉄の工房で作成可能: " + " / ".join(names)
+	for raw: Variant in unlocks:
+		if not (raw is Dictionary):
+			continue
+		var entry: Dictionary = raw
+		var label: String = str(entry.get("display_name", "")).strip_edges()
+		if label.is_empty():
+			label = str(entry.get("output_id", "")).strip_edges()
+		if label.is_empty():
+			continue
+		names.append(label)
+	if names.is_empty():
+		_label_craftable.visible = false
+		_label_craftable.text = ""
+		return 0
+	_label_craftable.text = "生産レシピ解放: " + " / ".join(names)
 	_label_craftable.visible = true
+	return names.size()
 
 ## P3-UX-RESULT-DROP-LIST-001: ラン中ドロップ全件をアイコングリッドで表示。
 func _build_equipment_drops() -> void:

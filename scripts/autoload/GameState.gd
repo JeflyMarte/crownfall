@@ -131,6 +131,9 @@ var last_run_accessory_dropped: String = ""
 ## 直近ランでドロップした装備全件（入手順）。{category, instance_id, item_id}
 ## P3-UX-RESULT-DROP-LIST-001: 結果「入手装備」グリッド用。
 var last_run_equipment_drops: Array = []
+## 直近ランで新規解放した生産レシピ（入手順）。{output_type, output_id, display_name}
+## Result「生産レシピ解放」表示用（P3-D141 を上書き: 作成可能全件ではなく今回解放のみ）。
+var last_run_craft_unlocks: Array = []
 # 直近ランで入手（新規解放）した遺物 id（P3-D093）。Result 表示用。
 var last_run_relic_dropped: String = ""
 # 直近ランの獲得レベル { member_id: gained_levels } — Result 表示用（P3-D035）
@@ -230,10 +233,41 @@ func begin_run_material_tracking() -> void:
 	last_run_abyss_notices = []
 	## 潜行開始で前回ランの入手装備一覧もリセット。
 	clear_last_run_equipment_drops()
+	clear_last_run_craft_unlocks()
 
 
 func clear_last_run_equipment_drops() -> void:
 	last_run_equipment_drops = []
+
+
+func clear_last_run_craft_unlocks() -> void:
+	last_run_craft_unlocks = []
+
+
+## ラン中に新規解放した生産レシピを結果表示用へ積む（重複しない）。
+func record_last_run_craft_unlock(output_type: String, output_id: String, display_name: String = "") -> void:
+	var ot: String = output_type.strip_edges()
+	var oid: String = output_id.strip_edges()
+	if ot.is_empty() or oid.is_empty():
+		return
+	var key: String = "%s:%s" % [ot, oid]
+	for raw: Variant in last_run_craft_unlocks:
+		if not (raw is Dictionary):
+			continue
+		var prev: Dictionary = raw
+		if str(prev.get("output_type", "")) == ot and str(prev.get("output_id", "")) == oid:
+			return
+		if str(prev.get("key", "")) == key:
+			return
+	var name_text: String = display_name.strip_edges()
+	if name_text.is_empty():
+		name_text = oid
+	last_run_craft_unlocks.append({
+		"key": key,
+		"output_type": ot,
+		"output_id": oid,
+		"display_name": name_text,
+	})
 
 
 ## ダンジョンドロップ装備を結果一覧へ積む（入手順）。
@@ -1576,6 +1610,7 @@ func reset_for_new_game() -> void:
 	last_run_armor_dropped = ""
 	last_run_accessory_dropped = ""
 	last_run_equipment_drops = []
+	last_run_craft_unlocks = []
 	last_run_relic_dropped = ""
 	last_run_level_ups = {}
 	last_run_exp_snapshots = {}
