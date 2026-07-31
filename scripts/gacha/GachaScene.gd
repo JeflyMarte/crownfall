@@ -470,23 +470,30 @@ func _apply_button_style(btn: Button, style: StyleBox) -> void:
 		btn.add_theme_stylebox_override("pressed", style)
 
 
-## 引きボタンを隣同士に詰めて中央寄せ（枠の長さは MIN_WIDTH のまま）。
+## 引きボタンを隣同士に詰めて中央寄せ。幅は画面に2つ収まるようクリップ。
 func _pack_pull_row() -> void:
+	var bar: Control = get_node_or_null("SummonActionBar") as Control
 	var row: HBoxContainer = get_node_or_null("SummonActionBar/PullRowCenter/PullRow") as HBoxContainer
-	if row == null:
+	if bar == null or row == null:
 		return
+	var avail: float = bar.size.x
+	if avail < 8.0:
+		call_deferred("_pack_pull_row")
+		return
+	var gap: float = float(GachaUiTokens.PULL_BTN_GAP)
+	var side: float = GachaUiTokens.PULL_BTN_SIDE_PAD
+	var max_each: float = maxf(200.0, (avail - gap - side * 2.0) * 0.5)
+	var btn_w: float = minf(float(GachaUiTokens.PULL_BTN_MIN_WIDTH), max_each)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 4)
+	row.add_theme_constant_override("separation", GachaUiTokens.PULL_BTN_GAP)
 	row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	for btn: Button in [_button_pull, _button_pull_ticket]:
 		if btn == null:
 			continue
 		btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 		btn.size_flags_stretch_ratio = 0.0
-		btn.custom_minimum_size = Vector2(
-			GachaUiTokens.PULL_BTN_MIN_WIDTH,
-			GachaUiTokens.PULL_BTN_HEIGHT
-		)
+		btn.custom_minimum_size = Vector2(btn_w, float(GachaUiTokens.PULL_BTN_HEIGHT))
+		btn.size = Vector2(btn_w, float(GachaUiTokens.PULL_BTN_HEIGHT))
 
 
 func _refresh() -> void:
@@ -640,6 +647,7 @@ func _on_featured_host_resized() -> void:
 ## Featured 枠と説明パネルを再レイアウト（chrome は BottomNavHelper／実機のみ）。
 func _finalize_gacha_layout() -> void:
 	## Mac では apply_chrome は no-op。ここでは Featured 再配置のみ。
+	_pack_pull_row()
 	if _featured_shell.is_empty():
 		return
 	GachaUiHelper.relayout_featured_shell(_featured_shell, _banner_art_host)

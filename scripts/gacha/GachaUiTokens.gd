@@ -54,11 +54,14 @@ const BANNER_TITLE_HEIGHT: int = 140
 const BANNER_CATCHCOPY_HEIGHT: int = 72
 const LINEUP_CELL_PX: int = 120
 const PULL_BTN_HEIGHT: int = 80
-## 文言＋アイコンより左右に余白を残す（汎用フレーム先端が文字に食い込まない幅）。
-const PULL_BTN_MIN_WIDTH: int = 600
+## 1ボタンの希望幅。画面に2つ並ぶよう `_pack_pull_row` で上限クリップする。
+## ※600以上にするとスマホ幅を超え、中央寄せで「左右端に離れて見える」錯覚になる。
+const PULL_BTN_MIN_WIDTH: int = 340
+const PULL_BTN_GAP: int = 4
+const PULL_BTN_SIDE_PAD: float = 12.0
 ## 汎用フレーム先端オーナメントを潰さない 9-slice（元 2165×364）。
 const PULL_BTN_TEX_MARGINS := Vector4i(148, 56, 148, 56)
-const PULL_BTN_CONTENT_MARGIN_H: float = 56.0
+const PULL_BTN_CONTENT_MARGIN_H: float = 48.0
 const PULL_BTN_CONTENT_MARGIN_V: float = 12.0
 
 static func load_tex(path: String) -> Texture2D:
