@@ -130,5 +130,4 @@ func _ensure_two_combat_members() -> void:
 			combat_n += 1
 	if combat_n >= 2:
 		return
-	## 追加1人（テスト用）。
-	GameState.unlock_adventurer("adventurer_1")
+	GameState.unlock_starter_adventurer("adventurer_1")
