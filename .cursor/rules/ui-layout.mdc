@@ -122,6 +122,9 @@ Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` �
 - セル Button は `clip_contents = true`
 - 装備スロット Grid / SlotsPanel も横縦とも `SIZE_SHRINK_*`（長い職名で CardRow が再配分されてもスロットを伸ばさない）
 - CharacterCard の最小幅が viewport(720) を超えないこと（`◀▶` 肥大化・職名横伸び・OwnerBadge 原寸化に注意）
+- **InventoryHeader**（おすすめ／ソート等）の最小幅合計も 720 超禁止。長いボタン文言は短縮＋`tooltip`。Label に `clip_text` だけ＋`SHRINK` は幅0化で消える
+- `VBoxContainer` / `BottomNav` は `grow_horizontal = GROW_DIRECTION_END`（`BOTH` だと min 超過時に左右膨張→**タブ〜一覧が左欠け**）
+- 下ナビ Button の `custom_minimum_size.x` を `VIEWPORT/件数` 固定にしない（Panel の左右 margin 込みで 720 超え→同様に左欠け）。高さ固定＋`EXPAND_FILL`
 - 各 Tab の ScrollContainer は横スクロール禁止＋`clip_contents`
 - 画面 BG（`BgTexture`）は `KEEP_ASPECT_COVERED`。`CENTERED` にするとレターボックスで背景が消えたように見える
 

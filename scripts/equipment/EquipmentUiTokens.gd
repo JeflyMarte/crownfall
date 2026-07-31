@@ -97,7 +97,7 @@ const INV_CELLS: Array[String] = [
 const CATEGORY_MIN_SIZE: Vector2 = Vector2(64, 76)
 ## 装備カード左の正面 Idle ドット（台座上・モック構図）。
 const PORTRAIT_PX: int = 200
-const PORTRAIT_STACK_SIZE: Vector2 = Vector2(220, 280)
+const PORTRAIT_STACK_SIZE: Vector2 = Vector2(200, 268)
 const PEDESTAL_HEIGHT_PX: int = 88
 ## 足元を台座に乗せるための重ね（px）。
 const PORTRAIT_PEDESTAL_OVERLAP_PX: int = 40
@@ -105,7 +105,8 @@ const STAT_ICON_PX: int = 28
 ## アセット生成サイズ（`generate_equipment_ui_assets.py`）。
 const INV_CELL_DESIGN_PX: int = 144
 const SLOT_DESIGN_PX: int = 128
-const SLOT_PANEL_MIN_W: int = 200
+## CardRow が 720 を超えて VBox 左右膨張→左欠けしないよう抑える。
+const SLOT_PANEL_MIN_W: int = 192
 ## フォールバック下限（動的計算が効かない headless 等）。
 const SLOT_PX: int = 96
 const INV_CELL_PX: int = 112

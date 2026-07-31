@@ -110,6 +110,7 @@ alwaysApply: false
 | アセット取込・透過・import・Cat取り違え・ガチャBG上書き一式 | Desktop直参照・手書き import・過キーイング・未コミット | → **`asset-import.mdc`** |
 | Featured名欠／戦闘ログ見切れ／状態異常z／群れ右はみ出し | 重ね省略・行高・z・spacing | → **`14_Presentation_Pitfalls.md`**／`ui-layout` バナー |
 | Idle拡縮／装備セル肥大／鍛冶枠食い込み／キャラ画面はみ出し（UIレイアウト系） | EXPAND・幅連動 cell・Idle PNG直読み・ヒーロー過大 | → **`ui-layout.mdc`**（Idle／装備セル／鍛冶／職名） |
+| キャラ画面タブ〜装備一覧・下ナビが左欠け | CardRow/InventoryHeader/下ナビ min 幅が 720 超＋`grow=BOTH` で左右膨張 | → **`ui-layout.mdc`** 装備セル（`GROW_DIRECTION_END`・ヘッダ短縮・下ナビ幅） |
 | ガチャ枠下に同じ聖堂背景が二重 | 全画面 `UI_BG_Gacha` ＋枠内 `Banner_BG` | 画面下地は暗色 `ColorRect`。キーアートは枠内のみ |
 | 結果のレベルアップにオトモが出ない | EXP 付与は `active_pet` 済みだが `ExpRunSnapshot`／UI が `party_members` のみ | スナップショットと行構築は `exp_recipients()`（人間＋オトモ）を使う |
 | ボタン画像の文字が読めない | ラベル焼込 PNG＋非表示テキスト、または極小オーバーレイ | 可読優先。焼込文字に頼らず Godot テキスト（炉研ぎ同様）か、画像化を撤回 |

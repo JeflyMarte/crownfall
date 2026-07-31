@@ -194,6 +194,8 @@ var _overlay_relic_id: String = ""
 var _overlay_skill_id: String = ""
 
 const INVENTORY_LONG_PRESS_SEC: float = 0.45
+## 装備一覧ヘッダ用。全文だと InventoryHeader 最小幅が viewport を超える。
+const RECOMMEND_BTN_LABEL: String = "おすすめ"
 ## iPhone は静止長押しでも微細 ScreenDrag が来る。Scroll deadzone と同程度まで許容する。
 const INVENTORY_PRESS_MOVE_CANCEL_PX: float = 20.0
 var _inv_pointer_down: bool = false
@@ -239,6 +241,9 @@ func _ready() -> void:
 	# ルート／タブが CharacterCard の最小幅に引きずられて横はみ出ししないようにする。
 	clip_contents = true
 	$VBoxContainer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	## min 幅超過時に左右へ膨らむとタブ〜下ナビが左欠けする。右方向のみ許容。
+	$VBoxContainer.grow_horizontal = Control.GROW_DIRECTION_END
+	$BottomNav.grow_horizontal = Control.GROW_DIRECTION_END
 	_tabs.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	for tab_child in _tabs.get_children():
 		if tab_child is ScrollContainer:
@@ -258,6 +263,7 @@ func _ready() -> void:
 	_apply_panel_styles()
 	_decorate_portrait()
 	_compact_member_nav_buttons()
+	_compact_inventory_header_row()
 	PetSystem.ensure_starter_pet()
 	if GameState.equipment_focus_member_index >= 0:
 		_selected_member_index = _clamp_roster_index(GameState.equipment_focus_member_index)
@@ -332,7 +338,7 @@ func _setup_equipment_chrome() -> void:
 		UiTypography.COLOR_BODY
 	)
 	UiTypography.apply_button(_btn_recommend)
-	_btn_recommend.custom_minimum_size = Vector2(120, 36)
+	_compact_inventory_header_row()
 	UiTypography.apply_body(
 		$VBoxContainer/TabContainer/TabEquip/EquipContent/EffectsPanel/EffectsVBox/LabelEffectsTitle,
 		UiTypography.SIZE_BODY_SMALL,
@@ -483,11 +489,11 @@ func _flash_recommend_button(msg: String) -> void:
 	_btn_recommend.text = msg
 	var tree: SceneTree = get_tree()
 	if tree == null:
-		_btn_recommend.text = "おすすめ装備"
+		_btn_recommend.text = RECOMMEND_BTN_LABEL
 		return
 	tree.create_timer(1.2).timeout.connect(func() -> void:
 		if is_instance_valid(_btn_recommend):
-			_btn_recommend.text = "おすすめ装備"
+			_btn_recommend.text = RECOMMEND_BTN_LABEL
 	, CONNECT_ONE_SHOT)
 
 
@@ -618,7 +624,7 @@ func _compact_member_nav_buttons() -> void:
 		btn.flat = true
 		btn.clip_text = false
 		btn.focus_mode = Control.FOCUS_NONE
-		btn.custom_minimum_size = Vector2(36, 48)
+		btn.custom_minimum_size = Vector2(28, 48)
 		btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		for style_name in ["normal", "hover", "pressed", "disabled", "focus"]:
@@ -631,6 +637,34 @@ func _compact_member_nav_buttons() -> void:
 		btn.add_theme_color_override("font_pressed_color", COLOR_VALUE)
 		btn.add_theme_constant_override("outline_size", 3)
 		btn.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.92))
+
+
+## 装備一覧ヘッダ（おすすめ／ソート等）の最小幅合計が viewport を超えないように縮める。
+func _compact_inventory_header_row() -> void:
+	var title: Label = (
+		$VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryHeaderRow/LabelInventoryTitle
+		as Label
+	)
+	if title != null:
+		## clip_text だけだと Label 最小幅が ~0 になり「装備一覧」が消える。EXPAND＋省略。
+		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		title.clip_text = true
+		title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	## ボタンは自然幅（clip しない）。全文ラベルだけ短くして合計幅を抑える。
+	for btn: Button in [_btn_recommend, _btn_sort, _btn_filter, _btn_effect]:
+		if btn == null:
+			continue
+		btn.clip_text = false
+		btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		btn.custom_minimum_size = Vector2(0, 36)
+	if _btn_recommend != null:
+		_btn_recommend.text = RECOMMEND_BTN_LABEL
+		_btn_recommend.tooltip_text = "未装備の中から、このキャラが付けられる最も強い武・防・飾を装備"
+	var header: Control = (
+		$VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryHeaderRow as Control
+	)
+	if header != null:
+		header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 func _process(delta: float) -> void:
 	if _portrait_idle_textures.size() <= 1:

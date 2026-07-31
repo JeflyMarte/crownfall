@@ -28,8 +28,11 @@ const BOTTOM_NAV_LABELS: Dictionary = {
 	"招待状": "召喚",
 }
 
+## 下ナビ Panel の左右 content_margin（典型 8+8）を差し引き、min 合計が 720 を超えて GROW_BOTH で左欠けしないようにする。
+const BOTTOM_NAV_PANEL_H_MARGIN: float = 16.0
+
 static func bottom_nav_item_width() -> float:
-	return VIEWPORT_WIDTH / float(BOTTOM_NAV_ITEM_COUNT)
+	return maxf(1.0, (VIEWPORT_WIDTH - BOTTOM_NAV_PANEL_H_MARGIN) / float(BOTTOM_NAV_ITEM_COUNT))
 
 static func bottom_nav_icon_size() -> int:
 	return maxi(1, int(floor(BOTTOM_NAV_HEIGHT * BOTTOM_NAV_ICON_RATIO)))
@@ -140,7 +143,8 @@ static func apply_bottom_nav_button(btn: Button) -> void:
 		return
 	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	btn.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	btn.custom_minimum_size = Vector2(bottom_nav_item_width(), BOTTOM_NAV_HEIGHT)
+	## 幅は EXPAND に任せ、高さのみ固定。固定幅×件数だと Panel margin 込みで viewport を超え左欠けする。
+	btn.custom_minimum_size = Vector2(0, BOTTOM_NAV_HEIGHT)
 	btn.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	for state in ["normal", "hover", "pressed", "disabled", "focus"]:
 		btn.add_theme_stylebox_override(state, flat_button_style())
@@ -153,6 +157,10 @@ static func apply_bottom_nav_row(nav_row: HBoxContainer) -> void:
 	for child in nav_row.get_children():
 		if child is Button:
 			apply_bottom_nav_button(child as Button)
+	## 親 BottomNav が min 超過しても左へ膨らまない（右クリップ優先）。
+	var panel: Control = nav_row.get_parent() as Control
+	if panel != null:
+		panel.grow_horizontal = Control.GROW_DIRECTION_END
 
 static func make_side_menu_row(entry: Dictionary) -> Control:
 	var locked: bool = bool(entry.get("locked", false))
