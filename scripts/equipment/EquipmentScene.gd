@@ -21,6 +21,7 @@ const _ElementResolver = preload("res://scripts/combat/ElementResolver.gd")
 const _SkillIconHelper = preload("res://scripts/ui/SkillIconHelper.gd")
 const _ChrIdlePortrait = preload("res://scripts/ui/ChrIdlePortrait.gd")
 const _GachaLimitBreak = preload("res://scripts/gacha/GachaLimitBreak.gd")
+const _CharacterStatPages = preload("res://scripts/roster/CharacterStatPages.gd")
 
 # CombatController.BASE_MEMBER_HP と同値（表示用の素HP）。
 const BASE_MEMBER_HP: int = BalanceConfig.BASE_MEMBER_HP
@@ -97,6 +98,13 @@ var _pending_take_category: String = ""
 var _pending_take_relic_id: String = ""
 @onready var _stats_grid: GridContainer = $VBoxContainer/CharacterCard/CardRow/InfoBox/StatsGrid
 @onready var _btn_stat_detail: Button = $VBoxContainer/CharacterCard/CardRow/InfoBox/BtnStatDetail
+## P3-UX-CHR-STAT-PAGES-001: StatsGrid 同窓のページ切替。
+var _stat_page: int = 0
+var _cached_basic_stats: Dictionary = {}
+var _stat_page_row: HBoxContainer = null
+var _btn_stat_page_prev: Button = null
+var _btn_stat_page_next: Button = null
+var _label_stat_page: Label = null
 @onready var _slots_panel: VBoxContainer = $VBoxContainer/CharacterCard/CardRow/SlotsPanel
 @onready var _slots_row: GridContainer = $VBoxContainer/CharacterCard/CardRow/SlotsPanel/EquipSlotsGrid
 @onready var _equip_content: VBoxContainer = $VBoxContainer/TabContainer/TabEquip/EquipContent
@@ -302,6 +310,8 @@ func _setup_equipment_chrome() -> void:
 	_btn_stat_detail.custom_minimum_size = Vector2(0, 34)
 	_btn_stat_detail.add_theme_stylebox_override("disabled", EquipmentUiTokens.stat_detail_button_style())
 	_btn_stat_detail.add_theme_color_override("font_disabled_color", Color(0.62, 0.58, 0.52, 1.0))
+	_btn_stat_detail.visible = false
+	_setup_stat_page_nav()
 	_evolution_row.add_theme_constant_override("separation", 4)
 	UiTypography.apply_display(_label_name, UiTypography.SIZE_DISPLAY_TITLE, UiTypography.COLOR_GOLD)
 	_configure_name_row()
@@ -1209,21 +1219,89 @@ func _on_promote_pressed() -> void:
 	_refresh_display()
 
 func _populate_stat_grid(stats: Dictionary) -> void:
+	_cached_basic_stats = stats.duplicate(true)
 	for child in _stats_grid.get_children():
 		child.queue_free()
-	var rows: Array = [
-		["hp", "HP", str(stats["hp"])],
-		["attack", "攻撃力", str(stats["attack"])],
-		["defense", "防御力", str(stats["defense"])],
-		["speed", "速度", "%.1f" % stats["speed"]],
-		["crit_rate", "会心率", "%.0f%%" % (stats["crit_rate"] * 100.0)],
-		["crit_damage", "会心ダメ", "%.0f%%" % (stats["crit_damage"] * 100.0)],
-	]
 	_stats_grid.add_theme_constant_override("v_separation", 4)
 	_stats_grid.add_theme_constant_override("h_separation", 10)
+	var member: Resource = _get_view_adventurer()
+	var rows: Array = _CharacterStatPages.rows_for_page(member, _stat_page, stats)
 	for r in rows:
-		_stats_grid.add_child(_make_stat_label_row(str(r[0]), str(r[1])))
-		_stats_grid.add_child(_make_value_label(str(r[2])))
+		if not (r is Dictionary):
+			continue
+		var row: Dictionary = r
+		_stats_grid.add_child(_make_stat_label_row(str(row.get("key", "")), str(row.get("label", ""))))
+		_stats_grid.add_child(_make_value_label(str(row.get("value", ""))))
+	_update_stat_page_nav()
+
+
+func _setup_stat_page_nav() -> void:
+	if _stat_page_row != null:
+		return
+	var info_box: Node = _stats_grid.get_parent()
+	_stat_page_row = HBoxContainer.new()
+	_stat_page_row.name = "StatPageNav"
+	_stat_page_row.add_theme_constant_override("separation", 6)
+	_stat_page_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_btn_stat_page_prev = Button.new()
+	_btn_stat_page_prev.text = "◀"
+	_btn_stat_page_prev.custom_minimum_size = Vector2(40, 32)
+	_btn_stat_page_prev.focus_mode = Control.FOCUS_NONE
+	UiTypography.apply_menu_button(_btn_stat_page_prev, false)
+	_btn_stat_page_prev.pressed.connect(_on_stat_page_prev)
+	_stat_page_row.add_child(_btn_stat_page_prev)
+	_label_stat_page = Label.new()
+	_label_stat_page.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_label_stat_page.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_caption(_label_stat_page, UiTypography.COLOR_GOLD)
+	_stat_page_row.add_child(_label_stat_page)
+	_btn_stat_page_next = Button.new()
+	_btn_stat_page_next.text = "▶"
+	_btn_stat_page_next.custom_minimum_size = Vector2(40, 32)
+	_btn_stat_page_next.focus_mode = Control.FOCUS_NONE
+	UiTypography.apply_menu_button(_btn_stat_page_next, false)
+	_btn_stat_page_next.pressed.connect(_on_stat_page_next)
+	_stat_page_row.add_child(_btn_stat_page_next)
+	## StatsGrid の直後（旧 BtnStatDetail の位置）。
+	var insert_at: int = _stats_grid.get_index() + 1
+	info_box.add_child(_stat_page_row)
+	info_box.move_child(_stat_page_row, insert_at)
+	_update_stat_page_nav()
+
+
+func _stat_page_dots(page: int) -> String:
+	var parts: PackedStringArray = []
+	for i: int in _CharacterStatPages.PAGE_COUNT:
+		parts.append("●" if i == page else "○")
+	return " ".join(parts)
+
+
+func _update_stat_page_nav() -> void:
+	if _label_stat_page == null:
+		return
+	var page: int = _CharacterStatPages.clamp_page(_stat_page)
+	_stat_page = page
+	_label_stat_page.text = "%s  %s" % [
+		_CharacterStatPages.page_title(page),
+		_stat_page_dots(page),
+	]
+	if _btn_stat_page_prev != null:
+		_btn_stat_page_prev.disabled = page <= 0
+	if _btn_stat_page_next != null:
+		_btn_stat_page_next.disabled = page >= _CharacterStatPages.PAGE_COUNT - 1
+
+
+func _on_stat_page_prev() -> void:
+	_stat_page = _CharacterStatPages.clamp_page(_stat_page - 1)
+	_populate_stat_grid(_cached_basic_stats)
+	AudioManager.play_sfx("ui_switch")
+
+
+func _on_stat_page_next() -> void:
+	_stat_page = _CharacterStatPages.clamp_page(_stat_page + 1)
+	_populate_stat_grid(_cached_basic_stats)
+	AudioManager.play_sfx("ui_switch")
+
 
 func _make_stat_label_row(stat_key: String, label_text: String) -> Control:
 	var row := HBoxContainer.new()

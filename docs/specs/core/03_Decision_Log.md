@@ -5957,3 +5957,17 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-DISMANTLE-001-3 | **ベース表** — ◇の基礎鉱のみ **2→3**。◆✦★据置 | 案C控えめ |
 | P3-BAL-DISMANTLE-001-4 | **据置** — 炉研ぎボーナス表・一括対象・★2段階確認 | 案D見送り |
 | P3-BAL-DISMANTLE-001-5 | **上書き** — `P3-FORGE-003-5`／`003-7` | 本 Decision が正 |
+
+## キャラ画面ステータス3ページ（2026-07-31 — P3-UX-CHR-STAT-PAGES-001）
+
+> **オーナー GO** — 既存 StatsGrid 同窓でページ切替。基本／特殊／詳細の3ページ。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-CHR-STAT-PAGES-001-1 | **UI** — カード右 `StatsGrid` 直下に ◀／タイトル＋●○／▶。タブ追加なし | オーナー指定の同窓切替 |
+| P3-UX-CHR-STAT-PAGES-001-2 | **P1 基本** — HP／攻撃／防御／速度／会心／会心ダメ（現行） | 戦闘力の正 |
+| P3-UX-CHR-STAT-PAGES-001-3 | **P2 特殊** — 属性／属性値／耐性／Gold／EXP／レアドロ | 非表示だった報酬・属性 |
+| P3-UX-CHR-STAT-PAGES-001-4 | **P3 詳細** — 素材／状態付与／生態特効／回復／回避／異常無効 | 3ページ込み GO |
+| P3-UX-CHR-STAT-PAGES-001-5 | **行数** — 各ページ6行固定。0も `なし`/`+0%` 表示 | カード高維持 |
+| P3-UX-CHR-STAT-PAGES-001-6 | **SSOT** — `CharacterStatPages`＋`EquipmentScene` | 集計と表示分離 |
+| P3-UX-CHR-STAT-PAGES-001-7 | **据置** — 装備タブ「装備中の効果」／旧 `BtnStatDetail`（非表示のまま） | 役割分離 |
