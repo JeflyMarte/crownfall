@@ -2377,6 +2377,8 @@ func _color_log_tags(line: String) -> String:
 			out = out.replace(tag, _wrap_log_color(tag, LOG_TAG))
 	if out.contains("CRITICAL!"):
 		out = out.replace("CRITICAL!", _wrap_log_color("CRITICAL!", LOG_DAMAGE_CRIT))
+	if out.contains("Block!"):
+		out = out.replace("Block!", _wrap_log_color("Block!", Color(0.45, 0.78, 1.0)))
 	return out
 
 func _log_line_incoming_damage(line: String) -> bool:
@@ -6200,6 +6202,8 @@ func _apply_enemy_damage_to_targets(
 				_spawn_miss_telop(_chr_sprites[ti].global_position)
 			lines.append("%s は Miss!" % mname)
 			continue
+		var blocked: bool = bool(dmg_result.get("blocked", false))
+		var is_crit: bool = bool(dmg_result.get("is_critical", false))
 		var dmg: int = int(dmg_result["final"])
 		if targets.size() > 1:
 			dmg = maxi(1, dmg)
@@ -6209,16 +6213,23 @@ func _apply_enemy_damage_to_targets(
 			GameState.record_run_damage_taken(ti, dmg)
 			$CombatController.add_ultimate_charge_from_damage_taken(ti, dmg)
 		_play_chr_hurt(ti)
-		if dmg > 0 and ti < _chr_sprites.size():
-			_spawn_hit_vfx(_chr_sprites[ti].global_position)
-			_spawn_damage_number(str(dmg), _chr_sprites[ti].global_position, Color(1.0, 0.35, 0.35))
+		if ti < _chr_sprites.size():
+			var hit_pos: Vector2 = _chr_sprites[ti].global_position
+			if blocked:
+				_spawn_block_telop(hit_pos)
+			if dmg > 0:
+				_spawn_hit_vfx(hit_pos)
+				var dmg_scale: float = 1.25 if is_crit else 1.0
+				_spawn_damage_number(str(dmg), hit_pos, Color(1.0, 0.35, 0.35), dmg_scale)
 		var density_tag: String = $CombatController.get_density_log_tag(ti)
+		var crit_tag: String = " CRITICAL!" if is_crit else ""
+		var block_tag: String = " Block!" if blocked else ""
 		if not $CombatController.is_member_alive(ti):
 			if ti < _chr_sprites.size():
 				_chr_sprites[ti].visible = false
-			lines.append("%s に %d（撃破）%s" % [mname, dmg, density_tag])
+			lines.append("%s に %d（撃破）%s%s%s" % [mname, dmg, density_tag, crit_tag, block_tag])
 		else:
-			lines.append("%s に %d%s" % [mname, dmg, density_tag])
+			lines.append("%s に %d%s%s%s" % [mname, dmg, density_tag, crit_tag, block_tag])
 		_try_apply_enemy_skill_hit_statuses(skill, ti, dmg, atk_slot)
 		_on_member_damaged(ti, {"attacker_slot": atk_slot})
 	_append_log("敵スキル【%s】%s%s\n  %s" % [skill.display_name, row_tag, dist_tag, " / ".join(lines)])
@@ -6418,29 +6429,45 @@ func _resolve_enemy_attack_impact_async(payload: Dictionary) -> void:
 		_append_log("敵の攻撃【%s】: %s%s は Miss!" % [atk_label, guard_prefix, member_name])
 		_end_combat_cinematic_lock()
 		return
+	var blocked: bool = bool(enemy_result.get("blocked", false))
+	var is_crit: bool = bool(enemy_result.get("is_critical", false))
 	$CombatController.apply_damage_to_member(target_idx, enemy_result["final"])
 	$CombatController.add_threat(target_idx, float(enemy_result["final"]) * CombatController.THREAT_TAKEN_K)
 	if int(enemy_result["final"]) > 0:
 		GameState.record_run_damage_taken(target_idx, int(enemy_result["final"]))
 		$CombatController.add_ultimate_charge_from_damage_taken(target_idx, int(enemy_result["final"]))
 	_play_chr_hurt(target_idx)
-	if enemy_result["final"] > 0 and target_idx < _chr_sprites.size():
-		_spawn_hit_vfx(_chr_sprites[target_idx].global_position)
-		_spawn_damage_number(str(enemy_result["final"]), _chr_sprites[target_idx].global_position, Color(1.0, 0.35, 0.35))
+	if target_idx < _chr_sprites.size():
+		var hit_pos: Vector2 = _chr_sprites[target_idx].global_position
+		if blocked:
+			_spawn_block_telop(hit_pos)
+		if enemy_result["final"] > 0:
+			_spawn_hit_vfx(hit_pos)
+			var dmg_scale: float = 1.25 if is_crit else 1.0
+			_spawn_damage_number(
+				str(enemy_result["final"]),
+				hit_pos,
+				Color(1.0, 0.35, 0.35),
+				dmg_scale
+			)
 	if not $CombatController.is_member_alive(target_idx) and target_idx < _chr_sprites.size():
 		_chr_sprites[target_idx].visible = false
 	var resist_tag: String = ""
 	if enemy_result.get("elem_resisted", false):
 		resist_tag = "  [耐性:%s]" % ElementResolverScript.get_display_name(_enemy_attack_element_at(slot))
 	var density_tag: String = $CombatController.get_density_log_tag(target_idx)
+	var crit_tag: String = "  CRITICAL!" if is_crit else ""
+	var block_tag: String = "  Block!" if blocked else ""
 	var log_text: String
 	if enemy_result["mitigated"] > 0:
-		log_text = "敵の攻撃【%s】: %s%s に %dダメージ（軽減%d）%s%s" % [
-			atk_label, guard_prefix, member_name, enemy_result["final"], enemy_result["mitigated"], density_tag, resist_tag,
+		log_text = "敵の攻撃【%s】: %s%s に %dダメージ（軽減%d）%s%s%s%s" % [
+			atk_label, guard_prefix, member_name, enemy_result["final"], enemy_result["mitigated"],
+			density_tag, resist_tag, crit_tag, block_tag,
 		]
 	else:
-		log_text = "敵の攻撃【%s】: %s%s に %dダメージ%s%s" % [
-			atk_label, guard_prefix, member_name, enemy_result["final"], density_tag, resist_tag,
+		log_text = "敵の攻撃【%s】: %s%s に %dダメージ%s%s%s%s" % [
+			atk_label, guard_prefix, member_name, enemy_result["final"],
+			density_tag, resist_tag, crit_tag, block_tag,
 		]
 	if not $CombatController.is_member_alive(target_idx):
 		log_text += "\n%s が倒れた！" % member_name
@@ -10064,6 +10091,10 @@ func _spawn_hit_vfx(
 
 func _spawn_miss_telop(world_pos: Vector2) -> void:
 	_spawn_damage_number("Miss!", world_pos, Color(0.82, 0.86, 0.95), 1.05, 0, true)
+
+
+func _spawn_block_telop(world_pos: Vector2) -> void:
+	_spawn_damage_number("Block!", world_pos, Color(0.45, 0.78, 1.0), 1.05, 0, true)
 
 func _spawn_damage_number(
 	text: String,

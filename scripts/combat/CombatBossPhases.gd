@@ -493,6 +493,9 @@ const _DEFS: Dictionary = {
 static func has_phases(enemy_id: String) -> bool:
 	return _DEFS.has(enemy_id)
 
+static func boss_ids() -> Array:
+	return _DEFS.keys()
+
 static func phase_count(enemy_id: String) -> int:
 	return (_DEFS.get(enemy_id, []) as Array).size()
 

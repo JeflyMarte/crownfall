@@ -6162,5 +6162,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-FIX-COMBAT-AUDIT-D-001-3 | **列AoE** — 空列 fallback・Threat按分・オトモ常時前列は仕様通り（コード変更なし） | P3-D106d 確認 |
 | P3-FIX-COMBAT-AUDIT-D-001-4 | **据置** — 敵 critical_rate／ブロック演出／ボス weight 回帰 | 案E |
 
+## 戦闘システム監査案E（2026-07-31 — P3-FIX-COMBAT-AUDIT-E-001）
+
+> **オーナー GO（案E）** — 敵クリティカル接続／ブロック演出／ボス weight 回帰。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-FIX-COMBAT-AUDIT-E-001-1 | **敵クリティカル** — `EnemyData.critical_rate` を `enemy_damage_to_member` に配線。倍率=`BalanceConfig.CRITICAL_MULTIPLIER` | データ定義のみだった未接続を解消 |
+| P3-FIX-COMBAT-AUDIT-E-001-2 | **ブロック演出** — `blocked` フラグ＋`Block!` テロップ／ログ（Miss 同型）。ダメージは軽減後も適用 | 計算済・無演出だった |
+| P3-FIX-COMBAT-AUDIT-E-001-3 | **ボス weight** — `skill_weight` キー ⊆ `enemy.skill_ids` を GUT 固定 | 圧力パッチの typo 再発防止 |
+
+
 
 
