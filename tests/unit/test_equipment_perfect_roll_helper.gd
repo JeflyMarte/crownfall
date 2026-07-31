@@ -55,8 +55,42 @@ func test_attack_up_mod_shows_star_and_range_when_perfect() -> void:
 	var mod_line: String = str(rows[1].get("value", ""))
 	assert_true(mod_line.contains("攻撃力アップ"), mod_line)
 	assert_true(mod_line.contains("(%d〜%d)" % [1, roll_max]), mod_line)
-	assert_true(mod_line.contains("⭐️"), mod_line)
+	assert_true(mod_line.begins_with("⭐️"), mod_line)
 	assert_eq(str(rows[0].get("value", "")), str(_EquipmentEnhancer.get_effective_attack(weapon)))
+
+
+func test_attack_up_at_max_shows_star_even_without_perfect_flag() -> void:
+	## 移行セーブ等で perfect=false でも MAX なら⭐️。
+	var mod: Dictionary = {
+		"id": _ERM.KIND_ATTACK_UP,
+		"label": "攻撃力アップ",
+		"kind": _ERM.KIND_ATTACK_UP,
+		"value": 200,
+		"min_v": 100,
+		"max_v": 200,
+		"perfect": false,
+		"meta": {},
+	}
+	assert_true(_ERM.is_mod_perfect(mod))
+	var line: String = _ERM.format_mod_line(mod)
+	assert_eq(line, "⭐️攻撃力アップ +200 (100〜200)")
+
+
+func test_attack_up_below_max_has_no_star() -> void:
+	var mod: Dictionary = {
+		"id": _ERM.KIND_ATTACK_UP,
+		"label": "攻撃力アップ",
+		"kind": _ERM.KIND_ATTACK_UP,
+		"value": 150,
+		"min_v": 100,
+		"max_v": 200,
+		"perfect": false,
+		"meta": {},
+	}
+	assert_false(_ERM.is_mod_perfect(mod))
+	var line: String = _ERM.format_mod_line(mod)
+	assert_eq(line, "攻撃力アップ +150 (100〜200)")
+	assert_false(line.contains("⭐️"))
 
 
 func test_crit_rate_mod_shows_range() -> void:

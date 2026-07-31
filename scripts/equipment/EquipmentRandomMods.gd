@@ -487,30 +487,53 @@ static func _accessory_pool_ids(used: Dictionary) -> Array[String]:
 	return out
 
 
+## MAX 到達（または perfect フラグ）なら true。レンジ無し（特攻等）はフラグのみ。
+static func is_mod_perfect(mod: Dictionary) -> bool:
+	if mod.is_empty():
+		return false
+	if bool(mod.get("perfect", false)):
+		return true
+	var kind: String = str(mod.get("kind", ""))
+	## 固定枠（種族特攻・耐性・無効）はロール幅が無いので推定しない。
+	if kind == KIND_BANE or kind == KIND_RESIST or kind == KIND_IMMUNITY:
+		return false
+	var value: float = float(mod.get("value", 0.0))
+	var min_v: float = float(mod.get("min_v", value))
+	var max_v: float = float(mod.get("max_v", value))
+	if max_v <= min_v + 0.0001:
+		return false
+	match kind:
+		KIND_ATTACK_UP, KIND_DEFENSE_UP, KIND_HP_UP, KIND_HEALING, KIND_ELEMENT_POWER:
+			return int(value) >= int(max_v)
+		_:
+			return value >= max_v - 0.0001
+
+
 static func format_mod_line(mod: Dictionary) -> String:
 	var label: String = str(mod.get("label", ""))
 	var kind: String = str(mod.get("kind", ""))
 	var value: float = float(mod.get("value", 0.0))
 	var min_v: float = float(mod.get("min_v", value))
 	var max_v: float = float(mod.get("max_v", value))
-	var star: String = "⭐️" if bool(mod.get("perfect", false)) else ""
+	## 例: ⭐️攻撃力アップ +200 (100〜200)
+	var star: String = "⭐️" if is_mod_perfect(mod) else ""
 	if kind == KIND_ELEMENT_POWER:
 		label = element_power_label(str(mod.get("meta", {}).get("element", "")), label)
 	match kind:
 		KIND_ATTACK_UP, KIND_DEFENSE_UP, KIND_HP_UP, KIND_HEALING, KIND_ELEMENT_POWER:
-			return "%s +%d (%d〜%d)%s" % [label, int(value), int(min_v), int(max_v), star]
+			return "%s%s +%d (%d〜%d)" % [star, label, int(value), int(min_v), int(max_v)]
 		KIND_BANE:
 			var bclass: String = str(mod.get("meta", {}).get("bane_class", ""))
 			var mult: float = float(mod.get("meta", {}).get("bane_mult", 1.3))
-			return "%s %s ×%.1f%s" % [label, bclass, mult, star]
+			return "%s%s %s ×%.1f" % [star, label, bclass, mult]
 		KIND_ON_HIT:
 			var sid: String = str(mod.get("meta", {}).get("status_id", ""))
 			var sname: String = sid
 			var se: Resource = DataRegistry.get_status_effect(sid)
 			if se != null:
 				sname = str(se.display_name)
-			return "%s %s %.0f%% (%.0f〜%.0f%%)%s" % [
-				label, sname, value * 100.0, min_v * 100.0, max_v * 100.0, star
+			return "%s%s %s %.0f%% (%.0f〜%.0f%%)" % [
+				star, label, sname, value * 100.0, min_v * 100.0, max_v * 100.0
 			]
 		KIND_RESIST:
 			var elems: Array = mod.get("meta", {}).get("elements", [])
@@ -518,20 +541,20 @@ static func format_mod_line(mod: Dictionary) -> String:
 			for e: Variant in elems:
 				var nm: String = _ElementResolver.get_display_name(str(e))
 				names.append(nm if not nm.is_empty() else str(e))
-			return "%s %s ×%.2f%s" % [label, "・".join(names), value, star]
+			return "%s%s %s ×%.2f" % [star, label, "・".join(names), value]
 		KIND_IMMUNITY:
 			var ids: Array = mod.get("meta", {}).get("status_ids", [])
 			var labels: PackedStringArray = PackedStringArray()
 			for sid2: Variant in ids:
 				var se2: Resource = DataRegistry.get_status_effect(str(sid2))
 				labels.append(str(se2.display_name) if se2 != null else str(sid2))
-			return "%s %s%s" % [label, "・".join(labels), star]
+			return "%s%s %s" % [star, label, "・".join(labels)]
 		KIND_ATTACK_SPEED:
-			return "%s +%.2f (%.2f〜%.2f)%s" % [label, value, min_v, max_v, star]
+			return "%s%s +%.2f (%.2f〜%.2f)" % [star, label, value, min_v, max_v]
 		_:
 			## 率系
-			return "%s +%.0f%% (%.0f〜%.0f%%)%s" % [
-				label, value * 100.0, min_v * 100.0, max_v * 100.0, star
+			return "%s%s +%.0f%% (%.0f〜%.0f%%)" % [
+				star, label, value * 100.0, min_v * 100.0, max_v * 100.0
 			]
 
 
@@ -1036,14 +1059,15 @@ static func _migrate_weapon(item: Resource) -> void:
 		var rolled: int = int(item.rolled_attack)
 		if rolled > base_atk:
 			var up: int = rolled - base_atk
+			var up_max: int = maxi(up, int(_WeaponStatResolver.ATTACK_ROLL_MAX.get(int(data.rarity), up)))
 			mods.append({
 				"id": KIND_ATTACK_UP,
 				"label": "攻撃力アップ",
 				"kind": KIND_ATTACK_UP,
 				"value": up,
 				"min_v": 1,
-				"max_v": maxi(up, int(_WeaponStatResolver.ATTACK_ROLL_MAX.get(int(data.rarity), up))),
-				"perfect": false,
+				"max_v": up_max,
+				"perfect": up >= up_max,
 				"meta": {},
 			})
 		item.rolled_attack = base_atk
@@ -1061,14 +1085,15 @@ static func _migrate_armor(item: Resource) -> void:
 		var rolled: int = int(item.rolled_defense)
 		if rolled > base_def:
 			var up: int = rolled - base_def
+			var up_max: int = maxi(up, int(_ArmorStatResolver.DEFENSE_ROLL_MAX.get(int(data.rarity), up)))
 			mods.append({
 				"id": KIND_DEFENSE_UP,
 				"label": "防御力アップ",
 				"kind": KIND_DEFENSE_UP,
 				"value": up,
 				"min_v": 1,
-				"max_v": maxi(up, int(_ArmorStatResolver.DEFENSE_ROLL_MAX.get(int(data.rarity), up))),
-				"perfect": false,
+				"max_v": up_max,
+				"perfect": up >= up_max,
 				"meta": {},
 			})
 		item.rolled_defense = base_def
