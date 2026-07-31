@@ -16,16 +16,23 @@ const P_LB_STAR3: float = 0.05
 const P_LB_STAR4: float = 0.01
 ## ③ガチャ券追加抽選
 const P_GACHA_MISTFEN: float = 0.25
+## 封蔵開封券（招待券と混ぜる／P3-GACHA-EQ-SEAL-TICKET-001）
+const P_SEAL_MOURNGATE: float = 0.30
+const P_SEAL_WHISPERWOOD: float = 0.40
+const P_SEAL_MISTFEN: float = 0.25
+const P_SEAL_BLACKSHORE: float = 0.50
 
 ## dungeon_id → 確定報酬定義。
 ## gold / token / materials{id:qty} / tickets{id:qty} / pet_id
 ## lb_rolls: Array[{id, p}] — 限界突破券の独立抽選
+## seal_rolls: Array[{id, p}] — 封蔵開封券の独立抽選
 ## lottery: 旧互換キー（ガチャ券など）
 const TABLE: Dictionary = {
 	"mourngate": {
 		"gold": 200,
 		"token": 10,
 		"tickets": {"ticket_gacha_free": 1},
+		"seal_rolls": [{"id": "ticket_seal_free", "p": P_SEAL_MOURNGATE}],
 	},
 	"whisperwood": {
 		"gold": 350,
@@ -33,12 +40,14 @@ const TABLE: Dictionary = {
 		"materials": {"base_ore": 5, "relic_shard": 2},
 		"tickets": {"ticket_gacha_free": 1},
 		"pet_id": "pet_ash",
+		"seal_rolls": [{"id": "ticket_seal_free", "p": P_SEAL_WHISPERWOOD}],
 	},
 	"mistfen": {
 		"gold": 500,
 		"token": 20,
 		"materials": {"base_ore": 8, "relic_shard": 4},
 		"lb_rolls": [{"id": "ticket_lb_star2", "p": P_LB_STAR2}],
+		"seal_rolls": [{"id": "ticket_seal_free", "p": P_SEAL_MISTFEN}],
 		"lottery": "mistfen_gacha",
 	},
 	"blackshore": {
@@ -50,10 +59,12 @@ const TABLE: Dictionary = {
 			{"id": "ticket_lb_star3", "p": P_LB_STAR3},
 			{"id": "ticket_lb_star4", "p": P_LB_STAR4},
 		],
+		"seal_rolls": [{"id": "ticket_seal_free", "p": P_SEAL_BLACKSHORE}],
 	},
 	"frostridge": {
 		"gold": 800,
 		"token": 30,
+		"tickets": {"ticket_seal_free": 1},
 		"lb_rolls": [
 			{"id": "ticket_lb_star3", "p": P_LB_STAR3},
 			{"id": "ticket_lb_star4", "p": P_LB_STAR4},
@@ -115,6 +126,23 @@ static func preview_entries(dungeon_id: String) -> Array[Dictionary]:
 				"qty": 1,
 				"label": tid,
 				"chance_note": _pct_label(p),
+			})
+	var seal_rolls: Variant = d.get("seal_rolls", [])
+	if seal_rolls is Array:
+		for roll_v2 in seal_rolls as Array:
+			if not (roll_v2 is Dictionary):
+				continue
+			var sroll: Dictionary = roll_v2
+			var sid: String = str(sroll.get("id", ""))
+			var sp: float = float(sroll.get("p", 0.0))
+			if sid.is_empty() or sp <= 0.0:
+				continue
+			out.append({
+				"kind": "ticket",
+				"id": sid,
+				"qty": 1,
+				"label": sid,
+				"chance_note": _pct_label(sp),
 			})
 	var lottery: String = str(d.get("lottery", ""))
 	match lottery:
@@ -247,6 +275,20 @@ static func try_claim(dungeon_id: String, notify: bool = true) -> Dictionary:
 				_TicketInventory.add(tid, 1)
 				ticket_out[tid] = int(ticket_out.get(tid, 0)) + 1
 				lb_hits.append(tid)
+	## 封蔵開封券（独立抽選）
+	var seal_rolls: Variant = def.get("seal_rolls", [])
+	if seal_rolls is Array:
+		for roll_v2 in seal_rolls as Array:
+			if not (roll_v2 is Dictionary):
+				continue
+			var sroll: Dictionary = roll_v2
+			var sid: String = str(sroll.get("id", ""))
+			var sp: float = float(sroll.get("p", 0.0))
+			if sid.is_empty() or sp <= 0.0:
+				continue
+			if randf() < sp:
+				_TicketInventory.add(sid, 1)
+				ticket_out[sid] = int(ticket_out.get(sid, 0)) + 1
 	## 追加抽選（ガチャ券など）
 	var lottery: String = str(def.get("lottery", ""))
 	match lottery:

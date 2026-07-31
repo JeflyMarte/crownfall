@@ -135,6 +135,25 @@ func test_pool_resources_resolve() -> void:
 		assert_false(name_str.is_empty())
 
 
+func test_pull_with_seal_ticket() -> void:
+	GameState.gacha_token = 0
+	TicketInventory.add(TicketIds.SEAL_FREE, 1)
+	assert_true(_GachaEquipSystem.can_pull_with_ticket())
+	var result: Dictionary = _GachaEquipSystem.pull(true)
+	assert_true(bool(result.get("ok", false)), str(result))
+	assert_true(bool(result.get("paid_with_ticket", false)))
+	assert_eq(TicketInventory.get_qty(TicketIds.SEAL_FREE), 0)
+	assert_eq(GameState.gacha_token, 0)
+
+
+func test_pull_ticket_fails_without_seal_ticket() -> void:
+	GameState.gacha_token = 999
+	var result: Dictionary = _GachaEquipSystem.pull(true)
+	assert_false(bool(result.get("ok", true)))
+	assert_eq(str(result.get("reason", "")), "no_ticket")
+	assert_eq(GameState.gacha_token, 999)
+
+
 func test_featured_entries_are_weapons() -> void:
 	var featured: Array = _GachaEquipSystem.featured_entries()
 	assert_eq(featured.size(), 9)

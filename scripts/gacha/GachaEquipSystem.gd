@@ -64,6 +64,10 @@ static func can_pull() -> bool:
 	return GameState.gacha_token >= PULL_COST
 
 
+static func can_pull_with_ticket() -> bool:
+	return TicketSystem.can_use_free_seal()
+
+
 static func rate_display_text() -> String:
 	return "Epic 55%%／L 45%%（灰冠寄）"
 
@@ -73,7 +77,7 @@ static func rate_detail_text() -> String:
 		"Epic 55%%\nL 45%%（内訳: 灰冠 60%%／既存L 40%%）\n\n"
 		+ "部位は武・防・飾均等 → その中で均等\n"
 		+ "除外: 神話・降臨セット・深層専用・真・王遺産\n\n"
-		+ "1回 %d 魔晶石／無料チケットなし"
+		+ "1回 %d 魔晶石／封蔵開封券可"
 	) % PULL_COST
 
 
@@ -226,21 +230,27 @@ static func _is_eligible_standard(kind: String, item_id: String, data: Resource)
 	return false
 
 
-## 結果: { ok, reason?, kind, item_id, display_name, seat, blurb, rarity, pool, instance }
-static func pull() -> Dictionary:
-	if not can_pull():
+## 結果: { ok, reason?, kind, item_id, display_name, seat, blurb, rarity, pool, instance, paid_with_ticket }
+static func pull(use_ticket: bool = false) -> Dictionary:
+	var paid_with_ticket: bool = false
+	if use_ticket:
+		if not TicketSystem.try_consume_free_seal():
+			return {"ok": false, "reason": "no_ticket"}
+		paid_with_ticket = true
+	elif not can_pull():
 		return {"ok": false, "reason": "no_token"}
+	else:
+		GameState.gacha_token -= PULL_COST
 	ensure_pools()
-	GameState.gacha_token -= PULL_COST
 	var pick: Dictionary = _roll_entry()
 	if pick.is_empty():
-		GameState.gacha_token += PULL_COST
+		_refund_pull_cost(paid_with_ticket)
 		return {"ok": false, "reason": "empty_pool"}
 	var kind: String = str(pick.get("kind", ""))
 	var item_id: String = str(pick.get("id", ""))
 	var inst: Resource = _spawn_instance(kind, item_id)
 	if inst == null:
-		GameState.gacha_token += PULL_COST
+		_refund_pull_cost(paid_with_ticket)
 		return {"ok": false, "reason": "spawn_failed"}
 	_grant(kind, inst)
 	if GameState.has_method("note_equipment_obtained"):
@@ -257,7 +267,15 @@ static func pull() -> Dictionary:
 		"rarity": int(pick.get("rarity", Enums.Rarity.LEGENDARY)),
 		"pool": pool_tag,
 		"instance": inst,
+		"paid_with_ticket": paid_with_ticket,
 	}
+
+
+static func _refund_pull_cost(paid_with_ticket: bool) -> void:
+	if paid_with_ticket:
+		TicketSystem.refund_free_seal()
+	else:
+		GameState.gacha_token += PULL_COST
 
 
 static func _roll_entry() -> Dictionary:

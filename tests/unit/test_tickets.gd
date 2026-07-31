@@ -19,7 +19,7 @@ func after_each() -> void:
 
 
 func test_ticket_resources_and_icons_exist() -> void:
-	assert_eq(DataRegistry.get_all_ticket_data().size(), 4)
+	assert_eq(DataRegistry.get_all_ticket_data().size(), 5)
 	for tid in TicketIds.ALL:
 		assert_not_null(DataRegistry.get_ticket_data(tid), tid)
 		assert_not_null(IconPaths.get_icon_texture(tid, "ticket"), tid)
@@ -128,6 +128,7 @@ func test_ticket_inventory_save_roundtrip() -> void:
 	assert_eq(TicketInventory.get_qty(TicketIds.GACHA_FREE), 0)
 	SaveManager.load_game()
 	assert_eq(TicketInventory.get_qty(TicketIds.GACHA_FREE), Constants.DEBUG_TICKET_GRANT_EACH)
+	assert_eq(TicketInventory.get_qty(TicketIds.SEAL_FREE), Constants.DEBUG_TICKET_GRANT_EACH)
 	assert_eq(TicketInventory.get_qty(TicketIds.LB_STAR3), Constants.DEBUG_TICKET_GRANT_EACH)
 	assert_eq(TicketInventory.get_qty(TicketIds.LB_STAR4), Constants.DEBUG_TICKET_GRANT_EACH)
 

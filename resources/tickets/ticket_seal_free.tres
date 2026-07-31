@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="TicketData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/TicketData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "ticket_seal_free"
+display_name = "封蔵開封券"
+description = "封蔵の匣を1回、魔晶石なしで開くことができる。"
+effect_type = "free_seal"
+target_rarity = 0
+icon_path = "res://assets/ui/tickets/ICO_Ticket_SealFree.png"
+sort_order = 15

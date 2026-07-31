@@ -1040,6 +1040,56 @@ static func setup_ticket_pull_button(btn: Button, enabled: bool) -> void:
 	)
 	row.add_child(cost)
 
+
+static func seal_ticket_pull_title() -> String:
+	return "券で開封"
+
+
+static func setup_seal_ticket_pull_button(btn: Button, enabled: bool) -> void:
+	if btn == null:
+		return
+	GachaUiTokens.apply_pull_button(btn, enabled)
+	btn.text = ""
+	btn.tooltip_text = TicketSystem.display_name(TicketIds.SEAL_FREE)
+	for child in btn.get_children():
+		child.free()
+	var row := HBoxContainer.new()
+	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	row.add_theme_constant_override("separation", 8)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	btn.add_child(row)
+	var title := Label.new()
+	title.text = seal_ticket_pull_title()
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_menu_label(
+		title,
+		UiTypography.SIZE_BUTTON,
+		UiTypography.COLOR_LOCKED if not enabled else UiTypography.COLOR_BODY
+	)
+	row.add_child(title)
+	var icon_tex: Texture2D = IconPaths.get_icon_texture(TicketIds.SEAL_FREE, "ticket")
+	if icon_tex != null:
+		var icon := TextureRect.new()
+		icon.texture = icon_tex
+		icon.custom_minimum_size = Vector2(24, 24)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		if not enabled:
+			icon.modulate = Color(0.62, 0.6, 0.55, 1.0)
+		row.add_child(icon)
+	var cost := Label.new()
+	cost.text = "×%d" % TicketSystem.free_seal_qty()
+	cost.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_menu_label(
+		cost,
+		UiTypography.SIZE_BUTTON,
+		UiTypography.COLOR_LOCKED if not enabled else UiTypography.COLOR_GOLD
+	)
+	row.add_child(cost)
+
+
 static func make_lineup_row(helper: Resource) -> PanelContainer:
 	var helper_id: String = str(helper.id)
 	var panel := PanelContainer.new()

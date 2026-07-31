@@ -361,7 +361,7 @@ func _refresh() -> void:
 		_label_rate.text = _GachaEquipSystem.rate_display_text()
 		_label_catchcopy.text = _GachaEquipSystem.catchcopy()
 		_pull_confirm.title = "封蔵の匣"
-		_button_pull_ticket.visible = false
+		_button_pull_ticket.visible = true
 		$DetailOverlay/DetailPanel/DetailVBox/DetailHeader/LabelDetailTitle.text = "封蔵の排出"
 	else:
 		_label_title.text = "ギルドへの招待状"
@@ -380,18 +380,24 @@ func _refresh() -> void:
 			"匣を開く",
 			_GachaEquipSystem.pull_cost()
 		)
+		GachaUiHelper.setup_seal_ticket_pull_button(
+			_button_pull_ticket, not _button_pull_ticket.disabled
+		)
 	else:
 		GachaUiHelper.setup_pull_button(_button_pull, not _button_pull.disabled)
 		GachaUiHelper.setup_ticket_pull_button(_button_pull_ticket, not _button_pull_ticket.disabled)
 	if not _summon_active:
 		if _is_seal_page():
-			if _label_result.text.begins_with("招待無料券"):
+			var seal_n: int = TicketSystem.free_seal_qty()
+			if seal_n > 0:
+				_label_result.text = "封蔵開封券 ×%d（右ボタンで使用）" % seal_n
+			elif _label_result.text.begins_with("封蔵開封券") or _label_result.text.begins_with("招待無料券"):
 				_label_result.text = ""
 		else:
 			var free_n: int = TicketSystem.free_gacha_qty()
 			if free_n > 0:
 				_label_result.text = "招待無料券 ×%d（右ボタンで使用）" % free_n
-			elif _label_result.text.begins_with("招待無料券"):
+			elif _label_result.text.begins_with("招待無料券") or _label_result.text.begins_with("封蔵開封券"):
 				_label_result.text = ""
 	_sync_featured_rotation_state()
 	_rebuild_lineup()
@@ -676,7 +682,7 @@ func _sync_featured_rotation_state() -> void:
 func _set_pull_controls_enabled(enabled: bool) -> void:
 	if _is_seal_page():
 		_button_pull.disabled = not enabled or not _GachaEquipSystem.can_pull()
-		_button_pull_ticket.disabled = true
+		_button_pull_ticket.disabled = not enabled or not _GachaEquipSystem.can_pull_with_ticket()
 	else:
 		_button_pull.disabled = not enabled or not GachaSystem.can_pull()
 		_button_pull_ticket.disabled = not enabled or not GachaSystem.can_pull_with_ticket()
@@ -748,8 +754,6 @@ func _on_pull_pressed() -> void:
 
 
 func _on_pull_ticket_pressed() -> void:
-	if _is_seal_page():
-		return
 	_ask_pull(true)
 
 
@@ -758,14 +762,18 @@ func _ask_pull(use_ticket: bool) -> void:
 		return
 	if _is_seal_page():
 		if use_ticket:
-			return
-		if not _GachaEquipSystem.can_pull():
-			_label_result.text = "%sが足りません。" % CurrencyHelper.DISPLAY_NAME
-			return
-		_pull_confirm.dialog_text = "%s %d を使って匣を開きますか？" % [
-			CurrencyHelper.DISPLAY_NAME, _GachaEquipSystem.PULL_COST,
-		]
-		_pending_pull_ticket = false
+			if not _GachaEquipSystem.can_pull_with_ticket():
+				_label_result.text = "封蔵開封券が足りません。"
+				return
+			_pull_confirm.dialog_text = "封蔵開封券を1枚使って匣を開きますか？"
+		else:
+			if not _GachaEquipSystem.can_pull():
+				_label_result.text = "%sが足りません。" % CurrencyHelper.DISPLAY_NAME
+				return
+			_pull_confirm.dialog_text = "%s %d を使って匣を開きますか？" % [
+				CurrencyHelper.DISPLAY_NAME, _GachaEquipSystem.PULL_COST,
+			]
+		_pending_pull_ticket = use_ticket
 		_pull_confirm.popup_centered()
 		return
 	if use_ticket:
@@ -792,11 +800,13 @@ func _start_pull(use_ticket: bool) -> void:
 	if _summon_active:
 		return
 	if _is_seal_page():
-		var eq_result: Dictionary = _GachaEquipSystem.pull()
+		var eq_result: Dictionary = _GachaEquipSystem.pull(use_ticket)
 		SaveManager.save_game()
 		if not bool(eq_result.get("ok", false)):
 			var eq_reason: String = str(eq_result.get("reason", ""))
-			if eq_reason == "no_token":
+			if eq_reason == "no_ticket":
+				_label_result.text = "封蔵開封券が足りません。"
+			elif eq_reason == "no_token":
 				_label_result.text = "%sが足りません。" % CurrencyHelper.DISPLAY_NAME
 			else:
 				_label_result.text = "開封に失敗しました（%s）。" % eq_reason

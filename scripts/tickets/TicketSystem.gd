@@ -23,6 +23,22 @@ static func refund_free_gacha() -> void:
 	TicketInventory.add(TicketIds.GACHA_FREE, 1)
 
 
+static func free_seal_qty() -> int:
+	return TicketInventory.get_qty(TicketIds.SEAL_FREE)
+
+
+static func can_use_free_seal() -> bool:
+	return free_seal_qty() > 0
+
+
+static func try_consume_free_seal() -> bool:
+	return TicketInventory.consume(TicketIds.SEAL_FREE, 1)
+
+
+static func refund_free_seal() -> void:
+	TicketInventory.add(TicketIds.SEAL_FREE, 1)
+
+
 static func ticket_id_for_limit_break_rarity(rarity: int) -> String:
 	match _GachaRarityConfig.clamp_rarity(rarity):
 		2:

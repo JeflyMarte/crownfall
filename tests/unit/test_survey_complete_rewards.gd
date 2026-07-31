@@ -105,22 +105,34 @@ func test_preview_entries_lb_rates() -> void:
 	assert_eq(_SurveyCompleteRewards.P_LB_STAR2, 0.05)
 	assert_eq(_SurveyCompleteRewards.P_LB_STAR3, 0.05)
 	assert_eq(_SurveyCompleteRewards.P_LB_STAR4, 0.01)
+	assert_eq(_SurveyCompleteRewards.P_SEAL_MOURNGATE, 0.30)
+	assert_eq(_SurveyCompleteRewards.P_SEAL_WHISPERWOOD, 0.40)
+	assert_eq(_SurveyCompleteRewards.P_SEAL_MISTFEN, 0.25)
+	assert_eq(_SurveyCompleteRewards.P_SEAL_BLACKSHORE, 0.50)
 	var bs: Array[Dictionary] = _SurveyCompleteRewards.preview_entries("blackshore")
 	var has_lb3: bool = false
 	var has_lb4: bool = false
+	var has_seal_bs: bool = false
 	for e in bs:
 		if str(e.get("id", "")) == TicketIds.LB_STAR3 and str(e.get("chance_note", "")) == "5%":
 			has_lb3 = true
 		if str(e.get("id", "")) == TicketIds.LB_STAR4 and str(e.get("chance_note", "")) == "1%":
 			has_lb4 = true
+		if str(e.get("id", "")) == TicketIds.SEAL_FREE and str(e.get("chance_note", "")) == "50%":
+			has_seal_bs = true
 	assert_true(has_lb3)
 	assert_true(has_lb4)
+	assert_true(has_seal_bs)
 	var fr: Array[Dictionary] = _SurveyCompleteRewards.preview_entries("frostridge")
 	var has_fr4: bool = false
+	var has_seal_fr: bool = false
 	for e in fr:
 		if str(e.get("id", "")) == TicketIds.LB_STAR4 and str(e.get("chance_note", "")) == "1%":
 			has_fr4 = true
+		if str(e.get("id", "")) == TicketIds.SEAL_FREE:
+			has_seal_fr = _SurveyCompleteRewards.preview_chance_label(e) == "確定"
 	assert_true(has_fr4)
+	assert_true(has_seal_fr)
 	var mf: Array[Dictionary] = _SurveyCompleteRewards.preview_entries("mistfen")
 	var has_lb2: bool = false
 	for e in mf:
@@ -129,6 +141,13 @@ func test_preview_entries_lb_rates() -> void:
 	assert_true(has_lb2)
 	assert_eq(_SurveyCompleteRewards.preview_dedupe_key({"kind": "gold"}), "gold")
 	assert_eq(_SurveyCompleteRewards.preview_chance_label({"kind": "gold", "qty": 500}), "確定")
+
+
+func test_frostridge_guarantees_seal_ticket() -> void:
+	GameState.hub_survey_progress["frostridge"] = 100.0
+	var r: Dictionary = _SurveyCompleteRewards.try_claim("frostridge", false)
+	assert_true(bool(r.get("ok", false)), str(r))
+	assert_eq(TicketInventory.get_qty(TicketIds.SEAL_FREE), 1)
 
 
 func test_cycle_token_config_is_harsher() -> void:

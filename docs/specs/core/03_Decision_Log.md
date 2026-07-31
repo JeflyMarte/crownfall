@@ -6111,6 +6111,18 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-GACHA-NAV-SUMMON-001-3 | **上書き** — P3-GACHA-COPY-001-5 の下ナビ「招待状」 | 本 Decision が正 |
 | P3-GACHA-NAV-SUMMON-001-4 | **案内文** — 手引き／開始ニーナは「召喚」ナビを指すよう同期 | 迷子防止 |
 
+## 封蔵開封券＋調査景品（2026-07-31 — P3-GACHA-EQ-SEAL-TICKET-001）
+
+> **オーナー指示** — 武器（封蔵）ガチャ用チケットを作成し、調査室報酬に混ぜる。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-GACHA-EQ-SEAL-TICKET-001-1 | **券** — `ticket_seal_free`（封蔵開封券）。1枚＝封蔵1回無料 | 招待無料券と同型 |
+| P3-GACHA-EQ-SEAL-TICKET-001-2 | **UI** — 封蔵ページ右ボタンで消費。招待券とは別在庫 | 混線防止 |
+| P3-GACHA-EQ-SEAL-TICKET-001-3 | **完全調査** — ①30%／②40%／③25%／④50%／⑤確定1 | 招待券と混ぜつつ後半厚め |
+| P3-GACHA-EQ-SEAL-TICKET-001-4 | **据置** — ①②の招待無料券確定、③招待抽選、LB抽選 | 既存景品を壊さない |
+| P3-GACHA-EQ-SEAL-TICKET-001-5 | **上書き** — SEAL-UI-001「封蔵無料券なし」 | 本 Decision が正 |
+
 ## 状態異常横断点検（2026-07-31 — P3-FIX-STATUS-AUDIT-001）
 
 > **オーナー指示** — 出血・毒以外の状態異常もバグがないか点検。
