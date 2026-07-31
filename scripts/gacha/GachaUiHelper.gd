@@ -964,11 +964,29 @@ static func highlight_pool_icon(strip: Control, item_id: String) -> void:
 		(child as CanvasItem).modulate = Color(1.08, 1.02, 0.9, 1.0) if on else Color(0.78, 0.76, 0.72, 1.0)
 
 
+static func set_featured_aura_visible(shell: Dictionary, visible: bool) -> void:
+	var fade: Control = shell.get("fade") as Control
+	if fade == null:
+		return
+	var stage: Control = fade.get_node_or_null("FeaturedStage") as Control
+	if stage == null:
+		return
+	for node_name in ["FeaturedBeam", "FeaturedBeamSoft", "FeaturedBeamHaze"]:
+		var node: CanvasItem = stage.get_node_or_null(node_name) as CanvasItem
+		if node != null:
+			node.visible = visible
+	## 上昇塵もキャラ専用。
+	for child in stage.get_children():
+		if child is CanvasItem and str(child.name).begins_with("FeaturedMote"):
+			(child as CanvasItem).visible = visible
+
+
 static func apply_featured_helper(shell: Dictionary, helper: Resource) -> void:
 	if shell.is_empty() or helper == null:
 		return
 	_set_featured_banner_bg(shell, false)
 	set_equip_icon_back_visible(shell, false)
+	set_featured_aura_visible(shell, true)
 	var pool_strip_h: Control = shell.get("pool_strip") as Control
 	if pool_strip_h != null:
 		pool_strip_h.visible = true
@@ -1094,6 +1112,8 @@ static func apply_featured_equipment(shell: Dictionary, entry: Dictionary) -> vo
 		return
 	_set_featured_banner_bg(shell, true)
 	set_equip_icon_back_visible(shell, true)
+	## 装備プレビューでは召喚用の紫光柱を消し、透け見えを防ぐ。
+	set_featured_aura_visible(shell, false)
 	var kind: String = str(entry.get("kind", "weapon"))
 	var item_id: String = str(entry.get("id", ""))
 	var idle: Control = shell.get("idle") as Control

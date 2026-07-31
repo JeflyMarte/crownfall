@@ -60,6 +60,7 @@ alwaysApply: false
 ❌ BAD
 - 手書き `.import` だけ置いて `.ctex` 未生成／params キーが現行 importer と不一致
 - `remove_black` 過処理で金属影が透過穴（暗い装備がセル背景に透ける）
+- 灰冠（Kaiwan）黒＋赤アイコンの内部穴を放置（封蔵 Featured で光柱／背景が透ける）
 - 防具 N〜Epic を同一テンプレ PNG のまま複製（色分けなし → セル背景に同化）
 - AI PNG の白マットをエッジ非連結のまま残す（チケット／MVP 枠）
 - VFX を `remove_black_bg(threshold=24)` のみで処理（暗青緑マット残存）
@@ -68,7 +69,7 @@ alwaysApply: false
 
 ✅ GOOD
 - `.import` は Godot に生成させる（削除→`--import`）。確認は `.godot/imported/*.ctex`
-- 暗い装備の穴埋めは `tools/repair_equipment_icon_alpha_holes.py --apply`（大開口は残す）
+- 暗い装備の穴埋めは `tools/repair_equipment_icon_alpha_holes.py --apply`（大開口は残す）。灰冠は `--only Kaiwan`／`ICO_ARM_*` は強め close
 - 防具 N〜Epic は `tools/generate_equipment_icons.py --armor-only`（色ウォッシュ＋リム。テンプレ正は `equipment/_templates/`）
 - 白マットはエッジ＋中心穴の flood-fill（`import_forge_ui_assets.strip_edge_background` 相当）
 - 戦闘 VFX は `tools/generate_env_and_vfx.py` の `clean_vfx_image`＋`sanitize_alpha`

@@ -88,8 +88,12 @@ def _params_for(name: str) -> tuple[int, int]:
 		return 2, 120
 	if any(k in lower for k in ("ring", "seal", "signet", "amulet", "orb", "charm")):
 		return 2, 280
-	if "armor" in lower or "plate" in lower or "mail" in lower:
+	## ICO_ARM_* / mail / plate — 暗色防具は黒抜き穴が多い
+	if lower.startswith("ico_arm_") or "armor" in lower or "plate" in lower or "mail" in lower:
 		return 4, 900
+	## 灰冠は黒＋赤で穴抜けしやすい
+	if "kaiwan" in lower:
+		return 4, 800
 	return 3, 400
 
 
