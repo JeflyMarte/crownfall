@@ -5824,7 +5824,7 @@ func _try_cast_enemy_skill(slot: int, skill: Resource) -> bool:
 		return false
 	var cast_time: float = float(skill.cast_time)
 	if cast_time <= 0.0:
-		return _execute_enemy_skill(skill)
+		return _execute_enemy_skill(skill, slot)
 	var cd_key: String = "enemy:%s" % skill.id
 	if not _skill_executor.can_cast(skill, cd_key):
 		return false
@@ -5981,36 +5981,38 @@ func _advance_enemy_cast(slot: int) -> void:
 		_update_combat_now_playing_for("enemy", slot)
 		return
 	$CombatController.clear_pending_cast("enemy", slot)
-	_execute_enemy_skill(skill)
+	_execute_enemy_skill(skill, slot)
 
-func _execute_enemy_skill(skill: Resource) -> bool:
+func _execute_enemy_skill(skill: Resource, slot: int = -1) -> bool:
+	if slot < 0:
+		slot = $CombatController.active_enemy_index
 	var res: Dictionary = _skill_executor.execute_support_skill(skill, "enemy:%s" % skill.id)
 	if not res.get("executed", false):
 		return false
 	match skill.effect_type:
 		"buff":
-			_execute_enemy_buff(skill)
+			_execute_enemy_buff(skill, slot)
 			return true
 		"damage":
-			_execute_enemy_damage(skill)
+			_execute_enemy_damage(skill, slot)
 			return true
 	return false
 
-# 敵の自己強化スキル（激昂など）。enemy ユニットに状態付与し与ダメを上昇。
-func _execute_enemy_buff(skill: Resource) -> void:
-	_play_active_enemy_animation("attack")
-	_spawn_enemy_skill_name(skill.display_name, $CombatController.active_enemy_index)
+# 敵の自己強化スキル（激昂など）。詠唱開始スロットへ付与（active 再解決しない）。
+func _execute_enemy_buff(skill: Resource, slot: int) -> void:
+	_play_enemy_caster_animation(slot, "attack")
+	_spawn_enemy_skill_name(skill.display_name, slot)
 	var label: String = skill.display_name
 	if not skill.apply_status_id.is_empty():
-		if $CombatController.apply_status_to_active_enemy(skill.apply_status_id, 1, 0):
-			_on_enemy_status_applied($CombatController.active_enemy_index, skill.apply_status_id)
+		if $CombatController.apply_status_to_enemy_slot(slot, skill.apply_status_id, 1, 0):
+			_on_enemy_status_applied(slot, skill.apply_status_id)
 		var eff: Resource = DataRegistry.get_status_effect(skill.apply_status_id)
 		if eff != null:
 			label = eff.display_name
 	_append_log("敵スキル【%s】: 自身に[%s]" % [skill.display_name, label])
 
 # 敵の攻撃スキル（全体/列/単体）。power_multiplier 分のダメージを対象へ。
-func _execute_enemy_damage(skill: Resource) -> void:
+func _execute_enemy_damage(skill: Resource, slot: int) -> void:
 	var party_size: int = $CombatController.party_combat_hp.size()
 	var target_type: String = str(skill.target_type)
 	var used_fallback: bool = false
@@ -6035,9 +6037,7 @@ func _execute_enemy_damage(skill: Resource) -> void:
 			skill,
 			party_size,
 			Callable($CombatController, "is_member_alive"),
-			Callable($CombatController, "pick_enemy_target_for_melee_attack").bind(
-				$CombatController.active_enemy_index
-			)
+			Callable($CombatController, "pick_enemy_target_for_melee_attack").bind(slot)
 		)
 		## 全体技も Threat 按分（タンクが矢面）。列AoEと同型。単体は share=1。
 		if target_type == CombatFormation.TARGET_ALL_PARTY and targets.size() > 1:
@@ -6055,6 +6055,7 @@ func _execute_enemy_damage(skill: Resource) -> void:
 	## アニメ／技名は予告❗️の後（`_resolve_enemy_skill_damage_impact_async`）。
 	_resolve_enemy_skill_damage_impact_async({
 		"skill": skill,
+		"attacker_slot": slot,
 		"targets": targets,
 		"shares": shares,
 		"dist_tag": dist_tag,
@@ -6070,25 +6071,25 @@ func _resolve_enemy_skill_damage_impact_async(payload: Dictionary) -> void:
 	var dist_tag: String = str(payload.get("dist_tag", ""))
 	var target_type: String = str(payload.get("target_type", ""))
 	var used_fallback: bool = bool(payload.get("used_fallback", false))
+	var atk_slot: int = int(payload.get("attacker_slot", $CombatController.active_enemy_index))
 	_begin_combat_cinematic_lock()
-	var atk_slot: int = $CombatController.active_enemy_index
 	var mark: Label = _spawn_enemy_attack_mark(atk_slot)
 	await get_tree().create_timer(_enemy_attack_telegraph_delay()).timeout
 	_free_enemy_attack_mark(mark)
 	if not $CombatController.is_in_combat:
 		_end_combat_cinematic_lock()
 		return
-	_play_active_enemy_animation("attack")
+	_play_enemy_caster_animation(atk_slot, "attack")
 	if skill != null:
 		_spawn_enemy_skill_name(str(skill.display_name), atk_slot)
-	var sprite: AnimatedSprite2D = _active_enemy_sprite()
+	var sprite: AnimatedSprite2D = _enemy_sprite_for_slot(atk_slot)
 	## 全体／詠唱大技は帯VFXを攻撃アニメと同時に開始（ヒット前に画面を覆う）。
-	_play_enemy_skill_band_vfx(skill)
+	_play_enemy_skill_band_vfx(skill, atk_slot)
 	await get_tree().create_timer(_attack_anim_impact_delay(sprite)).timeout
 	if not $CombatController.is_in_combat:
 		_end_combat_cinematic_lock()
 		return
-	_apply_enemy_damage_to_targets(skill, targets, shares, dist_tag, target_type, used_fallback)
+	_apply_enemy_damage_to_targets(skill, targets, shares, dist_tag, target_type, used_fallback, atk_slot)
 	_update_hp_bars()
 	if $CombatController.is_party_wiped():
 		_end_combat_cinematic_lock()
@@ -6098,13 +6099,17 @@ func _resolve_enemy_skill_damage_impact_async(payload: Dictionary) -> void:
 
 
 ## 敵全体／列／詠唱ダメージの帯・波動・霧（P3-UX-COMBAT-BAND-001）。
-func _play_enemy_skill_band_vfx(skill: Resource) -> void:
+func _play_enemy_skill_band_vfx(skill: Resource, attacker_slot: int = -1) -> void:
 	var style: String = CombatBandVfxScript.classify_enemy_skill(skill)
 	if style.is_empty():
 		return
-	var from: Vector2 = _active_enemy_pos()
-	if from == Vector2.ZERO and _active_enemy_sprite() != null:
-		from = _sprite_visual_center_global(_active_enemy_sprite())
+	var slot: int = attacker_slot
+	if slot < 0:
+		slot = $CombatController.active_enemy_index
+	var from: Vector2 = _enemy_slot_pos(slot)
+	var spr: AnimatedSprite2D = _enemy_sprite_for_slot(slot)
+	if from == Vector2.ZERO and spr != null:
+		from = _sprite_visual_center_global(spr)
 	var band: Rect2 = _party_combat_band_rect()
 	var element: String = str(skill.element) if skill != null else ""
 	var spd: float = _combat_speed_mult if _combat_speed_mult > 0.0 else 1.0
@@ -6170,20 +6175,24 @@ func _apply_enemy_damage_to_targets(
 	shares: Dictionary,
 	dist_tag: String,
 	target_type: String,
-	used_fallback: bool
+	used_fallback: bool,
+	attacker_slot: int = -1
 ) -> void:
 	var row_tag: String = CombatFormation.enemy_target_row_log_tag(target_type, used_fallback)
 	var lines: PackedStringArray = []
-	var atk_slot: int = $CombatController.active_enemy_index
+	var atk_slot: int = attacker_slot
+	if atk_slot < 0:
+		atk_slot = $CombatController.active_enemy_index
 	var skill_elem: String = ""
 	if skill != null and "element" in skill:
 		skill_elem = str(skill.element).strip_edges()
+	var source_atk: int = $CombatController.get_enemy_attack_at(atk_slot)
 	for ti: int in targets:
 		var share: float = float(shares.get(ti, 0.0))
 		if share <= 0.0:
 			continue
 		var power: float = float(skill.power_multiplier) * share
-		var dmg_result: Dictionary = _calc_enemy_damage_to_member(ti, power, -1, atk_slot, skill_elem)
+		var dmg_result: Dictionary = _calc_enemy_damage_to_member(ti, power, source_atk, atk_slot, skill_elem)
 		var member: Resource = GameState.get_combatant(ti)
 		var mname: String = member.display_name if member != null else "?"
 		if dmg_result.get("missed", false):
@@ -6210,16 +6219,20 @@ func _apply_enemy_damage_to_targets(
 			lines.append("%s に %d（撃破）%s" % [mname, dmg, density_tag])
 		else:
 			lines.append("%s に %d%s" % [mname, dmg, density_tag])
-		_try_apply_enemy_skill_hit_statuses(skill, ti, dmg)
+		_try_apply_enemy_skill_hit_statuses(skill, ti, dmg, atk_slot)
 		_on_member_damaged(ti, {"attacker_slot": atk_slot})
 	_append_log("敵スキル【%s】%s%s\n  %s" % [skill.display_name, row_tag, dist_tag, " / ".join(lines)])
 
-func _try_apply_enemy_skill_hit_statuses(skill: Resource, member_idx: int, base_damage: int) -> void:
+func _try_apply_enemy_skill_hit_statuses(
+	skill: Resource, member_idx: int, base_damage: int, attacker_slot: int = -1
+) -> void:
 	## 敵ダメージスキルの apply_status / apply_status2（後列処刑の bleed・防御DOWN 等）。
 	## ヒットしたパーティへ付与（`_apply_status_to_member_target` は敵向けなので使わない）。
 	if skill == null or not $CombatController.is_member_alive(member_idx):
 		return
-	var atk_slot: int = $CombatController.active_enemy_index
+	var atk_slot: int = attacker_slot
+	if atk_slot < 0:
+		atk_slot = $CombatController.active_enemy_index
 	var source_atk: int = $CombatController.get_enemy_attack_at(atk_slot)
 	if source_atk <= 0:
 		source_atk = maxi(0, base_damage)
@@ -6944,7 +6957,7 @@ func _build_tactics_context(member_idx: int) -> Dictionary:
 			hp_ratio = float($CombatController.party_combat_hp[member_idx]) / float(maxhp)
 	var room_type: int = $DungeonController.current_room_type
 	var ally_dead: bool = false
-	for i: int in GameState.party_members.size():
+	for i: int in $CombatController.party_combat_hp.size():
 		if not $CombatController.is_member_alive(i):
 			ally_dead = true
 			break
@@ -7431,7 +7444,7 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 			var source_atk: int = _dot_source_attack_for_member(member_idx, ctx)
 			var target_kind: String = str(p.get("target", "self"))
 			if target_kind == "party":
-				for i: int in GameState.party_members.size():
+				for i: int in $CombatController.party_combat_hp.size():
 					if not $CombatController.is_member_alive(i):
 						continue
 					if $CombatController.apply_status("party_%d" % i, sid, 1, source_atk):
@@ -7507,7 +7520,7 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 					if healed_self_frac > 0:
 						_spawn_member_heal_vfx(member_idx)
 				else:
-					for i: int in GameState.party_members.size():
+					for i: int in $CombatController.party_combat_hp.size():
 						if not $CombatController.is_member_alive(i):
 							continue
 						var max_hp_i: int = 0
@@ -7528,7 +7541,7 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 						_spawn_member_heal_vfx(member_idx)
 				else:
 					## 個別 heal_member で実回復量を見て VFX/SE（満タン時の幽霊 SE 防止）。
-					for i: int in GameState.party_members.size():
+					for i: int in $CombatController.party_combat_hp.size():
 						if not $CombatController.is_member_alive(i):
 							continue
 						var healed_party: int = $CombatController.heal_member(i, amount)
@@ -7582,13 +7595,14 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 		"party_rally":
 			var sid: String = str(p.get("status_id", "empower"))
 			var charge_flat: float = float(p.get("ultimate_charge_flat", 0.0))
-			for i: int in GameState.party_members.size():
+			for i: int in $CombatController.party_combat_hp.size():
 				if not $CombatController.is_member_alive(i):
 					continue
 				if not sid.is_empty() and $CombatController.apply_status("party_%d" % i, sid, 1, 0):
 					_on_party_status_applied(i, sid)
 					applied = true
-				if charge_flat > 0.0:
+				## 必殺チャージは人間のみ（オトモ必殺は省略仕様）。
+				if charge_flat > 0.0 and not GameState.is_pet_combatant(i):
 					$CombatController.add_ultimate_charge(i, charge_flat)
 					applied = true
 			_update_status_icons()
@@ -7617,7 +7631,7 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 			var mult: float = float(p.get("mult", 2.0))
 			var target_kind: String = str(p.get("target", "self"))
 			if target_kind == "party_alive":
-				for i: int in GameState.party_members.size():
+				for i: int in $CombatController.party_combat_hp.size():
 					if not $CombatController.is_member_alive(i):
 						continue
 					_passive_next_attack_mult[i] = maxf(float(_passive_next_attack_mult.get(i, 1.0)), mult)
@@ -8860,12 +8874,16 @@ func _play_enemy_slot_animation(slot: int, anim: String) -> void:
 	if spr.visible and spr.sprite_frames != null and spr.sprite_frames.has_animation(anim):
 		spr.play(anim)
 
-# 戦闘中の敵（通常は アクティブスロット、ボス部屋は BossSprite）にアニメを再生
-func _play_active_enemy_animation(anim: String) -> void:
+## Cast/skill resolve: boss uses BossSprite; swarm uses the caster slot (not active).
+func _play_enemy_caster_animation(slot: int, anim: String) -> void:
 	if _boss_sprite.visible:
 		_play_boss_animation(anim)
-	else:
-		_play_enemy_slot_animation($CombatController.active_enemy_index, anim)
+		return
+	_play_enemy_slot_animation(slot, anim)
+
+# 戦闘中の敵（通常は アクティブスロット、ボス部屋は BossSprite）にアニメを再生
+func _play_active_enemy_animation(anim: String) -> void:
+	_play_enemy_caster_animation($CombatController.active_enemy_index, anim)
 
 # ---- CHR Sprites ----
 
@@ -11012,7 +11030,7 @@ func _spawn_member_buff_vfx(member_idx: int, status_id: String = "") -> void:
 	_flash_member_sprite(member_idx, tint)
 
 func _play_heal_vfx() -> void:
-	for i: int in GameState.party_members.size():
+	for i: int in $CombatController.party_combat_hp.size():
 		if $CombatController.is_member_alive(i):
 			_spawn_member_heal_vfx(i)
 
