@@ -3288,6 +3288,15 @@ func _on_enemy_status_applied(slot: int, status_id: String) -> void:
 	_play_status_apply_vfx(sprite, _sprite_visual_center_global(sprite), status_id, statuses)
 	_update_status_icons()
 
+
+## Party member successfully applied a debuff to an enemy — arm CombatLinks + VFX.
+func _party_applied_enemy_status(member_idx: int, slot: int, status_id: String) -> void:
+	if status_id.is_empty() or slot < 0:
+		return
+	if CombatLinks.is_debuff_mark_status(status_id) and member_idx >= 0:
+		_debuff_marks[slot] = member_idx
+	_on_enemy_status_applied(slot, status_id)
+
 func _on_party_status_applied(member_idx: int, status_id: String, play_apply_sfx: bool = true) -> void:
 	if status_id.is_empty() or member_idx < 0 or member_idx >= _chr_sprites.size():
 		return
@@ -4907,9 +4916,7 @@ func _apply_skill_status_to_enemy_slot(member_idx: int, skill_data: Resource, ta
 			if $CombatController.apply_status_to_enemy_slot(
 				target_slot, skill_data.apply_status_id, 1, base_info["base_damage"]
 			):
-				if CombatLinks.is_debuff_mark_status(skill_data.apply_status_id):
-					_debuff_marks[target_slot] = member_idx
-				_on_enemy_status_applied(target_slot, skill_data.apply_status_id)
+				_party_applied_enemy_status(member_idx, target_slot, skill_data.apply_status_id)
 				var effect: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id)
 				var label: String = skill_data.apply_status_id
 				if effect != null:
@@ -4920,9 +4927,7 @@ func _apply_skill_status_to_enemy_slot(member_idx: int, skill_data: Resource, ta
 			if $CombatController.apply_status_to_enemy_slot(
 				target_slot, skill_data.apply_status_id2, 1, base_info["base_damage"]
 			):
-				if CombatLinks.is_debuff_mark_status(skill_data.apply_status_id2):
-					_debuff_marks[target_slot] = member_idx
-				_on_enemy_status_applied(target_slot, skill_data.apply_status_id2)
+				_party_applied_enemy_status(member_idx, target_slot, skill_data.apply_status_id2)
 				var effect2: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id2)
 				var label2: String = skill_data.apply_status_id2
 				if effect2 != null:
@@ -5142,9 +5147,7 @@ func _apply_skill_status(member_idx: int, skill_data: Resource, hit_slot: int = 
 		slot, skill_data.apply_status_id, 1, int(base_info.get("base_damage", 0))
 	):
 		return
-	if CombatLinks.is_debuff_mark_status(skill_data.apply_status_id):
-		_debuff_marks[slot] = member_idx
-	_on_enemy_status_applied(slot, skill_data.apply_status_id)
+	_party_applied_enemy_status(member_idx, slot, skill_data.apply_status_id)
 	var effect: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id)
 	var label: String = skill_data.apply_status_id
 	if effect != null:
@@ -5168,9 +5171,7 @@ func _apply_skill_secondary_status(member_idx: int, skill_data: Resource, hit_sl
 		slot, skill_data.apply_status_id2, 1, int(base_info.get("base_damage", 0))
 	):
 		return
-	if CombatLinks.is_debuff_mark_status(skill_data.apply_status_id2):
-		_debuff_marks[slot] = member_idx
-	_on_enemy_status_applied(slot, skill_data.apply_status_id2)
+	_party_applied_enemy_status(member_idx, slot, skill_data.apply_status_id2)
 	var effect2: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id2)
 	var label2: String = skill_data.apply_status_id2
 	if effect2 != null:
@@ -5646,12 +5647,14 @@ func _member_action_tags(member_idx: int, skill_data: Resource = null) -> Array:
 		var wd: Resource = DataRegistry.get_weapon_data(winst.weapon_id)
 		if wd != null and "tags" in wd:
 			for t in wd.tags:
-				if CombatTags.is_known(str(t)) and str(t) not in tags:
-					tags.append(str(t))
+				var tid: String = CombatTags.normalize(str(t))
+				if CombatTags.is_known(tid) and tid not in tags:
+					tags.append(tid)
 	if skill_data != null and "tags" in skill_data:
 		for t in skill_data.tags:
-			if CombatTags.is_known(str(t)) and str(t) not in tags:
-				tags.append(str(t))
+			var sid: String = CombatTags.normalize(str(t))
+			if CombatTags.is_known(sid) and sid not in tags:
+				tags.append(sid)
 	return tags
 
 func _get_weapon_bane(member_index: int) -> Dictionary:
@@ -5769,10 +5772,8 @@ func _apply_status_to_member_target(
 ) -> bool:
 	var slot: int = $CombatController.get_member_target_slot(member_idx)
 	var applied: bool = $CombatController.apply_status_to_enemy_slot(slot, effect_id, stacks, source_attack)
-	if applied and CombatLinks.is_debuff_mark_status(effect_id):
-		_debuff_marks[slot] = member_idx
 	if applied:
-		_on_enemy_status_applied(slot, effect_id)
+		_party_applied_enemy_status(member_idx, slot, effect_id)
 	return applied
 
 # ボス/エリートのスキル発動を試行。発動したら true（通常攻撃をスキップ）。
@@ -6539,7 +6540,7 @@ func _apply_relic_pre_hit_status(member_idx: int, target_slot: int) -> void:
 	if $CombatController.get_enemy_status_stacks_at(target_slot, sid) > 0:
 		return
 	if $CombatController.apply_status_to_enemy_slot(target_slot, sid, 1, 0):
-		_on_enemy_status_applied(target_slot, sid)
+		_party_applied_enemy_status(member_idx, target_slot, sid)
 		_update_status_icons()
 
 func _calc_enemy_damage_to_member(
@@ -7442,15 +7443,18 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 						continue
 					if $CombatController.apply_status_to_enemy_slot(slot, sid, 1, source_atk):
 						applied = true
-						_on_enemy_status_applied(slot, sid)
+						_party_applied_enemy_status(member_idx, slot, sid)
 			elif target_kind == "enemy":
-				var enemy_slot: int = int(
-					ctx.get("attacker_slot", ctx.get("target_slot", $CombatController.get_member_target_slot(member_idx)))
-				)
+				## Prefer hit target; attacker_slot is for on_hit_taken retaliation.
+				var enemy_slot: int = int(ctx.get("target_slot", -1))
+				if enemy_slot < 0:
+					enemy_slot = int(ctx.get("attacker_slot", -1))
+				if enemy_slot < 0:
+					enemy_slot = $CombatController.get_member_target_slot(member_idx)
 				if enemy_slot >= 0 and $CombatController.is_enemy_slot_alive(enemy_slot):
 					applied = $CombatController.apply_status_to_enemy_slot(enemy_slot, sid, 1, source_atk)
 					if applied:
-						_on_enemy_status_applied(enemy_slot, sid)
+						_party_applied_enemy_status(member_idx, enemy_slot, sid)
 			else:
 				applied = $CombatController.apply_status("party_%d" % member_idx, sid, 1, source_atk)
 				if applied:
@@ -7463,14 +7467,16 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 			if pool.is_empty():
 				return
 			var rand_sid: String = str(pool[randi() % pool.size()])
-			var enemy_slot: int = int(
-				ctx.get("attacker_slot", ctx.get("target_slot", $CombatController.get_member_target_slot(member_idx)))
-			)
+			var enemy_slot: int = int(ctx.get("target_slot", -1))
+			if enemy_slot < 0:
+				enemy_slot = int(ctx.get("attacker_slot", -1))
+			if enemy_slot < 0:
+				enemy_slot = $CombatController.get_member_target_slot(member_idx)
 			if enemy_slot >= 0 and $CombatController.is_enemy_slot_alive(enemy_slot):
 				var rand_atk: int = _dot_source_attack_for_member(member_idx, ctx)
 				applied = $CombatController.apply_status_to_enemy_slot(enemy_slot, rand_sid, 1, rand_atk)
 				if applied:
-					_on_enemy_status_applied(enemy_slot, rand_sid)
+					_party_applied_enemy_status(member_idx, enemy_slot, rand_sid)
 					_update_status_icons()
 		"crit_pulse":
 			var charge_flat: float = float(p.get("ultimate_charge_flat", 0.0))

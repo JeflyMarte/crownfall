@@ -6127,3 +6127,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-FIX-COMBAT-AUDIT-B-001-7 | **UI skip peek** — Now Playing／バッジは確定スキップのみ peek。確率スキップは実行動で roll | UI 二重抽選防止 |
 | P3-FIX-COMBAT-AUDIT-B-001-8 | **据置** — 敵 `critical_rate` 未接続（バランス要GO） | 案A 据置の継続 |
 
+## 戦闘システム監査案C（2026-07-31 — P3-FIX-COMBAT-AUDIT-C-001）
+
+> **オーナー GO（案C）** — タグ正規化／CombatLinks 武装／パッシブ effect 整合。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-FIX-COMBAT-AUDIT-C-001-1 | **タグ** — `thunder`→`lightning` を `CombatTags.normalize`。pulsekeen データを `lightning` に修正 | ダメージ属性 id 混入で感電コンボ不発 |
+| P3-FIX-COMBAT-AUDIT-C-001-2 | **連携武装** — `_party_applied_enemy_status` でスキル／パッシブ／レリック pre_hit を統一 | 追い込みがスキル経路のみだった |
+| P3-FIX-COMBAT-AUDIT-C-001-3 | **パッシブ敵標的** — `target_slot` 優先、無ければ `attacker_slot`（被弾反撃） | on_attack と on_hit_taken の両立 |
+| P3-FIX-COMBAT-AUDIT-C-001-4 | **effect 整合** — 定義の effect は dispatcher アーム必須（回帰テスト） | refund_ct 型の再発防止 |
+| P3-FIX-COMBAT-AUDIT-C-001-5 | **据置** — 敵 critical_rate／ブロック演出／敵詠唱×active／ボス weight／オトモ index | 案D候補 |
+
+
