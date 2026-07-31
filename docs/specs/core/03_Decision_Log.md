@@ -5991,3 +5991,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-AUDIO-ABYSS-BGM-001-1 | **深層戦闘BGM** — `abyss_*` は親 Biome の `BATTLE_BY_DUNGEON` を解決（例: abyss_mourngate→mourngate.mp3） | 本編と同曲 |
 | P3-AUDIO-ABYSS-BGM-001-2 | **他深層も同様** — whisperwood/mistfen/blackshore/frostridge | 一貫性 |
 | P3-AUDIO-ABYSS-BGM-001-3 | **フォールバック** — 親未登録時のみ従来どおり `battle` | 安全側 |
+
+## 灰冠の九 — 装備ガチャ限定武具（2026-07-31 — P3-GACHA-EQ-KAIWAN-001）
+
+> **オーナー GO** — 装備ガチャ限定＝歴史的略奪組織の武具。組織名「灰冠の九」。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-GACHA-EQ-KAIWAN-001-1 | **組織** — **灰冠の九**（九王戦争〜静寂期の精鋭略奪団・実在は諸説） | オーナー採択 |
+| P3-GACHA-EQ-KAIWAN-001-2 | **限定武具** — 灰冠が盗んだ／用いた写し・戦時特注・封じ武具。九対・神話実物・降臨セットは出さない | ロア防衛＋ガチャ限定の理由 |
+| P3-GACHA-EQ-KAIWAN-001-3 | **灰狼団** — 末裔・模倣・名乗り盗用のいずれか（断定しない）。灰冠そのものには格上げしない | 既存派閥接続 |
+| P3-GACHA-EQ-KAIWAN-001-4 | **流通** — 回収部押収→封蔵の匣（仮）を魔晶石で開封。UI・品目・数値は後続 | 案B装備ガチャと接続 |
+| P3-GACHA-EQ-KAIWAN-001-5 | **SSOT** — `decisions/28_KaiwanNineGachaRelics.md`／Glossary／`14_Society` | 世界観登録 |
