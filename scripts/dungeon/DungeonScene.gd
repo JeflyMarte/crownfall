@@ -1225,7 +1225,8 @@ func _build_now_playing_text(kind: String, index: int) -> String:
 			var sname: String = skill_data.display_name if skill_data != null else "スキル"
 			var left: int = maxi(1, int(pending.get("turns_left", 0)) + 1)
 			return "◆ %s — 詠唱中「%s」（あと%d）" % [mname, sname, left]
-		if $CombatController.should_member_skip_action_at(index):
+		## Peek only — do not roll skip RNG before the real action resolves.
+		if $CombatController.peek_member_status_skip_at(index):
 			return "◆ %s — 行動不能" % mname
 		return "◆ %s — %s" % [mname, _party_action_label(index)]
 	var enemy_data: Resource = $CombatController.get_enemy_data_at(index)
@@ -1236,7 +1237,7 @@ func _build_now_playing_text(kind: String, index: int) -> String:
 		var esname: String = skill_e.display_name if skill_e != null else "スキル"
 		var eleft: int = maxi(1, int(pending_e.get("turns_left", 0)) + 1)
 		return "⚠ %s — 【%s】詠唱中！（あと%d）" % [ename, esname, eleft]
-	if $CombatController.should_enemy_skip_action_at(index):
+	if $CombatController.peek_enemy_status_skip_at(index):
 		return "⚠ %s — 行動遅延" % ename
 	if index == $CombatController.active_enemy_index and _enemy_has_castable_skill(index):
 		return "⚠ %s — スキル/攻撃" % ename
@@ -1266,7 +1267,7 @@ func _party_action_badge(member_idx: int) -> String:
 	if $CombatController.has_pending_cast("party", member_idx):
 		var left: int = maxi(1, int($CombatController.get_pending_cast("party", member_idx).get("turns_left", 0)) + 1)
 		return "詠%d" % left
-	if $CombatController.should_member_skip_action_at(member_idx):
+	if $CombatController.peek_member_status_skip_at(member_idx):
 		return "—"
 	var member: Resource = GameState.get_combatant(member_idx)
 	var ctx: Dictionary = _build_tactics_context(member_idx)
@@ -1297,7 +1298,7 @@ func _enemy_action_badge(slot: int) -> String:
 	if $CombatController.has_pending_cast("enemy", slot):
 		var left: int = maxi(1, int($CombatController.get_pending_cast("enemy", slot).get("turns_left", 0)) + 1)
 		return "詠%d" % left
-	if $CombatController.should_enemy_skip_action_at(slot):
+	if $CombatController.peek_enemy_status_skip_at(slot):
 		return "—"
 	if slot == $CombatController.active_enemy_index and _enemy_has_castable_skill(slot):
 		return "技"
@@ -5602,7 +5603,7 @@ func _consume_combo_bonus(
 	if enemy_bonus > 0:
 		total += enemy_bonus
 	else:
-		total += _consume_ally_combo_bonus(member_idx, hit_damage, attacker_tags, skill_data)
+		total += _consume_ally_combo_bonus(member_idx, hit_damage, attacker_tags, skill_data, target_slot)
 	total += _consume_link_bonus(member_idx, hit_damage, target_slot)
 	return total
 
@@ -5611,7 +5612,8 @@ func _consume_ally_combo_bonus(
 	member_idx: int,
 	hit_damage: int,
 	attacker_tags: Array = [],
-	skill_data: Resource = null
+	skill_data: Resource = null,
+	target_slot: int = -1
 ) -> int:
 	if skill_data == null or str(skill_data.slot_type) != "ultimate":
 		return 0
@@ -5627,8 +5629,10 @@ func _consume_ally_combo_bonus(
 		$CombatController.consume_member_status(member_idx, trigger_id)
 		_update_status_icons()
 		var label: String = str(CombatCombos.ally_rule(trigger_id).get("label", "コンボ"))
-		var slot: int = $CombatController.get_member_target_slot(member_idx)
-		var pos: Vector2 = _enemy_slot_pos(slot)
+		var fx_slot: int = target_slot
+		if fx_slot < 0 or not $CombatController.is_enemy_slot_alive(fx_slot):
+			fx_slot = $CombatController.get_member_target_slot(member_idx)
+		var pos: Vector2 = _enemy_slot_pos(fx_slot)
 		_spawn_damage_number("%s +%d" % [label, bonus], pos + Vector2(0.0, -48.0), Color(1.0, 0.75, 0.35), 1.2)
 		_append_log("[コンボ] %s +%d" % [label, bonus])
 		return bonus
@@ -6950,8 +6954,8 @@ func _build_tactics_context(member_idx: int) -> Dictionary:
 		"enemy_is_elite": room_type == Enums.RoomType.ELITE,
 		"enemy_count": $CombatController.living_enemy_count(),
 		"ally_dead": ally_dead,
-		"enemy_has_bleed": $CombatController.get_enemy_status_stacks_at(target_slot, "bleed") > 0,
-		"enemy_has_poison": $CombatController.get_enemy_status_stacks_at(target_slot, "poison") > 0,
+		"enemy_has_bleed": _any_enemy_has_status("bleed"),
+		"enemy_has_poison": _any_enemy_has_status("poison"),
 		"enemy_has_mark": _any_enemy_has_status("mark"),
 		"enemy_has_stun": _any_enemy_has_status("stun"),
 		"enemy_has_vulnerable": _any_enemy_has_status("vulnerable"),
@@ -7646,6 +7650,10 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 			if not applied:
 				## 反撃不能でも氷殻は張る
 				applied = true
+		"refund_ct":
+			## Actual CT return is applied via on_kill_refund_fraction before passives fire.
+			## Mark applied so UI/FX/CD can run without double-refund.
+			applied = true
 	if not applied:
 		return
 	if bool(p.get("once_per_combat", false)):
