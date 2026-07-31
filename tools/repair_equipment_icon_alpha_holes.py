@@ -91,9 +91,9 @@ def _params_for(name: str) -> tuple[int, int]:
 	## ICO_ARM_* / mail / plate — 暗色防具は黒抜き穴が多い
 	if lower.startswith("ico_arm_") or "armor" in lower or "plate" in lower or "mail" in lower:
 		return 4, 900
-	## 灰冠は黒＋赤で穴抜けしやすい
+	## 灰冠（赤黒）は穴埋め・黒リフト禁止寄り。誤適用でピンク化する
 	if "kaiwan" in lower:
-		return 4, 800
+		return 1, 40
 	return 3, 400
 
 

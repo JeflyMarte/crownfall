@@ -48,7 +48,8 @@ const POOL_STRIP_SIDE_PAD: float = 12.0
 const POOL_STRIP_BACK_COLOR := Color(0.10, 0.08, 0.06, 0.72)
 const POOL_STRIP_BACK_BORDER := Color(0.72, 0.58, 0.30, 0.55)
 ## 封蔵アイコン表示時の明るさ補正。
-const EQUIP_ICON_MODULATE := Color(1.25, 1.22, 1.18, 1.0)
+## 灰冠は赤黒が正。上げすぎるとピンク化するため白のまま
+const EQUIP_ICON_MODULATE := Color(1.0, 1.0, 1.0, 1.0)
 
 
 static func featured_idle_px(host_height: float) -> float:
