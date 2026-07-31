@@ -13,6 +13,9 @@ const BANNER_BG_SEAL: String = ROOT + "UI_Gacha_Banner_BG_Seal.png"
 ## 招待枠上部のタイトル／キャッチコピー焼込プレート。
 const BANNER_TITLE: String = ROOT + "UI_Gacha_Banner_Title.png"
 const BANNER_CATCHCOPY_ART: String = ROOT + "UI_Gacha_Banner_Catchcopy.png"
+## 封蔵（封じられし武庫）タイトル／キャッチ焼込プレート。
+const BANNER_TITLE_SEAL: String = ROOT + "UI_Gacha_Banner_Title_Seal.png"
+const BANNER_CATCHCOPY_ART_SEAL: String = ROOT + "UI_Gacha_Banner_Catchcopy_Seal.png"
 ## フィーチャーキャラ背後の紫光柱・塵（モック光柱。画面全体モヤではない）。
 const FEATURED_BEAM: String = ROOT + "UI_Gacha_FeaturedBeam.png"
 const FEATURED_MOTE: String = ROOT + "UI_Gacha_FeaturedMote.png"

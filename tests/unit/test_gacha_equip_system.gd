@@ -51,6 +51,16 @@ func test_pool_has_27_kaiwan_entries() -> void:
 	assert_eq(accessories, 9)
 
 
+func test_effect_text_for_kaiwan_weapon() -> void:
+	var entry: Dictionary = _GachaEquipSystem.pool_entry_by_id("kaiwan_crosslit")
+	assert_false(entry.is_empty())
+	assert_eq(_GachaEquipSystem.effect_title(), "効果")
+	var text: String = _GachaEquipSystem.effect_text_for(entry)
+	assert_true(text.contains("初撃与ダメ"), text)
+	assert_true(text.contains("2撃目以降"), text)
+	assert_eq(_GachaEquipSystem.catchcopy(), "灰冠の刃を手にする")
+
+
 func test_pull_cost_is_300() -> void:
 	assert_eq(_GachaEquipSystem.PULL_COST, 300)
 	assert_eq(_GachaEquipSystem.pull_cost(), 300)

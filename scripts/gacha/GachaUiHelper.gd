@@ -732,11 +732,80 @@ static func _build_pool_icon_strip(parent: Control) -> Control:
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	scroll.add_child(row)
 
+	fill_pool_strip_helpers(scroll)
+	return scroll
+
+
+static func _pool_icon_row(strip: Control) -> HBoxContainer:
+	if strip == null:
+		return null
+	return strip.get_node_or_null("PoolIconRow") as HBoxContainer
+
+
+static func _clear_pool_icon_row(strip: Control) -> void:
+	var row: HBoxContainer = _pool_icon_row(strip)
+	if row == null:
+		return
+	while row.get_child_count() > 0:
+		var child: Node = row.get_child(0)
+		row.remove_child(child)
+		child.free()
+
+
+static func fill_pool_strip_helpers(strip: Control) -> void:
+	if strip == null:
+		return
+	_clear_pool_icon_row(strip)
+	var row: HBoxContainer = _pool_icon_row(strip)
+	if row == null:
+		return
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	if strip is ScrollContainer:
+		var sc: ScrollContainer = strip as ScrollContainer
+		sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+		sc.scroll_horizontal = 0
 	for helper in sorted_helpers():
 		if helper == null:
 			continue
 		row.add_child(make_pool_icon_button(helper))
-	return scroll
+	strip.set_meta("strip_mode", "helpers")
+	strip.set_meta("marquee_copies", 1)
+
+
+static func fill_pool_strip_equipment(strip: Control) -> void:
+	if strip == null:
+		return
+	_clear_pool_icon_row(strip)
+	var row: HBoxContainer = _pool_icon_row(strip)
+	if row == null:
+		return
+	row.alignment = BoxContainer.ALIGNMENT_BEGIN
+	## 2周分並べてシームレスな横スクロール（回転寿司）。
+	var copies: int = 2
+	for _i in copies:
+		for e: Dictionary in _GachaEquipSystem.POOL:
+			row.add_child(make_pool_equip_icon_button(e))
+	if strip is ScrollContainer:
+		var sc: ScrollContainer = strip as ScrollContainer
+		sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+		sc.scroll_horizontal = 0
+	strip.set_meta("strip_mode", "equipment")
+	strip.set_meta("marquee_copies", copies)
+
+
+static func pool_marquee_loop_width(strip: Control) -> float:
+	if strip == null:
+		return 0.0
+	var copies: int = int(strip.get_meta("marquee_copies", 1))
+	if copies <= 1:
+		return 0.0
+	var row: HBoxContainer = _pool_icon_row(strip)
+	if row == null:
+		return 0.0
+	var total: float = row.get_combined_minimum_size().x
+	if total <= 1.0:
+		total = row.size.x
+	return total / float(copies)
 
 
 static func make_pool_icon_button(helper: Resource) -> Button:
@@ -747,6 +816,34 @@ static func make_pool_icon_button(helper: Resource) -> Button:
 	btn.clip_contents = true
 	btn.mouse_filter = Control.MOUSE_FILTER_STOP
 	btn.set_meta("helper_id", str(helper.id) if helper != null else "")
+	btn.set_meta("item_id", str(helper.id) if helper != null else "")
+	_decorate_pool_icon_button(btn)
+	var icon_tex: Texture2D = null
+	if helper != null and helper.has_method("get_portrait_texture"):
+		icon_tex = helper.call("get_portrait_texture") as Texture2D
+	_add_pool_icon_texture(btn, icon_tex)
+	return btn
+
+
+static func make_pool_equip_icon_button(entry: Dictionary) -> Button:
+	var btn := Button.new()
+	btn.custom_minimum_size = Vector2(POOL_ICON_PX, POOL_ICON_PX)
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.flat = true
+	btn.clip_contents = true
+	btn.mouse_filter = Control.MOUSE_FILTER_STOP
+	var item_id: String = str(entry.get("id", ""))
+	var kind: String = str(entry.get("kind", "weapon"))
+	btn.set_meta("helper_id", "")
+	btn.set_meta("item_id", item_id)
+	btn.set_meta("equip_kind", kind)
+	btn.tooltip_text = _GachaEquipSystem.display_name_for(kind, item_id)
+	_decorate_pool_icon_button(btn)
+	_add_pool_icon_texture(btn, IconPaths.get_icon_texture(item_id, kind))
+	return btn
+
+
+static func _decorate_pool_icon_button(btn: Button) -> void:
 	var empty := StyleBoxEmpty.new()
 	btn.add_theme_stylebox_override("normal", empty)
 	btn.add_theme_stylebox_override("hover", empty)
@@ -755,6 +852,7 @@ static func make_pool_icon_button(helper: Resource) -> Button:
 	btn.add_theme_stylebox_override("focus", empty)
 
 	var frame := PanelContainer.new()
+	frame.name = "Frame"
 	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var frame_sb: StyleBox = GachaUiTokens.lineup_cell_style()
@@ -763,26 +861,27 @@ static func make_pool_icon_button(helper: Resource) -> Button:
 	frame.add_theme_stylebox_override("panel", frame_sb)
 	btn.add_child(frame)
 
-	var icon_tex: Texture2D = null
-	if helper != null and helper.has_method("get_portrait_texture"):
-		icon_tex = helper.call("get_portrait_texture") as Texture2D
-	if icon_tex != null:
-		var icon := TextureRect.new()
-		icon.name = "Icon"
-		icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		icon.offset_left = 4.0
-		icon.offset_top = 4.0
-		icon.offset_right = -4.0
-		icon.offset_bottom = -4.0
-		icon.texture = icon_tex
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		frame.add_child(icon)
-	return btn
 
+static func _add_pool_icon_texture(btn: Button, icon_tex: Texture2D) -> void:
+	var frame: Node = btn.get_node_or_null("Frame")
+	if frame == null:
+		frame = btn
+	if icon_tex == null:
+		return
+	var icon := TextureRect.new()
+	icon.name = "Icon"
+	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	icon.offset_left = 4.0
+	icon.offset_top = 4.0
+	icon.offset_right = -4.0
+	icon.offset_bottom = -4.0
+	icon.texture = icon_tex
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.add_child(icon)
 
-static func highlight_pool_icon(strip: Control, helper_id: String) -> void:
+static func highlight_pool_icon(strip: Control, item_id: String) -> void:
 	if strip == null:
 		return
 	var row: Node = strip.get_node_or_null("PoolIconRow")
@@ -791,8 +890,10 @@ static func highlight_pool_icon(strip: Control, helper_id: String) -> void:
 	for child in row.get_children():
 		if not child is CanvasItem:
 			continue
-		var cid: String = str(child.get_meta("helper_id", ""))
-		var on: bool = (not helper_id.is_empty()) and cid == helper_id
+		var cid: String = str(child.get_meta("item_id", ""))
+		if cid.is_empty():
+			cid = str(child.get_meta("helper_id", ""))
+		var on: bool = (not item_id.is_empty()) and cid == item_id
 		(child as CanvasItem).modulate = Color(1.08, 1.02, 0.9, 1.0) if on else Color(0.78, 0.76, 0.72, 1.0)
 
 
@@ -964,15 +1065,17 @@ static func apply_featured_equipment(shell: Dictionary, entry: Dictionary) -> vo
 		blurb_wrap.visible = not feature_text.is_empty()
 	var unique_title_lbl: Label = shell.get("unique_title") as Label
 	if unique_title_lbl != null:
-		unique_title_lbl.text = "灰冠の九"
+		unique_title_lbl.text = _GachaEquipSystem.effect_title()
 		unique_title_lbl.visible = true
 	var unique_lbl: Label = shell.get("unique") as Label
 	if unique_lbl != null:
-		unique_lbl.text = "封蔵限定・欠け王冠の模刻"
-		unique_lbl.visible = true
+		unique_lbl.text = _GachaEquipSystem.effect_text_for(entry)
+		unique_lbl.visible = not unique_lbl.text.is_empty()
+		unique_lbl.max_lines_visible = 6
 	var pool_strip: Control = shell.get("pool_strip") as Control
 	if pool_strip != null:
-		pool_strip.visible = false
+		pool_strip.visible = true
+		highlight_pool_icon(pool_strip, item_id)
 	var stats_wrap: Control = shell.get("stats_wrap") as Control
 	if stats_wrap != null:
 		stats_wrap.visible = true
@@ -990,6 +1093,28 @@ static func _set_featured_banner_bg(shell: Dictionary, seal: bool) -> void:
 	var tex: Texture2D = GachaUiTokens.load_tex(path)
 	if tex != null:
 		banner_bg.texture = tex
+	_set_featured_banner_title_art(fade, seal)
+
+
+static func _set_featured_banner_title_art(fade: Node, seal: bool) -> void:
+	var title_rect: TextureRect = fade.get_node_or_null("BannerTitle") as TextureRect
+	if title_rect != null:
+		var title_path: String = (
+			GachaUiTokens.BANNER_TITLE_SEAL if seal else GachaUiTokens.BANNER_TITLE
+		)
+		var title_tex: Texture2D = GachaUiTokens.load_tex(title_path)
+		if title_tex != null:
+			title_rect.texture = title_tex
+		title_rect.visible = title_rect.texture != null
+	var catch_rect: TextureRect = fade.get_node_or_null("BannerCatchcopyArt") as TextureRect
+	if catch_rect != null:
+		var catch_path: String = (
+			GachaUiTokens.BANNER_CATCHCOPY_ART_SEAL if seal else GachaUiTokens.BANNER_CATCHCOPY_ART
+		)
+		var catch_tex: Texture2D = GachaUiTokens.load_tex(catch_path)
+		if catch_tex != null:
+			catch_rect.texture = catch_tex
+		catch_rect.visible = catch_rect.texture != null
 
 
 static func ticket_pull_title() -> String:

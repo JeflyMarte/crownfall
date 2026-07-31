@@ -9,6 +9,8 @@ func test_gacha_ui_asset_paths_exist() -> void:
 		GachaUiTokens.BANNER_BG_SEAL,
 		GachaUiTokens.BANNER_TITLE,
 		GachaUiTokens.BANNER_CATCHCOPY_ART,
+		GachaUiTokens.BANNER_TITLE_SEAL,
+		GachaUiTokens.BANNER_CATCHCOPY_ART_SEAL,
 		GachaUiTokens.FEATURED_BEAM,
 		GachaUiTokens.FEATURED_MOTE,
 		GachaUiTokens.ORNAMENT_DIAMOND,

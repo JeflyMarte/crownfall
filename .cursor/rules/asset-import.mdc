@@ -21,6 +21,7 @@ alwaysApply: false
 | レリック | `assets/ui/relics/ICO_REL_*` | 装備 Cat やパッシブ |
 | ガチャ全画面背景 | `gacha_ui/UI_BG_Gacha.png`（`GachaUiTokens.BG`） | `generate_gacha_ui_assets.py` の星空仮画像で上書き |
 | ガチャタイトル／キャッチ焼込 | `UI_Gacha_Banner_Title.png` / `UI_Gacha_Banner_Catchcopy.png` | Header Label 文言だけ変更／生成スクリプト上書き |
+| 封蔵タイトル／キャッチ焼込 | `UI_Gacha_Banner_Title_Seal.png` / `UI_Gacha_Banner_Catchcopy_Seal.png`（Downloads `武器ガチャタイトル.PNG` を黒抜き分割） | 招待状 `Banner_Title` を封蔵に流用 |
 
 ## 画面背景（Desktop → res://）
 
@@ -30,6 +31,18 @@ alwaysApply: false
 | `ガチャタイトル.png` | `Banner_Title` + `Banner_Catchcopy` | 同上（シート分割） |
 | `メイン画面.png` | `UI_BG_Base.png` | 手動コピー＋シーン参照確認 |
 | `キャラ画面.png` | `equipment_ui/UI_BG_Equipment.png` | 手動コピー |
+
+## キャラアイコン（Desktop → res://）
+
+| Desktop（`キャラアイコン/`・日本語ファイル名） | プロジェクト先 | 取込 |
+|---|---|---|
+| アルド／リーヴァ／エリアス／ガレン／ミレイ | `ui/chr_icons/ICO_CHR_*.png` | `tools/import_desktop_chr_icons.py --apply` |
+| 助っ人11名（ヴァルデン等） | `gacha/portraits/ART_HELPER_helper_*.png` | 同上 |
+| （取込後）焼き込み枠 | 枠除去 | `strip_chr_icon_frames.py` / `strip_helper_portrait_frames.py --apply` |
+
+- 黒マットは **縁から flood**（暗い服に穴を開けない）
+- ペット（ジャック／アッシュ／インク）はこのフォルダ対象外
+- 差替後は `.godot/imported` 該当分クリア＋Godot 再起動
 
 - **本番背景を generate スクリプトで上書きしない**（ガチャは保護済み。上書きは `--force`）
 - 取込後は **commit**（未コミットのまま Mac 移行すると出戻り）

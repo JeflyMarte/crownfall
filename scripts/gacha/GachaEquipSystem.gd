@@ -19,35 +19,35 @@ const RATE_L_OTHER: float = 0.40
 
 const KINDS: Array[String] = ["weapon", "armor", "accessory"]
 
-## { kind, id, seat, blurb } — 灰冠限定。
+## { kind, id, seat, blurb, effect_up, effect_down } — 灰冠限定（メリデメは Decision 28）。
 const POOL: Array[Dictionary] = [
-	{"kind": "weapon", "id": "kaiwan_crosslit", "seat": "塞図", "blurb": "最初の一太刀だけが道を塞ぐ"},
-	{"kind": "weapon", "id": "kaiwan_vendict", "seat": "売境", "blurb": "境を売り、血で買う"},
-	{"kind": "weapon", "id": "kaiwan_silent", "seat": "裂鍵", "blurb": "封じを裂き、知を削ぐ"},
-	{"kind": "weapon", "id": "kaiwan_perfidy", "seat": "違約", "blurb": "約束を刃に変える"},
-	{"kind": "weapon", "id": "kaiwan_nox", "seat": "灯断", "blurb": "灯を消し、闇で射る"},
-	{"kind": "weapon", "id": "kaiwan_false", "seat": "偽星", "blurb": "偽の星炉が脆い刃を生む"},
-	{"kind": "weapon", "id": "kaiwan_saltine", "seat": "奪潮", "blurb": "潮を奪い、疾く走る"},
-	{"kind": "weapon", "id": "kaiwan_wiltes", "seat": "枯翠", "blurb": "癒しを枯らして火力へ"},
-	{"kind": "weapon", "id": "kaiwan_relictos", "seat": "断継", "blurb": "継ぎを断ち、連鎖で狩る"},
-	{"kind": "armor", "id": "kaiwan_primehide", "seat": "塞図", "blurb": "最初の被弾までを塞ぐ皮"},
-	{"kind": "armor", "id": "kaiwan_bloodmail", "seat": "売境", "blurb": "血を糧にする鎖帷子"},
-	{"kind": "armor", "id": "kaiwan_voidrobe", "seat": "裂鍵", "blurb": "虚ろなローブが時を伸ばす"},
-	{"kind": "armor", "id": "kaiwan_oathbreak", "seat": "違約", "blurb": "破約の板金"},
-	{"kind": "armor", "id": "kaiwan_duskmail", "seat": "灯断", "blurb": "宵闇の後列を守る"},
-	{"kind": "armor", "id": "kaiwan_forgepate", "seat": "偽星", "blurb": "偽炉の加護と脆さ"},
-	{"kind": "armor", "id": "kaiwan_tideskin", "seat": "奪潮", "blurb": "潮膚が罠を薄める"},
-	{"kind": "armor", "id": "kaiwan_thornmail", "seat": "枯翠", "blurb": "棘が回復を刺し変える"},
-	{"kind": "armor", "id": "kaiwan_lastcoil", "seat": "断継", "blurb": "最後の鎖が撃破を伸ばす"},
-	{"kind": "accessory", "id": "kaiwan_initio", "seat": "塞図", "blurb": "初撃に宿る灰心"},
-	{"kind": "accessory", "id": "kaiwan_venomband", "seat": "売境", "blurb": "毒帯が火力を盛る"},
-	{"kind": "accessory", "id": "kaiwan_unlock", "seat": "裂鍵", "blurb": "解呪の鍵飾り"},
-	{"kind": "accessory", "id": "kaiwan_curseband", "seat": "違約", "blurb": "呪いを乗せる腕輪"},
-	{"kind": "accessory", "id": "kaiwan_nocturne", "seat": "灯断", "blurb": "消灯の代償を初撃へ"},
-	{"kind": "accessory", "id": "kaiwan_sparkle", "seat": "偽星", "blurb": "偽星の輝きは強化次第"},
-	{"kind": "accessory", "id": "kaiwan_reefhook", "seat": "奪潮", "blurb": "リーフの鉤が潮を呼ぶ"},
-	{"kind": "accessory", "id": "kaiwan_wither", "seat": "枯翠", "blurb": "枯葉が癒しを焼く"},
-	{"kind": "accessory", "id": "kaiwan_nextedge", "seat": "断継", "blurb": "次の刃が連鎖する"},
+	{"kind": "weapon", "id": "kaiwan_crosslit", "seat": "塞図", "blurb": "最初の一太刀だけが道を塞ぐ", "effect_up": "初撃与ダメ +30%", "effect_down": "2撃目以降与ダメ -8%"},
+	{"kind": "weapon", "id": "kaiwan_vendict", "seat": "売境", "blurb": "境を売り、血で買う", "effect_up": "与ダメ +18%", "effect_down": "被ダメ +12%"},
+	{"kind": "weapon", "id": "kaiwan_silent", "seat": "裂鍵", "blurb": "封じを裂き、知を削ぐ", "effect_up": "敵バフ解除 +30%／デバフ付与 +15%", "effect_down": "自スキルCD +10%"},
+	{"kind": "weapon", "id": "kaiwan_perfidy", "seat": "違約", "blurb": "約束を刃に変える", "effect_up": "デバフ中の敵へ与ダメ +22%", "effect_down": "味方への回復・援護 -20%"},
+	{"kind": "weapon", "id": "kaiwan_nox", "seat": "灯断", "blurb": "灯を消し、闇で射る", "effect_up": "後列与ダメ +20%／会心 +8%", "effect_down": "戦闘開始時HP -8%"},
+	{"kind": "weapon", "id": "kaiwan_false", "seat": "偽星", "blurb": "偽の星炉が脆い刃を生む", "effect_up": "炉研ぎ・錬成実効 +15%", "effect_down": "被クリティカル率 +10%"},
+	{"kind": "weapon", "id": "kaiwan_saltine", "seat": "奪潮", "blurb": "潮を奪い、疾く走る", "effect_up": "行動速度 +12%／水・氷与ダメ +15%", "effect_down": "罠・探索ダメージ +25%"},
+	{"kind": "weapon", "id": "kaiwan_wiltes", "seat": "枯翠", "blurb": "癒しを枯らして火力へ", "effect_up": "回復の50%を追加与ダメへ（回復半減）", "effect_down": "継続・ターン回復 -50%"},
+	{"kind": "weapon", "id": "kaiwan_relictos", "seat": "断継", "blurb": "継ぎを断ち、連鎖で狩る", "effect_up": "撃破時、次アクション与ダメ +35%", "effect_down": "味方戦闘不能中、与ダメ -15%"},
+	{"kind": "armor", "id": "kaiwan_primehide", "seat": "塞図", "blurb": "最初の被弾までを塞ぐ皮", "effect_up": "最初の被弾まで被ダメ -20%", "effect_down": "以降の被ダメ +8%"},
+	{"kind": "armor", "id": "kaiwan_bloodmail", "seat": "売境", "blurb": "血を糧にする鎖帷子", "effect_up": "被ダメ時、次の与ダメ +12%", "effect_down": "最大HP -10%"},
+	{"kind": "armor", "id": "kaiwan_voidrobe", "seat": "裂鍵", "blurb": "虚ろなローブが時を伸ばす", "effect_up": "自スキルCDペナを半減", "effect_down": "与ダメ -8%"},
+	{"kind": "armor", "id": "kaiwan_oathbreak", "seat": "違約", "blurb": "破約の板金", "effect_up": "デバフ中の敵からの被ダメ -12%", "effect_down": "自分が受ける回復 -15%"},
+	{"kind": "armor", "id": "kaiwan_duskmail", "seat": "灯断", "blurb": "宵闇の後列を守る", "effect_up": "開幕HPロスを半減", "effect_down": "前列にいると与ダメ -10%"},
+	{"kind": "armor", "id": "kaiwan_forgepate", "seat": "偽星", "blurb": "偽炉の加護と脆さ", "effect_up": "炉研ぎ・錬成実効 +10%", "effect_down": "被クリティカル率 +8%"},
+	{"kind": "armor", "id": "kaiwan_tideskin", "seat": "奪潮", "blurb": "潮膚が罠を薄める", "effect_up": "罠・探索ダメペナを半減", "effect_down": "炎属性被ダメ +15%"},
+	{"kind": "armor", "id": "kaiwan_thornmail", "seat": "枯翠", "blurb": "棘が回復を刺し変える", "effect_up": "回復→与ダメ変換 +15pt", "effect_down": "受ける回復 -20%"},
+	{"kind": "armor", "id": "kaiwan_lastcoil", "seat": "断継", "blurb": "最後の鎖が撃破を伸ばす", "effect_up": "撃破後バフ時間を延長", "effect_down": "味方戦闘不能時の与ダメペナ -20%"},
+	{"kind": "accessory", "id": "kaiwan_initio", "seat": "塞図", "blurb": "初撃に宿る灰心", "effect_up": "初撃の会心 +25%", "effect_down": "2撃目以降の会心 -10%"},
+	{"kind": "accessory", "id": "kaiwan_venomband", "seat": "売境", "blurb": "毒帯が火力を盛る", "effect_up": "与ダメ +10%", "effect_down": "回復効果 -15%"},
+	{"kind": "accessory", "id": "kaiwan_unlock", "seat": "裂鍵", "blurb": "解呪の鍵飾り", "effect_up": "バフ解除成功時に小ダメージ", "effect_down": "味方バフ効果時間 -15%"},
+	{"kind": "accessory", "id": "kaiwan_curseband", "seat": "違約", "blurb": "呪いを乗せる腕輪", "effect_up": "攻撃時、低率で追加デバフ", "effect_down": "援護・オーラ系 -25%"},
+	{"kind": "accessory", "id": "kaiwan_nocturne", "seat": "灯断", "blurb": "消灯の代償を初撃へ", "effect_up": "開幕に失ったHP％を初撃与ダメへ加算", "effect_down": "戦闘中のHP回復 -30%"},
+	{"kind": "accessory", "id": "kaiwan_sparkle", "seat": "偽星", "blurb": "偽星の輝きは強化次第", "effect_up": "強化段階に応じて与ダメ上昇", "effect_down": "未強化だと与ダメ -20%"},
+	{"kind": "accessory", "id": "kaiwan_reefhook", "seat": "奪潮", "blurb": "リーフの鉤が潮を呼ぶ", "effect_up": "水・氷与ダメ +10%／速度 +5%", "effect_down": "聖属性耐性 -10%"},
+	{"kind": "accessory", "id": "kaiwan_wither", "seat": "枯翠", "blurb": "枯葉が癒しを焼く", "effect_up": "回復時、自分にも軽微ダメ→与ダメバフ", "effect_down": "蘇生・強回復が無効または大幅減"},
+	{"kind": "accessory", "id": "kaiwan_nextedge", "seat": "断継", "blurb": "次の刃が連鎖する", "effect_up": "撃破連鎖の2回目も半分の補正", "effect_down": "戦闘開始時SP -10%"},
 ]
 
 ## キャッシュ: kind -> Array[{kind,id}]
@@ -83,7 +83,25 @@ static func rate_detail_text() -> String:
 
 
 static func catchcopy() -> String:
-	return "盗まれた炉の武具。正義の刃ではない。"
+	return "灰冠の刃を手にする"
+
+
+static func effect_title() -> String:
+	return "効果"
+
+
+static func effect_text_for(entry: Dictionary) -> String:
+	if entry.is_empty():
+		return ""
+	var up: String = str(entry.get("effect_up", "")).strip_edges()
+	var down: String = str(entry.get("effect_down", "")).strip_edges()
+	if up.is_empty() and down.is_empty():
+		return str(entry.get("blurb", ""))
+	if up.is_empty():
+		return "− %s" % down
+	if down.is_empty():
+		return "＋ %s" % up
+	return "＋ %s\n− %s" % [up, down]
 
 
 static func featured_entries() -> Array:

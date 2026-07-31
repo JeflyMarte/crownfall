@@ -72,6 +72,12 @@ var _reveal_is_new: bool = false
 var _gacha_page: int = PAGE_INVITE
 var _btn_page_prev: Button = null
 var _btn_page_next: Button = null
+var _pool_marquee_active: bool = false
+var _pool_marquee_loop_w: float = 0.0
+const POOL_MARQUEE_SPEED: float = 36.0
+## ロゴ帯付近（枠上端から）にページ矢印を置く。
+const PAGE_ARROW_TOP: float = 20.0
+const PAGE_ARROW_SIZE: float = 56.0
 var _pending_equip_reveal: Dictionary = {}
 
 var _pull_confirm: ConfirmationDialog
@@ -128,12 +134,12 @@ func _setup_page_arrows() -> void:
 	_btn_page_prev.name = "BtnGachaPagePrev"
 	_btn_page_prev.text = "←"
 	_btn_page_prev.focus_mode = Control.FOCUS_NONE
-	_btn_page_prev.custom_minimum_size = Vector2(56, 56)
-	_btn_page_prev.set_anchors_preset(Control.PRESET_CENTER_LEFT)
+	_btn_page_prev.custom_minimum_size = Vector2(PAGE_ARROW_SIZE, PAGE_ARROW_SIZE)
+	_btn_page_prev.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	_btn_page_prev.offset_left = 8
-	_btn_page_prev.offset_right = 64
-	_btn_page_prev.offset_top = -28
-	_btn_page_prev.offset_bottom = 28
+	_btn_page_prev.offset_right = 8 + PAGE_ARROW_SIZE
+	_btn_page_prev.offset_top = PAGE_ARROW_TOP
+	_btn_page_prev.offset_bottom = PAGE_ARROW_TOP + PAGE_ARROW_SIZE
 	_btn_page_prev.z_index = 20
 	_btn_page_prev.pressed.connect(_on_page_prev_pressed)
 	_banner_art_host.add_child(_btn_page_prev)
@@ -141,12 +147,12 @@ func _setup_page_arrows() -> void:
 	_btn_page_next.name = "BtnGachaPageNext"
 	_btn_page_next.text = "→"
 	_btn_page_next.focus_mode = Control.FOCUS_NONE
-	_btn_page_next.custom_minimum_size = Vector2(56, 56)
-	_btn_page_next.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
-	_btn_page_next.offset_left = -64
+	_btn_page_next.custom_minimum_size = Vector2(PAGE_ARROW_SIZE, PAGE_ARROW_SIZE)
+	_btn_page_next.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_btn_page_next.offset_left = -(8 + PAGE_ARROW_SIZE)
 	_btn_page_next.offset_right = -8
-	_btn_page_next.offset_top = -28
-	_btn_page_next.offset_bottom = 28
+	_btn_page_next.offset_top = PAGE_ARROW_TOP
+	_btn_page_next.offset_bottom = PAGE_ARROW_TOP + PAGE_ARROW_SIZE
 	_btn_page_next.z_index = 20
 	_btn_page_next.pressed.connect(_on_page_next_pressed)
 	_banner_art_host.add_child(_btn_page_next)
@@ -170,6 +176,7 @@ func _set_gacha_page(page: int) -> void:
 	_gacha_page = page
 	_featured_index = 0
 	_featured_helper_id = ""
+	_sync_pool_strip_for_page()
 	_reload_featured_content(true)
 	_refresh()
 
@@ -177,6 +184,61 @@ func _set_gacha_page(page: int) -> void:
 func _is_seal_page() -> bool:
 	return _gacha_page == PAGE_SEAL
 
+
+func _sync_pool_strip_for_page() -> void:
+	if _featured_shell.is_empty():
+		return
+	var strip: Control = _featured_shell.get("pool_strip") as Control
+	if strip == null:
+		return
+	_stop_pool_marquee()
+	if _is_seal_page():
+		GachaUiHelper.fill_pool_strip_equipment(strip)
+		strip.visible = true
+		_wire_pool_icon_buttons()
+		call_deferred("_start_pool_marquee")
+	else:
+		GachaUiHelper.fill_pool_strip_helpers(strip)
+		strip.visible = true
+		_wire_pool_icon_buttons()
+
+
+func _start_pool_marquee() -> void:
+	if not _is_seal_page() or _featured_shell.is_empty():
+		_stop_pool_marquee()
+		return
+	var strip: Control = _featured_shell.get("pool_strip") as Control
+	var loop_w: float = GachaUiHelper.pool_marquee_loop_width(strip)
+	if loop_w < 8.0:
+		_pool_marquee_active = false
+		set_process(false)
+		return
+	_pool_marquee_loop_w = loop_w
+	_pool_marquee_active = true
+	set_process(true)
+
+
+func _stop_pool_marquee() -> void:
+	_pool_marquee_active = false
+	set_process(false)
+	if _featured_shell.is_empty():
+		return
+	var strip: Control = _featured_shell.get("pool_strip") as Control
+	if strip is ScrollContainer:
+		(strip as ScrollContainer).scroll_horizontal = 0
+
+
+func _process(delta: float) -> void:
+	if not _pool_marquee_active or _featured_shell.is_empty():
+		return
+	var strip: Control = _featured_shell.get("pool_strip") as Control
+	if not strip is ScrollContainer:
+		return
+	var sc: ScrollContainer = strip as ScrollContainer
+	var next_x: float = float(sc.scroll_horizontal) + POOL_MARQUEE_SPEED * delta
+	if next_x >= _pool_marquee_loop_w:
+		next_x -= _pool_marquee_loop_w
+	sc.scroll_horizontal = int(next_x)
 
 func _setup_reveal_quote_label() -> void:
 	if _label_quote != null:
@@ -360,10 +422,10 @@ func _refresh() -> void:
 	_label_gold.text = "%d" % GameState.gold
 	_label_token.text = CurrencyHelper.format_amount()
 	if _is_seal_page():
-		_label_title.text = "封蔵の匣"
+		_label_title.text = "封じられし武庫"
 		_label_rate.text = _GachaEquipSystem.rate_display_text()
 		_label_catchcopy.text = _GachaEquipSystem.catchcopy()
-		_pull_confirm.title = "封蔵の匣"
+		_pull_confirm.title = "封じられし武庫"
 		_button_pull_ticket.visible = true
 		$DetailOverlay/DetailPanel/DetailVBox/DetailHeader/LabelDetailTitle.text = "封蔵の排出"
 	else:
@@ -449,7 +511,28 @@ func _wire_pool_icon_buttons() -> void:
 func _on_pool_icon_pressed(btn: BaseButton) -> void:
 	if _summon_active or _featured_animating or btn == null:
 		return
+	if _is_seal_page():
+		var item_id: String = str(btn.get_meta("item_id", ""))
+		if item_id.is_empty():
+			return
+		for i in _featured_equip_entries.size():
+			if str(_featured_equip_entries[i].get("id", "")) == item_id:
+				_show_featured_at(i, true)
+				if _featured_timer != null:
+					_featured_timer.start()
+				return
+		## 防・飾など Featured 回転外も枠内プレビュー可。
+		var entry: Dictionary = _GachaEquipSystem.pool_entry_by_id(item_id)
+		if entry.is_empty() or _featured_shell.is_empty():
+			return
+		GachaUiHelper.apply_featured_equipment(_featured_shell, entry)
+		GachaUiHelper.relayout_featured_shell(_featured_shell, _banner_art_host)
+		if _featured_timer != null:
+			_featured_timer.start()
+		return
 	var helper_id: String = str(btn.get_meta("helper_id", ""))
+	if helper_id.is_empty():
+		helper_id = str(btn.get_meta("item_id", ""))
 	if helper_id.is_empty():
 		return
 	for i in _featured_helpers.size():
@@ -471,11 +554,15 @@ func _on_pool_icon_pressed(btn: BaseButton) -> void:
 			_featured_timer.start()
 		return
 
-
 func _on_featured_host_resized() -> void:
 	if _featured_shell.is_empty():
 		return
 	GachaUiHelper.relayout_featured_shell(_featured_shell, _banner_art_host)
+	if _pool_marquee_active:
+		var strip: Control = _featured_shell.get("pool_strip") as Control
+		var loop_w: float = GachaUiHelper.pool_marquee_loop_width(strip)
+		if loop_w >= 8.0:
+			_pool_marquee_loop_w = loop_w
 
 
 ## Featured 枠と説明パネルを再レイアウト（chrome は BottomNavHelper／実機のみ）。
