@@ -47,7 +47,10 @@ const POOL_STRIP_SIDE_PAD: float = 12.0
 ## 封蔵プール帯の下地。
 const POOL_STRIP_BACK_COLOR := Color(0.10, 0.08, 0.06, 0.72)
 const POOL_STRIP_BACK_BORDER := Color(0.72, 0.58, 0.30, 0.55)
-## 封蔵アイコン表示時の明るさ補正。
+## 封蔵 Featured／帯セルの暗い石マット（クリーム禁止・赤黒が読める台）。
+const EQUIP_STONE_MAT_COLOR := Color(0.14, 0.11, 0.16, 0.92)
+const EQUIP_STONE_MAT_BORDER := Color(0.42, 0.32, 0.38, 0.55)
+const EQUIP_CELL_MAT_COLOR := Color(0.12, 0.10, 0.14, 0.88)
 ## 灰冠は赤黒が正。上げすぎるとピンク化するため白のまま
 const EQUIP_ICON_MODULATE := Color(1.0, 1.0, 1.0, 1.0)
 
@@ -111,6 +114,12 @@ static func relayout_featured_shell(shell: Dictionary, host: Control) -> void:
 	if stale_back != null:
 		stale_back.queue_free()
 		shell.erase("equip_icon_back")
+	var stone: Control = shell.get("equip_stone_mat") as Control
+	if stone == null:
+		stone = stage.get_node_or_null("EquipStoneMat") as Control
+	if stone != null:
+		_relayout_equip_stone_mat(stone, idle_px, bottom)
+		shell["equip_stone_mat"] = stone
 	var beam: Control = stage.get_node_or_null("FeaturedBeam") as Control
 	if beam != null:
 		var beam_h: float = idle_px + foot + absf(bottom) + 80.0
@@ -230,16 +239,70 @@ static func _relayout_pool_strip_back(shell: Dictionary) -> void:
 
 
 static func set_equip_icon_back_visible(shell: Dictionary, visible: bool) -> void:
-	## 中央装備のクリーム下地は廃止。帯の下地だけ切替。
+	## 中央は暗い石マット。旧クリーム EquipIconBack は除去。
 	var fade: Control = shell.get("fade") as Control
 	if fade != null:
 		var stale_back: Node = fade.get_node_or_null("FeaturedStage/EquipIconBack")
 		if stale_back != null:
 			stale_back.queue_free()
 		shell.erase("equip_icon_back")
+		var stage: Control = fade.get_node_or_null("FeaturedStage") as Control
+		if stage != null:
+			var stone: Control = shell.get("equip_stone_mat") as Control
+			if stone == null:
+				stone = stage.get_node_or_null("EquipStoneMat") as Control
+			if visible:
+				if stone == null:
+					stone = _ensure_equip_stone_mat(stage)
+				stone.visible = true
+				shell["equip_stone_mat"] = stone
+				var layout_host: Control = fade.get_parent() as Control
+				if layout_host == null:
+					layout_host = fade
+				var h: float = maxf(layout_host.size.y, 280.0)
+				var idle_px: float = featured_idle_px(h)
+				var foot: float = featured_foot_pad(h)
+				var bottom: float = _featured_bottom_offset(foot, h, idle_px)
+				_relayout_equip_stone_mat(stone, idle_px, bottom)
+			elif stone != null:
+				stone.visible = false
 	var strip_back: PanelContainer = shell.get("pool_strip_back") as PanelContainer
 	if strip_back != null:
 		strip_back.visible = visible
+
+
+static func _ensure_equip_stone_mat(stage: Control) -> PanelContainer:
+	var existing: PanelContainer = stage.get_node_or_null("EquipStoneMat") as PanelContainer
+	if existing != null:
+		return existing
+	var mat := PanelContainer.new()
+	mat.name = "EquipStoneMat"
+	mat.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mat.z_index = 4
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = EQUIP_STONE_MAT_COLOR
+	sb.set_corner_radius_all(28)
+	sb.set_border_width_all(1)
+	sb.border_color = EQUIP_STONE_MAT_BORDER
+	mat.add_theme_stylebox_override("panel", sb)
+	stage.add_child(mat)
+	## idle(z=5) の下に来るよう先頭付近へ。
+	stage.move_child(mat, 0)
+	return mat
+
+
+static func _relayout_equip_stone_mat(mat: Control, idle_px: float, bottom: float) -> void:
+	if mat == null:
+		return
+	var pad: float = idle_px * 0.08
+	var side: float = idle_px * 0.5 + pad
+	mat.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	mat.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	mat.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	mat.offset_left = -side + FEATURED_IDLE_OFFSET_X
+	mat.offset_right = side + FEATURED_IDLE_OFFSET_X
+	mat.offset_top = -idle_px - pad + bottom
+	mat.offset_bottom = pad + bottom
 
 
 static func sorted_helpers() -> Array:
@@ -903,6 +966,8 @@ static func make_pool_equip_icon_button(entry: Dictionary) -> Button:
 	btn.set_meta("equip_kind", kind)
 	btn.tooltip_text = _GachaEquipSystem.display_name_for(kind, item_id)
 	_decorate_pool_icon_button(btn)
+	var frame: Node = btn.get_node_or_null("Frame")
+	_add_equip_cell_mat(frame)
 	var icon: TextureRect = null
 	_add_pool_icon_texture(btn, IconPaths.get_icon_texture(item_id, kind))
 	icon = btn.get_node_or_null("Frame/Icon") as TextureRect
@@ -928,6 +993,22 @@ static func _decorate_pool_icon_button(btn: Button) -> void:
 		(frame_sb as StyleBoxTexture).set_content_margin_all(3.0)
 	frame.add_theme_stylebox_override("panel", frame_sb)
 	btn.add_child(frame)
+
+
+static func _add_equip_cell_mat(frame: Node) -> void:
+	if frame == null or frame.get_node_or_null("CellMat") != null:
+		return
+	var mat := ColorRect.new()
+	mat.name = "CellMat"
+	mat.color = EQUIP_CELL_MAT_COLOR
+	mat.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	mat.offset_left = 3.0
+	mat.offset_top = 3.0
+	mat.offset_right = -3.0
+	mat.offset_bottom = -3.0
+	mat.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.add_child(mat)
+	frame.move_child(mat, 0)
 
 
 static func _add_pool_icon_texture(btn: Button, icon_tex: Texture2D) -> void:
