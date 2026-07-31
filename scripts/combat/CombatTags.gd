@@ -24,6 +24,7 @@ const _NAMES: Dictionary = {
 	"debuff": "弱体",
 	"shield": "防御",
 	"heal": "回復",
+	"ultimate": "必殺",
 }
 
 static func is_known(tag: String) -> bool:

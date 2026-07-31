@@ -136,6 +136,19 @@ func should_skip_action(unit_id: String) -> bool:
 				return true
 	return false
 
+
+## Guaranteed skip only (stun etc. with chance >= 1). No RNG — safe for UI preview.
+func has_guaranteed_action_skip(unit_id: String) -> bool:
+	if not _active.has(unit_id):
+		return false
+	for inst: StatusInstance in _active[unit_id]:
+		var effect: Resource = DataRegistry.get_status_effect(inst.effect_id)
+		if effect == null:
+			continue
+		if effect.skip_action_chance >= 1.0:
+			return true
+	return false
+
 func get_skip_action_label(unit_id: String) -> String:
 	if not _active.has(unit_id):
 		return ""

@@ -65,6 +65,14 @@ func bind(
 	_flash = flash
 	_portrait = portrait
 	_labels = labels
+	set_sealed_art(tex_sealed, tex_sealed_star2, tex_opening)
+
+
+func set_sealed_art(
+	tex_sealed: Texture2D,
+	tex_sealed_star2: Texture2D,
+	tex_opening: Texture2D
+) -> void:
 	_tex_sealed = tex_sealed
 	_tex_sealed_star2 = tex_sealed_star2
 	_tex_opening = tex_opening

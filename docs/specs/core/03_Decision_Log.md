@@ -6111,3 +6111,19 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-FIX-COMBAT-AUDIT-A-001-4 | **敵スキル属性** — `skill.element` を防具耐性判定に渡す | VFXと耐性の一致 |
 | P3-FIX-COMBAT-AUDIT-A-001-5 | **詠唱必殺チャージ** — 開始時消費せず解決時消費（中断で消失しない） | スタン等で損しない |
 | P3-FIX-COMBAT-AUDIT-A-001-6 | **据置** — スナイプ標的外し（BAL-AUDIT）／敵 critical_rate 未接続（バランス要GO）／ブロック無演出 | 別判断 |
+
+## 戦闘システム監査案B（2026-07-31 — P3-FIX-COMBAT-AUDIT-B-001）
+
+> **オーナー指示** — 案B全量点検。確定配線バグを修正。敵 critical_rate は据置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-FIX-COMBAT-AUDIT-B-001-1 | **鼓舞必殺** — `CombatTags` に `ultimate` を追加（スキル tags が正規化で落ちない） | 味方コンボ require_tag |
+| P3-FIX-COMBAT-AUDIT-B-001-2 | **戦術 bleed/poison** — 生存敵いずれか（mark 等と同型 `_any_enemy_has_status`） | ヒント文と実装の一致 |
+| P3-FIX-COMBAT-AUDIT-B-001-3 | **死亡標的 soft retarget** — メンバー戦術ルールで付け替え | DEFAULT front 固定は戦術無視 |
+| P3-FIX-COMBAT-AUDIT-B-001-4 | **味方コンボ VFX** — ヒット `target_slot` を渡す | 誤スロット表示防止 |
+| P3-FIX-COMBAT-AUDIT-B-001-5 | **リュシアン等** — 常時 `outgoing_mult` は `trigger` と独立 | on_attack は付与効果のみのゲート |
+| P3-FIX-COMBAT-AUDIT-B-001-6 | **refund_ct** — パッシブ発火は `applied=true` のみ（CT返却は `on_kill_refund_fraction`） | UI/CD と二重返却防止 |
+| P3-FIX-COMBAT-AUDIT-B-001-7 | **UI skip peek** — Now Playing／バッジは確定スキップのみ peek。確率スキップは実行動で roll | UI 二重抽選防止 |
+| P3-FIX-COMBAT-AUDIT-B-001-8 | **据置** — 敵 `critical_rate` 未接続（バランス要GO） | 案A 据置の継続 |
+
