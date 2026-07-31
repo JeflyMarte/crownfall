@@ -5862,6 +5862,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-CRAFT-DISCOVER-001-5 | **旧セーブ** — ロード時に所持・装備中から解放を同期 | 移行 |
 | P3-CRAFT-DISCOVER-001-6 | **上書き** — `P3-BAL-FORGE-002-4` の銀指輪 stage ゲート／固定6レシピ前提の生産一覧 | 本 Decision が正 |
 
+## Result 生産レシピ表示＝今回解放のみ（2026-07-31 — P3-UX-RESULT-CRAFT-UNLOCK-001）
+
+> **オーナー GO（案A）** — クリア結果のレシピ行が「作成可能全件」で多い。今回入手で新規解放したレシピだけにする。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-RESULT-CRAFT-UNLOCK-001-1 | **表示** — Result は `last_run_craft_unlocks`（この周の新規解放）のみ。「生産レシピ解放: …」。無いときは非表示 | ノイズ削減 |
+| P3-UX-RESULT-CRAFT-UNLOCK-001-2 | **上書き** — P3-D141 の「作成可能レシピ全件」ヒント | 生産解放制後は存在しうる件数が増える |
+| P3-UX-RESULT-CRAFT-UNLOCK-001-3 | **記録** — `GameState.note_equipment_obtained` 経路の初回解放のみ積む。セーブ同期はラン記録しない。潜行開始でクリア | 結果の意味を「今回」に限定 |
+
 ## 鍛冶屋・焼直し（ランダム効果1枠再抽選）（2026-07-31 — P3-FORGE-REFORGE-001）
 
 > **オーナー GO（推奨パッケージ全採用）** — 強化タブで武器のランダム効果を1枠選び再抽選。ボタン文言「焼直し」。

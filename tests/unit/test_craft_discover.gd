@@ -47,3 +47,34 @@ func test_silver_ring_uses_rarity_costs() -> void:
 	var craft: Resource = CraftHelper.build_craft_data("accessory", "silver_ring")
 	assert_not_null(craft)
 	assert_eq(int(craft.gold_cost), int(CraftHelper.GOLD_BY_RARITY.get(int(data.rarity), 40)))
+
+
+func test_run_records_only_new_craft_unlocks() -> void:
+	GameState.reset_for_new_game()
+	GameState.unlocked_craft_outputs.clear()
+	GameState.clear_last_run_craft_unlocks()
+	var inst: Resource = WeaponInstance.new()
+	inst.instance_id = "t_craft_run_1"
+	inst.weapon_id = "iron_sword"
+	assert_true(CraftHelper.note_equipment_obtained(inst))
+	assert_eq(GameState.last_run_craft_unlocks.size(), 1)
+	assert_eq(str(GameState.last_run_craft_unlocks[0].get("output_id", "")), "iron_sword")
+	## 再入手は解放済みなのでラン記録に増えない。
+	var inst2: Resource = WeaponInstance.new()
+	inst2.instance_id = "t_craft_run_2"
+	inst2.weapon_id = "iron_sword"
+	assert_false(CraftHelper.note_equipment_obtained(inst2))
+	assert_eq(GameState.last_run_craft_unlocks.size(), 1)
+	## セーブ同期（record_run=false）はラン記録しない。
+	GameState.clear_last_run_craft_unlocks()
+	var bow: Resource = WeaponInstance.new()
+	bow.instance_id = "t_craft_run_3"
+	bow.weapon_id = "hunting_bow"
+	assert_true(CraftHelper.note_equipment_obtained(bow, false))
+	assert_true(CraftHelper.is_unlocked("weapon", "hunting_bow"))
+	assert_eq(GameState.last_run_craft_unlocks.size(), 0)
+	## 潜行開始でラン記録をクリア。
+	GameState.record_last_run_craft_unlock("weapon", "iron_sword", "鉄の剣")
+	assert_eq(GameState.last_run_craft_unlocks.size(), 1)
+	GameState.begin_run_material_tracking()
+	assert_eq(GameState.last_run_craft_unlocks.size(), 0)
