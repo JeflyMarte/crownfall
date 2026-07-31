@@ -123,7 +123,8 @@ CANONICAL_TEMPLATES = {
         "default": TEMPLATE_DIR / "equipment/ICO_ACC_SilverRing.png",
     },
     "material": {
-        "relic": TEMPLATE_DIR / "materials/ICO_MAT_BaseOre.png",
+        "relic": TEMPLATE_DIR / "materials/ICO_MAT_RelicShard.png",
+        "ore": TEMPLATE_DIR / "materials/ICO_MAT_BaseOre.png",
         "elite_relic": TEMPLATE_DIR / "materials/ICO_MAT_EliteRelicShard.png",
         "bone": TEMPLATE_DIR / "materials/ICO_MAT_AncientBone.png",
         "metal": TEMPLATE_DIR / "materials/ICO_MAT_CursedIron.png",
@@ -341,6 +342,16 @@ def compose_icon(template_path: Path, item_id: str, element: str, rarity: int) -
 
 def pick_material_template(item_id: str, category: str, rarity: int) -> Path:
     templates = CANONICAL_TEMPLATES["material"]
+    ## 現行炉研ぎ5種は専用PNGを正とする（IconPaths と一致）。
+    dedicated = {
+        "relic_shard": TEMPLATE_DIR / "materials/ICO_MAT_RelicShard.png",
+        "base_ore": TEMPLATE_DIR / "materials/ICO_MAT_BaseOre.png",
+        "epic_ore": TEMPLATE_DIR / "materials/ICO_MAT_EpicOre.png",
+        "elite_relic_shard": TEMPLATE_DIR / "materials/ICO_MAT_EliteRelicShard.png",
+        "ancient_bone": TEMPLATE_DIR / "materials/ICO_MAT_AncientBone.png",
+    }
+    if item_id in dedicated:
+        return dedicated[item_id]
     if item_id == "elite_relic_shard":
         return templates["elite_relic"]
     if category in templates:
