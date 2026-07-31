@@ -452,8 +452,8 @@ func _on_recommend_equip_pressed() -> void:
 	if not _can_change_equipment_on_view():
 		AudioManager.play_sfx("ui_cancel")
 		return
-	var party_idx: int = _party_index_for_view()
-	var result: Dictionary = EquipmentRecommendHelper.apply_for_member(party_idx)
+	var member: Resource = _get_view_adventurer()
+	var result: Dictionary = EquipmentRecommendHelper.apply_for_adventurer(member)
 	if not bool(result.get("ok", false)):
 		AudioManager.play_sfx("ui_cancel")
 		_flash_recommend_button("装備不可")
@@ -487,9 +487,8 @@ func _refresh_inventory_tools() -> void:
 		EquipmentUiHelper.EQUIPPED_FILTER_LABELS.get(_inventory_equipped_filter, _inventory_equipped_filter)
 	)
 	_btn_effect.text = EquipmentEffectFamilyFilter.button_summary(_effect_families)
-	# おすすめ装備は現状「編成内（party_members）」前提（member_index）なので、
-	# 編成外（ロスター）閲覧時は無効化する。
-	var can_rec: bool = _can_change_equipment_on_view() and _party_index_for_view() >= 0
+	## 手動着脱と同じく、編成外ロスターもおすすめ装備可（ペットのみ不可）。
+	var can_rec: bool = _can_change_equipment_on_view()
 	_btn_recommend.disabled = not can_rec
 	_btn_recommend.tooltip_text = (
 		"未装備の中から、このキャラが付けられる最も強い武・防・飾を装備"
