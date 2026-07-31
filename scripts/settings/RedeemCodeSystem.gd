@@ -11,7 +11,8 @@ static func try_redeem(raw_code: String, reload_from_disk: bool = false) -> Dict
 	if not SaveManager.has_save():
 		return _fail("no_save", "セーブデータがありません。ゲーム開始後に入力してください")
 	if reload_from_disk:
-		SaveManager.load_game()
+		if not SaveManager.load_game():
+			return _fail("load_failed", "セーブデータを読めませんでした")
 	var entry: Dictionary = RedeemCodeCatalog.find(raw_code)
 	if entry.is_empty():
 		return _fail("invalid", "コードが正しくありません")

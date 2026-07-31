@@ -1015,6 +1015,8 @@ func _bank_rewards() -> void:
 	GameState.gold += GameState.last_run_gold_reward
 	if GameState.last_run_token_reward > 0:
 		GameState.gacha_token += GameState.last_run_token_reward
+	## 表示開始＝ラン報酬コミット（退出前落ちで「見たのに消えた」を防ぐ）。
+	SaveManager.save_game()
 
 func _build_header() -> void:
 	var dungeon_id: String = GameState.get_active_dungeon_id()

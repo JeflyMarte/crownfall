@@ -59,7 +59,10 @@ func _write_raw_save(text: String) -> void:
 func _consume_expected_parse_errors() -> int:
 	var consumed: int = 0
 	for e in get_errors():
-		if not e.handled and e.is_engine_error():
+		if e.handled:
+			continue
+		var msg: String = str(e.message) if "message" in e else str(e)
+		if e.is_engine_error() or msg.contains("SaveManager.load_game"):
 			e.handled = true
 			consumed += 1
 	return consumed
@@ -69,10 +72,11 @@ func _consume_expected_parse_errors() -> int:
 func test_roundtrip_restores_gold_and_gacha_token() -> void:
 	GameState.gold = 1234
 	GameState.gacha_token = 56
-	SaveManager.save_game()
+	assert_true(SaveManager.save_game())
+	assert_false(FileAccess.file_exists(SAVE_PATH + ".tmp"), "tmp は残らない")
 	GameState.gold = 0
 	GameState.gacha_token = 0
-	SaveManager.load_game()
+	assert_true(SaveManager.load_game())
 	assert_eq(GameState.gold, 1234, "gold が復元されること")
 	assert_eq(GameState.gacha_token, 56, "gacha_token が復元されること")
 
@@ -147,34 +151,34 @@ func test_load_migrates_legacy_dungeon_id_in_save_file() -> void:
 
 func test_load_without_save_file_is_noop() -> void:
 	GameState.gold = 777
-	SaveManager.load_game()
+	assert_false(SaveManager.load_game())
 	assert_eq(GameState.gold, 777, "セーブファイル無しではロードは no-op")
 
 func test_load_empty_file_keeps_state() -> void:
 	GameState.gold = 777
 	_write_raw_save("")
-	SaveManager.load_game()
+	assert_false(SaveManager.load_game())
 	assert_eq(GameState.gold, 777, "空ファイルでは状態を変更しない")
 	assert_gt(_consume_expected_parse_errors(), 0, "空ファイルのパースエラーは想定内")
 
 func test_load_invalid_json_keeps_state() -> void:
 	GameState.gold = 777
 	_write_raw_save("{ this is not json !!")
-	SaveManager.load_game()
+	assert_false(SaveManager.load_game())
 	assert_eq(GameState.gold, 777, "破損 JSON では状態を変更しない")
 	assert_gt(_consume_expected_parse_errors(), 0, "破損 JSON のパースエラーは想定内")
 
 func test_load_non_dict_json_keeps_state() -> void:
 	GameState.gold = 777
 	_write_raw_save("[1, 2, 3]")
-	SaveManager.load_game()
+	assert_false(SaveManager.load_game())
 	assert_eq(GameState.gold, 777, "Dictionary 以外の JSON では状態を変更しない")
 
 func test_load_empty_dict_does_not_crash() -> void:
 	GameState.gold = 777
 	var roster_size: int = GameState.roster.size()
 	_write_raw_save("{}")
-	SaveManager.load_game()
+	assert_true(SaveManager.load_game())
 	assert_eq(GameState.gold, 777, "欠損キーだらけ（空 dict）でも gold は維持")
 	assert_eq(GameState.roster.size(), roster_size, "ロスターも維持")
 
@@ -182,7 +186,7 @@ func test_load_partial_keys_applies_only_present() -> void:
 	GameState.gold = 1
 	GameState.gacha_token = 99
 	_write_raw_save(JSON.stringify({"gold": 500}))
-	SaveManager.load_game()
+	assert_true(SaveManager.load_game())
 	assert_eq(GameState.gold, 500, "存在するキーは適用")
 	assert_eq(GameState.gacha_token, 99, "欠損キーは既存値を維持")
 

@@ -48,7 +48,7 @@ func get_active_slot() -> String:
 	return _active_slot
 
 
-func save_game() -> void:
+func save_game() -> bool:
 	## セーブ直前にセッション分のプレイ時間を lifetime へ確定する。
 	_CommanderLifetime.flush_play_time()
 	var data: Dictionary = {
@@ -102,12 +102,25 @@ func save_game() -> void:
 		"tutorial_flags": GameState.tutorial_flags.duplicate(true),
 		"new_equipment_instance_ids": GameState.new_equipment_instance_ids.duplicate(true),
 	}
+	## 直書き中クラッシュで空ファイルにしないよう tmp→rename（P3-FIX-SAVE-AUDIT-A-001）。
 	var path: String = get_active_save_path()
-	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
+	var tmp_path: String = path + ".tmp"
+	var file: FileAccess = FileAccess.open(tmp_path, FileAccess.WRITE)
 	if file == null:
-		return
+		push_error("SaveManager.save_game: cannot open %s" % tmp_path)
+		return false
 	file.store_string(JSON.stringify(data))
 	file.close()
+	if FileAccess.file_exists(path):
+		var rm_err: Error = DirAccess.remove_absolute(path)
+		if rm_err != OK:
+			push_error("SaveManager.save_game: cannot replace %s (err=%d)" % [path, rm_err])
+			return false
+	var ren_err: Error = DirAccess.rename_absolute(tmp_path, path)
+	if ren_err != OK:
+		push_error("SaveManager.save_game: rename failed %s → %s (err=%d)" % [tmp_path, path, ren_err])
+		return false
+	return true
 
 
 func has_save() -> bool:
@@ -138,22 +151,24 @@ func delete_debug_save() -> void:
 		DirAccess.remove_absolute(SAVE_PATH_DEBUG)
 
 
-func load_game() -> void:
+## 成功時 true。ファイル無し・読込失敗・JSON 不正は false（GameState は触らない）。
+func load_game() -> bool:
 	if not has_save():
-		return
+		return false
 	var file: FileAccess = FileAccess.open(get_active_save_path(), FileAccess.READ)
 	if file == null:
-		return
+		return false
 	var text: String = file.get_as_text()
 	file.close()
 	var result = JSON.parse_string(text)
 	if not result is Dictionary:
-		return
+		return false
 	_apply_save_data(_migrate_save_data(result))
 	## ロード後は累計済み時間の上にセッション計測を再開する。
 	_CommanderLifetime.begin_play_session()
 	DailyMissionSystem.ensure_refreshed()
 	EventSystem.ensure_active()
+	return true
 
 
 ## 段階マイグレーション。v0（バージョン無し）の互換吸収は _apply_save_data 内の
@@ -801,7 +816,8 @@ func _apply_save_data(data: Dictionary) -> void:
 	_PetSystem.ensure_owned_pets_seeded()
 	_PetSystem.sync_unlocks_from_stage_progress(false)
 	const _SurveyCompleteRewards := preload("res://scripts/survey/SurveyCompleteRewards.gd")
-	_SurveyCompleteRewards.sync_all_pending(false)
+	## 100% 清算は通知キューへ（サイレント抽選確定を避ける）。
+	_SurveyCompleteRewards.sync_all_pending(true)
 	if GameState.active_pet != null and Constants.is_pet_id(str(GameState.active_pet.id)):
 		_PetSystem.unlock_pet(str(GameState.active_pet.id), false)
 	GameState.ensure_starter_pet()

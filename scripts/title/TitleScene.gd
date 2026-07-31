@@ -21,6 +21,8 @@ const SUN_GLOW_MODULATE_BRIGHT: Color = Color(1.0, 0.95, 0.7, 0.42)
 var _btn_continue: Button
 var _confirm_new: ConfirmationDialog
 var _confirm_debug: ConfirmationDialog
+var _btn_debug_reset: Button
+var _load_error_dialog: AcceptDialog
 var _sun_glow: TextureRect
 var _sun_glow_tween: Tween
 
@@ -121,15 +123,19 @@ func _build_ui() -> void:
 
 	_confirm_debug = ConfirmationDialog.new()
 	_confirm_debug.title = "デバッグ"
-	_confirm_debug.dialog_text = (
-		"デバッグ専用セーブで開始します（本編のセーブは消えません）。\n"
-		+"（図鑑全開放・全装備・キャラLvMAX・金999999・魔晶石9999・進行解放）\nよろしいですか？"
-	)
+	_confirm_debug.dialog_text = _debug_fresh_dialog_text()
 	_confirm_debug.ok_button_text = "デバッグ開始"
 	_confirm_debug.cancel_button_text = "やめる"
 	_confirm_debug.confirmed.connect(_on_debug_confirmed)
 	_confirm_debug.canceled.connect(func() -> void: AudioManager.play_sfx("ui_cancel"))
+	_btn_debug_reset = _confirm_debug.add_button("リセットして開始", true, "reset_debug")
+	_confirm_debug.custom_action.connect(_on_debug_custom_action)
 	add_child(_confirm_debug)
+
+	_load_error_dialog = AcceptDialog.new()
+	_load_error_dialog.title = "読み込みエラー"
+	_load_error_dialog.ok_button_text = "閉じる"
+	add_child(_load_error_dialog)
 
 
 func _add_sun_glow() -> void:
@@ -209,7 +215,11 @@ func _on_continue() -> void:
 	SaveManager.use_normal_slot()
 	if not SaveManager.has_normal_save():
 		return
-	SaveManager.load_game()
+	if not SaveManager.load_game():
+		_show_load_error(
+			"セーブデータが読めません。\nデータが壊れている可能性があります。\n（空の状態で拠点へは入りません）"
+		)
+		return
 	if GameState.needs_starter_pick():
 		SceneRouter.change_scene(STARTER_PICK_SCENE)
 	else:
@@ -233,14 +243,63 @@ func _on_new_game_confirmed() -> void:
 	SceneRouter.change_scene(INTRO_LORE_SCENE)
 
 
+func _debug_fresh_dialog_text() -> String:
+	return (
+		"デバッグ専用セーブで開始します（本編のセーブは消えません）。\n"
+		+ "（図鑑全開放・全装備・キャラLvMAX・金999999・魔晶石9999・進行解放）\nよろしいですか？"
+	)
+
+
 func _on_debug_pressed() -> void:
+	SaveManager.use_debug_slot()
+	var has: bool = SaveManager.has_debug_save()
+	if _btn_debug_reset != null:
+		_btn_debug_reset.visible = has
+	if has:
+		_confirm_debug.dialog_text = (
+			"保存済みのデバッグセーブを続けます（本編のセーブは消えません）。\n"
+			+ "新規のフル所持でやり直す場合は『リセットして開始』を選んでください。"
+		)
+		_confirm_debug.ok_button_text = "つづける"
+	else:
+		_confirm_debug.dialog_text = _debug_fresh_dialog_text()
+		_confirm_debug.ok_button_text = "デバッグ開始"
 	_confirm_debug.popup_centered()
 
 
 func _on_debug_confirmed() -> void:
 	SaveManager.use_debug_slot()
+	if SaveManager.has_debug_save():
+		if not SaveManager.load_game():
+			_show_load_error(
+				"デバッグセーブが読めません。\n『リセットして開始』で新規作成できます。"
+			)
+			SaveManager.use_normal_slot()
+			return
+	else:
+		_DebugFullUnlock.apply()
+		SaveManager.save_game()
+	DailyMissionSystem.ensure_refreshed()
+	EventSystem.ensure_active()
+	SceneRouter.change_scene(HOME_SCENE)
+
+
+func _on_debug_custom_action(action: StringName) -> void:
+	if str(action) != "reset_debug":
+		return
+	_confirm_debug.hide()
+	SaveManager.use_debug_slot()
+	SaveManager.delete_debug_save()
 	_DebugFullUnlock.apply()
 	DailyMissionSystem.ensure_refreshed()
 	EventSystem.ensure_active()
 	SaveManager.save_game()
 	SceneRouter.change_scene(HOME_SCENE)
+
+
+func _show_load_error(message: String) -> void:
+	AudioManager.play_sfx("ui_cancel")
+	if _load_error_dialog == null:
+		return
+	_load_error_dialog.dialog_text = message
+	_load_error_dialog.popup_centered()

@@ -33,6 +33,10 @@ alwaysApply: false
 | 調査受取後に派遣員が編成に戻らない／EXPパッシブ不発 | 開始時に外すだけ。受取・中止で復元なし。編成外だと `grant_exp` が本人パッシブ未適用 | `party_ids_before` 保存→cycleクリア後に復元してから EXP |
 | 調査員0人でサイクル開始 | `start_cycle` が空 assignees を許可 | 1人以上必須 |
 | 調査武器が派遣先外の全武器に落ちる | rarity 一致がプールに無いと全カタログへフォールバック | 空なら武器なし |
+| タイトル「デバッグ」のたび進行が消える | 毎回 `DebugFullUnlock.apply` で上書き | 既存 debug セーブは load。リセットは明示ボタン |
+| 破損セーブでつづき→空拠点→本編上書き | `load_game` 失敗でも遷移。成否を返さない | `load_game`→bool。失敗時はエラー表示で止まる |
+| リザルト表示直後落ちで報酬消失 | bank はメモリのみ。`save_game` は退出時 | `_bank_rewards` 直後にセーブ |
+| セーブ直書き中クラッシュで空ファイル | `FileAccess.WRITE` 直上書き | `*.tmp`→rename |
 | はじめガイド閉じてもジャック／魔晶石がすぐ来ない | `dismissed` 時点で Overlay がまだツリーにあり、親が「ガイド中」判定で支給をスキップ | `_finish` で先に `remove_child`。支給は `call_deferred`＋`is_queued_for_deletion` 無視 |
 | はじめガイド周辺に黒い四角 | 書籍BGを `StyleBoxTexture` 9-slice。縁の黒マットが角に伸びる | 書籍は `TextureRect` 直置き（KEEP_ASPECT）。外側マットは透過 |
 | 展示室・総合戦力が短い金枠＋黒い四角 | 汎用フレームを `StyleBoxTexture` 9-slice。黒マットが帯状に伸び先端だけ短く見える | `TextureRect` 直置き＋幅は `MODE_TAB_OWN` 同寸。塗りは半透明 |

@@ -112,9 +112,22 @@ func test_debug_save_roundtrip_keeps_flag() -> void:
 	SaveManager.save_game()
 	GameState.reset_for_new_game()
 	assert_false(GameState.debug_full_unlock)
-	SaveManager.load_game()
+	assert_true(SaveManager.load_game())
 	assert_true(GameState.debug_full_unlock)
 	assert_eq(GameState.gold, _DebugFullUnlock.DEBUG_GOLD)
 	assert_true(GameState.is_dungeon_unlocked("whisperwood"))
 	assert_eq(GameState.armor_inventory.size(), DataRegistry.get_all_armor_data().size())
 	assert_eq(int(GameState.roster[0].level), LevelSystem.MAX_LEVEL)
+
+
+func test_debug_continue_preserves_mutated_state() -> void:
+	## タイトル「デバッグ」は既存スロットを load（毎回 apply で消さない）。
+	SaveManager.use_debug_slot()
+	_DebugFullUnlock.apply()
+	GameState.gold = 42
+	SaveManager.save_game()
+	GameState.reset_for_new_game()
+	assert_true(SaveManager.has_debug_save())
+	assert_true(SaveManager.load_game())
+	assert_eq(GameState.gold, 42)
+	assert_true(GameState.debug_full_unlock)

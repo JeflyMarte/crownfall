@@ -6263,3 +6263,17 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-FIX-SURVEY-AUDIT-A-001-5 | **完全調査メタ** — `lb_hits` を分離し `lottery` を上書きしない | 招待券結果メタの消失 |
 | P3-FIX-SURVEY-AUDIT-A-001-6 | **据置** — EXP量・素材帯・③招待券25%↔50%・超過％キャリー | バランス／Decision要GO |
 
+## セーブ／デバッグ監査案A（2026-07-31 — P3-FIX-SAVE-AUDIT-A-001）
+
+> **オーナー指示** — 調査室の次＝セーブ／デバッグセーブ監査。確定配線のみ。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-FIX-SAVE-AUDIT-A-001-1 | **`load_game` → bool** — 失敗時は GameState を触らない | Title が成否を判定できない |
+| P3-FIX-SAVE-AUDIT-A-001-2 | **つづきから** — ロード失敗時は拠点に入らずエラー表示 | 破損セーブで空状態→上書き破壊 |
+| P3-FIX-SAVE-AUDIT-A-001-3 | **デバッグ** — 既存 `save_data_debug` は load。無いときのみフル所持。明示リセット可 | 毎回 apply で進行消失。Decision 4b |
+| P3-FIX-SAVE-AUDIT-A-001-4 | **リザルト** — `_bank_rewards` 直後に `save_game` | 退出前落ちで「見たのに消えた」 |
+| P3-FIX-SAVE-AUDIT-A-001-5 | **原子的セーブ** — `*.tmp`→rename。失敗は `push_error` | 直書き中クラッシュで空ファイル化 |
+| P3-FIX-SAVE-AUDIT-A-001-6 | **調査100%ロード** — `sync_all_pending(true)` で通知キューへ | サイレント抽選確定を避ける |
+| P3-FIX-SAVE-AUDIT-A-001-7 | **据置** — DG中オートセーブ／イベントattempt返還／複数スロット | 体験・経済・スコープ外 |
+
