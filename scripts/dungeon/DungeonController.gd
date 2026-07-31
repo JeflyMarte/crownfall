@@ -687,13 +687,22 @@ func get_display_floor_text() -> String:
 	return "F%d/%d" % [get_display_floor_current(), get_display_floor_max()]
 
 
-## ランHUD用。現在フロア／最大フロア（例: 5/10 → 50%）。深層も部屋列長を分母にする。
+## ランHUD用。現在フロア／最大フロア（例: 5/10 → 50%）。
+## 深層は無限のため％なし（UIは「?」表示・P3-UX-ABYSS-PROGRESS-HIDE-001）。
 func get_display_floor_progress_percent() -> int:
+	if _is_abyss_run():
+		return -1
 	var floor_max: int = get_display_floor_max()
 	if floor_max <= 0:
 		return 0
 	var floor_current: int = get_display_floor_current()
 	return clampi(int(round(float(floor_current) * 100.0 / float(floor_max))), 0, 100)
+
+
+func get_display_floor_progress_label() -> String:
+	if _is_abyss_run():
+		return "進行 ?%"
+	return "進行 %d%%" % get_display_floor_progress_percent()
 
 
 func get_run_biome_display_name() -> String:

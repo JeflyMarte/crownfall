@@ -6003,3 +6003,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-GACHA-EQ-KAIWAN-001-3 | **灰狼団** — 末裔・模倣・名乗り盗用のいずれか（断定しない）。灰冠そのものには格上げしない | 既存派閥接続 |
 | P3-GACHA-EQ-KAIWAN-001-4 | **流通** — 回収部押収→封蔵の匣（仮）を魔晶石で開封。UI・品目・数値は後続 | 案B装備ガチャと接続 |
 | P3-GACHA-EQ-KAIWAN-001-5 | **SSOT** — `decisions/28_KaiwanNineGachaRelics.md`／Glossary／`14_Society` | 世界観登録 |
+
+## 無限ダンジョン・ランHUD進行度を?表示（2026-07-31 — P3-UX-ABYSS-PROGRESS-HIDE-001）
+
+> **オーナー指示** — 無限内のダンジョン進行度を空にして?を入れる。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-ABYSS-PROGRESS-HIDE-001-1 | **文言** — ランHUD右端を「進行 ?%」（数値％なし） | 無限に終わりがない |
+| P3-UX-ABYSS-PROGRESS-HIDE-001-2 | **バー** — 進行バーは空（value=0） | 「空にして」指示 |
+| P3-UX-ABYSS-PROGRESS-HIDE-001-3 | **据置** — F表示（F12 等）・部屋チップ・本編進行％ | 階数そのものは有用 |
+| P3-UX-ABYSS-PROGRESS-HIDE-001-4 | **上書き** — P3-UX-RUN-HUD-FLOOR-PCT-001 の深層分母扱い | 本 Decision が深層UIの正 |
