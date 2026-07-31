@@ -4929,6 +4929,19 @@ func _apply_skill_status_to_enemy_slot(member_idx: int, skill_data: Resource, ta
 				_append_log("[%s] 付与" % label2)
 
 
+## スキル／必殺の会心倍率（通常攻撃と同式: 武器 critical_damage + パッシブ）。
+func _skill_critical_multiplier(member_idx: int) -> float:
+	var weapon: Resource = GameState.get_member_equipped_weapon(member_idx)
+	var crit_mult: float = WeaponStatResolver.resolve_critical_damage(weapon)
+	if member_idx >= 0:
+		crit_mult += float(
+			CombatPassives.weapon_stat_modifiers_for_member(member_idx).get("crit_damage_add", 0.0)
+		)
+	if crit_mult <= 0.0:
+		return CRITICAL_MULTIPLIER
+	return crit_mult
+
+
 ## 敵全体ダメージスキル（P3-SKILL-KIT-001）。CDは1回、各生存敵へ威力を適用。
 func _execute_member_aoe_damage_skill(
 	member_idx: int,
@@ -4947,7 +4960,7 @@ func _execute_member_aoe_damage_skill(
 		skill_data,
 		base_info["base_damage"],
 		is_critical,
-		CRITICAL_MULTIPLIER,
+		_skill_critical_multiplier(member_idx),
 		run_mult,
 		cd_key,
 		(_EquipmentSetBonuses.skill_cd_mult(member_idx) * CombatPassives.relic_skill_cd_mult(member_idx))
@@ -4959,6 +4972,8 @@ func _execute_member_aoe_damage_skill(
 	var form_tag: String = GameState.formation_range_log_tag(member_idx, action_range)
 	var wpn_skill_mods: Dictionary = CombatPassives.skill_stat_modifiers_for_member(member_idx)
 	var weapon_skill_mult: float = float(wpn_skill_mods.get("skill_power_mult", 1.0))
+	if _is_ultimate_skill(skill_data):
+		weapon_skill_mult = float(wpn_skill_mods.get("ultimate_power_mult", 1.0))
 	var hits: Array = []
 	var total_dmg: int = 0
 	for slot_v in living:
@@ -5030,7 +5045,7 @@ func _execute_member_skill(
 		skill_data,
 		base_info["base_damage"],
 		is_critical,
-		CRITICAL_MULTIPLIER,
+		_skill_critical_multiplier(member_idx),
 		run_mult,
 		cd_key,
 		(_EquipmentSetBonuses.skill_cd_mult(member_idx) * CombatPassives.relic_skill_cd_mult(member_idx))
@@ -5110,16 +5125,25 @@ func _execute_member_skill(
 	return ""
 
 # スキルの状態異常付与（apply_status_id / apply_status_chance）。
-func _apply_skill_status(member_idx: int, skill_data: Resource) -> void:
-	if not _member_has_living_target(member_idx):
-		return
+## hit_slot>=0 ならそのスロットへ（撃破後のリターゲットで別敵へ付く事故防止）。
+func _apply_skill_status(member_idx: int, skill_data: Resource, hit_slot: int = -1) -> void:
 	if skill_data == null or skill_data.apply_status_id.is_empty():
+		return
+	var slot: int = hit_slot
+	if slot < 0:
+		slot = $CombatController.get_member_target_slot(member_idx)
+	if slot < 0 or not $CombatController.is_enemy_slot_alive(slot):
 		return
 	if skill_data.apply_status_chance <= 0.0 or randf() > EvolutionTraits.effective_status_chance(member_idx, skill_data.apply_status_chance):
 		return
 	var base_info: Dictionary = _calc_attack_base(member_idx)
-	if not _apply_status_to_member_target(member_idx, skill_data.apply_status_id, 1, base_info["base_damage"]):
+	if not $CombatController.apply_status_to_enemy_slot(
+		slot, skill_data.apply_status_id, 1, int(base_info.get("base_damage", 0))
+	):
 		return
+	if CombatLinks.is_debuff_mark_status(skill_data.apply_status_id):
+		_debuff_marks[slot] = member_idx
+	_on_enemy_status_applied(slot, skill_data.apply_status_id)
 	var effect: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id)
 	var label: String = skill_data.apply_status_id
 	if effect != null:
@@ -5128,16 +5152,24 @@ func _apply_skill_status(member_idx: int, skill_data: Resource) -> void:
 
 # スキルの副次状態付与（apply_status_id2 / apply_status_chance2・P3-D107）。
 # 主状態のロール成否とは独立に判定する。
-func _apply_skill_secondary_status(member_idx: int, skill_data: Resource) -> void:
-	if not _member_has_living_target(member_idx):
-		return
+func _apply_skill_secondary_status(member_idx: int, skill_data: Resource, hit_slot: int = -1) -> void:
 	if skill_data == null or skill_data.apply_status_id2.is_empty():
+		return
+	var slot: int = hit_slot
+	if slot < 0:
+		slot = $CombatController.get_member_target_slot(member_idx)
+	if slot < 0 or not $CombatController.is_enemy_slot_alive(slot):
 		return
 	if skill_data.apply_status_chance2 <= 0.0 or randf() > EvolutionTraits.effective_status_chance(member_idx, skill_data.apply_status_chance2):
 		return
 	var base_info: Dictionary = _calc_attack_base(member_idx)
-	if not _apply_status_to_member_target(member_idx, skill_data.apply_status_id2, 1, base_info["base_damage"]):
+	if not $CombatController.apply_status_to_enemy_slot(
+		slot, skill_data.apply_status_id2, 1, int(base_info.get("base_damage", 0))
+	):
 		return
+	if CombatLinks.is_debuff_mark_status(skill_data.apply_status_id2):
+		_debuff_marks[slot] = member_idx
+	_on_enemy_status_applied(slot, skill_data.apply_status_id2)
 	var effect2: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id2)
 	var label2: String = skill_data.apply_status_id2
 	if effect2 != null:
@@ -5339,7 +5371,7 @@ func _try_cast_player_skill() -> String:
 		skill_data,
 		base_info["base_damage"],
 		is_critical,
-		CRITICAL_MULTIPLIER,
+		_skill_critical_multiplier(member_idx),
 		run_mult,
 		"",
 		(_EquipmentSetBonuses.skill_cd_mult(member_idx) * CombatPassives.relic_skill_cd_mult(member_idx))
@@ -5432,7 +5464,7 @@ func _try_cast_secondary_skill(primary_skill_id: String) -> String:
 		skill_data,
 		base_info["base_damage"],
 		is_critical,
-		CRITICAL_MULTIPLIER,
+		_skill_critical_multiplier(member_idx),
 		run_mult,
 		"",
 		(_EquipmentSetBonuses.skill_cd_mult(member_idx) * CombatPassives.relic_skill_cd_mult(member_idx))
@@ -6138,12 +6170,15 @@ func _apply_enemy_damage_to_targets(
 	var row_tag: String = CombatFormation.enemy_target_row_log_tag(target_type, used_fallback)
 	var lines: PackedStringArray = []
 	var atk_slot: int = $CombatController.active_enemy_index
+	var skill_elem: String = ""
+	if skill != null and "element" in skill:
+		skill_elem = str(skill.element).strip_edges()
 	for ti: int in targets:
 		var share: float = float(shares.get(ti, 0.0))
 		if share <= 0.0:
 			continue
 		var power: float = float(skill.power_multiplier) * share
-		var dmg_result: Dictionary = _calc_enemy_damage_to_member(ti, power, -1, atk_slot)
+		var dmg_result: Dictionary = _calc_enemy_damage_to_member(ti, power, -1, atk_slot, skill_elem)
 		var member: Resource = GameState.get_combatant(ti)
 		var mname: String = member.display_name if member != null else "?"
 		if dmg_result.get("missed", false):
@@ -6507,10 +6542,11 @@ func _calc_enemy_damage_to_member(
 	target_index: int,
 	power_multiplier: float = 1.0,
 	attacker_atk: int = -1,
-	attacker_slot: int = -1
+	attacker_slot: int = -1,
+	attack_element: String = ""
 ) -> Dictionary:
 	return DamageCalculator.enemy_damage_to_member(
-		$CombatController, target_index, power_multiplier, attacker_atk, attacker_slot
+		$CombatController, target_index, power_multiplier, attacker_atk, attacker_slot, null, attack_element
 	)
 
 func _active_enemy_attack_element() -> String:
@@ -7057,10 +7093,11 @@ func _try_cast_member_skill(member_idx: int, skill_data: Resource, is_ultimate: 
 		"damage":
 			if not _member_has_living_target(member_idx):
 				return false
-	if is_ultimate:
-		$CombatController.consume_ultimate_charge(member_idx)
 	var cast_time: float = float(skill_data.cast_time) * _EquipmentSetBonuses.skill_cast_mult(member_idx)
 	if cast_time <= 0.0:
+		## 即時発動のみここで消費。詠唱中断でチャージ消失しないよう詠唱技は解決時に消費。
+		if is_ultimate:
+			$CombatController.consume_ultimate_charge(member_idx)
 		var log_text: String = _execute_member_skill(member_idx, skill_data, 0).strip_edges()
 		if log_text.is_empty():
 			# 必殺／ヒット遅延スキルはログを後で出すため、ロック中なら発動成功とみなす
@@ -7129,6 +7166,12 @@ func _advance_member_cast(member_idx: int) -> void:
 		var frozen: int = int(pending["target_slot"])
 		if member_idx >= 0 and member_idx < $CombatController.member_target_slot.size():
 			$CombatController.member_target_slot[member_idx] = frozen
+	## 詠唱必殺は解決時にチャージ消費（中断時は未消費のまま）。
+	if str(skill_data.slot_type) == "ultimate":
+		if not $CombatController.is_ultimate_charge_ready(member_idx):
+			_append_log("[詠唱] 必殺チャージが足りず不発")
+			return
+		$CombatController.consume_ultimate_charge(member_idx)
 	var log_text: String = _execute_member_skill(member_idx, skill_data, 0).strip_edges()
 	if log_text.is_empty():
 		if _ultimate_presentation_active:
@@ -7859,14 +7902,16 @@ func _resolve_party_skill_damage_impact_async(payload: Dictionary) -> void:
 		)
 	if not log_line.is_empty():
 		_append_log(log_line)
-	if not _deal_member_damage_to_enemy(
+	var wipe: bool = _deal_member_damage_to_enemy(
 		member_idx, final_dmg, target_slot, skill_id, display_name, skill_is_crit
-	):
-		if $CombatController.is_enemy_slot_alive(target_slot):
-			_play_enemy_slot_animation(target_slot, "hurt")
-		_apply_skill_status(member_idx, skill_data)
-		_apply_skill_secondary_status(member_idx, skill_data)
-		_apply_skill_on_hit_self_effects(member_idx, skill_data)
+	)
+	## 撃破後リターゲットで別敵へ状態が飛ぶ事故防止: ヒットスロット固定。
+	## 全滅時も自己 on_hit（taunt 等）は発火させる。
+	if not wipe and $CombatController.is_enemy_slot_alive(target_slot):
+		_play_enemy_slot_animation(target_slot, "hurt")
+		_apply_skill_status(member_idx, skill_data, target_slot)
+		_apply_skill_secondary_status(member_idx, skill_data, target_slot)
+	_apply_skill_on_hit_self_effects(member_idx, skill_data)
 	if skill_data != null and skill_data.tags.has("pet_followup"):
 		_queue_pet_followup_attack()
 	_update_hp_bars()
@@ -10311,18 +10356,19 @@ func _apply_ultimate_damage_impact(payload: Dictionary) -> void:
 	)
 	var skill_data: Resource = payload.get("skill_data") as Resource
 	var log_line: String = str(payload.get("log_line", ""))
-	if _deal_member_damage_to_enemy(
+	_deal_member_damage_to_enemy(
 		member_idx,
 		final_dmg,
 		target_slot,
 		str(payload.get("skill_id", "")),
 		str(payload.get("display_name", "スキル")),
 		skill_is_crit
-	):
-		pass
-	else:
-		_apply_skill_status(member_idx, skill_data)
-		_apply_skill_secondary_status(member_idx, skill_data)
+	)
+	## 必殺もヒットスロット固定＋自己効果は撃破有無に依存しない。
+	if $CombatController.is_enemy_slot_alive(target_slot):
+		_apply_skill_status(member_idx, skill_data, target_slot)
+		_apply_skill_secondary_status(member_idx, skill_data, target_slot)
+	_apply_skill_on_hit_self_effects(member_idx, skill_data)
 	if not log_line.is_empty():
 		_append_log("【必殺】" + log_line.trim_prefix("【スキル】"))
 

@@ -6098,3 +6098,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-FIX-STATUS-AUDIT-001-2 | **鈍化** — `skip_action_chance=0`。行動遅延は `interval_multiplier` 代理のみ。Resolver は同一効果で二重抽選しない | ~75%スキップの過剰 |
 | P3-FIX-STATUS-AUDIT-001-3 | **OK確認** — stun/fear/chill/shock スキップ、curse/vulnerable/mark/guard/empower 乗算、ignite flat DoT、付与先誤配線（前 Task 済） | 横断点検 |
 | P3-FIX-STATUS-AUDIT-001-4 | **既知制限** — 同時ユニーク状態は最大3（既存）。満杯時の新規付与は失敗 | 仕様据置 |
+
+## 戦闘システム監査案A（2026-07-31 — P3-FIX-COMBAT-AUDIT-A-001）
+
+> **オーナー GO（案A）** — ダメージ式＋スキル／必殺の同型配線バグを優先修正。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-FIX-COMBAT-AUDIT-A-001-1 | **スキル状態** — ヒットスロット固定。撃破後リターゲットで別敵へ付かない | 誤付与防止 |
+| P3-FIX-COMBAT-AUDIT-A-001-2 | **自己 on_hit** — taunt／self_guard 等は全滅撃破でも発火 | AoE と同型 |
+| P3-FIX-COMBAT-AUDIT-A-001-3 | **スキル会心** — 武器 `critical_damage`＋パッシブ（通常攻撃と同式） | ネレイダ等のクリダメがスキルに効く |
+| P3-FIX-COMBAT-AUDIT-A-001-4 | **敵スキル属性** — `skill.element` を防具耐性判定に渡す | VFXと耐性の一致 |
+| P3-FIX-COMBAT-AUDIT-A-001-5 | **詠唱必殺チャージ** — 開始時消費せず解決時消費（中断で消失しない） | スタン等で損しない |
+| P3-FIX-COMBAT-AUDIT-A-001-6 | **据置** — スナイプ標的外し（BAL-AUDIT）／敵 critical_rate 未接続（バランス要GO）／ブロック無演出 | 別判断 |

@@ -280,7 +280,8 @@ static func enemy_damage_to_member(
 	power_multiplier: float = 1.0,
 	attacker_atk: int = -1,
 	attacker_slot: int = -1,
-	rng: RandomNumberGenerator = null
+	rng: RandomNumberGenerator = null,
+	attack_element_override: String = ""
 ) -> Dictionary:
 	if roll_member_evasion(target_index, rng):
 		return {"final": 0, "base": 0, "mitigated": 0, "elem_resisted": false, "missed": true}
@@ -330,8 +331,11 @@ static func enemy_damage_to_member(
 		if block_roll < block_chance:
 			final_dmg = maxi(0, int(round(float(final_dmg) * float(wpn_block.get("incoming_block_mult", 1.0)))))
 	# 防具の属性耐性（P3-D103）: 敵攻撃属性が防具 resist_elements と一致なら軽減。
+	# スキル element があれば通常攻撃属性より優先（VFX と耐性を一致）。
 	var elem_resisted: bool = false
-	var atk_elem: String = enemy_attack_element_at(combat, out_slot)
+	var atk_elem: String = attack_element_override.strip_edges()
+	if atk_elem.is_empty():
+		atk_elem = enemy_attack_element_at(combat, out_slot)
 	if member_resists_element(target_index, atk_elem):
 		var resist_mult: float = member_element_resist_multiplier(target_index, atk_elem)
 		final_dmg = maxi(0, int(round(float(final_dmg) * resist_mult)))

@@ -172,3 +172,7 @@ alwaysApply: false
 | 出血アイコンはあるが tick ダメ無し／毒スキル付与が効かない | 敵スキルが `_apply_status_to_member_target`（敵向け）へ誤配線。出血は `source_attack=0` だと percent DoT=0 | 敵スキルは `party_%d`＋敵ATK。罠／Affix／パッシブも source を渡す |
 | 味方の防御DOWNが被ダメに効かない | `get_defense_reduction` が敵側のみ配線 | `get_member_defense_reduction`→`enemy_damage_to_member`（P3-FIX-STATUS-AUDIT-001） |
 | 鈍化で行動スキップが過剰 | `skip_action_chance` と `interval_multiplier` 代理を二重抽選 | slow は interval のみ／Resolver は同一効果で elif |
+| スキル撃破後に状態が別敵へ／全滅撃破で自己効果無し | 付与が `get_member_target_slot` 再解決／wipe 分岐で self on_hit 省略 | ヒットスロット固定＋自己効果は常時（P3-FIX-COMBAT-AUDIT-A-001） |
+| スキル会心が武器クリダメ無視 | `CRITICAL_MULTIPLIER` 固定 | `_skill_critical_multiplier`（通常攻撃と同式） |
+| 敵スキル属性が防具耐性に未反映 | 耐性は `attack_element` のみ／VFXは skill.element | `attack_element_override` |
+| 必殺詠唱中断でチャージ消失 | 詠唱開始時に consume | 即時のみ開始時消費／詠唱は解決時 |
