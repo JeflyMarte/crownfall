@@ -1168,7 +1168,7 @@ static func setup_pull_button_ex(btn: Button, enabled: bool, title_text: String,
 	for child in btn.get_children():
 		child.free()
 	var row := HBoxContainer.new()
-	_layout_pull_content_row(row)
+	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	row.add_theme_constant_override("separation", 8)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1202,19 +1202,6 @@ static func setup_pull_button_ex(btn: Button, enabled: bool, title_text: String,
 		UiTypography.COLOR_LOCKED if not enabled else UiTypography.COLOR_GOLD
 	)
 	row.add_child(cost)
-
-
-## 汎用フレーム先端より内側に文言を置き、枠が文字より長く見えるようにする。
-static func _layout_pull_content_row(row: Control) -> void:
-	if row == null:
-		return
-	var pad_h: float = GachaUiTokens.PULL_BTN_CONTENT_MARGIN_H
-	var pad_v: float = GachaUiTokens.PULL_BTN_CONTENT_MARGIN_V
-	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	row.offset_left = pad_h
-	row.offset_right = -pad_h
-	row.offset_top = pad_v
-	row.offset_bottom = -pad_v
 
 
 static func apply_featured_equipment(shell: Dictionary, entry: Dictionary) -> void:
@@ -1335,7 +1322,7 @@ static func setup_ticket_pull_button(btn: Button, enabled: bool) -> void:
 	for child in btn.get_children():
 		child.free()
 	var row := HBoxContainer.new()
-	_layout_pull_content_row(row)
+	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	row.add_theme_constant_override("separation", 8)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1384,7 +1371,7 @@ static func setup_seal_ticket_pull_button(btn: Button, enabled: bool) -> void:
 	for child in btn.get_children():
 		child.free()
 	var row := HBoxContainer.new()
-	_layout_pull_content_row(row)
+	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	row.add_theme_constant_override("separation", 8)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE

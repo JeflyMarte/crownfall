@@ -23,9 +23,8 @@ const ORNAMENT_DIAMOND: String = ROOT + "UI_Ornament_Diamond.png"
 const ICO_BACK: String = ROOT + "UI_Ico_Back_Gold.png"
 const SECTION_RULE: String = ROOT + "UI_Gacha_SectionRule.png"
 const BANNER_FRAME: String = ROOT + "UI_Gacha_Banner_Frame.png"
-## Downloads「汎用フレーム」— 招待／封蔵の引きボタン共通。
-const BTN_1PULL: String = ROOT + "UI_Gacha_Btn_Frame.png"
-const BTN_1PULL_DISABLED: String = ROOT + "UI_Gacha_Btn_Frame_Disabled.png"
+const BTN_1PULL: String = ROOT + "UI_Gacha_Btn_1Pull.png"
+const BTN_1PULL_DISABLED: String = ROOT + "UI_Gacha_Btn_1Pull_Disabled.png"
 const LINEUP_CELL: String = ROOT + "UI_Gacha_LineupCell.png"
 const PANEL_DARK: String = ROOT + "UI_Gacha_Panel_Dark.png"
 const BTN_DETAIL: String = ROOT + "UI_Gacha_Btn_Detail.png"
@@ -53,15 +52,8 @@ const BANNER_MIN_HEIGHT: int = 280
 const BANNER_TITLE_HEIGHT: int = 140
 const BANNER_CATCHCOPY_HEIGHT: int = 72
 const LINEUP_CELL_PX: int = 120
-const PULL_BTN_HEIGHT: int = 84
-## 1ボタンの希望最大幅。実際は画面に2つ並ぶ上限まで伸ばす（短い固定幅にしない）。
-const PULL_BTN_MIN_WIDTH: int = 420
-const PULL_BTN_GAP: int = 8
-const PULL_BTN_SIDE_PAD: float = 4.0
-## 汎用フレーム先端オーナメントを潰さない 9-slice（元 2165×364）。
-const PULL_BTN_TEX_MARGINS := Vector4i(148, 56, 148, 56)
-const PULL_BTN_CONTENT_MARGIN_H: float = 40.0
-const PULL_BTN_CONTENT_MARGIN_V: float = 10.0
+const PULL_BTN_HEIGHT: int = 88
+const PULL_BTN_MIN_WIDTH: int = 220
 
 static func load_tex(path: String) -> Texture2D:
 	if path.is_empty() or not ResourceLoader.exists(path):
@@ -109,25 +101,13 @@ static func lineup_cell_style() -> StyleBox:
 	return texture_stylebox(LINEUP_CELL, Vector4i(12, 12, 12, 28))
 
 static func pull_1_style() -> StyleBox:
-	var sb: StyleBox = texture_stylebox(BTN_1PULL, PULL_BTN_TEX_MARGINS)
-	if sb is StyleBoxTexture:
-		_apply_pull_content_margins(sb as StyleBoxTexture)
-	return sb
+	return texture_stylebox(BTN_1PULL, Vector4i(18, 14, 18, 14))
 
 static func pull_disabled_style() -> StyleBox:
-	var sb: StyleBox = texture_stylebox(BTN_1PULL_DISABLED, PULL_BTN_TEX_MARGINS)
+	var sb: StyleBox = texture_stylebox(BTN_1PULL_DISABLED, Vector4i(18, 14, 18, 14))
 	if sb is StyleBoxTexture and (sb as StyleBoxTexture).texture != null:
-		_apply_pull_content_margins(sb as StyleBoxTexture)
 		return sb
 	return _fallback_pull_style(false)
-
-
-static func _apply_pull_content_margins(tex_sb: StyleBoxTexture) -> void:
-	tex_sb.draw_center = true
-	tex_sb.content_margin_left = PULL_BTN_CONTENT_MARGIN_H
-	tex_sb.content_margin_right = PULL_BTN_CONTENT_MARGIN_H
-	tex_sb.content_margin_top = PULL_BTN_CONTENT_MARGIN_V
-	tex_sb.content_margin_bottom = PULL_BTN_CONTENT_MARGIN_V
 
 static func detail_button_style() -> StyleBox:
 	return texture_stylebox(BTN_DETAIL, Vector4i(12, 10, 12, 10))
@@ -155,9 +135,7 @@ static func apply_pull_button(btn: Button, enabled: bool) -> void:
 	btn.add_theme_stylebox_override("disabled", pull_disabled_style())
 	btn.disabled = not enabled
 	btn.custom_minimum_size = Vector2(PULL_BTN_MIN_WIDTH, PULL_BTN_HEIGHT)
-	## Expand 禁止。並びは GachaScene の CenterContainer で中央寄せ。
-	btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	btn.size_flags_stretch_ratio = 0.0
+	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 static func decorate_title(label: Label) -> void:
 	UiTypography.apply_screen_title(label, UiTypography.SIZE_DISPLAY)
