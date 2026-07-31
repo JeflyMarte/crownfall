@@ -22,7 +22,7 @@ const EQUIP_GROWTH_RATE: float = 0.04
 const EQUIP_LEGENDARY_GROWTH_MULT: float = 1.25
 const EQUIP_EXP_BASE: int = 10
 const EQUIP_EXP_PER_LEVEL: int = 5
-const DISMANTLE_CRAFT_RETURN_CAP: float = 0.6
+const DISMANTLE_CRAFT_RETURN_CAP: float = 0.8
 ## 錬成 — P3-FORGE-ALCHEMY-001
 const ALCHEMY_LEVEL_FACTOR: float = 0.5
 ## P3-BAL-ECO-001: 錬成金コスト 20→30／炉研ぎ金を約1.5〜1.6倍
@@ -614,7 +614,7 @@ static func _dismantle_base_yields(item: Resource) -> Dictionary:
 			yields[LEGEND_ORE_ID] = 1
 			yields[COMMON_MATERIAL_ID] = 2
 		_:
-			yields[BASE_ORE_ID] = 2
+			yields[BASE_ORE_ID] = 3
 			yields[COMMON_MATERIAL_ID] = 1
 	return yields
 
@@ -662,12 +662,14 @@ static func _cap_dismantle_by_craft_return(item: Resource, yields: Dictionary) -
 		return yields
 	var capped: Dictionary = {}
 	for mat_id in yields:
+		var got: int = int(yields[mat_id])
 		var recipe_qty: int = int(craft.required_materials.get(mat_id, 0))
 		if recipe_qty <= 0:
-			capped[mat_id] = int(yields[mat_id])
+			capped[mat_id] = got
 		else:
-			var max_return: int = int(floor(float(recipe_qty) * DISMANTLE_CRAFT_RETURN_CAP))
-			capped[mat_id] = mini(int(yields[mat_id]), max_return)
+			## floor(小コスト×比率) が 0 になると主鉱が消えるため、返す素材は最低1。
+			var max_return: int = maxi(1, int(floor(float(recipe_qty) * DISMANTLE_CRAFT_RETURN_CAP)))
+			capped[mat_id] = mini(got, max_return)
 	return capped
 
 static func dismantle_preview(item: Resource) -> Dictionary:

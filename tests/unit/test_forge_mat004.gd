@@ -40,14 +40,36 @@ func test_armor_enhance_adds_def_and_hp() -> void:
 	)
 
 func test_dismantle_common_weapon_yields_base_and_common() -> void:
+	## 生産可能◇は 80%キャップ＋最低1。表は基礎3だがコスト1のため実返却は基礎1＋共通1。
 	var weapon: Resource = load("res://scripts/domain/WeaponInstance.gd").new()
 	weapon.weapon_id = "iron_sword"
 	weapon.is_appraised = true
 	GameState.inventory.append(weapon)
 	var preview: Dictionary = _Enh.dismantle_preview(weapon)
 	assert_true(preview.get("ok", false))
-	assert_eq(preview["materials"].get(_Enh.BASE_ORE_ID), 2)
+	assert_eq(preview["materials"].get(_Enh.BASE_ORE_ID), 1)
 	assert_eq(preview["materials"].get(_Enh.COMMON_MATERIAL_ID), 1)
+
+
+func test_dismantle_craft_cap_is_eighty_percent_with_min_one() -> void:
+	assert_eq(_Enh.DISMANTLE_CRAFT_RETURN_CAP, 0.8)
+	var weapon: Resource = load("res://scripts/domain/WeaponInstance.gd").new()
+	weapon.weapon_id = "iron_sword"
+	weapon.is_appraised = true
+	var mats: Dictionary = _Enh.dismantle_preview(weapon).get("materials", {})
+	assert_gte(int(mats.get(_Enh.BASE_ORE_ID, 0)), 1)
+	assert_gte(int(mats.get(_Enh.COMMON_MATERIAL_ID, 0)), 1)
+
+
+func test_dismantle_rare_craftable_keeps_primary_ore() -> void:
+	## ◆生産可能: 蒼古コスト1 → 80%でも最低1を残す（旧 floor だと0）。
+	var weapon: Resource = load("res://scripts/domain/WeaponInstance.gd").new()
+	weapon.weapon_id = "tinder_bow"
+	weapon.is_appraised = true
+	assert_eq(_Enh.item_rarity(weapon), Enums.Rarity.RARE)
+	var mats: Dictionary = _Enh.dismantle_preview(weapon).get("materials", {})
+	assert_eq(int(mats.get(_Enh.RARE_ORE_ID, 0)), 1)
+	assert_gte(int(mats.get(_Enh.COMMON_MATERIAL_ID, 0)), 1)
 
 func test_bulk_dismantle_only_common_and_rare() -> void:
 	GameState.inventory.clear()
