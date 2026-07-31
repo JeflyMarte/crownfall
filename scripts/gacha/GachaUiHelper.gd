@@ -2,6 +2,7 @@ class_name GachaUiHelper
 extends RefCounted
 
 const _GachaLimitBreak := preload("res://scripts/gacha/GachaLimitBreak.gd")
+const _GachaEquipSystem := preload("res://scripts/gacha/GachaEquipSystem.gd")
 const _CharacterStatBonuses := preload("res://scripts/roster/CharacterStatBonuses.gd")
 const _ChrIdlePortraitView := preload("res://scripts/ui/ChrIdlePortraitView.gd")
 
@@ -798,6 +799,9 @@ static func highlight_pool_icon(strip: Control, helper_id: String) -> void:
 static func apply_featured_helper(shell: Dictionary, helper: Resource) -> void:
 	if shell.is_empty() or helper == null:
 		return
+	var pool_strip_h: Control = shell.get("pool_strip") as Control
+	if pool_strip_h != null:
+		pool_strip_h.visible = true
 	var idle: Control = shell.get("idle") as Control
 	if idle != null and idle.has_method("set_from_helper_id"):
 		idle.call("set_from_helper_id", str(helper.id), str(helper.job_id))
@@ -822,12 +826,15 @@ static func apply_featured_helper(shell: Dictionary, helper: Resource) -> void:
 	var stats: Dictionary = preview_combat_stats(helper)
 	var hp_lbl: Label = shell.get("hp") as Label
 	if hp_lbl != null:
+		hp_lbl.visible = true
 		hp_lbl.text = "HP  %d" % int(stats.get("hp", 1))
 	var atk_lbl: Label = shell.get("atk") as Label
 	if atk_lbl != null:
+		atk_lbl.visible = true
 		atk_lbl.text = "ATK  %d" % int(stats.get("attack", 1))
 	var def_lbl: Label = shell.get("def") as Label
 	if def_lbl != null:
+		def_lbl.visible = true
 		def_lbl.text = "DEF  %d" % int(stats.get("defense", 1))
 	var feature_text: String = feature_line_for_helper(helper)
 	var feature_lbl: Label = shell.get("feature") as Label
@@ -865,6 +872,10 @@ static func apply_featured_helper(shell: Dictionary, helper: Resource) -> void:
 	highlight_pool_icon(shell.get("pool_strip") as Control, str(helper.id))
 
 static func setup_pull_button(btn: Button, enabled: bool) -> void:
+	setup_pull_button_ex(btn, enabled, pull_title(), pull_cost_amount(1))
+
+
+static func setup_pull_button_ex(btn: Button, enabled: bool, title_text: String, cost_amount: int) -> void:
 	if btn == null:
 		return
 	GachaUiTokens.apply_pull_button(btn, enabled)
@@ -878,7 +889,7 @@ static func setup_pull_button(btn: Button, enabled: bool) -> void:
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	btn.add_child(row)
 	var title := Label.new()
-	title.text = pull_title()
+	title.text = title_text
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_menu_label(
 		title,
@@ -898,7 +909,7 @@ static func setup_pull_button(btn: Button, enabled: bool) -> void:
 			icon.modulate = Color(0.62, 0.6, 0.55, 1.0)
 		row.add_child(icon)
 	var cost := Label.new()
-	cost.text = str(pull_cost_amount(1))
+	cost.text = str(cost_amount)
 	cost.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_menu_label(
 		cost,
@@ -906,6 +917,64 @@ static func setup_pull_button(btn: Button, enabled: bool) -> void:
 		UiTypography.COLOR_LOCKED if not enabled else UiTypography.COLOR_GOLD
 	)
 	row.add_child(cost)
+
+
+static func apply_featured_equipment(shell: Dictionary, entry: Dictionary) -> void:
+	if shell.is_empty() or entry.is_empty():
+		return
+	var kind: String = str(entry.get("kind", "weapon"))
+	var item_id: String = str(entry.get("id", ""))
+	var idle: Control = shell.get("idle") as Control
+	if idle != null:
+		var tex: Texture2D = IconPaths.get_icon_texture(item_id, kind)
+		if idle.has_method("set_static_texture") and tex != null:
+			idle.call("set_static_texture", tex)
+		idle.visible = true
+		idle.modulate = Color.WHITE
+	var name_lbl: Label = shell.get("name") as Label
+	if name_lbl != null:
+		name_lbl.text = _GachaEquipSystem.display_name_for(kind, item_id)
+	var stars_lbl: Label = shell.get("stars") as Label
+	if stars_lbl != null:
+		stars_lbl.text = "L"
+	var job_lbl: Label = shell.get("job") as Label
+	if job_lbl != null:
+		job_lbl.text = "%s・%s" % [str(entry.get("seat", "")), _GachaEquipSystem.kind_label(kind)]
+	var hp_lbl: Label = shell.get("hp") as Label
+	if hp_lbl != null:
+		hp_lbl.text = ""
+		hp_lbl.visible = false
+	var atk_lbl: Label = shell.get("atk") as Label
+	if atk_lbl != null:
+		atk_lbl.text = ""
+		atk_lbl.visible = false
+	var def_lbl: Label = shell.get("def") as Label
+	if def_lbl != null:
+		def_lbl.text = ""
+		def_lbl.visible = false
+	var feature_text: String = str(entry.get("blurb", ""))
+	var feature_lbl: Label = shell.get("feature") as Label
+	if feature_lbl != null:
+		feature_lbl.text = feature_text
+		feature_lbl.visible = not feature_text.is_empty()
+	var blurb_wrap: Control = shell.get("blurb_wrap") as Control
+	if blurb_wrap != null:
+		blurb_wrap.visible = not feature_text.is_empty()
+	var unique_title_lbl: Label = shell.get("unique_title") as Label
+	if unique_title_lbl != null:
+		unique_title_lbl.text = "灰冠の九"
+		unique_title_lbl.visible = true
+	var unique_lbl: Label = shell.get("unique") as Label
+	if unique_lbl != null:
+		unique_lbl.text = "封蔵限定・欠け王冠の模刻"
+		unique_lbl.visible = true
+	var pool_strip: Control = shell.get("pool_strip") as Control
+	if pool_strip != null:
+		pool_strip.visible = false
+	var stats_wrap: Control = shell.get("stats_wrap") as Control
+	if stats_wrap != null:
+		stats_wrap.visible = true
+		stats_wrap.queue_sort()
 
 
 static func ticket_pull_title() -> String:
@@ -1032,6 +1101,77 @@ static func make_lineup_row(helper: Resource) -> PanelContainer:
 	UiTypography.apply_caption(badge)
 	row.add_child(badge)
 	return panel
+
+
+static func make_equip_lineup_row(entry: Dictionary) -> PanelContainer:
+	var kind: String = str(entry.get("kind", ""))
+	var item_id: String = str(entry.get("id", ""))
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", GachaUiTokens.panel_dark_style())
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	panel.add_child(row)
+
+	var icon_box := PanelContainer.new()
+	icon_box.custom_minimum_size = Vector2(LINEUP_ICON_PX, LINEUP_ICON_PX)
+	icon_box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var icon_sb: StyleBox = GachaUiTokens.texture_stylebox(
+		GachaUiTokens.LINEUP_CELL, Vector4i(8, 8, 8, 8)
+	)
+	if icon_sb is StyleBoxTexture:
+		(icon_sb as StyleBoxTexture).set_content_margin_all(4.0)
+	icon_box.add_theme_stylebox_override("panel", icon_sb)
+	var icon_tex: Texture2D = IconPaths.get_icon_texture(item_id, kind)
+	if icon_tex != null:
+		var icon := TextureRect.new()
+		icon.texture = icon_tex
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.custom_minimum_size = Vector2(LINEUP_ICON_PX - 12, LINEUP_ICON_PX - 12)
+		icon.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		icon.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		icon_box.add_child(icon)
+	else:
+		var glyph := Label.new()
+		glyph.text = "?"
+		glyph.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		glyph.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		icon_box.add_child(glyph)
+	row.add_child(icon_box)
+
+	var info := VBoxContainer.new()
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.add_theme_constant_override("separation", 2)
+	row.add_child(info)
+
+	var name_row := HBoxContainer.new()
+	name_row.add_theme_constant_override("separation", 8)
+	info.add_child(name_row)
+	var name_label := Label.new()
+	name_label.text = _GachaEquipSystem.display_name_for(kind, item_id)
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_label.clip_text = true
+	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	UiTypography.apply_body(name_label, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	name_row.add_child(name_label)
+	var stars := Label.new()
+	stars.text = "L"
+	stars.add_theme_color_override("font_color", COLOR_GOLD)
+	UiTypography.apply_caption(stars)
+	name_row.add_child(stars)
+
+	var sub := Label.new()
+	sub.text = "%s・%s — %s" % [
+		str(entry.get("seat", "")),
+		_GachaEquipSystem.kind_label(kind),
+		str(entry.get("blurb", "")),
+	]
+	sub.clip_text = true
+	sub.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	UiTypography.apply_caption(sub)
+	info.add_child(sub)
+	return panel
+
 
 static func make_carousel_cell(helper: Resource, featured: bool = false) -> PanelContainer:
 	var helper_id: String = str(helper.id)

@@ -4,7 +4,11 @@ const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
 const _GachaLimitBreak := preload("res://scripts/gacha/GachaLimitBreak.gd")
 const _GachaRevealPresenter := preload("res://scripts/gacha/GachaRevealPresenter.gd")
+const _GachaEquipSystem := preload("res://scripts/gacha/GachaEquipSystem.gd")
 const _ChrIdlePortraitView := preload("res://scripts/ui/ChrIdlePortraitView.gd")
+
+const PAGE_INVITE: int = 0
+const PAGE_SEAL: int = 1
 
 const COLOR_NEW: Color = Color(0.95, 0.78, 0.35)
 const COLOR_SUB: Color = Color(0.72, 0.69, 0.62)
@@ -58,12 +62,17 @@ var _reveal_idle: Control = null
 var _confetti_host: Control = null
 var _featured_helper_id: String = ""
 var _featured_helpers: Array = []
+var _featured_equip_entries: Array = []
 var _featured_index: int = 0
 var _featured_shell: Dictionary = {}
 var _featured_timer: Timer = null
 var _featured_tween: Tween = null
 var _featured_animating: bool = false
 var _reveal_is_new: bool = false
+var _gacha_page: int = PAGE_INVITE
+var _btn_page_prev: Button = null
+var _btn_page_next: Button = null
+var _pending_equip_reveal: Dictionary = {}
 
 var _pull_confirm: ConfirmationDialog
 var _pending_pull_ticket: bool = false
@@ -92,6 +101,7 @@ func _ready() -> void:
 	_setup_reveal_presenter()
 	_setup_featured_preview()
 	_setup_pull_confirm()
+	_setup_page_arrows()
 	call_deferred("_finalize_gacha_layout")
 	_summon_layer.visible = false
 	_detail_overlay.visible = false
@@ -106,6 +116,63 @@ func _setup_pull_confirm() -> void:
 	_pull_confirm.confirmed.connect(_on_pull_confirmed)
 	_pull_confirm.canceled.connect(func() -> void: AudioManager.play_sfx("ui_cancel"))
 	add_child(_pull_confirm)
+
+
+func _setup_page_arrows() -> void:
+	if _btn_page_prev != null:
+		return
+	_btn_page_prev = Button.new()
+	_btn_page_prev.name = "BtnGachaPagePrev"
+	_btn_page_prev.text = "←"
+	_btn_page_prev.focus_mode = Control.FOCUS_NONE
+	_btn_page_prev.custom_minimum_size = Vector2(56, 56)
+	_btn_page_prev.set_anchors_preset(Control.PRESET_CENTER_LEFT)
+	_btn_page_prev.offset_left = 8
+	_btn_page_prev.offset_right = 64
+	_btn_page_prev.offset_top = -28
+	_btn_page_prev.offset_bottom = 28
+	_btn_page_prev.z_index = 20
+	_btn_page_prev.pressed.connect(_on_page_prev_pressed)
+	_banner_art_host.add_child(_btn_page_prev)
+	_btn_page_next = Button.new()
+	_btn_page_next.name = "BtnGachaPageNext"
+	_btn_page_next.text = "→"
+	_btn_page_next.focus_mode = Control.FOCUS_NONE
+	_btn_page_next.custom_minimum_size = Vector2(56, 56)
+	_btn_page_next.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
+	_btn_page_next.offset_left = -64
+	_btn_page_next.offset_right = -8
+	_btn_page_next.offset_top = -28
+	_btn_page_next.offset_bottom = 28
+	_btn_page_next.z_index = 20
+	_btn_page_next.pressed.connect(_on_page_next_pressed)
+	_banner_art_host.add_child(_btn_page_next)
+
+
+func _on_page_prev_pressed() -> void:
+	if _summon_active:
+		return
+	AudioManager.play_sfx("ui_click")
+	_set_gacha_page(PAGE_INVITE if _gacha_page == PAGE_SEAL else PAGE_SEAL)
+
+
+func _on_page_next_pressed() -> void:
+	if _summon_active:
+		return
+	AudioManager.play_sfx("ui_click")
+	_set_gacha_page(PAGE_SEAL if _gacha_page == PAGE_INVITE else PAGE_INVITE)
+
+
+func _set_gacha_page(page: int) -> void:
+	_gacha_page = page
+	_featured_index = 0
+	_featured_helper_id = ""
+	_reload_featured_content(true)
+	_refresh()
+
+
+func _is_seal_page() -> bool:
+	return _gacha_page == PAGE_SEAL
 
 
 func _setup_reveal_quote_label() -> void:
@@ -289,17 +356,39 @@ func _apply_button_style(btn: Button, style: StyleBox) -> void:
 func _refresh() -> void:
 	_label_gold.text = "%d" % GameState.gold
 	_label_token.text = CurrencyHelper.format_amount()
-	_label_rate.text = GachaSystem.rate_display_text()
-	_label_catchcopy.text = GachaUiHelper.catchcopy()
+	if _is_seal_page():
+		_label_title.text = "封蔵の匣"
+		_label_rate.text = _GachaEquipSystem.rate_display_text()
+		_label_catchcopy.text = _GachaEquipSystem.catchcopy()
+		_pull_confirm.title = "封蔵の匣"
+		_button_pull_ticket.visible = false
+	else:
+		_label_title.text = "ギルドへの招待状"
+		_label_rate.text = GachaSystem.rate_display_text()
+		_label_catchcopy.text = GachaUiHelper.catchcopy()
+		_pull_confirm.title = "招待状"
+		_button_pull_ticket.visible = true
 	_set_pull_controls_enabled(not _summon_active)
-	GachaUiHelper.setup_pull_button(_button_pull, not _button_pull.disabled)
-	GachaUiHelper.setup_ticket_pull_button(_button_pull_ticket, not _button_pull_ticket.disabled)
+	if _is_seal_page():
+		GachaUiHelper.setup_pull_button_ex(
+			_button_pull,
+			not _button_pull.disabled,
+			"匣を開く",
+			_GachaEquipSystem.pull_cost()
+		)
+	else:
+		GachaUiHelper.setup_pull_button(_button_pull, not _button_pull.disabled)
+		GachaUiHelper.setup_ticket_pull_button(_button_pull_ticket, not _button_pull_ticket.disabled)
 	if not _summon_active:
-		var free_n: int = TicketSystem.free_gacha_qty()
-		if free_n > 0:
-			_label_result.text = "招待無料券 ×%d（右ボタンで使用）" % free_n
-		elif _label_result.text.begins_with("招待無料券"):
-			_label_result.text = ""
+		if _is_seal_page():
+			if _label_result.text.begins_with("招待無料券"):
+				_label_result.text = ""
+		else:
+			var free_n: int = TicketSystem.free_gacha_qty()
+			if free_n > 0:
+				_label_result.text = "招待無料券 ×%d（右ボタンで使用）" % free_n
+			elif _label_result.text.begins_with("招待無料券"):
+				_label_result.text = ""
 	_sync_featured_rotation_state()
 	_rebuild_lineup()
 
@@ -325,7 +414,7 @@ func _setup_featured_preview() -> void:
 		_featured_timer.one_shot = false
 		_featured_timer.timeout.connect(_on_featured_rotate_timeout)
 		add_child(_featured_timer)
-	_reload_featured_helpers(true)
+	_reload_featured_content(true)
 
 
 func _wire_pool_icon_buttons() -> void:
@@ -379,16 +468,41 @@ func _on_featured_host_resized() -> void:
 ## Featured 枠と説明パネルを再レイアウト（chrome は BottomNavHelper／実機のみ）。
 func _finalize_gacha_layout() -> void:
 	## Mac では apply_chrome は no-op。ここでは Featured 再配置のみ。
-	if not _featured_shell.is_empty():
-		GachaUiHelper.relayout_featured_shell(_featured_shell, _banner_art_host)
+	if _featured_shell.is_empty():
+		return
+	GachaUiHelper.relayout_featured_shell(_featured_shell, _banner_art_host)
+	if _is_seal_page():
+		if not _featured_equip_entries.is_empty():
+			GachaUiHelper.apply_featured_equipment(
+				_featured_shell,
+				_featured_equip_entries[_featured_index]
+			)
+	else:
 		GachaUiHelper.apply_featured_helper(
 			_featured_shell,
 			_featured_helpers[_featured_index] if not _featured_helpers.is_empty() else null
 		)
 
 
+func _reload_featured_content(force_show: bool = false) -> void:
+	if _is_seal_page():
+		_featured_equip_entries = _GachaEquipSystem.featured_entries()
+		_featured_helpers = []
+		if _featured_equip_entries.is_empty():
+			_featured_index = 0
+			_set_featured_timer_running(false)
+			return
+		_featured_index = posmod(_featured_index, _featured_equip_entries.size())
+		_show_featured_at(_featured_index, false)
+		if force_show:
+			_sync_featured_rotation_state()
+		return
+	_reload_featured_helpers(force_show)
+
+
 func _reload_featured_helpers(force_show: bool = false) -> void:
 	_featured_helpers = GachaUiHelper.featured_helpers()
+	_featured_equip_entries = []
 	if _featured_helpers.is_empty():
 		_featured_index = 0
 		_featured_helper_id = ""
@@ -408,7 +522,54 @@ func _reload_featured_helpers(force_show: bool = false) -> void:
 
 
 func _show_featured_at(index: int, animate: bool) -> void:
-	if _featured_helpers.is_empty() or _featured_shell.is_empty():
+	if _featured_shell.is_empty():
+		return
+	if _is_seal_page():
+		if _featured_equip_entries.is_empty():
+			return
+		var next_e: int = posmod(index, _featured_equip_entries.size())
+		_featured_index = next_e
+		var entry: Dictionary = _featured_equip_entries[next_e]
+		var stage_e: Control = _featured_shell.get("stage") as Control
+		var stats_e: Control = _featured_shell.get("stats_wrap") as Control
+		var fade_e: Array[Control] = []
+		if stage_e != null:
+			fade_e.append(stage_e)
+		if stats_e != null:
+			fade_e.append(stats_e)
+		if not animate:
+			GachaUiHelper.apply_featured_equipment(_featured_shell, entry)
+			GachaUiHelper.relayout_featured_shell(_featured_shell, _banner_art_host)
+			for t in fade_e:
+				t.modulate = Color(1, 1, 1, 1)
+			return
+		if _featured_animating:
+			return
+		_featured_animating = true
+		if fade_e.is_empty():
+			GachaUiHelper.apply_featured_equipment(_featured_shell, entry)
+			_featured_animating = false
+			return
+		if _featured_tween != null and _featured_tween.is_valid():
+			_featured_tween.kill()
+		_featured_tween = create_tween()
+		_featured_tween.set_parallel(true)
+		for t2 in fade_e:
+			_featured_tween.tween_property(t2, "modulate:a", 0.0, FEATURED_CROSSFADE_SEC * 0.5)
+		_featured_tween.set_parallel(false)
+		_featured_tween.tween_callback(func() -> void:
+			GachaUiHelper.apply_featured_equipment(_featured_shell, entry)
+			GachaUiHelper.relayout_featured_shell(_featured_shell, _banner_art_host)
+		)
+		_featured_tween.set_parallel(true)
+		for t3 in fade_e:
+			_featured_tween.tween_property(t3, "modulate:a", 1.0, FEATURED_CROSSFADE_SEC * 0.5)
+		_featured_tween.set_parallel(false)
+		_featured_tween.tween_callback(func() -> void:
+			_featured_animating = false
+		)
+		return
+	if _featured_helpers.is_empty():
 		return
 	var next_i: int = posmod(index, _featured_helpers.size())
 	var helper: Resource = _featured_helpers[next_i]
@@ -456,7 +617,10 @@ func _show_featured_at(index: int, animate: bool) -> void:
 
 
 func _advance_featured(manual: bool = false) -> void:
-	if _featured_helpers.size() <= 1:
+	var n: int = (
+		_featured_equip_entries.size() if _is_seal_page() else _featured_helpers.size()
+	)
+	if n <= 1:
 		return
 	if _summon_active or _featured_animating:
 		return
@@ -483,7 +647,10 @@ func _on_featured_host_input(event: InputEvent) -> void:
 func _set_featured_timer_running(running: bool) -> void:
 	if _featured_timer == null:
 		return
-	if running and _featured_helpers.size() > 1 and not _summon_active:
+	var n: int = (
+		_featured_equip_entries.size() if _is_seal_page() else _featured_helpers.size()
+	)
+	if running and n > 1 and not _summon_active:
 		if _featured_timer.is_stopped():
 			_featured_timer.start()
 	else:
@@ -494,23 +661,48 @@ func _sync_featured_rotation_state() -> void:
 	if _featured_shell.is_empty():
 		_setup_featured_preview()
 		return
-	if _featured_helpers.is_empty():
+	if _is_seal_page():
+		if _featured_equip_entries.is_empty():
+			_reload_featured_content(false)
+	elif _featured_helpers.is_empty():
 		_reload_featured_helpers(false)
 	_set_featured_timer_running(not _summon_active)
 
 
 func _set_pull_controls_enabled(enabled: bool) -> void:
-	_button_pull.disabled = not enabled or not GachaSystem.can_pull()
-	_button_pull_ticket.disabled = not enabled or not GachaSystem.can_pull_with_ticket()
+	if _is_seal_page():
+		_button_pull.disabled = not enabled or not _GachaEquipSystem.can_pull()
+		_button_pull_ticket.disabled = true
+	else:
+		_button_pull.disabled = not enabled or not GachaSystem.can_pull()
+		_button_pull_ticket.disabled = not enabled or not GachaSystem.can_pull_with_ticket()
 	_btn_back.disabled = not enabled
 	_btn_rate_detail.disabled = not enabled
+	if _btn_page_prev != null:
+		_btn_page_prev.disabled = not enabled
+	if _btn_page_next != null:
+		_btn_page_next.disabled = not enabled
 	for nav_btn in $BottomNav/NavRow.get_children():
 		if nav_btn is Button:
 			(nav_btn as Button).disabled = not enabled
 
+
 func _rebuild_lineup() -> void:
 	for child in _lineup_container.get_children():
 		child.queue_free()
+	if _is_seal_page():
+		var entries: Array = _GachaEquipSystem.POOL
+		if entries.is_empty():
+			var empty_lbl := Label.new()
+			empty_lbl.text = "（排出対象なし）"
+			empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			_lineup_container.add_child(empty_lbl)
+			return
+		for entry in entries:
+			if typeof(entry) != TYPE_DICTIONARY:
+				continue
+			_lineup_container.add_child(GachaUiHelper.make_equip_lineup_row(entry))
+		return
 	var helpers: Array = GachaUiHelper.sorted_helpers()
 	if helpers.is_empty():
 		var lbl := Label.new()
@@ -541,11 +733,25 @@ func _on_pull_pressed() -> void:
 
 
 func _on_pull_ticket_pressed() -> void:
+	if _is_seal_page():
+		return
 	_ask_pull(true)
 
 
 func _ask_pull(use_ticket: bool) -> void:
 	if _summon_active:
+		return
+	if _is_seal_page():
+		if use_ticket:
+			return
+		if not _GachaEquipSystem.can_pull():
+			_label_result.text = "%sが足りません。" % CurrencyHelper.DISPLAY_NAME
+			return
+		_pull_confirm.dialog_text = "%s %d を使って匣を開きますか？" % [
+			CurrencyHelper.DISPLAY_NAME, _GachaEquipSystem.PULL_COST,
+		]
+		_pending_pull_ticket = false
+		_pull_confirm.popup_centered()
 		return
 	if use_ticket:
 		if not GachaSystem.can_pull_with_ticket():
@@ -570,6 +776,20 @@ func _on_pull_confirmed() -> void:
 func _start_pull(use_ticket: bool) -> void:
 	if _summon_active:
 		return
+	if _is_seal_page():
+		var eq_result: Dictionary = _GachaEquipSystem.pull()
+		SaveManager.save_game()
+		if not bool(eq_result.get("ok", false)):
+			var eq_reason: String = str(eq_result.get("reason", ""))
+			if eq_reason == "no_token":
+				_label_result.text = "%sが足りません。" % CurrencyHelper.DISPLAY_NAME
+			else:
+				_label_result.text = "開封に失敗しました（%s）。" % eq_reason
+			_refresh()
+			return
+		DailyMissionSystem.report_progress("gacha_pull")
+		_play_equip_reveal(eq_result)
+		return
 	var result: Dictionary = GachaSystem.pull(use_ticket)
 	SaveManager.save_game()
 	if not bool(result.get("ok", false)):
@@ -585,9 +805,58 @@ func _start_pull(use_ticket: bool) -> void:
 	DailyMissionSystem.report_progress("gacha_pull")
 	_play_summon_reveal(result)
 
+
+func _play_equip_reveal(result: Dictionary) -> void:
+	_summon_active = true
+	_summon_can_dismiss = false
+	_pending_equip_reveal = result.duplicate()
+	_set_featured_timer_running(false)
+	_set_pull_controls_enabled(false)
+	_summon_layer.visible = true
+	AudioManager.play_sfx("gacha_reveal")
+	_reveal_is_new = true
+	var name_str: String = str(result.get("display_name", ""))
+	var rarity: int = clampi(int(result.get("rarity", Enums.Rarity.LEGENDARY)), 0, 4)
+	_populate_equip_reveal_content(result)
+	_label_result.add_theme_color_override("font_color", COLOR_NEW)
+	_label_result.text = "灰冠の武具を入手！ %s" % name_str
+	if _reveal_presenter == null:
+		_setup_reveal_presenter()
+	var on_done := func() -> void:
+		_summon_can_dismiss = true
+	var on_portrait := func() -> void:
+		_spawn_reveal_confetti(REVEAL_CONFETTI_NEW)
+	_reveal_presenter.play(rarity, on_done, on_portrait)
+
+
+func _populate_equip_reveal_content(result: Dictionary) -> void:
+	var kind: String = str(result.get("kind", ""))
+	var item_id: String = str(result.get("item_id", ""))
+	var name_str: String = str(result.get("display_name", item_id))
+	var seat: String = str(result.get("seat", ""))
+	var blurb: String = str(result.get("blurb", ""))
+	_label_banner.visible = false
+	_label_banner.text = ""
+	_label_reveal_sub.text = "灰冠の九・%s" % _GachaEquipSystem.kind_label(kind)
+	_label_reveal_name.text = "%s\nL  %s" % [name_str, seat]
+	if _label_quote != null:
+		if blurb.is_empty():
+			_label_quote.text = ""
+			_label_quote.visible = false
+		else:
+			_label_quote.text = "「%s」" % blurb
+			_label_quote.visible = true
+	var tex: Texture2D = IconPaths.get_icon_texture(item_id, kind)
+	if _reveal_idle != null and _reveal_idle.has_method("set_static_texture") and tex != null:
+		_reveal_idle.call("set_static_texture", tex)
+	elif _portrait_icon != null:
+		_portrait_icon.texture = tex
+
+
 func _play_summon_reveal(result: Dictionary) -> void:
 	_summon_active = true
 	_summon_can_dismiss = false
+	_pending_equip_reveal.clear()
 	_set_featured_timer_running(false)
 	_set_pull_controls_enabled(false)
 	_summon_layer.visible = true
@@ -661,7 +930,8 @@ func _dismiss_summon_reveal() -> void:
 	_summon_tween.chain().tween_callback(func() -> void:
 		_summon_layer.visible = false
 		_summon_active = false
-		_reload_featured_helpers(true)
+		_pending_equip_reveal.clear()
+		_reload_featured_content(true)
 		_refresh()
 	)
 

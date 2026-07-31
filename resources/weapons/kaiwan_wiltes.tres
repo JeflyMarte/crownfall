@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "kaiwan_wiltes"
+display_name = "枯翠ウィルテス"
+description = "翠を枯らして火力に変える杖。"
+fixed_skill_id = ""
+fixed_passive_id = ""
+base_attack = 185
+rarity = 3
+base_attack_speed = 1.1
+base_critical_rate = 0.1
+base_knockback = 0.1
+base_stagger_power = 0.1
+base_attack_range = 2.5
+weight = 1.0
+element = "dark"
+weapon_type = "staff"
+tags = Array[String](["dark", "kaiwan"])
+flavor_text = "灰冠の九・回復転火力。盗まれた炉の武具。正義の刃ではない。"
