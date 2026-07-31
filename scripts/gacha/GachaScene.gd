@@ -76,6 +76,9 @@ var _pending_equip_reveal: Dictionary = {}
 
 var _pull_confirm: ConfirmationDialog
 var _pending_pull_ticket: bool = false
+## 確認ダイアログ表示時点のページ（←→切替で消費系統がズレないように固定）。
+var _pending_pull_page: int = PAGE_INVITE
+var _pull_confirm_open: bool = false
 
 
 func _ready() -> void:
@@ -114,7 +117,7 @@ func _setup_pull_confirm() -> void:
 	_pull_confirm.ok_button_text = "引く"
 	_pull_confirm.cancel_button_text = "やめる"
 	_pull_confirm.confirmed.connect(_on_pull_confirmed)
-	_pull_confirm.canceled.connect(func() -> void: AudioManager.play_sfx("ui_cancel"))
+	_pull_confirm.canceled.connect(_on_pull_canceled)
 	add_child(_pull_confirm)
 
 
@@ -150,14 +153,14 @@ func _setup_page_arrows() -> void:
 
 
 func _on_page_prev_pressed() -> void:
-	if _summon_active:
+	if _summon_active or _pull_confirm_open:
 		return
 	AudioManager.play_sfx("ui_click")
 	_set_gacha_page(PAGE_INVITE if _gacha_page == PAGE_SEAL else PAGE_SEAL)
 
 
 func _on_page_next_pressed() -> void:
-	if _summon_active:
+	if _summon_active or _pull_confirm_open:
 		return
 	AudioManager.play_sfx("ui_click")
 	_set_gacha_page(PAGE_SEAL if _gacha_page == PAGE_INVITE else PAGE_INVITE)
@@ -758,7 +761,7 @@ func _on_pull_ticket_pressed() -> void:
 
 
 func _ask_pull(use_ticket: bool) -> void:
-	if _summon_active:
+	if _summon_active or _pull_confirm_open:
 		return
 	if _is_seal_page():
 		if use_ticket:
@@ -773,8 +776,7 @@ func _ask_pull(use_ticket: bool) -> void:
 			_pull_confirm.dialog_text = "%s %d を使って匣を開きますか？" % [
 				CurrencyHelper.DISPLAY_NAME, _GachaEquipSystem.PULL_COST,
 			]
-		_pending_pull_ticket = use_ticket
-		_pull_confirm.popup_centered()
+		_begin_pull_confirm(use_ticket)
 		return
 	if use_ticket:
 		if not GachaSystem.can_pull_with_ticket():
@@ -788,18 +790,36 @@ func _ask_pull(use_ticket: bool) -> void:
 		_pull_confirm.dialog_text = "%s %d を使って引きますか？" % [
 			CurrencyHelper.DISPLAY_NAME, GachaSystem.PULL_COST,
 		]
+	_begin_pull_confirm(use_ticket)
+
+
+func _begin_pull_confirm(use_ticket: bool) -> void:
+	## 確認中はページ・再押下をロックし、確定時は開いたページで消費する。
 	_pending_pull_ticket = use_ticket
+	_pending_pull_page = _gacha_page
+	_pull_confirm_open = true
+	_set_featured_timer_running(false)
+	_set_pull_controls_enabled(false)
 	_pull_confirm.popup_centered()
 
 
+func _on_pull_canceled() -> void:
+	AudioManager.play_sfx("ui_cancel")
+	_pull_confirm_open = false
+	_set_pull_controls_enabled(true)
+	_set_featured_timer_running(true)
+
+
 func _on_pull_confirmed() -> void:
-	_start_pull(_pending_pull_ticket)
+	_pull_confirm_open = false
+	_start_pull(_pending_pull_ticket, _pending_pull_page)
 
 
-func _start_pull(use_ticket: bool) -> void:
+func _start_pull(use_ticket: bool, page: int = -1) -> void:
 	if _summon_active:
 		return
-	if _is_seal_page():
+	var pull_page: int = page if page >= 0 else _gacha_page
+	if pull_page == PAGE_SEAL:
 		var eq_result: Dictionary = _GachaEquipSystem.pull(use_ticket)
 		SaveManager.save_game()
 		if not bool(eq_result.get("ok", false)):
@@ -810,6 +830,8 @@ func _start_pull(use_ticket: bool) -> void:
 				_label_result.text = "%sが足りません。" % CurrencyHelper.DISPLAY_NAME
 			else:
 				_label_result.text = "開封に失敗しました（%s）。" % eq_reason
+			_set_pull_controls_enabled(true)
+			_set_featured_timer_running(true)
 			_refresh()
 			return
 		DailyMissionSystem.report_progress("gacha_pull")
@@ -825,6 +847,8 @@ func _start_pull(use_ticket: bool) -> void:
 			_label_result.text = "%sが足りません。" % CurrencyHelper.DISPLAY_NAME
 		else:
 			_label_result.text = "招きに失敗しました（%s）。" % reason
+		_set_pull_controls_enabled(true)
+		_set_featured_timer_running(true)
 		_refresh()
 		return
 	DailyMissionSystem.report_progress("gacha_pull")

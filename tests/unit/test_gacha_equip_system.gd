@@ -8,6 +8,7 @@ var _saved_token: int = 0
 var _saved_inv: Array = []
 var _saved_armor: Array = []
 var _saved_acc: Array = []
+var _saved_tickets: Dictionary = {}
 
 
 func before_each() -> void:
@@ -15,9 +16,11 @@ func before_each() -> void:
 	_saved_inv = GameState.inventory.duplicate()
 	_saved_armor = GameState.armor_inventory.duplicate()
 	_saved_acc = GameState.accessory_inventory.duplicate()
+	_saved_tickets = GameState.ticket_inventory.duplicate()
 	GameState.inventory.clear()
 	GameState.armor_inventory.clear()
 	GameState.accessory_inventory.clear()
+	GameState.ticket_inventory.clear()
 	GameState.gacha_token = 0
 	_GachaEquipSystem.reset_pools_for_tests()
 
@@ -27,6 +30,7 @@ func after_each() -> void:
 	GameState.inventory = _saved_inv
 	GameState.armor_inventory = _saved_armor
 	GameState.accessory_inventory = _saved_acc
+	GameState.ticket_inventory = _saved_tickets
 
 
 func test_pool_has_27_kaiwan_entries() -> void:
@@ -112,11 +116,46 @@ func test_standard_pools_exclude_kaiwan_abyss_mythic() -> void:
 		var id_e: String = str(e.get("id", ""))
 		assert_false(id_e.begins_with("kaiwan_"), id_e)
 		assert_false(id_e.begins_with("abyss_"), id_e)
+		_assert_standard_pool_entry_clean(e)
 	for e2: Dictionary in _GachaEquipSystem.entries_for_pool("other_l"):
 		var id_l: String = str(e2.get("id", ""))
 		assert_false(id_l.begins_with("kaiwan_"), id_l)
 		assert_false(id_l.begins_with("abyss_"), id_l)
 		assert_ne(id_l, "burial_crown_greatsword")
+		_assert_standard_pool_entry_clean(e2)
+
+
+func _assert_standard_pool_entry_clean(entry: Dictionary) -> void:
+	var kind: String = str(entry.get("kind", ""))
+	var item_id: String = str(entry.get("id", ""))
+	var data: Resource = null
+	match kind:
+		"weapon":
+			data = DataRegistry.get_weapon_data(item_id)
+		"armor":
+			data = DataRegistry.get_armor_data(item_id)
+		"accessory":
+			data = DataRegistry.get_accessory_data(item_id)
+	assert_not_null(data, item_id)
+	var rarity: int = int(data.rarity) if "rarity" in data else -1
+	assert_true(
+		rarity == Enums.Rarity.EPIC or rarity == Enums.Rarity.LEGENDARY,
+		"%s rarity=%d" % [item_id, rarity]
+	)
+	assert_lt(rarity, Enums.Rarity.MYTHIC, item_id)
+	if "set_id" in data:
+		assert_eq(str(data.set_id), "", item_id)
+
+
+func test_rate_display_text_single_percent() -> void:
+	var header: String = _GachaEquipSystem.rate_display_text()
+	assert_false(header.contains("%%"), header)
+	assert_true(header.contains("55%"), header)
+	assert_true(header.contains("45%"), header)
+	var detail: String = _GachaEquipSystem.rate_detail_text()
+	assert_false(detail.contains("%%"), detail)
+	assert_true(detail.contains("55%"), detail)
+	assert_true(detail.contains(str(_GachaEquipSystem.PULL_COST)), detail)
 
 
 func test_pool_resources_resolve() -> void:

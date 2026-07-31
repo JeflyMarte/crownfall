@@ -28,6 +28,8 @@ alwaysApply: false
 | 装飾おすすめがランダムATK付きで過大評価 | `_accessory_score` が `effective_*`（フィールド反映済み）のあと `sum_kind` を再加算 | 装飾は effective のみ。防具 DEF はフィールド非積なので別扱い（`P3-FIX-EQ-META-AUDIT-A-001`） |
 | 分解確認が「素材なし」／獲得が空 | `can_dismantle_item` は `{ok,reason}` のみ。materials は `dismantle_preview` | 確認文・L確認は必ず preview |
 | 灰冠／深層が生産解放に出る | 入手フックが全装備を unlock | `is_craftable_master` で `kaiwan_`／`abyss_` 除外 |
+| 封蔵確認中に←→すると別ガチャを消費 | 確定時に現在ページを見る。確認中ロック無し | 確認時点の `_pending_pull_page` 固定＋確認中は矢印／再押下 disable |
+| 封蔵ヘッダが `Epic 55%%` | `rate_display_text` が `%%` なのに `%` フォーマット無し | 生 `%` を返す。詳細文だけ `% PULL_COST` |
 | はじめガイド閉じてもジャック／魔晶石がすぐ来ない | `dismissed` 時点で Overlay がまだツリーにあり、親が「ガイド中」判定で支給をスキップ | `_finish` で先に `remove_child`。支給は `call_deferred`＋`is_queued_for_deletion` 無視 |
 | はじめガイド周辺に黒い四角 | 書籍BGを `StyleBoxTexture` 9-slice。縁の黒マットが角に伸びる | 書籍は `TextureRect` 直置き（KEEP_ASPECT）。外側マットは透過 |
 | 展示室・総合戦力が短い金枠＋黒い四角 | 汎用フレームを `StyleBoxTexture` 9-slice。黒マットが帯状に伸び先端だけ短く見える | `TextureRect` 直置き＋幅は `MODE_TAB_OWN` 同寸。塗りは半透明 |

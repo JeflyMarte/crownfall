@@ -69,7 +69,8 @@ static func can_pull_with_ticket() -> bool:
 
 
 static func rate_display_text() -> String:
-	return "Epic 55%%／L 45%%（灰冠寄）"
+	## フォーマット無しの生文字列。%% だと画面に二重 % が出る（P3-FIX-GACHA-SEAL-AUDIT-A-001）。
+	return "Epic 55%／L 45%（灰冠寄）"
 
 
 static func rate_detail_text() -> String:

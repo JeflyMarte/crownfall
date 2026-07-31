@@ -6240,3 +6240,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-FIX-EQ-META-AUDIT-A-001-2 | **分解確認** — 確認ダイアログの獲得素材は `dismantle_preview`（`can_dismantle_item` は可否のみ） | materials 無し API を確認文に使うと「素材なし」誤表示 |
 | P3-FIX-EQ-META-AUDIT-A-001-3 | **灰冠／深層生産除外** — `kaiwan_`／`abyss_` は `is_craftable_master` で除外（入手解放しない） | 封蔵・専用枠。鍛冶生産の別ルートにしない |
 
+## 封蔵ガチャ監査案A（2026-07-31 — P3-FIX-GACHA-SEAL-AUDIT-A-001）
+
+> **オーナー指示** — 装備メタの次＝封蔵／灰冠ガチャ監査。確定配線のみ。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-FIX-GACHA-SEAL-AUDIT-A-001-1 | **確認中ページ固定** — 確認時点のページで消費／排出。確認中は←→・再押下ロック | 確認中に切替→確定で招待／封蔵が食い違う |
+| P3-FIX-GACHA-SEAL-AUDIT-A-001-2 | **ヘッダ確率表示** — `rate_display_text` は生 `%`（`%%` 禁止） | フォーマット無し文字列で二重 `%` 表示 |
+| P3-FIX-GACHA-SEAL-AUDIT-A-001-3 | **据置** — KAIWAN-004 限定mod／固有パッシブ／`moldgar_abyss_*` 除外拡大／部位重み | GO済未実装またはバランス要GO |
+
