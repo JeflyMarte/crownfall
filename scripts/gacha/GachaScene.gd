@@ -470,7 +470,7 @@ func _apply_button_style(btn: Button, style: StyleBox) -> void:
 		btn.add_theme_stylebox_override("pressed", style)
 
 
-## 引きボタンを隣同士に詰めて中央寄せ。幅は画面に2つ収まるようクリップ。
+## 引きボタンを隣同士に詰めて中央寄せ。枠は「画面に2つ並ぶ最大幅」まで伸ばす。
 func _pack_pull_row() -> void:
 	var bar: Control = get_node_or_null("SummonActionBar") as Control
 	var row: HBoxContainer = get_node_or_null("SummonActionBar/PullRowCenter/PullRow") as HBoxContainer
@@ -482,7 +482,9 @@ func _pack_pull_row() -> void:
 		return
 	var gap: float = float(GachaUiTokens.PULL_BTN_GAP)
 	var side: float = GachaUiTokens.PULL_BTN_SIDE_PAD
-	var max_each: float = maxf(200.0, (avail - gap - side * 2.0) * 0.5)
+	## 余白を最小にして、1枠あたりの幅を最大化（短すぎ防止）。
+	var max_each: float = maxf(240.0, (avail - gap - side * 2.0) * 0.5)
+	## 画面に2つ並ぶ最大まで伸ばす。MIN_WIDTH はそれ以上に広げない上限。
 	var btn_w: float = minf(float(GachaUiTokens.PULL_BTN_MIN_WIDTH), max_each)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", GachaUiTokens.PULL_BTN_GAP)

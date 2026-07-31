@@ -244,13 +244,13 @@ theme_override_constants/separation = 4
 alignment = 1
 
 [node name="ButtonPull" type="Button" parent="SummonActionBar/PullRowCenter/PullRow"]
-custom_minimum_size = Vector2(340, 80)
+custom_minimum_size = Vector2(420, 84)
 layout_mode = 2
 size_flags_horizontal = 0
 text = "招待状を開く"
 
 [node name="ButtonPullTicket" type="Button" parent="SummonActionBar/PullRowCenter/PullRow"]
-custom_minimum_size = Vector2(340, 80)
+custom_minimum_size = Vector2(420, 84)
 layout_mode = 2
 size_flags_horizontal = 0
 text = "チケットで開く"
