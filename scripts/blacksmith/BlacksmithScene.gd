@@ -149,7 +149,7 @@ var _detail_scroll: ScrollContainer = null
 var _body_scroll: ScrollContainer = null
 var _body_vbox: VBoxContainer = null
 var _main_split: HBoxContainer = null
-## 錬成素材チップの長押し（名前表示）。
+## 錬成素材チップ／コスト素材チップの長押し（名前表示）。
 const FODDER_LONG_PRESS_SEC: float = 0.45
 const FODDER_PRESS_MOVE_CANCEL_PX: float = 20.0
 var _fodder_pointer_down: bool = false
@@ -157,6 +157,14 @@ var _fodder_long_press_fired: bool = false
 var _fodder_press_timer: SceneTreeTimer = null
 var _fodder_press_item: Resource = null
 var _fodder_press_origin: Vector2 = Vector2.ZERO
+## 必要素材（遺跡の結晶など）長押し名表示。
+const MAT_LONG_PRESS_SEC: float = 0.45
+const MAT_PRESS_MOVE_CANCEL_PX: float = 20.0
+var _mat_pointer_down: bool = false
+var _mat_long_press_fired: bool = false
+var _mat_press_timer: SceneTreeTimer = null
+var _mat_press_name: String = ""
+var _mat_press_origin: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
 	_label_title.text = ""
@@ -2585,14 +2593,19 @@ func _cancel_fodder_press() -> void:
 
 
 func _show_fodder_name(item: Resource) -> void:
-	if item == null or _label_status == null:
+	if item == null:
 		return
-	var name_text: String = _EquipmentEnhancer.get_display_name(item)
+	_show_name_toast(_EquipmentEnhancer.get_display_name(item))
+
+
+## 鍛冶画面下部に名前トースト（錬成素材・コスト素材の長押し共通）。
+func _show_name_toast(name_text: String) -> void:
+	if name_text.is_empty() or _label_status == null:
+		return
 	_label_status.text = name_text
 	_label_status.visible = true
 	_label_status.z_index = 40
 	_label_status.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	## 下帯上にトースト表示（省略名の代わり）。
 	_label_status.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	_label_status.offset_left = 16.0
 	_label_status.offset_right = -16.0
@@ -2600,7 +2613,6 @@ func _show_fodder_name(item: Resource) -> void:
 	_label_status.offset_bottom = -168.0
 	UiTypography.apply_body(_label_status, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
 	_label_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	## 短時間表示して消す。
 	var tw: Tween = create_tween()
 	tw.tween_interval(1.6)
 	tw.tween_callback(func() -> void:
@@ -2690,19 +2702,109 @@ func _make_material_req_cell(mat_id: String, needed: int) -> Control:
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 2)
 	col.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	## 名前は出さず個数のみ。長押し向けに tooltip は残す。
-	col.tooltip_text = mat_name
+	## 名前は常時出さず個数のみ。長押しでトースト（マイページ素材と同方針）。
+	col.tooltip_text = "%s\n（長押しで名前）" % mat_name
+	col.mouse_filter = Control.MOUSE_FILTER_STOP
 	var icon_cell: Control = _MaterialUiTokens.make_icon_cell(mat_id, _COST_MAT_ICON_PX, ok)
 	icon_cell.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	icon_cell.tooltip_text = mat_name
+	## 子が STOP だと親の長押し gui_input に届かない。
+	_set_mouse_filter_tree(icon_cell, Control.MOUSE_FILTER_IGNORE)
 	col.add_child(icon_cell)
 	var qty := Label.new()
 	qty.text = "%d/%d" % [owned, needed]
+	qty.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_caption(qty, COLOR_OK if ok else COLOR_SHORT)
 	qty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	qty.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	col.add_child(qty)
+	col.gui_input.connect(_on_cost_material_gui_input.bind(mat_name))
 	return col
+
+
+func _on_cost_material_gui_input(event: InputEvent, mat_name: String) -> void:
+	if _mat_pointer_down and _should_cancel_mat_press_for_move(event):
+		_cancel_mat_press()
+		return
+	if not _is_mat_pointer_event(event):
+		return
+	if event.pressed:
+		_mat_press_origin = _mat_event_position(event)
+		_begin_mat_press(mat_name)
+	else:
+		_end_mat_press()
+	## accept_event しない（BodyScroll を奪わない）。
+
+
+func _is_mat_pointer_event(event: InputEvent) -> bool:
+	if event is InputEventMouseButton:
+		return event.button_index == MOUSE_BUTTON_LEFT
+	if event is InputEventScreenTouch:
+		return true
+	return false
+
+
+func _mat_event_position(event: InputEvent) -> Vector2:
+	if event is InputEventScreenTouch:
+		return (event as InputEventScreenTouch).position
+	if event is InputEventMouseButton:
+		return (event as InputEventMouseButton).position
+	if event is InputEventScreenDrag:
+		return (event as InputEventScreenDrag).position
+	if event is InputEventMouseMotion:
+		return (event as InputEventMouseMotion).position
+	return Vector2.ZERO
+
+
+func _should_cancel_mat_press_for_move(event: InputEvent) -> bool:
+	if event is InputEventScreenDrag:
+		return (
+			_mat_press_origin.distance_to((event as InputEventScreenDrag).position)
+			>= MAT_PRESS_MOVE_CANCEL_PX
+		)
+	if event is InputEventMouseMotion:
+		var motion: InputEventMouseMotion = event as InputEventMouseMotion
+		if (motion.button_mask & MOUSE_BUTTON_MASK_LEFT) == 0:
+			return false
+		return _mat_press_origin.distance_to(motion.position) >= MAT_PRESS_MOVE_CANCEL_PX
+	return false
+
+
+func _begin_mat_press(mat_name: String) -> void:
+	_cancel_mat_press()
+	_mat_pointer_down = true
+	_mat_long_press_fired = false
+	_mat_press_name = mat_name
+	_mat_press_timer = get_tree().create_timer(MAT_LONG_PRESS_SEC)
+	_mat_press_timer.timeout.connect(_on_mat_long_press_timeout)
+
+
+func _on_mat_long_press_timeout() -> void:
+	if not _mat_pointer_down or _mat_press_name.is_empty():
+		return
+	_mat_long_press_fired = true
+	_show_name_toast(_mat_press_name)
+
+
+func _end_mat_press() -> void:
+	if not _mat_pointer_down:
+		return
+	_mat_pointer_down = false
+	_cancel_mat_press_timer_only()
+	_mat_press_name = ""
+
+
+func _cancel_mat_press_timer_only() -> void:
+	if _mat_press_timer != null:
+		if _mat_press_timer.timeout.is_connected(_on_mat_long_press_timeout):
+			_mat_press_timer.timeout.disconnect(_on_mat_long_press_timeout)
+		_mat_press_timer = null
+
+
+func _cancel_mat_press() -> void:
+	_mat_pointer_down = false
+	_mat_long_press_fired = false
+	_cancel_mat_press_timer_only()
+	_mat_press_name = ""
 
 func _sorted_enhance_candidates() -> Array:
 	var items: Array = []
