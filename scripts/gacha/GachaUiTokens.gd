@@ -54,9 +54,12 @@ const BANNER_TITLE_HEIGHT: int = 140
 const BANNER_CATCHCOPY_HEIGHT: int = 72
 const LINEUP_CELL_PX: int = 120
 const PULL_BTN_HEIGHT: int = 80
-const PULL_BTN_MIN_WIDTH: int = 280
+## 文言＋アイコンより左右に余白を残す（汎用フレーム先端が文字に食い込まない幅）。
+const PULL_BTN_MIN_WIDTH: int = 360
 ## 汎用フレーム先端オーナメントを潰さない 9-slice（元 2165×364）。
 const PULL_BTN_TEX_MARGINS := Vector4i(148, 56, 148, 56)
+const PULL_BTN_CONTENT_MARGIN_H: float = 56.0
+const PULL_BTN_CONTENT_MARGIN_V: float = 12.0
 
 static func load_tex(path: String) -> Texture2D:
 	if path.is_empty() or not ResourceLoader.exists(path):
@@ -106,23 +109,23 @@ static func lineup_cell_style() -> StyleBox:
 static func pull_1_style() -> StyleBox:
 	var sb: StyleBox = texture_stylebox(BTN_1PULL, PULL_BTN_TEX_MARGINS)
 	if sb is StyleBoxTexture:
-		var tex_sb := sb as StyleBoxTexture
-		tex_sb.draw_center = true
-		tex_sb.set_content_margin_all(10.0)
-		tex_sb.content_margin_left = 32.0
-		tex_sb.content_margin_right = 32.0
+		_apply_pull_content_margins(sb as StyleBoxTexture)
 	return sb
 
 static func pull_disabled_style() -> StyleBox:
 	var sb: StyleBox = texture_stylebox(BTN_1PULL_DISABLED, PULL_BTN_TEX_MARGINS)
 	if sb is StyleBoxTexture and (sb as StyleBoxTexture).texture != null:
-		var tex_sb := sb as StyleBoxTexture
-		tex_sb.draw_center = true
-		tex_sb.set_content_margin_all(10.0)
-		tex_sb.content_margin_left = 32.0
-		tex_sb.content_margin_right = 32.0
+		_apply_pull_content_margins(sb as StyleBoxTexture)
 		return sb
 	return _fallback_pull_style(false)
+
+
+static func _apply_pull_content_margins(tex_sb: StyleBoxTexture) -> void:
+	tex_sb.draw_center = true
+	tex_sb.content_margin_left = PULL_BTN_CONTENT_MARGIN_H
+	tex_sb.content_margin_right = PULL_BTN_CONTENT_MARGIN_H
+	tex_sb.content_margin_top = PULL_BTN_CONTENT_MARGIN_V
+	tex_sb.content_margin_bottom = PULL_BTN_CONTENT_MARGIN_V
 
 static func detail_button_style() -> StyleBox:
 	return texture_stylebox(BTN_DETAIL, Vector4i(12, 10, 12, 10))
