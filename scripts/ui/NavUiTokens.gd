@@ -19,11 +19,13 @@ const SIDE_MENU_ROW_GAP: int = 8
 const SIDE_MENU_ICON_TEXT_GAP: int = 6
 
 ## 下ナビ表示用。短い名称はそのまま。旧称→短縮の互換も残す。
+## BOTTOM_NAV_LABELS に旧称互換を足す
 const BOTTOM_NAV_LABELS: Dictionary = {
 	"パーティー編成": "パーティ",
 	"パーティ編成": "パーティ",
 	"キャラ管理": "キャラ",
 	"装備一覧": "装備",
+	"招待状": "召喚",
 }
 
 static func bottom_nav_item_width() -> float:
