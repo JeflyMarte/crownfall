@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "cosmic_duck"
 display_name = "コズミックダック"
+basic_attack_name = "星嘴"
 max_hp = 208
 attack = 56
 defense = 16

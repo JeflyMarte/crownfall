@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "moss_shell"
 display_name = "モスシェル"
+basic_attack_name = "殻突き"
 max_hp = 832
 attack = 96
 defense = 96

@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "rock_bison"
 display_name = "ロックバイソン"
+basic_attack_name = "岩角突き"
 max_hp = 720
 attack = 118
 defense = 58

@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "bone_picker"
 display_name = "骨拾い"
+basic_attack_name = "嘴突き"
 max_hp = 480
 attack = 136
 defense = 24

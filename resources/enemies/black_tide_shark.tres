@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "black_tide_shark"
 display_name = "ドレッドジョー"
+basic_attack_name = "黒潮噛み"
 max_hp = 520
 attack = 144
 defense = 40

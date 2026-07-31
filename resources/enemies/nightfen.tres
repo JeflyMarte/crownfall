@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "nightfen"
 display_name = "夜沼"
+basic_attack_name = "夜沼噛み"
 max_hp = 1560
 attack = 224
 defense = 112

@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "valgard"
 display_name = "境界の番ヴァルガード"
+basic_attack_name = "界壁打ち"
 max_hp = 3600
 attack = 210
 defense = 220

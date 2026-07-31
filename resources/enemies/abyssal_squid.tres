@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "abyssal_squid"
 display_name = "ヴォイドテンタクル"
+basic_attack_name = "虚潮打ち"
 max_hp = 736
 attack = 152
 defense = 56

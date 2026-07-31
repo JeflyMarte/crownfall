@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "skarpedion"
 display_name = "鉄殻の長スカルペディオン"
+basic_attack_name = "鉄殻打ち"
 max_hp = 2560
 attack = 152
 defense = 192

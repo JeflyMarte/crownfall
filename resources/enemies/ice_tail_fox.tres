@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "ice_tail_fox"
 display_name = "氷尾フォックス"
+basic_attack_name = "氷尾打ち"
 max_hp = 528
 attack = 136
 defense = 40

@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "mirror_boa"
 display_name = "ミラーボア"
+basic_attack_name = "鏡噛み"
 max_hp = 1240
 attack = 200
 defense = 64

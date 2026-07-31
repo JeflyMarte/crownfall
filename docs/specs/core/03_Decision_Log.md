@@ -5897,3 +5897,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-FORGE-REFORGE-002-2 | **ルール据置** — 枠ごと再抽選／他枠 kind 重複禁止／bane 不可／属性値は数値のみ／コスト表・+5可 | 001 をカテゴリ拡張のみ |
 | P3-FORGE-REFORGE-002-3 | **上書き** — `P3-FORGE-REFORGE-001-1` の「武器のみ」 | 本 Decision が正 |
 | P3-FORGE-REFORGE-002-4 | **SSOT** — `EquipmentRandomMods.reroll_mod_at`（weapon/armor/accessory） | 単一入口 |
+
+## 敵通常攻撃にも頭上技名（2026-07-31 — P3-UX-ENEMY-BASIC-NAME-001）
+
+> **オーナー GO（案B・全敵一括）** — 通常攻撃は❗️のみでスキルより分かりにくい。敵だけ固有名を付ける。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-ENEMY-BASIC-NAME-001-1 | **対象** — 敵の通常攻撃のみ（味方通常は据置） | 依頼どおり |
+| P3-UX-ENEMY-BASIC-NAME-001-2 | **命名** — 敵ごと1語（`EnemyData.basic_attack_name`）。全敵一括。自スキル名と重複禁止。未設定フォールバック＝「攻撃」 | 案B。学習しやすい |
+| P3-UX-ENEMY-BASIC-NAME-001-3 | **表示** — 既存 `_spawn_enemy_skill_name` と同型（`【技名】`・❗️予告は残す） | スキルと見た目統一 |
+| P3-UX-ENEMY-BASIC-NAME-001-4 | **ログ** — `敵の攻撃【技名】:` に技名を含める | テロップと対応 |

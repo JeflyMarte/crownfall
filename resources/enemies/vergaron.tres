@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "vergaron"
 display_name = "ヴェルガロン"
+basic_attack_name = "氷爪"
 max_hp = 624
 attack = 136
 defense = 56

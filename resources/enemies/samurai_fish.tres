@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "samurai_fish"
 display_name = "ロイヤルシャーク"
+basic_attack_name = "鰭打ち"
 max_hp = 672
 attack = 160
 defense = 56

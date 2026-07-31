@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "glacier_warden"
 display_name = "氷晶マンモス"
+basic_attack_name = "氷踏"
 max_hp = 960
 attack = 120
 defense = 152

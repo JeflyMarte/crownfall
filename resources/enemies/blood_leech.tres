@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "blood_leech"
 display_name = "吸血ヒル"
+basic_attack_name = "吸盤打ち"
 max_hp = 560
 attack = 128
 defense = 32

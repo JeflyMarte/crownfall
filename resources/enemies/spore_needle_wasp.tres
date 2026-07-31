@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "spore_needle_wasp"
 display_name = "胞針ワスプ"
+basic_attack_name = "針刺し"
 max_hp = 544
 attack = 160
 defense = 40
