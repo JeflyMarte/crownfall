@@ -9,23 +9,38 @@ const _DEFS: Dictionary = {
 		{
 			"threshold": 1.0,
 			"label": "第1形態",
-			"skill_use_chance": 0.40,
+			## F2: 通常攻撃偏重を抑え、即時全体（咆哮）寄りに。
+			"skill_use_chance": 0.55,
 			"attack_mult": 1.0,
+			"skill_weight": {
+				"boss_enrage": 0.45,
+				"enemy_serdion_roar": 2.2,
+				"boss_decree_wave": 1.4,
+			},
 		},
 		{
 			"threshold": 0.50,
 			"label": "第2形態・激昂",
-			"skill_use_chance": 0.55,
+			"skill_use_chance": 0.65,
 			"attack_mult": 1.10,
 			"log": "【フェーズ移行】セルディオンが激昂した！",
+			"skill_weight": {
+				"boss_enrage": 0.55,
+				"enemy_serdion_roar": 2.0,
+				"boss_decree_wave": 1.8,
+			},
 		},
 		{
 			"threshold": 0.25,
 			"label": "第3形態・断罪",
-			"skill_use_chance": 0.70,
+			"skill_use_chance": 0.75,
 			"attack_mult": 1.25,
 			"log": "【フェーズ移行】断罪の波動が倍加する！",
-			"skill_weight": {"boss_decree_wave": 2.0, "enemy_serdion_roar": 2.0},
+			"skill_weight": {
+				"boss_enrage": 0.4,
+				"enemy_serdion_roar": 2.0,
+				"boss_decree_wave": 2.5,
+			},
 		},
 	],
 	"granvel": [

@@ -113,12 +113,12 @@ const VARIANTS: Dictionary = {
 		_DungeonTierConfig.TIER_HARD: {
 			"display_name": "紅骸セルディオン",
 			"on_hit_status_chance": 0.28,
-			"skill_use_chance": 0.46,
+			"skill_use_chance": 0.60,
 		},
 		_DungeonTierConfig.TIER_NIGHTMARE: {
 			"display_name": "蒼骸セルディオン",
 			"on_hit_status_chance": 0.28,
-			"skill_use_chance": 0.50,
+			"skill_use_chance": 0.65,
 			"element_resist": ["dark"],
 		},
 	},
