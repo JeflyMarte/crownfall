@@ -822,6 +822,12 @@ func _play_equip_reveal(result: Dictionary) -> void:
 	_label_result.text = "灰冠の武具を入手！ %s" % name_str
 	if _reveal_presenter == null:
 		_setup_reveal_presenter()
+	## 最小案: 演出は招待状と同フロー。封印／開封絵だけ匣に差替。
+	_reveal_presenter.set_sealed_art(
+		GachaUiTokens.load_tex(GachaUiTokens.CRATE_SEALED),
+		GachaUiTokens.load_tex(GachaUiTokens.CRATE_SEALED),
+		GachaUiTokens.load_tex(GachaUiTokens.CRATE_OPENING)
+	)
 	var on_done := func() -> void:
 		_summon_can_dismiss = true
 	var on_portrait := func() -> void:
@@ -889,6 +895,11 @@ func _play_summon_reveal(result: Dictionary) -> void:
 
 	if _reveal_presenter == null:
 		_setup_reveal_presenter()
+	_reveal_presenter.set_sealed_art(
+		GachaUiTokens.load_tex(GachaUiTokens.INVITE_SEALED),
+		GachaUiTokens.load_tex(GachaUiTokens.INVITE_SEALED_STAR2),
+		GachaUiTokens.load_tex(GachaUiTokens.INVITE_OPENING)
+	)
 	var on_done := func() -> void:
 		_summon_can_dismiss = true
 	var on_portrait := func() -> void:

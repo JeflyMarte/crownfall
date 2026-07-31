@@ -22,6 +22,8 @@ func test_gacha_ui_asset_paths_exist() -> void:
 		GachaUiTokens.BTN_DETAIL,
 		GachaUiTokens.ICO_TOKEN,
 		GachaUiTokens.REVEAL_FRAME,
+		GachaUiTokens.CRATE_SEALED,
+		GachaUiTokens.CRATE_OPENING,
 	]:
 		assert_true(ResourceLoader.exists(key), "missing gacha chrome: %s" % key)
 
