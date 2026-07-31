@@ -100,12 +100,12 @@ const VARIANTS: Dictionary = {
 		_DungeonTierConfig.TIER_HARD: {
 			"display_name": "血刻モス",
 			"on_hit_status_chance": 0.28,
-			"skill_use_chance": 0.40,
+			"skill_use_chance": 0.5,
 		},
 		_DungeonTierConfig.TIER_NIGHTMARE: {
 			"display_name": "停時モス",
 			"on_hit_status_chance": 0.28,
-			"skill_use_chance": 0.42,
+			"skill_use_chance": 0.52,
 			"element_resist": ["dark"],
 		},
 	},
@@ -113,7 +113,7 @@ const VARIANTS: Dictionary = {
 		_DungeonTierConfig.TIER_HARD: {
 			"display_name": "紅骸セルディオン",
 			"on_hit_status_chance": 0.28,
-			"skill_use_chance": 0.60,
+			"skill_use_chance": 0.6,
 		},
 		_DungeonTierConfig.TIER_NIGHTMARE: {
 			"display_name": "蒼骸セルディオン",
@@ -210,12 +210,12 @@ const VARIANTS: Dictionary = {
 		_DungeonTierConfig.TIER_HARD: {
 			"display_name": "血霧ワイバーン",
 			"on_hit_status_chance": 0.28,
-			"skill_use_chance": 0.40,
+			"skill_use_chance": 0.5,
 		},
 		_DungeonTierConfig.TIER_NIGHTMARE: {
 			"display_name": "月霧ワイバーン",
 			"on_hit_status_chance": 0.28,
-			"skill_use_chance": 0.42,
+			"skill_use_chance": 0.52,
 			"element_resist": ["ice", "dark"],
 		},
 	},
@@ -237,12 +237,12 @@ const VARIANTS: Dictionary = {
 		_DungeonTierConfig.TIER_HARD: {
 			"display_name": "紅樹グランヴェル",
 			"on_hit_status_chance": 0.28,
-			"skill_use_chance": 0.46,
+			"skill_use_chance": 0.6,
 		},
 		_DungeonTierConfig.TIER_NIGHTMARE: {
 			"display_name": "蒼樹グランヴェル",
 			"on_hit_status_chance": 0.28,
-			"skill_use_chance": 0.50,
+			"skill_use_chance": 0.65,
 			"element_resist": ["dark", "ice"],
 		},
 	},
@@ -343,12 +343,12 @@ const VARIANTS: Dictionary = {
 		_DungeonTierConfig.TIER_HARD: {
 			"display_name": "血爪刀",
 			"on_hit_status_chance": 0.32,
-			"skill_use_chance": 0.40,
+			"skill_use_chance": 0.5,
 		},
 		_DungeonTierConfig.TIER_NIGHTMARE: {
 			"display_name": "月爪刀",
 			"on_hit_status_chance": 0.30,
-			"skill_use_chance": 0.42,
+			"skill_use_chance": 0.52,
 			"attack_element": "dark",
 			"element_resist": ["dark", "ice"],
 		},
@@ -357,12 +357,12 @@ const VARIANTS: Dictionary = {
 		_DungeonTierConfig.TIER_HARD: {
 			"display_name": "血夜沼",
 			"on_hit_status_chance": 0.28,
-			"skill_use_chance": 0.40,
+			"skill_use_chance": 0.5,
 		},
 		_DungeonTierConfig.TIER_NIGHTMARE: {
 			"display_name": "月夜沼",
 			"on_hit_status_chance": 0.28,
-			"skill_use_chance": 0.42,
+			"skill_use_chance": 0.52,
 			"element_resist": ["dark", "ice"],
 		},
 	},
@@ -370,12 +370,12 @@ const VARIANTS: Dictionary = {
 		_DungeonTierConfig.TIER_HARD: {
 			"display_name": "紅泥モルドガル",
 			"on_hit_status_chance": 0.28,
-			"skill_use_chance": 0.46,
+			"skill_use_chance": 0.6,
 		},
 		_DungeonTierConfig.TIER_NIGHTMARE: {
 			"display_name": "蒼泥モルドガル",
 			"on_hit_status_chance": 0.28,
-			"skill_use_chance": 0.50,
+			"skill_use_chance": 0.65,
 			"element_resist": ["dark", "ice"],
 		},
 	},
@@ -478,12 +478,12 @@ const VARIANTS: Dictionary = {
 		_DungeonTierConfig.TIER_HARD: {
 			"display_name": "血海司祭",
 			"on_hit_status_chance": 0.36,
-			"skill_use_chance": 0.40,
+			"skill_use_chance": 0.5,
 		},
 		_DungeonTierConfig.TIER_NIGHTMARE: {
 			"display_name": "月海司祭",
 			"on_hit_status_chance": 0.34,
-			"skill_use_chance": 0.42,
+			"skill_use_chance": 0.52,
 			"attack_element": "dark",
 			"element_resist": ["dark", "ice"],
 		},
@@ -492,12 +492,12 @@ const VARIANTS: Dictionary = {
 		_DungeonTierConfig.TIER_HARD: {
 			"display_name": "錆錨ロード",
 			"on_hit_status_chance": 0.28,
-			"skill_use_chance": 0.40,
+			"skill_use_chance": 0.5,
 		},
 		_DungeonTierConfig.TIER_NIGHTMARE: {
 			"display_name": "霜錨ロード",
 			"on_hit_status_chance": 0.28,
-			"skill_use_chance": 0.42,
+			"skill_use_chance": 0.52,
 			"attack_element": "ice",
 			"on_hit_status_id": "chill",
 			"element_resist": ["ice"],
@@ -507,12 +507,12 @@ const VARIANTS: Dictionary = {
 		_DungeonTierConfig.TIER_HARD: {
 			"display_name": "紅潮ネレイオン",
 			"on_hit_status_chance": 0.28,
-			"skill_use_chance": 0.46,
+			"skill_use_chance": 0.6,
 		},
 		_DungeonTierConfig.TIER_NIGHTMARE: {
 			"display_name": "蒼潮ネレイオン",
 			"on_hit_status_chance": 0.28,
-			"skill_use_chance": 0.50,
+			"skill_use_chance": 0.65,
 			"element_resist": ["fire", "ice"],
 		},
 	},
@@ -520,12 +520,12 @@ const VARIANTS: Dictionary = {
 		_DungeonTierConfig.TIER_HARD: {
 			"display_name": "紅脈ネレイオン",
 			"on_hit_status_chance": 0.32,
-			"skill_use_chance": 0.46,
+			"skill_use_chance": 0.6,
 		},
 		_DungeonTierConfig.TIER_NIGHTMARE: {
 			"display_name": "蒼脈ネレイオン",
 			"on_hit_status_chance": 0.32,
-			"skill_use_chance": 0.50,
+			"skill_use_chance": 0.65,
 			"element_resist": ["fire", "ice", "dark"],
 		},
 	},
@@ -589,12 +589,12 @@ const VARIANTS: Dictionary = {
 		_DungeonTierConfig.TIER_HARD: {
 			"display_name": "血翼グレイオス",
 			"on_hit_status_chance": 0.34,
-			"skill_use_chance": 0.40,
+			"skill_use_chance": 0.5,
 		},
 		_DungeonTierConfig.TIER_NIGHTMARE: {
 			"display_name": "月翼グレイオス",
 			"on_hit_status_chance": 0.34,
-			"skill_use_chance": 0.42,
+			"skill_use_chance": 0.52,
 			"element_resist": ["ice"],
 		},
 	},
@@ -628,12 +628,12 @@ const VARIANTS: Dictionary = {
 		_DungeonTierConfig.TIER_HARD: {
 			"display_name": "紅始祖エルディオン",
 			"on_hit_status_chance": 0.30,
-			"skill_use_chance": 0.46,
+			"skill_use_chance": 0.6,
 		},
 		_DungeonTierConfig.TIER_NIGHTMARE: {
 			"display_name": "蒼始祖エルディオン",
 			"on_hit_status_chance": 0.30,
-			"skill_use_chance": 0.50,
+			"skill_use_chance": 0.65,
 			"element_resist": ["ice", "dark"],
 		},
 	},

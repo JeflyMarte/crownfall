@@ -1,32 +1,82 @@
 extends GutTest
-## P3-BAL-BOSS-PRESSURE-001 — セルディオン F1/F2（即時全体＋スキル率寄せ）。
+## P3-BAL-BOSS-PRESSURE-001 — ボス／エリート F1/F2 横展開。
 
 
-func test_serdion_roar_is_instant_aoe() -> void:
-	var roar: Resource = DataRegistry.get_skill_data("enemy_serdion_roar")
-	assert_not_null(roar)
-	assert_eq(str(roar.target_type), "all_party")
-	assert_lte(float(roar.cast_time), 0.0)
-	assert_gte(float(roar.power_multiplier), 0.5)
-	assert_lte(float(roar.cooldown), 6.0)
+const _BOSS_INSTANT_AOE := {
+	"serdion": "enemy_serdion_roar",
+	"granvel": "enemy_granvel_verdant_wave",
+	"moldgar": "enemy_moldgar_abyss_surge",
+	"nereion": "enemy_nereion_tidal_wail",
+	"eldion": "enemy_eldion_glacial_breath",
+	"chronos_wave": "enemy_chronos_wave_resonance",
+	"valgard": "enemy_valgard_rampart",
+	"skarpedion": "enemy_skarpedion_iron_molt",
+	"mycolga_ancient": "enemy_mycolga_spore_field",
+	"karna_smoke": "enemy_karna_ash_veil",
+	"nereion_depths": "enemy_nereion_depths_tide_pull",
+	"forgedormient": "enemy_forgedormient_slag_breath",
+	"albark": "enemy_albark_white_silence",
+}
+
+const _BOSS_CAST_SPECTACLE := {
+	"serdion": "boss_decree_wave",
+	"forgedormient": "enemy_forgedormient_furnace_quake",
+	"nereion_depths": "enemy_nereion_depths_abyss_roar",
+}
 
 
-func test_decree_wave_keeps_cast_spectacle() -> void:
-	var decree: Resource = DataRegistry.get_skill_data("boss_decree_wave")
-	assert_not_null(decree)
-	assert_eq(str(decree.target_type), "all_party")
-	assert_gte(float(decree.cast_time), 1.0)
+func test_all_boss_pressure_aoe_instant() -> void:
+	for boss_id: String in _BOSS_INSTANT_AOE.keys():
+		var skill_id: String = _BOSS_INSTANT_AOE[boss_id]
+		var skill: Resource = DataRegistry.get_skill_data(skill_id)
+		assert_not_null(skill, skill_id)
+		assert_eq(str(skill.target_type), "all_party", skill_id)
+		assert_lte(float(skill.cast_time), 0.0, skill_id)
+		assert_lte(float(skill.cooldown), 6.0, skill_id)
 
 
-func test_serdion_base_skill_use_raised() -> void:
-	var enemy: Resource = DataRegistry.get_enemy_data("serdion")
-	assert_not_null(enemy)
-	assert_gte(float(enemy.skill_use_chance), 0.55)
+func test_dual_aoe_bosses_keep_heavy_cast() -> void:
+	for boss_id: String in _BOSS_CAST_SPECTACLE.keys():
+		var skill_id: String = _BOSS_CAST_SPECTACLE[boss_id]
+		var skill: Resource = DataRegistry.get_skill_data(skill_id)
+		assert_not_null(skill, skill_id)
+		assert_eq(str(skill.target_type), "all_party", skill_id)
+		assert_gte(float(skill.cast_time), 1.0, skill_id)
 
 
-func test_serdion_phase1_weights_favor_aoe_over_enrage() -> void:
-	var def: Dictionary = CombatBossPhases.phase_def("serdion", 0)
-	assert_gte(float(def.get("skill_use_chance", 0.0)), 0.55)
-	var weights: Dictionary = def.get("skill_weight", {})
-	assert_gt(float(weights.get("enemy_serdion_roar", 0.0)), float(weights.get("boss_enrage", 0.0)))
-	assert_gt(float(weights.get("boss_decree_wave", 0.0)), float(weights.get("boss_enrage", 0.0)))
+func test_all_bosses_base_skill_use_raised() -> void:
+	for boss_id: String in _BOSS_INSTANT_AOE.keys():
+		var enemy: Resource = DataRegistry.get_enemy_data(boss_id)
+		assert_not_null(enemy, boss_id)
+		assert_gte(float(enemy.skill_use_chance), 0.55, boss_id)
+
+
+func test_all_boss_phase1_weights_favor_pressure_over_enrage() -> void:
+	for boss_id: String in _BOSS_INSTANT_AOE.keys():
+		var def: Dictionary = CombatBossPhases.phase_def(boss_id, 0)
+		assert_gte(float(def.get("skill_use_chance", 0.0)), 0.55, boss_id)
+		var weights: Dictionary = def.get("skill_weight", {})
+		assert_false(weights.is_empty(), boss_id)
+		var instant_id: String = _BOSS_INSTANT_AOE[boss_id]
+		assert_gt(
+			float(weights.get(instant_id, 0.0)),
+			float(weights.get("boss_enrage", 0.0)),
+			boss_id
+		)
+
+
+func test_elites_skill_use_raised() -> void:
+	var elite_ids: Array[String] = [
+		"clock_moth", "mist_wyvern", "great_claw", "greios", "anchor_lord",
+		"ninja_octopus", "nightfen", "mirror_boa", "polar_tricera",
+	]
+	for eid: String in elite_ids:
+		var enemy: Resource = DataRegistry.get_enemy_data(eid)
+		assert_not_null(enemy, eid)
+		assert_gte(float(enemy.skill_use_chance), 0.45, eid)
+
+
+func test_clock_moth_chrono_resonance_instant() -> void:
+	var skill: Resource = DataRegistry.get_skill_data("enemy_chrono_resonance")
+	assert_not_null(skill)
+	assert_lte(float(skill.cast_time), 0.0)

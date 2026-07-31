@@ -33,4 +33,4 @@ codex_habitat = "レッドフォージ星炉廃坑"
 codex_research_note = "星炉の残熱に潜む熔岩生物の古型。炉心で眠り、起こされると炉床ごと揺れる。星炉の寝主は坑夫の俗称であり、王そのものではない。不死者ではない。"
 codex_materials = Array[String]([])
 skill_ids = Array[String](["boss_enrage", "enemy_forgedormient_slag_breath", "enemy_forgedormient_furnace_quake"])
-skill_use_chance = 0.4
+skill_use_chance = 0.55

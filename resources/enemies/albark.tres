@@ -35,4 +35,4 @@ codex_habitat = "ノースリーチ・地図の余白"
 codex_research_note = "白甲を持つ古龍種の頂点個体。地図の空白地帯を縄とし、氷と静寂で侵食者を消す。白甲の古龍の名は開拓者の俗称であり、開拓王との関わりは確認されていない。不死者ではない。"
 codex_materials = Array[String]([])
 skill_ids = Array[String](["boss_enrage", "enemy_albark_white_silence", "enemy_albark_mapless_charge"])
-skill_use_chance = 0.4
+skill_use_chance = 0.55

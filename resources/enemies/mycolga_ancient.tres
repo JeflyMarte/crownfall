@@ -35,4 +35,4 @@ codex_habitat = "ミストフェン封緘書庫下"
 codex_research_note = "古菌類と湿地植物の共生体。封緘書庫の腐敗空気に適応し、根と胞子で通路を塞ぐ。霧沼の古茸と呼ばれるが王名ではなく、学識王との関わりも確認されていない。不死者ではない。"
 codex_materials = Array[String]([])
 skill_ids = Array[String](["boss_enrage", "enemy_mycolga_spore_field", "enemy_mycolga_root_bind"])
-skill_use_chance = 0.4
+skill_use_chance = 0.55
