@@ -83,6 +83,22 @@
 | 枯翠 | `kaiwan_thornmail` | **枯翠ソーンメイル** | 回復→与ダメ変換率 **+15pt** | 受ける回復 **-20%** |
 | 断継 | `kaiwan_lastcoil` | **断継ラストコイル** | 撃破後バフ時間 **延長** | 味方戦闘不能時の与ダメペナ **-20%**に悪化 |
 
+### 4.1 防具アイコン（初版・黒＋赤）
+
+`ICO_ARM_Kaiwan*.png`（128×128）。`IconPaths` 登録済。
+
+| armor_id | ファイル |
+|---|---|
+| kaiwan_primehide | `ICO_ARM_KaiwanPrimehide.png` |
+| kaiwan_bloodmail | `ICO_ARM_KaiwanBloodmail.png` |
+| kaiwan_voidrobe | `ICO_ARM_KaiwanVoidrobe.png` |
+| kaiwan_oathbreak | `ICO_ARM_KaiwanOathbreak.png` |
+| kaiwan_duskmail | `ICO_ARM_KaiwanDuskmail.png` |
+| kaiwan_forgepate | `ICO_ARM_KaiwanForgepate.png` |
+| kaiwan_tideskin | `ICO_ARM_KaiwanTideskin.png` |
+| kaiwan_thornmail | `ICO_ARM_KaiwanThornmail.png` |
+| kaiwan_lastcoil | `ICO_ARM_KaiwanLastcoil.png` |
+
 ---
 
 ## 5. 限定装飾9（P3-GACHA-EQ-KAIWAN-003）
@@ -98,6 +114,22 @@
 | 奪潮 | `kaiwan_reefhook` | **奪潮リーフフック** | 水・氷与ダメ **+10%**／速度 **+5%** | 聖属性耐性 **-10%** |
 | 枯翠 | `kaiwan_wither` | **枯翠ウィザー** | 回復アクション時、自分にも軽微ダメ→与ダメバフ | 蘇生・強回復が **無効または大幅減** |
 | 断継 | `kaiwan_nextedge` | **断継ネクストエッジ** | 撃破連鎖の2回目も **半分の補正**で乗る | 戦闘開始時SP **-10%** |
+
+### 5.0 装飾アイコン（初版・黒＋赤）
+
+`ICO_ACC_Kaiwan*.png`（128×128）。`IconPaths` 登録済。
+
+| accessory_id | ファイル |
+|---|---|
+| kaiwan_initio | `ICO_ACC_KaiwanInitio.png` |
+| kaiwan_venomband | `ICO_ACC_KaiwanVenomband.png` |
+| kaiwan_unlock | `ICO_ACC_KaiwanUnlock.png` |
+| kaiwan_curseband | `ICO_ACC_KaiwanCurseband.png` |
+| kaiwan_nocturne | `ICO_ACC_KaiwanNocturne.png` |
+| kaiwan_sparkle | `ICO_ACC_KaiwanSparkle.png` |
+| kaiwan_reefhook | `ICO_ACC_KaiwanReefhook.png` |
+| kaiwan_wither | `ICO_ACC_KaiwanWither.png` |
+| kaiwan_nextedge | `ICO_ACC_KaiwanNextedge.png` |
 
 > **数値**は方針値。実装時のバランス調整は別 Task で可（名前・メリデメの対・席タグは据置）。
 

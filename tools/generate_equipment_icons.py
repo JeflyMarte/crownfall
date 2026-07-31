@@ -101,6 +101,15 @@ LEGENDARY_HAND_DRAWN_ARMOR_IDS: set[str] = {
 	"immortal_cenotaph_plate",
 	"chronos_toki_armor",
 	"valgard_antique_armor",
+	"kaiwan_primehide",
+	"kaiwan_bloodmail",
+	"kaiwan_voidrobe",
+	"kaiwan_oathbreak",
+	"kaiwan_duskmail",
+	"kaiwan_forgepate",
+	"kaiwan_tideskin",
+	"kaiwan_thornmail",
+	"kaiwan_lastcoil",
 }
 
 ## 専用生成済みレジェンド装飾。
@@ -113,6 +122,15 @@ LEGENDARY_HAND_DRAWN_ACCESSORY_IDS: set[str] = {
 	"council_hegemony_seal",
 	"chronos_toki_orb",
 	"valgard_antique_amulet",
+	"kaiwan_initio",
+	"kaiwan_venomband",
+	"kaiwan_unlock",
+	"kaiwan_curseband",
+	"kaiwan_nocturne",
+	"kaiwan_sparkle",
+	"kaiwan_reefhook",
+	"kaiwan_wither",
+	"kaiwan_nextedge",
 }
 
 CANONICAL_TEMPLATES = {
