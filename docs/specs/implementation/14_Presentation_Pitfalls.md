@@ -42,6 +42,7 @@
 | 回復・バフ・パッシブ名・加護・武器名ポップ | `""`（無音）。SE は heal/buff/hit 側。`PASSIVE_NAME_FONT_SIZE`（18） |
 | 状態付与「〇〇を付与！」 | `STATUS_APPLY_TELOP_FONT_SIZE`（22）。48px 禁止 |
 | 敵スキル名 | 味方と同型で `_sprite_top_y_global`／スロット指定。`【技名】`＋同寸。`global_position-150` 固定＋`visible` 即 return 禁止 |
+| 敵通常攻撃名 | 通常攻撃も `_spawn_enemy_skill_name`＋`EnemyData.basic_attack_name`（P3-UX-ENEMY-BASIC-NAME-001）。❗️のみに戻さない |
 | 詠唱中 `persist=true` | もともと無音 |
 
 **症状:** 回復やパッシブ名と同時にダメージ音／敵技名が見えない／付与テロップがダメ数字より大きい。

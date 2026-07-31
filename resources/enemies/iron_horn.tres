@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "iron_horn"
 display_name = "鋭刀甲虫"
+basic_attack_name = "甲突き"
 max_hp = 656
 attack = 144
 defense = 48

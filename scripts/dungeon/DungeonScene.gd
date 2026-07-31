@@ -6180,8 +6180,22 @@ func _try_apply_enemy_skill_hit_statuses(skill: Resource, member_idx: int, base_
 		if randf() <= float(skill.apply_status_chance2):
 			_apply_status_to_member_target(member_idx, str(skill.apply_status_id2), 1, base_damage)
 
+## 敵通常攻撃の表示名（P3-UX-ENEMY-BASIC-NAME-001）。未設定は「攻撃」。
+func _enemy_basic_attack_display_name(slot: int = -1) -> String:
+	var enemy_data: Resource = null
+	if slot >= 0:
+		enemy_data = $CombatController.get_enemy_data_at(slot)
+	if enemy_data == null:
+		enemy_data = $CombatController.current_enemy_data
+	if enemy_data != null and "basic_attack_name" in enemy_data:
+		var named: String = str(enemy_data.basic_attack_name).strip_edges()
+		if not named.is_empty():
+			return named
+	return "攻撃"
+
+
 ## 敵スキル発動時の技名テロップ（味方 `_spawn_skill_name` と同型の頭上ポップ）。
-## slot>=0 ならそのスロット、未満ならアクティブ敵。
+## 通常攻撃名にも流用（P3-UX-ENEMY-BASIC-NAME-001）。slot>=0 ならそのスロット、未満ならアクティブ敵。
 func _spawn_enemy_skill_name(skill_name: String, slot: int = -1) -> void:
 	if skill_name.is_empty():
 		return
@@ -6307,6 +6321,8 @@ func _resolve_enemy_attack_impact_async(payload: Dictionary) -> void:
 		_play_enemy_slot_animation(slot, "attack")
 	else:
 		_play_active_enemy_animation("attack")
+	## 通常攻撃もスキルと同型の頭上テロップ（P3-UX-ENEMY-BASIC-NAME-001）。
+	_spawn_enemy_skill_name(_enemy_basic_attack_display_name(slot), slot)
 	var sprite: AnimatedSprite2D = null
 	if slot >= 0 and slot < _swarm_sprites.size() and _swarm_sprites[slot].visible:
 		sprite = _swarm_sprites[slot]
@@ -6328,10 +6344,11 @@ func _resolve_enemy_attack_impact_async(payload: Dictionary) -> void:
 	var guard_prefix: String = ""
 	if target_combatant != null and target_combatant.job_id == "swordsman":
 		guard_prefix = "[前衛] "
+	var atk_label: String = _enemy_basic_attack_display_name(slot)
 	if enemy_result.get("missed", false):
 		if target_idx < _chr_sprites.size():
 			_spawn_miss_telop(_chr_sprites[target_idx].global_position)
-		_append_log("敵の攻撃: %s%s は Miss!" % [guard_prefix, member_name])
+		_append_log("敵の攻撃【%s】: %s%s は Miss!" % [atk_label, guard_prefix, member_name])
 		_end_combat_cinematic_lock()
 		return
 	$CombatController.apply_damage_to_member(target_idx, enemy_result["final"])
@@ -6351,12 +6368,12 @@ func _resolve_enemy_attack_impact_async(payload: Dictionary) -> void:
 	var density_tag: String = $CombatController.get_density_log_tag(target_idx)
 	var log_text: String
 	if enemy_result["mitigated"] > 0:
-		log_text = "敵の攻撃: %s%s に %dダメージ（軽減%d）%s%s" % [
-			guard_prefix, member_name, enemy_result["final"], enemy_result["mitigated"], density_tag, resist_tag,
+		log_text = "敵の攻撃【%s】: %s%s に %dダメージ（軽減%d）%s%s" % [
+			atk_label, guard_prefix, member_name, enemy_result["final"], enemy_result["mitigated"], density_tag, resist_tag,
 		]
 	else:
-		log_text = "敵の攻撃: %s%s に %dダメージ%s%s" % [
-			guard_prefix, member_name, enemy_result["final"], density_tag, resist_tag,
+		log_text = "敵の攻撃【%s】: %s%s に %dダメージ%s%s" % [
+			atk_label, guard_prefix, member_name, enemy_result["final"], density_tag, resist_tag,
 		]
 	if not $CombatController.is_member_alive(target_idx):
 		log_text += "\n%s が倒れた！" % member_name

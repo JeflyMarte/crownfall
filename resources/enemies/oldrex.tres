@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "oldrex"
 display_name = "オルドレクス"
+basic_attack_name = "古龍噛み"
 max_hp = 992
 attack = 112
 defense = 160

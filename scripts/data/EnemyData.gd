@@ -3,6 +3,8 @@ extends Resource
 
 @export var id: String = ""
 @export var display_name: String = ""
+## 通常攻撃の頭上テロップ名（P3-UX-ENEMY-BASIC-NAME-001）。空＝「攻撃」。
+@export var basic_attack_name: String = ""
 @export var max_hp: int = 0
 @export var attack: int = 0
 @export var defense: int = 0

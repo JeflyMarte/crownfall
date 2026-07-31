@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "skull_turtle"
 display_name = "スカルタートル"
+basic_attack_name = "骨噛み"
 max_hp = 952
 attack = 104
 defense = 144

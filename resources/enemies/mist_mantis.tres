@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "mist_mantis"
 display_name = "ミストマンティス"
+basic_attack_name = "鎌突き"
 max_hp = 600
 attack = 152
 defense = 40

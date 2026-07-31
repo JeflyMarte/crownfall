@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "nereion_depths"
 display_name = "潮脈王ネレイオン・デプス"
+basic_attack_name = "潮脈噛み"
 max_hp = 3120
 attack = 200
 defense = 192

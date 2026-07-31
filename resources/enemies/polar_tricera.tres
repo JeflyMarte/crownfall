@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "polar_tricera"
 display_name = "極冠トリケラ"
+basic_attack_name = "三角打ち"
 max_hp = 1720
 attack = 240
 defense = 144

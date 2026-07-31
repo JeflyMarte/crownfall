@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "spore_widow"
 display_name = "スポアウィドウ"
+basic_attack_name = "胞糸打ち"
 max_hp = 520
 attack = 136
 defense = 32

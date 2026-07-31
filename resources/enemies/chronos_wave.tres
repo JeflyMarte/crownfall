@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "chronos_wave"
 display_name = "時環の共鳴龍クロノス・ウェーブ"
+basic_attack_name = "時環爪"
 max_hp = 4200
 attack = 240
 defense = 256

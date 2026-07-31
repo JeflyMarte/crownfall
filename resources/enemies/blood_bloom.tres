@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "blood_bloom"
 display_name = "ブラッドブルーム"
+basic_attack_name = "血華突き"
 max_hp = 560
 attack = 144
 defense = 40

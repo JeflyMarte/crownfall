@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "albark"
 display_name = "白甲の古龍アルバーク"
+basic_attack_name = "白甲の爪"
 max_hp = 3840
 attack = 224
 defense = 240

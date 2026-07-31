@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "moss_boar"
 display_name = "モスボア"
+basic_attack_name = "苔踏み"
 max_hp = 600
 attack = 128
 defense = 32

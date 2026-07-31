@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "undertaker_shark"
 display_name = "アンダーテイカー"
+basic_attack_name = "葬送噛み"
 max_hp = 544
 attack = 152
 defense = 40

@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "ninja_octopus"
 display_name = "深海司祭"
+basic_attack_name = "触腕打ち"
 max_hp = 1480
 attack = 232
 defense = 104

@@ -6,6 +6,7 @@
 script = ExtResource("1")
 id = "rune_carcinos"
 display_name = "ルーンカルキノス"
+basic_attack_name = "符鋏"
 max_hp = 784
 attack = 112
 defense = 112
