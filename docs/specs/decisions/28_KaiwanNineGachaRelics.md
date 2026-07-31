@@ -51,6 +51,22 @@
 | 8 | 枯翠 | `kaiwan_wiltes` | **枯翠ウィルテス** | `staff` | 回復スキルの **50%を追加与ダメ**に変換（回復は半減） | 継続回復・ターン回復 **-50%** | 回復転火力 |
 | 9 | 断継 | `kaiwan_relictos` | **断継レリクトス** | `sword` | 撃破時、次アクション与ダメ **+35%**（短時間） | 味方戦闘不能中、自分与ダメ **-15%** | 連鎖撃破 |
 
+### 3.1 武器アイコン（初版・黒＋赤）
+
+`assets/ui/equipment/ICO_WPN_Kaiwan*.png`（128×128 RGBA・透過）。`IconPaths` 登録済。WIP=`_wip/kaiwan/`。
+
+| weapon_id | ファイル |
+|---|---|
+| kaiwan_crosslit | `ICO_WPN_KaiwanCrosslit.png` |
+| kaiwan_vendict | `ICO_WPN_KaiwanVendict.png` |
+| kaiwan_silent | `ICO_WPN_KaiwanSilent.png` |
+| kaiwan_perfidy | `ICO_WPN_KaiwanPerfidy.png` |
+| kaiwan_nox | `ICO_WPN_KaiwanNox.png` |
+| kaiwan_false | `ICO_WPN_KaiwanFalse.png` |
+| kaiwan_saltine | `ICO_WPN_KaiwanSaltine.png` |
+| kaiwan_wiltes | `ICO_WPN_KaiwanWiltes.png` |
+| kaiwan_relictos | `ICO_WPN_KaiwanRelictos.png` |
+
 ---
 
 ## 4. 限定防具9（P3-GACHA-EQ-KAIWAN-003）
