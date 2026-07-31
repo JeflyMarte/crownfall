@@ -799,6 +799,7 @@ static func highlight_pool_icon(strip: Control, helper_id: String) -> void:
 static func apply_featured_helper(shell: Dictionary, helper: Resource) -> void:
 	if shell.is_empty() or helper == null:
 		return
+	_set_featured_banner_bg(shell, false)
 	var pool_strip_h: Control = shell.get("pool_strip") as Control
 	if pool_strip_h != null:
 		pool_strip_h.visible = true
@@ -922,6 +923,7 @@ static func setup_pull_button_ex(btn: Button, enabled: bool, title_text: String,
 static func apply_featured_equipment(shell: Dictionary, entry: Dictionary) -> void:
 	if shell.is_empty() or entry.is_empty():
 		return
+	_set_featured_banner_bg(shell, true)
 	var kind: String = str(entry.get("kind", "weapon"))
 	var item_id: String = str(entry.get("id", ""))
 	var idle: Control = shell.get("idle") as Control
@@ -975,6 +977,19 @@ static func apply_featured_equipment(shell: Dictionary, entry: Dictionary) -> vo
 	if stats_wrap != null:
 		stats_wrap.visible = true
 		stats_wrap.queue_sort()
+
+
+static func _set_featured_banner_bg(shell: Dictionary, seal: bool) -> void:
+	var fade: Node = shell.get("fade") as Node
+	if fade == null:
+		return
+	var banner_bg: TextureRect = fade.get_node_or_null("BannerBg") as TextureRect
+	if banner_bg == null:
+		return
+	var path: String = GachaUiTokens.BANNER_BG_SEAL if seal else GachaUiTokens.BANNER_BG
+	var tex: Texture2D = GachaUiTokens.load_tex(path)
+	if tex != null:
+		banner_bg.texture = tex
 
 
 static func ticket_pull_title() -> String:

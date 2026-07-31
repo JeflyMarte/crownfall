@@ -8,6 +8,8 @@ const ROOT: String = "res://assets/ui/gacha_ui/"
 const BG: String = ROOT + "UI_BG_Gacha.png"
 ## 招待枠（チケット上）内の聖堂キーアート。台座込み。
 const BANNER_BG: String = ROOT + "UI_Gacha_Banner_BG.png"
+## 封蔵の匣 Featured 枠内背景（P3-GACHA-EQ-SEAL-UI-001）。
+const BANNER_BG_SEAL: String = ROOT + "UI_Gacha_Banner_BG_Seal.png"
 ## 招待枠上部のタイトル／キャッチコピー焼込プレート。
 const BANNER_TITLE: String = ROOT + "UI_Gacha_Banner_Title.png"
 const BANNER_CATCHCOPY_ART: String = ROOT + "UI_Gacha_Banner_Catchcopy.png"
