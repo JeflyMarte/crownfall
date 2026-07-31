@@ -169,3 +169,4 @@ alwaysApply: false
 | 無限で進行％がチャンク内％になる | 10Fチャンク分母で意味がない | 深層は空バー＋「進行 ?%」（P3-UX-ABYSS-PROGRESS-HIDE-001） |
 
 | 調査室受取が常に基礎鉱＋モーン武器 | DISPATCHが固定プール | 素材はBiome重み／武器は派遣先pool（P3-SURVEY-REWARD-VAR-001） |
+| 出血アイコンはあるが tick ダメ無し／毒スキル付与が効かない | 敵スキルが `_apply_status_to_member_target`（敵向け）へ誤配線。出血は `source_attack=0` だと percent DoT=0 | 敵スキルは `party_%d`＋敵ATK。罠／Affix／パッシブも source を渡す |

@@ -6065,3 +6065,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-GACHA-EQ-KAIWAN-004-5 | **除外** — Gold／EXP／レアドロ／汎用攻撃力アップ等。ランダム行にデメリット無し | 固有パッシブ側で代償 |
 | P3-GACHA-EQ-KAIWAN-004-6 | **焼直し** — 同プール。席枠は自席のまま | 既存鍛冶と整合 |
 | P3-GACHA-EQ-KAIWAN-004-7 | **SSOT** — `decisions/28_KaiwanNineGachaRelics.md` §6 | 品目の正 |
+
+## 出血・毒 DoT 誤配線修正（2026-07-31 — P3-FIX-DOT-SOURCE-001）
+
+> **オーナー点検** — 出血／毒ダメージが入っているように見えない。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-FIX-DOT-SOURCE-001-1 | **敵スキル付与** — ヒットしたパーティへ `apply_status(party_*)`（`_apply_status_to_member_target` は敵向けのため禁止） | 誤配線で味方に乗らなかった |
+| P3-FIX-DOT-SOURCE-001-2 | **出血 source** — 罠／非戦闘失敗／Affix／パッシブ付与でも source_attack を渡す | percent DoT は 0 基準だと tick 0 |
+| P3-FIX-DOT-SOURCE-001-3 | **据置** — 毒 flat／プレイヤー技・武器 on_hit の既存 source 配線／通常攻撃 on_hit | 非回帰 |

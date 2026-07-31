@@ -4284,7 +4284,8 @@ func _apply_trap_damage_hits(
 		var status_id: String = ExplorationSkills.roll_trap_status(tier)
 		var status_label: String = ""
 		if not status_id.is_empty():
-			$CombatController.apply_status("party_%d" % target, status_id, 1, 0)
+			## 出血は source_attack 比例。罠ダメを基準に渡す（0だと tick ダメージ無し）。
+			$CombatController.apply_status("party_%d" % target, status_id, 1, maxi(1, dmg))
 			status_label = _noncombat_status_display_name(status_id)
 		if status_label.is_empty():
 			_append_trap_hit_log("%s: %s に %d ダメージ！" % [log_prefix, nm, dmg])
@@ -4346,7 +4347,10 @@ func _apply_noncombat_fail_penalty(
 	var status_id: String = ""
 	if not status_pool.is_empty():
 		status_id = str(status_pool[randi() % status_pool.size()])
-		$CombatController.apply_status("party_%d" % target, status_id, 1, 0)
+		## 出血は source_attack 比例。失敗ダメを基準に渡す。
+		$CombatController.apply_status(
+			"party_%d" % target, status_id, 1, maxi(1, maxi(dmg, raw_dmg))
+		)
 	_update_hp_bars()
 	var status_label: String = _noncombat_status_display_name(status_id)
 	if status_label.is_empty():
@@ -4729,8 +4733,9 @@ func _process_status_ticks() -> void:
 			var slot: int = int(unit_id.substr(6))
 			$CombatController.apply_damage_to_enemy_slot(slot, dmg)
 			_check_boss_phase_transition(slot)
-			if slot < _swarm_sprites.size() and _swarm_sprites[slot].visible:
-				var tick_pos: Vector2 = _sprite_visual_center_global(_swarm_sprites[slot])
+			var enemy_spr: AnimatedSprite2D = _enemy_sprite_for_slot(slot)
+			if enemy_spr != null and enemy_spr.visible:
+				var tick_pos: Vector2 = _sprite_visual_center_global(enemy_spr)
 				var effect_id: String = str(result.get("effect_id", ""))
 				## P3-UX-STATUS-TELOP-001: DoT 数字は頭上（視覚中心）＋色付き。tick シェイクなし。
 				_spawn_damage_number(
@@ -4743,19 +4748,6 @@ func _process_status_ticks() -> void:
 				)
 				if not effect_id.is_empty():
 					_combat_vfx.spawn_dot_tick(self, tick_pos, effect_id)
-			elif _boss_sprite.visible and slot == $CombatController.active_enemy_index:
-				var boss_pos: Vector2 = _sprite_visual_center_global(_boss_sprite)
-				var boss_effect: String = str(result.get("effect_id", ""))
-				_spawn_damage_number(
-					str(dmg),
-					boss_pos + Vector2(0.0, -20.0),
-					CombatVfxManager.dot_telop_color(boss_effect),
-					0.95,
-					dmg,
-					true
-				)
-				if not boss_effect.is_empty():
-					_combat_vfx.spawn_dot_tick(self, boss_pos, boss_effect)
 			if $CombatController.get_enemy_hp_at(slot) <= 0:
 				if _on_enemy_slot_killed(slot):
 					return
@@ -4835,6 +4827,8 @@ func _try_apply_affix_statuses(member_index: int) -> void:
 	if not _member_has_living_target(member_index):
 		return
 	var bonuses: Dictionary = AffixStatCalculatorScript.get_bonuses(member_index)
+	var base_info: Dictionary = _calc_attack_base(member_index)
+	var source_atk: int = int(base_info.get("base_damage", 0))
 	var rules: Array[Dictionary] = [
 		{"chance_key": "shock_chance", "status_id": "shock", "label": "感電"},
 		{"chance_key": "ignite_chance", "status_id": "ignite", "label": "炎上"},
@@ -4845,7 +4839,7 @@ func _try_apply_affix_statuses(member_index: int) -> void:
 		var chance: float = float(bonuses.get(rule["chance_key"], 0.0))
 		if chance <= 0.0 or randf() > chance:
 			continue
-		if not _apply_status_to_member_target(member_index, rule["status_id"], 1, 0):
+		if not _apply_status_to_member_target(member_index, rule["status_id"], 1, source_atk):
 			continue
 		_append_log("[%s] 付与" % rule["label"])
 
@@ -5633,6 +5627,16 @@ func _apply_enemy_defense(damage: int, enemy_data: Resource, def_reduction: floa
 func _calc_attack_base(member_index: int = -1) -> Dictionary:
 	return DamageCalculator.attack_base($CombatController, member_index)
 
+
+## DoT（出血など）用の source_attack。ctx.damage があれば優先、なければ攻撃基礎値。
+func _dot_source_attack_for_member(member_idx: int, ctx: Dictionary = {}) -> int:
+	var from_hit: int = int(ctx.get("damage", 0))
+	if from_hit > 0:
+		return from_hit
+	var base_info: Dictionary = _calc_attack_base(member_idx)
+	return maxi(0, int(base_info.get("base_damage", 0)))
+
+
 func _apply_job_attack_multiplier(base_damage: int, member_index: int) -> int:
 	return DamageCalculator.apply_job_attack_multiplier(base_damage, member_index)
 
@@ -6172,14 +6176,23 @@ func _apply_enemy_damage_to_targets(
 
 func _try_apply_enemy_skill_hit_statuses(skill: Resource, member_idx: int, base_damage: int) -> void:
 	## 敵ダメージスキルの apply_status / apply_status2（後列処刑の bleed・防御DOWN 等）。
+	## ヒットしたパーティへ付与（`_apply_status_to_member_target` は敵向けなので使わない）。
 	if skill == null or not $CombatController.is_member_alive(member_idx):
 		return
+	var atk_slot: int = $CombatController.active_enemy_index
+	var source_atk: int = $CombatController.get_enemy_attack_at(atk_slot)
+	if source_atk <= 0:
+		source_atk = maxi(0, base_damage)
 	if not skill.apply_status_id.is_empty() and skill.apply_status_chance > 0.0:
 		if randf() <= float(skill.apply_status_chance):
-			_apply_status_to_member_target(member_idx, str(skill.apply_status_id), 1, base_damage)
+			var sid: String = str(skill.apply_status_id)
+			if $CombatController.apply_status("party_%d" % member_idx, sid, 1, source_atk):
+				_on_party_status_applied(member_idx, sid)
 	if not skill.apply_status_id2.is_empty() and skill.apply_status_chance2 > 0.0:
 		if randf() <= float(skill.apply_status_chance2):
-			_apply_status_to_member_target(member_idx, str(skill.apply_status_id2), 1, base_damage)
+			var sid2: String = str(skill.apply_status_id2)
+			if $CombatController.apply_status("party_%d" % member_idx, sid2, 1, source_atk):
+				_on_party_status_applied(member_idx, sid2)
 
 ## 敵通常攻撃の表示名（P3-UX-ENEMY-BASIC-NAME-001）。未設定は「攻撃」。
 func _enemy_basic_attack_display_name(slot: int = -1) -> String:
@@ -7367,28 +7380,32 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 			var sid: String = str(p.get("status_id", ""))
 			if sid.is_empty():
 				return
+			var source_atk: int = _dot_source_attack_for_member(member_idx, ctx)
 			var target_kind: String = str(p.get("target", "self"))
 			if target_kind == "party":
 				for i: int in GameState.party_members.size():
 					if not $CombatController.is_member_alive(i):
 						continue
-					if $CombatController.apply_status("party_%d" % i, sid, 1, 0):
+					if $CombatController.apply_status("party_%d" % i, sid, 1, source_atk):
 						applied = true
 						_on_party_status_applied(i, sid)
 			elif target_kind == "enemy_all":
 				for slot: int in $CombatController.get_living_enemy_indices():
 					if not $CombatController.is_enemy_slot_alive(slot):
 						continue
-					if $CombatController.apply_status_to_enemy_slot(slot, sid, 1, 0):
+					if $CombatController.apply_status_to_enemy_slot(slot, sid, 1, source_atk):
 						applied = true
+						_on_enemy_status_applied(slot, sid)
 			elif target_kind == "enemy":
 				var enemy_slot: int = int(
 					ctx.get("attacker_slot", ctx.get("target_slot", $CombatController.get_member_target_slot(member_idx)))
 				)
 				if enemy_slot >= 0 and $CombatController.is_enemy_slot_alive(enemy_slot):
-					applied = $CombatController.apply_status_to_enemy_slot(enemy_slot, sid, 1, 0)
+					applied = $CombatController.apply_status_to_enemy_slot(enemy_slot, sid, 1, source_atk)
+					if applied:
+						_on_enemy_status_applied(enemy_slot, sid)
 			else:
-				applied = $CombatController.apply_status("party_%d" % member_idx, sid, 1, 0)
+				applied = $CombatController.apply_status("party_%d" % member_idx, sid, 1, source_atk)
 				if applied:
 					_on_party_status_applied(member_idx, sid)
 			_update_status_icons()
@@ -7403,8 +7420,10 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 				ctx.get("attacker_slot", ctx.get("target_slot", $CombatController.get_member_target_slot(member_idx)))
 			)
 			if enemy_slot >= 0 and $CombatController.is_enemy_slot_alive(enemy_slot):
-				applied = $CombatController.apply_status_to_enemy_slot(enemy_slot, rand_sid, 1, 0)
+				var rand_atk: int = _dot_source_attack_for_member(member_idx, ctx)
+				applied = $CombatController.apply_status_to_enemy_slot(enemy_slot, rand_sid, 1, rand_atk)
 				if applied:
+					_on_enemy_status_applied(enemy_slot, rand_sid)
 					_update_status_icons()
 		"crit_pulse":
 			var charge_flat: float = float(p.get("ultimate_charge_flat", 0.0))
