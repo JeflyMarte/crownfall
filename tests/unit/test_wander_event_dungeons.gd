@@ -21,7 +21,7 @@ func test_golden_nest_data_shape() -> void:
 	assert_eq(int(data.floor_count), 5)
 	assert_eq(int(data.daily_attempt_limit), 1)
 	assert_true(bool(data.disable_wandering))
-	assert_almost_eq(float(data.forced_swarm_chance), 0.10, 0.0001)
+	assert_almost_eq(float(data.forced_swarm_chance), 0.32, 0.0001)
 	assert_eq(data.enemy_pool, ["golden_scarab"])
 	assert_true(str(data.boss_id).is_empty())
 	assert_eq(int(data.room_weight_overrides.get("treasure", 0)), 30)

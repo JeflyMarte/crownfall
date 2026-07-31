@@ -34,9 +34,9 @@ accessory_pool = Array[String]([])
 unlock_after_dungeon_id = ""
 daily_attempt_limit = 1
 disable_wandering = true
-forced_swarm_chance = 0.12
+forced_swarm_chance = 0.35
 forced_swarm_min = 2
 forced_swarm_max = 3
 flavor_text = "月曜・土日開放。
 一日一回だけ開くエルダの裂け目。濃い自然力に寄る水鳥だけが泳ぎ、
-機括の罠が通路を埋めている。稀に群れで襲ってくる。"
+機括の罠が通路を埋めている。しばしば群れで襲ってくる。"

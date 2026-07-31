@@ -34,9 +34,9 @@ accessory_pool = Array[String]([])
 unlock_after_dungeon_id = ""
 daily_attempt_limit = 1
 disable_wandering = true
-forced_swarm_chance = 0.10
+forced_swarm_chance = 0.32
 forced_swarm_min = 2
 forced_swarm_max = 3
 flavor_text = "水曜・土日開放。
 一日一回だけ開く砂金の孔。殻に金を溜めたスカラベだけが
-巣を守り、触れるとすぐに逃げ込む。稀に群れで飛び出す。"
+巣を守り、触れるとすぐに逃げ込む。しばしば群れで飛び出す。"

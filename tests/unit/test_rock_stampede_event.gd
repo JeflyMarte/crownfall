@@ -22,7 +22,7 @@ func test_rock_stampede_data_shape() -> void:
 	assert_eq(int(data.floor_count), 5)
 	assert_eq(int(data.daily_attempt_limit), 1)
 	assert_true(bool(data.disable_wandering))
-	assert_almost_eq(float(data.forced_swarm_chance), 0.15, 0.0001)
+	assert_almost_eq(float(data.forced_swarm_chance), 0.40, 0.0001)
 	assert_eq(data.enemy_pool, ["rock_bison"])
 	assert_true(str(data.boss_id).is_empty())
 	assert_eq(int(data.room_weight_overrides.get("combat", 0)), 40)
