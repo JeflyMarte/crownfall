@@ -8332,7 +8332,8 @@ func _on_close_menu_pressed() -> void:
 	_menu_overlay.visible = false
 
 func _can_finish_dungeon_run() -> bool:
-	return $DungeonController.is_on_last_floor() and not $CombatController.is_in_combat
+	## is_on_last_floor_before_exit は深層で常に false（無限延長）。
+	return $DungeonController.is_on_last_floor_before_exit() and not $CombatController.is_in_combat
 
 func _on_menu_finish_pressed() -> void:
 	_menu_overlay.visible = false
@@ -8340,7 +8341,10 @@ func _on_menu_finish_pressed() -> void:
 		_retire_from_dungeon()
 		return
 	if not _can_finish_dungeon_run():
-		_set_narrative("最終フロアを踏破するまで探索を続ける")
+		if $DungeonController.is_abyss_run():
+			_set_narrative("無限ダンジョンに完走はありません。退出はリタイアから")
+		else:
+			_set_narrative("最終フロアを踏破するまで探索を続ける")
 		return
 	_on_finish_button_pressed()
 

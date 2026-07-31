@@ -154,8 +154,11 @@ func test_start_abyss_stage_keeps_endless_and_run_name() -> void:
 	assert_eq(dc.room_sequence.size(), 10)
 	assert_false(Enums.RoomType.BOSS in dc.room_sequence)
 	assert_eq(dc.get_run_display_name(), "1-1 虚脈の深廊")
-	## チャンク末尾を超えても完走せず延長する。
+	## チャンク最終Fでも結果画面判定にしない（10Fで追い出されるバグ再発防止）。
 	dc.current_room_index = dc.room_sequence.size() - 1
+	assert_true(dc.is_on_last_floor())
+	assert_false(dc.is_on_last_floor_before_exit())
+	## チャンク末尾を超えても完走せず延長する。
 	dc.advance_room()
 	assert_false(dc.is_completed)
 	assert_gt(dc.room_sequence.size(), 10)

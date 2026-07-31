@@ -5971,3 +5971,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-CHR-STAT-PAGES-001-5 | **行数** — 各ページ6行固定。0も `なし`/`+0%` 表示 | カード高維持 |
 | P3-UX-CHR-STAT-PAGES-001-6 | **SSOT** — `CharacterStatPages`＋`EquipmentScene` | 集計と表示分離 |
 | P3-UX-CHR-STAT-PAGES-001-7 | **据置** — 装備タブ「装備中の効果」／旧 `BtnStatDetail`（非表示のまま） | 役割分離 |
+
+## 無限ダンジョン10F追い出し修正（2026-07-31 — P3-DG-ABYSS-ENDLESS-FIX-001）
+
+> **オーナー報告** — 無限に潜ったが10Fクリアで結果画面へ。仕様は無限延長。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-ABYSS-ENDLESS-FIX-001-1 | **`is_on_last_floor_before_exit`** — 深層では常に false。チャンク末のクリア祝辞→結果遷移を止める | 10Fチャンクは内部生成単位 |
+| P3-DG-ABYSS-ENDLESS-FIX-001-2 | **メニュー完走** — `_can_finish_dungeon_run` も同判定を使う。退出はリタイア | 無限と矛盾する完走ボタンを出さない |
+| P3-DG-ABYSS-ENDLESS-FIX-001-3 | **据置** — `advance_room` のチャンク延長・マイルストーン／敵Lv表 | 延長ロジック自体は正しかった |
