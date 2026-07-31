@@ -188,8 +188,15 @@ static func explore_bgm_for_dungeon(dungeon_id: String) -> String:
 
 
 ## 通常戦闘曲。専用曲が無ければ battle。
+## 深層（無限）は親 Biome の戦闘曲を流用（P3-AUDIO-ABYSS-BGM-001）。
 static func battle_bgm_for_dungeon(dungeon_id: String) -> String:
-	var mapped: String = str(BATTLE_BY_DUNGEON.get(dungeon_id, ""))
+	var lookup_id: String = dungeon_id
+	const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
+	if _AbyssDungeonConfig.is_abyss_dungeon_id(dungeon_id):
+		var parent: String = _AbyssDungeonConfig.parent_biome_id(dungeon_id)
+		if not parent.is_empty():
+			lookup_id = parent
+	var mapped: String = str(BATTLE_BY_DUNGEON.get(lookup_id, ""))
 	if not mapped.is_empty() and is_available(mapped):
 		return mapped
 	return ID_BATTLE

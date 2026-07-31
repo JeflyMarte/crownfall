@@ -163,3 +163,5 @@ alwaysApply: false
 新しいエラーを直したら: 修正 → **該当層へ追記**（即死＝`pitfalls-startup`＋本カタログ／その他＝本カタログ）→ 領域 `.mdc` に BAD/GOOD → 昇格後は本表をポインタ化。手順は `recurrence-prevention.mdc`。
 
 | 無限が10Fで結果画面へ | チャンク末＝`is_on_last_floor_before_exit`→クリア完走 | 深層では同判定を false。延長は `advance_room`（P3-DG-ABYSS-ENDLESS-FIX-001） |
+
+| 無限の戦闘BGMが汎用 battle（旧曲） | `BATTLE_BY_DUNGEON` に abyss_* が無くフォールバック | `battle_bgm_for_dungeon` で親Biomeへ解決（P3-AUDIO-ABYSS-BGM-001） |

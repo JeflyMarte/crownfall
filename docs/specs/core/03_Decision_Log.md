@@ -5981,3 +5981,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-ABYSS-ENDLESS-FIX-001-1 | **`is_on_last_floor_before_exit`** — 深層では常に false。チャンク末のクリア祝辞→結果遷移を止める | 10Fチャンクは内部生成単位 |
 | P3-DG-ABYSS-ENDLESS-FIX-001-2 | **メニュー完走** — `_can_finish_dungeon_run` も同判定を使う。退出はリタイア | 無限と矛盾する完走ボタンを出さない |
 | P3-DG-ABYSS-ENDLESS-FIX-001-3 | **据置** — `advance_room` のチャンク延長・マイルストーン／敵Lv表 | 延長ロジック自体は正しかった |
+
+## 無限ダンジョン戦闘BGM＝親Biome（2026-07-31 — P3-AUDIO-ABYSS-BGM-001）
+
+> **オーナー指示** — 無限モーンゲートが旧モーン曲（汎用 battle）のまま。現行モーンゲート曲に合わせる。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-AUDIO-ABYSS-BGM-001-1 | **深層戦闘BGM** — `abyss_*` は親 Biome の `BATTLE_BY_DUNGEON` を解決（例: abyss_mourngate→mourngate.mp3） | 本編と同曲 |
+| P3-AUDIO-ABYSS-BGM-001-2 | **他深層も同様** — whisperwood/mistfen/blackshore/frostridge | 一貫性 |
+| P3-AUDIO-ABYSS-BGM-001-3 | **フォールバック** — 親未登録時のみ従来どおり `battle` | 安全側 |

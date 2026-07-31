@@ -7,6 +7,7 @@ const REQUIRED_IDS: Array[String] = [
 	_BgmCatalog.ID_TITLE,
 	_BgmCatalog.ID_HUB,
 	_BgmCatalog.ID_DUNGEON_EXPLORE,
+	_BgmCatalog.ID_MOURNGATE,
 	_BgmCatalog.ID_WHISPERWOOD,
 	_BgmCatalog.ID_MISTFEN,
 	_BgmCatalog.ID_BLACKSHORE,
@@ -80,7 +81,27 @@ func test_battle_bgm_for_dungeon_maps_biome() -> void:
 	)
 	assert_eq(
 		_BgmCatalog.battle_bgm_for_dungeon("mourngate"),
-		_BgmCatalog.ID_BATTLE
+		_BgmCatalog.ID_MOURNGATE
+	)
+	assert_eq(
+		_BgmCatalog.battle_bgm_for_dungeon("abyss_mourngate"),
+		_BgmCatalog.ID_MOURNGATE
+	)
+	assert_eq(
+		_BgmCatalog.battle_bgm_for_dungeon("abyss_whisperwood"),
+		_BgmCatalog.ID_WHISPERWOOD
+	)
+	assert_eq(
+		_BgmCatalog.battle_bgm_for_dungeon("abyss_mistfen"),
+		_BgmCatalog.ID_MISTFEN
+	)
+	assert_eq(
+		_BgmCatalog.battle_bgm_for_dungeon("abyss_blackshore"),
+		_BgmCatalog.ID_BLACKSHORE
+	)
+	assert_eq(
+		_BgmCatalog.battle_bgm_for_dungeon("abyss_frostridge"),
+		_BgmCatalog.ID_FROSTRIDGE
 	)
 	assert_eq(
 		_BgmCatalog.battle_bgm_for_dungeon("shadow_hunt"),
@@ -195,7 +216,11 @@ func test_dungeon_explore_bgm_omitted_from_scene_map() -> void:
 	assert_eq(_BgmCatalog.bgm_for_scene("res://scenes/dungeon/DungeonScene.tscn"), "")
 	assert_eq(
 		_BgmCatalog.battle_bgm_for_dungeon("mourngate"),
-		_BgmCatalog.ID_BATTLE
+		_BgmCatalog.ID_MOURNGATE
+	)
+	assert_eq(
+		_BgmCatalog.battle_bgm_for_dungeon("abyss_mourngate"),
+		_BgmCatalog.ID_MOURNGATE
 	)
 
 
