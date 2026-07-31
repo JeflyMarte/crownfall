@@ -189,6 +189,9 @@ alwaysApply: false
 | 撃破後に状態付与／死者DoTログ | 生存チェック無し＋死者も tick | 付与／tick は生存のみ。`party_` は `substr(6)` |
 | 敵クリがログのみで VFX/SE 無し | `_spawn_hit_vfx` に `is_critical` 未渡し | 通常／スキル被弾とも crit 引数を渡す |
 | オトモ状態が右下レジェンド欠落 | 収集が `party_members` のみ | `party_combat_hp` ループ（頭上アイコンと同型） |
+| 詠唱1なのに余分に「詠唱中」 | `advance_pending_cast` が減算後も chant | 減算後 `left<=0` で ready（G-001／P3-D112） |
+| パッシブ追撃後に戦闘が二重進行 | 撃破 return 無視 | `_try_fire_passive` が終了を返し発火ループ打ち切り |
+| 斉射／余波が数字だけ／無演出 | splash・aoe_burst に VFX 欠落 | 主対象と同型の hit／CRITICAL／余波ログ |
 | スキル会心が武器クリダメ無視 | `CRITICAL_MULTIPLIER` 固定 | `_skill_critical_multiplier`（通常攻撃と同式） |
 | 敵スキル属性が防具耐性に未反映 | 耐性は `attack_element` のみ／VFXは skill.element | `attack_element_override` |
 | 必殺詠唱中断でチャージ消失 | 詠唱開始時に consume | 即時のみ開始時消費／詠唱は解決時 |

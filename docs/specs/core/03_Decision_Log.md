@@ -6207,5 +6207,17 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-FIX-COMBAT-AUDIT-F-001-4 | **オトモレジェンド** — 状態収集は `party_combat_hp` ループ | 頭上アイコンとの一致 |
 | P3-FIX-COMBAT-AUDIT-F-001-5 | **据置** — 再使用「秒」文言／武器knockback・stagger・weight／敵move・detection・ai | 文言・将来仕様 |
 
+## 戦闘システム監査案G（2026-07-31 — P3-FIX-COMBAT-AUDIT-G-001）
+
+> **オーナー指示（案Gスコープ決定＋実装）** — 詠唱テンポ／パッシブ撃破打ち切り／斉射・余波演出／オトモ発火境界。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-FIX-COMBAT-AUDIT-G-001-1 | **詠唱** — `advance_pending_cast` は減算後に ready（`cast_time=1` が次番で解決） | P3-D112-1 の off-by-one |
+| P3-FIX-COMBAT-AUDIT-G-001-2 | **パッシブ直ダメ** — 撃破で戦闘終了なら後続パッシブ打ち切り（bonus／opening／aoe／crit_pulse） | 全滅後の二重処理防止 |
+| P3-FIX-COMBAT-AUDIT-G-001-3 | **斉射** — splash に hit VFX／CRITICAL ログ | 主対象と同型 |
+| P3-FIX-COMBAT-AUDIT-G-001-4 | **余波** — `aoe_burst` に数字・VFX・ログ | 無演出削りを解消 |
+| P3-FIX-COMBAT-AUDIT-G-001-5 | **オトモ発火** — combat_start／ally_death／探索被弾対象を `party_combat_hp` | 案D/F 境界の続き |
+| P3-FIX-COMBAT-AUDIT-G-001-6 | **据置** — reactive cinematic lock 深度／再使用「秒」文言／死データ接続 | 侵襲大・将来仕様 |
 
 

@@ -7386,21 +7386,22 @@ func _log_party_passives_on_combat_enter() -> void:
 			_append_log("[%s] %s — %s" % [tag, mname, pname])
 
 func _fire_combat_start_passives() -> void:
-	for i: int in GameState.party_members.size():
+	## オトモ含む combatants（party_members のみだと pet の開幕パッシブ欠落）。
+	for i: int in $CombatController.party_combat_hp.size():
 		if $CombatController.is_member_alive(i):
 			_fire_member_passives(i, "on_combat_start")
 
 
 func _fire_noncombat_enter_passives() -> void:
 	$CombatController.ensure_party_hp_for_combat()
-	for i: int in GameState.party_members.size():
+	for i: int in $CombatController.party_combat_hp.size():
 		if $CombatController.is_member_alive(i):
 			_fire_member_passives(i, "on_noncombat_enter")
 
 
 func _living_exploration_damage_targets() -> Array[int]:
 	var living: Array[int] = []
-	for i: int in GameState.party_members.size():
+	for i: int in $CombatController.party_combat_hp.size():
 		if not $CombatController.is_member_alive(i):
 			continue
 		var m: Resource = GameState.get_combatant(i)
@@ -7428,13 +7429,13 @@ func _on_member_damaged(target_idx: int, ctx: Dictionary = {}) -> void:
 	AudioManager.play_sfx("combat_death", 1.0, 0.06)
 	$CombatController.clear_pending_cast("party", target_idx)
 	_clear_member_skill_labels(target_idx)
-	for i: int in GameState.party_members.size():
+	for i: int in $CombatController.party_combat_hp.size():
 		if i == target_idx:
 			continue
 		if $CombatController.is_member_alive(i):
 			_fire_member_passives(i, "on_ally_death", ctx)
 
-# 指定メンバーの該当 trigger パッシブを順に試行。
+# 指定メンバーの該当 trigger パッシブを順に試行。戦闘終了時は打ち切る。
 func _fire_member_passives(member_idx: int, trigger: String, ctx: Dictionary = {}) -> void:
 	var member: Resource = GameState.get_combatant(member_idx)
 	if member == null:
@@ -7449,19 +7450,21 @@ func _fire_member_passives(member_idx: int, trigger: String, ctx: Dictionary = {
 				_passive_attack_hits[member_idx] = hits
 				if hits % every_n != 0:
 					continue
-		_try_fire_passive(member_idx, p, ctx)
+		if _try_fire_passive(member_idx, p, ctx):
+			return
 
-func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> void:
+## 戻り値 true = 戦闘終了（呼び出し側は後続パッシブを止める）。
+func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> bool:
 	var pid: String = str(p.get("id", ""))
 	var key: String = "%d:%s" % [member_idx, pid]
 	if float(_passive_cd.get(key, 0.0)) > 0.0:
-		return
+		return false
 	if bool(p.get("once_per_combat", false)) and bool(_passive_once_fired.get(key, false)):
-		return
+		return false
 	## 前列限定トリガー（王盾など）。
 	if str(p.get("passive_condition", "")) == "front_row_only":
 		if GameState.is_member_back_row(member_idx):
-			return
+			return false
 	# 条件
 	if str(p.get("condition", "always")) == "self_hp_below":
 		var ratio: float = 1.0
@@ -7470,19 +7473,20 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 			if maxhp > 0:
 				ratio = float($CombatController.party_combat_hp[member_idx]) / float(maxhp)
 		if ratio >= float(p.get("value", 0.0)):
-			return
+			return false
 	elif str(p.get("condition", "always")) == "is_critical":
 		if not bool(ctx.get("is_critical", false)):
-			return
+			return false
 	# 効果
 	var applied: bool = false
+	var combat_ended: bool = false
 	match str(p.get("effect", "")):
 		"apply_status":
 			if p.has("status_chance") and randf() > float(p.get("status_chance", 1.0)):
-				return
+				return false
 			var sid: String = str(p.get("status_id", ""))
 			if sid.is_empty():
-				return
+				return false
 			var source_atk: int = _dot_source_attack_for_member(member_idx, ctx)
 			var target_kind: String = str(p.get("target", "self"))
 			if target_kind == "party":
@@ -7517,10 +7521,10 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 			_update_status_icons()
 		"random_enemy_status":
 			if p.has("status_chance") and randf() > float(p.get("status_chance", 1.0)):
-				return
+				return false
 			var pool: Array = p.get("status_pool", [])
 			if pool.is_empty():
-				return
+				return false
 			var rand_sid: String = str(pool[randi() % pool.size()])
 			var enemy_slot: int = int(ctx.get("target_slot", -1))
 			if enemy_slot < 0:
@@ -7548,6 +7552,9 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 				GameState.record_run_damage(member_idx, bonus, "crit_pulse", "会心追撃")
 				_update_hp_bars()
 				applied = true
+				_check_boss_phase_transition(pulse_slot)
+				if $CombatController.get_enemy_hp_at(pulse_slot) <= 0:
+					combat_ended = _on_enemy_slot_killed(pulse_slot)
 		"heal":
 			# heal_value: condition 閾値の "value" と衝突する場合の回復量キー（P3-D155）
 			var frac: float = float(p.get("heal_max_hp_fraction", -1.0))
@@ -7599,9 +7606,9 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 			applied = true
 		"chance_cast_equipped_skill":
 			if _passive_skill_echo_depth > 0:
-				return
+				return false
 			if p.has("status_chance") and randf() > float(p.get("status_chance", 1.0)):
-				return
+				return false
 			_passive_skill_echo_depth += 1
 			applied = _try_member_equipped_skill(member_idx)
 			_passive_skill_echo_depth -= 1
@@ -7617,7 +7624,7 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 				applied = true
 				_check_boss_phase_transition(slot)
 				if $CombatController.get_enemy_hp_at(slot) <= 0:
-					_on_enemy_slot_killed(slot)
+					combat_ended = _on_enemy_slot_killed(slot)
 		"counter_attack":
 			var counter_slot: int = int(ctx.get("attacker_slot", -1))
 			if counter_slot < 0 or not $CombatController.is_enemy_slot_alive(counter_slot):
@@ -7651,7 +7658,7 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 		"opening_strike":
 			var living: Array[int] = $CombatController.get_living_enemy_indices()
 			if living.is_empty():
-				return
+				return false
 			var slot: int = living[0]
 			var power: float = float(p.get("opening_damage_atk_mult", 2.0))
 			var base: Dictionary = _calc_damage(member_idx, slot)
@@ -7663,10 +7670,11 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 			_update_hp_bars()
 			_check_boss_phase_transition(slot)
 			if $CombatController.get_enemy_hp_at(slot) <= 0:
-				_on_enemy_slot_killed(slot)
-			var lock_n: int = int(p.get("basic_only_actions", 0))
-			if lock_n > 0:
-				_basic_only_actions_left[member_idx] = lock_n
+				combat_ended = _on_enemy_slot_killed(slot)
+			if not combat_ended:
+				var lock_n: int = int(p.get("basic_only_actions", 0))
+				if lock_n > 0:
+					_basic_only_actions_left[member_idx] = lock_n
 			applied = true
 			_append_log("[レリック] 開幕狙撃 %d ダメージ" % dmg)
 		"grant_next_attack_mult":
@@ -7692,13 +7700,20 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 				for slot: int in $CombatController.get_living_enemy_indices():
 					if slot == killed_slot:
 						continue
+					var burst_pos: Vector2 = _enemy_slot_pos(slot)
 					$CombatController.apply_damage_to_enemy_slot(slot, burst)
 					$CombatController.add_threat(
 						member_idx, float(burst) * CombatController.THREAT_DAMAGE_K
 					)
+					GameState.record_run_damage(member_idx, burst, "aoe_burst", "余波")
+					_spawn_hit_vfx(burst_pos, "", 0.85, false)
+					_spawn_damage_number(str(burst), burst_pos, Color(1.0, 0.75, 0.35), 0.9)
+					_append_log("[パッシブ] 余波 +%d" % burst)
 					_check_boss_phase_transition(slot)
 					if $CombatController.get_enemy_hp_at(slot) <= 0:
-						_on_enemy_slot_killed(slot)
+						combat_ended = _on_enemy_slot_killed(slot)
+						if combat_ended:
+							break
 				_update_hp_bars()
 				applied = true
 		"abyss_ice_shell_counter":
@@ -7717,7 +7732,7 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 			## Mark applied so UI/FX/CD can run without double-refund.
 			applied = true
 	if not applied:
-		return
+		return combat_ended
 	if bool(p.get("once_per_combat", false)):
 		_passive_once_fired[key] = true
 	var cd: float = float(p.get("cooldown", 0.0))
@@ -7739,6 +7754,7 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 		PASSIVE_NAME_FONT_SIZE
 	)
 	_append_log("[%s] %s 発動" % [tag, str(p.get("display_name", ""))])
+	return combat_ended
 
 # ---- パーティ連携連鎖（P3-D115） ----
 
@@ -7921,13 +7937,21 @@ func _resolve_party_attack_impact_async(payload: Dictionary) -> void:
 			var s_crit: bool = bool(hit.get("is_critical", false))
 			if s_slot < 0 or s_dmg <= 0 or not $CombatController.is_enemy_slot_alive(s_slot):
 				continue
+			var s_crit_tag: String = "  CRITICAL!" if s_crit else ""
+			_spawn_hit_vfx(
+				_enemy_slot_pos(s_slot),
+				_get_weapon_element(member_idx),
+				0.9,
+				s_crit,
+				_get_weapon_type(member_idx)
+			)
 			_spawn_damage_number(
 				str(s_dmg),
 				_enemy_slot_pos(s_slot),
 				_outgoing_damage_telop_color(s_crit),
 				1.1 if s_crit else 0.95
 			)
-			_append_log("%s の斉射: %dダメージ" % [mname, s_dmg])
+			_append_log("%s の斉射: %dダメージ%s" % [mname, s_dmg, s_crit_tag])
 			if not _deal_member_damage_to_enemy(member_idx, s_dmg, s_slot, "basic_attack", "通常攻撃", s_crit):
 				if $CombatController.is_enemy_slot_alive(s_slot):
 					_play_enemy_slot_animation(s_slot, "hurt")

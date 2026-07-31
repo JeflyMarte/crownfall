@@ -1264,17 +1264,21 @@ func begin_enemy_cast(slot: int, skill_id: String, turns_left: int) -> void:
 	}
 
 # 詠唱を1段進める。戻り値: "chant"（継続）/ "ready"（発動可）/ "none"
+# P3-D112-1: ceil(cast_time) 回の自分番を詠唱消費 → 先に減算し 0 で ready（off-by-one 防止）。
 func advance_pending_cast(kind: String, index: int) -> String:
 	var key: String = _cast_unit_key(kind, index)
 	if not _pending_casts.has(key):
 		return "none"
 	var pending: Dictionary = _pending_casts[key]
 	var left: int = int(pending.get("turns_left", 0))
-	if left > 0:
-		pending["turns_left"] = left - 1
-		_pending_casts[key] = pending
-		return "chant"
-	return "ready"
+	if left <= 0:
+		return "ready"
+	left -= 1
+	pending["turns_left"] = left
+	_pending_casts[key] = pending
+	if left <= 0:
+		return "ready"
+	return "chant"
 
 func clear_pending_cast(kind: String, index: int) -> void:
 	_pending_casts.erase(_cast_unit_key(kind, index))
