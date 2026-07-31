@@ -34,8 +34,8 @@ func test_stage_clear_and_boss_bonus() -> void:
 func test_rank_progression_thresholds() -> void:
 	GameState.discovery_registry["enemy:a"] = true
 	assert_eq(_CommanderProfile.current_rank(), "D")
-	## C=200 → 敵発見×3 で 67 件以上（201 SP）。
-	for i in 66:
+	## C=300 → 敵発見×3 で 100 件以上（300 SP）。
+	for i in 99:
 		GameState.discovery_registry["enemy:fill_%d" % i] = true
 	assert_eq(_CommanderProfile.rank_from_sp_only(), "C")
 	assert_eq(_CommanderProfile.current_rank(), "C")
@@ -60,7 +60,7 @@ func test_lifetime_run_points() -> void:
 func test_rank_up_pending_and_acknowledge() -> void:
 	GameState.commander["acknowledged_rank"] = "D"
 	assert_eq(_CommanderProfile.pending_rank_up(), "")
-	for i in 70:
+	for i in 100:
 		GameState.discovery_registry["enemy:rank_%d" % i] = true
 	assert_eq(_CommanderProfile.rank_from_sp_only(), "C")
 	assert_eq(_CommanderProfile.pending_rank_up(), "C")
@@ -71,7 +71,7 @@ func test_rank_up_pending_and_acknowledge() -> void:
 
 
 func test_missing_acknowledged_rank_bootstraps_to_current() -> void:
-	for i in 70:
+	for i in 100:
 		GameState.discovery_registry["enemy:boot_%d" % i] = true
 	assert_eq(_CommanderProfile.rank_from_sp_only(), "C")
 	GameState.commander.erase("acknowledged_rank")
@@ -92,6 +92,7 @@ func test_legacy_curve_migration_floors_rank() -> void:
 	)
 	assert_eq(_CommanderProfile.rank_from_sp_only(), "D")
 	GameState.commander.erase(_CommanderProfile.RANK_CURVE_FLAG)
+	GameState.commander.erase(_CommanderProfile.RANK_CURVE_V3_FLAG)
 	GameState.commander["acknowledged_rank"] = "D"
 	_CommanderProfile.migrate_rank_curve_v2_if_needed()
 	assert_true(bool(GameState.commander.get(_CommanderProfile.RANK_CURVE_FLAG, false)))
@@ -101,14 +102,35 @@ func test_legacy_curve_migration_floors_rank() -> void:
 	assert_eq(_CommanderGiftBox.pending_count(), 0)
 
 
+func test_rank_curve_v3_migration_floors_rank() -> void:
+	## v2 閾値では C（200+）だが現行では D 相当の SP。
+	for i in 80:
+		GameState.discovery_registry["enemy:v3_%d" % i] = true
+	assert_eq(_CommanderSurveyPoints.evaluate(), 240)
+	assert_eq(
+		_CommanderProfile.rank_for_sp_with(_CommanderProfile.RANK_THRESHOLDS_V2, 240),
+		"C"
+	)
+	assert_eq(_CommanderProfile.rank_from_sp_only(), "D")
+	GameState.commander[_CommanderProfile.RANK_CURVE_FLAG] = true
+	GameState.commander.erase(_CommanderProfile.RANK_CURVE_V3_FLAG)
+	GameState.commander["acknowledged_rank"] = "D"
+	_CommanderProfile.migrate_rank_curve_v3_if_needed()
+	assert_true(bool(GameState.commander.get(_CommanderProfile.RANK_CURVE_V3_FLAG, false)))
+	assert_eq(_CommanderProfile.get_acknowledged_rank(), "C")
+	assert_eq(_CommanderProfile.current_rank(), "C")
+	assert_eq(_CommanderProfile.pending_rank_up(), "")
+	assert_eq(_CommanderGiftBox.pending_count(), 0)
+
+
 func test_title_slot_limits_by_rank() -> void:
 	assert_eq(_CommanderProfile.title_slot_limit(), 0)
-	for i in 70:
+	for i in 100:
 		GameState.discovery_registry["enemy:slot_c_%d" % i] = true
 	_CommanderProfile.acknowledge_rank("C", false)
 	assert_eq(_CommanderProfile.title_slot_limit(), 1)
-	## B=700 → 敵 234 件以上。
-	for i in 200:
+	## B=650 → 敵 217 件以上。
+	for i in 150:
 		GameState.discovery_registry["enemy:slot_b_%d" % i] = true
 	_CommanderProfile.acknowledge_rank("B", false)
 	assert_eq(_CommanderProfile.title_slot_limit(), 2)
