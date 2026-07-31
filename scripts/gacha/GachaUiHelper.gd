@@ -1552,7 +1552,7 @@ static func make_equip_lineup_row(entry: Dictionary) -> PanelContainer:
 	UiTypography.apply_body(name_label, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	name_row.add_child(name_label)
 	var stars := Label.new()
-	stars.text = "L"
+	stars.text = "LEGEND"
 	stars.add_theme_color_override("font_color", COLOR_GOLD)
 	UiTypography.apply_caption(stars)
 	name_row.add_child(stars)

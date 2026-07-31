@@ -70,12 +70,12 @@ static func can_pull_with_ticket() -> bool:
 
 static func rate_display_text() -> String:
 	## フォーマット無しの生文字列。%% だと画面に二重 % が出る（P3-FIX-GACHA-SEAL-AUDIT-A-001）。
-	return "Epic 55%／L 45%（灰冠寄）"
+	return "Epic 55%／LEGEND 45%（灰冠寄）"
 
 
 static func rate_detail_text() -> String:
 	return (
-		"Epic 55%%\nL 45%%（内訳: 灰冠 60%%／既存L 40%%）\n\n"
+		"Epic 55%%\nLEGEND 45%%（内訳: 灰冠 60%%／既存LEGEND 40%%）\n\n"
 		+ "部位は武・防・飾均等 → その中で均等\n"
 		+ "除外: 神話・降臨セット・深層専用・真・王遺産\n\n"
 		+ "1回 %d 魔晶石／封蔵開封券可"

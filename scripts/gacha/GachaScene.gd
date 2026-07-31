@@ -848,7 +848,7 @@ func _rebuild_lineup() -> void:
 		UiTypography.apply_caption(rate_lbl, UiTypography.COLOR_SUB)
 		_lineup_container.add_child(rate_lbl)
 		var head := Label.new()
-		head.text = "— 灰冠限定（L内 60%）—"
+		head.text = "— 灰冠限定（LEGEND内 60%）—"
 		UiTypography.apply_body(head, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 		_lineup_container.add_child(head)
 		var entries: Array = _GachaEquipSystem.POOL
@@ -857,7 +857,7 @@ func _rebuild_lineup() -> void:
 				continue
 			_lineup_container.add_child(GachaUiHelper.make_equip_lineup_row(entry))
 		var foot := Label.new()
-		foot.text = "既存L %d件／Epic %d件（部位均等・一覧省略）" % [
+		foot.text = "既存LEGEND %d件／Epic %d件（部位均等・一覧省略）" % [
 			_GachaEquipSystem.other_l_pool_count(),
 			_GachaEquipSystem.epic_pool_count(),
 		]
@@ -880,15 +880,26 @@ func _rebuild_lineup() -> void:
 
 func _on_rate_detail_pressed() -> void:
 	_detail_overlay.visible = true
+	_set_page_arrows_visible(false)
 
 func _on_detail_close_pressed() -> void:
 	_detail_overlay.visible = false
+	_set_page_arrows_visible(true)
 
 func _on_detail_dim_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		_detail_overlay.visible = false
+		_set_page_arrows_visible(true)
 	elif event is InputEventScreenTouch and event.pressed:
 		_detail_overlay.visible = false
+		_set_page_arrows_visible(true)
+
+
+func _set_page_arrows_visible(visible: bool) -> void:
+	if _btn_page_prev != null:
+		_btn_page_prev.visible = visible
+	if _btn_page_next != null:
+		_btn_page_next.visible = visible
 
 func _on_pull_pressed() -> void:
 	_ask_pull(false)
@@ -1046,7 +1057,7 @@ func _populate_equip_reveal_content(result: Dictionary) -> void:
 		_label_reveal_name.text = "%s\nL" % name_str
 	else:
 		_label_reveal_sub.text = "エピック・%s" % _GachaEquipSystem.kind_label(kind)
-		var stars: String = "Epic" if rarity == Enums.Rarity.EPIC else "L"
+		var stars: String = "Epic" if rarity == Enums.Rarity.EPIC else "LEGEND"
 		_label_reveal_name.text = "%s\n%s" % [name_str, stars]
 	if _label_quote != null:
 		if blurb.is_empty():
