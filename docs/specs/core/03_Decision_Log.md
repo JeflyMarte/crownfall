@@ -6195,6 +6195,17 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-FIX-COMBAT-AUDIT-E-001-2 | **ブロック演出** — `blocked` フラグ＋`Block!` テロップ／ログ（Miss 同型）。ダメージは軽減後も適用 | 計算済・無演出だった |
 | P3-FIX-COMBAT-AUDIT-E-001-3 | **ボス weight** — `skill_weight` キー ⊆ `enemy.skill_ids` を GUT 固定 | 圧力パッチの typo 再発防止 |
 
+## 戦闘システム監査案F（2026-07-31 — P3-FIX-COMBAT-AUDIT-F-001）
+
+> **オーナー GO（案F）** — 敵スキルCD個体別／死者状態／敵クリVFX／オトモレジェンド。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-FIX-COMBAT-AUDIT-F-001-1 | **敵スキルCD** — キーを `enemy:{slot}:{skill_id}`（群れ同スキルの共有CD解消） | 個体別行動の前提 |
+| P3-FIX-COMBAT-AUDIT-F-001-2 | **死者状態** — 生存者のみ付与／tick。`party_` index は `substr(6)` | 撃破後付与・死者DoTログ／index0固定 |
+| P3-FIX-COMBAT-AUDIT-F-001-3 | **敵クリVFX/SE** — `is_critical` を `_spawn_hit_vfx` へ渡す | 案Eログ揃え |
+| P3-FIX-COMBAT-AUDIT-F-001-4 | **オトモレジェンド** — 状態収集は `party_combat_hp` ループ | 頭上アイコンとの一致 |
+| P3-FIX-COMBAT-AUDIT-F-001-5 | **据置** — 再使用「秒」文言／武器knockback・stagger・weight／敵move・detection・ai | 文言・将来仕様 |
 
 
 

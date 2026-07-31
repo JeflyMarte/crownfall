@@ -799,6 +799,9 @@ func apply_status(
 ) -> bool:
 	if unit_id.begins_with("party_"):
 		var member_idx: int = int(unit_id.substr(6))
+		## 死者への付与禁止（撃破後 on_hit・DoT 残骸の誤発火防止）。
+		if not is_member_alive(member_idx):
+			return false
 		if _ArmorStatResolver.member_immune_to_status(member_idx, effect_id):
 			return false
 	return _status_resolver.apply_status(unit_id, effect_id, stacks, source_attack)
@@ -858,7 +861,9 @@ func tick_all_statuses() -> Array[Dictionary]:
 		if is_enemy_slot_alive(slot):
 			results.append_array(_status_resolver.tick_unit(enemy_status_unit_id(slot)))
 	for i in party_combat_hp.size():
-		results.append_array(_status_resolver.tick_unit("party_%d" % i))
+		## 敵と同様、生存者のみ tick（死者の DoT ログ／VFXのみを防ぐ）。
+		if is_member_alive(i):
+			results.append_array(_status_resolver.tick_unit("party_%d" % i))
 	return results
 
 func should_enemy_skip_action_at(slot: int) -> bool:

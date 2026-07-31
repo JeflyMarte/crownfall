@@ -185,6 +185,10 @@ alwaysApply: false
 | パッシブ party 回復／鼓舞がオトモを外す | `party_members` ループ | `party_combat_hp`（combatants）に揃える。必殺チャージは人間のみ |
 | 敵クリティカルがデータだけ／無効果 | `critical_rate` 未配線 | `enemy_damage_to_member` でロール＋`CRITICAL_MULTIPLIER`（E-001） |
 | 武器ブロックがログ／テロップ無し | `blocked` フラグ無し | Miss 同型の `Block!`＋軽減ダメージ継続 |
+| 群れで同スキルが同時に使えない | CDキーが `enemy:{skill_id}` 共有 | `enemy:{slot}:{id}`（F-001） |
+| 撃破後に状態付与／死者DoTログ | 生存チェック無し＋死者も tick | 付与／tick は生存のみ。`party_` は `substr(6)` |
+| 敵クリがログのみで VFX/SE 無し | `_spawn_hit_vfx` に `is_critical` 未渡し | 通常／スキル被弾とも crit 引数を渡す |
+| オトモ状態が右下レジェンド欠落 | 収集が `party_members` のみ | `party_combat_hp` ループ（頭上アイコンと同型） |
 | スキル会心が武器クリダメ無視 | `CRITICAL_MULTIPLIER` 固定 | `_skill_critical_multiplier`（通常攻撃と同式） |
 | 敵スキル属性が防具耐性に未反映 | 耐性は `attack_element` のみ／VFXは skill.element | `attack_element_override` |
 | 必殺詠唱中断でチャージ消失 | 詠唱開始時に consume | 即時のみ開始時消費／詠唱は解決時 |

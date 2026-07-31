@@ -1345,13 +1345,20 @@ func _member_has_ready_skill(member_idx: int, ctx: Dictionary) -> bool:
 		return false
 	return _skill_executor.can_cast(wsd, _member_skill_cd_key(member_idx, wsd))
 
+func _enemy_skill_cd_key(slot: int, skill_data: Resource) -> String:
+	## 群れで同スキルを持つ複数個体が CD を共有しない（P3-FIX-COMBAT-AUDIT-F-001）。
+	if skill_data == null:
+		return ""
+	return "enemy:%d:%s" % [slot, skill_data.id]
+
+
 func _enemy_has_castable_skill(slot: int) -> bool:
 	var enemy_data: Resource = $CombatController.get_enemy_data_at(slot)
 	if enemy_data == null or enemy_data.skill_ids.is_empty():
 		return false
 	for sid in enemy_data.skill_ids:
 		var sd: Resource = DataRegistry.get_skill_data(str(sid))
-		if sd != null and _skill_executor.can_cast(sd, "enemy:%s" % sd.id):
+		if sd != null and _skill_executor.can_cast(sd, _enemy_skill_cd_key(slot, sd)):
 			return true
 	return false
 
@@ -2976,7 +2983,8 @@ func _field_legend_content_signature(weather: String, show_weather: bool) -> Str
 
 func _collect_active_status_ids() -> Array[String]:
 	var seen: Dictionary = {}
-	for i: int in GameState.party_members.size():
+	## オトモ含む combat HP 行（人間のみの party_members だと pet 状態がレジェンド欠落）。
+	for i: int in $CombatController.party_combat_hp.size():
 		if not $CombatController.is_member_alive(i):
 			continue
 		for entry: Variant in $CombatController.get_member_status_list(i):
@@ -4764,7 +4772,10 @@ func _process_status_ticks() -> void:
 				if _on_enemy_slot_killed(slot):
 					return
 		elif unit_id.begins_with("party_"):
-			var idx: int = int(unit_id.substr(7))
+			## "party_" は6文字。substr(7) だと index0 固定になる（P3-FIX-COMBAT-AUDIT-F-001）。
+			var idx: int = int(unit_id.substr(6))
+			if not $CombatController.is_member_alive(idx):
+				continue
 			$CombatController.apply_damage_to_member(idx, dmg)
 			if dmg > 0:
 				GameState.record_run_damage_taken(idx, dmg)
@@ -5792,20 +5803,21 @@ func _try_enemy_skill() -> bool:
 	if use_chance <= 0.0 or randf() > use_chance:
 		return false
 	var phase_def: Dictionary = CombatBossPhases.phase_def(enemy_id, phase_idx)
-	var skill: Resource = _pick_enemy_skill(enemy_data, phase_def)
+	var skill: Resource = _pick_enemy_skill(enemy_data, phase_def, slot)
 	if skill == null:
 		return false
 	return _try_cast_enemy_skill(slot, skill)
 
-func _pick_enemy_skill(enemy_data: Resource, phase_def: Dictionary) -> Resource:
+func _pick_enemy_skill(enemy_data: Resource, phase_def: Dictionary, slot: int = -1) -> Resource:
 	var weights: Dictionary = phase_def.get("skill_weight", {})
 	var pool: Array = []
 	var total: float = 0.0
+	var cd_slot: int = slot if slot >= 0 else $CombatController.active_enemy_index
 	for sid in enemy_data.skill_ids:
 		var sd: Resource = DataRegistry.get_skill_data(str(sid))
 		if sd == null:
 			continue
-		if not _skill_executor.can_cast(sd, "enemy:%s" % sd.id):
+		if not _skill_executor.can_cast(sd, _enemy_skill_cd_key(cd_slot, sd)):
 			continue
 		var w: float = float(weights.get(str(sid), 1.0))
 		pool.append({"skill": sd, "weight": w})
@@ -5827,7 +5839,7 @@ func _try_cast_enemy_skill(slot: int, skill: Resource) -> bool:
 	var cast_time: float = float(skill.cast_time)
 	if cast_time <= 0.0:
 		return _execute_enemy_skill(skill, slot)
-	var cd_key: String = "enemy:%s" % skill.id
+	var cd_key: String = _enemy_skill_cd_key(slot, skill)
 	if not _skill_executor.can_cast(skill, cd_key):
 		return false
 	var turns: int = int(ceil(cast_time))
@@ -5988,7 +6000,7 @@ func _advance_enemy_cast(slot: int) -> void:
 func _execute_enemy_skill(skill: Resource, slot: int = -1) -> bool:
 	if slot < 0:
 		slot = $CombatController.active_enemy_index
-	var res: Dictionary = _skill_executor.execute_support_skill(skill, "enemy:%s" % skill.id)
+	var res: Dictionary = _skill_executor.execute_support_skill(skill, _enemy_skill_cd_key(slot, skill))
 	if not res.get("executed", false):
 		return false
 	match skill.effect_type:
@@ -6218,7 +6230,7 @@ func _apply_enemy_damage_to_targets(
 			if blocked:
 				_spawn_block_telop(hit_pos)
 			if dmg > 0:
-				_spawn_hit_vfx(hit_pos)
+				_spawn_hit_vfx(hit_pos, skill_elem, 1.0, is_crit)
 				var dmg_scale: float = 1.25 if is_crit else 1.0
 				_spawn_damage_number(str(dmg), hit_pos, Color(1.0, 0.35, 0.35), dmg_scale)
 		var density_tag: String = $CombatController.get_density_log_tag(ti)
@@ -6442,7 +6454,7 @@ func _resolve_enemy_attack_impact_async(payload: Dictionary) -> void:
 		if blocked:
 			_spawn_block_telop(hit_pos)
 		if enemy_result["final"] > 0:
-			_spawn_hit_vfx(hit_pos)
+			_spawn_hit_vfx(hit_pos, _enemy_attack_element_at(slot), 1.0, is_crit)
 			var dmg_scale: float = 1.25 if is_crit else 1.0
 			_spawn_damage_number(
 				str(enemy_result["final"]),
@@ -6535,6 +6547,9 @@ func _free_enemy_attack_mark(mark: Label) -> void:
 		mark.queue_free()
 
 func _try_apply_enemy_hit_status(target_idx: int, attacker_slot: int = -1) -> void:
+	## 撃破後は付与しない（死者 tick／ログ・VFXのみの事故防止）。
+	if target_idx < 0 or not $CombatController.is_member_alive(target_idx):
+		return
 	var slot: int = attacker_slot if attacker_slot >= 0 else $CombatController.active_enemy_index
 	var enemy_data: Resource = $CombatController.get_enemy_data_at(slot)
 	if enemy_data == null or enemy_data.on_hit_status_id.is_empty():
