@@ -1075,7 +1075,7 @@ func _ensure_lb_ticket_row() -> void:
 	info_box.add_child(_lb_ticket_row)
 	info_box.move_child(_lb_ticket_row, _evolution_row.get_index() + 1)
 	_confirm_lb_ticket = ConfirmationDialog.new()
-	_confirm_lb_ticket.title = "限界突破券"
+	_confirm_lb_ticket.title = "限凸券"
 	_confirm_lb_ticket.ok_button_text = "使う"
 	_confirm_lb_ticket.cancel_button_text = "やめる"
 	_confirm_lb_ticket.confirmed.connect(_on_lb_ticket_confirmed)
@@ -1094,7 +1094,7 @@ func _update_lb_ticket_row(member: Resource) -> void:
 		return
 	var check: Dictionary = TicketSystem.can_limit_break_member(member)
 	var ticket_id: String = str(check.get("ticket_id", TicketSystem.ticket_id_for_limit_break_rarity(int(member.rarity))))
-	var tname: String = TicketSystem.display_name(ticket_id) if not ticket_id.is_empty() else "限界突破券"
+	var tname: String = TicketSystem.display_name(ticket_id) if not ticket_id.is_empty() else "限凸券"
 	var qty: int = TicketInventory.get_qty(ticket_id) if not ticket_id.is_empty() else 0
 	_lb_ticket_row.visible = true
 	if bool(check.get("ok", false)):
@@ -1105,7 +1105,7 @@ func _update_lb_ticket_row(member: Resource) -> void:
 		var reason: String = str(check.get("reason", ""))
 		match reason:
 			"max_breakthrough":
-				_label_lb_ticket.text = "限界突破上限"
+				_label_lb_ticket.text = "限凸上限"
 				_btn_lb_ticket.text = "上限"
 			"no_ticket", "no_ticket_for_rarity":
 				_label_lb_ticket.text = "%s ×%d" % [tname, qty]

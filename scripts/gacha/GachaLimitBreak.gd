@@ -42,7 +42,7 @@ static func tag_text(breakthrough: int) -> String:
 	var n: int = clampi(breakthrough, 0, MAX_BREAKTHROUGH)
 	if n <= 0:
 		return ""
-	return "限界突破 +%d" % n
+	return "限凸 +%d" % n
 
 
 static func plus_suffix(breakthrough: int) -> String:
