@@ -6085,8 +6085,20 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-GACHA-EQ-SEAL-UI-001-1 | **同一シーン** — `GachaScene` 内ページ切替。新規シーンなし | 骨格共有 |
 | P3-GACHA-EQ-SEAL-UI-001-2 | **切替** — Featured 枠の →／←（循環）。上タブなし | オーナー指定 |
 | P3-GACHA-EQ-SEAL-UI-001-3 | **単価** — 封蔵 300 魔晶石。招待無料券は使わない（v1） | 招待500と分離 |
-| P3-GACHA-EQ-SEAL-UI-001-4 | **排出** — 灰冠武防飾27のみ。真王遺産／神話／降臨セット除外 | Decision 28 |
+| P3-GACHA-EQ-SEAL-UI-001-4 | **排出** — Epic55／L45。L内灰冠60／既存L40。神話・降臨・深層・王遺産除外 | オーナー推奨案A |
 | P3-GACHA-EQ-SEAL-UI-001-5 | **SSOT** — `decisions/29_SealGachaUI.md` | UI の正 |
+
+## 封蔵排出確率案A（2026-07-31 — P3-GACHA-EQ-SEAL-RATE-001）
+
+> **オーナー GO** — 既存L＋Epicをハズレ枠。L時は灰冠を少し厚く。深層除外。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-GACHA-EQ-SEAL-RATE-001-1 | **帯** — Epic 55%／L 45% | 推奨案A |
+| P3-GACHA-EQ-SEAL-RATE-001-2 | **L内** — 灰冠 60%／既存L 40% | 灰冠を少し出しやすく |
+| P3-GACHA-EQ-SEAL-RATE-001-3 | **部位** — 武・防・飾均等 → その中で均等 | 武器件数偏り防止 |
+| P3-GACHA-EQ-SEAL-RATE-001-4 | **除外** — 神話・降臨セット・`abyss_*`・真・王遺産・灰冠の二重登録 | Decision 28 整合 |
+| P3-GACHA-EQ-SEAL-RATE-001-5 | **上書き** — SEAL-UI-001 の「灰冠のみ」排出 | 本 Decision が正 |
 
 ## 状態異常横断点検（2026-07-31 — P3-FIX-STATUS-AUDIT-001）
 

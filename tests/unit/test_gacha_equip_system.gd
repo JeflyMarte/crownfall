@@ -19,6 +19,7 @@ func before_each() -> void:
 	GameState.armor_inventory.clear()
 	GameState.accessory_inventory.clear()
 	GameState.gacha_token = 0
+	_GachaEquipSystem.reset_pools_for_tests()
 
 
 func after_each() -> void:
@@ -51,6 +52,16 @@ func test_pull_cost_is_300() -> void:
 	assert_eq(_GachaEquipSystem.pull_cost(), 300)
 
 
+func test_rate_table_case_a() -> void:
+	assert_almost_eq(_GachaEquipSystem.RATE_EPIC, 0.55, 0.001)
+	assert_almost_eq(_GachaEquipSystem.RATE_LEGENDARY, 0.45, 0.001)
+	assert_almost_eq(_GachaEquipSystem.RATE_L_KAIWAN, 0.60, 0.001)
+	assert_almost_eq(_GachaEquipSystem.RATE_L_OTHER, 0.40, 0.001)
+	assert_almost_eq(
+		_GachaEquipSystem.RATE_EPIC + _GachaEquipSystem.RATE_LEGENDARY, 1.0, 0.001
+	)
+
+
 func test_can_pull_requires_token() -> void:
 	GameState.gacha_token = 299
 	assert_false(_GachaEquipSystem.can_pull())
@@ -73,7 +84,13 @@ func test_pull_grants_equipment_and_spends_token() -> void:
 	var result: Dictionary = _GachaEquipSystem.pull()
 	assert_true(bool(result.get("ok", false)), str(result))
 	assert_eq(GameState.gacha_token, 300)
-	assert_eq(int(result.get("rarity", -1)), Enums.Rarity.LEGENDARY)
+	var rarity: int = int(result.get("rarity", -1))
+	assert_true(
+		rarity == Enums.Rarity.EPIC or rarity == Enums.Rarity.LEGENDARY,
+		"rarity=%d" % rarity
+	)
+	var pool_tag: String = str(result.get("pool", ""))
+	assert_true(pool_tag in ["epic", "kaiwan", "other_l"], pool_tag)
 	var kind: String = str(result.get("kind", ""))
 	assert_true(kind in ["weapon", "armor", "accessory"])
 	assert_false(str(result.get("item_id", "")).is_empty())
@@ -85,6 +102,21 @@ func test_pull_grants_equipment_and_spends_token() -> void:
 		+ (GameState.accessory_inventory.size() - before_c)
 	)
 	assert_eq(gained, 1)
+
+
+func test_standard_pools_exclude_kaiwan_abyss_mythic() -> void:
+	_GachaEquipSystem.ensure_pools()
+	assert_gt(_GachaEquipSystem.epic_pool_count(), 0)
+	assert_gt(_GachaEquipSystem.other_l_pool_count(), 0)
+	for e: Dictionary in _GachaEquipSystem.entries_for_pool("epic"):
+		var id_e: String = str(e.get("id", ""))
+		assert_false(id_e.begins_with("kaiwan_"), id_e)
+		assert_false(id_e.begins_with("abyss_"), id_e)
+	for e2: Dictionary in _GachaEquipSystem.entries_for_pool("other_l"):
+		var id_l: String = str(e2.get("id", ""))
+		assert_false(id_l.begins_with("kaiwan_"), id_l)
+		assert_false(id_l.begins_with("abyss_"), id_l)
+		assert_ne(id_l, "burial_crown_greatsword")
 
 
 func test_pool_resources_resolve() -> void:
