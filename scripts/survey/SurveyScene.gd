@@ -1140,16 +1140,16 @@ func _reward_catalog_rows() -> Array[Dictionary]:
 	})
 	out.append({
 		"texture": IconPaths.get_icon_texture("base_ore", "material"),
-		"title": "基礎鉱",
-		"chance": "確定（短 2〜4／標準 5〜9）",
+		"title": "鍛冶素材（派遣先帯）",
+		"chance": "確定（短 2〜4／標準 5〜9）。帯で基礎鉱／遺跡結晶／蒼古／深層／王墓を重み抽選",
 	})
 	var p1: int = int(round(_SurveyConfig.WEAPON_P_STAR1 * 100.0))
 	var p2: int = int(round(_SurveyConfig.WEAPON_P_STAR2 * 100.0))
 	var p3: float = _SurveyConfig.WEAPON_P_STAR3 * 100.0
 	out.append({
 		"texture": IconPaths.get_icon_texture("iron_sword", "weapon"),
-		"title": "装備（武器）",
-		"chance": "N %d%%／R %d%%／E %.1f%%（いずれか、または無し）" % [p1, p2, p3],
+		"title": "装備（武器・派遣先プール）",
+		"chance": "N %d%%／R %d%%／E %.1f%%（いずれか、または無し）。対象DGの武器プールから" % [p1, p2, p3],
 	})
 	var did: String = _selected_dungeon_id()
 	var dg: Resource = DataRegistry.get_dungeon_data(did)

@@ -6014,3 +6014,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-ABYSS-PROGRESS-HIDE-001-2 | **バー** — 進行バーは空（value=0） | 「空にして」指示 |
 | P3-UX-ABYSS-PROGRESS-HIDE-001-3 | **据置** — F表示（F12 等）・部屋チップ・本編進行％ | 階数そのものは有用 |
 | P3-UX-ABYSS-PROGRESS-HIDE-001-4 | **上書き** — P3-UX-RUN-HUD-FLOOR-PCT-001 の深層分母扱い | 本 Decision が深層UIの正 |
+
+## 調査室DISPATCH報酬バラエティ（2026-07-31 — P3-SURVEY-REWARD-VAR-001）
+
+> **オーナー GO（推奨 A+C・総量ほぼ同じで中身多様）** — 毎回受取の単調さ解消。完全調査100%は据置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-SURVEY-REWARD-VAR-001-1 | **素材** — 確定個数帯は据置。素材IDを派遣先 Biome 重みテーブルで抽選（①基礎・結晶／⑤に深層・王墓混じり） | 案A |
+| P3-SURVEY-REWARD-VAR-001-2 | **武器** — 確率据置。プールは派遣先 `weapon_pool`（空なら全武器フォールバック） | 案C最小 |
+| P3-SURVEY-REWARD-VAR-001-3 | **据置** — 魔晶石40%・Gold連動・EXP・完全調査景品・日次半減 | 経済を壊さない |
+| P3-SURVEY-REWARD-VAR-001-4 | **スコープ外** — 防具／装飾抽選・週替わり・役割ボーナス | 後続可 |
