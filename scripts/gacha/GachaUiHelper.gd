@@ -5,6 +5,7 @@ const _GachaLimitBreak := preload("res://scripts/gacha/GachaLimitBreak.gd")
 const _GachaEquipSystem := preload("res://scripts/gacha/GachaEquipSystem.gd")
 const _CharacterStatBonuses := preload("res://scripts/roster/CharacterStatBonuses.gd")
 const _ChrIdlePortraitView := preload("res://scripts/ui/ChrIdlePortraitView.gd")
+const _EquipmentUiTokens := preload("res://scripts/equipment/EquipmentUiTokens.gd")
 
 const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45)
 const COLOR_SUB: Color = Color(0.72, 0.69, 0.62)
@@ -32,6 +33,8 @@ const FEATURED_BLURB_SHADOW := Color(0.04, 0.02, 0.08, 0.9)
 const FEATURED_MOTE_COUNT: int = 18
 ## 台座中心向け。実機の短い枠でもキャラ全体が枠内に収まるよう host から算出。
 const FEATURED_IDLE_OFFSET_X: float = 0.0
+## 封蔵装備プレビューは右説明と重ならないよう左へ。
+const FEATURED_EQUIP_OFFSET_X: float = -36.0
 ## 【キャラ上下の主操作】大きいほど上へ。MIN/MAX は自動計算の下限／上限なので触っても効きにくい。
 ## P3-GACHA-FEATURE-BLURB-001: 130 → 100（少し下げる）。
 const FEATURED_IDLE_LIFT_Y: float = 100.0
@@ -47,9 +50,7 @@ const POOL_STRIP_SIDE_PAD: float = 12.0
 ## 封蔵プール帯の下地。
 const POOL_STRIP_BACK_COLOR := Color(0.10, 0.08, 0.06, 0.72)
 const POOL_STRIP_BACK_BORDER := Color(0.72, 0.58, 0.30, 0.55)
-## 封蔵 Featured／帯セルの暗い石マット（クリーム禁止・赤黒が読める台）。
-const EQUIP_STONE_MAT_COLOR := Color(0.14, 0.11, 0.16, 0.92)
-const EQUIP_STONE_MAT_BORDER := Color(0.42, 0.32, 0.38, 0.55)
+## 帯セル内の暗い下地（中央は InvCell レジェンド枠を使う）。
 const EQUIP_CELL_MAT_COLOR := Color(0.12, 0.10, 0.14, 0.88)
 ## 灰冠は赤黒が正。上げすぎるとピンク化するため白のまま
 const EQUIP_ICON_MODULATE := Color(1.0, 1.0, 1.0, 1.0)
@@ -84,6 +85,13 @@ static func _featured_bottom_offset(foot: float, host_height: float = 0.0, idle_
 	return -(foot + lift + strip)
 
 
+static func _featured_art_offset_x(shell: Dictionary) -> float:
+	var stone: Control = shell.get("equip_stone_mat") as Control
+	if stone != null and stone.visible:
+		return FEATURED_IDLE_OFFSET_X + FEATURED_EQUIP_OFFSET_X
+	return FEATURED_IDLE_OFFSET_X
+
+
 ## Featured idle / ビームの足元オフセットを host 高さに合わせて再配置。
 static func relayout_featured_shell(shell: Dictionary, host: Control) -> void:
 	if shell.is_empty() or host == null:
@@ -92,12 +100,13 @@ static func relayout_featured_shell(shell: Dictionary, host: Control) -> void:
 	var idle_px: float = featured_idle_px(h)
 	var foot: float = featured_foot_pad(h)
 	var bottom: float = _featured_bottom_offset(foot, h, idle_px)
+	var art_x: float = _featured_art_offset_x(shell)
 	var idle: Control = shell.get("idle") as Control
 	if idle != null:
 		if idle.has_method("set_portrait_size"):
 			idle.call("set_portrait_size", idle_px)
-		idle.offset_left = -idle_px * 0.5 + FEATURED_IDLE_OFFSET_X
-		idle.offset_right = idle_px * 0.5 + FEATURED_IDLE_OFFSET_X
+		idle.offset_left = -idle_px * 0.5 + art_x
+		idle.offset_right = idle_px * 0.5 + art_x
 		idle.offset_top = -idle_px + bottom
 		idle.offset_bottom = bottom
 		idle.visible = true
@@ -118,7 +127,7 @@ static func relayout_featured_shell(shell: Dictionary, host: Control) -> void:
 	if stone == null:
 		stone = stage.get_node_or_null("EquipStoneMat") as Control
 	if stone != null:
-		_relayout_equip_stone_mat(stone, idle_px, bottom)
+		_relayout_equip_stone_mat(stone, idle_px, bottom, art_x)
 		shell["equip_stone_mat"] = stone
 	var beam: Control = stage.get_node_or_null("FeaturedBeam") as Control
 	if beam != null:
@@ -155,7 +164,7 @@ static func _relayout_feature_blurb(shell: Dictionary, host: Control) -> void:
 	var max_top: float = h - pool_strip_reserve() - float(FEATURED_BLURB_FONT_SIZE) - 6.0
 	top = minf(top, max_top)
 	## キャラ中心下に1行を置く（長い文はフォント縮小で全文表示）。
-	var center_x: float = w * 0.5 + FEATURED_IDLE_OFFSET_X
+	var center_x: float = w * 0.5 + _featured_art_offset_x(shell)
 	var blurb_w: float = minf(FEATURED_BLURB_MIN_W, w - 16.0)
 	var half_w: float = blurb_w * 0.5
 	blurb_wrap.set_anchors_preset(Control.PRESET_TOP_LEFT)
@@ -239,7 +248,7 @@ static func _relayout_pool_strip_back(shell: Dictionary) -> void:
 
 
 static func set_equip_icon_back_visible(shell: Dictionary, visible: bool) -> void:
-	## 中央は暗い石マット。旧クリーム EquipIconBack は除去。
+	## 中央は装備 InvCell レジェンド枠。旧クリーム EquipIconBack は除去。
 	var fade: Control = shell.get("fade") as Control
 	if fade != null:
 		var stale_back: Node = fade.get_node_or_null("FeaturedStage/EquipIconBack")
@@ -251,6 +260,11 @@ static func set_equip_icon_back_visible(shell: Dictionary, visible: bool) -> voi
 			var stone: Control = shell.get("equip_stone_mat") as Control
 			if stone == null:
 				stone = stage.get_node_or_null("EquipStoneMat") as Control
+			## 旧 Flat マットが残っていれば差し替え。
+			if stone != null and not (stone is TextureRect):
+				stone.queue_free()
+				stone = null
+				shell.erase("equip_stone_mat")
 			if visible:
 				if stone == null:
 					stone = _ensure_equip_stone_mat(stage)
@@ -259,50 +273,51 @@ static func set_equip_icon_back_visible(shell: Dictionary, visible: bool) -> voi
 				var layout_host: Control = fade.get_parent() as Control
 				if layout_host == null:
 					layout_host = fade
-				var h: float = maxf(layout_host.size.y, 280.0)
-				var idle_px: float = featured_idle_px(h)
-				var foot: float = featured_foot_pad(h)
-				var bottom: float = _featured_bottom_offset(foot, h, idle_px)
-				_relayout_equip_stone_mat(stone, idle_px, bottom)
+				relayout_featured_shell(shell, layout_host)
 			elif stone != null:
 				stone.visible = false
+				var layout_host2: Control = fade.get_parent() as Control
+				if layout_host2 == null:
+					layout_host2 = fade
+				relayout_featured_shell(shell, layout_host2)
 	var strip_back: PanelContainer = shell.get("pool_strip_back") as PanelContainer
 	if strip_back != null:
 		strip_back.visible = visible
 
 
-static func _ensure_equip_stone_mat(stage: Control) -> PanelContainer:
-	var existing: PanelContainer = stage.get_node_or_null("EquipStoneMat") as PanelContainer
+static func _ensure_equip_stone_mat(stage: Control) -> TextureRect:
+	var existing: TextureRect = stage.get_node_or_null("EquipStoneMat") as TextureRect
 	if existing != null:
 		return existing
-	var mat := PanelContainer.new()
+	var mat := TextureRect.new()
 	mat.name = "EquipStoneMat"
 	mat.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	mat.z_index = 4
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = EQUIP_STONE_MAT_COLOR
-	sb.set_corner_radius_all(28)
-	sb.set_border_width_all(1)
-	sb.border_color = EQUIP_STONE_MAT_BORDER
-	mat.add_theme_stylebox_override("panel", sb)
+	## 装備画面と同じレジェンド（SSR）InvCell＝背景＋金枠。
+	var cell_path: String = _EquipmentUiTokens.INV_CELLS[Enums.Rarity.LEGENDARY]
+	mat.texture = _EquipmentUiTokens.load_tex(cell_path)
+	mat.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	mat.stretch_mode = TextureRect.STRETCH_SCALE
 	stage.add_child(mat)
-	## idle(z=5) の下に来るよう先頭付近へ。
 	stage.move_child(mat, 0)
 	return mat
 
 
-static func _relayout_equip_stone_mat(mat: Control, idle_px: float, bottom: float) -> void:
+static func _relayout_equip_stone_mat(
+	mat: Control, idle_px: float, bottom: float, art_x: float = FEATURED_IDLE_OFFSET_X
+) -> void:
 	if mat == null:
 		return
-	var pad: float = idle_px * 0.08
-	var side: float = idle_px * 0.5 + pad
+	## 枠装飾の内側にアイコンが収まるよう、InvCell をアイコンより一回り大きく。
+	var frame_pad: float = idle_px * 0.12
+	var side: float = idle_px * 0.5 + frame_pad
 	mat.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
 	mat.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	mat.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	mat.offset_left = -side + FEATURED_IDLE_OFFSET_X
-	mat.offset_right = side + FEATURED_IDLE_OFFSET_X
-	mat.offset_top = -idle_px - pad + bottom
-	mat.offset_bottom = pad + bottom
+	mat.offset_left = -side + art_x
+	mat.offset_right = side + art_x
+	mat.offset_top = -idle_px - frame_pad + bottom
+	mat.offset_bottom = frame_pad + bottom
 
 
 static func sorted_helpers() -> Array:
