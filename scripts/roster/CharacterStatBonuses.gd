@@ -29,13 +29,13 @@ const HELPER_BONUS: Dictionary = {
 	"helper_c": {"hp": 258, "attack": 56, "defense": 156},
 	## レオン★1 → 853/239/129
 	"helper_d": {"hp": 53, "attack": 239, "defense": 129},
-	## ミラ★3 → 1194/361/186
+	## ルーシェ★3 → 1194/361/186
 	"helper_e": {"hp": 14, "attack": 171, "defense": 71},
 	## カイダ★2 → 961/307/92
 	"helper_f": {"hp": 61, "attack": 237, "defense": 47},
 	## ドランテ★1 → 889/211/177
 	"helper_h": {"hp": 89, "attack": 211, "defense": 177},
-	## ガルム★2 → 1042/168/203
+	## ウォール★2 → 1042/168/203
 	"helper_i": {"hp": 142, "attack": 98, "defense": 158},
 	## レノール★2 — 紙耐久高火力アルケ
 	"helper_k": {"hp": -30, "attack": 270, "defense": -20},

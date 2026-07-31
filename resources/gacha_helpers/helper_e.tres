@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "helper_e"
-display_name = "ミラ"
+display_name = "ルーシェ"
 job_id = "beast_tamer"
 origin_note = "敵を拘束するデバフが得意な弓使い！"
 summon_quote = "相棒、行こう！　一緒なら負けないよ！"

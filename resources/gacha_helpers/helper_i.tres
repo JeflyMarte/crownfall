@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "helper_i"
-display_name = "ガルム"
+display_name = "ウォール"
 job_id = "vanguard"
 origin_note = "根性でピンチを凌ぐ、不屈のタンク！"
 summon_quote = "この盾の傷、全部勝ち戦の勲章だぜ！"
