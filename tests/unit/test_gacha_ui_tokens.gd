@@ -6,6 +6,7 @@ func test_gacha_ui_asset_paths_exist() -> void:
 	for key in [
 		GachaUiTokens.BG,
 		GachaUiTokens.BANNER_BG,
+		GachaUiTokens.BANNER_BG_SEAL,
 		GachaUiTokens.BANNER_TITLE,
 		GachaUiTokens.BANNER_CATCHCOPY_ART,
 		GachaUiTokens.FEATURED_BEAM,
