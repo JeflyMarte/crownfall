@@ -797,6 +797,10 @@ func _is_abyss_run() -> bool:
 	return _AbyssDungeonConfig.is_abyss_data(current_dungeon_data)
 
 
+func is_abyss_run() -> bool:
+	return _is_abyss_run()
+
+
 func _sync_abyss_tier_for_current_floor() -> void:
 	if not _is_abyss_run():
 		return
@@ -1039,6 +1043,9 @@ func is_on_last_floor() -> bool:
 	return not room_sequence.is_empty() and current_room_index >= room_sequence.size() - 1
 
 func is_on_last_floor_before_exit() -> bool:
+	## 深層はチャンク末でも結果画面にせず、advance_room で延長する（P3-DG-ABYSS-001）。
+	if _is_abyss_run():
+		return false
 	return is_on_last_floor()
 
 func accumulate_rewards(exp: int, gold: int) -> int:
