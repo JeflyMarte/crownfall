@@ -265,7 +265,11 @@ Task 明示指示がない限り作成しない:
 | `assets/ui/batch2/ICO_Gold.png` | Gold アイコン 32×32 | ✅ |
 | `assets/ui/batch2/ICO_Currency_Arcanite.png` | 魔晶石（ガチャ通貨）アイコン 64×64 | ✅ |
 | `assets/ui/batch2/ICO_HP.png` | HP アイコン 32×32 | ✅ |
-| `assets/ui/materials/ICO_MAT_BaseOre.png` | 素材アイコン（`relic_shard` / `base_ore` 共用・灰色） | ✅ |
+| `assets/ui/materials/ICO_MAT_BaseOre.png` | 基礎鉱（`base_ore`） | ✅ |
+| `assets/ui/materials/ICO_MAT_RelicShard.png` | 遺跡の結晶（`relic_shard`） | ✅ |
+| `assets/ui/materials/ICO_MAT_EpicOre.png` | 深層結晶（`epic_ore`） | ✅ |
+| `assets/ui/materials/ICO_MAT_EliteRelicShard.png` | 王墓の欠片（`elite_relic_shard`） | ✅ |
+| `assets/ui/materials/ICO_MAT_AncientBone.png` | 蒼古の骨鉱（`ancient_bone`） | ✅ |
 | `assets/ui/nav/ICO_NAV_*.png` | 下ナビ/サイドメニュー金アイコン 128×128 ×8（Home/Adventure/Character/Party/Forge/Gacha/Codex/Settings — P3-UI3-001 で AI 生成・ソース復旧） | ✅ |
 | `assets/ui/UI_BG_Forge.png` | 鍛冶屋背景 720×1280（P3-UI3-001） | ✅ |
 | `assets/ui/forge/` | 鍛冶屋 chrome（DetailPanel／Tab／ListCard／CraftablePanel／主ボタン・`ForgeUiTokens`） | ✅ |
