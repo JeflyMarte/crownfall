@@ -181,6 +181,8 @@ alwaysApply: false
 | 葬冠 on_kill で名ポップ／CD 無し | `_try_fire_passive` に `refund_ct` アーム無し | `applied=true` のみ（CT返却は `on_kill_refund_fraction`） |
 | 感電コンボ不発（pulsekeen 等） | タグに `thunder`（ダメージ属性 id）を書き CombatTags で落ちる | タグは `lightning`。`CombatTags.normalize` で thunder→lightning（C-001） |
 | パッシブ／狩人の印のデバフで「追い込み」不発 | 連携武装がスキル経路のみ | `_party_applied_enemy_status` でパッシブ・レリック pre_hit も武装 |
+| 敵詠唱スキルが別個体として解決 | resolve が `active_enemy_index` 再読 | caster `slot` を buff/damage/async まで貫通（D-001） |
+| パッシブ party 回復／鼓舞がオトモを外す | `party_members` ループ | `party_combat_hp`（combatants）に揃える。必殺チャージは人間のみ |
 | スキル会心が武器クリダメ無視 | `CRITICAL_MULTIPLIER` 固定 | `_skill_critical_multiplier`（通常攻撃と同式） |
 | 敵スキル属性が防具耐性に未反映 | 耐性は `attack_element` のみ／VFXは skill.element | `attack_element_override` |
 | 必殺詠唱中断でチャージ消失 | 詠唱開始時に consume | 即時のみ開始時消費／詠唱は解決時 |

@@ -6139,4 +6139,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-FIX-COMBAT-AUDIT-C-001-4 | **effect 整合** — 定義の effect は dispatcher アーム必須（回帰テスト） | refund_ct 型の再発防止 |
 | P3-FIX-COMBAT-AUDIT-C-001-5 | **据置** — 敵 critical_rate／ブロック演出／敵詠唱×active／ボス weight／オトモ index | 案D候補 |
 
+## 戦闘システム監査案D（2026-07-31 — P3-FIX-COMBAT-AUDIT-D-001）
+
+> **オーナー GO（案D）** — 敵詠唱スロット固定／オトモ境界／列AoE確認。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-FIX-COMBAT-AUDIT-D-001-1 | **敵スキル／詠唱** — caster `slot` を resolve まで貫通（ATK・属性・自己バフ・VFX・反撃元） | active 再読で誤配線 |
+| P3-FIX-COMBAT-AUDIT-D-001-2 | **オトモ** — party 回復／バフ／rally／ally_dead／次攻撃倍率は `party_combat_hp` ループ。必殺チャージは人間のみ | heal_party と同型 |
+| P3-FIX-COMBAT-AUDIT-D-001-3 | **列AoE** — 空列 fallback・Threat按分・オトモ常時前列は仕様通り（コード変更なし） | P3-D106d 確認 |
+| P3-FIX-COMBAT-AUDIT-D-001-4 | **据置** — 敵 critical_rate／ブロック演出／ボス weight 回帰 | 案E |
+
+
 
