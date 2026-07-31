@@ -35,6 +35,8 @@ const FEATURED_MOTE_COUNT: int = 18
 const FEATURED_IDLE_OFFSET_X: float = 0.0
 ## 封蔵装備プレビューは右説明と重ならないよう左へ。
 const FEATURED_EQUIP_OFFSET_X: float = -36.0
+## LEGEND InvCell 装飾角の内側にアイコンを収める（鍛冶 FORGE_ICON_SAFE_FILL より少し厳しめ）。
+const FEATURED_EQUIP_ICON_SAFE_FILL: float = 0.72
 ## 【キャラ上下の主操作】大きいほど上へ。MIN/MAX は自動計算の下限／上限なので触っても効きにくい。
 ## P3-GACHA-FEATURE-BLURB-001: 130 → 100（少し下げる）。
 const FEATURED_IDLE_LIFT_Y: float = 100.0
@@ -101,17 +103,6 @@ static func relayout_featured_shell(shell: Dictionary, host: Control) -> void:
 	var foot: float = featured_foot_pad(h)
 	var bottom: float = _featured_bottom_offset(foot, h, idle_px)
 	var art_x: float = _featured_art_offset_x(shell)
-	var idle: Control = shell.get("idle") as Control
-	if idle != null:
-		if idle.has_method("set_portrait_size"):
-			idle.call("set_portrait_size", idle_px)
-		idle.offset_left = -idle_px * 0.5 + art_x
-		idle.offset_right = idle_px * 0.5 + art_x
-		idle.offset_top = -idle_px + bottom
-		idle.offset_bottom = bottom
-		idle.visible = true
-		idle.modulate = Color.WHITE
-		idle.z_index = 5
 	var fade: Control = shell.get("fade") as Control
 	if fade == null:
 		return
@@ -126,6 +117,31 @@ static func relayout_featured_shell(shell: Dictionary, host: Control) -> void:
 	var stone: Control = shell.get("equip_stone_mat") as Control
 	if stone == null:
 		stone = stage.get_node_or_null("EquipStoneMat") as Control
+	var stone_on: bool = stone != null and stone.visible
+	## 装備時は InvCell 枠内へ inset。キャラ時は idle_px 満載。
+	var draw_px: float = idle_px
+	if stone_on:
+		var cell_i: int = maxi(1, int(round(idle_px)))
+		var inset: int = _EquipmentUiTokens.icon_inset_px(
+			cell_i, _EquipmentUiTokens.INV_CELL_DESIGN_PX
+		)
+		var by_inset: float = maxf(1.0, float(cell_i - inset * 2))
+		var by_safe: float = maxf(1.0, floorf(idle_px * FEATURED_EQUIP_ICON_SAFE_FILL))
+		draw_px = minf(by_inset, by_safe)
+	var idle: Control = shell.get("idle") as Control
+	if idle != null:
+		if idle.has_method("set_portrait_size"):
+			idle.call("set_portrait_size", draw_px)
+		## 装備時は InvCell 内で中央寄せ（下揃えだと上に隙間・角はみ出しが残る）。
+		var v_pad: float = (idle_px - draw_px) * 0.5 if stone_on else 0.0
+		idle.offset_left = -draw_px * 0.5 + art_x
+		idle.offset_right = draw_px * 0.5 + art_x
+		idle.offset_top = -idle_px + bottom + v_pad
+		idle.offset_bottom = bottom - v_pad
+		idle.visible = true
+		idle.modulate = Color.WHITE
+		idle.z_index = 5
+		idle.clip_contents = stone_on
 	if stone != null:
 		_relayout_equip_stone_mat(stone, idle_px, bottom, art_x)
 		shell["equip_stone_mat"] = stone
@@ -308,16 +324,15 @@ static func _relayout_equip_stone_mat(
 ) -> void:
 	if mat == null:
 		return
-	## 枠装飾の内側にアイコンが収まるよう、InvCell をアイコンより一回り大きく。
-	var frame_pad: float = idle_px * 0.12
-	var side: float = idle_px * 0.5 + frame_pad
+	## InvCell＝外枠。アイコンは relayout 側で inset（角のはみ出し防止）。
+	var side: float = idle_px * 0.5
 	mat.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
 	mat.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	mat.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	mat.offset_left = -side + art_x
 	mat.offset_right = side + art_x
-	mat.offset_top = -idle_px - frame_pad + bottom
-	mat.offset_bottom = frame_pad + bottom
+	mat.offset_top = -idle_px + bottom
+	mat.offset_bottom = bottom
 
 
 static func sorted_helpers() -> Array:

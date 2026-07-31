@@ -472,15 +472,15 @@ func _apply_button_style(btn: Button, style: StyleBox) -> void:
 func _refresh() -> void:
 	_label_gold.text = "%d" % GameState.gold
 	_label_token.text = CurrencyHelper.format_amount()
+	## 枠上ロゴが正。ヘッダ中央タイトルは出さない（封蔵・招待とも）。
+	_label_title.text = ""
 	if _is_seal_page():
-		_label_title.text = "封じられし武庫"
 		_label_rate.text = _GachaEquipSystem.rate_display_text()
 		_label_catchcopy.text = _GachaEquipSystem.catchcopy()
 		_pull_confirm.title = "封じられし武庫"
 		_button_pull_ticket.visible = true
 		$DetailOverlay/DetailPanel/DetailVBox/DetailHeader/LabelDetailTitle.text = "封蔵の排出"
 	else:
-		_label_title.text = "ギルドへの招待状"
 		_label_rate.text = GachaSystem.rate_display_text()
 		_label_catchcopy.text = GachaUiHelper.catchcopy()
 		_pull_confirm.title = "招待状"
