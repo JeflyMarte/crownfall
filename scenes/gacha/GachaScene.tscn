@@ -235,19 +235,19 @@ max_lines_visible = 2
 
 [node name="PullRow" type="HBoxContainer" parent="SummonActionBar"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 2
 alignment = 1
 
 [node name="ButtonPull" type="Button" parent="SummonActionBar/PullRow"]
-custom_minimum_size = Vector2(360, 80)
+custom_minimum_size = Vector2(600, 80)
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 0
 text = "招待状を開く"
 
 [node name="ButtonPullTicket" type="Button" parent="SummonActionBar/PullRow"]
-custom_minimum_size = Vector2(360, 80)
+custom_minimum_size = Vector2(600, 80)
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 0
 text = "チケットで開く"
 
 [node name="DetailOverlay" type="Control" parent="."]

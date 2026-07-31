@@ -55,7 +55,7 @@ const BANNER_CATCHCOPY_HEIGHT: int = 72
 const LINEUP_CELL_PX: int = 120
 const PULL_BTN_HEIGHT: int = 80
 ## 文言＋アイコンより左右に余白を残す（汎用フレーム先端が文字に食い込まない幅）。
-const PULL_BTN_MIN_WIDTH: int = 360
+const PULL_BTN_MIN_WIDTH: int = 600
 ## 汎用フレーム先端オーナメントを潰さない 9-slice（元 2165×364）。
 const PULL_BTN_TEX_MARGINS := Vector4i(148, 56, 148, 56)
 const PULL_BTN_CONTENT_MARGIN_H: float = 56.0
@@ -153,6 +153,8 @@ static func apply_pull_button(btn: Button, enabled: bool) -> void:
 	btn.add_theme_stylebox_override("disabled", pull_disabled_style())
 	btn.disabled = not enabled
 	btn.custom_minimum_size = Vector2(PULL_BTN_MIN_WIDTH, PULL_BTN_HEIGHT)
+	## 横いっぱいに伸ばすとボタン間が空いて見える。枠幅は MIN_WIDTH のみ。
+	btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 
 static func decorate_title(label: Label) -> void:
 	UiTypography.apply_screen_title(label, UiTypography.SIZE_DISPLAY)
