@@ -167,3 +167,5 @@ alwaysApply: false
 | 無限の戦闘BGMが汎用 battle（旧曲） | `BATTLE_BY_DUNGEON` に abyss_* が無くフォールバック | `battle_bgm_for_dungeon` で親Biomeへ解決（P3-AUDIO-ABYSS-BGM-001） |
 
 | 無限で進行％がチャンク内％になる | 10Fチャンク分母で意味がない | 深層は空バー＋「進行 ?%」（P3-UX-ABYSS-PROGRESS-HIDE-001） |
+
+| 調査室受取が常に基礎鉱＋モーン武器 | DISPATCHが固定プール | 素材はBiome重み／武器は派遣先pool（P3-SURVEY-REWARD-VAR-001） |

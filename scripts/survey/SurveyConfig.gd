@@ -54,6 +54,23 @@ const MATERIAL_SHORT_MAX: int = 4
 const MATERIAL_STANDARD_MIN: int = 5
 const MATERIAL_STANDARD_MAX: int = 9
 
+## 派遣先 Biome 別の鍛冶素材重み（P3-SURVEY-REWARD-VAR-001）。総量帯は据置・中身だけ多様。
+## キー=material_id、値=相対重み。
+const MATERIAL_WEIGHTS_BY_DUNGEON: Dictionary = {
+	"mourngate": {"base_ore": 70, "relic_shard": 30},
+	"whisperwood": {"base_ore": 55, "relic_shard": 30, "ancient_bone": 15},
+	"mistfen": {"base_ore": 45, "relic_shard": 30, "ancient_bone": 25},
+	"blackshore": {"base_ore": 35, "relic_shard": 30, "ancient_bone": 25, "epic_ore": 10},
+	"frostridge": {
+		"base_ore": 30,
+		"relic_shard": 25,
+		"ancient_bone": 25,
+		"epic_ore": 15,
+		"elite_relic_shard": 5,
+	},
+}
+const MATERIAL_WEIGHTS_DEFAULT: Dictionary = {"base_ore": 70, "relic_shard": 30}
+
 ## P3-SURVEY-DISPATCH-EXP-001 — 戦闘員向け EXP（プール固定→均等割）。
 ## 参照＝対象 DG 雑魚クリア相当 EXP。スタッフ／オトモは対象外。
 const EXP_RATIO_SHORT: float = 0.20
@@ -76,6 +93,33 @@ const ACHIEVE_MILESTONES: Array[Dictionary] = [
 	{"id": "enemy_fill_75", "title": "生態調査 75%", "need_pct": 75.0, "gold": 3000, "token": 100},
 	{"id": "enemy_fill_100", "title": "生態調査 完了", "need_pct": 100.0, "gold": 8000, "token": 200},
 ]
+
+
+static func material_weights_for(dungeon_id: String) -> Dictionary:
+	var raw: Variant = MATERIAL_WEIGHTS_BY_DUNGEON.get(dungeon_id, MATERIAL_WEIGHTS_DEFAULT)
+	if raw is Dictionary and not (raw as Dictionary).is_empty():
+		return (raw as Dictionary).duplicate()
+	return MATERIAL_WEIGHTS_DEFAULT.duplicate()
+
+
+static func roll_material_id(dungeon_id: String, rng: RandomNumberGenerator = null) -> String:
+	var weights: Dictionary = material_weights_for(dungeon_id)
+	var total: int = 0
+	for w in weights.values():
+		total += maxi(0, int(w))
+	if total <= 0:
+		return "base_ore"
+	var roll: int
+	if rng != null:
+		roll = rng.randi_range(1, total)
+	else:
+		roll = randi_range(1, total)
+	var acc: int = 0
+	for mid in weights.keys():
+		acc += maxi(0, int(weights[mid]))
+		if roll <= acc:
+			return str(mid)
+	return str(weights.keys()[0])
 
 
 static func duration_sec(preset: String) -> float:

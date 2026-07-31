@@ -415,7 +415,7 @@ static func claim_cycle() -> Dictionary:
 	var assignees: Array = GameState.hub_survey_cycle.get("assignees", []) as Array
 	## 日次 SURVEY 上限到達後は魔晶石を半減（放置石稼ぎ抑制）。
 	var over_cap: bool = is_room_daily_capped()
-	var rewards: Dictionary = _roll_rewards(preset, over_cap)
+	var rewards: Dictionary = _roll_rewards(preset, over_cap, dungeon_id)
 	## 付与
 	GameState.gacha_token += int(rewards.get("token", 0))
 	GameState.gold += int(rewards.get("gold", 0))
@@ -532,7 +532,11 @@ static func cancel_cycle() -> Dictionary:
 	return {"ok": true}
 
 
-static func _roll_rewards(preset: String, over_cap: bool = false) -> Dictionary:
+static func _roll_rewards(
+	preset: String,
+	over_cap: bool = false,
+	dungeon_id: String = "",
+) -> Dictionary:
 	var short: bool = preset == _SurveyConfig.PRESET_SHORT
 	var token: int = 0
 	if randf() < _SurveyConfig.TOKEN_GRANT_CHANCE:
@@ -546,26 +550,31 @@ static func _roll_rewards(preset: String, over_cap: bool = false) -> Dictionary:
 		_SurveyConfig.MATERIAL_SHORT_MIN if short else _SurveyConfig.MATERIAL_STANDARD_MIN,
 		_SurveyConfig.MATERIAL_SHORT_MAX if short else _SurveyConfig.MATERIAL_STANDARD_MAX
 	)
+	var mat_id: String = _SurveyConfig.roll_material_id(dungeon_id)
 	var weapon_id: String = ""
 	var roll: float = randf()
 	if roll < _SurveyConfig.WEAPON_P_STAR3:
-		weapon_id = _pick_weapon_id(2) ## rarity 2 = ★3表示系（ゲーム rarity 0-based）
+		weapon_id = _pick_weapon_id(2, dungeon_id) ## rarity 2 = ★3表示系（ゲーム rarity 0-based）
 	elif roll < _SurveyConfig.WEAPON_P_STAR3 + _SurveyConfig.WEAPON_P_STAR2:
-		weapon_id = _pick_weapon_id(1)
+		weapon_id = _pick_weapon_id(1, dungeon_id)
 	elif roll < _SurveyConfig.WEAPON_P_STAR3 + _SurveyConfig.WEAPON_P_STAR2 + _SurveyConfig.WEAPON_P_STAR1:
-		weapon_id = _pick_weapon_id(0)
+		weapon_id = _pick_weapon_id(0, dungeon_id)
 	return {
 		"token": token,
 		"gold": token * 5,
-		"material_id": _EquipmentEnhancer.BASE_ORE_ID,
+		"material_id": mat_id,
 		"material_qty": mat_qty,
 		"weapon_id": weapon_id,
 	}
 
 
-static func _pick_weapon_id(rarity: int) -> String:
+## 派遣先 Biome の weapon_pool から rarity 一致を抽選。空なら全武器フォールバック。
+static func _pick_weapon_id(rarity: int, dungeon_id: String = "") -> String:
 	var pool: Array[String] = []
-	var dungeon: Resource = DataRegistry.get_dungeon_data(Constants.MOURNGATE_DUNGEON_ID)
+	var lookup_id: String = dungeon_id.strip_edges()
+	if lookup_id.is_empty():
+		lookup_id = Constants.MOURNGATE_DUNGEON_ID
+	var dungeon: Resource = DataRegistry.get_dungeon_data(lookup_id)
 	if dungeon != null and "weapon_pool" in dungeon and not dungeon.weapon_pool.is_empty():
 		for wid in dungeon.weapon_pool:
 			var data: Resource = DataRegistry.get_weapon_data(str(wid))
