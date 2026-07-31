@@ -362,12 +362,16 @@ func _refresh() -> void:
 		_label_catchcopy.text = _GachaEquipSystem.catchcopy()
 		_pull_confirm.title = "封蔵の匣"
 		_button_pull_ticket.visible = false
+		$DetailOverlay/DetailPanel/DetailVBox/DetailHeader/LabelDetailTitle.text = "封蔵の排出"
 	else:
 		_label_title.text = "ギルドへの招待状"
 		_label_rate.text = GachaSystem.rate_display_text()
 		_label_catchcopy.text = GachaUiHelper.catchcopy()
 		_pull_confirm.title = "招待状"
 		_button_pull_ticket.visible = true
+		$DetailOverlay/DetailPanel/DetailVBox/DetailHeader/LabelDetailTitle.text = (
+			GachaUiTokens.LINEUP_SECTION_TITLE
+		)
 	_set_pull_controls_enabled(not _summon_active)
 	if _is_seal_page():
 		GachaUiHelper.setup_pull_button_ex(
@@ -691,17 +695,28 @@ func _rebuild_lineup() -> void:
 	for child in _lineup_container.get_children():
 		child.queue_free()
 	if _is_seal_page():
+		var rate_lbl := Label.new()
+		rate_lbl.text = _GachaEquipSystem.rate_detail_text()
+		rate_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		UiTypography.apply_caption(rate_lbl, UiTypography.COLOR_SUB)
+		_lineup_container.add_child(rate_lbl)
+		var head := Label.new()
+		head.text = "— 灰冠限定（L内 60%）—"
+		UiTypography.apply_body(head, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+		_lineup_container.add_child(head)
 		var entries: Array = _GachaEquipSystem.POOL
-		if entries.is_empty():
-			var empty_lbl := Label.new()
-			empty_lbl.text = "（排出対象なし）"
-			empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			_lineup_container.add_child(empty_lbl)
-			return
 		for entry in entries:
 			if typeof(entry) != TYPE_DICTIONARY:
 				continue
 			_lineup_container.add_child(GachaUiHelper.make_equip_lineup_row(entry))
+		var foot := Label.new()
+		foot.text = "既存L %d件／Epic %d件（部位均等・一覧省略）" % [
+			_GachaEquipSystem.other_l_pool_count(),
+			_GachaEquipSystem.epic_pool_count(),
+		]
+		foot.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		UiTypography.apply_caption(foot, UiTypography.COLOR_MUTED)
+		_lineup_container.add_child(foot)
 		return
 	var helpers: Array = GachaUiHelper.sorted_helpers()
 	if helpers.is_empty():
@@ -819,7 +834,13 @@ func _play_equip_reveal(result: Dictionary) -> void:
 	var rarity: int = clampi(int(result.get("rarity", Enums.Rarity.LEGENDARY)), 0, 4)
 	_populate_equip_reveal_content(result)
 	_label_result.add_theme_color_override("font_color", COLOR_NEW)
-	_label_result.text = "灰冠の武具を入手！ %s" % name_str
+	var pool_tag: String = str(result.get("pool", "kaiwan"))
+	if pool_tag == "kaiwan":
+		_label_result.text = "灰冠の武具を入手！ %s" % name_str
+	elif pool_tag == "other_l":
+		_label_result.text = "レジェンド装備を入手！ %s" % name_str
+	else:
+		_label_result.text = "エピック装備を入手！ %s" % name_str
 	if _reveal_presenter == null:
 		_setup_reveal_presenter()
 	## 最小案: 演出は招待状と同フロー。封印／開封絵だけ匣に差替。
@@ -841,10 +862,20 @@ func _populate_equip_reveal_content(result: Dictionary) -> void:
 	var name_str: String = str(result.get("display_name", item_id))
 	var seat: String = str(result.get("seat", ""))
 	var blurb: String = str(result.get("blurb", ""))
+	var rarity: int = clampi(int(result.get("rarity", Enums.Rarity.LEGENDARY)), 0, 4)
+	var pool_tag: String = str(result.get("pool", ""))
 	_label_banner.visible = false
 	_label_banner.text = ""
-	_label_reveal_sub.text = "灰冠の九・%s" % _GachaEquipSystem.kind_label(kind)
-	_label_reveal_name.text = "%s\nL  %s" % [name_str, seat]
+	if pool_tag == "kaiwan":
+		_label_reveal_sub.text = "灰冠の九・%s" % _GachaEquipSystem.kind_label(kind)
+		_label_reveal_name.text = "%s\nL  %s" % [name_str, seat]
+	elif pool_tag == "other_l":
+		_label_reveal_sub.text = "既存レジェンド・%s" % _GachaEquipSystem.kind_label(kind)
+		_label_reveal_name.text = "%s\nL" % name_str
+	else:
+		_label_reveal_sub.text = "エピック・%s" % _GachaEquipSystem.kind_label(kind)
+		var stars: String = "Epic" if rarity == Enums.Rarity.EPIC else "L"
+		_label_reveal_name.text = "%s\n%s" % [name_str, stars]
 	if _label_quote != null:
 		if blurb.is_empty():
 			_label_quote.text = ""
