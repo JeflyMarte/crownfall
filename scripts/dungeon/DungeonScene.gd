@@ -1668,8 +1668,6 @@ func _update_run_hud() -> void:
 	var floor_max: int = $DungeonController.get_display_floor_max()
 	var floor_text: String = $DungeonController.get_display_floor_text()
 	_run_hud_floor_label.text = floor_text
-	_run_hud_progress.max_value = float(floor_max)
-	_run_hud_progress.value = float(floor_current)
 	var room_type: int = $DungeonController.current_room_type
 	_run_hud_room_chip.text = "[%s]" % _get_room_type_name()
 	UiTypography.apply_display(
@@ -1677,8 +1675,14 @@ func _update_run_hud() -> void:
 		UiTypography.SIZE_CAPTION,
 		_room_type_chip_color(room_type)
 	)
-	## 発見度メーターではなく、フロア進行度（現在F／最大F）。
-	_run_hud_discovery.text = "進行 %d%%" % _run_floor_progress_percent()
+	## 発見度メーターではなく、フロア進行度（現在F／最大F）。深層は空バー＋?。
+	if $DungeonController.is_abyss_run():
+		_run_hud_progress.max_value = 1.0
+		_run_hud_progress.value = 0.0
+	else:
+		_run_hud_progress.max_value = float(floor_max)
+		_run_hud_progress.value = float(floor_current)
+	_run_hud_discovery.text = $DungeonController.get_display_floor_progress_label()
 
 func _dungeon_meta_line(data: Resource) -> String:
 	var parts: PackedStringArray = []

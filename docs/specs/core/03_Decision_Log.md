@@ -5991,3 +5991,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-AUDIO-ABYSS-BGM-001-1 | **深層戦闘BGM** — `abyss_*` は親 Biome の `BATTLE_BY_DUNGEON` を解決（例: abyss_mourngate→mourngate.mp3） | 本編と同曲 |
 | P3-AUDIO-ABYSS-BGM-001-2 | **他深層も同様** — whisperwood/mistfen/blackshore/frostridge | 一貫性 |
 | P3-AUDIO-ABYSS-BGM-001-3 | **フォールバック** — 親未登録時のみ従来どおり `battle` | 安全側 |
+
+## 無限ダンジョン・ランHUD進行度を?表示（2026-07-31 — P3-UX-ABYSS-PROGRESS-HIDE-001）
+
+> **オーナー指示** — 無限内のダンジョン進行度を空にして?を入れる。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-ABYSS-PROGRESS-HIDE-001-1 | **文言** — ランHUD右端を「進行 ?%」（数値％なし） | 無限に終わりがない |
+| P3-UX-ABYSS-PROGRESS-HIDE-001-2 | **バー** — 進行バーは空（value=0） | 「空にして」指示 |
+| P3-UX-ABYSS-PROGRESS-HIDE-001-3 | **据置** — F表示（F12 等）・部屋チップ・本編進行％ | 階数そのものは有用 |
+| P3-UX-ABYSS-PROGRESS-HIDE-001-4 | **上書き** — P3-UX-RUN-HUD-FLOOR-PCT-001 の深層分母扱い | 本 Decision が深層UIの正 |

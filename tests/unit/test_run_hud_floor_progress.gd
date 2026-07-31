@@ -29,3 +29,15 @@ func _percent(current: int, floor_max: int) -> int:
 	if floor_max <= 0:
 		return 0
 	return clampi(int(round(float(current) * 100.0 / float(floor_max))), 0, 100)
+
+
+func test_abyss_progress_shows_question_mark() -> void:
+	GameState.mark_dungeon_cleared("mourngate")
+	var ctrl: Node = _DungeonController.new()
+	add_child_autofree(ctrl)
+	ctrl.start_stage("abyss_mourngate_1_1")
+	assert_eq(ctrl.get_display_floor_progress_percent(), -1)
+	assert_eq(ctrl.get_display_floor_progress_label(), "進行 ?%")
+	ctrl.current_room_index = 5
+	assert_eq(ctrl.get_display_floor_progress_label(), "進行 ?%")
+
