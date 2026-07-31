@@ -1074,12 +1074,13 @@ static func character_stat_modifiers_for_member(member_index: int, hp_ratio: flo
 			if wdef.has("back_row_incoming_mult"):
 				out["incoming_mult"] *= float(wdef["back_row_incoming_mult"])
 		else:
-			if wdef.has("outgoing_mult") and str(wdef.get("trigger", "")) != "on_attack":
+			## 常時与ダメ乗算は trigger と独立（on_attack は付与効果のみのゲート）。
+			if wdef.has("outgoing_mult"):
 				out["outgoing_mult"] *= float(wdef["outgoing_mult"])
 			if wdef.has("incoming_mult"):
 				out["incoming_mult"] *= float(wdef["incoming_mult"])
 	else:
-		if wdef.has("outgoing_mult") and str(wdef.get("trigger", "")) != "on_attack":
+		if wdef.has("outgoing_mult"):
 			out["outgoing_mult"] *= float(wdef["outgoing_mult"])
 		if wdef.has("incoming_mult"):
 			out["incoming_mult"] *= float(wdef["incoming_mult"])

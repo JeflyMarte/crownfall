@@ -346,7 +346,16 @@ func get_member_target_slot(member_index: int) -> int:
 	var slot: int = member_target_slot[member_index]
 	if is_enemy_slot_alive(slot):
 		return slot
-	return pick_enemy_slot_by_rule(CombatTactics.DEFAULT_TARGET)
+	## 死亡スロットはメンバー戦術ルールで付け替え（DEFAULT front 固定は戦術無視）。
+	var member: Resource = GameState.get_combatant(member_index)
+	var rule: String = CombatTactics.DEFAULT_TARGET
+	if member != null:
+		rule = CombatGambit.target_from_member(member)
+	var picked: int = pick_enemy_slot_by_rule(rule)
+	if picked < 0:
+		return active_enemy_index
+	member_target_slot[member_index] = picked
+	return picked
 
 # 生存敵から target ルールで1体選ぶ（P3-D100/D111）。
 const DEBUFF_STATUS_IDS: Array[String] = [
@@ -858,6 +867,10 @@ func should_enemy_skip_action_at(slot: int) -> bool:
 func should_enemy_skip_action() -> bool:
 	return should_enemy_skip_action_at(active_enemy_index)
 
+## Status-forced skip only (no RNG). Safe for Now Playing / turn-order badges.
+func peek_enemy_status_skip_at(slot: int) -> bool:
+	return _status_resolver.has_guaranteed_action_skip(enemy_status_unit_id(slot))
+
 func get_enemy_skip_action_label_at(slot: int) -> String:
 	return _status_resolver.get_skip_action_label(enemy_status_unit_id(slot))
 
@@ -876,6 +889,13 @@ func should_member_skip_action_at(member_index: int) -> bool:
 		_member_passive_skip[member_index] = true
 		return true
 	return false
+
+
+## Status-forced skip only (no RNG / no passive skip). Safe for UI preview.
+func peek_member_status_skip_at(member_index: int) -> bool:
+	if member_index < 0 or member_index >= party_combat_hp.size():
+		return false
+	return _status_resolver.has_guaranteed_action_skip("party_%d" % member_index)
 
 func get_member_skip_action_label_at(member_index: int) -> String:
 	if member_index < 0 or member_index >= party_combat_hp.size():
