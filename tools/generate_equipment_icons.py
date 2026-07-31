@@ -116,8 +116,9 @@ CANONICAL_TEMPLATES = {
         "default": TEMPLATE_DIR / "equipment/ICO_WPN_HeaterBlade.png",
     },
     "armor": {
-        "light": TEMPLATE_DIR / "equipment/ICO_ARM_LeatherArmor.png",
-        "heavy": TEMPLATE_DIR / "equipment/ICO_ARM_BoneArmor.png",
+        ## 再生成で上書きしないよう _templates を正とする（ensure_armor_templates）。
+        "light": TEMPLATE_DIR / "equipment/_templates/ICO_ARM_Light.png",
+        "heavy": TEMPLATE_DIR / "equipment/_templates/ICO_ARM_Heavy.png",
     },
     "accessory": {
         "default": TEMPLATE_DIR / "equipment/ICO_ACC_SilverRing.png",
@@ -145,6 +146,8 @@ CANONICAL_TEMPLATES = {
 
 SIZE = 128
 ICON_SCALE = 0.82
+ARMOR_TEMPLATE_SEED_LIGHT = TEMPLATE_DIR / "equipment/ICO_ARM_LeatherArmor.png"
+ARMOR_TEMPLATE_SEED_HEAVY = TEMPLATE_DIR / "equipment/ICO_ARM_BoneArmor.png"
 
 
 def snake_to_pascal(snake: str) -> str:
@@ -282,6 +285,21 @@ def tint_image(img: Image.Image, hue: float, sat_mult: float = 1.15) -> Image.Im
     return tinted
 
 
+def ensure_armor_templates() -> None:
+	"""再生成でシードを壊さないよう、初回だけ _templates に退避する。"""
+	light = CANONICAL_TEMPLATES["armor"]["light"]
+	heavy = CANONICAL_TEMPLATES["armor"]["heavy"]
+	light.parent.mkdir(parents=True, exist_ok=True)
+	if not light.exists():
+		src = ARMOR_TEMPLATE_SEED_LIGHT if ARMOR_TEMPLATE_SEED_LIGHT.exists() else ARMOR_TEMPLATE_SEED_HEAVY
+		Image.open(src).convert("RGBA").save(light, "PNG")
+		print(f"  seeded armor light template -> {light.relative_to(ROOT)}")
+	if not heavy.exists():
+		src = ARMOR_TEMPLATE_SEED_HEAVY if ARMOR_TEMPLATE_SEED_HEAVY.exists() else ARMOR_TEMPLATE_SEED_LIGHT
+		Image.open(src).convert("RGBA").save(heavy, "PNG")
+		print(f"  seeded armor heavy template -> {heavy.relative_to(ROOT)}")
+
+
 def pick_weapon_template(item_id: str, weapon_type: str) -> Path:
     templates = CANONICAL_TEMPLATES["weapon"]
     if any(k in item_id for k in ("dagger", "fang", "blade", "saw", "render", "knife")):
@@ -301,12 +319,113 @@ def pick_weapon_template(item_id: str, weapon_type: str) -> Path:
     return templates["default"]
 
 
-def pick_armor_template(rarity: int) -> Path:
-    return (
-        CANONICAL_TEMPLATES["armor"]["heavy"]
-        if rarity >= 2
-        else CANONICAL_TEMPLATES["armor"]["light"]
-    )
+def pick_armor_template(item_id: str, rarity: int) -> Path:
+	ensure_armor_templates()
+	light_keys = ("cloak", "garb", "robe", "vestment", "vest", "linen", "cloth", "hide")
+	heavy_keys = ("plate", "mail", "aegis", "armor", "scale", "chitin", "bone")
+	lid = item_id.lower()
+	if any(k in lid for k in light_keys) and not any(k in lid for k in ("plate", "mail", "aegis")):
+		return CANONICAL_TEMPLATES["armor"]["light"]
+	if any(k in lid for k in heavy_keys):
+		return CANONICAL_TEMPLATES["armor"]["heavy"]
+	return (
+		CANONICAL_TEMPLATES["armor"]["heavy"]
+		if rarity >= 2
+		else CANONICAL_TEMPLATES["armor"]["light"]
+	)
+
+
+def _armor_hue(item_id: str, element: str) -> float:
+	hue = ELEMENT_HUE.get(element)
+	if hue is not None:
+		return float(hue)
+	return _hash_hue(item_id)
+
+
+def lift_crushed_blacks(img: Image.Image, floor: int = 38) -> Image.Image:
+	"""不透明な潰れた黒を少し持ち上げ、セル背景との同化を防ぐ。"""
+	img = img.convert("RGBA")
+	px = img.load()
+	w, h = img.size
+	for y in range(h):
+		for x in range(w):
+			r, g, b, a = px[x, y]
+			if a < 40:
+				continue
+			mx = max(r, g, b)
+			if mx >= floor:
+				continue
+			# 黒寄りを floor 付近まで持ち上げ（色相は維持）
+			scale = float(floor) / float(max(1, mx))
+			nr = min(255, int(r * scale))
+			ng = min(255, int(g * scale))
+			nb = min(255, int(b * scale))
+			px[x, y] = (nr, ng, nb, a)
+	return img
+
+
+def apply_color_wash(img: Image.Image, hue: float, strength: float = 0.42) -> Image.Image:
+	"""グレー金属にも効く色ウォッシュ（HSV の S が低い画素も染める）。"""
+	img = img.convert("RGBA")
+	arr_rgb = img.convert("RGB")
+	wash_rgb = tuple(int(c * 255) for c in colorsys.hsv_to_rgb(hue % 1.0, 0.55, 0.92))
+	wash = Image.new("RGB", img.size, wash_rgb)
+	# 不透明部だけブレンド
+	alpha = img.split()[3]
+	blended = Image.blend(arr_rgb, wash, max(0.0, min(1.0, strength)))
+	out = blended.convert("RGBA")
+	out.putalpha(alpha)
+	return out
+
+
+def add_silhouette_rim(img: Image.Image, rim_rgb: tuple[int, int, int] = (235, 220, 180)) -> Image.Image:
+	"""シルエット外周に薄いリムを付け、暗いセル上でも輪郭を残す。"""
+	img = img.convert("RGBA")
+	alpha = img.split()[3]
+	## 2px 相当（MaxFilter 5）で外周リングを確保。
+	dilated = alpha.filter(ImageFilter.MaxFilter(5))
+	rim_mask = ImageChops.subtract(dilated, alpha)
+	rim_layer = Image.new("RGBA", img.size, (*rim_rgb, 0))
+	rim_layer.putalpha(rim_mask.point(lambda v: 220 if v > 16 else 0))
+	return Image.alpha_composite(rim_layer, img)
+
+
+def compose_armor_icon(template_path: Path, item_id: str, element: str, rarity: int) -> Image.Image:
+	"""N〜Epic 防具向け: 色分け＋黒持ち上げ＋リム（セル背景との同化対策）。"""
+	canvas = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
+	sprite = Image.open(template_path).convert("RGBA")
+	## 防具は暗い金属が本体なので、全域黒キーはしない（穴でセルが透ける）。
+	## 端の白マットのみ弱く除去。
+	sprite = remove_matte_bg(sprite, dark_threshold=8, light_threshold=235)
+	sprite = lift_crushed_blacks(sprite, floor=40)
+
+	hue = _armor_hue(item_id, element)
+	## 個体差: hash でウォッシュ強さ・明るさを少しずらす
+	digest = hashlib.md5(item_id.encode()).hexdigest()
+	wash_boost = 0.34 + (int(digest[2:4], 16) / 255.0) * 0.16
+	bright = 1.12 + (0.04 * rarity) + (int(digest[4:6], 16) / 255.0) * 0.06
+	sprite = apply_color_wash(sprite, hue, strength=wash_boost)
+	sprite = tint_image(sprite, hue, sat_mult=1.25)
+	sprite = ImageEnhance.Brightness(sprite).enhance(bright)
+	sprite = ImageEnhance.Contrast(sprite).enhance(1.08 + 0.03 * rarity)
+
+	tw = int(SIZE * ICON_SCALE)
+	th = int(tw * sprite.height / max(1, sprite.width))
+	sprite = sprite.resize((tw, th), Image.Resampling.NEAREST)
+	## リムはリサイズ後に付与（縮小で輪郭が消えないように）。
+	sprite = add_silhouette_rim(sprite, rim_rgb=(235, 220, 180))
+	ox = (SIZE - tw) // 2
+	oy = (SIZE - th) // 2 + 2
+
+	if rarity >= 2:
+		glow = sprite.filter(ImageFilter.GaussianBlur(2))
+		glow = ImageEnhance.Brightness(glow).enhance(1.25)
+		glow_layer = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
+		glow_layer.paste(glow, (ox, oy), glow)
+		canvas = Image.alpha_composite(canvas, glow_layer)
+
+	canvas.paste(sprite, (ox, oy), sprite)
+	return canvas
 
 
 def compose_icon(template_path: Path, item_id: str, element: str, rarity: int) -> Image.Image:
@@ -386,15 +505,21 @@ def output_name(category: str, item_id: str) -> str:
     return f"ICO_{prefix}_{snake_to_pascal(item_id)}.png"
 
 
-def generate_equipment() -> list[tuple[str, str, str]]:
+def generate_equipment(categories: set[str] | None = None) -> list[tuple[str, str, str]]:
     EQUIP_OUT_DIR.mkdir(parents=True, exist_ok=True)
     mappings: list[tuple[str, str, str]] = []
+    if categories is None:
+        categories = {"weapon", "armor", "accessory"}
+    if "armor" in categories:
+        ensure_armor_templates()
 
     for folder, category in (
         ("weapons", "weapon"),
         ("armors", "armor"),
         ("accessories", "accessory"),
     ):
+        if category not in categories:
+            continue
         for tres in sorted((ROOT / "resources" / folder).glob("*.tres")):
             data = parse_tres(tres)
             item_id = data.get("id", "")
@@ -402,28 +527,30 @@ def generate_equipment() -> list[tuple[str, str, str]]:
                 continue
             rarity = int(data.get("rarity", "0"))
             element = data.get("element", "")
-			fname = output_name(category, item_id)
-			out_path = EQUIP_OUT_DIR / fname
-			protected = (
-				(category == "weapon" and item_id in LEGENDARY_HAND_DRAWN_WEAPON_IDS)
-				or (category == "armor" and item_id in LEGENDARY_HAND_DRAWN_ARMOR_IDS)
-				or (category == "accessory" and item_id in LEGENDARY_HAND_DRAWN_ACCESSORY_IDS)
-			)
-			if protected and out_path.exists():
-				mappings.append(
-					(category, item_id, f"res://assets/ui/equipment/{fname}")
-				)
-				print(f"  {category}:{item_id} skip hand-drawn -> {fname}")
-				continue
+            fname = output_name(category, item_id)
+            out_path = EQUIP_OUT_DIR / fname
+            protected = (
+                (category == "weapon" and item_id in LEGENDARY_HAND_DRAWN_WEAPON_IDS)
+                or (category == "armor" and item_id in LEGENDARY_HAND_DRAWN_ARMOR_IDS)
+                or (category == "accessory" and item_id in LEGENDARY_HAND_DRAWN_ACCESSORY_IDS)
+            )
+            if protected and out_path.exists():
+                mappings.append(
+                    (category, item_id, f"res://assets/ui/equipment/{fname}")
+                )
+                print(f"  {category}:{item_id} skip hand-drawn -> {fname}")
+                continue
 
-			if category == "weapon":
-				template = pick_weapon_template(item_id, data.get("weapon_type", "sword"))
-			elif category == "armor":
-				template = pick_armor_template(rarity)
-			else:
-				template = CANONICAL_TEMPLATES["accessory"]["default"]
+            if category == "weapon":
+                template = pick_weapon_template(item_id, data.get("weapon_type", "sword"))
+                icon = compose_icon(template, item_id, element, rarity)
+            elif category == "armor":
+                template = pick_armor_template(item_id, rarity)
+                icon = compose_armor_icon(template, item_id, element, rarity)
+            else:
+                template = CANONICAL_TEMPLATES["accessory"]["default"]
+                icon = compose_icon(template, item_id, element, rarity)
 
-            icon = compose_icon(template, item_id, element, rarity)
             icon.save(out_path, "PNG")
             mappings.append(
                 (category, item_id, f"res://assets/ui/equipment/{fname}")
@@ -484,13 +611,31 @@ def update_icon_paths(mappings: list[tuple[str, str, str]]) -> None:
 
 
 if __name__ == "__main__":
-    print("Generating equipment icons...")
-    equip_maps = generate_equipment()
-    print(f"Generated {len(equip_maps)} equipment icons.")
-    print("Generating material icons...")
-    mat_maps = generate_materials()
-    print(f"Generated {len(mat_maps)} material icons.")
-    all_maps = equip_maps + mat_maps
-    print("Updating IconPaths.gd...")
-    update_icon_paths(all_maps)
-    print("Done.")
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Generate equipment/material icons")
+    parser.add_argument(
+        "--armor-only",
+        action="store_true",
+        help="Regenerate armor icons only (skip weapons/accessories/materials)",
+    )
+    args = parser.parse_args()
+
+    if args.armor_only:
+        print("Generating armor icons only...")
+        equip_maps = generate_equipment({"armor"})
+        print(f"Generated {len(equip_maps)} armor icons.")
+        print("Updating IconPaths.gd...")
+        update_icon_paths(equip_maps)
+        print("Done.")
+    else:
+        print("Generating equipment icons...")
+        equip_maps = generate_equipment()
+        print(f"Generated {len(equip_maps)} equipment icons.")
+        print("Generating material icons...")
+        mat_maps = generate_materials()
+        print(f"Generated {len(mat_maps)} material icons.")
+        all_maps = equip_maps + mat_maps
+        print("Updating IconPaths.gd...")
+        update_icon_paths(all_maps)
+        print("Done.")
