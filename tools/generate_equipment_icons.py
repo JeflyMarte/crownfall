@@ -79,6 +79,16 @@ LEGENDARY_HAND_DRAWN_WEAPON_IDS: set[str] = {
 	"valgard_antique_dual",
 	"valgard_antique_rod",
 	"valgard_antique_arrow",
+	# 灰冠の九（手描きAI初版・再生成スキップ）
+	"kaiwan_crosslit",
+	"kaiwan_vendict",
+	"kaiwan_silent",
+	"kaiwan_perfidy",
+	"kaiwan_nox",
+	"kaiwan_false",
+	"kaiwan_saltine",
+	"kaiwan_wiltes",
+	"kaiwan_relictos",
 }
 
 ## 専用生成済みレジェンド防具（テンプレ流用防止）。

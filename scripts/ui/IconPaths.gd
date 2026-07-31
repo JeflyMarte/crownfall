@@ -119,6 +119,16 @@ const ICON_MAP: Dictionary = {
 	"weapon:blightcord_bow":             "res://assets/ui/equipment/ICO_WPN_BlightcordBow.png",
 	"weapon:pulsekeen_edge":             "res://assets/ui/equipment/ICO_WPN_PulsekeenEdge.png",
 	"weapon:aegis_line_sword":           "res://assets/ui/equipment/ICO_WPN_AegisLineSword.png",
+	# 灰冠の九 限定武器（P3-GACHA-EQ-KAIWAN-002）
+	"weapon:kaiwan_crosslit":            "res://assets/ui/equipment/ICO_WPN_KaiwanCrosslit.png",
+	"weapon:kaiwan_vendict":             "res://assets/ui/equipment/ICO_WPN_KaiwanVendict.png",
+	"weapon:kaiwan_silent":              "res://assets/ui/equipment/ICO_WPN_KaiwanSilent.png",
+	"weapon:kaiwan_perfidy":             "res://assets/ui/equipment/ICO_WPN_KaiwanPerfidy.png",
+	"weapon:kaiwan_nox":                 "res://assets/ui/equipment/ICO_WPN_KaiwanNox.png",
+	"weapon:kaiwan_false":               "res://assets/ui/equipment/ICO_WPN_KaiwanFalse.png",
+	"weapon:kaiwan_saltine":             "res://assets/ui/equipment/ICO_WPN_KaiwanSaltine.png",
+	"weapon:kaiwan_wiltes":              "res://assets/ui/equipment/ICO_WPN_KaiwanWiltes.png",
+	"weapon:kaiwan_relictos":            "res://assets/ui/equipment/ICO_WPN_KaiwanRelictos.png",
 	# 種別数揃え（非レジェンド拡充・アイコンは既存流用）
 	"weapon:ash_twin_blades":             "res://assets/ui/equipment/ICO_WPN_BarkRender.png",
 	"weapon:grit_shear_blades":           "res://assets/ui/equipment/ICO_WPN_BarkRender.png",
