@@ -222,7 +222,7 @@ const PARTY_VACANCY_LINES: Array[String] = [
 
 ## ニューゲーム直後の優先案内（おすすめより前にローテへ載せる）。
 const START_GACHA_TIP: String = (
-	"招待状アイコンを押して、仲間を集めましょう！\n必要な魔晶石はバッグに入れときました！"
+	"下ナビの「召喚」から、仲間を集めましょう！\n必要な魔晶石はバッグに入れときました！"
 )
 const START_SURVEY_TIP: String = "調査室で派遣すると、調査ゲージや景品が進みますよ！"
 
