@@ -132,3 +132,39 @@ func test_equips_accessory_when_slot_empty() -> void:
 	var result: Dictionary = _Helper.apply_for_member(idx)
 	assert_true(bool(result.get("changed", false)), str(result))
 	assert_eq(member.equipped_accessory, acc)
+
+
+func test_applies_to_roster_outside_party() -> void:
+	## 編成外（キャラ画面の編成枠外閲覧）でもおすすめ装備が効くこと。
+	GameState.seed_all_starters_unlocked()
+	var bench: Resource = null
+	for raw: Variant in GameState.get_roster():
+		if raw == null:
+			continue
+		var m: Resource = raw as Resource
+		if not GameState.party_members.has(m) and not PetSystem.is_pet_member(m):
+			bench = m
+			break
+	if bench == null:
+		## 初期が全員編成のときは末尾以外の3人だけ残す。
+		var keep: Array = []
+		for i in mini(3, GameState.roster.size()):
+			keep.append(GameState.roster[i])
+		GameState.set_active_party(keep)
+		bench = GameState.roster[GameState.roster.size() - 1]
+	assert_not_null(bench)
+	assert_false(GameState.party_members.has(bench), "bench must be outside party")
+	bench.equipped_weapon = null
+	bench.equipped_armor = null
+	bench.equipped_accessory = null
+	## 防具は職非依存なので編成外適用の確認に使う。
+	var armor: Resource = _make_armor("leather_armor", 2, 10)
+	GameState.armor_inventory = [armor]
+	GameState.inventory = []
+	assert_eq(GameState.party_members.find(bench), -1)
+	var bad: Dictionary = _Helper.apply_for_member(99)
+	assert_false(bool(bad.get("ok", true)))
+	var result: Dictionary = _Helper.apply_for_adventurer(bench)
+	assert_true(bool(result.get("ok", false)), str(result))
+	assert_true(bool(result.get("changed", false)), str(result))
+	assert_eq(bench.equipped_armor, armor)

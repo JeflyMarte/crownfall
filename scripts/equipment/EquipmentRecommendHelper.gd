@@ -14,11 +14,18 @@ const CATEGORIES: PackedStringArray = ["weapon", "armor", "accessory"]
 static func apply_for_member(member_index: int) -> Dictionary:
 	if member_index < 0 or member_index >= GameState.party_members.size():
 		return {"ok": false, "changed": false, "reason": "invalid_member", "equipped": {}}
-	var member: Resource = GameState.party_members[member_index]
+	return apply_for_adventurer(GameState.party_members[member_index])
+
+
+## 編成内外を問わず、指定冒険者へおすすめ装備を適用（ペット不可）。
+static func apply_for_adventurer(member: Resource) -> Dictionary:
 	if member == null:
 		return {"ok": false, "changed": false, "reason": "no_member", "equipped": {}}
 	if PetSystem.is_pet_member(member):
 		return {"ok": false, "changed": false, "reason": "pet", "equipped": {}}
+	## ロスター／編成のいずれかに居ること（所持外のダミー不可）。
+	if not _is_owned_adventurer(member):
+		return {"ok": false, "changed": false, "reason": "not_owned", "equipped": {}}
 	var picks: Dictionary = pick_best_unequipped(member)
 	var equipped: Dictionary = {}
 	var changed: bool = false
@@ -40,6 +47,20 @@ static func apply_for_member(member_index: int) -> Dictionary:
 		"reason": "" if changed else "already_best",
 		"equipped": equipped,
 	}
+
+
+static func _is_owned_adventurer(member: Resource) -> bool:
+	if member == null:
+		return false
+	if GameState.party_members.has(member):
+		return true
+	if GameState.roster.has(member):
+		return true
+	## get_roster() 経由の参照一致も許容。
+	for raw: Variant in GameState.get_roster():
+		if raw == member:
+			return true
+	return false
 
 
 ## カテゴリごと最良候補（現装備より強い未装備のみ）。装備はしない。
