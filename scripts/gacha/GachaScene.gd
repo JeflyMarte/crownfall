@@ -610,7 +610,7 @@ func _play_summon_reveal(result: Dictionary) -> void:
 	else:
 		_label_result.add_theme_color_override("font_color", COLOR_SUB)
 		if breakthrough_gained:
-			_label_result.text = "%s（限界突破 +%d） → %s %d 還元" % [
+			_label_result.text = "%s（限凸 +%d） → %s %d 還元" % [
 				name_str, breakthrough, CurrencyHelper.DISPLAY_NAME, refund,
 			]
 		else:
@@ -757,21 +757,21 @@ func _populate_reveal_content(
 		_label_reveal_sub.text = "ロスターに追加されました"
 	else:
 		if refund > 0 and breakthrough_gained and breakthrough > 0:
-			_label_reveal_sub.text = "限界突破 +%d！  %s %d 還元" % [
+			_label_reveal_sub.text = "限凸 +%d！  %s %d 還元" % [
 				breakthrough, CurrencyHelper.DISPLAY_NAME, refund,
 			]
 		elif refund > 0 and breakthrough >= _GachaLimitBreak.MAX_BREAKTHROUGH:
-			_label_reveal_sub.text = "限界突破上限  %s %d 還元" % [CurrencyHelper.DISPLAY_NAME, refund]
+			_label_reveal_sub.text = "限凸上限  %s %d 還元" % [CurrencyHelper.DISPLAY_NAME, refund]
 		elif refund > 0:
 			_label_reveal_sub.text = "%s %d 還元" % [CurrencyHelper.DISPLAY_NAME, refund]
 		elif breakthrough_gained:
-			_label_reveal_sub.text = "限界突破 +%d" % breakthrough
+			_label_reveal_sub.text = "限凸 +%d" % breakthrough
 		else:
 			_label_reveal_sub.text = ""
 
 	var name_line: String = name_str
 	if breakthrough > 0:
-		name_line = "%s（限界突破 +%d）" % [name_str, breakthrough]
+		name_line = "%s（限凸 +%d）" % [name_str, breakthrough]
 	var job_label: String = GachaUiHelper.job_display_name_for_helper(helper_data)
 	if helper_data != null:
 		_label_reveal_name.text = "%s\n%s  %s" % [

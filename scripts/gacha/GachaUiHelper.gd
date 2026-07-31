@@ -520,7 +520,7 @@ static func owned_label(helper_id: String) -> String:
 		return "未所持"
 	var bt: int = _GachaLimitBreak.breakthrough_for_helper_id(helper_id)
 	if bt > 0:
-		return "限界突破 +%d" % bt
+		return "限凸 +%d" % bt
 	return "所持済"
 
 static func owned_color(helper_id: String) -> Color:
