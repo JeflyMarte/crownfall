@@ -848,7 +848,7 @@ var _skill_cd_visual_rem: Dictionary = {}
 ## ProgressBar instance_id → 満タン時の点滅 Tween
 var _skill_cd_ready_pulse: Dictionary = {}
 var _last_ct_step_ui: float = 0.0
-var _party_card_portraits: Array[TextureRect] = []
+var _party_card_portraits: Array[Control] = []
 var _party_card_roots: Array[PanelContainer] = []
 var _party_card_name_labels: Array[Label] = []
 var _party_card_active_turn: int = -1
@@ -1839,16 +1839,10 @@ func _begin_dungeon_dive_intro() -> void:
 		var member: Resource = GameState.party_members[slot]
 		if member == null:
 			continue
-		var icon := TextureRect.new()
-		icon.custom_minimum_size = Vector2(56, 56)
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		var tex: Texture2D = _get_member_icon_texture(member)
+		var icon: Control = RosterUiHelper.make_clamped_portrait(tex, 56, false)
 		icon.modulate.a = 0.0
 		icon.scale = Vector2(0.88, 0.88)
-		var tex: Texture2D = _get_member_icon_texture(member)
-		if tex != null:
-			icon.texture = tex
 		party_row.add_child(icon)
 		var slide_tw: Tween = create_tween()
 		slide_tw.tween_interval(0.12 + float(slot) * 0.08)
@@ -9563,14 +9557,9 @@ func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
 	top_row.add_theme_constant_override("separation", 6)
 	top_row.clip_contents = true
 	root.add_child(top_row)
-	var portrait := TextureRect.new()
-	portrait.custom_minimum_size = Vector2(PARTY_CARD_ICON_PX, PARTY_CARD_ICON_PX)
-	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	portrait.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var tex: Texture2D = _get_member_icon_texture(member)
-	if tex != null:
-		portrait.texture = tex
+	var portrait: Control = RosterUiHelper.make_clamped_portrait(tex, int(PARTY_CARD_ICON_PX), false)
+	portrait.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	portrait.modulate = EvolutionVisualScript.portrait_modulate(member)
 	top_row.add_child(portrait)
 	var name_col := VBoxContainer.new()

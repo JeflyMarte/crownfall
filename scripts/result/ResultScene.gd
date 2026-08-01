@@ -393,13 +393,12 @@ func _build_levelup_rows() -> void:
 		row_margin.add_theme_constant_override("margin_bottom", 8)
 		var row_h := HBoxContainer.new()
 		row_h.add_theme_constant_override("separation", 10)
-		var icon := TextureRect.new()
-		icon.custom_minimum_size = Vector2(52, 52)
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		icon.texture = RosterUiHelper.get_member_portrait_texture(member)
-		row_h.add_child(icon)
+		## NEAREST 直置きは細い焼き込み枠が消える。共通クランプ＋金枠オーバーレイを使う。
+		row_h.add_child(
+			RosterUiHelper.make_clamped_portrait(
+				RosterUiHelper.get_member_portrait_texture(member), 52, false
+			)
+		)
 		var col := VBoxContainer.new()
 		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		col.add_theme_constant_override("separation", 4)
