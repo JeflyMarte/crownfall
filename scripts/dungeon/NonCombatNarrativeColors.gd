@@ -3,6 +3,7 @@ extends RefCounted
 
 ## 非戦闘フロア下帯の行色分け SSOT（P3-UX-NONCOMBAT-NARRATIVE-COLOR-001 案A）。
 ## 宝箱の黄／水色／紫を共通化し、ダメージ＝赤／回復＝緑／加護・EXP＝青を足す。
+## 入手行は汎用カテゴリアイコン（BBCode img）を前置する。
 
 const HEX_BODY: String = "ebe6dc"
 const HEX_GOLD: String = "ffe14a"
@@ -16,6 +17,15 @@ const HEX_LORE_TITLE: String = "c9a0ff"
 const HEX_FAIL: String = "b8b4aa"
 const HEX_AVOID: String = "73eb94"
 
+const ICON_PX: int = 22
+const ICON_GOLD: String = "res://assets/ui/batch2/ICO_Gold.png"
+const ICON_MATERIAL: String = "res://assets/ui/survey/ICO_Survey_Materials.png"
+const ICON_WEAPON: String = "res://assets/ui/equipment_ui/ICO_Equip_Cat_Weapon.png"
+const ICON_ACCESSORY: String = "res://assets/ui/equipment_ui/ICO_Equip_Cat_Accessory.png"
+const ICON_BLESS: String = "res://assets/ui/status/ICO_STA_Empower.png"
+const ICON_LORE: String = "res://assets/ui/codex/ICO_CDX_LF_AncientRecord.png"
+const ICON_HEAL: String = "res://assets/ui/status/ICO_STA_Guard.png"
+
 
 ## 組み込み `wrap(value, min, max)` と衝突するため別名。
 static func bb_wrap(hex: String, text: String, bold: bool = false) -> String:
@@ -26,12 +36,36 @@ static func bb_wrap(hex: String, text: String, bold: bool = false) -> String:
 	return "[color=#%s]%s[/color]" % [hex, text]
 
 
+static func reward_img(kind: String) -> String:
+	var path: String = ""
+	match kind:
+		"gold":
+			path = ICON_GOLD
+		"material":
+			path = ICON_MATERIAL
+		"weapon":
+			path = ICON_WEAPON
+		"accessory":
+			path = ICON_ACCESSORY
+		"bless", "buff":
+			path = ICON_BLESS
+		"lore":
+			path = ICON_LORE
+		"heal":
+			path = ICON_HEAL
+		_:
+			path = ""
+	if path.is_empty() or not ResourceLoader.exists(path):
+		return ""
+	return "[img=%dx%d]%s[/img] " % [ICON_PX, ICON_PX, path]
+
+
 static func body(text: String) -> String:
 	return bb_wrap(HEX_BODY, text)
 
 
 static func gold(text: String, bold: bool = true) -> String:
-	return bb_wrap(HEX_GOLD, text, bold)
+	return reward_img("gold") + bb_wrap(HEX_GOLD, text, bold)
 
 
 static func damage(text: String, bold: bool = true) -> String:
@@ -39,27 +73,27 @@ static func damage(text: String, bold: bool = true) -> String:
 
 
 static func heal(text: String, bold: bool = true) -> String:
-	return bb_wrap(HEX_HEAL, text, bold)
+	return reward_img("heal") + bb_wrap(HEX_HEAL, text, bold)
 
 
 static func buff(text: String) -> String:
-	return bb_wrap(HEX_BUFF, text)
+	return reward_img("bless") + bb_wrap(HEX_BUFF, text)
 
 
 static func material(text: String) -> String:
-	return bb_wrap(HEX_MATERIAL, text)
+	return reward_img("material") + bb_wrap(HEX_MATERIAL, text)
 
 
 static func weapon(text: String) -> String:
-	return bb_wrap(HEX_WEAPON, text)
+	return reward_img("weapon") + bb_wrap(HEX_WEAPON, text)
 
 
 static func accessory(text: String) -> String:
-	return bb_wrap(HEX_ACCESSORY, text)
+	return reward_img("accessory") + bb_wrap(HEX_ACCESSORY, text)
 
 
 static func lore_title(text: String) -> String:
-	return bb_wrap(HEX_LORE_TITLE, text, true)
+	return reward_img("lore") + bb_wrap(HEX_LORE_TITLE, text, true)
 
 
 static func fail(text: String) -> String:

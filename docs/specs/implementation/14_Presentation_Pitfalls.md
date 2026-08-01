@@ -14,6 +14,8 @@
 | 入場文を上書きせずにモード切替 | `_reset_narrative_typography` は Rich 表示中は no-op |
 | 非戦闘ナラティブだけ本文フォント（Noto） | 図鑑登録テロップと同じ `apply_display` / `apply_display_rich`（Shippori） |
 | 下帯サイズが部屋／段階で変わる（22↔26） | `NARRATIVE_BAND_FONT_SIZE` 固定。`_set_room_narrative_bbcode` に size 引数を持たせない |
+| Rich `fit_content` で説明1行↔報酬複数行の枠高が跳ぶ | `NARRATIVE_BAND_HEIGHT_PX` 固定＋縦中央。Rich は `fit_content=false` |
+| 入手行が文字だけ（アイコン無し） | `NonCombatNarrativeColors` の金／素材／武飾／加護に汎用 `[img]` |
 | 碑文加護を自動フェードで消す／泉に緑数字無し／宝箱を単色 Label | 碑文は次フロアまで。泉は緑VFX＋緑数字。宝箱は BBCode で金／武／飾色分け |
 
 **症状:** 宝箱／泉／碑文／罠の直後に「〜の探索を開始した」や空帯が出る。

@@ -32,9 +32,22 @@ func test_noncombat_colorize_lore_and_damage() -> void:
 	assert_true(dmg.contains(_Colors.HEX_DAMAGE))
 
 
+func test_reward_lines_include_generic_icons() -> void:
+	var gold: String = _Colors.gold("ゴールド +20")
+	assert_true(gold.contains("[img="), "ゴールド汎用アイコン")
+	assert_true(gold.contains("ICO_Gold"), gold)
+	var bless: String = _Colors.buff("加護: 次フロアの経験値 ×1.1")
+	assert_true(bless.contains("[img="), "加護汎用アイコン")
+	var lore: String = _Colors.lore_title("【碑文】記録")
+	assert_true(lore.contains("[img="), "碑文タイトルアイコン")
+	var setup: String = _Colors.format_setup_bbcode("壁面に刻印が浮かび上がっている…")
+	assert_false(setup.contains("[img="), "説明文にはアイコンを付けない")
+
+
 func test_strip_bbcode_keeps_plain_lines() -> void:
 	var bb: String = _Treasure.format_success_narrative_bbcode("蓋が開いた", 50, "", "")
 	var plain: String = _Colors.strip_bbcode(bb)
 	assert_true(plain.contains("蓋が開いた"))
 	assert_true(plain.contains("ゴールド +50"))
 	assert_false(plain.contains("[color"), "タグ除去")
+	assert_false(plain.contains("[img"), "img タグ除去")

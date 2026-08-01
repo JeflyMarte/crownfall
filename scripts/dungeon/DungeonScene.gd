@@ -11,6 +11,8 @@ const AUTO_DELAY_BASE: float = 1.2
 const NON_COMBAT_FLOOR_GRACE_SEC: float = 1.6
 ## 非戦闘下帯（碑文／宝箱／泉／罠）の文字サイズ。図鑑登録テロップと同寸で固定。
 const NARRATIVE_BAND_FONT_SIZE: int = UiTypography.SIZE_BODY_SMALL
+## 下帯の枠高。Rich fit_content だと説明1行↔報酬複数行で枠が跳ぶので固定。
+const NARRATIVE_BAND_HEIGHT_PX: float = 200.0
 ## 戦闘速度（設定 ×1 / ×1.5 / ×2 と揃える）。ヘッダボタンは ×1 と ×2。
 const SPEED_MULT_NORMAL: float = 1.0
 const SPEED_MULT_MID: float = 1.5
@@ -2527,6 +2529,7 @@ func _apply_scene_typography() -> void:
 	_label_dungeon_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_label_room.visible = false
 	## 非戦闘ナラティブは図鑑登録テロップと同じ display（Shippori）・同寸で固定。
+	_constrain_narrative_band()
 	UiTypography.apply_display(_label_narrative, NARRATIVE_BAND_FONT_SIZE, UiTypography.COLOR_GOLD)
 	UiTypography.apply_display(_label_combat_tier, UiTypography.SIZE_DISPLAY_TITLE)
 	UiTypography.apply_body(_label_enemy, UiTypography.SIZE_BODY_SMALL)
@@ -4558,6 +4561,7 @@ func _set_room_narrative(
 
 
 func _set_room_narrative_bbcode(bbcode: String) -> void:
+	_constrain_narrative_band()
 	var rich: RichTextLabel = _ensure_narrative_rich()
 	rich.clear()
 	rich.append_text(bbcode)
@@ -4569,7 +4573,17 @@ func _set_room_narrative_bbcode(bbcode: String) -> void:
 	UiTypography.apply_display(_label_narrative, NARRATIVE_BAND_FONT_SIZE, UiTypography.COLOR_GOLD)
 
 
+func _constrain_narrative_band() -> void:
+	if _narrative_panel != null:
+		_narrative_panel.custom_minimum_size = Vector2(0.0, NARRATIVE_BAND_HEIGHT_PX)
+		_narrative_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	if _label_narrative != null:
+		_label_narrative.custom_minimum_size = Vector2(0.0, NARRATIVE_BAND_HEIGHT_PX)
+		_label_narrative.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+
+
 func _ensure_narrative_label_mode() -> void:
+	_constrain_narrative_band()
 	_label_narrative.visible = true
 	var rich: RichTextLabel = _narrative_panel.get_node_or_null("LabelNarrativeRich") as RichTextLabel
 	if rich != null:
@@ -4578,23 +4592,31 @@ func _ensure_narrative_label_mode() -> void:
 
 
 func _ensure_narrative_rich() -> RichTextLabel:
+	_constrain_narrative_band()
 	var existing: RichTextLabel = _narrative_panel.get_node_or_null("LabelNarrativeRich") as RichTextLabel
 	if existing != null:
-		UiTypography.apply_display_rich(existing, NARRATIVE_BAND_FONT_SIZE, UiTypography.COLOR_GOLD)
-		existing.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_apply_narrative_rich_layout(existing)
 		return existing
 	var rich := RichTextLabel.new()
 	rich.name = "LabelNarrativeRich"
 	rich.bbcode_enabled = true
-	rich.fit_content = true
+	rich.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_apply_narrative_rich_layout(rich)
+	_narrative_panel.add_child(rich)
+	return rich
+
+
+## 説明1行／報酬複数行でも枠高を固定し、中身だけ中央寄せする。
+func _apply_narrative_rich_layout(rich: RichTextLabel) -> void:
+	rich.fit_content = false
 	rich.scroll_active = false
 	rich.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	rich.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	rich.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rich.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	rich.custom_minimum_size = Vector2(0.0, NARRATIVE_BAND_HEIGHT_PX)
 	rich.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	rich.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	UiTypography.apply_display_rich(rich, NARRATIVE_BAND_FONT_SIZE, UiTypography.COLOR_GOLD)
-	_narrative_panel.add_child(rich)
-	return rich
 
 func _reset_narrative_typography() -> void:
 	## 結果 BBCode が表示中なら Label モードへ戻さない（「探索を開始した」巻き戻り防止）。
