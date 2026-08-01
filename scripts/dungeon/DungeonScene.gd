@@ -886,7 +886,7 @@ const SWARM_CENTER_X_RATIO: float = 0.694
 const SWARM_Y_RATIO: float = 0.48
 ## 群れを左上→右下の階段状に置く（スロットごとの Y 比率加算）。
 const SWARM_STAIR_Y_RATIO: float = 0.045
-## 群れ配置の左右クリップ防止（左=味方帯。敵行動順アイコンはオミット済み）。
+## 群れ配置の左右クリップ防止（左=味方帯／行動順単一列）。
 const SWARM_X_MIN_RATIO: float = 0.48
 const SWARM_X_MAX_RATIO: float = 0.9
 ## 群れ時の見た目縮小（1体=MAX／4体以上=最小。2・3は線形）。
@@ -9813,7 +9813,7 @@ func _layout_turn_order_columns() -> void:
 	_layout_status_legend()
 	_layout_field_legend()
 
-# CT 順アイコン列を再構築する（味方=左縦列 / 敵=右縦列）。
+# CT 順アイコン列を再構築する（味方・敵を実 CT 順で単一縦列）。
 func _update_turn_order_ui(order: Array) -> void:
 	if _turn_order_col_left == null or _turn_order_col_right == null:
 		return
@@ -9828,10 +9828,8 @@ func _update_turn_order_ui(order: Array) -> void:
 		_party_card_active_turn = -1
 		_update_party_cards_hp()
 		return
-	## 敵の行動順アイコンはオミット（味方左列のみ）。
+	## 主人公／敵を CT 順どおり 1 列に並べる（右列は未使用）。
 	for entry: Dictionary in order:
-		if entry["kind"] != "party":
-			continue
 		var holder: PanelContainer = _make_turn_order_cell(entry)
 		_turn_order_col_left.add_child(holder)
 		_turn_order_items.append({
