@@ -3,7 +3,8 @@ extends RefCounted
 
 ## 装備ドロップ時のレア度別ランダムステータス数・パーフェクトロール表示。
 
-const PERFECT_STAR: String = "⭐️"
+## Noto / 本文フォントで確実に出る ★（絵文字⭐️はグリフ欠落で見えないことがある）。
+const PERFECT_STAR: String = "★"
 
 const RANDOM_STAT_COUNT: Dictionary = {
 	Enums.Rarity.COMMON: 1,
@@ -34,7 +35,8 @@ static func perfect_roll_suffix(item: Resource) -> String:
 	var out: String = ""
 	for _i in count:
 		out += PERFECT_STAR
-	return out
+	## 例: 最初の剣　★★
+	return "　" + out
 
 static func roll_int_bonus(roll_max: int) -> Dictionary:
 	if roll_max <= 0:

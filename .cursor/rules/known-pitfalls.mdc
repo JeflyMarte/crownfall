@@ -99,6 +99,7 @@ alwaysApply: false
 | 装備一覧の攻・防・会心アイコンが古い | `equipment_ui/` 本番が procedural 小アイコンのまま。更新アートは `preview/` に滞留 | `preprocess_equipment_stat_icons.py --apply` で preview→本番＋forge へ反映 |
 | レジェンド防具／装飾／杖がデフォルト同アイコン | `generate_equipment_icons.py` がテンプレ流用のまま。専用PNG未差替 | PixelLab等で専用生成→`assets/ui/equipment` 上書き。`LEGENDARY_HAND_DRAWN_*_IDS` に入れて再生成で潰さない |
 | キャラ画面の★が灰色 | LabelStars に見出しフォント（Shippori）を当てると ★ 欠落でフォールバックが灰色に見える | 本文フォント＋`UiTypography.COLOR_GOLD`（ガチャと同ポリシー） |
+| 装備MAXの⭐️が見えない | 絵文字⭐️や見出しフォントだとグリフ欠落。武器名にも未配線だった | `EquipmentRollHelper.PERFECT_STAR=★`。名は Display＋★本文金。MAX数は `is_mod_perfect` でカウント |
 | ガチャ／鍛冶BGM残存／イントロBGM切断 | SCENE_BGM 未配線・導入を hub | → **`content-flags.mdc` BGM** |
 | 鍛冶詳細のステ重なり／アイコン欠落／枠食い込み | 横並び reparent・content_margin不足・TextureRect直置き | → **`ui-layout.mdc` 鍛冶屋アイコン**（縦並び・preload） |
 | 生産の「武器一覧」がカテゴリタブに重なる | `MainSplit.grow_vertical=BOTH` で最小高超過時に上方向へ伸長 | `GROW_DIRECTION_END` のみ。タブ下 gap≧40 |

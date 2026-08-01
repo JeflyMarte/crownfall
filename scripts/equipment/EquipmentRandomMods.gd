@@ -278,6 +278,9 @@ static func ensure_migrated(item: Resource) -> void:
 	var existing: Array = item.random_mods if item.random_mods is Array else []
 	if not existing.is_empty():
 		_normalize_fixed_primary(item)
+		## 移行セーブ等で perfect フラグ欠落でも MAX なら名の★数を合わせる。
+		if "perfect_roll_count" in item:
+			item.perfect_roll_count = _count_perfect(existing)
 		return
 	var category: String = _item_category(item)
 	match category:
@@ -515,8 +518,8 @@ static func format_mod_line(mod: Dictionary) -> String:
 	var value: float = float(mod.get("value", 0.0))
 	var min_v: float = float(mod.get("min_v", value))
 	var max_v: float = float(mod.get("max_v", value))
-	## 例: ⭐️攻撃力アップ +200 (100〜200)
-	var star: String = "⭐️" if is_mod_perfect(mod) else ""
+	## 例: ★攻撃力アップ +200 (100〜200)
+	var star: String = _EquipmentRollHelper.PERFECT_STAR if is_mod_perfect(mod) else ""
 	if kind == KIND_ELEMENT_POWER:
 		label = element_power_label(str(mod.get("meta", {}).get("element", "")), label)
 	match kind:
@@ -1364,7 +1367,7 @@ static func _ids_from_mods(mods: Array) -> Array[String]:
 static func _count_perfect(mods: Array) -> int:
 	var n: int = 0
 	for mod: Variant in mods:
-		if mod is Dictionary and bool(mod.get("perfect", false)):
+		if mod is Dictionary and is_mod_perfect(mod as Dictionary):
 			n += 1
 	return n
 

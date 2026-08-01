@@ -211,7 +211,7 @@ static func get_weapon_display_name(weapon: Resource) -> String:
 	var name: String = base_name + lv_tag
 	if level > 0:
 		name = "%s +%d" % [name, level]
-	return name
+	return name + _EquipmentRollHelper.perfect_roll_suffix(weapon)
 
 static func get_armor_display_name(armor: Resource) -> String:
 	if armor == null or str(armor.armor_id).is_empty():

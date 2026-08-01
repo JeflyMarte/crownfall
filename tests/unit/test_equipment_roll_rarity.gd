@@ -32,12 +32,12 @@ func test_armor_drop_assigns_rarity_stat_count() -> void:
 	_ArmorStatResolver.apply_drop_stats(inst, data)
 	assert_eq(inst.rolled_bonus_stats.size(), 3)
 
-func test_display_name_has_no_perfect_stars() -> void:
+func test_display_name_has_perfect_stars_by_count() -> void:
 	var inst: Resource = _ArmorInstance.new()
 	inst.armor_id = "leather_armor"
 	inst.perfect_roll_count = 3
 	var name: String = _EquipmentDisplayNames.get_instance_name(inst, "armor")
-	assert_false(name.contains("⭐️"))
+	assert_true(name.ends_with("★★★"), name)
 
 func test_roll_int_bonus_perfect_at_max() -> void:
 	var perfect_hits: int = 0

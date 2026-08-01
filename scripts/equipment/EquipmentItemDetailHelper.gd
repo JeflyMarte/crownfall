@@ -9,6 +9,7 @@ const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.
 const _ArmorStatResolver = preload("res://scripts/equipment/ArmorStatResolver.gd")
 const _AccessoryStatResolver = preload("res://scripts/equipment/AccessoryStatResolver.gd")
 const _EquipmentPerfectRollHelper = preload("res://scripts/equipment/EquipmentPerfectRollHelper.gd")
+const _EquipmentRollHelper = preload("res://scripts/equipment/EquipmentRollHelper.gd")
 const _EquipmentSetBonuses = preload("res://scripts/equipment/EquipmentSetBonuses.gd")
 const _StatusEffectLinkHelper = preload("res://scripts/ui/StatusEffectLinkHelper.gd")
 
@@ -26,14 +27,44 @@ const HEADER_ICON_PX: int = 56
 static func short_name(item: Resource, category: String) -> String:
 	if item == null:
 		return "—"
-	match category:
-		"weapon":
-			return _EquipmentEnhancer.get_display_name(item)
-		"armor":
-			return EquipmentDisplayNames.get_instance_name(item, "armor")
-		"accessory":
-			return EquipmentDisplayNames.get_instance_name(item, "accessory")
-	return "—"
+	## 名の★数とステ行の MAX 判定を揃える。
+	var _ERM = load("res://scripts/equipment/EquipmentRandomMods.gd")
+	_ERM.ensure_migrated(item)
+	var nm: String = _EquipmentEnhancer.get_display_name(item)
+	if nm.is_empty():
+		return EquipmentDisplayNames.get_instance_name(item, category)
+	return nm
+
+
+## 見出しフォントは ★ 欠落しやすいので、名前は Display・★は本文＋金で並べる。
+static func _add_item_title(parent: Node, item: Resource, category: String) -> void:
+	var full: String = short_name(item, category)
+	var star_suffix: String = _EquipmentRollHelper.perfect_roll_suffix(item)
+	var base_name: String = full
+	if not star_suffix.is_empty() and full.ends_with(star_suffix):
+		base_name = full.substr(0, full.length() - star_suffix.length())
+	if star_suffix.is_empty():
+		var name_lbl := Label.new()
+		name_lbl.text = full
+		name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		UiTypography.apply_display(name_lbl, UiTypography.SIZE_BODY_SMALL)
+		parent.add_child(name_lbl)
+		return
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 0)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var name_lbl2 := Label.new()
+	name_lbl2.text = base_name
+	name_lbl2.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_lbl2.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	UiTypography.apply_display(name_lbl2, UiTypography.SIZE_BODY_SMALL)
+	row.add_child(name_lbl2)
+	var star_lbl := Label.new()
+	star_lbl.text = star_suffix
+	star_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_body(star_lbl, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	row.add_child(star_lbl)
+	parent.add_child(row)
 
 static func category_label(category: String) -> String:
 	return EquipmentUiHelper.category_label(category)
@@ -430,11 +461,7 @@ static func populate_stats_panel(
 		host.add_child(_make_caption_label("装備を選択してください"))
 		return
 	var popup_host: Node = meta_host if meta_host != null else host
-	var name_lbl := Label.new()
-	name_lbl.text = short_name(item, category)
-	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	UiTypography.apply_display(name_lbl, UiTypography.SIZE_BODY_SMALL)
-	host.add_child(name_lbl)
+	_add_item_title(host, item, category)
 	host.add_child(_make_rule())
 	for row in stat_rows(item, category):
 		host.add_child(_make_stat_row(str(row.get("key", "")), str(row.get("label", "")), str(row.get("value", ""))))
@@ -535,11 +562,7 @@ static func populate_panel(
 	title_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_col.add_theme_constant_override("separation", 2)
 	header.add_child(title_col)
-	var name_lbl := Label.new()
-	name_lbl.text = short_name(item, category)
-	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	UiTypography.apply_display(name_lbl, UiTypography.SIZE_BODY_SMALL)
-	title_col.add_child(name_lbl)
+	_add_item_title(title_col, item, category)
 	var meta_lbl := Label.new()
 	meta_lbl.text = "%s · %s" % [category_label(category), EquipmentUiHelper.rarity_label_text(rarity)]
 	UiTypography.apply_caption(meta_lbl, COLOR_SUB)

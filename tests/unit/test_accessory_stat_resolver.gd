@@ -50,12 +50,12 @@ func test_no_mandatory_stats_when_common() -> void:
 	else:
 		assert_eq(active, 1)
 
-func test_display_name_has_no_perfect_stars() -> void:
+func test_display_name_has_perfect_stars_by_count() -> void:
 	var inst: Resource = _AccessoryInstance.new()
 	inst.accessory_id = "silver_ring"
 	inst.perfect_roll_count = 2
 	var name: String = _EquipmentDisplayNames.get_instance_name(inst, "accessory")
-	assert_false(name.contains("⭐️"))
+	assert_true(name.ends_with("★★"), name)
 
 func test_resolve_uses_instance_over_master() -> void:
 	var data: Resource = _AccessoryData.new()

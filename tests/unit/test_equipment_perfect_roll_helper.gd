@@ -1,22 +1,29 @@
 extends GutTest
 
-## パーフェクトロール⭐️ — ステータス行表示（P3-EQ-DIABLO-001: 固定行は⭐️無し、ランダム行に表示）。
+## パーフェクトロール★ — ステータス行表示（P3-EQ-DIABLO-001: 固定行は★無し、ランダム行に表示）。
 
 const _EquipmentPerfectRollHelper = preload("res://scripts/equipment/EquipmentPerfectRollHelper.gd")
 const _EquipmentDisplayNames = preload("res://scripts/equipment/EquipmentDisplayNames.gd")
 const _EquipmentEnhancer = preload("res://scripts/equipment/EquipmentEnhancer.gd")
+const _EquipmentRollHelper = preload("res://scripts/equipment/EquipmentRollHelper.gd")
 const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _EquipmentItemDetailHelper = preload("res://scripts/equipment/EquipmentItemDetailHelper.gd")
 const _WeaponInstance = preload("res://scripts/domain/WeaponInstance.gd")
 const _ArmorInstance = preload("res://scripts/domain/ArmorInstance.gd")
 const _ERM = preload("res://scripts/equipment/EquipmentRandomMods.gd")
 
-func test_display_name_has_no_perfect_stars() -> void:
+func test_display_name_has_perfect_stars_by_count() -> void:
 	var armor: Resource = _ArmorInstance.new()
 	armor.armor_id = "leather_armor"
 	armor.perfect_roll_count = 3
 	var name: String = _EquipmentDisplayNames.get_instance_name(armor, "armor")
-	assert_false(name.contains("⭐️"))
+	assert_true(name.ends_with("★★★"), name)
+	var weapon: Resource = _WeaponInstance.new()
+	weapon.weapon_id = "iron_sword"
+	weapon.perfect_roll_count = 1
+	var wname: String = _EquipmentEnhancer.get_display_name(weapon)
+	assert_true(wname.ends_with("★"), wname)
+	assert_false(wname.ends_with("★★"), wname)
 
 func test_fixed_attack_row_has_no_star() -> void:
 	var weapon: Resource = _WeaponInstance.new()
@@ -28,7 +35,7 @@ func test_fixed_attack_row_has_no_star() -> void:
 	var rows: Array = _EquipmentItemDetailHelper.stat_rows(weapon, "weapon")
 	var attack_row: Dictionary = rows[0]
 	assert_eq(str(attack_row.get("label", "")), "攻撃力")
-	assert_false(str(attack_row.get("value", "")).contains("⭐️"))
+	assert_false(str(attack_row.get("value", "")).contains(_EquipmentRollHelper.PERFECT_STAR))
 
 func test_attack_up_mod_shows_star_and_range_when_perfect() -> void:
 	var weapon: Resource = _WeaponInstance.new()
@@ -55,12 +62,12 @@ func test_attack_up_mod_shows_star_and_range_when_perfect() -> void:
 	var mod_line: String = str(rows[1].get("value", ""))
 	assert_true(mod_line.contains("攻撃力アップ"), mod_line)
 	assert_true(mod_line.contains("(%d〜%d)" % [1, roll_max]), mod_line)
-	assert_true(mod_line.begins_with("⭐️"), mod_line)
+	assert_true(mod_line.begins_with(_EquipmentRollHelper.PERFECT_STAR), mod_line)
 	assert_eq(str(rows[0].get("value", "")), str(_EquipmentEnhancer.get_effective_attack(weapon)))
 
 
 func test_attack_up_at_max_shows_star_even_without_perfect_flag() -> void:
-	## 移行セーブ等で perfect=false でも MAX なら⭐️。
+	## 移行セーブ等で perfect=false でも MAX なら★。
 	var mod: Dictionary = {
 		"id": _ERM.KIND_ATTACK_UP,
 		"label": "攻撃力アップ",
@@ -73,7 +80,7 @@ func test_attack_up_at_max_shows_star_even_without_perfect_flag() -> void:
 	}
 	assert_true(_ERM.is_mod_perfect(mod))
 	var line: String = _ERM.format_mod_line(mod)
-	assert_eq(line, "⭐️攻撃力アップ +200 (100〜200)")
+	assert_eq(line, "%s攻撃力アップ +200 (100〜200)" % _EquipmentRollHelper.PERFECT_STAR)
 
 
 func test_attack_up_below_max_has_no_star() -> void:
@@ -90,7 +97,7 @@ func test_attack_up_below_max_has_no_star() -> void:
 	assert_false(_ERM.is_mod_perfect(mod))
 	var line: String = _ERM.format_mod_line(mod)
 	assert_eq(line, "攻撃力アップ +150 (100〜200)")
-	assert_false(line.contains("⭐️"))
+	assert_false(line.contains(_EquipmentRollHelper.PERFECT_STAR))
 
 
 func test_crit_rate_mod_shows_range() -> void:
