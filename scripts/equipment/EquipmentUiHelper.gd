@@ -6,8 +6,8 @@ extends RefCounted
 const RARITY_CODES: Array[String] = ["N", "R", "E", "L", "M", "エンシェントレア"]
 ## 装備セル左上のレアリティロゴ位置（N/R/E／L／M／エンシェント共通）。
 const RARITY_BADGE_POS: Vector2 = Vector2(5.0, 3.0)
-## 装備Lv（左下）。炉研ぎ +N は右下。
-const EQUIP_LEVEL_BADGE_POS: Vector2 = Vector2(3.0, -4.0)
+## 装備Lv（左下寄り・少し右上へ）。炉研ぎ +N は右下。
+const EQUIP_LEVEL_BADGE_POS: Vector2 = Vector2(7.0, -8.0)
 const LEVEL_CAP: int = LevelSystem.MAX_LEVEL
 
 const SORT_LABELS: Dictionary = {
