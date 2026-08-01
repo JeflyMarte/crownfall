@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Generate 4 distinct generic accessory silhouettes (Ring / Charm / Talisman / Seal).
+"""Generic accessory silhouettes (Ring / Charm / Talisman / Seal).
 
-Plan A: shape-category generics so charms are not shown as rings.
-Writes:
+本番の Generic_* は手描き風 AI 差し替え済み（案1）。
+このスクリプトの PIL 簡易生成はフォールバック専用。上書きは --force のみ。
+
+Writes (with --force):
   assets/ui/equipment/ICO_ACC_Generic_{Ring,Charm,Talisman,Seal}.png
-  assets/ui/equipment/_templates/ICO_ACC_Generic_{...}.png  (same bytes)
+  assets/ui/equipment/_templates/ICO_ACC_Generic_{...}.png
 """
 
 from __future__ import annotations
@@ -132,6 +134,15 @@ def make_seal() -> Image.Image:
 
 
 def main() -> None:
+	import argparse
+
+	parser = argparse.ArgumentParser(description=__doc__)
+	parser.add_argument(
+		"--force",
+		action="store_true",
+		help="Overwrite existing handcrafted Generic_* icons with procedural fallbacks",
+	)
+	args = parser.parse_args()
 	OUT_DIR.mkdir(parents=True, exist_ok=True)
 	TEMPLATE_DIR.mkdir(parents=True, exist_ok=True)
 	makers = {
@@ -141,10 +152,13 @@ def main() -> None:
 		"Seal": make_seal,
 	}
 	for name, fn in makers.items():
-		img = fn()
 		fname = f"ICO_ACC_Generic_{name}.png"
 		out = OUT_DIR / fname
 		tpl = TEMPLATE_DIR / fname
+		if out.exists() and out.stat().st_size > 4000 and not args.force:
+			print(f"  keep handcrafted {out.relative_to(ROOT)} ({out.stat().st_size} bytes)")
+			continue
+		img = fn()
 		img.save(out, "PNG")
 		img.save(tpl, "PNG")
 		print(f"  wrote {out.relative_to(ROOT)} ({out.stat().st_size} bytes)")
