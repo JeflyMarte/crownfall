@@ -1708,15 +1708,24 @@ func _attach_item_icon(
 ) -> void:
 	if icon == null:
 		return
+	var stale_icon: Node = btn.get_node_or_null("ItemIcon")
+	if stale_icon != null:
+		stale_icon.queue_free()
+	var stale_mat: Node = btn.get_node_or_null("KaiwanArmorMat")
+	if stale_mat != null:
+		stale_mat.queue_free()
 	var inset: int = EquipmentUiTokens.icon_inset_for_item(cell_px, design_px, item_id, category)
 	var side: int = maxi(1, cell_px - inset * 2)
 	var half: float = float(side) * 0.5
+	if EquipmentUiTokens.is_kaiwan_armor(item_id, category):
+		EquipmentUiTokens.attach_kaiwan_armor_mat(btn, half)
 	var tex_rect := TextureRect.new()
 	tex_rect.name = "ItemIcon"
 	tex_rect.texture = icon
 	tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	tex_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tex_rect.z_index = 1
 	# FULL_RECT+inset だと親幅変動時に偏って見えることがあるため、中央固定サイズで載せる。
 	tex_rect.anchor_left = 0.5
 	tex_rect.anchor_top = 0.5
