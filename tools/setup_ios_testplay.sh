@@ -158,6 +158,19 @@ Team ID の調べ方:
 EOF
 }
 
+## iOS 向け: docs/devlog 等を同梱すると PCK が数GBになり Godot ロゴで固まる。
+IOS_EXPORT_EXCLUDE='build/*,.cursor/*,docs/*,wiki/*,tests/*,tools/*,addons/gut/*,addons/agent_tools/*,**/*.import-*,**/*_prev.png,**/*_backup.png'
+
+ensure_ios_export_excludes() {
+    local cfg="$ROOT/export_presets.cfg"
+    if [[ ! -f "$cfg" ]]; then
+        return 0
+    fi
+    ## export_presets.cfg は gitignore のため、毎回除外を強制する。
+    perl -i -pe "s#^exclude_filter=\".*\"#exclude_filter=\"$IOS_EXPORT_EXCLUDE\"#" "$cfg"
+    green "OK: iOS exclude_filter を適用（docs/wiki/tests 等を除外）"
+}
+
 export_ios_project() {
     local team_id="${GODOT_IOS_TEAM_ID:-}"
     if [[ -z "$team_id" && -f "$ROOT/export_presets.cfg" ]]; then
@@ -171,9 +184,23 @@ export_ios_project() {
     if [[ -f "$ROOT/export_presets.cfg" ]]; then
         perl -i -pe "s/application\\/app_store_team_id=\".*\"/application\\/app_store_team_id=\"$team_id\"/" "$ROOT/export_presets.cfg"
     fi
+    ensure_ios_export_excludes
     mkdir -p "$ROOT/build/ios"
     echo "=== iOS Xcode プロジェクトをエクスポート ==="
+    ## 旧肥大 PCK を残さない（確認しやすくする）。
+    rm -f "$ROOT/build/ios/Crownfall.pck"
     "$GODOT_BIN" --path "$ROOT" --headless --export-debug "iOS" "$ROOT/build/ios/Crownfall.xcodeproj"
+    local pck="$ROOT/build/ios/Crownfall.pck"
+    if [[ -f "$pck" ]]; then
+        local mb
+        mb="$(du -m "$pck" | awk '{print $1}')"
+        echo "PCK size: ${mb} MB"
+        if [[ "$mb" -gt 1500 ]]; then
+            yellow "WARN: PCK が ${mb}MB と大きい。docs 等が混入していないか exclude_filter を確認。"
+        else
+            green "OK: PCK ${mb}MB（目安 <1500MB）"
+        fi
+    fi
     green "Exported: $ROOT/build/ios/Crownfall.xcodeproj"
     echo "次: open \"$ROOT/build/ios/Crownfall.xcodeproj\""
 }

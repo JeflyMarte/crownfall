@@ -16,6 +16,7 @@ alwaysApply: false
 |---|---|---|
 | 続きから即終了（`saved_parties` Invalid assignment） | SaveManager だけパーティ編成キーを残し GameState フィールドを切り戻した | セーブキーは **GameState＋SaveManager 同コミット**。片方だけ戻さない |
 | ダンジョン選択の下情報欄が左欠け／リストに重なる | 長いイベント要約で Footer 最小幅＝全文幅＋設計高不足 | → **`ui-layout.mdc` FooterPanel**（clip＋ellipsis＋MainColumn 下端を Footer 実高で再計算） |
+| iPhone で Godot ロゴのまま進まない | iOS PCK に `docs/devlog` 等を同梱し数GB化（起動読込で固まる） | `export_presets` の `exclude_filter` に `docs/*,wiki/*,tests/*,tools/*,addons/gut/*`。`setup_ios_testplay.sh --export` が毎回強制。PCK 目安 <1.5GB。LLDB shared cache 警告は無関係 |
 | 鍛冶完了ポップでレアロゴ巨大化／説明はみ出し | PanelContainer直下バッジ・WORD_SMART | → **`ui-layout.mdc` 鍛冶屋アイコン** |
 | 隊長カード全体が赤くなる／ランクアップ閉じで終了 | `PanelContainer` 直下バッジ＋reparent 後の旧パス | → **`ui-layout.mdc` PanelContainer 上の角バッジ** |
 | 鍛冶／ダンジョン入場で即終了（maxf3引・wrap名衝突） | パース失敗 | → **`pitfalls-startup.mdc`**／`gdscript.mdc` |
