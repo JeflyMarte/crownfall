@@ -35,6 +35,8 @@ const FEATURED_MOTE_COUNT: int = 18
 const FEATURED_IDLE_OFFSET_X: float = 0.0
 ## 封蔵 Featured 装備アイコンの追加オフセット（正で右）。中央寄りすぎるのを少し右へ。
 const FEATURED_EQUIP_OFFSET_X: float = 18.0
+## 封蔵装備アイコンをキャラ基準より少し下へ（正で下）。
+const FEATURED_EQUIP_DROP_Y: float = 28.0
 ## LEGEND InvCell 装飾角の内側にアイコンを収める（鍛冶 FORGE_ICON_SAFE_FILL より少し厳しめ）。
 const FEATURED_EQUIP_ICON_SAFE_FILL: float = 0.72
 ## 【キャラ上下の主操作】大きいほど上へ。MIN/MAX は自動計算の下限／上限なので触っても効きにくい。
@@ -118,6 +120,9 @@ static func relayout_featured_shell(shell: Dictionary, host: Control) -> void:
 	if stone == null:
 		stone = stage.get_node_or_null("EquipStoneMat") as Control
 	var stone_on: bool = stone != null and stone.visible
+	## 装備アイコンはキャラより少し下へ。
+	if stone_on:
+		bottom += FEATURED_EQUIP_DROP_Y
 	## 装備時は InvCell 枠内へ inset。キャラ時は idle_px 満載。
 	var draw_px: float = idle_px
 	if stone_on:
