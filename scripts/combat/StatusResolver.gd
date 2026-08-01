@@ -79,6 +79,10 @@ func tick_unit(unit_id: String) -> Array[Dictionary]:
 				dmg += int(inst.source_attack * effect.dot_percent_of_attack * inst.stacks)
 			if effect.dot_flat > 0:
 				dmg += effect.dot_flat * inst.stacks
+			if dmg > 0 and str(inst.effect_id) == "poison":
+				var p_mult: float = CombatWeather.poison_damage_multiplier(GameState.get_weather())
+				if not is_equal_approx(p_mult, 1.0):
+					dmg = maxi(1, int(round(float(dmg) * p_mult)))
 			if dmg > 0:
 				results.append({
 					"effect_id": inst.effect_id,

@@ -97,9 +97,12 @@ const _DEFS: Dictionary = {
 	},
 	"fog": {
 		"label": "霧",
+		## 腐霧（案D）: 回復しにくく、毒が回りやすい。与被ダメの微減は廃止。
 		"element_mult": {},
-		"outgoing_mult": 0.97,
-		"incoming_mult": 0.97,
+		"outgoing_mult": 1.0,
+		"incoming_mult": 1.0,
+		"heal_received_mult": 0.85,
+		"poison_damage_mult": 1.15,
 	},
 	"heat": {
 		"label": "炎天",
@@ -134,7 +137,7 @@ static func effect_summary_compact(weather: String) -> String:
 		NIGHT:
 			return "闇+10%／聖−5%"
 		FOG:
-			return "与被×0.97"
+			return "回復−15%／毒+15%"
 		HEAT:
 			return "炎+10%／氷−5%"
 		SNOW:
@@ -186,8 +189,8 @@ static func effect_bullet_lines(weather: String) -> PackedStringArray:
 			])
 		FOG:
 			return PackedStringArray([
-				"味方の与ダメ ×0.97",
-				"味方の被ダメ ×0.97（視界不良で双方手探り）",
+				"味方の回復量 −15%（被回復）",
+				"毒ダメージ +15%（腐霧で毒が回りやすい）",
 			])
 		HEAT:
 			return PackedStringArray([
@@ -239,7 +242,7 @@ static func bulletin_reference_text() -> String:
 		"・晴れ：戦闘補正なし（いちばん出やすい）",
 		"・雨：雷与ダメ+10%／炎与ダメ−5%",
 		"・夜：闇与ダメ+10%／聖与ダメ−5%",
-		"・霧：与ダメ・被ダメとも×0.97",
+		"・霧：回復量−15%／毒ダメージ+15%",
 		"・炎天：炎与ダメ+10%／氷与ダメ−5%",
 		"・吹雪：氷与ダメ+10%／炎与ダメ−5%",
 	])
@@ -264,6 +267,18 @@ static func incoming_multiplier(weather: String) -> float:
 	if not _DEFS.has(weather):
 		return 1.0
 	return float(_DEFS[weather].get("incoming_mult", 1.0))
+
+
+static func heal_received_multiplier(weather: String) -> float:
+	if not _DEFS.has(weather):
+		return 1.0
+	return float(_DEFS[weather].get("heal_received_mult", 1.0))
+
+
+static func poison_damage_multiplier(weather: String) -> float:
+	if not _DEFS.has(weather):
+		return 1.0
+	return float(_DEFS[weather].get("poison_damage_mult", 1.0))
 
 
 ## dungeon_id → 天候テーブルの Biome キー（空＝共通テーブル）。

@@ -1117,14 +1117,41 @@ func _setup_weather() -> void:
 			tint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			layer.add_child(tint)
 		CombatWeather.FOG:
+			## 腐霧：濃いベール＋漂う粒子（旧は薄い点滅のみで視認しづらかった）。
 			var haze := ColorRect.new()
-			haze.color = Color(0.76, 0.78, 0.82, 0.16)
+			haze.color = Color(0.62, 0.68, 0.64, 0.28)
 			haze.set_anchors_preset(Control.PRESET_FULL_RECT)
 			haze.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			layer.add_child(haze)
+			var haze2 := ColorRect.new()
+			haze2.color = Color(0.48, 0.55, 0.50, 0.12)
+			haze2.set_anchors_preset(Control.PRESET_FULL_RECT)
+			haze2.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			layer.add_child(haze2)
 			var tw := create_tween().set_loops()
-			tw.tween_property(haze, "color:a", 0.24, 2.2).set_trans(Tween.TRANS_SINE)
-			tw.tween_property(haze, "color:a", 0.10, 2.2).set_trans(Tween.TRANS_SINE)
+			tw.tween_property(haze, "color:a", 0.42, 2.6).set_trans(Tween.TRANS_SINE)
+			tw.tween_property(haze, "color:a", 0.22, 2.6).set_trans(Tween.TRANS_SINE)
+			var tw2 := create_tween().set_loops()
+			tw2.tween_property(haze2, "color:a", 0.20, 3.4).set_trans(Tween.TRANS_SINE)
+			tw2.tween_property(haze2, "color:a", 0.08, 3.4).set_trans(Tween.TRANS_SINE)
+			var mist := CPUParticles2D.new()
+			mist.texture = _make_fog_wisp_texture()
+			mist.amount = 48
+			mist.lifetime = 3.6
+			mist.local_coords = false
+			mist.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+			mist.emission_rect_extents = Vector2(view.x * 0.55, view.y * 0.45)
+			mist.position = Vector2(view.x * 0.5, view.y * 0.45)
+			mist.direction = Vector2(1.0, 0.05)
+			mist.spread = 28.0
+			mist.gravity = Vector2(0.0, -6.0)
+			mist.initial_velocity_min = 8.0
+			mist.initial_velocity_max = 28.0
+			mist.scale_amount_min = 0.7
+			mist.scale_amount_max = 1.6
+			mist.modulate = Color(0.78, 0.84, 0.80, 0.55)
+			mist.emitting = true
+			layer.add_child(mist)
 		CombatWeather.RAIN:
 			var rain := CPUParticles2D.new()
 			rain.texture = _make_raindrop_texture()
@@ -1178,6 +1205,23 @@ func _make_raindrop_texture() -> Texture2D:
 func _make_snowflake_texture() -> Texture2D:
 	var img := Image.create(4, 4, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0.95, 0.97, 1.0, 0.65))
+	return ImageTexture.create_from_image(img)
+
+
+func _make_fog_wisp_texture() -> Texture2D:
+	## 柔らかい円盤（霧の塊）。中央ほど不透明。
+	var size: int = 28
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var center := Vector2(float(size) * 0.5, float(size) * 0.5)
+	var radius: float = float(size) * 0.48
+	for y in size:
+		for x in size:
+			var d: float = Vector2(float(x) + 0.5, float(y) + 0.5).distance_to(center) / radius
+			if d >= 1.0:
+				continue
+			var a: float = clampf((1.0 - d) * (1.0 - d) * 0.55, 0.0, 0.55)
+			img.set_pixel(x, y, Color(0.85, 0.90, 0.86, a))
 	return ImageTexture.create_from_image(img)
 
 func _process(delta: float) -> void:

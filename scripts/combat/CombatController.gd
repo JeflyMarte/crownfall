@@ -669,6 +669,7 @@ func heal_member(index: int, amount: int) -> int:
 		return 0
 	var adjusted: int = amount
 	var heal_mult: float = CombatPassives.relic_heal_received_mult(index)
+	heal_mult *= CombatWeather.heal_received_multiplier(GameState.get_weather())
 	if not is_equal_approx(heal_mult, 1.0):
 		adjusted = int(round(float(amount) * heal_mult))
 	if adjusted <= 0:
@@ -994,7 +995,7 @@ func get_member_incoming_damage_multiplier(member_index: int) -> float:
 	mult *= float(CombatSynergy.compute_role_bonuses(GameState.party_members).get("incoming_mult", 1.0))
 	# 探索方針（安全優先）被ダメ軽減（P3-D098）
 	mult *= GameState.exploration_incoming_multiplier()
-	# 天候（霧＝被ダメ軽減）（P3-D101）
+	# 天候の被ダメ倍率（P3-D101）。霧は回復／毒側へ移したため通常は 1.0。
 	mult *= CombatWeather.incoming_multiplier(GameState.get_weather())
 	# 陣形（後列＝被ダメ軽減）（P3-D106）
 	mult *= GameState.formation_incoming_multiplier(member_index)

@@ -708,7 +708,7 @@ const _DEFS: Dictionary = {
 	"eq_wpn_mistpierce_halberd": {
 		"display_name": "霧穿ちの戦鉾",
 		"category": "weapon",
-		"description": "会心率+3%。霧のとき与ダメ罰則を打ち消しさらに+20%、会心率+10%。",
+		"description": "会心率+3%。霧のとき与ダメ+26%、会心率+10%。",
 		"crit_rate_add": 0.03,
 		"weather_bonus": {
 			"fog": {
