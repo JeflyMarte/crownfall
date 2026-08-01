@@ -247,9 +247,13 @@ grow_horizontal = 2
 theme_override_constants/separation = 12
 alignment = 1
 
-[node name="ButtonReset" type="Button" parent="FooterRow"]
+[node name="ButtonPartySave" type="Button" parent="FooterRow"]
 layout_mode = 2
-text = "パーティ解除"
+text = "パーティ保存"
+
+[node name="ButtonPartyList" type="Button" parent="FooterRow"]
+layout_mode = 2
+text = "パーティ一覧"
 
 [node name="ButtonSave" type="Button" parent="FooterRow"]
 layout_mode = 2
