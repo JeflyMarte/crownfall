@@ -33,8 +33,8 @@ const FEATURED_BLURB_SHADOW := Color(0.04, 0.02, 0.08, 0.9)
 const FEATURED_MOTE_COUNT: int = 18
 ## 台座中心向け。実機の短い枠でもキャラ全体が枠内に収まるよう host から算出。
 const FEATURED_IDLE_OFFSET_X: float = 0.0
-## 封蔵装備プレビューは右説明と重ならないよう左へ。
-const FEATURED_EQUIP_OFFSET_X: float = -36.0
+## 封蔵 Featured 装備アイコンの追加オフセット（正で右）。中央寄りすぎるのを少し右へ。
+const FEATURED_EQUIP_OFFSET_X: float = 18.0
 ## LEGEND InvCell 装飾角の内側にアイコンを収める（鍛冶 FORGE_ICON_SAFE_FILL より少し厳しめ）。
 const FEATURED_EQUIP_ICON_SAFE_FILL: float = 0.72
 ## 【キャラ上下の主操作】大きいほど上へ。MIN/MAX は自動計算の下限／上限なので触っても効きにくい。
@@ -148,13 +148,27 @@ static func relayout_featured_shell(shell: Dictionary, host: Control) -> void:
 	var beam: Control = stage.get_node_or_null("FeaturedBeam") as Control
 	if beam != null:
 		var beam_h: float = idle_px + foot + absf(bottom) + 80.0
+		var beam_w: float = 220.0
+		beam.offset_left = -beam_w * 0.5 + art_x
+		beam.offset_right = beam_w * 0.5 + art_x
 		beam.offset_top = -beam_h
 		beam.offset_bottom = bottom + 36.0
 	var beam_soft: Control = stage.get_node_or_null("FeaturedBeamSoft") as Control
 	if beam_soft != null:
 		var soft_h: float = idle_px + foot + absf(bottom) + 80.0
+		var soft_w: float = 340.0
+		beam_soft.offset_left = -soft_w * 0.5 + art_x
+		beam_soft.offset_right = soft_w * 0.5 + art_x
 		beam_soft.offset_top = -soft_h * 0.92
 		beam_soft.offset_bottom = bottom + 48.0
+	var beam_haze: Control = stage.get_node_or_null("FeaturedBeamHaze") as Control
+	if beam_haze != null:
+		var haze_h: float = idle_px + foot + absf(bottom) + 80.0
+		var haze_w: float = 420.0
+		beam_haze.offset_left = -haze_w * 0.5 + art_x
+		beam_haze.offset_right = haze_w * 0.5 + art_x
+		beam_haze.offset_top = -haze_h * 0.85
+		beam_haze.offset_bottom = bottom + 56.0
 	_relayout_pool_strip(shell.get("pool_strip") as Control)
 	_relayout_pool_strip_back(shell)
 	_relayout_feature_blurb(shell, host)
@@ -1224,8 +1238,8 @@ static func apply_featured_equipment(shell: Dictionary, entry: Dictionary) -> vo
 		return
 	_set_featured_banner_bg(shell, true)
 	set_equip_icon_back_visible(shell, true)
-	## 装備プレビューでは召喚用の紫光柱を消し、透け見えを防ぐ。
-	set_featured_aura_visible(shell, false)
+	## 招待状と同じ紫光柱・上昇塵（封蔵でも表示）。
+	set_featured_aura_visible(shell, true)
 	var kind: String = str(entry.get("kind", "weapon"))
 	var item_id: String = str(entry.get("id", ""))
 	var idle: Control = shell.get("idle") as Control
