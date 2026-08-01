@@ -32,9 +32,11 @@ const DUNGEON_ICON_PATHS: Dictionary = {
 const COLOR_GOLD: Color = Color(0.95, 0.84, 0.4, 1)
 const COLOR_SUB: Color = Color(0.78, 0.74, 0.6, 1)
 const COLOR_CLEAR: Color = Color(0.45, 0.92, 0.55, 1)
-## クリア済みバッジ「CLEAR」用。ダンジョン名の金と分ける（緑）。
+## クリア済み／日次挑戦済みバッジ用。ダンジョン名の金と分ける（緑）。
 const COLOR_CLEAR_BADGE: Color = COLOR_CLEAR
 const COLOR_CLEAR_BADGE_HEX: String = "73eb8c"
+const BADGE_CLEAR: String = "CLEAR"
+const BADGE_ATTEMPTED: String = "挑戦済み"
 ## 無限ダンジョンの「最高到達フロア」表示用（赤字）。
 const COLOR_ABYSS_BEST_HEX: String = "e0574a"
 const COLOR_ABYSS_BEST: Color = Color(0.88, 0.34, 0.29, 1)
@@ -839,8 +841,10 @@ func _dungeon_list_line_bbcode(data: Resource, unlocked: bool) -> String:
 		var best_f: int = GameState.get_abyss_highest_floor(str(data.id))
 		var floor_text: String = ("%dF" % best_f) if best_f > 0 else "—"
 		clear_bb = " [color=#%s][b]最高到達フロア：%s[/b][/color]" % [COLOR_ABYSS_BEST_HEX, floor_text]
-	elif _is_biome_fully_cleared_for_ui(str(data.id)):
-		clear_bb = " [color=#%s][b]CLEAR[/b][/color]" % COLOR_CLEAR_BADGE_HEX
+	else:
+		var badge: String = _dungeon_name_badge_text(str(data.id))
+		if not badge.is_empty():
+			clear_bb = " [color=#%s][b]%s[/b][/color]" % [COLOR_CLEAR_BADGE_HEX, badge]
 	var parts: Array[String] = []
 	if str(data.route_type) == "abyss":
 		parts.append("？？F")
@@ -933,11 +937,17 @@ func _make_stage_card(stage: Resource) -> Control:
 	_apply_stage_list_rich_text(line, unlocked)
 	line.text = _stage_list_line_bbcode(stage, unlocked)
 	text_col.add_child(line)
+	var biome_id: String = str(stage.biome_id) if stage != null else ""
 	var status_text: String = ""
+	var status_is_badge: bool = false
 	if not unlocked:
 		status_text = "？"
-	elif cleared:
-		status_text = "CLEAR"
+	elif _is_daily_attempt_exhausted(biome_id):
+		status_text = BADGE_ATTEMPTED
+		status_is_badge = true
+	elif cleared and not _is_daily_attempt_event(biome_id):
+		status_text = BADGE_CLEAR
+		status_is_badge = true
 	elif bool(stage.has_boss_floor()):
 		status_text = "ボス"
 	if not status_text.is_empty():
@@ -949,7 +959,7 @@ func _make_stage_card(stage: Resource) -> Control:
 		status.text = status_text
 		status.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		status.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		UiTypography.apply_caption(status, COLOR_CLEAR_BADGE if cleared else UiTypography.COLOR_SUB)
+		UiTypography.apply_caption(status, COLOR_CLEAR_BADGE if status_is_badge else UiTypography.COLOR_SUB)
 		status_col.add_child(status)
 		content.add_child(status_col)
 	btn.pressed.connect(_on_stage_card_pressed.bind(stage_id))
@@ -1102,7 +1112,7 @@ func _refresh_featured() -> void:
 				_label_featured_name, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD
 			)
 	else:
-		## CLEAR は一覧バナー側で緑表示。降臨は本体／「降臨」の2色。
+		## 名横バッジ（CLEAR／挑戦済み）は一覧バナー側で緑表示。降臨は本体／「降臨」の2色。
 		_set_featured_dungeon_title(data, true)
 	if unlocked_featured:
 		_label_featured_flavor.text = str(data.flavor_text)
@@ -1210,7 +1220,7 @@ func _refresh_featured() -> void:
 		]
 		attempt_ok = remaining > 0
 		if not attempt_ok:
-			_btn_featured_select.text = "本日分は挑戦済"
+			_btn_featured_select.text = BADGE_ATTEMPTED
 			_btn_featured_select.disabled = true
 			return
 	_btn_featured_select.text = "選択して出発" if unlocked else "未開"
@@ -1534,11 +1544,13 @@ func _make_biome_title_label(data: Resource, unlocked: bool) -> Control:
 	row.add_theme_constant_override("separation", 8)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_add_dungeon_title_labels(row, data, unlocked, UiTypography.SIZE_BODY_SMALL, false)
-	if unlocked and data != null and _is_biome_fully_cleared_for_ui(str(data.id)):
-		var clear_lbl := Label.new()
-		clear_lbl.text = "CLEAR"
-		UiTypography.apply_display(clear_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_CLEAR_BADGE)
-		row.add_child(clear_lbl)
+	if unlocked and data != null:
+		var badge: String = _dungeon_name_badge_text(str(data.id))
+		if not badge.is_empty():
+			var clear_lbl := Label.new()
+			clear_lbl.text = badge
+			UiTypography.apply_display(clear_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_CLEAR_BADGE)
+			row.add_child(clear_lbl)
 	margin.add_child(row)
 	return margin
 
@@ -1553,15 +1565,17 @@ func _make_banner_overlay_title(data: Resource, unlocked: bool, dungeon_id: Stri
 	host.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var title_text: String = _dungeon_display_name(data, unlocked)
 	var is_abyss: bool = data != null and str(data.route_type) == "abyss"
-	var show_clear: bool = (
-		unlocked and data != null and not is_abyss and _is_biome_fully_cleared_for_ui(str(data.id))
-	)
+	var name_badge: String = ""
+	if unlocked and data != null and not is_abyss:
+		name_badge = _dungeon_name_badge_text(str(data.id))
 	var show_abyss_best: bool = unlocked and is_abyss
-	var title_size: int = _banner_title_font_size(dungeon_id, title_text, show_clear or show_abyss_best)
+	var title_size: int = _banner_title_font_size(
+		dungeon_id, title_text, not name_badge.is_empty() or show_abyss_best
+	)
 	_add_dungeon_title_labels(host, data, unlocked, title_size, true)
-	if show_clear:
+	if not name_badge.is_empty():
 		var clear_lbl := Label.new()
-		clear_lbl.text = "CLEAR"
+		clear_lbl.text = name_badge
 		clear_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		UiTypography.apply_display(clear_lbl, title_size, COLOR_CLEAR_BADGE)
 		_apply_banner_title_shadow(clear_lbl)
@@ -1877,13 +1891,15 @@ func _make_biome_text_header(
 		best_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		UiTypography.apply_display(best_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_ABYSS_BEST)
 		title_row.add_child(best_lbl)
-	elif unlocked and _is_biome_fully_cleared_for_ui(dungeon_id):
-		var clear_lbl := Label.new()
-		clear_lbl.text = "CLEAR"
-		clear_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		clear_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		UiTypography.apply_display(clear_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_CLEAR_BADGE)
-		title_row.add_child(clear_lbl)
+	elif unlocked:
+		var badge: String = _dungeon_name_badge_text(dungeon_id)
+		if not badge.is_empty():
+			var clear_lbl := Label.new()
+			clear_lbl.text = badge
+			clear_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			clear_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			UiTypography.apply_display(clear_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_CLEAR_BADGE)
+			title_row.add_child(clear_lbl)
 	root.add_child(title_row)
 
 	var header_btn := Button.new()
@@ -1922,7 +1938,11 @@ func _make_biome_card(data: Resource) -> PanelContainer:
 	card.add_child(row)
 
 	var thumb_tex: Texture2D = _get_dungeon_thumb_texture(dungeon_id) if unlocked else null
-	var thumb_wrap := _make_thumb_with_ribbon(thumb_tex, cleared, not unlocked)
+	var thumb_badge: String = _dungeon_name_badge_text(dungeon_id) if unlocked else ""
+	## 旧カード経路: バッジ無し時は生涯クリアをリボン表示（日次枠付きは挑戦済みのみ）。
+	if thumb_badge.is_empty() and cleared and not _is_daily_attempt_event(dungeon_id):
+		thumb_badge = BADGE_CLEAR
+	var thumb_wrap := _make_thumb_with_ribbon(thumb_tex, thumb_badge, not unlocked)
 	thumb_wrap.gui_input.connect(_on_card_preview_input.bind(dungeon_id, unlocked))
 	row.add_child(thumb_wrap)
 
@@ -1996,7 +2016,7 @@ func _make_biome_card(data: Resource) -> PanelContainer:
 	btn.custom_minimum_size = Vector2(88, 40)
 	if unlocked:
 		if int(data.daily_attempt_limit) > 0 and not GameState.can_attempt_event_dungeon(dungeon_id):
-			btn.text = "本日済"
+			btn.text = BADGE_ATTEMPTED
 			btn.disabled = true
 			UiTypography.apply_button(btn, false)
 		else:
@@ -2025,7 +2045,7 @@ func _abyss_best_floor_text(dungeon_id: String) -> String:
 
 
 func _dungeon_card_title(data: Resource, unlocked: bool = true) -> String:
-	## 名前のみ。CLEAR は別ラベル／BBCode で緑表示（同色連結禁止）。
+	## 名前のみ。CLEAR／挑戦済みは別ラベル／BBCode で緑表示（同色連結禁止）。
 	return _dungeon_display_name(data, unlocked)
 
 ## 親 Biome の配下章がすべてクリア済みか（イベント／メイン共通。章無しは Biome クリア）。
@@ -2048,6 +2068,31 @@ func _is_biome_fully_cleared_for_ui(dungeon_id: String) -> bool:
 		GameState.current_dungeon_tier == _DungeonTierConfig.TIER_NORMAL
 		and GameState.is_dungeon_cleared(dungeon_id)
 	)
+
+## 曜日短編など日次挑戦枠付きイベントDGか。
+func _is_daily_attempt_event(dungeon_id: String) -> bool:
+	if dungeon_id.is_empty():
+		return false
+	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
+	return data != null and int(data.daily_attempt_limit) > 0
+
+func _is_daily_attempt_exhausted(dungeon_id: String) -> bool:
+	return (
+		_is_daily_attempt_event(dungeon_id)
+		and GameState.event_dungeon_attempts_remaining(dungeon_id) <= 0
+	)
+
+## ダンジョン名横バッジ。日次枠付きは枠消費後のみ「挑戦済み」（生涯 CLEAR は出さない）。
+func _dungeon_name_badge_text(dungeon_id: String) -> String:
+	if dungeon_id.is_empty() or not GameState.is_dungeon_unlocked(dungeon_id):
+		return ""
+	if _is_daily_attempt_event(dungeon_id):
+		if _is_daily_attempt_exhausted(dungeon_id):
+			return BADGE_ATTEMPTED
+		return ""
+	if _is_biome_fully_cleared_for_ui(dungeon_id):
+		return BADGE_CLEAR
+	return ""
 
 func _on_card_preview_input(event: InputEvent, dungeon_id: String, unlocked: bool) -> void:
 	if not unlocked:
@@ -2146,14 +2191,14 @@ func _load_texture_flexible(path: String) -> Texture2D:
 		return null
 	return ImageTexture.create_from_image(image)
 
-func _make_thumb_with_ribbon(tex: Texture2D, show_clear: bool, locked: bool) -> Control:
+func _make_thumb_with_ribbon(tex: Texture2D, badge_text: String, locked: bool) -> Control:
 	var wrap := Control.new()
 	wrap.custom_minimum_size = THUMB_SIZE
 	var thumb := _make_thumb(tex, "？" if locked else "♛", THUMB_SIZE)
 	thumb.set_anchors_preset(Control.PRESET_FULL_RECT)
 	wrap.add_child(thumb)
-	if show_clear:
-		var ribbon := _make_clear_ribbon()
+	if not badge_text.is_empty():
+		var ribbon := _make_status_ribbon(badge_text)
 		ribbon.position = Vector2(2, 2)
 		wrap.add_child(ribbon)
 	if locked:
@@ -2166,7 +2211,7 @@ func _make_thumb_with_ribbon(tex: Texture2D, show_clear: bool, locked: bool) -> 
 		wrap.add_child(lock)
 	return wrap
 
-func _make_clear_ribbon() -> PanelContainer:
+func _make_status_ribbon(text: String) -> PanelContainer:
 	var ribbon := PanelContainer.new()
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.42, 0.32, 0.05, 0.92)
@@ -2177,7 +2222,7 @@ func _make_clear_ribbon() -> PanelContainer:
 	style.content_margin_bottom = 1.0
 	ribbon.add_theme_stylebox_override("panel", style)
 	var label := Label.new()
-	label.text = "CLEAR"
+	label.text = text
 	UiTypography.apply_caption(label, COLOR_CLEAR_BADGE)
 	ribbon.add_child(label)
 	return ribbon
