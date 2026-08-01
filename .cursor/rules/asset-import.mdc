@@ -72,6 +72,7 @@ alwaysApply: false
 - `.import` は Godot に生成させる（削除→`--import`）。確認は `.godot/imported/*.ctex`
 - 暗い装備の穴埋めは `tools/repair_equipment_icon_alpha_holes.py --apply`（大開口は残す）。**灰冠は掛けない**
 - 灰冠は `tools/fill_kaiwan_silhouette_dark.py --apply`（防具=内部穴＋不透明化＋1px暗縁＋控えめ黒持ち上げ。UI `KaiwanArmorMat`＝明るい石色。凸包禁止。武器・装飾は close4）
+- 灰冠 Desktop 差替時は **縁から連結する近黒（背景）だけ透過**。金属の黒（内部）を color-key で消さない。差替後は防具の内部穴=0 を確認し `KaiwanArmorMat` を外さない
 - 封蔵 Featured／帯は暗い石マット（クリーム禁止）
 - 防具 N〜Epic は `tools/generate_equipment_icons.py --armor-only`（**素材名**色分け＋弱いウォッシュ＋細い暗リム。耐性 element を主色にしない。テンプレ正は `equipment/_templates/`）
 - 白マットはエッジ＋中心穴の flood-fill（`import_forge_ui_assets.strip_edge_background` 相当）
