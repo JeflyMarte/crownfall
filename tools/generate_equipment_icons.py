@@ -149,7 +149,11 @@ CANONICAL_TEMPLATES = {
         "heavy": TEMPLATE_DIR / "equipment/_templates/ICO_ARM_Heavy.png",
     },
     "accessory": {
-        "default": TEMPLATE_DIR / "equipment/ICO_ACC_SilverRing.png",
+        "ring": TEMPLATE_DIR / "equipment/_templates/ICO_ACC_Generic_Ring.png",
+        "charm": TEMPLATE_DIR / "equipment/_templates/ICO_ACC_Generic_Charm.png",
+        "talisman": TEMPLATE_DIR / "equipment/_templates/ICO_ACC_Generic_Talisman.png",
+        "seal": TEMPLATE_DIR / "equipment/_templates/ICO_ACC_Generic_Seal.png",
+        "default": TEMPLATE_DIR / "equipment/_templates/ICO_ACC_Generic_Ring.png",
     },
     "material": {
         "relic": TEMPLATE_DIR / "materials/ICO_MAT_RelicShard.png",
@@ -326,6 +330,26 @@ def ensure_armor_templates() -> None:
 		src = ARMOR_TEMPLATE_SEED_HEAVY if ARMOR_TEMPLATE_SEED_HEAVY.exists() else ARMOR_TEMPLATE_SEED_LIGHT
 		Image.open(src).convert("RGBA").save(heavy, "PNG")
 		print(f"  seeded armor heavy template -> {heavy.relative_to(ROOT)}")
+
+
+def infer_accessory_type(item_id: str) -> str:
+    """Mirror AccessoryIconHelper.infer_type (keep in sync)."""
+    id_ = (item_id or "").lower()
+    if any(k in id_ for k in ("seal", "sigil")):
+        return "seal"
+    if any(k in id_ for k in ("charm", "brooch", "lantern")):
+        return "charm"
+    if any(k in id_ for k in ("talisman", "amulet", "orb")):
+        return "talisman"
+    if any(k in id_ for k in ("ring", "signet", "band")):
+        return "ring"
+    return "ring"
+
+
+def pick_accessory_template(item_id: str) -> Path:
+    templates = CANONICAL_TEMPLATES["accessory"]
+    acc_type = infer_accessory_type(item_id)
+    return templates.get(acc_type, templates["default"])
 
 
 def pick_weapon_template(item_id: str, weapon_type: str) -> Path:
@@ -634,7 +658,7 @@ def generate_equipment(categories: set[str] | None = None) -> list[tuple[str, st
                 template = pick_armor_template(item_id, rarity)
                 icon = compose_armor_icon(template, item_id, element, rarity)
             else:
-                template = CANONICAL_TEMPLATES["accessory"]["default"]
+                template = pick_accessory_template(item_id)
                 icon = compose_icon(template, item_id, element, rarity)
 
             icon.save(out_path, "PNG")

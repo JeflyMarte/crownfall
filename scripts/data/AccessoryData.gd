@@ -5,6 +5,8 @@ extends Resource
 @export var display_name: String = ""
 @export var rarity: int = 0
 @export var icon: String = ""
+## 形カテゴリ: ring / charm / talisman / seal（空=IDから推定。汎用アイコン割当用）。
+@export var accessory_type: String = ""
 @export var description: String = ""
 @export var hp_bonus: int = 0
 @export var attack_bonus: int = 0

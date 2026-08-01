@@ -2,6 +2,7 @@ class_name IconPaths
 extends RefCounted
 
 const _EquipmentUiTokens := preload("res://scripts/equipment/EquipmentUiTokens.gd")
+const _AccessoryIconHelper := preload("res://scripts/ui/AccessoryIconHelper.gd")
 
 const ICON_MAP: Dictionary = {
 	# 初期5はキャラ名ファイル。adventurer_id 優先、職キーは互換エイリアス。
@@ -208,8 +209,13 @@ const ICON_MAP: Dictionary = {
 	"armor:lament_guard_mail":           "res://assets/ui/equipment/ICO_ARM_LamentGuardMail.png",
 	"armor:sepia_hide_vest":           "res://assets/ui/equipment/ICO_ARM_SepiaHideVest.png",
 	"armor:unidentified":          "res://assets/ui/batch2/ICO_ARM_Unidentified.png",
-	"accessory:silver_ring":       "res://assets/ui/equipment/ICO_ACC_SilverRing.png",
-	"accessory:mourngate_sigil":   "res://assets/ui/equipment/ICO_ACC_MourngateSigil.png",
+	## 形カテゴリ汎用（Ring/Charm/Talisman/Seal）。専用絵が無い装飾はここへ。
+	"accessory:generic_ring":     "res://assets/ui/equipment/ICO_ACC_Generic_Ring.png",
+	"accessory:generic_charm":    "res://assets/ui/equipment/ICO_ACC_Generic_Charm.png",
+	"accessory:generic_talisman": "res://assets/ui/equipment/ICO_ACC_Generic_Talisman.png",
+	"accessory:generic_seal":     "res://assets/ui/equipment/ICO_ACC_Generic_Seal.png",
+	"accessory:silver_ring":       "res://assets/ui/equipment/ICO_ACC_Generic_Ring.png",
+	"accessory:mourngate_sigil":   "res://assets/ui/equipment/ICO_ACC_Generic_Seal.png",
 	"accessory:mourngate_royal_seal": "res://assets/ui/equipment/ICO_ACC_MourngateRoyalSeal.png",
 	"accessory:chronos_toki_orb": "res://assets/ui/equipment/ICO_ACC_ChronosTokiOrb.png",
 	"accessory:valgard_antique_amulet": "res://assets/ui/equipment/ICO_ACC_ValgardAntiqueAmulet.png",
@@ -228,25 +234,25 @@ const ICON_MAP: Dictionary = {
 	"accessory:seradis_archive_seal": "res://assets/ui/equipment/ICO_ACC_SeradisArchiveSeal.png",
 	"accessory:pharos_beacon_ring": "res://assets/ui/equipment/ICO_ACC_PharosBeaconRing.png",
 	"accessory:frostridge_boundary_signet": "res://assets/ui/equipment/ICO_ACC_FrostridgeBoundarySignet.png",
-	"accessory:relic_shard_charm": "res://assets/ui/equipment/ICO_ACC_RelicShardCharm.png",
-	# ② ウィスパーウッド装飾品（暫定流用 / P3-D154）
-	"accessory:verdant_ring":      "res://assets/ui/equipment/ICO_ACC_VerdantRing.png",
-	"accessory:spore_charm":       "res://assets/ui/equipment/ICO_ACC_SporeCharm.png",
-	"accessory:granvel_fang_talisman": "res://assets/ui/equipment/ICO_ACC_GranvelFangTalisman.png",
-	# ③ ミストフェン装飾品（暫定流用 / P3-BETA-002）
-	"accessory:marsh_pearl_ring":  "res://assets/ui/equipment/ICO_ACC_MarshPearlRing.png",
-	"accessory:leech_oil_charm":   "res://assets/ui/equipment/ICO_ACC_LeechOilCharm.png",
-	"accessory:moldgar_eye_talisman": "res://assets/ui/equipment/ICO_ACC_MoldgarEyeTalisman.png",
-	# ④ ブラックショア装飾品（暫定流用 / P3-BETA-003）
-	"accessory:black_pearl_ring":  "res://assets/ui/equipment/ICO_ACC_BlackPearlRing.png",
-	"accessory:barnacle_charm":    "res://assets/ui/equipment/ICO_ACC_BarnacleCharm.png",
-	"accessory:nereion_song_talisman": "res://assets/ui/equipment/ICO_ACC_NereionSongTalisman.png",
-	# ⑤ フロストリッジ装飾品（暫定流用 / P3-BETA-004）
-	"accessory:ice_crystal_ring":  "res://assets/ui/equipment/ICO_ACC_IceCrystalRing.png",
-	"accessory:frost_fang_charm":  "res://assets/ui/equipment/ICO_ACC_FrostFangCharm.png",
-	"accessory:eldion_heart_talisman": "res://assets/ui/equipment/ICO_ACC_EldionHeartTalisman.png",
-	"accessory:clockwing_brooch":           "res://assets/ui/equipment/ICO_ACC_ClockwingBrooch.png",
-	"accessory:pilgrim_lantern_charm":           "res://assets/ui/equipment/ICO_ACC_PilgrimLanternCharm.png",
+	"accessory:relic_shard_charm": "res://assets/ui/equipment/ICO_ACC_Generic_Charm.png",
+	# ② ウィスパーウッド装飾品（形カテゴリ汎用）
+	"accessory:verdant_ring":      "res://assets/ui/equipment/ICO_ACC_Generic_Ring.png",
+	"accessory:spore_charm":       "res://assets/ui/equipment/ICO_ACC_Generic_Charm.png",
+	"accessory:granvel_fang_talisman": "res://assets/ui/equipment/ICO_ACC_Generic_Talisman.png",
+	# ③ ミストフェン装飾品（形カテゴリ汎用）
+	"accessory:marsh_pearl_ring":  "res://assets/ui/equipment/ICO_ACC_Generic_Ring.png",
+	"accessory:leech_oil_charm":   "res://assets/ui/equipment/ICO_ACC_Generic_Charm.png",
+	"accessory:moldgar_eye_talisman": "res://assets/ui/equipment/ICO_ACC_Generic_Talisman.png",
+	# ④ ブラックショア装飾品（形カテゴリ汎用）
+	"accessory:black_pearl_ring":  "res://assets/ui/equipment/ICO_ACC_Generic_Ring.png",
+	"accessory:barnacle_charm":    "res://assets/ui/equipment/ICO_ACC_Generic_Charm.png",
+	"accessory:nereion_song_talisman": "res://assets/ui/equipment/ICO_ACC_Generic_Talisman.png",
+	# ⑤ フロストリッジ装飾品（形カテゴリ汎用）
+	"accessory:ice_crystal_ring":  "res://assets/ui/equipment/ICO_ACC_Generic_Ring.png",
+	"accessory:frost_fang_charm":  "res://assets/ui/equipment/ICO_ACC_Generic_Charm.png",
+	"accessory:eldion_heart_talisman": "res://assets/ui/equipment/ICO_ACC_Generic_Talisman.png",
+	"accessory:clockwing_brooch":           "res://assets/ui/equipment/ICO_ACC_Generic_Charm.png",
+	"accessory:pilgrim_lantern_charm":           "res://assets/ui/equipment/ICO_ACC_Generic_Charm.png",
 	"accessory:unidentified":      "res://assets/ui/batch2/ICO_ACC_Unidentified.png",
 	"material:relic_shard":        "res://assets/ui/materials/ICO_MAT_RelicShard.png",
 	"material:base_ore":           "res://assets/ui/materials/ICO_MAT_BaseOre.png",
@@ -851,8 +857,13 @@ static func get_icon_texture(id: String, category: String) -> Texture2D:
 		var ticket: Resource = DataRegistry.get_ticket_data(id)
 		if ticket != null:
 			path = str(ticket.icon_path)
+	if path.is_empty() and category == "accessory":
+		path = _accessory_fallback_path(id)
 	if path.is_empty() or not ResourceLoader.exists(path):
-		return null
+		if category == "accessory":
+			path = _accessory_fallback_path(id)
+		if path.is_empty() or not ResourceLoader.exists(path):
+			return null
 	var tex: Texture2D = load(path) as Texture2D
 	if tex == null:
 		return null
@@ -860,6 +871,14 @@ static func get_icon_texture(id: String, category: String) -> Texture2D:
 	if category == "weapon":
 		return display_texture_for_weapon(id, tex)
 	return tex
+
+
+static func _accessory_fallback_path(accessory_id: String) -> String:
+	var explicit: String = ""
+	var data: Resource = DataRegistry.get_accessory_data(accessory_id)
+	if data != null:
+		explicit = str(data.get("accessory_type"))
+	return _AccessoryIconHelper.path_for_id(accessory_id, explicit)
 
 ## 武器表示用テクスチャ（弓は余白クロップ済み）。テスト／鍛冶からも参照可。
 static func display_texture_for_weapon(weapon_id: String, tex: Texture2D) -> Texture2D:

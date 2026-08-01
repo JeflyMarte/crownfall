@@ -17,6 +17,7 @@ alwaysApply: false
 | 依頼の意図 | 正しい先 | 間違った先 |
 |---|---|---|
 | 剣・弓・防具の装備見た目 | `ICO_WPN_*` / `ICO_ARM_*`（`weapon_type` で一括） | `ICO_Equip_Cat_*` / `ICO_Forge_Cat_*` |
+| 装飾品の形カテゴリ汎用 | `ICO_ACC_Generic_{Ring,Charm,Talisman,Seal}`（`AccessoryIconHelper`） | 指輪テンプレを護符にも流用 |
 | スキル絵 | `assets/ui/skills/`（base / 必殺） | カテゴリタブ・無関係 PNG |
 | レリック | `assets/ui/relics/ICO_REL_*` | 装備 Cat やパッシブ |
 | ガチャ全画面背景 | `gacha_ui/UI_BG_Gacha.png`（`GachaUiTokens.BG`） | `generate_gacha_ui_assets.py` の星空仮画像で上書き |
