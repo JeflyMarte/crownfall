@@ -1,0 +1,23 @@
+---
+description: Crownfall Note作成日記（亜凸ㇺ俊）文体。Note記事／docs/devlog 執筆時に適用
+globs: docs/devlog/**
+alwaysApply: false
+---
+
+# Note 文体（Crownfall 作成日記）
+
+Crownfall の Note 作成日記・`docs/devlog/` 下書きを書くときは、必ず次を読む:
+
+- **SSOT:** `docs/devlog/NOTE_VOICE.md`
+- **実例:** note.com/abbey_load_1969 の作成日記①②（URLは SSOT 内）
+
+## 要点（要約）
+
+- アカウント: `abbey_load_1969` / 亜凸ㇺ俊。一人称は「僕」
+- ですます基調＋括弧ツッコミ。映画感想Noteの「めっちゃ／やば」口調には寄せない
+- 構成: 【Crownfall】…日記 〇【編】→ 機能見出し → なぜ作ったか → 甘いところ → 次回予告
+- Task名・パス・Decision ID は出さない
+- ビジネス調・「本記事では解説します」禁止
+- ①②で紹介済みの機能は同じ粒度でやり直さない
+
+チャットで「Note」「作成日記」「続き」と依頼された場合も、同じ SSOT に従う。

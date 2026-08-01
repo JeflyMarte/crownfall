@@ -30,6 +30,8 @@ const PANEL_DARK: String = ROOT + "UI_Gacha_Panel_Dark.png"
 const BTN_DETAIL: String = ROOT + "UI_Gacha_Btn_Detail.png"
 const ICO_TOKEN: String = ROOT + "ICO_Gacha_Token.png"
 const REVEAL_FRAME: String = ROOT + "UI_Gacha_Reveal_Obtain_Frame.png"
+## 封蔵（装備）リビール専用枠（Downloads「装備品結果フレーム」）。
+const REVEAL_EQUIP_FRAME: String = ROOT + "UI_Gacha_Reveal_Equip_Frame.png"
 const INVITE_SEALED: String = ROOT + "UI_Gacha_Invite_Sealed.png"
 const INVITE_SEALED_STAR2: String = ROOT + "UI_Gacha_Invite_Sealed_Star2.png"
 ## 封蔵の匣リビール（招待状フロー流用・封印絵だけ匣に差替）。
@@ -123,6 +125,19 @@ static func reveal_frame_style() -> StyleBox:
 		tex_sb.content_margin_right = 28.0
 		tex_sb.content_margin_top = 120.0
 		tex_sb.content_margin_bottom = 72.0
+	return sb
+
+## 封蔵（装備）獲得フレーム（タイトル「装備品を獲得しました」焼込あり）。
+static func reveal_equip_frame_style() -> StyleBox:
+	var sb: StyleBox = texture_stylebox(REVEAL_EQUIP_FRAME, Vector4i(70, 260, 70, 140))
+	if sb is StyleBoxTexture:
+		var tex_sb := sb as StyleBoxTexture
+		tex_sb.draw_center = true
+		tex_sb.set_content_margin_all(0.0)
+		tex_sb.content_margin_left = 52.0
+		tex_sb.content_margin_right = 52.0
+		tex_sb.content_margin_top = 240.0
+		tex_sb.content_margin_bottom = 88.0
 	return sb
 
 static func apply_pull_button(btn: Button, enabled: bool) -> void:

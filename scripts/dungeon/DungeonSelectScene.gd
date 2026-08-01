@@ -35,6 +35,9 @@ const COLOR_CLEAR: Color = Color(0.45, 0.92, 0.55, 1)
 ## クリア済みバッジ「CLEAR」用。ダンジョン名の金と分ける（緑）。
 const COLOR_CLEAR_BADGE: Color = COLOR_CLEAR
 const COLOR_CLEAR_BADGE_HEX: String = "73eb8c"
+## 無限ダンジョンの「最高到達フロア」表示用（赤字）。
+const COLOR_ABYSS_BEST_HEX: String = "e0574a"
+const COLOR_ABYSS_BEST: Color = Color(0.88, 0.34, 0.29, 1)
 const COLOR_TEAL: Color = Color(0.6, 0.82, 0.78, 1)
 ## イベント名の共通薔薇金（曜日イベント単色・互換エイリアス）。
 ## 降臨の2色分けは EventDungeonTitleHelper（案B）。
@@ -178,7 +181,6 @@ const DROP_PREVIEW: Dictionary = {
 @onready var _label_featured_meta: Label = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo/LabelFeaturedMeta
 @onready var _label_featured_discovery: Label = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo/LabelFeaturedDiscovery
 @onready var _featured_drop_row: HBoxContainer = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedDropRow
-@onready var _label_featured_abyss_best: Label = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedActionRow/LabelFeaturedAbyssBest
 @onready var _btn_featured_select: Button = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedActionRow/BtnFeaturedSelect
 @onready var _btn_route_main: Button = $MainColumn/RouteTabsRow/ButtonMainRoute
 @onready var _btn_route_sub: Button = $MainColumn/RouteTabsRow/ButtonSubDungeon
@@ -491,12 +493,6 @@ func _apply_typography() -> void:
 	UiTypography.apply_body(_label_featured_flavor, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	UiTypography.apply_body(_label_featured_meta, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
 	UiTypography.apply_body(_label_featured_discovery, UiTypography.SIZE_BODY_SMALL, COLOR_CLEAR)
-	if _label_featured_abyss_best != null:
-		UiTypography.apply_display(
-			_label_featured_abyss_best, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD
-		)
-		_label_featured_abyss_best.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		_label_featured_abyss_best.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	UiTypography.apply_body(_label_bonus_value, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_caption(_label_bonus_timer)
 
@@ -839,7 +835,11 @@ func _dungeon_list_line_bbcode(data: Resource, unlocked: bool) -> String:
 	if not unlocked:
 		return "[color=#c9c4b8][b]%s[/b][/color]  [color=#e0dcd0]未開[/color]" % name
 	var clear_bb: String = ""
-	if _is_biome_fully_cleared_for_ui(str(data.id)):
+	if str(data.route_type) == "abyss":
+		var best_f: int = GameState.get_abyss_highest_floor(str(data.id))
+		var floor_text: String = ("%dF" % best_f) if best_f > 0 else "—"
+		clear_bb = " [color=#%s][b]最高到達フロア：%s[/b][/color]" % [COLOR_ABYSS_BEST_HEX, floor_text]
+	elif _is_biome_fully_cleared_for_ui(str(data.id)):
 		clear_bb = " [color=#%s][b]CLEAR[/b][/color]" % COLOR_CLEAR_BADGE_HEX
 	var parts: Array[String] = []
 	if str(data.route_type) == "abyss":
@@ -999,7 +999,6 @@ func _refresh_featured() -> void:
 	if data == null:
 		_featured_panel.visible = false
 		_btn_featured_select.disabled = true
-		_refresh_featured_abyss_best(null, false)
 		return
 	_sync_selected_stage_for_biome(_featured_dungeon_id)
 	_featured_panel.visible = true
@@ -1092,7 +1091,6 @@ func _refresh_featured() -> void:
 	else:
 		meta_parts.append("？")
 	_label_featured_meta.text = " · ".join(meta_parts)
-	_refresh_featured_abyss_best(data, unlocked_featured)
 
 	if unlocked_featured:
 		var discovery_pct: int = _discovery_percent(_featured_dungeon_id)
@@ -1152,22 +1150,6 @@ func _refresh_featured() -> void:
 			return
 	_btn_featured_select.text = "選択して出発" if unlocked else "未開"
 	_btn_featured_select.disabled = not unlocked or not stage_ready or not attempt_ok
-
-
-## 無限ダンジョンのみ、出発ボタン左に最高到達 F を出す。
-func _refresh_featured_abyss_best(data: Resource, unlocked: bool) -> void:
-	if _label_featured_abyss_best == null:
-		return
-	var is_abyss: bool = data != null and str(data.route_type) == "abyss"
-	_label_featured_abyss_best.visible = is_abyss and unlocked
-	if not _label_featured_abyss_best.visible:
-		_label_featured_abyss_best.text = ""
-		return
-	var best_f: int = GameState.get_abyss_highest_floor(_featured_dungeon_id)
-	if best_f > 0:
-		_label_featured_abyss_best.text = "最高到達 F%d" % best_f
-	else:
-		_label_featured_abyss_best.text = "最高到達 —"
 
 
 func _resolve_featured_dungeon_id() -> String:
@@ -1505,8 +1487,12 @@ func _make_banner_overlay_title(data: Resource, unlocked: bool, dungeon_id: Stri
 	host.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	host.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var title_text: String = _dungeon_display_name(data, unlocked)
-	var show_clear: bool = unlocked and data != null and _is_biome_fully_cleared_for_ui(str(data.id))
-	var title_size: int = _banner_title_font_size(dungeon_id, title_text, show_clear)
+	var is_abyss: bool = data != null and str(data.route_type) == "abyss"
+	var show_clear: bool = (
+		unlocked and data != null and not is_abyss and _is_biome_fully_cleared_for_ui(str(data.id))
+	)
+	var show_abyss_best: bool = unlocked and is_abyss
+	var title_size: int = _banner_title_font_size(dungeon_id, title_text, show_clear or show_abyss_best)
 	_add_dungeon_title_labels(host, data, unlocked, title_size, true)
 	if show_clear:
 		var clear_lbl := Label.new()
@@ -1515,6 +1501,13 @@ func _make_banner_overlay_title(data: Resource, unlocked: bool, dungeon_id: Stri
 		UiTypography.apply_display(clear_lbl, title_size, COLOR_CLEAR_BADGE)
 		_apply_banner_title_shadow(clear_lbl)
 		host.add_child(clear_lbl)
+	elif show_abyss_best:
+		var best_lbl := Label.new()
+		best_lbl.text = _abyss_best_floor_text(dungeon_id)
+		best_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		UiTypography.apply_display(best_lbl, title_size, COLOR_ABYSS_BEST)
+		_apply_banner_title_shadow(best_lbl)
+		host.add_child(best_lbl)
 	host.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
 	host.offset_top -= 2.0
 	host.offset_bottom -= 6.0
@@ -1812,7 +1805,14 @@ func _make_biome_text_header(
 		name_host, data, unlocked, UiTypography.SIZE_BODY_SMALL, false
 	)
 	title_row.add_child(name_host)
-	if unlocked and _is_biome_fully_cleared_for_ui(dungeon_id):
+	if unlocked and str(data.route_type) == "abyss":
+		var best_lbl := Label.new()
+		best_lbl.text = _abyss_best_floor_text(dungeon_id)
+		best_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		best_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		UiTypography.apply_display(best_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_ABYSS_BEST)
+		title_row.add_child(best_lbl)
+	elif unlocked and _is_biome_fully_cleared_for_ui(dungeon_id):
 		var clear_lbl := Label.new()
 		clear_lbl.text = "CLEAR"
 		clear_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -1950,6 +1950,13 @@ func _dungeon_display_name(data: Resource, unlocked: bool = true) -> String:
 	if data == null or not unlocked:
 		return "？"
 	return str(data.display_name)
+
+
+## 無限ダンジョン名の横に出す「最高到達フロア：XXF」テキスト。
+func _abyss_best_floor_text(dungeon_id: String) -> String:
+	var best_f: int = GameState.get_abyss_highest_floor(dungeon_id)
+	var floor_text: String = ("%dF" % best_f) if best_f > 0 else "—"
+	return "最高到達フロア：%s" % floor_text
 
 
 func _dungeon_card_title(data: Resource, unlocked: bool = true) -> String:

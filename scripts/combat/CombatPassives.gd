@@ -1602,6 +1602,7 @@ static func _equipment_passives_for_member(member: Resource) -> Array:
 		if armor_data != null and not str(armor_data.fixed_passive_id).is_empty():
 			var armor_def: Dictionary = _def_with_id(str(armor_data.fixed_passive_id))
 			if not armor_def.is_empty():
+				armor_def["source_name"] = DataRegistry.get_armor_name(str(armor_inst.armor_id))
 				out.append(armor_def)
 	var acc_inst: Resource = member.equipped_accessory if "equipped_accessory" in member else null
 	if acc_inst != null and not str(acc_inst.accessory_id).is_empty():
@@ -1609,6 +1610,7 @@ static func _equipment_passives_for_member(member: Resource) -> Array:
 		if acc_data != null and not str(acc_data.fixed_passive_id).is_empty():
 			var acc_def: Dictionary = _def_with_id(str(acc_data.fixed_passive_id))
 			if not acc_def.is_empty():
+				acc_def["source_name"] = DataRegistry.get_accessory_name(str(acc_inst.accessory_id))
 				out.append(acc_def)
 	var weapon_inst: Resource = member.equipped_weapon if "equipped_weapon" in member else null
 	if weapon_inst != null and not str(weapon_inst.weapon_id).is_empty():
@@ -1616,6 +1618,7 @@ static func _equipment_passives_for_member(member: Resource) -> Array:
 		if weapon_data != null and not str(weapon_data.fixed_passive_id).is_empty():
 			var weapon_def: Dictionary = _def_with_id(str(weapon_data.fixed_passive_id))
 			if not weapon_def.is_empty():
+				weapon_def["source_name"] = DataRegistry.get_weapon_name(str(weapon_inst.weapon_id))
 				out.append(weapon_def)
 	return out
 

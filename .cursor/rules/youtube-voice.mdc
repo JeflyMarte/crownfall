@@ -1,0 +1,17 @@
+---
+description: Crownfall YouTubeゆっくり解説の文体。docs/devlog の台本執筆時に適用
+globs: docs/devlog/youtube*
+alwaysApply: false
+---
+
+# YouTube解説 文体
+
+`docs/devlog/` の YouTube台本を書くときは、必ず次を読む:
+
+- **SSOT:** `docs/devlog/YOUTUBE_VOICE.md`
+- 現行実例: `docs/devlog/youtube_ep02_script.md`（魅力優先）
+- 概要紹介: `docs/devlog/youtube_ep01_script.md`
+
+Note（`NOTE_VOICE.md`）の熱量口調と混ぜない。  
+**客観的にゲームの魅力を伝える。** 「動画下手」「つたない」「拙い紹介」など下手に出る前置きはしない。  
+開発中は事実として短く。読み上げは短文・ですます。

@@ -867,6 +867,7 @@ func _on_result_overlay_dim_input(event: InputEvent) -> void:
 func _hide_result_overlay() -> void:
 	if _result_overlay != null:
 		_result_overlay.visible = false
+	_label_status.visible = false
 	AudioManager.play_sfx("ui_cancel")
 
 

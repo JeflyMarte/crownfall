@@ -92,6 +92,12 @@ var _lb_ticket_row: HBoxContainer = null
 var _btn_lb_ticket: Button = null
 var _label_lb_ticket: Label = null
 var _confirm_lb_ticket: ConfirmationDialog = null
+var _lb_result_overlay: Control = null
+var _lb_result_title_tex: TextureRect = null
+var _lb_result_name_lbl: Label = null
+var _lb_result_portrait: ChrIdlePortraitView = null
+var _lb_result_count_lbl: Label = null
+var _lb_result_stats_host: VBoxContainer = null
 var _confirm_take_equip: ConfirmationDialog = null
 var _pending_take_item: Resource = null
 var _pending_take_category: String = ""
@@ -1172,10 +1178,157 @@ func _on_lb_ticket_pressed() -> void:
 
 func _on_lb_ticket_confirmed() -> void:
 	var member: Resource = _get_view_adventurer()
+	var prev_bt: int = _GachaLimitBreak.breakthrough_for_member(member)
 	var result: Dictionary = TicketSystem.apply_limit_break_member(member)
-	if bool(result.get("ok", false)):
-		SaveManager.save_game()
+	if not bool(result.get("ok", false)):
+		_refresh_display()
+		return
+	SaveManager.save_game()
 	_refresh_display()
+	_show_limit_break_result(member, prev_bt, int(result.get("breakthrough", prev_bt)))
+
+
+## ---- 限界突破結果ポップ（鍛冶屋の強化完了と同フレーム流用） ----
+
+func _ensure_limit_break_result_overlay() -> void:
+	if _lb_result_overlay != null:
+		return
+	_lb_result_overlay = Control.new()
+	_lb_result_overlay.name = "LimitBreakResultOverlay"
+	_lb_result_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_lb_result_overlay.visible = false
+	_lb_result_overlay.z_index = 80
+	_lb_result_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(_lb_result_overlay)
+	var dim := ColorRect.new()
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0.0, 0.0, 0.0, 0.72)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	dim.gui_input.connect(_on_limit_break_result_dim_input)
+	_lb_result_overlay.add_child(dim)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_lb_result_overlay.add_child(center)
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(640, 820)
+	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	panel.add_theme_stylebox_override("panel", ForgeUiTokens.enhance_result_panel_style())
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	center.add_child(panel)
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 12)
+	margin.add_theme_constant_override("margin_top", 44)
+	margin.add_theme_constant_override("margin_right", 12)
+	margin.add_theme_constant_override("margin_bottom", 12)
+	panel.add_child(margin)
+	var outer := VBoxContainer.new()
+	outer.add_theme_constant_override("separation", 12)
+	outer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	outer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	margin.add_child(outer)
+	var title_wrap := Control.new()
+	title_wrap.custom_minimum_size = Vector2(0, 100)
+	title_wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	outer.add_child(title_wrap)
+	_lb_result_title_tex = TextureRect.new()
+	_lb_result_title_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_lb_result_title_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_lb_result_title_tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_lb_result_title_tex.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_lb_result_title_tex.anchor_left = 0.18
+	_lb_result_title_tex.anchor_right = 0.82
+	_lb_result_title_tex.anchor_top = 0.12
+	_lb_result_title_tex.anchor_bottom = 0.88
+	_lb_result_title_tex.texture = ForgeUiTokens.title_limit_break_tex()
+	title_wrap.add_child(_lb_result_title_tex)
+	_lb_result_name_lbl = Label.new()
+	_lb_result_name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_display(_lb_result_name_lbl, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
+	outer.add_child(_lb_result_name_lbl)
+	var portrait_wrap := CenterContainer.new()
+	portrait_wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	outer.add_child(portrait_wrap)
+	_lb_result_portrait = ChrIdlePortraitView.new()
+	_lb_result_portrait.set_portrait_size(160.0)
+	portrait_wrap.add_child(_lb_result_portrait)
+	_lb_result_count_lbl = Label.new()
+	_lb_result_count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_display(_lb_result_count_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_POS)
+	outer.add_child(_lb_result_count_lbl)
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.custom_minimum_size = Vector2(0, 200)
+	outer.add_child(scroll)
+	_lb_result_stats_host = VBoxContainer.new()
+	_lb_result_stats_host.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_lb_result_stats_host.add_theme_constant_override("separation", 6)
+	scroll.add_child(_lb_result_stats_host)
+	var close_btn := Button.new()
+	close_btn.text = "閉じる"
+	close_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	close_btn.custom_minimum_size = Vector2(200, 48)
+	UiTypography.apply_menu_button(close_btn)
+	close_btn.pressed.connect(_hide_limit_break_result)
+	outer.add_child(close_btn)
+
+
+func _on_limit_break_result_dim_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_hide_limit_break_result()
+
+
+func _hide_limit_break_result() -> void:
+	if _lb_result_overlay != null:
+		_lb_result_overlay.visible = false
+	AudioManager.play_sfx("ui_cancel")
+
+
+func _show_limit_break_result(member: Resource, prev_bt: int, new_bt: int) -> void:
+	if member == null:
+		return
+	_ensure_limit_break_result_overlay()
+	_lb_result_name_lbl.text = str(member.display_name)
+	_lb_result_portrait.set_from_member(member)
+	_lb_result_count_lbl.text = "限界突破回数　＋%d　⇒　＋%d" % [prev_bt, new_bt]
+	for child in _lb_result_stats_host.get_children():
+		child.queue_free()
+	var pid: String = ""
+	for cand: String in CombatPassives.selectable_passive_ids(member):
+		pid = cand
+		break
+	var raw_def: Dictionary = CombatPassives.get_def(pid) if not pid.is_empty() else {}
+	if raw_def.is_empty():
+		var empty := Label.new()
+		empty.text = "強化されたパッシブスキルはありません"
+		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		UiTypography.apply_body(empty, UiTypography.SIZE_BODY_SMALL, COLOR_SUB)
+		_lb_result_stats_host.add_child(empty)
+	else:
+		var scaled_def: Dictionary = _GachaLimitBreak.scale_passive_def(raw_def, new_bt)
+		var name_lbl := Label.new()
+		name_lbl.text = "パッシブスキル名　%s" % str(raw_def.get("display_name", ""))
+		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		UiTypography.apply_body(name_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_GOLD)
+		_lb_result_stats_host.add_child(name_lbl)
+		var effect_text: String = RosterUiHelper.passive_effect_highlighted_text(raw_def, scaled_def)
+		var effect_rtl := RichTextLabel.new()
+		effect_rtl.bbcode_enabled = true
+		effect_rtl.fit_content = true
+		effect_rtl.scroll_active = false
+		effect_rtl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		effect_rtl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		effect_rtl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		effect_rtl.add_theme_font_size_override("normal_font_size", UiTypography.SIZE_BODY_SMALL)
+		effect_rtl.add_theme_color_override("default_color", COLOR_VALUE)
+		effect_rtl.text = "パッシブスキル効果　%s" % effect_text
+		_lb_result_stats_host.add_child(effect_rtl)
+	AudioManager.play_sfx("forge_action")
+	_lb_result_overlay.visible = true
 
 func _update_evolution_row(member: Resource) -> void:
 	if not Constants.JOB_EVOLUTION_PLAYABLE:
@@ -1711,14 +1864,9 @@ func _attach_item_icon(
 	var stale_icon: Node = btn.get_node_or_null("ItemIcon")
 	if stale_icon != null:
 		stale_icon.queue_free()
-	var stale_mat: Node = btn.get_node_or_null("KaiwanArmorMat")
-	if stale_mat != null:
-		stale_mat.queue_free()
 	var inset: int = EquipmentUiTokens.icon_inset_for_item(cell_px, design_px, item_id, category)
 	var side: int = maxi(1, cell_px - inset * 2)
 	var half: float = float(side) * 0.5
-	if EquipmentUiTokens.is_kaiwan_armor(item_id, category):
-		EquipmentUiTokens.attach_kaiwan_armor_mat(btn, half)
 	var tex_rect := TextureRect.new()
 	tex_rect.name = "ItemIcon"
 	tex_rect.texture = icon
@@ -2967,7 +3115,7 @@ func _rebuild_passive_tab() -> void:
 			continue
 		list.add_child(_make_passive_equip_card(def, char_ids.has(pid)))
 	for eq_def: Dictionary in CombatPassives.equipment_passives_for_member(member):
-		list.add_child(_make_passive_info_card(eq_def, "装備固定"))
+		list.add_child(_make_passive_info_card(eq_def, str(eq_def.get("source_name", "装備"))))
 	ScrollTouchHelper.enable(_tab_passive_scroll)
 
 func _passive_list_card_style() -> StyleBoxFlat:
@@ -2977,7 +3125,7 @@ func _passive_list_card_style() -> StyleBoxFlat:
 
 func _make_passive_equip_card(def: Dictionary, is_equipped: bool) -> Control:
 	var pid: String = str(def.get("id", ""))
-	var card: Control = _make_passive_detail_card(def, false)
+	var card: Control = _make_passive_detail_card(def, false, "キャラ固有スキル")
 	var body: VBoxContainer = card.get_node("Margin/Outer") as VBoxContainer
 	if body == null:
 		return card
@@ -2993,21 +3141,12 @@ func _make_passive_equip_card(def: Dictionary, is_equipped: bool) -> Control:
 	body.add_child(action_row)
 	return card
 
-func _make_passive_info_card(def: Dictionary, tag_text: String) -> Control:
-	var card: Control = _make_passive_detail_card(def, true)
-	var body: VBoxContainer = card.get_node("Margin/Outer") as VBoxContainer
-	if body == null:
-		return card
-	var tag_lbl := Label.new()
-	tag_lbl.text = tag_text
-	tag_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	tag_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiTypography.apply_caption(tag_lbl, COLOR_SUB)
-	body.add_child(tag_lbl)
-	return card
+func _make_passive_info_card(def: Dictionary, source_name: String) -> Control:
+	return _make_passive_detail_card(def, true, source_name)
 
 ## スキル一覧に近いコンパクト行。説明は Label（STOP な RTL でドラッグを奪わない）。
-func _make_passive_detail_card(def: Dictionary, use_relic_icon: bool) -> PanelContainer:
+## source_suffix が空でなければ、名前の横に「（起因名）」を付ける。
+func _make_passive_detail_card(def: Dictionary, use_relic_icon: bool, source_suffix: String = "") -> PanelContainer:
 	var pid: String = str(def.get("id", ""))
 	var panel := PanelContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -3046,7 +3185,8 @@ func _make_passive_detail_card(def: Dictionary, use_relic_icon: bool) -> PanelCo
 	text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(text_col)
 	var name_lbl := Label.new()
-	name_lbl.text = str(def.get("display_name", "—"))
+	var display_name: String = str(def.get("display_name", "—"))
+	name_lbl.text = "%s（%s）" % [display_name, source_suffix] if not source_suffix.is_empty() else display_name
 	name_lbl.clip_text = false
 	name_lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	UiTypography.apply_display(name_lbl, UiTypography.SIZE_BODY, COLOR_GOLD)

@@ -32,9 +32,6 @@ const LEGENDARY_BADGE_MARGIN_PX: float = 3.0
 ## 左上 N/R/E ロゴのセル辺に対する比率（鍛冶屋一覧と同値）。
 const CORNER_RARITY_BADGE_RATIO: float = 0.20
 const CORNER_RARITY_BADGE_MARGIN_PX: float = 0.0
-## 灰冠防具が暗い InvCell に溶けるのを防ぐ下地（明るい石色＋アイコン側に1px暗縁）。
-const KAIWAN_ARMOR_MAT_COLOR := Color(0.58, 0.50, 0.42, 0.90)
-
 const STAT_ICONS: Dictionary = {
 	"hp": ROOT + "ICO_Equip_Stat_HP.png",
 	"attack": ROOT + "ICO_Equip_Stat_ATK.png",
@@ -281,35 +278,6 @@ static func cell_px_for_slot_panel(panel_w: float, columns: int, h_sep: int) -> 
 	return maxi(SLOT_PX, int(cell_w))
 
 ## インベントリ／図鑑セルへアイコンを載せる（枠 StyleBox は呼び出し側）。
-static func is_kaiwan_armor(item_id: String, category: String) -> bool:
-	return category == "armor" and item_id.begins_with("kaiwan_")
-
-
-static func attach_kaiwan_armor_mat(parent: Control, half: float) -> void:
-	if parent == null or half <= 1.0:
-		return
-	var stale: Node = parent.get_node_or_null("KaiwanArmorMat")
-	if stale != null:
-		stale.queue_free()
-	## アイコンより少し小さめの暗赤マット（枠・ロゴを隠さない）。
-	var mat_half: float = half * 0.88
-	var mat := ColorRect.new()
-	mat.name = "KaiwanArmorMat"
-	mat.color = KAIWAN_ARMOR_MAT_COLOR
-	mat.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	mat.z_index = 0
-	mat.anchor_left = 0.5
-	mat.anchor_top = 0.5
-	mat.anchor_right = 0.5
-	mat.anchor_bottom = 0.5
-	mat.offset_left = -mat_half
-	mat.offset_top = -mat_half
-	mat.offset_right = mat_half
-	mat.offset_bottom = mat_half
-	parent.add_child(mat)
-	parent.move_child(mat, 0)
-
-
 static func attach_item_cell_layers(
 	btn: Button,
 	icon: Texture2D,
@@ -323,14 +291,9 @@ static func attach_item_cell_layers(
 	var existing: Node = btn.get_node_or_null("ItemIcon")
 	if existing != null:
 		existing.queue_free()
-	var stale_mat: Node = btn.get_node_or_null("KaiwanArmorMat")
-	if stale_mat != null:
-		stale_mat.queue_free()
 	var inset: int = icon_inset_for_item(cell_px, design_px, item_id, category)
 	var side: int = maxi(1, cell_px - inset * 2)
 	var half: float = float(side) * 0.5
-	if is_kaiwan_armor(item_id, category):
-		attach_kaiwan_armor_mat(btn, half)
 	var tex_rect := TextureRect.new()
 	tex_rect.name = "ItemIcon"
 	tex_rect.texture = icon

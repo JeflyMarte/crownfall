@@ -151,9 +151,10 @@ def strip_frame(src: Image.Image) -> tuple[Image.Image, int]:
 	erase = erase | (corn & fl) | (corn & purple_crumb(rgb, a))
 
 	out = arr.copy()
-	out[erase] = (0, 0, 0, 255)
+	## 透過で消す（不透明黒だとセル／灰色UI上に黒四角が残る）。
+	out[erase] = (0, 0, 0, 0)
 	junk = peri & (a < 40) & (mx > 5)
-	out[junk] = (0, 0, 0, 255)
+	out[junk] = (0, 0, 0, 0)
 
 	pur = purple_crumb(out[:, :, :3], out[:, :, 3])
 	near2 = (out[:, :, 3] < 20) | (out[:, :, :3].max(2) <= 8)
@@ -161,7 +162,7 @@ def strip_frame(src: Image.Image) -> tuple[Image.Image, int]:
 	reached2 = flood_from_border(pass2)
 	erase2 = reached2 & pur & peri
 	erase2 = erase2 | (peri & dilate(erase2, 2) & pur) | (ring & pur) | (corn & pur)
-	out[erase2] = (0, 0, 0, 255)
+	out[erase2] = (0, 0, 0, 0)
 	return Image.fromarray(out), int(erase.sum() + erase2.sum() + junk.sum())
 
 

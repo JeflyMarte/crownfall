@@ -35,6 +35,7 @@ const TITLE_ENHANCE_COMPLETE: String = ROOT + "UI_Forge_Title_EnhanceComplete.pn
 const TITLE_PRODUCE_COMPLETE: String = ROOT + "UI_Forge_Title_ProduceComplete.png"
 const TITLE_ALCHEMY_COMPLETE: String = ROOT + "UI_Forge_Title_AlchemyComplete.png"
 const TITLE_DISMANTLE_COMPLETE: String = ROOT + "UI_Forge_Title_DismantleComplete.png"
+const TITLE_LIMIT_BREAK: String = ROOT + "UI_Forge_Title_LimitBreak.png"
 const RESULT_PANEL: String = ROOT + "UI_Forge_ResultPanel.png"
 const RESULT_PANEL_ENHANCE: String = ROOT + "UI_Forge_ResultPanel_Enhance.png"
 const SUCCESS_RING: String = ROOT + "UI_Forge_SuccessRing.png"
@@ -329,6 +330,10 @@ static func title_alchemy_complete_tex() -> Texture2D:
 
 static func title_dismantle_complete_tex() -> Texture2D:
 	return load_tex(TITLE_DISMANTLE_COMPLETE)
+
+
+static func title_limit_break_tex() -> Texture2D:
+	return load_tex(TITLE_LIMIT_BREAK)
 
 
 static func title_tex_for_result_kind(kind: String) -> Texture2D:

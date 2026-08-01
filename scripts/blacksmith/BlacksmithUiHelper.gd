@@ -873,13 +873,6 @@ static func craft_stat_entries(craft: Resource) -> Array:
 					"key": "crit",
 					"value": "%.0f%%" % (float(wd.base_critical_rate) * 100.0),
 				})
-			var effect_text: String = EquipmentItemDetailHelper.weapon_legendary_effect_text_from_data(wd)
-			if not effect_text.is_empty():
-				entries.append({
-					"key": "weapon_passive",
-					"label": "固有効果",
-					"value": effect_text,
-				})
 		"armor":
 			var ad: Resource = DataRegistry.get_armor_data(str(craft.output_id))
 			if ad == null:
