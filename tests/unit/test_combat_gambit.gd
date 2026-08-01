@@ -55,4 +55,18 @@ func test_hp_percent_helpers() -> void:
 func test_preset_summary_line() -> void:
 	var summary: String = CombatGambit.preset_summary_line("balanced", 2)
 	assert_true(summary.contains("→"))
-	assert_true(summary.contains("…"))
+	## 代表プランが短い方針もあるため、省略記号は必須にしない
+	assert_false(summary.is_empty())
+
+func test_plan_from_member_ignores_custom() -> void:
+	var adv_script: Script = load("res://scripts/domain/Adventurer.gd") as Script
+	assert_not_null(adv_script)
+	var member: Resource = adv_script.new()
+	member.tactics_id = "attack_only"
+	member.tactics_custom_enabled = true
+	member.tactics_custom_plan = [
+		{"slot": "ultimate", "condition": "always"},
+	]
+	var plan: Array = CombatGambit.plan_from_member(member)
+	assert_eq(plan.size(), 1)
+	assert_eq(str((plan[0] as Dictionary).get("slot")), "attack")

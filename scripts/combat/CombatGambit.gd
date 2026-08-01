@@ -242,22 +242,14 @@ static func normalize_plan(raw_plan: Array) -> Array:
 		out.append(rule)
 	return out
 
+## カスタム行動ルールはオミット。代表プラン（UI／ログ用）。実行時は roll_turn_plan。
 static func plan_from_member(member: Resource) -> Array:
 	if member == null:
 		return []
-	if bool(member.get("tactics_custom_enabled")):
-		var custom: Array = member.get("tactics_custom_plan") if "tactics_custom_plan" in member else []
-		var normalized: Array = normalize_plan(custom)
-		if not normalized.is_empty():
-			return normalized
 	var tid: String = CombatTactics.normalize_id(str(member.get("tactics_id") if "tactics_id" in member else ""))
 	return CombatTactics.get_slot_plan(tid)
 
 static func target_from_member(member: Resource) -> String:
-	if member != null and bool(member.get("tactics_custom_enabled")):
-		var custom_target: String = str(member.get("tactics_custom_target") if "tactics_custom_target" in member else "")
-		if custom_target in CombatTactics.TARGET_RULES:
-			return custom_target
 	if member == null:
 		return CombatTactics.DEFAULT_TARGET
 	return CombatTactics.get_target_rule(CombatTactics.normalize_id(str(member.get("tactics_id") if "tactics_id" in member else "")))

@@ -26,10 +26,10 @@ const DEFAULT_RARITY: int = 1
 @export var passive_slots_customized: bool = false
 ## 戦術プリセット id（P3-D086・AI最上位設定）。空なら "balanced"。スロット選択優先度を決める。
 @export var tactics_id: String = ""
-## カスタム戦術（ガンビット・A1）。ON 時は tactics_custom_* を CombatGambit が優先する。
+## 旧カスタム戦術（オミット）。セーブ互換のためフィールドは残すが実行時は無視。
 @export var tactics_custom_enabled: bool = false
 @export var tactics_custom_target: String = ""
-## 優先度順のルール配列。各要素は {slot, condition, value?}。
+## 旧カスタム plan（オミット・セーブ互換のみ）。
 @export var tactics_custom_plan: Array = []
 ## レガシー: ロード時のみ参照。正は equipped_passive_ids 内の relic カテゴリ（P3-RELIC-PASSIVE）。
 @export var relic_id: String = ""

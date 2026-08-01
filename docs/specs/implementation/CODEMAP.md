@@ -92,7 +92,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 - `TabEquip/InventoryHeaderRow` — ソート・装備状態フィルタ（P3-UI2-019d）・一覧は全装備+装備者ミニアイコン
 - `TabAwaken` / `TabProfile` — disabled+準備中（P3-UI2-019e）
 - `ContentVBox/BuildChipRow` — 同上 + `LabelBuildSummary`（Task037）
-- スキルタブ — 戦術プリセット・陣形行・**🔒Lv解放表示**（P3-SKILL-001）・武器スキル行（P3-SKILL-004）・探索スキル一覧（P3-D117）・連携 hint（P3-D115）・ガンビット（P3-D122）
+- スキルタブ — 行動方針7択・陣形行・**🔒Lv解放表示**（P3-SKILL-001）・武器スキル行（P3-SKILL-004）・探索スキル一覧（P3-D117）・連携 hint（P3-D115）
 
 **DungeonSelectScene** — `scenes/dungeon/DungeonSelectScene.tscn` / `scripts/dungeon/DungeonSelectScene.gd`（P3-D080・**P3-UI-DG-001** Featuredバナー+Biome直列カード+Event Footer・**P3-DG-TIER** TabsRow・**P3-UX-EVENT-TITLE-TWOTONE-001** 降臨名2色=`EventDungeonTitleHelper`）
 
@@ -126,7 +126,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `boot/` | `BootScene.gd`（Title へ委譲） |
 | `title/` | `TitleScene.gd`（**P3-UI-TITLE-001**） |
 | `combat/` | **コア:** `CombatController.gd`（`class_name`・CT/ATB・Threat・群れ/混成・個別ターゲット・詠唱・ボスフェーズ index）, `SkillExecutor.gd`, `StatusResolver.gd`, `StatusInstance.gd`, `ElementResolver.gd`, **`DamageCalculator.gd`**（ダメージ式 SSOT・シーン非依存 static・P3-REF-001）, **`BalanceConfig.gd`**（グローバルバランス定数 SSOT・P3-BAL-005） |
-| | **戦術/AI:** `CombatTactics.gd`（プリセット6・発動条件・温存・P3-D086/108/113/127）, `CombatGambit.gd`（カスタム戦術5行・P3-D122/127） |
+| | **戦術/AI:** `CombatTactics.gd`（行動方針7・重み付きルーレット・旧IDマップ）, `CombatGambit.gd`（条件ラベル等・カスタム実行はオミット） |
 | | **バランス:** `BalanceConfig.gd`（STAT_SCALE・成長・Threat・**P3-BAL-OPENING-001** 敵グローバル倍率／味方ボーナス圧縮） |
 | | **パッシブ/シナジー:** `CombatPassives.gd`, **`AbyssWeaponEffects.gd`**（深層レジェンド戦闘状態 P3-DG-ABYSS-001-C）, `CombatSynergy.gd`, `CombatTags.gd`, `CombatCombos.gd`（P3-D109） |
 | | **メタ/周回:** `CombatPassives.gd`（レリック定義 SSOT・P3-RELIC-PASSIVE）, `CombatRelics.gd`（表示/互換ファサード）, `CombatLinks.gd`（連鎖3種・P3-D115）, `CombatBossPhases.gd`（P3-D116）, `ExplorationSkills.gd`（P3-D117・**P3-BAL-TRAP-TIER-001** 罠ティア）, `CombatFastRun.gd`（P3-D118）, `CombatWeather.gd`（天候・P3-D101 / W1-A / **Biome偏り P3-WEATHER-BIOME-BIAS-001**） |

@@ -7026,8 +7026,9 @@ func _do_member_turn(member_idx: int) -> void:
 		_do_member_basic_attack(member_idx)
 		return
 	var ctx: Dictionary = _build_tactics_context(member_idx)
+	var tactics_id: String = GameState.get_member_tactics_id(member)
 	var any_condition_met: bool = false
-	for rule: Dictionary in CombatGambit.plan_from_member(member):
+	for rule: Dictionary in CombatTactics.roll_turn_plan(tactics_id, ctx, member):
 		if not CombatTactics.condition_met(rule, ctx):
 			continue
 		any_condition_met = true

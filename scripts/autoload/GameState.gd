@@ -888,6 +888,9 @@ func set_member_tactics(member: Resource, tactics_id: String) -> void:
 	if member == null:
 		return
 	member.tactics_id = CombatTactics.normalize_id(tactics_id)
+	## カスタム行動ルールはオミット。選択時は必ずOFF。
+	if "tactics_custom_enabled" in member:
+		member.tactics_custom_enabled = false
 
 # ---- カスタム戦術（ガンビット・A1） ----
 func get_member_tactics_custom_enabled(member: Resource) -> bool:
