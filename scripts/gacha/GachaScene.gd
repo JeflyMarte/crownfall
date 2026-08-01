@@ -6,6 +6,7 @@ const _GachaLimitBreak := preload("res://scripts/gacha/GachaLimitBreak.gd")
 const _GachaRevealPresenter := preload("res://scripts/gacha/GachaRevealPresenter.gd")
 const _GachaEquipSystem := preload("res://scripts/gacha/GachaEquipSystem.gd")
 const _ChrIdlePortraitView := preload("res://scripts/ui/ChrIdlePortraitView.gd")
+const _RoomGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
 
 const PAGE_INVITE: int = 0
 const PAGE_SEAL: int = 1
@@ -95,6 +96,7 @@ var _pending_pull_ticket: bool = false
 ## 確認ダイアログ表示時点のページ（←→切替で消費系統がズレないように固定）。
 var _pending_pull_page: int = PAGE_INVITE
 var _pull_confirm_open: bool = false
+var _btn_room_guide: Button = null
 
 
 func _ready() -> void:
@@ -120,13 +122,36 @@ func _ready() -> void:
 	_setup_equip_reveal_extra()
 	_setup_confetti_host()
 	_setup_reveal_presenter()
-	_setup_featured_preview()
 	_setup_pull_confirm()
 	_setup_page_arrows()
+	_setup_room_guide_help()
+	_setup_featured_preview()
 	call_deferred("_finalize_gacha_layout")
 	_summon_layer.visible = false
 	_detail_overlay.visible = false
 	_refresh()
+	call_deferred("_try_show_room_guide")
+
+
+func _room_guide_id() -> String:
+	return _RoomGuide.GUIDE_GACHA_SEAL if _is_seal_page() else _RoomGuide.GUIDE_GACHA_INVITE
+
+
+func _setup_room_guide_help() -> void:
+	var row: Control = $Header/HeaderRow as Control
+	if row == null or row.get_node_or_null("HubRoomGuideHelpBtn") != null:
+		return
+	_btn_room_guide = _RoomGuide.attach_help_button(row, self, _room_guide_id(), "？")
+
+
+func _sync_room_guide_help() -> void:
+	_RoomGuide.set_help_guide_id(_btn_room_guide, _room_guide_id())
+
+
+func _try_show_room_guide() -> void:
+	if _summon_active or _pull_confirm_open:
+		return
+	_RoomGuide.try_auto_show(self, _room_guide_id())
 
 
 func _setup_pull_confirm() -> void:
@@ -190,7 +215,9 @@ func _set_gacha_page(page: int) -> void:
 	_featured_helper_id = ""
 	_sync_pool_strip_for_page()
 	_reload_featured_content(true)
+	_sync_room_guide_help()
 	_refresh()
+	call_deferred("_try_show_room_guide")
 
 
 func _is_seal_page() -> bool:

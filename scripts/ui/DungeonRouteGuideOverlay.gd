@@ -1,8 +1,8 @@
 class_name DungeonRouteGuideOverlay
 extends CanvasLayer
 
-## イベント／降臨／無限ダンジョンの手引き（P3-DG-ROUTE-GUIDE-001）。
-## 書籍UIは HubSimpleGuideOverlay と同系統。記録官ニーナ。
+## 書籍手引き（ニーナ）。ダンジョン枠（P3-DG-ROUTE-GUIDE-001）＋拠点部屋初見ガイド。
+## 書籍UIは HubSimpleGuideOverlay と同系統。
 
 signal dismissed
 
@@ -11,9 +11,17 @@ const _IntroUiAssets := preload("res://scripts/intro/IntroUiAssets.gd")
 const GUIDE_EVENT: String = "event"
 const GUIDE_DESCENT: String = "descent"
 const GUIDE_ABYSS: String = "abyss"
+const GUIDE_SURVEY: String = "survey"
+const GUIDE_GACHA_INVITE: String = "gacha_invite"
+const GUIDE_GACHA_SEAL: String = "gacha_seal"
+const GUIDE_SHOWCASE: String = "showcase"
 
 const FLAG_DESCENT: String = "dungeon_guide_descent_seen"
 const FLAG_ABYSS: String = "dungeon_guide_abyss_seen"
+const FLAG_SURVEY: String = "hub_guide_survey_seen"
+const FLAG_GACHA_INVITE: String = "hub_guide_gacha_invite_seen"
+const FLAG_GACHA_SEAL: String = "hub_guide_gacha_seal_seen"
+const FLAG_SHOWCASE: String = "hub_guide_showcase_seen"
 const PENDING_KEY: String = "pending_dungeon_route_guide"
 
 const BG_PATH: String = "res://assets/ui/UI_BG_HubSimpleGuide.png"
@@ -137,6 +145,119 @@ static func _all_guides() -> Dictionary:
 			},
 		],
 	},
+	GUIDE_SURVEY: {
+		"topic": "調査室とは",
+		"flag_key": FLAG_SURVEY,
+		"pages": [
+			{
+				"title": "1. 机の調査",
+				"body": (
+					"隊長、ここは[color=#9A5018][b]調査室[/b][/color]です。"
+					+ "ダンジョンで集めた資料を調べ、"
+					+ "[color=#7A3E12][b]図鑑[/b][/color]と報酬を進めます。\n\n"
+					+ "現場に潜らなくても、拠点で研究を回せるのがこの部屋の役割です。"
+				),
+			},
+			{
+				"title": "2. 育成にも使える",
+				"body": (
+					"調査に出したメンバーには、完了時に[color=#9A5018][b]経験値[/b][/color]が入ります。"
+					+ "つまり調査室は、資料集めだけでなく"
+					+ "[color=#9A5018][b]キャラの育成[/b][/color]にも使えます。\n\n"
+					+ "戦場に出せない時間でも、机の仕事で少しずつ強くできますよ。"
+				),
+			},
+			{
+				"title": "3. 進め方",
+				"body": (
+					"調べるダンジョンとメンバーを選び、時間コースを決めて出発。"
+					+ "終わったら[color=#9A5018][b]必ず受取[/b][/color]してください"
+					+ "（放置したままでは次へ進めません）。\n\n"
+					+ "迷ったら右上の[color=#9A5018][b]？[/b][/color]から、いつでもこの手引きを開けます。"
+				),
+			},
+		],
+	},
+	GUIDE_GACHA_INVITE: {
+		"topic": "招待状とは",
+		"flag_key": FLAG_GACHA_INVITE,
+		"pages": [
+			{
+				"title": "1. 仲間を迎える門",
+				"body": (
+					"[color=#9A5018][b]ギルドへの招待状[/b][/color]は、"
+					+ "[color=#7A3E12][b]魔晶石[/b][/color]で探索者を迎える召喚です。\n\n"
+					+ "助っ人が増えると編成の幅が広がり、調査も戦闘も楽になります。"
+				),
+			},
+			{
+				"title": "2. 引き方",
+				"body": (
+					"排出率は画面の詳細から確認できます。"
+					+ "無料券があるときは、それを先に使うのも手です。\n\n"
+					+ "武器の方は隣の[color=#9A5018][b]封じられし武庫（封蔵）[/b][/color]。"
+					+ "矢印で切り替えられます。"
+				),
+			},
+		],
+	},
+	GUIDE_GACHA_SEAL: {
+		"topic": "封蔵とは",
+		"flag_key": FLAG_GACHA_SEAL,
+		"pages": [
+			{
+				"title": "1. 封じられし武庫",
+				"body": (
+					"[color=#9A5018][b]封蔵[/b][/color]は、ギルドが封印してきた武具の庫——"
+					+ "いわば[color=#9A5018][b]装備の召喚[/b][/color]です。\n\n"
+					+ "招待状が人を迎える門なら、封蔵は[color=#7A3E12][b]武器・防具・装飾[/b][/color]を引き出す門。"
+					+ "世界観上も「封印を解く」扱いです。"
+				),
+			},
+			{
+				"title": "2. 灰冠の九",
+				"body": (
+					"封蔵の目玉に、[color=#9A5018][b]灰冠の九（かいかんのく）[/b][/color]があります。"
+					+ "九王戦争〜静寂期に跋扈したと伝わる[color=#9A5018][b]精鋭略奪団[/b][/color]が、"
+					+ "奪い・使った武具です。\n\n"
+					+ "王の正統な遺産そのものではなく、"
+					+ "[color=#9A5018][b]盗まれた写し・戦時特注・封じ武具[/b][/color]を灰冠が私兵化した——"
+					+ "そんな建前の[color=#9A5018][b]限定装備[/b][/color]です。"
+					+ "通常ドロップや鍛冶生産とは別枠です。"
+				),
+			},
+			{
+				"title": "3. 使い方の注意",
+				"body": (
+					"灰冠装備は強力ですが、多くは[color=#9A5018][b]メリデメ[/b][/color]がはっきりしています。"
+					+ "編成と相談して選んでください。\n\n"
+					+ "迷ったら[color=#9A5018][b]？[/b][/color]で、この手引きを読み返せます。"
+				),
+			},
+		],
+	},
+	GUIDE_SHOWCASE: {
+		"topic": "展示室とは",
+		"flag_key": FLAG_SHOWCASE,
+		"pages": [
+			{
+				"title": "1. 隊の見せ場",
+				"body": (
+					"[color=#9A5018][b]展示室[/b][/color]は、育てた仲間と装備を並べて"
+					+ "[color=#9A5018][b]総合戦力[/b][/color]を確認する部屋です。\n\n"
+					+ "自分の編成を飾るほか、スタッフ作例も眺められます。"
+				),
+			},
+			{
+				"title": "2. 使い方",
+				"body": (
+					"展示するメンバーを入れ替えたり、装備を確認したりできます。"
+					+ "戦力の数字は目安——現場の相性も大事ですよ。\n\n"
+					+ "また読みたくなったら[color=#9A5018][b]？[/b][/color]を押してください。"
+				),
+			},
+		],
+	},
 }
 
 
@@ -229,6 +350,53 @@ static func show_on(
 	parent.add_child(overlay)
 	overlay.present(guide_id, preview_only)
 	return overlay
+
+
+## 未閲覧なら初回自動表示。閲覧済みなら null。
+static func try_auto_show(parent: Node, guide_id: String) -> CanvasLayer:
+	if parent == null or not _all_guides().has(guide_id):
+		return null
+	if is_seen(guide_id):
+		return null
+	if parent.get_node_or_null("DungeonRouteGuideOverlay") != null:
+		return null
+	return show_on(parent, guide_id, false)
+
+
+## ヘッダ等に「？」再表示ボタンを足す。`scene_root` にオーバーレイを載せる。
+static func attach_help_button(
+	host: Control,
+	scene_root: Node,
+	guide_id: String,
+	label: String = "？",
+	min_size: Vector2 = Vector2(48, 48)
+) -> Button:
+	if host == null or scene_root == null or not _all_guides().has(guide_id):
+		return null
+	var btn := Button.new()
+	btn.name = "HubRoomGuideHelpBtn"
+	btn.text = label
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.custom_minimum_size = min_size
+	btn.set_meta("hub_room_guide_id", guide_id)
+	btn.tooltip_text = str((_all_guides()[guide_id] as Dictionary).get("topic", "手引き"))
+	UiTypography.apply_menu_button(btn)
+	var root: Node = scene_root
+	btn.pressed.connect(func() -> void:
+		AudioManager.play_sfx("ui_click")
+		var gid: String = str(btn.get_meta("hub_room_guide_id", ""))
+		if not gid.is_empty():
+			show_on(root, gid, true)
+	)
+	host.add_child(btn)
+	return btn
+
+
+static func set_help_guide_id(btn: Button, guide_id: String) -> void:
+	if btn == null or not _all_guides().has(guide_id):
+		return
+	btn.set_meta("hub_room_guide_id", guide_id)
+	btn.tooltip_text = str((_all_guides()[guide_id] as Dictionary).get("topic", "手引き"))
 
 
 ## 解放キュー消化後など。pending があれば表示し、なければ on_done。

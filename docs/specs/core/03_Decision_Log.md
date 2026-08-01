@@ -4325,6 +4325,22 @@ SSOT: `docs/specs/decisions/21_DungeonRouteGuides.md`
 
 ---
 
+## 拠点部屋ガイド（2026-08-02 — P3-HUB-ROOM-GUIDE-001）
+
+> **オーナー GO（推奨案一式）** — 調査室／招き／封蔵／展示室の初回見手引き＋「？」再表示。調査＝育成EXP、封蔵＝世界観＋灰冠の九。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-HUB-ROOM-GUIDE-001-1 | **書籍オーバーレイ＋ニーナ**（`DungeonRouteGuideOverlay` 拡張） | ダンジョン枠と同系統 |
+| P3-HUB-ROOM-GUIDE-001-2 | **初回自動＋ヘッダ「？」再表示**（preview は seen 非接触） | 推奨案 |
+| P3-HUB-ROOM-GUIDE-001-3 | **招き／封蔵は別ガイド・別フラグ**（ページ連動） | オーナー指定 |
+| P3-HUB-ROOM-GUIDE-001-4 | **調査室文面に派遣 EXP／育成**／**封蔵に灰冠の九** | オーナー追記 |
+| P3-HUB-ROOM-GUIDE-001-5 | フラグ `hub_guide_*_seen`（survey / gacha_invite / gacha_seal / showcase） | tutorial_flags |
+
+SSOT: `docs/specs/decisions/34_HubRoomGuides.md`
+
+---
+
 ## 日課文言・プール抽選・撃破（2026-07-22 — P3-DAILY-002）
 
 > **オーナー GO** — 1行 title／撃破20（ボス・エリート含む）／プールから毎日3件抽選。P3-DAILY-001-5 の「抽選プール Beta」を本 Decision で上書き。

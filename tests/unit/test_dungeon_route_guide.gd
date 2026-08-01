@@ -22,9 +22,54 @@ func test_guides_have_three_pages_each() -> void:
 			assert_false(str(p.get("body", "")).is_empty(), "body %s" % gid)
 
 
+func test_hub_room_guides_defined() -> void:
+	assert_eq(
+		(_Guide._all_guides()[_Guide.GUIDE_SURVEY] as Dictionary).get("pages", []).size(),
+		3
+	)
+	assert_eq(
+		(_Guide._all_guides()[_Guide.GUIDE_GACHA_INVITE] as Dictionary).get("pages", []).size(),
+		2
+	)
+	assert_eq(
+		(_Guide._all_guides()[_Guide.GUIDE_GACHA_SEAL] as Dictionary).get("pages", []).size(),
+		3
+	)
+	assert_eq(
+		(_Guide._all_guides()[_Guide.GUIDE_SHOWCASE] as Dictionary).get("pages", []).size(),
+		2
+	)
+	var survey_blob: String = ""
+	for page: Variant in (_Guide._all_guides()[_Guide.GUIDE_SURVEY] as Dictionary).get("pages", []):
+		survey_blob += str((page as Dictionary).get("body", ""))
+	assert_true(survey_blob.find("経験値") >= 0 or survey_blob.find("育成") >= 0)
+	var seal_blob: String = ""
+	for page: Variant in (_Guide._all_guides()[_Guide.GUIDE_GACHA_SEAL] as Dictionary).get("pages", []):
+		seal_blob += str((page as Dictionary).get("body", ""))
+	assert_true(seal_blob.find("灰冠の九") >= 0)
+
+
+func test_hub_room_try_auto_show_marks_seen() -> void:
+	assert_false(_Guide.is_seen(_Guide.GUIDE_SURVEY))
+	var host := Node.new()
+	add_child_autofree(host)
+	var overlay: CanvasLayer = _Guide.try_auto_show(host, _Guide.GUIDE_SURVEY)
+	assert_not_null(overlay)
+	## 閉じるまで未既読のまま（dismiss で mark）。再 try は既存ノードで抑止。
+	assert_null(_Guide.try_auto_show(host, _Guide.GUIDE_SURVEY))
+
+
 func test_guide_copy_avoids_dev_terms() -> void:
 	var blob: String = ""
-	for gid: String in [_Guide.GUIDE_EVENT, _Guide.GUIDE_DESCENT, _Guide.GUIDE_ABYSS]:
+	for gid: String in [
+		_Guide.GUIDE_EVENT,
+		_Guide.GUIDE_DESCENT,
+		_Guide.GUIDE_ABYSS,
+		_Guide.GUIDE_SURVEY,
+		_Guide.GUIDE_GACHA_INVITE,
+		_Guide.GUIDE_GACHA_SEAL,
+		_Guide.GUIDE_SHOWCASE,
+	]:
 		var def: Dictionary = _Guide._all_guides().get(gid, {}) as Dictionary
 		blob += str(def.get("topic", ""))
 		for page: Variant in def.get("pages", []) as Array:
