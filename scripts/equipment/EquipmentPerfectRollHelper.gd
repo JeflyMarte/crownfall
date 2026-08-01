@@ -16,7 +16,8 @@ const _RATE_EPS: float = 0.0001
 static func value_label(value_text: String, is_perfect: bool) -> String:
 	if not is_perfect:
 		return value_text
-	return value_text + _EquipmentRollHelper.PERFECT_STAR
+	## ランダム行と同じく先頭に ★（末尾だと見逃しやすい）。
+	return _EquipmentRollHelper.PERFECT_STAR + value_text
 
 
 ## 例: `30%(10〜40)` / `120(100〜140)`。レンジ無しなら空文字。

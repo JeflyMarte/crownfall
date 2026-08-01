@@ -89,7 +89,7 @@ static func apply_drop_stats(instance: Resource, weapon_data: Resource) -> void:
 			mods.append(em)
 			instance.element_power = int(em.get("value", 0))
 			instance.random_mods = mods
-			instance.perfect_roll_count = int(instance.perfect_roll_count) + (1 if bool(em.get("perfect", false)) else 0)
+			instance.perfect_roll_count = _EquipmentRandomMods._count_perfect(mods)
 
 static func backfill_from_master(instance: Resource) -> void:
 	var weapon_data: Resource = _weapon_data(instance)
