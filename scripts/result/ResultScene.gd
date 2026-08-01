@@ -36,6 +36,7 @@ const FS_REWARD_GLYPH: int = 28
 const FS_INFO: int = 20
 const FS_CRAFTABLE: int = 19
 const FS_BUTTON: int = 24
+const INFO_ICON_PX: int = 22
 const REWARD_CELL_WIDTH: int = 88
 const REWARD_ICON_PX: int = 72
 const MATERIAL_ICON_PX: int = 48
@@ -1384,36 +1385,89 @@ func _build_info() -> void:
 		_add_info_pair("帰還", GameState.run_outcome_label(outcome))
 	var run_policy: String = GameState.last_run_exploration_policy
 	if not run_policy.is_empty():
-		_add_info_pair("探索方針", GameState.exploration_policy_label(run_policy))
+		_add_info_pair(
+			"探索方針",
+			GameState.exploration_policy_label(run_policy),
+			IconPaths.get_icon_texture("clue", "survey")
+		)
 	var run_weather: String = GameState.last_run_weather
 	if not run_weather.is_empty():
-		_add_info_pair("天候", CombatWeather.label(run_weather))
+		_add_info_pair(
+			"天候",
+			CombatWeather.label(run_weather),
+			IconPaths.get_icon_texture(run_weather, "weather")
+		)
 	var top_mods: Array = GameState.top_run_modifiers(3)
 	if not top_mods.is_empty():
 		var parts: PackedStringArray = []
 		for m in top_mods:
 			parts.append("%s×%d" % [str(m["label"]), int(m["count"])])
-		_add_info_pair("効いた戦闘要素", " / ".join(parts))
+		_add_info_pair(
+			"効いた戦闘要素",
+			" / ".join(parts),
+			_load_info_icon(NonCombatNarrativeColors.ICON_BLESS)
+		)
 	var dungeon_id: String = GameState.get_active_dungeon_id()
 	var prog: Dictionary = GameState.dungeon_progress.get(dungeon_id, {})
 	var discovery_pct: int = int(round(float(prog.get("discovery", 0.0)) * 100.0))
-	_add_info_pair("発見率", "%d%%" % discovery_pct)
-	_add_info_pair("入手経験値", "%d" % GameState.last_run_exp_reward)
-	_add_info_pair("入手ゴールド", "%d G" % GameState.last_run_gold_reward)
+	_add_info_pair(
+		"発見率",
+		"%d%%" % discovery_pct,
+		_load_info_icon(NonCombatNarrativeColors.ICON_LORE)
+	)
+	_add_info_pair(
+		"入手経験値",
+		"%d" % GameState.last_run_exp_reward,
+		IconPaths.get_icon_texture("exp", "ui")
+	)
+	_add_info_pair(
+		"入手ゴールド",
+		"%d G" % GameState.last_run_gold_reward,
+		_load_info_icon(NonCombatNarrativeColors.ICON_GOLD)
+	)
 	if GameState.last_run_token_reward > 0:
-		_add_info_pair("入手%s" % CurrencyHelper.DISPLAY_NAME, "%d" % GameState.last_run_token_reward)
+		_add_info_pair(
+			"入手%s" % CurrencyHelper.DISPLAY_NAME,
+			"%d" % GameState.last_run_token_reward,
+			CurrencyHelper.get_icon_texture()
+		)
 	if GameState.last_run_abyss_notices is Array and not GameState.last_run_abyss_notices.is_empty():
 		for notice in GameState.last_run_abyss_notices:
-			_add_info_pair("深層報酬", str(notice))
+			_add_info_pair(
+				"深層報酬",
+				str(notice),
+				_load_info_icon(NonCombatNarrativeColors.ICON_MATERIAL)
+			)
 
-func _add_info_pair(key: String, value: String) -> void:
+func _load_info_icon(path: String) -> Texture2D:
+	if path.is_empty() or not ResourceLoader.exists(path):
+		return null
+	return load(path) as Texture2D
+
+func _add_info_pair(key: String, value: String, icon: Texture2D = null) -> void:
 	var key_label: Label = Label.new()
 	key_label.text = key
 	key_label.add_theme_font_size_override("font_size", FS_INFO)
 	key_label.add_theme_color_override("font_color", COLOR_SUB)
 	key_label.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	key_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
-	_info_grid.add_child(key_label)
+	key_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	if icon != null:
+		var key_row: HBoxContainer = HBoxContainer.new()
+		key_row.add_theme_constant_override("separation", 6)
+		key_row.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		key_row.alignment = BoxContainer.ALIGNMENT_BEGIN
+		var tex: TextureRect = TextureRect.new()
+		tex.texture = icon
+		tex.custom_minimum_size = Vector2(INFO_ICON_PX, INFO_ICON_PX)
+		tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tex.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		key_row.add_child(tex)
+		key_row.add_child(key_label)
+		_info_grid.add_child(key_row)
+	else:
+		key_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+		_info_grid.add_child(key_label)
 	var value_label: Label = Label.new()
 	value_label.text = value
 	value_label.add_theme_font_size_override("font_size", FS_INFO)
