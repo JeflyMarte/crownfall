@@ -31,7 +31,7 @@ const ROLE_FILTER_LABELS: Dictionary = {
 }
 
 ## 編成カード枠の共通寸法。選択ハイライトで変えるとセルが「拡大」して見えるので固定。
-const CARD_CONTENT_MARGIN: float = 3.0
+const CARD_CONTENT_MARGIN: float = 2.0
 const CARD_BORDER_W: int = 2
 ## CHR アイコン原寸（~1254）を絶対に超えない描画辺キャップ。
 const PORTRAIT_PX_HARD_MAX: int = 180
@@ -113,8 +113,72 @@ static func _status_label(status_id: String) -> String:
 			return "鼓舞"
 		"guard":
 			return "防御"
+		"bleed":
+			return "出血"
+		"poison":
+			return "毒"
+		"mark":
+			return "標的"
+		"chill":
+			return "冷気"
+		"shock":
+			return "感電"
+		"ignite":
+			return "炎上"
+		"stun":
+			return "気絶"
+		"curse":
+			return "呪詛"
 		_:
 			return status_id
+
+
+## パーセンテージとして本文中に埋め込まれる想定のスケール対象フィールド（生値0..1 → 表示%）。
+const _PASSIVE_SCALE_RATE_FIELDS: Array[String] = [
+	"status_chance", "evasion_rate_add", "incoming_block_chance",
+	"death_save_chance", "heal_max_hp_fraction",
+]
+## ボーナス系倍率フィールド（(値-1)*100 が本文の%として埋め込まれる）。
+const _PASSIVE_SCALE_BONUS_MULT_FIELDS: Array[String] = [
+	"outgoing_mult", "pet_outgoing_mult", "ultimate_power_mult",
+	"skill_power_mult", "exp_gain_mult", "party_exp_gain_mult", "speed_mult",
+]
+
+
+## 限界突破で強化された数値だけ色を変えつつ、パッシブ効果の全文を返す（結果ポップ用・BBCode）。
+## raw_def: 生の（未スケール）定義。scaled_def: 現在の限界突破段階でスケール済みの定義。
+static func passive_effect_highlighted_text(
+	raw_def: Dictionary, scaled_def: Dictionary, highlight_hex: String = "8ce080"
+) -> String:
+	var text: String = passive_description(raw_def)
+	if raw_def.is_empty() or scaled_def.is_empty():
+		return text
+	for key: String in _PASSIVE_SCALE_BONUS_MULT_FIELDS:
+		if not raw_def.has(key):
+			continue
+		var old_pct: int = int(round((float(raw_def.get(key, 1.0)) - 1.0) * 100.0))
+		var new_pct: int = int(round((float(scaled_def.get(key, 1.0)) - 1.0) * 100.0))
+		text = _highlight_pct(text, old_pct, new_pct, highlight_hex)
+	if raw_def.has("incoming_mult"):
+		var old_pct: int = int(round((1.0 - float(raw_def.get("incoming_mult", 1.0))) * 100.0))
+		var new_pct: int = int(round((1.0 - float(scaled_def.get("incoming_mult", 1.0))) * 100.0))
+		text = _highlight_pct(text, old_pct, new_pct, highlight_hex)
+	for key: String in _PASSIVE_SCALE_RATE_FIELDS:
+		if not raw_def.has(key):
+			continue
+		var old_pct: int = int(round(float(raw_def.get(key, 0.0)) * 100.0))
+		var new_pct: int = int(round(float(scaled_def.get(key, 0.0)) * 100.0))
+		text = _highlight_pct(text, old_pct, new_pct, highlight_hex)
+	return text
+
+
+static func _highlight_pct(text: String, old_pct: int, new_pct: int, hex: String) -> String:
+	if old_pct == new_pct:
+		return text
+	var old_frag: String = "%d%%" % old_pct
+	if text.find(old_frag) < 0:
+		return text
+	return text.replace(old_frag, "[color=#%s]%d%%[/color]" % [hex, new_pct])
 
 static func stat_line(label: String, value: int) -> String:
 	return "%s %d" % [label, value]

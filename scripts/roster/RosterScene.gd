@@ -53,6 +53,14 @@ var _last_layout_content_w: float = -1.0
 ## 陣形オーバーレイ開始時のスロット下書き（Dim キャンセル用）。
 var _formation_overlay_snapshot: Array = []
 
+## パーティ保存／一覧オーバーレイ（P3-ROSTER-PARTY-PRESET-001）。
+var _party_overlay: Control = null
+var _party_overlay_title: Label = null
+var _party_overlay_list: VBoxContainer = null
+var _party_overlay_mode: String = "load"
+var _party_overwrite_confirm: ConfirmationDialog = null
+var _party_overwrite_slot: int = -1
+
 @onready var _main_vbox: VBoxContainer = $MainScroll/MainVBox
 @onready var _main_scroll: ScrollContainer = $MainScroll
 @onready var _label_gold: Label = $Header/HeaderRow/GoldChip/GoldRow/LabelGold
@@ -78,7 +86,8 @@ func _ready() -> void:
 	$MainScroll/MainVBox/ListHeader/ButtonSort.pressed.connect(_on_sort_pressed)
 	$MainScroll/MainVBox/ListHeader/ButtonRoleFilter.pressed.connect(_on_role_filter_pressed)
 	$MainScroll/MainVBox/ListHeader/ButtonPet.pressed.connect(_on_pet_tab_pressed)
-	$FooterRow/ButtonReset.pressed.connect(_on_reset_pressed)
+	$FooterRow/ButtonPartySave.pressed.connect(_on_party_save_pressed)
+	$FooterRow/ButtonPartyList.pressed.connect(_on_party_list_pressed)
 	$FooterRow/ButtonSave.pressed.connect(_on_save_pressed)
 	$FormationOverlay/Dim.gui_input.connect(_on_formation_dim_input)
 	$FormationOverlay/FormationPanel/FormationVBox/ButtonFormationClose.pressed.connect(_close_formation_overlay)
@@ -200,9 +209,11 @@ func _apply_typography() -> void:
 		$MainScroll/MainVBox/ListHeader/LabelListTitle,
 		UiTypography.SIZE_CAPTION
 	)
-	UiTypography.apply_menu_button($FooterRow/ButtonReset, false)
+	UiTypography.apply_menu_button($FooterRow/ButtonPartySave, false)
+	UiTypography.apply_menu_button($FooterRow/ButtonPartyList, false)
 	UiTypography.apply_menu_button($FooterRow/ButtonSave, false)
-	$FooterRow/ButtonReset.custom_minimum_size = Vector2(0, 48)
+	$FooterRow/ButtonPartySave.custom_minimum_size = Vector2(0, 48)
+	$FooterRow/ButtonPartyList.custom_minimum_size = Vector2(0, 48)
 	$FooterRow/ButtonSave.custom_minimum_size = Vector2(0, 48)
 
 func _apply_toolbar_buttons() -> void:
@@ -685,7 +696,8 @@ func _make_roster_grid_card(adv: Resource) -> Control:
 	var cell_h: int = _grid_cell_height()
 	var cell_w: int = _grid_cell_width()
 	## 枠高さのみ固定。幅は Grid 列に EXPAND（cell_w を min に書くと列合計が循環拡大する）。
-	var icon_px: int = clampi(mini(cell_w - 8, cell_h - 30), 64, RosterUiHelper.portrait_hard_max_px())
+	## 下段 Lv/星帯を確保しつつ、枠内の黒余白が目立たないよう肖像を大きめに。
+	var icon_px: int = clampi(mini(cell_w - 2, cell_h - 18), 64, RosterUiHelper.portrait_hard_max_px())
 	var wrapper := PanelContainer.new()
 	wrapper.custom_minimum_size = Vector2(0, cell_h)
 	wrapper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -721,7 +733,7 @@ func _make_roster_grid_card(adv: Resource) -> Control:
 	var icon_area := CenterContainer.new()
 	icon_area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	icon_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	icon_area.custom_minimum_size = Vector2(0, maxi(cell_h - 28, 40))
+	icon_area.custom_minimum_size = Vector2(0, maxi(cell_h - 22, 40))
 	icon_area.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon_area.clip_contents = true
 	body.add_child(icon_area)
@@ -948,20 +960,207 @@ func _on_recommend_pressed() -> void:
 		_label_status.text = "おすすめ編成を適用しました（未保存）"
 	_refresh_all()
 
-func _on_reset_pressed() -> void:
-	var roster: Array = _eligible_roster_for_party()
-	_selected = []
-	for i in mini(GameState.ACTIVE_PARTY_SIZE, roster.size()):
-		_selected.append(roster[i])
-	_place_members_in_slots(_selected, [0, 1, 2, 3])
+## ---- パーティ保存／一覧（P3-ROSTER-PARTY-PRESET-001） ----
+
+const _PARTY_OVERLAY_ICON_PX: int = 48
+
+func _on_party_save_pressed() -> void:
+	_open_party_overlay("save")
+
+func _on_party_list_pressed() -> void:
+	_open_party_overlay("load")
+
+func _ensure_party_overlay() -> void:
+	if _party_overlay != null:
+		return
+	_party_overlay = Control.new()
+	_party_overlay.name = "PartyPresetOverlay"
+	_party_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_party_overlay.visible = false
+	_party_overlay.z_index = 80
+	_party_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(_party_overlay)
+	var dim := ColorRect.new()
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0.0, 0.0, 0.0, 0.72)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	dim.gui_input.connect(_on_party_overlay_dim_input)
+	_party_overlay.add_child(dim)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_party_overlay.add_child(center)
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(560, 640)
+	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	panel.add_theme_stylebox_override("panel", RosterUiHelper.card_panel_style(false, false))
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	center.add_child(panel)
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 20)
+	margin.add_theme_constant_override("margin_top", 20)
+	margin.add_theme_constant_override("margin_right", 20)
+	margin.add_theme_constant_override("margin_bottom", 20)
+	panel.add_child(margin)
+	var outer := VBoxContainer.new()
+	outer.add_theme_constant_override("separation", 12)
+	outer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	outer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	margin.add_child(outer)
+	_party_overlay_title = Label.new()
+	_party_overlay_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_display(_party_overlay_title, UiTypography.SIZE_BODY, COLOR_GOLD)
+	outer.add_child(_party_overlay_title)
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	outer.add_child(scroll)
+	_party_overlay_list = VBoxContainer.new()
+	_party_overlay_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_party_overlay_list.add_theme_constant_override("separation", 10)
+	scroll.add_child(_party_overlay_list)
+	var close_btn := Button.new()
+	close_btn.text = "閉じる"
+	close_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	close_btn.custom_minimum_size = Vector2(200, 48)
+	UiTypography.apply_menu_button(close_btn)
+	close_btn.pressed.connect(_close_party_overlay)
+	outer.add_child(close_btn)
+	_party_overwrite_confirm = ConfirmationDialog.new()
+	_party_overwrite_confirm.title = "パーティ保存"
+	_party_overwrite_confirm.ok_button_text = "上書きする"
+	_party_overwrite_confirm.cancel_button_text = "やめる"
+	_party_overwrite_confirm.confirmed.connect(_on_party_overwrite_confirmed)
+	add_child(_party_overwrite_confirm)
+
+
+func _on_party_overlay_dim_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_close_party_overlay()
+
+
+func _close_party_overlay() -> void:
+	if _party_overlay != null:
+		_party_overlay.visible = false
+	AudioManager.play_sfx("ui_cancel")
+
+
+func _open_party_overlay(mode: String) -> void:
+	_ensure_party_overlay()
+	_party_overlay_mode = mode
+	_party_overlay_title.text = "パーティ保存（保存先を選択）" if mode == "save" else "パーティ一覧"
+	_rebuild_party_overlay_rows()
+	_party_overlay.visible = true
+
+
+func _rebuild_party_overlay_rows() -> void:
+	for child in _party_overlay_list.get_children():
+		child.queue_free()
+	for slot in GameState.SAVED_PARTY_SLOTS:
+		_party_overlay_list.add_child(_make_party_overlay_row(slot))
+
+
+func _make_party_overlay_row(slot: int) -> Control:
+	var occupied: bool = GameState.has_saved_party(slot)
+	var members: Array = GameState.saved_party_members(slot) if occupied else []
+	var btn := Button.new()
+	btn.flat = true
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	btn.custom_minimum_size = Vector2(0, 84)
+	btn.add_theme_stylebox_override(
+		"normal", RosterUiHelper.card_panel_style(occupied, false)
+	)
+	btn.add_theme_stylebox_override(
+		"hover", RosterUiHelper.card_panel_style(occupied, true)
+	)
+	btn.add_theme_stylebox_override(
+		"pressed", RosterUiHelper.card_panel_style(occupied, true)
+	)
+	## load モードは空きスロットを押せなくする（保存先が無いため）。
+	btn.disabled = (_party_overlay_mode == "load" and not occupied)
+	btn.pressed.connect(_on_party_slot_pressed.bind(slot))
+	var margin := MarginContainer.new()
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_theme_constant_override("margin_left", 10)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_right", 10)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	btn.add_child(margin)
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 6)
+	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_child(vbox)
+	var name_lbl := Label.new()
+	name_lbl.text = GameState.get_saved_party_name(slot) if occupied else "%s（空き）" % GameState.default_saved_party_name(slot)
+	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_body(name_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_GOLD if occupied else COLOR_SUB)
+	vbox.add_child(name_lbl)
+	var icon_row := HBoxContainer.new()
+	icon_row.add_theme_constant_override("separation", 6)
+	icon_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.add_child(icon_row)
+	if members.is_empty():
+		var empty_lbl := Label.new()
+		empty_lbl.text = "（空き）" if not occupied else "（保存済メンバーが見つかりません）"
+		empty_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		UiTypography.apply_body(empty_lbl, UiTypography.SIZE_CAPTION, COLOR_SUB)
+		icon_row.add_child(empty_lbl)
+	else:
+		for member in members:
+			var tex: Texture2D = RosterUiHelper.get_member_portrait_texture(member)
+			if tex != null:
+				icon_row.add_child(RosterUiHelper.make_clamped_portrait(tex, _PARTY_OVERLAY_ICON_PX, true))
+	return btn
+
+
+func _on_party_slot_pressed(slot: int) -> void:
+	if _party_overlay_mode == "save":
+		if GameState.has_saved_party(slot):
+			_party_overwrite_slot = slot
+			_party_overwrite_confirm.dialog_text = (
+				"%s に現在の編成を上書き保存しますか？" % GameState.get_saved_party_name(slot)
+			)
+			_party_overwrite_confirm.popup_centered()
+			return
+		_save_party_to_slot(slot)
+		return
+	## load モード
+	var reason: String = GameState.apply_saved_party(slot)
+	if not reason.is_empty():
+		_label_status.text = reason
+		return
+	_selected = GameState.party_members.duplicate()
+	_init_formation_slots_from_party()
 	_active_pick_slot = -1
 	_roster_pick_member = null
 	_formation_pick_slot = -1
-	if _selected.is_empty():
-		_label_status.text = "編成可能なメンバーがいません（調査中を除く）"
-	else:
-		_label_status.text = "編成を初期状態に戻しました（未保存）"
+	SaveManager.save_game()
+	_label_status.text = "%s を編成にセットしました" % GameState.get_saved_party_name(slot)
+	_close_party_overlay()
 	_refresh_all()
+
+
+func _on_party_overwrite_confirmed() -> void:
+	if _party_overwrite_slot < 0:
+		return
+	_save_party_to_slot(_party_overwrite_slot)
+	_party_overwrite_slot = -1
+
+
+func _save_party_to_slot(slot: int) -> void:
+	## 保存対象は画面に表示中の下書き編成（未確定でも保存できる）。
+	_sync_formation_slots_from_selection()
+	var party: Array = _ordered_party_from_formation()
+	if party.is_empty():
+		_label_status.text = "編成が空のため保存できません"
+		return
+	GameState.save_party_preset(slot, party)
+	SaveManager.save_game()
+	_label_status.text = "%s に保存しました" % GameState.get_saved_party_name(slot)
+	_rebuild_party_overlay_rows()
 
 func _on_sort_pressed() -> void:
 	if _show_pets:
