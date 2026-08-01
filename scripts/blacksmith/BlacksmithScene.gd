@@ -1519,7 +1519,7 @@ func _make_enhance_list_card(item: Resource) -> PanelContainer:
 	_tag_list_card(panel, "enhance", item, rarity)
 	panel.gui_input.connect(_on_enhance_card_input.bind(item))
 	var row: HBoxContainer = panel.get_child(0) as HBoxContainer
-	row.add_child(_make_selectable_list_icon(item_id, category, rarity, selected))
+	row.add_child(_make_selectable_list_icon(item_id, category, rarity, selected, item))
 	var name_lbl := Label.new()
 	name_lbl.text = _EquipmentEnhancer.get_display_name(item)
 	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1539,7 +1539,7 @@ func _make_dismantle_list_card(item: Resource) -> PanelContainer:
 	_tag_list_card(panel, "dismantle", item, rarity)
 	panel.gui_input.connect(_on_dismantle_card_input.bind(item))
 	var row: HBoxContainer = panel.get_child(0) as HBoxContainer
-	row.add_child(_make_selectable_list_icon(item_id, category, rarity, selected))
+	row.add_child(_make_selectable_list_icon(item_id, category, rarity, selected, item))
 	var name_lbl := Label.new()
 	name_lbl.text = _EquipmentEnhancer.get_display_name(item)
 	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1617,7 +1617,7 @@ func _make_alchemy_base_card(item: Resource) -> PanelContainer:
 	_tag_list_card(panel, "alchemy", item, rarity)
 	panel.gui_input.connect(_on_alchemy_base_card_input.bind(item))
 	var row: HBoxContainer = panel.get_child(0) as HBoxContainer
-	row.add_child(_make_selectable_list_icon(item_id, category, rarity, selected))
+	row.add_child(_make_selectable_list_icon(item_id, category, rarity, selected, item))
 	var name_lbl := Label.new()
 	name_lbl.text = _EquipmentEnhancer.get_display_name(item)
 	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -2495,7 +2495,7 @@ func _make_alchemy_fodder_chip(item: Resource) -> Control:
 	host.tooltip_text = display_name
 	host.gui_input.connect(_on_alchemy_fodder_chip_input.bind(item))
 	var cell: Control = BlacksmithUiHelper.make_item_icon_cell(
-		item_id, _category, rarity, cell_px, selected
+		item_id, _category, rarity, cell_px, selected, item
 	)
 	_set_mouse_filter_tree(cell, Control.MOUSE_FILTER_IGNORE)
 	cell.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -2624,11 +2624,12 @@ func _make_selectable_list_icon(
 	item_id: String,
 	category: String,
 	rarity: int = 0,
-	highlight: bool = false
+	highlight: bool = false,
+	item: Resource = null
 ) -> Control:
 	## 生産／強化／錬成／分解で共通。二重ホストは作らずセル自体を返す。
 	var cell: Control = BlacksmithUiHelper.make_item_icon_cell(
-		item_id, category, rarity, BlacksmithUiHelper.list_icon_px(), highlight
+		item_id, category, rarity, BlacksmithUiHelper.list_icon_px(), highlight, item
 	)
 	_set_mouse_filter_tree(cell, Control.MOUSE_FILTER_IGNORE)
 	return cell

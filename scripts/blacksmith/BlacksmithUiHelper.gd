@@ -490,7 +490,8 @@ static func make_item_icon_cell(
 	category: String,
 	rarity: int,
 	cell_px: int = -1,
-	highlight: bool = false
+	highlight: bool = false,
+	item: Resource = null
 ) -> Control:
 	## 装備袋と同型の固定 Button。PanelContainer は使わない。
 	var px: int = cell_px if cell_px > 0 else list_cell_px()
@@ -526,6 +527,8 @@ static func make_item_icon_cell(
 	btn.text = ""
 	attach_item_icon(btn, item_id, category, px, rarity, not use_stylebox_cell)
 	EquipmentUiHelper.apply_rarity_badges(btn, rarity, Vector2(px, px))
+	if item != null:
+		EquipmentUiHelper.apply_equip_level_badge(btn, item, Vector2(px, px))
 	return btn
 
 

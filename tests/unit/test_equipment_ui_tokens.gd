@@ -127,6 +127,14 @@ func test_enhance_badge_hides_until_first_enhance() -> void:
 	assert_eq(EquipmentUiHelper.enhance_badge(weapon, "weapon"), "+2")
 	assert_eq(EquipmentUiHelper.enhance_badge(weapon, "armor"), "")
 
+
+func test_equip_level_badge_text() -> void:
+	var weapon := WeaponInstance.new()
+	weapon.equip_level = 1
+	assert_eq(EquipmentUiHelper.equip_level_badge_text(weapon), "Lv.1")
+	weapon.equip_level = 12
+	assert_eq(EquipmentUiHelper.equip_level_badge_text(weapon), "Lv.12")
+	assert_eq(EquipmentUiHelper.equip_level_badge_text(null), "")
 func test_framed_item_icon_is_free_layout_host_for_rarity_badges() -> void:
 	## PanelContainer 直下にレアロゴを足すと全面伸長する。外側は Control。
 	var tex: Texture2D = EquipmentUiTokens.load_tex(EquipmentUiTokens.INV_CELLS[0])

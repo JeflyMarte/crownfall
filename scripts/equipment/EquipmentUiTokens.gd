@@ -20,12 +20,14 @@ const SECTION_RULE: String = ROOT + "UI_Equip_SectionRule.png"
 const RARITY_BADGE_N: String = ROOT + "ICO_Equip_Rarity_N.png"
 const RARITY_BADGE_R: String = ROOT + "ICO_Equip_Rarity_R.png"
 const RARITY_BADGE_E: String = ROOT + "ICO_Equip_Rarity_E.png"
-## L／ミシック／エンシェントは左下ワードマーク。
+## L／ミシック／エンシェントも左上ワードマーク（N/R/E と同コーナー）。
 const LEGENDARY_BADGE: String = ROOT + "ICO_Equip_LegendaryBadge.png"
 const MYTHIC_BADGE: String = ROOT + "ICO_Equip_MythicBadge.png"
 const ANCIENT_BADGE: String = ROOT + "ICO_Equip_AncientBadge.png"
-## セル幅に対する下段バッジ幅比率（左下寄せ）。
-const LEGENDARY_BADGE_WIDTH_RATIO: float = 0.72
+## 左上ワードマークの最大幅（セル幅比）。高さは N/R/E コーナーに揃える。
+const TIER_BADGE_CORNER_MAX_WIDTH_RATIO: float = 0.55
+## 後方互換（旧左下用）。新規レイアウトは TIER_BADGE_CORNER_* を使う。
+const LEGENDARY_BADGE_WIDTH_RATIO: float = TIER_BADGE_CORNER_MAX_WIDTH_RATIO
 const LEGENDARY_BADGE_MARGIN_PX: float = 3.0
 ## 左上 N/R/E ロゴのセル辺に対する比率（鍛冶屋一覧と同値）。
 const CORNER_RARITY_BADGE_RATIO: float = 0.20
@@ -195,7 +197,7 @@ static func corner_rarity_badge(rarity: int) -> Texture2D:
 			return null
 
 static func tier_badge(rarity: int) -> Texture2D:
-	## 左下ワードマーク。L／ミシック／エンシェント。
+	## 左上ワードマーク。L／ミシック／エンシェント。
 	if rarity == Enums.Rarity.LEGENDARY:
 		return legendary_badge()
 	if rarity == Enums.Rarity.MYTHIC:
@@ -205,12 +207,19 @@ static func tier_badge(rarity: int) -> Texture2D:
 	return null
 
 static func legendary_badge_size(cell_size: Vector2, tex: Texture2D = null) -> Vector2:
+	## 互換名。実体は左上コーナー向けサイズ。
+	return tier_badge_corner_size(cell_size, tex)
+
+static func tier_badge_corner_size(cell_size: Vector2, tex: Texture2D = null) -> Vector2:
 	var badge_tex: Texture2D = tex if tex != null else legendary_badge()
-	if badge_tex == null or cell_size.x <= 0.0:
+	if badge_tex == null or cell_size.x <= 0.0 or cell_size.y <= 0.0:
 		return Vector2.ZERO
-	var badge_w: float = cell_size.x * LEGENDARY_BADGE_WIDTH_RATIO
-	var aspect: float = float(badge_tex.get_height()) / maxf(1.0, float(badge_tex.get_width()))
-	return Vector2(badge_w, badge_w * aspect)
+	## N/R/E と同程度の高さ。幅はアスペクト維持＋セル幅上限。
+	var corner_h: float = corner_rarity_badge_size(cell_size).y
+	var aspect: float = float(badge_tex.get_width()) / maxf(1.0, float(badge_tex.get_height()))
+	var badge_w: float = minf(corner_h * aspect, cell_size.x * TIER_BADGE_CORNER_MAX_WIDTH_RATIO)
+	var badge_h: float = badge_w / maxf(aspect, 0.001)
+	return Vector2(badge_w, badge_h)
 
 static func corner_rarity_badge_size(cell_size: Vector2) -> Vector2:
 	if cell_size.x <= 0.0 or cell_size.y <= 0.0:

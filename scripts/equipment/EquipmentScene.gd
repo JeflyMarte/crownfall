@@ -2293,6 +2293,7 @@ func _apply_item_badges(
 ) -> void:
 	var rarity: int = _item_rarity(item, category)
 	EquipmentUiHelper.apply_rarity_badges(btn, rarity, size)
+	EquipmentUiHelper.apply_equip_level_badge(btn, item, size)
 	if category == "weapon":
 		EquipmentUiHelper.apply_enhance_badge(btn, item, category, size, COLOR_GOLD)
 	## 装備中の「装」は出さない。ドロップ直後は中央 New 点滅。

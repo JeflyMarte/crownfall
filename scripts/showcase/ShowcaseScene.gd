@@ -785,6 +785,7 @@ func _make_equip_icon_cell(item: Resource, category: String) -> Control:
 		btn, tex, cell_px, EquipmentUiTokens.INV_CELL_DESIGN_PX, item_id, category
 	)
 	EquipmentUiHelper.apply_rarity_badges(btn, rarity, cell_size)
+	EquipmentUiHelper.apply_equip_level_badge(btn, item, cell_size)
 	if category == "weapon":
 		EquipmentUiHelper.apply_enhance_badge(btn, item, category, cell_size, COLOR_GOLD)
 	btn.pressed.connect(_on_equip_icon_pressed.bind(item, category))

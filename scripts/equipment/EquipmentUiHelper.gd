@@ -4,8 +4,10 @@ extends RefCounted
 ## 装備レア表示 SSOT（P3-UI-RARITY-NREL-001）。キャラ★個数とは別。
 ## N＜R＜E＜L（＋M神話／エンシェントレア）。セル上の文字バッジはロゴ画像へ置換。
 const RARITY_CODES: Array[String] = ["N", "R", "E", "L", "M", "エンシェントレア"]
-## 装備セル左上の N/R/E ロゴ位置（鍛冶屋一覧と同値）。
+## 装備セル左上のレアリティロゴ位置（N/R/E／L／M／エンシェント共通）。
 const RARITY_BADGE_POS: Vector2 = Vector2(5.0, 3.0)
+## 装備Lv（左下）。炉研ぎ +N は右下。
+const EQUIP_LEVEL_BADGE_POS: Vector2 = Vector2(3.0, -4.0)
 const LEVEL_CAP: int = LevelSystem.MAX_LEVEL
 
 const SORT_LABELS: Dictionary = {
@@ -82,6 +84,37 @@ static func apply_enhance_badge(
 		font_size
 	)
 
+
+static func equip_level_badge_text(item: Resource) -> String:
+	if item == null or not ("equip_level" in item):
+		return ""
+	return "Lv.%d" % EquipmentEnhancer.get_equip_level(item)
+
+
+static func equip_level_badge_font_size(cell_height: float) -> int:
+	return maxi(12, int(cell_height * 0.18))
+
+
+## 装備Lv を左下に表示（全レア共通）。炉研ぎ +N は右下のまま。
+static func apply_equip_level_badge(
+	parent: Control,
+	item: Resource,
+	cell_size: Vector2,
+	color: Color = Color(0.96, 0.94, 0.88, 1.0)
+) -> void:
+	var text: String = equip_level_badge_text(item)
+	if text.is_empty() or parent == null:
+		return
+	var font_size: int = equip_level_badge_font_size(cell_size.y)
+	add_corner_badge(
+		parent,
+		text,
+		color,
+		Vector2(EQUIP_LEVEL_BADGE_POS.x, cell_size.y - float(font_size) + EQUIP_LEVEL_BADGE_POS.y),
+		font_size
+	)
+
+
 ## ドロップ直後の New バッジ（アイコン中央・点滅）。次のダンジョン潜行まで。
 static func apply_new_badge(parent: Control, item: Resource, cell_size: Vector2) -> void:
 	if parent == null or item == null:
@@ -119,7 +152,7 @@ static func apply_new_badge(parent: Control, item: Resource, cell_size: Vector2)
 
 
 ## レアリティロゴをセルへ重ねる。
-## N/R/E＝左上ロゴ。L／M／エンシェント＝左下ワードマーク。
+## N/R/E／L／M／エンシェント＝すべて左上。
 static func apply_rarity_badges(parent: Control, rarity: int, cell_size: Vector2) -> void:
 	if parent == null:
 		return
@@ -152,10 +185,10 @@ static func _apply_tier_wordmark_badge(parent: Control, rarity: int, cell_size: 
 	var tex: Texture2D = EquipmentUiTokens.tier_badge(rarity)
 	if tex == null:
 		return
-	var badge_size: Vector2 = EquipmentUiTokens.legendary_badge_size(cell_size, tex)
+	var badge_size: Vector2 = EquipmentUiTokens.tier_badge_corner_size(cell_size, tex)
 	if badge_size.x <= 0.0 or badge_size.y <= 0.0:
 		return
-	var margin: float = EquipmentUiTokens.LEGENDARY_BADGE_MARGIN_PX
+	var margin: float = EquipmentUiTokens.CORNER_RARITY_BADGE_MARGIN_PX
 	var icon := TextureRect.new()
 	icon.name = "LegendaryBadge"
 	icon.texture = tex
@@ -163,14 +196,10 @@ static func _apply_tier_wordmark_badge(parent: Control, rarity: int, cell_size: 
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon.z_index = 2
-	icon.anchor_left = 0.0
-	icon.anchor_top = 1.0
-	icon.anchor_right = 0.0
-	icon.anchor_bottom = 1.0
-	icon.offset_left = margin
-	icon.offset_top = -badge_size.y - margin
-	icon.offset_right = margin + badge_size.x
-	icon.offset_bottom = -margin
+	## N/R/E と同じ左上コーナー。
+	icon.position = Vector2(RARITY_BADGE_POS.x + margin, RARITY_BADGE_POS.y + margin)
+	icon.size = badge_size
+	icon.custom_minimum_size = badge_size
 	parent.add_child(icon)
 
 

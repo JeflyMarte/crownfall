@@ -1318,7 +1318,7 @@ func _make_equipment_drop_cell(item_id: String, category: String, instance_id: S
 	icon_wrap.custom_minimum_size = Vector2(icon_px, icon_px)
 	icon_wrap.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var icon_cell: Control = BlacksmithUiHelper.make_item_icon_cell(
-		item_id, category, rarity, icon_px, false
+		item_id, category, rarity, icon_px, false, _drop_instance_for(category, instance_id)
 	)
 	icon_wrap.add_child(icon_cell)
 	cell.add_child(icon_wrap)
@@ -1343,6 +1343,20 @@ func _make_equipment_drop_cell(item_id: String, category: String, instance_id: S
 	cell.set_meta("drop_category", category)
 	cell.set_meta("drop_item_id", item_id)
 	return cell
+
+
+func _drop_instance_for(category: String, instance_id: String) -> Resource:
+	if instance_id.is_empty():
+		return null
+	match category:
+		"weapon":
+			return GameState.find_weapon_instance(instance_id)
+		"armor":
+			return GameState.find_armor_instance(instance_id)
+		"accessory":
+			return GameState.find_accessory_instance(instance_id)
+		_:
+			return null
 
 
 func _is_equipment_category(category: String) -> bool:

@@ -512,6 +512,7 @@ static func populate_panel(
 			var frame := _make_framed_item_icon(item_id, category, rarity, header_icon_px, icon_tex)
 			header.add_child(frame)
 			EquipmentUiHelper.apply_rarity_badges(frame, rarity, badge_size)
+			EquipmentUiHelper.apply_equip_level_badge(frame, item, badge_size)
 			if show_enhance_badge:
 				EquipmentUiHelper.apply_enhance_badge(frame, item, category, badge_size)
 		else:
@@ -527,6 +528,7 @@ static func populate_panel(
 			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			icon_wrap.add_child(icon)
 			EquipmentUiHelper.apply_rarity_badges(icon_wrap, rarity, badge_size)
+			EquipmentUiHelper.apply_equip_level_badge(icon_wrap, item, badge_size)
 			if show_enhance_badge:
 				EquipmentUiHelper.apply_enhance_badge(icon_wrap, item, category, badge_size)
 	var title_col := VBoxContainer.new()
