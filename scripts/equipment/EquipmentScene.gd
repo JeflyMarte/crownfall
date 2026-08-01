@@ -3409,7 +3409,7 @@ func _ensure_tactics_ui() -> void:
 	var row := HBoxContainer.new()
 	row.name = "TacticsRow"
 	var label := Label.new()
-	label.text = "戦術:"
+	label.text = "行動方針:"
 	UiTypography.apply_body(label, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	row.add_child(label)
 	var opt := OptionButton.new()
@@ -3431,221 +3431,28 @@ func _ensure_tactics_ui() -> void:
 	_combat_setup_content.add_child(summary)
 	_combat_setup_content.move_child(summary, 1)
 	_tactics_summary_label = summary
-	_ensure_gambit_ui()
+	_omit_gambit_ui()
+
+## カスタム行動ルールUIはオミット（既存ノードが残っていれば隠す）。
+func _omit_gambit_ui() -> void:
+	_ensure_combat_setup_panel()
+	for child_name in ["GambitAccordionRow", "GambitCustomBox"]:
+		var node: Node = _combat_setup_content.get_node_or_null(child_name)
+		if node != null:
+			node.visible = false
+	if _gambit_accordion_btn != null and is_instance_valid(_gambit_accordion_btn):
+		_gambit_accordion_btn.visible = false
+	if _gambit_custom_box != null and is_instance_valid(_gambit_custom_box):
+		_gambit_custom_box.visible = false
+	_gambit_accordion_expanded = false
 
 func _ensure_gambit_ui() -> void:
-	if _gambit_accordion_btn != null and is_instance_valid(_gambit_accordion_btn):
-		return
-	_ensure_combat_setup_panel()
-	var accordion_row := HBoxContainer.new()
-	accordion_row.name = "GambitAccordionRow"
-	_gambit_accordion_btn = Button.new()
-	_gambit_accordion_btn.text = "▶ 行動ルールを編集"
-	_gambit_accordion_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiTypography.apply_menu_button(_gambit_accordion_btn)
-	_gambit_accordion_btn.pressed.connect(_on_gambit_accordion_pressed)
-	accordion_row.add_child(_gambit_accordion_btn)
-	_combat_setup_content.add_child(accordion_row)
-	_combat_setup_content.move_child(accordion_row, 2)
-	_gambit_custom_box = VBoxContainer.new()
-	_gambit_custom_box.name = "GambitCustomBox"
-	_gambit_custom_box.add_theme_constant_override("separation", 6)
-	_gambit_custom_box.visible = false
-	var intro := Label.new()
-	intro.text = "このキャラだけ、行動の優先順を上書きします。"
-	intro.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	intro.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiTypography.apply_body(intro, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
-	_gambit_custom_box.add_child(intro)
-	var check_row := HBoxContainer.new()
-	check_row.name = "GambitCheckRow"
-	_gambit_custom_check = CheckBox.new()
-	_gambit_custom_check.text = "行動ルールを自分で設定"
-	UiTypography.apply_menu_button(_gambit_custom_check)
-	_gambit_custom_check.toggled.connect(_on_gambit_custom_toggled)
-	check_row.add_child(_gambit_custom_check)
-	_gambit_custom_box.add_child(check_row)
-	var target_row := HBoxContainer.new()
-	var target_label := Label.new()
-	target_label.text = "狙う敵:"
-	UiTypography.apply_body(target_label, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
-	target_row.add_child(target_label)
-	_gambit_target_option = OptionButton.new()
-	_gambit_target_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_gambit_target_ids.clear()
-	for target_id: String in CombatTactics.TARGET_RULES:
-		_gambit_target_option.add_item(CombatGambit.target_label(target_id))
-		_gambit_target_ids.append(target_id)
-	_gambit_target_option.item_selected.connect(_on_gambit_target_selected)
-	target_row.add_child(_gambit_target_option)
-	_gambit_custom_box.add_child(target_row)
-	var copy_btn := Button.new()
-	copy_btn.text = "今の戦術をコピーして編集"
-	UiTypography.apply_menu_button(copy_btn)
-	copy_btn.pressed.connect(_on_gambit_copy_preset_pressed)
-	_gambit_custom_box.add_child(copy_btn)
-	var header_row := HBoxContainer.new()
-	header_row.add_theme_constant_override("separation", 4)
-	var h_pri := Label.new()
-	h_pri.text = "順"
-	h_pri.custom_minimum_size.x = 18.0
-	UiTypography.apply_body(h_pri, UiTypography.SIZE_CAPTION, UiTypography.COLOR_GOLD)
-	header_row.add_child(h_pri)
-	var h_slot := Label.new()
-	h_slot.text = "使う技"
-	h_slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiTypography.apply_body(h_slot, UiTypography.SIZE_CAPTION, UiTypography.COLOR_GOLD)
-	header_row.add_child(h_slot)
-	var h_cond := Label.new()
-	h_cond.text = "いつ使うか"
-	h_cond.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiTypography.apply_body(h_cond, UiTypography.SIZE_CAPTION, UiTypography.COLOR_GOLD)
-	header_row.add_child(h_cond)
-	var h_val := Label.new()
-	h_val.text = "値"
-	h_val.custom_minimum_size.x = 52.0
-	UiTypography.apply_body(h_val, UiTypography.SIZE_CAPTION, UiTypography.COLOR_GOLD)
-	header_row.add_child(h_val)
-	var h_move := Label.new()
-	h_move.text = "並替"
-	h_move.custom_minimum_size.x = 30.0
-	UiTypography.apply_body(h_move, UiTypography.SIZE_CAPTION, UiTypography.COLOR_GOLD)
-	header_row.add_child(h_move)
-	_gambit_custom_box.add_child(header_row)
-	_gambit_action_opts.clear()
-	_gambit_action_keys.clear()
-	_gambit_cond_opts.clear()
-	_gambit_value_edits.clear()
-	_gambit_range_opts.clear()
-	_gambit_move_up_btns.clear()
-	_gambit_move_down_btns.clear()
-	_gambit_row_preview_labels.clear()
-	for i in CombatGambit.plan_row_count():
-		var row_wrap := VBoxContainer.new()
-		row_wrap.name = "GambitPlanWrap%d" % i
-		row_wrap.add_theme_constant_override("separation", 2)
-		var plan_row := HBoxContainer.new()
-		plan_row.name = "GambitPlanRow%d" % i
-		var pri := Label.new()
-		pri.text = "%d" % (i + 1)
-		pri.custom_minimum_size.x = 18.0
-		UiTypography.apply_body(pri, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
-		plan_row.add_child(pri)
-		var action_opt := OptionButton.new()
-		action_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		action_opt.item_selected.connect(_on_gambit_row_changed)
-		plan_row.add_child(action_opt)
-		var cond_opt := OptionButton.new()
-		cond_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		for cond_id: String in CombatGambit.CONDITION_IDS:
-			cond_opt.add_item(CombatGambit.condition_label(cond_id))
-		cond_opt.item_selected.connect(_on_gambit_row_changed)
-		plan_row.add_child(cond_opt)
-		var value_edit := LineEdit.new()
-		value_edit.custom_minimum_size.x = 52.0
-		value_edit.placeholder_text = "%"
-		value_edit.text_changed.connect(_on_gambit_row_changed)
-		plan_row.add_child(value_edit)
-		var range_opt := OptionButton.new()
-		range_opt.custom_minimum_size.x = 72.0
-		for range_id: String in CombatGambit.RANGE_VALUE_IDS:
-			range_opt.add_item(CombatGambit.range_label(range_id))
-		range_opt.item_selected.connect(_on_gambit_row_changed)
-		range_opt.visible = false
-		plan_row.add_child(range_opt)
-		var move_col := VBoxContainer.new()
-		move_col.add_theme_constant_override("separation", 0)
-		var btn_up := Button.new()
-		btn_up.text = "↑"
-		btn_up.custom_minimum_size = Vector2(30, 22)
-		btn_up.pressed.connect(_on_gambit_move_row.bind(i, -1))
-		move_col.add_child(btn_up)
-		var btn_down := Button.new()
-		btn_down.text = "↓"
-		btn_down.custom_minimum_size = Vector2(30, 22)
-		btn_down.pressed.connect(_on_gambit_move_row.bind(i, 1))
-		move_col.add_child(btn_down)
-		plan_row.add_child(move_col)
-		row_wrap.add_child(plan_row)
-		var row_preview := Label.new()
-		row_preview.text = ""
-		row_preview.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		row_preview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		UiTypography.apply_body(row_preview, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
-		row_wrap.add_child(row_preview)
-		_gambit_custom_box.add_child(row_wrap)
-		_gambit_action_opts.append(action_opt)
-		_gambit_action_keys.append([])
-		_gambit_cond_opts.append(cond_opt)
-		_gambit_value_edits.append(value_edit)
-		_gambit_range_opts.append(range_opt)
-		_gambit_move_up_btns.append(btn_up)
-		_gambit_move_down_btns.append(btn_down)
-		_gambit_row_preview_labels.append(row_preview)
-	var gambit_hint := Label.new()
-	gambit_hint.text = "上から優先。戦闘ログに [戦術] と表示されます。"
-	gambit_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	gambit_hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiTypography.apply_body(gambit_hint, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
-	_gambit_custom_box.add_child(gambit_hint)
-	_combat_setup_content.add_child(_gambit_custom_box)
-	_combat_setup_content.move_child(_gambit_custom_box, 3)
+	## 互換スタブ。カスタム行動ルールUIは作らない。
+	_omit_gambit_ui()
 
-func _refresh_gambit_ui(member: Resource) -> void:
-	if _gambit_custom_check == null:
-		return
-	_gambit_ui_syncing = true
-	if member == null:
-		_gambit_custom_check.disabled = true
-		_gambit_custom_box.visible = false
-		_sync_gambit_accordion_btn(false, false)
-		_gambit_ui_syncing = false
-		return
-	_gambit_custom_check.disabled = false
-	var custom_on: bool = GameState.get_member_tactics_custom_enabled(member)
-	_gambit_custom_check.button_pressed = custom_on
-	if custom_on:
-		_gambit_accordion_expanded = true
-	_sync_gambit_accordion_btn(_gambit_accordion_expanded, custom_on)
-	_gambit_custom_box.visible = _gambit_accordion_expanded
-	if _tactics_option != null:
-		_tactics_option.disabled = custom_on
-	var target: String = GameState.get_member_tactics_custom_target(member)
-	var target_idx: int = _gambit_target_ids.find(target)
-	if _gambit_target_option != null:
-		_gambit_target_option.select(target_idx if target_idx >= 0 else 0)
-	var plan: Array = GameState.get_member_tactics_custom_plan(member)
-	for i in CombatGambit.plan_row_count():
-		var rule: Dictionary = plan[i] if i < plan.size() else CombatGambit.default_plan_row(i)
-		_sync_gambit_action_option(i, member, rule)
-		var cond_id: String = str(rule.get("condition", "always"))
-		var cond_idx: int = CombatGambit.CONDITION_IDS.find(cond_id)
-		_gambit_cond_opts[i].select(cond_idx if cond_idx >= 0 else 0)
-		_update_gambit_row_value_widgets(i, cond_id, rule)
-	_update_gambit_move_buttons()
-	_update_gambit_row_previews()
-	_set_gambit_editor_interactive(custom_on)
-	_gambit_ui_syncing = false
+func _refresh_gambit_ui(_member: Resource) -> void:
+	_omit_gambit_ui()
 
-func _set_gambit_editor_interactive(enabled: bool) -> void:
-	if _gambit_target_option != null:
-		_gambit_target_option.disabled = not enabled
-	for i in CombatGambit.plan_row_count():
-		if i < _gambit_action_opts.size():
-			_gambit_action_opts[i].disabled = not enabled
-		if i < _gambit_cond_opts.size():
-			_gambit_cond_opts[i].disabled = not enabled
-		if i < _gambit_value_edits.size():
-			_gambit_value_edits[i].editable = enabled
-		if i < _gambit_range_opts.size():
-			_gambit_range_opts[i].disabled = not enabled
-	_update_gambit_move_buttons()
-	if not enabled:
-		for i in CombatGambit.plan_row_count():
-			if i < _gambit_move_up_btns.size():
-				_gambit_move_up_btns[i].disabled = true
-			if i < _gambit_move_down_btns.size():
-				_gambit_move_down_btns[i].disabled = true
 
 func _sync_gambit_accordion_btn(expanded: bool, custom_on: bool) -> void:
 	if _gambit_accordion_btn == null:
@@ -3843,13 +3650,8 @@ func _refresh_tactics_ui(member: Resource) -> void:
 	_refresh_tactics_summary_label(current, member)
 	_refresh_gambit_ui(member)
 
-func _refresh_tactics_summary_label(tactics_id: String, member: Resource = null) -> void:
+func _refresh_tactics_summary_label(tactics_id: String, _member: Resource = null) -> void:
 	if _tactics_summary_label == null:
-		return
-	if member == null:
-		member = _get_view_adventurer()
-	if member != null and GameState.get_member_tactics_custom_enabled(member):
-		_tactics_summary_label.text = "行動ルールを自分で設定中"
 		return
 	_tactics_summary_label.text = CombatTactics.summary_hint(tactics_id)
 

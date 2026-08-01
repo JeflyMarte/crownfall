@@ -1,23 +1,11 @@
 class_name CombatTactics
 extends RefCounted
 
-## 戦術（AI最上位設定）— P3-D086。
-## メンバーの 1 行動で「どのスロットをどの優先度・条件で使うか」を定義する。
-## スロット選択の実行は DungeonScene が本ヘルパの plan に従って行う。
+## 行動方針（旧・戦術）— 7択＋重み付きルーレット。
+## カスタム行動ルールはオミット。実行は DungeonScene が roll_turn_plan に従う。
 ##
 ## slot: "ultimate" | "defend" | "skill" | "attack"
-## condition: "always" | "self_hp_below" | "enemy_is_boss" | "enemy_is_elite"
-##          | "enemy_count_gte" | "ally_dead"
-##          | "enemy_has_bleed" | "enemy_has_poison" | "enemy_has_mark" | "ultimate_ready"
-##          | "enemy_has_stun" | "enemy_has_vulnerable" | "enemy_has_armor_break" | "enemy_has_fear"（P3-D127）
-##          | "self_range"（P3-D108・フェーズB-5）
-##          | "ally_injured"（P3-D113・味方に負傷者がいる）
-## value: 条件の閾値（self_hp_below=HP割合 / enemy_count_gte=体数 / self_range=melee|mid|long）。
-##
-## plan は優先度順（Very High → Low）。DungeonScene は先頭から評価し、
-## 条件成立かつ実際に発動できた最初のスロットで行動を確定する。
-## Target 層（P3-D100/D111）: 各メンバーが戦術 target で個別に狙う（混成時に分散可能）。
-## ルール: front | lowest_hp | highest_hp | highest_atk | enemy_with_status | enemy_marked | enemy_with_debuff | back
+## Target: front | lowest_hp | highest_hp | highest_atk | enemy_with_status | enemy_marked | enemy_with_debuff | back
 
 const DEFAULT_TACTICS_ID: String = "balanced"
 const DEFAULT_TARGET: String = "front"
@@ -25,95 +13,60 @@ const TARGET_RULES: Array[String] = [
 	"front", "lowest_hp", "highest_hp", "highest_atk", "enemy_with_status", "enemy_marked", "enemy_with_debuff", "back",
 ]
 
+## 旧プリセット ID → 新行動方針。
+const LEGACY_ID_MAP: Dictionary = {
+	"aggressive": "fodder_focus",
+	"cautious": "defend_focus",
+	"survival": "defend_focus",
+	"sweep": "fodder_focus",
+}
+
 const _DEFS: Dictionary = {
-	# P3-FIX-006: 必殺の乱発抑制。ultimate_ready（CD明けで常時発動）は毎戦闘の初手が
-	# 必殺になるため、汎用プリセットは「ボス/エリート（積極のみ+群れ）」に限定する。
-	# ultimate_ready 条件自体はカスタム戦術（ガンビット）用に温存。
 	"balanced": {
-		"display_name": "スキル優先（ピンチで防御）",
-		"summary_hint": "スキルを主に使い、ボス・エリートで必殺。HP低下時は防御。",
+		"display_name": "バランス",
+		"summary_hint": "スキル・必殺・防御を状況で混ぜる。毎回少しブレる。",
 		"target": "front",
-		"plan": [
-			{"slot": "ultimate", "condition": "enemy_is_boss"},
-			{"slot": "ultimate", "condition": "enemy_is_elite"},
-			{"slot": "defend", "condition": "self_hp_below", "value": 0.30},
-			{"slot": "skill", "condition": "always"},
-			{"slot": "attack", "condition": "always"},
-		],
 	},
-	"aggressive": {
-		"display_name": "スキル多用・火力寄り",
-		"summary_hint": "弱った敵を狙い、スキルを積極的に使う。群れでも必殺を出しやすい。",
+	"conserve_ultimate": {
+		"display_name": "必殺温存",
+		"summary_hint": "普段は必殺を温存。ボス・エリートやピンチで使いやすい。",
+		"target": "front",
+	},
+	"defend_focus": {
+		"display_name": "防御重視",
+		"summary_hint": "防御を選びやすい。火力は控えめ。",
 		"target": "lowest_hp",
-		"plan": [
-			{"slot": "ultimate", "condition": "enemy_is_boss"},
-			{"slot": "ultimate", "condition": "enemy_is_elite"},
-			{"slot": "ultimate", "condition": "enemy_count_gte", "value": 2},
-			{"slot": "skill", "condition": "enemy_has_mark"},
-			{"slot": "skill", "condition": "enemy_has_bleed"},
-			{"slot": "skill", "condition": "always"},
-			{"slot": "attack", "condition": "always"},
-		],
 	},
-	"cautious": {
-		"display_name": "防御多め",
-		"summary_hint": "早めに防御し、後衛の敵を狙う。",
-		"target": "back",
-		"plan": [
-			{"slot": "defend", "condition": "self_hp_below", "value": 0.50},
-			{"slot": "ultimate", "condition": "enemy_is_boss"},
-			{"slot": "ultimate", "condition": "enemy_is_elite"},
-			{"slot": "skill", "condition": "enemy_has_stun"},
-			{"slot": "skill", "condition": "self_range", "value": "mid"},
-			{"slot": "attack", "condition": "always"},
-		],
-	},
-	"survival": {
-		"display_name": "防御を最優先",
-		"summary_hint": "とにかく耐える。危なくなったら防御を優先。",
+	"fodder_focus": {
+		"display_name": "雑魚優先",
+		"summary_hint": "弱い敵から狙う。群れでは必殺も出やすい。",
 		"target": "lowest_hp",
-		"plan": [
-			{"slot": "defend", "condition": "self_hp_below", "value": 0.60},
-			{"slot": "ultimate", "condition": "enemy_is_boss"},
-			{"slot": "ultimate", "condition": "enemy_is_elite"},
-			{"slot": "skill", "condition": "always"},
-			{"slot": "attack", "condition": "always"},
-		],
 	},
 	"boss_focus": {
-		"display_name": "強敵を集中攻撃",
-		"summary_hint": "HPの高い敵を優先し、強敵に火力を集中。",
+		"display_name": "強敵優先",
+		"summary_hint": "強い敵へ火力を寄せる。必殺も強敵向け。",
 		"target": "highest_hp",
-		"plan": [
-			{"slot": "ultimate", "condition": "enemy_is_boss"},
-			{"slot": "ultimate", "condition": "enemy_is_elite"},
-			{"slot": "defend", "condition": "self_hp_below", "value": 0.30},
-			{"slot": "skill", "condition": "always"},
-			{"slot": "attack", "condition": "always"},
-		],
 	},
-	"sweep": {
-		"display_name": "複数敵・弱体を優先",
-		"summary_hint": "複数敵や弱体中の敵を優先して処理。",
-		"target": "enemy_with_debuff",
-		"plan": [
-			{"slot": "ultimate", "condition": "enemy_count_gte", "value": 2},
-			{"slot": "skill", "condition": "enemy_has_mark"},
-			{"slot": "skill", "condition": "enemy_has_vulnerable"},
-			{"slot": "skill", "condition": "enemy_has_poison"},
-			{"slot": "attack", "condition": "always"},
-		],
+	"support_focus": {
+		"display_name": "サポート優先",
+		"summary_hint": "回復・バフ系スキルを優先。無いときはバランス寄り。",
+		"target": "front",
+	},
+	"attack_only": {
+		"display_name": "通常攻撃のみ",
+		"summary_hint": "スキル・必殺・防御を使わず殴るだけ。",
+		"target": "front",
 	},
 }
 
-# 戦術の target ルール（既定 front）。
-static func get_target_rule(tactics_id: String) -> String:
-	var rule: String = str(_DEFS[normalize_id(tactics_id)].get("target", DEFAULT_TARGET))
-	return rule if rule in TARGET_RULES else DEFAULT_TARGET
-
-# 選択UI用の順序付きリスト。各要素 {"id","display_name"}。
 const _ORDER: Array[String] = [
-	"balanced", "aggressive", "cautious", "survival", "boss_focus", "sweep",
+	"balanced",
+	"conserve_ultimate",
+	"defend_focus",
+	"fodder_focus",
+	"boss_focus",
+	"support_focus",
+	"attack_only",
 ]
 
 static func tactics_list() -> Array:
@@ -125,6 +78,8 @@ static func tactics_list() -> Array:
 static func normalize_id(tactics_id: String) -> String:
 	if _DEFS.has(tactics_id):
 		return tactics_id
+	if LEGACY_ID_MAP.has(tactics_id):
+		return str(LEGACY_ID_MAP[tactics_id])
 	return DEFAULT_TACTICS_ID
 
 static func display_name(tactics_id: String) -> String:
@@ -133,17 +88,208 @@ static func display_name(tactics_id: String) -> String:
 static func summary_hint(tactics_id: String) -> String:
 	return str(_DEFS[normalize_id(tactics_id)].get("summary_hint", ""))
 
-# 優先度順のスロット計画を返す。
+static func get_target_rule(tactics_id: String) -> String:
+	var rule: String = str(_DEFS[normalize_id(tactics_id)].get("target", DEFAULT_TARGET))
+	return rule if rule in TARGET_RULES else DEFAULT_TARGET
+
+## UI／コピー用の代表プラン（実行時は roll_turn_plan を使う）。
 static func get_slot_plan(tactics_id: String) -> Array:
-	return _DEFS[normalize_id(tactics_id)]["plan"]
+	match normalize_id(tactics_id):
+		"attack_only":
+			return [{"slot": "attack", "condition": "always"}]
+		"defend_focus":
+			return [
+				{"slot": "defend", "condition": "self_hp_below", "value": 0.55},
+				{"slot": "skill", "condition": "always"},
+				{"slot": "attack", "condition": "always"},
+			]
+		"conserve_ultimate":
+			return [
+				{"slot": "ultimate", "condition": "enemy_is_boss"},
+				{"slot": "ultimate", "condition": "enemy_is_elite"},
+				{"slot": "skill", "condition": "always"},
+				{"slot": "attack", "condition": "always"},
+			]
+		"fodder_focus":
+			return [
+				{"slot": "ultimate", "condition": "enemy_count_gte", "value": 2},
+				{"slot": "skill", "condition": "always"},
+				{"slot": "attack", "condition": "always"},
+			]
+		"boss_focus":
+			return [
+				{"slot": "ultimate", "condition": "enemy_is_boss"},
+				{"slot": "ultimate", "condition": "enemy_is_elite"},
+				{"slot": "skill", "condition": "always"},
+				{"slot": "attack", "condition": "always"},
+			]
+		"support_focus":
+			return [
+				{"slot": "skill", "condition": "always"},
+				{"slot": "attack", "condition": "always"},
+			]
+		_:
+			return [
+				{"slot": "ultimate", "condition": "enemy_is_boss"},
+				{"slot": "defend", "condition": "self_hp_below", "value": 0.30},
+				{"slot": "skill", "condition": "always"},
+				{"slot": "attack", "condition": "always"},
+			]
+
+## 1ターン分の行動候補を重み付きで並べる（先頭が本命、以降フォールバック）。
+static func roll_turn_plan(
+	tactics_id: String,
+	ctx: Dictionary,
+	member: Resource = null,
+	rng: RandomNumberGenerator = null
+) -> Array:
+	var id: String = normalize_id(tactics_id)
+	if id == "support_focus" and not member_has_support_skill(member):
+		id = DEFAULT_TACTICS_ID
+	var weights: Dictionary = _slot_weights(id, ctx)
+	var support_idx: int = preferred_support_skill_index(member)
+	var slots: Array[String] = []
+	var wlist: Array[float] = []
+	for slot in ["ultimate", "defend", "skill", "attack"]:
+		var w: float = float(weights.get(slot, 0.0))
+		if w > 0.0:
+			slots.append(slot)
+			wlist.append(w)
+	if slots.is_empty():
+		return [{"slot": "attack", "condition": "always"}]
+	var picked: String = _weighted_pick(slots, wlist, rng)
+	var ordered: Array[String] = [picked]
+	## 残りは重み降順でフォールバック（攻撃は最後の安全網）。
+	var rest: Array = []
+	for i in slots.size():
+		var s: String = slots[i]
+		if s == picked:
+			continue
+		rest.append({"slot": s, "w": wlist[i]})
+	rest.sort_custom(_weight_entry_desc)
+	for entry in rest:
+		var s2: String = str(entry["slot"])
+		if s2 not in ordered:
+			ordered.append(s2)
+	if "attack" not in ordered:
+		ordered.append("attack")
+	var plan: Array = []
+	for slot in ordered:
+		var rule: Dictionary = {"slot": slot, "condition": "always"}
+		if slot == "skill" and support_idx >= 0 and id == "support_focus":
+			rule["skill_index"] = support_idx
+		plan.append(rule)
+	return plan
+
+static func member_has_support_skill(member: Resource) -> bool:
+	return preferred_support_skill_index(member) >= 0
+
+static func preferred_support_skill_index(member: Resource) -> int:
+	if member == null:
+		return -1
+	var ids: Array[String] = GameState.get_equipped_skill_ids(member)
+	for i in ids.size():
+		if _is_support_skill(DataRegistry.get_skill_data(str(ids[i]))):
+			return i
+	return -1
+
+static func _is_support_skill(skill_data: Resource) -> bool:
+	if skill_data == null:
+		return false
+	var effect: String = str(skill_data.get("effect_type"))
+	if effect == "heal" or effect == "buff":
+		return true
+	var target: String = str(skill_data.get("target_type"))
+	if target == "ally" or target == "party":
+		return true
+	if "tags" in skill_data and skill_data.tags is Array:
+		for tag in skill_data.tags:
+			var t: String = str(tag)
+			if t == "support" or t == "heal" or t == "buff":
+				return true
+	return false
+
+static func _slot_weights(tactics_id: String, ctx: Dictionary) -> Dictionary:
+	var hp: float = float(ctx.get("self_hp_ratio", 1.0))
+	var boss: bool = bool(ctx.get("enemy_is_boss", false))
+	var elite: bool = bool(ctx.get("enemy_is_elite", false))
+	var strong: bool = boss or elite
+	var enemies: int = int(ctx.get("enemy_count", 1))
+	match tactics_id:
+		"attack_only":
+			return {"ultimate": 0.0, "defend": 0.0, "skill": 0.0, "attack": 100.0}
+		"conserve_ultimate":
+			var ult: float = 0.0
+			if strong:
+				ult = 48.0
+			elif hp < 0.25:
+				ult = 22.0
+			var defend: float = 12.0
+			if hp < 0.35:
+				defend = 40.0
+			return {"ultimate": ult, "defend": defend, "skill": 48.0, "attack": 32.0}
+		"defend_focus":
+			var defend2: float = 48.0
+			if hp < 0.55:
+				defend2 = 70.0
+			var ult2: float = 8.0
+			if strong:
+				ult2 = 28.0
+			return {"ultimate": ult2, "defend": defend2, "skill": 22.0, "attack": 18.0}
+		"fodder_focus":
+			var ult3: float = 8.0
+			if enemies >= 2:
+				ult3 = 36.0
+			return {"ultimate": ult3, "defend": 10.0, "skill": 44.0, "attack": 30.0}
+		"boss_focus":
+			var ult4: float = 12.0
+			if strong:
+				ult4 = 50.0
+			var defend3: float = 8.0
+			if hp < 0.30:
+				defend3 = 35.0
+			return {"ultimate": ult4, "defend": defend3, "skill": 38.0, "attack": 24.0}
+		"support_focus":
+			var ult5: float = 6.0
+			if strong:
+				ult5 = 24.0
+			var defend4: float = 12.0
+			if hp < 0.35:
+				defend4 = 30.0
+			return {"ultimate": ult5, "defend": defend4, "skill": 58.0, "attack": 22.0}
+		_:
+			## balanced
+			var ult6: float = 10.0
+			if strong:
+				ult6 = 38.0
+			var defend5: float = 10.0
+			if hp < 0.30:
+				defend5 = 42.0
+			return {"ultimate": ult6, "defend": defend5, "skill": 42.0, "attack": 28.0}
+
+static func _weight_entry_desc(a: Dictionary, b: Dictionary) -> bool:
+	return float(a.get("w", 0.0)) > float(b.get("w", 0.0))
+
+
+static func _weighted_pick(slots: Array[String], weights: Array[float], rng: RandomNumberGenerator) -> String:
+	var total: float = 0.0
+	for w in weights:
+		total += maxf(0.0, w)
+	if total <= 0.0:
+		return "attack"
+	var roll: float
+	if rng != null:
+		roll = rng.randf() * total
+	else:
+		roll = randf() * total
+	var acc: float = 0.0
+	for i in slots.size():
+		acc += maxf(0.0, weights[i])
+		if roll <= acc:
+			return slots[i]
+	return slots[slots.size() - 1]
 
 # 1 ルールの条件が戦闘コンテキストで成立するか。
-# ctx: {self_hp_ratio:float, enemy_is_boss:bool, enemy_is_elite:bool,
-#       enemy_count:int, ally_dead:bool,
-#       enemy_has_bleed:bool, enemy_has_poison:bool, enemy_has_mark:bool,
-#       enemy_has_stun:bool, enemy_has_vulnerable:bool, enemy_has_armor_break:bool, enemy_has_fear:bool,
-#       ultimate_ready:bool,
-#       self_range:String, ally_injured:bool}  # P3-D108 / P3-D113
 static func condition_met(rule: Dictionary, ctx: Dictionary) -> bool:
 	match str(rule.get("condition", "always")):
 		"always":
@@ -180,7 +326,6 @@ static func condition_met(rule: Dictionary, ctx: Dictionary) -> bool:
 			return bool(ctx.get("ally_injured", false))
 	return false
 
-# スキル温存（P3-D113）。reserve_condition 空なら常に使用可。
 static func skill_reserve_met(skill_data: Resource, ctx: Dictionary) -> bool:
 	if skill_data == null:
 		return true
