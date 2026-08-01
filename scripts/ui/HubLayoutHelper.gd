@@ -129,10 +129,13 @@ static func _apply_chrome_safe_area_impl(root: Control) -> void:
 			row.offset_bottom = -bottom
 	var reserved_above_nav: float = 0.0
 	var footer: Control = root.get_node_or_null("FooterPanel") as Control
-	if footer != null:
+	if footer != null and footer.visible:
 		var footer_h: float = absf(footer.offset_bottom - footer.offset_top)
+		var min_h: float = footer.get_combined_minimum_size().y
 		if footer_h < 1.0:
 			footer_h = 84.0
+		## 長いイベント文で中身が設計高を超えるとき、MainColumn 予約を実高に合わせる。
+		footer_h = maxf(footer_h, min_h)
 		reserved_above_nav = footer_h
 		footer.offset_bottom = -nav_h
 		footer.offset_top = -(nav_h + footer_h)

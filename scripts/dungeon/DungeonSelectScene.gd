@@ -972,11 +972,13 @@ func _refresh_event_footer() -> void:
 	if not EventSystem.PERIODIC_EVENTS_ENABLED:
 		_footer_panel.visible = false
 		_bonus_col.visible = false
+		_sync_list_footer_stack()
 		return
 	var event_data: Resource = EventSystem.get_active_event()
 	if event_data == null:
 		_footer_panel.visible = false
 		_bonus_col.visible = false
+		_sync_list_footer_stack()
 		return
 	_footer_panel.visible = true
 	_bonus_col.visible = true
@@ -988,7 +990,70 @@ func _refresh_event_footer() -> void:
 			if biome != null:
 				summary = "%s ｜ 注目: %s" % [summary, str(biome.display_name)]
 	_label_bonus_value.text = summary if not summary.is_empty() else str(event_data.title)
-	_label_bonus_timer.text = EventSystem.countdown_text()
+	var countdown: String = EventSystem.countdown_text()
+	if not countdown.is_empty() and countdown != "—":
+		_label_bonus_value.text = "%s（%s）" % [_label_bonus_value.text, countdown]
+	_label_bonus_timer.visible = false
+	_constrain_footer_labels()
+	_sync_list_footer_stack()
+	call_deferred("_sync_list_footer_stack")
+
+
+## イベント情報欄の長い日本語で Footer が横拡大／リストに重ならないようにする。
+func _constrain_footer_labels() -> void:
+	if _footer_panel == null:
+		return
+	_footer_panel.clip_contents = true
+	_footer_panel.offset_left = 8.0
+	_footer_panel.offset_right = -8.0
+	var title: Label = _footer_panel.get_node_or_null("FooterRow/BonusCol/LabelBonusTitle") as Label
+	if title != null:
+		## 1行に要約＋残り時間だけ出す（タイトルは冗長で高さを食う）。
+		title.visible = false
+	if _bonus_col != null:
+		_bonus_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	if _label_bonus_value != null:
+		_label_bonus_value.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_label_bonus_value.custom_minimum_size.x = 0.0
+		_label_bonus_value.autowrap_mode = TextServer.AUTOWRAP_OFF
+		_label_bonus_value.clip_text = true
+		_label_bonus_value.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	if _label_bonus_timer != null:
+		_label_bonus_timer.size_flags_horizontal = Control.SIZE_SHRINK_END
+		_label_bonus_timer.custom_minimum_size.x = 0.0
+		_label_bonus_timer.clip_text = true
+
+
+## Footer（イベント情報）の実高に合わせて MainColumn 下端を空け、リスト見切れを防ぐ。
+func _sync_list_footer_stack() -> void:
+	var main: Control = $MainColumn as Control
+	var nav: Control = $BottomNav as Control
+	if main == null or _footer_panel == null or nav == null:
+		return
+	var nav_h: float = HubLayoutHelper.bottom_nav_total_height()
+	## Mac は chrome OFF のため、シーン上の BottomNav 高を優先（Tokens 68 より実パネルが厚い）。
+	if not SafeAreaHelper.should_apply_chrome():
+		var design_nav: float = absf(nav.offset_bottom - nav.offset_top)
+		if design_nav < 1.0:
+			design_nav = nav.size.y
+		if design_nav > 1.0:
+			nav_h = design_nav
+	if not _footer_panel.visible:
+		main.offset_bottom = -nav_h
+		return
+	_footer_panel.offset_left = 8.0
+	_footer_panel.offset_right = -8.0
+	_footer_panel.clip_contents = true
+	var footer_h: float = _footer_panel.get_combined_minimum_size().y
+	if footer_h < 40.0:
+		footer_h = absf(_footer_panel.offset_bottom - _footer_panel.offset_top)
+	if footer_h < 40.0:
+		footer_h = 56.0
+	## 情報欄はコンパクトに保ち、リスト領域を優先。
+	footer_h = minf(footer_h, 72.0)
+	_footer_panel.offset_bottom = -nav_h
+	_footer_panel.offset_top = -(nav_h + footer_h)
+	main.offset_bottom = -(nav_h + footer_h)
 
 func _update_currency() -> void:
 	_label_gold.text = "%d" % GameState.gold
