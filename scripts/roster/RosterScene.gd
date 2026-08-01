@@ -696,8 +696,13 @@ func _make_roster_grid_card(adv: Resource) -> Control:
 	var cell_h: int = _grid_cell_height()
 	var cell_w: int = _grid_cell_width()
 	## 枠高さのみ固定。幅は Grid 列に EXPAND（cell_w を min に書くと列合計が循環拡大する）。
-	## 下段 Lv/星帯を確保しつつ、枠内の黒余白が目立たないよう肖像を大きめに。
-	var icon_px: int = clampi(mini(cell_w - 2, cell_h - 18), 64, RosterUiHelper.portrait_hard_max_px())
+	## 下段（Lv／星）を先に確保し、肖像は残り高さに収める（大きくしすぎると下段が clip で消える）。
+	const BOTTOM_BAR_H: int = 28
+	var icon_px: int = clampi(
+		mini(cell_w - 4, cell_h - BOTTOM_BAR_H - 6),
+		64,
+		RosterUiHelper.portrait_hard_max_px()
+	)
 	var wrapper := PanelContainer.new()
 	wrapper.custom_minimum_size = Vector2(0, cell_h)
 	wrapper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -733,14 +738,13 @@ func _make_roster_grid_card(adv: Resource) -> Control:
 	var icon_area := CenterContainer.new()
 	icon_area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	icon_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	icon_area.custom_minimum_size = Vector2(0, maxi(cell_h - 22, 40))
 	icon_area.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon_area.clip_contents = true
 	body.add_child(icon_area)
 	if tex != null:
 		icon_area.add_child(RosterUiHelper.make_clamped_portrait(tex, icon_px, true))
 	var bottom_bar := PanelContainer.new()
-	bottom_bar.custom_minimum_size = Vector2(0, 24)
+	bottom_bar.custom_minimum_size = Vector2(0, BOTTOM_BAR_H)
 	bottom_bar.size_flags_vertical = Control.SIZE_SHRINK_END
 	bottom_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bottom_bar.add_theme_stylebox_override("panel", RosterUiHelper.roster_bottom_bar_style())
