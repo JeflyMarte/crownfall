@@ -269,6 +269,8 @@ static func pull(use_ticket: bool = false) -> Dictionary:
 	_grant(kind, inst)
 	if GameState.has_method("note_equipment_obtained"):
 		GameState.note_equipment_obtained(inst)
+	## ダンジョンドロップと同様に New 表示対象へ。
+	GameState.mark_equipment_new(inst)
 	var pool_tag: String = str(pick.get("pool", ""))
 	var kaiwan: Dictionary = pool_entry_by_id(item_id) if pool_tag == "kaiwan" else {}
 	return {

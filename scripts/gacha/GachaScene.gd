@@ -54,6 +54,16 @@ const REVEAL_CONFETTI_DUP: int = 48
 @onready var _label_tap_hint: Label = $SummonRevealLayer/RevealPanel/RevealVBox/LabelTapHint
 
 var _label_quote: Label = null
+## 封蔵（装備）リビール専用: 名前横のレアリティ色文字／分類／ステータス／効果。
+var _label_reveal_rarity: Label = null
+var _label_reveal_category: Label = null
+var _equip_meta_row: HBoxContainer = null
+var _equip_reveal_extra: VBoxContainer = null
+var _equip_stats_host: VBoxContainer = null
+var _equip_effect_lbl: Label = null
+## 封蔵アイコンは招待状の Idle 立ち絵より小さく表示。
+const EQUIP_REVEAL_ICON_PX: float = 140.0
+const EQUIP_REVEAL_TEXT_PX: int = 14
 var _summon_active: bool = false
 var _summon_can_dismiss: bool = false
 var _summon_tween: Tween = null
@@ -106,6 +116,8 @@ func _ready() -> void:
 	_portrait_frame.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	_setup_reveal_idle()
 	_setup_reveal_quote_label()
+	_setup_reveal_rarity_label()
+	_setup_equip_reveal_extra()
 	_setup_confetti_host()
 	_setup_reveal_presenter()
 	_setup_featured_preview()
@@ -308,6 +320,62 @@ func _setup_reveal_quote_label() -> void:
 	var insert_at: int = _label_reveal_name.get_index() + 1
 	vbox.add_child(_label_quote)
 	vbox.move_child(_label_quote, insert_at)
+
+
+## 封蔵（装備）リビール専用: 名前の下にレアリティ＋分類（灰冠の九・武器 等）を横並びで出す。
+func _setup_reveal_rarity_label() -> void:
+	if _equip_meta_row != null:
+		return
+	var vbox := $SummonRevealLayer/RevealPanel/RevealVBox as VBoxContainer
+	if vbox == null:
+		return
+	_equip_meta_row = HBoxContainer.new()
+	_equip_meta_row.name = "EquipMetaRow"
+	_equip_meta_row.visible = false
+	_equip_meta_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_equip_meta_row.add_theme_constant_override("separation", 10)
+	_equip_meta_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_label_reveal_rarity = Label.new()
+	_label_reveal_rarity.name = "LabelRevealRarity"
+	UiTypography.apply_display(_label_reveal_rarity, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	_equip_meta_row.add_child(_label_reveal_rarity)
+	_label_reveal_category = Label.new()
+	_label_reveal_category.name = "LabelRevealCategory"
+	UiTypography.apply_body(_label_reveal_category, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_SUB)
+	_equip_meta_row.add_child(_label_reveal_category)
+	var insert_at: int = _label_reveal_name.get_index() + 1
+	vbox.add_child(_equip_meta_row)
+	vbox.move_child(_equip_meta_row, insert_at)
+
+
+## 封蔵（装備）リビール専用: ステータス・効果を表示するブロック。
+func _setup_equip_reveal_extra() -> void:
+	if _equip_reveal_extra != null:
+		return
+	var vbox := $SummonRevealLayer/RevealPanel/RevealVBox as VBoxContainer
+	if vbox == null or _equip_meta_row == null:
+		return
+	_equip_reveal_extra = VBoxContainer.new()
+	_equip_reveal_extra.name = "EquipRevealExtra"
+	_equip_reveal_extra.visible = false
+	_equip_reveal_extra.add_theme_constant_override("separation", 3)
+	_equip_reveal_extra.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_equip_stats_host = VBoxContainer.new()
+	_equip_stats_host.name = "EquipStatsHost"
+	_equip_stats_host.add_theme_constant_override("separation", 0)
+	_equip_stats_host.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_equip_reveal_extra.add_child(_equip_stats_host)
+	_equip_effect_lbl = Label.new()
+	_equip_effect_lbl.name = "EquipEffectLabel"
+	_equip_effect_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_equip_effect_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_equip_effect_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_body(_equip_effect_lbl, UiTypography.SIZE_CAPTION, UiTypography.COLOR_BODY)
+	_equip_effect_lbl.add_theme_font_size_override("font_size", EQUIP_REVEAL_TEXT_PX)
+	_equip_reveal_extra.add_child(_equip_effect_lbl)
+	var insert_at: int = _equip_meta_row.get_index() + 1
+	vbox.add_child(_equip_reveal_extra)
+	vbox.move_child(_equip_reveal_extra, insert_at)
 
 
 func _setup_reveal_idle() -> void:
@@ -1015,6 +1083,10 @@ func _play_equip_reveal(result: Dictionary) -> void:
 	_reveal_is_new = true
 	var name_str: String = str(result.get("display_name", ""))
 	var rarity: int = clampi(int(result.get("rarity", Enums.Rarity.LEGENDARY)), 0, 4)
+	_reveal_panel.add_theme_stylebox_override("panel", GachaUiTokens.reveal_equip_frame_style())
+	_portrait_frame.custom_minimum_size = Vector2(EQUIP_REVEAL_ICON_PX + 16.0, EQUIP_REVEAL_ICON_PX + 16.0)
+	if _reveal_idle != null and _reveal_idle.has_method("set_portrait_size"):
+		_reveal_idle.call("set_portrait_size", EQUIP_REVEAL_ICON_PX)
 	_populate_equip_reveal_content(result)
 	_label_result.add_theme_color_override("font_color", COLOR_NEW)
 	var pool_tag: String = str(result.get("pool", "kaiwan"))
@@ -1034,6 +1106,11 @@ func _play_equip_reveal(result: Dictionary) -> void:
 	)
 	var on_done := func() -> void:
 		_summon_can_dismiss = true
+		## 結果確定（開封演出が終わった）タイミングで初めてステータス等を出す。
+		if _equip_meta_row != null:
+			_equip_meta_row.visible = true
+		if _equip_reveal_extra != null:
+			_equip_reveal_extra.visible = true
 	var on_portrait := func() -> void:
 		_spawn_reveal_confetti(REVEAL_CONFETTI_NEW)
 	_reveal_presenter.play(rarity, on_done, on_portrait)
@@ -1042,35 +1119,72 @@ func _play_equip_reveal(result: Dictionary) -> void:
 func _populate_equip_reveal_content(result: Dictionary) -> void:
 	var kind: String = str(result.get("kind", ""))
 	var item_id: String = str(result.get("item_id", ""))
+	var item: Resource = result.get("instance", null)
 	var name_str: String = str(result.get("display_name", item_id))
-	var seat: String = str(result.get("seat", ""))
+	if item != null:
+		name_str = EquipmentItemDetailHelper.short_name(item, kind)
 	var blurb: String = str(result.get("blurb", ""))
 	var rarity: int = clampi(int(result.get("rarity", Enums.Rarity.LEGENDARY)), 0, 4)
 	var pool_tag: String = str(result.get("pool", ""))
 	_label_banner.visible = false
 	_label_banner.text = ""
-	if pool_tag == "kaiwan":
-		_label_reveal_sub.text = "灰冠の九・%s" % _GachaEquipSystem.kind_label(kind)
-		_label_reveal_name.text = "%s\nL  %s" % [name_str, seat]
-	elif pool_tag == "other_l":
-		_label_reveal_sub.text = "既存レジェンド・%s" % _GachaEquipSystem.kind_label(kind)
-		_label_reveal_name.text = "%s\nL" % name_str
-	else:
-		_label_reveal_sub.text = "エピック・%s" % _GachaEquipSystem.kind_label(kind)
-		var stars: String = "Epic" if rarity == Enums.Rarity.EPIC else "LEGEND"
-		_label_reveal_name.text = "%s\n%s" % [name_str, stars]
+	_label_reveal_sub.visible = false
+	_label_reveal_sub.text = ""
+	var category_text: String = ""
+	match pool_tag:
+		"kaiwan":
+			category_text = "灰冠の九・%s" % _GachaEquipSystem.kind_label(kind)
+		"other_l":
+			category_text = "既存レジェンド・%s" % _GachaEquipSystem.kind_label(kind)
+		_:
+			category_text = "エピック・%s" % _GachaEquipSystem.kind_label(kind)
+	_label_reveal_name.text = name_str
+	## 開封演出が終わるまでは非表示（_play_equip_reveal の on_done で表示する）。
+	if _equip_meta_row != null:
+		_equip_meta_row.visible = false
+	if _label_reveal_rarity != null:
+		_label_reveal_rarity.text = "EPIC" if rarity == Enums.Rarity.EPIC else "LEGEND"
+		_label_reveal_rarity.add_theme_color_override(
+			"font_color", BlacksmithUiHelper.rarity_name_color(rarity)
+		)
+	if _label_reveal_category != null:
+		_label_reveal_category.text = category_text
 	if _label_quote != null:
-		if blurb.is_empty():
-			_label_quote.text = ""
-			_label_quote.visible = false
-		else:
-			_label_quote.text = "「%s」" % blurb
-			_label_quote.visible = true
+		_label_quote.text = ""
+		_label_quote.visible = false
 	var tex: Texture2D = IconPaths.get_icon_texture(item_id, kind)
 	if _reveal_idle != null and _reveal_idle.has_method("set_static_texture") and tex != null:
 		_reveal_idle.call("set_static_texture", tex)
 	elif _portrait_icon != null:
 		_portrait_icon.texture = tex
+	_populate_equip_reveal_extra(item, kind, item_id, blurb)
+
+
+## ステータス行のみ（封蔵リビール。説明文は出さない）。
+func _populate_equip_reveal_extra(item: Resource, kind: String, _item_id: String, _blurb: String) -> void:
+	if _equip_reveal_extra == null or _equip_stats_host == null:
+		return
+	## 表示自体は _play_equip_reveal 側の on_done で開封後に行う。ここでは中身だけ用意する。
+	for child in _equip_stats_host.get_children():
+		child.queue_free()
+	if item != null:
+		for row: Variant in EquipmentItemDetailHelper.stat_rows(item, kind):
+			if not (row is Dictionary):
+				continue
+			var r: Dictionary = row
+			var label: String = str(r.get("label", ""))
+			var value: String = str(r.get("value", ""))
+			var line: String = "%s %s" % [label, value] if not label.is_empty() else value
+			var stat_lbl := Label.new()
+			stat_lbl.text = line
+			stat_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			UiTypography.apply_body(stat_lbl, UiTypography.SIZE_CAPTION, UiTypography.COLOR_BODY)
+			stat_lbl.add_theme_font_size_override("font_size", EQUIP_REVEAL_TEXT_PX)
+			_equip_stats_host.add_child(stat_lbl)
+	## 装備説明（effect / blurb）は結果画面では出さない。
+	if _equip_effect_lbl != null:
+		_equip_effect_lbl.text = ""
+		_equip_effect_lbl.visible = false
 
 
 func _play_summon_reveal(result: Dictionary) -> void:
@@ -1081,6 +1195,14 @@ func _play_summon_reveal(result: Dictionary) -> void:
 	_set_pull_controls_enabled(false)
 	_summon_layer.visible = true
 	AudioManager.play_sfx("gacha_reveal")
+	_reveal_panel.add_theme_stylebox_override("panel", GachaUiTokens.reveal_frame_style())
+	_portrait_frame.custom_minimum_size = Vector2(REVEAL_IDLE_PX + 16.0, REVEAL_IDLE_PX + 16.0)
+	if _reveal_idle != null and _reveal_idle.has_method("set_portrait_size"):
+		_reveal_idle.call("set_portrait_size", REVEAL_IDLE_PX)
+	if _equip_meta_row != null:
+		_equip_meta_row.visible = false
+	if _equip_reveal_extra != null:
+		_equip_reveal_extra.visible = false
 
 	var helper_id: String = str(result.get("helper_id", ""))
 	var is_new: bool = bool(result.get("is_new", false))
