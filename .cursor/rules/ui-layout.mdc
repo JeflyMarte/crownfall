@@ -40,6 +40,7 @@ alwaysApply: false
 - **HBox 内の短い数値 Label に `clip_text=true` を付けない**（最小幅 0 で数値が消える。アイコン＋数値チップで再発済み）
 - **日本語の長い Label に `AUTOWRAP_WORD_SMART` だけを頼らない**（空白無し1語扱いで最小幅＝全文幅 → 画面が横に広がる。Featured／カード説明は `AUTOWRAP_ARBITRARY`＋`EXPAND_FILL`＋`custom_minimum_size.x=0`。横伸び対策で中央アンカータイトルに `clip_text` を付けない — 名前が消える）
 - **画面下端の FooterPanel 情報欄**も同じ（長いイベント要約で横拡大→左欠け／MainColumn に重なる）。`clip_contents`＋`min.x=0`＋ellipsis、表示時は MainColumn `offset_bottom` を Footer 実高で再計算（`DungeonSelectScene._sync_list_footer_stack`）
+- **戦闘下パーティカード**は4枚均等幅。名前 Label を `clip_text=false`／`OVERRUN_NO_TRIMMING` にしない（最小幅＝全文幅でカード不揃い＋画面横伸び）。`EXPAND_FILL`＋`stretch_ratio=1`＋`clip_contents`、名前は font 縮小のあと ellipsis（`DungeonScene._fit_party_card_name_font`）
 - **縦リストの `ScrollContainer.horizontal_scroll_mode=DISABLED` 禁止**（子の最小幅に追従して親まで横拡大する。`SHOW_NEVER`＋`clip_contents`）
 - **バナー重ねタイトル**は `PRESET_CENTER`＋`PRESET_MODE_MINSIZE`＋`clip_text=false`。親 `clip_contents` 禁止（size 0／クリップで文字消滅）
 - 絶対座標は **オーバーレイ・ポップアップ**程度に限定

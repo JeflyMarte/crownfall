@@ -9082,6 +9082,11 @@ func _rebuild_party_cards() -> void:
 		if tw != null and is_instance_valid(tw):
 			tw.kill()
 	_party_card_pulse_tweens.clear()
+	_party_cards_row.clip_contents = true
+	_party_cards_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	if _party_status_panel != null:
+		_party_status_panel.clip_contents = true
+		_party_status_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	for slot in PARTY_CARD_SLOT_COUNT:
 		if slot < GameState.party_members.size():
 			var member: Resource = GameState.party_members[slot]
@@ -9481,12 +9486,15 @@ func _update_party_skill_cd_bars_smooth(delta: float) -> void:
 func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
 	var card := PanelContainer.new()
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	card.size_flags_stretch_ratio = 1.0
+	card.clip_contents = true
 	card.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD))
 	var root := VBoxContainer.new()
 	root.add_theme_constant_override("separation", 4)
 	card.add_child(root)
 	var top_row := HBoxContainer.new()
 	top_row.add_theme_constant_override("separation", 6)
+	top_row.clip_contents = true
 	root.add_child(top_row)
 	var portrait := TextureRect.new()
 	portrait.custom_minimum_size = Vector2(PARTY_CARD_ICON_PX, PARTY_CARD_ICON_PX)
@@ -9502,14 +9510,17 @@ func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
 	name_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_col.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	name_col.alignment = BoxContainer.ALIGNMENT_CENTER
+	name_col.clip_contents = true
 	name_col.add_theme_constant_override("separation", 4)
 	var name_label := Label.new()
 	name_label.text = _party_card_short_name(member.display_name)
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	name_label.custom_minimum_size = Vector2(0, 0)
 	name_label.autowrap_mode = TextServer.AUTOWRAP_OFF
-	name_label.clip_text = false
-	name_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	## 最小幅を文字数に連動させない（カード幅不揃い／戦闘画面の横伸び防止）
+	name_label.clip_text = true
+	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	UiTypography.apply_display(name_label, UiTypography.SIZE_BODY_SMALL, _party_log_color(member), UiTypography.OUTLINE_BODY)
 	name_col.add_child(name_label)
 	var weapon_wrap := Control.new()
@@ -9593,7 +9604,7 @@ func _party_card_name_available_width(card_index: int) -> float:
 	return maxf(48.0, inner)
 
 func _fit_party_card_name_font(label: Label, avail_w: float) -> void:
-	## 長い名前は省略せずフォント縮小で1行全文表示（装備画面の職名と同方針）
+	## まずフォント縮小。MIN でも収まらなければ ellipsis（4枚均等幅・横伸び防止）
 	const MAX_FS: int = UiTypography.SIZE_BODY_SMALL
 	const MIN_FS: int = 11
 	var text: String = label.text
@@ -9611,13 +9622,16 @@ func _fit_party_card_name_font(label: Label, avail_w: float) -> void:
 			break
 		fs -= 1
 	label.add_theme_font_size_override("font_size", fs)
-	label.clip_text = false
-	label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	label.custom_minimum_size.x = 0
+	label.clip_text = true
+	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	label.autowrap_mode = TextServer.AUTOWRAP_OFF
 
 func _make_empty_party_card() -> Control:
 	var card := PanelContainer.new()
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	card.size_flags_stretch_ratio = 1.0
+	card.clip_contents = true
 	card.modulate = PARTY_CARD_EMPTY_MODULATE
 	card.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD))
 	var root := VBoxContainer.new()
@@ -9625,6 +9639,7 @@ func _make_empty_party_card() -> Control:
 	card.add_child(root)
 	var top_row := HBoxContainer.new()
 	top_row.add_theme_constant_override("separation", 6)
+	top_row.clip_contents = true
 	root.add_child(top_row)
 	var icon := TextureRect.new()
 	icon.custom_minimum_size = Vector2(PARTY_CARD_ICON_PX, PARTY_CARD_ICON_PX)
