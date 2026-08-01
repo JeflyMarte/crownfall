@@ -4,6 +4,7 @@ extends Control
 
 const ShowcaseCatalogScript = preload("res://scripts/showcase/ShowcaseCatalog.gd")
 const ShowcaseUiTokensScript = preload("res://scripts/showcase/ShowcaseUiTokens.gd")
+const _RoomGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 
 const COLOR_GOLD: Color = UiTypography.COLOR_GOLD
@@ -75,6 +76,26 @@ func _ready() -> void:
 	if ShowcaseCatalogScript.STAFF_PRESETS.size() > 0:
 		_staff_preset_id = str(ShowcaseCatalogScript.STAFF_PRESETS[0].get("id", ""))
 	_set_mode(Mode.OWN)
+	_setup_room_guide_help()
+	call_deferred("_try_show_room_guide")
+
+
+func _setup_room_guide_help() -> void:
+	if get_node_or_null("HubRoomGuideHelpBtn") != null:
+		return
+	var btn: Button = _RoomGuide.attach_help_button(self, self, _RoomGuide.GUIDE_SHOWCASE, "？")
+	if btn == null:
+		return
+	btn.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	btn.offset_left = -64.0
+	btn.offset_top = 36.0
+	btn.offset_right = -12.0
+	btn.offset_bottom = 84.0
+	btn.z_index = 30
+
+
+func _try_show_room_guide() -> void:
+	_RoomGuide.try_auto_show(self, _RoomGuide.GUIDE_SHOWCASE)
 
 
 func _setup_chrome() -> void:

@@ -130,6 +130,11 @@ static func list_entries() -> Array[Dictionary]:
 			"title": "レア入手ガイドフラグをリセット",
 			"hint": "初回ガイドを再度出せるようにする",
 		},
+		{
+			"id": "hub_room_guide_flags_reset",
+			"title": "部屋ガイドフラグをリセット",
+			"hint": "調査／招き／封蔵／展示の初回手引きを再度出せる",
+		},
 	])
 	out.append({
 		"id": "section_parts",
@@ -212,6 +217,8 @@ static func run(entry_id: String) -> String:
 			return ""
 		"nina_rare_flags_reset":
 			return _reset_nina_rare_flags()
+		"hub_room_guide_flags_reset":
+			return _reset_hub_room_guide_flags()
 		"clear_pending_story":
 			return _clear_pending_story()
 		## 後方互換
@@ -460,6 +467,19 @@ static func _reset_nina_rare_flags() -> String:
 			GameState.tutorial_flags[key] = false
 	GameState.pending_nina_rare_guides.clear()
 	GameState.pending_nina_nav_notices.clear()
+	SaveManager.save_game()
+	return ""
+
+
+static func _reset_hub_room_guide_flags() -> String:
+	const _RoomGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
+	for key: String in [
+		_RoomGuide.FLAG_SURVEY,
+		_RoomGuide.FLAG_GACHA_INVITE,
+		_RoomGuide.FLAG_GACHA_SEAL,
+		_RoomGuide.FLAG_SHOWCASE,
+	]:
+		GameState.tutorial_flags[key] = false
 	SaveManager.save_game()
 	return ""
 

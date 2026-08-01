@@ -19,6 +19,7 @@ const _SurveyConfig := preload("res://scripts/survey/SurveyConfig.gd")
 const _SurveySystem := preload("res://scripts/survey/SurveySystem.gd")
 const _CurrencyHelper := preload("res://scripts/ui/CurrencyHelper.gd")
 const _RosterUiHelper := preload("res://scripts/roster/RosterUiHelper.gd")
+const _RoomGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
 const GOLD_ICON_PATH: String = "res://assets/ui/batch2/ICO_Gold.png"
 
 @onready var _label_title: Label = $Header/HeaderRow/LabelTitle
@@ -74,7 +75,23 @@ func _ready() -> void:
 	_pending_members = _SurveySystem.pending_members_for_ui()
 	_update_currency()
 	_refresh()
+	_setup_room_guide_help()
 	call_deferred("_try_auto_claim_on_enter")
+
+
+func _setup_room_guide_help() -> void:
+	var row: Control = $Header/HeaderRow as Control
+	if row == null or row.get_node_or_null("HubRoomGuideHelpBtn") != null:
+		return
+	_RoomGuide.attach_help_button(row, self, _RoomGuide.GUIDE_SURVEY, "？")
+
+
+func _try_show_room_guide() -> void:
+	if _claim_fx_busy:
+		return
+	if get_node_or_null("DungeonRouteGuideOverlay") != null:
+		return
+	_RoomGuide.try_auto_show(self, _RoomGuide.GUIDE_SURVEY)
 
 
 ## 長い日本語行で親まで横拡大し、一覧が右に見切れないようにする。
@@ -1514,6 +1531,7 @@ func _try_auto_claim_on_enter() -> void:
 		return
 	if not _SurveySystem.has_active_cycle() or not _SurveySystem.is_cycle_complete():
 		_maybe_show_content_unlock()
+		_try_show_room_guide()
 		return
 	_perform_claim()
 
@@ -1576,6 +1594,7 @@ func _finish_claim(result: Dictionary) -> void:
 	_pending_members = _SurveySystem.pending_members_for_ui()
 	_refresh()
 	call_deferred("_maybe_show_content_unlock")
+	call_deferred("_try_show_room_guide")
 
 
 func _update_currency() -> void:

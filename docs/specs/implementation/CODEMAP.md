@@ -51,7 +51,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | EquipmentScene | `scenes/equipment/EquipmentScene.tscn` | `scripts/equipment/EquipmentScene.gd`（**P3-UX-EQUIP-SCROLL-PERF-001** スクロール軽量化／**P3-UX-CHR-STAT-PAGES-001** ステ3ページ） |
 | BlacksmithScene | `scenes/blacksmith/BlacksmithScene.tscn` | `scripts/blacksmith/BlacksmithScene.gd` |
 | CodexScene | `scenes/codex/CodexScene.tscn` | `scripts/codex/CodexScene.gd` |
-| GachaScene | `scenes/gacha/GachaScene.tscn` | `scripts/gacha/GachaScene.gd`（**P3-UI-GACHA** モック chrome・Reveal・DetailOverlay） |
+| GachaScene | `scenes/gacha/GachaScene.tscn` | `scripts/gacha/GachaScene.gd`（**P3-UI-GACHA** モック chrome・Reveal・DetailOverlay・招き／封蔵部屋ガイド） |
 | EventScene | `scenes/event/EventScene.tscn` | `scripts/event/EventScene.gd`（**P3-EVT-FIELD-001** ギルド情報誌／いまの野外詳細） |
 | ShowcaseScene | `scenes/showcase/ShowcaseScene.tscn` | `scripts/showcase/ShowcaseScene.gd`（**P3-SHOWCASE-001** 展示室・自慢キャラ） |
 | SurveyScene | `scenes/survey/SurveyScene.tscn` | `scripts/survey/SurveyScene.gd`（**P3-HUB-SURVEY-001** 調査室。スタッフ＝`SurveyStaff`。ノノカは **P3-SURVEY-NONOKA-JOIN-001** で③クリア後合流） |
@@ -83,6 +83,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 **BaseScene ノード（P3-UI-Base-A / 003_01 Phase A）:**
 - `HubView` — 城背景・`TopBar`（**指揮官カード** P3-CMD-001 + **SP進捗バー** P3-CMD-RANK-REWARD-001 + Gold/魔晶石）・`LeftMenuPanel`（調査室はオミット）・**NinaNavPanel**（**P3-UI-NINA-NAV-001** 右上顔＋吹き出し・10秒／タップ。吹き出し下に調査室ショートカット）・**FieldSurveyBanner**（**P3-EVT-FIELD-001** ギルド情報誌・30分スロット・タップで EventScene）＋右上クリック誘導ロゴ（拡縮点滅・タップ可）・`CurrencyStrip`・`DailyMissionPanel`（ジャンルアイコン）。初回のみ **HubSimpleGuideOverlay**（P3-UI-HUB-GUIDE-001）
 - `DungeonSelectScene` — ルートタブ（メイン／イベント／無限）。**DungeonRouteGuideOverlay**（P3-DG-ROUTE-GUIDE-001: イベント／降臨／無限の手引きボタン＋初回P分け）
+- 同オーバーレイで拠点部屋ガイド（**P3-HUB-ROOM-GUIDE-001**: 調査室／招き／封蔵／展示室・初回＋「？」。SSOT `decisions/34_HubRoomGuides.md`）
 - `MenuGridView` — 003_02 系 3×3 メニュー（下ナビ「メニュー」で切替）
 - `BottomNav` — 6タブ（ホーム/パーティ/冒険/強化/ショップ/メニュー）・`BottomNavHelper` + `NavIconHelper`
 - 検証: `tools/verify_base_hub.gd` / `tools/verify_bottom_nav.gd`
