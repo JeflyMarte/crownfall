@@ -149,12 +149,6 @@ func _build_gameplay_section() -> Control:
 	dmg.toggled.connect(_on_damage_toggled)
 	UiTypography.apply_button(dmg, false)
 	body.add_child(dmg)
-	var log_btn := CheckButton.new()
-	log_btn.text = "戦闘ログを表示"
-	log_btn.button_pressed = _SettingsPrefs.show_battle_log()
-	log_btn.toggled.connect(_on_log_toggled)
-	UiTypography.apply_button(log_btn, false)
-	body.add_child(log_btn)
 	var vib := CheckButton.new()
 	vib.text = "振動"
 	vib.button_pressed = _SettingsPrefs.is_vibration_enabled()
@@ -315,10 +309,6 @@ func _on_speed_pressed(speed_id: String) -> void:
 
 func _on_damage_toggled(v: bool) -> void:
 	_SettingsPrefs.set_show_damage_numbers(v)
-
-
-func _on_log_toggled(v: bool) -> void:
-	_SettingsPrefs.set_show_battle_log(v)
 
 
 func _on_vibration_toggled(v: bool) -> void:

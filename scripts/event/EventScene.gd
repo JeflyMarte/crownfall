@@ -4,16 +4,6 @@ extends Control
 
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const BG_PATH: String = "res://assets/ui/UI_BG_GuildBulletin.png"
-## 羊皮紙左上マスコット（テキスト中央レイアウトは維持。重ね表示）。
-const NONOKA_PATH: String = "res://assets/ui/UI_GuildBulletin_Nonoka.png"
-## 本文と被らないよう小さめ＋やや右（旧 138×164 / offset -22,-52）。
-const NONOKA_W: float = 108.0
-const NONOKA_H: float = 134.0
-## FieldHost 左上からのオフセット。
-const NONOKA_OFFSET: Vector2 = Vector2(20.0, -10.0)
-const NONOKA_LAYER: int = 12
-## 少し明るく・薄く（羊皮紙に馴染ませる）。
-const NONOKA_MODULATE: Color = Color(1.12, 1.1, 1.08, 0.78)
 
 ## 羊皮紙上のインク色（明るい UI 金ではなく濃色）。
 const INK: Color = Color(0.22, 0.14, 0.08, 1.0)
@@ -36,7 +26,7 @@ const FIELD_MID_GAP_PX: float = 12.0
 const FIELD_TOP_PAD_PX: float = 255.0
 
 
-## 720×1280・COVERED 時の調査部ノノカのメモ本文枠（背景アート基準）。
+## 720×1280・COVERED 時のメモ本文枠（背景アート基準）。
 const MEMO_LEFT: float = 108.0
 const MEMO_TOP: float = 940.0
 const MEMO_WIDTH: float = 560.0
@@ -88,10 +78,6 @@ const EMPHASIS_TERMS: Array[String] = [
 var _countdown_timer: Timer
 var _field_panel: PanelContainer
 var _field_vbox: VBoxContainer
-var _field_host: Control
-var _nonoka_layer: CanvasLayer
-var _nonoka_rect: TextureRect
-var _nonoka_texture: Texture2D
 var _label_weather_guide: RichTextLabel = null
 
 func _ready() -> void:
@@ -101,7 +87,7 @@ func _ready() -> void:
 	_apply_field_panel_style()
 	_ensure_field_spacing()
 	_ensure_weather_guide()
-	_ensure_nonoka_mascot()
+	_strip_nonoka_mascot()
 	_layout_guild_report()
 	_apply_typography()
 	_layout_chrome()
@@ -117,151 +103,38 @@ func _ready() -> void:
 	_refresh()
 
 
-## ノノカは CanvasLayer で最前面。テクスチャはディスク直読み（import キャッシュ回避）。
-func _ensure_nonoka_mascot() -> void:
-	var inner: VBoxContainer = (
-		$MainScroll/MainVBox/SidePad/InnerVBox as VBoxContainer
-	)
-	if inner == null or _field_panel == null or _field_vbox == null:
+## 旧マスコット／FieldHost ラップがあれば除去して FieldPanel を InnerVBox へ戻す。
+func _strip_nonoka_mascot() -> void:
+	var overlay: Node = get_node_or_null("NonokaOverlayLayer")
+	if overlay != null:
+		overlay.queue_free()
+	if _field_panel == null:
 		return
-	_restore_field_labels_from_nonoka_row(_field_vbox)
 	var old_on_panel: Node = _field_panel.get_node_or_null("NonokaMascot")
 	if old_on_panel != null:
 		old_on_panel.queue_free()
-	## 旧 FieldHost 内マスコットがあれば除去し、ホスト構造は維持。
-	if inner.get_node_or_null("FieldHost") != null:
-		_field_host = inner.get_node("FieldHost") as Control
-		var old_in_host: Node = _field_host.get_node_or_null("NonokaMascot")
-		if old_in_host != null:
-			old_in_host.queue_free()
-	else:
-		var host := Control.new()
-		host.name = "FieldHost"
-		host.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		host.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		host.clip_contents = false
-		_field_host = host
-		var panel_index: int = _field_panel.get_index()
-		inner.remove_child(_field_panel)
-		host.add_child(_field_panel)
-		_field_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		_field_panel.offset_left = 0.0
-		_field_panel.offset_top = 0.0
-		_field_panel.offset_right = 0.0
-		_field_panel.offset_bottom = 0.0
-		inner.add_child(host)
-		inner.move_child(host, panel_index)
-		if not _field_panel.resized.is_connected(_on_field_panel_resized):
-			_field_panel.resized.connect(_on_field_panel_resized)
-
-	_nonoka_texture = _load_nonoka_texture()
-	_ensure_nonoka_layer()
-	_sync_field_host_min_size(_field_host, _field_panel)
-	call_deferred("_sync_field_host_min_size", _field_host, _field_panel)
-	call_deferred("_sync_nonoka_screen_pos")
-
-
-func _load_nonoka_texture() -> Texture2D:
-	## ResourceLoader キャッシュを避け、PNG を直読みする。
-	var abs_path: String = ProjectSettings.globalize_path(NONOKA_PATH)
-	if abs_path.is_empty() or not FileAccess.file_exists(abs_path):
-		if ResourceLoader.exists(NONOKA_PATH):
-			return load(NONOKA_PATH) as Texture2D
-		return null
-	var img := Image.new()
-	var err: Error = img.load(abs_path)
-	if err != OK:
-		push_warning("Nonoka image load failed: %s (%s)" % [abs_path, error_string(err)])
-		if ResourceLoader.exists(NONOKA_PATH):
-			return load(NONOKA_PATH) as Texture2D
-		return null
-	return ImageTexture.create_from_image(img)
-
-
-func _ensure_nonoka_layer() -> void:
-	if _nonoka_layer != null and is_instance_valid(_nonoka_layer):
-		if _nonoka_rect != null and _nonoka_texture != null:
-			_nonoka_rect.texture = _nonoka_texture
+	var inner: VBoxContainer = (
+		$MainScroll/MainVBox/SidePad/InnerVBox as VBoxContainer
+	)
+	if inner == null:
 		return
-	_nonoka_layer = CanvasLayer.new()
-	_nonoka_layer.name = "NonokaOverlayLayer"
-	_nonoka_layer.layer = NONOKA_LAYER
-	add_child(_nonoka_layer)
-	_nonoka_rect = TextureRect.new()
-	_nonoka_rect.name = "NonokaMascot"
-	_nonoka_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_nonoka_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_nonoka_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_nonoka_rect.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-	_nonoka_rect.modulate = NONOKA_MODULATE
-	_nonoka_rect.custom_minimum_size = Vector2(NONOKA_W, NONOKA_H)
-	_nonoka_rect.size = Vector2(NONOKA_W, NONOKA_H)
-	if _nonoka_texture != null:
-		_nonoka_rect.texture = _nonoka_texture
-	_nonoka_layer.add_child(_nonoka_rect)
-
-
-func _sync_nonoka_screen_pos() -> void:
-	if _nonoka_rect == null or not is_instance_valid(_nonoka_rect):
+	var host: Node = inner.get_node_or_null("FieldHost")
+	if host == null:
 		return
-	if _field_host == null or not is_instance_valid(_field_host):
+	var old_in_host: Node = host.get_node_or_null("NonokaMascot")
+	if old_in_host != null:
+		old_in_host.queue_free()
+	if _field_panel.get_parent() != host:
+		host.queue_free()
 		return
-	## FieldHost の画面座標へ追従（スクロール込み）。
-	var origin: Vector2 = _field_host.get_global_transform_with_canvas().origin
-	_nonoka_rect.global_position = origin + NONOKA_OFFSET
-	_nonoka_rect.size = Vector2(NONOKA_W, NONOKA_H)
-
-
-func _process(_delta: float) -> void:
-	if _nonoka_rect != null and is_instance_valid(_nonoka_rect):
-		_sync_nonoka_screen_pos()
-
-
-func _on_field_panel_resized() -> void:
-	if _field_host != null and _field_panel != null:
-		_sync_field_host_min_size(_field_host, _field_panel)
-	_sync_nonoka_screen_pos()
-
-
-func _sync_field_host_min_size(host: Control, panel: PanelContainer) -> void:
-	if host == null or panel == null or not is_instance_valid(host) or not is_instance_valid(panel):
-		return
-	var min_sz: Vector2 = panel.get_combined_minimum_size()
-	var top_extra: float = maxf(0.0, -NONOKA_OFFSET.y)
-	host.custom_minimum_size = Vector2(0.0, maxf(min_sz.y, NONOKA_H) + top_extra)
-
-
-func _apply_nonoka_rect(nonoka: TextureRect) -> void:
-	nonoka.offset_left = NONOKA_OFFSET.x
-	nonoka.offset_top = NONOKA_OFFSET.y
-	nonoka.offset_right = NONOKA_OFFSET.x + NONOKA_W
-	nonoka.offset_bottom = NONOKA_OFFSET.y + NONOKA_H
-	nonoka.custom_minimum_size = Vector2(NONOKA_W, NONOKA_H)
-
-
-## 旧 HBox 配置があればラベルを FieldVBox 中央並びに戻す。
-func _restore_field_labels_from_nonoka_row(field_vbox: VBoxContainer) -> void:
-	var row: Node = field_vbox.get_node_or_null("NonokaRow")
-	if row == null:
-		return
-	var head: Node = row.get_node_or_null("HeadCol")
-	var restored: Array[Label] = []
-	if head != null:
-		for child in head.get_children():
-			if child is Label:
-				restored.append(child as Label)
-	for lab in restored:
-		head.remove_child(lab)
-		field_vbox.add_child(lab)
-		lab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	## 先頭順: Section → Headline → Timer →（以降は既存ノード）
-	var order: Array[Label] = []
-	for lab in restored:
-		order.append(lab)
-	for i in order.size():
-		field_vbox.move_child(order[i], i)
-	row.queue_free()
+	var host_index: int = host.get_index()
+	host.remove_child(_field_panel)
+	inner.add_child(_field_panel)
+	inner.move_child(_field_panel, host_index)
+	## Container 直下へ戻す（絶対アンカーは親が上書きする）。
+	_field_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_field_panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	host.queue_free()
 
 
 func _ensure_background() -> void:
@@ -286,7 +159,7 @@ func _ensure_field_spacing() -> void:
 	if _field_vbox == null:
 		return
 	_field_vbox.add_theme_constant_override("separation", 10)
-	## 現場班コメント（field_notes）は非表示。ノノカメモと表記がぶれるため。
+	## 現場班コメント（field_notes）は非表示。下部メモと表記がぶれるため。
 	## 記事・効果は開催期間の直後へ寄せる（メモ枠位置は固定のまま）。
 	if _label_field_notes != null:
 		_label_field_notes.visible = false

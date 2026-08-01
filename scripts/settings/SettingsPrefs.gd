@@ -203,14 +203,14 @@ static func set_show_damage_numbers(v: bool) -> void:
 	save_to_disk()
 
 
+## 戦闘ログは常時表示（設定UIからオンオフを撤去）。
 static func show_battle_log() -> bool:
-	ensure_loaded()
-	return _show_battle_log
+	return true
 
 
-static func set_show_battle_log(v: bool) -> void:
+static func set_show_battle_log(_v: bool) -> void:
 	ensure_loaded()
-	_show_battle_log = v
+	_show_battle_log = true
 	save_to_disk()
 
 

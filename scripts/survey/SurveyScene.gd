@@ -65,6 +65,7 @@ func _ready() -> void:
 	_hide_legacy_event_nodes()
 	_ensure_background()
 	_raise_header_chrome()
+	_constrain_main_scroll()
 	HeaderCurrencyHelper.apply_to_row($Header/HeaderRow)
 	_setup_start_confirm()
 	_setup_cancel_confirm()
@@ -73,6 +74,22 @@ func _ready() -> void:
 	_update_currency()
 	_refresh()
 	call_deferred("_try_auto_claim_on_enter")
+
+
+## 長い日本語行で親まで横拡大し、一覧が右に見切れないようにする。
+func _constrain_main_scroll() -> void:
+	var scroll: ScrollContainer = $MainScroll as ScrollContainer
+	if scroll != null:
+		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+		scroll.clip_contents = true
+	var main_vb: VBoxContainer = $MainScroll/MainVBox as VBoxContainer
+	if main_vb != null:
+		main_vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		main_vb.custom_minimum_size.x = 0.0
+		main_vb.grow_horizontal = Control.GROW_DIRECTION_END
+	if _content != null:
+		_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_content.custom_minimum_size.x = 0.0
 
 
 ## 戻る／通貨を BG・ヒーローより前面へ（実機で背景に沈むのを防ぐ）。
@@ -152,21 +169,38 @@ func _ensure_background() -> void:
 func _build_ui() -> void:
 	for c in _content.get_children():
 		c.queue_free()
-	_content.add_child(_build_hero_lead())
-	_content.add_child(_build_target_card())
+	## 左右余白。長い行の最小幅が親を押し広げないよう外側でクリップ。
+	var pad := MarginContainer.new()
+	pad.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	pad.add_theme_constant_override("margin_left", 12)
+	pad.add_theme_constant_override("margin_right", 12)
+	pad.clip_contents = true
+	var body := VBoxContainer.new()
+	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.custom_minimum_size.x = 0.0
+	body.add_theme_constant_override("separation", 14)
+	pad.add_child(body)
+	_content.add_child(pad)
 
-	_content.add_child(_build_assignee_section())
+	body.add_child(_build_hero_lead())
+	body.add_child(_build_target_card())
+
+	body.add_child(_build_assignee_section())
 	_assignee_box = HBoxContainer.new()
 	_assignee_box.add_theme_constant_override("separation", 8)
 	_assignee_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_assignee_box.custom_minimum_size.x = 0.0
 	_assignee_box.alignment = BoxContainer.ALIGNMENT_CENTER
-	_content.add_child(_assignee_box)
+	_assignee_box.clip_contents = true
+	body.add_child(_assignee_box)
 
-	_content.add_child(_build_cycle_progress_card())
-	_content.add_child(_build_expected_rewards_card())
+	body.add_child(_build_cycle_progress_card())
+	body.add_child(_build_expected_rewards_card())
 
 	var start_row := HBoxContainer.new()
 	start_row.add_theme_constant_override("separation", 8)
+	start_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	start_row.custom_minimum_size.x = 0.0
 	_btn_start_short = Button.new()
 	_btn_start_short.text = "短調査（20分）"
 	_btn_start_short.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -177,17 +211,19 @@ func _build_ui() -> void:
 	_btn_start_std.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_btn_start_std.pressed.connect(func(): _on_start(_SurveyConfig.PRESET_STANDARD))
 	start_row.add_child(_btn_start_std)
-	_content.add_child(start_row)
+	body.add_child(start_row)
 
 	_btn_claim = Button.new()
 	_btn_claim.text = "調査中..."
+	_btn_claim.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_btn_claim.pressed.connect(_on_claim)
-	_content.add_child(_btn_claim)
+	body.add_child(_btn_claim)
 	_btn_cancel = Button.new()
 	_btn_cancel.text = "調査を中止"
 	_btn_cancel.visible = false
+	_btn_cancel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_btn_cancel.pressed.connect(_on_cancel_pressed)
-	_content.add_child(_btn_cancel)
+	body.add_child(_btn_cancel)
 
 
 func _build_hero_lead() -> Control:
@@ -231,8 +267,9 @@ func _build_hero_lead() -> Control:
 	var lead := Label.new()
 	lead.text = HERO_LEAD
 	lead.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lead.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lead.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	lead.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lead.custom_minimum_size.x = 0.0
 	UiTypography.apply_body(lead, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_SUB)
 	text_col.add_child(lead)
 	return host
@@ -251,18 +288,26 @@ func _hero_banner_height() -> float:
 func _build_assignee_section() -> Control:
 	var header := HBoxContainer.new()
 	header.add_theme_constant_override("separation", 8)
+	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.custom_minimum_size.x = 0.0
+	header.clip_contents = true
 	var title := Label.new()
 	title.text = "調査員の配置"
 	UiTypography.apply_display(title, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.clip_text = true
+	title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	header.add_child(title)
 	_label_bonus = Label.new()
 	_label_bonus.text = "合計ボーナス +0%"
 	_label_bonus.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_label_bonus.size_flags_horizontal = Control.SIZE_SHRINK_END
 	UiTypography.apply_caption(_label_bonus, UiTypography.COLOR_GOLD)
 	header.add_child(_label_bonus)
 	_btn_auto = Button.new()
-	_btn_auto.text = "おまかせ配置"
+	_btn_auto.text = "おまかせ"
+	_btn_auto.tooltip_text = "おまかせ配置"
+	_btn_auto.size_flags_horizontal = Control.SIZE_SHRINK_END
 	_btn_auto.pressed.connect(_on_auto_assign)
 	header.add_child(_btn_auto)
 	return header
@@ -391,9 +436,13 @@ func _make_reward_chance_cell(tex: Texture2D, label_text: String) -> Control:
 func _build_target_card() -> PanelContainer:
 	var target_panel := _card_panel()
 	target_panel.clip_contents = true
+	target_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	target_panel.custom_minimum_size.x = 0.0
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.custom_minimum_size.x = 0.0
+	row.clip_contents = true
 
 	_target_icon = TextureRect.new()
 	_target_icon.custom_minimum_size = Vector2(TARGET_ICON_PX, TARGET_ICON_PX)
@@ -406,16 +455,18 @@ func _build_target_card() -> PanelContainer:
 
 	var mid := VBoxContainer.new()
 	mid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mid.custom_minimum_size.x = 0.0
 	mid.add_theme_constant_override("separation", 4)
 	var name_row := HBoxContainer.new()
 	name_row.add_theme_constant_override("separation", 8)
 	name_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_label_target_name = Label.new()
 	_label_target_name.text = "—"
-	_label_target_name.clip_text = false
+	_label_target_name.clip_text = true
 	_label_target_name.autowrap_mode = TextServer.AUTOWRAP_OFF
-	_label_target_name.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	_label_target_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_label_target_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_label_target_name.custom_minimum_size.x = 0.0
 	UiTypography.apply_display(_label_target_name, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
 	name_row.add_child(_label_target_name)
 	_btn_change_dungeon = Button.new()
@@ -426,7 +477,9 @@ func _build_target_card() -> PanelContainer:
 	name_row.add_child(_btn_change_dungeon)
 	mid.add_child(name_row)
 	_label_target_desc = _make_caption("—")
-	_label_target_desc.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_label_target_desc.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+	_label_target_desc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_label_target_desc.custom_minimum_size.x = 0.0
 	mid.add_child(_label_target_desc)
 	var drops_row := HBoxContainer.new()
 	drops_row.add_theme_constant_override("separation", 8)
@@ -834,9 +887,11 @@ func _build_assignee_card(slot: int, member_id: String, locked: bool, cycle_acti
 
 	var name_l := Label.new()
 	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_l.clip_text = false
+	name_l.clip_text = true
 	name_l.autowrap_mode = TextServer.AUTOWRAP_OFF
-	name_l.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	name_l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	name_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_l.custom_minimum_size.x = 0.0
 	UiTypography.apply_body(name_l, UiTypography.SIZE_CAPTION)
 	vb.add_child(name_l)
 
@@ -1051,12 +1106,14 @@ func _open_reward_catalog() -> void:
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	scroll.clip_contents = true
 	root_vb.add_child(scroll)
 
 	var list := VBoxContainer.new()
 	list.add_theme_constant_override("separation", 8)
 	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list.custom_minimum_size.x = 0.0
 	scroll.add_child(list)
 
 	for row in _reward_catalog_rows():
@@ -1075,6 +1132,8 @@ func _make_reward_catalog_section(title: String) -> Label:
 	var l := Label.new()
 	l.text = title
 	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	l.custom_minimum_size.x = 0.0
+	l.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	UiTypography.apply_display(l, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	return l
 
@@ -1082,10 +1141,13 @@ func _make_reward_catalog_section(title: String) -> Label:
 func _make_reward_catalog_row(row: Dictionary) -> Control:
 	var wrap := PanelContainer.new()
 	wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	wrap.custom_minimum_size.x = 0.0
+	wrap.clip_contents = true
 	wrap.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD))
 	var h := HBoxContainer.new()
 	h.add_theme_constant_override("separation", 10)
 	h.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	h.custom_minimum_size.x = 0.0
 	wrap.add_child(h)
 	var icon_host := Control.new()
 	icon_host.custom_minimum_size = Vector2(48, 48)
@@ -1103,15 +1165,20 @@ func _make_reward_catalog_row(row: Dictionary) -> Control:
 		icon_host.add_child(icon)
 	var texts := VBoxContainer.new()
 	texts.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	texts.custom_minimum_size.x = 0.0
 	texts.add_theme_constant_override("separation", 2)
 	var name_l := Label.new()
 	name_l.text = str(row.get("title", ""))
-	name_l.clip_text = false
-	name_l.autowrap_mode = TextServer.AUTOWRAP_OFF
+	name_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_l.custom_minimum_size.x = 0.0
+	name_l.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	UiTypography.apply_body(name_l, UiTypography.SIZE_BODY_SMALL)
 	texts.add_child(name_l)
 	var chance_l := Label.new()
 	chance_l.text = str(row.get("chance", ""))
+	chance_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	chance_l.custom_minimum_size.x = 0.0
+	chance_l.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	UiTypography.apply_caption(chance_l, UiTypography.COLOR_GOLD)
 	texts.add_child(chance_l)
 	h.add_child(texts)
@@ -1251,12 +1318,14 @@ func _open_pick_list(title: String, rows: Array[Dictionary], on_pick: Callable) 
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	scroll.clip_contents = true
 	root_vb.add_child(scroll)
 
 	var list := VBoxContainer.new()
 	list.add_theme_constant_override("separation", 8)
 	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list.custom_minimum_size.x = 0.0
 	scroll.add_child(list)
 
 	for row in rows:
@@ -1273,22 +1342,60 @@ func _build_pick_row(row: Dictionary, on_pick: Callable) -> Button:
 	btn.disabled = bool(row.get("disabled", false))
 	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	btn.custom_minimum_size = Vector2(0, 72)
-	btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	btn.clip_text = false
-	btn.autowrap_mode = TextServer.AUTOWRAP_OFF
-	var title: String = str(row.get("title", ""))
-	var subtitle: String = str(row.get("subtitle", ""))
+	btn.clip_contents = true
+	btn.clip_text = true
+	btn.text = ""
 	var selected: bool = bool(row.get("selected", false))
-	var mark: String = "  〔選択中〕" if selected else ""
-	btn.text = "%s%s\n%s" % [title, mark, subtitle]
+	var content := HBoxContainer.new()
+	content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	content.offset_left = 10.0
+	content.offset_top = 8.0
+	content.offset_right = -10.0
+	content.offset_bottom = -8.0
+	content.add_theme_constant_override("separation", 10)
+	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	btn.add_child(content)
 	var tex: Variant = row.get("texture", null)
 	if tex is Texture2D:
-		btn.icon = tex as Texture2D
-		btn.expand_icon = false
-		btn.add_theme_constant_override("icon_max_width", 48)
+		var icon := TextureRect.new()
+		icon.custom_minimum_size = Vector2(48, 48)
+		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		icon.texture = tex as Texture2D
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		content.add_child(icon)
+	var texts := VBoxContainer.new()
+	texts.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	texts.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	texts.custom_minimum_size.x = 0.0
+	texts.add_theme_constant_override("separation", 2)
+	texts.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content.add_child(texts)
+	var title: String = str(row.get("title", ""))
+	var mark: String = " 〔選択中〕" if selected else ""
+	var title_l := Label.new()
+	title_l.text = "%s%s" % [title, mark]
+	title_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_l.custom_minimum_size.x = 0.0
+	title_l.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+	title_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if selected:
-		btn.add_theme_color_override("font_color", UiTypography.COLOR_GOLD)
-		btn.add_theme_color_override("font_hover_color", UiTypography.COLOR_GOLD)
+		UiTypography.apply_display(title_l, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	else:
+		UiTypography.apply_body(title_l, UiTypography.SIZE_BODY_SMALL)
+	texts.add_child(title_l)
+	var subtitle: String = str(row.get("subtitle", ""))
+	if not subtitle.is_empty():
+		var sub_l := Label.new()
+		sub_l.text = subtitle
+		sub_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		sub_l.custom_minimum_size.x = 0.0
+		sub_l.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+		sub_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		UiTypography.apply_caption(sub_l, UiTypography.COLOR_SUB if not selected else UiTypography.COLOR_GOLD)
+		texts.add_child(sub_l)
 	var picked_id: String = str(row.get("id", ""))
 	btn.pressed.connect(func() -> void:
 		_close_pick_list()

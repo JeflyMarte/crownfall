@@ -107,7 +107,6 @@ func _build() -> void:
 	_refresh_speed()
 
 	body.add_child(_make_check("ダメージ数字を表示", _SettingsPrefs.show_damage_numbers(), _on_damage))
-	body.add_child(_make_check("戦闘ログを表示", _SettingsPrefs.show_battle_log(), _on_log))
 	body.add_child(_make_check("振動", _SettingsPrefs.is_vibration_enabled(), _on_vibration))
 	var vib_hint := Label.new()
 	vib_hint.text = "オフにすると戦闘ヒット時の振動を止めます（対応端末のみ）"
@@ -195,10 +194,6 @@ func _on_speed(speed_id: String) -> void:
 
 func _on_damage(v: bool) -> void:
 	_SettingsPrefs.set_show_damage_numbers(v)
-
-
-func _on_log(v: bool) -> void:
-	_SettingsPrefs.set_show_battle_log(v)
 
 
 func _on_vibration(v: bool) -> void:

@@ -64,7 +64,8 @@ func test_persist_volume_and_toggles() -> void:
 	assert_almost_eq(_SettingsPrefs.get_sfx_volume(), 0.2, 0.001)
 	assert_true(_SettingsPrefs.is_muted())
 	assert_false(_SettingsPrefs.show_damage_numbers())
-	assert_false(_SettingsPrefs.show_battle_log())
+	## 戦闘ログ表示切替は撤去済み。常時オン。
+	assert_true(_SettingsPrefs.show_battle_log())
 	assert_false(_SettingsPrefs.is_vibration_enabled())
 	assert_eq(_SettingsPrefs.get_combat_speed_id(), _SettingsPrefs.SPEED_ID_X15)
 	assert_almost_eq(_SettingsPrefs.get_combat_speed_mult(), _SettingsPrefs.SPEED_X15, 0.001)
