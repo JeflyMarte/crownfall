@@ -70,7 +70,8 @@ func _ready() -> void:
 	_setup_start_confirm()
 	_setup_cancel_confirm()
 	_build_ui()
-	_pending_members = _SurveySystem.auto_assign_members()
+	## 前回配置を維持（未記録の初回のみおまかせ相当）。
+	_pending_members = _SurveySystem.pending_members_for_ui()
 	_update_currency()
 	_refresh()
 	call_deferred("_try_auto_claim_on_enter")
@@ -1029,11 +1030,13 @@ func _open_member_pick_list(slot: int) -> void:
 		## 選択中の同じキャラを再タップ → 枠から外す。
 		if picked_id == cur and not cur.is_empty():
 			_pending_members[slot] = ""
+			_SurveySystem.remember_last_member_ids(_pending_members)
 			_refresh()
 			return
 		if not _SurveySystem.can_place_without_emptying_party(_pending_members, slot, picked_id):
 			return
 		_pending_members[slot] = picked_id
+		_SurveySystem.remember_last_member_ids(_pending_members)
 		_refresh()
 	)
 
@@ -1042,6 +1045,7 @@ func _on_auto_assign() -> void:
 	if _SurveySystem.has_active_cycle():
 		return
 	_pending_members = _SurveySystem.auto_assign_members()
+	_SurveySystem.remember_last_member_ids(_pending_members)
 	_refresh()
 
 
@@ -1453,7 +1457,7 @@ func _execute_cancel() -> void:
 		return
 	AudioManager.play_sfx("ui_cancel")
 	_label_status.text = "調査を中止しました"
-	_pending_members = _SurveySystem.auto_assign_members()
+	_pending_members = _SurveySystem.pending_members_for_ui()
 	_refresh()
 
 
@@ -1569,7 +1573,7 @@ func _finish_claim(result: Dictionary) -> void:
 	if not str(result.get("weapon_id", "")).is_empty():
 		parts.append("装備入手")
 	_label_status.text = "受取完了: %s" % " ・ ".join(parts)
-	_pending_members = _SurveySystem.auto_assign_members()
+	_pending_members = _SurveySystem.pending_members_for_ui()
 	_refresh()
 	call_deferred("_maybe_show_content_unlock")
 

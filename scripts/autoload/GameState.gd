@@ -110,6 +110,8 @@ var hub_survey_room_daily: Dictionary = {}
 var hub_survey_achievements_claimed: Dictionary = {}
 ## ダンジョン完全調査を一度でも達成したか { dungeon_id: true }（繰り返し景品の阻害には使わない）。
 var hub_survey_complete_claimed: Dictionary = {}
+## 前回の調査員配置（member_id の配列）。完了／中止後も維持し、おまかせで上書き。
+var hub_survey_last_member_ids: Array = []
 
 # 発見登録 { "category:entry_id": true } — Codex 基盤（P2-Task018）
 var discovery_registry: Dictionary = {}
@@ -1585,6 +1587,7 @@ func reset_for_new_game() -> void:
 	hub_survey_room_daily = {}
 	hub_survey_achievements_claimed = {}
 	hub_survey_complete_claimed = {}
+	hub_survey_last_member_ids = []
 	discovery_registry = {}
 	unlocked_craft_outputs = {}
 	tutorial_flags = {}

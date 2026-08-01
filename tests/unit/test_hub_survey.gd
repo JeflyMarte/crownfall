@@ -16,6 +16,7 @@ var _saved_stage: Dictionary = {}
 var _saved_token: int = 0
 var _saved_nonoka_unlocked: bool = false
 var _saved_nonoka_pending: bool = false
+var _saved_last_members: Array = []
 
 
 func before_each() -> void:
@@ -29,11 +30,13 @@ func before_each() -> void:
 	_saved_token = GameState.gacha_token
 	_saved_nonoka_unlocked = GameState.survey_staff_nonoka_unlocked
 	_saved_nonoka_pending = GameState.pending_nonoka_survey_join
+	_saved_last_members = GameState.hub_survey_last_member_ids.duplicate()
 	GameState.dungeon_progress = {}
 	GameState.hub_survey_progress = {}
 	GameState.hub_survey_cycle = {}
 	GameState.hub_survey_room_daily = {}
 	GameState.hub_survey_achievements_claimed = {}
+	GameState.hub_survey_last_member_ids = []
 	GameState.enemy_codex = {}
 	GameState.debug_full_unlock = false
 	## 既存サイクル系テストはノノカ解放済み前提。
@@ -47,6 +50,7 @@ func after_each() -> void:
 	GameState.hub_survey_cycle = _saved_cycle
 	GameState.hub_survey_room_daily = _saved_room
 	GameState.hub_survey_achievements_claimed = _saved_achieve
+	GameState.hub_survey_last_member_ids = _saved_last_members
 	GameState.enemy_codex = _saved_codex
 	GameState.stage_progress = _saved_stage
 	GameState.gacha_token = _saved_token
@@ -120,6 +124,22 @@ func test_cycle_completes_with_time() -> void:
 	assert_true(bool(claimed.get("ok", false)), str(claimed))
 	assert_false(_SurveySystem.has_active_cycle())
 	assert_gt(_SurveySystem.get_survey_percent(Constants.MOURNGATE_DUNGEON_ID), 0.0)
+	## 受取後は前回配置を維持（おまかせへ置き換えない）。
+	var pending: Array[String] = _SurveySystem.pending_members_for_ui()
+	assert_eq(pending.size(), 1)
+	assert_eq(pending[0], _SurveyStaff.ID_NONOKA)
+
+
+func test_cancel_cycle_keeps_previous_members() -> void:
+	const _SurveyStaff := preload("res://scripts/survey/SurveyStaff.gd")
+	var ids: Array[String] = [_SurveyStaff.ID_NONOKA]
+	assert_true(bool(_SurveySystem.start_cycle(
+		Constants.MOURNGATE_DUNGEON_ID, _SurveyConfig.PRESET_SHORT, ids
+	).get("ok", false)))
+	assert_true(bool(_SurveySystem.cancel_cycle().get("ok", false)))
+	var pending: Array[String] = _SurveySystem.pending_members_for_ui()
+	assert_eq(pending.size(), 1)
+	assert_eq(pending[0], _SurveyStaff.ID_NONOKA)
 
 
 func test_cancel_cycle_aborts_without_rewards() -> void:

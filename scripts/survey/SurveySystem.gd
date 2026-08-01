@@ -342,6 +342,7 @@ static func start_cycle(dungeon_id: String, preset: String, member_ids: Array[St
 		"assignees": assignees,
 		"party_ids_before": party_ids_before,
 	}
+	remember_last_member_ids(assignees)
 	## 派遣中の戦闘メンバーのみ編成から外す（調査スタッフはロスター外のため無影響）。
 	_remove_dispatched_from_party()
 	return {"ok": true}
@@ -443,6 +444,42 @@ static func auto_assign_members() -> Array[String]:
 	return ids
 
 
+## サイクル assignees / ID 配列から配置 ID を正規化して覚える。
+static func remember_last_member_ids(member_ids: Array) -> void:
+	var out: Array = []
+	for mid_v: Variant in member_ids:
+		var mid: String = ""
+		if mid_v is Dictionary:
+			mid = str((mid_v as Dictionary).get("member_id", ""))
+		else:
+			mid = str(mid_v)
+		mid = mid.strip_edges()
+		if mid.is_empty() or out.has(mid):
+			continue
+		out.append(mid)
+		if out.size() >= _SurveyConfig.INVESTIGATOR_SLOTS:
+			break
+	GameState.hub_survey_last_member_ids = out
+
+
+## 配置可能な前回メンバー。初回（未記録）のみおまかせ相当を返す。
+static func pending_members_for_ui() -> Array[String]:
+	var last: Array[String] = []
+	for mid_v: Variant in GameState.hub_survey_last_member_ids:
+		var mid: String = str(mid_v).strip_edges()
+		if mid.is_empty() or last.has(mid):
+			continue
+		if not can_assign_investigator(mid):
+			continue
+		last.append(mid)
+		if last.size() >= _SurveyConfig.INVESTIGATOR_SLOTS:
+			break
+	if not GameState.hub_survey_last_member_ids.is_empty():
+		## 記録あり（全員外れても空枠のまま。勝手におまかせしない）。
+		return last
+	return auto_assign_members()
+
+
 static func claim_cycle() -> Dictionary:
 	if not has_active_cycle():
 		return {"ok": false, "reason": "進行中の調査がありません"}
@@ -465,6 +502,8 @@ static func claim_cycle() -> Dictionary:
 	var weapon_id: String = str(rewards.get("weapon_id", ""))
 	if not weapon_id.is_empty():
 		_grant_weapon(weapon_id)
+	## 前回配置を残してからクリア（受取後に勝手なおまかせをしない）。
+	remember_last_member_ids(assignees)
 	## 派遣解除→編成復元→EXP（編成外だと本人パッシブが効かない）。
 	GameState.hub_survey_cycle = {}
 	_restore_party_after_dispatch(party_ids_before, assignees)
@@ -570,6 +609,7 @@ static func cancel_cycle() -> Dictionary:
 		return {"ok": false, "reason": "完了報酬を受け取ってください"}
 	var assignees: Array = GameState.hub_survey_cycle.get("assignees", []) as Array
 	var party_ids_before: Array = GameState.hub_survey_cycle.get("party_ids_before", []) as Array
+	remember_last_member_ids(assignees)
 	GameState.hub_survey_cycle = {}
 	_restore_party_after_dispatch(party_ids_before, assignees)
 	SaveManager.save_game()

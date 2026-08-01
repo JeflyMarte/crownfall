@@ -64,6 +64,7 @@ func save_game() -> bool:
 		"hub_survey_room_daily": GameState.hub_survey_room_daily.duplicate(true),
 		"hub_survey_achievements_claimed": GameState.hub_survey_achievements_claimed.duplicate(true),
 		"hub_survey_complete_claimed": GameState.hub_survey_complete_claimed.duplicate(true),
+		"hub_survey_last_member_ids": GameState.hub_survey_last_member_ids.duplicate(),
 		"current_dungeon_id": GameState.current_dungeon_id,
 		"discovery_registry": GameState.discovery_registry,
 		"unlocked_craft_outputs": GameState.unlocked_craft_outputs.duplicate(true),
@@ -294,6 +295,8 @@ func _migrate_save_v9_to_v10(data: Dictionary) -> Dictionary:
 		data["hub_survey_achievements_claimed"] = {}
 	if not data.has("hub_survey_complete_claimed") or not (data["hub_survey_complete_claimed"] is Dictionary):
 		data["hub_survey_complete_claimed"] = {}
+	if not data.has("hub_survey_last_member_ids") or not (data["hub_survey_last_member_ids"] is Array):
+		data["hub_survey_last_member_ids"] = []
 	return data
 
 
@@ -680,6 +683,10 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.hub_survey_complete_claimed = (data["hub_survey_complete_claimed"] as Dictionary).duplicate(true)
 	else:
 		GameState.hub_survey_complete_claimed = {}
+	if data.has("hub_survey_last_member_ids") and data["hub_survey_last_member_ids"] is Array:
+		GameState.hub_survey_last_member_ids = (data["hub_survey_last_member_ids"] as Array).duplicate()
+	else:
+		GameState.hub_survey_last_member_ids = []
 	if data.has("current_dungeon_id"):
 		GameState.current_dungeon_id = _migrate_dungeon_id(str(data["current_dungeon_id"]))
 	if data.has("current_dungeon_tier"):
