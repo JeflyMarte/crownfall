@@ -17,6 +17,11 @@ var debug_full_unlock: bool = false
 # 編成中（アクティブ）の冒険者リスト（Adventurer Resource × 最大3）。roster の部分集合（参照）。
 var party_members: Array = []
 
+## 保存済みパーティ編成（P3-ROSTER-PARTY-PRESET-001）。最大 SAVED_PARTY_SLOTS 件。
+## 各スロット: {"name": String, "member_ids": Array[String]}
+const SAVED_PARTY_SLOTS: int = 4
+var saved_parties: Array = []
+
 # 所持冒険者ロスター（基本5職 + ガチャ入手分）。party_members はここから最大 ACTIVE_PARTY_SIZE 名選択（P3-D036b）。
 var roster: Array = []
 
@@ -2175,6 +2180,67 @@ func set_active_party(members: Array) -> bool:
 	party_members = members.duplicate()
 	migrate_formation_slots_if_needed()
 	return true
+
+
+## ---- 保存済みパーティ編成 ----
+
+func has_saved_party(slot: int) -> bool:
+	if slot < 0 or slot >= saved_parties.size():
+		return false
+	var p = saved_parties[slot]
+	return p is Dictionary and not (p as Dictionary).get("member_ids", []).is_empty()
+
+
+func get_saved_party_name(slot: int) -> String:
+	if not has_saved_party(slot):
+		return ""
+	return str((saved_parties[slot] as Dictionary).get("name", ""))
+
+
+func default_saved_party_name(slot: int) -> String:
+	return "パーティ%d" % (slot + 1)
+
+
+## 指定スロットへ編成を保存（上書き可）。members 省略時は現在のアクティブ編成（party_members）。
+func save_party_preset(slot: int, members: Array = []) -> void:
+	if slot < 0 or slot >= SAVED_PARTY_SLOTS:
+		return
+	var source: Array = members if not members.is_empty() else party_members
+	var ids: Array = []
+	for member in source:
+		if member != null:
+			ids.append(str(member.id))
+	while saved_parties.size() <= slot:
+		saved_parties.append({})
+	saved_parties[slot] = {
+		"name": default_saved_party_name(slot),
+		"member_ids": ids,
+	}
+
+
+## 保存済みスロットの実メンバー配列（アイコン表示用）。ロスターから外れた分は自動でスキップ。
+func saved_party_members(slot: int) -> Array:
+	var out: Array = []
+	if not has_saved_party(slot):
+		return out
+	var ids: Array = (saved_parties[slot] as Dictionary).get("member_ids", [])
+	for mid in ids:
+		var m: Resource = find_roster_member_by_id(str(mid))
+		if m != null:
+			out.append(m)
+	return out
+
+
+## 保存済みスロットを現在の編成へ適用。失敗時はプレイヤー向け短文、成功時は空文字。
+func apply_saved_party(slot: int) -> String:
+	var members: Array = saved_party_members(slot)
+	if members.is_empty():
+		return "保存された編成が見つかりません"
+	var reject: String = active_party_reject_reason(members)
+	if not reject.is_empty():
+		return reject
+	set_active_party(members)
+	return ""
 
 
 ## 空文字=採用可。失敗時はプレイヤー向け短文。

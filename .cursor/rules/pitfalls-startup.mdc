@@ -9,6 +9,7 @@ alwaysApply: true
 
 | 症状 | 再発防止 |
 |---|---|
+| 続きから即終了（`saved_parties` Invalid assignment） | セーブキーは GameState フィールド＋SaveManager 読書きを同コミット。片方だけ切り戻さない |
 | 鍛冶屋入場で即終了 | `maxf` は最大2引数 → `maxf(a, maxf(b, c))`。変更後 headless で BlacksmithScene |
 | ダンジョン入場で即終了（Too few arguments） | 静的ヘルパ名を組み込みと被らせない（`wrap`→`bb_wrap`）。DungeonScene ロード確認 |
 | `sort_custom(func(...):` で Identifier not found | ラムダで外側ローカル `const` を捕獲しない。名前付きメソッドへ |

@@ -77,6 +77,7 @@ func save_game() -> bool:
 		"ticket_inventory": GameState.ticket_inventory.duplicate(),
 		"redeemed_codes": GameState.redeemed_codes.duplicate(),
 		"combat_presets": GameState.combat_presets.duplicate(true),
+		"saved_parties": GameState.saved_parties.duplicate(true),
 		"owned_relics": GameState.owned_relics.duplicate(),
 		"daily_mission_state": GameState.daily_mission_state.duplicate(true),
 		"event_dungeon_attempts": GameState.event_dungeon_attempts.duplicate(true),
@@ -839,6 +840,8 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.enemy_codex = codex
 	if data.has("combat_presets") and data["combat_presets"] is Array:
 		GameState.combat_presets = (data["combat_presets"] as Array).duplicate(true)
+	if data.has("saved_parties") and data["saved_parties"] is Array:
+		GameState.saved_parties = (data["saved_parties"] as Array).duplicate(true)
 	if data.has("owned_relics") and data["owned_relics"] is Array:
 		var relics: Array = []
 		for rid in data["owned_relics"]:

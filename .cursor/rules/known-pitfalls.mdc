@@ -14,6 +14,7 @@ alwaysApply: false
 
 | 症状 | 原因 | 再発防止 |
 |---|---|---|
+| 続きから即終了（`saved_parties` Invalid assignment） | SaveManager だけパーティ編成キーを残し GameState フィールドを切り戻した | セーブキーは **GameState＋SaveManager 同コミット**。片方だけ戻さない |
 | 鍛冶完了ポップでレアロゴ巨大化／説明はみ出し | PanelContainer直下バッジ・WORD_SMART | → **`ui-layout.mdc` 鍛冶屋アイコン** |
 | 隊長カード全体が赤くなる／ランクアップ閉じで終了 | `PanelContainer` 直下バッジ＋reparent 後の旧パス | → **`ui-layout.mdc` PanelContainer 上の角バッジ** |
 | 鍛冶／ダンジョン入場で即終了（maxf3引・wrap名衝突） | パース失敗 | → **`pitfalls-startup.mdc`**／`gdscript.mdc` |
