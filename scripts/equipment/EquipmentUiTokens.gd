@@ -118,6 +118,10 @@ const INV_CELL_MARGINS: Vector4i = Vector4i(12, 12, 12, 12)
 const ICON_FRAME_MARGIN_PX: int = 18
 ## 弓は透過余白が多く小さく見えるため、inset をこの倍率へ縮小（鍛冶屋と同バランス）。
 const BOW_ICON_INSET_SCALE: float = 0.55
+## レア弓・シャドウコードはさらに小さく見えやすいため、inset を追加で縮める。
+const BOW_ICON_INSET_SCALE_LARGE: float = 0.30
+## レアリティ以外で大きく見せる弓（レジェンド影弦など）。
+const BOW_LARGE_ICON_IDS: Array[String] = ["shadowcord"]
 ## 装備セル枠線色（COMMON/RARE/EPIC/LEGENDARY/MYTHIC/SET）。背景は INV_CELLS の金属質ティント。
 const RARITY_BORDER_COLORS: Array[Color] = [
 	Color(0.60, 0.60, 0.60),
@@ -250,7 +254,23 @@ static func is_bow_weapon(item_id: String, category: String) -> bool:
 		return false
 	return str(data.weapon_type) == "bow"
 
-## 通常 inset。弓のみ `BOW_ICON_INSET_SCALE` で大きく見せる（BlacksmithUiHelper と同ポリシー）。
+## レア弓・指定レジェンド弓はより大きく（装備／図鑑／詳細）。鍛冶リストでは使わない。
+static func needs_large_bow_icon(item_id: String, category: String = "weapon") -> bool:
+	if not is_bow_weapon(item_id, category):
+		return false
+	if BOW_LARGE_ICON_IDS.has(item_id):
+		return true
+	var data: Resource = DataRegistry.get_weapon_data(item_id)
+	if data == null:
+		return false
+	return int(data.rarity) == int(Enums.Rarity.RARE)
+
+static func bow_icon_inset_scale(item_id: String, category: String = "weapon") -> float:
+	if needs_large_bow_icon(item_id, category):
+		return BOW_ICON_INSET_SCALE_LARGE
+	return BOW_ICON_INSET_SCALE
+
+## 通常 inset。弓のみ inset 倍率で大きく見せる（BlacksmithUiHelper は弓縮小なし）。
 static func icon_inset_for_item(
 	cell_px: int,
 	design_px: int,
@@ -260,7 +280,7 @@ static func icon_inset_for_item(
 ) -> int:
 	var inset: int = icon_inset_px(cell_px, design_px, frame_margin)
 	if is_bow_weapon(item_id, category):
-		inset = maxi(2, int(round(float(inset) * BOW_ICON_INSET_SCALE)))
+		inset = maxi(2, int(round(float(inset) * bow_icon_inset_scale(item_id, category))))
 	return inset
 
 static func cell_px_for_grid_width(grid_w: float, columns: int, h_sep: int) -> int:

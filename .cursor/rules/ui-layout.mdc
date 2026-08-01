@@ -53,7 +53,7 @@ alwaysApply: false
 - 画面は領域単位で分解: `Header` / `Content` / `Footer(BottomNav)` 等
 - 1 Task = **1 画面の 1〜2 領域**まで。全面を一度にやらない
 - 装備セルのアイコン余白は `EquipmentUiTokens.ICON_FRAME_MARGIN_PX`（**18**）。全面キャンバス絵で枠食い込みを再発させない
-- **弓のみ** `BOW_ICON_INSET_SCALE`（0.55）で inset 縮小し大きく見せる（鍛冶屋と同ポリシー。`icon_inset_for_item`）
+- **弓**は `BOW_ICON_INSET_SCALE`（0.55）で inset 縮小。レア弓と `shadowcord` は `BOW_ICON_INSET_SCALE_LARGE`（0.30）＋余白クロップを強め（`needs_large_bow_icon`）。鍛冶リストでは弓 inset 縮小を使わない
 - ホームのイベントバナー等は **左メニューと重ねない**（メニュー下端＋余白）
 - **黒マット付き装飾枠を `StyleBoxTexture` 9-slice しない**（角／帯に黒が伸び、金枠だけ短く見える）。書籍・展示室総合戦力は `TextureRect` 直置き
 

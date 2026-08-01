@@ -75,6 +75,24 @@ func test_bow_icon_inset_is_smaller_than_default() -> void:
 	assert_lt(bow_inset, default_inset)
 	assert_gte(bow_inset, 2)
 
+func test_rare_and_shadowcord_bow_icons_use_larger_inset_scale() -> void:
+	var common_bow: int = EquipmentUiTokens.icon_inset_for_item(
+		112, 144, "hunting_bow", "weapon"
+	)
+	var rare_bow: int = EquipmentUiTokens.icon_inset_for_item(
+		112, 144, "tinder_bow", "weapon"
+	)
+	var shadowcord: int = EquipmentUiTokens.icon_inset_for_item(
+		112, 144, "shadowcord", "weapon"
+	)
+	assert_true(EquipmentUiTokens.needs_large_bow_icon("tinder_bow", "weapon"))
+	assert_true(EquipmentUiTokens.needs_large_bow_icon("shadowcord", "weapon"))
+	assert_false(EquipmentUiTokens.needs_large_bow_icon("hunting_bow", "weapon"))
+	assert_lt(rare_bow, common_bow)
+	assert_lt(shadowcord, common_bow)
+	assert_gte(rare_bow, 2)
+	assert_gte(shadowcord, 2)
+
 func test_tooltip_panel_style_is_opaque() -> void:
 	var sb: StyleBoxFlat = EquipmentUiTokens.tooltip_panel_style()
 	assert_eq(sb.bg_color.a, 1.0)

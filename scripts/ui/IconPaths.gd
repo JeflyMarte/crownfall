@@ -1,6 +1,8 @@
 class_name IconPaths
 extends RefCounted
 
+const _EquipmentUiTokens := preload("res://scripts/equipment/EquipmentUiTokens.gd")
+
 const ICON_MAP: Dictionary = {
 	# 初期5はキャラ名ファイル。adventurer_id 優先、職キーは互換エイリアス。
 	"chr:adventurer_0":            "res://assets/ui/chr_icons/ICO_CHR_Ald.png",
@@ -869,18 +871,22 @@ static func display_texture_for_weapon(weapon_id: String, tex: Texture2D) -> Tex
 	if data == null or str(data.weapon_type) != "bow":
 		_bow_display_cache[weapon_id] = tex
 		return tex
-	var cropped: Texture2D = _crop_opaque_region(tex)
+	## レア弓・シャドウコードは余白をさらに詰めて大きく見せる。
+	var pad_ratio: float = 0.08
+	if _EquipmentUiTokens.needs_large_bow_icon(weapon_id, "weapon"):
+		pad_ratio = 0.03
+	var cropped: Texture2D = _crop_opaque_region(tex, pad_ratio)
 	_bow_display_cache[weapon_id] = cropped
 	return cropped
 
-static func _crop_opaque_region(tex: Texture2D) -> Texture2D:
+static func _crop_opaque_region(tex: Texture2D, pad_ratio: float = 0.08) -> Texture2D:
 	var img: Image = tex.get_image()
 	if img == null or img.get_width() <= 0:
 		return tex
 	var used: Rect2i = img.get_used_rect()
 	if used.size.x <= 0 or used.size.y <= 0:
 		return tex
-	var pad: int = maxi(2, int(round(float(maxi(used.size.x, used.size.y)) * 0.08)))
+	var pad: int = maxi(1, int(round(float(maxi(used.size.x, used.size.y)) * pad_ratio)))
 	var x0: int = maxi(0, used.position.x - pad)
 	var y0: int = maxi(0, used.position.y - pad)
 	var x1: int = mini(img.get_width(), used.position.x + used.size.x + pad)
