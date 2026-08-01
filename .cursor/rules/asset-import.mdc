@@ -71,9 +71,9 @@ alwaysApply: false
 ✅ GOOD
 - `.import` は Godot に生成させる（削除→`--import`）。確認は `.godot/imported/*.ctex`
 - 暗い装備の穴埋めは `tools/repair_equipment_icon_alpha_holes.py --apply`（大開口は残す）。**灰冠は掛けない**
-- 灰冠は `tools/fill_kaiwan_silhouette_dark.py --apply`（防具=凸包＋暗赤黒塗り。武器は close。赤縁サンプリング禁止）
+- 灰冠は `tools/fill_kaiwan_silhouette_dark.py --apply`（防具=縁硬化のみ／穴埋め・凸包禁止。武器・装飾は close4。赤縁サンプリング禁止）
 - 封蔵 Featured／帯は暗い石マット（クリーム禁止）
-- 防具 N〜Epic は `tools/generate_equipment_icons.py --armor-only`（色ウォッシュ＋リム。テンプレ正は `equipment/_templates/`）
+- 防具 N〜Epic は `tools/generate_equipment_icons.py --armor-only`（**素材名**色分け＋弱いウォッシュ＋細い暗リム。耐性 element を主色にしない。テンプレ正は `equipment/_templates/`）
 - 白マットはエッジ＋中心穴の flood-fill（`import_forge_ui_assets.strip_edge_background` 相当）
 - 戦闘 VFX は `tools/generate_env_and_vfx.py` の `clean_vfx_image`＋`sanitize_alpha`
 - 枠除去は `tools/strip_helper_portrait_frames.py` / `tools/strip_chr_icon_frames.py`

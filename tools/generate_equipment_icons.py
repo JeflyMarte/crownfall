@@ -363,7 +363,65 @@ def pick_armor_template(item_id: str, rarity: int) -> Path:
 	)
 
 
+## 素材名ヒント → 色相（耐性 element より優先。革が氷青になる事故を防ぐ）。
+MATERIAL_HUE = {
+	"leather": 0.07,
+	"hide": 0.07,
+	"fur": 0.08,
+	"cloth": 0.58,
+	"cloak": 0.62,
+	"garb": 0.10,
+	"robe": 0.78,
+	"vestment": 0.12,
+	"vest": 0.72,
+	"linen": 0.11,
+	"plate": 0.58,
+	"mail": 0.55,
+	"scale": 0.42,
+	"bone": 0.10,
+	"chitin": 0.09,
+	"crystal": 0.72,
+	"bark": 0.08,
+	"moss": 0.28,
+	"kelp": 0.38,
+	"tide": 0.52,
+	"snow": 0.55,
+	"glacier": 0.55,
+	"dragon": 0.03,
+	"wyvern": 0.78,
+	"rune": 0.70,
+	"crypt": 0.75,
+	"votive": 0.12,
+	"warden": 0.55,
+	"libris": 0.70,
+	"aurora": 0.55,
+	"moldgar": 0.30,
+	"mourngate": 0.78,
+	"ship": 0.58,
+	"whale": 0.55,
+	"mycel": 0.30,
+	"bog": 0.28,
+	"mire": 0.10,
+	"sepia": 0.08,
+	"lament": 0.75,
+}
+
+
+def _armor_material_key(item_id: str) -> str:
+	lid = item_id.lower()
+	## 長い／具体キーを先に。
+	ordered = sorted(MATERIAL_HUE.keys(), key=len, reverse=True)
+	for key in ordered:
+		if key in lid:
+			return key
+	return ""
+
+
 def _armor_hue(item_id: str, element: str) -> float:
+	## 素材名ベース。耐性 element はフォールバックのみ（革+ice≠シアン）。
+	mat = _armor_material_key(item_id)
+	if mat:
+		return float(MATERIAL_HUE[mat])
 	hue = ELEMENT_HUE.get(element)
 	if hue is not None:
 		return float(hue)
@@ -406,48 +464,48 @@ def apply_color_wash(img: Image.Image, hue: float, strength: float = 0.42) -> Im
 	return out
 
 
-def add_silhouette_rim(img: Image.Image, rim_rgb: tuple[int, int, int] = (235, 220, 180)) -> Image.Image:
-	"""シルエット外周に薄いリムを付け、暗いセル上でも輪郭を残す。"""
+def add_silhouette_rim(img: Image.Image, rim_rgb: tuple[int, int, int] = (48, 42, 36)) -> Image.Image:
+	"""シルエット外周に薄い暗いリム（クリーム halo 禁止）。"""
 	img = img.convert("RGBA")
 	alpha = img.split()[3]
-	## 2px 相当（MaxFilter 5）で外周リングを確保。
-	dilated = alpha.filter(ImageFilter.MaxFilter(5))
+	## 1px 相当（MaxFilter 3）で細い輪郭のみ。
+	dilated = alpha.filter(ImageFilter.MaxFilter(3))
 	rim_mask = ImageChops.subtract(dilated, alpha)
 	rim_layer = Image.new("RGBA", img.size, (*rim_rgb, 0))
-	rim_layer.putalpha(rim_mask.point(lambda v: 220 if v > 16 else 0))
+	rim_layer.putalpha(rim_mask.point(lambda v: 140 if v > 16 else 0))
 	return Image.alpha_composite(rim_layer, img)
 
 
 def compose_armor_icon(template_path: Path, item_id: str, element: str, rarity: int) -> Image.Image:
-	"""N〜Epic 防具向け: 色分け＋黒持ち上げ＋リム（セル背景との同化対策）。"""
+	"""N〜Epic 防具向け: 素材色分け＋軽い黒持ち上げ＋細い暗リム。"""
 	canvas = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
 	sprite = Image.open(template_path).convert("RGBA")
 	## 防具は暗い金属が本体なので、全域黒キーはしない（穴でセルが透ける）。
 	## 端の白マットのみ弱く除去。
 	sprite = remove_matte_bg(sprite, dark_threshold=8, light_threshold=235)
-	sprite = lift_crushed_blacks(sprite, floor=40)
+	sprite = lift_crushed_blacks(sprite, floor=34)
 
 	hue = _armor_hue(item_id, element)
-	## 個体差: hash でウォッシュ強さ・明るさを少しずらす
+	## 個体差: hash でウォッシュ強さ・明るさを少しずらす（弱め＝素材色を残す）。
 	digest = hashlib.md5(item_id.encode()).hexdigest()
-	wash_boost = 0.34 + (int(digest[2:4], 16) / 255.0) * 0.16
-	bright = 1.12 + (0.04 * rarity) + (int(digest[4:6], 16) / 255.0) * 0.06
+	wash_boost = 0.12 + (int(digest[2:4], 16) / 255.0) * 0.10
+	bright = 1.02 + (0.02 * rarity) + (int(digest[4:6], 16) / 255.0) * 0.04
 	sprite = apply_color_wash(sprite, hue, strength=wash_boost)
-	sprite = tint_image(sprite, hue, sat_mult=1.25)
+	sprite = tint_image(sprite, hue, sat_mult=1.08)
 	sprite = ImageEnhance.Brightness(sprite).enhance(bright)
-	sprite = ImageEnhance.Contrast(sprite).enhance(1.08 + 0.03 * rarity)
+	sprite = ImageEnhance.Contrast(sprite).enhance(1.04 + 0.02 * rarity)
 
 	tw = int(SIZE * ICON_SCALE)
 	th = int(tw * sprite.height / max(1, sprite.width))
 	sprite = sprite.resize((tw, th), Image.Resampling.NEAREST)
 	## リムはリサイズ後に付与（縮小で輪郭が消えないように）。
-	sprite = add_silhouette_rim(sprite, rim_rgb=(235, 220, 180))
+	sprite = add_silhouette_rim(sprite, rim_rgb=(48, 42, 36))
 	ox = (SIZE - tw) // 2
 	oy = (SIZE - th) // 2 + 2
 
 	if rarity >= 2:
-		glow = sprite.filter(ImageFilter.GaussianBlur(2))
-		glow = ImageEnhance.Brightness(glow).enhance(1.25)
+		glow = sprite.filter(ImageFilter.GaussianBlur(1))
+		glow = ImageEnhance.Brightness(glow).enhance(1.12)
 		glow_layer = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
 		glow_layer.paste(glow, (ox, oy), glow)
 		canvas = Image.alpha_composite(canvas, glow_layer)

@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Fill Kaiwan equipment silhouette holes with dark red-black only.
 
-Armor uses convex-hull fill (swiss-cheese keyed art). Weapons/accessories use
-morphological closing so open crescents stay open.
+Armor / weapons / accessories all use morphological closing (close4).
+Convex-hull fill on armor bloated silhouettes into a ghost aura — do not use.
 
 Does NOT sample bright red rim pixels for fill (pink washout).
 Does NOT brighten existing opaque art.
+Armor = fringe harden only (no hole fill / no convex hull).
+Weapons / accessories = morphological closing (close4).
 
 Usage:
   python3 tools/fill_kaiwan_silhouette_dark.py --apply
@@ -18,8 +20,7 @@ from collections import deque
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter
-from scipy.spatial import ConvexHull
+from PIL import Image, ImageFilter
 
 ROOT = Path(__file__).resolve().parents[1]
 EQUIP_DIR = ROOT / "assets" / "ui" / "equipment"
@@ -80,20 +81,6 @@ def _edge_connected(bg_mask: np.ndarray) -> np.ndarray:
 	return seen
 
 
-def _silhouette_armor(body: np.ndarray) -> np.ndarray:
-	ys, xs = np.where(body)
-	if len(xs) < 8:
-		return body
-	pts = np.stack([xs, ys], axis=1)
-	hull = ConvexHull(pts)
-	ordered = pts[hull.vertices]
-	h, w = body.shape
-	mask = Image.new("L", (w, h), 0)
-	ImageDraw.Draw(mask).polygon([tuple(map(int, p)) for p in ordered], fill=255)
-	sil = np.array(mask) > 0
-	return _dilate(sil, 1)
-
-
 def _silhouette_close(body: np.ndarray, radius: int) -> np.ndarray:
 	closed = _closing(body, radius)
 	exterior = _edge_connected(~closed)
@@ -123,25 +110,25 @@ def fill_icon(img: Image.Image, name: str) -> tuple[Image.Image, dict[str, int]]
 	rgb = a[:, :, :3].astype(np.float32)
 	body = alpha >= ALPHA_BODY
 	lower = name.lower()
+	## 手描き防具は穴埋めしない（赤縁＋透かしが正。close でもゴースト塊になる）。
 	if "ico_arm_" in lower:
-		sil = _silhouette_armor(body)
-		mode = "convex"
-	elif "ico_acc_" in lower:
-		sil = _silhouette_close(body, 4)
-		mode = "close4"
+		sil = body
+		mode = "fringe_only"
+		need = np.zeros_like(body, dtype=bool)
 	else:
 		sil = _silhouette_close(body, 4)
 		mode = "close4"
+		need = sil & (alpha < ALPHA_BODY)
 
 	dark_body = body & (~_is_red_rim(rgb)) & (_luma(rgb) <= DARK_LUMA_MAX)
-	need = sil & (alpha < ALPHA_BODY)
 	filled = 0
 	for y, x in zip(*np.where(need)):
 		found = _pick_dark_fill(a, dark_body, y, x)
 		a[y, x] = (*found.astype(np.uint8), 255)
 		filled += 1
 
-	fringe = sil & (a[:, :, 3] > 0) & (a[:, :, 3] < 255)
+	## 既存半透明フリンジのみ不透明化（外形は広げない）。
+	fringe = body & (a[:, :, 3] > 0) & (a[:, :, 3] < 255)
 	hardened = 0
 	for y, x in zip(*np.where(fringe)):
 		col = a[y, x, :3].astype(np.float32)

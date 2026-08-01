@@ -30,7 +30,7 @@ alwaysApply: false
 | 灰冠／深層が生産解放に出る | 入手フックが全装備を unlock | `is_craftable_master` で `kaiwan_`／`abyss_` 除外 |
 | 封蔵確認中に←→すると別ガチャを消費 | 確定時に現在ページを見る。確認中ロック無し | 確認時点の `_pending_pull_page` 固定＋確認中は矢印／再押下 disable |
 | 封蔵ヘッダが `Epic 55%%` | `rate_display_text` が `%%` なのに `%` フォーマット無し | 生 `%` を返す。詳細文だけ `% PULL_COST` |
-| 封蔵 Featured 防具が光柱／背景に透ける | 灰冠塗り抜け＋暗いバナー溶け＋紫オーラ | → **`asset-import.mdc`**（`fill_kaiwan_silhouette_dark`＋暗い石マット）。光柱オフ。明転／赤縁穴埋め禁止 |
+| 封蔵 Featured 防具が光柱／背景に透ける | 灰冠塗り抜け＋暗いバナー溶け＋紫オーラ | → **`asset-import.mdc`**（防具は縁硬化のみ。凸包／穴埋めでゴースト縁にしない＋暗い石マット）。光柱オフ。明転／赤縁穴埋め禁止 |
 | 調査受取後に派遣員が編成に戻らない／EXPパッシブ不発 | 開始時に外すだけ。受取・中止で復元なし。編成外だと `grant_exp` が本人パッシブ未適用 | `party_ids_before` 保存→cycleクリア後に復元してから EXP |
 | 調査員0人でサイクル開始 | `start_cycle` が空 assignees を許可 | 1人以上必須 |
 | 調査武器が派遣先外の全武器に落ちる | rarity 一致がプールに無いと全カタログへフォールバック | 空なら武器なし |
