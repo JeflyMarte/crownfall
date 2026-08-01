@@ -993,6 +993,8 @@ const TURN_ORDER_SIDE_GAP: float = 4.0
 const TURN_ORDER_SIDE_MARGIN: float = 6.0
 const TURN_ORDER_SIDE_TOP: float = 36.0
 const TURN_ORDER_BADGE_FONT_PX: int = 12
+## 行動順プレビューに出す最大枠数（CT 先頭から）。
+const TURN_ORDER_MAX_SLOTS: int = 5
 
 func _ready() -> void:
 	## 入場時は探索BGM。戦闘／ボス／影狩は部屋同期で切替。
@@ -9828,8 +9830,11 @@ func _update_turn_order_ui(order: Array) -> void:
 		_party_card_active_turn = -1
 		_update_party_cards_hp()
 		return
-	## 主人公／敵を CT 順どおり 1 列に並べる（右列は未使用）。
+	## 主人公／敵を CT 順どおり 1 列に並べる（右列は未使用）。先頭 TURN_ORDER_MAX_SLOTS 枠まで。
+	var shown: int = 0
 	for entry: Dictionary in order:
+		if shown >= TURN_ORDER_MAX_SLOTS:
+			break
 		var holder: PanelContainer = _make_turn_order_cell(entry)
 		_turn_order_col_left.add_child(holder)
 		_turn_order_items.append({
@@ -9839,6 +9844,7 @@ func _update_turn_order_ui(order: Array) -> void:
 			"frame": holder,
 			"baked_frame": bool(holder.get_meta("baked_enemy_frame", false)),
 		})
+		shown += 1
 	_turn_order_col_left.visible = _turn_order_col_left.get_child_count() > 0
 	_turn_order_col_right.visible = false
 	_layout_turn_order_columns()
