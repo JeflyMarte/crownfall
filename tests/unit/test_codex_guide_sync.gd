@@ -27,6 +27,12 @@ func test_guide_no_outdated_combat_or_gacha_copy() -> void:
 	assert_false(g016.contains("職共通パッシブを使う"), "助っ人も固有あり")
 	assert_true(g016.contains("招待状"), "招待状探索者の固有に言及")
 
+	var g018: String = str(by_id.get("COMBAT-G018", ""))
+	assert_false(g018.is_empty(), "パーティ連携の手引きがある")
+	assert_true(g018.contains("連携斬"), "連携斬を記載")
+	assert_true(g018.contains("追い込み"), "追い込みを記載")
+	assert_true(g018.contains("治癒連携"), "治癒連携を記載")
+
 	var eq001: String = str(by_id.get("EQUIP-G001", ""))
 	assert_false(eq001.contains("4 段階"), "神話を含む")
 	assert_true(eq001.contains("神話"), "神話帯を記載")
