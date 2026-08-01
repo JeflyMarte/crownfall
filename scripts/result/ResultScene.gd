@@ -40,9 +40,8 @@ const INFO_ICON_PX: int = 22
 const REWARD_CELL_WIDTH: int = 88
 const REWARD_ICON_PX: int = 72
 const MATERIAL_ICON_PX: int = 48
-## 入手装備グリッド（通常／★以上でサイズ差）。
+## 入手装備グリッド（レア度でサイズを分けない）。
 const DROP_EQUIP_ICON_PX: int = 72
-const DROP_EQUIP_ICON_PX_LEGENDARY: int = 88
 const DROP_EQUIP_CELL_WIDTH: int = 96
 const DROP_EQUIP_NAME_FS: int = 14
 
@@ -1307,18 +1306,15 @@ func _make_equipment_drop_cell(item_id: String, category: String, instance_id: S
 		"accessory":
 			item_name = DataRegistry.get_accessory_name(item_id)
 	var rarity: int = _equipment_rarity(item_id, category)
-	var icon_px: int = DROP_EQUIP_ICON_PX
-	if rarity >= Enums.Rarity.LEGENDARY:
-		icon_px = DROP_EQUIP_ICON_PX_LEGENDARY
 	var cell := VBoxContainer.new()
 	cell.custom_minimum_size = Vector2(DROP_EQUIP_CELL_WIDTH, 0)
 	cell.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	cell.add_theme_constant_override("separation", 4)
 	var icon_wrap := CenterContainer.new()
-	icon_wrap.custom_minimum_size = Vector2(icon_px, icon_px)
+	icon_wrap.custom_minimum_size = Vector2(DROP_EQUIP_ICON_PX, DROP_EQUIP_ICON_PX)
 	icon_wrap.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var icon_cell: Control = BlacksmithUiHelper.make_item_icon_cell(
-		item_id, category, rarity, icon_px, false, _drop_instance_for(category, instance_id)
+		item_id, category, rarity, DROP_EQUIP_ICON_PX, false, _drop_instance_for(category, instance_id)
 	)
 	icon_wrap.add_child(icon_cell)
 	cell.add_child(icon_wrap)
@@ -1332,12 +1328,6 @@ func _make_equipment_drop_cell(item_id: String, category: String, instance_id: S
 	name_label.add_theme_font_size_override("font_size", DROP_EQUIP_NAME_FS)
 	name_label.add_theme_color_override("font_color", BlacksmithUiHelper.rarity_name_color(rarity))
 	cell.add_child(name_label)
-	var rarity_label := Label.new()
-	rarity_label.text = EquipmentUiHelper.rarity_label_text(rarity)
-	rarity_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	rarity_label.add_theme_font_size_override("font_size", maxi(12, DROP_EQUIP_NAME_FS - 1))
-	rarity_label.add_theme_color_override("font_color", BlacksmithUiHelper.rarity_name_color(rarity))
-	cell.add_child(rarity_label)
 	## instance_id は将来タップ詳細用に保持（現状は表示のみ）。
 	cell.set_meta("drop_instance_id", instance_id)
 	cell.set_meta("drop_category", category)
