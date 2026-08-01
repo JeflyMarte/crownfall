@@ -6,8 +6,8 @@ extends RefCounted
 const RARITY_CODES: Array[String] = ["N", "R", "E", "L", "M", "エンシェントレア"]
 ## 装備セル左上のレアリティロゴ位置（N/R/E／L／M／エンシェント共通）。
 const RARITY_BADGE_POS: Vector2 = Vector2(5.0, 3.0)
-## 装備Lv（左下寄り・少し右上へ）。炉研ぎ +N は右下。
-const EQUIP_LEVEL_BADGE_POS: Vector2 = Vector2(7.0, -8.0)
+## 装備Lv（左下寄り・右上へオフセット）。炉研ぎ +N は右下。
+const EQUIP_LEVEL_BADGE_POS: Vector2 = Vector2(14.0, -14.0)
 const LEVEL_CAP: int = LevelSystem.MAX_LEVEL
 
 const SORT_LABELS: Dictionary = {
@@ -92,7 +92,7 @@ static func equip_level_badge_text(item: Resource) -> String:
 
 
 static func equip_level_badge_font_size(cell_height: float) -> int:
-	return maxi(12, int(cell_height * 0.18))
+	return maxi(10, int(cell_height * 0.14))
 
 
 ## 装備Lv を左下に表示（全レア共通）。炉研ぎ +N は右下のまま。
