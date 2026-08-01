@@ -37,6 +37,7 @@ const CARD_BORDER_W: int = 2
 const PORTRAIT_PX_HARD_MAX: int = 180
 
 ## StyleBox は mutate しない前提で共有キャッシュ（カード毎 new は編成画面の重さの主因）。
+static var _cached_portrait_chrome: StyleBoxFlat
 static var _cached_card_idle: StyleBoxFlat
 static var _cached_card_active: StyleBoxFlat
 static var _cached_card_leader: StyleBoxFlat
@@ -399,6 +400,7 @@ static func roster_bottom_bar_style() -> StyleBoxFlat:
 ## CHR 肖像（1254px 級）を固定枠に拘束する。選択・再レイアウトでも原寸へ逃げない。
 ## px は枠内描画辺。PORTRAIT_PX_HARD_MAX で絶対キャップ。
 ## resized で set_size しない（親レイアウトと闘って拡大連鎖の原因になる）。
+## 金枠オーバーレイ＋LINEAR: 焼き込み枠が細い／無い個体でも縁が消えない（ウォール等）。
 static func make_clamped_portrait(tex: Texture2D, px: int, fill_cover: bool = false) -> Control:
 	var side: int = clampi(px, 24, PORTRAIT_PX_HARD_MAX)
 	var host := Control.new()
@@ -415,11 +417,31 @@ static func make_clamped_portrait(tex: Texture2D, px: int, fill_cover: bool = fa
 		TextureRect.STRETCH_KEEP_ASPECT_COVERED if fill_cover
 		else TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	)
+	## NEAREST 縮小は細い焼き込み枠を落とす。
+	art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	art.custom_minimum_size = Vector2.ZERO
 	art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	host.add_child(art)
+	var chrome := Panel.new()
+	chrome.name = "PortraitChrome"
+	chrome.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	chrome.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	chrome.add_theme_stylebox_override("panel", _portrait_chrome_style())
+	host.add_child(chrome)
 	return host
+
+
+static func _portrait_chrome_style() -> StyleBoxFlat:
+	if _cached_portrait_chrome == null:
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color(0, 0, 0, 0)
+		style.draw_center = false
+		style.border_color = Color(0.82, 0.66, 0.28, 0.95)
+		style.set_border_width_all(2)
+		style.set_corner_radius_all(6)
+		_cached_portrait_chrome = style
+	return _cached_portrait_chrome
 
 
 static func portrait_hard_max_px() -> int:

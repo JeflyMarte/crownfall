@@ -16,6 +16,9 @@ func test_clamped_portrait_min_size_never_exceeds_hard_max() -> void:
 	assert_not_null(art)
 	assert_eq(art.expand_mode, TextureRect.EXPAND_IGNORE_SIZE)
 	assert_eq(art.mouse_filter, Control.MOUSE_FILTER_IGNORE)
+	assert_eq(art.texture_filter, CanvasItem.TEXTURE_FILTER_LINEAR)
+	var chrome := host.get_node_or_null("PortraitChrome") as Panel
+	assert_not_null(chrome)
 	host.free()
 
 
