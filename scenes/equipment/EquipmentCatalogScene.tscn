@@ -202,7 +202,8 @@ clip_contents = true
 [node name="DetailScroll" type="ScrollContainer" parent="MainVBox/DetailPanel"]
 custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
-horizontal_scroll_mode = 0
+clip_contents = true
+horizontal_scroll_mode = 3
 
 [node name="DetailVBox" type="VBoxContainer" parent="MainVBox/DetailPanel/DetailScroll"]
 layout_mode = 2

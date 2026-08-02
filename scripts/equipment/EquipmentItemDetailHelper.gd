@@ -38,6 +38,7 @@ static func short_name(item: Resource, category: String) -> String:
 
 
 ## 見出しフォントは ★ 欠落しやすいので、名前は Display・★は本文＋金で並べる。
+## タイトルは1行固定。HBox 内で AUTOWRAP＋SHRINK すると min幅0→1文字縦折れする。
 static func _add_item_title(parent: Node, item: Resource, category: String) -> void:
 	var full: String = short_name(item, category)
 	var star_suffix: String = _EquipmentRollHelper.perfect_roll_suffix(item)
@@ -47,7 +48,10 @@ static func _add_item_title(parent: Node, item: Resource, category: String) -> v
 	if star_suffix.is_empty():
 		var name_lbl := Label.new()
 		name_lbl.text = full
-		name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		name_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		name_lbl.clip_text = true
+		name_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		UiTypography.apply_display(name_lbl, UiTypography.SIZE_BODY_SMALL)
 		parent.add_child(name_lbl)
 		return
@@ -56,13 +60,18 @@ static func _add_item_title(parent: Node, item: Resource, category: String) -> v
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var name_lbl2 := Label.new()
 	name_lbl2.text = base_name
-	name_lbl2.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	name_lbl2.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	name_lbl2.autowrap_mode = TextServer.AUTOWRAP_OFF
+	name_lbl2.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_lbl2.clip_text = true
+	name_lbl2.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	UiTypography.apply_display(name_lbl2, UiTypography.SIZE_BODY_SMALL)
 	row.add_child(name_lbl2)
 	var star_lbl := Label.new()
 	star_lbl.text = star_suffix
 	star_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	star_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+	star_lbl.size_flags_horizontal = Control.SIZE_SHRINK_END
+	star_lbl.clip_text = false
 	UiTypography.apply_body(star_lbl, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	row.add_child(star_lbl)
 	parent.add_child(row)
