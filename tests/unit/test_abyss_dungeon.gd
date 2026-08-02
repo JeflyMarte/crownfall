@@ -168,6 +168,39 @@ func test_start_abyss_stage_keeps_endless_and_run_name() -> void:
 	assert_true(dc.last_abyss_weather_rerolled, "11F で天候再抽選")
 
 
+func test_abyss_weather_stable_within_10f_block() -> void:
+	## フロア途中（2〜10F）では天候 id を触らない。再抽選は 11F 境界のみ。
+	GameState.mark_dungeon_cleared("mourngate")
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	dc.start_stage("abyss_mourngate_1_1")
+	var weather0: String = str(GameState.get_weather())
+	for _i: int in range(9):
+		dc.advance_room()
+		assert_false(dc.last_abyss_weather_rerolled, "チャンク内で再抽選しない")
+		assert_false(dc.last_abyss_weather_changed)
+		assert_eq(str(GameState.get_weather()), weather0, "2〜10F は天候不変")
+	assert_eq(dc.get_display_floor_current(), 10)
+	dc.advance_room()
+	assert_eq(dc.get_display_floor_current(), 11)
+	assert_true(dc.last_abyss_weather_rerolled, "11F で再抽選実行")
+
+
+func test_main_run_weather_never_rerolls_on_advance() -> void:
+	## 本編は run 開始1回のみ（P3-D101-1）。advance で変えない。
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	dc.start_stage("mourngate_1_1")
+	var weather0: String = str(GameState.get_weather())
+	var floors: int = mini(5, dc.room_sequence.size() - 1)
+	for _i: int in range(floors):
+		dc.advance_room()
+		assert_false(dc.last_abyss_weather_rerolled)
+		assert_eq(str(GameState.get_weather()), weather0)
+
+
 func test_abyss_block_helpers_for_weather_and_bg() -> void:
 	assert_eq(_AbyssDungeonConfig.floor_block_index(1), 0)
 	assert_eq(_AbyssDungeonConfig.floor_block_index(10), 0)

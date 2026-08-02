@@ -507,6 +507,8 @@ var last_accessory_dropped: String = ""
 var last_relic_dropped: String = ""
 ## 深層: 直前 advance が 10F 境界で天候再抽選したか（Scene が VFX 更新に使う）。
 var last_abyss_weather_rerolled: bool = false
+## 再抽選の結果、天候 id が変わったか（同抽選ならログしない）。
+var last_abyss_weather_changed: bool = false
 var current_event: Dictionary = {}
 var run_damage_multiplier: float = 1.0
 ## 碑文加護: 次フロア（部屋）限定。kind = exp|gold|equip。
@@ -734,6 +736,7 @@ func set_policy(policy: int) -> void:
 
 func advance_room() -> void:
 	last_abyss_weather_rerolled = false
+	last_abyss_weather_changed = false
 	current_room_index += 1
 	_expire_floor_blessing_if_needed()
 	if current_room_index >= room_sequence.size():
@@ -848,6 +851,7 @@ func _extend_abyss_chunk() -> void:
 
 
 ## 深層のみ: 10F チャンク先頭で天候を再抽選（本編は run 開始1回のまま・P3-D101）。
+## 戻り値は境界で再抽選を実行したか。id 変化は last_abyss_weather_changed。
 func _maybe_reroll_abyss_block_weather() -> bool:
 	const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
 	if not _is_abyss_run():
@@ -855,7 +859,10 @@ func _maybe_reroll_abyss_block_weather() -> bool:
 	var floor_n: int = get_display_floor_current()
 	if floor_n <= 1 or not _AbyssDungeonConfig.is_block_start_floor(floor_n):
 		return false
-	GameState.set_weather(_roll_run_weather())
+	var prev: String = CombatWeather.normalize(GameState.get_weather())
+	var next: String = CombatWeather.normalize(_roll_run_weather())
+	GameState.set_weather(next)
+	last_abyss_weather_changed = prev != next
 	return true
 
 # ── 部屋列の生成 ─────────────────────────────────────────────

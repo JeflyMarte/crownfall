@@ -1196,20 +1196,29 @@ func _setup_weather() -> void:
 			heat_tw.tween_property(heat, "color:a", 0.20, 2.4).set_trans(Tween.TRANS_SINE)
 			heat_tw.tween_property(heat, "color:a", 0.10, 2.4).set_trans(Tween.TRANS_SINE)
 		CombatWeather.SNOW:
+			## 画面上半分くらいまで届く落下距離（旧 lifetime だと途中で消えて薄く見えた）。
+			var fall_depth: float = view.y * 0.52
+			var v_mid: float = 58.0
+			var g_y: float = 52.0
+			var disc: float = v_mid * v_mid + 2.0 * g_y * fall_depth
+			var life: float = (-v_mid + sqrt(maxf(0.0, disc))) / maxf(1.0, g_y)
 			var snow := CPUParticles2D.new()
 			snow.texture = _make_snowflake_texture()
-			snow.amount = 90
-			snow.lifetime = 2.4
+			snow.amount = 130
+			snow.lifetime = clampf(life * 1.08, 4.2, 8.0)
+			snow.preprocess = snow.lifetime * 0.75
 			snow.local_coords = false
 			snow.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
-			snow.emission_rect_extents = Vector2(view.x * 0.6, 2.0)
+			snow.emission_rect_extents = Vector2(view.x * 0.58, 2.0)
 			snow.position = Vector2(view.x * 0.5, -12.0)
 			snow.direction = Vector2(0.15, 1.0)
 			snow.spread = 18.0
-			snow.gravity = Vector2(8.0, 40.0)
-			snow.initial_velocity_min = 36.0
-			snow.initial_velocity_max = 72.0
-			snow.modulate = Color(0.92, 0.96, 1.0, 0.75)
+			snow.gravity = Vector2(10.0, g_y)
+			snow.initial_velocity_min = 46.0
+			snow.initial_velocity_max = 70.0
+			snow.scale_amount_min = 0.85
+			snow.scale_amount_max = 1.35
+			snow.modulate = Color(0.92, 0.96, 1.0, 0.78)
 			snow.emitting = true
 			layer.add_child(snow)
 
@@ -3529,11 +3538,13 @@ func _advance_to_next_room() -> void:
 	$DungeonController.advance_room()
 	if $DungeonController.last_abyss_weather_rerolled:
 		_refresh_weather()
-		var wid: String = GameState.get_weather()
-		if wid.is_empty():
-			_append_log("天候が変わった（晴れ）")
-		else:
-			_append_log("天候が変わった（%s）" % CombatWeather.label(wid))
+		## 同抽選で id が変わらないときはログしない（途中で変わったように見える誤認防止）。
+		if $DungeonController.last_abyss_weather_changed:
+			var wid: String = GameState.get_weather()
+			if wid.is_empty():
+				_append_log("天候が変わった（晴れ）")
+			else:
+				_append_log("天候が変わった（%s）" % CombatWeather.label(wid))
 	_enter_current_room()
 
 func _begin_combat_session() -> void:
