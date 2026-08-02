@@ -6789,3 +6789,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-HEAL-MOST-INJURED-001-3 | **トリガー据置** — エリアス=`on_combat_start`／セリン=`on_noncombat_enter` | 場面差は維持 |
 | P3-BAL-HEAL-MOST-INJURED-001-4 | **満タン時** — 欠損0なら未発動（名ポップなし） | 幽霊ヒール防止 |
 
+## 日課 Gold 底上げ＋宝箱 Gold（2026-08-02 — P3-BAL-DAILY-TREASURE-GOLD-001）
+
+> **オーナー GO** — 魔晶石据置。日課 Gold が薄すぎる。宝箱報酬も増やす。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-DAILY-TREASURE-GOLD-001-1 | **日課 Gold** — 分解120／強化・錬成150／撃破20=150／エリート180／クリア200／ボス250／生産100（石0→Gold付与）。魔晶石・素材は据置 | 約3〜4倍 |
+| P3-BAL-DAILY-TREASURE-GOLD-001-2 | **宝箱成功 Gold** — `TREASURE_GOLD` **40→120**。装飾35%・武器12%据置。失敗半額は連動 | 日課と同趣旨 |
+| P3-BAL-DAILY-TREASURE-GOLD-001-3 | **上書き** — P3-BAL-NONCOMBAT-001-3 の宝箱40G、および日課各 `.tres` 旧 Gold | 本 Decision が正 |
+| P3-BAL-DAILY-TREASURE-GOLD-001-4 | **スコープ外** — 泉／碑文 Gold・部屋重み・石付与変更 | 依頼範囲外 |
+

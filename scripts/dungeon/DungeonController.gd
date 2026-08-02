@@ -42,7 +42,8 @@ const ROOM_MIN_COMBAT: int = 3     # COMBAT最低数（肩慣らし含む / BOSS
 
 
 ## P3-BAL-NONCOMBAT-001
-const TREASURE_GOLD: int = 40
+## P3-BAL-DAILY-TREASURE-GOLD-001: 40 → 120（日課 Gold 底上げと同趣旨）
+const TREASURE_GOLD: int = 120
 const TREASURE_ACCESSORY_CHANCE: float = 0.35
 const TREASURE_WEAPON_CHANCE: float = BalanceConfig.TREASURE_WEAPON_CHANCE
 const ELITE_REWARD_MULTIPLIER: float = 1.5
