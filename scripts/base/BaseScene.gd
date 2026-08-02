@@ -650,6 +650,8 @@ func _on_field_survey_banner_input(event: InputEvent) -> void:
 func _apply_typography() -> void:
 	## 隊長名は本文フォント（可読優先）。装飾見出しだと誤読・溢れやすい。
 	UiTypography.apply_body(_label_player_name, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	_fit_player_name_font_to_width()
+	call_deferred("_fit_player_name_font_to_width")
 	UiTypography.apply_body(_label_player_level, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
 	HeaderCurrencyHelper.apply_to_row($HubView/TopBar/TopBarRow)
 	UiTypography.apply_display(_label_daily_title, UiTypography.SIZE_BODY_SMALL)
@@ -810,6 +812,20 @@ func _update_currency() -> void:
 	if token_chip != null:
 		token_chip.tooltip_text = ""
 
+func _fit_player_name_font_to_width() -> void:
+	# 隊長名(等級＋名前)が長いと PlayerCard／TopBar の幅を押し広げるため、
+	# フォントを縮めて名前行の実幅に収める（省略はしない）。
+	const MAX_FS: int = UiTypography.SIZE_BODY_SMALL
+	const MIN_FS: int = 12
+	var name_row: Control = _label_player_name.get_parent() as Control
+	var avail: float = 140.0
+	if name_row != null and name_row.size.x >= 20.0:
+		var reserved: float = 0.0
+		if _gift_badge != null and _gift_badge.visible:
+			reserved = _gift_badge.get_combined_minimum_size().x + 4.0
+		avail = maxf(48.0, name_row.size.x - reserved)
+	UiTypography.fit_label_font_to_width(_label_player_name, MAX_FS, MIN_FS, avail)
+
 func _update_player_card() -> void:
 	_CommanderProfile.ensure_commander()
 	var rank_text: String = _CommanderProfile.rank_display(false)
@@ -818,6 +834,8 @@ func _update_player_card() -> void:
 	_label_player_name.text = "%s %s" % [rank_text, commander_name]
 	_label_player_name.clip_text = false
 	_label_player_name.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	_fit_player_name_font_to_width()
+	call_deferred("_fit_player_name_font_to_width")
 	_label_player_level.text = ""
 	_label_player_level.visible = false
 	_ensure_rank_sp_bar()

@@ -541,6 +541,41 @@ func _configure_name_row() -> void:
 	_btn_member_list.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_btn_member_list.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
+func _fit_name_label_font_to_width() -> void:
+	# 長い名前(限界突破+表記込み)はフォントを下げて1行に収める（省略・改行せずタブ行を押し出さない）。
+	const MAX_FS: int = UiTypography.SIZE_BODY
+	const MIN_FS: int = 16
+	_label_name.add_theme_font_size_override("font_size", MAX_FS)
+	var text: String = _label_name.text
+	if text.is_empty():
+		return
+	var font: Font = _label_name.get_theme_font("font")
+	if font == null:
+		return
+	var avail: float = _name_label_available_width()
+	var fs: int = MAX_FS
+	while fs > MIN_FS:
+		var w: float = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		if w <= avail:
+			break
+		fs -= 1
+	_label_name.add_theme_font_size_override("font_size", fs)
+
+func _name_label_available_width() -> float:
+	var sep: float = 6.0
+	var name_row: Control = _label_name.get_parent() as Control
+	if name_row != null:
+		sep = float(name_row.get_theme_constant("separation", "HBoxContainer"))
+	var btn_w: float = 72.0
+	if _btn_member_list != null:
+		btn_w = maxf(btn_w, _btn_member_list.get_combined_minimum_size().x)
+	if name_row != null and name_row.size.x >= 40.0:
+		return maxf(64.0, name_row.size.x - btn_w - sep)
+	if _label_name.size.x >= 40.0:
+		return _label_name.size.x
+	# レイアウト前の安全値（viewport 内 CardRow 想定）。
+	return 160.0
+
 func _configure_job_label_one_line() -> void:
 	# 折返しすると InfoBox が高くなり、装備スロット／ステータスが下にずれる。
 	_label_job.clip_text = false
@@ -1083,6 +1118,8 @@ func _update_character_card() -> void:
 		return
 	_label_name.text = _GachaLimitBreak.format_member_name_plus(member)
 	_configure_name_row()
+	_fit_name_label_font_to_width()
+	call_deferred("_fit_name_label_font_to_width")
 	var job_name: String = RosterUiHelper.job_display_name(member)
 	_label_level.text = EquipmentUiHelper.level_line(int(member.level))
 	_label_job.text = job_name

@@ -158,6 +158,26 @@ static func apply_nav_button(button: BaseButton, size: int = SIZE_NAV) -> void:
 	button.add_theme_color_override("font_disabled_color", COLOR_LOCKED)
 	_apply_outline(button, OUTLINE_MENU)
 
+## 可変長テキスト(プレイヤー名・キャラ名等)がレイアウト幅を押し広げないよう、
+## 収まる範囲でフォントサイズを段階的に縮める（省略・改行はしない）。
+static func fit_label_font_to_width(
+	label: Label, max_size: int, min_size: int, avail_width: float
+) -> void:
+	label.add_theme_font_size_override("font_size", max_size)
+	var text: String = label.text
+	if text.is_empty():
+		return
+	var font: Font = label.get_theme_font("font")
+	if font == null:
+		return
+	var fs: int = max_size
+	while fs > min_size:
+		var w: float = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		if w <= avail_width:
+			break
+		fs -= 1
+	label.add_theme_font_size_override("font_size", fs)
+
 static func apply_log_rich(entry: RichTextLabel, size: int = SIZE_LOG, color: Color = COLOR_LOG) -> void:
 	var font: Font = body_font()
 	if font != null:
