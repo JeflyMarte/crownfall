@@ -2,7 +2,8 @@ class_name DebugFullUnlock
 extends RefCounted
 
 ## タイトル「デバッグ」用フル所持プリセット。
-## 金 999999 / 魔晶石 9999・全装備（武／防／装）・全キャラ LvMAX・図鑑全開放・進行解放。
+## 金 999999 / 魔晶石 9999・全装備（武／防／装）・武器LvMAX・全キャラ LvMAX・
+## 指揮官 S+99・図鑑全開放・進行解放。
 
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
@@ -12,6 +13,9 @@ const _GachaLimitBreak = preload("res://scripts/gacha/GachaLimitBreak.gd")
 const _CombatBossPhases = preload("res://scripts/combat/CombatBossPhases.gd")
 const _DiscoveryRegistry = preload("res://scripts/discovery/DiscoveryRegistry.gd")
 const _CatalogHelper = preload("res://scripts/codex/CatalogHelper.gd")
+const _CommanderProfile = preload("res://scripts/commander/CommanderProfile.gd")
+const _CommanderTitles = preload("res://scripts/commander/CommanderTitles.gd")
+const _CommanderPermitBoost = preload("res://scripts/commander/CommanderPermitBoost.gd")
 
 const DEBUG_GOLD: int = 999_999
 const DEBUG_GACHA_TOKEN: int = 9_999
@@ -19,6 +23,8 @@ const DEBUG_GACHA_TOKEN: int = 9_999
 ## 上限-1（+4）にして限界突破券を1枚試せる余地を残す。
 const DEBUG_HELPER_OWNED_COUNT: int = _GachaLimitBreak.MAX_BREAKTHROUGH
 const DEBUG_MATERIAL_QTY: int = 999
+## 指揮官等級（P3-CMD-RANK-SPLUS-001）。デバッグは S+99 固定。
+const DEBUG_COMMANDER_S_PLUS: int = 99
 
 
 ## 現在の GameState をデバッグ用フル所持へ上書きする。セーブは呼び出し側。
@@ -38,6 +44,7 @@ static func apply() -> void:
 	TicketInventory.grant_debug_stock(Constants.DEBUG_TICKET_GRANT_EACH)
 	_unlock_all_progress()
 	_unlock_all_codex()
+	_max_commander_rank()
 	var _PetSystem = preload("res://scripts/pets/PetSystem.gd")
 	_PetSystem.unlock_pet(_PetSystem.PET_ASH_ID, false)
 	_PetSystem.unlock_pet(_PetSystem.PET_INK_ID, false)
@@ -110,7 +117,8 @@ static func _grant_all_equipment() -> void:
 		inst.instance_id = "debug_wpn_%s_%d" % [wid, seq]
 		inst.weapon_id = wid
 		inst.is_appraised = true
-		inst.equip_level = 1
+		inst.equip_level = EquipmentEnhancer.EQUIP_MAX_LEVEL
+		inst.equip_exp = 0
 		_WeaponStatResolver.apply_drop_stats(inst, data)
 		GameState.inventory.append(inst)
 		_DiscoveryRegistry.register("weapon", wid)
@@ -152,6 +160,38 @@ static func _grant_all_equipment() -> void:
 		member.equipped_armor = null
 		member.equipped_accessory = null
 		GameState._grant_member_starting_weapon(member)
+	_max_all_weapon_levels()
+
+
+static func _max_all_weapon_levels() -> void:
+	for item: Variant in GameState.inventory:
+		_set_weapon_max_level(item as Resource)
+	for member: Variant in GameState.roster:
+		if member == null:
+			continue
+		_set_weapon_max_level((member as Resource).equipped_weapon)
+
+
+static func _set_weapon_max_level(item: Resource) -> void:
+	if item == null or not ("equip_level" in item):
+		return
+	item.equip_level = EquipmentEnhancer.EQUIP_MAX_LEVEL
+	if "equip_exp" in item:
+		item.equip_exp = 0
+
+
+static func _max_commander_rank() -> void:
+	_CommanderProfile.ensure_commander()
+	var code: String = "S+%d" % DEBUG_COMMANDER_S_PLUS
+	GameState.commander["acknowledged_rank"] = code
+	GameState.commander.erase("_ack_needs_bootstrap")
+	var rewarded: Array = ["C", "B", "A", "S"]
+	for n: int in range(1, DEBUG_COMMANDER_S_PLUS + 1):
+		rewarded.append("S+%d" % n)
+	GameState.commander["rank_reward_ranks"] = rewarded
+	GameState.commander["permit_points_earned"] = DEBUG_COMMANDER_S_PLUS
+	_CommanderPermitBoost.ensure()
+	_CommanderTitles.refresh_unlocks()
 
 
 ## 生産レシピ解放（P3-CRAFT-DISCOVER-001）。所持同期＋クラフト可能マスタ全解放。

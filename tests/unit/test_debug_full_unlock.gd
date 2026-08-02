@@ -56,6 +56,26 @@ func test_debug_full_unlock_max_levels_and_codex() -> void:
 	_DebugFullUnlock.apply()
 	for member in GameState.roster:
 		assert_eq(int(member.level), LevelSystem.MAX_LEVEL, str(member.id))
+	for item in GameState.inventory:
+		assert_eq(
+			int(item.equip_level),
+			EquipmentEnhancer.EQUIP_MAX_LEVEL,
+			str(item.weapon_id)
+		)
+	for member in GameState.roster:
+		if member == null or member.equipped_weapon == null:
+			continue
+		assert_eq(
+			int(member.equipped_weapon.equip_level),
+			EquipmentEnhancer.EQUIP_MAX_LEVEL,
+			str(member.id)
+		)
+	const _CommanderProfile = preload("res://scripts/commander/CommanderProfile.gd")
+	assert_eq(_CommanderProfile.current_rank(), "S+%d" % _DebugFullUnlock.DEBUG_COMMANDER_S_PLUS)
+	assert_eq(
+		int(GameState.commander.get("permit_points_earned", 0)),
+		_DebugFullUnlock.DEBUG_COMMANDER_S_PLUS
+	)
 	var enemies: Array = DataRegistry.get_all_enemy_data()
 	assert_gt(enemies.size(), 0)
 	for data in enemies:
