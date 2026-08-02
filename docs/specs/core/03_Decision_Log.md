@@ -6340,6 +6340,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-SURVEY-TIME-EXP-001-5 | **上書き** — `P3-SURVEY-DISPATCH-EXP-001-2`／`05_HubSurveyRoom` §10・§13 | 本 Decision が正 |
 | P3-BAL-SURVEY-TIME-EXP-001-6 | **SSOT** — `SurveyConfig.SHORT_DURATION_SEC`／`EXP_RATIO_*` | 数値の正 |
 
+## 調査室プリセット表示名（2026-08-02 — P3-UX-SURVEY-PRESET-NAME-001）
+
+> **オーナー GO（案C）** — 短調査／標準調査 → 簡易調査／本格調査。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-SURVEY-PRESET-NAME-001-1 | **表示名** — 短→**簡易調査**／標準→**本格調査** | 案C GO |
+| P3-UX-SURVEY-PRESET-NAME-001-2 | **内部 id** — `short`／`standard` 据置 | セーブ互換 |
+| P3-UX-SURVEY-PRESET-NAME-001-3 | **SSOT** — `SurveyConfig.DISPLAY_*`／`display_name_with_duration` | UI・手引き共通 |
+
 ## 装備中の効果3ページ（2026-08-02 — P3-UX-CHR-EFFECT-PAGES-001）
 
 > **オーナー GO（案A）** — キャラカード StatsGrid と同じ基本／特殊／詳細を、「装備中の効果」でも ◀▶ 切替。

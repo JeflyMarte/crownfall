@@ -21,7 +21,7 @@ func test_reference_trash_clear_exp_positive() -> void:
 
 
 func test_short_and_standard_pool_equal_full_ref() -> void:
-	## P3-BAL-SURVEY-TIME-EXP-001: 短・標準とも雑魚クリア相当 100%。
+	## P3-BAL-SURVEY-TIME-EXP-001: 簡易・本格とも雑魚クリア相当 100%。
 	var ref: int = _SurveySystem.reference_trash_clear_exp(Constants.MOURNGATE_DUNGEON_ID)
 	var short_p: int = _SurveySystem.dispatch_exp_pool(
 		Constants.MOURNGATE_DUNGEON_ID, _SurveyConfig.PRESET_SHORT
@@ -35,6 +35,12 @@ func test_short_and_standard_pool_equal_full_ref() -> void:
 	assert_eq(_SurveyConfig.EXP_RATIO_SHORT, 1.0)
 	assert_eq(_SurveyConfig.EXP_RATIO_STANDARD, 1.0)
 	assert_eq(_SurveyConfig.SHORT_DURATION_SEC, 60.0 * 60.0)
+	assert_eq(_SurveyConfig.display_name(_SurveyConfig.PRESET_SHORT), "簡易調査")
+	assert_eq(_SurveyConfig.display_name(_SurveyConfig.PRESET_STANDARD), "本格調査")
+	assert_eq(
+		_SurveyConfig.display_name_with_duration(_SurveyConfig.PRESET_SHORT),
+		"簡易調査（1時間）"
+	)
 
 
 func test_staff_only_grants_no_exp() -> void:

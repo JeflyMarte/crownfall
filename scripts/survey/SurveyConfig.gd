@@ -8,8 +8,11 @@ const SURVEY_COMPLETE_PERCENT: float = 100.0
 
 const PRESET_SHORT: String = "short"
 const PRESET_STANDARD: String = "standard"
+## 表示名（P3-UX-SURVEY-PRESET-NAME-001）。内部 id は short／standard 据置。
+const DISPLAY_SHORT: String = "簡易調査"
+const DISPLAY_STANDARD: String = "本格調査"
 
-## P3-BAL-SURVEY-TIME-EXP-001: 短 1 時間／標準 3 時間据置。
+## P3-BAL-SURVEY-TIME-EXP-001: 簡易 1 時間／本格 3 時間据置。
 const SHORT_DURATION_SEC: float = 60.0 * 60.0
 const STANDARD_DURATION_SEC: float = 3.0 * 60.0 * 60.0
 
@@ -127,6 +130,19 @@ static func duration_sec(preset: String) -> float:
 	if preset == PRESET_SHORT:
 		return SHORT_DURATION_SEC
 	return STANDARD_DURATION_SEC
+
+
+static func display_name(preset: String) -> String:
+	if preset == PRESET_SHORT:
+		return DISPLAY_SHORT
+	return DISPLAY_STANDARD
+
+
+## 例: 簡易調査（1時間）／本格調査（3時間）
+static func display_name_with_duration(preset: String) -> String:
+	if preset == PRESET_SHORT:
+		return "%s（1時間）" % DISPLAY_SHORT
+	return "%s（3時間）" % DISPLAY_STANDARD
 
 
 static func cycle_survey_add(preset: String) -> float:

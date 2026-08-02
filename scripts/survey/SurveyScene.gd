@@ -220,12 +220,12 @@ func _build_ui() -> void:
 	start_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	start_row.custom_minimum_size.x = 0.0
 	_btn_start_short = Button.new()
-	_btn_start_short.text = "短調査（1時間）"
+	_btn_start_short.text = _SurveyConfig.display_name_with_duration(_SurveyConfig.PRESET_SHORT)
 	_btn_start_short.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_btn_start_short.pressed.connect(func(): _on_start(_SurveyConfig.PRESET_SHORT))
 	start_row.add_child(_btn_start_short)
 	_btn_start_std = Button.new()
-	_btn_start_std.text = "標準調査（3時間）"
+	_btn_start_std.text = _SurveyConfig.display_name_with_duration(_SurveyConfig.PRESET_STANDARD)
 	_btn_start_std.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_btn_start_std.pressed.connect(func(): _on_start(_SurveyConfig.PRESET_STANDARD))
 	start_row.add_child(_btn_start_std)
@@ -1214,7 +1214,7 @@ func _reward_catalog_rows() -> Array[Dictionary]:
 	out.append({
 		"texture": _CurrencyHelper.get_icon_texture(),
 		"title": "魔晶石",
-		"chance": "%d%%（短 %d〜%d／標準 %d〜%d）" % [
+		"chance": "%d%%（簡易 %d〜%d／本格 %d〜%d）" % [
 			token_pct,
 			_SurveyConfig.TOKEN_SHORT_MIN,
 			_SurveyConfig.TOKEN_SHORT_MAX,
@@ -1230,7 +1230,7 @@ func _reward_catalog_rows() -> Array[Dictionary]:
 	out.append({
 		"texture": IconPaths.get_icon_texture("base_ore", "material"),
 		"title": "鍛冶素材（派遣先帯）",
-		"chance": "確定（短 2〜4／標準 5〜9）。帯で基礎鉱／遺跡結晶／蒼古／深層／王墓を重み抽選",
+		"chance": "確定（簡易 2〜4／本格 5〜9）。帯で基礎鉱／遺跡結晶／蒼古／深層／王墓を重み抽選",
 	})
 	var p1: int = int(round(_SurveyConfig.WEAPON_P_STAR1 * 100.0))
 	var p2: int = int(round(_SurveyConfig.WEAPON_P_STAR2 * 100.0))
@@ -1487,7 +1487,7 @@ func _on_start(preset: String) -> void:
 	var data: Resource = DataRegistry.get_dungeon_data(did)
 	var dg_name: String = str(data.display_name) if data != null else did
 	var kind: String = (
-		"短調査（1時間）" if preset == _SurveyConfig.PRESET_SHORT else "標準調査（3時間）"
+		_SurveyConfig.display_name_with_duration(preset)
 	)
 	_start_confirm.dialog_text = (
 		"調査を開始しますか？\n\n対象: %s\n種別: %s\n※配置した隊員は編成から外れます"
