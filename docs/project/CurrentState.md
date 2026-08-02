@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-08-02（**Note⑦下書き**: 作成日記⑦【状態異常・スキル・連携・必殺編】を `docs/devlog` に起稿。公開前にスクショ差し込み）
 2026-08-02（**戦術タブパース即死修正／統合＋main**: RichTextLabel に apply_body 禁止→apply_display_rich。要実機）
 2026-08-02（**P3-UX-TACTICS-LIST-001 GO／統合＋main**: 戦術タブ＝作戦保存削除・スキル同型の縦一覧選択。要実機）
 2026-08-02（**装備／隊長名フォント自動縮小／統合＋main**: 長い名前(限界突破+表記込み)でパッシブ／戦術タブが右にはみ出すバグを修正。装備画面キャラ名・TopBar隊長名をUiTypography.fit_label_font_to_widthで1行収める。要実機）
