@@ -2781,7 +2781,8 @@ func _make_skill_list_row(
 	row.add_theme_constant_override("separation", 8)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.custom_minimum_size = Vector2(0, float(SKILL_ROW_ICON_PX))
-	row.clip_contents = true
+	## 行全体を clip すると右端の装備ボタン文字が切れる。本文側だけ clip。
+	row.clip_contents = false
 	row.add_child(_skill_row_icon(skill_id, member))
 	var body: PanelContainer = _make_skill_row_body(
 		skill_id, skill_data, unlocked, req_lv, is_equipped
@@ -2794,9 +2795,10 @@ func _make_skill_list_row(
 	var equip_btn := Button.new()
 	equip_btn.text = "解除" if is_equipped else "装備"
 	## 右端固定幅。本文が長くてもボタン幅を奪わない。
-	equip_btn.custom_minimum_size = Vector2(PASSIVE_ROW_BTN_W, 36)
+	equip_btn.custom_minimum_size = Vector2(SKILL_ROW_BTN_W, 36)
 	equip_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	equip_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	equip_btn.clip_text = false
 	UiTypography.apply_menu_button(equip_btn, false)
 	## 満枠でも他スキルは装備可（toggle 側で置換）。未解放のみ不可。
 	equip_btn.disabled = not unlocked
@@ -2807,22 +2809,28 @@ func _make_skill_list_row(
 	var frame := PanelContainer.new()
 	frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	frame.custom_minimum_size.x = 0
-	frame.clip_contents = true
+	frame.clip_contents = false
 	frame.add_theme_stylebox_override("panel", _skill_row_frame_style(is_equipped))
 	frame.add_child(row)
 	return frame
 
 
-## 装備中スキルは金枠。未装備は透明枠（余白だけ揃え）。
+## 装備中スキルは金枠。未装備は透明枠（余白だけ揃え）。右余白で装備ボタンの見切れを防ぐ。
 func _skill_row_frame_style(is_equipped: bool) -> StyleBox:
-	if is_equipped:
-		return _framed_box(COLOR_GOLD, 2, Color(0.18, 0.14, 0.08, 0.55))
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0, 0, 0, 0)
-	sb.set_border_width_all(2)
-	sb.border_color = Color(0, 0, 0, 0)
+	if is_equipped:
+		sb.bg_color = Color(0.18, 0.14, 0.08, 0.55)
+		sb.set_border_width_all(2)
+		sb.border_color = COLOR_GOLD
+	else:
+		sb.bg_color = Color(0, 0, 0, 0)
+		sb.set_border_width_all(2)
+		sb.border_color = Color(0, 0, 0, 0)
 	sb.set_corner_radius_all(8)
-	sb.set_content_margin_all(4.0)
+	sb.content_margin_left = 6.0
+	sb.content_margin_top = 4.0
+	sb.content_margin_right = float(SKILL_ROW_RIGHT_INSET)
+	sb.content_margin_bottom = 4.0
 	return sb
 
 func _make_weapon_skill_list_row(member: Resource, weapon_skill: Dictionary) -> Control:
@@ -2832,7 +2840,7 @@ func _make_weapon_skill_list_row(member: Resource, weapon_skill: Dictionary) -> 
 	row.add_theme_constant_override("separation", 8)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.custom_minimum_size = Vector2(0, float(SKILL_ROW_ICON_PX))
-	row.clip_contents = true
+	row.clip_contents = false
 	row.add_child(_skill_row_icon(ws_sid, member))
 	var body := PanelContainer.new()
 	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -2877,7 +2885,7 @@ func _make_weapon_skill_list_row(member: Resource, weapon_skill: Dictionary) -> 
 	row.add_child(body)
 	var ws_tag := Label.new()
 	ws_tag.text = "自動"
-	ws_tag.custom_minimum_size = Vector2(PASSIVE_ROW_BTN_W, 36)
+	ws_tag.custom_minimum_size = Vector2(SKILL_ROW_BTN_W, 36)
 	ws_tag.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	ws_tag.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	ws_tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -2885,7 +2893,13 @@ func _make_weapon_skill_list_row(member: Resource, weapon_skill: Dictionary) -> 
 	ws_tag.add_theme_color_override("font_color", COLOR_SUB)
 	UiTypography.apply_caption(ws_tag)
 	row.add_child(ws_tag)
-	return row
+	var frame := PanelContainer.new()
+	frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	frame.custom_minimum_size.x = 0
+	frame.clip_contents = false
+	frame.add_theme_stylebox_override("panel", _skill_row_frame_style(false))
+	frame.add_child(row)
+	return frame
 
 func _skill_row_icon(skill_id: String, member: Resource) -> Control:
 	var icon: Control = _make_skill_icon(skill_id, member)
@@ -3132,6 +3146,10 @@ func _get_member_ultimate_skill_data(member: Resource) -> Resource:
 ## 一覧はスキル行と同尺。大アイコン＋多重 RTL はタッチスクロールを奪い重い。
 const PASSIVE_CARD_ICON_PX: int = 56
 const PASSIVE_ROW_BTN_W: int = 64
+## スキル行の装備／解除。2文字＋ボタン余白で 64 だと右端が見切れる。
+const SKILL_ROW_BTN_W: int = 76
+## スキル行フレーム右インセット（ボタンをパネル端から内側へ）。
+const SKILL_ROW_RIGHT_INSET: int = 14
 ## スキル一覧行など行向き UI 用の小アイコン尺。
 const SKILL_ROW_ICON_PX: int = 56
 var _passive_card_style: StyleBoxFlat = null
