@@ -569,6 +569,8 @@ func _refresh_nina_nav() -> void:
 	var had_notices: bool = not GameState.pending_nina_nav_notices.is_empty()
 	if _nina_nav.has_method("refresh_messages"):
 		_nina_nav.call("refresh_messages")
+	elif _nina_nav.has_method("refresh_survey_alert"):
+		_nina_nav.call("refresh_survey_alert")
 	if had_notices:
 		SaveManager.save_game()
 
