@@ -6800,3 +6800,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-DAILY-TREASURE-GOLD-001-3 | **上書き** — P3-BAL-NONCOMBAT-001-3 の宝箱40G、および日課各 `.tres` 旧 Gold | 本 Decision が正 |
 | P3-BAL-DAILY-TREASURE-GOLD-001-4 | **スコープ外** — 泉／碑文 Gold・部屋重み・石付与変更 | 依頼範囲外 |
 
+## モーンゲート・ノーマルのエリート護衛なし（2026-08-02 — P3-BAL-MOURN-N-ELITE-SOLO-001）
+
+> **オーナー指示** — ノーマルのモーンゲートはエリートの群れ無し。ウィスパーウッド以降は据置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-MOURN-N-ELITE-SOLO-001-1 | **対象** — `biome_index=1` かつ `TIER_NORMAL`（深層除外） | オーナー指定 |
+| P3-BAL-MOURN-N-ELITE-SOLO-001-2 | **効果** — ELITE 部屋の護衛を付けない（単体エリートのみ） | 「エリートの群れ」を抑止 |
+| P3-BAL-MOURN-N-ELITE-SOLO-001-3 | **据置** — 1-1〜1-3 ノーマルのエリート部屋無し／ウィスパーウッド以降の護衛／H・NM モーンゲート | 既存緩和と他章圧を壊さない |
+
