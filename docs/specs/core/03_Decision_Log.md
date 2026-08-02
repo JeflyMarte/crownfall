@@ -6443,6 +6443,18 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-FIELD-CODEX-OMIT-001-2 | **定義残置** — 文面・`EventSystem` API は残す（将来復帰可） | 破壊的削除を避ける |
 | P3-UX-FIELD-CODEX-OMIT-001-3 | **上書き** — `04_FieldSurveySlots` プール表の codex 行 | 本 Decision が正 |
 
+## 調査許可等級・厳格化＋豪華手当（2026-08-02 — P3-CMD-RANK-CURVE-003）
+
+> **オーナー GO（案A）** — 閾値引き上げ。到達手当を Gold＋魔晶石＋素材へ豪華化。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-CMD-RANK-CURVE-003-1 | **閾値** — D0 / C400 / B900 / A1500 / **S2200** | 終盤〜ハード寄りでS |
+| P3-CMD-RANK-CURVE-003-2 | **手当** — C:G800+石10／B:G2000+石25／A:G4000+石50+素材／S:G8000+石100+良素材 | 厳しさに見合う |
+| P3-CMD-RANK-CURVE-003-3 | **既存セーブ据置** — v3閾値到達分を下限に。`rank_curve_v4` 一度きり。ギフト再配布なし | 表示等級を下げない |
+| P3-CMD-RANK-CURVE-003-4 | **据置** — SP重み／称号枠／A記録詳細／TopBarバー | 閾値と手当のみ |
+| P3-CMD-RANK-CURVE-003-5 | **上書き** — `P3-CMD-RANK-CURVE-002-1` 閾値／`REWARD-001-3` の Gold のみ手当 | 本 Decision が正 |
+
 ## 必殺チャージ圧力（2026-08-02 — P3-BAL-ULTIMATE-PRESSURE-001）
 
 > **オーナー GO（推奨F＝案A）** — ELITE／BOSSのみ入場半減＋戦中×0.5。雑魚・基本係数・レリック据置。

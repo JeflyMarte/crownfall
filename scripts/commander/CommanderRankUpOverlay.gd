@@ -133,10 +133,10 @@ func _refresh_copy() -> void:
 	)
 	_subtitle_label.text = str(_CommanderProfile.RANK_SUBTITLES.get(_rank_code, ""))
 	UiTypography.apply_body(_subtitle_label, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
-	var gift_gold: int = _CommanderProfile.pending_rank_gift_gold(_rank_code)
-	if gift_gold > 0:
+	var gift_summary: String = _CommanderProfile.pending_rank_gift_summary(_rank_code)
+	if not gift_summary.is_empty():
 		_reward_label.visible = true
-		_reward_label.text = "配布ボックスへ ゴールド %d" % gift_gold
+		_reward_label.text = gift_summary
 		UiTypography.apply_body(_reward_label, UiTypography.SIZE_BODY_SMALL, Color(0.95, 0.82, 0.45))
 	else:
 		_reward_label.visible = false

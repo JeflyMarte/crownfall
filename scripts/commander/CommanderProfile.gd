@@ -11,13 +11,13 @@ const DEFAULT_NAME: String = _CommanderDefaults.DEFAULT_NAME
 
 const RANK_ORDER: Array[String] = ["D", "C", "B", "A", "S"]
 
-## 現行閾値（P3-CMD-RANK-CURVE-002 — 5-5前後でS）。
+## 現行閾値（P3-CMD-RANK-CURVE-003 案A — 終盤〜ハード寄りでS）。
 const RANK_THRESHOLDS: Dictionary = {
 	"D": 0,
-	"C": 300,
-	"B": 650,
-	"A": 1050,
-	"S": 1450,
+	"C": 400,
+	"B": 900,
+	"A": 1500,
+	"S": 2200,
 }
 
 ## 初版閾値（rank_curve_v2 移行の据置用）。
@@ -38,6 +38,15 @@ const RANK_THRESHOLDS_V2: Dictionary = {
 	"S": 2800,
 }
 
+## v3 閾値（P3-CMD-RANK-CURVE-002 / rank_curve_v4 移行の据置用）。
+const RANK_THRESHOLDS_V3: Dictionary = {
+	"D": 0,
+	"C": 300,
+	"B": 650,
+	"A": 1050,
+	"S": 1450,
+}
+
 const RANK_SUBTITLES: Dictionary = {
 	"D": "仮調査許可",
 	"C": "区域調査許可",
@@ -46,18 +55,30 @@ const RANK_SUBTITLES: Dictionary = {
 	"S": "広域調査許可",
 }
 
-## 到達時配布 Gold（配布ボックス経由・P3-CMD-RANK-REWARD-001-3）。
+## 到達時配布（配布ボックス経由・P3-CMD-RANK-CURVE-003）。
 const RANK_GIFT_GOLD: Dictionary = {
-	"C": 500,
-	"B": 1000,
-	"A": 1500,
-	"S": 3000,
+	"C": 800,
+	"B": 2000,
+	"A": 4000,
+	"S": 8000,
+}
+const RANK_GIFT_TOKEN: Dictionary = {
+	"C": 10,
+	"B": 25,
+	"A": 50,
+	"S": 100,
+}
+## 等級コード → { material_id: qty }
+const RANK_GIFT_MATERIALS: Dictionary = {
+	"A": {"base_ore": 20, "relic_shard": 15},
+	"S": {"base_ore": 40, "relic_shard": 30, "elite_relic_shard": 8},
 }
 
 const EXTENDED_RECORDS_UNLOCK_RANK: String = "A"
 const GOLD_SEAL_RANK: String = "S"
 const RANK_CURVE_FLAG: String = "rank_curve_v2"
 const RANK_CURVE_V3_FLAG: String = "rank_curve_v3"
+const RANK_CURVE_V4_FLAG: String = "rank_curve_v4"
 
 
 static func ensure_commander() -> void:
@@ -65,11 +86,13 @@ static func ensure_commander() -> void:
 		_sanitize_commander()
 		migrate_rank_curve_v2_if_needed()
 		migrate_rank_curve_v3_if_needed()
+		migrate_rank_curve_v4_if_needed()
 		return
 	GameState.commander = _CommanderDefaults.default_commander_dict()
 	_sanitize_commander()
 	migrate_rank_curve_v2_if_needed()
 	migrate_rank_curve_v3_if_needed()
+	migrate_rank_curve_v4_if_needed()
 
 
 static func get_commander_name() -> String:
@@ -196,9 +219,14 @@ static func migrate_rank_curve_v2_if_needed() -> void:
 	_migrate_rank_curve_if_needed(RANK_CURVE_FLAG, LEGACY_RANK_THRESHOLDS)
 
 
-## P3-CMD-RANK-CURVE-002: v2→現行。表示等級は下げない。
+## P3-CMD-RANK-CURVE-002: v2→v3。表示等級は下げない。
 static func migrate_rank_curve_v3_if_needed() -> void:
 	_migrate_rank_curve_if_needed(RANK_CURVE_V3_FLAG, RANK_THRESHOLDS_V2)
+
+
+## P3-CMD-RANK-CURVE-003: v3→現行。表示等級は下げない。
+static func migrate_rank_curve_v4_if_needed() -> void:
+	_migrate_rank_curve_if_needed(RANK_CURVE_V4_FLAG, RANK_THRESHOLDS_V3)
 
 
 static func _migrate_rank_curve_if_needed(flag_key: String, previous_thresholds: Dictionary) -> void:
@@ -311,11 +339,18 @@ static func _grant_rank_rewards_between(from_idx: int, to_idx: int) -> void:
 		if code in rewarded:
 			continue
 		var gold: int = int(RANK_GIFT_GOLD.get(code, 0))
-		if gold > 0:
+		var tokens: int = int(RANK_GIFT_TOKEN.get(code, 0))
+		var materials: Dictionary = {}
+		var raw_mats: Variant = RANK_GIFT_MATERIALS.get(code, {})
+		if raw_mats is Dictionary:
+			materials = (raw_mats as Dictionary).duplicate(true)
+		if gold > 0 or tokens > 0 or not materials.is_empty():
 			_CommanderGiftBox.enqueue({
 				"title": "%s級到達手当" % code,
 				"message": "調査許可等級が%s級に上がった祝いです。" % code,
 				"gold": gold,
+				"gacha_token": tokens,
+				"materials": materials,
 				"source": "rank_up",
 			})
 		rewarded.append(code)
@@ -324,25 +359,63 @@ static func _grant_rank_rewards_between(from_idx: int, to_idx: int) -> void:
 	_CommanderTitles.refresh_unlocks()
 
 
-## 未配布の到達手当 Gold 合計（祝辞表示用。ack〜到達の未付与分）。
+## 未配布の到達手当 Gold 合計（互換・合計表示用）。
 static func pending_rank_gift_gold(to_rank: String = "") -> int:
+	return int(_pending_rank_gift_totals(to_rank).get("gold", 0))
+
+
+## 祝辞用の到達手当要約（ack〜到達の未付与分）。
+static func pending_rank_gift_summary(to_rank: String = "") -> String:
+	var totals: Dictionary = _pending_rank_gift_totals(to_rank)
+	var parts: PackedStringArray = []
+	var gold: int = int(totals.get("gold", 0))
+	if gold > 0:
+		parts.append("ゴールド %d" % gold)
+	var tokens: int = int(totals.get("gacha_token", 0))
+	if tokens > 0:
+		parts.append("%s %d" % [CurrencyHelper.DISPLAY_NAME, tokens])
+	var mats: Variant = totals.get("materials", {})
+	if mats is Dictionary:
+		for mat_id: Variant in mats:
+			var qty: int = int((mats as Dictionary)[mat_id])
+			if qty <= 0:
+				continue
+			var mat_name: String = DataRegistry.get_material_name(str(mat_id))
+			if mat_name.is_empty():
+				mat_name = str(mat_id)
+			parts.append("%s ×%d" % [mat_name, qty])
+	if parts.is_empty():
+		return ""
+	return "配布ボックスへ %s" % " / ".join(parts)
+
+
+static func _pending_rank_gift_totals(to_rank: String = "") -> Dictionary:
 	ensure_commander()
 	var code: String = to_rank.strip_edges().to_upper() if not to_rank.is_empty() else current_rank()
 	var to_idx: int = RANK_ORDER.find(code)
+	var out: Dictionary = {"gold": 0, "gacha_token": 0, "materials": {}}
 	if to_idx < 0:
-		return 0
+		return out
 	var ack: String = str(GameState.commander.get("acknowledged_rank", "D")).strip_edges().to_upper()
 	var from_idx: int = RANK_ORDER.find(ack)
 	if from_idx < 0:
 		from_idx = 0
 	var rewarded: Array = _rank_reward_ranks()
-	var total: int = 0
+	var mats_total: Dictionary = {}
 	for i in range(from_idx + 1, to_idx + 1):
 		var rank_code: String = RANK_ORDER[i]
 		if rank_code in rewarded:
 			continue
-		total += int(RANK_GIFT_GOLD.get(rank_code, 0))
-	return total
+		out["gold"] = int(out["gold"]) + int(RANK_GIFT_GOLD.get(rank_code, 0))
+		out["gacha_token"] = int(out["gacha_token"]) + int(RANK_GIFT_TOKEN.get(rank_code, 0))
+		var raw_mats: Variant = RANK_GIFT_MATERIALS.get(rank_code, {})
+		if raw_mats is Dictionary:
+			for mat_id: Variant in raw_mats:
+				var qty: int = int((raw_mats as Dictionary)[mat_id])
+				if qty > 0:
+					mats_total[str(mat_id)] = int(mats_total.get(str(mat_id), 0)) + qty
+	out["materials"] = mats_total
+	return out
 
 
 static func get_equipped_title() -> String:

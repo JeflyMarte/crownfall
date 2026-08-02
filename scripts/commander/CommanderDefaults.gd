@@ -35,9 +35,10 @@ static func default_commander_dict() -> Dictionary:
 		"gift_box": [],
 		## 拠点ポップアップ表示済みの調査許可等級（P3-CMD-RANKUP-001）。
 		"acknowledged_rank": "D",
-		## 閾値改定済みセーブ（P3-CMD-RANK-REWARD-001 / P3-CMD-RANK-CURVE-002）。新規は true。
+		## 閾値改定済みセーブ（新規は全フラグ true）。
 		"rank_curve_v2": true,
 		"rank_curve_v3": true,
+		"rank_curve_v4": true,
 		## 到達ギフト配布済み等級コード（二重配布防止）。
 		"rank_reward_ranks": [],
 	}
