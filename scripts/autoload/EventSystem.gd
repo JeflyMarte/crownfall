@@ -131,17 +131,17 @@ func modifier_label(modifier_type: String) -> String:
 		MOD_NONE:
 			return "特記なし"
 		MOD_EXP:
-			return "経験値"
+			return "戦いの記録"
 		MOD_GOLD:
-			return "ゴールド"
+			return "補給の上乗せ"
 		MOD_WEAPON_DROP:
-			return "武器ドロップ率"
+			return "遺物の気配"
 		MOD_CODEX:
-			return "図鑑調査"
+			return "生態の記録"
 		MOD_FEATURED_BIOME:
-			return "注目区域報酬"
+			return "重点区域"
 		MOD_ELITE_MATERIAL:
-			return "エリート素材"
+			return "精錬の良品"
 		MOD_WEATHER:
 			return "天候"
 		MOD_WANDER_DUCK:
@@ -149,11 +149,11 @@ func modifier_label(modifier_type: String) -> String:
 		MOD_WANDER_RAVEN:
 			return "レイヴン目撃"
 		MOD_ENEMY_LEVEL:
-			return "敵レベル"
+			return "強敵の波"
 		MOD_SWARM:
-			return "群れ"
+			return "群れの季節"
 		MOD_ELITE_ROOMS:
-			return "エリート部屋"
+			return "精鋭の気配"
 		_:
 			return modifier_type
 

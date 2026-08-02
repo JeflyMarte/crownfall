@@ -6422,3 +6422,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-EQUIP-MAX-FILTER-001-3 | **範囲** — 今の武／防／飾タブ内。レリックは対象外 | レリックに MAX 行なし |
 | P3-UX-EQUIP-MAX-FILTER-001-4 | **SSOT** — `EquipmentRollHelper.has_any_perfect_roll`／`EQUIPPED_FILTER_LABELS.max` | 判定の正 |
 
+## ギルド情報誌・バナー文言（2026-08-02 — P3-UX-FIELD-BANNER-FLAVOR-001）
+
+> **オーナー GO** — 「エリート素材 ×1.2」等の機械バナーを世界観文へ。数値は effect_summary に残す。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-FIELD-BANNER-FLAVOR-001-1 | **バナー** — 物語＋効果の一言（倍率・「出現率↑」禁止） | 味気なさ解消 |
+| P3-UX-FIELD-BANNER-FLAVOR-001-2 | **詳細** — `effect_summary` に ×1.2 等を維持 | 可読な数値は詳細へ |
+| P3-UX-FIELD-BANNER-FLAVOR-001-3 | **短名** — `modifier_label` も同トーンへ | UI短表示の整合 |
+| P3-UX-FIELD-BANNER-FLAVOR-001-4 | **SSOT** — `EventWeekRotation.SLOT_DEFINITIONS.banner_desc` | 表示の正 |
+
