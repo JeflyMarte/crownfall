@@ -1775,6 +1775,9 @@ func _all_legendary_ids(category: String) -> Array[String]:
 		## 神話はレア度抽選に載せない（別枠）
 		if MythicLoot.is_mythic_id(item_id):
 			continue
+		## 灰冠の九は封蔵限定（Decision 28）。ダンジョンドロップに載せない。
+		if item_id.begins_with("kaiwan_"):
+			continue
 		if category == "weapon" and _AbyssLegendaryWeapons.is_abyss_legendary_id(item_id):
 			continue
 		if category == "weapon" and _EventExclusiveRewards.is_event_exclusive_weapon(item_id):
