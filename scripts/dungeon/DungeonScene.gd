@@ -730,6 +730,10 @@ var _trap_presentation_active: bool = false
 var _heal_presentation_active: bool = false
 var _treasure_presentation_active: bool = false
 var _event_presentation_active: bool = false
+## 非戦闘入場の回復パッシブ演出（野営の調合など）中。
+var _noncombat_enter_fx_active: bool = false
+## 直近バッチで出した回復演出回数（入場 hold 判定用）。
+var _heal_fx_batch_count: int = 0
 var _combat_clear_active: bool = false
 var _combat_cinematic_lock: bool = false
 ## true のときのみ combat_hit / combat_crit / combat_heal / combat_buff / combat_debuff を鳴らす（入場〜開始遅延中の幽霊音防止）。
@@ -3582,22 +3586,39 @@ func _enter_current_room() -> void:
 		_boss_sprite.visible = false
 		_hide_enemy_sprite()
 		_hide_chr_sprites()
-		## 入場パッシブ回復の VFX／数字は味方表示中に出す（非表示だと位置ゼロで消える）。
-		_begin_noncombat_party_feedback()
-		_fire_noncombat_enter_passives()
-		_end_noncombat_party_feedback()
-		match $DungeonController.current_room_type:
-			Enums.RoomType.HEAL:
-				_resolve_heal_room()
-			Enums.RoomType.TREASURE:
-				_resolve_treasure_room()
-			Enums.RoomType.EVENT:
-				_handle_event_room()
-			Enums.RoomType.TRAP:
-				_resolve_trap_room()
-			_:
-				_set_narrative(_get_room_type_name() + "の部屋に入った")
-				_finish_room_and_continue()
+		## 入場パッシブ回復は async（VFX＋数字が見えるまで hold）。
+		_enter_noncombat_room_async()
+		return
+	_update_enemy_label()
+	_update_status_labels()
+	_update_hp_bars()
+	_update_next_room_button()
+	_register_discoveries_for_room()
+
+
+func _enter_noncombat_room_async() -> void:
+	_noncombat_enter_fx_active = true
+	## 入場パッシブ回復の VFX／数字は味方表示中に出す（非表示だと位置ゼロで消える）。
+	_begin_noncombat_party_feedback()
+	var heal_n: int = _fire_noncombat_enter_passives()
+	if heal_n > 0:
+		await get_tree().create_timer(0.75 if not _fast_run_enabled else 0.4).timeout
+	if not is_inside_tree():
+		return
+	_end_noncombat_party_feedback()
+	_noncombat_enter_fx_active = false
+	match $DungeonController.current_room_type:
+		Enums.RoomType.HEAL:
+			_resolve_heal_room()
+		Enums.RoomType.TREASURE:
+			_resolve_treasure_room()
+		Enums.RoomType.EVENT:
+			_handle_event_room()
+		Enums.RoomType.TRAP:
+			_resolve_trap_room()
+		_:
+			_set_narrative(_get_room_type_name() + "の部屋に入った")
+			_finish_room_and_continue()
 	_update_enemy_label()
 	_update_status_labels()
 	_update_hp_bars()
@@ -3936,11 +3957,21 @@ func _apply_event_outcome(outcome: Dictionary) -> String:
 	match outcome.get("type", "nothing"):
 		"heal":
 			var amount: int = _apply_healing_bonus(outcome.get("amount", 5))
-			$CombatController.heal_party(amount)
+			$CombatController.ensure_party_hp_for_combat()
+			var heal_amounts: Dictionary = {}
+			for i: int in $CombatController.party_combat_hp.size():
+				if not $CombatController.is_member_alive(i):
+					continue
+				var healed: int = $CombatController.heal_member(i, amount)
+				if healed > 0:
+					heal_amounts[i] = healed
 			_begin_noncombat_party_feedback()
-			_play_heal_vfx()
+			_play_heal_room_vfx(heal_amounts)
 			_update_hp_bars()
-			return "パーティが%dHP回復した" % amount
+			var total: int = 0
+			for k in heal_amounts.keys():
+				total += int(heal_amounts[k])
+			return "パーティが%dHP回復した" % total
 		"gold":
 			var gold_amount: int = outcome.get("amount", 0)
 			$DungeonController.accumulate_rewards(0, gold_amount)
@@ -5302,11 +5333,7 @@ func _execute_member_heal(
 		_spawn_skill_name(
 			result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP, "", false, ""
 		)
-	if healed > 0:
-		_spawn_member_heal_vfx(target_idx)
-		if target_idx >= 0 and target_idx < _chr_sprites.size() and _chr_sprites[target_idx].visible:
-			var heal_pos: Vector2 = _chr_sprites[target_idx].global_position + Vector2(0.0, -CHR_BODY_TARGET_PX * 0.5)
-			_spawn_damage_number("+%d" % healed, heal_pos, HEAL_NUM_GREEN, 1.1)
+	_present_member_heal(target_idx, healed, 1.1, false)
 	return "\n【スキル】%s: %s を %d回復" % [result["display_name"], target_name, healed]
 
 # バフスキル: 生存中のメイン編成全員に apply_status_id（鼓舞=与ダメ上昇）を付与する。
@@ -7456,11 +7483,14 @@ func _fire_combat_start_passives() -> void:
 			_fire_member_passives(i, "on_combat_start")
 
 
-func _fire_noncombat_enter_passives() -> void:
+## 戻り値: 回復演出を出した回数（hold 判定用）。
+func _fire_noncombat_enter_passives() -> int:
 	$CombatController.ensure_party_hp_for_combat()
+	_heal_fx_batch_count = 0
 	for i: int in $CombatController.party_combat_hp.size():
 		if $CombatController.is_member_alive(i):
 			_fire_member_passives(i, "on_noncombat_enter")
+	return _heal_fx_batch_count
 
 
 func _living_exploration_damage_targets() -> Array[int]:
@@ -7630,8 +7660,7 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 					var amt_self: int = maxi(1, int(round(float(max_hp_self) * frac)))
 					var healed_self_frac: int = $CombatController.heal_member(member_idx, amt_self)
 					_update_hp_bars()
-					if healed_self_frac > 0:
-						_spawn_member_heal_vfx(member_idx)
+					_present_member_heal(member_idx, healed_self_frac)
 				else:
 					for i: int in $CombatController.party_combat_hp.size():
 						if not $CombatController.is_member_alive(i):
@@ -7641,8 +7670,7 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 							max_hp_i = int($CombatController.party_max_hp[i])
 						var amt_i: int = maxi(1, int(round(float(max_hp_i) * frac)))
 						var healed_i: int = $CombatController.heal_member(i, amt_i)
-						if healed_i > 0:
-							_spawn_member_heal_vfx(i)
+						_present_member_heal(i, healed_i)
 					_update_hp_bars()
 				applied = true
 			else:
@@ -7650,16 +7678,14 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 				if str(p.get("target", "party")) == "self":
 					var healed_self: int = $CombatController.heal_member(member_idx, amount)
 					_update_hp_bars()
-					if healed_self > 0:
-						_spawn_member_heal_vfx(member_idx)
+					_present_member_heal(member_idx, healed_self)
 				else:
-					## 個別 heal_member で実回復量を見て VFX/SE（満タン時の幽霊 SE 防止）。
+					## 個別 heal_member で実回復量を見て VFX/数字（満タン時の幽霊演出防止）。
 					for i: int in $CombatController.party_combat_hp.size():
 						if not $CombatController.is_member_alive(i):
 							continue
 						var healed_party: int = $CombatController.heal_member(i, amount)
-						if healed_party > 0:
-							_spawn_member_heal_vfx(i)
+						_present_member_heal(i, healed_party)
 					_update_hp_bars()
 				applied = true
 		"grant_party_incoming_mult":
@@ -8314,7 +8340,7 @@ func _update_combat_tier_frame() -> void:
 		_start_tier_frame_pulse()
 
 func _start_auto_progress() -> void:
-	if _is_paused or _dive_intro_active or _room_transition_busy or _boss_intro_active or _elite_intro_active or _heal_presentation_active or _treasure_presentation_active or _trap_presentation_active or _event_presentation_active or _combat_clear_active:
+	if _is_paused or _dive_intro_active or _room_transition_busy or _boss_intro_active or _elite_intro_active or _heal_presentation_active or _treasure_presentation_active or _trap_presentation_active or _event_presentation_active or _noncombat_enter_fx_active or _combat_clear_active:
 		if _is_paused:
 			_auto_progress_paused_remaining = _auto_delay
 		return
@@ -10527,11 +10553,7 @@ func _apply_ultimate_heal_impact(payload: Dictionary) -> void:
 	if healed > 0:
 		GameState.record_run_heal(member_idx, healed)
 	_set_heal_rally(target_idx)
-	if healed > 0:
-		_spawn_member_heal_vfx(target_idx)
-		if target_idx >= 0 and target_idx < _chr_sprites.size() and _chr_sprites[target_idx].visible:
-			var heal_pos: Vector2 = _chr_sprites[target_idx].global_position + Vector2(0.0, -CHR_BODY_TARGET_PX * 0.5)
-			_spawn_damage_number("+%d" % healed, heal_pos, HEAL_NUM_GREEN, 1.65)
+	_present_member_heal(target_idx, healed, 1.65, false)
 	_append_log(
 		"【必殺】"
 		+ ("\n【スキル】%s: %s を %d回復" % [display_name, target_name, healed]).trim_prefix("【スキル】")
@@ -11115,6 +11137,30 @@ func _flash_member_sprite(member_idx: int, flash_color: Color) -> void:
 	var tw: Tween = create_tween()
 	tw.tween_property(sprite, "modulate", flash_color, 0.08)
 	tw.tween_property(sprite, "modulate", orig, 0.22)
+
+## 緑 VFX＋緑 +N。パッシブ／スキル／必殺／イベントの共通入口。
+func _present_member_heal(
+	member_idx: int,
+	healed: int,
+	num_scale: float = 1.1,
+	skip_impact_feedback: bool = true
+) -> void:
+	if healed <= 0:
+		return
+	_heal_fx_batch_count += 1
+	_spawn_member_heal_vfx(member_idx)
+	var pos: Vector2 = _member_sprite_world_pos(member_idx)
+	if pos == Vector2.ZERO:
+		return
+	_spawn_damage_number(
+		"+%d" % healed,
+		pos + Vector2(0.0, -CHR_BODY_TARGET_PX * 0.45),
+		HEAL_NUM_GREEN,
+		num_scale,
+		healed,
+		skip_impact_feedback
+	)
+
 
 func _spawn_member_heal_vfx(member_idx: int) -> void:
 	## 戦闘入場パッシブ回復など、CT開始前は SE を鳴らさない（謎ヒット音の再発防止）。
