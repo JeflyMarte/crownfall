@@ -166,11 +166,22 @@ func test_nina_portrait_asset_exists() -> void:
 	assert_gte(tex.get_width(), 256)
 	assert_gte(tex.get_height(), 256)
 	assert_eq(tex.get_width(), tex.get_height())
-	## 手引き羊皮紙に透けないよう、顔中心は完全不透明であること。
+	## 手引き羊皮紙に透けないよう、顔中心〜中央帯は完全不透明であること。
 	var img: Image = tex.get_image()
 	assert_true(img != null)
 	var center: Color = img.get_pixel(img.get_width() / 2, img.get_height() / 2)
 	assert_gte(center.a, 0.99, "Nina ICO center alpha should be opaque")
+	var semi_in_core: int = 0
+	var x0: int = int(float(img.get_width()) * 0.35)
+	var x1: int = int(float(img.get_width()) * 0.65)
+	var y0: int = int(float(img.get_height()) * 0.35)
+	var y1: int = int(float(img.get_height()) * 0.65)
+	for y in range(y0, y1):
+		for x in range(x0, x1):
+			var a: float = img.get_pixel(x, y).a
+			if a > 0.04 and a < 0.99:
+				semi_in_core += 1
+	assert_eq(semi_in_core, 0, "Nina ICO core must not be semi-transparent")
 	## 拠点ナビは旧 128px ドット。
 	var dot: Texture2D = load("res://assets/npc/ICO_NPC_Nina_Dot.png") as Texture2D
 	assert_true(dot != null)
