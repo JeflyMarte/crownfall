@@ -232,6 +232,12 @@ layout_mode = 2
 theme_override_constants/separation = 10
 alignment = 2
 
+[node name="LabelFeaturedAbyssBest" type="Label" parent="MainColumn/FeaturedPanel/FeaturedVBox/FeaturedActionRow"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 4
+text = "最高到達 F0"
+
 [node name="BtnFeaturedSelect" type="Button" parent="MainColumn/FeaturedPanel/FeaturedVBox/FeaturedActionRow"]
 layout_mode = 2
 custom_minimum_size = Vector2(132, 40)

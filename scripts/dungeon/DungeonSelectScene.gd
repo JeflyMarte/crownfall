@@ -184,6 +184,7 @@ const DROP_PREVIEW: Dictionary = {
 @onready var _label_featured_discovery: Label = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo/LabelFeaturedDiscovery
 @onready var _featured_drop_row: HBoxContainer = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedDropRow
 @onready var _btn_featured_select: Button = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedActionRow/BtnFeaturedSelect
+@onready var _label_featured_abyss_best: Label = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedActionRow/LabelFeaturedAbyssBest
 @onready var _btn_route_main: Button = $MainColumn/RouteTabsRow/ButtonMainRoute
 @onready var _btn_route_sub: Button = $MainColumn/RouteTabsRow/ButtonSubDungeon
 @onready var _btn_route_event: Button = $MainColumn/RouteTabsRow/ButtonEventDungeon
@@ -494,6 +495,7 @@ func _apply_typography() -> void:
 	_label_featured_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_body(_label_featured_flavor, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	UiTypography.apply_body(_label_featured_meta, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
+	UiTypography.apply_body(_label_featured_abyss_best, UiTypography.SIZE_CAPTION, COLOR_ABYSS_BEST)
 	UiTypography.apply_body(_label_featured_discovery, UiTypography.SIZE_BODY_SMALL, COLOR_CLEAR)
 	UiTypography.apply_body(_label_bonus_value, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	UiTypography.apply_caption(_label_bonus_timer)
@@ -1166,6 +1168,15 @@ func _refresh_featured() -> void:
 	else:
 		meta_parts.append("？")
 	_label_featured_meta.text = " · ".join(meta_parts)
+
+	var abyss_best_f: int = (
+		GameState.get_abyss_highest_floor(_featured_dungeon_id)
+		if unlocked_featured and str(data.route_type) == "abyss"
+		else 0
+	)
+	_label_featured_abyss_best.visible = abyss_best_f > 0
+	if abyss_best_f > 0:
+		_label_featured_abyss_best.text = "最高到達 F%d" % abyss_best_f
 
 	if unlocked_featured:
 		var discovery_pct: int = _discovery_percent(_featured_dungeon_id)
