@@ -6526,6 +6526,17 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-HEAL-MAXHP-001-2 | **治癒 20%／大治癒 32%／グランドエリクサー 16%（全体）** | 推奨帯の中央 |
 | P3-BAL-HEAL-MAXHP-001-3 | **SSOT** — tres の power＋`BalanceConfig.HEAL_FRAC_*`／`42_HealMaxHpFraction.md` | 数値の正 |
 
+## BT／RG 支援回復（2026-08-02 — P3-BAL-HEAL-BT-RG-001）
+
+> **オーナー GO** — BT・RGのみ。VG/SW/ALは足さない。全体回復はALのみ。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-HEAL-BT-RG-001-1 | **BT** — Lv50=`beast_vet_care`（最傷・人12%／オトモ18%・CD7.5／詠唱1） | 相棒ケア |
+| P3-BAL-HEAL-BT-RG-001-2 | **RG** — Lv50=`camp_draught`（自己12%・CD9.5／詠唱0） | 後衛粘り |
+| P3-BAL-HEAL-BT-RG-001-3 | **差し替え** — `apex_tame`／`apex_shot` を習得外（tres残置） | 7本キット維持 |
+| P3-BAL-HEAL-BT-RG-001-4 | **SSOT** — `decisions/43_BtRgSupportHeal.md` | 数値の正 |
+
 ## メイン x-5 フロア数統一（2026-08-02 — P3-DG-STG-FLOOR-001）
 
 > **オーナー GO（案A）** — 序盤ボス章10Fに対し中盤が8〜9Fで歪んでいたため、**全帯 x-5 を 10F** に揃える。
@@ -6535,4 +6546,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-STG-FLOOR-001-1 | **対象** — `mistfen_3_5` 8→**10**、`blackshore_4_5` 9→**10** | 実装の SSOT ずれ修復 |
 | P3-DG-STG-FLOOR-001-2 | **据置** — ①②⑤の x-5=10、非ボス章の floor | 山場のみ是正 |
 | P3-DG-STG-FLOOR-001-3 | **再確認** — `P3-DG-STG-002-3`（全 Biome x-5=10）が正 | 設計どおり |
+
+## ロックバイソン出現再抑制（2026-08-02 — P3-BAL-ROCK-BISON-SPAWN-002）
+
+> **オーナー指示** — まだ出過ぎ。全体の出現率をさらに下げる。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-ROCK-BISON-SPAWN-002-1 | **`spawn_weight_mult` 0.4→0.2** | 帯内抽選をさらに半減 |
+| P3-BAL-ROCK-BISON-SPAWN-002-2 | **据置** — 全非イベント pool・群れ1〜2・素材率×1.75・岩角専任・境界廊二重 | 補給／降臨の役割は残す |
+| P3-BAL-ROCK-BISON-SPAWN-002-3 | **上書き** — `001-1` の 0.4 | 本 Decision が正 |
 

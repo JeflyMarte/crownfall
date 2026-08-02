@@ -23,7 +23,7 @@ func test_rock_bison_data_shape() -> void:
 	assert_eq(int(data.swarm_max), 2)
 	assert_eq(int(data.codex_danger), 2)
 	assert_almost_eq(float(data.material_drop_chance_mult), 1.75, 0.0001)
-	assert_almost_eq(float(data.spawn_weight_mult), 0.4, 0.0001)
+	assert_almost_eq(float(data.spawn_weight_mult), 0.2, 0.0001)
 	assert_true(data.codex_materials.is_empty())
 
 
@@ -75,7 +75,7 @@ func test_rock_bison_dedicated_art() -> void:
 
 
 func test_rock_bison_spawn_weight_thins_mistfen_d2() -> void:
-	## D2= bone_picker(1.0) + rock_bison(0.4) → バイソン ≈22%（旧50%）。全体≈11%（旧25%）。
+	## D2= bone_picker(1.0) + rock_bison(0.2) → 帯内≈17%。全体≈8%（旧0.4時≈11%）。
 	seed(424242)
 	var dc: Node = _DungeonController.new()
 	add_child_autofree(dc)
@@ -88,6 +88,6 @@ func test_rock_bison_spawn_weight_thins_mistfen_d2() -> void:
 			bison += 1
 	var ratio: float = float(bison) / float(total)
 	assert_true(
-		ratio > 0.06 and ratio < 0.18,
-		"mistfen_3_1 bison ~11%% after weight 0.4 (got %.2f)" % ratio
+		ratio > 0.04 and ratio < 0.14,
+		"mistfen_3_1 bison ~8%% after weight 0.2 (got %.2f)" % ratio
 	)
