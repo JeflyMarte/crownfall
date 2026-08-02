@@ -81,6 +81,7 @@ alwaysApply: false
 | 必殺回復が金／碑文即消／泉数字無し／宝箱単色 | 色・フェード・味方非表示 | → **`14_Presentation_Pitfalls.md`** |
 | 調査室で進行中調査を止められない | cancel API／ボタン無し | `SurveySystem.cancel_cycle`＋調査中のみ「調査を中止」（完了後は受取必須・報酬なし） |
 | 調査室のニーナだけ低解像ドットで不自然 | `ICO_NPC_Nina.png` が PixelLab 128px ドットのまま（パス連携済みだが中身が SPR 相当） | ICO は Downloads「ニーナアイコン」（黒マット透過・ノノカと同系）。表示は `TEXTURE_FILTER_LINEAR`＋COVERED。拠点ナビ顔は `ICO_NPC_Nina_Dot`（NEAREST）。ドット立ちは `SPR_NPC_Nina` |
+| ニーナ手引きの顔が羊皮紙に透ける | `ICO_NPC_Nina.png` 本体ピクセルの alpha が ≈254（全体が薄い） | 本体は alpha=255 に硬化（角のソフト縁のみ透過可）。`test_hub_nina_nav` で中心不透明を検証 |
 | 状態異常アイコンが「？」 | `bleed`/`slow`/`enrage` が `STATUS_ICON_DEF`・`IconPaths` 欠落 | DEF＋ICO_STA_*＋IconPaths を追加。`empower_minor` は empower 流用 |
 | 戦闘速度が ×0.75 のまま／設定と不一致 | `SPEED_MULT_NORMAL=0.75` と設定の不一致 | ×1／×1.5／×2 の3択に統一。旧 ×0.75 は ×1 へ |
 | レジェンド武器が落ちても気づかない | 通常装備と同じ小アイコンのみで SE／テロップ無し | ★以上は `legendary_drop` SE＋フラッシュ＋テロップ＋大きめアイコン（P3-EQ-LEG-DROP-001） |
