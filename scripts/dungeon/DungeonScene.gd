@@ -711,6 +711,7 @@ const JobStatCalculatorScript: Script = preload("res://scripts/equipment/JobStat
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 const _WanderingEnemyConfig = preload("res://scripts/dungeon/WanderingEnemyConfig.gd")
 const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd")
+const _CommanderPermitBoost = preload("res://scripts/commander/CommanderPermitBoost.gd")
 const _AbyssWeaponEffects = preload("res://scripts/combat/AbyssWeaponEffects.gd")
 const _EnemyResistTelop = preload("res://scripts/combat/EnemyResistTelop.gd")
 ## T10 沈黙（スキル／必殺封じ）秒数。
@@ -7557,6 +7558,7 @@ func _roll_enhancement_material_drops(
 	)
 	if codex_boost:
 		chance = minf(chance * CODEX_INVESTIGATION_MATERIAL_MULT, 1.0)
+	chance = minf(chance * _CommanderPermitBoost.material_mult(), 1.0)
 	if randf() > chance:
 		return
 	var amount: int = _apply_material_bonus(1)

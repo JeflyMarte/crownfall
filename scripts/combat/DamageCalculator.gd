@@ -4,6 +4,7 @@ extends RefCounted
 const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _ArmorStatResolver = preload("res://scripts/equipment/ArmorStatResolver.gd")
 const _AccessoryStatResolver = preload("res://scripts/equipment/AccessoryStatResolver.gd")
+const _CommanderPermitBoost = preload("res://scripts/commander/CommanderPermitBoost.gd")
 
 ## ダメージ計算コア（P3-REF-001 — DungeonScene から分離）。
 ## シーンノードへ依存しない静的関数群。CombatController / DungeonData は引数で受け取り、
@@ -323,6 +324,7 @@ static func enemy_damage_to_member(
 		if acc_data != null:
 			defense += EquipmentEnhancer.effective_accessory_int_bonus(acc, "defense_bonus", acc_data)
 	defense += int(AffixStatCalculator.get_bonuses(target_index).get("defense_flat", 0))
+	defense += _CommanderPermitBoost.defense_flat()
 	## オトモは party_members 外の combatant。index 範囲を party に限定すると DEF0 になる。
 	if target_index >= 0:
 		var member: Resource = GameState.get_combatant(target_index)
