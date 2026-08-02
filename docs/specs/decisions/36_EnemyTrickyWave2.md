@@ -55,9 +55,24 @@ T1〜T7 に加え、読みの違う特性をスポット配置で追加する。
 
 ---
 
-## 5. スコープ外
+## 5. 横展開案A（`P3-BAL-ENEMY-TRICKY-008`・2026-08-02 GO）
 
-- 全雑魚横展開
+章あたり +2〜3。エンジン追加なし。スポット据置。
+
+| 章 | 敵 | タイプ |
+|---|---|---|
+| ① | `sepia_hound` | T11 吸血 |
+| ② | `moss_boar` / `iron_horn` / `rune_carcinos` | T8 召集／T14 加速／T6 通常軽減 |
+| ③ | `dead_poison_frog` / `spore_needle_wasp` / `bone_picker` | T1 状態／T4 自爆／T5 逃走 |
+| ④ | `ship_eater_crab` / `ninja_octopus` | T3 味方バフ／T7 スキル軽減 |
+| ⑤ | `storm_joe` / `oldrex` / `frost_claw_raptor` | T10 沈黙／T2 回復／T14 加速 |
+
+---
+
+## 6. スコープ外
+
+- 全雑魚一律付与（案C）
 - 分身ダミー（報酬なし）
 - Gold／アイテム奪取
 - 沈黙のパーティ全体付与
+- ボス位相の書き換え
