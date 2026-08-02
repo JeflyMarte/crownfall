@@ -1107,6 +1107,16 @@ func _ready() -> void:
 	_begin_dungeon_dive_intro()
 
 # 天候の可視化（P3-D101）。HUD ラベル併記＋procedural オーバーレイ（新規アセット無し）。
+## 深層は 10F ごとに再抽選するため、差し替え時は旧レイヤを外す。
+func _refresh_weather() -> void:
+	var old: Node = get_node_or_null("WeatherLayer")
+	if old != null:
+		old.name = "WeatherLayer_old"
+		old.queue_free()
+	_field_legend_signature = ""
+	_setup_weather()
+
+
 func _setup_weather() -> void:
 	var weather: String = GameState.get_weather()
 	if weather.is_empty():
@@ -3496,6 +3506,13 @@ func _on_next_room_pressed() -> void:
 
 func _advance_to_next_room() -> void:
 	$DungeonController.advance_room()
+	if $DungeonController.last_abyss_weather_rerolled:
+		_refresh_weather()
+		var wid: String = GameState.get_weather()
+		if wid.is_empty():
+			_append_log("天候が変わった（晴れ）")
+		else:
+			_append_log("天候が変わった（%s）" % CombatWeather.label(wid))
 	_enter_current_room()
 
 func _begin_combat_session() -> void:
@@ -11759,21 +11776,43 @@ func _dungeon_env_obj_path(dungeon_id: String, room_type: int) -> String:
 		return EXIT_OBJ_MAP.get(dungeon_id, EXIT_OBJ_MAP[fallback_id])
 	return ""
 
+func _dungeon_battle_bg_lookup_id(dungeon_id: String) -> String:
+	const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
+	if _AbyssDungeonConfig.is_abyss_dungeon_id(dungeon_id):
+		var parent: String = _AbyssDungeonConfig.parent_biome_id(dungeon_id)
+		if not parent.is_empty():
+			return parent
+	return dungeon_id
+
+
 func _dungeon_battle_bg_path(dungeon_id: String) -> String:
 	var fallback_id: String = Constants.MOURNGATE_DUNGEON_ID
-	var late_path: String = str(BATTLE_BG_MAP.get(dungeon_id, BATTLE_BG_MAP[fallback_id]))
+	var lookup_id: String = _dungeon_battle_bg_lookup_id(dungeon_id)
+	var late_path: String = str(BATTLE_BG_MAP.get(lookup_id, BATTLE_BG_MAP[fallback_id]))
 	## ⑤ x-5 ボス戦のみラスボス専用背景（Hard/NM 含む）。
 	if (
 		$DungeonController.current_room_type == Enums.RoomType.BOSS
-		and _uses_final_boss_battle_bg(dungeon_id)
+		and _uses_final_boss_battle_bg(lookup_id)
 	):
 		if ResourceLoader.exists(BATTLE_BG_FINAL_BOSS) or FileAccess.file_exists(BATTLE_BG_FINAL_BOSS):
 			return BATTLE_BG_FINAL_BOSS
+	const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
+	## 深層: 親 Biome の Early/Late を 10F ごとに入替（1–10=1、11–20=2…）。
+	if _AbyssDungeonConfig.is_abyss_dungeon_id(dungeon_id):
+		var floor_n: int = $DungeonController.get_display_floor_current()
+		if _AbyssDungeonConfig.uses_early_battle_bg_for_floor(floor_n):
+			var abyss_early: String = str(BATTLE_BG_EARLY_MAP.get(lookup_id, ""))
+			if (
+				not abyss_early.is_empty()
+				and (ResourceLoader.exists(abyss_early) or FileAccess.file_exists(abyss_early))
+			):
+				return abyss_early
+		return late_path
 	var chapter: int = 0
 	if $DungeonController.current_stage_data != null:
 		chapter = int($DungeonController.current_stage_data.chapter_index)
 	if chapter >= 1 and chapter <= BATTLE_BG_EARLY_CHAPTER_MAX:
-		var early_path: String = str(BATTLE_BG_EARLY_MAP.get(dungeon_id, ""))
+		var early_path: String = str(BATTLE_BG_EARLY_MAP.get(lookup_id, ""))
 		if (
 			not early_path.is_empty()
 			and (ResourceLoader.exists(early_path) or FileAccess.file_exists(early_path))
@@ -11821,12 +11860,13 @@ func _update_room_art() -> void:
 	if $DungeonController.current_dungeon_data != null:
 		dungeon_id = $DungeonController.current_dungeon_data.id
 	var fallback_id: String = Constants.MOURNGATE_DUNGEON_ID
+	var art_id: String = _dungeon_battle_bg_lookup_id(dungeon_id)
 	var battle_bg_path: String = _dungeon_battle_bg_path(dungeon_id)
 	_set_room_texture(_bg_texture, battle_bg_path)
 	if _uses_phase_bg(room_type):
 		_set_non_combat_phase_bg(_phase_bg_setup_path(room_type))
 	elif room_type in _FLOOR_ROOM_TYPES:
-		var floor_path: String = FLOOR_TILE_MAP.get(dungeon_id, FLOOR_TILE_MAP[fallback_id])
+		var floor_path: String = FLOOR_TILE_MAP.get(art_id, FLOOR_TILE_MAP[fallback_id])
 		if floor_path.is_empty() or not ResourceLoader.exists(floor_path):
 			_room_tile_bg.visible = false
 			_room_tile_bg.texture = null
@@ -11837,7 +11877,7 @@ func _update_room_art() -> void:
 		_room_tile_bg.texture = null
 	var obj_path: String = ""
 	if not _uses_phase_bg(room_type) and room_type != Enums.RoomType.EXIT:
-		obj_path = _dungeon_env_obj_path(dungeon_id, room_type)
+		obj_path = _dungeon_env_obj_path(art_id, room_type)
 	_apply_room_object_layout(room_type)
 	_set_room_texture(_room_object, obj_path)
 

@@ -154,6 +154,7 @@ func test_start_abyss_stage_keeps_endless_and_run_name() -> void:
 	assert_eq(dc.room_sequence.size(), 10)
 	assert_false(Enums.RoomType.BOSS in dc.room_sequence)
 	assert_eq(dc.get_run_display_name(), "1-1 虚脈の深廊")
+	assert_eq(dc.get_display_floor_text(), "1F/??")
 	## チャンク最終Fでも結果画面判定にしない（10Fで追い出されるバグ再発防止）。
 	dc.current_room_index = dc.room_sequence.size() - 1
 	assert_true(dc.is_on_last_floor())
@@ -163,6 +164,22 @@ func test_start_abyss_stage_keeps_endless_and_run_name() -> void:
 	assert_false(dc.is_completed)
 	assert_gt(dc.room_sequence.size(), 10)
 	assert_eq(GameState.get_stage_progress_label("abyss_mourngate"), "")
+	assert_eq(dc.get_display_floor_text(), "11F/??")
+	assert_true(dc.last_abyss_weather_rerolled, "11F で天候再抽選")
+
+
+func test_abyss_block_helpers_for_weather_and_bg() -> void:
+	assert_eq(_AbyssDungeonConfig.floor_block_index(1), 0)
+	assert_eq(_AbyssDungeonConfig.floor_block_index(10), 0)
+	assert_eq(_AbyssDungeonConfig.floor_block_index(11), 1)
+	assert_eq(_AbyssDungeonConfig.floor_block_index(21), 2)
+	assert_true(_AbyssDungeonConfig.is_block_start_floor(1))
+	assert_true(_AbyssDungeonConfig.is_block_start_floor(11))
+	assert_false(_AbyssDungeonConfig.is_block_start_floor(10))
+	assert_true(_AbyssDungeonConfig.uses_early_battle_bg_for_floor(1))
+	assert_true(_AbyssDungeonConfig.uses_early_battle_bg_for_floor(10))
+	assert_false(_AbyssDungeonConfig.uses_early_battle_bg_for_floor(11))
+	assert_true(_AbyssDungeonConfig.uses_early_battle_bg_for_floor(21))
 
 
 func test_abyss_select_meta_hides_fixed_floor_and_rec_level() -> void:

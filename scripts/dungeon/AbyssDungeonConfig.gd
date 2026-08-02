@@ -54,6 +54,22 @@ static func parent_biome_id(abyss_id: String) -> String:
 	return str(PARENT_BIOME_BY_ABYSS.get(abyss_id, ""))
 
 
+## 10F チャンク番号（0始まり）。1–10→0、11–20→1 …
+static func floor_block_index(floor_1based: int) -> int:
+	return int((maxi(1, floor_1based) - 1) / CHUNK_FLOORS)
+
+
+## チャンク先頭階（1, 11, 21…）。天候再抽選の境界。
+static func is_block_start_floor(floor_1based: int) -> bool:
+	var f: int = maxi(1, floor_1based)
+	return ((f - 1) % CHUNK_FLOORS) == 0
+
+
+## 偶数チャンク=Early（背景1）、奇数=Late（背景2）。
+static func uses_early_battle_bg_for_floor(floor_1based: int) -> bool:
+	return (floor_block_index(floor_1based) % 2) == 0
+
+
 ## 表示階（1始まり）→ 合成ティア（セレクトの Hard/NM とは独立）。
 static func synthetic_tier_for_floor(floor_1based: int) -> int:
 	var f: int = maxi(1, floor_1based)

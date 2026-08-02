@@ -1338,6 +1338,7 @@
 | P3-D101-3 | **配線（既存中央フックに相乗り）**: 属性/全体与ダメ→`DungeonScene._apply_enemy_mitigation`（地形の隣・`CombatWeather.element_multiplier×outgoing_multiplier`・ログ `[天候:◯]`）。被ダメ→`CombatController.get_member_incoming_damage_multiplier`（`GameState.get_weather()` 参照） | D098/D099 と同じ相乗り方式。散在回避・味方攻撃/被弾の既存経路に統合 |
 | P3-D101-4 | **可視化＝HUD 併記＋procedural オーバーレイ（新規アセット0）**。ダンジョン名に〔天候〕併記＋開始ナラティブ。`DungeonScene._setup_weather`: 夜=暗青 ColorRect / 霧=薄灰 ColorRect の alpha ドリフト(Tween) / 雨=`CPUParticles2D`（生成した 2×14 雨粒 ImageTexture・上端から落下）。全て MOUSE_FILTER_IGNORE・低 alpha で可読性維持 | アニメーション要望に対応しつつアセット追加ゼロ。CanvasLayer(layer3)で UI を阻害しない |
 | P3-D101-5 | **スコープ外**: 増水/落石・フロアごとの天候変化・敵側への天候補正・天候別 VFX/BGM 作り込み・ダンジョン選択での事前表示（開始時抽選のため不可） | MVP最小化 |
+| P3-D101-6 | **深層例外（2026-08-02・オーナーGO）** — 無限のみ **10F チャンク先頭で天候再抽選**（親 Biome 重み）。本編は P3-D101-1 据置。表示は `xF/??`。戦闘BGは親 Early/Late を 10F ごとに入替 | 無限の長ラン向け変化。`AbyssDungeonConfig.CHUNK_FLOORS` |
 
 ## AIターゲット選択 — パーティ・フォーカス方針 MVP（2026-06-30 — P3-D100）
 

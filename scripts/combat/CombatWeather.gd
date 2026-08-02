@@ -2,7 +2,8 @@ class_name CombatWeather
 extends RefCounted
 
 ## 天候（環境変化・P3-D101 / P3-WEATHER-W1-A-001 / P3-WEATHER-BIOME-BIAS-001）。
-## run 開始時に1つ抽選し DG 中は不変（敵Lv/地形と同じ扱い）。
+## 本編: run 開始時に1つ抽選し DG 中は不変。
+## 深層（無限）: 10F チャンク先頭で再抽選（親 Biome 重み）。
 ## 効果は戦闘の中央フックに相乗りする:
 ##   属性補正（attack_element 別の与ダメ倍率）/ 全体の与ダメ・被ダメ倍率
 ## 数値・属性 id は ElementResolver(thunder/fire/ice/dark/holy 等) に準拠する。
