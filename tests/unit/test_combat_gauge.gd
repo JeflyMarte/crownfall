@@ -1,6 +1,6 @@
 extends GutTest
 
-## P3-COMBAT-GAUGE-001 / P3-BAL-ULTIMATE-TIME-001 — 装備1本・必殺時間チャージ。
+## P3-COMBAT-GAUGE-001 / P3-BAL-ULTIMATE-TIME-001 / P3-BAL-SKILL-CD-TIME-001 — 装備1本・必殺／スキル時間。
 
 const _SkillExecutor = preload("res://scripts/combat/SkillExecutor.gd")
 
@@ -29,6 +29,25 @@ func test_toggle_replaces_when_full() -> void:
 	GameState.toggle_member_skill(adv, "rend_slash")
 	assert_eq(adv.equipped_skill_ids.size(), 1)
 	assert_eq(str(adv.equipped_skill_ids[0]), "rend_slash")
+
+
+func test_equipped_skill_cooldown_ticks_over_realtime() -> void:
+	var ex = _SkillExecutor.new()
+	var skill: Resource = DataRegistry.get_skill_data("slash_attack")
+	if skill == null:
+		skill = DataRegistry.get_skill_data("rend_slash")
+	assert_not_null(skill, "sample equipped skill should exist")
+	assert_ne(str(skill.slot_type), "ultimate")
+	var key: String = "0:%s" % str(skill.id)
+	var result: Dictionary = ex.execute_damage_skill(skill, 100, false, 1.5, 1.0, key, 1.0)
+	assert_true(bool(result.get("executed", false)))
+	var max_cd: float = float(skill.cooldown)
+	assert_gt(max_cd, 0.0)
+	assert_almost_eq(ex.get_cooldown_remaining(key), max_cd, 0.05)
+	ex.tick(max_cd * 0.5)
+	assert_almost_eq(ex.get_cooldown_remaining(key), max_cd * 0.5, 0.05)
+	ex.tick(max_cd)
+	assert_true(ex.can_cast(skill, key))
 
 
 func test_ultimate_skill_executor_skips_cooldown() -> void:

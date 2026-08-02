@@ -79,7 +79,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 - 浮動ダメージ数字: `DamageNumbers`（CanvasLayer layer=10）上に `_spawn_damage_number()` が Label を動的生成
 - `DiscoveryToastLayer`（CanvasLayer layer=20）— Codex 初見トースト（P3-UI2-015）
 - `HeaderBar` — CT プレビュー（P3-D084）・x1/x2/pause・**周回トグル**（クリア済み DG のみ・P3-D118）
-- 戦闘ロジック配線（`DungeonScene.gd`）— CT/ATB・5 スロット戦術（P3-D084〜086）・Threat/陣形（P3-D104/106）・混成/個別ターゲット（P3-D110/111）・詠唱（P3-D112）・スキルローテ（P3-D113）・遺物トリガ（P3-D114）・連携（P3-D115）・ボスフェーズ（P3-D116）・探索スキル（P3-D117）・戦闘スキップ（P3-D118）・**必殺＝時間チャージ＋下ゲージ2段（P3-COMBAT-GAUGE-001／P3-BAL-ULTIMATE-TIME-001）**・**必殺カットイン（P3-UX-ULTIMATE-002）**
+- 戦闘ロジック配線（`DungeonScene.gd`）— CT/ATB・5 スロット戦術（P3-D084〜086）・Threat/陣形（P3-D104/106）・混成/個別ターゲット（P3-D110/111）・詠唱（P3-D112）・スキルローテ（P3-D113）・遺物トリガ（P3-D114）・連携（P3-D115）・ボスフェーズ（P3-D116）・探索スキル（P3-D117）・戦闘スキップ（P3-D118）・**必殺＝時間チャージ＋下ゲージ2段（P3-COMBAT-GAUGE-001／P3-BAL-ULTIMATE-TIME-001）**・**スキルCD＝戦闘クロック（P3-BAL-SKILL-CD-TIME-001／`55_SkillCdRealtime`）**・**必殺カットイン（P3-UX-ULTIMATE-002）**
 
 - 状態異常アイコン: ルート直下 HBox（敵 + Chr0〜2 + 群れ行）— HP バー上に追従（P3-UI2-013 / P3-D110 群れ行）。`StatusResolver.get_active_status_list()`
 

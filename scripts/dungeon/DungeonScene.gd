@@ -977,7 +977,6 @@ const COMBAT_OVERLAY_Z: int = 25
 const PARTY_CARD_ICON_PX: float = 72.0
 const PARTY_CARD_HP_HEIGHT: float = 14.0
 const PARTY_CARD_CD_HEIGHT: float = 11.0
-const SKILL_CD_LERP_RATE: float = 14.0
 const PARTY_CARD_HP_FILL: Color = Color("#41D16A")
 const PARTY_CARD_SKILL_CD_READY: Color = Color(0.42, 0.98, 0.58, 1.0)
 const PARTY_CARD_SKILL_CD_WAIT: Color = Color(1.0, 0.78, 0.28, 1.0)
@@ -1268,12 +1267,14 @@ func _process(delta: float) -> void:
 		_request_scroll_to_bottom = false
 		_battle_log_scroll.scroll_vertical = _battle_log_scroll.get_v_scroll_bar().max_value
 	if $DungeonController.is_combat_room():
-		_update_party_skill_cd_bars_smooth(delta)
-		## 必殺＝戦闘時間チャージ（P3-BAL-ULTIMATE-TIME-001）。一時停止中は進まない。
+		## 必殺／スキルCD＝戦闘クロック（P3-BAL-ULTIMATE-TIME-001／P3-BAL-SKILL-CD-TIME-001）。
+		## 一時停止中は進まない。ゲージ更新は tick 後。
 		if $CombatController.is_in_combat and not _is_paused:
 			var spd: float = _combat_speed_mult if _combat_speed_mult > 0.0 else 1.0
 			$CombatController.tick_ultimate_charge_over_time(delta * spd)
+			_skill_executor.tick(delta * spd)
 			_tick_relic_combat_regen(delta * spd)
+		_update_party_skill_cd_bars_smooth(delta)
 		_update_chr_hp_bar_positions()
 
 func _set_narrative(text: String) -> void:
@@ -4844,8 +4845,8 @@ func _trap_feedback_world_pos(member_idx: int) -> Vector2:
 # ---- Combat timer ----
 
 # P3-D084: CT/ATB 制。CombatTimer の 1 パルス＝CT クロックを次の行動者まで進め、
-# その 1 体だけが行動する。速いユニットほど CT が早く溜まり多く動く。スキルCDは進行した
-# CT 量で、状態異常は一定 CT（CT_PER_STATUS_TICK）ごとに 1 tick 進める。
+# その 1 体だけが行動する。速いユニットほど CT が早く溜まり多く動く。
+# スキルCDは戦闘クロック（P3-BAL-SKILL-CD-TIME-001）。状態異常は一定 CT ごとに 1 tick。
 # 同期実行（await無し）のため再入は起きないが、安全のため _round_active を残す。
 const CT_PER_STATUS_TICK: float = 2.0
 var _ct_status_accum: float = 0.0
@@ -4897,9 +4898,8 @@ func _run_combat_step() -> void:
 	var actor: Dictionary = $CombatController.advance_to_next_actor()
 	var delta: float = $CombatController.consume_last_ct_step()
 	_last_ct_step_ui = delta
-	# スキルCD・パッシブCDは進行した CT 量だけ進める
+	# パッシブCDは進行 CT。スキルCDは戦闘クロック（_process）で進める。
 	if delta > 0.0:
-		_skill_executor.tick(delta)
 		_tick_passive_cd(delta)
 	# 状態異常（DoT/バフ等）は一定 CT ごとに 1 tick
 	_ct_status_accum += delta
@@ -10583,13 +10583,9 @@ func _party_card_skill_cd_info(member_idx: int, skill_slot: int) -> Dictionary:
 		"has_skill": true,
 	}
 
-func _update_party_skill_cd_bars_smooth(delta: float) -> void:
+func _update_party_skill_cd_bars_smooth(_delta: float) -> void:
 	if not $DungeonController.is_combat_room():
 		return
-	var ct_rate: float = 0.0
-	if not $CombatTimer.is_stopped() and $CombatTimer.wait_time > 0.0 and _last_ct_step_ui > 0.0:
-		ct_rate = _last_ct_step_ui / $CombatTimer.wait_time
-	var blend: float = minf(1.0, SKILL_CD_LERP_RATE * delta)
 	for i in _party_card_skill_cd_bars.size():
 		if i >= $CombatController.party_max_hp.size():
 			continue
@@ -10614,18 +10610,12 @@ func _update_party_skill_cd_bars_smooth(delta: float) -> void:
 						bar.value = 1.0
 					_style_party_card_skill_cd_bar(bar, true)
 				else:
+					## 戦闘クロックで CD が減るため、残り秒から直接 0→1 を出す（必殺ゲージと同型）。
 					var max_cd: float = float(info.get("max_cd", 1.0))
-					var actual_rem: float = _skill_executor.get_cooldown_remaining(cd_key)
-					var visual_rem: float = float(_skill_cd_visual_rem.get(cd_key, actual_rem))
-					if actual_rem > visual_rem + 0.05:
-						visual_rem = actual_rem
-					elif actual_rem + 0.05 < visual_rem and ct_rate > 0.0:
-						visual_rem = maxf(actual_rem, visual_rem - ct_rate * delta)
-					else:
-						visual_rem = lerpf(visual_rem, actual_rem, blend)
-					_skill_cd_visual_rem[cd_key] = visual_rem
-					var ready: bool = visual_rem <= 0.05
-					var next_value: float = 1.0 if ready else clampf(1.0 - visual_rem / maxf(max_cd, 0.001), 0.0, 1.0)
+					var rem: float = _skill_executor.get_cooldown_remaining(cd_key)
+					_skill_cd_visual_rem[cd_key] = rem
+					var ready: bool = rem <= 0.05
+					var next_value: float = 1.0 if ready else clampf(1.0 - rem / maxf(max_cd, 0.001), 0.0, 1.0)
 					if absf(bar.value - next_value) > 0.0005:
 						bar.value = next_value
 					_style_party_card_skill_cd_bar(bar, ready)
