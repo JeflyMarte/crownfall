@@ -9,10 +9,12 @@ Expected filenames:
   UI_Equip_InvCell_R.png
   UI_Equip_InvCell_SR.png
   UI_Equip_InvCell_SSR.png
+  UI_Equip_InvCell_RELIC.png
 
 Usage:
   python3 tools/import_equipment_inv_cell_frames.py
   python3 tools/import_equipment_inv_cell_frames.py --only R
+  python3 tools/import_equipment_inv_cell_frames.py --only RELIC
 """
 from __future__ import annotations
 
@@ -27,7 +29,7 @@ ROOT = Path(__file__).resolve().parents[1]
 WIP = ROOT / "assets/ui/equipment_ui/_wip"
 OUT = ROOT / "assets/ui/equipment_ui"
 TARGET_PX = 144
-LABELS = ("N", "R", "SR", "SSR")
+LABELS = ("N", "R", "SR", "SSR", "RELIC")
 
 
 def _is_background_pixel(

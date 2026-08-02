@@ -95,6 +95,8 @@ const INV_CELLS: Array[String] = [
 	ROOT + "UI_Equip_InvCell_MYTHIC.png",
 	ROOT + "UI_Equip_InvCell_SET.png", # SET（エンシェントレア）— 緑枠
 ]
+## レリック専用枠（レア枠とは別アセット。装備一覧／装備スロット共通）。
+const INV_CELL_RELIC: String = ROOT + "UI_Equip_InvCell_RELIC.png"
 
 const CATEGORY_MIN_SIZE: Vector2 = Vector2(64, 76)
 ## 装備カード左の正面 Idle ドット（台座上・モック構図）。
@@ -383,6 +385,23 @@ static func inv_cell_style(rarity: int, highlight: bool = false, cell_px: int = 
 
 static func rarity_slot_style(rarity: int, highlight: bool, cell_px: int = INV_CELL_DESIGN_PX) -> StyleBox:
 	return _rarity_cell_style(rarity, highlight, cell_px)
+
+## レリック所持セル／装備スロット用。EPIC 紫枠の代用ではなく専用フレーム。
+static func relic_cell_style(highlight: bool = false, cell_px: int = INV_CELL_DESIGN_PX) -> StyleBox:
+	var cache_key: String = "relic_%d_%d" % [1 if highlight else 0, cell_px]
+	if _rarity_cell_style_cache.has(cache_key):
+		return _rarity_cell_style_cache[cache_key] as StyleBox
+	var content_margin: float = scaled_content_margin(INV_CELL_DESIGN_PX, cell_px, 4.0)
+	var sb_tex: StyleBoxTexture = texture_stylebox(INV_CELL_RELIC, INV_CELL_MARGINS, content_margin)
+	var out: StyleBox
+	if sb_tex.texture != null:
+		sb_tex.modulate_color = Color(1.12, 1.10, 1.05, 1.0) if highlight else Color.WHITE
+		out = sb_tex
+	else:
+		## アセット欠落時のみ旧 EPIC 枠へフォールバック。
+		out = _rarity_cell_style(Enums.Rarity.EPIC, highlight, cell_px)
+	_rarity_cell_style_cache[cache_key] = out
+	return out
 
 static func _rarity_cell_style(rarity: int, highlight: bool, cell_px: int = INV_CELL_DESIGN_PX) -> StyleBox:
 	var cache_key: String = "%d_%d_%d" % [clampi(rarity, 0, 99), 1 if highlight else 0, cell_px]
