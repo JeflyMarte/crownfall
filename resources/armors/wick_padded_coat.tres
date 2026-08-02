@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ArmorData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ArmorData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+armor_id = "wick_padded_coat"
+display_name = "芯綿の巡衣"
+description = "綿を芯に入れた巡察用の上着。防刃より体温と衝撃の緩和を優先する。"
+base_defense = 40
+base_hp_bonus = 176
+base_resistance = 0.0
+resist_elements = Array[String](["dark"])
+weight = 0.75
+rarity = 0

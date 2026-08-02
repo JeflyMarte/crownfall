@@ -21,7 +21,7 @@ route_type = "side"
 event_room_weight = 25
 min_event_rooms = 1
 weapon_pool = Array[String](["iron_sword", "rusted_blade", "hunting_bow", "apprentice_staff", "heater_blade", "frost_blade", "bolt_knife", "ember_fang", "ash_twin_blades", "ward_patrol_bow", "chalk_rod"])
-armor_pool = Array[String](["leather_armor", "bone_armor", "crypt_weave_cloak", "sepia_hide_vest", "lament_guard_mail"])
-accessory_pool = Array[String](["silver_ring", "mourngate_sigil", "pilgrim_lantern_charm"])
+armor_pool = Array[String](["leather_armor", "bone_armor", "crypt_weave_cloak", "sepia_hide_vest", "lament_guard_mail", "wick_padded_coat"])
+accessory_pool = Array[String](["silver_ring", "mourngate_sigil", "pilgrim_lantern_charm", "copper_bell_ring", "ashvault_pendant"])
 flavor_text = "崩落した王都アステリアの外郭を踏む短編寄り道。
 地表の廃墟で装備を整え、地下モーンゲートへ降り立つ足場となる。"
