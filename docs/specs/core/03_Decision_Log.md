@@ -6834,3 +6834,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-FORGE-GOLD-HEAVY-001-5 | **生産** — 発見レシピ ◇80／◆160／✦300／★1000。固定6も約2倍 | 全般シンク |
 | P3-BAL-FORGE-GOLD-HEAVY-001-6 | **上書き** — P3-BAL-ECO-001-4／P3-BAL-FORGE-002-3 の炉研ぎ金表 | 本 Decision が正 |
 
+## 全ボス通常2種＋倍率セルディオン同型（2026-08-02 — P3-BAL-BOSS-BASIC-ALIGN-001）
+
+> **オーナー指示** — セルディオンに合わせて他ボスも通常2種＋倍率調整。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-BOSS-BASIC-ALIGN-001-1 | **通常** — 全ボス `basic_attack_skill_ids`＝単体×1.5／全体×1.0（均等抽選・CD非消費） | セルディオン同型 |
+| P3-BAL-BOSS-BASIC-ALIGN-001-2 | **即時全体（圧力）** — `power_multiplier=0.5` | 咆哮スロット |
+| P3-BAL-BOSS-BASIC-ALIGN-001-3 | **重い技** — 詠唱全体／単体・前列の副技を `power_multiplier=2.0` | 断罪スロット |
+| P3-BAL-BOSS-BASIC-ALIGN-001-4 | **据置** — hex×0.25／激昂／開幕オーラ／フェーズ重み／詠唱有無 | 個性と演出を残す |
+
