@@ -33,6 +33,10 @@ ICON_FILES: list[str] = [
 	"ICO_ACC_PulseAmulet.png",
 	"ICO_ACC_BeastlordFang.png",
 	"ICO_ACC_ApothecaryVial.png",
+	# ペット／ヒーラービルドL（P3-EQ-PET-HEAL-BUILD-001）
+	"ICO_ARM_BeastcallMantle.png",
+	"ICO_ARM_FieldSalveRobe.png",
+	"ICO_WPN_MendweaverStaff.png",
 ]
 
 
