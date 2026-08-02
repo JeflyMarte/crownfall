@@ -57,6 +57,8 @@ var member_target_slot: Array[int] = []
 var member_skill_rot_idx: Array[int] = []
 # 必殺チャージ（P3-COMBAT-GAUGE-001）。member index → 0..ULTIMATE_CHARGE_MAX。
 var member_ultimate_charge: Array[float] = []
+## ELITE／BOSS 中は BalanceConfig.ULTIMATE_CHARGE_PRESSURE_MULT（P3-BAL-ULTIMATE-PRESSURE-001）。
+var ultimate_charge_gain_mult: float = 1.0
 
 # CT/ATB スケジューラ（P3-D084）。各生存ユニット（味方/群れ各敵）は個別の CT を持ち、
 # CT が 0 になったユニットから 1 体ずつ行動する。速度（initiative_score）が大きいほど
@@ -113,6 +115,7 @@ func start_combat(enemy_data: Resource, level: int = 1, apply_swarm_density: boo
 # apply_swarm_density: 通常 COMBAT のみ true（ELITE/BOSS は false）。
 func start_combat_group(enemies: Array, level: int = 1, apply_swarm_density: bool = true) -> void:
 	is_in_combat = true
+	ultimate_charge_gain_mult = 1.0
 	clear_death_save_state()
 	_member_passive_skip.clear()
 	enemy_level = maxi(1, level)
@@ -331,6 +334,23 @@ func _ensure_member_ultimate_charge() -> void:
 func reset_member_ultimate_charge() -> void:
 	ensure_party_hp_for_combat()
 	_init_member_ultimate_charge()
+	ultimate_charge_gain_mult = 1.0
+
+
+func set_ultimate_charge_gain_mult(mult: float) -> void:
+	ultimate_charge_gain_mult = maxf(0.0, mult)
+
+
+## ELITE／BOSS 入場時: 持ち越しゲージを半減（ゼロにはしない）。
+func scale_member_ultimate_charge(mult: float) -> void:
+	_ensure_member_ultimate_charge()
+	var m: float = maxf(0.0, mult)
+	for i: int in member_ultimate_charge.size():
+		member_ultimate_charge[i] = minf(
+			Constants.ULTIMATE_CHARGE_MAX,
+			float(member_ultimate_charge[i]) * m
+		)
+
 
 func get_ultimate_charge(member_index: int) -> float:
 	if member_index < 0 or member_index >= member_ultimate_charge.size():
@@ -353,9 +373,12 @@ func add_ultimate_charge(member_index: int, amount: float) -> void:
 	## オトモは必殺対象外（P3-PET-ULT-OMIT-001）。
 	if GameState.is_pet_combatant(member_index):
 		return
+	var gained: float = amount * ultimate_charge_gain_mult
+	if gained <= 0.0:
+		return
 	member_ultimate_charge[member_index] = minf(
 		Constants.ULTIMATE_CHARGE_MAX,
-		float(member_ultimate_charge[member_index]) + amount
+		float(member_ultimate_charge[member_index]) + gained
 	)
 
 func add_ultimate_charge_from_damage_dealt(member_index: int, damage: int) -> void:
@@ -539,6 +562,7 @@ func get_enemy_incoming_attack_mult(slot: int, is_basic_attack: bool) -> float:
 
 func end_combat() -> void:
 	is_in_combat = false
+	ultimate_charge_gain_mult = 1.0
 	clear_death_save_state()
 	current_enemy_data = null
 	current_enemy_hp = 0

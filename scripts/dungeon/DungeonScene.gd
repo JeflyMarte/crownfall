@@ -3622,6 +3622,20 @@ func _enter_current_room() -> void:
 			$CombatController.start_combat_group(
 				group, $DungeonController.get_enemy_level(), apply_density
 			)
+			## ELITE／BOSS: 持ち越し半減＋戦中チャージ減速（P3-BAL-ULTIMATE-PRESSURE-001）。
+			var pressure_ult: bool = (
+				$DungeonController.current_room_type == Enums.RoomType.ELITE
+				or $DungeonController.current_room_type == Enums.RoomType.BOSS
+			)
+			if pressure_ult:
+				$CombatController.scale_member_ultimate_charge(
+					BalanceConfig.ULTIMATE_CHARGE_PRESSURE_ENTER_MULT
+				)
+				$CombatController.set_ultimate_charge_gain_mult(
+					BalanceConfig.ULTIMATE_CHARGE_PRESSURE_MULT
+				)
+			else:
+				$CombatController.set_ultimate_charge_gain_mult(1.0)
 			_update_combat_visibility()
 			_sync_shadow_stalker_floor_dim(group)
 			_skill_executor.reset()
