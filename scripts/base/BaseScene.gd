@@ -449,22 +449,24 @@ func _setup_gift_badge() -> void:
 		_label_player_name.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 		_player_info.add_child(name_row)
 		_player_info.move_child(name_row, name_idx)
+	## 調査室アイコンと同じ ❗️（件数数字は出さない）。
 	_gift_badge = PanelContainer.new()
 	_gift_badge.name = "GiftBadge"
 	_gift_badge.visible = false
 	_gift_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_gift_badge.custom_minimum_size = Vector2(18, 18)
+	_gift_badge.custom_minimum_size = Vector2(28, 28)
 	_gift_badge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.82, 0.22, 0.18, 0.95)
-	sb.set_corner_radius_all(9)
-	sb.set_content_margin_all(1.0)
+	var sb := StyleBoxEmpty.new()
+	sb.set_content_margin_all(0.0)
 	_gift_badge.add_theme_stylebox_override("panel", sb)
 	var lbl := Label.new()
 	lbl.name = "GiftBadgeLabel"
+	lbl.text = "❗️"
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	UiTypography.apply_display(lbl, 10, Color(1.0, 0.95, 0.9), UiTypography.OUTLINE_STRONG)
+	UiTypography.apply_display(lbl, 22, Color(1.0, 0.92, 0.35, 1.0), UiTypography.OUTLINE_STRONG)
+	lbl.add_theme_color_override("font_outline_color", Color(0.15, 0.05, 0.02, 0.95))
+	lbl.add_theme_constant_override("outline_size", 4)
 	_gift_badge.add_child(lbl)
 	name_row.add_child(_gift_badge)
 
@@ -853,7 +855,7 @@ func _update_player_card() -> void:
 	if _gift_badge != null:
 		var lbl: Label = _gift_badge.get_node_or_null("GiftBadgeLabel") as Label
 		if lbl != null:
-			lbl.text = str(pending) if pending < 100 else "99+"
+			lbl.text = "❗️"
 		_gift_badge.visible = pending > 0
 
 func _on_player_card_gui_input(event: InputEvent) -> void:
