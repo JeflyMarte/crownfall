@@ -4,11 +4,8 @@
 
 ## Last Update
 
-<<<<<<< HEAD
-2026-08-02（**一時停止戦闘ログ空表示修正／統合＋main**: SheetContent パス修正＋ログ行バッファ。要実機）
-=======
 2026-08-02（**P3-BAL-HEAL-MOST-INJURED-001／統合＋main**: エリアス・セリン固有＝最傷1人30%回復。要実機）
->>>>>>> cursor/elias-serin-single-heal-3ca5
+2026-08-02（**一時停止戦闘ログ空表示修正／統合＋main**: SheetContent パス修正＋ログ行バッファ。要実機）
 2026-08-02（**デバッグフル所持／統合＋main**: 指揮官S+99・武器LvMAX。要実機）
 2026-08-02（**P3-CMD-PERMIT-BOOST-001 GO／統合＋main**: S+許可点→略奪／成長／戦力。マイページから許可強化。要実機）
 2026-08-02（**P3-CMD-RANK-SPLUS-001 GO／統合＋main**: 指揮官S以降＝S+1…（+400SP）。要実機）
