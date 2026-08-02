@@ -286,7 +286,17 @@ static func recommend_line() -> String:
 	return _pick_from(FALLBACK_RECOMMEND_LINES, 23)
 
 
-## 時間帯降臨が出現中なら告知（未出現は空）。
+## 降臨告知用の短い名称（末尾の「降臨」を外し、全角空白で不自然折返ししない）。
+static func descent_short_label(display_name: String) -> String:
+	var label: String = display_name.strip_edges().replace("　", "")
+	if label.ends_with("降臨"):
+		label = label.substr(0, label.length() - "降臨".length()).strip_edges()
+	if label.is_empty():
+		return display_name.strip_edges()
+	return label
+
+
+## 時間帯降臨が出現中なら告知（未出現は空）。文言は1種類のみ。
 static func descent_event_line() -> String:
 	const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
 	var open_ids: Array[String] = _EventDungeonSchedule.open_hourly_event_ids()
@@ -295,35 +305,17 @@ static func descent_event_line() -> String:
 	var names: PackedStringArray = PackedStringArray()
 	for dungeon_id in open_ids:
 		var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
-		var label: String = str(data.display_name) if data != null else dungeon_id
-		if label.is_empty():
-			label = dungeon_id
-		names.append(label)
-	var joined: String = " / ".join(names)
-	return _pick_from([
-		"いま「%s」が降臨中です！イベントから急いで確認してくださいね！",
-		"速報です！「%s」が出現してます！時間内に挑戦を！",
-		"降臨の気配です！「%s」——下ナビのイベントからどうぞ！",
-		"記録官速報：「%s」降臨中！枠を逃さないでくださいね！",
-		"今だけです！「%s」が開いてます。装備整えたらすぐ出撃を！",
-		"降臨ウィンドウです！「%s」——無理せず、でも急いで！",
-	], 131) % joined
+		var raw: String = str(data.display_name) if data != null else dungeon_id
+		if raw.is_empty():
+			raw = dungeon_id
+		names.append(descent_short_label(raw))
+	var joined: String = "／".join(names)
+	## 明示改行で「名前」を途中切断しにくくする（吹き出しは WORD_SMART）。
+	return "速報です！\n「%s」が降臨中です！\nイベントから確認してください！" % joined
 
 
 static func field_or_weather_line() -> String:
-	var descent: String = descent_event_line()
-	if not descent.is_empty():
-		## おすすめ枠と別文言にしたいので、野外枠では短めの催促。
-		const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
-		var open_ids: Array[String] = _EventDungeonSchedule.open_hourly_event_ids()
-		if not open_ids.is_empty():
-			var data: Resource = DataRegistry.get_dungeon_data(open_ids[0])
-			var label: String = str(data.display_name) if data != null else "降臨イベント"
-			return _pick_from([
-				"野外も大事ですが、いまは降臨「%s」が優先ですよ！",
-				"降臨中は時間勝負です！「%s」を先に見てくださいね！",
-				"記録係としては、降臨「%s」の記録を先に取りたいです！",
-			], 137) % label
+	## 降臨告知は recommend 枠の1種類のみ。野外枠では重複させない。
 	if EventSystem.PERIODIC_EVENTS_ENABLED and EventSystem.is_event_running():
 		var event_data: Resource = EventSystem.get_active_event()
 		if event_data != null:

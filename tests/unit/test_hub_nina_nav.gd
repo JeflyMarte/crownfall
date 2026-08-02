@@ -192,10 +192,20 @@ func test_descent_event_line_when_chronos_open() -> void:
 	GameState.hub_survey_progress[Constants.DEFAULT_DUNGEON_ID] = 1.0
 	_EventDungeonSchedule.set_debug_unix_override(_unix_jst(2026, 7, 26, 0, 30))
 	var line: String = _Helper.descent_event_line()
-	assert_true(line.contains("降臨"), line)
-	assert_true(line.contains("時環") or line.contains("共鳴龍"), line)
+	assert_eq(
+		line,
+		"速報です！\n「時環の共鳴龍」が降臨中です！\nイベントから確認してください！"
+	)
 	var rec: String = _Helper.recommend_line()
-	assert_true(rec.contains("降臨"), rec)
+	assert_eq(rec, line)
+	## 野外枠は降臨を重複しない。
+	var field: String = _Helper.field_or_weather_line()
+	assert_false(field.contains("降臨中"), field)
+
+
+func test_descent_short_label_strips_suffix() -> void:
+	assert_eq(_Helper.descent_short_label("時環の共鳴龍　降臨"), "時環の共鳴龍")
+	assert_eq(_Helper.descent_short_label("境界の番　降臨"), "境界の番")
 
 
 func test_descent_event_line_empty_when_closed() -> void:
