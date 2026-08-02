@@ -68,7 +68,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 - `MainVBox` — HeaderBar / BattlefieldArea / **BattleLogPanel** / **NarrativePanel** / BottomZone
   - `BattleLogPanel`（PanelContainer）— 戦闘中のみ表示（P3-UI2-012）
     - `BattleLogScroll`（ScrollContainer）— `custom_minimum_size` height=200
-      - `BattleLogContent`（VBoxContainer）— ログ Label を動的追加（`_append_log`）
+      - `BattleLogContent`（VBoxContainer）— ログ RTL を動的追加（`_append_log`）。一時停止シートは `_battle_log_lines`＋`find_child("SheetContent")`
   - `NarrativePanel`（PanelContainer）— 非戦闘時のみ表示（P3-UI2-012）
     - `LabelNarrative` — `_set_narrative()`。高さ 200、font 18 + outline
 - `BattlefieldArea/RoomTileBg` — `BATTLE_BG_MAP` 背景（royal_ruins v3 / graveyard v2）

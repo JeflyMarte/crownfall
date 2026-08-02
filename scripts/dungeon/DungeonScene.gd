@@ -734,6 +734,8 @@ var _btn_fast_run: Button = null
 # ラウンド処理中フラグ（P3-D083・逐次awaitの多重実行防止）
 var _round_active: bool = false
 var _request_scroll_to_bottom: bool = false
+## 一時停止シート用。RichTextLabel.text の読み戻しに依存しない（ノードパス／BBCode ずれ対策）。
+var _battle_log_lines: PackedStringArray = PackedStringArray()
 var _trap_presentation_active: bool = false
 var _heal_presentation_active: bool = false
 var _treasure_presentation_active: bool = false
@@ -2173,11 +2175,28 @@ func _record_run_modifiers(line: String) -> void:
 		if line.contains(marker):
 			GameState.record_run_modifier(RUN_MODIFIER_MARKERS[marker])
 
+func _push_battle_log_line(bbcode_line: String) -> void:
+	if bbcode_line.is_empty():
+		return
+	_battle_log_lines.append(bbcode_line)
+	while _battle_log_lines.size() > _LOG_MAX:
+		_battle_log_lines.remove_at(0)
+
+func _trim_battle_log_hud_children() -> void:
+	# 上限超過分を間引く。queue_free() は遅延削除で get_child_count() が即座に減らず
+	# while が無限ループ→フリーズするため、remove_child() で即時 detach してから解放する。
+	while _battle_log_content.get_child_count() > _LOG_MAX:
+		var oldest: Node = _battle_log_content.get_child(0)
+		_battle_log_content.remove_child(oldest)
+		oldest.queue_free()
+
 func _append_log(text: String) -> void:
 	for line: String in text.split("\n"):
 		if line.is_empty():
 			continue
 		_record_run_modifiers(line)
+		var bb: String = _format_log_line_bbcode(line)
+		_push_battle_log_line(bb)
 		if not SettingsPrefs.show_battle_log():
 			continue
 		var entry := RichTextLabel.new()
@@ -2189,15 +2208,10 @@ func _append_log(text: String) -> void:
 		entry.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		entry.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		UiTypography.apply_log_rich(entry)
-		entry.text = _format_log_line_bbcode(line)
+		entry.text = bb
 		_prepare_battle_log_entry(entry)
 		_battle_log_content.add_child(entry)
-	# 上限超過分を間引く。queue_free() は遅延削除で get_child_count() が即座に減らず
-	# while が無限ループ→フリーズするため、remove_child() で即時 detach してから解放する。
-	while _battle_log_content.get_child_count() > _LOG_MAX:
-		var oldest: Node = _battle_log_content.get_child(0)
-		_battle_log_content.remove_child(oldest)
-		oldest.queue_free()
+	_trim_battle_log_hud_children()
 	_request_scroll_to_bottom = true
 	call_deferred("_refit_all_battle_log_entries")
 
@@ -2205,6 +2219,8 @@ func _append_trap_hit_log(line: String) -> void:
 	if line.is_empty():
 		return
 	_record_run_modifiers(line)
+	var bb: String = "[b]%s[/b]" % _format_log_line_bbcode(line)
+	_push_battle_log_line(bb)
 	if not SettingsPrefs.show_battle_log():
 		return
 	var entry := RichTextLabel.new()
@@ -2215,13 +2231,10 @@ func _append_trap_hit_log(line: String) -> void:
 	entry.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	entry.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	UiTypography.apply_log_rich(entry, UiTypography.SIZE_LOG)
-	entry.text = "[b]%s[/b]" % _format_log_line_bbcode(line)
+	entry.text = bb
 	_prepare_battle_log_entry(entry)
 	_battle_log_content.add_child(entry)
-	while _battle_log_content.get_child_count() > _LOG_MAX:
-		var oldest: Node = _battle_log_content.get_child(0)
-		_battle_log_content.remove_child(oldest)
-		oldest.queue_free()
+	_trim_battle_log_hud_children()
 	_request_scroll_to_bottom = true
 	call_deferred("_refit_all_battle_log_entries")
 
@@ -9511,10 +9524,11 @@ func _on_pause_battle_log_pressed() -> void:
 	var pause_panel: Control = _pause_overlay.get_node_or_null("PausePanel") as Control
 	if sheet == null:
 		return
-	_populate_pause_battle_log_sheet()
+	## 先に表示してレイアウト確定させてから populate（幅0で折り返し崩壊を防ぐ）。
 	if pause_panel != null:
 		pause_panel.visible = false
 	sheet.visible = true
+	_populate_pause_battle_log_sheet()
 	AudioManager.play_sfx("ui_confirm")
 
 
@@ -9529,23 +9543,25 @@ func _on_pause_battle_log_close_pressed() -> void:
 
 
 func _populate_pause_battle_log_sheet() -> void:
-	var content: VBoxContainer = _pause_overlay.get_node_or_null(
-		"PauseBattleLogSheet/SheetVBox/SheetContent"
-	) as VBoxContainer
-	var scroll: ScrollContainer = _pause_overlay.get_node_or_null(
-		"PauseBattleLogSheet/SheetVBox/SheetScroll"
-	) as ScrollContainer
+	var sheet: Control = _pause_overlay.get_node_or_null("PauseBattleLogSheet") as Control
+	if sheet == null:
+		return
+	## SheetContent は SheetScroll 配下。SheetVBox/SheetContent 直指定は null になる。
+	var content: VBoxContainer = sheet.find_child("SheetContent", true, false) as VBoxContainer
+	var scroll: ScrollContainer = sheet.find_child("SheetScroll", true, false) as ScrollContainer
 	if content == null:
 		return
 	for child in content.get_children():
 		content.remove_child(child)
 		child.queue_free()
-	var lines: PackedStringArray = []
-	if _battle_log_content != null:
+	var lines: PackedStringArray = _battle_log_lines.duplicate()
+	if lines.is_empty() and _battle_log_content != null:
 		for child in _battle_log_content.get_children():
 			if child is RichTextLabel:
 				var rtl: RichTextLabel = child as RichTextLabel
 				var t: String = str(rtl.text).strip_edges()
+				if t.is_empty():
+					t = str(rtl.get_parsed_text()).strip_edges()
 				if not t.is_empty():
 					lines.append(t)
 	if lines.is_empty():
@@ -9558,6 +9574,8 @@ func _populate_pause_battle_log_sheet() -> void:
 		var sheet_w: float = 600.0
 		if scroll != null and scroll.size.x > 32.0:
 			sheet_w = maxf(32.0, scroll.size.x - 8.0)
+		elif _pause_overlay != null and _pause_overlay.size.x > 64.0:
+			sheet_w = maxf(32.0, _pause_overlay.size.x - 80.0)
 		for line: String in lines:
 			var entry := RichTextLabel.new()
 			entry.bbcode_enabled = true
@@ -9577,7 +9595,10 @@ func _populate_pause_battle_log_sheet() -> void:
 func _scroll_pause_battle_log_to_bottom(scroll: ScrollContainer) -> void:
 	if scroll == null or not is_instance_valid(scroll):
 		return
-	scroll.scroll_vertical = int(scroll.get_v_scroll_bar().max_value)
+	var bar: ScrollBar = scroll.get_v_scroll_bar()
+	if bar == null:
+		return
+	scroll.scroll_vertical = int(bar.max_value)
 
 
 func _harden_header_menu_button() -> void:
