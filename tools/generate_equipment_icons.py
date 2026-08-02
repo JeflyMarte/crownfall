@@ -147,6 +147,11 @@ LEGENDARY_HAND_DRAWN_ACCESSORY_IDS: set[str] = {
 	"pulse_amulet",
 	"beastlord_fang",
 	"apothecary_vial",
+	# クラシックL装飾補充（P3-EQ-CLASSIC-L-ACC-001）
+	"bloodvein_signet",
+	"ironvow_amulet",
+	"quicksigil_charm",
+	"dawnrally_brooch",
 }
 
 CANONICAL_TEMPLATES = {

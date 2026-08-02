@@ -6741,3 +6741,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-SKILL-CD-TIME-001-3 | **上書き** — P3-D084 の「スキルCD＝進行CT」 | 本 Decision が正 |
 | P3-BAL-SKILL-CD-TIME-001-4 | **SSOT** — `decisions/55_SkillCdRealtime.md` | 正 |
 
+## クラシックL装飾補充（2026-08-02 — P3-EQ-CLASSIC-L-ACC-001）
+
+> **オーナー GO（案A）** — 通常レジェンド抽選のL飾が薄いため、クラシック枠を +4。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-CLASSIC-L-ACC-001-1 | **内容** — 血脈印環／鉄誓護符／速印護符／暁鼓舞胸針（レア3） | 与／被／CD／開幕鼓舞 |
+| P3-EQ-CLASSIC-L-ACC-001-2 | **入手** — 通常レジェンド母数へ自動参入（5→9）。Biome固定★・ビルド・封蔵には載せない | 供給過多を避ける |
+| P3-EQ-CLASSIC-L-ACC-001-3 | **配線** — 既存 `outgoing_mult`／`incoming_mult`／`skill_cd_mult`／`party_rally` | 新フック不要 |
+| P3-EQ-CLASSIC-L-ACC-001-4 | **SSOT** — `decisions/56_ClassicLegendaryAccessories.md` | 正 |
+

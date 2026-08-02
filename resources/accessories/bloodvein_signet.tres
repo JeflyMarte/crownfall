@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "bloodvein_signet"
+display_name = "血脈の印環"
+rarity = 3
+icon = ""
+accessory_type = "ring"
+description = "血の脈動を封じ込めた印環。攻勢を高め、代わりに傷を受けやすくする。"
+hp_bonus = 120
+attack_bonus = 0
+defense_bonus = 0
+crit_rate_bonus = 0.05
+exp_gain_rate = 0.0
+gold_gain_rate = 0.0
+rare_drop_rate = 0.0
+fixed_passive_id = "eq_bloodvein_signet"
