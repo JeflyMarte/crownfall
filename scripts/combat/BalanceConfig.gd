@@ -195,6 +195,12 @@ const SOLO_AOE_SKILL_WEIGHT_MULT: float = 2.25
 const ELITE_ESCORT_MIN: int = 1
 const ELITE_ESCORT_MAX: int = 2
 
+# ── 必殺チャージ圧力（P3-BAL-ULTIMATE-PRESSURE-001） ─────────────────────
+## ELITE／BOSS 戦闘中のチャージ獲得倍率（与ダメ・被ダメ・flat 共通）。
+const ULTIMATE_CHARGE_PRESSURE_MULT: float = 0.5
+## ELITE／BOSS 入場時に既存ゲージへ掛ける倍率（半減。ゼロにはしない）。
+const ULTIMATE_CHARGE_PRESSURE_ENTER_MULT: float = 0.5
+
 
 static func swarm_density_hp_mult(start_count: int) -> float:
 	match start_count:

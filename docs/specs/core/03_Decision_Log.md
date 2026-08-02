@@ -6443,3 +6443,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-FIELD-CODEX-OMIT-001-2 | **定義残置** — 文面・`EventSystem` API は残す（将来復帰可） | 破壊的削除を避ける |
 | P3-UX-FIELD-CODEX-OMIT-001-3 | **上書き** — `04_FieldSurveySlots` プール表の codex 行 | 本 Decision が正 |
 
+## 必殺チャージ圧力（2026-08-02 — P3-BAL-ULTIMATE-PRESSURE-001）
+
+> **オーナー GO（推奨F＝案A）** — ELITE／BOSSのみ入場半減＋戦中×0.5。雑魚・基本係数・レリック据置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-ULTIMATE-PRESSURE-001-1 | **対象** — ELITE／BOSS のみ | 山場の乱発抑制 |
+| P3-BAL-ULTIMATE-PRESSURE-001-2 | **入場** — 持ち越しゲージ ×0.5（ゼロにしない） | 直前部屋ブースト緩和 |
+| P3-BAL-ULTIMATE-PRESSURE-001-3 | **戦中** — チャージ獲得 ×0.5（与／被／flat） | 長戦の連発抑制 |
+| P3-BAL-ULTIMATE-PRESSURE-001-4 | **据置** — DEALT_K／TAKEN_K・雑魚COMBAT・武器／レリック倍率 | ビルド個性を残す |
+| P3-BAL-ULTIMATE-PRESSURE-001-5 | **SSOT** — `decisions/39_UltimateChargePressure.md`／`BalanceConfig.ULTIMATE_CHARGE_PRESSURE_*` | 数値の正 |
+
