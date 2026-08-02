@@ -3479,7 +3479,7 @@ func _ensure_tactics_list_ui() -> void:
 	slots.fit_content = true
 	slots.scroll_active = false
 	slots.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiTypography.apply_body(slots, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
+	UiTypography.apply_display_rich(slots, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	_combat_setup_content.add_child(slots)
 	_combat_setup_content.move_child(slots, 0)
 	_tactics_slots_label = slots
