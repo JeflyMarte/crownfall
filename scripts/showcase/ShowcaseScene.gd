@@ -685,17 +685,11 @@ func _show_staff_preset_overlay() -> void:
 		if pid.is_empty():
 			continue
 		var row := Button.new()
-		var pname: String = str(preset.get("player_name", preset.get("display_name", "？")))
-		var char_name: String = str(preset.get("display_name", ""))
 		var mark: String = "（表示中）" if pid == _staff_preset_id else ""
-		if char_name.is_empty():
-			row.text = "%s%s" % [pname, ("  " + mark) if not mark.is_empty() else ""]
-		else:
-			row.text = "%s  —  %s%s" % [
-				pname,
-				char_name,
-				("  " + mark) if not mark.is_empty() else "",
-			]
+		row.text = "%s%s" % [
+			ShowcaseCatalogScript.staff_nameplate_text(preset),
+			("  " + mark) if not mark.is_empty() else "",
+		]
 		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.custom_minimum_size = Vector2(0, 48)
 		row.clip_text = true
@@ -777,20 +771,18 @@ func _populate_stage(member: Resource) -> void:
 		_stats_col.add_child(val)
 
 	_footer_name.text = str(member.display_name)
-	if _mode == Mode.STAFF and not _staff_player_name.is_empty():
-		_footer_name.text = _staff_player_name
-	UiTypography.apply_display(_footer_name, UiTypography.SIZE_BODY, COLOR_GOLD)
 	if _mode == Mode.STAFF:
-		_footer_meta.text = "%s  Lv.%d  %s" % [
-			str(member.display_name),
-			int(member.level),
-			RosterUiHelper.job_display_name(member),
-		]
-	else:
-		_footer_meta.text = "Lv.%d  %s" % [
-			int(member.level),
-			RosterUiHelper.job_display_name(member),
-		]
+		## 名札は「スタッフ1-アルド」。キャラ名は display_name をそのまま残す。
+		var staff_preset: Dictionary = ShowcaseCatalogScript.find_staff_preset(_staff_preset_id)
+		if not staff_preset.is_empty():
+			_footer_name.text = ShowcaseCatalogScript.staff_nameplate_text(staff_preset)
+		elif not _staff_player_name.is_empty():
+			_footer_name.text = "%s-%s" % [_staff_player_name, str(member.display_name)]
+	UiTypography.apply_display(_footer_name, UiTypography.SIZE_BODY, COLOR_GOLD)
+	_footer_meta.text = "Lv.%d  %s" % [
+		int(member.level),
+		RosterUiHelper.job_display_name(member),
+	]
 	UiTypography.apply_body(_footer_meta, UiTypography.SIZE_CAPTION - 2, COLOR_BODY)
 	_footer_credit.text = _credit_text
 	UiTypography.apply_caption(_footer_credit, COLOR_SUB)

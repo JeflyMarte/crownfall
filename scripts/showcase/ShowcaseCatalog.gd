@@ -14,12 +14,13 @@ const STAGE_H_PX: float = 460.0
 const SIDE_COL_W: float = 168.0
 
 ## スタッフ作例。装備 id はカタログ実在分のみ。
-## player_name = 展示している隊長名（名札表示）。display_name = 展示キャラ名。
+## player_name = スタッフ番号表示（スタッフ1…）。display_name = 展示キャラ名（そのまま）。
+## 名札は staff_nameplate_text →「スタッフ1-アルド」。
 const STAFF_PRESETS: Array = [
 	{
 		"id": "staff_aldo_blade",
 		"credit": "Crownfall Staff",
-		"player_name": "レオ",
+		"player_name": "スタッフ1",
 		"display_name": "アルド",
 		"job_id": "swordsman",
 		"level": 42,
@@ -34,7 +35,7 @@ const STAFF_PRESETS: Array = [
 	{
 		"id": "staff_ranger_mist",
 		"credit": "Crownfall Staff",
-		"player_name": "アヤ",
+		"player_name": "スタッフ2",
 		"display_name": "ミスト",
 		"job_id": "ranger",
 		"level": 38,
@@ -49,7 +50,7 @@ const STAFF_PRESETS: Array = [
 	{
 		"id": "staff_alchemist_fen",
 		"credit": "Crownfall Staff",
-		"player_name": "カイト",
+		"player_name": "スタッフ3",
 		"display_name": "フェン",
 		"job_id": "alchemist",
 		"level": 40,
@@ -64,7 +65,7 @@ const STAFF_PRESETS: Array = [
 	{
 		"id": "staff_vanguard_gate",
 		"credit": "Crownfall Staff",
-		"player_name": "リン",
+		"player_name": "スタッフ4",
 		"display_name": "ガルド",
 		"job_id": "vanguard",
 		"level": 45,
@@ -79,7 +80,7 @@ const STAFF_PRESETS: Array = [
 	{
 		"id": "staff_tamer_bond",
 		"credit": "Crownfall Staff",
-		"player_name": "ソラ",
+		"player_name": "スタッフ5",
 		"display_name": "ミレイ",
 		"job_id": "beast_tamer",
 		"level": 36,
@@ -103,6 +104,17 @@ static func find_staff_preset(preset_id: String) -> Dictionary:
 		if raw is Dictionary and str(raw.get("id", "")) == preset_id:
 			return (raw as Dictionary).duplicate(true)
 	return {}
+
+
+## 名札／一覧用。「スタッフ1-アルド」。キャラ名は display_name をそのまま使う。
+static func staff_nameplate_text(preset: Dictionary) -> String:
+	var staff: String = str(preset.get("player_name", "")).strip_edges()
+	var char_name: String = str(preset.get("display_name", "")).strip_edges()
+	if staff.is_empty():
+		return char_name
+	if char_name.is_empty():
+		return staff
+	return "%s-%s" % [staff, char_name]
 
 
 ## スタッフ作例から表示専用 Adventurer を組み立てる（roster に入れない）。

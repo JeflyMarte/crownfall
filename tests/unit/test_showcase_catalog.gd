@@ -7,6 +7,7 @@ const ShowcaseCatalogScript = preload("res://scripts/showcase/ShowcaseCatalog.gd
 func test_staff_presets_build_members() -> void:
 	var presets: Array = ShowcaseCatalogScript.staff_presets()
 	assert_gt(presets.size(), 0, "staff presets exist")
+	var idx: int = 0
 	for raw: Variant in presets:
 		assert_true(raw is Dictionary)
 		var preset: Dictionary = raw
@@ -14,6 +15,11 @@ func test_staff_presets_build_members() -> void:
 		assert_not_null(member, "member for %s" % str(preset.get("id", "")))
 		assert_false(str(member.display_name).is_empty())
 		assert_false(str(preset.get("player_name", "")).is_empty(), "player_name for %s" % str(preset.get("id", "")))
+		idx += 1
+		assert_eq(str(preset.get("player_name", "")), "スタッフ%d" % idx)
+		var plate: String = ShowcaseCatalogScript.staff_nameplate_text(preset)
+		assert_eq(plate, "スタッフ%d-%s" % [idx, str(preset.get("display_name", ""))])
+		assert_true(plate.ends_with(str(member.display_name)))
 		assert_false(str(member.job_id).is_empty())
 		assert_gt(int(member.level), 0)
 		var stats: Dictionary = RosterUiHelper.compute_member_stats(member)
