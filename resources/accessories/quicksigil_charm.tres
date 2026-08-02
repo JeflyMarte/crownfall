@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "quicksigil_charm"
+display_name = "速印の護符"
+rarity = 3
+icon = ""
+accessory_type = "charm"
+description = "疾き印を刻んだ護符。スキルの間合いを縮める。"
+hp_bonus = 80
+attack_bonus = 0
+defense_bonus = 0
+crit_rate_bonus = 0.02
+exp_gain_rate = 0.0
+gold_gain_rate = 0.0
+rare_drop_rate = 0.0
+fixed_passive_id = "eq_quicksigil_charm"

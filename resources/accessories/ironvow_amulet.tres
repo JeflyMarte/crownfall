@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "ironvow_amulet"
+display_name = "鉄誓の護符"
+rarity = 3
+icon = ""
+accessory_type = "seal"
+description = "鉄の誓いを刻んだ護符。身を守る意志が被弾を抑える。"
+hp_bonus = 200
+attack_bonus = 0
+defense_bonus = 40
+crit_rate_bonus = 0.0
+exp_gain_rate = 0.0
+gold_gain_rate = 0.0
+rare_drop_rate = 0.0
+fixed_passive_id = "eq_ironvow_amulet"
