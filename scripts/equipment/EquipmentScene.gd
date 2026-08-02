@@ -2670,6 +2670,11 @@ func _rebuild_skill_tab() -> void:
 	var slots_label: RichTextLabel = _skill_content.get_node("LabelSkillSlots") as RichTextLabel
 	var hint_label: Label = _skill_content.get_node("LabelSkillHint") as Label
 	var list: Node = _skill_content.get_node("SkillList")
+	_skill_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_skill_content.custom_minimum_size.x = 0
+	if list is Control:
+		(list as Control).size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		(list as Control).custom_minimum_size.x = 0
 	for child in list.get_children():
 		child.queue_free()
 	if member == null:
@@ -2762,14 +2767,26 @@ func _make_skill_list_row(
 	is_equipped: bool
 ) -> Control:
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 4)
+	row.add_theme_constant_override("separation", 8)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.custom_minimum_size.y = float(SKILL_ROW_ICON_PX)
+	row.custom_minimum_size = Vector2(0, float(SKILL_ROW_ICON_PX))
+	row.clip_contents = true
 	row.add_child(_skill_row_icon(skill_id, member))
-	row.add_child(_make_skill_row_body(skill_id, skill_data, unlocked, req_lv, is_equipped))
+	var body: PanelContainer = _make_skill_row_body(
+		skill_id, skill_data, unlocked, req_lv, is_equipped
+	)
+	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.size_flags_stretch_ratio = 1.0
+	body.custom_minimum_size.x = 0
+	body.clip_contents = true
+	row.add_child(body)
 	var equip_btn := Button.new()
 	equip_btn.text = "解除" if is_equipped else "装備"
-	equip_btn.custom_minimum_size.x = PASSIVE_ROW_BTN_W
+	## 右端固定幅。本文が長くてもボタン幅を奪わない。
+	equip_btn.custom_minimum_size = Vector2(PASSIVE_ROW_BTN_W, 36)
+	equip_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	equip_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	UiTypography.apply_menu_button(equip_btn, false)
 	## 満枠でも他スキルは装備可（toggle 側で置換）。未解放のみ不可。
 	equip_btn.disabled = not unlocked
 	equip_btn.pressed.connect(_on_skill_toggle_pressed.bind(skill_id))
@@ -2778,6 +2795,8 @@ func _make_skill_list_row(
 		row.modulate = Color(0.78, 0.78, 0.78, 1.0)
 	var frame := PanelContainer.new()
 	frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	frame.custom_minimum_size.x = 0
+	frame.clip_contents = true
 	frame.add_theme_stylebox_override("panel", _skill_row_frame_style(is_equipped))
 	frame.add_child(row)
 	return frame
@@ -2795,52 +2814,63 @@ func _skill_row_frame_style(is_equipped: bool) -> StyleBox:
 	sb.set_content_margin_all(4.0)
 	return sb
 
-func _make_weapon_skill_list_row(member: Resource, weapon_skill: Dictionary) -> HBoxContainer:
+func _make_weapon_skill_list_row(member: Resource, weapon_skill: Dictionary) -> Control:
 	var ws_sid: String = str(weapon_skill.get("skill_id", ""))
 	var ws_skill_data: Resource = DataRegistry.get_skill_data(ws_sid)
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 4)
+	row.add_theme_constant_override("separation", 8)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.custom_minimum_size.y = float(SKILL_ROW_ICON_PX)
+	row.custom_minimum_size = Vector2(0, float(SKILL_ROW_ICON_PX))
+	row.clip_contents = true
 	row.add_child(_skill_row_icon(ws_sid, member))
 	var body := PanelContainer.new()
 	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.size_flags_stretch_ratio = 1.0
+	body.custom_minimum_size.x = 0
+	body.clip_contents = true
 	body.mouse_filter = Control.MOUSE_FILTER_STOP
 	body.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	body.gui_input.connect(_on_weapon_skill_row_gui_input.bind(ws_sid))
 	if ws_skill_data != null:
 		body.tooltip_text = _skill_performance_text(ws_skill_data, true, 1)
-	var body_row := HBoxContainer.new()
-	body_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	body_row.add_theme_constant_override("separation", 0)
-	body.add_child(body_row)
+	else:
+		body.tooltip_text = "武器スキルとして自動発動"
+	var body_col := VBoxContainer.new()
+	body_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	body_col.add_theme_constant_override("separation", 2)
+	body_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.add_child(body_col)
 	if ws_skill_data != null:
-		body_row.add_child(_make_skill_name_label(ws_skill_data))
+		body_col.add_child(_make_skill_name_label(ws_skill_data))
 	else:
 		var ws_name := Label.new()
 		ws_name.text = "『%s』" % str(weapon_skill.get("skill_name", ""))
-		ws_name.clip_text = false
-		ws_name.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		ws_name.clip_text = true
+		ws_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		ws_name.autowrap_mode = TextServer.AUTOWRAP_OFF
-		ws_name.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		ws_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		ws_name.custom_minimum_size.x = 0
 		ws_name.add_theme_color_override("font_color", SKILL_COLOR_ATTACK)
 		UiTypography.apply_body(ws_name, UiTypography.SIZE_CAPTION)
-		body_row.add_child(ws_name)
-	body_row.add_child(_skill_row_sep())
-	var ws_desc := _make_skill_desc_label(
-		(
-			_skill_performance_text(ws_skill_data, true, 1)
-			if ws_skill_data != null
-			else "武器スキルとして自動発動"
-		),
-		true
+		body_col.add_child(ws_name)
+	body_col.add_child(
+		_make_skill_desc_label(
+			(
+				_skill_performance_text(ws_skill_data, true, 1)
+				if ws_skill_data != null
+				else "武器スキルとして自動発動"
+			),
+			true
+		)
 	)
-	body_row.add_child(ws_desc)
 	row.add_child(body)
 	var ws_tag := Label.new()
 	ws_tag.text = "自動"
-	ws_tag.custom_minimum_size.x = PASSIVE_ROW_BTN_W
+	ws_tag.custom_minimum_size = Vector2(PASSIVE_ROW_BTN_W, 36)
+	ws_tag.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	ws_tag.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	ws_tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	ws_tag.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	ws_tag.add_theme_color_override("font_color", COLOR_SUB)
 	UiTypography.apply_caption(ws_tag)
 	row.add_child(ws_tag)
@@ -2871,17 +2901,20 @@ func _make_skill_row_body(
 ) -> PanelContainer:
 	var body := PanelContainer.new()
 	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.custom_minimum_size.x = 0
+	body.clip_contents = true
 	body.mouse_filter = Control.MOUSE_FILTER_STOP
 	body.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	body.gui_input.connect(_on_skill_row_gui_input.bind(skill_id, unlocked, req_lv, is_equipped))
 	body.tooltip_text = _skill_performance_text(skill_data, unlocked, req_lv)
-	var body_row := HBoxContainer.new()
-	body_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	body_row.add_theme_constant_override("separation", 0)
-	body.add_child(body_row)
-	body_row.add_child(_make_skill_name_label(skill_data))
-	body_row.add_child(_skill_row_sep())
-	body_row.add_child(
+	## 名＋説明を縦積み。横1行だと長い名が右の装備ボタンを押し出す。
+	var body_col := VBoxContainer.new()
+	body_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	body_col.add_theme_constant_override("separation", 2)
+	body_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.add_child(body_col)
+	body_col.add_child(_make_skill_name_label(skill_data))
+	body_col.add_child(
 		_make_skill_desc_label(_skill_performance_text(skill_data, unlocked, req_lv), unlocked)
 	)
 	return body
@@ -2890,11 +2923,12 @@ func _make_skill_name_label(skill_data: Resource) -> Label:
 	var name_lbl := Label.new()
 	name_lbl.text = _skill_wrapped_name(skill_data)
 	_apply_skill_name_style(name_lbl, skill_data)
-	# スキル名は1行で全文表示（説明側を省略）。clip+ellipsis だと長い名前が『鋼…』等になる。
-	name_lbl.clip_text = false
-	name_lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	## 全文は tooltip。行幅を確保して装備／解除ボタンを見切れさせない。
+	name_lbl.clip_text = true
+	name_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	name_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
-	name_lbl.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_lbl.custom_minimum_size.x = 0
 	name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return name_lbl
@@ -2903,8 +2937,10 @@ func _make_skill_desc_label(text: String, unlocked: bool) -> Label:
 	var desc_lbl := Label.new()
 	desc_lbl.text = text
 	desc_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	desc_lbl.custom_minimum_size.x = 0
 	desc_lbl.clip_text = true
 	desc_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
 	desc_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	desc_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	desc_lbl.add_theme_color_override(

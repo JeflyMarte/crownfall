@@ -128,6 +128,7 @@ Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` �
 - `VBoxContainer` / `BottomNav` は `grow_horizontal = GROW_DIRECTION_END`（`BOTH` だと min 超過時に左右膨張→**タブ〜一覧が左欠け**）
 - 下ナビ Button の `custom_minimum_size.x` を `VIEWPORT/件数` 固定にしない（Panel の左右 margin 込みで 720 超え→同様に左欠け）。高さ固定＋`EXPAND_FILL`
 - 各 Tab の ScrollContainer は横スクロール禁止＋`clip_contents`
+- **スキル行の装備／解除**は右端固定幅＋本文 `EXPAND_FILL`＋`min.x=0`＋ellipsis。名を `clip_text=false`／全文幅のまま横1行にするとボタンが見切れる
 - 画面 BG（`BgTexture`）は `KEEP_ASPECT_COVERED`。`CENTERED` にするとレターボックスで背景が消えたように見える
 
 ## 鍛冶屋アイコン（再発防止・必須）
