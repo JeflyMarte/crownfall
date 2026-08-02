@@ -29,6 +29,7 @@ alwaysApply: false
 | 鍛冶「焼直し」が押せない／効果が選べない | ScrollTouch が詳細内 Button／STOP 行を PASS 化。焼直しは restore 対象外だった | `_cf_keep_mouse_stop`＋`_restore_primary_button_input` に焼直し／効果行を含める。詳細 rebuild 後 deferred 再適用 |
 | デバッグで鍛冶生産が0件 | 装備付与しても `unlocked_craft_outputs` 未同期（入手解放制） | `DebugFullUnlock` で `CraftHelper.sync_unlocks_from_owned`＋クラフト可能マスタ `try_unlock` |
 | 高Lv装備を着けると装備LvがキャラLvへ下がる | 装着時に `clamp_equip_level_to_member` が `equip_level` を永続上書き | 装着では触らない。キャラLv上限は `add_equip_exp` のみ（P3-EQ-LVL-001-4） |
+| キャラスキルの装備／解除が右で見切れる | 行／枠 `clip_contents`＋右余白不足＋ボタン幅不足 | → **`ui-layout.mdc` スキル行**（本文だけ clip・右 inset・幅確保） |
 | 装飾おすすめがランダムATK付きで過大評価 | `_accessory_score` が `effective_*`（フィールド反映済み）のあと `sum_kind` を再加算 | 装飾は effective のみ。防具 DEF はフィールド非積なので別扱い（`P3-FIX-EQ-META-AUDIT-A-001`） |
 | 分解確認が「素材なし」／獲得が空 | `can_dismantle_item` は `{ok,reason}` のみ。materials は `dismantle_preview` | 確認文・L確認は必ず preview |
 | 灰冠／深層が生産解放に出る | 入手フックが全装備を unlock | `is_craftable_master` で `kaiwan_`／`abyss_` 除外 |
