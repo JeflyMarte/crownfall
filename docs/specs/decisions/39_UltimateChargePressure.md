@@ -26,7 +26,7 @@
 |---|---|
 | 入場時ゲージ | ×**0.5**（`ULTIMATE_CHARGE_PRESSURE_ENTER_MULT`） |
 | 戦中チャージ速度 | ×**0.5**（時間／flat 共通・`ULTIMATE_CHARGE_PRESSURE_MULT`） |
-| 基本 | `ULTIMATE_CHARGE_FILL_SECONDS`（通常25秒。ダメ係数は廃止） |
+| 基本 | `ULTIMATE_CHARGE_FILL_SECONDS`（通常50秒。ダメ係数は廃止） |
 
 ---
 

@@ -6623,7 +6623,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | # | 決定 | 根拠 |
 |---|---|---|
 | P3-BAL-ULTIMATE-TIME-001-1 | **溜まり方** — 戦闘クロック（×1秒基準・速度倍率込み・一時停止除外）。与ダメ／被ダメは無視 | 火力インフレで連打化するのを防ぐ |
-| P3-BAL-ULTIMATE-TIME-001-2 | **満タン** — 通常 **25秒**（`ULTIMATE_CHARGE_FILL_SECONDS`）。上限100据置 | オーナー承認の目安 |
+| P3-BAL-ULTIMATE-TIME-001-2 | **満タン** — 通常 **50秒**（`ULTIMATE_CHARGE_FILL_SECONDS`・当初25→半速）。上限100据置 | オーナー「まだ早すぎる」で半速化 |
 | P3-BAL-ULTIMATE-TIME-001-3 | **圧力** — ELITE／BOSS 入場×0.5・戦中速度×0.5 据置（≈50秒） | `39` と併用 |
 | P3-BAL-ULTIMATE-TIME-001-4 | **倍率** — `ultimate_charge_dealt_mult` はチャージ**速度**に適用。flat は据置 | 砂時計／烽火の個性維持 |
 | P3-BAL-ULTIMATE-TIME-001-5 | **上書き** — P3-COMBAT-GAUGE-001-3／4 のダメ連動。`DEALT_K`／`TAKEN_K` 削除 | 本 Decision が正 |

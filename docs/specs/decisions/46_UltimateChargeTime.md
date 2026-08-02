@@ -24,10 +24,10 @@
 
 | 項目 | 値 |
 |---|---|
-| 満タン目安（通常） | **25 秒**（`ULTIMATE_CHARGE_FILL_SECONDS`） |
+| 満タン目安（通常） | **50 秒**（`ULTIMATE_CHARGE_FILL_SECONDS`・2026-08-02 半速化） |
 | 上限 | 100（`ULTIMATE_CHARGE_MAX`） |
 | ELITE／BOSS 入場 | 持ち越し ×0.5（据置） |
-| ELITE／BOSS 戦中 | チャージ速度 ×0.5（≈50 秒満タン） |
+| ELITE／BOSS 戦中 | チャージ速度 ×0.5（≈100 秒満タン） |
 | 発動後 | 0 に戻して再チャージ |
 
 ---
