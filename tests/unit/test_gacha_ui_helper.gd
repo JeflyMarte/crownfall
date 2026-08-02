@@ -73,6 +73,21 @@ func test_feature_line_uses_origin_note_above_passive() -> void:
 	assert_eq(GachaUiHelper.FEATURED_IDLE_LIFT_Y, 100.0)
 
 
+func test_build_featured_shell_keeps_page_arrows() -> void:
+	var host := Control.new()
+	host.size = Vector2(680, 420)
+	add_child_autofree(host)
+	var prev := Button.new()
+	prev.name = "BtnGachaPagePrev"
+	host.add_child(prev)
+	var nxt := Button.new()
+	nxt.name = "BtnGachaPageNext"
+	host.add_child(nxt)
+	GachaUiHelper.build_featured_shell(host)
+	assert_not_null(host.get_node_or_null("BtnGachaPagePrev"))
+	assert_not_null(host.get_node_or_null("BtnGachaPageNext"))
+
+
 func test_build_featured_shell_has_feature_label() -> void:
 	var host := Control.new()
 	host.size = Vector2(680, 420)
@@ -104,7 +119,7 @@ func test_build_featured_shell_has_feature_label() -> void:
 	assert_lt(blurb_wrap.offset_top, host.size.y - GachaUiHelper.pool_strip_reserve())
 	assert_eq(feature_lbl.get_theme_font("font"), UiTypography.display_font())
 	assert_eq(feature_lbl.get_theme_constant("outline_size"), GachaUiHelper.FEATURED_BLURB_OUTLINE)
-	assert_eq(feature_lbl.max_lines_visible, 1)
+	assert_eq(feature_lbl.max_lines_visible, GachaUiHelper.FEATURED_BLURB_MAX_LINES)
 	assert_eq(feature_lbl.autowrap_mode, TextServer.AUTOWRAP_OFF)
 	assert_eq(feature_lbl.text_overrun_behavior, TextServer.OVERRUN_NO_TRIMMING)
 	assert_false(feature_lbl.clip_text)
