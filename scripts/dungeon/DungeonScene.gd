@@ -3673,6 +3673,7 @@ func _enter_current_room() -> void:
 			_try_exploration_trap()
 			_update_turn_order_ui($CombatController.get_ct_order())
 			_log_party_passives_on_combat_enter()
+			_log_boss_opening_aura_if_any()
 			## on_combat_start 回復等の SE/VFX は出現遅延後（画面が見えてから）。
 			if $DungeonController.current_room_type == Enums.RoomType.BOSS:
 				_queue_or_begin_special_combat_entrance("boss", lead)
@@ -8180,6 +8181,16 @@ func _log_party_passives_on_combat_enter() -> void:
 			if pname.is_empty():
 				continue
 			_append_log("[%s] %s — %s" % [tag, mname, pname])
+
+
+func _log_boss_opening_aura_if_any() -> void:
+	var status_id: String = str($CombatController.last_boss_opening_status_id)
+	if status_id.is_empty():
+		return
+	var effect: Resource = DataRegistry.get_status_effect(status_id)
+	var label: String = str(effect.display_name) if effect != null else status_id
+	_append_log("【威圧】探索隊に %s が広がった" % label)
+
 
 func _fire_combat_start_passives() -> void:
 	## オトモ含む combatants（party_members のみだと pet の開幕パッシブ欠落）。

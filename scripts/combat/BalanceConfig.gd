@@ -222,6 +222,27 @@ const ULTIMATE_CHARGE_PRESSURE_MULT: float = 0.5
 ## ELITE／BOSS 入場時に既存ゲージへ掛ける倍率（半減。ゼロにはしない）。
 const ULTIMATE_CHARGE_PRESSURE_ENTER_MULT: float = 0.5
 
+# ── ボス圧案A（P3-BAL-BOSS-AURA-A-001） ──────────────────────────────────
+## BOSS 攻撃力の追加倍率（グローバルATK・人数補正の外側）。
+const BOSS_ATK_MULT: float = 1.22
+## BOSS のみ人数ATK補正の share（通常敵は PARTY_BALANCE_ATK_SHARE）。
+const BOSS_PARTY_BALANCE_ATK_SHARE: float = 0.50
+## BOSS 速度の人数係数上限（3人=1.0／4人=1.25／5+=cap）。
+const BOSS_PARTY_SPEED_MULT_4: float = 1.25
+const BOSS_PARTY_SPEED_MULT_CAP: float = 1.40
+## 戦闘中 hex の CD（tres も同値。開幕オーラとは別）。
+const BOSS_HEX_COOLDOWN: float = 6.0
+
+
+## 編成人数に対するボス行動速度倍率（オトモ込み combatant_count）。基準=3人。
+static func boss_party_speed_mult(combatant_n: int) -> float:
+	var n: int = maxi(1, combatant_n)
+	if n <= 3:
+		return 1.0
+	if n == 4:
+		return BOSS_PARTY_SPEED_MULT_4
+	return BOSS_PARTY_SPEED_MULT_CAP
+
 
 static func swarm_density_hp_mult(start_count: int) -> float:
 	match start_count:

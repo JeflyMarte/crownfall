@@ -59,6 +59,8 @@ var member_skill_rot_idx: Array[int] = []
 var member_ultimate_charge: Array[float] = []
 ## ELITE／BOSS 中は BalanceConfig.ULTIMATE_CHARGE_PRESSURE_MULT（P3-BAL-ULTIMATE-PRESSURE-001）。
 var ultimate_charge_gain_mult: float = 1.0
+## 直近ボス戦の開幕オーラ状態 id（無ければ空）。ログ／演出用。
+var last_boss_opening_status_id: String = ""
 
 # CT/ATB スケジューラ（P3-D084）。各生存ユニット（味方/群れ各敵）は個別の CT を持ち、
 # CT が 0 になったユニットから 1 体ずつ行動する。速度（initiative_score）が大きいほど
@@ -154,7 +156,51 @@ func start_combat_group(enemies: Array, level: int = 1, apply_swarm_density: boo
 	_init_member_skill_rotation()
 	## 必殺ゲージはフロア／戦闘をまたいで引き継ぐ（ダンジョン入場時のみリセット）。
 	_ensure_member_ultimate_charge()
+	## ボス開幕オーラ（個別 hex 状態）— CT 初期化前に付与（P3-BAL-BOSS-AURA-A-001）。
+	last_boss_opening_status_id = _apply_boss_opening_aura()
 	init_ct()
+
+
+func _find_lead_boss_slot() -> int:
+	for i: int in swarm_data.size():
+		var ed: Resource = swarm_data[i]
+		if ed != null and int(ed.enemy_type) == Enums.EnemyType.BOSS:
+			return i
+	return -1
+
+
+## ボスの `boss_*_hex` から付与状態 id を取る。無ければ空。
+func boss_hex_status_id(boss: Resource) -> String:
+	if boss == null:
+		return ""
+	for raw in boss.skill_ids:
+		var sid: String = str(raw)
+		if not sid.begins_with("boss_") or not sid.ends_with("_hex"):
+			continue
+		var skill: Resource = DataRegistry.get_skill_data(sid)
+		if skill == null:
+			continue
+		var st: String = str(skill.apply_status_id)
+		if not st.is_empty():
+			return st
+	return ""
+
+
+## 入場時に味方全員へボス個別 hex 状態を付与。付与した状態 id を返す。
+func _apply_boss_opening_aura() -> String:
+	var slot: int = _find_lead_boss_slot()
+	if slot < 0:
+		return ""
+	var boss: Resource = swarm_data[slot]
+	var status_id: String = boss_hex_status_id(boss)
+	if status_id.is_empty():
+		return ""
+	var src_atk: int = swarm_atk[slot] if slot < swarm_atk.size() else 0
+	for i: int in party_combat_hp.size():
+		if not is_member_alive(i):
+			continue
+		apply_status("party_%d" % i, status_id, 1, src_atk)
+	return status_id
 
 
 func _set_swarm_density(start_count: int) -> void:
@@ -176,8 +222,13 @@ func is_swarm_density_solo() -> bool:
 
 func _scale_enemy_combat_stats(enemy_data: Resource) -> Dictionary:
 	var lf: float = float(maxi(0, enemy_level - 1))
+	var is_boss: bool = int(enemy_data.enemy_type) == Enums.EnemyType.BOSS
 	var party_hp_mult: float = _party_size_balance_multiplier(PARTY_BALANCE_HP_SHARE)
-	var party_atk_mult: float = _party_size_balance_multiplier(PARTY_BALANCE_ATK_SHARE)
+	var atk_share: float = (
+		BalanceConfig.BOSS_PARTY_BALANCE_ATK_SHARE if is_boss else PARTY_BALANCE_ATK_SHARE
+	)
+	var party_atk_mult: float = _party_size_balance_multiplier(atk_share)
+	var boss_atk_mult: float = BalanceConfig.BOSS_ATK_MULT if is_boss else 1.0
 	var hp: int = maxi(1, int(round(
 		float(enemy_data.max_hp)
 		* (1.0 + ENEMY_LEVEL_HP_K * lf)
@@ -191,6 +242,7 @@ func _scale_enemy_combat_stats(enemy_data: Resource) -> Dictionary:
 		* party_atk_mult
 		* BalanceConfig.ENEMY_GLOBAL_ATK_MULT
 		* _swarm_density_atk_mult
+		* boss_atk_mult
 	)))
 	var df: int = maxi(0, int(enemy_data.defense))
 	var xp: int = maxi(0, int(round(float(enemy_data.exp_reward) * (1.0 + ENEMY_LEVEL_EXP_K * lf))))
@@ -1291,13 +1343,16 @@ func get_enemy_initiative_score() -> float:
 		return 1.0
 	return current_enemy_data.attack_speed if current_enemy_data.attack_speed > 0.0 else 1.0
 
-# 敵スロット別イニシアチブ（attack_speed × ソロ密度速度）。
+# 敵スロット別イニシアチブ（attack_speed × ソロ密度速度 × ボス人数速度）。
 func get_enemy_initiative_score_at(slot: int) -> float:
 	var d: Resource = get_enemy_data_at(slot)
 	if d == null:
 		return 1.0
 	var base: float = d.attack_speed if d.attack_speed > 0.0 else 1.0
-	return base * _swarm_density_spd_mult
+	var mult: float = _swarm_density_spd_mult
+	if int(d.enemy_type) == Enums.EnemyType.BOSS:
+		mult *= BalanceConfig.boss_party_speed_mult(GameState.combatant_count())
+	return base * mult
 
 # ---- CT/ATB スケジューラ（P3-D084） ----
 

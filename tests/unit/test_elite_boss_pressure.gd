@@ -57,9 +57,43 @@ func test_each_boss_has_unique_hex() -> void:
 		assert_eq(str(skill.target_type), "all_party", skill_id)
 		assert_eq(str(skill.apply_status_id), status_id, skill_id)
 		assert_almost_eq(float(skill.apply_status_chance), 1.0, 0.001)
+		assert_almost_eq(float(skill.cooldown), BalanceConfig.BOSS_HEX_COOLDOWN, 0.001, skill_id)
 		assert_lte(float(skill.cast_time), 0.0, skill_id)
 		assert_false(seen_skills.has(skill_id), skill_id)
 		seen_skills[skill_id] = true
+
+
+func test_boss_opening_aura_and_tempo_atk() -> void:
+	assert_almost_eq(BalanceConfig.boss_party_speed_mult(3), 1.0, 0.001)
+	assert_almost_eq(BalanceConfig.boss_party_speed_mult(4), 1.25, 0.001)
+	assert_almost_eq(BalanceConfig.boss_party_speed_mult(5), 1.40, 0.001)
+	assert_almost_eq(BalanceConfig.BOSS_ATK_MULT, 1.22, 0.001)
+	assert_almost_eq(BalanceConfig.BOSS_HEX_COOLDOWN, 6.0, 0.001)
+	if GameState.party_members.is_empty():
+		pending("party unavailable in headless")
+		return
+	var cc: CombatController = CombatController.new()
+	add_child_autofree(cc)
+	var boss: Resource = DataRegistry.get_enemy_data("serdion")
+	assert_not_null(boss)
+	cc.start_combat_group([boss], 10, false)
+	assert_eq(cc.last_boss_opening_status_id, "fear")
+	assert_eq(cc.boss_hex_status_id(boss), "fear")
+	var saw_fear := false
+	for i: int in cc.party_combat_hp.size():
+		if not cc.is_member_alive(i):
+			continue
+		var stacks: int = cc._status_resolver.get_status_stacks("party_%d" % i, "fear")
+		if stacks >= 1:
+			saw_fear = true
+	assert_true(saw_fear, "opening fear on party")
+	var expect_mult: float = BalanceConfig.boss_party_speed_mult(GameState.combatant_count())
+	assert_almost_eq(
+		cc.get_enemy_initiative_score_at(0),
+		float(boss.attack_speed) * expect_mult,
+		0.001
+	)
+	assert_gt(cc.get_enemy_attack_at(0), int(boss.attack))
 
 
 func test_boss_phase1_hex_between_enrage_and_pressure() -> void:
