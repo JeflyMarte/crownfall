@@ -678,6 +678,47 @@ func heal_member(index: int, amount: int) -> int:
 	party_combat_hp[index] = min(before + adjusted, party_max_hp[index])
 	return party_combat_hp[index] - before
 
+## 敵スロット回復（P3-BAL-ENEMY-TRICKY-001）。実回復量を返す。
+func heal_enemy_slot(slot: int, amount: int) -> int:
+	if not is_in_combat:
+		return 0
+	if slot < 0 or slot >= swarm_hp.size() or amount <= 0:
+		return 0
+	if swarm_hp[slot] <= 0:
+		return 0
+	var maxhp: int = get_enemy_max_hp_at(slot)
+	if maxhp <= 0:
+		return 0
+	var before: int = swarm_hp[slot]
+	swarm_hp[slot] = mini(before + amount, maxhp)
+	if slot == active_enemy_index:
+		current_enemy_hp = swarm_hp[slot]
+	return swarm_hp[slot] - before
+
+## 最も負傷している生存敵スロット（exclude 以外）。いなければ -1。
+func get_most_injured_enemy_slot(exclude_slot: int = -1) -> int:
+	var best: int = -1
+	var best_deficit: int = 0
+	for i in swarm_hp.size():
+		if i == exclude_slot:
+			continue
+		if not is_enemy_slot_alive(i):
+			continue
+		var deficit: int = get_enemy_max_hp_at(i) - swarm_hp[i]
+		if deficit > best_deficit:
+			best_deficit = deficit
+			best = i
+	return best
+
+## 最も負傷している生存敵（自分含む）。満タンのみなら -1。
+func get_most_injured_enemy_slot_including(slot_hint: int = -1) -> int:
+	var best: int = get_most_injured_enemy_slot(-1)
+	if best >= 0:
+		return best
+	if slot_hint >= 0 and is_enemy_slot_alive(slot_hint):
+		return slot_hint
+	return -1
+
 ## 最も負傷している生存メンバーのindexを返す（負傷者なしは -1）。
 func get_most_injured_member_index() -> int:
 	var best: int = -1

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_rune_ward"
+display_name = "ルーンの加護"
+description = "甲殻のルーンを味方へ転写し、他の生存敵を激昂させる。単独時は自身へ。"
+skill_type = "enemy"
+target_type = "ally"
+power_multiplier = 1.0
+cooldown = 8.0
+trigger_type = "cooldown"
+effect_type = "buff"
+tags = Array[String](["buff", "support"])
+element = ""
+apply_status_id = "enrage"
+apply_status_chance = 1.0

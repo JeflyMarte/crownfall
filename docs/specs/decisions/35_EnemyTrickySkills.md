@@ -1,7 +1,7 @@
 # 敵トリッキースキル多様化
 
 **Status:** Decision 承認済（2026-08-02 — 相談方針 GO／未決は本 Decision 既定でクローズ）  
-**Impl:** Phase1 待ち（`P3-BAL-ENEMY-TRICKY-001`）。Phase2/3 は後続 Task  
+**Impl:** Phase1 ✅（`P3-BAL-ENEMY-TRICKY-001`）。Phase2/3 は後続 Task  
 **関連:** P3-BAL-ENEMY-SKILL-CA-001／FIT-001／AUDIT-001／P3-D079
 
 ---
@@ -52,15 +52,15 @@
 
 ---
 
-## 4. Phase1 パイロット（既存敵）
+## 4. Phase1 パイロット（既存敵・確定）
 
-新敵なし。Impl 時に次の割当を基本とする（テーマ衝突時のみ同章内の別雑魚へ振替可）。
+新敵なし。2026-08-02 オーナー OK で確定。
 
-| タイプ | パイロット敵 | 方針 |
+| タイプ | パイロット敵 | 実装 |
 |---|---|---|
-| T1 | `dead_poison_frog` または `spore_widow` | 全体状態を低ダメ／状態特化に寄せる、または専用技1本 |
-| T2 | `blood_leech` または `moss_shell` | 自己 or 味方敵ヒール。吸血名称のダメ技とは別枠でも可 |
-| T3 | `rune_roach` または群れ雑魚1体 | 他スロットへ enrage／防御バフ |
+| T1 | **`spore_widow`** | `enemy_spore_cloud` を低ダメ＋高毒率へ |
+| T2 | **`moss_shell`** | `enemy_moss_mend`（heal・群れ最負傷）をキットへ（spike と差替） |
+| T3 | **`rune_roach`** | `enemy_rune_ward`（他敵 enrage）をキットへ。`rune_carcinos` の自己 carapace は据置 |
 
 ---
 

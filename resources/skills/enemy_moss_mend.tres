@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_moss_mend"
+display_name = "苔の再生"
+description = "殻の苔が傷を塞ぎ、群れでいちばん削れた個体を回復する。"
+skill_type = "enemy"
+target_type = "ally"
+power_multiplier = 0.16
+cooldown = 7.5
+trigger_type = "cooldown"
+effect_type = "heal"
+tags = Array[String](["heal", "support"])
+element = ""
+apply_status_id = ""
+apply_status_chance = 0.0

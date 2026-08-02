@@ -6114,23 +6114,70 @@ func _execute_enemy_skill(skill: Resource, slot: int = -1) -> bool:
 		"buff":
 			_execute_enemy_buff(skill, slot)
 			return true
+		"heal":
+			_execute_enemy_heal(skill, slot)
+			return true
 		"damage":
 			_execute_enemy_damage(skill, slot)
 			return true
 	return false
 
-# 敵の自己強化スキル（激昂など）。詠唱開始スロットへ付与（active 再解決しない）。
+## 敵サポート対象スロット（P3-BAL-ENEMY-TRICKY-001）。
+func _resolve_enemy_support_slot(skill: Resource, caster_slot: int) -> int:
+	var target_type: String = str(skill.target_type)
+	match target_type:
+		"ally":
+			var other: int = $CombatController.get_most_injured_enemy_slot(caster_slot)
+			if other >= 0:
+				return other
+			return caster_slot if $CombatController.is_enemy_slot_alive(caster_slot) else -1
+		"self":
+			return caster_slot if $CombatController.is_enemy_slot_alive(caster_slot) else -1
+		_:
+			## 未指定・旧データは自己（従来 buff 互換）。
+			return caster_slot if $CombatController.is_enemy_slot_alive(caster_slot) else -1
+
+# 敵の強化スキル（自己／味方敵）。詠唱開始スロット基準で対象解決。
 func _execute_enemy_buff(skill: Resource, slot: int) -> void:
 	_play_enemy_caster_animation(slot, "attack")
 	_spawn_enemy_skill_name(skill.display_name, slot)
+	var target_slot: int = _resolve_enemy_support_slot(skill, slot)
+	if target_slot < 0:
+		_append_log("敵スキル【%s】: 対象なし" % skill.display_name)
+		return
 	var label: String = skill.display_name
 	if not skill.apply_status_id.is_empty():
-		if $CombatController.apply_status_to_enemy_slot(slot, skill.apply_status_id, 1, 0):
-			_on_enemy_status_applied(slot, skill.apply_status_id)
+		if $CombatController.apply_status_to_enemy_slot(target_slot, skill.apply_status_id, 1, 0):
+			_on_enemy_status_applied(target_slot, skill.apply_status_id)
 		var eff: Resource = DataRegistry.get_status_effect(skill.apply_status_id)
 		if eff != null:
 			label = eff.display_name
-	_append_log("敵スキル【%s】: 自身に[%s]" % [skill.display_name, label])
+	var scope: String = "自身" if target_slot == slot else "味方"
+	_append_log("敵スキル【%s】: %sに[%s]" % [skill.display_name, scope, label])
+
+# 敵の回復スキル（自己／最も負傷した味方敵）。power＝対象 maxHP 比。
+func _execute_enemy_heal(skill: Resource, slot: int) -> void:
+	_play_enemy_caster_animation(slot, "attack")
+	_spawn_enemy_skill_name(skill.display_name, slot)
+	var target_slot: int = -1
+	var target_type: String = str(skill.target_type)
+	if target_type == "self":
+		target_slot = slot if $CombatController.is_enemy_slot_alive(slot) else -1
+	else:
+		## ally / 既定: 群れ内で最も削れている生存敵（自分含む）。
+		target_slot = $CombatController.get_most_injured_enemy_slot_including(slot)
+	if target_slot < 0:
+		_append_log("敵スキル【%s】: 対象なし" % skill.display_name)
+		return
+	var maxhp: int = $CombatController.get_enemy_max_hp_at(target_slot)
+	var ratio: float = maxf(0.0, float(skill.power_multiplier))
+	var heal_amount: int = maxi(1, int(round(float(maxhp) * ratio)))
+	var healed: int = $CombatController.heal_enemy_slot(target_slot, heal_amount)
+	_update_hp_bars()
+	if healed > 0:
+		_present_enemy_heal(target_slot, healed)
+	var scope: String = "自身" if target_slot == slot else "味方"
+	_append_log("敵スキル【%s】: %sを %d回復" % [skill.display_name, scope, healed])
 
 # 敵の攻撃スキル（全体/列/単体）。power_multiplier 分のダメージを対象へ。
 func _execute_enemy_damage(skill: Resource, slot: int) -> void:
@@ -11177,6 +11224,30 @@ func _present_member_heal(
 		healed,
 		skip_impact_feedback
 	)
+
+
+func _present_enemy_heal(slot: int, healed: int) -> void:
+	if healed <= 0:
+		return
+	_heal_fx_batch_count += 1
+	if CombatImpactSfxGate.allow(
+		_combat_impact_sfx_enabled,
+		$CombatController.is_in_combat,
+		_boss_intro_active,
+		_elite_intro_active
+	):
+		AudioManager.play_sfx("combat_heal", 1.0, 0.05)
+	var pos: Vector2 = _enemy_slot_pos(slot)
+	if pos != Vector2.ZERO:
+		_spawn_support_sprite_vfx(pos, VFX_HEAL_PATH, SUPPORT_VFX_TINT["heal"])
+		_spawn_damage_number(
+			"+%d" % healed,
+			pos + Vector2(0.0, -40.0),
+			HEAL_NUM_GREEN,
+			1.05,
+			healed,
+			true
+		)
 
 
 func _spawn_member_heal_vfx(member_idx: int) -> void:
