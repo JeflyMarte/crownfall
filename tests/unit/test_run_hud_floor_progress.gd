@@ -38,6 +38,8 @@ func test_abyss_progress_shows_question_mark() -> void:
 	ctrl.start_stage("abyss_mourngate_1_1")
 	assert_eq(ctrl.get_display_floor_progress_percent(), -1)
 	assert_eq(ctrl.get_display_floor_progress_label(), "進行 ?%")
+	assert_eq(ctrl.get_display_floor_text(), "1F/??")
 	ctrl.current_room_index = 5
 	assert_eq(ctrl.get_display_floor_progress_label(), "進行 ?%")
+	assert_eq(ctrl.get_display_floor_text(), "6F/??")
 
