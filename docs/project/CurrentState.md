@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-08-02（**P3-BAL-FORGE-GOLD-HEAVY-001 GO／統合＋main**: 鍛冶Gold重化・L/エンシェント/ミシック強化特重。要実機）
 2026-08-02（**P3-BAL-MOURN-N-ELITE-SOLO-001／統合＋main**: モーンゲートNはエリート護衛なし。②以降据置。要実機）
 2026-08-02（**P3-BAL-DAILY-TREASURE-GOLD-001 GO／統合＋main**: 日課Gold底上げ・宝箱40→120。石据置。要実機）
 2026-08-02（**P3-BAL-HEAL-MOST-INJURED-001／統合＋main**: エリアス・セリン固有＝最傷1人30%回復。要実機）
