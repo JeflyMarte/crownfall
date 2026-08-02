@@ -64,7 +64,7 @@
 | P3-BETA-002〜004 磨き | ③〜⑤の実機確認・アセット不足解消 |
 | P3-EQ-LEG-002 | 防具・装飾★ ②〜⑤横展開 |
 | P3-ENEMY-002 残り | 新雑魚（②+4済以外）→ **③④⑤+12 済**（アート後差し） |
-| **P3-BAL-ENEMY-TRICKY-001** | 敵トリッキー Phase1（T1/T2/T3）。Decision済・Impl待ち | `35_EnemyTrickySkills.md` |
+| **P3-BAL-ENEMY-TRICKY-001** | 敵トリッキー Phase1（T1/T2/T3）。ウィドウ／モスシェル／ローチ | ✅ Impl（要実機） |
 | P3-SUB 表示 | broken_marsh 等寄り道の解禁 |
 | **P3-DG-ABYSS-001** | Biome深層×5。**A/B Impl**／Cレジェンド／D磨きは後続 | アップデート枠 |
 | P3-CHR / Gacha 再有効 | ✅ ENABLE-001 済。残り＝専用ドット |
@@ -90,7 +90,7 @@
 | — | **P3-UX-COMBAT-BAND-001** | ボス詠唱帯VFX＋味方全体／必殺派手演出 | ✅ Impl（要実機） |
 | — | **P3-BAL-ELEM-REBAL-001** | 属性弱点再配分（既存付け替え・新キャラなし）。ボス／地形整合 | ✅ Impl（要実機） |
 | — | **P3-BAL-ENEMY-SKILL-CA-001** | 敵スキル厚み C→A。Phase C＝エリート第2／Phase A＝雑魚2本化 | ✅ Phase C+A GO・統合＋main（要実機） |
-| — | **P3-BAL-ENEMY-TRICKY-001** | 敵トリッキー Phase1（T1状態／T2回復／T3味方バフ） | Decision済・**Impl待ち**（`35_EnemyTrickySkills.md`） |
+| — | **P3-BAL-ENEMY-TRICKY-001** | 敵トリッキー Phase1（T1状態／T2回復／T3味方バフ） | ✅ Impl（要実機・`35_EnemyTrickySkills.md`） |
 | — | **P3-CODEX-HIST-GUIDE-050** | 図鑑 歴史50／世界観手引き50（HE-001〜050・WORLD-G001〜050） | ✅ GO・統合＋main |
 | — | **P3-EQ-DIABLO-001** | 装備ステ・ディアブロ寄せ（固定ATK/DEF＋random_mods／Affix統合） | ✅ GO・統合＋main |
 | — | **P3-EQ-JOB-WPN-001** | 職別武器種制限（preferred＝装備可能リスト） | ✅ GO・統合＋main |

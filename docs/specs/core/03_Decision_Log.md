@@ -6309,4 +6309,6 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-ENEMY-TRICKY-001-5 | **T4報酬** — 通常撃破扱い。**T5報酬** — 放浪と同型でなし | 自爆と逃走の対比 |
 | P3-BAL-ENEMY-TRICKY-001-6 | **Phase1パイロット** — 既存敵キット差替／1本追加。新敵・新アートなし | 相談クローズ |
 | P3-BAL-ENEMY-TRICKY-001-7 | **Phase1 Impl Task** — `P3-BAL-ENEMY-TRICKY-001`（heal経路＋味方バフ解決＋パイロット3）。T4/T5/T6/T7は別 Task | 実装は別セッション |
+| P3-BAL-ENEMY-TRICKY-001-8 | **Phase1 パイロット確定** — T1=`spore_widow`／T2=`moss_shell`／T3=`rune_roach`。`rune_carcinos` 自己 carapace 据置 | オーナー OK 2026-08-02 |
+| P3-BAL-ENEMY-TRICKY-001-9 | **Phase1 Impl** — `_execute_enemy_skill` に heal／他敵バフ。`enemy_moss_mend`／`enemy_rune_ward`／胞子霞低ダメ高毒 | 2026-08-02 本線 |
 

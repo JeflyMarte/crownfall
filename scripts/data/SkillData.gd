@@ -13,9 +13,11 @@ extends Resource
 @export var target_type: String = "enemy"
 ## 対象: "enemy" | "all_enemies" | "ally" | "all_party" | "self" | "pet"
 ## 敵スキル側の列指定: "party" | "party_front" | "party_back"（P3-D106c）。
+## 敵サポート: heal/buff の "ally"＝他の生存敵（いなければ self）。"self"＝詠唱者のみ。
 @export var power_multiplier: float = 1.0
 @export var cooldown: float = 5.0
 @export var trigger_type: String = "cooldown"
+## effect_type: "damage" | "heal" | "buff" | "none"（敵は damage/buff/heal）
 @export var effect_type: String = "none"
 @export var tags: Array[String] = []
 @export var element: String = ""
