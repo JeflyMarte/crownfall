@@ -104,6 +104,35 @@ func test_field_and_banner_assets() -> void:
 	)
 
 
+func test_descent_swarm_raised_on_normal() -> void:
+	## P3-BAL-DESCENT-SWARM-001: 降臨は N でも群れ厚め。
+	assert_almost_eq(BalanceConfig.DESCENT_EVENT_SWARM_CHANCE, 0.72, 0.001)
+	assert_eq(BalanceConfig.DESCENT_EVENT_SWARM_MIN, 2)
+	assert_eq(BalanceConfig.DESCENT_EVENT_SWARM_MAX, 4)
+	var prev_tier: int = GameState.current_dungeon_tier
+	GameState.current_dungeon_tier = 0
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	dc.current_dungeon_data = DataRegistry.get_dungeon_data(DID)
+	dc.current_room_type = Enums.RoomType.COMBAT
+	assert_true(dc._is_descent_event_dungeon())
+	var multi_n: int = 0
+	var samples: int = 120
+	for seed_val: int in samples:
+		seed(seed_val)
+		var group: Array = dc.pick_combat_enemy_group()
+		if group.size() >= 2:
+			multi_n += 1
+			assert_lte(group.size(), 5)
+	assert_gte(multi_n, 60, "descent N swarm ~0.72 → 過半数は複数")
+	dc.current_dungeon_data = DataRegistry.get_dungeon_data("valgard_boundary")
+	assert_true(dc._is_descent_event_dungeon())
+	dc.current_dungeon_data = DataRegistry.get_dungeon_data("cosmic_rift")
+	assert_false(dc._is_descent_event_dungeon(), "曜日イベントは降臨枠ではない")
+	GameState.current_dungeon_tier = prev_tier
+
+
 func _unix_for_jst(year: int, month: int, day: int, hour: int, minute: int) -> int:
 	## datetime_dict はローカル扱いではなく「その壁時計を UTC として解釈」するので、
 	## JST 壁時計 → UTC unix は -9h。
