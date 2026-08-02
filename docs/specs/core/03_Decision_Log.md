@@ -6327,6 +6327,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-ENEMY-TRICKY-005-3 | **Impl** — Phase A〜C 同ターン実装。初回特性テロップ | オーナー「推奨でGo」 |
 | P3-BAL-ENEMY-TRICKY-008-1 | **横展開案A** — 章ごと+2〜3（12体）。①ハウンド吸血／②ボア召集・甲虫加速・カルキノス通常軽減／③蛙T1・ワスプ自爆・骨拾い逃走／④船喰らいバフ・司祭スキル軽減／⑤ジョー沈黙・オルド回復・霜爪加速 | オーナー案A GO |
 
+## 群れ人数連動＋ソロ圧力（2026-08-02 — P3-BAL-SWARM-DENSITY-001）
+
+> **オーナー GO** — ソロ強化／群れで一体弱体＋ソロ速度＋AoE寄せ。SSOT=`docs/specs/decisions/37_SwarmDensitySoloPressure.md`。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-SWARM-DENSITY-001-1 | **人数連動** — 開始1=HP1.35/ATK1.25/SPD1.30。2=基準。3=HP0.9/ATK0.85。4+=HP0.8/ATK0.75。開始時固定 | ソロ紙／大群理不尽の均し |
+| P3-BAL-SWARM-DENSITY-001-2 | **適用** — 通常 COMBAT のみ。ELITE/BOSS 除外。召集は開始倍率維持 | ボス過強化防止 |
+| P3-BAL-SWARM-DENSITY-001-3 | **ソロAoE** — 全体／列／aoe／自爆ウェイト×2.25。蛙・ワスプキット全体寄り | タコ殴り対策 |
+
 ## 調査室・短1時間＋派遣EXP100%（2026-08-02 — P3-BAL-SURVEY-TIME-EXP-001）
 
 > **オーナー GO（推奨案A）** — 短＝1時間。派遣EXPは短・標準とも雑魚クリア相当100%。標準時間3時間据置。素材・魔晶石・SURVEY%据置。

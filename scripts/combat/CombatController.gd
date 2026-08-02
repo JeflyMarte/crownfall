@@ -46,6 +46,11 @@ var enemy_phase_index: Array[int] = []
 ## 放浪個体の行動回数（逃走判定用 / P3-WANDER-001）。
 var wander_action_counts: Array[int] = []
 var active_enemy_index: int = 0
+## 群れ人数連動（開始時固定。P3-BAL-SWARM-DENSITY-001）。
+var swarm_density_count: int = 0
+var _swarm_density_hp_mult: float = 1.0
+var _swarm_density_atk_mult: float = 1.0
+var _swarm_density_spd_mult: float = 1.0
 # メンバー個別の攻撃対象スロット（P3-D111）。member_target_slot[i]=敵 swarm インデックス。
 var member_target_slot: Array[int] = []
 # 装備スキル①②のローテーション開始位置（P3-D113）。戦闘中のみ保持。
@@ -101,16 +106,16 @@ func _job_threat_base(member_index: int) -> float:
 	# 陣形（後列は狙われにくい）（P3-D106）
 	return base * GameState.formation_threat_multiplier(member_index)
 
-func start_combat(enemy_data: Resource, level: int = 1) -> void:
-	start_combat_group([enemy_data], level)
+func start_combat(enemy_data: Resource, level: int = 1, apply_swarm_density: bool = true) -> void:
+	start_combat_group([enemy_data], level, apply_swarm_density)
 
 # 群れ対応の戦闘開始（P3-D082）。単体は要素1の配列として扱う。
-func start_combat_group(enemies: Array, level: int = 1) -> void:
+# apply_swarm_density: 通常 COMBAT のみ true（ELITE/BOSS は false）。
+func start_combat_group(enemies: Array, level: int = 1, apply_swarm_density: bool = true) -> void:
 	is_in_combat = true
 	clear_death_save_state()
 	_member_passive_skip.clear()
 	enemy_level = maxi(1, level)
-	var lf: float = float(enemy_level - 1)
 	swarm_data.clear()
 	swarm_hp.clear()
 	swarm_max_hp.clear()
@@ -119,31 +124,21 @@ func start_combat_group(enemies: Array, level: int = 1) -> void:
 	swarm_exp.clear()
 	enemy_phase_index.clear()
 	wander_action_counts.clear()
+	var valid_n: int = 0
+	for e0 in enemies:
+		if e0 != null:
+			valid_n += 1
+	_set_swarm_density(valid_n if apply_swarm_density else 0)
 	for e in enemies:
 		if e == null:
 			continue
-		var party_hp_mult: float = _party_size_balance_multiplier(PARTY_BALANCE_HP_SHARE)
-		var party_atk_mult: float = _party_size_balance_multiplier(PARTY_BALANCE_ATK_SHARE)
-		var hp: int = maxi(1, int(round(
-			float(e.max_hp)
-			* (1.0 + ENEMY_LEVEL_HP_K * lf)
-			* party_hp_mult
-			* BalanceConfig.ENEMY_GLOBAL_HP_MULT
-		)))
-		var atk: int = maxi(1, int(round(
-			float(e.attack)
-			* (1.0 + ENEMY_LEVEL_ATK_K * lf)
-			* party_atk_mult
-			* BalanceConfig.ENEMY_GLOBAL_ATK_MULT
-		)))
-		var df: int = maxi(0, int(e.defense))
-		var xp: int = maxi(0, int(round(float(e.exp_reward) * (1.0 + ENEMY_LEVEL_EXP_K * lf))))
+		var scaled: Dictionary = _scale_enemy_combat_stats(e)
 		swarm_data.append(e)
-		swarm_hp.append(hp)
-		swarm_max_hp.append(hp)
-		swarm_atk.append(atk)
-		swarm_def.append(df)
-		swarm_exp.append(xp)
+		swarm_hp.append(int(scaled["hp"]))
+		swarm_max_hp.append(int(scaled["hp"]))
+		swarm_atk.append(int(scaled["atk"]))
+		swarm_def.append(int(scaled["def"]))
+		swarm_exp.append(int(scaled["exp"]))
 		enemy_phase_index.append(0)
 		wander_action_counts.append(0)
 		GameState.mark_enemy_seen(e.id)
@@ -157,6 +152,46 @@ func start_combat_group(enemies: Array, level: int = 1) -> void:
 	## 必殺ゲージはフロア／戦闘をまたいで引き継ぐ（ダンジョン入場時のみリセット）。
 	_ensure_member_ultimate_charge()
 	init_ct()
+
+
+func _set_swarm_density(start_count: int) -> void:
+	if start_count <= 0:
+		swarm_density_count = 0
+		_swarm_density_hp_mult = 1.0
+		_swarm_density_atk_mult = 1.0
+		_swarm_density_spd_mult = 1.0
+		return
+	swarm_density_count = start_count
+	_swarm_density_hp_mult = BalanceConfig.swarm_density_hp_mult(start_count)
+	_swarm_density_atk_mult = BalanceConfig.swarm_density_atk_mult(start_count)
+	_swarm_density_spd_mult = BalanceConfig.swarm_density_spd_mult(start_count)
+
+
+func is_swarm_density_solo() -> bool:
+	return is_in_combat and swarm_density_count == 1
+
+
+func _scale_enemy_combat_stats(enemy_data: Resource) -> Dictionary:
+	var lf: float = float(maxi(0, enemy_level - 1))
+	var party_hp_mult: float = _party_size_balance_multiplier(PARTY_BALANCE_HP_SHARE)
+	var party_atk_mult: float = _party_size_balance_multiplier(PARTY_BALANCE_ATK_SHARE)
+	var hp: int = maxi(1, int(round(
+		float(enemy_data.max_hp)
+		* (1.0 + ENEMY_LEVEL_HP_K * lf)
+		* party_hp_mult
+		* BalanceConfig.ENEMY_GLOBAL_HP_MULT
+		* _swarm_density_hp_mult
+	)))
+	var atk: int = maxi(1, int(round(
+		float(enemy_data.attack)
+		* (1.0 + ENEMY_LEVEL_ATK_K * lf)
+		* party_atk_mult
+		* BalanceConfig.ENEMY_GLOBAL_ATK_MULT
+		* _swarm_density_atk_mult
+	)))
+	var df: int = maxi(0, int(enemy_data.defense))
+	var xp: int = maxi(0, int(round(float(enemy_data.exp_reward) * (1.0 + ENEMY_LEVEL_EXP_K * lf))))
+	return {"hp": hp, "atk": atk, "def": df, "exp": xp}
 
 # 現行編成人数に対する敵ステ補正倍率（base=3人前提）。
 # オトモ込みの実戦闘人数を使う（P3-BAL-OPENING-001 / 旧は ACTIVE_PARTY_SIZE=人間4固定）。
@@ -521,6 +556,7 @@ func end_combat() -> void:
 	enemy_phase_index.clear()
 	wander_action_counts.clear()
 	active_enemy_index = 0
+	_set_swarm_density(0)
 	member_target_slot.clear()
 	member_skill_rot_idx.clear()
 	unit_ct.clear()
@@ -718,34 +754,19 @@ func get_enemy_hp_ratio(slot: int) -> float:
 
 
 ## 戦闘中に敵を末尾追加（T8 途中召集）。失敗時 -1。新規は満タン CT。
+## ステ倍率は開始時の群れ人数連動を維持（召集で再計算しない）。
 func append_enemy_to_swarm(enemy_data: Resource, size_cap: int = 5) -> int:
 	if not is_in_combat or enemy_data == null:
 		return -1
 	if swarm_data.size() >= size_cap or living_enemy_count() >= size_cap:
 		return -1
-	var lf: float = float(maxi(0, enemy_level - 1))
-	var party_hp_mult: float = _party_size_balance_multiplier(PARTY_BALANCE_HP_SHARE)
-	var party_atk_mult: float = _party_size_balance_multiplier(PARTY_BALANCE_ATK_SHARE)
-	var hp: int = maxi(1, int(round(
-		float(enemy_data.max_hp)
-		* (1.0 + ENEMY_LEVEL_HP_K * lf)
-		* party_hp_mult
-		* BalanceConfig.ENEMY_GLOBAL_HP_MULT
-	)))
-	var atk: int = maxi(1, int(round(
-		float(enemy_data.attack)
-		* (1.0 + ENEMY_LEVEL_ATK_K * lf)
-		* party_atk_mult
-		* BalanceConfig.ENEMY_GLOBAL_ATK_MULT
-	)))
-	var df: int = maxi(0, int(enemy_data.defense))
-	var xp: int = maxi(0, int(round(float(enemy_data.exp_reward) * (1.0 + ENEMY_LEVEL_EXP_K * lf))))
+	var scaled: Dictionary = _scale_enemy_combat_stats(enemy_data)
 	swarm_data.append(enemy_data)
-	swarm_hp.append(hp)
-	swarm_max_hp.append(hp)
-	swarm_atk.append(atk)
-	swarm_def.append(df)
-	swarm_exp.append(xp)
+	swarm_hp.append(int(scaled["hp"]))
+	swarm_max_hp.append(int(scaled["hp"]))
+	swarm_atk.append(int(scaled["atk"]))
+	swarm_def.append(int(scaled["def"]))
+	swarm_exp.append(int(scaled["exp"]))
 	enemy_phase_index.append(0)
 	wander_action_counts.append(0)
 	GameState.mark_enemy_seen(enemy_data.id)
@@ -1240,12 +1261,13 @@ func get_enemy_initiative_score() -> float:
 		return 1.0
 	return current_enemy_data.attack_speed if current_enemy_data.attack_speed > 0.0 else 1.0
 
-# 敵スロット別イニシアチブ（attack_speed）。
+# 敵スロット別イニシアチブ（attack_speed × ソロ密度速度）。
 func get_enemy_initiative_score_at(slot: int) -> float:
 	var d: Resource = get_enemy_data_at(slot)
 	if d == null:
 		return 1.0
-	return d.attack_speed if d.attack_speed > 0.0 else 1.0
+	var base: float = d.attack_speed if d.attack_speed > 0.0 else 1.0
+	return base * _swarm_density_spd_mult
 
 # ---- CT/ATB スケジューラ（P3-D084） ----
 

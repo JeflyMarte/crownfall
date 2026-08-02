@@ -3615,7 +3615,13 @@ func _enter_current_room() -> void:
 		if not group.is_empty():
 			var lead: Resource = group[0]
 			_begin_combat_session()
-			$CombatController.start_combat_group(group, $DungeonController.get_enemy_level())
+			## 人数連動ステ／ソロ速度は通常 COMBAT のみ（ELITE/BOSS は除外）。
+			var apply_density: bool = (
+				$DungeonController.current_room_type == Enums.RoomType.COMBAT
+			)
+			$CombatController.start_combat_group(
+				group, $DungeonController.get_enemy_level(), apply_density
+			)
 			_update_combat_visibility()
 			_sync_shadow_stalker_floor_dim(group)
 			_skill_executor.reset()
@@ -6037,6 +6043,9 @@ func _pick_enemy_skill(enemy_data: Resource, phase_def: Dictionary, slot: int = 
 		if not _enemy_tricky_skill_allowed(sd, cd_slot):
 			continue
 		var w: float = float(weights.get(str(sid), 1.0))
+		## ソロ戦は全体／列／AoE を多めに（P3-BAL-SWARM-DENSITY-001）。
+		if $CombatController.is_swarm_density_solo() and _enemy_skill_is_aoe_pressure(sd):
+			w *= BalanceConfig.SOLO_AOE_SKILL_WEIGHT_MULT
 		pool.append({"skill": sd, "weight": w})
 		total += w
 	if pool.is_empty():
@@ -6244,6 +6253,24 @@ func _execute_enemy_skill(skill: Resource, slot: int = -1) -> bool:
 		"damage":
 			_execute_enemy_damage(skill, slot)
 			return true
+	return false
+
+
+## ソロ圧力向け：全体／列／AoE／自爆。
+func _enemy_skill_is_aoe_pressure(skill: Resource) -> bool:
+	if skill == null:
+		return false
+	var tt: String = str(skill.target_type)
+	if tt in [
+		CombatFormation.TARGET_ALL_PARTY,
+		CombatFormation.TARGET_PARTY_FRONT,
+		CombatFormation.TARGET_PARTY_BACK,
+	]:
+		return true
+	if str(skill.effect_type) == "explode":
+		return true
+	if skill.tags.has("aoe"):
+		return true
 	return false
 
 
