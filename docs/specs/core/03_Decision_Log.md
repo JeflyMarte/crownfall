@@ -6654,6 +6654,17 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-SKILL-KIT-DIVERGE-001-5 | **スコープ外** — AL／BT | 後続 |
 | P3-SKILL-KIT-DIVERGE-001-6 | **SSOT** — `decisions/48_SkillKitDiverge.md` | 正 |
 
+## ソードマン自己バフ（2026-08-02 — P3-SKILL-SW-SELFBUFF-001）
+
+> **オーナー GO** — 攻撃一辺倒を緩和。案A＝Lv30を自己バフへ差し替え。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-SKILL-SW-SELFBUFF-001-1 | **Lv30** — `momentum_slash`（追勢斬）を外し **`battle_spirit`（闘気）** を習得 | 自己バフで幅を出す |
+| P3-SKILL-SW-SELFBUFF-001-2 | **効果** — `target_type=self`／`empower`／CD6.5s | 味全バフ主軸は AL/VG/BT のまま |
+| P3-SKILL-SW-SELFBUFF-001-3 | **移行** — `armor_cleave`・`momentum_slash` → `battle_spirit`（EQUIPPED_SKILL_REMAP） | セーブ装備壊れ防止 |
+| P3-SKILL-SW-SELFBUFF-001-4 | **SSOT** — `49_SwordsmanSelfBuff.md` | 数値の正 |
+
 ## ビルド拡張レジェンド10本（2026-08-02 — P3-EQ-LEG-BUILD-001）
 
 > **オーナー GO（推奨10本）** — スキル分化ビルドを補強する防具5＋装飾5。Biome固定★の追加1点。
@@ -6664,5 +6675,5 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-EQ-LEG-BUILD-001-2 | **入手** — x-5 初回ボスで Biome固定Lに加え未所持から1点 | 供給過多を抑えつつビルド幅 |
 | P3-EQ-LEG-BUILD-001-3 | **配線** — `CombatPassives`＋被ダメ／貫通二次／回復倍率 | 既存フック再利用 |
 | P3-EQ-LEG-BUILD-001-4 | **アイコン** — 専用絵前は既存L／形カテゴリ汎用 | アート待ち |
-| P3-EQ-LEG-BUILD-001-5 | **SSOT** — `decisions/49_BuildLegendaries.md` | 正 |
+| P3-EQ-LEG-BUILD-001-5 | **SSOT** — `decisions/50_BuildLegendaries.md` | 正 |
 

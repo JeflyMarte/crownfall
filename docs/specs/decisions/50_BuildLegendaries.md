@@ -2,7 +2,7 @@
 
 **Status:** Decision 承認済（2026-08-02 — オーナー「推奨10本でgo」）  
 **Impl:** `P3-EQ-LEG-BUILD-001`  
-**関連:** P3-EQ-LEG-001／P3-SKILL-KIT-DIVERGE-001／`48_SkillKitDiverge.md`
+**関連:** P3-EQ-LEG-001／P3-SKILL-KIT-DIVERGE-001／`48_SkillKitDiverge.md`／`49_SwordsmanSelfBuff.md`
 
 ---
 

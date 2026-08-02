@@ -29,6 +29,7 @@ const SKILL_TO_BASE: Dictionary = {
 	"rend_slash": "slash",
 	"armor_cleave": "slash",
 	"momentum_slash": "slash",
+	"battle_spirit": "buff",
 	"pierce_line": "slash",
 	"piercing_shot": "bow",
 	"blade_tempest": "slash",

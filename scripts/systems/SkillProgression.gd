@@ -7,7 +7,8 @@ extends RefCounted
 ## キット差し替え時の旧装備ID→新ID（P3-SKILL-KIT-DIVERGE-001）。
 const EQUIPPED_SKILL_REMAP: Dictionary = {
 	"chain_slash": "blade_dance",
-	"armor_cleave": "momentum_slash",
+	"armor_cleave": "battle_spirit",
+	"momentum_slash": "battle_spirit",
 	"mark_pursuit": "piercing_shot",
 	"shield_ram": "cover_guard",
 }
