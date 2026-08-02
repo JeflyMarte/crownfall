@@ -13,20 +13,45 @@ func _make_controller(stage_id: String) -> Node:
 
 func test_first_boss_clear_grants_legendary_pair() -> void:
 	GameState.stage_progress.erase("mourngate_1_5")
+	GameState.armor_inventory.clear()
+	GameState.accessory_inventory.clear()
 	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
 	var dc: Node = _make_controller("mourngate_1_5")
 	var stage: Resource = dc.current_stage_data
 	var bonus: Dictionary = dc.apply_boss_legendary_loot(stage)
 	assert_eq(str(bonus["armor_id"]), "serdion_ward_plate")
 	assert_eq(str(bonus["accessory_id"]), "mourngate_royal_seal")
-	assert_eq(GameState.armor_inventory.size(), 1)
-	assert_eq(GameState.accessory_inventory.size(), 1)
-	assert_eq(str(GameState.armor_inventory[0].armor_id), "serdion_ward_plate")
-	assert_eq(str(GameState.accessory_inventory[0].accessory_id), "mourngate_royal_seal")
+	## Biome固定2＋ビルド拡張L1（P3-EQ-LEG-BUILD-001）
+	assert_eq(GameState.armor_inventory.size() + GameState.accessory_inventory.size(), 3)
+	assert_true(_inventory_has_armor("serdion_ward_plate"))
+	assert_true(_inventory_has_accessory("mourngate_royal_seal"))
+	assert_false(str(bonus.get("build_id", "")).is_empty())
+	var biome_armor: Resource = _find_armor("serdion_ward_plate")
 	assert_true(
-		_EquipmentEnhancer.get_equip_level(GameState.armor_inventory[0]) >= 4,
+		_EquipmentEnhancer.get_equip_level(biome_armor) >= 4,
 		"ボス章 enemy_level=5 帯のドロップLv"
 	)
+
+
+func _inventory_has_armor(armor_id: String) -> bool:
+	for inst: Variant in GameState.armor_inventory:
+		if inst != null and str(inst.armor_id) == armor_id:
+			return true
+	return false
+
+
+func _inventory_has_accessory(accessory_id: String) -> bool:
+	for inst: Variant in GameState.accessory_inventory:
+		if inst != null and str(inst.accessory_id) == accessory_id:
+			return true
+	return false
+
+
+func _find_armor(armor_id: String) -> Resource:
+	for inst: Variant in GameState.armor_inventory:
+		if inst != null and str(inst.armor_id) == armor_id:
+			return inst
+	return null
 
 func test_repeat_clear_skips_legendary() -> void:
 	GameState.stage_progress.erase("mourngate_1_5")
@@ -51,8 +76,9 @@ func test_hard_tier_first_clear_grants_legendary() -> void:
 	var bonus: Dictionary = dc.apply_boss_legendary_loot(dc.current_stage_data)
 	assert_eq(str(bonus["armor_id"]), "serdion_ward_plate")
 	assert_eq(str(bonus["accessory_id"]), "mourngate_royal_seal")
-	assert_eq(GameState.armor_inventory.size(), 1)
-	assert_eq(GameState.accessory_inventory.size(), 1)
+	assert_eq(GameState.armor_inventory.size() + GameState.accessory_inventory.size(), 3)
+	assert_true(_inventory_has_armor("serdion_ward_plate"))
+	assert_true(_inventory_has_accessory("mourngate_royal_seal"))
 
 
 func test_hard_repeat_clear_skips_legendary() -> void:

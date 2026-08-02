@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ArmorData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ArmorData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+armor_id = "bloodpact_plate"
+display_name = "血契の胸当て"
+description = "出血した敵との斬り合いに宿る胸当て。血の契りが刃と盾を同時に研ぐ。"
+base_defense = 380
+base_hp_bonus = 520
+base_resistance = 0.0
+resist_elements = Array[String](["dark"])
+weight = 1.1
+rarity = 3
+fixed_passive_id = "eq_bloodpact_plate"

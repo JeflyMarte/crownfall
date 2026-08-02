@@ -1206,7 +1206,8 @@ func get_member_outgoing_damage_multiplier(
 	return mult
 
 # 被ダメ補正（防御=guard 等）。1.0=等倍。P3-D085 で配線。遺物 incoming_mult も乗算（P3-D090）。
-func get_member_incoming_damage_multiplier(member_index: int) -> float:
+## attacker_slot: 敵スロット（血契など攻撃側状態参照。不明時は -1）。
+func get_member_incoming_damage_multiplier(member_index: int, attacker_slot: int = -1) -> float:
 	var mult: float = _status_resolver.get_incoming_damage_multiplier("party_%d" % member_index)
 	mult *= float(_member_relic_effects(member_index).get("incoming_mult", 1.0))
 	mult *= float(CombatPassives.character_stat_modifiers_for_member(member_index).get("incoming_mult", 1.0))
@@ -1233,7 +1234,29 @@ func get_member_incoming_damage_multiplier(member_index: int) -> float:
 	mult *= _EvolutionTraits.member_incoming_mult(member_index)
 	mult *= _AbyssWeaponEffects.incoming_shell_multiplier(member_index)
 	mult *= _EquipmentSetBonuses.incoming_mult(member_index)
+	## ビルドL: 庇護外套・呪縛法衣・血契（攻撃側状態）（P3-EQ-LEG-BUILD-001）
+	var most_injured: int = get_most_injured_member_index()
+	mult *= CombatPassives.cover_ally_incoming_mult_for(member_index, most_injured)
+	mult *= CombatPassives.hexweave_incoming_mult_for_member(
+		member_index, count_unique_enemy_debuff_types()
+	)
+	if attacker_slot >= 0:
+		var attacker_statuses: Array = []
+		for status_id: String in DEBUFF_STATUS_IDS:
+			if get_enemy_status_stacks_at(attacker_slot, status_id) > 0:
+				attacker_statuses.append(status_id)
+		mult *= CombatPassives.incoming_vs_attacker_status_mult(member_index, attacker_statuses)
 	return mult
+
+
+## 場の生存敵が持つデバフ種類のユニーク数（呪縛法衣）。
+func count_unique_enemy_debuff_types() -> int:
+	var seen: Dictionary = {}
+	for slot: int in get_living_enemy_indices():
+		for status_id: String in DEBUFF_STATUS_IDS:
+			if get_enemy_status_stacks_at(slot, status_id) > 0:
+				seen[status_id] = true
+	return seen.size()
 
 func get_density_log_tag(member_index: int) -> String:
 	return CombatFormation.density_log_tag(

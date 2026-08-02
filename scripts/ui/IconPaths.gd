@@ -208,6 +208,12 @@ const ICON_MAP: Dictionary = {
 	"armor:crypt_weave_cloak":           "res://assets/ui/equipment/ICO_ARM_CryptWeaveCloak.png",
 	"armor:lament_guard_mail":           "res://assets/ui/equipment/ICO_ARM_LamentGuardMail.png",
 	"armor:sepia_hide_vest":           "res://assets/ui/equipment/ICO_ARM_SepiaHideVest.png",
+	## ビルド拡張L（専用絵前は既存L流用・P3-EQ-LEG-BUILD-001）
+	"armor:bloodpact_plate":       "res://assets/ui/equipment/ICO_ARM_KaiwanBloodmail.png",
+	"armor:flurry_light_mail":     "res://assets/ui/equipment/ICO_ARM_LamentGuardMail.png",
+	"armor:bulwark_role_plate":    "res://assets/ui/equipment/ICO_ARM_SerdionWardPlate.png",
+	"armor:cover_aegis_cloak":     "res://assets/ui/equipment/ICO_ARM_CryptWeaveCloak.png",
+	"armor:hexweave_robe":         "res://assets/ui/equipment/ICO_ARM_KaiwanVoidrobe.png",
 	"armor:unidentified":          "res://assets/ui/batch2/ICO_ARM_Unidentified.png",
 	## 形カテゴリ汎用（Ring/Charm/Talisman/Seal）。専用絵が無い装飾はここへ。
 	"accessory:generic_ring":     "res://assets/ui/equipment/ICO_ACC_Generic_Ring.png",
@@ -253,6 +259,12 @@ const ICON_MAP: Dictionary = {
 	"accessory:eldion_heart_talisman": "res://assets/ui/equipment/ICO_ACC_Generic_Talisman.png",
 	"accessory:clockwing_brooch":           "res://assets/ui/equipment/ICO_ACC_Generic_Charm.png",
 	"accessory:pilgrim_lantern_charm":           "res://assets/ui/equipment/ICO_ACC_Generic_Charm.png",
+	## ビルド拡張L（形カテゴリ汎用／P3-EQ-LEG-BUILD-001）
+	"accessory:blade_dance_ring":  "res://assets/ui/equipment/ICO_ACC_Generic_Ring.png",
+	"accessory:pierce_charm":      "res://assets/ui/equipment/ICO_ACC_Generic_Charm.png",
+	"accessory:pulse_amulet":      "res://assets/ui/equipment/ICO_ACC_Generic_Talisman.png",
+	"accessory:beastlord_fang":    "res://assets/ui/equipment/ICO_ACC_Generic_Talisman.png",
+	"accessory:apothecary_vial":   "res://assets/ui/equipment/ICO_ACC_Generic_Charm.png",
 	"accessory:unidentified":      "res://assets/ui/batch2/ICO_ACC_Unidentified.png",
 	"material:relic_shard":        "res://assets/ui/materials/ICO_MAT_RelicShard.png",
 	"material:base_ore":           "res://assets/ui/materials/ICO_MAT_BaseOre.png",

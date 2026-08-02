@@ -5590,6 +5590,7 @@ func _execute_member_heal(
 	var healed: int = $CombatController.heal_member(target_idx, heal_amount)
 	if healed > 0:
 		GameState.record_run_heal(member_idx, healed)
+		_maybe_apply_heal_guard(member_idx, target_idx)
 	_set_heal_rally(target_idx)
 	_update_hp_bars()
 	if cast_index == 0:
@@ -5632,6 +5633,7 @@ func _apply_party_heal_from_skill(caster_idx: int, skill_data: Resource, present
 			continue
 		total += healed
 		GameState.record_run_heal(caster_idx, healed)
+		_maybe_apply_heal_guard(caster_idx, i)
 		_set_heal_rally(i)
 		_present_member_heal(i, healed, present_scale, false)
 	return total
@@ -7629,6 +7631,17 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 				)
 				_append_equipment_drop_icon(drop_icons, str(legendary_bonus["accessory_id"]), "accessory")
 				_maybe_celebrate_rare_equip_drop(str(legendary_bonus["accessory_id"]), "accessory", false)
+			var build_id: String = str(legendary_bonus.get("build_id", ""))
+			var build_cat: String = str(legendary_bonus.get("build_category", ""))
+			if not build_id.is_empty() and (build_cat == "armor" or build_cat == "accessory"):
+				if build_cat == "armor":
+					GameState.last_run_armor_dropped = build_id
+					log_lines.append("ボス報酬: 防具 %s" % DataRegistry.get_armor_name(build_id))
+				else:
+					GameState.last_run_accessory_dropped = build_id
+					log_lines.append("ボス報酬: 装飾品 %s" % DataRegistry.get_accessory_name(build_id))
+				_append_equipment_drop_icon(drop_icons, build_id, build_cat)
+				_maybe_celebrate_rare_equip_drop(build_id, build_cat, false)
 			var mythic_bonus: Dictionary = $DungeonController.apply_boss_mythic_loot(stage)
 			var mythic_id: String = str(mythic_bonus.get("id", ""))
 			var mythic_cat: String = str(mythic_bonus.get("category", ""))
@@ -8913,7 +8926,8 @@ func _resolve_party_skill_damage_impact_async(payload: Dictionary) -> void:
 	):
 		var sec_slot: int = _pick_pierce_secondary_slot(first_alive_slot)
 		if sec_slot >= 0:
-			var sec_dmg: int = maxi(1, int(round(float(final_dmg) * 0.55)))
+			var pierce_mult: float = CombatPassives.pierce_secondary_damage_mult(member_idx)
+			var sec_dmg: int = maxi(1, int(round(float(final_dmg) * 0.55 * pierce_mult)))
 			var sec_pos: Vector2 = _enemy_slot_pos(sec_slot)
 			_spawn_hit_vfx(sec_pos, attack_element, 0.85, false, _get_weapon_type(member_idx))
 			_spawn_damage_number(
@@ -9073,7 +9087,21 @@ func _apply_healing_bonus(base_amount: int, member_idx: int = -1) -> int:
 	var heal_mult: float = $CombatController.get_party_role_heal_multiplier()
 	if member_idx >= 0:
 		heal_mult *= EvolutionTraits.member_heal_mult(member_idx)
+		heal_mult *= CombatPassives.heal_power_mult_for_member(member_idx)
 	return maxi(0, int(round(float(amount) * heal_mult)))
+
+
+## 調剤師の薬など: 回復成功時に対象へ guard を付与。
+func _maybe_apply_heal_guard(caster_idx: int, target_idx: int) -> void:
+	if caster_idx < 0 or target_idx < 0:
+		return
+	if not CombatPassives.heal_applies_guard_for_member(caster_idx):
+		return
+	if not $CombatController.is_member_alive(target_idx):
+		return
+	if $CombatController.apply_status("party_%d" % target_idx, "guard", 1, 0):
+		_on_party_status_applied(target_idx, "guard")
+		_update_status_icons()
 
 func _apply_material_bonus(base_amount: int) -> int:
 	return AffixStatCalculatorScript.apply_material_bonus(base_amount)
@@ -11567,6 +11595,7 @@ func _apply_ultimate_heal_impact(payload: Dictionary) -> void:
 	var healed: int = $CombatController.heal_member(target_idx, heal_amount)
 	if healed > 0:
 		GameState.record_run_heal(member_idx, healed)
+		_maybe_apply_heal_guard(member_idx, target_idx)
 	_set_heal_rally(target_idx)
 	_present_member_heal(target_idx, healed, 1.65, false)
 	_append_log(
