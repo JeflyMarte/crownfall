@@ -109,3 +109,22 @@ func test_forced_swarm_only_own_enemy() -> void:
 		saw_stalker = true
 		break
 	assert_true(saw_stalker)
+
+
+func test_cosmic_rift_advance_past_last_floor_completes_without_reenter_combat() -> void:
+	## 最終Fで逃走→advance すると completed のまま COMBAT タイプが残り、再入場でループする既往。
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	dc.start_dungeon("cosmic_rift")
+	assert_eq(dc.room_sequence.size(), 5)
+	dc.current_room_index = dc.room_sequence.size() - 1
+	dc.current_room_type = dc.room_sequence[dc.current_room_index]
+	assert_true(dc.is_on_last_floor_before_exit())
+	assert_true(dc.is_combat_room())
+	var last_type: int = int(dc.current_room_type)
+	dc.advance_room()
+	assert_true(dc.is_completed)
+	assert_eq(int(dc.current_room_type), last_type)
+	## Scene 側は is_completed なら _enter_current_room 禁止（逃走クリア経路）。
+	assert_true(dc.is_combat_room(), "タイプは残るが再入場してはいけない")

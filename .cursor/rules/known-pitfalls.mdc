@@ -133,6 +133,7 @@ alwaysApply: false
 | 職名が「ビーストテ…」になる | ellipsis＋巨大 JobIcon | → `ui-layout.mdc` 職名・本文タイポ |
 | キャラスキル名が「鋼斬…」等に省略 | スキル行 Name Label に `clip_text`＋`OVERRUN_TRIM_ELLIPSIS`＋固定最小幅 | スキル名は1行全文（`clip_text=false` / `OVERRUN_NO_TRIMMING` / `AUTOWRAP_OFF`）。説明側を ellipsis |
 | 最終フロア等で「探索終了」がクリア扱い | 非戦闘 `ButtonFinish`／メニューが `is_completed` 無しでクリア経路を呼んだ | 手動終了はリタイア確認のみ。クリアは撃破演出後（`is_completed`）のみ |
+| コズミックダック等・最終Fで逃走すると同Fがループ | `_finalize_combat_fled` が常に auto_progress。`advance` 後は completed でも部屋タイプ COMBAT のまま→再入場 | 最終Fは撃破と同じくクリア祝賀→結果。`_advance_to_next_room` は completed なら再入場禁止 |
 | アルケミスト等の固有パッシブが剣アイコン | キャラ固有 id に `ICO_PASSIVE_*` が無く `BattleFervor` フォールバック | `PassiveIconHelper.ICON_ALIAS`／`ICON_PATH_OVERRIDE` で職帯・毒ベースへ |
 | スキル詳細に「属性: dark」等の英語 | `EquipmentScene` が element id をそのまま表示 | `ElementResolver.get_display_name`（炎/氷/雷/闇/聖）を使う |
 | キャラのスキル説明が開発メモっぽい | キット設計メモ（「〇〇へ譲る」／担当）や UI の `CD；`／`tick`／英語状態ID | 説明は効果の平易語のみ。一覧は「再使用○秒」／持続は「しばらく続く」。状態名は日本語表示名 |
