@@ -98,7 +98,9 @@ const INV_CELLS: Array[String] = [
 ## レリック専用枠（レア枠とは別アセット。装備一覧／装備スロット共通）。
 const INV_CELL_RELIC: String = ROOT + "UI_Equip_InvCell_RELIC.png"
 
-const CATEGORY_MIN_SIZE: Vector2 = Vector2(64, 76)
+## カテゴリタブ（全て〜レリック）。縦を抑え Header へのはみ出しを防ぐ。
+const CATEGORY_MIN_SIZE: Vector2 = Vector2(64, 64)
+const CATEGORY_ICON_PX: int = 32
 ## 装備カード左の正面 Idle ドット（台座上・モック構図）。
 const PORTRAIT_PX: int = 200
 const PORTRAIT_STACK_SIZE: Vector2 = Vector2(200, 268)

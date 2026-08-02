@@ -432,7 +432,8 @@ func _build_category_chips() -> void:
 		col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		wrap.add_child(col)
 		var icon := TextureRect.new()
-		icon.custom_minimum_size = Vector2(40, 40)
+		var icon_px: float = float(EquipmentUiTokens.CATEGORY_ICON_PX)
+		icon.custom_minimum_size = Vector2(icon_px, icon_px)
 		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
