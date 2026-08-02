@@ -6674,6 +6674,6 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-EQ-LEG-BUILD-001-1 | **内容** — 防具5（血契／連撃／盾役／庇護／呪縛）＋装飾5（剣舞／貫通／鼓動／獣牙／調剤） | 推奨セット承認 |
 | P3-EQ-LEG-BUILD-001-2 | **入手** — x-5 初回ボスで Biome固定Lに加え未所持から1点 | 供給過多を抑えつつビルド幅 |
 | P3-EQ-LEG-BUILD-001-3 | **配線** — `CombatPassives`＋被ダメ／貫通二次／回復倍率 | 既存フック再利用 |
-| P3-EQ-LEG-BUILD-001-4 | **アイコン** — 専用絵前は既存L／形カテゴリ汎用 | アート待ち |
+| P3-EQ-LEG-BUILD-001-4 | **アイコン** — 専用10枚（64×64／`import_build_legendary_icons.py`） | 汎用流用を解消 |
 | P3-EQ-LEG-BUILD-001-5 | **SSOT** — `decisions/50_BuildLegendaries.md` | 正 |
 
