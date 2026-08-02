@@ -9846,7 +9846,6 @@ func _make_turn_order_cell(entry: Dictionary) -> PanelContainer:
 			else CanvasItem.TEXTURE_FILTER_NEAREST
 		)
 	holder.add_theme_stylebox_override("panel", _make_turn_order_frame_style(false))
-	holder.set_meta("uses_turn_art", uses_turn_art)
 	icon.texture = tex
 	icon.modulate = Color(1.0, 1.0, 1.0, 1.0)
 	holder.add_child(icon)
