@@ -3,6 +3,7 @@ extends RefCounted
 
 const _ArmorStatResolver = preload("res://scripts/equipment/ArmorStatResolver.gd")
 const _AccessoryStatResolver = preload("res://scripts/equipment/AccessoryStatResolver.gd")
+const _CommanderPermitBoost = preload("res://scripts/commander/CommanderPermitBoost.gd")
 
 ## M6 Affix stat 集計（P2-Task031）。装備の prefix/suffix + 装飾ベース報酬率。
 ## P3-EQ-002: member_index >= 0 はそのメンバーの装備のみ。-1 は全員分を合算（Gold/Healing 等）。
@@ -36,12 +37,14 @@ static func apply_gold_bonus(base_gold: int) -> int:
 	if base_gold <= 0:
 		return base_gold
 	var mult: float = float(get_bonuses().get("gold_gain_mult", 1.0))
+	mult *= _CommanderPermitBoost.gold_mult()
 	return maxi(0, int(round(float(base_gold) * mult)))
 
 static func apply_exp_bonus(base_exp: int) -> int:
 	if base_exp <= 0:
 		return base_exp
 	var mult: float = float(get_bonuses().get("exp_gain_mult", 1.0))
+	mult *= _CommanderPermitBoost.exp_mult()
 	return maxi(0, int(round(float(base_exp) * mult)))
 
 static func apply_rarity_drop_weight(base_weight: int, rarity: int) -> int:
@@ -63,7 +66,11 @@ static func apply_material_bonus(base_amount: int) -> int:
 	if base_amount <= 0:
 		return base_amount
 	var bonus: int = int(get_bonuses().get("material_gain_bonus", 0))
-	return maxi(0, base_amount + bonus)
+	var amount: int = maxi(0, base_amount + bonus)
+	var permit_mult: float = _CommanderPermitBoost.material_mult()
+	if permit_mult > 1.0:
+		amount = maxi(1, int(round(float(amount) * permit_mult)))
+	return amount
 
 func _empty_bonuses() -> Dictionary:
 	return {

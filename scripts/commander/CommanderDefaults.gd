@@ -41,4 +41,7 @@ static func default_commander_dict() -> Dictionary:
 		"rank_curve_v4": true,
 		## 到達ギフト配布済み等級コード（二重配布防止）。
 		"rank_reward_ranks": [],
+		## 許可強化（P3-CMD-PERMIT-BOOST-001）。
+		"permit_points_earned": 0,
+		"permit_alloc": {"plunder": 0, "growth": 0, "power": 0},
 	}

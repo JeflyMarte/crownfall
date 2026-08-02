@@ -11,6 +11,7 @@ const _EvolutionTraits = preload("res://scripts/systems/EvolutionTraits.gd")
 const _PetSystem = preload("res://scripts/pets/PetSystem.gd")
 const _AbyssWeaponEffects = preload("res://scripts/combat/AbyssWeaponEffects.gd")
 const _EquipmentSetBonuses = preload("res://scripts/equipment/EquipmentSetBonuses.gd")
+const _CommanderPermitBoost = preload("res://scripts/commander/CommanderPermitBoost.gd")
 
 var is_in_combat: bool = false
 var current_enemy_data: Resource = null
@@ -690,6 +691,7 @@ func _init_party_hp() -> void:
 		var job_mods: Dictionary = _JobStatCalculator.get_member_modifiers(member)
 		var hp_mult: float = float(job_mods.get("hp_multiplier", _JobStatCalculator.DEFAULT_MULTIPLIER))
 		hp_mult *= _EquipmentSetBonuses.hp_mult(i)
+		hp_mult *= _CommanderPermitBoost.hp_mult()
 		max_hp = maxi(1, int(round(float(max_hp) * hp_mult)))
 		party_combat_hp.append(max_hp)
 		party_max_hp.append(max_hp)

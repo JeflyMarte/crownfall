@@ -8,11 +8,13 @@ const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd
 const _CommanderGiftBox = preload("res://scripts/commander/CommanderGiftBox.gd")
 const _CommanderSurveyPoints = preload("res://scripts/commander/CommanderSurveyPoints.gd")
 const _CommanderUiTokens = preload("res://scripts/commander/CommanderUiTokens.gd")
+const _CommanderPermitBoost = preload("res://scripts/commander/CommanderPermitBoost.gd")
 const _CurrencyGainFx = preload("res://scripts/ui/CurrencyGainFx.gd")
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
 const CODEX_SCENE: String = "res://scenes/codex/CodexScene.tscn"
 const SHOWCASE_SCENE: String = "res://scenes/showcase/ShowcaseScene.tscn"
+const PERMIT_SCENE: String = "res://scenes/commander/CommanderPermitScene.tscn"
 const GOLD_ICON: String = "res://assets/ui/batch2/ICO_Gold.png"
 
 const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45)
@@ -166,18 +168,28 @@ func _build_overview_section() -> Control:
 	bar.custom_minimum_size = Vector2(0, 14)
 	info.add_child(bar)
 	_add_caption(info, str(progress.get("label", "")))
-	_add_subheading(body, "最近のハイライト")
-	var highlights_block := _make_inner_block()
-	body.add_child(highlights_block["panel"])
-	var highlights_body: VBoxContainer = highlights_block["body"]
-	var highlights: Array = _CommanderProfile.get_recent_highlights()
-	if highlights.is_empty():
-		_add_caption(highlights_body, "まだ記録がありません")
-	else:
-		for entry: Variant in highlights:
-			if entry is Dictionary:
-				_add_caption(highlights_body, "・%s" % str(entry.get("text", "")))
+	body.add_child(_make_permit_boost_button())
 	return sec["panel"]
+
+
+func _make_permit_boost_button() -> Button:
+	_CommanderPermitBoost.ensure_and_sync()
+	var unspent: int = _CommanderPermitBoost.points_unspent()
+	var btn := Button.new()
+	if unspent > 0:
+		btn.text = "許可強化（残り %d）" % unspent
+	else:
+		btn.text = "許可強化"
+	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	btn.custom_minimum_size = Vector2(0, 44)
+	UiTypography.apply_button(btn, unspent > 0)
+	btn.pressed.connect(_on_permit_boost_pressed)
+	return btn
+
+
+func _on_permit_boost_pressed() -> void:
+	AudioManager.play_sfx("ui_confirm")
+	get_tree().change_scene_to_file(PERMIT_SCENE)
 
 
 func _make_rank_portrait() -> PanelContainer:
