@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_spore_burst"
+display_name = "胞針爆散"
+description = "体内の胞子嚢を炸裂させ前列を襲ったあと、自身も砕け散る。撃破扱いの報酬は残る。"
+skill_type = "enemy"
+target_type = "party_front"
+power_multiplier = 0.7
+cooldown = 7.0
+trigger_type = "cooldown"
+effect_type = "explode"
+tags = Array[String](["aoe", "explode"])
+element = ""
+apply_status_id = "poison"
+apply_status_chance = 0.3

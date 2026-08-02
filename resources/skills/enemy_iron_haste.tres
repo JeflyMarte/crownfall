@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_iron_haste"
+display_name = "角鳴の催促"
+description = "角を打ち鳴らして味方敵の次の行動を早める。"
+skill_type = "enemy"
+target_type = "ally"
+power_multiplier = 0.55
+cooldown = 7.0
+trigger_type = "cooldown"
+effect_type = "haste"
+tags = Array[String](["haste", "support"])
+element = ""
+apply_status_id = ""
+apply_status_chance = 0.0
