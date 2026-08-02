@@ -3578,6 +3578,10 @@ func _on_next_room_pressed() -> void:
 
 func _advance_to_next_room() -> void:
 	$DungeonController.advance_room()
+	if $DungeonController.is_completed:
+		## 最終F超過で completed。部屋タイプは直前 COMBAT のままなので再入場禁止。
+		_on_finish_button_pressed()
+		return
 	if $DungeonController.last_abyss_weather_rerolled:
 		_refresh_weather()
 		## 同抽選で id が変わらないときはログしない（途中で変わったように見える誤認防止）。
@@ -7710,7 +7714,13 @@ func _finalize_combat_fled() -> void:
 	_update_enemy_label()
 	_update_hp_bars()
 	_update_next_room_button()
-	_start_auto_progress()
+	_show_chr_sprites(false)
+	## 最終Fでも auto_progress→advance すると completed のまま COMBAT 再入場しループする。
+	## 撃破クリアと同じく結果へ（コズミックダック裂け目等の逃走敵）。
+	if $DungeonController.is_on_last_floor_before_exit():
+		_play_combat_clear_celebration(true)
+	else:
+		_start_auto_progress()
 
 # 単体メンバーの 1 行動（P3-D086）。戦術プラン（優先度＋発動条件）に従い、
 # 条件成立かつ実際に発動できた最初のスロットで行動を確定する。
