@@ -57,6 +57,7 @@ alwaysApply: false
 - **弓**は `BOW_ICON_INSET_SCALE`（0.55）で inset 縮小。レア弓と `shadowcord` は `BOW_ICON_INSET_SCALE_LARGE`（0.30）＋余白クロップを強め（`needs_large_bow_icon`）。鍛冶リストでは弓 inset 縮小を使わない
 - ホームのイベントバナー等は **左メニューと重ねない**（メニュー下端＋余白）
 - **黒マット付き装飾枠を `StyleBoxTexture` 9-slice しない**（角／帯に黒が伸び、金枠だけ短く見える）。書籍・展示室総合戦力は `TextureRect` 直置き
+- **展示室の焼込名札枠**は自慢キャラ未設定時も BG に残る。空状態では `NAME_FRAME_MASK` で覆い、展示中だけ名札／補完線を出す（`ShowcaseScene._set_stage_visible`）
 
 ## 拠点 Hub × セーフエリア（再発防止・必須）
 

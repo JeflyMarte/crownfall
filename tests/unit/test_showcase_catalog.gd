@@ -121,3 +121,22 @@ func test_name_frame_top_rule_sits_above_footer_name() -> void:
 	assert_gte(rule.position.y, footer.position.y - 2.0)
 	assert_lt(rule.position.y, footer.position.y + 20.0)
 	assert_gt(rule.size.x, 100.0)
+
+
+func test_empty_own_hides_baked_name_frame_with_mask() -> void:
+	## 自慢キャラなしでは焼込名札枠が空ボタンに見えるためマスクで隠す。
+	var packed: PackedScene = load("res://scenes/showcase/ShowcaseScene.tscn")
+	assert_not_null(packed)
+	var prev_id: String = GameState.showcase_member_id
+	GameState.set_showcase_member_id("")
+	var scene: Node = packed.instantiate()
+	add_child_autofree(scene)
+	await get_tree().process_frame
+	var mask: ColorRect = scene.get("_name_frame_mask") as ColorRect
+	assert_not_null(mask)
+	assert_true(mask.visible)
+	assert_false(bool(scene.get_node("Footer").visible))
+	var mask_r: Rect2 = ShowcaseUiTokens.NAME_FRAME_MASK_RECT
+	assert_eq(mask.position, mask_r.position)
+	assert_eq(mask.size, mask_r.size)
+	GameState.showcase_member_id = prev_id
