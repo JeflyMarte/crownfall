@@ -6652,6 +6652,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-SKILL-KIT-DIVERGE-001-3 | **VG** — 衛士＝硬直／威嚇＝挑発／盾殴り→庇護 | 止める／集める／守る |
 | P3-SKILL-KIT-DIVERGE-001-4 | **移行** — 旧装備IDを remap | セーブ壊れ防止 |
 | P3-SKILL-KIT-DIVERGE-001-5 | **スコープ外** — AL／BT | 後続 |
+| P3-SKILL-KIT-DIVERGE-001-6 | **SSOT** — `decisions/48_SkillKitDiverge.md` | 正 |
 
 ## ソードマン自己バフ（2026-08-02 — P3-SKILL-SW-SELFBUFF-001）
 
@@ -6663,5 +6664,4 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-SKILL-SW-SELFBUFF-001-2 | **効果** — `target_type=self`／`empower`／CD6.5s | 味全バフ主軸は AL/VG/BT のまま |
 | P3-SKILL-SW-SELFBUFF-001-3 | **移行** — `armor_cleave`・`momentum_slash` → `battle_spirit`（EQUIPPED_SKILL_REMAP） | セーブ装備壊れ防止 |
 | P3-SKILL-SW-SELFBUFF-001-4 | **SSOT** — `49_SwordsmanSelfBuff.md` | 数値の正 |
-| P3-SKILL-KIT-DIVERGE-001-6 | **SSOT** — `decisions/48_SkillKitDiverge.md` | 正 |
 
