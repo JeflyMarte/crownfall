@@ -58,3 +58,6 @@ extends Resource
 @export var weapon_rarity_weights: Dictionary = {}
 ## 撃破装備の種別重み（空=従来どおり武器のみ経路）。例: weapon/armor/accessory。
 @export var equip_category_weights: Dictionary = {}
+## 被ダメ倍率（P3-BAL-ENEMY-TRICKY）。1.0=通常。通常攻撃／スキル・必殺を分離（DoTは非適用）。
+@export var incoming_basic_mult: float = 1.0
+@export var incoming_skill_mult: float = 1.0

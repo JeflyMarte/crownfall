@@ -1,7 +1,7 @@
 # 敵トリッキースキル多様化
 
 **Status:** Decision 承認済（2026-08-02 — 相談方針 GO／未決は本 Decision 既定でクローズ）  
-**Impl:** Phase1 ✅（`P3-BAL-ENEMY-TRICKY-001`）。Phase2/3 は後続 Task  
+**Impl:** Phase1〜3 ✅（`P3-BAL-ENEMY-TRICKY-001`〜`003`）
 **関連:** P3-BAL-ENEMY-SKILL-CA-001／FIT-001／AUDIT-001／P3-D079
 
 ---
@@ -44,32 +44,35 @@
 
 ### Phase 分割
 
-| Phase | 含む | Task ID |
-|---|---|---|
-| 1 | T1 / T2 / T3 | **P3-BAL-ENEMY-TRICKY-001**（本 Decision の次 Impl） |
-| 2 | T5 | P3-BAL-ENEMY-TRICKY-002（後続） |
-| 3 | T4 / T6 / T7 | P3-BAL-ENEMY-TRICKY-003（後続） |
+| Phase | 含む | Task ID | 状態 |
+|---|---|---|---|
+| 1 | T1 / T2 / T3 | **P3-BAL-ENEMY-TRICKY-001** | ✅ |
+| 2 | T5 | **P3-BAL-ENEMY-TRICKY-002** | ✅ |
+| 3 | T4 / T6 / T7 | **P3-BAL-ENEMY-TRICKY-003** | ✅ |
 
 ---
 
-## 4. Phase1 パイロット（既存敵・確定）
+## 4. パイロット割当（全 Phase・確定）
 
-新敵なし。2026-08-02 オーナー OK で確定。
+新敵なし。スポット配置。
 
 | タイプ | パイロット敵 | 実装 |
 |---|---|---|
-| T1 | **`spore_widow`** | `enemy_spore_cloud` を低ダメ＋高毒率へ |
-| T2 | **`moss_shell`** | `enemy_moss_mend`（heal・群れ最負傷）をキットへ（spike と差替） |
-| T3 | **`rune_roach`** | `enemy_rune_ward`（他敵 enrage）をキットへ。`rune_carcinos` の自己 carapace は据置 |
+| T1 | **`spore_widow`** | `enemy_spore_cloud` 低ダメ＋高毒率 |
+| T2 | **`moss_shell`** | `enemy_moss_mend`（heal） |
+| T3 | **`rune_roach`** | `enemy_rune_ward`（他敵 enrage）。carcinos 据置 |
+| T5 | **`grave_bell_bat`** | `enemy_grave_flee`（報酬なし逃走） |
+| T4 | **`crystal_hedgehog`** | `enemy_crystal_burst`＝explode（撃破報酬あり） |
+| T6 | **`skull_turtle`** | `incoming_basic_mult=0.2` |
+| T7 | **`mirror_boa`** | `incoming_skill_mult=0.2` |
 
 ---
 
-## 5. 技術フック（Impl 向け）
+## 5. 技術フック（実装済）
 
-- `SkillData` / `resources/skills/enemy_*.tres`
-- `EnemyData` / `resources/enemies/*.tres`
-- `DungeonScene._execute_enemy_skill`（現状 `damage`/`buff`。`heal` 未配線）
-- T6/T7（Phase3）: 与ダメ経路に通常 vs スキル分類＋ `incoming_basic_mult` / `incoming_skill_mult` 等
+- `effect_type`: `heal` / `flee` / `explode`（＋既存 damage/buff）
+- `EnemyData.incoming_basic_mult` / `incoming_skill_mult`（DoT は非適用）
+- `_deal_member_damage_to_enemy` で通常／スキル分類して倍率
 
 ---
 
