@@ -8,7 +8,7 @@
 # Godot 4.6 binary は以下の順で検索:
 #   1. PATH 内の godot4
 #   2. PATH 内の godot
-#   3. macOS /Applications/Godot*.app/Contents/MacOS/Godot
+#   3. macOS /Applications および ~/Applications の Godot*.app
 
 set -uo pipefail
 
@@ -22,9 +22,10 @@ find_godot() {
             return 0
         fi
     done
-    # macOS: versioned Godot.app (e.g. /Applications/Godot_v4.6.app)
+    # macOS: /Applications or ~/Applications (e.g. Godot_v4.6.app)
     local candidate
-    for candidate in /Applications/Godot*.app/Contents/MacOS/Godot; do
+    for candidate in /Applications/Godot*.app/Contents/MacOS/Godot \
+        "$HOME"/Applications/Godot*.app/Contents/MacOS/Godot; do
         if [[ -x "$candidate" ]]; then
             echo "$candidate"
             return 0
@@ -43,11 +44,11 @@ find_godot() {
 
 GODOT="$(find_godot)" || {
     echo "ERROR: Godot 4 binary not found." >&2
-    echo "  Tried: godot4, godot in PATH, /Applications/Godot*.app" >&2
+    echo "  Tried: godot4, godot in PATH, /Applications|/~/Applications Godot*.app" >&2
     echo "" >&2
     echo "  Fix options:" >&2
     echo "    export PATH=\"/path/to/godot4:\$PATH\"" >&2
-    echo "    or install Godot 4.6 to /Applications/" >&2
+    echo "    or install Godot 4.6 to /Applications or ~/Applications" >&2
     exit 1
 }
 

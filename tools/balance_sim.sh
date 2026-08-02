@@ -19,7 +19,8 @@ find_godot() {
         fi
     done
     local candidate
-    for candidate in /Applications/Godot*.app/Contents/MacOS/Godot; do
+    for candidate in /Applications/Godot*.app/Contents/MacOS/Godot \
+        "$HOME"/Applications/Godot*.app/Contents/MacOS/Godot; do
         if [[ -x "$candidate" ]]; then
             echo "$candidate"
             return 0
