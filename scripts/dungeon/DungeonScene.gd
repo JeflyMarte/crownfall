@@ -2833,6 +2833,14 @@ func _enemy_hp_bar_top_y_in_root(sprite: AnimatedSprite2D) -> float:
 
 func _enemy_overlay_stack_top_y_in_root(sprite: AnimatedSprite2D, enemy_slot: int = -1) -> float:
 	## HPバー上のネームプレート（＋エリートバッジ）上端。状態異常はこの上へ置く。
+	## ボスは実ネームプレート上端を使う（固定名高さだと激昂などがネームに埋まる）。
+	if (
+		_boss_sprite.visible
+		and sprite == _boss_sprite
+		and _enemy_nameplate != null
+		and _enemy_nameplate.visible
+	):
+		return _enemy_nameplate.offset_top
 	const GAP_BAR_NAME: float = 6.0
 	const BADGE_H: float = 22.0
 	const GAP_NAME_BADGE: float = 2.0
@@ -2859,10 +2867,23 @@ func _update_status_icons() -> void:
 			row.visible = false
 		_update_status_legend()
 		return
-	# ボスはドット絵が大きく状態異常アイコンが重なるため非表示。
+	## ボスにも激昂などの頭上アイコンを出す（旧: 重なり回避で非表示→付与が分からない）。
 	if _boss_sprite.visible:
 		for row: HBoxContainer in _status_icon_swarm_rows:
 			row.visible = false
+		_ensure_swarm_status_icon_rows(1)
+		var boss_slot: int = $CombatController.active_enemy_index
+		var boss_row: HBoxContainer = _status_icon_swarm_rows[0]
+		if $CombatController.is_enemy_slot_alive(boss_slot):
+			_set_status_row_above_sprite(
+				boss_row,
+				_boss_sprite,
+				$CombatController.get_enemy_status_list_at(boss_slot),
+				-1,
+				boss_slot
+			)
+		else:
+			boss_row.visible = false
 	else:
 		_ensure_swarm_status_icon_rows(_swarm_sprites.size())
 		for slot: int in _swarm_sprites.size():
