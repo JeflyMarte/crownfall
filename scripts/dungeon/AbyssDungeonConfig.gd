@@ -91,6 +91,33 @@ static func is_boss_floor(floor_1based: int) -> bool:
 	return f % BOSS_FLOOR_INTERVAL == 0
 
 
+## 無限ボス編成（P3-BAL-TIER-ENC-A-001）。戻り値は pack kind。
+## solo / boss_swarm_12 / boss_elite / boss_elite_minion / boss_swarm_3 / boss_elite_swarm_2
+## roll_01 は 99F+ の抽選用（0.0〜1.0）。
+static func boss_pack_kind(floor_1based: int, roll_01: float = 0.0) -> String:
+	if not is_boss_floor(floor_1based):
+		return "solo"
+	var f: int = floor_1based
+	var r: float = clampf(roll_01, 0.0, 1.0)
+	if f < FLOOR_NIGHTMARE_START:
+		## 33F（Hard帯）: ボス＋雑魚1〜2
+		return "boss_swarm_12"
+	if f < 99:
+		## 66F（NM帯）: ボス＋エリート1（護衛なし）
+		return "boss_elite"
+	if f >= 132:
+		## 132F+: 厚め3択
+		if r < 0.34:
+			return "boss_elite_minion"
+		if r < 0.67:
+			return "boss_swarm_3"
+		return "boss_elite_swarm_2"
+	## 99F: ボス＋エリート＋雑魚1 か ボス＋群れ3
+	if r < 0.5:
+		return "boss_elite_minion"
+	return "boss_swarm_3"
+
+
 ## 表示階（1始まり）→ 合成ティア（セレクトの Hard/NM とは独立）。
 static func synthetic_tier_for_floor(floor_1based: int) -> int:
 	var f: int = maxi(1, floor_1based)

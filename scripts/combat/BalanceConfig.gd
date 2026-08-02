@@ -205,10 +205,16 @@ const SWARM_DENSITY_MOB_ATK: float = 0.75
 ## ソロ戦で全体／列／AoE スキルの抽選ウェイト倍率。
 const SOLO_AOE_SKILL_WEIGHT_MULT: float = 2.25
 
-# ── エリート護衛（P3-BAL-ELITE-BOSS-PRESSURE-001） ───────────────────────
-## ELITE 部屋入場時に従える章雑魚数（ランダム）。プール空なら単体。
+# ── エリート護衛（P3-BAL-ELITE-BOSS-PRESSURE-001 / P3-BAL-TIER-ENC-A-001） ─
+## ELITE 部屋入場時に従える章雑魚数（N/H）。プール空なら単体。
 const ELITE_ESCORT_MIN: int = 1
 const ELITE_ESCORT_MAX: int = 2
+## NM・双エリート時の護衛（薄い・合計）。
+const ELITE_ESCORT_NM_DUAL_MIN: int = 0
+const ELITE_ESCORT_NM_DUAL_MAX: int = 1
+## NM・単エリート時の護衛（厚い）。
+const ELITE_ESCORT_NM_SINGLE_MIN: int = 2
+const ELITE_ESCORT_NM_SINGLE_MAX: int = 3
 
 # ── 必殺チャージ圧力（P3-BAL-ULTIMATE-PRESSURE-001） ─────────────────────
 ## ELITE／BOSS 戦闘中のチャージ獲得倍率（与ダメ・被ダメ・flat 共通）。

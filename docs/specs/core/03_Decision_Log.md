@@ -6590,3 +6590,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-TACTICS-LIST-001-3 | **選択** — 1キャラ1方針。設定で即反映・セーブ | 既存 `set_member_tactics` |
 | P3-UX-TACTICS-LIST-001-4 | **据置** — GameState 作戦プリセットAPI・探索方針・陣形ヒント | データ互換／他導線 |
 
+## ティア遭遇圧・案A（2026-08-02 — P3-BAL-TIER-ENC-A-001）
+
+> **オーナー GO 案A** — 難易度で群れ率↑、NMでエリート複数、無限はボス編成で圧。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-TIER-ENC-A-001-1 | **群れ率** — N×1.0／H×1.35／NM×1.75（`DungeonTierConfig`） | 難度上昇の頻度圧 |
+| P3-BAL-TIER-ENC-A-001-2 | **NMエリート** — 50% 双エリート＋護衛0〜1／50% 単＋護衛2〜3。N/Hは護衛1〜2据置 | キャップ5内で複数感 |
+| P3-BAL-TIER-ENC-A-001-3 | **本編ボス** — 単体据置 | 読み合い維持 |
+| P3-BAL-TIER-ENC-A-001-4 | **無限ボス** — 33=＋群1〜2／66=＋エリート／99+=抽選厚め（132+は3択） | エンドだけ編成圧 |
+| P3-BAL-TIER-ENC-A-001-5 | **据置** — 報酬・人数連動適用外・序盤緩和・サイズ／混成ボーナス | スコープ最小化 |
+| P3-BAL-TIER-ENC-A-001-6 | **SSOT** — `44_TierEncounterPressure.md` | 数値の正 |
+

@@ -85,6 +85,8 @@ func test_boss_f1_has_chapter_status() -> void:
 func test_elite_escorts_one_to_two() -> void:
 	assert_eq(BalanceConfig.ELITE_ESCORT_MIN, 1)
 	assert_eq(BalanceConfig.ELITE_ESCORT_MAX, 2)
+	var prev_tier: int = GameState.current_dungeon_tier
+	GameState.current_dungeon_tier = 0
 	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
 	var dc: Node = dc_script.new()
 	add_child_autofree(dc)
@@ -104,6 +106,36 @@ func test_elite_escorts_one_to_two() -> void:
 				assert_true(bool(m.can_swarm), str(m.id))
 				assert_false(bool(m.escorts_minions), str(m.id))
 	assert_true(saw_escorts, "expected at least one elite with escorts")
+	GameState.current_dungeon_tier = prev_tier
+
+
+func test_nm_elite_dual_or_thick_escorts() -> void:
+	const _DungeonTierConfig := preload("res://scripts/dungeon/DungeonTierConfig.gd")
+	var prev_tier: int = GameState.current_dungeon_tier
+	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NIGHTMARE
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	dc.current_dungeon_data = DataRegistry.get_dungeon_data("mistfen")
+	dc.current_room_type = Enums.RoomType.ELITE
+	var saw_dual := false
+	var saw_thick := false
+	for _i in 48:
+		var group: Array = dc.pick_combat_enemy_group()
+		assert_gte(group.size(), 1)
+		assert_lte(group.size(), _DungeonTierConfig.swarm_size_cap())
+		var elite_n: int = 0
+		for ed: Resource in group:
+			if int(ed.enemy_type) == int(Enums.EnemyType.ELITE):
+				elite_n += 1
+		if elite_n >= 2:
+			saw_dual = true
+			assert_lte(group.size(), 3)
+		elif group.size() >= 3:
+			saw_thick = true
+	assert_true(saw_dual, "NM dual elite")
+	assert_true(saw_thick, "NM single elite thick escorts")
+	GameState.current_dungeon_tier = prev_tier
 
 
 func test_boss_group_remains_solo() -> void:

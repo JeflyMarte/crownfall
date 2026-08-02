@@ -24,11 +24,13 @@ const REWARD_MULT: Array[float] = [1.0, 1.2, 1.4]
 ## P3-BAL-ECO-001 / P3-BAL-TIER-001: クリア魔晶石基礎帯（ティア倍率は reward_mult）
 const CLEAR_TOKEN_MIN: int = 35
 const CLEAR_TOKEN_MAX: int = 65
-## 群れの率・質（P3-BAL-SWARM-002）。N / H / NM。
-const SWARM_CHANCE_MULT: Array[float] = [1.0, 1.25, 1.50]
+## 群れの率・質（P3-BAL-SWARM-002 → P3-BAL-TIER-ENC-A-001 上書き）。N / H / NM。
+const SWARM_CHANCE_MULT: Array[float] = [1.0, 1.35, 1.75]
 const SWARM_SIZE_BONUS: Array[int] = [0, 1, 2]
 const SWARM_MIXED_CHANCE: Array[float] = [0.50, 0.65, 0.80]
 const SWARM_SIZE_CAP: int = 5
+## NM エリート部屋: 双エリート＋薄い護衛 vs 単エリート＋厚い護衛の抽選（案A）。
+const NM_ELITE_DUAL_CHANCE: float = 0.50
 
 static var _cached_normal_cap: int = -1
 

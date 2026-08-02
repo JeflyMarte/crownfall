@@ -1331,8 +1331,8 @@ func _swarm_minion_enemies() -> Array[Resource]:
 	return _swarm_pool_enemies(false)
 
 
-## ELITE 部屋: 章雑魚を 1〜2 体追加（プール空・キャップ超過なら何もしない）。
-func _append_elite_escorts(group: Array[Resource]) -> void:
+## ELITE 部屋: 章雑魚を lo〜hi 体追加（プール空・キャップ超過なら何もしない）。
+func _append_elite_escorts_range(group: Array[Resource], escort_min: int, escort_max: int) -> void:
 	var minions: Array[Resource] = _swarm_minion_enemies()
 	if minions.is_empty():
 		return
@@ -1340,13 +1340,92 @@ func _append_elite_escorts(group: Array[Resource]) -> void:
 	var room: int = maxi(0, cap - group.size())
 	if room <= 0:
 		return
-	var lo: int = mini(BalanceConfig.ELITE_ESCORT_MIN, room)
-	var hi: int = mini(BalanceConfig.ELITE_ESCORT_MAX, room)
+	var lo: int = clampi(escort_min, 0, room)
+	var hi: int = clampi(escort_max, 0, room)
 	if hi < lo:
+		return
+	if hi <= 0:
 		return
 	var n: int = randi_range(lo, hi)
 	for _i in n:
 		group.append(minions[randi() % minions.size()])
+
+
+## N/H: 護衛1〜2。NM: 双エリート＋薄い護衛0〜1、または単エリート＋護衛2〜3（抽選）。
+func _append_elite_room_extras(group: Array[Resource]) -> void:
+	var tier: int = int(GameState.current_dungeon_tier)
+	if tier < _DungeonTierConfig.TIER_NIGHTMARE:
+		_append_elite_escorts_range(
+			group,
+			BalanceConfig.ELITE_ESCORT_MIN,
+			BalanceConfig.ELITE_ESCORT_MAX
+		)
+		return
+	var dual: bool = randf() < _DungeonTierConfig.NM_ELITE_DUAL_CHANCE
+	if dual:
+		_append_second_elite(group)
+		_append_elite_escorts_range(
+			group,
+			BalanceConfig.ELITE_ESCORT_NM_DUAL_MIN,
+			BalanceConfig.ELITE_ESCORT_NM_DUAL_MAX
+		)
+	else:
+		_append_elite_escorts_range(
+			group,
+			BalanceConfig.ELITE_ESCORT_NM_SINGLE_MIN,
+			BalanceConfig.ELITE_ESCORT_NM_SINGLE_MAX
+		)
+
+
+func _append_second_elite(group: Array[Resource]) -> void:
+	var cap: int = _DungeonTierConfig.swarm_size_cap()
+	if group.size() >= cap:
+		return
+	var second: Resource = pick_elite_enemy_data()
+	if second == null:
+		return
+	## 可能なら先頭と別種。
+	if group.size() > 0 and str(second.id) == str(group[0].id):
+		for _try in 4:
+			var alt: Resource = pick_elite_enemy_data()
+			if alt != null and str(alt.id) != str(group[0].id):
+				second = alt
+				break
+	group.append(second)
+
+
+func _append_minions(group: Array[Resource], count: int) -> void:
+	if count <= 0:
+		return
+	var minions: Array[Resource] = _swarm_minion_enemies()
+	if minions.is_empty():
+		return
+	var cap: int = _DungeonTierConfig.swarm_size_cap()
+	var n: int = mini(count, maxi(0, cap - group.size()))
+	for _i in n:
+		group.append(minions[randi() % minions.size()])
+
+
+## 無限ボス編成（P3-BAL-TIER-ENC-A-001）。本編ボスは呼ばない。
+func _append_abyss_boss_pack(group: Array[Resource]) -> void:
+	const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
+	var floor_n: int = get_display_floor_current()
+	var kind: String = _AbyssDungeonConfig.boss_pack_kind(floor_n, randf())
+	match kind:
+		"boss_swarm_12":
+			_append_minions(group, randi_range(1, 2))
+		"boss_elite":
+			_append_second_elite(group)
+		"boss_elite_minion":
+			_append_second_elite(group)
+			_append_minions(group, 1)
+		"boss_swarm_3":
+			_append_minions(group, 3)
+		"boss_elite_swarm_2":
+			_append_second_elite(group)
+			_append_minions(group, 2)
+		_:
+			pass
 
 
 func _swarm_pool_enemies(include_escorts: bool) -> Array[Resource]:
@@ -1367,7 +1446,8 @@ func _swarm_pool_enemies(include_escorts: bool) -> Array[Resource]:
 	return out
 
 # 戦闘の敵編成を返す（P3-D082 + P3-D110 混成 + P3-WANDER-001 放浪差し込み + P3-BAL-SWARM-001 護衛）。
-# BOSS は常に単体。ELITE は本体＋章雑魚1〜2（P3-BAL-ELITE-BOSS-PRESSURE-001）。COMBAT は放浪→群れ。
+# 本編 BOSS は単体。無限 BOSS は階帯パック（P3-BAL-TIER-ENC-A-001）。
+# ELITE は N/H=護衛1〜2、NM=双エリート薄護衛 or 単＋護衛2〜3。COMBAT は放浪→群れ。
 func pick_combat_enemy_group() -> Array[Resource]:
 	var group: Array[Resource] = []
 	if current_room_type == Enums.RoomType.COMBAT:
@@ -1379,8 +1459,12 @@ func pick_combat_enemy_group() -> Array[Resource]:
 	if base == null:
 		return group
 	group.append(base)
+	if current_room_type == Enums.RoomType.BOSS:
+		if _is_abyss_run():
+			_append_abyss_boss_pack(group)
+		return group
 	if current_room_type == Enums.RoomType.ELITE:
-		_append_elite_escorts(group)
+		_append_elite_room_extras(group)
 		return group
 	if current_room_type != Enums.RoomType.COMBAT:
 		return group

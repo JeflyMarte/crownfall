@@ -69,8 +69,8 @@ func test_mourngate_early_normal_elites_disabled() -> void:
 
 func test_tier_swarm_scalars() -> void:
 	assert_almost_eq(_DungeonTierConfig.swarm_chance_mult(_DungeonTierConfig.TIER_NORMAL), 1.0, 0.001)
-	assert_almost_eq(_DungeonTierConfig.swarm_chance_mult(_DungeonTierConfig.TIER_HARD), 1.25, 0.001)
-	assert_almost_eq(_DungeonTierConfig.swarm_chance_mult(_DungeonTierConfig.TIER_NIGHTMARE), 1.50, 0.001)
+	assert_almost_eq(_DungeonTierConfig.swarm_chance_mult(_DungeonTierConfig.TIER_HARD), 1.35, 0.001)
+	assert_almost_eq(_DungeonTierConfig.swarm_chance_mult(_DungeonTierConfig.TIER_NIGHTMARE), 1.75, 0.001)
 	assert_eq(_DungeonTierConfig.swarm_size_bonus(_DungeonTierConfig.TIER_NORMAL), 0)
 	assert_eq(_DungeonTierConfig.swarm_size_bonus(_DungeonTierConfig.TIER_HARD), 1)
 	assert_eq(_DungeonTierConfig.swarm_size_bonus(_DungeonTierConfig.TIER_NIGHTMARE), 2)

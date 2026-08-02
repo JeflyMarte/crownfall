@@ -246,6 +246,53 @@ func test_abyss_boss_every_33_floors_uses_parent_boss() -> void:
 	assert_eq(str(boss.id), "serdion")
 
 
+func test_abyss_boss_pack_kinds_by_floor() -> void:
+	assert_eq(_AbyssDungeonConfig.boss_pack_kind(1), "solo")
+	assert_eq(_AbyssDungeonConfig.boss_pack_kind(33), "boss_swarm_12")
+	assert_eq(_AbyssDungeonConfig.boss_pack_kind(66), "boss_elite")
+	assert_eq(_AbyssDungeonConfig.boss_pack_kind(99, 0.0), "boss_elite_minion")
+	assert_eq(_AbyssDungeonConfig.boss_pack_kind(99, 0.9), "boss_swarm_3")
+	assert_eq(_AbyssDungeonConfig.boss_pack_kind(132, 0.0), "boss_elite_minion")
+	assert_eq(_AbyssDungeonConfig.boss_pack_kind(132, 0.5), "boss_swarm_3")
+	assert_eq(_AbyssDungeonConfig.boss_pack_kind(132, 0.9), "boss_elite_swarm_2")
+
+
+func test_abyss_boss_combat_group_has_pack() -> void:
+	GameState.mark_dungeon_cleared("mourngate")
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	dc.start_stage("abyss_mourngate_1_1")
+	while dc.room_sequence.size() < 40:
+		dc.current_room_index = dc.room_sequence.size() - 1
+		dc.advance_room()
+	## 33F: ボス＋雑魚1〜2
+	dc.current_room_index = 32
+	dc.current_room_type = Enums.RoomType.BOSS
+	var saw_swarm := false
+	for _i in 16:
+		var group: Array = dc.pick_combat_enemy_group()
+		assert_eq(str(group[0].id), "serdion")
+		assert_gte(group.size(), 2)
+		assert_lte(group.size(), 3)
+		if group.size() >= 2:
+			saw_swarm = true
+			assert_eq(int(group[0].enemy_type), int(Enums.EnemyType.BOSS))
+			for j in range(1, group.size()):
+				assert_ne(int(group[j].enemy_type), int(Enums.EnemyType.BOSS))
+	assert_true(saw_swarm)
+	## 66F: ボス＋エリート
+	while dc.room_sequence.size() < 70:
+		dc.current_room_index = dc.room_sequence.size() - 1
+		dc.advance_room()
+	dc.current_room_index = 65
+	dc.current_room_type = Enums.RoomType.BOSS
+	var group66: Array = dc.pick_combat_enemy_group()
+	assert_eq(str(group66[0].id), "serdion")
+	assert_eq(group66.size(), 2)
+	assert_eq(int(group66[1].enemy_type), int(Enums.EnemyType.ELITE))
+
+
 func test_abyss_select_meta_hides_fixed_floor_and_rec_level() -> void:
 	## 選択UIは固定10F／推奨Lvを出さず？？表記（無限の性質）。
 	var packed: PackedScene = load("res://scenes/dungeon/DungeonSelectScene.tscn")
