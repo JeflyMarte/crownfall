@@ -85,6 +85,7 @@
 |---|---|
 | PauseOverlay `z_index` ＜ HPバー／行動順 | Pause は CanvasLayer 55 |
 | 状態異常アイコンが敵HPバー裏／ネーム帯と同帯 | `COMBAT_OVERLAY_Z+3`＋ネーム（エリートはバッジ）上端より上 |
+| ボスの激昂など頭上アイコンが付かない | `_update_status_icons` がボス時に行を全非表示にしていた | ボスも `_boss_sprite` 上に表示。スタック上端は `_enemy_nameplate.offset_top` |
 | ボス／エリートを雑魚と同寸、またはボス過大で Header 貫通 | `BOSS_BODY_*`／`ENEMY_BODY_SCALE_MULT`／`FROSTRIDGE_SOLO_DISPLAY_SCALE`。群れは体数スケール |
 | 複数敵が右にはみ出す（ratio>0.9） | `_swarm_x_ratio_for_slot` で MIN/MAX 内 |
 | 行動順敵アイコンに紫板を PNG 焼込 | 焼込禁止。枠は常に `CombatUiFrames`（焼込枠前提で UI 枠を外すと縁なし／薄く見える）。差替後 `.godot/imported` の `ICO_ENM_Turn_*` を消して再インポート |
