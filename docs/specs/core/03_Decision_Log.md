@@ -6778,3 +6778,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-EQ-CLASSIC-L-ACC-001-3 | **配線** — 既存 `outgoing_mult`／`incoming_mult`／`skill_cd_mult`／`party_rally` | 新フック不要 |
 | P3-EQ-CLASSIC-L-ACC-001-4 | **SSOT** — `decisions/56_ClassicLegendaryAccessories.md` | 正 |
 
+## エリアス／セリン固有回復（2026-08-02 — P3-BAL-HEAL-MOST-INJURED-001）
+
+> **オーナー指示** — 野戦調合／野営の調合を全体回復から最傷1体へ。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-HEAL-MOST-INJURED-001-1 | **対象** — `elias_field_elixir`／`serin_quick_mend` | オーナー指定 |
+| P3-BAL-HEAL-MOST-INJURED-001-2 | **効果** — `target=most_injured`・`heal_max_hp_fraction=0.30`（1人のみ） | 治癒スキルと同型の最傷選定 |
+| P3-BAL-HEAL-MOST-INJURED-001-3 | **トリガー据置** — エリアス=`on_combat_start`／セリン=`on_noncombat_enter` | 場面差は維持 |
+| P3-BAL-HEAL-MOST-INJURED-001-4 | **満タン時** — 欠損0なら未発動（名ポップなし） | 幽霊ヒール防止 |
+

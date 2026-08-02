@@ -10,6 +10,7 @@ extends RefCounted
 ## condition: "always" | "self_hp_below"（value=HP割合）
 ## effect: "apply_status" | "heal" | "bonus_damage" | "counter_attack" | "grant_next_attack_mult" |
 ##   "refund_ct" | "grant_party_incoming_mult" | "aoe_burst" | "abyss_ice_shell_counter"
+## heal target: "party"（既定・全体）| "self" | "most_injured"（最傷1体・治癒スキルと同型）
 ## stat_mod（常時）: evasion_rate_add / outgoing_mult / incoming_mult / first_attack_mult /
 ##   ultimate_power_mult / exp_gain_mult / party_exp_gain_mult /
 ##   party_outgoing_mult / party_incoming_mult / death_save_once / death_save_chance /
@@ -108,12 +109,12 @@ const _DEFS: Dictionary = {
 	},
 	"elias_field_elixir": {
 		"display_name": "野戦調合",
-		"description": "戦闘フロアに入ったとき、味方全体のHPを20%回復する。",
+		"description": "戦闘フロアに入ったとき、いちばん傷ついた味方1人のHPを30%回復する。",
 		"trigger": "on_combat_start",
 		"condition": "always",
 		"effect": "heal",
-		"target": "party",
-		"heal_max_hp_fraction": 0.20,
+		"target": "most_injured",
+		"heal_max_hp_fraction": 0.30,
 		"cooldown": 0.0,
 	},
 	"galen_sacred_bastion": {
@@ -174,11 +175,11 @@ const _DEFS: Dictionary = {
 	},
 	"serin_quick_mend": {
 		"display_name": "野営の調合",
-		"description": "非戦闘エリアに入ったとき、味方全体のHPを30%回復する。",
+		"description": "非戦闘エリアに入ったとき、いちばん傷ついた味方1人のHPを30%回復する。",
 		"trigger": "on_noncombat_enter",
 		"condition": "always",
 		"effect": "heal",
-		"target": "party",
+		"target": "most_injured",
 		"heal_max_hp_fraction": 0.30,
 		"cooldown": 0.0,
 	},
