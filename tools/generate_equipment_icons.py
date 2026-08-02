@@ -110,6 +110,12 @@ LEGENDARY_HAND_DRAWN_ARMOR_IDS: set[str] = {
 	"kaiwan_tideskin",
 	"kaiwan_thornmail",
 	"kaiwan_lastcoil",
+	# ビルド拡張L（P3-EQ-LEG-BUILD-001）
+	"bloodpact_plate",
+	"flurry_light_mail",
+	"bulwark_role_plate",
+	"cover_aegis_cloak",
+	"hexweave_robe",
 }
 
 ## 専用生成済みレジェンド装飾。
@@ -131,6 +137,12 @@ LEGENDARY_HAND_DRAWN_ACCESSORY_IDS: set[str] = {
 	"kaiwan_reefhook",
 	"kaiwan_wither",
 	"kaiwan_nextedge",
+	# ビルド拡張L（P3-EQ-LEG-BUILD-001）
+	"blade_dance_ring",
+	"pierce_charm",
+	"pulse_amulet",
+	"beastlord_fang",
+	"apothecary_vial",
 }
 
 CANONICAL_TEMPLATES = {

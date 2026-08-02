@@ -38,8 +38,25 @@ Biome 固定★（x-5 ペア）とは別に、**スキル分化ビルドを補�
 
 ---
 
-## 4. スコープ外
+## 4. アイコン
 
-- 専用アイコン新規制作（既存L／形カテゴリ汎用を暫定流用）
+| ID | ファイル |
+|---|---|
+| bloodpact_plate | `ICO_ARM_BloodpactPlate.png` |
+| flurry_light_mail | `ICO_ARM_FlurryLightMail.png` |
+| bulwark_role_plate | `ICO_ARM_BulwarkRolePlate.png` |
+| cover_aegis_cloak | `ICO_ARM_CoverAegisCloak.png` |
+| hexweave_robe | `ICO_ARM_HexweaveRobe.png` |
+| blade_dance_ring | `ICO_ACC_BladeDanceRing.png` |
+| pierce_charm | `ICO_ACC_PierceCharm.png` |
+| pulse_amulet | `ICO_ACC_PulseAmulet.png` |
+| beastlord_fang | `ICO_ACC_BeastlordFang.png` |
+| apothecary_vial | `ICO_ACC_ApothecaryVial.png` |
+
+- 64×64 RGBA・`IconPaths` 登録・`LEGENDARY_HAND_DRAWN_*` で再生成スキップ
+- 取込: `tools/import_build_legendary_icons.py`
+
+## 5. スコープ外
+
 - AL／BT 専用ビルド装備（後続）
 - 神話枠への混入
