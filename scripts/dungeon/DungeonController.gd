@@ -534,6 +534,7 @@ func start_dungeon(dungeon_id: String) -> void:
 		push_error("DataRegistry: dungeon not found: %s" % dungeon_id)
 		return
 	room_sequence = _build_room_sequence(current_dungeon_data)
+	_apply_abyss_boss_floors()
 	_reset_run_state()
 	if _is_abyss_run():
 		_sync_abyss_tier_for_current_floor()
@@ -550,6 +551,7 @@ func start_stage(stage_id: String) -> void:
 		current_stage_data = null
 		return
 	room_sequence = _build_room_sequence_for_stage(current_stage_data)
+	_apply_abyss_boss_floors()
 	_reset_run_state()
 	if _is_abyss_run():
 		_sync_abyss_tier_for_current_floor()
@@ -847,6 +849,7 @@ func _extend_abyss_chunk() -> void:
 	)
 	for room_type: int in chunk:
 		room_sequence.append(room_type)
+	_apply_abyss_boss_floors()
 	## 延長後も完走扱いにしない。
 	is_completed = false
 
@@ -865,6 +868,16 @@ func _maybe_reroll_abyss_block_weather() -> bool:
 	GameState.set_weather(next)
 	last_abyss_weather_changed = prev != next
 	return true
+
+
+## 33F ごと（表示階）を BOSS 部屋に差し替え。敵は親 Biome ボス。
+func _apply_abyss_boss_floors() -> void:
+	if not _is_abyss_run():
+		return
+	const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
+	for i: int in room_sequence.size():
+		if _AbyssDungeonConfig.is_boss_floor(i + 1):
+			room_sequence[i] = Enums.RoomType.BOSS
 
 # ── 部屋列の生成 ─────────────────────────────────────────────
 # floor_count > 0: ランダム抽選（肩慣らし COMBAT + 重み付き中間 + [BOSS]）。EXIT は別フロアにしない。
@@ -1266,6 +1279,10 @@ func pick_boss_enemy_data() -> Resource:
 		boss_id = str(current_stage_data.boss_id)
 	else:
 		boss_id = str(current_dungeon_data.boss_id)
+	## 深層は本編 boss_id を空のままにし、親 Biome ボスを流用する。
+	if boss_id.is_empty() and _is_abyss_run():
+		const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
+		boss_id = _AbyssDungeonConfig.parent_boss_id(str(current_dungeon_data.id))
 	if boss_id.is_empty():
 		return pick_enemy_data()
 	return _EnemyTierVariantConfig.apply_for_current_tier(DataRegistry.get_enemy_data(boss_id))

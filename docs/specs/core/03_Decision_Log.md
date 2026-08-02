@@ -6282,6 +6282,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-FIX-SURVEY-AUDIT-A-001-5 | **完全調査メタ** — `lb_hits` を分離し `lottery` を上書きしない | 招待券結果メタの消失 |
 | P3-FIX-SURVEY-AUDIT-A-001-6 | **据置** — EXP量・素材帯・③招待券25%↔50%・超過％キャリー | バランス／Decision要GO |
 
+## 無限ダンジョン・33Fごとボス（2026-08-02 — P3-DG-ABYSS-BOSS-33）
+
+> **オーナー指示** — 無限ダンジョンで 33F ごとにボスを登場させる。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-ABYSS-BOSS-33-1 | **間隔** — 表示階が 33 の倍数（33／66／99／132…）で `RoomType.BOSS` | マイルストーン帯と同位。以降も同じ周期 |
+| P3-DG-ABYSS-BOSS-33-2 | **敵** — 親メイン Biome の `boss_id`（深層リソースの boss_id は空のまま） | データ二重管理を避け、色替えは合成ティア |
+| P3-DG-ABYSS-BOSS-33-3 | **SSOT** — `09_BiomeAbyss`／`25_AbyssFloorLevelCurve`／`AbyssDungeonConfig.BOSS_FLOOR_INTERVAL` | 数値の正 |
+
 ## セーブ／デバッグ監査案A（2026-07-31 — P3-FIX-SAVE-AUDIT-A-001）
 
 > **オーナー指示** — 調査室の次＝セーブ／デバッグセーブ監査。確定配線のみ。

@@ -152,6 +152,7 @@ func test_start_abyss_stage_keeps_endless_and_run_name() -> void:
 	add_child_autofree(dc)
 	dc.start_stage("abyss_mourngate_1_1")
 	assert_eq(dc.room_sequence.size(), 10)
+	## 初チャンク（1〜10F）にボス無し。33Fごと。
 	assert_false(Enums.RoomType.BOSS in dc.room_sequence)
 	assert_eq(dc.get_run_display_name(), "1-1 虚脈の深廊")
 	assert_eq(dc.get_display_floor_text(), "1F/??")
@@ -213,6 +214,36 @@ func test_abyss_block_helpers_for_weather_and_bg() -> void:
 	assert_true(_AbyssDungeonConfig.uses_early_battle_bg_for_floor(10))
 	assert_false(_AbyssDungeonConfig.uses_early_battle_bg_for_floor(11))
 	assert_true(_AbyssDungeonConfig.uses_early_battle_bg_for_floor(21))
+
+
+func test_abyss_boss_every_33_floors_uses_parent_boss() -> void:
+	assert_true(_AbyssDungeonConfig.is_boss_floor(33))
+	assert_true(_AbyssDungeonConfig.is_boss_floor(66))
+	assert_true(_AbyssDungeonConfig.is_boss_floor(99))
+	assert_true(_AbyssDungeonConfig.is_boss_floor(132))
+	assert_false(_AbyssDungeonConfig.is_boss_floor(1))
+	assert_false(_AbyssDungeonConfig.is_boss_floor(32))
+	assert_false(_AbyssDungeonConfig.is_boss_floor(34))
+	assert_eq(_AbyssDungeonConfig.parent_boss_id("abyss_mourngate"), "serdion")
+	assert_eq(_AbyssDungeonConfig.parent_boss_id("abyss_whisperwood"), "granvel")
+	GameState.mark_dungeon_cleared("mourngate")
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	dc.start_stage("abyss_mourngate_1_1")
+	while dc.room_sequence.size() < 99:
+		dc.current_room_index = dc.room_sequence.size() - 1
+		dc.advance_room()
+	assert_eq(dc.room_sequence[32], Enums.RoomType.BOSS, "33F")
+	assert_eq(dc.room_sequence[65], Enums.RoomType.BOSS, "66F")
+	assert_eq(dc.room_sequence[98], Enums.RoomType.BOSS, "99F")
+	assert_ne(dc.room_sequence[0], Enums.RoomType.BOSS)
+	assert_ne(dc.room_sequence[31], Enums.RoomType.BOSS)
+	dc.current_room_index = 32
+	dc.current_room_type = Enums.RoomType.BOSS
+	var boss: Resource = dc.pick_boss_enemy_data()
+	assert_not_null(boss)
+	assert_eq(str(boss.id), "serdion")
 
 
 func test_abyss_select_meta_hides_fixed_floor_and_rec_level() -> void:
