@@ -509,14 +509,27 @@ func _build() -> void:
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	inner.add_child(header)
 
+	## 羊皮紙グリッドが顔に透けないよう、不透明下地＋本体不透明ICO。
+	var face_host := Control.new()
+	face_host.custom_minimum_size = Vector2(FACE_ICON_PX, FACE_ICON_PX)
+	face_host.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	face_host.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	face_host.clip_contents = true
+	face_host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var face_plate := ColorRect.new()
+	face_plate.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	face_plate.color = Color(0.78, 0.68, 0.50, 1.0)
+	face_plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	face_host.add_child(face_plate)
 	var face := TextureRect.new()
-	face.custom_minimum_size = Vector2(FACE_ICON_PX, FACE_ICON_PX)
+	face.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	face.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	face.texture = _IntroUiAssets.load_tex("res://assets/npc/ICO_NPC_Nina.png")
-	header.add_child(face)
+	face.texture = _IntroUiAssets.load_tex(_IntroUiAssets.NINA_ICON)
+	face_host.add_child(face)
+	header.add_child(face_host)
 
 	var header_col := VBoxContainer.new()
 	header_col.add_theme_constant_override("separation", 4)

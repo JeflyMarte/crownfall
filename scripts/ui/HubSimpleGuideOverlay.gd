@@ -319,6 +319,12 @@ func _make_guide_face_icon(face: Dictionary) -> Control:
 
 	var tex: Texture2D = _load_icon_or_null(str(face.get("icon_path", "")))
 	if tex != null:
+		## 羊皮紙に顔が透けないよう不透明下地を敷く。
+		var plate := ColorRect.new()
+		plate.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		plate.color = Color(0.78, 0.68, 0.50, 1.0)
+		plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		host.add_child(plate)
 		var icon := TextureRect.new()
 		icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
