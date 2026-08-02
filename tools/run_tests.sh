@@ -7,7 +7,7 @@
 # Godot 4.6 binary の検索順は tools/smoke_test.sh と同一:
 #   1. PATH 内の godot4
 #   2. PATH 内の godot
-#   3. macOS /Applications/Godot*.app/Contents/MacOS/Godot
+#   3. macOS /Applications および ~/Applications の Godot*.app
 #   4. Repo-local tools/godot/Godot.app
 
 set -uo pipefail
@@ -23,7 +23,8 @@ find_godot() {
         fi
     done
     local candidate
-    for candidate in /Applications/Godot*.app/Contents/MacOS/Godot; do
+    for candidate in /Applications/Godot*.app/Contents/MacOS/Godot \
+        "$HOME"/Applications/Godot*.app/Contents/MacOS/Godot; do
         if [[ -x "$candidate" ]]; then
             echo "$candidate"
             return 0
@@ -41,7 +42,7 @@ find_godot() {
 
 GODOT="$(find_godot)" || {
     echo "ERROR: Godot 4 binary not found." >&2
-    echo "  Tried: godot4, godot in PATH, /Applications/Godot*.app, tools/godot/" >&2
+    echo "  Tried: godot4, godot in PATH, /Applications|/~/Applications Godot*.app, tools/godot/" >&2
     exit 1
 }
 
