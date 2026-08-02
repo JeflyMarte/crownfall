@@ -175,15 +175,12 @@ static func _equip_item(member: Resource, category: String, item: Resource) -> b
 		"weapon":
 			if not JobStatCalculator.can_equip_weapon(member, item):
 				return false
-			EquipmentEnhancer.clamp_equip_level_to_member(item, member)
 			member.equipped_weapon = item
 			return true
 		"armor":
-			EquipmentEnhancer.clamp_equip_level_to_member(item, member)
 			member.equipped_armor = item
 			return true
 		"accessory":
-			EquipmentEnhancer.clamp_equip_level_to_member(item, member)
 			member.equipped_accessory = item
 			return true
 		_:

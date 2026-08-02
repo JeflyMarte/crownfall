@@ -497,14 +497,6 @@ static func alchemy_needs_confirm(fodder: Resource) -> bool:
 	return get_enhance_level(fodder) >= ALCHEMY_CONFIRM_ENHANCE_LEVEL
 
 
-static func clamp_equip_level_to_member(item: Resource, member: Resource) -> void:
-	if item == null or member == null or not ("equip_level" in item):
-		return
-	var cap: int = equip_level_cap_for_member(member)
-	if get_equip_level(item) > cap:
-		item.equip_level = cap
-
-
 static func alchemy_preview(base: Resource, fodder: Resource) -> Dictionary:
 	var check: Dictionary = can_alchemy(base, fodder)
 	if not bool(check.get("ok", false)):

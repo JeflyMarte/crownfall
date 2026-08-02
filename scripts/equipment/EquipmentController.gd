@@ -32,7 +32,7 @@ func equip_weapon_for_member(item: Resource, member: Resource) -> void:
 	if not JobStatCalculator.can_equip_weapon(member, item):
 		return
 	GameState.clear_item_from_other_roster_members(item, member)
-	EquipmentEnhancer.clamp_equip_level_to_member(item, member)
+	## 装備Lv は永続値。装着者キャラLvへのクリップは EXP 成長時のみ（P3-EQ-LVL-001-4）。
 	member.equipped_weapon = item
 	SaveManager.save_game()
 
@@ -40,7 +40,6 @@ func equip_armor_for_member(item: Resource, member: Resource) -> void:
 	if member == null or item == null:
 		return
 	GameState.clear_item_from_other_roster_members(item, member)
-	EquipmentEnhancer.clamp_equip_level_to_member(item, member)
 	member.equipped_armor = item
 	SaveManager.save_game()
 
@@ -48,7 +47,6 @@ func equip_accessory_for_member(item: Resource, member: Resource) -> void:
 	if member == null or item == null:
 		return
 	GameState.clear_item_from_other_roster_members(item, member)
-	EquipmentEnhancer.clamp_equip_level_to_member(item, member)
 	member.equipped_accessory = item
 	SaveManager.save_game()
 
