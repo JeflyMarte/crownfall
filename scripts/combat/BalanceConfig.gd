@@ -54,6 +54,10 @@ const HEAL_SKILL_BASE: int = 14 * STAT_SCALE
 const HEAL_FRAC_MEND: float = 0.20
 const HEAL_FRAC_SALVE_BURST: float = 0.32
 const HEAL_FRAC_GRAND_ELIXIR: float = 0.16
+## BT 獣医の手当て（人／オトモ）。RG 野営の一滴は人12%・自己のみ。
+const HEAL_FRAC_BEAST_VET: float = 0.12
+const HEAL_FRAC_BEAST_VET_PET: float = 0.18
+const HEAL_FRAC_CAMP_DRAUGHT: float = 0.12
 ## 回復部屋の最低回復（P3-BAL-NONCOMBAT-001: 各員 maxHP×割合と比較）
 const ROOM_HEAL_AMOUNT: int = 10 * STAT_SCALE
 ## 泉成功時の回復割合（各生存者）。
