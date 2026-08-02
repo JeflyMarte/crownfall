@@ -187,6 +187,21 @@ func test_whisperwood_floor_count_matches_ssot() -> void:
 	dc.start_stage("whisperwood_2_5")
 	assert_eq(dc.room_sequence.size(), 10, "2-5 = 10F")
 
+
+func test_all_main_x5_floor_count_is_10() -> void:
+	## P3-DG-STG-FLOOR-001 / P3-DG-STG-002-3 — ボス章は全帯 10F。
+	var dc: Node = _make_controller()
+	for stage_id: String in [
+		"mourngate_1_5",
+		"whisperwood_2_5",
+		"mistfen_3_5",
+		"blackshore_4_5",
+		"frostridge_5_5",
+	]:
+		dc.start_stage(stage_id)
+		assert_eq(dc.room_sequence.size(), 10, "%s = 10F" % stage_id)
+		assert_eq(dc.get_display_floor_max(), 10, "%s display max" % stage_id)
+
 func test_whisperwood_run_display_name_includes_chapter() -> void:
 	var dc: Node = _make_controller()
 	dc.start_stage("whisperwood_2_3")
