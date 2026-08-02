@@ -118,6 +118,12 @@ var _label_stat_page: Label = null
 @onready var _effects_panel: PanelContainer = $VBoxContainer/TabContainer/TabEquip/EquipContent/EffectsPanel
 @onready var _effects_rule: TextureRect = $VBoxContainer/TabContainer/TabEquip/EquipContent/EffectsPanel/EffectsVBox/EffectsRule
 @onready var _effects_grid: GridContainer = $VBoxContainer/TabContainer/TabEquip/EquipContent/EffectsPanel/EffectsVBox/EffectsGrid
+## P3-UX-CHR-EFFECT-PAGES-001: 「装備中の効果」のページ切替（カードと独立）。
+var _effects_page: int = 0
+var _effects_page_row: HBoxContainer = null
+var _btn_effects_page_prev: Button = null
+var _btn_effects_page_next: Button = null
+var _label_effects_page: Label = null
 ## 所持ホスト（旧 ScrollContainer）。外 TabEquip のみスクロールするため非 Scroll 化。
 @onready var _inventory_scroll: Control = $VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryScroll
 @onready var _tab_row: HBoxContainer = $VBoxContainer/TabRow
@@ -324,6 +330,7 @@ func _setup_equipment_chrome() -> void:
 	_btn_stat_detail.add_theme_color_override("font_disabled_color", Color(0.62, 0.58, 0.52, 1.0))
 	_btn_stat_detail.visible = false
 	_setup_stat_page_nav()
+	_setup_effects_page_nav()
 	_evolution_row.add_theme_constant_override("separation", 4)
 	UiTypography.apply_display(_label_name, UiTypography.SIZE_DISPLAY_TITLE, UiTypography.COLOR_GOLD)
 	_configure_name_row()
@@ -1529,24 +1536,98 @@ func _make_pos_label(text: String) -> Label:
 	UiTypography.apply_body(l, STAT_VALUE_FONT_SIZE, COLOR_POS, UiTypography.OUTLINE_STRONG)
 	return l
 
-# ---- 装備中の効果（装備品由来のボーナス集計） ----
+# ---- 装備中の効果（装備品由来のボーナス集計／3ページ） ----
+func _setup_effects_page_nav() -> void:
+	if _effects_page_row != null:
+		return
+	var effects_vbox: Node = _effects_grid.get_parent()
+	if effects_vbox == null:
+		return
+	_effects_page_row = HBoxContainer.new()
+	_effects_page_row.name = "EffectsPageNav"
+	_effects_page_row.add_theme_constant_override("separation", 6)
+	_effects_page_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_btn_effects_page_prev = Button.new()
+	_btn_effects_page_prev.text = "◀"
+	_btn_effects_page_prev.custom_minimum_size = Vector2(40, 32)
+	_btn_effects_page_prev.focus_mode = Control.FOCUS_NONE
+	UiTypography.apply_menu_button(_btn_effects_page_prev, false)
+	_btn_effects_page_prev.pressed.connect(_on_effects_page_prev)
+	_effects_page_row.add_child(_btn_effects_page_prev)
+	_label_effects_page = Label.new()
+	_label_effects_page.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_label_effects_page.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_caption(_label_effects_page, UiTypography.COLOR_GOLD)
+	_effects_page_row.add_child(_label_effects_page)
+	_btn_effects_page_next = Button.new()
+	_btn_effects_page_next.text = "▶"
+	_btn_effects_page_next.custom_minimum_size = Vector2(40, 32)
+	_btn_effects_page_next.focus_mode = Control.FOCUS_NONE
+	UiTypography.apply_menu_button(_btn_effects_page_next, false)
+	_btn_effects_page_next.pressed.connect(_on_effects_page_next)
+	_effects_page_row.add_child(_btn_effects_page_next)
+	## EffectsRule の直後（グリッド直前）。
+	var insert_at: int = _effects_grid.get_index()
+	effects_vbox.add_child(_effects_page_row)
+	effects_vbox.move_child(_effects_page_row, insert_at)
+	_update_effects_page_nav()
+
+
+func _update_effects_page_nav() -> void:
+	if _label_effects_page == null:
+		return
+	var page: int = _CharacterStatPages.clamp_page(_effects_page)
+	_effects_page = page
+	_label_effects_page.text = "%s  %s" % [
+		_CharacterStatPages.page_title(page),
+		_stat_page_dots(page),
+	]
+	if _btn_effects_page_prev != null:
+		_btn_effects_page_prev.disabled = page <= 0
+	if _btn_effects_page_next != null:
+		_btn_effects_page_next.disabled = page >= _CharacterStatPages.PAGE_COUNT - 1
+
+
+func _on_effects_page_prev() -> void:
+	_effects_page = _CharacterStatPages.clamp_page(_effects_page - 1)
+	_rebuild_effects()
+	AudioManager.play_sfx("ui_switch")
+
+
+func _on_effects_page_next() -> void:
+	_effects_page = _CharacterStatPages.clamp_page(_effects_page + 1)
+	_rebuild_effects()
+	AudioManager.play_sfx("ui_switch")
+
+
 func _rebuild_effects() -> void:
 	for child in _effects_grid.get_children():
 		child.queue_free()
 	var member: Resource = _get_view_adventurer()
 	var bonuses: Dictionary = _compute_equipment_effect_bonuses(member)
-	_add_effects_row(
-		"攻撃力", "attack", _format_effect_int(int(bonuses.get("attack", 0))),
-		"クリティカル率", "crit_rate", _format_effect_percent(float(bonuses.get("crit_rate", 0.0)))
+	var page: int = _CharacterStatPages.clamp_page(_effects_page)
+	_effects_page = page
+	var rows: Array = _CharacterStatPages.equipment_effect_rows_for_page(
+		member, page, bonuses
 	)
-	_add_effects_row(
-		"防御力", "defense", _format_effect_int(int(bonuses.get("defense", 0))),
-		"クリティカルダメージ", "crit_damage", _format_effect_percent(float(bonuses.get("crit_damage", 0.0)))
-	)
-	_add_effects_row(
-		"HP", "hp", _format_effect_int(int(bonuses.get("hp", 0))),
-		"攻撃速度", "speed", _format_effect_speed(float(bonuses.get("attack_speed", 0.0)))
-	)
+	var positive_values: bool = page == _CharacterStatPages.PAGE_BASIC
+	var i: int = 0
+	while i < rows.size():
+		var left: Dictionary = rows[i] as Dictionary if rows[i] is Dictionary else {}
+		var right: Dictionary = {}
+		if i + 1 < rows.size() and rows[i + 1] is Dictionary:
+			right = rows[i + 1] as Dictionary
+		_add_effects_row(
+			str(left.get("label", "")),
+			str(left.get("key", "")),
+			str(left.get("value", "")),
+			str(right.get("label", "")),
+			str(right.get("key", "")),
+			str(right.get("value", "")),
+			positive_values
+		)
+		i += 2
+	_update_effects_page_nav()
 
 func _compute_equipment_effect_bonuses(member: Resource) -> Dictionary:
 	var result: Dictionary = {
@@ -1605,23 +1686,21 @@ func _add_effects_row(
 	left_value: String,
 	right_label: String,
 	right_key: String,
-	right_value: String
+	right_value: String,
+	positive_values: bool = true
 ) -> void:
 	_effects_grid.add_child(_make_stat_label_row(left_key, left_label))
-	_effects_grid.add_child(_make_pos_label(left_value))
+	_effects_grid.add_child(_make_effects_value_label(left_value, positive_values))
 	_effects_grid.add_child(_make_stat_label_row(right_key, right_label))
-	_effects_grid.add_child(_make_pos_label(right_value))
+	_effects_grid.add_child(_make_effects_value_label(right_value, positive_values))
 
-func _format_effect_int(value: int) -> String:
-	return "+%d" % value
 
-func _format_effect_percent(value: float) -> String:
-	return "+%.0f%%" % (value * 100.0)
-
-func _format_effect_speed(value: float) -> String:
-	if is_zero_approx(value):
-		return "+0"
-	return "+%.1f" % value
+func _make_effects_value_label(text: String, positive: bool) -> Label:
+	if positive:
+		return _make_pos_label(text)
+	var l: Label = _make_value_label(text)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	return l
 
 # ---- 装備スロット ----
 func _rebuild_equip_slots() -> void:

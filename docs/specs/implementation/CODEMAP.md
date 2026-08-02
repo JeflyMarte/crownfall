@@ -48,7 +48,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | DungeonScene | `scenes/dungeon/DungeonScene.tscn` | `scripts/dungeon/DungeonScene.gd` |
 | ResultScene | `scenes/result/ResultScene.tscn` | `scripts/result/ResultScene.gd` |
 | AppraisalScene | `scenes/appraisal/AppraisalScene.tscn` | `scripts/appraisal/AppraisalScene.gd` |
-| EquipmentScene | `scenes/equipment/EquipmentScene.tscn` | `scripts/equipment/EquipmentScene.gd`（**P3-UX-EQUIP-SCROLL-PERF-001** スクロール軽量化／**P3-UX-CHR-STAT-PAGES-001** ステ3ページ） |
+| EquipmentScene | `scenes/equipment/EquipmentScene.tscn` | `scripts/equipment/EquipmentScene.gd`（**P3-UX-EQUIP-SCROLL-PERF-001** スクロール軽量化／**P3-UX-CHR-STAT-PAGES-001** ステ3ページ／**P3-UX-CHR-EFFECT-PAGES-001** 装備効果3ページ） |
 | BlacksmithScene | `scenes/blacksmith/BlacksmithScene.tscn` | `scripts/blacksmith/BlacksmithScene.gd` |
 | CodexScene | `scenes/codex/CodexScene.tscn` | `scripts/codex/CodexScene.gd` |
 | GachaScene | `scenes/gacha/GachaScene.tscn` | `scripts/gacha/GachaScene.gd`（**P3-UI-GACHA** モック chrome・Reveal・DetailOverlay・招き／封蔵部屋ガイド） |
