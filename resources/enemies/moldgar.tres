@@ -33,5 +33,5 @@ codex_danger = 5
 codex_habitat = "霧沼・底なし泥塘"
 codex_research_note = "ワニを祖先とする古代型の頂点捕食者。沈没書庫跡を縄張りとし、腐生環境に完全適応した。底なしと呼ばれる泥塘の主だが不死者ではない。呑み込んだ書庫の錠前が腹中から見つかった例があり、何を封じた錠だったのかは判明していない。"
 codex_materials = Array[String]([])
-skill_ids = Array[String](["boss_enrage", "boss_party_curse", "enemy_moldgar_mire_maw", "enemy_moldgar_abyss_surge"])
+skill_ids = Array[String](["boss_enrage", "boss_moldgar_hex", "enemy_moldgar_mire_maw", "enemy_moldgar_abyss_surge"])
 skill_use_chance = 0.55
