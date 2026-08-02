@@ -6,11 +6,12 @@ extends GutTest
 func test_titan_roar_recommended_buff() -> void:
 	var skill: Resource = DataRegistry.get_skill_data("titan_roar")
 	assert_not_null(skill)
-	assert_eq(str(skill.target_type), "all_enemies")
-	assert_almost_eq(float(skill.power_multiplier), 1.8, 0.001)
+	assert_eq(str(skill.target_type), "all_party")
+	assert_eq(str(skill.effect_type), "buff")
 	assert_almost_eq(float(skill.cooldown), 30.0, 0.001)
-	assert_eq(str(skill.apply_status_id), "stun")
-	assert_almost_eq(float(skill.apply_status_chance), 0.4, 0.001)
+	assert_eq(str(skill.apply_status_id), "guard")
+	assert_almost_eq(float(skill.apply_status_chance), 1.0, 0.001)
+	assert_true(skill.tags.has("taunt"))
 
 
 func test_elias_field_elixir_heal_fraction_20() -> void:

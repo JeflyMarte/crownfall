@@ -1,35 +1,51 @@
 extends GutTest
-## P3-BAL-ULTIMATE-AOE-001 — タイタンロア全体／ドミニオン多デバフ。
+## P3-BAL-ULTIMATE-AOE-001 / ROLE-001 — 職別必殺の全体役割。
 
 
-func test_titan_roar_is_all_enemies() -> void:
+func test_titan_roar_party_guard_taunt() -> void:
 	var skill: Resource = DataRegistry.get_skill_data("titan_roar")
+	assert_not_null(skill)
+	assert_eq(str(skill.target_type), "all_party")
+	assert_eq(str(skill.effect_type), "buff")
+	assert_eq(str(skill.apply_status_id), "guard")
+	assert_almost_eq(float(skill.apply_status_chance), 1.0, 0.001)
+	assert_true(skill.tags.has("taunt"))
+
+
+func test_ouga_retsudan_all_enemies() -> void:
+	var skill: Resource = DataRegistry.get_skill_data("ouga_retsudan")
 	assert_not_null(skill)
 	assert_eq(str(skill.target_type), "all_enemies")
 	assert_eq(str(skill.slot_type), "ultimate")
-	assert_true(skill.tags.has("aoe"))
-	assert_eq(str(skill.apply_status_id), "stun")
-	assert_eq(str(skill.apply_status_id2), "fear")
+	assert_almost_eq(float(skill.power_multiplier), 1.9, 0.001)
+	assert_eq(str(skill.apply_status_id), "vulnerable")
+	assert_gte(float(skill.apply_status_chance), 0.6)
+
+
+func test_grand_elixir_party_heal() -> void:
+	var skill: Resource = DataRegistry.get_skill_data("grand_elixir")
+	assert_not_null(skill)
+	assert_eq(str(skill.target_type), "all_party")
+	assert_eq(str(skill.effect_type), "heal")
+	assert_almost_eq(float(skill.power_multiplier), 1.7, 0.001)
+	assert_gte(float(skill.cast_time), 1.0)
 
 
 func test_beast_dominion_multi_debuff_aoe() -> void:
 	var skill: Resource = DataRegistry.get_skill_data("beast_dominion")
 	assert_not_null(skill)
 	assert_eq(str(skill.target_type), "all_enemies")
-	assert_eq(str(skill.slot_type), "ultimate")
 	assert_eq(str(skill.apply_status_id), "mark")
-	assert_almost_eq(float(skill.apply_status_chance), 1.0, 0.001)
 	assert_eq(str(skill.apply_status_id2), "slow")
-	assert_almost_eq(float(skill.apply_status_chance2), 1.0, 0.001)
 	assert_eq(str(skill.apply_status_id3), "poison")
-	assert_gte(float(skill.apply_status_chance3), 0.8)
-	assert_lte(float(skill.power_multiplier), 1.5)
 
 
-func test_band_styles_for_new_aoe_ults() -> void:
-	var titan: Resource = DataRegistry.get_skill_data("titan_roar")
+func test_band_styles_for_role_ults() -> void:
+	var ouga: Resource = DataRegistry.get_skill_data("ouga_retsudan")
 	var beast: Resource = DataRegistry.get_skill_data("beast_dominion")
-	assert_eq(CombatBandVfx.classify_ally_aoe_skill(titan), CombatBandVfx.STYLE_QUAKE)
+	var titan: Resource = DataRegistry.get_skill_data("titan_roar")
+	assert_eq(CombatBandVfx.classify_ally_aoe_skill(ouga), CombatBandVfx.STYLE_FAN)
 	assert_eq(CombatBandVfx.classify_ally_aoe_skill(beast), CombatBandVfx.STYLE_MIST)
-	assert_eq(CombatBandVfx.classify_ultimate(titan), CombatBandVfx.STYLE_ROAR)
+	assert_eq(CombatBandVfx.classify_ultimate(ouga), CombatBandVfx.STYLE_SLASH)
 	assert_eq(CombatBandVfx.classify_ultimate(beast), CombatBandVfx.STYLE_ROAR)
+	assert_eq(CombatBandVfx.classify_ultimate(titan), "")

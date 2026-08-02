@@ -6489,3 +6489,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-ULTIMATE-AOE-001-4 | **演出** — 必殺全体はカットイン＋帯VFX | 単体必殺と同格 |
 | P3-BAL-ULTIMATE-AOE-001-5 | **SSOT** — `decisions/40_UltimateAoeDebuff.md` | 数値の正 |
 
+## 必殺役割分担（2026-08-02 — P3-BAL-ULTIMATE-ROLE-001）
+
+> **オーナー GO（推奨）** — VG全体バフ／SW全体攻撃／AL全体回復。BT多重デバフ据置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-ULTIMATE-ROLE-001-1 | **タイタンロア** — `all_party` buff・`guard`必中＋`taunt` | T3 |
+| P3-BAL-ULTIMATE-ROLE-001-2 | **王牙列断** — `all_enemies`・威力1.9・脆弱65% | S1 |
+| P3-BAL-ULTIMATE-ROLE-001-3 | **グランドエリクサー** — `all_party` heal・威力1.7・詠唱1 | A1 |
+| P3-BAL-ULTIMATE-ROLE-001-4 | **上書き** — `40_UltimateAoeDebuff` のタイタン全体ダメ | 本 Decision が正 |
+| P3-BAL-ULTIMATE-ROLE-001-5 | **SSOT** — `decisions/41_UltimateRoleSplit.md` | 数値の正 |
+

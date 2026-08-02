@@ -101,6 +101,7 @@
 | — | **P3-BAL-ELITE-BOSS-PRESSURE-001** | エリート護衛1〜2＋ボス全体呪い／F1状態厚み | ✅ Impl（要実機） |
 | — | **P3-BAL-ULTIMATE-PRESSURE-001** | ELITE/BOSS必殺チャージ半減（入場＋戦中） | ✅ Impl（要実機） |
 | — | **P3-BAL-ULTIMATE-AOE-001** | タイタンロア全体＋ドミニオン多重デバフ | ✅ Impl（要実機） |
+| — | **P3-BAL-ULTIMATE-ROLE-001** | VG全体バフ／SW全体攻撃／AL全体回復 | ✅ Impl（要実機） |
 | — | **P3-CODEX-HIST-GUIDE-050** | 図鑑 歴史50／世界観手引き50（HE-001〜050・WORLD-G001〜050） | ✅ GO・統合＋main |
 | — | **P3-EQ-DIABLO-001** | 装備ステ・ディアブロ寄せ（固定ATK/DEF＋random_mods／Affix統合） | ✅ GO・統合＋main |
 | — | **P3-EQ-JOB-WPN-001** | 職別武器種制限（preferred＝装備可能リスト） | ✅ GO・統合＋main |

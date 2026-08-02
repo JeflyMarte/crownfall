@@ -134,14 +134,16 @@ static func classify_ally_aoe_skill(skill: Resource) -> String:
 static func classify_ultimate(skill: Resource) -> String:
 	if skill == null or str(skill.slot_type) != "ultimate":
 		return ""
-	if str(skill.effect_type) == "heal":
+	if str(skill.effect_type) in ["heal", "buff"]:
 		return ""
 	var sid: String = str(skill.id)
 	var name: String = str(skill.display_name)
 	if _id_has_any(sid, name, ["dead_eye", "デッドアイ"]):
 		return STYLE_SHOT
-	if _id_has_any(sid, name, ["titan_roar", "タイタン", "beast_dominion", "ビースト", "roar"]):
+	if _id_has_any(sid, name, ["beast_dominion", "ビースト", "roar"]):
 		return STYLE_ROAR
+	if _id_has_any(sid, name, ["ouga_retsudan", "王牙", "blade", "slash"]):
+		return STYLE_SLASH
 	return STYLE_SLASH
 
 
