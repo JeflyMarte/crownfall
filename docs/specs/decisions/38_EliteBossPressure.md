@@ -2,7 +2,7 @@
 
 **Status:** Decision 承認済（2026-08-02 — オーナー「AでGo」／個別デバフ「Goで」）  
 **Impl:** `P3-BAL-ELITE-BOSS-PRESSURE-001`  
-**関連:** P3-BAL-BOSS-PRESSURE-001／P3-BAL-SWARM-001／37_SwarmDensitySoloPressure
+**関連:** P3-BAL-BOSS-PRESSURE-001／P3-BAL-SWARM-001／37_SwarmDensitySoloPressure／**開幕オーラは `45_BossOpeningAura`（上書き）**
 
 ---
 
@@ -43,6 +43,7 @@ ELITE／BOSS が単体火力頼りで薄く感じる問題を、**数値の大�
 |---|---|
 | 重み | 激昂＜個別hex＜即時全体 |
 | F1 状態 | 章テーマ異常を付与／確率をおおよそ 0.35〜0.45 へ（hex と被らないよう選定） |
+| 開幕／CD／速度／火力 | **`45_BossOpeningAura` を正**（開幕付与・CD6・人数速度・ATK↑） |
 
 ---
 

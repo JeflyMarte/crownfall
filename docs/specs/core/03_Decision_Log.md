@@ -6603,3 +6603,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-TIER-ENC-A-001-5 | **据置** — 報酬・人数連動適用外・序盤緩和・サイズ／混成ボーナス | スコープ最小化 |
 | P3-BAL-TIER-ENC-A-001-6 | **SSOT** — `44_TierEncounterPressure.md` | 数値の正 |
 
+## ボス開幕オーラ＋テンポ／火力・案A（2026-08-02 — P3-BAL-BOSS-AURA-A-001）
+
+> **オーナー GO 案A** — 開幕デバフパッシブ化＋速度。火力も上げてよい。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-BOSS-AURA-A-001-1 | **開幕** — 入場時に `boss_*_hex` 状態を味方全員へ付与 | 行動回数不足でも圧が乗る |
+| P3-BAL-BOSS-AURA-A-001-2 | **戦闘中hex** — CD 8→6。スキル自体は維持 | 継続圧 |
+| P3-BAL-BOSS-AURA-A-001-3 | **速度** — BOSSのみ 3人×1.0／4×1.25／5+×1.40 | 4対1の行動負け解消 |
+| P3-BAL-BOSS-AURA-A-001-4 | **火力** — `BOSS_ATK_MULT=1.22`＋ボス人数ATK share0.50 | オーナー「火力もっと」 |
+| P3-BAL-BOSS-AURA-A-001-5 | **据置** — 本編ボス単体・必殺圧力・護衛へのオーラなし | スコープ |
+| P3-BAL-BOSS-AURA-A-001-6 | **SSOT** — `45_BossOpeningAura.md` | 数値の正 |
+
