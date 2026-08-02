@@ -68,6 +68,7 @@ LEGENDARY_HAND_DRAWN_WEAPON_IDS: set[str] = {
 	"amplify_orb_staff",
 	"silent_rite_staff",
 	"packbond_staff",
+	"mendweaver_staff",
 	"blightcord_bow",
 	"pulsekeen_edge",
 	"aegis_line_sword",
@@ -116,6 +117,9 @@ LEGENDARY_HAND_DRAWN_ARMOR_IDS: set[str] = {
 	"bulwark_role_plate",
 	"cover_aegis_cloak",
 	"hexweave_robe",
+	# ペット／ヒーラービルドL（P3-EQ-PET-HEAL-BUILD-001）
+	"beastcall_mantle",
+	"field_salve_robe",
 }
 
 ## 専用生成済みレジェンド装飾。

@@ -55,7 +55,19 @@
 
 ---
 
-## 5. スコープ外
+## 5. アイコン
+
+| id | ファイル |
+|---|---|
+| beastcall_mantle | `ICO_ARM_BeastcallMantle.png` |
+| field_salve_robe | `ICO_ARM_FieldSalveRobe.png` |
+| mendweaver_staff | `ICO_WPN_MendweaverStaff.png` |
+
+- 64×64 RGBA・`IconPaths` 登録・`LEGENDARY_HAND_DRAWN_*` で再生成スキップ
+- 取込: `tools/import_build_legendary_icons.py`
+- 中盤E（群れ笛／軟膏）は Generic 形のまま
+
+## 6. スコープ外
 
 - AL／BTスキルキット差し替え（Dec48後続）
 - 灰冠枯翠パッシブ配線
