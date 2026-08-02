@@ -14,9 +14,16 @@ func _assert_self_seed(skill_id: String, status_id: String) -> void:
 func test_combo_skills_self_seed_without_reserve() -> void:
 	_assert_self_seed("fear_chain", "fear")
 	_assert_self_seed("vulnerable_surge", "vulnerable")
-	_assert_self_seed("chain_slash", "bleed")
-	_assert_self_seed("mark_pursuit", "mark")
+	## SW/RG の旧連携技はキット分化で別方向へ（多段／貫通）。残データは自己付与を要求しない。
 	_assert_self_seed("venom_burst", "poison")
 	var venom: Resource = DataRegistry.get_skill_data("venom_burst")
 	assert_eq(str(venom.apply_status_id2), "vulnerable")
 	assert_gt(float(venom.apply_status_chance2), 0.0)
+
+
+func test_diverge_skills_are_not_status_self_seed() -> void:
+	var dance: Resource = DataRegistry.get_skill_data("blade_dance")
+	assert_true(str(dance.apply_status_id).is_empty())
+	var pierce: Resource = DataRegistry.get_skill_data("piercing_shot")
+	assert_true(str(pierce.apply_status_id).is_empty())
+

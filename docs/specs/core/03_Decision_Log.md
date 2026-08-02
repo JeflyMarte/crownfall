@@ -6641,3 +6641,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-DESCENT-SWARM-001-4 | **優先** — tres `forced_swarm` があればデータ優先 | 曜日イベントと衝突しない |
 | P3-BAL-DESCENT-SWARM-001-5 | **SSOT** — `47_DescentEventSwarm.md` | 数値の正 |
 
+## スキルキット方向分化（2026-08-02 — P3-SKILL-KIT-DIVERGE-001）
+
+> **オーナー GO（推奨案）** — SW連刃→剣舞、SW＋RG＋VGを大胆分化。装備1枠でビルドが分かれること。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-SKILL-KIT-DIVERGE-001-1 | **SW** — 連刃→剣舞（多段）／甲砕→追勢斬（敵数威力）／裂傷＝出血付与特化 | 出血同士の重複解消 |
+| P3-SKILL-KIT-DIVERGE-001-2 | **RG** — 追標→貫通射（別敵半分） | 標的自己付与の同型をやめる |
+| P3-SKILL-KIT-DIVERGE-001-3 | **VG** — 衛士＝硬直／威嚇＝挑発／盾殴り→庇護 | 止める／集める／守る |
+| P3-SKILL-KIT-DIVERGE-001-4 | **移行** — 旧装備IDを remap | セーブ壊れ防止 |
+| P3-SKILL-KIT-DIVERGE-001-5 | **スコープ外** — AL／BT | 後続 |
+| P3-SKILL-KIT-DIVERGE-001-6 | **SSOT** — `decisions/48_SkillKitDiverge.md` | 正 |
+

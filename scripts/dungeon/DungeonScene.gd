@@ -5156,7 +5156,31 @@ func _conditional_skill_power_mult(skill_data: Resource, target_slot: int) -> fl
 		return CONDITIONAL_STATUS_POWER_MULT
 	if skill_data.tags.has("vs_mark") and $CombatController.get_enemy_status_stacks_at(target_slot, "mark") > 0:
 		return CONDITIONAL_STATUS_POWER_MULT
+	## 場の敵数で単体威力が伸びる（追勢斬・P3-SKILL-KIT-DIVERGE-001）。
+	if skill_data.tags.has("swarm_power"):
+		var living: int = $CombatController.get_living_enemy_indices().size()
+		return 1.0 + 0.12 * float(maxi(0, living - 1))
 	return 1.0
+
+
+## タグ `multi_hit_N` の N（無ければ 1）。
+func _skill_multi_hit_count(skill_data: Resource) -> int:
+	if skill_data == null:
+		return 1
+	for raw_tag: Variant in skill_data.tags:
+		var tag: String = str(raw_tag)
+		if tag.begins_with("multi_hit_"):
+			return maxi(1, int(tag.substr(10)))
+	return 1
+
+
+func _pick_pierce_secondary_slot(primary_slot: int) -> int:
+	var living: Array = $CombatController.get_living_enemy_indices()
+	for slot_v: Variant in living:
+		var slot: int = int(slot_v)
+		if slot != primary_slot and $CombatController.is_enemy_slot_alive(slot):
+			return slot
+	return -1
 
 
 func _apply_skill_on_hit_self_effects(member_idx: int, skill_data: Resource) -> void:
@@ -5688,6 +5712,10 @@ func _apply_member_buff_effects(member_idx: int, skill_data: Resource) -> Dictio
 		skill_data != null
 		and (str(skill_data.target_type) == "self" or skill_data.tags.has("self"))
 	)
+	var ally_only: bool = (
+		skill_data != null and str(skill_data.target_type) == "ally"
+	)
+	var cover_target_idx: int = -1
 	if not status_id.is_empty():
 		if self_only:
 			if $CombatController.is_member_alive(member_idx):
@@ -5696,6 +5724,15 @@ func _apply_member_buff_effects(member_idx: int, skill_data: Resource) -> Dictio
 					_on_party_status_applied(member_idx, status_id, false)
 		elif pet_only:
 			applied = _apply_status_to_pet(status_id, false)
+		elif ally_only:
+			## いちばん傷ついた味方1人（庇護・P3-SKILL-KIT-DIVERGE-001）。
+			cover_target_idx = $CombatController.get_most_injured_member_index()
+			if cover_target_idx < 0 and $CombatController.is_member_alive(member_idx):
+				cover_target_idx = member_idx
+			if cover_target_idx >= 0 and $CombatController.is_member_alive(cover_target_idx):
+				if $CombatController.apply_status("party_%d" % cover_target_idx, status_id, 1, 0):
+					applied = 1
+					_on_party_status_applied(cover_target_idx, status_id, false)
 		elif skill_id == "herd_call" or str(skill_data.target_type) == "all_party":
 			## 味方全体バフ（P3-SKILL-KIT-001）。herd_call も同強度で人＋オトモへ。
 			for i: int in GameState.party_members.size():
@@ -5720,6 +5757,8 @@ func _apply_member_buff_effects(member_idx: int, skill_data: Resource) -> Dictio
 		"status_id": status_id,
 		"pet_only": pet_only,
 		"self_only": self_only,
+		"ally_only": ally_only,
+		"cover_target_idx": cover_target_idx,
 		"wants_taunt": wants_taunt,
 		"all_party": skill_id == "herd_call" or str(skill_data.target_type) == "all_party",
 	}
@@ -5739,6 +5778,14 @@ func _member_buff_log_line(display_name: String, skill_data: Resource, summary: 
 		return "\n【スキル】%s: 自身に[%s]・注意を引いた" % [display_name, label]
 	if bool(summary.get("pet_only", false)):
 		return "\n【スキル】%s: ペットに[%s]" % [display_name, label]
+	if bool(summary.get("ally_only", false)):
+		var t_idx: int = int(summary.get("cover_target_idx", -1))
+		var t_name: String = "味方"
+		if t_idx >= 0:
+			var tm: Resource = GameState.get_combatant(t_idx)
+			if tm != null:
+				t_name = str(tm.display_name)
+		return "\n【スキル】%s: %s に[%s]" % [display_name, t_name, label]
 	if bool(summary.get("all_party", false)):
 		var taunt_tag: String = "・注意を引いた" if bool(summary.get("wants_taunt", false)) else ""
 		return "\n【スキル】%s: 味方全体に[%s]（%d）%s" % [display_name, label, applied, taunt_tag]
@@ -8815,26 +8862,72 @@ func _resolve_party_skill_damage_impact_async(payload: Dictionary) -> void:
 	if target_slot < 0 or not $CombatController.is_enemy_slot_alive(target_slot):
 		target_slot = $CombatController.get_member_target_slot(member_idx)
 		spawn_pos = _enemy_slot_pos(target_slot)
-	if final_dmg > 0 and target_slot >= 0 and $CombatController.is_enemy_slot_alive(target_slot):
-		_spawn_hit_vfx(spawn_pos, attack_element, 1.0, skill_is_crit, _get_weapon_type(member_idx))
-		_spawn_damage_number(
-			str(final_dmg),
-			spawn_pos + Vector2(12.0, 0.0),
-			_outgoing_damage_telop_color(skill_is_crit),
-			1.25 if skill_is_crit else 1.0
-		)
-	if not log_line.is_empty():
-		_append_log(log_line)
-	var wipe: bool = _deal_member_damage_to_enemy(
-		member_idx, final_dmg, target_slot, skill_id, display_name, skill_is_crit
-	)
-	## 撃破後リターゲットで別敵へ状態が飛ぶ事故防止: ヒットスロット固定。
-	## 全滅時も自己 on_hit（taunt 等）は発火させる。
-	if not wipe and $CombatController.is_enemy_slot_alive(target_slot):
-		_play_enemy_slot_animation(target_slot, "hurt")
-		_apply_skill_status(member_idx, skill_data, target_slot)
-		_apply_skill_secondary_status(member_idx, skill_data, target_slot)
+	var hit_count: int = _skill_multi_hit_count(skill_data)
+	var first_alive_slot: int = target_slot
+	for hit_i: int in hit_count:
+		if hit_i > 0:
+			await get_tree().create_timer(0.08).timeout
+			if session_id != _combat_session_id or not $CombatController.is_in_combat:
+				_end_combat_cinematic_lock()
+				return
+			if not $CombatController.is_member_alive(member_idx):
+				_end_combat_cinematic_lock()
+				return
+			if target_slot < 0 or not $CombatController.is_enemy_slot_alive(target_slot):
+				target_slot = $CombatController.get_member_target_slot(member_idx)
+				spawn_pos = _enemy_slot_pos(target_slot)
+		if final_dmg > 0 and target_slot >= 0 and $CombatController.is_enemy_slot_alive(target_slot):
+			_spawn_hit_vfx(spawn_pos, attack_element, 1.0, skill_is_crit, _get_weapon_type(member_idx))
+			_spawn_damage_number(
+				str(final_dmg),
+				spawn_pos + Vector2(12.0, float(hit_i) * -8.0),
+				_outgoing_damage_telop_color(skill_is_crit),
+				1.25 if skill_is_crit else 1.0
+			)
+		if hit_i == 0 and not log_line.is_empty():
+			_append_log(log_line)
+		var wipe: bool = false
+		if final_dmg > 0 and target_slot >= 0:
+			wipe = _deal_member_damage_to_enemy(
+				member_idx, final_dmg, target_slot, skill_id, display_name, skill_is_crit
+			)
+		## 撃破後リターゲットで別敵へ状態が飛ぶ事故防止: ヒットスロット固定。
+		## 全滅時も自己 on_hit（taunt 等）は発火させる。状態付与は初撃のみ。
+		if hit_i == 0 and not wipe and $CombatController.is_enemy_slot_alive(target_slot):
+			_play_enemy_slot_animation(target_slot, "hurt")
+			_apply_skill_status(member_idx, skill_data, target_slot)
+			_apply_skill_secondary_status(member_idx, skill_data, target_slot)
+			first_alive_slot = target_slot
+		elif not wipe and target_slot >= 0 and $CombatController.is_enemy_slot_alive(target_slot):
+			_play_enemy_slot_animation(target_slot, "hurt")
+		if wipe:
+			break
 	_apply_skill_on_hit_self_effects(member_idx, skill_data)
+	## 貫通射: 別の生存敵へ半分ダメージ（P3-SKILL-KIT-DIVERGE-001）。
+	if (
+		skill_data != null
+		and skill_data.tags.has("pierce_secondary")
+		and session_id == _combat_session_id
+		and $CombatController.is_in_combat
+		and $CombatController.is_member_alive(member_idx)
+	):
+		var sec_slot: int = _pick_pierce_secondary_slot(first_alive_slot)
+		if sec_slot >= 0:
+			var sec_dmg: int = maxi(1, int(round(float(final_dmg) * 0.55)))
+			var sec_pos: Vector2 = _enemy_slot_pos(sec_slot)
+			_spawn_hit_vfx(sec_pos, attack_element, 0.85, false, _get_weapon_type(member_idx))
+			_spawn_damage_number(
+				str(sec_dmg),
+				sec_pos + Vector2(12.0, 0.0),
+				_outgoing_damage_telop_color(false),
+				0.95
+			)
+			_append_log("\n【貫通】%s: %dダメージ" % [display_name, sec_dmg])
+			_deal_member_damage_to_enemy(
+				member_idx, sec_dmg, sec_slot, skill_id, display_name, false
+			)
+			if $CombatController.is_enemy_slot_alive(sec_slot):
+				_play_enemy_slot_animation(sec_slot, "hurt")
 	if skill_data != null and skill_data.tags.has("pet_followup"):
 		_queue_pet_followup_attack()
 	_update_hp_bars()
