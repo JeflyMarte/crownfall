@@ -53,6 +53,8 @@ func test_member_immune_to_status_blocks_party_apply() -> void:
 	member.equipped_armor = armor
 	var combat: Node = _CombatController.new()
 	add_child_autofree(combat)
+	## apply_status は生存チェック(is_member_alive)を通す。party_combat_hp を初期化しておく。
+	combat.ensure_party_hp_for_combat()
 	assert_false(combat.apply_status("party_0", "poison", 1, 10))
 	assert_true(combat.apply_status("party_0", "chill", 1, 10))
 

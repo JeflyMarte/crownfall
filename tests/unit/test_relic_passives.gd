@@ -58,10 +58,10 @@ func test_toggle_relic_passive_exclusive_slot() -> void:
 
 
 func test_war_banner_plan_b_outgoing_penalty() -> void:
-	if GameState.party_members.is_empty():
-		return
-	var member: Resource = GameState.party_members[0]
-	var saved_relic: String = GameState.get_equipped_relic_passive_id(member)
+	var saved_party: Array = GameState.party_members.duplicate()
+	var saved_relics: Array = GameState.owned_relics.duplicate()
+	var member: Resource = _make_member("relic_war_banner_penalty")
+	GameState.party_members = [member]
 	GameState.owned_relics = ["relic_war_banner"]
 	GameState.toggle_member_relic_passive(member, "relic_war_banner")
 	var eff: Dictionary = CombatPassives.stat_multipliers_for_member(member, 0)
@@ -70,9 +70,8 @@ func test_war_banner_plan_b_outgoing_penalty() -> void:
 	assert_almost_eq(float(def.get("pet_outgoing_mult", 1.0)), 1.35, 0.001)
 	assert_almost_eq(float(def.get("pet_defense_mult", 1.0)), 1.15, 0.001)
 	assert_false(def.has("trigger"), "軍旗は常時オトモ核（撃破鼓舞を廃止）")
-	GameState.toggle_member_relic_passive(member, "")
-	if not saved_relic.is_empty():
-		GameState.toggle_member_relic_passive(member, saved_relic)
+	GameState.party_members = saved_party
+	GameState.owned_relics = saved_relics
 
 
 func test_combat_relics_effects_for_aegis_no_flat_incoming() -> void:

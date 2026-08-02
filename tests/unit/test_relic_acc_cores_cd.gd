@@ -1,6 +1,8 @@
 extends GutTest
 ## P3-BAL-RELIC-ACC-CD-001 — 案C（レリック DoT／オトモ核）＋案D（開幕装飾の役割分離）。
 
+const _PetSystem = preload("res://scripts/pets/PetSystem.gd")
+
 
 func _equip_relic(relic_id: String, job_id: String = "swordsman") -> void:
 	var member: Resource = load("res://scripts/domain/Adventurer.gd").new()
@@ -15,6 +17,7 @@ func _equip_relic(relic_id: String, job_id: String = "swordsman") -> void:
 func after_each() -> void:
 	GameState.party_members = []
 	GameState.owned_relics = []
+	GameState.active_pet = null
 
 
 func test_scout_lens_is_dot_core() -> void:
@@ -36,6 +39,8 @@ func test_war_banner_is_pet_core() -> void:
 	assert_almost_eq(float(def.get("pet_defense_mult", 1.0)), 1.15, 0.001)
 	assert_almost_eq(float(def.get("outgoing_mult", 1.0)), 0.85, 0.001)
 	_equip_relic("relic_war_banner")
+	## pet_*_mult_from_party はオトモ未所持だと 1.0 固定のガードがある。
+	GameState.active_pet = _PetSystem.create_pet_adventurer(_PetSystem.STARTER_PET_ID)
 	assert_almost_eq(CombatPassives.pet_outgoing_mult_from_party(), 1.35, 0.001)
 	assert_almost_eq(CombatPassives.pet_defense_mult_from_party(), 1.15, 0.001)
 

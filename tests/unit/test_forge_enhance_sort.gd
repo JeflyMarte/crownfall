@@ -6,7 +6,9 @@ const _Helper = preload("res://scripts/blacksmith/BlacksmithUiHelper.gd")
 const _Power = preload("res://scripts/equipment/EquipmentPower.gd")
 
 
-func _make_weapon(weapon_id: String, rolled_attack: int, enhance_level: int = 0) -> Resource:
+func _make_weapon(
+	weapon_id: String, rolled_attack: int, enhance_level: int = 0, attack_up_value: int = 0
+) -> Resource:
 	var w: Resource = load("res://scripts/domain/WeaponInstance.gd").new()
 	w.weapon_id = weapon_id
 	w.rolled_attack = rolled_attack
@@ -16,7 +18,12 @@ func _make_weapon(weapon_id: String, rolled_attack: int, enhance_level: int = 0)
 	w.attack_speed = 1.0
 	w.critical_rate = 0.0
 	## マイグレーションをスキップするため空でない mods を置く。
-	w.random_mods = [{"kind": "attack_up", "value": 0, "label": "t"}]
+	## rolled_attack はマスタ base_attack へ正規化される(_normalize_fixed_primary)ため、
+	## 強弱差は attack_up mod の value で作る（P3-EQ-DIABLO-001）。
+	w.random_mods = [{
+		"kind": "attack_up", "value": attack_up_value, "label": "t",
+		"min_v": attack_up_value, "max_v": attack_up_value,
+	}]
 	return w
 
 
@@ -33,12 +40,12 @@ func test_enhance_list_sort_equipped_before_unequipped() -> void:
 
 
 func test_enhance_list_sort_by_power_desc() -> void:
-	var weak: Resource = _make_weapon("iron_sword", 40)
-	var strong: Resource = _make_weapon("iron_sword", 200)
+	var weak: Resource = _make_weapon("iron_sword", 80, 0, 5)
+	var strong: Resource = _make_weapon("iron_sword", 80, 0, 60)
 	assert_gt(_Power.score(strong, "weapon"), _Power.score(weak, "weapon"))
 	assert_true(_Helper.enhance_list_sort_before(strong, weak, false, false, "weapon"))
 	var items: Array = [weak, strong]
 	items.sort_custom(func(a: Resource, b: Resource) -> bool:
 		return _Helper.enhance_list_sort_before(a, b, false, false, "weapon")
 	)
-	assert_eq(int(items[0].rolled_attack), 200)
+	assert_true(items[0] == strong, "総合力が高い方が先頭")

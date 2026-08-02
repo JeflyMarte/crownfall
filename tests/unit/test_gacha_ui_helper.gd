@@ -119,7 +119,8 @@ func test_build_featured_shell_has_feature_label() -> void:
 	assert_lt(blurb_wrap.offset_top, host.size.y - GachaUiHelper.pool_strip_reserve())
 	assert_eq(feature_lbl.get_theme_font("font"), UiTypography.display_font())
 	assert_eq(feature_lbl.get_theme_constant("outline_size"), GachaUiHelper.FEATURED_BLURB_OUTLINE)
-	assert_eq(feature_lbl.max_lines_visible, GachaUiHelper.FEATURED_BLURB_MAX_LINES)
+	## relayout は現在のテキスト行数へ動的に合わせる（空なら1）。上限は超えない。
+	assert_lte(feature_lbl.max_lines_visible, GachaUiHelper.FEATURED_BLURB_MAX_LINES)
 	assert_eq(feature_lbl.autowrap_mode, TextServer.AUTOWRAP_OFF)
 	assert_eq(feature_lbl.text_overrun_behavior, TextServer.OVERRUN_NO_TRIMMING)
 	assert_false(feature_lbl.clip_text)
