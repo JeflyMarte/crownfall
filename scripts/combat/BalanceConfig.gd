@@ -216,6 +216,7 @@ const SOLO_AOE_SKILL_WEIGHT_MULT: float = 2.25
 
 # ── エリート護衛（P3-BAL-ELITE-BOSS-PRESSURE-001 / P3-BAL-TIER-ENC-A-001） ─
 ## ELITE 部屋入場時に従える章雑魚数（N/H）。プール空なら単体。
+## 例外: モーンゲート・ノーマルは護衛0（`DungeonController._mourngate_normal_elite_escorts_disabled`）。
 const ELITE_ESCORT_MIN: int = 1
 const ELITE_ESCORT_MAX: int = 2
 ## NM・双エリート時の護衛（薄い・合計）。

@@ -125,6 +125,7 @@ func test_elite_escorts_one_to_two() -> void:
 	var dc: Node = dc_script.new()
 	add_child_autofree(dc)
 	dc.current_dungeon_data = DataRegistry.get_dungeon_data("mistfen")
+	dc.current_stage_data = DataRegistry.get_stage_data("mistfen_3_1")
 	dc.current_room_type = Enums.RoomType.ELITE
 	var saw_escorts := false
 	for _i in 24:
@@ -140,6 +141,37 @@ func test_elite_escorts_one_to_two() -> void:
 				assert_true(bool(m.can_swarm), str(m.id))
 				assert_false(bool(m.escorts_minions), str(m.id))
 	assert_true(saw_escorts, "expected at least one elite with escorts")
+	GameState.current_dungeon_tier = prev_tier
+
+
+func test_mourngate_normal_elite_has_no_escorts() -> void:
+	## モーンゲート・ノーマルの ELITE は単体のみ。ウィスパーウッド以降は護衛ありのまま。
+	const _DungeonTierConfig := preload("res://scripts/dungeon/DungeonTierConfig.gd")
+	var prev_tier: int = GameState.current_dungeon_tier
+	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	dc.start_stage("mourngate_1_4")
+	dc.current_room_type = Enums.RoomType.ELITE
+	assert_true(dc._mourngate_normal_elite_escorts_disabled())
+	for _i in 20:
+		var group: Array = dc.pick_combat_enemy_group()
+		assert_eq(group.size(), 1, "mourngate normal elite must be solo")
+	dc.start_stage("whisperwood_2_1")
+	dc.current_room_type = Enums.RoomType.ELITE
+	assert_false(dc._mourngate_normal_elite_escorts_disabled())
+	var saw_ww := false
+	for _i in 24:
+		var ww_group: Array = dc.pick_combat_enemy_group()
+		if ww_group.size() >= 2:
+			saw_ww = true
+			break
+	assert_true(saw_ww, "whisperwood normal elite should still escort")
+	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_HARD
+	dc.start_stage("mourngate_1_4")
+	dc.current_room_type = Enums.RoomType.ELITE
+	assert_false(dc._mourngate_normal_elite_escorts_disabled())
 	GameState.current_dungeon_tier = prev_tier
 
 
