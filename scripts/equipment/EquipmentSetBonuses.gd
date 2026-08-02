@@ -183,3 +183,20 @@ static func display_name(set_id: String) -> String:
 
 static func description(set_id: String) -> String:
 	return str(BONUS.get(set_id, {}).get("description", ""))
+
+
+## パッシブタブ表示用。3部位そろったときだけ非空。枠は消費しない（情報カード）。
+static func passive_ui_def_for_member(member: Resource) -> Dictionary:
+	var set_id: String = active_set_id_for_member(member)
+	if set_id.is_empty():
+		return {}
+	var bonus: Dictionary = BONUS.get(set_id, {}) as Dictionary
+	if bonus.is_empty():
+		return {}
+	return {
+		"id": "set_%s" % set_id,
+		"display_name": str(bonus.get("display_name", "")),
+		"description": str(bonus.get("description", "")),
+		"category": "set",
+		"source_name": "エンシェントセット",
+	}

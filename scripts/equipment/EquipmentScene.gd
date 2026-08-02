@@ -22,6 +22,7 @@ const _SkillIconHelper = preload("res://scripts/ui/SkillIconHelper.gd")
 const _ChrIdlePortrait = preload("res://scripts/ui/ChrIdlePortrait.gd")
 const _GachaLimitBreak = preload("res://scripts/gacha/GachaLimitBreak.gd")
 const _CharacterStatPages = preload("res://scripts/roster/CharacterStatPages.gd")
+const _EquipmentSetBonuses = preload("res://scripts/equipment/EquipmentSetBonuses.gd")
 
 # CombatController.BASE_MEMBER_HP と同値（表示用の素HP）。
 const BASE_MEMBER_HP: int = BalanceConfig.BASE_MEMBER_HP
@@ -3303,6 +3304,10 @@ func _rebuild_passive_tab() -> void:
 		list.add_child(_make_passive_equip_card(def, char_ids.has(pid)))
 	for eq_def: Dictionary in CombatPassives.equipment_passives_for_member(member):
 		list.add_child(_make_passive_info_card(eq_def, str(eq_def.get("source_name", "装備"))))
+	## エンシェントセット加護は3部位時のみ表示（パッシブ枠は消費しない）。
+	var set_def: Dictionary = _EquipmentSetBonuses.passive_ui_def_for_member(member)
+	if not set_def.is_empty():
+		list.add_child(_make_passive_info_card(set_def, str(set_def.get("source_name", "エンシェントセット"))))
 	ScrollTouchHelper.enable(_tab_passive_scroll)
 
 func _passive_list_card_style() -> StyleBoxFlat:
