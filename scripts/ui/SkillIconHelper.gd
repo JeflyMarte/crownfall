@@ -96,6 +96,8 @@ const SKILL_TO_BASE: Dictionary = {
 	"hamstring_slash": "snare",
 	"mend": "heal",
 	"salve_burst": "heal",
+	"beast_vet_care": "heal",
+	"camp_draught": "heal",
 	"empower": "buff",
 	"herd_call": "buff",
 	"ultimate_strike": "ultimate",

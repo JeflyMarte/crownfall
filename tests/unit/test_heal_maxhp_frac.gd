@@ -18,6 +18,18 @@ func test_heal_frac_constants_match_skills() -> void:
 		BalanceConfig.HEAL_FRAC_GRAND_ELIXIR,
 		0.001
 	)
+	assert_almost_eq(
+		float(DataRegistry.get_skill_data("beast_vet_care").power_multiplier),
+		BalanceConfig.HEAL_FRAC_BEAST_VET,
+		0.001
+	)
+	assert_almost_eq(
+		float(DataRegistry.get_skill_data("camp_draught").power_multiplier),
+		BalanceConfig.HEAL_FRAC_CAMP_DRAUGHT,
+		0.001
+	)
+	assert_eq(str(DataRegistry.get_skill_data("camp_draught").target_type), "self")
+	assert_true(DataRegistry.get_skill_data("beast_vet_care").tags.has("pet_heal_bonus"))
 
 
 func test_heal_frac_examples() -> void:
@@ -25,6 +37,9 @@ func test_heal_frac_examples() -> void:
 	assert_eq(int(round(1000.0 * BalanceConfig.HEAL_FRAC_MEND)), 200)
 	assert_eq(int(round(2000.0 * BalanceConfig.HEAL_FRAC_SALVE_BURST)), 640)
 	assert_eq(int(round(2000.0 * BalanceConfig.HEAL_FRAC_GRAND_ELIXIR)), 320)
+	assert_eq(int(round(1000.0 * BalanceConfig.HEAL_FRAC_BEAST_VET)), 120)
+	assert_eq(int(round(1000.0 * BalanceConfig.HEAL_FRAC_BEAST_VET_PET)), 180)
+	assert_eq(int(round(1000.0 * BalanceConfig.HEAL_FRAC_CAMP_DRAUGHT)), 120)
 
 
 func test_get_member_max_hp() -> void:

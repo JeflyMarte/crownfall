@@ -33,10 +33,10 @@ skill_unlocks = Array[Dictionary]([{
 "skill_id": "hunting_ground_mark",
 "level": 40
 }, {
-"skill_id": "apex_shot",
+"skill_id": "camp_draught",
 "level": 50
 }])
-learnable_skill_ids = Array[String](["aimed_shot", "snare_shot", "hunter_mark", "volley_shot", "mark_pursuit", "hunting_ground_mark", "apex_shot"])
+learnable_skill_ids = Array[String](["aimed_shot", "snare_shot", "hunter_mark", "volley_shot", "mark_pursuit", "hunting_ground_mark", "camp_draught"])
 passive_tag_ids = Array[String](["recon"])
 ultimate_skill_id = "dead_eye"
 evolved_display_name = "スナイパー"

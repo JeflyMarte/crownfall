@@ -14,5 +14,8 @@
 | `mend` | **20%**（単体・最傷） |
 | `salve_burst` | **32%**（単体・最傷） |
 | `grand_elixir` | **16%**（全体・各員） |
+| `beast_vet_care` | **12%**（単体・最傷）／オトモ **18%**（`pet_heal_bonus`） |
+| `camp_draught` | **12%**（自己のみ） |
 
-装備 `healing_bonus` は算出後に平坦加算。役割／進化の heal 倍率は従来どおり乗算。
+装備 `healing_bonus` は算出後に平坦加算。役割／進化の heal 倍率は従来どおり乗算。  
+BT／RG 追加の詳細: `43_BtRgSupportHeal.md`。

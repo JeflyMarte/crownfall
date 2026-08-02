@@ -713,7 +713,6 @@ const _WanderingEnemyConfig = preload("res://scripts/dungeon/WanderingEnemyConfi
 const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd")
 const _AbyssWeaponEffects = preload("res://scripts/combat/AbyssWeaponEffects.gd")
 const _EnemyResistTelop = preload("res://scripts/combat/EnemyResistTelop.gd")
-const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 ## T10 沈黙（スキル／必殺封じ）秒数。
 const ENEMY_SILENCE_DURATION_SEC: float = 5.0
 ## T14 CT加速の返却割合（次行動までの待ち短縮）。
@@ -5482,7 +5481,7 @@ func _apply_skill_tertiary_status(member_idx: int, skill_data: Resource, hit_slo
 		label3 = effect3.display_name
 	_append_log("[%s] 付与" % label3)
 
-# 回復スキル: 既定は最傷1体。target_type=all_party なら生存味方全員。
+# 回復スキル: 既定は最傷1体。all_party＝全員／self＝発動者。
 func _execute_member_heal(
 	member_idx: int,
 	skill_data: Resource,
@@ -5490,18 +5489,25 @@ func _execute_member_heal(
 	suppress_resolve_label: bool = false
 ) -> String:
 	var party_heal: bool = str(skill_data.target_type) == "all_party"
+	var self_heal: bool = (
+		str(skill_data.target_type) == "self" or skill_data.tags.has("self")
+	)
 	var target_idx: int = -1
-	if not party_heal:
-		target_idx = $CombatController.get_most_injured_member_index()
-		if target_idx < 0:
-			return ""
-	else:
+	if party_heal:
 		var any_alive := false
 		for i: int in $CombatController.party_combat_hp.size():
 			if $CombatController.is_member_alive(i):
 				any_alive = true
 				break
 		if not any_alive:
+			return ""
+	elif self_heal:
+		if not $CombatController.is_member_alive(member_idx):
+			return ""
+		target_idx = member_idx
+	else:
+		target_idx = $CombatController.get_most_injured_member_index()
+		if target_idx < 0:
 			return ""
 	var cd_key: String = _member_skill_cd_key(member_idx, skill_data)
 	var result: Dictionary = _skill_executor.execute_support_skill(
@@ -5556,6 +5562,7 @@ func _execute_member_heal(
 
 
 ## 味方 heal: power_multiplier = 対象 maxHP 割合（P3-BAL-HEAL-MAXHP-001）。
+## `pet_heal_bonus` タグ時、オトモ対象は HEAL_FRAC_BEAST_VET_PET を使う。
 func _calc_skill_heal_amount(caster_idx: int, skill_data: Resource, target_idx: int) -> int:
 	if skill_data == null or target_idx < 0:
 		return 0
@@ -5563,6 +5570,11 @@ func _calc_skill_heal_amount(caster_idx: int, skill_data: Resource, target_idx: 
 	if max_hp <= 0:
 		return 0
 	var frac: float = maxf(0.0, float(skill_data.power_multiplier))
+	if (
+		skill_data.tags.has("pet_heal_bonus")
+		and GameState.is_pet_combatant(target_idx)
+	):
+		frac = BalanceConfig.HEAL_FRAC_BEAST_VET_PET
 	var base: int = maxi(1, int(round(float(max_hp) * frac)))
 	return _apply_healing_bonus(base, caster_idx)
 

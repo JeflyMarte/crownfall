@@ -484,6 +484,8 @@ const ICON_MAP: Dictionary = {
 	"skill:apex_shot":           "res://assets/ui/skills/ICO_SKILL_ApexShot.png",
 	"skill:apex_slash":           "res://assets/ui/skills/ICO_SKILL_ApexSlash.png",
 	"skill:apex_tame":           "res://assets/ui/skills/ICO_SKILL_ApexTame.png",
+	"skill:beast_vet_care":      "res://assets/ui/skills/ICO_SKILL_Mend.png",
+	"skill:camp_draught":        "res://assets/ui/skills/ICO_SKILL_Mend.png",
 	"skill:arc_bolt":           "res://assets/ui/skills/ICO_SKILL_ArcBolt.png",
 	"skill:armor_cleave":           "res://assets/ui/skills/ICO_SKILL_ArmorCleave.png",
 	"skill:beast_bite":           "res://assets/ui/skills/ICO_SKILL_BeastBite.png",
