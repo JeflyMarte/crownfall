@@ -65,6 +65,7 @@ alwaysApply: false
 - 灰冠防具の抜け穴を放置（暗いバナーに溶けて透けて見える）
 - 防具 N〜Epic を同一テンプレ PNG のまま複製（色分けなし → セル背景に同化）
 - AI PNG の白マットをエッジ非連結のまま残す（チケット／MVP 枠）
+- レリック InvCell の白塗り下地をそのまま出す（他装備の暗いセルと浮く）
 - VFX を `remove_black_bg(threshold=24)` のみで処理（暗青緑マット残存）
 - 肖像／助っ人／CHR アイコンに装飾枠を焼き込む（UI 側枠と二重）
 - chrome 差替後の異常解像度キャッシュを放置（鍛冶 Metal クラッシュ）
@@ -77,6 +78,7 @@ alwaysApply: false
 - 封蔵 Featured／帯は暗い石マット（クリーム禁止）
 - 防具 N〜Epic は `tools/generate_equipment_icons.py --armor-only`（**素材名**色分け＋弱いウォッシュ＋細い暗リム。耐性 element を主色にしない。テンプレ正は `equipment/_templates/`）
 - 白マットはエッジ＋中心穴の flood-fill（`import_forge_ui_assets.strip_edge_background` 相当）
+- レリック InvCell は `import_equipment_inv_cell_frames.py --only RELIC`（白下地を N 枠の暗い fill に焼込）
 - 戦闘 VFX は `tools/generate_env_and_vfx.py` の `clean_vfx_image`＋`sanitize_alpha`
 - 枠除去は `tools/strip_helper_portrait_frames.py` / `tools/strip_chr_icon_frames.py`
 - 放射色だけ変えるときは `tools/recolor_chr_icon_job_glow.py`（bust 保護）。単純 `modulate` 禁止

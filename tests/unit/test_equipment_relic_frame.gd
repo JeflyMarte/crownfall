@@ -22,3 +22,15 @@ func test_relic_cell_style_uses_dedicated_texture() -> void:
 		(tex_sb.texture as Texture2D),
 		((epic as StyleBoxTexture).texture as Texture2D)
 	)
+
+
+func test_relic_inv_cell_fill_is_not_white() -> void:
+	## 白マット下地のまま出さない（他レア InvCell と同じ暗い fill）。
+	var tex: Texture2D = load("res://assets/ui/equipment_ui/UI_Equip_InvCell_RELIC.png") as Texture2D
+	assert_not_null(tex)
+	var img: Image = tex.get_image()
+	assert_not_null(img)
+	var c: Color = img.get_pixel(tex.get_width() / 2, tex.get_height() / 2)
+	assert_lt(c.r, 0.55, "relic center should not be white fill")
+	assert_lt(c.g, 0.55, "relic center should not be white fill")
+	assert_lt(c.b, 0.55, "relic center should not be white fill")
