@@ -568,7 +568,7 @@ const STATUS_ICON_GAP: float = 3.0
 ## 戦闘レジェンド（P3-UX-STATUS-LEGEND-001／004／006）。
 ## 状態異常＝右下、天候などダンジョン効果＝右上。
 const STATUS_LEGEND_ICON_PX: float = 22.0
-## 名前付き「毒:1秒ごとにダメージ」が収まる幅。
+## 名前付き「毒:継続ダメージ」が収まる幅。
 const STATUS_LEGEND_WIDTH: float = 280.0
 const STATUS_LEGEND_PAD: float = 8.0
 const STATUS_LEGEND_ROW_GAP: int = 4
