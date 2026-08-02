@@ -21,7 +21,7 @@ route_type = "main"
 event_room_weight = 20
 min_event_rooms = 1
 weapon_pool = Array[String](["iron_sword", "rusted_blade", "hunting_bow", "apprentice_staff", "heater_blade", "frost_blade", "bolt_knife", "ember_fang", "glacier_staff", "storm_edge", "sanctified_dagger", "consecrated_maul", "ash_twin_blades", "rime_fang_blades", "votary_twin_blades", "ward_patrol_bow", "duskcord_bow", "umbra_needle", "chalk_rod", "dusk_lantern_staff", "cinder_orb_staff", "static_orb_staff", "sanctum_orb_staff", "umbra_orb_staff", "vanguard_war_bow", "silent_rite_staff", "pulsekeen_edge", "aegis_line_sword"])
-armor_pool = Array[String](["crypt_weave_cloak", "sepia_hide_vest", "rune_linen_garb", "lament_guard_mail", "mourngate_plate"])
-accessory_pool = Array[String](["clockwing_brooch", "mourngate_sigil", "pilgrim_lantern_charm"])
+armor_pool = Array[String](["crypt_weave_cloak", "sepia_hide_vest", "rune_linen_garb", "lament_guard_mail", "mourngate_plate", "wick_padded_coat"])
+accessory_pool = Array[String](["clockwing_brooch", "mourngate_sigil", "pilgrim_lantern_charm", "copper_bell_ring", "ashvault_pendant"])
 flavor_text = "王都アステリア地下の巨大排水網に育った生態系。
 遺物を取り込む鉱物化適応が進み、降りるほど王都の過去へ遡る。"

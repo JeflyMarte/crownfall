@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "copper_bell_ring"
+display_name = "銅鈴の指輪"
+rarity = 0
+icon = ""
+accessory_type = "ring"
+description = "薄い銅の鈴付き指輪。手元の動きを知らせ、盾の構えを安定させる。"
+hp_bonus = 0
+attack_bonus = 0
+defense_bonus = 24
+crit_rate_bonus = 0.0
+exp_gain_rate = 0.0
+gold_gain_rate = 0.0
+rare_drop_rate = 0.0

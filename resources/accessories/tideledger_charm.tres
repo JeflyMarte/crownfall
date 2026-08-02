@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "tideledger_charm"
+display_name = "潮帳の護符"
+rarity = 2
+icon = ""
+accessory_type = "charm"
+description = "潮汐と帳面を刻んだ護符。航海の利と体力を同時に支える。"
+hp_bonus = 240
+attack_bonus = 0
+defense_bonus = 0
+crit_rate_bonus = 0.0
+exp_gain_rate = 0.0
+gold_gain_rate = 0.08
+rare_drop_rate = 0.0

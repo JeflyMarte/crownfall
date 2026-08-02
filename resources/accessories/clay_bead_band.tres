@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "clay_bead_band"
+display_name = "土珠の指輪"
+rarity = 0
+icon = ""
+accessory_type = "ring"
+description = "沼の土を焼いた珠の指輪。地味だが、持久力を底上げする。"
+hp_bonus = 112
+attack_bonus = 0
+defense_bonus = 16
+crit_rate_bonus = 0.0
+exp_gain_rate = 0.0
+gold_gain_rate = 0.0
+rare_drop_rate = 0.0

@@ -212,9 +212,9 @@ Task 明示指示がない限り作成しない:
 
 | 種別 | パス |
 |---|---|
-| 武器 | `resources/weapons/` — 61本（①〜⑤ = 13+12×4。★は各難易度2・P3-D154/D156/D160/D161） |
-| 防具 | `resources/armors/` — 28（① 2 + ②〜⑤ 各5 + 寄り道3） |
-| 装飾品 | `resources/accessories/` — 17（① + ②〜⑤ 各3 + 寄り道2） |
+| 武器 | `resources/weapons/` — **129**（N〜SET。監査は tres 直スキャンが正） |
+| 防具 | `resources/armors/` — **55**（N12／R12／E9／L19／M1／SET2。**P3-EQ-EARLY-MID-FILL-001** でN+5） |
+| 装飾品 | `resources/accessories/` — **49**（N12／R6／E9／L19／M1／SET2。**FILL-001** でN+5・E+5） |
 | 敵 | `resources/enemies/`（`EnemyData.basic_attack_name`＝通常攻撃頭上名・**P3-UX-ENEMY-BASIC-NAME-001**）— メイン（①〜⑤・P3-ENEMY-002 拡充）+ 征討／降臨 Boss（chronos_wave→`chronos_mausoleum` / valgard→`valgard_boundary` / skarpedion / mycolga_ancient / karna_smoke / nereion_depths / forgedormient / albark）+ 遍在希少種4（P3-WANDER-002/004: cosmic_duck / crown_raven / golden_scarab / shadow_stalker）+ ロックバイソン（P3-ENEMY-ROCK-BISON-001: 全非イベント雑魚・素材率1.75・専用ドット／図鑑／イベント `rock_stampede`） |
 | ダンジョン | `resources/dungeons/` — **28本**: メイン5 + 寄り道5 + 征討8 + イベント5 + **深層5**（`abyss_*`／**P3-DG-ABYSS-001**）。`route_type`: main/side/apex/event/abyss。イベントは日次挑戦枠（DGごと）。**章データがある Biome は route 不問でバナー下にサブ章**（P3-DG-EVENT-STG-001）。イベントは各1章。深層は無限階・親Biomeクリアで解放。深層限定レジェンド武器5（`abyss_veinblade` 等／**P3-DG-ABYSS-001-C**） |
 | スキル | `resources/skills/` — プレイヤー約50+（基本5職×習得7 + 必殺5 + 属性/敵/ボス）。代表: slash_attack, guard_strike, aimed_shot, hex_bolt, mend, empower + P3-SKILL-002〜006 新規。SW Lv30=`battle_spirit`（自己鼓舞・`49_SwordsmanSelfBuff`）。BT Lv50=`beast_vet_care`／RG Lv50=`camp_draught`（支援回復・`43_BtRgSupportHeal`）。敵エリート第2技: `enemy_mist_talon` / `enemy_mirror_glare` / `enemy_greios_wing_lance` / `enemy_claw_rake` / `enemy_nightfen_siphon` / `enemy_ink_lash` / `enemy_anchor_sweep`（P3-BAL-ENEMY-SKILL-CA-001 Phase C）。**トリッキー**=heal/flee/explode＋`incoming_*_mult`（`35_EnemyTrickySkills.md` Phase1〜3済） |

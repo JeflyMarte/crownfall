@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "seed_pouch_charm"
+display_name = "種袋の護符"
+rarity = 0
+icon = ""
+accessory_type = "charm"
+description = "森の種を詰めた小袋。道中の拾い物に僅かな運を添える。"
+hp_bonus = 40
+attack_bonus = 0
+defense_bonus = 0
+crit_rate_bonus = 0.0
+exp_gain_rate = 0.0
+gold_gain_rate = 0.0
+rare_drop_rate = 0.01
