@@ -6396,3 +6396,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-EQ-POWER-RECOMMEND-002-4 | **同点** — レア → 装備Lv → 炉研ぎ | 見た目の強さと一致 |
 | P3-EQ-POWER-RECOMMEND-002-5 | **上書き** — `27_EquipPowerRecommend` §2。キャラ総合戦力式は据置 | 比較と表示を分離 |
 
+## エリート護衛＋ボス全体デバフ（2026-08-02 — P3-BAL-ELITE-BOSS-PRESSURE-001）
+
+> **オーナー GO（推奨セットA）** — ボス＝全体 ATK↓＋章テーマ状態厚み／エリート＝章雑魚1〜2護衛＋AoEキット穴埋め。グローバルATK据置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-ELITE-BOSS-PRESSURE-001-1 | **ボス共通** — `boss_party_curse`（全体・軽ダメ・`curse`必中・即時・CD8）を全ボスへ | ATK↓の共通圧 |
+| P3-BAL-ELITE-BOSS-PRESSURE-001-2 | **ボス F1** — 即時全体に章テーマ状態を付与／確率 0.35〜0.45 | 状態異常の厚み |
+| P3-BAL-ELITE-BOSS-PRESSURE-001-3 | **フェーズ重み** — 激昂＜呪い＜即時全体 | バフ偏重を抑える |
+| P3-BAL-ELITE-BOSS-PRESSURE-001-4 | **エリート護衛** — 入場時雑魚 1〜2（`_swarm_minion_enemies`）。BOSS単体据置 | 忙しさと脅威 |
+| P3-BAL-ELITE-BOSS-PRESSURE-001-5 | **キット** — `polar_tricera` に前列 AoE。人数連動は ELITE/BOSS 除外のまま | 穴埋め＋Decision37整合 |
+| P3-BAL-ELITE-BOSS-PRESSURE-001-6 | **SSOT** — `decisions/38_EliteBossPressure.md`／`BalanceConfig.ELITE_ESCORT_*` | 数値の正 |
+

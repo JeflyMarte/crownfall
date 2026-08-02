@@ -32,5 +32,5 @@ codex_danger = 5
 codex_habitat = "ストームクラウン境界廊"
 codex_research_note = "境界遺構の岩鉄と城壁残滓が鉱物化適応し、巨大な機械式ゴーレムのように見える擬機械体。歯車と槍状突起で侵入者を押し返す。境界の番の名は民間が付けた通称で、守護王そのものではない。魔法人形でも不死者でもない。"
 codex_materials = Array[String]([])
-skill_ids = Array[String](["boss_enrage", "enemy_valgard_rampart", "enemy_valgard_boundary_spear"])
+skill_ids = Array[String](["boss_enrage", "boss_party_curse", "enemy_valgard_rampart", "enemy_valgard_boundary_spear"])
 skill_use_chance = 0.55

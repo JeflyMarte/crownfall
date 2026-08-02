@@ -4,17 +4,17 @@
 
 [resource]
 script = ExtResource("1")
-id = "enemy_valgard_rampart"
-display_name = "城壁機関"
-description = "擬機械の城壁機関が隆起し、聖別の衝撃波が探索隊全体を押し返す。"
+id = "boss_party_curse"
+display_name = "王威の呪詛"
+description = "探索隊全体の戦意を削ぎ、与ダメージを落とす呪いを浴びせる。"
 skill_type = "boss"
 target_type = "all_party"
-power_multiplier = 0.63
-cooldown = 6.0
+power_multiplier = 0.25
+cooldown = 8.0
 trigger_type = "cooldown"
 effect_type = "damage"
 tags = Array[String](["boss", "aoe"])
-element = "holy"
-apply_status_id = "armor_break"
-apply_status_chance = 0.4
+element = "dark"
+apply_status_id = "curse"
+apply_status_chance = 1.0
 cast_time = 0.0

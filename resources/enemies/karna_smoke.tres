@@ -34,5 +34,5 @@ codex_danger = 5
 codex_habitat = "サンダーピーク火口"
 codex_research_note = "燼竜を祖先とする火口頂の古生物。灰雲に身を隠し、溶岩の槍を吐く。燼竜の名は猟師の俗称であり、王そのものではない。不死者ではない。"
 codex_materials = Array[String]([])
-skill_ids = Array[String](["boss_enrage", "enemy_karna_ash_veil", "enemy_karna_magma_lance"])
+skill_ids = Array[String](["boss_enrage", "boss_party_curse", "enemy_karna_ash_veil", "enemy_karna_magma_lance"])
 skill_use_chance = 0.55

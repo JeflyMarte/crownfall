@@ -16,5 +16,5 @@ effect_type = "damage"
 tags = Array[String](["boss", "aoe"])
 element = ""
 apply_status_id = "chill"
-apply_status_chance = 0.3
+apply_status_chance = 0.45
 cast_time = 0.0
