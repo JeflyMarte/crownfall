@@ -85,9 +85,17 @@ func test_alchemy_gold_tier_mult() -> void:
 	assert_eq(EquipmentEnhancer.alchemy_gold_cost(5, 51), 300)
 
 
-func test_clamp_equip_level_to_member() -> void:
-	var item: Resource = _make_weapon(20)
+func test_equip_preserves_level_above_member() -> void:
+	## 装着時に装備LvをキャラLvへ永続クリップしない（P3-EQ-LVL-001-4 は EXP 上限のみ）。
 	var member := Adventurer.new()
-	member.level = 8
-	EquipmentEnhancer.clamp_equip_level_to_member(item, member)
-	assert_eq(int(item.equip_level), 8)
+	member.level = 19
+	member.job_id = "swordsman"
+	var low: Resource = _make_weapon(19)
+	var high: Resource = _make_weapon(35)
+	var ctrl: Node = load("res://scripts/equipment/EquipmentController.gd").new()
+	add_child_autofree(ctrl)
+	ctrl.equip_weapon_for_member(low, member)
+	assert_eq(int(low.equip_level), 19)
+	ctrl.equip_weapon_for_member(high, member)
+	assert_eq(member.equipped_weapon, high)
+	assert_eq(int(high.equip_level), 35, "高Lv武器を低Lvキャラに装備しても保存Lvは下がらない")
