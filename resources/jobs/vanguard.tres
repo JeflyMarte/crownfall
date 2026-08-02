@@ -27,7 +27,7 @@ skill_unlocks = Array[Dictionary]([{
 "skill_id": "bulwark_aura",
 "level": 22
 }, {
-"skill_id": "shield_ram",
+"skill_id": "cover_guard",
 "level": 30
 }, {
 "skill_id": "shield_quake",
@@ -36,7 +36,7 @@ skill_unlocks = Array[Dictionary]([{
 "skill_id": "apex_guard",
 "level": 50
 }])
-learnable_skill_ids = Array[String](["guard_strike", "iron_guard", "menace_strike", "bulwark_aura", "shield_ram", "shield_quake", "apex_guard"])
+learnable_skill_ids = Array[String](["guard_strike", "iron_guard", "menace_strike", "bulwark_aura", "cover_guard", "shield_quake", "apex_guard"])
 passive_tag_ids = Array[String](["frontline", "guard"])
 ultimate_skill_id = "titan_roar"
 evolved_display_name = "パラディン"
