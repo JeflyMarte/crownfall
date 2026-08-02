@@ -42,6 +42,7 @@
 - `GachaEquipSystem.pull()` — 魔晶石 300・灰冠プール抽選・inventory 付与
 - 灰冠専用 random_mods は後続（初版は通常 L ロール可）
 - 固有パッシブ配線は後続（初版は `fixed_passive_id` 空でも可）
+- 表示暫定: 装備詳細／図鑑は `GachaEquipSystem.POOL.effect` へフォールバック（戦闘実装は別 Task）
 
 ---
 

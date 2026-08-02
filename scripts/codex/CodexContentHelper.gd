@@ -209,6 +209,10 @@ static func build_armor_description(data: Resource) -> String:
 		lines.append(description)
 	var passive_id: String = str(data.fixed_passive_id) if "fixed_passive_id" in data else ""
 	var passive_text: String = EquipmentItemDetailHelper.equipment_legendary_effect_text_from_passive_id(passive_id)
+	if passive_text.is_empty():
+		passive_text = EquipmentItemDetailHelper.kaiwan_pool_effect_text(
+			str(data.armor_id) if "armor_id" in data else ""
+		)
 	if not passive_text.is_empty():
 		lines.append("固有効果: %s" % passive_text)
 	return "\n".join(lines)
@@ -242,6 +246,10 @@ static func build_accessory_description(data: Resource) -> String:
 		lines.append(description)
 	var passive_id: String = str(data.fixed_passive_id) if "fixed_passive_id" in data else ""
 	var passive_text: String = EquipmentItemDetailHelper.equipment_legendary_effect_text_from_passive_id(passive_id)
+	if passive_text.is_empty():
+		passive_text = EquipmentItemDetailHelper.kaiwan_pool_effect_text(
+			str(data.id) if "id" in data else ""
+		)
 	if not passive_text.is_empty():
 		lines.append("固有効果: %s" % passive_text)
 	return "\n".join(lines)

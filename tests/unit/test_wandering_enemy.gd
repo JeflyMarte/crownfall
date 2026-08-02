@@ -266,6 +266,7 @@ func test_crown_raven_pool_includes_legendary_weapons() -> void:
 	)
 	assert_true("consecrated_maul" in pool or "sanctified_dagger" in pool, "伝説武器が候補に入る")
 	assert_false(MythicLoot.WEAPON_ID in pool, "神話はレア度プール外")
+	assert_false("kaiwan_crosslit" in pool, "灰冠は封蔵限定")
 	var stalker: Resource = DataRegistry.get_enemy_data("shadow_stalker")
 	var stalker_pool: Array = dc._augment_pool_with_legendaries(
 		dc._active_weapon_pool(), "weapon", stalker
@@ -274,6 +275,11 @@ func test_crown_raven_pool_includes_legendary_weapons() -> void:
 		"consecrated_maul" in stalker_pool or "sanctified_dagger" in stalker_pool,
 		"影狩りも伝説武器候補"
 	)
+	assert_false("kaiwan_crosslit" in stalker_pool, "影狩りも灰冠除外")
+	var armor_pool: Array = dc._augment_pool_with_legendaries([], "armor", raven)
+	assert_false("kaiwan_primehide" in armor_pool, "灰冠防具もドロップ除外")
+	var acc_pool: Array = dc._augment_pool_with_legendaries([], "accessory", raven)
+	assert_false("kaiwan_initio" in acc_pool, "灰冠装飾もドロップ除外")
 
 
 func test_crown_raven_mythic_drop_can_succeed() -> void:

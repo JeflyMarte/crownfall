@@ -12,6 +12,7 @@ const _EquipmentPerfectRollHelper = preload("res://scripts/equipment/EquipmentPe
 const _EquipmentRollHelper = preload("res://scripts/equipment/EquipmentRollHelper.gd")
 const _EquipmentSetBonuses = preload("res://scripts/equipment/EquipmentSetBonuses.gd")
 const _StatusEffectLinkHelper = preload("res://scripts/ui/StatusEffectLinkHelper.gd")
+const _GachaEquipSystem = preload("res://scripts/gacha/GachaEquipSystem.gd")
 
 const COLOR_SUB: Color = Color(0.90, 0.87, 0.80)
 const COLOR_LABEL: Color = Color(0.97, 0.94, 0.87)
@@ -79,14 +80,22 @@ static func weapon_legendary_effect_text_from_data(weapon_data: Resource) -> Str
 	if weapon_data == null:
 		return ""
 	var pid: String = str(weapon_data.fixed_passive_id) if "fixed_passive_id" in weapon_data else ""
-	if pid.is_empty():
-		return ""
-	return CombatPassives.weapon_passive_description(pid)
+	if not pid.is_empty():
+		return CombatPassives.weapon_passive_description(pid)
+	## 灰冠は CombatPassives 未配線。封蔵口語（POOL.effect）を表示用に使う。
+	var weapon_id: String = str(weapon_data.id) if "id" in weapon_data else ""
+	return kaiwan_pool_effect_text(weapon_id)
 
 static func equipment_legendary_effect_text_from_passive_id(passive_id: String) -> String:
 	if passive_id.is_empty():
 		return ""
 	return CombatPassives.relic_description(passive_id)
+
+## 灰冠は CombatPassives 未配線時、封蔵 POOL の口語を表示用に返す。
+static func kaiwan_pool_effect_text(item_id: String) -> String:
+	if item_id.is_empty() or not item_id.begins_with("kaiwan_"):
+		return ""
+	return _GachaEquipSystem.effect_text_for(_GachaEquipSystem.pool_entry_by_id(item_id))
 
 static func equipment_legendary_effect_text(item: Resource, category: String) -> String:
 	if item == null:
@@ -98,16 +107,22 @@ static func equipment_legendary_effect_text(item: Resource, category: String) ->
 			var armor_data: Resource = DataRegistry.get_armor_data(str(item.armor_id))
 			if armor_data == null:
 				return ""
-			return equipment_legendary_effect_text_from_passive_id(
+			var armor_text: String = equipment_legendary_effect_text_from_passive_id(
 				str(armor_data.fixed_passive_id) if "fixed_passive_id" in armor_data else ""
 			)
+			if not armor_text.is_empty():
+				return armor_text
+			return kaiwan_pool_effect_text(str(item.armor_id))
 		"accessory":
 			var acc_data: Resource = DataRegistry.get_accessory_data(str(item.accessory_id))
 			if acc_data == null:
 				return ""
-			return equipment_legendary_effect_text_from_passive_id(
+			var acc_text: String = equipment_legendary_effect_text_from_passive_id(
 				str(acc_data.fixed_passive_id) if "fixed_passive_id" in acc_data else ""
 			)
+			if not acc_text.is_empty():
+				return acc_text
+			return kaiwan_pool_effect_text(str(item.accessory_id))
 	return ""
 
 static func weapon_legendary_effect_text(item: Resource, category: String) -> String:
