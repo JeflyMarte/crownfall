@@ -19,6 +19,8 @@ const EQUIPPED_FILTER_LABELS: Dictionary = {
 	"all": "すべて",
 	"equipped": "装備中",
 	"unequipped": "未装備",
+	## ランダム行が上限（★）に1本以上到達した武／防／飾。
+	"max": "MAXあり",
 }
 
 const CATEGORY_LABELS: Dictionary = {

@@ -24,6 +24,44 @@ func test_category_label_all() -> void:
 	assert_eq(EquipmentUiHelper.category_label("all"), "すべて")
 	assert_eq(EquipmentUiHelper.category_label("weapon"), "武器")
 
+
+func test_equipped_filter_includes_max() -> void:
+	assert_eq(EquipmentUiHelper.EQUIPPED_FILTER_LABELS.get("max"), "MAXあり")
+	assert_eq(EquipmentUiHelper.EQUIPPED_FILTER_LABELS.get("all"), "すべて")
+
+
+func test_has_any_perfect_roll() -> void:
+	var w: Resource = WeaponInstance.new()
+	w.instance_id = "max_filter_w"
+	w.weapon_id = "iron_sword"
+	w.is_appraised = true
+	w.rolled_attack = 80
+	w.random_mods = [{
+		"kind": "attack_up",
+		"value": 10,
+		"min_v": 1,
+		"max_v": 10,
+		"perfect": true,
+		"label": "攻撃力アップ",
+	}]
+	w.perfect_roll_count = 0
+	assert_true(EquipmentRollHelper.has_any_perfect_roll(w))
+	var plain: Resource = WeaponInstance.new()
+	plain.instance_id = "max_filter_plain"
+	plain.weapon_id = "iron_sword"
+	plain.is_appraised = true
+	plain.rolled_attack = 80
+	plain.random_mods = [{
+		"kind": "attack_up",
+		"value": 3,
+		"min_v": 1,
+		"max_v": 10,
+		"perfect": false,
+		"label": "攻撃力アップ",
+	}]
+	plain.perfect_roll_count = 0
+	assert_false(EquipmentRollHelper.has_any_perfect_roll(plain))
+
 func test_inv_cell_style_uses_metallic_background() -> void:
 	var sb: StyleBox = EquipmentUiTokens.inv_cell_style(2, false)
 	if sb is StyleBoxTexture and (sb as StyleBoxTexture).texture != null:
