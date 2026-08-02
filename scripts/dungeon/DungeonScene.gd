@@ -1030,6 +1030,11 @@ func _ready() -> void:
 	_menu_overlay.get_node("MenuVBox/ButtonCloseMenu").pressed.connect(_on_close_menu_pressed)
 	$MainVBox/PartyStatusPanel/PartyStatusVBox/AutoCombatRow/ButtonPause.pressed.connect(_on_pause_button_pressed)
 	_pause_overlay.get_node("PausePanel/PauseVBox/ButtonPauseResume").pressed.connect(_on_pause_resume_pressed)
+	var pause_log_btn: Button = _pause_overlay.get_node_or_null(
+		"PausePanel/PauseVBox/ButtonPauseBattleLog"
+	) as Button
+	if pause_log_btn != null and not pause_log_btn.pressed.is_connected(_on_pause_battle_log_pressed):
+		pause_log_btn.pressed.connect(_on_pause_battle_log_pressed)
 	_pause_overlay.get_node("PausePanel/PauseVBox/ButtonPauseRetire").pressed.connect(_on_pause_retire_pressed)
 	EventBus.weapon_obtained.connect(_on_weapon_obtained)
 	_hit_vfx_sprite.animation_finished.connect(func(): _hit_vfx_sprite.visible = false)
@@ -9090,12 +9095,14 @@ func _style_pause_overlay() -> void:
 	const PAUSE_TITLE_SIZE: int = 40
 	const PAUSE_BTN_SIZE: int = 32
 	const PAUSE_BTN_MIN: Vector2 = Vector2(320, 68)
+	_ensure_pause_battle_log_sheet()
 	var panel: PanelContainer = _pause_overlay.get_node_or_null("PausePanel") as PanelContainer
 	if panel != null:
 		panel.offset_left = -220.0
 		panel.offset_right = 220.0
-		panel.offset_top = -160.0
-		panel.offset_bottom = 160.0
+		## 再開／戦闘ログ／リタイアの3ボタン分。
+		panel.offset_top = -210.0
+		panel.offset_bottom = 210.0
 	var vbox: VBoxContainer = _pause_overlay.get_node_or_null("PausePanel/PauseVBox") as VBoxContainer
 	if vbox != null:
 		vbox.add_theme_constant_override("separation", 20)
@@ -9103,7 +9110,7 @@ func _style_pause_overlay() -> void:
 	if title != null:
 		UiTypography.apply_display(title, PAUSE_TITLE_SIZE, UiTypography.COLOR_GOLD, UiTypography.OUTLINE_STRONG)
 		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	for btn_name: String in ["ButtonPauseResume", "ButtonPauseRetire"]:
+	for btn_name: String in ["ButtonPauseResume", "ButtonPauseBattleLog", "ButtonPauseRetire"]:
 		var btn: Button = _pause_overlay.get_node_or_null("PausePanel/PauseVBox/%s" % btn_name) as Button
 		if btn == null:
 			continue
@@ -9112,6 +9119,137 @@ func _style_pause_overlay() -> void:
 		btn.focus_mode = Control.FOCUS_NONE
 		UiTypography.apply_button(btn, false)
 		btn.add_theme_font_size_override("font_size", PAUSE_BTN_SIZE)
+
+
+func _ensure_pause_battle_log_sheet() -> void:
+	if _pause_overlay == null:
+		return
+	if _pause_overlay.get_node_or_null("PauseBattleLogSheet") != null:
+		return
+	var sheet := PanelContainer.new()
+	sheet.name = "PauseBattleLogSheet"
+	sheet.visible = false
+	sheet.mouse_filter = Control.MOUSE_FILTER_STOP
+	sheet.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	sheet.offset_left = 24.0
+	sheet.offset_top = 48.0
+	sheet.offset_right = -24.0
+	sheet.offset_bottom = -48.0
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.08, 0.09, 0.12, 0.96)
+	sb.set_corner_radius_all(10)
+	sb.set_content_margin_all(16)
+	sheet.add_theme_stylebox_override("panel", sb)
+	var root := VBoxContainer.new()
+	root.name = "SheetVBox"
+	root.add_theme_constant_override("separation", 12)
+	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	sheet.add_child(root)
+	var header := Label.new()
+	header.name = "SheetTitle"
+	header.text = "戦闘ログ"
+	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_display(header, 34, UiTypography.COLOR_GOLD, UiTypography.OUTLINE_STRONG)
+	root.add_child(header)
+	var scroll := ScrollContainer.new()
+	scroll.name = "SheetScroll"
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	root.add_child(scroll)
+	var content := VBoxContainer.new()
+	content.name = "SheetContent"
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.add_theme_constant_override("separation", 4)
+	scroll.add_child(content)
+	var close_btn := Button.new()
+	close_btn.name = "SheetClose"
+	close_btn.text = "戻る"
+	close_btn.custom_minimum_size = Vector2(0, 60)
+	close_btn.focus_mode = Control.FOCUS_NONE
+	UiTypography.apply_button(close_btn, false)
+	close_btn.add_theme_font_size_override("font_size", 30)
+	close_btn.pressed.connect(_on_pause_battle_log_close_pressed)
+	root.add_child(close_btn)
+	_pause_overlay.add_child(sheet)
+
+
+func _on_pause_battle_log_pressed() -> void:
+	if not _is_paused:
+		return
+	_ensure_pause_battle_log_sheet()
+	var sheet: Control = _pause_overlay.get_node_or_null("PauseBattleLogSheet") as Control
+	var pause_panel: Control = _pause_overlay.get_node_or_null("PausePanel") as Control
+	if sheet == null:
+		return
+	_populate_pause_battle_log_sheet()
+	if pause_panel != null:
+		pause_panel.visible = false
+	sheet.visible = true
+	AudioManager.play_sfx("ui_confirm")
+
+
+func _on_pause_battle_log_close_pressed() -> void:
+	var sheet: Control = _pause_overlay.get_node_or_null("PauseBattleLogSheet") as Control
+	var pause_panel: Control = _pause_overlay.get_node_or_null("PausePanel") as Control
+	if sheet != null:
+		sheet.visible = false
+	if pause_panel != null:
+		pause_panel.visible = true
+	AudioManager.play_sfx("ui_cancel")
+
+
+func _populate_pause_battle_log_sheet() -> void:
+	var content: VBoxContainer = _pause_overlay.get_node_or_null(
+		"PauseBattleLogSheet/SheetVBox/SheetContent"
+	) as VBoxContainer
+	var scroll: ScrollContainer = _pause_overlay.get_node_or_null(
+		"PauseBattleLogSheet/SheetVBox/SheetScroll"
+	) as ScrollContainer
+	if content == null:
+		return
+	for child in content.get_children():
+		content.remove_child(child)
+		child.queue_free()
+	var lines: PackedStringArray = []
+	if _battle_log_content != null:
+		for child in _battle_log_content.get_children():
+			if child is RichTextLabel:
+				var rtl: RichTextLabel = child as RichTextLabel
+				var t: String = str(rtl.text).strip_edges()
+				if not t.is_empty():
+					lines.append(t)
+	if lines.is_empty():
+		var empty := Label.new()
+		empty.text = "まだ記録がありません"
+		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		UiTypography.apply_body(empty, UiTypography.SIZE_BODY, UiTypography.COLOR_SUB)
+		content.add_child(empty)
+	else:
+		var sheet_w: float = 600.0
+		if scroll != null and scroll.size.x > 32.0:
+			sheet_w = maxf(32.0, scroll.size.x - 8.0)
+		for line: String in lines:
+			var entry := RichTextLabel.new()
+			entry.bbcode_enabled = true
+			entry.fit_content = true
+			entry.scroll_active = false
+			entry.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+			entry.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			entry.custom_minimum_size.x = sheet_w
+			UiTypography.apply_log_rich(entry)
+			entry.text = line
+			content.add_child(entry)
+	if scroll != null:
+		ScrollTouchHelper.enable(scroll, true)
+		call_deferred("_scroll_pause_battle_log_to_bottom", scroll)
+
+
+func _scroll_pause_battle_log_to_bottom(scroll: ScrollContainer) -> void:
+	if scroll == null or not is_instance_valid(scroll):
+		return
+	scroll.scroll_vertical = int(scroll.get_v_scroll_bar().max_value)
 
 
 func _harden_header_menu_button() -> void:
@@ -9254,6 +9392,13 @@ func _set_paused(paused: bool) -> void:
 		$CombatTimer.stop()
 		_auto_progress_paused_remaining = $AutoProgressTimer.time_left
 		$AutoProgressTimer.stop()
+		## ログシートが開いたままだと再開時に残るので初期化。
+		var log_sheet: Control = _pause_overlay.get_node_or_null("PauseBattleLogSheet") as Control
+		if log_sheet != null:
+			log_sheet.visible = false
+		var pause_panel: Control = _pause_overlay.get_node_or_null("PausePanel") as Control
+		if pause_panel != null:
+			pause_panel.visible = true
 	else:
 		if $CombatController.is_in_combat:
 			$CombatTimer.start()

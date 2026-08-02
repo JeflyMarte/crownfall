@@ -362,6 +362,11 @@ layout_mode = 2
 custom_minimum_size = Vector2(0, 64)
 text = "再開"
 
+[node name="ButtonPauseBattleLog" type="Button" parent="PauseOverlay/PausePanel/PauseVBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 64)
+text = "戦闘ログ"
+
 [node name="ButtonPauseRetire" type="Button" parent="PauseOverlay/PausePanel/PauseVBox"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 64)

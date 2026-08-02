@@ -6455,6 +6455,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-CMD-RANK-CURVE-003-4 | **据置** — SP重み／称号枠／A記録詳細／TopBarバー | 閾値と手当のみ |
 | P3-CMD-RANK-CURVE-003-5 | **上書き** — `P3-CMD-RANK-CURVE-002-1` 閾値／`REWARD-001-3` の Gold のみ手当 | 本 Decision が正 |
 
+## 一時停止・戦闘ログ閲覧（2026-08-02 — P3-UX-PAUSE-BATTLE-LOG-001）
+
+> **オーナー指示** — 戦闘中にログを振り返りたい。一時停止メニューに項目を追加。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-PAUSE-BATTLE-LOG-001-1 | **導線** — 一時停止に「戦闘ログ」→全画面寄りのシートでスクロール閲覧 | 暗転中でも読める |
+| P3-UX-PAUSE-BATTLE-LOG-001-2 | **内容** — 画面上の戦闘ログ行を転記（上限は既存 `_LOG_MAX`） | 二重バッファ不要 |
+| P3-UX-PAUSE-BATTLE-LOG-001-3 | **閉じる** — 「戻る」で一時停止メニューへ（再開はしない） | 操作の分離 |
+
 ## 必殺チャージ圧力（2026-08-02 — P3-BAL-ULTIMATE-PRESSURE-001）
 
 > **オーナー GO（推奨F＝案A）** — ELITE／BOSSのみ入場半減＋戦中×0.5。雑魚・基本係数・レリック据置。
