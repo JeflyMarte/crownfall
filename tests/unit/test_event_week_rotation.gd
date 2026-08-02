@@ -59,6 +59,17 @@ func test_slot_copy_has_article_effect_and_memo() -> void:
 		assert_true(str(def.get("effect_summary", "")).begins_with("・"), "bullet %s" % id)
 
 
+func test_banner_desc_avoids_raw_multiplier_jargon() -> void:
+	## バナーは世界観文。数値倍率は effect_summary 側。
+	for def: Dictionary in _WeekRotation.SLOT_DEFINITIONS:
+		var id: String = str(def.get("id", ""))
+		var banner: String = str(def.get("banner_desc", ""))
+		assert_false(banner.contains("×1."), "banner has mult %s: %s" % [id, banner])
+		assert_false(banner.contains("出現率↑"), "banner rate jargon %s: %s" % [id, banner])
+		assert_false(banner.contains("エリート素材"), "banner elite mat jargon %s" % id)
+		assert_false(banner.contains("敵レベル"), "banner enemy lv jargon %s" % id)
+
+
 func test_none_memo_pool_is_thick() -> void:
 	for def: Dictionary in _WeekRotation.SLOT_DEFINITIONS:
 		if str(def.get("id", "")) != "none":

@@ -29,6 +29,12 @@
 
 スロット内の種別は **スロット番号の決定的ハッシュ**で選ぶ（端末間一致）。
 
+### バナー文言（P3-UX-FIELD-BANNER-FLAVOR-001）
+
+- **banner_desc** は世界観＋効果の一言（例: 「精錬向きの良品が集まりやすい」）
+- 倍率・「出現率↑」等の機械表記は **effect_summary（詳細）** に置く
+- SSOT: `EventWeekRotation.SLOT_DEFINITIONS`
+
 ---
 
 ## 3. ノノカメモ文面（P3-EVT-NONOKA-MEMO-001）
