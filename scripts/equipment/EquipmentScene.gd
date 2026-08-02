@@ -1678,8 +1678,8 @@ func _make_relic_slot(cell_size: Vector2, member: Resource, can_equip: bool) -> 
 			CombatPassives.relic_display_name(relic_id),
 			CombatPassives.relic_description(relic_id),
 		]
-		## 所持一覧と同じ紫枠（EPIC）。装備後も枠色を落とさない。
-		_apply_item_cell_styles(btn, Enums.Rarity.EPIC, cell_px)
+		## 所持一覧と同じレリック専用枠。装備後も落とさない。
+		_apply_relic_cell_styles(btn, cell_px)
 	else:
 		btn.text = EMPTY_SLOT_TEXT
 		btn.add_theme_font_size_override("font_size", maxi(18, int(float(cell_px) * 0.34)))
@@ -2020,9 +2020,9 @@ func _make_relic_cell(relic_id: String) -> Button:
 	btn.disabled = not _can_change_equipment_on_view()
 	if is_on_self:
 		btn.modulate = Color(0.72, 0.72, 0.72, 0.85)
-		_apply_item_cell_styles(btn, Enums.Rarity.EPIC, cell_px, true)
+		_apply_relic_cell_styles(btn, cell_px, true)
 	else:
-		_apply_item_cell_styles(btn, Enums.Rarity.EPIC, cell_px)
+		_apply_relic_cell_styles(btn, cell_px)
 	if owner_member != null:
 		_add_owner_portrait_badge(btn, owner_member, cell_size)
 	return btn
@@ -2429,6 +2429,17 @@ func _apply_item_cell_styles(btn: Button, rarity: int, cell_px: int, disabled_hi
 	btn.add_theme_stylebox_override("pressed", hover)
 	btn.add_theme_stylebox_override("focus", normal)
 	btn.add_theme_stylebox_override("disabled", _rarity_box(rarity, disabled_highlight, cell_px))
+
+func _apply_relic_cell_styles(btn: Button, cell_px: int, disabled_highlight: bool = false) -> void:
+	var normal: StyleBox = EquipmentUiTokens.relic_cell_style(false, cell_px)
+	var hover: StyleBox = EquipmentUiTokens.relic_cell_style(true, cell_px)
+	btn.add_theme_stylebox_override("normal", normal)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_stylebox_override("pressed", hover)
+	btn.add_theme_stylebox_override("focus", normal)
+	btn.add_theme_stylebox_override(
+		"disabled", EquipmentUiTokens.relic_cell_style(disabled_highlight, cell_px)
+	)
 
 # 汎用の額縁スタイル（枠色・枠幅・地色を指定）。
 func _framed_box(border: Color, width: int, bg: Color) -> StyleBoxFlat:
