@@ -7,6 +7,7 @@ script = ExtResource("1")
 id = "valgard"
 display_name = "境界の番ヴァルガード"
 basic_attack_name = "界壁打ち"
+basic_attack_skill_ids = Array[String](["enemy_valgard_basic_single", "enemy_valgard_basic_cleave"])
 max_hp = 3600
 attack = 210
 defense = 220

@@ -4,17 +4,17 @@
 
 [resource]
 script = ExtResource("1")
-id = "enemy_albark_white_silence"
-display_name = "白静寂"
-description = "白甲の古龍が静寂を吐き、氷の余白が探索隊全体を呑み込む。"
+id = "enemy_eldion_basic_single"
+display_name = "始祖の爪"
+description = "始祖の爪。通常攻撃（単体）。"
 skill_type = "boss"
-target_type = "all_party"
-power_multiplier = 0.5
-cooldown = 6.0
+target_type = "party"
+power_multiplier = 1.5
+cooldown = 0.0
 trigger_type = "cooldown"
 effect_type = "damage"
-tags = Array[String](["boss", "aoe"])
+tags = Array[String](["boss", "basic", "single"])
 element = "ice"
 apply_status_id = "chill"
-apply_status_chance = 0.45
+apply_status_chance = 0.25
 cast_time = 0.0

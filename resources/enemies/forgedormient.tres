@@ -7,6 +7,7 @@ script = ExtResource("1")
 id = "forgedormient"
 display_name = "星炉の寝主フォージ・ドルミエント"
 basic_attack_name = "炉爪"
+basic_attack_skill_ids = Array[String](["enemy_forgedormient_basic_single", "enemy_forgedormient_basic_cleave"])
 max_hp = 3280
 attack = 208
 defense = 224
