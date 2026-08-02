@@ -64,7 +64,7 @@
 | P3-BETA-002〜004 磨き | ③〜⑤の実機確認・アセット不足解消 |
 | P3-EQ-LEG-002 | 防具・装飾★ ②〜⑤横展開 |
 | P3-ENEMY-002 残り | 新雑魚（②+4済以外）→ **③④⑤+12 済**（アート後差し） |
-| **P3-BAL-ENEMY-TRICKY-001〜003** | 敵トリッキー全Phase（逃走・自爆・軽減含む） | ✅ Impl（要実機） |
+| **P3-BAL-ENEMY-TRICKY-001〜004** | 敵トリッキー全Phase＋③④章展開 | ✅ Impl（要実機） |
 | P3-SUB 表示 | broken_marsh 等寄り道の解禁 |
 | **P3-DG-ABYSS-001** | Biome深層×5。**A/B Impl**／Cレジェンド／D磨きは後続 | アップデート枠 |
 | P3-CHR / Gacha 再有効 | ✅ ENABLE-001 済。残り＝専用ドット |
@@ -93,6 +93,7 @@
 | — | **P3-BAL-ENEMY-TRICKY-001** | 敵トリッキー Phase1（T1状態／T2回復／T3味方バフ） | ✅ Impl（要実機・`35_EnemyTrickySkills.md`） |
 | — | **P3-BAL-ENEMY-TRICKY-002** | 敵トリッキー Phase2（T5逃走） | ✅ Impl（要実機） |
 | — | **P3-BAL-ENEMY-TRICKY-003** | 敵トリッキー Phase3（T4自爆／T6・T7×0.2） | ✅ Impl（要実機） |
+| — | **P3-BAL-ENEMY-TRICKY-004** | 敵トリッキー章展開（ミストフェン／フロストリッジ） | ✅ Impl（要実機） |
 | — | **P3-CODEX-HIST-GUIDE-050** | 図鑑 歴史50／世界観手引き50（HE-001〜050・WORLD-G001〜050） | ✅ GO・統合＋main |
 | — | **P3-EQ-DIABLO-001** | 装備ステ・ディアブロ寄せ（固定ATK/DEF＋random_mods／Affix統合） | ✅ GO・統合＋main |
 | — | **P3-EQ-JOB-WPN-001** | 職別武器種制限（preferred＝装備可能リスト） | ✅ GO・統合＋main |

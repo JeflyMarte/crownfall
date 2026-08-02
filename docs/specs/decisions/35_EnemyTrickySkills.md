@@ -1,7 +1,7 @@
 # 敵トリッキースキル多様化
 
 **Status:** Decision 承認済（2026-08-02 — 相談方針 GO／未決は本 Decision 既定でクローズ）  
-**Impl:** Phase1〜3 ✅（`P3-BAL-ENEMY-TRICKY-001`〜`003`）
+**Impl:** Phase1〜3 ✅（`P3-BAL-ENEMY-TRICKY-001`〜`003`）／章展開 ✅（`P3-BAL-ENEMY-TRICKY-004`）
 **関連:** P3-BAL-ENEMY-SKILL-CA-001／FIT-001／AUDIT-001／P3-D079
 
 ---
@@ -65,6 +65,17 @@
 | T4 | **`crystal_hedgehog`** | `enemy_crystal_burst`＝explode（撃破報酬あり） |
 | T6 | **`skull_turtle`** | `incoming_basic_mult=0.2` |
 | T7 | **`mirror_boa`** | `incoming_skill_mult=0.2` |
+
+### 章展開パイロット（`P3-BAL-ENEMY-TRICKY-004`）
+
+スポット配置のまま、未カバー章へ各2体。エンジン追加なし。
+
+| 章 | 敵 | タイプ | 実装 |
+|---|---|---|---|
+| ミストフェン | **`blood_leech`** | T2 | `enemy_mire_mend`（heal） |
+| ミストフェン | **`mist_mantis`** | T7 | `incoming_skill_mult=0.2` |
+| フロストリッジ | **`wind_ripper`** | T5 | `enemy_rift_flee`（報酬なし逃走） |
+| フロストリッジ | **`glacier_warden`** | T6 | `incoming_basic_mult=0.2` |
 
 ---
 
