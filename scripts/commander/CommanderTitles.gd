@@ -18,6 +18,8 @@ const DEFINITIONS: Array[Dictionary] = [
 	{"id": "title_mvp_streak", "label": "右腕の証", "description": "同一仲間がMVPを10回取った"},
 	{"id": "title_rank_b", "label": "遠域調査官", "description": "調査許可B級に到達した"},
 	{"id": "title_rank_s", "label": "広域調査官", "description": "調査許可S級に到達した"},
+	{"id": "title_s_plus_5", "label": "深域調査官", "description": "調査許可S+5に到達した"},
+	{"id": "title_s_plus_10", "label": "永続調査官", "description": "調査許可S+10に到達した"},
 	{"id": "title_nameless", "label": "無名の継承者", "description": "名前を変えずにS級に到達した", "hidden": true},
 ]
 
@@ -64,9 +66,13 @@ static func _is_unlocked(title_id: String) -> bool:
 			return _CommanderProfile.is_rank_at_least("B")
 		"title_rank_s":
 			return _CommanderProfile.is_rank_at_least("S")
+		"title_s_plus_5":
+			return _CommanderProfile.is_rank_at_least("S+5")
+		"title_s_plus_10":
+			return _CommanderProfile.is_rank_at_least("S+10")
 		"title_nameless":
 			return (
-				_CommanderProfile.current_rank() == "S"
+				_CommanderProfile.is_rank_at_least("S")
 				and _CommanderProfile.get_commander_name() == _CommanderProfile.DEFAULT_NAME
 			)
 	return false

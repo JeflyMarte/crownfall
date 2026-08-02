@@ -27,8 +27,8 @@ func _ready() -> void:
 
 
 func present(rank_code: String) -> void:
-	_rank_code = rank_code.strip_edges().to_upper()
-	if _CommanderProfile.RANK_ORDER.find(_rank_code) < 0:
+	_rank_code = _CommanderProfile.normalize_rank_code(rank_code)
+	if not _CommanderProfile.is_valid_rank_code(_rank_code):
 		_rank_code = _CommanderProfile.current_rank()
 	_refresh_copy()
 	visible = true
@@ -131,7 +131,7 @@ func _refresh_copy() -> void:
 	UiTypography.apply_display(
 		_title_label, 40, Color(1.0, 0.92, 0.38), UiTypography.OUTLINE_STRONG
 	)
-	_subtitle_label.text = str(_CommanderProfile.RANK_SUBTITLES.get(_rank_code, ""))
+	_subtitle_label.text = _CommanderProfile.rank_subtitle(_rank_code)
 	UiTypography.apply_body(_subtitle_label, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	var gift_summary: String = _CommanderProfile.pending_rank_gift_summary(_rank_code)
 	if not gift_summary.is_empty():
