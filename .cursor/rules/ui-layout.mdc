@@ -236,6 +236,7 @@ Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` �
 - 詳細遷移前に `set_active_party`（未保存編成が本反映）
 - 復元時に派遣中メンバーを無理に `set_active_party` して失敗
 - Toolbar（おすすめ／陣形）を MainScroll 先頭だけに置き Header 金線に食い込ませる
+- パーティカード「詳細」を ScrollTouch PASS のまま `pressed` だけに頼る（押しても無反応）
 
 ✅ GOOD
 - スロットは **下書き**。GameState 書きは **保存成功時のみ**
@@ -244,7 +245,7 @@ Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` �
 - 後衛プリセットは後ろ最大2を後列（前列空可）
 - 候補は `_eligible_roster_for_party()`（派遣中除外）。派遣中は選択不可＋「調査中」
 - 失敗理由は `active_party_reject_reason` で出し分ける
-- 詳細は `equipment_focus_member_index`＋遷移のみ
+- 詳細は `equipment_focus_member_index`＋遷移のみ。Button に `_cf_keep_mouse_stop`
 - 復元は派遣中スキップ＋フォールバックも除外
 - タブは Header 直下の固定 `ToolbarBand`。ステ表示は `RosterUiHelper.compute_member_stats`＋`AffixStatCalculator.get_bonuses_for_member`
 

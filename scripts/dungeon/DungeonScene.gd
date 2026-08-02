@@ -710,6 +710,7 @@ const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 const _WanderingEnemyConfig = preload("res://scripts/dungeon/WanderingEnemyConfig.gd")
 const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd")
 const _AbyssWeaponEffects = preload("res://scripts/combat/AbyssWeaponEffects.gd")
+const _EnemyResistTelop = preload("res://scripts/combat/EnemyResistTelop.gd")
 const _EquipmentSetBonuses = preload("res://scripts/equipment/EquipmentSetBonuses.gd")
 
 var _auto_delay: float = AUTO_DELAY_BASE / SPEED_MULT_NORMAL
@@ -840,6 +841,8 @@ const SKILL_NAME_FONT_SIZE: int = 28
 const PASSIVE_NAME_FONT_SIZE: int = 18
 ## 状態付与「〇〇を付与！」テロップ（ダメージ数字より小さく、パッシブ名よりやや大きめ）。
 const STATUS_APPLY_TELOP_FONT_SIZE: int = 22
+## T6/T7 被ダメ軽減の初回説明（状態付与と同寸・くどさ防止で戦闘内1回）。
+const ENEMY_RESIST_TELOP_FONT_SIZE: int = 22
 ## 敵スキル名テロップ（味方 SKILL_NAME と同寸。頭上ポップ）。
 const ENEMY_SKILL_NAME_FONT_SIZE: int = 28
 const ENEMY_CAST_NAME_FONT_SIZE: int = 24
@@ -3589,6 +3592,7 @@ func _enter_current_room() -> void:
 			_passive_first_attack_used.clear()
 			_passive_next_attack_mult.clear()
 			_passive_once_fired.clear()
+			_enemy_resist_telop_announced.clear()
 			_passive_counter_depth = 0
 			_passive_skill_echo_depth = 0
 			_basic_only_actions_left.clear()
@@ -4768,6 +4772,8 @@ var _passive_attack_hits: Dictionary = {}
 var _passive_first_attack_used: Dictionary = {}
 var _passive_next_attack_mult: Dictionary = {}
 var _passive_once_fired: Dictionary = {}
+## T6/T7 軽減説明テロップ済キー（slot:basic|skill）。戦闘ごとに clear。
+var _enemy_resist_telop_announced: Dictionary = {}
 var _passive_counter_depth: int = 0
 var _passive_skill_echo_depth: int = 0
 ## 斥候の片眼: 残り「通常攻撃のみ」行動数（member_idx → count）。
@@ -5903,6 +5909,7 @@ func _deal_member_damage_to_enemy(
 	var in_mult: float = $CombatController.get_enemy_incoming_attack_mult(target_slot, is_basic)
 	if not is_equal_approx(in_mult, 1.0):
 		damage = maxi(1, int(round(float(damage) * in_mult))) if damage > 0 else 0
+		_try_announce_enemy_incoming_resist(target_slot, is_basic, in_mult)
 	GameState.record_run_damage(member_idx, damage, skill_id, skill_name, is_critical)
 	$CombatController.apply_damage_to_enemy_slot(target_slot, damage)
 	$CombatController.add_threat(member_idx, float(damage) * CombatController.THREAT_DAMAGE_K)
@@ -6522,6 +6529,32 @@ func _enemy_basic_attack_display_name(slot: int = -1) -> String:
 		if not named.is_empty():
 			return named
 	return "攻撃"
+
+
+## T6/T7: 被ダメ軽減が初めて効いたときだけ敵頭上に理由を出す（戦闘内・スロット×種類で1回）。
+func _try_announce_enemy_incoming_resist(slot: int, is_basic: bool, in_mult: float) -> void:
+	if not _EnemyResistTelop.should_announce(_enemy_resist_telop_announced, slot, in_mult, is_basic):
+		return
+	_EnemyResistTelop.mark_announced(_enemy_resist_telop_announced, slot, is_basic)
+	var msg: String = _EnemyResistTelop.message(is_basic)
+	var spr: AnimatedSprite2D = _enemy_sprite_for_attack_mark(slot)
+	if spr == null:
+		spr = _active_enemy_sprite()
+	if spr != null and is_instance_valid(spr):
+		var pos: Vector2 = _sprite_visual_center_global(spr)
+		if pos == Vector2.ZERO:
+			pos = spr.global_position
+		## シェイクなし・状態付与テロップと同寸。パッシブ◇で「特性」感。
+		_spawn_damage_number(
+			"◇ %s" % msg,
+			pos + Vector2(0.0, -36.0),
+			Color(0.72, 0.86, 1.0),
+			1.0,
+			0,
+			true,
+			ENEMY_RESIST_TELOP_FONT_SIZE
+		)
+	_append_log("[特性] %s" % msg)
 
 
 ## 敵スキル発動時の技名テロップ（味方 `_spawn_skill_name` と同型の頭上ポップ）。
