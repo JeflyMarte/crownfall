@@ -6557,3 +6557,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-ROCK-BISON-SPAWN-002-2 | **据置** — 全非イベント pool・群れ1〜2・素材率×1.75・岩角専任・境界廊二重 | 補給／降臨の役割は残す |
 | P3-BAL-ROCK-BISON-SPAWN-002-3 | **上書き** — `001-1` の 0.4 | 本 Decision が正 |
 
+## 属性値表示スケール（2026-08-02 — P3-EQ-ELEMENT-POWER-SCALE-001）
+
+> **オーナー GO** — 属性値1がしょぼく見える。効果はそのまま3桁表示へ。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-ELEMENT-POWER-SCALE-001-1 | **表示・保存** — 属性値 ×**100**（1→100、10→1000） | 3桁台の見栄え |
+| P3-EQ-ELEMENT-POWER-SCALE-001-2 | **係数** — `ELEMENT_POWER_K` 0.01→**0.0001** | 与ダメ効果は不変 |
+| P3-EQ-ELEMENT-POWER-SCALE-001-3 | **ロール** — 最低100・レア別幅も×100。降臨等 `base_element_power` 10→1000 | 新規ドロップ整合 |
+| P3-EQ-ELEMENT-POWER-SCALE-001-4 | **移行** — セーブ／sanitize で旧値（&lt;50）を×100 | 所持装備を壊さない |
+| P3-EQ-ELEMENT-POWER-SCALE-001-5 | **上書き** — `P3-EQ-STAT-005-1` の K=0.01 表記 | 本 Decision が正 |
+

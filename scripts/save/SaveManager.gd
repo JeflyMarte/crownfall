@@ -1179,6 +1179,7 @@ func _deserialize_inventory(inv_data: Array) -> Array:
 			item.rolled_bonus_stats = _deserialize_affix_ids(entry.get("rolled_bonus_stats", []))
 		if entry.has("perfect_roll_count"):
 			item.perfect_roll_count = int(entry.get("perfect_roll_count", 0))
+		_WeaponStatResolver.migrate_legacy_element_power_on_weapon(item)
 		_EquipmentRandomMods.ensure_migrated(item)
 		items.append(item)
 	return items

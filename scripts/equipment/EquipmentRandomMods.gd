@@ -79,7 +79,7 @@ static func _sanitize_mods_inplace(item: Resource, mods: Array) -> Array:
 		if "element_power" in item:
 			for m2: Variant in out:
 				if m2 is Dictionary and str(m2.get("kind", "")) == KIND_ELEMENT_POWER:
-					item.element_power = int(m2.get("value", 1))
+					item.element_power = int(m2.get("value", BalanceConfig.ELEMENT_POWER_SCALE))
 					break
 		if "on_hit_status_id" in item:
 			var data: Resource = null
@@ -166,7 +166,7 @@ static func _sanitize_mod_dict(mod: Dictionary) -> bool:
 	var kind: String = str(mod.get("kind", ""))
 	var changed: bool = false
 	match kind:
-		KIND_ATTACK_UP, KIND_DEFENSE_UP, KIND_HP_UP, KIND_HEALING, KIND_ELEMENT_POWER:
+		KIND_ATTACK_UP, KIND_DEFENSE_UP, KIND_HP_UP, KIND_HEALING:
 			var v: int = int(mod.get("value", 0))
 			var lo: int = maxi(1, int(mod.get("min_v", 1)))
 			var hi: int = maxi(lo, int(mod.get("max_v", v)))
@@ -178,6 +178,27 @@ static func _sanitize_mod_dict(mod: Dictionary) -> bool:
 				changed = true
 			if int(mod.get("max_v", 0)) < lo:
 				mod["max_v"] = hi
+				changed = true
+		KIND_ELEMENT_POWER:
+			## P3-EQ-ELEMENT-POWER-SCALE-001: 旧1桁を×100し、最低 SCALE。
+			var floor_ep: int = BalanceConfig.ELEMENT_POWER_SCALE
+			var v_ep: int = _WeaponStatResolver.migrate_legacy_element_power_value(int(mod.get("value", 0)))
+			var lo_ep: int = _WeaponStatResolver.migrate_legacy_element_power_value(int(mod.get("min_v", 0)))
+			var hi_ep: int = _WeaponStatResolver.migrate_legacy_element_power_value(int(mod.get("max_v", 0)))
+			if lo_ep < floor_ep:
+				lo_ep = floor_ep
+			if hi_ep < lo_ep:
+				hi_ep = lo_ep
+			if v_ep < floor_ep:
+				v_ep = floor_ep
+			if int(mod.get("value", 0)) != v_ep:
+				mod["value"] = v_ep
+				changed = true
+			if int(mod.get("min_v", 0)) != lo_ep:
+				mod["min_v"] = lo_ep
+				changed = true
+			if int(mod.get("max_v", 0)) != hi_ep:
+				mod["max_v"] = hi_ep
 				changed = true
 		KIND_ATTACK_SPEED, KIND_CRIT_RATE, KIND_CRIT_DAMAGE, KIND_GOLD_GAIN, KIND_EXP_GAIN, \
 		KIND_RARE_DROP, KIND_EVASION, KIND_ON_HIT, KIND_CHILL, KIND_SHOCK, KIND_IGNITE, KIND_POISON:
@@ -273,6 +294,8 @@ static func _clear_legacy_affix_ids(instance: Resource) -> void:
 static func ensure_migrated(item: Resource) -> void:
 	if item == null:
 		return
+	if _item_category(item) == "weapon":
+		_WeaponStatResolver.migrate_legacy_element_power_on_weapon(item)
 	if not ("random_mods" in item):
 		item.set("random_mods", [])
 	var existing: Array = item.random_mods if item.random_mods is Array else []
@@ -855,10 +878,14 @@ static func element_power_label(element_id: String, fallback: String = "属性�
 
 
 static func _roll_element_power_mod(weapon_data: Resource, rarity: int) -> Dictionary:
-	## base_element_power=0 でも表示・付与は最低1（0UP禁止）。
+	## base_element_power=0 でも表示・付与は最低 SCALE（0UP禁止）。
 	var base_power: int = maxi(0, int(weapon_data.base_element_power) if "base_element_power" in weapon_data else 0)
-	var roll_max: int = int(_WeaponStatResolver.ELEMENT_POWER_ROLL_MAX.get(rarity, 5))
-	var min_v: int = maxi(1, base_power)
+	var roll_max: int = int(
+		_WeaponStatResolver.ELEMENT_POWER_ROLL_MAX.get(
+			rarity, _WeaponStatResolver.ELEMENT_POWER_ROLL_MAX[Enums.Rarity.COMMON]
+		)
+	)
+	var min_v: int = maxi(BalanceConfig.ELEMENT_POWER_SCALE, base_power)
 	var max_v: int = maxi(min_v, base_power + roll_max)
 	var elem: String = str(weapon_data.element)
 	var mod: Dictionary = _roll_int_mod(KIND_ELEMENT_POWER, element_power_label(elem), min_v, max_v)
