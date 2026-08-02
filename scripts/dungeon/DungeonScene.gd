@@ -561,6 +561,8 @@ const STATUS_ICON_DEF: Dictionary = {
 	"bleed": {"abbrev": "出血", "color": Color(0.9, 0.28, 0.28)},
 	"slow": {"abbrev": "鈍", "color": Color(0.47, 0.67, 0.82)},
 	"enrage": {"abbrev": "激", "color": Color(0.9, 0.35, 0.16)},
+	## 敵スキル沈黙（StatusEffect ではなく戦闘ローカル）。頭上❌と併用。
+	"skill_silence": {"abbrev": "❌", "color": Color(0.75, 0.12, 0.18)},
 }
 const HEAL_SKILL_BASE: int = BalanceConfig.HEAL_SKILL_BASE
 const STATUS_ICON_SIZE: float = 26.0
@@ -2756,6 +2758,25 @@ func _build_status_icon(entry: Dictionary) -> PanelContainer:
 	var stacks: int = int(entry.get("stacks", 1))
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+	## 沈黙は絵文字❌をそのまま出す（ICO 無し）。
+	if effect_id == "skill_silence":
+		var silence_style := StyleBoxFlat.new()
+		silence_style.bg_color = Color(0.12, 0.02, 0.04, 0.92)
+		silence_style.set_corner_radius_all(4)
+		silence_style.set_border_width_all(1)
+		silence_style.border_color = Color(0.9, 0.2, 0.25, 0.95)
+		panel.add_theme_stylebox_override("panel", silence_style)
+		var silence_lbl := Label.new()
+		silence_lbl.text = "❌"
+		silence_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		silence_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		silence_lbl.add_theme_font_size_override("font_size", 16)
+		silence_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		silence_lbl.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		silence_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		panel.add_child(silence_lbl)
+		panel.tooltip_text = str(entry.get("display_name", "スキル封じ"))
+		return panel
 	var icon_tex: Texture2D = IconPaths.get_icon_texture(effect_id, "status")
 	if icon_tex != null:
 		var style := StyleBoxEmpty.new()
@@ -2920,12 +2941,19 @@ func _update_status_icons() -> void:
 	for i: int in _status_icon_chr_rows.size():
 		var sprite: AnimatedSprite2D = _chr_sprites[i]
 		var statuses: Array = $CombatController.get_member_status_list(i)
+		if _is_member_skill_silenced(i):
+			## 複製して先頭に沈黙を足す（元配列を汚さない）。
+			var with_silence: Array = [{"effect_id": "skill_silence", "display_name": "スキル封じ", "stacks": 1}]
+			for entry: Variant in statuses:
+				with_silence.append(entry)
+			statuses = with_silence
 		_set_status_row_above_sprite(
 			_status_icon_chr_rows[i],
 			sprite,
 			statuses,
 			_formation_slot_for_combat_index(i)
 		)
+	_sync_silence_marks()
 	_sync_status_auras()
 	_sync_status_sprite_tints()
 	_update_status_legend()
@@ -3083,6 +3111,8 @@ func _collect_active_status_ids() -> Array[String]:
 	for i: int in $CombatController.party_combat_hp.size():
 		if not $CombatController.is_member_alive(i):
 			continue
+		if _is_member_skill_silenced(i):
+			seen["skill_silence"] = true
 		for entry: Variant in $CombatController.get_member_status_list(i):
 			if entry is Dictionary:
 				var sid: String = str(entry.get("effect_id", ""))
@@ -4788,6 +4818,8 @@ var _enemy_trait_telop_announced: Dictionary = {}
 var _enemy_summon_used: Dictionary = {}
 ## T10: member_idx → 沈黙解除時刻（msec）。
 var _member_skill_silence_until_msec: Dictionary = {}
+## T10: 味方頭上の沈黙❌マーク（member index → Label）。
+var _chr_silence_marks: Array = []
 var _passive_counter_depth: int = 0
 var _passive_skill_echo_depth: int = 0
 ## 斥候の片眼: 残り「通常攻撃のみ」行動数（member_idx → count）。
@@ -6345,6 +6377,7 @@ func _execute_enemy_silence(skill: Resource, slot: int) -> void:
 	var mname: String = member.display_name if member != null else "?"
 	_try_announce_enemy_trait_once("silence:%d" % slot, -1, "スキルが封じられた！", target_idx)
 	_append_log("敵スキル【%s】: %s のスキルを封じる" % [skill.display_name, mname])
+	_update_status_icons()
 
 
 ## T8: 同種1体を末尾追加（召喚者スロットあたり1回・HP≤50%は抽選側で担保）。
@@ -6710,6 +6743,57 @@ func _is_member_skill_silenced(member_idx: int) -> bool:
 		_member_skill_silence_until_msec.erase(member_idx)
 		return false
 	return true
+
+
+## 沈黙中は頭上に大きな❌を出す（状態アイコン行とは別・視認優先）。
+func _ensure_silence_marks() -> void:
+	while _chr_silence_marks.size() < _chr_sprites.size():
+		var lbl := Label.new()
+		lbl.text = "❌"
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		lbl.z_index = 14
+		lbl.visible = false
+		var af: Font = UiTypography.impact_font()
+		if af != null:
+			lbl.add_theme_font_override("font", af)
+		lbl.add_theme_font_size_override("font_size", 28)
+		lbl.add_theme_color_override("font_color", Color(1.0, 0.25, 0.28))
+		lbl.add_theme_color_override("font_outline_color", Color(0.05, 0.0, 0.0, 0.95))
+		lbl.add_theme_constant_override("outline_size", 6)
+		if _damage_numbers_layer != null:
+			_damage_numbers_layer.add_child(lbl)
+		else:
+			add_child(lbl)
+		_chr_silence_marks.append(lbl)
+
+
+func _sync_silence_marks() -> void:
+	_ensure_silence_marks()
+	var in_combat: bool = $CombatController.is_in_combat
+	for i: int in _chr_silence_marks.size():
+		var lbl: Label = _chr_silence_marks[i] as Label
+		if lbl == null or not is_instance_valid(lbl):
+			continue
+		var show: bool = (
+			in_combat
+			and i < _chr_sprites.size()
+			and _chr_sprites[i].visible
+			and $CombatController.is_member_alive(i)
+			and _is_member_skill_silenced(i)
+		)
+		lbl.visible = show
+		if not show:
+			continue
+		var spr: AnimatedSprite2D = _chr_sprites[i]
+		var head_center: Vector2 = _sprite_visual_center_global(spr)
+		var head_top: float = _sprite_top_y_global(spr) - 8.0
+		if head_center == Vector2.ZERO:
+			head_center = spr.global_position
+			head_top = spr.global_position.y - 100.0
+		lbl.reset_size()
+		var text_w: float = maxf(lbl.size.x, 28.0)
+		lbl.position = Vector2(head_center.x - text_w * 0.5, head_top - lbl.size.y)
 
 
 ## 途中召集で増えたスロットを表示し、群れ位置を再配置する。
