@@ -13,9 +13,11 @@ extends RefCounted
 ## stat_mod（常時）: evasion_rate_add / outgoing_mult / incoming_mult / first_attack_mult /
 ##   ultimate_power_mult / exp_gain_mult / party_exp_gain_mult /
 ##   party_outgoing_mult / party_incoming_mult / death_save_once / death_save_chance /
+##   death_save_heal_max_hp_fraction / death_save_outgoing_mult / death_save_outgoing_duration_sec /
 ##   exploration_damage_immune / exploration_damage_party_mult /
 ##   outgoing_mult_requires_hp_below / outgoing_vs_status_mult /
-##   pet_outgoing_mult / pet_defense_mult / threat_base_add
+##   pet_outgoing_mult / pet_defense_mult / threat_base_add /
+##   redirect_rear_hit_chance / lifesteal_ratio / combat_regen_* / treasure_room_weight_add
 ## weather_bonus（P3-EQ-WEATHER-LEG-001）: weather_id → element_outgoing_mult / outgoing_mult / crit_rate_add / refund_ct_fraction
 ## effect 追加: "chance_cast_equipped_skill"（攻撃後に装備スキルを確率発動）
 ## action_skip_chance（常時）: 行動出番でこの確率で行動スキップ（状態異常スキップと独立）
@@ -515,82 +517,71 @@ const _DEFS: Dictionary = {
 		"heal_power_mult": 1.20,
 		"heal_applies_guard": true,
 	},
-	# ---- レリック（P3-UX-RELIC-TACTICS-B001・尖鋭案B） ----
+	# ---- レリック（P3-BAL-RELIC-REMAKE-001 / 53_RelicRuleRemake） ----
 	"relic_war_banner": {
-		"display_name": "王国軍旗",
+		"display_name": "指揮の軍旗",
 		"category": "relic",
-		"description": "オトモ与ダメ +35%／防御 +15%。自身の与ダメ -15%（指揮役）",
-		"outgoing_mult": 0.85,
+		"description": "撃破時に味方を鼓舞。オトモ与ダメ +35%／防御 +15%。自身の与ダメ -30%",
+		"outgoing_mult": 0.70,
 		"pet_outgoing_mult": 1.35,
 		"pet_defense_mult": 1.15,
-	},
-	"relic_aegis_shard": {
-		"display_name": "王盾の欠片",
-		"category": "relic",
-		"description": "前列で被弾時、自身に防御し敵の注目を集める",
-		"trigger": "on_hit_taken",
-		"effect": "taunt_and_guard",
-		"passive_condition": "front_row_only",
-		"cooldown": 0.0,
-	},
-	"relic_old_hourglass": {
-		"display_name": "古い砂時計",
-		"category": "relic",
-		"description": "必殺チャージ速度 ×2。スキル再使用が 30% 遅くなる",
-		"ultimate_charge_dealt_mult": 2.0,
-		"skill_cd_mult": 1.30,
-	},
-	"relic_berserker_charm": {
-		"display_name": "狂戦士の護符",
-		"category": "relic",
-		"description": "HPが低いほど与ダメ上昇（半分で+40%、1/4で+80%）。受けた回復半減",
-		"outgoing_hp_tiers": [
-			{"hp_below": 0.50, "outgoing_mult": 1.40},
-			{"hp_below": 0.25, "outgoing_mult": 1.80},
-		],
-		"heal_received_mult": 0.5,
-	},
-	"relic_hunter_sigil": {
-		"display_name": "狩人の印",
-		"category": "relic",
-		"description": "標的の敵へ与ダメ +50%。それ以外 -25%。攻撃前に標的を付与",
-		"pre_hit_status_id": "mark",
-		"outgoing_vs_status_mult": 1.50,
-		"outgoing_vs_status_ids": ["mark"],
-		"outgoing_without_status_mult": 0.75,
-	},
-	"relic_reactive_aegis": {
-		"display_name": "反応の盾片",
-		"category": "relic",
-		"description": "被弾時に反撃する。反撃後、次の行動が遅れる",
-		"trigger": "on_hit_taken",
-		"effect": "counter_attack",
-		"counter_ct_penalty_fraction": 0.35,
-		"cooldown": 0.8,
-	},
-	"relic_lament_ring": {
-		"display_name": "弔鐘の指輪",
-		"category": "relic",
-		"description": "味方戦闘不能時、残った味方の必殺ゲージを回復し鼓舞する",
-		"trigger": "on_ally_death",
+		"trigger": "on_kill",
+		"condition": "always",
 		"effect": "party_rally",
 		"status_id": "empower",
-		"ultimate_charge_flat": 40.0,
 		"cooldown": 0.0,
 	},
-	"relic_scout_lens": {
-		"display_name": "斥候の片眼",
+	"relic_aegis_shard": {
+		"display_name": "身代わりの鏡",
 		"category": "relic",
-		"description": "毒・出血の敵へ与ダメ +45%。それ以外 -15%。攻撃時30%で毒か出血を付与",
-		"outgoing_vs_status_mult": 1.45,
-		"outgoing_vs_status_ids": ["poison", "bleed"],
-		"outgoing_without_status_mult": 0.85,
-		"trigger": "on_attack",
-		"condition": "always",
-		"effect": "random_enemy_status",
-		"status_pool": ["poison", "bleed"],
-		"status_chance": 0.30,
-		"cooldown": 0.0,
+		"description": "後衛が狙われたとき 40% で自分が代わりに受け、防御を得る",
+		"redirect_rear_hit_chance": 0.40,
+	},
+	"relic_old_hourglass": {
+		"display_name": "連撃の歯車",
+		"category": "relic",
+		"description": "スキル再使用が 30% 速くなる。必殺チャージ速度 -35%",
+		"skill_cd_mult": 0.70,
+		"ultimate_charge_dealt_mult": 0.65,
+	},
+	"relic_berserker_charm": {
+		"display_name": "生命の脈",
+		"category": "relic",
+		"description": "戦闘中 3 秒ごとに最大HPの 2.5% 回復。与ダメ -15%",
+		"outgoing_mult": 0.85,
+		"combat_regen_interval_sec": 3.0,
+		"combat_regen_max_hp_fraction": 0.025,
+	},
+	"relic_hunter_sigil": {
+		"display_name": "一騎の契",
+		"category": "relic",
+		"description": "標的の敵へ与ダメ +55%。それ以外 -30%。攻撃前に標的を付与",
+		"pre_hit_status_id": "mark",
+		"outgoing_vs_status_mult": 1.55,
+		"outgoing_vs_status_ids": ["mark"],
+		"outgoing_without_status_mult": 0.70,
+	},
+	"relic_reactive_aegis": {
+		"display_name": "吸血契約",
+		"category": "relic",
+		"description": "与ダメの 12% を自身が回復。被ダメ +8%",
+		"lifesteal_ratio": 0.12,
+		"incoming_mult": 1.08,
+	},
+	"relic_lament_ring": {
+		"display_name": "不死鳥の羽",
+		"category": "relic",
+		"description": "戦闘中1回、致死を耐えて最大HPの 30% で復帰。8秒間与ダメ -25%",
+		"death_save_once": true,
+		"death_save_heal_max_hp_fraction": 0.30,
+		"death_save_outgoing_mult": 0.75,
+		"death_save_outgoing_duration_sec": 8.0,
+	},
+	"relic_scout_lens": {
+		"display_name": "宝箱の羅針",
+		"category": "relic",
+		"description": "宝箱部屋の出現率が上がる（戦闘火力には影響しない）",
+		"treasure_room_weight_add": 20,
 	},
 	"eq_wpn_consecrated_maul": {
 		"display_name": "祝槌の癒し",
@@ -1590,6 +1581,63 @@ static func relic_heal_received_mult(member_index: int) -> float:
 static func relic_pre_hit_status_id(member_index: int) -> String:
 	var def: Dictionary = equipped_relic_def(member_index)
 	return str(def.get("pre_hit_status_id", ""))
+
+
+## 後衛被弾リダイレクト装備者（生存・chance>0 の先頭）。無ければ -1。
+static func redirect_rear_hit_holder_index() -> int:
+	for i: int in GameState.party_members.size():
+		if GameState.party_members[i] == null:
+			continue
+		var chance: float = equipped_relic_float(i, "redirect_rear_hit_chance", 0.0)
+		if chance > 0.0:
+			return i
+	return -1
+
+
+static func redirect_rear_hit_chance_for(member_index: int) -> float:
+	return clampf(equipped_relic_float(member_index, "redirect_rear_hit_chance", 0.0), 0.0, 1.0)
+
+
+static func relic_lifesteal_ratio(member_index: int) -> float:
+	return maxf(0.0, equipped_relic_float(member_index, "lifesteal_ratio", 0.0))
+
+
+## 戦闘リジェネ定義（interval/fraction 両方ある装備者のみ）。
+static func combat_regen_defs_for_party() -> Array:
+	var out: Array = []
+	for i: int in GameState.party_members.size():
+		if GameState.party_members[i] == null:
+			continue
+		var def: Dictionary = equipped_relic_def(i)
+		if def.is_empty():
+			continue
+		var interval: float = float(def.get("combat_regen_interval_sec", 0.0))
+		var frac: float = float(def.get("combat_regen_max_hp_fraction", 0.0))
+		if interval <= 0.0 or frac <= 0.0:
+			continue
+		out.append({
+			"member_index": i,
+			"interval_sec": interval,
+			"max_hp_fraction": frac,
+			"display_name": str(def.get("display_name", "")),
+		})
+	return out
+
+
+## 編成中レリックの宝箱部屋 weight 加算（最大値。複数は合算しない）。
+static func party_treasure_room_weight_add() -> int:
+	var best: int = 0
+	for member: Resource in GameState.party_members:
+		if member == null:
+			continue
+		var relic_id: String = GameState.get_equipped_relic_passive_id(member)
+		if relic_id.is_empty():
+			continue
+		var def: Dictionary = get_def(relic_id)
+		if def.is_empty():
+			continue
+		best = maxi(best, int(def.get("treasure_room_weight_add", 0)))
+	return best
 
 
 static func on_kill_refund_fraction(member_index: int) -> float:

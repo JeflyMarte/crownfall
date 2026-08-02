@@ -1273,6 +1273,7 @@ func _process(delta: float) -> void:
 		if $CombatController.is_in_combat and not _is_paused:
 			var spd: float = _combat_speed_mult if _combat_speed_mult > 0.0 else 1.0
 			$CombatController.tick_ultimate_charge_over_time(delta * spd)
+			_tick_relic_combat_regen(delta * spd)
 		_update_chr_hp_bar_positions()
 
 func _set_narrative(text: String) -> void:
@@ -3676,6 +3677,7 @@ func _enter_current_room() -> void:
 			_passive_counter_depth = 0
 			_passive_skill_echo_depth = 0
 			_basic_only_actions_left.clear()
+			_relic_combat_regen_accum.clear()
 			_AbyssWeaponEffects.reset_combat()
 			_clear_party_links()
 			_set_paused(false)
@@ -4867,6 +4869,8 @@ var _passive_counter_depth: int = 0
 var _passive_skill_echo_depth: int = 0
 ## 斥候の片眼: 残り「通常攻撃のみ」行動数（member_idx → count）。
 var _basic_only_actions_left: Dictionary = {}
+## 生命の脈など: member_idx → 累積秒。
+var _relic_combat_regen_accum: Dictionary = {}
 # パーティ連携連鎖（P3-D115）。
 var _taunt_link_source: int = -1
 var _taunt_link_charges: int = 0
@@ -6214,6 +6218,7 @@ func _deal_member_damage_to_enemy(
 	$CombatController.add_threat(member_idx, float(damage) * CombatController.THREAT_DAMAGE_K)
 	_check_boss_phase_transition(target_slot)
 	if damage > 0:
+		_apply_member_lifesteal(member_idx, damage)
 		_fire_member_passives(
 			member_idx, "on_attack", {
 				"damage": damage,
@@ -6862,8 +6867,9 @@ func _apply_enemy_damage_to_targets(
 	if skill != null and "element" in skill:
 		skill_elem = str(skill.element).strip_edges()
 	var source_atk: int = $CombatController.get_enemy_attack_at(atk_slot)
-	for ti: int in targets:
-		var share: float = float(shares.get(ti, 0.0))
+	for ti_raw: int in targets:
+		var ti: int = _resolve_redirect_rear_hit(ti_raw)
+		var share: float = float(shares.get(ti_raw, 0.0))
 		if share <= 0.0:
 			continue
 		var power: float = float(skill.power_multiplier) * share
@@ -7003,6 +7009,64 @@ func _apply_enemy_lifesteal(attacker_slot: int, damage: int) -> void:
 	_update_hp_bars()
 	_present_enemy_heal(attacker_slot, healed)
 	_try_announce_enemy_trait_once("lifesteal:%d" % attacker_slot, attacker_slot, "ダメージを吸収した！")
+
+
+## 身代わりの鏡: 後衛被弾を装備者へ振替＋ガード。
+func _resolve_redirect_rear_hit(target_idx: int) -> int:
+	var result: Dictionary = $CombatController.try_redirect_rear_hit(target_idx)
+	if not bool(result.get("redirected", false)):
+		return target_idx
+	var holder: int = int(result.get("target", target_idx))
+	if $CombatController.apply_status("party_%d" % holder, "guard", 1, 0):
+		_on_party_status_applied(holder, "guard")
+	_update_status_icons()
+	_spawn_skill_name("◈身代わり", holder, 0.0, "", false, "", PASSIVE_NAME_FONT_SIZE)
+	_append_log("[レリック] 身代わりの鏡: 後衛の被弾を肩代わり")
+	return holder
+
+
+func _apply_member_lifesteal(member_idx: int, damage: int) -> void:
+	if damage <= 0 or member_idx < 0:
+		return
+	if not $CombatController.is_member_alive(member_idx):
+		return
+	var ratio: float = CombatPassives.relic_lifesteal_ratio(member_idx)
+	if ratio <= 0.0:
+		return
+	var heal_amount: int = maxi(1, int(round(float(damage) * ratio)))
+	var healed: int = $CombatController.heal_member(member_idx, heal_amount)
+	if healed <= 0:
+		return
+	_update_hp_bars()
+	_present_member_heal(member_idx, healed)
+
+
+func _tick_relic_combat_regen(delta: float) -> void:
+	if delta <= 0.0 or not $CombatController.is_in_combat:
+		return
+	for raw: Variant in CombatPassives.combat_regen_defs_for_party():
+		if raw is not Dictionary:
+			continue
+		var def: Dictionary = raw
+		var idx: int = int(def.get("member_index", -1))
+		if idx < 0 or not $CombatController.is_member_alive(idx):
+			continue
+		var interval: float = float(def.get("interval_sec", 0.0))
+		var frac: float = float(def.get("max_hp_fraction", 0.0))
+		if interval <= 0.0 or frac <= 0.0:
+			continue
+		var accum: float = float(_relic_combat_regen_accum.get(idx, 0.0)) + delta
+		while accum >= interval:
+			accum -= interval
+			if idx >= $CombatController.party_max_hp.size():
+				break
+			var maxhp: int = int($CombatController.party_max_hp[idx])
+			var amount: int = maxi(1, int(round(float(maxhp) * frac)))
+			var healed: int = $CombatController.heal_member(idx, amount)
+			if healed > 0:
+				_update_hp_bars()
+				_present_member_heal(idx, healed)
+		_relic_combat_regen_accum[idx] = accum
 
 
 func _is_member_skill_silenced(member_idx: int) -> bool:
@@ -7270,6 +7334,10 @@ func _resolve_enemy_attack_impact_async(payload: Dictionary) -> void:
 	if not $CombatController.is_in_combat:
 		_end_combat_cinematic_lock()
 		return
+	if target_idx < 0 or not $CombatController.is_member_alive(target_idx):
+		_end_combat_cinematic_lock()
+		return
+	target_idx = _resolve_redirect_rear_hit(target_idx)
 	if target_idx < 0 or not $CombatController.is_member_alive(target_idx):
 		_end_combat_cinematic_lock()
 		return

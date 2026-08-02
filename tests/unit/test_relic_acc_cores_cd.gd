@@ -1,5 +1,5 @@
 extends GutTest
-## P3-BAL-RELIC-ACC-CD-001 — 案C（レリック DoT／オトモ核）＋案D（開幕装飾の役割分離）。
+## P3-BAL-RELIC-REMAKE-001 — レリック8種ルール改変＋開幕装飾の役割分離（案D維持）。
 
 
 func _equip_relic(relic_id: String, job_id: String = "swordsman") -> void:
@@ -17,33 +17,34 @@ func after_each() -> void:
 	GameState.owned_relics = []
 
 
-func test_scout_lens_is_dot_core() -> void:
+func test_scout_lens_is_treasure_compass() -> void:
 	var def: Dictionary = CombatPassives.get_def("relic_scout_lens")
-	assert_almost_eq(float(def.get("outgoing_vs_status_mult", 1.0)), 1.45, 0.001)
-	assert_true(def.get("outgoing_vs_status_ids", []).has("poison"))
-	assert_true(def.get("outgoing_vs_status_ids", []).has("bleed"))
-	assert_almost_eq(float(def.get("outgoing_without_status_mult", 1.0)), 0.85, 0.001)
-	assert_eq(str(def.get("effect", "")), "random_enemy_status")
-	assert_ne(str(def.get("effect", "")), "opening_strike")
+	assert_eq(str(def.get("display_name", "")), "宝箱の羅針")
+	assert_eq(int(def.get("treasure_room_weight_add", 0)), 20)
+	assert_false(def.has("outgoing_vs_status_mult"))
+	assert_ne(str(def.get("effect", "")), "random_enemy_status")
 	_equip_relic("relic_scout_lens")
-	assert_almost_eq(CombatPassives.relic_mark_focus_outgoing_mult(0, ["poison"]), 1.45, 0.001)
-	assert_almost_eq(CombatPassives.relic_mark_focus_outgoing_mult(0, []), 0.85, 0.001)
+	assert_eq(CombatPassives.party_treasure_room_weight_add(), 20)
 
 
-func test_war_banner_is_pet_core() -> void:
+func test_war_banner_is_command_pet_core() -> void:
 	var def: Dictionary = CombatPassives.get_def("relic_war_banner")
+	assert_eq(str(def.get("display_name", "")), "指揮の軍旗")
 	assert_almost_eq(float(def.get("pet_outgoing_mult", 1.0)), 1.35, 0.001)
 	assert_almost_eq(float(def.get("pet_defense_mult", 1.0)), 1.15, 0.001)
-	assert_almost_eq(float(def.get("outgoing_mult", 1.0)), 0.85, 0.001)
+	assert_almost_eq(float(def.get("outgoing_mult", 1.0)), 0.70, 0.001)
+	assert_eq(str(def.get("trigger", "")), "on_kill")
+	assert_eq(str(def.get("effect", "")), "party_rally")
 	_equip_relic("relic_war_banner")
 	assert_almost_eq(CombatPassives.pet_outgoing_mult_from_party(), 1.35, 0.001)
 	assert_almost_eq(CombatPassives.pet_defense_mult_from_party(), 1.15, 0.001)
 
 
-func test_hourglass_remains_ultimate_core() -> void:
+func test_hourglass_is_skill_cd_core() -> void:
 	var def: Dictionary = CombatPassives.get_def("relic_old_hourglass")
-	assert_almost_eq(float(def.get("ultimate_charge_dealt_mult", 1.0)), 2.0, 0.001)
-	assert_almost_eq(float(def.get("skill_cd_mult", 1.0)), 1.30, 0.001)
+	assert_eq(str(def.get("display_name", "")), "連撃の歯車")
+	assert_almost_eq(float(def.get("ultimate_charge_dealt_mult", 1.0)), 0.65, 0.001)
+	assert_almost_eq(float(def.get("skill_cd_mult", 1.0)), 0.70, 0.001)
 
 
 func test_opening_accessories_roles_diverge() -> void:
