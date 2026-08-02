@@ -175,6 +175,49 @@ const EARLY_STAGE_SWARM_CHANCE_MULT: float = 0.50
 ## モーンゲート 1-1〜1-3・ノーマルのみの群れ頭数上限（単体1／群れ最大2）。
 const EARLY_STAGE_SWARM_SIZE_CAP: int = 2
 
+# ── 群れ人数連動（P3-BAL-SWARM-DENSITY-001） ─────────────────────────────
+## 戦闘開始時の頭数で一体あたり倍率を固定。倒しても再計算しない。
+## 通常 COMBAT のみ（ELITE/BOSS は適用外）。
+const SWARM_DENSITY_SOLO_HP: float = 1.35
+const SWARM_DENSITY_SOLO_ATK: float = 1.25
+const SWARM_DENSITY_SOLO_SPD: float = 1.30
+const SWARM_DENSITY_PAIR_HP: float = 1.00
+const SWARM_DENSITY_PAIR_ATK: float = 1.00
+const SWARM_DENSITY_TRIPLE_HP: float = 0.90
+const SWARM_DENSITY_TRIPLE_ATK: float = 0.85
+const SWARM_DENSITY_MOB_HP: float = 0.80
+const SWARM_DENSITY_MOB_ATK: float = 0.75
+## ソロ戦で全体／列／AoE スキルの抽選ウェイト倍率。
+const SOLO_AOE_SKILL_WEIGHT_MULT: float = 2.25
+
+
+static func swarm_density_hp_mult(start_count: int) -> float:
+	match start_count:
+		1:
+			return SWARM_DENSITY_SOLO_HP
+		2:
+			return SWARM_DENSITY_PAIR_HP
+		3:
+			return SWARM_DENSITY_TRIPLE_HP
+		_:
+			return SWARM_DENSITY_MOB_HP if start_count >= 4 else 1.0
+
+
+static func swarm_density_atk_mult(start_count: int) -> float:
+	match start_count:
+		1:
+			return SWARM_DENSITY_SOLO_ATK
+		2:
+			return SWARM_DENSITY_PAIR_ATK
+		3:
+			return SWARM_DENSITY_TRIPLE_ATK
+		_:
+			return SWARM_DENSITY_MOB_ATK if start_count >= 4 else 1.0
+
+
+static func swarm_density_spd_mult(start_count: int) -> float:
+	return SWARM_DENSITY_SOLO_SPD if start_count == 1 else 1.0
+
 # ── ダンジョンクリア EXP（P3-BAL-CLEAR-EXP-001） ─────────────────────────
 ## CLEAR 時のみ、ラン中獲得 EXP に乗せる完走ボーナス（リタイア／全滅なし）。
 const CLEAR_EXP_BONUS_RATIO: float = 0.25
