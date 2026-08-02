@@ -9,7 +9,13 @@ const _CommanderGiftBox := preload("res://scripts/commander/CommanderGiftBox.gd"
 
 const DEFAULT_NAME: String = _CommanderDefaults.DEFAULT_NAME
 
+## 固定帯（D〜S）。S 以降は S+1…（P3-CMD-RANK-SPLUS-001）。
 const RANK_ORDER: Array[String] = ["D", "C", "B", "A", "S"]
+const S_RANK_THRESHOLD: int = 2200
+const S_PLUS_INTERVAL: int = 400
+const S_PLUS_GIFT_GOLD: int = 1500
+const S_PLUS_GIFT_TOKEN: int = 15
+const S_PLUS_SUBTITLE: String = "継続調査許可"
 
 ## 現行閾値（P3-CMD-RANK-CURVE-003 案A — 終盤〜ハード寄りでS）。
 const RANK_THRESHOLDS: Dictionary = {
@@ -17,7 +23,7 @@ const RANK_THRESHOLDS: Dictionary = {
 	"C": 400,
 	"B": 900,
 	"A": 1500,
-	"S": 2200,
+	"S": S_RANK_THRESHOLD,
 }
 
 ## 初版閾値（rank_curve_v2 移行の据置用）。
@@ -81,6 +87,99 @@ const RANK_CURVE_V3_FLAG: String = "rank_curve_v3"
 const RANK_CURVE_V4_FLAG: String = "rank_curve_v4"
 
 
+static func normalize_rank_code(code: String) -> String:
+	return code.strip_edges().to_upper()
+
+
+## S+n の n（S 自体は 0）。不正は -1。
+static func s_plus_level(code: String) -> int:
+	var c: String = normalize_rank_code(code)
+	if c == "S":
+		return 0
+	if not c.begins_with("S+"):
+		return -1
+	var rest: String = c.substr(2)
+	if rest.is_empty() or not rest.is_valid_int():
+		return -1
+	var n: int = int(rest)
+	return n if n >= 1 else -1
+
+
+static func is_valid_rank_code(code: String) -> bool:
+	var c: String = normalize_rank_code(code)
+	if RANK_ORDER.has(c):
+		return true
+	return s_plus_level(c) >= 1
+
+
+## D=0 … S=4, S+1=5, S+2=6 …。不正は -1。
+static func rank_index(code: String) -> int:
+	var c: String = normalize_rank_code(code)
+	var base_i: int = RANK_ORDER.find(c)
+	if base_i >= 0:
+		return base_i
+	var n: int = s_plus_level(c)
+	if n >= 1:
+		return RANK_ORDER.size() - 1 + n
+	return -1
+
+
+static func rank_code_at(index: int) -> String:
+	if index < 0:
+		return "D"
+	if index < RANK_ORDER.size():
+		return RANK_ORDER[index]
+	var n: int = index - (RANK_ORDER.size() - 1)
+	return "S+%d" % n
+
+
+static func threshold_for_rank(code: String, thresholds: Dictionary = RANK_THRESHOLDS) -> int:
+	var c: String = normalize_rank_code(code)
+	var n: int = s_plus_level(c)
+	if n >= 1:
+		var s_base: int = int(thresholds.get("S", S_RANK_THRESHOLD))
+		return s_base + n * S_PLUS_INTERVAL
+	return int(thresholds.get(c, 0))
+
+
+static func rank_subtitle(code: String) -> String:
+	var c: String = normalize_rank_code(code)
+	if RANK_SUBTITLES.has(c):
+		return str(RANK_SUBTITLES[c])
+	if s_plus_level(c) >= 1:
+		return S_PLUS_SUBTITLE
+	return ""
+
+
+static func gift_gold_for_rank(code: String) -> int:
+	var c: String = normalize_rank_code(code)
+	if RANK_GIFT_GOLD.has(c):
+		return int(RANK_GIFT_GOLD[c])
+	if s_plus_level(c) >= 1:
+		return S_PLUS_GIFT_GOLD
+	return 0
+
+
+static func gift_token_for_rank(code: String) -> int:
+	var c: String = normalize_rank_code(code)
+	if RANK_GIFT_TOKEN.has(c):
+		return int(RANK_GIFT_TOKEN[c])
+	if s_plus_level(c) >= 1:
+		return S_PLUS_GIFT_TOKEN
+	return 0
+
+
+static func gift_materials_for_rank(code: String) -> Dictionary:
+	var c: String = normalize_rank_code(code)
+	var raw: Variant = RANK_GIFT_MATERIALS.get(c, {})
+	if raw is Dictionary and not (raw as Dictionary).is_empty():
+		return (raw as Dictionary).duplicate(true)
+	var n: int = s_plus_level(c)
+	if n >= 5 and n % 5 == 0:
+		return {"base_ore": 10, "relic_shard": 5}
+	return {}
+
+
 static func ensure_commander() -> void:
 	if GameState.commander is Dictionary and not GameState.commander.is_empty():
 		_sanitize_commander()
@@ -136,17 +235,23 @@ static func rank_for_sp_with(thresholds: Dictionary, sp: int) -> String:
 	for code: String in RANK_ORDER:
 		if sp >= int(thresholds.get(code, 0)):
 			rank = code
-	return rank
+	if rank != "S":
+		return rank
+	var s_th: int = int(thresholds.get("S", S_RANK_THRESHOLD))
+	var n: int = int((sp - s_th) / S_PLUS_INTERVAL) if sp >= s_th else 0
+	if n < 1:
+		return "S"
+	return "S+%d" % n
 
 
 static func higher_rank(a: String, b: String) -> String:
-	var ai: int = RANK_ORDER.find(a.strip_edges().to_upper())
-	var bi: int = RANK_ORDER.find(b.strip_edges().to_upper())
+	var ai: int = rank_index(a)
+	var bi: int = rank_index(b)
 	if ai < 0:
 		ai = 0
 	if bi < 0:
 		bi = 0
-	return RANK_ORDER[maxi(ai, bi)]
+	return rank_code_at(maxi(ai, bi))
 
 
 ## SP のみからの等級（据置フロアなし）。
@@ -161,8 +266,8 @@ static func current_rank() -> String:
 	## bootstrap 中は SP のみ（ack 循環を避ける）。
 	if bool(GameState.commander.get("_ack_needs_bootstrap", false)):
 		return sp_rank
-	var ack: String = str(GameState.commander.get("acknowledged_rank", "D")).strip_edges().to_upper()
-	if RANK_ORDER.find(ack) < 0:
+	var ack: String = normalize_rank_code(str(GameState.commander.get("acknowledged_rank", "D")))
+	if not is_valid_rank_code(ack):
 		ack = "D"
 	return higher_rank(sp_rank, ack)
 
@@ -171,8 +276,8 @@ static func current_rank() -> String:
 static func get_acknowledged_rank() -> String:
 	ensure_commander()
 	bootstrap_acknowledged_rank_if_needed()
-	var code: String = str(GameState.commander.get("acknowledged_rank", "D")).strip_edges().to_upper()
-	if RANK_ORDER.find(code) < 0:
+	var code: String = normalize_rank_code(str(GameState.commander.get("acknowledged_rank", "D")))
+	if not is_valid_rank_code(code):
 		return "D"
 	return code
 
@@ -182,7 +287,7 @@ static func pending_rank_up() -> String:
 	bootstrap_acknowledged_rank_if_needed()
 	var sp_rank: String = rank_from_sp_only()
 	var acknowledged: String = get_acknowledged_rank()
-	if RANK_ORDER.find(sp_rank) > RANK_ORDER.find(acknowledged):
+	if rank_index(sp_rank) > rank_index(acknowledged):
 		return sp_rank
 	return ""
 
@@ -190,14 +295,16 @@ static func pending_rank_up() -> String:
 static func acknowledge_rank(rank_code: String = "", grant_rewards: bool = true) -> void:
 	ensure_commander()
 	GameState.commander.erase("_ack_needs_bootstrap")
-	var code: String = rank_code.strip_edges().to_upper() if not rank_code.is_empty() else current_rank()
-	if RANK_ORDER.find(code) < 0:
+	var code: String = (
+		normalize_rank_code(rank_code) if not rank_code.is_empty() else current_rank()
+	)
+	if not is_valid_rank_code(code):
 		code = current_rank()
-	var ack: String = str(GameState.commander.get("acknowledged_rank", "D")).strip_edges().to_upper()
-	var ack_idx: int = RANK_ORDER.find(ack)
+	var ack: String = normalize_rank_code(str(GameState.commander.get("acknowledged_rank", "D")))
+	var ack_idx: int = rank_index(ack)
 	if ack_idx < 0:
 		ack_idx = 0
-	var new_idx: int = RANK_ORDER.find(code)
+	var new_idx: int = rank_index(code)
 	if new_idx >= ack_idx:
 		if grant_rewards:
 			_grant_rank_rewards_between(ack_idx, new_idx)
@@ -238,8 +345,8 @@ static func _migrate_rank_curve_if_needed(flag_key: String, previous_thresholds:
 	GameState.commander[flag_key] = true
 	var sp: int = _CommanderSurveyPoints.evaluate()
 	var previous_rank: String = rank_for_sp_with(previous_thresholds, sp)
-	var ack: String = str(GameState.commander.get("acknowledged_rank", "D")).strip_edges().to_upper()
-	if RANK_ORDER.find(ack) < 0:
+	var ack: String = normalize_rank_code(str(GameState.commander.get("acknowledged_rank", "D")))
+	if not is_valid_rank_code(ack):
 		ack = "D"
 	## bootstrap 待ちは旧閾値到達で埋める（新閾値で下げない）。
 	if bool(GameState.commander.get("_ack_needs_bootstrap", false)):
@@ -248,19 +355,19 @@ static func _migrate_rank_curve_if_needed(flag_key: String, previous_thresholds:
 	GameState.commander["acknowledged_rank"] = higher_rank(ack, previous_rank)
 	## 既到達分はギフト再配布しない。
 	var rewarded: Array = _rank_reward_ranks()
-	var floor_idx: int = RANK_ORDER.find(str(GameState.commander.get("acknowledged_rank", "D")))
+	var floor_idx: int = rank_index(str(GameState.commander.get("acknowledged_rank", "D")))
 	for i in range(1, maxi(floor_idx, 0) + 1):
-		var code: String = RANK_ORDER[i]
+		var code: String = rank_code_at(i)
 		if code not in rewarded:
 			rewarded.append(code)
 	GameState.commander["rank_reward_ranks"] = rewarded
 
 
 static func is_rank_at_least(rank_code: String) -> bool:
-	var target: int = RANK_ORDER.find(rank_code)
+	var target: int = rank_index(rank_code)
 	if target < 0:
 		return false
-	var current: int = RANK_ORDER.find(current_rank())
+	var current: int = rank_index(current_rank())
 	return current >= target
 
 
@@ -273,27 +380,21 @@ static func rank_display(include_subtitle: bool = true) -> String:
 	var code: String = current_rank()
 	if not include_subtitle:
 		return "%s級" % code
-	return "%s級・%s" % [code, str(RANK_SUBTITLES.get(code, ""))]
+	var sub: String = rank_subtitle(code)
+	if sub.is_empty():
+		return "%s級" % code
+	return "%s級・%s" % [code, sub]
 
 
 static func progress_to_next_rank() -> Dictionary:
 	var sp: int = survey_points()
 	var rank: String = current_rank()
-	var rank_index: int = RANK_ORDER.find(rank)
-	if rank_index < 0:
-		rank_index = 0
-	if rank_index >= RANK_ORDER.size() - 1:
-		return {
-			"current_rank": rank,
-			"next_rank": "",
-			"current_sp": sp,
-			"next_threshold": sp,
-			"progress": 1.0,
-			"label": "最大等級",
-		}
-	var next_rank: String = RANK_ORDER[rank_index + 1]
-	var floor_sp: int = int(RANK_THRESHOLDS.get(rank, 0))
-	var next_sp: int = int(RANK_THRESHOLDS.get(next_rank, floor_sp))
+	var idx: int = rank_index(rank)
+	if idx < 0:
+		idx = 0
+	var next_rank: String = rank_code_at(idx + 1)
+	var floor_sp: int = threshold_for_rank(rank)
+	var next_sp: int = threshold_for_rank(next_rank)
 	var span: int = maxi(next_sp - floor_sp, 1)
 	var progress: float = clampf(float(sp - floor_sp) / float(span), 0.0, 1.0)
 	return {
@@ -335,15 +436,12 @@ static func _grant_rank_rewards_between(from_idx: int, to_idx: int) -> void:
 		return
 	var rewarded: Array = _rank_reward_ranks()
 	for i in range(from_idx + 1, to_idx + 1):
-		var code: String = RANK_ORDER[i]
+		var code: String = rank_code_at(i)
 		if code in rewarded:
 			continue
-		var gold: int = int(RANK_GIFT_GOLD.get(code, 0))
-		var tokens: int = int(RANK_GIFT_TOKEN.get(code, 0))
-		var materials: Dictionary = {}
-		var raw_mats: Variant = RANK_GIFT_MATERIALS.get(code, {})
-		if raw_mats is Dictionary:
-			materials = (raw_mats as Dictionary).duplicate(true)
+		var gold: int = gift_gold_for_rank(code)
+		var tokens: int = gift_token_for_rank(code)
+		var materials: Dictionary = gift_materials_for_rank(code)
 		if gold > 0 or tokens > 0 or not materials.is_empty():
 			_CommanderGiftBox.enqueue({
 				"title": "%s級到達手当" % code,
@@ -391,29 +489,30 @@ static func pending_rank_gift_summary(to_rank: String = "") -> String:
 
 static func _pending_rank_gift_totals(to_rank: String = "") -> Dictionary:
 	ensure_commander()
-	var code: String = to_rank.strip_edges().to_upper() if not to_rank.is_empty() else current_rank()
-	var to_idx: int = RANK_ORDER.find(code)
+	var code: String = (
+		normalize_rank_code(to_rank) if not to_rank.is_empty() else current_rank()
+	)
+	var to_idx: int = rank_index(code)
 	var out: Dictionary = {"gold": 0, "gacha_token": 0, "materials": {}}
 	if to_idx < 0:
 		return out
-	var ack: String = str(GameState.commander.get("acknowledged_rank", "D")).strip_edges().to_upper()
-	var from_idx: int = RANK_ORDER.find(ack)
+	var ack: String = normalize_rank_code(str(GameState.commander.get("acknowledged_rank", "D")))
+	var from_idx: int = rank_index(ack)
 	if from_idx < 0:
 		from_idx = 0
 	var rewarded: Array = _rank_reward_ranks()
 	var mats_total: Dictionary = {}
 	for i in range(from_idx + 1, to_idx + 1):
-		var rank_code: String = RANK_ORDER[i]
+		var rank_code: String = rank_code_at(i)
 		if rank_code in rewarded:
 			continue
-		out["gold"] = int(out["gold"]) + int(RANK_GIFT_GOLD.get(rank_code, 0))
-		out["gacha_token"] = int(out["gacha_token"]) + int(RANK_GIFT_TOKEN.get(rank_code, 0))
-		var raw_mats: Variant = RANK_GIFT_MATERIALS.get(rank_code, {})
-		if raw_mats is Dictionary:
-			for mat_id: Variant in raw_mats:
-				var qty: int = int((raw_mats as Dictionary)[mat_id])
-				if qty > 0:
-					mats_total[str(mat_id)] = int(mats_total.get(str(mat_id), 0)) + qty
+		out["gold"] = int(out["gold"]) + gift_gold_for_rank(rank_code)
+		out["gacha_token"] = int(out["gacha_token"]) + gift_token_for_rank(rank_code)
+		var raw_mats: Dictionary = gift_materials_for_rank(rank_code)
+		for mat_id: Variant in raw_mats:
+			var qty: int = int(raw_mats[mat_id])
+			if qty > 0:
+				mats_total[str(mat_id)] = int(mats_total.get(str(mat_id), 0)) + qty
 	out["materials"] = mats_total
 	return out
 
@@ -581,8 +680,8 @@ static func _sanitize_commander() -> void:
 		GameState.commander["acknowledged_rank"] = "D"
 		GameState.commander["_ack_needs_bootstrap"] = true
 	else:
-		var ack: String = str(GameState.commander.get("acknowledged_rank", "")).strip_edges().to_upper()
-		if RANK_ORDER.find(ack) < 0:
+		var ack: String = normalize_rank_code(str(GameState.commander.get("acknowledged_rank", "")))
+		if not is_valid_rank_code(ack):
 			GameState.commander["acknowledged_rank"] = "D"
 			GameState.commander["_ack_needs_bootstrap"] = true
 	## rank_curve_v2 / v3 欠落は migrate 側で処理（ここでは触らない）。

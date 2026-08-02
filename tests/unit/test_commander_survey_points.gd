@@ -193,3 +193,44 @@ func test_rank_a_gift_includes_materials() -> void:
 	var mats: Dictionary = entry.get("materials", {})
 	assert_eq(int(mats.get("base_ore", 0)), 20)
 	assert_eq(int(mats.get("relic_shard", 0)), 15)
+
+
+func test_s_plus_rank_thresholds_and_progress() -> void:
+	assert_eq(_CommanderProfile.rank_for_sp(2200), "S")
+	assert_eq(_CommanderProfile.rank_for_sp(2599), "S")
+	assert_eq(_CommanderProfile.rank_for_sp(2600), "S+1")
+	assert_eq(_CommanderProfile.rank_for_sp(3000), "S+2")
+	assert_eq(_CommanderProfile.threshold_for_rank("S+1"), 2600)
+	assert_eq(_CommanderProfile.threshold_for_rank("S+2"), 3000)
+	_fill_enemy_discovery_for_sp(2600)
+	GameState.commander["acknowledged_rank"] = "S"
+	GameState.commander["rank_reward_ranks"] = ["C", "B", "A", "S"]
+	assert_eq(_CommanderProfile.rank_from_sp_only(), "S+1")
+	assert_eq(_CommanderProfile.pending_rank_up(), "S+1")
+	var progress: Dictionary = _CommanderProfile.progress_to_next_rank()
+	assert_eq(str(progress.get("next_rank", "")), "S+2")
+	assert_ne(str(progress.get("label", "")), "最大等級")
+	_CommanderProfile.acknowledge_rank("S+1")
+	assert_eq(_CommanderProfile.get_acknowledged_rank(), "S+1")
+	assert_eq(_CommanderGiftBox.pending_count(), 1)
+	var gift: Dictionary = _CommanderGiftBox.get_pending_entries()[0]
+	assert_eq(int(gift.get("gold", 0)), 1500)
+	assert_eq(int(gift.get("gacha_token", 0)), 15)
+	assert_true(_CommanderProfile.is_rank_at_least("S"))
+	assert_eq(_CommanderProfile.title_slot_limit(), 3)
+	assert_eq(_CommanderProfile.rank_subtitle("S+1"), "継続調査許可")
+
+
+func test_s_plus_five_materials_and_titles() -> void:
+	_fill_enemy_discovery_for_sp(2200 + 5 * 400)
+	assert_eq(_CommanderProfile.rank_from_sp_only(), "S+5")
+	GameState.commander["acknowledged_rank"] = "S+4"
+	GameState.commander["rank_reward_ranks"] = ["C", "B", "A", "S", "S+1", "S+2", "S+3", "S+4"]
+	_CommanderProfile.acknowledge_rank("S+5")
+	assert_eq(_CommanderGiftBox.pending_count(), 1)
+	var mats: Dictionary = _CommanderGiftBox.get_pending_entries()[0].get("materials", {})
+	assert_eq(int(mats.get("base_ore", 0)), 10)
+	assert_eq(int(mats.get("relic_shard", 0)), 5)
+	const _CommanderTitles = preload("res://scripts/commander/CommanderTitles.gd")
+	_CommanderTitles.refresh_unlocks()
+	assert_true("title_s_plus_5" in _CommanderProfile.get_unlocked_titles())
