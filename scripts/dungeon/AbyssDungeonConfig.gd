@@ -11,6 +11,8 @@ const FLOOR_NIGHTMARE_START: int = 66
 const FLOOR_ENDLESS_START: int = 100
 ## 100F以降: この階数ごとに敵Lvを +1。
 const ENDLESS_LEVEL_STEP: int = 5
+## 表示階がこの倍数のときボス戦（33/66/99/132…）。マイルストーンと同位。
+const BOSS_FLOOR_INTERVAL: int = 33
 
 const _DungeonTierConfig := preload("res://scripts/dungeon/DungeonTierConfig.gd")
 
@@ -52,6 +54,25 @@ static func is_abyss_data(data: Resource) -> bool:
 
 static func parent_biome_id(abyss_id: String) -> String:
 	return str(PARENT_BIOME_BY_ABYSS.get(abyss_id, ""))
+
+
+## 親メイン Biome の boss_id（深層データ自体は boss_id 空のまま）。
+static func parent_boss_id(abyss_id: String) -> String:
+	var parent_id: String = parent_biome_id(abyss_id)
+	if parent_id.is_empty():
+		return ""
+	var parent: Resource = DataRegistry.get_dungeon_data(parent_id)
+	if parent == null or not ("boss_id" in parent):
+		return ""
+	return str(parent.boss_id)
+
+
+## 33 / 66 / 99 / 132…（1始まり）。0 以下は false。
+static func is_boss_floor(floor_1based: int) -> bool:
+	var f: int = floor_1based
+	if f <= 0:
+		return false
+	return f % BOSS_FLOOR_INTERVAL == 0
 
 
 ## 表示階（1始まり）→ 合成ティア（セレクトの Hard/NM とは独立）。
