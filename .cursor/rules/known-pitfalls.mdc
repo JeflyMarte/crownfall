@@ -24,6 +24,7 @@ alwaysApply: false
 | DungeonScene パース失敗（Constant has the same name） | 先頭 `const _DungeonTierConfig = preload(...)` の二重定義 | → **`pitfalls-startup.mdc`**（同名 preload は1件のみ） |
 | キャラ画面入場で即終了（`apply_body` argument Label） | RichTextLabel に `UiTypography.apply_body` | → **`pitfalls-startup.mdc`**（`apply_display_rich`／`apply_log_rich`） |
 | 非戦闘ナラティブ戻る／VFX位置／名ポップサイズ・帯VFX・付与テロップ／野戦調合に+N無し | reset誤用・味方非表示・一律28/48・ColorRect・VFXのみ | → **`14_Presentation_Pitfalls.md`**（回復は `_present_member_heal`） |
+| ボス警告中に本体が写る | 入場準備後の status tint が modulate を不透明へ戻す／opaque フォールバック | 警告中 `visible=false`＋intro中 tint/HP更新停止。落下開始で初表示（`14_Presentation_Pitfalls`） |
 | ボスの激昂アイコンが付かない | ボス戦で状態異常行を全非表示 | → **`14_Presentation_Pitfalls.md`**（ボス頭上にも表示） |
 | レリックが地味で装備意味が薄い | 常時±5〜20%のみ | 尖鋭案B: 発火＋制約。`P3-UX-RELIC-TACTICS-B001` |
 | パッシブ名と同時にダメ音／敵スキル名が見えない | 既定 combat_skill・固定Y | → **`14_Presentation_Pitfalls.md`** §3 |

@@ -77,6 +77,7 @@
 | 必殺回復数字を `ULTIMATE_GOLD` | 回復は `HEAL_NUM_GREEN`。金はダメージ必殺用 |
 | ボス大技バナーを短い固定 hold | `UltimatePresentationConfig` の announce+windup。効果1行＋`combat_ultimate` |
 | エリート入場で中央「エリート」Label | 中央テロップ禁止。遷移 `[エリート]`＋ネームバッジのみ |
+| ボス警告中に本体が先に写る | 警告中は `visible=false`。落下開始で初めて表示。状態tintが modulate を WHITE に戻すので intro 中は tint／HPバー更新を止める |
 | 戦闘／エリートで部屋名を省略しすぎ | `[種別]\nF` を出す。ボスのみ専用入場で省略可 |
 | 「自動戦闘中」行を戦闘で再表示 | 行は常時 `false`。停止はヘッダ ButtonStop |
 

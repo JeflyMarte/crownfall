@@ -2590,6 +2590,14 @@ func _apply_scene_typography() -> void:
 func _update_hp_bars() -> void:
 	var in_combat: bool = $CombatController.is_in_combat
 	var on_combat_floor: bool = $DungeonController.is_combat_room()
+	## ボス警告中は本体もオーバーレイも出さない（落下後に表示）。
+	if _boss_intro_active:
+		_hp_bar_enemy.visible = false
+		_enemy_nameplate.visible = false
+		for slot in _swarm_sprites.size():
+			_swarm_hp_bars[slot].visible = false
+			_swarm_nameplates[slot].visible = false
+		return
 	if _boss_sprite.visible:
 		# ボス: 単体オーバーレイ
 		_hp_bar_enemy.visible = in_combat
@@ -3311,6 +3319,9 @@ func _update_field_legend() -> void:
 
 func _sync_status_sprite_tints() -> void:
 	if not $CombatController.is_in_combat:
+		return
+	## 警告〜落下中に modulate を WHITE へ戻してボスが透けて見える事故を防ぐ。
+	if _boss_intro_active:
 		return
 	if _boss_sprite.visible:
 		var boss_slot: int = $CombatController.active_enemy_index
@@ -9754,11 +9765,11 @@ func _show_enemy_swarm(enemy_ids: Array) -> void:
 		_enemy_sprite.visible = false
 		_hp_bar_enemy.visible = false
 		_enemy_nameplate.visible = false
+		## 警告〜落下まで本体を出さない（不透明フォールバック禁止）。
 		if enemy_ids.size() > 0:
-			if not _prepare_boss_sprite_for_entrance(str(enemy_ids[0])):
-				_show_boss_sprite(str(enemy_ids[0]))
+			_prepare_boss_sprite_for_entrance(str(enemy_ids[0]))
 		else:
-			_update_boss_sprite_visibility()
+			_boss_sprite.visible = false
 		return
 	_boss_sprite.visible = false
 	var n: int = enemy_ids.size()
@@ -12483,8 +12494,17 @@ func _spawn_boss_debris_fall(short: bool) -> void:
 	)
 
 func _reveal_boss_sprite(duration: float) -> void:
-	if not _boss_sprite.visible:
-		_boss_sprite.visible = true
+	## 落下開始直前に初めて表示。警告中は visible=false のまま。
+	if _boss_sprite.sprite_frames == null:
+		var bid: String = ""
+		if _boss_sprite.has_meta("boss_id"):
+			bid = str(_boss_sprite.get_meta("boss_id"))
+		if bid.is_empty() and $CombatController.current_enemy_data != null:
+			bid = str($CombatController.current_enemy_data.id)
+		if not bid.is_empty():
+			_prepare_boss_sprite_for_entrance(bid)
+	_arm_boss_sprite_for_drop()
+	_boss_sprite.visible = true
 	## 上から落下して着地。着地瞬間に SE／シェイク／フラッシュ。
 	var land_pos: Vector2 = _boss_intro_base_position
 	var tw: Tween = create_tween()
@@ -12501,10 +12521,37 @@ func _reveal_boss_sprite(duration: float) -> void:
 	tw.chain().tween_callback(_play_boss_landing_impact)
 
 
+func _arm_boss_sprite_for_drop() -> void:
+	## 着地座標が未設定なら現在位置を着地先にする。
+	if _boss_intro_base_position == Vector2.ZERO and _boss_sprite.sprite_frames != null:
+		_boss_intro_base_position = _boss_sprite.position
+		_boss_intro_base_scale = _boss_sprite.scale
+	_boss_sprite.scale = _boss_intro_base_scale * 1.08
+	_boss_sprite.position = _boss_intro_base_position + Vector2(0.0, -BOSS_DROP_OFFSET_Y)
+	_boss_sprite.modulate = Color(1.0, 1.0, 1.0, 0.0)
+
+
+func _hide_boss_sprite_for_warning() -> void:
+	_arm_boss_sprite_for_drop()
+	_boss_sprite.visible = false
+	_hp_bar_enemy.visible = false
+	_enemy_nameplate.visible = false
+
+
 func _finish_boss_combat_entrance(lead: Resource) -> void:
 	_boss_intro_active = false
 	_boss_intro_tween = null
 	_clear_boss_intro_fx()
+	## 演出終了時は着地姿で確実に表示（スキップ／準備失敗の救済）。
+	if _boss_sprite.sprite_frames != null:
+		if _boss_intro_base_position != Vector2.ZERO:
+			_boss_sprite.position = _boss_intro_base_position
+			_boss_sprite.scale = _boss_intro_base_scale
+		_boss_sprite.modulate = Color.WHITE
+		_boss_sprite.visible = true
+	elif lead != null:
+		_show_boss_sprite(str(lead.id))
+	_update_hp_bars()
 	if lead != null:
 		_append_log("【ボス】%s があらわれた" % lead.display_name)
 	_refresh_combat_now_playing_next()
@@ -12513,10 +12560,14 @@ func _finish_boss_combat_entrance(lead: Resource) -> void:
 	_start_combat_after_appear_delay()
 
 func _begin_boss_combat_entrance(lead: Resource) -> void:
-	if lead == null or not _boss_sprite.visible:
+	if lead == null:
 		_finish_boss_combat_entrance(lead)
 		return
+	## 警告中は必ず非表示。スプライト未準備ならここで再試行。
+	if _boss_sprite.sprite_frames == null:
+		_prepare_boss_sprite_for_entrance(str(lead.id))
 	_boss_intro_active = true
+	_hide_boss_sprite_for_warning()
 	$CombatTimer.stop()
 	AudioManager.play_sfx("room_enter", 1.05, 0.2)
 	var short: bool = _fast_run_enabled
@@ -12621,14 +12672,12 @@ func _load_boss_sprite(enemy_id: String) -> bool:
 
 func _prepare_boss_sprite_for_entrance(enemy_id: String) -> bool:
 	if not _load_boss_sprite(enemy_id):
+		_boss_sprite.visible = false
 		return false
 	_boss_intro_base_scale = _boss_sprite.scale
 	_boss_intro_base_position = _boss_sprite.position
-	## やや大きく見せつつ、画面上から落下開始。
-	_boss_sprite.scale = _boss_intro_base_scale * 1.08
-	_boss_sprite.position = _boss_intro_base_position + Vector2(0.0, -BOSS_DROP_OFFSET_Y)
-	_boss_sprite.modulate = Color(1.0, 1.0, 1.0, 0.0)
-	_boss_sprite.visible = true
+	## 警告中は非表示。落下開始（_reveal）で初めて出す。
+	_hide_boss_sprite_for_warning()
 	return true
 
 func _show_boss_sprite(enemy_id: String) -> void:
@@ -12639,6 +12688,9 @@ func _show_boss_sprite(enemy_id: String) -> void:
 	_boss_sprite.visible = true
 
 func _update_boss_sprite_visibility() -> void:
+	if _boss_intro_active:
+		_boss_sprite.visible = false
+		return
 	var is_boss_room: bool = $DungeonController.current_room_type == Enums.RoomType.BOSS
 	if not is_boss_room:
 		_boss_sprite.visible = false
