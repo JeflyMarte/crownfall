@@ -6384,3 +6384,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-CLEAR-EXP-001-4 | **UI** — Result「クリアボーナス +N」。入手経験値はボーナス込み | 可視性 |
 | P3-BAL-CLEAR-EXP-001-5 | **SSOT** — `BalanceConfig.CLEAR_EXP_BONUS_RATIO`／`decisions/37_ClearExpBonus.md` | 数値の正 |
 
+## おすすめ装備・主ステ寄り比較（2026-08-02 — P3-EQ-POWER-RECOMMEND-002）
+
+> **オーナー GO（案A）** — 速度・会心倍率／HPロール支配をやめ、実効主ステ寄り。同点はレア→装備Lv→炉研ぎ。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-POWER-RECOMMEND-002-1 | **武器** — 実効攻撃のみ（職適性あり）。速度・会心は非乗算 | 低レア速度逆転を防止 |
+| P3-EQ-POWER-RECOMMEND-002-2 | **防具** — `防御 + HP×0.25` | HPロール単独逆転を抑制 |
+| P3-EQ-POWER-RECOMMEND-002-3 | **装飾** — `HP×0.25 + 防御 + 攻撃 + 会心×40` | 主ステ寄り |
+| P3-EQ-POWER-RECOMMEND-002-4 | **同点** — レア → 装備Lv → 炉研ぎ | 見た目の強さと一致 |
+| P3-EQ-POWER-RECOMMEND-002-5 | **上書き** — `27_EquipPowerRecommend` §2。キャラ総合戦力式は据置 | 比較と表示を分離 |
+

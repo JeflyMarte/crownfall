@@ -1,14 +1,17 @@
 # 装備総合力（非表示）とおすすめ装備（P3-EQ-POWER-RECOMMEND-001）
 
 **Status:** Decision 承認済（2026-07-31 オーナー GO）  
-**関連:** `docs/specs/decisions/22_CombatPower.md`（P3-UI-COMBAT-POWER-001）
+**改訂:** 2026-08-02 オーナー GO・案A（主ステ寄り比較）  
+**関連:** `docs/specs/decisions/22_CombatPower.md`（P3-UI-COMBAT-POWER-001・キャラ表示用。装備比較とは別）
 
 ---
 
 ## 1. 方針
 
 装備に **総合力** を持たせるが **UI には表示しない**。  
-キャラ画面「おすすめ装備」は、この総合力の高い順で武／防／飾を装着する。
+キャラ画面「おすすめ装備」／鍛冶強化一覧はこの総合力で並べる。
+
+旧式（キャラ総合戦力と同型の速度・会心倍率）は、低レアの速度／HPロールが高レア高Lvを逆転させやすかったため **主ステ寄り** に変更する。
 
 ---
 
@@ -16,17 +19,18 @@
 
 | # | 項目 | 決定 |
 |---|---|---|
-| 1 | 式 | キャラ総合戦力と同型の寄与近似: `HP + 防御 + 攻撃 × 速度 × (1 + 会心率 × (会心ダメ − 1))` |
-| 2 | 武器 | 攻撃寄与のみ（職適性倍率あり）。速度・会心は武器実効値 |
-| 3 | 防具 | HP + 防御のみ |
-| 4 | 装飾 | HP + 防御 + 攻撃寄与（速度=1.0、会心ダメ=既定）。ランダム mods 込み |
-| 5 | 保存 | フィールドなし。都度計算 |
-| 6 | 表示 | なし |
-| 7 | おすすめ | 総合力のみで比較。職フィルタ据置。同点はレア → 強化 |
+| 1 | 武器 | **実効攻撃**（職適性倍率あり）。速度・会心は乗算しない |
+| 2 | 防具 | `実効防御 + 実効HP × 0.25` |
+| 3 | 装飾 | `HP×0.25 + 防御 + 攻撃 + 会心率×40`（会心は軽い加点のみ） |
+| 4 | 保存 | フィールドなし。都度計算 |
+| 5 | 表示 | なし |
+| 6 | おすすめ | 上記総合力で比較。職フィルタ据置。同点は **レア → 装備Lv → 炉研ぎ** |
+| 7 | キャラ総合戦力 | 据置（`RosterUiHelper`）。装備比較式とは分離 |
 
 ---
 
 ## 3. 実装メモ
 
-- SSOT: `EquipmentPower.score` / `combat_contribution`
-- 呼び出し: `EquipmentRecommendHelper._item_power`
+- SSOT: `EquipmentPower.score`（`ARMOR_HP_WEIGHT` / `ACCESSORY_CRIT_AS_ATTACK`）
+- 呼び出し: `EquipmentRecommendHelper._item_power`／`BlacksmithUiHelper.enhance_list_sort_before`
+- 参考用: `EquipmentPower.combat_contribution`（おすすめ比較には使わない）

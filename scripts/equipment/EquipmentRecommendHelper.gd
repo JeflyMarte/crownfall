@@ -133,24 +133,17 @@ static func _item_power(member: Resource, category: String, item: Resource) -> f
 	return _EquipmentPower.score(item, category, member)
 
 
-static func _tiebreak_better(a: Resource, b: Resource, category: String) -> bool:
-	var ra: int = 0
-	var rb: int = 0
-	match category:
-		"weapon":
-			ra = EquipmentEnhancer.weapon_rarity(a)
-			rb = EquipmentEnhancer.weapon_rarity(b)
-		"armor":
-			ra = EquipmentEnhancer.armor_rarity(a)
-			rb = EquipmentEnhancer.armor_rarity(b)
-		"accessory":
-			ra = int(a.rarity) if a != null and "rarity" in a else 0
-			rb = int(b.rarity) if b != null and "rarity" in b else 0
+## 同点時: レア → 装備Lv → 炉研ぎ（全カテゴリ共通）。
+static func _tiebreak_better(a: Resource, b: Resource, _category: String) -> bool:
+	var ra: int = EquipmentEnhancer.item_rarity(a)
+	var rb: int = EquipmentEnhancer.item_rarity(b)
 	if ra != rb:
 		return ra > rb
-	if category == "weapon":
-		return EquipmentEnhancer.get_enhance_level(a) > EquipmentEnhancer.get_enhance_level(b)
-	return false
+	var la: int = EquipmentEnhancer.get_equip_level(a)
+	var lb: int = EquipmentEnhancer.get_equip_level(b)
+	if la != lb:
+		return la > lb
+	return EquipmentEnhancer.get_enhance_level(a) > EquipmentEnhancer.get_enhance_level(b)
 
 
 static func _get_equipped(member: Resource, category: String) -> Resource:

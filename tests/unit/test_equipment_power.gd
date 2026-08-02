@@ -1,9 +1,10 @@
 extends GutTest
-## 装備総合力（非表示）とおすすめ比較の SSOT。
+## 装備総合力（非表示）とおすすめ比較の SSOT（主ステ寄り・案A）。
 
 
 const _Power = preload("res://scripts/equipment/EquipmentPower.gd")
 const _Helper = preload("res://scripts/equipment/EquipmentRecommendHelper.gd")
+const _Enh = preload("res://scripts/equipment/EquipmentEnhancer.gd")
 
 
 func before_each() -> void:
@@ -47,14 +48,14 @@ func _make_weapon(weapon_id: String, enhance: int, rolled_attack: int = -1) -> R
 	return inst
 
 
-func _make_armor(armor_id: String, enhance: int, hp: int = 0) -> Resource:
+func _make_armor(armor_id: String, enhance: int, hp: int = 0, defense: int = 10) -> Resource:
 	var inst: Resource = ArmorInstance.new()
 	inst.instance_id = "pow_a_%s_%d" % [armor_id, randi() % 100000]
 	inst.armor_id = armor_id
 	inst.enhance_level = enhance
 	inst.is_appraised = true
 	inst.hp_bonus = hp
-	inst.rolled_defense = 10
+	inst.rolled_defense = defense
 	inst.random_mods = [{"kind": "defense_up", "value": 0, "label": "t"}]
 	return inst
 
@@ -66,20 +67,48 @@ func test_higher_atk_weapon_scores_higher() -> void:
 	assert_gt(_Power.score(weak, "weapon"), 0.0)
 
 
+func test_weapon_score_is_effective_attack_not_speed_mult() -> void:
+	## 速度・会心で実効攻撃を逆転させない。
+	var data: Resource = DataRegistry.get_weapon_data("iron_sword")
+	assert_not_null(data)
+	var solid: Resource = _make_weapon("iron_sword", 0, int(data.base_attack))
+	solid.equip_level = 20
+	solid.attack_speed = 0.8
+	solid.critical_rate = 0.05
+	solid.random_mods = [{"kind": "attack_up", "value": 40, "label": "t", "min_v": 1, "max_v": 40}]
+	var glassy: Resource = _make_weapon("iron_sword", 0, int(data.base_attack))
+	glassy.equip_level = 5
+	glassy.attack_speed = 1.5
+	glassy.critical_rate = 0.4
+	glassy.critical_damage = 2.0
+	glassy.random_mods = [{"kind": "attack_up", "value": 5, "label": "t", "min_v": 1, "max_v": 5}]
+	assert_gt(_Power.score(solid, "weapon"), _Power.score(glassy, "weapon"))
+	assert_eq(_Power.score(solid, "weapon"), float(_Enh.get_effective_attack(solid)))
+
+
 func test_enhance_raises_weapon_score() -> void:
 	var base: Resource = _make_weapon("iron_sword", 0)
 	var enhanced: Resource = _make_weapon("iron_sword", 5)
 	assert_gt(_Power.score(enhanced, "weapon"), _Power.score(base, "weapon"))
 
 
-func test_armor_score_uses_hp_def() -> void:
+func test_armor_defense_outranks_hp_roll_alone() -> void:
+	## HPロール付き低Lvが、高防御高Lvを逆転しない（HP×0.25）。
+	var hp_roll: Resource = _make_armor("leather_armor", 0, 80, 40)
+	hp_roll.equip_level = 3
+	var def_focus: Resource = _make_armor("leather_armor", 0, 0, 120)
+	def_focus.equip_level = 15
+	def_focus.random_mods = [{"kind": "defense_up", "value": 40, "label": "t", "min_v": 1, "max_v": 40}]
+	assert_gt(_Power.score(def_focus, "armor"), _Power.score(hp_roll, "armor"))
+
+
+func test_armor_score_uses_weighted_hp_and_def() -> void:
 	var weak: Resource = _make_armor("leather_armor", 0, 0)
 	var strong: Resource = _make_armor("leather_armor", 5, 40)
 	assert_gt(_Power.score(strong, "armor"), _Power.score(weak, "armor"))
 
 
 func test_recommend_picks_higher_power() -> void:
-	## 総合力が高い方を選ぶ（強化差で順位が付く）。
 	var idx: int = _swordsman_index()
 	var member: Resource = GameState.party_members[idx]
 	var weak: Resource = _make_weapon("iron_sword", 0)
@@ -106,7 +135,6 @@ func test_job_preferred_weapon_gets_boost() -> void:
 
 func test_accessory_score_does_not_double_count_field_mods() -> void:
 	## フィールド反映済み mods を sum_kind で再加算しない（P3-FIX-EQ-META-AUDIT-A-001）。
-	const _Enh := preload("res://scripts/equipment/EquipmentEnhancer.gd")
 	var acc: Resource = AccessoryInstance.new()
 	acc.instance_id = "pow_acc_dbl"
 	acc.accessory_id = "silver_ring"
@@ -126,12 +154,18 @@ func test_accessory_score_does_not_double_count_field_mods() -> void:
 	assert_not_null(data)
 	var atk: float = float(_Enh.effective_accessory_int_bonus(acc, "attack_bonus", data))
 	assert_gt(atk, 0.0)
-	var expected: float = _Power.combat_contribution(
-		0.0, 0.0, atk, 1.0, 0.0, BalanceConfig.DEFAULT_WEAPON_CRITICAL_DAMAGE
-	)
-	assert_eq(_Power.score(acc, "accessory"), expected)
-	## 二重評価だと攻撃寄与が約2倍になる。
-	var doubled: float = _Power.combat_contribution(
-		0.0, 0.0, atk * 2.0, 1.0, 0.0, BalanceConfig.DEFAULT_WEAPON_CRITICAL_DAMAGE
-	)
-	assert_lt(_Power.score(acc, "accessory"), doubled)
+	assert_eq(_Power.score(acc, "accessory"), atk)
+	assert_lt(_Power.score(acc, "accessory"), atk * 2.0)
+
+
+func test_tiebreak_prefers_higher_equip_level_when_score_tied() -> void:
+	## 主スコア同点なら装備Lvの高い方（レア・炉研ぎ同一）。
+	var idx: int = _swordsman_index()
+	var member: Resource = GameState.party_members[idx]
+	var low_lv: Resource = _make_armor("leather_armor", 0, 0, 0)
+	low_lv.equip_level = 2
+	var high_lv: Resource = _make_armor("leather_armor", 0, 0, 0)
+	high_lv.equip_level = 18
+	assert_almost_eq(_Power.score(low_lv, "armor"), _Power.score(high_lv, "armor"), 0.0001)
+	GameState.armor_inventory = [low_lv, high_lv]
+	assert_eq(_Helper.pick_best_unequipped(member).get("armor"), high_lv)
