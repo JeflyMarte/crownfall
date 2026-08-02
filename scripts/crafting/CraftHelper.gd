@@ -11,12 +11,12 @@ const _EventExclusiveRewards := preload("res://scripts/dungeon/EventExclusiveRew
 const _EquipmentSetBonuses := preload("res://scripts/equipment/EquipmentSetBonuses.gd")
 const _EquipmentEnhancer := preload("res://scripts/equipment/EquipmentEnhancer.gd")
 
-## レア別コスト（L1: LEGENDARY を重く）。
+## レア別コスト（P3-BAL-FORGE-GOLD-HEAVY-001: 全体底上げ、★は特に重く）。
 const GOLD_BY_RARITY: Dictionary = {
-	Enums.Rarity.COMMON: 40,
-	Enums.Rarity.RARE: 80,
-	Enums.Rarity.EPIC: 150,
-	Enums.Rarity.LEGENDARY: 400,
+	Enums.Rarity.COMMON: 80,
+	Enums.Rarity.RARE: 160,
+	Enums.Rarity.EPIC: 300,
+	Enums.Rarity.LEGENDARY: 1000,
 }
 const MATERIALS_BY_RARITY: Dictionary = {
 	Enums.Rarity.COMMON: {"relic_shard": 1, "base_ore": 1},
