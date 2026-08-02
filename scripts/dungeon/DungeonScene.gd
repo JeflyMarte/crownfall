@@ -4856,6 +4856,11 @@ func _record_wander_enemy_action(slot: int) -> void:
 func _on_enemy_wander_fled(slot: int) -> void:
 	var enemy_data: Resource = $CombatController.get_enemy_data_at(slot)
 	var name: String = enemy_data.display_name if enemy_data != null else "放浪個体"
+	_flee_enemy_slot_no_reward(slot, name, true)
+
+
+## 報酬なし逃走（放浪タイマー／逃走スキル共通）。
+func _flee_enemy_slot_no_reward(slot: int, label: String, is_wander: bool) -> void:
 	$CombatController.clear_pending_cast("enemy", slot)
 	$CombatController.flee_enemy_slot(slot)
 	_debuff_marks.erase(slot)
@@ -4865,13 +4870,26 @@ func _on_enemy_wander_fled(slot: int) -> void:
 		_swarm_hp_bars[slot].visible = false
 	if slot < _swarm_nameplates.size():
 		_swarm_nameplates[slot].visible = false
-	_append_log("[放浪] %s は気流に乗って消えた" % name)
+	if is_wander:
+		_append_log("[放浪] %s は気流に乗って消えた" % label)
+	else:
+		_append_log("敵スキル【%s】: 逃げ出した（報酬なし）" % label)
 	if $CombatController.living_enemy_count() == 0:
 		_finalize_combat_fled()
 		return
 	_update_status_labels()
 	_update_hp_bars()
 	_update_turn_order_ui($CombatController.get_ct_order())
+
+
+func _explode_kill_enemy_slot(slot: int, skill_name: String) -> void:
+	if not $CombatController.is_enemy_slot_alive(slot):
+		return
+	var hp: int = $CombatController.get_enemy_hp_at(slot)
+	if hp > 0:
+		$CombatController.apply_damage_to_enemy_slot(slot, hp)
+	_append_log("敵スキル【%s】: 自爆した" % skill_name)
+	_on_enemy_slot_killed(slot)
 
 func _process_status_ticks() -> void:
 	$CombatController.decay_threat()
@@ -5869,6 +5887,11 @@ func _deal_member_damage_to_enemy(
 		target_slot = $CombatController.get_member_target_slot(member_idx)
 	if not $CombatController.is_enemy_slot_alive(target_slot):
 		return false
+	var sid: String = str(skill_id)
+	var is_basic: bool = sid.is_empty() or sid == "basic_attack" or sid == "counter_attack"
+	var in_mult: float = $CombatController.get_enemy_incoming_attack_mult(target_slot, is_basic)
+	if not is_equal_approx(in_mult, 1.0):
+		damage = maxi(1, int(round(float(damage) * in_mult))) if damage > 0 else 0
 	GameState.record_run_damage(member_idx, damage, skill_id, skill_name, is_critical)
 	$CombatController.apply_damage_to_enemy_slot(target_slot, damage)
 	$CombatController.add_threat(member_idx, float(damage) * CombatController.THREAT_DAMAGE_K)
@@ -6138,6 +6161,12 @@ func _execute_enemy_skill(skill: Resource, slot: int = -1) -> bool:
 		"heal":
 			_execute_enemy_heal(skill, slot)
 			return true
+		"flee":
+			_execute_enemy_flee(skill, slot)
+			return true
+		"explode":
+			_execute_enemy_explode(skill, slot)
+			return true
 		"damage":
 			_execute_enemy_damage(skill, slot)
 			return true
@@ -6200,8 +6229,25 @@ func _execute_enemy_heal(skill: Resource, slot: int) -> void:
 	var scope: String = "自身" if target_slot == slot else "味方"
 	_append_log("敵スキル【%s】: %sを %d回復" % [skill.display_name, scope, healed])
 
+
+## 敵逃走スキル（報酬なし・放浪逃走と同型）。
+func _execute_enemy_flee(skill: Resource, slot: int) -> void:
+	_play_enemy_caster_animation(slot, "attack")
+	_spawn_enemy_skill_name(skill.display_name, slot)
+	_flee_enemy_slot_no_reward(slot, str(skill.display_name), false)
+
+
+## 敵自爆（AoE のあと自スロットを通常撃破扱い）。
+func _execute_enemy_explode(skill: Resource, slot: int) -> void:
+	_queue_enemy_offensive_skill(skill, slot, true)
+
+
 # 敵の攻撃スキル（全体/列/単体）。power_multiplier 分のダメージを対象へ。
 func _execute_enemy_damage(skill: Resource, slot: int) -> void:
+	_queue_enemy_offensive_skill(skill, slot, false)
+
+
+func _queue_enemy_offensive_skill(skill: Resource, slot: int, explode_after: bool) -> void:
 	var party_size: int = $CombatController.party_combat_hp.size()
 	var target_type: String = str(skill.target_type)
 	var used_fallback: bool = false
@@ -6240,6 +6286,8 @@ func _execute_enemy_damage(skill: Resource, slot: int) -> void:
 	if targets.is_empty():
 		var empty_tag: String = CombatFormation.enemy_target_row_log_tag(target_type, used_fallback)
 		_append_log("敵スキル【%s】%s\n  対象なし" % [skill.display_name, empty_tag])
+		if explode_after and $CombatController.is_enemy_slot_alive(slot):
+			_explode_kill_enemy_slot(slot, str(skill.display_name))
 		return
 	## アニメ／技名は予告❗️の後（`_resolve_enemy_skill_damage_impact_async`）。
 	_resolve_enemy_skill_damage_impact_async({
@@ -6250,6 +6298,7 @@ func _execute_enemy_damage(skill: Resource, slot: int) -> void:
 		"dist_tag": dist_tag,
 		"target_type": target_type,
 		"used_fallback": used_fallback,
+		"explode_after": explode_after,
 	})
 
 
@@ -6284,6 +6333,11 @@ func _resolve_enemy_skill_damage_impact_async(payload: Dictionary) -> void:
 		_end_combat_cinematic_lock()
 		_handle_party_wipe()
 		return
+	if bool(payload.get("explode_after", false)):
+		_explode_kill_enemy_slot(atk_slot, str(skill.display_name) if skill != null else "自爆")
+		if not $CombatController.is_in_combat:
+			_end_combat_cinematic_lock()
+			return
 	_end_combat_cinematic_lock()
 
 
@@ -7913,23 +7967,37 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 	var cd: float = float(p.get("cooldown", 0.0))
 	if cd > 0.0:
 		_passive_cd[key] = cd
+	## 発動したら名ポップは必ず出す（非表示スプライト／直前クリアで消さない）。
+	_announce_passive_fire(member_idx, p)
+	return combat_ended
+
+
+## パッシブ／レリック／武器パッシブ発動の共通名ポップ＋ログ。
+func _announce_passive_fire(member_idx: int, p: Dictionary) -> void:
+	var pid: String = str(p.get("id", ""))
+	var dname: String = str(p.get("display_name", "")).strip_edges()
+	if dname.is_empty():
+		dname = pid if not pid.is_empty() else "パッシブ"
 	var is_relic: bool = CombatPassives.is_relic_passive(pid)
 	var is_weapon: bool = CombatPassives.is_weapon_passive(pid)
-	_clear_member_skill_labels(member_idx)
 	var prefix: String = "◈" if is_relic else ("⚔" if is_weapon else "◇")
 	var tag: String = "レリック" if is_relic else ("武器" if is_weapon else "パッシブ")
+	var stack: float = 0.0
+	if member_idx >= 0 and member_idx < _chr_skill_labels.size():
+		## 直前のスキル／他パッシブ名を消さず積み上げる。
+		stack = float(_chr_skill_labels[member_idx].size()) * SKILL_LABEL_STACK_GAP
 	## パッシブ名ポップは combat_skill（ヒット寄り）を鳴らさない。回復／バフ SE は各 VFX 側。
 	_spawn_skill_name(
-		prefix + str(p.get("display_name", "")),
+		prefix + dname,
 		member_idx,
-		0.0,
+		stack,
 		"",
 		false,
 		"",
-		PASSIVE_NAME_FONT_SIZE
+		PASSIVE_NAME_FONT_SIZE,
+		true
 	)
-	_append_log("[%s] %s 発動" % [tag, str(p.get("display_name", ""))])
-	return combat_ended
+	_append_log("[%s] %s 発動" % [tag, dname])
 
 # ---- パーティ連携連鎖（P3-D115） ----
 

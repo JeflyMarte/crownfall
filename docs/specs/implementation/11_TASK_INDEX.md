@@ -317,5 +317,5 @@ v3.4+ 確定スコープ:
 | Task | 内容 | 状態 | 主な参照 |
 |---|---|---|---|
 | **P3-BAL-ENEMY-TRICKY-001** | Phase1: T1胞子霞／T2苔再生／T3ルーン加護（ウィドウ・モスシェル・ローチ） | **完了** | `decisions/35_EnemyTrickySkills.md` |
-| P3-BAL-ENEMY-TRICKY-002 | Phase2: T5逃走スキル | 後続 | 同上 |
-| P3-BAL-ENEMY-TRICKY-003 | Phase3: T4自爆／T6通常軽減／T7スキル軽減（×0.2） | 後続 | 同上 |
+| **P3-BAL-ENEMY-TRICKY-002** | Phase2: T5逃走（墓鐘バット） | **完了** | 同上 |
+| **P3-BAL-ENEMY-TRICKY-003** | Phase3: T4自爆／T6通常×0.2／T7スキル×0.2 | **完了** | 同上 |

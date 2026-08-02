@@ -110,6 +110,7 @@ func test_phase_a_second_skills_complement_first() -> void:
 	assert_eq(str(burst.target_type), "party_front")
 	assert_eq(str(rain.apply_status_id), "chill")
 	assert_eq(str(burst.apply_status_id), "chill")
+	assert_eq(str(burst.effect_type), "explode")
 
 
 func test_greios_is_elite_only_in_frostridge_pool() -> void:

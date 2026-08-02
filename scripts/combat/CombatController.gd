@@ -484,6 +484,24 @@ func flee_enemy_slot(slot: int) -> void:
 	if slot == active_enemy_index:
 		current_enemy_hp = 0
 
+
+## 通常攻撃／スキル被ダメ倍率（トリッキー）。DoT 等は呼び出し側で使わない。
+func get_enemy_incoming_attack_mult(slot: int, is_basic_attack: bool) -> float:
+	var data: Resource = get_enemy_data_at(slot)
+	if data == null:
+		return 1.0
+	var mult: float = 1.0
+	if is_basic_attack:
+		if "incoming_basic_mult" in data:
+			mult = float(data.incoming_basic_mult)
+	else:
+		if "incoming_skill_mult" in data:
+			mult = float(data.incoming_skill_mult)
+	if mult <= 0.0:
+		## 完全無効は禁止（Decision）。下限で通し残す。
+		return 0.05
+	return mult
+
 func end_combat() -> void:
 	is_in_combat = false
 	clear_death_save_state()

@@ -17,7 +17,7 @@ extends Resource
 @export var power_multiplier: float = 1.0
 @export var cooldown: float = 5.0
 @export var trigger_type: String = "cooldown"
-## effect_type: "damage" | "heal" | "buff" | "none"（敵は damage/buff/heal）
+## effect_type: "damage" | "heal" | "buff" | "flee" | "explode" | "none"
 @export var effect_type: String = "none"
 @export var tags: Array[String] = []
 @export var element: String = ""
