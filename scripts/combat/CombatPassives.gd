@@ -434,6 +434,36 @@ const _DEFS: Dictionary = {
 		"once_per_combat": true,
 		"cooldown": 0.0,
 	},
+	## クラシックL装飾補充（P3-EQ-CLASSIC-L-ACC-001 / 55）
+	"eq_bloodvein_signet": {
+		"display_name": "血脈の衝動",
+		"category": "accessory",
+		"description": "与ダメ +12%。被ダメ +5%。",
+		"outgoing_mult": 1.12,
+		"incoming_mult": 1.05,
+	},
+	"eq_ironvow_amulet": {
+		"display_name": "鉄誓の守り",
+		"category": "accessory",
+		"description": "被ダメ −12%。",
+		"incoming_mult": 0.88,
+	},
+	"eq_quicksigil_charm": {
+		"display_name": "速印",
+		"category": "accessory",
+		"description": "スキル再使用が 15% 速くなる。",
+		"skill_cd_mult": 0.85,
+	},
+	"eq_dawnrally_brooch": {
+		"display_name": "暁の鼓舞",
+		"category": "accessory",
+		"description": "戦闘開始時、味方全体を鼓舞する。",
+		"trigger": "on_combat_start",
+		"condition": "always",
+		"effect": "party_rally",
+		"status_id": "empower",
+		"cooldown": 0.0,
+	},
 	# ---- ビルド拡張レジェンド（P3-EQ-LEG-BUILD-001） ----
 	"eq_bloodpact_plate": {
 		"display_name": "血契",

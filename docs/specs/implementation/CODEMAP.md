@@ -214,7 +214,7 @@ Task 明示指示がない限り作成しない:
 |---|---|
 | 武器 | `resources/weapons/` — **129**（N〜SET。監査は tres 直スキャンが正） |
 | 防具 | `resources/armors/` — **57**（＋ペット／ヒーラービルドL2・**P3-EQ-PET-HEAL-BUILD-001**） |
-| 装飾品 | `resources/accessories/` — **51**（＋中盤Eペット／回復各1） |
+| 装飾品 | `resources/accessories/` — **55**（＋クラシックL飾4・**P3-EQ-CLASSIC-L-ACC-001**） |
 | ビルドL | `equipment/BuildLegendaryLoot.gd` — 防7＋飾5＋杖1（x-5追加1点。通常／封蔵除外） |
 | 敵 | `resources/enemies/`（`EnemyData.basic_attack_name`＝通常攻撃頭上名・**P3-UX-ENEMY-BASIC-NAME-001**）— メイン（①〜⑤・P3-ENEMY-002 拡充）+ 征討／降臨 Boss（chronos_wave→`chronos_mausoleum` / valgard→`valgard_boundary` / skarpedion / mycolga_ancient / karna_smoke / nereion_depths / forgedormient / albark）+ 遍在希少種4（P3-WANDER-002/004: cosmic_duck / crown_raven / golden_scarab / shadow_stalker）+ ロックバイソン（P3-ENEMY-ROCK-BISON-001: 全非イベント雑魚・素材率1.75・専用ドット／図鑑／イベント `rock_stampede`） |
 | ダンジョン | `resources/dungeons/` — **28本**: メイン5 + 寄り道5 + 征討8 + イベント5 + **深層5**（`abyss_*`／**P3-DG-ABYSS-001**）。`route_type`: main/side/apex/event/abyss。イベントは日次挑戦枠（DGごと）。**章データがある Biome は route 不問でバナー下にサブ章**（P3-DG-EVENT-STG-001）。イベントは各1章。深層は無限階・親Biomeクリアで解放。深層限定レジェンド武器5（`abyss_veinblade` 等／**P3-DG-ABYSS-001-C**） |
