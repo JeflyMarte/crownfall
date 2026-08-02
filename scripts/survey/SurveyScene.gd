@@ -220,7 +220,7 @@ func _build_ui() -> void:
 	start_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	start_row.custom_minimum_size.x = 0.0
 	_btn_start_short = Button.new()
-	_btn_start_short.text = "短調査（20分）"
+	_btn_start_short.text = "短調査（1時間）"
 	_btn_start_short.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_btn_start_short.pressed.connect(func(): _on_start(_SurveyConfig.PRESET_SHORT))
 	start_row.add_child(_btn_start_short)
@@ -1487,7 +1487,7 @@ func _on_start(preset: String) -> void:
 	var data: Resource = DataRegistry.get_dungeon_data(did)
 	var dg_name: String = str(data.display_name) if data != null else did
 	var kind: String = (
-		"短調査（20分）" if preset == _SurveyConfig.PRESET_SHORT else "標準調査（3時間）"
+		"短調査（1時間）" if preset == _SurveyConfig.PRESET_SHORT else "標準調査（3時間）"
 	)
 	_start_confirm.dialog_text = (
 		"調査を開始しますか？\n\n対象: %s\n種別: %s\n※配置した隊員は編成から外れます"

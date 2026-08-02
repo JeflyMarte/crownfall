@@ -9,7 +9,8 @@ const SURVEY_COMPLETE_PERCENT: float = 100.0
 const PRESET_SHORT: String = "short"
 const PRESET_STANDARD: String = "standard"
 
-const SHORT_DURATION_SEC: float = 20.0 * 60.0
+## P3-BAL-SURVEY-TIME-EXP-001: 短 1 時間／標準 3 時間据置。
+const SHORT_DURATION_SEC: float = 60.0 * 60.0
 const STANDARD_DURATION_SEC: float = 3.0 * 60.0 * 60.0
 
 const INVESTIGATOR_SLOTS: int = 4
@@ -71,10 +72,10 @@ const MATERIAL_WEIGHTS_BY_DUNGEON: Dictionary = {
 }
 const MATERIAL_WEIGHTS_DEFAULT: Dictionary = {"base_ore": 70, "relic_shard": 30}
 
-## P3-SURVEY-DISPATCH-EXP-001 — 戦闘員向け EXP（プール固定→均等割）。
-## 参照＝対象 DG 雑魚クリア相当 EXP。スタッフ／オトモは対象外。
-const EXP_RATIO_SHORT: float = 0.20
-const EXP_RATIO_STANDARD: float = 0.45
+## P3-SURVEY-DISPATCH-EXP-001／P3-BAL-SURVEY-TIME-EXP-001 — 戦闘員向け EXP。
+## 参照＝対象 DG 雑魚クリア相当 EXP（短・標準とも 100%）。スタッフ／オトモは対象外。
+const EXP_RATIO_SHORT: float = 1.0
+const EXP_RATIO_STANDARD: float = 1.0
 ## 雑魚クリア推定: 平均EXP × (room_count-1) × 群れ平均。
 const EXP_TRASH_SWARM_AVG: float = 1.5
 

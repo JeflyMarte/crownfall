@@ -92,7 +92,7 @@ func test_hub_and_field_guide_entries_exist() -> void:
 	assert_false(survey.is_empty(), "調査室の条がある")
 	assert_false(survey.contains("70"), "②解放に調査ゲージ条件を書かない")
 	assert_true(survey.contains("ボス"), "①ボス討伐で②解放")
-	assert_true(survey.contains("20"), "短調査20分")
+	assert_true(survey.contains("1 時間") or survey.contains("1時間"), "短調査1時間")
 	assert_true(survey.contains("3 時間") or survey.contains("3時間"), "標準調査3時間")
 
 	var otomo: String = str(by_id.get("SYS-G002", ""))
