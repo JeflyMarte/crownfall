@@ -20,20 +20,21 @@ func test_reference_trash_clear_exp_positive() -> void:
 	assert_gt(ref, 0)
 
 
-func test_short_pool_less_than_standard() -> void:
+func test_short_and_standard_pool_equal_full_ref() -> void:
+	## P3-BAL-SURVEY-TIME-EXP-001: 短・標準とも雑魚クリア相当 100%。
+	var ref: int = _SurveySystem.reference_trash_clear_exp(Constants.MOURNGATE_DUNGEON_ID)
 	var short_p: int = _SurveySystem.dispatch_exp_pool(
 		Constants.MOURNGATE_DUNGEON_ID, _SurveyConfig.PRESET_SHORT
 	)
 	var std_p: int = _SurveySystem.dispatch_exp_pool(
 		Constants.MOURNGATE_DUNGEON_ID, _SurveyConfig.PRESET_STANDARD
 	)
-	assert_gt(short_p, 0)
-	assert_gt(std_p, short_p)
-	assert_eq(
-		short_p,
-		int(round(float(_SurveySystem.reference_trash_clear_exp(Constants.MOURNGATE_DUNGEON_ID))
-			* _SurveyConfig.EXP_RATIO_SHORT))
-	)
+	assert_gt(ref, 0)
+	assert_eq(short_p, ref)
+	assert_eq(std_p, ref)
+	assert_eq(_SurveyConfig.EXP_RATIO_SHORT, 1.0)
+	assert_eq(_SurveyConfig.EXP_RATIO_STANDARD, 1.0)
+	assert_eq(_SurveyConfig.SHORT_DURATION_SEC, 60.0 * 60.0)
 
 
 func test_staff_only_grants_no_exp() -> void:

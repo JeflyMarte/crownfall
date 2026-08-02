@@ -5959,7 +5959,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | # | 決定 | 根拠 |
 |---|---|---|
 | P3-SURVEY-DISPATCH-EXP-001-1 | **対象** — 配置した戦闘ロスターのみ。ニーナ／ノノカ除外。オトモなし | 依頼どおり |
-| P3-SURVEY-DISPATCH-EXP-001-2 | **量** — 対象 DG 雑魚クリア相当 × 短20%／標準45% | 潜行比（案B）。潜行より一段下 |
+| P3-SURVEY-DISPATCH-EXP-001-2 | **量（後で上書き）** — 対象 DG 雑魚クリア相当 × 短20%／標準45% | → **P3-BAL-SURVEY-TIME-EXP-001** で短・標準とも100% |
 | P3-SURVEY-DISPATCH-EXP-001-3 | **割** — プール固定→均等（端数は先頭から） | 人数で総量が増えない |
 | P3-SURVEY-DISPATCH-EXP-001-4 | **付与** — 受取時のみ。中止は無し。`LevelSystem.grant_exp` | 潜行と同パッシブ乗算 |
 | P3-SURVEY-DISPATCH-EXP-001-5 | **UI** — 調査完了ポップに顔＋`+N EXP`／Lv↑ | UI-1 コンパクト |
@@ -6325,6 +6325,19 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-ENEMY-TRICKY-005-1 | **4タイプ** — T11吸血30%／T14他敵CT加速／T10沈黙5秒（ランダム1人）／T8 HP≤50%で同種1体・召喚者1回・生存≤5 | 推奨GO |
 | P3-BAL-ENEMY-TRICKY-005-2 | **パイロット** — undertaker_shark／clock_moth／tide_lamp／crown_eater_rat。新敵なし | テーマ適合 |
 | P3-BAL-ENEMY-TRICKY-005-3 | **Impl** — Phase A〜C 同ターン実装。初回特性テロップ | オーナー「推奨でGo」 |
+
+## 調査室・短1時間＋派遣EXP100%（2026-08-02 — P3-BAL-SURVEY-TIME-EXP-001）
+
+> **オーナー GO（推奨案A）** — 短＝1時間。派遣EXPは短・標準とも雑魚クリア相当100%。標準時間3時間据置。素材・魔晶石・SURVEY%据置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-SURVEY-TIME-EXP-001-1 | **短サイクル** — 20分 → **1時間** | オーナー指定 |
+| P3-BAL-SURVEY-TIME-EXP-001-2 | **標準サイクル** — **3時間据置** | 推奨GO |
+| P3-BAL-SURVEY-TIME-EXP-001-3 | **派遣EXP** — 雑魚クリア相当 × **短・標準とも100%** | 控え育成。案A |
+| P3-BAL-SURVEY-TIME-EXP-001-4 | **据置** — 素材／魔晶石／SURVEY加算／速度ボーナス | スコープ最小化 |
+| P3-BAL-SURVEY-TIME-EXP-001-5 | **上書き** — `P3-SURVEY-DISPATCH-EXP-001-2`／`05_HubSurveyRoom` §10・§13 | 本 Decision が正 |
+| P3-BAL-SURVEY-TIME-EXP-001-6 | **SSOT** — `SurveyConfig.SHORT_DURATION_SEC`／`EXP_RATIO_*` | 数値の正 |
 
 ## 装備中の効果3ページ（2026-08-02 — P3-UX-CHR-EFFECT-PAGES-001）
 
