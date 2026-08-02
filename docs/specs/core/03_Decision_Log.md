@@ -6754,6 +6754,19 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-CMD-RANK-SPLUS-001-5 | **TopBar** — 次の S+n までバー（最大等級固定を廃止） | 進捗が見える |
 | P3-CMD-RANK-SPLUS-001-6 | **SSOT** — `decisions/57_CommanderSPlusRanks.md` | 正 |
 
+## 指揮官 許可強化（2026-08-02 — P3-CMD-PERMIT-BOOST-001）
+
+> **オーナー GO（案A）** — S+n 到達で許可点。略奪／成長／戦力へ割り振り（パラゴン型）
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-CMD-PERMIT-BOOST-001-1 | **付与** — S+1 以降、到達段ごとに許可点 +1（既存 S+ は一括） | 案A |
+| P3-CMD-PERMIT-BOOST-001-2 | **系統** — 略奪（Gold・素材）／成長（EXP）／戦力（HP％・防御 flat） | 案A＋戦力②・ドロップ② |
+| P3-CMD-PERMIT-BOOST-001-3 | **数値** — 1点=+2%（防御は点×2 flat）。装備レア重量は対象外 | 薄め |
+| P3-CMD-PERMIT-BOOST-001-4 | **再配分** — いつでも無料（設定音量と同型スライダー） | 案A |
+| P3-CMD-PERMIT-BOOST-001-5 | **UI** — マイページから許可強化へ。最近のハイライトはオミット | オーナー指定 |
+| P3-CMD-PERMIT-BOOST-001-6 | **SSOT** — `decisions/58_CommanderPermitBoost.md` | 正 |
+
 ## クラシックL装飾補充（2026-08-02 — P3-EQ-CLASSIC-L-ACC-001）
 
 > **オーナー GO（案A）** — 通常レジェンド抽選のL飾が薄いため、クラシック枠を +4。

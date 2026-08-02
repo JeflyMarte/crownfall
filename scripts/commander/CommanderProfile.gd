@@ -435,6 +435,7 @@ static func _grant_rank_rewards_between(from_idx: int, to_idx: int) -> void:
 	if to_idx <= from_idx:
 		return
 	var rewarded: Array = _rank_reward_ranks()
+	var permit_ranks: Array = []
 	for i in range(from_idx + 1, to_idx + 1):
 		var code: String = rank_code_at(i)
 		if code in rewarded:
@@ -451,8 +452,12 @@ static func _grant_rank_rewards_between(from_idx: int, to_idx: int) -> void:
 				"materials": materials,
 				"source": "rank_up",
 			})
+		if s_plus_level(code) >= 1:
+			permit_ranks.append(code)
 		rewarded.append(code)
 	GameState.commander["rank_reward_ranks"] = rewarded
+	const _CommanderPermitBoost := preload("res://scripts/commander/CommanderPermitBoost.gd")
+	_CommanderPermitBoost.grant_points_for_ranks(permit_ranks)
 	const _CommanderTitles := preload("res://scripts/commander/CommanderTitles.gd")
 	_CommanderTitles.refresh_unlocks()
 
@@ -482,9 +487,13 @@ static func pending_rank_gift_summary(to_rank: String = "") -> String:
 			if mat_name.is_empty():
 				mat_name = str(mat_id)
 			parts.append("%s ×%d" % [mat_name, qty])
+	var permit_n: int = int(totals.get("permit_points", 0))
+	if permit_n > 0:
+		parts.append("許可点 +%d" % permit_n)
 	if parts.is_empty():
 		return ""
-	return "配布ボックスへ %s" % " / ".join(parts)
+	## 許可点はボックス外でも付与されるが、祝辞では同一行にまとめる。
+	return "到達祝い %s" % " / ".join(parts)
 
 
 static func _pending_rank_gift_totals(to_rank: String = "") -> Dictionary:
@@ -493,7 +502,7 @@ static func _pending_rank_gift_totals(to_rank: String = "") -> Dictionary:
 		normalize_rank_code(to_rank) if not to_rank.is_empty() else current_rank()
 	)
 	var to_idx: int = rank_index(code)
-	var out: Dictionary = {"gold": 0, "gacha_token": 0, "materials": {}}
+	var out: Dictionary = {"gold": 0, "gacha_token": 0, "materials": {}, "permit_points": 0}
 	if to_idx < 0:
 		return out
 	var ack: String = normalize_rank_code(str(GameState.commander.get("acknowledged_rank", "D")))
@@ -502,6 +511,7 @@ static func _pending_rank_gift_totals(to_rank: String = "") -> Dictionary:
 		from_idx = 0
 	var rewarded: Array = _rank_reward_ranks()
 	var mats_total: Dictionary = {}
+	var permit_n: int = 0
 	for i in range(from_idx + 1, to_idx + 1):
 		var rank_code: String = rank_code_at(i)
 		if rank_code in rewarded:
@@ -513,7 +523,10 @@ static func _pending_rank_gift_totals(to_rank: String = "") -> Dictionary:
 			var qty: int = int(raw_mats[mat_id])
 			if qty > 0:
 				mats_total[str(mat_id)] = int(mats_total.get(str(mat_id), 0)) + qty
+		if s_plus_level(rank_code) >= 1:
+			permit_n += 1
 	out["materials"] = mats_total
+	out["permit_points"] = permit_n
 	return out
 
 
@@ -673,6 +686,12 @@ static func _sanitize_commander() -> void:
 		GameState.commander["gift_box"] = []
 	if not GameState.commander.has("rank_reward_ranks") or not GameState.commander["rank_reward_ranks"] is Array:
 		GameState.commander["rank_reward_ranks"] = []
+	if not GameState.commander.has("permit_points_earned"):
+		GameState.commander["permit_points_earned"] = 0
+	if not GameState.commander.has("permit_alloc") or not GameState.commander["permit_alloc"] is Dictionary:
+		GameState.commander["permit_alloc"] = {"plunder": 0, "growth": 0, "power": 0}
+	const _CommanderPermitBoost := preload("res://scripts/commander/CommanderPermitBoost.gd")
+	_CommanderPermitBoost.sync_earned_from_acknowledged_rank()
 	if not GameState.commander.has("name") or str(GameState.commander.get("name", "")).strip_edges().is_empty():
 		GameState.commander["name"] = DEFAULT_NAME
 	## 既存セーブ: キー欠落は仮 D＋bootstrap フラグ。評価は ensure 外で行う。
