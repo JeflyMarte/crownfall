@@ -6402,12 +6402,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 
 | # | 決定 | 根拠 |
 |---|---|---|
-| P3-BAL-ELITE-BOSS-PRESSURE-001-1 | **ボス共通** — `boss_party_curse`（全体・軽ダメ・`curse`必中・即時・CD8）を全ボスへ | ATK↓の共通圧 |
-| P3-BAL-ELITE-BOSS-PRESSURE-001-2 | **ボス F1** — 即時全体に章テーマ状態を付与／確率 0.35〜0.45 | 状態異常の厚み |
-| P3-BAL-ELITE-BOSS-PRESSURE-001-3 | **フェーズ重み** — 激昂＜呪い＜即時全体 | バフ偏重を抑える |
-| P3-BAL-ELITE-BOSS-PRESSURE-001-4 | **エリート護衛** — 入場時雑魚 1〜2（`_swarm_minion_enemies`）。BOSS単体据置 | 忙しさと脅威 |
-| P3-BAL-ELITE-BOSS-PRESSURE-001-5 | **キット** — `polar_tricera` に前列 AoE。人数連動は ELITE/BOSS 除外のまま | 穴埋め＋Decision37整合 |
-| P3-BAL-ELITE-BOSS-PRESSURE-001-6 | **SSOT** — `decisions/38_EliteBossPressure.md`／`BalanceConfig.ELITE_ESCORT_*` | 数値の正 |
+| P3-BAL-ELITE-BOSS-PRESSURE-001-1 | **ボス個別** — 各ボス `boss_*_hex`（全体・軽ダメ・状態必中・即時・CD8）。共通呪い禁止 | ボスごとの個性 |
+| P3-BAL-ELITE-BOSS-PRESSURE-001-2 | **状態割当** — fear/slow/mark/vulnerable/armor_break（F1と被らない選定） | 戦中の二層圧 |
+| P3-BAL-ELITE-BOSS-PRESSURE-001-3 | **ボス F1** — 即時全体に章テーマ状態を付与／確率 0.35〜0.45 | 状態異常の厚み |
+| P3-BAL-ELITE-BOSS-PRESSURE-001-4 | **フェーズ重み** — 激昂＜個別hex＜即時全体 | バフ偏重を抑える |
+| P3-BAL-ELITE-BOSS-PRESSURE-001-5 | **エリート護衛** — 入場時雑魚 1〜2（`_swarm_minion_enemies`）。BOSS単体据置 | 忙しさと脅威 |
+| P3-BAL-ELITE-BOSS-PRESSURE-001-6 | **キット** — `polar_tricera` に前列 AoE。人数連動は ELITE/BOSS 除外のまま | 穴埋め＋Decision37整合 |
+| P3-BAL-ELITE-BOSS-PRESSURE-001-7 | **SSOT** — `decisions/38_EliteBossPressure.md`／`BalanceConfig.ELITE_ESCORT_*` | 数値の正 |
+| P3-BAL-ELITE-BOSS-PRESSURE-001-8 | **上書き** — 全ボス共通 `boss_party_curse`（初版）→個別hex | オーナー「安直」指摘 |
 
 ## 装備一覧・MAXありフィルタ（2026-08-02 — P3-UX-EQUIP-MAX-FILTER-001）
 

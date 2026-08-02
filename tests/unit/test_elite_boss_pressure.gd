@@ -1,12 +1,22 @@
 extends GutTest
-## P3-BAL-ELITE-BOSS-PRESSURE-001 — エリート護衛＋ボス全体呪い／F1状態。
+## P3-BAL-ELITE-BOSS-PRESSURE-001 — エリート護衛＋ボス個別デバフ／F1状態。
 
 
-const _BOSS_IDS := [
-	"serdion", "granvel", "moldgar", "nereion", "eldion", "chronos_wave",
-	"valgard", "skarpedion", "mycolga_ancient", "karna_smoke", "nereion_depths",
-	"forgedormient", "albark",
-]
+const _BOSS_HEX := {
+	"serdion": {"skill": "boss_serdion_hex", "status": "fear"},
+	"granvel": {"skill": "boss_granvel_hex", "status": "slow"},
+	"moldgar": {"skill": "boss_moldgar_hex", "status": "slow"},
+	"nereion": {"skill": "boss_nereion_hex", "status": "mark"},
+	"eldion": {"skill": "boss_eldion_hex", "status": "vulnerable"},
+	"chronos_wave": {"skill": "boss_chronos_wave_hex", "status": "slow"},
+	"valgard": {"skill": "boss_valgard_hex", "status": "vulnerable"},
+	"skarpedion": {"skill": "boss_skarpedion_hex", "status": "armor_break"},
+	"mycolga_ancient": {"skill": "boss_mycolga_hex", "status": "fear"},
+	"karna_smoke": {"skill": "boss_karna_hex", "status": "mark"},
+	"nereion_depths": {"skill": "boss_nereion_depths_hex", "status": "slow"},
+	"forgedormient": {"skill": "boss_forgedormient_hex", "status": "vulnerable"},
+	"albark": {"skill": "boss_albark_hex", "status": "fear"},
+}
 
 const _BOSS_F1_STATUS := {
 	"enemy_serdion_roar": "fear",
@@ -25,29 +35,40 @@ const _BOSS_F1_STATUS := {
 }
 
 
-func test_boss_party_curse_skill() -> void:
-	var skill: Resource = DataRegistry.get_skill_data("boss_party_curse")
-	assert_not_null(skill)
-	assert_eq(str(skill.target_type), "all_party")
-	assert_eq(str(skill.apply_status_id), "curse")
-	assert_almost_eq(float(skill.apply_status_chance), 1.0, 0.001)
-	assert_lte(float(skill.cast_time), 0.0)
-	assert_lte(float(skill.cooldown), 8.0)
+func test_no_shared_boss_party_curse() -> void:
+	assert_false(ResourceLoader.exists("res://resources/skills/boss_party_curse.tres"))
+	for boss_id: String in _BOSS_HEX.keys():
+		var enemy: Resource = DataRegistry.get_enemy_data(boss_id)
+		assert_false("boss_party_curse" in enemy.skill_ids, boss_id)
 
 
-func test_all_bosses_have_party_curse() -> void:
-	for boss_id: String in _BOSS_IDS:
+func test_each_boss_has_unique_hex() -> void:
+	var seen_skills: Dictionary = {}
+	for boss_id: String in _BOSS_HEX.keys():
+		var spec: Dictionary = _BOSS_HEX[boss_id]
+		var skill_id: String = str(spec["skill"])
+		var status_id: String = str(spec["status"])
 		var enemy: Resource = DataRegistry.get_enemy_data(boss_id)
 		assert_not_null(enemy, boss_id)
-		assert_true("boss_party_curse" in enemy.skill_ids, boss_id)
+		assert_true(skill_id in enemy.skill_ids, boss_id)
+		assert_false("boss_party_curse" in enemy.skill_ids, boss_id)
+		var skill: Resource = DataRegistry.get_skill_data(skill_id)
+		assert_not_null(skill, skill_id)
+		assert_eq(str(skill.target_type), "all_party", skill_id)
+		assert_eq(str(skill.apply_status_id), status_id, skill_id)
+		assert_almost_eq(float(skill.apply_status_chance), 1.0, 0.001)
+		assert_lte(float(skill.cast_time), 0.0, skill_id)
+		assert_false(seen_skills.has(skill_id), skill_id)
+		seen_skills[skill_id] = true
 
 
-func test_boss_phase1_curse_between_enrage_and_pressure() -> void:
-	for boss_id: String in _BOSS_IDS:
+func test_boss_phase1_hex_between_enrage_and_pressure() -> void:
+	for boss_id: String in _BOSS_HEX.keys():
+		var hex_id: String = str(_BOSS_HEX[boss_id]["skill"])
 		var def: Dictionary = CombatBossPhases.phase_def(boss_id, 0)
 		var weights: Dictionary = def.get("skill_weight", {})
 		assert_gt(
-			float(weights.get("boss_party_curse", 0.0)),
+			float(weights.get(hex_id, 0.0)),
 			float(weights.get("boss_enrage", 0.0)),
 			boss_id
 		)

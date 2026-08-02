@@ -1,6 +1,6 @@
-# エリート護衛＋ボス全体デバフ圧力
+# エリート護衛＋ボス個別デバフ圧力
 
-**Status:** Decision 承認済（2026-08-02 — オーナー「AでGo」）  
+**Status:** Decision 承認済（2026-08-02 — オーナー「AでGo」／個別デバフ「Goで」）  
 **Impl:** `P3-BAL-ELITE-BOSS-PRESSURE-001`  
 **関連:** P3-BAL-BOSS-PRESSURE-001／P3-BAL-SWARM-001／37_SwarmDensitySoloPressure
 
@@ -12,21 +12,37 @@ ELITE／BOSS が単体火力頼りで薄く感じる問題を、**数値の大�
 
 | 対象 | 確定 |
 |---|---|
-| ボス | 共通・全体 ATK↓（`curse`）＋ F1 全体の章テーマ状態異常を厚く |
+| ボス | **ボスごと**の全体デバフ／状態異常1枠＋ F1 全体の章テーマ状態を厚く |
 | エリート | 入場時に章雑魚 **1〜2** 体を護衛。本体は列／全体を最低1つ |
 | 人数連動 | ELITE／BOSS は引き続き適用外（護衛雑魚も密度スケールなし） |
 | グローバル ATK | 据置 |
 
 ---
 
-## 2. ボス
+## 2. ボス（個別全体デバフ）
+
+共通 `boss_party_curse` は使わない。各ボスに `boss_*_hex`（全体・軽ダメ・状態必中・即時・CD8）。
+
+| ボス | スキル | 状態 |
+|---|---|---|
+| serdion | `boss_serdion_hex` | fear |
+| granvel | `boss_granvel_hex` | slow |
+| moldgar | `boss_moldgar_hex` | slow |
+| nereion | `boss_nereion_hex` | mark |
+| eldion | `boss_eldion_hex` | vulnerable |
+| chronos_wave | `boss_chronos_wave_hex` | slow |
+| valgard | `boss_valgard_hex` | vulnerable |
+| skarpedion | `boss_skarpedion_hex` | armor_break |
+| mycolga_ancient | `boss_mycolga_hex` | fear |
+| karna_smoke | `boss_karna_hex` | mark |
+| nereion_depths | `boss_nereion_depths_hex` | slow |
+| forgedormient | `boss_forgedormient_hex` | vulnerable |
+| albark | `boss_albark_hex` | fear |
 
 | 項目 | 確定 |
 |---|---|
-| 共通技 | `boss_party_curse` — 全体・軽ダメージ・`curse` 必中・即時・CD8 |
-| 付与 | 全ボス `skill_ids` に追加 |
-| 重み | フェーズ未記載時は既定 1.0（激昂＜呪い＜即時全体） |
-| F1 状態 | 章テーマ異常を付与／確率をおおよそ 0.35〜0.45 へ |
+| 重み | 激昂＜個別hex＜即時全体 |
+| F1 状態 | 章テーマ異常を付与／確率をおおよそ 0.35〜0.45 へ（hex と被らないよう選定） |
 
 ---
 
@@ -46,3 +62,4 @@ ELITE／BOSS が単体火力頼りで薄く感じる問題を、**数値の大�
 - ボスへの大量召集
 - ELITE／BOSS への群れ人数連動
 - `ENEMY_GLOBAL_*_MULT` の再変更
+- 全ボス共通の同一デバフ技

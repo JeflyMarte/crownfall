@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "boss_albark_hex"
+display_name = "白闇の威圧"
+description = "白甲の沈黙が探索隊に恐怖を刻む。"
+skill_type = "boss"
+target_type = "all_party"
+power_multiplier = 0.25
+cooldown = 8.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["boss", "aoe"])
+element = "ice"
+apply_status_id = "fear"
+apply_status_chance = 1.0
+cast_time = 0.0

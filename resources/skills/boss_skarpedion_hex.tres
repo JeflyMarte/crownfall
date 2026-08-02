@@ -4,9 +4,9 @@
 
 [resource]
 script = ExtResource("1")
-id = "boss_party_curse"
-display_name = "王威の呪詛"
-description = "探索隊全体の戦意を削ぎ、与ダメージを落とす呪いを浴びせる。"
+id = "boss_skarpedion_hex"
+display_name = "鉄殻破砕"
+description = "鉄殻の衝撃が防具を打ち砕く。"
 skill_type = "boss"
 target_type = "all_party"
 power_multiplier = 0.25
@@ -14,7 +14,7 @@ cooldown = 8.0
 trigger_type = "cooldown"
 effect_type = "damage"
 tags = Array[String](["boss", "aoe"])
-element = "dark"
-apply_status_id = "curse"
+element = "earth"
+apply_status_id = "armor_break"
 apply_status_chance = 1.0
 cast_time = 0.0
