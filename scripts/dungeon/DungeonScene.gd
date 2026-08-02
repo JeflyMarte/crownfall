@@ -975,7 +975,6 @@ const BOSS_BODY_SCALE_MULT: Dictionary = {
 const COMBAT_UI_Z: int = 40
 const COMBAT_OVERLAY_Z: int = 25
 const PARTY_CARD_ICON_PX: float = 72.0
-const PARTY_CARD_WEAPON_ICON_PX: float = 24.0
 const PARTY_CARD_HP_HEIGHT: float = 14.0
 const PARTY_CARD_CD_HEIGHT: float = 11.0
 const SKILL_CD_LERP_RATE: float = 14.0
@@ -10436,7 +10435,7 @@ func _update_party_skill_cd_bars_smooth(delta: float) -> void:
 					ult_bar.value = ratio
 				_style_party_card_ult_gauge_bar(ult_bar, ult_ready)
 
-func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
+func _make_party_card(member: Resource, _combat_index: int) -> Dictionary:
 	var card := PanelContainer.new()
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	card.size_flags_stretch_ratio = 1.0
@@ -10471,27 +10470,16 @@ func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
 	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	UiTypography.apply_display(name_label, UiTypography.SIZE_BODY_SMALL, _party_log_color(member), UiTypography.OUTLINE_BODY)
 	name_col.add_child(name_label)
-	var weapon_wrap := Control.new()
-	weapon_wrap.custom_minimum_size = Vector2(PARTY_CARD_WEAPON_ICON_PX, PARTY_CARD_WEAPON_ICON_PX)
-	weapon_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var weapon_icon := TextureRect.new()
-	weapon_icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	weapon_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	weapon_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	var weapon: Resource = GameState.get_member_equipped_weapon(combat_index)
-	if weapon != null and not weapon.weapon_id.is_empty():
-		var weapon_tex: Texture2D = IconPaths.get_icon_texture(weapon.weapon_id, "weapon")
-		if weapon_tex != null:
-			weapon_icon.texture = weapon_tex
-	weapon_wrap.add_child(weapon_icon)
-	if weapon != null:
-		EquipmentUiHelper.apply_enhance_badge(
-			weapon_wrap,
-			weapon,
-			"weapon",
-			Vector2(PARTY_CARD_WEAPON_ICON_PX, PARTY_CARD_WEAPON_ICON_PX)
-		)
-	name_col.add_child(weapon_wrap)
+	## 装備武器アイコンの代わりにキャラLvを表示（戦闘下カード）。
+	var level_label := Label.new()
+	level_label.text = "Lv.%d" % maxi(1, int(member.level))
+	level_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	level_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_body(
+		level_label, UiTypography.SIZE_CAPTION, UiTypography.COLOR_GOLD, UiTypography.OUTLINE_BODY
+	)
+	name_col.add_child(level_label)
 	top_row.add_child(name_col)
 	var hp_row := HBoxContainer.new()
 	hp_row.add_theme_constant_override("separation", 4)
