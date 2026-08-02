@@ -215,6 +215,7 @@ alwaysApply: false
 | パッシブ／狩人の印のデバフで「追い込み」不発 | 連携武装がスキル経路のみ | `_party_applied_enemy_status` でパッシブ・レリック pre_hit も武装 |
 | 敵詠唱スキルが別個体として解決 | resolve が `active_enemy_index` 再読 | caster `slot` を buff/damage/async まで貫通（D-001） |
 | パッシブ party 回復／鼓舞がオトモを外す | `party_members` ループ | `party_combat_hp`（combatants）に揃える。必殺チャージは人間のみ |
+| 必殺が後半ほど連打になる | 与ダメ／被ダメ連動チャージ | 時間制（`ULTIMATE_CHARGE_FILL_SECONDS`）。ダメ経路を戻さない（`46_UltimateChargeTime`） |
 | 敵クリティカルがデータだけ／無効果 | `critical_rate` 未配線 | `enemy_damage_to_member` でロール＋`CRITICAL_MULTIPLIER`（E-001） |
 | 武器ブロックがログ／テロップ無し | `blocked` フラグ無し | Miss 同型の `Block!`＋軽減ダメージ継続 |
 | 群れで同スキルが同時に使えない | CDキーが `enemy:{skill_id}` 共有 | `enemy:{slot}:{id}`（F-001） |

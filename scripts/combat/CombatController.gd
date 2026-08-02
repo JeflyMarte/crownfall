@@ -55,7 +55,8 @@ var _swarm_density_spd_mult: float = 1.0
 var member_target_slot: Array[int] = []
 # 装備スキル①②のローテーション開始位置（P3-D113）。戦闘中のみ保持。
 var member_skill_rot_idx: Array[int] = []
-# 必殺チャージ（P3-COMBAT-GAUGE-001）。member index → 0..ULTIMATE_CHARGE_MAX。
+# 必殺チャージ（P3-COMBAT-GAUGE-001 → 時間制 P3-BAL-ULTIMATE-TIME-001）。
+# member index → 0..ULTIMATE_CHARGE_MAX。戦闘中・生存中のみ時間で増加。
 var member_ultimate_charge: Array[float] = []
 ## ELITE／BOSS 中は BalanceConfig.ULTIMATE_CHARGE_PRESSURE_MULT（P3-BAL-ULTIMATE-PRESSURE-001）。
 var ultimate_charge_gain_mult: float = 1.0
@@ -433,17 +434,23 @@ func add_ultimate_charge(member_index: int, amount: float) -> void:
 		float(member_ultimate_charge[member_index]) + gained
 	)
 
-func add_ultimate_charge_from_damage_dealt(member_index: int, damage: int) -> void:
-	if damage <= 0:
+## 戦闘時間で必殺ゲージを進める（×1 で FILL_SECONDS 秒満タン）。
+## `delta_sec` は一時停止を除いた戦闘クロック（速度倍率込み可）。
+func tick_ultimate_charge_over_time(delta_sec: float) -> void:
+	if delta_sec <= 0.0 or not is_in_combat:
 		return
-	var k: float = Constants.ULTIMATE_CHARGE_DEALT_K
-	k *= CombatPassives.weapon_ultimate_charge_dealt_mult(member_index)
-	add_ultimate_charge(member_index, float(damage) * k)
-
-func add_ultimate_charge_from_damage_taken(member_index: int, damage: int) -> void:
-	if damage <= 0:
+	var fill_sec: float = Constants.ULTIMATE_CHARGE_FILL_SECONDS
+	if fill_sec <= 0.0:
 		return
-	add_ultimate_charge(member_index, float(damage) * Constants.ULTIMATE_CHARGE_TAKEN_K)
+	_ensure_member_ultimate_charge()
+	var base_per_sec: float = Constants.ULTIMATE_CHARGE_MAX / fill_sec
+	for i: int in member_ultimate_charge.size():
+		if not is_member_alive(i):
+			continue
+		var rate_mult: float = CombatPassives.ultimate_charge_rate_mult(i)
+		if rate_mult <= 0.0:
+			continue
+		add_ultimate_charge(i, base_per_sec * delta_sec * rate_mult)
 
 func consume_ultimate_charge(member_index: int) -> void:
 	if member_index < 0 or member_index >= member_ultimate_charge.size():

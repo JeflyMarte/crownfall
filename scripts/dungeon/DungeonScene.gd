@@ -1269,6 +1269,10 @@ func _process(delta: float) -> void:
 		_battle_log_scroll.scroll_vertical = _battle_log_scroll.get_v_scroll_bar().max_value
 	if $DungeonController.is_combat_room():
 		_update_party_skill_cd_bars_smooth(delta)
+		## 必殺＝戦闘時間チャージ（P3-BAL-ULTIMATE-TIME-001）。一時停止中は進まない。
+		if $CombatController.is_in_combat and not _is_paused:
+			var spd: float = _combat_speed_mult if _combat_speed_mult > 0.0 else 1.0
+			$CombatController.tick_ultimate_charge_over_time(delta * spd)
 		_update_chr_hp_bar_positions()
 
 func _set_narrative(text: String) -> void:
@@ -5020,7 +5024,6 @@ func _process_status_ticks() -> void:
 			$CombatController.apply_damage_to_member(idx, dmg)
 			if dmg > 0:
 				GameState.record_run_damage_taken(idx, dmg)
-				$CombatController.add_ultimate_charge_from_damage_taken(idx, dmg)
 			if idx < _chr_sprites.size():
 				var party_pos: Vector2 = _sprite_visual_center_global(_chr_sprites[idx])
 				var party_effect: String = str(result.get("effect_id", ""))
@@ -6149,9 +6152,6 @@ func _deal_member_damage_to_enemy(
 	GameState.record_run_damage(member_idx, damage, skill_id, skill_name, is_critical)
 	$CombatController.apply_damage_to_enemy_slot(target_slot, damage)
 	$CombatController.add_threat(member_idx, float(damage) * CombatController.THREAT_DAMAGE_K)
-	# 必殺自身の与ダメではチャージしない（P3-COMBAT-GAUGE-001）。
-	if damage > 0 and not _skill_id_is_ultimate(skill_id):
-		$CombatController.add_ultimate_charge_from_damage_dealt(member_idx, damage)
 	_check_boss_phase_transition(target_slot)
 	if damage > 0:
 		_fire_member_passives(
@@ -6824,7 +6824,6 @@ func _apply_enemy_damage_to_targets(
 		$CombatController.add_threat(ti, float(dmg) * CombatController.THREAT_TAKEN_K)
 		if dmg > 0:
 			GameState.record_run_damage_taken(ti, dmg)
-			$CombatController.add_ultimate_charge_from_damage_taken(ti, dmg)
 			_apply_enemy_lifesteal(atk_slot, dmg)
 		_play_chr_hurt(ti)
 		if ti < _chr_sprites.size():
@@ -7234,7 +7233,6 @@ func _resolve_enemy_attack_impact_async(payload: Dictionary) -> void:
 	$CombatController.add_threat(target_idx, float(enemy_result["final"]) * CombatController.THREAT_TAKEN_K)
 	if int(enemy_result["final"]) > 0:
 		GameState.record_run_damage_taken(target_idx, int(enemy_result["final"]))
-		$CombatController.add_ultimate_charge_from_damage_taken(target_idx, int(enemy_result["final"]))
 		_apply_enemy_lifesteal(slot, int(enemy_result["final"]))
 	_play_chr_hurt(target_idx)
 	if target_idx < _chr_sprites.size():

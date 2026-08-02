@@ -622,7 +622,7 @@ const _DEFS: Dictionary = {
 	"eq_wpn_pharos_flare": {
 		"display_name": "烽火の鼓動",
 		"category": "weapon",
-		"description": "与ダメから溜まる必殺チャージ +75%。装備スキル与ダメ +15%。",
+		"description": "必殺チャージ速度 +75%。装備スキル与ダメ +15%。",
 		"ultimate_charge_dealt_mult": 1.75,
 		"skill_power_mult": 1.15,
 	},
@@ -1292,6 +1292,11 @@ static func outgoing_vs_status_mult_for_member(member_index: int, present_status
 				continue
 		mult *= float(raw_def["outgoing_vs_status_mult"])
 	return mult
+
+
+## 必殺チャージ速度倍率（鍵名 `ultimate_charge_dealt_mult` は互換維持・時間制でも速度に適用）。
+static func ultimate_charge_rate_mult(member_index: int) -> float:
+	return weapon_ultimate_charge_dealt_mult(member_index)
 
 
 static func weapon_ultimate_charge_dealt_mult(member_index: int) -> float:
