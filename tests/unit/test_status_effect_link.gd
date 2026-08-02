@@ -32,16 +32,17 @@ func test_effect_summary_armor_break() -> void:
 	assert_true(s.contains("防御"), s)
 
 
-func test_effect_one_line_dot_uses_per_second() -> void:
-	## P3-UX-STATUS-LEGEND-001: 「刻」ではなく「1秒ごと」。名前付き。
+func test_effect_one_line_dot_uses_ongoing_damage() -> void:
+	## DoT は CT 間隔。壁時計「1秒」は使わない。名前付き。
 	var poison: String = _Helper.effect_one_line("poison")
-	assert_eq(poison, "毒:1秒ごとにダメージ")
+	assert_eq(poison, "毒:継続ダメージ")
 	assert_false(poison.contains("刻"))
+	assert_false(poison.contains("1秒"))
 	var ignite: String = _Helper.effect_one_line("ignite")
-	assert_true(ignite.ends_with(":1秒ごとにダメージ"), ignite)
+	assert_true(ignite.ends_with(":継続ダメージ"), ignite)
 	assert_true(ignite.contains(":"), ignite)
 	var bleed: String = _Helper.effect_one_line("bleed")
-	assert_true(bleed.ends_with(":1秒ごとにダメージ"), bleed)
+	assert_true(bleed.ends_with(":継続ダメージ"), bleed)
 
 
 func test_effect_one_line_stat_mod() -> void:
@@ -52,5 +53,6 @@ func test_effect_one_line_stat_mod() -> void:
 	var stun: String = _Helper.effect_one_line("stun")
 	assert_eq(stun, "スタン:行動不能")
 	var summary_poison: String = _Helper.effect_summary("poison")
-	assert_true(summary_poison.contains("1秒ごと"), summary_poison)
+	assert_true(summary_poison.contains("継続ダメージ"), summary_poison)
 	assert_false(summary_poison.contains("刻ごと"), summary_poison)
+	assert_false(summary_poison.contains("1秒"), summary_poison)

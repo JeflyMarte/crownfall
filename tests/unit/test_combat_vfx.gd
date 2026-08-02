@@ -51,7 +51,9 @@ func test_spawn_burst_without_crash() -> void:
 
 
 func test_dot_telop_color_mapping() -> void:
-	assert_true(_CombatVfxManager.dot_telop_color("poison").g > 0.8)
+	## 毒は紫系（回復緑と被らせない）。
+	var poison_c: Color = _CombatVfxManager.dot_telop_color("poison")
+	assert_true(poison_c.b > poison_c.g, "poison telop should skew purple/blue over green")
 	assert_true(_CombatVfxManager.dot_telop_color("ignite").r > 0.9)
 	assert_true(_CombatVfxManager.dot_telop_color("ignite").g < 0.5)
 

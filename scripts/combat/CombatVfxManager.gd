@@ -35,8 +35,9 @@ const STATUS_COLOR: Dictionary = {
 const APPLY_TELOP_BUFF: Color = Color(1.0, 0.72, 0.28)
 
 ## DoT ダメージテロップ用（視認性優先の明るめ色）。
+## 毒は紫系（緑は回復 +N と被るため使わない）。
 const DOT_TELOP_COLOR: Dictionary = {
-	"poison": Color(0.42, 0.96, 0.38),
+	"poison": Color(0.78, 0.42, 0.95),
 	"ignite": Color(0.98, 0.32, 0.22),
 	"bleed": Color(0.95, 0.35, 0.35),
 	"chill": Color(0.55, 0.82, 1.0),
