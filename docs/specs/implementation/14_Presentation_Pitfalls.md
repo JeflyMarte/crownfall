@@ -46,6 +46,7 @@
 | パッシブ発動なのに名が出ない | 発動前 `_clear_member_skill_labels`／`sprite.visible==false` で return | `_announce_passive_fire`＋`allow_hidden_sprite`。名は積む（消さない） |
 | 状態付与「〇〇を付与！」 | `STATUS_APPLY_TELOP_FONT_SIZE`（22）。48px 禁止 |
 | T6/T7 軽減が毎回テロップ | `_try_announce_enemy_incoming_resist`＋`EnemyResistTelop` キーで戦闘内1回。毎回禁止 |
+| T8召集で群れUIが消える | `_show_enemy_swarm` 全クリア禁止。`_reveal_appended_enemy_slot` で増分 |
 | 敵スキル名 | 味方と同型で `_sprite_top_y_global`／スロット指定。`【技名】`＋同寸。`global_position-150` 固定＋`visible` 即 return 禁止 |
 | 敵通常攻撃名 | 通常攻撃も `_spawn_enemy_skill_name`＋`EnemyData.basic_attack_name`（P3-UX-ENEMY-BASIC-NAME-001）。❗️のみに戻さない |
 | 詠唱中 `persist=true` | もともと無音 |
