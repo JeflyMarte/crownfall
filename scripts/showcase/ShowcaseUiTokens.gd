@@ -25,6 +25,9 @@ const FOOTER_RECT := Rect2(100, 1030, 520, 90)
 const POWER_RECT := Rect2(222, 918, 282, 68)
 ## 名札枠上辺の欠けた横線を補完（焼込角飾り ≈ y1033・左右内側）。
 const NAME_FRAME_TOP_RULE := Rect2(242, 1032, 236, 3)
+## 自慢キャラ未設定時に背景焼込の名札枠（下のボタン枠）を隠す覆い。
+const NAME_FRAME_MASK_RECT := Rect2(120, 1015, 480, 135)
+const NAME_FRAME_MASK_COLOR := Color(0.055, 0.04, 0.03, 1.0)
 ## 自分の展示：キャラ変更（装備とステのあいだ・やや右寄せ・短め）。
 const CHANGE_MEMBER_RECT := Rect2(248, 248, 188, 44)
 const EMPTY_RECT := Rect2(90, 210, 540, 400)

@@ -171,6 +171,7 @@ alwaysApply: false
 | セーフエリア／ノッチ／Mac simulate／拠点 chrome／Idle拡縮（代表） | chrome誤適用・Headerのみ移動・`size.y`・モバイル一律スキップ | → **`ui-layout.mdc` SafeArea／CHR Idle** |
 | 拠点に所持金〜発見の中段帯が再出現する | `CurrencyStrip` を再表示／`_populate_currency_strip` を復活 | 帯は非表示のまま（TopBar のみ）。日課は下端スタック（`HubLayoutHelper._stack_hub_bottom_panels`）。ギルド情報誌は左メニュー直下 |
 | 展示室でスタッフ名と総合戦力が重なる | StaffStrip 横並びが POWER_RECT と同帯 | 作例は一覧ボタン（左）＋シート。Strip 廃止（P3-UX-SHOWCASE-STAFF-LIST-001） |
+| 展示室・自慢キャラなしでも下に空の名札枠 | 名札枠が BG 焼込。Footer を隠しても枠だけ残る | 空状態で `NAME_FRAME_MASK` を表示（`ShowcaseScene._set_stage_visible`） |
 | デバッグ中なのに時間限定イベントDGが閉じている | `EventDungeonSchedule.is_open_now` が `debug_full_unlock` を見ない | `debug_full_unlock`（または override=-2）で曜日／時間帯を常時開放。表示は「デバッグ常時開放」 |
 | 招待状で下ナビが潰れる／隊長バーが中段に落ちる | chrome＋Mac simulate ON | → `ui-layout.mdc` SafeArea |
 | 招待状が黒画面・下ナビにアイコン無し・BG／タイトル無し | `GachaScene.gd` が欠落メンバ（`TITLE_ART` 等）でパース失敗→スクリプト未実行で chrome／ナビ装飾が走らない | ガチャ画面は HEAD の `_setup_gacha_atmosphere` / `setup_banner_header` を維持。トークン定数は参照前に必ず定義。変更後 headless で GachaScene ロード確認 |

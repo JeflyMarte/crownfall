@@ -50,6 +50,7 @@ var _power_frame: TextureRect = null
 var _power_caption: Label = null
 var _power_value: Label = null
 var _name_frame_top_rule: Control = null
+var _name_frame_mask: ColorRect = null
 var _pick_overlay: Control = null
 var _pick_list: VBoxContainer = null
 var _pick_title: Label = null
@@ -70,6 +71,7 @@ func _ready() -> void:
 	_setup_chrome()
 	_ensure_power_panel()
 	_ensure_name_frame_top_rule()
+	_ensure_name_frame_mask()
 	_ensure_change_member_button()
 	_ensure_staff_list_button()
 	_apply_layout_rects()
@@ -210,6 +212,10 @@ func _apply_layout_rects() -> void:
 		_name_frame_top_rule.position = rule_r.position
 		_name_frame_top_rule.size = rule_r.size
 		_name_frame_top_rule.queue_redraw()
+	if _name_frame_mask != null:
+		var mask_r: Rect2 = ShowcaseUiTokensScript.NAME_FRAME_MASK_RECT
+		_name_frame_mask.position = mask_r.position
+		_name_frame_mask.size = mask_r.size
 
 	if _btn_change_member != null:
 		var change_r: Rect2 = ShowcaseUiTokensScript.CHANGE_MEMBER_RECT
@@ -274,6 +280,19 @@ func _ensure_name_frame_top_rule() -> void:
 	_name_frame_top_rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_name_frame_top_rule.draw.connect(_on_name_frame_top_rule_draw)
 	add_child(_name_frame_top_rule)
+
+
+func _ensure_name_frame_mask() -> void:
+	## 自慢キャラ未設定時は焼込名札枠だけ残ると空ボタンに見えるので覆う。
+	if _name_frame_mask != null:
+		return
+	_name_frame_mask = ColorRect.new()
+	_name_frame_mask.name = "NameFrameMask"
+	_name_frame_mask.z_index = 3
+	_name_frame_mask.visible = false
+	_name_frame_mask.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_name_frame_mask.color = ShowcaseUiTokensScript.NAME_FRAME_MASK_COLOR
+	add_child(_name_frame_mask)
 
 
 func _on_name_frame_top_rule_draw() -> void:
@@ -469,6 +488,9 @@ func _set_stage_visible(on: bool) -> void:
 		_name_frame_top_rule.visible = on
 		if on:
 			_name_frame_top_rule.queue_redraw()
+	if _name_frame_mask != null:
+		## ステージ非表示（自慢キャラなし）のとき焼込名札枠を隠す。
+		_name_frame_mask.visible = not on
 
 
 func _show_empty_own() -> void:
