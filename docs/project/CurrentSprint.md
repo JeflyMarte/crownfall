@@ -94,6 +94,7 @@
 | — | **P3-BAL-ENEMY-TRICKY-002** | 敵トリッキー Phase2（T5逃走） | ✅ Impl（要実機） |
 | — | **P3-BAL-ENEMY-TRICKY-003** | 敵トリッキー Phase3（T4自爆／T6・T7×0.2） | ✅ Impl（要実機） |
 | — | **P3-BAL-ENEMY-TRICKY-004** | 敵トリッキー章展開（ミストフェン／フロストリッジ） | ✅ Impl（要実機） |
+| — | **P3-UX-ENEMY-RESIST-TELOP-001** | T6/T7 被ダメ軽減の初回説明テロップ | ✅ Impl（要実機） |
 | — | **P3-CODEX-HIST-GUIDE-050** | 図鑑 歴史50／世界観手引き50（HE-001〜050・WORLD-G001〜050） | ✅ GO・統合＋main |
 | — | **P3-EQ-DIABLO-001** | 装備ステ・ディアブロ寄せ（固定ATK/DEF＋random_mods／Affix統合） | ✅ GO・統合＋main |
 | — | **P3-EQ-JOB-WPN-001** | 職別武器種制限（preferred＝装備可能リスト） | ✅ GO・統合＋main |
