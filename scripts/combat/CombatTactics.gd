@@ -72,7 +72,11 @@ const _ORDER: Array[String] = [
 static func tactics_list() -> Array:
 	var out: Array = []
 	for id in _ORDER:
-		out.append({"id": id, "display_name": _DEFS[id]["display_name"]})
+		out.append({
+			"id": id,
+			"display_name": _DEFS[id]["display_name"],
+			"summary_hint": str(_DEFS[id].get("summary_hint", "")),
+		})
 	return out
 
 static func normalize_id(tactics_id: String) -> String:
