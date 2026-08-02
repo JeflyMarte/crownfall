@@ -288,15 +288,21 @@ static func has_craftable_recipes() -> bool:
 	return not CraftHelper.get_craftable_recipes().is_empty()
 
 
-## 強化左一覧: 装備中優先 → レアリティ高い順 → 炉研ぎLv → 名前。
+## 強化左一覧: 装備中優先 → 総合力高い順 → レアリティ → 炉研ぎLv → 名前。
+## category: weapon / armor / accessory（EquipmentPower SSOT）。
 static func enhance_list_sort_before(
 	a: Resource,
 	b: Resource,
 	a_equipped: bool,
-	b_equipped: bool
+	b_equipped: bool,
+	category: String = "weapon"
 ) -> bool:
 	if a_equipped != b_equipped:
 		return a_equipped
+	var a_power: float = EquipmentPower.score(a, category, null)
+	var b_power: float = EquipmentPower.score(b, category, null)
+	if not is_equal_approx(a_power, b_power):
+		return a_power > b_power
 	var a_rarity: int = EquipmentEnhancer.item_rarity(a)
 	var b_rarity: int = EquipmentEnhancer.item_rarity(b)
 	if a_rarity != b_rarity:

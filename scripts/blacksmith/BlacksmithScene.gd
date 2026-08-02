@@ -2816,7 +2816,7 @@ func _sorted_enhance_candidates() -> Array:
 		items.append(item)
 	items.sort_custom(func(a: Resource, b: Resource) -> bool:
 		return BlacksmithUiHelper.enhance_list_sort_before(
-			a, b, _is_item_equipped(a), _is_item_equipped(b)
+			a, b, _is_item_equipped(a), _is_item_equipped(b), _category
 		)
 	)
 	return items
