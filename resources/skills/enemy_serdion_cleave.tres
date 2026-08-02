@@ -4,17 +4,17 @@
 
 [resource]
 script = ExtResource("1")
-id = "boss_decree_wave"
-display_name = "断罪の波動"
-description = "ボスが破壊の波動を放ち、味方全体に大ダメージを与える。"
+id = "enemy_serdion_cleave"
+display_name = "骸晶薙ぎ"
+description = "骨格の一振りで探索隊全体を薙ぐ。通常攻撃（全体）。"
 skill_type = "boss"
 target_type = "all_party"
-power_multiplier = 2.0
-cooldown = 8.0
+power_multiplier = 1.0
+cooldown = 0.0
 trigger_type = "cooldown"
 effect_type = "damage"
-tags = Array[String](["boss"])
+tags = Array[String](["boss", "basic", "aoe"])
 element = "dark"
 apply_status_id = ""
 apply_status_chance = 0.0
-cast_time = 1.0
+cast_time = 0.0

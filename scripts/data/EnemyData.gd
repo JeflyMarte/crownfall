@@ -5,6 +5,9 @@ extends Resource
 @export var display_name: String = ""
 ## 通常攻撃の頭上テロップ名（P3-UX-ENEMY-BASIC-NAME-001）。空＝「攻撃」。
 @export var basic_attack_name: String = ""
+## 通常攻撃のバリエーション（SkillData id）。非空時は均等抽選してスキル経路で実行（CD非消費）。
+## 空＝従来の単体×1.0。skill_ids（スキル枠）とは別。
+@export var basic_attack_skill_ids: Array[String] = []
 @export var max_hp: int = 0
 @export var attack: int = 0
 @export var defense: int = 0

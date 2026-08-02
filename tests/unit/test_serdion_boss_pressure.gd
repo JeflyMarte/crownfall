@@ -44,6 +44,37 @@ func test_dual_aoe_bosses_keep_heavy_cast() -> void:
 		assert_gte(float(skill.cast_time), 1.0, skill_id)
 
 
+func test_serdion_decree_wave_power_2() -> void:
+	var skill: Resource = DataRegistry.get_skill_data("boss_decree_wave")
+	assert_not_null(skill)
+	assert_almost_eq(float(skill.power_multiplier), 2.0, 0.001)
+	assert_eq(str(skill.target_type), "all_party")
+	assert_gte(float(skill.cast_time), 1.0)
+
+
+func test_serdion_basic_attack_variants() -> void:
+	var boss: Resource = DataRegistry.get_enemy_data("serdion")
+	assert_not_null(boss)
+	var ids: Array = boss.basic_attack_skill_ids
+	assert_eq(ids.size(), 2)
+	assert_true("enemy_serdion_claw" in ids)
+	assert_true("enemy_serdion_cleave" in ids)
+	## 通常攻撃バリエーションは skill_ids（スキル枠）に混ぜない。
+	for sid: Variant in ids:
+		assert_false(str(sid) in boss.skill_ids, str(sid))
+	var claw: Resource = DataRegistry.get_skill_data("enemy_serdion_claw")
+	assert_not_null(claw)
+	assert_eq(str(claw.target_type), "party")
+	assert_almost_eq(float(claw.power_multiplier), 1.5, 0.001)
+	assert_lte(float(claw.cast_time), 0.0)
+	assert_eq(str(claw.apply_status_id), "bleed")
+	var cleave: Resource = DataRegistry.get_skill_data("enemy_serdion_cleave")
+	assert_not_null(cleave)
+	assert_eq(str(cleave.target_type), "all_party")
+	assert_almost_eq(float(cleave.power_multiplier), 1.0, 0.001)
+	assert_lte(float(cleave.cast_time), 0.0)
+
+
 func test_all_bosses_base_skill_use_raised() -> void:
 	for boss_id: String in _BOSS_INSTANT_AOE.keys():
 		var enemy: Resource = DataRegistry.get_enemy_data(boss_id)
