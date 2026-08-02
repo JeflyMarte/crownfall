@@ -3911,7 +3911,9 @@ func _skill_applies_status(skill_data: Resource) -> bool:
 		return false
 	if not str(skill_data.apply_status_id).is_empty() and float(skill_data.apply_status_chance) > 0.0:
 		return true
-	return not str(skill_data.apply_status_id2).is_empty() and float(skill_data.apply_status_chance2) > 0.0
+	if not str(skill_data.apply_status_id2).is_empty() and float(skill_data.apply_status_chance2) > 0.0:
+		return true
+	return not str(skill_data.apply_status_id3).is_empty() and float(skill_data.apply_status_chance3) > 0.0
 
 ## 一覧行用の性能一行（例: 威力×1.5／再使用2秒）。
 func _skill_performance_text(skill_data: Resource, unlocked: bool = true, req_lv: int = 1) -> String:
@@ -4024,7 +4026,7 @@ func _skill_stats_detail_lines(skill_data: Resource, unlocked: bool = true, req_
 			var elem_label: String = _ElementResolver.get_display_name(str(skill_data.element))
 			if not elem_label.is_empty():
 				lines.append("属性: %s" % elem_label)
-			for status_key: String in ["apply_status_id", "apply_status_id2"]:
+			for status_key: String in ["apply_status_id", "apply_status_id2", "apply_status_id3"]:
 				var chance_key: String = status_key.replace("id", "chance")
 				var status_line: String = _skill_status_line(
 					str(skill_data.get(status_key)),
@@ -4156,6 +4158,10 @@ func _skill_detail_text(skill_data: Resource, unlocked: bool = true, req_lv: int
 				var eff2: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id2)
 				var st_name2: String = eff2.display_name if eff2 != null else "状態異常"
 				parts.append("%s%.0f%%" % [st_name2, skill_data.apply_status_chance2 * 100.0])
+			if not str(skill_data.apply_status_id3).is_empty() and skill_data.apply_status_chance3 > 0.0:
+				var eff3: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id3)
+				var st_name3: String = eff3.display_name if eff3 != null else "状態異常"
+				parts.append("%s%.0f%%" % [st_name3, skill_data.apply_status_chance3 * 100.0])
 			body = "／".join(parts)
 	if not unlocked:
 		return "🔒 Lv%d  %s" % [req_lv, body]

@@ -26,6 +26,9 @@ extends Resource
 ## 副次状態付与（P3-D107）。1スキルで2種目のデバフを付与する場合に使用（空=なし）。
 @export var apply_status_id2: String = ""
 @export var apply_status_chance2: float = 0.0
+## 第3状態（必殺の多重デバフ等。空=なし）。
+@export var apply_status_id3: String = ""
+@export var apply_status_chance3: float = 0.0
 ## スロット種別（P3-D085）: "attack" | "defend" | "skill" | "ultimate"。
 ## 既定 "skill"。必殺技は "ultimate"（長CD・高威力）。AI設定(P3-D086)の選択対象。
 @export var slot_type: String = "skill"

@@ -5179,6 +5179,17 @@ func _apply_skill_status_to_enemy_slot(member_idx: int, skill_data: Resource, ta
 				if effect2 != null:
 					label2 = effect2.display_name
 				_append_log("[%s] 付与" % label2)
+	if not skill_data.apply_status_id3.is_empty() and skill_data.apply_status_chance3 > 0.0:
+		if randf() <= EvolutionTraits.effective_status_chance(member_idx, skill_data.apply_status_chance3):
+			if $CombatController.apply_status_to_enemy_slot(
+				target_slot, skill_data.apply_status_id3, 1, base_info["base_damage"]
+			):
+				_party_applied_enemy_status(member_idx, target_slot, skill_data.apply_status_id3)
+				var effect3: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id3)
+				var label3: String = skill_data.apply_status_id3
+				if effect3 != null:
+					label3 = effect3.display_name
+				_append_log("[%s] 付与" % label3)
 
 
 ## スキル／必殺の会心倍率（通常攻撃と同式: 武器 critical_damage + パッシブ）。
@@ -5254,9 +5265,28 @@ func _execute_member_aoe_damage_skill(
 	var log_line: String = "\n【スキル】%s: 敵全体へ計%dダメージ%s%s（%d体）" % [
 		result["display_name"], total_dmg, crit_tag, form_tag, hits.size(),
 	]
-	_play_chr_attack_one(member_idx)
 	if cast_index == 0:
 		_clear_member_skill_labels(member_idx)
+	## 必殺の全体攻撃はカットイン経路（単体必殺と同尺）。
+	if _is_ultimate_skill(skill_data):
+		var focus_pos: Vector2 = Vector2.ZERO
+		if not hits.is_empty() and typeof(hits[0]) == TYPE_DICTIONARY:
+			focus_pos = hits[0].get("pos", Vector2.ZERO) as Vector2
+		_play_ultimate_presentation_async({
+			"kind": "aoe_damage",
+			"member_idx": member_idx,
+			"skill_data": skill_data,
+			"display_name": str(result["display_name"]),
+			"hits": hits,
+			"attack_element": attack_element,
+			"skill_is_crit": skill_is_crit,
+			"spawn_pos": focus_pos,
+			"log_line": log_line,
+			"skill_id": str(skill_data.id) if skill_data != null else "",
+			"session_id": _combat_session_id,
+		})
+		return ""
+	_play_chr_attack_one(member_idx)
 	if not suppress_resolve_label:
 		_spawn_skill_name(result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP, attack_element)
 	_resolve_party_aoe_skill_damage_impact_async({
@@ -5423,6 +5453,29 @@ func _apply_skill_secondary_status(member_idx: int, skill_data: Resource, hit_sl
 	if effect2 != null:
 		label2 = effect2.display_name
 	_append_log("[%s] 付与" % label2)
+
+
+func _apply_skill_tertiary_status(member_idx: int, skill_data: Resource, hit_slot: int = -1) -> void:
+	if skill_data == null or skill_data.apply_status_id3.is_empty():
+		return
+	var slot: int = hit_slot
+	if slot < 0:
+		slot = $CombatController.get_member_target_slot(member_idx)
+	if slot < 0 or not $CombatController.is_enemy_slot_alive(slot):
+		return
+	if skill_data.apply_status_chance3 <= 0.0 or randf() > EvolutionTraits.effective_status_chance(member_idx, skill_data.apply_status_chance3):
+		return
+	var base_info: Dictionary = _calc_attack_base(member_idx)
+	if not $CombatController.apply_status_to_enemy_slot(
+		slot, skill_data.apply_status_id3, 1, int(base_info.get("base_damage", 0))
+	):
+		return
+	_party_applied_enemy_status(member_idx, slot, skill_data.apply_status_id3)
+	var effect3: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id3)
+	var label3: String = skill_data.apply_status_id3
+	if effect3 != null:
+		label3 = effect3.display_name
+	_append_log("[%s] 付与" % label3)
 
 # 回復スキル: 最も負傷した生存メンバーを回復する。負傷者が居なければCDを消費せず発動しない。
 func _execute_member_heal(
@@ -11052,6 +11105,11 @@ func _play_ultimate_presentation_async(payload: Dictionary) -> void:
 		var focus_pos: Vector2 = _member_sprite_world_pos(target_idx, 0.5)
 		_play_ultimate_resolve_vfx(member_idx, skill_data, focus_pos, "")
 		_apply_ultimate_heal_impact(payload)
+	elif kind == "aoe_damage":
+		var focus_pos: Vector2 = payload.get("spawn_pos", Vector2.ZERO) as Vector2
+		_play_ultimate_resolve_vfx(member_idx, skill_data, focus_pos, element)
+		_play_ally_aoe_band_vfx(member_idx, skill_data, element)
+		_apply_ultimate_aoe_damage_impact(payload)
 	else:
 		var focus_pos: Vector2 = payload.get("spawn_pos", Vector2.ZERO) as Vector2
 		_play_ultimate_resolve_vfx(member_idx, skill_data, focus_pos, element)
@@ -11088,9 +11146,44 @@ func _apply_ultimate_damage_impact(payload: Dictionary) -> void:
 	if $CombatController.is_enemy_slot_alive(target_slot):
 		_apply_skill_status(member_idx, skill_data, target_slot)
 		_apply_skill_secondary_status(member_idx, skill_data, target_slot)
+		_apply_skill_tertiary_status(member_idx, skill_data, target_slot)
 	_apply_skill_on_hit_self_effects(member_idx, skill_data)
 	if not log_line.is_empty():
 		_append_log("【必殺】" + log_line.trim_prefix("【スキル】"))
+
+
+func _apply_ultimate_aoe_damage_impact(payload: Dictionary) -> void:
+	var member_idx: int = int(payload.get("member_idx", -1))
+	var skill_data: Resource = payload.get("skill_data") as Resource
+	var hits: Array = payload.get("hits", []) as Array
+	var attack_element: String = str(payload.get("attack_element", ""))
+	var skill_is_crit: bool = bool(payload.get("skill_is_crit", false))
+	var log_line: String = str(payload.get("log_line", ""))
+	var skill_id: String = str(payload.get("skill_id", ""))
+	var display_name: String = str(payload.get("display_name", "スキル"))
+	if not log_line.is_empty():
+		_append_log("【必殺】" + log_line.trim_prefix("【スキル】"))
+	for hit_v in hits:
+		if typeof(hit_v) != TYPE_DICTIONARY:
+			continue
+		var hit: Dictionary = hit_v
+		var slot: int = int(hit.get("slot", -1))
+		var dmg: int = int(hit.get("dmg", 0))
+		var spawn_pos: Vector2 = hit.get("pos", Vector2.ZERO) as Vector2
+		if slot < 0 or dmg <= 0 or not $CombatController.is_enemy_slot_alive(slot):
+			continue
+		_spawn_hit_vfx(spawn_pos, attack_element, 1.05, skill_is_crit)
+		_spawn_damage_number(
+			str(dmg),
+			spawn_pos + Vector2(12.0, 0.0),
+			_outgoing_damage_telop_color(skill_is_crit, true),
+			1.45 if skill_is_crit else 1.25
+		)
+		if not _deal_member_damage_to_enemy(member_idx, dmg, slot, skill_id, display_name, skill_is_crit):
+			if $CombatController.is_enemy_slot_alive(slot):
+				_play_enemy_slot_animation(slot, "hurt")
+			_apply_skill_status_to_enemy_slot(member_idx, skill_data, slot)
+	_apply_skill_on_hit_self_effects(member_idx, skill_data)
 
 func _apply_ultimate_heal_impact(payload: Dictionary) -> void:
 	var member_idx: int = int(payload.get("member_idx", -1))
