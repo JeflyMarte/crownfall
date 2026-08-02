@@ -56,9 +56,26 @@ func test_effect_text_for_kaiwan_weapon() -> void:
 	assert_false(entry.is_empty())
 	assert_eq(_GachaEquipSystem.effect_title(), "効果")
 	var text: String = _GachaEquipSystem.effect_text_for(entry)
-	assert_true(text.contains("初撃与ダメ"), text)
-	assert_true(text.contains("2撃目以降"), text)
+	assert_true(text.contains("最初の攻撃") or text.contains("３０"), text)
+	assert_true(text.contains("２撃目") or text.contains("8"), text)
 	assert_eq(_GachaEquipSystem.catchcopy(), "灰冠の刃を手にする")
+
+
+func test_kaiwan_blurbs_are_product_pitch() -> void:
+	## 商品紹介調: 2行・部位名で締めない。
+	for raw: Variant in _GachaEquipSystem.POOL:
+		var e: Dictionary = raw as Dictionary
+		var blurb: String = str(e.get("blurb", "")).strip_edges()
+		var id: String = str(e.get("id", ""))
+		assert_false(blurb.is_empty(), id)
+		assert_true(blurb.find("\n") >= 0, "%s should be two lines" % id)
+		assert_eq(blurb.split("\n").size(), 2, id)
+		assert_false(blurb.ends_with("武器！"), id)
+		assert_false(blurb.ends_with("防具！"), id)
+		assert_false(blurb.ends_with("装飾！"), id)
+		assert_true(blurb.ends_with("！") or blurb.ends_with("!"), id)
+	var perfidy: Dictionary = _GachaEquipSystem.pool_entry_by_id("kaiwan_perfidy")
+	assert_true(str(perfidy.get("blurb", "")).begins_with("デバフ中の敵にとにかく強い！"))
 
 
 func test_pull_cost_is_300() -> void:
