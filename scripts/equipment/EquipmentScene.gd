@@ -4011,8 +4011,8 @@ func _skill_stats_detail_lines(skill_data: Resource, unlocked: bool = true, req_
 		lines.append("射程: %s" % _skill_range_label(range_type))
 	match skill_data.effect_type:
 		"heal":
-			var heal_amt: int = int(round(skill_data.power_multiplier * 14.0))
-			lines.append("回復量: +%d" % heal_amt)
+			var pct: int = int(round(float(skill_data.power_multiplier) * 100.0))
+			lines.append("回復: 最大HPの%d%%" % pct)
 		"buff":
 			var eff_b: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id)
 			if eff_b != null:
@@ -4129,8 +4129,8 @@ func _skill_detail_text(skill_data: Resource, unlocked: bool = true, req_lv: int
 	var body: String = ""
 	match skill_data.effect_type:
 		"heal":
-			var amt: int = int(round(skill_data.power_multiplier * 14.0))
-			body = "回復+%d／再使用%.0f秒" % [amt, skill_data.cooldown]
+			var pct: int = int(round(float(skill_data.power_multiplier) * 100.0))
+			body = "最大HPの%d%%回復／再使用%.0f秒" % [pct, skill_data.cooldown]
 		"buff":
 			var parts_buff: PackedStringArray = []
 			var eff_b: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id)

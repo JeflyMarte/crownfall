@@ -6501,3 +6501,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-ULTIMATE-ROLE-001-4 | **上書き** — `40_UltimateAoeDebuff` のタイタン全体ダメ | 本 Decision が正 |
 | P3-BAL-ULTIMATE-ROLE-001-5 | **SSOT** — `decisions/41_UltimateRoleSplit.md` | 数値の正 |
 
+## 味方回復 maxHP 割合（2026-08-02 — P3-BAL-HEAL-MAXHP-001）
+
+> **オーナー GO（推奨）** — 固定 HEAL_SKILL_BASE をやめ、対象 maxHP×％へ。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-HEAL-MAXHP-001-1 | **式** — `round(対象maxHP × power_multiplier)`＋healing_bonus＋heal倍率 | 終盤HPに追従 |
+| P3-BAL-HEAL-MAXHP-001-2 | **治癒 20%／大治癒 32%／グランドエリクサー 16%（全体）** | 推奨帯の中央 |
+| P3-BAL-HEAL-MAXHP-001-3 | **SSOT** — tres の power＋`BalanceConfig.HEAL_FRAC_*`／`42_HealMaxHpFraction.md` | 数値の正 |
+

@@ -27,7 +27,7 @@ func test_grand_elixir_party_heal() -> void:
 	assert_not_null(skill)
 	assert_eq(str(skill.target_type), "all_party")
 	assert_eq(str(skill.effect_type), "heal")
-	assert_almost_eq(float(skill.power_multiplier), 1.7, 0.001)
+	assert_almost_eq(float(skill.power_multiplier), BalanceConfig.HEAL_FRAC_GRAND_ELIXIR, 0.001)
 	assert_gte(float(skill.cast_time), 1.0)
 
 

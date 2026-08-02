@@ -6,10 +6,10 @@
 script = ExtResource("1")
 id = "salve_burst"
 display_name = "大治癒"
-description = "濃縮薬液による緊急の大回復。大きく傷ついた味方を一気に立て直す。"
+description = "濃縮薬液による緊急の大回復。大きく傷ついた味方の最大HPの多くを一気に立て直す。"
 skill_type = "player"
 target_type = "ally"
-power_multiplier = 1.9
+power_multiplier = 0.32
 cooldown = 8.5
 trigger_type = "cooldown"
 effect_type = "heal"

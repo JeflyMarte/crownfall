@@ -103,7 +103,8 @@ func test_frail_dust_is_armor_break() -> void:
 func test_salve_burst_is_emergency_heal() -> void:
 	var salve: Resource = DataRegistry.get_skill_data("salve_burst")
 	var mend: Resource = DataRegistry.get_skill_data("mend")
-	assert_gt(float(salve.power_multiplier), float(mend.power_multiplier) + 0.4)
+	## maxHP 割合（大治癒 > 治癒）。固定値時代の +0.4 差は廃止。
+	assert_gt(float(salve.power_multiplier), float(mend.power_multiplier))
 	assert_gt(float(salve.cooldown), float(mend.cooldown) + 2.0)
 
 

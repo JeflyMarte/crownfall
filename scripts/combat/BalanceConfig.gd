@@ -46,8 +46,14 @@ const ATTACK_PER_LEVEL: int = 2 * STAT_SCALE
 const HP_PER_LEVEL_MASTER: int = 3 * STAT_SCALE
 const ATTACK_PER_LEVEL_MASTER: int = 1 * STAT_SCALE
 
-# ── 回復スキル基準値（旧 DungeonScene 定数） ─────────────────────────────
+# ── 回復スキル（P3-BAL-HEAL-MAXHP-001） ───────────────────────────────────
+## 味方 heal スキルの power_multiplier = 対象 maxHP 割合（敵healと同型）。
+## 旧固定基準（互換・テスト参照用。戦闘スキル経路では未使用）。
 const HEAL_SKILL_BASE: int = 14 * STAT_SCALE
+## 推奨値（tres が正。ここは Decision の目安）。
+const HEAL_FRAC_MEND: float = 0.20
+const HEAL_FRAC_SALVE_BURST: float = 0.32
+const HEAL_FRAC_GRAND_ELIXIR: float = 0.16
 ## 回復部屋の最低回復（P3-BAL-NONCOMBAT-001: 各員 maxHP×割合と比較）
 const ROOM_HEAL_AMOUNT: int = 10 * STAT_SCALE
 ## 泉成功時の回復割合（各生存者）。
