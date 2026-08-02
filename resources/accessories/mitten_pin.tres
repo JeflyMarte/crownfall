@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "mitten_pin"
+display_name = "手袋留めの飾"
+rarity = 0
+icon = ""
+accessory_type = "charm"
+description = "手袋を留める骨のピン。寒冷地で手先の感覚を保つお守り。"
+hp_bonus = 160
+attack_bonus = 0
+defense_bonus = 48
+crit_rate_bonus = 0.0
+exp_gain_rate = 0.0
+gold_gain_rate = 0.0
+rare_drop_rate = 0.0

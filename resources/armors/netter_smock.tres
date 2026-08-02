@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ArmorData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ArmorData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+armor_id = "netter_smock"
+display_name = "網師の作業着"
+description = "潮風に晒された網師の作業着。濡れても動きやすく、冷えを抑える。"
+base_defense = 120
+base_hp_bonus = 384
+base_resistance = 0.0
+resist_elements = Array[String](["water"])
+weight = 0.75
+rarity = 0

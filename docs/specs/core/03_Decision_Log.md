@@ -6689,3 +6689,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-EQ-FLAT-ROLL-NARROW-001-4 | **互換** — 所持済み mods は据置。新規ドロップのみ | セーブ破壊を避ける |
 | P3-EQ-FLAT-ROLL-NARROW-001-5 | **SSOT** — `decisions/51_FlatRollNarrow.md` | 正 |
 
+## 序盤防飾N／中盤装飾E補充（2026-08-02 — P3-EQ-EARLY-MID-FILL-001）
+
+> **オーナー GO（案A＋B）** — 飾E極薄・防飾N薄をメイン5 Biomeで補充。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-EARLY-MID-FILL-001-1 | **案A** — 装飾E×5（HP／DEF／金／レアドロ軸。ボスATK護符と別） | 中盤ビルド差 |
+| P3-EQ-EARLY-MID-FILL-001-2 | **案B** — 防具N×5＋装飾N×5（既存Nとのトレードオフ） | 序盤の選択肢 |
+| P3-EQ-EARLY-MID-FILL-001-3 | **供給** — 通常ダンジョンプールへ追加。封蔵・確定★には載せない | L肥大を避ける |
+| P3-EQ-EARLY-MID-FILL-001-4 | **SSOT** — `decisions/52_EarlyMidEquipFill.md` | 正 |
+
