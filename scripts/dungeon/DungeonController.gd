@@ -651,6 +651,16 @@ func _is_mourngate_early_chapter() -> bool:
 	return biome_i == 1 and chapter_i >= 1 and chapter_i <= 3
 
 
+## 時間帯降臨（時環／境界）。曜日イベントとは別枠。
+func _is_descent_event_dungeon() -> bool:
+	const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
+	if current_dungeon_data == null:
+		return false
+	if str(current_dungeon_data.route_type) != "event":
+		return false
+	return _EventDungeonSchedule.uses_hourly_windows(str(current_dungeon_data.id))
+
+
 ## 1-1〜1-3 のみ群れ率を下げる（イベント forced_swarm／深層は対象外）。
 func _early_stage_swarm_chance_mult() -> float:
 	if _is_mourngate_early_chapter():
@@ -1471,38 +1481,45 @@ func pick_combat_enemy_group() -> Array[Resource]:
 	var forced_swarm: bool = (
 		current_dungeon_data != null and float(current_dungeon_data.forced_swarm_chance) >= 0.0
 	)
+	## 降臨: データ未設定でも群れ厚め（Nでも）。tres の forced_swarm があればそちら優先。
+	var descent_swarm: bool = (not forced_swarm) and _is_descent_event_dungeon()
 	var escorts: bool = bool(base.escorts_minions)
-	if not bool(base.can_swarm) and not forced_swarm and not escorts:
+	if not bool(base.can_swarm) and not forced_swarm and not descent_swarm and not escorts:
 		return group
 	var swarm_chance: float = SWARM_CHANCE
 	if forced_swarm:
 		swarm_chance = float(current_dungeon_data.forced_swarm_chance)
+	elif descent_swarm:
+		swarm_chance = BalanceConfig.DESCENT_EVENT_SWARM_CHANCE
 	# 探索方針（安全優先）群れ出現率を半減（P3-D098）
 	elif GameState.get_exploration_policy() == "safe":
 		swarm_chance *= 0.5
-	if not forced_swarm:
+	if not forced_swarm and not descent_swarm:
 		swarm_chance *= _early_stage_swarm_chance_mult()
 	swarm_chance *= _DungeonTierConfig.swarm_chance_mult(GameState.current_dungeon_tier)
 	swarm_chance = minf(0.95, swarm_chance * EventSystem.get_swarm_chance_mult())
 	if randf() >= swarm_chance:
 		return group
-	## 敵ごとの swarm_min を尊重（1許可）。イベント forced_swarm は従来どおり下限2。
+	## 敵ごとの swarm_min を尊重（1許可）。イベント forced_swarm／降臨は下限2。
 	var lo: int = maxi(1, int(base.swarm_min))
 	var hi: int = maxi(lo, int(base.swarm_max))
 	if forced_swarm:
 		lo = maxi(2, int(current_dungeon_data.forced_swarm_min))
 		hi = maxi(lo, int(current_dungeon_data.forced_swarm_max))
+	elif descent_swarm:
+		lo = maxi(2, BalanceConfig.DESCENT_EVENT_SWARM_MIN)
+		hi = maxi(lo, BalanceConfig.DESCENT_EVENT_SWARM_MAX)
 	var size_bonus: int = _DungeonTierConfig.swarm_size_bonus(GameState.current_dungeon_tier)
 	hi = mini(_DungeonTierConfig.swarm_size_cap(), hi + size_bonus)
-	## モーンゲート 1-1〜1-3 ノーマル: 群れ最高2体（forced_swarm イベントは対象外）。
-	if not forced_swarm:
+	## モーンゲート 1-1〜1-3 ノーマル: 群れ最高2体（forced_swarm／降臨は対象外）。
+	if not forced_swarm and not descent_swarm:
 		var early_cap: int = _early_normal_swarm_size_cap()
 		if early_cap > 0:
 			hi = mini(hi, early_cap)
 	lo = mini(lo, hi)
 	var size: int = randi_range(lo, hi)
 	var capable: Array[Resource] = _swarm_capable_enemies()
-	if forced_swarm and capable.is_empty():
+	if (forced_swarm or descent_swarm) and capable.is_empty():
 		capable.append(base)
 	var minions: Array[Resource] = _swarm_minion_enemies()
 	## 護衛リーダー: 追加枠は常に雑魚。雑魚プールが空なら単体のまま。

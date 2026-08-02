@@ -30,6 +30,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | GachaSystem | `scripts/autoload/GachaSystem.gd` |
 
 **危険度ティア（P3-DG-TIER / P3-DG-TIER-002）:** `DungeonTierConfig.gd` — Hard/NM はメイン5キャンペーン周回帯。解放=ノーマル全クリア／ハード全クリア。敵Lvボーナス= N5-5 cap / 2×cap。UI=`DungeonSelectScene` TabsRow。  
+**降臨群れ（P3-BAL-DESCENT-SWARM-001）:** 時間帯降臨は N でも群れ率0.72・頭数2〜4（`DESCENT_EVENT_SWARM_*`）。
 **ボス開幕オーラ（P3-BAL-BOSS-AURA-A-001）:** 入場時 `boss_*_hex` 状態を味方全員へ。BOSS速度は人数係数、ATK×1.22、hex CD6。
 **ティア遭遇圧（P3-BAL-TIER-ENC-A-001）:** 群れ率 H×1.35／NM×1.75。NMエリート=双エリート薄護衛 or 単＋護衛2〜3。本編ボス単体。無限ボス編成=`AbyssDungeonConfig.boss_pack_kind`（33群／66エリート／99+抽選）。  
 **ティア見た目／呼称（P3-ENEMY-TIER-VAR）:** `EnemyTierVariantConfig.gd` — 同IDの Hard/NM 表示名＋個性上書き（ベース数値据置）。スプライトは `DungeonScene.ENEMY_SPRITE_MAP_BY_TIER` / `BOSS_*_BY_TIER`（①〜④：モーンゲート／ウィスパーウッド／ミストフェン／ブラックショア）。  

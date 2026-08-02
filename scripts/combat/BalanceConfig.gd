@@ -189,6 +189,11 @@ const MIXED_SWARM_CHANCE: float = 0.50  # 群れ時に別種を混ぜる確率
 const EARLY_STAGE_SWARM_CHANCE_MULT: float = 0.50
 ## モーンゲート 1-1〜1-3・ノーマルのみの群れ頭数上限（単体1／群れ最大2）。
 const EARLY_STAGE_SWARM_SIZE_CAP: int = 2
+## 時間帯降臨（時環／境界等）— ノーマルでも群れ多め（P3-BAL-DESCENT-SWARM-001）。
+## 本編 N=0.45 より高く、曜日イベント forced_swarm 帯（0.30〜0.40）より厚くする。
+const DESCENT_EVENT_SWARM_CHANCE: float = 0.72
+const DESCENT_EVENT_SWARM_MIN: int = 2
+const DESCENT_EVENT_SWARM_MAX: int = 4
 
 # ── 群れ人数連動（P3-BAL-SWARM-DENSITY-001） ─────────────────────────────
 ## 戦闘開始時の頭数で一体あたり倍率を固定。倒しても再計算しない。
