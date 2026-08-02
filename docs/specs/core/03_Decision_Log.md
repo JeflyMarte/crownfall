@@ -6569,3 +6569,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-EQ-ELEMENT-POWER-SCALE-001-4 | **移行** — セーブ／sanitize で旧値（&lt;50）を×100 | 所持装備を壊さない |
 | P3-EQ-ELEMENT-POWER-SCALE-001-5 | **上書き** — `P3-EQ-STAT-005-1` の K=0.01 表記 | 本 Decision が正 |
 
+## キャラ詳細・戦術タブをスキル同型一覧へ（2026-08-02 — P3-UX-TACTICS-LIST-001）
+
+> **オーナー指示** — 作戦保存UIを削除。戦術は縦一覧でスキルと同じフォーマットで選択設定。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-TACTICS-LIST-001-1 | **削除** — 戦術タブの「作戦」保存／適用／スロットUI | 保存導線の廃止 |
+| P3-UX-TACTICS-LIST-001-2 | **UI** — 行動方針7種をスキル行と同型（金枠・設定ボタン・説明）で縦一覧 | 操作の一貫性 |
+| P3-UX-TACTICS-LIST-001-3 | **選択** — 1キャラ1方針。設定で即反映・セーブ | 既存 `set_member_tactics` |
+| P3-UX-TACTICS-LIST-001-4 | **据置** — GameState 作戦プリセットAPI・探索方針・陣形ヒント | データ互換／他導線 |
+

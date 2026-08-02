@@ -157,10 +157,10 @@ var _inventory_equipped_filter: String = "all"
 ## 効果ファミリー id の複数選択（空＝指定なし）。装備一覧と同仕様。
 var _effect_families: Array[String] = []
 var _effect_sheet: CanvasLayer = null
-# 戦術セレクタ（P3-D086・スキルタブ上部に動的生成）
-var _tactics_option: OptionButton = null
-var _tactics_ids: Array[String] = []
-var _tactics_summary_label: Label = null
+# 戦術一覧（スキルタブと同型の縦リスト選択）
+var _tactics_slots_label: RichTextLabel = null
+var _tactics_hint_label: Label = null
+var _tactics_list: VBoxContainer = null
 var _gambit_accordion_btn: Button = null
 var _gambit_accordion_expanded: bool = false
 var _gambit_custom_check: CheckBox = null
@@ -182,13 +182,6 @@ const _POLICY_IDS: Array = ["", "safe", "material", "relic", "codex"]
 var _tab_buttons: Array[Button] = []
 var _category_panels: Dictionary = {}
 var _active_tab: int = 0
-
-# ---- 作戦プリセット（パーティ単位の保存） ----
-var _combat_preset_option: OptionButton = null
-var _btn_apply_combat_preset: Button = null
-var _btn_save_combat_preset: Button = null
-var _combat_preset_status_label: Label = null
-var _combat_preset_selected_slot: int = 0
 
 const _TAB_LABELS: Array[String] = ["装備", "スキル", "必殺技", "パッシブ", "戦術"]
 const _TAB_CONTAINER_INDICES: Array[int] = [0, 2, 3, 4, 5]
@@ -3440,134 +3433,14 @@ func _on_relic_passive_toggle_pressed(passive_id: String) -> void:
 	_rebuild_passive_tab()
 	_rebuild_equip_slots()
 
-# ---- 戦術タブ（P3-D086 戦術・ガンビット） ----
-func _ensure_combat_preset_ui() -> void:
-	if _combat_preset_option != null and is_instance_valid(_combat_preset_option):
-		return
-	if _combat_setup_content == null:
-		return
-	var row := HBoxContainer.new()
-	row.name = "CombatPresetRow"
-	row.add_theme_constant_override("separation", 8)
-	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-
-	var label := Label.new()
-	label.text = "作戦:"
-	UiTypography.apply_body(label, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
-	row.add_child(label)
-
-	var opt := OptionButton.new()
-	opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	opt.item_selected.connect(_on_combat_preset_selected)
-	_combat_preset_option = opt
-	row.add_child(opt)
-
-	var apply_btn := Button.new()
-	apply_btn.text = "適用"
-	UiTypography.apply_menu_button(apply_btn)
-	apply_btn.pressed.connect(_on_combat_preset_apply_pressed)
-	_btn_apply_combat_preset = apply_btn
-	row.add_child(apply_btn)
-
-	var save_btn := Button.new()
-	save_btn.text = "保存"
-	UiTypography.apply_menu_button(save_btn)
-	save_btn.pressed.connect(_on_combat_preset_save_pressed)
-	_btn_save_combat_preset = save_btn
-	row.add_child(save_btn)
-
-	var status := Label.new()
-	status.name = "CombatPresetStatus"
-	status.text = ""
-	status.visible = false
-	status.size_flags_horizontal = Control.SIZE_SHRINK_END
-	UiTypography.apply_body(status, UiTypography.SIZE_CAPTION, COLOR_SUB)
-	_combat_preset_status_label = status
-	row.add_child(status)
-
-	_combat_setup_content.add_child(row)
-
-
-func _sync_combat_preset_ui() -> void:
-	if _combat_preset_option == null or _combat_setup_content == null:
-		return
-	var slots: int = GameState.COMBAT_PRESET_SLOTS
-	_combat_preset_selected_slot = clampi(_combat_preset_selected_slot, 0, maxi(0, slots - 1))
-
-	_combat_preset_option.clear()
-	for slot in range(slots):
-		var name: String = GameState.get_combat_preset_name(slot)
-		if name.is_empty():
-			name = "作戦%d" % (slot + 1)
-		var summary: String = GameState.get_combat_preset_summary(slot)
-		if summary.is_empty():
-			summary = "未保存"
-		# 一行で表示（OptionButton は改行が崩れることがある）
-		var text: String = "%s  %s" % [name, summary]
-		_combat_preset_option.add_item(text, slot)
-	_combat_preset_option.select(_combat_preset_selected_slot)
-
-	var interactive: bool = not _is_viewing_pet()
-	if _btn_apply_combat_preset != null and is_instance_valid(_btn_apply_combat_preset):
-		_btn_apply_combat_preset.disabled = not interactive
-	if _btn_save_combat_preset != null and is_instance_valid(_btn_save_combat_preset):
-		_btn_save_combat_preset.disabled = not interactive
-
-
-func _on_combat_preset_selected(slot: int) -> void:
-	_combat_preset_selected_slot = slot
-
-
-func _flash_combat_preset_status(text: String) -> void:
-	if _combat_preset_status_label == null or not is_instance_valid(_combat_preset_status_label):
-		return
-	_combat_preset_status_label.text = text
-	_combat_preset_status_label.visible = true
-	get_tree().create_timer(1.2).timeout.connect(func() -> void:
-		if _combat_preset_status_label != null and is_instance_valid(_combat_preset_status_label):
-			_combat_preset_status_label.visible = false
-	, CONNECT_ONE_SHOT)
-
-
-func _on_combat_preset_apply_pressed() -> void:
-	if _combat_preset_option == null:
-		return
-	if _is_viewing_pet():
-		return
-	var slot: int = _combat_preset_selected_slot
-	var result: Dictionary = GameState.apply_combat_preset(slot)
-	SaveManager.save_game()
-	_refresh_display()
-	_sync_combat_preset_ui()
-	var skipped: Array = result.get("skipped", []) if result.has("skipped") else []
-	if bool(result.get("ok", false)) and skipped.size() > 0:
-		_flash_combat_preset_status("適用：一部スキップ %d件" % skipped.size())
-	elif bool(result.get("ok", false)):
-		_flash_combat_preset_status("適用：完了")
-	else:
-		_flash_combat_preset_status("適用：失敗")
-
-
-func _on_combat_preset_save_pressed() -> void:
-	if _combat_preset_option == null:
-		return
-	if _is_viewing_pet():
-		return
-	var slot: int = _combat_preset_selected_slot
-	GameState.save_combat_preset(slot, "")
-	SaveManager.save_game()
-	_sync_combat_preset_ui()
-	_flash_combat_preset_status("保存：完了")
-
+# ---- 戦術タブ（P3-D086 行動方針・縦一覧選択） ----
 func _rebuild_tactics_tab() -> void:
 	var member: Resource = _get_view_adventurer()
 	if GameState.EXPLORATION_POLICY_PLAYABLE:
 		_ensure_exploration_policy_ui()
 		_sync_policy_option()
-	_ensure_tactics_ui()
-	_ensure_combat_preset_ui()
-	_sync_combat_preset_ui()
-	_refresh_tactics_ui(member)
+	_ensure_tactics_list_ui()
+	_refresh_tactics_list(member)
 	ScrollTouchHelper.enable(_tab_tactics_scroll)
 
 func _ensure_combat_setup_panel() -> void:
@@ -3593,37 +3466,193 @@ func _ensure_combat_setup_panel() -> void:
 	_combat_setup_panel.add_child(outer)
 	_tactics_content.add_child(_combat_setup_panel)
 
-# 戦術セレクタ（P3-D086）。常時表示パネル最上部。
-func _ensure_tactics_ui() -> void:
-	if _tactics_option != null and is_instance_valid(_tactics_option):
-		return
+## 行動方針一覧（スキルと同型）。作戦プリセット保存UIは廃止。
+func _ensure_tactics_list_ui() -> void:
 	_ensure_combat_setup_panel()
-	var row := HBoxContainer.new()
-	row.name = "TacticsRow"
-	var label := Label.new()
-	label.text = "行動方針:"
-	UiTypography.apply_body(label, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
-	row.add_child(label)
-	var opt := OptionButton.new()
-	opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_tactics_ids.clear()
-	for t: Dictionary in CombatTactics.tactics_list():
-		opt.add_item(str(t["display_name"]))
-		_tactics_ids.append(str(t["id"]))
-	opt.item_selected.connect(_on_tactics_selected)
-	row.add_child(opt)
-	_combat_setup_content.add_child(row)
-	_combat_setup_content.move_child(row, 0)
-	_tactics_option = opt
-	var summary := Label.new()
-	summary.name = "TacticsSummaryLabel"
-	summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	summary.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiTypography.apply_body(summary, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
-	_combat_setup_content.add_child(summary)
-	_combat_setup_content.move_child(summary, 1)
-	_tactics_summary_label = summary
+	_strip_legacy_tactics_controls()
+	if _tactics_list != null and is_instance_valid(_tactics_list):
+		_omit_gambit_ui()
+		return
+	var slots := RichTextLabel.new()
+	slots.name = "LabelTacticsSlots"
+	slots.bbcode_enabled = true
+	slots.fit_content = true
+	slots.scroll_active = false
+	slots.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_body(slots, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
+	_combat_setup_content.add_child(slots)
+	_combat_setup_content.move_child(slots, 0)
+	_tactics_slots_label = slots
+	var hint := Label.new()
+	hint.name = "LabelTacticsHint"
+	hint.text = "行動方針（1つ設定。設定中は金枠）"
+	hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_caption(hint)
+	_combat_setup_content.add_child(hint)
+	_combat_setup_content.move_child(hint, 1)
+	_tactics_hint_label = hint
+	var list := VBoxContainer.new()
+	list.name = "TacticsList"
+	list.add_theme_constant_override("separation", 6)
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_combat_setup_content.add_child(list)
+	_combat_setup_content.move_child(list, 2)
+	_tactics_list = list
 	_omit_gambit_ui()
+
+
+func _strip_legacy_tactics_controls() -> void:
+	if _combat_setup_content == null:
+		return
+	for child_name: String in [
+		"TacticsRow",
+		"TacticsSummaryLabel",
+		"CombatPresetRow",
+		"CombatPresetStatus",
+	]:
+		var node: Node = _combat_setup_content.get_node_or_null(child_name)
+		if node != null:
+			node.queue_free()
+
+
+func _refresh_tactics_list(member: Resource) -> void:
+	if _tactics_list == null or not is_instance_valid(_tactics_list):
+		return
+	for child in _tactics_list.get_children():
+		child.queue_free()
+	if member == null:
+		if _tactics_slots_label != null:
+			_tactics_slots_label.text = "[center]設定中の行動方針: —[/center]"
+		return
+	var current: String = GameState.get_member_tactics_id(member)
+	var current_name: String = CombatTactics.display_name(current)
+	if _tactics_slots_label != null:
+		_tactics_slots_label.text = "[center]設定中の行動方針: %s[/center]" % current_name
+	if _tactics_hint_label != null:
+		_tactics_hint_label.text = (
+			"行動方針（閲覧のみ）"
+			if _is_viewing_pet()
+			else "行動方針（1つ設定。設定中は金枠）"
+		)
+	var interactive: bool = not _is_viewing_pet()
+	for entry: Dictionary in CombatTactics.tactics_list():
+		var tid: String = str(entry.get("id", ""))
+		if tid.is_empty():
+			continue
+		var is_selected: bool = tid == current
+		_tactics_list.add_child(
+			_make_tactics_list_row(
+				tid,
+				str(entry.get("display_name", tid)),
+				str(entry.get("summary_hint", "")),
+				is_selected,
+				interactive
+			)
+		)
+	_omit_gambit_ui()
+
+
+func _make_tactics_list_row(
+	tactics_id: String,
+	display_name: String,
+	summary: String,
+	is_selected: bool,
+	interactive: bool
+) -> Control:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.custom_minimum_size = Vector2(0, float(SKILL_ROW_ICON_PX))
+	row.clip_contents = false
+	row.add_child(_tactics_row_icon(display_name))
+	var body := PanelContainer.new()
+	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.size_flags_stretch_ratio = 1.0
+	body.custom_minimum_size.x = 0
+	body.clip_contents = true
+	body.mouse_filter = Control.MOUSE_FILTER_STOP
+	body.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	body.tooltip_text = summary
+	if interactive and not is_selected:
+		body.gui_input.connect(_on_tactics_row_gui_input.bind(tactics_id))
+	var body_col := VBoxContainer.new()
+	body_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	body_col.add_theme_constant_override("separation", 2)
+	body_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.add_child(body_col)
+	var name_lbl := Label.new()
+	name_lbl.text = display_name
+	name_lbl.clip_text = true
+	name_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	name_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_body(name_lbl, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
+	body_col.add_child(name_lbl)
+	body_col.add_child(_make_skill_desc_label(summary if not summary.is_empty() else "—", true))
+	row.add_child(body)
+	var set_btn := Button.new()
+	set_btn.text = "設定中" if is_selected else "設定"
+	set_btn.custom_minimum_size = Vector2(SKILL_ROW_BTN_W, 36)
+	set_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	set_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	set_btn.clip_text = false
+	UiTypography.apply_menu_button(set_btn, false)
+	set_btn.disabled = (not interactive) or is_selected
+	if interactive and not is_selected:
+		set_btn.pressed.connect(_on_tactics_set_pressed.bind(tactics_id))
+	row.add_child(set_btn)
+	var frame := PanelContainer.new()
+	frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	frame.custom_minimum_size.x = 0
+	frame.clip_contents = false
+	frame.add_theme_stylebox_override("panel", _skill_row_frame_style(is_selected))
+	frame.add_child(row)
+	return frame
+
+
+func _tactics_row_icon(display_name: String) -> Control:
+	var ph := PanelContainer.new()
+	ph.custom_minimum_size = Vector2(SKILL_ROW_ICON_PX, SKILL_ROW_ICON_PX)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.12, 0.11, 0.1, 0.9)
+	sb.set_border_width_all(1)
+	sb.border_color = Color(0.45, 0.4, 0.32, 0.8)
+	sb.set_corner_radius_all(6)
+	ph.add_theme_stylebox_override("panel", sb)
+	var lbl := Label.new()
+	lbl.text = display_name.substr(0, 1) if not display_name.is_empty() else "戦"
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lbl.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_body(lbl, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
+	ph.add_child(lbl)
+	return ph
+
+
+func _on_tactics_row_gui_input(event: InputEvent, tactics_id: String) -> void:
+	if not _is_inventory_pointer_event(event):
+		return
+	if event.pressed:
+		_begin_inventory_press(_tactics_row_action.bind(tactics_id))
+	else:
+		_end_inventory_press()
+
+
+func _tactics_row_action(_is_long_press: bool, tactics_id: String) -> void:
+	_on_tactics_set_pressed(tactics_id)
+
+
+func _on_tactics_set_pressed(tactics_id: String) -> void:
+	var member: Resource = _get_view_adventurer()
+	if member == null or _is_viewing_pet():
+		return
+	GameState.set_member_tactics(member, tactics_id)
+	SaveManager.save_game()
+	_refresh_tactics_list(member)
 
 ## カスタム行動ルールUIはオミット（既存ノードが残っていれば隠す）。
 func _omit_gambit_ui() -> void:
@@ -3826,35 +3855,6 @@ func _on_gambit_move_row(row: int, delta: int) -> void:
 	plan[other] = tmp
 	GameState.set_member_tactics_custom_plan(member, plan)
 	_refresh_gambit_ui(member)
-
-func _refresh_tactics_ui(member: Resource) -> void:
-	if _tactics_option == null:
-		return
-	if member == null:
-		_tactics_option.disabled = true
-		if _tactics_summary_label != null:
-			_tactics_summary_label.text = ""
-		return
-	_tactics_option.disabled = false
-	var current: String = GameState.get_member_tactics_id(member)
-	var idx: int = _tactics_ids.find(current)
-	_tactics_option.select(idx if idx >= 0 else 0)
-	_refresh_tactics_summary_label(current, member)
-	_refresh_gambit_ui(member)
-
-func _refresh_tactics_summary_label(tactics_id: String, _member: Resource = null) -> void:
-	if _tactics_summary_label == null:
-		return
-	_tactics_summary_label.text = CombatTactics.summary_hint(tactics_id)
-
-func _on_tactics_selected(index: int) -> void:
-	if index < 0 or index >= _tactics_ids.size():
-		return
-	var member: Resource = _get_view_adventurer()
-	if member == null:
-		return
-	GameState.set_member_tactics(member, _tactics_ids[index])
-	_refresh_tactics_summary_label(_tactics_ids[index], member)
 
 # 探索方針（P3-D098）。戦術タブで設定。
 func _ensure_exploration_policy_ui() -> void:
@@ -4232,7 +4232,6 @@ func _on_skill_toggle_pressed(skill_id: String) -> void:
 		return
 	GameState.toggle_member_skill(member, skill_id)
 	_rebuild_skill_tab()
-	_refresh_tactics_ui(member)
 
 func _on_back_pressed() -> void:
 	_close_member_list_sheet()
