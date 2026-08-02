@@ -21,7 +21,7 @@ alwaysApply: false
 | 隊長カード全体が赤くなる／ランクアップ閉じで終了 | `PanelContainer` 直下バッジ＋reparent 後の旧パス | → **`ui-layout.mdc` PanelContainer 上の角バッジ** |
 | 鍛冶／ダンジョン入場で即終了（maxf3引・wrap名衝突） | パース失敗 | → **`pitfalls-startup.mdc`**／`gdscript.mdc` |
 | ダンジョン入場 SCRIPT ERROR（`rarity_weight_mult` not found） | preload Script へ静的メソッド呼び出し | → **`pitfalls-startup.mdc`**（定数配列を直接読む） |
-| 非戦闘ナラティブ戻る／VFX位置／名ポップサイズ・帯VFX・付与テロップ | reset誤用・味方非表示・一律28/48・ColorRect | → **`14_Presentation_Pitfalls.md`** |
+| 非戦闘ナラティブ戻る／VFX位置／名ポップサイズ・帯VFX・付与テロップ／野戦調合に+N無し | reset誤用・味方非表示・一律28/48・ColorRect・VFXのみ | → **`14_Presentation_Pitfalls.md`**（回復は `_present_member_heal`） |
 | レリックが地味で装備意味が薄い | 常時±5〜20%のみ | 尖鋭案B: 発火＋制約。`P3-UX-RELIC-TACTICS-B001` |
 | パッシブ名と同時にダメ音／敵スキル名が見えない | 既定 combat_skill・固定Y | → **`14_Presentation_Pitfalls.md`** §3 |
 | DungeonScene `label` not declared／balance_sim pet 未解決 | 差し替え削り・-s autoload | → **`pitfalls-startup.mdc`** |
