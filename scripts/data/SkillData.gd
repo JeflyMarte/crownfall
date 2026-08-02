@@ -14,6 +14,7 @@ extends Resource
 ## 対象: "enemy" | "all_enemies" | "ally" | "all_party" | "self" | "pet"
 ## 敵スキル側の列指定: "party" | "party_front" | "party_back"（P3-D106c）。
 ## 敵サポート: heal/buff の "ally"＝他の生存敵（いなければ self）。"self"＝詠唱者のみ。
+## damage: 攻撃倍率。heal（味方）: 対象 maxHP 割合（0.2=20%）。敵healも同型。
 @export var power_multiplier: float = 1.0
 @export var cooldown: float = 5.0
 @export var trigger_type: String = "cooldown"

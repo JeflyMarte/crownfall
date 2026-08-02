@@ -752,6 +752,12 @@ func heal_party(amount: int) -> void:
 			party_combat_hp[i] = min(party_combat_hp[i] + amount, party_max_hp[i])
 
 ## 指定メンバーを回復し、実際に回復した量を返す（死亡者は蘇生しない／上限クランプ）。
+func get_member_max_hp(index: int) -> int:
+	if index < 0 or index >= party_max_hp.size():
+		return 0
+	return maxi(0, int(party_max_hp[index]))
+
+
 func heal_member(index: int, amount: int) -> int:
 	if index < 0 or index >= party_combat_hp.size():
 		return 0

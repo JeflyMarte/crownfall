@@ -5509,7 +5509,6 @@ func _execute_member_heal(
 	)
 	if not result.get("executed", false):
 		return ""
-	var heal_amount: int = _apply_healing_bonus(int(round(skill_data.power_multiplier * float(HEAL_SKILL_BASE))), member_idx)
 	var is_ultimate: bool = _is_ultimate_skill(skill_data)
 	var target_name: String = ""
 	if not party_heal:
@@ -5526,12 +5525,11 @@ func _execute_member_heal(
 			"display_name": str(result["display_name"]),
 			"target_idx": target_idx,
 			"target_name": target_name,
-			"heal_amount": heal_amount,
 			"session_id": _combat_session_id,
 		})
 		return ""
 	if party_heal:
-		var total: int = _apply_party_heal_amount(member_idx, heal_amount, 1.1)
+		var total: int = _apply_party_heal_from_skill(member_idx, skill_data, 1.1)
 		_update_hp_bars()
 		if cast_index == 0:
 			_clear_member_skill_labels(member_idx)
@@ -5540,6 +5538,7 @@ func _execute_member_heal(
 				result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP, "", false, ""
 			)
 		return "\n【スキル】%s: 味方全体を計%d回復" % [result["display_name"], total]
+	var heal_amount: int = _calc_skill_heal_amount(member_idx, skill_data, target_idx)
 	var healed: int = $CombatController.heal_member(target_idx, heal_amount)
 	if healed > 0:
 		GameState.record_run_heal(member_idx, healed)
@@ -5556,7 +5555,36 @@ func _execute_member_heal(
 	return "\n【スキル】%s: %s を %d回復" % [result["display_name"], target_name, healed]
 
 
+## 味方 heal: power_multiplier = 対象 maxHP 割合（P3-BAL-HEAL-MAXHP-001）。
+func _calc_skill_heal_amount(caster_idx: int, skill_data: Resource, target_idx: int) -> int:
+	if skill_data == null or target_idx < 0:
+		return 0
+	var max_hp: int = $CombatController.get_member_max_hp(target_idx)
+	if max_hp <= 0:
+		return 0
+	var frac: float = maxf(0.0, float(skill_data.power_multiplier))
+	var base: int = maxi(1, int(round(float(max_hp) * frac)))
+	return _apply_healing_bonus(base, caster_idx)
+
+
+func _apply_party_heal_from_skill(caster_idx: int, skill_data: Resource, present_scale: float = 1.1) -> int:
+	var total: int = 0
+	for i: int in $CombatController.party_combat_hp.size():
+		if not $CombatController.is_member_alive(i):
+			continue
+		var heal_amount: int = _calc_skill_heal_amount(caster_idx, skill_data, i)
+		var healed: int = $CombatController.heal_member(i, heal_amount)
+		if healed <= 0:
+			continue
+		total += healed
+		GameState.record_run_heal(caster_idx, healed)
+		_set_heal_rally(i)
+		_present_member_heal(i, healed, present_scale, false)
+	return total
+
+
 func _apply_party_heal_amount(caster_idx: int, heal_amount: int, present_scale: float = 1.1) -> int:
+	## 固定量の全体回復（パッシブ等）。スキル経路は `_apply_party_heal_from_skill`。
 	var total: int = 0
 	for i: int in $CombatController.party_combat_hp.size():
 		if not $CombatController.is_member_alive(i):
@@ -11409,9 +11437,10 @@ func _apply_ultimate_aoe_damage_impact(payload: Dictionary) -> void:
 func _apply_ultimate_heal_impact(payload: Dictionary) -> void:
 	var member_idx: int = int(payload.get("member_idx", -1))
 	var target_idx: int = int(payload.get("target_idx", -1))
-	var heal_amount: int = int(payload.get("heal_amount", 0))
+	var skill_data: Resource = payload.get("skill_data") as Resource
 	var display_name: String = str(payload.get("display_name", ""))
 	var target_name: String = str(payload.get("target_name", ""))
+	var heal_amount: int = _calc_skill_heal_amount(member_idx, skill_data, target_idx)
 	var healed: int = $CombatController.heal_member(target_idx, heal_amount)
 	if healed > 0:
 		GameState.record_run_heal(member_idx, healed)
@@ -11425,9 +11454,9 @@ func _apply_ultimate_heal_impact(payload: Dictionary) -> void:
 
 func _apply_ultimate_party_heal_impact(payload: Dictionary) -> void:
 	var member_idx: int = int(payload.get("member_idx", -1))
-	var heal_amount: int = int(payload.get("heal_amount", 0))
+	var skill_data: Resource = payload.get("skill_data") as Resource
 	var display_name: String = str(payload.get("display_name", ""))
-	var total: int = _apply_party_heal_amount(member_idx, heal_amount, 1.45)
+	var total: int = _apply_party_heal_from_skill(member_idx, skill_data, 1.45)
 	_append_log("【必殺】%s: 味方全体を計%d回復" % [display_name, total])
 
 
