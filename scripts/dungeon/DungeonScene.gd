@@ -10918,6 +10918,7 @@ func _spawn_ultimate_skill_name(
 # スキル発動時、発動者(ドット絵)の頭上にスキル名をポップ表示する。
 # persist=true のときは詠唱中ラベルとして表示を維持（_clear_member_skill_labels で除去）。
 # font_size_override>0 でサイズ指定（パッシブは PASSIVE_NAME_FONT_SIZE）。
+# allow_hidden_sprite=true のとき非表示スプライトでも編成位置へ出す（パッシブ発動名用）。
 func _spawn_skill_name(
 	skill_name: String,
 	member_idx: int,
@@ -10925,14 +10926,15 @@ func _spawn_skill_name(
 	element: String = "",
 	persist: bool = false,
 	sfx_id: String = "combat_skill",
-	font_size_override: int = 0
+	font_size_override: int = 0,
+	allow_hidden_sprite: bool = false
 ) -> void:
 	if skill_name.is_empty():
 		return
 	if member_idx < 0 or member_idx >= _chr_sprites.size():
 		return
 	var sprite: AnimatedSprite2D = _chr_sprites[member_idx]
-	if not sprite.visible:
+	if not sprite.visible and not allow_hidden_sprite:
 		return
 	## 詠唱中ラベルは静音。resolve / 即時発動のみ SE（鼓舞などバフは combat_buff。空なら無音）。
 	if not persist and not sfx_id.is_empty():
@@ -10954,8 +10956,15 @@ func _spawn_skill_name(
 	lbl.add_theme_constant_override("shadow_offset_y", 3)
 	lbl.reset_size()
 	var text_w: float = maxf(lbl.size.x, float(skill_name.length()) * float(skill_font_size) * 0.55)
-	var head_center: Vector2 = _sprite_visual_center_global(sprite)
-	var head_top: float = _sprite_top_y_global(sprite) - 44.0 + stack_offset
+	var head_center: Vector2
+	var head_top: float
+	if not sprite.visible:
+		## 非表示でも編成位置を合わせてから global 系ヘルパを使う（入場パッシブ等）。
+		var slot: int = _formation_slot_for_combat_index(member_idx)
+		if slot < FORMATION_SLOT_RATIOS.size():
+			sprite.position = _formation_slot_position(slot)
+	head_center = _sprite_visual_center_global(sprite)
+	head_top = _sprite_top_y_global(sprite) - 44.0 + stack_offset
 	var base_x: float = head_center.x - text_w * 0.5
 	lbl.custom_minimum_size = Vector2(text_w, lbl.size.y)
 	lbl.pivot_offset = Vector2(text_w * 0.5, lbl.size.y * 0.5)

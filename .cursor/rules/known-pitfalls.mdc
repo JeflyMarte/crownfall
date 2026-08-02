@@ -25,6 +25,7 @@ alwaysApply: false
 | ボスの激昂アイコンが付かない | ボス戦で状態異常行を全非表示 | → **`14_Presentation_Pitfalls.md`**（ボス頭上にも表示） |
 | レリックが地味で装備意味が薄い | 常時±5〜20%のみ | 尖鋭案B: 発火＋制約。`P3-UX-RELIC-TACTICS-B001` |
 | パッシブ名と同時にダメ音／敵スキル名が見えない | 既定 combat_skill・固定Y | → **`14_Presentation_Pitfalls.md`** §3 |
+| パッシブ発動でスキル名が出ない | ラベル全クリア／非表示スプライトで return | → **`14_Presentation_Pitfalls.md`** §3（`_announce_passive_fire`） |
 | DungeonScene `label` not declared／balance_sim pet 未解決 | 差し替え削り・-s autoload | → **`pitfalls-startup.mdc`** |
 | 鍛冶・錬成ボタン後にクリック不能／フリーズ | `AcceptDialog`＋ScrollTouch で入力奪取 | → `ui-layout.mdc` ScrollTouch。素材は Control オーバーレイ＋STOP 復元 |
 | 鍛冶「焼直し」が押せない／効果が選べない | ScrollTouch が詳細内 Button／STOP 行を PASS 化。焼直しは restore 対象外だった | `_cf_keep_mouse_stop`＋`_restore_primary_button_input` に焼直し／効果行を含める。詳細 rebuild 後 deferred 再適用 |
