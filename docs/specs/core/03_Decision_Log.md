@@ -6741,6 +6741,19 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-SKILL-CD-TIME-001-3 | **上書き** — P3-D084 の「スキルCD＝進行CT」 | 本 Decision が正 |
 | P3-BAL-SKILL-CD-TIME-001-4 | **SSOT** — `decisions/55_SkillCdRealtime.md` | 正 |
 
+## 指揮官等級 S+（2026-08-02 — P3-CMD-RANK-SPLUS-001）
+
+> **オーナー GO（案A）** — S以降も SP で伸びる。S+1 / S+2 …
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-CMD-RANK-SPLUS-001-1 | **表記** — `S+1`, `S+2` …（無限） | 案A |
+| P3-CMD-RANK-SPLUS-001-2 | **閾値** — S=2200 据置。以降 **+400 SP/段** | 案A間隔 |
+| P3-CMD-RANK-SPLUS-001-3 | **手当** — 各段 G1500+石15。5の倍数で素材小＋称号（S+5/S+10） | 薄め〜中 |
+| P3-CMD-RANK-SPLUS-001-4 | **据置** — D〜S・金印・称号枠3・アイコンはS流用 | 破壊しない |
+| P3-CMD-RANK-SPLUS-001-5 | **TopBar** — 次の S+n までバー（最大等級固定を廃止） | 進捗が見える |
+| P3-CMD-RANK-SPLUS-001-6 | **SSOT** — `decisions/57_CommanderSPlusRanks.md` | 正 |
+
 ## クラシックL装飾補充（2026-08-02 — P3-EQ-CLASSIC-L-ACC-001）
 
 > **オーナー GO（案A）** — 通常レジェンド抽選のL飾が薄いため、クラシック枠を +4。

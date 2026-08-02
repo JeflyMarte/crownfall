@@ -38,7 +38,11 @@ static func ornament_diamond() -> Texture2D:
 
 
 static func rank_icon_path(rank_code: String) -> String:
-	return str(RANK_ICON_BY_CODE.get(rank_code, ""))
+	var code: String = rank_code.strip_edges().to_upper()
+	## S+n は S アイコン流用（P3-CMD-RANK-SPLUS-001）。
+	if code.begins_with("S+"):
+		code = "S"
+	return str(RANK_ICON_BY_CODE.get(code, ""))
 
 
 static func rank_icon(rank_code: String) -> Texture2D:

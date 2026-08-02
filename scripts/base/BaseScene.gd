@@ -845,11 +845,7 @@ func _update_player_card() -> void:
 	var next_threshold: int = int(progress.get("next_threshold", current_sp))
 	_rank_sp_label.text = "%d/%d" % [current_sp, next_threshold]
 	var next_rank: String = str(progress.get("next_rank", ""))
-	var sp_tip: String = ""
-	if next_rank.is_empty():
-		sp_tip = "調査許可・最大等級 %d/%d" % [current_sp, next_threshold]
-	else:
-		sp_tip = "次等級 %s級まで %d/%d SP" % [next_rank, current_sp, next_threshold]
+	var sp_tip: String = "次等級 %s級まで %d/%d SP" % [next_rank, current_sp, next_threshold]
 	_rank_sp_bar.tooltip_text = sp_tip
 	_rank_sp_label.tooltip_text = sp_tip
 	_portrait_art.texture = _CommanderProfile.rank_icon_texture()

@@ -408,11 +408,10 @@ static func _queue_rank_up() -> String:
 		return ""
 	## 未表示が無ければ1段下げて再演できるようにする。
 	var current: String = _CommanderProfile.current_rank()
-	var order: Array = _CommanderProfile.RANK_ORDER
-	var idx: int = order.find(current)
+	var idx: int = _CommanderProfile.rank_index(current)
 	if idx <= 0:
 		return "これ以上下げて等級アップを再演できません"
-	GameState.commander["acknowledged_rank"] = str(order[idx - 1])
+	GameState.commander["acknowledged_rank"] = _CommanderProfile.rank_code_at(idx - 1)
 	SaveManager.save_game()
 	if _CommanderProfile.pending_rank_up().is_empty():
 		return "等級アップの準備に失敗しました"
