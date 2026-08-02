@@ -6295,3 +6295,17 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-FIX-SAVE-AUDIT-A-001-6 | **調査100%ロード** — `sync_all_pending(true)` で通知キューへ | サイレント抽選確定を避ける |
 | P3-FIX-SAVE-AUDIT-A-001-7 | **据置** — DG中オートセーブ／イベントattempt返還／複数スロット | 体験・経済・スコープ外 |
 
+## 敵トリッキースキル多様化（2026-08-02 — P3-BAL-ENEMY-TRICKY-001）
+
+> **オーナー GO（相談方針）** — 7タイプを仕様化。スポット配置。免疫は大幅軽減。実装は段階。SSOT=`docs/specs/decisions/35_EnemyTrickySkills.md`。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-ENEMY-TRICKY-001-1 | **スポット配置** — 全敵一律禁止。1戦闘あたりトリッキー原則0〜1体。ボス全面置換なし | 読みやすさ／テンポ |
+| P3-BAL-ENEMY-TRICKY-001-2 | **7タイプ** — T1全体状態／T2回復／T3敵味方バフ／T4自爆／T5逃走／T6通常軽減／T7スキル軽減 | オーナー列挙 |
+| P3-BAL-ENEMY-TRICKY-001-3 | **段階** — Phase1=T1〜T3 → Phase2=T5 → Phase3=T4/T6/T7 | 高リスクを後段 |
+| P3-BAL-ENEMY-TRICKY-001-4 | **T6/T7** — 被ダメ **×0.2**（完全無効禁止）。図鑑に短いヒント必須 | 突破手段を残す |
+| P3-BAL-ENEMY-TRICKY-001-5 | **T4報酬** — 通常撃破扱い。**T5報酬** — 放浪と同型でなし | 自爆と逃走の対比 |
+| P3-BAL-ENEMY-TRICKY-001-6 | **Phase1パイロット** — 既存敵キット差替／1本追加。新敵・新アートなし | 相談クローズ |
+| P3-BAL-ENEMY-TRICKY-001-7 | **Phase1 Impl Task** — `P3-BAL-ENEMY-TRICKY-001`（heal経路＋味方バフ解決＋パイロット3）。T4/T5/T6/T7は別 Task | 実装は別セッション |
+

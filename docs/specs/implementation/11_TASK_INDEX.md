@@ -311,3 +311,11 @@ v3.4+ 確定スコープ:
 | P3-B-010 | DungeonScene 戦闘接続 | **完了** |
 | P3-B-011 | Affix×4 / Skill×3 / Weapon×5 | **完了** |
 | P3-B-012 | M2 Closeout（P3-D023） | **完了** |
+
+### Update — 敵トリッキー（2026-08-02）
+
+| Task | 内容 | 状態 | 主な参照 |
+|---|---|---|---|
+| **P3-BAL-ENEMY-TRICKY-001** | Phase1: T1全体状態／T2回復／T3敵味方バフ＋パイロット既存敵 | **Decision済・Impl待ち** | `decisions/35_EnemyTrickySkills.md` |
+| P3-BAL-ENEMY-TRICKY-002 | Phase2: T5逃走スキル | 後続 | 同上 |
+| P3-BAL-ENEMY-TRICKY-003 | Phase3: T4自爆／T6通常軽減／T7スキル軽減（×0.2） | 後続 | 同上 |
