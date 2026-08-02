@@ -8727,7 +8727,8 @@ func _handle_party_wipe(cause_kind: String = "") -> void:
 	GameState.last_run_accessory_dropped = ""
 	GameState.last_run_relic_dropped = ""
 	GameState.last_run_level_ups = {}
-	## 敗北でも撃破分の経験値は付与する（生存中に稼いだ分のみ）。
+	## 敗北でも撃破分の経験値は付与する（生存中に稼いだ分のみ）。完走ボーナスなし。
+	GameState.last_run_exp_clear_bonus = 0
 	_commit_run_exp_state_to_gamestate()
 	GameState.last_run_combat_stats = GameState.get_run_combat_stats().snapshot()
 	_commit_commander_run_stats(GameState.RUN_OUTCOME_WIPE)
@@ -8912,6 +8913,8 @@ func _on_finish_button_pressed() -> void:
 	_clear_turn_order_ui()
 	$CombatController.end_combat()
 	$DungeonController.generate_run_loot()
+	## P3-BAL-CLEAR-EXP-001: CLEAR のみ獲得 EXP +25%（リタイア／全滅には付けない）。
+	GameState.last_run_exp_clear_bonus = $DungeonController.apply_clear_exp_bonus()
 	_commit_run_exp_state_to_gamestate()
 	GameState.last_run_level_ups = {}
 	GameState.last_run_gold_reward = $DungeonController.run_gold_reward
@@ -9195,6 +9198,8 @@ func _retire_from_dungeon() -> void:
 			GameState.current_dungeon_id,
 			$DungeonController.get_display_floor_current()
 		)
+	## リタイアは撃破分のみ（完走ボーナスなし）。
+	GameState.last_run_exp_clear_bonus = 0
 	_commit_run_exp_state_to_gamestate()
 	GameState.last_run_level_ups = {}
 	GameState.last_run_gold_reward = $DungeonController.run_gold_reward

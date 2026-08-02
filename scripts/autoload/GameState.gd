@@ -127,6 +127,8 @@ var accessory_inventory: Array = []
 var last_run_exp_reward: int = 0
 ## 直近ランのメンバー別EXP { member_id: amount }（撃破時点の生存者のみ積立）。
 var last_run_exp_by_member: Dictionary = {}
+## CLEAR 時の完走 EXP ボーナス量（表示用。リタイア／全滅は 0）。
+var last_run_exp_clear_bonus: int = 0
 var last_run_gold_reward: int = 0
 # 直近ランで獲得した魔晶石（成功時のみ >0） — P3-D036b-D
 var last_run_token_reward: int = 0
@@ -1614,6 +1616,7 @@ func reset_for_new_game() -> void:
 	pending_nina_nav_notices = []
 	last_run_exp_reward = 0
 	last_run_exp_by_member = {}
+	last_run_exp_clear_bonus = 0
 	last_run_gold_reward = 0
 	last_run_token_reward = 0
 	last_run_abyss_notices = []

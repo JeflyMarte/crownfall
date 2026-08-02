@@ -174,3 +174,7 @@ const MIXED_SWARM_CHANCE: float = 0.50  # 群れ時に別種を混ぜる確率
 const EARLY_STAGE_SWARM_CHANCE_MULT: float = 0.50
 ## モーンゲート 1-1〜1-3・ノーマルのみの群れ頭数上限（単体1／群れ最大2）。
 const EARLY_STAGE_SWARM_SIZE_CAP: int = 2
+
+# ── ダンジョンクリア EXP（P3-BAL-CLEAR-EXP-001） ─────────────────────────
+## CLEAR 時のみ、ラン中獲得 EXP に乗せる完走ボーナス（リタイア／全滅なし）。
+const CLEAR_EXP_BONUS_RATIO: float = 0.25
