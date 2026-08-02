@@ -54,15 +54,21 @@ func test_set_activation_requires_three_pieces() -> void:
 	assert_true(_Evt._grant_weapon("chronos_toki_sword"))
 	member.equipped_weapon = GameState.inventory[GameState.inventory.size() - 1]
 	assert_eq(_Sets.active_set_id_for_member(member), "")
+	assert_true(_Sets.passive_ui_def_for_member(member).is_empty())
 	assert_true(_Evt._grant_armor("chronos_toki_armor"))
 	member.equipped_armor = GameState.armor_inventory[GameState.armor_inventory.size() - 1]
 	assert_eq(_Sets.active_set_id_for_member(member), "")
+	assert_true(_Sets.passive_ui_def_for_member(member).is_empty())
 	assert_true(_Evt._grant_accessory("chronos_toki_orb"))
 	member.equipped_accessory = GameState.accessory_inventory[GameState.accessory_inventory.size() - 1]
 	assert_eq(_Sets.active_set_id_for_member(member), _Sets.SET_CHRONOS_TOKI)
 	assert_eq(_Sets.speed_mult(0), 1.15)
 	assert_eq(_Sets.skill_cd_mult(0), 0.85)
 	assert_eq(_Sets.outgoing_mult(0), 1.0)
+	var ui_def: Dictionary = _Sets.passive_ui_def_for_member(member)
+	assert_false(ui_def.is_empty())
+	assert_eq(str(ui_def.get("display_name", "")), "クロノスの加護")
+	assert_eq(str(ui_def.get("source_name", "")), "エンシェントセット")
 
 
 func test_valgard_set_bonus_values() -> void:
