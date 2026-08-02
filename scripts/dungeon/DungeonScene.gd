@@ -8506,9 +8506,11 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 					combat_ended = _on_enemy_slot_killed(pulse_slot)
 		"heal":
 			# heal_value: condition 閾値の "value" と衝突する場合の回復量キー（P3-D155）
+			# target: self | most_injured（最傷1体）| party（既定・全体）
 			var frac: float = float(p.get("heal_max_hp_fraction", -1.0))
+			var heal_target: String = str(p.get("target", "party"))
 			if frac >= 0.0:
-				if str(p.get("target", "party")) == "self":
+				if heal_target == "self":
 					var max_hp_self: int = 0
 					if member_idx < $CombatController.party_max_hp.size():
 						max_hp_self = int($CombatController.party_max_hp[member_idx])
@@ -8516,6 +8518,18 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 					var healed_self_frac: int = $CombatController.heal_member(member_idx, amt_self)
 					_update_hp_bars()
 					_present_member_heal(member_idx, healed_self_frac)
+					applied = true
+				elif heal_target == "most_injured":
+					var injured_idx: int = $CombatController.get_most_injured_member_index()
+					if injured_idx >= 0:
+						var max_hp_inj: int = 0
+						if injured_idx < $CombatController.party_max_hp.size():
+							max_hp_inj = int($CombatController.party_max_hp[injured_idx])
+						var amt_inj: int = maxi(1, int(round(float(max_hp_inj) * frac)))
+						var healed_inj: int = $CombatController.heal_member(injured_idx, amt_inj)
+						_update_hp_bars()
+						_present_member_heal(injured_idx, healed_inj)
+						applied = true
 				else:
 					for i: int in $CombatController.party_combat_hp.size():
 						if not $CombatController.is_member_alive(i):
@@ -8527,13 +8541,21 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 						var healed_i: int = $CombatController.heal_member(i, amt_i)
 						_present_member_heal(i, healed_i)
 					_update_hp_bars()
-				applied = true
+					applied = true
 			else:
 				var amount: int = _apply_healing_bonus(int(p.get("heal_value", p.get("value", 10))), member_idx)
-				if str(p.get("target", "party")) == "self":
+				if heal_target == "self":
 					var healed_self: int = $CombatController.heal_member(member_idx, amount)
 					_update_hp_bars()
 					_present_member_heal(member_idx, healed_self)
+					applied = true
+				elif heal_target == "most_injured":
+					var injured_amt_idx: int = $CombatController.get_most_injured_member_index()
+					if injured_amt_idx >= 0:
+						var healed_amt_inj: int = $CombatController.heal_member(injured_amt_idx, amount)
+						_update_hp_bars()
+						_present_member_heal(injured_amt_idx, healed_amt_inj)
+						applied = true
 				else:
 					## 個別 heal_member で実回復量を見て VFX/数字（満タン時の幽霊演出防止）。
 					for i: int in $CombatController.party_combat_hp.size():
@@ -8542,7 +8564,7 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 						var healed_party: int = $CombatController.heal_member(i, amount)
 						_present_member_heal(i, healed_party)
 					_update_hp_bars()
-				applied = true
+					applied = true
 		"grant_party_incoming_mult":
 			var ward: float = clampf(float(p.get("mult", 0.9)), 0.05, 1.0)
 			$CombatController.party_temp_incoming_mult = minf(
