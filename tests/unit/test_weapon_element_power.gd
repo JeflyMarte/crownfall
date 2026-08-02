@@ -1,5 +1,5 @@
 extends GutTest
-## P3-EQ-STAT-005 — 属性値（案A）・武器ステータス解決。
+## P3-EQ-STAT-005 / P3-EQ-ELEMENT-POWER-SCALE-001 — 属性値（案A）・表示スケール。
 
 const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _WeaponInstance = preload("res://scripts/domain/WeaponInstance.gd")
@@ -14,9 +14,9 @@ func test_element_power_label_includes_element_name() -> void:
 	var line: String = _ERM.format_mod_line({
 		"label": "属性値",
 		"kind": "element_power",
-		"value": 5,
-		"min_v": 0,
-		"max_v": 12,
+		"value": 500,
+		"min_v": 100,
+		"max_v": 1200,
 		"perfect": false,
 		"meta": {"element": "fire"},
 	})
@@ -48,12 +48,12 @@ func test_element_power_roll_never_zero_when_element_set() -> void:
 	data.rarity = Enums.Rarity.COMMON
 	for _i in 40:
 		var rolled: int = _WeaponStatResolver.roll_element_power(data)
-		assert_gte(rolled, 1, "属性付き武器の属性値ロールは最低1")
+		assert_gte(rolled, BalanceConfig.ELEMENT_POWER_SCALE, "属性付き武器の属性値ロールは最低SCALE")
 	var _ERM = preload("res://scripts/equipment/EquipmentRandomMods.gd")
 	for _j in 40:
 		var mod: Dictionary = _ERM._roll_element_power_mod(data, Enums.Rarity.EPIC)
-		assert_gte(int(mod.get("value", 0)), 1)
-		assert_gte(int(mod.get("min_v", 0)), 1)
+		assert_gte(int(mod.get("value", 0)), BalanceConfig.ELEMENT_POWER_SCALE)
+		assert_gte(int(mod.get("min_v", 0)), BalanceConfig.ELEMENT_POWER_SCALE)
 
 
 func test_sanitize_zero_int_up_mod() -> void:
@@ -74,13 +74,44 @@ func test_sanitize_zero_int_up_mod() -> void:
 	}]
 	var mods: Array = _ERM.get_mods(inst)
 	assert_eq(mods.size(), 1)
-	assert_eq(int(mods[0].get("value", -1)), 1)
-	assert_eq(int(inst.element_power), 1)
+	assert_eq(int(mods[0].get("value", -1)), BalanceConfig.ELEMENT_POWER_SCALE)
+	assert_eq(int(inst.element_power), BalanceConfig.ELEMENT_POWER_SCALE)
+
+
+func test_migrate_legacy_element_power_value() -> void:
+	assert_eq(_WeaponStatResolver.migrate_legacy_element_power_value(1), 100)
+	assert_eq(_WeaponStatResolver.migrate_legacy_element_power_value(10), 1000)
+	assert_eq(_WeaponStatResolver.migrate_legacy_element_power_value(100), 100)
+	assert_eq(_WeaponStatResolver.migrate_legacy_element_power_value(0), 0)
+	assert_eq(_WeaponStatResolver.migrate_legacy_element_power_value(-1), -1)
+
+
+func test_sanitize_migrates_legacy_element_power_mod() -> void:
+	var _ERM = preload("res://scripts/equipment/EquipmentRandomMods.gd")
+	var inst: Resource = _WeaponInstance.new()
+	inst.weapon_id = "heater_blade"
+	inst.element = "fire"
+	inst.element_power = 5
+	inst.random_mods = [{
+		"id": "element_power",
+		"label": "炎属性値",
+		"kind": "element_power",
+		"value": 5,
+		"min_v": 1,
+		"max_v": 12,
+		"perfect": false,
+		"meta": {"element": "fire"},
+	}]
+	var mods: Array = _ERM.get_mods(inst)
+	assert_eq(int(mods[0].get("value", -1)), 500)
+	assert_eq(int(inst.element_power), 500)
 
 
 func test_element_power_multiplier_plan_a() -> void:
 	assert_eq(_WeaponStatResolver.element_power_multiplier(0), 1.0)
-	assert_almost_eq(_WeaponStatResolver.element_power_multiplier(10), 1.1, 0.001)
+	## 新スケール: 1000 = 旧10 = +10%
+	assert_almost_eq(_WeaponStatResolver.element_power_multiplier(1000), 1.1, 0.001)
+	assert_almost_eq(_WeaponStatResolver.element_power_multiplier(100), 1.01, 0.001)
 
 func test_resolve_element_unset_is_neutral() -> void:
 	var inst: Resource = _WeaponInstance.new()
@@ -92,7 +123,7 @@ func test_resolve_element_power_zero_when_neutral() -> void:
 	var inst: Resource = _WeaponInstance.new()
 	inst.weapon_id = "iron_sword"
 	inst.element = ""
-	inst.element_power = 8
+	inst.element_power = 800
 	assert_eq(_WeaponStatResolver.resolve_element_power(inst), 0)
 
 func test_apply_drop_stats_rolls_element_power_for_fire_weapon() -> void:
@@ -100,11 +131,11 @@ func test_apply_drop_stats_rolls_element_power_for_fire_weapon() -> void:
 	data.id = "test_fire"
 	data.base_attack = 10
 	data.element = "fire"
-	data.base_element_power = 2
+	data.base_element_power = 200
 	data.rarity = Enums.Rarity.RARE
 	var rolled: int = _WeaponStatResolver.roll_element_power(data)
-	assert_true(rolled >= 2)
-	assert_true(rolled <= 2 + 8)
+	assert_true(rolled >= 200)
+	assert_true(rolled <= 200 + 8 * BalanceConfig.ELEMENT_POWER_SCALE)
 
 func test_apply_element_power_bonus_plan_a() -> void:
 	GameState.seed_all_starters_unlocked()
@@ -112,7 +143,7 @@ func test_apply_element_power_bonus_plan_a() -> void:
 	var weapon: Resource = _WeaponInstance.new()
 	weapon.weapon_id = "ember_fang"
 	weapon.element = "fire"
-	weapon.element_power = 10
+	weapon.element_power = 1000
 	member.equipped_weapon = weapon
 	assert_eq(DamageCalculator.apply_element_power_bonus(100, "fire", 0), 110)
 	assert_eq(DamageCalculator.apply_element_power_bonus(100, "", 0), 100)

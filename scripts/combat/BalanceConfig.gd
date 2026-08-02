@@ -20,8 +20,13 @@ const DEFAULT_WEAPON_ATTACK_SPEED: float = 1.0
 const DEFAULT_WEAPON_CRITICAL_RATE: float = 0.05
 const DEFAULT_WEAPON_CRITICAL_DAMAGE: float = CRITICAL_MULTIPLIER
 const DEFAULT_BANE_MULTIPLIER: float = 1.3
+## 属性値の表示スケール（P3-EQ-ELEMENT-POWER-SCALE-001）。旧1=+1% → 新100=+1%。
+const ELEMENT_POWER_SCALE: int = 100
+## 旧セーブ判定上限（旧最大≈base10+roll18）。未満なら ×SCALE 移行。
+const ELEMENT_POWER_LEGACY_CEILING: int = 50
 ## 属性値→与ダメ倍率: damage × (1 + element_power × K)。無属性時は適用しない。
-const ELEMENT_POWER_K: float = 0.01
+## SCALE 後は K=0.0001（旧 0.01）。効果は不変。
+const ELEMENT_POWER_K: float = 0.0001
 ## 敵DEF逓減軽減 K/(K+DEF)（P3-BAL-002）。敵DEF×STAT_SCALE に合わせ K も同倍率。
 const DEFENSE_MITIGATION_K: float = 100.0 * float(STAT_SCALE)
 ## Biome 有利属性 与ダメ倍率（P3-D099）

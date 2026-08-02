@@ -5,7 +5,7 @@ const _EquipmentRollHelper = preload("res://scripts/equipment/EquipmentRollHelpe
 
 ## P3-EQ-STAT-005 — 武器個体ステータス解決。必須=攻撃力。レア度でランダム1〜4種。
 
-## 平坦ATKロール上限（P3-BAL-STAT-SCALE-001: ×STAT_SCALE）。属性値は%のため据置。
+## 平坦ATKロール上限（P3-BAL-STAT-SCALE-001: ×STAT_SCALE）。
 const ATTACK_ROLL_MAX: Dictionary = {
 	Enums.Rarity.COMMON: 5 * BalanceConfig.STAT_SCALE,
 	Enums.Rarity.RARE: 7 * BalanceConfig.STAT_SCALE,
@@ -13,11 +13,12 @@ const ATTACK_ROLL_MAX: Dictionary = {
 	Enums.Rarity.LEGENDARY: 14 * BalanceConfig.STAT_SCALE,
 }
 
+## 属性値ロール幅（P3-EQ-ELEMENT-POWER-SCALE-001: ×ELEMENT_POWER_SCALE）。
 const ELEMENT_POWER_ROLL_MAX: Dictionary = {
-	Enums.Rarity.COMMON: 5,
-	Enums.Rarity.RARE: 8,
-	Enums.Rarity.EPIC: 12,
-	Enums.Rarity.LEGENDARY: 18,
+	Enums.Rarity.COMMON: 5 * BalanceConfig.ELEMENT_POWER_SCALE,
+	Enums.Rarity.RARE: 8 * BalanceConfig.ELEMENT_POWER_SCALE,
+	Enums.Rarity.EPIC: 12 * BalanceConfig.ELEMENT_POWER_SCALE,
+	Enums.Rarity.LEGENDARY: 18 * BalanceConfig.ELEMENT_POWER_SCALE,
 }
 
 const ATTACK_SPEED_ROLL_MAX: Dictionary = {
@@ -197,6 +198,51 @@ static func element_power_multiplier(element_power: int) -> float:
 		return 1.0
 	return 1.0 + float(element_power) * BalanceConfig.ELEMENT_POWER_K
 
+
+## 旧スケール（1=+1%）の個体値を新スケール（100=+1%）へ。既に新値なら据置。
+static func migrate_legacy_element_power_value(value: int) -> int:
+	if value <= 0:
+		return value
+	if value < BalanceConfig.ELEMENT_POWER_LEGACY_CEILING:
+		return value * BalanceConfig.ELEMENT_POWER_SCALE
+	return value
+
+
+static func migrate_legacy_element_power_on_weapon(item: Resource) -> void:
+	if item == null:
+		return
+	if "element_power" in item:
+		item.element_power = migrate_legacy_element_power_value(int(item.element_power))
+	if not ("random_mods" in item):
+		return
+	var mods: Array = item.random_mods
+	var changed: bool = false
+	for i in mods.size():
+		var m: Variant = mods[i]
+		if not (m is Dictionary):
+			continue
+		if str(m.get("kind", "")) != "element_power":
+			continue
+		var mod: Dictionary = (m as Dictionary).duplicate(true)
+		var old_v: int = int(mod.get("value", 0))
+		var new_v: int = migrate_legacy_element_power_value(old_v)
+		if new_v != old_v:
+			mod["value"] = new_v
+			changed = true
+		var old_min: int = int(mod.get("min_v", 0))
+		var new_min: int = migrate_legacy_element_power_value(old_min)
+		if new_min != old_min and old_min > 0:
+			mod["min_v"] = new_min
+			changed = true
+		var old_max: int = int(mod.get("max_v", 0))
+		var new_max: int = migrate_legacy_element_power_value(old_max)
+		if new_max != old_max and old_max > 0:
+			mod["max_v"] = new_max
+			changed = true
+		mods[i] = mod
+	if changed:
+		item.random_mods = mods
+
 static func _build_bonus_pool(weapon_data: Resource) -> Array[String]:
 	var pool: Array[String] = []
 	if not str(weapon_data.element).is_empty():
@@ -254,7 +300,8 @@ static func _roll_element_power_result(weapon_data: Resource, rarity: int) -> Di
 		return {"value": 0, "perfect": false}
 	var base: int = int(weapon_data.base_element_power) if "base_element_power" in weapon_data else 0
 	var roll_max: int = int(ELEMENT_POWER_ROLL_MAX.get(rarity, ELEMENT_POWER_ROLL_MAX[Enums.Rarity.COMMON]))
-	var min_v: int = maxi(1, base)
+	## 属性付きは最低 ELEMENT_POWER_SCALE（旧1）。
+	var min_v: int = maxi(BalanceConfig.ELEMENT_POWER_SCALE, base)
 	var max_v: int = maxi(min_v, base + roll_max)
 	var bonus_roll: Dictionary = _EquipmentRollHelper.roll_int_bonus(max_v - min_v)
 	var value: int = min_v + int(bonus_roll.get("value", 0))
