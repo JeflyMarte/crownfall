@@ -63,8 +63,8 @@ const MODE_TO_CATEGORY_GAP_PX: float = 0.0
 const HEADER_TO_MODE_GAP_PX: float = 2.0
 ## モードタブ同士の隙間（被らない最小）。
 const MODE_TAB_SEPARATION_PX: int = 0
-## モードタブ行を左右にはみ出させて各タブ幅を稼ぐ。
-const MODE_TAB_SIDE_BLEED_PX: float = 14.0
+## モードタブ行の左右 inset（画面端での見切れ防止。はみ出しはしない）。
+const MODE_TAB_SIDE_INSET_PX: float = 10.0
 ## カテゴリタブ同士の隙間。
 const CATEGORY_TAB_SEPARATION_PX: int = 2
 const BOTTOM_NAV_FALLBACK_H_PX: float = 84.0
@@ -537,9 +537,9 @@ func _fit_mode_tabs_height() -> void:
 	var top: float = header_bottom + HEADER_TO_MODE_GAP_PX
 	mode_tabs.offset_top = top
 	mode_tabs.offset_bottom = top + MODE_TABS_HEIGHT_PX
-	## 左右へ少しはみ出して各タブの実効幅を広げる（カテゴリより広い帯）。
-	mode_tabs.offset_left = -MODE_TAB_SIDE_BLEED_PX
-	mode_tabs.offset_right = MODE_TAB_SIDE_BLEED_PX
+	## 左右を少し内側へ寄せ、生産〜分解タブの端見切れを防ぐ。
+	mode_tabs.offset_left = MODE_TAB_SIDE_INSET_PX
+	mode_tabs.offset_right = -MODE_TAB_SIDE_INSET_PX
 	mode_tabs.add_theme_constant_override("separation", MODE_TAB_SEPARATION_PX)
 	mode_tabs.clip_contents = false
 	for child in mode_tabs.get_children():
