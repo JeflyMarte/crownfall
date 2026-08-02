@@ -6,17 +6,20 @@ extends RefCounted
 const _ERM = preload("res://scripts/equipment/EquipmentRandomMods.gd")
 const _Enh = preload("res://scripts/equipment/EquipmentEnhancer.gd")
 
+## P3-BAL-FORGE-GOLD-HEAVY-001: 焼直しも底上げ。L／エンシェント／ミシックは重い。
 const GOLD_BY_RARITY: Dictionary = {
-	Enums.Rarity.COMMON: 50,
-	Enums.Rarity.RARE: 80,
-	Enums.Rarity.EPIC: 120,
-	Enums.Rarity.LEGENDARY: 200,
+	Enums.Rarity.COMMON: 100,
+	Enums.Rarity.RARE: 160,
+	Enums.Rarity.EPIC: 250,
+	Enums.Rarity.LEGENDARY: 500,
+	Enums.Rarity.MYTHIC: 800,
+	Enums.Rarity.SET: 700,
 }
 
 
 static func get_gold_cost(item_rarity: int) -> int:
-	var r: int = clampi(item_rarity, Enums.Rarity.COMMON, Enums.Rarity.LEGENDARY)
-	return int(GOLD_BY_RARITY.get(r, 50))
+	var r: int = clampi(item_rarity, Enums.Rarity.COMMON, Enums.Rarity.SET)
+	return int(GOLD_BY_RARITY.get(r, 100))
 
 
 static func get_material_cost(item_rarity: int) -> Dictionary:

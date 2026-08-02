@@ -25,24 +25,26 @@ const EQUIP_EXP_PER_LEVEL: int = 5
 const DISMANTLE_CRAFT_RETURN_CAP: float = 0.8
 ## 錬成 — P3-FORGE-ALCHEMY-001
 const ALCHEMY_LEVEL_FACTOR: float = 0.5
-## P3-BAL-ECO-001: 錬成金コスト 20→30／炉研ぎ金を約1.5〜1.6倍
-## P3-BAL-FORGE-002: 素材Lv帯で錬成金倍率（1–20×1.0／21–50×1.5／51+×2.0）
-const ALCHEMY_GOLD_PER_GAIN: int = 30
+## P3-BAL-ECO-001 → P3-BAL-FORGE-GOLD-HEAVY-001: 錬成 30→60／炉研ぎ底上げ＋全段レア倍率
+## P3-BAL-FORGE-002: 素材Lv帯で錬成金倍率（1–20×1.0／21–50×1.5／51+×2.0）据置
+const ALCHEMY_GOLD_PER_GAIN: int = 60
 const ALCHEMY_CONFIRM_ENHANCE_LEVEL: int = 3
 
 const GOLD_BY_NEXT_LEVEL: Dictionary = {
-	1: 50,
-	2: 80,
-	3: 120,
-	4: 180,
-	5: 280,
+	1: 100,
+	2: 160,
+	3: 240,
+	4: 360,
+	5: 560,
 }
-## P3-BAL-FORGE-002: 炉研ぎ +4/+5 のみレア倍率（◇1.0／◆1.15／✦1.3／★1.5）
-const FORGE_GOLD_RARITY_MULT_HIGH: Dictionary = {
-	0: 1.0,
-	1: 1.15,
-	2: 1.3,
-	3: 1.5,
+## 炉研ぎ全段にレア倍率。L／エンシェント(SET)／ミシックは特に重い。
+const FORGE_GOLD_RARITY_MULT: Dictionary = {
+	Enums.Rarity.COMMON: 1.0,
+	Enums.Rarity.RARE: 1.25,
+	Enums.Rarity.EPIC: 1.6,
+	Enums.Rarity.LEGENDARY: 3.0,
+	Enums.Rarity.MYTHIC: 4.0,
+	Enums.Rarity.SET: 3.5,
 }
 
 ## 炉研ぎ消費素材（P3-MAT-004）。供給レーンは P3-BAL-ECO-001 で明文化:
@@ -239,15 +241,13 @@ static func get_gold_cost(next_level: int, item_rarity: int = Enums.Rarity.COMMO
 	var base: int = int(GOLD_BY_NEXT_LEVEL.get(next_level, 0))
 	if base <= 0:
 		return 0
-	var mult: float = forge_gold_rarity_mult(next_level, item_rarity)
+	var mult: float = forge_gold_rarity_mult(item_rarity)
 	return int(round(float(base) * mult))
 
 
-static func forge_gold_rarity_mult(next_level: int, item_rarity: int) -> float:
-	if next_level < 4:
-		return 1.0
-	var rarity: int = clampi(item_rarity, Enums.Rarity.COMMON, Enums.Rarity.LEGENDARY)
-	return float(FORGE_GOLD_RARITY_MULT_HIGH.get(rarity, 1.0))
+static func forge_gold_rarity_mult(item_rarity: int) -> float:
+	var rarity: int = clampi(item_rarity, Enums.Rarity.COMMON, Enums.Rarity.SET)
+	return float(FORGE_GOLD_RARITY_MULT.get(rarity, 1.0))
 
 
 static func can_enhance_item(item: Resource) -> Dictionary:

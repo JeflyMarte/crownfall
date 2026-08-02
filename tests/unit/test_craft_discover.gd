@@ -65,7 +65,7 @@ func test_silver_ring_uses_rarity_costs() -> void:
 	assert_not_null(data)
 	var craft: Resource = CraftHelper.build_craft_data("accessory", "silver_ring")
 	assert_not_null(craft)
-	assert_eq(int(craft.gold_cost), int(CraftHelper.GOLD_BY_RARITY.get(int(data.rarity), 40)))
+	assert_eq(int(craft.gold_cost), int(CraftHelper.GOLD_BY_RARITY.get(int(data.rarity), 80)))
 
 
 func test_run_records_only_new_craft_unlocks() -> void:

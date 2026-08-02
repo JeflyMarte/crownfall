@@ -31,22 +31,26 @@ func test_abyss_33_first_grants_raised_tokens() -> void:
 func test_daily_kill_enemies_has_gold_and_token() -> void:
 	var mission: Resource = load("res://resources/daily_missions/daily_kill_enemies.tres")
 	assert_not_null(mission)
-	assert_eq(int(mission.reward_gold), 50)
+	## Gold は P3-BAL-DAILY-TREASURE-GOLD-001 で 150。石・素材は ECO-001 据置。
+	assert_eq(int(mission.reward_gold), 150)
 	assert_eq(int(mission.reward_gacha_token), 15)
 	assert_eq(int(mission.reward_material_qty), 2)
 
 
 func test_forge_gold_sink_raised() -> void:
-	assert_eq(EquipmentEnhancer.get_gold_cost(1), 50)
-	assert_eq(EquipmentEnhancer.get_gold_cost(5), 280)
-	assert_eq(EquipmentEnhancer.get_gold_cost(5, Enums.Rarity.COMMON), 280)
-	assert_eq(EquipmentEnhancer.get_gold_cost(5, Enums.Rarity.RARE), 322)
-	assert_eq(EquipmentEnhancer.get_gold_cost(5, Enums.Rarity.EPIC), 364)
-	assert_eq(EquipmentEnhancer.get_gold_cost(5, Enums.Rarity.LEGENDARY), 420)
-	assert_eq(EquipmentEnhancer.get_gold_cost(3, Enums.Rarity.LEGENDARY), 120)
-	assert_eq(EquipmentEnhancer.ALCHEMY_GOLD_PER_GAIN, 30)
-	assert_eq(EquipmentEnhancer.alchemy_gold_cost(10, 20), 300)
-	assert_eq(EquipmentEnhancer.alchemy_gold_cost(10, 40), 450)
+	## P3-BAL-FORGE-GOLD-HEAVY-001: 底上げ＋全段レア倍率。
+	assert_eq(EquipmentEnhancer.get_gold_cost(1), 100)
+	assert_eq(EquipmentEnhancer.get_gold_cost(5), 560)
+	assert_eq(EquipmentEnhancer.get_gold_cost(5, Enums.Rarity.COMMON), 560)
+	assert_eq(EquipmentEnhancer.get_gold_cost(5, Enums.Rarity.RARE), 700)
+	assert_eq(EquipmentEnhancer.get_gold_cost(5, Enums.Rarity.EPIC), 896)
+	assert_eq(EquipmentEnhancer.get_gold_cost(5, Enums.Rarity.LEGENDARY), 1680)
+	assert_eq(EquipmentEnhancer.get_gold_cost(1, Enums.Rarity.LEGENDARY), 300)
+	assert_eq(EquipmentEnhancer.get_gold_cost(5, Enums.Rarity.SET), 1960)
+	assert_eq(EquipmentEnhancer.get_gold_cost(5, Enums.Rarity.MYTHIC), 2240)
+	assert_eq(EquipmentEnhancer.ALCHEMY_GOLD_PER_GAIN, 60)
+	assert_eq(EquipmentEnhancer.alchemy_gold_cost(10, 20), 600)
+	assert_eq(EquipmentEnhancer.alchemy_gold_cost(10, 40), 900)
 
 
 func test_elite_and_boss_material_chances() -> void:

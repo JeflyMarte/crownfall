@@ -176,10 +176,12 @@ func test_armor_and_accessory_can_reforge() -> void:
 
 
 func test_cost_table_by_rarity() -> void:
-	assert_eq(_Reforge.get_gold_cost(Enums.Rarity.COMMON), 50)
-	assert_eq(_Reforge.get_gold_cost(Enums.Rarity.RARE), 80)
-	assert_eq(_Reforge.get_gold_cost(Enums.Rarity.EPIC), 120)
-	assert_eq(_Reforge.get_gold_cost(Enums.Rarity.LEGENDARY), 200)
+	assert_eq(_Reforge.get_gold_cost(Enums.Rarity.COMMON), 100)
+	assert_eq(_Reforge.get_gold_cost(Enums.Rarity.RARE), 160)
+	assert_eq(_Reforge.get_gold_cost(Enums.Rarity.EPIC), 250)
+	assert_eq(_Reforge.get_gold_cost(Enums.Rarity.LEGENDARY), 500)
+	assert_eq(_Reforge.get_gold_cost(Enums.Rarity.SET), 700)
+	assert_eq(_Reforge.get_gold_cost(Enums.Rarity.MYTHIC), 800)
 	var epic_mats: Dictionary = _Reforge.get_material_cost(Enums.Rarity.EPIC)
 	assert_eq(int(epic_mats.get("relic_shard", 0)), 2)
 	assert_eq(int(epic_mats.get("ancient_bone", 0)), 1)
