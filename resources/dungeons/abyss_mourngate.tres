@@ -22,6 +22,6 @@ event_room_weight = 15
 min_event_rooms = 0
 weapon_pool = Array[String](["iron_sword", "rusted_blade", "hunting_bow", "apprentice_staff", "heater_blade", "frost_blade", "bolt_knife", "ember_fang", "glacier_staff", "storm_edge", "sanctified_dagger", "consecrated_maul", "ash_twin_blades", "rime_fang_blades", "votary_twin_blades", "ward_patrol_bow", "duskcord_bow", "umbra_needle", "chalk_rod", "dusk_lantern_staff", "cinder_orb_staff", "static_orb_staff", "sanctum_orb_staff", "umbra_orb_staff", "vanguard_war_bow", "silent_rite_staff", "pulsekeen_edge", "aegis_line_sword"])
 armor_pool = Array[String](["crypt_weave_cloak", "sepia_hide_vest", "rune_linen_garb", "lament_guard_mail", "mourngate_plate", "wick_padded_coat"])
-accessory_pool = Array[String](["clockwing_brooch", "mourngate_sigil", "pilgrim_lantern_charm", "copper_bell_ring", "ashvault_pendant"])
+accessory_pool = Array[String](["clockwing_brooch", "mourngate_sigil", "pilgrim_lantern_charm", "copper_bell_ring", "ashvault_pendant", "salve_band"])
 unlock_after_dungeon_id = "mourngate"
 flavor_text = "王都地下のさらに下。虚脈を辿る無限の最果て。"

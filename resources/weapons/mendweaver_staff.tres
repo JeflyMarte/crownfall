@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "mendweaver_staff"
+display_name = "癒織の杖"
+description = "癒しの糸を織り込んだ杖。術の回復を厚くし、代わりに一撃の鋭さを抑える。"
+fixed_skill_id = ""
+fixed_passive_id = "eq_wpn_mendweaver_staff"
+base_attack = 200
+rarity = 3
+base_attack_speed = 0.95
+base_critical_rate = 0.05
+base_knockback = 0.12
+base_stagger_power = 0.10
+base_attack_range = 2.5
+weight = 0.9
+element = "holy"
+weapon_type = "staff"
+tags = Array[String](["blunt", "holy"])
