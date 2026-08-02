@@ -96,6 +96,34 @@ def normalize_frame(img: Image.Image, size: int = TARGET_PX) -> Image.Image:
     return img
 
 
+def bake_shared_equip_fill(
+    frame: Image.Image, fill_src: Image.Image, white_min: int = 220
+) -> Image.Image:
+    """Replace opaque near-white interior with the shared dark InvCell fill (N 等).
+
+    RELIC 原画は白マット下地のまま届くことがある。他レア枠と同じ金属質ティントへ揃える。
+    """
+    frame = frame.convert("RGBA")
+    fill_src = fill_src.convert("RGBA")
+    if fill_src.size != frame.size:
+        fill_src = fill_src.resize(frame.size, Image.Resampling.LANCZOS)
+    out = Image.new("RGBA", frame.size)
+    fp = frame.load()
+    sp = fill_src.load()
+    op = out.load()
+    w, h = frame.size
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = fp[x, y]
+            if a < 10:
+                op[x, y] = (0, 0, 0, 0)
+            elif min(r, g, b) >= white_min:
+                op[x, y] = sp[x, y]
+            else:
+                op[x, y] = (r, g, b, a)
+    return out
+
+
 def import_label(label: str) -> bool:
     name = f"UI_Equip_InvCell_{label}.png"
     src = WIP / name
@@ -103,6 +131,12 @@ def import_label(label: str) -> bool:
         print(f"  skip missing: {name}")
         return False
     img = normalize_frame(Image.open(src))
+    if label == "RELIC":
+        fill_path = OUT / "UI_Equip_InvCell_N.png"
+        if not fill_path.exists():
+            print(f"  error: missing fill base {fill_path.name} for RELIC")
+            return False
+        img = bake_shared_equip_fill(img, Image.open(fill_path))
     dst = OUT / name
     img.save(dst, optimize=True)
     print(f"  {name} -> {TARGET_PX}x{TARGET_PX}")
