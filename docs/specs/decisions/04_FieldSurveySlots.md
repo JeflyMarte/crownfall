@@ -25,7 +25,8 @@
 | enemy_level | 小〜中 | 敵Lv +2 |
 | swarm | 小〜中 | 群れ出現率↑ |
 | elite_rooms | 小〜中 | ELITE部屋重み↑ |
-| exp / gold / weapon / codex / featured / elite_mat | 小 | 既存経済系・倍率は弱体（目安 ×1.2、図鑑×1.5） |
+| exp / gold / weapon / featured / elite_mat | 小 | 既存経済系・倍率は弱体（目安 ×1.2） |
+| ~~codex~~ | **オミット** | 図鑑調査×1.5 はしょぼく感じるため抽選外（定義は weight 0 で残置） |
 
 スロット内の種別は **スロット番号の決定的ハッシュ**で選ぶ（端末間一致）。
 

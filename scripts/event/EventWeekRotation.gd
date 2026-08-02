@@ -291,9 +291,10 @@ const SLOT_DEFINITIONS: Array[Dictionary] = [
 			"反応活発だよ。平時よりわずかに強い——その『わずか』が積み上がる！\n解体・売却を先に済ませて、拾う余裕をつくろう。\n自慢は帰ってから。戦闘中は拾って逃げる？状況次第。\n記録、増やしてね隊長！",
 		],
 	},
+	## P3-UX-FIELD-CODEX-OMIT-001: 図鑑調査×1.5 スロットはオミット（weight 0・定義は将来復帰用に残置）。
 	{
 		"id": "codex",
-		"weight": 3,
+		"weight": 0,
 		"modifier_type": "codex",
 		"modifier_mult": 1.5,
 		"title": "生態活発のひととき",
