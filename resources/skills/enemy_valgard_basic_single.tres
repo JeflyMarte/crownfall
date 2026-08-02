@@ -4,16 +4,17 @@
 
 [resource]
 script = ExtResource("1")
-id = "enemy_valgard_boundary_spear"
-display_name = "界壁衝角"
-description = "境界石から伸びた衝角が、狙った一人の防線を貫く。"
+id = "enemy_valgard_basic_single"
+display_name = "界壁打ち"
+description = "界壁打ち。通常攻撃（単体）。"
 skill_type = "boss"
 target_type = "party"
-power_multiplier = 2.0
-cooldown = 6.5
+power_multiplier = 1.5
+cooldown = 0.0
 trigger_type = "cooldown"
 effect_type = "damage"
-tags = Array[String](["boss", "single"])
+tags = Array[String](["boss", "basic", "single"])
 element = "holy"
-apply_status_id = "mark"
-apply_status_chance = 0.3
+apply_status_id = ""
+apply_status_chance = 0.0
+cast_time = 0.0

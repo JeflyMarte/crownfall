@@ -4,16 +4,17 @@
 
 [resource]
 script = ExtResource("1")
-id = "enemy_granvel_bramble_crush"
-display_name = "茨鉄の薙ぎ払い"
-description = "茨をまとった巨腕で前列を薙ぎ払う。"
+id = "enemy_karna_smoke_basic_single"
+display_name = "燼爪"
+description = "燼爪。通常攻撃（単体）。"
 skill_type = "boss"
-target_type = "party_front"
-power_multiplier = 2.0
-cooldown = 6.0
+target_type = "party"
+power_multiplier = 1.5
+cooldown = 0.0
 trigger_type = "cooldown"
 effect_type = "damage"
-tags = Array[String](["boss", "aoe"])
-element = ""
+tags = Array[String](["boss", "basic", "single"])
+element = "fire"
 apply_status_id = "bleed"
 apply_status_chance = 0.2
+cast_time = 0.0
