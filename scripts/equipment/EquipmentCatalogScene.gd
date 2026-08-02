@@ -59,6 +59,10 @@ func _ready() -> void:
 	_inventory_grid.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_inventory_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	_inventory_scroll.clip_contents = true
+	var detail_scroll: ScrollContainer = _detail_host.get_parent() as ScrollContainer
+	if detail_scroll != null:
+		detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+		detail_scroll.clip_contents = true
 	_detail_panel.add_theme_stylebox_override(
 		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
 	)

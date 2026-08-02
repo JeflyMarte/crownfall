@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-08-02（**MAX★装備詳細名の縦折れ修正／統合＋main**: タイトル HBox の AUTOWRAP+SHRINK をやめ1行表示。要実機）
 2026-08-02（**Note⑦下書き**: 作成日記⑦【状態異常・スキル・連携・必殺編】を `docs/devlog` に起稿。公開前にスクショ差し込み）
 2026-08-02（**戦術タブパース即死修正／統合＋main**: RichTextLabel に apply_body 禁止→apply_display_rich。要実機）
 2026-08-02（**P3-UX-TACTICS-LIST-001 GO／統合＋main**: 戦術タブ＝作戦保存削除・スキル同型の縦一覧選択。要実機）

@@ -210,6 +210,31 @@ func test_detail_ui_text_truncate_for_forge_result() -> void:
 	assert_true(cut.ends_with("…"))
 	assert_lte(cut.length(), 28)
 
+func test_item_title_with_perfect_stars_stays_single_line_hbox() -> void:
+	## MAX★付きで HBox＋AUTOWRAP+SHRINK すると1文字縦折れする既往。
+	var weapon := WeaponInstance.new()
+	weapon.weapon_id = "iron_sword"
+	weapon.equip_level = 1
+	weapon.is_appraised = true
+	weapon.perfect_roll_count = 1
+	weapon.random_mods = []
+	var host := VBoxContainer.new()
+	add_child_autofree(host)
+	EquipmentItemDetailHelper._add_item_title(host, weapon, "weapon")
+	assert_eq(host.get_child_count(), 1)
+	var row: Node = host.get_child(0)
+	assert_true(row is HBoxContainer)
+	assert_eq(row.get_child_count(), 2)
+	var name_lbl: Label = row.get_child(0) as Label
+	var star_lbl: Label = row.get_child(1) as Label
+	assert_not_null(name_lbl)
+	assert_not_null(star_lbl)
+	assert_eq(name_lbl.autowrap_mode, TextServer.AUTOWRAP_OFF)
+	assert_eq(star_lbl.autowrap_mode, TextServer.AUTOWRAP_OFF)
+	assert_true((name_lbl.size_flags_horizontal & Control.SIZE_EXPAND) != 0)
+	assert_true(star_lbl.text.contains("★"))
+	assert_false(name_lbl.text.contains("★"))
+
 func test_forge_stat_snapshot_delta_for_enhance() -> void:
 	## 素材消費なしで差分文言だけ検証（enhance_level を直接進める）。
 	var armor := ArmorInstance.new()
