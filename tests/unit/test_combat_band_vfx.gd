@@ -70,8 +70,10 @@ func test_ultimate_styles() -> void:
 		CombatBandVfx.STYLE_SHOT
 	)
 	assert_eq(
-		CombatBandVfx.classify_ultimate(_fake_skill("titan_roar", "タイタンロア", "enemy", "", 0.0, "ultimate")),
-		CombatBandVfx.STYLE_ROAR
+		CombatBandVfx.classify_ultimate(
+			_fake_skill("titan_roar", "タイタンロア", "all_party", "", 0.0, "ultimate", "buff")
+		),
+		""
 	)
 	assert_eq(
 		CombatBandVfx.classify_ultimate(_fake_skill("ouga_retsudan", "王牙列断", "enemy", "", 0.0, "ultimate")),

@@ -5482,16 +5482,27 @@ func _apply_skill_tertiary_status(member_idx: int, skill_data: Resource, hit_slo
 		label3 = effect3.display_name
 	_append_log("[%s] 付与" % label3)
 
-# 回復スキル: 最も負傷した生存メンバーを回復する。負傷者が居なければCDを消費せず発動しない。
+# 回復スキル: 既定は最傷1体。target_type=all_party なら生存味方全員。
 func _execute_member_heal(
 	member_idx: int,
 	skill_data: Resource,
 	cast_index: int = 0,
 	suppress_resolve_label: bool = false
 ) -> String:
-	var target_idx: int = $CombatController.get_most_injured_member_index()
-	if target_idx < 0:
-		return ""
+	var party_heal: bool = str(skill_data.target_type) == "all_party"
+	var target_idx: int = -1
+	if not party_heal:
+		target_idx = $CombatController.get_most_injured_member_index()
+		if target_idx < 0:
+			return ""
+	else:
+		var any_alive := false
+		for i: int in $CombatController.party_combat_hp.size():
+			if $CombatController.is_member_alive(i):
+				any_alive = true
+				break
+		if not any_alive:
+			return ""
 	var cd_key: String = _member_skill_cd_key(member_idx, skill_data)
 	var result: Dictionary = _skill_executor.execute_support_skill(
 		skill_data, cd_key, (_EquipmentSetBonuses.skill_cd_mult(member_idx) * CombatPassives.relic_skill_cd_mult(member_idx))
@@ -5501,14 +5512,15 @@ func _execute_member_heal(
 	var heal_amount: int = _apply_healing_bonus(int(round(skill_data.power_multiplier * float(HEAL_SKILL_BASE))), member_idx)
 	var is_ultimate: bool = _is_ultimate_skill(skill_data)
 	var target_name: String = ""
-	var target_member: Resource = GameState.get_combatant(target_idx)
-	if target_member != null:
-		target_name = target_member.display_name
+	if not party_heal:
+		var target_member: Resource = GameState.get_combatant(target_idx)
+		if target_member != null:
+			target_name = target_member.display_name
 	if is_ultimate:
 		if cast_index == 0:
 			_clear_member_skill_labels(member_idx)
 		_play_ultimate_presentation_async({
-			"kind": "heal",
+			"kind": "heal_party" if party_heal else "heal",
 			"member_idx": member_idx,
 			"skill_data": skill_data,
 			"display_name": str(result["display_name"]),
@@ -5518,6 +5530,16 @@ func _execute_member_heal(
 			"session_id": _combat_session_id,
 		})
 		return ""
+	if party_heal:
+		var total: int = _apply_party_heal_amount(member_idx, heal_amount, 1.1)
+		_update_hp_bars()
+		if cast_index == 0:
+			_clear_member_skill_labels(member_idx)
+		if not suppress_resolve_label:
+			_spawn_skill_name(
+				result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP, "", false, ""
+			)
+		return "\n【スキル】%s: 味方全体を計%d回復" % [result["display_name"], total]
 	var healed: int = $CombatController.heal_member(target_idx, heal_amount)
 	if healed > 0:
 		GameState.record_run_heal(member_idx, healed)
@@ -5533,6 +5555,21 @@ func _execute_member_heal(
 	_present_member_heal(target_idx, healed, 1.1, false)
 	return "\n【スキル】%s: %s を %d回復" % [result["display_name"], target_name, healed]
 
+
+func _apply_party_heal_amount(caster_idx: int, heal_amount: int, present_scale: float = 1.1) -> int:
+	var total: int = 0
+	for i: int in $CombatController.party_combat_hp.size():
+		if not $CombatController.is_member_alive(i):
+			continue
+		var healed: int = $CombatController.heal_member(i, heal_amount)
+		if healed <= 0:
+			continue
+		total += healed
+		GameState.record_run_heal(caster_idx, healed)
+		_set_heal_rally(i)
+		_present_member_heal(i, healed, present_scale, false)
+	return total
+
 # バフスキル: 生存中のメイン編成全員に apply_status_id（鼓舞=与ダメ上昇）を付与する。
 # target_type=pet / tags に pet → オトモのみ。herd_call → オトモ本鼓舞＋他は弱い鼓舞。
 # tags に self → 発動者のみ。tags に taunt → Threat スパイク（P3-PET-VARIANT-001 アッシュ）。
@@ -5542,8 +5579,8 @@ func _execute_member_buff(
 	cast_index: int = 0,
 	suppress_resolve_label: bool = false
 ) -> String:
-	var wants_taunt: bool = skill_data.tags.has("taunt")
-	if skill_data.apply_status_id.is_empty() and not wants_taunt:
+	var wants_taunt: bool = skill_data != null and skill_data.tags.has("taunt")
+	if skill_data == null or (skill_data.apply_status_id.is_empty() and not wants_taunt):
 		return ""
 	var cd_key: String = _member_skill_cd_key(member_idx, skill_data)
 	var result: Dictionary = _skill_executor.execute_support_skill(
@@ -5551,16 +5588,47 @@ func _execute_member_buff(
 	)
 	if not result.get("executed", false):
 		return ""
+	if _is_ultimate_skill(skill_data):
+		if cast_index == 0:
+			_clear_member_skill_labels(member_idx)
+		_play_ultimate_presentation_async({
+			"kind": "buff",
+			"member_idx": member_idx,
+			"skill_data": skill_data,
+			"display_name": str(result["display_name"]),
+			"session_id": _combat_session_id,
+		})
+		return ""
+	var summary: Dictionary = _apply_member_buff_effects(member_idx, skill_data)
+	_update_status_icons()
+	if cast_index == 0:
+		_clear_member_skill_labels(member_idx)
+	## バフ発動 SE はスキル名ポップと分離し、必ず combat_buff（ダメージ／combat_skill と混同しない）。
+	if not suppress_resolve_label:
+		AudioManager.play_sfx("combat_buff", 1.0, 0.08)
+		_spawn_skill_name(
+			result["display_name"],
+			member_idx,
+			float(cast_index) * SKILL_LABEL_STACK_GAP,
+			"",
+			false,
+			""
+		)
+	return _member_buff_log_line(str(result["display_name"]), skill_data, summary)
+
+
+func _apply_member_buff_effects(member_idx: int, skill_data: Resource) -> Dictionary:
+	var wants_taunt: bool = skill_data != null and skill_data.tags.has("taunt")
 	var applied: int = 0
-	var status_id: String = skill_data.apply_status_id
-	var skill_id: String = str(skill_data.id)
+	var status_id: String = str(skill_data.apply_status_id) if skill_data != null else ""
+	var skill_id: String = str(skill_data.id) if skill_data != null else ""
 	var pet_only: bool = (
-		str(skill_data.target_type) == "pet"
-		or skill_data.tags.has("pet_only")
+		skill_data != null
+		and (str(skill_data.target_type) == "pet" or skill_data.tags.has("pet_only"))
 	)
 	var self_only: bool = (
-		str(skill_data.target_type) == "self"
-		or skill_data.tags.has("self")
+		skill_data != null
+		and (str(skill_data.target_type) == "self" or skill_data.tags.has("self"))
 	)
 	if not status_id.is_empty():
 		if self_only:
@@ -5589,34 +5657,34 @@ func _execute_member_buff(
 	if wants_taunt and $CombatController.is_member_alive(member_idx):
 		$CombatController.apply_taunt(member_idx)
 		_activate_taunt_link(member_idx)
-	_update_status_icons()
-	if cast_index == 0:
-		_clear_member_skill_labels(member_idx)
-	## バフ発動 SE はスキル名ポップと分離し、必ず combat_buff（ダメージ／combat_skill と混同しない）。
-	if not suppress_resolve_label:
-		AudioManager.play_sfx("combat_buff", 1.0, 0.08)
-		_spawn_skill_name(
-			result["display_name"],
-			member_idx,
-			float(cast_index) * SKILL_LABEL_STACK_GAP,
-			"",
-			false,
-			""
-		)
+	return {
+		"applied": applied,
+		"status_id": status_id,
+		"pet_only": pet_only,
+		"self_only": self_only,
+		"wants_taunt": wants_taunt,
+		"all_party": skill_id == "herd_call" or str(skill_data.target_type) == "all_party",
+	}
+
+
+func _member_buff_log_line(display_name: String, skill_data: Resource, summary: Dictionary) -> String:
+	var status_id: String = str(summary.get("status_id", ""))
 	var label: String = status_id
 	if not status_id.is_empty():
 		var effect: Resource = DataRegistry.get_status_effect(status_id)
 		if effect != null:
 			label = effect.display_name
-	if wants_taunt and self_only:
+	var applied: int = int(summary.get("applied", 0))
+	if bool(summary.get("wants_taunt", false)) and bool(summary.get("self_only", false)):
 		if status_id.is_empty():
-			return "\n【スキル】%s: 敵の注意を引いた" % result["display_name"]
-		return "\n【スキル】%s: 自身に[%s]・注意を引いた" % [result["display_name"], label]
-	if pet_only:
-		return "\n【スキル】%s: ペットに[%s]" % [result["display_name"], label]
-	if skill_id == "herd_call" or str(skill_data.target_type) == "all_party":
-		return "\n【スキル】%s: 味方全体に[%s]（%d）" % [result["display_name"], label, applied]
-	return "\n【スキル】%s: 味方%d体に[%s]" % [result["display_name"], applied, label]
+			return "\n【スキル】%s: 敵の注意を引いた" % display_name
+		return "\n【スキル】%s: 自身に[%s]・注意を引いた" % [display_name, label]
+	if bool(summary.get("pet_only", false)):
+		return "\n【スキル】%s: ペットに[%s]" % [display_name, label]
+	if bool(summary.get("all_party", false)):
+		var taunt_tag: String = "・注意を引いた" if bool(summary.get("wants_taunt", false)) else ""
+		return "\n【スキル】%s: 味方全体に[%s]（%d）%s" % [display_name, label, applied, taunt_tag]
+	return "\n【スキル】%s: 味方%d体に[%s]" % [display_name, applied, label]
 
 
 func _apply_status_to_pet(status_id: String, play_apply_sfx: bool = true) -> int:
@@ -11219,10 +11287,10 @@ func _play_ultimate_presentation_async(payload: Dictionary) -> void:
 	var display_name: String = str(payload.get("display_name", ""))
 	var kind: String = str(payload.get("kind", "damage"))
 	var element: String = str(payload.get("attack_element", ""))
-	var is_heal: bool = kind == "heal"
+	var is_support: bool = kind in ["heal", "heal_party", "buff"]
 	AudioManager.play_sfx("combat_ultimate")
 	GameState.record_run_ultimate(member_idx)
-	_show_ultimate_center_telop(display_name, element, member_idx, is_heal, skill_data)
+	_show_ultimate_center_telop(display_name, element, member_idx, is_support, skill_data)
 	_pulse_member_ultimate(member_idx)
 	_shake_battlefield(6.5)
 	await get_tree().create_timer(float(t["announce"])).timeout
@@ -11231,12 +11299,12 @@ func _play_ultimate_presentation_async(payload: Dictionary) -> void:
 		_end_combat_cinematic_lock()
 		return
 	var caster_pos: Vector2 = _member_sprite_world_pos(member_idx, 0.35)
-	var ring_tint: Color = Color(0.65, 1.0, 0.78) if is_heal else ULTIMATE_GOLD
+	var ring_tint: Color = Color(0.65, 1.0, 0.78) if is_support else ULTIMATE_GOLD
 	## 攻撃モーションは windup 開始時に始め、resolve 同フレームの負荷スパイクを避ける。
-	## 回復必殺も同格に派手化（モーション＋リング＋フラッシュ＋シェイク）。
+	## 回復／バフ必殺も同格に派手化（モーション＋リング＋フラッシュ＋シェイク）。
 	_play_chr_attack_one(member_idx)
 	_spawn_ultimate_ring_burst(caster_pos, ring_tint, 2.05)
-	_flash_battlefield(ULTIMATE_FLASH_HEAL if is_heal else ULTIMATE_FLASH_DAMAGE, 0.42)
+	_flash_battlefield(ULTIMATE_FLASH_HEAL if is_support else ULTIMATE_FLASH_DAMAGE, 0.42)
 	_shake_battlefield(10.0)
 	_flash_member_sprite(member_idx, ring_tint)
 	_maybe_vibrate(35)
@@ -11245,11 +11313,19 @@ func _play_ultimate_presentation_async(payload: Dictionary) -> void:
 		_dismiss_ultimate_center_telop(0.1)
 		_end_combat_cinematic_lock()
 		return
-	if is_heal:
+	if kind == "heal":
 		var target_idx: int = int(payload.get("target_idx", -1))
 		var focus_pos: Vector2 = _member_sprite_world_pos(target_idx, 0.5)
 		_play_ultimate_resolve_vfx(member_idx, skill_data, focus_pos, "")
 		_apply_ultimate_heal_impact(payload)
+	elif kind == "heal_party":
+		var focus_pos: Vector2 = _member_sprite_world_pos(member_idx, 0.5)
+		_play_ultimate_resolve_vfx(member_idx, skill_data, focus_pos, "")
+		_apply_ultimate_party_heal_impact(payload)
+	elif kind == "buff":
+		var focus_pos: Vector2 = _member_sprite_world_pos(member_idx, 0.5)
+		_play_ultimate_resolve_vfx(member_idx, skill_data, focus_pos, "")
+		_apply_ultimate_buff_impact(payload)
 	elif kind == "aoe_damage":
 		var focus_pos: Vector2 = payload.get("spawn_pos", Vector2.ZERO) as Vector2
 		_play_ultimate_resolve_vfx(member_idx, skill_data, focus_pos, element)
@@ -11345,6 +11421,25 @@ func _apply_ultimate_heal_impact(payload: Dictionary) -> void:
 		"【必殺】"
 		+ ("\n【スキル】%s: %s を %d回復" % [display_name, target_name, healed]).trim_prefix("【スキル】")
 	)
+
+
+func _apply_ultimate_party_heal_impact(payload: Dictionary) -> void:
+	var member_idx: int = int(payload.get("member_idx", -1))
+	var heal_amount: int = int(payload.get("heal_amount", 0))
+	var display_name: String = str(payload.get("display_name", ""))
+	var total: int = _apply_party_heal_amount(member_idx, heal_amount, 1.45)
+	_append_log("【必殺】%s: 味方全体を計%d回復" % [display_name, total])
+
+
+func _apply_ultimate_buff_impact(payload: Dictionary) -> void:
+	var member_idx: int = int(payload.get("member_idx", -1))
+	var skill_data: Resource = payload.get("skill_data") as Resource
+	var display_name: String = str(payload.get("display_name", ""))
+	var summary: Dictionary = _apply_member_buff_effects(member_idx, skill_data)
+	_update_status_icons()
+	AudioManager.play_sfx("combat_buff", 1.0, 0.08)
+	var line: String = _member_buff_log_line(display_name, skill_data, summary)
+	_append_log("【必殺】" + line.trim_prefix("【スキル】"))
 
 func _is_ultimate_skill(skill_data: Resource) -> bool:
 	return skill_data != null and str(skill_data.slot_type) == "ultimate"
