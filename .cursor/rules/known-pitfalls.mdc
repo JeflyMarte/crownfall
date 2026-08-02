@@ -95,7 +95,7 @@ alwaysApply: false
 | 陣形複製／前列化／調査中混入／未保存本反映（編成ロジック） | 即 GameState 書き・空き詰め・全 roster・詳細前 set | → **`ui-layout.mdc` 編成・陣形** |
 | ジャックがほぼ被弾せず無敵に見える | `PET_THREAT_BASE=0.55`＋max_threat 選択で人間（≥1.0）がいる限り未選択。被ダメ計算も `party_members` 限定でオトモ DEF 未加算 | Threat を前衛相当（盾未満）へ。ダメ計算は `get_combatant`。HPバーは PET スロット短尺 |
 | オトモが「渾身の一撃」等の必殺を撃つ | 職なし＋`DEFAULT_ULTIMATE_SKILL_ID` フォールバック。balanced 戦術がボス／エリートで必殺 | `_get_member_ultimate_skill` でペット除外。`add_ultimate_charge` もスキップ（P3-PET-ULT-OMIT-001） |
-| 行動順敵アイコンの紫板／穴透過 | PNG焼込プレート | → **`14_Presentation_Pitfalls.md`** §6／`asset-import` |
+| 行動順敵アイコンの紫板／穴透過／枠なし | PNG焼込プレート、または焼込枠前提で UI 枠を外した | 紫板焼込禁止。枠は常に `CombatUiFrames`。→ **`14_Presentation_Pitfalls.md`** §6 |
 | 装備一覧の攻・防・会心アイコンが古い | `equipment_ui/` 本番が procedural 小アイコンのまま。更新アートは `preview/` に滞留 | `preprocess_equipment_stat_icons.py --apply` で preview→本番＋forge へ反映 |
 | レジェンド防具／装飾／杖がデフォルト同アイコン | `generate_equipment_icons.py` がテンプレ流用のまま。専用PNG未差替 | PixelLab等で専用生成→`assets/ui/equipment` 上書き。`LEGENDARY_HAND_DRAWN_*_IDS` に入れて再生成で潰さない |
 | キャラ画面の★が灰色 | LabelStars に見出しフォント（Shippori）を当てると ★ 欠落でフォールバックが灰色に見える | 本文フォント＋`UiTypography.COLOR_GOLD`（ガチャと同ポリシー） |
