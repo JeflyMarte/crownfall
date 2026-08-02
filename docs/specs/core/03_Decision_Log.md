@@ -6313,4 +6313,5 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-ENEMY-TRICKY-001-9 | **Phase1 Impl** — `_execute_enemy_skill` に heal／他敵バフ。`enemy_moss_mend`／`enemy_rune_ward`／胞子霞低ダメ高毒 | 2026-08-02 本線 |
 | P3-BAL-ENEMY-TRICKY-002-1 | **Phase2** — T5=`grave_bell_bat`＋`enemy_grave_flee`。報酬なし（放浪逃走と同型） | オーナー「進めて」 |
 | P3-BAL-ENEMY-TRICKY-003-1 | **Phase3** — T4=`crystal_hedgehog` explode／T6=`skull_turtle` basic×0.2／T7=`mirror_boa` skill×0.2。DoTは軽減外 | 同上 |
+| P3-BAL-ENEMY-TRICKY-004-1 | **章展開** — ミストフェン=`blood_leech`(T2)／`mist_mantis`(T7)。フロストリッジ=`wind_ripper`(T5)／`glacier_warden`(T6)。スポット据置・新敵なし | オーナー「ミストフェンとフロストリッジも追加」 |
 
