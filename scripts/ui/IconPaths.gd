@@ -488,6 +488,7 @@ const ICON_MAP: Dictionary = {
 	"skill:camp_draught":        "res://assets/ui/skills/ICO_SKILL_Mend.png",
 	"skill:arc_bolt":           "res://assets/ui/skills/ICO_SKILL_ArcBolt.png",
 	"skill:armor_cleave":           "res://assets/ui/skills/ICO_SKILL_ArmorCleave.png",
+	"skill:battle_spirit":          "res://assets/ui/skills/ICO_SKILL_Empower.png",
 	"skill:momentum_slash":         "res://assets/ui/skills/ICO_SKILL_ArmorCleave.png",
 	"skill:blade_dance":            "res://assets/ui/skills/ICO_SKILL_ChainSlash.png",
 	"skill:piercing_shot":          "res://assets/ui/skills/ICO_SKILL_MarkPursuit.png",

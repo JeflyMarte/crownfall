@@ -54,7 +54,8 @@ func test_diverge_replacement_skills() -> void:
 func test_swordsman_ranger_vanguard_unlock_ids() -> void:
 	var sw: Resource = DataRegistry.get_job_data("swordsman")
 	assert_true(sw.learnable_skill_ids.has("blade_dance"))
-	assert_true(sw.learnable_skill_ids.has("momentum_slash"))
+	assert_true(sw.learnable_skill_ids.has("battle_spirit"))
+	assert_false(sw.learnable_skill_ids.has("momentum_slash"))
 	assert_false(sw.learnable_skill_ids.has("chain_slash"))
 	assert_false(sw.learnable_skill_ids.has("armor_cleave"))
 	var rg: Resource = DataRegistry.get_job_data("ranger")
@@ -65,9 +66,21 @@ func test_swordsman_ranger_vanguard_unlock_ids() -> void:
 	assert_false(vg.learnable_skill_ids.has("shield_ram"))
 
 
+func test_battle_spirit_is_self_empower() -> void:
+	var spirit: Resource = DataRegistry.get_skill_data("battle_spirit")
+	assert_not_null(spirit)
+	assert_eq(str(spirit.target_type), "self")
+	assert_eq(str(spirit.effect_type), "buff")
+	assert_eq(str(spirit.apply_status_id), "empower")
+	assert_eq(float(spirit.apply_status_chance), 1.0)
+	assert_gte(float(spirit.cooldown), 6.0)
+
+
 func test_equipped_skill_remap() -> void:
 	assert_eq(SkillProgression.remap_equipped_skill_id("chain_slash"), "blade_dance")
 	assert_eq(SkillProgression.remap_equipped_skill_id("mark_pursuit"), "piercing_shot")
+	assert_eq(SkillProgression.remap_equipped_skill_id("momentum_slash"), "battle_spirit")
+	assert_eq(SkillProgression.remap_equipped_skill_id("armor_cleave"), "battle_spirit")
 	var adv: Resource = Adventurer.new()
 	adv.id = "kit_remap_sw"
 	adv.job_id = "swordsman"
@@ -75,6 +88,9 @@ func test_equipped_skill_remap() -> void:
 	adv.equipped_skill_ids = ["chain_slash"] as Array[String]
 	SkillProgression.normalize_equipped_skills(adv)
 	assert_eq(str(adv.equipped_skill_ids[0]), "blade_dance")
+	adv.equipped_skill_ids = ["momentum_slash"] as Array[String]
+	SkillProgression.normalize_equipped_skills(adv)
+	assert_eq(str(adv.equipped_skill_ids[0]), "battle_spirit")
 
 
 func test_aimed_shot_is_armor_break_only() -> void:

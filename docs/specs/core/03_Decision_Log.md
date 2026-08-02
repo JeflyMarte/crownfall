@@ -6641,6 +6641,17 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-DESCENT-SWARM-001-4 | **優先** — tres `forced_swarm` があればデータ優先 | 曜日イベントと衝突しない |
 | P3-BAL-DESCENT-SWARM-001-5 | **SSOT** — `47_DescentEventSwarm.md` | 数値の正 |
 
+## ソードマン自己バフ（2026-08-02 — P3-SKILL-SW-SELFBUFF-001）
+
+> **オーナー GO** — 攻撃一辺倒を緩和。案A＝Lv30を自己バフへ差し替え。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-SKILL-SW-SELFBUFF-001-1 | **Lv30** — `momentum_slash`（追勢斬）を外し **`battle_spirit`（闘気）** を習得 | 自己バフで幅を出す |
+| P3-SKILL-SW-SELFBUFF-001-2 | **効果** — `target_type=self`／`empower`／CD6.5s | 味全バフ主軸は AL/VG/BT のまま |
+| P3-SKILL-SW-SELFBUFF-001-3 | **移行** — `armor_cleave`・`momentum_slash` → `battle_spirit`（EQUIPPED_SKILL_REMAP） | セーブ装備壊れ防止 |
+| P3-SKILL-SW-SELFBUFF-001-4 | **SSOT** — `49_SwordsmanSelfBuff.md` | 数値の正 |
+
 ## スキルキット方向分化（2026-08-02 — P3-SKILL-KIT-DIVERGE-001）
 
 > **オーナー GO（推奨案）** — SW連刃→剣舞、SW＋RG＋VGを大胆分化。装備1枠でビルドが分かれること。
