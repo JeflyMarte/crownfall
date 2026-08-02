@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "rimecrown_seal"
+display_name = "霜冠の印"
+rarity = 2
+icon = ""
+accessory_type = "seal"
+description = "霜を冠した封印の印。氷原の旅人が身を守るために携えた。"
+hp_bonus = 280
+attack_bonus = 0
+defense_bonus = 96
+crit_rate_bonus = 0.0
+exp_gain_rate = 0.0
+gold_gain_rate = 0.0
+rare_drop_rate = 0.0

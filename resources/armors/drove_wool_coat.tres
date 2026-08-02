@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ArmorData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ArmorData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+armor_id = "drove_wool_coat"
+display_name = "移牧の羊毛套"
+description = "移牧民が着た厚い羊毛の外套。吹雪の中でも体温を落とさない。"
+base_defense = 176
+base_hp_bonus = 528
+base_resistance = 0.0
+resist_elements = Array[String](["ice"])
+weight = 0.85
+rarity = 0

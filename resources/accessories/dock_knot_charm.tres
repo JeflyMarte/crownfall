@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "dock_knot_charm"
+display_name = "波止場の結び"
+rarity = 0
+icon = ""
+accessory_type = "charm"
+description = "船乗りが結ぶ護り結び。商いと潮待ちの運を僅かに呼ぶ。"
+hp_bonus = 120
+attack_bonus = 0
+defense_bonus = 0
+crit_rate_bonus = 0.0
+exp_gain_rate = 0.0
+gold_gain_rate = 0.04
+rare_drop_rate = 0.0

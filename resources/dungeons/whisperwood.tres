@@ -21,7 +21,7 @@ route_type = "main"
 event_room_weight = 18
 min_event_rooms = 1
 weapon_pool = Array[String](["verdant_cleaver", "bark_render", "verdia_longbow", "moss_staff", "pyre_greatsword", "tinder_bow", "willow_ember_staff", "venom_fang_blades", "symbiont_edge", "mist_piercer", "silvaria_oathblade", "veld_branch_staff", "silvaria_fang", "shadowcord", "cinder_razor_blades", "shrine_flight_bow", "thornflight_bow", "rootbind_staff", "cinder_orb_staff", "pyrebranch_staff", "vanguard_war_bow", "amplify_orb_staff", "packbond_staff", "pulsekeen_edge"])
-armor_pool = Array[String](["moss_weave_garb", "barkplate_mail", "mycel_cloak", "wyvern_scale_plate", "warden_vestment"])
-accessory_pool = Array[String](["verdant_ring", "spore_charm", "granvel_fang_talisman"])
+armor_pool = Array[String](["moss_weave_garb", "barkplate_mail", "mycel_cloak", "wyvern_scale_plate", "warden_vestment", "trail_twine_wrap"])
+accessory_pool = Array[String](["verdant_ring", "spore_charm", "granvel_fang_talisman", "seed_pouch_charm", "canopy_ward_talisman"])
 flavor_text = "大陸西部ヴェルディアの原生林。共生適応が進み、菌糸と蔓が遺構を飲み込む。
 森の盟約国の跡が、梢の囁きの下に眠る。"
