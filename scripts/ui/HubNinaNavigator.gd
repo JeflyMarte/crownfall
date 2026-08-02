@@ -9,6 +9,7 @@ signal survey_pressed
 
 const _IntroUiAssets := preload("res://scripts/intro/IntroUiAssets.gd")
 const _HubNinaNavHelper := preload("res://scripts/ui/HubNinaNavHelper.gd")
+const _SurveySystem := preload("res://scripts/survey/SurveySystem.gd")
 
 const ROTATE_SEC: float = 10.0
 const PANEL_W: float = 308.0
@@ -26,26 +27,35 @@ const GAP_BELOW_TOP: float = 48.0
 const SURVEY_PULSE_SEC: float = 0.75
 const SURVEY_PULSE_DIM: Color = Color(0.9, 0.86, 0.78, 1.0)
 const SURVEY_PULSE_BRIGHT: Color = Color(1.4, 1.22, 0.72, 1.0)
+## 完了バッジの再判定間隔（拠点滞在中にタイマー完了へ追従）。
+const SURVEY_ALERT_POLL_SEC: float = 1.0
 
 var _panel: PanelContainer
 var _bubble: Label
 var _survey_frame: PanelContainer
 var _survey_btn: TextureButton
+var _survey_alert: Label
 var _survey_pulse_tween: Tween
 var _messages: Array[Dictionary] = []
 var _index: int = 0
 var _elapsed: float = 0.0
+var _alert_poll_elapsed: float = 0.0
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_build_chrome()
 	refresh_messages()
+	refresh_survey_alert()
 	_start_survey_attention_pulse()
 	set_process(true)
 
 
 func _process(delta: float) -> void:
+	_alert_poll_elapsed += delta
+	if _alert_poll_elapsed >= SURVEY_ALERT_POLL_SEC:
+		_alert_poll_elapsed = 0.0
+		refresh_survey_alert()
 	if _messages.size() <= 1:
 		return
 	_elapsed += delta
@@ -59,6 +69,19 @@ func refresh_messages() -> void:
 	_index = 0
 	_elapsed = 0.0
 	_apply_current()
+	refresh_survey_alert()
+
+
+## 調査サイクル完了（受取待ち）なら調査室アイコンに ❗️ を出す。
+func refresh_survey_alert() -> void:
+	if _survey_alert == null:
+		return
+	var ready: bool = _SurveySystem.is_cycle_complete()
+	_survey_alert.visible = ready
+	if _survey_btn != null:
+		_survey_btn.tooltip_text = "調査室（完了 — 受取可）" if ready else "調査室"
+	if _survey_frame != null:
+		_survey_frame.tooltip_text = _survey_btn.tooltip_text if _survey_btn != null else "調査室"
 
 
 func place_below_top_bar(top_bar: Control) -> void:
@@ -189,7 +212,8 @@ func _build_chrome() -> void:
 	_survey_frame = PanelContainer.new()
 	_survey_frame.name = "SurveyFrame"
 	_survey_frame.mouse_filter = Control.MOUSE_FILTER_STOP
-	_survey_frame.clip_contents = true
+	## 完了 ❗️ が枠外に少し出ても切れないよう clip しない。
+	_survey_frame.clip_contents = false
 	_survey_frame.tooltip_text = "調査室"
 	## アイコン自体が丸切り抜きなので、枠 StyleBox は置かない。
 	var survey_sb := StyleBoxEmpty.new()
@@ -200,11 +224,18 @@ func _build_chrome() -> void:
 	_survey_frame.add_theme_stylebox_override("panel", survey_sb)
 	add_child(_survey_frame)
 
+	var survey_stack := Control.new()
+	survey_stack.name = "SurveyStack"
+	survey_stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	survey_stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	survey_stack.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	survey_stack.custom_minimum_size = Vector2(SURVEY_ICON_PX, SURVEY_ICON_PX)
+	_survey_frame.add_child(survey_stack)
+
 	_survey_btn = TextureButton.new()
 	_survey_btn.name = "BtnSurvey"
+	_survey_btn.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_survey_btn.mouse_filter = Control.MOUSE_FILTER_STOP
-	_survey_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_survey_btn.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_survey_btn.ignore_texture_size = true
 	_survey_btn.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 	_survey_btn.tooltip_text = "調査室"
@@ -213,7 +244,28 @@ func _build_chrome() -> void:
 		survey_tex = IconPaths.get_icon_texture("survey", "ui")
 	_survey_btn.texture_normal = survey_tex
 	_survey_btn.pressed.connect(_on_survey_pressed)
-	_survey_frame.add_child(_survey_btn)
+	survey_stack.add_child(_survey_btn)
+
+	_survey_alert = Label.new()
+	_survey_alert.name = "SurveyCompleteAlert"
+	_survey_alert.text = "❗️"
+	_survey_alert.visible = false
+	_survey_alert.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_survey_alert.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_survey_alert.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_survey_alert.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_survey_alert.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_survey_alert.offset_left = -72.0
+	_survey_alert.offset_right = -4.0
+	_survey_alert.offset_top = 4.0
+	_survey_alert.offset_bottom = 72.0
+	_survey_alert.z_index = 2
+	UiTypography.apply_display(
+		_survey_alert, 40, Color(1.0, 0.92, 0.35, 1.0), UiTypography.OUTLINE_STRONG
+	)
+	_survey_alert.add_theme_color_override("font_outline_color", Color(0.15, 0.05, 0.02, 0.95))
+	_survey_alert.add_theme_constant_override("outline_size", 6)
+	survey_stack.add_child(_survey_alert)
 
 
 func _on_survey_pressed() -> void:

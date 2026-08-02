@@ -196,3 +196,32 @@ func test_descent_event_line_when_chronos_open() -> void:
 func test_descent_event_line_empty_when_closed() -> void:
 	_EventDungeonSchedule.set_debug_unix_override(_unix_jst(2026, 7, 26, 14, 0))
 	assert_eq(_Helper.descent_event_line(), "")
+
+
+func test_survey_complete_shows_alert_on_hub_icon() -> void:
+	const _SurveySystem := preload("res://scripts/survey/SurveySystem.gd")
+	const _SurveyConfig := preload("res://scripts/survey/SurveyConfig.gd")
+	const _SurveyStaff := preload("res://scripts/survey/SurveyStaff.gd")
+	GameState.hub_survey_cycle = {}
+	var nav: Control = _Navigator.new()
+	add_child_autofree(nav)
+	await get_tree().process_frame
+	var alert: Label = nav.get_node_or_null("SurveyFrame/SurveyStack/SurveyCompleteAlert") as Label
+	assert_not_null(alert)
+	assert_false(alert.visible, "未完了では ❗️ 非表示")
+	## ニーナは常時配置可（ノノカ解放不要）。
+	var ids: Array[String] = [_SurveyStaff.ID_NINA]
+	var started: Dictionary = _SurveySystem.start_cycle(
+		Constants.MOURNGATE_DUNGEON_ID, _SurveyConfig.PRESET_SHORT, ids
+	)
+	assert_true(bool(started.get("ok", false)), str(started))
+	GameState.hub_survey_cycle["start_unix"] = Time.get_unix_time_from_system() - (
+		_SurveyConfig.SHORT_DURATION_SEC + 10.0
+	)
+	assert_true(_SurveySystem.is_cycle_complete())
+	nav.call("refresh_survey_alert")
+	assert_true(alert.visible, "完了時は ❗️ 表示")
+	var claimed: Dictionary = _SurveySystem.claim_cycle()
+	assert_true(bool(claimed.get("ok", false)), str(claimed))
+	nav.call("refresh_survey_alert")
+	assert_false(alert.visible, "受取後は ❗️ 消える")
