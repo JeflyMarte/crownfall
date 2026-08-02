@@ -1069,12 +1069,14 @@ func _build_wipe_cause() -> void:
 		UiTypography.OUTLINE_BODY
 	)
 	header_vbox.add_child(_wipe_cause_summary)
-	var detail: String = _WipeCauseHelper.detail_line(snap, GameState.last_run_combat_stats)
-	if detail.is_empty():
+	var detail_lines: PackedStringArray = _WipeCauseHelper.detail_lines(
+		snap, GameState.last_run_combat_stats
+	)
+	if detail_lines.is_empty():
 		return
 	_wipe_cause_detail = Label.new()
 	_wipe_cause_detail.name = "WipeCauseDetail"
-	_wipe_cause_detail.text = detail
+	_wipe_cause_detail.text = "\n".join(detail_lines)
 	_wipe_cause_detail.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_wipe_cause_detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UiTypography.apply_body(_wipe_cause_detail, UiTypography.SIZE_CAPTION, COLOR_SUB)
