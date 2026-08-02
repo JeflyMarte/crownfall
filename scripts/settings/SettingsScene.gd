@@ -49,6 +49,8 @@ func _ready() -> void:
 		BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.NONE)
 	_ensure_redeem_dialog()
 	_ensure_title_confirm()
+	## 本文は動的生成 Button／トグルの Scroll。未適用だと実機でタッチスクロールできない。
+	ScrollTouchHelper.enable(_main_scroll)
 	_rebuild_page()
 	_configure_layout()
 	call_deferred("_configure_layout")

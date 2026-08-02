@@ -84,6 +84,9 @@ var _entry_rows: Array = []
 func _ready() -> void:
 	$Header/HeaderRow/LabelTitle.text = ""
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.CODEX)
+	## 一覧は動的生成 Button の Scroll。未適用だと実機でタッチスクロールできない。
+	ScrollTouchHelper.enable($MainScroll)
+	ScrollTouchHelper.enable(_detail_scroll)
 	HeaderCurrencyHelper.apply_to_row($Header/HeaderRow)
 	_decorate_static()
 	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)

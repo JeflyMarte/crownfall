@@ -60,6 +60,8 @@ func _build_ui() -> void:
 
 	for def: Variant in GameState.BASE_ROSTER_DEFS:
 		list.add_child(_make_card(def as Dictionary))
+	## カードは STOP+gui_input でタップ判定するため、未適用だと実機でタッチスクロールできない。
+	ScrollTouchHelper.enable(scroll)
 
 	_confirm_btn = Button.new()
 	_confirm_btn.text = "この隊員で始める"

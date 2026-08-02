@@ -121,6 +121,9 @@ func _build() -> void:
 	UiTypography.apply_button(close_btn, true)
 	root.add_child(close_btn)
 
+	## 本文は Button／CheckButton／HSlider の Scroll。未適用だと実機でタッチスクロールできない。
+	ScrollTouchHelper.enable(scroll)
+
 	visible = false
 
 
