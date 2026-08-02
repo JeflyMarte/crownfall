@@ -86,7 +86,7 @@
 | 状態異常アイコンが敵HPバー裏／ネーム帯と同帯 | `COMBAT_OVERLAY_Z+3`＋ネーム（エリートはバッジ）上端より上 |
 | ボス／エリートを雑魚と同寸、またはボス過大で Header 貫通 | `BOSS_BODY_*`／`ENEMY_BODY_SCALE_MULT`／`FROSTRIDGE_SOLO_DISPLAY_SCALE`。群れは体数スケール |
 | 複数敵が右にはみ出す（ratio>0.9） | `_swarm_x_ratio_for_slot` で MIN/MAX 内 |
-| 行動順敵アイコンに紫板を PNG 焼込 | 焼込禁止。穴は UI の暗い StyleBoxFlat。差替後 `.godot/imported` の `ICO_ENM_Turn_*` を消して再インポート |
+| 行動順敵アイコンに紫板を PNG 焼込 | 焼込禁止。枠は常に `CombatUiFrames`（焼込枠前提で UI 枠を外すと縁なし／薄く見える）。差替後 `.godot/imported` の `ICO_ENM_Turn_*` を消して再インポート |
 | 状態異常レジェンドに半透明 Panel | `StyleBoxEmpty`（アイコン＋文言のみ） |
 | 戦闘ログ最上行が見切れる | `BATTLE_LOG_LINE_HEIGHT` と上余白を本文サイズに同期 |
 

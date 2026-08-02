@@ -990,7 +990,8 @@ var _combat_now_playing_active: bool = false
 const TURN_ORDER_SIDE_ICON_PX: float = 52.0
 ## 敵側（右列）は少し大きく（可読性）。味方左列は TURN_ORDER_SIDE_ICON_PX のまま。
 const TURN_ORDER_ENEMY_ICON_PX: float = 64.0
-const TURN_ORDER_SIDE_FRAME_PAD: float = 5.0
+## CombatUiFrames TIER_CARD の content_margin（片側）。セル最小辺に加算する。
+const TURN_ORDER_FRAME_CONTENT_PAD: float = 8.0
 const TURN_ORDER_SIDE_GAP: float = 4.0
 const TURN_ORDER_SIDE_MARGIN: float = 6.0
 const TURN_ORDER_SIDE_TOP: float = 36.0
@@ -9767,7 +9768,7 @@ func _get_chr_icon_texture(job_id: String) -> Texture2D:
 	return frames.get_frame_texture("idle", 0)
 
 func _get_enemy_turn_icon_texture(enemy_id: String) -> Texture2D:
-	## 行動順専用の枠焼込アイコン。無ければ null（図鑑 `enemy:` は使わない）。
+	## 行動順専用アイコン（枠は UI の CombatUiFrames。PNG への紫板焼込は禁止）。
 	return IconPaths.get_icon_texture(enemy_id, "enemy_turn")
 
 func _get_enemy_icon_texture(enemy_id: String) -> Texture2D:
@@ -9794,25 +9795,9 @@ func _make_turn_order_frame_style(active: bool) -> StyleBoxTexture:
 	)
 
 
-## 敵ターンアイコン（枠焼込PNG）の穴を戦場から切り離す。紫板の焼込は禁止（pitfalls）。
-func _make_turn_order_enemy_hole_fill() -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.12, 0.10, 0.09, 0.94)
-	style.set_corner_radius_all(6)
-	style.content_margin_left = 0.0
-	style.content_margin_top = 0.0
-	style.content_margin_right = 0.0
-	style.content_margin_bottom = 0.0
-	style.border_width_left = 0
-	style.border_width_top = 0
-	style.border_width_right = 0
-	style.border_width_bottom = 0
-	return style
-
-
 func _turn_order_side_cell_size(for_enemy: bool = false) -> float:
 	var icon_px: float = TURN_ORDER_ENEMY_ICON_PX if for_enemy else TURN_ORDER_SIDE_ICON_PX
-	return icon_px + TURN_ORDER_SIDE_FRAME_PAD * 2.0
+	return icon_px + TURN_ORDER_FRAME_CONTENT_PAD * 2.0
 
 # ---- 行動順（CT プレビュー）表示（P3-D084 / P3-UX-002 G） ----
 
@@ -9842,32 +9827,27 @@ func _make_turn_order_cell(entry: Dictionary) -> PanelContainer:
 	var icon := TextureRect.new()
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.custom_minimum_size = Vector2(icon_px, icon_px)
 	var tex: Texture2D = null
-	var baked_enemy_frame: bool = false
+	var uses_turn_art: bool = false
 	if not is_enemy:
 		var m: Resource = GameState.get_combatant(entry["index"])
 		if m != null:
 			tex = _get_member_icon_texture(m)
-		icon.custom_minimum_size = Vector2(icon_px, icon_px)
 		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		holder.add_theme_stylebox_override("panel", _make_turn_order_frame_style(false))
 	else:
 		var d: Resource = $CombatController.get_enemy_data_at(entry["index"])
 		if d != null:
-			baked_enemy_frame = _get_enemy_turn_icon_texture(d.id) != null
+			uses_turn_art = _get_enemy_turn_icon_texture(d.id) != null
 			tex = _get_enemy_icon_texture(d.id)
-		if baked_enemy_frame:
-			# 枠はテクスチャに焼込済み。汎用 CombatUiFrames は重ねない。穴は暗い Flat で埋める。
-			icon.custom_minimum_size = Vector2(cell, cell)
-			icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-			holder.add_theme_stylebox_override("panel", _make_turn_order_enemy_hole_fill())
-		else:
-			icon.custom_minimum_size = Vector2(icon_px, icon_px)
-			icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-			holder.add_theme_stylebox_override("panel", _make_turn_order_frame_style(false))
-	holder.set_meta("baked_enemy_frame", baked_enemy_frame)
+		## 枠は常に UI（CombatUiFrames）。焼込枠前提で枠を外すと縁なし／薄く見える。
+		icon.texture_filter = (
+			CanvasItem.TEXTURE_FILTER_LINEAR if uses_turn_art
+			else CanvasItem.TEXTURE_FILTER_NEAREST
+		)
+	holder.add_theme_stylebox_override("panel", _make_turn_order_frame_style(false))
+	holder.set_meta("uses_turn_art", uses_turn_art)
 	icon.texture = tex
-	## 敵アイコンは暗めの焼込枠が多いので初期からフル不透明。強調は _set_turn_order_active。
 	icon.modulate = Color(1.0, 1.0, 1.0, 1.0)
 	holder.add_child(icon)
 	## 攻／技などの行動予定バッジは表示しない（アイコンのみ）。
@@ -9913,7 +9893,6 @@ func _update_turn_order_ui(order: Array) -> void:
 			"index": entry["index"],
 			"icon": holder.get_child(0),
 			"frame": holder,
-			"baked_frame": bool(holder.get_meta("baked_enemy_frame", false)),
 		})
 		shown += 1
 	_turn_order_col_left.visible = _turn_order_col_left.get_child_count() > 0
@@ -9932,22 +9911,12 @@ func _set_turn_order_active(entry: Dictionary) -> void:
 		var icon: TextureRect = item["icon"]
 		var frame: PanelContainer = item["frame"]
 		var active: bool = item["kind"] == entry["kind"] and item["index"] == entry["index"]
-		var baked: bool = bool(item.get("baked_frame", false))
-		if baked:
-			frame.add_theme_stylebox_override("panel", _make_turn_order_enemy_hole_fill())
-		else:
-			frame.add_theme_stylebox_override("panel", _make_turn_order_frame_style(active))
+		frame.add_theme_stylebox_override("panel", _make_turn_order_frame_style(active))
 		frame.scale = Vector2(1.06, 1.06) if active else Vector2.ONE
-		## 非アクティブを alpha 0.55 にすると敵の暗め焼込枠がほぼ真っ黒になる。
-		## 敵は軽く持ち上げ、味方は軽い不透明差のみ。
-		if baked:
-			icon.modulate = (
-				Color(1.15, 1.15, 1.2, 1.0) if active else Color(1.05, 1.05, 1.1, 1.0)
-			)
-		else:
-			icon.modulate = (
-				Color(1.0, 1.0, 1.0, 1.0) if active else Color(1.0, 1.0, 1.0, 0.88)
-			)
+		## 非アクティブを大きく透かすと薄く見える。軽い差のみ。
+		icon.modulate = (
+			Color(1.0, 1.0, 1.0, 1.0) if active else Color(1.0, 1.0, 1.0, 0.92)
+		)
 
 func _clear_turn_order_ui() -> void:
 	if _turn_order_col_left == null or _turn_order_col_right == null:
