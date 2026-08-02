@@ -59,6 +59,19 @@ func test_slot_copy_has_article_effect_and_memo() -> void:
 		assert_true(str(def.get("effect_summary", "")).begins_with("・"), "bullet %s" % id)
 
 
+func test_codex_slot_is_omitted_from_draw() -> void:
+	var found: bool = false
+	for def: Dictionary in _WeekRotation.SLOT_DEFINITIONS:
+		if str(def.get("id", "")) != "codex":
+			continue
+		found = true
+		assert_eq(int(def.get("weight", -1)), 0)
+	assert_true(found, "codex def should remain for future restore")
+	for slot: int in range(0, 256):
+		var idx: int = _WeekRotation.definition_index_for_slot(slot)
+		assert_ne(str(_WeekRotation.SLOT_DEFINITIONS[idx].get("id", "")), "codex")
+
+
 func test_banner_desc_avoids_raw_multiplier_jargon() -> void:
 	## バナーは世界観文。数値倍率は effect_summary 側。
 	for def: Dictionary in _WeekRotation.SLOT_DEFINITIONS:

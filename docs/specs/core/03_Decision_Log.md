@@ -6433,3 +6433,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-FIELD-BANNER-FLAVOR-001-3 | **短名** — `modifier_label` も同トーンへ | UI短表示の整合 |
 | P3-UX-FIELD-BANNER-FLAVOR-001-4 | **SSOT** — `EventWeekRotation.SLOT_DEFINITIONS.banner_desc` | 表示の正 |
 
+## ギルド情報誌・図鑑スロットオミット（2026-08-02 — P3-UX-FIELD-CODEX-OMIT-001）
+
+> **オーナー指示** — 「図鑑調査 ×1.5」はしょぼいのでオミット。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-FIELD-CODEX-OMIT-001-1 | **抽選外** — `codex` スロット `weight = 0` | バナーに出ない |
+| P3-UX-FIELD-CODEX-OMIT-001-2 | **定義残置** — 文面・`EventSystem` API は残す（将来復帰可） | 破壊的削除を避ける |
+| P3-UX-FIELD-CODEX-OMIT-001-3 | **上書き** — `04_FieldSurveySlots` プール表の codex 行 | 本 Decision が正 |
+
