@@ -26,10 +26,24 @@ static func pick_random_stats(pool: Array[String], count: int) -> Array[String]:
 	var take: int = mini(count, available.size())
 	return available.slice(0, take)
 
+static func perfect_roll_count(item: Resource) -> int:
+	if item == null:
+		return 0
+	## 移行セーブでも mods から再集計（表示名★と一致させる）。
+	var _Mods = load("res://scripts/equipment/EquipmentRandomMods.gd")
+	_Mods.ensure_migrated(item)
+	if not ("perfect_roll_count" in item):
+		return 0
+	return maxi(0, int(item.perfect_roll_count))
+
+
+## ランダム行が1本以上 MAX（★）に到達しているか（装備一覧「MAXあり」フィルタ用）。
+static func has_any_perfect_roll(item: Resource) -> bool:
+	return perfect_roll_count(item) > 0
+
+
 static func perfect_roll_suffix(item: Resource) -> String:
-	if item == null or not ("perfect_roll_count" in item):
-		return ""
-	var count: int = maxi(0, int(item.perfect_roll_count))
+	var count: int = perfect_roll_count(item)
 	if count <= 0:
 		return ""
 	var out: String = ""

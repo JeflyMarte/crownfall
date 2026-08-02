@@ -464,11 +464,14 @@ func _on_sort_pressed() -> void:
 	_rebuild_inventory_grid()
 
 func _on_filter_pressed() -> void:
+	## すべて → 装備中 → 未装備 → MAXあり → すべて
 	match _inventory_equipped_filter:
 		"all":
 			_inventory_equipped_filter = "equipped"
 		"equipped":
 			_inventory_equipped_filter = "unequipped"
+		"unequipped":
+			_inventory_equipped_filter = "max"
 		_:
 			_inventory_equipped_filter = "all"
 	_refresh_inventory_tools()
@@ -1998,6 +2001,14 @@ func _rebuild_inventory_grid() -> void:
 			if entry is not Dictionary:
 				continue
 			var category: String = str(entry.get("category", ""))
+			if _inventory_equipped_filter == "max":
+				## レリックに MAX ランダム行はない。武／防／飾のみ。
+				if category == "relic":
+					continue
+				var max_item: Resource = entry.get("item") as Resource
+				if EquipmentRollHelper.has_any_perfect_roll(max_item):
+					filtered.append(entry)
+				continue
 			var owner_member: Resource = null
 			if category == "relic":
 				var rid: String = str(entry.get("relic_id", ""))

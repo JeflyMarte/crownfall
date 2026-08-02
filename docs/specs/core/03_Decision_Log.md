@@ -6409,3 +6409,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-ELITE-BOSS-PRESSURE-001-5 | **キット** — `polar_tricera` に前列 AoE。人数連動は ELITE/BOSS 除外のまま | 穴埋め＋Decision37整合 |
 | P3-BAL-ELITE-BOSS-PRESSURE-001-6 | **SSOT** — `decisions/38_EliteBossPressure.md`／`BalanceConfig.ELITE_ESCORT_*` | 数値の正 |
 
+## 装備一覧・MAXありフィルタ（2026-08-02 — P3-UX-EQUIP-MAX-FILTER-001）
+
+> **オーナー GO（案A）** — キャラ装備画面の既存フィルタに「MAXあり」。★（perfect）1本以上。タブ内。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-EQUIP-MAX-FILTER-001-1 | **サイクル** — すべて → 装備中 → 未装備 → **MAXあり** → すべて | 既存ボタンに追加 |
+| P3-UX-EQUIP-MAX-FILTER-001-2 | **条件** — ランダム行 MAX（★）が **1本以上** | 表示名★と一致 |
+| P3-UX-EQUIP-MAX-FILTER-001-3 | **範囲** — 今の武／防／飾タブ内。レリックは対象外 | レリックに MAX 行なし |
+| P3-UX-EQUIP-MAX-FILTER-001-4 | **SSOT** — `EquipmentRollHelper.has_any_perfect_roll`／`EQUIPPED_FILTER_LABELS.max` | 判定の正 |
+
