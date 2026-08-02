@@ -505,6 +505,46 @@ static func populate_stats_panel(
 		)
 	_append_weapon_flavor_block(host, item, category)
 
+
+## 装備一覧のレリック詳細（閲覧専用。着脱はキャラ装備画面）。
+static func populate_relic_stats_panel(
+	host: VBoxContainer,
+	relic_id: String,
+	meta_host: Node = null
+) -> void:
+	for child in host.get_children():
+		child.queue_free()
+	if relic_id.is_empty():
+		host.add_child(_make_caption_label("レリックを選択してください"))
+		return
+	var popup_host: Node = meta_host if meta_host != null else host
+	var title := Label.new()
+	title.text = CombatPassives.relic_display_name(relic_id)
+	title.autowrap_mode = TextServer.AUTOWRAP_OFF
+	title.clip_text = true
+	title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_body(title, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
+	host.add_child(title)
+	host.add_child(_make_rule())
+	var desc: String = CombatPassives.relic_description(relic_id)
+	if not desc.is_empty():
+		host.add_child(
+			_StatusEffectLinkHelper.make_linked_richtext(
+				desc,
+				UiTypography.SIZE_CAPTION,
+				COLOR_VALUE,
+				popup_host
+			)
+		)
+	var owner_idx: int = EquipmentUiHelper.relic_equipped_member_index(relic_id)
+	if owner_idx >= 0:
+		var member: Resource = GameState.get_member(owner_idx)
+		if member != null:
+			host.add_child(_make_caption_label("装備者: %s" % str(member.display_name)))
+	else:
+		host.add_child(_make_caption_label("装備者: なし"))
+
 static func populate_panel(
 	host: VBoxContainer,
 	item: Resource,

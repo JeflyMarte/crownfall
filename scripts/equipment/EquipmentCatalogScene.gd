@@ -35,11 +35,13 @@ var _inv_cell_size: Vector2 = Vector2(EquipmentUiTokens.INV_CELL_PX, EquipmentUi
 var _category_panels: Dictionary = {}
 var _selected_item: Resource = null
 var _selected_category: String = ""
+var _selected_relic_id: String = ""
 var _selected_cell_btn: Button = null
 var _cell_pointer_down: bool = false
 var _cell_press_origin: Vector2 = Vector2.ZERO
 var _cell_press_item: Resource = null
 var _cell_press_category: String = ""
+var _cell_press_relic_id: String = ""
 
 func _ready() -> void:
 	$Header/HeaderRow/LabelTitle.text = ""
@@ -105,7 +107,7 @@ func _build_category_chips() -> void:
 	for child in _category_row.get_children():
 		child.queue_free()
 	_category_panels.clear()
-	for cat_id in ["all", "weapon", "armor", "accessory"]:
+	for cat_id in ["all", "weapon", "armor", "accessory", "relic"]:
 		var wrap := PanelContainer.new()
 		wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		wrap.custom_minimum_size = EquipmentUiTokens.CATEGORY_MIN_SIZE
@@ -147,6 +149,7 @@ func _build_category_chips() -> void:
 func _on_category_pressed(category: String) -> void:
 	_inventory_filter = category
 	_refresh_category_buttons()
+	_update_sort_filter_labels()
 	_rebuild_inventory_grid()
 
 func _refresh_category_buttons() -> void:
@@ -171,6 +174,8 @@ func _on_filter_pressed() -> void:
 	_rebuild_inventory_grid()
 
 func _on_effect_pressed() -> void:
+	if _inventory_filter == "relic":
+		return
 	_open_effect_family_sheet()
 
 func _update_sort_filter_labels() -> void:
@@ -179,6 +184,8 @@ func _update_sort_filter_labels() -> void:
 		EquipmentUiHelper.EQUIPPED_FILTER_LABELS.get(_inventory_equipped_filter, _inventory_equipped_filter)
 	)
 	_btn_effect.text = EquipmentEffectFamilyFilter.button_summary(_effect_families)
+	## レリックは効果ファミリー対象外（キャラ装備画面と同ポリシー）。
+	_btn_effect.disabled = _inventory_filter == "relic"
 
 func _refresh_display() -> void:
 	_label_gold.text = "%d" % GameState.gold
@@ -200,18 +207,33 @@ func _rebuild_inventory_grid() -> void:
 	if _inventory_filter == "all" or _inventory_filter == "accessory":
 		for it in $EquipmentController.get_appraised_accessories():
 			entries.append({"item": it, "category": "accessory"})
+	## レリックは「すべて」に混ぜず専用タブのみ（キャラ装備画面と同型）。
+	if _inventory_filter == "relic":
+		for rid in GameState.owned_relics:
+			var relic_id: String = str(rid)
+			if relic_id.is_empty():
+				continue
+			entries.append({"relic_id": relic_id, "category": "relic"})
 	entries = EquipmentUiHelper.filter_by_equipped_state(entries, _inventory_equipped_filter, -1)
-	entries = EquipmentEffectFamilyFilter.filter_entries(entries, _effect_families)
+	if _inventory_filter != "relic":
+		entries = EquipmentEffectFamilyFilter.filter_entries(entries, _effect_families)
 	_label_count.text = "%d件" % entries.size()
 	if entries.is_empty():
-		_inventory_grid.add_child(_make_hint_label("該当する装備がありません"))
+		var empty_msg: String = "該当する装備がありません"
+		if _inventory_filter == "relic":
+			empty_msg = "所持しているレリックがありません"
+		_inventory_grid.add_child(_make_hint_label(empty_msg))
 		_selected_item = null
 		_selected_category = ""
+		_selected_relic_id = ""
 		_refresh_detail_panel()
 		ScrollTouchHelper.enable(_inventory_scroll)
 		return
 	for e in EquipmentUiHelper.sort_inventory_entries(entries, _inventory_sort):
-		_inventory_grid.add_child(_make_item_cell(e["item"], str(e["category"])))
+		if str(e.get("category", "")) == "relic":
+			_inventory_grid.add_child(_make_relic_cell(str(e.get("relic_id", ""))))
+		else:
+			_inventory_grid.add_child(_make_item_cell(e["item"], str(e["category"])))
 	## rebuild 後も Scroll 内 Button を PASS 化（スクロール＋短押し両立）。
 	ScrollTouchHelper.enable(_inventory_scroll)
 
@@ -243,7 +265,11 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 	btn.tooltip_text = EquipmentItemDetailHelper.short_name(item, category)
 	## ScrollTouch が mouse_filter=PASS にするため pressed は不発になりやすい。gui_input で短押しを取る。
 	btn.gui_input.connect(_on_item_cell_gui_input.bind(item, category, btn))
-	var selected: bool = item == _selected_item and category == _selected_category
+	var selected: bool = (
+		_selected_relic_id.is_empty()
+		and item == _selected_item
+		and category == _selected_category
+	)
 	if selected:
 		btn.modulate = Color(0.85, 0.92, 1.0, 1.0)
 		_selected_cell_btn = btn
@@ -252,6 +278,37 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 	if owner_member != null:
 		_add_owner_portrait_badge(btn, owner_member, cell_size)
 	return btn
+
+
+func _make_relic_cell(relic_id: String) -> Button:
+	var cell_size: Vector2 = _inv_cell_size
+	var cell_px: int = int(cell_size.x)
+	var btn := Button.new()
+	btn.custom_minimum_size = cell_size
+	btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	btn.clip_contents = true
+	btn.flat = false
+	btn.focus_mode = Control.FOCUS_NONE
+	var icon_key: String = CombatPassives.relic_icon_key(relic_id)
+	var tex: Texture2D = IconPaths.get_icon_texture(icon_key, "relic")
+	EquipmentUiTokens.attach_item_cell_layers(
+		btn, tex, cell_px, EquipmentUiTokens.INV_CELL_DESIGN_PX, icon_key, "relic"
+	)
+	btn.set_meta("cf_category", "relic")
+	btn.set_meta("cf_relic_id", relic_id)
+	var owner_member: Resource = GameState.find_relic_equipped_owner(relic_id)
+	btn.tooltip_text = EquipmentItemDetailHelper.relic_hover_summary(relic_id)
+	btn.gui_input.connect(_on_relic_cell_gui_input.bind(relic_id, btn))
+	var selected: bool = relic_id == _selected_relic_id and not relic_id.is_empty()
+	if selected:
+		btn.modulate = Color(0.85, 0.92, 1.0, 1.0)
+		_selected_cell_btn = btn
+	_apply_relic_cell_styles(btn, cell_px, selected)
+	if owner_member != null:
+		_add_owner_portrait_badge(btn, owner_member, cell_size)
+	return btn
+
 
 func _on_item_cell_gui_input(
 	event: InputEvent, item: Resource, category: String, btn: Button
@@ -266,11 +323,35 @@ func _on_item_cell_gui_input(
 		_cell_press_origin = _cell_event_position(event)
 		_cell_press_item = item
 		_cell_press_category = category
+		_cell_press_relic_id = ""
 	else:
-		if _cell_pointer_down and _cell_press_item == item and _cell_press_category == category:
+		if (
+			_cell_pointer_down
+			and _cell_press_item == item
+			and _cell_press_category == category
+			and _cell_press_relic_id.is_empty()
+		):
 			_on_cell_pressed(item, category, btn)
 		_cancel_cell_press()
 	## accept_event しない: セル上ドラッグを親 InventoryScroll へ渡す（タップは gui_input で処理）。
+
+
+func _on_relic_cell_gui_input(event: InputEvent, relic_id: String, btn: Button) -> void:
+	if _cell_pointer_down and _should_cancel_cell_press_for_move(event):
+		_cancel_cell_press()
+		return
+	if not _is_cell_pointer_event(event):
+		return
+	if event.pressed:
+		_cell_pointer_down = true
+		_cell_press_origin = _cell_event_position(event)
+		_cell_press_item = null
+		_cell_press_category = "relic"
+		_cell_press_relic_id = relic_id
+	else:
+		if _cell_pointer_down and _cell_press_relic_id == relic_id:
+			_on_relic_cell_pressed(relic_id, btn)
+		_cancel_cell_press()
 
 func _is_cell_pointer_event(event: InputEvent) -> bool:
 	if event is InputEventMouseButton:
@@ -307,15 +388,21 @@ func _cancel_cell_press() -> void:
 	_cell_pointer_down = false
 	_cell_press_item = null
 	_cell_press_category = ""
+	_cell_press_relic_id = ""
 
 func _on_cell_pressed(item: Resource, category: String, btn: Button) -> void:
 	## 詳細だけ更新。グリッド全再生成はしない（所持数が多いと実機で重い）。
-	if item == _selected_item and category == _selected_category:
+	if (
+		_selected_relic_id.is_empty()
+		and item == _selected_item
+		and category == _selected_category
+	):
 		_refresh_detail_panel()
 		return
 	_clear_selected_cell_visual()
 	_selected_item = item
 	_selected_category = category
+	_selected_relic_id = ""
 	_selected_cell_btn = btn
 	if btn != null and is_instance_valid(btn):
 		var rarity: int = int(btn.get_meta("cf_rarity", 0))
@@ -325,17 +412,39 @@ func _on_cell_pressed(item: Resource, category: String, btn: Button) -> void:
 	_refresh_detail_panel()
 
 
+func _on_relic_cell_pressed(relic_id: String, btn: Button) -> void:
+	if relic_id == _selected_relic_id and not relic_id.is_empty():
+		_refresh_detail_panel()
+		return
+	_clear_selected_cell_visual()
+	_selected_item = null
+	_selected_category = "relic"
+	_selected_relic_id = relic_id
+	_selected_cell_btn = btn
+	if btn != null and is_instance_valid(btn):
+		var cell_px: int = int(_inv_cell_size.x)
+		btn.modulate = Color(0.85, 0.92, 1.0, 1.0)
+		_apply_relic_cell_styles(btn, cell_px, true)
+	_refresh_detail_panel()
+
+
 func _clear_selected_cell_visual() -> void:
 	if _selected_cell_btn == null or not is_instance_valid(_selected_cell_btn):
 		_selected_cell_btn = null
 		return
-	var rarity: int = int(_selected_cell_btn.get_meta("cf_rarity", 0))
 	var cell_px: int = int(_inv_cell_size.x)
 	_selected_cell_btn.modulate = Color.WHITE
-	_apply_item_cell_styles(_selected_cell_btn, rarity, cell_px, false, false)
+	if str(_selected_cell_btn.get_meta("cf_category", "")) == "relic":
+		_apply_relic_cell_styles(_selected_cell_btn, cell_px, false)
+	else:
+		var rarity: int = int(_selected_cell_btn.get_meta("cf_rarity", 0))
+		_apply_item_cell_styles(_selected_cell_btn, rarity, cell_px, false, false)
 	_selected_cell_btn = null
 
 func _refresh_detail_panel() -> void:
+	if not _selected_relic_id.is_empty():
+		EquipmentItemDetailHelper.populate_relic_stats_panel(_detail_host, _selected_relic_id, self)
+		return
 	EquipmentItemDetailHelper.populate_stats_panel(_detail_host, _selected_item, _selected_category, self)
 
 func _attach_item_icon(
@@ -373,6 +482,16 @@ func _apply_item_cell_styles(
 	btn.add_theme_stylebox_override(
 		"disabled", EquipmentUiTokens.rarity_slot_style(rarity, disabled_highlight, cell_px)
 	)
+
+
+func _apply_relic_cell_styles(btn: Button, cell_px: int, selected: bool = false) -> void:
+	var normal: StyleBox = EquipmentUiTokens.relic_cell_style(selected, cell_px)
+	var hover: StyleBox = EquipmentUiTokens.relic_cell_style(true, cell_px)
+	btn.add_theme_stylebox_override("normal", normal)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_stylebox_override("pressed", hover)
+	btn.add_theme_stylebox_override("focus", normal)
+	btn.add_theme_stylebox_override("disabled", EquipmentUiTokens.relic_cell_style(false, cell_px))
 
 func _apply_item_badges(
 	btn: Button,
