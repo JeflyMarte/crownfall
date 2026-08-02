@@ -1294,6 +1294,24 @@ func _swarm_minion_enemies() -> Array[Resource]:
 	return _swarm_pool_enemies(false)
 
 
+## ELITE 部屋: 章雑魚を 1〜2 体追加（プール空・キャップ超過なら何もしない）。
+func _append_elite_escorts(group: Array[Resource]) -> void:
+	var minions: Array[Resource] = _swarm_minion_enemies()
+	if minions.is_empty():
+		return
+	var cap: int = _DungeonTierConfig.swarm_size_cap()
+	var room: int = maxi(0, cap - group.size())
+	if room <= 0:
+		return
+	var lo: int = mini(BalanceConfig.ELITE_ESCORT_MIN, room)
+	var hi: int = mini(BalanceConfig.ELITE_ESCORT_MAX, room)
+	if hi < lo:
+		return
+	var n: int = randi_range(lo, hi)
+	for _i in n:
+		group.append(minions[randi() % minions.size()])
+
+
 func _swarm_pool_enemies(include_escorts: bool) -> Array[Resource]:
 	var out: Array[Resource] = []
 	if current_dungeon_data == null:
@@ -1312,7 +1330,7 @@ func _swarm_pool_enemies(include_escorts: bool) -> Array[Resource]:
 	return out
 
 # 戦闘の敵編成を返す（P3-D082 + P3-D110 混成 + P3-WANDER-001 放浪差し込み + P3-BAL-SWARM-001 護衛）。
-# BOSS/ELITE は常に単体。COMBAT は放浪抽選→群れ抽選の順。
+# BOSS は常に単体。ELITE は本体＋章雑魚1〜2（P3-BAL-ELITE-BOSS-PRESSURE-001）。COMBAT は放浪→群れ。
 func pick_combat_enemy_group() -> Array[Resource]:
 	var group: Array[Resource] = []
 	if current_room_type == Enums.RoomType.COMBAT:
@@ -1324,6 +1342,9 @@ func pick_combat_enemy_group() -> Array[Resource]:
 	if base == null:
 		return group
 	group.append(base)
+	if current_room_type == Enums.RoomType.ELITE:
+		_append_elite_escorts(group)
+		return group
 	if current_room_type != Enums.RoomType.COMBAT:
 		return group
 	var forced_swarm: bool = (

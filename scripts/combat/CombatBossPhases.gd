@@ -15,6 +15,7 @@ const _DEFS: Dictionary = {
 			"attack_mult": 1.0,
 			"skill_weight": {
 				"boss_enrage": 0.45,
+				"boss_party_curse": 1.6,
 				"enemy_serdion_roar": 2.2,
 				"boss_decree_wave": 1.4,
 			},
@@ -27,6 +28,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】セルディオンが激昂した！",
 			"skill_weight": {
 				"boss_enrage": 0.55,
+				"boss_party_curse": 1.7,
 				"enemy_serdion_roar": 2.0,
 				"boss_decree_wave": 1.8,
 			},
@@ -39,6 +41,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】断罪の波動が倍加する！",
 			"skill_weight": {
 				"boss_enrage": 0.4,
+				"boss_party_curse": 1.8,
 				"enemy_serdion_roar": 2.0,
 				"boss_decree_wave": 2.5,
 			},
@@ -52,6 +55,7 @@ const _DEFS: Dictionary = {
 			"attack_mult": 1.0,
 			"skill_weight": {
 				"boss_enrage": 0.45,
+				"boss_party_curse": 1.6,
 				"enemy_granvel_verdant_wave": 2.2,
 				"enemy_granvel_bramble_crush": 1.4,
 			},
@@ -64,6 +68,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】グランヴェルの体表で根と蔓が荒れ狂う！",
 			"skill_weight": {
 				"boss_enrage": 0.55,
+				"boss_party_curse": 1.7,
 				"enemy_granvel_verdant_wave": 2.0,
 				"enemy_granvel_bramble_crush": 1.8,
 			},
@@ -76,6 +81,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】森そのものがグランヴェルに力を注ぐ！",
 			"skill_weight": {
 				"boss_enrage": 0.4,
+				"boss_party_curse": 1.8,
 				"enemy_granvel_verdant_wave": 2.0,
 				"enemy_granvel_bramble_crush": 2.5,
 			},
@@ -89,6 +95,7 @@ const _DEFS: Dictionary = {
 			"attack_mult": 1.0,
 			"skill_weight": {
 				"boss_enrage": 0.45,
+				"boss_party_curse": 1.6,
 				"enemy_moldgar_abyss_surge": 2.2,
 				"enemy_moldgar_mire_maw": 1.4,
 			},
@@ -101,6 +108,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】モルドガルが泥塘の底へ半身を沈め、うねりが激しくなる！",
 			"skill_weight": {
 				"boss_enrage": 0.55,
+				"boss_party_curse": 1.7,
 				"enemy_moldgar_abyss_surge": 2.0,
 				"enemy_moldgar_mire_maw": 1.8,
 			},
@@ -113,6 +121,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】底なし沼そのものがモルドガルとともに牙を剥く！",
 			"skill_weight": {
 				"boss_enrage": 0.4,
+				"boss_party_curse": 1.8,
 				"enemy_moldgar_abyss_surge": 2.0,
 				"enemy_moldgar_mire_maw": 2.5,
 			},
@@ -126,6 +135,7 @@ const _DEFS: Dictionary = {
 			"attack_mult": 1.0,
 			"skill_weight": {
 				"boss_enrage": 0.45,
+				"boss_party_curse": 1.6,
 				"enemy_nereion_tidal_wail": 2.2,
 				"enemy_nereion_breach": 1.4,
 			},
@@ -138,6 +148,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】ネレイオンの鳴音が高まり、潮が満ちはじめる！",
 			"skill_weight": {
 				"boss_enrage": 0.55,
+				"boss_party_curse": 1.7,
 				"enemy_nereion_tidal_wail": 2.0,
 				"enemy_nereion_breach": 1.8,
 			},
@@ -150,6 +161,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】座礁船団が軋み、大潮がネレイオンとともに牙を剥く！",
 			"skill_weight": {
 				"boss_enrage": 0.4,
+				"boss_party_curse": 1.8,
 				"enemy_nereion_tidal_wail": 2.0,
 				"enemy_nereion_breach": 2.5,
 			},
@@ -163,6 +175,7 @@ const _DEFS: Dictionary = {
 			"attack_mult": 1.0,
 			"skill_weight": {
 				"boss_enrage": 0.45,
+				"boss_party_curse": 1.6,
 				"enemy_eldion_glacial_breath": 2.2,
 				"enemy_eldion_crevasse": 1.4,
 			},
@@ -175,6 +188,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】エルディオンの翼が吹雪を呼び、視界が白闇に沈む！",
 			"skill_weight": {
 				"boss_enrage": 0.55,
+				"boss_party_curse": 1.7,
 				"enemy_eldion_glacial_breath": 2.0,
 				"enemy_eldion_crevasse": 1.8,
 			},
@@ -187,6 +201,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】体内の氷河晶が輝き、始祖の竜が真の力を解き放つ！",
 			"skill_weight": {
 				"boss_enrage": 0.4,
+				"boss_party_curse": 1.8,
 				"enemy_eldion_glacial_breath": 2.0,
 				"enemy_eldion_crevasse": 2.5,
 			},
@@ -200,6 +215,7 @@ const _DEFS: Dictionary = {
 			"attack_mult": 1.0,
 			"skill_weight": {
 				"boss_enrage": 0.45,
+				"boss_party_curse": 1.6,
 				"enemy_chronos_wave_resonance": 2.2,
 				"enemy_chronos_wave_gear_crush": 1.4,
 			},
@@ -212,6 +228,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】歯車の共鳴が加速し、時間感覚が狂い始める！",
 			"skill_weight": {
 				"boss_enrage": 0.55,
+				"boss_party_curse": 1.7,
 				"enemy_chronos_wave_resonance": 2.0,
 				"enemy_chronos_wave_gear_crush": 1.8,
 			},
@@ -224,6 +241,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】時環の共鳴龍が全層を震わせる！",
 			"skill_weight": {
 				"boss_enrage": 0.4,
+				"boss_party_curse": 1.8,
 				"enemy_chronos_wave_resonance": 2.0,
 				"enemy_chronos_wave_gear_crush": 2.5,
 			},
@@ -237,6 +255,7 @@ const _DEFS: Dictionary = {
 			"attack_mult": 1.0,
 			"skill_weight": {
 				"boss_enrage": 0.45,
+				"boss_party_curse": 1.6,
 				"enemy_valgard_rampart": 2.2,
 				"enemy_valgard_boundary_spear": 1.4,
 			},
@@ -249,6 +268,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】境界の番が城壁機関を展開し、守りが強まる！",
 			"skill_weight": {
 				"boss_enrage": 0.55,
+				"boss_party_curse": 1.7,
 				"enemy_valgard_rampart": 2.0,
 				"enemy_valgard_boundary_spear": 1.8,
 			},
@@ -261,6 +281,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】擬機械の機関が暴走し、境界廊全体が軋む！",
 			"skill_weight": {
 				"boss_enrage": 0.4,
+				"boss_party_curse": 1.8,
 				"enemy_valgard_rampart": 2.0,
 				"enemy_valgard_boundary_spear": 2.5,
 			},
@@ -274,6 +295,7 @@ const _DEFS: Dictionary = {
 			"attack_mult": 1.0,
 			"skill_weight": {
 				"boss_enrage": 0.45,
+				"boss_party_curse": 1.6,
 				"enemy_skarpedion_iron_molt": 2.2,
 				"enemy_skarpedion_carapace_ram": 1.4,
 			},
@@ -286,6 +308,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】鉄殻の長が甲殻を震わせ、坑道が軋む！",
 			"skill_weight": {
 				"boss_enrage": 0.55,
+				"boss_party_curse": 1.7,
 				"enemy_skarpedion_iron_molt": 2.0,
 				"enemy_skarpedion_carapace_ram": 1.8,
 			},
@@ -298,6 +321,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】王冠の紋様が鉄殻に浮かび、長が全長を解く！",
 			"skill_weight": {
 				"boss_enrage": 0.4,
+				"boss_party_curse": 1.8,
 				"enemy_skarpedion_iron_molt": 2.0,
 				"enemy_skarpedion_carapace_ram": 2.5,
 			},
@@ -311,6 +335,7 @@ const _DEFS: Dictionary = {
 			"attack_mult": 1.0,
 			"skill_weight": {
 				"boss_enrage": 0.45,
+				"boss_party_curse": 1.6,
 				"enemy_mycolga_spore_field": 2.2,
 				"enemy_mycolga_root_bind": 1.4,
 			},
@@ -323,6 +348,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】古茸の菌糸が通路を覆い、胞子が濃くなる！",
 			"skill_weight": {
 				"boss_enrage": 0.55,
+				"boss_party_curse": 1.7,
 				"enemy_mycolga_spore_field": 2.0,
 				"enemy_mycolga_root_bind": 1.8,
 			},
@@ -335,6 +361,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】書庫全体が一本の根として脈打つ！",
 			"skill_weight": {
 				"boss_enrage": 0.4,
+				"boss_party_curse": 1.8,
 				"enemy_mycolga_spore_field": 2.0,
 				"enemy_mycolga_root_bind": 2.5,
 			},
@@ -348,6 +375,7 @@ const _DEFS: Dictionary = {
 			"attack_mult": 1.0,
 			"skill_weight": {
 				"boss_enrage": 0.45,
+				"boss_party_curse": 1.6,
 				"enemy_karna_ash_veil": 2.2,
 				"enemy_karna_magma_lance": 1.4,
 			},
@@ -360,6 +388,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】燼竜が灰雲を吐き、火口が赤く染まる！",
 			"skill_weight": {
 				"boss_enrage": 0.55,
+				"boss_party_curse": 1.7,
 				"enemy_karna_ash_veil": 2.0,
 				"enemy_karna_magma_lance": 1.8,
 			},
@@ -372,6 +401,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】溶岩の脈動とともに燼竜が空へ昇る！",
 			"skill_weight": {
 				"boss_enrage": 0.4,
+				"boss_party_curse": 1.8,
 				"enemy_karna_ash_veil": 2.0,
 				"enemy_karna_magma_lance": 2.5,
 			},
@@ -385,6 +415,7 @@ const _DEFS: Dictionary = {
 			"attack_mult": 1.0,
 			"skill_weight": {
 				"boss_enrage": 0.45,
+				"boss_party_curse": 1.6,
 				"enemy_nereion_depths_tide_pull": 2.2,
 				"enemy_nereion_depths_abyss_roar": 1.4,
 			},
@@ -397,6 +428,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】潮脈王が沈没旗艦を揺らし、深海の圧が増す！",
 			"skill_weight": {
 				"boss_enrage": 0.55,
+				"boss_party_curse": 1.7,
 				"enemy_nereion_depths_tide_pull": 2.0,
 				"enemy_nereion_depths_abyss_roar": 1.8,
 			},
@@ -409,6 +441,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】外洋の底から、潮鳴りが一つに束ねられる！",
 			"skill_weight": {
 				"boss_enrage": 0.4,
+				"boss_party_curse": 1.8,
 				"enemy_nereion_depths_tide_pull": 2.0,
 				"enemy_nereion_depths_abyss_roar": 2.5,
 			},
@@ -422,6 +455,7 @@ const _DEFS: Dictionary = {
 			"attack_mult": 1.0,
 			"skill_weight": {
 				"boss_enrage": 0.45,
+				"boss_party_curse": 1.6,
 				"enemy_forgedormient_slag_breath": 2.2,
 				"enemy_forgedormient_furnace_quake": 1.4,
 			},
@@ -434,6 +468,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】星炉の残熱が甦り、坑道が赤く光る！",
 			"skill_weight": {
 				"boss_enrage": 0.55,
+				"boss_party_curse": 1.7,
 				"enemy_forgedormient_slag_breath": 2.0,
 				"enemy_forgedormient_furnace_quake": 1.8,
 			},
@@ -446,6 +481,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】炉壁そのものが起き上がり、フォージ・ドルミエントが目を覚ます！",
 			"skill_weight": {
 				"boss_enrage": 0.4,
+				"boss_party_curse": 1.8,
 				"enemy_forgedormient_slag_breath": 2.0,
 				"enemy_forgedormient_furnace_quake": 2.5,
 			},
@@ -459,6 +495,7 @@ const _DEFS: Dictionary = {
 			"attack_mult": 1.0,
 			"skill_weight": {
 				"boss_enrage": 0.45,
+				"boss_party_curse": 1.6,
 				"enemy_albark_white_silence": 2.2,
 				"enemy_albark_mapless_charge": 1.4,
 			},
@@ -471,6 +508,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】白甲の古龍が翼を広げ、雪原が静寂に沈む！",
 			"skill_weight": {
 				"boss_enrage": 0.55,
+				"boss_party_curse": 1.7,
 				"enemy_albark_white_silence": 2.0,
 				"enemy_albark_mapless_charge": 1.8,
 			},
@@ -483,6 +521,7 @@ const _DEFS: Dictionary = {
 			"log": "【フェーズ移行】ここより先、地図なし——アルバークが名を拒む！",
 			"skill_weight": {
 				"boss_enrage": 0.4,
+				"boss_party_curse": 1.8,
 				"enemy_albark_white_silence": 2.0,
 				"enemy_albark_mapless_charge": 2.5,
 			},

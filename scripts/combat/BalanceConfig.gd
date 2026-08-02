@@ -190,6 +190,11 @@ const SWARM_DENSITY_MOB_ATK: float = 0.75
 ## ソロ戦で全体／列／AoE スキルの抽選ウェイト倍率。
 const SOLO_AOE_SKILL_WEIGHT_MULT: float = 2.25
 
+# ── エリート護衛（P3-BAL-ELITE-BOSS-PRESSURE-001） ───────────────────────
+## ELITE 部屋入場時に従える章雑魚数（ランダム）。プール空なら単体。
+const ELITE_ESCORT_MIN: int = 1
+const ELITE_ESCORT_MAX: int = 2
+
 
 static func swarm_density_hp_mult(start_count: int) -> float:
 	match start_count:
