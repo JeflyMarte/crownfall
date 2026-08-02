@@ -339,8 +339,8 @@ static func enemy_damage_to_member(
 	if def_reduction > 0.0:
 		defense = int(round(float(defense) * (1.0 - clampf(def_reduction, 0.0, 0.95))))
 	var final_dmg: int = apply_member_defense(base_dmg, defense)
-	# 防御(guard)等の被ダメ補正（P3-D085）。
-	var incoming_mult: float = combat.get_member_incoming_damage_multiplier(target_index)
+	# 防御(guard)等の被ダメ補正（P3-D085）。攻撃側スロットで血契等を参照。
+	var incoming_mult: float = combat.get_member_incoming_damage_multiplier(target_index, out_slot)
 	if not is_equal_approx(incoming_mult, 1.0):
 		final_dmg = maxi(0, int(round(float(final_dmg) * incoming_mult)))
 	var blocked: bool = false
