@@ -11,6 +11,10 @@ const STAT_SCALE: int = 8
 ## 炉研ぎ +N の平坦加算（旧 +1 ATK/DEF、防具HPは旧 +2）
 const EQUIP_FORGE_FLAT_PER_LEVEL: int = STAT_SCALE
 const EQUIP_FORGE_HP_PER_LEVEL: int = STAT_SCALE * 2
+## 平坦ランダム（攻撃/防御/HPアップ）帯圧縮（P3-EQ-FLAT-ROLL-NARROW-001 案C）。
+## 上限表は旧×CEILING を焼き込み。下限＝上限×FLOOR（最低1）。
+const FLAT_ROLL_CEILING_MULT: float = 0.70
+const FLAT_ROLL_FLOOR_RATIO: float = 0.55
 
 # ── ダメージ計算（旧 DungeonScene 定数） ──────────────────────────────────
 const FALLBACK_ATTACK: int = 10 * STAT_SCALE
