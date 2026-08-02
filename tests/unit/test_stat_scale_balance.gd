@@ -25,9 +25,10 @@ func test_enemy_masters_scaled() -> void:
 
 
 func test_roll_and_forge_follow_scale() -> void:
+	## P3-EQ-FLAT-ROLL-NARROW-001: COMMON 上限は旧5×SCALE を ×0.7 → 4×SCALE
 	assert_eq(
 		int(WeaponStatResolver.ATTACK_ROLL_MAX[Enums.Rarity.COMMON]),
-		5 * BalanceConfig.STAT_SCALE
+		4 * BalanceConfig.STAT_SCALE
 	)
 	assert_eq(BalanceConfig.EQUIP_FORGE_FLAT_PER_LEVEL, BalanceConfig.STAT_SCALE)
 	assert_eq(BalanceConfig.EQUIP_FORGE_HP_PER_LEVEL, BalanceConfig.STAT_SCALE * 2)

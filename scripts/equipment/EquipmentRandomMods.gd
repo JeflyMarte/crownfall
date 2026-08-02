@@ -659,10 +659,13 @@ static func _weapon_pool_ids(weapon_data: Resource, used: Dictionary) -> Array[S
 static func _roll_weapon_pool_mod(pid: String, weapon_data: Resource, rarity: int) -> Dictionary:
 	match pid:
 		KIND_ATTACK_UP:
+			var atk_band: Dictionary = _flat_roll_bounds(
+				int(_WeaponStatResolver.ATTACK_ROLL_MAX.get(rarity, 32))
+			)
 			return _roll_int_mod(
 				KIND_ATTACK_UP, "攻撃力アップ",
-				1,
-				int(_WeaponStatResolver.ATTACK_ROLL_MAX.get(rarity, 40))
+				int(atk_band["min"]),
+				int(atk_band["max"])
 			)
 		KIND_DEFENSE_UP:
 			return _roll_int_mod(KIND_DEFENSE_UP, "防御力アップ", 8, 16)
@@ -696,16 +699,22 @@ static func _roll_weapon_pool_mod(pid: String, weapon_data: Resource, rarity: in
 static func _roll_armor_pool_mod(pid: String, rarity: int) -> Dictionary:
 	match pid:
 		KIND_HP_UP:
+			var arm_hp: Dictionary = _flat_roll_bounds(
+				int(_ArmorStatResolver.HP_ROLL_MAX.get(rarity, 48))
+			)
 			return _roll_int_mod(
 				KIND_HP_UP, "HPアップ",
-				4,
-				int(_ArmorStatResolver.HP_ROLL_MAX.get(rarity, 64))
+				int(arm_hp["min"]),
+				int(arm_hp["max"])
 			)
 		KIND_DEFENSE_UP:
+			var arm_def: Dictionary = _flat_roll_bounds(
+				int(_ArmorStatResolver.DEFENSE_ROLL_MAX.get(rarity, 24))
+			)
 			return _roll_int_mod(
 				KIND_DEFENSE_UP, "防御力アップ",
-				1,
-				int(_ArmorStatResolver.DEFENSE_ROLL_MAX.get(rarity, 32))
+				int(arm_def["min"]),
+				int(arm_def["max"])
 			)
 		KIND_RESIST:
 			return _roll_resist_mod(rarity)
@@ -748,22 +757,31 @@ static func _roll_armor_pool_mod(pid: String, rarity: int) -> Dictionary:
 static func _roll_accessory_pool_mod(pid: String, rarity: int) -> Dictionary:
 	match pid:
 		KIND_HP_UP:
+			var acc_hp: Dictionary = _flat_roll_bounds(
+				int(_AccessoryStatResolver.HP_ROLL_MAX.get(rarity, 32))
+			)
 			return _roll_int_mod(
 				KIND_HP_UP, "HPアップ",
-				4,
-				int(_AccessoryStatResolver.HP_ROLL_MAX.get(rarity, 48))
+				int(acc_hp["min"]),
+				int(acc_hp["max"])
 			)
 		KIND_ATTACK_UP:
+			var acc_atk: Dictionary = _flat_roll_bounds(
+				int(_AccessoryStatResolver.ATTACK_ROLL_MAX.get(rarity, 16))
+			)
 			return _roll_int_mod(
 				KIND_ATTACK_UP, "攻撃力アップ",
-				1,
-				int(_AccessoryStatResolver.ATTACK_ROLL_MAX.get(rarity, 24))
+				int(acc_atk["min"]),
+				int(acc_atk["max"])
 			)
 		KIND_DEFENSE_UP:
+			var acc_def: Dictionary = _flat_roll_bounds(
+				int(_AccessoryStatResolver.DEFENSE_ROLL_MAX.get(rarity, 16))
+			)
 			return _roll_int_mod(
 				KIND_DEFENSE_UP, "防御力アップ",
-				1,
-				int(_AccessoryStatResolver.DEFENSE_ROLL_MAX.get(rarity, 24))
+				int(acc_def["min"]),
+				int(acc_def["max"])
 			)
 		KIND_CRIT_RATE:
 			var mx: float = float(_AccessoryStatResolver.CRIT_ROLL_MAX.get(rarity, 0.03))
@@ -800,6 +818,13 @@ static func _roll_accessory_pool_mod(pid: String, rarity: int) -> Dictionary:
 			return _roll_int_mod(KIND_HEALING, "回復量アップ", 20, 40)
 		_:
 			return {}
+
+
+## 平坦ATK/DEF/HPアップの下限〜上限（上限表×FLOOR）。回復・武器DEF等の固定帯は使わない。
+static func _flat_roll_bounds(table_max: int) -> Dictionary:
+	var max_v: int = maxi(1, table_max)
+	var min_v: int = maxi(1, int(round(float(max_v) * BalanceConfig.FLAT_ROLL_FLOOR_RATIO)))
+	return {"min": min_v, "max": maxi(min_v, max_v)}
 
 
 ## 整数アップ系は最低 +1（0UP 禁止）。

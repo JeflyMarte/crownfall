@@ -6677,3 +6677,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-EQ-LEG-BUILD-001-4 | **アイコン** — 専用10枚（64×64／`import_build_legendary_icons.py`） | 汎用流用を解消 |
 | P3-EQ-LEG-BUILD-001-5 | **SSOT** — `decisions/50_BuildLegendaries.md` | 正 |
 
+## 平坦ランダム帯圧縮（2026-08-02 — P3-EQ-FLAT-ROLL-NARROW-001）
+
+> **オーナー GO（推奨案C）** — 上限×0.7・下限＝上限×0.55。既存所持はリロールしない。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-FLAT-ROLL-NARROW-001-1 | **対象** — 攻撃／防御／HPアップ（平坦）。率系・回復・武器DEF8〜16・属性値は据置 | 広すぎる主因に限定 |
+| P3-EQ-FLAT-ROLL-NARROW-001-2 | **上限** — 旧表×0.70 を `*_ROLL_MAX` に焼き込み | 神引きの突き抜け抑制 |
+| P3-EQ-FLAT-ROLL-NARROW-001-3 | **下限** — `FLAT_ROLL_FLOOR_RATIO=0.55` | 「ほぼ空」ロール解消 |
+| P3-EQ-FLAT-ROLL-NARROW-001-4 | **互換** — 所持済み mods は据置。新規ドロップのみ | セーブ破壊を避ける |
+| P3-EQ-FLAT-ROLL-NARROW-001-5 | **SSOT** — `decisions/51_FlatRollNarrow.md` | 正 |
+

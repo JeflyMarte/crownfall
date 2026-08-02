@@ -6,25 +6,26 @@ const _EquipmentRollHelper = preload("res://scripts/equipment/EquipmentRollHelpe
 ## P3-EQ-STAT-008 — 装飾品個体ステータス解決。必須なし。レア度でランダム1〜4種。
 
 ## 平坦ロール上限（P3-BAL-STAT-SCALE-001: ×STAT_SCALE）。率系は据置。
+## 旧 HP 6/10/14/20・ATK/DEF 3/5/8/12 を ×0.7 して焼き込み（P3-EQ-FLAT-ROLL-NARROW-001）。
 const HP_ROLL_MAX: Dictionary = {
-	Enums.Rarity.COMMON: 6 * BalanceConfig.STAT_SCALE,
-	Enums.Rarity.RARE: 10 * BalanceConfig.STAT_SCALE,
-	Enums.Rarity.EPIC: 14 * BalanceConfig.STAT_SCALE,
-	Enums.Rarity.LEGENDARY: 20 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.COMMON: 4 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.RARE: 7 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.EPIC: 10 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.LEGENDARY: 14 * BalanceConfig.STAT_SCALE,
 }
 
 const ATTACK_ROLL_MAX: Dictionary = {
-	Enums.Rarity.COMMON: 3 * BalanceConfig.STAT_SCALE,
-	Enums.Rarity.RARE: 5 * BalanceConfig.STAT_SCALE,
-	Enums.Rarity.EPIC: 8 * BalanceConfig.STAT_SCALE,
-	Enums.Rarity.LEGENDARY: 12 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.COMMON: 2 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.RARE: 4 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.EPIC: 6 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.LEGENDARY: 8 * BalanceConfig.STAT_SCALE,
 }
 
 const DEFENSE_ROLL_MAX: Dictionary = {
-	Enums.Rarity.COMMON: 3 * BalanceConfig.STAT_SCALE,
-	Enums.Rarity.RARE: 5 * BalanceConfig.STAT_SCALE,
-	Enums.Rarity.EPIC: 8 * BalanceConfig.STAT_SCALE,
-	Enums.Rarity.LEGENDARY: 12 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.COMMON: 2 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.RARE: 4 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.EPIC: 6 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.LEGENDARY: 8 * BalanceConfig.STAT_SCALE,
 }
 
 const CRIT_ROLL_MAX: Dictionary = {
@@ -199,11 +200,14 @@ static func _roll_int_bonus_stat(
 	roll_table: Dictionary,
 	rarity: int
 ) -> bool:
+	## レガシー経路。新規ドロップは EquipmentRandomMods（下限比率付き）。
 	var roll_max: int = int(roll_table.get(rarity, roll_table[Enums.Rarity.COMMON]))
-	var roll: Dictionary = _EquipmentRollHelper.roll_int_bonus(roll_max)
+	var roll_min: int = maxi(1, int(round(float(roll_max) * BalanceConfig.FLAT_ROLL_FLOOR_RATIO)))
+	var roll: Dictionary = _EquipmentRollHelper.roll_int_bonus(maxi(0, roll_max - roll_min))
 	var base: int = maxi(0, int(accessory_data.get(field)))
-	instance.set(field, base + int(roll.get("value", 0)))
-	return bool(roll.get("perfect", false))
+	var bonus: int = roll_min + int(roll.get("value", 0))
+	instance.set(field, base + bonus)
+	return bonus >= roll_max
 
 static func _roll_crit_bonus_stat(
 	instance: Resource,
