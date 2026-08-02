@@ -727,12 +727,16 @@ func apply_damage_to_enemy(amount: int) -> void:
 ## 致死回避を使ったメンバー index → シールド終了時刻（Time.get_ticks_msec）。
 var _death_save_used: Dictionary = {}
 var _death_save_shield_until_msec: Dictionary = {}
+var _death_save_outgoing_until_msec: Dictionary = {}
+var _death_save_outgoing_mult: Dictionary = {}
 ## 戦闘中の一時パーティ被ダメ倍率（ヴァルデン等）。1.0=等倍。
 var party_temp_incoming_mult: float = 1.0
 
 func clear_death_save_state() -> void:
 	_death_save_used.clear()
 	_death_save_shield_until_msec.clear()
+	_death_save_outgoing_until_msec.clear()
+	_death_save_outgoing_mult.clear()
 	party_temp_incoming_mult = 1.0
 
 func apply_damage_to_member(index: int, amount: int) -> void:
@@ -756,11 +760,50 @@ func apply_damage_to_member(index: int, amount: int) -> void:
 				if once:
 					_death_save_used[index] = true
 				party_combat_hp[index] = 1
+				var heal_frac: float = float(save_def.get("death_save_heal_max_hp_fraction", 0.0))
+				if heal_frac > 0.0 and index < party_max_hp.size():
+					var heal_amt: int = maxi(1, int(round(float(party_max_hp[index]) * heal_frac)))
+					## heal_member は回復受取倍率を通す（不死鳥は等倍想定）。
+					heal_member(index, heal_amt)
+				var out_mult: float = float(save_def.get("death_save_outgoing_mult", 1.0))
+				var out_dur: float = float(save_def.get("death_save_outgoing_duration_sec", 0.0))
+				if out_dur > 0.0 and not is_equal_approx(out_mult, 1.0):
+					_death_save_outgoing_until_msec[index] = Time.get_ticks_msec() + int(out_dur * 1000.0)
+					_death_save_outgoing_mult[index] = out_mult
 				var dur_sec: float = float(save_def.get("death_save_duration_sec", 0.0))
 				if dur_sec > 0.0:
 					_death_save_shield_until_msec[index] = Time.get_ticks_msec() + int(dur_sec * 1000.0)
 				return
 	party_combat_hp[index] = after
+
+
+## 後衛被弾をレリック装備者へ振替。振替時 true。
+func try_redirect_rear_hit(target_idx: int) -> Dictionary:
+	var out: Dictionary = {"target": target_idx, "redirected": false}
+	if target_idx < 0 or not is_member_alive(target_idx):
+		return out
+	if not GameState.is_member_back_row(target_idx):
+		return out
+	var holder: int = CombatPassives.redirect_rear_hit_holder_index()
+	if holder < 0 or holder == target_idx or not is_member_alive(holder):
+		return out
+	var chance: float = CombatPassives.redirect_rear_hit_chance_for(holder)
+	if chance <= 0.0 or randf() > chance:
+		return out
+	out["target"] = holder
+	out["redirected"] = true
+	out["holder"] = holder
+	return out
+
+
+func death_save_outgoing_mult_for(member_index: int) -> float:
+	if not bool(_death_save_outgoing_until_msec.has(member_index)):
+		return 1.0
+	if Time.get_ticks_msec() > int(_death_save_outgoing_until_msec[member_index]):
+		_death_save_outgoing_until_msec.erase(member_index)
+		_death_save_outgoing_mult.erase(member_index)
+		return 1.0
+	return float(_death_save_outgoing_mult.get(member_index, 1.0))
 
 func refund_member_ct(member_index: int, fraction: float) -> void:
 	var frac: float = clampf(fraction, 0.0, 1.0)
@@ -1174,6 +1217,7 @@ func get_member_outgoing_damage_multiplier(
 		hp_ratio = float(party_combat_hp[member_index]) / float(party_max_hp[member_index])
 	mult *= float(CombatPassives.character_stat_modifiers_for_member(member_index, hp_ratio).get("outgoing_mult", 1.0))
 	mult *= CombatPassives.relic_outgoing_hp_tier_mult(member_index, hp_ratio)
+	mult *= death_save_outgoing_mult_for(member_index)
 	mult *= CombatPassives.party_outgoing_mult()
 	if GameState.is_pet_combatant(member_index) and is_member_alive(member_index):
 		mult *= CombatPassives.pet_outgoing_mult_from_party()

@@ -1014,6 +1014,12 @@ func _resolve_room_weights(dungeon: DungeonData) -> Dictionary:
 		}
 	if _early_normal_elites_disabled():
 		weights["elite"] = 0
+	## 宝箱の羅針など: treasure 加算分は combat から減算（合計を崩さない）。
+	var treasure_add: int = CombatPassives.party_treasure_room_weight_add()
+	if treasure_add > 0:
+		var add_n: int = mini(treasure_add, maxi(0, int(weights.get("combat", 0))))
+		weights["treasure"] = int(weights.get("treasure", 0)) + add_n
+		weights["combat"] = maxi(0, int(weights.get("combat", 0)) - add_n)
 	return weights
 
 func _required_min_event_rooms(dungeon: DungeonData, middle_count: int) -> int:
