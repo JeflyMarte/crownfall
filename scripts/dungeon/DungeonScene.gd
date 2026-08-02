@@ -711,6 +711,11 @@ const _WanderingEnemyConfig = preload("res://scripts/dungeon/WanderingEnemyConfi
 const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd")
 const _AbyssWeaponEffects = preload("res://scripts/combat/AbyssWeaponEffects.gd")
 const _EnemyResistTelop = preload("res://scripts/combat/EnemyResistTelop.gd")
+const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
+## T10 沈黙（スキル／必殺封じ）秒数。
+const ENEMY_SILENCE_DURATION_SEC: float = 5.0
+## T14 CT加速の返却割合（次行動までの待ち短縮）。
+const ENEMY_HASTE_CT_REFUND: float = 0.55
 const _EquipmentSetBonuses = preload("res://scripts/equipment/EquipmentSetBonuses.gd")
 
 var _auto_delay: float = AUTO_DELAY_BASE / SPEED_MULT_NORMAL
@@ -3593,6 +3598,9 @@ func _enter_current_room() -> void:
 			_passive_next_attack_mult.clear()
 			_passive_once_fired.clear()
 			_enemy_resist_telop_announced.clear()
+			_enemy_trait_telop_announced.clear()
+			_enemy_summon_used.clear()
+			_member_skill_silence_until_msec.clear()
 			_passive_counter_depth = 0
 			_passive_skill_echo_depth = 0
 			_basic_only_actions_left.clear()
@@ -4774,6 +4782,12 @@ var _passive_next_attack_mult: Dictionary = {}
 var _passive_once_fired: Dictionary = {}
 ## T6/T7 軽減説明テロップ済キー（slot:basic|skill）。戦闘ごとに clear。
 var _enemy_resist_telop_announced: Dictionary = {}
+## T8/T10/T11/T14 特性テロップ済キー。
+var _enemy_trait_telop_announced: Dictionary = {}
+## T8: 召喚済の敵スロット。
+var _enemy_summon_used: Dictionary = {}
+## T10: member_idx → 沈黙解除時刻（msec）。
+var _member_skill_silence_until_msec: Dictionary = {}
 var _passive_counter_depth: int = 0
 var _passive_skill_echo_depth: int = 0
 ## 斥候の片眼: 残り「通常攻撃のみ」行動数（member_idx → count）。
@@ -5988,6 +6002,8 @@ func _pick_enemy_skill(enemy_data: Resource, phase_def: Dictionary, slot: int = 
 			continue
 		if not _skill_executor.can_cast(sd, _enemy_skill_cd_key(cd_slot, sd)):
 			continue
+		if not _enemy_tricky_skill_allowed(sd, cd_slot):
+			continue
 		var w: float = float(weights.get(str(sid), 1.0))
 		pool.append({"skill": sd, "weight": w})
 		total += w
@@ -6185,10 +6201,38 @@ func _execute_enemy_skill(skill: Resource, slot: int = -1) -> bool:
 		"explode":
 			_execute_enemy_explode(skill, slot)
 			return true
+		"haste":
+			_execute_enemy_haste(skill, slot)
+			return true
+		"silence":
+			_execute_enemy_silence(skill, slot)
+			return true
+		"summon":
+			return _execute_enemy_summon(skill, slot)
 		"damage":
 			_execute_enemy_damage(skill, slot)
 			return true
 	return false
+
+
+## T8/T10/T14 など条件付き敵スキルが今使えるか。
+func _enemy_tricky_skill_allowed(skill: Resource, slot: int) -> bool:
+	if skill == null or slot < 0:
+		return false
+	match str(skill.effect_type):
+		"haste":
+			return $CombatController.living_enemy_count() >= 2
+		"summon":
+			if bool(_enemy_summon_used.get(slot, false)):
+				return false
+			var cap: int = _DungeonTierConfig.swarm_size_cap()
+			if $CombatController.swarm_data.size() >= cap:
+				return false
+			if $CombatController.living_enemy_count() >= cap:
+				return false
+			return $CombatController.get_enemy_hp_ratio(slot) <= 0.5
+		_:
+			return true
 
 ## 敵サポート対象スロット（P3-BAL-ENEMY-TRICKY-001）。
 func _resolve_enemy_support_slot(skill: Resource, caster_slot: int) -> int:
@@ -6258,6 +6302,72 @@ func _execute_enemy_flee(skill: Resource, slot: int) -> void:
 ## 敵自爆（AoE のあと自スロットを通常撃破扱い）。
 func _execute_enemy_explode(skill: Resource, slot: int) -> void:
 	_queue_enemy_offensive_skill(skill, slot, true)
+
+
+## T14: 他の生存敵の CT を早める。
+func _execute_enemy_haste(skill: Resource, slot: int) -> void:
+	_play_enemy_caster_animation(slot, "attack")
+	_spawn_enemy_skill_name(skill.display_name, slot)
+	var target_slot: int = $CombatController.get_most_injured_enemy_slot(slot)
+	if target_slot < 0:
+		var living: Array[int] = $CombatController.get_living_enemy_indices()
+		for i: int in living:
+			if i != slot:
+				target_slot = i
+				break
+	if target_slot < 0:
+		_append_log("敵スキル【%s】: 対象なし" % skill.display_name)
+		return
+	var refund: float = float(skill.power_multiplier)
+	if refund <= 0.0:
+		refund = ENEMY_HASTE_CT_REFUND
+	$CombatController.refund_enemy_ct(target_slot, clampf(refund, 0.15, 0.85))
+	_try_announce_enemy_trait_once("haste:%d" % slot, target_slot, "行動が早まった！")
+	_append_log("敵スキル【%s】: 味方の行動を早めた" % skill.display_name)
+	_update_turn_order_ui($CombatController.get_ct_order())
+
+
+## T10: 生存ランダム1人のスキル／必殺を短時間封じる。
+func _execute_enemy_silence(skill: Resource, slot: int) -> void:
+	_play_enemy_caster_animation(slot, "attack")
+	_spawn_enemy_skill_name(skill.display_name, slot)
+	var living: Array[int] = []
+	for i: int in $CombatController.party_combat_hp.size():
+		if $CombatController.is_member_alive(i):
+			living.append(i)
+	if living.is_empty():
+		_append_log("敵スキル【%s】: 対象なし" % skill.display_name)
+		return
+	var target_idx: int = living[randi() % living.size()]
+	var until_msec: int = Time.get_ticks_msec() + int(ENEMY_SILENCE_DURATION_SEC * 1000.0)
+	_member_skill_silence_until_msec[target_idx] = until_msec
+	var member: Resource = GameState.get_combatant(target_idx)
+	var mname: String = member.display_name if member != null else "?"
+	_try_announce_enemy_trait_once("silence:%d" % slot, -1, "スキルが封じられた！", target_idx)
+	_append_log("敵スキル【%s】: %s のスキルを封じる" % [skill.display_name, mname])
+
+
+## T8: 同種1体を末尾追加（召喚者スロットあたり1回・HP≤50%は抽選側で担保）。
+func _execute_enemy_summon(skill: Resource, slot: int) -> bool:
+	if not _enemy_tricky_skill_allowed(skill, slot):
+		return false
+	_play_enemy_caster_animation(slot, "attack")
+	_spawn_enemy_skill_name(skill.display_name, slot)
+	var template: Resource = $CombatController.get_enemy_data_at(slot)
+	if template == null:
+		return false
+	var cap: int = _DungeonTierConfig.swarm_size_cap()
+	var new_slot: int = $CombatController.append_enemy_to_swarm(template, cap)
+	if new_slot < 0:
+		_append_log("敵スキル【%s】: 呼び出せなかった" % skill.display_name)
+		return false
+	_enemy_summon_used[slot] = true
+	_reveal_appended_enemy_slot(new_slot)
+	_try_announce_enemy_trait_once("summon:%d" % slot, new_slot, "仲間を呼んだ！")
+	_append_log("敵スキル【%s】: 仲間が現れた" % skill.display_name)
+	_update_hp_bars()
+	_update_turn_order_ui($CombatController.get_ct_order())
+	return true
 
 
 # 敵の攻撃スキル（全体/列/単体）。power_multiplier 分のダメージを対象へ。
@@ -6471,6 +6581,7 @@ func _apply_enemy_damage_to_targets(
 		if dmg > 0:
 			GameState.record_run_damage_taken(ti, dmg)
 			$CombatController.add_ultimate_charge_from_damage_taken(ti, dmg)
+			_apply_enemy_lifesteal(atk_slot, dmg)
 		_play_chr_hurt(ti)
 		if ti < _chr_sprites.size():
 			var hit_pos: Vector2 = _chr_sprites[ti].global_position
@@ -6529,6 +6640,114 @@ func _enemy_basic_attack_display_name(slot: int = -1) -> String:
 		if not named.is_empty():
 			return named
 	return "攻撃"
+
+
+## 特性テロップ（吸血／沈黙／召集／加速）。戦闘内キー1回。member_idx>=0 なら味方頭上。
+func _try_announce_enemy_trait_once(
+	key: String,
+	enemy_slot: int,
+	msg: String,
+	member_idx: int = -1
+) -> void:
+	if key.is_empty() or msg.is_empty():
+		return
+	if _enemy_trait_telop_announced.has(key):
+		return
+	_enemy_trait_telop_announced[key] = true
+	var pos: Vector2 = Vector2.ZERO
+	if member_idx >= 0 and member_idx < _chr_sprites.size():
+		pos = _sprite_visual_center_global(_chr_sprites[member_idx])
+		if pos == Vector2.ZERO:
+			pos = _chr_sprites[member_idx].global_position
+	elif enemy_slot >= 0:
+		var spr: AnimatedSprite2D = _enemy_sprite_for_attack_mark(enemy_slot)
+		if spr == null:
+			spr = _active_enemy_sprite()
+		if spr != null and is_instance_valid(spr):
+			pos = _sprite_visual_center_global(spr)
+			if pos == Vector2.ZERO:
+				pos = spr.global_position
+	if pos != Vector2.ZERO:
+		_spawn_damage_number(
+			"◇ %s" % msg,
+			pos + Vector2(0.0, -36.0),
+			Color(0.85, 0.78, 1.0),
+			1.0,
+			0,
+			true,
+			ENEMY_RESIST_TELOP_FONT_SIZE
+		)
+	_append_log("[特性] %s" % msg)
+
+
+func _apply_enemy_lifesteal(attacker_slot: int, damage: int) -> void:
+	if damage <= 0 or attacker_slot < 0:
+		return
+	if not $CombatController.is_enemy_slot_alive(attacker_slot):
+		return
+	var data: Resource = $CombatController.get_enemy_data_at(attacker_slot)
+	if data == null or not ("lifesteal_ratio" in data):
+		return
+	var ratio: float = float(data.lifesteal_ratio)
+	if ratio <= 0.0:
+		return
+	var heal_amount: int = maxi(1, int(round(float(damage) * ratio)))
+	var maxhp: int = $CombatController.get_enemy_max_hp_at(attacker_slot)
+	heal_amount = mini(heal_amount, maxi(1, int(round(float(maxhp) * 0.25))))
+	var healed: int = $CombatController.heal_enemy_slot(attacker_slot, heal_amount)
+	if healed <= 0:
+		return
+	_update_hp_bars()
+	_present_enemy_heal(attacker_slot, healed)
+	_try_announce_enemy_trait_once("lifesteal:%d" % attacker_slot, attacker_slot, "ダメージを吸収した！")
+
+
+func _is_member_skill_silenced(member_idx: int) -> bool:
+	if member_idx < 0 or not _member_skill_silence_until_msec.has(member_idx):
+		return false
+	var until_msec: int = int(_member_skill_silence_until_msec[member_idx])
+	if Time.get_ticks_msec() >= until_msec:
+		_member_skill_silence_until_msec.erase(member_idx)
+		return false
+	return true
+
+
+## 途中召集で増えたスロットを表示し、群れ位置を再配置する。
+func _reveal_appended_enemy_slot(slot: int) -> void:
+	if slot < 0:
+		return
+	var n: int = $CombatController.swarm_data.size()
+	_ensure_swarm_slots(n)
+	var body_scale: float = _swarm_display_scale_for_count(n)
+	var name_fs: int = SWARM_NAME_FONT_SIZE if n > 1 else SINGLE_NAME_FONT_SIZE
+	var name_dense: bool = n >= SWARM_DISPLAY_SCALE_AT_COUNT
+	for i: int in n:
+		if i >= _swarm_sprites.size():
+			break
+		var data: Resource = $CombatController.get_enemy_data_at(i)
+		if data == null:
+			continue
+		var id: String = str(data.id)
+		var spr: AnimatedSprite2D = _swarm_sprites[i]
+		var path: String = _enemy_sprite_path(id)
+		if path.is_empty() or not ResourceLoader.exists(path):
+			spr.visible = false
+			continue
+		var frames: SpriteFrames = load(path) as SpriteFrames
+		if frames == null:
+			spr.visible = false
+			continue
+		spr.sprite_frames = frames
+		_normalize_enemy_scale(spr, frames, id)
+		if n > 1:
+			spr.scale *= body_scale
+		spr.position = _swarm_combat_position_for_slot(i, n)
+		spr.visible = $CombatController.is_enemy_slot_alive(i)
+		if spr.visible and spr.sprite_frames != null and spr.sprite_frames.has_animation("idle"):
+			spr.play("idle")
+		_style_enemy_nameplate(_swarm_nameplates[i], name_dense)
+		_swarm_nameplates[i].add_theme_font_size_override("font_size", name_fs)
+		_position_swarm_overlay(i)
 
 
 ## T6/T7: 被ダメ軽減が初めて効いたときだけ敵頭上に理由を出す（戦闘内・スロット×種類で1回）。
@@ -6721,6 +6940,7 @@ func _resolve_enemy_attack_impact_async(payload: Dictionary) -> void:
 	if int(enemy_result["final"]) > 0:
 		GameState.record_run_damage_taken(target_idx, int(enemy_result["final"]))
 		$CombatController.add_ultimate_charge_from_damage_taken(target_idx, int(enemy_result["final"]))
+		_apply_enemy_lifesteal(slot, int(enemy_result["final"]))
 	_play_chr_hurt(target_idx)
 	if target_idx < _chr_sprites.size():
 		var hit_pos: Vector2 = _chr_sprites[target_idx].global_position
@@ -7406,6 +7626,8 @@ func _try_member_weapon_skill(member_idx: int) -> bool:
 # スキル詠唱開始または即時発動（P3-D112）。Action Lock 中は _do_member_turn がここを経由しない。
 func _try_cast_member_skill(member_idx: int, skill_data: Resource, is_ultimate: bool) -> bool:
 	if skill_data == null:
+		return false
+	if _is_member_skill_silenced(member_idx):
 		return false
 	if is_ultimate:
 		if not $CombatController.is_ultimate_charge_ready(member_idx):

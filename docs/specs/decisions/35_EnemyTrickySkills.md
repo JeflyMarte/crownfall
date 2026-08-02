@@ -1,7 +1,8 @@
 # 敵トリッキースキル多様化
 
 **Status:** Decision 承認済（2026-08-02 — 相談方針 GO／未決は本 Decision 既定でクローズ）  
-**Impl:** Phase1〜3 ✅（`P3-BAL-ENEMY-TRICKY-001`〜`003`）／章展開 ✅（`P3-BAL-ENEMY-TRICKY-004`）／軽減テロップ ✅（`P3-UX-ENEMY-RESIST-TELOP-001`）
+**Impl:** Phase1〜3 ✅（`P3-BAL-ENEMY-TRICKY-001`〜`003`）／章展開 ✅（`P3-BAL-ENEMY-TRICKY-004`）／軽減テロップ ✅（`P3-UX-ENEMY-RESIST-TELOP-001`）  
+**第2波:** `docs/specs/decisions/36_EnemyTrickyWave2.md`（T8/T10/T11/T14）  
 **関連:** P3-BAL-ENEMY-SKILL-CA-001／FIT-001／AUDIT-001／P3-D079
 
 ---

@@ -6316,6 +6316,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-ENEMY-TRICKY-004-1 | **章展開** — ミストフェン=`blood_leech`(T2)／`mist_mantis`(T7)。フロストリッジ=`wind_ripper`(T5)／`glacier_warden`(T6)。スポット据置・新敵なし | オーナー「ミストフェンとフロストリッジも追加」 |
 | P3-UX-ENEMY-RESIST-TELOP-001-1 | **T6/T7 初回テロップ** — 戦闘内・スロット×種類で1回。「通常／スキルが通りにくい」。毎回・属性耐性横展開は外 | オーナー案A GO |
 
+## 敵トリッキー第2波（2026-08-02 — P3-BAL-ENEMY-TRICKY-005）
+
+> **オーナー GO（推奨）** — T8召集／T10沈黙／T11吸血／T14加速。段階A→C。SSOT=`docs/specs/decisions/36_EnemyTrickyWave2.md`。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-ENEMY-TRICKY-005-1 | **4タイプ** — T11吸血30%／T14他敵CT加速／T10沈黙5秒（ランダム1人）／T8 HP≤50%で同種1体・召喚者1回・生存≤5 | 推奨GO |
+| P3-BAL-ENEMY-TRICKY-005-2 | **パイロット** — undertaker_shark／clock_moth／tide_lamp／crown_eater_rat。新敵なし | テーマ適合 |
+| P3-BAL-ENEMY-TRICKY-005-3 | **Impl** — Phase A〜C 同ターン実装。初回特性テロップ | オーナー「推奨でGo」 |
+
 ## 装備中の効果3ページ（2026-08-02 — P3-UX-CHR-EFFECT-PAGES-001）
 
 > **オーナー GO（案A）** — キャラカード StatsGrid と同じ基本／特殊／詳細を、「装備中の効果」でも ◀▶ 切替。

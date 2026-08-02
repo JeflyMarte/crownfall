@@ -61,3 +61,5 @@ extends Resource
 ## 被ダメ倍率（P3-BAL-ENEMY-TRICKY）。1.0=通常。通常攻撃／スキル・必殺を分離（DoTは非適用）。
 @export var incoming_basic_mult: float = 1.0
 @export var incoming_skill_mult: float = 1.0
+## パーティへ与えた実ダメに対する自己回復割合（T11吸血）。0=なし。
+@export var lifesteal_ratio: float = 0.0

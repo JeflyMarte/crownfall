@@ -654,6 +654,18 @@ func refund_member_ct(member_index: int, fraction: float) -> void:
 	unit_ct[key] = full * (1.0 - frac)
 
 
+## 敵スロットの行動待ちを短縮（T14 時間稼ぎ）。
+func refund_enemy_ct(slot: int, fraction: float) -> void:
+	var frac: float = clampf(fraction, 0.0, 1.0)
+	if frac <= 0.0 or not is_enemy_slot_alive(slot):
+		return
+	var key: String = _ct_unit_key("enemy", slot)
+	if not unit_ct.has(key):
+		return
+	var full: float = get_unit_action_ct("enemy", slot)
+	unit_ct[key] = full * (1.0 - frac)
+
+
 ## 行動待ちを延ばす（反撃ペナルティ等）。fraction=1 で満タン待ちに近い。
 func penalize_member_ct(member_index: int, fraction: float) -> void:
 	var frac: float = clampf(fraction, 0.0, 1.0)
@@ -695,6 +707,52 @@ func heal_member(index: int, amount: int) -> int:
 	var before: int = party_combat_hp[index]
 	party_combat_hp[index] = min(before + adjusted, party_max_hp[index])
 	return party_combat_hp[index] - before
+
+func get_enemy_hp_ratio(slot: int) -> float:
+	if not is_enemy_slot_alive(slot):
+		return 0.0
+	var maxhp: int = get_enemy_max_hp_at(slot)
+	if maxhp <= 0:
+		return 0.0
+	return float(get_enemy_hp_at(slot)) / float(maxhp)
+
+
+## 戦闘中に敵を末尾追加（T8 途中召集）。失敗時 -1。新規は満タン CT。
+func append_enemy_to_swarm(enemy_data: Resource, size_cap: int = 5) -> int:
+	if not is_in_combat or enemy_data == null:
+		return -1
+	if swarm_data.size() >= size_cap or living_enemy_count() >= size_cap:
+		return -1
+	var lf: float = float(maxi(0, enemy_level - 1))
+	var party_hp_mult: float = _party_size_balance_multiplier(PARTY_BALANCE_HP_SHARE)
+	var party_atk_mult: float = _party_size_balance_multiplier(PARTY_BALANCE_ATK_SHARE)
+	var hp: int = maxi(1, int(round(
+		float(enemy_data.max_hp)
+		* (1.0 + ENEMY_LEVEL_HP_K * lf)
+		* party_hp_mult
+		* BalanceConfig.ENEMY_GLOBAL_HP_MULT
+	)))
+	var atk: int = maxi(1, int(round(
+		float(enemy_data.attack)
+		* (1.0 + ENEMY_LEVEL_ATK_K * lf)
+		* party_atk_mult
+		* BalanceConfig.ENEMY_GLOBAL_ATK_MULT
+	)))
+	var df: int = maxi(0, int(enemy_data.defense))
+	var xp: int = maxi(0, int(round(float(enemy_data.exp_reward) * (1.0 + ENEMY_LEVEL_EXP_K * lf))))
+	swarm_data.append(enemy_data)
+	swarm_hp.append(hp)
+	swarm_max_hp.append(hp)
+	swarm_atk.append(atk)
+	swarm_def.append(df)
+	swarm_exp.append(xp)
+	enemy_phase_index.append(0)
+	wander_action_counts.append(0)
+	GameState.mark_enemy_seen(enemy_data.id)
+	var slot: int = swarm_data.size() - 1
+	_sync_ct_units()
+	return slot
+
 
 ## 敵スロット回復（P3-BAL-ENEMY-TRICKY-001）。実回復量を返す。
 func heal_enemy_slot(slot: int, amount: int) -> int:
