@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "pack_whistle_charm"
+display_name = "群れ笛の護符"
+rarity = 2
+icon = ""
+accessory_type = "charm"
+description = "小さな群れ笛。相棒の牙に僅かな力を乗せる。"
+hp_bonus = 120
+attack_bonus = 0
+defense_bonus = 0
+crit_rate_bonus = 0.0
+exp_gain_rate = 0.0
+gold_gain_rate = 0.0
+rare_drop_rate = 0.0
+fixed_passive_id = "eq_pack_whistle_charm"

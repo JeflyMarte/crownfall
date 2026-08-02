@@ -6718,3 +6718,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-RELIC-REMAKE-001-10 | **宝箱の羅針** — treasure weight +20（combat減） | 非戦闘価値 |
 | P3-BAL-RELIC-REMAKE-001-11 | **SSOT** — `decisions/53_RelicRuleRemake.md` | 正 |
 
+## ペット／ヒーラービルド装備（2026-08-02 — P3-EQ-PET-HEAL-BUILD-001）
+
+> **オーナー GO（規模M）** — ペット防L＋ヒーラー杖L＋ヒーラー防L＋中盤E各1。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-PET-HEAL-BUILD-001-1 | **ペット** — `beastcall_mantle`（L防）＋`pack_whistle_charm`（E飾） | 既存杖／牙とセット完成 |
+| P3-EQ-PET-HEAL-BUILD-001-2 | **ヒーラー** — `mendweaver_staff`（L杖）＋`field_salve_robe`（L防）＋`salve_band`（E飾） | 調剤瓶と対になる |
+| P3-EQ-PET-HEAL-BUILD-001-3 | **入手** — Lは BuildLegendaryLoot（武器カテゴリ許可）。Eは通常プール | Decision 50 と同型 |
+| P3-EQ-PET-HEAL-BUILD-001-4 | **除外** — ビルドLを通常レジェンド抽選・封蔵既存Lから除外（漏洩修正含む） | 仕様どおり |
+| P3-EQ-PET-HEAL-BUILD-001-5 | **SSOT** — `decisions/54_PetHealerBuildGear.md` | 正 |
+

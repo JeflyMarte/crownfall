@@ -119,6 +119,7 @@ const ICON_MAP: Dictionary = {
 	"weapon:silent_rite_staff":           "res://assets/ui/equipment/ICO_WPN_SilentRiteStaff.png",
 	# ビルド穴埋めレジェンド（P3-BAL-LEG-WPN-A001）
 	"weapon:packbond_staff":             "res://assets/ui/equipment/ICO_WPN_PackbondStaff.png",
+	"weapon:mendweaver_staff":            "res://assets/ui/equipment/ICO_WPN_MendweaverStaff.png",
 	"weapon:blightcord_bow":             "res://assets/ui/equipment/ICO_WPN_BlightcordBow.png",
 	"weapon:pulsekeen_edge":             "res://assets/ui/equipment/ICO_WPN_PulsekeenEdge.png",
 	"weapon:aegis_line_sword":           "res://assets/ui/equipment/ICO_WPN_AegisLineSword.png",
@@ -219,6 +220,8 @@ const ICON_MAP: Dictionary = {
 	"armor:bulwark_role_plate":    "res://assets/ui/equipment/ICO_ARM_BulwarkRolePlate.png",
 	"armor:cover_aegis_cloak":     "res://assets/ui/equipment/ICO_ARM_CoverAegisCloak.png",
 	"armor:hexweave_robe":         "res://assets/ui/equipment/ICO_ARM_HexweaveRobe.png",
+	"armor:beastcall_mantle":      "res://assets/ui/equipment/ICO_ARM_BeastcallMantle.png",
+	"armor:field_salve_robe":      "res://assets/ui/equipment/ICO_ARM_FieldSalveRobe.png",
 	"armor:unidentified":          "res://assets/ui/batch2/ICO_ARM_Unidentified.png",
 	## 形カテゴリ汎用（Ring/Charm/Talisman/Seal）。専用絵が無い装飾はここへ。
 	"accessory:generic_ring":     "res://assets/ui/equipment/ICO_ACC_Generic_Ring.png",
@@ -280,6 +283,8 @@ const ICON_MAP: Dictionary = {
 	"accessory:pulse_amulet":      "res://assets/ui/equipment/ICO_ACC_PulseAmulet.png",
 	"accessory:beastlord_fang":    "res://assets/ui/equipment/ICO_ACC_BeastlordFang.png",
 	"accessory:apothecary_vial":   "res://assets/ui/equipment/ICO_ACC_ApothecaryVial.png",
+	"accessory:pack_whistle_charm": "res://assets/ui/equipment/ICO_ACC_Generic_Charm.png",
+	"accessory:salve_band":         "res://assets/ui/equipment/ICO_ACC_Generic_Ring.png",
 	"accessory:unidentified":      "res://assets/ui/batch2/ICO_ACC_Unidentified.png",
 	"material:relic_shard":        "res://assets/ui/materials/ICO_MAT_RelicShard.png",
 	"material:base_ore":           "res://assets/ui/materials/ICO_MAT_BaseOre.png",

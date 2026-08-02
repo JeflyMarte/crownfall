@@ -1758,6 +1758,10 @@ func apply_boss_legendary_loot(stage: Resource) -> Dictionary:
 			_spawn_accessory(build_id)
 			bonus["build_category"] = "accessory"
 			bonus["build_id"] = build_id
+		elif build_cat == "weapon" and not build_id.is_empty():
+			_spawn_weapon(build_id)
+			bonus["build_category"] = "weapon"
+			bonus["build_id"] = build_id
 	return bonus
 
 ## ボス再クリア時の神話ドロップ（P3-EQ-MYTHIC-001）。通常レア抽選外。
@@ -2005,6 +2009,9 @@ func _all_legendary_ids(category: String) -> Array[String]:
 			continue
 		## 灰冠の九は封蔵限定（Decision 28）。ダンジョンドロップに載せない。
 		if item_id.begins_with("kaiwan_"):
+			continue
+		## ビルド拡張Lは x-5 追加1点枠（Decision 50／54）。通常レジェンド抽選に載せない。
+		if item_id in _BuildLegendaryLoot.all_ids():
 			continue
 		if category == "weapon" and _AbyssLegendaryWeapons.is_abyss_legendary_id(item_id):
 			continue

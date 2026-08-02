@@ -22,6 +22,6 @@ event_room_weight = 25
 min_event_rooms = 1
 weapon_pool = Array[String](["verdant_cleaver", "bark_render", "verdia_longbow", "moss_staff", "pyre_greatsword", "tinder_bow", "willow_ember_staff", "venom_fang_blades", "cinder_razor_blades", "thornflight_bow", "rootbind_staff", "cinder_orb_staff", "vanguard_war_bow"])
 armor_pool = Array[String](["moss_weave_garb", "mycel_cloak", "barkplate_mail", "wyvern_scale_plate", "warden_vestment", "trail_twine_wrap"])
-accessory_pool = Array[String](["verdant_ring", "spore_charm", "granvel_fang_talisman", "seed_pouch_charm", "canopy_ward_talisman"])
+accessory_pool = Array[String](["verdant_ring", "spore_charm", "granvel_fang_talisman", "seed_pouch_charm", "canopy_ward_talisman", "pack_whistle_charm"])
 unlock_after_dungeon_id = "mourngate"
 flavor_text = "グリーンホロウ近郊の浅い湿地帯。毒胞子と炎の試練で\n囁きの森へ踏み込む前に、耐性装備を揃える寄り道。"

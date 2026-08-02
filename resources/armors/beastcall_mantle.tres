@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ArmorData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ArmorData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+armor_id = "beastcall_mantle"
+display_name = "獣呼びの指揮外套"
+description = "獣使いが纏う指揮外套。自らは控えめに、相棒の牙と守りを引き上げる。"
+base_defense = 320
+base_hp_bonus = 480
+base_resistance = 0.0
+resist_elements = Array[String]([])
+weight = 0.95
+rarity = 3
+fixed_passive_id = "eq_beastcall_mantle"
