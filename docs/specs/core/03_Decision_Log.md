@@ -6526,3 +6526,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-HEAL-MAXHP-001-2 | **治癒 20%／大治癒 32%／グランドエリクサー 16%（全体）** | 推奨帯の中央 |
 | P3-BAL-HEAL-MAXHP-001-3 | **SSOT** — tres の power＋`BalanceConfig.HEAL_FRAC_*`／`42_HealMaxHpFraction.md` | 数値の正 |
 
+## メイン x-5 フロア数統一（2026-08-02 — P3-DG-STG-FLOOR-001）
+
+> **オーナー GO（案A）** — 序盤ボス章10Fに対し中盤が8〜9Fで歪んでいたため、**全帯 x-5 を 10F** に揃える。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-STG-FLOOR-001-1 | **対象** — `mistfen_3_5` 8→**10**、`blackshore_4_5` 9→**10** | 実装の SSOT ずれ修復 |
+| P3-DG-STG-FLOOR-001-2 | **据置** — ①②⑤の x-5=10、非ボス章の floor | 山場のみ是正 |
+| P3-DG-STG-FLOOR-001-3 | **再確認** — `P3-DG-STG-002-3`（全 Biome x-5=10）が正 | 設計どおり |
+
