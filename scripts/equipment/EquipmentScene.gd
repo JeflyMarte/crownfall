@@ -3149,7 +3149,7 @@ const PASSIVE_ROW_BTN_W: int = 64
 ## スキル行の装備／解除。2文字＋ボタン余白で 64 だと右端が見切れる。
 const SKILL_ROW_BTN_W: int = 76
 ## スキル行フレーム右インセット（ボタンをパネル端から内側へ）。
-const SKILL_ROW_RIGHT_INSET: int = 14
+const SKILL_ROW_RIGHT_INSET: int = 22
 ## スキル一覧行など行向き UI 用の小アイコン尺。
 const SKILL_ROW_ICON_PX: int = 56
 var _passive_card_style: StyleBoxFlat = null
