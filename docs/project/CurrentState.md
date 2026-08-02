@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-08-02（**バグ確認セッション／統合＋main**: GUT失敗7件を修正(深層Featured最高到達F未実装／招待チケット文言regression／状態異常テスト等5件のテスト側不備)、全1240件PASSへ復帰。Codex/設定/初期隊員選択/ダンジョン内設定にScrollTouchHelper未適用を発見し追加。要実機）
 2026-08-02（**戦術タブパース即死修正／統合＋main**: RichTextLabel に apply_body 禁止→apply_display_rich。要実機）
 2026-08-02（**P3-UX-TACTICS-LIST-001 GO／統合＋main**: 戦術タブ＝作戦保存削除・スキル同型の縦一覧選択。要実機）
 2026-08-02（**装備／隊長名フォント自動縮小／統合＋main**: 長い名前(限界突破+表記込み)でパッシブ／戦術タブが右にはみ出すバグを修正。装備画面キャラ名・TopBar隊長名をUiTypography.fit_label_font_to_widthで1行収める。要実機）
