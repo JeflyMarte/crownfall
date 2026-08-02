@@ -6730,3 +6730,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-EQ-PET-HEAL-BUILD-001-4 | **除外** — ビルドLを通常レジェンド抽選・封蔵既存Lから除外（漏洩修正含む） | 仕様どおり |
 | P3-EQ-PET-HEAL-BUILD-001-5 | **SSOT** — `decisions/54_PetHealerBuildGear.md` | 正 |
 
+## スキルCD＝戦闘クロック（2026-08-02 — P3-BAL-SKILL-CD-TIME-001）
+
+> **オーナー** — 必殺ゲージ同様、スキルゲージも時間で徐々に伸びてほしい。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-SKILL-CD-TIME-001-1 | **スキルCD** — CT減算をやめ、必殺と同じ戦闘クロック（実秒×速度・一時停止除外）で減らす | ゲージが滑らかに伸びる |
+| P3-BAL-SKILL-CD-TIME-001-2 | **満タン秒** — 既存 `cooldown` × `skill_cd_mult` 据置 | データ互換 |
+| P3-BAL-SKILL-CD-TIME-001-3 | **上書き** — P3-D084 の「スキルCD＝進行CT」 | 本 Decision が正 |
+| P3-BAL-SKILL-CD-TIME-001-4 | **SSOT** — `decisions/55_SkillCdRealtime.md` | 正 |
+
