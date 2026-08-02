@@ -11,6 +11,8 @@ const BUILD_ARMORS: Array[String] = [
 	"bulwark_role_plate",
 	"cover_aegis_cloak",
 	"hexweave_robe",
+	"beastcall_mantle",
+	"field_salve_robe",
 ]
 
 const BUILD_ACCESSORIES: Array[String] = [
@@ -21,17 +23,24 @@ const BUILD_ACCESSORIES: Array[String] = [
 	"apothecary_vial",
 ]
 
+const BUILD_WEAPONS: Array[String] = [
+	"mendweaver_staff",
+]
+
 const PASSIVE_BY_ID: Dictionary = {
 	"bloodpact_plate": "eq_bloodpact_plate",
 	"flurry_light_mail": "eq_flurry_mail",
 	"bulwark_role_plate": "eq_bulwark_role",
 	"cover_aegis_cloak": "eq_cover_aegis",
 	"hexweave_robe": "eq_hexweave_robe",
+	"beastcall_mantle": "eq_beastcall_mantle",
+	"field_salve_robe": "eq_field_salve_robe",
 	"blade_dance_ring": "eq_blade_dance_ring",
 	"pierce_charm": "eq_pierce_charm",
 	"pulse_amulet": "eq_pulse_amulet",
 	"beastlord_fang": "eq_beastlord_fang",
 	"apothecary_vial": "eq_apothecary_vial",
+	"mendweaver_staff": "eq_wpn_mendweaver_staff",
 }
 
 
@@ -51,6 +60,13 @@ func test_build_legendary_defs_and_passives() -> void:
 		assert_eq(str(acc_data.fixed_passive_id), str(PASSIVE_BY_ID[cid]), cid)
 		var def2: Dictionary = CombatPassives.get_def(str(PASSIVE_BY_ID[cid]))
 		assert_false(def2.is_empty(), str(PASSIVE_BY_ID[cid]))
+	for wid: String in BUILD_WEAPONS:
+		var wpn_data: Resource = DataRegistry.get_weapon_data(wid)
+		assert_not_null(wpn_data, wid)
+		assert_eq(int(wpn_data.rarity), 3, wid)
+		assert_eq(str(wpn_data.fixed_passive_id), str(PASSIVE_BY_ID[wid]), wid)
+		var def3: Dictionary = CombatPassives.get_def(str(PASSIVE_BY_ID[wid]))
+		assert_false(def3.is_empty(), str(PASSIVE_BY_ID[wid]))
 
 
 func test_build_passive_helpers() -> void:
@@ -68,14 +84,16 @@ func test_build_passive_helpers() -> void:
 func test_roll_one_returns_unowned() -> void:
 	GameState.armor_inventory.clear()
 	GameState.accessory_inventory.clear()
+	GameState.inventory.clear()
 	for m: Resource in GameState.party_members:
 		if m == null:
 			continue
 		m.equipped_armor = null
 		m.equipped_accessory = null
+		m.equipped_weapon = null
 	var rolled: Dictionary = _BuildLegendaryLoot.roll_one()
 	assert_false(rolled.is_empty())
-	assert_true(str(rolled.get("category", "")) in ["armor", "accessory"])
+	assert_true(str(rolled.get("category", "")) in ["armor", "accessory", "weapon"])
 	assert_false(str(rolled.get("id", "")).is_empty())
 
 
@@ -83,6 +101,7 @@ func test_boss_loot_grants_build_extra() -> void:
 	GameState.stage_progress.erase("mourngate_1_5")
 	GameState.armor_inventory.clear()
 	GameState.accessory_inventory.clear()
+	GameState.inventory.clear()
 	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
 	var dc: Node = _DungeonController.new()
 	add_child_autofree(dc)
@@ -91,9 +110,24 @@ func test_boss_loot_grants_build_extra() -> void:
 	assert_eq(str(bonus["armor_id"]), "serdion_ward_plate")
 	assert_eq(str(bonus["accessory_id"]), "mourngate_royal_seal")
 	assert_false(str(bonus.get("build_id", "")).is_empty(), "ビルドLが追加付与される")
-	assert_true(str(bonus.get("build_category", "")) in ["armor", "accessory"])
-	var total: int = GameState.armor_inventory.size() + GameState.accessory_inventory.size()
+	assert_true(str(bonus.get("build_category", "")) in ["armor", "accessory", "weapon"])
+	var total: int = (
+		GameState.armor_inventory.size()
+		+ GameState.accessory_inventory.size()
+		+ GameState.inventory.size()
+	)
 	assert_eq(total, 3, "Biome固定2＋ビルド1")
+
+
+func test_build_legendaries_excluded_from_normal_legendary_pool() -> void:
+	var dc: Node = _DungeonController.new()
+	add_child_autofree(dc)
+	for aid: String in BUILD_ARMORS:
+		assert_false(aid in dc._all_legendary_ids("armor"), aid)
+	for cid: String in BUILD_ACCESSORIES:
+		assert_false(cid in dc._all_legendary_ids("accessory"), cid)
+	for wid: String in BUILD_WEAPONS:
+		assert_false(wid in dc._all_legendary_ids("weapon"), wid)
 
 
 func test_detail_text_for_build_armor() -> void:

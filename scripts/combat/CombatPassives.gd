@@ -517,6 +517,34 @@ const _DEFS: Dictionary = {
 		"heal_power_mult": 1.20,
 		"heal_applies_guard": true,
 	},
+	## ペット／ヒーラービルド（P3-EQ-PET-HEAL-BUILD-001 / 54）
+	"eq_beastcall_mantle": {
+		"display_name": "獣呼びの指揮",
+		"category": "armor",
+		"description": "オトモ与ダメ +18%／防御 +10%。自身の与ダメ -6%。",
+		"pet_outgoing_mult": 1.18,
+		"pet_defense_mult": 1.10,
+		"outgoing_mult": 0.94,
+	},
+	"eq_field_salve_robe": {
+		"display_name": "野戦調剤の衣",
+		"category": "armor",
+		"description": "回復スキル効果 +15%。自身の与ダメ -10%。",
+		"heal_power_mult": 1.15,
+		"outgoing_mult": 0.90,
+	},
+	"eq_pack_whistle_charm": {
+		"display_name": "群れ笛",
+		"category": "accessory",
+		"description": "オトモ与ダメ +8%。",
+		"pet_outgoing_mult": 1.08,
+	},
+	"eq_salve_band": {
+		"display_name": "軟膏の腕輪",
+		"category": "accessory",
+		"description": "回復スキル効果 +8%。",
+		"heal_power_mult": 1.08,
+	},
 	# ---- レリック（P3-BAL-RELIC-REMAKE-001 / 53_RelicRuleRemake） ----
 	"relic_war_banner": {
 		"display_name": "指揮の軍旗",
@@ -884,6 +912,13 @@ const _DEFS: Dictionary = {
 		"description": "オトモの与ダメ +30%／防御 +10%。",
 		"pet_outgoing_mult": 1.30,
 		"pet_defense_mult": 1.10,
+	},
+	"eq_wpn_mendweaver_staff": {
+		"display_name": "癒織",
+		"category": "weapon",
+		"description": "回復スキル効果 +22%。自身の与ダメ -8%。",
+		"heal_power_mult": 1.22,
+		"outgoing_mult": 0.92,
 	},
 	"eq_wpn_blightcord_bow": {
 		"display_name": "腐血の影弦",
@@ -1742,6 +1777,8 @@ static func _passive_effect_summary(def: Dictionary) -> String:
 		parts.append("オトモ与ダメ +%d%%" % int(round((float(def["pet_outgoing_mult"]) - 1.0) * 100.0)))
 	if float(def.get("pet_defense_mult", 1.0)) > 1.0:
 		parts.append("オトモ防御 +%d%%" % int(round((float(def["pet_defense_mult"]) - 1.0) * 100.0)))
+	if float(def.get("heal_power_mult", 1.0)) > 1.0:
+		parts.append("回復 +%d%%" % int(round((float(def["heal_power_mult"]) - 1.0) * 100.0)))
 	if float(def.get("incoming_mult", 1.0)) < 1.0:
 		parts.append("被ダメ -%d%%" % int(round((1.0 - float(def["incoming_mult"])) * 100.0)))
 	if float(def.get("incoming_mult", 1.0)) > 1.0:

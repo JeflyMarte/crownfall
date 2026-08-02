@@ -22,6 +22,6 @@ event_room_weight = 15
 min_event_rooms = 0
 weapon_pool = Array[String](["verdant_cleaver", "bark_render", "verdia_longbow", "moss_staff", "pyre_greatsword", "tinder_bow", "willow_ember_staff", "venom_fang_blades", "symbiont_edge", "mist_piercer", "silvaria_oathblade", "veld_branch_staff", "silvaria_fang", "shadowcord", "cinder_razor_blades", "shrine_flight_bow", "thornflight_bow", "rootbind_staff", "cinder_orb_staff", "pyrebranch_staff", "vanguard_war_bow", "amplify_orb_staff", "packbond_staff", "pulsekeen_edge"])
 armor_pool = Array[String](["moss_weave_garb", "barkplate_mail", "mycel_cloak", "wyvern_scale_plate", "warden_vestment", "trail_twine_wrap"])
-accessory_pool = Array[String](["verdant_ring", "spore_charm", "granvel_fang_talisman", "seed_pouch_charm", "canopy_ward_talisman"])
+accessory_pool = Array[String](["verdant_ring", "spore_charm", "granvel_fang_talisman", "seed_pouch_charm", "canopy_ward_talisman", "pack_whistle_charm"])
 unlock_after_dungeon_id = "whisperwood"
 flavor_text = "根の下は道ではない——その先へ続く無限の最果て。"

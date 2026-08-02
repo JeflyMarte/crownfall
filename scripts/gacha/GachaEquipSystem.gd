@@ -7,6 +7,7 @@ class_name GachaEquipSystem
 const _WeaponStatResolver := preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _ArmorStatResolver := preload("res://scripts/equipment/ArmorStatResolver.gd")
 const _AccessoryStatResolver := preload("res://scripts/equipment/AccessoryStatResolver.gd")
+const _BuildLegendaryLoot := preload("res://scripts/equipment/BuildLegendaryLoot.gd")
 
 const PULL_COST: int = 300
 
@@ -225,6 +226,9 @@ static func _is_eligible_standard(kind: String, item_id: String, data: Resource)
 		return false
 	## 深層専用除外（案A推奨）。
 	if item_id.begins_with("abyss_"):
+		return false
+	## ビルド拡張Lは x-5 追加枠（Decision 50／54）。封蔵の既存L 40%から除外。
+	if item_id in _BuildLegendaryLoot.all_ids():
 		return false
 	var rarity: int = int(data.rarity) if "rarity" in data else -1
 	if rarity != Enums.Rarity.EPIC and rarity != Enums.Rarity.LEGENDARY:

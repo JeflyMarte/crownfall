@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "salve_band"
+display_name = "軟膏の腕輪"
+rarity = 2
+icon = ""
+accessory_type = "ring"
+description = "野戦軟膏を染み込ませた腕輪。癒しの手を僅かに厚くする。"
+hp_bonus = 140
+attack_bonus = 0
+defense_bonus = 0
+crit_rate_bonus = 0.0
+exp_gain_rate = 0.0
+gold_gain_rate = 0.0
+rare_drop_rate = 0.0
+fixed_passive_id = "eq_salve_band"
