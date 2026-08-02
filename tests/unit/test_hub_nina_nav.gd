@@ -160,12 +160,17 @@ func test_nina_portrait_asset_exists() -> void:
 	assert_true(FileAccess.file_exists("res://assets/npc/ART_NPC_Nina.png"))
 	assert_true(FileAccess.file_exists("res://assets/npc/ICO_NPC_Nina.png"))
 	assert_true(FileAccess.file_exists("res://assets/npc/ICO_NPC_Nina_Dot.png"))
-	## 調査室用 ICO は Downloads ニーナアイコン（透過済み）。
+	## 調査室用 ICO は Downloads ニーナアイコン（角は透過・本体は不透明）。
 	var tex: Texture2D = load("res://assets/npc/ICO_NPC_Nina.png") as Texture2D
 	assert_true(tex != null)
 	assert_gte(tex.get_width(), 256)
 	assert_gte(tex.get_height(), 256)
 	assert_eq(tex.get_width(), tex.get_height())
+	## 手引き羊皮紙に透けないよう、顔中心は完全不透明であること。
+	var img: Image = tex.get_image()
+	assert_true(img != null)
+	var center: Color = img.get_pixel(img.get_width() / 2, img.get_height() / 2)
+	assert_gte(center.a, 0.99, "Nina ICO center alpha should be opaque")
 	## 拠点ナビは旧 128px ドット。
 	var dot: Texture2D = load("res://assets/npc/ICO_NPC_Nina_Dot.png") as Texture2D
 	assert_true(dot != null)
