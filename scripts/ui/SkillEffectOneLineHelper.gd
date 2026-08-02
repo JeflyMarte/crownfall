@@ -59,6 +59,7 @@ static func _status_names(skill_data: Resource) -> String:
 	var names: PackedStringArray = PackedStringArray()
 	_append_status_name(names, str(skill_data.apply_status_id), float(skill_data.apply_status_chance))
 	_append_status_name(names, str(skill_data.apply_status_id2), float(skill_data.apply_status_chance2))
+	_append_status_name(names, str(skill_data.apply_status_id3), float(skill_data.apply_status_chance3))
 	return "／".join(names)
 
 

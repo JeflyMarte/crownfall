@@ -6467,3 +6467,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-ULTIMATE-PRESSURE-001-4 | **据置** — DEALT_K／TAKEN_K・雑魚COMBAT・武器／レリック倍率 | ビルド個性を残す |
 | P3-BAL-ULTIMATE-PRESSURE-001-5 | **SSOT** — `decisions/39_UltimateChargePressure.md`／`BalanceConfig.ULTIMATE_CHARGE_PRESSURE_*` | 数値の正 |
 
+## 必殺全体攻撃＋多重デバフ（2026-08-02 — P3-BAL-ULTIMATE-AOE-001）
+
+> **オーナー指示** — タイタンロアを全体攻撃。ビーストテイマー必殺は敵にデバフを重ねる。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-ULTIMATE-AOE-001-1 | **タイタンロア** — `all_enemies`・威力2.7→1.8・スタン／恐怖（確率やや下げ） | 全体必殺の核 |
+| P3-BAL-ULTIMATE-AOE-001-2 | **ビーストドミニオン** — `all_enemies`・威力1.35・標的＋鈍化必中＋毒85% | デバフ特化 |
+| P3-BAL-ULTIMATE-AOE-001-3 | **第3状態** — `SkillData.apply_status_id3` | 2枠では足りない |
+| P3-BAL-ULTIMATE-AOE-001-4 | **演出** — 必殺全体はカットイン＋帯VFX | 単体必殺と同格 |
+| P3-BAL-ULTIMATE-AOE-001-5 | **SSOT** — `decisions/40_UltimateAoeDebuff.md` | 数値の正 |
+

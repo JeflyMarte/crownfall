@@ -115,11 +115,15 @@ static func classify_ally_aoe_skill(skill: Resource) -> String:
 		return ""
 	var sid: String = str(skill.id)
 	var name: String = str(skill.display_name)
-	if _id_has_any(sid, name, ["shield_quake", "盾撃", "quake"]):
+	if _id_has_any(sid, name, ["shield_quake", "盾撃", "quake", "titan_roar", "タイタン"]):
 		return STYLE_QUAKE
 	if _id_has_any(sid, name, ["volley", "斉射"]):
 		return STYLE_VOLLEY
-	if _id_has_any(sid, name, ["miasma", "瘴気", "venom", "毒", "mist", "霧", "hunting_ground", "狩場"]):
+	if _id_has_any(
+		sid,
+		name,
+		["miasma", "瘴気", "venom", "毒", "mist", "霧", "hunting_ground", "狩場", "beast_dominion", "ビースト"]
+	):
 		return STYLE_MIST
 	if _id_has_any(sid, name, ["blade_tempest", "剣嵐", "blood_mist", "血煙", "slash"]):
 		return STYLE_FAN

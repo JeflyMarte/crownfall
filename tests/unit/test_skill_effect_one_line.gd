@@ -7,10 +7,10 @@ const _Helper = preload("res://scripts/ui/SkillEffectOneLineHelper.gd")
 func test_job_ultimates_one_line() -> void:
 	var cases: Dictionary = {
 		"ouga_retsudan": "敵1体に大ダメージ＋脆弱",
-		"titan_roar": "敵1体に大ダメージ＋スタン／恐怖",
+		"titan_roar": "敵全体に大ダメージ＋スタン／恐怖",
 		"dead_eye": "敵1体に大ダメージ＋標的",
 		"grand_elixir": "味方1体を大きく回復",
-		"beast_dominion": "敵1体に大ダメージ＋冷却／毒",
+		"beast_dominion": "敵全体に大ダメージ＋標的／鈍化／毒",
 	}
 	for skill_id in cases.keys():
 		var skill: Resource = DataRegistry.get_skill_data(str(skill_id))
