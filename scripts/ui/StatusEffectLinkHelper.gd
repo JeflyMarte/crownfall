@@ -21,6 +21,8 @@ const EXTRA_ALIASES: Dictionary = {
 
 ## 状態異常の効果説明（プレイヤー向け短文）。
 static func effect_summary(status_id: String) -> String:
+	if status_id == "skill_silence":
+		return "スキルと必殺が一時的に使えない。"
 	var data: Resource = DataRegistry.get_status_effect(status_id)
 	if data == null:
 		return ""
@@ -77,6 +79,8 @@ static func effect_one_line(status_id: String) -> String:
 
 
 static func _effect_one_line_body(status_id: String) -> String:
+	if status_id == "skill_silence":
+		return "スキル・必殺封印"
 	var data: Resource = DataRegistry.get_status_effect(status_id)
 	if data == null:
 		return ""
@@ -105,6 +109,8 @@ static func _effect_one_line_body(status_id: String) -> String:
 
 
 static func display_name_for(status_id: String) -> String:
+	if status_id == "skill_silence":
+		return "スキル封じ"
 	var data: Resource = DataRegistry.get_status_effect(status_id)
 	if data != null and str(data.display_name) != "":
 		return str(data.display_name)
