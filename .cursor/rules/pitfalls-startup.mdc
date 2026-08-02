@@ -31,6 +31,7 @@ alwaysApply: true
 | `balance_sim` で `GameState` / `is_pet_member` 未解決 | `-s` は autoload 欠けることあり。実行時解決／`PetSystem` class_name。sim は seed |
 | ダンジョン入場で SCRIPT ERROR（`rarity_weight_mult` not found） | `preload` した Script へ静的メソッド呼び出し禁止。`RARITY_WEIGHT_MULT` 定数配列を直接読む（`WanderingEnemyConfig.spawn_mult_for_tier`） |
 | DungeonScene パース失敗（同名 const 二重） | ファイル先頭の `const _X = preload(...)` をコピペで二重定義しない。`rg 'const _DungeonTierConfig'` で1件のみ確認 |
+| キャラ画面入場で即終了（`apply_body` arg Label） | `UiTypography.apply_body` は Label 専用。RichTextLabel は `apply_display_rich`／`apply_log_rich`。変更後 EquipmentScene instantiate |
 
 ## 変更後の最低確認
 
