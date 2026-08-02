@@ -512,6 +512,10 @@ func _make_active_party_card(slot_index: int) -> Control:
 	detail.text = "詳細"
 	UiTypography.apply_menu_button(detail, false)
 	detail.add_theme_font_size_override("font_size", UiTypography.SIZE_CAPTION)
+	## ScrollTouch の PASS 化を避け、pressed でキャラ画面へ遷移できるようにする。
+	detail.set_meta(&"_cf_keep_mouse_stop", true)
+	detail.mouse_filter = Control.MOUSE_FILTER_STOP
+	detail.focus_mode = Control.FOCUS_NONE
 	detail.pressed.connect(_on_detail_pressed.bind(member))
 	vbox.add_child(detail)
 	panel.gui_input.connect(_on_active_card_input.bind(slot_index))
@@ -589,10 +593,14 @@ func _on_detail_pressed(member: Resource) -> void:
 	## 詳細は閲覧遷移のみ。未保存の下書き編成を set_active_party しない。
 	if member == null:
 		return
+	## 入れ替え選択中でも詳細は優先（カード入れ替えに食わせない）。
+	_active_pick_slot = -1
+	_roster_pick_member = null
 	if PetSystem.is_pet_member(member):
 		PetSystem.ensure_starter_pet()
 		## EquipmentScene の ◀▶ 一覧は roster の末尾に active_pet を付ける。
 		GameState.equipment_focus_member_index = GameState.get_roster().size()
+		AudioManager.play_sfx("ui_confirm")
 		SceneRouter.change_scene(EQUIPMENT_SCENE)
 		return
 	var roster: Array = GameState.get_roster()
@@ -600,6 +608,7 @@ func _on_detail_pressed(member: Resource) -> void:
 	if roster_idx < 0:
 		roster_idx = 0
 	GameState.equipment_focus_member_index = roster_idx
+	AudioManager.play_sfx("ui_confirm")
 	SceneRouter.change_scene(EQUIPMENT_SCENE)
 
 func _rebuild_roster_grid() -> void:
