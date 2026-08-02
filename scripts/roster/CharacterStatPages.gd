@@ -2,6 +2,7 @@ class_name CharacterStatPages
 extends RefCounted
 
 ## キャラ画面カード StatsGrid のページ切替（P3-UX-CHR-STAT-PAGES-001）。
+## 装備タブ「装備中の効果」も同3ページ（P3-UX-CHR-EFFECT-PAGES-001）。
 ## 0=基本 / 1=特殊 / 2=詳細。行数は各ページ6前後でカード高を揃える。
 
 const _AffixStatCalculator := preload("res://scripts/equipment/AffixStatCalculator.gd")
@@ -47,6 +48,60 @@ static func rows_for_page(member: Resource, page: int, basic_stats: Dictionary) 
 			return _detail_rows(member)
 		_:
 			return _basic_rows(basic_stats)
+
+
+## 装備タブ「装備中の効果」。基本は装備寄与（+表記）、特殊／詳細は装備由来 summarize。
+## basic_bonuses: attack/defense/hp/crit_rate/crit_damage/attack_speed
+static func equipment_effect_rows_for_page(
+	member: Resource,
+	page: int,
+	basic_bonuses: Dictionary
+) -> Array:
+	match clamp_page(page):
+		PAGE_SPECIAL:
+			return _special_rows(member)
+		PAGE_DETAIL:
+			return _detail_rows(member)
+		_:
+			return _equipment_basic_effect_rows(basic_bonuses)
+
+
+## 既存 EffectsGrid の並び（攻撃|会心率／防御|会心ダメ／HP|速度）。
+static func _equipment_basic_effect_rows(bonuses: Dictionary) -> Array:
+	return [
+		_row("attack", "攻撃力", _format_effect_int(int(bonuses.get("attack", 0)))),
+		_row(
+			"crit_rate",
+			"クリティカル率",
+			_format_effect_percent(float(bonuses.get("crit_rate", 0.0)))
+		),
+		_row("defense", "防御力", _format_effect_int(int(bonuses.get("defense", 0)))),
+		_row(
+			"crit_damage",
+			"クリティカルダメージ",
+			_format_effect_percent(float(bonuses.get("crit_damage", 0.0)))
+		),
+		_row("hp", "HP", _format_effect_int(int(bonuses.get("hp", 0)))),
+		_row(
+			"speed",
+			"攻撃速度",
+			_format_effect_speed(float(bonuses.get("attack_speed", 0.0)))
+		),
+	]
+
+
+static func _format_effect_int(value: int) -> String:
+	return "+%d" % value
+
+
+static func _format_effect_percent(value: float) -> String:
+	return "+%.0f%%" % (value * 100.0)
+
+
+static func _format_effect_speed(value: float) -> String:
+	if is_zero_approx(value):
+		return "+0"
+	return "+%.1f" % value
 
 
 static func _basic_rows(stats: Dictionary) -> Array:

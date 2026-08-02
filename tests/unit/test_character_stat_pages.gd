@@ -44,6 +44,30 @@ func test_special_and_detail_pages_same_row_count() -> void:
 	assert_eq(str((detail[1] as Dictionary).get("label", "")), "状態付与")
 
 
+func test_equipment_effect_pages_match_card_structure() -> void:
+	var member: Resource = GameState.roster[0] if not GameState.roster.is_empty() else null
+	assert_not_null(member)
+	var bonuses: Dictionary = {
+		"attack": 10,
+		"defense": 4,
+		"hp": 20,
+		"crit_rate": 0.1,
+		"crit_damage": 0.5,
+		"attack_speed": 0.2,
+	}
+	var basic: Array = _Pages.equipment_effect_rows_for_page(member, _Pages.PAGE_BASIC, bonuses)
+	var special: Array = _Pages.equipment_effect_rows_for_page(member, _Pages.PAGE_SPECIAL, bonuses)
+	var detail: Array = _Pages.equipment_effect_rows_for_page(member, _Pages.PAGE_DETAIL, bonuses)
+	assert_eq(basic.size(), 6)
+	assert_eq(special.size(), 6)
+	assert_eq(detail.size(), 6)
+	assert_eq(str((basic[0] as Dictionary).get("label", "")), "攻撃力")
+	assert_eq(str((basic[0] as Dictionary).get("value", "")), "+10")
+	assert_eq(str((basic[5] as Dictionary).get("value", "")), "+0.2")
+	assert_eq(str((special[0] as Dictionary).get("label", "")), "属性")
+	assert_eq(str((detail[0] as Dictionary).get("label", "")), "素材獲得")
+
+
 func test_special_shows_weapon_element_when_equipped() -> void:
 	var member: Resource = GameState.roster[0]
 	assert_not_null(member)

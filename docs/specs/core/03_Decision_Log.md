@@ -5989,7 +5989,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-CHR-STAT-PAGES-001-4 | **P3 詳細** — 素材／状態付与／生態特効／回復／回避／異常無効 | 3ページ込み GO |
 | P3-UX-CHR-STAT-PAGES-001-5 | **行数** — 各ページ6行固定。0も `なし`/`+0%` 表示 | カード高維持 |
 | P3-UX-CHR-STAT-PAGES-001-6 | **SSOT** — `CharacterStatPages`＋`EquipmentScene` | 集計と表示分離 |
-| P3-UX-CHR-STAT-PAGES-001-7 | **据置** — 装備タブ「装備中の効果」／旧 `BtnStatDetail`（非表示のまま） | 役割分離 |
+| P3-UX-CHR-STAT-PAGES-001-7 | **据置（後で上書き）** — 装備タブ「装備中の効果」／旧 `BtnStatDetail`（非表示のまま） | → **P3-UX-CHR-EFFECT-PAGES-001** で効果欄も3ページ化。BtnStatDetail は非表示据置 |
 
 ## 無限ダンジョン10F追い出し修正（2026-07-31 — P3-DG-ABYSS-ENDLESS-FIX-001）
 
@@ -6314,4 +6314,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-ENEMY-TRICKY-002-1 | **Phase2** — T5=`grave_bell_bat`＋`enemy_grave_flee`。報酬なし（放浪逃走と同型） | オーナー「進めて」 |
 | P3-BAL-ENEMY-TRICKY-003-1 | **Phase3** — T4=`crystal_hedgehog` explode／T6=`skull_turtle` basic×0.2／T7=`mirror_boa` skill×0.2。DoTは軽減外 | 同上 |
 | P3-BAL-ENEMY-TRICKY-004-1 | **章展開** — ミストフェン=`blood_leech`(T2)／`mist_mantis`(T7)。フロストリッジ=`wind_ripper`(T5)／`glacier_warden`(T6)。スポット据置・新敵なし | オーナー「ミストフェンとフロストリッジも追加」 |
+
+## 装備中の効果3ページ（2026-08-02 — P3-UX-CHR-EFFECT-PAGES-001）
+
+> **オーナー GO（案A）** — キャラカード StatsGrid と同じ基本／特殊／詳細を、「装備中の効果」でも ◀▶ 切替。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-CHR-EFFECT-PAGES-001-1 | **UI** — EffectsGrid 上に ◀／タイトル＋●○／▶。カードナビとページ状態は独立 | タブ内完結 |
+| P3-UX-CHR-EFFECT-PAGES-001-2 | **P1 基本** — 既存の装備寄与（攻撃／防御／HP／会心／速度、+表記） | 据置の見た目 |
+| P3-UX-CHR-EFFECT-PAGES-001-3 | **P2／P3** — `CharacterStatPages` の特殊／詳細（装備由来 summarize） | カードと同語彙 |
+| P3-UX-CHR-EFFECT-PAGES-001-4 | **上書き** — `P3-UX-CHR-STAT-PAGES-001-7` の「装備中の効果据置」 | 本 Decision が正 |
+| P3-UX-CHR-EFFECT-PAGES-001-5 | **SSOT** — `CharacterStatPages.equipment_effect_rows_for_page` | 集計と表示分離 |
 
