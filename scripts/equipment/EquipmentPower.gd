@@ -2,13 +2,17 @@ class_name EquipmentPower
 extends RefCounted
 
 ## 装備の非表示総合力（P3-EQ-POWER-RECOMMEND-001）。
-## 式はキャラ総合戦力（P3-UI-COMBAT-POWER-001）の寄与近似。
-## UI 表示はしない。おすすめ装備の比較 SSOT。
+## おすすめ／鍛冶強化一覧の比較 SSOT。UI 表示はしない。
+## 案A（2026-08-02）: 主ステ寄り。速度・会心の倍率支配を避け、レア／装備Lvは tiebreak。
 
 const _EquipmentEnhancer := preload("res://scripts/equipment/EquipmentEnhancer.gd")
-const _WeaponStatResolver := preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _JobStatCalculator := preload("res://scripts/equipment/JobStatCalculator.gd")
 const _Mods := preload("res://scripts/equipment/EquipmentRandomMods.gd")
+
+## 防具・装飾の HP を防御／攻撃と同列にしない（HPロール単体で高レア高Lvを逆転させない）。
+const ARMOR_HP_WEIGHT: float = 0.25
+## 装飾会心は攻撃点への軽い換算（倍率乗算はしない）。
+const ACCESSORY_CRIT_AS_ATTACK: float = 40.0
 
 
 ## category: weapon / armor / accessory
@@ -27,8 +31,10 @@ static func score(item: Resource, category: String, member: Resource = null) -> 
 			return 0.0
 
 
-## HP + 防御 + 攻撃×速度×(1+会心率×(会心ダメ−1))
-static func combat_contribution(hp: float, defense: float, attack: float, speed: float, crit_rate: float, crit_damage: float) -> float:
+## 参考用（キャラ総合戦力と同型）。おすすめ比較には使わない。
+static func combat_contribution(
+	hp: float, defense: float, attack: float, speed: float, crit_rate: float, crit_damage: float
+) -> float:
 	var spd: float = maxf(0.0, speed)
 	var crt: float = clampf(crit_rate, 0.0, 1.0)
 	var cdmg: float = maxf(1.0, crit_damage)
@@ -37,24 +43,18 @@ static func combat_contribution(hp: float, defense: float, attack: float, speed:
 
 
 static func _weapon_score(weapon: Resource, member: Resource) -> float:
+	## 実効攻撃のみ（速度・会心は乗算しない）。
 	var atk: float = float(_EquipmentEnhancer.get_effective_attack(weapon))
-	var wdata: Resource = null
-	if "weapon_id" in weapon:
-		wdata = DataRegistry.get_weapon_data(str(weapon.weapon_id))
-	if member != null:
+	if member != null and "weapon_id" in weapon:
+		var wdata: Resource = DataRegistry.get_weapon_data(str(weapon.weapon_id))
 		atk *= _JobStatCalculator.get_preferred_weapon_multiplier(member, wdata)
-	var spd: float = _WeaponStatResolver.resolve_attack_speed(weapon, wdata)
-	var crt: float = _WeaponStatResolver.resolve_critical_rate(weapon, wdata)
-	var cdmg: float = _WeaponStatResolver.resolve_critical_damage(weapon)
-	## 武器は攻撃寄与のみ（HP/DEF なし）。
-	return combat_contribution(0.0, 0.0, atk, spd, crt, cdmg)
+	return atk
 
 
 static func _armor_score(armor: Resource) -> float:
 	var defense: float = float(_EquipmentEnhancer.effective_armor_defense(armor))
 	var hp: float = float(_EquipmentEnhancer.effective_armor_hp(armor))
-	## 防具は耐久寄与のみ。
-	return combat_contribution(hp, defense, 0.0, 1.0, 0.0, 1.5)
+	return defense + hp * ARMOR_HP_WEIGHT
 
 
 static func _accessory_score(accessory: Resource) -> float:
@@ -77,6 +77,4 @@ static func _accessory_score(accessory: Resource) -> float:
 		crt = float(
 			_EquipmentEnhancer.effective_accessory_float_bonus(accessory, "crit_rate_bonus", data)
 		)
-	## 装飾は速度1.0・会心ダメ既定で攻撃寄与を近似。レアは同点時のみ別途 tiebreak。
-	var cdmg: float = BalanceConfig.DEFAULT_WEAPON_CRITICAL_DAMAGE
-	return combat_contribution(hp, defense, atk, 1.0, crt, cdmg)
+	return hp * ARMOR_HP_WEIGHT + defense + atk + clampf(crt, 0.0, 1.0) * ACCESSORY_CRIT_AS_ATTACK
