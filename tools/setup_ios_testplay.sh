@@ -60,7 +60,7 @@ check_godot() {
         green "OK: Godot $($GODOT_BIN --version 2>&1 | head -1)"
         echo "     $GODOT_BIN"
     else
-        red "MISSING: Godot ${GODOT_VERSION}（$GODOT_APP）"
+        red "MISSING: Godot ${GODOT_VERSION} (${GODOT_APP})"
         return 1
     fi
 }
