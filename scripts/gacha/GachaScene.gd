@@ -123,9 +123,10 @@ func _ready() -> void:
 	_setup_confetti_host()
 	_setup_reveal_presenter()
 	_setup_pull_confirm()
+	## Featured が BannerArtHost を清空するため、矢印はシェル構築のあと。
+	_setup_featured_preview()
 	_setup_page_arrows()
 	_setup_room_guide_help()
-	_setup_featured_preview()
 	call_deferred("_finalize_gacha_layout")
 	_summon_layer.visible = false
 	_detail_overlay.visible = false
@@ -141,7 +142,15 @@ func _setup_room_guide_help() -> void:
 	var row: Control = $Header/HeaderRow as Control
 	if row == null or row.get_node_or_null("HubRoomGuideHelpBtn") != null:
 		return
+	## 右端は封蔵切替→と被るので、戻るの直後（左）に置く。
 	_btn_room_guide = _RoomGuide.attach_help_button(row, self, _room_guide_id(), "？")
+	if _btn_room_guide == null:
+		return
+	var back: Node = row.get_node_or_null("ButtonBack")
+	if back != null:
+		row.move_child(_btn_room_guide, back.get_index() + 1)
+	_btn_room_guide.custom_minimum_size = Vector2(40, 40)
+	_btn_room_guide.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
 
 func _sync_room_guide_help() -> void:
@@ -165,8 +174,20 @@ func _setup_pull_confirm() -> void:
 
 
 func _setup_page_arrows() -> void:
-	if _btn_page_prev != null:
+	## Featured 再構築で queue_free された参照が残ると再生成されない。
+	if not is_instance_valid(_btn_page_prev):
+		_btn_page_prev = null
+	if not is_instance_valid(_btn_page_next):
+		_btn_page_next = null
+	if _btn_page_prev != null and _btn_page_next != null:
+		_raise_page_arrows()
 		return
+	if _btn_page_prev != null:
+		_btn_page_prev.queue_free()
+		_btn_page_prev = null
+	if _btn_page_next != null:
+		_btn_page_next.queue_free()
+		_btn_page_next = null
 	_btn_page_prev = Button.new()
 	_btn_page_prev.name = "BtnGachaPagePrev"
 	_btn_page_prev.text = "←"
@@ -177,7 +198,8 @@ func _setup_page_arrows() -> void:
 	_btn_page_prev.offset_right = 8 + PAGE_ARROW_SIZE
 	_btn_page_prev.offset_top = PAGE_ARROW_TOP
 	_btn_page_prev.offset_bottom = PAGE_ARROW_TOP + PAGE_ARROW_SIZE
-	_btn_page_prev.z_index = 20
+	_btn_page_prev.z_index = 40
+	_btn_page_prev.mouse_filter = Control.MOUSE_FILTER_STOP
 	_btn_page_prev.pressed.connect(_on_page_prev_pressed)
 	_banner_art_host.add_child(_btn_page_prev)
 	_btn_page_next = Button.new()
@@ -190,9 +212,22 @@ func _setup_page_arrows() -> void:
 	_btn_page_next.offset_right = -8
 	_btn_page_next.offset_top = PAGE_ARROW_TOP
 	_btn_page_next.offset_bottom = PAGE_ARROW_TOP + PAGE_ARROW_SIZE
-	_btn_page_next.z_index = 20
+	_btn_page_next.z_index = 40
+	_btn_page_next.mouse_filter = Control.MOUSE_FILTER_STOP
 	_btn_page_next.pressed.connect(_on_page_next_pressed)
 	_banner_art_host.add_child(_btn_page_next)
+	_raise_page_arrows()
+
+
+func _raise_page_arrows() -> void:
+	if _banner_art_host == null:
+		return
+	if is_instance_valid(_btn_page_prev):
+		_banner_art_host.move_child(_btn_page_prev, -1)
+		_btn_page_prev.visible = true
+	if is_instance_valid(_btn_page_next):
+		_banner_art_host.move_child(_btn_page_next, -1)
+		_btn_page_next.visible = true
 
 
 func _on_page_prev_pressed() -> void:
@@ -713,6 +748,8 @@ func _on_featured_host_resized() -> void:
 
 ## Featured 枠と説明パネルを再レイアウト（chrome は BottomNavHelper／実機のみ）。
 func _finalize_gacha_layout() -> void:
+	_setup_page_arrows()
+
 	## Mac では apply_chrome は no-op。ここでは Featured 再配置のみ。
 	if _featured_shell.is_empty():
 		return

@@ -743,6 +743,10 @@ static func build_featured_shell(host: Control) -> Dictionary:
 	if host == null:
 		return empty
 	for child in host.get_children():
+		## 招き↔封蔵の矢印は Featured 外のコントロール。消さない。
+		var cname: String = str(child.name)
+		if cname == "BtnGachaPagePrev" or cname == "BtnGachaPageNext":
+			continue
 		child.queue_free()
 	host.mouse_filter = Control.MOUSE_FILTER_STOP
 	## clip すると短い枠で idle が消える。バナーは親 Panel 側で十分。
