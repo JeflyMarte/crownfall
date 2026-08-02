@@ -10,6 +10,7 @@ const _EnemyTierVariantConfig = preload("res://scripts/dungeon/EnemyTierVariantC
 const _WanderingEnemyConfig = preload("res://scripts/dungeon/WanderingEnemyConfig.gd")
 const _EvolutionTraits = preload("res://scripts/systems/EvolutionTraits.gd")
 const MythicLoot = preload("res://scripts/equipment/MythicLoot.gd")
+const _BuildLegendaryLoot = preload("res://scripts/equipment/BuildLegendaryLoot.gd")
 const _AbyssLegendaryWeapons = preload("res://scripts/dungeon/AbyssLegendaryWeapons.gd")
 const _EventExclusiveRewards = preload("res://scripts/dungeon/EventExclusiveRewards.gd")
 const _BalanceConfig = preload("res://scripts/combat/BalanceConfig.gd")
@@ -1717,8 +1718,14 @@ func apply_boss_material_loot() -> Dictionary:
 
 ## x-5 初回ボス討伐のレジェンド防具・装飾を確定付与（P3-EQ-LEG-001 / P3-BAL-DROP-001）。
 ## ティア別初回（Normal / Hard / Nightmare それぞれ1回）。同一 ★ 装備。
+## 加えてビルド拡張Lを未所持から1点（P3-EQ-LEG-BUILD-001）。
 func apply_boss_legendary_loot(stage: Resource) -> Dictionary:
-	var bonus: Dictionary = {"armor_id": "", "accessory_id": ""}
+	var bonus: Dictionary = {
+		"armor_id": "",
+		"accessory_id": "",
+		"build_category": "",
+		"build_id": "",
+	}
 	if stage == null or not bool(stage.has_boss_floor()):
 		return bonus
 	var tier: int = _DungeonTierConfig.clamp_tier(GameState.current_dungeon_tier)
@@ -1733,6 +1740,18 @@ func apply_boss_legendary_loot(stage: Resource) -> Dictionary:
 	if not accessory_id.is_empty():
 		_spawn_accessory(accessory_id)
 		bonus["accessory_id"] = accessory_id
+	var build_roll: Dictionary = _BuildLegendaryLoot.roll_one()
+	if not build_roll.is_empty():
+		var build_cat: String = str(build_roll.get("category", ""))
+		var build_id: String = str(build_roll.get("id", ""))
+		if build_cat == "armor" and not build_id.is_empty():
+			_spawn_armor(build_id)
+			bonus["build_category"] = "armor"
+			bonus["build_id"] = build_id
+		elif build_cat == "accessory" and not build_id.is_empty():
+			_spawn_accessory(build_id)
+			bonus["build_category"] = "accessory"
+			bonus["build_id"] = build_id
 	return bonus
 
 ## ボス再クリア時の神話ドロップ（P3-EQ-MYTHIC-001）。通常レア抽選外。

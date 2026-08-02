@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ArmorData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ArmorData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+armor_id = "cover_aegis_cloak"
+display_name = "庇護の外套"
+description = "傷つきやすい味方を覆う外套。守り手自身は少し無防備になる。"
+base_defense = 300
+base_hp_bonus = 500
+base_resistance = 0.0
+resist_elements = Array[String](["holy"])
+weight = 0.9
+rarity = 3
+fixed_passive_id = "eq_cover_aegis"
