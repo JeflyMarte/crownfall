@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_serdion_claw"
+display_name = "骸晶爪"
+description = "水晶の爪で一人を抉る。通常攻撃（単体）。"
+skill_type = "boss"
+target_type = "party"
+power_multiplier = 1.5
+cooldown = 0.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["boss", "basic", "single"])
+element = "dark"
+apply_status_id = "bleed"
+apply_status_chance = 0.2
+cast_time = 0.0

@@ -7311,6 +7311,9 @@ func _spawn_enemy_cast_name(skill_name: String, slot: int) -> void:
 func _do_enemy_attack(slot: int = -1) -> void:
 	if $CombatController.current_enemy_data == null:
 		return
+	## 通常攻撃バリエーション（例: セルディオン＝単体1.5／全体1.0）。スキル枠とは別。
+	if _try_enemy_basic_attack_variant(slot):
+		return
 	var target_idx: int = $CombatController.pick_enemy_target_for_melee_attack(slot)
 	if target_idx < 0:
 		return
@@ -7319,6 +7322,26 @@ func _do_enemy_attack(slot: int = -1) -> void:
 		"slot": slot,
 		"target_idx": target_idx,
 	})
+
+
+## `EnemyData.basic_attack_skill_ids` から均等抽選し、ダメージスキル経路で即時実行（CD非消費）。
+func _try_enemy_basic_attack_variant(slot: int) -> bool:
+	var enemy_data: Resource = $CombatController.current_enemy_data
+	if enemy_data == null or not ("basic_attack_skill_ids" in enemy_data):
+		return false
+	var ids: Array = enemy_data.basic_attack_skill_ids
+	if ids.is_empty():
+		return false
+	var sid: String = str(ids[randi() % ids.size()])
+	var skill: Resource = DataRegistry.get_skill_data(sid)
+	if skill == null or str(skill.effect_type) != "damage":
+		return false
+	var atk_slot: int = slot
+	if atk_slot < 0:
+		atk_slot = $CombatController.active_enemy_index
+	## SkillExecutor を通さず CD を進めない（通常攻撃扱い）。
+	_execute_enemy_damage(skill, atk_slot)
+	return true
 
 
 func _resolve_enemy_attack_impact_async(payload: Dictionary) -> void:
