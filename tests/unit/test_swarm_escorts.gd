@@ -49,6 +49,24 @@ func test_mourngate_early_normal_swarm_size_cap() -> void:
 	GameState.current_dungeon_tier = prev_tier
 
 
+func test_mourngate_early_normal_elites_disabled() -> void:
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	var prev_tier: int = int(GameState.current_dungeon_tier)
+	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
+	dc.start_stage("mourngate_1_1")
+	assert_true(dc._early_normal_elites_disabled())
+	assert_eq(int(dc._resolve_room_weights(dc.current_dungeon_data).get("elite", -1)), 0)
+	dc.start_stage("mourngate_1_4")
+	assert_false(dc._early_normal_elites_disabled())
+	assert_gt(int(dc._resolve_room_weights(dc.current_dungeon_data).get("elite", 0)), 0)
+	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_HARD
+	dc.start_stage("mourngate_1_1")
+	assert_false(dc._early_normal_elites_disabled())
+	GameState.current_dungeon_tier = prev_tier
+
+
 func test_tier_swarm_scalars() -> void:
 	assert_almost_eq(_DungeonTierConfig.swarm_chance_mult(_DungeonTierConfig.TIER_NORMAL), 1.0, 0.001)
 	assert_almost_eq(_DungeonTierConfig.swarm_chance_mult(_DungeonTierConfig.TIER_HARD), 1.25, 0.001)
