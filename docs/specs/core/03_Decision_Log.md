@@ -6700,3 +6700,21 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-EQ-EARLY-MID-FILL-001-3 | **供給** — 通常ダンジョンプールへ追加。封蔵・確定★には載せない | L肥大を避ける |
 | P3-EQ-EARLY-MID-FILL-001-4 | **SSOT** — `decisions/52_EarlyMidEquipFill.md` | 正 |
 
+## レリック効果ルール改変（2026-08-02 — P3-BAL-RELIC-REMAKE-001）
+
+> **オーナー GO（数値初案）** — 既存8 ID をビルド拡張帯の尖鋭効果へ差し替え。解放型・装備者中心。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-RELIC-REMAKE-001-1 | **ID据置** — `relic_*` 8種の ID 維持、名称・効果のみ差し替え | セーブ／所持互換 |
+| P3-BAL-RELIC-REMAKE-001-2 | **帯** — ビルド拡張（クリア必須にしない）。敵全体常時弱体／パーティ恒久大強化は原則NG | 体験バランス |
+| P3-BAL-RELIC-REMAKE-001-3 | **指揮の軍旗** — 撃破鼓舞＋オトモ強化／自身与0.70 | 指揮役 |
+| P3-BAL-RELIC-REMAKE-001-4 | **身代わりの鏡** — 後衛被弾40%リダイレクト＋ガード | 壁役 |
+| P3-BAL-RELIC-REMAKE-001-5 | **連撃の歯車** — スキルCD×0.70／必殺速度×0.65 | スキル回転 |
+| P3-BAL-RELIC-REMAKE-001-6 | **生命の脈** — 3秒ごと最大HP2.5%回復／与0.85 | 耐久 |
+| P3-BAL-RELIC-REMAKE-001-7 | **一騎の契** — 標的+55%／非標的0.70／pre_hit mark | 単体特化 |
+| P3-BAL-RELIC-REMAKE-001-8 | **吸血契約** — lifesteal 12%／被+8% | 攻守トレード |
+| P3-BAL-RELIC-REMAKE-001-9 | **不死鳥の羽** — 致死1回＋30%復帰／与0.75×8s | 一度耐える |
+| P3-BAL-RELIC-REMAKE-001-10 | **宝箱の羅針** — treasure weight +20（combat減） | 非戦闘価値 |
+| P3-BAL-RELIC-REMAKE-001-11 | **SSOT** — `decisions/53_RelicRuleRemake.md` | 正 |
+
