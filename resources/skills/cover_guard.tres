@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "cover_guard"
+display_name = "庇護"
+description = "いちばん傷ついた味方を盾で庇い、防御をまとう。殴らず守るヴァンガードの技。"
+skill_type = "player"
+target_type = "ally"
+power_multiplier = 1.0
+cooldown = 4.0
+trigger_type = "cooldown"
+effect_type = "buff"
+tags = Array[String](["support", "guard", "shield", "cover"])
+element = ""
+apply_status_id = "guard"
+apply_status_chance = 1.0
+apply_status_id2 = ""
+apply_status_chance2 = 0.0
+slot_type = "skill"
+range_type = "melee"

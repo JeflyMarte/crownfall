@@ -4,6 +4,21 @@ extends RefCounted
 ## ジョブ／オトモスキルのレベル習得（P3-SKILL-001 / P3-PET-SKILL-001）。
 ## 解放状態はセーブせず Lv から導出。
 
+## キット差し替え時の旧装備ID→新ID（P3-SKILL-KIT-DIVERGE-001）。
+const EQUIPPED_SKILL_REMAP: Dictionary = {
+	"chain_slash": "blade_dance",
+	"armor_cleave": "momentum_slash",
+	"mark_pursuit": "piercing_shot",
+	"shield_ram": "cover_guard",
+}
+
+
+static func remap_equipped_skill_id(skill_id: String) -> String:
+	if EQUIPPED_SKILL_REMAP.has(skill_id):
+		return str(EQUIPPED_SKILL_REMAP[skill_id])
+	return skill_id
+
+
 static func get_unlock_entries(data: Resource) -> Array:
 	if data == null:
 		return []
@@ -118,7 +133,7 @@ static func normalize_equipped_skills(member: Resource) -> void:
 	var ids: Array[String] = []
 	if "equipped_skill_ids" in member:
 		for raw_id in member.equipped_skill_ids:
-			var sid: String = str(raw_id)
+			var sid: String = remap_equipped_skill_id(str(raw_id))
 			if sid.is_empty() or not allowed.has(sid):
 				continue
 			if ids.size() >= Constants.MAX_EQUIPPED_SKILLS:

@@ -4,20 +4,20 @@
 
 [resource]
 script = ExtResource("1")
-id = "rend_slash"
-display_name = "裂傷斬"
-description = "刃で深く切り込み、出血を負わせる。直撃は控えめだが、長く敵を蝕む。"
+id = "piercing_shot"
+display_name = "貫通射"
+description = "矢が標的を貫き、別の敵にも半分の衝撃が届く。標的印には頼らない貫通火力。"
 skill_type = "player"
 target_type = "enemy"
-power_multiplier = 1.1
-cooldown = 3.5
+power_multiplier = 1.5
+cooldown = 4.5
 trigger_type = "cooldown"
 effect_type = "damage"
-tags = Array[String](["melee", "slash"])
+tags = Array[String](["ranged", "pierce", "pierce_secondary"])
 element = ""
-apply_status_id = "bleed"
-apply_status_chance = 0.8
+apply_status_id = ""
+apply_status_chance = 0.0
 apply_status_id2 = ""
 apply_status_chance2 = 0.0
 slot_type = "skill"
-range_type = "melee"
+range_type = "long"
