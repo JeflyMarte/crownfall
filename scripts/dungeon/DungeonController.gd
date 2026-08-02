@@ -685,6 +685,16 @@ func _early_normal_elites_disabled() -> bool:
 		return false
 	return int(GameState.current_dungeon_tier) == _DungeonTierConfig.TIER_NORMAL
 
+
+## モーンゲート・ノーマルはエリート護衛（群れ）なし。ウィスパーウッド以降・H/NM は据置。
+func _mourngate_normal_elite_escorts_disabled() -> bool:
+	if current_stage_data == null or _is_abyss_run():
+		return false
+	if int(current_stage_data.biome_index) != 1:
+		return false
+	return int(GameState.current_dungeon_tier) == _DungeonTierConfig.TIER_NORMAL
+
+
 func get_run_recommended_level() -> int:
 	var base: int = 0
 	if current_stage_data != null and int(current_stage_data.recommended_level) > 0:
@@ -1370,7 +1380,10 @@ func _append_elite_escorts_range(group: Array[Resource], escort_min: int, escort
 
 
 ## N/H: 護衛1〜2。NM: 双エリート＋薄い護衛0〜1、または単エリート＋護衛2〜3（抽選）。
+## モーンゲート・ノーマルは護衛なし（単体エリートのみ）。
 func _append_elite_room_extras(group: Array[Resource]) -> void:
+	if _mourngate_normal_elite_escorts_disabled():
+		return
 	var tier: int = int(GameState.current_dungeon_tier)
 	if tier < _DungeonTierConfig.TIER_NIGHTMARE:
 		_append_elite_escorts_range(
