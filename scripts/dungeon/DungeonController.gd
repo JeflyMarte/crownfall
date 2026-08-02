@@ -664,6 +664,13 @@ func _early_normal_swarm_size_cap() -> int:
 		return -1
 	return BalanceConfig.EARLY_STAGE_SWARM_SIZE_CAP
 
+
+## モーンゲート 1-1〜1-3・ノーマルはエリート部屋を出さない。
+func _early_normal_elites_disabled() -> bool:
+	if not _is_mourngate_early_chapter():
+		return false
+	return int(GameState.current_dungeon_tier) == _DungeonTierConfig.TIER_NORMAL
+
 func get_run_recommended_level() -> int:
 	var base: int = 0
 	if current_stage_data != null and int(current_stage_data.recommended_level) > 0:
@@ -916,10 +923,18 @@ func _generate_random_sequence(
 		seq.append(Enums.RoomType.BOSS)
 	_enforce_min_combat(seq)
 	_enforce_min_event(seq, dungeon, middle_count)
-	if require_elite:
+	if require_elite and not _early_normal_elites_disabled():
 		_enforce_required_elite(seq)
 	_enforce_last_floor_combat(seq)
+	if _early_normal_elites_disabled():
+		_strip_elite_rooms(seq)
 	return seq
+
+
+func _strip_elite_rooms(seq: Array[int]) -> void:
+	for i: int in seq.size():
+		if seq[i] == Enums.RoomType.ELITE:
+			seq[i] = Enums.RoomType.COMBAT
 
 func _enforce_last_floor_combat(seq: Array[int]) -> void:
 	if seq.is_empty():
@@ -948,10 +963,11 @@ func _resolve_lore_room_weight(dungeon: DungeonData) -> int:
 
 func _resolve_room_weights(dungeon: DungeonData) -> Dictionary:
 	var elite_mult: float = EventSystem.get_elite_room_weight_mult()
+	var weights: Dictionary = {}
 	if dungeon != null and not dungeon.room_weight_overrides.is_empty():
 		var o: Dictionary = dungeon.room_weight_overrides
 		var elite_base: int = maxi(0, int(o.get("elite", ROOM_WEIGHT_ELITE)))
-		return {
+		weights = {
 			"combat": maxi(0, int(o.get("combat", ROOM_WEIGHT_COMBAT))),
 			"heal": maxi(0, int(o.get("heal", ROOM_WEIGHT_HEAL))),
 			"lore": maxi(0, int(o.get("lore", ROOM_WEIGHT_LORE))),
@@ -960,17 +976,21 @@ func _resolve_room_weights(dungeon: DungeonData) -> Dictionary:
 			## 上書きが 0 のダンジョン（イベントDG等）は 0 のまま維持。
 			"elite": maxi(0, int(round(float(elite_base) * elite_mult))),
 		}
-	var lore_w: int = _resolve_lore_room_weight(dungeon)
-	var combat_w: int = clampi(ROOM_WEIGHT_COMBAT - (lore_w - ROOM_WEIGHT_LORE), 35, 70)
-	var elite_w: int = maxi(1, int(round(float(ROOM_WEIGHT_ELITE) * elite_mult)))
-	return {
-		"combat": combat_w,
-		"heal": ROOM_WEIGHT_HEAL,
-		"lore": lore_w,
-		"treasure": ROOM_WEIGHT_TREASURE,
-		"trap": ROOM_WEIGHT_TRAP,
-		"elite": elite_w,
-	}
+	else:
+		var lore_w: int = _resolve_lore_room_weight(dungeon)
+		var combat_w: int = clampi(ROOM_WEIGHT_COMBAT - (lore_w - ROOM_WEIGHT_LORE), 35, 70)
+		var elite_w: int = maxi(1, int(round(float(ROOM_WEIGHT_ELITE) * elite_mult)))
+		weights = {
+			"combat": combat_w,
+			"heal": ROOM_WEIGHT_HEAL,
+			"lore": lore_w,
+			"treasure": ROOM_WEIGHT_TREASURE,
+			"trap": ROOM_WEIGHT_TRAP,
+			"elite": elite_w,
+		}
+	if _early_normal_elites_disabled():
+		weights["elite"] = 0
+	return weights
 
 func _required_min_event_rooms(dungeon: DungeonData, middle_count: int) -> int:
 	if current_stage_data != null and int(current_stage_data.min_event_rooms) >= 0:
