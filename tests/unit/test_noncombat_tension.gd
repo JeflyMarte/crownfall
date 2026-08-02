@@ -28,7 +28,7 @@ func test_trap_trigger_chance_raised() -> void:
 
 
 func test_treasure_success_rewards() -> void:
-	assert_eq(_DungeonController.TREASURE_GOLD, 40)
+	assert_eq(_DungeonController.TREASURE_GOLD, 120)
 	assert_almost_eq(_DungeonController.TREASURE_ACCESSORY_CHANCE, 0.35, 0.0001)
 	assert_almost_eq(BalanceConfig.TREASURE_WEAPON_CHANCE, 0.12, 0.0001)
 
