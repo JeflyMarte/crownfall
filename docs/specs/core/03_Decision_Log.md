@@ -6362,3 +6362,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-CHR-EFFECT-PAGES-001-4 | **上書き** — `P3-UX-CHR-STAT-PAGES-001-7` の「装備中の効果据置」 | 本 Decision が正 |
 | P3-UX-CHR-EFFECT-PAGES-001-5 | **SSOT** — `CharacterStatPages.equipment_effect_rows_for_page` | 集計と表示分離 |
 
+## ダンジョンクリア EXP ボーナス（2026-08-02 — P3-BAL-CLEAR-EXP-001）
+
+> **オーナー GO（案A）** — CLEAR のみ、ラン獲得 EXP の +25%。Result に「クリアボーナス +N」。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-CLEAR-EXP-001-1 | **条件** — CLEAR のみ（リタイア／全滅なし） | 完走インセンティブ |
+| P3-BAL-CLEAR-EXP-001-2 | **量** — ラン中獲得 EXP × **+25%**（四捨五入） | 案A |
+| P3-BAL-CLEAR-EXP-001-3 | **対象** — メンバー別積立と同経路（出撃パーティ） | 既存付与と一致 |
+| P3-BAL-CLEAR-EXP-001-4 | **UI** — Result「クリアボーナス +N」。入手経験値はボーナス込み | 可視性 |
+| P3-BAL-CLEAR-EXP-001-5 | **SSOT** — `BalanceConfig.CLEAR_EXP_BONUS_RATIO`／`decisions/37_ClearExpBonus.md` | 数値の正 |
+

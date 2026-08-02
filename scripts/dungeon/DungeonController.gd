@@ -12,6 +12,7 @@ const _EvolutionTraits = preload("res://scripts/systems/EvolutionTraits.gd")
 const MythicLoot = preload("res://scripts/equipment/MythicLoot.gd")
 const _AbyssLegendaryWeapons = preload("res://scripts/dungeon/AbyssLegendaryWeapons.gd")
 const _EventExclusiveRewards = preload("res://scripts/dungeon/EventExclusiveRewards.gd")
+const _BalanceConfig = preload("res://scripts/combat/BalanceConfig.gd")
 
 const ROOM_SEQUENCE: Array[int] = [
 	Enums.RoomType.START,
@@ -1114,6 +1115,25 @@ func accumulate_exp_for_members(exp: int, member_ids: Array) -> void:
 
 func get_member_run_exp(member_id: String) -> int:
 	return int(run_exp_by_member.get(member_id, 0))
+
+
+## CLEAR 時のみ呼ぶ。ラン中獲得 EXP の CLEAR_EXP_BONUS_RATIO を加算し、表示用ボーナス量を返す。
+func apply_clear_exp_bonus() -> int:
+	if run_exp_reward <= 0:
+		return 0
+	var bonus: int = int(round(float(run_exp_reward) * _BalanceConfig.CLEAR_EXP_BONUS_RATIO))
+	if bonus <= 0:
+		return 0
+	run_exp_reward += bonus
+	for mid in run_exp_by_member.keys():
+		var cur: int = int(run_exp_by_member[mid])
+		if cur <= 0:
+			continue
+		var member_bonus: int = int(round(float(cur) * _BalanceConfig.CLEAR_EXP_BONUS_RATIO))
+		if member_bonus > 0:
+			run_exp_by_member[mid] = cur + member_bonus
+	return bonus
+
 
 func get_enemy_level() -> int:
 	## 深層は表示階の絶対Lv（P3-DG-ABYSS-LV-001）。Biome基準＋Hard/NMボーナスは使わない。

@@ -1409,6 +1409,12 @@ func _build_info() -> void:
 		"%d" % GameState.last_run_exp_reward,
 		IconPaths.get_icon_texture("exp", "ui")
 	)
+	if GameState.last_run_exp_clear_bonus > 0:
+		_add_info_pair(
+			"クリアボーナス",
+			"+%d" % GameState.last_run_exp_clear_bonus,
+			IconPaths.get_icon_texture("exp", "ui")
+		)
 	_add_info_pair(
 		"入手ゴールド",
 		"%d G" % GameState.last_run_gold_reward,
