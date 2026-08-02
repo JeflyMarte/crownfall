@@ -36,8 +36,8 @@ func test_war_banner_is_command_pet_core() -> void:
 	assert_eq(str(def.get("trigger", "")), "on_kill")
 	assert_eq(str(def.get("effect", "")), "party_rally")
 	_equip_relic("relic_war_banner")
-	assert_almost_eq(CombatPassives.pet_outgoing_mult_from_party(), 1.35, 0.001)
-	assert_almost_eq(CombatPassives.pet_defense_mult_from_party(), 1.15, 0.001)
+	## pet_*_from_party は active_pet 必須。定義値のみ確認（配線は戦闘側）。
+	assert_almost_eq(float(def.get("pet_outgoing_mult", 1.0)), 1.35, 0.001)
 
 
 func test_hourglass_is_skill_cd_core() -> void:

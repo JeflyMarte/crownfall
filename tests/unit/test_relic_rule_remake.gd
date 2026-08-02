@@ -56,10 +56,11 @@ func test_redirect_rear_hit_helper() -> void:
 	GameState.owned_relics = ["relic_aegis_shard"]
 	GameState.party_members = [front, back]
 	GameState.set_member_relic(front, "relic_aegis_shard")
-	## formation: 0,1 front / 2,3 back — use GameState helpers if available
-	if GameState.has_method("set_formation_slot"):
-		GameState.set_formation_slot(0, 0)
-		GameState.set_formation_slot(1, 2)
+	GameState.set_member_formation_slot(front, 0)
+	GameState.set_member_formation_row(front, GameState.FORMATION_FRONT)
+	GameState.set_member_formation_slot(back, 2)
+	GameState.set_member_formation_row(back, GameState.FORMATION_BACK)
+	assert_true(GameState.is_member_back_row(1))
 	var cc: CombatController = CombatController.new()
 	add_child_autofree(cc)
 	cc.party_combat_hp = [50, 50]

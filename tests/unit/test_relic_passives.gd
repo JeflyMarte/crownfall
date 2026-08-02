@@ -58,12 +58,10 @@ func test_toggle_relic_passive_exclusive_slot() -> void:
 
 
 func test_war_banner_command_flag() -> void:
-	if GameState.party_members.is_empty():
-		return
-	var member: Resource = GameState.party_members[0]
-	var saved_relic: String = GameState.get_equipped_relic_passive_id(member)
+	var member: Resource = _make_member("relic_banner")
 	GameState.owned_relics = ["relic_war_banner"]
-	GameState.toggle_member_relic_passive(member, "relic_war_banner")
+	GameState.party_members = [member]
+	GameState.set_member_relic(member, "relic_war_banner")
 	var eff: Dictionary = CombatPassives.stat_multipliers_for_member(member, 0)
 	assert_eq(float(eff["outgoing_mult"]), 0.70)
 	var def: Dictionary = CombatPassives.get_def("relic_war_banner")
@@ -71,9 +69,8 @@ func test_war_banner_command_flag() -> void:
 	assert_almost_eq(float(def.get("pet_defense_mult", 1.0)), 1.15, 0.001)
 	assert_eq(str(def.get("trigger", "")), "on_kill")
 	assert_eq(str(def.get("effect", "")), "party_rally")
-	GameState.toggle_member_relic_passive(member, "")
-	if not saved_relic.is_empty():
-		GameState.toggle_member_relic_passive(member, saved_relic)
+	GameState.party_members = []
+	GameState.owned_relics = []
 
 
 func test_combat_relics_effects_for_aegis_redirect() -> void:
@@ -87,36 +84,33 @@ func test_combat_relics_effects_for_aegis_redirect() -> void:
 
 func test_relic_remake_helper_curves() -> void:
 	assert_eq(CombatPassives.relic_outgoing_hp_tier_mult(-1, 0.2), 1.0)
-	if GameState.party_members.is_empty():
-		return
-	var member: Resource = GameState.party_members[0]
-	var saved: String = GameState.get_equipped_relic_passive_id(member)
+	var member: Resource = _make_member("relic_curves")
+	GameState.party_members = [member]
 	GameState.owned_relics = [
 		"relic_berserker_charm", "relic_hunter_sigil", "relic_old_hourglass",
 		"relic_reactive_aegis", "relic_lament_ring",
 	]
-	GameState.toggle_member_relic_passive(member, "relic_berserker_charm")
+	GameState.set_member_relic(member, "relic_berserker_charm")
 	assert_eq(CombatPassives.relic_outgoing_hp_tier_mult(0, 0.20), 1.0)
 	assert_almost_eq(float(CombatPassives.stat_multipliers_for_member(member, 0)["outgoing_mult"]), 0.85, 0.001)
 	assert_eq(CombatPassives.combat_regen_defs_for_party().size(), 1)
-	GameState.toggle_member_relic_passive(member, "relic_hunter_sigil")
+	GameState.set_member_relic(member, "relic_hunter_sigil")
 	assert_eq(CombatPassives.relic_mark_focus_outgoing_mult(0, ["mark"]), 1.55)
 	assert_eq(CombatPassives.relic_mark_focus_outgoing_mult(0, []), 0.70)
 	assert_eq(CombatPassives.relic_pre_hit_status_id(0), "mark")
-	GameState.toggle_member_relic_passive(member, "relic_old_hourglass")
+	GameState.set_member_relic(member, "relic_old_hourglass")
 	assert_eq(CombatPassives.relic_skill_cd_mult(0), 0.70)
 	assert_eq(CombatPassives.equipped_relic_float(0, "ultimate_charge_dealt_mult", 1.0), 0.65)
-	GameState.toggle_member_relic_passive(member, "relic_reactive_aegis")
+	GameState.set_member_relic(member, "relic_reactive_aegis")
 	assert_almost_eq(CombatPassives.relic_lifesteal_ratio(0), 0.12, 0.001)
 	assert_almost_eq(float(CombatPassives.stat_multipliers_for_member(member, 0)["incoming_mult"]), 1.08, 0.001)
-	GameState.toggle_member_relic_passive(member, "relic_lament_ring")
+	GameState.set_member_relic(member, "relic_lament_ring")
 	var save_def: Dictionary = CombatPassives.death_save_def_for_member(0)
 	assert_true(bool(save_def.get("death_save_once", false)))
 	assert_almost_eq(float(save_def.get("death_save_heal_max_hp_fraction", 0.0)), 0.30, 0.001)
 	assert_almost_eq(float(save_def.get("death_save_outgoing_mult", 1.0)), 0.75, 0.001)
-	GameState.toggle_member_relic_passive(member, "")
-	if not saved.is_empty():
-		GameState.toggle_member_relic_passive(member, saved)
+	GameState.party_members = []
+	GameState.owned_relics = []
 
 
 func test_save_v4_migrates_relic_id_field() -> void:
