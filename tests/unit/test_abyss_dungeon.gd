@@ -152,6 +152,7 @@ func test_start_abyss_stage_keeps_endless_and_run_name() -> void:
 	add_child_autofree(dc)
 	dc.start_stage("abyss_mourngate_1_1")
 	assert_eq(dc.room_sequence.size(), 10)
+	## 初チャンク（1〜10F）にボス無し。33Fごと。
 	assert_false(Enums.RoomType.BOSS in dc.room_sequence)
 	assert_eq(dc.get_run_display_name(), "1-1 虚脈の深廊")
 	assert_eq(dc.get_display_floor_text(), "1F/??")
@@ -213,6 +214,83 @@ func test_abyss_block_helpers_for_weather_and_bg() -> void:
 	assert_true(_AbyssDungeonConfig.uses_early_battle_bg_for_floor(10))
 	assert_false(_AbyssDungeonConfig.uses_early_battle_bg_for_floor(11))
 	assert_true(_AbyssDungeonConfig.uses_early_battle_bg_for_floor(21))
+
+
+func test_abyss_boss_every_33_floors_uses_parent_boss() -> void:
+	assert_true(_AbyssDungeonConfig.is_boss_floor(33))
+	assert_true(_AbyssDungeonConfig.is_boss_floor(66))
+	assert_true(_AbyssDungeonConfig.is_boss_floor(99))
+	assert_true(_AbyssDungeonConfig.is_boss_floor(132))
+	assert_false(_AbyssDungeonConfig.is_boss_floor(1))
+	assert_false(_AbyssDungeonConfig.is_boss_floor(32))
+	assert_false(_AbyssDungeonConfig.is_boss_floor(34))
+	assert_eq(_AbyssDungeonConfig.parent_boss_id("abyss_mourngate"), "serdion")
+	assert_eq(_AbyssDungeonConfig.parent_boss_id("abyss_whisperwood"), "granvel")
+	GameState.mark_dungeon_cleared("mourngate")
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	dc.start_stage("abyss_mourngate_1_1")
+	while dc.room_sequence.size() < 99:
+		dc.current_room_index = dc.room_sequence.size() - 1
+		dc.advance_room()
+	assert_eq(dc.room_sequence[32], Enums.RoomType.BOSS, "33F")
+	assert_eq(dc.room_sequence[65], Enums.RoomType.BOSS, "66F")
+	assert_eq(dc.room_sequence[98], Enums.RoomType.BOSS, "99F")
+	assert_ne(dc.room_sequence[0], Enums.RoomType.BOSS)
+	assert_ne(dc.room_sequence[31], Enums.RoomType.BOSS)
+	dc.current_room_index = 32
+	dc.current_room_type = Enums.RoomType.BOSS
+	var boss: Resource = dc.pick_boss_enemy_data()
+	assert_not_null(boss)
+	assert_eq(str(boss.id), "serdion")
+
+
+func test_abyss_boss_pack_kinds_by_floor() -> void:
+	assert_eq(_AbyssDungeonConfig.boss_pack_kind(1), "solo")
+	assert_eq(_AbyssDungeonConfig.boss_pack_kind(33), "boss_swarm_12")
+	assert_eq(_AbyssDungeonConfig.boss_pack_kind(66), "boss_elite")
+	assert_eq(_AbyssDungeonConfig.boss_pack_kind(99, 0.0), "boss_elite_minion")
+	assert_eq(_AbyssDungeonConfig.boss_pack_kind(99, 0.9), "boss_swarm_3")
+	assert_eq(_AbyssDungeonConfig.boss_pack_kind(132, 0.0), "boss_elite_minion")
+	assert_eq(_AbyssDungeonConfig.boss_pack_kind(132, 0.5), "boss_swarm_3")
+	assert_eq(_AbyssDungeonConfig.boss_pack_kind(132, 0.9), "boss_elite_swarm_2")
+
+
+func test_abyss_boss_combat_group_has_pack() -> void:
+	GameState.mark_dungeon_cleared("mourngate")
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	dc.start_stage("abyss_mourngate_1_1")
+	while dc.room_sequence.size() < 40:
+		dc.current_room_index = dc.room_sequence.size() - 1
+		dc.advance_room()
+	## 33F: ボス＋雑魚1〜2
+	dc.current_room_index = 32
+	dc.current_room_type = Enums.RoomType.BOSS
+	var saw_swarm := false
+	for _i in 16:
+		var group: Array = dc.pick_combat_enemy_group()
+		assert_eq(str(group[0].id), "serdion")
+		assert_gte(group.size(), 2)
+		assert_lte(group.size(), 3)
+		if group.size() >= 2:
+			saw_swarm = true
+			assert_eq(int(group[0].enemy_type), int(Enums.EnemyType.BOSS))
+			for j in range(1, group.size()):
+				assert_ne(int(group[j].enemy_type), int(Enums.EnemyType.BOSS))
+	assert_true(saw_swarm)
+	## 66F: ボス＋エリート
+	while dc.room_sequence.size() < 70:
+		dc.current_room_index = dc.room_sequence.size() - 1
+		dc.advance_room()
+	dc.current_room_index = 65
+	dc.current_room_type = Enums.RoomType.BOSS
+	var group66: Array = dc.pick_combat_enemy_group()
+	assert_eq(str(group66[0].id), "serdion")
+	assert_eq(group66.size(), 2)
+	assert_eq(int(group66[1].enemy_type), int(Enums.EnemyType.ELITE))
 
 
 func test_abyss_select_meta_hides_fixed_floor_and_rec_level() -> void:

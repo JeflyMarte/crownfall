@@ -11,6 +11,10 @@ const STAT_SCALE: int = 8
 ## 炉研ぎ +N の平坦加算（旧 +1 ATK/DEF、防具HPは旧 +2）
 const EQUIP_FORGE_FLAT_PER_LEVEL: int = STAT_SCALE
 const EQUIP_FORGE_HP_PER_LEVEL: int = STAT_SCALE * 2
+## 平坦ランダム（攻撃/防御/HPアップ）帯圧縮（P3-EQ-FLAT-ROLL-NARROW-001 案C）。
+## 上限表は旧×CEILING を焼き込み。下限＝上限×FLOOR（最低1）。
+const FLAT_ROLL_CEILING_MULT: float = 0.70
+const FLAT_ROLL_FLOOR_RATIO: float = 0.55
 
 # ── ダメージ計算（旧 DungeonScene 定数） ──────────────────────────────────
 const FALLBACK_ATTACK: int = 10 * STAT_SCALE
@@ -189,6 +193,11 @@ const MIXED_SWARM_CHANCE: float = 0.50  # 群れ時に別種を混ぜる確率
 const EARLY_STAGE_SWARM_CHANCE_MULT: float = 0.50
 ## モーンゲート 1-1〜1-3・ノーマルのみの群れ頭数上限（単体1／群れ最大2）。
 const EARLY_STAGE_SWARM_SIZE_CAP: int = 2
+## 時間帯降臨（時環／境界等）— ノーマルでも群れ多め（P3-BAL-DESCENT-SWARM-001）。
+## 本編 N=0.45 より高く、曜日イベント forced_swarm 帯（0.30〜0.40）より厚くする。
+const DESCENT_EVENT_SWARM_CHANCE: float = 0.72
+const DESCENT_EVENT_SWARM_MIN: int = 2
+const DESCENT_EVENT_SWARM_MAX: int = 4
 
 # ── 群れ人数連動（P3-BAL-SWARM-DENSITY-001） ─────────────────────────────
 ## 戦闘開始時の頭数で一体あたり倍率を固定。倒しても再計算しない。
@@ -205,16 +214,43 @@ const SWARM_DENSITY_MOB_ATK: float = 0.75
 ## ソロ戦で全体／列／AoE スキルの抽選ウェイト倍率。
 const SOLO_AOE_SKILL_WEIGHT_MULT: float = 2.25
 
-# ── エリート護衛（P3-BAL-ELITE-BOSS-PRESSURE-001） ───────────────────────
-## ELITE 部屋入場時に従える章雑魚数（ランダム）。プール空なら単体。
+# ── エリート護衛（P3-BAL-ELITE-BOSS-PRESSURE-001 / P3-BAL-TIER-ENC-A-001） ─
+## ELITE 部屋入場時に従える章雑魚数（N/H）。プール空なら単体。
 const ELITE_ESCORT_MIN: int = 1
 const ELITE_ESCORT_MAX: int = 2
+## NM・双エリート時の護衛（薄い・合計）。
+const ELITE_ESCORT_NM_DUAL_MIN: int = 0
+const ELITE_ESCORT_NM_DUAL_MAX: int = 1
+## NM・単エリート時の護衛（厚い）。
+const ELITE_ESCORT_NM_SINGLE_MIN: int = 2
+const ELITE_ESCORT_NM_SINGLE_MAX: int = 3
 
-# ── 必殺チャージ圧力（P3-BAL-ULTIMATE-PRESSURE-001） ─────────────────────
-## ELITE／BOSS 戦闘中のチャージ獲得倍率（与ダメ・被ダメ・flat 共通）。
+# ── 必殺チャージ圧力（P3-BAL-ULTIMATE-PRESSURE-001／時間制 P3-BAL-ULTIMATE-TIME-001） ──
+## ELITE／BOSS 戦闘中のチャージ速度倍率（時間／flat 共通）。
 const ULTIMATE_CHARGE_PRESSURE_MULT: float = 0.5
 ## ELITE／BOSS 入場時に既存ゲージへ掛ける倍率（半減。ゼロにはしない）。
 const ULTIMATE_CHARGE_PRESSURE_ENTER_MULT: float = 0.5
+
+# ── ボス圧案A（P3-BAL-BOSS-AURA-A-001） ──────────────────────────────────
+## BOSS 攻撃力の追加倍率（グローバルATK・人数補正の外側）。
+const BOSS_ATK_MULT: float = 1.22
+## BOSS のみ人数ATK補正の share（通常敵は PARTY_BALANCE_ATK_SHARE）。
+const BOSS_PARTY_BALANCE_ATK_SHARE: float = 0.50
+## BOSS 速度の人数係数上限（3人=1.0／4人=1.25／5+=cap）。
+const BOSS_PARTY_SPEED_MULT_4: float = 1.25
+const BOSS_PARTY_SPEED_MULT_CAP: float = 1.40
+## 戦闘中 hex の CD（tres も同値。開幕オーラとは別）。
+const BOSS_HEX_COOLDOWN: float = 6.0
+
+
+## 編成人数に対するボス行動速度倍率（オトモ込み combatant_count）。基準=3人。
+static func boss_party_speed_mult(combatant_n: int) -> float:
+	var n: int = maxi(1, combatant_n)
+	if n <= 3:
+		return 1.0
+	if n == 4:
+		return BOSS_PARTY_SPEED_MULT_4
+	return BOSS_PARTY_SPEED_MULT_CAP
 
 
 static func swarm_density_hp_mult(start_count: int) -> float:

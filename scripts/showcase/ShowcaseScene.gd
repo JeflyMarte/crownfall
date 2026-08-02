@@ -50,6 +50,7 @@ var _power_frame: TextureRect = null
 var _power_caption: Label = null
 var _power_value: Label = null
 var _name_frame_top_rule: Control = null
+var _name_frame_mask: ColorRect = null
 var _pick_overlay: Control = null
 var _pick_list: VBoxContainer = null
 var _pick_title: Label = null
@@ -70,6 +71,7 @@ func _ready() -> void:
 	_setup_chrome()
 	_ensure_power_panel()
 	_ensure_name_frame_top_rule()
+	_ensure_name_frame_mask()
 	_ensure_change_member_button()
 	_ensure_staff_list_button()
 	_apply_layout_rects()
@@ -210,6 +212,10 @@ func _apply_layout_rects() -> void:
 		_name_frame_top_rule.position = rule_r.position
 		_name_frame_top_rule.size = rule_r.size
 		_name_frame_top_rule.queue_redraw()
+	if _name_frame_mask != null:
+		var mask_r: Rect2 = ShowcaseUiTokensScript.NAME_FRAME_MASK_RECT
+		_name_frame_mask.position = mask_r.position
+		_name_frame_mask.size = mask_r.size
 
 	if _btn_change_member != null:
 		var change_r: Rect2 = ShowcaseUiTokensScript.CHANGE_MEMBER_RECT
@@ -274,6 +280,19 @@ func _ensure_name_frame_top_rule() -> void:
 	_name_frame_top_rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_name_frame_top_rule.draw.connect(_on_name_frame_top_rule_draw)
 	add_child(_name_frame_top_rule)
+
+
+func _ensure_name_frame_mask() -> void:
+	## 自慢キャラ未設定時は焼込名札枠だけ残ると空ボタンに見えるので覆う。
+	if _name_frame_mask != null:
+		return
+	_name_frame_mask = ColorRect.new()
+	_name_frame_mask.name = "NameFrameMask"
+	_name_frame_mask.z_index = 3
+	_name_frame_mask.visible = false
+	_name_frame_mask.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_name_frame_mask.color = ShowcaseUiTokensScript.NAME_FRAME_MASK_COLOR
+	add_child(_name_frame_mask)
 
 
 func _on_name_frame_top_rule_draw() -> void:
@@ -469,6 +488,9 @@ func _set_stage_visible(on: bool) -> void:
 		_name_frame_top_rule.visible = on
 		if on:
 			_name_frame_top_rule.queue_redraw()
+	if _name_frame_mask != null:
+		## ステージ非表示（自慢キャラなし）のとき焼込名札枠を隠す。
+		_name_frame_mask.visible = not on
 
 
 func _show_empty_own() -> void:
@@ -663,17 +685,11 @@ func _show_staff_preset_overlay() -> void:
 		if pid.is_empty():
 			continue
 		var row := Button.new()
-		var pname: String = str(preset.get("player_name", preset.get("display_name", "？")))
-		var char_name: String = str(preset.get("display_name", ""))
 		var mark: String = "（表示中）" if pid == _staff_preset_id else ""
-		if char_name.is_empty():
-			row.text = "%s%s" % [pname, ("  " + mark) if not mark.is_empty() else ""]
-		else:
-			row.text = "%s  —  %s%s" % [
-				pname,
-				char_name,
-				("  " + mark) if not mark.is_empty() else "",
-			]
+		row.text = "%s%s" % [
+			ShowcaseCatalogScript.staff_nameplate_text(preset),
+			("  " + mark) if not mark.is_empty() else "",
+		]
 		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.custom_minimum_size = Vector2(0, 48)
 		row.clip_text = true
@@ -755,20 +771,18 @@ func _populate_stage(member: Resource) -> void:
 		_stats_col.add_child(val)
 
 	_footer_name.text = str(member.display_name)
-	if _mode == Mode.STAFF and not _staff_player_name.is_empty():
-		_footer_name.text = _staff_player_name
-	UiTypography.apply_display(_footer_name, UiTypography.SIZE_BODY, COLOR_GOLD)
 	if _mode == Mode.STAFF:
-		_footer_meta.text = "%s  Lv.%d  %s" % [
-			str(member.display_name),
-			int(member.level),
-			RosterUiHelper.job_display_name(member),
-		]
-	else:
-		_footer_meta.text = "Lv.%d  %s" % [
-			int(member.level),
-			RosterUiHelper.job_display_name(member),
-		]
+		## 名札は「スタッフ1-アルド」。キャラ名は display_name をそのまま残す。
+		var staff_preset: Dictionary = ShowcaseCatalogScript.find_staff_preset(_staff_preset_id)
+		if not staff_preset.is_empty():
+			_footer_name.text = ShowcaseCatalogScript.staff_nameplate_text(staff_preset)
+		elif not _staff_player_name.is_empty():
+			_footer_name.text = "%s-%s" % [_staff_player_name, str(member.display_name)]
+	UiTypography.apply_display(_footer_name, UiTypography.SIZE_BODY, COLOR_GOLD)
+	_footer_meta.text = "Lv.%d  %s" % [
+		int(member.level),
+		RosterUiHelper.job_display_name(member),
+	]
 	UiTypography.apply_body(_footer_meta, UiTypography.SIZE_CAPTION - 2, COLOR_BODY)
 	_footer_credit.text = _credit_text
 	UiTypography.apply_caption(_footer_credit, COLOR_SUB)

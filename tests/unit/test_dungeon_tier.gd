@@ -73,9 +73,9 @@ func test_recommended_level_follows_tier_enemy_bonus() -> void:
 	add_child_autofree(dc)
 	dc.current_stage_data = DataRegistry.get_stage_data("mourngate_1_1")
 	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
-	assert_eq(dc.get_run_recommended_level(), 3)
+	assert_eq(dc.get_run_recommended_level(), 1)
 	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_HARD
-	assert_eq(dc.get_run_recommended_level(), 3 + cap)
+	assert_eq(dc.get_run_recommended_level(), 1 + cap)
 
 
 func test_tier_rarity_weight_scales() -> void:

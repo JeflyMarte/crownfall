@@ -1,6 +1,6 @@
 extends GutTest
 
-## P3-COMBAT-GAUGE-001 — 装備1本・必殺チャージ。
+## P3-COMBAT-GAUGE-001 / P3-BAL-ULTIMATE-TIME-001 — 装備1本・必殺時間チャージ。
 
 const _SkillExecutor = preload("res://scripts/combat/SkillExecutor.gd")
 
@@ -43,28 +43,32 @@ func test_ultimate_skill_executor_skips_cooldown() -> void:
 	assert_true(ex.can_cast(ult, "0:ultimate_strike"))
 
 
-func test_ultimate_charge_dealt_and_taken() -> void:
+func test_ultimate_charge_fills_over_time_not_damage() -> void:
+	assert_almost_eq(Constants.ULTIMATE_CHARGE_FILL_SECONDS, 25.0, 0.001)
 	var ctrl := CombatController.new()
 	add_child_autofree(ctrl)
 	ctrl.party_combat_hp = [100, 100]
 	ctrl.party_max_hp = [100, 100]
 	ctrl._init_member_ultimate_charge()
+	ctrl.is_in_combat = true
 	assert_eq(ctrl.get_ultimate_charge(0), 0.0)
-	ctrl.add_ultimate_charge_from_damage_dealt(0, 100)
-	assert_almost_eq(
-		ctrl.get_ultimate_charge(0),
-		100.0 * Constants.ULTIMATE_CHARGE_DEALT_K,
-		0.01
-	)
-	ctrl.add_ultimate_charge_from_damage_taken(0, 50)
-	assert_almost_eq(
-		ctrl.get_ultimate_charge(0),
-		100.0 * Constants.ULTIMATE_CHARGE_DEALT_K + 50.0 * Constants.ULTIMATE_CHARGE_TAKEN_K,
-		0.01
-	)
-	ctrl.add_ultimate_charge(0, Constants.ULTIMATE_CHARGE_MAX)
+	## 半分の時間で約半分。
+	ctrl.tick_ultimate_charge_over_time(Constants.ULTIMATE_CHARGE_FILL_SECONDS * 0.5)
+	assert_almost_eq(ctrl.get_ultimate_charge(0), Constants.ULTIMATE_CHARGE_MAX * 0.5, 0.05)
+	ctrl.tick_ultimate_charge_over_time(Constants.ULTIMATE_CHARGE_FILL_SECONDS)
 	assert_true(ctrl.is_ultimate_charge_ready(0))
 	ctrl.consume_ultimate_charge(0)
+	assert_eq(ctrl.get_ultimate_charge(0), 0.0)
+
+
+func test_ultimate_charge_does_not_tick_outside_combat() -> void:
+	var ctrl := CombatController.new()
+	add_child_autofree(ctrl)
+	ctrl.party_combat_hp = [100]
+	ctrl.party_max_hp = [100]
+	ctrl._init_member_ultimate_charge()
+	ctrl.is_in_combat = false
+	ctrl.tick_ultimate_charge_over_time(10.0)
 	assert_eq(ctrl.get_ultimate_charge(0), 0.0)
 
 

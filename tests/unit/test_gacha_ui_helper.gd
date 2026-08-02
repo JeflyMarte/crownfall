@@ -207,6 +207,34 @@ func test_make_pool_icon_button_sets_helper_id() -> void:
 	assert_eq(btn.custom_minimum_size.x, float(GachaUiHelper.POOL_ICON_PX))
 
 
+func test_featured_equipment_shows_legend_badge() -> void:
+	## 封蔵中央 InvCell に装備一覧と同型の LEGEND ロゴを重ねる。
+	var host := Control.new()
+	host.size = Vector2(680, 420)
+	add_child_autofree(host)
+	var shell: Dictionary = GachaUiHelper.build_featured_shell(host)
+	var entries: Array = GachaEquipSystem.featured_entries()
+	assert_gt(entries.size(), 0)
+	GachaUiHelper.apply_featured_equipment(shell, entries[0])
+	GachaUiHelper.relayout_featured_shell(shell, host)
+	var badge_host: Control = shell.get("equip_rarity_badge_host") as Control
+	assert_not_null(badge_host)
+	assert_true(badge_host.visible)
+	assert_not_null(badge_host.get_node_or_null("LegendaryBadge"))
+	## キャラ Featured に戻すと消える。
+	var helpers: Array = GachaUiHelper.featured_helpers()
+	if helpers.is_empty():
+		GachaUiHelper.set_equip_icon_back_visible(shell, false)
+		GachaUiHelper.relayout_featured_shell(shell, host)
+	else:
+		GachaUiHelper.apply_featured_helper(shell, helpers[0])
+		GachaUiHelper.relayout_featured_shell(shell, host)
+	badge_host = shell.get("equip_rarity_badge_host") as Control
+	if badge_host != null:
+		assert_false(badge_host.visible)
+		assert_null(badge_host.get_node_or_null("LegendaryBadge"))
+
+
 func test_job_display_is_job_name_not_role() -> void:
 	var helpers: Array = GachaUiHelper.sorted_helpers()
 	if helpers.is_empty():

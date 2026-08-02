@@ -69,6 +69,7 @@ alwaysApply: false
 - VFX を `remove_black_bg(threshold=24)` のみで処理（暗青緑マット残存）
 - 肖像／助っ人／CHR アイコンに装飾枠を焼き込む（UI 側枠と二重）
 - chrome 差替後の異常解像度キャッシュを放置（鍛冶 Metal クラッシュ）
+- NPC 顔 ICO（例: `ICO_NPC_Nina.png`）の本体を alpha≈254 のまま置く（羊皮紙手引きに透ける）
 
 ✅ GOOD
 - `.import` は Godot に生成させる（削除→`--import`）。確認は `.godot/imported/*.ctex`
@@ -84,6 +85,7 @@ alwaysApply: false
 - 放射色だけ変えるときは `tools/recolor_chr_icon_job_glow.py`（bust 保護）。単純 `modulate` 禁止
 - chrome 差替後はピクセルサイズ確認。異常なら該当 `.godot/imported` をクリア
 - セル全面絵は `ICON_FRAME_MARGIN_PX=18` 前提。余白を勝手に詰めない
+- 羊皮紙上の NPC 顔は本体 alpha=255（角のソフト縁のみ透過可）。差替後は顔中心の不透明を確認
 
 ## 参照
 

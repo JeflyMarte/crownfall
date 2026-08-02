@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "pulse_amulet"
+display_name = "鼓動の首飾り"
+rarity = 3
+icon = ""
+accessory_type = "talisman"
+description = "鼓動に合わせて必殺が満ちる首飾り。技の再使用は少し遅れる。"
+hp_bonus = 220
+attack_bonus = 0
+defense_bonus = 0
+crit_rate_bonus = 0.03
+exp_gain_rate = 0.0
+gold_gain_rate = 0.0
+rare_drop_rate = 0.0
+fixed_passive_id = "eq_pulse_amulet"

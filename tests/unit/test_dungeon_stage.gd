@@ -141,7 +141,31 @@ func test_run_display_name_includes_chapter() -> void:
 	var dc: Node = _make_controller()
 	dc.start_stage("mourngate_1_3")
 	assert_eq(dc.get_run_display_name(), "1-3 王墓の回廊")
-	assert_eq(dc.get_run_recommended_level(), 5)
+	assert_eq(dc.get_run_recommended_level(), 3)
+
+
+func test_mourngate_early_recommended_levels() -> void:
+	var dc: Node = _make_controller()
+	dc.start_stage("mourngate_1_1")
+	assert_eq(dc.get_run_recommended_level(), 1)
+	dc.start_stage("mourngate_1_2")
+	assert_eq(dc.get_run_recommended_level(), 1)
+	dc.start_stage("mourngate_1_3")
+	assert_eq(dc.get_run_recommended_level(), 3)
+
+
+func test_mourngate_early_normal_has_no_elite_rooms() -> void:
+	## ノーマル 1-1〜1-3 はエリート部屋を出さない。
+	var prev_tier: int = int(GameState.current_dungeon_tier)
+	const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
+	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
+	var dc: Node = _make_controller()
+	for stage_id: String in ["mourngate_1_1", "mourngate_1_2", "mourngate_1_3"]:
+		for seed_val: int in range(40):
+			seed(seed_val)
+			dc.start_stage(stage_id)
+			assert_false(Enums.RoomType.ELITE in dc.room_sequence, "%s seed=%d" % [stage_id, seed_val])
+	GameState.current_dungeon_tier = prev_tier
 
 func _unlock_whisperwood() -> void:
 	GameState.mark_stage_cleared("mourngate_1_5")

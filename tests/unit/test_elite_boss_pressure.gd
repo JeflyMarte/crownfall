@@ -57,9 +57,43 @@ func test_each_boss_has_unique_hex() -> void:
 		assert_eq(str(skill.target_type), "all_party", skill_id)
 		assert_eq(str(skill.apply_status_id), status_id, skill_id)
 		assert_almost_eq(float(skill.apply_status_chance), 1.0, 0.001)
+		assert_almost_eq(float(skill.cooldown), BalanceConfig.BOSS_HEX_COOLDOWN, 0.001, skill_id)
 		assert_lte(float(skill.cast_time), 0.0, skill_id)
 		assert_false(seen_skills.has(skill_id), skill_id)
 		seen_skills[skill_id] = true
+
+
+func test_boss_opening_aura_and_tempo_atk() -> void:
+	assert_almost_eq(BalanceConfig.boss_party_speed_mult(3), 1.0, 0.001)
+	assert_almost_eq(BalanceConfig.boss_party_speed_mult(4), 1.25, 0.001)
+	assert_almost_eq(BalanceConfig.boss_party_speed_mult(5), 1.40, 0.001)
+	assert_almost_eq(BalanceConfig.BOSS_ATK_MULT, 1.22, 0.001)
+	assert_almost_eq(BalanceConfig.BOSS_HEX_COOLDOWN, 6.0, 0.001)
+	if GameState.party_members.is_empty():
+		pending("party unavailable in headless")
+		return
+	var cc: CombatController = CombatController.new()
+	add_child_autofree(cc)
+	var boss: Resource = DataRegistry.get_enemy_data("serdion")
+	assert_not_null(boss)
+	cc.start_combat_group([boss], 10, false)
+	assert_eq(cc.last_boss_opening_status_id, "fear")
+	assert_eq(cc.boss_hex_status_id(boss), "fear")
+	var saw_fear := false
+	for i: int in cc.party_combat_hp.size():
+		if not cc.is_member_alive(i):
+			continue
+		var stacks: int = cc._status_resolver.get_status_stacks("party_%d" % i, "fear")
+		if stacks >= 1:
+			saw_fear = true
+	assert_true(saw_fear, "opening fear on party")
+	var expect_mult: float = BalanceConfig.boss_party_speed_mult(GameState.combatant_count())
+	assert_almost_eq(
+		cc.get_enemy_initiative_score_at(0),
+		float(boss.attack_speed) * expect_mult,
+		0.001
+	)
+	assert_gt(cc.get_enemy_attack_at(0), int(boss.attack))
 
 
 func test_boss_phase1_hex_between_enrage_and_pressure() -> void:
@@ -85,6 +119,8 @@ func test_boss_f1_has_chapter_status() -> void:
 func test_elite_escorts_one_to_two() -> void:
 	assert_eq(BalanceConfig.ELITE_ESCORT_MIN, 1)
 	assert_eq(BalanceConfig.ELITE_ESCORT_MAX, 2)
+	var prev_tier: int = GameState.current_dungeon_tier
+	GameState.current_dungeon_tier = 0
 	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
 	var dc: Node = dc_script.new()
 	add_child_autofree(dc)
@@ -104,6 +140,36 @@ func test_elite_escorts_one_to_two() -> void:
 				assert_true(bool(m.can_swarm), str(m.id))
 				assert_false(bool(m.escorts_minions), str(m.id))
 	assert_true(saw_escorts, "expected at least one elite with escorts")
+	GameState.current_dungeon_tier = prev_tier
+
+
+func test_nm_elite_dual_or_thick_escorts() -> void:
+	const _DungeonTierConfig := preload("res://scripts/dungeon/DungeonTierConfig.gd")
+	var prev_tier: int = GameState.current_dungeon_tier
+	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NIGHTMARE
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	dc.current_dungeon_data = DataRegistry.get_dungeon_data("mistfen")
+	dc.current_room_type = Enums.RoomType.ELITE
+	var saw_dual := false
+	var saw_thick := false
+	for _i in 48:
+		var group: Array = dc.pick_combat_enemy_group()
+		assert_gte(group.size(), 1)
+		assert_lte(group.size(), _DungeonTierConfig.swarm_size_cap())
+		var elite_n: int = 0
+		for ed: Resource in group:
+			if int(ed.enemy_type) == int(Enums.EnemyType.ELITE):
+				elite_n += 1
+		if elite_n >= 2:
+			saw_dual = true
+			assert_lte(group.size(), 3)
+		elif group.size() >= 3:
+			saw_thick = true
+	assert_true(saw_dual, "NM dual elite")
+	assert_true(saw_thick, "NM single elite thick escorts")
+	GameState.current_dungeon_tier = prev_tier
 
 
 func test_boss_group_remains_solo() -> void:

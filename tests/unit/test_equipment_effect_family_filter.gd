@@ -85,6 +85,26 @@ func test_catalog_has_effect_button() -> void:
 	assert_true(btn is Button)
 
 
+func test_catalog_has_relic_category_tab() -> void:
+	var packed: PackedScene = load("res://scenes/equipment/EquipmentCatalogScene.tscn")
+	assert_not_null(packed)
+	var scene: Node = packed.instantiate()
+	add_child_autofree(scene)
+	await get_tree().process_frame
+	assert_true(scene._category_panels.has("relic"), "relic category chip")
+	var relic_ids: Array = CombatPassives.relic_passive_ids()
+	if relic_ids.is_empty():
+		pending("no relic passives")
+		return
+	var rid: String = str(relic_ids[0])
+	GameState.unlock_relic(rid)
+	scene._on_category_pressed("relic")
+	await get_tree().process_frame
+	assert_eq(str(scene._inventory_filter), "relic")
+	assert_gte(scene._inventory_grid.get_child_count(), 1)
+	assert_true(scene._btn_effect.disabled, "effect filter disabled on relic tab")
+
+
 func test_equipment_scene_has_effect_button() -> void:
 	var packed: PackedScene = load("res://scenes/equipment/EquipmentScene.tscn")
 	assert_not_null(packed)

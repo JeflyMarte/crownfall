@@ -10,6 +10,7 @@ const _EnemyTierVariantConfig = preload("res://scripts/dungeon/EnemyTierVariantC
 const _WanderingEnemyConfig = preload("res://scripts/dungeon/WanderingEnemyConfig.gd")
 const _EvolutionTraits = preload("res://scripts/systems/EvolutionTraits.gd")
 const MythicLoot = preload("res://scripts/equipment/MythicLoot.gd")
+const _BuildLegendaryLoot = preload("res://scripts/equipment/BuildLegendaryLoot.gd")
 const _AbyssLegendaryWeapons = preload("res://scripts/dungeon/AbyssLegendaryWeapons.gd")
 const _EventExclusiveRewards = preload("res://scripts/dungeon/EventExclusiveRewards.gd")
 const _BalanceConfig = preload("res://scripts/combat/BalanceConfig.gd")
@@ -534,6 +535,7 @@ func start_dungeon(dungeon_id: String) -> void:
 		push_error("DataRegistry: dungeon not found: %s" % dungeon_id)
 		return
 	room_sequence = _build_room_sequence(current_dungeon_data)
+	_apply_abyss_boss_floors()
 	_reset_run_state()
 	if _is_abyss_run():
 		_sync_abyss_tier_for_current_floor()
@@ -550,6 +552,7 @@ func start_stage(stage_id: String) -> void:
 		current_stage_data = null
 		return
 	room_sequence = _build_room_sequence_for_stage(current_stage_data)
+	_apply_abyss_boss_floors()
 	_reset_run_state()
 	if _is_abyss_run():
 		_sync_abyss_tier_for_current_floor()
@@ -649,6 +652,16 @@ func _is_mourngate_early_chapter() -> bool:
 	return biome_i == 1 and chapter_i >= 1 and chapter_i <= 3
 
 
+## 時間帯降臨（時環／境界）。曜日イベントとは別枠。
+func _is_descent_event_dungeon() -> bool:
+	const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
+	if current_dungeon_data == null:
+		return false
+	if str(current_dungeon_data.route_type) != "event":
+		return false
+	return _EventDungeonSchedule.uses_hourly_windows(str(current_dungeon_data.id))
+
+
 ## 1-1〜1-3 のみ群れ率を下げる（イベント forced_swarm／深層は対象外）。
 func _early_stage_swarm_chance_mult() -> float:
 	if _is_mourngate_early_chapter():
@@ -663,6 +676,13 @@ func _early_normal_swarm_size_cap() -> int:
 	if int(GameState.current_dungeon_tier) != _DungeonTierConfig.TIER_NORMAL:
 		return -1
 	return BalanceConfig.EARLY_STAGE_SWARM_SIZE_CAP
+
+
+## モーンゲート 1-1〜1-3・ノーマルはエリート部屋を出さない。
+func _early_normal_elites_disabled() -> bool:
+	if not _is_mourngate_early_chapter():
+		return false
+	return int(GameState.current_dungeon_tier) == _DungeonTierConfig.TIER_NORMAL
 
 func get_run_recommended_level() -> int:
 	var base: int = 0
@@ -847,6 +867,7 @@ func _extend_abyss_chunk() -> void:
 	)
 	for room_type: int in chunk:
 		room_sequence.append(room_type)
+	_apply_abyss_boss_floors()
 	## 延長後も完走扱いにしない。
 	is_completed = false
 
@@ -865,6 +886,16 @@ func _maybe_reroll_abyss_block_weather() -> bool:
 	GameState.set_weather(next)
 	last_abyss_weather_changed = prev != next
 	return true
+
+
+## 33F ごと（表示階）を BOSS 部屋に差し替え。敵は親 Biome ボス。
+func _apply_abyss_boss_floors() -> void:
+	if not _is_abyss_run():
+		return
+	const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
+	for i: int in room_sequence.size():
+		if _AbyssDungeonConfig.is_boss_floor(i + 1):
+			room_sequence[i] = Enums.RoomType.BOSS
 
 # ── 部屋列の生成 ─────────────────────────────────────────────
 # floor_count > 0: ランダム抽選（肩慣らし COMBAT + 重み付き中間 + [BOSS]）。EXIT は別フロアにしない。
@@ -916,10 +947,18 @@ func _generate_random_sequence(
 		seq.append(Enums.RoomType.BOSS)
 	_enforce_min_combat(seq)
 	_enforce_min_event(seq, dungeon, middle_count)
-	if require_elite:
+	if require_elite and not _early_normal_elites_disabled():
 		_enforce_required_elite(seq)
 	_enforce_last_floor_combat(seq)
+	if _early_normal_elites_disabled():
+		_strip_elite_rooms(seq)
 	return seq
+
+
+func _strip_elite_rooms(seq: Array[int]) -> void:
+	for i: int in seq.size():
+		if seq[i] == Enums.RoomType.ELITE:
+			seq[i] = Enums.RoomType.COMBAT
 
 func _enforce_last_floor_combat(seq: Array[int]) -> void:
 	if seq.is_empty():
@@ -948,10 +987,11 @@ func _resolve_lore_room_weight(dungeon: DungeonData) -> int:
 
 func _resolve_room_weights(dungeon: DungeonData) -> Dictionary:
 	var elite_mult: float = EventSystem.get_elite_room_weight_mult()
+	var weights: Dictionary = {}
 	if dungeon != null and not dungeon.room_weight_overrides.is_empty():
 		var o: Dictionary = dungeon.room_weight_overrides
 		var elite_base: int = maxi(0, int(o.get("elite", ROOM_WEIGHT_ELITE)))
-		return {
+		weights = {
 			"combat": maxi(0, int(o.get("combat", ROOM_WEIGHT_COMBAT))),
 			"heal": maxi(0, int(o.get("heal", ROOM_WEIGHT_HEAL))),
 			"lore": maxi(0, int(o.get("lore", ROOM_WEIGHT_LORE))),
@@ -960,17 +1000,21 @@ func _resolve_room_weights(dungeon: DungeonData) -> Dictionary:
 			## 上書きが 0 のダンジョン（イベントDG等）は 0 のまま維持。
 			"elite": maxi(0, int(round(float(elite_base) * elite_mult))),
 		}
-	var lore_w: int = _resolve_lore_room_weight(dungeon)
-	var combat_w: int = clampi(ROOM_WEIGHT_COMBAT - (lore_w - ROOM_WEIGHT_LORE), 35, 70)
-	var elite_w: int = maxi(1, int(round(float(ROOM_WEIGHT_ELITE) * elite_mult)))
-	return {
-		"combat": combat_w,
-		"heal": ROOM_WEIGHT_HEAL,
-		"lore": lore_w,
-		"treasure": ROOM_WEIGHT_TREASURE,
-		"trap": ROOM_WEIGHT_TRAP,
-		"elite": elite_w,
-	}
+	else:
+		var lore_w: int = _resolve_lore_room_weight(dungeon)
+		var combat_w: int = clampi(ROOM_WEIGHT_COMBAT - (lore_w - ROOM_WEIGHT_LORE), 35, 70)
+		var elite_w: int = maxi(1, int(round(float(ROOM_WEIGHT_ELITE) * elite_mult)))
+		weights = {
+			"combat": combat_w,
+			"heal": ROOM_WEIGHT_HEAL,
+			"lore": lore_w,
+			"treasure": ROOM_WEIGHT_TREASURE,
+			"trap": ROOM_WEIGHT_TRAP,
+			"elite": elite_w,
+		}
+	if _early_normal_elites_disabled():
+		weights["elite"] = 0
+	return weights
 
 func _required_min_event_rooms(dungeon: DungeonData, middle_count: int) -> int:
 	if current_stage_data != null and int(current_stage_data.min_event_rooms) >= 0:
@@ -1266,6 +1310,10 @@ func pick_boss_enemy_data() -> Resource:
 		boss_id = str(current_stage_data.boss_id)
 	else:
 		boss_id = str(current_dungeon_data.boss_id)
+	## 深層は本編 boss_id を空のままにし、親 Biome ボスを流用する。
+	if boss_id.is_empty() and _is_abyss_run():
+		const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
+		boss_id = _AbyssDungeonConfig.parent_boss_id(str(current_dungeon_data.id))
 	if boss_id.is_empty():
 		return pick_enemy_data()
 	return _EnemyTierVariantConfig.apply_for_current_tier(DataRegistry.get_enemy_data(boss_id))
@@ -1294,8 +1342,8 @@ func _swarm_minion_enemies() -> Array[Resource]:
 	return _swarm_pool_enemies(false)
 
 
-## ELITE 部屋: 章雑魚を 1〜2 体追加（プール空・キャップ超過なら何もしない）。
-func _append_elite_escorts(group: Array[Resource]) -> void:
+## ELITE 部屋: 章雑魚を lo〜hi 体追加（プール空・キャップ超過なら何もしない）。
+func _append_elite_escorts_range(group: Array[Resource], escort_min: int, escort_max: int) -> void:
 	var minions: Array[Resource] = _swarm_minion_enemies()
 	if minions.is_empty():
 		return
@@ -1303,13 +1351,92 @@ func _append_elite_escorts(group: Array[Resource]) -> void:
 	var room: int = maxi(0, cap - group.size())
 	if room <= 0:
 		return
-	var lo: int = mini(BalanceConfig.ELITE_ESCORT_MIN, room)
-	var hi: int = mini(BalanceConfig.ELITE_ESCORT_MAX, room)
+	var lo: int = clampi(escort_min, 0, room)
+	var hi: int = clampi(escort_max, 0, room)
 	if hi < lo:
+		return
+	if hi <= 0:
 		return
 	var n: int = randi_range(lo, hi)
 	for _i in n:
 		group.append(minions[randi() % minions.size()])
+
+
+## N/H: 護衛1〜2。NM: 双エリート＋薄い護衛0〜1、または単エリート＋護衛2〜3（抽選）。
+func _append_elite_room_extras(group: Array[Resource]) -> void:
+	var tier: int = int(GameState.current_dungeon_tier)
+	if tier < _DungeonTierConfig.TIER_NIGHTMARE:
+		_append_elite_escorts_range(
+			group,
+			BalanceConfig.ELITE_ESCORT_MIN,
+			BalanceConfig.ELITE_ESCORT_MAX
+		)
+		return
+	var dual: bool = randf() < _DungeonTierConfig.NM_ELITE_DUAL_CHANCE
+	if dual:
+		_append_second_elite(group)
+		_append_elite_escorts_range(
+			group,
+			BalanceConfig.ELITE_ESCORT_NM_DUAL_MIN,
+			BalanceConfig.ELITE_ESCORT_NM_DUAL_MAX
+		)
+	else:
+		_append_elite_escorts_range(
+			group,
+			BalanceConfig.ELITE_ESCORT_NM_SINGLE_MIN,
+			BalanceConfig.ELITE_ESCORT_NM_SINGLE_MAX
+		)
+
+
+func _append_second_elite(group: Array[Resource]) -> void:
+	var cap: int = _DungeonTierConfig.swarm_size_cap()
+	if group.size() >= cap:
+		return
+	var second: Resource = pick_elite_enemy_data()
+	if second == null:
+		return
+	## 可能なら先頭と別種。
+	if group.size() > 0 and str(second.id) == str(group[0].id):
+		for _try in 4:
+			var alt: Resource = pick_elite_enemy_data()
+			if alt != null and str(alt.id) != str(group[0].id):
+				second = alt
+				break
+	group.append(second)
+
+
+func _append_minions(group: Array[Resource], count: int) -> void:
+	if count <= 0:
+		return
+	var minions: Array[Resource] = _swarm_minion_enemies()
+	if minions.is_empty():
+		return
+	var cap: int = _DungeonTierConfig.swarm_size_cap()
+	var n: int = mini(count, maxi(0, cap - group.size()))
+	for _i in n:
+		group.append(minions[randi() % minions.size()])
+
+
+## 無限ボス編成（P3-BAL-TIER-ENC-A-001）。本編ボスは呼ばない。
+func _append_abyss_boss_pack(group: Array[Resource]) -> void:
+	const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
+	var floor_n: int = get_display_floor_current()
+	var kind: String = _AbyssDungeonConfig.boss_pack_kind(floor_n, randf())
+	match kind:
+		"boss_swarm_12":
+			_append_minions(group, randi_range(1, 2))
+		"boss_elite":
+			_append_second_elite(group)
+		"boss_elite_minion":
+			_append_second_elite(group)
+			_append_minions(group, 1)
+		"boss_swarm_3":
+			_append_minions(group, 3)
+		"boss_elite_swarm_2":
+			_append_second_elite(group)
+			_append_minions(group, 2)
+		_:
+			pass
 
 
 func _swarm_pool_enemies(include_escorts: bool) -> Array[Resource]:
@@ -1330,7 +1457,8 @@ func _swarm_pool_enemies(include_escorts: bool) -> Array[Resource]:
 	return out
 
 # 戦闘の敵編成を返す（P3-D082 + P3-D110 混成 + P3-WANDER-001 放浪差し込み + P3-BAL-SWARM-001 護衛）。
-# BOSS は常に単体。ELITE は本体＋章雑魚1〜2（P3-BAL-ELITE-BOSS-PRESSURE-001）。COMBAT は放浪→群れ。
+# 本編 BOSS は単体。無限 BOSS は階帯パック（P3-BAL-TIER-ENC-A-001）。
+# ELITE は N/H=護衛1〜2、NM=双エリート薄護衛 or 単＋護衛2〜3。COMBAT は放浪→群れ。
 func pick_combat_enemy_group() -> Array[Resource]:
 	var group: Array[Resource] = []
 	if current_room_type == Enums.RoomType.COMBAT:
@@ -1342,46 +1470,57 @@ func pick_combat_enemy_group() -> Array[Resource]:
 	if base == null:
 		return group
 	group.append(base)
+	if current_room_type == Enums.RoomType.BOSS:
+		if _is_abyss_run():
+			_append_abyss_boss_pack(group)
+		return group
 	if current_room_type == Enums.RoomType.ELITE:
-		_append_elite_escorts(group)
+		_append_elite_room_extras(group)
 		return group
 	if current_room_type != Enums.RoomType.COMBAT:
 		return group
 	var forced_swarm: bool = (
 		current_dungeon_data != null and float(current_dungeon_data.forced_swarm_chance) >= 0.0
 	)
+	## 降臨: データ未設定でも群れ厚め（Nでも）。tres の forced_swarm があればそちら優先。
+	var descent_swarm: bool = (not forced_swarm) and _is_descent_event_dungeon()
 	var escorts: bool = bool(base.escorts_minions)
-	if not bool(base.can_swarm) and not forced_swarm and not escorts:
+	if not bool(base.can_swarm) and not forced_swarm and not descent_swarm and not escorts:
 		return group
 	var swarm_chance: float = SWARM_CHANCE
 	if forced_swarm:
 		swarm_chance = float(current_dungeon_data.forced_swarm_chance)
+	elif descent_swarm:
+		swarm_chance = BalanceConfig.DESCENT_EVENT_SWARM_CHANCE
 	# 探索方針（安全優先）群れ出現率を半減（P3-D098）
 	elif GameState.get_exploration_policy() == "safe":
 		swarm_chance *= 0.5
-	if not forced_swarm:
+	if not forced_swarm and not descent_swarm:
 		swarm_chance *= _early_stage_swarm_chance_mult()
 	swarm_chance *= _DungeonTierConfig.swarm_chance_mult(GameState.current_dungeon_tier)
 	swarm_chance = minf(0.95, swarm_chance * EventSystem.get_swarm_chance_mult())
 	if randf() >= swarm_chance:
 		return group
-	## 敵ごとの swarm_min を尊重（1許可）。イベント forced_swarm は従来どおり下限2。
+	## 敵ごとの swarm_min を尊重（1許可）。イベント forced_swarm／降臨は下限2。
 	var lo: int = maxi(1, int(base.swarm_min))
 	var hi: int = maxi(lo, int(base.swarm_max))
 	if forced_swarm:
 		lo = maxi(2, int(current_dungeon_data.forced_swarm_min))
 		hi = maxi(lo, int(current_dungeon_data.forced_swarm_max))
+	elif descent_swarm:
+		lo = maxi(2, BalanceConfig.DESCENT_EVENT_SWARM_MIN)
+		hi = maxi(lo, BalanceConfig.DESCENT_EVENT_SWARM_MAX)
 	var size_bonus: int = _DungeonTierConfig.swarm_size_bonus(GameState.current_dungeon_tier)
 	hi = mini(_DungeonTierConfig.swarm_size_cap(), hi + size_bonus)
-	## モーンゲート 1-1〜1-3 ノーマル: 群れ最高2体（forced_swarm イベントは対象外）。
-	if not forced_swarm:
+	## モーンゲート 1-1〜1-3 ノーマル: 群れ最高2体（forced_swarm／降臨は対象外）。
+	if not forced_swarm and not descent_swarm:
 		var early_cap: int = _early_normal_swarm_size_cap()
 		if early_cap > 0:
 			hi = mini(hi, early_cap)
 	lo = mini(lo, hi)
 	var size: int = randi_range(lo, hi)
 	var capable: Array[Resource] = _swarm_capable_enemies()
-	if forced_swarm and capable.is_empty():
+	if (forced_swarm or descent_swarm) and capable.is_empty():
 		capable.append(base)
 	var minions: Array[Resource] = _swarm_minion_enemies()
 	## 護衛リーダー: 追加枠は常に雑魚。雑魚プールが空なら単体のまま。
@@ -1579,8 +1718,14 @@ func apply_boss_material_loot() -> Dictionary:
 
 ## x-5 初回ボス討伐のレジェンド防具・装飾を確定付与（P3-EQ-LEG-001 / P3-BAL-DROP-001）。
 ## ティア別初回（Normal / Hard / Nightmare それぞれ1回）。同一 ★ 装備。
+## 加えてビルド拡張Lを未所持から1点（P3-EQ-LEG-BUILD-001）。
 func apply_boss_legendary_loot(stage: Resource) -> Dictionary:
-	var bonus: Dictionary = {"armor_id": "", "accessory_id": ""}
+	var bonus: Dictionary = {
+		"armor_id": "",
+		"accessory_id": "",
+		"build_category": "",
+		"build_id": "",
+	}
 	if stage == null or not bool(stage.has_boss_floor()):
 		return bonus
 	var tier: int = _DungeonTierConfig.clamp_tier(GameState.current_dungeon_tier)
@@ -1595,6 +1740,18 @@ func apply_boss_legendary_loot(stage: Resource) -> Dictionary:
 	if not accessory_id.is_empty():
 		_spawn_accessory(accessory_id)
 		bonus["accessory_id"] = accessory_id
+	var build_roll: Dictionary = _BuildLegendaryLoot.roll_one()
+	if not build_roll.is_empty():
+		var build_cat: String = str(build_roll.get("category", ""))
+		var build_id: String = str(build_roll.get("id", ""))
+		if build_cat == "armor" and not build_id.is_empty():
+			_spawn_armor(build_id)
+			bonus["build_category"] = "armor"
+			bonus["build_id"] = build_id
+		elif build_cat == "accessory" and not build_id.is_empty():
+			_spawn_accessory(build_id)
+			bonus["build_category"] = "accessory"
+			bonus["build_id"] = build_id
 	return bonus
 
 ## ボス再クリア時の神話ドロップ（P3-EQ-MYTHIC-001）。通常レア抽選外。

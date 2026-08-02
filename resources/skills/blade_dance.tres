@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "blade_dance"
+display_name = "剣舞"
+description = "連続で斬りつける多段攻撃。1発は控えめだが、ヒットが多く妨害やトリガと相性が良い。出血には頼らない。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 0.58
+cooldown = 3.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["melee", "slash", "multi_hit_3"])
+element = ""
+apply_status_id = ""
+apply_status_chance = 0.0
+apply_status_id2 = ""
+apply_status_chance2 = 0.0
+slot_type = "skill"
+range_type = "melee"

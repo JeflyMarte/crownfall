@@ -6282,6 +6282,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-FIX-SURVEY-AUDIT-A-001-5 | **完全調査メタ** — `lb_hits` を分離し `lottery` を上書きしない | 招待券結果メタの消失 |
 | P3-FIX-SURVEY-AUDIT-A-001-6 | **据置** — EXP量・素材帯・③招待券25%↔50%・超過％キャリー | バランス／Decision要GO |
 
+## 無限ダンジョン・33Fごとボス（2026-08-02 — P3-DG-ABYSS-BOSS-33）
+
+> **オーナー指示** — 無限ダンジョンで 33F ごとにボスを登場させる。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-ABYSS-BOSS-33-1 | **間隔** — 表示階が 33 の倍数（33／66／99／132…）で `RoomType.BOSS` | マイルストーン帯と同位。以降も同じ周期 |
+| P3-DG-ABYSS-BOSS-33-2 | **敵** — 親メイン Biome の `boss_id`（深層リソースの boss_id は空のまま） | データ二重管理を避け、色替えは合成ティア |
+| P3-DG-ABYSS-BOSS-33-3 | **SSOT** — `09_BiomeAbyss`／`25_AbyssFloorLevelCurve`／`AbyssDungeonConfig.BOSS_FLOOR_INTERVAL` | 数値の正 |
+
 ## セーブ／デバッグ監査案A（2026-07-31 — P3-FIX-SAVE-AUDIT-A-001）
 
 > **オーナー指示** — 調査室の次＝セーブ／デバッグセーブ監査。確定配線のみ。
@@ -6579,4 +6589,103 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-TACTICS-LIST-001-2 | **UI** — 行動方針7種をスキル行と同型（金枠・設定ボタン・説明）で縦一覧 | 操作の一貫性 |
 | P3-UX-TACTICS-LIST-001-3 | **選択** — 1キャラ1方針。設定で即反映・セーブ | 既存 `set_member_tactics` |
 | P3-UX-TACTICS-LIST-001-4 | **据置** — GameState 作戦プリセットAPI・探索方針・陣形ヒント | データ互換／他導線 |
+
+## ティア遭遇圧・案A（2026-08-02 — P3-BAL-TIER-ENC-A-001）
+
+> **オーナー GO 案A** — 難易度で群れ率↑、NMでエリート複数、無限はボス編成で圧。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-TIER-ENC-A-001-1 | **群れ率** — N×1.0／H×1.35／NM×1.75（`DungeonTierConfig`） | 難度上昇の頻度圧 |
+| P3-BAL-TIER-ENC-A-001-2 | **NMエリート** — 50% 双エリート＋護衛0〜1／50% 単＋護衛2〜3。N/Hは護衛1〜2据置 | キャップ5内で複数感 |
+| P3-BAL-TIER-ENC-A-001-3 | **本編ボス** — 単体据置 | 読み合い維持 |
+| P3-BAL-TIER-ENC-A-001-4 | **無限ボス** — 33=＋群1〜2／66=＋エリート／99+=抽選厚め（132+は3択） | エンドだけ編成圧 |
+| P3-BAL-TIER-ENC-A-001-5 | **据置** — 報酬・人数連動適用外・序盤緩和・サイズ／混成ボーナス | スコープ最小化 |
+| P3-BAL-TIER-ENC-A-001-6 | **SSOT** — `44_TierEncounterPressure.md` | 数値の正 |
+
+## ボス開幕オーラ＋テンポ／火力・案A（2026-08-02 — P3-BAL-BOSS-AURA-A-001）
+
+> **オーナー GO 案A** — 開幕デバフパッシブ化＋速度。火力も上げてよい。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-BOSS-AURA-A-001-1 | **開幕** — 入場時に `boss_*_hex` 状態を味方全員へ付与 | 行動回数不足でも圧が乗る |
+| P3-BAL-BOSS-AURA-A-001-2 | **戦闘中hex** — CD 8→6。スキル自体は維持 | 継続圧 |
+| P3-BAL-BOSS-AURA-A-001-3 | **速度** — BOSSのみ 3人×1.0／4×1.25／5+×1.40 | 4対1の行動負け解消 |
+| P3-BAL-BOSS-AURA-A-001-4 | **火力** — `BOSS_ATK_MULT=1.22`＋ボス人数ATK share0.50 | オーナー「火力もっと」 |
+| P3-BAL-BOSS-AURA-A-001-5 | **据置** — 本編ボス単体・必殺圧力・護衛へのオーラなし | スコープ |
+| P3-BAL-BOSS-AURA-A-001-6 | **SSOT** — `45_BossOpeningAura.md` | 数値の正 |
+
+## 必殺チャージ＝戦闘時間制（2026-08-02 — P3-BAL-ULTIMATE-TIME-001）
+
+> **オーナー GO（案A）** — 与ダメ／被ダメ連動を廃止。戦闘中・生存中の時間だけで溜まる。通常25秒／ELITE・BOSSは圧力×0.5。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-ULTIMATE-TIME-001-1 | **溜まり方** — 戦闘クロック（×1秒基準・速度倍率込み・一時停止除外）。与ダメ／被ダメは無視 | 火力インフレで連打化するのを防ぐ |
+| P3-BAL-ULTIMATE-TIME-001-2 | **満タン** — 通常 **25秒**（`ULTIMATE_CHARGE_FILL_SECONDS`）。上限100据置 | オーナー承認の目安 |
+| P3-BAL-ULTIMATE-TIME-001-3 | **圧力** — ELITE／BOSS 入場×0.5・戦中速度×0.5 据置（≈50秒） | `39` と併用 |
+| P3-BAL-ULTIMATE-TIME-001-4 | **倍率** — `ultimate_charge_dealt_mult` はチャージ**速度**に適用。flat は据置 | 砂時計／烽火の個性維持 |
+| P3-BAL-ULTIMATE-TIME-001-5 | **上書き** — P3-COMBAT-GAUGE-001-3／4 のダメ連動。`DEALT_K`／`TAKEN_K` 削除 | 本 Decision が正 |
+| P3-BAL-ULTIMATE-TIME-001-6 | **SSOT** — `decisions/46_UltimateChargeTime.md` | 数値の正 |
+
+## 降臨イベント群れ率（2026-08-02 — P3-BAL-DESCENT-SWARM-001）
+
+> **オーナー指示** — 降臨ダンジョンはノーマルでも群れ率を上げる。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-DESCENT-SWARM-001-1 | **対象** — 時間帯降臨（`uses_hourly_windows`＝時環／境界） | 「降臨」枠 |
+| P3-BAL-DESCENT-SWARM-001-2 | **率** — Nでも 0.72（本編0.45より厚く。ティア倍率は乗算・上限0.95） | 体感をイベントらしく |
+| P3-BAL-DESCENT-SWARM-001-3 | **頭数** — 2〜4 | 単体偏り防止 |
+| P3-BAL-DESCENT-SWARM-001-4 | **優先** — tres `forced_swarm` があればデータ優先 | 曜日イベントと衝突しない |
+| P3-BAL-DESCENT-SWARM-001-5 | **SSOT** — `47_DescentEventSwarm.md` | 数値の正 |
+
+## スキルキット方向分化（2026-08-02 — P3-SKILL-KIT-DIVERGE-001）
+
+> **オーナー GO（推奨案）** — SW連刃→剣舞、SW＋RG＋VGを大胆分化。装備1枠でビルドが分かれること。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-SKILL-KIT-DIVERGE-001-1 | **SW** — 連刃→剣舞（多段）／甲砕→追勢斬（敵数威力）／裂傷＝出血付与特化 | 出血同士の重複解消 |
+| P3-SKILL-KIT-DIVERGE-001-2 | **RG** — 追標→貫通射（別敵半分） | 標的自己付与の同型をやめる |
+| P3-SKILL-KIT-DIVERGE-001-3 | **VG** — 衛士＝硬直／威嚇＝挑発／盾殴り→庇護 | 止める／集める／守る |
+| P3-SKILL-KIT-DIVERGE-001-4 | **移行** — 旧装備IDを remap | セーブ壊れ防止 |
+| P3-SKILL-KIT-DIVERGE-001-5 | **スコープ外** — AL／BT | 後続 |
+| P3-SKILL-KIT-DIVERGE-001-6 | **SSOT** — `decisions/48_SkillKitDiverge.md` | 正 |
+
+## ソードマン自己バフ（2026-08-02 — P3-SKILL-SW-SELFBUFF-001）
+
+> **オーナー GO** — 攻撃一辺倒を緩和。案A＝Lv30を自己バフへ差し替え。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-SKILL-SW-SELFBUFF-001-1 | **Lv30** — `momentum_slash`（追勢斬）を外し **`battle_spirit`（闘気）** を習得 | 自己バフで幅を出す |
+| P3-SKILL-SW-SELFBUFF-001-2 | **効果** — `target_type=self`／`empower`／CD6.5s | 味全バフ主軸は AL/VG/BT のまま |
+| P3-SKILL-SW-SELFBUFF-001-3 | **移行** — `armor_cleave`・`momentum_slash` → `battle_spirit`（EQUIPPED_SKILL_REMAP） | セーブ装備壊れ防止 |
+| P3-SKILL-SW-SELFBUFF-001-4 | **SSOT** — `49_SwordsmanSelfBuff.md` | 数値の正 |
+
+## ビルド拡張レジェンド10本（2026-08-02 — P3-EQ-LEG-BUILD-001）
+
+> **オーナー GO（推奨10本）** — スキル分化ビルドを補強する防具5＋装飾5。Biome固定★の追加1点。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-LEG-BUILD-001-1 | **内容** — 防具5（血契／連撃／盾役／庇護／呪縛）＋装飾5（剣舞／貫通／鼓動／獣牙／調剤） | 推奨セット承認 |
+| P3-EQ-LEG-BUILD-001-2 | **入手** — x-5 初回ボスで Biome固定Lに加え未所持から1点 | 供給過多を抑えつつビルド幅 |
+| P3-EQ-LEG-BUILD-001-3 | **配線** — `CombatPassives`＋被ダメ／貫通二次／回復倍率 | 既存フック再利用 |
+| P3-EQ-LEG-BUILD-001-4 | **アイコン** — 専用10枚（64×64／`import_build_legendary_icons.py`） | 汎用流用を解消 |
+| P3-EQ-LEG-BUILD-001-5 | **SSOT** — `decisions/50_BuildLegendaries.md` | 正 |
+
+## 平坦ランダム帯圧縮（2026-08-02 — P3-EQ-FLAT-ROLL-NARROW-001）
+
+> **オーナー GO（推奨案C）** — 上限×0.7・下限＝上限×0.55。既存所持はリロールしない。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-FLAT-ROLL-NARROW-001-1 | **対象** — 攻撃／防御／HPアップ（平坦）。率系・回復・武器DEF8〜16・属性値は据置 | 広すぎる主因に限定 |
+| P3-EQ-FLAT-ROLL-NARROW-001-2 | **上限** — 旧表×0.70 を `*_ROLL_MAX` に焼き込み | 神引きの突き抜け抑制 |
+| P3-EQ-FLAT-ROLL-NARROW-001-3 | **下限** — `FLAT_ROLL_FLOOR_RATIO=0.55` | 「ほぼ空」ロール解消 |
+| P3-EQ-FLAT-ROLL-NARROW-001-4 | **互換** — 所持済み mods は据置。新規ドロップのみ | セーブ破壊を避ける |
+| P3-EQ-FLAT-ROLL-NARROW-001-5 | **SSOT** — `decisions/51_FlatRollNarrow.md` | 正 |
 

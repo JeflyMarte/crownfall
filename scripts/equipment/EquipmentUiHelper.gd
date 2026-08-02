@@ -267,6 +267,14 @@ static func filter_by_equipped_state(
 		if entry is not Dictionary:
 			continue
 		var category: String = str(entry.get("category", ""))
+		## MAXありは武／防／飾のランダム行のみ。レリックは対象外。
+		if state == "max":
+			if category == "relic":
+				continue
+			var max_item: Resource = entry.get("item") as Resource
+			if EquipmentRollHelper.has_any_perfect_roll(max_item):
+				out.append(entry)
+			continue
 		if category == "relic":
 			var relic_id: String = str(entry.get("relic_id", ""))
 			var owner: int = relic_equipped_member_index(relic_id)

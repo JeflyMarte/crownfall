@@ -153,6 +153,8 @@ static func relayout_featured_shell(shell: Dictionary, host: Control) -> void:
 	if stone != null:
 		_relayout_equip_stone_mat(stone, idle_px, bottom, art_x)
 		shell["equip_stone_mat"] = stone
+	## InvCell 左上 LEGEND ロゴ（装備一覧と同型）。idle より手前に出す。
+	_sync_featured_equip_rarity_badge(shell, stage, idle_px, bottom, art_x, stone_on)
 	var beam: Control = stage.get_node_or_null("FeaturedBeam") as Control
 	if beam != null:
 		var beam_h: float = idle_px + foot + absf(bottom) + 80.0
@@ -385,6 +387,50 @@ static func _relayout_equip_stone_mat(
 	mat.offset_right = side + art_x
 	mat.offset_top = -idle_px + bottom
 	mat.offset_bottom = bottom
+
+
+static func _clear_rarity_badge_nodes(parent: Control) -> void:
+	if parent == null:
+		return
+	for child_name in ["RarityCornerBadge", "LegendaryBadge"]:
+		var n: Node = parent.get_node_or_null(child_name)
+		if n != null:
+			n.free()
+
+
+## 封蔵 Featured 中央セルへ LEGEND ワードマーク（装備袋と同型）。キャラ Featured では消す。
+static func _sync_featured_equip_rarity_badge(
+	shell: Dictionary,
+	stage: Control,
+	idle_px: float,
+	bottom: float,
+	art_x: float,
+	stone_on: bool
+) -> void:
+	if stage == null:
+		return
+	var host: Control = shell.get("equip_rarity_badge_host") as Control
+	if host == null:
+		host = stage.get_node_or_null("EquipRarityBadgeHost") as Control
+	if not stone_on:
+		if host != null:
+			_clear_rarity_badge_nodes(host)
+			host.visible = false
+		return
+	if host == null:
+		host = Control.new()
+		host.name = "EquipRarityBadgeHost"
+		host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		## idle(z=5)／stone(z=4) より手前。
+		host.z_index = 6
+		stage.add_child(host)
+	host.visible = true
+	_relayout_equip_stone_mat(host, idle_px, bottom, art_x)
+	_clear_rarity_badge_nodes(host)
+	EquipmentUiHelper.apply_rarity_badges(
+		host, Enums.Rarity.LEGENDARY, Vector2(idle_px, idle_px)
+	)
+	shell["equip_rarity_badge_host"] = host
 
 
 static func sorted_helpers() -> Array:

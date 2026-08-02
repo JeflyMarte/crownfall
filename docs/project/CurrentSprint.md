@@ -122,6 +122,9 @@
 | — | **P3-DG-STG-FLOOR-001** | メイン x-5 フロア数を全帯10Fに統一 | ✅ GO・Impl |
 | — | **P3-BAL-ROCK-BISON-SPAWN-002** | ロックバイソン出現重み 0.4→0.2 | ✅ GO・Impl |
 | — | **P3-EQ-ELEMENT-POWER-SCALE-001** | 属性値×100表示（効果据置・セーブ移行） | ✅ GO・Impl |
+| — | **P3-EQ-LEG-BUILD-001** | ビルド拡張L防具5＋装飾5（x-5初回に未所持1点） | ✅ GO・Impl |
+| — | **P3-EQ-FLAT-ROLL-NARROW-001** | 平坦ランダム上限×0.7・下限55%（案C） | ✅ GO・Impl |
+| — | **P3-SKILL-KIT-DIVERGE-001** | SW／RG／VG スキル方向分化 | ✅ GO・統合＋main |
 | — | **P3-UX-TACTICS-LIST-001** | 戦術タブ＝作戦保存削除・スキル同型縦一覧 | ✅ GO・Impl |
 | — | **P3-UX-EQUIP-SCROLL-PERF-001** | キャラ画面スクロール軽量化（入れ子・キャッシュ） | ✅ GO・Impl |
 | — | **P3-AUDIO-BGM-EXPLORE-OMIT-001** | ダンジョン探索BGMオミット・戦闘BGM常時 | ✅ GO・Impl |

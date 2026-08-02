@@ -975,7 +975,6 @@ const BOSS_BODY_SCALE_MULT: Dictionary = {
 const COMBAT_UI_Z: int = 40
 const COMBAT_OVERLAY_Z: int = 25
 const PARTY_CARD_ICON_PX: float = 72.0
-const PARTY_CARD_WEAPON_ICON_PX: float = 24.0
 const PARTY_CARD_HP_HEIGHT: float = 14.0
 const PARTY_CARD_CD_HEIGHT: float = 11.0
 const SKILL_CD_LERP_RATE: float = 14.0
@@ -1270,6 +1269,10 @@ func _process(delta: float) -> void:
 		_battle_log_scroll.scroll_vertical = _battle_log_scroll.get_v_scroll_bar().max_value
 	if $DungeonController.is_combat_room():
 		_update_party_skill_cd_bars_smooth(delta)
+		## 必殺＝戦闘時間チャージ（P3-BAL-ULTIMATE-TIME-001）。一時停止中は進まない。
+		if $CombatController.is_in_combat and not _is_paused:
+			var spd: float = _combat_speed_mult if _combat_speed_mult > 0.0 else 1.0
+			$CombatController.tick_ultimate_charge_over_time(delta * spd)
 		_update_chr_hp_bar_positions()
 
 func _set_narrative(text: String) -> void:
@@ -2587,6 +2590,14 @@ func _apply_scene_typography() -> void:
 func _update_hp_bars() -> void:
 	var in_combat: bool = $CombatController.is_in_combat
 	var on_combat_floor: bool = $DungeonController.is_combat_room()
+	## ボス警告中は本体もオーバーレイも出さない（落下後に表示）。
+	if _boss_intro_active:
+		_hp_bar_enemy.visible = false
+		_enemy_nameplate.visible = false
+		for slot in _swarm_sprites.size():
+			_swarm_hp_bars[slot].visible = false
+			_swarm_nameplates[slot].visible = false
+		return
 	if _boss_sprite.visible:
 		# ボス: 単体オーバーレイ
 		_hp_bar_enemy.visible = in_combat
@@ -3309,6 +3320,9 @@ func _update_field_legend() -> void:
 func _sync_status_sprite_tints() -> void:
 	if not $CombatController.is_in_combat:
 		return
+	## 警告〜落下中に modulate を WHITE へ戻してボスが透けて見える事故を防ぐ。
+	if _boss_intro_active:
+		return
 	if _boss_sprite.visible:
 		var boss_slot: int = $CombatController.active_enemy_index
 		var boss_alive: bool = $CombatController.is_enemy_slot_alive(boss_slot)
@@ -3578,6 +3592,10 @@ func _on_next_room_pressed() -> void:
 
 func _advance_to_next_room() -> void:
 	$DungeonController.advance_room()
+	if $DungeonController.is_completed:
+		## 最終F超過で completed。部屋タイプは直前 COMBAT のままなので再入場禁止。
+		_on_finish_button_pressed()
+		return
 	if $DungeonController.last_abyss_weather_rerolled:
 		_refresh_weather()
 		## 同抽選で id が変わらないときはログしない（途中で変わったように見える誤認防止）。
@@ -3670,6 +3688,7 @@ func _enter_current_room() -> void:
 			_try_exploration_trap()
 			_update_turn_order_ui($CombatController.get_ct_order())
 			_log_party_passives_on_combat_enter()
+			_log_boss_opening_aura_if_any()
 			## on_combat_start 回復等の SE/VFX は出現遅延後（画面が見えてから）。
 			if $DungeonController.current_room_type == Enums.RoomType.BOSS:
 				_queue_or_begin_special_combat_entrance("boss", lead)
@@ -5016,7 +5035,6 @@ func _process_status_ticks() -> void:
 			$CombatController.apply_damage_to_member(idx, dmg)
 			if dmg > 0:
 				GameState.record_run_damage_taken(idx, dmg)
-				$CombatController.add_ultimate_charge_from_damage_taken(idx, dmg)
 			if idx < _chr_sprites.size():
 				var party_pos: Vector2 = _sprite_visual_center_global(_chr_sprites[idx])
 				var party_effect: String = str(result.get("effect_id", ""))
@@ -5138,7 +5156,31 @@ func _conditional_skill_power_mult(skill_data: Resource, target_slot: int) -> fl
 		return CONDITIONAL_STATUS_POWER_MULT
 	if skill_data.tags.has("vs_mark") and $CombatController.get_enemy_status_stacks_at(target_slot, "mark") > 0:
 		return CONDITIONAL_STATUS_POWER_MULT
+	## 場の敵数で単体威力が伸びる（追勢斬・P3-SKILL-KIT-DIVERGE-001）。
+	if skill_data.tags.has("swarm_power"):
+		var living: int = $CombatController.get_living_enemy_indices().size()
+		return 1.0 + 0.12 * float(maxi(0, living - 1))
 	return 1.0
+
+
+## タグ `multi_hit_N` の N（無ければ 1）。
+func _skill_multi_hit_count(skill_data: Resource) -> int:
+	if skill_data == null:
+		return 1
+	for raw_tag: Variant in skill_data.tags:
+		var tag: String = str(raw_tag)
+		if tag.begins_with("multi_hit_"):
+			return maxi(1, int(tag.substr(10)))
+	return 1
+
+
+func _pick_pierce_secondary_slot(primary_slot: int) -> int:
+	var living: Array = $CombatController.get_living_enemy_indices()
+	for slot_v: Variant in living:
+		var slot: int = int(slot_v)
+		if slot != primary_slot and $CombatController.is_enemy_slot_alive(slot):
+			return slot
+	return -1
 
 
 func _apply_skill_on_hit_self_effects(member_idx: int, skill_data: Resource) -> void:
@@ -5548,6 +5590,7 @@ func _execute_member_heal(
 	var healed: int = $CombatController.heal_member(target_idx, heal_amount)
 	if healed > 0:
 		GameState.record_run_heal(member_idx, healed)
+		_maybe_apply_heal_guard(member_idx, target_idx)
 	_set_heal_rally(target_idx)
 	_update_hp_bars()
 	if cast_index == 0:
@@ -5590,6 +5633,7 @@ func _apply_party_heal_from_skill(caster_idx: int, skill_data: Resource, present
 			continue
 		total += healed
 		GameState.record_run_heal(caster_idx, healed)
+		_maybe_apply_heal_guard(caster_idx, i)
 		_set_heal_rally(i)
 		_present_member_heal(i, healed, present_scale, false)
 	return total
@@ -5670,6 +5714,10 @@ func _apply_member_buff_effects(member_idx: int, skill_data: Resource) -> Dictio
 		skill_data != null
 		and (str(skill_data.target_type) == "self" or skill_data.tags.has("self"))
 	)
+	var ally_only: bool = (
+		skill_data != null and str(skill_data.target_type) == "ally"
+	)
+	var cover_target_idx: int = -1
 	if not status_id.is_empty():
 		if self_only:
 			if $CombatController.is_member_alive(member_idx):
@@ -5678,6 +5726,15 @@ func _apply_member_buff_effects(member_idx: int, skill_data: Resource) -> Dictio
 					_on_party_status_applied(member_idx, status_id, false)
 		elif pet_only:
 			applied = _apply_status_to_pet(status_id, false)
+		elif ally_only:
+			## いちばん傷ついた味方1人（庇護・P3-SKILL-KIT-DIVERGE-001）。
+			cover_target_idx = $CombatController.get_most_injured_member_index()
+			if cover_target_idx < 0 and $CombatController.is_member_alive(member_idx):
+				cover_target_idx = member_idx
+			if cover_target_idx >= 0 and $CombatController.is_member_alive(cover_target_idx):
+				if $CombatController.apply_status("party_%d" % cover_target_idx, status_id, 1, 0):
+					applied = 1
+					_on_party_status_applied(cover_target_idx, status_id, false)
 		elif skill_id == "herd_call" or str(skill_data.target_type) == "all_party":
 			## 味方全体バフ（P3-SKILL-KIT-001）。herd_call も同強度で人＋オトモへ。
 			for i: int in GameState.party_members.size():
@@ -5702,6 +5759,8 @@ func _apply_member_buff_effects(member_idx: int, skill_data: Resource) -> Dictio
 		"status_id": status_id,
 		"pet_only": pet_only,
 		"self_only": self_only,
+		"ally_only": ally_only,
+		"cover_target_idx": cover_target_idx,
 		"wants_taunt": wants_taunt,
 		"all_party": skill_id == "herd_call" or str(skill_data.target_type) == "all_party",
 	}
@@ -5721,6 +5780,14 @@ func _member_buff_log_line(display_name: String, skill_data: Resource, summary: 
 		return "\n【スキル】%s: 自身に[%s]・注意を引いた" % [display_name, label]
 	if bool(summary.get("pet_only", false)):
 		return "\n【スキル】%s: ペットに[%s]" % [display_name, label]
+	if bool(summary.get("ally_only", false)):
+		var t_idx: int = int(summary.get("cover_target_idx", -1))
+		var t_name: String = "味方"
+		if t_idx >= 0:
+			var tm: Resource = GameState.get_combatant(t_idx)
+			if tm != null:
+				t_name = str(tm.display_name)
+		return "\n【スキル】%s: %s に[%s]" % [display_name, t_name, label]
 	if bool(summary.get("all_party", false)):
 		var taunt_tag: String = "・注意を引いた" if bool(summary.get("wants_taunt", false)) else ""
 		return "\n【スキル】%s: 味方全体に[%s]（%d）%s" % [display_name, label, applied, taunt_tag]
@@ -6145,9 +6212,6 @@ func _deal_member_damage_to_enemy(
 	GameState.record_run_damage(member_idx, damage, skill_id, skill_name, is_critical)
 	$CombatController.apply_damage_to_enemy_slot(target_slot, damage)
 	$CombatController.add_threat(member_idx, float(damage) * CombatController.THREAT_DAMAGE_K)
-	# 必殺自身の与ダメではチャージしない（P3-COMBAT-GAUGE-001）。
-	if damage > 0 and not _skill_id_is_ultimate(skill_id):
-		$CombatController.add_ultimate_charge_from_damage_dealt(member_idx, damage)
 	_check_boss_phase_transition(target_slot)
 	if damage > 0:
 		_fire_member_passives(
@@ -6820,7 +6884,6 @@ func _apply_enemy_damage_to_targets(
 		$CombatController.add_threat(ti, float(dmg) * CombatController.THREAT_TAKEN_K)
 		if dmg > 0:
 			GameState.record_run_damage_taken(ti, dmg)
-			$CombatController.add_ultimate_charge_from_damage_taken(ti, dmg)
 			_apply_enemy_lifesteal(atk_slot, dmg)
 		_play_chr_hurt(ti)
 		if ti < _chr_sprites.size():
@@ -7230,7 +7293,6 @@ func _resolve_enemy_attack_impact_async(payload: Dictionary) -> void:
 	$CombatController.add_threat(target_idx, float(enemy_result["final"]) * CombatController.THREAT_TAKEN_K)
 	if int(enemy_result["final"]) > 0:
 		GameState.record_run_damage_taken(target_idx, int(enemy_result["final"]))
-		$CombatController.add_ultimate_charge_from_damage_taken(target_idx, int(enemy_result["final"]))
 		_apply_enemy_lifesteal(slot, int(enemy_result["final"]))
 	_play_chr_hurt(target_idx)
 	if target_idx < _chr_sprites.size():
@@ -7569,6 +7631,17 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 				)
 				_append_equipment_drop_icon(drop_icons, str(legendary_bonus["accessory_id"]), "accessory")
 				_maybe_celebrate_rare_equip_drop(str(legendary_bonus["accessory_id"]), "accessory", false)
+			var build_id: String = str(legendary_bonus.get("build_id", ""))
+			var build_cat: String = str(legendary_bonus.get("build_category", ""))
+			if not build_id.is_empty() and (build_cat == "armor" or build_cat == "accessory"):
+				if build_cat == "armor":
+					GameState.last_run_armor_dropped = build_id
+					log_lines.append("ボス報酬: 防具 %s" % DataRegistry.get_armor_name(build_id))
+				else:
+					GameState.last_run_accessory_dropped = build_id
+					log_lines.append("ボス報酬: 装飾品 %s" % DataRegistry.get_accessory_name(build_id))
+				_append_equipment_drop_icon(drop_icons, build_id, build_cat)
+				_maybe_celebrate_rare_equip_drop(build_id, build_cat, false)
 			var mythic_bonus: Dictionary = $DungeonController.apply_boss_mythic_loot(stage)
 			var mythic_id: String = str(mythic_bonus.get("id", ""))
 			var mythic_cat: String = str(mythic_bonus.get("category", ""))
@@ -7710,7 +7783,13 @@ func _finalize_combat_fled() -> void:
 	_update_enemy_label()
 	_update_hp_bars()
 	_update_next_room_button()
-	_start_auto_progress()
+	_show_chr_sprites(false)
+	## 最終Fでも auto_progress→advance すると completed のまま COMBAT 再入場しループする。
+	## 撃破クリアと同じく結果へ（コズミックダック裂け目等の逃走敵）。
+	if $DungeonController.is_on_last_floor_before_exit():
+		_play_combat_clear_celebration(true)
+	else:
+		_start_auto_progress()
 
 # 単体メンバーの 1 行動（P3-D086）。戦術プラン（優先度＋発動条件）に従い、
 # 条件成立かつ実際に発動できた最初のスロットで行動を確定する。
@@ -8171,6 +8250,16 @@ func _log_party_passives_on_combat_enter() -> void:
 			if pname.is_empty():
 				continue
 			_append_log("[%s] %s — %s" % [tag, mname, pname])
+
+
+func _log_boss_opening_aura_if_any() -> void:
+	var status_id: String = str($CombatController.last_boss_opening_status_id)
+	if status_id.is_empty():
+		return
+	var effect: Resource = DataRegistry.get_status_effect(status_id)
+	var label: String = str(effect.display_name) if effect != null else status_id
+	_append_log("【威圧】探索隊に %s が広がった" % label)
+
 
 func _fire_combat_start_passives() -> void:
 	## オトモ含む combatants（party_members のみだと pet の開幕パッシブ欠落）。
@@ -8786,26 +8875,73 @@ func _resolve_party_skill_damage_impact_async(payload: Dictionary) -> void:
 	if target_slot < 0 or not $CombatController.is_enemy_slot_alive(target_slot):
 		target_slot = $CombatController.get_member_target_slot(member_idx)
 		spawn_pos = _enemy_slot_pos(target_slot)
-	if final_dmg > 0 and target_slot >= 0 and $CombatController.is_enemy_slot_alive(target_slot):
-		_spawn_hit_vfx(spawn_pos, attack_element, 1.0, skill_is_crit, _get_weapon_type(member_idx))
-		_spawn_damage_number(
-			str(final_dmg),
-			spawn_pos + Vector2(12.0, 0.0),
-			_outgoing_damage_telop_color(skill_is_crit),
-			1.25 if skill_is_crit else 1.0
-		)
-	if not log_line.is_empty():
-		_append_log(log_line)
-	var wipe: bool = _deal_member_damage_to_enemy(
-		member_idx, final_dmg, target_slot, skill_id, display_name, skill_is_crit
-	)
-	## 撃破後リターゲットで別敵へ状態が飛ぶ事故防止: ヒットスロット固定。
-	## 全滅時も自己 on_hit（taunt 等）は発火させる。
-	if not wipe and $CombatController.is_enemy_slot_alive(target_slot):
-		_play_enemy_slot_animation(target_slot, "hurt")
-		_apply_skill_status(member_idx, skill_data, target_slot)
-		_apply_skill_secondary_status(member_idx, skill_data, target_slot)
+	var hit_count: int = _skill_multi_hit_count(skill_data)
+	var first_alive_slot: int = target_slot
+	for hit_i: int in hit_count:
+		if hit_i > 0:
+			await get_tree().create_timer(0.08).timeout
+			if session_id != _combat_session_id or not $CombatController.is_in_combat:
+				_end_combat_cinematic_lock()
+				return
+			if not $CombatController.is_member_alive(member_idx):
+				_end_combat_cinematic_lock()
+				return
+			if target_slot < 0 or not $CombatController.is_enemy_slot_alive(target_slot):
+				target_slot = $CombatController.get_member_target_slot(member_idx)
+				spawn_pos = _enemy_slot_pos(target_slot)
+		if final_dmg > 0 and target_slot >= 0 and $CombatController.is_enemy_slot_alive(target_slot):
+			_spawn_hit_vfx(spawn_pos, attack_element, 1.0, skill_is_crit, _get_weapon_type(member_idx))
+			_spawn_damage_number(
+				str(final_dmg),
+				spawn_pos + Vector2(12.0, float(hit_i) * -8.0),
+				_outgoing_damage_telop_color(skill_is_crit),
+				1.25 if skill_is_crit else 1.0
+			)
+		if hit_i == 0 and not log_line.is_empty():
+			_append_log(log_line)
+		var wipe: bool = false
+		if final_dmg > 0 and target_slot >= 0:
+			wipe = _deal_member_damage_to_enemy(
+				member_idx, final_dmg, target_slot, skill_id, display_name, skill_is_crit
+			)
+		## 撃破後リターゲットで別敵へ状態が飛ぶ事故防止: ヒットスロット固定。
+		## 全滅時も自己 on_hit（taunt 等）は発火させる。状態付与は初撃のみ。
+		if hit_i == 0 and not wipe and $CombatController.is_enemy_slot_alive(target_slot):
+			_play_enemy_slot_animation(target_slot, "hurt")
+			_apply_skill_status(member_idx, skill_data, target_slot)
+			_apply_skill_secondary_status(member_idx, skill_data, target_slot)
+			first_alive_slot = target_slot
+		elif not wipe and target_slot >= 0 and $CombatController.is_enemy_slot_alive(target_slot):
+			_play_enemy_slot_animation(target_slot, "hurt")
+		if wipe:
+			break
 	_apply_skill_on_hit_self_effects(member_idx, skill_data)
+	## 貫通射: 別の生存敵へ半分ダメージ（P3-SKILL-KIT-DIVERGE-001）。
+	if (
+		skill_data != null
+		and skill_data.tags.has("pierce_secondary")
+		and session_id == _combat_session_id
+		and $CombatController.is_in_combat
+		and $CombatController.is_member_alive(member_idx)
+	):
+		var sec_slot: int = _pick_pierce_secondary_slot(first_alive_slot)
+		if sec_slot >= 0:
+			var pierce_mult: float = CombatPassives.pierce_secondary_damage_mult(member_idx)
+			var sec_dmg: int = maxi(1, int(round(float(final_dmg) * 0.55 * pierce_mult)))
+			var sec_pos: Vector2 = _enemy_slot_pos(sec_slot)
+			_spawn_hit_vfx(sec_pos, attack_element, 0.85, false, _get_weapon_type(member_idx))
+			_spawn_damage_number(
+				str(sec_dmg),
+				sec_pos + Vector2(12.0, 0.0),
+				_outgoing_damage_telop_color(false),
+				0.95
+			)
+			_append_log("\n【貫通】%s: %dダメージ" % [display_name, sec_dmg])
+			_deal_member_damage_to_enemy(
+				member_idx, sec_dmg, sec_slot, skill_id, display_name, false
+			)
+			if $CombatController.is_enemy_slot_alive(sec_slot):
+				_play_enemy_slot_animation(sec_slot, "hurt")
 	if skill_data != null and skill_data.tags.has("pet_followup"):
 		_queue_pet_followup_attack()
 	_update_hp_bars()
@@ -8951,7 +9087,21 @@ func _apply_healing_bonus(base_amount: int, member_idx: int = -1) -> int:
 	var heal_mult: float = $CombatController.get_party_role_heal_multiplier()
 	if member_idx >= 0:
 		heal_mult *= EvolutionTraits.member_heal_mult(member_idx)
+		heal_mult *= CombatPassives.heal_power_mult_for_member(member_idx)
 	return maxi(0, int(round(float(amount) * heal_mult)))
+
+
+## 調剤師の薬など: 回復成功時に対象へ guard を付与。
+func _maybe_apply_heal_guard(caster_idx: int, target_idx: int) -> void:
+	if caster_idx < 0 or target_idx < 0:
+		return
+	if not CombatPassives.heal_applies_guard_for_member(caster_idx):
+		return
+	if not $CombatController.is_member_alive(target_idx):
+		return
+	if $CombatController.apply_status("party_%d" % target_idx, "guard", 1, 0):
+		_on_party_status_applied(target_idx, "guard")
+		_update_status_icons()
 
 func _apply_material_bonus(base_amount: int) -> int:
 	return AffixStatCalculatorScript.apply_material_bonus(base_amount)
@@ -9736,11 +9886,11 @@ func _show_enemy_swarm(enemy_ids: Array) -> void:
 		_enemy_sprite.visible = false
 		_hp_bar_enemy.visible = false
 		_enemy_nameplate.visible = false
+		## 警告〜落下まで本体を出さない（不透明フォールバック禁止）。
 		if enemy_ids.size() > 0:
-			if not _prepare_boss_sprite_for_entrance(str(enemy_ids[0])):
-				_show_boss_sprite(str(enemy_ids[0]))
+			_prepare_boss_sprite_for_entrance(str(enemy_ids[0]))
 		else:
-			_update_boss_sprite_visibility()
+			_boss_sprite.visible = false
 		return
 	_boss_sprite.visible = false
 	var n: int = enemy_ids.size()
@@ -10426,7 +10576,7 @@ func _update_party_skill_cd_bars_smooth(delta: float) -> void:
 					ult_bar.value = ratio
 				_style_party_card_ult_gauge_bar(ult_bar, ult_ready)
 
-func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
+func _make_party_card(member: Resource, _combat_index: int) -> Dictionary:
 	var card := PanelContainer.new()
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	card.size_flags_stretch_ratio = 1.0
@@ -10461,27 +10611,16 @@ func _make_party_card(member: Resource, combat_index: int) -> Dictionary:
 	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	UiTypography.apply_display(name_label, UiTypography.SIZE_BODY_SMALL, _party_log_color(member), UiTypography.OUTLINE_BODY)
 	name_col.add_child(name_label)
-	var weapon_wrap := Control.new()
-	weapon_wrap.custom_minimum_size = Vector2(PARTY_CARD_WEAPON_ICON_PX, PARTY_CARD_WEAPON_ICON_PX)
-	weapon_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var weapon_icon := TextureRect.new()
-	weapon_icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	weapon_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	weapon_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	var weapon: Resource = GameState.get_member_equipped_weapon(combat_index)
-	if weapon != null and not weapon.weapon_id.is_empty():
-		var weapon_tex: Texture2D = IconPaths.get_icon_texture(weapon.weapon_id, "weapon")
-		if weapon_tex != null:
-			weapon_icon.texture = weapon_tex
-	weapon_wrap.add_child(weapon_icon)
-	if weapon != null:
-		EquipmentUiHelper.apply_enhance_badge(
-			weapon_wrap,
-			weapon,
-			"weapon",
-			Vector2(PARTY_CARD_WEAPON_ICON_PX, PARTY_CARD_WEAPON_ICON_PX)
-		)
-	name_col.add_child(weapon_wrap)
+	## 装備武器アイコンの代わりにキャラLvを表示（戦闘下カード）。
+	var level_label := Label.new()
+	level_label.text = "Lv.%d" % maxi(1, int(member.level))
+	level_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	level_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_body(
+		level_label, UiTypography.SIZE_CAPTION, UiTypography.COLOR_GOLD, UiTypography.OUTLINE_BODY
+	)
+	name_col.add_child(level_label)
 	top_row.add_child(name_col)
 	var hp_row := HBoxContainer.new()
 	hp_row.add_theme_constant_override("separation", 4)
@@ -11456,6 +11595,7 @@ func _apply_ultimate_heal_impact(payload: Dictionary) -> void:
 	var healed: int = $CombatController.heal_member(target_idx, heal_amount)
 	if healed > 0:
 		GameState.record_run_heal(member_idx, healed)
+		_maybe_apply_heal_guard(member_idx, target_idx)
 	_set_heal_rally(target_idx)
 	_present_member_heal(target_idx, healed, 1.65, false)
 	_append_log(
@@ -12476,8 +12616,17 @@ func _spawn_boss_debris_fall(short: bool) -> void:
 	)
 
 func _reveal_boss_sprite(duration: float) -> void:
-	if not _boss_sprite.visible:
-		_boss_sprite.visible = true
+	## 落下開始直前に初めて表示。警告中は visible=false のまま。
+	if _boss_sprite.sprite_frames == null:
+		var bid: String = ""
+		if _boss_sprite.has_meta("boss_id"):
+			bid = str(_boss_sprite.get_meta("boss_id"))
+		if bid.is_empty() and $CombatController.current_enemy_data != null:
+			bid = str($CombatController.current_enemy_data.id)
+		if not bid.is_empty():
+			_prepare_boss_sprite_for_entrance(bid)
+	_arm_boss_sprite_for_drop()
+	_boss_sprite.visible = true
 	## 上から落下して着地。着地瞬間に SE／シェイク／フラッシュ。
 	var land_pos: Vector2 = _boss_intro_base_position
 	var tw: Tween = create_tween()
@@ -12494,10 +12643,37 @@ func _reveal_boss_sprite(duration: float) -> void:
 	tw.chain().tween_callback(_play_boss_landing_impact)
 
 
+func _arm_boss_sprite_for_drop() -> void:
+	## 着地座標が未設定なら現在位置を着地先にする。
+	if _boss_intro_base_position == Vector2.ZERO and _boss_sprite.sprite_frames != null:
+		_boss_intro_base_position = _boss_sprite.position
+		_boss_intro_base_scale = _boss_sprite.scale
+	_boss_sprite.scale = _boss_intro_base_scale * 1.08
+	_boss_sprite.position = _boss_intro_base_position + Vector2(0.0, -BOSS_DROP_OFFSET_Y)
+	_boss_sprite.modulate = Color(1.0, 1.0, 1.0, 0.0)
+
+
+func _hide_boss_sprite_for_warning() -> void:
+	_arm_boss_sprite_for_drop()
+	_boss_sprite.visible = false
+	_hp_bar_enemy.visible = false
+	_enemy_nameplate.visible = false
+
+
 func _finish_boss_combat_entrance(lead: Resource) -> void:
 	_boss_intro_active = false
 	_boss_intro_tween = null
 	_clear_boss_intro_fx()
+	## 演出終了時は着地姿で確実に表示（スキップ／準備失敗の救済）。
+	if _boss_sprite.sprite_frames != null:
+		if _boss_intro_base_position != Vector2.ZERO:
+			_boss_sprite.position = _boss_intro_base_position
+			_boss_sprite.scale = _boss_intro_base_scale
+		_boss_sprite.modulate = Color.WHITE
+		_boss_sprite.visible = true
+	elif lead != null:
+		_show_boss_sprite(str(lead.id))
+	_update_hp_bars()
 	if lead != null:
 		_append_log("【ボス】%s があらわれた" % lead.display_name)
 	_refresh_combat_now_playing_next()
@@ -12506,10 +12682,14 @@ func _finish_boss_combat_entrance(lead: Resource) -> void:
 	_start_combat_after_appear_delay()
 
 func _begin_boss_combat_entrance(lead: Resource) -> void:
-	if lead == null or not _boss_sprite.visible:
+	if lead == null:
 		_finish_boss_combat_entrance(lead)
 		return
+	## 警告中は必ず非表示。スプライト未準備ならここで再試行。
+	if _boss_sprite.sprite_frames == null:
+		_prepare_boss_sprite_for_entrance(str(lead.id))
 	_boss_intro_active = true
+	_hide_boss_sprite_for_warning()
 	$CombatTimer.stop()
 	AudioManager.play_sfx("room_enter", 1.05, 0.2)
 	var short: bool = _fast_run_enabled
@@ -12614,14 +12794,12 @@ func _load_boss_sprite(enemy_id: String) -> bool:
 
 func _prepare_boss_sprite_for_entrance(enemy_id: String) -> bool:
 	if not _load_boss_sprite(enemy_id):
+		_boss_sprite.visible = false
 		return false
 	_boss_intro_base_scale = _boss_sprite.scale
 	_boss_intro_base_position = _boss_sprite.position
-	## やや大きく見せつつ、画面上から落下開始。
-	_boss_sprite.scale = _boss_intro_base_scale * 1.08
-	_boss_sprite.position = _boss_intro_base_position + Vector2(0.0, -BOSS_DROP_OFFSET_Y)
-	_boss_sprite.modulate = Color(1.0, 1.0, 1.0, 0.0)
-	_boss_sprite.visible = true
+	## 警告中は非表示。落下開始（_reveal）で初めて出す。
+	_hide_boss_sprite_for_warning()
 	return true
 
 func _show_boss_sprite(enemy_id: String) -> void:
@@ -12632,6 +12810,9 @@ func _show_boss_sprite(enemy_id: String) -> void:
 	_boss_sprite.visible = true
 
 func _update_boss_sprite_visibility() -> void:
+	if _boss_intro_active:
+		_boss_sprite.visible = false
+		return
 	var is_boss_room: bool = $DungeonController.current_room_type == Enums.RoomType.BOSS
 	if not is_boss_room:
 		_boss_sprite.visible = false

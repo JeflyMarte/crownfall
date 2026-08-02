@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "piercing_shot"
+display_name = "貫通射"
+description = "矢が標的を貫き、別の敵にも半分の衝撃が届く。標的印には頼らない貫通火力。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 1.5
+cooldown = 4.5
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["ranged", "pierce", "pierce_secondary"])
+element = ""
+apply_status_id = ""
+apply_status_chance = 0.0
+apply_status_id2 = ""
+apply_status_chance2 = 0.0
+slot_type = "skill"
+range_type = "long"

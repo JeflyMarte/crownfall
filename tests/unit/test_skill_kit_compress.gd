@@ -1,6 +1,6 @@
 extends GutTest
 
-## P3-SKILL-KIT-001 — 職キット7本＋全体技データ
+## P3-SKILL-KIT-001 / DIVERGE-001 — 職キット7本＋方向分化
 
 func test_each_job_has_seven_unlocks() -> void:
 	for job_id in ["swordsman", "ranger", "vanguard", "alchemist", "beast_tamer"]:
@@ -35,11 +35,62 @@ func test_new_aoe_and_party_skills_exist() -> void:
 		assert_eq(str(sk2.effect_type), "buff", sid)
 
 
-func test_conditional_followup_tags() -> void:
-	var chain: Resource = DataRegistry.get_skill_data("chain_slash")
-	assert_true(chain.tags.has("vs_bleed"))
-	var pursuit: Resource = DataRegistry.get_skill_data("mark_pursuit")
-	assert_true(pursuit.tags.has("vs_mark"))
+func test_diverge_replacement_skills() -> void:
+	var dance: Resource = DataRegistry.get_skill_data("blade_dance")
+	assert_not_null(dance)
+	assert_true(dance.tags.has("multi_hit_3"))
+	assert_true(str(dance.apply_status_id).is_empty())
+	var momentum: Resource = DataRegistry.get_skill_data("momentum_slash")
+	assert_true(momentum.tags.has("swarm_power"))
+	var pierce: Resource = DataRegistry.get_skill_data("piercing_shot")
+	assert_true(pierce.tags.has("pierce_secondary"))
+	assert_true(str(pierce.apply_status_id).is_empty())
+	var cover: Resource = DataRegistry.get_skill_data("cover_guard")
+	assert_eq(str(cover.target_type), "ally")
+	assert_eq(str(cover.effect_type), "buff")
+	assert_eq(str(cover.apply_status_id), "guard")
+
+
+func test_swordsman_ranger_vanguard_unlock_ids() -> void:
+	var sw: Resource = DataRegistry.get_job_data("swordsman")
+	assert_true(sw.learnable_skill_ids.has("blade_dance"))
+	assert_true(sw.learnable_skill_ids.has("battle_spirit"))
+	assert_false(sw.learnable_skill_ids.has("momentum_slash"))
+	assert_false(sw.learnable_skill_ids.has("chain_slash"))
+	assert_false(sw.learnable_skill_ids.has("armor_cleave"))
+	var rg: Resource = DataRegistry.get_job_data("ranger")
+	assert_true(rg.learnable_skill_ids.has("piercing_shot"))
+	assert_false(rg.learnable_skill_ids.has("mark_pursuit"))
+	var vg: Resource = DataRegistry.get_job_data("vanguard")
+	assert_true(vg.learnable_skill_ids.has("cover_guard"))
+	assert_false(vg.learnable_skill_ids.has("shield_ram"))
+
+
+func test_battle_spirit_is_self_empower() -> void:
+	var spirit: Resource = DataRegistry.get_skill_data("battle_spirit")
+	assert_not_null(spirit)
+	assert_eq(str(spirit.target_type), "self")
+	assert_eq(str(spirit.effect_type), "buff")
+	assert_eq(str(spirit.apply_status_id), "empower")
+	assert_eq(float(spirit.apply_status_chance), 1.0)
+	assert_gte(float(spirit.cooldown), 6.0)
+
+
+func test_equipped_skill_remap() -> void:
+	assert_eq(SkillProgression.remap_equipped_skill_id("chain_slash"), "blade_dance")
+	assert_eq(SkillProgression.remap_equipped_skill_id("mark_pursuit"), "piercing_shot")
+	assert_eq(SkillProgression.remap_equipped_skill_id("momentum_slash"), "battle_spirit")
+	assert_eq(SkillProgression.remap_equipped_skill_id("armor_cleave"), "battle_spirit")
+	var adv: Resource = Adventurer.new()
+	adv.id = "kit_remap_sw"
+	adv.job_id = "swordsman"
+	adv.level = 50
+	adv.equipped_skill_ids = ["chain_slash"] as Array[String]
+	SkillProgression.normalize_equipped_skills(adv)
+	assert_eq(str(adv.equipped_skill_ids[0]), "blade_dance")
+	adv.equipped_skill_ids = ["momentum_slash"] as Array[String]
+	SkillProgression.normalize_equipped_skills(adv)
+	assert_eq(str(adv.equipped_skill_ids[0]), "battle_spirit")
 
 
 func test_aimed_shot_is_armor_break_only() -> void:
@@ -48,9 +99,21 @@ func test_aimed_shot_is_armor_break_only() -> void:
 	assert_true(str(aimed.apply_status_id2).is_empty())
 
 
-func test_menace_strike_has_taunt() -> void:
+func test_menace_is_taunt_not_fear() -> void:
 	var menace: Resource = DataRegistry.get_skill_data("menace_strike")
 	assert_true(menace.tags.has("taunt"))
+	assert_true(str(menace.apply_status_id).is_empty())
+	assert_lt(float(menace.power_multiplier), 0.8)
+	var guard: Resource = DataRegistry.get_skill_data("guard_strike")
+	assert_eq(str(guard.apply_status_id), "stun")
+	assert_true(str(guard.apply_status_id2).is_empty())
+
+
+func test_rend_is_bleed_applicator() -> void:
+	var rend: Resource = DataRegistry.get_skill_data("rend_slash")
+	assert_eq(str(rend.apply_status_id), "bleed")
+	assert_gte(float(rend.apply_status_chance), 0.75)
+	assert_lt(float(rend.power_multiplier), 1.25)
 
 
 func test_pet_bond_rally_stronger_than_herd() -> void:
@@ -84,12 +147,7 @@ func test_decree_wave_power_softened() -> void:
 	assert_gte(float(decree.cooldown), 8.0)
 
 
-func test_followup_skills_self_sufficient() -> void:
-	var chain: Resource = DataRegistry.get_skill_data("chain_slash")
-	assert_gte(float(chain.apply_status_chance), 0.45)
-	assert_gte(float(chain.power_multiplier), 1.35)
-	var pursuit: Resource = DataRegistry.get_skill_data("mark_pursuit")
-	assert_gte(float(pursuit.apply_status_chance), 0.45)
+func test_hunter_mark_is_mark_specialist() -> void:
 	var hunter: Resource = DataRegistry.get_skill_data("hunter_mark")
 	assert_eq(float(hunter.apply_status_chance), 1.0)
 	assert_lt(float(hunter.power_multiplier), 0.6)
@@ -103,7 +161,6 @@ func test_frail_dust_is_armor_break() -> void:
 func test_salve_burst_is_emergency_heal() -> void:
 	var salve: Resource = DataRegistry.get_skill_data("salve_burst")
 	var mend: Resource = DataRegistry.get_skill_data("mend")
-	## maxHP 割合（大治癒 > 治癒）。固定値時代の +0.4 差は廃止。
 	assert_gt(float(salve.power_multiplier), float(mend.power_multiplier))
 	assert_gt(float(salve.cooldown), float(mend.cooldown) + 2.0)
 

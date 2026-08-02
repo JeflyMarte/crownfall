@@ -432,6 +432,89 @@ const _DEFS: Dictionary = {
 		"once_per_combat": true,
 		"cooldown": 0.0,
 	},
+	# ---- ビルド拡張レジェンド（P3-EQ-LEG-BUILD-001） ----
+	"eq_bloodpact_plate": {
+		"display_name": "血契",
+		"category": "armor",
+		"description": "出血中の敵からの被ダメ -15%。出血中の敵への与ダメ +10%。",
+		"outgoing_vs_status_mult": 1.10,
+		"outgoing_vs_status_ids": ["bleed"],
+		"incoming_vs_status_mult": 0.85,
+		"incoming_vs_status_ids": ["bleed"],
+	},
+	"eq_flurry_mail": {
+		"display_name": "連撃の余熱",
+		"category": "armor",
+		"description": "被ダメ -8%。3回攻撃するたび最大HPの2%を回復する。",
+		"incoming_mult": 0.92,
+		"trigger": "on_attack",
+		"condition": "always",
+		"effect": "heal",
+		"target": "self",
+		"heal_max_hp_fraction": 0.02,
+		"every_n": 3,
+		"cooldown": 0.0,
+	},
+	"eq_bulwark_role": {
+		"display_name": "盾役の構え",
+		"category": "armor",
+		"description": "敵の注目を大きく集める。前列で被弾すると防御をまとい再度注目を集める（再使用5秒）。",
+		"threat_base_add": 100.0,
+		"trigger": "on_hit_taken",
+		"condition": "always",
+		"effect": "taunt_and_guard",
+		"passive_condition": "front_row_only",
+		"cooldown": 5.0,
+	},
+	"eq_cover_aegis": {
+		"display_name": "庇護の外套",
+		"category": "armor",
+		"description": "いちばん傷ついた味方の被ダメ -12%。自身の被ダメ +5%。",
+		"cover_ally_incoming_mult": 0.88,
+		"incoming_mult": 1.05,
+	},
+	"eq_hexweave_robe": {
+		"display_name": "呪縛の織",
+		"category": "armor",
+		"description": "場の敵が持つデバフ種類1つにつき被ダメ -3%（最大 -15%）。",
+		"incoming_per_enemy_debuff": 0.03,
+		"incoming_per_enemy_debuff_cap": 0.15,
+	},
+	"eq_blade_dance_ring": {
+		"display_name": "剣舞の鼓動",
+		"category": "accessory",
+		"description": "必殺チャージ速度 +15%。スキル再使用が 10% 速くなる。",
+		"ultimate_charge_dealt_mult": 1.15,
+		"skill_cd_mult": 0.90,
+	},
+	"eq_pierce_charm": {
+		"display_name": "貫通の余勢",
+		"category": "accessory",
+		"description": "貫通で別の敵に届くダメージが +35%。",
+		"pierce_secondary_damage_mult": 1.35,
+	},
+	"eq_pulse_amulet": {
+		"display_name": "鼓動の充填",
+		"category": "accessory",
+		"description": "必殺チャージ速度 +35%。スキル再使用が 15% 遅くなる。",
+		"ultimate_charge_dealt_mult": 1.35,
+		"skill_cd_mult": 1.15,
+	},
+	"eq_beastlord_fang": {
+		"display_name": "獣使いの牙",
+		"category": "accessory",
+		"description": "オトモ与ダメ +25%／防御 +10%。自身の与ダメ -8%。",
+		"pet_outgoing_mult": 1.25,
+		"pet_defense_mult": 1.10,
+		"outgoing_mult": 0.92,
+	},
+	"eq_apothecary_vial": {
+		"display_name": "調剤師の薬",
+		"category": "accessory",
+		"description": "回復スキル効果 +20%。回復した味方に防御を付与する。",
+		"heal_power_mult": 1.20,
+		"heal_applies_guard": true,
+	},
 	# ---- レリック（P3-UX-RELIC-TACTICS-B001・尖鋭案B） ----
 	"relic_war_banner": {
 		"display_name": "王国軍旗",
@@ -622,7 +705,7 @@ const _DEFS: Dictionary = {
 	"eq_wpn_pharos_flare": {
 		"display_name": "烽火の鼓動",
 		"category": "weapon",
-		"description": "与ダメから溜まる必殺チャージ +75%。装備スキル与ダメ +15%。",
+		"description": "必殺チャージ速度 +75%。装備スキル与ダメ +15%。",
 		"ultimate_charge_dealt_mult": 1.75,
 		"skill_power_mult": 1.15,
 	},
@@ -1294,6 +1377,11 @@ static func outgoing_vs_status_mult_for_member(member_index: int, present_status
 	return mult
 
 
+## 必殺チャージ速度倍率（鍵名 `ultimate_charge_dealt_mult` は互換維持・時間制でも速度に適用）。
+static func ultimate_charge_rate_mult(member_index: int) -> float:
+	return weapon_ultimate_charge_dealt_mult(member_index)
+
+
 static func weapon_ultimate_charge_dealt_mult(member_index: int) -> float:
 	var def: Dictionary = weapon_passive_def_for_member(
 		GameState.party_members[member_index] if member_index >= 0 and member_index < GameState.party_members.size() else null
@@ -1302,6 +1390,16 @@ static func weapon_ultimate_charge_dealt_mult(member_index: int) -> float:
 	if not def.is_empty() and def.has("ultimate_charge_dealt_mult"):
 		mult *= maxf(0.0, float(def["ultimate_charge_dealt_mult"]))
 	mult *= equipped_relic_float(member_index, "ultimate_charge_dealt_mult", 1.0)
+	## 装飾など装備固定パッシブ（剣舞の指輪／鼓動の首飾り）。
+	if member_index >= 0 and member_index < GameState.party_members.size():
+		for raw_def: Variant in _equipment_passives_for_member(GameState.party_members[member_index]):
+			if raw_def is not Dictionary:
+				continue
+			var edef: Dictionary = raw_def
+			if str(edef.get("category", "")) == "weapon":
+				continue
+			if edef.has("ultimate_charge_dealt_mult"):
+				mult *= maxf(0.0, float(edef["ultimate_charge_dealt_mult"]))
 	return mult
 
 
@@ -1323,9 +1421,125 @@ static func equipped_relic_float(member_index: int, key: String, default_value: 
 	return float(def[key])
 
 
-## レリックのスキルCD倍率（>1で遅延）。セットは呼び出し側で乗算。
+## レリック／装飾などのスキルCD倍率（>1で遅延）。セットは呼び出し側で乗算。
 static func relic_skill_cd_mult(member_index: int) -> float:
-	return maxf(0.05, equipped_relic_float(member_index, "skill_cd_mult", 1.0))
+	var mult: float = equipped_relic_float(member_index, "skill_cd_mult", 1.0)
+	if member_index >= 0 and member_index < GameState.party_members.size():
+		for raw_def: Variant in _equipment_passives_for_member(GameState.party_members[member_index]):
+			if raw_def is not Dictionary:
+				continue
+			var edef: Dictionary = raw_def
+			if str(edef.get("category", "")) in ["weapon", "relic"]:
+				continue
+			if edef.has("skill_cd_mult"):
+				mult *= float(edef["skill_cd_mult"])
+	return maxf(0.05, mult)
+
+
+## 貫通の二次ヒット倍率（既定1.0）。
+static func pierce_secondary_damage_mult(member_index: int) -> float:
+	var mult: float = 1.0
+	if member_index < 0 or member_index >= GameState.party_members.size():
+		return mult
+	for raw_def: Variant in for_member(GameState.party_members[member_index]):
+		if raw_def is not Dictionary:
+			continue
+		var def: Dictionary = raw_def
+		if def.has("pierce_secondary_damage_mult"):
+			mult *= maxf(0.0, float(def["pierce_secondary_damage_mult"]))
+	return mult
+
+
+## 回復スキル威力倍率（既定1.0）。
+static func heal_power_mult_for_member(member_index: int) -> float:
+	var mult: float = 1.0
+	if member_index < 0 or member_index >= GameState.party_members.size():
+		return mult
+	for raw_def: Variant in for_member(GameState.party_members[member_index]):
+		if raw_def is not Dictionary:
+			continue
+		var def: Dictionary = raw_def
+		if def.has("heal_power_mult"):
+			mult *= maxf(0.0, float(def["heal_power_mult"]))
+	return mult
+
+
+## 回復時に対象へ guard を付与するか。
+static func heal_applies_guard_for_member(member_index: int) -> bool:
+	if member_index < 0 or member_index >= GameState.party_members.size():
+		return false
+	for raw_def: Variant in for_member(GameState.party_members[member_index]):
+		if raw_def is not Dictionary:
+			continue
+		if bool(raw_def.get("heal_applies_guard", false)):
+			return true
+	return false
+
+
+## 攻撃側敵の状態に応じた被ダメ倍率（血契など）。
+static func incoming_vs_attacker_status_mult(member_index: int, attacker_status_ids: Array) -> float:
+	var mult: float = 1.0
+	if member_index < 0 or member_index >= GameState.party_members.size():
+		return mult
+	for raw_def: Variant in for_member(GameState.party_members[member_index]):
+		if raw_def is not Dictionary:
+			continue
+		var def: Dictionary = raw_def
+		if not def.has("incoming_vs_status_mult"):
+			continue
+		var filter_ids: Array = def.get("incoming_vs_status_ids", [])
+		if filter_ids.is_empty():
+			continue
+		var matched: bool = false
+		for sid: Variant in filter_ids:
+			if attacker_status_ids.has(str(sid)):
+				matched = true
+				break
+		if matched:
+			mult *= float(def["incoming_vs_status_mult"])
+	return mult
+
+
+## 庇護: 最傷味方なら cover_ally_incoming_mult を返す（自分は character incoming 側）。
+static func cover_ally_incoming_mult_for(member_index: int, most_injured_index: int) -> float:
+	if member_index < 0 or member_index != most_injured_index:
+		return 1.0
+	if member_index >= GameState.party_members.size():
+		return 1.0
+	var mult: float = 1.0
+	## 庇護は「装備者以外の最傷味方」を守る。装備者自身が最傷なら適用しない。
+	for i: int in GameState.party_members.size():
+		if i == member_index:
+			continue
+		var m: Resource = GameState.party_members[i]
+		if m == null:
+			continue
+		for raw_def: Variant in for_member(m):
+			if raw_def is not Dictionary:
+				continue
+			var def: Dictionary = raw_def
+			if def.has("cover_ally_incoming_mult"):
+				mult *= float(def["cover_ally_incoming_mult"])
+	return mult
+
+
+## 場の敵デバフ種類数に応じた被ダメ軽減（呪縛法衣）。
+static func hexweave_incoming_mult_for_member(member_index: int, unique_debuff_count: int) -> float:
+	if member_index < 0 or member_index >= GameState.party_members.size():
+		return 1.0
+	var reduction: float = 0.0
+	var cap: float = 0.0
+	for raw_def: Variant in for_member(GameState.party_members[member_index]):
+		if raw_def is not Dictionary:
+			continue
+		var def: Dictionary = raw_def
+		if not def.has("incoming_per_enemy_debuff"):
+			continue
+		reduction += float(def["incoming_per_enemy_debuff"]) * float(maxi(0, unique_debuff_count))
+		cap = maxf(cap, float(def.get("incoming_per_enemy_debuff_cap", 0.15)))
+	if reduction <= 0.0:
+		return 1.0
+	return 1.0 - clampf(reduction, 0.0, cap if cap > 0.0 else 0.15)
 
 
 ## HP帯による与ダメ倍率（狂戦士）。hp_below を満たす帯のうち最大倍率。

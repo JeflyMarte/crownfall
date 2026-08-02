@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "momentum_slash"
+display_name = "追勢斬"
+description = "戦線の熱に乗って斬る。場に敵が多いほど威力が上がる。甲砕には頼らない群れ向け単体。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 1.35
+cooldown = 4.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["melee", "slash", "swarm_power"])
+element = ""
+apply_status_id = ""
+apply_status_chance = 0.0
+apply_status_id2 = ""
+apply_status_chance2 = 0.0
+slot_type = "skill"
+range_type = "melee"

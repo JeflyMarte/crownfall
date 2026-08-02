@@ -6,18 +6,19 @@ const _EquipmentRollHelper = preload("res://scripts/equipment/EquipmentRollHelpe
 ## P3-EQ-STAT-006 — 防具個体ステータス解決。必須=防御力。レア度でランダム1〜4種。
 
 ## 平坦DEF/HPロール上限（P3-BAL-STAT-SCALE-001: ×STAT_SCALE）
+## 旧 4/6/9/14・8/12/18/25 を ×0.7 して焼き込み（P3-EQ-FLAT-ROLL-NARROW-001）。
 const DEFENSE_ROLL_MAX: Dictionary = {
-	Enums.Rarity.COMMON: 4 * BalanceConfig.STAT_SCALE,
-	Enums.Rarity.RARE: 6 * BalanceConfig.STAT_SCALE,
-	Enums.Rarity.EPIC: 9 * BalanceConfig.STAT_SCALE,
-	Enums.Rarity.LEGENDARY: 14 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.COMMON: 3 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.RARE: 4 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.EPIC: 6 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.LEGENDARY: 10 * BalanceConfig.STAT_SCALE,
 }
 
 const HP_ROLL_MAX: Dictionary = {
-	Enums.Rarity.COMMON: 8 * BalanceConfig.STAT_SCALE,
-	Enums.Rarity.RARE: 12 * BalanceConfig.STAT_SCALE,
-	Enums.Rarity.EPIC: 18 * BalanceConfig.STAT_SCALE,
-	Enums.Rarity.LEGENDARY: 25 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.COMMON: 6 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.RARE: 8 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.EPIC: 13 * BalanceConfig.STAT_SCALE,
+	Enums.Rarity.LEGENDARY: 18 * BalanceConfig.STAT_SCALE,
 }
 
 const RESIST_ELEM_COUNT_MAX: Dictionary = {
@@ -213,11 +214,13 @@ static func _roll_bonus_stat(
 			return false
 
 static func _roll_hp_bonus(instance: Resource, armor_data: Resource, rarity: int) -> bool:
+	## レガシー経路。新規ドロップは EquipmentRandomMods（下限比率付き）。
 	var roll_max: int = int(HP_ROLL_MAX.get(rarity, HP_ROLL_MAX[Enums.Rarity.COMMON]))
-	var roll: Dictionary = _EquipmentRollHelper.roll_int_bonus(roll_max)
+	var roll_min: int = maxi(1, int(round(float(roll_max) * BalanceConfig.FLAT_ROLL_FLOOR_RATIO)))
+	var roll: Dictionary = _EquipmentRollHelper.roll_int_bonus(maxi(0, roll_max - roll_min))
 	var base: int = maxi(0, int(armor_data.base_hp_bonus))
-	instance.hp_bonus = base + int(roll.get("value", 0))
-	return bool(roll.get("perfect", false))
+	instance.hp_bonus = base + roll_min + int(roll.get("value", 0))
+	return (roll_min + int(roll.get("value", 0))) >= roll_max
 
 static func _roll_resist_elements(instance: Resource, armor_data: Resource, rarity: int) -> bool:
 	var max_count: int = int(RESIST_ELEM_COUNT_MAX.get(rarity, RESIST_ELEM_COUNT_MAX[Enums.Rarity.COMMON]))
