@@ -7,6 +7,7 @@ extends RefCounted
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 
 const ID_COSMIC_DUCK: String = "cosmic_duck"
+const ID_BIG_COSMIC_DUCK: String = "big_cosmic_duck"
 const ID_CROWN_RAVEN: String = "crown_raven"
 const ID_GOLDEN_SCARAB: String = "golden_scarab"
 const ID_SHADOW_STALKER: String = "shadow_stalker"
@@ -28,6 +29,17 @@ const SPAWN_CHANCE_COSMIC_DUCK: float = 0.025
 const SPAWN_CHANCE_CROWN_RAVEN: float = 0.015
 const SPAWN_CHANCE_GOLDEN_SCARAB: float = 0.015
 const SPAWN_CHANCE_SHADOW_STALKER: float = 0.008
+
+## Hard+ 放浪ダック成功時のビッグ昇格率（P3-ENEMY-BIG-COSMIC-DUCK-002 案A）。
+## 本編のみ（裂け目は disable_wandering）。Normal は昇格なし。
+const UPGRADE_TO_BIG_CHANCE_HARD: float = 0.25
+const UPGRADE_TO_BIG_CHANCE_NIGHTMARE: float = 0.40
+
+## 裂け目 Hard+ COMBAT: 通常ダックの代わりにビッグ 1〜2（最終ボスは据置1）。
+const RIFT_BIG_COMBAT_CHANCE_HARD: float = 0.20
+const RIFT_BIG_COMBAT_CHANCE_NIGHTMARE: float = 0.30
+const RIFT_BIG_COMBAT_MIN: int = 1
+const RIFT_BIG_COMBAT_MAX: int = 2
 
 ## 互換エイリアス（旧定数名）
 const SPAWN_CHANCE_WAYFARER: float = SPAWN_CHANCE_COSMIC_DUCK
@@ -144,7 +156,57 @@ static func try_roll_wandering_id(
 	tier: int = _DungeonTierConfig.TIER_NORMAL,
 	allow_shadow_stalker: bool = true
 ) -> String:
-	return wandering_id_for_roll(_randf(rng), tier, allow_shadow_stalker)
+	var rolled: String = wandering_id_for_roll(_randf(rng), tier, allow_shadow_stalker)
+	return maybe_promote_cosmic_duck_to_big(rolled, tier, rng)
+
+
+## 放浪でダックが出たとき Hard+ のみビッグへ昇格。Normal／非ダックは据置。
+static func maybe_promote_cosmic_duck_to_big(
+	enemy_id: String,
+	tier: int = _DungeonTierConfig.TIER_NORMAL,
+	rng: RandomNumberGenerator = null
+) -> String:
+	if enemy_id != ID_COSMIC_DUCK:
+		return enemy_id
+	var chance: float = upgrade_to_big_chance(tier)
+	if chance <= 0.0:
+		return enemy_id
+	if _randf(rng) < chance:
+		return ID_BIG_COSMIC_DUCK
+	return enemy_id
+
+
+static func upgrade_to_big_chance(tier: int) -> float:
+	var t: int = clampi(tier, _DungeonTierConfig.TIER_NORMAL, _DungeonTierConfig.TIER_NIGHTMARE)
+	if t == _DungeonTierConfig.TIER_HARD:
+		return UPGRADE_TO_BIG_CHANCE_HARD
+	if t >= _DungeonTierConfig.TIER_NIGHTMARE:
+		return UPGRADE_TO_BIG_CHANCE_NIGHTMARE
+	return 0.0
+
+
+## 裂け目 COMBAT 用。0=通常ダック経路／1〜2=ビッグ置換。ボス部屋は呼ばない。
+static func roll_cosmic_rift_big_combat_count(
+	tier: int = _DungeonTierConfig.TIER_NORMAL,
+	rng: RandomNumberGenerator = null
+) -> int:
+	var chance: float = rift_big_combat_chance(tier)
+	if chance <= 0.0:
+		return 0
+	if _randf(rng) >= chance:
+		return 0
+	if rng != null:
+		return rng.randi_range(RIFT_BIG_COMBAT_MIN, RIFT_BIG_COMBAT_MAX)
+	return randi_range(RIFT_BIG_COMBAT_MIN, RIFT_BIG_COMBAT_MAX)
+
+
+static func rift_big_combat_chance(tier: int) -> float:
+	var t: int = clampi(tier, _DungeonTierConfig.TIER_NORMAL, _DungeonTierConfig.TIER_NIGHTMARE)
+	if t == _DungeonTierConfig.TIER_HARD:
+		return RIFT_BIG_COMBAT_CHANCE_HARD
+	if t >= _DungeonTierConfig.TIER_NIGHTMARE:
+		return RIFT_BIG_COMBAT_CHANCE_NIGHTMARE
+	return 0.0
 
 
 static func wandering_id_for_roll(

@@ -1486,6 +1486,10 @@ func pick_combat_enemy_group() -> Array[Resource]:
 		if wander != null:
 			group.append(wander)
 			return group
+		## 裂け目 Hard+: 通常ダック群れの代わりにビッグ 1〜2（P3-ENEMY-BIG-COSMIC-DUCK-002）
+		var rift_big: Array[Resource] = _try_cosmic_rift_big_combat_group()
+		if not rift_big.is_empty():
+			return rift_big
 	var base: Resource = pick_combat_enemy_data()
 	if base == null:
 		return group
@@ -1583,6 +1587,26 @@ func try_pick_wandering_enemy(rng: RandomNumberGenerator = null) -> Resource:
 	if wander_id.is_empty():
 		return null
 	return _EnemyTierVariantConfig.apply_for_current_tier(DataRegistry.get_enemy_data(wander_id))
+
+
+## 裂け目 Hard+ COMBAT: 低〜中確率でビッグ 1〜2。ボス部屋は呼ばない。
+func _try_cosmic_rift_big_combat_group(rng: RandomNumberGenerator = null) -> Array[Resource]:
+	var out: Array[Resource] = []
+	if current_dungeon_data == null or str(current_dungeon_data.id) != "cosmic_rift":
+		return out
+	var count: int = _WanderingEnemyConfig.roll_cosmic_rift_big_combat_count(
+		GameState.current_dungeon_tier, rng
+	)
+	if count <= 0:
+		return out
+	var big: Resource = DataRegistry.get_enemy_data(_WanderingEnemyConfig.ID_BIG_COSMIC_DUCK)
+	if big == null:
+		return out
+	big = _EnemyTierVariantConfig.apply_for_current_tier(big)
+	for _i in count:
+		out.append(big)
+	return out
+
 
 func pick_event() -> Dictionary:
 	var pool: Array = _filtered_event_pool()
