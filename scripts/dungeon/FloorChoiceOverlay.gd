@@ -31,6 +31,14 @@ const CONFIRM_RECT: Rect2 = Rect2(110, 820, 500, 90)
 const POINTER_SIZE: Vector2 = Vector2(64, 100)
 const POINTER_GAP_ABOVE: float = -96.0
 
+## 項目名アクセント（本文より一段強調）。
+const TITLE_COLOR_POWER: Color = Color(0.98, 0.88, 0.48, 1.0) ## 金
+const TITLE_COLOR_HEAL: Color = Color(0.55, 0.88, 0.62, 1.0) ## 緑
+const TITLE_COLOR_HARVEST: Color = Color(0.95, 0.72, 0.35, 1.0) ## 琥珀
+const TITLE_COLOR_ASSAULT: Color = Color(0.95, 0.48, 0.42, 1.0) ## 赤
+const TITLE_FONT_SIZE: int = 22
+const BODY_FONT_SIZE: int = 18
+
 const CHOICE_POWER: String = "power"
 const CHOICE_HEAL: String = "heal"
 const CHOICE_HARVEST: String = "harvest"
@@ -39,7 +47,7 @@ const CHOICE_ASSAULT: String = "assault"
 var _bg: TextureRect
 var _pointer: TextureRect
 var _panel_buttons: Array[Button] = []
-var _text_labels: Array[Label] = []
+var _text_labels: Array[RichTextLabel] = []
 var _confirm_btn: Button
 var _selected: String = ""
 var _heal_mode: bool = false
@@ -87,13 +95,17 @@ func _ready() -> void:
 		add_child(hit)
 		_panel_buttons.append(hit)
 
-		var lab := Label.new()
+		var lab := RichTextLabel.new()
 		lab.name = "PanelText%d" % i
-		lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		lab.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+		lab.bbcode_enabled = true
+		lab.fit_content = false
+		lab.scroll_active = false
 		lab.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		lab.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		UiTypography.apply_body(lab, 18, UiTypography.COLOR_BODY, UiTypography.OUTLINE_BODY)
+		## 本文色。項目名は BBCode で個別色。
+		UiTypography.apply_log_rich(lab, BODY_FONT_SIZE, UiTypography.COLOR_BODY)
+		lab.add_theme_color_override("font_outline_color", Color(0.05, 0.03, 0.02, 0.92))
+		lab.add_theme_constant_override("outline_size", UiTypography.OUTLINE_BODY)
 		add_child(lab)
 		_text_labels.append(lab)
 
@@ -210,23 +222,37 @@ func _update_pointer_position() -> void:
 
 func _refresh_texts() -> void:
 	var a_title: String = "応急手当" if _heal_mode else "戦力強化"
+	var a_color: Color = TITLE_COLOR_HEAL if _heal_mode else TITLE_COLOR_POWER
 	var a_body: String = (
 		"生存者を25%回復\n次のフロア開始時"
 		if _heal_mode
 		else "与ダメ ×1.5\n次のフロアのみ"
 	)
-	_text_labels[0].text = "%s\n%s" % [a_title, a_body]
+	_text_labels[0].text = _panel_text_bbcode(a_title, a_color, a_body)
 	var harvest_labels: PackedStringArray = PackedStringArray()
 	for k: String in _offered_harvest:
 		harvest_labels.append(_harvest_kind_label(k))
 	var harvest_line: String = "・".join(harvest_labels)
 	if harvest_line.is_empty():
 		harvest_line = "報酬2種"
-	_text_labels[1].text = (
-		"収穫強化\n%s\n×%.2f\n次のフロアのみ"
+	var harvest_body: String = (
+		"%s\n×%.2f\n次のフロアのみ"
 		% [harvest_line, BalanceConfig.FLOOR_CHOICE_HARVEST_MULT]
 	)
-	_text_labels[2].text = "強襲ルート\n精鋭＋雑魚が出現\n報酬すべて ×1.25"
+	_text_labels[1].text = _panel_text_bbcode("収穫強化", TITLE_COLOR_HARVEST, harvest_body)
+	_text_labels[2].text = _panel_text_bbcode(
+		"強襲ルート",
+		TITLE_COLOR_ASSAULT,
+		"精鋭＋雑魚が出現\n報酬すべて ×1.25"
+	)
+
+
+static func _panel_text_bbcode(title: String, title_color: Color, body: String) -> String:
+	var hex: String = title_color.to_html(false)
+	return (
+		"[center][color=#%s][font_size=%d]%s[/font_size][/color]\n%s[/center]"
+		% [hex, TITLE_FONT_SIZE, title, body]
+	)
 
 
 func _on_panel_pressed(index: int) -> void:
