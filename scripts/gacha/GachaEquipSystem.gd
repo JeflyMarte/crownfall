@@ -20,36 +20,37 @@ const RATE_L_OTHER: float = 0.40
 
 const KINDS: Array[String] = ["weapon", "armor", "accessory"]
 
-## { kind, id, seat, blurb, effect } — 灰冠限定（メリデメは Decision 28。effect は画面用の口語説明）。
-## blurb は Featured 黄字煽り：商品紹介調の2行（フック＋使いどころ）。部位名で締めない。
+## { kind, id, seat, blurb, effect, inventory_effect } — 灰冠限定（メリデメは Decision 28）。
+## blurb は Featured 黄字煽り：商品紹介調の2行。effect は封蔵画面の口語。
+## inventory_effect は装備一覧・固有効果用（他L装備と同型の落ち着いた文体）。
 const POOL: Array[Dictionary] = [
-	{"kind": "weapon", "id": "kaiwan_crosslit", "seat": "塞図", "blurb": "初撃だけで勝負を決める！\n開幕の一閃に全振りしたいときに！", "effect": "戦闘の最初の攻撃の威力が３０％アップ！ただし、２撃目以降の威力は８％ダウン！"},
-	{"kind": "weapon", "id": "kaiwan_vendict", "seat": "売境", "blurb": "とにかく削る火力特化！\n硬い相手には向かない——殴り合い覚悟で！", "effect": "与えるダメージが１８％アップ！ただし、受けるダメージが１２％アップ！"},
-	{"kind": "weapon", "id": "kaiwan_silent", "seat": "裂鍵", "blurb": "敵のバフを剥がしてデバフを押し込む！\n支援寄りの杖職と組むと本領発揮！", "effect": "敵のバフを解除する確率が３０％アップ！さらにデバフを付与する力が１５％アップ！ただし、自分のスキルの再使用時間が１０％延びる！"},
-	{"kind": "weapon", "id": "kaiwan_perfidy", "seat": "違約", "blurb": "デバフ中の敵にとにかく強い！\n相手にデバフをばら撒く味方と組み合わせて高火力を叩き込め！", "effect": "デバフ中の敵への威力が２２％アップ！ただし、味方への回復・援護効果が２０％ダウン！"},
-	{"kind": "weapon", "id": "kaiwan_nox", "seat": "灯断", "blurb": "後列から会心で撃ち抜く！\n開幕で少し削れる代わりに、後ろから仕留める一択！", "effect": "後列からの威力が２０％アップ！さらに会心率が８％アップ！ただし、戦闘開始時に自分のHPが８％減少する！"},
-	{"kind": "weapon", "id": "kaiwan_false", "seat": "偽星", "blurb": "鍛えて鍛えて伸びる刃！\n炉研ぎ・錬成好きのための育成向き一振り！", "effect": "炉研ぎ・錬成の効果が１５％アップ！ただし、受けたときのクリティカル率が１０％アップ！"},
-	{"kind": "weapon", "id": "kaiwan_saltine", "seat": "奪潮", "blurb": "足が速く、水と氷に乗せる！\n罠には弱いけど、属性編成の追い風に！", "effect": "行動速度が１２％アップ！さらに水・氷属性の威力が１５％アップ！ただし、罠・探索ダメージが２５％アップ！"},
-	{"kind": "weapon", "id": "kaiwan_wiltes", "seat": "枯翠", "blurb": "回復を火力に変えて殴る！\nヒーラー編成を攻撃特化に振り切るとき！", "effect": "回復スキルの半分が追加ダメージに変わる！ただし、継続回復・ターン回復が５０％ダウン！"},
-	{"kind": "weapon", "id": "kaiwan_relictos", "seat": "断継", "blurb": "倒した直後がいちばん熱い！\n連鎖撃破で押し切る編成向き！", "effect": "敵を倒した直後の次の攻撃の威力が３５％アップ！ただし、味方が戦闘不能のあいだ自分の威力は１５％ダウン！"},
-	{"kind": "armor", "id": "kaiwan_primehide", "seat": "塞図", "blurb": "開幕の被弾をガチガチに！\n最初の一発を耐えて戦線を保て！", "effect": "戦闘中、最初の被弾までのダメージが２０％ダウン！ただし、それ以降の被ダメは８％アップ！"},
-	{"kind": "armor", "id": "kaiwan_bloodmail", "seat": "売境", "blurb": "殴られたあとが本番！\n被弾を反撃の合図に変える！", "effect": "ダメージを受けたあと、次の攻撃の威力が１２％アップ！ただし、最大HPが１０％ダウン！"},
-	{"kind": "armor", "id": "kaiwan_voidrobe", "seat": "裂鍵", "blurb": "スキルをもっと回したい！\n手数重視の回転特化コーデに！", "effect": "自分のスキル再使用ペナルティが半分になる！ただし、与えるダメージが８％ダウン！"},
-	{"kind": "armor", "id": "kaiwan_oathbreak", "seat": "違約", "blurb": "デバフ戦の盾になる！\n弱体だらけの戦場で粘り強く！", "effect": "デバフ中の敵から受けるダメージが１２％ダウン！ただし、自分が受ける回復が１５％ダウン！"},
-	{"kind": "armor", "id": "kaiwan_duskmail", "seat": "灯断", "blurb": "開幕の損耗を抑える！\n灯断武器と合わせて立ち上がりを安定！", "effect": "開幕のHP減少が半分になる！ただし、前列にいると与ダメが１０％ダウン！"},
-	{"kind": "armor", "id": "kaiwan_forgepate", "seat": "偽星", "blurb": "強化の伸びしろをさらに！\n偽星武器とセットで育成が加速！", "effect": "炉研ぎ・錬成の効果がさらに１０％アップ！ただし、被クリティカル率がさらに８％アップ！"},
-	{"kind": "armor", "id": "kaiwan_tideskin", "seat": "奪潮", "blurb": "罠や探索の痛みを半減！\n疾風編成の足回りを守る一枚！", "effect": "罠・探索ダメージのペナルティが半分になる！ただし、炎属性の被ダメが１５％アップ！"},
-	{"kind": "armor", "id": "kaiwan_thornmail", "seat": "枯翠", "blurb": "回復変換の火力を底上げ！\n枯翠武器の攻めをさらに盛る！", "effect": "回復を与ダメへ変換する率が１５ポイントアップ！ただし、受ける回復が２０％ダウン！"},
-	{"kind": "armor", "id": "kaiwan_lastcoil", "seat": "断継", "blurb": "撃破後の余韻を伸ばす！\n連鎖特化パーティの締めに！", "effect": "撃破後のバフ時間が延びる！ただし、味方戦闘不能時の与ダメペナが２０％に悪化する！"},
-	{"kind": "accessory", "id": "kaiwan_initio", "seat": "塞図", "blurb": "初撃の会心を一気に盛る！\n開幕クリティカル狙いの相棒に！", "effect": "初撃の会心率が２５％アップ！ただし、２撃目以降の会心は１０％ダウン！"},
-	{"kind": "accessory", "id": "kaiwan_venomband", "seat": "売境", "blurb": "与ダメを素直に底上げ！\n回復は捨てて火力だけ欲しいときに！", "effect": "与えるダメージが１０％アップ！ただし、回復効果が１５％ダウン！"},
-	{"kind": "accessory", "id": "kaiwan_unlock", "seat": "裂鍵", "blurb": "バフ解除にダメージを乗せる！\n裂鍵武器と組むと削ぎが加速！", "effect": "バフ解除に成功すると追加で小ダメージ！ただし、味方へのバフ効果時間が１５％ダウン！"},
-	{"kind": "accessory", "id": "kaiwan_curseband", "seat": "違約", "blurb": "攻撃しながらデバフをばら撒く！\n違約武器の特攻を自分で仕込む！", "effect": "攻撃時、低確率で追加デバフを付与！ただし、援護・オーラ系効果が２５％ダウン！"},
-	{"kind": "accessory", "id": "kaiwan_nocturne", "seat": "灯断", "blurb": "開幕のコストを初撃に変える！\n灯断セットで立ち上がり火力を稼ぐ！", "effect": "開幕に失ったHPの割合が初撃の威力に上乗せ！ただし、戦闘中のHP回復が３０％ダウン！"},
-	{"kind": "accessory", "id": "kaiwan_sparkle", "seat": "偽星", "blurb": "強化するほど火力が跳ねる！\n未強化のままでは本領を出せない！", "effect": "強化が進むほど与ダメが上がる！ただし、未強化だと与ダメが２０％ダウン！"},
-	{"kind": "accessory", "id": "kaiwan_reefhook", "seat": "奪潮", "blurb": "水氷と速度をひと盛り！\n奪潮武器の疾風編成を後押し！", "effect": "水・氷属性の威力が１０％アップ！さらに行動速度が５％アップ！ただし、聖属性耐性が１０％ダウン！"},
-	{"kind": "accessory", "id": "kaiwan_wither", "seat": "枯翠", "blurb": "回復のたびに火力へ変換！\n枯翠編成を極振りするときの賭け！", "effect": "回復するたびに自分にも軽いダメージが入り、そのぶん与ダメが上がる！ただし、蘇生や強回復はほぼ効かない！"},
-	{"kind": "accessory", "id": "kaiwan_nextedge", "seat": "断継", "blurb": "撃破連鎖の２回目も伸ばす！\n断継武器の追い打ちを途切れさせない！", "effect": "撃破連鎖の２回目にも半分の補正が乗る！ただし、戦闘開始時のSPが１０％ダウン！"},
+	{"kind": "weapon", "id": "kaiwan_crosslit", "seat": "塞図", "blurb": "初撃だけで勝負を決める！\n開幕の一閃に全振りしたいときに！", "effect": "戦闘の最初の攻撃の威力が３０％アップ！ただし、２撃目以降の威力は８％ダウン！", "inventory_effect": "戦闘の最初の攻撃の威力が30%上昇する。2撃目以降の威力は8%低下する。"},
+	{"kind": "weapon", "id": "kaiwan_vendict", "seat": "売境", "blurb": "とにかく削る火力特化！\n硬い相手には向かない——殴り合い覚悟で！", "effect": "与えるダメージが１８％アップ！ただし、受けるダメージが１２％アップ！", "inventory_effect": "与ダメージが18%上昇する。被ダメージが12%増加する。"},
+	{"kind": "weapon", "id": "kaiwan_silent", "seat": "裂鍵", "blurb": "敵のバフを剥がしてデバフを押し込む！\n支援寄りの杖職と組むと本領発揮！", "effect": "敵のバフを解除する確率が３０％アップ！さらにデバフを付与する力が１５％アップ！ただし、自分のスキルの再使用時間が１０％延びる！", "inventory_effect": "敵のバフを解除する確率が30%上昇し、デバフ付与力が15%上昇する。自身のスキル再使用時間が10%延びる。"},
+	{"kind": "weapon", "id": "kaiwan_perfidy", "seat": "違約", "blurb": "デバフ中の敵にとにかく強い！\n相手にデバフをばら撒く味方と組み合わせて高火力を叩き込め！", "effect": "デバフ中の敵への威力が２２％アップ！ただし、味方への回復・援護効果が２０％ダウン！", "inventory_effect": "デバフ中の敵への威力が22%上昇する。味方への回復・援護効果は20%低下する。"},
+	{"kind": "weapon", "id": "kaiwan_nox", "seat": "灯断", "blurb": "後列から会心で撃ち抜く！\n開幕で少し削れる代わりに、後ろから仕留める一択！", "effect": "後列からの威力が２０％アップ！さらに会心率が８％アップ！ただし、戦闘開始時に自分のHPが８％減少する！", "inventory_effect": "後列からの威力が20%上昇し、会心率が8%上昇する。戦闘開始時に自身のHPが8%減少する。"},
+	{"kind": "weapon", "id": "kaiwan_false", "seat": "偽星", "blurb": "鍛えて鍛えて伸びる刃！\n炉研ぎ・錬成好きのための育成向き一振り！", "effect": "炉研ぎ・錬成の効果が１５％アップ！ただし、受けたときのクリティカル率が１０％アップ！", "inventory_effect": "炉研ぎ・錬成の効果が15%上昇する。被クリティカル率が10%上昇する。"},
+	{"kind": "weapon", "id": "kaiwan_saltine", "seat": "奪潮", "blurb": "足が速く、水と氷に乗せる！\n罠には弱いけど、属性編成の追い風に！", "effect": "行動速度が１２％アップ！さらに水・氷属性の威力が１５％アップ！ただし、罠・探索ダメージが２５％アップ！", "inventory_effect": "行動速度が12%上昇し、水・氷属性の威力が15%上昇する。罠・探索ダメージが25%増加する。"},
+	{"kind": "weapon", "id": "kaiwan_wiltes", "seat": "枯翠", "blurb": "回復を火力に変えて殴る！\nヒーラー編成を攻撃特化に振り切るとき！", "effect": "回復スキルの半分が追加ダメージに変わる！ただし、継続回復・ターン回復が５０％ダウン！", "inventory_effect": "回復スキルの半分が追加ダメージに変わる。継続回復・ターン回復は50%低下する。"},
+	{"kind": "weapon", "id": "kaiwan_relictos", "seat": "断継", "blurb": "倒した直後がいちばん熱い！\n連鎖撃破で押し切る編成向き！", "effect": "敵を倒した直後の次の攻撃の威力が３５％アップ！ただし、味方が戦闘不能のあいだ自分の威力は１５％ダウン！", "inventory_effect": "敵を倒した直後の次の攻撃の威力が35%上昇する。味方が戦闘不能のあいだ、自身の威力は15%低下する。"},
+	{"kind": "armor", "id": "kaiwan_primehide", "seat": "塞図", "blurb": "開幕の被弾をガチガチに！\n最初の一発を耐えて戦線を保て！", "effect": "戦闘中、最初の被弾までのダメージが２０％ダウン！ただし、それ以降の被ダメは８％アップ！", "inventory_effect": "戦闘中、最初の被弾までのダメージが20%減少する。それ以降の被ダメージは8%増加する。"},
+	{"kind": "armor", "id": "kaiwan_bloodmail", "seat": "売境", "blurb": "殴られたあとが本番！\n被弾を反撃の合図に変える！", "effect": "ダメージを受けたあと、次の攻撃の威力が１２％アップ！ただし、最大HPが１０％ダウン！", "inventory_effect": "ダメージを受けたあと、次の攻撃の威力が12%上昇する。最大HPが10%低下する。"},
+	{"kind": "armor", "id": "kaiwan_voidrobe", "seat": "裂鍵", "blurb": "スキルをもっと回したい！\n手数重視の回転特化コーデに！", "effect": "自分のスキル再使用ペナルティが半分になる！ただし、与えるダメージが８％ダウン！", "inventory_effect": "自身のスキル再使用ペナルティが半分になる。与ダメージが8%低下する。"},
+	{"kind": "armor", "id": "kaiwan_oathbreak", "seat": "違約", "blurb": "デバフ戦の盾になる！\n弱体だらけの戦場で粘り強く！", "effect": "デバフ中の敵から受けるダメージが１２％ダウン！ただし、自分が受ける回復が１５％ダウン！", "inventory_effect": "デバフ中の敵から受けるダメージが12%減少する。自身が受ける回復が15%低下する。"},
+	{"kind": "armor", "id": "kaiwan_duskmail", "seat": "灯断", "blurb": "開幕の損耗を抑える！\n灯断武器と合わせて立ち上がりを安定！", "effect": "開幕のHP減少が半分になる！ただし、前列にいると与ダメが１０％ダウン！", "inventory_effect": "開幕のHP減少が半分になる。前列にいると与ダメージが10%低下する。"},
+	{"kind": "armor", "id": "kaiwan_forgepate", "seat": "偽星", "blurb": "強化の伸びしろをさらに！\n偽星武器とセットで育成が加速！", "effect": "炉研ぎ・錬成の効果がさらに１０％アップ！ただし、被クリティカル率がさらに８％アップ！", "inventory_effect": "炉研ぎ・錬成の効果がさらに10%上昇する。被クリティカル率がさらに8%上昇する。"},
+	{"kind": "armor", "id": "kaiwan_tideskin", "seat": "奪潮", "blurb": "罠や探索の痛みを半減！\n疾風編成の足回りを守る一枚！", "effect": "罠・探索ダメージのペナルティが半分になる！ただし、炎属性の被ダメが１５％アップ！", "inventory_effect": "罠・探索ダメージのペナルティが半分になる。炎属性の被ダメージが15%増加する。"},
+	{"kind": "armor", "id": "kaiwan_thornmail", "seat": "枯翠", "blurb": "回復変換の火力を底上げ！\n枯翠武器の攻めをさらに盛る！", "effect": "回復を与ダメへ変換する率が１５ポイントアップ！ただし、受ける回復が２０％ダウン！", "inventory_effect": "回復を与ダメージへ変換する率が15ポイント上昇する。受ける回復が20%低下する。"},
+	{"kind": "armor", "id": "kaiwan_lastcoil", "seat": "断継", "blurb": "撃破後の余韻を伸ばす！\n連鎖特化パーティの締めに！", "effect": "撃破後のバフ時間が延びる！ただし、味方戦闘不能時の与ダメペナが２０％に悪化する！", "inventory_effect": "撃破後のバフ時間が延びる。味方戦闘不能時の与ダメージペナルティが20%に悪化する。"},
+	{"kind": "accessory", "id": "kaiwan_initio", "seat": "塞図", "blurb": "初撃の会心を一気に盛る！\n開幕クリティカル狙いの相棒に！", "effect": "初撃の会心率が２５％アップ！ただし、２撃目以降の会心は１０％ダウン！", "inventory_effect": "初撃の会心率が25%上昇する。2撃目以降の会心率は10%低下する。"},
+	{"kind": "accessory", "id": "kaiwan_venomband", "seat": "売境", "blurb": "与ダメを素直に底上げ！\n回復は捨てて火力だけ欲しいときに！", "effect": "与えるダメージが１０％アップ！ただし、回復効果が１５％ダウン！", "inventory_effect": "与ダメージが10%上昇する。回復効果が15%低下する。"},
+	{"kind": "accessory", "id": "kaiwan_unlock", "seat": "裂鍵", "blurb": "バフ解除にダメージを乗せる！\n裂鍵武器と組むと削ぎが加速！", "effect": "バフ解除に成功すると追加で小ダメージ！ただし、味方へのバフ効果時間が１５％ダウン！", "inventory_effect": "バフ解除に成功すると追加で小ダメージを与える。味方へのバフ効果時間が15%短縮する。"},
+	{"kind": "accessory", "id": "kaiwan_curseband", "seat": "違約", "blurb": "攻撃しながらデバフをばら撒く！\n違約武器の特攻を自分で仕込む！", "effect": "攻撃時、低確率で追加デバフを付与！ただし、援護・オーラ系効果が２５％ダウン！", "inventory_effect": "攻撃時、低確率で追加デバフを付与する。援護・オーラ系効果が25%低下する。"},
+	{"kind": "accessory", "id": "kaiwan_nocturne", "seat": "灯断", "blurb": "開幕のコストを初撃に変える！\n灯断セットで立ち上がり火力を稼ぐ！", "effect": "開幕に失ったHPの割合が初撃の威力に上乗せ！ただし、戦闘中のHP回復が３０％ダウン！", "inventory_effect": "開幕に失ったHPの割合が初撃の威力に上乗せされる。戦闘中のHP回復が30%低下する。"},
+	{"kind": "accessory", "id": "kaiwan_sparkle", "seat": "偽星", "blurb": "強化するほど火力が跳ねる！\n未強化のままでは本領を出せない！", "effect": "強化が進むほど与ダメが上がる！ただし、未強化だと与ダメが２０％ダウン！", "inventory_effect": "強化が進むほど与ダメージが上昇する。未強化だと与ダメージが20%低下する。"},
+	{"kind": "accessory", "id": "kaiwan_reefhook", "seat": "奪潮", "blurb": "水氷と速度をひと盛り！\n奪潮武器の疾風編成を後押し！", "effect": "水・氷属性の威力が１０％アップ！さらに行動速度が５％アップ！ただし、聖属性耐性が１０％ダウン！", "inventory_effect": "水・氷属性の威力が10%上昇し、行動速度が5%上昇する。聖属性耐性が10%低下する。"},
+	{"kind": "accessory", "id": "kaiwan_wither", "seat": "枯翠", "blurb": "回復のたびに火力へ変換！\n枯翠編成を極振りするときの賭け！", "effect": "回復するたびに自分にも軽いダメージが入り、そのぶん与ダメが上がる！ただし、蘇生や強回復はほぼ効かない！", "inventory_effect": "回復するたびに自身にも軽いダメージが入り、そのぶん与ダメージが上昇する。蘇生や強回復はほぼ効かない。"},
+	{"kind": "accessory", "id": "kaiwan_nextedge", "seat": "断継", "blurb": "撃破連鎖の２回目も伸ばす！\n断継武器の追い打ちを途切れさせない！", "effect": "撃破連鎖の２回目にも半分の補正が乗る！ただし、戦闘開始時のSPが１０％ダウン！", "inventory_effect": "撃破連鎖の2回目にも半分の補正が乗る。戦闘開始時のSPが10%低下する。"},
 ]
 
 ## キャッシュ: kind -> Array[{kind,id}]
@@ -99,6 +100,17 @@ static func effect_text_for(entry: Dictionary) -> String:
 	if not effect.is_empty():
 		return effect
 	return str(entry.get("blurb", ""))
+
+
+
+static func inventory_effect_text_for(entry: Dictionary) -> String:
+	if entry.is_empty():
+		return ""
+	var inv: String = str(entry.get("inventory_effect", "")).strip_edges()
+	if not inv.is_empty():
+		return inv
+	## 未設定時のみ口語へフォールバック（運用上は inventory_effect 必須）。
+	return effect_text_for(entry)
 
 
 static func featured_entries() -> Array:

@@ -6,7 +6,7 @@
 script = ExtResource("1")
 armor_id = "kaiwan_thornmail"
 display_name = "枯翠ソーンメイル"
-description = "灰冠の九が私兵化した防具。欠け王冠の模刻が残る。"
+description = "枯翠の座が棘を内側へ向けた甲。癒しの気配を火力へねじ曲げる、歪んだ緑の加護。"
 base_defense = 130
 base_hp_bonus = 210
 base_resistance = 0.0

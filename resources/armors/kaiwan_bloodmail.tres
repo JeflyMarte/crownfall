@@ -6,7 +6,7 @@
 script = ExtResource("1")
 armor_id = "kaiwan_bloodmail"
 display_name = "売境ブラッドメイル"
-description = "灰冠の九が私兵化した防具。欠け王冠の模刻が残る。"
+description = "売境の座が血濡れた戦場で纏った鎖帷子。被弾のたびに刃が熱を帯びる、と伝わる。"
 base_defense = 140
 base_hp_bonus = 220
 base_resistance = 0.0

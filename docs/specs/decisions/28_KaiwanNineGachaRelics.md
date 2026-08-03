@@ -221,3 +221,12 @@
 - `docs/specs/world/11_Glossary.md` — 組織・封蔵の匣
 - `docs/specs/world/14_Society.md` — 派閥・灰狼団接続
 - `docs/specs/core/03_Decision_Log.md` — 要約
+
+## 9. 装備一覧と封蔵の文言分離（2026-08-03 — P3-GACHA-EQ-KAIWAN-COPY-001）
+
+| # | 決定 |
+|---|---|
+| 1 | 封蔵 Featured の **blurb／effect**（煽り・口語）は据置 |
+| 2 | 装備一覧の **固有効果** は `POOL.inventory_effect`（他Lと同型の落ち着いた文体） |
+| 3 | `description`／武器 `flavor_text` も個体別の装備品文体へ |
+

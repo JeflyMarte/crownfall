@@ -6022,6 +6022,17 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-AUDIO-ABYSS-BGM-001-2 | **他深層も同様** — whisperwood/mistfen/blackshore/frostridge | 一貫性 |
 | P3-AUDIO-ABYSS-BGM-001-3 | **フォールバック** — 親未登録時のみ従来どおり `battle` | 安全側 |
 
+## 灰冠装備一覧コピー分離（2026-08-03 — P3-GACHA-EQ-KAIWAN-COPY-001）
+
+> **オーナー指示** — 装備一覧の灰冠説明がガチャ煽りと同じなので、他装備の文体へ。
+
+| ID | 決定 | 理由 |
+|---|---|---|
+| P3-GACHA-EQ-KAIWAN-COPY-001-1 | 固有効果は `inventory_effect`。封蔵 `blurb`／`effect` は据置 | 画面用途の分離 |
+| P3-GACHA-EQ-KAIWAN-COPY-001-2 | tres の description／flavor も個体別の装備文体 | 一覧の世界観文 |
+
+---
+
 ## 灰冠の九 — 装備ガチャ限定武具（2026-07-31 — P3-GACHA-EQ-KAIWAN-001）
 
 > **オーナー GO** — 装備ガチャ限定＝歴史的略奪組織の武具。組織名「灰冠の九」。

@@ -6,7 +6,7 @@
 script = ExtResource("1")
 armor_id = "kaiwan_tideskin"
 display_name = "奪潮タイドスキン"
-description = "灰冠の九が私兵化した防具。欠け王冠の模刻が残る。"
+description = "奪潮の座が潮の皮膜を重ねた軽装。水辺の罠傷をかわすが、炎には弱い。"
 base_defense = 135
 base_hp_bonus = 225
 base_resistance = 0.0
