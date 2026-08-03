@@ -4876,6 +4876,7 @@ var _enemy_resist_telop_announced: Dictionary = {}
 var _enemy_trait_telop_announced: Dictionary = {}
 ## T8: 召喚済の敵スロット。
 var _enemy_summon_used: Dictionary = {}
+## 指定召喚（ボス仲間呼び）は skill_id 単位で戦闘中1回。
 ## T10: member_idx → 沈黙解除時刻（msec）。
 var _member_skill_silence_until_msec: Dictionary = {}
 ## T10: 味方頭上の沈黙❌マーク（member index → Label）。
@@ -6563,7 +6564,7 @@ func _enemy_tricky_skill_allowed(skill: Resource, slot: int) -> bool:
 		"haste":
 			return $CombatController.living_enemy_count() >= 2
 		"summon":
-			if bool(_enemy_summon_used.get(slot, false)):
+			if _enemy_summon_already_used(skill, slot):
 				return false
 			var cap: int = _DungeonTierConfig.swarm_size_cap()
 			if $CombatController.swarm_data.size() >= cap:
@@ -6571,12 +6572,9 @@ func _enemy_tricky_skill_allowed(skill: Resource, slot: int) -> bool:
 			if $CombatController.living_enemy_count() >= cap:
 				return false
 			## 指定召喚（ボス等）は一度限り・キャップのみ。同種クローンは HP≤50%。
-			var designated: String = ""
-			if "summon_enemy_id" in skill:
-				designated = str(skill.summon_enemy_id)
-			if designated.is_empty():
-				return $CombatController.get_enemy_hp_ratio(slot) <= 0.5
-			return true
+			if _enemy_summon_is_designated(skill):
+				return true
+			return $CombatController.get_enemy_hp_ratio(slot) <= 0.5
 		"buff":
 			## 自己 HoT 等: 満タンでは使わない。
 			if str(skill.target_type) == "self" and str(skill.apply_status_id) == "regen":
@@ -6584,6 +6582,29 @@ func _enemy_tricky_skill_allowed(skill: Resource, slot: int) -> bool:
 			return true
 		_:
 			return true
+
+
+func _enemy_summon_is_designated(skill: Resource) -> bool:
+	if skill == null or not ("summon_enemy_id" in skill):
+		return false
+	return not str(skill.summon_enemy_id).is_empty()
+
+
+## 指定召喚＝skill_id で戦闘中1回。同種クローン＝スロット1回。
+func _enemy_summon_used_key(skill: Resource, slot: int) -> String:
+	if _enemy_summon_is_designated(skill):
+		return "skill:%s" % str(skill.id)
+	return "slot:%d" % slot
+
+
+func _enemy_summon_already_used(skill: Resource, slot: int) -> bool:
+	return bool(_enemy_summon_used.get(_enemy_summon_used_key(skill, slot), false))
+
+
+func _mark_enemy_summon_used(skill: Resource, slot: int) -> void:
+	_enemy_summon_used[_enemy_summon_used_key(skill, slot)] = true
+	## スロット鍵も併記（旧経路・表示用の二重止め）。
+	_enemy_summon_used["slot:%d" % slot] = true
 
 
 ## 敵サポート対象スロット（P3-BAL-ENEMY-TRICKY-001）。
@@ -6703,9 +6724,13 @@ func _execute_enemy_silence(skill: Resource, slot: int) -> void:
 
 
 ## T8: 末尾に敵を追加（召喚者スロットあたり1回）。指定 id があればその敵を count 体。
+## 指定召喚は戦闘中1回（成功／失敗を問わず消費）。
 func _execute_enemy_summon(skill: Resource, slot: int) -> bool:
 	if not _enemy_tricky_skill_allowed(skill, slot):
 		return false
+	## 指定召喚は発動時点で消費（再抽選・CD明けの二重発動を防ぐ）。
+	if _enemy_summon_is_designated(skill):
+		_mark_enemy_summon_used(skill, slot)
 	_play_enemy_caster_animation(slot, "attack")
 	_spawn_enemy_skill_name(skill.display_name, slot)
 	var designated_id: String = ""
@@ -6735,7 +6760,8 @@ func _execute_enemy_summon(skill: Resource, slot: int) -> bool:
 	if spawned <= 0:
 		_append_log("敵スキル【%s】: 呼び出せなかった" % skill.display_name)
 		return false
-	_enemy_summon_used[slot] = true
+	if not _enemy_summon_is_designated(skill):
+		_mark_enemy_summon_used(skill, slot)
 	_try_announce_enemy_trait_once("summon:%d" % slot, last_slot, "仲間を呼んだ！")
 	if spawned == 1:
 		_append_log("敵スキル【%s】: %sが現れた" % [skill.display_name, str(template.display_name)])

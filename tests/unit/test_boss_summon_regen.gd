@@ -20,6 +20,8 @@ func test_boss_summon_skills_are_once_designated() -> void:
 		assert_eq(str(skill.effect_type), "summon", sid)
 		assert_eq(str(skill.summon_enemy_id), str(cases[boss_id]["enemy"]), sid)
 		assert_eq(int(skill.summon_count), int(cases[boss_id]["count"]), sid)
+		assert_true(skill.tags.has("once_per_combat"), sid)
+		assert_gte(float(skill.cooldown), 9999.0, sid)
 		assert_true(DataRegistry.get_enemy_data(str(cases[boss_id]["enemy"])) != null, sid)
 
 
