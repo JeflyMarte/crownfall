@@ -2,7 +2,7 @@ class_name ShowcaseCatalog
 extends RefCounted
 
 ## スタッフ作例プリセット（読取専用・セーブ非汚染）。P3-SHOWCASE-001。
-## β到達の理想ビルド（降臨セット／ビルドL・神話・深層なし）。
+## β到達の理想ビルド（レジェンド以下。エンシェント／ミシック不使用・深層なし）。
 
 const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _ArmorStatResolver = preload("res://scripts/equipment/ArmorStatResolver.gd")
@@ -15,6 +15,8 @@ const STAGE_IDLE_PX: float = 228.0
 const EQUIP_CELL_PX: int = 80
 const STAGE_H_PX: float = 460.0
 const SIDE_COL_W: float = 168.0
+## スタッフ装備はレジェンド以下（エンシェント=SET／ミシック不可）。
+const STAFF_MAX_EQUIP_RARITY: int = Enums.Rarity.LEGENDARY
 
 ## スタッフ作例。装備 id はカタログ実在分のみ。
 ## character_id = 肖像／個人補正用（adventurer_* / gacha_helper_*）。
@@ -31,27 +33,27 @@ const STAFF_PRESETS: Array = [
 		"job_id": "swordsman",
 		"level": 50,
 		"rarity": 3,
-		"weapon_id": "chronos_toki_sword",
-		"armor_id": "chronos_toki_armor",
-		"accessory_id": "chronos_toki_orb",
+		"weapon_id": "pulsekeen_edge",
+		"armor_id": "bloodpact_plate",
+		"accessory_id": "bloodvein_signet",
 		"relic_id": "relic_berserker_charm",
 		"equipped_skill_ids": ["blood_mist_slash"],
 		"enhance_level": 4,
 		"equip_level": 50,
 	},
 	{
-		"id": "staff_galen_antique",
+		"id": "staff_galen_bulwark",
 		"credit": "Crownfall Staff",
 		"player_name": "スタッフ2",
 		"character_id": "adventurer_3",
 		"display_name": "ガレン",
-		"build_name": "アンティーク壁ビルド",
+		"build_name": "防壁盾役ビルド",
 		"job_id": "vanguard",
 		"level": 50,
 		"rarity": 3,
-		"weapon_id": "valgard_antique_blade",
-		"armor_id": "valgard_antique_armor",
-		"accessory_id": "valgard_antique_amulet",
+		"weapon_id": "aegis_line_sword",
+		"armor_id": "bulwark_role_plate",
+		"accessory_id": "ironvow_amulet",
 		"relic_id": "relic_aegis_shard",
 		"equipped_skill_ids": ["apex_guard"],
 		"enhance_level": 4,
@@ -85,9 +87,9 @@ const STAFF_PRESETS: Array = [
 		"job_id": "ranger",
 		"level": 50,
 		"rarity": 3,
-		"weapon_id": "chronos_toki_bow",
-		"armor_id": "chronos_toki_armor",
-		"accessory_id": "chronos_toki_orb",
+		"weapon_id": "volley_horizon_bow",
+		"armor_id": "flurry_light_mail",
+		"accessory_id": "pierce_charm",
 		"relic_id": "relic_hunter_sigil",
 		"equipped_skill_ids": ["hunting_ground_mark"],
 		"enhance_level": 4,
