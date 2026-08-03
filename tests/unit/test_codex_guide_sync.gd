@@ -17,8 +17,18 @@ func test_guide_no_outdated_combat_or_gacha_copy() -> void:
 	var g007: String = str(by_id.get("COMBAT-G007", ""))
 	assert_false(g007.contains("長い再使用待ち"), "必殺はゲージ制")
 	assert_true(g007.contains("必殺ゲージ"), "ゲージ説明あり")
+	assert_true(g007.contains("時間"), "時間チャージに言及")
+	assert_true(g007.contains("50"), "満タン目安50秒")
+	assert_false(g007.contains("与ダメージと被ダメージでチャージ"), "旧ダメ連動を撤去")
+	assert_false(g007.contains("時間経過では溜まらない"), "旧否定文を撤去")
 	assert_false(g007.contains("×0.10"), "チャージ係数を出さない")
 	assert_false(g007.contains("×0.20"), "チャージ係数を出さない")
+
+	var g015: String = str(by_id.get("COMBAT-G015", ""))
+	assert_true(g015.contains("指揮の軍旗"), "レリック改変後の名称")
+	assert_true(g015.contains("連撃の歯車"), "レリック改変後の名称")
+	assert_false(g015.contains("王国軍旗"), "旧レリック名を撤去")
+	assert_false(g015.contains("古い砂時計"), "旧レリック名を撤去")
 
 	var g013: String = str(by_id.get("COMBAT-G013", ""))
 	assert_true(g013.contains("天候シンクロ"), "天候レジェンド連動に言及")
@@ -107,17 +117,20 @@ func test_hub_and_field_guide_entries_exist() -> void:
 	assert_true(field.contains("ギルド情報誌"), "UI名")
 	assert_true(field.contains("30"), "30分スロット")
 	assert_true(field.contains("穏やか"), "穏やか最頻")
+	assert_false(field.contains("図鑑が厚く"), "図鑑×1.5オミット後は案内しない")
 
 	var event_dg: String = str(by_id.get("SYS-G004", ""))
 	assert_true(event_dg.contains("裂け目") or event_dg.contains("エルダ"), "ダックDG")
 	assert_true(event_dg.contains("巣") or event_dg.contains("レイヴン"), "レイヴンDG")
 	assert_true(event_dg.contains("一日"), "日次挑戦")
+	assert_true(event_dg.contains("ビッグコズミック") or event_dg.contains("×2"), "曜日報酬／裂け目ボスに言及")
 
 	var wander: String = str(by_id.get("SYS-G005", ""))
 	assert_true(wander.contains("ダック"), "放浪ダック")
 	assert_true(wander.contains("レイヴン"), "放浪レイヴン")
 	assert_true(wander.contains("逃走") or wander.contains("経験"), "ダック特性")
 	assert_true(wander.contains("装備") or wander.contains("神話"), "レイヴン特性")
+	assert_true(wander.contains("Hard") or wander.contains("ビッグ"), "Hard+昇格に言及")
 
 	var daily: String = str(by_id.get("SYS-G006", ""))
 	assert_false(daily.is_empty(), "日課の条がある")
@@ -128,6 +141,7 @@ func test_hub_and_field_guide_entries_exist() -> void:
 	assert_false(rooms.is_empty(), "部屋と罠の条がある")
 	assert_true(rooms.contains("罠"), "罠に言及")
 	assert_true(rooms.contains("抽選") or rooms.contains("部屋"), "部屋抽選に言及")
+	assert_true(rooms.contains("分かれ道"), "戦闘後分かれ道に言及")
 
 	var formation: String = str(by_id.get("COMBAT-G003", ""))
 	assert_true(formation.contains("ジャック"), "陣形にペット関係")

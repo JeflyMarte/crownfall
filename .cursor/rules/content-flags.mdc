@@ -24,12 +24,14 @@ alwaysApply: false
 - `get_all_enemy_data()` 無フィルタで一覧（征討専用・未実装が混入）
 - 旧俗称（魔法／亡霊／異界の裂け目）を正典として書く
 - キャラ詳細で敵用 ArtFrame 金枠をリセットしない／ICO に枠焼込
+- BAL／UX 変更後に `GuideCatalog.gd`（必殺・レリック・炉研ぎ・イベントDG 等）を放置
 
 ✅ GOOD
 - 実行時は `resources/codex/*.json`（`tools/bake_codex_bible.py`）。MD 更新後は bake＋コミット。`test_codex_history_bake`
 - 敵は `CatalogHelper.playable_enemy_id_set`。達成率も同セット。`test_codex_enemy_omit`
 - 正称はエルダ／鉱物化適応等（`world/03`・`05`）。`test_codex_guide_sync`
 - ICO は枠除去。キャラ詳細は `_reset_art_frame_style`
+- 戦闘・装備・拠点システムの数値／仕様変更時は手引きを突合し、`test_codex_guide_sync` に回帰を足す
 
 ## BGM 切替
 

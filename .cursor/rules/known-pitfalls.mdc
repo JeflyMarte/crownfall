@@ -190,6 +190,7 @@ alwaysApply: false
 | iPhone 上バー侵食／隊長名重なり／aspect・simulate 無効 | Mac inset=0・TopBarのみ・キー汚染 | → **`ui-layout.mdc` SafeArea** |
 | ガチャ Featured 消失／DG Featured 非表示 | foot_pad・inset・意図的非表示 | → `ui-layout` Idle／Biomeバナー |
 | 図鑑オミット戻る／歴史空／俗称／未実装敵／金枠二重 | フラグ true・docs直読・無フィルタ | → **`content-flags.mdc`** |
+| 図鑑手引きが旧システム（必殺ダメ連動・旧レリック名など） | `GuideCatalog.gd` 直書きが BAL／UX 変更に追随しない | 戦闘・装備・SYS 変更後は手引きを突合。`test_codex_guide_sync` に回帰アサート追加 |
 | 編成で助っ人だけ金枠付き／個体差 | 肖像に枠焼込 | → `asset-import.mdc`（strip_helper） |
 | 解放ポップ名ずれ／常にウィスパーウッド | VBox下段・whisperwoodフォールバック | → `ui-layout.mdc` Biomeバナー |
 | ギルド情報誌オープンで即終了 | `LAYOUT_MODE_*` | → **`pitfalls-startup.mdc`**／`gdscript.mdc` |
