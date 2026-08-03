@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_eldion_glacial_regen"
+display_name = "氷河の再生"
+description = "体内の氷河晶が脈打ち、体力を徐々に取り戻す。"
+skill_type = "boss"
+target_type = "self"
+power_multiplier = 1.0
+cooldown = 14.0
+trigger_type = "cooldown"
+effect_type = "buff"
+tags = Array[String](["boss", "heal"])
+element = "ice"
+apply_status_id = "regen"
+apply_status_chance = 1.0
+cast_time = 0.0

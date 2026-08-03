@@ -35,5 +35,5 @@ codex_danger = 5
 codex_habitat = "沈没航路・潮境の深み"
 codex_research_note = "鯨を祖先とする潮境の巨鯨と、船骨に着生した潮藻の複合体。潮の満ち引きに合わせて低く鳴く声から、海統王の名を民間が付けた。王そのものではない、と記録部は明記している。"
 codex_materials = Array[String]([])
-skill_ids = Array[String](["boss_enrage", "boss_nereion_hex", "enemy_nereion_tidal_wail", "enemy_nereion_breach"])
+skill_ids = Array[String](["boss_enrage", "boss_nereion_hex", "enemy_nereion_tidal_wail", "enemy_nereion_breach", "enemy_nereion_call_dread"])
 skill_use_chance = 0.55

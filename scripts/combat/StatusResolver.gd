@@ -90,6 +90,15 @@ func tick_unit(unit_id: String) -> Array[Dictionary]:
 					"damage": dmg,
 					"unit_id": unit_id,
 				})
+		elif effect.effect_type == "hot":
+			var heal_ratio: float = float(effect.hot_percent_of_max) * float(inst.stacks)
+			if heal_ratio > 0.0:
+				results.append({
+					"effect_id": inst.effect_id,
+					"display_name": effect.display_name,
+					"heal_percent_max": heal_ratio,
+					"unit_id": unit_id,
+				})
 		inst.remaining_ticks -= 1
 		if inst.remaining_ticks > 0:
 			survivors.append(inst)
