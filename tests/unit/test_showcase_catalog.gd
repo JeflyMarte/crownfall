@@ -200,9 +200,13 @@ func test_empty_own_hides_baked_name_frame_with_mask() -> void:
 	GameState.showcase_member_id = prev_id
 
 
-func test_empty_panel_has_no_black_card() -> void:
+func test_empty_panel_has_opaque_black_card() -> void:
+	## 自慢キャラ選択UIは部屋が透けない不透明マット。
 	var sb: StyleBox = ShowcaseUiTokens.empty_panel_style()
-	assert_true(sb is StyleBoxEmpty)
+	assert_true(sb is StyleBoxFlat)
+	var flat: StyleBoxFlat = sb as StyleBoxFlat
+	assert_gte(flat.bg_color.a, 0.99)
+	assert_true(flat.draw_center)
 
 
 func test_power_frame_center_is_transparent() -> void:
