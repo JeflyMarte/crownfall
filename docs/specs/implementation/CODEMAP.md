@@ -56,7 +56,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | CodexScene | `scenes/codex/CodexScene.tscn` | `scripts/codex/CodexScene.gd` |
 | GachaScene | `scenes/gacha/GachaScene.tscn` | `scripts/gacha/GachaScene.gd`（**P3-UI-GACHA** モック chrome・Reveal・DetailOverlay・招き／封蔵部屋ガイド） |
 | EventScene | `scenes/event/EventScene.tscn` | `scripts/event/EventScene.gd`（**P3-EVT-FIELD-001** ギルド情報誌／いまの野外詳細） |
-| ShowcaseScene | `scenes/showcase/ShowcaseScene.tscn` | `scripts/showcase/ShowcaseScene.gd`（**P3-SHOWCASE-001** 展示室・自慢キャラ・ステ下スキル名カード。スタッフ名札＝`キャラ(ビルド)`） |
+| ShowcaseScene | `scenes/showcase/ShowcaseScene.tscn` | `scripts/showcase/ShowcaseScene.gd`（**P3-SHOWCASE-001** 展示室・自慢キャラ・ステ下スキル名＋効果文。スタッフ名札＝`キャラ(ビルド)`） |
 | ShowcaseCatalog | — | `scripts/showcase/ShowcaseCatalog.gd`（スタッフ理想ビルド5枠・読取専用） |
 | SurveyScene | `scenes/survey/SurveyScene.tscn` | `scripts/survey/SurveyScene.gd`（**P3-HUB-SURVEY-001** 調査室。スタッフ＝`SurveyStaff`。ノノカは **P3-SURVEY-NONOKA-JOIN-001** で③クリア後合流） |
 | CommanderScene | `scenes/commander/CommanderScene.tscn` | `scripts/commander/CommanderScene.gd`（**P3-CMD-001** 隊長台帳・**P3-CMD-RANK-CURVE-003** 閾値D0/C400/B900/A1500/S2200・**P3-CMD-RANK-SPLUS-001** S+n=+400／`57_CommanderSPlusRanks`・**P3-CMD-PERMIT-BOOST-001** 許可強化／`58_CommanderPermitBoost`・到達手当・称号データは残置／マイページ称号 UI オミット）・**P3-CMD-RANKUP-001** `CommanderRankUpOverlay`（拠点ランクアップ祝辞） |

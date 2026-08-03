@@ -16,7 +16,7 @@ const MODE_ROW := Rect2(78, 152, 564, 72)
 const EQUIP_RECT := Rect2(70, 175, 168, 580)
 const STATS_RECT := Rect2(482, 175, 168, 460)
 ## ステータス焼込枠の直下。背景にスキル枠は無いので Godot 側で金枠カードを描く。
-const SKILLS_RECT := Rect2(482, 652, 168, 200)
+const SKILLS_RECT := Rect2(482, 652, 168, 258)
 const IDLE_CENTER := Vector2(360, 688)
 const IDLE_HOST_SIZE := Vector2(260, 320)
 ## 名前テキストのみ（枠なし）。台座下〜下ナビ上へ。長名札向けに焼込枠内へ収める。
@@ -57,11 +57,14 @@ const STAT_KEYS: Array[String] = [
 	"crit_rate",
 	"crit_damage",
 ]
-## スキルカード（見出し＋装備スキル名）。
-const SKILL_HEADER_H: float = 36.0
-const SKILL_ROW_H: float = 28.0
-const SKILL_PAD_X: float = 10.0
-const SKILL_NAME_FONT_SIZE: int = 15
+## スキルカード（見出し＋装備スキル名＋効果文）。
+const SKILL_HEADER_H: float = 30.0
+const SKILL_ROW_H: float = 22.0
+const SKILL_DESC_MAX_H: float = 58.0
+const SKILL_ENTRY_GAP: float = 6.0
+const SKILL_PAD_X: float = 8.0
+const SKILL_NAME_FONT_SIZE: int = 14
+const SKILL_DESC_FONT_SIZE: int = 11
 const SKILL_HEADER_TEXT: String = "✧ スキル ✧"
 
 ## 選択中タブは暗く、非選択は明るめの金文字。

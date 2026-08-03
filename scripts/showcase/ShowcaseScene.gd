@@ -422,40 +422,73 @@ func _populate_equipped_skill_names(member: Resource) -> void:
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	header.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	header.position = Vector2(0, 4)
+	header.position = Vector2(0, 2)
 	header.size = Vector2(_skills_panel.size.x, ShowcaseUiTokensScript.SKILL_HEADER_H)
 	UiTypography.apply_caption(header, COLOR_GOLD)
 	_skills_col.add_child(header)
 
-	var names: PackedStringArray = PackedStringArray()
+	## [{ "name": String, "effect": String }, ...]
+	var entries: Array[Dictionary] = []
 	if member != null:
 		for sid: String in GameState.get_equipped_skill_ids(member):
 			var skill_data: Resource = DataRegistry.get_skill_data(sid)
 			var nm: String = str(skill_data.display_name) if skill_data != null else sid
+			var effect: String = ""
+			if skill_data != null:
+				effect = str(skill_data.description).strip_edges().replace("\n", "")
 			if not nm.is_empty():
-				names.append(nm)
-	if names.is_empty():
-		names.append("なし")
+				entries.append({"name": nm, "effect": effect})
+	if entries.is_empty():
+		entries.append({"name": "なし", "effect": ""})
 
-	var y: float = ShowcaseUiTokensScript.SKILL_HEADER_H + 4.0
-	var row_h: float = ShowcaseUiTokensScript.SKILL_ROW_H
+	var y: float = ShowcaseUiTokensScript.SKILL_HEADER_H + 2.0
+	var name_h: float = ShowcaseUiTokensScript.SKILL_ROW_H
 	var pad_x: float = ShowcaseUiTokensScript.SKILL_PAD_X
 	var value_w: float = maxf(24.0, _skills_panel.size.x - pad_x * 2.0)
-	for i in range(names.size()):
-		var lbl := Label.new()
-		lbl.text = names[i]
-		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
-		lbl.clip_text = true
-		lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		lbl.position = Vector2(pad_x, y + float(i) * row_h)
-		lbl.size = Vector2(value_w, row_h)
+	var desc_font: Font = UiTypography.body_font()
+	var desc_fs: int = ShowcaseUiTokensScript.SKILL_DESC_FONT_SIZE
+	for i in range(entries.size()):
+		var nm: String = str(entries[i].get("name", ""))
+		var effect: String = str(entries[i].get("effect", ""))
+		var name_lbl := Label.new()
+		name_lbl.text = nm
+		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		name_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+		name_lbl.clip_text = true
+		name_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		name_lbl.position = Vector2(pad_x, y)
+		name_lbl.size = Vector2(value_w, name_h)
 		UiTypography.apply_body(
-			lbl, ShowcaseUiTokensScript.SKILL_NAME_FONT_SIZE, COLOR_BODY
+			name_lbl, ShowcaseUiTokensScript.SKILL_NAME_FONT_SIZE, COLOR_GOLD
 		)
-		_skills_col.add_child(lbl)
+		_skills_col.add_child(name_lbl)
+		y += name_h
+		if not effect.is_empty():
+			var desc_h: float = ShowcaseUiTokensScript.SKILL_DESC_MAX_H
+			if desc_font != null:
+				var measured: Vector2 = desc_font.get_multiline_string_size(
+					effect,
+					HORIZONTAL_ALIGNMENT_LEFT,
+					value_w,
+					desc_fs
+				)
+				desc_h = clampf(measured.y + 2.0, 18.0, ShowcaseUiTokensScript.SKILL_DESC_MAX_H)
+			var desc_lbl := Label.new()
+			desc_lbl.text = effect
+			desc_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+			desc_lbl.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+			desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			desc_lbl.clip_text = true
+			desc_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			desc_lbl.position = Vector2(pad_x, y)
+			desc_lbl.size = Vector2(value_w, desc_h)
+			UiTypography.apply_body(desc_lbl, desc_fs, COLOR_SUB)
+			_skills_col.add_child(desc_lbl)
+			y += desc_h
+		if i < entries.size() - 1:
+			y += ShowcaseUiTokensScript.SKILL_ENTRY_GAP
 
 
 func _ensure_change_member_button() -> void:
