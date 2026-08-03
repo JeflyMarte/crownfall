@@ -19,7 +19,7 @@
 
 | ID | 新名称 | 効果 | 数値 |
 |---|---|---|---|
-| `relic_war_banner` | 指揮の軍旗 | 撃破時味方鼓舞＋オトモ強化／自身与ダメ↓ | 与ダメ 0.70／pet与 1.35・防 1.15／on_kill `empower` party |
+| `relic_war_banner` | 指揮の軍旗 | 撃破時味方鼓舞＋ペット強化／自身与ダメ↓ | 与ダメ 0.70／pet与 1.35・防 1.15／on_kill `empower` party |
 | `relic_aegis_shard` | 身代わりの鏡 | 後衛被弾を確率で自分へ＋ガード | `redirect_rear_hit_chance` 0.40 |
 | `relic_old_hourglass` | 連撃の歯車 | スキルCD短縮／必殺チャージ遅 | `skill_cd_mult` 0.70／`ultimate_charge_dealt_mult` 0.65 |
 | `relic_berserker_charm` | 生命の脈 | 戦闘中リジェネ／与ダメ控えめ | 3秒ごと最大HP 2.5%／与ダメ 0.85 |

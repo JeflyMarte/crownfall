@@ -42,11 +42,11 @@
 
     [→ Tier](guide/tier.md) · [要注意敵](guide/threats.md) · [ビルド例](guide/builds.md) · [装備](guide/recommended-gear.md)
 
-- :material-cash: **稼ぎ・招待・オトモ**
+- :material-cash: **稼ぎ・招待・ペット**
 
     石の貯め方、ガチャの使いどき、ジャック達の切替。
 
-    [→ 稼ぎ方](guide/farming.md) · [招待状](guide/gacha.md) · [オトモ](guide/pets.md)
+    [→ 稼ぎ方](guide/farming.md) · [招待状](guide/gacha.md) · [ペット](guide/pets.md)
 
 - :material-map-search: **Hard／Boss／放浪／UI**
 

@@ -21,7 +21,7 @@ const COMBAT_WAIT_GRIND: float = 0.28
 const AUTO_DELAY_GRIND: float = 0.6
 # 味方CHRの「見える体格」を揃える目標高さ（実体=α領域の高さ基準）
 const CHR_BODY_TARGET_PX: float = 140.0
-## オトモは味方より一回り小さく（P3-PET-OTOMO-001 polish）
+## ペットは味方より一回り小さく（P3-PET-OTOMO-001 polish）
 const PET_BODY_TARGET_PX: float = 92.0
 const _LOG_MAX: int = 60
 const _BgmCatalog := preload("res://scripts/audio/BgmCatalog.gd")
@@ -941,7 +941,7 @@ const FORMATION_SLOT_RATIOS: Array[Vector2] = [
 	Vector2(0.508, 0.785),  # 1 前衛右（敵寄り）
 	Vector2(0.110, 0.775),  # 2 後衛左（奥）
 	Vector2(0.293, 0.865),  # 3 後衛右
-	Vector2(0.355, 0.725),  # 4 オトモ（前衛左の少し右）
+	Vector2(0.355, 0.725),  # 4 ペット（前衛左の少し右）
 ]
 const PARTY_CARD_SLOT_COUNT: int = 4
 const BATTLE_LOG_VISIBLE_LINES: int = 4
@@ -2710,7 +2710,7 @@ func _sprite_top_y_global(sprite: AnimatedSprite2D) -> float:
 
 func _set_hp_bar_above_sprite(bar: ProgressBar, sprite: AnimatedSprite2D, formation_slot: int = 0) -> void:
 	const BAR_HALF_W: float = 40.0
-	## オトモは体が小さいのでパネルも短く（人間の約6割）
+	## ペットは体が小さいのでパネルも短く（人間の約6割）
 	const PET_BAR_HALF_W: float = 24.0
 	var half_w: float = PET_BAR_HALF_W if formation_slot == PetSystem.PET_FORMATION_SLOT else BAR_HALF_W
 	var center: Vector2 = _sprite_center_in_root(sprite)
@@ -3138,7 +3138,7 @@ func _field_legend_content_signature(weather: String, show_weather: bool) -> Str
 
 func _collect_active_status_ids() -> Array[String]:
 	var seen: Dictionary = {}
-	## オトモ含む combat HP 行（人間のみの party_members だと pet 状態がレジェンド欠落）。
+	## ペット含む combat HP 行（人間のみの party_members だと pet 状態がレジェンド欠落）。
 	for i: int in $CombatController.party_combat_hp.size():
 		if not $CombatController.is_member_alive(i):
 			continue
@@ -5623,7 +5623,7 @@ func _execute_member_heal(
 
 
 ## 味方 heal: power_multiplier = 対象 maxHP 割合（P3-BAL-HEAL-MAXHP-001）。
-## `pet_heal_bonus` タグ時、オトモ対象は HEAL_FRAC_BEAST_VET_PET を使う。
+## `pet_heal_bonus` タグ時、ペット対象は HEAL_FRAC_BEAST_VET_PET を使う。
 func _calc_skill_heal_amount(caster_idx: int, skill_data: Resource, target_idx: int) -> int:
 	if skill_data == null or target_idx < 0:
 		return 0
@@ -5673,7 +5673,7 @@ func _apply_party_heal_amount(caster_idx: int, heal_amount: int, present_scale: 
 	return total
 
 # バフスキル: 生存中のメイン編成全員に apply_status_id（鼓舞=与ダメ上昇）を付与する。
-# target_type=pet / tags に pet → オトモのみ。herd_call → オトモ本鼓舞＋他は弱い鼓舞。
+# target_type=pet / tags に pet → ペットのみ。herd_call → ペット本鼓舞＋他は弱い鼓舞。
 # tags に self → 発動者のみ。tags に taunt → Threat スパイク（P3-PET-VARIANT-001 アッシュ）。
 func _execute_member_buff(
 	member_idx: int,
@@ -5754,7 +5754,7 @@ func _apply_member_buff_effects(member_idx: int, skill_data: Resource) -> Dictio
 					applied = 1
 					_on_party_status_applied(cover_target_idx, status_id, false)
 		elif skill_id == "herd_call" or str(skill_data.target_type) == "all_party":
-			## 味方全体バフ（P3-SKILL-KIT-001）。herd_call も同強度で人＋オトモへ。
+			## 味方全体バフ（P3-SKILL-KIT-001）。herd_call も同強度で人＋ペットへ。
 			for i: int in GameState.party_members.size():
 				if not $CombatController.is_member_alive(i):
 					continue
@@ -7603,7 +7603,7 @@ func _roll_enhancement_material_drops(
 	_try_register_discovery("material", mat_id)
 	_append_material_drop_icons(drop_icons, mat_id, amount)
 
-## 撃破時点で生存している戦闘参加者 id（人間＋オトモ）。
+## 撃破時点で生存している戦闘参加者 id（人間＋ペット）。
 func _alive_exp_recipient_ids() -> Array[String]:
 	var out: Array[String] = []
 	var n: int = $CombatController.party_combat_hp.size()
@@ -8311,7 +8311,7 @@ func _do_member_basic_attack(member_idx: int) -> void:
 	})
 
 # 必殺技スロットのスキル（ジョブ ultimate_skill_id → 既定 ultimate_strike）。
-# オトモは職なしのため DEFAULT に落ちて撃ててしまうため除外（P3-PET-ULT-OMIT-001）。
+# ペットは職なしのため DEFAULT に落ちて撃ててしまうため除外（P3-PET-ULT-OMIT-001）。
 func _get_member_ultimate_skill(member_idx: int) -> Resource:
 	var member: Resource = GameState.get_combatant(member_idx)
 	if member == null:
@@ -8368,7 +8368,7 @@ func _log_boss_opening_aura_if_any() -> void:
 
 
 func _fire_combat_start_passives() -> void:
-	## オトモ含む combatants（party_members のみだと pet の開幕パッシブ欠落）。
+	## ペット含む combatants（party_members のみだと pet の開幕パッシブ欠落）。
 	for i: int in $CombatController.party_combat_hp.size():
 		if $CombatController.is_member_alive(i):
 			_fire_member_passives(i, "on_combat_start")
@@ -8653,7 +8653,7 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 				if not sid.is_empty() and $CombatController.apply_status("party_%d" % i, sid, 1, 0):
 					_on_party_status_applied(i, sid)
 					applied = true
-				## 必殺チャージは人間のみ（オトモ必殺は省略仕様）。
+				## 必殺チャージは人間のみ（ペット必殺は省略仕様）。
 				if charge_flat > 0.0 and not GameState.is_pet_combatant(i):
 					$CombatController.add_ultimate_charge(i, charge_flat)
 					applied = true

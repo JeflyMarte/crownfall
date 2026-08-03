@@ -12,7 +12,7 @@
 
 | 軸 | L（ビルド拡張プール） | 中盤E（通常プール） |
 |---|---|---|
-| ペット | 防具1（指揮外套） | 装飾1（弱いオトモ与） |
+| ペット | 防具1（指揮外套） | 装飾1（弱いペット与） |
 | ヒーラー | 杖1＋防具1 | 装飾1（弱い回復） |
 
 既存: `packbond_staff`／`beastlord_fang`／`apothecary_vial`／軍旗レリックは据置。
@@ -25,7 +25,7 @@
 
 | id | 部位 | 表示名 | パッシブ | 効果 |
 |---|---|---|---|---|
-| `beastcall_mantle` | 防 | 獣呼びの指揮外套 | `eq_beastcall_mantle` | オトモ与+18%／防+10%。自身与-6% |
+| `beastcall_mantle` | 防 | 獣呼びの指揮外套 | `eq_beastcall_mantle` | ペット与+18%／防+10%。自身与-6% |
 | `mendweaver_staff` | 杖 | 癒織の杖 | `eq_wpn_mendweaver_staff` | 回復+22%。自身与-8% |
 | `field_salve_robe` | 防 | 野戦調剤の法衣 | `eq_field_salve_robe` | 回復+15%。自身与-10% |
 
@@ -33,7 +33,7 @@
 
 | id | 部位 | 表示名 | パッシブ | 効果 |
 |---|---|---|---|---|
-| `pack_whistle_charm` | 飾 | 群れ笛の護符 | `eq_pack_whistle_charm` | オトモ与+8% |
+| `pack_whistle_charm` | 飾 | 群れ笛の護符 | `eq_pack_whistle_charm` | ペット与+8% |
 | `salve_band` | 飾 | 軟膏の腕輪 | `eq_salve_band` | 回復+8% |
 
 ---

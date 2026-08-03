@@ -494,10 +494,10 @@ const LEGEND_HERO_PROFILES: Dictionary = {
 }
 
 
-## 随伴オトモ（図鑑人物録）。PetData と併記。
+## 随伴ペット（図鑑人物録）。PetData と併記。
 const PET_PROFILES: Dictionary = {
 	"pet_jack": {
-		"role_name": "随伴オトモ",
+		"role_name": "随伴ペット",
 		"hometown": "アイアンヘイブン随伴訓練舎",
 		"height_cm": 46,
 		"likes": "前衛の匂い、昼寝、ミレイの声",
@@ -513,7 +513,7 @@ const PET_PROFILES: Dictionary = {
 		"rarity": 1,
 	},
 	"pet_ash": {
-		"role_name": "随伴オトモ",
+		"role_name": "随伴ペット",
 		"hometown": "アイアンヘイブン随伴訓練舎（夜間索敵組）",
 		"height_cm": 48,
 		"likes": "見張り、灰白の茂み、静かな号令",
@@ -527,7 +527,7 @@ const PET_PROFILES: Dictionary = {
 		"rarity": 1,
 	},
 	"pet_ink": {
-		"role_name": "随伴オトモ",
+		"role_name": "随伴ペット",
 		"hometown": "アイアンヘイブン随伴訓練舎（珍毛枠）",
 		"height_cm": 42,
 		"likes": "影、崩しの合図、短い狩りのあと",

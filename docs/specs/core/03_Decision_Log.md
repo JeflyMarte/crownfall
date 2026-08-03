@@ -2712,14 +2712,25 @@
 
 **Closeout（2026-07-19）:** データ＋配線＋unit。
 
-## ペット・オトモ制（2026-07-19 — P3-PET-OTOMO-001）
+## 用語：オトモ → ペット（2026-08-03 — P3-TERM-PET-001）
+
+> **オーナー指示** — ゲーム全体の呼称を「ペット」に統一。
+
+| ID | 決定 | 理由 |
+|---|---|---|
+| P3-TERM-PET-001-1 | プレイヤー向け文言・図鑑・手引き・Wiki・スキル／パッシブ説明の「オトモ」を **「ペット」** に置換 | 呼称統一 |
+| P3-TERM-PET-001-2 | 既存 Decision ID（`P3-PET-OTOMO-*` 等）とコード識別子（`pet_*`）は **据置** | 履歴・互換 |
+
+---
+
+## ペット制（2026-07-19 — P3-PET-OTOMO-001）
 
 > オーナー GO: 推奨値すべて採用。入手＝ストーリー。陣形外・常時前衛。実装はアップデート枠（β後可）。
 
 | # | 決定 | 根拠 |
 |---|---|---|
-| P3-PET-OTOMO-001-1 | **職ではない随伴オトモ**。ビーストテイマーと **別系統** | 「ペット職」だと薄い6職＋BT衝突 |
-| P3-PET-OTOMO-001-2 | 戦闘は **人間編成4の外＝5体目**。`ACTIVE_PARTY_SIZE=4` は不変 | オトモ感を維持 |
+| P3-PET-OTOMO-001-1 | **職ではない随伴ペット**。ビーストテイマーと **別系統** | 「ペット職」だと薄い6職＋BT衝突 |
+| P3-PET-OTOMO-001-2 | 戦闘は **人間編成4の外＝5体目**。`ACTIVE_PARTY_SIZE=4` は不変 | ペット感を維持 |
 | P3-PET-OTOMO-001-3 | **装備不可**・**★1固定**・**パッシブなし**（進化特性もなし）・能力は低め | ビルド対象にしない |
 | P3-PET-OTOMO-001-4 | 育成は **人間並み**（共有EXP・Lv）。スキルは **基本攻撃＋最大5本・Lv習得・装備不可**（旧「2本程度」→ P3-PET-SKILL-001 で更新） | 成長の手触りだけ残す |
 | P3-PET-OTOMO-001-5 | **自動AIのみ**。全滅判定 **対象外**（人間全滅で敗北） | イベント助っ人に近いリスク |
@@ -2730,11 +2741,11 @@
 | P3-PET-OTOMO-001-10 | 初期実装の個体数は **1体のみ**（複数所持の枠は後拡張） | オーナー追記 |
 | P3-PET-OTOMO-001-11 | **ドット絵は後差し**（実装時はプレースホルダ可） | アート後追い |
 | P3-PET-OTOMO-001-12 | 初期個体名 **ジャック**（id 仮: `pet_jack`） | オーナー指定 |
-| P3-PET-OTOMO-001-13 | **ニューゲーム開始時から初期パーティに随伴**（人間4枠外のオトモ枠）。途中ストーリー解放ではない | オーナー指定 |
+| P3-PET-OTOMO-001-13 | **ニューゲーム開始時から初期パーティに随伴**（人間4枠外のペット枠）。途中ストーリー解放ではない | オーナー指定 |
 
 **Closeout（2026-07-19）:** ジャック実装。NG開始時随伴・セーブ v9・戦闘5体目（前衛固定）・プレースホルダドット。
 
-### 色変え別オトモ2体（2026-07-25 — P3-PET-VARIANT-001）
+### 色変え別ペット2体（2026-07-25 — P3-PET-VARIANT-001）
 
 > **オーナー確定** — 案Aアッシュ＋案Dインク。枠組み＝**運用1（Lv/EXP共有・ステ同一）＋三角スキル役割**（火力／守り／崩し）。
 
@@ -2746,24 +2757,24 @@
 | P3-PET-VARIANT-001-3 | **ドット** — `PET_Jack` シートの色替え（Hard/NM敵と同手法）。専用新規ドットは不要 | 工数／一貫性 |
 | P3-PET-VARIANT-001-4 | **出撃は常時1体**。所持リストから切替（P3-PET-OTOMO-001-6 を本実装） | 既存Decisionの拡張完遂 |
 | P3-PET-VARIANT-001-5 | **入手** — アッシュ＝メイン① **1-5クリア**／インク＝メイン② **2-5クリア**（ストーリーのみ・招待状不可） | オーナー U1 |
-| P3-PET-VARIANT-001-6 | **切替UI** — 編成（Roster）のオトモ枠から切替（最小）。拠点専用画面は作らない | UI肥大防止 |
+| P3-PET-VARIANT-001-6 | **切替UI** — 編成（Roster）のペット枠から切替（最小）。拠点専用画面は作らない | UI肥大防止 |
 | P3-PET-VARIANT-001-7 | **セーブ** — 所持ペットID一覧＋active id。切替時は **Lv/EXPを持ち帰る**（個体別育成はしない＝運用1） | 見た目コレと整合 |
 | P3-PET-VARIANT-001-8 | 実装レーンは **アップデート枠** | β必須ではない |
 
 **Closeout（2026-07-25）:** アッシュ／インク実装。U1解放・編成切替・セーブ v12・三角スキル。統合＋`main`。
 
-### オトモ Lv習得スキル（2026-07-26 — P3-PET-SKILL-001）
+### ペット Lv習得スキル（2026-07-26 — P3-PET-SKILL-001）
 
 > **オーナー GO** — 各ペット最大5本（既存2＋新規3）。三角役割維持。セーブは Lv から導出。
 
 | # | 決定 | 根拠 |
 |---|---|---|
-| P3-PET-SKILL-001-1 | 各オトモ **最大5スキル**。個体固有（共有プールではない） | 三角アイデンティティ |
+| P3-PET-SKILL-001-1 | 各ペット **最大5スキル**。個体固有（共有プールではない） | 三角アイデンティティ |
 | P3-PET-SKILL-001-2 | 解放 Lv = **1 / 8 / 16 / 24 / 32**。解放済みはすべて装備（切替不可） | 人間職と同型・装備UI肥大防止 |
 | P3-PET-SKILL-001-3 | Jack=火力3新／Ash=守り3新／Ink=崩し3新。`PetData.skill_unlocks`＋`SkillProgression` | JobData と同型 |
 | P3-PET-SKILL-001-4 | セーブにスキル配列を足さない（Lv導出）。専用アイコンアートは後差し可 | セーブ破壊回避 |
 
-### 色変えオトモ入手＝調査室完全調査（2026-07-26 — P3-PET-SURVEY-UNLOCK-001）
+### 色変えペット入手＝調査室完全調査（2026-07-26 — P3-PET-SURVEY-UNLOCK-001）
 
 > **オーナー GO** — ジャックは開始随伴据置。アッシュ／インクは調査ゲージ100%景品。調査対象カードに素材と同寸の停止 Idle を表示。
 
@@ -2797,16 +2808,16 @@
 
 ---
 
-## BTオトモ連携スキル／パッシブ（2026-07-19 — P3-BT-PET-LINK-001）
+## BTペット連携スキル／パッシブ（2026-07-19 — P3-BT-PET-LINK-001）
 
 > オーナー GO: 推奨値すべて。スキル3本差し替え＋`herd_call`改修、ミレイ／職FBをペット寄せ。
 
 | # | 決定 | 根拠 |
 |---|---|---|
 | P3-BT-PET-LINK-001-1 | Lv6=`pet_bond_rally`（相棒鼓舞）／Lv48=`pet_command_fang`（指揮の牙）／Lv50=`pet_bond_guard`（絆の守り） → **2026-07-25 上書き:** Lv42=指揮の牙／Lv48=絆の守り／Lv50=`apex_tame`（P3-BAL-ALLY-FIX-001-2） | ペット強化を混ぜる／到達技対称 |
-| P3-BT-PET-LINK-001-2 | `herd_call`→**群れの號令** — オトモ本鼓舞＋他味方は弱い鼓舞 | 既存枠の意味付け |
-| P3-BT-PET-LINK-001-3 | ミレイ固有→**相棒共鳴**（オトモ与ダメ+20%） | 案A |
-| P3-BT-PET-LINK-001-4 | 職FB `pack_instinct`→**群れの指揮**（オトモ与ダメ+10%） | 案A・ミレイより弱 |
+| P3-BT-PET-LINK-001-2 | `herd_call`→**群れの號令** — ペット本鼓舞＋他味方は弱い鼓舞 | 既存枠の意味付け |
+| P3-BT-PET-LINK-001-3 | ミレイ固有→**相棒共鳴**（ペット与ダメ+20%） | 案A |
+| P3-BT-PET-LINK-001-4 | 職FB `pack_instinct`→**群れの指揮**（ペット与ダメ+10%） | 案A・ミレイより弱 |
 | P3-BT-PET-LINK-001-5 | ミラ固有・★帯データは据置 | スコープ外 |
 
 **Closeout（2026-07-19）:** データ＋戦闘配線＋unit。
@@ -3925,7 +3936,7 @@ ELITE/BOSS/遍在希少種（P3-D166）は別枠。重みは **当該 Biome 雑�
 
 | # | 決定 | 根拠 |
 |---|---|---|
-| P3-BAL-EXP-001-A | **仕様同期** — `06_キャラクター_ジョブ` を現行に合わせる（人間4＋オトモ／Lv99／成長表／推奨Lvは勝率目安） | ドリフト解消 |
+| P3-BAL-EXP-001-A | **仕様同期** — `06_キャラクター_ジョブ` を現行に合わせる（人間4＋ペット／Lv99／成長表／推奨Lvは勝率目安） | ドリフト解消 |
 | P3-BAL-EXP-001-B | **序盤必要EXP緩和**（例: Lv1–10 を `80×L`）— **見送り** | 周回前提・①EXP据置方針と整合 |
 | P3-BAL-EXP-001-C | **①敵EXP増** — **見送り** | 同上 |
 | P3-BAL-EXP-001-D | **推奨Lv引下げ** — **見送り** | 勝率ハーネス再設計が必要 |
@@ -4219,7 +4230,7 @@ ELITE/BOSS/遍在希少種（P3-D166）は別枠。重みは **当該 Biome 雑�
 | P3-BAL-OPENING-001-1 | **案C** — 敵を上げ＋味方ボーナスを圧縮。全ダンジョン共通 | 片方だけに寄せない |
 | P3-BAL-OPENING-001-2 | **敵グローバル倍率** — HP ×1.50／ATK ×1.30（`BalanceConfig`・戦闘開始時に適用） | 「しっかり危ない」。tres 個別改変を避ける |
 | P3-BAL-OPENING-001-3 | **味方★／個人ボーナス ×0.70**（`GachaRarityConfig.apply_base_stats`） | 初期火力・耐久の厚みを削る。素体800は据置 |
-| P3-BAL-OPENING-001-4 | **人数補正にオトモを含める**（`combatant_count`） | ジャックが5人目なのに敵が4人前提だった穴を塞ぐ |
+| P3-BAL-OPENING-001-4 | **人数補正にペットを含める**（`combatant_count`） | ジャックが5人目なのに敵が4人前提だった穴を塞ぐ |
 | P3-BAL-OPENING-001-5 | **DEF／EXP は据置**（今回はHP/ATKと味方ボーナスのみ） | スコープ最小化。実機後に再調整可 |
 
 ---
@@ -4787,7 +4798,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | # | 決定 | 根拠 |
 |---|---|---|
 | P3-BAL-ALLY-FIX-001-1 | `mira_beast_call`／`tamer_whistle` の付与状態を **snare→chill**（拘束表現は既存 snare_shot と同系） | 未定義 status によるパッシブ不発を解消 |
-| P3-BAL-ALLY-FIX-001-2 | BT習得 Lv50=`apex_tame`。オトモ3種は Lv6/42/48 維持。借用 `hex_bolt` は習得から外す | 他職と到達技の対称性。P3-BT-PET-LINK-001-1 の Lv50=絆の守りを上書き（絆の守りは Lv48へ） |
+| P3-BAL-ALLY-FIX-001-2 | BT習得 Lv50=`apex_tame`。ペット3種は Lv6/42/48 維持。借用 `hex_bolt` は習得から外す | 他職と到達技の対称性。P3-BT-PET-LINK-001-1 の Lv50=絆の守りを上書き（絆の守りは Lv48へ） |
 
 ## 味方連携技 案B（2026-07-25 — P3-BAL-ALLY-FIX-001-3B）
 > **オーナー指示** — 推奨3は案B（連携技自身に軽い付与）。
@@ -5351,7 +5362,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 |---|---|---|
 | P3-SKILL-KIT-001-1 | 装備枠＝1 維持 | P3-COMBAT-GAUGE-001 |
 | P3-SKILL-KIT-001-2 | 職あたり習得7本・解放Lv 1/8/15/22/30/40/50 | 5本は少ない |
-| P3-SKILL-KIT-001-3 | SW＝攻め前衛／VG＝盾／AL＝人支援／BT＝オトモ／RG＝火力＋標的 | 役割案A |
+| P3-SKILL-KIT-001-3 | SW＝攻め前衛／VG＝盾／AL＝人支援／BT＝ペット／RG＝火力＋標的 | 役割案A |
 | P3-SKILL-KIT-001-4 | `all_enemies` / `all_party` を正式対象に | オーナー要望の全体技 |
 | P3-SKILL-KIT-001-5 | 同型威力階段禁止。短CD vs 長CD・条件付き追撃で並立 | Lv1も終盤選択肢 |
 | P3-SKILL-KIT-001-6 | キット表は Decision `20_SkillKitCompress.md` §4 v2 | SSOT |
@@ -5410,7 +5421,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-LEG-WPN-A001-3 | **影弦** — 会心維持＋撃破時 empower | 会心下位互換の解消 |
 | P3-BAL-LEG-WPN-A001-4 | **烽火弓** — 必殺チャージ×1.75＋スキル+15%（旧+35%廃止） | EXP×2のみの解消 |
 | P3-BAL-LEG-WPN-A001-5 | **戦列猛弓** — 前列×2/1.5、後列×1.25/1.1 | 後列でも使える |
-| P3-BAL-LEG-WPN-A001-6 | **絆笛の号令杖** — オトモ与ダメ+30%／防+10% | オトモ与ダメ穴 |
+| P3-BAL-LEG-WPN-A001-6 | **絆笛の号令杖** — ペット与ダメ+30%／防+10% | ペット与ダメ穴 |
 | P3-BAL-LEG-WPN-A001-7 | **腐血の影弦** — 毒出血敵+35%＋25%付与 | DoTシナジー弓 |
 | P3-BAL-LEG-WPN-A001-8 | **脈打つ閃刃** — 会心時ゲージ+8＆35%追撃 | 会心追撃／ゲージ加速 |
 | P3-BAL-LEG-WPN-A001-9 | **防壁の戦剣** — Threat+120／被ダメ-12% | VG脅威＋減ダメ |
@@ -5582,7 +5593,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 ---
 ## キャラ画面の一覧切替（2026-07-28 — P3-UX-CHR-MEMBER-LIST-001）
 > **オーナー指示** — ◀▶ だけでなく一覧からキャラを切り替えたい。
-| P3-UX-CHR-MEMBER-LIST-001-1 | 名前横に「一覧」ボタン。シートでロスター＋オトモを選択 | ◀▶ 連打は人数増で不便 |
+| P3-UX-CHR-MEMBER-LIST-001-1 | 名前横に「一覧」ボタン。シートでロスター＋ペットを選択 | ◀▶ 連打は人数増で不便 |
 | P3-UX-CHR-MEMBER-LIST-001-2 | ◀▶ は残置。対象は既存 `_get_view_members` と同一 | 切替対象の食い違い防止 |
 | P3-UX-CHR-MEMBER-LIST-001-3 | AcceptDialog 禁止。Control オーバーレイ＋ScrollTouch | 鍛冶と同様の入力奪取回避 |
 ## ランHUD％をフロア進行度へ（2026-07-29 — P3-UX-RUN-HUD-FLOOR-PCT-001）
@@ -5679,7 +5690,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-PASSIVE-SKILL-CORE-001-2 | **アルド** — 平与ダメ+10% → 攻撃時25%で出血 | ソードマン核＝裂傷／出血 |
 | P3-PASSIVE-SKILL-CORE-001-3 | **リーヴァ** — 攻撃時25%毒 → 攻撃時25%標的。表示名「狙印の刻」 | レンジャー核＝標 |
 | P3-PASSIVE-SKILL-CORE-001-4 | **ガレン** — 被弾反撃 → 被ダメ-10%＋threat+80 | ヴァンガード核＝注目／耐久 |
-| P3-PASSIVE-SKILL-CORE-001-5 | **エリアス／ミレイ** — 据置（入場回復／オトモ与ダメ） | 既にスキル核と一致 |
+| P3-PASSIVE-SKILL-CORE-001-5 | **エリアス／ミレイ** — 据置（入場回復／ペット与ダメ） | 既にスキル核と一致 |
 | P3-PASSIVE-SKILL-CORE-001-6 | **ID据置** — `ald_royal_flame` 等の id は変更しない（セーブ互換） | 表示名・効果のみ |
 | P3-PASSIVE-SKILL-CORE-001-7 | **図鑑／はじめガイド** — フレーバーと例示を新効果に同期 | 文言齟齬防止 |
 | P3-PASSIVE-SKILL-CORE-001-8 | **後続** — レジェンド属性偏り（案B）／レリック職接続（案C）は別 Task | スコープ分離 |
@@ -5709,7 +5720,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | # | 決定 | 根拠 |
 |---|---|---|
 | P3-BAL-RELIC-ACC-CD-001-C1 | **斥候の片眼** — 開幕狙撃 → 毒・出血核（vs+45%／無し-15%／攻撃30%付与） | DoT軸のレリック核 |
-| P3-BAL-RELIC-ACC-CD-001-C2 | **王国軍旗** — 撃破全体鼓舞 → オトモ与+35%／防+15%（自身与-15%据置） | オトモ／指揮軸の核 |
+| P3-BAL-RELIC-ACC-CD-001-C2 | **王国軍旗** — 撃破全体鼓舞 → ペット与+35%／防+15%（自身与-15%据置） | ペット／指揮軸の核 |
 | P3-BAL-RELIC-ACC-CD-001-C3 | **古い砂時計** — 必殺核として据置 | 必殺スパム軸は既存で充足 |
 | P3-BAL-RELIC-ACC-CD-001-C4 | **据置** — 狩人／王盾／狂戦士／反応盾／弔鐘 | 既に職ビルド接続済み |
 | P3-BAL-RELIC-ACC-CD-001-C5 | **ID据置** — `relic_*` id・表示名は変更しない | セーブ／所持互換 |
@@ -5785,7 +5796,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 
 | # | 決定 | 根拠 |
 |---|---|---|
-| P3-BAL-HELPER-PASSIVE-B001-1 | **ネリ** — オトモ与×1.25／防×1.10 → **×1.15／×1.05** | ★2＜ミレイ（×1.20）へ序列回復 |
+| P3-BAL-HELPER-PASSIVE-B001-1 | **ネリ** — ペット与×1.25／防×1.10 → **×1.15／×1.05** | ★2＜ミレイ（×1.20）へ序列回復 |
 | P3-BAL-HELPER-PASSIVE-B001-2 | **シアン** — `empower_minor` 据置＋**小鼓舞必殺**（与ダメの20%追加・本鼓舞35%より弱） | AUDIT-C2の棲み分け維持しつつ必殺ビルド接続 |
 | P3-BAL-HELPER-PASSIVE-B001-3 | **レノール** — 与×1.18／被×1.12 → **×1.12／×1.10** | ★2の平火力を抑制（紙耐久アイデンティティは維持） |
 | P3-BAL-HELPER-PASSIVE-B001-4 | **据置** — 他助っ人パッシブ・個人ステ・排出 | スコープ1→3のみ |
@@ -5958,7 +5969,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 
 | # | 決定 | 根拠 |
 |---|---|---|
-| P3-SURVEY-DISPATCH-EXP-001-1 | **対象** — 配置した戦闘ロスターのみ。ニーナ／ノノカ除外。オトモなし | 依頼どおり |
+| P3-SURVEY-DISPATCH-EXP-001-1 | **対象** — 配置した戦闘ロスターのみ。ニーナ／ノノカ除外。ペットなし | 依頼どおり |
 | P3-SURVEY-DISPATCH-EXP-001-2 | **量（後で上書き）** — 対象 DG 雑魚クリア相当 × 短20%／標準45% | → **P3-BAL-SURVEY-TIME-EXP-001** で短・標準とも100% |
 | P3-SURVEY-DISPATCH-EXP-001-3 | **割** — プール固定→均等（端数は先頭から） | 人数で総量が増えない |
 | P3-SURVEY-DISPATCH-EXP-001-4 | **付与** — 受取時のみ。中止は無し。`LevelSystem.grant_exp` | 潜行と同パッシブ乗算 |
@@ -6191,17 +6202,17 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-FIX-COMBAT-AUDIT-C-001-2 | **連携武装** — `_party_applied_enemy_status` でスキル／パッシブ／レリック pre_hit を統一 | 追い込みがスキル経路のみだった |
 | P3-FIX-COMBAT-AUDIT-C-001-3 | **パッシブ敵標的** — `target_slot` 優先、無ければ `attacker_slot`（被弾反撃） | on_attack と on_hit_taken の両立 |
 | P3-FIX-COMBAT-AUDIT-C-001-4 | **effect 整合** — 定義の effect は dispatcher アーム必須（回帰テスト） | refund_ct 型の再発防止 |
-| P3-FIX-COMBAT-AUDIT-C-001-5 | **据置** — 敵 critical_rate／ブロック演出／敵詠唱×active／ボス weight／オトモ index | 案D候補 |
+| P3-FIX-COMBAT-AUDIT-C-001-5 | **据置** — 敵 critical_rate／ブロック演出／敵詠唱×active／ボス weight／ペット index | 案D候補 |
 
 ## 戦闘システム監査案D（2026-07-31 — P3-FIX-COMBAT-AUDIT-D-001）
 
-> **オーナー GO（案D）** — 敵詠唱スロット固定／オトモ境界／列AoE確認。
+> **オーナー GO（案D）** — 敵詠唱スロット固定／ペット境界／列AoE確認。
 
 | # | 決定 | 根拠 |
 |---|---|---|
 | P3-FIX-COMBAT-AUDIT-D-001-1 | **敵スキル／詠唱** — caster `slot` を resolve まで貫通（ATK・属性・自己バフ・VFX・反撃元） | active 再読で誤配線 |
-| P3-FIX-COMBAT-AUDIT-D-001-2 | **オトモ** — party 回復／バフ／rally／ally_dead／次攻撃倍率は `party_combat_hp` ループ。必殺チャージは人間のみ | heal_party と同型 |
-| P3-FIX-COMBAT-AUDIT-D-001-3 | **列AoE** — 空列 fallback・Threat按分・オトモ常時前列は仕様通り（コード変更なし） | P3-D106d 確認 |
+| P3-FIX-COMBAT-AUDIT-D-001-2 | **ペット** — party 回復／バフ／rally／ally_dead／次攻撃倍率は `party_combat_hp` ループ。必殺チャージは人間のみ | heal_party と同型 |
+| P3-FIX-COMBAT-AUDIT-D-001-3 | **列AoE** — 空列 fallback・Threat按分・ペット常時前列は仕様通り（コード変更なし） | P3-D106d 確認 |
 | P3-FIX-COMBAT-AUDIT-D-001-4 | **据置** — 敵 critical_rate／ブロック演出／ボス weight 回帰 | 案E |
 
 ## 戦闘システム監査案E（2026-07-31 — P3-FIX-COMBAT-AUDIT-E-001）
@@ -6216,19 +6227,19 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 
 ## 戦闘システム監査案F（2026-07-31 — P3-FIX-COMBAT-AUDIT-F-001）
 
-> **オーナー GO（案F）** — 敵スキルCD個体別／死者状態／敵クリVFX／オトモレジェンド。
+> **オーナー GO（案F）** — 敵スキルCD個体別／死者状態／敵クリVFX／ペットレジェンド。
 
 | # | 決定 | 根拠 |
 |---|---|---|
 | P3-FIX-COMBAT-AUDIT-F-001-1 | **敵スキルCD** — キーを `enemy:{slot}:{skill_id}`（群れ同スキルの共有CD解消） | 個体別行動の前提 |
 | P3-FIX-COMBAT-AUDIT-F-001-2 | **死者状態** — 生存者のみ付与／tick。`party_` index は `substr(6)` | 撃破後付与・死者DoTログ／index0固定 |
 | P3-FIX-COMBAT-AUDIT-F-001-3 | **敵クリVFX/SE** — `is_critical` を `_spawn_hit_vfx` へ渡す | 案Eログ揃え |
-| P3-FIX-COMBAT-AUDIT-F-001-4 | **オトモレジェンド** — 状態収集は `party_combat_hp` ループ | 頭上アイコンとの一致 |
+| P3-FIX-COMBAT-AUDIT-F-001-4 | **ペットレジェンド** — 状態収集は `party_combat_hp` ループ | 頭上アイコンとの一致 |
 | P3-FIX-COMBAT-AUDIT-F-001-5 | **据置** — 再使用「秒」文言／武器knockback・stagger・weight／敵move・detection・ai | 文言・将来仕様 |
 
 ## 戦闘システム監査案G（2026-07-31 — P3-FIX-COMBAT-AUDIT-G-001）
 
-> **オーナー指示（案Gスコープ決定＋実装）** — 詠唱テンポ／パッシブ撃破打ち切り／斉射・余波演出／オトモ発火境界。
+> **オーナー指示（案Gスコープ決定＋実装）** — 詠唱テンポ／パッシブ撃破打ち切り／斉射・余波演出／ペット発火境界。
 
 | # | 決定 | 根拠 |
 |---|---|---|
@@ -6236,7 +6247,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-FIX-COMBAT-AUDIT-G-001-2 | **パッシブ直ダメ** — 撃破で戦闘終了なら後続パッシブ打ち切り（bonus／opening／aoe／crit_pulse） | 全滅後の二重処理防止 |
 | P3-FIX-COMBAT-AUDIT-G-001-3 | **斉射** — splash に hit VFX／CRITICAL ログ | 主対象と同型 |
 | P3-FIX-COMBAT-AUDIT-G-001-4 | **余波** — `aoe_burst` に数字・VFX・ログ | 無演出削りを解消 |
-| P3-FIX-COMBAT-AUDIT-G-001-5 | **オトモ発火** — combat_start／ally_death／探索被弾対象を `party_combat_hp` | 案D/F 境界の続き |
+| P3-FIX-COMBAT-AUDIT-G-001-5 | **ペット発火** — combat_start／ally_death／探索被弾対象を `party_combat_hp` | 案D/F 境界の続き |
 | P3-FIX-COMBAT-AUDIT-G-001-6 | **据置** — reactive cinematic lock 深度／再使用「秒」文言／死データ接続 | 侵襲大・将来仕様 |
 
 ## 戦闘システム監査案H（2026-07-31 — P3-FIX-COMBAT-AUDIT-H-001）
@@ -6542,7 +6553,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 
 | # | 決定 | 根拠 |
 |---|---|---|
-| P3-BAL-HEAL-BT-RG-001-1 | **BT** — Lv50=`beast_vet_care`（最傷・人12%／オトモ18%・CD7.5／詠唱1） | 相棒ケア |
+| P3-BAL-HEAL-BT-RG-001-1 | **BT** — Lv50=`beast_vet_care`（最傷・人12%／ペット18%・CD7.5／詠唱1） | 相棒ケア |
 | P3-BAL-HEAL-BT-RG-001-2 | **RG** — Lv50=`camp_draught`（自己12%・CD9.5／詠唱0） | 後衛粘り |
 | P3-BAL-HEAL-BT-RG-001-3 | **差し替え** — `apex_tame`／`apex_shot` を習得外（tres残置） | 7本キット維持 |
 | P3-BAL-HEAL-BT-RG-001-4 | **SSOT** — `decisions/43_BtRgSupportHeal.md` | 数値の正 |
@@ -6708,7 +6719,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 |---|---|---|
 | P3-BAL-RELIC-REMAKE-001-1 | **ID据置** — `relic_*` 8種の ID 維持、名称・効果のみ差し替え | セーブ／所持互換 |
 | P3-BAL-RELIC-REMAKE-001-2 | **帯** — ビルド拡張（クリア必須にしない）。敵全体常時弱体／パーティ恒久大強化は原則NG | 体験バランス |
-| P3-BAL-RELIC-REMAKE-001-3 | **指揮の軍旗** — 撃破鼓舞＋オトモ強化／自身与0.70 | 指揮役 |
+| P3-BAL-RELIC-REMAKE-001-3 | **指揮の軍旗** — 撃破鼓舞＋ペット強化／自身与0.70 | 指揮役 |
 | P3-BAL-RELIC-REMAKE-001-4 | **身代わりの鏡** — 後衛被弾40%リダイレクト＋ガード | 壁役 |
 | P3-BAL-RELIC-REMAKE-001-5 | **連撃の歯車** — スキルCD×0.70／必殺速度×0.65 | スキル回転 |
 | P3-BAL-RELIC-REMAKE-001-6 | **生命の脈** — 3秒ごと最大HP2.5%回復／与0.85 | 耐久 |

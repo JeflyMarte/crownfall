@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "apex_tame"
 display_name = "極意調教"
-description = "極意の調教撃。一撃とともにオトモを一時的に強化する。"
+description = "極意の調教撃。一撃とともにペットを一時的に強化する。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 2.2

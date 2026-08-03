@@ -1,5 +1,5 @@
 extends GutTest
-## P3-FIX-COMBAT-AUDIT-D-001 — 敵詠唱スロット／オトモ境界／列AoE。
+## P3-FIX-COMBAT-AUDIT-D-001 — 敵詠唱スロット／ペット境界／列AoE。
 
 const _PetSystem = preload("res://scripts/pets/PetSystem.gd")
 
@@ -49,7 +49,7 @@ func test_pet_is_always_front_row_in_column_sets() -> void:
 
 
 func test_heal_party_includes_pet_combatant_slot() -> void:
-	## 部屋回復と同型: party_combat_hp にオトモを含む。
+	## 部屋回復と同型: party_combat_hp にペットを含む。
 	GameState.party_members = [_human("h0", GameState.FORMATION_FRONT)]
 	GameState.active_pet = _PetSystem.create_pet_adventurer(_PetSystem.STARTER_PET_ID)
 	var cc := CombatController.new()

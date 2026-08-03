@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "packbond_staff"
 display_name = "絆笛の号令杖"
-description = "オトモとの息を合わせる笛を冠した杖。一吹きで相棒の牙と守りが同時に研ぎ澄まされる。"
+description = "ペットとの息を合わせる笛を冠した杖。一吹きで相棒の牙と守りが同時に研ぎ澄まされる。"
 fixed_skill_id = ""
 fixed_passive_id = "eq_wpn_packbond_staff"
 base_attack = 210

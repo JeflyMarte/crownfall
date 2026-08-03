@@ -897,7 +897,7 @@ func _make_member_list_row(member: Resource, view_index: int) -> Control:
 	var is_pet: bool = PetSystem.is_pet_member(member)
 	var job: String = RosterUiHelper.job_display_name(member)
 	if is_pet:
-		sub.text = "オトモ  Lv.%d" % int(member.level)
+		sub.text = "ペット  Lv.%d" % int(member.level)
 	elif SurveySystem.is_member_dispatched(str(member.id)):
 		sub.text = "調査中  Lv.%d  %s" % [int(member.level), job]
 	else:
@@ -3991,7 +3991,7 @@ func _skill_target_label(target_type: String) -> String:
 		"self":
 			return "自身"
 		"pet":
-			return "オトモ"
+			return "ペット"
 		_:
 			return "対象"
 

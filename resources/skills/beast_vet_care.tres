@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "beast_vet_care"
 display_name = "獣医の手当て"
-description = "生態の知識で傷を縫う。いちばん傷ついた味方を回復し、オトモなら特に厚く癒す。"
+description = "生態の知識で傷を縫う。いちばん傷ついた味方を回復し、ペットなら特に厚く癒す。"
 skill_type = "player"
 target_type = "ally"
 power_multiplier = 0.12

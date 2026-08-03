@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "beast_tamer"
 display_name = "ビーストテイマー"
-description = "生物の生態とオトモを指揮し、誘導と弱体化で戦う特殊職。"
+description = "生物の生態とペットを指揮し、誘導と弱体化で戦う特殊職。"
 role = "support"
 base_hp_modifier = 1.0
 base_attack_modifier = 0.95
