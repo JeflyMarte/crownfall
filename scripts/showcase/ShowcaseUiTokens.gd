@@ -134,9 +134,14 @@ static func detail_panel_style() -> StyleBoxFlat:
 	return sb
 
 
-static func empty_panel_style() -> StyleBoxEmpty:
-	## キャラ未設定の選択UI。黒カードは置かず余白だけ確保。
-	var sb := StyleBoxEmpty.new()
+static func empty_panel_style() -> StyleBoxFlat:
+	## キャラ未設定の選択UI。部屋が透けないよう不透明の黒マット＋細い金枠。
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.04, 0.03, 0.05, 1.0)
+	sb.draw_center = true
+	sb.set_border_width_all(2)
+	sb.border_color = COLOR_NAME_CARD_BORDER
+	sb.set_corner_radius_all(4)
 	sb.content_margin_left = 16.0
 	sb.content_margin_top = 16.0
 	sb.content_margin_right = 16.0
