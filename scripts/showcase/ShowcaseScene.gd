@@ -347,7 +347,7 @@ func _ensure_skills_panel() -> void:
 	_skills_panel.z_index = 5
 	_skills_panel.visible = false
 	_skills_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_skills_panel.clip_contents = true
+	_skills_panel.clip_contents = false
 	_skills_panel.add_theme_stylebox_override("panel", ShowcaseUiTokensScript.skill_card_style())
 	_skills_col = Control.new()
 	_skills_col.name = "SkillsCol"
@@ -413,7 +413,7 @@ func _populate_equipped_skill_names(member: Resource) -> void:
 		_skills_col.add_child(name_lbl)
 		y += name_h
 		if not effect.is_empty():
-			var desc_h: float = ShowcaseUiTokensScript.SKILL_DESC_MAX_H
+			var desc_h: float = 24.0
 			if desc_font != null:
 				var measured: Vector2 = desc_font.get_multiline_string_size(
 					effect,
@@ -421,13 +421,18 @@ func _populate_equipped_skill_names(member: Resource) -> void:
 					value_w,
 					desc_fs
 				)
-				desc_h = clampf(measured.y + 2.0, 18.0, ShowcaseUiTokensScript.SKILL_DESC_MAX_H)
+				## 効果全文を表示（高さ上限はパネル内に収まる範囲で緩く）。
+				desc_h = clampf(
+					measured.y + 2.0,
+					18.0,
+					ShowcaseUiTokensScript.SKILL_DESC_MAX_H
+				)
 			var desc_lbl := Label.new()
 			desc_lbl.text = effect
 			desc_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 			desc_lbl.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 			desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			desc_lbl.clip_text = true
+			desc_lbl.clip_text = false
 			desc_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			desc_lbl.position = Vector2(pad_x, y)
 			desc_lbl.size = Vector2(value_w, desc_h)

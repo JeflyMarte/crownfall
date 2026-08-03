@@ -126,12 +126,16 @@ func test_staff_list_button_matches_change_member_rect() -> void:
 func test_skills_rect_sits_below_stats() -> void:
 	var stats: Rect2 = ShowcaseUiTokens.STATS_RECT
 	var skills: Rect2 = ShowcaseUiTokens.SKILLS_RECT
-	## スキル箱はステ下・やや左・縦半分程度。
+	## スキル箱はステ下・やや左。効果全文用に十分な高さ。
 	assert_lt(skills.position.x, stats.position.x)
-	assert_eq(skills.size.x, stats.size.x)
-	assert_lt(skills.size.y, stats.size.y * 0.4)
+	assert_gte(skills.size.y, 200.0)
 	assert_gt(skills.position.y, stats.position.y + stats.size.y - 1.0)
 	assert_lt(skills.position.y + skills.size.y, ShowcaseUiTokens.POWER_RECT.position.y)
+
+
+func test_equip_icon_offsets_include_relic_rightward() -> void:
+	assert_eq(ShowcaseUiTokens.EQUIP_ICON_OFFSETS.size(), 4)
+	assert_gte(ShowcaseUiTokens.EQUIP_ICON_OFFSETS[0].x, 40.0)
 
 
 func test_showcase_scene_shows_equipped_skill_card() -> void:
