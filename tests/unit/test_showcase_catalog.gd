@@ -6,7 +6,7 @@ const ShowcaseCatalogScript = preload("res://scripts/showcase/ShowcaseCatalog.gd
 
 func test_staff_presets_build_members() -> void:
 	var presets: Array = ShowcaseCatalogScript.staff_presets()
-	assert_gt(presets.size(), 0, "staff presets exist")
+	assert_eq(presets.size(), 5, "ideal build staff presets")
 	var idx: int = 0
 	for raw: Variant in presets:
 		assert_true(raw is Dictionary)
@@ -15,13 +15,28 @@ func test_staff_presets_build_members() -> void:
 		assert_not_null(member, "member for %s" % str(preset.get("id", "")))
 		assert_false(str(member.display_name).is_empty())
 		assert_false(str(preset.get("player_name", "")).is_empty(), "player_name for %s" % str(preset.get("id", "")))
+		assert_false(str(preset.get("build_name", "")).is_empty(), "build_name for %s" % str(preset.get("id", "")))
+		assert_false(str(preset.get("character_id", "")).is_empty(), "character_id for %s" % str(preset.get("id", "")))
+		assert_eq(str(member.id), str(preset.get("character_id", "")))
 		idx += 1
 		assert_eq(str(preset.get("player_name", "")), "スタッフ%d" % idx)
 		var plate: String = ShowcaseCatalogScript.staff_nameplate_text(preset)
-		assert_eq(plate, "スタッフ%d-%s" % [idx, str(preset.get("display_name", ""))])
-		assert_true(plate.ends_with(str(member.display_name)))
+		assert_eq(
+			plate,
+			"%s(%s)" % [str(preset.get("display_name", "")), str(preset.get("build_name", ""))]
+		)
+		assert_true(plate.begins_with(str(member.display_name)))
 		assert_false(str(member.job_id).is_empty())
-		assert_gt(int(member.level), 0)
+		assert_eq(int(member.level), 50)
+		var skills: Array[String] = GameState.get_equipped_skill_ids(member)
+		assert_gte(skills.size(), 1, "equipped skill for %s" % str(preset.get("id", "")))
+		var expected_skills: Array = preset.get("equipped_skill_ids", [])
+		if expected_skills is Array and not expected_skills.is_empty():
+			assert_eq(skills[0], str(expected_skills[0]))
+		assert_not_null(member.equipped_weapon)
+		assert_eq(str(member.equipped_weapon.weapon_id), str(preset.get("weapon_id", "")))
+		assert_eq(int(member.equipped_weapon.equip_level), int(preset.get("equip_level", 50)))
+		assert_eq(int(member.equipped_weapon.enhance_level), int(preset.get("enhance_level", 4)))
 		var stats: Dictionary = RosterUiHelper.compute_member_stats(member)
 		assert_gt(int(stats.get("hp", 0)), 0)
 		## 展示装備はレア枠スタイルを解決できること（装備品一覧と同系）。
@@ -45,6 +60,7 @@ func test_staff_presets_build_members() -> void:
 			assert_not_null(data, "%s data for %s" % [cat, str(preset.get("id", ""))])
 			assert_true("rarity" in data)
 			var rarity: int = int(data.rarity)
+			assert_ne(rarity, Enums.Rarity.MYTHIC, "no mythic in staff ideal builds")
 			var cell_px: int = ShowcaseUiTokens.EQUIP_CELL_PX
 			var style: StyleBox = EquipmentUiTokens.rarity_slot_style(rarity, false, cell_px)
 			assert_not_null(style)
@@ -55,12 +71,9 @@ func test_staff_presets_build_members() -> void:
 				assert_not_null(EquipmentUiTokens.tier_badge(rarity))
 			elif rarity <= Enums.Rarity.EPIC:
 				assert_not_null(EquipmentUiTokens.corner_rarity_badge(rarity))
-			elif rarity == Enums.Rarity.MYTHIC:
-				assert_not_null(EquipmentUiTokens.tier_badge(rarity))
 			elif rarity == Enums.Rarity.LEGENDARY:
 				assert_not_null(EquipmentUiTokens.tier_badge(rarity))
 				assert_null(EquipmentUiTokens.corner_rarity_badge(rarity))
-
 
 func test_showcase_equip_cell_size_matches_catalog_style_inputs() -> void:
 	## 一覧セルより小さいが、レア枠／inset が壊れない下限を維持。
@@ -136,6 +149,9 @@ func test_showcase_scene_shows_equipped_skill_card() -> void:
 	assert_not_null(name_lbl)
 	assert_false(str(name_lbl.text).is_empty())
 	assert_ne(name_lbl.text, ShowcaseUiTokens.SKILL_HEADER_TEXT)
+	var footer: Label = scene.get("_footer_name") as Label
+	assert_not_null(footer)
+	assert_eq(footer.text, "アルド(出血主砲ビルド)")
 
 
 func test_showcase_scene_has_staff_list_button() -> void:

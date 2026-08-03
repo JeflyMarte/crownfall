@@ -6867,3 +6867,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-BOSS-BASIC-ALIGN-001-3 | **重い技** — 詠唱全体／単体・前列の副技を `power_multiplier=2.0` | 断罪スロット |
 | P3-BAL-BOSS-BASIC-ALIGN-001-4 | **据置** — hex×0.25／激昂／開幕オーラ／フェーズ重み／詠唱有無 | 個性と演出を残す |
 
+## 展示室スタッフ理想ビルド（2026-08-03 — P3-SHOWCASE-IDEAL-001）
+
+> **オーナー GO（推奨案 A+C）** — β到達の現実的完成形 × 役割カタログ。名札＝`アルド(出血主砲ビルド)`。神話・深層なし。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-SHOWCASE-IDEAL-001-1 | **5枠** — アルド出血主砲／ガレンアンティーク壁／セリン野営ヒーラー／リーヴァ標的シナジー／ミレイペット指揮 | 役割カタログ |
+| P3-SHOWCASE-IDEAL-001-2 | **名札** — `{キャラ名}({ビルド名})`。旧「スタッフN-名前」廃止 | オーナー指定 |
+| P3-SHOWCASE-IDEAL-001-3 | **装備帯** — 降臨セット／ビルド用 L 可。神話・深層は出さない | β到達想定 |
+| P3-SHOWCASE-IDEAL-001-4 | **育成想定** — Lv50・炉研ぎ+4・装備Lv50・スキル明示 | 完成形の見せ方 |
+| P3-SHOWCASE-IDEAL-001-5 | **SSOT** — `docs/specs/decisions/08_ShowcaseRoom.md` を上書き | 展示室 Decision |
+

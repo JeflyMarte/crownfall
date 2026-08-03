@@ -864,12 +864,12 @@ func _populate_stage(member: Resource) -> void:
 
 	_footer_name.text = str(member.display_name)
 	if _mode == Mode.STAFF:
-		## 名札は「スタッフ1-アルド」。キャラ名は display_name をそのまま残す。
+		## 名札は「アルド(出血主砲ビルド)」。キャラ名＋ビルド名。
 		var staff_preset: Dictionary = ShowcaseCatalogScript.find_staff_preset(_staff_preset_id)
 		if not staff_preset.is_empty():
 			_footer_name.text = ShowcaseCatalogScript.staff_nameplate_text(staff_preset)
-		elif not _staff_player_name.is_empty():
-			_footer_name.text = "%s-%s" % [_staff_player_name, str(member.display_name)]
+		elif not str(member.display_name).is_empty():
+			_footer_name.text = str(member.display_name)
 	UiTypography.apply_display(_footer_name, UiTypography.SIZE_BODY, COLOR_GOLD)
 	_footer_meta.text = "Lv.%d  %s" % [
 		int(member.level),
