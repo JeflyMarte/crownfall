@@ -1,7 +1,7 @@
 class_name PetSystem
 extends RefCounted
 
-## 随伴オトモ runtime（P3-PET-OTOMO-001 / P3-PET-VARIANT-001）。
+## 随伴ペット runtime（P3-PET-OTOMO-001 / P3-PET-VARIANT-001）。
 
 const STARTER_PET_ID: String = "pet_jack"
 const PET_ASH_ID: String = "pet_ash"
@@ -93,7 +93,7 @@ static func create_pet_adventurer(pet_id: String = STARTER_PET_ID) -> Resource:
 		stats.attack = 70
 		stats.defense = 35
 	adv.base_stats = stats
-	## オトモも装備枠1。解放済み先頭を既定装備（P3-PET-SKILL-001）。
+	## ペットも装備枠1。解放済み先頭を既定装備（P3-PET-SKILL-001）。
 	SkillProgression.apply_pet_new_skill_unlocks(adv)
 	if adv.equipped_skill_ids.is_empty():
 		var fallback: Array[String] = ["pet_nibble"]

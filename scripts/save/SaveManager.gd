@@ -269,7 +269,7 @@ func _heal_starter_pet_granted_from_owned() -> void:
 		GameState.pending_hub_pet_grant_id = _PetSystem.STARTER_PET_ID
 
 
-## P3-PET-VARIANT-001: 所持オトモ一覧
+## P3-PET-VARIANT-001: 所持ペット一覧
 func _migrate_save_v11_to_v12(data: Dictionary) -> Dictionary:
 	if not data.has("owned_pet_ids") or not (data["owned_pet_ids"] is Array):
 		data["owned_pet_ids"] = []
@@ -300,7 +300,7 @@ func _migrate_save_v9_to_v10(data: Dictionary) -> Dictionary:
 	return data
 
 
-## P3-PET-OTOMO-001: 随伴オトモ（欠落時はロード側で starter 付与）
+## P3-PET-OTOMO-001: 随伴ペット（欠落時はロード側で starter 付与）
 func _migrate_save_v8_to_v9(data: Dictionary) -> Dictionary:
 	if not data.has("active_pet"):
 		data["active_pet"] = {}

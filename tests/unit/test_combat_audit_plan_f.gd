@@ -1,5 +1,5 @@
 extends GutTest
-## P3-FIX-COMBAT-AUDIT-F-001 — 敵スキルCD個体別／死者状態／オトモレジェンド境界。
+## P3-FIX-COMBAT-AUDIT-F-001 — 敵スキルCD個体別／死者状態／ペットレジェンド境界。
 
 const _EnemyData = preload("res://scripts/data/EnemyData.gd")
 const _Adventurer = preload("res://scripts/domain/Adventurer.gd")
@@ -85,7 +85,7 @@ func test_party_status_unit_id_suffix_is_index() -> void:
 
 
 func test_pet_combat_index_is_beyond_party_members_size() -> void:
-	## レジェンド走査は party_combat_hp（オトモ含む）を見る必要がある。
+	## レジェンド走査は party_combat_hp（ペット含む）を見る必要がある。
 	GameState.party_members = [_Adventurer.new()]
 	GameState.party_members[0].id = "human0"
 	GameState.party_members[0].job_id = "swordsman"

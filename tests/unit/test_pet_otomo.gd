@@ -1,6 +1,6 @@
 extends GutTest
 
-## P3-PET-OTOMO-001 — 随伴オトモ「ジャック」
+## P3-PET-OTOMO-001 — 随伴ペット「ジャック」
 
 const _PetSystem = preload("res://scripts/pets/PetSystem.gd")
 
@@ -130,7 +130,7 @@ func test_pet_data_and_skills_exist() -> void:
 func test_jack_portrait_icon_resolves() -> void:
 	var tex: Texture2D = RosterUiHelper.get_member_portrait_texture(GameState.active_pet)
 	assert_not_null(tex)
-	assert_eq(RosterUiHelper.job_display_name(GameState.active_pet), "オトモ")
+	assert_eq(RosterUiHelper.job_display_name(GameState.active_pet), "ペット")
 	assert_true(ResourceLoader.exists("res://assets/ui/chr_icons/ICO_CHR_Jack.png"))
 
 
@@ -154,7 +154,7 @@ func test_pet_threat_can_be_selected_over_generic_jobs() -> void:
 
 
 func test_pet_does_not_gain_ultimate_charge() -> void:
-	## オトモは必殺ゲージ対象外（P3-PET-ULT-OMIT-001）。
+	## ペットは必殺ゲージ対象外（P3-PET-ULT-OMIT-001）。
 	var cc: CombatController = CombatController.new()
 	add_child_autofree(cc)
 	cc._init_party_hp()

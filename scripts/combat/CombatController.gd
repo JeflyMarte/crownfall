@@ -251,7 +251,7 @@ func _scale_enemy_combat_stats(enemy_data: Resource) -> Dictionary:
 	return {"hp": hp, "atk": atk, "def": df, "exp": xp}
 
 # 現行編成人数に対する敵ステ補正倍率（base=3人前提）。
-# オトモ込みの実戦闘人数を使う（P3-BAL-OPENING-001 / 旧は ACTIVE_PARTY_SIZE=人間4固定）。
+# ペット込みの実戦闘人数を使う（P3-BAL-OPENING-001 / 旧は ACTIVE_PARTY_SIZE=人間4固定）。
 static func _party_size_balance_multiplier(share: float) -> float:
 	var n: int = maxi(1, GameState.combatant_count())
 	if n <= PARTY_BALANCE_BASE_SIZE:
@@ -424,7 +424,7 @@ func add_ultimate_charge(member_index: int, amount: float) -> void:
 		return
 	if not is_member_alive(member_index):
 		return
-	## オトモは必殺対象外（P3-PET-ULT-OMIT-001）。
+	## ペットは必殺対象外（P3-PET-ULT-OMIT-001）。
 	if GameState.is_pet_combatant(member_index):
 		return
 	var gained: float = amount * ultimate_charge_gain_mult

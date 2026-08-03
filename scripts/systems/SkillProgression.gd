@@ -1,7 +1,7 @@
 class_name SkillProgression
 extends RefCounted
 
-## ジョブ／オトモスキルのレベル習得（P3-SKILL-001 / P3-PET-SKILL-001）。
+## ジョブ／ペットスキルのレベル習得（P3-SKILL-001 / P3-PET-SKILL-001）。
 ## 解放状態はセーブせず Lv から導出。
 
 ## キット差し替え時の旧装備ID→新ID（P3-SKILL-KIT-DIVERGE-001）。

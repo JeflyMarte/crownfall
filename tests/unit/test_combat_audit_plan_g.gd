@@ -1,5 +1,5 @@
 extends GutTest
-## P3-FIX-COMBAT-AUDIT-G-001 — 詠唱 off-by-one／パッシブ撃破打ち切り／オトモ発火境界。
+## P3-FIX-COMBAT-AUDIT-G-001 — 詠唱 off-by-one／パッシブ撃破打ち切り／ペット発火境界。
 
 const _EnemyData = preload("res://scripts/data/EnemyData.gd")
 const _Adventurer = preload("res://scripts/domain/Adventurer.gd")

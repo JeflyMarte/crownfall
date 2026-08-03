@@ -125,7 +125,7 @@ const _DEFS: Dictionary = {
 	},
 	"mirei_swarm_resonance": {
 		"display_name": "相棒共鳴",
-		"description": "オトモが生存中、オトモの与ダメージが20%上昇する。",
+		"description": "ペットが生存中、ペットの与ダメージが20%上昇する。",
 		"pet_outgoing_mult": 1.20,
 	},
 	# ---- ジョブフォールバック（非基本ロスター・助っ人等） ----
@@ -149,7 +149,7 @@ const _DEFS: Dictionary = {
 	},
 	"pack_instinct": {
 		"display_name": "群れの指揮",
-		"description": "オトモが生存中、オトモの与ダメージが10%上昇する。",
+		"description": "ペットが生存中、ペットの与ダメージが10%上昇する。",
 		"pet_outgoing_mult": 1.10,
 	},
 	# ---- ガチャ助っ人固有（P3-GACHA-005 / P3-PASSIVE-CHAR-001） ----
@@ -245,7 +245,7 @@ const _DEFS: Dictionary = {
 	},
 	"neri_waterfowl_call": {
 		"display_name": "水鳥の指揮",
-		"description": "オトモが生存中、オトモの与ダメージが15%上昇し、防御が5%上昇する。",
+		"description": "ペットが生存中、ペットの与ダメージが15%上昇し、防御が5%上昇する。",
 		"pet_outgoing_mult": 1.15,
 		"pet_defense_mult": 1.05,
 	},
@@ -536,7 +536,7 @@ const _DEFS: Dictionary = {
 	"eq_beastlord_fang": {
 		"display_name": "獣使いの牙",
 		"category": "accessory",
-		"description": "オトモ与ダメ +25%／防御 +10%。自身の与ダメ -8%。",
+		"description": "ペット与ダメ +25%／防御 +10%。自身の与ダメ -8%。",
 		"pet_outgoing_mult": 1.25,
 		"pet_defense_mult": 1.10,
 		"outgoing_mult": 0.92,
@@ -552,7 +552,7 @@ const _DEFS: Dictionary = {
 	"eq_beastcall_mantle": {
 		"display_name": "獣呼びの指揮",
 		"category": "armor",
-		"description": "オトモ与ダメ +18%／防御 +10%。自身の与ダメ -6%。",
+		"description": "ペット与ダメ +18%／防御 +10%。自身の与ダメ -6%。",
 		"pet_outgoing_mult": 1.18,
 		"pet_defense_mult": 1.10,
 		"outgoing_mult": 0.94,
@@ -567,7 +567,7 @@ const _DEFS: Dictionary = {
 	"eq_pack_whistle_charm": {
 		"display_name": "群れ笛",
 		"category": "accessory",
-		"description": "オトモ与ダメ +8%。",
+		"description": "ペット与ダメ +8%。",
 		"pet_outgoing_mult": 1.08,
 	},
 	"eq_salve_band": {
@@ -580,7 +580,7 @@ const _DEFS: Dictionary = {
 	"relic_war_banner": {
 		"display_name": "指揮の軍旗",
 		"category": "relic",
-		"description": "撃破時に味方を鼓舞。オトモ与ダメ +35%／防御 +15%。自身の与ダメ -30%",
+		"description": "撃破時に味方を鼓舞。ペット与ダメ +35%／防御 +15%。自身の与ダメ -30%",
 		"outgoing_mult": 0.70,
 		"pet_outgoing_mult": 1.35,
 		"pet_defense_mult": 1.15,
@@ -940,7 +940,7 @@ const _DEFS: Dictionary = {
 	"eq_wpn_packbond_staff": {
 		"display_name": "絆笛の号令",
 		"category": "weapon",
-		"description": "オトモの与ダメ +30%／防御 +10%。",
+		"description": "ペットの与ダメ +30%／防御 +10%。",
 		"pet_outgoing_mult": 1.30,
 		"pet_defense_mult": 1.10,
 	},
@@ -1273,7 +1273,7 @@ static func party_outgoing_mult() -> float:
 	return mult
 
 
-## 編成メンバーのキャラ／ジョブパッシブからオトモ与ダメ倍率（オトモ未所持なら 1.0）。
+## 編成メンバーのキャラ／ジョブパッシブからペット与ダメ倍率（ペット未所持なら 1.0）。
 static func pet_outgoing_mult_from_party() -> float:
 	if GameState.active_pet == null:
 		return 1.0
@@ -1287,7 +1287,7 @@ static func pet_outgoing_mult_from_party() -> float:
 	return mult
 
 
-## 編成メンバーのパッシブからオトモ防御倍率（オトモ未所持なら 1.0）。
+## 編成メンバーのパッシブからペット防御倍率（ペット未所持なら 1.0）。
 static func pet_defense_mult_from_party() -> float:
 	if GameState.active_pet == null:
 		return 1.0
@@ -1805,9 +1805,9 @@ static func _passive_effect_summary(def: Dictionary) -> String:
 	if float(def.get("outgoing_mult", 1.0)) > 1.0:
 		parts.append("与ダメ +%d%%" % int(round((float(def["outgoing_mult"]) - 1.0) * 100.0)))
 	if float(def.get("pet_outgoing_mult", 1.0)) > 1.0:
-		parts.append("オトモ与ダメ +%d%%" % int(round((float(def["pet_outgoing_mult"]) - 1.0) * 100.0)))
+		parts.append("ペット与ダメ +%d%%" % int(round((float(def["pet_outgoing_mult"]) - 1.0) * 100.0)))
 	if float(def.get("pet_defense_mult", 1.0)) > 1.0:
-		parts.append("オトモ防御 +%d%%" % int(round((float(def["pet_defense_mult"]) - 1.0) * 100.0)))
+		parts.append("ペット防御 +%d%%" % int(round((float(def["pet_defense_mult"]) - 1.0) * 100.0)))
 	if float(def.get("heal_power_mult", 1.0)) > 1.0:
 		parts.append("回復 +%d%%" % int(round((float(def["heal_power_mult"]) - 1.0) * 100.0)))
 	if float(def.get("incoming_mult", 1.0)) < 1.0:

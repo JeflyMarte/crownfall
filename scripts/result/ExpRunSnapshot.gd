@@ -4,7 +4,7 @@ extends RefCounted
 ## EXP 付与前スナップショット + シミュレーション（P3-UX-RESULT-002）。
 
 
-## 人間パーティ + 随伴オトモ（P3-PET-OTOMO-001 共有EXP）
+## 人間パーティ + 随伴ペット（P3-PET-OTOMO-001 共有EXP）
 static func exp_recipients() -> Array:
 	var out: Array = []
 	for member: Resource in GameState.party_members:

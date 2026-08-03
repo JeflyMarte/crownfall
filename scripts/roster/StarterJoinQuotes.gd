@@ -56,7 +56,7 @@ static func _line_from(table: Dictionary, adventurer_id: String) -> String:
 	const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
 	if _PetSystem.is_pet_id(adventurer_id):
 		var pet: Resource = _PetSystem.get_pet_data(adventurer_id)
-		var nm: String = str(pet.display_name) if pet != null else "オトモ"
+		var nm: String = str(pet.display_name) if pet != null else "ペット"
 		return "%sが調査隊に合流する。" % nm
 	var def: Variant = GameState.find_base_roster_def(adventurer_id)
 	if def is Dictionary:

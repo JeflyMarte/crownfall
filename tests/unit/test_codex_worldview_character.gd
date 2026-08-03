@@ -77,7 +77,7 @@ func test_nina_and_pets_in_character_codex() -> void:
 	assert_true(bool(by_id["pet_jack"].get("discovered", false)), "ジャックは貸与済で開示")
 	assert_eq(str(by_id["pet_jack"].get("list_label", "")), str(by_id["pet_jack"].get("display_name", "")))
 	assert_true(str(by_id["pet_jack"].get("description", "")).contains("体高") or str(by_id["pet_jack"].get("description", "")).contains("随伴"))
-	assert_true(by_id.has("pet_ash") and by_id.has("pet_ink"), "色変えオトモも枠あり")
+	assert_true(by_id.has("pet_ash") and by_id.has("pet_ink"), "色変えペットも枠あり")
 	if not _PetSystem.owns_pet("pet_ash"):
 		assert_false(bool(by_id["pet_ash"].get("discovered", true)), "未所持アッシュは???")
 	_PetSystem.unlock_pet("pet_ash", false)
