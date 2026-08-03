@@ -107,6 +107,26 @@ func test_floor_choice_roll_harvest_kinds_random_two() -> void:
 	assert_gte(seen.size(), 2)
 
 
+func test_floor_choice_title_bbcode_emphasizes_name() -> void:
+	var bb: String = FloorChoiceOverlay._panel_text_bbcode(
+		"戦力強化",
+		FloorChoiceOverlay.TITLE_COLOR_POWER,
+		"与ダメ ×1.5"
+	)
+	assert_true(bb.contains("[color=#"))
+	assert_true(bb.contains("戦力強化"))
+	assert_true(bb.contains("与ダメ ×1.5"))
+	assert_true(bb.contains("[font_size=%d]" % FloorChoiceOverlay.TITLE_FONT_SIZE))
+	var overlay := FloorChoiceOverlay.new()
+	add_child_autofree(overlay)
+	overlay.open(false)
+	assert_true(str(overlay._text_labels[0].text).contains("戦力強化"))
+	assert_true(str(overlay._text_labels[1].text).contains("収穫強化"))
+	assert_true(str(overlay._text_labels[2].text).contains("強襲ルート"))
+	overlay.open(true)
+	assert_true(str(overlay._text_labels[0].text).contains("応急手当"))
+
+
 
 func test_floor_choice_assault_forces_elite() -> void:
 	var dc: Node = _make_dc([Enums.RoomType.COMBAT, Enums.RoomType.COMBAT, Enums.RoomType.TREASURE])
