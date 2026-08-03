@@ -6919,3 +6919,4 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-BOSS-SUMMON-REGEN-001-5 | **エルディオン** — `enemy_eldion_glacial_regen`：自己に `regen`（HoT・maxHP4%×8tick・CD14） | 徐々に回復 |
 | P3-BAL-BOSS-SUMMON-REGEN-001-6 | **召喚配線** — `SkillData.summon_enemy_id`／`summon_count`。指定召喚は HP≤50% 条件なし・スロット1回・群れキャップ5 | 既存トリッキー同種召喚と分離 |
 | P3-BAL-BOSS-SUMMON-REGEN-001-7 | **据置** — 通常2種／圧力0.5／重技2.0／hex／激昂／他ボス | スコープ外 |
+| P3-BAL-BOSS-SUMMON-REGEN-001-8 | **仲間呼びは戦闘中1回** — skill_id 単位で消費＋CD9999。発動時点で消費（再抽選不可） | オーナー再指示 |
