@@ -6,7 +6,7 @@
 script = ExtResource("1")
 armor_id = "kaiwan_lastcoil"
 display_name = "断継ラストコイル"
-description = "灰冠の九が私兵化した防具。欠け王冠の模刻が残る。"
+description = "断継の座が撃破の余韻を巻き取る帯甲。仲間が倒れると締めがきつくなりすぎる。"
 base_defense = 165
 base_hp_bonus = 260
 base_resistance = 0.0

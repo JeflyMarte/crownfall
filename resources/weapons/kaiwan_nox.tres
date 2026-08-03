@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "kaiwan_nox"
 display_name = "灯断ノクス"
-description = "街道の灯を奪った弓。"
+description = "街道の灯を奪った弓。灯断の座が後列から仕留めるために用いた、歪んだ王冠紋の武具。"
 fixed_skill_id = ""
 fixed_passive_id = ""
 base_attack = 195
@@ -20,4 +20,4 @@ weight = 1.0
 element = "dark"
 weapon_type = "bow"
 tags = Array[String](["dark", "kaiwan"])
-flavor_text = "灰冠の九・開幕犠牲・後列。盗まれた炉の武具。正義の刃ではない。"
+flavor_text = "灯の消えた街道で、矢だけが夜目を持つ。"

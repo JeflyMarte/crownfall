@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "kaiwan_wiltes"
 display_name = "枯翠ウィルテス"
-description = "翠を枯らして火力に変える杖。"
+description = "翠を枯らして火力に変える杖。枯翠の座が癒し手の武具をねじ曲げた封印杖。"
 fixed_skill_id = ""
 fixed_passive_id = ""
 base_attack = 185
@@ -20,4 +20,4 @@ weight = 1.0
 element = "dark"
 weapon_type = "staff"
 tags = Array[String](["dark", "kaiwan"])
-flavor_text = "灰冠の九・回復転火力。盗まれた炉の武具。正義の刃ではない。"
+flavor_text = "枯れた翠は、癒しを火に変えてなお緑を名乗る。"

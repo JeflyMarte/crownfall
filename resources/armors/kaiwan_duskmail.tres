@@ -6,7 +6,7 @@
 script = ExtResource("1")
 armor_id = "kaiwan_duskmail"
 display_name = "灯断ダスクメイル"
-description = "灰冠の九が私兵化した防具。欠け王冠の模刻が残る。"
+description = "灯断の座が街道の灯を奪った夜に着た薄鎧。立ち上がりの損耗を抑えるが、前衛では息が浅い。"
 base_defense = 145
 base_hp_bonus = 230
 base_resistance = 0.0

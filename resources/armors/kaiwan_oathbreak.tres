@@ -6,7 +6,7 @@
 script = ExtResource("1")
 armor_id = "kaiwan_oathbreak"
 display_name = "違約オースブレイク"
-description = "灰冠の九が私兵化した防具。欠け王冠の模刻が残る。"
+description = "違約の座が盟約の破片を鋲にした鎧。弱った相手の刃を滑らせるよう曲げられている。"
 base_defense = 150
 base_hp_bonus = 240
 base_resistance = 0.0

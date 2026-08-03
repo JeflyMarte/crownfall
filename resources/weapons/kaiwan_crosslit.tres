@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "kaiwan_crosslit"
 display_name = "塞図クロスリット"
-description = "灰冠・塞図の座が用いた初撃特化の黒剣。"
+description = "灰冠・塞図の座が用いた黒剣。開幕の一閃に刃の重みを寄せた、盗まれた炉の武具。"
 fixed_skill_id = ""
 fixed_passive_id = ""
 base_attack = 220
@@ -20,4 +20,4 @@ weight = 1.0
 element = "dark"
 weapon_type = "sword"
 tags = Array[String](["dark", "kaiwan"])
-flavor_text = "灰冠の九・初撃特化。盗まれた炉の武具。正義の刃ではない。"
+flavor_text = "最初の一閃だけが、欠けた王冠の重みを知る。"

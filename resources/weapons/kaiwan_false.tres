@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "kaiwan_false"
 display_name = "偽星フォルス"
-description = "偽の星炉印が刻まれた剣。"
+description = "偽の星炉印が刻まれた剣。偽星の座が鍛冶の伸びしろと引き換えに脆さを残した刃。"
 fixed_skill_id = ""
 fixed_passive_id = ""
 base_attack = 215
@@ -20,4 +20,4 @@ weight = 1.0
 element = "dark"
 weapon_type = "sword"
 tags = Array[String](["dark", "kaiwan"])
-flavor_text = "灰冠の九・強化依存・脆い刃。盗まれた炉の武具。正義の刃ではない。"
+flavor_text = "偽りの星炉印は、鍛えられるほど嘘が深くなる。"

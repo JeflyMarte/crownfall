@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "kaiwan_perfidy"
 display_name = "違約パーフィディ"
-description = "盟約を破るための双刃。"
+description = "盟約を破るための双刃。違約の座が略奪した炉の失敗作を研ぎ直したもの。"
 fixed_skill_id = ""
 fixed_passive_id = ""
 base_attack = 205
@@ -20,4 +20,4 @@ weight = 1.0
 element = "dark"
 weapon_type = "dual_blades"
 tags = Array[String](["dark", "kaiwan"])
-flavor_text = "灰冠の九・破約・デバフ特攻。盗まれた炉の武具。正義の刃ではない。"
+flavor_text = "破った盟約の残り香が、牙を鋭くする。"

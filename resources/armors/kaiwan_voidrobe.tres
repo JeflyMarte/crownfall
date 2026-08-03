@@ -6,7 +6,7 @@
 script = ExtResource("1")
 armor_id = "kaiwan_voidrobe"
 display_name = "裂鍵ヴォイドローブ"
-description = "灰冠の九が私兵化した防具。欠け王冠の模刻が残る。"
+description = "裂鍵の座が封じ頁の切れ端を織り込んだ法衣。術式の余熱を早く冷ます仕立て。"
 base_defense = 120
 base_hp_bonus = 200
 base_resistance = 0.0
