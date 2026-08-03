@@ -13,8 +13,6 @@ const BACK_RECT := Rect2(66, 36, 52, 52)
 const MODE_TAB_OWN := Rect2(78, 152, 282, 72)
 const MODE_TAB_STAFF := Rect2(360, 152, 282, 72)
 const MODE_ROW := Rect2(78, 152, 564, 72)
-## スタッフ作例の切替（一覧ボタン「スタッフキャラ」）。総合戦力の左・非重複。
-const STAFF_LIST_RECT := Rect2(52, 924, 168, 56)
 const EQUIP_RECT := Rect2(70, 175, 168, 580)
 const STATS_RECT := Rect2(482, 175, 168, 460)
 const IDLE_CENTER := Vector2(360, 688)
@@ -28,8 +26,9 @@ const NAME_FRAME_TOP_RULE := Rect2(242, 1032, 236, 3)
 ## 自慢キャラ未設定時に背景焼込の名札枠（下のボタン枠）を隠す覆い。
 const NAME_FRAME_MASK_RECT := Rect2(120, 1015, 480, 135)
 const NAME_FRAME_MASK_COLOR := Color(0.055, 0.04, 0.03, 1.0)
-## 自分の展示：キャラ変更（装備とステのあいだ・やや右寄せ・短め）。
+## 自分の展示：キャラ変更／スタッフ作例：スタッフキャラ（同位置・装備とステのあいだ）。
 const CHANGE_MEMBER_RECT := Rect2(248, 248, 188, 44)
+const STAFF_LIST_RECT := Rect2(248, 248, 188, 44)
 const EMPTY_RECT := Rect2(90, 210, 540, 400)
 const BODY_BOTTOM_PAD: float = 128.0
 ## 装備セル相対オフセット（パネル左上基準）。レア枠付きセル中央寄せ。

@@ -98,12 +98,9 @@ func test_power_frame_asset_exists() -> void:
 	assert_not_null(tex)
 
 
-func test_staff_list_button_does_not_overlap_power() -> void:
-	var staff: Rect2 = ShowcaseUiTokens.STAFF_LIST_RECT
-	var power: Rect2 = ShowcaseUiTokens.POWER_RECT
-	assert_lt(staff.position.x + staff.size.x, power.position.x + 1.0)
-	## 縦は帯の中央付近で揃える（高さ差あり）。
-	assert_lt(absf(staff.get_center().y - power.get_center().y), 4.0)
+func test_staff_list_button_matches_change_member_rect() -> void:
+	## スタッフキャラ＝自分の展示のキャラ変更と同位置。
+	assert_eq(ShowcaseUiTokens.STAFF_LIST_RECT, ShowcaseUiTokens.CHANGE_MEMBER_RECT)
 
 
 func test_showcase_scene_has_staff_list_button() -> void:
