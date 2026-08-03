@@ -43,6 +43,20 @@ func test_guide_no_outdated_combat_or_gacha_copy() -> void:
 	assert_true(g018.contains("追い込み"), "追い込みを記載")
 	assert_true(g018.contains("治癒連携"), "治癒連携を記載")
 
+	var g019: String = str(by_id.get("COMBAT-G019", ""))
+	assert_false(g019.is_empty(), "戦術タブの手引きがある")
+	assert_true(g019.contains("戦術"), "戦術に言及")
+
+	var eq010: String = str(by_id.get("EQUIP-G010", ""))
+	assert_true(eq010.contains("錬成"), "錬成手引き")
+	assert_true(eq010.contains("神話"), "神話は錬成不可")
+
+	assert_true(str(by_id.get("SYS-G008", "")).contains("指揮官"), "指揮官ランク")
+	assert_true(str(by_id.get("SYS-G009", "")).contains("封蔵") or str(by_id.get("SYS-G009", "")).contains("灰冠"), "封蔵")
+	assert_true(str(by_id.get("SYS-G010", "")).contains("展示室"), "展示室")
+	assert_true(str(by_id.get("SYS-G011", "")).contains("無限"), "無限DG")
+	assert_true(str(by_id.get("SYS-G012", "")).contains("全滅") or str(by_id.get("SYS-G012", "")).contains("敗因"), "全滅敗因")
+
 	var eq001: String = str(by_id.get("EQUIP-G001", ""))
 	assert_false(eq001.contains("4 段階"), "神話を含む")
 	assert_true(eq001.contains("神話"), "神話帯を記載")
@@ -222,11 +236,16 @@ func test_world_guide_entries_cover_canon_basics() -> void:
 	assert_true(str(by_id.get("WORLD-G027", "")).contains("三説") or str(by_id.get("WORLD-G027", "")).contains("継承"), "盟議の諸説")
 	assert_true(str(by_id.get("WORLD-G028", "")).contains("記録"), "断片の読み方")
 	assert_true(str(by_id.get("WORLD-G029", "")).contains("ソードマン"), "基本職")
+	assert_true(str(by_id.get("WORLD-G029", "")).contains("回収部") or str(by_id.get("WORLD-G029", "")).contains("ソードセイバー"), "職の厚み")
 	assert_true(str(by_id.get("WORLD-G033", "")).contains("ビーストテイマー"), "テイマー")
+	assert_true(str(by_id.get("WORLD-G034", "")).contains("潮見") or str(by_id.get("WORLD-G034", "")).contains("航海"), "シーゲート厚み")
 	assert_true(str(by_id.get("WORLD-G039", "")).contains("調査許可等級"), "等級")
+	assert_true(str(by_id.get("WORLD-G039", "")).contains("准探索者") or str(by_id.get("WORLD-G039", "")).contains("討伐数"), "等級の厚み")
 	assert_true(str(by_id.get("WORLD-G040", "")).contains("伝説個体"), "伝説個体")
 	assert_true(str(by_id.get("WORLD-G046", "")).contains("五部門"), "五部門")
+	assert_true(str(by_id.get("WORLD-G047", "")).contains("継承祭") or str(by_id.get("WORLD-G047", "")).contains("暮らし"), "安全圏暮らし厚み")
 	assert_true(str(by_id.get("WORLD-G050", "")).contains("到達形"), "到達形")
+	assert_true(str(by_id.get("WORLD-G050", "")).contains("対等") or str(by_id.get("WORLD-G050", "")).contains("認定"), "到達形厚み")
 
 
 func test_mourngate_flavor_matches_postwar_ecology() -> void:
