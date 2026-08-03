@@ -27,9 +27,9 @@ const TEXT_RECTS: Array[Rect2] = [
 ]
 ## 警告文直下の空き領域（差し替え背景に確定ボタン焼き込みなし）
 const CONFIRM_RECT: Rect2 = Rect2(110, 820, 500, 90)
-## 選択中パネル直上の指差し（デザイン座標）。負のギャップでパネル上端へ食い込ませて下げる。
+## 選択中パネル直上の指差し（デザイン座標）。負のギャップでパネル内へ大きく下げる。
 const POINTER_SIZE: Vector2 = Vector2(64, 100)
-const POINTER_GAP_ABOVE: float = -28.0
+const POINTER_GAP_ABOVE: float = -72.0
 
 const CHOICE_POWER: String = "power"
 const CHOICE_HEAL: String = "heal"
