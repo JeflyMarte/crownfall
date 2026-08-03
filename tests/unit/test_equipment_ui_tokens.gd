@@ -231,7 +231,9 @@ func test_item_title_with_perfect_stars_stays_single_line_hbox() -> void:
 	assert_not_null(star_lbl)
 	assert_eq(name_lbl.autowrap_mode, TextServer.AUTOWRAP_OFF)
 	assert_eq(star_lbl.autowrap_mode, TextServer.AUTOWRAP_OFF)
-	assert_true((name_lbl.size_flags_horizontal & Control.SIZE_EXPAND) != 0)
+	## ★は名前+Lvの直後（EXPAND で行末へ飛ばさない）。
+	assert_true((name_lbl.size_flags_horizontal & Control.SIZE_EXPAND) == 0)
+	assert_true((star_lbl.size_flags_horizontal & Control.SIZE_EXPAND) == 0)
 	assert_true(star_lbl.text.contains("★"))
 	assert_false(name_lbl.text.contains("★"))
 
