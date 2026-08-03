@@ -76,6 +76,11 @@ static func uses_hourly_windows(dungeon_id: String) -> bool:
 	return HOURLY_OPEN_START_HOURS.has(dungeon_id)
 
 
+## 曜日イベント（PRIMARY_WEEKDAY）。時間帯降臨は含めない（P3-BAL-WEEKDAY-EVENT-REWARD-001）。
+static func is_weekday_event(dungeon_id: String) -> bool:
+	return PRIMARY_WEEKDAY.has(dungeon_id) and not uses_hourly_windows(dungeon_id)
+
+
 static func weekday_label(weekday: int) -> String:
 	return str(WEEKDAY_LABEL_JA.get(weekday, "?"))
 

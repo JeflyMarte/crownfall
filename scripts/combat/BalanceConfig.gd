@@ -295,3 +295,8 @@ static func swarm_density_spd_mult(start_count: int) -> float:
 # ── ダンジョンクリア EXP（P3-BAL-CLEAR-EXP-001） ─────────────────────────
 ## CLEAR 時のみ、ラン中獲得 EXP に乗せる完走ボーナス（リタイア／全滅なし）。
 const CLEAR_EXP_BONUS_RATIO: float = 0.25
+
+# ── 曜日イベント撃破報酬（P3-BAL-WEEKDAY-EVENT-REWARD-001） ─────────────
+## 曜日枠イベントDG（PRIMARY_WEEKDAY）の撃破 EXP／Gold 倍率。時間帯降臨は対象外。
+## 敵ステ・装備ドロップ・日次1回は据置。野外 EventSystem MOD_* とは別経路。
+const WEEKDAY_EVENT_REWARD_MULT: float = 2.0

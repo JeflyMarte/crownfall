@@ -61,6 +61,27 @@ func test_closed_weekday_is_not_open_now() -> void:
 	assert_false(_EventDungeonSchedule.is_open_now(Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID))
 
 
+func test_is_weekday_event_excludes_descent() -> void:
+	## P3-BAL-WEEKDAY-EVENT-REWARD-001: 曜日5種のみ。降臨は対象外。
+	for dungeon_id in _EventDungeonSchedule.PRIMARY_WEEKDAY.keys():
+		assert_true(_EventDungeonSchedule.is_weekday_event(str(dungeon_id)), str(dungeon_id))
+	assert_false(_EventDungeonSchedule.is_weekday_event(Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID))
+	assert_false(_EventDungeonSchedule.is_weekday_event(Constants.VALGARD_BOUNDARY_DUNGEON_ID))
+	assert_false(_EventDungeonSchedule.is_weekday_event("mourngate"))
+	assert_false(_EventDungeonSchedule.is_weekday_event(""))
+
+
+func test_weekday_event_reward_mult_constant() -> void:
+	assert_eq(BalanceConfig.WEEKDAY_EVENT_REWARD_MULT, 2.0)
+	## 撃破最終値: base × weekday_mult（他倍率1.0時）
+	var base_exp: int = 100
+	var base_gold: int = 40
+	var final_exp: int = int(base_exp * BalanceConfig.WEEKDAY_EVENT_REWARD_MULT)
+	var final_gold: int = int(base_gold * BalanceConfig.WEEKDAY_EVENT_REWARD_MULT)
+	assert_eq(final_exp, 200)
+	assert_eq(final_gold, 80)
+
+
 func _unix_jst(year: int, month: int, day: int, hour: int, minute: int) -> int:
 	var as_utc_like: int = int(
 		Time.get_unix_time_from_datetime_dict({

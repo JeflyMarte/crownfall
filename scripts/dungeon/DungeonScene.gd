@@ -7755,8 +7755,19 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 	var gold_event_mult: float = EventSystem.get_modifier_mult(EventSystem.MOD_GOLD)
 	var tier_reward_mult: float = _DungeonTierConfig.reward_mult(GameState.current_dungeon_tier)
 	var evo_exp_mult: float = EvolutionTraits.party_exp_mult()
-	var final_exp: int = int($CombatController.last_exp_reward * mult * exp_event_mult * tier_reward_mult * evo_exp_mult)
-	var final_gold: int = int($CombatController.last_gold_reward * mult * gold_event_mult * tier_reward_mult)
+	## 曜日イベント撃破 EXP/Gold ×2（降臨・本編は据置 — P3-BAL-WEEKDAY-EVENT-REWARD-001）
+	const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
+	var weekday_reward_mult: float = (
+		BalanceConfig.WEEKDAY_EVENT_REWARD_MULT
+		if _EventDungeonSchedule.is_weekday_event(GameState.get_active_dungeon_id())
+		else 1.0
+	)
+	var final_exp: int = int(
+		$CombatController.last_exp_reward * mult * exp_event_mult * tier_reward_mult * evo_exp_mult * weekday_reward_mult
+	)
+	var final_gold: int = int(
+		$CombatController.last_gold_reward * mult * gold_event_mult * tier_reward_mult * weekday_reward_mult
+	)
 	if codex_investigation:
 		final_exp = int(round(float(final_exp) * CODEX_INVESTIGATION_EXP_BONUS))
 	var awarded_exp: int = $DungeonController.accumulate_rewards(final_exp, final_gold)
@@ -7773,6 +7784,8 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 	var bonus_tag: String = " (x%.1f)" % mult if mult > 1.0 else ""
 	if exp_event_mult > 1.0 or gold_event_mult > 1.0:
 		bonus_tag += " [野外]"
+	if weekday_reward_mult > 1.0:
+		bonus_tag += " [曜日]"
 	if tier_reward_mult > 1.0:
 		bonus_tag += " [%s]" % _DungeonTierConfig.display_name(GameState.current_dungeon_tier)
 	if codex_investigation:
