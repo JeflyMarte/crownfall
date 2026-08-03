@@ -23,8 +23,8 @@ const TEXT_RECTS: Array[Rect2] = [
 	Rect2(260, 455, 198, 222),
 	Rect2(504, 455, 176, 222),
 ]
-## 背景の「選択を確定する」ボタン位置
-const CONFIRM_RECT: Rect2 = Rect2(110, 1005, 500, 90)
+## 背景ボタンより上寄せ（警告文の直下）。見た目用に文言も重ねる。
+const CONFIRM_RECT: Rect2 = Rect2(110, 860, 500, 90)
 
 const CHOICE_POWER: String = "power"
 const CHOICE_HEAL: String = "heal"
@@ -80,14 +80,27 @@ func _ready() -> void:
 
 	_confirm_btn = Button.new()
 	_confirm_btn.name = "ConfirmHit"
-	_confirm_btn.flat = true
 	_confirm_btn.focus_mode = Control.FOCUS_NONE
-	_confirm_btn.text = ""
-	var empty := StyleBoxEmpty.new()
-	_confirm_btn.add_theme_stylebox_override("normal", empty)
-	_confirm_btn.add_theme_stylebox_override("hover", empty)
-	_confirm_btn.add_theme_stylebox_override("pressed", empty)
-	_confirm_btn.add_theme_stylebox_override("disabled", empty)
+	_confirm_btn.text = "選択を確定する"
+	UiTypography.apply_menu_button(_confirm_btn)
+	var confirm_sb := StyleBoxFlat.new()
+	confirm_sb.bg_color = Color(0.12, 0.08, 0.18, 0.92)
+	confirm_sb.border_color = Color(0.72, 0.55, 0.28, 1.0)
+	confirm_sb.set_border_width_all(2)
+	confirm_sb.set_corner_radius_all(6)
+	confirm_sb.content_margin_left = 12
+	confirm_sb.content_margin_right = 12
+	confirm_sb.content_margin_top = 8
+	confirm_sb.content_margin_bottom = 8
+	_confirm_btn.add_theme_stylebox_override("normal", confirm_sb)
+	var confirm_hover := confirm_sb.duplicate() as StyleBoxFlat
+	confirm_hover.bg_color = Color(0.18, 0.12, 0.26, 0.95)
+	_confirm_btn.add_theme_stylebox_override("hover", confirm_hover)
+	_confirm_btn.add_theme_stylebox_override("pressed", confirm_hover)
+	var confirm_dis := confirm_sb.duplicate() as StyleBoxFlat
+	confirm_dis.bg_color = Color(0.08, 0.06, 0.10, 0.55)
+	confirm_dis.border_color = Color(0.35, 0.32, 0.30, 1.0)
+	_confirm_btn.add_theme_stylebox_override("disabled", confirm_dis)
 	_confirm_btn.pressed.connect(_on_confirm_pressed)
 	add_child(_confirm_btn)
 
