@@ -61,11 +61,26 @@ func test_floor_choice_abyss_once_per_ten_floors() -> void:
 	assert_eq(dc.floor_choice_max_for_run(), 2)
 	dc.current_room_index = 20
 	assert_eq(dc.floor_choice_max_for_run(), 3)
+	## 回数を使い切っているブロック内では出ない。次ブロックで上限が増えたら枠を補充。
 	dc.floor_choice_count = 1
 	dc.current_room_index = 5
-	assert_false(dc.can_offer_floor_choice())
+	dc.floor_choice_offer_rooms.clear()
+	dc.ensure_floor_choice_offer_slots()
+	assert_eq(dc.floor_choice_max_for_run(), 1)
+	assert_true(dc.floor_choice_offer_rooms.is_empty())
 	dc.current_room_index = 12
-	assert_true(dc.can_offer_floor_choice())
+	dc.ensure_floor_choice_offer_slots()
+	assert_eq(dc.floor_choice_max_for_run(), 2)
+	assert_eq(dc.floor_choice_offer_rooms.size(), 1)
+	assert_true(dc.floor_choice_offer_rooms.has(12) or dc.can_offer_floor_choice() == false)
+	## 補充された枠のいずれかで出せる。
+	var offered := false
+	for key: Variant in dc.floor_choice_offer_rooms.keys():
+		dc.current_room_index = int(key)
+		if dc.can_offer_floor_choice():
+			offered = true
+			break
+	assert_true(offered)
 
 
 func test_floor_choice_power_damage_next_room_only() -> void:
@@ -148,17 +163,51 @@ func test_floor_choice_assault_forces_elite() -> void:
 
 
 func test_floor_choice_offer_gates() -> void:
+	## 候補が index0 のみ（次がボス）なら必ずそこ。
 	var dc: Node = _make_dc([
 		Enums.RoomType.COMBAT,
 		Enums.RoomType.COMBAT,
 		Enums.RoomType.BOSS,
 	])
+	dc.ensure_floor_choice_offer_slots()
 	assert_true(dc.can_offer_floor_choice())
 	dc.current_room_index = 1
 	assert_false(dc.can_offer_floor_choice())
 	dc.current_room_index = 0
 	dc.floor_choice_count = dc.floor_choice_max_for_run()
 	assert_false(dc.can_offer_floor_choice())
+
+
+func test_floor_choice_offer_slots_random_among_eligible() -> void:
+	## 候補が複数あるとき、回数ぶんだけ抽選され、選外 index は枠に入らない。
+	var seq: Array = []
+	for _i: int in 10:
+		seq.append(Enums.RoomType.COMBAT)
+	seq.append(Enums.RoomType.BOSS)
+	var dc: Node = _make_dc(seq)
+	assert_eq(dc.floor_choice_max_for_run(), 2)
+	var eligible: Array[int] = dc.collect_floor_choice_eligible_indices(0)
+	assert_gte(eligible.size(), 3)
+	seed(42)
+	dc.floor_choice_offer_rooms.clear()
+	dc.ensure_floor_choice_offer_slots()
+	assert_eq(dc.floor_choice_offer_rooms.size(), 2)
+	for key: Variant in dc.floor_choice_offer_rooms.keys():
+		assert_true(int(key) in eligible)
+	var selected: int = 0
+	var unselected: int = 0
+	for i: int in eligible:
+		if bool(dc.floor_choice_offer_rooms.get(i, false)):
+			selected += 1
+		else:
+			unselected += 1
+	assert_eq(selected, 2)
+	assert_gt(unselected, 0)
+	## 選ばれた枠では出せる（index を動かして ensure で再抽選しないよう直接判定）。
+	for key2: Variant in dc.floor_choice_offer_rooms.keys():
+		dc.current_room_index = int(key2)
+		assert_true(dc.is_floor_choice_eligible_after(dc.current_room_index))
+		assert_true(bool(dc.floor_choice_offer_rooms.get(dc.current_room_index, false)))
 
 
 func test_lore_and_choice_stack_on_same_kind() -> void:
