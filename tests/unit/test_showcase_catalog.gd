@@ -103,6 +103,41 @@ func test_staff_list_button_matches_change_member_rect() -> void:
 	assert_eq(ShowcaseUiTokens.STAFF_LIST_RECT, ShowcaseUiTokens.CHANGE_MEMBER_RECT)
 
 
+func test_skills_rect_sits_below_stats() -> void:
+	var stats: Rect2 = ShowcaseUiTokens.STATS_RECT
+	var skills: Rect2 = ShowcaseUiTokens.SKILLS_RECT
+	assert_eq(skills.position.x, stats.position.x)
+	assert_eq(skills.size.x, stats.size.x)
+	assert_gt(skills.position.y, stats.position.y + stats.size.y - 1.0)
+	assert_lt(skills.position.y + skills.size.y, ShowcaseUiTokens.POWER_RECT.position.y)
+
+
+func test_showcase_scene_shows_equipped_skill_card() -> void:
+	var packed: PackedScene = load("res://scenes/showcase/ShowcaseScene.tscn")
+	assert_not_null(packed)
+	var scene: Node = packed.instantiate()
+	add_child_autofree(scene)
+	await get_tree().process_frame
+	scene.call("_set_mode", scene.Mode.STAFF)
+	await get_tree().process_frame
+	var skills_panel: PanelContainer = scene.get("_skills_panel") as PanelContainer
+	assert_not_null(skills_panel)
+	assert_true(skills_panel.visible)
+	var skills_r: Rect2 = ShowcaseUiTokens.SKILLS_RECT
+	assert_eq(skills_panel.position, skills_r.position)
+	assert_eq(skills_panel.size, skills_r.size)
+	var col: Control = scene.get("_skills_col") as Control
+	assert_not_null(col)
+	assert_gte(col.get_child_count(), 2)
+	var header: Label = col.get_child(0) as Label
+	assert_not_null(header)
+	assert_eq(header.text, ShowcaseUiTokens.SKILL_HEADER_TEXT)
+	var name_lbl: Label = col.get_child(1) as Label
+	assert_not_null(name_lbl)
+	assert_false(str(name_lbl.text).is_empty())
+	assert_ne(name_lbl.text, ShowcaseUiTokens.SKILL_HEADER_TEXT)
+
+
 func test_showcase_scene_has_staff_list_button() -> void:
 	var packed: PackedScene = load("res://scenes/showcase/ShowcaseScene.tscn")
 	assert_not_null(packed)
