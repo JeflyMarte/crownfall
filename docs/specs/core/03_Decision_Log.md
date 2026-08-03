@@ -6905,3 +6905,17 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-N-NONCOMBAT-FAIL-001-5 | **据置** — 泉成功率50%／失敗ペナルティHP割合／罠ダメ割合 | スコープ外 |
 | P3-BAL-N-NONCOMBAT-FAIL-001-6 | **SSOT** — `docs/specs/decisions/10_NonCombatTension.md` | 非戦闘 Decision |
 
+
+## ボス召喚／エルディオン再生（2026-08-03 — P3-BAL-BOSS-SUMMON-REGEN-001）
+
+> **オーナー指示** — グランヴェル／モルドガル／ネレイオン／クロノス・ウェーブに一度限りの召喚。エルディオンに徐々に回復。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-BOSS-SUMMON-REGEN-001-1 | **グランヴェル** — `enemy_granvel_call_mirror`：ミラーボア×1・戦闘中1回 | オーナー指定 |
+| P3-BAL-BOSS-SUMMON-REGEN-001-2 | **モルドガル** — `enemy_moldgar_call_marsh`：沼地の王×1・1回 | オーナー指定 |
+| P3-BAL-BOSS-SUMMON-REGEN-001-3 | **ネレイオン** — `enemy_nereion_call_dread`：ドレッドジョー×2・1回 | オーナー指定 |
+| P3-BAL-BOSS-SUMMON-REGEN-001-4 | **クロノス・ウェーブ** — `enemy_chronos_wave_call_moth`：クロックモス×2・1回 | オーナー指定 |
+| P3-BAL-BOSS-SUMMON-REGEN-001-5 | **エルディオン** — `enemy_eldion_glacial_regen`：自己に `regen`（HoT・maxHP4%×8tick・CD14） | 徐々に回復 |
+| P3-BAL-BOSS-SUMMON-REGEN-001-6 | **召喚配線** — `SkillData.summon_enemy_id`／`summon_count`。指定召喚は HP≤50% 条件なし・スロット1回・群れキャップ5 | 既存トリッキー同種召喚と分離 |
+| P3-BAL-BOSS-SUMMON-REGEN-001-7 | **据置** — 通常2種／圧力0.5／重技2.0／hex／激昂／他ボス | スコープ外 |

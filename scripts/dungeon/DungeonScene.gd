@@ -5019,8 +5019,28 @@ func _process_status_ticks() -> void:
 	$CombatController.decay_threat()
 	for result: Dictionary in $CombatController.tick_all_statuses():
 		var unit_id: String = result.get("unit_id", "")
-		var dmg: int = result.get("damage", 0)
+		var dmg: int = int(result.get("damage", 0))
+		var heal_ratio: float = float(result.get("heal_percent_max", 0.0))
 		var display_name: String = result.get("display_name", "")
+		var effect_id: String = str(result.get("effect_id", ""))
+		if heal_ratio > 0.0:
+			if unit_id.begins_with("enemy_"):
+				var heal_slot: int = int(unit_id.substr(6))
+				var maxhp: int = $CombatController.get_enemy_max_hp_at(heal_slot)
+				var heal_amt: int = maxi(1, int(round(float(maxhp) * heal_ratio)))
+				var healed: int = $CombatController.heal_enemy_slot(heal_slot, heal_amt)
+				if healed > 0:
+					_present_enemy_heal(heal_slot, healed)
+					_append_log("[%s] %d回復" % [display_name, healed])
+			elif unit_id.begins_with("party_"):
+				var heal_idx: int = int(unit_id.substr(6))
+				if $CombatController.is_member_alive(heal_idx):
+					var pmax: int = $CombatController.get_member_max_hp(heal_idx)
+					var pheal: int = maxi(1, int(round(float(pmax) * heal_ratio)))
+					var phealed: int = $CombatController.heal_member(heal_idx, pheal)
+					if phealed > 0:
+						_append_log("[%s] %d回復" % [display_name, phealed])
+			continue
 		if dmg <= 0:
 			continue
 		if unit_id.begins_with("enemy_"):
@@ -5030,7 +5050,6 @@ func _process_status_ticks() -> void:
 			var enemy_spr: AnimatedSprite2D = _enemy_sprite_for_slot(slot)
 			if enemy_spr != null and enemy_spr.visible:
 				var tick_pos: Vector2 = _sprite_visual_center_global(enemy_spr)
-				var effect_id: String = str(result.get("effect_id", ""))
 				## P3-UX-STATUS-TELOP-001: DoT 数字は頭上（視覚中心）＋色付き。tick シェイクなし。
 				_spawn_damage_number(
 					str(dmg),
@@ -5055,17 +5074,16 @@ func _process_status_ticks() -> void:
 				GameState.record_run_damage_taken(idx, dmg)
 			if idx < _chr_sprites.size():
 				var party_pos: Vector2 = _sprite_visual_center_global(_chr_sprites[idx])
-				var party_effect: String = str(result.get("effect_id", ""))
 				_spawn_damage_number(
 					str(dmg),
 					party_pos + Vector2(0.0, -20.0),
-					CombatVfxManager.dot_telop_color(party_effect),
+					CombatVfxManager.dot_telop_color(effect_id),
 					0.95,
 					dmg,
 					true
 				)
-				if not party_effect.is_empty():
-					_combat_vfx.spawn_dot_tick(self, party_pos, party_effect)
+				if not effect_id.is_empty():
+					_combat_vfx.spawn_dot_tick(self, party_pos, effect_id)
 		_append_log("[%s] %dダメージ" % [display_name, dmg])
 	_update_hp_bars()
 	_update_status_icons()
@@ -6552,9 +6570,21 @@ func _enemy_tricky_skill_allowed(skill: Resource, slot: int) -> bool:
 				return false
 			if $CombatController.living_enemy_count() >= cap:
 				return false
-			return $CombatController.get_enemy_hp_ratio(slot) <= 0.5
+			## 指定召喚（ボス等）は一度限り・キャップのみ。同種クローンは HP≤50%。
+			var designated: String = ""
+			if "summon_enemy_id" in skill:
+				designated = str(skill.summon_enemy_id)
+			if designated.is_empty():
+				return $CombatController.get_enemy_hp_ratio(slot) <= 0.5
+			return true
+		"buff":
+			## 自己 HoT 等: 満タンでは使わない。
+			if str(skill.target_type) == "self" and str(skill.apply_status_id) == "regen":
+				return $CombatController.get_enemy_hp_ratio(slot) < 0.95
+			return true
 		_:
 			return true
+
 
 ## 敵サポート対象スロット（P3-BAL-ENEMY-TRICKY-001）。
 func _resolve_enemy_support_slot(skill: Resource, caster_slot: int) -> int:
@@ -6570,6 +6600,7 @@ func _resolve_enemy_support_slot(skill: Resource, caster_slot: int) -> int:
 		_:
 			## 未指定・旧データは自己（従来 buff 互換）。
 			return caster_slot if $CombatController.is_enemy_slot_alive(caster_slot) else -1
+
 
 # 敵の強化スキル（自己／味方敵）。詠唱開始スロット基準で対象解決。
 func _execute_enemy_buff(skill: Resource, slot: int) -> void:
@@ -6588,6 +6619,7 @@ func _execute_enemy_buff(skill: Resource, slot: int) -> void:
 			label = eff.display_name
 	var scope: String = "自身" if target_slot == slot else "味方"
 	_append_log("敵スキル【%s】: %sに[%s]" % [skill.display_name, scope, label])
+
 
 # 敵の回復スキル（自己／最も負傷した味方敵）。power＝対象 maxHP 比。
 func _execute_enemy_heal(skill: Resource, slot: int) -> void:
@@ -6670,24 +6702,45 @@ func _execute_enemy_silence(skill: Resource, slot: int) -> void:
 	_update_status_icons()
 
 
-## T8: 同種1体を末尾追加（召喚者スロットあたり1回・HP≤50%は抽選側で担保）。
+## T8: 末尾に敵を追加（召喚者スロットあたり1回）。指定 id があればその敵を count 体。
 func _execute_enemy_summon(skill: Resource, slot: int) -> bool:
 	if not _enemy_tricky_skill_allowed(skill, slot):
 		return false
 	_play_enemy_caster_animation(slot, "attack")
 	_spawn_enemy_skill_name(skill.display_name, slot)
-	var template: Resource = $CombatController.get_enemy_data_at(slot)
+	var designated_id: String = ""
+	if "summon_enemy_id" in skill:
+		designated_id = str(skill.summon_enemy_id)
+	var want: int = 1
+	if "summon_count" in skill:
+		want = maxi(1, int(skill.summon_count))
+	var template: Resource = null
+	if designated_id.is_empty():
+		template = $CombatController.get_enemy_data_at(slot)
+	else:
+		template = DataRegistry.get_enemy_data(designated_id)
 	if template == null:
+		_append_log("敵スキル【%s】: 呼び出せなかった" % skill.display_name)
 		return false
 	var cap: int = _DungeonTierConfig.swarm_size_cap()
-	var new_slot: int = $CombatController.append_enemy_to_swarm(template, cap)
-	if new_slot < 0:
+	var spawned: int = 0
+	var last_slot: int = -1
+	for _i: int in want:
+		var new_slot: int = $CombatController.append_enemy_to_swarm(template, cap)
+		if new_slot < 0:
+			break
+		spawned += 1
+		last_slot = new_slot
+		_reveal_appended_enemy_slot(new_slot)
+	if spawned <= 0:
 		_append_log("敵スキル【%s】: 呼び出せなかった" % skill.display_name)
 		return false
 	_enemy_summon_used[slot] = true
-	_reveal_appended_enemy_slot(new_slot)
-	_try_announce_enemy_trait_once("summon:%d" % slot, new_slot, "仲間を呼んだ！")
-	_append_log("敵スキル【%s】: 仲間が現れた" % skill.display_name)
+	_try_announce_enemy_trait_once("summon:%d" % slot, last_slot, "仲間を呼んだ！")
+	if spawned == 1:
+		_append_log("敵スキル【%s】: %sが現れた" % [skill.display_name, str(template.display_name)])
+	else:
+		_append_log("敵スキル【%s】: %sが%d体現れた" % [skill.display_name, str(template.display_name), spawned])
 	_update_hp_bars()
 	_update_turn_order_ui($CombatController.get_ct_order())
 	return true

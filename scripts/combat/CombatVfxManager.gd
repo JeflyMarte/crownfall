@@ -7,7 +7,7 @@ extends RefCounted
 const AURA_STATUS_IDS: Array[String] = [
 	"poison", "chill", "shock", "ignite", "curse", "major_curse", "bleed", "stun", "fear",
 	## P3-UX-COMBAT-VFX-001: バフ／攻防デバフも常駐オーラでログ無し視認
-	"empower", "empower_minor", "empower_pet", "guard", "mark", "vulnerable", "armor_break", "slow", "enrage",
+	"empower", "empower_minor", "empower_pet", "guard", "mark", "vulnerable", "armor_break", "slow", "enrage", "regen",
 ]
 
 const STATUS_COLOR: Dictionary = {
@@ -29,6 +29,7 @@ const STATUS_COLOR: Dictionary = {
 	"bleed": Color(0.9, 0.28, 0.28),
 	"slow": Color(0.47, 0.67, 0.82),
 	"enrage": Color(0.9, 0.35, 0.16),
+	"regen": Color(0.45, 0.9, 0.55),
 }
 
 ## 付与テロップ色（バフ＝橙／デバフ＝状態色）。

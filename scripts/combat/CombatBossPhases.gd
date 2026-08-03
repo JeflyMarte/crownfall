@@ -58,6 +58,7 @@ const _DEFS: Dictionary = {
 				"boss_granvel_hex": 1.6,
 				"enemy_granvel_verdant_wave": 2.2,
 				"enemy_granvel_bramble_crush": 1.4,
+				"enemy_granvel_call_mirror": 1.5,
 			},
 		},
 		{
@@ -71,6 +72,7 @@ const _DEFS: Dictionary = {
 				"boss_granvel_hex": 1.7,
 				"enemy_granvel_verdant_wave": 2.0,
 				"enemy_granvel_bramble_crush": 1.8,
+				"enemy_granvel_call_mirror": 2.2,
 			},
 		},
 		{
@@ -84,6 +86,7 @@ const _DEFS: Dictionary = {
 				"boss_granvel_hex": 1.8,
 				"enemy_granvel_verdant_wave": 2.0,
 				"enemy_granvel_bramble_crush": 2.5,
+				"enemy_granvel_call_mirror": 0.8,
 			},
 		},
 	],
@@ -98,6 +101,7 @@ const _DEFS: Dictionary = {
 				"boss_moldgar_hex": 1.6,
 				"enemy_moldgar_abyss_surge": 2.2,
 				"enemy_moldgar_mire_maw": 1.4,
+				"enemy_moldgar_call_marsh": 1.5,
 			},
 		},
 		{
@@ -111,6 +115,7 @@ const _DEFS: Dictionary = {
 				"boss_moldgar_hex": 1.7,
 				"enemy_moldgar_abyss_surge": 2.0,
 				"enemy_moldgar_mire_maw": 1.8,
+				"enemy_moldgar_call_marsh": 2.2,
 			},
 		},
 		{
@@ -124,6 +129,7 @@ const _DEFS: Dictionary = {
 				"boss_moldgar_hex": 1.8,
 				"enemy_moldgar_abyss_surge": 2.0,
 				"enemy_moldgar_mire_maw": 2.5,
+				"enemy_moldgar_call_marsh": 0.8,
 			},
 		},
 	],
@@ -138,6 +144,7 @@ const _DEFS: Dictionary = {
 				"boss_nereion_hex": 1.6,
 				"enemy_nereion_tidal_wail": 2.2,
 				"enemy_nereion_breach": 1.4,
+				"enemy_nereion_call_dread": 1.5,
 			},
 		},
 		{
@@ -151,6 +158,7 @@ const _DEFS: Dictionary = {
 				"boss_nereion_hex": 1.7,
 				"enemy_nereion_tidal_wail": 2.0,
 				"enemy_nereion_breach": 1.8,
+				"enemy_nereion_call_dread": 2.2,
 			},
 		},
 		{
@@ -164,6 +172,7 @@ const _DEFS: Dictionary = {
 				"boss_nereion_hex": 1.8,
 				"enemy_nereion_tidal_wail": 2.0,
 				"enemy_nereion_breach": 2.5,
+				"enemy_nereion_call_dread": 0.8,
 			},
 		},
 	],
@@ -178,6 +187,7 @@ const _DEFS: Dictionary = {
 				"boss_eldion_hex": 1.6,
 				"enemy_eldion_glacial_breath": 2.2,
 				"enemy_eldion_crevasse": 1.4,
+				"enemy_eldion_glacial_regen": 1.2,
 			},
 		},
 		{
@@ -191,6 +201,7 @@ const _DEFS: Dictionary = {
 				"boss_eldion_hex": 1.7,
 				"enemy_eldion_glacial_breath": 2.0,
 				"enemy_eldion_crevasse": 1.8,
+				"enemy_eldion_glacial_regen": 1.8,
 			},
 		},
 		{
@@ -204,6 +215,7 @@ const _DEFS: Dictionary = {
 				"boss_eldion_hex": 1.8,
 				"enemy_eldion_glacial_breath": 2.0,
 				"enemy_eldion_crevasse": 2.5,
+				"enemy_eldion_glacial_regen": 2.2,
 			},
 		},
 	],
@@ -218,6 +230,7 @@ const _DEFS: Dictionary = {
 				"boss_chronos_wave_hex": 1.6,
 				"enemy_chronos_wave_resonance": 2.2,
 				"enemy_chronos_wave_gear_crush": 1.4,
+				"enemy_chronos_wave_call_moth": 1.5,
 			},
 		},
 		{
@@ -231,6 +244,7 @@ const _DEFS: Dictionary = {
 				"boss_chronos_wave_hex": 1.7,
 				"enemy_chronos_wave_resonance": 2.0,
 				"enemy_chronos_wave_gear_crush": 1.8,
+				"enemy_chronos_wave_call_moth": 2.2,
 			},
 		},
 		{
@@ -244,6 +258,7 @@ const _DEFS: Dictionary = {
 				"boss_chronos_wave_hex": 1.8,
 				"enemy_chronos_wave_resonance": 2.0,
 				"enemy_chronos_wave_gear_crush": 2.5,
+				"enemy_chronos_wave_call_moth": 0.8,
 			},
 		},
 	],
