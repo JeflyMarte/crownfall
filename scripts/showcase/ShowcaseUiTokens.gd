@@ -15,6 +15,8 @@ const MODE_TAB_STAFF := Rect2(360, 152, 282, 72)
 const MODE_ROW := Rect2(78, 152, 564, 72)
 const EQUIP_RECT := Rect2(70, 175, 168, 580)
 const STATS_RECT := Rect2(482, 175, 168, 460)
+## ステータス焼込枠の直下。背景にスキル枠は無いので Godot 側で金枠カードを描く。
+const SKILLS_RECT := Rect2(482, 652, 168, 200)
 const IDLE_CENTER := Vector2(360, 688)
 const IDLE_HOST_SIZE := Vector2(260, 320)
 ## 名前テキストのみ（枠なし）。台座下〜下ナビ上へ。
@@ -55,6 +57,12 @@ const STAT_KEYS: Array[String] = [
 	"crit_rate",
 	"crit_damage",
 ]
+## スキルカード（見出し＋装備スキル名）。
+const SKILL_HEADER_H: float = 36.0
+const SKILL_ROW_H: float = 28.0
+const SKILL_PAD_X: float = 10.0
+const SKILL_NAME_FONT_SIZE: int = 15
+const SKILL_HEADER_TEXT: String = "✧ スキル ✧"
 
 ## 選択中タブは暗く、非選択は明るめの金文字。
 const COLOR_TAB_ACTIVE_BG := Color(0.02, 0.02, 0.04, 0.72)
@@ -81,6 +89,21 @@ static func power_frame_texture() -> Texture2D:
 static func content_panel_style() -> StyleBoxEmpty:
 	## 装備／ステは背景焼込枠を使う。Godot 側に枠・塗りを置かない。
 	return StyleBoxEmpty.new()
+
+
+static func skill_card_style() -> StyleBoxFlat:
+	## ステータス下のスキル名カード。焼込枠が無いので薄い金枠＋半透明下地。
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.04, 0.03, 0.05, 0.72)
+	sb.draw_center = true
+	sb.set_border_width_all(2)
+	sb.border_color = COLOR_NAME_CARD_BORDER
+	sb.set_corner_radius_all(2)
+	sb.content_margin_left = 0.0
+	sb.content_margin_top = 0.0
+	sb.content_margin_right = 0.0
+	sb.content_margin_bottom = 0.0
+	return sb
 
 
 static func name_card_style() -> StyleBoxEmpty:

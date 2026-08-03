@@ -49,6 +49,8 @@ var _power_panel: Control = null
 var _power_frame: TextureRect = null
 var _power_caption: Label = null
 var _power_value: Label = null
+var _skills_panel: PanelContainer = null
+var _skills_col: Control = null
 var _name_frame_top_rule: Control = null
 var _name_frame_mask: TextureRect = null
 var _pick_overlay: Control = null
@@ -70,6 +72,7 @@ func _ready() -> void:
 	_btn_staff.pressed.connect(func(): _set_mode(Mode.STAFF))
 	_setup_chrome()
 	_ensure_power_panel()
+	_ensure_skills_panel()
 	_ensure_name_frame_top_rule()
 	_ensure_name_frame_mask()
 	_ensure_change_member_button()
@@ -188,6 +191,15 @@ func _apply_layout_rects() -> void:
 	var stats: Rect2 = ShowcaseUiTokensScript.STATS_RECT
 	_stats_panel.position = stats.position
 	_stats_panel.size = stats.size
+
+	if _skills_panel != null:
+		var skills_r: Rect2 = ShowcaseUiTokensScript.SKILLS_RECT
+		_skills_panel.position = skills_r.position
+		_skills_panel.size = skills_r.size
+		_skills_panel.custom_minimum_size = skills_r.size
+		if _skills_col != null:
+			_skills_col.position = Vector2.ZERO
+			_skills_col.size = skills_r.size
 
 	var idle_size: Vector2 = ShowcaseUiTokensScript.IDLE_HOST_SIZE
 	var idle_center: Vector2 = ShowcaseUiTokensScript.IDLE_CENTER
@@ -380,6 +392,72 @@ func _set_power_display(power: int) -> void:
 		_power_value.text = RosterUiHelper.format_combat_power(power)
 
 
+func _ensure_skills_panel() -> void:
+	if _skills_panel != null:
+		return
+	_skills_panel = PanelContainer.new()
+	_skills_panel.name = "SkillsPanel"
+	_skills_panel.z_index = 5
+	_skills_panel.visible = false
+	_skills_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_skills_panel.clip_contents = true
+	_skills_panel.add_theme_stylebox_override("panel", ShowcaseUiTokensScript.skill_card_style())
+	_skills_col = Control.new()
+	_skills_col.name = "SkillsCol"
+	_skills_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_skills_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_skills_col.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_skills_panel.add_child(_skills_col)
+	add_child(_skills_panel)
+
+
+func _populate_equipped_skill_names(member: Resource) -> void:
+	_ensure_skills_panel()
+	if _skills_col == null:
+		return
+	for child in _skills_col.get_children():
+		child.queue_free()
+	var header := Label.new()
+	header.text = ShowcaseUiTokensScript.SKILL_HEADER_TEXT
+	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	header.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	header.position = Vector2(0, 4)
+	header.size = Vector2(_skills_panel.size.x, ShowcaseUiTokensScript.SKILL_HEADER_H)
+	UiTypography.apply_caption(header, COLOR_GOLD)
+	_skills_col.add_child(header)
+
+	var names: PackedStringArray = PackedStringArray()
+	if member != null:
+		for sid: String in GameState.get_equipped_skill_ids(member):
+			var skill_data: Resource = DataRegistry.get_skill_data(sid)
+			var nm: String = str(skill_data.display_name) if skill_data != null else sid
+			if not nm.is_empty():
+				names.append(nm)
+	if names.is_empty():
+		names.append("なし")
+
+	var y: float = ShowcaseUiTokensScript.SKILL_HEADER_H + 4.0
+	var row_h: float = ShowcaseUiTokensScript.SKILL_ROW_H
+	var pad_x: float = ShowcaseUiTokensScript.SKILL_PAD_X
+	var value_w: float = maxf(24.0, _skills_panel.size.x - pad_x * 2.0)
+	for i in range(names.size()):
+		var lbl := Label.new()
+		lbl.text = names[i]
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+		lbl.clip_text = true
+		lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		lbl.position = Vector2(pad_x, y + float(i) * row_h)
+		lbl.size = Vector2(value_w, row_h)
+		UiTypography.apply_body(
+			lbl, ShowcaseUiTokensScript.SKILL_NAME_FONT_SIZE, COLOR_BODY
+		)
+		_skills_col.add_child(lbl)
+
+
 func _ensure_change_member_button() -> void:
 	if _btn_change_member != null:
 		return
@@ -487,6 +565,8 @@ func _refresh_display() -> void:
 func _set_stage_visible(on: bool) -> void:
 	_equip_panel.visible = on
 	_stats_panel.visible = on
+	if _skills_panel != null:
+		_skills_panel.visible = on
 	_idle_host.visible = on
 	_footer.visible = on
 	if _power_panel != null:
@@ -725,6 +805,9 @@ func _populate_stage(member: Resource) -> void:
 		child.queue_free()
 	for child in _stats_col.get_children():
 		child.queue_free()
+	if _skills_col != null:
+		for child in _skills_col.get_children():
+			child.queue_free()
 
 	## 装備は装備品一覧と同系のレア枠・背景・レア表記。見出し／帯は背景焼込。
 	var equip_items: Array = [
@@ -776,6 +859,8 @@ func _populate_stage(member: Resource) -> void:
 		val.position = Vector2(value_left, y)
 		val.size = Vector2(value_w, row_h)
 		_stats_col.add_child(val)
+
+	_populate_equipped_skill_names(member)
 
 	_footer_name.text = str(member.display_name)
 	if _mode == Mode.STAFF:
