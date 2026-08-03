@@ -55,13 +55,15 @@ static func _add_item_title(parent: Node, item: Resource, category: String) -> v
 		UiTypography.apply_display(name_lbl, UiTypography.SIZE_BODY_SMALL)
 		parent.add_child(name_lbl)
 		return
+	## 名前を EXPAND_FILL にすると★が行末へ飛び、Lv直後に見えない。
+	## 両方 SHRINK_BEGIN で「名前+Lv　★」を一塊にする（余白は行の右側）。
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 0)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var name_lbl2 := Label.new()
 	name_lbl2.text = base_name
 	name_lbl2.autowrap_mode = TextServer.AUTOWRAP_OFF
-	name_lbl2.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_lbl2.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	name_lbl2.clip_text = true
 	name_lbl2.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	UiTypography.apply_display(name_lbl2, UiTypography.SIZE_BODY_SMALL)
@@ -70,7 +72,7 @@ static func _add_item_title(parent: Node, item: Resource, category: String) -> v
 	star_lbl.text = star_suffix
 	star_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	star_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
-	star_lbl.size_flags_horizontal = Control.SIZE_SHRINK_END
+	star_lbl.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	star_lbl.clip_text = false
 	UiTypography.apply_body(star_lbl, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	row.add_child(star_lbl)
