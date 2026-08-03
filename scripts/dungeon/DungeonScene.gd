@@ -748,6 +748,9 @@ var _event_presentation_active: bool = false
 ## 分かれ道三択オーバーレイ表示中（P3-DG-FLOOR-CHOICE-001）。
 var _floor_choice_active: bool = false
 var _floor_choice_overlay: Control = null
+## 戦闘クリア後、次フロア暗転のタイミングで三択を出す予約。
+var _pending_floor_choice: bool = false
+var _pending_floor_choice_heal_mode: bool = false
 ## 非戦闘入場の回復パッシブ演出（野営の調合など）中。
 var _noncombat_enter_fx_active: bool = false
 ## 直近バッチで出した回復演出回数（入場 hold 判定用）。
@@ -1095,6 +1098,9 @@ func _ready() -> void:
 		$DungeonController.start_dungeon(dungeon_id)
 	$CombatController.reset_party_hp_for_run()
 	$CombatController.reset_member_ultimate_charge()
+	_pending_floor_choice = false
+	_pending_floor_choice_heal_mode = false
+	_floor_choice_active = false
 	GameState.last_run_accessory_dropped = ""
 	GameState.last_run_relic_dropped = ""
 	GameState.last_run_outcome = ""
@@ -2136,6 +2142,11 @@ func _restore_transition_overlay_color() -> void:
 	_stop_tier_frame_pulse()
 
 func _on_room_transition_midpoint() -> void:
+	## 通常の「[宝箱] F2」表示の代わりに分かれ道を出す（戦闘クリアからの遷移時）。
+	if _pending_floor_choice:
+		_pending_floor_choice = false
+		_offer_floor_choice_replacing_caption(_pending_floor_choice_heal_mode)
+		return
 	_advance_to_next_room()
 	_label_transition.text = _room_transition_caption()
 	_play_room_transition_fx($DungeonController.current_room_type)
@@ -7976,9 +7987,8 @@ func _finalize_combat_cleared() -> void:
 	# クリアBGMは ResultScene のみ。戦闘クリア直後は戦闘BGMを継続（次フロア／非戦闘で切替）。
 	if $DungeonController.is_on_last_floor_before_exit():
 		_play_combat_clear_celebration(true)
-	elif _try_offer_floor_choice():
-		pass
 	else:
+		_queue_floor_choice_if_needed()
 		_start_auto_progress()
 
 # 放浪個体が逃走して戦闘が空になった場合（報酬・日課なし）。
@@ -9442,6 +9452,15 @@ func _start_auto_progress() -> void:
 	$AutoProgressTimer.start()
 
 
+func _queue_floor_choice_if_needed() -> void:
+	_pending_floor_choice = false
+	_pending_floor_choice_heal_mode = false
+	if not $DungeonController.can_offer_floor_choice():
+		return
+	_pending_floor_choice = true
+	_pending_floor_choice_heal_mode = _party_is_depleted_for_floor_choice()
+
+
 func _party_is_depleted_for_floor_choice() -> bool:
 	var n: int = $CombatController.party_combat_hp.size()
 	if n <= 0:
@@ -9466,14 +9485,13 @@ func _party_is_depleted_for_floor_choice() -> bool:
 	return (alive_sum / float(alive_n)) < BalanceConfig.FLOOR_CHOICE_DEPLETED_HP_RATIO
 
 
-func _try_offer_floor_choice() -> bool:
-	if not $DungeonController.can_offer_floor_choice():
-		return false
-	$AutoProgressTimer.stop()
+## 暗転中・階層キャプションの代わりに三択を出す。
+func _offer_floor_choice_replacing_caption(heal_mode: bool) -> void:
 	_floor_choice_active = true
+	_label_transition.text = ""
+	_transition_overlay.modulate.a = 1.0
 	_ensure_floor_choice_overlay()
-	(_floor_choice_overlay as FloorChoiceOverlay).open(_party_is_depleted_for_floor_choice())
-	return true
+	(_floor_choice_overlay as FloorChoiceOverlay).open(heal_mode)
 
 
 func _ensure_floor_choice_overlay() -> void:
@@ -9520,7 +9538,12 @@ func _on_floor_choice_confirmed(choice_id: String, harvest_kinds: Array[String])
 	_floor_choice_active = false
 	if _floor_choice_overlay != null:
 		(_floor_choice_overlay as FloorChoiceOverlay).close()
-	_start_auto_progress()
+	## 階層キャプションは出さず、確定後に次フロアへ入場して暗転を開ける。
+	_advance_to_next_room()
+	var tw: Tween = create_tween()
+	tw.tween_interval(0.12)
+	tw.tween_property(_transition_overlay, "modulate:a", 0.0, 0.28)
+	tw.tween_callback(_on_room_transition_finished)
 
 
 func _apply_floor_choice_on_enter() -> void:
