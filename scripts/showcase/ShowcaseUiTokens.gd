@@ -13,31 +13,31 @@ const BACK_RECT := Rect2(66, 36, 52, 52)
 const MODE_TAB_OWN := Rect2(78, 152, 282, 72)
 const MODE_TAB_STAFF := Rect2(360, 152, 282, 72)
 const MODE_ROW := Rect2(78, 152, 564, 72)
-const EQUIP_RECT := Rect2(70, 175, 168, 580)
+const EQUIP_RECT := Rect2(70, 175, 168, 730)
 const STATS_RECT := Rect2(482, 175, 168, 460)
 ## ステータス焼込枠の直下。背景にスキル枠は無いので Godot 側で金枠カードを描く。
 const SKILLS_RECT := Rect2(482, 652, 168, 258)
 const IDLE_CENTER := Vector2(360, 688)
 const IDLE_HOST_SIZE := Vector2(260, 320)
 ## 名前テキストのみ（枠なし）。台座下〜下ナビ上へ。長名札向けに焼込枠内へ収める。
-const FOOTER_RECT := Rect2(100, 1030, 520, 90)
+const FOOTER_RECT := Rect2(100, 1055, 520, 90)
 ## 総合戦力（名札上）。横幅は「自分の展示」タブと同寸。9-slice 禁止（黒マット伸び）。
 const POWER_RECT := Rect2(222, 918, 282, 68)
-## 名札枠上辺の欠けた横線を補完（焼込角飾り ≈ y1033・左右内側。枠横幅560に合わせる）。
-const NAME_FRAME_TOP_RULE := Rect2(205, 1032, 396, 3)
 ## 自慢キャラ未設定時に背景焼込の名札枠を隠す覆い（BG切り抜き。黒塗り禁止）。
-const NAME_FRAME_MASK_RECT := Rect2(70, 1015, 580, 135)
+const NAME_FRAME_MASK_RECT := Rect2(70, 1035, 580, 140)
 ## 自分の展示：キャラ変更／スタッフ作例：スタッフキャラ（同位置・装備とステのあいだ）。
 const CHANGE_MEMBER_RECT := Rect2(248, 248, 188, 44)
 const STAFF_LIST_RECT := Rect2(248, 248, 188, 44)
 const EMPTY_RECT := Rect2(90, 210, 540, 400)
 const BODY_BOTTOM_PAD: float = 128.0
-## 装備セル相対オフセット（パネル左上基準）。レア枠付きセル中央寄せ。
+## 装備セル相対オフセット（パネル左上基準）。武器／防具／装飾／レリック。
 const EQUIP_ICON_OFFSETS: Array[Vector2] = [
-	Vector2(44, 168),
-	Vector2(44, 318),
-	Vector2(44, 478),
+	Vector2(34, 165),
+	Vector2(34, 320),
+	Vector2(34, 474),
+	Vector2(34, 630),
 ]
+const EQUIP_CATEGORIES: Array[String] = ["weapon", "armor", "accessory", "relic"]
 ## 装備品一覧に近い可読サイズ（レア枠・背景・N/R/E/L 表示）。
 const EQUIP_CELL_PX: int = 80
 ## 個別ステは焼込見出し直下から（総合戦力は POWER_RECT）。

@@ -34,6 +34,7 @@ const STAFF_PRESETS: Array = [
 		"weapon_id": "chronos_toki_sword",
 		"armor_id": "chronos_toki_armor",
 		"accessory_id": "chronos_toki_orb",
+		"relic_id": "relic_berserker_charm",
 		"equipped_skill_ids": ["blood_mist_slash"],
 		"enhance_level": 4,
 		"equip_level": 50,
@@ -51,6 +52,7 @@ const STAFF_PRESETS: Array = [
 		"weapon_id": "valgard_antique_blade",
 		"armor_id": "valgard_antique_armor",
 		"accessory_id": "valgard_antique_amulet",
+		"relic_id": "relic_aegis_shard",
 		"equipped_skill_ids": ["apex_guard"],
 		"enhance_level": 4,
 		"equip_level": 50,
@@ -68,6 +70,7 @@ const STAFF_PRESETS: Array = [
 		"weapon_id": "mendweaver_staff",
 		"armor_id": "field_salve_robe",
 		"accessory_id": "apothecary_vial",
+		"relic_id": "relic_lament_ring",
 		"equipped_skill_ids": ["salve_burst"],
 		"enhance_level": 4,
 		"equip_level": 50,
@@ -85,6 +88,7 @@ const STAFF_PRESETS: Array = [
 		"weapon_id": "chronos_toki_bow",
 		"armor_id": "chronos_toki_armor",
 		"accessory_id": "chronos_toki_orb",
+		"relic_id": "relic_hunter_sigil",
 		"equipped_skill_ids": ["hunting_ground_mark"],
 		"enhance_level": 4,
 		"equip_level": 50,
@@ -102,6 +106,7 @@ const STAFF_PRESETS: Array = [
 		"weapon_id": "packbond_staff",
 		"armor_id": "beastcall_mantle",
 		"accessory_id": "beastlord_fang",
+		"relic_id": "relic_scout_lens",
 		"equipped_skill_ids": ["herd_call"],
 		"enhance_level": 4,
 		"equip_level": 50,
@@ -118,6 +123,18 @@ static func find_staff_preset(preset_id: String) -> Dictionary:
 		if raw is Dictionary and str(raw.get("id", "")) == preset_id:
 			return (raw as Dictionary).duplicate(true)
 	return {}
+
+
+## 展示室用。所持チェック付き normalize を踏まずレリック id を読む（スタッフ作例向け）。
+static func member_relic_id(member: Resource) -> String:
+	if member == null:
+		return ""
+	if "equipped_passive_ids" in member:
+		for raw: Variant in member.equipped_passive_ids:
+			var pid: String = CombatPassives.migrate_relic_passive_id(str(raw))
+			if CombatPassives.is_relic_passive(pid):
+				return pid
+	return GameState.get_equipped_relic_passive_id(member)
 
 
 ## 名札／一覧用。「アルド(出血主砲ビルド)」。
@@ -157,6 +174,13 @@ static func build_member_from_preset(preset: Dictionary) -> Resource:
 	adv.equipped_accessory = _make_accessory(
 		str(preset.get("accessory_id", "")), character_id, enhance_lv, equip_lv
 	)
+	var relic_id: String = CombatPassives.migrate_relic_passive_id(
+		str(preset.get("relic_id", "")).strip_edges()
+	)
+	if not relic_id.is_empty() and CombatPassives.is_relic_passive(relic_id):
+		## スタッフ作例は所持フラグ無し。equipped_passive_ids 直置き（normalize で消されないよう表示は直読み）。
+		adv.equipped_passive_ids = [relic_id] as Array[String]
+		adv.passive_slots_customized = true
 	var skill_ids: Array[String] = []
 	var raw_skills: Variant = preset.get("equipped_skill_ids", [])
 	if raw_skills is Array:
