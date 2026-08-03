@@ -6920,3 +6920,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-BOSS-SUMMON-REGEN-001-6 | **召喚配線** — `SkillData.summon_enemy_id`／`summon_count`。指定召喚は HP≤50% 条件なし・スロット1回・群れキャップ5 | 既存トリッキー同種召喚と分離 |
 | P3-BAL-BOSS-SUMMON-REGEN-001-7 | **据置** — 通常2種／圧力0.5／重技2.0／hex／激昂／他ボス | スコープ外 |
 | P3-BAL-BOSS-SUMMON-REGEN-001-8 | **仲間呼びは戦闘中1回** — skill_id 単位で消費＋CD9999。発動時点で消費（再抽選不可） | オーナー再指示 |
+
+## ビッグコズミックダック（2026-08-03 — P3-ENEMY-BIG-COSMIC-DUCK-001）
+
+> **オーナー GO** — 推奨案 B+1。既存ドット2倍＋王冠／オーラ。裂け目最終Fボス。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-ENEMY-BIG-COSMIC-DUCK-001-1 | **見た目** — 既存シートをニアレスト2倍（192）＋王冠／シアン縁／星屑 | 案B |
+| P3-ENEMY-BIG-COSMIC-DUCK-001-2 | **配置** — `cosmic_rift` 最終F＝BOSS。`boss_id=big_cosmic_duck`。章 `closing_type=boss` | 案1 |
+| P3-ENEMY-BIG-COSMIC-DUCK-001-3 | **戦闘** — 逃走なし・HP1480帯・羽粉＋星屑波＋ダック2体召喚（戦闘中1回） | キングスライム立ち位置 |
+| P3-ENEMY-BIG-COSMIC-DUCK-001-4 | **据置** — 道中は通常ダックのみ／日次1回／罠重み | 既存イベント骨格 |
