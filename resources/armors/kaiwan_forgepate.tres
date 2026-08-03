@@ -6,7 +6,7 @@
 script = ExtResource("1")
 armor_id = "kaiwan_forgepate"
 display_name = "偽星フォージペイト"
-description = "灰冠の九が私兵化した防具。欠け王冠の模刻が残る。"
+description = "偽星の座が星炉の失敗印を額当てに焼き付けた兜。鍛え直すほど刃と共鳴する。"
 base_defense = 155
 base_hp_bonus = 250
 base_resistance = 0.0

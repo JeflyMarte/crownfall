@@ -61,6 +61,21 @@ func test_effect_text_for_kaiwan_weapon() -> void:
 	assert_eq(_GachaEquipSystem.catchcopy(), "灰冠の刃を手にする")
 
 
+
+func test_inventory_effect_is_calm_equipment_copy() -> void:
+	## 装備一覧用。封蔵煽り（！／全角％）とは分ける。
+	for raw: Variant in _GachaEquipSystem.POOL:
+		var e: Dictionary = raw as Dictionary
+		var inv: String = _GachaEquipSystem.inventory_effect_text_for(e)
+		var id: String = str(e.get("id", ""))
+		assert_false(inv.is_empty(), id)
+		assert_false(inv.contains("！"), id)
+		assert_false(inv.contains("３０"), id)
+		assert_true(inv.contains("%") or inv.contains("半") or inv.contains("延び") or inv.contains("乗る") or inv.contains("効かない") or inv.contains("与える"), id)
+	var gacha: String = _GachaEquipSystem.effect_text_for(_GachaEquipSystem.pool_entry_by_id("kaiwan_crosslit"))
+	assert_true(gacha.contains("！") or gacha.contains("３０"), "封蔵口語は据置")
+
+
 func test_kaiwan_blurbs_are_product_pitch() -> void:
 	## 商品紹介調: 2行・部位名で締めない。
 	for raw: Variant in _GachaEquipSystem.POOL:

@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "kaiwan_silent"
 display_name = "裂鍵サイレント"
-description = "封じ頁を裂く杖。解呪と削ぎの道具。"
+description = "封じ頁を裂く杖。解呪と削ぎのための道具として、裂鍵の座が私兵化した。"
 fixed_skill_id = ""
 fixed_passive_id = ""
 base_attack = 180
@@ -20,4 +20,4 @@ weight = 1.0
 element = "dark"
 weapon_type = "staff"
 tags = Array[String](["dark", "kaiwan"])
-flavor_text = "灰冠の九・解呪・削ぎ。盗まれた炉の武具。正義の刃ではない。"
+flavor_text = "封じ頁は、開かれるたび誰かの加護を裂く。"

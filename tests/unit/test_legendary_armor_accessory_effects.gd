@@ -75,7 +75,7 @@ func test_equipment_detail_shows_legendary_effect() -> void:
 
 
 func test_kaiwan_armor_shows_pool_effect_text() -> void:
-	## fixed_passive_id 空でも封蔵口語を固有効果として出す。
+	## fixed_passive_id 空でも装備一覧用文（inventory_effect）を固有効果として出す。
 	var armor_data: Resource = DataRegistry.get_armor_data("kaiwan_primehide")
 	assert_not_null(armor_data)
 	assert_eq(str(armor_data.fixed_passive_id), "")
@@ -84,11 +84,14 @@ func test_kaiwan_armor_shows_pool_effect_text() -> void:
 	var text: String = EquipmentItemDetailHelper.equipment_legendary_effect_text(armor_inst, "armor")
 	assert_false(text.is_empty())
 	assert_true(text.contains("被弾") or text.contains("ダメージ"))
+	assert_false(text.contains("！"), "装備一覧は煽り口語にしない")
 	var weapon_inst: Resource = load("res://scripts/domain/WeaponInstance.gd").new()
 	weapon_inst.weapon_id = "kaiwan_crosslit"
 	var wtext: String = EquipmentItemDetailHelper.equipment_legendary_effect_text(weapon_inst, "weapon")
 	assert_false(wtext.is_empty())
-	assert_true(wtext.contains("最初") or wtext.contains("３０"))
+	assert_true(wtext.contains("最初") or wtext.contains("30%"))
+	assert_false(wtext.contains("！"), "装備一覧は煽り口語にしない")
+	assert_false(wtext.contains("３０"), "半角％表記")
 
 
 func test_stage_registers_legendary_loot() -> void:

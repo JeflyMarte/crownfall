@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "kaiwan_relictos"
 display_name = "断継レリクトス"
-description = "継承を断つ黒剣。"
+description = "継承を断つ黒剣。断継の座が撃破の余熱を次撃へ繋ぐよう鍛え直した刃。"
 fixed_skill_id = ""
 fixed_passive_id = ""
 base_attack = 225
@@ -20,4 +20,4 @@ weight = 1.0
 element = "dark"
 weapon_type = "sword"
 tags = Array[String](["dark", "kaiwan"])
-flavor_text = "灰冠の九・連鎖撃破。盗まれた炉の武具。正義の刃ではない。"
+flavor_text = "継がせぬ一撃のあと、次の刃だけが熱を残す。"

@@ -6,7 +6,7 @@
 script = ExtResource("1")
 armor_id = "kaiwan_primehide"
 display_name = "塞図プライムハイド"
-description = "灰冠の九が私兵化した防具。欠け王冠の模刻が残る。"
+description = "塞図の座が厚く仕立てた外皮。欠け王冠の模刻が肩に残り、最初の一撃だけを受け止める。"
 base_defense = 160
 base_hp_bonus = 280
 base_resistance = 0.0
