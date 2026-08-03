@@ -6867,6 +6867,19 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-BOSS-BASIC-ALIGN-001-3 | **重い技** — 詠唱全体／単体・前列の副技を `power_multiplier=2.0` | 断罪スロット |
 | P3-BAL-BOSS-BASIC-ALIGN-001-4 | **据置** — hex×0.25／激昂／開幕オーラ／フェーズ重み／詠唱有無 | 個性と演出を残す |
 
+## ノーマル非戦闘失敗率の緩和（2026-08-03 — P3-BAL-N-NONCOMBAT-FAIL-001）
+
+> **オーナー指示** — ノーマルの罠／碑文／宝箱の失敗率を下げる。ハード・NM・泉は据置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-N-NONCOMBAT-FAIL-001-1 | **罠部屋発動** — N **50→35%**。H65／NM80据置 | ノーマルの被弾頻度を抑える |
+| P3-BAL-N-NONCOMBAT-FAIL-001-2 | **探索罠** — N **12→8%**。H20／NM28据置 | 同上 |
+| P3-BAL-N-NONCOMBAT-FAIL-001-3 | **宝箱成功率** — N **50→70%**。H/NM **50%**据置 | 失敗感の緩和 |
+| P3-BAL-N-NONCOMBAT-FAIL-001-4 | **碑文成功率** — N **80→90%**。H/NM **80%**据置。初回保証は維持 | 同上 |
+| P3-BAL-N-NONCOMBAT-FAIL-001-5 | **据置** — 泉成功率50%／失敗ペナルティHP割合／罠ダメ割合 | スコープ外 |
+| P3-BAL-N-NONCOMBAT-FAIL-001-6 | **SSOT** — `docs/specs/decisions/10_NonCombatTension.md` | 非戦闘 Decision |
+
 ## 展示室スタッフ理想ビルド（2026-08-03 — P3-SHOWCASE-IDEAL-001）
 
 > **オーナー GO（推奨案 A+C）** — β到達の現実的完成形 × 役割カタログ。名札＝`アルド(出血主砲ビルド)`。神話・深層なし。
@@ -6878,4 +6891,17 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-SHOWCASE-IDEAL-001-3 | **装備帯** — 降臨セット／ビルド用 L 可。神話・深層は出さない | β到達想定 |
 | P3-SHOWCASE-IDEAL-001-4 | **育成想定** — Lv50・炉研ぎ+4・装備Lv50・スキル明示 | 完成形の見せ方 |
 | P3-SHOWCASE-IDEAL-001-5 | **SSOT** — `docs/specs/decisions/08_ShowcaseRoom.md` を上書き | 展示室 Decision |
+
+## ノーマル非戦闘失敗率の緩和（2026-08-03 — P3-BAL-N-NONCOMBAT-FAIL-001）
+
+> **オーナー指示** — ノーマルの罠／碑文／宝箱の失敗率を下げる。ハード・NM・泉は据置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-N-NONCOMBAT-FAIL-001-1 | **罠部屋発動** — N **50→35%**。H65／NM80据置 | ノーマルの被弾頻度を抑える |
+| P3-BAL-N-NONCOMBAT-FAIL-001-2 | **探索罠** — N **12→8%**。H20／NM28据置 | 同上 |
+| P3-BAL-N-NONCOMBAT-FAIL-001-3 | **宝箱成功率** — N **50→70%**。H/NM **50%**据置 | 失敗感の緩和 |
+| P3-BAL-N-NONCOMBAT-FAIL-001-4 | **碑文成功率** — N **80→90%**。H/NM **80%**据置。初回保証は維持 | 同上 |
+| P3-BAL-N-NONCOMBAT-FAIL-001-5 | **据置** — 泉成功率50%／失敗ペナルティHP割合／罠ダメ割合 | スコープ外 |
+| P3-BAL-N-NONCOMBAT-FAIL-001-6 | **SSOT** — `docs/specs/decisions/10_NonCombatTension.md` | 非戦闘 Decision |
 

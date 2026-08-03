@@ -82,10 +82,10 @@ const TRAP_MAX_HP_FRAC_COMBAT_AOE_BY_TIER: Array[float] = [0.05, 0.08, 0.12]
 const TRAP_MAX_HP_FRAC_ROOM_AOE_BY_TIER: Array[float] = [0.08, 0.12, 0.18]
 ## 発動時に全体パターンになる確率
 const TRAP_AOE_CHANCE_BY_TIER: Array[float] = [0.25, 0.35, 0.45]
-## 戦闘／エリート入室時の探索罠ロール
-const TRAP_EXPLORE_CHANCE_BY_TIER: Array[float] = [0.12, 0.20, 0.28]
-## 罠部屋の発動率
-const TRAP_ROOM_TRIGGER_CHANCE_BY_TIER: Array[float] = [0.50, 0.65, 0.80]
+## 戦闘／エリート入室時の探索罠ロール（Nは失敗感を抑える — P3-BAL-N-NONCOMBAT-FAIL-001）
+const TRAP_EXPLORE_CHANCE_BY_TIER: Array[float] = [0.08, 0.20, 0.28]
+## 罠部屋の発動率（N=35%／H・NM据置）
+const TRAP_ROOM_TRIGGER_CHANCE_BY_TIER: Array[float] = [0.35, 0.65, 0.80]
 ## 被弾時に毒 or 出血を付与する確率（N=なし）
 const TRAP_STATUS_CHANCE_BY_TIER: Array[float] = [0.0, 0.40, 0.60]
 const TRAP_STATUS_POOL: Array[String] = ["poison", "bleed"]
@@ -137,6 +137,9 @@ static func trap_status_chance(tier: int) -> float:
 const NONCOMBAT_FAIL_TREASURE_HP_FRAC: float = 0.08
 const NONCOMBAT_FAIL_HEAL_HP_FRAC: float = 0.07
 const NONCOMBAT_FAIL_LORE_HP_FRAC: float = 0.05
+## 宝箱／碑文の成功率（N緩和・H/NM据置 — P3-BAL-N-NONCOMBAT-FAIL-001）。泉は据置。
+const TREASURE_SUCCESS_CHANCE_BY_TIER: Array[float] = [0.70, 0.50, 0.50]
+const LORE_SUCCESS_CHANCE_BY_TIER: Array[float] = [0.90, 0.80, 0.80]
 ## 宝箱成功の武器ドロップ率。
 const TREASURE_WEAPON_CHANCE: float = 0.12
 ## 碑文成功（初回）の素材／装飾。
@@ -147,6 +150,14 @@ const LORE_FIRST_ACCESSORY_CHANCE: float = 0.08
 ## 碑文成功時: 次フロアの EXP／Gold／装備ドロップ率のいずれか ×1.1。
 const LORE_FLOOR_BLESSING_MULT: float = 1.1
 const LORE_FLOOR_BLESSING_KINDS: Array[String] = ["exp", "gold", "equip"]
+
+
+static func treasure_success_chance(tier: int) -> float:
+	return TREASURE_SUCCESS_CHANCE_BY_TIER[_trap_tier_index(tier)]
+
+
+static func lore_success_chance(tier: int) -> float:
+	return LORE_SUCCESS_CHANCE_BY_TIER[_trap_tier_index(tier)]
 
 # ── 敵レベルスケール（P3-D081） ──────────────────────────────────────────
 const ENEMY_LEVEL_HP_K: float = 0.10

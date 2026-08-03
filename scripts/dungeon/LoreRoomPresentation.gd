@@ -6,7 +6,8 @@ extends RefCounted
 const ROOM_BG_SETUP_PATH: String = "res://assets/dungeon/common/lore/BG_Room_Lore_Setup.png"
 const ROOM_BG_SUCCESS_PATH: String = "res://assets/dungeon/common/lore/BG_Room_Lore_Success.png"
 const ROOM_BG_FAIL_PATH: String = "res://assets/dungeon/common/lore/BG_Room_Lore_Fail.png"
-## 通常判読率。記録を1件も持っていないときは初回保証で必ず成功（P3-UX-LORE-002）。
+## 後方互換: ハード帯の判読率（ティア別は success_chance）。
+## 記録を1件も持っていないときは初回保証で必ず成功（P3-UX-LORE-002）。
 const SUCCESS_CHANCE: float = 0.8
 
 const COLOR_SUCCESS: Color = Color(0.78, 0.62, 1.0)
@@ -49,13 +50,18 @@ static func pick_fail_line(rng: RandomNumberGenerator = null) -> String:
 	return _pick_line(FAIL_LINES, rng)
 
 
-static func is_deciphered(rng: RandomNumberGenerator = null) -> bool:
+static func success_chance(tier: int = 1) -> float:
+	return BalanceConfig.lore_success_chance(tier)
+
+
+static func is_deciphered(rng: RandomNumberGenerator = null, tier: int = 1) -> bool:
 	## 図鑑「記録」が未所持なら必ず成功（初回保証）。
 	if DiscoveryRegistry.count_by_category("lore") <= 0:
 		return true
+	var chance: float = success_chance(tier)
 	if rng != null:
-		return rng.randf() < SUCCESS_CHANCE
-	return randf() < SUCCESS_CHANCE
+		return rng.randf() < chance
+	return randf() < chance
 
 
 static func format_success_narrative_bbcode(plain_lines: String) -> String:

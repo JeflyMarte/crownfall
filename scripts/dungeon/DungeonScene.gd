@@ -3848,7 +3848,7 @@ func _handle_event_room_async() -> void:
 		LoreRoomPresentationScript.timings(_fast_run_enabled).get("setup_hold", 1.0)
 	)
 	await get_tree().create_timer(setup_hold).timeout
-	if not LoreRoomPresentationScript.is_deciphered():
+	if not LoreRoomPresentationScript.is_deciphered(null, GameState.current_dungeon_tier):
 		var fail_text: String = LoreRoomPresentationScript.pick_fail_line()
 		_begin_noncombat_party_feedback()
 		var penalty_line: String = _apply_noncombat_fail_penalty(
@@ -4282,7 +4282,7 @@ func _resolve_treasure_room_async() -> void:
 		TreasureRoomPresentationScript.timings(_fast_run_enabled).get("setup_hold", 1.0)
 	)
 	await get_tree().create_timer(setup_hold).timeout
-	if not TreasureRoomPresentationScript.is_successful():
+	if not TreasureRoomPresentationScript.is_successful(null, GameState.current_dungeon_tier):
 		var treasure_fail: Dictionary = $DungeonController.generate_treasure_loot_failure()
 		var fail_line: String = TreasureRoomPresentationScript.pick_fail_line()
 		## ダメージ数字は味方ドット上に出す（非表示のままだと位置がずれる／見えない）。

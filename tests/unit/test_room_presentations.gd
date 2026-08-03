@@ -7,24 +7,37 @@ const _LoreRoomPresentation = preload("res://scripts/dungeon/LoreRoomPresentatio
 
 
 func test_heal_treasure_use_half_success_chance() -> void:
+	## 泉は据置50%。宝箱 SUCCESS_CHANCE 定数はハード帯エイリアス。
 	assert_almost_eq(_HealRoomPresentation.SUCCESS_CHANCE, 0.5, 0.001)
 	assert_almost_eq(_TreasureRoomPresentation.SUCCESS_CHANCE, 0.5, 0.001)
+	assert_almost_eq(_TreasureRoomPresentation.success_chance(0), 0.70, 0.001)
+	assert_almost_eq(_TreasureRoomPresentation.success_chance(1), 0.50, 0.001)
 
 
 func test_lore_decipher_rate_and_first_guarantee() -> void:
-	## P3-UX-LORE-002: 通常80%。記録未所持なら初回保証。
+	## ハード帯エイリアス80%。Nは90%。記録未所持なら初回保証。
 	assert_almost_eq(_LoreRoomPresentation.SUCCESS_CHANCE, 0.8, 0.001)
+	assert_almost_eq(_LoreRoomPresentation.success_chance(0), 0.90, 0.001)
+	assert_almost_eq(_LoreRoomPresentation.success_chance(1), 0.80, 0.001)
 	GameState.discovery_registry.clear()
-	assert_true(_LoreRoomPresentation.is_deciphered(), "記録0件は必ず成功")
+	assert_true(_LoreRoomPresentation.is_deciphered(null, 0), "記録0件は必ず成功")
 	DiscoveryRegistry.register("lore", "ancient_record")
 	var succ: int = 0
 	for i in 500:
 		var rng := RandomNumberGenerator.new()
 		rng.seed = i + 11
-		if _LoreRoomPresentation.is_deciphered(rng):
+		if _LoreRoomPresentation.is_deciphered(rng, 1):
 			succ += 1
-	assert_gt(succ, 340, "所持後はおおよそ80%")
-	assert_lt(succ, 460, "所持後はおおよそ80%")
+	assert_gt(succ, 340, "所持後ハードはおおよそ80%")
+	assert_lt(succ, 460, "所持後ハードはおおよそ80%")
+	var succ_n: int = 0
+	for i in 500:
+		var rng_n := RandomNumberGenerator.new()
+		rng_n.seed = i + 31
+		if _LoreRoomPresentation.is_deciphered(rng_n, 0):
+			succ_n += 1
+	assert_gt(succ_n, 420, "所持後ノーマルはおおよそ90%")
+	assert_lt(succ_n, 480, "所持後ノーマルはおおよそ90%")
 
 
 func test_timings_match_trap_pattern() -> void:
@@ -51,16 +64,16 @@ func test_success_roll_is_deterministic_with_rng() -> void:
 	rng.seed = 42
 	assert_eq(heal_ok, _HealRoomPresentation.is_successful(rng))
 	rng.seed = 42
-	var treasure_ok: bool = _TreasureRoomPresentation.is_successful(rng)
+	var treasure_ok: bool = _TreasureRoomPresentation.is_successful(rng, 0)
 	rng.seed = 42
-	assert_eq(treasure_ok, _TreasureRoomPresentation.is_successful(rng))
+	assert_eq(treasure_ok, _TreasureRoomPresentation.is_successful(rng, 0))
 	## 所持済みでないと初回保証で常に true になり、乱数の決定性を検証できない。
 	GameState.discovery_registry.clear()
 	DiscoveryRegistry.register("lore", "ancient_record")
 	rng.seed = 42
-	var lore_ok: bool = _LoreRoomPresentation.is_deciphered(rng)
+	var lore_ok: bool = _LoreRoomPresentation.is_deciphered(rng, 0)
 	rng.seed = 42
-	assert_eq(lore_ok, _LoreRoomPresentation.is_deciphered(rng))
+	assert_eq(lore_ok, _LoreRoomPresentation.is_deciphered(rng, 0))
 
 
 func test_heal_success_narrative_format() -> void:

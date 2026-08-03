@@ -6,6 +6,7 @@ extends RefCounted
 const ROOM_BG_SETUP_PATH: String = "res://assets/dungeon/common/treasure/BG_Room_Treasure_Setup.png"
 const ROOM_BG_SUCCESS_PATH: String = "res://assets/dungeon/common/treasure/BG_Room_Treasure_Success.png"
 const ROOM_BG_FAIL_PATH: String = "res://assets/dungeon/common/treasure/BG_Room_Treasure_Fail.png"
+## 後方互換: ハード帯の成功率（ティア別は success_chance）。
 const SUCCESS_CHANCE: float = 0.5
 const FAILURE_GOLD_RATIO: float = 0.5
 
@@ -58,10 +59,15 @@ static func pick_fail_line(rng: RandomNumberGenerator = null) -> String:
 	return _pick_line(FAIL_LINES, rng)
 
 
-static func is_successful(rng: RandomNumberGenerator = null) -> bool:
+static func success_chance(tier: int = 1) -> float:
+	return BalanceConfig.treasure_success_chance(tier)
+
+
+static func is_successful(rng: RandomNumberGenerator = null, tier: int = 1) -> bool:
+	var chance: float = success_chance(tier)
 	if rng != null:
-		return rng.randf() < SUCCESS_CHANCE
-	return randf() < SUCCESS_CHANCE
+		return rng.randf() < chance
+	return randf() < chance
 
 
 static func failure_gold_amount(base_gold: int) -> int:
