@@ -65,16 +65,16 @@ func test_staff_presets_build_members() -> void:
 			assert_not_null(data, "%s data for %s" % [cat, str(preset.get("id", ""))])
 			assert_true("rarity" in data)
 			var rarity: int = int(data.rarity)
-			assert_ne(rarity, Enums.Rarity.MYTHIC, "no mythic in staff ideal builds")
+			## エンシェント（SET）／ミシックはスタッフ理想ビルドで使わない。
+			assert_lte(rarity, ShowcaseCatalogScript.STAFF_MAX_EQUIP_RARITY)
+			assert_ne(rarity, Enums.Rarity.MYTHIC)
+			assert_ne(rarity, Enums.Rarity.SET)
 			var cell_px: int = ShowcaseUiTokens.EQUIP_CELL_PX
 			var style: StyleBox = EquipmentUiTokens.rarity_slot_style(rarity, false, cell_px)
 			assert_not_null(style)
 			## セル上の文字バッジはロゴ画像へ置換済み（常に空）。
 			assert_eq(EquipmentUiHelper.rarity_stars_text(rarity), "")
-			if rarity == Enums.Rarity.SET:
-				assert_eq(EquipmentUiHelper.rarity_label_text(rarity), "エンシェントレア")
-				assert_not_null(EquipmentUiTokens.tier_badge(rarity))
-			elif rarity <= Enums.Rarity.EPIC:
+			if rarity <= Enums.Rarity.EPIC:
 				assert_not_null(EquipmentUiTokens.corner_rarity_badge(rarity))
 			elif rarity == Enums.Rarity.LEGENDARY:
 				assert_not_null(EquipmentUiTokens.tier_badge(rarity))
