@@ -126,8 +126,10 @@ func test_staff_list_button_matches_change_member_rect() -> void:
 func test_skills_rect_sits_below_stats() -> void:
 	var stats: Rect2 = ShowcaseUiTokens.STATS_RECT
 	var skills: Rect2 = ShowcaseUiTokens.SKILLS_RECT
-	assert_eq(skills.position.x, stats.position.x)
+	## スキル箱はステ下・やや左・縦半分程度。
+	assert_lt(skills.position.x, stats.position.x)
 	assert_eq(skills.size.x, stats.size.x)
+	assert_lt(skills.size.y, stats.size.y * 0.4)
 	assert_gt(skills.position.y, stats.position.y + stats.size.y - 1.0)
 	assert_lt(skills.position.y + skills.size.y, ShowcaseUiTokens.POWER_RECT.position.y)
 

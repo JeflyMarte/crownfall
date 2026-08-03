@@ -15,12 +15,12 @@ const MODE_TAB_STAFF := Rect2(360, 152, 282, 72)
 const MODE_ROW := Rect2(78, 152, 564, 72)
 const EQUIP_RECT := Rect2(70, 175, 168, 730)
 const STATS_RECT := Rect2(482, 175, 168, 460)
-## ステータス焼込枠の直下。背景にスキル枠は無いので Godot 側で金枠カードを描く。
-const SKILLS_RECT := Rect2(482, 652, 168, 258)
+## ステータス焼込枠の直下。縦は半分程度・やや左寄せ。
+const SKILLS_RECT := Rect2(450, 652, 168, 130)
 const IDLE_CENTER := Vector2(360, 688)
 const IDLE_HOST_SIZE := Vector2(260, 320)
-## 名前テキストのみ（枠なし）。台座下〜下ナビ上へ。長名札向けに焼込枠内へ収める。
-const FOOTER_RECT := Rect2(100, 1055, 520, 90)
+## 名前テキストのみ（枠なし）。焼込名札内の下寄り。
+const FOOTER_RECT := Rect2(100, 1095, 520, 80)
 ## 総合戦力（名札上）。横幅は「自分の展示」タブと同寸。9-slice 禁止（黒マット伸び）。
 const POWER_RECT := Rect2(222, 918, 282, 68)
 ## 自慢キャラ未設定時に背景焼込の名札枠を隠す覆い（BG切り抜き。黒塗り禁止）。
@@ -57,14 +57,14 @@ const STAT_KEYS: Array[String] = [
 	"crit_rate",
 	"crit_damage",
 ]
-## スキルカード（見出し＋装備スキル名＋効果文）。
-const SKILL_HEADER_H: float = 30.0
-const SKILL_ROW_H: float = 22.0
-const SKILL_DESC_MAX_H: float = 58.0
-const SKILL_ENTRY_GAP: float = 6.0
-const SKILL_PAD_X: float = 8.0
-const SKILL_NAME_FONT_SIZE: int = 14
-const SKILL_DESC_FONT_SIZE: int = 11
+## スキルカード（見出し＋装備スキル名＋効果文）。縦半分枠向けにコンパクト。
+const SKILL_HEADER_H: float = 22.0
+const SKILL_ROW_H: float = 18.0
+const SKILL_DESC_MAX_H: float = 28.0
+const SKILL_ENTRY_GAP: float = 2.0
+const SKILL_PAD_X: float = 6.0
+const SKILL_NAME_FONT_SIZE: int = 12
+const SKILL_DESC_FONT_SIZE: int = 10
 const SKILL_HEADER_TEXT: String = "✧ スキル ✧"
 
 ## 選択中タブは暗く、非選択は明るめの金文字。
