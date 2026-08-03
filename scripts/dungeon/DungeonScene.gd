@@ -3172,7 +3172,7 @@ func _collect_floor_buff_legend_entries() -> Array[Dictionary]:
 			out.append({
 				"id": "choice_atk",
 				"stat": _floor_buff_stat_key("attack"),
-				"text": "パーティー全体の攻撃力 ×%.1f" % float(dc.floor_choice_damage_mult),
+				"text": "パーティの攻撃力 ×%.1f" % float(dc.floor_choice_damage_mult),
 			})
 		var reward_keys: Array = dc.floor_choice_reward_mults.keys()
 		reward_keys.sort()
@@ -3184,14 +3184,14 @@ func _collect_floor_buff_legend_entries() -> Array[Dictionary]:
 			out.append({
 				"id": "choice_%s" % kind,
 				"stat": _floor_buff_stat_key(kind),
-				"text": "パーティー全体の%s ×%.2f" % [_floor_buff_noun(kind), mult],
+				"text": "パーティの%s ×%.2f" % [_floor_buff_noun(kind), mult],
 			})
 	if dc.has_active_floor_blessing():
 		var lore_kind: String = str(dc.floor_blessing_kind)
 		out.append({
 			"id": "lore_%s" % lore_kind,
 			"stat": _floor_buff_stat_key(lore_kind),
-			"text": "パーティー全体の%s ×%.1f" % [
+			"text": "パーティの%s ×%.1f" % [
 				_floor_buff_noun(lore_kind),
 				BalanceConfig.LORE_FLOOR_BLESSING_MULT,
 			],
