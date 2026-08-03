@@ -12,7 +12,8 @@ display_name = "濃エルダの浅瀬"
 floor_count = 5
 enemy_level = 3
 recommended_level = 5
-closing_type = "exit"
+closing_type = "boss"
+boss_id = "big_cosmic_duck"
 requires_elite = false
 spawn_weights = {
 "1": 100,

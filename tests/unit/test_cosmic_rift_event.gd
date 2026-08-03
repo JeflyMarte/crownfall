@@ -23,7 +23,7 @@ func test_cosmic_rift_data_shape() -> void:
 	assert_true(bool(data.disable_wandering))
 	assert_almost_eq(float(data.forced_swarm_chance), 0.35, 0.0001)
 	assert_eq(data.enemy_pool, ["cosmic_duck"])
-	assert_true(str(data.boss_id).is_empty())
+	assert_eq(str(data.boss_id), "big_cosmic_duck")
 	assert_eq(int(data.room_weight_overrides.get("trap", 0)), 45)
 	assert_eq(int(data.room_weight_overrides.get("elite", -1)), 0)
 
@@ -43,7 +43,7 @@ func test_daily_attempt_consume_and_block() -> void:
 	assert_false(GameState.consume_event_dungeon_attempt("cosmic_rift"))
 
 
-func test_room_sequence_has_no_boss_and_uses_overrides() -> void:
+func test_room_sequence_ends_with_boss_and_uses_overrides() -> void:
 	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
 	var dc: Node = dc_script.new()
 	add_child_autofree(dc)
@@ -54,7 +54,7 @@ func test_room_sequence_has_no_boss_and_uses_overrides() -> void:
 	assert_eq(int(weights["elite"]), 0)
 	var seq: Array = dc._build_room_sequence(data)
 	assert_eq(seq.size(), 5)
-	assert_false(Enums.RoomType.BOSS in seq)
+	assert_eq(seq[seq.size() - 1], Enums.RoomType.BOSS)
 	assert_false(Enums.RoomType.ELITE in seq)
 
 
