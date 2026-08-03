@@ -50,7 +50,7 @@ var _power_frame: TextureRect = null
 var _power_caption: Label = null
 var _power_value: Label = null
 var _name_frame_top_rule: Control = null
-var _name_frame_mask: ColorRect = null
+var _name_frame_mask: TextureRect = null
 var _pick_overlay: Control = null
 var _pick_list: VBoxContainer = null
 var _pick_title: Label = null
@@ -283,15 +283,22 @@ func _ensure_name_frame_top_rule() -> void:
 
 
 func _ensure_name_frame_mask() -> void:
-	## 自慢キャラ未設定時は焼込名札枠だけ残ると空ボタンに見えるので覆う。
+	## 自慢キャラ未設定時は焼込名札枠だけ残ると空ボタンに見えるので、背景切り抜きで覆う（黒塗り禁止）。
 	if _name_frame_mask != null:
 		return
-	_name_frame_mask = ColorRect.new()
+	_name_frame_mask = TextureRect.new()
 	_name_frame_mask.name = "NameFrameMask"
 	_name_frame_mask.z_index = 3
 	_name_frame_mask.visible = false
 	_name_frame_mask.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_name_frame_mask.color = ShowcaseUiTokensScript.NAME_FRAME_MASK_COLOR
+	_name_frame_mask.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_name_frame_mask.stretch_mode = TextureRect.STRETCH_SCALE
+	var bg_tex: Texture2D = ShowcaseUiTokensScript.load_tex(ShowcaseUiTokensScript.BG)
+	if bg_tex != null:
+		var atlas := AtlasTexture.new()
+		atlas.atlas = bg_tex
+		atlas.region = ShowcaseUiTokensScript.NAME_FRAME_MASK_RECT
+		_name_frame_mask.texture = atlas
 	add_child(_name_frame_mask)
 
 

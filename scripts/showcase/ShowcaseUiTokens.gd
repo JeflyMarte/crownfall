@@ -23,9 +23,8 @@ const FOOTER_RECT := Rect2(100, 1030, 520, 90)
 const POWER_RECT := Rect2(222, 918, 282, 68)
 ## 名札枠上辺の欠けた横線を補完（焼込角飾り ≈ y1033・左右内側）。
 const NAME_FRAME_TOP_RULE := Rect2(242, 1032, 236, 3)
-## 自慢キャラ未設定時に背景焼込の名札枠（下のボタン枠）を隠す覆い。
+## 自慢キャラ未設定時に背景焼込の名札枠を隠す覆い（BG切り抜き。黒塗り禁止）。
 const NAME_FRAME_MASK_RECT := Rect2(120, 1015, 480, 135)
-const NAME_FRAME_MASK_COLOR := Color(0.055, 0.04, 0.03, 1.0)
 ## 自分の展示：キャラ変更／スタッフ作例：スタッフキャラ（同位置・装備とステのあいだ）。
 const CHANGE_MEMBER_RECT := Rect2(248, 248, 188, 44)
 const STAFF_LIST_RECT := Rect2(248, 248, 188, 44)
@@ -112,12 +111,9 @@ static func detail_panel_style() -> StyleBoxFlat:
 	return sb
 
 
-static func empty_panel_style() -> StyleBoxFlat:
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.05, 0.04, 0.06, 0.88)
-	sb.set_border_width_all(1)
-	sb.border_color = Color(0.78, 0.64, 0.32, 0.75)
-	sb.set_corner_radius_all(4)
+static func empty_panel_style() -> StyleBoxEmpty:
+	## キャラ未設定の選択UI。黒カードは置かず余白だけ確保。
+	var sb := StyleBoxEmpty.new()
 	sb.content_margin_left = 16.0
 	sb.content_margin_top = 16.0
 	sb.content_margin_right = 16.0
