@@ -23,6 +23,49 @@ func test_floor_choice_constants() -> void:
 	assert_almost_eq(BalanceConfig.FLOOR_CHOICE_ASSAULT_MULT, 1.25, 0.0001)
 	assert_eq(BalanceConfig.FLOOR_CHOICE_HARVEST_PICKS, 2)
 	assert_eq(BalanceConfig.FLOOR_CHOICE_REWARD_KINDS.size(), 4)
+	assert_eq(BalanceConfig.FLOOR_CHOICE_SHORT_FLOOR_COUNT, 9)
+	assert_eq(BalanceConfig.FLOOR_CHOICE_MAX_SHORT_RUN, 1)
+	assert_eq(BalanceConfig.FLOOR_CHOICE_MAX_PER_RUN, 2)
+
+
+func test_floor_choice_max_short_vs_ten_floor() -> void:
+	## ≤9F → 1回、10F → 2回。
+	var short_seq: Array = []
+	for _i: int in 9:
+		short_seq.append(Enums.RoomType.COMBAT)
+	var dc9: Node = _make_dc(short_seq)
+	assert_eq(dc9.floor_choice_max_for_run(), 1)
+	var long_seq: Array = []
+	for _j: int in 10:
+		long_seq.append(Enums.RoomType.COMBAT)
+	var dc10: Node = _make_dc(long_seq)
+	assert_eq(dc10.floor_choice_max_for_run(), 2)
+
+
+func test_floor_choice_abyss_once_per_ten_floors() -> void:
+	## 無限は 10F チャンクごとに1回。
+	var seq: Array = []
+	for _i: int in 25:
+		seq.append(Enums.RoomType.COMBAT)
+	var dc: Node = _make_dc(seq)
+	dc.current_dungeon_data = DataRegistry.get_dungeon_data("abyss_mourngate")
+	assert_not_null(dc.current_dungeon_data)
+	assert_true(dc.is_abyss_run())
+	dc.current_room_index = 0
+	assert_eq(dc.floor_choice_max_for_run(), 1)
+	dc.current_room_index = 9
+	assert_eq(dc.floor_choice_max_for_run(), 1)
+	dc.current_room_index = 10
+	assert_eq(dc.floor_choice_max_for_run(), 2)
+	dc.current_room_index = 19
+	assert_eq(dc.floor_choice_max_for_run(), 2)
+	dc.current_room_index = 20
+	assert_eq(dc.floor_choice_max_for_run(), 3)
+	dc.floor_choice_count = 1
+	dc.current_room_index = 5
+	assert_false(dc.can_offer_floor_choice())
+	dc.current_room_index = 12
+	assert_true(dc.can_offer_floor_choice())
 
 
 func test_floor_choice_power_damage_next_room_only() -> void:

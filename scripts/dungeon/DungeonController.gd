@@ -897,6 +897,10 @@ func consume_floor_choice_heal_frac() -> float:
 
 
 func floor_choice_max_for_run() -> int:
+	## 無限: 10F チャンクごとに1回（1–10→1、11–20→2…）。本編: ≤9F→1、10F→2。
+	if _is_abyss_run():
+		const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
+		return _AbyssDungeonConfig.floor_block_index(get_display_floor_current()) + 1
 	var floors: int = get_display_floor_max()
 	if floors <= BalanceConfig.FLOOR_CHOICE_SHORT_FLOOR_COUNT:
 		return BalanceConfig.FLOOR_CHOICE_MAX_SHORT_RUN

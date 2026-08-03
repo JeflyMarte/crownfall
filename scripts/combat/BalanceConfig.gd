@@ -157,9 +157,10 @@ const FLOOR_CHOICE_HEAL_FRAC: float = 0.25
 const FLOOR_CHOICE_HARVEST_MULT: float = 1.35
 const FLOOR_CHOICE_ASSAULT_MULT: float = 1.25
 const FLOOR_CHOICE_DEPLETED_HP_RATIO: float = 0.60
+## 本編: floor_count ≤ SHORT → 1回、それ超（通常10F）→ 2回。無限は 10F チャンクごと（AbyssDungeonConfig.CHUNK_FLOORS）。
 const FLOOR_CHOICE_MAX_PER_RUN: int = 2
 const FLOOR_CHOICE_MAX_SHORT_RUN: int = 1
-const FLOOR_CHOICE_SHORT_FLOOR_COUNT: int = 6
+const FLOOR_CHOICE_SHORT_FLOOR_COUNT: int = 9
 const FLOOR_CHOICE_HARVEST_PICKS: int = 2
 const FLOOR_CHOICE_REWARD_KINDS: Array[String] = ["exp", "gold", "material", "equip"]
 
