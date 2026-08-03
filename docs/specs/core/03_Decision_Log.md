@@ -6931,3 +6931,18 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-ENEMY-BIG-COSMIC-DUCK-001-2 | **配置** — `cosmic_rift` 最終F＝BOSS。`boss_id=big_cosmic_duck`。章 `closing_type=boss` | 案1 |
 | P3-ENEMY-BIG-COSMIC-DUCK-001-3 | **戦闘** — 逃走なし・HP1480帯・羽粉＋星屑波＋ダック2体召喚（戦闘中1回） | キングスライム立ち位置 |
 | P3-ENEMY-BIG-COSMIC-DUCK-001-4 | **据置** — 道中は通常ダックのみ／日次1回／罠重み | 既存イベント骨格 |
+
+## ダンジョン分かれ道（次フロア三択）（2026-08-03 — P3-DG-FLOOR-CHOICE-001）
+
+> **オーナー GO** — 推奨案＋与ダメ×1.5。背景＝Downloads「３択背景」。回復は消耗時のみ。他は推奨値。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-FLOOR-CHOICE-001-1 | **戦闘勝利後**に三択。ボス直前・最終F・次が非戦闘は出さない | フルオートの例外停止点に限定 |
+| P3-DG-FLOOR-CHOICE-001-2 | **章最大2回**（floor≤6は1回）。効果は次の1フロアのみ | テンポと厚みの両立 |
+| P3-DG-FLOOR-CHOICE-001-3 | **A 戦力**＝与ダメ×1.5。**A′ 応急**＝消耗時のみ（平均HP&lt;60% or 戦闘不能）次F開始25%回復 | ピンチ保険 |
+| P3-DG-FLOOR-CHOICE-001-4 | **B 収穫**＝EXP/Gold/素材/装備から2種×1.35 | 狙い撃ち |
+| P3-DG-FLOOR-CHOICE-001-5 | **C 強襲**＝次FをELITE＋護衛1〜2、報酬4種×1.25 | ハイリスク |
+| P3-DG-FLOOR-CHOICE-001-6 | **UI**＝`UI_DG_FloorChoice_BG`。文は3パネル四角に配置 | オーナー指定 |
+| P3-DG-FLOOR-CHOICE-001-7 | **SSOT**＝`docs/specs/decisions/61_DungeonFloorChoice.md` | Decision 本体 |
+

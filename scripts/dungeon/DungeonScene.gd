@@ -723,6 +723,7 @@ const ENEMY_SILENCE_DURATION_SEC: float = 5.0
 ## T14 CT加速の返却割合（次行動までの待ち短縮）。
 const ENEMY_HASTE_CT_REFUND: float = 0.55
 const _EquipmentSetBonuses = preload("res://scripts/equipment/EquipmentSetBonuses.gd")
+const _FloorChoiceOverlayScript = preload("res://scripts/dungeon/FloorChoiceOverlay.gd")
 
 var _auto_delay: float = AUTO_DELAY_BASE / SPEED_MULT_NORMAL
 var _auto_progress_paused_remaining: float = 0.0
@@ -744,6 +745,9 @@ var _trap_presentation_active: bool = false
 var _heal_presentation_active: bool = false
 var _treasure_presentation_active: bool = false
 var _event_presentation_active: bool = false
+## 分かれ道三択オーバーレイ表示中（P3-DG-FLOOR-CHOICE-001）。
+var _floor_choice_active: bool = false
+var _floor_choice_overlay: Control = null
 ## 非戦闘入場の回復パッシブ演出（野営の調合など）中。
 var _noncombat_enter_fx_active: bool = false
 ## 直近バッチで出した回復演出回数（入場 hold 判定用）。
@@ -3649,6 +3653,7 @@ func _enter_current_room() -> void:
 			"[加護] 碑文の加護（%s ×%.1f）がこのフロアで有効"
 			% [label, BalanceConfig.LORE_FLOOR_BLESSING_MULT]
 		)
+	_apply_floor_choice_on_enter()
 	## 戦闘は黒幕一幕のあと（画面が見えてから）BGM 切替。幕中の「謎SE」感を避ける。
 	if not $DungeonController.is_combat_room():
 		_sync_room_bgm()
@@ -5306,7 +5311,7 @@ func _execute_member_aoe_damage_skill(
 	var cd_key: String = _member_skill_cd_key(member_idx, skill_data)
 	var base_info: Dictionary = _calc_attack_base(member_idx)
 	var is_critical: bool = randf() < base_info["crit_rate"]
-	var run_mult: float = $DungeonController.run_damage_multiplier
+	var run_mult: float = $DungeonController.get_effective_run_damage_multiplier()
 	var result: Dictionary = _skill_executor.execute_damage_skill(
 		skill_data,
 		base_info["base_damage"],
@@ -5410,7 +5415,7 @@ func _execute_member_skill(
 	var cd_key: String = _member_skill_cd_key(member_idx, skill_data)
 	var base_info: Dictionary = _calc_attack_base(member_idx)
 	var is_critical: bool = randf() < base_info["crit_rate"]
-	var run_mult: float = $DungeonController.run_damage_multiplier
+	var run_mult: float = $DungeonController.get_effective_run_damage_multiplier()
 	var result: Dictionary = _skill_executor.execute_damage_skill(
 		skill_data,
 		base_info["base_damage"],
@@ -5885,7 +5890,7 @@ func _try_cast_player_skill() -> String:
 		return ""
 	var base_info: Dictionary = _calc_attack_base(member_idx)
 	var is_critical: bool = randf() < base_info["crit_rate"]
-	var run_mult: float = $DungeonController.run_damage_multiplier
+	var run_mult: float = $DungeonController.get_effective_run_damage_multiplier()
 	var result: Dictionary = _skill_executor.execute_damage_skill(
 		skill_data,
 		base_info["base_damage"],
@@ -5978,7 +5983,7 @@ func _try_cast_secondary_skill(primary_skill_id: String) -> String:
 		return ""
 	var base_info: Dictionary = _calc_attack_base(member_idx)
 	var is_critical: bool = randf() < base_info["crit_rate"]
-	var run_mult: float = $DungeonController.run_damage_multiplier
+	var run_mult: float = $DungeonController.get_effective_run_damage_multiplier()
 	var result: Dictionary = _skill_executor.execute_damage_skill(
 		skill_data,
 		base_info["base_damage"],
@@ -7617,7 +7622,7 @@ func _calc_damage(member_index: int = -1, target_slot: int = -1) -> Dictionary:
 		_apply_relic_pre_hit_status(member_index, target_slot)
 	return DamageCalculator.member_attack_damage(
 		$CombatController, $DungeonController.current_dungeon_data,
-		$DungeonController.run_damage_multiplier, member_index, target_slot
+		$DungeonController.get_effective_run_damage_multiplier(), member_index, target_slot
 	)
 
 
@@ -7679,6 +7684,7 @@ func _roll_enhancement_material_drops(
 	if codex_boost:
 		chance = minf(chance * CODEX_INVESTIGATION_MATERIAL_MULT, 1.0)
 	chance = minf(chance * _CommanderPermitBoost.material_mult(), 1.0)
+	chance = minf(chance * $DungeonController.floor_blessing_mult_for("material"), 1.0)
 	if randf() > chance:
 		return
 	var amount: int = _apply_material_bonus(1)
@@ -7970,6 +7976,8 @@ func _finalize_combat_cleared() -> void:
 	# クリアBGMは ResultScene のみ。戦闘クリア直後は戦闘BGMを継続（次フロア／非戦闘で切替）。
 	if $DungeonController.is_on_last_floor_before_exit():
 		_play_combat_clear_celebration(true)
+	elif _try_offer_floor_choice():
+		pass
 	else:
 		_start_auto_progress()
 
@@ -9426,12 +9434,124 @@ func _update_combat_tier_frame() -> void:
 		_start_tier_frame_pulse()
 
 func _start_auto_progress() -> void:
-	if _is_paused or _dive_intro_active or _room_transition_busy or _boss_intro_active or _elite_intro_active or _heal_presentation_active or _treasure_presentation_active or _trap_presentation_active or _event_presentation_active or _noncombat_enter_fx_active or _combat_clear_active:
+	if _is_paused or _dive_intro_active or _room_transition_busy or _boss_intro_active or _elite_intro_active or _heal_presentation_active or _treasure_presentation_active or _trap_presentation_active or _event_presentation_active or _noncombat_enter_fx_active or _combat_clear_active or _floor_choice_active:
 		if _is_paused:
 			_auto_progress_paused_remaining = _auto_delay
 		return
 	$AutoProgressTimer.wait_time = _auto_delay
 	$AutoProgressTimer.start()
+
+
+func _party_is_depleted_for_floor_choice() -> bool:
+	var n: int = $CombatController.party_combat_hp.size()
+	if n <= 0:
+		return false
+	var dead: int = 0
+	var alive_sum: float = 0.0
+	var alive_n: int = 0
+	for i: int in n:
+		var max_hp: int = $CombatController.get_member_max_hp(i)
+		if max_hp <= 0:
+			continue
+		var hp: int = int($CombatController.party_combat_hp[i])
+		if hp <= 0:
+			dead += 1
+			continue
+		alive_sum += float(hp) / float(max_hp)
+		alive_n += 1
+	if dead >= 1:
+		return true
+	if alive_n <= 0:
+		return true
+	return (alive_sum / float(alive_n)) < BalanceConfig.FLOOR_CHOICE_DEPLETED_HP_RATIO
+
+
+func _try_offer_floor_choice() -> bool:
+	if not $DungeonController.can_offer_floor_choice():
+		return false
+	$AutoProgressTimer.stop()
+	_floor_choice_active = true
+	_ensure_floor_choice_overlay()
+	(_floor_choice_overlay as FloorChoiceOverlay).open(_party_is_depleted_for_floor_choice())
+	return true
+
+
+func _ensure_floor_choice_overlay() -> void:
+	if _floor_choice_overlay != null and is_instance_valid(_floor_choice_overlay):
+		return
+	var layer := CanvasLayer.new()
+	layer.name = "FloorChoiceLayer"
+	layer.layer = 60
+	add_child(layer)
+	var overlay: Control = _FloorChoiceOverlayScript.new()
+	overlay.name = "FloorChoiceOverlay"
+	overlay.visible = false
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	layer.add_child(overlay)
+	overlay.confirmed.connect(_on_floor_choice_confirmed)
+	_floor_choice_overlay = overlay
+
+
+func _on_floor_choice_confirmed(choice_id: String, harvest_kinds: Array[String]) -> void:
+	match choice_id:
+		FloorChoiceOverlay.CHOICE_POWER:
+			$DungeonController.grant_floor_choice_power()
+			_append_log("[分かれ道] 戦力強化 — 次フロア 与ダメ×%.1f" % BalanceConfig.FLOOR_CHOICE_DAMAGE_MULT)
+		FloorChoiceOverlay.CHOICE_HEAL:
+			$DungeonController.grant_floor_choice_heal()
+			_append_log("[分かれ道] 応急手当 — 次フロア開始時に回復")
+		FloorChoiceOverlay.CHOICE_HARVEST:
+			$DungeonController.grant_floor_choice_harvest(harvest_kinds)
+			var labels: PackedStringArray = PackedStringArray()
+			for k: String in harvest_kinds:
+				labels.append($DungeonController.floor_blessing_label(k))
+			_append_log(
+				"[分かれ道] 収穫強化 — 次フロア %s ×%.2f"
+				% ["・".join(labels), BalanceConfig.FLOOR_CHOICE_HARVEST_MULT]
+			)
+		FloorChoiceOverlay.CHOICE_ASSAULT:
+			$DungeonController.grant_floor_choice_assault()
+			_append_log(
+				"[分かれ道] 強襲ルート — 次フロアは精鋭戦／報酬×%.2f"
+				% BalanceConfig.FLOOR_CHOICE_ASSAULT_MULT
+			)
+		_:
+			pass
+	_floor_choice_active = false
+	if _floor_choice_overlay != null:
+		(_floor_choice_overlay as FloorChoiceOverlay).close()
+	_start_auto_progress()
+
+
+func _apply_floor_choice_on_enter() -> void:
+	var frac: float = $DungeonController.consume_floor_choice_heal_frac()
+	if frac > 0.0:
+		for i: int in $CombatController.party_combat_hp.size():
+			if int($CombatController.party_combat_hp[i]) <= 0:
+				continue
+			var max_hp: int = $CombatController.get_member_max_hp(i)
+			var amount: int = maxi(1, int(round(float(max_hp) * frac)))
+			$CombatController.heal_member(i, amount)
+		_append_log("[分かれ道] 応急手当 — 生存者を回復した")
+		_update_hp_bars()
+	if $DungeonController.floor_choice_room_index == $DungeonController.current_room_index:
+		if $DungeonController.floor_choice_damage_mult > 1.0:
+			_append_log(
+				"[分かれ道] 戦力強化が有効（与ダメ×%.1f）"
+				% $DungeonController.floor_choice_damage_mult
+			)
+		if not $DungeonController.floor_choice_reward_mults.is_empty():
+			var parts: PackedStringArray = PackedStringArray()
+			for k: Variant in $DungeonController.floor_choice_reward_mults.keys():
+				parts.append(
+					"%s×%.2f"
+					% [
+						$DungeonController.floor_blessing_label(str(k)),
+						float($DungeonController.floor_choice_reward_mults[k]),
+					]
+				)
+			_append_log("[分かれ道] 報酬強化が有効（%s）" % "・".join(parts))
+
 
 func _room_handles_own_progression(room_type: int) -> bool:
 	return room_type in [

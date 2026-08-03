@@ -517,6 +517,12 @@ var run_damage_multiplier: float = 1.0
 ## 碑文加護: 次フロア（部屋）限定。kind = exp|gold|equip。
 var floor_blessing_kind: String = ""
 var floor_blessing_room_index: int = -1
+## 分かれ道（P3-DG-FLOOR-CHOICE-001）: 次フロア限定。
+var floor_choice_room_index: int = -1
+var floor_choice_damage_mult: float = 1.0
+var floor_choice_heal_frac: float = 0.0
+var floor_choice_reward_mults: Dictionary = {}
+var floor_choice_count: int = 0
 var _seen_event_ids: Array[String] = []
 ## ラン開始時に COMBAT 部屋ごとの放浪出現を事前抽選（予兆表示用）。未計画時はライブ抽選。
 var _wander_plan_ready: bool = false
@@ -574,6 +580,8 @@ func _reset_run_state() -> void:
 	current_event = {}
 	run_damage_multiplier = 1.0
 	_clear_floor_blessing()
+	_clear_floor_choice()
+	floor_choice_count = 0
 	_seen_event_ids.clear()
 	## 前回ランまでの New バッジを潜行開始で消す。
 	GameState.clear_new_equipment_marks()
@@ -771,6 +779,7 @@ func advance_room() -> void:
 	last_abyss_weather_changed = false
 	current_room_index += 1
 	_expire_floor_blessing_if_needed()
+	_expire_floor_choice_if_needed()
 	if current_room_index >= room_sequence.size():
 		if _is_abyss_run():
 			_extend_abyss_chunk()
@@ -797,6 +806,20 @@ func _expire_floor_blessing_if_needed() -> void:
 		_clear_floor_blessing()
 
 
+func _clear_floor_choice() -> void:
+	floor_choice_room_index = -1
+	floor_choice_damage_mult = 1.0
+	floor_choice_heal_frac = 0.0
+	floor_choice_reward_mults.clear()
+
+
+func _expire_floor_choice_if_needed() -> void:
+	if floor_choice_room_index < 0:
+		return
+	if current_room_index > floor_choice_room_index:
+		_clear_floor_choice()
+
+
 ## 碑文成功時。次フロア向けに EXP／Gold／装備ドロップのいずれか ×1.1。
 func grant_lore_floor_blessing() -> Dictionary:
 	var kinds: Array[String] = BalanceConfig.LORE_FLOOR_BLESSING_KINDS.duplicate()
@@ -819,16 +842,26 @@ static func floor_blessing_label(kind: String) -> String:
 			return "ゴールド"
 		"equip":
 			return "装備ドロップ"
+		"material":
+			return "素材ドロップ"
 		_:
 			return kind
 
 
 func floor_blessing_mult_for(kind: String) -> float:
-	if floor_blessing_kind.is_empty() or floor_blessing_kind != kind:
-		return 1.0
-	if current_room_index != floor_blessing_room_index:
-		return 1.0
-	return BalanceConfig.LORE_FLOOR_BLESSING_MULT
+	var mult: float = 1.0
+	if (
+		not floor_blessing_kind.is_empty()
+		and floor_blessing_kind == kind
+		and current_room_index == floor_blessing_room_index
+	):
+		mult *= BalanceConfig.LORE_FLOOR_BLESSING_MULT
+	if (
+		floor_choice_room_index == current_room_index
+		and floor_choice_reward_mults.has(kind)
+	):
+		mult *= float(floor_choice_reward_mults[kind])
+	return mult
 
 
 func has_active_floor_blessing() -> bool:
@@ -836,6 +869,85 @@ func has_active_floor_blessing() -> bool:
 		not floor_blessing_kind.is_empty()
 		and current_room_index == floor_blessing_room_index
 	)
+
+
+func get_effective_run_damage_multiplier() -> float:
+	var mult: float = run_damage_multiplier
+	if (
+		floor_choice_room_index == current_room_index
+		and floor_choice_damage_mult > 1.0
+	):
+		mult *= floor_choice_damage_mult
+	return mult
+
+
+func has_pending_floor_choice_heal() -> bool:
+	return (
+		floor_choice_room_index == current_room_index
+		and floor_choice_heal_frac > 0.0
+	)
+
+
+func consume_floor_choice_heal_frac() -> float:
+	if not has_pending_floor_choice_heal():
+		return 0.0
+	var frac: float = floor_choice_heal_frac
+	floor_choice_heal_frac = 0.0
+	return frac
+
+
+func floor_choice_max_for_run() -> int:
+	var floors: int = get_display_floor_max()
+	if floors <= BalanceConfig.FLOOR_CHOICE_SHORT_FLOOR_COUNT:
+		return BalanceConfig.FLOOR_CHOICE_MAX_SHORT_RUN
+	return BalanceConfig.FLOOR_CHOICE_MAX_PER_RUN
+
+
+func can_offer_floor_choice() -> bool:
+	if floor_choice_count >= floor_choice_max_for_run():
+		return false
+	if is_on_last_floor_before_exit():
+		return false
+	var next_rt: int = peek_next_room_type()
+	if next_rt < 0:
+		return false
+	if next_rt == Enums.RoomType.BOSS:
+		return false
+	return next_rt == Enums.RoomType.COMBAT or next_rt == Enums.RoomType.ELITE
+
+
+func _begin_floor_choice_grant() -> void:
+	_clear_floor_choice()
+	floor_choice_room_index = current_room_index + 1
+	floor_choice_count += 1
+
+
+func grant_floor_choice_power() -> void:
+	_begin_floor_choice_grant()
+	floor_choice_damage_mult = BalanceConfig.FLOOR_CHOICE_DAMAGE_MULT
+
+
+func grant_floor_choice_heal() -> void:
+	_begin_floor_choice_grant()
+	floor_choice_heal_frac = BalanceConfig.FLOOR_CHOICE_HEAL_FRAC
+
+
+func grant_floor_choice_harvest(kinds: Array) -> void:
+	_begin_floor_choice_grant()
+	for kind_v: Variant in kinds:
+		var k: String = str(kind_v)
+		if k in BalanceConfig.FLOOR_CHOICE_REWARD_KINDS:
+			floor_choice_reward_mults[k] = BalanceConfig.FLOOR_CHOICE_HARVEST_MULT
+
+
+func grant_floor_choice_assault() -> void:
+	_begin_floor_choice_grant()
+	for kind: String in BalanceConfig.FLOOR_CHOICE_REWARD_KINDS:
+		floor_choice_reward_mults[kind] = BalanceConfig.FLOOR_CHOICE_ASSAULT_MULT
+	var next_i: int = current_room_index + 1
+	if next_i >= 0 and next_i < room_sequence.size():
+		room_sequence[next_i] = Enums.RoomType.ELITE
+
 
 func get_total_rooms() -> int:
 	return room_sequence.size()

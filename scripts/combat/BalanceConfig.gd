@@ -151,6 +151,18 @@ const LORE_FIRST_ACCESSORY_CHANCE: float = 0.08
 const LORE_FLOOR_BLESSING_MULT: float = 1.1
 const LORE_FLOOR_BLESSING_KINDS: Array[String] = ["exp", "gold", "equip"]
 
+## ダンジョン分かれ道（P3-DG-FLOOR-CHOICE-001）
+const FLOOR_CHOICE_DAMAGE_MULT: float = 1.5
+const FLOOR_CHOICE_HEAL_FRAC: float = 0.25
+const FLOOR_CHOICE_HARVEST_MULT: float = 1.35
+const FLOOR_CHOICE_ASSAULT_MULT: float = 1.25
+const FLOOR_CHOICE_DEPLETED_HP_RATIO: float = 0.60
+const FLOOR_CHOICE_MAX_PER_RUN: int = 2
+const FLOOR_CHOICE_MAX_SHORT_RUN: int = 1
+const FLOOR_CHOICE_SHORT_FLOOR_COUNT: int = 6
+const FLOOR_CHOICE_HARVEST_PICKS: int = 2
+const FLOOR_CHOICE_REWARD_KINDS: Array[String] = ["exp", "gold", "material", "equip"]
+
 
 static func treasure_success_chance(tier: int) -> float:
 	return TREASURE_SUCCESS_CHANCE_BY_TIER[_trap_tier_index(tier)]
