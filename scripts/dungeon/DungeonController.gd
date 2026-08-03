@@ -523,6 +523,8 @@ var floor_choice_damage_mult: float = 1.0
 var floor_choice_heal_frac: float = 0.0
 var floor_choice_reward_mults: Dictionary = {}
 var floor_choice_count: int = 0
+## 分かれ道を出す「クリア直後」の部屋 index（均等抽選・取りこぼしなし）。
+var floor_choice_offer_rooms: Dictionary = {}
 var _seen_event_ids: Array[String] = []
 ## ラン開始時に COMBAT 部屋ごとの放浪出現を事前抽選（予兆表示用）。未計画時はライブ抽選。
 var _wander_plan_ready: bool = false
@@ -582,12 +584,14 @@ func _reset_run_state() -> void:
 	_clear_floor_blessing()
 	_clear_floor_choice()
 	floor_choice_count = 0
+	floor_choice_offer_rooms.clear()
 	_seen_event_ids.clear()
 	## 前回ランまでの New バッジを潜行開始で消す。
 	GameState.clear_new_equipment_marks()
 	GameState.set_weather(_roll_run_weather())
 	_init_discovery()
 	_plan_wandering_encounters()
+	ensure_floor_choice_offer_slots()
 
 
 func _plan_wandering_encounters() -> void:
@@ -907,23 +911,75 @@ func floor_choice_max_for_run() -> int:
 	return BalanceConfig.FLOOR_CHOICE_MAX_PER_RUN
 
 
-func can_offer_floor_choice() -> bool:
-	if floor_choice_count >= floor_choice_max_for_run():
+## 部屋 index をクリアした直後に分かれ道を出せるか。
+## 呼び出しは戦闘クリア時のみのため、当該部屋も COMBAT/ELITE に限る。
+func is_floor_choice_eligible_after(room_index: int) -> bool:
+	if room_index < 0 or room_index >= room_sequence.size():
 		return false
-	if is_on_last_floor_before_exit():
+	if not _is_abyss_run() and room_index >= room_sequence.size() - 1:
 		return false
-	var next_rt: int = peek_next_room_type()
-	if next_rt < 0:
+	var cur_rt: int = int(room_sequence[room_index])
+	if cur_rt != Enums.RoomType.COMBAT and cur_rt != Enums.RoomType.ELITE:
 		return false
+	var next_i: int = room_index + 1
+	if next_i < 0 or next_i >= room_sequence.size():
+		return false
+	var next_rt: int = int(room_sequence[next_i])
 	if next_rt == Enums.RoomType.BOSS:
 		return false
 	return next_rt == Enums.RoomType.COMBAT or next_rt == Enums.RoomType.ELITE
+
+
+func collect_floor_choice_eligible_indices(from_index: int = 0) -> Array[int]:
+	var out: Array[int] = []
+	var start: int = maxi(0, from_index)
+	for i: int in range(start, room_sequence.size()):
+		if is_floor_choice_eligible_after(i):
+			out.append(i)
+	return out
+
+
+## 残り回数ぶん、候補フロアから均等抽選して出現枠を埋める（取りこぼしなし）。
+func ensure_floor_choice_offer_slots() -> void:
+	var need: int = floor_choice_max_for_run() - floor_choice_count
+	if need <= 0:
+		floor_choice_offer_rooms.clear()
+		return
+	var kept: Dictionary = {}
+	for key: Variant in floor_choice_offer_rooms.keys():
+		var idx: int = int(key)
+		if idx >= current_room_index and is_floor_choice_eligible_after(idx):
+			kept[idx] = true
+	floor_choice_offer_rooms = kept
+	var still_need: int = need - floor_choice_offer_rooms.size()
+	if still_need <= 0:
+		return
+	var candidates: Array[int] = []
+	for i: int in collect_floor_choice_eligible_indices(current_room_index):
+		if not floor_choice_offer_rooms.has(i):
+			candidates.append(i)
+	if candidates.is_empty():
+		return
+	candidates.shuffle()
+	for j: int in mini(still_need, candidates.size()):
+		floor_choice_offer_rooms[candidates[j]] = true
+
+
+func can_offer_floor_choice() -> bool:
+	## 無限で上限が増えたとき／チャンク延長後に枠を補充する。
+	ensure_floor_choice_offer_slots()
+	if floor_choice_count >= floor_choice_max_for_run():
+		return false
+	if not is_floor_choice_eligible_after(current_room_index):
+		return false
+	return bool(floor_choice_offer_rooms.get(current_room_index, false))
 
 
 func _begin_floor_choice_grant() -> void:
 	_clear_floor_choice()
 	floor_choice_room_index = current_room_index + 1
 	floor_choice_count += 1
+	floor_choice_offer_rooms.erase(current_room_index)
 
 
 func grant_floor_choice_power() -> void:
@@ -997,6 +1053,7 @@ func _extend_abyss_chunk() -> void:
 	_apply_abyss_boss_floors()
 	## 延長後も完走扱いにしない。
 	is_completed = false
+	ensure_floor_choice_offer_slots()
 
 
 ## 深層のみ: 10F チャンク先頭で天候を再抽選（本編は run 開始1回のまま・P3-D101）。
