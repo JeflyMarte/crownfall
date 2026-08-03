@@ -37,6 +37,11 @@ func test_staff_presets_build_members() -> void:
 		assert_eq(str(member.equipped_weapon.weapon_id), str(preset.get("weapon_id", "")))
 		assert_eq(int(member.equipped_weapon.equip_level), int(preset.get("equip_level", 50)))
 		assert_eq(int(member.equipped_weapon.enhance_level), int(preset.get("enhance_level", 4)))
+		var expected_relic: String = CombatPassives.migrate_relic_passive_id(
+			str(preset.get("relic_id", ""))
+		)
+		assert_false(expected_relic.is_empty(), "relic_id for %s" % str(preset.get("id", "")))
+		assert_eq(ShowcaseCatalogScript.member_relic_id(member), expected_relic)
 		var stats: Dictionary = RosterUiHelper.compute_member_stats(member)
 		assert_gt(int(stats.get("hp", 0)), 0)
 		## 展示装備はレア枠スタイルを解決できること（装備品一覧と同系）。
@@ -78,7 +83,9 @@ func test_staff_presets_build_members() -> void:
 func test_showcase_equip_cell_size_matches_catalog_style_inputs() -> void:
 	## 一覧セルより小さいが、レア枠／inset が壊れない下限を維持。
 	assert_gte(ShowcaseUiTokens.EQUIP_CELL_PX, 64)
-	assert_eq(ShowcaseUiTokens.EQUIP_ICON_OFFSETS.size(), 3)
+	assert_eq(ShowcaseUiTokens.EQUIP_ICON_OFFSETS.size(), 4)
+	assert_eq(ShowcaseUiTokens.EQUIP_CATEGORIES.size(), 4)
+	assert_eq(ShowcaseUiTokens.EQUIP_CATEGORIES[3], "relic")
 
 
 func test_showcase_member_id_roundtrip_helpers() -> void:
@@ -155,6 +162,10 @@ func test_showcase_scene_shows_equipped_skill_card() -> void:
 	assert_not_null(effect_lbl)
 	assert_false(str(effect_lbl.text).is_empty())
 	assert_ne(effect_lbl.text, name_lbl.text)
+	## 装飾下のレリックスロットにアイコンがある。
+	var equip_col: Control = scene.get_node("EquipPanel/EquipCol") as Control
+	assert_not_null(equip_col)
+	assert_gte(equip_col.get_child_count(), 4)
 	var footer: Label = scene.get("_footer_name") as Label
 	assert_not_null(footer)
 	assert_eq(footer.text, "アルド(出血主砲ビルド)")
@@ -175,15 +186,13 @@ func test_showcase_scene_has_staff_list_button() -> void:
 	assert_false(bool(scene.get_node("StaffStrip").visible))
 
 
-func test_name_frame_top_rule_sits_above_footer_name() -> void:
-	var rule: Rect2 = ShowcaseUiTokens.NAME_FRAME_TOP_RULE
+func test_name_frame_mask_covers_footer_band() -> void:
+	## 展示室２焼込名札は上辺補完線なし。マスクが名札帯を覆う。
+	var mask: Rect2 = ShowcaseUiTokens.NAME_FRAME_MASK_RECT
 	var footer: Rect2 = ShowcaseUiTokens.FOOTER_RECT
-	assert_gte(rule.position.y, footer.position.y - 2.0)
-	assert_lt(rule.position.y, footer.position.y + 20.0)
-	## スタッフ長名札（例: リーヴァ（標的シナジービルド））向けに枠を横へ伸ば済み。
-	assert_gt(rule.size.x, 350.0)
-	assert_lt(rule.position.x, footer.position.x + 120.0)
-	assert_gt(rule.end.x, footer.end.x - 120.0)
+	assert_lt(mask.position.y, footer.position.y + 8.0)
+	assert_gt(mask.end.y, footer.end.y - 8.0)
+	assert_gt(mask.size.x, footer.size.x - 40.0)
 
 
 func test_empty_own_hides_baked_name_frame_with_mask() -> void:

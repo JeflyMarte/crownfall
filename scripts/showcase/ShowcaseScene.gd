@@ -51,7 +51,6 @@ var _power_caption: Label = null
 var _power_value: Label = null
 var _skills_panel: PanelContainer = null
 var _skills_col: Control = null
-var _name_frame_top_rule: Control = null
 var _name_frame_mask: TextureRect = null
 var _pick_overlay: Control = null
 var _pick_list: VBoxContainer = null
@@ -73,7 +72,6 @@ func _ready() -> void:
 	_setup_chrome()
 	_ensure_power_panel()
 	_ensure_skills_panel()
-	_ensure_name_frame_top_rule()
 	_ensure_name_frame_mask()
 	_ensure_change_member_button()
 	_ensure_staff_list_button()
@@ -219,11 +217,6 @@ func _apply_layout_rects() -> void:
 			_power_frame.position = Vector2.ZERO
 			_power_frame.size = power_r.size
 
-	if _name_frame_top_rule != null:
-		var rule_r: Rect2 = ShowcaseUiTokensScript.NAME_FRAME_TOP_RULE
-		_name_frame_top_rule.position = rule_r.position
-		_name_frame_top_rule.size = rule_r.size
-		_name_frame_top_rule.queue_redraw()
 	if _name_frame_mask != null:
 		var mask_r: Rect2 = ShowcaseUiTokensScript.NAME_FRAME_MASK_RECT
 		_name_frame_mask.position = mask_r.position
@@ -281,19 +274,6 @@ func _set_mode(mode: Mode) -> void:
 	_update_staff_list_button()
 
 
-func _ensure_name_frame_top_rule() -> void:
-	## 背景焼込の名札枠は上辺横線が欠けているため、金線＋中央菱で補完する。
-	if _name_frame_top_rule != null:
-		return
-	_name_frame_top_rule = Control.new()
-	_name_frame_top_rule.name = "NameFrameTopRule"
-	_name_frame_top_rule.z_index = 4
-	_name_frame_top_rule.visible = false
-	_name_frame_top_rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_name_frame_top_rule.draw.connect(_on_name_frame_top_rule_draw)
-	add_child(_name_frame_top_rule)
-
-
 func _ensure_name_frame_mask() -> void:
 	## 自慢キャラ未設定時は焼込名札枠だけ残ると空ボタンに見えるので、背景切り抜きで覆う（黒塗り禁止）。
 	if _name_frame_mask != null:
@@ -312,39 +292,6 @@ func _ensure_name_frame_mask() -> void:
 		atlas.region = ShowcaseUiTokensScript.NAME_FRAME_MASK_RECT
 		_name_frame_mask.texture = atlas
 	add_child(_name_frame_mask)
-
-
-func _on_name_frame_top_rule_draw() -> void:
-	if _name_frame_top_rule == null:
-		return
-	var sz: Vector2 = _name_frame_top_rule.size
-	if sz.x < 8.0 or sz.y < 1.0:
-		return
-	var y_mid: float = sz.y * 0.5
-	var gold := Color(0.90, 0.74, 0.38, 0.92)
-	var gold_dim := Color(0.72, 0.56, 0.28, 0.75)
-	## 左右から中央菱へ向かう横線（中央は菱で切る）。
-	var diamond_half: float = 5.0
-	var cx: float = sz.x * 0.5
-	_name_frame_top_rule.draw_line(
-		Vector2(0.0, y_mid), Vector2(cx - diamond_half - 1.0, y_mid), gold, 1.5, true
-	)
-	_name_frame_top_rule.draw_line(
-		Vector2(cx + diamond_half + 1.0, y_mid), Vector2(sz.x, y_mid), gold, 1.5, true
-	)
-	var diamond := PackedVector2Array([
-		Vector2(cx, y_mid - diamond_half * 0.7),
-		Vector2(cx + diamond_half, y_mid),
-		Vector2(cx, y_mid + diamond_half * 0.7),
-		Vector2(cx - diamond_half, y_mid),
-	])
-	_name_frame_top_rule.draw_colored_polygon(diamond, gold)
-	_name_frame_top_rule.draw_polyline(
-		PackedVector2Array([diamond[0], diamond[1], diamond[2], diamond[3], diamond[0]]),
-		gold_dim,
-		1.0,
-		true
-	)
 
 
 func _ensure_power_panel() -> void:
@@ -604,10 +551,6 @@ func _set_stage_visible(on: bool) -> void:
 	_footer.visible = on
 	if _power_panel != null:
 		_power_panel.visible = on
-	if _name_frame_top_rule != null:
-		_name_frame_top_rule.visible = on
-		if on:
-			_name_frame_top_rule.queue_redraw()
 	if _name_frame_mask != null:
 		## ステージ非表示（自慢キャラなし）のとき焼込名札枠を隠す。
 		_name_frame_mask.visible = not on
@@ -843,15 +786,24 @@ func _populate_stage(member: Resource) -> void:
 			child.queue_free()
 
 	## 装備は装備品一覧と同系のレア枠・背景・レア表記。見出し／帯は背景焼込。
-	var equip_items: Array = [
-		member.equipped_weapon,
-		member.equipped_armor,
-		member.equipped_accessory,
-	]
-	var equip_cats: Array[String] = ["weapon", "armor", "accessory"]
+	## スロット順: 武器／防具／装飾／レリック（展示室２焼込枠）。
 	var offsets: Array = ShowcaseUiTokensScript.EQUIP_ICON_OFFSETS
-	for i in range(mini(equip_items.size(), offsets.size())):
-		var icon: Control = _make_equip_icon_cell(equip_items[i], equip_cats[i])
+	var cats: Array[String] = ShowcaseUiTokensScript.EQUIP_CATEGORIES
+	for i in range(mini(offsets.size(), cats.size())):
+		var cat: String = cats[i]
+		var icon: Control = null
+		if cat == "relic":
+			icon = _make_relic_icon_cell(member)
+		else:
+			var item: Resource = null
+			match cat:
+				"weapon":
+					item = member.equipped_weapon
+				"armor":
+					item = member.equipped_armor
+				"accessory":
+					item = member.equipped_accessory
+			icon = _make_equip_icon_cell(item, cat)
 		if icon == null:
 			continue
 		var off: Vector2 = offsets[i]
@@ -950,6 +902,69 @@ func _make_equip_icon_cell(item: Resource, category: String) -> Control:
 		EquipmentUiHelper.apply_enhance_badge(btn, item, category, cell_size, COLOR_GOLD)
 	btn.pressed.connect(_on_equip_icon_pressed.bind(item, category))
 	return btn
+
+
+func _make_relic_icon_cell(member: Resource) -> Control:
+	var relic_id: String = ShowcaseCatalogScript.member_relic_id(member)
+	if relic_id.is_empty():
+		return null
+	var cell_px: int = ShowcaseUiTokensScript.EQUIP_CELL_PX
+	var cell_size := Vector2(cell_px, cell_px)
+	var icon_key: String = CombatPassives.relic_icon_key(relic_id)
+	var tex: Texture2D = (
+		IconPaths.get_icon_texture(icon_key, "relic") if not icon_key.is_empty() else null
+	)
+	if tex == null:
+		return null
+	var btn := Button.new()
+	btn.custom_minimum_size = cell_size
+	btn.size = cell_size
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.clip_contents = true
+	btn.tooltip_text = "%s\n（タップで詳細）" % CombatPassives.relic_display_name(relic_id)
+	btn.add_theme_color_override("font_color", Color(0, 0, 0, 0))
+	btn.add_theme_color_override("font_hover_color", Color(0, 0, 0, 0))
+	btn.add_theme_color_override("font_pressed_color", Color(0, 0, 0, 0))
+	var normal: StyleBox = EquipmentUiTokens.relic_cell_style(false, cell_px)
+	var hover: StyleBox = EquipmentUiTokens.relic_cell_style(true, cell_px)
+	btn.add_theme_stylebox_override("normal", normal)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_stylebox_override("pressed", hover)
+	btn.add_theme_stylebox_override("focus", normal)
+	btn.add_theme_stylebox_override("disabled", normal)
+	EquipmentUiTokens.attach_item_cell_layers(
+		btn, tex, cell_px, EquipmentUiTokens.INV_CELL_DESIGN_PX, icon_key, "relic"
+	)
+	btn.pressed.connect(_on_relic_icon_pressed.bind(relic_id))
+	return btn
+
+
+func _on_relic_icon_pressed(relic_id: String) -> void:
+	if relic_id.is_empty():
+		return
+	AudioManager.play_sfx("ui_select")
+	_show_relic_detail(relic_id)
+
+
+func _show_relic_detail(relic_id: String) -> void:
+	_ensure_equip_detail_overlay()
+	if _detail_title != null:
+		_detail_title.text = "レリック詳細"
+	for child in _detail_host.get_children():
+		child.queue_free()
+	var name_lbl := Label.new()
+	name_lbl.text = CombatPassives.relic_display_name(relic_id)
+	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTypography.apply_display(name_lbl, UiTypography.SIZE_BODY, COLOR_GOLD)
+	_detail_host.add_child(name_lbl)
+	var desc := str(CombatPassives.relic_description(relic_id)).strip_edges()
+	if not desc.is_empty():
+		var desc_lbl := Label.new()
+		desc_lbl.text = desc
+		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		UiTypography.apply_body(desc_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_BODY)
+		_detail_host.add_child(desc_lbl)
+	_detail_overlay.visible = true
 
 
 func _item_rarity(item: Resource, category: String) -> int:
