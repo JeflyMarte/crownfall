@@ -174,7 +174,10 @@ func test_name_frame_top_rule_sits_above_footer_name() -> void:
 	var footer: Rect2 = ShowcaseUiTokens.FOOTER_RECT
 	assert_gte(rule.position.y, footer.position.y - 2.0)
 	assert_lt(rule.position.y, footer.position.y + 20.0)
-	assert_gt(rule.size.x, 100.0)
+	## スタッフ長名札（例: リーヴァ（標的シナジービルド））向けに枠を横へ伸ば済み。
+	assert_gt(rule.size.x, 350.0)
+	assert_lt(rule.position.x, footer.position.x + 120.0)
+	assert_gt(rule.end.x, footer.end.x - 120.0)
 
 
 func test_empty_own_hides_baked_name_frame_with_mask() -> void:

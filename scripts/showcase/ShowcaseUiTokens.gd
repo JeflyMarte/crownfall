@@ -19,14 +19,14 @@ const STATS_RECT := Rect2(482, 175, 168, 460)
 const SKILLS_RECT := Rect2(482, 652, 168, 200)
 const IDLE_CENTER := Vector2(360, 688)
 const IDLE_HOST_SIZE := Vector2(260, 320)
-## 名前テキストのみ（枠なし）。台座下〜下ナビ上へ。
+## 名前テキストのみ（枠なし）。台座下〜下ナビ上へ。長名札向けに焼込枠内へ収める。
 const FOOTER_RECT := Rect2(100, 1030, 520, 90)
 ## 総合戦力（名札上）。横幅は「自分の展示」タブと同寸。9-slice 禁止（黒マット伸び）。
 const POWER_RECT := Rect2(222, 918, 282, 68)
-## 名札枠上辺の欠けた横線を補完（焼込角飾り ≈ y1033・左右内側）。
-const NAME_FRAME_TOP_RULE := Rect2(242, 1032, 236, 3)
+## 名札枠上辺の欠けた横線を補完（焼込角飾り ≈ y1033・左右内側。枠横幅560に合わせる）。
+const NAME_FRAME_TOP_RULE := Rect2(205, 1032, 396, 3)
 ## 自慢キャラ未設定時に背景焼込の名札枠を隠す覆い（BG切り抜き。黒塗り禁止）。
-const NAME_FRAME_MASK_RECT := Rect2(120, 1015, 480, 135)
+const NAME_FRAME_MASK_RECT := Rect2(70, 1015, 580, 135)
 ## 自分の展示：キャラ変更／スタッフ作例：スタッフキャラ（同位置・装備とステのあいだ）。
 const CHANGE_MEMBER_RECT := Rect2(248, 248, 188, 44)
 const STAFF_LIST_RECT := Rect2(248, 248, 188, 44)
