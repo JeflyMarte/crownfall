@@ -3,7 +3,7 @@ extends Control
 
 ## ダンジョン分かれ道 UI（P3-DG-FLOOR-CHOICE-001）。
 ## 背景 720×1280 の四角位置に説明文／ヒット領域をスケール配置する。
-## B 収穫はランダム2種を提示（プレイヤーは選ばない）。確定は背景の「選択を確定する」位置。
+## B 収穫はランダム2種を提示（プレイヤーは選ばない）。確定は警告文直下の実ボタン。
 
 signal confirmed(choice_id: String, harvest_kinds: Array[String])
 
@@ -13,18 +13,18 @@ const DESIGN_H: float = 1280.0
 
 ## パネル全体ヒット（左=戦力／中=収穫／右=強襲）
 const PANEL_RECTS: Array[Rect2] = [
-	Rect2(28, 300, 197, 395),
+	Rect2(28, 300, 202, 395),
 	Rect2(250, 300, 218, 395),
 	Rect2(494, 300, 196, 395),
 ]
 ## アイコン下の説明文領域
 const TEXT_RECTS: Array[Rect2] = [
-	Rect2(38, 455, 177, 222),
+	Rect2(38, 455, 182, 222),
 	Rect2(260, 455, 198, 222),
 	Rect2(504, 455, 176, 222),
 ]
-## 背景ボタンより上寄せ（警告文の直下）。見た目用に文言も重ねる。
-const CONFIRM_RECT: Rect2 = Rect2(110, 860, 500, 90)
+## 警告文直下の空き領域（差し替え背景に確定ボタン焼き込みなし）
+const CONFIRM_RECT: Rect2 = Rect2(110, 820, 500, 90)
 
 const CHOICE_POWER: String = "power"
 const CHOICE_HEAL: String = "heal"
