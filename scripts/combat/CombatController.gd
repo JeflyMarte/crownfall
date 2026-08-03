@@ -121,6 +121,7 @@ func start_combat_group(enemies: Array, level: int = 1, apply_swarm_density: boo
 	is_in_combat = true
 	ultimate_charge_gain_mult = 1.0
 	clear_death_save_state()
+	clear_member_skill_silence()
 	_member_passive_skip.clear()
 	enemy_level = maxi(1, level)
 	swarm_data.clear()
@@ -624,6 +625,7 @@ func end_combat() -> void:
 	is_in_combat = false
 	ultimate_charge_gain_mult = 1.0
 	clear_death_save_state()
+	clear_member_skill_silence()
 	current_enemy_data = null
 	current_enemy_hp = 0
 	enemy_level = 1
@@ -740,6 +742,45 @@ func clear_death_save_state() -> void:
 	_death_save_outgoing_until_msec.clear()
 	_death_save_outgoing_mult.clear()
 	party_temp_incoming_mult = 1.0
+
+
+## T10 沈黙: member_idx → 残り秒（戦闘クロック。一時停止中は進まない）。
+var _member_skill_silence_remaining_sec: Dictionary = {}
+
+
+func clear_member_skill_silence() -> void:
+	_member_skill_silence_remaining_sec.clear()
+
+
+func apply_member_skill_silence(member_index: int, duration_sec: float) -> void:
+	if member_index < 0 or duration_sec <= 0.0:
+		return
+	if not is_member_alive(member_index):
+		return
+	_member_skill_silence_remaining_sec[member_index] = duration_sec
+
+
+func is_member_skill_silenced(member_index: int) -> bool:
+	if member_index < 0:
+		return false
+	return float(_member_skill_silence_remaining_sec.get(member_index, 0.0)) > 0.0
+
+
+## 必殺／スキルCDと同型の戦闘クロック。戻り値=解除されたメンバーがいたか。
+func tick_member_skill_silence(delta_sec: float) -> bool:
+	if delta_sec <= 0.0 or _member_skill_silence_remaining_sec.is_empty():
+		return false
+	var expired: bool = false
+	var keys: Array = _member_skill_silence_remaining_sec.keys()
+	for k in keys:
+		var rem: float = float(_member_skill_silence_remaining_sec[k]) - delta_sec
+		if rem <= 0.0:
+			_member_skill_silence_remaining_sec.erase(k)
+			expired = true
+		else:
+			_member_skill_silence_remaining_sec[k] = rem
+	return expired
+
 
 func apply_damage_to_member(index: int, amount: int) -> void:
 	if index < 0 or index >= party_combat_hp.size():

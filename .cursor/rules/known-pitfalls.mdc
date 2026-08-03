@@ -235,3 +235,6 @@ alwaysApply: false
 | スキル会心が武器クリダメ無視 | `CRITICAL_MULTIPLIER` 固定 | `_skill_critical_multiplier`（通常攻撃と同式） |
 | 敵スキル属性が防具耐性に未反映 | 耐性は `attack_element` のみ／VFXは skill.element | `attack_element_override` |
 | 必殺詠唱中断でチャージ消失 | 詠唱開始時に consume | 即時のみ開始時消費／詠唱は解決時 |
+| 群れのトリッキーが撃たない | `_do_enemy_turn` がアクティブ敵のみ `_try_enemy_skill` | 全スロット `_try_enemy_skill(slot)`（監査 I） |
+| ポーズ中に沈黙が切れる | `Time.get_ticks_msec` 壁時計 | `CombatController` 残り秒＋戦闘クロック tick（監査 I） |
+| 召喚失敗後に通常攻撃まで出る | CD 消費後 `summon` が false → fallthrough | `_execute_enemy_skill` は CD 済みなら true（監査 I） |

@@ -1286,13 +1286,16 @@ func _process(delta: float) -> void:
 		_request_scroll_to_bottom = false
 		_battle_log_scroll.scroll_vertical = _battle_log_scroll.get_v_scroll_bar().max_value
 	if $DungeonController.is_combat_room():
-		## 必殺／スキルCD＝戦闘クロック（P3-BAL-ULTIMATE-TIME-001／P3-BAL-SKILL-CD-TIME-001）。
+		## 必殺／スキルCD／沈黙＝戦闘クロック（P3-BAL-ULTIMATE-TIME-001／P3-BAL-SKILL-CD-TIME-001）。
 		## 一時停止中は進まない。ゲージ更新は tick 後。
 		if $CombatController.is_in_combat and not _is_paused:
 			var spd: float = _combat_speed_mult if _combat_speed_mult > 0.0 else 1.0
-			$CombatController.tick_ultimate_charge_over_time(delta * spd)
-			_skill_executor.tick(delta * spd)
-			_tick_relic_combat_regen(delta * spd)
+			var clock: float = delta * spd
+			$CombatController.tick_ultimate_charge_over_time(clock)
+			_skill_executor.tick(clock)
+			_tick_relic_combat_regen(clock)
+			if $CombatController.tick_member_skill_silence(clock):
+				_update_status_icons()
 		_update_party_skill_cd_bars_smooth(delta)
 		_update_chr_hp_bar_positions()
 
@@ -3825,7 +3828,7 @@ func _enter_current_room() -> void:
 			_enemy_resist_telop_announced.clear()
 			_enemy_trait_telop_announced.clear()
 			_enemy_summon_used.clear()
-			_member_skill_silence_until_msec.clear()
+			$CombatController.clear_member_skill_silence()
 			_passive_counter_depth = 0
 			_passive_skill_echo_depth = 0
 			_basic_only_actions_left.clear()
@@ -5014,8 +5017,7 @@ var _enemy_trait_telop_announced: Dictionary = {}
 ## T8: 召喚済の敵スロット。
 var _enemy_summon_used: Dictionary = {}
 ## 指定召喚（ボス仲間呼び）は skill_id 単位で戦闘中1回。
-## T10: member_idx → 沈黙解除時刻（msec）。
-var _member_skill_silence_until_msec: Dictionary = {}
+## T10 沈黙の残り秒は CombatController（戦闘クロック）。
 ## T10: 味方頭上の沈黙❌マーク（member index → Label）。
 var _chr_silence_marks: Array = []
 var _passive_counter_depth: int = 0
@@ -5087,8 +5089,8 @@ func _run_combat_step() -> void:
 		_set_turn_order_active(order[0])
 	_refresh_combat_now_playing_next()
 
-# 敵スロット1体の行動（P3-D083）。アクティブ敵のみ 鈍化判定＋ボス/エリートのスキル発動を行い、
-# それ以外は通常攻撃。状態異常/スキルはアクティブ敵のみに作用（P3-D082）。
+# 敵スロット1体の行動（P3-D083）。生存敵ごとにスキル試行→失敗時のみ通常攻撃。
+# トリッキー（heal/silence/haste/summon 等）はフォーカス外スロットでも発動する。
 func _do_enemy_turn(slot: int) -> void:
 	if $CombatController.get_wander_flee_after_turns(slot) > 0:
 		if $CombatController.get_wander_action_count(slot) >= $CombatController.get_wander_flee_after_turns(slot):
@@ -5104,10 +5106,9 @@ func _do_enemy_turn(slot: int) -> void:
 			skip_label = "鈍化"
 		_append_log("[%s] 敵の行動が遅れた" % skip_label)
 		return
-	if slot == $CombatController.active_enemy_index:
-		if _try_enemy_skill():
-			_record_wander_enemy_action(slot)
-			return
+	if _try_enemy_skill(slot):
+		_record_wander_enemy_action(slot)
+		return
 	_do_enemy_attack(slot)
 	_record_wander_enemy_action(slot)
 
@@ -6429,12 +6430,15 @@ func _apply_status_to_member_target(
 		_party_applied_enemy_status(member_idx, slot, effect_id)
 	return applied
 
-# ボス/エリートのスキル発動を試行。発動したら true（通常攻撃をスキップ）。
-func _try_enemy_skill() -> bool:
-	var enemy_data: Resource = $CombatController.current_enemy_data
+# 指定スロットのスキル発動を試行。発動したら true（通常攻撃をスキップ）。
+func _try_enemy_skill(slot: int = -1) -> bool:
+	if slot < 0:
+		slot = $CombatController.active_enemy_index
+	if not $CombatController.is_enemy_slot_alive(slot):
+		return false
+	var enemy_data: Resource = $CombatController.get_enemy_data_at(slot)
 	if enemy_data == null or enemy_data.skill_ids.is_empty():
 		return false
-	var slot: int = $CombatController.active_enemy_index
 	var enemy_id: String = $CombatController.get_enemy_id_at(slot)
 	var phase_idx: int = $CombatController.get_enemy_phase_index(slot)
 	var use_chance: float = CombatBossPhases.skill_use_chance(
@@ -6668,7 +6672,9 @@ func _execute_enemy_skill(skill: Resource, slot: int = -1) -> bool:
 			_execute_enemy_silence(skill, slot)
 			return true
 		"summon":
-			return _execute_enemy_summon(skill, slot)
+			## CD は execute_support_skill で消費済み。失敗しても通常攻撃へ落とさない。
+			_execute_enemy_summon(skill, slot)
+			return true
 		"damage":
 			_execute_enemy_damage(skill, slot)
 			return true
@@ -6839,7 +6845,7 @@ func _execute_enemy_haste(skill: Resource, slot: int) -> void:
 	_update_turn_order_ui($CombatController.get_ct_order())
 
 
-## T10: 生存ランダム1人のスキル／必殺を短時間封じる。
+## T10: 生存ランダム1人のスキル／必殺を短時間封じる（戦闘クロック秒）。
 func _execute_enemy_silence(skill: Resource, slot: int) -> void:
 	_play_enemy_caster_animation(slot, "attack")
 	_spawn_enemy_skill_name(skill.display_name, slot)
@@ -6851,8 +6857,7 @@ func _execute_enemy_silence(skill: Resource, slot: int) -> void:
 		_append_log("敵スキル【%s】: 対象なし" % skill.display_name)
 		return
 	var target_idx: int = living[randi() % living.size()]
-	var until_msec: int = Time.get_ticks_msec() + int(ENEMY_SILENCE_DURATION_SEC * 1000.0)
-	_member_skill_silence_until_msec[target_idx] = until_msec
+	$CombatController.apply_member_skill_silence(target_idx, ENEMY_SILENCE_DURATION_SEC)
 	var member: Resource = GameState.get_combatant(target_idx)
 	var mname: String = member.display_name if member != null else "?"
 	_try_announce_enemy_trait_once("silence:%d" % slot, -1, "スキルが封じられた！", target_idx)
@@ -7300,13 +7305,7 @@ func _tick_relic_combat_regen(delta: float) -> void:
 
 
 func _is_member_skill_silenced(member_idx: int) -> bool:
-	if member_idx < 0 or not _member_skill_silence_until_msec.has(member_idx):
-		return false
-	var until_msec: int = int(_member_skill_silence_until_msec[member_idx])
-	if Time.get_ticks_msec() >= until_msec:
-		_member_skill_silence_until_msec.erase(member_idx)
-		return false
-	return true
+	return $CombatController.is_member_skill_silenced(member_idx)
 
 
 ## 沈黙中は頭上に大きな❌を出す（状態アイコン行とは別・視認優先）。
