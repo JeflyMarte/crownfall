@@ -4,10 +4,12 @@ extends Control
 ## ダンジョン分かれ道 UI（P3-DG-FLOOR-CHOICE-001）。
 ## 背景 720×1280 の四角位置に説明文／ヒット領域をスケール配置する。
 ## B 収穫はランダム2種を提示（プレイヤーは選ばない）。確定は警告文直下の実ボタン。
+## 選択中パネルの直上に指差し画像を表示する。
 
 signal confirmed(choice_id: String, harvest_kinds: Array[String])
 
 const BG_PATH: String = "res://assets/ui/dungeon/UI_DG_FloorChoice_BG.png"
+const POINTER_PATH: String = "res://assets/ui/dungeon/UI_DG_FloorChoice_Pointer.png"
 const DESIGN_W: float = 720.0
 const DESIGN_H: float = 1280.0
 
@@ -25,6 +27,9 @@ const TEXT_RECTS: Array[Rect2] = [
 ]
 ## 警告文直下の空き領域（差し替え背景に確定ボタン焼き込みなし）
 const CONFIRM_RECT: Rect2 = Rect2(110, 820, 500, 90)
+## 選択中パネル直上の指差し（デザイン座標）
+const POINTER_SIZE: Vector2 = Vector2(64, 100)
+const POINTER_GAP_ABOVE: float = 6.0
 
 const CHOICE_POWER: String = "power"
 const CHOICE_HEAL: String = "heal"
@@ -32,12 +37,16 @@ const CHOICE_HARVEST: String = "harvest"
 const CHOICE_ASSAULT: String = "assault"
 
 var _bg: TextureRect
+var _pointer: TextureRect
 var _panel_buttons: Array[Button] = []
 var _text_labels: Array[Label] = []
 var _confirm_btn: Button
 var _selected: String = ""
 var _heal_mode: bool = false
 var _offered_harvest: Array[String] = []
+var _layout_ox: float = 0.0
+var _layout_oy: float = 0.0
+var _layout_scale: float = 1.0
 
 
 func _ready() -> void:
@@ -52,6 +61,16 @@ func _ready() -> void:
 	if ResourceLoader.exists(BG_PATH):
 		_bg.texture = load(BG_PATH) as Texture2D
 	add_child(_bg)
+
+	_pointer = TextureRect.new()
+	_pointer.name = "SelectionPointer"
+	_pointer.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_pointer.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_pointer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_pointer.visible = false
+	if ResourceLoader.exists(POINTER_PATH):
+		_pointer.texture = load(POINTER_PATH) as Texture2D
+	add_child(_pointer)
 
 	for i: int in 3:
 		var hit := Button.new()
@@ -138,16 +157,18 @@ func _layout_to_size() -> void:
 	if sz.x <= 1.0 or sz.y <= 1.0:
 		return
 	## COVER 相当: 短い辺に合わせて拡大し中央クロップ。
-	var scale: float = maxf(sz.x / DESIGN_W, sz.y / DESIGN_H)
-	var draw_w: float = DESIGN_W * scale
-	var draw_h: float = DESIGN_H * scale
-	var ox: float = (sz.x - draw_w) * 0.5
-	var oy: float = (sz.y - draw_h) * 0.5
+	_layout_scale = maxf(sz.x / DESIGN_W, sz.y / DESIGN_H)
+	var draw_w: float = DESIGN_W * _layout_scale
+	var draw_h: float = DESIGN_H * _layout_scale
+	_layout_ox = (sz.x - draw_w) * 0.5
+	_layout_oy = (sz.y - draw_h) * 0.5
 	for i: int in 3:
-		_place_control(_panel_buttons[i], PANEL_RECTS[i], ox, oy, scale)
-		_place_control(_text_labels[i], TEXT_RECTS[i], ox, oy, scale)
-	_place_control(_confirm_btn, CONFIRM_RECT, ox, oy, scale)
-	## 確定ヒットを最前面に（パネルと重ならない下端）
+		_place_control(_panel_buttons[i], PANEL_RECTS[i], _layout_ox, _layout_oy, _layout_scale)
+		_place_control(_text_labels[i], TEXT_RECTS[i], _layout_ox, _layout_oy, _layout_scale)
+	_place_control(_confirm_btn, CONFIRM_RECT, _layout_ox, _layout_oy, _layout_scale)
+	_update_pointer_position()
+	## 指差し・確定を前面に
+	move_child(_pointer, get_child_count() - 1)
 	move_child(_confirm_btn, get_child_count() - 1)
 
 
@@ -155,6 +176,36 @@ func _place_control(ctrl: Control, design: Rect2, ox: float, oy: float, scale: f
 	ctrl.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	ctrl.position = Vector2(ox + design.position.x * scale, oy + design.position.y * scale)
 	ctrl.size = design.size * scale
+
+
+func _selected_panel_index() -> int:
+	match _selected:
+		CHOICE_POWER, CHOICE_HEAL:
+			return 0
+		CHOICE_HARVEST:
+			return 1
+		CHOICE_ASSAULT:
+			return 2
+		_:
+			return -1
+
+
+func _update_pointer_position() -> void:
+	if _pointer == null:
+		return
+	var idx: int = _selected_panel_index()
+	if idx < 0 or _layout_scale <= 0.0:
+		_pointer.visible = false
+		return
+	var panel: Rect2 = PANEL_RECTS[idx]
+	var design := Rect2(
+		panel.position.x + (panel.size.x - POINTER_SIZE.x) * 0.5,
+		panel.position.y - POINTER_SIZE.y - POINTER_GAP_ABOVE,
+		POINTER_SIZE.x,
+		POINTER_SIZE.y
+	)
+	_place_control(_pointer, design, _layout_ox, _layout_oy, _layout_scale)
+	_pointer.visible = true
 
 
 func _refresh_texts() -> void:
@@ -202,6 +253,7 @@ func _refresh_selection_visual() -> void:
 				chosen = _selected == CHOICE_ASSAULT
 		_panel_buttons[i].modulate = Color(1.15, 1.15, 1.05, 1.0) if chosen else Color.WHITE
 		_text_labels[i].modulate = Color(1.2, 1.15, 0.9, 1.0) if chosen else Color.WHITE
+	_update_pointer_position()
 
 
 func _update_confirm_enabled() -> void:
