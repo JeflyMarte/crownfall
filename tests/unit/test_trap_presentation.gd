@@ -31,9 +31,9 @@ func test_bg_path_for_phase() -> void:
 
 
 func test_trigger_chance_is_raised() -> void:
-	# P3-BAL-TRAP-TIER-001: ハード帯エイリアス 65%
+	# P3-BAL-TRAP-TIER-001 / P3-BAL-N-NONCOMBAT-FAIL-001: N=35%／ハード帯エイリアス65%
 	assert_almost_eq(_TrapPresentation.TRIGGER_CHANCE, 0.65, 0.001)
-	assert_almost_eq(_TrapPresentation.trigger_chance(0), 0.50, 0.001)
+	assert_almost_eq(_TrapPresentation.trigger_chance(0), 0.35, 0.001)
 	assert_almost_eq(_TrapPresentation.trigger_chance(2), 0.80, 0.001)
 
 
