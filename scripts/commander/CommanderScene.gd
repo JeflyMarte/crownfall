@@ -3,7 +3,6 @@ extends Control
 ## 隊長台帳（マイページ）— モック寄せの1スクロール構成。既存素材のみ使用。
 
 const _CommanderProfile = preload("res://scripts/commander/CommanderProfile.gd")
-const _CommanderTitles = preload("res://scripts/commander/CommanderTitles.gd")
 const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd")
 const _CommanderGiftBox = preload("res://scripts/commander/CommanderGiftBox.gd")
 const _CommanderSurveyPoints = preload("res://scripts/commander/CommanderSurveyPoints.gd")
@@ -25,7 +24,6 @@ const COLOR_MUTED: Color = Color(0.55, 0.52, 0.48)
 const PORTRAIT_PX: int = 96
 const MEMBER_PORTRAIT_PX: int = 72
 const MAT_CELL_PX: int = 64
-const TITLE_CHIP_PX: int = 56
 const MEMBER_SHOW_LIMIT: int = 3
 const SECTION_GAP: int = 16
 const CARD_PAD: int = 12
@@ -98,7 +96,7 @@ func _rebuild_page() -> void:
 	_content_host.add_child(_build_assets_section())
 	_content_host.add_child(_build_members_section())
 	_content_host.add_child(_build_records_section())
-	_content_host.add_child(_build_titles_section())
+	## 称号UIは用途なしのためオミット（解放データは残置）。
 	## rebuild 後に Button が STOP のままだと実機で縦スクロール不能になる。
 	ScrollTouchHelper.enable($MainScroll as ScrollContainer)
 
@@ -220,26 +218,6 @@ func _make_rank_portrait() -> PanelContainer:
 		UiTypography.apply_display(glyph, UiTypography.SIZE_DISPLAY_TITLE, COLOR_GOLD)
 		center.add_child(glyph)
 	return frame
-
-
-func _make_title_banner(label_text: String) -> PanelContainer:
-	var banner := PanelContainer.new()
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.12, 0.10, 0.07, 0.92)
-	sb.set_border_width_all(2)
-	sb.border_color = COLOR_GOLD
-	sb.set_corner_radius_all(6)
-	sb.content_margin_left = 10.0
-	sb.content_margin_right = 10.0
-	sb.content_margin_top = 4.0
-	sb.content_margin_bottom = 4.0
-	banner.add_theme_stylebox_override("panel", sb)
-	var lbl := Label.new()
-	lbl.text = "◆ %s" % label_text
-	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UiTypography.apply_body(lbl, UiTypography.SIZE_CAPTION, COLOR_GOLD)
-	banner.add_child(lbl)
-	return banner
 
 
 func _make_name_change_button() -> Button:
@@ -900,72 +878,6 @@ func _make_record_block(title: String, lines: Array) -> PanelContainer:
 	for line: Variant in lines:
 		_add_caption(vbox, str(line))
 	return block
-
-
-# ---- 称号 ----
-func _build_titles_section() -> Control:
-	var sec: Dictionary = _begin_section("titles", "称号（%d枠）" % _CommanderProfile.title_slot_limit())
-	var body: VBoxContainer = sec["body"]
-	var equipped_block := _make_inner_block()
-	body.add_child(equipped_block["panel"])
-	var equipped_body: VBoxContainer = equipped_block["body"]
-	var equipped: String = _CommanderProfile.get_equipped_title()
-	if equipped.is_empty():
-		_add_caption(equipped_body, "装備中: なし")
-	else:
-		equipped_body.add_child(_make_title_banner(_CommanderTitles.get_label(equipped)))
-	var clear_row := HBoxContainer.new()
-	clear_row.alignment = BoxContainer.ALIGNMENT_END
-	clear_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	equipped_body.add_child(clear_row)
-	var clear_btn := Button.new()
-	clear_btn.text = "称号を外す"
-	clear_btn.disabled = equipped.is_empty()
-	UiTypography.apply_menu_button(clear_btn, false)
-	clear_btn.pressed.connect(func():
-		_CommanderProfile.equip_title("")
-		SaveManager.save_game()
-		_rebuild_page()
-	)
-	clear_row.add_child(clear_btn)
-	_add_subheading(body, "獲得称号一覧")
-	var unlocked: Array = _CommanderProfile.get_unlocked_titles()
-	if unlocked.is_empty():
-		_add_caption(body, "未獲得")
-	else:
-		var list_block := _make_inner_block()
-		body.add_child(list_block["panel"])
-		var wrap := HFlowContainer.new()
-		wrap.add_theme_constant_override("h_separation", 8)
-		wrap.add_theme_constant_override("v_separation", 8)
-		wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		list_block["body"].add_child(wrap)
-		for title_id: Variant in unlocked:
-			wrap.add_child(_make_title_chip(str(title_id), str(title_id) == equipped))
-	_add_caption(body, "称号は見た目のみで、戦闘力には影響しません。")
-	return sec["panel"]
-
-
-func _make_title_chip(title_id: String, is_equipped: bool) -> Button:
-	var btn := Button.new()
-	btn.text = _CommanderTitles.get_label(title_id)
-	btn.toggle_mode = true
-	btn.button_pressed = is_equipped
-	btn.disabled = is_equipped
-	btn.custom_minimum_size = Vector2(TITLE_CHIP_PX * 2, TITLE_CHIP_PX)
-	btn.tooltip_text = _CommanderTitles.get_label(title_id)
-	UiTypography.apply_menu_button(btn, is_equipped)
-	if is_equipped:
-		btn.add_theme_color_override("font_color", COLOR_GOLD)
-	else:
-		btn.pressed.connect(_equip_title.bind(title_id))
-	return btn
-
-
-func _equip_title(title_id: String) -> void:
-	if _CommanderProfile.equip_title(title_id):
-		SaveManager.save_game()
-		_rebuild_page()
 
 
 # ---- 共通 UI ----
