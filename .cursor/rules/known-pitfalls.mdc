@@ -69,7 +69,8 @@ alwaysApply: false
 | キャラ管理オープンで即終了 | `custom_maximum_size` | → **`pitfalls-startup.mdc`**／`gdscript.mdc` |
 | Biome／イベントバナー名消滅・横伸び・サイズ不揃い | FULL_RECT・DISABLED横Scr・文字数閾値・高さ同期 | → **`ui-layout.mdc` Biome／イベントバナー** |
 | HBox 内の数値が消える（アイコンだけ残る） | Label の `clip_text=true` は最小幅 0 → SHRINK の HBox で幅が潰れる | `ui-layout.mdc` — 短い数値は `clip_text=false`。必要なら `EXPAND_FILL` |
-| MAX★付き装備の詳細名が1文字ずつ縦折れ | `_add_item_title` が HBox＋名前 `AUTOWRAP`＋`SHRINK_BEGIN`（Autowrap の min幅0で潰れる） | → **`ui-layout.mdc`** タイトルは `AUTOWRAP_OFF`＋`EXPAND_FILL`＋★は `SHRINK_END` |
+| MAX★付き装備の詳細名が1文字ずつ縦折れ | `_add_item_title` が HBox＋名前 `AUTOWRAP`＋`SHRINK_*`（Autowrap の min幅0で潰れる） | → **`ui-layout.mdc`** タイトルは `AUTOWRAP_OFF`＋名前／★とも `SHRINK_BEGIN`（★は名前直後。`EXPAND_FILL` で行末飛ばし禁止） |
+| MAX★が装備名の右端に離れすぎる | 名前 Label を `EXPAND_FILL` にしたため★が行末へ | → **`ui-layout.mdc`**（両方 `SHRINK_BEGIN`） |
 | 戦闘右上の状態異常レジェンドで説明だけ消える | `_style_status_legend_label` の `clip_text`＋WORD_SMART、または `STATUS_LEGEND_SIDE_INSET` 負で Battlefield `clip_contents` 切れ | 説明は `clip_text=false`／`AUTOWRAP_ARBITRARY`。inset は正（内側余白） |
 | 戦闘レジェンド分割後に状態異常行ごと消える | 右下パネルを `BattlefieldArea`（`clip_contents=true`）直下に置いた | レジェンドはシーン直下＋BF 矩形基準で position（天候右上／状態右下） |
 | 戦闘下カード幅が名前で不揃い／画面が横に伸びる | 名前 Label が `clip_text=false` のまま最小幅＝全文幅 → カード／MainVBox を押す | 4枚 `EXPAND_FILL`＋`stretch_ratio=1`＋`clip_contents`。名前は font 縮小のあと `clip_text`＋ellipsis（`_fit_party_card_name_font`）。`custom_minimum_size.x=0` |
