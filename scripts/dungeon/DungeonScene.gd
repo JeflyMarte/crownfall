@@ -76,6 +76,7 @@ const ENEMY_SPRITE_MAP: Dictionary = {
 	"vergaron": "res://resources/animation/ENM_Vergaron.tres",
 	"wind_ripper": "res://resources/animation/ENM_WindRipper.tres",
 	"cosmic_duck": "res://resources/animation/ENM_CosmicDuck.tres",
+	"big_cosmic_duck": "res://resources/animation/ENM_BigCosmicDuck.tres",
 	"crown_raven": "res://resources/animation/ENM_CrownRaven.tres",
 	## P3-WANDER-004: アート後差し（スカラベ＝甲虫／影狩り＝鎌系プレースホルダ）
 	"golden_scarab": "res://resources/animation/ENM_GoldenScarab.tres",
@@ -261,6 +262,7 @@ const BOSS_ENEMY_SPRITE_MAP: Dictionary = {
 	"eldion": "res://resources/animation/BOSS_Eldion.tres",
 	"chronos_wave": "res://resources/animation/BOSS_ChronosWave.tres",
 	"valgard": "res://resources/animation/BOSS_Valgard.tres",
+	"big_cosmic_duck": "res://resources/animation/ENM_BigCosmicDuck.tres",
 }
 ## 体格正規化後の見た目倍率（1.0=標準）。ドットが他雑魚より大きく／小さく見える種を補正。
 const ENEMY_BODY_SCALE_MULT: Dictionary = {
@@ -276,6 +278,7 @@ const ENEMY_BODY_SCALE_MULT: Dictionary = {
 	"anchor_lord": 1.32,
 	"greios": 1.30,
 	"polar_tricera": 1.28,
+	"big_cosmic_duck": 1.72,
 }
 ## LOG_ENEMY_TIER_BY_ID=elite かつ個別倍率未指定時の既定ブースト。
 const ELITE_BODY_SCALE_MULT_DEFAULT: float = 1.28
@@ -644,6 +647,7 @@ const LOG_ENEMY_TIER_BY_ID: Dictionary = {
 	"nereion_depths": "boss",
 	"forgedormient": "boss",
 	"albark": "boss",
+	"big_cosmic_duck": "boss",
 }
 const LOG_BRACKET_TAGS: PackedStringArray = [
 	"【必殺】", "【スキル】", "【エリート】", "【ボス】", "【混成】", "【フェーズ移行】",
@@ -974,6 +978,7 @@ const BOSS_BODY_TARGET_PX: float = 280.0
 ## 体格正規化後の見た目倍率（1.0=標準）。セルが大きい種だけ追加抑制。
 const BOSS_BODY_SCALE_MULT: Dictionary = {
 	"serdion": 0.92,
+	"big_cosmic_duck": 1.55,
 }
 const COMBAT_UI_Z: int = 40
 const COMBAT_OVERLAY_Z: int = 25

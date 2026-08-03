@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_big_cosmic_duck_nova"
+display_name = "星屑の波"
+description = "星屑を弾けさせ、探索隊全体を包む。"
+skill_type = "boss"
+target_type = "all_party"
+power_multiplier = 0.55
+cooldown = 7.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["boss", "aoe"])
+element = ""
+apply_status_id = "chill"
+apply_status_chance = 0.4
+cast_time = 0.0

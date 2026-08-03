@@ -12,7 +12,7 @@ enemy_level = 3
 room_count = 5
 floor_count = 5
 enemy_pool = Array[String](["cosmic_duck"])
-boss_id = ""
+boss_id = "big_cosmic_duck"
 drop_table_id = ""
 discovery_unlocks = {}
 elite_pool = Array[String]([])
@@ -38,5 +38,5 @@ forced_swarm_chance = 0.35
 forced_swarm_min = 2
 forced_swarm_max = 3
 flavor_text = "月曜・土日開放。
-一日一回だけ開くエルダの裂け目。濃い自然力に寄る水鳥だけが泳ぎ、
-機括の罠が通路を埋めている。しばしば群れで襲ってくる。"
+一日一回だけ開くエルダの裂け目。濃い自然力に寄る水鳥が泳ぎ、
+機括の罠が通路を埋めている。最奥には巨大な適応型が鎮座する。"
