@@ -76,7 +76,7 @@ const MATERIAL_WEIGHTS_BY_DUNGEON: Dictionary = {
 const MATERIAL_WEIGHTS_DEFAULT: Dictionary = {"base_ore": 70, "relic_shard": 30}
 
 ## P3-SURVEY-DISPATCH-EXP-001／P3-BAL-SURVEY-TIME-EXP-001 — 戦闘員向け EXP。
-## 参照＝対象 DG 雑魚クリア相当 EXP（短・標準とも 100%）。スタッフ／オトモは対象外。
+## 参照＝対象 DG 雑魚クリア相当 EXP（短・標準とも 100%）。スタッフ／ペットは対象外。
 const EXP_RATIO_SHORT: float = 1.0
 const EXP_RATIO_STANDARD: float = 1.0
 ## 雑魚クリア推定: 平均EXP × (room_count-1) × 群れ平均。

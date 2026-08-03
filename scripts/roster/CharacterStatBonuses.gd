@@ -45,7 +45,7 @@ const HELPER_BONUS: Dictionary = {
 	"helper_m": {"hp": 40, "attack": 80, "defense": 60},
 	## ボルグ★3 — 回避ヴァンガード
 	"helper_n": {"hp": 100, "attack": 60, "defense": 100},
-	## ネリ★2 — 低ステ・オトモ支援特化
+	## ネリ★2 — 低ステ・ペット支援特化
 	"helper_o": {"hp": -50, "attack": 40, "defense": 30},
 	## 火鷹★4 — 規格外ステ＋デメリットパッシブ前提
 	"helper_p": {"hp": 180, "attack": 300, "defense": 90},

@@ -44,7 +44,7 @@ var _active_pick_slot: int = -1
 var _roster_pick_member: Resource = null
 var _sort_by_rarity: bool = true
 var _role_filter_index: int = 0
-## false=冒険者一覧 / true=ペット（オトモ）一覧
+## false=冒険者一覧 / true=ペット一覧
 var _show_pets: bool = false
 var _formation_cells: Array[PanelContainer] = []
 ## 再構築の再入・RESIZED 連鎖でセルが積み上がり「押すたび拡大」するのを防ぐ。

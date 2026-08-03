@@ -1,6 +1,6 @@
 extends GutTest
 
-## P3-BAL-OPENING-001 — 敵グローバル倍率・オトモ人数補正。
+## P3-BAL-OPENING-001 — 敵グローバル倍率・ペット人数補正。
 
 
 func test_enemy_global_mult_constants() -> void:
@@ -10,7 +10,7 @@ func test_enemy_global_mult_constants() -> void:
 
 
 func test_party_size_balance_includes_pet_slot() -> void:
-	## combatant_count=5（人間4+オトモ）想定の倍率。
+	## combatant_count=5（人間4+ペット）想定の倍率。
 	var hp_4: float = 1.0 + (4.0 / 3.0 - 1.0) * BalanceConfig.PARTY_BALANCE_HP_SHARE
 	var hp_5: float = 1.0 + (5.0 / 3.0 - 1.0) * BalanceConfig.PARTY_BALANCE_HP_SHARE
 	assert_gt(hp_5, hp_4)

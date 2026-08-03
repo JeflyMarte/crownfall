@@ -25,9 +25,9 @@ var saved_parties: Array = []
 # 所持冒険者ロスター（基本5職 + ガチャ入手分）。party_members はここから最大 ACTIVE_PARTY_SIZE 名選択（P3-D036b）。
 var roster: Array = []
 
-## 随伴オトモ（P3-PET-OTOMO-001）。roster/party_members 外。出撃は常時1体。
+## 随伴ペット（P3-PET-OTOMO-001）。roster/party_members 外。出撃は常時1体。
 var active_pet: Resource = null
-## 所持オトモ id 一覧（P3-PET-VARIANT-001）。ジャックはガイド後のギルド支給で入る。
+## 所持ペット id 一覧（P3-PET-VARIANT-001）。ジャックはガイド後のギルド支給で入る。
 var owned_pet_ids: Array[String] = []
 
 ## 解放済みスターター id（P3-STORY-STARTER-001）。空かつストーリーON＝選択待ち。
@@ -379,7 +379,7 @@ func mark_stage_cleared(stage_id: String, tier: int = -1) -> void:
 	tiers[str(t)] = true
 	progress["tiers"] = tiers
 	stage_progress[stage_id] = progress
-	## 色変えオトモ解放（P3-PET-VARIANT-001 U1）— stage データ欠落時も進捗キーで判定
+	## 色変えペット解放（P3-PET-VARIANT-001 U1）— stage データ欠落時も進捗キーで判定
 	_PetSystem.sync_unlocks_from_stage_progress(true)
 	var stage: Resource = DataRegistry.get_stage_data(stage_id)
 	if stage == null:
@@ -1553,7 +1553,7 @@ const BASE_ROSTER_DEFS: Array = [
 	{"id": "adventurer_4", "name": "ミレイ", "job": "beast_tamer"},
 ]
 const ACTIVE_PARTY_SIZE: int = 4
-# 戦闘スロット上限（人間4＋オトモ1）。`ACTIVE_PARTY_SIZE` は人間編成のみ（P3-PET-OTOMO-001）。
+# 戦闘スロット上限（人間4＋ペット1）。`ACTIVE_PARTY_SIZE` は人間編成のみ（P3-PET-OTOMO-001）。
 const COMBAT_SLOT_MAX: int = 5
 
 func _ready() -> void:
@@ -1955,7 +1955,7 @@ func _create_starting_weapon(member_id: String, weapon_id: String) -> Resource:
 	_WeaponStatResolver.apply_drop_stats(instance, weapon_data)
 	return instance
 
-# ---- 戦闘参加者（編成メンバー＋随伴オトモ） ----
+# ---- 戦闘参加者（編成メンバー＋随伴ペット） ----
 
 func get_combatants() -> Array:
 	var out: Array = []

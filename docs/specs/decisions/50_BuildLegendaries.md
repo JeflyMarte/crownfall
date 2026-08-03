@@ -25,7 +25,7 @@ Biome 固定★（x-5 ペア）とは別に、**スキル分化ビルドを補�
 | 装飾 | `blade_dance_ring` | `eq_blade_dance_ring` | 必殺速度+15%、スキルCD×0.9 |
 | 装飾 | `pierce_charm` | `eq_pierce_charm` | 貫通二次ダメ+35% |
 | 装飾 | `pulse_amulet` | `eq_pulse_amulet` | 必殺速度+35%、スキルCD×1.15 |
-| 装飾 | `beastlord_fang` | `eq_beastlord_fang` | オトモ与+25%/防+10%、自身与-8% |
+| 装飾 | `beastlord_fang` | `eq_beastlord_fang` | ペット与+25%/防+10%、自身与-8% |
 | 装飾 | `apothecary_vial` | `eq_apothecary_vial` | 回復+20%、回復対象に guard |
 
 ---

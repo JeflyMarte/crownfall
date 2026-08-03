@@ -39,7 +39,7 @@ static func _target_label(target_type: String) -> String:
 		"self":
 			return "自身"
 		"pet":
-			return "オトモ"
+			return "ペット"
 		_:
 			return "対象"
 

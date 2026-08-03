@@ -325,7 +325,7 @@ static func enemy_damage_to_member(
 			defense += EquipmentEnhancer.effective_accessory_int_bonus(acc, "defense_bonus", acc_data)
 	defense += int(AffixStatCalculator.get_bonuses(target_index).get("defense_flat", 0))
 	defense += _CommanderPermitBoost.defense_flat()
-	## オトモは party_members 外の combatant。index 範囲を party に限定すると DEF0 になる。
+	## ペットは party_members 外の combatant。index 範囲を party に限定すると DEF0 になる。
 	if target_index >= 0:
 		var member: Resource = GameState.get_combatant(target_index)
 		if member != null:

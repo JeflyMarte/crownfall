@@ -113,7 +113,7 @@ static func grant_exp_by_member(exp_by_member: Dictionary) -> Dictionary:
 		var gained: int = grant_exp(member, amount)
 		if gained > 0:
 			result[mid] = gained
-	## 随伴オトモも個別積立分のみ（P3-PET-OTOMO-001）
+	## 随伴ペットも個別積立分のみ（P3-PET-OTOMO-001）
 	if gs.active_pet != null:
 		var pet_id: String = str(gs.active_pet.id)
 		var pet_amount: int = int(exp_by_member.get(pet_id, 0))

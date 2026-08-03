@@ -536,7 +536,7 @@ func _begin_reveal() -> void:
 			_display_name = str(member.display_name)
 		var pet_data: Resource = _PetSystem.get_pet_data(_adventurer_id)
 		star_n = clampi(int(pet_data.rarity) if pet_data != null else 1, 1, 5)
-		sub_line = "随伴オトモとして合流しました"
+		sub_line = "随伴ペットとして合流しました"
 		_job_id = ""
 	else:
 		member = GameState.commit_pending_starter_recruit()

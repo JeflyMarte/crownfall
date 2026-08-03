@@ -1,6 +1,6 @@
 extends GutTest
 
-## P3-BT-PET-LINK-001 — BTスキル／パッシブのオトモ連携
+## P3-BT-PET-LINK-001 — BTスキル／パッシブのペット連携
 
 const _PetSystem = preload("res://scripts/pets/PetSystem.gd")
 
@@ -31,7 +31,7 @@ func test_beast_tamer_learns_pet_skills() -> void:
 	var herd: Resource = DataRegistry.get_skill_data("herd_call")
 	assert_eq(str(herd.display_name), "群れの號令")
 	assert_eq(str(herd.target_type), "all_party")
-	## Lv50 到達技＝獣医の手当て（オトモ厚め回復）
+	## Lv50 到達技＝獣医の手当て（ペット厚め回復）
 	var unlocks: Array = job.skill_unlocks
 	assert_eq(unlocks.size(), 7, "職キット7本")
 	var lv50: Dictionary = {}

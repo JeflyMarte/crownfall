@@ -39,7 +39,7 @@ func test_war_banner_is_command_pet_core() -> void:
 	assert_eq(str(def.get("trigger", "")), "on_kill")
 	assert_eq(str(def.get("effect", "")), "party_rally")
 	_equip_relic("relic_war_banner")
-	## pet_*_mult_from_party はオトモ未所持だと 1.0 固定のガードがある。
+	## pet_*_mult_from_party はペット未所持だと 1.0 固定のガードがある。
 	GameState.active_pet = _PetSystem.create_pet_adventurer(_PetSystem.STARTER_PET_ID)
 	assert_almost_eq(CombatPassives.pet_outgoing_mult_from_party(), 1.35, 0.001)
 	assert_almost_eq(CombatPassives.pet_defense_mult_from_party(), 1.15, 0.001)
