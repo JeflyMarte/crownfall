@@ -127,7 +127,7 @@ func test_name_frame_top_rule_sits_above_footer_name() -> void:
 
 
 func test_empty_own_hides_baked_name_frame_with_mask() -> void:
-	## 自慢キャラなしでは焼込名札枠が空ボタンに見えるためマスクで隠す。
+	## 自慢キャラなしでは焼込名札枠を BG 切り抜きで隠す（黒 ColorRect 禁止）。
 	var packed: PackedScene = load("res://scenes/showcase/ShowcaseScene.tscn")
 	assert_not_null(packed)
 	var prev_id: String = GameState.showcase_member_id
@@ -135,11 +135,27 @@ func test_empty_own_hides_baked_name_frame_with_mask() -> void:
 	var scene: Node = packed.instantiate()
 	add_child_autofree(scene)
 	await get_tree().process_frame
-	var mask: ColorRect = scene.get("_name_frame_mask") as ColorRect
+	var mask: TextureRect = scene.get("_name_frame_mask") as TextureRect
 	assert_not_null(mask)
 	assert_true(mask.visible)
+	assert_true(mask.texture != null)
 	assert_false(bool(scene.get_node("Footer").visible))
 	var mask_r: Rect2 = ShowcaseUiTokens.NAME_FRAME_MASK_RECT
 	assert_eq(mask.position, mask_r.position)
 	assert_eq(mask.size, mask_r.size)
 	GameState.showcase_member_id = prev_id
+
+
+func test_empty_panel_has_no_black_card() -> void:
+	var sb: StyleBox = ShowcaseUiTokens.empty_panel_style()
+	assert_true(sb is StyleBoxEmpty)
+
+
+func test_power_frame_center_is_transparent() -> void:
+	## 総合戦力の裏の黒マットを除去済みであること。
+	var tex: Texture2D = ShowcaseUiTokens.power_frame_texture()
+	assert_not_null(tex)
+	var img: Image = tex.get_image()
+	assert_not_null(img)
+	var center: Color = img.get_pixel(img.get_width() / 2, img.get_height() / 2)
+	assert_lt(center.a, 0.05, "power frame fill must be clear")
