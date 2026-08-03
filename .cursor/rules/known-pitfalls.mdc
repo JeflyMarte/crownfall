@@ -238,3 +238,4 @@ alwaysApply: false
 | 群れのトリッキーが撃たない | `_do_enemy_turn` がアクティブ敵のみ `_try_enemy_skill` | 全スロット `_try_enemy_skill(slot)`（監査 I） |
 | ポーズ中に沈黙が切れる | `Time.get_ticks_msec` 壁時計 | `CombatController` 残り秒＋戦闘クロック tick（監査 I） |
 | 召喚失敗後に通常攻撃まで出る | CD 消費後 `summon` が false → fallthrough | `_execute_enemy_skill` は CD 済みなら true（監査 I） |
+| 右上バフ凡例にアイコンが見えない | 装備ステICOが黒地＋Emptyパネル | 金枠バッジ台座の上に TextureRect（`_make_field_buff_legend_row`） |
