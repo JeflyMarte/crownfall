@@ -3171,7 +3171,7 @@ func _collect_floor_buff_legend_entries() -> Array[Dictionary]:
 		if float(dc.floor_choice_damage_mult) > 1.0:
 			out.append({
 				"id": "choice_atk",
-				"stat": "attack",
+				"stat": _floor_buff_stat_key("attack"),
 				"text": "パーティー全体の攻撃力 ×%.1f" % float(dc.floor_choice_damage_mult),
 			})
 		var reward_keys: Array = dc.floor_choice_reward_mults.keys()
@@ -3210,7 +3210,8 @@ func _floor_buff_stat_key(kind: String) -> String:
 		"material":
 			return "material"
 		"attack", "damage":
-			return "attack"
+			## バフ感のある ATK↑ アイコンを使う。
+			return "attack_up"
 		_:
 			return kind
 
@@ -3232,35 +3233,72 @@ func _floor_buff_noun(kind: String) -> String:
 func _floor_buff_icon_texture(stat_key: String) -> Texture2D:
 	if stat_key == "material":
 		return IconPaths.get_icon_texture("base_ore", "material")
-	return _EquipmentUiTokens.stat_icon(stat_key)
+	var tex: Texture2D = _EquipmentUiTokens.stat_icon(stat_key)
+	if tex != null:
+		return tex
+	## attack_up 欠落時は通常 ATK へ。
+	if stat_key == "attack_up":
+		return _EquipmentUiTokens.stat_icon("attack")
+	return null
+
+
+func _floor_buff_icon_abbrev(stat_key: String) -> String:
+	match stat_key:
+		"attack", "attack_up":
+			return "攻"
+		"exp_gain":
+			return "経"
+		"gold_gain":
+			return "金"
+		"rare_drop":
+			return "装"
+		"material":
+			return "素"
+		_:
+			return "＋"
 
 
 func _make_field_buff_legend_row(entry: Dictionary) -> HBoxContainer:
+	## 文言の先頭（左）にアイコン。装備ICOは黒地のため金枠バッジで視認性を確保。
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.size_flags_horizontal = Control.SIZE_SHRINK_END
 	row.alignment = BoxContainer.ALIGNMENT_END
+	var stat_key: String = str(entry.get("stat", ""))
+	var icon_px: float = STATUS_LEGEND_ICON_PX
 	var icon := PanelContainer.new()
-	icon.custom_minimum_size = Vector2(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+	icon.custom_minimum_size = Vector2(icon_px, icon_px)
 	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	icon.size_flags_horizontal = Control.SIZE_SHRINK_END
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	icon.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
-	var tex: Texture2D = _floor_buff_icon_texture(str(entry.get("stat", "")))
+	var plate := StyleBoxFlat.new()
+	plate.bg_color = Color(0.10, 0.07, 0.12, 0.92)
+	plate.border_color = Color(0.82, 0.66, 0.32, 0.98)
+	plate.set_border_width_all(1)
+	plate.set_corner_radius_all(4)
+	icon.add_theme_stylebox_override("panel", plate)
+	var tex: Texture2D = _floor_buff_icon_texture(stat_key)
 	if tex != null:
 		var tr := TextureRect.new()
 		tr.texture = tex
 		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		tr.custom_minimum_size = Vector2(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+		tr.custom_minimum_size = Vector2(icon_px - 2.0, icon_px - 2.0)
+		tr.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tr.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		icon.add_child(tr)
 	else:
-		var style := StyleBoxFlat.new()
-		style.bg_color = Color(0.55, 0.45, 0.25)
-		style.set_corner_radius_all(4)
-		icon.add_theme_stylebox_override("panel", style)
+		var glyph := Label.new()
+		glyph.text = _floor_buff_icon_abbrev(stat_key)
+		glyph.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		glyph.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		glyph.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		glyph.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		glyph.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		UiTypography.apply_body(glyph, 12, UiTypography.COLOR_GOLD)
+		icon.add_child(glyph)
 	row.add_child(icon)
 	var lbl := Label.new()
 	lbl.text = str(entry.get("text", ""))

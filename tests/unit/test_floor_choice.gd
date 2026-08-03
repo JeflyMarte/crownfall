@@ -107,6 +107,16 @@ func test_floor_choice_roll_harvest_kinds_random_two() -> void:
 	assert_gte(seen.size(), 2)
 
 
+func test_floor_buff_legend_stat_icons_resolve() -> void:
+	## 右上凡例の先頭アイコン（装備ステ ICO／素材）。
+	assert_not_null(EquipmentUiTokens.stat_icon("attack_up"))
+	assert_not_null(EquipmentUiTokens.stat_icon("attack"))
+	assert_not_null(EquipmentUiTokens.stat_icon("exp_gain"))
+	assert_not_null(EquipmentUiTokens.stat_icon("gold_gain"))
+	assert_not_null(EquipmentUiTokens.stat_icon("rare_drop"))
+	assert_not_null(IconPaths.get_icon_texture("base_ore", "material"))
+
+
 func test_floor_choice_title_bbcode_emphasizes_name() -> void:
 	var bb: String = FloorChoiceOverlay._panel_text_bbcode(
 		"戦力強化",
