@@ -724,6 +724,7 @@ const ENEMY_SILENCE_DURATION_SEC: float = 5.0
 const ENEMY_HASTE_CT_REFUND: float = 0.55
 const _EquipmentSetBonuses = preload("res://scripts/equipment/EquipmentSetBonuses.gd")
 const _FloorChoiceOverlayScript = preload("res://scripts/dungeon/FloorChoiceOverlay.gd")
+const _EquipmentUiTokens = preload("res://scripts/equipment/EquipmentUiTokens.gd")
 
 var _auto_delay: float = AUTO_DELAY_BASE / SPEED_MULT_NORMAL
 var _auto_progress_paused_remaining: float = 0.0
@@ -3150,10 +3151,150 @@ func _status_legend_content_signature(ids: Array[String]) -> String:
 	return "|".join(parts)
 
 
-func _field_legend_content_signature(weather: String, show_weather: bool) -> String:
+func _field_legend_content_signature(weather: String, show_weather: bool, buff_sig: String) -> String:
+	var parts: PackedStringArray = PackedStringArray()
 	if show_weather:
-		return "w:%s" % weather
-	return ""
+		parts.append("w:%s" % weather)
+	if not buff_sig.is_empty():
+		parts.append(buff_sig)
+	return "|".join(parts)
+
+
+func _collect_floor_buff_legend_entries() -> Array[Dictionary]:
+	## 碑文加護／分かれ道（現フロアのみ）。回復は入室即時のためレジェンド非表示。
+	var out: Array[Dictionary] = []
+	var dc: Node = $DungeonController
+	if dc.floor_choice_room_index == dc.current_room_index:
+		if float(dc.floor_choice_damage_mult) > 1.0:
+			out.append({
+				"id": "choice_atk",
+				"stat": "attack",
+				"text": "パーティー全体の攻撃力 ×%.1f" % float(dc.floor_choice_damage_mult),
+			})
+		var reward_keys: Array = dc.floor_choice_reward_mults.keys()
+		reward_keys.sort()
+		for raw_k: Variant in reward_keys:
+			var kind: String = str(raw_k)
+			var mult: float = float(dc.floor_choice_reward_mults[kind])
+			if mult <= 1.0:
+				continue
+			out.append({
+				"id": "choice_%s" % kind,
+				"stat": _floor_buff_stat_key(kind),
+				"text": "パーティー全体の%s ×%.2f" % [_floor_buff_noun(kind), mult],
+			})
+	if dc.has_active_floor_blessing():
+		var lore_kind: String = str(dc.floor_blessing_kind)
+		out.append({
+			"id": "lore_%s" % lore_kind,
+			"stat": _floor_buff_stat_key(lore_kind),
+			"text": "パーティー全体の%s ×%.1f" % [
+				_floor_buff_noun(lore_kind),
+				BalanceConfig.LORE_FLOOR_BLESSING_MULT,
+			],
+		})
+	return out
+
+
+func _floor_buff_stat_key(kind: String) -> String:
+	match kind:
+		"exp":
+			return "exp_gain"
+		"gold":
+			return "gold_gain"
+		"equip":
+			return "rare_drop"
+		"material":
+			return "material"
+		"attack", "damage":
+			return "attack"
+		_:
+			return kind
+
+
+func _floor_buff_noun(kind: String) -> String:
+	match kind:
+		"exp":
+			return "経験値"
+		"gold":
+			return "ゴールド"
+		"equip":
+			return "装備ドロップ"
+		"material":
+			return "素材ドロップ"
+		_:
+			return $DungeonController.floor_blessing_label(kind)
+
+
+func _floor_buff_icon_texture(stat_key: String) -> Texture2D:
+	if stat_key == "material":
+		return IconPaths.get_icon_texture("base_ore", "material")
+	return _EquipmentUiTokens.stat_icon(stat_key)
+
+
+func _make_field_buff_legend_row(entry: Dictionary) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.size_flags_horizontal = Control.SIZE_SHRINK_END
+	row.alignment = BoxContainer.ALIGNMENT_END
+	var icon := PanelContainer.new()
+	icon.custom_minimum_size = Vector2(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	icon.size_flags_horizontal = Control.SIZE_SHRINK_END
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	var tex: Texture2D = _floor_buff_icon_texture(str(entry.get("stat", "")))
+	if tex != null:
+		var tr := TextureRect.new()
+		tr.texture = tex
+		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tr.custom_minimum_size = Vector2(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+		tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon.add_child(tr)
+	else:
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color(0.55, 0.45, 0.25)
+		style.set_corner_radius_all(4)
+		icon.add_theme_stylebox_override("panel", style)
+	row.add_child(icon)
+	var lbl := Label.new()
+	lbl.text = str(entry.get("text", ""))
+	_style_field_legend_label(lbl)
+	row.add_child(lbl)
+	return row
+
+
+func _update_field_legend() -> void:
+	if _field_legend_panel == null or _field_legend_list == null:
+		return
+	var weather: String = CombatWeather.normalize(GameState.get_weather())
+	var show_weather: bool = (
+		$CombatController.is_in_combat and weather != CombatWeather.CLEAR
+	)
+	var buff_entries: Array[Dictionary] = _collect_floor_buff_legend_entries()
+	if not show_weather and buff_entries.is_empty():
+		_clear_field_legend_rows()
+		_field_legend_signature = ""
+		_field_legend_panel.visible = false
+		return
+	var buff_sig_parts: PackedStringArray = PackedStringArray()
+	for e: Dictionary in buff_entries:
+		buff_sig_parts.append("%s:%s" % [str(e.get("id", "")), str(e.get("text", ""))])
+	var buff_sig: String = ",".join(buff_sig_parts)
+	var signature: String = _field_legend_content_signature(weather, show_weather, buff_sig)
+	if signature == _field_legend_signature and _field_legend_panel.visible:
+		return
+	_field_legend_signature = signature
+	_clear_field_legend_rows()
+	if show_weather:
+		_field_legend_list.add_child(_make_weather_legend_row(weather))
+	for entry: Dictionary in buff_entries:
+		_field_legend_list.add_child(_make_field_buff_legend_row(entry))
+	_field_legend_panel.visible = true
+	_layout_field_legend()
+	call_deferred("_layout_field_legend")
 
 
 func _collect_active_status_ids() -> Array[String]:
@@ -3326,32 +3467,6 @@ func _update_status_ailment_legend() -> void:
 	_layout_status_legend()
 	call_deferred("_layout_status_legend")
 
-
-func _update_field_legend() -> void:
-	if _field_legend_panel == null or _field_legend_list == null:
-		return
-	if not $CombatController.is_in_combat:
-		_clear_field_legend_rows()
-		_field_legend_signature = ""
-		_field_legend_panel.visible = false
-		return
-	var weather: String = CombatWeather.normalize(GameState.get_weather())
-	var show_weather: bool = weather != CombatWeather.CLEAR
-	## 現状のダンジョン効果は天候のみ（地形有利はオミット維持）。
-	if not show_weather:
-		_clear_field_legend_rows()
-		_field_legend_signature = ""
-		_field_legend_panel.visible = false
-		return
-	var signature: String = _field_legend_content_signature(weather, show_weather)
-	if signature == _field_legend_signature and _field_legend_panel.visible:
-		return
-	_field_legend_signature = signature
-	_clear_field_legend_rows()
-	_field_legend_list.add_child(_make_weather_legend_row(weather))
-	_field_legend_panel.visible = true
-	_layout_field_legend()
-	call_deferred("_layout_field_legend")
 
 func _sync_status_sprite_tints() -> void:
 	if not $CombatController.is_in_combat:
@@ -3665,6 +3780,7 @@ func _enter_current_room() -> void:
 			% [label, BalanceConfig.LORE_FLOOR_BLESSING_MULT]
 		)
 	_apply_floor_choice_on_enter()
+	_update_field_legend()
 	## 戦闘は黒幕一幕のあと（画面が見えてから）BGM 切替。幕中の「謎SE」感を避ける。
 	if not $DungeonController.is_combat_room():
 		_sync_room_bgm()
