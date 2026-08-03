@@ -15,8 +15,8 @@ const MODE_TAB_STAFF := Rect2(360, 152, 282, 72)
 const MODE_ROW := Rect2(78, 152, 564, 72)
 const EQUIP_RECT := Rect2(70, 175, 168, 730)
 const STATS_RECT := Rect2(482, 175, 168, 460)
-## ステータス焼込枠の直下。縦は半分程度・やや左寄せ。
-const SKILLS_RECT := Rect2(450, 652, 168, 130)
+## ステータス焼込枠の直下。やや左寄せ・効果全文が収まる高さ。
+const SKILLS_RECT := Rect2(450, 652, 188, 250)
 const IDLE_CENTER := Vector2(360, 688)
 const IDLE_HOST_SIZE := Vector2(260, 320)
 ## 名前テキストのみ（枠なし）。焼込名札内の下寄り。
@@ -32,10 +32,10 @@ const EMPTY_RECT := Rect2(90, 210, 540, 400)
 const BODY_BOTTOM_PAD: float = 128.0
 ## 装備セル相対オフセット（パネル左上基準）。武器／防具／装飾／レリック。
 const EQUIP_ICON_OFFSETS: Array[Vector2] = [
-	Vector2(34, 165),
-	Vector2(34, 320),
-	Vector2(34, 474),
-	Vector2(34, 630),
+	Vector2(48, 165),
+	Vector2(48, 320),
+	Vector2(48, 474),
+	Vector2(48, 630),
 ]
 const EQUIP_CATEGORIES: Array[String] = ["weapon", "armor", "accessory", "relic"]
 ## 装備品一覧に近い可読サイズ（レア枠・背景・N/R/E/L 表示）。
@@ -57,14 +57,14 @@ const STAT_KEYS: Array[String] = [
 	"crit_rate",
 	"crit_damage",
 ]
-## スキルカード（見出し＋装備スキル名＋効果文）。縦半分枠向けにコンパクト。
-const SKILL_HEADER_H: float = 22.0
-const SKILL_ROW_H: float = 18.0
-const SKILL_DESC_MAX_H: float = 28.0
-const SKILL_ENTRY_GAP: float = 2.0
+## スキルカード（見出し＋装備スキル名＋効果全文）。
+const SKILL_HEADER_H: float = 24.0
+const SKILL_ROW_H: float = 20.0
+const SKILL_DESC_MAX_H: float = 200.0
+const SKILL_ENTRY_GAP: float = 4.0
 const SKILL_PAD_X: float = 6.0
-const SKILL_NAME_FONT_SIZE: int = 12
-const SKILL_DESC_FONT_SIZE: int = 10
+const SKILL_NAME_FONT_SIZE: int = 13
+const SKILL_DESC_FONT_SIZE: int = 11
 const SKILL_HEADER_TEXT: String = "✧ スキル ✧"
 
 ## 選択中タブは暗く、非選択は明るめの金文字。
