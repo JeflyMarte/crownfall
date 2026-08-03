@@ -135,7 +135,8 @@ func test_skills_rect_sits_below_stats() -> void:
 
 func test_equip_icon_offsets_include_relic_rightward() -> void:
 	assert_eq(ShowcaseUiTokens.EQUIP_ICON_OFFSETS.size(), 4)
-	assert_gte(ShowcaseUiTokens.EQUIP_ICON_OFFSETS[0].x, 40.0)
+	assert_gte(ShowcaseUiTokens.EQUIP_ICON_OFFSETS[0].x, 38.0)
+	assert_lte(ShowcaseUiTokens.EQUIP_ICON_OFFSETS[0].x, 46.0)
 
 
 func test_showcase_scene_shows_equipped_skill_card() -> void:

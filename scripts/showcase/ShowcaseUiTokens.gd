@@ -32,10 +32,10 @@ const EMPTY_RECT := Rect2(90, 210, 540, 400)
 const BODY_BOTTOM_PAD: float = 128.0
 ## 装備セル相対オフセット（パネル左上基準）。武器／防具／装飾／レリック。
 const EQUIP_ICON_OFFSETS: Array[Vector2] = [
-	Vector2(48, 165),
-	Vector2(48, 320),
-	Vector2(48, 474),
-	Vector2(48, 630),
+	Vector2(42, 165),
+	Vector2(42, 320),
+	Vector2(42, 474),
+	Vector2(42, 630),
 ]
 const EQUIP_CATEGORIES: Array[String] = ["weapon", "armor", "accessory", "relic"]
 ## 装備品一覧に近い可読サイズ（レア枠・背景・N/R/E/L 表示）。
