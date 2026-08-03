@@ -6941,7 +6941,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-FLOOR-CHOICE-001-1 | **戦闘勝利後**に三択。ボス直前・最終F・次が非戦闘は出さない | フルオートの例外停止点に限定 |
 | P3-DG-FLOOR-CHOICE-001-2 | **章最大2回**（floor≤6は1回）。効果は次の1フロアのみ | テンポと厚みの両立 |
 | P3-DG-FLOOR-CHOICE-001-3 | **A 戦力**＝与ダメ×1.5。**A′ 応急**＝消耗時のみ（平均HP&lt;60% or 戦闘不能）次F開始25%回復 | ピンチ保険 |
-| P3-DG-FLOOR-CHOICE-001-4 | **B 収穫**＝EXP/Gold/素材/装備から2種×1.35 | 狙い撃ち |
+| P3-DG-FLOOR-CHOICE-001-4 | **B 収穫**＝EXP/Gold/素材/装備から**ランダム2種を提示**×1.35（種目は選ばない）。パネル選択後、背景の「選択を確定する」位置で確定 | 操作簡略 |
 | P3-DG-FLOOR-CHOICE-001-5 | **C 強襲**＝次FをELITE＋護衛1〜2、報酬4種×1.25 | ハイリスク |
 | P3-DG-FLOOR-CHOICE-001-6 | **UI**＝`UI_DG_FloorChoice_BG`。文は3パネル四角に配置 | オーナー指定 |
 | P3-DG-FLOOR-CHOICE-001-7 | **SSOT**＝`docs/specs/decisions/61_DungeonFloorChoice.md` | Decision 本体 |

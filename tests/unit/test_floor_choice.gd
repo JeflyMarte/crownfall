@@ -52,6 +52,19 @@ func test_floor_choice_harvest_two_kinds() -> void:
 	assert_almost_eq(dc.floor_blessing_mult_for("gold"), 1.0, 0.0001)
 
 
+func test_floor_choice_roll_harvest_kinds_random_two() -> void:
+	var seen: Dictionary = {}
+	for _i: int in 40:
+		var kinds: Array[String] = FloorChoiceOverlay.roll_harvest_kinds()
+		assert_eq(kinds.size(), 2)
+		assert_ne(kinds[0], kinds[1])
+		for k: String in kinds:
+			assert_true(k in BalanceConfig.FLOOR_CHOICE_REWARD_KINDS)
+			seen[k] = true
+	assert_gte(seen.size(), 2)
+
+
+
 func test_floor_choice_assault_forces_elite() -> void:
 	var dc: Node = _make_dc([Enums.RoomType.COMBAT, Enums.RoomType.COMBAT, Enums.RoomType.TREASURE])
 	dc.grant_floor_choice_assault()

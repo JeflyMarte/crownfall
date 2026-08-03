@@ -3,6 +3,7 @@ extends Control
 
 ## ダンジョン分かれ道 UI（P3-DG-FLOOR-CHOICE-001）。
 ## 背景 720×1280 の四角位置に説明文／ヒット領域をスケール配置する。
+## B 収穫はランダム2種を提示（プレイヤーは選ばない）。確定は背景の「選択を確定する」位置。
 
 signal confirmed(choice_id: String, harvest_kinds: Array[String])
 
@@ -22,6 +23,7 @@ const TEXT_RECTS: Array[Rect2] = [
 	Rect2(260, 455, 198, 222),
 	Rect2(504, 455, 176, 222),
 ]
+## 背景の「選択を確定する」ボタン位置
 const CONFIRM_RECT: Rect2 = Rect2(110, 1005, 500, 90)
 
 const CHOICE_POWER: String = "power"
@@ -33,11 +35,9 @@ var _bg: TextureRect
 var _panel_buttons: Array[Button] = []
 var _text_labels: Array[Label] = []
 var _confirm_btn: Button
-var _harvest_row: HBoxContainer
-var _harvest_toggles: Dictionary = {}
 var _selected: String = ""
 var _heal_mode: bool = false
-var _selected_harvest: Array[String] = []
+var _offered_harvest: Array[String] = []
 
 
 func _ready() -> void:
@@ -91,22 +91,6 @@ func _ready() -> void:
 	_confirm_btn.pressed.connect(_on_confirm_pressed)
 	add_child(_confirm_btn)
 
-	_harvest_row = HBoxContainer.new()
-	_harvest_row.name = "HarvestToggles"
-	_harvest_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	_harvest_row.add_theme_constant_override("separation", 8)
-	_harvest_row.visible = false
-	add_child(_harvest_row)
-	for kind: String in BalanceConfig.FLOOR_CHOICE_REWARD_KINDS:
-		var tog := Button.new()
-		tog.toggle_mode = true
-		tog.text = _harvest_kind_label(kind)
-		tog.focus_mode = Control.FOCUS_NONE
-		UiTypography.apply_menu_button(tog)
-		tog.toggled.connect(_on_harvest_toggled.bind(kind))
-		_harvest_row.add_child(tog)
-		_harvest_toggles[kind] = tog
-
 	resized.connect(_layout_to_size)
 	_layout_to_size()
 
@@ -114,11 +98,7 @@ func _ready() -> void:
 func open(heal_mode: bool) -> void:
 	_heal_mode = heal_mode
 	_selected = ""
-	_selected_harvest.clear()
-	for kind: String in _harvest_toggles.keys():
-		var tog: Button = _harvest_toggles[kind]
-		tog.set_pressed_no_signal(false)
-	_harvest_row.visible = false
+	_offered_harvest = roll_harvest_kinds()
 	_refresh_texts()
 	_refresh_selection_visual()
 	_update_confirm_enabled()
@@ -128,6 +108,16 @@ func open(heal_mode: bool) -> void:
 
 func close() -> void:
 	visible = false
+
+
+static func roll_harvest_kinds() -> Array[String]:
+	var pool: Array[String] = BalanceConfig.FLOOR_CHOICE_REWARD_KINDS.duplicate()
+	pool.shuffle()
+	var picks: int = mini(BalanceConfig.FLOOR_CHOICE_HARVEST_PICKS, pool.size())
+	var out: Array[String] = []
+	for i: int in picks:
+		out.append(pool[i])
+	return out
 
 
 func _layout_to_size() -> void:
@@ -144,9 +134,8 @@ func _layout_to_size() -> void:
 		_place_control(_panel_buttons[i], PANEL_RECTS[i], ox, oy, scale)
 		_place_control(_text_labels[i], TEXT_RECTS[i], ox, oy, scale)
 	_place_control(_confirm_btn, CONFIRM_RECT, ox, oy, scale)
-## 収穫トグルは中央パネル下端〜警告の手前
-	var row_r := Rect2(120.0, 708.0, 480.0, 48.0)
-	_place_control(_harvest_row, row_r, ox, oy, scale)
+	## 確定ヒットを最前面に（パネルと重ならない下端）
+	move_child(_confirm_btn, get_child_count() - 1)
 
 
 func _place_control(ctrl: Control, design: Rect2, ox: float, oy: float, scale: float) -> void:
@@ -163,7 +152,16 @@ func _refresh_texts() -> void:
 		else "与ダメ ×1.5\n次のフロアのみ"
 	)
 	_text_labels[0].text = "%s\n%s" % [a_title, a_body]
-	_text_labels[1].text = "収穫強化\n報酬2種を選んで\n×1.35\n次のフロアのみ"
+	var harvest_labels: PackedStringArray = PackedStringArray()
+	for k: String in _offered_harvest:
+		harvest_labels.append(_harvest_kind_label(k))
+	var harvest_line: String = "・".join(harvest_labels)
+	if harvest_line.is_empty():
+		harvest_line = "報酬2種"
+	_text_labels[1].text = (
+		"収穫強化\n%s\n×%.2f\n次のフロアのみ"
+		% [harvest_line, BalanceConfig.FLOOR_CHOICE_HARVEST_MULT]
+	)
 	_text_labels[2].text = "強襲ルート\n精鋭＋雑魚が出現\n報酬すべて ×1.25"
 
 
@@ -171,36 +169,11 @@ func _on_panel_pressed(index: int) -> void:
 	match index:
 		0:
 			_selected = CHOICE_HEAL if _heal_mode else CHOICE_POWER
-			_harvest_row.visible = false
-			_clear_harvest_selection()
 		1:
 			_selected = CHOICE_HARVEST
-			_harvest_row.visible = true
 		2:
 			_selected = CHOICE_ASSAULT
-			_harvest_row.visible = false
-			_clear_harvest_selection()
 	_refresh_selection_visual()
-	_update_confirm_enabled()
-
-
-func _clear_harvest_selection() -> void:
-	_selected_harvest.clear()
-	for kind: String in _harvest_toggles.keys():
-		(_harvest_toggles[kind] as Button).set_pressed_no_signal(false)
-
-
-func _on_harvest_toggled(pressed: bool, kind: String) -> void:
-	if pressed:
-		if kind in _selected_harvest:
-			return
-		if _selected_harvest.size() >= BalanceConfig.FLOOR_CHOICE_HARVEST_PICKS:
-			## 上限超過分はトグルを戻す
-			(_harvest_toggles[kind] as Button).set_pressed_no_signal(false)
-			return
-		_selected_harvest.append(kind)
-	else:
-		_selected_harvest.erase(kind)
 	_update_confirm_enabled()
 
 
@@ -219,11 +192,9 @@ func _refresh_selection_visual() -> void:
 
 
 func _update_confirm_enabled() -> void:
-	var ok: bool = false
-	if _selected == CHOICE_POWER or _selected == CHOICE_HEAL or _selected == CHOICE_ASSAULT:
-		ok = true
-	elif _selected == CHOICE_HARVEST:
-		ok = _selected_harvest.size() == BalanceConfig.FLOOR_CHOICE_HARVEST_PICKS
+	var ok: bool = not _selected.is_empty()
+	if _selected == CHOICE_HARVEST and _offered_harvest.size() < BalanceConfig.FLOOR_CHOICE_HARVEST_PICKS:
+		ok = false
 	_confirm_btn.disabled = not ok
 	_confirm_btn.mouse_filter = (
 		Control.MOUSE_FILTER_STOP if ok else Control.MOUSE_FILTER_IGNORE
@@ -235,7 +206,7 @@ func _on_confirm_pressed() -> void:
 		return
 	var kinds: Array[String] = []
 	if _selected == CHOICE_HARVEST:
-		kinds = _selected_harvest.duplicate()
+		kinds = _offered_harvest.duplicate()
 	confirmed.emit(_selected, kinds)
 
 
