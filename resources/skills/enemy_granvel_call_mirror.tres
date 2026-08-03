@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_granvel_call_mirror"
+display_name = "鏡鱗の呼び声"
+description = "森の鏡鱗を一度だけ呼び寄せる。"
+skill_type = "boss"
+target_type = "self"
+power_multiplier = 1.0
+cooldown = 20.0
+trigger_type = "cooldown"
+effect_type = "summon"
+tags = Array[String](["boss", "summon"])
+element = ""
+apply_status_id = ""
+apply_status_chance = 0.0
+cast_time = 0.0
+summon_enemy_id = "mirror_boa"
+summon_count = 1

@@ -42,3 +42,7 @@ extends Resource
 @export var reserve_condition: String = ""
 ## 温存条件の閾値（self_hp_below / enemy_count_gte / self_range 等で使用。空=不要）。
 @export var reserve_value: String = ""
+## effect_type=summon: 呼ぶ敵 id（空＝詠唱者と同種クローン／既存トリッキー）。
+@export var summon_enemy_id: String = ""
+## effect_type=summon: 呼ぶ体数（キャップまで）。
+@export var summon_count: int = 1
