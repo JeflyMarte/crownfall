@@ -1930,7 +1930,10 @@ static func _passive_effect_summary(def: Dictionary) -> String:
 	if float(def.get("first_attack_mult", 1.0)) > 1.0:
 		parts.append("初撃 ×%.1f" % float(def["first_attack_mult"]))
 	if def.has("party_incoming_mult"):
-		parts.append("前列時 パーティ被ダメ ×%.2f" % float(def["party_incoming_mult"]))
+		if str(def.get("passive_condition", "")) == "front_row_only":
+			parts.append("前列時 パーティ被ダメ ×%.2f" % float(def["party_incoming_mult"]))
+		else:
+			parts.append("パーティ被ダメ ×%.2f" % float(def["party_incoming_mult"]))
 	if str(def.get("effect", "")) == "grant_self_evasion":
 		parts.append("開幕回避 +%d%%" % int(round(float(def.get("evasion_add", 0.0)) * 100.0)))
 	if float(def.get("threat_base_add", 0.0)) > 0.0:
