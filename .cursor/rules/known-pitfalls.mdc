@@ -112,6 +112,7 @@ alwaysApply: false
 | 陣形複製／前列化／調査中混入／未保存本反映／詳細無反応（編成） | 即 GameState 書き・空き詰め・ScrollTouch PASS | → **`ui-layout.mdc` 編成・陣形**（詳細は `_cf_keep_mouse_stop`） |
 | ジャックがほぼ被弾せず無敵に見える | `PET_THREAT_BASE=0.55`＋max_threat 選択で人間（≥1.0）がいる限り未選択。被ダメ計算も `party_members` 限定でペット DEF 未加算 | Threat を前衛相当（盾未満）へ。ダメ計算は `get_combatant`。HPバーは PET スロット短尺 |
 | ペット既定装備が古い `pet_nibble` のまま／役割が守り一色 | 三角再編後も fallback や wiki が旧習得表 | PetData unlock・`PetSystem` fallback・テストを同時更新（P3-BAL-PET-TRIANGLE-001） |
+| パッシブが平与ダメ%やペット必須でビルドが単調 | 固有1本が退屈／BT全体がペット依存 | 確定軸は条件・状態・役割型。BT＝異常（ネリのみペット）。`70_PassiveKitLock` |
 | ペットが「渾身の一撃」等の必殺を撃つ | 職なし＋`DEFAULT_ULTIMATE_SKILL_ID` フォールバック。balanced 戦術がボス／エリートで必殺 | `_get_member_ultimate_skill` でペット除外。`add_ultimate_charge` もスキップ（P3-PET-ULT-OMIT-001） |
 | 行動順敵アイコンの紫板／穴透過／枠なし | PNG焼込プレート、または焼込枠前提で UI 枠を外した | 紫板焼込禁止。枠は常に `CombatUiFrames`。→ **`14_Presentation_Pitfalls.md`** §6 |
 | 装備一覧の攻・防・会心アイコンが古い | `equipment_ui/` 本番が procedural 小アイコンのまま。更新アートは `preview/` に滞留 | `preprocess_equipment_stat_icons.py --apply` で preview→本番＋forge へ反映 |

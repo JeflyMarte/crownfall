@@ -42,7 +42,7 @@ func test_base_roster_passive_icons_are_thematic() -> void:
 		"riva_lone_focus": "res://assets/ui/skills/base/ICO_SKILL_BASE_Mark_fg.png",
 		"elias_field_elixir": "res://assets/ui/passives/ICO_PASSIVE_SpareVial.png",
 		"galen_sacred_bastion": "res://assets/ui/passives/ICO_PASSIVE_Bulwark.png",
-		"mirei_swarm_resonance": "res://assets/ui/passives/ICO_PASSIVE_PackInstinct.png",
+		"mirei_swarm_resonance": "res://assets/ui/status/ICO_STA_Poison.png",
 	}
 	for pid: String in expected.keys():
 		var want: String = str(expected[pid])

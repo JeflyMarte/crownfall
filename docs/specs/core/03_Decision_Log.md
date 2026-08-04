@@ -7045,3 +7045,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-PET-TRIANGLE-001-3 | インクに **麻痺牙（stun）** ほか毒・鈍足・出血・標的 | 状態異常特化 |
 | P3-BAL-PET-TRIANGLE-001-4 | Lv1スキルは後半も選択肢（上位は別役） | 序盤用弱技にしない |
 | P3-BAL-PET-TRIANGLE-001-5 | **SSOT**＝`docs/specs/decisions/69_PetTriangleSkills.md` | Decision 本体 |
+
+## ドット実装キャラのパッシブ確定軸（2026-08-04 — P3-BAL-PASSIVE-LOCK-001）
+
+> **オーナー GO** — 一覧の軸選択（ボルグは開幕回避）。枠1固定。2〜3選択UIは後続。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-PASSIVE-LOCK-001-1 | 対象＝ドット実装16人。各1本確定 | スコープ明確化 |
+| P3-BAL-PASSIVE-LOCK-001-2 | 平与ダメ%メイン禁止。BT＝異常（ネリのみペット） | 体験方針 |
+| P3-BAL-PASSIVE-LOCK-001-3 | **SSOT**＝`docs/specs/decisions/70_PassiveKitLock.md` | Decision 本体 |
