@@ -5,15 +5,15 @@
 [resource]
 script = ExtResource("1")
 id = "pet_jack_frenzy"
-display_name = "猛進"
-description = "気勢を高め、自身の与ダメージを上昇させる。"
+display_name = "群れの士気"
+description = "遠吠えで隊全体の士気を上げ、与ダメージを高める。"
 skill_type = "player"
-target_type = "self"
+target_type = "all_party"
 power_multiplier = 1.0
-cooldown = 6.5
+cooldown = 9.0
 trigger_type = "cooldown"
 effect_type = "buff"
-tags = Array[String](["support", "buff", "pet", "self"])
+tags = Array[String](["support", "buff", "pet", "aoe"])
 element = ""
 apply_status_id = "empower"
 apply_status_chance = 1.0

@@ -2752,8 +2752,8 @@
 | # | 決定 | 根拠 |
 |---|---|---|
 | P3-PET-VARIANT-001-1 | **追加個体** — `pet_ash`（アッシュ・灰白）／`pet_ink`（インク・黒紫影毛）。同種伴侶獣の別個体 | オーナー選定 |
-| P3-PET-VARIANT-001-2 | **差分は見た目＋表示名＋所持スキル2本**。HP/ATK/DEF・Threat基準・★帯はジャック同一。役割＝ジャック火力／アッシュ守り／インク崩し（三角） | オーナー GO（旧「スキル同一」を更新） |
-| P3-PET-VARIANT-001-2a | **スキル割当** — Jack=`pet_nibble`+`pet_pounce`／Ash=`pet_ash_bark`（自Guard＋Taunt）+`pet_ash_guard`（味方Guard）／Ink=`pet_ink_fang`（Bleed）+`pet_ink_snare`（Slow） | 三角案 GO |
+| P3-PET-VARIANT-001-2 | **差分は見た目＋表示名＋所持スキル**。HP/ATK/DEF・Threat基準・★帯は同一。役割＝ジャック**サポート**／アッシュ守り／インク崩し（三角） | **P3-BAL-PET-SUPPORT-001** でジャック火力→サポートへ更新 |
+| P3-PET-VARIANT-001-2a | **スキル割当** — Jack=かじり＋介抱回復＋味方鼓舞＋群れ鼓舞＋寄り添い回復／Ash=守り系／Ink=崩し系 | 三角案＋サポート化 |
 | P3-PET-VARIANT-001-3 | **ドット** — `PET_Jack` シートの色替え（Hard/NM敵と同手法）。専用新規ドットは不要 | 工数／一貫性 |
 | P3-PET-VARIANT-001-4 | **出撃は常時1体**。所持リストから切替（P3-PET-OTOMO-001-6 を本実装） | 既存Decisionの拡張完遂 |
 | P3-PET-VARIANT-001-5 | **入手** — アッシュ＝メイン① **1-5クリア**／インク＝メイン② **2-5クリア**（ストーリーのみ・招待状不可） | オーナー U1 |
@@ -2771,7 +2771,7 @@
 |---|---|---|
 | P3-PET-SKILL-001-1 | 各ペット **最大5スキル**。個体固有（共有プールではない） | 三角アイデンティティ |
 | P3-PET-SKILL-001-2 | 解放 Lv = **1 / 8 / 16 / 24 / 32**。解放済みはすべて装備（切替不可） | 人間職と同型・装備UI肥大防止 |
-| P3-PET-SKILL-001-3 | Jack=火力3新／Ash=守り3新／Ink=崩し3新。`PetData.skill_unlocks`＋`SkillProgression` | JobData と同型 |
+| P3-PET-SKILL-001-3 | Jack=**サポート**（介抱・鼓舞）／Ash=守り／Ink=崩し。`PetData.skill_unlocks`＋`SkillProgression` | **P3-BAL-PET-SUPPORT-001** で Jack 火力3新を上書き |
 | P3-PET-SKILL-001-4 | セーブにスキル配列を足さない（Lv導出）。専用アイコンアートは後差し可 | セーブ破壊回避 |
 
 ### 色変えペット入手＝調査室完全調査（2026-07-26 — P3-PET-SURVEY-UNLOCK-001）

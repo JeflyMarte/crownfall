@@ -81,7 +81,8 @@ static func create_pet_adventurer(pet_id: String = STARTER_PET_ID) -> Resource:
 	adv.passive_slots_customized = true
 	var empty_passives: Array[String] = []
 	adv.equipped_passive_ids = empty_passives
-	adv.tactics_id = "balanced"
+	## ジャックはサポート寄り（回復・鼓舞を優先しやすい行動方針）。
+	adv.tactics_id = "support_focus" if pet_id == STARTER_PET_ID else "balanced"
 	var stats_class = load("res://scripts/domain/Stats.gd")
 	var stats = stats_class.new()
 	if data != null and data.base_stats != null:
@@ -89,9 +90,10 @@ static func create_pet_adventurer(pet_id: String = STARTER_PET_ID) -> Resource:
 		stats.attack = int(data.base_stats.attack)
 		stats.defense = int(data.base_stats.defense)
 	else:
-		stats.hp = 420
-		stats.attack = 70
-		stats.defense = 35
+		## P3-BAL-PET-SUPPORT-001: 基礎×1.5（630/105/53）
+		stats.hp = 630
+		stats.attack = 105
+		stats.defense = 53
 	adv.base_stats = stats
 	## ペットも装備枠1。解放済み先頭を既定装備（P3-PET-SKILL-001）。
 	SkillProgression.apply_pet_new_skill_unlocks(adv)
@@ -180,15 +182,9 @@ static func set_active_pet_id(pet_id: String) -> bool:
 	if old != null and is_pet_member(old):
 		neu.level = int(old.level)
 		neu.exp = int(old.exp)
-		neu.tactics_id = str(old.tactics_id)
-		if old.base_stats != null:
-			var stats_class = load("res://scripts/domain/Stats.gd")
-			var stats = stats_class.new()
-			stats.hp = int(old.base_stats.hp)
-			stats.attack = int(old.base_stats.attack)
-			stats.defense = int(old.base_stats.defense)
-			neu.base_stats = stats
+		## 基礎ステは PetData を正（切替で旧セーブ値を持ち込まない）。
 		## スキルは個体固定（三角役割）。切替時に持ち越さない。
+		## 行動方針は切替先の既定を使う（ジャック＝サポート優先）。
 	sync_pet_runtime(neu)
 	GameState.active_pet = neu
 	return true
@@ -222,12 +218,23 @@ static func sync_pet_runtime(pet: Resource) -> void:
 	var empty_passives: Array[String] = []
 	pet.equipped_passive_ids = empty_passives
 	pet.formation_row = 0
-	## 表示名・スキルは PetData を正に（セーブ汚染／切替持ち越し防止）
+	## 表示名・基礎ステ・スキルは PetData を正（セーブ汚染／切替持ち越し防止）
 	var data: Resource = get_pet_data(str(pet.id))
 	if data != null and not str(data.display_name).is_empty():
 		pet.display_name = str(data.display_name)
+	if data != null and data.base_stats != null:
+		var stats_class = load("res://scripts/domain/Stats.gd")
+		var stats = stats_class.new()
+		stats.hp = int(data.base_stats.hp)
+		stats.attack = int(data.base_stats.attack)
+		stats.defense = int(data.base_stats.defense)
+		pet.base_stats = stats
 	## Lv から解放スキルを同期（新規解放は自動装備）
 	SkillProgression.apply_pet_new_skill_unlocks(pet)
 	if pet.equipped_skill_ids.is_empty():
 		var fallback: Array[String] = ["pet_nibble"]
 		pet.equipped_skill_ids = fallback
+	## ジャックはサポート寄り方針を維持（セーブで攻撃寄りに汚れていても戻すのはしない＝装備方針は尊重）。
+	## 未設定時のみ support_focus。
+	if str(pet.id) == STARTER_PET_ID and str(pet.tactics_id).is_empty():
+		pet.tactics_id = "support_focus"

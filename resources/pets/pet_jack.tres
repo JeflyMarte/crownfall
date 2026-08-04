@@ -5,9 +5,9 @@
 
 [sub_resource type="Resource" id="Stats_jack"]
 script = ExtResource("2")
-hp = 420
-attack = 70
-defense = 35
+hp = 630
+attack = 105
+defense = 53
 
 [resource]
 script = ExtResource("1")
@@ -33,4 +33,4 @@ skill_unlocks = Array[Dictionary]([{
 "level": 32
 }])
 sprite_resource_path = "res://resources/animation/PET_Jack.tres"
-origin_note = "ギルド随伴訓練舎育ちの伴侶獣。隊長登録時から新人調査隊へ貸与される随伴ペット"
+origin_note = "ギルド随伴訓練舎育ちの伴侶獣。隊長登録時から新人調査隊へ貸与。応援と介抱が得意なサポート役。"

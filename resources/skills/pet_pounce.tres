@@ -5,17 +5,19 @@
 [resource]
 script = ExtResource("1")
 id = "pet_pounce"
-display_name = "とびかかり"
-description = "勢いをつけて飛びかかる。かじりつきより重い一撃。"
+display_name = "つつき介抱"
+description = "いちばん傷ついた仲間に寄り添い、傷を癒やす。"
 skill_type = "player"
-target_type = "enemy"
-power_multiplier = 1.2
-cooldown = 4.5
+target_type = "ally"
+power_multiplier = 0.12
+cooldown = 5.5
 trigger_type = "cooldown"
-effect_type = "damage"
-tags = Array[String](["melee", "blunt"])
+effect_type = "heal"
+tags = Array[String](["support", "heal", "pet"])
 element = ""
 apply_status_id = ""
 apply_status_chance = 0.0
 slot_type = "skill"
-range_type = "melee"
+range_type = "mid"
+reserve_condition = "ally_injured"
+reserve_value = ""

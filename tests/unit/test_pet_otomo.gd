@@ -127,6 +127,30 @@ func test_pet_data_and_skills_exist() -> void:
 	assert_false(_PetSystem.sprite_path_for(GameState.active_pet).is_empty())
 
 
+func test_pet_base_stats_are_buffed_150() -> void:
+	## P3-BAL-PET-SUPPORT-001: 基礎 ×1.5 → 630/105/53
+	for pid: String in ["pet_jack", "pet_ash", "pet_ink"]:
+		var data: Resource = _PetSystem.get_pet_data(pid)
+		assert_not_null(data, pid)
+		assert_eq(int(data.base_stats.hp), 630, pid)
+		assert_eq(int(data.base_stats.attack), 105, pid)
+		assert_eq(int(data.base_stats.defense), 53, pid)
+	assert_eq(int(GameState.active_pet.base_stats.hp), 630)
+	assert_eq(int(GameState.active_pet.base_stats.attack), 105)
+	assert_eq(int(GameState.active_pet.base_stats.defense), 53)
+
+
+func test_jack_skills_are_support_oriented() -> void:
+	## かじり以外は回復／鼓舞。火力特化をやめた。
+	assert_eq(str(DataRegistry.get_skill_data("pet_nibble").effect_type), "damage")
+	assert_eq(str(DataRegistry.get_skill_data("pet_pounce").effect_type), "heal")
+	assert_eq(str(DataRegistry.get_skill_data("pet_jack_rend").effect_type), "buff")
+	assert_eq(str(DataRegistry.get_skill_data("pet_jack_frenzy").effect_type), "buff")
+	assert_eq(str(DataRegistry.get_skill_data("pet_jack_frenzy").target_type), "all_party")
+	assert_eq(str(DataRegistry.get_skill_data("pet_jack_savage").effect_type), "heal")
+	assert_eq(str(GameState.active_pet.tactics_id), "support_focus")
+
+
 func test_jack_portrait_icon_resolves() -> void:
 	var tex: Texture2D = RosterUiHelper.get_member_portrait_texture(GameState.active_pet)
 	assert_not_null(tex)

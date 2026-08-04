@@ -5,17 +5,19 @@
 [resource]
 script = ExtResource("1")
 id = "pet_jack_savage"
-display_name = "猛襲"
-description = "全力で飛びかかり、重い一撃を叩き込む。"
+display_name = "癒やしの寄り添い"
+description = "いちばん傷ついた仲間に深く寄り添い、大きく回復する。"
 skill_type = "player"
-target_type = "enemy"
-power_multiplier = 1.35
-cooldown = 7.0
+target_type = "ally"
+power_multiplier = 0.18
+cooldown = 8.0
 trigger_type = "cooldown"
-effect_type = "damage"
-tags = Array[String](["melee", "blunt", "pet"])
+effect_type = "heal"
+tags = Array[String](["support", "heal", "pet"])
 element = ""
 apply_status_id = ""
 apply_status_chance = 0.0
 slot_type = "skill"
-range_type = "melee"
+range_type = "mid"
+reserve_condition = "ally_injured"
+reserve_value = ""
