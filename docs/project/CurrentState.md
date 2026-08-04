@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-08-05（**iOS再エクスポート＋実機Build**: 拠点遷移体感改善ほか先端を Xcode 適用。要実機確認）
 2026-08-05（**拠点遷移の体感ラグ軽減／統合＋main**: SceneRouter キャッシュ＋読み込み中表示＋warmup。要実機）
 2026-08-05（**冠呼び途中召集クラッシュ修正／統合＋main**: 群れ duplicate の信号コピー＋ラムダ解放を修正。要実機）
 2026-08-05（**パーティ詳細ボタン修復／統合＋main**: ScrollTouch が BaseButton の keep_mouse_stop を無視していた。要実機）
