@@ -7033,3 +7033,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-PET-EVADE-THREAT-001-1 | ペット既定回避 **20%** | 装備不可で回避0だった穴 |
 | P3-BAL-PET-EVADE-THREAT-001-2 | Threat **1.35→0.6**（後列雑魚職相当） | サポートペットを矢面にしない |
 | P3-BAL-PET-EVADE-THREAT-001-3 | **SSOT**＝`docs/specs/decisions/68_PetEvasionThreat.md` | Decision 本体 |
+
+## ペット三角スキル再編（2026-08-04 — P3-BAL-PET-TRIANGLE-001）
+
+> **オーナー GO（案A改）** — ジャック＝サポ（Lv1全体鼓舞）／アッシュ＝火力／インク＝状態異常。Lv1も後半の選択肢。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-PET-TRIANGLE-001-1 | 役割三角＝**サポ／火力／状態異常** | 守り一色・崩し薄を解消 |
+| P3-BAL-PET-TRIANGLE-001-2 | ジャック Lv1＝**群れの士気（全体鼓舞）** | 開幕から本線サポ |
+| P3-BAL-PET-TRIANGLE-001-3 | インクに **麻痺牙（stun）** ほか毒・鈍足・出血・標的 | 状態異常特化 |
+| P3-BAL-PET-TRIANGLE-001-4 | Lv1スキルは後半も選択肢（上位は別役） | 序盤用弱技にしない |
+| P3-BAL-PET-TRIANGLE-001-5 | **SSOT**＝`docs/specs/decisions/69_PetTriangleSkills.md` | Decision 本体 |

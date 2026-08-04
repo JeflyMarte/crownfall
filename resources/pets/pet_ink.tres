@@ -15,22 +15,22 @@ id = "pet_ink"
 display_name = "インク"
 rarity = 1
 base_stats = SubResource("Stats_ink")
-skill_ids = Array[String](["pet_ink_fang", "pet_ink_snare", "pet_ink_toxin", "pet_ink_hex", "pet_ink_rupture"])
+skill_ids = Array[String](["pet_ink_toxin", "pet_ink_snare", "pet_ink_fang", "pet_ink_paralyze", "pet_ink_hex"])
 skill_unlocks = Array[Dictionary]([{
-"skill_id": "pet_ink_fang",
+"skill_id": "pet_ink_toxin",
 "level": 1
 }, {
 "skill_id": "pet_ink_snare",
 "level": 8
 }, {
-"skill_id": "pet_ink_toxin",
+"skill_id": "pet_ink_fang",
 "level": 16
 }, {
-"skill_id": "pet_ink_hex",
+"skill_id": "pet_ink_paralyze",
 "level": 24
 }, {
-"skill_id": "pet_ink_rupture",
+"skill_id": "pet_ink_hex",
 "level": 32
 }])
 sprite_resource_path = "res://resources/animation/PET_Ink.tres"
-origin_note = "訓練舎の珍毛個体。黒紫の影毛。崩し役の伴侶獣。"
+origin_note = "訓練舎の珍毛個体。黒紫の影毛。毒・麻痺など状態異常特化の伴侶獣。"

@@ -4,18 +4,18 @@
 
 [resource]
 script = ExtResource("1")
-id = "pet_ash_howl"
-display_name = "追い灰"
-description = "出血している敵へ追い打ちする。条件が揃ったときの火力。"
+id = "pet_ink_paralyze"
+display_name = "麻痺牙"
+description = "影の牙で神経を打ち、敵の行動を止めやすくする。"
 skill_type = "player"
 target_type = "enemy"
-power_multiplier = 1.15
-cooldown = 4.5
+power_multiplier = 1.0
+cooldown = 5.5
 trigger_type = "cooldown"
 effect_type = "damage"
-tags = Array[String](["melee", "pierce", "pet", "vs_bleed"])
+tags = Array[String](["melee", "blunt", "pet"])
 element = ""
-apply_status_id = ""
-apply_status_chance = 0.0
+apply_status_id = "stun"
+apply_status_chance = 0.45
 slot_type = "skill"
 range_type = "melee"

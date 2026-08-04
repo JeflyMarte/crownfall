@@ -82,8 +82,13 @@ static func create_pet_adventurer(pet_id: String = STARTER_PET_ID) -> Resource:
 	adv.passive_slots_customized = true
 	var empty_passives: Array[String] = []
 	adv.equipped_passive_ids = empty_passives
-	## ジャックはサポート寄り（回復・鼓舞を優先しやすい行動方針）。
-	adv.tactics_id = "support_focus" if pet_id == STARTER_PET_ID else "balanced"
+	## 三角役割: ジャック＝サポ／アッシュ＝火力／インク＝状態異常。
+	if pet_id == STARTER_PET_ID:
+		adv.tactics_id = "support_focus"
+	elif pet_id == PET_ASH_ID:
+		adv.tactics_id = "aggressive"
+	else:
+		adv.tactics_id = "balanced"
 	var stats_class = load("res://scripts/domain/Stats.gd")
 	var stats = stats_class.new()
 	if data != null and data.base_stats != null:
@@ -99,7 +104,12 @@ static func create_pet_adventurer(pet_id: String = STARTER_PET_ID) -> Resource:
 	## ペットも装備枠1。解放済み先頭を既定装備（P3-PET-SKILL-001）。
 	SkillProgression.apply_pet_new_skill_unlocks(adv)
 	if adv.equipped_skill_ids.is_empty():
-		var fallback: Array[String] = ["pet_nibble"]
+		var fallback_id: String = "pet_jack_frenzy"
+		if pet_id == PET_ASH_ID:
+			fallback_id = "pet_ash_bark"
+		elif pet_id == PET_INK_ID:
+			fallback_id = "pet_ink_toxin"
+		var fallback: Array[String] = [fallback_id]
 		adv.equipped_skill_ids = fallback
 	return adv
 
@@ -233,9 +243,19 @@ static func sync_pet_runtime(pet: Resource) -> void:
 	## Lv から解放スキルを同期（新規解放は自動装備）
 	SkillProgression.apply_pet_new_skill_unlocks(pet)
 	if pet.equipped_skill_ids.is_empty():
-		var fallback: Array[String] = ["pet_nibble"]
+		var fallback_id: String = "pet_jack_frenzy"
+		var pid: String = str(pet.id)
+		if pid == PET_ASH_ID:
+			fallback_id = "pet_ash_bark"
+		elif pid == PET_INK_ID:
+			fallback_id = "pet_ink_toxin"
+		var fallback: Array[String] = [fallback_id]
 		pet.equipped_skill_ids = fallback
 	## ジャックはサポート寄り方針を維持（セーブで攻撃寄りに汚れていても戻すのはしない＝装備方針は尊重）。
 	## 未設定時のみ support_focus。
 	if str(pet.id) == STARTER_PET_ID and str(pet.tactics_id).is_empty():
 		pet.tactics_id = "support_focus"
+	elif str(pet.id) == PET_ASH_ID and str(pet.tactics_id).is_empty():
+		pet.tactics_id = "aggressive"
+	elif str(pet.tactics_id).is_empty():
+		pet.tactics_id = "balanced"

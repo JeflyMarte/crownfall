@@ -6,11 +6,11 @@
 script = ExtResource("1")
 id = "pet_jack_frenzy"
 display_name = "群れの士気"
-description = "遠吠えで隊全体の士気を上げ、与ダメージを高める。"
+description = "遠吠えで隊全体の士気を上げ、与ダメージを高める。開幕から使える本線鼓舞。"
 skill_type = "player"
 target_type = "all_party"
 power_multiplier = 1.0
-cooldown = 9.0
+cooldown = 7.5
 trigger_type = "cooldown"
 effect_type = "buff"
 tags = Array[String](["support", "buff", "pet", "aoe"])

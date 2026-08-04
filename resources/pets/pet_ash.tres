@@ -33,4 +33,4 @@ skill_unlocks = Array[Dictionary]([{
 "level": 32
 }])
 sprite_resource_path = "res://resources/animation/PET_Ash.tres"
-origin_note = "ギルド随伴訓練舎の夜間索敵組。ジャックの同期。灰白の毛並み。守り役。"
+origin_note = "ギルド随伴訓練舎の夜間索敵組。ジャックの同期。灰白の毛並み。噛みつき火力が得意な攻撃役。"
