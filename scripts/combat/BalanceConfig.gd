@@ -140,8 +140,8 @@ const NONCOMBAT_FAIL_LORE_HP_FRAC: float = 0.05
 ## 宝箱／碑文の成功率（N緩和・H/NM据置 — P3-BAL-N-NONCOMBAT-FAIL-001）。泉は据置。
 const TREASURE_SUCCESS_CHANCE_BY_TIER: Array[float] = [0.70, 0.50, 0.50]
 const LORE_SUCCESS_CHANCE_BY_TIER: Array[float] = [0.90, 0.80, 0.80]
-## 宝箱成功の武器ドロップ率。
-const TREASURE_WEAPON_CHANCE: float = 0.12
+## 旧・宝箱武器ドロップ率。P3-BAL-TREASURE-EQUIP-001 で確定1点方式へ置換（未使用）。
+const TREASURE_WEAPON_CHANCE: float = 0.0
 ## 碑文成功（初回）の素材／装飾。
 const LORE_FIRST_GOLD: int = 20
 const LORE_REPEAT_GOLD: int = 10

@@ -6989,3 +6989,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-KILL-EXP-150-001-2 | クリア +25% 比率据置 → 絶対量も ×1.5 | 案B（二重に比率を上げない） |
 | P3-BAL-KILL-EXP-150-001-3 | **据置** — 調査派遣・装備強化EXP・`exp_reward` 生値 | 討伐以外はスコープ外 |
 | P3-BAL-KILL-EXP-150-001-4 | **SSOT**＝`docs/specs/decisions/63_CombatKillExpMult.md` | Decision 本体 |
+
+## 宝箱成功時の装備確定（2026-08-04 — P3-BAL-TREASURE-EQUIP-001）
+
+> **オーナー GO（案A）** — 成功時装備1点確定（武／防／飾均等）。旧装飾35%・武器12%の追加抽選は廃止。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-TREASURE-EQUIP-001-1 | 成功時 Gold120＋**装備1点確定** | 宝箱の報酬感 |
+| P3-BAL-TREASURE-EQUIP-001-2 | カテゴリは武／防／飾**均等**（章プール・既存レア重み） | 案A |
+| P3-BAL-TREASURE-EQUIP-001-3 | 旧確率抽選**廃止**（二重付与しない） | 案A |
+| P3-BAL-TREASURE-EQUIP-001-4 | 失敗・Gold・鍵開けボーナスは据置 | スコープ最小化 |
+| P3-BAL-TREASURE-EQUIP-001-5 | **SSOT**＝`docs/specs/decisions/64_TreasureEquipGuaranteed.md` | Decision 本体 |

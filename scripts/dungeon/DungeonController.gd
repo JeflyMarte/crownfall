@@ -41,11 +41,12 @@ const ROOM_MIN_COMBAT: int = 3     # COMBAT最低数（肩慣らし含む / BOSS
 
 
 
-## P3-BAL-NONCOMBAT-001
+## P3-BAL-NONCOMBAT-001 / P3-BAL-TREASURE-EQUIP-001: 成功時 Gold＋装備1点確定（武／防／飾均等）
 ## P3-BAL-DAILY-TREASURE-GOLD-001: 40 → 120（日課 Gold 底上げと同趣旨）
 const TREASURE_GOLD: int = 120
-const TREASURE_ACCESSORY_CHANCE: float = 0.35
-const TREASURE_WEAPON_CHANCE: float = BalanceConfig.TREASURE_WEAPON_CHANCE
+## 旧抽選率（P3-BAL-TREASURE-EQUIP-001 で廃止。参照互換のため残置）
+const TREASURE_ACCESSORY_CHANCE: float = 0.0
+const TREASURE_WEAPON_CHANCE: float = 0.0
 const ELITE_REWARD_MULTIPLIER: float = 1.5
 const ELITE_ARMOR_CHANCE: float = 0.35
 const ELITE_ACCESSORY_CHANCE: float = 0.25
@@ -1872,19 +1873,52 @@ func update_discovery(bonus: float = 0.0) -> void:
 	GameState.dungeon_progress[did] = prog
 
 func generate_treasure_loot() -> Dictionary:
+	## P3-BAL-TREASURE-EQUIP-001: 成功時は装備1点確定（武器／防具／装飾を均等）。追加抽選なし。
 	accumulate_rewards(0, TREASURE_GOLD)
-	var accessory_id: String = ""
-	var acc_chance: float = TREASURE_ACCESSORY_CHANCE * floor_blessing_mult_for("equip")
-	if randf() < acc_chance:
-		_generate_accessory_loot()
-		accessory_id = last_accessory_dropped
-	var weapon_id: String = ""
-	var wpn_chance: float = TREASURE_WEAPON_CHANCE * floor_blessing_mult_for("equip")
-	if randf() < wpn_chance:
-		weapon_id = _pick_weighted_weapon(null)
-		if not weapon_id.is_empty():
-			_spawn_weapon(weapon_id)
-	return {"gold": TREASURE_GOLD, "accessory_id": accessory_id, "weapon_id": weapon_id}
+	var result: Dictionary = {
+		"gold": TREASURE_GOLD,
+		"weapon_id": "",
+		"armor_id": "",
+		"accessory_id": "",
+		"equip_category": "",
+	}
+	var order: Array[String] = [_pick_treasure_equip_category()]
+	for cat: String in ["weapon", "armor", "accessory"]:
+		if cat != order[0]:
+			order.append(cat)
+	for category: String in order:
+		match category:
+			"weapon":
+				var weapon_id: String = _pick_weighted_weapon(null)
+				if weapon_id.is_empty():
+					continue
+				_spawn_weapon(weapon_id)
+				result["weapon_id"] = weapon_id
+				result["equip_category"] = "weapon"
+				return result
+			"armor":
+				last_armor_dropped = ""
+				_generate_armor_loot()
+				if last_armor_dropped.is_empty():
+					continue
+				result["armor_id"] = last_armor_dropped
+				result["equip_category"] = "armor"
+				return result
+			"accessory":
+				last_accessory_dropped = ""
+				_generate_accessory_loot()
+				if last_accessory_dropped.is_empty():
+					continue
+				result["accessory_id"] = last_accessory_dropped
+				result["equip_category"] = "accessory"
+				return result
+	return result
+
+
+func _pick_treasure_equip_category() -> String:
+	var cats: Array[String] = ["weapon", "armor", "accessory"]
+	return cats[randi() % cats.size()]
+
 
 func generate_treasure_loot_failure() -> Dictionary:
 	var gold: int = maxi(1, int(round(float(TREASURE_GOLD) * 0.5)))

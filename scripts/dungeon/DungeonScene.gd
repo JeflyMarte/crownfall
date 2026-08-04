@@ -4511,21 +4511,29 @@ func _resolve_treasure_room_async() -> void:
 	if not weapon_id.is_empty():
 		weapon_name = DataRegistry.get_weapon_name(weapon_id)
 		GameState.last_run_weapon_dropped = weapon_id
+	var armor_name: String = ""
+	var armor_id: String = str(treasure.get("armor_id", ""))
+	if not armor_id.is_empty():
+		armor_name = DataRegistry.get_armor_name(armor_id)
+		GameState.last_run_armor_dropped = armor_id
 	var success_line: String = TreasureRoomPresentationScript.pick_success_line()
 	var log_text: String = TreasureRoomPresentationScript.format_success_narrative(
-		success_line, int(treasure["gold"]), accessory_name, weapon_name
+		success_line, int(treasure["gold"]), accessory_name, weapon_name, armor_name
 	)
 	var narrative_bb: String = TreasureRoomPresentationScript.format_success_narrative_bbcode(
-		success_line, int(treasure["gold"]), accessory_name, weapon_name
+		success_line, int(treasure["gold"]), accessory_name, weapon_name, armor_name
 	)
 	for line: String in explore_treasure:
 		log_text += "\n" + line
 		narrative_bb += "\n%s" % NonCombatNarrativeColors.colorize_line(line)
-	var has_accessory: bool = not (treasure["accessory_id"] as String).is_empty()
-	var has_weapon: bool = not weapon_id.is_empty()
+	var has_gear: bool = (
+		not (treasure["accessory_id"] as String).is_empty()
+		or not weapon_id.is_empty()
+		or not armor_id.is_empty()
+	)
 	_set_non_combat_phase_bg(TreasureRoomPresentationScript.bg_path_for_phase("success"))
 	AudioManager.play_sfx("treasure")
-	await _play_treasure_open_presentation(has_accessory or has_weapon)
+	await _play_treasure_open_presentation(has_gear)
 	_set_room_narrative_bbcode(narrative_bb)
 	_append_log("[宝箱] %s" % log_text)
 	_treasure_presentation_active = false

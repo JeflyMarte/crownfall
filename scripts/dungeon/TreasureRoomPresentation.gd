@@ -75,11 +75,17 @@ static func failure_gold_amount(base_gold: int) -> int:
 
 
 static func format_success_narrative(
-	success_line: String, gold: int, accessory_name: String, weapon_name: String = ""
+	success_line: String,
+	gold: int,
+	accessory_name: String,
+	weapon_name: String = "",
+	armor_name: String = ""
 ) -> String:
 	var text: String = "%s\nゴールド +%d" % [success_line, gold]
 	if not weapon_name.is_empty():
 		text += "\n武器: %s" % weapon_name
+	if not armor_name.is_empty():
+		text += "\n防具: %s" % armor_name
 	if not accessory_name.is_empty():
 		text += "\n装飾品: %s" % accessory_name
 	return text
@@ -87,13 +93,19 @@ static func format_success_narrative(
 
 ## ナラティブ用 BBCode（共通パレット）。
 static func format_success_narrative_bbcode(
-	success_line: String, gold: int, accessory_name: String, weapon_name: String = ""
+	success_line: String,
+	gold: int,
+	accessory_name: String,
+	weapon_name: String = "",
+	armor_name: String = ""
 ) -> String:
 	var parts: PackedStringArray = []
 	parts.append(NonCombatNarrativeColors.body(success_line))
 	parts.append(NonCombatNarrativeColors.gold("ゴールド +%d" % gold))
 	if not weapon_name.is_empty():
 		parts.append(NonCombatNarrativeColors.weapon("武器: %s" % weapon_name))
+	if not armor_name.is_empty():
+		parts.append(NonCombatNarrativeColors.armor("防具: %s" % armor_name))
 	if not accessory_name.is_empty():
 		parts.append(NonCombatNarrativeColors.accessory("装飾品: %s" % accessory_name))
 	return "\n".join(parts)

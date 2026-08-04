@@ -12,6 +12,7 @@ const HEX_HEAL: String = "59f27a"
 const HEX_BUFF: String = "7ec8ff"
 const HEX_MATERIAL: String = "ffb84a"
 const HEX_WEAPON: String = "7ec8ff"
+const HEX_ARMOR: String = "9ad4a0"
 const HEX_ACCESSORY: String = "d4a0ff"
 const HEX_LORE_TITLE: String = "c9a0ff"
 const HEX_FAIL: String = "b8b4aa"
@@ -21,6 +22,7 @@ const ICON_PX: int = 22
 const ICON_GOLD: String = "res://assets/ui/batch2/ICO_Gold.png"
 const ICON_MATERIAL: String = "res://assets/ui/survey/ICO_Survey_Materials.png"
 const ICON_WEAPON: String = "res://assets/ui/equipment_ui/ICO_Equip_Cat_Weapon.png"
+const ICON_ARMOR: String = "res://assets/ui/equipment_ui/ICO_Equip_Cat_Armor.png"
 const ICON_ACCESSORY: String = "res://assets/ui/equipment_ui/ICO_Equip_Cat_Accessory.png"
 const ICON_BLESS: String = "res://assets/ui/status/ICO_STA_Empower.png"
 const ICON_LORE: String = "res://assets/ui/codex/ICO_CDX_LF_AncientRecord.png"
@@ -45,6 +47,8 @@ static func reward_img(kind: String) -> String:
 			path = ICON_MATERIAL
 		"weapon":
 			path = ICON_WEAPON
+		"armor":
+			path = ICON_ARMOR
 		"accessory":
 			path = ICON_ACCESSORY
 		"bless", "buff":
@@ -88,6 +92,10 @@ static func weapon(text: String) -> String:
 	return reward_img("weapon") + bb_wrap(HEX_WEAPON, text)
 
 
+static func armor(text: String) -> String:
+	return reward_img("armor") + bb_wrap(HEX_ARMOR, text)
+
+
 static func accessory(text: String) -> String:
 	return reward_img("accessory") + bb_wrap(HEX_ACCESSORY, text)
 
@@ -121,6 +129,8 @@ static func colorize_line(line: String) -> String:
 		return buff(t)
 	if t.contains("装飾品"):
 		return accessory(t)
+	if t.contains("防具"):
+		return armor(t)
 	if t.contains("武器"):
 		return weapon(t)
 	if t.begins_with("[探索]"):
@@ -128,6 +138,8 @@ static func colorize_line(line: String) -> String:
 			return gold(t)
 		if t.contains("装飾"):
 			return accessory(t)
+		if t.contains("防具"):
+			return armor(t)
 		if t.contains("武器"):
 			return weapon(t)
 		return material(t)
