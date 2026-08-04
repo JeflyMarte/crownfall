@@ -1,10 +1,10 @@
 class_name LevelSystem
 extends RefCounted
 
-## キャラクターのレベル制（P3-D035 / P3-LV-099）。
+## キャラクターのレベル制（P3-D035 / P3-LV-099 / P3-BAL-GROWTH-H1-001）。
 ## EXP はラン成功／敗北時に付与。撃破時点の生存者のみ積立（P3-BAL-DEAD-EXP-001）。
-## レベルアップで HP/ATK が成長する。
-## Lv1〜50: BalanceConfig.HP/ATTACK_PER_LEVEL、Lv51〜99: *_MASTER（スキル習得は Lv50 まで据置）。
+## レベルアップで HP/ATK/DEF が成長する（キャラ別倍率あり）。
+## Lv1〜50: BalanceConfig.*_PER_LEVEL、Lv51〜99: *_MASTER（スキル習得は Lv50 まで据置）。
 ##
 ## `-s` ツール（balance_sim）から load されてもパースできるよう、autoload / 他 class_name は
 ## 実行時解決する（P3-BAL-EXP-001-G）。
@@ -12,10 +12,13 @@ extends RefCounted
 const MAX_LEVEL: int = BalanceConfig.MAX_PLAYER_LEVEL
 const SOFT_CAP_LEVEL: int = BalanceConfig.SOFT_CAP_LEVEL
 
+const _CharacterGrowthRates = preload("res://scripts/roster/CharacterGrowthRates.gd")
+
 ## 成長値の正は BalanceConfig。static var なのはバランスシミュ（tools/balance_sim.gd）の
 ## sweep 検証で一時上書きするため。ゲーム本体からは書き換えない。
 static var hp_per_level: int = BalanceConfig.HP_PER_LEVEL
 static var attack_per_level: int = BalanceConfig.ATTACK_PER_LEVEL
+static var defense_per_level: int = BalanceConfig.DEFENSE_PER_LEVEL
 
 static func _game_state() -> Node:
 	var tree: SceneTree = Engine.get_main_loop() as SceneTree
@@ -30,26 +33,58 @@ static func _combat_passives() -> GDScript:
 static func exp_to_next(level: int) -> int:
 	return 100 * maxi(1, level)
 
+static func _growth_mult_for(member: Resource, key: String) -> float:
+	if member == null:
+		return 1.0
+	var rates: Dictionary = _CharacterGrowthRates.for_adventurer(member)
+	return maxf(0.0, float(rates.get(key, 1.0)))
+
+static func _scaled_tier_bonus(per_level: int, levels: int, growth_mult: float) -> int:
+	if levels <= 0 or per_level == 0:
+		return 0
+	return int(round(float(per_level) * float(levels) * growth_mult))
+
 ## 現在レベルでの累積 HP 成長ボーナス（Lv1 = 0）。
-static func level_hp_bonus(level: int) -> int:
+## member を渡すとキャラ別成長倍率を適用。null なら ×1.0。
+static func level_hp_bonus(level: int, member: Resource = null) -> int:
 	var lv: int = maxi(1, level)
 	if lv <= 1:
 		return 0
+	var mult: float = _growth_mult_for(member, "hp")
 	var primary_levels: int = mini(lv - 1, SOFT_CAP_LEVEL - 1)
-	var bonus: int = hp_per_level * primary_levels
+	var bonus: int = _scaled_tier_bonus(hp_per_level, primary_levels, mult)
 	if lv > SOFT_CAP_LEVEL:
-		bonus += BalanceConfig.HP_PER_LEVEL_MASTER * (lv - SOFT_CAP_LEVEL)
+		bonus += _scaled_tier_bonus(
+			BalanceConfig.HP_PER_LEVEL_MASTER, lv - SOFT_CAP_LEVEL, mult
+		)
 	return bonus
 
 ## 現在レベルでの累積 ATK 成長ボーナス（Lv1 = 0）。
-static func level_attack_bonus(level: int) -> int:
+static func level_attack_bonus(level: int, member: Resource = null) -> int:
 	var lv: int = maxi(1, level)
 	if lv <= 1:
 		return 0
+	var mult: float = _growth_mult_for(member, "attack")
 	var primary_levels: int = mini(lv - 1, SOFT_CAP_LEVEL - 1)
-	var bonus: int = attack_per_level * primary_levels
+	var bonus: int = _scaled_tier_bonus(attack_per_level, primary_levels, mult)
 	if lv > SOFT_CAP_LEVEL:
-		bonus += BalanceConfig.ATTACK_PER_LEVEL_MASTER * (lv - SOFT_CAP_LEVEL)
+		bonus += _scaled_tier_bonus(
+			BalanceConfig.ATTACK_PER_LEVEL_MASTER, lv - SOFT_CAP_LEVEL, mult
+		)
+	return bonus
+
+## 現在レベルでの累積 DEF 成長ボーナス（Lv1 = 0）。
+static func level_defense_bonus(level: int, member: Resource = null) -> int:
+	var lv: int = maxi(1, level)
+	if lv <= 1:
+		return 0
+	var mult: float = _growth_mult_for(member, "defense")
+	var primary_levels: int = mini(lv - 1, SOFT_CAP_LEVEL - 1)
+	var bonus: int = _scaled_tier_bonus(defense_per_level, primary_levels, mult)
+	if lv > SOFT_CAP_LEVEL:
+		bonus += _scaled_tier_bonus(
+			BalanceConfig.DEFENSE_PER_LEVEL_MASTER, lv - SOFT_CAP_LEVEL, mult
+		)
 	return bonus
 
 ## 単体に EXP を付与しレベルアップ処理。獲得レベル数を返す。

@@ -302,7 +302,7 @@ static func compute_member_stats(member: Resource, _party_index: int = -1) -> Di
 	if acc_data != null and accessory != null:
 		hp += EquipmentEnhancer.effective_accessory_int_bonus(accessory, "hp_bonus", acc_data)
 	hp += int(affix.get("hp_flat", 0))
-	hp += LevelSystem.level_hp_bonus(level)
+	hp += LevelSystem.level_hp_bonus(level, member)
 	hp = int(round(float(hp) * float(job.get("hp_multiplier", 1.0))))
 	var attack: int = 0
 	if weapon != null:
@@ -310,7 +310,7 @@ static func compute_member_stats(member: Resource, _party_index: int = -1) -> Di
 	if acc_data != null and accessory != null:
 		attack += EquipmentEnhancer.effective_accessory_int_bonus(accessory, "attack_bonus", acc_data)
 	attack += int(affix.get("attack_flat", 0))
-	attack += LevelSystem.level_attack_bonus(level)
+	attack += LevelSystem.level_attack_bonus(level, member)
 	if member.base_stats != null:
 		attack += int(member.base_stats.attack)
 	var atk_mult: float = float(job.get("attack_multiplier", 1.0))
@@ -329,6 +329,7 @@ static func compute_member_stats(member: Resource, _party_index: int = -1) -> Di
 	defense += int(affix.get("defense_flat", 0))
 	if member.base_stats != null:
 		defense += int(member.base_stats.defense)
+	defense += LevelSystem.level_defense_bonus(level, member)
 	defense = int(round(float(defense) * float(job.get("defense_multiplier", 1.0))))
 	var speed: float = weapon.attack_speed if weapon != null else 1.0
 	var crit: float = (weapon.critical_rate if weapon != null else 0.0)

@@ -115,9 +115,9 @@ static func attack_base(combat: CombatController, member_index: int = -1) -> Dic
 	if member_index >= 0:
 		var member: Resource = GameState.get_combatant(member_index)
 		if member != null:
-			damage += LevelSystem.level_attack_bonus(member.level)
-			if member.base_stats != null:
-				damage += int(member.base_stats.attack)
+			damage += LevelSystem.level_attack_bonus(member.level, member)
+				if member.base_stats != null:
+					damage += int(member.base_stats.attack)
 	damage = apply_job_attack_multiplier(damage, member_index)
 	return {"base_damage": damage, "crit_rate": crit_rate}
 
@@ -335,6 +335,7 @@ static func enemy_damage_to_member(
 		if member != null:
 			if member.base_stats != null:
 				defense += int(member.base_stats.defense)
+			defense += LevelSystem.level_defense_bonus(member.level, member)
 			var job_mods: Dictionary = JobStatCalculator.get_member_modifiers(member)
 			var def_mult: float = float(job_mods.get("defense_multiplier", JobStatCalculator.DEFAULT_MULTIPLIER))
 			defense = maxi(0, int(round(float(defense) * def_mult)))

@@ -51,9 +51,12 @@ const MAX_PLAYER_LEVEL: int = 99
 const SOFT_CAP_LEVEL: int = 50
 const HP_PER_LEVEL: int = 6 * STAT_SCALE
 const ATTACK_PER_LEVEL: int = 2 * STAT_SCALE
+## DEF 成長（P3-BAL-GROWTH-H1-001）。基礎は ATK の半分。キャラ倍率は CharacterGrowthRates。
+const DEFENSE_PER_LEVEL: int = 1 * STAT_SCALE
 ## Lv51〜99 の逓減成長（新スキル習得なし）
 const HP_PER_LEVEL_MASTER: int = 3 * STAT_SCALE
 const ATTACK_PER_LEVEL_MASTER: int = 1 * STAT_SCALE
+const DEFENSE_PER_LEVEL_MASTER: int = STAT_SCALE / 2
 
 # ── 回復スキル（P3-BAL-HEAL-MAXHP-001） ───────────────────────────────────
 ## 味方 heal スキルの power_multiplier = 対象 maxHP 割合（敵healと同型）。

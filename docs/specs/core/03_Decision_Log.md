@@ -7066,3 +7066,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-PASSIVE-LOCK-001-7 | ミレイ＝攻撃20%毒＋ペットステ×1.5 | 毒＋ペット核 |
 | P3-BAL-PASSIVE-LOCK-001-8 | ルーシェ＝攻撃20%冷却＋行動時ペットHP10% | 冷却＋維持 |
 | P3-BAL-PASSIVE-LOCK-001-9 | ヴァルデン＝パーティ被ダメ軽減＋被弾時自身HP10% | 壁＋自己回復 |
+
+## キャラ別レベル成長 H1（2026-08-04 — P3-BAL-GROWTH-H1-001）
+
+> **オーナー GO（H1）** — HP/ATK/DEF 成長＋現行ロスター16人のキャラ別倍率。倍率表は先に承認。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-GROWTH-H1-001-1 | DEF もレベル成長（基礎 +8/Lv、51以降 +4） | 防御が薄い／厚いを育ちで表現 |
+| P3-BAL-GROWTH-H1-001-2 | キャラ別倍率（火力↑DEF↓等） | 後半の個人差薄まり対策 |
+| P3-BAL-GROWTH-H1-001-3 | **SSOT**＝`docs/specs/decisions/71_CharacterLevelGrowth.md` | Decision 本体 |
