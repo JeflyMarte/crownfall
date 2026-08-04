@@ -7055,3 +7055,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-PASSIVE-LOCK-001-1 | 対象＝ドット実装16人。各1本確定 | スコープ明確化 |
 | P3-BAL-PASSIVE-LOCK-001-2 | 平与ダメ%メイン禁止。BT＝異常（ネリのみペット） | 体験方針 |
 | P3-BAL-PASSIVE-LOCK-001-3 | **SSOT**＝`docs/specs/decisions/70_PassiveKitLock.md` | Decision 本体 |
+
+## パッシブ再調整（2026-08-04 — P3-BAL-PASSIVE-LOCK-001 追記）
+
+> **オーナー指示** — ネリ／ミレイ／ルーシェ／ヴァルデン。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-PASSIVE-LOCK-001-6 | ネリ＝ペットステ×1.2＋戦闘終了時30%蘇生 | ペット特化 |
+| P3-BAL-PASSIVE-LOCK-001-7 | ミレイ＝攻撃20%毒＋ペットステ×1.5 | 毒＋ペット核 |
+| P3-BAL-PASSIVE-LOCK-001-8 | ルーシェ＝攻撃20%冷却＋行動時ペットHP10% | 冷却＋維持 |
+| P3-BAL-PASSIVE-LOCK-001-9 | ヴァルデン＝パーティ被ダメ軽減＋被弾時自身HP10% | 壁＋自己回復 |
