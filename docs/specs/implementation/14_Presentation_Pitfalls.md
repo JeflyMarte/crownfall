@@ -18,6 +18,7 @@
 | 入手行が文字だけ（アイコン無し） | `NonCombatNarrativeColors` の金／素材／武飾／加護に汎用 `[img]` |
 | 碑文加護を自動フェードで消す／泉に緑数字無し／宝箱を単色 Label | 碑文は次フロアまで。泉は緑VFX＋緑数字。宝箱は BBCode で金／武／飾色分け |
 | 野戦調合／野営の調合で緑VFXだけ・+N無し／即 hide | `_present_member_heal`（VFX+緑数字）。非戦闘入場は短い hold 後に `_end_noncombat_party_feedback` |
+| 分かれ道・応急手当がログだけ／暗転中に演出 | HPは入場時適用、VFX・+N・テロップ・SEは暗転明け（戦闘は `_on_room_transition_finished`、非戦闘は overlay 待ち）。SEは泉と同型で直鳴らし |
 
 **症状:** 宝箱／泉／碑文／罠の直後に「〜の探索を開始した」や空帯が出る。
 

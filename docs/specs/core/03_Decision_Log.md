@@ -6958,3 +6958,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-FLOOR-CHOICE-001-6 | **UI**＝`UI_DG_FloorChoice_BG`。文は3パネル四角に配置 | オーナー指定 |
 | P3-DG-FLOOR-CHOICE-001-7 | **SSOT**＝`docs/specs/decisions/61_DungeonFloorChoice.md` | Decision 本体 |
 
+## 分かれ道・応急手当演出（2026-08-04 — P3-DG-FLOOR-CHOICE-HEAL-FX-001）
+
+> **オーナー指示** — 応急手当は選んだ次フロアの最初に回復エフェクト・テロップ・音。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-FLOOR-CHOICE-HEAL-FX-001-1 | **タイミング** — HPは入場時適用。VFX／+N／テロップ／SEは暗転明け | 黒幕中は見えない |
+| P3-DG-FLOOR-CHOICE-HEAL-FX-001-2 | **演出** — 緑VFX＋緑+N（泉と同型）・中央テロップ「応急手当！」・`combat_heal` 直鳴らし | 視認性 |
+| P3-DG-FLOOR-CHOICE-HEAL-FX-001-3 | **上書き** — `61_DungeonFloorChoice` §1 A′ | SSOT |
+

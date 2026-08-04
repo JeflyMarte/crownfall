@@ -752,6 +752,9 @@ var _floor_choice_overlay: Control = null
 ## 戦闘クリア後、次フロア暗転のタイミングで三択を出す予約。
 var _pending_floor_choice: bool = false
 var _pending_floor_choice_heal_mode: bool = false
+## 次フロア入場で適用済み・味方表示後に VFX／テロップ／SE する応急手当の実回復量。
+var _pending_floor_choice_heal_amounts: Dictionary = {}
+var _floor_choice_heal_telop: Control = null
 ## 非戦闘入場の回復パッシブ演出（野営の調合など）中。
 var _noncombat_enter_fx_active: bool = false
 ## 直近バッチで出した回復演出回数（入場 hold 判定用）。
@@ -1101,6 +1104,8 @@ func _ready() -> void:
 	$CombatController.reset_member_ultimate_charge()
 	_pending_floor_choice = false
 	_pending_floor_choice_heal_mode = false
+	_pending_floor_choice_heal_amounts.clear()
+	_dismiss_floor_choice_heal_telop(0.0)
 	_floor_choice_active = false
 	GameState.last_run_accessory_dropped = ""
 	GameState.last_run_relic_dropped = ""
@@ -2170,6 +2175,9 @@ func _on_room_transition_finished() -> void:
 	_room_transition_busy = false
 	_label_transition.text = ""
 	_update_run_hud()
+	## 応急手当: 戦闘フロアは暗転明けに演出（入場時点は黒幕で見えない）。
+	if $DungeonController.is_combat_room() and not _pending_floor_choice_heal_amounts.is_empty():
+		_present_pending_floor_choice_heal()
 	if $DungeonController.is_combat_room() and $CombatController.is_in_combat:
 		_sync_room_bgm()
 	_flush_pending_special_combat_entrance()
@@ -3929,7 +3937,13 @@ func _enter_noncombat_room_async() -> void:
 	_noncombat_enter_fx_active = true
 	## 入場パッシブ回復の VFX／数字は味方表示中に出す（非表示だと位置ゼロで消える）。
 	_begin_noncombat_party_feedback()
-	var heal_n: int = _fire_noncombat_enter_passives()
+	## 分かれ道確定直後は暗転中。黒幕が薄れてから応急手当演出を出す。
+	while is_inside_tree() and _transition_overlay != null and _transition_overlay.modulate.a > 0.2:
+		await get_tree().process_frame
+	if not is_inside_tree():
+		return
+	var heal_n: int = _present_pending_floor_choice_heal()
+	heal_n += _fire_noncombat_enter_passives()
 	if heal_n > 0:
 		await get_tree().create_timer(0.75 if not _fast_run_enabled else 0.4).timeout
 	if not is_inside_tree():
@@ -9700,15 +9714,20 @@ func _on_floor_choice_confirmed(choice_id: String, harvest_kinds: Array[String])
 
 
 func _apply_floor_choice_on_enter() -> void:
+	_pending_floor_choice_heal_amounts.clear()
 	var frac: float = $DungeonController.consume_floor_choice_heal_frac()
 	if frac > 0.0:
+		## HP は即適用。演出は味方スプライト表示後（`_present_pending_floor_choice_heal`）。
 		for i: int in $CombatController.party_combat_hp.size():
 			if int($CombatController.party_combat_hp[i]) <= 0:
 				continue
 			var max_hp: int = $CombatController.get_member_max_hp(i)
 			var amount: int = maxi(1, int(round(float(max_hp) * frac)))
-			$CombatController.heal_member(i, amount)
-		_append_log("[分かれ道] 応急手当 — 生存者を回復した")
+			var healed: int = $CombatController.heal_member(i, amount)
+			if healed > 0:
+				_pending_floor_choice_heal_amounts[i] = healed
+		if not _pending_floor_choice_heal_amounts.is_empty():
+			_append_log("[分かれ道] 応急手当 — 生存者を回復した")
 		_update_hp_bars()
 	if $DungeonController.floor_choice_room_index == $DungeonController.current_room_index:
 		if $DungeonController.floor_choice_damage_mult > 1.0:
@@ -9727,6 +9746,62 @@ func _apply_floor_choice_on_enter() -> void:
 					]
 				)
 			_append_log("[分かれ道] 報酬強化が有効（%s）" % "・".join(parts))
+
+
+## 戻り: 回復演出を出した人数（非戦闘 hold 判定用）。
+func _present_pending_floor_choice_heal() -> int:
+	if _pending_floor_choice_heal_amounts.is_empty():
+		return 0
+	var amounts: Dictionary = _pending_floor_choice_heal_amounts.duplicate()
+	_pending_floor_choice_heal_amounts.clear()
+	_show_floor_choice_heal_telop("応急手当！")
+	## 戦闘 CT 前でも意図的に鳴らす（泉回復と同型。ImpactSfxGate は使わない）。
+	_play_heal_room_vfx(amounts)
+	_update_hp_bars()
+	return amounts.size()
+
+
+func _show_floor_choice_heal_telop(text: String) -> void:
+	_dismiss_floor_choice_heal_telop(0.0)
+	if text.is_empty():
+		return
+	var layer := Control.new()
+	layer.name = "FloorChoiceHealTelop"
+	layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	layer.z_index = 40
+	var lbl := Label.new()
+	lbl.text = text
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	lbl.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	lbl.offset_left = -280.0
+	lbl.offset_right = 280.0
+	lbl.offset_top = -40.0
+	lbl.offset_bottom = 40.0
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_display(
+		lbl, UiTypography.SIZE_DISPLAY_TITLE, Color(0.45, 0.98, 0.62), UiTypography.OUTLINE_STRONG
+	)
+	lbl.add_theme_color_override("font_outline_color", Color(0.02, 0.08, 0.04, 0.92))
+	layer.add_child(lbl)
+	layer.modulate.a = 0.0
+	$TransitionLayer.add_child(layer)
+	_floor_choice_heal_telop = layer
+	var tw: Tween = create_tween()
+	tw.tween_property(layer, "modulate:a", 1.0, 0.18)
+	tw.tween_interval(0.85 if not _fast_run_enabled else 0.45)
+	tw.tween_property(layer, "modulate:a", 0.0, 0.28)
+	tw.tween_callback(func() -> void: _dismiss_floor_choice_heal_telop(0.0))
+
+
+func _dismiss_floor_choice_heal_telop(_fade_sec: float = 0.0) -> void:
+	if _floor_choice_heal_telop == null or not is_instance_valid(_floor_choice_heal_telop):
+		_floor_choice_heal_telop = null
+		return
+	var node: Control = _floor_choice_heal_telop
+	_floor_choice_heal_telop = null
+	node.queue_free()
 
 
 func _room_handles_own_progression(room_type: int) -> bool:

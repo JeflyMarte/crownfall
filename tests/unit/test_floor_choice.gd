@@ -153,6 +153,21 @@ func test_floor_choice_title_bbcode_emphasizes_name() -> void:
 
 
 
+func test_floor_choice_heal_pending_on_next_room() -> void:
+	var dc: Node = _make_dc([Enums.RoomType.COMBAT, Enums.RoomType.COMBAT, Enums.RoomType.TREASURE])
+	dc.current_room_index = 0
+	dc.grant_floor_choice_heal()
+	assert_eq(dc.floor_choice_room_index, 1)
+	assert_almost_eq(dc.floor_choice_heal_frac, BalanceConfig.FLOOR_CHOICE_HEAL_FRAC, 0.0001)
+	assert_false(dc.has_pending_floor_choice_heal())
+	dc.current_room_index = 1
+	assert_true(dc.has_pending_floor_choice_heal())
+	var frac: float = dc.consume_floor_choice_heal_frac()
+	assert_almost_eq(frac, BalanceConfig.FLOOR_CHOICE_HEAL_FRAC, 0.0001)
+	assert_false(dc.has_pending_floor_choice_heal())
+	assert_almost_eq(dc.consume_floor_choice_heal_frac(), 0.0, 0.0001)
+
+
 func test_floor_choice_assault_forces_elite() -> void:
 	var dc: Node = _make_dc([Enums.RoomType.COMBAT, Enums.RoomType.COMBAT, Enums.RoomType.TREASURE])
 	dc.grant_floor_choice_assault()
