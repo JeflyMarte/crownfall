@@ -6793,7 +6793,7 @@ func _enemy_summon_is_designated(skill: Resource) -> bool:
 	return not str(skill.summon_enemy_id).is_empty()
 
 
-## 指定召喚＝skill_id で戦闘中1回。同種クローン＝スロット1回。
+## 指定召喚＝skill_id で戦闘中1回。同種クローン＝スロット1回。いずれも発動時点で消費。
 func _enemy_summon_used_key(skill: Resource, slot: int) -> String:
 	if _enemy_summon_is_designated(skill):
 		return "skill:%s" % str(skill.id)
@@ -6925,14 +6925,13 @@ func _execute_enemy_silence(skill: Resource, slot: int) -> void:
 	_update_status_icons()
 
 
-## T8: 末尾に敵を追加（召喚者スロットあたり1回）。指定 id があればその敵を count 体。
-## 指定召喚は戦闘中1回（成功／失敗を問わず消費）。
+## T8: 末尾に敵を追加。招集スキルは戦闘中1回（成功／失敗を問わず発動時点で消費）。
+## 指定召喚（summon_enemy_id）＝skill_id 単位。同種クローン＝スロット単位。
 func _execute_enemy_summon(skill: Resource, slot: int) -> bool:
 	if not _enemy_tricky_skill_allowed(skill, slot):
 		return false
-	## 指定召喚は発動時点で消費（再抽選・CD明けの二重発動を防ぐ）。
-	if _enemy_summon_is_designated(skill):
-		_mark_enemy_summon_used(skill, slot)
+	## 発動時点で消費（再抽選・CD明けの二重発動を防ぐ）。ボス／雑魚共通。
+	_mark_enemy_summon_used(skill, slot)
 	_play_enemy_caster_animation(slot, "attack")
 	_spawn_enemy_skill_name(skill.display_name, slot)
 	var designated_id: String = ""
@@ -6962,8 +6961,6 @@ func _execute_enemy_summon(skill: Resource, slot: int) -> bool:
 	if spawned <= 0:
 		_append_log("敵スキル【%s】: 呼び出せなかった" % skill.display_name)
 		return false
-	if not _enemy_summon_is_designated(skill):
-		_mark_enemy_summon_used(skill, slot)
 	_try_announce_enemy_trait_once("summon:%d" % slot, last_slot, "仲間を呼んだ！")
 	if spawned == 1:
 		_append_log("敵スキル【%s】: %sが現れた" % [skill.display_name, str(template.display_name)])

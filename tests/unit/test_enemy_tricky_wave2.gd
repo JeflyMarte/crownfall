@@ -32,6 +32,8 @@ func test_crown_eater_summon_skill() -> void:
 	assert_false(data.skill_ids.has("enemy_crown_swarm"))
 	var skill: Resource = DataRegistry.get_skill_data("enemy_crown_call")
 	assert_eq(str(skill.effect_type), "summon")
+	assert_true(skill.tags.has("once_per_combat"))
+	assert_gte(float(skill.cooldown), 9999.0)
 
 
 func test_append_enemy_to_swarm_and_refund_ct() -> void:

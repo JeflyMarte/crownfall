@@ -7001,3 +7001,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-TREASURE-EQUIP-001-3 | 旧確率抽選**廃止**（二重付与しない） | 案A |
 | P3-BAL-TREASURE-EQUIP-001-4 | 失敗・Gold・鍵開けボーナスは据置 | スコープ最小化 |
 | P3-BAL-TREASURE-EQUIP-001-5 | **SSOT**＝`docs/specs/decisions/64_TreasureEquipGuaranteed.md` | Decision 本体 |
+
+## 敵招集スキルは戦闘中1回（2026-08-04 — P3-BAL-SUMMON-ONCE-001）
+
+> **オーナー指示** — 招集スキルは戦闘中1回のみ。雑魚もボスと同型。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-SUMMON-ONCE-001-1 | 全 `summon` を**発動時点で消費**（失敗でも再不可） | 二重発動防止 |
+| P3-BAL-SUMMON-ONCE-001-2 | 雑魚 call も **CD9999**＋`once_per_combat`（旧 CD10 廃止） | ボス招集と同型 |
+| P3-BAL-SUMMON-ONCE-001-3 | 鍵は指定＝skill_id／同種＝slot（据置） | 既存ボス方針 |
+| P3-BAL-SUMMON-ONCE-001-4 | **SSOT**＝`docs/specs/decisions/65_EnemySummonOnce.md` | Decision 本体 |

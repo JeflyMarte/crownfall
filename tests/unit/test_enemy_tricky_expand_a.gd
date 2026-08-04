@@ -10,7 +10,10 @@ func test_sepia_hound_lifesteal() -> void:
 func test_moss_boar_summon() -> void:
 	var data: Resource = DataRegistry.get_enemy_data("moss_boar")
 	assert_true(data.skill_ids.has("enemy_boar_call"))
-	assert_eq(str(DataRegistry.get_skill_data("enemy_boar_call").effect_type), "summon")
+	var skill: Resource = DataRegistry.get_skill_data("enemy_boar_call")
+	assert_eq(str(skill.effect_type), "summon")
+	assert_true(skill.tags.has("once_per_combat"))
+	assert_gte(float(skill.cooldown), 9999.0)
 
 
 func test_iron_horn_haste() -> void:
