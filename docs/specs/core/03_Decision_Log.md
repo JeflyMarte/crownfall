@@ -7012,3 +7012,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-SUMMON-ONCE-001-2 | 雑魚 call も **CD9999**＋`once_per_combat`（旧 CD10 廃止） | ボス招集と同型 |
 | P3-BAL-SUMMON-ONCE-001-3 | 鍵は指定＝skill_id／同種＝slot（据置） | 既存ボス方針 |
 | P3-BAL-SUMMON-ONCE-001-4 | **SSOT**＝`docs/specs/decisions/65_EnemySummonOnce.md` | Decision 本体 |
+
+## 防御行動の重み低減（2026-08-04 — P3-BAL-DEFEND-WEIGHT-001）
+
+> **オーナー GO（案A）** — バランス中心に防御を半減。防御重視は据置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-DEFEND-WEIGHT-001-1 | バランス: 防御 **5**／ピンチ(HP&lt;20%) **18**（旧10／42＠30%） | 防御過多の抑制 |
+| P3-BAL-DEFEND-WEIGHT-001-2 | 必殺温存・強敵・サポート・雑魚優先もピンチ防御を約半減 | 横断で同趣旨 |
+| P3-BAL-DEFEND-WEIGHT-001-3 | **防御重視は据置** | 方針の差別化 |
+| P3-BAL-DEFEND-WEIGHT-001-4 | **SSOT**＝`docs/specs/decisions/66_DefendWeightDown.md` | Decision 本体 |

@@ -135,7 +135,7 @@ static func get_slot_plan(tactics_id: String) -> Array:
 		_:
 			return [
 				{"slot": "ultimate", "condition": "enemy_is_boss"},
-				{"slot": "defend", "condition": "self_hp_below", "value": 0.30},
+				{"slot": "defend", "condition": "self_hp_below", "value": 0.20},
 				{"slot": "skill", "condition": "always"},
 				{"slot": "attack", "condition": "always"},
 			]
@@ -228,11 +228,13 @@ static func _slot_weights(tactics_id: String, ctx: Dictionary) -> Dictionary:
 				ult = 48.0
 			elif hp < 0.25:
 				ult = 22.0
-			var defend: float = 12.0
-			if hp < 0.35:
-				defend = 40.0
+			## P3-BAL-DEFEND-WEIGHT-001 案A: ピンチ防御半減。
+			var defend: float = 6.0
+			if hp < 0.25:
+				defend = 20.0
 			return {"ultimate": ult, "defend": defend, "skill": 48.0, "attack": 32.0}
 		"defend_focus":
+			## 防御重視は据置（方針そのものが防御寄り）。
 			var defend2: float = 48.0
 			if hp < 0.55:
 				defend2 = 70.0
@@ -244,31 +246,31 @@ static func _slot_weights(tactics_id: String, ctx: Dictionary) -> Dictionary:
 			var ult3: float = 8.0
 			if enemies >= 2:
 				ult3 = 36.0
-			return {"ultimate": ult3, "defend": 10.0, "skill": 44.0, "attack": 30.0}
+			return {"ultimate": ult3, "defend": 5.0, "skill": 44.0, "attack": 30.0}
 		"boss_focus":
 			var ult4: float = 12.0
 			if strong:
 				ult4 = 50.0
-			var defend3: float = 8.0
-			if hp < 0.30:
-				defend3 = 35.0
+			var defend3: float = 4.0
+			if hp < 0.20:
+				defend3 = 18.0
 			return {"ultimate": ult4, "defend": defend3, "skill": 38.0, "attack": 24.0}
 		"support_focus":
 			var ult5: float = 6.0
 			if strong:
 				ult5 = 24.0
-			var defend4: float = 12.0
-			if hp < 0.35:
-				defend4 = 30.0
+			var defend4: float = 6.0
+			if hp < 0.25:
+				defend4 = 15.0
 			return {"ultimate": ult5, "defend": defend4, "skill": 58.0, "attack": 22.0}
 		_:
-			## balanced
+			## balanced — P3-BAL-DEFEND-WEIGHT-001 案A
 			var ult6: float = 10.0
 			if strong:
 				ult6 = 38.0
-			var defend5: float = 10.0
-			if hp < 0.30:
-				defend5 = 42.0
+			var defend5: float = 5.0
+			if hp < 0.20:
+				defend5 = 18.0
 			return {"ultimate": ult6, "defend": defend5, "skill": 42.0, "attack": 28.0}
 
 static func _weight_entry_desc(a: Dictionary, b: Dictionary) -> bool:
