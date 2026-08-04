@@ -6428,6 +6428,17 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-EQ-POWER-RECOMMEND-002-4 | **同点** — レア → 装備Lv → 炉研ぎ | 見た目の強さと一致 |
 | P3-EQ-POWER-RECOMMEND-002-5 | **上書き** — `27_EquipPowerRecommend` §2。キャラ総合戦力式は据置 | 比較と表示を分離 |
 
+## おすすめ装備・レア度ソフト加点（2026-08-04 — P3-EQ-POWER-RECOMMEND-003）
+
+> **オーナー指摘** — ノーマル Lv4 がエピック Lv9 より優先されるのはおかしい。主ステのみ比較を補正。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-POWER-RECOMMEND-003-1 | **レア加点** — `score = 主ステ + レア段階×48`（武／防／飾共通） | 同帯 N＋攻撃ロールが序盤 E を逆転しにくい |
+| P3-EQ-POWER-RECOMMEND-003-2 | **終盤例外** — 高ベースの終盤 COMMON は序盤 EPIC に勝ち得る（加点だけでは覆さない） | 進行パワーを残す |
+| P3-EQ-POWER-RECOMMEND-003-3 | **同点** — レア → 装備Lv → 炉研ぎは据置 | 002 継続 |
+| P3-EQ-POWER-RECOMMEND-003-4 | **上書き** — `27_EquipPowerRecommend` §2（案B） | SSOT |
+
 ## エリート護衛＋ボス全体デバフ（2026-08-02 — P3-BAL-ELITE-BOSS-PRESSURE-001）
 
 > **オーナー GO（推奨セットA）** — ボス＝全体 ATK↓＋章テーマ状態厚み／エリート＝章雑魚1〜2護衛＋AoEキット穴埋め。グローバルATK据置。

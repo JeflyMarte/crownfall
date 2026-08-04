@@ -39,6 +39,7 @@ alwaysApply: false
 | レリック枠だけ白い下地 | InvCell_RELIC 原画の白マットが残る | → **`asset-import.mdc`**（`--only RELIC` で N fill 焼込） |
 | 所持チケットが枠内で矩形ノイズ／透けない | AI PNG の半透明灰・暗マットが角 alpha=0 でも残存 | → **`asset-import.mdc`**（`tools/strip_ticket_icon_mats.py --apply`） |
 | 装飾おすすめがランダムATK付きで過大評価 | `_accessory_score` が `effective_*`（フィールド反映済み）のあと `sum_kind` を再加算 | 装飾は effective のみ。防具 DEF はフィールド非積なので別扱い（`P3-FIX-EQ-META-AUDIT-A-001`） |
+| おすすめがノーマル低Lvをエピック高Lvより優先 | 主ステのみ比較だと同帯 N＋攻撃ロールが序盤 E を逆転 | `EquipmentPower` に `レア×48` ソフト加点（`27_EquipPowerRecommend` 案B） |
 | 分解確認が「素材なし」／獲得が空 | `can_dismantle_item` は `{ok,reason}` のみ。materials は `dismantle_preview` | 確認文・L確認は必ず preview |
 | 灰冠／深層が生産解放に出る | 入手フックが全装備を unlock | `is_craftable_master` で `kaiwan_`／`abyss_` 除外 |
 | 封蔵確認中に←→すると別ガチャを消費 | 確定時に現在ページを見る。確認中ロック無し | 確認時点の `_pending_pull_page` 固定＋確認中は矢印／再押下 disable |

@@ -83,7 +83,44 @@ func test_weapon_score_is_effective_attack_not_speed_mult() -> void:
 	glassy.critical_damage = 2.0
 	glassy.random_mods = [{"kind": "attack_up", "value": 5, "label": "t", "min_v": 1, "max_v": 5}]
 	assert_gt(_Power.score(solid, "weapon"), _Power.score(glassy, "weapon"))
-	assert_eq(_Power.score(solid, "weapon"), float(_Enh.get_effective_attack(solid)))
+	## 主ステ＝実効攻撃。レア加点は別途加算。
+	assert_eq(
+		_Power.score(solid, "weapon"),
+		float(_Enh.get_effective_attack(solid)) + float(_Enh.item_rarity(solid)) * _Power.RARITY_TIER_BONUS
+	)
+
+
+func test_epic_higher_level_outranks_common_with_attack_roll() -> void:
+	## オーナー報告: N Lv4 が E Lv9 より優先されるのはおかしい。
+	## 同帯剣で COMMON＋攻撃ロールでも EPIC 高Lv を下回ること。
+	var common: Resource = _make_weapon("verdant_cleaver", 0, 120)
+	common.equip_level = 4
+	common.random_mods = [{
+		"kind": "attack_up", "value": 22, "label": "t", "min_v": 1, "max_v": 22, "perfect": true,
+	}]
+	var epic: Resource = _make_weapon("frost_blade", 0, 96)
+	epic.equip_level = 9
+	epic.random_mods = [{
+		"kind": "attack_speed", "value": 0.1, "label": "t", "min_v": 0.01, "max_v": 0.2,
+	}]
+	assert_eq(_Enh.item_rarity(common), Enums.Rarity.COMMON)
+	assert_eq(_Enh.item_rarity(epic), Enums.Rarity.EPIC)
+	assert_gt(_Power.score(epic, "weapon"), _Power.score(common, "weapon"))
+	var idx: int = _swordsman_index()
+	var member: Resource = GameState.party_members[idx]
+	GameState.inventory = [common, epic]
+	assert_eq(_Helper.pick_best_unequipped(member).get("weapon"), epic)
+
+
+func test_late_common_can_still_beat_early_epic_on_raw_power() -> void:
+	## 終盤 COMMON の高ベースは、序盤 EPIC より強くてよい（レア加点だけでは覆さない）。
+	var late_common: Resource = _make_weapon("ridge_cleaver", 0, 352)
+	late_common.equip_level = 4
+	late_common.random_mods = [{"kind": "attack_up", "value": 0, "label": "t"}]
+	var early_epic: Resource = _make_weapon("frost_blade", 0, 96)
+	early_epic.equip_level = 9
+	early_epic.random_mods = [{"kind": "attack_up", "value": 0, "label": "t"}]
+	assert_gt(_Power.score(late_common, "weapon"), _Power.score(early_epic, "weapon"))
 
 
 func test_enhance_raises_weapon_score() -> void:
@@ -154,12 +191,13 @@ func test_accessory_score_does_not_double_count_field_mods() -> void:
 	assert_not_null(data)
 	var atk: float = float(_Enh.effective_accessory_int_bonus(acc, "attack_bonus", data))
 	assert_gt(atk, 0.0)
-	assert_eq(_Power.score(acc, "accessory"), atk)
-	assert_lt(_Power.score(acc, "accessory"), atk * 2.0)
+	var expected: float = atk + float(_Enh.item_rarity(acc)) * _Power.RARITY_TIER_BONUS
+	assert_eq(_Power.score(acc, "accessory"), expected)
+	assert_lt(_Power.score(acc, "accessory"), atk * 2.0 + float(_Enh.item_rarity(acc)) * _Power.RARITY_TIER_BONUS)
 
 
 func test_tiebreak_prefers_higher_equip_level_when_score_tied() -> void:
-	## 主スコア同点なら装備Lvの高い方（レア・炉研ぎ同一）。
+	## 主スコア＋レア加点が同点なら装備Lvの高い方（レア・炉研ぎ同一）。
 	var idx: int = _swordsman_index()
 	var member: Resource = GameState.party_members[idx]
 	var low_lv: Resource = _make_armor("leather_armor", 0, 0, 0)
