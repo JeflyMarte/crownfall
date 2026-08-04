@@ -108,7 +108,9 @@ func _ready() -> void:
 	_apply_typography()
 	_apply_toolbar_buttons()
 	_build_formation_grid()
-	_refresh_all()
+	## パーティ枠だけ先に出し、一覧グリッドは次フレ（ローディング中に埋まる）。
+	_refresh_entry_light()
+	call_deferred("_deferred_entry_populate")
 	call_deferred("_refresh_layout")
 	## chrome 遅延再適用のあともタブ帯・本文を Header 下へ再同期する。
 	var tree: SceneTree = get_tree()
@@ -424,6 +426,31 @@ func _party_index_for_member(member: Resource) -> int:
 	if member == null:
 		return -1
 	return GameState.party_members.find(member)
+
+func _refresh_entry_light() -> void:
+	_update_currency()
+	_refresh_power_label()
+	if _roster_ui_rebuilding:
+		return
+	_roster_ui_rebuilding = true
+	_clear_children_immediate(_active_party_row)
+	for slot_index in FORMATION_SLOT_COUNT:
+		_active_party_row.add_child(_make_active_party_card(slot_index))
+	_roster_ui_rebuilding = false
+	_refresh_formation_grid()
+	_update_save_button()
+	_reapply_scroll_touch()
+
+
+func _deferred_entry_populate() -> void:
+	if not is_inside_tree() or _roster_ui_rebuilding:
+		return
+	_roster_ui_rebuilding = true
+	_clear_children_immediate(_roster_grid)
+	_populate_roster_grid()
+	_roster_ui_rebuilding = false
+	_reapply_scroll_touch()
+
 
 func _refresh_all() -> void:
 	_update_currency()

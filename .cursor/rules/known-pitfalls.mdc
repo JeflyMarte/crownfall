@@ -80,6 +80,7 @@ alwaysApply: false
 | 戦闘が全体的にカクつく／歩行が飛ぶ | `_process` で `get_image`／`get_used_rect` | → **`gdscript.mdc` ホットパス**（meta キャッシュ） |
 | 攻撃予告／必殺カクつき／ボス大技／エリート中央テロップ／部屋名省略／戦闘BG・影狩予兆 | resolve同フレ・固定hold・中央Label | → **`14_Presentation_Pitfalls.md`** §5–6 |
 | 戦闘が継続的にカクつく | 毎フレーム `StyleBoxFlat.new()`／load | → **`gdscript.mdc` ホットパス** |
+| 下ナビ等の画面切替が真っ暗／固まったように感じる | `change_scene_to_file` 同期ロード＋毎回ディスク。重い `_ready` が終わるまで無描画 | `SceneRouter` で PackedScene キャッシュ＋短い「読み込み中」＋拠点 `warmup_hub_scenes`。入場の一覧構築は deferred 可 |
 | 攻撃と同フレダメ／アルドが動いて見えない | ヒット比が早すぎ | → **`14_Presentation_Pitfalls.md`** §5 |
 | 1-1 からボスが出る | `SUB_STAGES_PLAYABLE=false` | → **`content-flags.mdc`**（βは true） |
 | 世界観イントロの「続ける」が実機で押せない | Home Indicator 下に沈む／`disabled` がタップを落とす／aspect=keep で inset=0 | Intro 専用下余白下限＋到達後は `disabled` 禁止。全面透明キャッチ＋中央「TAP」点滅で `_advance_ready` ガード。加速は `_input` で画面全体。TAP 表示は本文末尾が中央より上になった時点 |

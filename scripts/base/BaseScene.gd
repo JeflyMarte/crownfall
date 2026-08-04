@@ -73,6 +73,11 @@ func _ready() -> void:
 	_ensure_rank_sp_bar()
 	call_deferred("_layout_hub_if_needed")
 	call_deferred("_maybe_show_rank_up")
+	call_deferred("_warmup_hub_scenes")
+
+
+func _warmup_hub_scenes() -> void:
+	SceneRouter.warmup_hub_scenes()
 
 
 func _ensure_rank_sp_bar() -> void:

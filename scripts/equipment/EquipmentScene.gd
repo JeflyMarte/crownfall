@@ -275,7 +275,8 @@ func _ready() -> void:
 		_selected_member_index = _clamp_roster_index(GameState.equipment_focus_member_index)
 		GameState.equipment_focus_member_index = -1
 	call_deferred("_handle_layout_resized")
-	_refresh_display()
+	## ヘッダ／ナビを先に出し、所持グリッド等は次フレ（ローディング中に埋まる）。
+	call_deferred("_refresh_display")
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:

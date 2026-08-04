@@ -227,7 +227,8 @@ func _ready() -> void:
 	## 下帯はオミット。
 	if _craftable_panel != null:
 		_craftable_panel.visible = false
-	_set_mode("produce")
+	## 一覧構築は次フレ（ローディング中に埋まる）。chrome は先に出す。
+	call_deferred("_set_mode", "produce")
 	## カテゴリアイコン生成後の実寸で帯を再計算（生産／錬成の上下侵食防止）。
 	call_deferred("_layout_craftable_strip")
 	call_deferred("_enable_forge_scroll_touch")
