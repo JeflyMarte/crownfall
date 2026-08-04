@@ -3180,7 +3180,7 @@ func _collect_floor_buff_legend_entries() -> Array[Dictionary]:
 			out.append({
 				"id": "choice_atk",
 				"stat": _floor_buff_stat_key("attack"),
-				"text": "パーティの攻撃力の×%.1f" % float(dc.floor_choice_damage_mult),
+				"text": _floor_buff_legend_text("攻撃率", float(dc.floor_choice_damage_mult), 1),
 			})
 		var reward_keys: Array = dc.floor_choice_reward_mults.keys()
 		reward_keys.sort()
@@ -3192,19 +3192,27 @@ func _collect_floor_buff_legend_entries() -> Array[Dictionary]:
 			out.append({
 				"id": "choice_%s" % kind,
 				"stat": _floor_buff_stat_key(kind),
-				"text": "パーティの%sの×%.2f" % [_floor_buff_noun(kind), mult],
+				"text": _floor_buff_legend_text(_floor_buff_noun(kind), mult, 2),
 			})
 	if dc.has_active_floor_blessing():
 		var lore_kind: String = str(dc.floor_blessing_kind)
 		out.append({
 			"id": "lore_%s" % lore_kind,
 			"stat": _floor_buff_stat_key(lore_kind),
-			"text": "パーティの%sの×%.1f" % [
+			"text": _floor_buff_legend_text(
 				_floor_buff_noun(lore_kind),
 				BalanceConfig.LORE_FLOOR_BLESSING_MULT,
-			],
+				1
+			),
 		})
 	return out
+
+
+## 右上凡例文言（例: パーティ全体経験値率1.5倍）。
+func _floor_buff_legend_text(noun: String, mult: float, decimals: int) -> String:
+	if decimals <= 1:
+		return "パーティ全体%s%.1f倍" % [noun, mult]
+	return "パーティ全体%s%.2f倍" % [noun, mult]
 
 
 func _floor_buff_stat_key(kind: String) -> String:
