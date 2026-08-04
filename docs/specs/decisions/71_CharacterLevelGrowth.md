@@ -43,4 +43,10 @@
 ## 非目標
 
 - 初期個人ステ（`CharacterStatBonuses`）の再調整
-- 敵カーブの同時いじり（実機後に必要なら別 Task）
+- 敵マスタ個別の同時いじり（実機感触後に必要なら別 Task）
+
+## 点検（2026-08-04）
+
+- 被ダメ変更前比（スターター5・防具概算）: Lv5–40 でおおむね ±8%以内 → **C′の 0.13 据置**
+- `tools/growth_balance_audit.py` で再計測可
+- balance_sim: `is_pet_combatant` インライン化＋`DamageCalculator` インデント修復後に再走可能（絶対クリア率はシミュ近似のため Decision 旧帯と直比較しない）
