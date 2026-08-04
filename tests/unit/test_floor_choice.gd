@@ -122,6 +122,18 @@ func test_floor_choice_roll_harvest_kinds_random_two() -> void:
 	assert_gte(seen.size(), 2)
 
 
+func test_floor_buff_legend_copy_uses_rate_of_mult() -> void:
+	## 「パーティの◯◯率の×N」（旧: パーティー全体の…／倍率前の「の」なし）。
+	assert_eq(
+		"パーティの%sの×%.2f" % ["経験値率", 1.35],
+		"パーティの経験値率の×1.35"
+	)
+	assert_eq(
+		"パーティの攻撃力の×%.1f" % 1.5,
+		"パーティの攻撃力の×1.5"
+	)
+
+
 func test_floor_buff_legend_stat_icons_resolve() -> void:
 	## 右上凡例の先頭アイコン（装備ステ ICO／素材）。
 	assert_not_null(EquipmentUiTokens.stat_icon("attack_up"))

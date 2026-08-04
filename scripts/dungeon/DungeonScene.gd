@@ -3180,7 +3180,7 @@ func _collect_floor_buff_legend_entries() -> Array[Dictionary]:
 			out.append({
 				"id": "choice_atk",
 				"stat": _floor_buff_stat_key("attack"),
-				"text": "パーティの攻撃力 ×%.1f" % float(dc.floor_choice_damage_mult),
+				"text": "パーティの攻撃力の×%.1f" % float(dc.floor_choice_damage_mult),
 			})
 		var reward_keys: Array = dc.floor_choice_reward_mults.keys()
 		reward_keys.sort()
@@ -3192,14 +3192,14 @@ func _collect_floor_buff_legend_entries() -> Array[Dictionary]:
 			out.append({
 				"id": "choice_%s" % kind,
 				"stat": _floor_buff_stat_key(kind),
-				"text": "パーティの%s ×%.2f" % [_floor_buff_noun(kind), mult],
+				"text": "パーティの%sの×%.2f" % [_floor_buff_noun(kind), mult],
 			})
 	if dc.has_active_floor_blessing():
 		var lore_kind: String = str(dc.floor_blessing_kind)
 		out.append({
 			"id": "lore_%s" % lore_kind,
 			"stat": _floor_buff_stat_key(lore_kind),
-			"text": "パーティの%s ×%.1f" % [
+			"text": "パーティの%sの×%.1f" % [
 				_floor_buff_noun(lore_kind),
 				BalanceConfig.LORE_FLOOR_BLESSING_MULT,
 			],
@@ -3227,13 +3227,13 @@ func _floor_buff_stat_key(kind: String) -> String:
 func _floor_buff_noun(kind: String) -> String:
 	match kind:
 		"exp":
-			return "経験値"
+			return "経験値率"
 		"gold":
-			return "ゴールド"
+			return "ゴールド率"
 		"equip":
-			return "装備ドロップ"
+			return "装備ドロップ率"
 		"material":
-			return "素材ドロップ"
+			return "素材ドロップ率"
 		_:
 			return $DungeonController.floor_blessing_label(kind)
 
