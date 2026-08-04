@@ -309,6 +309,11 @@ static func swarm_density_spd_mult(start_count: int) -> float:
 ## CLEAR 時のみ、ラン中獲得 EXP に乗せる完走ボーナス（リタイア／全滅なし）。
 const CLEAR_EXP_BONUS_RATIO: float = 0.25
 
+# ── 撃破 EXP 全体倍率（P3-BAL-KILL-EXP-150-001） ─────────────────────────
+## モンスター討伐（戦闘撃破）のキャラ EXP に乗せる。クリアボーナスは積立の +25% 経由で連動。
+## エリート部屋倍率・ティア・曜日×2・イベント MOD・図鑑調査などは既存どおり上乗せ。
+const COMBAT_KILL_EXP_MULT: float = 1.5
+
 # ── 曜日イベント撃破報酬（P3-BAL-WEEKDAY-EVENT-REWARD-001） ─────────────
 ## 曜日枠イベントDG（PRIMARY_WEEKDAY）の撃破 EXP／Gold 倍率。時間帯降臨は対象外。
 ## 敵ステ・装備ドロップ・日次1回は据置。野外 EventSystem MOD_* とは別経路。

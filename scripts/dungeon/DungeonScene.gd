@@ -7947,7 +7947,13 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 		else 1.0
 	)
 	var final_exp: int = int(
-		$CombatController.last_exp_reward * mult * exp_event_mult * tier_reward_mult * evo_exp_mult * weekday_reward_mult
+		$CombatController.last_exp_reward
+		* mult
+		* exp_event_mult
+		* tier_reward_mult
+		* evo_exp_mult
+		* weekday_reward_mult
+		* BalanceConfig.COMBAT_KILL_EXP_MULT
 	)
 	var final_gold: int = int(
 		$CombatController.last_gold_reward * mult * gold_event_mult * tier_reward_mult * weekday_reward_mult

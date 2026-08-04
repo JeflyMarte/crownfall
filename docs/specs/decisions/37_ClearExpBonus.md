@@ -1,7 +1,8 @@
 # ダンジョンクリア経験値ボーナス（P3-BAL-CLEAR-EXP-001）
 
 **Status:** Decision 承認済（2026-08-02 オーナー GO・案A）  
-**定数:** `BalanceConfig.CLEAR_EXP_BONUS_RATIO`
+**定数:** `BalanceConfig.CLEAR_EXP_BONUS_RATIO`  
+**関連:** 撃破プール倍率は `63_CombatKillExpMult.md`（P3-BAL-KILL-EXP-150-001）。比率 +25% は据置で絶対量連動。
 
 ---
 

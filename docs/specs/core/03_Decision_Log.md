@@ -6978,3 +6978,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-CLEAR-TOKEN-HALF-001-1 | 通常クリア魔晶石 **35–65→18–33**。H×1.2／NM×1.4 据置 | 石供給過多の抑制。招待500≈クリア約20回 |
 | P3-BAL-CLEAR-TOKEN-HALF-001-2 | **据置** — 深層マイルストーン／調査室／日課 | 案Aスコープ |
 | P3-BAL-CLEAR-TOKEN-HALF-001-3 | **SSOT**＝`docs/specs/decisions/62_ClearTokenHalf.md` | Decision 本体 |
+
+## 撃破経験値 ×1.5（2026-08-04 — P3-BAL-KILL-EXP-150-001）
+
+> **オーナー GO（案B）** — 撃破 EXP ×1.5。クリアボーナスは積立 +25% 据置で絶対量連動。調査・装備EXPは対象外。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-KILL-EXP-150-001-1 | 撃破キャラ EXP **×1.5**（`COMBAT_KILL_EXP_MULT`） | 育成速度の底上げ |
+| P3-BAL-KILL-EXP-150-001-2 | クリア +25% 比率据置 → 絶対量も ×1.5 | 案B（二重に比率を上げない） |
+| P3-BAL-KILL-EXP-150-001-3 | **据置** — 調査派遣・装備強化EXP・`exp_reward` 生値 | 討伐以外はスコープ外 |
+| P3-BAL-KILL-EXP-150-001-4 | **SSOT**＝`docs/specs/decisions/63_CombatKillExpMult.md` | Decision 本体 |
