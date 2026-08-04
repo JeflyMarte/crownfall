@@ -6968,3 +6968,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-FLOOR-CHOICE-HEAL-FX-001-2 | **演出** — 緑VFX＋緑+N（泉と同型）・中央テロップ「応急手当！」・`combat_heal` 直鳴らし | 視認性 |
 | P3-DG-FLOOR-CHOICE-HEAL-FX-001-3 | **上書き** — `61_DungeonFloorChoice` §1 A′ | SSOT |
 
+
+## クリア魔晶石半減（2026-08-04 — P3-BAL-CLEAR-TOKEN-HALF-001）
+
+> **オーナー GO（案A）** — 本編クリア基礎のみ半減。深層・調査・日課は据置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-CLEAR-TOKEN-HALF-001-1 | 通常クリア魔晶石 **35–65→18–33**。H×1.2／NM×1.4 据置 | 石供給過多の抑制。招待500≈クリア約20回 |
+| P3-BAL-CLEAR-TOKEN-HALF-001-2 | **据置** — 深層マイルストーン／調査室／日課 | 案Aスコープ |
+| P3-BAL-CLEAR-TOKEN-HALF-001-3 | **SSOT**＝`docs/specs/decisions/62_ClearTokenHalf.md` | Decision 本体 |

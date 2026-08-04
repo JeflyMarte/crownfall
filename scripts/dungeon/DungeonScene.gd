@@ -9871,7 +9871,7 @@ func _on_finish_button_pressed() -> void:
 	_commit_run_exp_state_to_gamestate()
 	GameState.last_run_level_ups = {}
 	GameState.last_run_gold_reward = $DungeonController.run_gold_reward
-	## P3-BAL-ECO-001 / P3-BAL-TIER-001: 基礎35–65 × ティア報酬倍率（H×1.2／NM×1.4）
+	## P3-BAL-CLEAR-TOKEN-HALF-001: 基礎18–33 × ティア報酬倍率（H×1.2／NM×1.4）
 	GameState.last_run_token_reward = _DungeonTierConfig.clear_token_reward(GameState.current_dungeon_tier)
 	GameState.last_run_weapon_dropped = $DungeonController.last_weapon_dropped
 	GameState.last_run_armor_dropped = $DungeonController.last_armor_dropped

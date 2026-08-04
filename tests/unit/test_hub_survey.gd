@@ -392,7 +392,7 @@ func test_speed_bonus_scales_with_combat_power() -> void:
 
 
 func test_bal_survey_token_ranges_below_clear() -> void:
-	## P3-BAL-SURVEY-001: 調査室石は潜行クリア帯（35–65）より一段下。
+	## P3-BAL-SURVEY-001: 調査室石は旧潜行クリア帯（35–65）想定で一段下設計。現行クリアは18–33（HALF-001）。
 	assert_lte(_SurveyConfig.TOKEN_SHORT_MAX, 30)
 	assert_lte(_SurveyConfig.TOKEN_STANDARD_MAX, 70)
 	assert_lt(_SurveyConfig.TOKEN_STANDARD_MAX, 80)

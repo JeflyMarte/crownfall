@@ -44,7 +44,7 @@ const WEAPON_P_STAR3: float = 0.015
 static func weapon_drop_chance() -> float:
 	return WEAPON_P_STAR1 + WEAPON_P_STAR2 + WEAPON_P_STAR3
 
-## P3-BAL-SURVEY-001: 潜行クリア（35–65）より大幅に下＋確率付与。
+## P3-BAL-SURVEY-001: 潜行クリア（現行18–33）との相対は後続点検可。調査帯は据置。
 const TOKEN_GRANT_CHANCE: float = 0.40
 const TOKEN_SHORT_MIN: int = 4
 const TOKEN_SHORT_MAX: int = 10

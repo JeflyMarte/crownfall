@@ -88,14 +88,14 @@ func test_tier_rarity_weight_scales() -> void:
 
 
 func test_clear_token_reward_scales_with_tier() -> void:
-	## P3-BAL-TIER-001-C: 基礎35–65 × H1.2 / NM1.4（切り上げ）
-	assert_eq(_DungeonTierConfig.CLEAR_TOKEN_MIN, 35)
-	assert_eq(_DungeonTierConfig.CLEAR_TOKEN_MAX, 65)
+	## P3-BAL-CLEAR-TOKEN-HALF-001: 基礎18–33 × H1.2 / NM1.4（切り上げ）
+	assert_eq(_DungeonTierConfig.CLEAR_TOKEN_MIN, 18)
+	assert_eq(_DungeonTierConfig.CLEAR_TOKEN_MAX, 33)
 	seed(1)
 	for _i in 30:
 		var n: int = _DungeonTierConfig.clear_token_reward(_DungeonTierConfig.TIER_NORMAL)
-		assert_true(n >= 35 and n <= 65, "Normal token %d" % n)
+		assert_true(n >= 18 and n <= 33, "Normal token %d" % n)
 		var h: int = _DungeonTierConfig.clear_token_reward(_DungeonTierConfig.TIER_HARD)
-		assert_true(h >= 42 and h <= 78, "Hard token %d" % h)
+		assert_true(h >= 22 and h <= 40, "Hard token %d" % h)
 		var nm: int = _DungeonTierConfig.clear_token_reward(_DungeonTierConfig.TIER_NIGHTMARE)
-		assert_true(nm >= 49 and nm <= 91, "NM token %d" % nm)
+		assert_true(nm >= 26 and nm <= 47, "NM token %d" % nm)
