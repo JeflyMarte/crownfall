@@ -7,11 +7,11 @@ extends RefCounted
 ##
 ## trigger: "on_combat_start" | "on_action_start" | "on_hit_taken" | "on_ally_death" |
 ##   "on_attack" | "on_kill" | "on_noncombat_enter"
-## condition: "always" | "self_hp_below"（value=HP割合）
+## condition: "always" | "self_hp_below"（value=HP割合）| "ally_hp_below"（味方誰かHP割合）
 ## effect: "apply_status" | "heal" | "bonus_damage" | "counter_attack" | "grant_next_attack_mult" |
-##   "refund_ct" | "grant_party_incoming_mult" | "aoe_burst" | "abyss_ice_shell_counter"
+##   "refund_ct" | "grant_party_incoming_mult" | "grant_self_evasion" | "aoe_burst" | "abyss_ice_shell_counter"
 ## heal target: "party"（既定・全体）| "self" | "most_injured"（最傷1体・治癒スキルと同型）
-## stat_mod（常時）: evasion_rate_add / outgoing_mult / incoming_mult / first_attack_mult /
+## stat_mod（常時）: evasion_rate_add / back_row_evasion_rate_add / outgoing_mult / incoming_mult / first_attack_mult /
 ##   ultimate_power_mult / exp_gain_mult / party_exp_gain_mult /
 ##   party_outgoing_mult / party_incoming_mult / death_save_once / death_save_chance /
 ##   death_save_heal_max_hp_fraction / death_save_outgoing_mult / death_save_outgoing_duration_sec /
@@ -25,6 +25,9 @@ extends RefCounted
 ## weapon 拡張: basic_attack_hits_all / basic_aoe_splash_mult / basic_attack_mult /
 ##   disable_basic_attack / outgoing_vs_boss_mult / passive_condition=front_row_only（与・被）
 ## cooldown: CT 秒（0 = 都度発火可。on_combat_start は実質1回）
+
+## 戦闘スコープの一時回避加算（grant_self_evasion）。戦闘開始時に reset_combat_scoped。
+static var _combat_member_evasion_add: Dictionary = {}
 
 const _DEFS: Dictionary = {
 	# ---- 神話装備（P3-EQ-MYTHIC-001 / P3-EQ-MYTHIC-WPN-TYPES-001） ----
@@ -124,9 +127,15 @@ const _DEFS: Dictionary = {
 		"threat_base_add": 80.0,
 	},
 	"mirei_swarm_resonance": {
-		"display_name": "相棒共鳴",
-		"description": "ペットが生存中、ペットの与ダメージが20%上昇する。",
-		"pet_outgoing_mult": 1.20,
+		"display_name": "毒牙の共鳴",
+		"description": "攻撃時、敵に毒を付与することがある。",
+		"trigger": "on_attack",
+		"condition": "always",
+		"effect": "apply_status",
+		"status_id": "poison",
+		"target": "enemy",
+		"status_chance": 0.28,
+		"cooldown": 0.0,
 	},
 	# ---- ジョブフォールバック（非基本ロスター・助っ人等） ----
 	"bulwark": {
@@ -174,13 +183,15 @@ const _DEFS: Dictionary = {
 		"exploration_damage_party_mult": 0.5,
 	},
 	"serin_quick_mend": {
-		"display_name": "野営の調合",
-		"description": "非戦闘エリアに入ったとき、いちばん傷ついた味方1人のHPを30%回復する。",
-		"trigger": "on_noncombat_enter",
-		"condition": "always",
+		"display_name": "予備瓶",
+		"description": "味方の誰かのHPが半分を下回ったとき、いちばん傷ついた味方を中回復する（戦闘中1回）。",
+		"trigger": "on_action_start",
+		"condition": "ally_hp_below",
+		"value": 0.5,
 		"effect": "heal",
 		"target": "most_injured",
-		"heal_max_hp_fraction": 0.30,
+		"heal_max_hp_fraction": 0.25,
+		"once_per_combat": true,
 		"cooldown": 0.0,
 	},
 	"mira_beast_call": {
@@ -195,21 +206,15 @@ const _DEFS: Dictionary = {
 		"cooldown": 0.0,
 	},
 	"valden_iron_oath": {
-		"display_name": "鉄誓の守護",
-		"description": "被ダメージ12%軽減。被弾時、戦闘中1回だけ味方全体の被ダメを10%軽減する。",
-		"incoming_mult": 0.88,
-		"trigger": "on_hit_taken",
-		"condition": "always",
-		"effect": "grant_party_incoming_mult",
-		"mult": 0.90,
-		"once_per_combat": true,
-		"cooldown": 0.0,
+		"display_name": "鉄誓の壁",
+		"description": "前列にいる間、味方全体の被ダメージを軽減する。",
+		"party_incoming_mult": 0.90,
+		"passive_condition": "front_row_only",
 	},
 	"kaida_arena_edge": {
-		"display_name": "闘技場の切っ先",
-		"description": "HPが50%以下のとき、与ダメージが30%上昇する。",
-		"outgoing_mult": 1.30,
-		"outgoing_mult_requires_hp_below": 0.5,
+		"display_name": "一閃の賭け",
+		"description": "戦闘中、最初の通常攻撃の威力が大きく上昇する。",
+		"first_attack_mult": 1.75,
 	},
 	"garm_caravan_guard": {
 		"display_name": "隊商の盾心",
@@ -218,10 +223,15 @@ const _DEFS: Dictionary = {
 	},
 	## P3-GACHA 追加4体（レノール／シアン／ネリ／ボルグ）
 	"lenore_seal_echo": {
-		"display_name": "封緘の切っ先",
-		"description": "与ダメージが12%上昇する。被ダメージが10%増加する。",
-		"outgoing_mult": 1.12,
-		"incoming_mult": 1.10,
+		"display_name": "封緘の呪い",
+		"description": "攻撃時、敵に脆弱を付与することがある。",
+		"trigger": "on_attack",
+		"condition": "always",
+		"effect": "apply_status",
+		"status_id": "vulnerable",
+		"target": "enemy",
+		"status_chance": 0.28,
+		"cooldown": 0.0,
 	},
 	"torva_frost_breath": {
 		"display_name": "霜刃の一息",
@@ -229,19 +239,26 @@ const _DEFS: Dictionary = {
 		"first_attack_mult": 1.5,
 	},
 	"sian_silent_line": {
-		"display_name": "影からの号令",
-		"description": "戦闘開始時、味方全体に小さな鼓舞を付与する。必殺と組み合わせると小さな追加ダメージになる。",
-		"trigger": "on_combat_start",
+		"display_name": "静寂の構え",
+		"description": "後列のとき回避が上がる。戦闘中の最初の攻撃で敵に標的を付与する。",
+		"back_row_evasion_rate_add": 0.18,
+		"trigger": "on_attack",
 		"condition": "always",
 		"effect": "apply_status",
-		"status_id": "empower_minor",
-		"target": "party",
+		"status_id": "mark",
+		"target": "enemy",
+		"status_chance": 1.0,
+		"once_per_combat": true,
 		"cooldown": 0.0,
 	},
 	"borg_gate_voice": {
 		"display_name": "門前の残像",
-		"description": "回避率が18%上昇する。",
-		"evasion_rate_add": 0.18,
+		"description": "戦闘開始時、自身の回避が大きく上昇する（その戦闘中）。",
+		"trigger": "on_combat_start",
+		"condition": "always",
+		"effect": "grant_self_evasion",
+		"evasion_add": 0.22,
+		"cooldown": 0.0,
 	},
 	"neri_waterfowl_call": {
 		"display_name": "水鳥の指揮",
@@ -1051,6 +1068,17 @@ static func tier_def_for(job_id: String, rarity: int) -> Dictionary:
 		return _def_with_id(str(_STAR3_JOB_PASSIVES.get(job_id, "")))
 	return {}
 
+static func reset_combat_scoped() -> void:
+	_combat_member_evasion_add.clear()
+
+
+static func grant_combat_evasion(member_index: int, amount: float) -> void:
+	if member_index < 0 or amount <= 0.0:
+		return
+	var cur: float = float(_combat_member_evasion_add.get(member_index, 0.0))
+	_combat_member_evasion_add[member_index] = cur + amount
+
+
 static func get_def(passive_id: String) -> Dictionary:
 	return _def_with_id(passive_id)
 
@@ -1197,6 +1225,8 @@ static func character_stat_modifiers_for_member(member_index: int, hp_ratio: flo
 			continue
 		if def.has("evasion_rate_add"):
 			out["evasion_rate_add"] += float(def["evasion_rate_add"])
+		if def.has("back_row_evasion_rate_add") and GameState.is_member_back_row(member_index):
+			out["evasion_rate_add"] += float(def["back_row_evasion_rate_add"])
 		for key: String in ["ultimate_power_mult", "exp_gain_mult", "incoming_mult", "first_attack_mult"]:
 			if def.has(key):
 				out[key] *= float(def[key])
@@ -1207,6 +1237,7 @@ static func character_stat_modifiers_for_member(member_index: int, hp_ratio: flo
 					out["outgoing_mult"] *= float(def["outgoing_mult"])
 			else:
 				out["outgoing_mult"] *= float(def["outgoing_mult"])
+	out["evasion_rate_add"] += float(_combat_member_evasion_add.get(member_index, 0.0))
 	# 武器常時 outgoing／incoming（神話・前列限定など）＋天候シンクロ outgoing
 	var wdef: Dictionary = weapon_passive_def_for_member(member)
 	var front_only: bool = str(wdef.get("passive_condition", "")) == "front_row_only"
@@ -1346,8 +1377,10 @@ static func action_skip_label_for_member(member: Resource) -> String:
 
 static func party_incoming_mult() -> float:
 	var mult: float = 1.0
+	var member_index: int = 0
 	for member: Resource in GameState.party_members:
 		if member == null:
+			member_index += 1
 			continue
 		for raw_def: Variant in _equipment_passives_for_member(member):
 			if raw_def is not Dictionary:
@@ -1355,6 +1388,16 @@ static func party_incoming_mult() -> float:
 			var def: Dictionary = raw_def
 			if def.has("party_incoming_mult"):
 				mult *= float(def["party_incoming_mult"])
+		## キャラ固有のパーティ被ダメ軽減（鉄誓の壁など）。前列限定を尊重。
+		for pid: String in GameState.get_equipped_character_passive_ids(member):
+			var cdef: Dictionary = get_def(pid)
+			if cdef.is_empty() or not cdef.has("party_incoming_mult"):
+				continue
+			if str(cdef.get("passive_condition", "")) == "front_row_only":
+				if GameState.is_member_back_row(member_index):
+					continue
+			mult *= float(cdef["party_incoming_mult"])
+		member_index += 1
 	return mult
 
 ## 致死回避パッシブ定義（装備→キャラ固有）。消費／確率判定は CombatController。
@@ -1818,8 +1861,14 @@ static func _passive_effect_summary(def: Dictionary) -> String:
 		parts.append("速度 +%d%%" % int(round((float(def["speed_mult"]) - 1.0) * 100.0)))
 	if float(def.get("evasion_rate_add", 0.0)) > 0.0:
 		parts.append("回避 +%d%%" % int(round(float(def["evasion_rate_add"]) * 100.0)))
+	if float(def.get("back_row_evasion_rate_add", 0.0)) > 0.0:
+		parts.append("後列回避 +%d%%" % int(round(float(def["back_row_evasion_rate_add"]) * 100.0)))
 	if float(def.get("first_attack_mult", 1.0)) > 1.0:
 		parts.append("初撃 ×%.1f" % float(def["first_attack_mult"]))
+	if def.has("party_incoming_mult"):
+		parts.append("前列時 パーティ被ダメ ×%.2f" % float(def["party_incoming_mult"]))
+	if str(def.get("effect", "")) == "grant_self_evasion":
+		parts.append("開幕回避 +%d%%" % int(round(float(def.get("evasion_add", 0.0)) * 100.0)))
 	if float(def.get("threat_base_add", 0.0)) > 0.0:
 		parts.append("敵の注目 +%.0f" % float(def["threat_base_add"]))
 	if float(def.get("ultimate_power_mult", 1.0)) > 1.0:

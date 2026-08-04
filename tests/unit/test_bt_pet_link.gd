@@ -42,16 +42,16 @@ func test_beast_tamer_learns_pet_skills() -> void:
 	assert_eq(str(lv50.get("skill_id", "")), "beast_vet_care")
 
 
-func test_mirei_and_pack_instinct_are_pet_outgoing() -> void:
+func test_mirei_poison_fang_and_pack_instinct() -> void:
 	var mirei: Dictionary = CombatPassives.get_def("mirei_swarm_resonance")
-	assert_eq(str(mirei.get("display_name", "")), "相棒共鳴")
-	assert_eq(float(mirei.get("pet_outgoing_mult", 1.0)), 1.20)
+	assert_eq(str(mirei.get("display_name", "")), "毒牙の共鳴")
+	assert_eq(str(mirei.get("status_id", "")), "poison")
 	var pack: Dictionary = CombatPassives.get_def("pack_instinct")
 	assert_eq(str(pack.get("display_name", "")), "群れの指揮")
 	assert_eq(float(pack.get("pet_outgoing_mult", 1.0)), 1.10)
 
 
-func test_pet_outgoing_mult_stacks_from_party() -> void:
-	## ミレイ編成時は相棒共鳴で ×1.2
+func test_pet_outgoing_mult_from_neri_not_mirei() -> void:
+	## ミレイは毒牙のためペット与ダメは 1.0。ネリがいれば盛る。
 	var mult: float = CombatPassives.pet_outgoing_mult_from_party()
-	assert_eq(mult, 1.20)
+	assert_eq(mult, 1.0)

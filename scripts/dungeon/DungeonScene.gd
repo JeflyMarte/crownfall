@@ -3871,6 +3871,7 @@ func _enter_current_room() -> void:
 			_passive_first_attack_used.clear()
 			_passive_next_attack_mult.clear()
 			_passive_once_fired.clear()
+			CombatPassives.reset_combat_scoped()
 			_enemy_resist_telop_announced.clear()
 			_enemy_trait_telop_announced.clear()
 			_enemy_summon_used.clear()
@@ -8752,6 +8753,22 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 				ratio = float($CombatController.party_combat_hp[member_idx]) / float(maxhp)
 		if ratio >= float(p.get("value", 0.0)):
 			return false
+	elif str(p.get("condition", "always")) == "ally_hp_below":
+		var threshold: float = float(p.get("value", 0.5))
+		var any_below: bool = false
+		for i: int in $CombatController.party_combat_hp.size():
+			if not $CombatController.is_member_alive(i):
+				continue
+			var maxhp_a: int = 0
+			if i < $CombatController.party_max_hp.size():
+				maxhp_a = int($CombatController.party_max_hp[i])
+			if maxhp_a <= 0:
+				continue
+			if float($CombatController.party_combat_hp[i]) / float(maxhp_a) < threshold:
+				any_below = true
+				break
+		if not any_below:
+			return false
 	elif str(p.get("condition", "always")) == "is_critical":
 		if not bool(ctx.get("is_critical", false)):
 			return false
@@ -8900,6 +8917,11 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 				float($CombatController.party_temp_incoming_mult), ward
 			)
 			applied = true
+		"grant_self_evasion":
+			var eva_add: float = float(p.get("evasion_add", 0.0))
+			if eva_add > 0.0:
+				CombatPassives.grant_combat_evasion(member_idx, eva_add)
+				applied = true
 		"chance_cast_equipped_skill":
 			if _passive_skill_echo_depth > 0:
 				return false

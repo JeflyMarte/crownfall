@@ -13,15 +13,15 @@ const ICON_ALIAS: Dictionary = {
 	# 基本5人
 	"ald_royal_flame": "sword_charge",
 	"galen_sacred_bastion": "bulwark",
-	"mirei_swarm_resonance": "pack_instinct",
+	"mirei_swarm_resonance": "tamer_whistle",
 	"elias_field_elixir": "spare_vial",
 	# ガチャ助っ人
 	"leon_sword_focus": "sword_charge",
 	"durante_vial_echo": "spare_vial",
 	"ivar_trail_sight": "foresight",
-	"serin_quick_mend": "panacea_gift",
+	"serin_quick_mend": "spare_vial",
 	"mira_beast_call": "tamer_whistle",
-	"valden_iron_oath": "unyielding_stance",
+	"valden_iron_oath": "greatshield_order",
 	"kaida_arena_edge": "battle_fervor",
 	"garm_caravan_guard": "greatshield_order",
 	"lenore_seal_echo": "sword_charge",
@@ -36,6 +36,8 @@ const ICON_ALIAS: Dictionary = {
 const ICON_PATH_OVERRIDE: Dictionary = {
 	"ald_royal_flame": "res://assets/ui/status/ICO_STA_Bleed.png",
 	"riva_lone_focus": "res://assets/ui/skills/base/ICO_SKILL_BASE_Mark_fg.png",
+	"mirei_swarm_resonance": "res://assets/ui/status/ICO_STA_Poison.png",
+	"lenore_seal_echo": "res://assets/ui/skills/base/ICO_SKILL_BASE_Hex_fg.png",
 }
 
 

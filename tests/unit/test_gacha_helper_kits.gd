@@ -16,27 +16,28 @@ func test_helper_personal_bonuses() -> void:
 
 func test_passive_defs_for_new_four() -> void:
 	var lenore: Dictionary = CombatPassives.get_def("lenore_seal_echo")
-	assert_almost_eq(float(lenore.get("outgoing_mult", 1.0)), 1.12, 0.001)
-	assert_almost_eq(float(lenore.get("incoming_mult", 1.0)), 1.10, 0.001)
+	assert_eq(str(lenore.get("status_id", "")), "vulnerable")
+	assert_eq(str(lenore.get("effect", "")), "apply_status")
 	var sian: Dictionary = CombatPassives.get_def("sian_silent_line")
-	assert_eq(str(sian.get("trigger", "")), "on_combat_start")
-	assert_eq(str(sian.get("status_id", "")), "empower_minor")
-	assert_eq(str(sian.get("target", "")), "party")
+	assert_eq(str(sian.get("status_id", "")), "mark")
+	assert_almost_eq(float(sian.get("back_row_evasion_rate_add", 0.0)), 0.18, 0.001)
+	assert_true(bool(sian.get("once_per_combat", false)))
 	var neri: Dictionary = CombatPassives.get_def("neri_waterfowl_call")
 	assert_almost_eq(float(neri.get("pet_outgoing_mult", 1.0)), 1.15, 0.001)
 	assert_almost_eq(float(neri.get("pet_defense_mult", 1.0)), 1.05, 0.001)
-	## ★2ネリ ＜ スターターミレイ（相棒共鳴 +20%）
+	## ミレイは毒牙（ペット依存ではない）
 	var mirei: Dictionary = CombatPassives.get_def("mirei_swarm_resonance")
-	assert_true(
-		float(neri.get("pet_outgoing_mult", 1.0)) < float(mirei.get("pet_outgoing_mult", 1.0))
-	)
+	assert_eq(str(mirei.get("status_id", "")), "poison")
+	assert_eq(str(mirei.get("display_name", "")), "毒牙の共鳴")
 	var borg: Dictionary = CombatPassives.get_def("borg_gate_voice")
-	assert_almost_eq(float(borg.get("evasion_rate_add", 0.0)), 0.18, 0.001)
+	assert_eq(str(borg.get("effect", "")), "grant_self_evasion")
+	assert_almost_eq(float(borg.get("evasion_add", 0.0)), 0.22, 0.001)
+	assert_false(borg.has("evasion_rate_add"))
 	assert_false(borg.has("threat_base_add"))
 
 
 func test_empower_minor_ally_combo_weaker_than_empower() -> void:
-	## シアン開幕バフが必殺ビルドに接続（本鼓舞より弱い追加）。
+	## 必殺コンボ用の弱鼓舞定義は維持（シアン固有からは外した）。
 	assert_true(CombatCombos.ally_trigger_ids().has("empower_minor"))
 	var full: Dictionary = CombatCombos.ally_rule("empower")
 	var minor: Dictionary = CombatCombos.ally_rule("empower_minor")
@@ -59,20 +60,28 @@ func test_helper_p_personal_bonus() -> void:
 	assert_eq(int(b.get("defense", 0)), 90)
 
 
-func test_borg_no_longer_threat_tank() -> void:
+func test_borg_combat_start_evasion_not_permanent() -> void:
 	var member: Resource = Adventurer.new()
 	member.id = "gacha_helper_n"
 	member.job_id = "vanguard"
 	assert_almost_eq(CombatPassives.threat_base_add_for_member(member), 0.0, 0.001)
+	CombatPassives.reset_combat_scoped()
+	GameState.party_members = [member]
 	assert_almost_eq(
 		float(CombatPassives.character_stat_modifiers_for_member(0).get("evasion_rate_add", -1.0)),
 		0.0,
 		0.001
 	)
-	## for_member 経由で回避を読む
+	CombatPassives.grant_combat_evasion(0, 0.22)
+	assert_almost_eq(
+		float(CombatPassives.character_stat_modifiers_for_member(0).get("evasion_rate_add", 0.0)),
+		0.22,
+		0.001
+	)
+	CombatPassives.reset_combat_scoped()
 	var defs: Array = CombatPassives.for_member(member)
 	assert_eq(defs.size(), 1)
-	assert_almost_eq(float(defs[0].get("evasion_rate_add", 0.0)), 0.18, 0.001)
+	assert_eq(str(defs[0].get("effect", "")), "grant_self_evasion")
 
 
 func test_neri_pet_defense_mult_from_party() -> void:

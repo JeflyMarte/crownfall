@@ -96,7 +96,9 @@ static func scale_passive_def(def: Dictionary, breakthrough: int) -> Dictionary:
 			out[key] = _scale_mult_above_one(float(out[key]), scale)
 	if out.has("incoming_mult"):
 		out["incoming_mult"] = _scale_mult_below_one(float(out["incoming_mult"]), scale)
-	for key: String in ["evasion_rate_add", "status_chance", "incoming_block_chance", "death_save_chance", "threat_base_add"]:
+	if out.has("party_incoming_mult"):
+		out["party_incoming_mult"] = _scale_mult_below_one(float(out["party_incoming_mult"]), scale)
+	for key: String in ["evasion_rate_add", "back_row_evasion_rate_add", "evasion_add", "status_chance", "incoming_block_chance", "death_save_chance", "threat_base_add"]:
 		if out.has(key):
 			if key == "threat_base_add":
 				out[key] = float(out[key]) * scale
@@ -108,7 +110,7 @@ static func scale_passive_def(def: Dictionary, breakthrough: int) -> Dictionary:
 		out["mult"] = _scale_mult_below_one(float(out["mult"]), scale)
 	if str(out.get("effect", "")) == "heal" and out.has("value"):
 		out["value"] = maxi(1, int(round(float(out["value"]) * scale)))
-	if str(out.get("condition", "")) == "self_hp_below" and out.has("value"):
+	if str(out.get("condition", "")) in ["self_hp_below", "ally_hp_below"] and out.has("value"):
 		## 閾値を上げて発火しやすく（効果強化の代替）
 		out["value"] = minf(0.9, float(out["value"]) * scale)
 	if out.has("cooldown") and float(out["cooldown"]) > 0.0:
