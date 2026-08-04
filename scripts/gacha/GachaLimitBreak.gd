@@ -91,6 +91,8 @@ static func scale_passive_def(def: Dictionary, breakthrough: int) -> Dictionary:
 		"party_exp_gain_mult",
 		"speed_mult",
 		"pet_outgoing_mult",
+		"pet_defense_mult",
+		"pet_max_hp_mult",
 	]:
 		if out.has(key):
 			out[key] = _scale_mult_above_one(float(out[key]), scale)
@@ -98,7 +100,18 @@ static func scale_passive_def(def: Dictionary, breakthrough: int) -> Dictionary:
 		out["incoming_mult"] = _scale_mult_below_one(float(out["incoming_mult"]), scale)
 	if out.has("party_incoming_mult"):
 		out["party_incoming_mult"] = _scale_mult_below_one(float(out["party_incoming_mult"]), scale)
-	for key: String in ["evasion_rate_add", "back_row_evasion_rate_add", "evasion_add", "status_chance", "incoming_block_chance", "death_save_chance", "threat_base_add"]:
+	for key: String in [
+		"evasion_rate_add",
+		"back_row_evasion_rate_add",
+		"evasion_add",
+		"status_chance",
+		"incoming_block_chance",
+		"death_save_chance",
+		"threat_base_add",
+		"pet_revive_on_combat_end_chance",
+		"pet_heal_on_action_max_hp_fraction",
+		"pet_revive_max_hp_fraction",
+	]:
 		if out.has(key):
 			if key == "threat_base_add":
 				out[key] = float(out[key]) * scale

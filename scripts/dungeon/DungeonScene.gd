@@ -8143,6 +8143,7 @@ func _on_active_enemy_killed() -> bool:
 # 群れ全滅で戦闘を終了する（P3-D083）。
 func _finalize_combat_cleared() -> void:
 	$CombatTimer.stop()
+	_try_pet_revive_on_combat_end()
 	_end_combat_session()
 	$CombatController.end_combat()
 	_combat_vfx.clear_all()
@@ -8212,6 +8213,7 @@ func _do_member_turn(member_idx: int) -> void:
 		_append_log("[%s] %s は行動できなかった" % [skip_label, mname])
 		return
 	_fire_member_passives(member_idx, "on_action_start")
+	_try_pet_heal_on_member_action(member_idx)
 	var member: Resource = GameState.get_combatant(member_idx)
 	$CombatController.resolve_member_target(member_idx, CombatGambit.target_from_member(member))
 	## 斥候の片眼: 最初のN行動は通常攻撃のみ。
@@ -9466,6 +9468,54 @@ func _is_active_pet_alive() -> bool:
 	if not GameState.is_pet_combatant(pet_idx):
 		return false
 	return $CombatController.is_member_alive(pet_idx)
+
+
+func _try_pet_heal_on_member_action(member_idx: int) -> void:
+	var member: Resource = GameState.get_combatant(member_idx)
+	var frac: float = CombatPassives.pet_heal_on_action_fraction_for_member(member)
+	if frac <= 0.0 or GameState.active_pet == null:
+		return
+	if GameState.party_members.is_empty():
+		return
+	var pet_idx: int = GameState.combatant_count() - 1
+	if pet_idx < 0 or not GameState.is_pet_combatant(pet_idx):
+		return
+	if not $CombatController.is_member_alive(pet_idx):
+		return
+	if pet_idx >= $CombatController.party_max_hp.size():
+		return
+	var maxhp: int = int($CombatController.party_max_hp[pet_idx])
+	var amount: int = maxi(1, int(round(float(maxhp) * frac)))
+	var healed: int = $CombatController.heal_member(pet_idx, amount)
+	if healed > 0:
+		_update_hp_bars()
+		_present_member_heal(pet_idx, healed)
+
+
+func _try_pet_revive_on_combat_end() -> void:
+	if GameState.active_pet == null or GameState.party_members.is_empty():
+		return
+	var pet_idx: int = GameState.combatant_count() - 1
+	if pet_idx < 0 or not GameState.is_pet_combatant(pet_idx):
+		return
+	if $CombatController.is_member_alive(pet_idx):
+		return
+	var revive_def: Dictionary = CombatPassives.pet_revive_on_combat_end_def()
+	if revive_def.is_empty():
+		return
+	var chance: float = float(revive_def.get("chance", 0.0))
+	if chance <= 0.0 or randf() > chance:
+		return
+	var frac: float = float(revive_def.get("max_hp_fraction", 0.30))
+	var restored: int = $CombatController.revive_member(pet_idx, frac)
+	if restored <= 0:
+		return
+	_update_hp_bars()
+	_present_member_heal(pet_idx, restored)
+	var pet: Resource = GameState.active_pet
+	var pname: String = str(pet.display_name) if pet != null else "ペット"
+	_append_log("[パッシブ] %s が立ち上がった！" % pname)
+	_spawn_skill_name("蘇生", pet_idx, 0.0, "", false, "", PASSIVE_NAME_FONT_SIZE)
 
 
 func _queue_pet_followup_attack() -> void:

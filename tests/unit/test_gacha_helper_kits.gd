@@ -23,12 +23,14 @@ func test_passive_defs_for_new_four() -> void:
 	assert_almost_eq(float(sian.get("back_row_evasion_rate_add", 0.0)), 0.18, 0.001)
 	assert_true(bool(sian.get("once_per_combat", false)))
 	var neri: Dictionary = CombatPassives.get_def("neri_waterfowl_call")
-	assert_almost_eq(float(neri.get("pet_outgoing_mult", 1.0)), 1.15, 0.001)
-	assert_almost_eq(float(neri.get("pet_defense_mult", 1.0)), 1.05, 0.001)
-	## ミレイは毒牙（ペット依存ではない）
+	assert_almost_eq(float(neri.get("pet_outgoing_mult", 1.0)), 1.2, 0.001)
+	assert_almost_eq(float(neri.get("pet_defense_mult", 1.0)), 1.2, 0.001)
+	assert_almost_eq(float(neri.get("pet_max_hp_mult", 1.0)), 1.2, 0.001)
+	assert_almost_eq(float(neri.get("pet_revive_on_combat_end_chance", 0.0)), 0.30, 0.001)
 	var mirei: Dictionary = CombatPassives.get_def("mirei_swarm_resonance")
 	assert_eq(str(mirei.get("status_id", "")), "poison")
 	assert_eq(str(mirei.get("display_name", "")), "毒牙の共鳴")
+	assert_almost_eq(float(mirei.get("pet_outgoing_mult", 1.0)), 1.5, 0.001)
 	var borg: Dictionary = CombatPassives.get_def("borg_gate_voice")
 	assert_eq(str(borg.get("effect", "")), "grant_self_evasion")
 	assert_almost_eq(float(borg.get("evasion_add", 0.0)), 0.22, 0.001)
@@ -95,5 +97,8 @@ func test_neri_pet_defense_mult_from_party() -> void:
 	var pet = pet_class.new()
 	pet.id = "pet_jack"
 	GameState.active_pet = pet
-	assert_almost_eq(CombatPassives.pet_outgoing_mult_from_party(), 1.15, 0.001)
-	assert_almost_eq(CombatPassives.pet_defense_mult_from_party(), 1.05, 0.001)
+	assert_almost_eq(CombatPassives.pet_outgoing_mult_from_party(), 1.2, 0.001)
+	assert_almost_eq(CombatPassives.pet_defense_mult_from_party(), 1.2, 0.001)
+	assert_almost_eq(CombatPassives.pet_max_hp_mult_from_party(), 1.2, 0.001)
+	var revive: Dictionary = CombatPassives.pet_revive_on_combat_end_def()
+	assert_almost_eq(float(revive.get("chance", 0.0)), 0.30, 0.001)

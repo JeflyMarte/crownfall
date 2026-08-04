@@ -695,6 +695,11 @@ func _init_party_hp() -> void:
 		hp_mult *= _EquipmentSetBonuses.hp_mult(i)
 		hp_mult *= _CommanderPermitBoost.hp_mult()
 		max_hp = maxi(1, int(round(float(max_hp) * hp_mult)))
+		## ペットは編成パッシブのステ倍率を最大HPにも適用。
+		if GameState.is_pet_combatant(i):
+			var pet_hp_mult: float = CombatPassives.pet_max_hp_mult_from_party()
+			if pet_hp_mult > 0.0 and not is_equal_approx(pet_hp_mult, 1.0):
+				max_hp = maxi(1, int(round(float(max_hp) * pet_hp_mult)))
 		party_combat_hp.append(max_hp)
 		party_max_hp.append(max_hp)
 		party_threat.append(_job_threat_base(i))
@@ -918,6 +923,18 @@ func heal_member(index: int, amount: int) -> int:
 	var before: int = party_combat_hp[index]
 	party_combat_hp[index] = min(before + adjusted, party_max_hp[index])
 	return party_combat_hp[index] - before
+
+
+## 戦闘不能メンバーを蘇生（HP0→指定割合）。成功時の回復後HPを返す。失敗時0。
+func revive_member(index: int, max_hp_fraction: float = 0.30) -> int:
+	if index < 0 or index >= party_combat_hp.size() or index >= party_max_hp.size():
+		return 0
+	if party_combat_hp[index] > 0:
+		return 0
+	var max_hp: int = maxi(1, int(party_max_hp[index]))
+	var hp: int = maxi(1, int(round(float(max_hp) * clampf(max_hp_fraction, 0.01, 1.0))))
+	party_combat_hp[index] = mini(hp, max_hp)
+	return int(party_combat_hp[index])
 
 func get_enemy_hp_ratio(slot: int) -> float:
 	if not is_enemy_slot_alive(slot):

@@ -17,7 +17,8 @@ extends RefCounted
 ##   death_save_heal_max_hp_fraction / death_save_outgoing_mult / death_save_outgoing_duration_sec /
 ##   exploration_damage_immune / exploration_damage_party_mult /
 ##   outgoing_mult_requires_hp_below / outgoing_vs_status_mult /
-##   pet_outgoing_mult / pet_defense_mult / threat_base_add /
+##   pet_outgoing_mult / pet_defense_mult / pet_max_hp_mult / pet_revive_on_combat_end_chance /
+##   pet_heal_on_action_max_hp_fraction / threat_base_add /
 ##   redirect_rear_hit_chance / lifesteal_ratio / combat_regen_* / treasure_room_weight_add
 ## weather_bonus（P3-EQ-WEATHER-LEG-001）: weather_id → element_outgoing_mult / outgoing_mult / crit_rate_add / refund_ct_fraction
 ## effect 追加: "chance_cast_equipped_skill"（攻撃後に装備スキルを確率発動）
@@ -128,14 +129,17 @@ const _DEFS: Dictionary = {
 	},
 	"mirei_swarm_resonance": {
 		"display_name": "毒牙の共鳴",
-		"description": "攻撃時、敵に毒を付与することがある。",
+		"description": "攻撃時20%の確率で敵に毒を付与する。ペットのステータスが1.5倍になる。",
 		"trigger": "on_attack",
 		"condition": "always",
 		"effect": "apply_status",
 		"status_id": "poison",
 		"target": "enemy",
-		"status_chance": 0.28,
+		"status_chance": 0.20,
 		"cooldown": 0.0,
+		"pet_outgoing_mult": 1.5,
+		"pet_defense_mult": 1.5,
+		"pet_max_hp_mult": 1.5,
 	},
 	# ---- ジョブフォールバック（非基本ロスター・助っ人等） ----
 	"bulwark": {
@@ -196,7 +200,7 @@ const _DEFS: Dictionary = {
 	},
 	"mira_beast_call": {
 		"display_name": "獣呼びの絆",
-		"description": "攻撃時20%の確率で敵に冷却を付与し、動きを鈍らせる。",
+		"description": "攻撃時20%の確率で敵に冷却を付与する。自分の行動時、ペットのHPを最大の10%回復する。",
 		"trigger": "on_attack",
 		"condition": "always",
 		"effect": "apply_status",
@@ -204,12 +208,18 @@ const _DEFS: Dictionary = {
 		"target": "enemy",
 		"status_chance": 0.20,
 		"cooldown": 0.0,
+		"pet_heal_on_action_max_hp_fraction": 0.10,
 	},
 	"valden_iron_oath": {
 		"display_name": "鉄誓の壁",
-		"description": "前列にいる間、味方全体の被ダメージを軽減する。",
+		"description": "味方全体の被ダメージを軽減する。自身がダメージを受けたとき、最大HPの10%を回復する。",
 		"party_incoming_mult": 0.90,
-		"passive_condition": "front_row_only",
+		"trigger": "on_hit_taken",
+		"condition": "always",
+		"effect": "heal",
+		"target": "self",
+		"heal_max_hp_fraction": 0.10,
+		"cooldown": 0.0,
 	},
 	"kaida_arena_edge": {
 		"display_name": "一閃の賭け",
@@ -262,9 +272,12 @@ const _DEFS: Dictionary = {
 	},
 	"neri_waterfowl_call": {
 		"display_name": "水鳥の指揮",
-		"description": "ペットが生存中、ペットの与ダメージが15%上昇し、防御が5%上昇する。",
-		"pet_outgoing_mult": 1.15,
-		"pet_defense_mult": 1.05,
+		"description": "ペットのステータスが1.2倍になる。戦闘終了時、戦闘不能のペットを30%の確率で蘇生する。",
+		"pet_outgoing_mult": 1.2,
+		"pet_defense_mult": 1.2,
+		"pet_max_hp_mult": 1.2,
+		"pet_revive_on_combat_end_chance": 0.30,
+		"pet_revive_max_hp_fraction": 0.30,
 	},
 	## プール助っ人 — 火鷹★4（撃破鼓舞＋行動スキップ）
 	"hodaka_blood_price": {
@@ -1332,6 +1345,51 @@ static func pet_defense_mult_from_party() -> float:
 	return mult
 
 
+## 編成メンバーのパッシブからペット最大HP倍率（ペット未所持なら 1.0）。
+static func pet_max_hp_mult_from_party() -> float:
+	if GameState.active_pet == null:
+		return 1.0
+	var mult: float = 1.0
+	for member: Resource in GameState.party_members:
+		if member == null:
+			continue
+		for def: Dictionary in for_member(member):
+			if def.has("pet_max_hp_mult"):
+				mult *= float(def["pet_max_hp_mult"])
+	return mult
+
+
+## 戦闘終了時ペット蘇生の最良チャンス／回復割合（誰も持たなければ空）。
+static func pet_revive_on_combat_end_def() -> Dictionary:
+	var best_chance: float = 0.0
+	var best_frac: float = 0.30
+	for member: Resource in GameState.party_members:
+		if member == null:
+			continue
+		for def: Dictionary in for_member(member):
+			var chance: float = float(def.get("pet_revive_on_combat_end_chance", 0.0))
+			if chance <= best_chance:
+				continue
+			best_chance = chance
+			best_frac = float(def.get("pet_revive_max_hp_fraction", 0.30))
+	if best_chance <= 0.0:
+		return {}
+	return {
+		"chance": best_chance,
+		"max_hp_fraction": best_frac,
+	}
+
+
+## 行動開始時のペット回復割合（該当パッシブの合算ではなく最大）。
+static func pet_heal_on_action_fraction_for_member(member: Resource) -> float:
+	if member == null:
+		return 0.0
+	var best: float = 0.0
+	for def: Dictionary in for_member(member):
+		best = maxf(best, float(def.get("pet_heal_on_action_max_hp_fraction", 0.0)))
+	return best
+
+
 static func threat_base_add_for_member(member: Resource) -> float:
 	if member == null:
 		return 0.0
@@ -1851,6 +1909,12 @@ static func _passive_effect_summary(def: Dictionary) -> String:
 		parts.append("ペット与ダメ +%d%%" % int(round((float(def["pet_outgoing_mult"]) - 1.0) * 100.0)))
 	if float(def.get("pet_defense_mult", 1.0)) > 1.0:
 		parts.append("ペット防御 +%d%%" % int(round((float(def["pet_defense_mult"]) - 1.0) * 100.0)))
+	if float(def.get("pet_max_hp_mult", 1.0)) > 1.0:
+		parts.append("ペットHP +%d%%" % int(round((float(def["pet_max_hp_mult"]) - 1.0) * 100.0)))
+	if float(def.get("pet_revive_on_combat_end_chance", 0.0)) > 0.0:
+		parts.append("戦闘終了時ペット蘇生 %d%%" % int(round(float(def["pet_revive_on_combat_end_chance"]) * 100.0)))
+	if float(def.get("pet_heal_on_action_max_hp_fraction", 0.0)) > 0.0:
+		parts.append("行動時ペット回復 %d%%" % int(round(float(def["pet_heal_on_action_max_hp_fraction"]) * 100.0)))
 	if float(def.get("heal_power_mult", 1.0)) > 1.0:
 		parts.append("回復 +%d%%" % int(round((float(def["heal_power_mult"]) - 1.0) * 100.0)))
 	if float(def.get("incoming_mult", 1.0)) < 1.0:

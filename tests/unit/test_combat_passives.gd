@@ -152,11 +152,15 @@ func test_starter_and_gacha_passive_redesign() -> void:
 	var mira: Dictionary = CombatPassives.get_def("mira_beast_call")
 	assert_eq(str(mira.get("status_id", "")), "chill")
 	assert_eq(float(mira.get("status_chance", 0.0)), 0.20)
+	assert_almost_eq(float(mira.get("pet_heal_on_action_max_hp_fraction", 0.0)), 0.10, 0.001)
 	var whistle: Dictionary = CombatPassives.get_def("tamer_whistle")
 	assert_eq(str(whistle.get("status_id", "")), "chill")
 	var valden: Dictionary = CombatPassives.get_def("valden_iron_oath")
 	assert_eq(float(valden.get("party_incoming_mult", 0.0)), 0.90)
-	assert_eq(str(valden.get("passive_condition", "")), "front_row_only")
+	assert_false(valden.has("passive_condition"))
+	assert_eq(str(valden.get("effect", "")), "heal")
+	assert_eq(str(valden.get("trigger", "")), "on_hit_taken")
+	assert_almost_eq(float(valden.get("heal_max_hp_fraction", 0.0)), 0.10, 0.001)
 	assert_eq(str(valden.get("display_name", "")), "鉄誓の壁")
 
 
