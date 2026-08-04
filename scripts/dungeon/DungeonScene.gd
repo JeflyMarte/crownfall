@@ -278,7 +278,7 @@ const ENEMY_BODY_SCALE_MULT: Dictionary = {
 	"anchor_lord": 1.32,
 	"greios": 1.30,
 	"polar_tricera": 1.28,
-	"big_cosmic_duck": 1.72,
+	"big_cosmic_duck": 0.86,
 }
 ## LOG_ENEMY_TIER_BY_ID=elite かつ個別倍率未指定時の既定ブースト。
 const ELITE_BODY_SCALE_MULT_DEFAULT: float = 1.28
@@ -989,7 +989,7 @@ const BOSS_BODY_TARGET_PX: float = 280.0
 ## 体格正規化後の見た目倍率（1.0=標準）。セルが大きい種だけ追加抑制。
 const BOSS_BODY_SCALE_MULT: Dictionary = {
 	"serdion": 0.92,
-	"big_cosmic_duck": 1.55,
+	"big_cosmic_duck": 0.775,
 }
 const COMBAT_UI_Z: int = 40
 const COMBAT_OVERLAY_Z: int = 25
