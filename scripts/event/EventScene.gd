@@ -313,9 +313,10 @@ func _refresh() -> void:
 		return
 	_label_issue_date.text = EventSystem.issue_date_text()
 	_label_section.text = "いまの野外"
-	_label_headline.text = EventSystem.active_modifier_summary()
+	## 見出しは title（例: 穏やかな野外）。banner_desc はホーム帯用。
+	_label_headline.text = str(event_data.title).strip_edges()
 	if _label_headline.text.is_empty():
-		_label_headline.text = str(event_data.title)
+		_label_headline.text = EventSystem.active_modifier_summary()
 	_refresh_countdown()
 	_label_schedule.text = "開催期間: %s" % EventSystem.schedule_text(event_data)
 	## field_notes（第○班／鍛冶など）は非表示。記事・効果・天候のみ。
