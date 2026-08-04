@@ -18,7 +18,7 @@ const _DEFS: Dictionary = {
 		"job_label": "記録官",
 		"preferred_role": "documents",
 		"icon_path": "res://assets/npc/ICO_NPC_Nina.png",
-		"portrait_path": "res://assets/npc/ART_NPC_Nina.png",
+		"portrait_path": "res://assets/npc/ART_NPC_Nina_Library.png",
 	},
 	ID_NONOKA: {
 		"display_name": "ノノカ",

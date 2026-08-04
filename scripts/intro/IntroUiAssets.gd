@@ -4,7 +4,7 @@ extends RefCounted
 const BG_LORE: String = "res://assets/ui/intro/BG_Intro_Lore.png"
 const BG_NAME: String = "res://assets/ui/intro/BG_Intro_Name.png"
 const BG_STARTER: String = "res://assets/ui/intro/BG_Intro_Starter.png"
-const NINA_PORTRAIT: String = "res://assets/npc/ART_NPC_Nina.png"
+const NINA_PORTRAIT: String = "res://assets/npc/ART_NPC_Nina.png"  ## 最初から紹介（Downloads「最初からニーナ」）
 ## 調査室／セリフ用の顔アイコン（Downloads ニーナアイコン）。
 const NINA_ICON: String = "res://assets/npc/ICO_NPC_Nina.png"
 ## 手引き書籍UI用の顔アイコン（Downloads ニーナの手引きアイコン・枠付き）。

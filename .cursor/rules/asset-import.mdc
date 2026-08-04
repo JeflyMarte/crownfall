@@ -45,6 +45,7 @@ alwaysApply: false
 - ペット（ジャック／アッシュ／インク）はこのフォルダ対象外
 - 差替後は `.godot/imported` 該当分クリア＋Godot 再起動
 - **手引き顔**（Downloads `ニーナの手引きアイコン`）→ `ICO_NPC_Nina_Guide.png`（枠付き・本体 alpha=255）。調査室顔 `ICO_NPC_Nina` とは別。配線は `IntroUiAssets.NINA_ICON_GUIDE`
+- **最初から紹介立ち絵**（Downloads `最初からニーナ`）→ `ART_NPC_Nina.png`。調査室ポートレートは旧図書館背景を `ART_NPC_Nina_Library.png` に退避
 
 - **本番背景を generate スクリプトで上書きしない**（ガチャは保護済み。上書きは `--force`）
 - 取込後は **commit**（未コミットのまま Mac 移行すると出戻り）

@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-08-04（**最初からニーナ立ち絵差替／統合＋main**: Downloads縦長絵を `ART_NPC_Nina` へ。調査室は Library 退避。要Godot再インポート・実機）
 2026-08-04（**ニーナ手引き顔アイコン配置／統合＋main**: `ICO_NPC_Nina_Guide`（枠付き）を書籍手引きへ配線。調査室顔は別。要Godot再インポート・実機）
 2026-08-04（**成長H1点検＋sim修復／統合＋main**: 被ダメ定量OK・K据置。DamageCalculatorインデント／is_pet_combatant インライン。要実機感触）
 2026-08-04（**成長H1のC′補正／統合＋main**: 敵レベル連動ATK 0.10→0.13。要実機）

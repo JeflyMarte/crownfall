@@ -84,11 +84,12 @@ func _build_ui() -> void:
 	root.add_child(row)
 
 	var portrait := TextureRect.new()
-	portrait.custom_minimum_size = Vector2(280, 400)
+	## 縦長立ち絵（Downloads「最初からニーナ」）を切れずに左へ。
+	portrait.custom_minimum_size = Vector2(220, 640)
 	portrait.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	portrait.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	portrait.texture = _IntroUiAssets.load_tex(_IntroUiAssets.NINA_PORTRAIT)
 	row.add_child(portrait)
 
