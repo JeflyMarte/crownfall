@@ -57,30 +57,31 @@ func test_grant_exp_includes_pet() -> void:
 func test_pet_skills_survive_normalize() -> void:
 	SkillProgression.normalize_equipped_skills(GameState.active_pet)
 	assert_gt(GameState.active_pet.equipped_skill_ids.size(), 0)
-	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_nibble"))
+	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_jack_frenzy"))
 
 
 func test_pet_skill_unlocks_by_level() -> void:
-	## Lv1/8/16/32 で解放が増える。装備枠は常に1本（先頭が既定）。
+	## Lv1/8/16/24/32 で解放が増える。装備枠は常に1本（先頭が既定＝全体鼓舞）。
 	GameState.active_pet.level = 1
 	GameState.active_pet.equipped_skill_ids = [] as Array[String]
 	_PetSystem.sync_pet_runtime(GameState.active_pet)
 	assert_eq(GameState.active_pet.equipped_skill_ids.size(), 1)
-	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_nibble"))
+	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_jack_frenzy"))
+	assert_eq(SkillProgression.get_pet_required_level(GameState.active_pet, "pet_jack_frenzy"), 1)
 
 	GameState.active_pet.level = 8
 	GameState.active_pet.equipped_skill_ids = [] as Array[String]
 	_PetSystem.sync_pet_runtime(GameState.active_pet)
 	assert_eq(GameState.active_pet.equipped_skill_ids.size(), 1)
 	assert_true(SkillProgression.get_unlocked_pet_skill_ids(GameState.active_pet).has("pet_pounce"))
-	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_nibble"))
+	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_jack_frenzy"))
 
 	GameState.active_pet.level = 32
 	GameState.active_pet.equipped_skill_ids = [] as Array[String]
 	_PetSystem.sync_pet_runtime(GameState.active_pet)
 	assert_eq(GameState.active_pet.equipped_skill_ids.size(), 1)
 	assert_eq(SkillProgression.get_unlocked_pet_skill_ids(GameState.active_pet).size(), 5)
-	assert_eq(SkillProgression.get_pet_required_level(GameState.active_pet, "pet_jack_frenzy"), 24)
+	assert_eq(SkillProgression.get_pet_required_level(GameState.active_pet, "pet_nibble"), 32)
 
 
 func test_pet_skill_equip_toggle_at_max_level() -> void:
@@ -88,19 +89,19 @@ func test_pet_skill_equip_toggle_at_max_level() -> void:
 	GameState.active_pet.equipped_skill_ids = [] as Array[String]
 	_PetSystem.sync_pet_runtime(GameState.active_pet)
 	assert_eq(GameState.active_pet.equipped_skill_ids.size(), 1)
-	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_nibble"))
+	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_jack_frenzy"))
 	## 別スキルを選ぶと1枠を置換
 	GameState.toggle_member_skill(GameState.active_pet, "pet_jack_savage")
 	assert_eq(GameState.active_pet.equipped_skill_ids.size(), 1)
 	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_jack_savage"))
-	assert_false(GameState.active_pet.equipped_skill_ids.has("pet_nibble"))
+	assert_false(GameState.active_pet.equipped_skill_ids.has("pet_jack_frenzy"))
 	## 解除できる
 	GameState.toggle_member_skill(GameState.active_pet, "pet_jack_savage")
 	assert_eq(GameState.active_pet.equipped_skill_ids.size(), 0)
 	## normalize で解放済み先頭が戻る
 	SkillProgression.normalize_equipped_skills(GameState.active_pet)
 	assert_eq(GameState.active_pet.equipped_skill_ids.size(), 1)
-	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_nibble"))
+	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_jack_frenzy"))
 
 
 func test_pet_level_up_syncs_new_skills() -> void:
@@ -141,14 +142,15 @@ func test_pet_base_stats_are_buffed_150() -> void:
 
 
 func test_jack_skills_are_support_oriented() -> void:
-	## かじり以外は回復／鼓舞。火力特化をやめた。
-	assert_eq(str(DataRegistry.get_skill_data("pet_nibble").effect_type), "damage")
-	assert_eq(str(DataRegistry.get_skill_data("pet_pounce").effect_type), "heal")
-	assert_eq(str(DataRegistry.get_skill_data("pet_jack_rend").effect_type), "buff")
+	## Lv1全体鼓舞。回復／単体鼓舞／つなぎダメ。火力特化ではない。
 	assert_eq(str(DataRegistry.get_skill_data("pet_jack_frenzy").effect_type), "buff")
 	assert_eq(str(DataRegistry.get_skill_data("pet_jack_frenzy").target_type), "all_party")
+	assert_eq(str(DataRegistry.get_skill_data("pet_pounce").effect_type), "heal")
+	assert_eq(str(DataRegistry.get_skill_data("pet_jack_rend").effect_type), "buff")
 	assert_eq(str(DataRegistry.get_skill_data("pet_jack_savage").effect_type), "heal")
+	assert_eq(str(DataRegistry.get_skill_data("pet_nibble").effect_type), "damage")
 	assert_eq(str(GameState.active_pet.tactics_id), "support_focus")
+	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_jack_frenzy"))
 
 
 func test_jack_portrait_icon_resolves() -> void:
@@ -270,12 +272,13 @@ func test_switch_active_pet_carries_level_exp() -> void:
 	assert_eq(int(GameState.active_pet.exp), 340)
 	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_ash_bark"))
 	assert_eq(GameState.active_pet.equipped_skill_ids.size(), 1)
-	assert_false(GameState.active_pet.equipped_skill_ids.has("pet_nibble"))
+	assert_false(GameState.active_pet.equipped_skill_ids.has("pet_jack_frenzy"))
+	assert_eq(str(GameState.active_pet.tactics_id), "aggressive")
 	assert_true(_PetSystem.set_active_pet_id("pet_jack"))
 	assert_eq(str(GameState.active_pet.id), "pet_jack")
 	assert_eq(int(GameState.active_pet.level), 12)
 	assert_eq(int(GameState.active_pet.exp), 340)
-	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_nibble"))
+	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_jack_frenzy"))
 	assert_eq(GameState.active_pet.equipped_skill_ids.size(), 1)
 	assert_false(GameState.active_pet.equipped_skill_ids.has("pet_jack_rend"))
 
@@ -286,39 +289,51 @@ func test_cannot_activate_unowned_pet() -> void:
 
 
 func test_variant_role_skills() -> void:
+	## 三角: ジャック＝サポ／アッシュ＝火力／インク＝状態異常
 	var ash: Resource = _PetSystem.get_pet_data("pet_ash")
 	var ink: Resource = _PetSystem.get_pet_data("pet_ink")
 	assert_true(ash.skill_ids.has("pet_ash_bark"))
-	assert_true(ash.skill_ids.has("pet_ash_guard"))
 	assert_true(ash.skill_ids.has("pet_ash_aegis"))
-	assert_true(ink.skill_ids.has("pet_ink_fang"))
-	assert_true(ink.skill_ids.has("pet_ink_snare"))
-	assert_true(ink.skill_ids.has("pet_ink_rupture"))
+	assert_true(ink.skill_ids.has("pet_ink_toxin"))
+	assert_true(ink.skill_ids.has("pet_ink_paralyze"))
+	assert_true(ink.skill_ids.has("pet_ink_hex"))
 	assert_eq(ash.skill_unlocks.size(), 5)
 	assert_eq(ink.skill_unlocks.size(), 5)
 	var bark: Resource = DataRegistry.get_skill_data("pet_ash_bark")
 	var guard_s: Resource = DataRegistry.get_skill_data("pet_ash_guard")
 	var howl: Resource = DataRegistry.get_skill_data("pet_ash_howl")
+	var bulwark: Resource = DataRegistry.get_skill_data("pet_ash_bulwark")
+	var aegis: Resource = DataRegistry.get_skill_data("pet_ash_aegis")
 	var fang: Resource = DataRegistry.get_skill_data("pet_ink_fang")
 	var snare: Resource = DataRegistry.get_skill_data("pet_ink_snare")
 	var toxin: Resource = DataRegistry.get_skill_data("pet_ink_toxin")
+	var para: Resource = DataRegistry.get_skill_data("pet_ink_paralyze")
 	var hex_s: Resource = DataRegistry.get_skill_data("pet_ink_hex")
 	assert_not_null(bark)
 	assert_not_null(guard_s)
 	assert_not_null(howl)
+	assert_not_null(bulwark)
+	assert_not_null(aegis)
 	assert_not_null(fang)
 	assert_not_null(snare)
 	assert_not_null(toxin)
+	assert_not_null(para)
 	assert_not_null(hex_s)
-	assert_eq(str(bark.effect_type), "buff")
-	assert_true(bark.tags.has("taunt"))
-	assert_eq(str(bark.apply_status_id), "guard")
-	assert_eq(str(guard_s.apply_status_id), "guard")
-	assert_eq(str(howl.apply_status_id), "empower")
-	assert_eq(str(fang.apply_status_id), "bleed")
-	assert_eq(str(snare.apply_status_id), "slow")
+	assert_eq(str(bark.effect_type), "damage")
+	assert_eq(str(guard_s.effect_type), "damage")
+	assert_eq(str(howl.effect_type), "damage")
+	assert_true(howl.tags.has("vs_bleed"))
+	assert_true(bulwark.tags.has("vs_mark"))
+	assert_eq(str(aegis.effect_type), "damage")
 	assert_eq(str(toxin.apply_status_id), "poison")
+	assert_eq(str(snare.apply_status_id), "slow")
+	assert_eq(str(fang.apply_status_id), "bleed")
+	assert_eq(str(para.apply_status_id), "stun")
 	assert_eq(str(hex_s.apply_status_id), "mark")
+	assert_eq(SkillProgression.get_pet_required_level(
+		_PetSystem.create_pet_adventurer("pet_ink"), "pet_ink_toxin"), 1)
+	assert_eq(SkillProgression.get_pet_required_level(
+		_PetSystem.create_pet_adventurer("pet_ink"), "pet_ink_paralyze"), 24)
 
 
 func test_variant_skills_unlock_at_max_level() -> void:
@@ -332,7 +347,7 @@ func test_variant_skills_unlock_at_max_level() -> void:
 	assert_true(_PetSystem.set_active_pet_id("pet_ink"))
 	assert_eq(SkillProgression.get_unlocked_pet_skill_ids(GameState.active_pet).size(), 5)
 	assert_eq(GameState.active_pet.equipped_skill_ids.size(), 1)
-	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_ink_fang"))
+	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_ink_toxin"))
 	assert_false(GameState.active_pet.equipped_skill_ids.has("pet_ash_bark"))
 
 
@@ -343,4 +358,4 @@ func test_variant_portrait_icons_resolve() -> void:
 	assert_not_null(RosterUiHelper.get_member_portrait_texture(GameState.active_pet))
 	_PetSystem.set_active_pet_id("pet_ink")
 	assert_not_null(RosterUiHelper.get_member_portrait_texture(GameState.active_pet))
-	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_ink_fang"))
+	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_ink_toxin"))

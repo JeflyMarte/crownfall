@@ -6,10 +6,10 @@
 script = ExtResource("1")
 id = "pet_nibble"
 display_name = "かじりつき"
-description = "軽い噛みつき。介抱の合間に素早く繰り出す。"
+description = "軽い噛みつき。鼓舞や介抱が余ったときのつなぎ。"
 skill_type = "player"
 target_type = "enemy"
-power_multiplier = 0.8
+power_multiplier = 0.85
 cooldown = 2.4
 trigger_type = "cooldown"
 effect_type = "damage"

@@ -5,17 +5,17 @@
 [resource]
 script = ExtResource("1")
 id = "pet_ash_bulwark"
-display_name = "灰壁"
-description = "守りを固め、自身の被ダメージを大きく軽減する。"
+display_name = "標的裂き"
+description = "標的が付いた敵を裂く。マーク連携向けの火力。"
 skill_type = "player"
-target_type = "self"
-power_multiplier = 1.0
-cooldown = 8.0
+target_type = "enemy"
+power_multiplier = 1.15
+cooldown = 5.0
 trigger_type = "cooldown"
-effect_type = "buff"
-tags = Array[String](["support", "buff", "pet", "self"])
+effect_type = "damage"
+tags = Array[String](["melee", "slash", "pet", "vs_mark"])
 element = ""
-apply_status_id = "guard"
-apply_status_chance = 1.0
+apply_status_id = ""
+apply_status_chance = 0.0
 slot_type = "skill"
-range_type = "long"
+range_type = "melee"

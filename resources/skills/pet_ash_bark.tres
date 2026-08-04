@@ -5,17 +5,17 @@
 [resource]
 script = ExtResource("1")
 id = "pet_ash_bark"
-display_name = "威嚇の吠え"
-description = "灰毛の伴侶獣が吠えて敵の注意を引き、自ら守りを固める。"
+display_name = "灰牙"
+description = "灰毛の伴侶獣の本線噛みつき。後半も選択肢になる主力火力。"
 skill_type = "player"
-target_type = "self"
-power_multiplier = 1.0
-cooldown = 5.5
+target_type = "enemy"
+power_multiplier = 1.2
+cooldown = 2.8
 trigger_type = "cooldown"
-effect_type = "buff"
-tags = Array[String](["support", "buff", "pet", "self", "taunt"])
+effect_type = "damage"
+tags = Array[String](["melee", "pierce", "pet"])
 element = ""
-apply_status_id = "guard"
-apply_status_chance = 1.0
+apply_status_id = ""
+apply_status_chance = 0.0
 slot_type = "skill"
-range_type = "long"
+range_type = "melee"
