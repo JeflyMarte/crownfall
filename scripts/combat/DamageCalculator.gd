@@ -253,10 +253,14 @@ static func member_attack_damage(
 # ── 敵 → 味方 被ダメ ─────────────────────────────────────────────────────
 
 ## 装備合算回避率（防具+装飾品、上限 BalanceConfig.EVASION_RATE_CAP）。
+## ペットは装備不可のため PetSystem.PET_BASE_EVASION_RATE を足す。
 static func member_evasion_rate(member_index: int) -> float:
 	if member_index < 0:
 		return 0.0
 	var total: float = 0.0
+	const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
+	if GameState.is_pet_combatant(member_index):
+		total += _PetSystem.PET_BASE_EVASION_RATE
 	var armor: Resource = GameState.get_member_equipped_armor(member_index)
 	if armor != null:
 		total += _ArmorStatResolver.resolve_evasion_rate(armor)

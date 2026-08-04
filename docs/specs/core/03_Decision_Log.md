@@ -7023,3 +7023,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-DEFEND-WEIGHT-001-2 | 必殺温存・強敵・サポート・雑魚優先もピンチ防御を約半減 | 横断で同趣旨 |
 | P3-BAL-DEFEND-WEIGHT-001-3 | **防御重視は据置** | 方針の差別化 |
 | P3-BAL-DEFEND-WEIGHT-001-4 | **SSOT**＝`docs/specs/decisions/66_DefendWeightDown.md` | Decision 本体 |
+
+## ペット回避＋狙われ率（2026-08-04 — P3-BAL-PET-EVADE-THREAT-001）
+
+> **オーナー GO（案C）** — 既定回避20%。Threat 0.6（後列相当以下）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-PET-EVADE-THREAT-001-1 | ペット既定回避 **20%** | 装備不可で回避0だった穴 |
+| P3-BAL-PET-EVADE-THREAT-001-2 | Threat **1.35→0.6**（後列雑魚職相当） | サポートペットを矢面にしない |
+| P3-BAL-PET-EVADE-THREAT-001-3 | **SSOT**＝`docs/specs/decisions/68_PetEvasionThreat.md` | Decision 本体 |

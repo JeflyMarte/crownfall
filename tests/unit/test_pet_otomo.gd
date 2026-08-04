@@ -158,23 +158,32 @@ func test_jack_portrait_icon_resolves() -> void:
 	assert_true(ResourceLoader.exists("res://assets/ui/chr_icons/ICO_CHR_Jack.png"))
 
 
-func test_pet_threat_can_be_selected_over_generic_jobs() -> void:
-	## max_threat 下でも雑魚職より高く、盾より低いこと（無敵回避）。
-	assert_gt(_PetSystem.PET_THREAT_BASE, 1.0)
-	assert_lt(_PetSystem.PET_THREAT_BASE, 2.0)
+func test_pet_threat_is_at_or_below_back_row() -> void:
+	## P3-BAL-PET-EVADE-THREAT-001 案C: Threat 0.6＝後列雑魚職相当以下。
+	assert_almost_eq(_PetSystem.PET_THREAT_BASE, BalanceConfig.FORMATION_BACK_THREAT, 0.0001)
+	assert_lte(_PetSystem.PET_THREAT_BASE, 1.0 * BalanceConfig.FORMATION_BACK_THREAT)
 	var cc: CombatController = CombatController.new()
 	add_child_autofree(cc)
 	cc._init_party_hp()
 	var pet_i: int = GameState.combatant_count() - 1
 	assert_true(GameState.is_pet_combatant(pet_i))
-	## 人間を全員 Threat 1.0 相当（剣士/盾以外）に揃えた想定で、ペットが選ばれうる
+	var pet_threat: float = cc._job_threat_base(pet_i)
+	assert_almost_eq(pet_threat, 0.6, 0.0001)
+	## 前列雑魚職(1.0)より低く、max_threat では人間が優先される。
 	for i in GameState.party_members.size():
 		if i < cc.party_threat.size():
 			cc.party_threat[i] = 1.0
 	if pet_i < cc.party_threat.size():
-		cc.party_threat[pet_i] = _PetSystem.PET_THREAT_BASE
+		cc.party_threat[pet_i] = pet_threat
 	var target: int = cc.pick_enemy_target_member_index(-1)
-	assert_eq(target, pet_i)
+	assert_ne(target, pet_i)
+
+
+func test_pet_base_evasion_rate() -> void:
+	assert_almost_eq(_PetSystem.PET_BASE_EVASION_RATE, 0.20, 0.0001)
+	var pet_i: int = GameState.combatant_count() - 1
+	assert_true(GameState.is_pet_combatant(pet_i))
+	assert_almost_eq(DamageCalculator.member_evasion_rate(pet_i), 0.20, 0.0001)
 
 
 func test_pet_does_not_gain_ultimate_charge() -> void:
