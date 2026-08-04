@@ -18,6 +18,4 @@ element = ""
 apply_status_id = ""
 apply_status_chance = 0.0
 slot_type = "skill"
-range_type = "mid"
-reserve_condition = "ally_injured"
-reserve_value = ""
+range_type = "melee"
