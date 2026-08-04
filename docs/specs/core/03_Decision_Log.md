@@ -7076,3 +7076,4 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-GROWTH-H1-001-1 | DEF もレベル成長（基礎 +8/Lv、51以降 +4） | 防御が薄い／厚いを育ちで表現 |
 | P3-BAL-GROWTH-H1-001-2 | キャラ別倍率（火力↑DEF↓等） | 後半の個人差薄まり対策 |
 | P3-BAL-GROWTH-H1-001-3 | **SSOT**＝`docs/specs/decisions/71_CharacterLevelGrowth.md` | Decision 本体 |
+| P3-BAL-GROWTH-H1-001-4 | **C′** — `ENEMY_LEVEL_ATK_K` 0.10→**0.13**（HP連動据置） | DEF成長後も変更前相当の被圧 |

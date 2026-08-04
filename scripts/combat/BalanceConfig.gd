@@ -177,7 +177,9 @@ static func lore_success_chance(tier: int) -> float:
 
 # ── 敵レベルスケール（P3-D081） ──────────────────────────────────────────
 const ENEMY_LEVEL_HP_K: float = 0.10
-const ENEMY_LEVEL_ATK_K: float = 0.10
+## 味方 DEF 成長（P3-BAL-GROWTH-H1）による被ダメ減を相殺（P3-BAL-GROWTH-H1-C）。
+## 0.10→0.13: 序盤ほぼ据置、中後半で変更前相当の被圧に近づける。
+const ENEMY_LEVEL_ATK_K: float = 0.13
 const ENEMY_LEVEL_EXP_K: float = 0.15
 
 # ── 編成人数補正（P3-BAL-003・base=3人） ─────────────────────────────────
