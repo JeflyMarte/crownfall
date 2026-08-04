@@ -220,3 +220,17 @@ func test_bow_display_texture_is_cropped() -> void:
 	# IconPaths.get_icon_texture 経由でも同じ扱いになること
 	var via_map: Texture2D = IconPaths.get_icon_texture("hunting_bow", "weapon")
 	assert_true(via_map is AtlasTexture)
+
+
+func test_alchemy_fodder_row_text_includes_rarity() -> void:
+	## 装備品名　所持数　レアリティ（名前側に Lv を含む想定）。
+	assert_eq(
+		BlacksmithUiHelper.alchemy_fodder_row_text("王国制式剣 Lv.4", 2, "N"),
+		"王国制式剣 Lv.4　所持 2　N"
+	)
+	assert_eq(
+		BlacksmithUiHelper.alchemy_fodder_row_text("霜刃 Lv.9", 1, "E"),
+		"霜刃 Lv.9　所持 1　E"
+	)
+	assert_eq(BlacksmithUiHelper.rarity_short_label(Enums.Rarity.COMMON), "N")
+	assert_eq(BlacksmithUiHelper.rarity_short_label(Enums.Rarity.EPIC), "E")

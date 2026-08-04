@@ -2272,16 +2272,17 @@ func _open_alchemy_fodder_picker() -> void:
 		UiTypography.apply_caption(empty, COLOR_SUB_STRONG)
 		_alchemy_fodder_list.add_child(empty)
 	else:
-		var index: int = 1
 		for row_data in rows:
 			var sample: Resource = row_data.get("sample") as Resource
 			var display_name: String = str(row_data.get("display_name", ""))
 			var count: int = int(row_data.get("count", 0))
+			var rarity_label: String = str(row_data.get("rarity_label", ""))
 			var btn := Button.new()
 			btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			btn.custom_minimum_size = Vector2(0, 52)
 			btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-			btn.text = "%d  %s　　所持 %d" % [index, display_name, count]
+			## 装備品名（Lv込み）　所持数　レアリティ
+			btn.text = BlacksmithUiHelper.alchemy_fodder_row_text(display_name, count, rarity_label)
 			btn.clip_text = false
 			btn.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 			btn.add_theme_font_size_override("font_size", 18)
@@ -2289,7 +2290,6 @@ func _open_alchemy_fodder_picker() -> void:
 			btn.mouse_filter = Control.MOUSE_FILTER_STOP
 			btn.pressed.connect(_on_alchemy_fodder_row_pressed.bind(sample))
 			_alchemy_fodder_list.add_child(btn)
-			index += 1
 	_alchemy_fodder_overlay.visible = true
 	## 一覧追加後に ScrollTouch が PASS に戻すので、次フレームで STOP を復元。
 	call_deferred("_restore_alchemy_fodder_row_input")
@@ -2305,6 +2305,7 @@ func _restore_alchemy_fodder_row_input() -> void:
 
 func _alchemy_fodder_grouped_rows() -> Array:
 	## 同一テンプレIDをまとめて所持数表示。サンプルはレベル高い個体。
+	## 行表示: 装備品名　Lv　所持数　レアリティ
 	var groups: Dictionary = {}
 	for item in _sorted_alchemy_fodder_candidates():
 		if item == null:
@@ -2312,12 +2313,16 @@ func _alchemy_fodder_grouped_rows() -> Array:
 		var item_id: String = _item_id_for_category(item, _category)
 		if item_id.is_empty():
 			continue
+		var rarity: int = _EquipmentEnhancer.item_rarity(item)
+		var rarity_label: String = BlacksmithUiHelper.rarity_short_label(rarity)
 		if not groups.has(item_id):
 			groups[item_id] = {
 				"item_id": item_id,
 				"display_name": _EquipmentEnhancer.get_display_name(item),
 				"count": 1,
 				"sample": item,
+				"rarity": rarity,
+				"rarity_label": rarity_label,
 			}
 		else:
 			var row: Dictionary = groups[item_id]
@@ -2325,11 +2330,16 @@ func _alchemy_fodder_grouped_rows() -> Array:
 			var sample: Resource = row.get("sample") as Resource
 			if _EquipmentEnhancer.get_equip_level(item) > _EquipmentEnhancer.get_equip_level(sample):
 				row["sample"] = item
+				row["display_name"] = _EquipmentEnhancer.get_display_name(item)
 			groups[item_id] = row
 	var out: Array = []
 	for key in groups.keys():
 		out.append(groups[key])
 	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		var ra: int = int(a.get("rarity", 0))
+		var rb: int = int(b.get("rarity", 0))
+		if ra != rb:
+			return ra > rb
 		return str(a.get("display_name", "")) < str(b.get("display_name", ""))
 	)
 	return out
@@ -2357,7 +2367,13 @@ func _show_alchemy_fodder_confirm(fodder: Resource) -> void:
 	var lines: PackedStringArray = PackedStringArray()
 	lines.append("素材にしてよろしいですか？")
 	lines.append("")
-	lines.append("【素材】%s" % _EquipmentEnhancer.get_display_name(fodder))
+	lines.append(
+		"【素材】%s　%s"
+		% [
+			_EquipmentEnhancer.get_display_name(fodder),
+			BlacksmithUiHelper.rarity_short_label(_EquipmentEnhancer.item_rarity(fodder)),
+		]
+	)
 	for stat_line: String in _alchemy_item_stat_lines(fodder):
 		lines.append(stat_line)
 	lines.append("")

@@ -68,6 +68,18 @@ static func rarity_gem(rarity: int) -> String:
 static func rarity_short_label(rarity: int) -> String:
 	return RARITY_SHORT[clampi(rarity, 0, RARITY_SHORT.size() - 1)]
 
+
+## 錬成素材ピッカー行: 装備品名（Lv込み）　所持数　レアリティ
+static func alchemy_fodder_row_text(display_name: String, count: int, rarity_label: String) -> String:
+	var name_str: String = display_name.strip_edges()
+	if name_str.is_empty():
+		name_str = "—"
+	var rare: String = rarity_label.strip_edges()
+	if rare.is_empty():
+		rare = "?"
+	return "%s　所持 %d　%s" % [name_str, maxi(0, count), rare]
+
+
 static func category_label(category: String) -> String:
 	return str(CATEGORY_LABELS.get(category, category))
 
