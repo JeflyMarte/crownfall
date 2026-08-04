@@ -5,6 +5,7 @@ extends GutTest
 func test_soft_cap_hp_bonus_unchanged() -> void:
 	assert_eq(LevelSystem.level_hp_bonus(50), 49 * BalanceConfig.HP_PER_LEVEL)
 	assert_eq(LevelSystem.level_attack_bonus(50), 49 * BalanceConfig.ATTACK_PER_LEVEL)
+	assert_eq(LevelSystem.level_defense_bonus(50), 49 * BalanceConfig.DEFENSE_PER_LEVEL)
 
 func test_master_tier_adds_diminished_growth() -> void:
 	assert_eq(
@@ -16,12 +17,20 @@ func test_master_tier_adds_diminished_growth() -> void:
 		49 * BalanceConfig.ATTACK_PER_LEVEL + BalanceConfig.ATTACK_PER_LEVEL_MASTER
 	)
 	assert_eq(
+		LevelSystem.level_defense_bonus(51),
+		49 * BalanceConfig.DEFENSE_PER_LEVEL + BalanceConfig.DEFENSE_PER_LEVEL_MASTER
+	)
+	assert_eq(
 		LevelSystem.level_hp_bonus(99),
 		49 * BalanceConfig.HP_PER_LEVEL + 49 * BalanceConfig.HP_PER_LEVEL_MASTER
 	)
 	assert_eq(
 		LevelSystem.level_attack_bonus(99),
 		49 * BalanceConfig.ATTACK_PER_LEVEL + 49 * BalanceConfig.ATTACK_PER_LEVEL_MASTER
+	)
+	assert_eq(
+		LevelSystem.level_defense_bonus(99),
+		49 * BalanceConfig.DEFENSE_PER_LEVEL + 49 * BalanceConfig.DEFENSE_PER_LEVEL_MASTER
 	)
 
 func test_grant_exp_caps_at_99() -> void:

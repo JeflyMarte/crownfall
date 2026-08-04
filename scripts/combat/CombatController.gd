@@ -689,7 +689,7 @@ func _init_party_hp() -> void:
 		# Affix ボーナスとレベル HP
 		var affix_bonuses: Dictionary = _AffixStatCalculator.get_bonuses(i)
 		max_hp += int(affix_bonuses.get("hp_flat", 0))
-		max_hp += LevelSystem.level_hp_bonus(member.level)
+		max_hp += LevelSystem.level_hp_bonus(member.level, member)
 		var job_mods: Dictionary = _JobStatCalculator.get_member_modifiers(member)
 		var hp_mult: float = float(job_mods.get("hp_multiplier", _JobStatCalculator.DEFAULT_MULTIPLIER))
 		hp_mult *= _EquipmentSetBonuses.hp_mult(i)
