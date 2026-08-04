@@ -10,6 +10,12 @@ func test_base_defense_per_level_constant() -> void:
 	assert_eq(BalanceConfig.DEFENSE_PER_LEVEL_MASTER, BalanceConfig.STAT_SCALE / 2)
 
 
+func test_enemy_level_atk_k_compensates_def_growth() -> void:
+	## C′: DEF成長による被ダメ減を敵レベル連動ATKで相殺（HP連動は据置）。
+	assert_almost_eq(BalanceConfig.ENEMY_LEVEL_ATK_K, 0.13, 0.0001)
+	assert_almost_eq(BalanceConfig.ENEMY_LEVEL_HP_K, 0.10, 0.0001)
+
+
 func test_default_level_defense_bonus_matches_base_curve() -> void:
 	assert_eq(LevelSystem.level_defense_bonus(1), 0)
 	assert_eq(LevelSystem.level_defense_bonus(50), 49 * BalanceConfig.DEFENSE_PER_LEVEL)

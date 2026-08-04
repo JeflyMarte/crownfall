@@ -17,6 +17,7 @@
 | 3 | 適用: `LevelSystem.level_*_bonus(level, member)` → 戦闘 HP／与ダメ／被ダメDEF／編成UI |
 | 4 | 未定義 id（ペット等）は倍率 1.0 |
 | 5 | プール外 `_omitted` は当面デフォルト（必要なら後日） |
+| 6 | **C′（追記）** — 味方DEF成長の被ダメ減を、敵レベル連動ATK（`ENEMY_LEVEL_ATK_K` **0.10→0.13**）で相殺。HP連動は据置 |
 
 ## 承認済み倍率（HP / ATK / DEF）
 
