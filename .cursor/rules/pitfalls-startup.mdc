@@ -28,7 +28,7 @@ alwaysApply: true
 | ダンジョン選択で外側 const＋ラムダ | 上記 `sort_custom` と同じ。比較はメソッドへ |
 | `_execute_member_buff` 差し替えで `label` not declared | 引数追加時に return 文言ブロックを残す。DungeonScene ロード確認 |
 | ガチャ画面メンバ欠落でパース失敗→黒画面 | HEAD の `_setup_gacha_atmosphere` 等を維持。定数は参照前に定義 |
-| `balance_sim` で `GameState` / `is_pet_member` 未解決 | `-s` は autoload 欠けることあり。実行時解決／`PetSystem` class_name。sim は seed |
+| `balance_sim` で `GameState` / `is_pet_member` 未解決 | `-s` は Script 静的メソッドが欠ける。`is_pet_combatant` は `id.begins_with("pet_")` をインライン（PetSystem と同義）。sim は seed |
 | ダンジョン入場で SCRIPT ERROR（`rarity_weight_mult` not found） | `preload` した Script へ静的メソッド呼び出し禁止。`RARITY_WEIGHT_MULT` 定数配列を直接読む（`WanderingEnemyConfig.spawn_mult_for_tier`） |
 | DungeonScene パース失敗（同名 const 二重） | ファイル先頭の `const _X = preload(...)` をコピペで二重定義しない。`rg 'const _DungeonTierConfig'` で1件のみ確認 |
 | キャラ画面入場で即終了（`apply_body` arg Label） | `UiTypography.apply_body` は Label 専用。RichTextLabel は `apply_display_rich`／`apply_log_rich`。変更後 EquipmentScene instantiate |

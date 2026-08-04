@@ -116,8 +116,8 @@ static func attack_base(combat: CombatController, member_index: int = -1) -> Dic
 		var member: Resource = GameState.get_combatant(member_index)
 		if member != null:
 			damage += LevelSystem.level_attack_bonus(member.level, member)
-				if member.base_stats != null:
-					damage += int(member.base_stats.attack)
+			if member.base_stats != null:
+				damage += int(member.base_stats.attack)
 	damage = apply_job_attack_multiplier(damage, member_index)
 	return {"base_damage": damage, "crit_rate": crit_rate}
 
