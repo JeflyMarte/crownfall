@@ -39,6 +39,7 @@ alwaysApply: false
 - 伸縮 → `size_flags_horizontal/vertical`（`EXPAND_FILL` 等）
 - **HBox 内の短い数値 Label に `clip_text=true` を付けない**（最小幅 0 で数値が消える。アイコン＋数値チップで再発済み）
 - **HBox 内のタイトル Label に `AUTOWRAP`＋`SIZE_SHRINK_*` を付けない**（Autowrap Label の min幅≈0 → 幅が潰れて1文字ずつ縦折れ。MAX★付き装備名で再発済み）。タイトルは `AUTOWRAP_OFF`＋名前／★とも `SHRINK_BEGIN`（★を名前+Lvの直後に置く。名前を `EXPAND_FILL` にすると★が行末へ飛ぶ）（`EquipmentItemDetailHelper._add_item_title`）
+- **MAX★付きタイトルの名前 Label に `clip_text=true` を付けない**（`SHRINK_BEGIN`＋`clip_text` は最小幅≈0で**名前全体が消える**。★だけ残る／空行になる）。名前は `clip_text=false`＋`OVERRUN_NO_TRIMMING`。省略が必要なら `EXPAND_FILL`（その場合★は行末へ飛ぶトレードオフ）
 - **日本語の長い Label に `AUTOWRAP_WORD_SMART` だけを頼らない**（空白無し1語扱いで最小幅＝全文幅 → 画面が横に広がる。Featured／カード説明は `AUTOWRAP_ARBITRARY`＋`EXPAND_FILL`＋`custom_minimum_size.x=0`。横伸び対策で中央アンカータイトルに `clip_text` を付けない — 名前が消える）
 - **画面下端の FooterPanel 情報欄**も同じ（長いイベント要約で横拡大→左欠け／MainColumn に重なる）。`clip_contents`＋`min.x=0`＋ellipsis、表示時は MainColumn `offset_bottom` を Footer 実高で再計算（`DungeonSelectScene._sync_list_footer_stack`）
 - **戦闘下パーティカード**は4枚均等幅。名前 Label を `clip_text=false`／`OVERRUN_NO_TRIMMING` にしない（最小幅＝全文幅でカード不揃い＋画面横伸び）。`EXPAND_FILL`＋`stretch_ratio=1`＋`clip_contents`、名前は font 縮小のあと ellipsis（`DungeonScene._fit_party_card_name_font`）

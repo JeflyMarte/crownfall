@@ -57,6 +57,7 @@ static func _add_item_title(parent: Node, item: Resource, category: String) -> v
 		return
 	## 名前を EXPAND_FILL にすると★が行末へ飛び、Lv直後に見えない。
 	## 両方 SHRINK_BEGIN で「名前+Lv　★」を一塊にする（余白は行の右側）。
+	## SHRINK＋clip_text=true は最小幅≈0で名前が消える（InventoryHeader と同型）。
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 0)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -64,8 +65,8 @@ static func _add_item_title(parent: Node, item: Resource, category: String) -> v
 	name_lbl2.text = base_name
 	name_lbl2.autowrap_mode = TextServer.AUTOWRAP_OFF
 	name_lbl2.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	name_lbl2.clip_text = true
-	name_lbl2.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	name_lbl2.clip_text = false
+	name_lbl2.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	UiTypography.apply_display(name_lbl2, UiTypography.SIZE_BODY_SMALL)
 	row.add_child(name_lbl2)
 	var star_lbl := Label.new()

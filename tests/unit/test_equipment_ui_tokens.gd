@@ -234,6 +234,10 @@ func test_item_title_with_perfect_stars_stays_single_line_hbox() -> void:
 	## ★は名前+Lvの直後（EXPAND で行末へ飛ばさない）。
 	assert_true((name_lbl.size_flags_horizontal & Control.SIZE_EXPAND) == 0)
 	assert_true((star_lbl.size_flags_horizontal & Control.SIZE_EXPAND) == 0)
+	## SHRINK＋clip_text は最小幅0で名前消滅。名前は自然幅を保つ。
+	assert_false(name_lbl.clip_text)
+	assert_false(star_lbl.clip_text)
+	assert_false(name_lbl.text.strip_edges().is_empty())
 	assert_true(star_lbl.text.contains("★"))
 	assert_false(name_lbl.text.contains("★"))
 
