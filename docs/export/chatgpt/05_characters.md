@@ -29,7 +29,7 @@
 |---|---|
 | EXP | ラン成功時、受取対象へ（人間＋ペット） |
 | 上限 | Lv99（51〜は逓減。スキル習得は〜50） |
-| 成長 | HP/ATK（BalanceConfig・STAT_SCALE 反映） |
+| 成長 | HP/ATK/DEF（`BalanceConfig`・キャラ別倍率 `CharacterGrowthRates`・STAT_SCALE 反映） |
 | 進化 | Lv30到達後、英雄管理で手動昇格。専門深化＋常時パッシブ2 |
 
 ## スキル習得の目安（各職10）

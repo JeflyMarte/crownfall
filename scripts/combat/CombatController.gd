@@ -20,7 +20,7 @@ var last_exp_reward: int = 0
 var last_gold_reward: int = 0
 
 # 敵レベル（P3-D081）。start_combat で決定し、ダンジョン中は不変。
-# Lv1＝tres 基準値。HP/ATK は乗算スケール、DEF は据置、EXP は別係数で増加。
+# Lv1＝tres 基準値。HP/ATK は乗算スケール（ATK のレベル係数は C′で 0.13）、DEF は据置、EXP は別係数。
 const ENEMY_LEVEL_HP_K: float = BalanceConfig.ENEMY_LEVEL_HP_K
 const ENEMY_LEVEL_ATK_K: float = BalanceConfig.ENEMY_LEVEL_ATK_K
 const ENEMY_LEVEL_EXP_K: float = BalanceConfig.ENEMY_LEVEL_EXP_K

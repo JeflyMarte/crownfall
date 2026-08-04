@@ -1975,8 +1975,12 @@ func get_combatant(i: int) -> Resource:
 	return combatants[i]
 
 func is_pet_combatant(member_index: int) -> bool:
-	## class_name 経由（-s ツールでも静的メソッド解決が安定）。
-	return PetSystem.is_pet_member(get_combatant(member_index))
+	var member: Resource = get_combatant(member_index)
+	if member == null:
+		return false
+	## `-s`（balance_sim）では class_name / preload Script の静的メソッドが欠ける。
+	## 正は PetSystem.is_pet_id（id が pet_ で始まる）。
+	return str(member.id).begins_with("pet_")
 
 func ensure_starter_pet() -> Resource:
 	return _PetSystem.ensure_starter_pet()
