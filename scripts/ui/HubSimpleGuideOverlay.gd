@@ -32,7 +32,7 @@ const EMPH_KEY: String = "#9A5018"
 const GUIDE_FACES: Array[Dictionary] = [
 	{
 		"id": "nina",
-		"icon_path": "res://assets/npc/ICO_NPC_Nina.png",
+		"icon_path": _IntroUiAssets.NINA_ICON_GUIDE,
 	},
 ]
 

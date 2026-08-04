@@ -159,6 +159,7 @@ func test_nina_panel_sits_below_top_bar_gap() -> void:
 func test_nina_portrait_asset_exists() -> void:
 	assert_true(FileAccess.file_exists("res://assets/npc/ART_NPC_Nina.png"))
 	assert_true(FileAccess.file_exists("res://assets/npc/ICO_NPC_Nina.png"))
+	assert_true(FileAccess.file_exists("res://assets/npc/ICO_NPC_Nina_Guide.png"))
 	assert_true(FileAccess.file_exists("res://assets/npc/ICO_NPC_Nina_Dot.png"))
 	## 調査室用 ICO は Downloads ニーナアイコン（角は透過・本体は不透明）。
 	var tex: Texture2D = load("res://assets/npc/ICO_NPC_Nina.png") as Texture2D
@@ -182,6 +183,17 @@ func test_nina_portrait_asset_exists() -> void:
 			if a > 0.04 and a < 0.99:
 				semi_in_core += 1
 	assert_eq(semi_in_core, 0, "Nina ICO core must not be semi-transparent")
+	## 手引き用 ICO（枠付き）も同様に中心不透明。
+	var guide: Texture2D = load("res://assets/npc/ICO_NPC_Nina_Guide.png") as Texture2D
+	assert_true(guide != null)
+	assert_gte(guide.get_width(), 256)
+	assert_eq(guide.get_width(), guide.get_height())
+	var guide_img: Image = guide.get_image()
+	assert_true(guide_img != null)
+	var guide_center: Color = guide_img.get_pixel(
+		guide_img.get_width() / 2, guide_img.get_height() / 2
+	)
+	assert_gte(guide_center.a, 0.99, "Nina guide ICO center alpha should be opaque")
 	## 拠点ナビは旧 128px ドット。
 	var dot: Texture2D = load("res://assets/npc/ICO_NPC_Nina_Dot.png") as Texture2D
 	assert_true(dot != null)
@@ -189,6 +201,7 @@ func test_nina_portrait_asset_exists() -> void:
 	assert_eq(dot.get_height(), 128)
 	const _IntroUiAssets := preload("res://scripts/intro/IntroUiAssets.gd")
 	assert_eq(_IntroUiAssets.NINA_ICON_DOT, "res://assets/npc/ICO_NPC_Nina_Dot.png")
+	assert_eq(_IntroUiAssets.NINA_ICON_GUIDE, "res://assets/npc/ICO_NPC_Nina_Guide.png")
 
 
 func test_survey_staff_nina_uses_portrait_icon() -> void:

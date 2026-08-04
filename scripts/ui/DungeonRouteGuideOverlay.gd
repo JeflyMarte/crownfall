@@ -527,7 +527,7 @@ func _build() -> void:
 	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	face.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	face.texture = _IntroUiAssets.load_tex(_IntroUiAssets.NINA_ICON)
+	face.texture = _IntroUiAssets.load_tex(_IntroUiAssets.NINA_ICON_GUIDE)
 	face_host.add_child(face)
 	header.add_child(face_host)
 
