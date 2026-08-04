@@ -7426,6 +7426,7 @@ func _sync_silence_marks() -> void:
 
 
 ## 途中召集で増えたスロットを表示し、群れ位置を再配置する。
+## 既存スロットの再生中アニメ（詠唱側 attack 等）は潰さない。新規のみ idle 開始。
 func _reveal_appended_enemy_slot(slot: int) -> void:
 	if slot < 0:
 		return
@@ -7446,17 +7447,22 @@ func _reveal_appended_enemy_slot(slot: int) -> void:
 		if path.is_empty() or not ResourceLoader.exists(path):
 			spr.visible = false
 			continue
-		var frames: SpriteFrames = load(path) as SpriteFrames
-		if frames == null:
-			spr.visible = false
-			continue
-		spr.sprite_frames = frames
-		_normalize_enemy_scale(spr, frames, id)
+		var is_new_slot: bool = i == slot
+		if is_new_slot or spr.sprite_frames == null:
+			var frames: SpriteFrames = load(path) as SpriteFrames
+			if frames == null:
+				spr.visible = false
+				continue
+			spr.sprite_frames = frames
+			_normalize_enemy_scale(spr, frames, id)
+		elif spr.sprite_frames != null:
+			## frames 再代入しない（攻撃中アニメを落とさない）。スケールだけ群れ人数に合わせ直す。
+			_normalize_enemy_scale(spr, spr.sprite_frames, id)
 		if n > 1:
 			spr.scale *= body_scale
 		spr.position = _swarm_combat_position_for_slot(i, n)
 		spr.visible = $CombatController.is_enemy_slot_alive(i)
-		if spr.visible and spr.sprite_frames != null and spr.sprite_frames.has_animation("idle"):
+		if is_new_slot and spr.visible and spr.sprite_frames != null and spr.sprite_frames.has_animation("idle"):
 			spr.play("idle")
 		_style_enemy_nameplate(_swarm_nameplates[i], name_dense)
 		_swarm_nameplates[i].add_theme_font_size_override("font_size", name_fs)
@@ -10502,8 +10508,12 @@ func _reposition_enemy_sprites() -> void:
 # 動的生成した 2体目以降のスロットを解放し、スロット配列を空に戻す（slot0 の既存ノードは残す）。
 func _clear_swarm_slots() -> void:
 	for i in range(1, _swarm_sprites.size()):
-		if is_instance_valid(_swarm_sprites[i]):
-			_swarm_sprites[i].queue_free()
+		var spr: AnimatedSprite2D = _swarm_sprites[i]
+		if is_instance_valid(spr):
+			## finished が queue_free 後に残ると Lambda capture freed になる。
+			_disconnect_swarm_sprite_finished(spr)
+			spr.stop()
+			spr.queue_free()
 	for i in range(1, _swarm_hp_bars.size()):
 		if is_instance_valid(_swarm_hp_bars[i]):
 			_swarm_hp_bars[i].queue_free()
@@ -10519,6 +10529,27 @@ func _clear_swarm_slots() -> void:
 	_status_icon_swarm_rows.clear()
 	_hide_elite_name_badge()
 
+
+func _disconnect_swarm_sprite_finished(spr: AnimatedSprite2D) -> void:
+	if spr == null or not is_instance_valid(spr):
+		return
+	for conn: Dictionary in spr.animation_finished.get_connections():
+		var cb: Callable = conn.get("callable", Callable())
+		if cb.is_valid() and spr.animation_finished.is_connected(cb):
+			spr.animation_finished.disconnect(cb)
+
+
+## 群れ追加スプライト用。ノードをラムダ捕獲しない（途中召集クラッシュ防止）。
+func _on_swarm_sprite_animation_finished(slot: int) -> void:
+	if slot < 0 or slot >= _swarm_sprites.size():
+		return
+	var spr: AnimatedSprite2D = _swarm_sprites[slot]
+	if not is_instance_valid(spr) or not spr.visible or spr.sprite_frames == null:
+		return
+	if spr.animation in ["attack", "hurt"]:
+		spr.play("idle")
+
+
 # 必要なスロット数を確保する。slot0 は既存ノードを流用、追加分は duplicate で生成。
 func _ensure_swarm_slots(n: int) -> void:
 	if _swarm_sprites.is_empty():
@@ -10526,19 +10557,18 @@ func _ensure_swarm_slots(n: int) -> void:
 		_swarm_hp_bars.append(_hp_bar_enemy)
 		_swarm_nameplates.append(_enemy_nameplate)
 	while _swarm_sprites.size() < n:
-		var spr: AnimatedSprite2D = _enemy_sprite.duplicate()
+		## SIGNALS なし: slot0 の animation_finished をコピーしない（二重＋解放後クラッシュ）。
+		var dup_flags: int = Node.DUPLICATE_GROUPS | Node.DUPLICATE_SCRIPTS
+		var spr: AnimatedSprite2D = _enemy_sprite.duplicate(dup_flags) as AnimatedSprite2D
 		var spr_parent: Node = _combat_sprites_host if _combat_sprites_host != null else self
 		spr_parent.add_child(spr)
-		var spr_ref := spr
-		spr.animation_finished.connect(func():
-			if spr_ref.visible and spr_ref.sprite_frames != null:
-				if spr_ref.animation in ["attack", "hurt"]:
-					spr_ref.play("idle"))
-		var bar: ProgressBar = _hp_bar_enemy.duplicate()
+		var slot_i: int = _swarm_sprites.size()
+		spr.animation_finished.connect(_on_swarm_sprite_animation_finished.bind(slot_i))
+		var bar: ProgressBar = _hp_bar_enemy.duplicate() as ProgressBar
 		add_child(bar)
 		_style_hp_bar_readable(bar, Color(0.85, 0.25, 0.25))
 		_apply_combat_overlay_z(bar)
-		var np: Label = _enemy_nameplate.duplicate()
+		var np: Label = _enemy_nameplate.duplicate() as Label
 		add_child(np)
 		_style_enemy_nameplate(np)
 		_apply_combat_overlay_z(np, 1)
@@ -12503,12 +12533,8 @@ func _spawn_ultimate_skill_name(
 	tw.chain().set_parallel(true)
 	tw.tween_property(wrap, "position:y", head_top - 36.0, 0.85)
 	tw.tween_property(wrap, "modulate:a", 0.0, 0.6).set_delay(0.45)
-	tw.chain().tween_callback(func() -> void:
-		if member_idx < _chr_skill_labels.size():
-			_chr_skill_labels[member_idx].erase(wrap)
-		if is_instance_valid(wrap):
-			wrap.queue_free()
-	)
+	## ノードをラムダ捕獲しない（clear の free と競合して Lambda capture freed になる）。
+	tw.chain().tween_callback(_finish_member_skill_name_label.bind(member_idx, wrap.get_instance_id()))
 
 # スキル発動時、発動者(ドット絵)の頭上にスキル名をポップ表示する。
 # persist=true のときは詠唱中ラベルとして表示を維持（_clear_member_skill_labels で除去）。
@@ -12581,12 +12607,7 @@ func _spawn_skill_name(
 	tw.chain().set_parallel(true)
 	tw.tween_property(lbl, "position:y", head_top - 30.0, 0.75)
 	tw.tween_property(lbl, "modulate:a", 0.0, 0.55).set_delay(0.4)
-	tw.chain().tween_callback(func() -> void:
-		if member_idx < _chr_skill_labels.size():
-			_chr_skill_labels[member_idx].erase(lbl)
-		if is_instance_valid(lbl):
-			lbl.queue_free()
-	)
+	tw.chain().tween_callback(_finish_member_skill_name_label.bind(member_idx, lbl.get_instance_id()))
 
 # 味方の詠唱中ポップ（P3-D112）— 互換のため残すが、通常は _spawn_skill_name(persist=true) を使用。
 func _spawn_cast_chant_label(skill_name: String, member_idx: int) -> void:
@@ -12594,17 +12615,21 @@ func _spawn_cast_chant_label(skill_name: String, member_idx: int) -> void:
 
 # 詠唱ラベルが除去漏れした場合の安全弁（必殺テキスト残留の再発防止）。
 func _arm_chant_label_failsafe(node: Node, member_idx: int, seconds: float) -> void:
+	if node == null or not is_instance_valid(node):
+		return
 	var timer: SceneTreeTimer = get_tree().create_timer(maxf(seconds, 1.0))
-	timer.timeout.connect(func() -> void:
-		if not is_instance_valid(node):
-			return
-		if member_idx < 0 or member_idx >= _chr_skill_labels.size():
-			node.queue_free()
-			return
-		if node in _chr_skill_labels[member_idx]:
-			_chr_skill_labels[member_idx].erase(node)
-		node.queue_free()
-	)
+	timer.timeout.connect(_finish_member_skill_name_label.bind(member_idx, node.get_instance_id()))
+
+
+## スキル名ポップ終了。instance_id 経由で解放済みノードを掴まない。
+func _finish_member_skill_name_label(member_idx: int, node_id: int) -> void:
+	var node: Node = instance_from_id(node_id) as Node
+	if node == null or not is_instance_valid(node):
+		return
+	if member_idx >= 0 and member_idx < _chr_skill_labels.size():
+		_chr_skill_labels[member_idx].erase(node)
+	node.queue_free()
+
 
 # メンバーの表示中スキル名ラベルを即時除去（新しい tick の発動で旧ラベルを置換する）
 func _clear_member_skill_labels(member_idx: int) -> void:
@@ -12612,7 +12637,8 @@ func _clear_member_skill_labels(member_idx: int) -> void:
 		return
 	for lbl in _chr_skill_labels[member_idx]:
 		if is_instance_valid(lbl):
-			lbl.free()
+			## free() は tween／failsafe と競合して Lambda capture freed → 強制終了しうる。
+			lbl.queue_free()
 	_chr_skill_labels[member_idx] = []
 
 func _clear_all_member_skill_labels() -> void:
