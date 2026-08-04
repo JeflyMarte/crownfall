@@ -86,7 +86,12 @@ static func _make_descendants_scroll_friendly(node: Node, nest_inner_scrolls: bo
 				_make_descendants_scroll_friendly(child, false)
 			continue
 		if child is BaseButton:
-			(child as BaseButton).mouse_filter = Control.MOUSE_FILTER_PASS
+			var btn: BaseButton = child as BaseButton
+			## 鍛冶主ボタン／パーティ「詳細」等: meta で STOP 維持（pressed を ScrollTouch から守る）。
+			if bool(btn.get_meta(&"_cf_keep_mouse_stop", false)):
+				btn.mouse_filter = Control.MOUSE_FILTER_STOP
+			else:
+				btn.mouse_filter = Control.MOUSE_FILTER_PASS
 		elif child is Control:
 			var c: Control = child as Control
 			## 状態異常リンク等: meta で STOP 維持（一律 RichTextLabel→STOP は章カード名の

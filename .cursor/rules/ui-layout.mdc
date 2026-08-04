@@ -92,6 +92,7 @@ Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` �
 ❌ BAD
 - Scroll 内の Button／STOP コントロールがドラッグを吸収したまま（`enable` 未適用）
 - `_rebuild_*` / BottomNav 後に Button を再生成して STOP のまま放置
+- `ScrollTouchHelper` が全 `Button` を無条件 PASS（`_cf_keep_mouse_stop` を BaseButton で無視）→ パーティ「詳細」無反応
 - `ScrollTouchHelper` が全 `RichTextLabel` を STOP 化 → 章カード名の親 Button タップ不能／リンク以外の RTL がドラッグ奪取
 - ScrollTouch で Button を PASS 化したあと `pressed` だけに依存（詳細が変わらない）
 - 入れ子 Scroll（Tab＋内側 InventoryScroll 等）で両方 enable して重い／効かない
@@ -103,6 +104,7 @@ Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` �
 - Catalog／装備セルは `gui_input` 短押し（PASS＋deadzone）。選択はハイライト差替のみ（全セル rebuild 禁止）
 - オーバーレイ行ボタンは ScrollTouch 後に `MOUSE_FILTER_STOP` を復元（鍛冶素材一覧）
 - 鍛冶主ボタン（炉研ぎ／**焼直し**／一括分解）は `_cf_keep_mouse_stop`＋`_restore_primary_button_input`（詳細 rebuild 後も deferred で再適用）。焼直し効果行も同 meta
+- パーティ「詳細」は `_cf_keep_mouse_stop`（`ScrollTouchHelper` が BaseButton でも meta を見て STOP 維持）
 - 焼直し効果 Button の `pressed` から詳細を即 rebuild しない（`free` で発信元破棄→Abort）。`call_deferred("_refresh_selection")`
 
 ## 装備セルサイズ（再発防止・必須）

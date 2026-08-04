@@ -109,7 +109,7 @@ alwaysApply: false
 | 鍛冶コスト素材名がタッチで不明 | 名前は tooltip のみ | → `ui-layout` 鍛冶（現行: アイコン＋個数のみ） |
 | 拠点左上に「魔晶石」が見える／隊長名に見える | TokenChip の `tooltip_text=魔晶石` がタッチ環境で残る、または隊長名 Label に通貨名が混入 | TopBar の魔晶石は数値のみ（tooltip 空）。`LabelPlayerName` は等級＋隊長名のみを毎フレーム明示上書き。`verify_base_hub` で混入検査 |
 | マイページがタッチスクロール不能 | rebuild 後 Button が STOP のまま | → `ui-layout.mdc` ScrollTouch（rebuild 後 enable 再実行） |
-| 陣形複製／前列化／調査中混入／未保存本反映／詳細無反応（編成） | 即 GameState 書き・空き詰め・ScrollTouch PASS | → **`ui-layout.mdc` 編成・陣形**（詳細は `_cf_keep_mouse_stop`） |
+| 陣形複製／前列化／調査中混入／未保存本反映／詳細無反応（編成） | 即 GameState 書き・空き詰め・ScrollTouch が BaseButton の `_cf_keep_mouse_stop` 無視 | → **`ui-layout.mdc` 編成・陣形**／`ScrollTouchHelper` は Button でも meta で STOP 維持 |
 | ジャックがほぼ被弾せず無敵に見える | `PET_THREAT_BASE=0.55`＋max_threat 選択で人間（≥1.0）がいる限り未選択。被ダメ計算も `party_members` 限定でペット DEF 未加算 | Threat を前衛相当（盾未満）へ。ダメ計算は `get_combatant`。HPバーは PET スロット短尺 |
 | ペット既定装備が古い `pet_nibble` のまま／役割が守り一色 | 三角再編後も fallback や wiki が旧習得表 | PetData unlock・`PetSystem` fallback・テストを同時更新（P3-BAL-PET-TRIANGLE-001） |
 | パッシブが平与ダメ%やペット必須でビルドが単調 | 固有1本が退屈／BT全体がペット依存 | 確定軸は条件・状態・役割型。BT＝異常（ネリのみペット）。`70_PassiveKitLock` |
@@ -243,4 +243,5 @@ alwaysApply: false
 | 群れのトリッキーが撃たない | `_do_enemy_turn` がアクティブ敵のみ `_try_enemy_skill` | 全スロット `_try_enemy_skill(slot)`（監査 I） |
 | ポーズ中に沈黙が切れる | `Time.get_ticks_msec` 壁時計 | `CombatController` 残り秒＋戦闘クロック tick（監査 I） |
 | 召喚失敗後に通常攻撃まで出る | CD 消費後 `summon` が false → fallthrough | `_execute_enemy_skill` は CD 済みなら true（監査 I） |
+| 冠呼び等の途中召集で強制終了 | `duplicate()` が SIGNALS コピー＋ノード捕獲ラムダ／`lbl.free()` と tween 競合 | SIGNALS なし duplicate＋`_on_swarm_sprite_animation_finished.bind(slot)`／スキル名は instance_id＋`queue_free` |
 | 右上バフ凡例にアイコンが見えない | 装備ステICOが黒地＋Emptyパネル | 金枠バッジ台座の上に TextureRect（`_make_field_buff_legend_row`） |
