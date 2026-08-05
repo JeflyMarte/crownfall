@@ -708,6 +708,7 @@ const CombatVfxManagerScript: Script = preload("res://scripts/combat/CombatVfxMa
 const CombatBandVfxScript: Script = preload("res://scripts/combat/CombatBandVfx.gd")
 const _StatusEffectLinkHelper = preload("res://scripts/ui/StatusEffectLinkHelper.gd")
 const _SkillEffectOneLineHelper = preload("res://scripts/ui/SkillEffectOneLineHelper.gd")
+const _CombatMemberInspectHelper = preload("res://scripts/ui/CombatMemberInspectHelper.gd")
 const EvolutionVisualScript: Script = preload("res://scripts/systems/EvolutionVisual.gd")
 const ElementResolverScript: Script = preload("res://scripts/combat/ElementResolver.gd")
 const AffixStatCalculatorScript: Script = preload("res://scripts/equipment/AffixStatCalculator.gd")
@@ -892,6 +893,12 @@ var _threat_vignette: ColorRect
 var _threat_banner_pulse_tween: Tween
 var _party_card_state_badges: Array[Label] = []
 var _party_card_pulse_tweens: Array = []
+var _party_inspect_press_timer: Timer
+var _party_inspect_press_index: int = -1
+var _party_inspect_press_start: Vector2 = Vector2.ZERO
+var _party_inspect_pressed: bool = false
+var _party_inspect_layer: CanvasLayer
+var _party_inspect_resume_on_close: bool = false
 var _combat_shake_cooldown_until: float = 0.0
 var _status_icon_swarm_rows: Array[HBoxContainer] = []
 var _status_icon_chr_rows: Array[HBoxContainer] = []
@@ -1002,6 +1009,8 @@ const PARTY_CARD_SKILL_CD_WAIT: Color = Color(1.0, 0.78, 0.28, 1.0)
 const PARTY_CARD_SKILL_CD_TRACK: Color = Color(0.07, 0.06, 0.05, 0.96)
 const PARTY_CARD_EMPTY_MODULATE: Color = Color(0.45, 0.45, 0.5, 0.55)
 const PARTY_CARD_DEAD_MODULATE: Color = Color(0.55, 0.55, 0.55, 0.75)
+const PARTY_CARD_INSPECT_HOLD_SEC: float = 0.45
+const PARTY_CARD_INSPECT_CANCEL_PX: float = 20.0
 const UI_TEXT_PRIMARY: Color = Color(0.98, 0.96, 0.92, 1.0)
 const UI_TEXT_SECONDARY: Color = Color(0.92, 0.90, 0.84, 1.0)
 const UI_TEXT_WEAPON: Color = Color(0.95, 0.91, 0.82, 1.0)
@@ -10977,6 +10986,7 @@ func _setup_chr_idle_motion(idx: int, sprite: AnimatedSprite2D, frames: SpriteFr
 
 # バトルログ下のパーティカード列（左:アイコン80px / 右:HP・名前・職業・武器）
 func _rebuild_party_cards() -> void:
+	_cancel_party_inspect_press()
 	for c in _party_cards_row.get_children():
 		c.queue_free()
 	_party_card_hp_bars.clear()
@@ -11005,6 +11015,7 @@ func _rebuild_party_cards() -> void:
 				continue
 			var built: Dictionary = _make_party_card(member, slot)
 			_party_cards_row.add_child(built["card"])
+			_bind_party_card_inspect(built["card"], slot)
 			_party_card_hp_bars.append(built["hp_bar"])
 			_party_card_hp_labels.append(built["hp_label"])
 			_party_card_skill_cd_bars.append(built["skill_bar"])
@@ -11388,6 +11399,7 @@ func _make_party_card(member: Resource, _combat_index: int) -> Dictionary:
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	card.size_flags_stretch_ratio = 1.0
 	card.clip_contents = true
+	card.tooltip_text = "長押しでスキル・パッシブ詳細"
 	card.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD))
 	var root := VBoxContainer.new()
 	root.add_theme_constant_override("separation", 4)
@@ -11465,6 +11477,220 @@ func _make_party_card(member: Resource, _combat_index: int) -> Dictionary:
 		"name_label": name_label,
 		"state_badge": state_badge,
 	}
+
+
+func _bind_party_card_inspect(card: Control, member_idx: int) -> void:
+	if card == null:
+		return
+	card.mouse_filter = Control.MOUSE_FILTER_STOP
+	card.gui_input.connect(_on_party_card_inspect_input.bind(member_idx))
+
+
+func _on_party_card_inspect_input(event: InputEvent, member_idx: int) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_start_party_inspect_press(
+				member_idx, (event as InputEventMouseButton).position
+			)
+		else:
+			_cancel_party_inspect_press()
+		return
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			_start_party_inspect_press(
+				member_idx, (event as InputEventScreenTouch).position
+			)
+		else:
+			_cancel_party_inspect_press()
+		return
+	if (
+		_party_inspect_pressed
+		and _party_inspect_press_index == member_idx
+		and (event is InputEventMouseMotion or event is InputEventScreenDrag)
+		and _party_inspect_event_position(event).distance_to(_party_inspect_press_start)
+		> PARTY_CARD_INSPECT_CANCEL_PX
+	):
+		_cancel_party_inspect_press()
+
+
+func _party_inspect_event_position(event: InputEvent) -> Vector2:
+	if event is InputEventMouseButton:
+		return (event as InputEventMouseButton).position
+	if event is InputEventScreenTouch:
+		return (event as InputEventScreenTouch).position
+	if event is InputEventMouseMotion:
+		return (event as InputEventMouseMotion).position
+	if event is InputEventScreenDrag:
+		return (event as InputEventScreenDrag).position
+	return Vector2.ZERO
+
+
+func _start_party_inspect_press(member_idx: int, position: Vector2) -> void:
+	_cancel_party_inspect_press()
+	if not $CombatController.is_in_combat:
+		return
+	if member_idx < 0 or member_idx >= GameState.party_members.size():
+		return
+	_party_inspect_pressed = true
+	_party_inspect_press_index = member_idx
+	_party_inspect_press_start = position
+	if _party_inspect_press_timer == null:
+		_party_inspect_press_timer = Timer.new()
+		_party_inspect_press_timer.one_shot = true
+		_party_inspect_press_timer.timeout.connect(_on_party_inspect_hold_timeout)
+		add_child(_party_inspect_press_timer)
+	_party_inspect_press_timer.start(PARTY_CARD_INSPECT_HOLD_SEC)
+
+
+func _cancel_party_inspect_press() -> void:
+	_party_inspect_pressed = false
+	_party_inspect_press_index = -1
+	if _party_inspect_press_timer != null:
+		_party_inspect_press_timer.stop()
+
+
+func _on_party_inspect_hold_timeout() -> void:
+	if not _party_inspect_pressed:
+		return
+	var member_idx: int = _party_inspect_press_index
+	_party_inspect_pressed = false
+	_party_inspect_press_index = -1
+	_open_party_member_inspect(member_idx)
+
+
+func _open_party_member_inspect(member_idx: int) -> void:
+	if _party_inspect_layer != null and is_instance_valid(_party_inspect_layer):
+		return
+	if not $CombatController.is_in_combat:
+		return
+	var member: Resource = GameState.get_combatant(member_idx)
+	var detail: Dictionary = _CombatMemberInspectHelper.build(member)
+	if detail.is_empty():
+		return
+	_party_inspect_resume_on_close = not _is_paused
+	if _party_inspect_resume_on_close:
+		_set_paused(true)
+		## 通常の停止メニューではなく、キャラ詳細だけを前面表示する。
+		_pause_overlay.visible = false
+	var layer := CanvasLayer.new()
+	layer.name = "PartyMemberInspectLayer"
+	layer.layer = 75
+	add_child(layer)
+	_party_inspect_layer = layer
+	var root := Control.new()
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.mouse_filter = Control.MOUSE_FILTER_STOP
+	layer.add_child(root)
+	var dim := ColorRect.new()
+	dim.color = Color(0.01, 0.01, 0.02, 0.78)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(dim)
+	var dismiss := Button.new()
+	dismiss.flat = true
+	dismiss.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dismiss.pressed.connect(_close_party_member_inspect)
+	root.add_child(dismiss)
+	var panel := PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	panel.offset_left = 28.0
+	panel.offset_top = 260.0
+	panel.offset_right = -28.0
+	panel.offset_bottom = -52.0
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.055, 0.045, 0.04, 0.99)
+	panel_style.border_color = Color(0.78, 0.59, 0.24, 1.0)
+	panel_style.set_border_width_all(2)
+	panel_style.set_corner_radius_all(12)
+	panel_style.set_content_margin_all(18.0)
+	panel.add_theme_stylebox_override("panel", panel_style)
+	root.add_child(panel)
+	var main := VBoxContainer.new()
+	main.add_theme_constant_override("separation", 12)
+	panel.add_child(main)
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 8)
+	main.add_child(header)
+	var title := Label.new()
+	title.text = "%s  Lv.%d" % [str(detail["name"]), int(detail["level"])]
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.clip_text = true
+	title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	UiTypography.apply_display(title, UiTypography.SIZE_DISPLAY_TITLE, UiTypography.COLOR_GOLD)
+	header.add_child(title)
+	var close_btn := Button.new()
+	close_btn.text = "閉じる"
+	close_btn.custom_minimum_size = Vector2(96, 44)
+	UiTypography.apply_menu_button(close_btn, false)
+	close_btn.pressed.connect(_close_party_member_inspect)
+	header.add_child(close_btn)
+	var hint := Label.new()
+	hint.text = "戦闘を一時停止中"
+	UiTypography.apply_caption(hint, UiTypography.COLOR_MUTED)
+	main.add_child(hint)
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	scroll.clip_contents = true
+	main.add_child(scroll)
+	var content := VBoxContainer.new()
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.add_theme_constant_override("separation", 12)
+	scroll.add_child(content)
+	_add_party_inspect_section(content, "装備スキル", detail.get("skills", []))
+	var ultimate: Dictionary = detail.get("ultimate", {})
+	if not ultimate.is_empty():
+		_add_party_inspect_section(content, "必殺技", [ultimate])
+	_add_party_inspect_section(content, "パッシブ", detail.get("passives", []))
+
+
+func _add_party_inspect_section(parent: VBoxContainer, heading: String, entries: Array) -> void:
+	var heading_label := Label.new()
+	heading_label.text = heading
+	UiTypography.apply_display(heading_label, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	parent.add_child(heading_label)
+	if entries.is_empty():
+		var empty := Label.new()
+		empty.text = "・装備なし"
+		UiTypography.apply_body(empty, UiTypography.SIZE_CAPTION, UiTypography.COLOR_MUTED)
+		parent.add_child(empty)
+		return
+	for raw_entry: Variant in entries:
+		var entry: Dictionary = raw_entry
+		var name_label := Label.new()
+		name_label.text = "・%s" % str(entry.get("name", "—"))
+		name_label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		UiTypography.apply_body(name_label, UiTypography.SIZE_BODY_SMALL, UI_TEXT_PRIMARY)
+		parent.add_child(name_label)
+		var effect: String = str(entry.get("effect", "")).strip_edges()
+		if not effect.is_empty():
+			_add_party_inspect_body(parent, effect, UI_TEXT_SECONDARY)
+		var description: String = str(entry.get("description", "")).strip_edges()
+		if not description.is_empty():
+			_add_party_inspect_body(parent, description, UiTypography.COLOR_MUTED)
+
+
+func _add_party_inspect_body(parent: VBoxContainer, text: String, color: Color) -> void:
+	var label := Label.new()
+	label.text = text
+	label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	label.custom_minimum_size.x = 0.0
+	UiTypography.apply_body(label, UiTypography.SIZE_CAPTION, color)
+	parent.add_child(label)
+
+
+func _close_party_member_inspect() -> void:
+	_cancel_party_inspect_press()
+	if _party_inspect_layer != null and is_instance_valid(_party_inspect_layer):
+		_party_inspect_layer.queue_free()
+	_party_inspect_layer = null
+	var should_resume: bool = _party_inspect_resume_on_close
+	_party_inspect_resume_on_close = false
+	if should_resume and _is_paused:
+		_set_paused(false)
 
 func _fit_all_party_card_name_fonts() -> void:
 	for i in _party_card_name_labels.size():
