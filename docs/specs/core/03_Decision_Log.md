@@ -6682,10 +6682,24 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 |---|---|---|
 | P3-SKILL-KIT-DIVERGE-001-1 | **SW** — 連刃→剣舞（多段）／甲砕→追勢斬（敵数威力）／裂傷＝出血付与特化 | 出血同士の重複解消 |
 | P3-SKILL-KIT-DIVERGE-001-2 | **RG** — 追標→貫通射（別敵半分） | 標的自己付与の同型をやめる |
-| P3-SKILL-KIT-DIVERGE-001-3 | **VG** — 衛士＝硬直／威嚇＝挑発／盾殴り→庇護 | 止める／集める／守る |
+| P3-SKILL-KIT-DIVERGE-001-3 | **VG** — 衛士＝硬直／威嚇＝挑発／盾殴り→庇護 | 止める／集める／守る → **後続 TRIAD で上書き** |
 | P3-SKILL-KIT-DIVERGE-001-4 | **移行** — 旧装備IDを remap | セーブ壊れ防止 |
 | P3-SKILL-KIT-DIVERGE-001-5 | **スコープ外** — AL／BT | 後続 |
 | P3-SKILL-KIT-DIVERGE-001-6 | **SSOT** — `decisions/48_SkillKitDiverge.md` | 正 |
+
+## ヴァンガード技能三軸再編（2026-08-06 — P3-SKILL-VG-TRIAD-001）
+
+> **オーナー GO** — 味方バフ／ヘイト集め／攻撃の三ビルド。必殺据置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-SKILL-VG-TRIAD-001-1 | **Lv8** — 鉄盾斬→**攻勢の構え**（味全 empower） | 攻めバフ軸 |
+| P3-SKILL-VG-TRIAD-001-2 | **Lv30** — 庇護→**砕盾斬**（単＋甲砕） | 攻撃軸 |
+| P3-SKILL-VG-TRIAD-001-3 | **Lv50** — 極意盾斬→**突撃破砕**（高威力・自己守なし） | 攻撃フィニッシュ |
+| P3-SKILL-VG-TRIAD-001-4 | **Lv40 盾撃波** — taunt 追加 | ヘイト混成 |
+| P3-SKILL-VG-TRIAD-001-5 | **必殺** — タイタンロア据置 | 全ビルドの切り札 |
+| P3-SKILL-VG-TRIAD-001-6 | **移行** — iron_guard／cover_guard／apex_guard／shield_ram を remap | セーブ壊れ防止 |
+| P3-SKILL-VG-TRIAD-001-7 | **SSOT** — `decisions/62_VanguardSkillTriad.md` | 正 |
 
 ## ソードマン自己バフ（2026-08-02 — P3-SKILL-SW-SELFBUFF-001）
 

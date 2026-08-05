@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "vanguard"
 display_name = "ヴァンガード"
-description = "剣で前線を固め、敵の注意を引く重装タンク。"
+description = "前線で味方を支え、ヘイトを集め、攻めにも回れる重装職。バフ・挑発・攻撃の三方向で戦う。"
 role = "tank"
 base_hp_modifier = 1.2
 base_attack_modifier = 0.95
@@ -18,7 +18,7 @@ skill_unlocks = Array[Dictionary]([{
 "skill_id": "guard_strike",
 "level": 1
 }, {
-"skill_id": "iron_guard",
+"skill_id": "offensive_stance",
 "level": 8
 }, {
 "skill_id": "menace_strike",
@@ -27,16 +27,16 @@ skill_unlocks = Array[Dictionary]([{
 "skill_id": "bulwark_aura",
 "level": 22
 }, {
-"skill_id": "cover_guard",
+"skill_id": "shield_crush",
 "level": 30
 }, {
 "skill_id": "shield_quake",
 "level": 40
 }, {
-"skill_id": "apex_guard",
+"skill_id": "assault_shatter",
 "level": 50
 }])
-learnable_skill_ids = Array[String](["guard_strike", "iron_guard", "menace_strike", "bulwark_aura", "cover_guard", "shield_quake", "apex_guard"])
+learnable_skill_ids = Array[String](["guard_strike", "offensive_stance", "menace_strike", "bulwark_aura", "shield_crush", "shield_quake", "assault_shatter"])
 passive_tag_ids = Array[String](["frontline", "guard"])
 ultimate_skill_id = "titan_roar"
 evolved_display_name = "パラディン"
