@@ -59,7 +59,7 @@ func test_guaranteed_skip_peek_does_not_need_rng() -> void:
 func test_dead_target_retargets_by_member_rule() -> void:
 	var member: Resource = _Adventurer.new()
 	member.id = "retarget_probe"
-	member.tactics_id = "fodder_focus"
+	member.tactics_id = "attack_focus"
 	GameState.party_members = [member]
 
 	var ctrl := CombatController.new()

@@ -7232,3 +7232,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-COMBAT-MEMBER-INSPECT-001-2 | 装備スキル＝効果＋説明、必殺＝効果＋説明、パッシブ＝キャラ固有效果を表示 | 戦闘中にビルド意図を確認 |
 | P3-UX-COMBAT-MEMBER-INSPECT-001-3 | 詳細表示中は戦闘／自動進行を一時停止。閉じると自動再開 | 読んでいる間の戦況進行を防止 |
 | P3-UX-COMBAT-MEMBER-INSPECT-001-4 | 装備／レリック固有パッシブ、ステ詳細、装備変更はスコープ外 | 情報過多と戦闘中編集を避ける |
+
+## 行動方針6択化（雑魚／強敵削除＋攻撃特化）（2026-08-06 — P3-UX-TACTICS-ATTACK-FOCUS-001）
+
+> **オーナー GO（推奨）** — 雑魚優先・強敵優先を削除し、攻撃特化を追加。他は据置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-TACTICS-ATTACK-FOCUS-001-1 | **削除** — `fodder_focus`（雑魚優先）／`boss_focus`（強敵優先） | 狙いの差別化より方針の分かりやすさ優先 |
+| P3-UX-TACTICS-ATTACK-FOCUS-001-2 | **追加** — `attack_focus`（攻撃特化）＝防御重み0・スキル／必殺／通常で攻める | 「殴りに寄せたい」需要を明示 |
+| P3-UX-TACTICS-ATTACK-FOCUS-001-3 | **据置** — バランス／必殺温存／防御重視／サポート優先／通常攻撃のみ | 既存ビルドを壊さない |
+| P3-UX-TACTICS-ATTACK-FOCUS-001-4 | **互換** — 旧 `fodder_focus`／`boss_focus`／`aggressive`／`sweep` → `attack_focus` | セーブ破壊なし |
+| P3-UX-TACTICS-ATTACK-FOCUS-001-5 | **上書き** — P3-UX-TACTICS-LIST-001-2 の「7種」→**6種** | 一覧UIの正 |
