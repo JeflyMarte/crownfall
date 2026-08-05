@@ -15,5 +15,5 @@ dot_percent_of_attack = 0.0
 dot_flat = 0
 interval_multiplier = 1.0
 skip_action_chance = 0.0
-outgoing_damage_multiplier = 1.4
-incoming_damage_multiplier = 1.0
+outgoing_damage_multiplier = 1.5
+incoming_damage_multiplier = 1.25

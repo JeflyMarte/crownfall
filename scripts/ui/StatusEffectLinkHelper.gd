@@ -10,6 +10,7 @@ const _POPUP_NAME: String = "StatusEffectPopupOverlay"
 ## display_name 以外の表記ゆれ → status id
 const EXTRA_ALIASES: Dictionary = {
 	"激励": "empower",
+	"小さな鼓舞": "empower_minor",
 	"小さな激励": "empower_minor",
 	"相棒鼓舞": "empower_pet",
 	"重呪": "major_curse",
@@ -97,10 +98,17 @@ static func _effect_one_line_body(status_id: String) -> String:
 	if def_r > 0.001:
 		return "相手の防御 −%d%%" % int(round(def_r * 100.0))
 	var out_m: float = float(data.outgoing_damage_multiplier)
-	if not is_equal_approx(out_m, 1.0):
-		return "与ダメ %+d%%" % int(round((out_m - 1.0) * 100.0))
 	var in_m: float = float(data.incoming_damage_multiplier)
-	if not is_equal_approx(in_m, 1.0):
+	var out_diff: bool = not is_equal_approx(out_m, 1.0)
+	var in_diff: bool = not is_equal_approx(in_m, 1.0)
+	if out_diff and in_diff:
+		return "与ダメ %+d%%・被ダメ %+d%%" % [
+			int(round((out_m - 1.0) * 100.0)),
+			int(round((in_m - 1.0) * 100.0)),
+		]
+	if out_diff:
+		return "与ダメ %+d%%" % int(round((out_m - 1.0) * 100.0))
+	if in_diff:
 		return "被ダメ %+d%%" % int(round((in_m - 1.0) * 100.0))
 	var interval: float = float(data.interval_multiplier)
 	if interval > 1.001:

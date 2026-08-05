@@ -123,7 +123,10 @@ func test_pet_bond_rally_stronger_than_herd() -> void:
 	assert_lt(float(bond.cooldown), float(herd.cooldown))
 	var pet_emp: Resource = DataRegistry.get_status_effect("empower_pet")
 	var emp: Resource = DataRegistry.get_status_effect("empower")
-	assert_gt(float(pet_emp.outgoing_damage_multiplier), float(emp.outgoing_damage_multiplier))
+	## 与ダメは本鼓舞並み。持続と被ダメ軽減でペット特化。
+	assert_almost_eq(float(pet_emp.outgoing_damage_multiplier), float(emp.outgoing_damage_multiplier), 0.001)
+	assert_lt(float(pet_emp.incoming_damage_multiplier), 1.0)
+	assert_gt(int(pet_emp.duration_ticks), int(emp.duration_ticks))
 
 
 func test_curse_sigil_uses_major_curse() -> void:

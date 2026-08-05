@@ -7188,3 +7188,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-TITAN-EMPOWER-001-2 | 既存 `guard`＋挑発は据置 | 壁役の核は維持 |
 | P3-BAL-TITAN-EMPOWER-001-3 | バフ経路が `apply_status_id2` も味方へ付与 | 多重バフの実装土台 |
 | P3-BAL-TITAN-EMPOWER-001-4 | **SSOT**＝`41_UltimateRoleSplit.md` titan 行 | Decision 追記 |
+
+## バフ分類見直し（2026-08-05 — P3-BAL-BUFF-TAXONOMY-001）
+
+> **オーナー GO（全て推奨）** — 小鼓舞改名／鼓舞↔激昂分化／相棒鼓舞は攻守。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-BUFF-TAXONOMY-001-1 | `empower_minor` 表示＝**小鼓舞** | 「小さな」冗長 |
+| P3-BAL-BUFF-TAXONOMY-001-2 | 鼓舞＝味方×1.30／激昂＝敵向け×1.50＋被×1.25 | 同系統の見分け |
+| P3-BAL-BUFF-TAXONOMY-001-3 | 相棒鼓舞＝与×1.30＋被×0.85・4tick | 火力だけ太い問題の解消 |
+| P3-BAL-BUFF-TAXONOMY-001-4 | **SSOT**＝`docs/specs/decisions/80_BuffTaxonomy.md` | Decision 本体 |

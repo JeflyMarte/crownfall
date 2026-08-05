@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "empower_minor"
-display_name = "小さな鼓舞"
+display_name = "小鼓舞"
 tier = 1
 max_stacks = 1
 duration_ticks = 3
