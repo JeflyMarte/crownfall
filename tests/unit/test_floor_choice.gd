@@ -140,6 +140,44 @@ func test_floor_buff_legend_stat_icons_resolve() -> void:
 	assert_not_null(IconPaths.get_icon_texture("base_ore", "material"))
 
 
+func test_floor_choice_auto_selects_left_when_untouched() -> void:
+	## 無操作タイムアウト → 左（戦力）を自動確定。選択済みなら発火しない。
+	var overlay := FloorChoiceOverlay.new()
+	add_child_autofree(overlay)
+	var got: Dictionary = {"id": "", "count": 0}
+	overlay.confirmed.connect(
+		func(choice_id: String, _kinds: Array[String]) -> void:
+			got["id"] = choice_id
+			got["count"] = int(got["count"]) + 1
+	)
+	overlay.open(false)
+	assert_eq(overlay.AUTO_SELECT_SEC, 10.0)
+	assert_true(overlay._selected.is_empty())
+	overlay._on_auto_select_timeout(overlay._auto_gen)
+	assert_eq(str(got["id"]), FloorChoiceOverlay.CHOICE_POWER)
+	assert_eq(int(got["count"]), 1)
+	## 二重発火しない
+	overlay._on_auto_select_timeout(overlay._auto_gen)
+	assert_eq(int(got["count"]), 1)
+
+
+func test_floor_choice_auto_skips_when_already_selected() -> void:
+	var overlay := FloorChoiceOverlay.new()
+	add_child_autofree(overlay)
+	var got: Dictionary = {"count": 0}
+	overlay.confirmed.connect(
+		func(_choice_id: String, _kinds: Array[String]) -> void:
+			got["count"] = int(got["count"]) + 1
+	)
+	overlay.open(true)
+	var timer_gen: int = overlay._auto_gen
+	overlay._on_panel_pressed(1)
+	assert_eq(overlay._selected, FloorChoiceOverlay.CHOICE_HARVEST)
+	## パネル選択でタイマー世代が無効化されるため、旧 gen では確定しない。
+	overlay._on_auto_select_timeout(timer_gen)
+	assert_eq(int(got["count"]), 0)
+
+
 func test_floor_choice_title_bbcode_emphasizes_name() -> void:
 	var bb: String = FloorChoiceOverlay._panel_text_bbcode(
 		"戦力強化",

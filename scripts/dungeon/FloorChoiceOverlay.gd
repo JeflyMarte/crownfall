@@ -5,6 +5,7 @@ extends Control
 ## 背景 720×1280 の四角位置に説明文／ヒット領域をスケール配置する。
 ## B 収穫はランダム2種を提示（プレイヤーは選ばない）。確定は警告文直下の実ボタン。
 ## 選択中パネルの直上に指差し画像を表示する。
+## 無操作時は AUTO_SELECT_SEC 後に左（一番上扱い）を自動確定する。
 
 signal confirmed(choice_id: String, harvest_kinds: Array[String])
 
@@ -12,6 +13,8 @@ const BG_PATH: String = "res://assets/ui/dungeon/UI_DG_FloorChoice_BG.png"
 const POINTER_PATH: String = "res://assets/ui/dungeon/UI_DG_FloorChoice_Pointer.png"
 const DESIGN_W: float = 720.0
 const DESIGN_H: float = 1280.0
+## 何も選ばない場合、左パネル（戦力／応急）を自動確定するまでの秒数。
+const AUTO_SELECT_SEC: float = 10.0
 
 ## パネル全体ヒット（左=戦力／中=収穫／右=強襲）
 const PANEL_RECTS: Array[Rect2] = [
@@ -55,6 +58,9 @@ var _offered_harvest: Array[String] = []
 var _layout_ox: float = 0.0
 var _layout_oy: float = 0.0
 var _layout_scale: float = 1.0
+var _auto_timer: SceneTreeTimer = null
+var _auto_gen: int = 0
+var _confirm_emitted: bool = false
 
 
 func _ready() -> void:
@@ -142,16 +148,47 @@ func _ready() -> void:
 func open(heal_mode: bool) -> void:
 	_heal_mode = heal_mode
 	_selected = ""
+	_confirm_emitted = false
 	_offered_harvest = roll_harvest_kinds()
 	_refresh_texts()
 	_refresh_selection_visual()
 	_update_confirm_enabled()
 	visible = true
 	move_to_front()
+	_start_auto_select_timer()
 
 
 func close() -> void:
+	_cancel_auto_select_timer()
 	visible = false
+
+
+func _start_auto_select_timer() -> void:
+	_cancel_auto_select_timer()
+	if not is_inside_tree():
+		return
+	_auto_gen += 1
+	var gen: int = _auto_gen
+	_auto_timer = get_tree().create_timer(AUTO_SELECT_SEC)
+	_auto_timer.timeout.connect(_on_auto_select_timeout.bind(gen))
+
+
+func _cancel_auto_select_timer() -> void:
+	_auto_gen += 1
+	_auto_timer = null
+
+
+func _on_auto_select_timeout(gen: int) -> void:
+	if gen != _auto_gen:
+		return
+	_auto_timer = null
+	if not visible or _confirm_emitted:
+		return
+	## 何も選んでいないときだけ左（戦力／応急）を確定。選択済みは触らない。
+	if not _selected.is_empty():
+		return
+	_on_panel_pressed(0)
+	_on_confirm_pressed()
 
 
 static func roll_harvest_kinds() -> Array[String]:
@@ -263,6 +300,8 @@ func _on_panel_pressed(index: int) -> void:
 			_selected = CHOICE_HARVEST
 		2:
 			_selected = CHOICE_ASSAULT
+	## 一度でも選んだら自動確定は止める（「何も選ばなかった」条件を外す）。
+	_cancel_auto_select_timer()
 	_refresh_selection_visual()
 	_update_confirm_enabled()
 
@@ -293,8 +332,10 @@ func _update_confirm_enabled() -> void:
 
 
 func _on_confirm_pressed() -> void:
-	if _confirm_btn.disabled or _selected.is_empty():
+	if _confirm_emitted or _confirm_btn.disabled or _selected.is_empty():
 		return
+	_confirm_emitted = true
+	_cancel_auto_select_timer()
 	var kinds: Array[String] = []
 	if _selected == CHOICE_HARVEST:
 		kinds = _offered_harvest.duplicate()
