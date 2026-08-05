@@ -763,6 +763,10 @@ func _on_debug_event_requested(entry_id: String) -> void:
 	if entry_id == "hub_guide":
 		call_deferred("_debug_show_hub_guide")
 		return
+	## 特権強化手引きも即プレビュー（フラグ非接触）。
+	if entry_id == "privilege_guide":
+		call_deferred("_debug_show_privilege_guide")
+		return
 	## 調査室サイクル受取ポップも即表示（付与なしプレビュー）。
 	if entry_id == "survey_claim_result":
 		call_deferred("_debug_show_survey_claim_result")
@@ -778,6 +782,12 @@ func _on_debug_event_requested(entry_id: String) -> void:
 func _debug_show_hub_guide() -> void:
 	## 再演は preview のみ。済みフラグを消すと Continue で再発する（既知バグ）。
 	_HubSimpleGuideOverlay.show_on(self, true)
+
+
+func _debug_show_privilege_guide() -> void:
+	## preview のみ。済みフラグは触らない。
+	const _DungeonRouteGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
+	_DungeonRouteGuide.show_on(self, _DungeonRouteGuide.GUIDE_PERMIT, true)
 
 
 func _debug_show_survey_claim_result() -> void:
