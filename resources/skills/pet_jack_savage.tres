@@ -6,11 +6,11 @@
 script = ExtResource("1")
 id = "pet_jack_savage"
 display_name = "癒やしの寄り添い"
-description = "いちばん傷ついた仲間に深く寄り添い、大きく回復する。"
+description = "いちばん傷ついた仲間に深く寄り添い、回復する。治癒ほど厚くはない。"
 skill_type = "player"
 target_type = "ally"
-power_multiplier = 0.18
-cooldown = 8.0
+power_multiplier = 0.14
+cooldown = 11.0
 trigger_type = "cooldown"
 effect_type = "heal"
 tags = Array[String](["support", "heal", "pet"])

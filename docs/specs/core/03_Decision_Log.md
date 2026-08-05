@@ -7171,6 +7171,19 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-ALCHEMIST-HEAL-001-3 | グランドエリクサー据置（全体16%） | 必殺の厚みを維持 |
 | P3-BAL-ALCHEMIST-HEAL-001-4 | **SSOT**＝`docs/specs/decisions/77_AlchemistHealNerf.md`。`42_HealMaxHpFraction` salve 行を上書き | Decision 本体 |
 
+## 回復階層（治癒頂点＋ジャック介抱ナーフ）（2026-08-06 — P3-BAL-HEAL-HIERARCHY-001）
+
+> **オーナー指示** — つつき介抱の回転が良すぎる。キャラ回復は治癒が最も高性能。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-HEAL-HIERARCHY-001-1 | **つつき介抱** — 12%/CD5.5 → **10%/CD10** | 回転ナーフ |
+| P3-BAL-HEAL-HIERARCHY-001-2 | **癒やしの寄り添い** — 18%/CD8 → **14%/CD11** | 治癒未満に |
+| P3-BAL-HEAL-HIERARCHY-001-3 | **獣医の手当て** — 人10%/ペット14%／CD9.5（旧12/18・CD7.5） | 治癒より一段下 |
+| P3-BAL-HEAL-HIERARCHY-001-4 | **野営の一滴** — 10%/CD10（旧12%/CD9.5） | 自己粘り用の薄さ |
+| P3-BAL-HEAL-HIERARCHY-001-5 | **治癒** — 20%/CD8 据置（頂点） | 本職ヒーラー |
+| P3-BAL-HEAL-HIERARCHY-001-6 | **SSOT** — `78_HealHierarchy.md` | 正 |
+
 ## 必殺チャージ全部屋100秒統一（2026-08-05 — P3-BAL-ULTIMATE-UNIFY-100-001）
 
 > **オーナー指示** — 通常／エリート／ボスとも満タン100秒に統一。
