@@ -7002,8 +7002,10 @@ func _queue_enemy_offensive_skill(skill: Resource, slot: int, explode_after: boo
 		targets = resolved["indices"]
 		used_fallback = bool(resolved.get("fallback", false))
 		if not targets.is_empty():
-			shares = CombatFormation.threat_damage_shares(
-				targets, Callable($CombatController, "get_member_threat")
+			shares = CombatFormation.enemy_offensive_damage_shares(
+				target_type,
+				targets,
+				Callable($CombatController, "get_member_threat")
 			)
 			dist_tag = CombatFormation.column_distribution_log_tag(targets)
 	else:
@@ -7013,15 +7015,12 @@ func _queue_enemy_offensive_skill(skill: Resource, slot: int, explode_after: boo
 			Callable($CombatController, "is_member_alive"),
 			Callable($CombatController, "pick_enemy_target_for_melee_attack").bind(slot)
 		)
-		## 全体技も Threat 按分（タンクが矢面）。列AoEと同型。単体は share=1。
-		if target_type == CombatFormation.TARGET_ALL_PARTY and targets.size() > 1:
-			shares = CombatFormation.threat_damage_shares(
-				targets, Callable($CombatController, "get_member_threat")
-			)
-			dist_tag = CombatFormation.column_distribution_log_tag(targets)
-		else:
-			for ti: int in targets:
-				shares[ti] = 1.0
+		## 全体＝各フル威力／単体＝1.0（P3-BAL-AOE-FULL-001）。列は上分岐で按分。
+		shares = CombatFormation.enemy_offensive_damage_shares(
+			target_type,
+			targets,
+			Callable($CombatController, "get_member_threat")
+		)
 	if targets.is_empty():
 		var empty_tag: String = CombatFormation.enemy_target_row_log_tag(target_type, used_fallback)
 		_append_log("敵スキル【%s】%s\n  対象なし" % [skill.display_name, empty_tag])

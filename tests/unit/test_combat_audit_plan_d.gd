@@ -73,6 +73,27 @@ func test_threat_shares_sum_to_one_for_multi_target() -> void:
 	assert_almost_eq(sum, 1.0, 0.001)
 
 
+func test_all_party_offensive_shares_are_full_each() -> void:
+	## P3-BAL-AOE-FULL-001: 全体は Threat に依らず各 1.0。
+	var get_threat := func(i: int) -> float: return float((i + 1) * 100)
+	var shares: Dictionary = CombatFormation.enemy_offensive_damage_shares(
+		CombatFormation.TARGET_ALL_PARTY, [0, 1, 2], get_threat
+	)
+	assert_eq(shares.size(), 3)
+	assert_eq(float(shares[0]), 1.0)
+	assert_eq(float(shares[1]), 1.0)
+	assert_eq(float(shares[2]), 1.0)
+
+
+func test_column_offensive_shares_still_threat_split() -> void:
+	var get_threat := func(i: int) -> float: return float((i + 1) * 10)
+	var shares: Dictionary = CombatFormation.enemy_offensive_damage_shares(
+		CombatFormation.TARGET_PARTY_FRONT, [0, 1], get_threat
+	)
+	assert_almost_eq(float(shares[0]), 10.0 / 30.0, 0.001)
+	assert_almost_eq(float(shares[1]), 20.0 / 30.0, 0.001)
+
+
 func _human(id: String, row: int) -> Resource:
 	var adv: Resource = load("res://scripts/domain/Adventurer.gd").new()
 	adv.id = id

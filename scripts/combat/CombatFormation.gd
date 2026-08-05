@@ -37,6 +37,7 @@ static func resolve_column_members_with_fallback(
 		indices = get_column_member_indices(party_size, is_member_alive, not want_back)
 	return {"indices": indices, "fallback": used_fallback}
 
+## 列AoE用の Threat 按分シェア（合計1.0）。`all_party` は使わない（P3-BAL-AOE-FULL-001）。
 static func threat_damage_shares(member_indices: Array[int], get_threat: Callable) -> Dictionary:
 	var shares: Dictionary = {}
 	if member_indices.is_empty():
@@ -54,6 +55,26 @@ static func threat_damage_shares(member_indices: Array[int], get_threat: Callabl
 		return shares
 	for i: int in member_indices:
 		shares[i] = maxf(0.0, float(get_threat.call(i))) / total
+	return shares
+
+
+## 敵攻撃スキルの対象別威力シェア。全体＝各1.0／列＝Threat按分／その他＝各1.0。
+static func enemy_offensive_damage_shares(
+	target_type: String,
+	member_indices: Array[int],
+	get_threat: Callable
+) -> Dictionary:
+	var shares: Dictionary = {}
+	if member_indices.is_empty():
+		return shares
+	if target_type == TARGET_ALL_PARTY:
+		for i: int in member_indices:
+			shares[i] = 1.0
+		return shares
+	if target_type in [TARGET_PARTY_FRONT, TARGET_PARTY_BACK] and member_indices.size() > 1:
+		return threat_damage_shares(member_indices, get_threat)
+	for i: int in member_indices:
+		shares[i] = 1.0
 	return shares
 
 static func resolve_enemy_party_targets(

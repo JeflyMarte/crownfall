@@ -7087,3 +7087,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 |---|---|---|
 | P3-EQ-ACC-LVL-001-1 | 装飾 `k=0.08`（武防 `0.04` 据置） | 基礎が小さく Lv が見えなかった |
 | P3-EQ-ACC-LVL-001-2 | **SSOT**＝`docs/specs/decisions/72_AccessoryEquipGrowth.md` | Decision 本体 |
+
+## 敵全体攻撃フル威力（2026-08-05 — P3-BAL-AOE-FULL-001）
+
+> **オーナー GO（案A）** — `all_party` の Threat按分をやめ、全員にスキル威力フル。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-AOE-FULL-001-1 | 敵 `all_party` ダメージシェア＝各 1.0 | 全体攻撃の圧が感じられなかった |
+| P3-BAL-AOE-FULL-001-2 | 列AoEの Threat按分は据置 | タンク矢面は列で維持 |
+| P3-BAL-AOE-FULL-001-3 | スキル `power_multiplier` 据置 | 減衰はデータ側のみ |
+| P3-BAL-AOE-FULL-001-4 | **SSOT**＝`docs/specs/decisions/73_EnemyAllPartyFullDamage.md`。P3-BAL-COMBAT-AUDIT-001-5 を上書き | Decision 本体 |
