@@ -39,6 +39,9 @@ static func resolve_for_action(member_index: int, skill: Resource = null) -> Str
 	return resolve_member_default(member_index)
 
 static func resolve_member_default(member_index: int) -> String:
+	## ペットは装備不可・常時前衛。鼓舞などの long スキルを通常攻撃の射程に流用しない。
+	if GameState.is_pet_combatant(member_index):
+		return "melee"
 	var winst: Resource = GameState.get_member_equipped_weapon(member_index)
 	if winst != null and not str(winst.weapon_id).is_empty():
 		return attack_range_to_category(get_member_weapon_attack_range(member_index))
@@ -47,13 +50,21 @@ static func resolve_member_default(member_index: int) -> String:
 static func _resolve_skill_meta_fallback(member_index: int) -> String:
 	var member: Resource = GameState.get_combatant(member_index)
 	if member != null:
+		## ダメージ技を優先（バフ／回復の range_type を通常攻撃に流用しない）。
+		var fallback_rt: String = ""
 		for sid: String in GameState.get_equipped_skill_ids(member):
 			var sd: Resource = DataRegistry.get_skill_data(sid)
 			if sd == null:
 				continue
 			var rt := str(sd.range_type)
-			if rt in VALID_RANGES:
-				return rt
-			if "ranged" in sd.tags:
-				return "long"
+			var effect: String = str(sd.effect_type)
+			if effect == "damage" or effect.is_empty():
+				if rt in VALID_RANGES:
+					return rt
+				if "ranged" in sd.tags:
+					return "long"
+			elif fallback_rt.is_empty() and rt in VALID_RANGES:
+				fallback_rt = rt
+		if not fallback_rt.is_empty():
+			return fallback_rt
 	return "melee"
