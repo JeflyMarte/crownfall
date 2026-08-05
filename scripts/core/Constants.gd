@@ -59,7 +59,7 @@ const MAX_EQUIPPED_SKILLS: int = 1
 const ULTIMATE_CHARGE_MAX: float = 100.0
 ## 通常戦で満タンまでの戦闘時間秒（×1基準・生存中のみ。P3-BAL-ULTIMATE-TIME-001）。
 ## 与ダメ／被ダメでは溜まらない。ELITE／BOSS は gain_mult でさらに遅い。
-const ULTIMATE_CHARGE_FILL_SECONDS: float = 50.0
+const ULTIMATE_CHARGE_FILL_SECONDS: float = 100.0
 ## 1キャラが装備できるパッシブ数（キャラ/ジョブ由来。装備固定パッシブは別）。
 const MAX_EQUIPPED_PASSIVES: int = 1
 ## 1キャラが装備できるレリック数（解放型パッシブ・P3-RELIC-PASSIVE）。

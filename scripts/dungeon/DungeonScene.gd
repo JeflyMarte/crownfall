@@ -3855,7 +3855,7 @@ func _enter_current_room() -> void:
 			$CombatController.start_combat_group(
 				group, $DungeonController.get_enemy_level(), apply_density
 			)
-			## ELITE／BOSS: 持ち越し半減＋戦中チャージ減速（P3-BAL-ULTIMATE-PRESSURE-001）。
+			## ELITE／BOSS: 圧力フックは残置（倍率は×1.0＝無効・P3-BAL-ULTIMATE-UNIFY-100-001）。
 			var pressure_ult: bool = (
 				$DungeonController.current_room_type == Enums.RoomType.ELITE
 				or $DungeonController.current_room_type == Enums.RoomType.BOSS

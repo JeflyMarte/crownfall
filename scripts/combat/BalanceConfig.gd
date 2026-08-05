@@ -256,11 +256,11 @@ const ELITE_ESCORT_NM_DUAL_MAX: int = 1
 const ELITE_ESCORT_NM_SINGLE_MIN: int = 2
 const ELITE_ESCORT_NM_SINGLE_MAX: int = 3
 
-# ── 必殺チャージ圧力（P3-BAL-ULTIMATE-PRESSURE-001／時間制 P3-BAL-ULTIMATE-TIME-001） ──
-## ELITE／BOSS 戦闘中のチャージ速度倍率（時間／flat 共通）。
-const ULTIMATE_CHARGE_PRESSURE_MULT: float = 0.5
-## ELITE／BOSS 入場時に既存ゲージへ掛ける倍率（半減。ゼロにはしない）。
-const ULTIMATE_CHARGE_PRESSURE_ENTER_MULT: float = 0.5
+# ── 必殺チャージ圧力（P3-BAL-ULTIMATE-UNIFY-100-001 で無効化＝×1.0） ──
+## ELITE／BOSS も通常と同じ速度（旧×0.5は廃止）。
+const ULTIMATE_CHARGE_PRESSURE_MULT: float = 1.0
+## ELITE／BOSS 入場時の持ち越し減衰なし（旧×0.5は廃止）。
+const ULTIMATE_CHARGE_PRESSURE_ENTER_MULT: float = 1.0
 
 # ── ボス圧案A（P3-BAL-BOSS-AURA-A-001） ──────────────────────────────────
 ## BOSS 攻撃力の追加倍率（グローバルATK・人数補正の外側）。

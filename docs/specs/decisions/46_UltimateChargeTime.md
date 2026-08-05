@@ -2,7 +2,8 @@
 
 **Status:** Decision 承認済（2026-08-02 — オーナー GO＝案A）  
 **Impl:** `P3-BAL-ULTIMATE-TIME-001`  
-**関連:** P3-COMBAT-GAUGE-001（上書き）／P3-BAL-ULTIMATE-PRESSURE-001／`39_UltimateChargePressure.md`
+**関連:** P3-COMBAT-GAUGE-001（上書き）／P3-BAL-ULTIMATE-PRESSURE-001／`39_UltimateChargePressure.md`  
+**追記（2026-08-05）:** 全部屋100秒統一 → `78_UltimateChargeUnify100.md`
 
 ---
 
@@ -24,10 +25,10 @@
 
 | 項目 | 値 |
 |---|---|
-| 満タン目安（通常） | **50 秒**（`ULTIMATE_CHARGE_FILL_SECONDS`・2026-08-02 半速化） |
+| 満タン目安（全部屋） | **100 秒**（`ULTIMATE_CHARGE_FILL_SECONDS`・P3-BAL-ULTIMATE-UNIFY-100-001） |
 | 上限 | 100（`ULTIMATE_CHARGE_MAX`） |
-| ELITE／BOSS 入場 | 持ち越し ×0.5（据置） |
-| ELITE／BOSS 戦中 | チャージ速度 ×0.5（≈100 秒満タン） |
+| ELITE／BOSS 入場 | 減衰なし（圧力×1.0） |
+| ELITE／BOSS 戦中 | 通常と同速（圧力×1.0） |
 | 発動後 | 0 に戻して再チャージ |
 
 ---

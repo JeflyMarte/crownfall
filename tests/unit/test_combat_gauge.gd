@@ -63,7 +63,7 @@ func test_ultimate_skill_executor_skips_cooldown() -> void:
 
 
 func test_ultimate_charge_fills_over_time_not_damage() -> void:
-	assert_almost_eq(Constants.ULTIMATE_CHARGE_FILL_SECONDS, 50.0, 0.001)
+	assert_almost_eq(Constants.ULTIMATE_CHARGE_FILL_SECONDS, 100.0, 0.001)
 	var ctrl := CombatController.new()
 	add_child_autofree(ctrl)
 	ctrl.party_combat_hp = [100, 100]

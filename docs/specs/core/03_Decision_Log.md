@@ -7156,3 +7156,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-ALCHEMIST-HEAL-001-2 | 大治癒＝**全体各員12%**／CD **12.0**（旧32%単体・CD8.5） | 緊急単体→薄い全体 |
 | P3-BAL-ALCHEMIST-HEAL-001-3 | グランドエリクサー据置（全体16%） | 必殺の厚みを維持 |
 | P3-BAL-ALCHEMIST-HEAL-001-4 | **SSOT**＝`docs/specs/decisions/77_AlchemistHealNerf.md`。`42_HealMaxHpFraction` salve 行を上書き | Decision 本体 |
+
+## 必殺チャージ全部屋100秒統一（2026-08-05 — P3-BAL-ULTIMATE-UNIFY-100-001）
+
+> **オーナー指示** — 通常／エリート／ボスとも満タン100秒に統一。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-ULTIMATE-UNIFY-100-001-1 | `ULTIMATE_CHARGE_FILL_SECONDS` **50→100** | 全体を遅く揃える |
+| P3-BAL-ULTIMATE-UNIFY-100-001-2 | ELITE／BOSS 圧力 **×0.5→×1.0**（入場・戦中） | 部屋差をなくす |
+| P3-BAL-ULTIMATE-UNIFY-100-001-3 | **SSOT**＝`docs/specs/decisions/78_UltimateChargeUnify100.md`。`46`／`39` を上書き | Decision 本体 |

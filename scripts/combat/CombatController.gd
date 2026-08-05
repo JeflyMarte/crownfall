@@ -59,7 +59,7 @@ var member_skill_rot_idx: Array[int] = []
 # 必殺チャージ（P3-COMBAT-GAUGE-001 → 時間制 P3-BAL-ULTIMATE-TIME-001）。
 # member index → 0..ULTIMATE_CHARGE_MAX。戦闘中・生存中のみ時間で増加。
 var member_ultimate_charge: Array[float] = []
-## ELITE／BOSS 中は BalanceConfig.ULTIMATE_CHARGE_PRESSURE_MULT（P3-BAL-ULTIMATE-PRESSURE-001）。
+## ELITE／BOSS も通常と同速（圧力×1.0・P3-BAL-ULTIMATE-UNIFY-100-001）。
 var ultimate_charge_gain_mult: float = 1.0
 ## 直近ボス戦の開幕オーラ状態 id（無ければ空）。ログ／演出用。
 var last_boss_opening_status_id: String = ""
