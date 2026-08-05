@@ -7066,6 +7066,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-PASSIVE-LOCK-001-7 | ミレイ＝攻撃20%毒＋ペットステ×1.5 | 毒＋ペット核 |
 | P3-BAL-PASSIVE-LOCK-001-8 | ルーシェ＝攻撃20%冷却＋行動時ペットHP10% | 冷却＋維持 |
 | P3-BAL-PASSIVE-LOCK-001-9 | ヴァルデン＝パーティ被ダメ軽減＋被弾時自身HP10% | 壁＋自己回復 |
+| P3-BAL-VALDEN-NO-HEAL-001 | **上書き** — ヴァルデン自己回復削除。被ダメ軽減のみ（B′′） | オーナー指示・過強 |
 
 ## キャラ別レベル成長 H1（2026-08-04 — P3-BAL-GROWTH-H1-001）
 
@@ -7133,3 +7134,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-TRICKY-RESIST-A-001-3 | HP×0.65（マンティス×0.80） | 粘りすぎ緩和 |
 | P3-BAL-TRICKY-RESIST-A-001-4 | 軽減×0.2 据置 | 役割は維持 |
 | P3-BAL-TRICKY-RESIST-A-001-5 | **SSOT**＝`docs/specs/decisions/76_TrickyResistPassiveA.md` | Decision 本体 |
+
+## ヴァルデン自己回復削除（2026-08-05 — P3-BAL-VALDEN-NO-HEAL-001）
+
+> **オーナー指示** — 被弾時 HP10% 回復が強すぎるため削除。パーティ被ダメ軽減は据置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-VALDEN-NO-HEAL-001-1 | `valden_iron_oath` から heal／on_hit_taken を削除 | オーナー感触・過強 |
+| P3-BAL-VALDEN-NO-HEAL-001-2 | `party_incoming_mult` 0.90 据置 | 壁役は維持 |
+| P3-BAL-VALDEN-NO-HEAL-001-3 | **SSOT**＝`docs/specs/decisions/70_PassiveKitLock.md`（B′′） | Decision 追記 |
+| P3-BAL-VALDEN-NO-HEAL-001-4 | P3-BAL-PASSIVE-LOCK-001-9 を上書き | 自己回復なし |

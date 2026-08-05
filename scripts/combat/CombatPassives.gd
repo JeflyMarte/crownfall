@@ -212,14 +212,8 @@ const _DEFS: Dictionary = {
 	},
 	"valden_iron_oath": {
 		"display_name": "鉄誓の壁",
-		"description": "味方全体の被ダメージを軽減する。自身がダメージを受けたとき、最大HPの10%を回復する。",
+		"description": "味方全体の被ダメージを軽減する。",
 		"party_incoming_mult": 0.90,
-		"trigger": "on_hit_taken",
-		"condition": "always",
-		"effect": "heal",
-		"target": "self",
-		"heal_max_hp_fraction": 0.10,
-		"cooldown": 0.0,
 	},
 	"kaida_arena_edge": {
 		"display_name": "一閃の賭け",

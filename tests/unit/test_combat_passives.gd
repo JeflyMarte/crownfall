@@ -158,9 +158,9 @@ func test_starter_and_gacha_passive_redesign() -> void:
 	var valden: Dictionary = CombatPassives.get_def("valden_iron_oath")
 	assert_eq(float(valden.get("party_incoming_mult", 0.0)), 0.90)
 	assert_false(valden.has("passive_condition"))
-	assert_eq(str(valden.get("effect", "")), "heal")
-	assert_eq(str(valden.get("trigger", "")), "on_hit_taken")
-	assert_almost_eq(float(valden.get("heal_max_hp_fraction", 0.0)), 0.10, 0.001)
+	assert_false(valden.has("effect"))
+	assert_false(valden.has("trigger"))
+	assert_false(valden.has("heal_max_hp_fraction"))
 	assert_eq(str(valden.get("display_name", "")), "鉄誓の壁")
 
 
