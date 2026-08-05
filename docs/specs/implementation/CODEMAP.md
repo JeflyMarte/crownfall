@@ -59,7 +59,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | ShowcaseScene | `scenes/showcase/ShowcaseScene.tscn` | `scripts/showcase/ShowcaseScene.gd`（**P3-SHOWCASE-001** 展示室２背景・装備4枠（レリック含む）・ステ下スキル名＋効果。スタッフ名札＝`キャラ(ビルド)`） |
 | ShowcaseCatalog | — | `scripts/showcase/ShowcaseCatalog.gd`（スタッフ理想ビルド5枠・読取専用） |
 | SurveyScene | `scenes/survey/SurveyScene.tscn` | `scripts/survey/SurveyScene.gd`（**P3-HUB-SURVEY-001** 調査室。スタッフ＝`SurveyStaff`。ノノカは **P3-SURVEY-NONOKA-JOIN-001** で③クリア後合流） |
-| CommanderScene | `scenes/commander/CommanderScene.tscn` | `scripts/commander/CommanderScene.gd`（**P3-CMD-001** 隊長台帳・**P3-CMD-RANK-CURVE-003** 閾値D0/C400/B900/A1500/S2200・**P3-CMD-RANK-SPLUS-001** S+n=+400／`57_CommanderSPlusRanks`・**P3-CMD-PERMIT-BOOST-001** 許可強化／`58_CommanderPermitBoost`・到達手当・称号データは残置／マイページ称号 UI オミット）・**P3-CMD-RANKUP-001** `CommanderRankUpOverlay`（拠点ランクアップ祝辞） |
+| CommanderScene | `scenes/commander/CommanderScene.tscn` | `scripts/commander/CommanderScene.gd`（**P3-CMD-001** 隊長台帳・**P3-CMD-RANK-CURVE-003** 閾値D0/C400/B900/A1500/S2200・**P3-CMD-RANK-SPLUS-001** S+n=+400／`57_CommanderSPlusRanks`・**P3-CMD-PERMIT-BOOST-001** 特権強化／`58_CommanderPermitBoost`・到達手当・称号データは残置／マイページ称号 UI オミット）・**P3-CMD-RANKUP-001** `CommanderRankUpOverlay`（拠点ランクアップ祝辞） |
 | CommanderPermitScene | `scenes/commander/CommanderPermitScene.tscn` | `scripts/commander/CommanderPermitScene.gd`（許可点スライダー：略奪／成長／戦力） |
 | SettingsScene | `scenes/settings/SettingsScene.tscn` | `scripts/settings/SettingsScene.gd`（設定 MVP・`SettingsPrefs`・特典コード P3-UX-REDEEM-001） |
 

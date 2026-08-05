@@ -172,20 +172,29 @@ func _build_overview_section() -> Control:
 
 func _make_permit_boost_button() -> Button:
 	_CommanderPermitBoost.ensure_and_sync()
+	var unlocked: bool = _CommanderPermitBoost.is_ui_unlocked()
 	var unspent: int = _CommanderPermitBoost.points_unspent()
 	var btn := Button.new()
-	if unspent > 0:
-		btn.text = "許可強化（残り %d）" % unspent
+	var name: String = _CommanderPermitBoost.DISPLAY_NAME
+	if not unlocked:
+		btn.text = "%s（S級で解放）" % name
+	elif unspent > 0:
+		btn.text = "%s（残り %d）" % [name, unspent]
 	else:
-		btn.text = "許可強化"
+		btn.text = name
 	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	btn.custom_minimum_size = Vector2(0, 44)
-	UiTypography.apply_button(btn, unspent > 0)
-	btn.pressed.connect(_on_permit_boost_pressed)
+	btn.disabled = not unlocked
+	## 未解放はグレー。解放後は通常色（残り点は文言で示す）。
+	UiTypography.apply_button(btn, not unlocked)
+	if unlocked:
+		btn.pressed.connect(_on_permit_boost_pressed)
 	return btn
 
 
 func _on_permit_boost_pressed() -> void:
+	if not _CommanderPermitBoost.is_ui_unlocked():
+		return
 	AudioManager.play_sfx("ui_confirm")
 	get_tree().change_scene_to_file(PERMIT_SCENE)
 

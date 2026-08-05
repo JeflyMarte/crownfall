@@ -1,9 +1,14 @@
 extends RefCounted
 
-## 指揮官 許可強化（P3-CMD-PERMIT-BOOST-001 / Decision 58）。
+## 指揮官 特権強化（旧称・許可強化／P3-CMD-PERMIT-BOOST-001 / Decision 58）。
 ## S+n 到達で許可点を付与し、略奪／成長／戦力へ割り振る。
 
 const _CommanderProfile := preload("res://scripts/commander/CommanderProfile.gd")
+
+## 画面・ボタン表示名（P3-CMD-PERMIT-RENAME-001）。
+const DISPLAY_NAME: String = "特権強化"
+## ボタン解放等級（到達後に押下可）。
+const UNLOCK_RANK: String = "S"
 
 const TRACK_PLUNDER: String = "plunder"
 const TRACK_GROWTH: String = "growth"
@@ -20,6 +25,10 @@ const TRACK_LABELS: Dictionary = {
 const PERCENT_PER_POINT: float = 0.02
 ## 戦力: 防御 flat（点×この値）。
 const DEFENSE_FLAT_PER_POINT: int = 2
+
+
+static func is_ui_unlocked() -> bool:
+	return _CommanderProfile.is_rank_at_least(UNLOCK_RANK)
 
 
 static func ensure() -> void:
