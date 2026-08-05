@@ -14,7 +14,8 @@ const RANK_ORDER: Array[String] = ["D", "C", "B", "A", "S"]
 const S_RANK_THRESHOLD: int = 2200
 const S_PLUS_INTERVAL: int = 400
 const S_PLUS_GIFT_GOLD: int = 1500
-const S_PLUS_GIFT_TOKEN: int = 15
+## P3-CMD-RANK-TOKEN-001: C=100 錨・同比率で厚く。
+const S_PLUS_GIFT_TOKEN: int = 150
 const S_PLUS_SUBTITLE: String = "継続調査許可"
 
 ## 現行閾値（P3-CMD-RANK-CURVE-003 案A — 終盤〜ハード寄りでS）。
@@ -69,10 +70,10 @@ const RANK_GIFT_GOLD: Dictionary = {
 	"S": 8000,
 }
 const RANK_GIFT_TOKEN: Dictionary = {
-	"C": 10,
-	"B": 25,
-	"A": 50,
-	"S": 100,
+	"C": 100,
+	"B": 250,
+	"A": 500,
+	"S": 1000,
 }
 ## 等級コード → { material_id: qty }
 const RANK_GIFT_MATERIALS: Dictionary = {

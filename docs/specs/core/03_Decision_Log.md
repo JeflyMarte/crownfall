@@ -7272,3 +7272,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-TACTICS-ATTACK-FOCUS-001-3 | **据置** — バランス／必殺温存／防御重視／サポート優先／通常攻撃のみ | 既存ビルドを壊さない |
 | P3-UX-TACTICS-ATTACK-FOCUS-001-4 | **互換** — 旧 `fodder_focus`／`boss_focus`／`aggressive`／`sweep` → `attack_focus` | セーブ破壊なし |
 | P3-UX-TACTICS-ATTACK-FOCUS-001-5 | **上書き** — P3-UX-TACTICS-LIST-001-2 の「7種」→**6種** | 一覧UIの正 |
+
+## ランクアップ到達手当・魔晶石増量（2026-08-06 — P3-CMD-RANK-TOKEN-001）
+
+> **オーナー指示** — もっと増やしてよい。最初のランクアップ（C）は魔晶石100。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-CMD-RANK-TOKEN-001-1 | **魔晶石** — C100／B250／A500／S1000／S+n 各150 | C=100錨・旧比率維持 |
+| P3-CMD-RANK-TOKEN-001-2 | Gold・素材・許可点・称号・閾値は据置 | 石の手触りだけ厚く |
+| P3-CMD-RANK-TOKEN-001-3 | 既到達への再配布なし | セーブ破壊回避 |
+| P3-CMD-RANK-TOKEN-001-4 | **SSOT**＝`docs/specs/decisions/83_CommanderRankTokenBoost.md`。CURVE-003-2／SPLUS-001-3 の石数を上書き | Decision 本体 |
