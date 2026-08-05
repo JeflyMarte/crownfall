@@ -186,6 +186,7 @@ alwaysApply: false
 | iOS Personal Team で Push 署名エラー | `entitlements/push_notifications=false` が文字列 `"false"` 扱いになり `aps-environment` が付く | 値は `"Disabled"`。entitlements から Push キーを外す |
 | セーフエリア／ノッチ／Mac simulate／拠点 chrome／Idle拡縮（代表） | chrome誤適用・Headerのみ移動・`size.y`・モバイル一律スキップ | → **`ui-layout.mdc` SafeArea／CHR Idle** |
 | 拠点に所持金〜発見の中段帯が再出現する | `CurrencyStrip` を再表示／`_populate_currency_strip` を復活 | 帯は非表示のまま（TopBar のみ）。日課は下端スタック（`HubLayoutHelper._stack_hub_bottom_panels`）。ギルド情報誌は左メニュー直下 |
+| YouTube解説で「動画と音声が全く合わない」 | 総尺は一致しても、セクション単位ループ／切断で**中身**が無関係 | **音声先行・1文=1ショット**（`yt_ep02_shot_runner.gd`）。総尺検算に加えサンプル時刻でテロップ＝画面を確認。`yt_ep02_assemble.py` 旧方式は本番禁止。→ `YOUTUBE_YUKKURI_GUIDE.md` |
 | 展示室でスタッフ名と総合戦力が重なる | StaffStrip 横並びが POWER_RECT と同帯 | 作例は一覧ボタン（左）＋シート。Strip 廃止（P3-UX-SHOWCASE-STAFF-LIST-001） |
 | 展示室・自慢キャラなしでも下に空の名札枠 | 名札枠が BG 焼込。Footer を隠しても枠だけ残る | 空状態で `NAME_FRAME_MASK` を表示（`ShowcaseScene._set_stage_visible`） |
 | デバッグ中なのに時間限定イベントDGが閉じている | `EventDungeonSchedule.is_open_now` が `debug_full_unlock` を見ない | `debug_full_unlock`（または override=-2）で曜日／時間帯を常時開放。表示は「デバッグ常時開放」 |

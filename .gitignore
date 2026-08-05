@@ -49,3 +49,10 @@ crownfall_projectdocs_*.zip
 wiki/site/
 wiki/.venv/
 __pycache__/
+
+# YouTube 撮影バイナリ（ローカル生成。スクリプトと台本だけ版管理）
+docs/devlog/yt_*/footage/*.avi
+docs/devlog/yt_*/footage/*.mov
+docs/devlog/yt_*/export/*.mp4
+docs/devlog/yt_*/export/*.wav
+docs/devlog/yt_*/export/_tmp/
