@@ -69,7 +69,9 @@ func test_all_bosses_have_dual_basic_attacks() -> void:
 			assert_eq(str(skill.effect_type), "damage", str(sid))
 			if str(skill.target_type) == "party":
 				saw_single = true
-				assert_almost_eq(float(skill.power_multiplier), 1.5, 0.001, str(sid))
+				## P3-BAL-SERDION-A-001: セルディオン爪のみ ×1.7。他ボスは ×1.5。
+				var expect_single: float = 1.7 if boss_id == "serdion" else 1.5
+				assert_almost_eq(float(skill.power_multiplier), expect_single, 0.001, str(sid))
 			elif str(skill.target_type) == "all_party":
 				saw_cleave = true
 				assert_almost_eq(float(skill.power_multiplier), 1.0, 0.001, str(sid))
@@ -83,7 +85,9 @@ func test_instant_pressure_aoe_is_half() -> void:
 		var skill: Resource = DataRegistry.get_skill_data(sid)
 		assert_not_null(skill, sid)
 		assert_eq(str(skill.target_type), "all_party", sid)
-		assert_almost_eq(float(skill.power_multiplier), 0.5, 0.001, sid)
+		## P3-BAL-SERDION-A-001: セルディオン咆哮のみ ×0.75。他は ×0.5。
+		var expect_pwr: float = 0.75 if boss_id == "serdion" else 0.5
+		assert_almost_eq(float(skill.power_multiplier), expect_pwr, 0.001, sid)
 		assert_lte(float(skill.cast_time), 0.0, sid)
 
 

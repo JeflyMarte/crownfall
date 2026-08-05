@@ -52,6 +52,17 @@ func test_serdion_decree_wave_power_2() -> void:
 	assert_gte(float(skill.cast_time), 1.0)
 
 
+func test_serdion_plan_a_pressure_numbers() -> void:
+	## P3-BAL-SERDION-A-001: ATK145／爪×1.7／咆哮×0.75。
+	var boss: Resource = DataRegistry.get_enemy_data("serdion")
+	assert_not_null(boss)
+	assert_eq(int(boss.attack), 145)
+	var roar: Resource = DataRegistry.get_skill_data("enemy_serdion_roar")
+	assert_not_null(roar)
+	assert_almost_eq(float(roar.power_multiplier), 0.75, 0.001)
+	assert_lte(float(roar.cast_time), 0.0)
+
+
 func test_serdion_basic_attack_variants() -> void:
 	var boss: Resource = DataRegistry.get_enemy_data("serdion")
 	assert_not_null(boss)
@@ -65,7 +76,7 @@ func test_serdion_basic_attack_variants() -> void:
 	var claw: Resource = DataRegistry.get_skill_data("enemy_serdion_claw")
 	assert_not_null(claw)
 	assert_eq(str(claw.target_type), "party")
-	assert_almost_eq(float(claw.power_multiplier), 1.5, 0.001)
+	assert_almost_eq(float(claw.power_multiplier), 1.7, 0.001)
 	assert_lte(float(claw.cast_time), 0.0)
 	assert_eq(str(claw.apply_status_id), "bleed")
 	var cleave: Resource = DataRegistry.get_skill_data("enemy_serdion_cleave")

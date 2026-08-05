@@ -7098,3 +7098,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-AOE-FULL-001-2 | 列AoEの Threat按分は据置 | タンク矢面は列で維持 |
 | P3-BAL-AOE-FULL-001-3 | スキル `power_multiplier` 据置 | 減衰はデータ側のみ |
 | P3-BAL-AOE-FULL-001-4 | **SSOT**＝`docs/specs/decisions/73_EnemyAllPartyFullDamage.md`。P3-BAL-COMBAT-AUDIT-001-5 を上書き | Decision 本体 |
+
+## セルディオン火力強化・案A（2026-08-05 — P3-BAL-SERDION-A-001）
+
+> **オーナー GO（案A）** — ATK＋爪＋咆哮。断罪・薙ぎ・Hex 据置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-SERDION-A-001-1 | ATK **120→145** | 全ボス最低だった常時火力を底上げ |
+| P3-BAL-SERDION-A-001-2 | 骸晶爪 **×1.5→1.7** | 単体通常の薄さを解消 |
+| P3-BAL-SERDION-A-001-3 | 骸晶の咆哮 **×0.5→0.75** | 即時全体の圧を強化 |
+| P3-BAL-SERDION-A-001-4 | **SSOT**＝`docs/specs/decisions/74_SerdionPressureA.md` | Decision 本体 |
