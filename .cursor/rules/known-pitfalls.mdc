@@ -61,6 +61,7 @@ alwaysApply: false
 | 展示室・総合戦力／空状態に黒い矩形 | PowerFrame の暗塗り・空パネル黒カード・名札マスク ColorRect | PowerFrame 暗塗り透過化。空パネルは StyleBoxEmpty。名札覆いは BG Atlas |
 | はじめガイドでページごとにヘッダ位置がずれる | 本文長／スキップ有無でパネル高が変わり `CenterContainer` が上下に再中央寄せ | 外枠サイズ固定＋本文は Scroll。スキップは非表示ではなく透明／disabled |
 | 加入セリフ（ジャック等）が透けて読めない | `UI_Join_QuotePanel` の吹き出し内が空洞（枠のみ） | 枠の下に不透明プレートを合成。文言は金の display |
+| リーヴァ加入リビールが女性語尾（「いいわ」） | 寡黙口調の文末に「わ」が混入。立ち絵は男性 | `StarterJoinQuotes` はビジュアル性別と語尾を照合。男性は「わ／わよ／だわ」禁止。変更時は加入＋召喚セリフを横断点検 |
 | API arity／sort_custom const／CurrencyGainFx／for-else／COLOR_BODY（起動即死系） | パース・未解決 | → **`pitfalls-startup.mdc`**／`gdscript.mdc` |
 | 編成でアイコン巨大化／入替 Abort／Toolbar 食い込み（CHR・破棄） | 選択 Style 膨張・Button 子肖像・`free()`・Scroll 先頭タブ | → **`ui-layout.mdc` 編成 CHR／編成・陣形** |
 | パーティ画面が重い／スクロール不能 | 入れ子 Scroll＋rebuild 後 ScrollTouch 未再適用＋StyleBox new | → `ui-layout.mdc` ScrollTouch。上段は非 Scroll。StyleBox キャッシュ |

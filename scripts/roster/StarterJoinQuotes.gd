@@ -30,7 +30,7 @@ const JOIN_LINES: Dictionary = {
 ## ロスター確定後。動機の繰り返しではなく、これからどう動くかの一言。
 const REVEAL_LINES: Dictionary = {
 	"adventurer_0": "遅れたな。これからは前線を任せてくれ。",
-	"adventurer_1": "……合流した。合図は短くでいいわ。",
+	"adventurer_1": "……合流した。合図は短くでいい。",
 	"adventurer_2": "薬袋は開けてある。怪我人が出たら、すぐ呼んでくれ。",
 	"adventurer_3": "盾は預かった。お前たちの背中は、俺が守る。",
 	"adventurer_4": "ジャックも喜んでるよ。一緒にいこう！",
