@@ -477,6 +477,7 @@ static func _reset_hub_room_guide_flags() -> String:
 		_RoomGuide.FLAG_GACHA_INVITE,
 		_RoomGuide.FLAG_GACHA_SEAL,
 		_RoomGuide.FLAG_SHOWCASE,
+		_RoomGuide.FLAG_PERMIT,
 	]:
 		GameState.tutorial_flags[key] = false
 	SaveManager.save_game()
