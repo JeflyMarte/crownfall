@@ -55,7 +55,7 @@ const STAFF_PRESETS: Array = [
 		"armor_id": "bulwark_role_plate",
 		"accessory_id": "ironvow_amulet",
 		"relic_id": "relic_aegis_shard",
-		"equipped_skill_ids": ["apex_guard"],
+		"equipped_skill_ids": ["assault_shatter"],
 		"enhance_level": 4,
 		"equip_level": 50,
 	},

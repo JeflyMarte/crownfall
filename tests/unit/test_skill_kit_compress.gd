@@ -27,7 +27,7 @@ func test_new_aoe_and_party_skills_exist() -> void:
 		assert_not_null(sk, sid)
 		assert_eq(str(sk.target_type), "all_enemies", sid)
 		assert_eq(str(sk.effect_type), "damage", sid)
-	var party_ids: Array[String] = ["bulwark_aura", "rally_vapors", "herd_call"]
+	var party_ids: Array[String] = ["bulwark_aura", "rally_vapors", "herd_call", "offensive_stance"]
 	for sid in party_ids:
 		var sk2: Resource = DataRegistry.get_skill_data(sid)
 		assert_not_null(sk2, sid)
@@ -45,10 +45,25 @@ func test_diverge_replacement_skills() -> void:
 	var pierce: Resource = DataRegistry.get_skill_data("piercing_shot")
 	assert_true(pierce.tags.has("pierce_secondary"))
 	assert_true(str(pierce.apply_status_id).is_empty())
-	var cover: Resource = DataRegistry.get_skill_data("cover_guard")
-	assert_eq(str(cover.target_type), "ally")
-	assert_eq(str(cover.effect_type), "buff")
-	assert_eq(str(cover.apply_status_id), "guard")
+
+
+func test_vg_triad_skills() -> void:
+	## P3-SKILL-VG-TRIAD-001 — 味方バフ／ヘイト／攻撃
+	var stance: Resource = DataRegistry.get_skill_data("offensive_stance")
+	assert_eq(str(stance.target_type), "all_party")
+	assert_eq(str(stance.apply_status_id), "empower")
+	var crush: Resource = DataRegistry.get_skill_data("shield_crush")
+	assert_eq(str(crush.target_type), "enemy")
+	assert_eq(str(crush.effect_type), "damage")
+	assert_eq(str(crush.apply_status_id), "armor_break")
+	assert_gte(float(crush.apply_status_chance), 0.6)
+	assert_false(crush.tags.has("self_guard_on_hit"))
+	var shatter: Resource = DataRegistry.get_skill_data("assault_shatter")
+	assert_eq(str(shatter.effect_type), "damage")
+	assert_gte(float(shatter.power_multiplier), 2.0)
+	assert_false(shatter.tags.has("self_guard_on_hit"))
+	var quake: Resource = DataRegistry.get_skill_data("shield_quake")
+	assert_true(quake.tags.has("taunt"))
 
 
 func test_swordsman_ranger_vanguard_unlock_ids() -> void:
@@ -62,8 +77,13 @@ func test_swordsman_ranger_vanguard_unlock_ids() -> void:
 	assert_true(rg.learnable_skill_ids.has("piercing_shot"))
 	assert_false(rg.learnable_skill_ids.has("mark_pursuit"))
 	var vg: Resource = DataRegistry.get_job_data("vanguard")
-	assert_true(vg.learnable_skill_ids.has("cover_guard"))
+	assert_true(vg.learnable_skill_ids.has("offensive_stance"))
+	assert_true(vg.learnable_skill_ids.has("shield_crush"))
+	assert_true(vg.learnable_skill_ids.has("assault_shatter"))
 	assert_false(vg.learnable_skill_ids.has("shield_ram"))
+	assert_false(vg.learnable_skill_ids.has("cover_guard"))
+	assert_false(vg.learnable_skill_ids.has("iron_guard"))
+	assert_false(vg.learnable_skill_ids.has("apex_guard"))
 
 
 func test_battle_spirit_is_self_empower() -> void:
@@ -81,6 +101,10 @@ func test_equipped_skill_remap() -> void:
 	assert_eq(SkillProgression.remap_equipped_skill_id("mark_pursuit"), "piercing_shot")
 	assert_eq(SkillProgression.remap_equipped_skill_id("momentum_slash"), "battle_spirit")
 	assert_eq(SkillProgression.remap_equipped_skill_id("armor_cleave"), "battle_spirit")
+	assert_eq(SkillProgression.remap_equipped_skill_id("iron_guard"), "offensive_stance")
+	assert_eq(SkillProgression.remap_equipped_skill_id("cover_guard"), "shield_crush")
+	assert_eq(SkillProgression.remap_equipped_skill_id("shield_ram"), "shield_crush")
+	assert_eq(SkillProgression.remap_equipped_skill_id("apex_guard"), "assault_shatter")
 	var adv: Resource = Adventurer.new()
 	adv.id = "kit_remap_sw"
 	adv.job_id = "swordsman"
@@ -91,6 +115,13 @@ func test_equipped_skill_remap() -> void:
 	adv.equipped_skill_ids = ["momentum_slash"] as Array[String]
 	SkillProgression.normalize_equipped_skills(adv)
 	assert_eq(str(adv.equipped_skill_ids[0]), "battle_spirit")
+	var vg: Resource = Adventurer.new()
+	vg.id = "kit_remap_vg"
+	vg.job_id = "vanguard"
+	vg.level = 50
+	vg.equipped_skill_ids = ["cover_guard"] as Array[String]
+	SkillProgression.normalize_equipped_skills(vg)
+	assert_eq(str(vg.equipped_skill_ids[0]), "shield_crush")
 
 
 func test_aimed_shot_is_armor_break_only() -> void:

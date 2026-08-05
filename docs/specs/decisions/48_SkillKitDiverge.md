@@ -23,9 +23,10 @@
 | RG Lv30 | 追標射 | **貫通射** `piercing_shot` | 別敵へ半分ダメージ・標的なし |
 | VG Lv1 | 衛士斬り | （チューン） | **硬直のみ**（恐怖削除） |
 | VG Lv15 | 威嚇斬 | （チューン） | **低威力＋挑発**（恐怖削除） |
-| VG Lv30 | 盾殴り | **庇護** `cover_guard` | 最傷味方へ guard |
+| VG Lv30 | 盾殴り | **庇護** `cover_guard` | 最傷味方へ guard → **後続 TRIAD で砕盾斬へ** |
 
-旧IDはデータ残置。装備は `SkillProgression.EQUIPPED_SKILL_REMAP` で移行。
+旧IDはデータ残置。装備は `SkillProgression.EQUIPPED_SKILL_REMAP` で移行。  
+**VG 三軸再編の正:** `62_VanguardSkillTriad.md`（P3-SKILL-VG-TRIAD-001）。
 
 ---
 
@@ -35,7 +36,7 @@
 |---|---|---|---|
 | SW | 出血（裂傷／血煙） | 多段（剣舞／一閃） | 自己強化（闘気）／群れ（剣嵐）※追勢は SELFBUFF-001 で外す |
 | RG | 標的（狩人／狩場） | 貫通 | 斉射 |
-| VG | 硬直（衛士） | 挑発（威嚇） | 味方守り（庇護／壁） |
+| VG | （旧）硬直／挑発／味方守り → **TRIAD:** 味方バフ／ヘイト／攻撃 | | |
 
 ---
 

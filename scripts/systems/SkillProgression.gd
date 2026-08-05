@@ -10,7 +10,11 @@ const EQUIPPED_SKILL_REMAP: Dictionary = {
 	"armor_cleave": "battle_spirit",
 	"momentum_slash": "battle_spirit",
 	"mark_pursuit": "piercing_shot",
-	"shield_ram": "cover_guard",
+	## VG 三軸再編（P3-SKILL-VG-TRIAD-001）
+	"shield_ram": "shield_crush",
+	"cover_guard": "shield_crush",
+	"iron_guard": "offensive_stance",
+	"apex_guard": "assault_shatter",
 }
 
 
