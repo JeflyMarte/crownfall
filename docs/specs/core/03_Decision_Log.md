@@ -6978,8 +6978,8 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 
 | # | 決定 | 根拠 |
 |---|---|---|
-| P3-DG-FLOOR-CHOICE-HEAL-FX-001-1 | **タイミング** — HPは入場時適用。VFX／+N／テロップ／SEは暗転明け | 黒幕中は見えない |
-| P3-DG-FLOOR-CHOICE-HEAL-FX-001-2 | **演出** — 緑VFX＋緑+N（泉と同型）・中央テロップ「応急手当！」・`combat_heal` 直鳴らし | 視認性 |
+| P3-DG-FLOOR-CHOICE-HEAL-FX-001-1 | **タイミング** — HPは入場時適用。VFX／+N／名ポップ／SEは暗転明け | 黒幕中は見えない |
+| P3-DG-FLOOR-CHOICE-HEAL-FX-001-2 | **演出** — 緑VFX＋緑+N（泉と同型）・スキル名ポップ「応急手当」・`combat_heal` 直鳴らし（中央テロップ廃止・P3-DG-FLOOR-CHOICE-HEAL-FX-002） | 視認性 |
 | P3-DG-FLOOR-CHOICE-HEAL-FX-001-3 | **上書き** — `61_DungeonFloorChoice` §1 A′ | SSOT |
 
 
@@ -7314,3 +7314,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-WALL-SAVE-001-1 | `garm_caravan_guard` の `death_save_chance` **0.10→0.30** | オーナー指示 |
 | P3-BAL-WALL-SAVE-001-2 | 判定基準据置（HPが0以下になるヒットで抽選・成功時HP1） | 仕様確認済み |
 | P3-BAL-WALL-SAVE-001-3 | **SSOT**＝`docs/specs/decisions/70_PassiveKitLock.md` 追記。P3-PASSIVE-CHAR-001-7 を上書き | Decision 本体 |
+
+## 応急手当名ポップをスキルと同型（2026-08-06 — P3-DG-FLOOR-CHOICE-HEAL-FX-002）
+
+> **オーナー指示** — 3択後の応急手当テロップを他スキルと同じものに。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-FLOOR-CHOICE-HEAL-FX-002-1 | 中央 display テロップ廃止。`_spawn_skill_name("応急手当")`（先頭回復対象頭上） | スキル回復と統一 |
+| P3-DG-FLOOR-CHOICE-HEAL-FX-002-2 | 緑VFX・+N・`combat_heal`・暗転明けタイミングは据置 | FX-001 維持 |
+| P3-DG-FLOOR-CHOICE-HEAL-FX-002-3 | **上書き** — HEAL-FX-001-2／`61_DungeonFloorChoice` A′ | SSOT |
