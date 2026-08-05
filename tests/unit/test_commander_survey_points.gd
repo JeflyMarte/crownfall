@@ -77,7 +77,7 @@ func test_rank_up_pending_and_acknowledge() -> void:
 	assert_eq(_CommanderGiftBox.pending_count(), 1)
 	var entry: Dictionary = _CommanderGiftBox.get_pending_entries()[0]
 	assert_eq(int(entry.get("gold", 0)), 800)
-	assert_eq(int(entry.get("gacha_token", 0)), 10)
+	assert_eq(int(entry.get("gacha_token", 0)), 100)
 
 
 func test_missing_acknowledged_rank_bootstraps_to_current() -> void:
@@ -174,7 +174,7 @@ func test_pending_rank_gift_gold_sums_unrewarded() -> void:
 	assert_eq(_CommanderProfile.pending_rank_gift_gold("B"), 2800)
 	var summary: String = _CommanderProfile.pending_rank_gift_summary("C")
 	assert_true(summary.contains("800"), summary)
-	assert_true(summary.contains("10"), summary)
+	assert_true(summary.contains("100"), summary)
 	_CommanderProfile.acknowledge_rank("C")
 	assert_eq(_CommanderGiftBox.pending_count(), 1)
 	assert_eq(_CommanderProfile.pending_rank_gift_gold("C"), 0)
@@ -189,7 +189,7 @@ func test_rank_a_gift_includes_materials() -> void:
 	assert_eq(_CommanderGiftBox.pending_count(), 1)
 	var entry: Dictionary = _CommanderGiftBox.get_pending_entries()[0]
 	assert_eq(int(entry.get("gold", 0)), 4000)
-	assert_eq(int(entry.get("gacha_token", 0)), 50)
+	assert_eq(int(entry.get("gacha_token", 0)), 500)
 	var mats: Dictionary = entry.get("materials", {})
 	assert_eq(int(mats.get("base_ore", 0)), 20)
 	assert_eq(int(mats.get("relic_shard", 0)), 15)
@@ -215,7 +215,7 @@ func test_s_plus_rank_thresholds_and_progress() -> void:
 	assert_eq(_CommanderGiftBox.pending_count(), 1)
 	var gift: Dictionary = _CommanderGiftBox.get_pending_entries()[0]
 	assert_eq(int(gift.get("gold", 0)), 1500)
-	assert_eq(int(gift.get("gacha_token", 0)), 15)
+	assert_eq(int(gift.get("gacha_token", 0)), 150)
 	assert_true(_CommanderProfile.is_rank_at_least("S"))
 	assert_eq(_CommanderProfile.title_slot_limit(), 3)
 	assert_eq(_CommanderProfile.rank_subtitle("S+1"), "継続調査許可")
