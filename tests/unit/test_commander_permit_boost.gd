@@ -1,5 +1,5 @@
 extends GutTest
-## P3-CMD-PERMIT-BOOST-001 — 許可強化（略奪／成長／戦力）。
+## P3-CMD-PERMIT-BOOST-001 — 特権強化（略奪／成長／戦力）。
 
 const _CommanderProfile = preload("res://scripts/commander/CommanderProfile.gd")
 const _CommanderPermitBoost = preload("res://scripts/commander/CommanderPermitBoost.gd")
@@ -15,6 +15,17 @@ func before_each() -> void:
 	GameState.gacha_token = 0
 	GameState.commander = _CommanderLifetime.default_commander_dict()
 	GameState.party_members = []
+
+
+func test_display_name_and_ui_unlock_at_s() -> void:
+	assert_eq(_CommanderPermitBoost.DISPLAY_NAME, "特権強化")
+	GameState.commander["acknowledged_rank"] = "A"
+	_CommanderProfile.ensure_commander()
+	assert_false(_CommanderPermitBoost.is_ui_unlocked())
+	GameState.commander["acknowledged_rank"] = "S"
+	assert_true(_CommanderPermitBoost.is_ui_unlocked())
+	GameState.commander["acknowledged_rank"] = "S+1"
+	assert_true(_CommanderPermitBoost.is_ui_unlocked())
 
 
 func test_sync_earned_from_existing_s_plus() -> void:

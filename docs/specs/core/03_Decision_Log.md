@@ -7283,3 +7283,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-CMD-RANK-TOKEN-001-2 | Gold・素材・許可点・称号・閾値は据置 | 石の手触りだけ厚く |
 | P3-CMD-RANK-TOKEN-001-3 | 既到達への再配布なし | セーブ破壊回避 |
 | P3-CMD-RANK-TOKEN-001-4 | **SSOT**＝`docs/specs/decisions/83_CommanderRankTokenBoost.md`。CURVE-003-2／SPLUS-001-3 の石数を上書き | Decision 本体 |
+
+## 特権強化（旧・許可強化）表示名＋S解放（2026-08-06 — P3-CMD-PERMIT-RENAME-001）
+
+> **オーナー指示** — 表示名を「特権強化」に。ランクS未満はボタンをグレーアウトして押せない。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-CMD-PERMIT-RENAME-001-1 | **表示名** — 「許可強化」→「特権強化」（画面・ボタン・手引き） | オーナー採択 |
+| P3-CMD-PERMIT-RENAME-001-2 | **許可点**・系統名（略奪／成長／戦力）・効果は据置 | ネーミングのみ |
+| P3-CMD-PERMIT-RENAME-001-3 | **UI解放** — S級到達以降に押下可。未満は disabled＋「S級で解放」 | オーナー指示 |
+| P3-CMD-PERMIT-RENAME-001-4 | **SSOT**＝`docs/specs/decisions/58_CommanderPermitBoost.md` 改訂 | Decision 本体 |
