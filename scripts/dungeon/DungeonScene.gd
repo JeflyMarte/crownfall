@@ -6436,13 +6436,15 @@ func _member_has_living_target(member_idx: int) -> bool:
 	return $CombatController.is_enemy_slot_alive($CombatController.get_member_target_slot(member_idx))
 
 # 味方攻撃ダメージをメンバー個別ターゲットへ適用。撃破時は true（全滅で戦闘終了）。
+# already_mitigated: 呼び出し側で T6/T7 減衰とパッシブ表示済みなら true（テロップと実ダメを一致させる）。
 func _deal_member_damage_to_enemy(
 	member_idx: int,
 	damage: int,
 	target_slot: int = -1,
 	skill_id: String = "basic_attack",
 	skill_name: String = "通常攻撃",
-	is_critical: bool = false
+	is_critical: bool = false,
+	already_mitigated: bool = false
 ) -> bool:
 	if target_slot < 0:
 		target_slot = $CombatController.get_member_target_slot(member_idx)
@@ -6450,10 +6452,8 @@ func _deal_member_damage_to_enemy(
 		return false
 	var sid: String = str(skill_id)
 	var is_basic: bool = sid.is_empty() or sid == "basic_attack" or sid == "counter_attack"
-	var in_mult: float = $CombatController.get_enemy_incoming_attack_mult(target_slot, is_basic)
-	if not is_equal_approx(in_mult, 1.0):
-		damage = maxi(1, int(round(float(damage) * in_mult))) if damage > 0 else 0
-		_try_announce_enemy_incoming_resist(target_slot, is_basic, in_mult)
+	if not already_mitigated:
+		damage = _apply_enemy_incoming_attack_mitigation(target_slot, damage, is_basic)
 	GameState.record_run_damage(member_idx, damage, skill_id, skill_name, is_critical)
 	$CombatController.apply_damage_to_enemy_slot(target_slot, damage)
 	$CombatController.add_threat(member_idx, float(damage) * CombatController.THREAT_DAMAGE_K)
@@ -6487,6 +6487,28 @@ func _deal_member_damage_to_enemy(
 		_AbyssWeaponEffects.clear_focus_on_enemy_death(target_slot)
 		return _on_enemy_slot_killed(target_slot)
 	return false
+
+
+## T6/T7 被ダメ倍率のみ（テロップなし）。
+func _peek_enemy_incoming_attack_mitigation(slot: int, damage: int, is_basic: bool) -> int:
+	if damage <= 0 or slot < 0:
+		return damage
+	var in_mult: float = $CombatController.get_enemy_incoming_attack_mult(slot, is_basic)
+	if is_equal_approx(in_mult, 1.0):
+		return damage
+	return maxi(1, int(round(float(damage) * in_mult)))
+
+
+## T6/T7 被ダメ倍率を適用。効いたときだけパッシブ名テロップ（P2）。
+func _apply_enemy_incoming_attack_mitigation(slot: int, damage: int, is_basic: bool) -> int:
+	if damage <= 0 or slot < 0:
+		return damage
+	var in_mult: float = $CombatController.get_enemy_incoming_attack_mult(slot, is_basic)
+	if is_equal_approx(in_mult, 1.0):
+		return damage
+	var out: int = maxi(1, int(round(float(damage) * in_mult)))
+	_show_enemy_resist_passive_on_hit(slot, is_basic, in_mult)
+	return out
 
 func _apply_status_to_member_target(
 	member_idx: int,
@@ -7469,12 +7491,11 @@ func _reveal_appended_enemy_slot(slot: int) -> void:
 		_position_swarm_overlay(i)
 
 
-## T6/T7: 被ダメ軽減が初めて効いたときだけ敵頭上に理由を出す（戦闘内・スロット×種類で1回）。
-func _try_announce_enemy_incoming_resist(slot: int, is_basic: bool, in_mult: float) -> void:
-	if not _EnemyResistTelop.should_announce(_enemy_resist_telop_announced, slot, in_mult, is_basic):
+## T6/T7: 軽減が効いた攻撃のたびにパッシブ名を出す（P2・毎回）。
+func _show_enemy_resist_passive_on_hit(slot: int, is_basic: bool, in_mult: float) -> void:
+	if not _EnemyResistTelop.should_show_on_hit(in_mult):
 		return
-	_EnemyResistTelop.mark_announced(_enemy_resist_telop_announced, slot, is_basic)
-	var msg: String = _EnemyResistTelop.message(is_basic)
+	var pname: String = _EnemyResistTelop.passive_name(is_basic)
 	var spr: AnimatedSprite2D = _enemy_sprite_for_attack_mark(slot)
 	if spr == null:
 		spr = _active_enemy_sprite()
@@ -7484,7 +7505,7 @@ func _try_announce_enemy_incoming_resist(slot: int, is_basic: bool, in_mult: flo
 			pos = spr.global_position
 		## シェイクなし・状態付与テロップと同寸。パッシブ◇で「特性」感。
 		_spawn_damage_number(
-			"◇ %s" % msg,
+			"◇ %s" % pname,
 			pos + Vector2(0.0, -36.0),
 			Color(0.72, 0.86, 1.0),
 			1.0,
@@ -7492,7 +7513,12 @@ func _try_announce_enemy_incoming_resist(slot: int, is_basic: bool, in_mult: flo
 			true,
 			ENEMY_RESIST_TELOP_FONT_SIZE
 		)
-	_append_log("[特性] %s" % msg)
+	_append_log("[パッシブ] %s（%s）" % [pname, _EnemyResistTelop.message(is_basic)])
+
+
+## 旧 API 互換（初回限定）。ヒットごと表示へ移行済み。
+func _try_announce_enemy_incoming_resist(slot: int, is_basic: bool, in_mult: float) -> void:
+	_show_enemy_resist_passive_on_hit(slot, is_basic, in_mult)
 
 
 ## 敵スキル発動時の技名テロップ（味方 `_spawn_skill_name` と同型の頭上ポップ）。
@@ -9248,6 +9274,8 @@ func _resolve_party_attack_impact_async(payload: Dictionary) -> void:
 	var mname: String = member.display_name if member != null else "?"
 	var crit_tag: String = "  CRITICAL!" if is_critical else ""
 	if dmg > 0 and target_slot >= 0 and $CombatController.is_enemy_slot_alive(target_slot):
+		dmg = _apply_enemy_incoming_attack_mitigation(target_slot, dmg, true)
+	if dmg > 0 and target_slot >= 0 and $CombatController.is_enemy_slot_alive(target_slot):
 		_play_hit_vfx(_get_weapon_element(member_idx), is_critical, _get_weapon_type(member_idx))
 		_spawn_damage_number(
 			str(dmg),
@@ -9258,7 +9286,7 @@ func _resolve_party_attack_impact_async(payload: Dictionary) -> void:
 	if kind == "counter":
 		_append_log("%s の反撃: %dダメージ%s" % [mname, dmg, crit_tag])
 		var killed: bool = _deal_member_damage_to_enemy(
-			member_idx, dmg, target_slot, "counter_attack", "反撃", is_critical
+			member_idx, dmg, target_slot, "counter_attack", "反撃", is_critical, true
 		)
 		if not killed and dmg > 0 and $CombatController.is_enemy_slot_alive(target_slot):
 			_play_enemy_slot_animation(target_slot, "hurt")
@@ -9270,7 +9298,9 @@ func _resolve_party_attack_impact_async(payload: Dictionary) -> void:
 		var form_tag: String = str(payload.get("formation_tag", ""))
 		var tgt_tag: String = _member_target_tag(member_idx)
 		_append_log("%s の攻撃: %dダメージ%s%s%s%s" % [mname, dmg, crit_tag, elem_tag, form_tag, tgt_tag])
-		if not _deal_member_damage_to_enemy(member_idx, dmg, target_slot, "basic_attack", "通常攻撃", is_critical):
+		if not _deal_member_damage_to_enemy(
+			member_idx, dmg, target_slot, "basic_attack", "通常攻撃", is_critical, true
+		):
 			if $CombatController.is_enemy_slot_alive(target_slot):
 				_play_enemy_slot_animation(target_slot, "hurt")
 			_try_apply_affix_statuses(member_idx)
@@ -9285,6 +9315,9 @@ func _resolve_party_attack_impact_async(payload: Dictionary) -> void:
 			var s_crit: bool = bool(hit.get("is_critical", false))
 			if s_slot < 0 or s_dmg <= 0 or not $CombatController.is_enemy_slot_alive(s_slot):
 				continue
+			s_dmg = _apply_enemy_incoming_attack_mitigation(s_slot, s_dmg, true)
+			if s_dmg <= 0:
+				continue
 			var s_crit_tag: String = "  CRITICAL!" if s_crit else ""
 			_spawn_hit_vfx(
 				_enemy_slot_pos(s_slot),
@@ -9297,12 +9330,14 @@ func _resolve_party_attack_impact_async(payload: Dictionary) -> void:
 				str(s_dmg),
 				_enemy_slot_pos(s_slot),
 				_outgoing_damage_telop_color(s_crit),
-				1.1 if s_crit else 0.95
+				1.0
 			)
-			_append_log("%s の斉射: %dダメージ%s" % [mname, s_dmg, s_crit_tag])
-			if not _deal_member_damage_to_enemy(member_idx, s_dmg, s_slot, "basic_attack", "通常攻撃", s_crit):
+			if not _deal_member_damage_to_enemy(
+				member_idx, s_dmg, s_slot, "basic_attack", "通常攻撃", s_crit, true
+			):
 				if $CombatController.is_enemy_slot_alive(s_slot):
 					_play_enemy_slot_animation(s_slot, "hurt")
+			_append_log("%s の斉射: %dダメージ%s" % [mname, s_dmg, s_crit_tag])
 	_update_hp_bars()
 	_end_combat_cinematic_lock()
 
@@ -9348,10 +9383,12 @@ func _resolve_party_skill_damage_impact_async(payload: Dictionary) -> void:
 			if target_slot < 0 or not $CombatController.is_enemy_slot_alive(target_slot):
 				target_slot = $CombatController.get_member_target_slot(member_idx)
 				spawn_pos = _enemy_slot_pos(target_slot)
+		var hit_dmg: int = 0
 		if final_dmg > 0 and target_slot >= 0 and $CombatController.is_enemy_slot_alive(target_slot):
+			hit_dmg = _apply_enemy_incoming_attack_mitigation(target_slot, final_dmg, false)
 			_spawn_hit_vfx(spawn_pos, attack_element, 1.0, skill_is_crit, _get_weapon_type(member_idx))
 			_spawn_damage_number(
-				str(final_dmg),
+				str(hit_dmg),
 				spawn_pos + Vector2(12.0, float(hit_i) * -8.0),
 				_outgoing_damage_telop_color(skill_is_crit),
 				1.25 if skill_is_crit else 1.0
@@ -9359,9 +9396,9 @@ func _resolve_party_skill_damage_impact_async(payload: Dictionary) -> void:
 		if hit_i == 0 and not log_line.is_empty():
 			_append_log(log_line)
 		var wipe: bool = false
-		if final_dmg > 0 and target_slot >= 0:
+		if hit_dmg > 0 and target_slot >= 0:
 			wipe = _deal_member_damage_to_enemy(
-				member_idx, final_dmg, target_slot, skill_id, display_name, skill_is_crit
+				member_idx, hit_dmg, target_slot, skill_id, display_name, skill_is_crit, true
 			)
 		## 撃破後リターゲットで別敵へ状態が飛ぶ事故防止: ヒットスロット固定。
 		## 全滅時も自己 on_hit（taunt 等）は発火させる。状態付与は初撃のみ。
@@ -9387,6 +9424,7 @@ func _resolve_party_skill_damage_impact_async(payload: Dictionary) -> void:
 		if sec_slot >= 0:
 			var pierce_mult: float = CombatPassives.pierce_secondary_damage_mult(member_idx)
 			var sec_dmg: int = maxi(1, int(round(float(final_dmg) * 0.55 * pierce_mult)))
+			sec_dmg = _apply_enemy_incoming_attack_mitigation(sec_slot, sec_dmg, false)
 			var sec_pos: Vector2 = _enemy_slot_pos(sec_slot)
 			_spawn_hit_vfx(sec_pos, attack_element, 0.85, false, _get_weapon_type(member_idx))
 			_spawn_damage_number(
@@ -9397,7 +9435,7 @@ func _resolve_party_skill_damage_impact_async(payload: Dictionary) -> void:
 			)
 			_append_log("\n【貫通】%s: %dダメージ" % [display_name, sec_dmg])
 			_deal_member_damage_to_enemy(
-				member_idx, sec_dmg, sec_slot, skill_id, display_name, false
+				member_idx, sec_dmg, sec_slot, skill_id, display_name, false, true
 			)
 			if $CombatController.is_enemy_slot_alive(sec_slot):
 				_play_enemy_slot_animation(sec_slot, "hurt")
@@ -9441,6 +9479,7 @@ func _resolve_party_aoe_skill_damage_impact_async(payload: Dictionary) -> void:
 		var spawn_pos: Vector2 = hit.get("pos", Vector2.ZERO) as Vector2
 		if slot < 0 or dmg <= 0 or not $CombatController.is_enemy_slot_alive(slot):
 			continue
+		dmg = _apply_enemy_incoming_attack_mitigation(slot, dmg, false)
 		_spawn_hit_vfx(spawn_pos, attack_element, 0.9, skill_is_crit)
 		_spawn_damage_number(
 			str(dmg),
@@ -9448,7 +9487,9 @@ func _resolve_party_aoe_skill_damage_impact_async(payload: Dictionary) -> void:
 			_outgoing_damage_telop_color(skill_is_crit),
 			1.15 if skill_is_crit else 0.95
 		)
-		if not _deal_member_damage_to_enemy(member_idx, dmg, slot, skill_id, display_name, skill_is_crit):
+		if not _deal_member_damage_to_enemy(
+			member_idx, dmg, slot, skill_id, display_name, skill_is_crit, true
+		):
 			if $CombatController.is_enemy_slot_alive(slot):
 				_play_enemy_slot_animation(slot, "hurt")
 			_apply_skill_status_to_enemy_slot(member_idx, skill_data, slot)
@@ -12241,6 +12282,8 @@ func _apply_ultimate_damage_impact(payload: Dictionary) -> void:
 	var skill_is_crit: bool = bool(payload.get("skill_is_crit", false))
 	var spawn_pos: Vector2 = payload.get("spawn_pos", Vector2.ZERO) as Vector2
 	var ult_dmg_scale: float = 1.65 if skill_is_crit else 1.4
+	if final_dmg > 0 and target_slot >= 0:
+		final_dmg = _apply_enemy_incoming_attack_mitigation(target_slot, final_dmg, false)
 	_spawn_damage_number(
 		str(final_dmg),
 		spawn_pos + Vector2(12.0, 0.0),
@@ -12255,7 +12298,8 @@ func _apply_ultimate_damage_impact(payload: Dictionary) -> void:
 		target_slot,
 		str(payload.get("skill_id", "")),
 		str(payload.get("display_name", "スキル")),
-		skill_is_crit
+		skill_is_crit,
+		true
 	)
 	## 必殺もヒットスロット固定＋自己効果は撃破有無に依存しない。
 	if $CombatController.is_enemy_slot_alive(target_slot):
@@ -12287,6 +12331,7 @@ func _apply_ultimate_aoe_damage_impact(payload: Dictionary) -> void:
 		var spawn_pos: Vector2 = hit.get("pos", Vector2.ZERO) as Vector2
 		if slot < 0 or dmg <= 0 or not $CombatController.is_enemy_slot_alive(slot):
 			continue
+		dmg = _apply_enemy_incoming_attack_mitigation(slot, dmg, false)
 		_spawn_hit_vfx(spawn_pos, attack_element, 1.05, skill_is_crit)
 		_spawn_damage_number(
 			str(dmg),
@@ -12294,7 +12339,9 @@ func _apply_ultimate_aoe_damage_impact(payload: Dictionary) -> void:
 			_outgoing_damage_telop_color(skill_is_crit, true),
 			1.45 if skill_is_crit else 1.25
 		)
-		if not _deal_member_damage_to_enemy(member_idx, dmg, slot, skill_id, display_name, skill_is_crit):
+		if not _deal_member_damage_to_enemy(
+			member_idx, dmg, slot, skill_id, display_name, skill_is_crit, true
+		):
 			if $CombatController.is_enemy_slot_alive(slot):
 				_play_enemy_slot_animation(slot, "hurt")
 			_apply_skill_status_to_enemy_slot(member_idx, skill_data, slot)

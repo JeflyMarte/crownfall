@@ -7121,3 +7121,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-BOSS-PRESSURE-A-001-3 | 他ボス ATK＝旧×(145/120) 四捨五入 | 梯子の相対差を維持 |
 | P3-BAL-BOSS-PRESSURE-A-001-4 | 薙ぎ／大技／Hex／BCD・エリート据置 | スコープ限定 |
 | P3-BAL-BOSS-PRESSURE-A-001-5 | **SSOT**＝`docs/specs/decisions/75_BossPressureAlignA.md` | Decision 本体 |
+
+## T6/T7 通りにくさ改善（2026-08-05 — P3-BAL-TRICKY-RESIST-A-001）
+
+> **オーナー GO（推奨・A＋P2）** — 減衰後テロップ／HP減／ヒットごとパッシブ名。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-TRICKY-RESIST-A-001-1 | 与ダメ数字＝T6/T7 減衰後 | 見た目と実HPのズレ解消 |
+| P3-BAL-TRICKY-RESIST-A-001-2 | 効いた攻撃のたび `硬殻`／`幻障` | 「通りにくい」学習 |
+| P3-BAL-TRICKY-RESIST-A-001-3 | HP×0.65（マンティス×0.80） | 粘りすぎ緩和 |
+| P3-BAL-TRICKY-RESIST-A-001-4 | 軽減×0.2 据置 | 役割は維持 |
+| P3-BAL-TRICKY-RESIST-A-001-5 | **SSOT**＝`docs/specs/decisions/76_TrickyResistPassiveA.md` | Decision 本体 |
