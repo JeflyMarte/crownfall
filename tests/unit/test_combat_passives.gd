@@ -142,7 +142,7 @@ func test_starter_and_gacha_passive_redesign() -> void:
 	assert_true(bool(ivar.get("exploration_damage_immune", false)))
 	assert_eq(float(ivar.get("exploration_damage_party_mult", 1.0)), 0.5)
 	var garm: Dictionary = CombatPassives.get_def("garm_caravan_guard")
-	assert_eq(float(garm.get("death_save_chance", 0.0)), 0.10)
+	assert_eq(float(garm.get("death_save_chance", 0.0)), 0.30)
 	var serin: Dictionary = CombatPassives.get_def("serin_quick_mend")
 	assert_eq(str(serin.get("trigger", "")), "on_action_start")
 	assert_eq(str(serin.get("condition", "")), "ally_hp_below")
