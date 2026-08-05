@@ -65,15 +65,20 @@ static func _queue_refresh(scroll: ScrollContainer) -> void:
 	## process_frame + CONNECT_ONE_SHOT は、refresh 中に再 queue すると
 	## ONE_SHOT 解除前に同じ Callable を再 connect して ERROR→実機強制終了の原因になる。
 	## call_deferred なら同一フレーム内の再入場でも衝突しない。
-	_refresh_once.call_deferred(scroll)
+	## call_deferred + 型付き Node/ScrollContainer 引数は Godot 4.6 で
+	##「Cannot convert argument 1 from Object to Object」→ 実機/GUT エラー。
+	## instance_id（int）経由なら型変換しない。
+	_refresh_once_by_id.call_deferred(scroll.get_instance_id())
 
 
-static func _refresh_once(scroll: ScrollContainer) -> void:
-	if not is_instance_valid(scroll):
+static func _refresh_once_by_id(scroll_id: int) -> void:
+	var obj: Object = instance_from_id(scroll_id)
+	if obj == null or not is_instance_valid(obj) or not (obj is ScrollContainer):
 		return
-	scroll.set_meta(_META_REFRESH_QUEUED, false)
-	var nest: bool = bool(scroll.get_meta(&"_cf_scroll_nest_inner", true))
-	_make_descendants_scroll_friendly(scroll, nest)
+	var sc: ScrollContainer = obj as ScrollContainer
+	sc.set_meta(_META_REFRESH_QUEUED, false)
+	var nest: bool = bool(sc.get_meta(&"_cf_scroll_nest_inner", true))
+	_make_descendants_scroll_friendly(sc, nest)
 
 
 static func _make_descendants_scroll_friendly(node: Node, nest_inner_scrolls: bool = true) -> void:

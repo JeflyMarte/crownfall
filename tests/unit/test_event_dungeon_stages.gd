@@ -134,12 +134,14 @@ func test_event_biome_banners_are_unique() -> void:
 
 
 func test_start_event_stage_builds_sequence_without_boss() -> void:
+	## 裂け目 1-1 はビッグダック最終ボス（closing=boss）。他イベント 1-1 は exit。
 	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
 	var dc: Node = dc_script.new()
 	add_child_autofree(dc)
 	dc.start_stage("cosmic_rift_1_1")
 	assert_eq(dc.room_sequence.size(), 5)
-	assert_false(Enums.RoomType.BOSS in dc.room_sequence)
+	assert_true(Enums.RoomType.BOSS in dc.room_sequence)
+	assert_eq(dc.room_sequence[dc.room_sequence.size() - 1], Enums.RoomType.BOSS)
 	assert_eq(dc.get_enemy_level(), 3)
 	assert_eq(dc.get_run_display_name(), "1-1 濃エルダの浅瀬")
 	dc.start_stage("crown_rookery_1_1")
