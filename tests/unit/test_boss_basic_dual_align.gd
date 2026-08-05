@@ -1,6 +1,6 @@
 extends GutTest
 
-## P3-BAL-BOSS-BASIC-ALIGN-001 — 全ボス通常2種＋セルディオン同型倍率。
+## P3-BAL-BOSS-PRESSURE-A-001 — 全ボス通常2種＋即時全体を案A同型。
 
 
 const _BOSS_IDS: Array[String] = [
@@ -69,9 +69,8 @@ func test_all_bosses_have_dual_basic_attacks() -> void:
 			assert_eq(str(skill.effect_type), "damage", str(sid))
 			if str(skill.target_type) == "party":
 				saw_single = true
-				## P3-BAL-SERDION-A-001: セルディオン爪のみ ×1.7。他ボスは ×1.5。
-				var expect_single: float = 1.7 if boss_id == "serdion" else 1.5
-				assert_almost_eq(float(skill.power_multiplier), expect_single, 0.001, str(sid))
+				## P3-BAL-BOSS-PRESSURE-A-001: 単体通常 ×1.7。
+				assert_almost_eq(float(skill.power_multiplier), 1.7, 0.001, str(sid))
 			elif str(skill.target_type) == "all_party":
 				saw_cleave = true
 				assert_almost_eq(float(skill.power_multiplier), 1.0, 0.001, str(sid))
@@ -79,15 +78,14 @@ func test_all_bosses_have_dual_basic_attacks() -> void:
 		assert_true(saw_cleave, boss_id)
 
 
-func test_instant_pressure_aoe_is_half() -> void:
+func test_instant_pressure_aoe_power() -> void:
 	for boss_id: String in _INSTANT_AOE.keys():
 		var sid: String = _INSTANT_AOE[boss_id]
 		var skill: Resource = DataRegistry.get_skill_data(sid)
 		assert_not_null(skill, sid)
 		assert_eq(str(skill.target_type), "all_party", sid)
-		## P3-BAL-SERDION-A-001: セルディオン咆哮のみ ×0.75。他は ×0.5。
-		var expect_pwr: float = 0.75 if boss_id == "serdion" else 0.5
-		assert_almost_eq(float(skill.power_multiplier), expect_pwr, 0.001, sid)
+		## P3-BAL-BOSS-PRESSURE-A-001: 即時全体 ×0.75。
+		assert_almost_eq(float(skill.power_multiplier), 0.75, 0.001, sid)
 		assert_lte(float(skill.cast_time), 0.0, sid)
 
 
@@ -122,3 +120,26 @@ func test_hex_remains_quarter() -> void:
 		var skill: Resource = DataRegistry.get_skill_data(hex_id)
 		assert_not_null(skill, hex_id)
 		assert_almost_eq(float(skill.power_multiplier), 0.25, 0.001, hex_id)
+
+
+func test_boss_atk_scaled_with_serdion_ratio() -> void:
+	## セルディオン以外は旧ATK×(145/120) を四捨五入。
+	var expect := {
+		"serdion": 145,
+		"granvel": 203,
+		"moldgar": 203,
+		"nereion": 222,
+		"eldion": 203,
+		"chronos_wave": 290,
+		"valgard": 254,
+		"skarpedion": 184,
+		"mycolga_ancient": 193,
+		"karna_smoke": 203,
+		"nereion_depths": 242,
+		"forgedormient": 251,
+		"albark": 271,
+	}
+	for boss_id: String in expect.keys():
+		var boss: Resource = DataRegistry.get_enemy_data(boss_id)
+		assert_not_null(boss, boss_id)
+		assert_eq(int(boss.attack), int(expect[boss_id]), boss_id)

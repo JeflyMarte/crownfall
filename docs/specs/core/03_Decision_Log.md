@@ -7109,3 +7109,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-SERDION-A-001-2 | 骸晶爪 **×1.5→1.7** | 単体通常の薄さを解消 |
 | P3-BAL-SERDION-A-001-3 | 骸晶の咆哮 **×0.5→0.75** | 即時全体の圧を強化 |
 | P3-BAL-SERDION-A-001-4 | **SSOT**＝`docs/specs/decisions/74_SerdionPressureA.md` | Decision 本体 |
+
+## 全ボス火力・案A横展開（2026-08-05 — P3-BAL-BOSS-PRESSURE-A-001）
+
+> **オーナー指示** — セルディオン案Aに合わせて他ボスも修正。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-BOSS-PRESSURE-A-001-1 | 全ボス単体通常 **×1.7** | セルディオン案Aと同型 |
+| P3-BAL-BOSS-PRESSURE-A-001-2 | 全ボス即時全体 **×0.75** | 同上 |
+| P3-BAL-BOSS-PRESSURE-A-001-3 | 他ボス ATK＝旧×(145/120) 四捨五入 | 梯子の相対差を維持 |
+| P3-BAL-BOSS-PRESSURE-A-001-4 | 薙ぎ／大技／Hex／BCD・エリート据置 | スコープ限定 |
+| P3-BAL-BOSS-PRESSURE-A-001-5 | **SSOT**＝`docs/specs/decisions/75_BossPressureAlignA.md` | Decision 本体 |
