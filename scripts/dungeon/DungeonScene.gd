@@ -3180,7 +3180,7 @@ func _collect_floor_buff_legend_entries() -> Array[Dictionary]:
 			out.append({
 				"id": "choice_atk",
 				"stat": _floor_buff_stat_key("attack"),
-				"text": "パーティの攻撃力の×%.1f" % float(dc.floor_choice_damage_mult),
+				"text": _floor_buff_legend_text("attack"),
 			})
 		var reward_keys: Array = dc.floor_choice_reward_mults.keys()
 		reward_keys.sort()
@@ -3192,17 +3192,14 @@ func _collect_floor_buff_legend_entries() -> Array[Dictionary]:
 			out.append({
 				"id": "choice_%s" % kind,
 				"stat": _floor_buff_stat_key(kind),
-				"text": "パーティの%sの×%.2f" % [_floor_buff_noun(kind), mult],
+				"text": _floor_buff_legend_text(kind),
 			})
 	if dc.has_active_floor_blessing():
 		var lore_kind: String = str(dc.floor_blessing_kind)
 		out.append({
 			"id": "lore_%s" % lore_kind,
 			"stat": _floor_buff_stat_key(lore_kind),
-			"text": "パーティの%sの×%.1f" % [
-				_floor_buff_noun(lore_kind),
-				BalanceConfig.LORE_FLOOR_BLESSING_MULT,
-			],
+			"text": _floor_buff_legend_text(lore_kind),
 		})
 	return out
 
@@ -3224,8 +3221,15 @@ func _floor_buff_stat_key(kind: String) -> String:
 			return kind
 
 
+## 右上凡例文言（アイコンは別）。「パーティの…」は出さず「◯◯アップ」のみ。
+func _floor_buff_legend_text(kind: String) -> String:
+	return "%sアップ" % _floor_buff_noun(kind)
+
+
 func _floor_buff_noun(kind: String) -> String:
 	match kind:
+		"attack", "damage":
+			return "攻撃力"
 		"exp":
 			return "経験値率"
 		"gold":
@@ -3235,7 +3239,12 @@ func _floor_buff_noun(kind: String) -> String:
 		"material":
 			return "素材ドロップ率"
 		_:
-			return $DungeonController.floor_blessing_label(kind)
+			var label: String = $DungeonController.floor_blessing_label(kind)
+			if label.ends_with("率"):
+				return label
+			if label in ["経験値", "ゴールド", "装備ドロップ", "素材ドロップ"]:
+				return "%s率" % label
+			return label
 
 
 func _floor_buff_icon_texture(stat_key: String) -> Texture2D:
