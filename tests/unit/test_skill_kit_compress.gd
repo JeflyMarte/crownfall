@@ -145,8 +145,9 @@ func test_grave_bell_is_front_row_soft_stun() -> void:
 
 
 func test_decree_wave_power_softened() -> void:
+	## P3-BAL-BOSS-BASIC-ALIGN: ボス重技は power×2.0（旧「柔らかめ 0.6」は廃止）。
 	var decree: Resource = DataRegistry.get_skill_data("boss_decree_wave")
-	assert_lte(float(decree.power_multiplier), 0.6)
+	assert_almost_eq(float(decree.power_multiplier), 2.0, 0.01)
 	assert_gte(float(decree.cooldown), 8.0)
 
 

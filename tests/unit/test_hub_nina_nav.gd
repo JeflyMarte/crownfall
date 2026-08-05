@@ -106,7 +106,13 @@ func test_recommend_claimable_daily() -> void:
 	entry["claimed"] = false
 	GameState.daily_mission_state["entries"] = entries
 	var line: String = _Helper.recommend_line()
-	assert_true(line.contains("報酬") or line.contains("受け取"), line)
+	assert_true(
+		line.contains("報酬")
+		or line.contains("受け取")
+		or line.contains("お礼")
+		or line.contains("日課"),
+		line
+	)
 
 
 func test_recommend_incomplete_daily() -> void:

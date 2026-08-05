@@ -88,11 +88,21 @@ func test_armor_resist_roll_sets_multiplier() -> void:
 
 
 func test_armor_rates_stack_in_affix_calculator() -> void:
-	var saved_armors: Array = []
+	var saved_gear: Array = []
 	for m: Resource in GameState.party_members:
-		saved_armors.append(m.equipped_armor if m != null else null)
-		if m != null:
-			m.equipped_armor = null
+		if m == null:
+			saved_gear.append(null)
+			continue
+		saved_gear.append({
+			"armor": m.equipped_armor,
+			"accessory": m.equipped_accessory,
+			"weapon": m.equipped_weapon,
+		})
+		m.equipped_armor = null
+		m.equipped_accessory = null
+		m.equipped_weapon = null
+	var saved_commander: Dictionary = GameState.commander.duplicate(true)
+	GameState.commander = {}
 	var member: Resource = GameState.party_members[0]
 	var armor: Resource = _ArmorInstance.new()
 	armor.armor_id = "leather_armor"
@@ -109,5 +119,12 @@ func test_armor_rates_stack_in_affix_calculator() -> void:
 	assert_eq(_AffixStatCalculator.apply_exp_bonus(100), 103)
 	for i in GameState.party_members.size():
 		var m2: Resource = GameState.party_members[i]
-		if m2 != null:
-			m2.equipped_armor = saved_armors[i]
+		if m2 == null:
+			continue
+		var saved: Variant = saved_gear[i]
+		if saved == null:
+			continue
+		m2.equipped_armor = saved["armor"]
+		m2.equipped_accessory = saved["accessory"]
+		m2.equipped_weapon = saved["weapon"]
+	GameState.commander = saved_commander

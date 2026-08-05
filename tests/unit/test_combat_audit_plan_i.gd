@@ -35,13 +35,15 @@ func test_silence_does_not_tick_when_delta_zero() -> void:
 
 
 func test_silence_cleared_on_combat_end() -> void:
+	## start_combat_group は GameState 編成から HP を初期化する。空パーティだと silence 付与不可。
+	GameState.reset_for_new_game()
+	GameState.seed_all_starters_unlocked()
 	var cc := CombatController.new()
 	add_child_autofree(cc)
 	var rat: Resource = DataRegistry.get_enemy_data("crown_eater_rat")
 	assert_not_null(rat)
-	cc.party_combat_hp = [100]
-	cc.party_max_hp = [100]
 	cc.start_combat_group([rat], 1)
+	assert_true(cc.is_member_alive(0))
 	cc.apply_member_skill_silence(0, 5.0)
 	assert_true(cc.is_member_skill_silenced(0))
 	cc.end_combat()

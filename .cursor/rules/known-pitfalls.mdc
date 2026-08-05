@@ -161,6 +161,7 @@ alwaysApply: false
 | 症状 | 原因 | 再発防止 |
 |---|---|---|
 | タッチスクロール不能／セルタップ無効（ScrollTouch 系・代表） | Scroll 内 STOP・rebuild 後未再適用・PASS 後 `pressed` のみ | → **`ui-layout.mdc` ScrollTouch** |
+| GUT/実機で `_refresh_once` Object convert エラー | 型付き `ScrollContainer`/`Node` を `call_deferred` | → **`ui-layout.mdc` ScrollTouch**（`instance_id` 経由） |
 | 装備一覧の効果絞り込みが kind 連打／未配線 | サイクルボタンでは項目過多。Affix ID は廃止済み | ファミリーシート（案B）。`EquipmentEffectFamilyFilter`＋Catalog「効果」ボタン |
 | 装備一覧が重い／タップでカクつく | 選択のたび全セル rebuild＋幅連動 cell | → `ui-layout.mdc` 装備セルサイズ |
 | 鍛冶屋が重い／一覧タップでカクつく | 選択のたび全再生成＋毎行 get_image | → `ui-layout` 鍛冶＋選択は `_refresh_selection` のみ |

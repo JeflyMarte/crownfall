@@ -49,7 +49,8 @@ func test_boss_stats() -> void:
 	var boss: Resource = DataRegistry.get_enemy_data("valgard")
 	assert_not_null(boss)
 	assert_eq(int(boss.max_hp), 3600)
-	assert_eq(int(boss.attack), 210)
+	## 全ボス案A横展開後の ATK（旧 210）。
+	assert_eq(int(boss.attack), 254)
 	assert_eq(int(boss.defense), 220)
 	assert_eq(str(boss.attack_element), "holy")
 

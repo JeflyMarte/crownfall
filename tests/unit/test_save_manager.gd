@@ -25,8 +25,9 @@ func after_all() -> void:
 
 func before_each() -> void:
 	SaveManager.use_normal_slot()
-	if FileAccess.file_exists(SAVE_PATH):
-		DirAccess.remove_absolute(SAVE_PATH)
+	## user:// は remove_absolute が効かない環境があるため SaveManager API を使う。
+	SaveManager.delete_normal_save()
+	SaveManager.delete_debug_save()
 	_reset_game_state()
 
 ## GameState を新規ゲーム相当へリセット。
@@ -150,6 +151,7 @@ func test_load_migrates_legacy_dungeon_id_in_save_file() -> void:
 # ── d) 欠損キー・空 JSON の graceful 処理 ─────────────────────────────────────
 
 func test_load_without_save_file_is_noop() -> void:
+	assert_false(SaveManager.has_save(), "前提: セーブ無し")
 	GameState.gold = 777
 	assert_false(SaveManager.load_game())
 	assert_eq(GameState.gold, 777, "セーブファイル無しではロードは no-op")
