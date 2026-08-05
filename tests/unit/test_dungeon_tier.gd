@@ -1,6 +1,6 @@
 extends GutTest
 
-## P3-DG-TIER / P3-DG-TIER-002 — キャンペーン周回帯の危険度ティア。
+## P3-DG-TIER / P3-DG-TIER-002 → P3-BAL-NM-CAP99-001 — キャンペーン周回帯の危険度ティア。
 
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 
@@ -49,24 +49,29 @@ func test_nightmare_requires_all_main_hard_cleared() -> void:
 	assert_true(GameState.is_dungeon_tier_unlocked("mourngate", _DungeonTierConfig.TIER_NIGHTMARE))
 
 
-func test_enemy_level_band_h11_gt_n55_and_nm11_gt_h55() -> void:
-	var cap: int = _DungeonTierConfig.main_normal_cap_level()
-	assert_eq(cap, 49, "N5-5 (frostridge_5_5) should define cap")
-	assert_eq(_DungeonTierConfig.enemy_level_bonus(_DungeonTierConfig.TIER_HARD), cap)
-	assert_eq(_DungeonTierConfig.enemy_level_bonus(_DungeonTierConfig.TIER_NIGHTMARE), cap * 2)
-	var n55: int = 49
-	var h11: int = 1 + _DungeonTierConfig.enemy_level_bonus(_DungeonTierConfig.TIER_HARD)
-	var h55: int = 49 + _DungeonTierConfig.enemy_level_bonus(_DungeonTierConfig.TIER_HARD)
-	var nm11: int = 1 + _DungeonTierConfig.enemy_level_bonus(_DungeonTierConfig.TIER_NIGHTMARE)
-	assert_gt(h11, n55)
-	assert_gt(nm11, h55)
+func test_enemy_level_targets_h55_75_nm55_99() -> void:
+	_DungeonTierConfig.clear_cap_cache()
+	var n_end: int = _DungeonTierConfig.main_normal_end_recommended_level()
+	assert_eq(n_end, 51, "N5-5 recommended_level defines end rec")
+	var h_bonus: int = _DungeonTierConfig.enemy_level_bonus(_DungeonTierConfig.TIER_HARD)
+	var nm_bonus: int = _DungeonTierConfig.enemy_level_bonus(_DungeonTierConfig.TIER_NIGHTMARE)
+	assert_eq(h_bonus, _DungeonTierConfig.TARGET_HARD_END_RECOMMENDED - n_end)
+	assert_eq(nm_bonus, _DungeonTierConfig.TARGET_NIGHTMARE_END_RECOMMENDED - n_end)
+	assert_eq(n_end + h_bonus, 75, "H5-5 recommended target")
+	assert_eq(n_end + nm_bonus, 99, "NM5-5 recommended target")
+	# Cap (enemy_level) still tracks N5-5; bonuses no longer equal +cap/+2cap.
+	assert_eq(_DungeonTierConfig.main_normal_cap_level(), 49)
+	assert_ne(h_bonus, 49)
+	assert_ne(nm_bonus, 98)
 
 
 func test_recommended_level_follows_tier_enemy_bonus() -> void:
-	var cap: int = _DungeonTierConfig.main_normal_cap_level()
+	_DungeonTierConfig.clear_cap_cache()
+	var h_bonus: int = _DungeonTierConfig.enemy_level_bonus(_DungeonTierConfig.TIER_HARD)
+	var nm_bonus: int = _DungeonTierConfig.enemy_level_bonus(_DungeonTierConfig.TIER_NIGHTMARE)
 	assert_eq(_DungeonTierConfig.apply_tier_level(3, _DungeonTierConfig.TIER_NORMAL), 3)
-	assert_eq(_DungeonTierConfig.apply_tier_level(3, _DungeonTierConfig.TIER_HARD), 3 + cap)
-	assert_eq(_DungeonTierConfig.apply_tier_level(3, _DungeonTierConfig.TIER_NIGHTMARE), 3 + cap * 2)
+	assert_eq(_DungeonTierConfig.apply_tier_level(3, _DungeonTierConfig.TIER_HARD), 3 + h_bonus)
+	assert_eq(_DungeonTierConfig.apply_tier_level(3, _DungeonTierConfig.TIER_NIGHTMARE), 3 + nm_bonus)
 	assert_eq(_DungeonTierConfig.apply_tier_level(0, _DungeonTierConfig.TIER_HARD), 0)
 	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
 	var dc: Node = dc_script.new()
@@ -75,7 +80,9 @@ func test_recommended_level_follows_tier_enemy_bonus() -> void:
 	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
 	assert_eq(dc.get_run_recommended_level(), 1)
 	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_HARD
-	assert_eq(dc.get_run_recommended_level(), 1 + cap)
+	assert_eq(dc.get_run_recommended_level(), 1 + h_bonus)
+	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NIGHTMARE
+	assert_eq(dc.get_run_recommended_level(), 1 + nm_bonus)
 
 
 func test_tier_rarity_weight_scales() -> void:

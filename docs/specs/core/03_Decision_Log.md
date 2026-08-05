@@ -7209,3 +7209,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-SURVEY-DUNGEON-EXP-001-1 | 参照＝雑魚＋ボス×撃破1.5×クリア+25% | 実クリアに近い |
 | P3-BAL-SURVEY-DUNGEON-EXP-001-2 | 簡易 EXP比 **1.0**／本格 **3.0** | 時間に比例 |
 | P3-BAL-SURVEY-DUNGEON-EXP-001-3 | **SSOT**＝`docs/specs/decisions/81_SurveyDungeonExp.md`。TIME-EXP-001-3 を上書き | Decision 本体 |
+
+## Hard／NM 終端推奨Lv＝75／99（2026-08-05 — P3-BAL-NM-CAP99-001）
+
+> **オーナー GO** — NM5-5 推奨＝プレイヤー上限99。H終端≈75。ノーマル据置。旧 H1-1>N5-5／NM1-1>H5-5 強制は廃止。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-NM-CAP99-001-1 | ボーナス起点＝メイン5ノーマル最終の **推奨Lv**（`n_end`、現行51） | 推奨表示と終端目標を一致 |
+| P3-BAL-NM-CAP99-001-2 | Hard＝`75−n_end`（現行+24）／NM＝`99−n_end`（現行+48） | H5-5≈75・NM5-5≈99 |
+| P3-BAL-NM-CAP99-001-3 | 旧 +cap/+2×cap（P3-DG-TIER-002-2）を上書き | 上限99超の過負荷解消 |
+| P3-BAL-NM-CAP99-001-4 | H1-1＜N5-5 になりうることを許容 | 終端キャップ優先の圧縮 |
+| P3-BAL-NM-CAP99-001-5 | **SSOT**＝`docs/specs/decisions/82_NmCap99TierRetune.md` | Decision 本体 |

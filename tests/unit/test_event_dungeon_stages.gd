@@ -155,7 +155,7 @@ func test_start_event_stage_builds_sequence_without_boss() -> void:
 	dc.start_stage("shadow_hunt_1_1")
 	assert_eq(dc.room_sequence.size(), 5)
 	assert_false(Enums.RoomType.BOSS in dc.room_sequence)
-	## N5-5（frostridge_5_5）相当。H/NM は apply_tier_level で +cap/+2cap
+	## N5-5（frostridge_5_5）相当の敵Lv。H/NM は apply_tier_level で終端75/99向け加算
 	assert_eq(dc.get_enemy_level(), 49)
 	assert_eq(dc.get_run_display_name(), "1-1 薄闇の獣道")
 	dc.start_stage("rock_stampede_1_1")
