@@ -153,6 +153,22 @@ func test_jack_skills_are_support_oriented() -> void:
 	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_jack_frenzy"))
 
 
+func test_jack_basic_attack_is_melee_not_ranged() -> void:
+	## 鼓舞が long でも、武器なしペットの通常攻撃は近接（前衛遠隔ペナルティを踏まない）。
+	var pet_i: int = GameState.combatant_count() - 1
+	assert_true(GameState.is_pet_combatant(pet_i))
+	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_jack_frenzy"))
+	assert_eq(str(DataRegistry.get_skill_data("pet_jack_frenzy").range_type), "melee")
+	assert_eq(str(DataRegistry.get_skill_data("pet_jack_rend").range_type), "melee")
+	assert_eq(CombatRange.resolve_member_default(pet_i), "melee")
+	assert_eq(CombatRange.resolve_for_action(pet_i), "melee")
+	assert_eq(GameState.formation_range_outgoing_multiplier(pet_i, "melee"), 1.0)
+	assert_eq(GameState.formation_range_log_tag(pet_i, "melee"), "")
+	## 万一 long と誤判定しても前衛ペナルティが付くことを回帰で明示
+	assert_lt(GameState.formation_range_outgoing_multiplier(pet_i, "long"), 1.0)
+	assert_true(GameState.formation_range_log_tag(pet_i, "long").contains("遠隔"))
+
+
 func test_jack_portrait_icon_resolves() -> void:
 	var tex: Texture2D = RosterUiHelper.get_member_portrait_texture(GameState.active_pet)
 	assert_not_null(tex)
