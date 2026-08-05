@@ -7304,3 +7304,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-CMD-PERMIT-GUIDE-001-1 | S級以上のランクアップ祝辞 dismiss 後に書籍手引き「特権強化とは」を初回1回 | 解放直後の導線 |
 | P3-CMD-PERMIT-GUIDE-001-2 | フラグ `hub_guide_privilege_boost_seen`。特権強化画面の「？」で再表示 | 拠点部屋ガイドと同型 |
 | P3-CMD-PERMIT-GUIDE-001-3 | **SSOT**＝`docs/specs/decisions/58_CommanderPermitBoost.md` 追記 | Decision 本体 |
+
+## ウォール・隊商の盾心 30%（2026-08-06 — P3-BAL-WALL-SAVE-001）
+
+> **オーナー指示** — 致死耐え確率を上げる。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-WALL-SAVE-001-1 | `garm_caravan_guard` の `death_save_chance` **0.10→0.30** | オーナー指示 |
+| P3-BAL-WALL-SAVE-001-2 | 判定基準据置（HPが0以下になるヒットで抽選・成功時HP1） | 仕様確認済み |
+| P3-BAL-WALL-SAVE-001-3 | **SSOT**＝`docs/specs/decisions/70_PassiveKitLock.md` 追記。P3-PASSIVE-CHAR-001-7 を上書き | Decision 本体 |
