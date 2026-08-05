@@ -67,10 +67,14 @@ const HEAL_FRAC_MEND: float = 0.20
 ## 大治癒は全体各員（P3-BAL-ALCHEMIST-HEAL-001）。
 const HEAL_FRAC_SALVE_BURST: float = 0.12
 const HEAL_FRAC_GRAND_ELIXIR: float = 0.20
-## BT 獣医の手当て（人／ペット）。RG 野営の一滴は人12%・自己のみ。
-const HEAL_FRAC_BEAST_VET: float = 0.12
-const HEAL_FRAC_BEAST_VET_PET: float = 0.18
-const HEAL_FRAC_CAMP_DRAUGHT: float = 0.12
+## BT 獣医の手当て（人／ペット）。RG 野営の一滴は自己のみ。
+## 単体回復の頂点は AL 治癒（20%）。支援回復は一段下（P3-BAL-HEAL-HIERARCHY-001）。
+const HEAL_FRAC_BEAST_VET: float = 0.10
+const HEAL_FRAC_BEAST_VET_PET: float = 0.14
+const HEAL_FRAC_CAMP_DRAUGHT: float = 0.10
+## ジャック介抱（ペット回復。回転は治癒より遅く量も薄い）。
+const HEAL_FRAC_PET_POUNCE: float = 0.10
+const HEAL_FRAC_PET_JACK_SAVAGE: float = 0.14
 ## 回復部屋の最低回復（P3-BAL-NONCOMBAT-001: 各員 maxHP×割合と比較）
 const ROOM_HEAL_AMOUNT: int = 10 * STAT_SCALE
 ## 泉成功時の回復割合（各生存者）。

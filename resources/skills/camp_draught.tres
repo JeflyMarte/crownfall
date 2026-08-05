@@ -6,11 +6,11 @@
 script = ExtResource("1")
 id = "camp_draught"
 display_name = "野営の一滴"
-description = "携帯した野営薬で自身の傷を抑える。後衛の粘り用の自己回復。"
+description = "携帯した野営薬で自身の傷を抑える。後衛の粘り用の薄い自己回復。"
 skill_type = "player"
 target_type = "self"
-power_multiplier = 0.12
-cooldown = 9.5
+power_multiplier = 0.10
+cooldown = 10.0
 trigger_type = "cooldown"
 effect_type = "heal"
 tags = Array[String](["support", "heal", "self"])
