@@ -38,6 +38,17 @@ func test_legendary_grows_faster_than_common() -> void:
 	assert_gt(legend, common)
 
 
+func test_accessory_equip_growth_is_double_weapon_rate() -> void:
+	## P3-EQ-ACC-LVL-001 案A: 装飾のみ k=0.08（武防 0.04）。
+	assert_almost_eq(_EquipmentEnhancer.ACCESSORY_EQUIP_GROWTH_RATE, 0.08, 0.0001)
+	assert_almost_eq(_EquipmentEnhancer.EQUIP_GROWTH_RATE, 0.04, 0.0001)
+	var weaponish: int = _EquipmentEnhancer.scale_equip_stat(35, 50, Enums.Rarity.COMMON, false)
+	var accessory: int = _EquipmentEnhancer.scale_equip_stat(35, 50, Enums.Rarity.COMMON, true)
+	assert_gt(accessory, weaponish)
+	assert_eq(weaponish, 35 + int(floor(35.0 * 0.04 * 49.0)))
+	assert_eq(accessory, 35 + int(floor(35.0 * 0.08 * 49.0)))
+
+
 func test_resolve_drop_level_from_stage() -> void:
 	seed(42)
 	GameState.current_dungeon_tier = 0

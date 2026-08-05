@@ -19,6 +19,8 @@ const LEGEND_ORE_ID: String = "elite_relic_shard"
 const MAX_FORGE_LEVEL: int = 5
 const EQUIP_MAX_LEVEL: int = 99
 const EQUIP_GROWTH_RATE: float = 0.04
+## 装飾のみ装備Lv成長を厚くする（案A / P3-EQ-ACC-LVL-001）。武防は EQUIP_GROWTH_RATE 据置。
+const ACCESSORY_EQUIP_GROWTH_RATE: float = 0.08
 const EQUIP_LEGENDARY_GROWTH_MULT: float = 1.25
 const EQUIP_EXP_BASE: int = 10
 const EQUIP_EXP_PER_LEVEL: int = 5
@@ -313,24 +315,34 @@ static func enhance_weapon(weapon: Resource) -> Dictionary:
 static func clamp_equip_level(level: int) -> int:
 	return clampi(level, 1, EQUIP_MAX_LEVEL)
 
-static func equip_growth_rate_for_rarity(rarity: int) -> float:
-	var rate: float = EQUIP_GROWTH_RATE
+static func equip_growth_rate_for_rarity(rarity: int, for_accessory: bool = false) -> float:
+	var rate: float = ACCESSORY_EQUIP_GROWTH_RATE if for_accessory else EQUIP_GROWTH_RATE
 	if rarity >= Enums.Rarity.LEGENDARY:
 		rate *= EQUIP_LEGENDARY_GROWTH_MULT
 	return rate
 
-static func scale_equip_stat(base: int, equip_level: int, rarity: int = 0) -> int:
+static func scale_equip_stat(
+	base: int,
+	equip_level: int,
+	rarity: int = 0,
+	for_accessory: bool = false
+) -> int:
 	if base <= 0:
 		return 0
 	var lv: int = clamp_equip_level(equip_level)
-	var rate: float = equip_growth_rate_for_rarity(rarity)
+	var rate: float = equip_growth_rate_for_rarity(rarity, for_accessory)
 	return maxi(1, base + int(floor(float(base) * rate * float(lv - 1))))
 
-static func scale_equip_float(base: float, equip_level: int, rarity: int = 0) -> float:
+static func scale_equip_float(
+	base: float,
+	equip_level: int,
+	rarity: int = 0,
+	for_accessory: bool = false
+) -> float:
 	if base <= 0.0:
 		return 0.0
 	var lv: int = clamp_equip_level(equip_level)
-	var rate: float = equip_growth_rate_for_rarity(rarity)
+	var rate: float = equip_growth_rate_for_rarity(rarity, for_accessory)
 	return base + base * rate * float(lv - 1)
 
 static func resolve_drop_equip_level(
@@ -443,7 +455,7 @@ static func effective_accessory_int_bonus(accessory: Resource, field: String, da
 	if raw <= 0:
 		return 0
 	var rarity: int = int(data.rarity) if data != null else accessory_rarity(accessory)
-	return scale_equip_stat(raw, get_equip_level(accessory), rarity) \
+	return scale_equip_stat(raw, get_equip_level(accessory), rarity, true) \
 		+ get_enhance_level(accessory) * BalanceConfig.EQUIP_FORGE_FLAT_PER_LEVEL
 
 static func effective_accessory_float_bonus(accessory: Resource, field: String, data: Resource) -> float:
@@ -453,7 +465,7 @@ static func effective_accessory_float_bonus(accessory: Resource, field: String, 
 	if raw <= 0.0:
 		return 0.0
 	var rarity: int = int(data.rarity) if data != null else accessory_rarity(accessory)
-	return scale_equip_float(raw, get_equip_level(accessory), rarity)
+	return scale_equip_float(raw, get_equip_level(accessory), rarity, true)
 
 static func assign_drop_equip_level(
 	item: Resource,

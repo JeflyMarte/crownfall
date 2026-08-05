@@ -7078,3 +7078,12 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-GROWTH-H1-001-3 | **SSOT**＝`docs/specs/decisions/71_CharacterLevelGrowth.md` | Decision 本体 |
 | P3-BAL-GROWTH-H1-001-4 | **C′** — `ENEMY_LEVEL_ATK_K` 0.10→**0.13**（HP連動据置） | DEF成長後も変更前相当の被圧 |
 | P3-BAL-GROWTH-H1-001-5 | **点検** — 被ダメ変更前比 Lv5–40 が ±8%内 → **K=0.13 据置**。`is_pet_combatant` インライン化で sim 復旧 | 定量＋ツール修復 |
+
+## 装飾装備Lv成長（2026-08-05 — P3-EQ-ACC-LVL-001）
+
+> **オーナー GO（案A）** — 装飾のみ装備Lv成長率を厚く（武防据置）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-ACC-LVL-001-1 | 装飾 `k=0.08`（武防 `0.04` 据置） | 基礎が小さく Lv が見えなかった |
+| P3-EQ-ACC-LVL-001-2 | **SSOT**＝`docs/specs/decisions/72_AccessoryEquipGrowth.md` | Decision 本体 |
