@@ -1,7 +1,7 @@
 class_name CombatTactics
 extends RefCounted
 
-## 行動方針（旧・戦術）— 7択＋重み付きルーレット。
+## 行動方針（旧・戦術）— 6択＋重み付きルーレット。
 ## カスタム行動ルールはオミット。実行は DungeonScene が roll_turn_plan に従う。
 ##
 ## slot: "ultimate" | "defend" | "skill" | "attack"
@@ -15,10 +15,12 @@ const TARGET_RULES: Array[String] = [
 
 ## 旧プリセット ID → 新行動方針。
 const LEGACY_ID_MAP: Dictionary = {
-	"aggressive": "fodder_focus",
+	"aggressive": "attack_focus",
 	"cautious": "defend_focus",
 	"survival": "defend_focus",
-	"sweep": "fodder_focus",
+	"sweep": "attack_focus",
+	"fodder_focus": "attack_focus",
+	"boss_focus": "attack_focus",
 }
 
 const _DEFS: Dictionary = {
@@ -26,6 +28,11 @@ const _DEFS: Dictionary = {
 		"display_name": "バランス",
 		"summary_hint": "スキル・必殺・防御を状況で混ぜる。毎回少しブレる。",
 		"target": "front",
+	},
+	"attack_focus": {
+		"display_name": "攻撃特化",
+		"summary_hint": "防御せず、スキル・必殺・通常攻撃で攻める。",
+		"target": "lowest_hp",
 	},
 	"conserve_ultimate": {
 		"display_name": "必殺温存",
@@ -36,16 +43,6 @@ const _DEFS: Dictionary = {
 		"display_name": "防御重視",
 		"summary_hint": "防御を選びやすい。火力は控えめ。",
 		"target": "lowest_hp",
-	},
-	"fodder_focus": {
-		"display_name": "雑魚優先",
-		"summary_hint": "弱い敵から狙う。群れでは必殺も出やすい。",
-		"target": "lowest_hp",
-	},
-	"boss_focus": {
-		"display_name": "強敵優先",
-		"summary_hint": "強い敵へ火力を寄せる。必殺も強敵向け。",
-		"target": "highest_hp",
 	},
 	"support_focus": {
 		"display_name": "サポート優先",
@@ -61,10 +58,9 @@ const _DEFS: Dictionary = {
 
 const _ORDER: Array[String] = [
 	"balanced",
+	"attack_focus",
 	"conserve_ultimate",
 	"defend_focus",
-	"fodder_focus",
-	"boss_focus",
 	"support_focus",
 	"attack_only",
 ]
@@ -101,6 +97,12 @@ static func get_slot_plan(tactics_id: String) -> Array:
 	match normalize_id(tactics_id):
 		"attack_only":
 			return [{"slot": "attack", "condition": "always"}]
+		"attack_focus":
+			return [
+				{"slot": "ultimate", "condition": "always"},
+				{"slot": "skill", "condition": "always"},
+				{"slot": "attack", "condition": "always"},
+			]
 		"defend_focus":
 			return [
 				{"slot": "defend", "condition": "self_hp_below", "value": 0.55},
@@ -108,19 +110,6 @@ static func get_slot_plan(tactics_id: String) -> Array:
 				{"slot": "attack", "condition": "always"},
 			]
 		"conserve_ultimate":
-			return [
-				{"slot": "ultimate", "condition": "enemy_is_boss"},
-				{"slot": "ultimate", "condition": "enemy_is_elite"},
-				{"slot": "skill", "condition": "always"},
-				{"slot": "attack", "condition": "always"},
-			]
-		"fodder_focus":
-			return [
-				{"slot": "ultimate", "condition": "enemy_count_gte", "value": 2},
-				{"slot": "skill", "condition": "always"},
-				{"slot": "attack", "condition": "always"},
-			]
-		"boss_focus":
 			return [
 				{"slot": "ultimate", "condition": "enemy_is_boss"},
 				{"slot": "ultimate", "condition": "enemy_is_elite"},
@@ -218,10 +207,15 @@ static func _slot_weights(tactics_id: String, ctx: Dictionary) -> Dictionary:
 	var boss: bool = bool(ctx.get("enemy_is_boss", false))
 	var elite: bool = bool(ctx.get("enemy_is_elite", false))
 	var strong: bool = boss or elite
-	var enemies: int = int(ctx.get("enemy_count", 1))
 	match tactics_id:
 		"attack_only":
 			return {"ultimate": 0.0, "defend": 0.0, "skill": 0.0, "attack": 100.0}
+		"attack_focus":
+			## 防御せず攻める。必殺は強敵で厚め、普段もスキル／通常で火力。
+			var ult_af: float = 18.0
+			if strong:
+				ult_af = 48.0
+			return {"ultimate": ult_af, "defend": 0.0, "skill": 48.0, "attack": 34.0}
 		"conserve_ultimate":
 			var ult: float = 0.0
 			if strong:
@@ -242,19 +236,6 @@ static func _slot_weights(tactics_id: String, ctx: Dictionary) -> Dictionary:
 			if strong:
 				ult2 = 28.0
 			return {"ultimate": ult2, "defend": defend2, "skill": 22.0, "attack": 18.0}
-		"fodder_focus":
-			var ult3: float = 8.0
-			if enemies >= 2:
-				ult3 = 36.0
-			return {"ultimate": ult3, "defend": 5.0, "skill": 44.0, "attack": 30.0}
-		"boss_focus":
-			var ult4: float = 12.0
-			if strong:
-				ult4 = 50.0
-			var defend3: float = 4.0
-			if hp < 0.20:
-				defend3 = 18.0
-			return {"ultimate": ult4, "defend": defend3, "skill": 38.0, "attack": 24.0}
 		"support_focus":
 			var ult5: float = 6.0
 			if strong:

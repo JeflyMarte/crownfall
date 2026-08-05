@@ -1,27 +1,30 @@
 extends GutTest
 
-## 行動方針 7択＋重み付きルーレット
+## 行動方針 6択＋重み付きルーレット
 
 
-func test_tactics_list_has_seven_policies() -> void:
+func test_tactics_list_has_six_policies() -> void:
 	var list: Array = CombatTactics.tactics_list()
-	assert_eq(list.size(), 7)
+	assert_eq(list.size(), 6)
 	var ids: Array[String] = []
 	for entry in list:
 		ids.append(str((entry as Dictionary).get("id")))
 	assert_true(ids.has("balanced"))
+	assert_true(ids.has("attack_focus"))
 	assert_true(ids.has("conserve_ultimate"))
 	assert_true(ids.has("defend_focus"))
-	assert_true(ids.has("fodder_focus"))
-	assert_true(ids.has("boss_focus"))
 	assert_true(ids.has("support_focus"))
 	assert_true(ids.has("attack_only"))
+	assert_false(ids.has("fodder_focus"))
+	assert_false(ids.has("boss_focus"))
 
 
 func test_legacy_ids_normalize() -> void:
-	assert_eq(CombatTactics.normalize_id("aggressive"), "fodder_focus")
+	assert_eq(CombatTactics.normalize_id("aggressive"), "attack_focus")
 	assert_eq(CombatTactics.normalize_id("survival"), "defend_focus")
-	assert_eq(CombatTactics.normalize_id("sweep"), "fodder_focus")
+	assert_eq(CombatTactics.normalize_id("sweep"), "attack_focus")
+	assert_eq(CombatTactics.normalize_id("fodder_focus"), "attack_focus")
+	assert_eq(CombatTactics.normalize_id("boss_focus"), "attack_focus")
 	assert_eq(CombatTactics.normalize_id("balanced"), "balanced")
 
 
@@ -36,15 +39,34 @@ func test_attack_only_roll_is_only_attack() -> void:
 		assert_eq(str((rule as Dictionary).get("slot")), "attack")
 
 
+func test_attack_focus_never_defends() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 42
+	for i in 40:
+		var plan: Array = CombatTactics.roll_turn_plan(
+			"attack_focus",
+			{"self_hp_ratio": 0.05, "enemy_is_boss": true, "enemy_count": 3},
+			null,
+			rng
+		)
+		for rule in plan:
+			assert_ne(str((rule as Dictionary).get("slot")), "defend")
+	var weights: Dictionary = CombatTactics._slot_weights(
+		"attack_focus", {"self_hp_ratio": 0.05, "enemy_is_boss": true}
+	)
+	assert_almost_eq(float(weights.get("defend", -1.0)), 0.0, 0.01)
+
+
 func test_display_names_are_short_policy_labels() -> void:
 	assert_eq(CombatTactics.display_name("balanced"), "バランス")
+	assert_eq(CombatTactics.display_name("attack_focus"), "攻撃特化")
 	assert_eq(CombatTactics.display_name("conserve_ultimate"), "必殺温存")
-	assert_eq(CombatTactics.display_name("fodder_focus"), "雑魚優先")
 
 
 func test_targets_for_focus_policies() -> void:
-	assert_eq(CombatTactics.get_target_rule("fodder_focus"), "lowest_hp")
-	assert_eq(CombatTactics.get_target_rule("boss_focus"), "highest_hp")
+	assert_eq(CombatTactics.get_target_rule("attack_focus"), "lowest_hp")
+	assert_eq(CombatTactics.get_target_rule("defend_focus"), "lowest_hp")
+	assert_eq(CombatTactics.get_target_rule("balanced"), "front")
 
 
 func test_balanced_defend_weights_reduced() -> void:

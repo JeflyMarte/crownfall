@@ -98,7 +98,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 - `TabEquip/InventoryHeaderRow` — ソート・装備状態フィルタ（P3-UI2-019d）・一覧は全装備+装備者ミニアイコン
 - `TabAwaken` / `TabProfile` — disabled+準備中（P3-UI2-019e）
 - `ContentVBox/BuildChipRow` — 同上 + `LabelBuildSummary`（Task037）
-- スキルタブ — 行動方針7択・陣形行・**🔒Lv解放表示**（P3-SKILL-001）・武器スキル行（P3-SKILL-004）・探索スキル一覧（P3-D117）・連携 hint（P3-D115）
+- スキルタブ — 行動方針6択・陣形行・**🔒Lv解放表示**（P3-SKILL-001）・武器スキル行（P3-SKILL-004）・探索スキル一覧（P3-D117）・連携 hint（P3-D115）
 
 **DungeonSelectScene** — `scenes/dungeon/DungeonSelectScene.tscn` / `scripts/dungeon/DungeonSelectScene.gd`（P3-D080・**P3-UI-DG-001** Featuredバナー+Biome直列カード+Event Footer・**P3-DG-TIER** TabsRow・**P3-UX-EVENT-TITLE-TWOTONE-001** 降臨名2色=`EventDungeonTitleHelper`）
 
@@ -132,7 +132,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `boot/` | `BootScene.gd`（Title へ委譲） |
 | `title/` | `TitleScene.gd`（**P3-UI-TITLE-001**） |
 | `combat/` | **コア:** `CombatController.gd`（`class_name`・CT/ATB・Threat・群れ/混成・個別ターゲット・詠唱・ボスフェーズ index）, `SkillExecutor.gd`, `StatusResolver.gd`, `StatusInstance.gd`, `ElementResolver.gd`, **`DamageCalculator.gd`**（ダメージ式 SSOT・シーン非依存 static・P3-REF-001）, **`BalanceConfig.gd`**（グローバルバランス定数 SSOT・P3-BAL-005） |
-| | **戦術/AI:** `CombatTactics.gd`（行動方針7・重み付きルーレット・旧IDマップ）, `CombatGambit.gd`（条件ラベル等・カスタム実行はオミット） |
+| | **戦術/AI:** `CombatTactics.gd`（行動方針6・重み付きルーレット・旧IDマップ）, `CombatGambit.gd`（条件ラベル等・カスタム実行はオミット） |
 | | **バランス:** `BalanceConfig.gd`（STAT_SCALE・成長・Threat・**P3-BAL-OPENING-001** 敵グローバル倍率／味方ボーナス圧縮・**P3-BAL-CLEAR-EXP-001** CLEAR時EXP+25%・**P3-BAL-KILL-EXP-150-001** 撃破EXP×1.5・**P3-BAL-WEEKDAY-EVENT-REWARD-001** 曜日撃破EXP/Gold×2） |
 | | **パッシブ/シナジー:** `CombatPassives.gd`, **`AbyssWeaponEffects.gd`**（深層レジェンド戦闘状態 P3-DG-ABYSS-001-C）, `CombatSynergy.gd`, `CombatTags.gd`, `CombatCombos.gd`（P3-D109）, **`EnemyResistTelop.gd`**（T6/T7 初回軽減テロップ）, 敵トリッキー第2波=`haste`/`silence`/`summon`＋`lifesteal_ratio`（`36_EnemyTrickyWave2.md`・**スロット別スキル／沈黙＝戦闘クロック**）, **群れ人数連動**=`BalanceConfig.swarm_density_*`（`37_SwarmDensitySoloPressure.md`）, **ELITE護衛／ボス個別hex**=`ELITE_ESCORT_*`＋`boss_*_hex`（`38_EliteBossPressure.md`）、**ボス開幕オーラ**=`45_BossOpeningAura.md`／`BOSS_ATK_MULT`、**必殺時間チャージ**=`ULTIMATE_CHARGE_FILL_SECONDS`（`46_UltimateChargeTime.md`）、**必殺圧力**=`ULTIMATE_CHARGE_PRESSURE_*`（`39_UltimateChargePressure.md`）、**必殺役割**=VG防御バフ／SW全体／AL全体回復／BTデバフ（`41_UltimateRoleSplit.md`）、**回復maxHP％**=`HEAL_FRAC_*`（`42_HealMaxHpFraction.md`）、**ビルド拡張L**=`BuildLegendaryLoot.gd`／`50_BuildLegendaries.md`（P3-EQ-LEG-BUILD-001） |
 | | **メタ/周回:** `CombatPassives.gd`（レリック定義 SSOT・P3-RELIC-PASSIVE／**P3-BAL-RELIC-REMAKE-001** `53_RelicRuleRemake`）, `CombatRelics.gd`（表示/互換ファサード）, `CombatLinks.gd`（連鎖3種・P3-D115）, `CombatBossPhases.gd`（P3-D116）, `ExplorationSkills.gd`（P3-D117・**P3-BAL-TRAP-TIER-001** 罠ティア）, `CombatFastRun.gd`（P3-D118）, `CombatWeather.gd`（天候・P3-D101 / W1-A / **Biome偏り P3-WEATHER-BIOME-BIAS-001**） |
