@@ -7221,3 +7221,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-NM-CAP99-001-3 | 旧 +cap/+2×cap（P3-DG-TIER-002-2）を上書き | 上限99超の過負荷解消 |
 | P3-BAL-NM-CAP99-001-4 | H1-1＜N5-5 になりうることを許容 | 終端キャップ優先の圧縮 |
 | P3-BAL-NM-CAP99-001-5 | **SSOT**＝`docs/specs/decisions/82_NmCap99TierRetune.md` | Decision 本体 |
+
+## 戦闘キャラカード長押し詳細（2026-08-05 — P3-UX-COMBAT-MEMBER-INSPECT-001）
+
+> **オーナー GO（推奨案）** — 戦闘中の下部キャラカードから、装備スキルとキャラ固有パッシブを確認する。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-COMBAT-MEMBER-INSPECT-001-1 | キャラカードを約0.45秒長押しで詳細シートを開く | 既存の装備長押しUXと統一 |
+| P3-UX-COMBAT-MEMBER-INSPECT-001-2 | 装備スキル＝効果＋説明、必殺＝効果＋説明、パッシブ＝キャラ固有效果を表示 | 戦闘中にビルド意図を確認 |
+| P3-UX-COMBAT-MEMBER-INSPECT-001-3 | 詳細表示中は戦闘／自動進行を一時停止。閉じると自動再開 | 読んでいる間の戦況進行を防止 |
+| P3-UX-COMBAT-MEMBER-INSPECT-001-4 | 装備／レリック固有パッシブ、ステ詳細、装備変更はスコープ外 | 情報過多と戦闘中編集を避ける |
