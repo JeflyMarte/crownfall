@@ -4,19 +4,19 @@
 
 [resource]
 script = ExtResource("1")
-id = "shield_quake"
-display_name = "盾撃波"
-description = "盾を叩きつけ衝撃を走らせる。敵全体に弱い打撃と甲砕を与え、注意を引きつける。"
+id = "shield_crush"
+display_name = "砕盾斬"
+description = "盾と剣で叩き割り、敵の防御を削る。攻めのヴァンガード向け甲砕技。"
 skill_type = "player"
-target_type = "all_enemies"
-power_multiplier = 0.7
-cooldown = 5.5
+target_type = "enemy"
+power_multiplier = 1.65
+cooldown = 4.5
 trigger_type = "cooldown"
 effect_type = "damage"
-tags = Array[String](["melee", "guard", "shield", "blunt", "aoe", "taunt"])
+tags = Array[String](["melee", "shield", "blunt"])
 element = ""
 apply_status_id = "armor_break"
-apply_status_chance = 0.3
+apply_status_chance = 0.7
 apply_status_id2 = ""
 apply_status_chance2 = 0.0
 slot_type = "skill"
