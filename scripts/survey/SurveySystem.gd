@@ -539,13 +539,32 @@ static func reference_trash_clear_exp(dungeon_id: String) -> int:
 	return maxi(1, int(round(avg * float(rooms) * _SurveyConfig.EXP_TRASH_SWARM_AVG)))
 
 
+## 対象 DG の完走相当 EXP（雑魚＋ボス・撃破倍率・クリアボーナス込み）。
+static func reference_dungeon_clear_exp(dungeon_id: String) -> int:
+	var dungeon: Resource = DataRegistry.get_dungeon_data(dungeon_id)
+	if dungeon == null:
+		return maxi(1, reference_trash_clear_exp(dungeon_id))
+	var trash: float = float(reference_trash_clear_exp(dungeon_id))
+	var boss_xp: float = 0.0
+	var boss_id: String = str(dungeon.boss_id).strip_edges()
+	if not boss_id.is_empty():
+		var boss: Resource = DataRegistry.get_enemy_data(boss_id)
+		if boss != null:
+			var enemy_lv: int = maxi(1, int(dungeon.enemy_level))
+			var lf: float = float(enemy_lv - 1)
+			boss_xp = float(maxi(0, int(boss.exp_reward))) * (1.0 + _BalanceConfig.ENEMY_LEVEL_EXP_K * lf)
+	var run_total: float = (trash + boss_xp) * _BalanceConfig.COMBAT_KILL_EXP_MULT
+	run_total *= 1.0 + _BalanceConfig.CLEAR_EXP_BONUS_RATIO
+	return maxi(1, int(round(run_total)))
+
+
 static func dispatch_exp_pool(dungeon_id: String, preset: String) -> int:
 	var ratio: float = (
 		_SurveyConfig.EXP_RATIO_SHORT
 		if preset == _SurveyConfig.PRESET_SHORT
 		else _SurveyConfig.EXP_RATIO_STANDARD
 	)
-	return maxi(0, int(round(float(reference_trash_clear_exp(dungeon_id)) * ratio)))
+	return maxi(0, int(round(float(reference_dungeon_clear_exp(dungeon_id)) * ratio)))
 
 
 ## 配置のうち戦闘ロスターのみ（スタッフ除外・重複除外・順序維持）。

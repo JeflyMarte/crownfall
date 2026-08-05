@@ -7199,3 +7199,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-BUFF-TAXONOMY-001-2 | 鼓舞＝味方×1.30／激昂＝敵向け×1.50＋被×1.25 | 同系統の見分け |
 | P3-BAL-BUFF-TAXONOMY-001-3 | 相棒鼓舞＝与×1.30＋被×0.85・4tick | 火力だけ太い問題の解消 |
 | P3-BAL-BUFF-TAXONOMY-001-4 | **SSOT**＝`docs/specs/decisions/80_BuffTaxonomy.md` | Decision 本体 |
+
+## 調査派遣EXP＝完走相当／本格×3（2026-08-05 — P3-BAL-SURVEY-DUNGEON-EXP-001）
+
+> **オーナー指示** — 1時間＝1ダンジョン分。3時間＝1時間の3倍。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-SURVEY-DUNGEON-EXP-001-1 | 参照＝雑魚＋ボス×撃破1.5×クリア+25% | 実クリアに近い |
+| P3-BAL-SURVEY-DUNGEON-EXP-001-2 | 簡易 EXP比 **1.0**／本格 **3.0** | 時間に比例 |
+| P3-BAL-SURVEY-DUNGEON-EXP-001-3 | **SSOT**＝`docs/specs/decisions/81_SurveyDungeonExp.md`。TIME-EXP-001-3 を上書き | Decision 本体 |

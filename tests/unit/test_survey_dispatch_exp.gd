@@ -20,9 +20,11 @@ func test_reference_trash_clear_exp_positive() -> void:
 	assert_gt(ref, 0)
 
 
-func test_short_and_standard_pool_equal_full_ref() -> void:
-	## P3-BAL-SURVEY-TIME-EXP-001: 簡易・本格とも雑魚クリア相当 100%。
-	var ref: int = _SurveySystem.reference_trash_clear_exp(Constants.MOURNGATE_DUNGEON_ID)
+func test_short_is_one_dungeon_standard_is_triple() -> void:
+	## P3-BAL-SURVEY-DUNGEON-EXP-001: 簡易＝完走相当×1／本格＝×3。
+	var ref: int = _SurveySystem.reference_dungeon_clear_exp(Constants.MOURNGATE_DUNGEON_ID)
+	var trash: int = _SurveySystem.reference_trash_clear_exp(Constants.MOURNGATE_DUNGEON_ID)
+	assert_gt(ref, trash)
 	var short_p: int = _SurveySystem.dispatch_exp_pool(
 		Constants.MOURNGATE_DUNGEON_ID, _SurveyConfig.PRESET_SHORT
 	)
@@ -31,9 +33,9 @@ func test_short_and_standard_pool_equal_full_ref() -> void:
 	)
 	assert_gt(ref, 0)
 	assert_eq(short_p, ref)
-	assert_eq(std_p, ref)
+	assert_eq(std_p, ref * 3)
 	assert_eq(_SurveyConfig.EXP_RATIO_SHORT, 1.0)
-	assert_eq(_SurveyConfig.EXP_RATIO_STANDARD, 1.0)
+	assert_eq(_SurveyConfig.EXP_RATIO_STANDARD, 3.0)
 	assert_eq(_SurveyConfig.SHORT_DURATION_SEC, 60.0 * 60.0)
 	assert_eq(_SurveyConfig.display_name(_SurveyConfig.PRESET_SHORT), "簡易調査")
 	assert_eq(_SurveyConfig.display_name(_SurveyConfig.PRESET_STANDARD), "本格調査")
