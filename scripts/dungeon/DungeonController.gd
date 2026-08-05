@@ -521,6 +521,8 @@ var floor_blessing_room_index: int = -1
 ## 分かれ道（P3-DG-FLOOR-CHOICE-001）: 次フロア限定。
 var floor_choice_room_index: int = -1
 var floor_choice_damage_mult: float = 1.0
+## 戦力強化の被ダメ倍率（1.0=なし、<1.0=軽減）。
+var floor_choice_incoming_mult: float = 1.0
 var floor_choice_heal_frac: float = 0.0
 var floor_choice_reward_mults: Dictionary = {}
 var floor_choice_count: int = 0
@@ -814,6 +816,7 @@ func _expire_floor_blessing_if_needed() -> void:
 func _clear_floor_choice() -> void:
 	floor_choice_room_index = -1
 	floor_choice_damage_mult = 1.0
+	floor_choice_incoming_mult = 1.0
 	floor_choice_heal_frac = 0.0
 	floor_choice_reward_mults.clear()
 
@@ -884,6 +887,17 @@ func get_effective_run_damage_multiplier() -> float:
 	):
 		mult *= floor_choice_damage_mult
 	return mult
+
+
+## 分かれ道・戦力強化の被ダメ倍率（現フロアのみ。1.0=補正なし）。
+func get_effective_floor_choice_incoming_mult() -> float:
+	if (
+		floor_choice_room_index == current_room_index
+		and floor_choice_incoming_mult > 0.0
+		and floor_choice_incoming_mult < 1.0
+	):
+		return floor_choice_incoming_mult
+	return 1.0
 
 
 func has_pending_floor_choice_heal() -> bool:
@@ -986,6 +1000,7 @@ func _begin_floor_choice_grant() -> void:
 func grant_floor_choice_power() -> void:
 	_begin_floor_choice_grant()
 	floor_choice_damage_mult = BalanceConfig.FLOOR_CHOICE_DAMAGE_MULT
+	floor_choice_incoming_mult = BalanceConfig.FLOOR_CHOICE_INCOMING_MULT
 
 
 func grant_floor_choice_heal() -> void:

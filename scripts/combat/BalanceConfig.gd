@@ -157,6 +157,8 @@ const LORE_FLOOR_BLESSING_KINDS: Array[String] = ["exp", "gold", "equip"]
 
 ## ダンジョン分かれ道（P3-DG-FLOOR-CHOICE-001）
 const FLOOR_CHOICE_DAMAGE_MULT: float = 1.5
+## 戦力強化: 次フロアの味方被ダメ倍率（案A・攻守）。
+const FLOOR_CHOICE_INCOMING_MULT: float = 0.85
 const FLOOR_CHOICE_HEAL_FRAC: float = 0.25
 const FLOOR_CHOICE_HARVEST_MULT: float = 1.35
 const FLOOR_CHOICE_ASSAULT_MULT: float = 1.25
