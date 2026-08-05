@@ -7294,3 +7294,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-CMD-PERMIT-RENAME-001-2 | **許可点**・系統名（略奪／成長／戦力）・効果は据置 | ネーミングのみ |
 | P3-CMD-PERMIT-RENAME-001-3 | **UI解放** — S級到達以降に押下可。未満は disabled＋「S級で解放」 | オーナー指示 |
 | P3-CMD-PERMIT-RENAME-001-4 | **SSOT**＝`docs/specs/decisions/58_CommanderPermitBoost.md` 改訂 | Decision 本体 |
+
+## 特権強化手引き（S級ランクアップ後）（2026-08-06 — P3-CMD-PERMIT-GUIDE-001）
+
+> **オーナー指示** — S級にランクアップした後、特権強化の手引きを出す。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-CMD-PERMIT-GUIDE-001-1 | S級以上のランクアップ祝辞 dismiss 後に書籍手引き「特権強化とは」を初回1回 | 解放直後の導線 |
+| P3-CMD-PERMIT-GUIDE-001-2 | フラグ `hub_guide_privilege_boost_seen`。特権強化画面の「？」で再表示 | 拠点部屋ガイドと同型 |
+| P3-CMD-PERMIT-GUIDE-001-3 | **SSOT**＝`docs/specs/decisions/58_CommanderPermitBoost.md` 追記 | Decision 本体 |

@@ -39,6 +39,15 @@ func test_hub_room_guides_defined() -> void:
 		(_Guide._all_guides()[_Guide.GUIDE_SHOWCASE] as Dictionary).get("pages", []).size(),
 		2
 	)
+	assert_eq(
+		(_Guide._all_guides()[_Guide.GUIDE_PERMIT] as Dictionary).get("pages", []).size(),
+		3
+	)
+	var permit_blob: String = ""
+	for page: Variant in (_Guide._all_guides()[_Guide.GUIDE_PERMIT] as Dictionary).get("pages", []):
+		permit_blob += str((page as Dictionary).get("body", ""))
+	assert_true(permit_blob.find("特権強化") >= 0)
+	assert_true(permit_blob.find("許可点") >= 0)
 	var survey_blob: String = ""
 	for page: Variant in (_Guide._all_guides()[_Guide.GUIDE_SURVEY] as Dictionary).get("pages", []):
 		survey_blob += str((page as Dictionary).get("body", ""))
@@ -69,6 +78,7 @@ func test_guide_copy_avoids_dev_terms() -> void:
 		_Guide.GUIDE_GACHA_INVITE,
 		_Guide.GUIDE_GACHA_SEAL,
 		_Guide.GUIDE_SHOWCASE,
+		_Guide.GUIDE_PERMIT,
 	]:
 		var def: Dictionary = _Guide._all_guides().get(gid, {}) as Dictionary
 		blob += str(def.get("topic", ""))
@@ -90,6 +100,16 @@ func test_queue_abyss_auto_only_once() -> void:
 
 func test_event_guide_has_no_auto_flag() -> void:
 	_Guide.queue_auto_if_unseen(_Guide.GUIDE_EVENT)
+	assert_false(_Guide.has_pending_auto())
+
+
+func test_queue_permit_guide_after_s_rank() -> void:
+	assert_false(_Guide.has_pending_auto())
+	_Guide.queue_auto_if_unseen(_Guide.GUIDE_PERMIT)
+	assert_true(_Guide.has_pending_auto())
+	assert_eq(_Guide.peek_pending_auto(), _Guide.GUIDE_PERMIT)
+	_Guide.mark_seen(_Guide.GUIDE_PERMIT)
+	_Guide.queue_auto_if_unseen(_Guide.GUIDE_PERMIT)
 	assert_false(_Guide.has_pending_auto())
 
 

@@ -4,6 +4,7 @@ extends Control
 
 const _CommanderPermitBoost := preload("res://scripts/commander/CommanderPermitBoost.gd")
 const _CommanderUiTokens := preload("res://scripts/commander/CommanderUiTokens.gd")
+const _RoomGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
 const COMMANDER_SCENE: String = "res://scenes/commander/CommanderScene.tscn"
 
 const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45)
@@ -40,6 +41,7 @@ func _ready() -> void:
 	UiTypography.apply_screen_title(_label_title)
 	UiTypography.apply_button(_btn_back, false)
 	_btn_back.pressed.connect(_on_back_pressed)
+	_setup_room_guide_help()
 	_content_host.add_theme_constant_override("separation", SECTION_GAP)
 	_sync_main_scroll_below_header()
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.MYPAGE)
@@ -47,6 +49,20 @@ func _ready() -> void:
 	_rebuild_page()
 	_configure_layout()
 	call_deferred("_configure_layout")
+
+
+func _setup_room_guide_help() -> void:
+	var row: Control = $Header/HeaderRow as Control
+	if row == null or row.get_node_or_null("HubRoomGuideHelpBtn") != null:
+		return
+	var btn: Button = _RoomGuide.attach_help_button(row, self, _RoomGuide.GUIDE_PERMIT, "？")
+	if btn == null:
+		return
+	var back: Node = row.get_node_or_null("ButtonBack")
+	if back != null:
+		row.move_child(btn, back.get_index() + 1)
+	btn.custom_minimum_size = Vector2(40, 40)
+	btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
 
 func _notification(what: int) -> void:
