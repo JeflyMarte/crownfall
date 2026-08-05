@@ -1,9 +1,9 @@
 class_name DungeonTierConfig
 extends RefCounted
 
-## 同一ダンジョン内の危険度ティア（P3-DG-TIER / P3-D164 → P3-DG-TIER-002 上書き）。
+## 同一ダンジョン内の危険度ティア（P3-DG-TIER / P3-DG-TIER-002 → P3-BAL-NM-CAP99-001 上書き）。
 ## Hard/Nightmare はメイン5 Biome のキャンペーン周回帯。
-## H1-1 > N5-5、NM1-1 > H5-5 になるよう敵Lvボーナスを N 最終章 cap から導出する。
+## ノーマル最終の推奨Lvを起点に、H終端≈75／NM終端≈99 になるよう加算する。
 
 const TIER_NORMAL: int = 0
 const TIER_HARD: int = 1
@@ -19,6 +19,10 @@ const MAIN_BIOME_IDS: Array[String] = [
 	"frostridge",
 ]
 
+## P3-BAL-NM-CAP99-001 — 終端の推奨Lv目標（N終端推奨からの差分でボーナス導出）。
+const TARGET_HARD_END_RECOMMENDED: int = 75
+const TARGET_NIGHTMARE_END_RECOMMENDED: int = 99
+
 const RARITY_WEIGHT_MULT: Array[float] = [1.0, 1.3, 1.6]
 const REWARD_MULT: Array[float] = [1.0, 1.2, 1.4]
 ## P3-BAL-CLEAR-TOKEN-HALF-001: クリア魔晶石基礎帯（旧35–65の半減。ティア倍率は reward_mult）
@@ -33,6 +37,7 @@ const SWARM_SIZE_CAP: int = 5
 const NM_ELITE_DUAL_CHANCE: float = 0.50
 
 static var _cached_normal_cap: int = -1
+static var _cached_normal_end_rec: int = -1
 
 
 static func clamp_tier(tier: int) -> int:
@@ -63,14 +68,29 @@ static func main_normal_cap_level() -> int:
 	return _cached_normal_cap
 
 
-## Hard = +N5-5相当、Nightmare = +2×N5-5相当 → H1-1(=1+cap) > N5-5、NM1-1 > H5-5。
+## メインノーマル最終の推奨Lv（通常は N5-5）。H/NM ボーナスの起点。
+static func main_normal_end_recommended_level() -> int:
+	if _cached_normal_end_rec > 0:
+		return _cached_normal_end_rec
+	var rec: int = 1
+	for biome_id: String in MAIN_BIOME_IDS:
+		for stage: Variant in DataRegistry.get_stages_for_biome(biome_id):
+			if stage == null:
+				continue
+			rec = maxi(rec, int(stage.recommended_level))
+	_cached_normal_end_rec = maxi(1, rec)
+	return _cached_normal_end_rec
+
+
+## Hard / Nightmare の敵・推奨Lv加算（P3-BAL-NM-CAP99-001）。
+## H終端推奨≈75、NM終端推奨≈99。旧 +cap/+2cap（H1-1>N5-5 強制）は廃止。
 static func enemy_level_bonus(tier: int) -> int:
-	var cap: int = main_normal_cap_level()
+	var n_end: int = main_normal_end_recommended_level()
 	match clamp_tier(tier):
 		TIER_HARD:
-			return cap
+			return maxi(0, TARGET_HARD_END_RECOMMENDED - n_end)
 		TIER_NIGHTMARE:
-			return cap * 2
+			return maxi(0, TARGET_NIGHTMARE_END_RECOMMENDED - n_end)
 		_:
 			return 0
 
@@ -138,3 +158,4 @@ static func is_main_campaign_tier_cleared(tier: int) -> bool:
 ## テスト用。キャッシュを破棄する。
 static func clear_cap_cache() -> void:
 	_cached_normal_cap = -1
+	_cached_normal_end_rec = -1

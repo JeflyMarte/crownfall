@@ -61,15 +61,16 @@ func test_resolve_drop_level_from_stage() -> void:
 
 
 func test_resolve_drop_level_follows_hard_tier() -> void:
-	## P3-BAL-TIER-001: Hard 1-1 は実効敵Lv≈50帯
+	## P3-BAL-NM-CAP99-001: Hard 1-1 は実効敵Lv＝1＋Hボーナス（終端75向け）
 	seed(7)
 	var Tier = preload("res://scripts/dungeon/DungeonTierConfig.gd")
-	var cap: int = Tier.main_normal_cap_level()
+	Tier.clear_cap_cache()
+	var h_bonus: int = Tier.enemy_level_bonus(Tier.TIER_HARD)
 	GameState.current_dungeon_tier = Tier.TIER_HARD
 	var stage: Resource = DataRegistry.get_stage_data("mourngate_1_1")
 	var lv: int = _EquipmentEnhancer.resolve_drop_equip_level(stage, null)
-	var expect_lo: int = (1 + cap) - 1
-	var expect_hi: int = (1 + cap) + 1
+	var expect_lo: int = (1 + h_bonus) - 1
+	var expect_hi: int = (1 + h_bonus) + 1
 	assert_true(
 		lv >= expect_lo and lv <= expect_hi,
 		"Hard 1-1 drop Lv should be %d〜%d (got %d)" % [expect_lo, expect_hi, lv]
