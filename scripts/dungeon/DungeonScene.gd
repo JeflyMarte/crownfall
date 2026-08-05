@@ -5972,6 +5972,13 @@ func _apply_member_buff_effects(member_idx: int, skill_data: Resource) -> Dictio
 	var wants_taunt: bool = skill_data != null and skill_data.tags.has("taunt")
 	var applied: int = 0
 	var status_id: String = str(skill_data.apply_status_id) if skill_data != null else ""
+	var status_id2: String = ""
+	if (
+		skill_data != null
+		and not str(skill_data.apply_status_id2).is_empty()
+		and float(skill_data.apply_status_chance2) > 0.0
+	):
+		status_id2 = str(skill_data.apply_status_id2)
 	var skill_id: String = str(skill_data.id) if skill_data != null else ""
 	var pet_only: bool = (
 		skill_data != null
@@ -5985,45 +5992,57 @@ func _apply_member_buff_effects(member_idx: int, skill_data: Resource) -> Dictio
 		skill_data != null and str(skill_data.target_type) == "ally"
 	)
 	var cover_target_idx: int = -1
-	if not status_id.is_empty():
+	var status_ids: Array[String] = []
+	if not status_id.is_empty() and float(skill_data.apply_status_chance) > 0.0:
+		status_ids.append(status_id)
+	if not status_id2.is_empty():
+		status_ids.append(status_id2)
+	if not status_ids.is_empty():
 		if self_only:
 			if $CombatController.is_member_alive(member_idx):
-				if $CombatController.apply_status("party_%d" % member_idx, status_id, 1, 0):
-					applied = 1
-					_on_party_status_applied(member_idx, status_id, false)
+				for sid: String in status_ids:
+					if $CombatController.apply_status("party_%d" % member_idx, sid, 1, 0):
+						applied += 1
+						_on_party_status_applied(member_idx, sid, false)
 		elif pet_only:
-			applied = _apply_status_to_pet(status_id, false)
+			for sid: String in status_ids:
+				applied += _apply_status_to_pet(sid, false)
 		elif ally_only:
 			## いちばん傷ついた味方1人（庇護・P3-SKILL-KIT-DIVERGE-001）。
 			cover_target_idx = $CombatController.get_most_injured_member_index()
 			if cover_target_idx < 0 and $CombatController.is_member_alive(member_idx):
 				cover_target_idx = member_idx
 			if cover_target_idx >= 0 and $CombatController.is_member_alive(cover_target_idx):
-				if $CombatController.apply_status("party_%d" % cover_target_idx, status_id, 1, 0):
-					applied = 1
-					_on_party_status_applied(cover_target_idx, status_id, false)
+				for sid: String in status_ids:
+					if $CombatController.apply_status("party_%d" % cover_target_idx, sid, 1, 0):
+						applied += 1
+						_on_party_status_applied(cover_target_idx, sid, false)
 		elif skill_id == "herd_call" or str(skill_data.target_type) == "all_party":
 			## 味方全体バフ（P3-SKILL-KIT-001）。herd_call も同強度で人＋ペットへ。
 			for i: int in GameState.party_members.size():
 				if not $CombatController.is_member_alive(i):
 					continue
-				if $CombatController.apply_status("party_%d" % i, status_id, 1, 0):
-					applied += 1
-					_on_party_status_applied(i, status_id, false)
-			applied += _apply_status_to_pet(status_id, false)
+				for sid: String in status_ids:
+					if $CombatController.apply_status("party_%d" % i, sid, 1, 0):
+						applied += 1
+						_on_party_status_applied(i, sid, false)
+			for sid: String in status_ids:
+				applied += _apply_status_to_pet(sid, false)
 		else:
 			for i: int in GameState.party_members.size():
 				if not $CombatController.is_member_alive(i):
 					continue
-				if $CombatController.apply_status("party_%d" % i, status_id, 1, 0):
-					applied += 1
-					_on_party_status_applied(i, status_id, false)
+				for sid: String in status_ids:
+					if $CombatController.apply_status("party_%d" % i, sid, 1, 0):
+						applied += 1
+						_on_party_status_applied(i, sid, false)
 	if wants_taunt and $CombatController.is_member_alive(member_idx):
 		$CombatController.apply_taunt(member_idx)
 		_activate_taunt_link(member_idx)
 	return {
 		"applied": applied,
 		"status_id": status_id,
+		"status_id2": status_id2,
 		"pet_only": pet_only,
 		"self_only": self_only,
 		"ally_only": ally_only,
@@ -6035,14 +6054,24 @@ func _apply_member_buff_effects(member_idx: int, skill_data: Resource) -> Dictio
 
 func _member_buff_log_line(display_name: String, skill_data: Resource, summary: Dictionary) -> String:
 	var status_id: String = str(summary.get("status_id", ""))
+	var status_id2: String = str(summary.get("status_id2", ""))
 	var label: String = status_id
 	if not status_id.is_empty():
 		var effect: Resource = DataRegistry.get_status_effect(status_id)
 		if effect != null:
 			label = effect.display_name
+	if not status_id2.is_empty():
+		var effect2: Resource = DataRegistry.get_status_effect(status_id2)
+		var label2: String = status_id2
+		if effect2 != null:
+			label2 = effect2.display_name
+		if label.is_empty():
+			label = label2
+		else:
+			label = "%s／%s" % [label, label2]
 	var applied: int = int(summary.get("applied", 0))
 	if bool(summary.get("wants_taunt", false)) and bool(summary.get("self_only", false)):
-		if status_id.is_empty():
+		if status_id.is_empty() and status_id2.is_empty():
 			return "\n【スキル】%s: 敵の注意を引いた" % display_name
 		return "\n【スキル】%s: 自身に[%s]・注意を引いた" % [display_name, label]
 	if bool(summary.get("pet_only", false)):

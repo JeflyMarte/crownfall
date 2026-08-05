@@ -47,19 +47,15 @@ static func _target_label(target_type: String) -> String:
 
 
 static func _buff_one_line(skill_data: Resource, target: String) -> String:
-	var status_id: String = str(skill_data.apply_status_id).strip_edges()
+	var statuses: String = _status_names(skill_data)
 	var taunt: bool = skill_data.tags.has("taunt")
-	if status_id.is_empty() or float(skill_data.apply_status_chance) <= 0.0:
+	if statuses.is_empty():
 		if taunt:
 			return "%sを強化＋挑発" % target
 		return "%sを強化" % target
-	var eff: Resource = DataRegistry.get_status_effect(status_id)
-	var st_name: String = str(eff.display_name) if eff != null else "強化"
-	if st_name.is_empty():
-		st_name = "強化"
 	if taunt:
-		return "%sに%s＋挑発" % [target, st_name]
-	return "%sに%s" % [target, st_name]
+		return "%sに%s＋挑発" % [target, statuses]
+	return "%sに%s" % [target, statuses]
 
 
 static func _status_names(skill_data: Resource) -> String:

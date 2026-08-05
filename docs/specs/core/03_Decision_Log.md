@@ -7177,3 +7177,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-ULT-ELIXIR-DEADEYE-001-2 | エリクサー回復 **16%→20%** | 全体回復の厚み |
 | P3-BAL-ULT-ELIXIR-DEADEYE-001-3 | エリクサーに味方デバフ全解除（`cleanse`） | 回復必殺の価値 |
 | P3-BAL-ULT-ELIXIR-DEADEYE-001-4 | **SSOT**＝`docs/specs/decisions/79_UltElixirDeadeye.md` | Decision 本体 |
+
+## タイタンロアに鼓舞追加（2026-08-05 — P3-BAL-TITAN-EMPOWER-001）
+
+> **オーナー指示** — 防御＋挑発に加えて味方全体へ鼓舞。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-TITAN-EMPOWER-001-1 | `titan_roar` に `empower`（付与率100%）を追加 | 盾必殺で味方火力も支援 |
+| P3-BAL-TITAN-EMPOWER-001-2 | 既存 `guard`＋挑発は据置 | 壁役の核は維持 |
+| P3-BAL-TITAN-EMPOWER-001-3 | バフ経路が `apply_status_id2` も味方へ付与 | 多重バフの実装土台 |
+| P3-BAL-TITAN-EMPOWER-001-4 | **SSOT**＝`41_UltimateRoleSplit.md` titan 行 | Decision 追記 |

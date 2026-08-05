@@ -7,7 +7,7 @@ const _Helper = preload("res://scripts/ui/SkillEffectOneLineHelper.gd")
 func test_job_ultimates_one_line() -> void:
 	var cases: Dictionary = {
 		"ouga_retsudan": "敵全体に大ダメージ＋脆弱",
-		"titan_roar": "味方全体に防御＋挑発",
+		"titan_roar": "味方全体に防御／鼓舞＋挑発",
 		"dead_eye": "敵1体に大ダメージ＋標的",
 		"grand_elixir": "味方全体を大きく回復＋状態異常解除",
 		"beast_dominion": "敵全体に大ダメージ＋標的／鈍化／毒",

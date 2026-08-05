@@ -9,6 +9,8 @@ func test_titan_roar_party_guard_taunt() -> void:
 	assert_eq(str(skill.effect_type), "buff")
 	assert_eq(str(skill.apply_status_id), "guard")
 	assert_almost_eq(float(skill.apply_status_chance), 1.0, 0.001)
+	assert_eq(str(skill.apply_status_id2), "empower")
+	assert_almost_eq(float(skill.apply_status_chance2), 1.0, 0.001)
 	assert_true(skill.tags.has("taunt"))
 
 

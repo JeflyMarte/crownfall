@@ -11,7 +11,7 @@
 
 | 必殺 | 役割 |
 |---|---|
-| `titan_roar` | 味方全体 `guard` ＋ 挑発（`taunt`） |
+| `titan_roar` | 味方全体 `guard` ＋ `empower` ＋ 挑発（`taunt`） |
 | `ouga_retsudan` | 敵全体・威力1.9・`vulnerable` 65% |
 | `grand_elixir` | 味方全体回復 **20%** ＋状態異常解除・**詠唱なし** |
 | `dead_eye` | 単体火力・**詠唱なし** |
