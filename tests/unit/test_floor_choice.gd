@@ -19,6 +19,7 @@ func _make_dc(seq_vals: Array) -> Node:
 
 func test_floor_choice_constants() -> void:
 	assert_almost_eq(BalanceConfig.FLOOR_CHOICE_DAMAGE_MULT, 1.5, 0.0001)
+	assert_almost_eq(BalanceConfig.FLOOR_CHOICE_INCOMING_MULT, 0.85, 0.0001)
 	assert_almost_eq(BalanceConfig.FLOOR_CHOICE_HARVEST_MULT, 1.35, 0.0001)
 	assert_almost_eq(BalanceConfig.FLOOR_CHOICE_ASSAULT_MULT, 1.25, 0.0001)
 	assert_eq(BalanceConfig.FLOOR_CHOICE_HARVEST_PICKS, 2)
@@ -94,11 +95,14 @@ func test_floor_choice_power_damage_next_room_only() -> void:
 	dc.grant_floor_choice_power()
 	assert_eq(dc.floor_choice_count, 1)
 	assert_almost_eq(dc.get_effective_run_damage_multiplier(), 1.0, 0.0001)
+	assert_almost_eq(dc.get_effective_floor_choice_incoming_mult(), 1.0, 0.0001)
 	dc.current_room_index = 1
 	assert_almost_eq(dc.get_effective_run_damage_multiplier(), 1.5, 0.0001)
+	assert_almost_eq(dc.get_effective_floor_choice_incoming_mult(), 0.85, 0.0001)
 	dc.current_room_index = 2
 	dc._expire_floor_choice_if_needed()
 	assert_almost_eq(dc.get_effective_run_damage_multiplier(), 1.0, 0.0001)
+	assert_almost_eq(dc.get_effective_floor_choice_incoming_mult(), 1.0, 0.0001)
 
 
 func test_floor_choice_harvest_two_kinds() -> void:
@@ -133,6 +137,7 @@ func test_floor_buff_legend_copy_uses_rate_up_only() -> void:
 func test_floor_buff_legend_stat_icons_resolve() -> void:
 	## 右上凡例の先頭アイコン（装備ステ ICO／素材）。
 	assert_not_null(EquipmentUiTokens.stat_icon("attack_up"))
+	assert_not_null(EquipmentUiTokens.stat_icon("defense_up"))
 	assert_not_null(EquipmentUiTokens.stat_icon("attack"))
 	assert_not_null(EquipmentUiTokens.stat_icon("exp_gain"))
 	assert_not_null(EquipmentUiTokens.stat_icon("gold_gain"))
@@ -192,6 +197,7 @@ func test_floor_choice_title_bbcode_emphasizes_name() -> void:
 	add_child_autofree(overlay)
 	overlay.open(false)
 	assert_true(str(overlay._text_labels[0].text).contains("戦力強化"))
+	assert_true(str(overlay._text_labels[0].text).contains("被ダメ"))
 	assert_true(str(overlay._text_labels[1].text).contains("収穫強化"))
 	assert_true(str(overlay._text_labels[2].text).contains("強襲ルート"))
 	overlay.open(true)
