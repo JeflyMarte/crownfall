@@ -222,8 +222,8 @@ const _DEFS: Dictionary = {
 	},
 	"garm_caravan_guard": {
 		"display_name": "隊商の盾心",
-		"description": "致死ダメージを10%の確率でHP1で耐える。",
-		"death_save_chance": 0.10,
+		"description": "致死ダメージを30%の確率でHP1で耐える。",
+		"death_save_chance": 0.30,
 	},
 	## P3-GACHA 追加4体（レノール／シアン／ネリ／ボルグ）
 	"lenore_seal_echo": {
