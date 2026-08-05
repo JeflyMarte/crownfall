@@ -122,16 +122,12 @@ func test_floor_choice_roll_harvest_kinds_random_two() -> void:
 	assert_gte(seen.size(), 2)
 
 
-func test_floor_buff_legend_copy_uses_rate_of_mult() -> void:
-	## 「パーティ全体◯◯率N倍」（旧: パーティの◯◯率の×N）。
-	assert_eq(
-		"パーティ全体%s%.2f倍" % ["経験値率", 1.35],
-		"パーティ全体経験値率1.35倍"
-	)
-	assert_eq(
-		"パーティ全体%s%.1f倍" % ["攻撃率", 1.5],
-		"パーティ全体攻撃率1.5倍"
-	)
+func test_floor_buff_legend_copy_uses_rate_up_only() -> void:
+	## 「◯◯アップ」のみ（旧: パーティ全体…N倍／パーティの…の×N）。アイコンは別経路。
+	assert_eq("%sアップ" % "経験値率", "経験値率アップ")
+	assert_eq("%sアップ" % "攻撃力", "攻撃力アップ")
+	assert_eq("%sアップ" % "ゴールド率", "ゴールド率アップ")
+	assert_false("パーティ" in ("経験値率アップ"))
 
 
 func test_floor_buff_legend_stat_icons_resolve() -> void:

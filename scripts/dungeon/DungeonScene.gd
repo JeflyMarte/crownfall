@@ -3180,7 +3180,7 @@ func _collect_floor_buff_legend_entries() -> Array[Dictionary]:
 			out.append({
 				"id": "choice_atk",
 				"stat": _floor_buff_stat_key("attack"),
-				"text": _floor_buff_legend_text("攻撃率", float(dc.floor_choice_damage_mult), 1),
+				"text": _floor_buff_legend_text("attack"),
 			})
 		var reward_keys: Array = dc.floor_choice_reward_mults.keys()
 		reward_keys.sort()
@@ -3192,27 +3192,16 @@ func _collect_floor_buff_legend_entries() -> Array[Dictionary]:
 			out.append({
 				"id": "choice_%s" % kind,
 				"stat": _floor_buff_stat_key(kind),
-				"text": _floor_buff_legend_text(_floor_buff_noun(kind), mult, 2),
+				"text": _floor_buff_legend_text(kind),
 			})
 	if dc.has_active_floor_blessing():
 		var lore_kind: String = str(dc.floor_blessing_kind)
 		out.append({
 			"id": "lore_%s" % lore_kind,
 			"stat": _floor_buff_stat_key(lore_kind),
-			"text": _floor_buff_legend_text(
-				_floor_buff_noun(lore_kind),
-				BalanceConfig.LORE_FLOOR_BLESSING_MULT,
-				1
-			),
+			"text": _floor_buff_legend_text(lore_kind),
 		})
 	return out
-
-
-## 右上凡例文言（例: パーティ全体経験値率1.5倍）。
-func _floor_buff_legend_text(noun: String, mult: float, decimals: int) -> String:
-	if decimals <= 1:
-		return "パーティ全体%s%.1f倍" % [noun, mult]
-	return "パーティ全体%s%.2f倍" % [noun, mult]
 
 
 func _floor_buff_stat_key(kind: String) -> String:
@@ -3232,8 +3221,15 @@ func _floor_buff_stat_key(kind: String) -> String:
 			return kind
 
 
+## 右上凡例文言（アイコンは別）。「パーティ全体」は出さず「◯◯アップ」のみ。
+func _floor_buff_legend_text(kind: String) -> String:
+	return "%sアップ" % _floor_buff_noun(kind)
+
+
 func _floor_buff_noun(kind: String) -> String:
 	match kind:
+		"attack", "damage":
+			return "攻撃力"
 		"exp":
 			return "経験値率"
 		"gold":
@@ -3243,7 +3239,12 @@ func _floor_buff_noun(kind: String) -> String:
 		"material":
 			return "素材ドロップ率"
 		_:
-			return $DungeonController.floor_blessing_label(kind)
+			var label: String = $DungeonController.floor_blessing_label(kind)
+			if label.ends_with("率"):
+				return label
+			if label in ["経験値", "ゴールド", "装備ドロップ", "素材ドロップ"]:
+				return "%s率" % label
+			return label
 
 
 func _floor_buff_icon_texture(stat_key: String) -> Texture2D:
