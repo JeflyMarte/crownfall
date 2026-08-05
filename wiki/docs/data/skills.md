@@ -148,7 +148,7 @@
 | **イグナイトエッジ** | player | damage | 1.4 | 無 | 3.0 | ignite (40%) |
 | **追標射** | player | damage | 1.35 | 無 | 4.0 | mark (45%) |
 | **威嚇斬** | player | damage | 1.05 | 無 | 3.5 | fear (45%) |
-| **治癒** | player | heal | 1.0 | 無 | 5.0 | — |
+| **治癒** | player | heal | 0.20（最傷） | 無 | 8.0 | — |
 | **瘴気の霧** | player | damage | 0.7 | 闇 | 5.5 | curse (30%) |
 | **王牙列断** | player | damage | 2.8 | 無 | 28.0 | vulnerable (50%) |
 | **守護陣** | player | buff | 1.0 | 無 | 8.0 | guard (100%) |
@@ -176,7 +176,7 @@
 | **鼓舞の煙** | player | buff | 1.0 | 無 | 7.0 | empower (100%) |
 | **裂傷斬** | player | damage | 1.35 | 無 | 3.5 | bleed (40%) |
 | **フロストエッジ** | player | damage | 1.3 | 無 | 3.5 | chill (35%) |
-| **大治癒** | player | heal | 1.9 | 無 | 8.5 | — |
+| **大治癒** | player | heal | 0.12（全体） | 無 | 12.0 | — |
 | **サンクトエッジ** | player | damage | 1.35 | 無 | 3.0 | armor_break (35%) |
 | **盾撃波** | player | damage | 0.7 | 無 | 5.5 | armor_break (30%) |
 | **盾殴り** | player | damage | 1.4 | 無 | 4.0 | armor_break (40%) |

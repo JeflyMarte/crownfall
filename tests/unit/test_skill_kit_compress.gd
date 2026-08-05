@@ -158,10 +158,11 @@ func test_frail_dust_is_armor_break() -> void:
 	assert_eq(str(dust.apply_status_id), "armor_break")
 
 
-func test_salve_burst_is_emergency_heal() -> void:
+func test_salve_burst_is_party_heal() -> void:
 	var salve: Resource = DataRegistry.get_skill_data("salve_burst")
 	var mend: Resource = DataRegistry.get_skill_data("mend")
-	assert_gt(float(salve.power_multiplier), float(mend.power_multiplier))
+	assert_eq(str(salve.target_type), "all_party")
+	assert_lt(float(salve.power_multiplier), float(mend.power_multiplier))
 	assert_gt(float(salve.cooldown), float(mend.cooldown) + 2.0)
 
 

@@ -7145,3 +7145,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-VALDEN-NO-HEAL-001-2 | `party_incoming_mult` 0.90 据置 | 壁役は維持 |
 | P3-BAL-VALDEN-NO-HEAL-001-3 | **SSOT**＝`docs/specs/decisions/70_PassiveKitLock.md`（B′′） | Decision 追記 |
 | P3-BAL-VALDEN-NO-HEAL-001-4 | P3-BAL-PASSIVE-LOCK-001-9 を上書き | 自己回復なし |
+
+## アルケミスト治癒ナーフ（2026-08-05 — P3-BAL-ALCHEMIST-HEAL-001）
+
+> **オーナー指示** — 治癒が強すぎる。CD増。大治癒は全体化＋回復量減。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-ALCHEMIST-HEAL-001-1 | 治癒 CD **5.0→8.0**（20%単体据置） | 回転過強 |
+| P3-BAL-ALCHEMIST-HEAL-001-2 | 大治癒＝**全体各員12%**／CD **12.0**（旧32%単体・CD8.5） | 緊急単体→薄い全体 |
+| P3-BAL-ALCHEMIST-HEAL-001-3 | グランドエリクサー据置（全体16%） | 必殺の厚みを維持 |
+| P3-BAL-ALCHEMIST-HEAL-001-4 | **SSOT**＝`docs/specs/decisions/77_AlchemistHealNerf.md`。`42_HealMaxHpFraction` salve 行を上書き | Decision 本体 |
