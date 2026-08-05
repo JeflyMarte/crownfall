@@ -216,10 +216,14 @@ func _on_nina_rare_guide_dismissed(kind: String) -> void:
 	call_deferred("_continue_hub_clear_flow")
 
 
-func _on_rank_up_dismissed(_rank_code: String) -> void:
+func _on_rank_up_dismissed(rank_code: String) -> void:
 	_update_player_card()
 	## 複数段ジャンプ時は次の到達分を続けて表示しない（到達等級を一括 ack 済み）。
-	call_deferred("_maybe_show_clear_nina_teaser")
+	## S級（またはそれを超える到達）の祝辞後に特権強化の手引きを1回出す。
+	const _DungeonRouteGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
+	if _CommanderProfile.rank_index(rank_code) >= _CommanderProfile.rank_index("S"):
+		_DungeonRouteGuide.queue_auto_if_unseen(_DungeonRouteGuide.GUIDE_PERMIT)
+	call_deferred("_continue_hub_clear_flow")
 
 
 func _maybe_show_clear_nina_teaser() -> void:

@@ -15,6 +15,7 @@ const GUIDE_SURVEY: String = "survey"
 const GUIDE_GACHA_INVITE: String = "gacha_invite"
 const GUIDE_GACHA_SEAL: String = "gacha_seal"
 const GUIDE_SHOWCASE: String = "showcase"
+const GUIDE_PERMIT: String = "permit"
 
 const FLAG_DESCENT: String = "dungeon_guide_descent_seen"
 const FLAG_ABYSS: String = "dungeon_guide_abyss_seen"
@@ -22,6 +23,7 @@ const FLAG_SURVEY: String = "hub_guide_survey_seen"
 const FLAG_GACHA_INVITE: String = "hub_guide_gacha_invite_seen"
 const FLAG_GACHA_SEAL: String = "hub_guide_gacha_seal_seen"
 const FLAG_SHOWCASE: String = "hub_guide_showcase_seen"
+const FLAG_PERMIT: String = "hub_guide_privilege_boost_seen"
 const PENDING_KEY: String = "pending_dungeon_route_guide"
 
 const BG_PATH: String = "res://assets/ui/UI_BG_HubSimpleGuide.png"
@@ -258,6 +260,40 @@ static func _all_guides() -> Dictionary:
 			},
 		],
 	},
+	GUIDE_PERMIT: {
+		"topic": "特権強化とは",
+		"flag_key": FLAG_PERMIT,
+		"pages": [
+			{
+				"title": "1. S級からの特典",
+				"body": (
+					"隊長、調査許可が[color=#9A5018][b]S級[/b][/color]に達すると、"
+					+ "マイページから[color=#9A5018][b]特権強化[/b][/color]を開けます。\n\n"
+					+ "S のあとも [color=#7A3E12][b]S+1、S+2…[/b][/color]と続き、"
+					+ "段が上がるたびに[color=#9A5018][b]許可点[/b][/color]が1つ貯まります。"
+				),
+			},
+			{
+				"title": "2. 三つの振り分け",
+				"body": (
+					"許可点は[color=#9A5018][b]略奪／成長／戦力[/b][/color]のどれかに振り分けます。\n\n"
+					+ "[color=#7A3E12][b]略奪[/b][/color] … ゴールドや素材まわり\n"
+					+ "[color=#7A3E12][b]成長[/b][/color] … 戦闘の経験値\n"
+					+ "[color=#7A3E12][b]戦力[/b][/color] … パーティの耐久\n\n"
+					+ "いつでも無料で振り直せます。迷ったら少しずつ試してください。"
+				),
+			},
+			{
+				"title": "3. どこから開くか",
+				"body": (
+					"拠点の[color=#9A5018][b]マイページ[/b][/color]（隊長台帳）にある"
+					+ "[color=#9A5018][b]特権強化[/b][/color]ボタンから入れます。\n\n"
+					+ "また読みたくなったら、特権強化の画面の"
+					+ "[color=#9A5018][b]？[/b][/color]でも同じ手引きを開けます。"
+				),
+			},
+		],
+	},
 }
 
 
@@ -303,7 +339,8 @@ static func mark_seen(guide_id: String) -> void:
 
 
 static func queue_auto_if_unseen(guide_id: String) -> void:
-	if guide_id != GUIDE_DESCENT and guide_id != GUIDE_ABYSS:
+	## flag のある手引きのみ（イベント枠など flag 無しは対象外）。
+	if _flag_for(guide_id).is_empty():
 		return
 	if is_seen(guide_id):
 		return
