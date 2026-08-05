@@ -1,6 +1,6 @@
 extends Control
 
-## 許可強化画面 — 略奪／成長／戦力を設定音量と同型スライダーで割り振り。
+## 特権強化画面 — 略奪／成長／戦力を設定音量と同型スライダーで割り振り。
 
 const _CommanderPermitBoost := preload("res://scripts/commander/CommanderPermitBoost.gd")
 const _CommanderUiTokens := preload("res://scripts/commander/CommanderUiTokens.gd")
@@ -30,10 +30,13 @@ var _updating_sliders: bool = false
 
 func _ready() -> void:
 	_CommanderPermitBoost.ensure_and_sync()
+	if not _CommanderPermitBoost.is_ui_unlocked():
+		call_deferred("_bounce_locked")
+		return
 	var bg_tex: Texture2D = _CommanderUiTokens.load_tex(_CommanderUiTokens.BG)
 	if bg_tex != null and _bg_texture != null:
 		_bg_texture.texture = bg_tex
-	_label_title.text = "許可強化"
+	_label_title.text = _CommanderPermitBoost.DISPLAY_NAME
 	UiTypography.apply_screen_title(_label_title)
 	UiTypography.apply_button(_btn_back, false)
 	_btn_back.pressed.connect(_on_back_pressed)
@@ -215,6 +218,11 @@ func _refresh_slider_bounds() -> void:
 		slider.max_value = float(max_v)
 		slider.set_value_no_signal(float(cur))
 	_updating_sliders = false
+
+
+func _bounce_locked() -> void:
+	## S級未満で直リンクされた場合はマイページへ戻す。
+	get_tree().change_scene_to_file(COMMANDER_SCENE)
 
 
 func _on_back_pressed() -> void:
