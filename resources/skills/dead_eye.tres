@@ -19,4 +19,4 @@ apply_status_id = "mark"
 apply_status_chance = 0.7
 slot_type = "ultimate"
 range_type = "long"
-cast_time = 1.0
+cast_time = 0.0

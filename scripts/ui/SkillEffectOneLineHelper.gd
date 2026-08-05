@@ -11,6 +11,8 @@ static func for_combat_ultimate(skill_data: Resource) -> String:
 	var effect_type: String = str(skill_data.effect_type)
 	match effect_type:
 		"heal":
+			if skill_data.tags.has("cleanse"):
+				return "%sを大きく回復＋状態異常解除" % target
 			return "%sを大きく回復" % target
 		"buff":
 			return _buff_one_line(skill_data, target)

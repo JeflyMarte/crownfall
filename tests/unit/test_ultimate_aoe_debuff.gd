@@ -28,7 +28,15 @@ func test_grand_elixir_party_heal() -> void:
 	assert_eq(str(skill.target_type), "all_party")
 	assert_eq(str(skill.effect_type), "heal")
 	assert_almost_eq(float(skill.power_multiplier), BalanceConfig.HEAL_FRAC_GRAND_ELIXIR, 0.001)
-	assert_gte(float(skill.cast_time), 1.0)
+	assert_almost_eq(float(skill.power_multiplier), 0.20, 0.001)
+	assert_lte(float(skill.cast_time), 0.0)
+	assert_true(skill.tags.has("cleanse"))
+
+
+func test_dead_eye_instant_cast() -> void:
+	var skill: Resource = DataRegistry.get_skill_data("dead_eye")
+	assert_not_null(skill)
+	assert_lte(float(skill.cast_time), 0.0)
 
 
 func test_beast_dominion_multi_debuff_aoe() -> void:

@@ -39,7 +39,7 @@ func test_heal_frac_examples() -> void:
 	## 戦闘式: round(maxHP × power)。ボーナスなし時。
 	assert_eq(int(round(1000.0 * BalanceConfig.HEAL_FRAC_MEND)), 200)
 	assert_eq(int(round(2000.0 * BalanceConfig.HEAL_FRAC_SALVE_BURST)), 240)
-	assert_eq(int(round(2000.0 * BalanceConfig.HEAL_FRAC_GRAND_ELIXIR)), 320)
+	assert_eq(int(round(2000.0 * BalanceConfig.HEAL_FRAC_GRAND_ELIXIR)), 400)
 	assert_eq(int(round(1000.0 * BalanceConfig.HEAL_FRAC_BEAST_VET)), 120)
 	assert_eq(int(round(1000.0 * BalanceConfig.HEAL_FRAC_BEAST_VET_PET)), 180)
 	assert_eq(int(round(1000.0 * BalanceConfig.HEAL_FRAC_CAMP_DRAUGHT)), 120)

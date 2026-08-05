@@ -7166,3 +7166,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-ULTIMATE-UNIFY-100-001-1 | `ULTIMATE_CHARGE_FILL_SECONDS` **50→100** | 全体を遅く揃える |
 | P3-BAL-ULTIMATE-UNIFY-100-001-2 | ELITE／BOSS 圧力 **×0.5→×1.0**（入場・戦中） | 部屋差をなくす |
 | P3-BAL-ULTIMATE-UNIFY-100-001-3 | **SSOT**＝`docs/specs/decisions/78_UltimateChargeUnify100.md`。`46`／`39` を上書き | Decision 本体 |
+
+## 必殺エリクサー強化＋デッドアイ即時（2026-08-05 — P3-BAL-ULT-ELIXIR-DEADEYE-001）
+
+> **オーナー指示** — デッドアイ／エリクサー詠唱なし。エリクサー＝全体20%＋状態異常解除。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-ULT-ELIXIR-DEADEYE-001-1 | `dead_eye`／`grand_elixir` 詠唱 **0** | テンポ改善 |
+| P3-BAL-ULT-ELIXIR-DEADEYE-001-2 | エリクサー回復 **16%→20%** | 全体回復の厚み |
+| P3-BAL-ULT-ELIXIR-DEADEYE-001-3 | エリクサーに味方デバフ全解除（`cleanse`） | 回復必殺の価値 |
+| P3-BAL-ULT-ELIXIR-DEADEYE-001-4 | **SSOT**＝`docs/specs/decisions/79_UltElixirDeadeye.md` | Decision 本体 |

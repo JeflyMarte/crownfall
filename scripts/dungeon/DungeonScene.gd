@@ -5830,7 +5830,10 @@ func _execute_member_heal(
 			_spawn_skill_name(
 				result["display_name"], member_idx, float(cast_index) * SKILL_LABEL_STACK_GAP, "", false, ""
 			)
-		return "\n【スキル】%s: 味方全体を計%d回復" % [result["display_name"], total]
+		var party_line: String = "\n【スキル】%s: 味方全体を計%d回復" % [result["display_name"], total]
+		if skill_data.tags.has("cleanse"):
+			party_line += "（状態異常解除）"
+		return party_line
 	var heal_amount: int = _calc_skill_heal_amount(member_idx, skill_data, target_idx)
 	var healed: int = $CombatController.heal_member(target_idx, heal_amount)
 	if healed > 0:
@@ -5881,7 +5884,26 @@ func _apply_party_heal_from_skill(caster_idx: int, skill_data: Resource, present
 		_maybe_apply_heal_guard(caster_idx, i)
 		_set_heal_rally(i)
 		_present_member_heal(i, healed, present_scale, false)
+	if skill_data != null and skill_data.tags.has("cleanse"):
+		_cleanse_all_party_debuffs()
 	return total
+
+
+## 生存味方から CombatLinks デバフ集合をすべて解除（グランドエリクサー等）。
+func _cleanse_all_party_debuffs() -> int:
+	var cleared: int = 0
+	for i: int in $CombatController.party_combat_hp.size():
+		if not $CombatController.is_member_alive(i):
+			continue
+		for sid: Variant in CombatLinks.DEBUFF_MARK_STATUSES:
+			var status_id: String = str(sid)
+			if $CombatController.get_member_status_stacks(i, status_id) <= 0:
+				continue
+			$CombatController.consume_member_status(i, status_id)
+			cleared += 1
+	if cleared > 0:
+		_update_status_icons()
+	return cleared
 
 
 func _apply_party_heal_amount(caster_idx: int, heal_amount: int, present_scale: float = 1.1) -> int:
@@ -12371,7 +12393,10 @@ func _apply_ultimate_party_heal_impact(payload: Dictionary) -> void:
 	var skill_data: Resource = payload.get("skill_data") as Resource
 	var display_name: String = str(payload.get("display_name", ""))
 	var total: int = _apply_party_heal_from_skill(member_idx, skill_data, 1.45)
-	_append_log("【必殺】%s: 味方全体を計%d回復" % [display_name, total])
+	var line: String = "%s: 味方全体を計%d回復" % [display_name, total]
+	if skill_data != null and skill_data.tags.has("cleanse"):
+		line += "（状態異常解除）"
+	_append_log("【必殺】" + line)
 
 
 func _apply_ultimate_buff_impact(payload: Dictionary) -> void:
