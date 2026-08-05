@@ -69,3 +69,13 @@ func test_jack_join_quotes_are_barks() -> void:
 	const _Quotes := preload("res://scripts/roster/StarterJoinQuotes.gd")
 	assert_eq(_Quotes.line_for("pet_jack"), "ワンッ！")
 	assert_eq(_Quotes.reveal_line_for("pet_jack"), "ワンッ！")
+
+
+func test_riva_reveal_quote_is_not_feminine() -> void:
+	## リーヴァは男性ビジュアル。語尾「わ」等の女性語を混ぜない。
+	const _Quotes := preload("res://scripts/roster/StarterJoinQuotes.gd")
+	var join: String = _Quotes.line_for("adventurer_1")
+	var reveal: String = _Quotes.reveal_line_for("adventurer_1")
+	assert_false(join.ends_with("わ。") or join.ends_with("わ"), "JOIN に女性語尾を付けない")
+	assert_false(reveal.ends_with("わ。") or reveal.ends_with("わ"), "REVEAL に女性語尾を付けない")
+	assert_eq(reveal, "……合流した。合図は短くでいい。")
