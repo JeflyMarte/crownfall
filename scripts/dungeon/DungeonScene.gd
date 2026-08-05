@@ -2526,6 +2526,12 @@ func _color_log_tags(line: String) -> String:
 		out = out.replace("CRITICAL!", _wrap_log_color("CRITICAL!", LOG_DAMAGE_CRIT))
 	if out.contains("Block!"):
 		out = out.replace("Block!", _wrap_log_color("Block!", Color(0.45, 0.78, 1.0)))
+	## レリック／レジェンド級の拾得行は戦闘ログで目立たせる。
+	if out.begins_with("レリック入手:"):
+		return _wrap_log_color(out, LOG_TAG)
+	if out.begins_with("レジェンド装備入手:") or out.begins_with("ミシック装備入手:") \
+			or out.begins_with("エンシェント装備入手:"):
+		return _wrap_log_color(out, LOG_DAMAGE_OUT)
 	return out
 
 func _log_line_incoming_damage(line: String) -> bool:
@@ -4413,9 +4419,13 @@ func _apply_exploration_treasure_skills(treasure: Dictionary) -> PackedStringArr
 			var acc_id: String = $DungeonController.generate_accessory_loot()
 			if not acc_id.is_empty():
 				treasure["accessory_id"] = acc_id
-				lines.append(
-					"[探索] 鍵開け: 装飾品を入手 — %s" % DataRegistry.get_accessory_name(acc_id)
-				)
+				## レジェンド級は通常ドロップと同じ明示ログ。それ以外は鍵開け注記。
+				if _equip_drop_rarity(acc_id, "accessory") >= Enums.Rarity.LEGENDARY:
+					lines.append(_format_equip_drop_log("装飾", acc_id, "accessory"))
+				else:
+					lines.append(
+						"[探索] 鍵開け: 装飾品を入手 — %s" % DataRegistry.get_accessory_name(acc_id)
+					)
 	return lines
 
 # ---- 回復部屋（P3-UX-HEAL-001） ----
@@ -4550,11 +4560,28 @@ func _resolve_treasure_room_async() -> void:
 		or not weapon_id.is_empty()
 		or not armor_id.is_empty()
 	)
+	## レジェンド級装備は戦闘ログへ専用行（ナラティブに埋もれないように）。
+	var rare_equip_logs: PackedStringArray = PackedStringArray()
+	if not weapon_id.is_empty() and _equip_drop_rarity(weapon_id, "weapon") >= Enums.Rarity.LEGENDARY:
+		rare_equip_logs.append(_format_equip_drop_log("武器", weapon_id, "weapon"))
+		_maybe_celebrate_rare_equip_drop(weapon_id, "weapon", false)
+	if not armor_id.is_empty() and _equip_drop_rarity(armor_id, "armor") >= Enums.Rarity.LEGENDARY:
+		rare_equip_logs.append(_format_equip_drop_log("防具", armor_id, "armor"))
+		_maybe_celebrate_rare_equip_drop(armor_id, "armor", false)
+	var treasure_acc: String = str(treasure.get("accessory_id", ""))
+	if not treasure_acc.is_empty() and _equip_drop_rarity(treasure_acc, "accessory") >= Enums.Rarity.LEGENDARY:
+		## 鍵開けで既に同文言を足している場合は二重にしない。
+		var rare_line: String = _format_equip_drop_log("装飾", treasure_acc, "accessory")
+		if not explore_treasure.has(rare_line):
+			rare_equip_logs.append(rare_line)
+		_maybe_celebrate_rare_equip_drop(treasure_acc, "accessory", false)
 	_set_non_combat_phase_bg(TreasureRoomPresentationScript.bg_path_for_phase("success"))
 	AudioManager.play_sfx("treasure")
 	await _play_treasure_open_presentation(has_gear)
 	_set_room_narrative_bbcode(narrative_bb)
 	_append_log("[宝箱] %s" % log_text)
+	for rare_log: String in rare_equip_logs:
+		_append_log(rare_log)
 	_treasure_presentation_active = false
 	_finish_room_and_continue()
 
@@ -8117,28 +8144,26 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 		if stage != null:
 			var legendary_bonus: Dictionary = $DungeonController.apply_boss_legendary_loot(stage)
 			if not str(legendary_bonus.get("armor_id", "")).is_empty():
-				GameState.last_run_armor_dropped = str(legendary_bonus["armor_id"])
-				log_lines.append(
-					"ボス報酬: 防具 %s" % DataRegistry.get_armor_name(str(legendary_bonus["armor_id"]))
-				)
-				_append_equipment_drop_icon(drop_icons, str(legendary_bonus["armor_id"]), "armor")
-				_maybe_celebrate_rare_equip_drop(str(legendary_bonus["armor_id"]), "armor", false)
+				var boss_arm: String = str(legendary_bonus["armor_id"])
+				GameState.last_run_armor_dropped = boss_arm
+				log_lines.append(_format_equip_drop_log("防具", boss_arm, "armor"))
+				_append_equipment_drop_icon(drop_icons, boss_arm, "armor")
+				_maybe_celebrate_rare_equip_drop(boss_arm, "armor", false)
 			if not str(legendary_bonus.get("accessory_id", "")).is_empty():
-				GameState.last_run_accessory_dropped = str(legendary_bonus["accessory_id"])
-				log_lines.append(
-					"ボス報酬: 装飾品 %s" % DataRegistry.get_accessory_name(str(legendary_bonus["accessory_id"]))
-				)
-				_append_equipment_drop_icon(drop_icons, str(legendary_bonus["accessory_id"]), "accessory")
-				_maybe_celebrate_rare_equip_drop(str(legendary_bonus["accessory_id"]), "accessory", false)
+				var boss_acc: String = str(legendary_bonus["accessory_id"])
+				GameState.last_run_accessory_dropped = boss_acc
+				log_lines.append(_format_equip_drop_log("装飾", boss_acc, "accessory"))
+				_append_equipment_drop_icon(drop_icons, boss_acc, "accessory")
+				_maybe_celebrate_rare_equip_drop(boss_acc, "accessory", false)
 			var build_id: String = str(legendary_bonus.get("build_id", ""))
 			var build_cat: String = str(legendary_bonus.get("build_category", ""))
 			if not build_id.is_empty() and (build_cat == "armor" or build_cat == "accessory"):
 				if build_cat == "armor":
 					GameState.last_run_armor_dropped = build_id
-					log_lines.append("ボス報酬: 防具 %s" % DataRegistry.get_armor_name(build_id))
 				else:
 					GameState.last_run_accessory_dropped = build_id
-					log_lines.append("ボス報酬: 装飾品 %s" % DataRegistry.get_accessory_name(build_id))
+				var build_kind: String = "防具" if build_cat == "armor" else "装飾"
+				log_lines.append(_format_equip_drop_log(build_kind, build_id, build_cat))
 				_append_equipment_drop_icon(drop_icons, build_id, build_cat)
 				_maybe_celebrate_rare_equip_drop(build_id, build_cat, false)
 			var mythic_bonus: Dictionary = $DungeonController.apply_boss_mythic_loot(stage)
@@ -8148,13 +8173,13 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 				match mythic_cat:
 					"weapon":
 						GameState.last_run_weapon_dropped = mythic_id
-						log_lines.append("神話の招き: 武器 %s" % DataRegistry.get_weapon_name(mythic_id))
+						log_lines.append(_format_equip_drop_log("武器", mythic_id, mythic_cat))
 					"armor":
 						GameState.last_run_armor_dropped = mythic_id
-						log_lines.append("神話の招き: 防具 %s" % DataRegistry.get_armor_name(mythic_id))
+						log_lines.append(_format_equip_drop_log("防具", mythic_id, mythic_cat))
 					"accessory":
 						GameState.last_run_accessory_dropped = mythic_id
-						log_lines.append("神話の招き: 装飾品 %s" % DataRegistry.get_accessory_name(mythic_id))
+						log_lines.append(_format_equip_drop_log("装飾", mythic_id, mythic_cat))
 				_append_equipment_drop_icon(drop_icons, mythic_id, mythic_cat)
 				_maybe_celebrate_rare_equip_drop(mythic_id, mythic_cat, true)
 		var event_bonus: Dictionary = $DungeonController.apply_event_exclusive_boss_loot()
@@ -8163,17 +8188,17 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 		var evt_acc: String = str(event_bonus.get("accessory_id", ""))
 		if not evt_wpn.is_empty():
 			GameState.last_run_weapon_dropped = evt_wpn
-			log_lines.append("降臨報酬: 武器 %s" % DataRegistry.get_weapon_name(evt_wpn))
+			log_lines.append(_format_equip_drop_log("武器", evt_wpn, "weapon"))
 			_append_equipment_drop_icon(drop_icons, evt_wpn, "weapon")
 			_maybe_celebrate_rare_equip_drop(evt_wpn, "weapon", false)
 		if not evt_arm.is_empty():
 			GameState.last_run_armor_dropped = evt_arm
-			log_lines.append("降臨報酬: 防具 %s" % DataRegistry.get_armor_name(evt_arm))
+			log_lines.append(_format_equip_drop_log("防具", evt_arm, "armor"))
 			_append_equipment_drop_icon(drop_icons, evt_arm, "armor")
 			_maybe_celebrate_rare_equip_drop(evt_arm, "armor", false)
 		if not evt_acc.is_empty():
 			GameState.last_run_accessory_dropped = evt_acc
-			log_lines.append("降臨報酬: 装飾品 %s" % DataRegistry.get_accessory_name(evt_acc))
+			log_lines.append(_format_equip_drop_log("装飾", evt_acc, "accessory"))
 			_append_equipment_drop_icon(drop_icons, evt_acc, "accessory")
 			_maybe_celebrate_rare_equip_drop(evt_acc, "accessory", false)
 		var boss_mat: Dictionary = $DungeonController.apply_boss_material_loot()
@@ -8193,13 +8218,17 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 	if room_type == Enums.RoomType.ELITE:
 		var elite_bonus: Dictionary = $DungeonController.apply_elite_bonus_loot()
 		if not (elite_bonus["armor_id"] as String).is_empty():
-			GameState.last_run_armor_dropped = elite_bonus["armor_id"]
-			log_lines.append("エリート報酬: 防具 %s" % DataRegistry.get_armor_name(elite_bonus["armor_id"]))
-			_append_equipment_drop_icon(drop_icons, str(elite_bonus["armor_id"]), "armor")
+			var elite_arm: String = str(elite_bonus["armor_id"])
+			GameState.last_run_armor_dropped = elite_arm
+			log_lines.append(_format_equip_drop_log("防具", elite_arm, "armor"))
+			_append_equipment_drop_icon(drop_icons, elite_arm, "armor")
+			_maybe_celebrate_rare_equip_drop(elite_arm, "armor", false)
 		if not (elite_bonus["accessory_id"] as String).is_empty():
-			log_lines.append("エリート報酬: 装飾品 %s" % DataRegistry.get_accessory_name(elite_bonus["accessory_id"]))
-			GameState.last_run_accessory_dropped = elite_bonus["accessory_id"]
-			_append_equipment_drop_icon(drop_icons, str(elite_bonus["accessory_id"]), "accessory")
+			var elite_acc: String = str(elite_bonus["accessory_id"])
+			GameState.last_run_accessory_dropped = elite_acc
+			log_lines.append(_format_equip_drop_log("装飾", elite_acc, "accessory"))
+			_append_equipment_drop_icon(drop_icons, elite_acc, "accessory")
+			_maybe_celebrate_rare_equip_drop(elite_acc, "accessory", false)
 		if not str(elite_bonus.get("material_id", "")).is_empty():
 			var elite_mat_amt: int = int(elite_bonus.get("material_amount", 1))
 			log_lines.append(
@@ -13114,10 +13143,13 @@ func _equip_drop_display_name(item_id: String, category: String) -> String:
 func _format_equip_drop_log(kind_label: String, item_id: String, category: String) -> String:
 	var rarity: int = _equip_drop_rarity(item_id, category)
 	var name: String = _equip_drop_display_name(item_id, category)
+	## レア度が分かる文言で戦闘ログへ（レリックは別経路）。
+	if rarity == Enums.Rarity.SET:
+		return "エンシェント装備入手: %s" % name
 	if rarity >= Enums.Rarity.MYTHIC:
-		return "M %sドロップ: %s" % [kind_label, name]
+		return "ミシック装備入手: %s" % name
 	if rarity >= Enums.Rarity.LEGENDARY:
-		return "L %sドロップ: %s" % [kind_label, name]
+		return "レジェンド装備入手: %s" % name
 	return "%sドロップ: %s" % [kind_label, name]
 
 
