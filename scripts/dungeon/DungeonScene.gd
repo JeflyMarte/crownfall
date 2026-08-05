@@ -7121,6 +7121,7 @@ func _queue_enemy_offensive_skill(skill: Resource, slot: int, explode_after: boo
 		targets = resolved["indices"]
 		used_fallback = bool(resolved.get("fallback", false))
 		if not targets.is_empty():
+			## 列も各フル威力（P3-BAL-AOE-FULL-001）。
 			shares = CombatFormation.enemy_offensive_damage_shares(
 				target_type,
 				targets,
@@ -7134,7 +7135,7 @@ func _queue_enemy_offensive_skill(skill: Resource, slot: int, explode_after: boo
 			Callable($CombatController, "is_member_alive"),
 			Callable($CombatController, "pick_enemy_target_for_melee_attack").bind(slot)
 		)
-		## 全体＝各フル威力／単体＝1.0（P3-BAL-AOE-FULL-001）。列は上分岐で按分。
+		## 全体／列とも各フル威力／単体＝1.0（P3-BAL-AOE-FULL-001）。
 		shares = CombatFormation.enemy_offensive_damage_shares(
 			target_type,
 			targets,

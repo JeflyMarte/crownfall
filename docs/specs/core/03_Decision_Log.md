@@ -7105,12 +7105,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 
 ## 敵全体攻撃フル威力（2026-08-05 — P3-BAL-AOE-FULL-001）
 
-> **オーナー GO（案A）** — `all_party` の Threat按分をやめ、全員にスキル威力フル。
+> **オーナー GO（案A）** — `all_party` の Threat按分をやめ、全員にスキル威力フル。  
+> **追記（2026-08-06）** — 列AoE（`party_front`／`party_back`）の Threat按分も撤廃。雑魚薙ぎ含む。
 
 | # | 決定 | 根拠 |
 |---|---|---|
 | P3-BAL-AOE-FULL-001-1 | 敵 `all_party` ダメージシェア＝各 1.0 | 全体攻撃の圧が感じられなかった |
-| P3-BAL-AOE-FULL-001-2 | 列AoEの Threat按分は据置 | タンク矢面は列で維持 |
+| P3-BAL-AOE-FULL-001-2 | 列AoEも各対象 1.0（Threat按分なし） | 雑魚薙ぎ等も減衰していた |
 | P3-BAL-AOE-FULL-001-3 | スキル `power_multiplier` 据置 | 減衰はデータ側のみ |
 | P3-BAL-AOE-FULL-001-4 | **SSOT**＝`docs/specs/decisions/73_EnemyAllPartyFullDamage.md`。P3-BAL-COMBAT-AUDIT-001-5 を上書き | Decision 本体 |
 
