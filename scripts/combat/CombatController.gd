@@ -740,6 +740,8 @@ var _death_save_outgoing_until_msec: Dictionary = {}
 var _death_save_outgoing_mult: Dictionary = {}
 ## 戦闘中の一時パーティ被ダメ倍率（ヴァルデン等）。1.0=等倍。
 var party_temp_incoming_mult: float = 1.0
+## 分かれ道・戦力強化などラン／フロア単位の被ダメ倍率（DungeonScene が同期）。
+var floor_choice_incoming_mult: float = 1.0
 
 func clear_death_save_state() -> void:
 	_death_save_used.clear()
@@ -747,6 +749,7 @@ func clear_death_save_state() -> void:
 	_death_save_outgoing_until_msec.clear()
 	_death_save_outgoing_mult.clear()
 	party_temp_incoming_mult = 1.0
+	## floor_choice_incoming_mult はフロア単位。死亡セーブリセットでは触らない。
 
 
 ## T10 沈黙: member_idx → 残り秒（戦闘クロック。一時停止中は進まない）。
@@ -1317,6 +1320,9 @@ func get_member_incoming_damage_multiplier(member_index: int, attacker_slot: int
 	mult *= float(CombatPassives.character_stat_modifiers_for_member(member_index).get("incoming_mult", 1.0))
 	mult *= CombatPassives.party_incoming_mult()
 	mult *= clampf(party_temp_incoming_mult, 0.05, 1.0)
+	## 分かれ道・戦力強化（次フロア限定・DungeonScene が同期）。
+	if floor_choice_incoming_mult > 0.0 and floor_choice_incoming_mult < 1.0:
+		mult *= floor_choice_incoming_mult
 	if bool(_death_save_shield_until_msec.has(member_index)):
 		if Time.get_ticks_msec() <= int(_death_save_shield_until_msec[member_index]):
 			var save_def: Dictionary = CombatPassives.death_save_def_for_member(member_index)

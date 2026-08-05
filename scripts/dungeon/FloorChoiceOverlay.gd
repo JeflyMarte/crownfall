@@ -263,7 +263,10 @@ func _refresh_texts() -> void:
 	var a_body: String = (
 		"生存者を25%回復\n次のフロア開始時"
 		if _heal_mode
-		else "与ダメ ×1.5\n次のフロアのみ"
+		else "与ダメ ×%.1f\n被ダメ ×%.2f\n次のフロアのみ" % [
+			BalanceConfig.FLOOR_CHOICE_DAMAGE_MULT,
+			BalanceConfig.FLOOR_CHOICE_INCOMING_MULT,
+		]
 	)
 	_text_labels[0].text = _panel_text_bbcode(a_title, a_color, a_body)
 	var harvest_labels: PackedStringArray = PackedStringArray()

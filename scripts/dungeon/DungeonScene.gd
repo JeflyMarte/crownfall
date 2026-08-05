@@ -3197,6 +3197,12 @@ func _collect_floor_buff_legend_entries() -> Array[Dictionary]:
 				"stat": _floor_buff_stat_key("attack"),
 				"text": _floor_buff_legend_text("attack"),
 			})
+		if float(dc.get_effective_floor_choice_incoming_mult()) < 1.0:
+			out.append({
+				"id": "choice_def",
+				"stat": _floor_buff_stat_key("defense"),
+				"text": _floor_buff_legend_text("defense"),
+			})
 		var reward_keys: Array = dc.floor_choice_reward_mults.keys()
 		reward_keys.sort()
 		for raw_k: Variant in reward_keys:
@@ -3232,6 +3238,8 @@ func _floor_buff_stat_key(kind: String) -> String:
 		"attack", "damage":
 			## バフ感のある ATK↑ アイコンを使う。
 			return "attack_up"
+		"defense":
+			return "defense_up"
 		_:
 			return kind
 
@@ -3245,6 +3253,8 @@ func _floor_buff_noun(kind: String) -> String:
 	match kind:
 		"attack", "damage":
 			return "攻撃力"
+		"defense":
+			return "防御力"
 		"exp":
 			return "経験値率"
 		"gold":
@@ -9908,7 +9918,10 @@ func _on_floor_choice_confirmed(choice_id: String, harvest_kinds: Array[String])
 	match choice_id:
 		FloorChoiceOverlay.CHOICE_POWER:
 			$DungeonController.grant_floor_choice_power()
-			_append_log("[分かれ道] 戦力強化 — 次フロア 与ダメ×%.1f" % BalanceConfig.FLOOR_CHOICE_DAMAGE_MULT)
+			_append_log(
+				"[分かれ道] 戦力強化 — 次フロア 与ダメ×%.1f／被ダメ×%.2f"
+				% [BalanceConfig.FLOOR_CHOICE_DAMAGE_MULT, BalanceConfig.FLOOR_CHOICE_INCOMING_MULT]
+			)
 		FloorChoiceOverlay.CHOICE_HEAL:
 			$DungeonController.grant_floor_choice_heal()
 			_append_log("[分かれ道] 応急手当 — 次フロア開始時に回復")
@@ -9956,12 +9969,20 @@ func _apply_floor_choice_on_enter() -> void:
 		if not _pending_floor_choice_heal_amounts.is_empty():
 			_append_log("[分かれ道] 応急手当 — 生存者を回復した")
 		_update_hp_bars()
+	_sync_floor_choice_incoming_to_combat()
 	if $DungeonController.floor_choice_room_index == $DungeonController.current_room_index:
 		if $DungeonController.floor_choice_damage_mult > 1.0:
-			_append_log(
-				"[分かれ道] 戦力強化が有効（与ダメ×%.1f）"
-				% $DungeonController.floor_choice_damage_mult
-			)
+			var in_mult: float = $DungeonController.get_effective_floor_choice_incoming_mult()
+			if in_mult < 1.0:
+				_append_log(
+					"[分かれ道] 戦力強化が有効（与ダメ×%.1f／被ダメ×%.2f）"
+					% [$DungeonController.floor_choice_damage_mult, in_mult]
+				)
+			else:
+				_append_log(
+					"[分かれ道] 戦力強化が有効（与ダメ×%.1f）"
+					% $DungeonController.floor_choice_damage_mult
+				)
 		if not $DungeonController.floor_choice_reward_mults.is_empty():
 			var parts: PackedStringArray = PackedStringArray()
 			for k: Variant in $DungeonController.floor_choice_reward_mults.keys():
@@ -9973,6 +9994,14 @@ func _apply_floor_choice_on_enter() -> void:
 					]
 				)
 			_append_log("[分かれ道] 報酬強化が有効（%s）" % "・".join(parts))
+
+
+func _sync_floor_choice_incoming_to_combat() -> void:
+	if $CombatController == null:
+		return
+	$CombatController.floor_choice_incoming_mult = (
+		$DungeonController.get_effective_floor_choice_incoming_mult()
+	)
 
 
 ## 戻り: 回復演出を出した人数（非戦闘 hold 判定用）。
