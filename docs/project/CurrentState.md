@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-08-06（**行動方針6択化をiOS再エクスポート＋Xcode適用**: main先端・PCK 546MB。要実機Build／再インストール）
 2026-08-06（**行動方針6択化／統合＋main**: 雑魚・強敵削除、攻撃特化追加。旧IDは攻撃特化へ。要実機）
 2026-08-06（**戦闘カード長押し詳細をiOS再エクスポート＋Xcode適用**: main先端・PCK 546MB。要実機Build／再インストール）
 2026-08-05（**P3-BETA-QA-001 夜間バグチェック／統合＋main**: smoke PASS・GUT 1394 PASS。ScrollTouch deferred Object convert 修正＋陳腐化テスト10件追従。許容リストは Closeout 文書。要オーナー実機通し）
