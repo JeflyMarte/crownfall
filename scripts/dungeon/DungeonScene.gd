@@ -753,9 +753,8 @@ var _floor_choice_overlay: Control = null
 ## 戦闘クリア後、次フロア暗転のタイミングで三択を出す予約。
 var _pending_floor_choice: bool = false
 var _pending_floor_choice_heal_mode: bool = false
-## 次フロア入場で適用済み・味方表示後に VFX／テロップ／SE する応急手当の実回復量。
+## 次フロア入場で適用済み・味方表示後に VFX／名ポップ／SE する応急手当の実回復量。
 var _pending_floor_choice_heal_amounts: Dictionary = {}
-var _floor_choice_heal_telop: Control = null
 ## 非戦闘入場の回復パッシブ演出（野営の調合など）中。
 var _noncombat_enter_fx_active: bool = false
 ## 直近バッチで出した回復演出回数（入場 hold 判定用）。
@@ -1114,7 +1113,6 @@ func _ready() -> void:
 	_pending_floor_choice = false
 	_pending_floor_choice_heal_mode = false
 	_pending_floor_choice_heal_amounts.clear()
-	_dismiss_floor_choice_heal_telop(0.0)
 	_floor_choice_active = false
 	GameState.last_run_accessory_dropped = ""
 	GameState.last_run_relic_dropped = ""
@@ -10011,54 +10009,21 @@ func _present_pending_floor_choice_heal() -> int:
 		return 0
 	var amounts: Dictionary = _pending_floor_choice_heal_amounts.duplicate()
 	_pending_floor_choice_heal_amounts.clear()
-	_show_floor_choice_heal_telop("応急手当！")
+	## 名ポップはスキル回復と同型（頭上 `_spawn_skill_name`）。中央テロップは使わない。
+	## SE は VFX 側のみ（スキル回復の名ポップも sfx 空）。発動者はいないので先頭の回復対象に出す。
+	var label_idx: int = -1
+	for i: Variant in amounts.keys():
+		var idx: int = int(i)
+		if int(amounts[i]) <= 0:
+			continue
+		if label_idx < 0 or idx < label_idx:
+			label_idx = idx
+	if label_idx >= 0:
+		_spawn_skill_name("応急手当", label_idx, 0.0, "", false, "", 0, true)
 	## 戦闘 CT 前でも意図的に鳴らす（泉回復と同型。ImpactSfxGate は使わない）。
 	_play_heal_room_vfx(amounts)
 	_update_hp_bars()
 	return amounts.size()
-
-
-func _show_floor_choice_heal_telop(text: String) -> void:
-	_dismiss_floor_choice_heal_telop(0.0)
-	if text.is_empty():
-		return
-	var layer := Control.new()
-	layer.name = "FloorChoiceHealTelop"
-	layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	layer.z_index = 40
-	var lbl := Label.new()
-	lbl.text = text
-	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	lbl.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	lbl.offset_left = -280.0
-	lbl.offset_right = 280.0
-	lbl.offset_top = -40.0
-	lbl.offset_bottom = 40.0
-	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	UiTypography.apply_display(
-		lbl, UiTypography.SIZE_DISPLAY_TITLE, Color(0.45, 0.98, 0.62), UiTypography.OUTLINE_STRONG
-	)
-	lbl.add_theme_color_override("font_outline_color", Color(0.02, 0.08, 0.04, 0.92))
-	layer.add_child(lbl)
-	layer.modulate.a = 0.0
-	$TransitionLayer.add_child(layer)
-	_floor_choice_heal_telop = layer
-	var tw: Tween = create_tween()
-	tw.tween_property(layer, "modulate:a", 1.0, 0.18)
-	tw.tween_interval(0.85 if not _fast_run_enabled else 0.45)
-	tw.tween_property(layer, "modulate:a", 0.0, 0.28)
-	tw.tween_callback(func() -> void: _dismiss_floor_choice_heal_telop(0.0))
-
-
-func _dismiss_floor_choice_heal_telop(_fade_sec: float = 0.0) -> void:
-	if _floor_choice_heal_telop == null or not is_instance_valid(_floor_choice_heal_telop):
-		_floor_choice_heal_telop = null
-		return
-	var node: Control = _floor_choice_heal_telop
-	_floor_choice_heal_telop = null
-	node.queue_free()
 
 
 func _room_handles_own_progression(room_type: int) -> bool:
