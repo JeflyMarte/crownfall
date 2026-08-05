@@ -85,13 +85,15 @@ func test_all_party_offensive_shares_are_full_each() -> void:
 	assert_eq(float(shares[2]), 1.0)
 
 
-func test_column_offensive_shares_still_threat_split() -> void:
+func test_column_offensive_shares_are_full_each() -> void:
+	## P3-BAL-AOE-FULL-001: 列も Threat に依らず各 1.0。
 	var get_threat := func(i: int) -> float: return float((i + 1) * 10)
 	var shares: Dictionary = CombatFormation.enemy_offensive_damage_shares(
 		CombatFormation.TARGET_PARTY_FRONT, [0, 1], get_threat
 	)
-	assert_almost_eq(float(shares[0]), 10.0 / 30.0, 0.001)
-	assert_almost_eq(float(shares[1]), 20.0 / 30.0, 0.001)
+	assert_eq(shares.size(), 2)
+	assert_eq(float(shares[0]), 1.0)
+	assert_eq(float(shares[1]), 1.0)
 
 
 func _human(id: String, row: int) -> Resource:

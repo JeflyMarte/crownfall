@@ -112,6 +112,7 @@ alwaysApply: false
 | マイページがタッチスクロール不能 | rebuild 後 Button が STOP のまま | → `ui-layout.mdc` ScrollTouch（rebuild 後 enable 再実行） |
 | 陣形複製／前列化／調査中混入／未保存本反映／詳細無反応（編成） | 即 GameState 書き・空き詰め・ScrollTouch が BaseButton の `_cf_keep_mouse_stop` 無視 | → **`ui-layout.mdc` 編成・陣形**／`ScrollTouchHelper` は Button でも meta で STOP 維持 |
 | ジャックがほぼ被弾せず無敵に見える | `PET_THREAT_BASE=0.55`＋max_threat 選択で人間（≥1.0）がいる限り未選択。被ダメ計算も `party_members` 限定でペット DEF 未加算 | Threat を前衛相当（盾未満）へ。ダメ計算は `get_combatant`。HPバーは PET スロット短尺 |
+| 雑魚薙ぎ／列AoEがまだ薄い | `all_party` だけ Threat按分を外し、列（`party_front`／`back`）は按分のまま残っていた | 敵マルチは `enemy_offensive_damage_shares` で各 1.0。スキル `power_multiplier` は別（据置可）。Decision 73 |
 | T6/T7 の数字が大きく見える／粘りすぎ | テロップが減衰前＋HP厚め | **P3-BAL-TRICKY-RESIST-A-001**: 減衰後表示／HP減／ヒットごと `硬殻`・`幻障` |
 | ペット既定装備が古い `pet_nibble` のまま／役割が守り一色 | 三角再編後も fallback や wiki が旧習得表 | PetData unlock・`PetSystem` fallback・テストを同時更新（P3-BAL-PET-TRIANGLE-001） |
 | ジャック通常攻撃が「遠隔攻撃力-15%」（前衛） | 武器なし→装備スキル先頭の鼓舞 `range_type=long` を通常攻撃射程に流用 | ペット既定は `melee`。鼓舞スキルも `melee`。fallback は damage 技優先 |
