@@ -249,10 +249,10 @@ func _ensure_body_scroll() -> void:
 		return
 	_body_scroll = ScrollContainer.new()
 	_body_scroll.name = "BodyScroll"
-	_body_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_body_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	_body_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	_body_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_body_scroll.clip_contents = true
-	_body_scroll.mouse_filter = Control.MOUSE_FILTER_STOP
+	_body_scroll.mouse_filter = Control.MOUSE_FILTER_PASS
 	_body_vbox = VBoxContainer.new()
 	_body_vbox.name = "BodyVBox"
 	_body_vbox.add_theme_constant_override("separation", int(MAIN_TO_STRIP_GAP_PX))
@@ -269,6 +269,7 @@ func _ensure_body_scroll() -> void:
 	move_child(_body_scroll, cat_i + 1)
 	_prepare_body_child_for_vbox(_main_split)
 	_prepare_body_child_for_vbox(_craftable_panel)
+	_sync_body_scroll_input()
 
 
 func _prepare_body_child_for_vbox(ctrl: Control) -> void:
@@ -301,7 +302,7 @@ func _ensure_detail_scroll() -> void:
 	_detail_scroll.name = "DetailScroll"
 	_detail_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_detail_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	_detail_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	_detail_scroll.clip_contents = true
 	_detail_scroll.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -324,30 +325,56 @@ func _detail_vbox() -> VBoxContainer:
 	return null
 
 
+func _body_scroll_needed() -> bool:
+	## 下帯オミット中は外枠スクロール不要。有効だと LeftScroll のドラッグを奪う。
+	return _craftable_panel != null and _craftable_panel.visible
+
+
+func _sync_body_scroll_input() -> void:
+	if _body_scroll == null:
+		return
+	if _body_scroll_needed():
+		_body_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+		_body_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+		_body_scroll.mouse_filter = Control.MOUSE_FILTER_STOP
+		## 入れ子競合を避ける。左一覧・詳細は別途 enable。
+		ScrollTouchHelper.enable(_body_scroll, false)
+	else:
+		_body_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		_body_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+		_body_scroll.scroll_vertical = 0
+		## IGNORE は子までヒット不可になるため PASS（外枠はスクロールしない）。
+		_body_scroll.mouse_filter = Control.MOUSE_FILTER_PASS
+
+
 func _enable_forge_scroll_touch() -> void:
-	## 全体 BodyScroll ＋ 左一覧・詳細・下帯。
-	if _body_scroll != null:
-		ScrollTouchHelper.enable(_body_scroll)
+	## 左一覧・詳細が本線。BodyScroll は下帯表示時のみ。
+	_sync_body_scroll_input()
 	var left_scroll: ScrollContainer = null
 	if _main_split != null:
 		left_scroll = _main_split.get_node_or_null("LeftScroll") as ScrollContainer
 	if left_scroll != null:
 		left_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-		left_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		## DISABLED は子最小幅で親が横拡大する。SHOW_NEVER＋clip。
+		left_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+		left_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		left_scroll.clip_contents = true
 		## 子が親幅に潰されると縦スクロール不能。
 		if _left_list != null:
 			_left_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			_left_list.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+			## クリップは LeftScroll 側。VBox で切るとスクロール不能に見える。
+			_left_list.clip_contents = false
 		ScrollTouchHelper.enable(left_scroll)
 	if _detail_scroll != null:
 		_detail_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-		_detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		_detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 		var detail_vbox: VBoxContainer = _detail_vbox()
 		if detail_vbox != null:
 			detail_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			detail_vbox.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		ScrollTouchHelper.enable(_detail_scroll)
-	if _craftable_scroll != null:
+	if _craftable_scroll != null and _body_scroll_needed():
 		_craftable_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 		_craftable_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 		if _craftable_row != null:
@@ -473,6 +500,7 @@ func _layout_craftable_strip() -> void:
 		_craftable_row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	if _detail_panel != null:
 		_detail_panel.clip_contents = true
+	_sync_body_scroll_input()
 	_category_row.z_index = 3
 	var mode_tabs: Control = $ModeTabs
 	if mode_tabs != null:
@@ -512,15 +540,17 @@ func _setup_left_list_layout() -> void:
 	if left_scroll == null:
 		return
 	left_scroll.clip_contents = true
-	left_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	left_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	left_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	left_scroll.custom_minimum_size = Vector2(LEFT_LIST_MIN_WIDTH_PX, 0)
 	left_scroll.size_flags_stretch_ratio = LEFT_LIST_STRETCH_RATIO
+	left_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_left_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_left_list.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	_left_list.clip_contents = true
+	_left_list.clip_contents = false
 	if _detail_panel != null:
 		_detail_panel.size_flags_stretch_ratio = DETAIL_STRETCH_RATIO
+		_detail_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_layout_craftable_strip()
 
 
@@ -690,10 +720,13 @@ func _setup_alchemy_fodder_popup() -> void:
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.custom_minimum_size = Vector2(0, 520)
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	scroll.clip_contents = true
 	outer.add_child(scroll)
 	_alchemy_fodder_list = VBoxContainer.new()
 	_alchemy_fodder_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_alchemy_fodder_list.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_alchemy_fodder_list.add_theme_constant_override("separation", 6)
 	scroll.add_child(_alchemy_fodder_list)
 	ScrollTouchHelper.enable(scroll)

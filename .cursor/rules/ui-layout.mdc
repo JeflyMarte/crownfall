@@ -146,6 +146,8 @@ Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` �
 - 説明文を日本語＋`AUTOWRAP_WORD_SMART` のまま狭い完了枠へ（最小幅＝全文幅ではみ出す）
 - 鍛冶セルで `BOW_ICON_INSET_SCALE`（inset 縮小）を使い、描画辺が InvCell 9-slice 内側を超える
 - リスト名を `clip_text=false` / `OVERRUN_NO_TRIMMING` のまま狭い `LeftScroll` に入れる（行最小幅が溢れ、左アイコンが欠ける）
+- 下帯非表示なのに BodyScroll を enable／縦 AUTO のままにする（左リストが途中でスクロール不能）
+- `LeftList.clip_contents=true`（Scroll 内 VBox で切ると下の行が見えない）
 - アイコンに中央アンカー＋負 offset（親幅0時に左へはみ出す）
 - リスト小セル（≲88px）に InvCell 9-slice を使い、左枠が潰れて欠けて見える
 - ヒーロー台座／武器枠が詳細ペイン幅より大きい
@@ -157,7 +159,8 @@ Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` �
 - アイコン辺は `forge_icon_side_px`＝`min(cell-2*inset, cell*FORGE_ICON_SAFE_FILL)`（**≤0.52**）
 - 鍛冶リストでは **弓 inset 縮小を使わない**
 - リスト名は `clip_text`＋ellipsis＋`EXPAND_FILL`（`_apply_list_name_label`）
-- `LeftScroll` は横スクロール禁止＋`clip_contents`。カードも `clip_contents`
+- `LeftScroll` は横 `SHOW_NEVER`＋`clip_contents`（`DISABLED` 禁止）。カードも `clip_contents`
+- **下帯オミット時は BodyScroll 縦スクロールを切る**（外枠がドラッグを奪い、錬成リストが Lv3 付近で止まる）。左一覧は `LeftList.clip_contents=false`＋`SHRINK_BEGIN`
 - ヒーローはスタック内に収まるサイズ＋`clip_contents`
 - 生産／強化／錬成／分解のリストは同じ `_make_selectable_list_icon` を使う
 - カテゴリ Chip の TextureRect は縦横とも `SIZE_SHRINK_CENTER`＋固定 px（~40）
