@@ -1118,7 +1118,7 @@ func _ready() -> void:
 	_pending_floor_choice_heal_amounts.clear()
 	_floor_choice_active = false
 	GameState.last_run_accessory_dropped = ""
-	GameState.last_run_relic_dropped = ""
+	## レリック一覧は begin_run_material_tracking → clear_last_run_relic_drops。
 	GameState.last_run_outcome = ""
 	GameState.last_run_starter_recruited_id = ""
 	GameState.last_run_starter_recruited_name = ""
@@ -8440,7 +8440,7 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 	# P3-D093: 撃破時の遺物ドロップ（解放型）
 	var dropped_relic: String = $DungeonController.roll_kill_relic_drop(room_type)
 	if not dropped_relic.is_empty():
-		GameState.last_run_relic_dropped = dropped_relic
+		GameState.record_last_run_relic_drop(dropped_relic)
 		log_lines.append("レリック入手: %s" % CombatRelics.display_name(dropped_relic))
 		_play_relic_get_celebration(dropped_relic)
 	_append_log("\n".join(log_lines))
@@ -9902,7 +9902,7 @@ func _handle_party_wipe(cause_kind: String = "") -> void:
 	GameState.last_run_weapon_dropped = ""
 	GameState.last_run_armor_dropped = ""
 	GameState.last_run_accessory_dropped = ""
-	GameState.last_run_relic_dropped = ""
+	## レリックは解放済みのため結果グリッドに残す（装備ドロップと同扱）。
 	GameState.last_run_level_ups = {}
 	## 敗北でも撃破分の経験値は付与する（生存中に稼いだ分のみ）。完走ボーナスなし。
 	GameState.last_run_exp_clear_bonus = 0

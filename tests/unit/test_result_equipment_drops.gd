@@ -45,3 +45,18 @@ func test_multiple_same_category_are_kept() -> void:
 	assert_eq(GameState.last_run_equipment_drops.size(), 2)
 	assert_eq(str(GameState.last_run_equipment_drops[0].get("item_id", "")), "iron_sword")
 	assert_eq(str(GameState.last_run_equipment_drops[1].get("item_id", "")), "rusted_blade")
+
+
+func test_relic_drops_recorded_for_result() -> void:
+	GameState.begin_run_material_tracking()
+	assert_eq(GameState.last_run_relic_drops.size(), 0)
+	GameState.record_last_run_relic_drop("relic_war_banner")
+	GameState.record_last_run_relic_drop("relic_scout_lens")
+	GameState.record_last_run_relic_drop("relic_war_banner") ## 重複は積まない
+	assert_eq(GameState.last_run_relic_drops.size(), 2)
+	assert_eq(str(GameState.last_run_relic_drops[0]), "relic_war_banner")
+	assert_eq(str(GameState.last_run_relic_drops[1]), "relic_scout_lens")
+	assert_eq(GameState.last_run_relic_dropped, "relic_scout_lens")
+	GameState.begin_run_material_tracking()
+	assert_eq(GameState.last_run_relic_drops.size(), 0)
+	assert_eq(GameState.last_run_relic_dropped, "")
