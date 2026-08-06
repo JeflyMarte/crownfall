@@ -6297,7 +6297,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 
 | # | 決定 | 根拠 |
 |---|---|---|
-| P3-FIX-SURVEY-AUDIT-A-001-1 | **編成復元** — 開始時に `party_ids_before` 保存。受取／中止で復元してから EXP 付与 | 中止文「戻ります」と不一致。編成外だと本人 EXP パッシブ不発 |
+| P3-FIX-SURVEY-AUDIT-A-001-1 | **編成復元** — 開始時に `party_ids_before` 保存。受取／中止で復元してから EXP 付与。**完了（受取待ち）時点でも自動復帰**（`party_restored`） | 中止文「戻ります」と不一致。編成外だと本人 EXP パッシブ不発。❗️表示中の編成欠け誤認 |
 | P3-FIX-SURVEY-AUDIT-A-001-2 | **調査員必須** — `start_cycle` は1人以上 | 0人放置で報酬だけ取れる穴 |
 | P3-FIX-SURVEY-AUDIT-A-001-3 | **武器抽選** — 派遣先 `weapon_pool` が空なら武器なし（全カタログ禁止） | プール外落下の事故予防 |
 | P3-FIX-SURVEY-AUDIT-A-001-4 | **期待成果UI** — ゴールドは「石連動」表示 | 常時確定に見える誤認防止 |
@@ -6978,8 +6978,8 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 
 | # | 決定 | 根拠 |
 |---|---|---|
-| P3-DG-FLOOR-CHOICE-HEAL-FX-001-1 | **タイミング** — HPは入場時適用。VFX／+N／テロップ／SEは暗転明け | 黒幕中は見えない |
-| P3-DG-FLOOR-CHOICE-HEAL-FX-001-2 | **演出** — 緑VFX＋緑+N（泉と同型）・中央テロップ「応急手当！」・`combat_heal` 直鳴らし | 視認性 |
+| P3-DG-FLOOR-CHOICE-HEAL-FX-001-1 | **タイミング** — HPは入場時適用。VFX／+N／名ポップ／SEは暗転明け | 黒幕中は見えない |
+| P3-DG-FLOOR-CHOICE-HEAL-FX-001-2 | **演出** — 緑VFX＋緑+N（泉と同型）・スキル名ポップ「応急手当」・`combat_heal` 直鳴らし（中央テロップ廃止・P3-DG-FLOOR-CHOICE-HEAL-FX-002） | 視認性 |
 | P3-DG-FLOOR-CHOICE-HEAL-FX-001-3 | **上書き** — `61_DungeonFloorChoice` §1 A′ | SSOT |
 
 
@@ -7315,3 +7315,34 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-CMD-PERMIT-GUIDE-001-1 | S級以上のランクアップ祝辞 dismiss 後に書籍手引き「特権強化とは」を初回1回 | 解放直後の導線 |
 | P3-CMD-PERMIT-GUIDE-001-2 | フラグ `hub_guide_privilege_boost_seen`。特権強化画面の「？」で再表示 | 拠点部屋ガイドと同型 |
 | P3-CMD-PERMIT-GUIDE-001-3 | **SSOT**＝`docs/specs/decisions/58_CommanderPermitBoost.md` 追記 | Decision 本体 |
+
+## ウォール・隊商の盾心 30%（2026-08-06 — P3-BAL-WALL-SAVE-001）
+
+> **オーナー指示** — 致死耐え確率を上げる。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-WALL-SAVE-001-1 | `garm_caravan_guard` の `death_save_chance` **0.10→0.30** | オーナー指示 |
+| P3-BAL-WALL-SAVE-001-2 | 判定基準据置（HPが0以下になるヒットで抽選・成功時HP1） | 仕様確認済み |
+| P3-BAL-WALL-SAVE-001-3 | **SSOT**＝`docs/specs/decisions/70_PassiveKitLock.md` 追記。P3-PASSIVE-CHAR-001-7 を上書き | Decision 本体 |
+
+## 応急手当名ポップをスキルと同型（2026-08-06 — P3-DG-FLOOR-CHOICE-HEAL-FX-002）
+
+> **オーナー指示** — 3択後の応急手当テロップを他スキルと同じものに。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-FLOOR-CHOICE-HEAL-FX-002-1 | 中央 display テロップ廃止。`_spawn_skill_name("応急手当")`（先頭回復対象頭上） | スキル回復と統一 |
+| P3-DG-FLOOR-CHOICE-HEAL-FX-002-2 | 緑VFX・+N・`combat_heal`・暗転明けタイミングは据置 | FX-001 維持 |
+| P3-DG-FLOOR-CHOICE-HEAL-FX-002-3 | **上書き** — HEAL-FX-001-2／`61_DungeonFloorChoice` A′ | SSOT |
+
+## ペット行動方針を変更可（2026-08-06 — P3-PET-TACTICS-EDIT-001）
+
+> **オーナー指示** — ペットも戦術（行動方針）を変えられるようにしたい。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-PET-TACTICS-EDIT-001-1 | 装備画面の行動方針をペットも人間と同じく設定可（閲覧専用を撤廃） | オーナー指示 |
+| P3-PET-TACTICS-EDIT-001-2 | **個体別永続** — `GameState.pet_tactics_ids`＋セーブ。切替で Resource 再生成しても維持 | 切替で既定に戻ると設定が消える |
+| P3-PET-TACTICS-EDIT-001-3 | **初期既定据置** — ジャック support／アッシュ attack_focus／インク balanced（未設定時のみ） | 三角の初期個性 |
+| P3-PET-TACTICS-EDIT-001-4 | **SSOT**＝`69_PetTriangleSkills` §1-6 更新 | Decision 本体 |

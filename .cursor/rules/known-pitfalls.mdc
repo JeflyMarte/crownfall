@@ -40,7 +40,7 @@ alwaysApply: false
 | 所持チケットが枠内で矩形ノイズ／透けない | AI PNG の半透明灰・暗マットが角 alpha=0 でも残存 | → **`asset-import.mdc`**（`tools/strip_ticket_icon_mats.py --apply`） |
 | 装飾おすすめがランダムATK付きで過大評価 | `_accessory_score` が `effective_*`（フィールド反映済み）のあと `sum_kind` を再加算 | 装飾は effective のみ。防具 DEF はフィールド非積なので別扱い（`P3-FIX-EQ-META-AUDIT-A-001`） |
 | おすすめがノーマル低Lvをエピック高Lvより優先 | 主ステのみ比較だと同帯 N＋攻撃ロールが序盤 E を逆転 | `EquipmentPower` に `レア×48` ソフト加点（`27_EquipPowerRecommend` 案B） |
-| 分かれ道・応急手当がログのみ／暗転中に演出 | 入場時に VFX すると黒幕で見えない | → **`14_Presentation_Pitfalls.md`** 暗転明けに緑VFX・+N・テロップ・SE |
+| 分かれ道・応急手当がログのみ／暗転中に演出／中央テロップ | 入場時に VFX すると黒幕で見えない／専用中央テロップ | → **`14_Presentation_Pitfalls.md`** 暗転明けに緑VFX・+N・`_spawn_skill_name`・SE |
 | 分解確認が「素材なし」／獲得が空 | `can_dismantle_item` は `{ok,reason}` のみ。materials は `dismantle_preview` | 確認文・L確認は必ず preview |
 | 灰冠／深層が生産解放に出る | 入手フックが全装備を unlock | `is_craftable_master` で `kaiwan_`／`abyss_` 除外 |
 | 封蔵確認中に←→すると別ガチャを消費 | 確定時に現在ページを見る。確認中ロック無し | 確認時点の `_pending_pull_page` 固定＋確認中は矢印／再押下 disable |
@@ -49,6 +49,7 @@ alwaysApply: false
 | 灰冠防具が InvCell に溶ける | 潰れた黒＋穴透け／または黒キーで金属まで透過／または凸包ゴースト | Desktop は縁連結の近黒のみ透過。金属黒は不透明。`KaiwanArmorMat` クリーム下地は使わない（矩形が残る）。凸包禁止 |
 | 灰冠防具の後ろにクリーム矩形 | `KaiwanArmorMat` ColorRect | 下地マット禁止。不透明アセット側で対処 |
 | 調査受取後に派遣員が編成に戻らない／EXPパッシブ不発 | 開始時に外すだけ。受取・中止で復元なし。編成外だと `grant_exp` が本人パッシブ未適用 | `party_ids_before` 保存→cycleクリア後に復元してから EXP |
+| 調査完了（❗️）中にパーティが欠けたまま | 完了〜受取まで派遣ロック継続。拠点で完了に気づいても編成は減ったまま | 完了時は `is_member_dispatched` 解除＋`ensure_party_restored_if_awaiting_claim`（拠点ポーリング／入室／ロード）。`party_restored` 後の受取は編成を上書きしない |
 | 調査員0人でサイクル開始 | `start_cycle` が空 assignees を許可 | 1人以上必須 |
 | 調査武器が派遣先外の全武器に落ちる | rarity 一致がプールに無いと全カタログへフォールバック | 空なら武器なし |
 | タイトル「デバッグ」のたび進行が消える | 毎回 `DebugFullUnlock.apply` で上書き | 既存 debug セーブは load。リセットは明示ボタン |
@@ -119,6 +120,7 @@ alwaysApply: false
 | ジャック通常攻撃が「遠隔攻撃力-15%」（前衛） | 武器なし→装備スキル先頭の鼓舞 `range_type=long` を通常攻撃射程に流用 | ペット既定は `melee`。鼓舞スキルも `melee`。fallback は damage 技優先 |
 | パッシブが平与ダメ%やペット必須でビルドが単調 | 固有1本が退屈／BT全体がペット依存 | 確定軸は条件・状態・役割型。BT＝異常（ネリのみペット）。`70_PassiveKitLock` |
 | ペットが「渾身の一撃」等の必殺を撃つ | 職なし＋`DEFAULT_ULTIMATE_SKILL_ID` フォールバック。balanced 戦術がボス／エリートで必殺 | `_get_member_ultimate_skill` でペット除外。`add_ultimate_charge` もスキップ（P3-PET-ULT-OMIT-001） |
+| ペットの行動方針が変えられない／切替で消える | 装備UIが閲覧専用、または切替で Resource 再生成して既定に戻す | 人間と同様に設定可。`pet_tactics_ids` で個体別セーブ（P3-PET-TACTICS-EDIT-001） |
 | 行動順敵アイコンの紫板／穴透過／枠なし | PNG焼込プレート、または焼込枠前提で UI 枠を外した | 紫板焼込禁止。枠は常に `CombatUiFrames`。→ **`14_Presentation_Pitfalls.md`** §6 |
 | 装備一覧の攻・防・会心アイコンが古い | `equipment_ui/` 本番が procedural 小アイコンのまま。更新アートは `preview/` に滞留 | `preprocess_equipment_stat_icons.py --apply` で preview→本番＋forge へ反映 |
 | レジェンド防具／装飾／杖がデフォルト同アイコン | `generate_equipment_icons.py` がテンプレ流用のまま。専用PNG未差替 | PixelLab等で専用生成→`assets/ui/equipment` 上書き。`LEGENDARY_HAND_DRAWN_*_IDS` に入れて再生成で潰さない |
