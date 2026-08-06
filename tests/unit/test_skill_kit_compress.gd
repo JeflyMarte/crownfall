@@ -97,7 +97,7 @@ func test_vg_triad_skills() -> void:
 	assert_almost_eq(float(drain.power_multiplier), 1.4, 0.001)
 	var menace: Resource = DataRegistry.get_skill_data("menace_strike")
 	assert_eq(str(menace.target_type), "all_enemies")
-	assert_almost_eq(float(menace.power_multiplier), 1.0, 0.001)
+	assert_almost_eq(float(menace.power_multiplier), BalanceConfig.ALLY_AOE_DAMAGE_POWER_MULT, 0.001)
 	assert_true(menace.tags.has("taunt"))
 
 
@@ -176,7 +176,7 @@ func test_menace_is_taunt_not_fear() -> void:
 	assert_true(menace.tags.has("taunt"))
 	assert_true(str(menace.apply_status_id).is_empty())
 	assert_eq(str(menace.target_type), "all_enemies")
-	assert_almost_eq(float(menace.power_multiplier), 1.0, 0.001)
+	assert_almost_eq(float(menace.power_multiplier), BalanceConfig.ALLY_AOE_DAMAGE_POWER_MULT, 0.001)
 	var guard: Resource = DataRegistry.get_skill_data("guard_strike")
 	assert_eq(str(guard.apply_status_id), "stun")
 	assert_true(str(guard.apply_status_id2).is_empty())

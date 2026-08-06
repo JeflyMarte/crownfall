@@ -9,7 +9,7 @@
 
 1. Lv40 `shield_quake`（盾撃波）→ **`drain_slash` ドレインスラッシュ**（単体・power **1.4**・与ダメ**50%**自己回復）  
 2. `assault_shatter` 威力 **3.0**＋**自己**防御DOWN **30%**（敵甲砕は外す）  
-3. `menace_strike` を **敵全体**・威力 **1.0**（挑発維持・CD3.0）
+3. `menace_strike` を **敵全体**・威力は後続 **P3-BAL-ALLY-AOE-07-001** で **0.7**（挑発維持・CD3.0）
 
 ## 確定
 
@@ -17,7 +17,7 @@
 |---|---|
 | `drain_slash` | damage／enemy／**1.4**／CD **5.5**／tags `drain`（`SKILL_DRAIN_HEAL_RATIO=0.5`） |
 | `assault_shatter` | power **3.0**／tag `self_armor_break_on_hit` → status `armor_break_light`（DEF−30%・3tick） |
-| `menace_strike` | `all_enemies`／power **1.0**／`taunt`／CD **3.0** |
+| `menace_strike` | `all_enemies`／power **0.7**（`85_AllyAoePower07`）／`taunt`／CD **3.0** |
 
 ## SSOT
 

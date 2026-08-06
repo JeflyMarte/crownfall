@@ -58,6 +58,28 @@ const HP_PER_LEVEL_MASTER: int = 3 * STAT_SCALE
 const ATTACK_PER_LEVEL_MASTER: int = 1 * STAT_SCALE
 const DEFENSE_PER_LEVEL_MASTER: int = STAT_SCALE / 2
 
+# ── 味方全体攻撃（P3-BAL-ALLY-AOE-07-001） ────────────────────────────────
+## 自キャラの敵全体ダメージスキル（必殺除く）の威力を統一。
+const ALLY_AOE_DAMAGE_POWER_MULT: float = 0.7
+
+
+## スキル実効 power。味方 all_enemies ダメージ（非必殺）は ALLY_AOE に固定。
+static func effective_skill_power_multiplier(skill_data: Resource) -> float:
+	if skill_data == null:
+		return 0.0
+	var raw: float = float(skill_data.power_multiplier)
+	if str(skill_data.effect_type) != "damage":
+		return raw
+	if str(skill_data.target_type) != "all_enemies":
+		return raw
+	if str(skill_data.slot_type) == "ultimate":
+		return raw
+	var st: String = str(skill_data.skill_type)
+	if st == "enemy" or st == "boss":
+		return raw
+	return ALLY_AOE_DAMAGE_POWER_MULT
+
+
 # ── 回復スキル（P3-BAL-HEAL-MAXHP-001） ───────────────────────────────────
 ## 味方 heal スキルの power_multiplier = 対象 maxHP 割合（敵healと同型）。
 ## 旧固定基準（互換・テスト参照用。戦闘スキル経路では未使用）。

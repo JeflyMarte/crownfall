@@ -7412,5 +7412,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 |---|---|---|
 | P3-SKILL-VG-TUNE-001-1 | Lv40＝`drain_slash`（単×**1.4**＋与ダメ**50%**吸血）。旧盾撃波は remap | 粘り攻撃枠 |
 | P3-SKILL-VG-TUNE-001-2 | `assault_shatter`＝**3.0**＋自己 `armor_break_light`（DEF−**30%**） | 高威力の代償 |
-| P3-SKILL-VG-TUNE-001-3 | `menace_strike`＝敵全・威力**1.0**・挑発維持 | 群れヘイト |
+| P3-SKILL-VG-TUNE-001-3 | `menace_strike`＝敵全・威力**1.0**→ **P3-BAL-ALLY-AOE-07-001 で 0.7**・挑発維持 | 群れヘイト |
 | P3-SKILL-VG-TUNE-001-4 | **SSOT**＝`84_VanguardKitTune.md`（`62` 上書き） | Decision 本体 |
+
+## 味方全体攻撃 0.7 統一（2026-08-07 — P3-BAL-ALLY-AOE-07-001）
+
+> **オーナー指示** — 自キャラの全体攻撃倍率を 0.7 に統一。必殺は除く。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-ALLY-AOE-07-001-1 | 味方 `all_enemies` ダメージ（非必殺）＝**0.7** | 全体の通しやすさ統一 |
+| P3-BAL-ALLY-AOE-07-001-2 | **必殺除外**（`slot_type=ultimate` はデータ値） | 必殺の個性維持 |
+| P3-BAL-ALLY-AOE-07-001-3 | 敵／ボス全体は対象外 | 敵側は別 Decision |
+| P3-BAL-ALLY-AOE-07-001-4 | **SSOT**＝`85_AllyAoePower07.md`／`BalanceConfig.effective_skill_power_multiplier` | 実行時固定＋tres 同期 |

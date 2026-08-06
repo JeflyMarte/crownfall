@@ -40,7 +40,8 @@ func calculate_damage(
 ) -> int:
 	if skill_data == null or skill_data.effect_type != "damage":
 		return 0
-	var damage: int = int(float(base_damage) * skill_data.power_multiplier)
+	var power: float = BalanceConfig.effective_skill_power_multiplier(skill_data)
+	var damage: int = int(float(base_damage) * power)
 	if is_critical:
 		damage = int(float(damage) * critical_multiplier)
 	damage = int(float(damage) * run_multiplier)

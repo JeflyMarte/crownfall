@@ -14,8 +14,8 @@
 | **獣牙撃** | player | damage | 1.15 | 無 | 2.5 | — |
 | **ビーストドミニオン** | player | damage | 2.5 | 無 | 30.0 | chill (65%) |
 | **絡み矢** | player | damage | 1.2 | 氷 | 3.5 | chill (50%) |
-| **剣嵐** | player | damage | 0.95 | 無 | 5.0 | — |
-| **血煙斬** | player | damage | 0.75 | 無 | 5.5 | bleed (28%) |
+| **剣嵐** | player | damage | 0.7 | 無 | 5.0 | — |
+| **血煙斬** | player | damage | 0.7 | 無 | 5.5 | bleed (28%) |
 | **断罪の波動** | boss | damage | 0.6 | 闇 | 8.0 | — |
 | **激昂** | boss | buff | 1.0 | 無 | 12.0 | enrage (100%) |
 | **甲穿ち矢** | player | damage | 1.55 | 無 | 4.0 | armor_break (45%) |
@@ -147,7 +147,7 @@
 | **鉄盾斬** | player | damage | 1.15 | 無 | 2.5 | — |
 | **イグナイトエッジ** | player | damage | 1.4 | 無 | 3.0 | ignite (40%) |
 | **追標射** | player | damage | 1.35 | 無 | 4.0 | mark (45%) |
-| **威嚇斬** | player | damage | 1.05 | 無 | 3.5 | fear (45%) |
+| **威嚇斬** | player | damage | 0.7 | 無 | 3.0 | taunt |
 | **治癒** | player | heal | 0.20（最傷） | 無 | 8.0 | — |
 | **瘴気の霧** | player | damage | 0.7 | 闇 | 5.5 | curse (30%) |
 | **王牙列断** | player | damage | 2.8 | 無 | 28.0 | vulnerable (50%) |
@@ -192,5 +192,5 @@
 | **猛毒噴射** | player | damage | 1.5 | 無 | 4.0 | poison (35%) |
 | **猛毒噴霧** | player | damage | 0.7 | 無 | 5.5 | poison (32%) |
 | **急所射** | player | damage | 1.65 | 無 | 4.5 | vulnerable (40%) |
-| **斉射** | player | damage | 0.95 | 無 | 5.0 | — |
+| **斉射** | player | damage | 0.7 | 無 | 5.0 | — |
 | **崩呪** | player | damage | 1.5 | 闇 | 4.0 | vulnerable (35%) |
