@@ -72,6 +72,7 @@ func _ready() -> void:
 	_setup_cancel_confirm()
 	_build_ui()
 	## 前回配置を維持（未記録の初回のみおまかせ相当）。
+	_SurveySystem.ensure_party_restored_if_awaiting_claim()
 	_pending_members = _SurveySystem.pending_members_for_ui()
 	_update_currency()
 	_refresh()
@@ -1490,7 +1491,7 @@ func _on_start(preset: String) -> void:
 		_SurveyConfig.display_name_with_duration(preset)
 	)
 	_start_confirm.dialog_text = (
-		"調査を開始しますか？\n\n対象: %s\n種別: %s\n※配置した隊員は編成から外れます"
+		"調査を開始しますか？\n\n対象: %s\n種別: %s\n※配置した隊員は編成から外れます（完了後に自動で戻ります）"
 		% [dg_name, kind]
 	)
 	_start_confirm.popup_centered()

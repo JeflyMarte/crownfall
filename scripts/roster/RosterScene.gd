@@ -101,6 +101,8 @@ func _ready() -> void:
 		_on_formation_preset_pressed.bind("back")
 	)
 	_selected = GameState.party_members.duplicate()
+	_SurveySystem.ensure_party_restored_if_awaiting_claim()
+	_selected = GameState.party_members.duplicate()
 	_strip_dispatched_from_selection()
 	_init_formation_slots_from_party()
 	_apply_panel_styles()

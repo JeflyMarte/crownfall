@@ -999,6 +999,9 @@ func _apply_roster_save(data: Dictionary) -> void:
 	_sync_gacha_roster_metadata()
 	_restore_active_party(data)
 	GameState.omit_gacha_helpers_from_roster()
+	## 受取待ちセーブは完了時点で編成を戻す（旧セーブの欠けもここで補う）。ロード中は再セーブしない。
+	_SurveySystem.ensure_party_restored_if_awaiting_claim(false)
+
 
 func _sync_gacha_roster_metadata() -> void:
 	for adv in GameState.roster:

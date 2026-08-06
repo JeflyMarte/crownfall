@@ -74,6 +74,8 @@ func refresh_messages() -> void:
 
 ## 調査サイクル完了（受取待ち）なら調査室アイコンに ❗️ を出す。
 func refresh_survey_alert() -> void:
+	## 完了待ちなら派遣前編成へ戻す（❗️表示中にパーティが空のままにしない）。
+	_SurveySystem.ensure_party_restored_if_awaiting_claim()
 	if _survey_alert == null:
 		return
 	var ready: bool = _SurveySystem.is_cycle_complete()
