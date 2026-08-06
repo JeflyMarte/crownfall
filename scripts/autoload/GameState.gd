@@ -142,10 +142,12 @@ var last_run_accessory_dropped: String = ""
 ## 直近ランでドロップした装備全件（入手順）。{category, instance_id, item_id}
 ## P3-UX-RESULT-DROP-LIST-001: 結果「入手装備」グリッド用。
 var last_run_equipment_drops: Array = []
+## 直近ランで新規解放したレリック id 全件（入手順）。結果グリッド用。
+var last_run_relic_drops: Array = []
 ## 直近ランで新規解放した生産レシピ（入手順）。{output_type, output_id, display_name}
 ## Result「生産レシピ解放」表示用（P3-D141 を上書き: 作成可能全件ではなく今回解放のみ）。
 var last_run_craft_unlocks: Array = []
-# 直近ランで入手（新規解放）した遺物 id（P3-D093）。Result 表示用。
+# 直近ランで入手（新規解放）した遺物 id（互換・最終1件）。Result 報酬行はグリッドへ集約。
 var last_run_relic_dropped: String = ""
 # 直近ランの獲得レベル { member_id: gained_levels } — Result 表示用（P3-D035）
 var last_run_level_ups: Dictionary = {}
@@ -244,11 +246,17 @@ func begin_run_material_tracking() -> void:
 	last_run_abyss_notices = []
 	## 潜行開始で前回ランの入手装備一覧もリセット。
 	clear_last_run_equipment_drops()
+	clear_last_run_relic_drops()
 	clear_last_run_craft_unlocks()
 
 
 func clear_last_run_equipment_drops() -> void:
 	last_run_equipment_drops = []
+
+
+func clear_last_run_relic_drops() -> void:
+	last_run_relic_drops = []
+	last_run_relic_dropped = ""
 
 
 func clear_last_run_craft_unlocks() -> void:
@@ -316,6 +324,20 @@ func record_last_run_equipment_drop(instance: Resource, category: String = "") -
 		"instance_id": instance_id,
 		"item_id": item_id,
 	})
+
+
+## ラン中に新規解放したレリックを結果一覧へ積む（入手順・重複しない）。
+func record_last_run_relic_drop(relic_id: String) -> void:
+	var rid: String = CombatPassives.migrate_relic_passive_id(str(relic_id).strip_edges())
+	if rid.is_empty():
+		return
+	for prev: Variant in last_run_relic_drops:
+		if str(prev) == rid:
+			## 既に一覧にある場合は最終1件も動かさない（再ドロップは通常起きない）。
+			return
+	last_run_relic_drops.append(rid)
+	last_run_relic_dropped = rid
+
 
 func _compute_run_material_gains() -> Dictionary:
 	var gains: Dictionary = {}
@@ -1630,6 +1652,7 @@ func reset_for_new_game() -> void:
 	last_run_armor_dropped = ""
 	last_run_accessory_dropped = ""
 	last_run_equipment_drops = []
+	last_run_relic_drops = []
 	last_run_craft_unlocks = []
 	last_run_relic_dropped = ""
 	last_run_level_ups = {}

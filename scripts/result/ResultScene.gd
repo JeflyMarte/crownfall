@@ -1128,12 +1128,7 @@ func _build_rewards() -> void:
 			CurrencyHelper.get_icon_texture(), "", CurrencyHelper.DISPLAY_NAME,
 			str(GameState.last_run_token_reward)
 		))
-	## 武／防／飾は「入手装備」グリッドへ集約（重複表示しない）。
-	var relic: String = GameState.last_run_relic_dropped
-	if not relic.is_empty():
-		var relic_icon: String = CombatPassives.relic_icon_key(relic)
-		_reward_row.add_child(_make_reward_cell(
-			IconPaths.get_icon_texture(relic_icon, "relic"), "", CombatRelics.display_name(relic), "1"))
+	## 武／防／飾／レリックは「入手装備」グリッドへ集約（重複表示しない）。
 
 func _make_reward_cell(
 	texture: Texture2D,
@@ -1276,15 +1271,24 @@ func _build_craft_unlock_hint() -> int:
 	_label_craftable.visible = true
 	return names.size()
 
-## P3-UX-RESULT-DROP-LIST-001: ラン中ドロップ全件をアイコングリッドで表示。
+## P3-UX-RESULT-DROP-LIST-001 / P3-UX-RESULT-RELIC-DROP-001:
+## ラン中ドロップ装備＋新規解放レリックをアイコングリッドで表示。
 func _build_equipment_drops() -> void:
 	for child in _rare_list.get_children():
 		child.queue_free()
 	_label_rare_title.text = "入手装備"
 	var drops: Array = GameState.last_run_equipment_drops
-	if drops.is_empty():
+	var relics: Array = GameState.last_run_relic_drops
+	if relics.is_empty() and not str(GameState.last_run_relic_dropped).is_empty():
+		## 旧セーブ／単一フィールド互換。
+		relics = [str(GameState.last_run_relic_dropped)]
+	if drops.is_empty() and relics.is_empty():
 		_rare_panel.visible = false
 		return
+	if not relics.is_empty() and not drops.is_empty():
+		_label_rare_title.text = "入手装備・レリック"
+	elif not relics.is_empty():
+		_label_rare_title.text = "入手レリック"
 	for raw: Variant in drops:
 		if not (raw is Dictionary):
 			continue
@@ -1295,7 +1299,58 @@ func _build_equipment_drops() -> void:
 		if category.is_empty() or item_id.is_empty():
 			continue
 		_rare_list.add_child(_make_equipment_drop_cell(item_id, category, instance_id))
+	for rid_raw: Variant in relics:
+		var rid: String = CombatPassives.migrate_relic_passive_id(str(rid_raw).strip_edges())
+		if rid.is_empty():
+			continue
+		_rare_list.add_child(_make_relic_drop_cell(rid))
 	_rare_panel.visible = _rare_list.get_child_count() > 0
+
+
+func _make_relic_drop_cell(relic_id: String) -> Control:
+	var cell := VBoxContainer.new()
+	cell.custom_minimum_size = Vector2(DROP_EQUIP_CELL_WIDTH, 0)
+	cell.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	cell.add_theme_constant_override("separation", 4)
+	var icon_wrap := CenterContainer.new()
+	icon_wrap.custom_minimum_size = Vector2(DROP_EQUIP_ICON_PX, DROP_EQUIP_ICON_PX)
+	icon_wrap.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var frame: PanelContainer = PanelContainer.new()
+	frame.custom_minimum_size = Vector2(DROP_EQUIP_ICON_PX, DROP_EQUIP_ICON_PX)
+	frame.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD))
+	var icon_key: String = CombatPassives.relic_icon_key(relic_id)
+	var tex: Texture2D = IconPaths.get_icon_texture(icon_key, "relic")
+	if tex != null:
+		var icon: TextureRect = TextureRect.new()
+		icon.texture = tex
+		icon.custom_minimum_size = Vector2(DROP_EQUIP_ICON_PX - 12, DROP_EQUIP_ICON_PX - 12)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		frame.add_child(icon)
+	else:
+		var glyph: Label = Label.new()
+		glyph.text = "遺"
+		glyph.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		glyph.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		glyph.add_theme_font_size_override("font_size", 28)
+		glyph.add_theme_color_override("font_color", COLOR_GOLD)
+		frame.add_child(glyph)
+	icon_wrap.add_child(frame)
+	cell.add_child(icon_wrap)
+	var name_label := Label.new()
+	name_label.text = CombatRelics.display_name(relic_id)
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	name_label.clip_text = true
+	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	name_label.custom_minimum_size = Vector2(DROP_EQUIP_CELL_WIDTH, 0)
+	name_label.add_theme_font_size_override("font_size", DROP_EQUIP_NAME_FS)
+	name_label.add_theme_color_override("font_color", COLOR_GOLD)
+	cell.add_child(name_label)
+	cell.set_meta("drop_category", "relic")
+	cell.set_meta("drop_item_id", relic_id)
+	return cell
 
 
 func _make_equipment_drop_cell(item_id: String, category: String, instance_id: String) -> Control:

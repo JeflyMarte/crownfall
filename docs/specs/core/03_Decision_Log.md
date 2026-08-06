@@ -5563,6 +5563,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-RESULT-DROP-LIST-001-1 | **表示** — 報酬ステップ内「入手装備」グリッド（アイコン＋名前＋レア短号）。0件は非表示 | 案A |
 | P3-UX-RESULT-DROP-LIST-001-2 | **データ** — `last_run_equipment_drops` に入手順で全件記録。次潜行開始でクリア | 最終1件上書きを廃止 |
 | P3-UX-RESULT-DROP-LIST-001-3 | **対象** — ダンジョンドロップ武／防／飾（降臨・深層含む）。レリックは従来どおり報酬行 | 装備一覧に集約 |
+| P3-UX-RESULT-DROP-LIST-001-3b | **追記 2026-08-06** — レリックも同グリッドへ（`last_run_relic_drops`）。報酬行の重複は出さない。全滅でも残す | オーナー指示 |
 | P3-UX-RESULT-DROP-LIST-001-4 | **全滅／リタイア** — 途中入手があれば同じ一覧を出す | 途中成果の可視化 |
 | P3-UX-RESULT-DROP-LIST-001-5 | **★以上** — アイコンをやや大きく | 目立ち優先 |
 
