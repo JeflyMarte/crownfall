@@ -6085,6 +6085,9 @@ func _apply_member_buff_effects(member_idx: int, skill_data: Resource) -> Dictio
 	if wants_taunt and $CombatController.is_member_alive(member_idx):
 		$CombatController.apply_taunt(member_idx)
 		_activate_taunt_link(member_idx)
+	var pet_healed: int = 0
+	if skill_data != null and skill_data.tags.has("pet_maxhp_heal"):
+		pet_healed = _apply_pet_maxhp_heal_from_buff(member_idx, skill_data)
 	return {
 		"applied": applied,
 		"status_id": status_id,
@@ -6095,6 +6098,7 @@ func _apply_member_buff_effects(member_idx: int, skill_data: Resource) -> Dictio
 		"cover_target_idx": cover_target_idx,
 		"wants_taunt": wants_taunt,
 		"all_party": skill_id == "herd_call" or str(skill_data.target_type) == "all_party",
+		"pet_healed": pet_healed,
 	}
 
 
@@ -6121,6 +6125,9 @@ func _member_buff_log_line(display_name: String, skill_data: Resource, summary: 
 			return "\n【スキル】%s: 敵の注意を引いた" % display_name
 		return "\n【スキル】%s: 自身に[%s]・注意を引いた" % [display_name, label]
 	if bool(summary.get("pet_only", false)):
+		var pet_heal: int = int(summary.get("pet_healed", 0))
+		if pet_heal > 0:
+			return "\n【スキル】%s: ペットに[%s]・%d回復" % [display_name, label, pet_heal]
 		return "\n【スキル】%s: ペットに[%s]" % [display_name, label]
 	if bool(summary.get("ally_only", false)):
 		var t_idx: int = int(summary.get("cover_target_idx", -1))
@@ -6150,6 +6157,33 @@ func _apply_status_to_pet(status_id: String, play_apply_sfx: bool = true) -> int
 		_on_party_status_applied(pet_idx, status_id, play_apply_sfx)
 		return 1
 	return 0
+
+
+## バフ付帯のペット maxHP 割合回復（`pet_maxhp_heal` タグ。相棒鼓舞など）。
+func _apply_pet_maxhp_heal_from_buff(caster_idx: int, skill_data: Resource) -> int:
+	if skill_data == null or GameState.active_pet == null:
+		return 0
+	if GameState.party_members.is_empty():
+		return 0
+	var pet_idx: int = GameState.combatant_count() - 1
+	if pet_idx < 0 or not GameState.is_pet_combatant(pet_idx):
+		return 0
+	if not $CombatController.is_member_alive(pet_idx):
+		return 0
+	var max_hp: int = $CombatController.get_member_max_hp(pet_idx)
+	if max_hp <= 0:
+		return 0
+	var frac: float = BalanceConfig.HEAL_FRAC_PET_BOND_RALLY
+	var base: int = maxi(1, int(round(float(max_hp) * frac)))
+	var amount: int = _apply_healing_bonus(base, caster_idx)
+	var healed: int = $CombatController.heal_member(pet_idx, amount)
+	if healed <= 0:
+		return 0
+	GameState.record_run_heal(caster_idx, healed)
+	_set_heal_rally(pet_idx)
+	_update_hp_bars()
+	_present_member_heal(pet_idx, healed, 1.1, false)
+	return healed
 
 
 func _get_player_skill_data(member_index: int = -1) -> Resource:

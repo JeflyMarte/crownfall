@@ -75,6 +75,8 @@ const HEAL_FRAC_CAMP_DRAUGHT: float = 0.10
 ## ジャック介抱（ペット回復。回転は治癒より遅く量も薄い）。
 const HEAL_FRAC_PET_POUNCE: float = 0.10
 const HEAL_FRAC_PET_JACK_SAVAGE: float = 0.14
+## BT 相棒鼓舞（バフ＋ペット maxHP 割合回復。CD短めの付帯回復）。
+const HEAL_FRAC_PET_BOND_RALLY: float = 0.10
 ## 回復部屋の最低回復（P3-BAL-NONCOMBAT-001: 各員 maxHP×割合と比較）
 const ROOM_HEAL_AMOUNT: int = 10 * STAT_SCALE
 ## 泉成功時の回復割合（各生存者）。

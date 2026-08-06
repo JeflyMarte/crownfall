@@ -7185,6 +7185,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-HEAL-HIERARCHY-001-5 | **治癒** — 20%/CD8 据置（頂点） | 本職ヒーラー |
 | P3-BAL-HEAL-HIERARCHY-001-6 | **SSOT** — `78_HealHierarchy.md` | 正 |
 
+## 相棒鼓舞にペットHP回復付帯（2026-08-06 — P3-BAL-PET-BOND-HEAL-001）
+
+> **オーナー指示** — ミレイの相棒鼓舞にペット maxHP 10% 回復を付ける。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-PET-BOND-HEAL-001-1 | `pet_bond_rally` 発動時、ペットを **maxHP×10%** 回復（`empower_pet` は据置） | ペット主軸の粘り |
+| P3-BAL-PET-BOND-HEAL-001-2 | タグ `pet_maxhp_heal`／`BalanceConfig.HEAL_FRAC_PET_BOND_RALLY` | 実装・再発防止 |
+| P3-BAL-PET-BOND-HEAL-001-3 | **SSOT** — `80_BuffTaxonomy`／`42`／`78` 追記 | Decision 追随 |
+
 ## 必殺チャージ全部屋100秒統一（2026-08-05 — P3-BAL-ULTIMATE-UNIFY-100-001）
 
 > **オーナー指示** — 通常／エリート／ボスとも満タン100秒に統一。
@@ -7226,6 +7236,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-BUFF-TAXONOMY-001-1 | `empower_minor` 表示＝**小鼓舞** | 「小さな」冗長 |
 | P3-BAL-BUFF-TAXONOMY-001-2 | 鼓舞＝味方×1.30／激昂＝敵向け×1.50＋被×1.25 | 同系統の見分け |
 | P3-BAL-BUFF-TAXONOMY-001-3 | 相棒鼓舞＝与×1.30＋被×0.85・4tick | 火力だけ太い問題の解消 |
+| P3-BAL-BUFF-TAXONOMY-001-3b | **追記** 相棒鼓舞スキル＝ペット maxHP **10%** 回復付帯（P3-BAL-PET-BOND-HEAL-001） | オーナー指示 |
 | P3-BAL-BUFF-TAXONOMY-001-4 | **SSOT**＝`docs/specs/decisions/80_BuffTaxonomy.md` | Decision 本体 |
 
 ## 調査派遣EXP＝完走相当／本格×3（2026-08-05 — P3-BAL-SURVEY-DUNGEON-EXP-001）

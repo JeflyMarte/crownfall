@@ -20,6 +20,7 @@
 | `camp_draught` | **10%**（自己のみ）／CD **10.0** |
 | `pet_pounce` | **10%**（単体・最傷）／CD **10.0** |
 | `pet_jack_savage` | **14%**（単体・最傷）／CD **11.0** |
+| `pet_bond_rally` | **10%**（ペット・バフ付帯）／CD **4.0**（`empower_pet` と同時） |
 
 装備 `healing_bonus` は算出後に平坦加算。役割／進化の heal 倍率は従来どおり乗算。  
 BT／RG 追加の詳細: `43_BtRgSupportHeal.md`。階層の正: `78_HealHierarchy.md`。
