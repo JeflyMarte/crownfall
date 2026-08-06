@@ -32,6 +32,7 @@ func test_heal_frac_constants_match_skills() -> void:
 	assert_eq(str(vet.effect_type), "damage")
 	assert_almost_eq(float(vet.power_multiplier), 1.1, 0.001)
 	assert_true(vet.tags.has("drain"))
+	assert_lte(float(vet.cast_time), 0.0, "drain attack must be instant (no cast)")
 	assert_almost_eq(BalanceConfig.SKILL_DRAIN_HEAL_RATIO, 0.5, 0.001)
 
 
