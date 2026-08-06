@@ -49,6 +49,7 @@ alwaysApply: false
 | 灰冠防具が InvCell に溶ける | 潰れた黒＋穴透け／または黒キーで金属まで透過／または凸包ゴースト | Desktop は縁連結の近黒のみ透過。金属黒は不透明。`KaiwanArmorMat` クリーム下地は使わない（矩形が残る）。凸包禁止 |
 | 灰冠防具の後ろにクリーム矩形 | `KaiwanArmorMat` ColorRect | 下地マット禁止。不透明アセット側で対処 |
 | 調査受取後に派遣員が編成に戻らない／EXPパッシブ不発 | 開始時に外すだけ。受取・中止で復元なし。編成外だと `grant_exp` が本人パッシブ未適用 | `party_ids_before` 保存→cycleクリア後に復元してから EXP |
+| 調査完了（❗️）中にパーティが欠けたまま | 完了〜受取まで派遣ロック継続。拠点で完了に気づいても編成は減ったまま | 完了時は `is_member_dispatched` 解除＋`ensure_party_restored_if_awaiting_claim`（拠点ポーリング／入室／ロード）。`party_restored` 後の受取は編成を上書きしない |
 | 調査員0人でサイクル開始 | `start_cycle` が空 assignees を許可 | 1人以上必須 |
 | 調査武器が派遣先外の全武器に落ちる | rarity 一致がプールに無いと全カタログへフォールバック | 空なら武器なし |
 | タイトル「デバッグ」のたび進行が消える | 毎回 `DebugFullUnlock.apply` で上書き | 既存 debug セーブは load。リセットは明示ボタン |
