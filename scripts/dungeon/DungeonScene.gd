@@ -719,6 +719,7 @@ const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd
 const _CommanderPermitBoost = preload("res://scripts/commander/CommanderPermitBoost.gd")
 const _AbyssWeaponEffects = preload("res://scripts/combat/AbyssWeaponEffects.gd")
 const _EnemyResistTelop = preload("res://scripts/combat/EnemyResistTelop.gd")
+const _BossSummonLayout = preload("res://scripts/combat/BossSummonLayout.gd")
 ## T10 沈黙（スキル／必殺封じ）秒数。
 const ENEMY_SILENCE_DURATION_SEC: float = 5.0
 ## T14 CT加速の返却割合（次行動までの待ち短縮）。
@@ -990,6 +991,8 @@ const PartyLogColorsScript: Script = preload("res://scripts/ui/PartyLogColors.gd
 const ExpRunSnapshotScript: Script = preload("res://scripts/result/ExpRunSnapshot.gd")
 ## 足元比率。低すぎると頭が Header／上端バーへ食い込む。
 const BOSS_POSITION_RATIO: Vector2 = Vector2(0.688, 0.34)
+## ボス呼び出し連れの描画順（BossSummonLayout と一致）。
+const BOSS_SPRITE_Z: int = 12
 ## 正規化後の長辺目標。360 だと戦場高を超え Header まで貫通する。
 const BOSS_BODY_TARGET_PX: float = 280.0
 ## 体格正規化後の見た目倍率（1.0=標準）。セルが大きい種だけ追加抑制。
@@ -2660,14 +2663,30 @@ func _update_hp_bars() -> void:
 			_swarm_nameplates[slot].visible = false
 		return
 	if _boss_sprite.visible:
-		# ボス: 単体オーバーレイ
-		_hp_bar_enemy.visible = in_combat
+		# ボス本体＋呼び出し連れ（slot1+）のオーバーレイ
+		var lead: int = _boss_lead_slot()
+		_hp_bar_enemy.visible = in_combat and lead >= 0 and $CombatController.is_enemy_slot_alive(lead)
 		if _hp_bar_enemy.visible:
-			_hp_bar_enemy.max_value = $CombatController.get_enemy_max_hp()
-			_hp_bar_enemy.value = $CombatController.current_enemy_hp
+			_hp_bar_enemy.max_value = $CombatController.get_enemy_max_hp_at(lead)
+			_hp_bar_enemy.value = $CombatController.get_enemy_hp_at(lead)
 			_position_enemy_overlays(_boss_sprite)
 		else:
 			_enemy_nameplate.visible = false
+		for slot in _swarm_sprites.size():
+			if slot == 0:
+				continue
+			var spr: AnimatedSprite2D = _swarm_sprites[slot]
+			var bar: ProgressBar = _swarm_hp_bars[slot]
+			var np: Label = _swarm_nameplates[slot]
+			var alive: bool = $CombatController.is_enemy_slot_alive(slot)
+			var show: bool = in_combat and spr.visible and alive
+			bar.visible = show
+			if show:
+				bar.max_value = $CombatController.get_enemy_max_hp_at(slot)
+				bar.value = $CombatController.get_enemy_hp_at(slot)
+				_position_swarm_overlay(slot)
+			else:
+				np.visible = false
 	else:
 		# 通常/群れ: スロットごとに HPバー＋ネームプレートを更新（死亡スロットは隠す）
 		for slot in _swarm_sprites.size():
@@ -2981,14 +3000,14 @@ func _update_status_icons() -> void:
 			row.visible = false
 		_update_status_legend()
 		return
-	## ボスにも激昂などの頭上アイコンを出す（旧: 重なり回避で非表示→付与が分からない）。
+	## ボスにも激昂などの頭上アイコンを出す。呼び出し連れは各スプライト上。
 	if _boss_sprite.visible:
+		_ensure_swarm_status_icon_rows(maxi(1, _swarm_sprites.size()))
 		for row: HBoxContainer in _status_icon_swarm_rows:
 			row.visible = false
-		_ensure_swarm_status_icon_rows(1)
-		var boss_slot: int = $CombatController.active_enemy_index
+		var boss_slot: int = _boss_lead_slot()
 		var boss_row: HBoxContainer = _status_icon_swarm_rows[0]
-		if $CombatController.is_enemy_slot_alive(boss_slot):
+		if boss_slot >= 0 and $CombatController.is_enemy_slot_alive(boss_slot):
 			_set_status_row_above_sprite(
 				boss_row,
 				_boss_sprite,
@@ -2998,6 +3017,20 @@ func _update_status_icons() -> void:
 			)
 		else:
 			boss_row.visible = false
+		for slot: int in range(1, _swarm_sprites.size()):
+			if slot >= _status_icon_swarm_rows.size():
+				continue
+			var row: HBoxContainer = _status_icon_swarm_rows[slot]
+			if not $CombatController.is_enemy_slot_alive(slot) or not _swarm_sprites[slot].visible:
+				row.visible = false
+				continue
+			_set_status_row_above_sprite(
+				row,
+				_swarm_sprites[slot],
+				$CombatController.get_enemy_status_list_at(slot),
+				-1,
+				slot
+			)
 	else:
 		_ensure_swarm_status_icon_rows(_swarm_sprites.size())
 		for slot: int in _swarm_sprites.size():
@@ -3556,14 +3589,25 @@ func _sync_status_sprite_tints() -> void:
 	if _boss_intro_active:
 		return
 	if _boss_sprite.visible:
-		var boss_slot: int = $CombatController.active_enemy_index
-		var boss_alive: bool = $CombatController.is_enemy_slot_alive(boss_slot)
+		var boss_slot: int = _boss_lead_slot()
+		var boss_alive: bool = boss_slot >= 0 and $CombatController.is_enemy_slot_alive(boss_slot)
 		var boss_statuses: Array = (
 			$CombatController.get_enemy_status_list_at(boss_slot) if boss_alive else []
 		)
 		_apply_status_tint_to_sprite(_boss_sprite, boss_alive and _boss_sprite.visible, boss_statuses)
 		for slot: int in _swarm_sprites.size():
-			_apply_status_tint_to_sprite(_swarm_sprites[slot], false, [])
+			if slot == 0:
+				_apply_status_tint_to_sprite(_swarm_sprites[slot], false, [])
+				continue
+			var alive: bool = $CombatController.is_enemy_slot_alive(slot)
+			var statuses: Array = (
+				$CombatController.get_enemy_status_list_at(slot) if alive else []
+			)
+			_apply_status_tint_to_sprite(
+				_swarm_sprites[slot],
+				alive and _swarm_sprites[slot].visible,
+				statuses
+			)
 	else:
 		for slot: int in _swarm_sprites.size():
 			if slot >= _swarm_sprites.size():
@@ -3621,16 +3665,30 @@ func _sync_status_auras() -> void:
 		_combat_vfx.clear_all()
 		return
 	if _boss_sprite.visible:
-		var boss_slot: int = $CombatController.active_enemy_index
-		var boss_statuses: Array = $CombatController.get_enemy_status_list_at(boss_slot)
+		var boss_slot: int = _boss_lead_slot()
+		var boss_statuses: Array = (
+			$CombatController.get_enemy_status_list_at(boss_slot) if boss_slot >= 0 else []
+		)
 		_combat_vfx.sync_unit_auras(
-			"enemy_%d" % boss_slot,
+			"enemy_%d" % maxi(boss_slot, 0),
 			_boss_sprite,
 			boss_statuses,
 			_boss_sprite.visible
 		)
 		for slot: int in _swarm_sprites.size():
-			_combat_vfx.sync_unit_auras("enemy_%d" % slot, _swarm_sprites[slot], [], false)
+			if slot == 0:
+				_combat_vfx.sync_unit_auras("enemy_%d" % slot, _swarm_sprites[slot], [], false)
+				continue
+			var alive: bool = $CombatController.is_enemy_slot_alive(slot)
+			var statuses: Array = (
+				$CombatController.get_enemy_status_list_at(slot) if alive else []
+			)
+			_combat_vfx.sync_unit_auras(
+				"enemy_%d" % slot,
+				_swarm_sprites[slot],
+				statuses,
+				alive and _swarm_sprites[slot].visible
+			)
 	else:
 		for slot: int in _swarm_sprites.size():
 			if slot >= _swarm_sprites.size():
@@ -3658,11 +3716,25 @@ func _sync_status_auras() -> void:
 		)
 
 func _enemy_sprite_for_slot(slot: int) -> AnimatedSprite2D:
-	if _boss_sprite.visible:
+	if _boss_sprite.visible and _is_boss_lead_slot(slot):
 		return _boss_sprite
 	if slot >= 0 and slot < _swarm_sprites.size():
 		return _swarm_sprites[slot]
 	return null
+
+
+## ボス部屋のリード（通常 slot0）。呼び出し連れは false。
+func _boss_lead_slot() -> int:
+	for i: int in $CombatController.swarm_data.size():
+		if _BossSummonLayout.is_boss_lead_enemy($CombatController.get_enemy_data_at(i)):
+			return i
+	return 0 if $CombatController.swarm_data.size() > 0 else -1
+
+
+func _is_boss_lead_slot(slot: int) -> bool:
+	if not _boss_sprite.visible or slot < 0:
+		return false
+	return _BossSummonLayout.is_boss_lead_enemy($CombatController.get_enemy_data_at(slot))
 
 func _on_enemy_status_applied(slot: int, status_id: String) -> void:
 	if status_id.is_empty():
@@ -6536,9 +6608,12 @@ func _first_alive_member_index() -> int:
 
 # 戦闘中のアクティブ敵スプライト（群れ時は先頭生存スロット、ボス部屋は BossSprite）を返す
 func _active_enemy_sprite() -> AnimatedSprite2D:
+	var ai: int = $CombatController.active_enemy_index
+	var spr: AnimatedSprite2D = _enemy_sprite_for_slot(ai)
+	if spr != null and spr.visible:
+		return spr
 	if _boss_sprite.visible:
 		return _boss_sprite
-	var ai: int = $CombatController.active_enemy_index
 	if ai >= 0 and ai < _swarm_sprites.size():
 		return _swarm_sprites[ai]
 	return _enemy_sprite
@@ -6548,9 +6623,17 @@ func _active_enemy_pos() -> Vector2:
 	return _enemy_slot_pos($CombatController.active_enemy_index)
 
 func _enemy_slot_pos(slot: int) -> Vector2:
+	var spr: AnimatedSprite2D = _enemy_sprite_for_slot(slot)
+	if spr != null and is_instance_valid(spr) and spr.visible:
+		return spr.global_position
+	if _boss_sprite != null and _boss_sprite.visible and _is_boss_lead_slot(slot):
+		return _boss_sprite.global_position
 	if slot >= 0 and slot < _swarm_sprites.size() and _swarm_sprites[slot].visible:
 		return _swarm_sprites[slot].global_position
-	return _active_enemy_sprite().global_position
+	var fallback: AnimatedSprite2D = _active_enemy_sprite()
+	if fallback != null:
+		return fallback.global_position
+	return Vector2.ZERO
 
 func _member_target_tag(member_idx: int) -> String:
 	if $CombatController.living_enemy_count() <= 1:
@@ -7281,6 +7364,11 @@ func _enemy_combat_band_rect() -> Rect2:
 	var min_p := Vector2(INF, INF)
 	var max_p := Vector2(-INF, -INF)
 	var any: bool = false
+	if _boss_sprite != null and _boss_sprite.visible:
+		var bc: Vector2 = _sprite_visual_center_global(_boss_sprite)
+		min_p = Vector2(minf(min_p.x, bc.x - 60.0), minf(min_p.y, bc.y - 80.0))
+		max_p = Vector2(maxf(max_p.x, bc.x + 60.0), maxf(max_p.y, bc.y + 50.0))
+		any = true
 	for slot: int in _swarm_sprites.size():
 		if not $CombatController.is_enemy_slot_alive(slot):
 			continue
@@ -7288,18 +7376,12 @@ func _enemy_combat_band_rect() -> Rect2:
 		if spr == null or not spr.visible:
 			continue
 		var c: Vector2 = _sprite_visual_center_global(spr)
-		min_p = Vector2(minf(min_p.x, c.x - 36.0), minf(min_p.y, c.y - 48.0))
-		max_p = Vector2(maxf(max_p.x, c.x + 36.0), maxf(max_p.y, c.y + 36.0))
+		min_p = Vector2(minf(min_p.x, c.x - 40.0), minf(min_p.y, c.y - 50.0))
+		max_p = Vector2(maxf(max_p.x, c.x + 40.0), maxf(max_p.y, c.y + 40.0))
 		any = true
-	if not any and _boss_sprite != null and _boss_sprite.visible:
-		var bc: Vector2 = _sprite_visual_center_global(_boss_sprite)
-		return Rect2(bc - Vector2(80.0, 100.0), Vector2(160.0, 180.0))
-	if not any and _enemy_sprite != null and _enemy_sprite.visible:
-		var ec: Vector2 = _sprite_visual_center_global(_enemy_sprite)
-		return Rect2(ec - Vector2(60.0, 80.0), Vector2(120.0, 140.0))
 	if not any:
 		var bf: Vector2 = _battlefield_size()
-		return Rect2(Vector2(bf.x * 0.5, bf.y * 0.35), Vector2(maxf(bf.x * 0.4, 180.0), 160.0))
+		return Rect2(Vector2(bf.x * 0.45, bf.y * 0.2), Vector2(maxf(bf.x * 0.45, 200.0), 200.0))
 	return Rect2(min_p, max_p - min_p)
 
 func _apply_enemy_damage_to_targets(
@@ -7582,6 +7664,10 @@ func _sync_silence_marks() -> void:
 func _reveal_appended_enemy_slot(slot: int) -> void:
 	if slot < 0:
 		return
+	## ボス専用スプライト据置＋連れは左右手前（P3-UX-BOSS-SUMMON-LAYOUT-001）。
+	if _boss_sprite.visible:
+		_reveal_boss_add_slot(slot)
+		return
 	var n: int = $CombatController.swarm_data.size()
 	_ensure_swarm_slots(n)
 	var body_scale: float = _swarm_display_scale_for_count(n)
@@ -7618,6 +7704,74 @@ func _reveal_appended_enemy_slot(slot: int) -> void:
 			spr.play("idle")
 		_style_enemy_nameplate(_swarm_nameplates[i], name_dense)
 		_swarm_nameplates[i].add_theme_font_size_override("font_size", name_fs)
+		_position_swarm_overlay(i)
+
+
+## ボス呼び出し連れの表示。slot0 群れスプライトは出さず BossSprite を正とする。
+func _reveal_boss_add_slot(new_slot: int) -> void:
+	var n: int = $CombatController.swarm_data.size()
+	_ensure_swarm_slots(n)
+	if _swarm_sprites.size() > 0:
+		_swarm_sprites[0].visible = false
+		_swarm_hp_bars[0].visible = false
+		_swarm_nameplates[0].visible = false
+	_boss_sprite.z_index = BOSS_SPRITE_Z
+	var name_fs: int = SWARM_NAME_FONT_SIZE
+	for i: int in range(1, n):
+		if i >= _swarm_sprites.size():
+			break
+		var data: Resource = $CombatController.get_enemy_data_at(i)
+		if data == null:
+			_swarm_sprites[i].visible = false
+			continue
+		var id: String = str(data.id)
+		var spr: AnimatedSprite2D = _swarm_sprites[i]
+		var path: String = _enemy_sprite_path(id)
+		if path.is_empty() or not ResourceLoader.exists(path):
+			spr.visible = false
+			continue
+		var is_new_slot: bool = i == new_slot
+		if is_new_slot or spr.sprite_frames == null:
+			var frames: SpriteFrames = load(path) as SpriteFrames
+			if frames == null:
+				spr.visible = false
+				continue
+			spr.sprite_frames = frames
+			_normalize_enemy_scale(spr, frames, id)
+		elif spr.sprite_frames != null:
+			_normalize_enemy_scale(spr, spr.sprite_frames, id)
+		var add_index: int = i - 1
+		spr.position = _boss_add_combat_position(add_index)
+		spr.z_index = _BossSummonLayout.add_z_index(add_index)
+		spr.visible = $CombatController.is_enemy_slot_alive(i)
+		if is_new_slot and spr.visible and spr.sprite_frames != null and spr.sprite_frames.has_animation("idle"):
+			spr.play("idle")
+		_style_enemy_nameplate(_swarm_nameplates[i], true)
+		_swarm_nameplates[i].add_theme_font_size_override("font_size", name_fs)
+		_position_swarm_overlay(i)
+	_update_hp_bars()
+	_update_status_icons()
+
+
+func _boss_add_combat_position(add_index: int) -> Vector2:
+	return _battlefield_combat_position(
+		_BossSummonLayout.position_ratio(BOSS_POSITION_RATIO, add_index)
+	)
+
+
+func _reposition_boss_add_sprites() -> void:
+	if not _boss_sprite.visible:
+		return
+	_boss_sprite.z_index = BOSS_SPRITE_Z
+	if _swarm_sprites.size() > 0:
+		_swarm_sprites[0].visible = false
+	for i: int in range(1, _swarm_sprites.size()):
+		var spr: AnimatedSprite2D = _swarm_sprites[i]
+		if not spr.visible:
+			continue
+		var add_index: int = i - 1
+		spr.position = _boss_add_combat_position(add_index)
+		spr.z_index = _BossSummonLayout.add_z_index(add_index)
 		_position_swarm_overlay(i)
 
 
@@ -10645,6 +10799,7 @@ func _hide_enemy_sprite() -> void:
 func _reposition_enemy_sprites() -> void:
 	if _boss_sprite.visible:
 		_apply_boss_sprite_transform()
+		_reposition_boss_add_sprites()
 		_update_hp_bars()
 		return
 	var n: int = _swarm_sprites.size()
@@ -10919,9 +11074,9 @@ func _play_enemy_slot_animation(slot: int, anim: String) -> void:
 	if spr.visible and spr.sprite_frames != null and spr.sprite_frames.has_animation(anim):
 		spr.play(anim)
 
-## Cast/skill resolve: boss uses BossSprite; swarm uses the caster slot (not active).
+## Cast/skill resolve: boss uses BossSprite; summon adds / swarm use caster slot.
 func _play_enemy_caster_animation(slot: int, anim: String) -> void:
-	if _boss_sprite.visible:
+	if _boss_sprite.visible and _is_boss_lead_slot(slot):
 		_play_boss_animation(anim)
 		return
 	_play_enemy_slot_animation(slot, anim)
@@ -13888,7 +14043,7 @@ func _load_boss_sprite(enemy_id: String) -> bool:
 		_boss_sprite.set_meta("boss_id", enemy_id)
 	_apply_boss_sprite_transform()
 	_boss_sprite.play("idle")
-	_boss_sprite.z_index = 14
+	_boss_sprite.z_index = BOSS_SPRITE_Z
 	return true
 
 func _prepare_boss_sprite_for_entrance(enemy_id: String) -> bool:
@@ -13943,7 +14098,7 @@ func _apply_boss_sprite_transform() -> void:
 	_boss_sprite.offset = Vector2.ZERO
 	_boss_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_boss_sprite.position = _battlefield_combat_position(BOSS_POSITION_RATIO)
-	_boss_sprite.z_index = 14
+	_boss_sprite.z_index = BOSS_SPRITE_Z
 
 func _normalize_boss_scale(sprite: AnimatedSprite2D, frames: SpriteFrames, boss_id: String = "") -> void:
 	var tex: Texture2D = frames.get_frame_texture("idle", 0)

@@ -7357,3 +7357,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-PET-TACTICS-EDIT-001-2 | **個体別永続** — `GameState.pet_tactics_ids`＋セーブ。切替で Resource 再生成しても維持 | 切替で既定に戻ると設定が消える |
 | P3-PET-TACTICS-EDIT-001-3 | **初期既定据置** — ジャック support／アッシュ attack_focus／インク balanced（未設定時のみ） | 三角の初期個性 |
 | P3-PET-TACTICS-EDIT-001-4 | **SSOT**＝`69_PetTriangleSkills` §1-6 更新 | Decision 本体 |
+
+## ボス呼び出し敵の視認レイアウト（2026-08-07 — P3-UX-BOSS-SUMMON-LAYOUT-001）
+
+> **オーナー GO（案A）** — ボス専用ドット据置のまま、呼び出した敵がボス絵に隠れないようにする。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-BOSS-SUMMON-LAYOUT-001-1 | **BossSprite 据置**。呼び出し敵は左右＋手前へ配置（`BossSummonLayout`） | ボス迫力を維持 |
+| P3-UX-BOSS-SUMMON-LAYOUT-001-2 | **描画順** — 連れ z ＞ ボス z。slot0 群れスプライトは非表示（二重描画禁止） | 隠れ／二重表示の解消 |
+| P3-UX-BOSS-SUMMON-LAYOUT-001-3 | **UI** — 連れの HP／名前／状態も表示。スロット別スプライト解決 | ターゲットと演出の一致 |
+| P3-UX-BOSS-SUMMON-LAYOUT-001-4 | **据置** — 召喚回数・キャップ・バランス | 見た目のみ |
