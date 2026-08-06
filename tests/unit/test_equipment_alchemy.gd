@@ -51,8 +51,8 @@ func test_perform_alchemy_raises_base_and_removes_fodder() -> void:
 	assert_eq(GameState.inventory.size(), 1)
 	assert_true(base in GameState.inventory)
 	assert_false(fodder in GameState.inventory)
-	## Lv10素材 → +5 / 帯×1.0 → 300G（P3-BAL-FORGE-GOLD-HEAVY-001）
-	assert_eq(GameState.gold, 1000 - 300)
+	## Lv10素材 → +5 / 帯×1.5 → 900G（P3-BAL-ALCHEMY-GOLD-AB-001）
+	assert_eq(GameState.gold, 1000 - 900)
 
 
 func test_alchemy_rejects_different_categories() -> void:
@@ -75,14 +75,14 @@ func test_alchemy_caps_at_99() -> void:
 	assert_true(bool(result.get("ok", false)))
 	assert_eq(int(base.equip_level), 99)
 	assert_eq(int(result.get("gain", 0)), 2)
-	## Lv20素材 → 帯×1.0 → 2×60=120G（P3-BAL-FORGE-GOLD-HEAVY-001）
-	assert_eq(GameState.gold, 1000 - 120)
+	## Lv20素材 → 帯×1.5 → 2×120×1.5=360G（P3-BAL-ALCHEMY-GOLD-AB-001）
+	assert_eq(GameState.gold, 1000 - 360)
 
 
 func test_alchemy_gold_tier_mult() -> void:
-	assert_eq(EquipmentEnhancer.alchemy_gold_cost(5, 10), 300)
-	assert_eq(EquipmentEnhancer.alchemy_gold_cost(5, 21), 450)
-	assert_eq(EquipmentEnhancer.alchemy_gold_cost(5, 51), 600)
+	assert_eq(EquipmentEnhancer.alchemy_gold_cost(5, 10), 900)
+	assert_eq(EquipmentEnhancer.alchemy_gold_cost(5, 21), 1200)
+	assert_eq(EquipmentEnhancer.alchemy_gold_cost(5, 51), 1800)
 
 
 func test_alchemy_allows_equipped_base_and_unequips_fodder() -> void:

@@ -27,9 +27,8 @@ const EQUIP_EXP_PER_LEVEL: int = 5
 const DISMANTLE_CRAFT_RETURN_CAP: float = 0.8
 ## 錬成 — P3-FORGE-ALCHEMY-001
 const ALCHEMY_LEVEL_FACTOR: float = 0.5
-## P3-BAL-ECO-001 → P3-BAL-FORGE-GOLD-HEAVY-001: 錬成 30→60／炉研ぎ底上げ＋全段レア倍率
-## P3-BAL-FORGE-002: 素材Lv帯で錬成金倍率（1–20×1.0／21–50×1.5／51+×2.0）据置
-const ALCHEMY_GOLD_PER_GAIN: int = 60
+## P3-BAL-ALCHEMY-GOLD-AB-001（オーナー A+B）: 単価 60→120／帯 1–20×1.5・21–50×2・51+×3
+const ALCHEMY_GOLD_PER_GAIN: int = 120
 const ALCHEMY_CONFIRM_ENHANCE_LEVEL: int = 3
 
 const GOLD_BY_NEXT_LEVEL: Dictionary = {
@@ -490,10 +489,10 @@ static func alchemy_level_gain(fodder: Resource) -> int:
 static func alchemy_gold_tier_mult(fodder_level: int) -> float:
 	var lv: int = maxi(1, fodder_level)
 	if lv >= 51:
-		return 2.0
+		return 3.0
 	if lv >= 21:
-		return 1.5
-	return 1.0
+		return 2.0
+	return 1.5
 
 
 static func alchemy_gold_cost(applied_gain: int, fodder_level: int = 1) -> int:
