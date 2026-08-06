@@ -56,7 +56,7 @@ const _DEFS: Dictionary = {
 			"skill_weight": {
 				"boss_enrage": 0.45,
 				"boss_granvel_hex": 1.6,
-				"enemy_granvel_verdant_wave": 2.2,
+				"enemy_granvel_verdant_wave": 1.6,
 				"enemy_granvel_bramble_crush": 1.4,
 			},
 		},
@@ -96,7 +96,7 @@ const _DEFS: Dictionary = {
 			"skill_weight": {
 				"boss_enrage": 0.45,
 				"boss_moldgar_hex": 1.6,
-				"enemy_moldgar_abyss_surge": 2.2,
+				"enemy_moldgar_abyss_surge": 1.6,
 				"enemy_moldgar_mire_maw": 1.4,
 				"enemy_moldgar_call_marsh": 1.5,
 			},
@@ -139,7 +139,7 @@ const _DEFS: Dictionary = {
 			"skill_weight": {
 				"boss_enrage": 0.45,
 				"boss_nereion_hex": 1.6,
-				"enemy_nereion_tidal_wail": 2.2,
+				"enemy_nereion_tidal_wail": 1.6,
 				"enemy_nereion_breach": 1.4,
 				"enemy_nereion_call_dread": 1.5,
 			},
@@ -182,7 +182,7 @@ const _DEFS: Dictionary = {
 			"skill_weight": {
 				"boss_enrage": 0.45,
 				"boss_eldion_hex": 1.6,
-				"enemy_eldion_glacial_breath": 2.2,
+				"enemy_eldion_glacial_breath": 1.6,
 				"enemy_eldion_crevasse": 1.4,
 				"enemy_eldion_glacial_regen": 1.2,
 			},
@@ -225,7 +225,7 @@ const _DEFS: Dictionary = {
 			"skill_weight": {
 				"boss_enrage": 0.45,
 				"boss_chronos_wave_hex": 1.6,
-				"enemy_chronos_wave_resonance": 2.2,
+				"enemy_chronos_wave_resonance": 1.6,
 				"enemy_chronos_wave_gear_crush": 1.4,
 				"enemy_chronos_wave_call_moth": 1.5,
 			},
