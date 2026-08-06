@@ -289,7 +289,7 @@ func test_switch_active_pet_carries_level_exp() -> void:
 	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_ash_bark"))
 	assert_eq(GameState.active_pet.equipped_skill_ids.size(), 1)
 	assert_false(GameState.active_pet.equipped_skill_ids.has("pet_jack_frenzy"))
-	assert_eq(str(GameState.active_pet.tactics_id), "aggressive")
+	assert_eq(str(GameState.active_pet.tactics_id), "attack_focus")
 	assert_true(_PetSystem.set_active_pet_id("pet_jack"))
 	assert_eq(str(GameState.active_pet.id), "pet_jack")
 	assert_eq(int(GameState.active_pet.level), 12)
@@ -297,6 +297,26 @@ func test_switch_active_pet_carries_level_exp() -> void:
 	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_jack_frenzy"))
 	assert_eq(GameState.active_pet.equipped_skill_ids.size(), 1)
 	assert_false(GameState.active_pet.equipped_skill_ids.has("pet_jack_rend"))
+
+
+func test_pet_tactics_editable_and_persists_across_switch() -> void:
+	## ペットも人間と同様に行動方針を変更可。個体別に保持。
+	assert_eq(GameState.get_member_tactics_id(GameState.active_pet), "support_focus")
+	GameState.set_member_tactics(GameState.active_pet, "attack_focus")
+	assert_eq(GameState.get_member_tactics_id(GameState.active_pet), "attack_focus")
+	assert_eq(str(GameState.pet_tactics_ids.get("pet_jack", "")), "attack_focus")
+	_PetSystem.unlock_pet("pet_ash", false)
+	assert_true(_PetSystem.set_active_pet_id("pet_ash"))
+	assert_eq(GameState.get_member_tactics_id(GameState.active_pet), "attack_focus")
+	## アッシュ既定は attack_focus。別方針に変えてジャックへ戻してもジャック設定は残る。
+	GameState.set_member_tactics(GameState.active_pet, "defend_focus")
+	assert_true(_PetSystem.set_active_pet_id("pet_jack"))
+	assert_eq(GameState.get_member_tactics_id(GameState.active_pet), "attack_focus")
+	assert_true(SaveManager.save_game())
+	GameState.reset_for_new_game()
+	assert_true(SaveManager.load_game())
+	assert_eq(str(GameState.active_pet.id), "pet_jack")
+	assert_eq(GameState.get_member_tactics_id(GameState.active_pet), "attack_focus")
 
 
 func test_cannot_activate_unowned_pet() -> void:

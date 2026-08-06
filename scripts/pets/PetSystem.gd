@@ -3,6 +3,7 @@ extends RefCounted
 
 ## 随伴ペット runtime（P3-PET-OTOMO-001 / P3-PET-VARIANT-001）。
 
+const _CombatTactics := preload("res://scripts/combat/CombatTactics.gd")
 const STARTER_PET_ID: String = "pet_jack"
 const PET_ASH_ID: String = "pet_ash"
 const PET_INK_ID: String = "pet_ink"
@@ -82,11 +83,14 @@ static func create_pet_adventurer(pet_id: String = STARTER_PET_ID) -> Resource:
 	adv.passive_slots_customized = true
 	var empty_passives: Array[String] = []
 	adv.equipped_passive_ids = empty_passives
-	## 三角役割: ジャック＝サポ／アッシュ＝火力／インク＝状態異常。
-	if pet_id == STARTER_PET_ID:
+	## 三角役割の既定方針。プレイヤー設定（pet_tactics_ids）があればそれを優先。
+	var saved_tid: String = str(GameState.pet_tactics_ids.get(pet_id, "")).strip_edges()
+	if not saved_tid.is_empty():
+		adv.tactics_id = _CombatTactics.normalize_id(saved_tid)
+	elif pet_id == STARTER_PET_ID:
 		adv.tactics_id = "support_focus"
 	elif pet_id == PET_ASH_ID:
-		adv.tactics_id = "aggressive"
+		adv.tactics_id = "attack_focus"
 	else:
 		adv.tactics_id = "balanced"
 	var stats_class = load("res://scripts/domain/Stats.gd")
@@ -195,7 +199,7 @@ static func set_active_pet_id(pet_id: String) -> bool:
 		neu.exp = int(old.exp)
 		## 基礎ステは PetData を正（切替で旧セーブ値を持ち込まない）。
 		## スキルは個体固定（三角役割）。切替時に持ち越さない。
-		## 行動方針は切替先の既定を使う（ジャック＝サポート優先）。
+		## 行動方針は個体別（pet_tactics_ids）。未設定時のみ役割既定。
 	sync_pet_runtime(neu)
 	GameState.active_pet = neu
 	return true
@@ -252,10 +256,15 @@ static func sync_pet_runtime(pet: Resource) -> void:
 		var fallback: Array[String] = [fallback_id]
 		pet.equipped_skill_ids = fallback
 	## ジャックはサポート寄り方針を維持（セーブで攻撃寄りに汚れていても戻すのはしない＝装備方針は尊重）。
-	## 未設定時のみ support_focus。
-	if str(pet.id) == STARTER_PET_ID and str(pet.tactics_id).is_empty():
-		pet.tactics_id = "support_focus"
-	elif str(pet.id) == PET_ASH_ID and str(pet.tactics_id).is_empty():
-		pet.tactics_id = "aggressive"
+	## プレイヤー設定 → 未設定時のみ役割既定。
+	var pid: String = str(pet.id)
+	var saved_tid: String = str(GameState.pet_tactics_ids.get(pid, "")).strip_edges()
+	if not saved_tid.is_empty():
+		pet.tactics_id = _CombatTactics.normalize_id(saved_tid)
 	elif str(pet.tactics_id).is_empty():
-		pet.tactics_id = "balanced"
+		if pid == STARTER_PET_ID:
+			pet.tactics_id = "support_focus"
+		elif pid == PET_ASH_ID:
+			pet.tactics_id = "attack_focus"
+		else:
+			pet.tactics_id = "balanced"

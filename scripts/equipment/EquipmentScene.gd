@@ -3538,12 +3538,8 @@ func _refresh_tactics_list(member: Resource) -> void:
 	if _tactics_slots_label != null:
 		_tactics_slots_label.text = "[center]設定中の行動方針: %s[/center]" % current_name
 	if _tactics_hint_label != null:
-		_tactics_hint_label.text = (
-			"行動方針（閲覧のみ）"
-			if _is_viewing_pet()
-			else "行動方針（1つ設定。設定中は金枠）"
-		)
-	var interactive: bool = not _is_viewing_pet()
+		_tactics_hint_label.text = "行動方針（1つ設定。設定中は金枠）"
+	var interactive: bool = true
 	for entry: Dictionary in CombatTactics.tactics_list():
 		var tid: String = str(entry.get("id", ""))
 		if tid.is_empty():
@@ -3657,7 +3653,7 @@ func _tactics_row_action(_is_long_press: bool, tactics_id: String) -> void:
 
 func _on_tactics_set_pressed(tactics_id: String) -> void:
 	var member: Resource = _get_view_adventurer()
-	if member == null or _is_viewing_pet():
+	if member == null:
 		return
 	GameState.set_member_tactics(member, tactics_id)
 	SaveManager.save_game()
