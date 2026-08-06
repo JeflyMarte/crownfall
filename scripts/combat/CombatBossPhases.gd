@@ -58,7 +58,6 @@ const _DEFS: Dictionary = {
 				"boss_granvel_hex": 1.6,
 				"enemy_granvel_verdant_wave": 2.2,
 				"enemy_granvel_bramble_crush": 1.4,
-				"enemy_granvel_call_mirror": 1.5,
 			},
 		},
 		{
@@ -72,7 +71,6 @@ const _DEFS: Dictionary = {
 				"boss_granvel_hex": 1.7,
 				"enemy_granvel_verdant_wave": 2.0,
 				"enemy_granvel_bramble_crush": 1.8,
-				"enemy_granvel_call_mirror": 2.2,
 			},
 		},
 		{
@@ -86,7 +84,6 @@ const _DEFS: Dictionary = {
 				"boss_granvel_hex": 1.8,
 				"enemy_granvel_verdant_wave": 2.0,
 				"enemy_granvel_bramble_crush": 2.5,
-				"enemy_granvel_call_mirror": 0.8,
 			},
 		},
 	],

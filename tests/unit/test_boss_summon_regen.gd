@@ -5,7 +5,6 @@ extends GutTest
 
 func test_boss_summon_skills_are_once_designated() -> void:
 	var cases := {
-		"granvel": {"skill": "enemy_granvel_call_mirror", "enemy": "mirror_boa", "count": 1},
 		"moldgar": {"skill": "enemy_moldgar_call_marsh", "enemy": "marsh_king", "count": 1},
 		"nereion": {"skill": "enemy_nereion_call_dread", "enemy": "black_tide_shark", "count": 2},
 		"chronos_wave": {"skill": "enemy_chronos_wave_call_moth", "enemy": "clock_moth", "count": 2},
@@ -23,6 +22,15 @@ func test_boss_summon_skills_are_once_designated() -> void:
 		assert_true(skill.tags.has("once_per_combat"), sid)
 		assert_gte(float(skill.cooldown), 9999.0, sid)
 		assert_true(DataRegistry.get_enemy_data(str(cases[boss_id]["enemy"])) != null, sid)
+
+
+func test_granvel_no_longer_has_summon() -> void:
+	var boss: Resource = DataRegistry.get_enemy_data("granvel")
+	assert_not_null(boss)
+	assert_false("enemy_granvel_call_mirror" in boss.skill_ids)
+	var phase0: Dictionary = CombatBossPhases.phase_def("granvel", 0)
+	var weights: Dictionary = phase0.get("skill_weight", {})
+	assert_false(weights.has("enemy_granvel_call_mirror"))
 
 
 func test_eldion_glacial_regen_applies_hot() -> void:
@@ -51,7 +59,8 @@ func test_status_resolver_hot_emits_heal_percent() -> void:
 
 
 func test_phase_weights_include_new_skills() -> void:
-	for boss_id: String in ["granvel", "moldgar", "nereion", "chronos_wave", "eldion"]:
+	## granvel は仲間呼び削除済み（P3-BAL-GRANVEL-NO-SUMMON-001）。他ボスは call_/regen。
+	for boss_id: String in ["moldgar", "nereion", "chronos_wave", "eldion"]:
 		var phase0: Dictionary = CombatBossPhases.phase_def(boss_id, 0)
 		var weights: Dictionary = phase0.get("skill_weight", {})
 		assert_false(weights.is_empty(), boss_id)
@@ -62,3 +71,6 @@ func test_phase_weights_include_new_skills() -> void:
 				found = true
 				break
 		assert_true(found, "phase weight for %s" % boss_id)
+	var g0: Dictionary = CombatBossPhases.phase_def("granvel", 0)
+	assert_false(g0.get("skill_weight", {}).is_empty())
+	assert_false(str(g0.get("skill_weight", {})).contains("call_mirror"))
