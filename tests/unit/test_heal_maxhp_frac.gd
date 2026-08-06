@@ -43,6 +43,7 @@ func test_heal_frac_examples() -> void:
 	assert_eq(int(round(1000.0 * BalanceConfig.HEAL_FRAC_BEAST_VET)), 100)
 	assert_eq(int(round(1000.0 * BalanceConfig.HEAL_FRAC_BEAST_VET_PET)), 140)
 	assert_eq(int(round(1000.0 * BalanceConfig.HEAL_FRAC_CAMP_DRAUGHT)), 100)
+	assert_eq(int(round(1000.0 * BalanceConfig.HEAL_FRAC_PET_BOND_RALLY)), 100)
 
 
 func test_heal_hierarchy_mend_is_best_character_single() -> void:

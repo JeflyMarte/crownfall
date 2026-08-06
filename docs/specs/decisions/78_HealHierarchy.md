@@ -20,6 +20,7 @@
 | `camp_draught` 野営の一滴 | 自己 | **10%** | **10.0** | 旧12%・CD9.5 |
 | `pet_pounce` つつき介抱 | 最傷1 | **10%** | **10.0** | 旧12%・CD5.5 |
 | `pet_jack_savage` 癒やしの寄り添い | 最傷1 | **14%** | **11.0** | 旧18%・CD8.0 |
+| `pet_bond_rally` 相棒鼓舞 | ペット | **10%**（バフ付帯） | **4.0** | 攻守バフと同時（2026-08-06） |
 | `salve_burst` 大治癒 | 全体 | 各 **12%** | 12.0 | 据置（薄い全体） |
 | `grand_elixir` | 全体 | 各 **20%**＋クレンズ | 35 | 必殺・据置 |
 
@@ -31,6 +32,6 @@
 
 ## SSOT
 
-- `resources/skills/{mend,beast_vet_care,camp_draught,pet_pounce,pet_jack_savage}.tres`
+- `resources/skills/{mend,beast_vet_care,camp_draught,pet_pounce,pet_jack_savage,pet_bond_rally}.tres`
 - `BalanceConfig.HEAL_FRAC_*`
 - 上書き: `42_HealMaxHpFraction.md`／`43_BtRgSupportHeal.md`

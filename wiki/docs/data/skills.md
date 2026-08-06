@@ -157,7 +157,7 @@
 | **灰の守り** | player | buff | 1.0 | 無 | 7.0 | guard (100%) |
 | **灰の咆哮** | player | buff | 1.0 | 無 | 6.5 | empower (100%) |
 | **絆の守り** | player | buff | 1.0 | 無 | 7.0 | guard (100%) |
-| **相棒鼓舞** | player | buff | 1.0 | 無 | 4.0 | empower_pet (100%) |
+| **相棒鼓舞** | player | buff | 1.0 | 無 | 4.0 | empower_pet (100%)＋ペットHP10% |
 | **指揮の牙** | player | damage | 0.9 | 無 | 4.0 | — |
 | **影噛み** | player | damage | 0.95 | 無 | 3.0 | bleed (55%) |
 | **呪影** | player | damage | 0.9 | 無 | 5.0 | mark (70%) |
