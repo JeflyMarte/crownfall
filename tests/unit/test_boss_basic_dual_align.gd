@@ -78,14 +78,20 @@ func test_all_bosses_have_dual_basic_attacks() -> void:
 		assert_true(saw_cleave, boss_id)
 
 
+## P3-BAL-GRANVEL-B-LATER-001: グランヴェル以降メイン梯子の即時全体 ×0.6。
+const _LATER_MAIN_INSTANT_AOE_06 := [
+	"granvel", "moldgar", "nereion", "eldion", "chronos_wave",
+]
+
+
 func test_instant_pressure_aoe_power() -> void:
 	for boss_id: String in _INSTANT_AOE.keys():
 		var sid: String = _INSTANT_AOE[boss_id]
 		var skill: Resource = DataRegistry.get_skill_data(sid)
 		assert_not_null(skill, sid)
 		assert_eq(str(skill.target_type), "all_party", sid)
-		## P3-BAL-BOSS-PRESSURE-A-001: 即時全体 ×0.75。
-		assert_almost_eq(float(skill.power_multiplier), 0.75, 0.001, sid)
+		var expect_power := 0.6 if boss_id in _LATER_MAIN_INSTANT_AOE_06 else 0.75
+		assert_almost_eq(float(skill.power_multiplier), expect_power, 0.001, sid)
 		assert_lte(float(skill.cast_time), 0.0, sid)
 
 
@@ -123,14 +129,14 @@ func test_hex_remains_quarter() -> void:
 
 
 func test_boss_atk_scaled_with_serdion_ratio() -> void:
-	## セルディオン以外は旧ATK×(145/120) を四捨五入。
+	## セルディオン以外は旧ATK×(145/120)。グランヴェル以降メイン梯子は P3-BAL-GRANVEL-B-LATER-001（×175/203）。
 	var expect := {
 		"serdion": 145,
-		"granvel": 203,
-		"moldgar": 203,
-		"nereion": 222,
-		"eldion": 203,
-		"chronos_wave": 290,
+		"granvel": 175,
+		"moldgar": 175,
+		"nereion": 191,
+		"eldion": 175,
+		"chronos_wave": 250,
 		"valgard": 254,
 		"skarpedion": 184,
 		"mycolga_ancient": 193,
@@ -143,3 +149,12 @@ func test_boss_atk_scaled_with_serdion_ratio() -> void:
 		var boss: Resource = DataRegistry.get_enemy_data(boss_id)
 		assert_not_null(boss, boss_id)
 		assert_eq(int(boss.attack), int(expect[boss_id]), boss_id)
+
+
+func test_later_main_boss_f1_instant_weight() -> void:
+	## P3-BAL-GRANVEL-B-LATER-001: F1 即時全体重み 1.6。
+	for boss_id: String in _LATER_MAIN_INSTANT_AOE_06:
+		var def: Dictionary = CombatBossPhases.phase_def(boss_id, 0)
+		var weights: Dictionary = def.get("skill_weight", {})
+		var sid: String = _INSTANT_AOE[boss_id]
+		assert_almost_eq(float(weights.get(sid, 0.0)), 1.6, 0.001, boss_id)

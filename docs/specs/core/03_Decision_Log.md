@@ -7425,3 +7425,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-ALLY-AOE-07-001-2 | **必殺除外**（`slot_type=ultimate` はデータ値） | 必殺の個性維持 |
 | P3-BAL-ALLY-AOE-07-001-3 | 敵／ボス全体は対象外 | 敵側は別 Decision |
 | P3-BAL-ALLY-AOE-07-001-4 | **SSOT**＝`85_AllyAoePower07.md`／`BalanceConfig.effective_skill_power_multiplier` | 実行時固定＋tres 同期 |
+
+## グランヴェル案B＋以降メインボス弱体（2026-08-07 — P3-BAL-GRANVEL-B-LATER-001）
+
+> **オーナー GO（案B＋以降横展開）** — 召喚削除後も過強。セルディオン・イベントは据置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-GRANVEL-B-LATER-001-1 | ATK — granvel/moldgar/eldion **175**、nereion **191**、chronos_wave **250**（×175/203） | 案B比率 |
+| P3-BAL-GRANVEL-B-LATER-001-2 | 即時全体5本 **×0.75→0.6** | 常時圧力を下げる |
+| P3-BAL-GRANVEL-B-LATER-001-3 | F1 即時全体重み **2.2→1.6** | 頻度も緩和 |
+| P3-BAL-GRANVEL-B-LATER-001-4 | **据置** — セルディオン／イベントボス／Hex・大技・通常薙ぎ | スコープ |
+| P3-BAL-GRANVEL-B-LATER-001-5 | **SSOT**＝`86_GranvelBLaterBossNerf.md`（`75` 該当分上書き） | Decision 本体 |
