@@ -504,6 +504,9 @@ static func alchemy_gold_cost(applied_gain: int, fodder_level: int = 1) -> int:
 static func alchemy_needs_confirm(fodder: Resource) -> bool:
 	if fodder == null:
 		return false
+	## 装備中素材は外れて消滅するため確認対象。
+	if GameState.find_item_equipped_owner(fodder) != null:
+		return true
 	if item_rarity(fodder) >= Enums.Rarity.EPIC:
 		return true
 	return get_enhance_level(fodder) >= ALCHEMY_CONFIRM_ENHANCE_LEVEL
@@ -546,10 +549,7 @@ static func can_alchemy(base: Resource, fodder: Resource) -> Dictionary:
 		return fail.call("神話装備は錬成素材にできません")
 	if item_rarity(base) >= Enums.Rarity.MYTHIC:
 		return fail.call("神話装備は錬成できません")
-	if GameState.find_item_equipped_owner(base) != null:
-		return fail.call("主材が装備中です。外してから行ってください")
-	if GameState.find_item_equipped_owner(fodder) != null:
-		return fail.call("素材が装備中です。外してから行ってください")
+	## P3-FORGE-ALCHEMY-001-5b: 装備中も可（素材は実行時に外す）。
 	var from_lv: int = get_equip_level(base)
 	if from_lv >= EQUIP_MAX_LEVEL:
 		return fail.call("主材は装備レベル上限です")
@@ -579,6 +579,8 @@ static func perform_alchemy(base: Resource, fodder: Resource) -> Dictionary:
 	var to_lv: int = int(preview.get("to_level", get_equip_level(base)))
 	if GameState.gold < gold:
 		return {"ok": false, "reason": "ゴールドが足りません"}
+	## 素材が装備中ならロスター全体から外してから削除。
+	GameState.clear_item_from_other_roster_members(fodder, null)
 	if not _remove_item_from_inventory(fodder):
 		return {"ok": false, "reason": "素材を削除できませんでした"}
 	GameState.gold -= gold

@@ -2231,6 +2231,8 @@ func _rebuild_alchemy_detail() -> void:
 	UiTypography.apply_caption(_subtitle_label, COLOR_SUB_STRONG)
 	_subtitle_label.add_theme_font_size_override("font_size", 12)
 	_add_stat_row("現在レベル", "Lv.%d" % _EquipmentEnhancer.get_equip_level(base))
+	if _is_item_equipped(base):
+		_add_stat_row("状態", "装備中")
 	_cost_panel.visible = false
 	_craft_button.visible = true
 	_craft_button.text = "錬成する"
@@ -2420,6 +2422,8 @@ func _show_alchemy_fodder_confirm(fodder: Resource) -> void:
 			int(preview.get("gold_cost", 0)),
 		]
 	)
+	if GameState.find_item_equipped_owner(fodder) != null:
+		lines.append("※素材は装備中です。外れて消滅します。")
 	lines.append("素材は消滅します（分解報酬なし）。")
 	_alchemy_confirm.dialog_text = "\n".join(lines)
 	_alchemy_confirm.popup_centered()
@@ -2888,12 +2892,16 @@ func _sorted_alchemy_base_candidates() -> Array:
 	for item in _inventory_for_category(_category):
 		if item == null:
 			continue
-		if _is_item_equipped(item):
-			continue
+		## 装備中も主材可（P3-FORGE-ALCHEMY-001-5b）。Lv上限のみ除外。
 		if _EquipmentEnhancer.get_equip_level(item) >= _EquipmentEnhancer.EQUIP_MAX_LEVEL:
 			continue
 		items.append(item)
 	items.sort_custom(func(a: Resource, b: Resource) -> bool:
+		## 強化一覧に寄せて装備中を上へ。
+		var ae: bool = _is_item_equipped(a)
+		var be: bool = _is_item_equipped(b)
+		if ae != be:
+			return ae
 		var la: int = _EquipmentEnhancer.get_equip_level(a)
 		var lb: int = _EquipmentEnhancer.get_equip_level(b)
 		if la != lb:
@@ -2910,10 +2918,13 @@ func _sorted_alchemy_fodder_candidates() -> Array:
 	for item in _inventory_for_category(_category):
 		if item == null or item == _selected_alchemy_base:
 			continue
-		if _is_item_equipped(item):
-			continue
+		## 装備中も素材可。実行時に外して消滅。
 		items.append(item)
 	items.sort_custom(func(a: Resource, b: Resource) -> bool:
+		var ae: bool = _is_item_equipped(a)
+		var be: bool = _is_item_equipped(b)
+		if ae != be:
+			return ae
 		var la: int = _EquipmentEnhancer.get_equip_level(a)
 		var lb: int = _EquipmentEnhancer.get_equip_level(b)
 		if la != lb:

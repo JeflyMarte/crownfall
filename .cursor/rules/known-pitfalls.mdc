@@ -135,6 +135,7 @@ alwaysApply: false
 | 装備タップで強制終了 | `InputEvent.accept_event` | → **`pitfalls-startup.mdc`**／`gdscript.mdc` |
 | 鍛冶「作成可能」金枠／素材帯見切れ | Texture金枠・下端固定帯・EXPAND | → `ui-layout` 鍛冶（Flat無枠・BodyScroll） |
 | 錬成リストが Lv3 付近で下にスクロール不能 | 下帯オフでも BodyScroll＋ScrollTouch が左一覧のドラッグを奪う | → `ui-layout.mdc` 鍛冶（BodyScroll 無効＋LeftScroll 本線） |
+| 強化にある装備が錬成に無い | 旧仕様で装備中を錬成除外 | **001-5b** で装備中も可。素材は `clear_item_from_other_roster_members` 後に削除 |
 | 編成とキャラ画面でステが食い違う | 表示経路が分裂 | → `ui-layout.mdc` 編成・陣形（`compute_member_stats` 統一） |
 | キャラ画面で他スキルを装備できない | `MAX_EQUIPPED_SKILLS=1` なのに満枠で「装備」ボタンを disabled | 未解放のみ disabled。満枠は `toggle_member_skill` で置換 |
 

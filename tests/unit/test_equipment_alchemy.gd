@@ -85,6 +85,26 @@ func test_alchemy_gold_tier_mult() -> void:
 	assert_eq(EquipmentEnhancer.alchemy_gold_cost(5, 51), 600)
 
 
+func test_alchemy_allows_equipped_base_and_unequips_fodder() -> void:
+	## P3-FORGE-ALCHEMY-001-5b: 装備中も錬成可。素材は外れて消滅。
+	assert_gte(GameState.party_members.size(), 2, "need two party members")
+	var member_a: Resource = GameState.party_members[0]
+	var member_b: Resource = GameState.party_members[1]
+	var base: Resource = _make_weapon(12)
+	var fodder: Resource = _make_weapon(10)
+	member_a.equipped_weapon = base
+	member_b.equipped_weapon = fodder
+	var check: Dictionary = EquipmentEnhancer.can_alchemy(base, fodder)
+	assert_true(bool(check.get("ok", false)), "equipped base+fodder should be allowed: %s" % str(check))
+	assert_true(EquipmentEnhancer.alchemy_needs_confirm(fodder))
+	var result: Dictionary = EquipmentEnhancer.perform_alchemy(base, fodder)
+	assert_true(bool(result.get("ok", false)), str(result))
+	assert_eq(int(base.equip_level), 17)
+	assert_eq(member_b.equipped_weapon, null, "fodder must be unequipped before remove")
+	assert_false(fodder in GameState.inventory)
+	assert_eq(member_a.equipped_weapon, base, "base stays equipped")
+
+
 func test_equip_preserves_level_above_member() -> void:
 	## 装着時に装備LvをキャラLvへ永続クリップしない（P3-EQ-LVL-001-4 は EXP 上限のみ）。
 	var member := Adventurer.new()
