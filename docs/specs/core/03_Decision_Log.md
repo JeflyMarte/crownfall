@@ -7185,6 +7185,17 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-HEAL-HIERARCHY-001-5 | **治癒** — 20%/CD8 据置（頂点） | 本職ヒーラー |
 | P3-BAL-HEAL-HIERARCHY-001-6 | **SSOT** — `78_HealHierarchy.md` | 正 |
 
+## RG／BT スキル順・到達技（2026-08-06 — P3-SKILL-RG-BT-ORDER-001）
+
+> **オーナー GO（案A）** — 回復は3つ目。Lv50は職象徴の重い極意（グランドエリクサー感）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-SKILL-RG-BT-ORDER-001-1 | RG／BT の回復を **Lv15** へ（`camp_draught`／`beast_vet_care`） | 序盤から粘れる |
+| P3-SKILL-RG-BT-ORDER-001-2 | Lv50＝**極意射／極意調教**（威力↑・**CD24**） | 決め技の象徴性 |
+| P3-SKILL-RG-BT-ORDER-001-3 | 7本維持のため `hunting_ground_mark`／`venom_spray` は習得外（残置） | 枠の都合 |
+| P3-SKILL-RG-BT-ORDER-001-4 | **SSOT**＝`82_RgBtSkillOrder.md`。`43` の Lv50＝回復を上書き | Decision 本体 |
+
 ## 相棒鼓舞にペットHP回復付帯（2026-08-06 — P3-BAL-PET-BOND-HEAL-001）
 
 > **オーナー指示** — ミレイの相棒鼓舞にペット maxHP 10% 回復を付ける。
