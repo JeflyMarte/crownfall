@@ -120,6 +120,7 @@ alwaysApply: false
 | ジャック通常攻撃が「遠隔攻撃力-15%」（前衛） | 武器なし→装備スキル先頭の鼓舞 `range_type=long` を通常攻撃射程に流用 | ペット既定は `melee`。鼓舞スキルも `melee`。fallback は damage 技優先 |
 | パッシブが平与ダメ%やペット必須でビルドが単調 | 固有1本が退屈／BT全体がペット依存 | 確定軸は条件・状態・役割型。BT＝異常（ネリのみペット）。`70_PassiveKitLock` |
 | ペットが「渾身の一撃」等の必殺を撃つ | 職なし＋`DEFAULT_ULTIMATE_SKILL_ID` フォールバック。balanced 戦術がボス／エリートで必殺 | `_get_member_ultimate_skill` でペット除外。`add_ultimate_charge` もスキップ（P3-PET-ULT-OMIT-001） |
+| ペットの行動方針が変えられない／切替で消える | 装備UIが閲覧専用、または切替で Resource 再生成して既定に戻す | 人間と同様に設定可。`pet_tactics_ids` で個体別セーブ（P3-PET-TACTICS-EDIT-001） |
 | 行動順敵アイコンの紫板／穴透過／枠なし | PNG焼込プレート、または焼込枠前提で UI 枠を外した | 紫板焼込禁止。枠は常に `CombatUiFrames`。→ **`14_Presentation_Pitfalls.md`** §6 |
 | 装備一覧の攻・防・会心アイコンが古い | `equipment_ui/` 本番が procedural 小アイコンのまま。更新アートは `preview/` に滞留 | `preprocess_equipment_stat_icons.py --apply` で preview→本番＋forge へ反映 |
 | レジェンド防具／装飾／杖がデフォルト同アイコン | `generate_equipment_icons.py` がテンプレ流用のまま。専用PNG未差替 | PixelLab等で専用生成→`assets/ui/equipment` 上書き。`LEGENDARY_HAND_DRAWN_*_IDS` に入れて再生成で潰さない |

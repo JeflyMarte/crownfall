@@ -29,6 +29,8 @@ var roster: Array = []
 var active_pet: Resource = null
 ## 所持ペット id 一覧（P3-PET-VARIANT-001）。ジャックはガイド後のギルド支給で入る。
 var owned_pet_ids: Array[String] = []
+## ペット個体ごとの行動方針（切替後も維持。未設定は役割既定）。
+var pet_tactics_ids: Dictionary = {}
 
 ## 解放済みスターター id（P3-STORY-STARTER-001）。空かつストーリーON＝選択待ち。
 var starter_unlocked_ids: Array[String] = []
@@ -889,7 +891,11 @@ func get_member_tactics_id(member: Resource) -> String:
 func set_member_tactics(member: Resource, tactics_id: String) -> void:
 	if member == null:
 		return
-	member.tactics_id = CombatTactics.normalize_id(tactics_id)
+	var normalized: String = CombatTactics.normalize_id(tactics_id)
+	member.tactics_id = normalized
+	## ペットは切替で Resource が作り直されるため、個体別に控える。
+	if _PetSystem.is_pet_member(member):
+		pet_tactics_ids[str(member.id)] = normalized
 	## カスタム行動ルールはオミット。選択時は必ずOFF。
 	if "tactics_custom_enabled" in member:
 		member.tactics_custom_enabled = false
@@ -1649,6 +1655,7 @@ func reset_for_new_game() -> void:
 	_run_combat_stats = null
 	active_pet = null
 	owned_pet_ids = []
+	pet_tactics_ids = {}
 	_init_party()
 	_CommanderProfile.ensure_commander()
 	_CommanderLifetime.begin_play_session()
@@ -1697,6 +1704,7 @@ func _init_party() -> void:
 	party_members = []
 	active_pet = null
 	owned_pet_ids = []
+	pet_tactics_ids = {}
 	last_run_starter_recruited_id = ""
 	last_run_starter_recruited_name = ""
 	pending_starter_recruit_id = ""

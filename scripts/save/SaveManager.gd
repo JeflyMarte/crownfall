@@ -58,6 +58,7 @@ func save_game() -> bool:
 		"active_party_ids": _serialize_active_party_ids(),
 		"active_pet": _serialize_active_pet(),
 		"owned_pet_ids": GameState.owned_pet_ids.duplicate(),
+		"pet_tactics_ids": GameState.pet_tactics_ids.duplicate(true),
 		"dungeon_progress": GameState.dungeon_progress,
 		"hub_survey_progress": GameState.hub_survey_progress.duplicate(true),
 		"hub_survey_cycle": GameState.hub_survey_cycle.duplicate(true),
@@ -814,10 +815,27 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.owned_pet_ids = owned
 	else:
 		GameState.owned_pet_ids = []
+	if data.has("pet_tactics_ids") and data["pet_tactics_ids"] is Dictionary:
+		var tactics_map: Dictionary = {}
+		for raw_key in (data["pet_tactics_ids"] as Dictionary).keys():
+			var pid2: String = str(raw_key).strip_edges()
+			if not Constants.is_pet_id(pid2):
+				continue
+			tactics_map[pid2] = CombatTactics.normalize_id(str((data["pet_tactics_ids"] as Dictionary)[raw_key]))
+		GameState.pet_tactics_ids = tactics_map
+	else:
+		GameState.pet_tactics_ids = {}
 	if data.has("active_pet"):
 		GameState.active_pet = _deserialize_active_pet(data.get("active_pet"))
 	else:
 		GameState.active_pet = null
+	## 旧セーブ: active_pet.tactics_id のみある場合は個体マップへ吸い上げ。
+	if GameState.active_pet != null and Constants.is_pet_id(str(GameState.active_pet.id)):
+		var apid: String = str(GameState.active_pet.id)
+		if not GameState.pet_tactics_ids.has(apid):
+			var atid: String = str(GameState.active_pet.tactics_id).strip_edges()
+			if not atid.is_empty():
+				GameState.pet_tactics_ids[apid] = CombatTactics.normalize_id(atid)
 	## owned / active を見てからジャック支給フラグを再判定。
 	_heal_starter_pet_granted_from_owned()
 	var _PetSystem = preload("res://scripts/pets/PetSystem.gd")

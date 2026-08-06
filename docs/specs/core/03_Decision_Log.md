@@ -7324,3 +7324,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-FLOOR-CHOICE-HEAL-FX-002-1 | 中央 display テロップ廃止。`_spawn_skill_name("応急手当")`（先頭回復対象頭上） | スキル回復と統一 |
 | P3-DG-FLOOR-CHOICE-HEAL-FX-002-2 | 緑VFX・+N・`combat_heal`・暗転明けタイミングは据置 | FX-001 維持 |
 | P3-DG-FLOOR-CHOICE-HEAL-FX-002-3 | **上書き** — HEAL-FX-001-2／`61_DungeonFloorChoice` A′ | SSOT |
+
+## ペット行動方針を変更可（2026-08-06 — P3-PET-TACTICS-EDIT-001）
+
+> **オーナー指示** — ペットも戦術（行動方針）を変えられるようにしたい。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-PET-TACTICS-EDIT-001-1 | 装備画面の行動方針をペットも人間と同じく設定可（閲覧専用を撤廃） | オーナー指示 |
+| P3-PET-TACTICS-EDIT-001-2 | **個体別永続** — `GameState.pet_tactics_ids`＋セーブ。切替で Resource 再生成しても維持 | 切替で既定に戻ると設定が消える |
+| P3-PET-TACTICS-EDIT-001-3 | **初期既定据置** — ジャック support／アッシュ attack_focus／インク balanced（未設定時のみ） | 三角の初期個性 |
+| P3-PET-TACTICS-EDIT-001-4 | **SSOT**＝`69_PetTriangleSkills` §1-6 更新 | Decision 本体 |
