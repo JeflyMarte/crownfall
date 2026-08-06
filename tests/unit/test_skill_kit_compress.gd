@@ -17,6 +17,28 @@ func test_each_job_has_seven_unlocks() -> void:
 		assert_eq(levels, [1, 8, 15, 22, 30, 40, 50], "%s levels" % job_id)
 
 
+func test_rg_bt_heal_third_apex_fiftieth() -> void:
+	## P3-SKILL-RG-BT-ORDER-001: 回復＝Lv15／到達＝極意 CD24
+	var rg: Resource = DataRegistry.get_job_data("ranger")
+	var bt: Resource = DataRegistry.get_job_data("beast_tamer")
+	var rg_by: Dictionary = {}
+	var bt_by: Dictionary = {}
+	for entry: Variant in rg.skill_unlocks:
+		rg_by[int(entry.get("level", 0))] = str(entry.get("skill_id", ""))
+	for entry: Variant in bt.skill_unlocks:
+		bt_by[int(entry.get("level", 0))] = str(entry.get("skill_id", ""))
+	assert_eq(str(rg_by.get(15, "")), "camp_draught")
+	assert_eq(str(rg_by.get(50, "")), "apex_shot")
+	assert_eq(str(bt_by.get(15, "")), "beast_vet_care")
+	assert_eq(str(bt_by.get(50, "")), "apex_tame")
+	assert_false(rg.learnable_skill_ids.has("hunting_ground_mark"))
+	assert_false(bt.learnable_skill_ids.has("venom_spray"))
+	assert_almost_eq(float(DataRegistry.get_skill_data("apex_shot").cooldown), 24.0, 0.001)
+	assert_almost_eq(float(DataRegistry.get_skill_data("apex_tame").cooldown), 24.0, 0.001)
+	assert_gt(float(DataRegistry.get_skill_data("apex_shot").power_multiplier), 2.5)
+	assert_gt(float(DataRegistry.get_skill_data("apex_tame").power_multiplier), 2.4)
+
+
 func test_new_aoe_and_party_skills_exist() -> void:
 	var aoe_ids: Array[String] = [
 		"blade_tempest", "blood_mist_slash", "volley_shot", "hunting_ground_mark",

@@ -19,27 +19,27 @@ func test_beast_tamer_learns_pet_skills() -> void:
 	assert_true(learnable.has("pet_command_fang"))
 	assert_true(learnable.has("beast_vet_care"))
 	assert_true(learnable.has("herd_call"))
-	assert_true(learnable.has("venom_spray"))
+	assert_true(learnable.has("apex_tame"))
 	assert_false(learnable.has("beast_bite"))
 	assert_false(learnable.has("alpha_strike"))
 	assert_false(learnable.has("hex_bolt"))
-	assert_false(learnable.has("apex_tame"))
+	assert_false(learnable.has("venom_spray"), "猛毒噴霧は習得外（ORDER-001）")
 	assert_not_null(DataRegistry.get_skill_data("pet_bond_rally"))
 	assert_not_null(DataRegistry.get_skill_data("pet_command_fang"))
 	assert_not_null(DataRegistry.get_skill_data("beast_vet_care"))
-	assert_not_null(DataRegistry.get_skill_data("venom_spray"))
+	assert_not_null(DataRegistry.get_skill_data("apex_tame"))
 	var herd: Resource = DataRegistry.get_skill_data("herd_call")
 	assert_eq(str(herd.display_name), "群れの號令")
 	assert_eq(str(herd.target_type), "all_party")
-	## Lv50 到達技＝獣医の手当て（ペット厚め回復）
+	## Lv15＝獣医／Lv50＝極意調教（P3-SKILL-RG-BT-ORDER-001）
 	var unlocks: Array = job.skill_unlocks
 	assert_eq(unlocks.size(), 7, "職キット7本")
-	var lv50: Dictionary = {}
+	var by_lv: Dictionary = {}
 	for entry: Variant in unlocks:
-		if int(entry.get("level", 0)) == 50:
-			lv50 = entry
-			break
-	assert_eq(str(lv50.get("skill_id", "")), "beast_vet_care")
+		by_lv[int(entry.get("level", 0))] = str(entry.get("skill_id", ""))
+	assert_eq(str(by_lv.get(15, "")), "beast_vet_care")
+	assert_eq(str(by_lv.get(50, "")), "apex_tame")
+	assert_almost_eq(float(DataRegistry.get_skill_data("apex_tame").cooldown), 24.0, 0.001)
 
 
 func test_mirei_poison_fang_and_pack_instinct() -> void:

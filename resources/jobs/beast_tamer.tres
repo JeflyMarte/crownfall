@@ -21,22 +21,22 @@ skill_unlocks = Array[Dictionary]([{
 "skill_id": "pet_bond_rally",
 "level": 8
 }, {
-"skill_id": "beast_hobble",
+"skill_id": "beast_vet_care",
 "level": 15
 }, {
-"skill_id": "herd_call",
+"skill_id": "beast_hobble",
 "level": 22
 }, {
-"skill_id": "pet_command_fang",
+"skill_id": "herd_call",
 "level": 30
 }, {
-"skill_id": "venom_spray",
+"skill_id": "pet_command_fang",
 "level": 40
 }, {
-"skill_id": "beast_vet_care",
+"skill_id": "apex_tame",
 "level": 50
 }])
-learnable_skill_ids = Array[String](["toxin_dart", "pet_bond_rally", "beast_hobble", "herd_call", "pet_command_fang", "venom_spray", "beast_vet_care"])
+learnable_skill_ids = Array[String](["toxin_dart", "pet_bond_rally", "beast_vet_care", "beast_hobble", "herd_call", "pet_command_fang", "apex_tame"])
 passive_tag_ids = Array[String](["tamer"])
 ultimate_skill_id = "beast_dominion"
 evolved_display_name = "ビーストロード"

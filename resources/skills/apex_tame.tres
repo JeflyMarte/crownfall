@@ -6,11 +6,11 @@
 script = ExtResource("1")
 id = "apex_tame"
 display_name = "極意調教"
-description = "極意の調教撃。一撃とともにペットを一時的に強化する。"
+description = "調教の極み。一撃とともにペットを一時強化する。ビーストテイマーの到達技。長めの冷却。"
 skill_type = "player"
 target_type = "enemy"
-power_multiplier = 2.2
-cooldown = 7.0
+power_multiplier = 2.55
+cooldown = 24.0
 trigger_type = "cooldown"
 effect_type = "damage"
 tags = Array[String](["ranged", "pierce", "pet_empower_on_hit"])
