@@ -4,16 +4,16 @@
 
 [resource]
 script = ExtResource("1")
-id = "assault_shatter"
-display_name = "突撃破砕"
-description = "前線ごと踏み込み、圧倒的な威力で叩き割る。代わりに自身の守りが崩れる。"
+id = "drain_slash"
+display_name = "ドレインスラッシュ"
+description = "斬りつけた傷から力を吸い取る。与えたダメージの半分を自身の回復に回す。"
 skill_type = "player"
 target_type = "enemy"
-power_multiplier = 3.0
-cooldown = 7.0
+power_multiplier = 1.4
+cooldown = 5.5
 trigger_type = "cooldown"
 effect_type = "damage"
-tags = Array[String](["melee", "shield", "blunt", "self_armor_break_on_hit"])
+tags = Array[String](["melee", "slash", "shield", "drain"])
 element = ""
 apply_status_id = ""
 apply_status_chance = 0.0

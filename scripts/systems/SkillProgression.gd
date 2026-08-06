@@ -15,6 +15,7 @@ const EQUIPPED_SKILL_REMAP: Dictionary = {
 	"cover_guard": "shield_crush",
 	"iron_guard": "offensive_stance",
 	"apex_guard": "assault_shatter",
+	"shield_quake": "drain_slash",
 }
 
 

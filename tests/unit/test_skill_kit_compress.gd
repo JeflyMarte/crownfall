@@ -45,13 +45,16 @@ func test_rg_bt_heal_third_apex_fiftieth() -> void:
 func test_new_aoe_and_party_skills_exist() -> void:
 	var aoe_ids: Array[String] = [
 		"blade_tempest", "blood_mist_slash", "volley_shot", "hunting_ground_mark",
-		"shield_quake", "miasma_cloud", "venom_spray",
+		"menace_strike", "miasma_cloud", "venom_spray",
 	]
 	for sid in aoe_ids:
 		var sk: Resource = DataRegistry.get_skill_data(sid)
 		assert_not_null(sk, sid)
 		assert_eq(str(sk.target_type), "all_enemies", sid)
 		assert_eq(str(sk.effect_type), "damage", sid)
+	## shield_quake は残置（習得外）。旧AoEの形は維持。
+	var quake_legacy: Resource = DataRegistry.get_skill_data("shield_quake")
+	assert_eq(str(quake_legacy.target_type), "all_enemies")
 	var party_ids: Array[String] = ["bulwark_aura", "rally_vapors", "herd_call", "offensive_stance"]
 	for sid in party_ids:
 		var sk2: Resource = DataRegistry.get_skill_data(sid)
@@ -73,7 +76,7 @@ func test_diverge_replacement_skills() -> void:
 
 
 func test_vg_triad_skills() -> void:
-	## P3-SKILL-VG-TRIAD-001 — 味方バフ／ヘイト／攻撃
+	## P3-SKILL-VG-TRIAD-001 → P3-SKILL-VG-TUNE-001
 	var stance: Resource = DataRegistry.get_skill_data("offensive_stance")
 	assert_eq(str(stance.target_type), "all_party")
 	assert_eq(str(stance.apply_status_id), "empower")
@@ -85,10 +88,17 @@ func test_vg_triad_skills() -> void:
 	assert_false(crush.tags.has("self_guard_on_hit"))
 	var shatter: Resource = DataRegistry.get_skill_data("assault_shatter")
 	assert_eq(str(shatter.effect_type), "damage")
-	assert_gte(float(shatter.power_multiplier), 2.0)
-	assert_false(shatter.tags.has("self_guard_on_hit"))
-	var quake: Resource = DataRegistry.get_skill_data("shield_quake")
-	assert_true(quake.tags.has("taunt"))
+	assert_almost_eq(float(shatter.power_multiplier), 3.0, 0.001)
+	assert_true(shatter.tags.has("self_armor_break_on_hit"))
+	assert_true(str(shatter.apply_status_id).is_empty())
+	var drain: Resource = DataRegistry.get_skill_data("drain_slash")
+	assert_eq(str(drain.effect_type), "damage")
+	assert_true(drain.tags.has("drain"))
+	assert_almost_eq(float(drain.power_multiplier), 1.4, 0.001)
+	var menace: Resource = DataRegistry.get_skill_data("menace_strike")
+	assert_eq(str(menace.target_type), "all_enemies")
+	assert_almost_eq(float(menace.power_multiplier), 1.0, 0.001)
+	assert_true(menace.tags.has("taunt"))
 
 
 func test_swordsman_ranger_vanguard_unlock_ids() -> void:
@@ -105,6 +115,8 @@ func test_swordsman_ranger_vanguard_unlock_ids() -> void:
 	assert_true(vg.learnable_skill_ids.has("offensive_stance"))
 	assert_true(vg.learnable_skill_ids.has("shield_crush"))
 	assert_true(vg.learnable_skill_ids.has("assault_shatter"))
+	assert_true(vg.learnable_skill_ids.has("drain_slash"))
+	assert_false(vg.learnable_skill_ids.has("shield_quake"))
 	assert_false(vg.learnable_skill_ids.has("shield_ram"))
 	assert_false(vg.learnable_skill_ids.has("cover_guard"))
 	assert_false(vg.learnable_skill_ids.has("iron_guard"))
@@ -130,6 +142,7 @@ func test_equipped_skill_remap() -> void:
 	assert_eq(SkillProgression.remap_equipped_skill_id("cover_guard"), "shield_crush")
 	assert_eq(SkillProgression.remap_equipped_skill_id("shield_ram"), "shield_crush")
 	assert_eq(SkillProgression.remap_equipped_skill_id("apex_guard"), "assault_shatter")
+	assert_eq(SkillProgression.remap_equipped_skill_id("shield_quake"), "drain_slash")
 	var adv: Resource = Adventurer.new()
 	adv.id = "kit_remap_sw"
 	adv.job_id = "swordsman"
@@ -147,6 +160,9 @@ func test_equipped_skill_remap() -> void:
 	vg.equipped_skill_ids = ["cover_guard"] as Array[String]
 	SkillProgression.normalize_equipped_skills(vg)
 	assert_eq(str(vg.equipped_skill_ids[0]), "shield_crush")
+	vg.equipped_skill_ids = ["shield_quake"] as Array[String]
+	SkillProgression.normalize_equipped_skills(vg)
+	assert_eq(str(vg.equipped_skill_ids[0]), "drain_slash")
 
 
 func test_aimed_shot_is_armor_break_only() -> void:
@@ -159,7 +175,8 @@ func test_menace_is_taunt_not_fear() -> void:
 	var menace: Resource = DataRegistry.get_skill_data("menace_strike")
 	assert_true(menace.tags.has("taunt"))
 	assert_true(str(menace.apply_status_id).is_empty())
-	assert_lt(float(menace.power_multiplier), 0.8)
+	assert_eq(str(menace.target_type), "all_enemies")
+	assert_almost_eq(float(menace.power_multiplier), 1.0, 0.001)
 	var guard: Resource = DataRegistry.get_skill_data("guard_strike")
 	assert_eq(str(guard.apply_status_id), "stun")
 	assert_true(str(guard.apply_status_id2).is_empty())

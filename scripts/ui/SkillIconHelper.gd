@@ -53,6 +53,7 @@ const SKILL_TO_BASE: Dictionary = {
 	"apex_guard": "guard",
 	"assault_shatter": "guard",
 	"bulwark_aura": "buff",
+	"drain_slash": "slash",
 	"shield_quake": "guard",
 	"quick_shot": "bow",
 	"power_shot": "bow",

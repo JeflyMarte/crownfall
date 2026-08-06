@@ -521,6 +521,7 @@ const ICON_MAP: Dictionary = {
 	"skill:assault_shatter":      "res://assets/ui/skills/ICO_SKILL_ApexGuard.png",
 	"skill:offensive_stance":     "res://assets/ui/skills/ICO_SKILL_Empower.png",
 	"skill:shield_crush":         "res://assets/ui/skills/ICO_SKILL_ShieldRam.png",
+	"skill:drain_slash":          "res://assets/ui/skills/ICO_SKILL_RendSlash.png",
 	"skill:apex_hex":           "res://assets/ui/skills/ICO_SKILL_ApexHex.png",
 	"skill:apex_shot":           "res://assets/ui/skills/ICO_SKILL_ApexShot.png",
 	"skill:apex_slash":           "res://assets/ui/skills/ICO_SKILL_ApexSlash.png",

@@ -5551,6 +5551,11 @@ func _apply_skill_on_hit_self_effects(member_idx: int, skill_data: Resource) -> 
 		if $CombatController.apply_status("party_%d" % member_idx, "guard", 1, 0):
 			_on_party_status_applied(member_idx, "guard", false)
 			_update_status_icons()
+	if skill_data.tags.has("self_armor_break_on_hit"):
+		if $CombatController.apply_status("party_%d" % member_idx, "armor_break_light", 1, 0):
+			_on_party_status_applied(member_idx, "armor_break_light", false)
+			_update_status_icons()
+			_append_log("[防御DOWN] 自身に付与")
 	if skill_data.tags.has("pet_empower_on_hit"):
 		_apply_status_to_pet("empower", false)
 		_update_status_icons()

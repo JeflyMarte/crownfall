@@ -6,7 +6,7 @@ extends RefCounted
 
 ## 追い込み武装対象。shock/ignite もデバフ（クレンズ集合と同型に含める）。
 const DEBUFF_MARK_STATUSES: Array = [
-	"mark", "poison", "bleed", "vulnerable", "fear", "armor_break", "curse", "major_curse",
+	"mark", "poison", "bleed", "vulnerable", "fear", "armor_break", "armor_break_light", "curse", "major_curse",
 	"slow", "stun", "chill", "shock", "ignite",
 ]
 

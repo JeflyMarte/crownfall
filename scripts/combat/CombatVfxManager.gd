@@ -7,7 +7,7 @@ extends RefCounted
 const AURA_STATUS_IDS: Array[String] = [
 	"poison", "chill", "shock", "ignite", "curse", "major_curse", "bleed", "stun", "fear",
 	## P3-UX-COMBAT-VFX-001: バフ／攻防デバフも常駐オーラでログ無し視認
-	"empower", "empower_minor", "empower_pet", "guard", "mark", "vulnerable", "armor_break", "slow", "enrage", "regen",
+	"empower", "empower_minor", "empower_pet", "guard", "mark", "vulnerable", "armor_break", "armor_break_light", "slow", "enrage", "regen",
 ]
 
 const STATUS_COLOR: Dictionary = {
@@ -21,6 +21,7 @@ const STATUS_COLOR: Dictionary = {
 	"fear": Color(0.55, 0.35, 0.6),
 	"vulnerable": Color(0.95, 0.45, 0.45),
 	"armor_break": Color(0.8, 0.6, 0.3),
+	"armor_break_light": Color(0.85, 0.68, 0.38),
 	"mark": Color(0.95, 0.35, 0.55),
 	"empower": Color(0.95, 0.55, 0.2),
 	"empower_minor": Color(0.85, 0.6, 0.35),
@@ -60,11 +61,12 @@ const STATUS_UNIT_TINT: Dictionary = {
 	"major_curse": Color(0.78, 0.55, 0.92),
 	"vulnerable": Color(1.0, 0.78, 0.78),
 	"armor_break": Color(0.95, 0.82, 0.62),
+	"armor_break_light": Color(0.95, 0.84, 0.68),
 	"mark": Color(1.0, 0.72, 0.82),
 }
 
 const STATUS_TINT_PRIORITY: Array[String] = [
-	"stun", "fear", "ignite", "poison", "bleed", "chill", "shock", "major_curse", "curse", "vulnerable", "armor_break", "mark",
+	"stun", "fear", "ignite", "poison", "bleed", "chill", "shock", "major_curse", "curse", "vulnerable", "armor_break", "armor_break_light", "mark",
 ]
 
 const STATUS_ELEMENT: Dictionary = {
@@ -333,7 +335,7 @@ func _aura_profile(status_id: String) -> Dictionary:
 			return {"amount": 7, "lifetime": 0.7, "velocity_min": 14.0, "velocity_max": 32.0, "gravity_y": -28.0, "spread": 35.0}
 		"guard":
 			return {"amount": 6, "lifetime": 0.85, "velocity_min": 6.0, "velocity_max": 18.0, "gravity_y": -8.0, "spread": 50.0}
-		"mark", "vulnerable", "armor_break":
+		"mark", "vulnerable", "armor_break", "armor_break_light":
 			return {"amount": 7, "lifetime": 0.65, "velocity_min": 12.0, "velocity_max": 28.0, "gravity_y": 22.0, "spread": 55.0}
 		"slow":
 			return {"amount": 6, "lifetime": 0.9, "velocity_min": 5.0, "velocity_max": 14.0, "gravity_y": 28.0, "spread": 40.0}

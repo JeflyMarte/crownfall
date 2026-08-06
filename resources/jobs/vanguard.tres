@@ -30,13 +30,13 @@ skill_unlocks = Array[Dictionary]([{
 "skill_id": "shield_crush",
 "level": 30
 }, {
-"skill_id": "shield_quake",
+"skill_id": "drain_slash",
 "level": 40
 }, {
 "skill_id": "assault_shatter",
 "level": 50
 }])
-learnable_skill_ids = Array[String](["guard_strike", "offensive_stance", "menace_strike", "bulwark_aura", "shield_crush", "shield_quake", "assault_shatter"])
+learnable_skill_ids = Array[String](["guard_strike", "offensive_stance", "menace_strike", "bulwark_aura", "shield_crush", "drain_slash", "assault_shatter"])
 passive_tag_ids = Array[String](["frontline", "guard"])
 ultimate_skill_id = "titan_roar"
 evolved_display_name = "パラディン"

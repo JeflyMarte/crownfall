@@ -7391,3 +7391,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-BT-RG-KIT-TUNE-001-3 | **RG** — Lv8=`volley_shot`／Lv30=`snare_shot`（入替） | 序盤AoE、中盤拘束 |
 | P3-BAL-BT-RG-KIT-TUNE-001-4 | **野営の一滴** — 全体各員**8%** | 後衛の薄いパーティケア |
 | P3-BAL-BT-RG-KIT-TUNE-001-5 | **SSOT**＝`83_BtRgKitTune.md`（`78`／`43`／`42`／`82` 上書き） | Decision 本体 |
+
+## ヴァンガードキット調整（2026-08-07 — P3-SKILL-VG-TUNE-001）
+
+> **オーナー指示** — 盾撃波→ドレインスラッシュ／突撃破砕3.0＋自己防御DOWN／威嚇斬全体1.0。他は推奨。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-SKILL-VG-TUNE-001-1 | Lv40＝`drain_slash`（単×**1.4**＋与ダメ**50%**吸血）。旧盾撃波は remap | 粘り攻撃枠 |
+| P3-SKILL-VG-TUNE-001-2 | `assault_shatter`＝**3.0**＋自己 `armor_break_light`（DEF−**30%**） | 高威力の代償 |
+| P3-SKILL-VG-TUNE-001-3 | `menace_strike`＝敵全・威力**1.0**・挑発維持 | 群れヘイト |
+| P3-SKILL-VG-TUNE-001-4 | **SSOT**＝`84_VanguardKitTune.md`（`62` 上書き） | Decision 本体 |
