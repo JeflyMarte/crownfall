@@ -7,7 +7,7 @@ extends RefCounted
 ##
 ## 物理: slash 斬撃 / pierce 刺突 / blunt 打撃
 ## 属性: fire 炎 / ice 氷 / lightning 雷 / holy 光 / dark 闇
-## 効果: bleed 出血 / poison 毒 / buff 強化 / debuff 弱体 / shield 防御 / heal 回復
+## 効果: bleed 出血 / poison 毒 / buff 強化 / debuff 弱体 / shield 防御 / heal 回復 / drain 吸収
 ##
 ## ダメージ属性 SSOT は ElementResolver の thunder。タグ空間は lightning。
 ## 誤記 thunder は normalize で lightning へ寄せる（P3-FIX-COMBAT-AUDIT-C-001）。
@@ -27,6 +27,7 @@ const _NAMES: Dictionary = {
 	"debuff": "弱体",
 	"shield": "防御",
 	"heal": "回復",
+	"drain": "吸収",
 	"ultimate": "必殺",
 }
 

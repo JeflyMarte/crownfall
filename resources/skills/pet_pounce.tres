@@ -6,14 +6,14 @@
 script = ExtResource("1")
 id = "pet_pounce"
 display_name = "つつき介抱"
-description = "いちばん傷ついた仲間に寄り添い、傷を癒やす。こまめだが回復量は控えめ。"
+description = "いちばん傷ついた仲間（自分以外）に寄り添い、傷を癒やす。こまめだが回復量は控えめ。"
 skill_type = "player"
 target_type = "ally"
-power_multiplier = 0.10
+power_multiplier = 0.08
 cooldown = 10.0
 trigger_type = "cooldown"
 effect_type = "heal"
-tags = Array[String](["support", "heal", "pet"])
+tags = Array[String](["support", "heal", "pet", "exclude_self"])
 element = ""
 apply_status_id = ""
 apply_status_chance = 0.0

@@ -7379,3 +7379,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-GRANVEL-NO-SUMMON-001-1 | **削除** — `enemy_granvel_call_mirror` をグランヴェル `skill_ids`／フェーズ重みから外す | 過強 |
 | P3-BAL-GRANVEL-NO-SUMMON-001-2 | **上書き** — P3-BAL-BOSS-SUMMON-REGEN-001-1（グランヴェル召喚） | 本 Decision が正 |
 | P3-BAL-GRANVEL-NO-SUMMON-001-3 | **据置** — 他ボス召喚・スキル tres 本体（再利用可） | スコープ最小 |
+
+## BT／RG キット調整（2026-08-07 — P3-BAL-BT-RG-KIT-TUNE-001）
+
+> **オーナー GO（推奨案）** — 獣医ドレイン化・つつき自己除外8%・RG斉射/スネア入替・野営全体8%。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-BT-RG-KIT-TUNE-001-1 | **獣医の手当て** — 回復→ドレイン攻撃（敵×**1.1**／自己＝与ダメ**50%**／CD9.5／詠唱1） | サポート攻撃の役割明確化 |
+| P3-BAL-BT-RG-KIT-TUNE-001-2 | **つつき介抱** — 自己非対象・回復**8%** | 自己無限ケア防止＋薄め |
+| P3-BAL-BT-RG-KIT-TUNE-001-3 | **RG** — Lv8=`volley_shot`／Lv30=`snare_shot`（入替） | 序盤AoE、中盤拘束 |
+| P3-BAL-BT-RG-KIT-TUNE-001-4 | **野営の一滴** — 全体各員**8%** | 後衛の薄いパーティケア |
+| P3-BAL-BT-RG-KIT-TUNE-001-5 | **SSOT**＝`83_BtRgKitTune.md`（`78`／`43`／`42`／`82` 上書き） | Decision 本体 |

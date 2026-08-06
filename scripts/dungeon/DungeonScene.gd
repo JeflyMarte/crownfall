@@ -5909,7 +5909,8 @@ func _execute_member_heal(
 			return ""
 		target_idx = member_idx
 	else:
-		target_idx = $CombatController.get_most_injured_member_index()
+		var exclude_idx: int = member_idx if skill_data.tags.has("exclude_self") else -1
+		target_idx = $CombatController.get_most_injured_member_index(exclude_idx)
 		if target_idx < 0:
 			return ""
 	var cd_key: String = _member_skill_cd_key(member_idx, skill_data)
@@ -5969,7 +5970,6 @@ func _execute_member_heal(
 
 
 ## 味方 heal: power_multiplier = 対象 maxHP 割合（P3-BAL-HEAL-MAXHP-001）。
-## `pet_heal_bonus` タグ時、ペット対象は HEAL_FRAC_BEAST_VET_PET を使う。
 func _calc_skill_heal_amount(caster_idx: int, skill_data: Resource, target_idx: int) -> int:
 	if skill_data == null or target_idx < 0:
 		return 0
@@ -5977,11 +5977,6 @@ func _calc_skill_heal_amount(caster_idx: int, skill_data: Resource, target_idx: 
 	if max_hp <= 0:
 		return 0
 	var frac: float = maxf(0.0, float(skill_data.power_multiplier))
-	if (
-		skill_data.tags.has("pet_heal_bonus")
-		and GameState.is_pet_combatant(target_idx)
-	):
-		frac = BalanceConfig.HEAL_FRAC_BEAST_VET_PET
 	var base: int = maxi(1, int(round(float(max_hp) * frac)))
 	return _apply_healing_bonus(base, caster_idx)
 
@@ -6671,7 +6666,7 @@ func _deal_member_damage_to_enemy(
 	$CombatController.add_threat(member_idx, float(damage) * CombatController.THREAT_DAMAGE_K)
 	_check_boss_phase_transition(target_slot)
 	if damage > 0:
-		_apply_member_lifesteal(member_idx, damage)
+		_apply_member_lifesteal(member_idx, damage, sid)
 		_fire_member_passives(
 			member_idx, "on_attack", {
 				"damage": damage,
@@ -7560,18 +7555,24 @@ func _resolve_redirect_rear_hit(target_idx: int) -> int:
 	return holder
 
 
-func _apply_member_lifesteal(member_idx: int, damage: int) -> void:
+func _apply_member_lifesteal(member_idx: int, damage: int, skill_id: String = "") -> void:
 	if damage <= 0 or member_idx < 0:
 		return
 	if not $CombatController.is_member_alive(member_idx):
 		return
 	var ratio: float = CombatPassives.relic_lifesteal_ratio(member_idx)
+	var sid: String = str(skill_id)
+	if not sid.is_empty() and sid != "basic_attack" and sid != "counter_attack":
+		var sd: Resource = DataRegistry.get_skill_data(sid)
+		if sd != null and sd.tags.has("drain"):
+			ratio += BalanceConfig.SKILL_DRAIN_HEAL_RATIO
 	if ratio <= 0.0:
 		return
 	var heal_amount: int = maxi(1, int(round(float(damage) * ratio)))
 	var healed: int = $CombatController.heal_member(member_idx, heal_amount)
 	if healed <= 0:
 		return
+	GameState.record_run_heal(member_idx, healed)
 	_update_hp_bars()
 	_present_member_heal(member_idx, healed)
 
@@ -8736,7 +8737,8 @@ func _try_cast_member_skill(member_idx: int, skill_data: Resource, is_ultimate: 
 			return false
 	match skill_data.effect_type:
 		"heal":
-			if $CombatController.get_most_injured_member_index() < 0:
+			var heal_exclude: int = member_idx if skill_data.tags.has("exclude_self") else -1
+			if $CombatController.get_most_injured_member_index(heal_exclude) < 0:
 				return false
 		"buff":
 			if str(skill_data.target_type) == "pet" or skill_data.tags.has("pet_only"):

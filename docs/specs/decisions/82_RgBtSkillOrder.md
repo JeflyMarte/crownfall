@@ -21,12 +21,14 @@
 | Lv | レンジャー | ビーストテイマー |
 |---|---|---|
 | 1 | `aimed_shot` スナイプ | `toxin_dart` 毒矢 |
-| 8 | `snare_shot` スネア | `pet_bond_rally` 相棒鼓舞 |
-| **15** | **`camp_draught` 野営の一滴** | **`beast_vet_care` 獣医の手当て** |
+| 8 | `volley_shot` 斉射 | `pet_bond_rally` 相棒鼓舞 |
+| **15** | **`camp_draught` 野営の一滴**（全体8%） | **`beast_vet_care` 獣医の手当て**（ドレイン） |
 | 22 | `hunter_mark` 狩人の標 | `beast_hobble` 絡み矢 |
-| 30 | `volley_shot` 斉射 | `herd_call` 群れの號令 |
+| 30 | `snare_shot` スネア | `herd_call` 群れの號令 |
 | 40 | `piercing_shot` 貫通射 | `pet_command_fang` 指揮の牙 |
 | **50** | **`apex_shot` 極意射** | **`apex_tame` 極意調教** |
+
+> 2026-08-07: RG Lv8/30 入替・獣医／野営の効果変更は `83_BtRgKitTune.md`。
 
 ## 到達技（Lv50）
 

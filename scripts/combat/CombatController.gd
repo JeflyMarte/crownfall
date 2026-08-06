@@ -1012,10 +1012,13 @@ func get_most_injured_enemy_slot_including(slot_hint: int = -1) -> int:
 	return -1
 
 ## 最も負傷している生存メンバーのindexを返す（負傷者なしは -1）。
-func get_most_injured_member_index() -> int:
+## `exclude_idx` 指定時はそのメンバーを候補から外す（つつき介抱など自己非対象）。
+func get_most_injured_member_index(exclude_idx: int = -1) -> int:
 	var best: int = -1
 	var best_deficit: int = 0
 	for i in party_combat_hp.size():
+		if i == exclude_idx:
+			continue
 		if party_combat_hp[i] <= 0:
 			continue
 		var deficit: int = party_max_hp[i] - party_combat_hp[i]

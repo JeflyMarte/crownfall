@@ -67,13 +67,14 @@ const HEAL_FRAC_MEND: float = 0.20
 ## 大治癒は全体各員（P3-BAL-ALCHEMIST-HEAL-001）。
 const HEAL_FRAC_SALVE_BURST: float = 0.12
 const HEAL_FRAC_GRAND_ELIXIR: float = 0.20
-## BT 獣医の手当て（人／ペット）。RG 野営の一滴は自己のみ。
 ## 単体回復の頂点は AL 治癒（20%）。支援回復は一段下（P3-BAL-HEAL-HIERARCHY-001）。
-const HEAL_FRAC_BEAST_VET: float = 0.10
-const HEAL_FRAC_BEAST_VET_PET: float = 0.14
-const HEAL_FRAC_CAMP_DRAUGHT: float = 0.10
-## ジャック介抱（ペット回復。回転は治癒より遅く量も薄い）。
-const HEAL_FRAC_PET_POUNCE: float = 0.10
+## BT 獣医の手当てはドレイン攻撃へ（P3-BAL-BT-RG-KIT-TUNE-001）。旧人/ペット％定数は廃止。
+## RG 野営の一滴＝全体各員。つつき介抱＝最傷（自己除外）。
+const HEAL_FRAC_CAMP_DRAUGHT: float = 0.08
+## ジャック介抱（ペット回復。回転は治癒より遅く量も薄い。自己非対象）。
+const HEAL_FRAC_PET_POUNCE: float = 0.08
+## スキル `drain` タグ: 与ダメに対する自己回復割合（レリック吸血と加算）。
+const SKILL_DRAIN_HEAL_RATIO: float = 0.5
 const HEAL_FRAC_PET_JACK_SAVAGE: float = 0.14
 ## BT 相棒鼓舞（バフ＋ペット maxHP 割合回復。CD短めの付帯回復）。
 const HEAL_FRAC_PET_BOND_RALLY: float = 0.10

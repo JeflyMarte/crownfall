@@ -19,6 +19,7 @@ func test_each_job_has_seven_unlocks() -> void:
 
 func test_rg_bt_heal_third_apex_fiftieth() -> void:
 	## P3-SKILL-RG-BT-ORDER-001: 回復＝Lv15／到達＝極意 CD24
+	## P3-BAL-BT-RG-KIT-TUNE-001: RG Lv8＝斉射／Lv30＝スネア
 	var rg: Resource = DataRegistry.get_job_data("ranger")
 	var bt: Resource = DataRegistry.get_job_data("beast_tamer")
 	var rg_by: Dictionary = {}
@@ -27,7 +28,9 @@ func test_rg_bt_heal_third_apex_fiftieth() -> void:
 		rg_by[int(entry.get("level", 0))] = str(entry.get("skill_id", ""))
 	for entry: Variant in bt.skill_unlocks:
 		bt_by[int(entry.get("level", 0))] = str(entry.get("skill_id", ""))
+	assert_eq(str(rg_by.get(8, "")), "volley_shot")
 	assert_eq(str(rg_by.get(15, "")), "camp_draught")
+	assert_eq(str(rg_by.get(30, "")), "snare_shot")
 	assert_eq(str(rg_by.get(50, "")), "apex_shot")
 	assert_eq(str(bt_by.get(15, "")), "beast_vet_care")
 	assert_eq(str(bt_by.get(50, "")), "apex_tame")

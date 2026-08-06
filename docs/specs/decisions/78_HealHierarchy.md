@@ -2,7 +2,8 @@
 
 **ID:** P3-BAL-HEAL-HIERARCHY-001  
 **日付:** 2026-08-06  
-**状態:** 承認（オーナー指示）
+**状態:** 承認（オーナー指示）  
+**追記（2026-08-07）:** 獣医ドレイン化・野営全体8%・つつき8%自己除外（`83_BtRgKitTune.md` / P3-BAL-BT-RG-KIT-TUNE-001）
 
 ## 要旨
 
@@ -11,14 +12,14 @@
 
 必殺グランドエリクサー／大治癒（全体薄め）の役割は据置。
 
-## 確定値（単体 maxHP 割合）
+## 確定値（単体／全体 maxHP 割合）
 
 | スキル | 対象 | 割合 | CD | 備考 |
 |---|---|---|---|---|
 | `mend` 治癒 | 最傷1 | **20%** | **8.0**（詠唱1.0） | **頂点（据置）** |
-| `beast_vet_care` 獣医の手当て | 最傷1 | 人 **10%**／ペット **14%** | **9.5** | 旧12/18・CD7.5 |
-| `camp_draught` 野営の一滴 | 自己 | **10%** | **10.0** | 旧12%・CD9.5 |
-| `pet_pounce` つつき介抱 | 最傷1 | **10%** | **10.0** | 旧12%・CD5.5 |
+| `beast_vet_care` 獣医の手当て | 敵1（ドレイン） | 攻撃 **×1.1**／自己＝与ダメ**50%** | **9.5** | 回復枠から分離（`83`） |
+| `camp_draught` 野営の一滴 | 全体各員 | **8%** | **10.0** | 旧自己10% |
+| `pet_pounce` つつき介抱 | 最傷1（自己除外） | **8%** | **10.0** | 旧10%・自己可 |
 | `pet_jack_savage` 癒やしの寄り添い | 最傷1 | **14%** | **11.0** | 旧18%・CD8.0 |
 | `pet_bond_rally` 相棒鼓舞 | ペット | **10%**（バフ付帯） | **4.0** | 攻守バフと同時（2026-08-06） |
 | `salve_burst` 大治癒 | 全体 | 各 **12%** | 12.0 | 据置（薄い全体） |
@@ -33,5 +34,5 @@
 ## SSOT
 
 - `resources/skills/{mend,beast_vet_care,camp_draught,pet_pounce,pet_jack_savage,pet_bond_rally}.tres`
-- `BalanceConfig.HEAL_FRAC_*`
-- 上書き: `42_HealMaxHpFraction.md`／`43_BtRgSupportHeal.md`
+- `BalanceConfig.HEAL_FRAC_*`／`SKILL_DRAIN_HEAL_RATIO`
+- 上書き: `42_HealMaxHpFraction.md`／`43_BtRgSupportHeal.md`／`83_BtRgKitTune.md`
