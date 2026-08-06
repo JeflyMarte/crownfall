@@ -32,6 +32,6 @@
 
 ## SSOT
 
-- `resources/skills/{mend,beast_vet_care,camp_draught,pet_pounce,pet_jack_savage}.tres`
+- `resources/skills/{mend,beast_vet_care,camp_draught,pet_pounce,pet_jack_savage,pet_bond_rally}.tres`
 - `BalanceConfig.HEAL_FRAC_*`
 - 上書き: `42_HealMaxHpFraction.md`／`43_BtRgSupportHeal.md`
