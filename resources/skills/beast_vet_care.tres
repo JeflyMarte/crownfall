@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 id = "beast_vet_care"
-display_name = "獣医の手当て"
-description = "生態の急所を突き、敵を削りつつ自身の傷を縫う。与えた傷の半分を取り戻す。"
+display_name = "血還の矢"
+description = "急所を射抜き、敵を削りつつ自身の傷へ血を還す。与えた傷の半分を取り戻す。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.1

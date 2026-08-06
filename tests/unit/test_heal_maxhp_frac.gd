@@ -30,6 +30,7 @@ func test_heal_frac_constants_match_skills() -> void:
 	assert_eq(str(DataRegistry.get_skill_data("camp_draught").target_type), "all_party")
 	var vet: Resource = DataRegistry.get_skill_data("beast_vet_care")
 	assert_eq(str(vet.effect_type), "damage")
+	assert_eq(str(vet.display_name), "血還の矢")
 	assert_almost_eq(float(vet.power_multiplier), 1.1, 0.001)
 	assert_true(vet.tags.has("drain"))
 	assert_lte(float(vet.cast_time), 0.0, "drain attack must be instant (no cast)")

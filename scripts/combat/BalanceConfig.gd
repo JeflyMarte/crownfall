@@ -90,7 +90,7 @@ const HEAL_FRAC_MEND: float = 0.20
 const HEAL_FRAC_SALVE_BURST: float = 0.12
 const HEAL_FRAC_GRAND_ELIXIR: float = 0.20
 ## 単体回復の頂点は AL 治癒（20%）。支援回復は一段下（P3-BAL-HEAL-HIERARCHY-001）。
-## BT 獣医の手当てはドレイン攻撃へ（P3-BAL-BT-RG-KIT-TUNE-001）。旧人/ペット％定数は廃止。
+## BT 血還の矢（旧・獣医の手当て）はドレイン攻撃（P3-BAL-BT-RG-KIT-TUNE-001）。
 ## RG 野営の一滴＝全体各員。つつき介抱＝最傷（自己除外）。
 const HEAL_FRAC_CAMP_DRAUGHT: float = 0.08
 ## ジャック介抱（ペット回復。回転は治癒より遅く量も薄い。自己非対象）。

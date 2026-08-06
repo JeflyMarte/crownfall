@@ -22,7 +22,7 @@
 |---|---|---|
 | 1 | `aimed_shot` スナイプ | `toxin_dart` 毒矢 |
 | 8 | `volley_shot` 斉射 | `pet_bond_rally` 相棒鼓舞 |
-| **15** | **`camp_draught` 野営の一滴**（全体8%） | **`beast_vet_care` 獣医の手当て**（ドレイン） |
+| **15** | **`camp_draught` 野営の一滴**（全体8%） | **`beast_vet_care` 血還の矢**（ドレイン） |
 | 22 | `hunter_mark` 狩人の標 | `beast_hobble` 絡み矢 |
 | 30 | `snare_shot` スネア | `herd_call` 群れの號令 |
 | 40 | `piercing_shot` 貫通射 | `pet_command_fang` 指揮の牙 |
