@@ -6,11 +6,11 @@
 script = ExtResource("1")
 id = "apex_shot"
 display_name = "極意射"
-description = "力を込めた重い一矢。強敵を一気に削るときに向く。"
+description = "力を込めきった必中の一矢。レンジャーの到達技。次に撃てるまで長くかかる。"
 skill_type = "player"
 target_type = "enemy"
-power_multiplier = 2.35
-cooldown = 7.0
+power_multiplier = 2.7
+cooldown = 24.0
 trigger_type = "cooldown"
 effect_type = "damage"
 tags = Array[String](["ranged", "pierce"])

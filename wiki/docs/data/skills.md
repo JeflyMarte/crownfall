@@ -6,9 +6,9 @@
 | **統率の一撃** | player | damage | 1.55 | 無 | 4.5 | mark (50%) |
 | **極意盾斬** | player | damage | 2.2 | 無 | 7.0 | — |
 | **極意呪** | player | damage | 2.1 | 闇 | 5.5 | — |
-| **極意射** | player | damage | 2.35 | 無 | 7.0 | — |
+| **極意射** | player | damage | 2.7 | 無 | 24.0 | — |
 | **極意斬** | player | damage | 2.35 | 無 | 7.0 | — |
-| **極意調教** | player | damage | 2.2 | 無 | 7.0 | — |
+| **極意調教** | player | damage | 2.55 | 無 | 24.0 | — |
 | **魔力弾** | player | damage | 1.2 | 無 | 2.5 | — |
 | **甲砕斬** | player | damage | 1.55 | 無 | 4.0 | armor_break (40%) |
 | **獣牙撃** | player | damage | 1.15 | 無 | 2.5 | — |
