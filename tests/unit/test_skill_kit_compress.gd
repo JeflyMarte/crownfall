@@ -152,12 +152,15 @@ func test_pet_bond_rally_stronger_than_herd() -> void:
 	var herd: Resource = DataRegistry.get_skill_data("herd_call")
 	assert_eq(str(bond.apply_status_id), "empower_pet")
 	assert_lt(float(bond.cooldown), float(herd.cooldown))
+	assert_true(bond.tags.has("pet_maxhp_heal"), "相棒鼓舞はペットHP回復付帯")
+	assert_true(str(bond.description).contains("10%"), "説明に回復割合")
 	var pet_emp: Resource = DataRegistry.get_status_effect("empower_pet")
 	var emp: Resource = DataRegistry.get_status_effect("empower")
 	## 与ダメは本鼓舞並み。持続と被ダメ軽減でペット特化。
 	assert_almost_eq(float(pet_emp.outgoing_damage_multiplier), float(emp.outgoing_damage_multiplier), 0.001)
 	assert_lt(float(pet_emp.incoming_damage_multiplier), 1.0)
 	assert_gt(int(pet_emp.duration_ticks), int(emp.duration_ticks))
+	assert_almost_eq(BalanceConfig.HEAL_FRAC_PET_BOND_RALLY, 0.10, 0.001)
 
 
 func test_curse_sigil_uses_major_curse() -> void:

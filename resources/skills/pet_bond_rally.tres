@@ -6,14 +6,14 @@
 script = ExtResource("1")
 id = "pet_bond_rally"
 display_name = "相棒鼓舞"
-description = "ペットに攻守の絆を授ける。与ダメを上げつつ被ダメも軽減する。"
+description = "ペットに攻守の絆を授ける。与ダメを上げつつ被ダメも軽減し、HPを最大の10%回復する。"
 skill_type = "player"
 target_type = "pet"
 power_multiplier = 1.0
 cooldown = 4.0
 trigger_type = "cooldown"
 effect_type = "buff"
-tags = Array[String](["support", "buff", "pet"])
+tags = Array[String](["support", "buff", "pet", "pet_maxhp_heal"])
 element = ""
 apply_status_id = "empower_pet"
 apply_status_chance = 1.0
