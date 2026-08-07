@@ -6033,6 +6033,18 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-GACHA-EQ-KAIWAN-COPY-001-1 | 固有効果は `inventory_effect`。封蔵 `blurb`／`effect` は据置 | 画面用途の分離 |
 | P3-GACHA-EQ-KAIWAN-COPY-001-2 | tres の description／flavor も個体別の装備文体 | 一覧の世界観文 |
 
+## 灰冠武器3本差し替え S2/F2/W1（2026-08-07）
+
+> **オーナー採択** — サイレント=S2／フォルス=F2／ウィルテス=W1。
+
+| ID | 決定 | 理由 |
+|---|---|---|
+| P3-GACHA-EQ-KAIWAN-WPN-REV-001-1 | **裂鍵サイレント** — バフ中敵与ダメ+25%／スキルCD+10% | S2 |
+| P3-GACHA-EQ-KAIWAN-WPN-REV-001-2 | **偽星フォルス** — 会心ダメ+30%／被クリ率+10% | F2 |
+| P3-GACHA-EQ-KAIWAN-WPN-REV-001-3 | **枯翠ウィルテス** — 回復スキル時最弱敵へ回復量40%ダメ／被回復-20% | W1 |
+| P3-GACHA-EQ-KAIWAN-WPN-REV-001-4 | **枯翠ソーンメイル** — 追撃+15pt（武器合算）／被回復-20% に整合 | セット整合 |
+| P3-GACHA-EQ-KAIWAN-WPN-REV-001-5 | **SSOT** — Decision 28 §10／`GachaEquipSystem.POOL`／`CombatPassives` 配線 | 表示と戦闘の一致 |
+
 ---
 
 ## 灰冠の九 — 装備ガチャ限定武具（2026-07-31 — P3-GACHA-EQ-KAIWAN-001）

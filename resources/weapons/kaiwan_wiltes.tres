@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "kaiwan_wiltes"
 display_name = "枯翠ウィルテス"
-description = "翠を枯らして火力に変える杖。枯翠の座が癒し手の武具をねじ曲げた封印杖。"
+description = "翠を枯らして棘を飛ばす杖。癒すたび最弱へ牙を伸ばす、枯翠の座の封印杖。"
 fixed_skill_id = ""
-fixed_passive_id = ""
+fixed_passive_id = "eq_wpn_kaiwan_wiltes"
 base_attack = 185
 rarity = 3
 base_attack_speed = 1.1

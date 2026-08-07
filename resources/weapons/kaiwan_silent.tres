@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "kaiwan_silent"
 display_name = "裂鍵サイレント"
-description = "封じ頁を裂く杖。解呪と削ぎのための道具として、裂鍵の座が私兵化した。"
+description = "封じ頁を裂く杖。強化された敵の加護ごと、裂鍵の座が刺し穿つ。"
 fixed_skill_id = ""
-fixed_passive_id = ""
+fixed_passive_id = "eq_wpn_kaiwan_silent"
 base_attack = 180
 rarity = 3
 base_attack_speed = 1.1

@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "kaiwan_false"
 display_name = "偽星フォルス"
-description = "偽の星炉印が刻まれた剣。偽星の座が鍛冶の伸びしろと引き換えに脆さを残した刃。"
+description = "偽の星炉印が刻まれた剣。会心の輝きと引き換えに、返り討ちの脆さを残した刃。"
 fixed_skill_id = ""
-fixed_passive_id = ""
+fixed_passive_id = "eq_wpn_kaiwan_false"
 base_attack = 215
 rarity = 3
 base_attack_speed = 1.1
