@@ -1271,6 +1271,19 @@ func enemy_slot_has_debuff(slot: int) -> bool:
 	return false
 
 
+## 敵スロットにバフ（empower／guard 等）があるか。
+func enemy_slot_has_buff(slot: int) -> bool:
+	if slot < 0 or not is_enemy_slot_alive(slot):
+		return false
+	for raw: Dictionary in get_enemy_status_list_at(slot):
+		var sid: String = str(raw.get("effect_id", ""))
+		if sid.is_empty():
+			continue
+		if CombatVfxManager.is_buff_status(sid):
+			return true
+	return false
+
+
 func get_member_outgoing_damage_multiplier(
 	member_index: int,
 	action_range: String = "",
@@ -1308,6 +1321,8 @@ func get_member_outgoing_damage_multiplier(
 			mult *= mark_focus
 		if not present_statuses.is_empty():
 			mult *= CombatPassives.outgoing_vs_status_mult_for_member(member_index, present_statuses)
+		if enemy_slot_has_buff(target_slot):
+			mult *= CombatPassives.outgoing_vs_buff_mult_for_member(member_index)
 	var boss_mult: float = CombatPassives.weapon_outgoing_vs_boss_mult(member_index)
 	if target_slot >= 0 and not is_equal_approx(boss_mult, 1.0):
 		var ed: Resource = get_enemy_data_at(target_slot)

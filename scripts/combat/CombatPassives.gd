@@ -16,10 +16,12 @@ extends RefCounted
 ##   party_outgoing_mult / party_incoming_mult / death_save_once / death_save_chance /
 ##   death_save_heal_max_hp_fraction / death_save_outgoing_mult / death_save_outgoing_duration_sec /
 ##   exploration_damage_immune / exploration_damage_party_mult /
-##   outgoing_mult_requires_hp_below / outgoing_vs_status_mult /
+##   outgoing_mult_requires_hp_below / outgoing_vs_status_mult / outgoing_vs_buff_mult /
 ##   pet_outgoing_mult / pet_defense_mult / pet_max_hp_mult / pet_revive_on_combat_end_chance /
 ##   pet_heal_on_action_max_hp_fraction / threat_base_add /
-##   redirect_rear_hit_chance / lifesteal_ratio / combat_regen_* / treasure_room_weight_add
+##   redirect_rear_hit_chance / lifesteal_ratio / combat_regen_* / treasure_room_weight_add /
+##   skill_cd_mult / heal_received_mult / heal_skill_spill_damage_fraction /
+##   heal_skill_spill_damage_add / incoming_crit_rate_add / crit_damage_add
 ## weather_bonus（P3-EQ-WEATHER-LEG-001）: weather_id → element_outgoing_mult / outgoing_mult / crit_rate_add / refund_ct_fraction
 ## effect 追加: "chance_cast_equipped_skill"（攻撃後に装備スキルを確率発動）
 ## action_skip_chance（常時）: 行動出番でこの確率で行動スキップ（状態異常スキップと独立）
@@ -1000,6 +1002,35 @@ const _DEFS: Dictionary = {
 		"threat_base_add": 120.0,
 		"incoming_mult": 0.88,
 	},
+	# ---- 灰冠の九（P3-GACHA-EQ-KAIWAN／S2・F2・W1） ----
+	"eq_wpn_kaiwan_silent": {
+		"display_name": "裂鍵の刺し",
+		"category": "weapon",
+		"description": "バフ中の敵への与ダメ +25%。スキル再使用時間 +10%。",
+		"outgoing_vs_buff_mult": 1.25,
+		"skill_cd_mult": 1.10,
+	},
+	"eq_wpn_kaiwan_false": {
+		"display_name": "偽星の鋭閃",
+		"category": "weapon",
+		"description": "会心ダメ +30%。被クリティカル率 +10%。",
+		"crit_damage_add": 0.30,
+		"incoming_crit_rate_add": 0.10,
+	},
+	"eq_wpn_kaiwan_wiltes": {
+		"display_name": "枯翠の棘癒",
+		"category": "weapon",
+		"description": "回復スキル時、最弱敵へ回復量の40%相当ダメ。被回復 -20%。",
+		"heal_skill_spill_damage_fraction": 0.40,
+		"heal_received_mult": 0.80,
+	},
+	"eq_kaiwan_thornmail": {
+		"display_name": "枯翠の棘甲",
+		"category": "armor",
+		"description": "回復スキル追撃 +15pt。被回復 -20%。",
+		"heal_skill_spill_damage_add": 0.15,
+		"heal_received_mult": 0.80,
+	},
 }
 
 # 基本5職ロスター adventurer_id → キャラ固有パッシブ id
@@ -1522,6 +1553,51 @@ static func outgoing_vs_status_mult_for_member(member_index: int, present_status
 	return mult
 
 
+## バフ中の敵への与ダメ倍率（灰冠サイレント等）。
+static func outgoing_vs_buff_mult_for_member(member_index: int) -> float:
+	if member_index < 0 or member_index >= GameState.party_members.size():
+		return 1.0
+	var mult: float = 1.0
+	var member: Resource = GameState.party_members[member_index]
+	for raw_def: Variant in for_member(member):
+		if raw_def is not Dictionary:
+			continue
+		if raw_def.has("outgoing_vs_buff_mult"):
+			mult *= float(raw_def["outgoing_vs_buff_mult"])
+	return mult
+
+
+## 被クリティカル率加算（装備パッシブ合算）。
+static func incoming_crit_rate_add_for_member(member_index: int) -> float:
+	if member_index < 0 or member_index >= GameState.party_members.size():
+		return 0.0
+	var add: float = 0.0
+	for raw_def: Variant in for_member(GameState.party_members[member_index]):
+		if raw_def is not Dictionary:
+			continue
+		if raw_def.has("incoming_crit_rate_add"):
+			add += float(raw_def["incoming_crit_rate_add"])
+	return add
+
+
+## 回復スキル追撃ダメ比率（武器 fraction＋防具 add）。武器なしは無効。
+static func heal_skill_spill_damage_fraction(member_index: int) -> float:
+	if member_index < 0 or member_index >= GameState.party_members.size():
+		return 0.0
+	var frac: float = 0.0
+	var add: float = 0.0
+	for raw_def: Variant in for_member(GameState.party_members[member_index]):
+		if raw_def is not Dictionary:
+			continue
+		if raw_def.has("heal_skill_spill_damage_fraction"):
+			frac = maxf(frac, float(raw_def["heal_skill_spill_damage_fraction"]))
+		if raw_def.has("heal_skill_spill_damage_add"):
+			add += float(raw_def["heal_skill_spill_damage_add"])
+	if frac <= 0.0:
+		return 0.0
+	return maxf(0.0, frac + add)
+
+
 ## 必殺チャージ速度倍率（鍵名 `ultimate_charge_dealt_mult` は互換維持・時間制でも速度に適用）。
 static func ultimate_charge_rate_mult(member_index: int) -> float:
 	return weapon_ultimate_charge_dealt_mult(member_index)
@@ -1566,11 +1642,15 @@ static func equipped_relic_float(member_index: int, key: String, default_value: 
 	return float(def[key])
 
 
-## レリック／装飾などのスキルCD倍率（>1で遅延）。セットは呼び出し側で乗算。
+## レリック／武器／装飾などのスキルCD倍率（>1で遅延）。セットは呼び出し側で乗算。
 static func relic_skill_cd_mult(member_index: int) -> float:
 	var mult: float = equipped_relic_float(member_index, "skill_cd_mult", 1.0)
 	if member_index >= 0 and member_index < GameState.party_members.size():
-		for raw_def: Variant in _equipment_passives_for_member(GameState.party_members[member_index]):
+		var member: Resource = GameState.party_members[member_index]
+		var wdef: Dictionary = weapon_passive_def_for_member(member)
+		if wdef.has("skill_cd_mult"):
+			mult *= float(wdef["skill_cd_mult"])
+		for raw_def: Variant in _equipment_passives_for_member(member):
 			if raw_def is not Dictionary:
 				continue
 			var edef: Dictionary = raw_def
@@ -1729,7 +1809,17 @@ static func relic_mark_focus_outgoing_mult(member_index: int, present_status_ids
 
 
 static func relic_heal_received_mult(member_index: int) -> float:
-	return maxf(0.0, equipped_relic_float(member_index, "heal_received_mult", 1.0))
+	var mult: float = equipped_relic_float(member_index, "heal_received_mult", 1.0)
+	if member_index >= 0 and member_index < GameState.party_members.size():
+		for raw_def: Variant in for_member(GameState.party_members[member_index]):
+			if raw_def is not Dictionary:
+				continue
+			var def: Dictionary = raw_def
+			if str(def.get("category", "")) == "relic":
+				continue
+			if def.has("heal_received_mult"):
+				mult *= float(def["heal_received_mult"])
+	return maxf(0.0, mult)
 
 
 static func relic_pre_hit_status_id(member_index: int) -> String:

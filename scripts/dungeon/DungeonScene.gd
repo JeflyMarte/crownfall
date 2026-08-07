@@ -5961,6 +5961,7 @@ func _execute_member_heal(
 	if healed > 0:
 		GameState.record_run_heal(member_idx, healed)
 		_maybe_apply_heal_guard(member_idx, target_idx)
+	_maybe_kaiwan_heal_spill(member_idx, healed)
 	_set_heal_rally(target_idx)
 	_update_hp_bars()
 	if cast_index == 0:
@@ -6002,6 +6003,7 @@ func _apply_party_heal_from_skill(caster_idx: int, skill_data: Resource, present
 		_present_member_heal(i, healed, present_scale, false)
 	if skill_data != null and skill_data.tags.has("cleanse"):
 		_cleanse_all_party_debuffs()
+	_maybe_kaiwan_heal_spill(caster_idx, total)
 	return total
 
 
@@ -9933,6 +9935,28 @@ func _apply_healing_bonus(base_amount: int, member_idx: int = -1) -> int:
 	return maxi(0, int(round(float(amount) * heal_mult)))
 
 
+## 灰冠枯翠: 回復スキル後、最弱敵へ回復量比率の追撃ダメ。
+func _maybe_kaiwan_heal_spill(caster_idx: int, heal_basis: int) -> void:
+	if caster_idx < 0 or heal_basis <= 0:
+		return
+	if not $CombatController.is_in_combat:
+		return
+	var frac: float = CombatPassives.heal_skill_spill_damage_fraction(caster_idx)
+	if frac <= 0.0:
+		return
+	var slot: int = $CombatController.pick_enemy_slot_by_rule("lowest_hp")
+	if slot < 0 or not $CombatController.is_enemy_slot_alive(slot):
+		return
+	var dmg: int = maxi(1, int(round(float(heal_basis) * frac)))
+	$CombatController.apply_damage_to_enemy_slot(slot, dmg)
+	$CombatController.add_threat(caster_idx, float(dmg) * CombatController.THREAT_DAMAGE_K)
+	GameState.record_run_damage(caster_idx, dmg, "kaiwan_heal_spill", "枯翠追撃")
+	_update_hp_bars()
+	_check_boss_phase_transition(slot)
+	if $CombatController.get_enemy_hp_at(slot) <= 0:
+		_on_enemy_slot_killed(slot)
+
+
 ## 調剤師の薬など: 回復成功時に対象へ guard を付与。
 func _maybe_apply_heal_guard(caster_idx: int, target_idx: int) -> void:
 	if caster_idx < 0 or target_idx < 0:
@@ -12856,6 +12880,7 @@ func _apply_ultimate_heal_impact(payload: Dictionary) -> void:
 	if healed > 0:
 		GameState.record_run_heal(member_idx, healed)
 		_maybe_apply_heal_guard(member_idx, target_idx)
+	_maybe_kaiwan_heal_spill(member_idx, healed)
 	_set_heal_rally(target_idx)
 	_present_member_heal(target_idx, healed, 1.65, false)
 	_append_log(

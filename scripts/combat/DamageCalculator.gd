@@ -313,6 +313,7 @@ static func enemy_damage_to_member(
 	var crit_rate: float = 0.0
 	if enemy_data != null and "critical_rate" in enemy_data:
 		crit_rate = float(enemy_data.critical_rate)
+	crit_rate += CombatPassives.incoming_crit_rate_add_for_member(target_index)
 	if crit_rate > 0.0:
 		var crit_roll: float = rng.randf() if rng != null else randf()
 		if crit_roll < crit_rate:
