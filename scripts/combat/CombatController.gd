@@ -814,8 +814,8 @@ func apply_damage_to_member(index: int, amount: int) -> void:
 				var heal_frac: float = float(save_def.get("death_save_heal_max_hp_fraction", 0.0))
 				if heal_frac > 0.0 and index < party_max_hp.size():
 					var heal_amt: int = maxi(1, int(round(float(party_max_hp[index]) * heal_frac)))
-					## heal_member は回復受取倍率を通す（不死鳥は等倍想定）。
-					heal_member(index, heal_amt)
+					## 致死復帰は受取回復ペナルティを通さない（等倍）。
+					heal_member(index, heal_amt, false)
 				var out_mult: float = float(save_def.get("death_save_outgoing_mult", 1.0))
 				var out_dur: float = float(save_def.get("death_save_outgoing_duration_sec", 0.0))
 				if out_dur > 0.0 and not is_equal_approx(out_mult, 1.0):
