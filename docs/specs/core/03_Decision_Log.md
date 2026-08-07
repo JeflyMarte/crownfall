@@ -6757,15 +6757,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 |---|---|---|
 | P3-BAL-RELIC-REMAKE-001-1 | **ID据置** — `relic_*` 8種の ID 維持、名称・効果のみ差し替え | セーブ／所持互換 |
 | P3-BAL-RELIC-REMAKE-001-2 | **帯** — ビルド拡張（クリア必須にしない）。敵全体常時弱体／パーティ恒久大強化は原則NG | 体験バランス |
-| P3-BAL-RELIC-REMAKE-001-3 | **指揮の軍旗** — 撃破鼓舞＋ペット強化／自身与0.70 | 指揮役 |
+| P3-BAL-RELIC-REMAKE-001-3 | **指揮の軍旗** — 撃破鼓舞＋ペット与1.20／防1.10。与ダメペナ廃止 | 指揮役・案A |
 | P3-BAL-RELIC-REMAKE-001-4 | **身代わりの鏡** — 後衛被弾40%リダイレクト＋ガード | 壁役 |
-| P3-BAL-RELIC-REMAKE-001-5 | **連撃の歯車** — スキルCD×0.70／必殺速度×0.65 | スキル回転 |
-| P3-BAL-RELIC-REMAKE-001-6 | **生命の脈** — 3秒ごと最大HP2.5%回復／与0.85 | 耐久 |
-| P3-BAL-RELIC-REMAKE-001-7 | **一騎の契** — 標的+55%／非標的0.70／pre_hit mark | 単体特化 |
-| P3-BAL-RELIC-REMAKE-001-8 | **吸血契約** — lifesteal 12%／被回復×0.70（吸血自身は対象外）。旧・被ダメ+8%は廃止 | 攻守トレード→回復トレード（2026-08-07 案C GO） |
-| P3-BAL-RELIC-REMAKE-001-9 | **不死鳥の羽** — 致死1回＋30%復帰／与0.75×8s | 一度耐える |
+| P3-BAL-RELIC-REMAKE-001-5 | **連撃の歯車** — スキルCD×0.85のみ。必殺ペナ廃止 | スキル回転・案A |
+| P3-BAL-RELIC-REMAKE-001-6 | **生命の脈** — 3秒ごと最大HP1.5%。与ダメペナ廃止 | 耐久・案A |
+| P3-BAL-RELIC-REMAKE-001-7 | **一騎の契** — 標的+25%／pre_hit mark。非標的ペナ廃止 | 単体特化・案A |
+| P3-BAL-RELIC-REMAKE-001-8 | **吸血契約** — lifesteal 8%のみ。被ダメ／被回復ペナ廃止 | 自己維持・案A |
+| P3-BAL-RELIC-REMAKE-001-9 | **不死鳥の羽** — 致死1回＋HP20%復帰。復帰後弱体廃止 | 保険・案A |
 | P3-BAL-RELIC-REMAKE-001-10 | **宝箱の羅針** — treasure weight +20（combat減） | 非戦闘価値 |
 | P3-BAL-RELIC-REMAKE-001-11 | **SSOT** — `decisions/53_RelicRuleRemake.md` | 正 |
+| P3-BAL-RELIC-REMAKE-001-12 | **2026-08-07 案A** — 常時デメリット全廃＋メリット抑制。尖鋭トレードオフ方針を上書き | オーナー GO |
 
 ## ペット／ヒーラービルド装備（2026-08-02 — P3-EQ-PET-HEAL-BUILD-001）
 
