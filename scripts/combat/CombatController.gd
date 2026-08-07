@@ -911,16 +911,18 @@ func get_member_max_hp(index: int) -> int:
 	return maxi(0, int(party_max_hp[index]))
 
 
-func heal_member(index: int, amount: int) -> int:
+## apply_received_mult=false は吸血・致死復帰など「受取回復」扱いしない経路用。
+func heal_member(index: int, amount: int, apply_received_mult: bool = true) -> int:
 	if index < 0 or index >= party_combat_hp.size():
 		return 0
 	if party_combat_hp[index] <= 0:
 		return 0
 	var adjusted: int = amount
-	var heal_mult: float = CombatPassives.relic_heal_received_mult(index)
-	heal_mult *= CombatWeather.heal_received_multiplier(GameState.get_weather())
-	if not is_equal_approx(heal_mult, 1.0):
-		adjusted = int(round(float(amount) * heal_mult))
+	if apply_received_mult:
+		var heal_mult: float = CombatPassives.relic_heal_received_mult(index)
+		heal_mult *= CombatWeather.heal_received_multiplier(GameState.get_weather())
+		if not is_equal_approx(heal_mult, 1.0):
+			adjusted = int(round(float(amount) * heal_mult))
 	if adjusted <= 0:
 		return 0
 	var before: int = party_combat_hp[index]

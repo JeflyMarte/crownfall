@@ -6762,7 +6762,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-RELIC-REMAKE-001-5 | **連撃の歯車** — スキルCD×0.70／必殺速度×0.65 | スキル回転 |
 | P3-BAL-RELIC-REMAKE-001-6 | **生命の脈** — 3秒ごと最大HP2.5%回復／与0.85 | 耐久 |
 | P3-BAL-RELIC-REMAKE-001-7 | **一騎の契** — 標的+55%／非標的0.70／pre_hit mark | 単体特化 |
-| P3-BAL-RELIC-REMAKE-001-8 | **吸血契約** — lifesteal 12%／被+8% | 攻守トレード |
+| P3-BAL-RELIC-REMAKE-001-8 | **吸血契約** — lifesteal 12%／被回復×0.70（吸血自身は対象外）。旧・被ダメ+8%は廃止 | 攻守トレード→回復トレード（2026-08-07 案C GO） |
 | P3-BAL-RELIC-REMAKE-001-9 | **不死鳥の羽** — 致死1回＋30%復帰／与0.75×8s | 一度耐える |
 | P3-BAL-RELIC-REMAKE-001-10 | **宝箱の羅針** — treasure weight +20（combat減） | 非戦闘価値 |
 | P3-BAL-RELIC-REMAKE-001-11 | **SSOT** — `decisions/53_RelicRuleRemake.md` | 正 |
