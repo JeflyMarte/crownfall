@@ -33,23 +33,23 @@ func test_scout_lens_is_treasure_compass() -> void:
 func test_war_banner_is_command_pet_core() -> void:
 	var def: Dictionary = CombatPassives.get_def("relic_war_banner")
 	assert_eq(str(def.get("display_name", "")), "指揮の軍旗")
-	assert_almost_eq(float(def.get("pet_outgoing_mult", 1.0)), 1.35, 0.001)
-	assert_almost_eq(float(def.get("pet_defense_mult", 1.0)), 1.15, 0.001)
-	assert_almost_eq(float(def.get("outgoing_mult", 1.0)), 0.70, 0.001)
+	assert_almost_eq(float(def.get("pet_outgoing_mult", 1.0)), 1.20, 0.001)
+	assert_almost_eq(float(def.get("pet_defense_mult", 1.0)), 1.10, 0.001)
+	assert_almost_eq(float(def.get("outgoing_mult", 1.0)), 1.0, 0.001)
 	assert_eq(str(def.get("trigger", "")), "on_kill")
 	assert_eq(str(def.get("effect", "")), "party_rally")
 	_equip_relic("relic_war_banner")
 	## pet_*_mult_from_party はペット未所持だと 1.0 固定のガードがある。
 	GameState.active_pet = _PetSystem.create_pet_adventurer(_PetSystem.STARTER_PET_ID)
-	assert_almost_eq(CombatPassives.pet_outgoing_mult_from_party(), 1.35, 0.001)
-	assert_almost_eq(CombatPassives.pet_defense_mult_from_party(), 1.15, 0.001)
+	assert_almost_eq(CombatPassives.pet_outgoing_mult_from_party(), 1.20, 0.001)
+	assert_almost_eq(CombatPassives.pet_defense_mult_from_party(), 1.10, 0.001)
 
 
 func test_hourglass_is_skill_cd_core() -> void:
 	var def: Dictionary = CombatPassives.get_def("relic_old_hourglass")
 	assert_eq(str(def.get("display_name", "")), "連撃の歯車")
-	assert_almost_eq(float(def.get("ultimate_charge_dealt_mult", 1.0)), 0.65, 0.001)
-	assert_almost_eq(float(def.get("skill_cd_mult", 1.0)), 0.70, 0.001)
+	assert_almost_eq(float(def.get("ultimate_charge_dealt_mult", 1.0)), 1.0, 0.001)
+	assert_almost_eq(float(def.get("skill_cd_mult", 1.0)), 0.85, 0.001)
 
 
 func test_opening_accessories_roles_diverge() -> void:

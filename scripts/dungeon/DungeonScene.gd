@@ -7574,7 +7574,7 @@ func _apply_member_lifesteal(member_idx: int, damage: int, skill_id: String = ""
 	if ratio <= 0.0:
 		return
 	var heal_amount: int = maxi(1, int(round(float(damage) * ratio)))
-	## 吸血は契約の代償（被回復↓）を通さない。味方ヒール／リジェネだけ削る。
+	## 吸血は与ダメ回収のため受取回復倍率を通さない（天候・将来の被回復ペナと分離）。
 	var healed: int = $CombatController.heal_member(member_idx, heal_amount, false)
 	if healed <= 0:
 		return

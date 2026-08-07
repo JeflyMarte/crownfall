@@ -1,5 +1,5 @@
 extends GutTest
-## P3-BAL-RELIC-REMAKE-001 — 差し替え8種の定義・フック補助。
+## P3-BAL-RELIC-REMAKE-001 — 差し替え8種の定義・フック補助（案A）。
 
 
 func _equip(relic_id: String) -> Resource:
@@ -29,7 +29,7 @@ func test_eight_relic_display_names() -> void:
 	assert_eq(CombatPassives.relic_display_name("relic_scout_lens"), "宝箱の羅針")
 
 
-func test_death_save_heal_and_outgoing_penalty() -> void:
+func test_death_save_heal_without_outgoing_penalty() -> void:
 	_equip("relic_lament_ring")
 	var cc: CombatController = CombatController.new()
 	add_child_autofree(cc)
@@ -38,8 +38,8 @@ func test_death_save_heal_and_outgoing_penalty() -> void:
 	cc.clear_death_save_state()
 	cc.apply_damage_to_member(0, 999)
 	assert_gt(int(cc.party_combat_hp[0]), 1)
-	assert_lte(int(cc.party_combat_hp[0]), 31)
-	assert_almost_eq(cc.death_save_outgoing_mult_for(0), 0.75, 0.001)
+	assert_lte(int(cc.party_combat_hp[0]), 21)
+	assert_almost_eq(cc.death_save_outgoing_mult_for(0), 1.0, 0.001)
 	## 2回目の致死は耐えない
 	cc.party_combat_hp[0] = 5
 	cc.apply_damage_to_member(0, 999)
@@ -83,19 +83,27 @@ func test_treasure_weight_add_from_party() -> void:
 	assert_eq(CombatPassives.party_treasure_room_weight_add(), 20)
 
 
-func test_vampiric_contract_heal_received_penalty() -> void:
+func test_vampiric_contract_lifesteal_only() -> void:
 	_equip("relic_reactive_aegis")
-	assert_almost_eq(CombatPassives.relic_lifesteal_ratio(0), 0.12, 0.001)
-	assert_almost_eq(CombatPassives.relic_heal_received_mult(0), 0.70, 0.001)
+	assert_almost_eq(CombatPassives.relic_lifesteal_ratio(0), 0.08, 0.001)
+	assert_almost_eq(CombatPassives.relic_heal_received_mult(0), 1.0, 0.001)
 	assert_almost_eq(CombatPassives.equipped_relic_float(0, "incoming_mult", 1.0), 1.0, 0.001)
-	var cc: CombatController = CombatController.new()
-	add_child_autofree(cc)
-	cc.party_combat_hp = [10]
-	cc.party_max_hp = [200]
-	## 味方ヒール等は被回復↓
-	assert_eq(cc.heal_member(0, 100), 70)
-	cc.party_combat_hp[0] = 10
-	## 吸血経路は等倍
-	assert_eq(cc.heal_member(0, 100, false), 100)
 	var desc: String = CombatRelics.description("relic_reactive_aegis")
-	assert_true(desc.contains("回復"), desc)
+	assert_true(desc.contains("8%") or desc.contains("回復"), desc)
+
+
+func test_benefit_a_no_global_penalties() -> void:
+	_equip("relic_war_banner")
+	assert_almost_eq(float(CombatPassives.stat_multipliers_for_member(GameState.party_members[0], 0)["outgoing_mult"]), 1.0, 0.001)
+	var banner: Dictionary = CombatPassives.get_def("relic_war_banner")
+	assert_almost_eq(float(banner.get("pet_outgoing_mult", 1.0)), 1.20, 0.001)
+	_equip("relic_old_hourglass")
+	assert_almost_eq(CombatPassives.relic_skill_cd_mult(0), 0.85, 0.001)
+	assert_almost_eq(CombatPassives.equipped_relic_float(0, "ultimate_charge_dealt_mult", 1.0), 1.0, 0.001)
+	_equip("relic_hunter_sigil")
+	assert_almost_eq(CombatPassives.relic_mark_focus_outgoing_mult(0, ["mark"]), 1.25, 0.001)
+	assert_almost_eq(CombatPassives.relic_mark_focus_outgoing_mult(0, []), 1.0, 0.001)
+	_equip("relic_berserker_charm")
+	var regen: Array = CombatPassives.combat_regen_defs_for_party()
+	assert_eq(regen.size(), 1)
+	assert_almost_eq(float(regen[0].get("max_hp_fraction", 0.0)), 0.015, 0.001)
