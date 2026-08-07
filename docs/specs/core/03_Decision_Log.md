@@ -2806,6 +2806,18 @@
 | P3-SURVEY-COMPLETE-001-10 | **案Aサイクル** — 100%到達ごとに景品再付与 → ゲージ **0%**。`hub_survey_complete_claimed` は達成履歴のみ（阻害しない）。**アッシュ／インクは未所持時のみ**（プレビュー・付与・通知とも2周目以降なし） | 2026-07-26 オーナー GO。001-1 の一回限りを上書き |
 | P3-SURVEY-COMPLETE-001-11 | **達成ポップ表示タイミング** — 結果／ダンジョン選択では出さず、拠点（メインメニュー）で表示。景品付与自体は 100% 到達時のまま | 2026-07-27 オーナー指示 |
 
+### 完全調査：チケット確定廃止＋魔晶石×10（2026-08-07 — P3-SURVEY-COMPLETE-TOKEN-X10-001）
+
+> **オーナー指示** — チケット確定やめ／魔晶石10倍可／抽選枠に招待状可。
+
+| ID | 決定 | 理由 |
+|---|---|---|
+| P3-SURVEY-COMPLETE-TOKEN-X10-001-1 | **確定チケット廃止** — ①②招待確定／⑤封蔵確定を撤去 | オーナー |
+| P3-SURVEY-COMPLETE-TOKEN-X10-001-2 | **魔晶石×10** — ①100／②150／③200／④250／⑤300 | 確定券の代替 |
+| P3-SURVEY-COMPLETE-TOKEN-X10-001-3 | **招待状は全DG抽選** — ①30%／②40%／③25%／④35%／⑤40% | オーナー許可 |
+| P3-SURVEY-COMPLETE-TOKEN-X10-001-4 | **⑤封蔵も抽選50%**（④と同率） | 確定廃止に整合 |
+| P3-SURVEY-COMPLETE-TOKEN-X10-001-5 | **SSOT** — `SurveyCompleteRewards.TABLE`。Gold／素材／LB％／ペット条件は据置 | 実装正 |
+
 ---
 
 ## BTペット連携スキル／パッシブ（2026-07-19 — P3-BT-PET-LINK-001）
@@ -6174,8 +6186,8 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 |---|---|---|
 | P3-GACHA-EQ-SEAL-TICKET-001-1 | **券** — `ticket_seal_free`（封蔵開封券）。1枚＝封蔵1回無料 | 招待無料券と同型 |
 | P3-GACHA-EQ-SEAL-TICKET-001-2 | **UI** — 封蔵ページ右ボタンで消費。招待券とは別在庫 | 混線防止 |
-| P3-GACHA-EQ-SEAL-TICKET-001-3 | **完全調査** — ①30%／②40%／③25%／④50%／⑤確定1 | 招待券と混ぜつつ後半厚め |
-| P3-GACHA-EQ-SEAL-TICKET-001-4 | **据置** — ①②の招待無料券確定、③招待抽選、LB抽選 | 既存景品を壊さない |
+| P3-GACHA-EQ-SEAL-TICKET-001-3 | **完全調査** — ①30%／②40%／③25%／④50%／⑤50%（いずれも抽選） | → **P3-SURVEY-COMPLETE-TOKEN-X10-001** で⑤確定を抽選化 |
+| P3-GACHA-EQ-SEAL-TICKET-001-4 | **据置** — ①②の招待無料券確定、③招待抽選、LB抽選 | → **P3-SURVEY-COMPLETE-TOKEN-X10-001** で招待も全DG抽選化 |
 | P3-GACHA-EQ-SEAL-TICKET-001-5 | **上書き** — SEAL-UI-001「封蔵無料券なし」 | 本 Decision が正 |
 
 ## 状態異常横断点検（2026-07-31 — P3-FIX-STATUS-AUDIT-001）
