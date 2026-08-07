@@ -308,14 +308,34 @@ static func is_member_dispatched(member_id: String) -> bool:
 static func ensure_party_restored_if_awaiting_claim(save_after: bool = true) -> bool:
 	if not has_active_cycle() or not is_cycle_complete():
 		return false
-	if bool(GameState.hub_survey_cycle.get("party_restored", false)):
-		return false
 	var party_ids_before: Array = GameState.hub_survey_cycle.get("party_ids_before", []) as Array
 	var assignees: Array = GameState.hub_survey_cycle.get("assignees", []) as Array
-	_restore_party_after_dispatch(party_ids_before.duplicate(), assignees)
-	GameState.hub_survey_cycle["party_restored"] = true
-	if save_after:
+	## 既にフラグがあっても欠員なら再修復（復元失敗＋party_restored だけ立つ事故の救済）。
+	if bool(GameState.hub_survey_cycle.get("party_restored", false)) and _party_contains_all_ids(party_ids_before):
+		return false
+	var ok: bool = _restore_party_after_dispatch(party_ids_before.duplicate(), assignees)
+	if ok:
+		GameState.hub_survey_cycle["party_restored"] = true
+	if save_after and ok:
 		SaveManager.save_game()
+	return ok
+
+
+## 現編成が指定 ID をすべて含むか（順序不問）。空配列は true。
+static func _party_contains_all_ids(member_ids: Array) -> bool:
+	if member_ids.is_empty():
+		return true
+	var have: Dictionary = {}
+	for adv: Variant in GameState.party_members:
+		if adv == null:
+			continue
+		have[str((adv as Resource).id)] = true
+	for mid_v: Variant in member_ids:
+		var mid: String = str(mid_v).strip_edges()
+		if mid.is_empty():
+			continue
+		if not have.has(mid):
+			return false
 	return true
 
 
@@ -394,9 +414,9 @@ static func _remove_dispatched_from_party() -> void:
 	GameState.set_active_party(kept)
 
 
-## サイクル終了後に派遣前編成を復元。
+## サイクル終了後に派遣前編成を復元。成功で true。
 ## 完了待ちでは is_member_dispatched が空なので cycle クリア前でも可。受取時はクリア後に再呼ぶ。
-static func _restore_party_after_dispatch(party_ids_before: Array, assignees: Array) -> void:
+static func _restore_party_after_dispatch(party_ids_before: Array, assignees: Array) -> bool:
 	var ids_before: Array = party_ids_before.duplicate() if party_ids_before is Array else []
 	if not ids_before.is_empty():
 		var restored: Array = []
@@ -411,7 +431,7 @@ static func _restore_party_after_dispatch(party_ids_before: Array, assignees: Ar
 			if restored.size() >= GameState.ACTIVE_PARTY_SIZE:
 				break
 		if not restored.is_empty() and GameState.set_active_party(restored):
-			return
+			return true
 		if not restored.is_empty():
 			push_warning("SurveySystem: party_ids_before 復元失敗 reason=%s" % GameState.active_party_reject_reason(restored))
 	## 旧セーブ（party_ids_before 無し）／復元失敗: 現編成へ派遣していた戦闘員を空き枠に戻す。
@@ -436,8 +456,12 @@ static func _restore_party_after_dispatch(party_ids_before: Array, assignees: Ar
 				continue
 			kept.append(adv3)
 			break
-	if not kept.is_empty() and not GameState.set_active_party(kept):
-		push_warning("SurveySystem: フォールバック編成復元失敗 reason=%s" % GameState.active_party_reject_reason(kept))
+	if kept.is_empty():
+		return false
+	if GameState.set_active_party(kept):
+		return true
+	push_warning("SurveySystem: フォールバック編成復元失敗 reason=%s" % GameState.active_party_reject_reason(kept))
+	return false
 
 
 static func auto_assign_members() -> Array[String]:
@@ -538,12 +562,11 @@ static func claim_cycle() -> Dictionary:
 		_grant_weapon(weapon_id)
 	## 前回配置を残してからクリア（受取後に勝手なおまかせをしない）。
 	remember_last_member_ids(assignees)
-	var already_restored: bool = bool(GameState.hub_survey_cycle.get("party_restored", false))
 	## 派遣解除→編成復元→EXP（編成外だと本人パッシブが効かない）。
-	## 完了時点で復元済みなら、受取までの編成編集を上書きしない。
+	## 受取では必ず派遣前編成へ戻す（party_restored スキップだと欠員のまま確定する事故を防ぐ）。
+	## 完了〜受取のあいだの編成いじりより、派遣前4人復帰を優先する。
 	GameState.hub_survey_cycle = {}
-	if not already_restored:
-		_restore_party_after_dispatch(party_ids_before.duplicate(), assignees)
+	_restore_party_after_dispatch(party_ids_before.duplicate(), assignees)
 	var exp_result: Dictionary = grant_dispatch_exp(dungeon_id, preset, assignees)
 	rewards["exp_pool"] = int(exp_result.get("pool", 0))
 	rewards["exp_entries"] = exp_result.get("entries", [])
