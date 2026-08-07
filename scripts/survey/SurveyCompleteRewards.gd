@@ -4,7 +4,7 @@ extends RefCounted
 ## ダンジョン SURVEY 100%（完全調査）景品（P3-SURVEY-COMPLETE-001）。
 ## 100%到達ごとに付与し、ゲージを 0% へ戻す（案Aサイクル）。
 ## アッシュ／インクは未所持時のみ（2周目以降は出さない）。
-## 2026-07-26 厳格化: 魔晶石減／限界突破券は低確率（★2・★3=5%／★4=1%）。
+## 2026-08-07: チケット確定廃止。魔晶石×10。招待状／封蔵は抽選のみ。
 
 const _SurveyConfig := preload("res://scripts/survey/SurveyConfig.gd")
 const _TicketInventory := preload("res://scripts/tickets/TicketInventory.gd")
@@ -14,61 +14,66 @@ const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
 const P_LB_STAR2: float = 0.05
 const P_LB_STAR3: float = 0.05
 const P_LB_STAR4: float = 0.01
-## ③ガチャ券追加抽選
+## 招待状チケット抽選（確定付与しない）
+const P_GACHA_MOURNGATE: float = 0.30
+const P_GACHA_WHISPERWOOD: float = 0.40
 const P_GACHA_MISTFEN: float = 0.25
+const P_GACHA_BLACKSHORE: float = 0.35
+const P_GACHA_FROSTRIDGE: float = 0.40
 ## 封蔵開封券（招待券と混ぜる／P3-GACHA-EQ-SEAL-TICKET-001）
 const P_SEAL_MOURNGATE: float = 0.30
 const P_SEAL_WHISPERWOOD: float = 0.40
 const P_SEAL_MISTFEN: float = 0.25
 const P_SEAL_BLACKSHORE: float = 0.50
+const P_SEAL_FROSTRIDGE: float = 0.50
 
 ## dungeon_id → 確定報酬定義。
 ## gold / token / materials{id:qty} / tickets{id:qty} / pet_id
-## lb_rolls: Array[{id, p}] — 限界突破券の独立抽選
-## seal_rolls: Array[{id, p}] — 封蔵開封券の独立抽選
-## lottery: 旧互換キー（ガチャ券など）
+## lb_rolls / seal_rolls / gacha_rolls: Array[{id, p}] — 独立抽選
 const TABLE: Dictionary = {
 	"mourngate": {
 		"gold": 200,
-		"token": 10,
-		"tickets": {"ticket_gacha_free": 1},
+		"token": 100,
+		"gacha_rolls": [{"id": "ticket_gacha_free", "p": P_GACHA_MOURNGATE}],
 		"seal_rolls": [{"id": "ticket_seal_free", "p": P_SEAL_MOURNGATE}],
 	},
 	"whisperwood": {
 		"gold": 350,
-		"token": 15,
+		"token": 150,
 		"materials": {"base_ore": 5, "relic_shard": 2},
-		"tickets": {"ticket_gacha_free": 1},
 		"pet_id": "pet_ash",
+		"gacha_rolls": [{"id": "ticket_gacha_free", "p": P_GACHA_WHISPERWOOD}],
 		"seal_rolls": [{"id": "ticket_seal_free", "p": P_SEAL_WHISPERWOOD}],
 	},
 	"mistfen": {
 		"gold": 500,
-		"token": 20,
+		"token": 200,
 		"materials": {"base_ore": 8, "relic_shard": 4},
 		"lb_rolls": [{"id": "ticket_lb_star2", "p": P_LB_STAR2}],
+		"gacha_rolls": [{"id": "ticket_gacha_free", "p": P_GACHA_MISTFEN}],
 		"seal_rolls": [{"id": "ticket_seal_free", "p": P_SEAL_MISTFEN}],
-		"lottery": "mistfen_gacha",
 	},
 	"blackshore": {
 		"gold": 650,
-		"token": 25,
+		"token": 250,
 		"materials": {"base_ore": 10, "relic_shard": 5},
 		"pet_id": "pet_ink",
 		"lb_rolls": [
 			{"id": "ticket_lb_star3", "p": P_LB_STAR3},
 			{"id": "ticket_lb_star4", "p": P_LB_STAR4},
 		],
+		"gacha_rolls": [{"id": "ticket_gacha_free", "p": P_GACHA_BLACKSHORE}],
 		"seal_rolls": [{"id": "ticket_seal_free", "p": P_SEAL_BLACKSHORE}],
 	},
 	"frostridge": {
 		"gold": 800,
-		"token": 30,
-		"tickets": {"ticket_seal_free": 1},
+		"token": 300,
 		"lb_rolls": [
 			{"id": "ticket_lb_star3", "p": P_LB_STAR3},
 			{"id": "ticket_lb_star4", "p": P_LB_STAR4},
 		],
+		"gacha_rolls": [{"id": "ticket_gacha_free", "p": P_GACHA_FROSTRIDGE}],
+		"seal_rolls": [{"id": "ticket_seal_free", "p": P_SEAL_FROSTRIDGE}],
 	},
 }
 
@@ -144,15 +149,22 @@ static func preview_entries(dungeon_id: String) -> Array[Dictionary]:
 				"label": sid,
 				"chance_note": _pct_label(sp),
 			})
-	var lottery: String = str(d.get("lottery", ""))
-	match lottery:
-		"mistfen_gacha":
+	var gacha_rolls: Variant = d.get("gacha_rolls", [])
+	if gacha_rolls is Array:
+		for roll_v3 in gacha_rolls as Array:
+			if not (roll_v3 is Dictionary):
+				continue
+			var groll: Dictionary = roll_v3
+			var gid: String = str(groll.get("id", ""))
+			var gp: float = float(groll.get("p", 0.0))
+			if gid.is_empty() or gp <= 0.0:
+				continue
 			out.append({
 				"kind": "ticket",
-				"id": TicketIds.GACHA_FREE,
+				"id": gid,
 				"qty": 1,
-				"label": "ガチャチケット",
-				"chance_note": _pct_label(P_GACHA_MISTFEN),
+				"label": gid,
+				"chance_note": _pct_label(gp),
 			})
 	return out
 
@@ -289,16 +301,24 @@ static func try_claim(dungeon_id: String, notify: bool = true) -> Dictionary:
 			if randf() < sp:
 				_TicketInventory.add(sid, 1)
 				ticket_out[sid] = int(ticket_out.get(sid, 0)) + 1
-	## 追加抽選（ガチャ券など）
-	var lottery: String = str(def.get("lottery", ""))
-	match lottery:
-		"mistfen_gacha":
-			if randf() < P_GACHA_MISTFEN:
-				_TicketInventory.add(TicketIds.GACHA_FREE, 1)
-				ticket_out[TicketIds.GACHA_FREE] = int(ticket_out.get(TicketIds.GACHA_FREE, 0)) + 1
-				granted["lottery"] = "gacha"
-			else:
-				granted["lottery"] = "miss"
+	## 招待状チケット（独立抽選）
+	var gacha_rolls: Variant = def.get("gacha_rolls", [])
+	var gacha_hit: bool = false
+	if gacha_rolls is Array:
+		for roll_v3 in gacha_rolls as Array:
+			if not (roll_v3 is Dictionary):
+				continue
+			var groll: Dictionary = roll_v3
+			var gid: String = str(groll.get("id", ""))
+			var gp: float = float(groll.get("p", 0.0))
+			if gid.is_empty() or gp <= 0.0:
+				continue
+			if randf() < gp:
+				_TicketInventory.add(gid, 1)
+				ticket_out[gid] = int(ticket_out.get(gid, 0)) + 1
+				gacha_hit = true
+	if gacha_rolls is Array and not (gacha_rolls as Array).is_empty():
+		granted["lottery"] = "gacha" if gacha_hit else "miss"
 	## LB 結果は別キー。lottery（招待券など）を上書きしない。
 	if not lb_hits.is_empty():
 		granted["lb_hits"] = lb_hits.duplicate()
