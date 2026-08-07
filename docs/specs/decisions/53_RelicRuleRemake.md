@@ -24,7 +24,7 @@
 | `relic_old_hourglass` | 連撃の歯車 | スキルCD短縮／必殺チャージ遅 | `skill_cd_mult` 0.70／`ultimate_charge_dealt_mult` 0.65 |
 | `relic_berserker_charm` | 生命の脈 | 戦闘中リジェネ／与ダメ控えめ | 3秒ごと最大HP 2.5%／与ダメ 0.85 |
 | `relic_hunter_sigil` | 一騎の契 | 標的特化 | mark +55%／非標的 0.70／pre_hit mark |
-| `relic_reactive_aegis` | 吸血契約 | 与ダメの一部回復／被弾やや痛い | `lifesteal_ratio` 0.12／`incoming_mult` 1.08 |
+| `relic_reactive_aegis` | 吸血契約 | 与ダメの一部回復／被回復↓ | `lifesteal_ratio` 0.12／`heal_received_mult` 0.70（吸血自身は対象外） |
 | `relic_lament_ring` | 不死鳥の羽 | 致死1回耐えて低HP復帰／その後与ダメ↓ | `death_save_once`＋heal 30%＋outgoing 0.75×8s |
 | `relic_scout_lens` | 宝箱の羅針 | 宝箱部屋率UP（戦闘火力触らない） | `treasure_room_weight_add` +20（combatから減） |
 

@@ -81,3 +81,21 @@ func test_redirect_rear_hit_helper() -> void:
 func test_treasure_weight_add_from_party() -> void:
 	_equip("relic_scout_lens")
 	assert_eq(CombatPassives.party_treasure_room_weight_add(), 20)
+
+
+func test_vampiric_contract_heal_received_penalty() -> void:
+	_equip("relic_reactive_aegis")
+	assert_almost_eq(CombatPassives.relic_lifesteal_ratio(0), 0.12, 0.001)
+	assert_almost_eq(CombatPassives.relic_heal_received_mult(0), 0.70, 0.001)
+	assert_almost_eq(CombatPassives.equipped_relic_float(0, "incoming_mult", 1.0), 1.0, 0.001)
+	var cc: CombatController = CombatController.new()
+	add_child_autofree(cc)
+	cc.party_combat_hp = [10]
+	cc.party_max_hp = [200]
+	## 味方ヒール等は被回復↓
+	assert_eq(cc.heal_member(0, 100), 70)
+	cc.party_combat_hp[0] = 10
+	## 吸血経路は等倍
+	assert_eq(cc.heal_member(0, 100, false), 100)
+	var desc: String = CombatRelics.description("relic_reactive_aegis")
+	assert_true(desc.contains("回復"), desc)

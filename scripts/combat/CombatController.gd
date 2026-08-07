@@ -814,8 +814,8 @@ func apply_damage_to_member(index: int, amount: int) -> void:
 				var heal_frac: float = float(save_def.get("death_save_heal_max_hp_fraction", 0.0))
 				if heal_frac > 0.0 and index < party_max_hp.size():
 					var heal_amt: int = maxi(1, int(round(float(party_max_hp[index]) * heal_frac)))
-					## heal_member は回復受取倍率を通す（不死鳥は等倍想定）。
-					heal_member(index, heal_amt)
+					## 致死復帰は受取回復ペナルティを通さない（等倍）。
+					heal_member(index, heal_amt, false)
 				var out_mult: float = float(save_def.get("death_save_outgoing_mult", 1.0))
 				var out_dur: float = float(save_def.get("death_save_outgoing_duration_sec", 0.0))
 				if out_dur > 0.0 and not is_equal_approx(out_mult, 1.0):
@@ -911,16 +911,18 @@ func get_member_max_hp(index: int) -> int:
 	return maxi(0, int(party_max_hp[index]))
 
 
-func heal_member(index: int, amount: int) -> int:
+## apply_received_mult=false は吸血・致死復帰など「受取回復」扱いしない経路用。
+func heal_member(index: int, amount: int, apply_received_mult: bool = true) -> int:
 	if index < 0 or index >= party_combat_hp.size():
 		return 0
 	if party_combat_hp[index] <= 0:
 		return 0
 	var adjusted: int = amount
-	var heal_mult: float = CombatPassives.relic_heal_received_mult(index)
-	heal_mult *= CombatWeather.heal_received_multiplier(GameState.get_weather())
-	if not is_equal_approx(heal_mult, 1.0):
-		adjusted = int(round(float(amount) * heal_mult))
+	if apply_received_mult:
+		var heal_mult: float = CombatPassives.relic_heal_received_mult(index)
+		heal_mult *= CombatWeather.heal_received_multiplier(GameState.get_weather())
+		if not is_equal_approx(heal_mult, 1.0):
+			adjusted = int(round(float(amount) * heal_mult))
 	if adjusted <= 0:
 		return 0
 	var before: int = party_combat_hp[index]

@@ -647,9 +647,9 @@ const _DEFS: Dictionary = {
 	"relic_reactive_aegis": {
 		"display_name": "吸血契約",
 		"category": "relic",
-		"description": "与ダメの 12% を自身が回復。被ダメ +8%",
+		"description": "与ダメの 12% を自身が回復。受ける回復 -30%（吸血自身は対象外）",
 		"lifesteal_ratio": 0.12,
-		"incoming_mult": 1.08,
+		"heal_received_mult": 0.70,
 	},
 	"relic_lament_ring": {
 		"display_name": "不死鳥の羽",
@@ -1911,6 +1911,10 @@ static func _passive_effect_summary(def: Dictionary) -> String:
 		parts.append("行動時ペット回復 %d%%" % int(round(float(def["pet_heal_on_action_max_hp_fraction"]) * 100.0)))
 	if float(def.get("heal_power_mult", 1.0)) > 1.0:
 		parts.append("回復 +%d%%" % int(round((float(def["heal_power_mult"]) - 1.0) * 100.0)))
+	if float(def.get("heal_received_mult", 1.0)) < 1.0:
+		parts.append("被回復 -%d%%" % int(round((1.0 - float(def["heal_received_mult"])) * 100.0)))
+	if float(def.get("heal_received_mult", 1.0)) > 1.0:
+		parts.append("被回復 +%d%%" % int(round((float(def["heal_received_mult"]) - 1.0) * 100.0)))
 	if float(def.get("incoming_mult", 1.0)) < 1.0:
 		parts.append("被ダメ -%d%%" % int(round((1.0 - float(def["incoming_mult"])) * 100.0)))
 	if float(def.get("incoming_mult", 1.0)) > 1.0:
