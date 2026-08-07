@@ -76,14 +76,78 @@ func test_complete_restores_party_before_claim() -> void:
 	assert_true(_SurveySystem.ensure_party_restored_if_awaiting_claim(false))
 	assert_eq(GameState.party_members.size(), 2, "完了時点で編成復元")
 	assert_true(bool(GameState.hub_survey_cycle.get("party_restored", false)))
-	## 完了後に編成を触っても受取で上書きしない
+	## 完了後に編成を減らしても、受取は派遣前編成へ戻す（欠員確定を防ぐ）。
 	assert_true(GameState.set_active_party([
 		GameState.find_roster_member_by_id(combat_ids[1]),
 	]))
 	var claimed: Dictionary = _SurveySystem.claim_cycle()
 	assert_true(bool(claimed.get("ok", false)), str(claimed))
-	assert_eq(GameState.party_members.size(), 1, "完了後編集を受取で潰さない")
-	assert_eq(str(GameState.party_members[0].id), combat_ids[1])
+	assert_eq(GameState.party_members.size(), 2, "受取で派遣前編成へ復帰")
+	assert_eq(str(GameState.party_members[0].id), combat_ids[0])
+	assert_eq(str(GameState.party_members[1].id), combat_ids[1])
+
+
+func test_claim_repairs_party_when_restored_flag_but_missing() -> void:
+	## party_restored だけ立って欠員のまま → 受取で修復する。
+	GameState.seed_all_starters_unlocked()
+	var combat_ids: Array[String] = []
+	for adv in GameState.roster:
+		if adv == null or _SurveySystem.is_survey_staff(str(adv.id)):
+			continue
+		combat_ids.append(str(adv.id))
+		if combat_ids.size() >= 4:
+			break
+	assert_eq(combat_ids.size(), 4)
+	var party: Array = []
+	for id in combat_ids:
+		party.append(GameState.find_roster_member_by_id(id))
+	assert_true(GameState.set_active_party(party))
+	var dispatch: Array[String] = [combat_ids[0], combat_ids[1]]
+	assert_true(bool(_SurveySystem.start_cycle(
+		Constants.MOURNGATE_DUNGEON_ID,
+		_SurveyConfig.PRESET_SHORT,
+		dispatch
+	).get("ok", false)))
+	assert_eq(GameState.party_members.size(), 2, "派遣中は2人")
+	_mark_complete()
+	## フラグだけ立てて欠員のまま（旧バグ再現）。
+	GameState.hub_survey_cycle["party_restored"] = true
+	assert_eq(GameState.party_members.size(), 2)
+	assert_true(bool(_SurveySystem.claim_cycle().get("ok", false)))
+	assert_eq(GameState.party_members.size(), 4, "受取で4人へ修復")
+	for id2 in combat_ids:
+		var found: bool = false
+		for m in GameState.party_members:
+			if m != null and str(m.id) == id2:
+				found = true
+		assert_true(found, "missing %s" % id2)
+
+
+func test_ensure_repairs_when_flag_set_but_party_incomplete() -> void:
+	GameState.seed_all_starters_unlocked()
+	var combat_ids: Array[String] = []
+	for adv in GameState.roster:
+		if adv == null or _SurveySystem.is_survey_staff(str(adv.id)):
+			continue
+		combat_ids.append(str(adv.id))
+		if combat_ids.size() >= 4:
+			break
+	assert_eq(combat_ids.size(), 4)
+	var party: Array = []
+	for id in combat_ids:
+		party.append(GameState.find_roster_member_by_id(id))
+	assert_true(GameState.set_active_party(party))
+	assert_true(bool(_SurveySystem.start_cycle(
+		Constants.MOURNGATE_DUNGEON_ID,
+		_SurveyConfig.PRESET_SHORT,
+		[combat_ids[0], combat_ids[1]] as Array[String]
+	).get("ok", false)))
+	_mark_complete()
+	GameState.hub_survey_cycle["party_restored"] = true
+	assert_eq(GameState.party_members.size(), 2)
+	assert_true(_SurveySystem.ensure_party_restored_if_awaiting_claim(false))
+	assert_eq(GameState.party_members.size(), 4, "ensure が欠員フラグ付きも修復")
+	assert_true(bool(GameState.hub_survey_cycle.get("party_restored", false)))
 
 
 func test_claim_restores_after_save_load() -> void:

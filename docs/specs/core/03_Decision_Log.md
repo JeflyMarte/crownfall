@@ -6299,7 +6299,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 
 | # | 決定 | 根拠 |
 |---|---|---|
-| P3-FIX-SURVEY-AUDIT-A-001-1 | **編成復元** — 開始時に `party_ids_before` 保存。受取／中止で復元してから EXP 付与。**完了（受取待ち）時点でも自動復帰**（`party_restored`） | 中止文「戻ります」と不一致。編成外だと本人 EXP パッシブ不発。❗️表示中の編成欠け誤認 |
+| P3-FIX-SURVEY-AUDIT-A-001-1 | **編成復元** — 開始時に `party_ids_before` 保存。受取／中止で復元してから EXP 付与。**完了（受取待ち）時点でも自動復帰**（`party_restored`）。**受取は常に派遣前へ復帰**（フラグ付き欠員のスキップ禁止）。調査室進捗でも ensure | 中止文「戻ります」と不一致。編成外だと本人 EXP パッシブ不発。❗️／受取後の欠員確定事故 |
 | P3-FIX-SURVEY-AUDIT-A-001-2 | **調査員必須** — `start_cycle` は1人以上 | 0人放置で報酬だけ取れる穴 |
 | P3-FIX-SURVEY-AUDIT-A-001-3 | **武器抽選** — 派遣先 `weapon_pool` が空なら武器なし（全カタログ禁止） | プール外落下の事故予防 |
 | P3-FIX-SURVEY-AUDIT-A-001-4 | **期待成果UI** — ゴールドは「石連動」表示 | 常時確定に見える誤認防止 |

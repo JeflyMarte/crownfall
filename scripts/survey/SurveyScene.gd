@@ -804,6 +804,9 @@ func _refresh_progress_only() -> void:
 		return
 	var active: bool = _SurveySystem.has_active_cycle()
 	var complete: bool = _SurveySystem.is_cycle_complete()
+	## 調査室に居たまま完了した場合も編成を戻す（入室時 ensure だけでは漏れる）。
+	if active and complete:
+		_SurveySystem.ensure_party_restored_if_awaiting_claim()
 	var p01: float = _SurveySystem.cycle_progress_01()
 	_progress_bar.value = p01 * 100.0
 	if not active:
