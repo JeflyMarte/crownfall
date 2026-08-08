@@ -38,7 +38,7 @@ alwaysApply: false
 
 | Desktop（`キャラドット/`・zip） | プロジェクト先 | 取込 |
 |---|---|---|
-| `リーヴァ.zip`／`ガレン.zip`（＋職名zip可） | `assets/characters/{ranger,vanguard}/` + `CHR_Ranger`／`CHR_Vanguard.tres` | `tools/import_job_chr_sprites.py --only リーヴァ ガレン` |
+| `リーヴァ.zip`／`ガレン.zip`／`アルド.zip`（＋職名zip可） | `assets/characters/{ranger,vanguard,swordsman}/` + `CHR_*` | `tools/import_job_chr_sprites.py --only …`（`--desktop ~/Downloads` 可） |
 | 旧 `アイコン/キャラクター/` 職名zip | 同上 | 同スクリプト（フォルダ自動選択） |
 
 - 戦闘 idle ループは **walk** フレーム。`idle_*.png` は UI 用に残す
