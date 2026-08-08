@@ -347,7 +347,7 @@ func _ensure_skills_panel() -> void:
 	_skills_panel.z_index = 5
 	_skills_panel.visible = false
 	_skills_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_skills_panel.clip_contents = false
+	_skills_panel.clip_contents = true
 	_skills_panel.add_theme_stylebox_override("panel", ShowcaseUiTokensScript.skill_card_style())
 	_skills_col = Control.new()
 	_skills_col.name = "SkillsCol"
@@ -427,14 +427,15 @@ func _populate_equipped_skill_names(member: Resource, build_blurb: String = "") 
 					value_w,
 					desc_fs
 				)
-				## 効果全文を表示（高さ上限はパネル内に収まる範囲で緩く）。
-				desc_h = clampf(measured.y + 2.0, 18.0, desc_max_h)
+				## アウトライン分を足し、上限内で全文を収める。
+				desc_h = clampf(measured.y + 6.0, 18.0, desc_max_h)
 			var desc_lbl := Label.new()
 			desc_lbl.text = effect
 			desc_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 			desc_lbl.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 			desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			desc_lbl.clip_text = false
+			## 高さ上限時にはみ出してビルド見出しと重ならないようクリップ。
+			desc_lbl.clip_text = true
 			desc_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			desc_lbl.position = Vector2(pad_x, y)
 			desc_lbl.size = Vector2(value_w, desc_h)
@@ -445,7 +446,7 @@ func _populate_equipped_skill_names(member: Resource, build_blurb: String = "") 
 			y += ShowcaseUiTokensScript.SKILL_ENTRY_GAP
 
 	if has_blurb:
-		y += ShowcaseUiTokensScript.SKILL_ENTRY_GAP + 2.0
+		y += ShowcaseUiTokensScript.SKILL_TO_BUILD_GAP
 		var blurb_hdr := Label.new()
 		blurb_hdr.text = ShowcaseUiTokensScript.BUILD_BLURB_HEADER
 		blurb_hdr.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -466,7 +467,7 @@ func _populate_equipped_skill_names(member: Resource, build_blurb: String = "") 
 				ShowcaseUiTokensScript.BUILD_BLURB_FONT_SIZE
 			)
 			blurb_h = clampf(
-				blurb_measured.y + 2.0,
+				blurb_measured.y + 6.0,
 				24.0,
 				ShowcaseUiTokensScript.BUILD_BLURB_MAX_H
 			)
@@ -475,7 +476,7 @@ func _populate_equipped_skill_names(member: Resource, build_blurb: String = "") 
 		blurb_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		blurb_lbl.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 		blurb_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		blurb_lbl.clip_text = false
+		blurb_lbl.clip_text = true
 		blurb_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		blurb_lbl.position = Vector2(pad_x, y)
 		blurb_lbl.size = Vector2(value_w, blurb_h)

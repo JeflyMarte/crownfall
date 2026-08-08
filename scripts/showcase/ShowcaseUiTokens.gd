@@ -62,6 +62,8 @@ const SKILL_HEADER_H: float = 24.0
 const SKILL_ROW_H: float = 20.0
 const SKILL_DESC_MAX_H: float = 200.0
 const SKILL_ENTRY_GAP: float = 4.0
+## スキル説明と「✧ ビルド ✧」のあいだ（重なり防止）。
+const SKILL_TO_BUILD_GAP: float = 14.0
 const SKILL_PAD_X: float = 6.0
 const SKILL_NAME_FONT_SIZE: int = 13
 const SKILL_DESC_FONT_SIZE: int = 11
@@ -70,7 +72,7 @@ const BUILD_BLURB_HEADER: String = "✧ ビルド ✧"
 const BUILD_BLURB_FONT_SIZE: int = 11
 const BUILD_BLURB_MAX_H: float = 72.0
 ## ビルド説明を出すときスキル効果の高さ上限を抑えて収める。
-const SKILL_DESC_MAX_H_WITH_BLURB: float = 96.0
+const SKILL_DESC_MAX_H_WITH_BLURB: float = 84.0
 
 ## 選択中タブは暗く、非選択は明るめの金文字。
 const COLOR_TAB_ACTIVE_BG := Color(0.02, 0.02, 0.04, 0.72)
