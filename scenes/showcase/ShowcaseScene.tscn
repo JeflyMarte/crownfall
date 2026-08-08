@@ -80,7 +80,7 @@ offset_right = 564.0
 offset_bottom = 72.0
 flat = true
 toggle_mode = true
-text = "スタッフ作例"
+text = "ビルド作例"
 
 [node name="StaffStrip" type="ScrollContainer" parent="."]
 visible = false

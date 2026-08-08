@@ -358,7 +358,7 @@ func _ensure_skills_panel() -> void:
 	add_child(_skills_panel)
 
 
-func _populate_equipped_skill_names(member: Resource) -> void:
+func _populate_equipped_skill_names(member: Resource, build_blurb: String = "") -> void:
 	_ensure_skills_panel()
 	if _skills_col == null:
 		return
@@ -394,6 +394,12 @@ func _populate_equipped_skill_names(member: Resource) -> void:
 	var value_w: float = maxf(24.0, _skills_panel.size.x - pad_x * 2.0)
 	var desc_font: Font = UiTypography.body_font()
 	var desc_fs: int = ShowcaseUiTokensScript.SKILL_DESC_FONT_SIZE
+	var has_blurb: bool = not build_blurb.strip_edges().is_empty()
+	var desc_max_h: float = (
+		ShowcaseUiTokensScript.SKILL_DESC_MAX_H_WITH_BLURB
+		if has_blurb
+		else ShowcaseUiTokensScript.SKILL_DESC_MAX_H
+	)
 	for i in range(entries.size()):
 		var nm: String = str(entries[i].get("name", ""))
 		var effect: String = str(entries[i].get("effect", ""))
@@ -422,11 +428,7 @@ func _populate_equipped_skill_names(member: Resource) -> void:
 					desc_fs
 				)
 				## 効果全文を表示（高さ上限はパネル内に収まる範囲で緩く）。
-				desc_h = clampf(
-					measured.y + 2.0,
-					18.0,
-					ShowcaseUiTokensScript.SKILL_DESC_MAX_H
-				)
+				desc_h = clampf(measured.y + 2.0, 18.0, desc_max_h)
 			var desc_lbl := Label.new()
 			desc_lbl.text = effect
 			desc_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -442,6 +444,45 @@ func _populate_equipped_skill_names(member: Resource) -> void:
 		if i < entries.size() - 1:
 			y += ShowcaseUiTokensScript.SKILL_ENTRY_GAP
 
+	if has_blurb:
+		y += ShowcaseUiTokensScript.SKILL_ENTRY_GAP + 2.0
+		var blurb_hdr := Label.new()
+		blurb_hdr.text = ShowcaseUiTokensScript.BUILD_BLURB_HEADER
+		blurb_hdr.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		blurb_hdr.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		blurb_hdr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		blurb_hdr.position = Vector2(0, y)
+		blurb_hdr.size = Vector2(_skills_panel.size.x, ShowcaseUiTokensScript.SKILL_HEADER_H)
+		UiTypography.apply_caption(blurb_hdr, COLOR_GOLD)
+		_skills_col.add_child(blurb_hdr)
+		y += ShowcaseUiTokensScript.SKILL_HEADER_H
+		var blurb_text: String = build_blurb.strip_edges()
+		var blurb_h: float = 36.0
+		if desc_font != null:
+			var blurb_measured: Vector2 = desc_font.get_multiline_string_size(
+				blurb_text,
+				HORIZONTAL_ALIGNMENT_LEFT,
+				value_w,
+				ShowcaseUiTokensScript.BUILD_BLURB_FONT_SIZE
+			)
+			blurb_h = clampf(
+				blurb_measured.y + 2.0,
+				24.0,
+				ShowcaseUiTokensScript.BUILD_BLURB_MAX_H
+			)
+		var blurb_lbl := Label.new()
+		blurb_lbl.text = blurb_text
+		blurb_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		blurb_lbl.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+		blurb_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		blurb_lbl.clip_text = false
+		blurb_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		blurb_lbl.position = Vector2(pad_x, y)
+		blurb_lbl.size = Vector2(value_w, blurb_h)
+		UiTypography.apply_body(
+			blurb_lbl, ShowcaseUiTokensScript.BUILD_BLURB_FONT_SIZE, COLOR_BODY
+		)
+		_skills_col.add_child(blurb_lbl)
 
 func _ensure_change_member_button() -> void:
 	if _btn_change_member != null:
@@ -473,7 +514,7 @@ func _ensure_staff_list_button() -> void:
 		return
 	_btn_staff_list = Button.new()
 	_btn_staff_list.name = "BtnStaffList"
-	_btn_staff_list.text = "スタッフキャラ"
+	_btn_staff_list.text = "他ビルド"
 	_btn_staff_list.z_index = 6
 	_btn_staff_list.visible = false
 	_btn_staff_list.focus_mode = Control.FOCUS_NONE
@@ -492,8 +533,8 @@ func _update_staff_list_button() -> void:
 	_btn_staff_list.visible = show_btn
 	if not show_btn:
 		return
-	_btn_staff_list.text = "スタッフキャラ"
-	_btn_staff_list.tooltip_text = "スタッフ作例を切り替える"
+	_btn_staff_list.text = "他ビルド"
+	_btn_staff_list.tooltip_text = "ビルド作例を切り替える"
 
 
 func _apply_staff_chip_style(btn: Button, active: bool) -> void:
@@ -538,7 +579,7 @@ func _refresh_display() -> void:
 		_staff_player_name = str(preset.get("player_name", ""))
 		_credit_text = ""
 		if _display_member == null:
-			_show_empty_message("スタッフ作例を読み込めませんでした")
+			_show_empty_message("ビルド作例を読み込めませんでした")
 			return
 	_empty_panel.visible = false
 	_set_stage_visible(true)
@@ -742,7 +783,7 @@ func _show_staff_preset_overlay() -> void:
 	_ensure_pick_member_overlay()
 	_pick_mode = "staff"
 	if _pick_title != null:
-		_pick_title.text = "スタッフ作例を選ぶ"
+		_pick_title.text = "ビルド作例を選ぶ"
 	for child in _pick_list.get_children():
 		child.queue_free()
 	for raw: Variant in ShowcaseCatalogScript.staff_presets():
@@ -850,7 +891,11 @@ func _populate_stage(member: Resource) -> void:
 		val.size = Vector2(value_w, row_h)
 		_stats_col.add_child(val)
 
-	_populate_equipped_skill_names(member)
+	var build_blurb: String = ""
+	if _mode == Mode.STAFF:
+		var blurb_preset: Dictionary = ShowcaseCatalogScript.find_staff_preset(_staff_preset_id)
+		build_blurb = str(blurb_preset.get("build_blurb", ""))
+	_populate_equipped_skill_names(member, build_blurb)
 
 	_footer_name.text = str(member.display_name)
 	if _mode == Mode.STAFF:

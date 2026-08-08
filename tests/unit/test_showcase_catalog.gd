@@ -1,6 +1,6 @@
 extends GutTest
 
-## P3-SHOWCASE-001: スタッフ作例ビルドとセーブ欄。
+## P3-SHOWCASE-001: ビルド作例とセーブ欄。
 
 const ShowcaseCatalogScript = preload("res://scripts/showcase/ShowcaseCatalog.gd")
 
@@ -16,10 +16,11 @@ func test_staff_presets_build_members() -> void:
 		assert_false(str(member.display_name).is_empty())
 		assert_false(str(preset.get("player_name", "")).is_empty(), "player_name for %s" % str(preset.get("id", "")))
 		assert_false(str(preset.get("build_name", "")).is_empty(), "build_name for %s" % str(preset.get("id", "")))
+		assert_false(str(preset.get("build_blurb", "")).is_empty(), "build_blurb for %s" % str(preset.get("id", "")))
 		assert_false(str(preset.get("character_id", "")).is_empty(), "character_id for %s" % str(preset.get("id", "")))
 		assert_eq(str(member.id), str(preset.get("character_id", "")))
 		idx += 1
-		assert_eq(str(preset.get("player_name", "")), "スタッフ%d" % idx)
+		assert_eq(str(preset.get("player_name", "")), "ビルド%d" % idx)
 		var plate: String = ShowcaseCatalogScript.staff_nameplate_text(preset)
 		assert_eq(
 			plate,
@@ -27,7 +28,8 @@ func test_staff_presets_build_members() -> void:
 		)
 		assert_true(plate.begins_with(str(member.display_name)))
 		assert_false(str(member.job_id).is_empty())
-		assert_eq(int(member.level), 50)
+		assert_eq(int(member.level), ShowcaseCatalogScript.STAFF_SHOWCASE_LEVEL)
+		assert_eq(int(preset.get("equip_level", 0)), ShowcaseCatalogScript.STAFF_SHOWCASE_EQUIP_LEVEL)
 		var skills: Array[String] = GameState.get_equipped_skill_ids(member)
 		assert_gte(skills.size(), 1, "equipped skill for %s" % str(preset.get("id", "")))
 		var expected_skills: Array = preset.get("equipped_skill_ids", [])
@@ -35,7 +37,7 @@ func test_staff_presets_build_members() -> void:
 			assert_eq(skills[0], str(expected_skills[0]))
 		assert_not_null(member.equipped_weapon)
 		assert_eq(str(member.equipped_weapon.weapon_id), str(preset.get("weapon_id", "")))
-		assert_eq(int(member.equipped_weapon.equip_level), int(preset.get("equip_level", 50)))
+		assert_eq(int(member.equipped_weapon.equip_level), int(preset.get("equip_level", 99)))
 		assert_eq(int(member.equipped_weapon.enhance_level), int(preset.get("enhance_level", 4)))
 		var expected_relic: String = CombatPassives.migrate_relic_passive_id(
 			str(preset.get("relic_id", ""))
@@ -119,7 +121,7 @@ func test_power_frame_asset_exists() -> void:
 
 
 func test_staff_list_button_matches_change_member_rect() -> void:
-	## スタッフキャラ＝自分の展示のキャラ変更と同位置。
+	## 他ビルド＝自分の展示のキャラ変更と同位置。
 	assert_eq(ShowcaseUiTokens.STAFF_LIST_RECT, ShowcaseUiTokens.CHANGE_MEMBER_RECT)
 
 
@@ -189,7 +191,7 @@ func test_showcase_scene_has_staff_list_button() -> void:
 	var btn: Button = scene.get("_btn_staff_list") as Button
 	assert_not_null(btn)
 	assert_true(btn.visible)
-	assert_eq(btn.text, "スタッフキャラ")
+	assert_eq(btn.text, "他ビルド")
 	assert_false(bool(scene.get_node("StaffStrip").visible))
 
 

@@ -1,8 +1,9 @@
 class_name ShowcaseCatalog
 extends RefCounted
 
-## スタッフ作例プリセット（読取専用・セーブ非汚染）。P3-SHOWCASE-001。
+## ビルド作例プリセット（読取専用・セーブ非汚染）。P3-SHOWCASE-001／P3-UX-SHOWCASE-BUILD-COPY-001。
 ## β到達の理想ビルド（レジェンド以下。エンシェント／ミシック不使用・深層なし）。
+## キャラ Lv・装備 Lv は上限99想定。
 
 const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _ArmorStatResolver = preload("res://scripts/equipment/ArmorStatResolver.gd")
@@ -15,23 +16,27 @@ const STAGE_IDLE_PX: float = 228.0
 const EQUIP_CELL_PX: int = 80
 const STAGE_H_PX: float = 460.0
 const SIDE_COL_W: float = 168.0
-## スタッフ装備はレジェンド以下（エンシェント=SET／ミシック不可）。
+## ビルド作例装備はレジェンド以下（エンシェント=SET／ミシック不可）。
 const STAFF_MAX_EQUIP_RARITY: int = Enums.Rarity.LEGENDARY
+const STAFF_SHOWCASE_LEVEL: int = 99
+const STAFF_SHOWCASE_EQUIP_LEVEL: int = 99
 
-## スタッフ作例。装備 id はカタログ実在分のみ。
+## ビルド作例。装備 id はカタログ実在分のみ。
 ## character_id = 肖像／個人補正用（adventurer_* / gacha_helper_*）。
 ## display_name + build_name → 名札「アルド(出血主砲ビルド)」。
-## player_name = 内部番号（スタッフ1…）。一覧ソート用。名札には使わない。
+## player_name = 内部番号（ビルド1…）。一覧ソート用。名札には使わない。
+## build_blurb = スキル欄下の短い役割説明。
 const STAFF_PRESETS: Array = [
 	{
 		"id": "staff_aldo_bleed",
 		"credit": "Crownfall Staff",
-		"player_name": "スタッフ1",
+		"player_name": "ビルド1",
 		"character_id": "adventurer_0",
 		"display_name": "アルド",
 		"build_name": "出血主砲ビルド",
+		"build_blurb": "出血を重ねて火力を伸ばす主砲型。高火力レリックで押し切る。",
 		"job_id": "swordsman",
-		"level": 50,
+		"level": 99,
 		"rarity": 3,
 		"weapon_id": "pulsekeen_edge",
 		"armor_id": "bloodpact_plate",
@@ -39,17 +44,18 @@ const STAFF_PRESETS: Array = [
 		"relic_id": "relic_berserker_charm",
 		"equipped_skill_ids": ["blood_mist_slash"],
 		"enhance_level": 4,
-		"equip_level": 50,
+		"equip_level": 99,
 	},
 	{
 		"id": "staff_galen_bulwark",
 		"credit": "Crownfall Staff",
-		"player_name": "スタッフ2",
+		"player_name": "ビルド2",
 		"character_id": "adventurer_3",
 		"display_name": "ガレン",
 		"build_name": "防壁盾役ビルド",
+		"build_blurb": "ヘイトと耐久で前線を受ける盾役。味方を守る防壁装備構成。",
 		"job_id": "vanguard",
-		"level": 50,
+		"level": 99,
 		"rarity": 3,
 		"weapon_id": "aegis_line_sword",
 		"armor_id": "bulwark_role_plate",
@@ -57,17 +63,18 @@ const STAFF_PRESETS: Array = [
 		"relic_id": "relic_aegis_shard",
 		"equipped_skill_ids": ["assault_shatter"],
 		"enhance_level": 4,
-		"equip_level": 50,
+		"equip_level": 99,
 	},
 	{
 		"id": "staff_serin_healer",
 		"credit": "Crownfall Staff",
-		"player_name": "スタッフ3",
+		"player_name": "ビルド3",
 		"character_id": "gacha_helper_c",
 		"display_name": "セリン",
 		"build_name": "野営ヒーラービルド",
+		"build_blurb": "回復と支援でパーティを支える調剤型。安定した継戦力向け。",
 		"job_id": "alchemist",
-		"level": 50,
+		"level": 99,
 		"rarity": 3,
 		"weapon_id": "mendweaver_staff",
 		"armor_id": "field_salve_robe",
@@ -75,17 +82,18 @@ const STAFF_PRESETS: Array = [
 		"relic_id": "relic_lament_ring",
 		"equipped_skill_ids": ["salve_burst"],
 		"enhance_level": 4,
-		"equip_level": 50,
+		"equip_level": 99,
 	},
 	{
 		"id": "staff_riva_mark",
 		"credit": "Crownfall Staff",
-		"player_name": "スタッフ4",
+		"player_name": "ビルド4",
 		"character_id": "adventurer_1",
 		"display_name": "リーヴァ",
 		"build_name": "標的シナジービルド",
+		"build_blurb": "標的を付けて味方の集中火力を引き出す射撃型。連携向き。",
 		"job_id": "ranger",
-		"level": 50,
+		"level": 99,
 		"rarity": 3,
 		"weapon_id": "volley_horizon_bow",
 		"armor_id": "flurry_light_mail",
@@ -93,17 +101,18 @@ const STAFF_PRESETS: Array = [
 		"relic_id": "relic_hunter_sigil",
 		"equipped_skill_ids": ["hunting_ground_mark"],
 		"enhance_level": 4,
-		"equip_level": 50,
+		"equip_level": 99,
 	},
 	{
 		"id": "staff_mirei_pet",
 		"credit": "Crownfall Staff",
-		"player_name": "スタッフ5",
+		"player_name": "ビルド5",
 		"character_id": "adventurer_4",
 		"display_name": "ミレイ",
 		"build_name": "毒牙ビルド",
+		"build_blurb": "毒とペット連携で削る指揮型。継続ダメージと相棒運用の見本。",
 		"job_id": "beast_tamer",
-		"level": 50,
+		"level": 99,
 		"rarity": 3,
 		"weapon_id": "packbond_staff",
 		"armor_id": "beastcall_mantle",
@@ -111,7 +120,7 @@ const STAFF_PRESETS: Array = [
 		"relic_id": "relic_scout_lens",
 		"equipped_skill_ids": ["venom_spray"],
 		"enhance_level": 4,
-		"equip_level": 50,
+		"equip_level": 99,
 	},
 ]
 

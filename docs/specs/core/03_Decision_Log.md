@@ -7523,6 +7523,18 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-PET-STAT-DIVERGE-001-4 | **上書き** — P3-BAL-PET-SUPPORT-001 同一ステ／P3-PET-VARIANT-001-2 のステ同一 | 本 Decision が正 |
 | P3-BAL-PET-STAT-DIVERGE-001-5 | **SSOT**＝`88_PetStatDiverge.md` | Decision 本体 |
 
+## 展示室ビルド作例の表記／Lv99／説明（2026-08-08 — P3-UX-SHOWCASE-BUILD-COPY-001）
+
+> **オーナー指示** — スタッフ作例→ビルド作例、スタッフキャラ→他ビルド。スキル欄下に短いビルド説明。キャラ・装備は Lv99 想定。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-SHOWCASE-BUILD-COPY-001-1 | **UI文言** — モード「ビルド作例」／一覧ボタン「他ビルド」 | オーナー指示 |
+| P3-UX-SHOWCASE-BUILD-COPY-001-2 | **レベル** — プリセット `level`／`equip_level`＝**99**（炉研ぎ+4据置） | 上限想定の見本 |
+| P3-UX-SHOWCASE-BUILD-COPY-001-3 | **説明** — 各プリセットに `build_blurb`。スキル欄下に表示（自分の展示では出さない） | 役割が一目で分かる |
+| P3-UX-SHOWCASE-BUILD-COPY-001-4 | **上書き** — P3-UX-SHOWCASE-STAFF-LIST-001-2 の「スタッフキャラ」文言／P3-SHOWCASE-IDEAL の Lv50 想定 | 本 Decision が正 |
+| P3-UX-SHOWCASE-BUILD-COPY-001-5 | **SSOT** — `08_ShowcaseRoom.md` | Decision 本体 |
+
 ## 混成群れ／装備の図鑑登録漏れ修正（2026-08-08 — P3-FIX-CODEX-SWARM-001）
 
 > **オーナー報告** — 複数モンスター出現時に1体しか図鑑登録されない。装備も疑い。

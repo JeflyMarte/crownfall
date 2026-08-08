@@ -9,7 +9,7 @@ const POWER_FRAME: String = ROOT + "UI_Showcase_PowerFrame.png"
 
 ## FIT 済みモック（元 863×1823）上の配置。
 const BACK_RECT := Rect2(66, 36, 52, 52)
-## 背景焼込の「自分の展示／スタッフ作例」ヒット領域。
+## 背景焼込の「自分の展示／ビルド作例」ヒット領域。
 const MODE_TAB_OWN := Rect2(78, 152, 282, 72)
 const MODE_TAB_STAFF := Rect2(360, 152, 282, 72)
 const MODE_ROW := Rect2(78, 152, 564, 72)
@@ -25,7 +25,7 @@ const FOOTER_RECT := Rect2(100, 1095, 520, 80)
 const POWER_RECT := Rect2(222, 918, 282, 68)
 ## 自慢キャラ未設定時に背景焼込の名札枠を隠す覆い（BG切り抜き。黒塗り禁止）。
 const NAME_FRAME_MASK_RECT := Rect2(70, 1035, 580, 140)
-## 自分の展示：キャラ変更／スタッフ作例：スタッフキャラ（同位置・装備とステのあいだ）。
+## 自分の展示：キャラ変更／ビルド作例：他ビルド（同位置・装備とステのあいだ）。
 const CHANGE_MEMBER_RECT := Rect2(248, 248, 188, 44)
 const STAFF_LIST_RECT := Rect2(248, 248, 188, 44)
 const EMPTY_RECT := Rect2(90, 210, 540, 400)
@@ -66,6 +66,11 @@ const SKILL_PAD_X: float = 6.0
 const SKILL_NAME_FONT_SIZE: int = 13
 const SKILL_DESC_FONT_SIZE: int = 11
 const SKILL_HEADER_TEXT: String = "✧ スキル ✧"
+const BUILD_BLURB_HEADER: String = "✧ ビルド ✧"
+const BUILD_BLURB_FONT_SIZE: int = 11
+const BUILD_BLURB_MAX_H: float = 72.0
+## ビルド説明を出すときスキル効果の高さ上限を抑えて収める。
+const SKILL_DESC_MAX_H_WITH_BLURB: float = 96.0
 
 ## 選択中タブは暗く、非選択は明るめの金文字。
 const COLOR_TAB_ACTIVE_BG := Color(0.02, 0.02, 0.04, 0.72)
@@ -153,7 +158,7 @@ static func empty_panel_style() -> StyleBoxFlat:
 
 
 static func mode_tab_style(active: bool) -> StyleBoxFlat:
-	## 自分の展示／スタッフ作例。選択中は暗くする。
+	## 自分の展示／ビルド作例。選択中は暗くする。
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = COLOR_TAB_ACTIVE_BG if active else COLOR_TAB_INACTIVE_BG
 	sb.set_border_width_all(0)

@@ -106,7 +106,7 @@ func _build_showcase_section() -> Control:
 	var sec: Dictionary = _begin_section("showcase", "展示室")
 	var body: VBoxContainer = sec["body"]
 	var blurb := Label.new()
-	blurb.text = "自慢の仲間を一枚で飾れます。スタッフ作例も閲覧できます。"
+	blurb.text = "自慢の仲間を一枚で飾れます。ビルド作例も閲覧できます。"
 	blurb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UiTypography.apply_caption(blurb, COLOR_SUB)
 	body.add_child(blurb)
