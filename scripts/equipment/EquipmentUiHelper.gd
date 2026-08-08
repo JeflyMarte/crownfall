@@ -143,7 +143,7 @@ static func apply_lock_badge(parent: Control, item: Resource, cell_size: Vector2
 	lbl.z_index = 8
 	lbl.position = Vector2(
 		cell_size.x - width - 2.0,
-		cell_size.y - float(font_size) - 2.0
+		cell_size.y - float(font_size) - 10.0
 	)
 	parent.add_child(lbl)
 
