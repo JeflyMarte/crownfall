@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 id = "volley_horizon_bow"
-display_name = "斉射の地平弓"
-description = "地平を覆う斉射の長弓。放たれた矢は群れ全体に雨のように降り注ぎ、主標以外にも破片が飛び散る。"
+display_name = "地平の偵察弓"
+description = "地平を見渡す偵察の長弓。斉射で群れを薙ぎ、隠れた宝庫の気配をも拾い上げる。"
 fixed_skill_id = ""
 fixed_passive_id = "eq_wpn_volley_horizon_bow"
 base_attack = 360

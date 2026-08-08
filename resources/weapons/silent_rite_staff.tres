@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 id = "silent_rite_staff"
-display_name = "黙撃の秘杖"
-description = "素振りを禁じ、秘儀のみを許す杖。沈黙の戒めのもと、解き放たれる術だけが二倍の威を帯びる。"
+display_name = "異毒の秘杖"
+description = "異毒の戒めを刻んだ杖。振るたび毒・炎・雷のいずれかを敵へ塗り、異常の敵を抉る。"
 fixed_skill_id = ""
 fixed_passive_id = "eq_wpn_silent_rite_staff"
 base_attack = 220

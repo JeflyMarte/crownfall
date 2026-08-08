@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 id = "regicide_longbow"
-display_name = "王討ちの長弓"
-description = "王と竜を討つために鍛えられた長弓。巨体の急所だけを見据え、一矢で戦況を傾ける。"
+display_name = "初撃の王討弓"
+description = "王と竜を討つために鍛えられた長弓。開戦の一矢にすべてを込めて戦況を傾ける。"
 fixed_skill_id = ""
 fixed_passive_id = "eq_wpn_regicide_longbow"
 base_attack = 400

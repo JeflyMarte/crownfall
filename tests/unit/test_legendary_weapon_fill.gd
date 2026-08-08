@@ -1,6 +1,7 @@
 extends GutTest
 
 ## P3-EQ-LEG-WPN-FILL-001 — 弓3／杖2 レジェンド固有効果。
+## 2026-08-08: 職テーマ網羅差し替え（95）
 
 const FILL_LEGENDARIES: Dictionary = {
 	"volley_horizon_bow": {"passive": "eq_wpn_volley_horizon_bow", "type": "bow"},
@@ -43,44 +44,37 @@ func test_passive_numbers() -> void:
 	var volley: Dictionary = CombatPassives.get_def("eq_wpn_volley_horizon_bow")
 	assert_true(bool(volley.get("basic_attack_hits_all", false)))
 	assert_almost_eq(float(volley.get("basic_aoe_splash_mult", 1.0)), 0.55, 0.001)
+	assert_eq(int(volley.get("treasure_room_weight_add", 0)), 25)
 	var war: Dictionary = CombatPassives.get_def("eq_wpn_vanguard_war_bow")
-	assert_almost_eq(float(war.get("outgoing_mult", 1.0)), 2.0, 0.001)
-	assert_almost_eq(float(war.get("incoming_mult", 1.0)), 1.5, 0.001)
-	assert_almost_eq(float(war.get("back_row_outgoing_mult", 1.0)), 1.25, 0.001)
-	assert_almost_eq(float(war.get("back_row_incoming_mult", 1.0)), 1.1, 0.001)
-	assert_eq(str(war.get("passive_condition", "")), "front_row_only")
+	assert_almost_eq(float(war.get("counter_damage_mult", 1.0)), 1.30, 0.001)
+	assert_eq(str(war.get("effect", "")), "grant_counter_charges")
+	assert_eq(int(war.get("counter_charges", 0)), 1)
 	var reg: Dictionary = CombatPassives.get_def("eq_wpn_regicide_longbow")
-	assert_almost_eq(float(reg.get("outgoing_vs_boss_mult", 1.0)), 1.5, 0.001)
+	assert_almost_eq(float(reg.get("first_attack_mult", 1.0)), 1.45, 0.001)
 	var amp: Dictionary = CombatPassives.get_def("eq_wpn_amplify_orb_staff")
-	assert_almost_eq(float(amp.get("basic_attack_mult", 1.0)), 1.35, 0.001)
+	assert_almost_eq(float(amp.get("elemental_outgoing_mult", 1.0)), 1.25, 0.001)
 	var silent: Dictionary = CombatPassives.get_def("eq_wpn_silent_rite_staff")
-	assert_true(bool(silent.get("disable_basic_attack", false)))
-	assert_almost_eq(float(silent.get("skill_power_mult", 1.0)), 2.0, 0.001)
+	assert_false(bool(silent.get("disable_basic_attack", false)))
+	assert_almost_eq(float(silent.get("outgoing_vs_status_mult", 1.0)), 1.20, 0.001)
+	assert_eq(str(silent.get("effect", "")), "random_enemy_status")
 
 
-func test_vanguard_war_bow_front_only() -> void:
+func test_vanguard_war_bow_counter() -> void:
 	_equip("vanguard_war_bow")
-	var front: Dictionary = CombatPassives.character_stat_modifiers_for_member(0)
-	assert_almost_eq(float(front.get("outgoing_mult", 1.0)), 2.0, 0.001)
-	assert_almost_eq(float(front.get("incoming_mult", 1.0)), 1.5, 0.001)
-	GameState.party_members[0].formation_row = GameState.FORMATION_BACK
-	var back: Dictionary = CombatPassives.character_stat_modifiers_for_member(0)
-	assert_almost_eq(float(back.get("outgoing_mult", 1.0)), 1.25, 0.001)
-	assert_almost_eq(float(back.get("incoming_mult", 1.0)), 1.1, 0.001)
+	assert_almost_eq(CombatPassives.counter_damage_mult_for_member(0), 1.30, 0.001)
 
 
 func test_helpers_expose_flags() -> void:
 	_equip("silent_rite_staff")
-	assert_true(CombatPassives.weapon_disables_basic_attack(0))
-	assert_almost_eq(CombatPassives.weapon_basic_attack_mult(0), 1.0, 0.001)
+	assert_false(CombatPassives.weapon_disables_basic_attack(0))
 	_equip("amplify_orb_staff")
 	assert_false(CombatPassives.weapon_disables_basic_attack(0))
-	assert_almost_eq(CombatPassives.weapon_basic_attack_mult(0), 1.35, 0.001)
+	assert_almost_eq(CombatPassives.weapon_basic_attack_mult(0), 1.0, 0.001)
 	_equip("volley_horizon_bow")
 	assert_true(CombatPassives.weapon_basic_hits_all(0))
 	assert_almost_eq(CombatPassives.weapon_basic_aoe_splash_mult(0), 0.55, 0.001)
 	_equip("regicide_longbow")
-	assert_almost_eq(CombatPassives.weapon_outgoing_vs_boss_mult(0), 1.5, 0.001)
+	assert_almost_eq(CombatPassives.weapon_outgoing_vs_boss_mult(0), 1.0, 0.001)
 
 
 func test_icons_and_pools() -> void:

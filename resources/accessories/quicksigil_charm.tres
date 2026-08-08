@@ -5,11 +5,11 @@
 [resource]
 script = ExtResource("1")
 id = "quicksigil_charm"
-display_name = "速印の護符"
+display_name = "霜印の護符"
 rarity = 3
 icon = ""
 accessory_type = "charm"
-description = "疾き印を刻んだ護符。スキルの間合いを縮める。"
+description = "霜の印を刻んだ護符。足を止められた敵を狙い、冷気を纏わせる。"
 hp_bonus = 80
 attack_bonus = 0
 defense_bonus = 0

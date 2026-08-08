@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 id = "amplify_orb_staff"
-display_name = "増幅珠の杖"
-description = "一撃の余韻を増幅する珠を冠した杖。素振りでも空気が震え、通常の打撃が重く響く。"
+display_name = "属性増幅の珠杖"
+description = "属性の余韻を増幅する珠を冠した杖。炎も氷も雷も、珠を通るとより鋭く響く。"
 fixed_skill_id = ""
 fixed_passive_id = "eq_wpn_amplify_orb_staff"
 base_attack = 200

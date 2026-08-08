@@ -1,5 +1,6 @@
 extends GutTest
 ## P3-EQ-CLASSIC-L-ACC-001 — クラシックL装飾補充（通常レジェンド母数）
+## 2026-08-08: 職テーマ網羅差し替え（95）
 
 const _DungeonController = preload("res://scripts/dungeon/DungeonController.gd")
 const _BuildLegendaryLoot = preload("res://scripts/equipment/BuildLegendaryLoot.gd")
@@ -32,12 +33,12 @@ func test_classic_defs_and_passives() -> void:
 
 func test_classic_passive_numbers() -> void:
 	var blood: Dictionary = CombatPassives.get_def("eq_bloodvein_signet")
-	assert_eq(float(blood.get("outgoing_mult", 1.0)), 1.12)
-	assert_eq(float(blood.get("incoming_mult", 1.0)), 1.05)
+	assert_almost_eq(float(blood.get("lifesteal_ratio", 0.0)), 0.10, 0.001)
 	var iron: Dictionary = CombatPassives.get_def("eq_ironvow_amulet")
-	assert_eq(float(iron.get("incoming_mult", 1.0)), 0.88)
+	assert_almost_eq(float(iron.get("exploration_damage_party_mult", 1.0)), 0.75, 0.001)
 	var quick: Dictionary = CombatPassives.get_def("eq_quicksigil_charm")
-	assert_eq(float(quick.get("skill_cd_mult", 1.0)), 0.85)
+	assert_almost_eq(float(quick.get("outgoing_vs_status_mult", 1.0)), 1.15, 0.001)
+	assert_eq(str(quick.get("status_id", "")), "chill")
 	var dawn: Dictionary = CombatPassives.get_def("eq_dawnrally_brooch")
 	assert_eq(str(dawn.get("effect", "")), "party_rally")
 	assert_eq(str(dawn.get("status_id", "")), "empower")

@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 id = "vanguard_war_bow"
-display_name = "戦列の猛弓"
-description = "前衛が構えるための重い戦弓。至近で引き絞るほど矢は猛く、同時に射手は敵の視線を一身に浴びる。"
+display_name = "応撃の猛弓"
+description = "応撃の構えを刻んだ戦弓。戦闘の息を合わせ、被弾に備えた反撃の矢を蓄える。"
 fixed_skill_id = ""
 fixed_passive_id = "eq_wpn_vanguard_war_bow"
 base_attack = 340

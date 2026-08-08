@@ -7662,3 +7662,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-SKILL-THEME-KIT-001-8 | AL Lv15＝**属性共鳴**（`attuned_bolt`）。装備武器の属性で攻撃。旧触媒の粉／`frail_dust` は remap | オーナー |
 | P3-SKILL-THEME-KIT-001-9 | AL拡張 `rally_vapors`＝**腐食の煙**（敵全弱ダメ＋脆弱35%） | オーナー案B |
 | P3-SKILL-THEME-KIT-001-10 | BT拡張 `herd_call`＝**群れ纏い**（味全小防御＋ペット15%回復） | オーナー案C |
+
+## 職テーマL網羅・既存差し替え（2026-08-08 — P3-EQ-THEME-COV-001）
+
+> **オーナー「推奨案でいきましょう」** — 新規量産せず、既存L効果差し替えで各テーマ最低2点。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-THEME-COV-001-1 | 主軸＝既存L差し替え。新規は本 Decision では0 | 推奨案 |
+| P3-EQ-THEME-COV-001-2 | クラシック飾3＋フィル武5＋翠枝／祝槌をテーマ転用（dawnrally据置） | 不足9テーマ |
+| P3-EQ-THEME-COV-001-3 | `treasure_room_weight_add` を装備からも集計 | 地平の偵察弓 |
+| P3-EQ-THEME-COV-001-4 | **SSOT** — `95_JobThemeLegendaryCoverage.md`／`56` 追記 | Decision 本体 |

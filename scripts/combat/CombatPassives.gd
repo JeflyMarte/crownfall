@@ -441,24 +441,32 @@ const _DEFS: Dictionary = {
 		"cooldown": 0.0,
 	},
 	## クラシックL装飾補充（P3-EQ-CLASSIC-L-ACC-001 / 56）
+	## 2026-08-08: 職テーマ網羅のため効果差し替え（ID・入手維持 / 95）
 	"eq_bloodvein_signet": {
 		"display_name": "血脈の衝動",
 		"category": "accessory",
-		"description": "与ダメ +12%。被ダメ +5%。",
-		"outgoing_mult": 1.12,
-		"incoming_mult": 1.05,
+		"description": "与ダメの10%を吸収する（BT吸血）。",
+		"lifesteal_ratio": 0.10,
 	},
 	"eq_ironvow_amulet": {
-		"display_name": "鉄誓の守り",
+		"display_name": "行路の守り",
 		"category": "accessory",
-		"description": "被ダメ −12%。",
-		"incoming_mult": 0.88,
+		"description": "パーティの探索・罠ダメージ ×0.75（RG探索）。",
+		"exploration_damage_party_mult": 0.75,
 	},
 	"eq_quicksigil_charm": {
-		"display_name": "速印",
+		"display_name": "霜印",
 		"category": "accessory",
-		"description": "スキル再使用が 15% 速くなる。",
-		"skill_cd_mult": 0.85,
+		"description": "冷却・鈍化の敵へ与ダメ +15%。攻撃時25%で冷却（RG拘束）。",
+		"outgoing_vs_status_mult": 1.15,
+		"outgoing_vs_status_ids": ["chill", "slow"],
+		"trigger": "on_attack",
+		"condition": "always",
+		"effect": "apply_status",
+		"status_id": "chill",
+		"target": "enemy",
+		"status_chance": 0.25,
+		"cooldown": 0.0,
 	},
 	"eq_dawnrally_brooch": {
 		"display_name": "暁の鼓舞",
@@ -644,15 +652,10 @@ const _DEFS: Dictionary = {
 		"treasure_room_weight_add": 20,
 	},
 	"eq_wpn_consecrated_maul": {
-		"display_name": "祝槌の癒し",
+		"display_name": "血祝の吸槌",
 		"category": "weapon",
-		"description": "攻撃のたびに自身のHPを5%回復する。",
-		"trigger": "on_attack",
-		"condition": "always",
-		"effect": "heal",
-		"target": "self",
-		"heal_max_hp_fraction": 0.05,
-		"cooldown": 0.0,
+		"description": "与ダメの8%を吸収する（BT吸血）。",
+		"lifesteal_ratio": 0.08,
 	},
 	"eq_wpn_silvaria_oathblade": {
 		"display_name": "森護の誓盾",
@@ -662,10 +665,14 @@ const _DEFS: Dictionary = {
 		"incoming_block_mult": 0.25,
 	},
 	"eq_wpn_veld_branch_staff": {
-		"display_name": "翠枝の秘術",
+		"display_name": "翠枝の鼓舞",
 		"category": "weapon",
-		"description": "装備スキルの与ダメージ +35%。",
-		"skill_power_mult": 1.35,
+		"description": "戦闘開始時、味方全体を鼓舞する（VG味方バフ）。",
+		"trigger": "on_combat_start",
+		"condition": "always",
+		"effect": "party_rally",
+		"status_id": "empower",
+		"cooldown": 0.0,
 	},
 	"eq_wpn_nereidas_tideblade": {
 		"display_name": "潮汐の慧眼",
@@ -902,40 +909,48 @@ const _DEFS: Dictionary = {
 	},
 	# ---- 弓／杖レジェンド数揃え（P3-EQ-LEG-WPN-FILL-001） ----
 	"eq_wpn_volley_horizon_bow": {
-		"display_name": "地平の斉射",
+		"display_name": "地平の偵察",
 		"category": "weapon",
-		"description": "通常攻撃が敵全体へ届く（主対象以外は55%）。",
+		"description": "通常攻撃が敵全体へ届く（主対象以外は55%）。宝箱部屋の出現率が上がる（RG探索）。",
 		"basic_attack_hits_all": true,
 		"basic_aoe_splash_mult": 0.55,
+		"treasure_room_weight_add": 25,
 	},
 	"eq_wpn_vanguard_war_bow": {
-		"display_name": "戦列の猛矢",
+		"display_name": "応撃の猛矢",
 		"category": "weapon",
-		"description": "前列: 与ダメ×2.0／被ダメ×1.5。後列: 与ダメ×1.25／被ダメ×1.1。",
-		"outgoing_mult": 2.0,
-		"incoming_mult": 1.5,
-		"back_row_outgoing_mult": 1.25,
-		"back_row_incoming_mult": 1.1,
-		"passive_condition": "front_row_only",
+		"description": "戦闘開始時に反撃チャージ+1。反撃ダメージ +30%（VGカウンター）。",
+		"counter_damage_mult": 1.30,
+		"trigger": "on_combat_start",
+		"condition": "always",
+		"effect": "grant_counter_charges",
+		"counter_charges": 1,
+		"cooldown": 0.0,
 	},
 	"eq_wpn_regicide_longbow": {
-		"display_name": "王討ちの矢",
+		"display_name": "初撃の王討",
 		"category": "weapon",
-		"description": "ボスへの与ダメ×1.5。",
-		"outgoing_vs_boss_mult": 1.5,
+		"description": "戦闘中の初撃与ダメージ ×1.45（SW一撃）。",
+		"first_attack_mult": 1.45,
 	},
 	"eq_wpn_amplify_orb_staff": {
-		"display_name": "増幅の珠",
+		"display_name": "属性増幅の珠",
 		"category": "weapon",
-		"description": "通常攻撃の与ダメ +35%。",
-		"basic_attack_mult": 1.35,
+		"description": "属性つきの攻撃・スキルの与ダメージ +25%（AL属性）。",
+		"elemental_outgoing_mult": 1.25,
 	},
 	"eq_wpn_silent_rite_staff": {
-		"display_name": "黙撃の秘儀",
+		"display_name": "異毒の秘儀",
 		"category": "weapon",
-		"description": "通常攻撃不可。装備スキルの与ダメ×2.0。",
-		"disable_basic_attack": true,
-		"skill_power_mult": 2.0,
+		"description": "毒・炎上・感電の敵へ与ダメ +20%。攻撃時30%で毒／炎上／感電を付与（BT異常）。",
+		"outgoing_vs_status_mult": 1.20,
+		"outgoing_vs_status_ids": ["poison", "ignite", "shock"],
+		"trigger": "on_attack",
+		"condition": "always",
+		"effect": "random_enemy_status",
+		"status_pool": ["poison", "ignite", "shock"],
+		"status_chance": 0.30,
+		"cooldown": 0.0,
 	},
 	## P3-BAL-LEG-WPN-A001 — ビルド穴埋めレジェンド
 	"eq_wpn_packbond_staff": {
@@ -1955,19 +1970,17 @@ static func combat_regen_defs_for_party() -> Array:
 	return out
 
 
-## 編成中レリックの宝箱部屋 weight 加算（最大値。複数は合算しない）。
+## 編成中パッシブ（装備・レリック等）の宝箱部屋 weight 加算（最大値。複数は合算しない）。
 static func party_treasure_room_weight_add() -> int:
 	var best: int = 0
 	for member: Resource in GameState.party_members:
 		if member == null:
 			continue
-		var relic_id: String = GameState.get_equipped_relic_passive_id(member)
-		if relic_id.is_empty():
-			continue
-		var def: Dictionary = get_def(relic_id)
-		if def.is_empty():
-			continue
-		best = maxi(best, int(def.get("treasure_room_weight_add", 0)))
+		for raw_def: Variant in for_member(member):
+			if raw_def is not Dictionary:
+				continue
+			var def: Dictionary = raw_def
+			best = maxi(best, int(def.get("treasure_room_weight_add", 0)))
 	return best
 
 

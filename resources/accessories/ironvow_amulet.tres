@@ -5,11 +5,11 @@
 [resource]
 script = ExtResource("1")
 id = "ironvow_amulet"
-display_name = "鉄誓の護符"
+display_name = "行路の護符"
 rarity = 3
 icon = ""
 accessory_type = "seal"
-description = "鉄の誓いを刻んだ護符。身を守る意志が被弾を抑える。"
+description = "行路の誓いを刻んだ護符。罠や落とし穴の傷をパーティ全体で抑える。"
 hp_bonus = 200
 attack_bonus = 0
 defense_bonus = 40
