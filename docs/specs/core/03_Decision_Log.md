@@ -7558,3 +7558,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-EQ-INV-CAP-001-3 | **満杯** — 新規入手不可。生産・封蔵は拒否（消費なし）。DGドロップは付与スキップ | 破棄より分解誘導 |
 | P3-EQ-INV-CAP-001-4 | **例外** — 初期武器・デバッグ全所持は `ignore_cap` | 復元／検証用 |
 | P3-EQ-INV-CAP-001-5 | **SSOT** — `89_EquipmentInventoryCap.md` | Decision 本体 |
+
+## 生産 Gold 案C（2026-08-08 — P3-BAL-CRAFT-GOLD-C-001）
+
+> **オーナー GO 案C** — 序盤微増、★だけ激重。素材据置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-CRAFT-GOLD-C-001-1 | **表** — ◇120／◆280／✦600／★**4000** | 安い感の主因は高レア複製 |
+| P3-BAL-CRAFT-GOLD-C-001-2 | **素材** — `MATERIALS_BY_RARITY` 据置 | スコープを Gold のみに |
+| P3-BAL-CRAFT-GOLD-C-001-3 | **上書き** — P3-BAL-FORGE-GOLD-HEAVY-001-5 の生産 Gold | 本 Decision が正 |
+| P3-BAL-CRAFT-GOLD-C-001-4 | **SSOT** — `90_CraftGoldCapC.md`／`CraftHelper.GOLD_BY_RARITY` | Decision 本体 |

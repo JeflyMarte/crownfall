@@ -17,6 +17,14 @@ func test_rarity_cost_table_is_monotonic() -> void:
 		assert_false((costs.get("required_materials", {}) as Dictionary).is_empty())
 
 
+func test_craft_gold_table_matches_cap_c() -> void:
+	## P3-BAL-CRAFT-GOLD-C-001
+	assert_eq(int(CraftHelper.GOLD_BY_RARITY[Enums.Rarity.COMMON]), 120)
+	assert_eq(int(CraftHelper.GOLD_BY_RARITY[Enums.Rarity.RARE]), 280)
+	assert_eq(int(CraftHelper.GOLD_BY_RARITY[Enums.Rarity.EPIC]), 600)
+	assert_eq(int(CraftHelper.GOLD_BY_RARITY[Enums.Rarity.LEGENDARY]), 4000)
+
+
 func test_basic_weapons_are_craftable_masters() -> void:
 	assert_true(CraftHelper.is_craftable_master("weapon", "iron_sword"))
 	assert_true(CraftHelper.is_craftable_master("weapon", "hunting_bow"))
