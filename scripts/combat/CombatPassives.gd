@@ -525,10 +525,10 @@ const _DEFS: Dictionary = {
 		"skill_cd_mult": 0.90,
 	},
 	"eq_pierce_charm": {
-		"display_name": "貫通の余勢",
+		"display_name": "急所の余勢",
 		"category": "accessory",
-		"description": "貫通で別の敵に届くダメージが +35%。",
-		"pierce_secondary_damage_mult": 1.35,
+		"description": "会心ダメージ +15%。どの職でも有効。",
+		"crit_damage_add": 0.15,
 	},
 	"eq_pulse_amulet": {
 		"display_name": "鼓動の充填",
@@ -1199,37 +1199,50 @@ static func weapon_stat_modifiers_for_member(member_index: int) -> Dictionary:
 	if member_index < 0 or member_index >= GameState.party_members.size():
 		return out
 	var def: Dictionary = weapon_passive_def_for_member(GameState.party_members[member_index])
-	if def.is_empty():
-		return out
-	if def.has("skill_power_mult"):
-		out["skill_power_mult"] = float(def["skill_power_mult"])
-	if def.has("ultimate_power_mult"):
-		out["ultimate_power_mult"] = float(def["ultimate_power_mult"])
-	if def.has("crit_rate_add"):
-		out["crit_rate_add"] = float(def["crit_rate_add"])
-	if def.has("crit_damage_add"):
-		out["crit_damage_add"] = float(def["crit_damage_add"])
-	if def.has("exp_gain_mult"):
-		out["exp_gain_mult"] = float(def["exp_gain_mult"])
-	if def.has("outgoing_mult"):
-		out["outgoing_mult"] = float(def["outgoing_mult"])
-	if def.has("incoming_block_chance"):
-		out["incoming_block_chance"] = float(def["incoming_block_chance"])
-	if def.has("incoming_block_mult"):
-		out["incoming_block_mult"] = float(def["incoming_block_mult"])
-	if def.has("basic_attack_mult"):
-		out["basic_attack_mult"] = float(def["basic_attack_mult"])
-	if def.has("outgoing_vs_boss_mult"):
-		out["outgoing_vs_boss_mult"] = float(def["outgoing_vs_boss_mult"])
-	if def.has("basic_attack_hits_all"):
-		out["basic_attack_hits_all"] = bool(def["basic_attack_hits_all"])
-	if def.has("basic_aoe_splash_mult"):
-		out["basic_aoe_splash_mult"] = float(def["basic_aoe_splash_mult"])
-	if def.has("disable_basic_attack"):
-		out["disable_basic_attack"] = bool(def["disable_basic_attack"])
-	if def.has("element_outgoing_mult") and def["element_outgoing_mult"] is Dictionary:
-		out["element_outgoing_mult"] = (def["element_outgoing_mult"] as Dictionary).duplicate()
-	_merge_weapon_weather_bonus(def, out)
+	if not def.is_empty():
+		if def.has("skill_power_mult"):
+			out["skill_power_mult"] = float(def["skill_power_mult"])
+		if def.has("ultimate_power_mult"):
+			out["ultimate_power_mult"] = float(def["ultimate_power_mult"])
+		if def.has("crit_rate_add"):
+			out["crit_rate_add"] = float(def["crit_rate_add"])
+		if def.has("crit_damage_add"):
+			out["crit_damage_add"] = float(def["crit_damage_add"])
+		if def.has("exp_gain_mult"):
+			out["exp_gain_mult"] = float(def["exp_gain_mult"])
+		if def.has("outgoing_mult"):
+			out["outgoing_mult"] = float(def["outgoing_mult"])
+		if def.has("incoming_block_chance"):
+			out["incoming_block_chance"] = float(def["incoming_block_chance"])
+		if def.has("incoming_block_mult"):
+			out["incoming_block_mult"] = float(def["incoming_block_mult"])
+		if def.has("basic_attack_mult"):
+			out["basic_attack_mult"] = float(def["basic_attack_mult"])
+		if def.has("outgoing_vs_boss_mult"):
+			out["outgoing_vs_boss_mult"] = float(def["outgoing_vs_boss_mult"])
+		if def.has("basic_attack_hits_all"):
+			out["basic_attack_hits_all"] = bool(def["basic_attack_hits_all"])
+		if def.has("basic_aoe_splash_mult"):
+			out["basic_aoe_splash_mult"] = float(def["basic_aoe_splash_mult"])
+		if def.has("disable_basic_attack"):
+			out["disable_basic_attack"] = bool(def["disable_basic_attack"])
+		if def.has("element_outgoing_mult") and def["element_outgoing_mult"] is Dictionary:
+			out["element_outgoing_mult"] = (def["element_outgoing_mult"] as Dictionary).duplicate()
+		_merge_weapon_weather_bonus(def, out)
+	## 防具／装飾の crit_* も会心計算に載せる（武器専用キーだった穴を埋める）。
+	var member: Resource = GameState.party_members[member_index]
+	var weapon_pid: String = str(def.get("id", ""))
+	for raw_eq: Variant in _equipment_passives_for_member(member):
+		if raw_eq is not Dictionary:
+			continue
+		var eq_def: Dictionary = raw_eq
+		var eq_id: String = str(eq_def.get("id", ""))
+		if not weapon_pid.is_empty() and eq_id == weapon_pid:
+			continue
+		if eq_def.has("crit_rate_add"):
+			out["crit_rate_add"] = float(out["crit_rate_add"]) + float(eq_def["crit_rate_add"])
+		if eq_def.has("crit_damage_add"):
+			out["crit_damage_add"] = float(out["crit_damage_add"]) + float(eq_def["crit_damage_add"])
 	return out
 
 

@@ -78,7 +78,21 @@ func test_build_passive_helpers() -> void:
 	var hex_def: Dictionary = CombatPassives.get_def("eq_hexweave_robe")
 	assert_eq(float(hex_def.get("incoming_per_enemy_debuff", 0.0)), 0.03)
 	var pierce_def: Dictionary = CombatPassives.get_def("eq_pierce_charm")
-	assert_eq(float(pierce_def.get("pierce_secondary_damage_mult", 1.0)), 1.35)
+	assert_eq(float(pierce_def.get("crit_damage_add", 0.0)), 0.15)
+	assert_false(pierce_def.has("pierce_secondary_damage_mult"))
+	## 装飾の会心ダメ加算が weapon_stat_modifiers 経由で戦闘に届く。
+	var adv := Adventurer.new()
+	adv.id = "test_pierce_charm_crit"
+	adv.job_id = "swordsman"
+	adv.level = 10
+	var acc := AccessoryInstance.new()
+	acc.accessory_id = "pierce_charm"
+	adv.equipped_accessory = acc
+	var prev_party: Array = GameState.party_members.duplicate()
+	GameState.party_members = [adv]
+	var mods: Dictionary = CombatPassives.weapon_stat_modifiers_for_member(0)
+	assert_eq(float(mods.get("crit_damage_add", 0.0)), 0.15)
+	GameState.party_members = prev_party
 
 
 func test_roll_one_returns_unowned() -> void:

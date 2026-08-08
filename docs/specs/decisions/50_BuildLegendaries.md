@@ -23,7 +23,7 @@ Biome 固定★（x-5 ペア）とは別に、**スキル分化ビルドを補�
 | 防具 | `cover_aegis_cloak` | `eq_cover_aegis` | 最傷味方被-12%、自身被+5% |
 | 防具 | `hexweave_robe` | `eq_hexweave_robe` | 敵デバフ種類×-3%被ダメ（上限15%） |
 | 装飾 | `blade_dance_ring` | `eq_blade_dance_ring` | 必殺速度+15%、スキルCD×0.9 |
-| 装飾 | `pierce_charm` | `eq_pierce_charm` | 貫通二次ダメ+35% |
+| 装飾 | `pierce_charm` | `eq_pierce_charm` | 会心ダメ+15%（職非依存。旧・貫通二次は廃止） |
 | 装飾 | `pulse_amulet` | `eq_pulse_amulet` | 必殺速度+35%、スキルCD×1.15 |
 | 装飾 | `beastlord_fang` | `eq_beastlord_fang` | ペット与+25%/防+10%、自身与-8% |
 | 装飾 | `apothecary_vial` | `eq_apothecary_vial` | 回復+20%、回復対象に guard |
