@@ -2187,9 +2187,9 @@ func _inventory_relic_action(is_long_press: bool, relic_id: String) -> void:
 	_on_relic_equip_pressed(relic_id)
 
 func _bind_inventory_cell_interaction(btn: Button, action: Callable) -> void:
-	btn.gui_input.connect(_on_inventory_cell_gui_input.bind(action))
+	btn.gui_input.connect(_on_inventory_cell_gui_input.bind(btn, action))
 
-func _on_inventory_cell_gui_input(event: InputEvent, action: Callable) -> void:
+func _on_inventory_cell_gui_input(event: InputEvent, btn: Button, action: Callable) -> void:
 	## Desktop: 右クリックでロック／詳細（Mac のクリック長押しが OS／微動で潰れる対策）。
 	if (
 		event is InputEventMouseButton
@@ -2198,7 +2198,8 @@ func _on_inventory_cell_gui_input(event: InputEvent, action: Callable) -> void:
 	):
 		if action.is_valid():
 			action.call(true)
-		btn.accept_event()
+		if btn != null:
+			btn.accept_event()
 		return
 	if _inv_pointer_down and _should_cancel_inventory_press_for_move(event):
 		_cancel_inventory_press()
