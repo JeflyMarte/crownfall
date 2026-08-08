@@ -7618,3 +7618,12 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-JOB-THEME-001-4 | **火鷹・血潮の代償は変更しない** | オーナー明示 |
 | P3-BAL-JOB-THEME-001-5 | エリアスは属性へ（クリア後全体回復は廃止予定）。BT二軸併記をやめる | テーマ整合 |
 | P3-BAL-JOB-THEME-001-6 | **SSOT** — `93_JobBuildThemesPassives.md`。`70_PassiveKitLock` はテーマ面で後継へ | Decision 本体 |
+
+## エリアス属性パッシブ＝属性全般（2026-08-08 — P3-BAL-JOB-THEME-001 追記）
+
+> **オーナー指示** — エリアスは特定属性ではなく属性全般が強くなる方向。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-JOB-THEME-001-7 | エリアス固有は **属性全般**の与ダメ強化（炎専売等にしない） | オーナー指示 |
+| P3-BAL-JOB-THEME-001-8 | クリア後全体回復（野営の残り香）は廃止予定のまま | 93 据置 |
