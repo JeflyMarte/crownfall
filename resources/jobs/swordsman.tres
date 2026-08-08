@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "swordsman"
 display_name = "ソードマン"
-description = "剣で前線を切り開く近接の主火力。切れ味・出血・多段と闘気で攻めの型を選ぶ。"
+description = "剣で前線を切り開く近接の主火力。出血・一撃・会心を軸に、闘気と群れ斬りで型を選ぶ。"
 role = "dps"
 base_hp_modifier = 1.05
 base_attack_modifier = 1.1
@@ -21,7 +21,7 @@ skill_unlocks = Array[Dictionary]([{
 "skill_id": "rend_slash",
 "level": 8
 }, {
-"skill_id": "blade_dance",
+"skill_id": "keen_slash",
 "level": 15
 }, {
 "skill_id": "blade_tempest",
@@ -36,7 +36,7 @@ skill_unlocks = Array[Dictionary]([{
 "skill_id": "apex_slash",
 "level": 50
 }])
-learnable_skill_ids = Array[String](["slash_attack", "rend_slash", "blade_dance", "blade_tempest", "battle_spirit", "blood_mist_slash", "apex_slash"])
+learnable_skill_ids = Array[String](["slash_attack", "rend_slash", "keen_slash", "blade_tempest", "battle_spirit", "blood_mist_slash", "apex_slash"])
 passive_tag_ids = Array[String](["frontline"])
 ultimate_skill_id = "ouga_retsudan"
 evolved_display_name = "ソードセイバー"

@@ -7640,3 +7640,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-JOB-THEME-001-12 | ルーシェ＝血契の矢・通常攻撃のみ15%吸血 | オーナー |
 | P3-BAL-JOB-THEME-001-13 | ボルグ＝門前の応撃・通常相当カウンター CD3.5 | オーナー |
 | P3-BAL-JOB-THEME-001-14 | ネリ＝ペット×1.25＋蘇生25%。火鷹据置 | オーナー |
+
+## 職スキルキット・テーマ再編（2026-08-08 — P3-SKILL-THEME-KIT-001）
+
+> **プラン実装 GO** — 職テーマに沿った7本（テーマ5＋拡張2）。必殺・装備枠は据置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-SKILL-THEME-KIT-001-1 | 各職7本＝テーマ5＋拡張2。拡張は本家より弱く | オーナー方針 |
+| P3-SKILL-THEME-KIT-001-2 | SW Lv15＝鋭閃（会心）。剣舞は習得外 | テーマ会心 |
+| P3-SKILL-THEME-KIT-001-3 | RG＝踏破の護符（探索）＋野営薄回復／斉射を拡張。貫通は習得外 | テーマ探索 |
+| P3-SKILL-THEME-KIT-001-4 | VG Lv30＝応撃の構（カウンター）。砕盾は習得外 | テーマカウンター |
+| P3-SKILL-THEME-KIT-001-5 | AL 触媒の粉＝炎＋炎上。BT キット据置（號令＝拡張） | テーマ属性 |
+| P3-SKILL-THEME-KIT-001-6 | **SSOT** — `94_JobSkillThemeKits.md` | Decision 本体 |

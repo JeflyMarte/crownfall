@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "riposte_stance"
+display_name = "応撃の構"
+description = "盾を構えて守りを固め、次の被弾で反撃できるようにする。カウンターの型。"
+skill_type = "player"
+target_type = "self"
+power_multiplier = 1.0
+cooldown = 6.0
+trigger_type = "cooldown"
+effect_type = "buff"
+tags = Array[String](["melee", "buff", "self", "counter_charges_2", "shield"])
+element = ""
+apply_status_id = "guard"
+apply_status_chance = 1.0
+apply_status_id2 = ""
+apply_status_chance2 = 0.0
+slot_type = "skill"
+range_type = "melee"
+cast_time = 0.0
+reserve_condition = ""
+reserve_value = ""

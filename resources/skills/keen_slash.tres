@@ -4,23 +4,24 @@
 
 [resource]
 script = ExtResource("1")
-id = "frail_dust"
-display_name = "触媒の粉"
-description = "属性触媒の粉末を浴びせ、炎をまとわせて炎上させる。アルケミストの属性の型。"
+id = "keen_slash"
+display_name = "鋭閃"
+description = "急所を狙う一閃。会心が出やすく、切れ味で押し切るソードマンの型。"
 skill_type = "player"
 target_type = "enemy"
-power_multiplier = 1.2
-cooldown = 4.0
+power_multiplier = 1.35
+crit_rate_bonus = 0.4
+cooldown = 3.5
 trigger_type = "cooldown"
 effect_type = "damage"
-tags = Array[String](["magic", "debuff", "elemental"])
-element = "fire"
-apply_status_id = "ignite"
-apply_status_chance = 0.55
+tags = Array[String](["melee", "slash", "crit"])
+element = ""
+apply_status_id = ""
+apply_status_chance = 0.0
 apply_status_id2 = ""
 apply_status_chance2 = 0.0
 slot_type = "skill"
-range_type = "mid"
+range_type = "melee"
 cast_time = 0.0
 reserve_condition = ""
 reserve_value = ""

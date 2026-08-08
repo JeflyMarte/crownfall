@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "ranger"
 display_name = "レンジャー"
-description = "弓による遠隔攻撃で後方から火力と狙いを担う。"
+description = "弓で後方から狙いと拘束を担う。標的・探索適性に加え、薄回復と斉射で状況を選ぶ。"
 role = "scout"
 base_hp_modifier = 0.9
 base_attack_modifier = 1.05
@@ -18,7 +18,7 @@ skill_unlocks = Array[Dictionary]([{
 "skill_id": "aimed_shot",
 "level": 1
 }, {
-"skill_id": "volley_shot",
+"skill_id": "snare_shot",
 "level": 8
 }, {
 "skill_id": "camp_draught",
@@ -27,16 +27,16 @@ skill_unlocks = Array[Dictionary]([{
 "skill_id": "hunter_mark",
 "level": 22
 }, {
-"skill_id": "snare_shot",
+"skill_id": "trail_ward",
 "level": 30
 }, {
-"skill_id": "piercing_shot",
+"skill_id": "volley_shot",
 "level": 40
 }, {
 "skill_id": "apex_shot",
 "level": 50
 }])
-learnable_skill_ids = Array[String](["aimed_shot", "volley_shot", "camp_draught", "hunter_mark", "snare_shot", "piercing_shot", "apex_shot"])
+learnable_skill_ids = Array[String](["aimed_shot", "snare_shot", "camp_draught", "hunter_mark", "trail_ward", "volley_shot", "apex_shot"])
 passive_tag_ids = Array[String](["recon"])
 ultimate_skill_id = "dead_eye"
 evolved_display_name = "スナイパー"

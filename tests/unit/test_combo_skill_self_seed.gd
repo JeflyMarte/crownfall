@@ -21,9 +21,12 @@ func test_combo_skills_self_seed_without_reserve() -> void:
 	assert_gt(float(venom.apply_status_chance2), 0.0)
 
 
-func test_diverge_skills_are_not_status_self_seed() -> void:
+func test_legacy_diverge_skills_are_not_status_self_seed() -> void:
+	## 旧キット残置データ。習得は THEME-KIT で keen_slash／volley へ移行。
 	var dance: Resource = DataRegistry.get_skill_data("blade_dance")
 	assert_true(str(dance.apply_status_id).is_empty())
 	var pierce: Resource = DataRegistry.get_skill_data("piercing_shot")
 	assert_true(str(pierce.apply_status_id).is_empty())
+	var keen: Resource = DataRegistry.get_skill_data("keen_slash")
+	assert_true(str(keen.apply_status_id).is_empty())
 

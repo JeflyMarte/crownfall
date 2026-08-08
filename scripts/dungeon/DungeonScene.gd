@@ -4932,6 +4932,7 @@ func _living_exploration_damage_party_mult() -> float:
 			continue
 		var m: Resource = GameState.get_combatant(i)
 		mult *= CombatPassives.exploration_damage_party_mult_for_member(m)
+		mult *= CombatPassives.equipped_exploration_trap_mult_for_member(m)
 	return mult
 
 
@@ -5655,6 +5656,14 @@ func _apply_skill_status_to_enemy_slot(member_idx: int, skill_data: Resource, ta
 
 
 ## スキル／必殺の会心倍率（通常攻撃と同式: 武器 critical_damage + パッシブ）。
+func _skill_crit_chance(member_idx: int, skill_data: Resource = null) -> float:
+	var base_info: Dictionary = _calc_attack_base(member_idx)
+	var rate: float = float(base_info.get("crit_rate", 0.0))
+	if skill_data != null and "crit_rate_bonus" in skill_data:
+		rate += float(skill_data.crit_rate_bonus)
+	return clampf(rate, 0.0, 1.0)
+
+
 func _skill_critical_multiplier(member_idx: int) -> float:
 	var weapon: Resource = GameState.get_member_equipped_weapon(member_idx)
 	var crit_mult: float = WeaponStatResolver.resolve_critical_damage(weapon)
@@ -5679,7 +5688,7 @@ func _execute_member_aoe_damage_skill(
 		return ""
 	var cd_key: String = _member_skill_cd_key(member_idx, skill_data)
 	var base_info: Dictionary = _calc_attack_base(member_idx)
-	var is_critical: bool = randf() < base_info["crit_rate"]
+	var is_critical: bool = randf() < _skill_crit_chance(member_idx, skill_data)
 	var run_mult: float = $DungeonController.get_effective_run_damage_multiplier()
 	var result: Dictionary = _skill_executor.execute_damage_skill(
 		skill_data,
@@ -5783,7 +5792,7 @@ func _execute_member_skill(
 	var target_slot: int = $CombatController.get_member_target_slot(member_idx)
 	var cd_key: String = _member_skill_cd_key(member_idx, skill_data)
 	var base_info: Dictionary = _calc_attack_base(member_idx)
-	var is_critical: bool = randf() < base_info["crit_rate"]
+	var is_critical: bool = randf() < _skill_crit_chance(member_idx, skill_data)
 	var run_mult: float = $DungeonController.get_effective_run_damage_multiplier()
 	var result: Dictionary = _skill_executor.execute_damage_skill(
 		skill_data,
@@ -6215,6 +6224,13 @@ func _apply_member_buff_effects(member_idx: int, skill_data: Resource) -> Dictio
 		party_healed = _apply_party_heal_from_skill(member_idx, skill_data, 1.1)
 		if party_healed > 0:
 			_update_hp_bars()
+	if skill_data != null:
+		for tag: Variant in skill_data.tags:
+			var tag_s: String = str(tag)
+			if tag_s.begins_with("counter_charges_"):
+				var n: int = int(tag_s.get_slice("_", 2))
+				if n > 0:
+					CombatPassives.grant_combat_counter_charges(member_idx, n)
 	return {
 		"applied": applied,
 		"status_id": status_id,
@@ -6348,7 +6364,7 @@ func _try_cast_player_skill() -> String:
 	if skill_data == null:
 		return ""
 	var base_info: Dictionary = _calc_attack_base(member_idx)
-	var is_critical: bool = randf() < base_info["crit_rate"]
+	var is_critical: bool = randf() < _skill_crit_chance(member_idx, skill_data)
 	var run_mult: float = $DungeonController.get_effective_run_damage_multiplier()
 	var result: Dictionary = _skill_executor.execute_damage_skill(
 		skill_data,
@@ -6441,7 +6457,7 @@ func _try_cast_secondary_skill(primary_skill_id: String) -> String:
 	if skill_data.id == primary_skill_id:
 		return ""
 	var base_info: Dictionary = _calc_attack_base(member_idx)
-	var is_critical: bool = randf() < base_info["crit_rate"]
+	var is_critical: bool = randf() < _skill_crit_chance(member_idx, skill_data)
 	var run_mult: float = $DungeonController.get_effective_run_damage_multiplier()
 	var result: Dictionary = _skill_executor.execute_damage_skill(
 		skill_data,
@@ -9102,6 +9118,11 @@ func _on_member_damaged(target_idx: int, ctx: Dictionary = {}) -> void:
 		if bool(ctx.get("skip_hit_taken", false)):
 			return
 		_fire_member_passives(target_idx, "on_hit_taken", ctx)
+		if CombatPassives.consume_combat_counter_charge(target_idx):
+			var counter_slot: int = int(ctx.get("attacker_slot", -1))
+			if _execute_counter_attack(target_idx, counter_slot, "応撃の構"):
+				_spawn_skill_name("⚔応撃", target_idx, 0.0, "", false, "", PASSIVE_NAME_FONT_SIZE)
+				_append_log("[スキル] 応撃の構: 反撃")
 		var max_hp: int = 0
 		if target_idx < $CombatController.party_max_hp.size():
 			max_hp = int($CombatController.party_max_hp[target_idx])

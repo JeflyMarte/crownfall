@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "trail_ward"
+display_name = "踏破の護符"
+description = "野の護符で味方を薄く守る。装備中は罠ダメージを軽減し、戦闘では軽い防御を配る。"
+skill_type = "player"
+target_type = "all_party"
+power_multiplier = 1.0
+cooldown = 8.0
+trigger_type = "cooldown"
+effect_type = "buff"
+tags = Array[String](["support", "buff", "exploration"])
+element = ""
+apply_status_id = "guard_minor"
+apply_status_chance = 1.0
+apply_status_id2 = ""
+apply_status_chance2 = 0.0
+slot_type = "skill"
+range_type = "mid"
+cast_time = 0.0
+reserve_condition = ""
+reserve_value = ""

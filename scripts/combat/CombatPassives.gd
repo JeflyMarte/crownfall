@@ -1077,8 +1077,13 @@ static func tier_def_for(job_id: String, rarity: int) -> Dictionary:
 		return _def_with_id(str(_STAR3_JOB_PASSIVES.get(job_id, "")))
 	return {}
 
+## 戦闘中のみ有効な被弾反撃チャージ（VG 応撃の構など）。
+static var _combat_counter_charges: Dictionary = {}
+
+
 static func reset_combat_scoped() -> void:
 	_combat_member_evasion_add.clear()
+	_combat_counter_charges.clear()
 
 
 static func grant_combat_evasion(member_index: int, amount: float) -> void:
@@ -1086,6 +1091,34 @@ static func grant_combat_evasion(member_index: int, amount: float) -> void:
 		return
 	var cur: float = float(_combat_member_evasion_add.get(member_index, 0.0))
 	_combat_member_evasion_add[member_index] = cur + amount
+
+
+static func grant_combat_counter_charges(member_index: int, charges: int) -> void:
+	if member_index < 0 or charges <= 0:
+		return
+	var cur: int = int(_combat_counter_charges.get(member_index, 0))
+	_combat_counter_charges[member_index] = cur + charges
+
+
+static func consume_combat_counter_charge(member_index: int) -> bool:
+	if member_index < 0:
+		return false
+	var cur: int = int(_combat_counter_charges.get(member_index, 0))
+	if cur <= 0:
+		return false
+	_combat_counter_charges[member_index] = cur - 1
+	return true
+
+
+## 装備中の探索適性スキル（踏破の護符）による罠ダメ倍率。
+static func equipped_exploration_trap_mult_for_member(member: Resource) -> float:
+	if member == null:
+		return 1.0
+	var ids: Array[String] = GameState.get_equipped_skill_ids(member)
+	for sid: String in ids:
+		if sid == "trail_ward":
+			return 0.75
+	return 1.0
 
 
 static func get_def(passive_id: String) -> Dictionary:

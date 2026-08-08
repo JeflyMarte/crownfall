@@ -16,6 +16,8 @@ extends Resource
 ## 敵サポート: heal/buff の "ally"＝他の生存敵（いなければ self）。"self"＝詠唱者のみ。
 ## damage: 攻撃倍率。heal（味方）: 対象 maxHP 割合（0.2=20%）。敵healも同型。
 @export var power_multiplier: float = 1.0
+## このスキル限定の会心率加算（0..1。P3-SKILL-THEME-KIT-001）。
+@export var crit_rate_bonus: float = 0.0
 @export var cooldown: float = 5.0
 @export var trigger_type: String = "cooldown"
 ## effect_type: "damage" | "heal" | "buff" | "flee" | "explode" | "haste" | "silence" | "summon" | "none"

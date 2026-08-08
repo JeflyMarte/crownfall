@@ -6,13 +6,16 @@ extends RefCounted
 
 ## キット差し替え時の旧装備ID→新ID（P3-SKILL-KIT-DIVERGE-001）。
 const EQUIPPED_SKILL_REMAP: Dictionary = {
-	"chain_slash": "blade_dance",
+	"chain_slash": "keen_slash",
+	"blade_dance": "keen_slash",
 	"armor_cleave": "battle_spirit",
 	"momentum_slash": "battle_spirit",
-	"mark_pursuit": "piercing_shot",
-	## VG 三軸再編（P3-SKILL-VG-TRIAD-001）
-	"shield_ram": "shield_crush",
-	"cover_guard": "shield_crush",
+	"mark_pursuit": "volley_shot",
+	"piercing_shot": "volley_shot",
+	## VG 三軸再編（P3-SKILL-VG-TRIAD-001）→ テーマ再編で応撃へ
+	"shield_ram": "riposte_stance",
+	"cover_guard": "riposte_stance",
+	"shield_crush": "riposte_stance",
 	"iron_guard": "offensive_stance",
 	"apex_guard": "assault_shatter",
 	"shield_quake": "drain_slash",
