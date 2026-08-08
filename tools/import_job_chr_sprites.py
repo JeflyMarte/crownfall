@@ -25,9 +25,10 @@ ANIM_ROOT = ROOT / "resources" / "animation"
 WORK = Path("/tmp/crownfall_chr_import")
 TARGET = 232
 PAD_RATIO = 0.08
-## 職ごとに枠内の見た目サイズを微調整（1.0=標準。>1 でドットを大きく・端はクリップ可）。
+## 職ごとに枠内の見た目サイズを微調整（PNG側）。※戦闘表示は DungeonScene の
+## CHR_BODY_TARGET_MULT_BY_JOB が最終的な体格を決める（α正規化の後）。
 JOB_FILL_SCALE = {
-	"vanguard": 1.12,
+	"vanguard": 1.0,
 }
 
 DESKTOP_CANDIDATES = [

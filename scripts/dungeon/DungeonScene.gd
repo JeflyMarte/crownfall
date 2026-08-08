@@ -21,6 +21,10 @@ const COMBAT_WAIT_GRIND: float = 0.28
 const AUTO_DELAY_GRIND: float = 0.6
 # 味方CHRの「見える体格」を揃える目標高さ（実体=α領域の高さ基準）
 const CHR_BODY_TARGET_PX: float = 140.0
+## 職ごとの体格補正（正規化後）。ヴァンガード原画は華奢で小さく見えるため底上げ。
+const CHR_BODY_TARGET_MULT_BY_JOB: Dictionary = {
+	"vanguard": 1.38,
+}
 ## ペットは味方より一回り小さく（P3-PET-OTOMO-001 polish）
 const PET_BODY_TARGET_PX: float = 92.0
 const _LOG_MAX: int = 60
@@ -11201,6 +11205,8 @@ func _show_chr_sprites(with_entrance: bool = false) -> void:
 			continue
 		sprite.sprite_frames = frames
 		var body_target: float = PET_BODY_TARGET_PX if GameState.is_pet_combatant(i) else CHR_BODY_TARGET_PX
+		if member != null and not GameState.is_pet_combatant(i):
+			body_target *= float(CHR_BODY_TARGET_MULT_BY_JOB.get(str(member.job_id), 1.0))
 		_normalize_chr_scale(sprite, frames, body_target)
 		_warm_sprite_animation_textures(frames, "attack")
 		var slot: int = _formation_slot_for_combat_index(i)
