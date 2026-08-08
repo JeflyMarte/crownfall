@@ -7483,7 +7483,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | # | 決定 | 根拠 |
 |---|---|---|
 | P3-UX-EQUIP-LOCK-001-1 | **フィールド** — `Weapon/Armor/AccessoryInstance.is_locked`（セーブ永続） | 個体単位 |
-| P3-UX-EQUIP-LOCK-001-2 | **UI** — 装備一覧長押しでトグル。**左下**🔒。詳細にロック／解除ボタン。装着スロット長押しも同様 | 既存長押し詳細を維持。タッチは relative 累積＋Touch/Mouse 二重無視 |
+| P3-UX-EQUIP-LOCK-001-2 | **UI** — 装備一覧長押しでトグル。**左下**🔒。詳細にロック／解除。**Desktop は右クリックでも可**。装着スロットも同様 | 長押し詳細維持。Touch=relative死域／Mouse=絶対距離＋右クリック |
 | P3-UX-EQUIP-LOCK-001-3 | **錬成** — ロック中は**素材不可**（主材は可） | 誤消滅防止 |
 | P3-UX-EQUIP-LOCK-001-4 | **分解** — ロック中は単体・一括とも不可 | 同上 |
 | P3-UX-EQUIP-LOCK-001-5 | **据置** — 炉研ぎ／装着／焼直しはロック非干渉 | スコープ最小 |
@@ -7546,3 +7546,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-FIX-CODEX-SWARM-001-3 | **装備** — `armor`/`accessory` をカテゴリ追加。ドロップ／イベントで EventBus＋登録 | 旧は weapon のみ |
 | P3-FIX-CODEX-SWARM-001-4 | **マイページ** — 装備発見率は weapon+armor+accessory 合算（分母＝equipment 件数） | 防具・装飾が 0 扱いだった |
 | P3-FIX-CODEX-SWARM-001-5 | **据置** — 生態段階（`enemy_codex`／seen・kills）は従来どおり全スロット `mark_enemy_seen` | 本修正は discovery 側の穴 |
+
+## 装備袋所持上限200（2026-08-08 — P3-EQ-INV-CAP-001）
+
+> **オーナー GO** — 武+防+飾 合計200。一覧は `n/200件`。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-INV-CAP-001-1 | **上限** — `MAX_EQUIPMENT_INVENTORY=200`（武+防+飾合算。レリック別枠） | 装備画面全セル生成の負荷帯 |
+| P3-EQ-INV-CAP-001-2 | **表示** — 装備品一覧 `現在/200件`（所持合計。フィルタ非連動） | オーナー指定 |
+| P3-EQ-INV-CAP-001-3 | **満杯** — 新規入手不可。生産・封蔵は拒否（消費なし）。DGドロップは付与スキップ | 破棄より分解誘導 |
+| P3-EQ-INV-CAP-001-4 | **例外** — 初期武器・デバッグ全所持は `ignore_cap` | 復元／検証用 |
+| P3-EQ-INV-CAP-001-5 | **SSOT** — `89_EquipmentInventoryCap.md` | Decision 本体 |

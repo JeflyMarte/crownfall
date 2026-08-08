@@ -2120,7 +2120,7 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 		btn.tooltip_text = "%s\n（%s）" % [item_name, JobStatCalculator.unequip_reason_weapon(view_member, item)]
 	else:
 		btn.tooltip_text = "%s\n（長押しでロック／詳細）" % item_name
-	## 短押し=着脱、長押し=ロック切替＋詳細（Button.pressed は使わず gui_input で統一）。
+	## 短押し=着脱、長押し／右クリック=ロック切替＋詳細（Button.pressed は使わず gui_input で統一）。
 	## disabled にしない: ペット閲覧でもロック長押しを受け付ける（着脱は tap 側で拒否）。
 	_bind_inventory_cell_interaction(btn, _inventory_item_action.bind(item, category))
 	if is_on_self:
@@ -2190,6 +2190,16 @@ func _bind_inventory_cell_interaction(btn: Button, action: Callable) -> void:
 	btn.gui_input.connect(_on_inventory_cell_gui_input.bind(action))
 
 func _on_inventory_cell_gui_input(event: InputEvent, action: Callable) -> void:
+	## Desktop: 右クリックでロック／詳細（Mac のクリック長押しが OS／微動で潰れる対策）。
+	if (
+		event is InputEventMouseButton
+		and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_RIGHT
+		and event.pressed
+	):
+		if action.is_valid():
+			action.call(true)
+		btn.accept_event()
+		return
 	if _inv_pointer_down and _should_cancel_inventory_press_for_move(event):
 		_cancel_inventory_press()
 		return
@@ -2236,16 +2246,16 @@ func _inventory_event_position(event: InputEvent) -> Vector2:
 	return Vector2.ZERO
 
 func _should_cancel_inventory_press_for_move(event: InputEvent) -> bool:
-	## 絶対座標の差は Touch/Drag で座標系がずれ即キャンセルしうる → relative 累積を使う。
+	## Touch: relative 累積（絶対座標は Touch/Drag でずれうる）。
 	if event is InputEventScreenDrag:
 		_inv_press_travel += (event as InputEventScreenDrag).relative.length()
 		return _inv_press_travel >= INVENTORY_PRESS_MOVE_CANCEL_PX
+	## Mouse: 原点からの絶対距離のみ（relative 累積はトラックパッド微動で即キャンセルする）。
 	if event is InputEventMouseMotion:
 		var motion: InputEventMouseMotion = event as InputEventMouseMotion
 		if (motion.button_mask & MOUSE_BUTTON_MASK_LEFT) == 0:
 			return false
-		_inv_press_travel += motion.relative.length()
-		return _inv_press_travel >= INVENTORY_PRESS_MOVE_CANCEL_PX
+		return _inv_press_origin.distance_to(motion.position) >= INVENTORY_PRESS_MOVE_CANCEL_PX
 	return false
 
 func _begin_inventory_press(action: Callable) -> void:
