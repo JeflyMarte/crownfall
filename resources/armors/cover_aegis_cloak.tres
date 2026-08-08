@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 armor_id = "cover_aegis_cloak"
-display_name = "庇護の外套"
-description = "傷つきやすい味方を覆う外套。守り手自身は少し無防備になる。"
+display_name = "応撃の外套"
+description = "反撃の余勢をまとった外套。戦端で応撃の構えが整い、反撃が鋭くなる。"
 base_defense = 300
 base_hp_bonus = 500
 base_resistance = 0.0

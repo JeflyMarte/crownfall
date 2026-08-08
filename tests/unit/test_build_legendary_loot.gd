@@ -75,11 +75,22 @@ func test_build_passive_helpers() -> void:
 	assert_false(CombatPassives.heal_applies_guard_for_member(-1))
 	assert_eq(CombatPassives.hexweave_incoming_mult_for_member(-1, 5), 1.0)
 	assert_eq(CombatPassives.cover_ally_incoming_mult_for(0, -1), 1.0)
+	assert_eq(CombatPassives.counter_damage_mult_for_member(-1), 1.0)
 	var hex_def: Dictionary = CombatPassives.get_def("eq_hexweave_robe")
 	assert_eq(float(hex_def.get("incoming_per_enemy_debuff", 0.0)), 0.03)
 	var pierce_def: Dictionary = CombatPassives.get_def("eq_pierce_charm")
 	assert_eq(float(pierce_def.get("crit_damage_add", 0.0)), 0.15)
 	assert_false(pierce_def.has("pierce_secondary_damage_mult"))
+	var cover_def: Dictionary = CombatPassives.get_def("eq_cover_aegis")
+	assert_eq(float(cover_def.get("counter_damage_mult", 1.0)), 1.25)
+	assert_eq(str(cover_def.get("effect", "")), "grant_counter_charges")
+	var flurry_def: Dictionary = CombatPassives.get_def("eq_flurry_mail")
+	assert_eq(float(flurry_def.get("outgoing_vs_status_mult", 1.0)), 1.20)
+	assert_eq(str(flurry_def.get("status_id", "")), "slow")
+	var ring_def: Dictionary = CombatPassives.get_def("eq_blade_dance_ring")
+	assert_eq(float(ring_def.get("elemental_outgoing_mult", 1.0)), 1.18)
+	var pulse_def: Dictionary = CombatPassives.get_def("eq_pulse_amulet")
+	assert_eq(float(pulse_def.get("first_attack_mult", 1.0)), 1.40)
 	## 装飾の会心ダメ加算が weapon_stat_modifiers 経由で戦闘に届く。
 	var adv := Adventurer.new()
 	adv.id = "test_pierce_charm_crit"
@@ -92,6 +103,18 @@ func test_build_passive_helpers() -> void:
 	GameState.party_members = [adv]
 	var mods: Dictionary = CombatPassives.weapon_stat_modifiers_for_member(0)
 	assert_eq(float(mods.get("crit_damage_add", 0.0)), 0.15)
+	## 初撃アクセは character_stat_modifiers に載る（他パッシブと乗算）。
+	var pulse_acc := AccessoryInstance.new()
+	pulse_acc.accessory_id = "pulse_amulet"
+	adv.equipped_accessory = null
+	var base_first: float = float(
+		CombatPassives.character_stat_modifiers_for_member(0).get("first_attack_mult", 1.0)
+	)
+	adv.equipped_accessory = pulse_acc
+	var with_pulse: float = float(
+		CombatPassives.character_stat_modifiers_for_member(0).get("first_attack_mult", 1.0)
+	)
+	assert_almost_eq(with_pulse, base_first * 1.40, 0.001)
 	GameState.party_members = prev_party
 
 
@@ -149,4 +172,4 @@ func test_detail_text_for_build_armor() -> void:
 	armor_inst.armor_id = "cover_aegis_cloak"
 	var text: String = EquipmentItemDetailHelper.equipment_legendary_effect_text(armor_inst, "armor")
 	assert_false(text.is_empty())
-	assert_true(text.contains("傷つ") or text.contains("被ダメ"))
+	assert_true(text.contains("反撃") or text.contains("応撃"))

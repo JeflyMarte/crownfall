@@ -9,7 +9,8 @@ extends RefCounted
 ##   "on_attack" | "on_kill" | "on_noncombat_enter"
 ## condition: "always" | "self_hp_below"（value=HP割合）| "ally_hp_below"（味方誰かHP割合）
 ## effect: "apply_status" | "heal" | "bonus_damage" | "counter_attack" | "grant_next_attack_mult" |
-##   "refund_ct" | "grant_party_incoming_mult" | "grant_self_evasion" | "aoe_burst" | "abyss_ice_shell_counter"
+##   "refund_ct" | "grant_party_incoming_mult" | "grant_self_evasion" | "grant_counter_charges" |
+##   "aoe_burst" | "abyss_ice_shell_counter"
 ## heal target: "party"（既定・全体）| "self" | "most_injured"（最傷1体・治癒スキルと同型）
 ## stat_mod（常時）: evasion_rate_add / back_row_evasion_rate_add / outgoing_mult / incoming_mult / first_attack_mult /
 ##   ultimate_power_mult / exp_gain_mult / party_exp_gain_mult /
@@ -480,16 +481,17 @@ const _DEFS: Dictionary = {
 		"incoming_vs_status_ids": ["bleed"],
 	},
 	"eq_flurry_mail": {
-		"display_name": "連撃の余熱",
+		"display_name": "罠糸の軽甲",
 		"category": "armor",
-		"description": "被ダメ -8%。3回攻撃するたび最大HPの2%を回復する。",
-		"incoming_mult": 0.92,
+		"description": "冷却・鈍化の敵へ与ダメ +20%。攻撃時20%で鈍化を付与する。",
+		"outgoing_vs_status_mult": 1.20,
+		"outgoing_vs_status_ids": ["chill", "slow"],
 		"trigger": "on_attack",
 		"condition": "always",
-		"effect": "heal",
-		"target": "self",
-		"heal_max_hp_fraction": 0.02,
-		"every_n": 3,
+		"effect": "apply_status",
+		"status_id": "slow",
+		"target": "enemy",
+		"status_chance": 0.20,
 		"cooldown": 0.0,
 	},
 	"eq_bulwark_role": {
@@ -504,11 +506,15 @@ const _DEFS: Dictionary = {
 		"cooldown": 5.0,
 	},
 	"eq_cover_aegis": {
-		"display_name": "庇護の外套",
+		"display_name": "応撃の外套",
 		"category": "armor",
-		"description": "いちばん傷ついた味方の被ダメ -12%。自身の被ダメ +5%。",
-		"cover_ally_incoming_mult": 0.88,
-		"incoming_mult": 1.05,
+		"description": "戦闘開始時に反撃チャージ+2。反撃ダメージ +25%。",
+		"counter_damage_mult": 1.25,
+		"trigger": "on_combat_start",
+		"condition": "always",
+		"effect": "grant_counter_charges",
+		"counter_charges": 2,
+		"cooldown": 0.0,
 	},
 	"eq_hexweave_robe": {
 		"display_name": "呪縛の織",
@@ -518,11 +524,10 @@ const _DEFS: Dictionary = {
 		"incoming_per_enemy_debuff_cap": 0.15,
 	},
 	"eq_blade_dance_ring": {
-		"display_name": "剣舞の鼓動",
+		"display_name": "共鳴の指輪",
 		"category": "accessory",
-		"description": "必殺チャージ速度 +15%。スキル再使用が 10% 速くなる。",
-		"ultimate_charge_dealt_mult": 1.15,
-		"skill_cd_mult": 0.90,
+		"description": "属性つきの攻撃・スキルの与ダメージが18%上昇する。",
+		"elemental_outgoing_mult": 1.18,
 	},
 	"eq_pierce_charm": {
 		"display_name": "急所の余勢",
@@ -531,11 +536,10 @@ const _DEFS: Dictionary = {
 		"crit_damage_add": 0.15,
 	},
 	"eq_pulse_amulet": {
-		"display_name": "鼓動の充填",
+		"display_name": "初撃の鼓動",
 		"category": "accessory",
-		"description": "必殺チャージ速度 +35%。スキル再使用が 15% 遅くなる。",
-		"ultimate_charge_dealt_mult": 1.35,
-		"skill_cd_mult": 1.15,
+		"description": "戦闘中の初撃与ダメージ ×1.40。",
+		"first_attack_mult": 1.40,
 	},
 	"eq_beastlord_fang": {
 		"display_name": "獣使いの牙",
@@ -1717,6 +1721,20 @@ static func pierce_secondary_damage_mult(member_index: int) -> float:
 		var def: Dictionary = raw_def
 		if def.has("pierce_secondary_damage_mult"):
 			mult *= maxf(0.0, float(def["pierce_secondary_damage_mult"]))
+	return mult
+
+
+## 反撃ダメージ倍率（既定1.0）。応撃チャージ消費時の反撃に適用。
+static func counter_damage_mult_for_member(member_index: int) -> float:
+	var mult: float = 1.0
+	if member_index < 0 or member_index >= GameState.party_members.size():
+		return mult
+	for raw_def: Variant in for_member(GameState.party_members[member_index]):
+		if raw_def is not Dictionary:
+			continue
+		var def: Dictionary = raw_def
+		if def.has("counter_damage_mult"):
+			mult *= maxf(0.0, float(def["counter_damage_mult"]))
 	return mult
 
 

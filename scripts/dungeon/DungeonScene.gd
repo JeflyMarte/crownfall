@@ -8983,6 +8983,9 @@ func _execute_counter_attack(member_idx: int, target_slot: int, passive_name: St
 	_passive_counter_depth += 1
 	var result: Dictionary = _calc_damage(member_idx, target_slot)
 	var dmg: int = int(result["damage"])
+	var counter_mult: float = CombatPassives.counter_damage_mult_for_member(member_idx)
+	if counter_mult > 0.0 and not is_equal_approx(counter_mult, 1.0):
+		dmg = maxi(1, int(round(float(dmg) * counter_mult)))
 	_play_chr_attack_one(member_idx)
 	_resolve_party_attack_impact_async({
 		"kind": "counter",
@@ -9405,6 +9408,11 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 			var eva_add: float = float(p.get("evasion_add", 0.0))
 			if eva_add > 0.0:
 				CombatPassives.grant_combat_evasion(member_idx, eva_add)
+				applied = true
+		"grant_counter_charges":
+			var charges: int = maxi(0, int(p.get("counter_charges", 0)))
+			if charges > 0:
+				CombatPassives.grant_combat_counter_charges(member_idx, charges)
 				applied = true
 		"chance_cast_equipped_skill":
 			if _passive_skill_echo_depth > 0:

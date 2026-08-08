@@ -5,11 +5,11 @@
 [resource]
 script = ExtResource("1")
 id = "pulse_amulet"
-display_name = "鼓動の首飾り"
+display_name = "初撃の首飾り"
 rarity = 3
 icon = ""
 accessory_type = "talisman"
-description = "鼓動に合わせて必殺が満ちる首飾り。技の再使用は少し遅れる。"
+description = "鼓動に乗せて初撃を鋭くする首飾り。戦闘の第一撃が重くなる。"
 hp_bonus = 220
 attack_bonus = 0
 defense_bonus = 0

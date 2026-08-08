@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 armor_id = "flurry_light_mail"
-display_name = "連撃の軽甲"
-description = "連撃の余熱を纏う軽甲。打ち続けるほど身が軽く、傷が閉じる。"
+display_name = "罠糸の軽甲"
+description = "罠糸を織り込んだ軽甲。動きを鈍らせた敵を追い込みやすい。"
 base_defense = 320
 base_hp_bonus = 480
 base_resistance = 0.0

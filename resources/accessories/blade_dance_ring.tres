@@ -5,11 +5,11 @@
 [resource]
 script = ExtResource("1")
 id = "blade_dance_ring"
-display_name = "剣舞の指輪"
+display_name = "共鳴の指輪"
 rarity = 3
 icon = ""
 accessory_type = "ring"
-description = "刃のリズムに合わせて力が巡る指輪。連撃が必殺を呼ぶ。"
+description = "属性の揺らぎに共鳴する指輪。属性つきの一撃が通る。"
 hp_bonus = 200
 attack_bonus = 0
 defense_bonus = 0
