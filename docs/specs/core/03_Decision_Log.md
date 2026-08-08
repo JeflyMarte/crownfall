@@ -7483,7 +7483,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | # | 決定 | 根拠 |
 |---|---|---|
 | P3-UX-EQUIP-LOCK-001-1 | **フィールド** — `Weapon/Armor/AccessoryInstance.is_locked`（セーブ永続） | 個体単位 |
-| P3-UX-EQUIP-LOCK-001-2 | **UI** — 装備一覧長押しでトグル。右上🔒。詳細オーバーレイも併表示 | 既存長押し詳細を維持 |
+| P3-UX-EQUIP-LOCK-001-2 | **UI** — 装備一覧長押しでトグル。**左下**🔒。詳細にロック／解除ボタン。装着スロット長押しも同様 | 既存長押し詳細を維持。タッチは relative 累積＋Touch/Mouse 二重無視 |
 | P3-UX-EQUIP-LOCK-001-3 | **錬成** — ロック中は**素材不可**（主材は可） | 誤消滅防止 |
 | P3-UX-EQUIP-LOCK-001-4 | **分解** — ロック中は単体・一括とも不可 | 同上 |
 | P3-UX-EQUIP-LOCK-001-5 | **据置** — 炉研ぎ／装着／焼直しはロック非干渉 | スコープ最小 |

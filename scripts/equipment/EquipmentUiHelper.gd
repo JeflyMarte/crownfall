@@ -6,8 +6,10 @@ extends RefCounted
 const RARITY_CODES: Array[String] = ["N", "R", "E", "L", "M", "エンシェントレア"]
 ## 装備セル左上のレアリティロゴ位置（N/R/E／L／M／エンシェント共通）。
 const RARITY_BADGE_POS: Vector2 = Vector2(5.0, 3.0)
-## 装備Lv（左下寄り・右上へオフセット）。炉研ぎ +N は右下。
-const EQUIP_LEVEL_BADGE_POS: Vector2 = Vector2(14.0, -14.0)
+## 装備Lv（左下・ロック右隣）。炉研ぎ +N は右下。
+const EQUIP_LEVEL_BADGE_POS: Vector2 = Vector2(22.0, -14.0)
+## ロック🔒（セル左下）。
+const LOCK_BADGE_POS: Vector2 = Vector2(1.0, -2.0)
 const LEVEL_CAP: int = LevelSystem.MAX_LEVEL
 
 const SORT_LABELS: Dictionary = {
@@ -117,19 +119,18 @@ static func apply_equip_level_badge(
 	)
 
 
-## 誤分解・誤錬成防止ロック（右上 🔒）。
+## 誤分解・誤錬成防止ロック（左下 🔒。装備Lv の左）。
 static func apply_lock_badge(parent: Control, item: Resource, cell_size: Vector2) -> void:
 	if parent == null or item == null:
 		return
 	if not EquipmentEnhancer.is_item_locked(item):
 		return
 	var font_size: int = maxi(14, int(cell_size.y * 0.22))
-	var width: float = float(font_size) * 1.15
 	add_corner_badge(
 		parent,
 		"🔒",
 		Color(1.0, 0.92, 0.55, 1.0),
-		Vector2(cell_size.x - width - 2.0, 1.0),
+		Vector2(LOCK_BADGE_POS.x, cell_size.y - float(font_size) + LOCK_BADGE_POS.y),
 		font_size,
 		4
 	)

@@ -202,14 +202,21 @@ var _overlay_skill_id: String = ""
 const INVENTORY_LONG_PRESS_SEC: float = 0.45
 ## 装備一覧ヘッダ用。全文だと InventoryHeader 最小幅が viewport を超える。
 const RECOMMEND_BTN_LABEL: String = "おすすめ"
-## iPhone は静止長押しでも微細 ScreenDrag が来る。Scroll deadzone と同程度まで許容する。
-const INVENTORY_PRESS_MOVE_CANCEL_PX: float = 20.0
+## iPhone は静止長押しでも微細 ScreenDrag が来る。Scroll deadzone 以上を許容（相対移動の累積）。
+const INVENTORY_PRESS_MOVE_CANCEL_PX: float = 28.0
+const _INV_PRESS_NONE: int = 0
+const _INV_PRESS_TOUCH: int = 1
+const _INV_PRESS_MOUSE: int = 2
 var _inv_pointer_down: bool = false
 var _inv_long_press_fired: bool = false
 var _inv_press_timer: SceneTreeTimer = null
 var _inv_press_action: Callable = Callable()
 var _inv_press_origin: Vector2 = Vector2.ZERO
+var _inv_press_travel: float = 0.0
+## emulate_mouse_from_touch で ScreenTouch と MouseButton が二重に来る対策。
+var _inv_press_source: int = _INV_PRESS_NONE
 var _detail_pinned: bool = false
+var _detail_lock_btn: Button = null
 var _portrait_idle_textures: Array[Texture2D] = []
 var _portrait_idle_frame: int = 0
 var _portrait_idle_accum: float = 0.0
@@ -1890,6 +1897,11 @@ func _make_slot(
 func _equip_slot_action(is_long_press: bool, category: String, item: Resource) -> void:
 	if is_long_press:
 		if item != null:
+			## 装着スロット長押しでもロック切替（所持一覧と同方針）。
+			_EquipmentEnhancer.toggle_item_locked(item)
+			SaveManager.save_game()
+			_rebuild_inventory_grid()
+			_rebuild_equip_slots()
 			_show_item_stats_overlay(item, category, true)
 		return
 	_on_slot_pressed(category)
@@ -2109,13 +2121,16 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 	else:
 		btn.tooltip_text = "%s\n（長押しでロック／詳細）" % item_name
 	## 短押し=着脱、長押し=ロック切替＋詳細（Button.pressed は使わず gui_input で統一）。
+	## disabled にしない: ペット閲覧でもロック長押しを受け付ける（着脱は tap 側で拒否）。
 	_bind_inventory_cell_interaction(btn, _inventory_item_action.bind(item, category))
-	btn.disabled = not _can_change_equipment_on_view()
 	if is_on_self:
 		btn.modulate = Color(0.72, 0.72, 0.72, 0.85)
 		_apply_item_cell_styles(btn, rarity, cell_px, true)
 	elif job_blocked:
 		btn.modulate = Color(0.55, 0.55, 0.55, 0.75)
+		_apply_item_cell_styles(btn, rarity, cell_px, true)
+	elif not _can_change_equipment_on_view():
+		btn.modulate = Color(0.7, 0.7, 0.7, 0.9)
 		_apply_item_cell_styles(btn, rarity, cell_px, true)
 	else:
 		_apply_item_cell_styles(btn, rarity, cell_px)
@@ -2140,9 +2155,11 @@ func _make_relic_cell(relic_id: String) -> Button:
 	var is_on_self: bool = owner_member != null and owner_member == view_member
 	btn.tooltip_text = "%s\n（長押しで詳細）" % EquipmentItemDetailHelper.relic_hover_summary(relic_id)
 	_bind_inventory_cell_interaction(btn, _inventory_relic_action.bind(relic_id))
-	btn.disabled = not _can_change_equipment_on_view()
 	if is_on_self:
 		btn.modulate = Color(0.72, 0.72, 0.72, 0.85)
+		_apply_relic_cell_styles(btn, cell_px, true)
+	elif not _can_change_equipment_on_view():
+		btn.modulate = Color(0.7, 0.7, 0.7, 0.9)
 		_apply_relic_cell_styles(btn, cell_px, true)
 	else:
 		_apply_relic_cell_styles(btn, cell_px)
@@ -2178,10 +2195,24 @@ func _on_inventory_cell_gui_input(event: InputEvent, action: Callable) -> void:
 		return
 	if not _is_inventory_pointer_event(event):
 		return
+	var is_touch: bool = event is InputEventScreenTouch
+	var is_mouse: bool = event is InputEventMouseButton
 	if event.pressed:
+		## タッチ由来の MouseButton 二重 press でタイマーをリセットしない。
+		if _inv_pointer_down:
+			return
+		_inv_press_source = _INV_PRESS_TOUCH if is_touch else _INV_PRESS_MOUSE
 		_inv_press_origin = _inventory_event_position(event)
+		_inv_press_travel = 0.0
 		_begin_inventory_press(action)
 	else:
+		if not _inv_pointer_down:
+			return
+		## タッチ中の emulate MouseButton release で短押し扱いになるのを防ぐ。
+		if _inv_press_source == _INV_PRESS_TOUCH and is_mouse:
+			return
+		if _inv_press_source == _INV_PRESS_MOUSE and is_touch:
+			return
 		_end_inventory_press()
 	## accept_event しない: ScrollTouch の PASS 経由で親 TabEquip がドラッグ開始できるようにする。
 	## （press で消費するとセル上スクロールが効かない）
@@ -2205,21 +2236,20 @@ func _inventory_event_position(event: InputEvent) -> Vector2:
 	return Vector2.ZERO
 
 func _should_cancel_inventory_press_for_move(event: InputEvent) -> bool:
-	## スクロール開始と同程度の移動までは長押しを維持（実機の指ぶれ対策）。
+	## 絶対座標の差は Touch/Drag で座標系がずれ即キャンセルしうる → relative 累積を使う。
 	if event is InputEventScreenDrag:
-		return (
-			_inv_press_origin.distance_to((event as InputEventScreenDrag).position)
-			>= INVENTORY_PRESS_MOVE_CANCEL_PX
-		)
+		_inv_press_travel += (event as InputEventScreenDrag).relative.length()
+		return _inv_press_travel >= INVENTORY_PRESS_MOVE_CANCEL_PX
 	if event is InputEventMouseMotion:
 		var motion: InputEventMouseMotion = event as InputEventMouseMotion
 		if (motion.button_mask & MOUSE_BUTTON_MASK_LEFT) == 0:
 			return false
-		return _inv_press_origin.distance_to(motion.position) >= INVENTORY_PRESS_MOVE_CANCEL_PX
+		_inv_press_travel += motion.relative.length()
+		return _inv_press_travel >= INVENTORY_PRESS_MOVE_CANCEL_PX
 	return false
 
 func _begin_inventory_press(action: Callable) -> void:
-	_cancel_inventory_press()
+	_cancel_inventory_press_timer_only()
 	_inv_pointer_down = true
 	_inv_long_press_fired = false
 	_inv_press_action = action
@@ -2237,6 +2267,7 @@ func _end_inventory_press() -> void:
 	if not _inv_pointer_down:
 		return
 	_inv_pointer_down = false
+	_inv_press_source = _INV_PRESS_NONE
 	_cancel_inventory_press_timer_only()
 	if not _inv_long_press_fired and _inv_press_action.is_valid():
 		_inv_press_action.call(false)
@@ -2251,10 +2282,14 @@ func _cancel_inventory_press_timer_only() -> void:
 func _cancel_inventory_press() -> void:
 	_inv_pointer_down = false
 	_inv_long_press_fired = false
+	_inv_press_source = _INV_PRESS_NONE
+	_inv_press_travel = 0.0
 	_cancel_inventory_press_timer_only()
 	_inv_press_action = Callable()
 
 func _tap_inventory_item(item: Resource, category: String) -> void:
+	if not _can_change_equipment_on_view():
+		return
 	var view_member: Resource = _get_view_adventurer()
 	if view_member == null or item == null:
 		return
@@ -2302,6 +2337,7 @@ func _show_relic_stats_overlay(relic_id: String, pinned: bool = false) -> void:
 	_detail_equip_btn.visible = member != null
 	## 他人装備中も付け替え確認経由で装備可。
 	_detail_equip_btn.disabled = member == null
+	_refresh_detail_lock_btn()
 	_detail_overlay.visible = true
 
 func _add_owner_portrait_badge(btn: Button, owner_member: Resource, cell_size: Vector2) -> void:
@@ -2386,6 +2422,11 @@ func _ensure_item_detail_overlay() -> void:
 	action_row.add_theme_constant_override("separation", 8)
 	action_row.alignment = BoxContainer.ALIGNMENT_END
 	outer.add_child(action_row)
+	_detail_lock_btn = Button.new()
+	_detail_lock_btn.text = "ロック"
+	UiTypography.apply_menu_button(_detail_lock_btn)
+	_detail_lock_btn.pressed.connect(_on_detail_lock_pressed)
+	action_row.add_child(_detail_lock_btn)
 	_detail_equip_btn = Button.new()
 	_detail_equip_btn.text = "装備する"
 	UiTypography.apply_menu_button(_detail_equip_btn)
@@ -2412,7 +2453,38 @@ func _show_item_stats_overlay(item: Resource, category: String, pinned: bool = f
 		_detail_equip_btn.tooltip_text = JobStatCalculator.unequip_reason_weapon(view_member, item)
 	else:
 		_detail_equip_btn.tooltip_text = ""
+	_refresh_detail_lock_btn()
 	_detail_overlay.visible = true
+
+func _refresh_detail_lock_btn() -> void:
+	if _detail_lock_btn == null:
+		return
+	var show_lock: bool = (
+		_overlay_item != null
+		and (_overlay_category == "weapon" or _overlay_category == "armor" or _overlay_category == "accessory")
+	)
+	_detail_lock_btn.visible = show_lock
+	if not show_lock:
+		return
+	if _EquipmentEnhancer.is_item_locked(_overlay_item):
+		_detail_lock_btn.text = "ロック解除"
+	else:
+		_detail_lock_btn.text = "ロック"
+
+func _on_detail_lock_pressed() -> void:
+	if _overlay_item == null:
+		return
+	if (
+		_overlay_category != "weapon"
+		and _overlay_category != "armor"
+		and _overlay_category != "accessory"
+	):
+		return
+	_EquipmentEnhancer.toggle_item_locked(_overlay_item)
+	SaveManager.save_game()
+	_rebuild_inventory_grid()
+	_rebuild_equip_slots()
+	_refresh_detail_lock_btn()
 
 func _on_detail_equip_pressed() -> void:
 	if _overlay_category == "skill":
@@ -2594,7 +2666,7 @@ func _apply_item_badges(
 	EquipmentUiHelper.apply_equip_level_badge(btn, item, size)
 	if category == "weapon":
 		EquipmentUiHelper.apply_enhance_badge(btn, item, category, size, COLOR_GOLD)
-	## 装備中の「装」は出さない。ドロップ直後は中央 New 点滅。ロックは右上。
+	## 装備中の「装」は出さない。ドロップ直後は中央 New 点滅。ロックは左下。
 	EquipmentUiHelper.apply_lock_badge(btn, item, size)
 	EquipmentUiHelper.apply_new_badge(btn, item, size)
 
@@ -4171,6 +4243,7 @@ func _show_skill_detail_overlay(
 		_detail_equip_btn.visible = unlocked
 		## 満枠でも他スキル装備可（置換）。未解放のみ不可。
 		_detail_equip_btn.disabled = not unlocked
+	_refresh_detail_lock_btn()
 	_detail_overlay.visible = true
 
 func _skill_detail_text(skill_data: Resource, unlocked: bool = true, req_lv: int = 1) -> String:
