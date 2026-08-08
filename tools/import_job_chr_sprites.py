@@ -25,6 +25,10 @@ ANIM_ROOT = ROOT / "resources" / "animation"
 WORK = Path("/tmp/crownfall_chr_import")
 TARGET = 232
 PAD_RATIO = 0.08
+## 職ごとに枠内の見た目サイズを微調整（1.0=標準。>1 でドットを大きく・端はクリップ可）。
+JOB_FILL_SCALE = {
+	"vanguard": 1.12,
+}
 
 DESKTOP_CANDIDATES = [
 	Path("/Users/marte/Desktop/キャラドット"),
@@ -117,21 +121,29 @@ def pick_direction(anim_dir: Path, anim_key: str) -> Path:
 	return dirs[0]
 
 
-def fit_square(im: Image.Image, size: int = TARGET) -> Image.Image:
+def fit_square(
+	im: Image.Image, size: int = TARGET, pad_ratio: float = PAD_RATIO, fill_scale: float = 1.0
+) -> Image.Image:
 	im = im.convert("RGBA")
 	alpha = im.split()[-1]
 	bbox = alpha.getbbox()
 	if bbox is None:
-		canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-		return canvas
+		return Image.new("RGBA", (size, size), (0, 0, 0, 0))
 	cropped = im.crop(bbox)
 	cw, ch = cropped.size
-	pad = int(max(cw, ch) * PAD_RATIO)
+	pad = int(max(cw, ch) * pad_ratio)
 	side = max(cw, ch) + pad * 2
 	square = Image.new("RGBA", (side, side), (0, 0, 0, 0))
 	square.paste(cropped, ((side - cw) // 2, (side - ch) // 2), cropped)
-	# NEAREST keeps pixel edges; slight soft when non-integer scale is acceptable
-	return square.resize((size, size), Image.Resampling.NEAREST)
+	out_side = max(1, int(round(float(size) * max(0.5, fill_scale))))
+	scaled = square.resize((out_side, out_side), Image.Resampling.NEAREST)
+	if out_side == size:
+		return scaled
+	canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+	ox = (size - out_side) // 2
+	oy = (size - out_side) // 2
+	canvas.paste(scaled, (ox, oy), scaled)
+	return canvas
 
 
 def write_import(png_path: Path, job_id: str) -> None:
@@ -192,14 +204,15 @@ def export_anim(job_src: Path, job_id: str, anim_key: str) -> list[str]:
 	for old in out_dir.glob(f"{anim_key}_*.png.import"):
 		old.unlink()
 	written: list[str] = []
+	fill_scale: float = float(JOB_FILL_SCALE.get(job_id, 1.0))
 	for i, fp in enumerate(frames):
-		im = fit_square(Image.open(fp))
+		im = fit_square(Image.open(fp), fill_scale=fill_scale)
 		name = f"{anim_key}_{i}.png"
 		out = out_dir / name
 		im.save(out)
 		write_import(out, job_id)
 		written.append(name)
-	print(f"  {job_id}/{anim_key}: {len(written)} from {direction.name}")
+	print(f"  {job_id}/{anim_key}: {len(written)} from {direction.name} (fill={fill_scale})")
 	return written
 
 
