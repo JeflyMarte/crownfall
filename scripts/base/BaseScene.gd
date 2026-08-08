@@ -10,6 +10,7 @@ const _StarterJoinOverlay := preload("res://scripts/roster/StarterJoinOverlay.gd
 const _HubSimpleGuideOverlay := preload("res://scripts/ui/HubSimpleGuideOverlay.gd")
 const _NinaDialogueOverlay := preload("res://scripts/ui/NinaDialogueOverlay.gd")
 const _ChapterClearNinaLines := preload("res://scripts/ui/ChapterClearNinaLines.gd")
+const _SurveySystem := preload("res://scripts/survey/SurveySystem.gd")
 const _HubDebugMenuOverlay := preload("res://scripts/debug/HubDebugMenuOverlay.gd")
 
 const DUNGEON_SELECT_SCENE: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
@@ -66,6 +67,8 @@ func _ready() -> void:
 	$ResetTimer.timeout.connect(_on_hub_tick)
 	_ensure_valid_dungeon_selection()
 	DailyMissionSystem.ensure_refreshed()
+	## 章クリア→結果→拠点の経路でも、調査完了欠員を入室直後に戻す（ニーナポーリング待ちにしない）。
+	_SurveySystem.ensure_party_restored_if_awaiting_claim()
 	_update_display()
 	_refresh_daily_missions()
 	_apply_typography()
@@ -940,6 +943,7 @@ func _update_daily_reset_label() -> void:
 func _on_hub_tick() -> void:
 	_update_daily_reset_label()
 	EventSystem.ensure_active()
+	_SurveySystem.ensure_party_restored_if_awaiting_claim()
 	_refresh_field_survey_banner()
 
 func _make_daily_row(index: int, entry: Dictionary) -> VBoxContainer:

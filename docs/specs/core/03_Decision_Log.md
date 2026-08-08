@@ -7683,3 +7683,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-EQ-THEME-COV-001-5 | 武器テーマ転用は職×`preferred_weapon_types` 必須 | オーナー |
 | P3-EQ-THEME-COV-001-6 | SW一撃＝祝槌（剣）／VGカウンター＝戦剣／BT吸血＝血討弓／RG標的＝猛弓 | 再割当 |
 | P3-EQ-THEME-COV-001-7 | **SSOT** — `95_JobThemeLegendaryCoverage.md` §1-6 | Decision 本体 |
+
+## 章クリア後の編成欠員（結果経路 ensure）（2026-08-09 — P3-FIX-SURVEY-PARTY-RESULT-001）
+
+> **オーナー報告** — 1-5／2-5 等クリア後にパーティが解散（欠員）する。長ラン中に調査完了が重なり、結果→「次へ」で拠点を経由しないと ensure されない穴。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-FIX-SURVEY-PARTY-RESULT-001-1 | Result 入室（bank 前）・退出（拠点／再挑戦／次ダン）で `ensure_party_restored_if_awaiting_claim` | 欠員のままセーブ固定を防ぐ |
+| P3-FIX-SURVEY-PARTY-RESULT-001-2 | Dungeon 入場・Hub `_ready`／tick でも ensure | 拠点スキップ経路の二重防衛 |
+| P3-FIX-SURVEY-PARTY-RESULT-001-3 | **延長** — P3-FIX-SURVEY-PARTY-BACKUP-001／AUDIT-A の復元経路 | 復元ロジック自体は据置 |

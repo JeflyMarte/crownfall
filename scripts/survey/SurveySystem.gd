@@ -304,7 +304,7 @@ static func is_member_dispatched(member_id: String) -> bool:
 
 
 ## タイマー完了（受取待ち）／受取後の欠員を派遣前編成へ戻す。
-## 拠点ポーリング／入室／ロード／編成画面で呼ぶ。save_after=false はロード中用。
+## 拠点ポーリング／入室／ロード／編成／結果入室・退出／ダンジョン入場で呼ぶ。save_after=false はロード・結果途中用。
 static func ensure_party_restored_if_awaiting_claim(save_after: bool = true) -> bool:
 	var ids_before: Array = _party_backup_ids()
 	var assignees: Array = []

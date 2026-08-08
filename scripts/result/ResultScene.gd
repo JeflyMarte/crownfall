@@ -12,6 +12,7 @@ const MvpPresentationScript: Script = preload("res://scripts/result/MvpPresentat
 const SkillIconHelperScript: Script = preload("res://scripts/ui/SkillIconHelper.gd")
 const _MaterialUiTokens = preload("res://scripts/equipment/MaterialUiTokens.gd")
 const _ChrIdlePortraitView = preload("res://scripts/ui/ChrIdlePortraitView.gd")
+const _SurveySystem := preload("res://scripts/survey/SurveySystem.gd")
 const CLEAR_BANNER_TEX: Texture2D = preload("res://assets/ui/result/UI_Result_Clear.png")
 const LEVELUP_BANNER_TEX: Texture2D = preload("res://assets/ui/result/UI_Result_LevelUp.png")
 const MVP_TITLE_TEX: Texture2D = preload("res://assets/ui/result/UI_Result_Mvp.png")
@@ -113,6 +114,8 @@ func _ready() -> void:
 	_apply_typography()
 	_apply_panel_styles()
 	_setup_wizard_roots()
+	## 調査完了がラン中に重なると編成欠員のまま bank セーブされ、「次へ」で拠点を経由せず欠員が固定する。
+	_SurveySystem.ensure_party_restored_if_awaiting_claim(false)
 	_bank_rewards()
 	_build_header()
 	_build_rewards()
@@ -1536,6 +1539,7 @@ func _on_retry_pressed() -> void:
 	):
 		_apply_pending_exp()
 	_set_buttons_disabled(true)
+	_SurveySystem.ensure_party_restored_if_awaiting_claim(false)
 	SaveManager.save_game()
 	SceneRouter.change_scene(DUNGEON_SCENE)
 
@@ -1546,6 +1550,7 @@ func _on_home_pressed() -> void:
 	):
 		_apply_pending_exp()
 	_set_buttons_disabled(true)
+	_SurveySystem.ensure_party_restored_if_awaiting_claim(false)
 	SaveManager.save_game()
 	SceneRouter.change_scene(HOME_SCENE)
 
@@ -1601,6 +1606,7 @@ func _on_next_stage_pressed() -> void:
 		GameState.current_dungeon_id = str(next_stage.biome_id)
 	GameState.current_stage_id = next_id
 	_set_buttons_disabled(true)
+	_SurveySystem.ensure_party_restored_if_awaiting_claim(false)
 	SaveManager.save_game()
 	SceneRouter.change_scene(DUNGEON_SCENE)
 

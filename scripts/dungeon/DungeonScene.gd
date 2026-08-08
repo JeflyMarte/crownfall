@@ -37,6 +37,7 @@ const CHR_BODY_TARGET_MULT_BY_MEMBER_ID: Dictionary = {
 const PET_BODY_TARGET_PX: float = 92.0
 const _LOG_MAX: int = 60
 const _BgmCatalog := preload("res://scripts/audio/BgmCatalog.gd")
+const _SurveySystem := preload("res://scripts/survey/SurveySystem.gd")
 const CLEAR_BANNER_TEX: Texture2D = preload("res://assets/ui/result/UI_Result_Clear.png")
 const CLEAR_BANNER_W: float = 560.0
 const CLEAR_BANNER_H: float = 280.0
@@ -1058,6 +1059,8 @@ const TURN_ORDER_MAX_SLOTS: int = 5
 func _ready() -> void:
 	## 入場時は探索BGM。戦闘／ボス／影狩は部屋同期で切替。
 	AudioManager.play_bgm(_BgmCatalog.explore_bgm_for_dungeon(GameState.get_active_dungeon_id()))
+	## 結果画面の「次へ／再挑戦」で拠点を経由しないとき、調査完了欠員がラン開始前に残らないようにする。
+	_SurveySystem.ensure_party_restored_if_awaiting_claim(false)
 	_btn_next_room.pressed.connect(_on_next_room_pressed)
 	_btn_finish.pressed.connect(_on_finish_button_pressed)
 	$CombatTimer.timeout.connect(_on_combat_timer_timeout)

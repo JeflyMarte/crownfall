@@ -346,3 +346,33 @@ func test_dispatch_all_but_one_from_full_party() -> void:
 			if m != null and str(m.id) == id2:
 				found = true
 		assert_true(found, "missing %s" % id2)
+
+
+func test_result_path_restores_when_survey_completes_mid_run() -> void:
+	## 章クリア級の長ラン中に調査完了 → 結果入室相当の ensure で編成復帰。
+	## （拠点を経由せず「次のダンジョンへ」しても欠員固定しない前提）
+	GameState.seed_all_starters_unlocked()
+	var combat_ids: Array[String] = []
+	for adv in GameState.roster:
+		if adv == null or _SurveySystem.is_survey_staff(str(adv.id)):
+			continue
+		combat_ids.append(str(adv.id))
+		if combat_ids.size() >= 4:
+			break
+	assert_eq(combat_ids.size(), 4)
+	var party: Array = []
+	for id in combat_ids:
+		party.append(GameState.find_roster_member_by_id(id))
+	assert_true(GameState.set_active_party(party))
+	assert_true(bool(_SurveySystem.start_cycle(
+		Constants.MOURNGATE_DUNGEON_ID,
+		_SurveyConfig.PRESET_SHORT,
+		[combat_ids[0], combat_ids[1]] as Array[String]
+	).get("ok", false)))
+	assert_eq(GameState.party_members.size(), 2, "派遣中は欠員")
+	_mark_complete()
+	assert_true(_SurveySystem.is_cycle_complete())
+	## ResultScene._ready / DungeonScene._ready 相当（save_after=false）
+	assert_true(_SurveySystem.ensure_party_restored_if_awaiting_claim(false))
+	assert_eq(GameState.party_members.size(), 4, "結果／次ダン入場前に4人復帰")
+	assert_true(bool(GameState.hub_survey_cycle.get("party_restored", false)))
