@@ -12,6 +12,7 @@ const EQUIPPED_SKILL_REMAP: Dictionary = {
 	"momentum_slash": "battle_spirit",
 	"mark_pursuit": "volley_shot",
 	"piercing_shot": "volley_shot",
+	"frail_dust": "attuned_bolt",
 	## VG 三軸再編（P3-SKILL-VG-TRIAD-001）→ テーマ再編で応撃へ
 	"shield_ram": "riposte_stance",
 	"cover_guard": "riposte_stance",

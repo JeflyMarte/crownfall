@@ -41,7 +41,7 @@
 | 8 | `snare_shot` | スネアアロー | テーマ | 拘束（鈍化） |
 | 15 | `camp_draught` | 野営の一滴 | 拡張 | 味全薄回復（AL未満） |
 | 22 | `hunter_mark` | 狩人の標 | テーマ | 標的 |
-| 30 | `trail_ward` | 踏破の護符 | テーマ | **探索適性**（装備中罠ダメ×0.75＋戦闘は味全 guard_minor） |
+| 30 | `trail_ward` | 踏破の護符 | テーマ | **探索適性**（装備中: 非戦闘入場 味全5%回復／罠×0.75。戦闘使用: 味全 guard_minor） |
 | 40 | `volley_shot` | 斉射 | 拡張 | 敵全ダメ |
 | 50 | `apex_shot` | 極意射 | テーマ | 長CD決め矢 |
 
@@ -67,7 +67,7 @@
 |---|---|---|---|---|
 | 1 | `hex_bolt` | アンブラボルト | テーマ | 速攻デバフ |
 | 8 | `mend` | 治癒 | テーマ | 単体回復 |
-| 15 | `frail_dust` | 触媒の粉 | テーマ | **属性**（炎＋炎上。旧甲砕主軸から寄せ替え） |
+| 15 | `attuned_bolt` | 属性共鳴 | テーマ | **属性**（装備武器の属性で攻撃。旧 `frail_dust` から置換） |
 | 22 | `rally_vapors` | 鼓舞の煙 | 拡張 | 味全 empower |
 | 30 | `curse_sigil` | 呪印 | テーマ | 重デバフ |
 | 40 | `miasma_cloud` | 瘴気の霧 | テーマ | 群れデバフ |
@@ -91,7 +91,8 @@
 
 - `SkillData.crit_rate_bonus`（SW 鋭閃）
 - `CombatPassives` 戦闘スコープのカウンターチャージ（VG 応撃の構）
-- 装備中 `trail_ward` の罠軽減（RG）
+- 装備中 `trail_ward` の罠軽減＋非戦闘入場 味全5%回復（RG）
+- `frail_dust` → `attuned_bolt`（装備武器属性。remap あり）
 - `SkillProgression.EQUIPPED_SKILL_REMAP` 追記
 - SSOT ゲーム表: `docs/specs/game/06_キャラクター_ジョブ.md`
 

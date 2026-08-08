@@ -9097,7 +9097,39 @@ func _fire_noncombat_enter_passives() -> int:
 	for i: int in $CombatController.party_combat_hp.size():
 		if $CombatController.is_member_alive(i):
 			_fire_member_passives(i, "on_noncombat_enter")
+	_heal_fx_batch_count += _apply_trail_ward_noncombat_enter_heal()
 	return _heal_fx_batch_count
+
+
+## 踏破の護符装備者がいるとき、非戦闘入場で味全 maxHP 5%（1回）。
+func _apply_trail_ward_noncombat_enter_heal() -> int:
+	if not CombatPassives.party_has_trail_ward_equipped():
+		return 0
+	var fx_n: int = 0
+	var total: int = 0
+	var frac: float = CombatPassives.TRAIL_WARD_NONCOMBAT_HEAL_FRAC
+	for i: int in $CombatController.party_combat_hp.size():
+		if not $CombatController.is_member_alive(i):
+			continue
+		var max_hp: int = 0
+		if i < $CombatController.party_max_hp.size():
+			max_hp = int($CombatController.party_max_hp[i])
+		if max_hp <= 0:
+			continue
+		var amt: int = maxi(1, int(round(float(max_hp) * frac)))
+		var healed: int = $CombatController.heal_member(i, amt)
+		if healed > 0:
+			GameState.record_run_heal(i, healed)
+			_present_member_heal(i, healed)
+			total += healed
+			fx_n += 1
+	if total > 0:
+		_update_hp_bars()
+		_append_log("[スキル] 踏破の護符: 非戦闘入場で味方全体を回復（計%d）" % total)
+		var label_idx: int = _first_alive_member_index()
+		if label_idx >= 0:
+			_spawn_skill_name("踏破の護符", label_idx, 0.0, "", false, "", PASSIVE_NAME_FONT_SIZE)
+	return fx_n
 
 
 func _living_exploration_damage_targets() -> Array[int]:

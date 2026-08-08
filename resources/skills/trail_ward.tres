@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "trail_ward"
 display_name = "踏破の護符"
-description = "野の護符で味方を薄く守る。装備中は罠ダメージを軽減し、戦闘では軽い防御を配る。"
+description = "野歩きの護符。装備中は非戦闘フロア入場時に味方全員を最大HPの5%回復し、罠ダメージを25%軽減する。戦闘中に使うと味方全体へ軽い防御（ガード小）を付与する。"
 skill_type = "player"
 target_type = "all_party"
 power_multiplier = 1.0

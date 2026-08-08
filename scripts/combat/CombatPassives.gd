@@ -1110,15 +1110,33 @@ static func consume_combat_counter_charge(member_index: int) -> bool:
 	return true
 
 
+const TRAIL_WARD_SKILL_ID: String = "trail_ward"
+const TRAIL_WARD_TRAP_MULT: float = 0.75
+const TRAIL_WARD_NONCOMBAT_HEAL_FRAC: float = 0.05
+
+
 ## 装備中の探索適性スキル（踏破の護符）による罠ダメ倍率。
 static func equipped_exploration_trap_mult_for_member(member: Resource) -> float:
 	if member == null:
 		return 1.0
-	var ids: Array[String] = GameState.get_equipped_skill_ids(member)
-	for sid: String in ids:
-		if sid == "trail_ward":
-			return 0.75
+	if _member_has_equipped_skill(member, TRAIL_WARD_SKILL_ID):
+		return TRAIL_WARD_TRAP_MULT
 	return 1.0
+
+
+static func party_has_trail_ward_equipped() -> bool:
+	for i: int in GameState.combatant_count():
+		var m: Resource = GameState.get_combatant(i)
+		if m != null and _member_has_equipped_skill(m, TRAIL_WARD_SKILL_ID):
+			return true
+	return false
+
+
+static func _member_has_equipped_skill(member: Resource, skill_id: String) -> bool:
+	if member == null or skill_id.is_empty():
+		return false
+	var ids: Array[String] = GameState.get_equipped_skill_ids(member)
+	return ids.has(skill_id)
 
 
 static func get_def(passive_id: String) -> Dictionary:

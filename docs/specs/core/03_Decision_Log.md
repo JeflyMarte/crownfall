@@ -7653,3 +7653,10 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-SKILL-THEME-KIT-001-4 | VG Lv30＝応撃の構（カウンター）。砕盾は習得外 | テーマカウンター |
 | P3-SKILL-THEME-KIT-001-5 | AL 触媒の粉＝炎＋炎上。BT キット据置（號令＝拡張） | テーマ属性 |
 | P3-SKILL-THEME-KIT-001-6 | **SSOT** — `94_JobSkillThemeKits.md` | Decision 本体 |
+
+## 踏破の護符／属性共鳴チューン（2026-08-08 — P3-SKILL-THEME-KIT-001 追記）
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-SKILL-THEME-KIT-001-7 | 踏破の護符装備中: 非戦闘フロア入場で味全 maxHP **5%** 回復＋罠×0.75。戦闘使用は味全 guard_minor | オーナー |
+| P3-SKILL-THEME-KIT-001-8 | AL Lv15＝**属性共鳴**（`attuned_bolt`）。装備武器の属性で攻撃。旧触媒の粉／`frail_dust` は remap | オーナー |

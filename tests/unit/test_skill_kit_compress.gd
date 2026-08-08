@@ -33,7 +33,8 @@ func test_theme_kit_unlock_ids() -> void:
 	assert_false(rg.learnable_skill_ids.has("piercing_shot"))
 	assert_true(vg.learnable_skill_ids.has("riposte_stance"))
 	assert_false(vg.learnable_skill_ids.has("shield_crush"))
-	assert_true(al.learnable_skill_ids.has("frail_dust"))
+	assert_true(al.learnable_skill_ids.has("attuned_bolt"))
+	assert_false(al.learnable_skill_ids.has("frail_dust"))
 	assert_true(bt.learnable_skill_ids.has("beast_vet_care"))
 	assert_true(bt.learnable_skill_ids.has("herd_call"))
 
@@ -190,11 +191,21 @@ func test_hunter_mark_is_mark_specialist() -> void:
 	assert_lt(float(hunter.power_multiplier), 0.6)
 
 
-func test_frail_dust_is_elemental_ignite() -> void:
-	var dust: Resource = DataRegistry.get_skill_data("frail_dust")
-	assert_eq(str(dust.element), "fire")
-	assert_eq(str(dust.apply_status_id), "ignite")
-	assert_eq(str(dust.display_name), "触媒の粉")
+func test_attuned_bolt_uses_weapon_element() -> void:
+	var bolt: Resource = DataRegistry.get_skill_data("attuned_bolt")
+	assert_eq(str(bolt.display_name), "属性共鳴")
+	assert_true(str(bolt.element).is_empty())
+	assert_true(bolt.tags.has("weapon_element"))
+	assert_eq(str(bolt.effect_type), "damage")
+	assert_eq(SkillProgression.remap_equipped_skill_id("frail_dust"), "attuned_bolt")
+
+
+func test_trail_ward_noncombat_heal_constant() -> void:
+	assert_almost_eq(CombatPassives.TRAIL_WARD_NONCOMBAT_HEAL_FRAC, 0.05, 0.001)
+	assert_almost_eq(CombatPassives.TRAIL_WARD_TRAP_MULT, 0.75, 0.001)
+	var ward: Resource = DataRegistry.get_skill_data("trail_ward")
+	assert_true(str(ward.description).contains("5%"))
+	assert_true(str(ward.description).contains("罠"))
 
 
 func test_salve_burst_is_party_heal() -> void:
