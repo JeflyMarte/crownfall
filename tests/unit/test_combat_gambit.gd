@@ -62,11 +62,11 @@ func test_plan_from_member_ignores_custom() -> void:
 	var adv_script: Script = load("res://scripts/domain/Adventurer.gd") as Script
 	assert_not_null(adv_script)
 	var member: Resource = adv_script.new()
-	member.tactics_id = "attack_only"
+	member.tactics_id = "ultimate_focus"
 	member.tactics_custom_enabled = true
 	member.tactics_custom_plan = [
-		{"slot": "ultimate", "condition": "always"},
+		{"slot": "attack", "condition": "always"},
 	]
 	var plan: Array = CombatGambit.plan_from_member(member)
-	assert_eq(plan.size(), 1)
-	assert_eq(str((plan[0] as Dictionary).get("slot")), "attack")
+	assert_gte(plan.size(), 1)
+	assert_eq(str((plan[0] as Dictionary).get("slot")), "ultimate")

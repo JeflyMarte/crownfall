@@ -19,14 +19,14 @@
 |---|---|
 | `attack_focus` | &lt; 0.45 |
 | `conserve_ultimate` | &lt; 0.55 |
+| `ultimate_focus` | &lt; 0.50 |
 | `balanced` | &lt; 0.65 |
 | `defend_focus` | &lt; 0.70 |
 | `support_focus` | &lt; 0.80 |
-| `attack_only` | スキルなし |
 
-共通安全弁: 最傷 &lt; **0.35** なら上記より厳しい方針でも回復可（`attack_only` 除く）。
+共通安全弁: 最傷 &lt; **0.35** なら上記より厳しい方針でも回復可。
 
-`mend` / `salve_burst` / `camp_draught` の `reserve_condition=ally_injured` は廃止し、コード側ゲートに統一。
+**追記（2026-08-08）:** `attack_only`（通常攻撃のみ）を廃止し `ultimate_focus`（必殺優先）へ置換。旧セーブの `attack_only` は正規化で必殺優先になる。
 
 ## バフ再付与
 
@@ -47,6 +47,7 @@
 |---|---|---|---|
 | `attack_focus` | 70 | 15 | 15 |
 | `conserve_ultimate` | 55 | 25 | 20 |
+| `ultimate_focus` | 65 | 20 | 15 |
 | `balanced` | 45 | 30 | 25 |
 | `defend_focus` | 35 | 35 | 30 |
 | `support_focus` | 20 | 45 | 35 |
@@ -55,7 +56,8 @@
 
 ## スロット重み
 
-`attack_focus`: skill **36** / attack **46**（必殺・防御据置）。
+`attack_focus`: skill **36** / attack **46**（必殺・防御据置）。  
+`ultimate_focus`: ultimate **58**（強敵 **72**）／skill 24／attack 18／defend 低。
 
 ## SSOT
 

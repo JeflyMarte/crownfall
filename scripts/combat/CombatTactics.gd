@@ -14,7 +14,7 @@ const TARGET_RULES: Array[String] = [
 	"front", "lowest_hp", "highest_hp", "highest_atk", "enemy_with_status", "enemy_marked", "enemy_with_debuff", "back",
 ]
 
-## 最傷 HP がこの未満なら方針閾値より優先して回復可（attack_only 除く）。
+## 最傷 HP がこの未満なら方針閾値より優先して回復可。
 const HEAL_EMERGENCY_RATIO: float = 0.35
 
 ## 旧プリセット ID → 新行動方針。
@@ -25,6 +25,7 @@ const LEGACY_ID_MAP: Dictionary = {
 	"sweep": "attack_focus",
 	"fodder_focus": "attack_focus",
 	"boss_focus": "attack_focus",
+	"attack_only": "ultimate_focus",
 }
 
 const _DEFS: Dictionary = {
@@ -43,6 +44,11 @@ const _DEFS: Dictionary = {
 		"summary_hint": "普段は必殺を温存。ボス・エリートやピンチで使いやすい。",
 		"target": "front",
 	},
+	"ultimate_focus": {
+		"display_name": "必殺優先",
+		"summary_hint": "チャージが溜まり次第、必殺を惜しまず撃つ。",
+		"target": "lowest_hp",
+	},
 	"defend_focus": {
 		"display_name": "防御重視",
 		"summary_hint": "防御を選びやすい。火力は控えめ。",
@@ -53,26 +59,22 @@ const _DEFS: Dictionary = {
 		"summary_hint": "回復・バフ系スキルを優先。無いときはバランス寄り。",
 		"target": "front",
 	},
-	"attack_only": {
-		"display_name": "通常攻撃のみ",
-		"summary_hint": "スキル・必殺・防御を使わず殴るだけ。",
-		"target": "front",
-	},
 }
 
 const _ORDER: Array[String] = [
 	"balanced",
 	"attack_focus",
 	"conserve_ultimate",
+	"ultimate_focus",
 	"defend_focus",
 	"support_focus",
-	"attack_only",
 ]
 
 ## 方針ごとの回復可閾値（最傷味方 HP 割合がこの未満）。
 const _HEAL_HP_THRESHOLD: Dictionary = {
 	"attack_focus": 0.45,
 	"conserve_ultimate": 0.55,
+	"ultimate_focus": 0.50,
 	"balanced": 0.65,
 	"defend_focus": 0.70,
 	"support_focus": 0.80,
@@ -82,6 +84,7 @@ const _HEAL_HP_THRESHOLD: Dictionary = {
 const _SKILL_CATEGORY_WEIGHTS: Dictionary = {
 	"attack_focus": {"damage": 70.0, "heal": 15.0, "buff": 15.0},
 	"conserve_ultimate": {"damage": 55.0, "heal": 25.0, "buff": 20.0},
+	"ultimate_focus": {"damage": 65.0, "heal": 20.0, "buff": 15.0},
 	"balanced": {"damage": 45.0, "heal": 30.0, "buff": 25.0},
 	"defend_focus": {"damage": 35.0, "heal": 35.0, "buff": 30.0},
 	"support_focus": {"damage": 20.0, "heal": 45.0, "buff": 35.0},
@@ -117,9 +120,13 @@ static func get_target_rule(tactics_id: String) -> String:
 ## UI／コピー用の代表プラン（実行時は roll_turn_plan を使う）。
 static func get_slot_plan(tactics_id: String) -> Array:
 	match normalize_id(tactics_id):
-		"attack_only":
-			return [{"slot": "attack", "condition": "always"}]
 		"attack_focus":
+			return [
+				{"slot": "ultimate", "condition": "always"},
+				{"slot": "skill", "condition": "always"},
+				{"slot": "attack", "condition": "always"},
+			]
+		"ultimate_focus":
 			return [
 				{"slot": "ultimate", "condition": "always"},
 				{"slot": "skill", "condition": "always"},
@@ -238,8 +245,6 @@ static func heal_hp_threshold(tactics_id: String) -> float:
 ## 最傷味方 HP 割合に対し、この方針で回復スキルを撃ってよいか。
 static func heal_allowed(tactics_id: String, ally_lowest_hp_ratio: float) -> bool:
 	var id: String = normalize_id(tactics_id)
-	if id == "attack_only":
-		return false
 	if ally_lowest_hp_ratio < 0.0:
 		## 負傷者なし（全快）は不可。呼び出し側は ratio=1.0 を渡す。
 		return false
@@ -335,8 +340,15 @@ static func _slot_weights(tactics_id: String, ctx: Dictionary) -> Dictionary:
 	var elite: bool = bool(ctx.get("enemy_is_elite", false))
 	var strong: bool = boss or elite
 	match tactics_id:
-		"attack_only":
-			return {"ultimate": 0.0, "defend": 0.0, "skill": 0.0, "attack": 100.0}
+		"ultimate_focus":
+			## 必殺を惜しまず。溜まり次第最優先に寄せる。
+			var ult_uf: float = 58.0
+			if strong:
+				ult_uf = 72.0
+			var defend_uf: float = 4.0
+			if hp < 0.20:
+				defend_uf = 12.0
+			return {"ultimate": ult_uf, "defend": defend_uf, "skill": 24.0, "attack": 18.0}
 		"attack_focus":
 			## P3-BAL-TACTICS-SUPPORT-001: スキルやや下げ・通常を厚く。
 			var ult_af: float = 18.0

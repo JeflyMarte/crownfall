@@ -12,9 +12,10 @@ func test_tactics_list_has_six_policies() -> void:
 	assert_true(ids.has("balanced"))
 	assert_true(ids.has("attack_focus"))
 	assert_true(ids.has("conserve_ultimate"))
+	assert_true(ids.has("ultimate_focus"))
 	assert_true(ids.has("defend_focus"))
 	assert_true(ids.has("support_focus"))
-	assert_true(ids.has("attack_only"))
+	assert_false(ids.has("attack_only"))
 	assert_false(ids.has("fodder_focus"))
 	assert_false(ids.has("boss_focus"))
 
@@ -25,19 +26,29 @@ func test_legacy_ids_normalize() -> void:
 	assert_eq(CombatTactics.normalize_id("sweep"), "attack_focus")
 	assert_eq(CombatTactics.normalize_id("fodder_focus"), "attack_focus")
 	assert_eq(CombatTactics.normalize_id("boss_focus"), "attack_focus")
+	assert_eq(CombatTactics.normalize_id("attack_only"), "ultimate_focus")
 	assert_eq(CombatTactics.normalize_id("balanced"), "balanced")
 
 
-func test_attack_only_roll_is_only_attack() -> void:
+func test_ultimate_focus_weights_prefer_ultimate() -> void:
+	var weights: Dictionary = CombatTactics._slot_weights(
+		"ultimate_focus", {"self_hp_ratio": 1.0, "enemy_is_boss": false}
+	)
+	assert_gt(float(weights.get("ultimate", 0.0)), float(weights.get("skill", 0.0)))
+	assert_gt(float(weights.get("ultimate", 0.0)), float(weights.get("attack", 0.0)))
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 1
-	var plan: Array = CombatTactics.roll_turn_plan(
-		"attack_only", {"self_hp_ratio": 0.1, "enemy_is_boss": true}, null, rng
-	)
-	assert_gte(plan.size(), 1)
-	for rule in plan:
-		assert_eq(str((rule as Dictionary).get("slot")), "attack")
-
+	var ult_picks := 0
+	for i in 40:
+		var plan: Array = CombatTactics.roll_turn_plan(
+			"ultimate_focus",
+			{"self_hp_ratio": 1.0, "enemy_is_boss": false, "enemy_count": 1},
+			null,
+			rng
+		)
+		if not plan.is_empty() and str((plan[0] as Dictionary).get("slot")) == "ultimate":
+			ult_picks += 1
+	assert_gt(ult_picks, 15)
 
 func test_attack_focus_never_defends() -> void:
 	var rng := RandomNumberGenerator.new()
@@ -112,7 +123,9 @@ func test_heal_thresholds_by_tactics() -> void:
 	assert_false(CombatTactics.heal_allowed("balanced", 0.70))
 	assert_true(CombatTactics.heal_allowed("support_focus", 0.75))
 	assert_false(CombatTactics.heal_allowed("support_focus", 0.85))
-	assert_false(CombatTactics.heal_allowed("attack_only", 0.10))
+	assert_true(CombatTactics.heal_allowed("ultimate_focus", 0.45))
+	assert_false(CombatTactics.heal_allowed("ultimate_focus", 0.60))
+	assert_eq(CombatTactics.display_name("ultimate_focus"), "必殺優先")
 
 
 func test_buff_reapply_blocked_self_and_party() -> void:
