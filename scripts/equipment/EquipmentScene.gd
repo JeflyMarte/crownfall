@@ -1878,7 +1878,7 @@ func _make_slot(
 		_attach_item_icon(
 			btn, icon, cell_px, EquipmentUiTokens.SLOT_DESIGN_PX, _item_id(item, category), category
 		)
-		btn.tooltip_text = "%s\n（長押しで効果）" % _item_label(item, category)
+		btn.tooltip_text = "%s\n（左下の錠クリックでロック／長押しで詳細）" % _item_label(item, category)
 		var rarity: int = _item_rarity(item, category)
 		_apply_item_cell_styles(btn, rarity, cell_px)
 		_apply_item_badges(btn, item, category, cell_size, true)
@@ -2119,9 +2119,9 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 	if job_blocked:
 		btn.tooltip_text = "%s\n（%s）" % [item_name, JobStatCalculator.unequip_reason_weapon(view_member, item)]
 	else:
-		btn.tooltip_text = "%s\n（長押しでロック／詳細）" % item_name
-	## 短押し=着脱、長押し／右クリック=ロック切替＋詳細（Button.pressed は使わず gui_input で統一）。
-	## disabled にしない: ペット閲覧でもロック長押しを受け付ける（着脱は tap 側で拒否）。
+		btn.tooltip_text = "%s\n（左下の錠クリックでロック／長押しで詳細）" % item_name
+	## 短押し=着脱、左下錠クリック=ロック、長押し／右クリック／Shift+クリック=ロック＋詳細。
+	## disabled にしない: ペット閲覧でもロックを受け付ける（着脱は tap 側で拒否）。
 	_bind_inventory_cell_interaction(btn, _inventory_item_action.bind(item, category))
 	if is_on_self:
 		btn.modulate = Color(0.72, 0.72, 0.72, 0.85)
@@ -2190,17 +2190,24 @@ func _bind_inventory_cell_interaction(btn: Button, action: Callable) -> void:
 	btn.gui_input.connect(_on_inventory_cell_gui_input.bind(btn, action))
 
 func _on_inventory_cell_gui_input(event: InputEvent, btn: Button, action: Callable) -> void:
-	## Desktop: 右クリックでロック／詳細（Mac のクリック長押しが OS／微動で潰れる対策）。
-	if (
-		event is InputEventMouseButton
-		and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_RIGHT
-		and event.pressed
-	):
-		if action.is_valid():
-			action.call(true)
-		if btn != null:
-			btn.accept_event()
-		return
+	## Desktop: 右クリック／Shift|Ctrl|Cmd+左クリックでロック／詳細。
+	if event is InputEventMouseButton and event.pressed:
+		var mb: InputEventMouseButton = event as InputEventMouseButton
+		if mb.button_index == MOUSE_BUTTON_RIGHT:
+			if action.is_valid():
+				action.call(true)
+			if btn != null:
+				btn.accept_event()
+			return
+		if (
+			mb.button_index == MOUSE_BUTTON_LEFT
+			and (mb.shift_pressed or mb.ctrl_pressed or mb.meta_pressed)
+		):
+			if action.is_valid():
+				action.call(true)
+			if btn != null:
+				btn.accept_event()
+			return
 	if _inv_pointer_down and _should_cancel_inventory_press_for_move(event):
 		_cancel_inventory_press()
 		return
@@ -2677,9 +2684,17 @@ func _apply_item_badges(
 	EquipmentUiHelper.apply_equip_level_badge(btn, item, size)
 	if category == "weapon":
 		EquipmentUiHelper.apply_enhance_badge(btn, item, category, size, COLOR_GOLD)
-	## 装備中の「装」は出さない。ドロップ直後は中央 New 点滅。ロックは左下。
-	EquipmentUiHelper.apply_lock_badge(btn, item, size)
+	## 装備中の「装」は出さない。ドロップ直後は中央 New 点滅。左下錠はクリックでロック。
+	EquipmentUiHelper.apply_lock_toggle(btn, item, size, _on_item_lock_clicked.bind(item))
 	EquipmentUiHelper.apply_new_badge(btn, item, size)
+
+func _on_item_lock_clicked(item: Resource) -> void:
+	if item == null:
+		return
+	_EquipmentEnhancer.toggle_item_locked(item)
+	SaveManager.save_game()
+	_rebuild_inventory_grid()
+	_rebuild_equip_slots()
 
 # ボタン隅にバッジ（レアリティ宝石 / 装備中マーク）を重ねる。
 func _add_corner_badge(

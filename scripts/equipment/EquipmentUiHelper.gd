@@ -119,21 +119,54 @@ static func apply_equip_level_badge(
 	)
 
 
-## 誤分解・誤錬成防止ロック（左下 🔒。装備Lv の左）。
-static func apply_lock_badge(parent: Control, item: Resource, cell_size: Vector2) -> void:
+## 誤分解・誤錬成防止ロック（左下）。常時クリック可能な錠ボタン（未ロックは半透明）。
+## on_pressed は引数なし Callable（例: scene._toggle_item_lock.bind(item)）。
+static func apply_lock_toggle(
+	parent: Control,
+	item: Resource,
+	cell_size: Vector2,
+	on_pressed: Callable
+) -> void:
 	if parent == null or item == null:
 		return
-	if not EquipmentEnhancer.is_item_locked(item):
-		return
+	var stale: Node = parent.get_node_or_null("LockToggle")
+	if stale != null:
+		stale.queue_free()
+	var locked: bool = EquipmentEnhancer.is_item_locked(item)
 	var font_size: int = maxi(14, int(cell_size.y * 0.22))
-	add_corner_badge(
-		parent,
-		"🔒",
-		Color(1.0, 0.92, 0.55, 1.0),
-		Vector2(LOCK_BADGE_POS.x, cell_size.y - float(font_size) + LOCK_BADGE_POS.y),
-		font_size,
-		4
+	var btn := Button.new()
+	btn.name = "LockToggle"
+	btn.text = "🔒"
+	btn.flat = true
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.mouse_filter = Control.MOUSE_FILTER_STOP
+	## ScrollTouch が PASS にしない（pressed を確実に取る）。
+	btn.set_meta(&"_cf_keep_mouse_stop", true)
+	btn.tooltip_text = "クリックでロック解除" if locked else "クリックでロック"
+	btn.z_index = 8
+	btn.modulate = Color(1.0, 0.92, 0.55, 1.0) if locked else Color(0.85, 0.85, 0.85, 0.45)
+	btn.add_theme_font_size_override("font_size", font_size)
+	var empty := StyleBoxEmpty.new()
+	btn.add_theme_stylebox_override("normal", empty)
+	btn.add_theme_stylebox_override("hover", empty)
+	btn.add_theme_stylebox_override("pressed", empty)
+	btn.add_theme_stylebox_override("focus", empty)
+	btn.add_theme_stylebox_override("disabled", empty)
+	var side: float = float(font_size) + 10.0
+	btn.custom_minimum_size = Vector2(side, side)
+	btn.size = Vector2(side, side)
+	btn.position = Vector2(
+		LOCK_BADGE_POS.x,
+		cell_size.y - side + LOCK_BADGE_POS.y
 	)
+	if on_pressed.is_valid():
+		btn.pressed.connect(on_pressed)
+	parent.add_child(btn)
+
+
+## 互換: 表示のみ（非推奨）。新規は apply_lock_toggle。
+static func apply_lock_badge(parent: Control, item: Resource, cell_size: Vector2) -> void:
+	apply_lock_toggle(parent, item, cell_size, Callable())
 
 
 ## ドロップ直後の New バッジ（アイコン中央・点滅）。次のダンジョン潜行まで。
