@@ -23,7 +23,7 @@ const AUTO_DELAY_GRIND: float = 0.6
 const CHR_BODY_TARGET_PX: float = 140.0
 ## 職ごとの体格補正（正規化後）。ヴァンガード原画は華奢で小さく見えるため底上げ。
 const CHR_BODY_TARGET_MULT_BY_JOB: Dictionary = {
-	"vanguard": 1.38,
+	"vanguard": 1.20,
 }
 ## ペットは味方より一回り小さく（P3-PET-OTOMO-001 polish）
 const PET_BODY_TARGET_PX: float = 92.0
