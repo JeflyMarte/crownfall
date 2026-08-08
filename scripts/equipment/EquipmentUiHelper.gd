@@ -6,8 +6,10 @@ extends RefCounted
 const RARITY_CODES: Array[String] = ["N", "R", "E", "L", "M", "エンシェントレア"]
 ## 装備セル左上のレアリティロゴ位置（N/R/E／L／M／エンシェント共通）。
 const RARITY_BADGE_POS: Vector2 = Vector2(5.0, 3.0)
-## 装備Lv（左下）。炉研ぎ +N は右下。ロック🔒も右下（+N の左へ寄せる）。
+## 装備Lv（左下）。炉研ぎ +N は右下。ロックも右下（+N の左へ寄せる）。
 const EQUIP_LEVEL_BADGE_POS: Vector2 = Vector2(4.0, -14.0)
+## 絵文字🔒は Noto に無く iOS で欠落する（★／⭐️と同型）。本文フォントの「錠」。
+const LOCK_BADGE_TEXT: String = "錠"
 const LEVEL_CAP: int = LevelSystem.MAX_LEVEL
 
 const SORT_LABELS: Dictionary = {
@@ -121,7 +123,7 @@ static func apply_equip_level_badge(
 	)
 
 
-## 誤分解・誤錬成防止ロック表示（右下 🔒。ロック中のみ。操作は装備一覧の長押し）。
+## 誤分解・誤錬成防止ロック表示（右下「錠」。ロック中のみ。操作は装備一覧の長押し）。
 static func apply_lock_badge(parent: Control, item: Resource, cell_size: Vector2) -> void:
 	if parent == null or item == null:
 		return
@@ -134,11 +136,11 @@ static func apply_lock_badge(parent: Control, item: Resource, cell_size: Vector2
 	var width: float = float(font_size) * 1.15
 	var lbl := Label.new()
 	lbl.name = "LockBadge"
-	lbl.text = "🔒"
-	lbl.add_theme_color_override("font_color", Color(1.0, 0.92, 0.55, 1.0))
-	lbl.add_theme_font_size_override("font_size", font_size)
-	lbl.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.9))
-	lbl.add_theme_constant_override("outline_size", 4)
+	lbl.text = LOCK_BADGE_TEXT
+	## 本文フォント必須。絵文字やテーマ既定だけだと iOS で欠落する。
+	UiTypography.apply_body(
+		lbl, font_size, Color(1.0, 0.92, 0.55, 1.0), UiTypography.OUTLINE_STRONG
+	)
 	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	lbl.z_index = 8
 	lbl.position = Vector2(

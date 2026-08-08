@@ -132,6 +132,7 @@ alwaysApply: false
 | レジェンド防具／装飾／杖がデフォルト同アイコン | `generate_equipment_icons.py` がテンプレ流用のまま。専用PNG未差替 | PixelLab等で専用生成→`assets/ui/equipment` 上書き。`LEGENDARY_HAND_DRAWN_*_IDS` に入れて再生成で潰さない |
 | キャラ画面の★が灰色 | LabelStars に見出しフォント（Shippori）を当てると ★ 欠落でフォールバックが灰色に見える | 本文フォント＋`UiTypography.COLOR_GOLD`（ガチャと同ポリシー） |
 | 装備MAXの⭐️が見えない | 絵文字⭐️や見出しフォントだとグリフ欠落。武器名にも未配線だった | `EquipmentRollHelper.PERFECT_STAR=★`。名は Display＋★本文金。MAX数は `is_mod_perfect` でカウント |
+| iPhoneでロック済みなのに🔒が見えない | トーストは出るがセル右下の絵文字🔒が Noto に無く欠落 | `EquipmentUiHelper.LOCK_BADGE_TEXT=錠`＋`UiTypography.apply_body`（絵文字禁止） |
 | CHR肖像の金枠が消える | 1254pxの細い焼き込み枠を `TEXTURE_FILTER_NEAREST` で52px等へ落とすと縁が消える。枠なし個体もいる | `RosterUiHelper.make_clamped_portrait`（LINEAR＋PortraitChrome）。LevelUp直置きNEAREST禁止 |
 | ガチャ／鍛冶BGM残存／イントロBGM切断 | SCENE_BGM 未配線・導入を hub | → **`content-flags.mdc` BGM** |
 | 鍛冶詳細のステ重なり／アイコン欠落／枠食い込み | 横並び reparent・content_margin不足・TextureRect直置き | → **`ui-layout.mdc` 鍛冶屋アイコン**（縦並び・preload） |

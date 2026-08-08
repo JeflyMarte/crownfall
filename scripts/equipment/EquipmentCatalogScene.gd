@@ -623,7 +623,7 @@ func _append_catalog_lock_row() -> void:
 	row.add_child(hint)
 	var btn := Button.new()
 	var locked: bool = EquipmentEnhancer.is_item_locked(_selected_item)
-	btn.text = "🔒 ロック解除" if locked else "🔒 ロックする"
+	btn.text = "%s ロック解除" % EquipmentUiHelper.LOCK_BADGE_TEXT if locked else "%s ロックする" % EquipmentUiHelper.LOCK_BADGE_TEXT
 	btn.custom_minimum_size = Vector2(160, 44)
 	btn.set_meta(&"_cf_keep_mouse_stop", true)
 	btn.mouse_filter = Control.MOUSE_FILTER_STOP
