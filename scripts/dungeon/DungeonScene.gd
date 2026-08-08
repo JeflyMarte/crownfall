@@ -1067,6 +1067,8 @@ func _ready() -> void:
 		pause_log_btn.pressed.connect(_on_pause_battle_log_pressed)
 	_pause_overlay.get_node("PausePanel/PauseVBox/ButtonPauseRetire").pressed.connect(_on_pause_retire_pressed)
 	EventBus.weapon_obtained.connect(_on_weapon_obtained)
+	EventBus.armor_obtained.connect(_on_armor_obtained)
+	EventBus.accessory_obtained.connect(_on_accessory_obtained)
 	_hit_vfx_sprite.animation_finished.connect(func(): _hit_vfx_sprite.visible = false)
 	_heal_vfx_sprite.animation_finished.connect(func(): _heal_vfx_sprite.visible = false)
 	_chr_sprites = [_chr_sprite_0, _chr_sprite_1, _chr_sprite_2, _chr_sprite_3, _chr_sprite_4]
@@ -4079,22 +4081,53 @@ func _enter_noncombat_room_async() -> void:
 func _on_weapon_obtained(weapon_id: String) -> void:
 	_try_register_discovery("weapon", weapon_id)
 
+
+func _on_armor_obtained(armor_id: String) -> void:
+	_try_register_discovery("armor", armor_id)
+
+
+func _on_accessory_obtained(accessory_id: String) -> void:
+	_try_register_discovery("accessory", accessory_id)
+
 func _try_register_discovery(category: String, entry_id: String) -> void:
 	if DiscoveryRegistry.register(category, entry_id):
 		_append_discovery_log(category, entry_id)
 
+
+func _try_register_discoveries(category: String, entry_ids: Array) -> void:
+	var newly: Array[String] = DiscoveryRegistry.register_many(category, entry_ids)
+	if newly.is_empty():
+		return
+	_append_discovery_logs(category, newly)
+
 func _append_discovery_log(category: String, entry_id: String) -> void:
-	_show_discovery_toast(category, entry_id)
+	_append_discovery_logs(category, [entry_id])
+
+
+func _append_discovery_logs(category: String, entry_ids: Array) -> void:
+	if entry_ids.is_empty():
+		return
+	_show_discovery_toast_batch(category, entry_ids)
 	_update_run_hud()
 	if $CombatController.is_in_combat:
 		var cat_label: String = DiscoveryRegistry.get_category_label(category)
-		var name_label: String = DiscoveryRegistry.get_display_label(category, entry_id)
-		_append_log("図鑑登録: [%s] %s" % [cat_label, name_label])
+		for raw in entry_ids:
+			var entry_id: String = str(raw)
+			var name_label: String = DiscoveryRegistry.get_display_label(category, entry_id)
+			_append_log("図鑑登録: [%s] %s" % [cat_label, name_label])
 
 func _show_discovery_toast(category: String, entry_id: String) -> void:
+	_show_discovery_toast_batch(category, [entry_id])
+
+
+func _show_discovery_toast_batch(category: String, entry_ids: Array) -> void:
+	if entry_ids.is_empty():
+		return
 	var cat_label: String = DiscoveryRegistry.get_category_label(category)
-	var name_label: String = DiscoveryRegistry.get_display_label(category, entry_id)
-	_label_discovery_text.text = "図鑑に登録: [%s] %s" % [cat_label, name_label]
+	var names: PackedStringArray = []
+	for raw in entry_ids:
+		names.append(DiscoveryRegistry.get_display_label(category, str(raw)))
+	_label_discovery_text.text = "図鑑に登録: [%s] %s" % [cat_label, " / ".join(names)]
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.15, 0.12, 0.08, 0.92)
 	style.border_color = Color(0.85, 0.7, 0.25)
@@ -4128,8 +4161,14 @@ func _register_discoveries_for_room() -> void:
 	var room_type: int = $DungeonController.current_room_type
 	if DiscoveryRegistry.is_special_room(room_type):
 		_try_register_discovery("room", DiscoveryRegistry.room_type_to_id(room_type))
-	if $CombatController.is_in_combat and $CombatController.current_enemy_data != null:
-		_try_register_discovery("enemy", $CombatController.current_enemy_data.id)
+	## 群れ／混成は先頭だけでなく全スロットを登録（P3-FIX-CODEX-SWARM-001）。
+	if $CombatController.is_in_combat:
+		var enemy_ids: Array = []
+		for i: int in $CombatController.swarm_data.size():
+			var ed: Resource = $CombatController.get_enemy_data_at(i)
+			if ed != null and not str(ed.id).is_empty():
+				enemy_ids.append(str(ed.id))
+		_try_register_discoveries("enemy", enemy_ids)
 
 # ---- Event ----
 
@@ -7218,6 +7257,8 @@ func _execute_enemy_summon(skill: Resource, slot: int) -> bool:
 	if spawned <= 0:
 		_append_log("敵スキル【%s】: 呼び出せなかった" % skill.display_name)
 		return false
+	## 途中召集の新種も図鑑登録（開幕群れに居なかった ID）。
+	_try_register_discovery("enemy", str(template.id))
 	_try_announce_enemy_trait_once("summon:%d" % slot, last_slot, "仲間を呼んだ！")
 	if spawned == 1:
 		_append_log("敵スキル【%s】: %sが現れた" % [skill.display_name, str(template.display_name)])

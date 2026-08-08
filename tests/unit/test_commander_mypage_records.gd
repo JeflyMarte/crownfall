@@ -42,3 +42,14 @@ func test_codex_enemy_rate_ignores_non_playable_and_caps_100() -> void:
 	assert_lte(percent, 100)
 	assert_true(CatalogHelper.is_playable_codex_enemy("serdion"))
 	assert_eq(_CommanderProfile.count_playable_enemy_discoveries(), 1)
+
+
+func test_codex_equipment_rate_counts_armor_and_accessory() -> void:
+	GameState.discovery_registry.clear()
+	DiscoveryRegistry.register("weapon", "iron_sword")
+	DiscoveryRegistry.register("armor", "leather_armor")
+	DiscoveryRegistry.register("accessory", "silver_ring")
+	assert_eq(_CommanderProfile.count_equipment_discoveries(), 3)
+	var rates: Dictionary = _CommanderProfile.codex_rates()
+	var weapon: Dictionary = rates.get("weapon", {})
+	assert_gte(int(weapon.get("discovered", 0)), 3)

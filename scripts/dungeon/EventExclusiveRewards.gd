@@ -167,11 +167,12 @@ static func _grant_weapon(weapon_id: String) -> bool:
 	_WeaponStatResolver.apply_drop_stats(instance, weapon_data)
 	instance.is_appraised = true
 	GameState.inventory.append(instance)
+	## トーストは EventBus 側。note より先に emit（register 済みだとトースト欠落）。
+	if EventBus.has_signal("weapon_obtained"):
+		EventBus.weapon_obtained.emit(weapon_id)
 	GameState.note_equipment_obtained(instance)
 	GameState.mark_equipment_new(instance)
 	GameState.record_last_run_equipment_drop(instance, "weapon")
-	if EventBus.has_signal("weapon_obtained"):
-		EventBus.weapon_obtained.emit(weapon_id)
 	return true
 
 
@@ -187,6 +188,8 @@ static func _grant_armor(armor_id: String) -> bool:
 	_ArmorStatResolver.apply_drop_stats(instance, armor_data)
 	instance.is_appraised = true
 	GameState.armor_inventory.append(instance)
+	if EventBus.has_signal("armor_obtained"):
+		EventBus.armor_obtained.emit(armor_id)
 	GameState.note_equipment_obtained(instance)
 	GameState.mark_equipment_new(instance)
 	GameState.record_last_run_equipment_drop(instance, "armor")
@@ -205,6 +208,8 @@ static func _grant_accessory(accessory_id: String) -> bool:
 	_AccessoryStatResolver.apply_drop_stats(instance, accessory_data)
 	instance.is_appraised = true
 	GameState.accessory_inventory.append(instance)
+	if EventBus.has_signal("accessory_obtained"):
+		EventBus.accessory_obtained.emit(accessory_id)
 	GameState.note_equipment_obtained(instance)
 	GameState.mark_equipment_new(instance)
 	GameState.record_last_run_equipment_drop(instance, "accessory")

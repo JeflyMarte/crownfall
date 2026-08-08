@@ -1,7 +1,10 @@
 class_name DiscoveryRegistry
 extends RefCounted
 
-const CATEGORIES: Array[String] = ["room", "enemy", "event", "lore", "material", "dungeon", "weapon"]
+const CATEGORIES: Array[String] = [
+	"room", "enemy", "event", "lore", "material", "dungeon",
+	"weapon", "armor", "accessory",
+]
 const _DungeonController = preload("res://scripts/dungeon/DungeonController.gd")
 
 static func _key(category: String, entry_id: String) -> String:
@@ -16,6 +19,20 @@ static func register(category: String, entry_id: String) -> bool:
 	GameState.discovery_registry[key] = true
 	return true
 
+
+## 複数 ID を登録し、今回新規だった ID だけ返す（重複はスキップ）。
+static func register_many(category: String, entry_ids: Array) -> Array[String]:
+	var newly: Array[String] = []
+	var seen_batch: Dictionary = {}
+	for raw in entry_ids:
+		var entry_id: String = str(raw)
+		if entry_id.is_empty() or seen_batch.has(entry_id):
+			continue
+		seen_batch[entry_id] = true
+		if register(category, entry_id):
+			newly.append(entry_id)
+	return newly
+
 static func is_discovered(category: String, entry_id: String) -> bool:
 	return GameState.discovery_registry.has(_key(category, entry_id))
 
@@ -29,6 +46,8 @@ static func get_category_label(category: String) -> String:
 	match category:
 		"enemy": return "モンスター"
 		"weapon": return "武器"
+		"armor": return "防具"
+		"accessory": return "装飾"
 		"dungeon": return "ダンジョン"
 		"material": return "素材"
 		"room": return "部屋"
@@ -46,6 +65,14 @@ static func get_display_label(category: String, entry_id: String) -> String:
 			var weapon: Resource = DataRegistry.get_weapon_data(entry_id)
 			if weapon != null and not weapon.display_name.is_empty():
 				return weapon.display_name
+		"armor":
+			var armor: Resource = DataRegistry.get_armor_data(entry_id)
+			if armor != null and not armor.display_name.is_empty():
+				return armor.display_name
+		"accessory":
+			var accessory: Resource = DataRegistry.get_accessory_data(entry_id)
+			if accessory != null and not accessory.display_name.is_empty():
+				return accessory.display_name
 		"dungeon":
 			var dungeon: Resource = DataRegistry.get_dungeon_data(entry_id)
 			if dungeon != null and not dungeon.display_name.is_empty():

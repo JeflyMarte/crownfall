@@ -7522,3 +7522,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-PET-STAT-DIVERGE-001-3 | インク **630/105/53**（旧×1.5基準） | バランス |
 | P3-BAL-PET-STAT-DIVERGE-001-4 | **上書き** — P3-BAL-PET-SUPPORT-001 同一ステ／P3-PET-VARIANT-001-2 のステ同一 | 本 Decision が正 |
 | P3-BAL-PET-STAT-DIVERGE-001-5 | **SSOT**＝`88_PetStatDiverge.md` | Decision 本体 |
+
+## 混成群れ／装備の図鑑登録漏れ修正（2026-08-08 — P3-FIX-CODEX-SWARM-001）
+
+> **オーナー報告** — 複数モンスター出現時に1体しか図鑑登録されない。装備も疑い。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-FIX-CODEX-SWARM-001-1 | **敵** — 部屋入場時に群れ全スロットを `DiscoveryRegistry` 登録。途中召集も登録 | 旧実装は `current_enemy_data`（先頭）のみ |
+| P3-FIX-CODEX-SWARM-001-2 | **トースト** — 複数新規は `A / B` 一括表示。ログは1行ずつ | 上書きで見落とし防止 |
+| P3-FIX-CODEX-SWARM-001-3 | **装備** — `armor`/`accessory` をカテゴリ追加。ドロップ／イベントで EventBus＋登録 | 旧は weapon のみ |
+| P3-FIX-CODEX-SWARM-001-4 | **マイページ** — 装備発見率は weapon+armor+accessory 合算（分母＝equipment 件数） | 防具・装飾が 0 扱いだった |
+| P3-FIX-CODEX-SWARM-001-5 | **据置** — 生態段階（`enemy_codex`／seen・kills）は従来どおり全スロット `mark_enemy_seen` | 本修正は discovery 側の穴 |

@@ -109,6 +109,8 @@ static func note_equipment_obtained(instance: Resource, record_run: bool = true)
 	var mid: String = _EquipmentEnhancer._item_master_id(instance)
 	if cat.is_empty() or mid.is_empty():
 		return false
+	## 指揮官マイページ等の発見率用（トーストは EventBus→DungeonScene）。
+	DiscoveryRegistry.register(cat, mid)
 	if not try_unlock(cat, mid):
 		return false
 	if record_run:

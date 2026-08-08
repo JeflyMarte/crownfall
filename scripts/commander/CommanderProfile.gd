@@ -602,6 +602,20 @@ static func count_playable_enemy_discoveries() -> int:
 	return n
 
 
+## 装備品（武器・防具・装飾）の発見数。分母は `get_weapon_entries`（equipment 統合）と揃える。
+static func count_equipment_discoveries() -> int:
+	var n: int = 0
+	for key: Variant in GameState.discovery_registry.keys():
+		var s: String = str(key)
+		if (
+			s.begins_with("weapon:")
+			or s.begins_with("armor:")
+			or s.begins_with("accessory:")
+		):
+			n += 1
+	return n
+
+
 static func top_materials(limit: int = 8) -> Array:
 	var rows: Array = []
 	for mat_id: Variant in GameState.material_inventory.keys():
@@ -646,11 +660,13 @@ static func top_deployed_members(limit: int = 5) -> Array:
 
 
 static func _rate(category: String, total: int) -> Dictionary:
-	var discovered: int = (
-		count_playable_enemy_discoveries()
-		if category == "enemy"
-		else DiscoveryRegistry.count_by_category(category)
-	)
+	var discovered: int = 0
+	if category == "enemy":
+		discovered = count_playable_enemy_discoveries()
+	elif category == "weapon":
+		discovered = count_equipment_discoveries()
+	else:
+		discovered = DiscoveryRegistry.count_by_category(category)
 	if total <= 0:
 		return {"discovered": discovered, "total": 0, "percent": 0}
 	## 表示用に分母でクランプ（旧セーブの余剰登録でも 100% 超を出さない）。

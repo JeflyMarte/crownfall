@@ -2472,6 +2472,7 @@ func _spawn_armor(armor_id: String) -> void:
 	_auto_appraise(instance, _AffixRoller.CATEGORY_ARMOR, armor_data.rarity)
 	GameState.armor_inventory.append(instance)
 	last_armor_dropped = armor_id
+	EventBus.armor_obtained.emit(armor_id)
 	GameState.note_equipment_obtained(instance)
 	GameState.mark_equipment_new(instance)
 	GameState.record_last_run_equipment_drop(instance, "armor")
@@ -2501,6 +2502,7 @@ func _spawn_accessory(accessory_id: String) -> void:
 	_auto_appraise(instance, _AffixRoller.CATEGORY_ACCESSORY, accessory_data.rarity)
 	GameState.accessory_inventory.append(instance)
 	last_accessory_dropped = accessory_id
+	EventBus.accessory_obtained.emit(accessory_id)
 	GameState.note_equipment_obtained(instance)
 	GameState.mark_equipment_new(instance)
 	GameState.record_last_run_equipment_drop(instance, "accessory")
