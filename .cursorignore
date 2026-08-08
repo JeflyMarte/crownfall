@@ -28,3 +28,6 @@ wiki/site/
 .tmp_pl/
 saves/
 tools/godot/
+
+# エージェント作業用プレビュー（インデックス不要）
+.cursor/tmp_ban/
