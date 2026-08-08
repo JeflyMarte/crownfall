@@ -100,3 +100,102 @@ func test_balanced_slot_plan_defend_threshold() -> void:
 			assert_almost_eq(float(r.get("value", 0.0)), 0.20, 0.001)
 			found = true
 	assert_true(found)
+
+
+func test_heal_thresholds_by_tactics() -> void:
+	## P3-BAL-TACTICS-SUPPORT-001
+	assert_false(CombatTactics.heal_allowed("attack_focus", 0.90))
+	assert_false(CombatTactics.heal_allowed("attack_focus", 0.50))
+	assert_true(CombatTactics.heal_allowed("attack_focus", 0.40))
+	assert_true(CombatTactics.heal_allowed("attack_focus", 0.30)) ## 緊急弁
+	assert_true(CombatTactics.heal_allowed("balanced", 0.60))
+	assert_false(CombatTactics.heal_allowed("balanced", 0.70))
+	assert_true(CombatTactics.heal_allowed("support_focus", 0.75))
+	assert_false(CombatTactics.heal_allowed("support_focus", 0.85))
+	assert_false(CombatTactics.heal_allowed("attack_only", 0.10))
+
+
+func test_buff_reapply_blocked_self_and_party() -> void:
+	var stance: Resource = DataRegistry.get_skill_data("battle_spirit")
+	assert_not_null(stance)
+	var blocked_ctx := {
+		"self_status": {"empower": true},
+		"pet_status": {},
+		"ally_buff_target_has": {},
+		"status_holders": {"empower": 1},
+		"living_ally_count": 3,
+	}
+	assert_true(CombatTactics.buff_reapply_blocked(stance, "balanced", blocked_ctx))
+	var clear_ctx := {
+		"self_status": {},
+		"pet_status": {},
+		"ally_buff_target_has": {},
+		"status_holders": {},
+		"living_ally_count": 3,
+	}
+	assert_false(CombatTactics.buff_reapply_blocked(stance, "balanced", clear_ctx))
+	var aura: Resource = DataRegistry.get_skill_data("offensive_stance")
+	assert_not_null(aura)
+	## 過半（2/3）所持 → 温存
+	var majority := {
+		"self_status": {},
+		"pet_status": {},
+		"ally_buff_target_has": {},
+		"status_holders": {"empower": 2},
+		"living_ally_count": 3,
+	}
+	assert_true(CombatTactics.buff_reapply_blocked(aura, "balanced", majority))
+	## support_focus は全員所持まで撃つ（2/3 では未ブロック）
+	assert_false(CombatTactics.buff_reapply_blocked(aura, "support_focus", majority))
+	var all_have := {
+		"self_status": {},
+		"pet_status": {},
+		"ally_buff_target_has": {},
+		"status_holders": {"empower": 3},
+		"living_ally_count": 3,
+	}
+	assert_true(CombatTactics.buff_reapply_blocked(aura, "support_focus", all_have))
+
+
+func test_attack_focus_skill_slot_weights_reduced() -> void:
+	var weights: Dictionary = CombatTactics._slot_weights(
+		"attack_focus", {"self_hp_ratio": 1.0, "enemy_is_boss": false}
+	)
+	assert_almost_eq(float(weights.get("skill", 0.0)), 36.0, 0.01)
+	assert_almost_eq(float(weights.get("attack", 0.0)), 46.0, 0.01)
+
+
+func test_skill_category_and_heal_reserve() -> void:
+	assert_eq(CombatTactics.skill_category(DataRegistry.get_skill_data("mend")), "heal")
+	assert_eq(CombatTactics.skill_category(DataRegistry.get_skill_data("empower")), "buff")
+	assert_eq(CombatTactics.skill_category(DataRegistry.get_skill_data("keen_slash")), "damage")
+	var light := {
+		"tactics_id": "attack_focus",
+		"ally_lowest_hp_ratio": 0.80,
+		"ally_injured": true,
+	}
+	assert_false(CombatTactics.skill_reserve_met(DataRegistry.get_skill_data("mend"), light))
+	var pinch := {
+		"tactics_id": "attack_focus",
+		"ally_lowest_hp_ratio": 0.40,
+		"ally_injured": true,
+	}
+	assert_true(CombatTactics.skill_reserve_met(DataRegistry.get_skill_data("mend"), pinch))
+
+
+func test_support_focus_roll_has_no_fixed_skill_index() -> void:
+	var member: Resource = Adventurer.new()
+	member.id = "sup"
+	member.job_id = "alchemist"
+	member.equipped_skill_ids = ["mend", "hex_bolt"] as Array[String]
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	var plan: Array = CombatTactics.roll_turn_plan(
+		"support_focus",
+		{"self_hp_ratio": 1.0, "enemy_is_boss": false},
+		member,
+		rng
+	)
+	for rule in plan:
+		assert_false((rule as Dictionary).has("skill_index"))
+

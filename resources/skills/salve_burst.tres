@@ -20,5 +20,5 @@ apply_status_chance = 0.0
 slot_type = "skill"
 range_type = "global"
 cast_time = 0.0
-reserve_condition = "ally_injured"
+reserve_condition = ""
 reserve_value = ""

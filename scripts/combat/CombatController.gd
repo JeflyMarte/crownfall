@@ -1029,6 +1029,17 @@ func get_most_injured_member_index(exclude_idx: int = -1) -> int:
 			best = i
 	return best
 
+
+## 最傷生存メンバーの HP 割合（0〜1）。負傷者なし／全滅は 1.0。
+func get_lowest_member_hp_ratio(exclude_idx: int = -1) -> float:
+	var idx: int = get_most_injured_member_index(exclude_idx)
+	if idx < 0:
+		return 1.0
+	var maxhp: int = party_max_hp[idx]
+	if maxhp <= 0:
+		return 1.0
+	return float(party_combat_hp[idx]) / float(maxhp)
+
 func pick_enemy_target_member_index(attacker_slot: int = -1) -> int:
 	return pick_enemy_target_from_indices(_eligible_enemy_targets(false, false), attacker_slot)
 

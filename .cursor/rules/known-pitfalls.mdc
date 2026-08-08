@@ -240,6 +240,7 @@ alwaysApply: false
 | リュシアン与ダメ+15%が乗らない | `outgoing_mult` を `trigger==on_attack` でゲート | 常時乗算は trigger と独立 |
 | 死亡標的が常に front | soft retarget が `DEFAULT_TARGET` 固定 | メンバー戦術 `target_from_member` で付け替え |
 | 戦術 bleed/poison がターゲットのみ | tactics ctx が単体スロット参照 | `_any_enemy_has_status` に統一 |
+| 軽傷でも毎回回復／バフ連打 | `ally_injured`＝1欠損で可・バフ温存なし | 方針別 HP 閾値＋バフ再付与抑止＋カテゴリ偏り（`96_TacticsSupportGating`） |
 | 葬冠 on_kill で名ポップ／CD 無し | `_try_fire_passive` に `refund_ct` アーム無し | `applied=true` のみ（CT返却は `on_kill_refund_fraction`） |
 | 感電コンボ不発（pulsekeen 等） | タグに `thunder`（ダメージ属性 id）を書き CombatTags で落ちる | タグは `lightning`。`CombatTags.normalize` で thunder→lightning（C-001） |
 | パッシブ／狩人の印のデバフで「追い込み」不発 | 連携武装がスキル経路のみ | `_party_applied_enemy_status` でパッシブ・レリック pre_hit も武装 |

@@ -8703,7 +8703,10 @@ func _build_tactics_context(member_idx: int) -> Dictionary:
 		if not $CombatController.is_member_alive(i):
 			ally_dead = true
 			break
-	var target_slot: int = $CombatController.get_member_target_slot(member_idx)
+	var member: Resource = GameState.get_combatant(member_idx)
+	var tactics_id: String = GameState.get_member_tactics_id(member)
+	var ally_lowest: float = $CombatController.get_lowest_member_hp_ratio()
+	var status_info: Dictionary = _build_tactics_status_cover(member_idx)
 	return {
 		"self_hp_ratio": hp_ratio,
 		"enemy_is_boss": room_type == Enums.RoomType.BOSS,
@@ -8720,6 +8723,54 @@ func _build_tactics_context(member_idx: int) -> Dictionary:
 		"ultimate_ready": _is_member_ultimate_ready(member_idx),
 		"self_range": _member_combat_range(member_idx),
 		"ally_injured": $CombatController.get_most_injured_member_index() >= 0,
+		"ally_lowest_hp_ratio": ally_lowest,
+		"tactics_id": tactics_id,
+		"living_ally_count": int(status_info.get("living_ally_count", 0)),
+		"status_holders": status_info.get("status_holders", {}),
+		"self_status": status_info.get("self_status", {}),
+		"pet_status": status_info.get("pet_status", {}),
+		"ally_buff_target_has": status_info.get("ally_buff_target_has", {}),
+	}
+
+
+## バフ再付与判定用: 生存味方のステータス被覆。
+func _build_tactics_status_cover(member_idx: int) -> Dictionary:
+	var holders: Dictionary = {}
+	var living: int = 0
+	var self_status: Dictionary = {}
+	var pet_status: Dictionary = {}
+	var ally_buff_target_has: Dictionary = {}
+	for i: int in $CombatController.party_combat_hp.size():
+		if not $CombatController.is_member_alive(i):
+			continue
+		living += 1
+		for entry: Variant in $CombatController.get_member_status_list(i):
+			if not (entry is Dictionary):
+				continue
+			var sid: String = str((entry as Dictionary).get("effect_id", ""))
+			if sid.is_empty():
+				continue
+			holders[sid] = int(holders.get(sid, 0)) + 1
+			if i == member_idx:
+				self_status[sid] = true
+			if GameState.is_pet_combatant(i):
+				pet_status[sid] = true
+	var cover_target: int = $CombatController.get_most_injured_member_index()
+	if cover_target < 0 and $CombatController.is_member_alive(member_idx):
+		cover_target = member_idx
+	if cover_target >= 0 and $CombatController.is_member_alive(cover_target):
+		for entry2: Variant in $CombatController.get_member_status_list(cover_target):
+			if not (entry2 is Dictionary):
+				continue
+			var sid2: String = str((entry2 as Dictionary).get("effect_id", ""))
+			if not sid2.is_empty():
+				ally_buff_target_has[sid2] = true
+	return {
+		"living_ally_count": living,
+		"status_holders": holders,
+		"self_status": self_status,
+		"pet_status": pet_status,
+		"ally_buff_target_has": ally_buff_target_has,
 	}
 
 # 必殺技がチャージ満タンか（P3-COMBAT-GAUGE-001 / 旧 P3-D108 は CT/CD）。
@@ -8791,7 +8842,7 @@ func _try_member_equipped_skill_at(member_idx: int, skill_index: int) -> bool:
 		return true
 	return false
 
-# スキル①②スロット（装備スキル）。ローテ＋温存を考慮し発動可能な1つを撃つ（P3-D113）。
+# スキル①②スロット（装備スキル）。カテゴリ偏り＋温存を考慮し発動可能な1つを撃つ（P3-BAL-TACTICS-SUPPORT-001）。
 func _try_member_equipped_skill(member_idx: int) -> bool:
 	var member: Resource = GameState.get_combatant(member_idx)
 	if member == null:
@@ -8800,17 +8851,47 @@ func _try_member_equipped_skill(member_idx: int) -> bool:
 	if ids.is_empty():
 		return false
 	var ctx: Dictionary = _build_tactics_context(member_idx)
-	var start: int = $CombatController.get_skill_rotation_index(member_idx) % ids.size()
-	for attempt: int in ids.size():
-		var pick: int = (start + attempt) % ids.size()
-		var sd: Resource = DataRegistry.get_skill_data(ids[pick])
+	var tactics_id: String = str(ctx.get("tactics_id", CombatTactics.DEFAULT_TACTICS_ID))
+	var by_cat: Dictionary = {"damage": [], "heal": [], "buff": []}
+	for i: int in ids.size():
+		var sd: Resource = DataRegistry.get_skill_data(ids[i])
 		if sd == null:
 			continue
 		if not CombatTactics.skill_reserve_met(sd, ctx):
 			continue
-		if _try_cast_member_skill(member_idx, sd, false):
-			$CombatController.set_skill_rotation_after_cast(member_idx, pick, ids.size())
-			return true
+		var cat: String = CombatTactics.skill_category(sd)
+		if not by_cat.has(cat):
+			by_cat[cat] = []
+		(by_cat[cat] as Array).append(i)
+	var available: Array = []
+	for cat_name in ["damage", "heal", "buff"]:
+		if not (by_cat[cat_name] as Array).is_empty():
+			available.append(cat_name)
+	if available.is_empty():
+		return false
+	var picked_cat: String = CombatTactics.pick_skill_category(tactics_id, available)
+	var cat_order: Array[String] = []
+	if not picked_cat.is_empty():
+		cat_order.append(picked_cat)
+	for cat2: String in CombatTactics.skill_category_order(tactics_id):
+		if cat2 not in cat_order and cat2 in available:
+			cat_order.append(cat2)
+	var start: int = $CombatController.get_skill_rotation_index(member_idx) % ids.size()
+	for cat3: String in cat_order:
+		var indices: Array = by_cat[cat3] as Array
+		## ローテ起点に近い順で試す。
+		var ordered_idx: Array[int] = []
+		for attempt: int in ids.size():
+			var pick: int = (start + attempt) % ids.size()
+			if pick in indices:
+				ordered_idx.append(pick)
+		for pick2: int in ordered_idx:
+			var sd2: Resource = DataRegistry.get_skill_data(ids[pick2])
+			if sd2 == null:
+				continue
+			if _try_cast_member_skill(member_idx, sd2, false):
+				$CombatController.set_skill_rotation_after_cast(member_idx, pick2, ids.size())
+				return true
 	return false
 
 # レジェンド武器の固有スキル（装備枠外・P3-SKILL-004）。
@@ -8850,11 +8931,21 @@ func _try_cast_member_skill(member_idx: int, skill_data: Resource, is_ultimate: 
 			var heal_exclude: int = member_idx if skill_data.tags.has("exclude_self") else -1
 			if $CombatController.get_most_injured_member_index(heal_exclude) < 0:
 				return false
+			var heal_member: Resource = GameState.get_combatant(member_idx)
+			var heal_tactics: String = GameState.get_member_tactics_id(heal_member)
+			var heal_ratio: float = $CombatController.get_lowest_member_hp_ratio(heal_exclude)
+			if not CombatTactics.heal_allowed(heal_tactics, heal_ratio):
+				return false
 		"buff":
 			if str(skill_data.target_type) == "pet" or skill_data.tags.has("pet_only"):
 				if not _is_active_pet_alive():
 					return false
 			elif str(skill_data.id) == "herd_call" and not _is_active_pet_alive() and GameState.party_members.is_empty():
+				return false
+			var buff_ctx: Dictionary = _build_tactics_context(member_idx)
+			if CombatTactics.buff_reapply_blocked(
+				skill_data, str(buff_ctx.get("tactics_id", "")), buff_ctx
+			):
 				return false
 		"damage":
 			if not _member_has_living_target(member_idx):
