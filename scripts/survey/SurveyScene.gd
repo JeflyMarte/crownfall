@@ -235,6 +235,7 @@ func _build_ui() -> void:
 	_btn_claim = Button.new()
 	_btn_claim.text = "調査中..."
 	_btn_claim.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_btn_claim.custom_minimum_size = Vector2(0, 48)
 	_btn_claim.pressed.connect(_on_claim)
 	body.add_child(_btn_claim)
 	_btn_cancel = Button.new()
@@ -1438,24 +1439,57 @@ func _close_pick_list() -> void:
 
 func _setup_start_confirm() -> void:
 	_start_confirm = ConfirmationDialog.new()
-	_start_confirm.title = "調査開始"
+	## タイトルバーは実機で見出しが上端見切れしやすい → 本文先頭に見出しを置く。
+	_start_confirm.title = ""
 	_start_confirm.ok_button_text = "開始する"
 	_start_confirm.cancel_button_text = "やめる"
 	_start_confirm.confirmed.connect(_execute_start)
 	_start_confirm.canceled.connect(_on_start_confirm_canceled)
+	_style_survey_confirm(_start_confirm)
 	add_child(_start_confirm)
 
 
 func _setup_cancel_confirm() -> void:
 	_cancel_confirm = ConfirmationDialog.new()
-	_cancel_confirm.title = "調査中止"
+	_cancel_confirm.title = ""
 	_cancel_confirm.ok_button_text = "中止する"
 	_cancel_confirm.cancel_button_text = "続ける"
 	_cancel_confirm.dialog_text = (
-		"進行中の調査を中止しますか？\n\n報酬は得られません。\n配置した隊員は調査から戻ります。"
+		"調査中止\n\n進行中の調査を中止しますか？\n\n報酬は得られません。\n配置した隊員は調査から戻ります。"
 	)
 	_cancel_confirm.confirmed.connect(_execute_cancel)
+	_style_survey_confirm(_cancel_confirm)
 	add_child(_cancel_confirm)
+
+
+func _style_survey_confirm(dlg: ConfirmationDialog) -> void:
+	if dlg == null:
+		return
+	dlg.unresizable = true
+	dlg.dialog_autowrap = true
+	dlg.min_size = Vector2i(440, 280)
+	## タイトルバー高を確保（空タイトルでも余白が潰れる端末向け）。
+	dlg.add_theme_constant_override("title_height", 36)
+	var panel := StyleBoxFlat.new()
+	panel.bg_color = Color(0.10, 0.10, 0.12, 0.97)
+	panel.set_border_width_all(2)
+	panel.border_color = Color(0.78, 0.68, 0.38, 0.9)
+	panel.set_corner_radius_all(8)
+	panel.content_margin_left = 22.0
+	panel.content_margin_right = 22.0
+	panel.content_margin_top = 22.0
+	panel.content_margin_bottom = 14.0
+	dlg.add_theme_stylebox_override("panel", panel)
+	var font: Font = UiTypography.body_font()
+	if font != null:
+		dlg.add_theme_font_override("font", font)
+	dlg.add_theme_font_size_override("font_size", UiTypography.SIZE_BODY_SMALL)
+	var msg: Label = dlg.get_label()
+	if msg != null:
+		msg.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		msg.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		msg.add_theme_constant_override("line_spacing", 4)
+		UiTypography.apply_body(msg, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 
 
 func _on_cancel_pressed() -> void:
@@ -1465,7 +1499,7 @@ func _on_cancel_pressed() -> void:
 		_label_status.text = "中止不可: 進行中の調査がありません"
 		_refresh_progress_only()
 		return
-	_cancel_confirm.popup_centered()
+	_cancel_confirm.popup_centered(Vector2i(460, 300))
 
 
 func _execute_cancel() -> void:
@@ -1494,10 +1528,10 @@ func _on_start(preset: String) -> void:
 		_SurveyConfig.display_name_with_duration(preset)
 	)
 	_start_confirm.dialog_text = (
-		"調査を開始しますか？\n\n対象: %s\n種別: %s\n※配置した隊員は編成から外れます（完了後に自動で戻ります）"
+		"調査開始\n\n調査を開始しますか？\n\n対象: %s\n種別: %s\n※配置した隊員は編成から外れます（完了後に自動で戻ります）"
 		% [dg_name, kind]
 	)
-	_start_confirm.popup_centered()
+	_start_confirm.popup_centered(Vector2i(460, 320))
 
 
 func _on_start_confirm_canceled() -> void:

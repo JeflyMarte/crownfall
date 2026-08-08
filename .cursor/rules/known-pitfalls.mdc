@@ -167,7 +167,7 @@ alwaysApply: false
 | イベント／無限の仕組みが伝わらない | タブだけあって説明導線なし。解放もバナーのみ | `DungeonRouteGuideOverlay`（？ボタン＋降臨／無限の初回P分け）。再表示は preview |
 | Noto 本文が薄い／キャラ切替 ◀▶ が消える | wght不足・DelaGothic・過小 font | → `ui-layout.mdc` 職名・本文タイポ |
 | CHR 放射色が顔まで染まる／焼き込み枠残存 | modulate・枠焼込 | → **`asset-import.mdc`**（recolor／strip ツール） |
-| キャラ切替が ◀▶ のみで人数増に不便 | 旧 MemberSelectRow は非表示のまま | 名前横「一覧」シート（`_get_view_members` と同一）。AcceptDialog 禁止 |
+| 調査開始ダイアログの「調査開始」が見切れる | Window タイトルバー高不足／実機でタイトルが上端クリップ | タイトルは空にして本文先頭へ。`panel` content_margin＋`popup_centered` 最小サイズ |
 
 ## ツール / タッチUI / セーフエリア
 
