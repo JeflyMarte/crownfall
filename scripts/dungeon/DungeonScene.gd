@@ -8539,6 +8539,7 @@ func _on_active_enemy_killed() -> bool:
 func _finalize_combat_cleared() -> void:
 	$CombatTimer.stop()
 	_try_pet_revive_on_combat_end()
+	_fire_combat_end_passives()
 	_end_combat_session()
 	$CombatController.end_combat()
 	_combat_vfx.clear_all()
@@ -9064,6 +9065,13 @@ func _fire_combat_start_passives() -> void:
 	for i: int in $CombatController.party_combat_hp.size():
 		if $CombatController.is_member_alive(i):
 			_fire_member_passives(i, "on_combat_start")
+
+
+func _fire_combat_end_passives() -> void:
+	## クリア直後・HP配列が残っているあいだに発火（全滅／逃走では呼ばない）。
+	for i: int in $CombatController.party_combat_hp.size():
+		if $CombatController.is_member_alive(i):
+			_fire_member_passives(i, "on_combat_end")
 
 
 ## 戻り値: 回復演出を出した回数（hold 判定用）。

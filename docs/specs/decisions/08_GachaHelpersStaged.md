@@ -32,7 +32,7 @@
 
 | id | ★ | 個人ステ `{hp,atk,def}` | パッシブ id | 効果 |
 |---|---|---|---|---|
-| helper_k レノール | 2 | `{-30, 270, -20}` | `lenore_seal_echo`（封緘の呪い） | 攻撃で **vulnerable** 付与（P3-BAL-PASSIVE-LOCK-001） |
+| helper_k レノール | 2 | `{-30, 270, -20}` | `lenore_seal_echo`（呪印の増幅） | 状態異常敵への与ダメ＋45%（P3-BAL-PASSIVE-EKREWC-001） |
 | helper_m シアン | 3 | `{40, 80, 60}` | `sian_silent_line`（静寂の構え） | 後列回避＋初撃標的 |
 | helper_n ボルグ | 3 | `{100, 60, 100}` | `borg_gate_voice`（門前の残像） | **開幕回避 +22%**（戦闘中） |
 | helper_o ネリ | 2 | `{-50, 40, 30}` | `neri_waterfowl_call`（水鳥の指揮） | ペットステ **×1.2**／戦闘終了時 **30%** 蘇生 |

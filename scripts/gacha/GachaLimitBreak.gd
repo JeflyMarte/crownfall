@@ -119,6 +119,10 @@ static func scale_passive_def(def: Dictionary, breakthrough: int) -> Dictionary:
 				out[key] = minf(1.0, float(out[key]) * scale)
 	if out.has("heal_max_hp_fraction"):
 		out["heal_max_hp_fraction"] = minf(0.5, float(out["heal_max_hp_fraction"]) * scale)
+	if out.has("combat_regen_max_hp_fraction"):
+		out["combat_regen_max_hp_fraction"] = minf(
+			0.05, float(out["combat_regen_max_hp_fraction"]) * scale
+		)
 	if str(out.get("effect", "")) == "grant_party_incoming_mult" and out.has("mult"):
 		out["mult"] = _scale_mult_below_one(float(out["mult"]), scale)
 	if str(out.get("effect", "")) == "heal" and out.has("value"):

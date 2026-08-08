@@ -7582,3 +7582,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-REFORGE-MATCH-FORGE-001-1 | **焼直し Gold／素材** — 炉研ぎ次段と同一（+5 済みは +5 相当） | オーナー指定 |
 | P3-BAL-REFORGE-MATCH-FORGE-001-2 | **上書き** — HEAVY-001-4 の焼直し固定表／AB-001 の「レア無し」 | 本 Decision が正 |
 | P3-BAL-ALCHEMY-RARITY-GOLD-001-4 | **SSOT** — `91_AlchemyRarityGoldReforgeMatch.md` | Decision 本体 |
+
+## 固有パッシブ E-K／R-E／W-C（2026-08-08 — P3-BAL-PASSIVE-EKREWC-001）
+
+> **オーナー指示** — 職スキルキットは据置。固有パッシブのみ差し替え（エリアス＝E-K）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-PASSIVE-EKREWC-001-1 | **エリアス** — `elias_field_elixir` → 野営の残り香。`on_combat_end`・生存味方全体・HP20% | E-K |
+| P3-BAL-PASSIVE-EKREWC-001-2 | **レノール** — `lenore_seal_echo` → 呪印の増幅。状態異常敵与ダメ＋45% | R-E |
+| P3-BAL-PASSIVE-EKREWC-001-3 | **ウォール** — `garm_caravan_guard` → 不屈の鼓動。3秒ごとHP2%＋ヘイト70 | W-C |
+| P3-BAL-PASSIVE-EKREWC-001-4 | **id 据置**。開幕最傷回復／脆弱付与／致死耐えは廃止 | 互換 |
+| P3-BAL-PASSIVE-EKREWC-001-5 | **SSOT** — `92_PassiveRedesignEKREWC.md`／`70_PassiveKitLock.md` 追記 | Decision 本体 |

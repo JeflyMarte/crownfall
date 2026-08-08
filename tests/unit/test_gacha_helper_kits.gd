@@ -16,8 +16,10 @@ func test_helper_personal_bonuses() -> void:
 
 func test_passive_defs_for_new_four() -> void:
 	var lenore: Dictionary = CombatPassives.get_def("lenore_seal_echo")
-	assert_eq(str(lenore.get("status_id", "")), "vulnerable")
-	assert_eq(str(lenore.get("effect", "")), "apply_status")
+	assert_eq(str(lenore.get("display_name", "")), "呪印の増幅")
+	assert_almost_eq(float(lenore.get("outgoing_vs_status_mult", 1.0)), 1.45, 0.001)
+	assert_false(lenore.has("effect"))
+	assert_false(lenore.has("status_id"))
 	var sian: Dictionary = CombatPassives.get_def("sian_silent_line")
 	assert_eq(str(sian.get("status_id", "")), "mark")
 	assert_almost_eq(float(sian.get("back_row_evasion_rate_add", 0.0)), 0.18, 0.001)

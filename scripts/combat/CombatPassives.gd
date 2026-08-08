@@ -5,7 +5,7 @@ extends RefCounted
 ## 共通フォーマット: Trigger → Condition → Effect → Cooldown。
 ## 基本5職ロスターはキャラ固有パッシブを優先、それ以外はジョブフォールバック。
 ##
-## trigger: "on_combat_start" | "on_action_start" | "on_hit_taken" | "on_ally_death" |
+## trigger: "on_combat_start" | "on_combat_end" | "on_action_start" | "on_hit_taken" | "on_ally_death" |
 ##   "on_attack" | "on_kill" | "on_noncombat_enter"
 ## condition: "always" | "self_hp_below"（value=HP割合）| "ally_hp_below"（味方誰かHP割合）
 ## effect: "apply_status" | "heal" | "bonus_damage" | "counter_attack" | "grant_next_attack_mult" |
@@ -114,13 +114,13 @@ const _DEFS: Dictionary = {
 		"cooldown": 0.0,
 	},
 	"elias_field_elixir": {
-		"display_name": "野戦調合",
-		"description": "戦闘フロアに入ったとき、いちばん傷ついた味方1人のHPを30%回復する。",
-		"trigger": "on_combat_start",
+		"display_name": "野営の残り香",
+		"description": "戦闘終了時、生存している味方のHPを20%回復する。",
+		"trigger": "on_combat_end",
 		"condition": "always",
 		"effect": "heal",
-		"target": "most_injured",
-		"heal_max_hp_fraction": 0.30,
+		"target": "party",
+		"heal_max_hp_fraction": 0.20,
 		"cooldown": 0.0,
 	},
 	"galen_sacred_bastion": {
@@ -223,21 +223,17 @@ const _DEFS: Dictionary = {
 		"first_attack_mult": 1.75,
 	},
 	"garm_caravan_guard": {
-		"display_name": "隊商の盾心",
-		"description": "致死ダメージを30%の確率でHP1で耐える。",
-		"death_save_chance": 0.30,
+		"display_name": "不屈の鼓動",
+		"description": "戦闘中、3秒ごとに最大HPの2%を回復する。敵の注目を集めやすい。",
+		"combat_regen_interval_sec": 3.0,
+		"combat_regen_max_hp_fraction": 0.02,
+		"threat_base_add": 70.0,
 	},
 	## P3-GACHA 追加4体（レノール／シアン／ネリ／ボルグ）
 	"lenore_seal_echo": {
-		"display_name": "封緘の呪い",
-		"description": "攻撃時、敵に脆弱を付与することがある。",
-		"trigger": "on_attack",
-		"condition": "always",
-		"effect": "apply_status",
-		"status_id": "vulnerable",
-		"target": "enemy",
-		"status_chance": 0.28,
-		"cooldown": 0.0,
+		"display_name": "呪印の増幅",
+		"description": "状態異常の敵への与ダメージが45%上昇する。",
+		"outgoing_vs_status_mult": 1.45,
 	},
 	"torva_frost_breath": {
 		"display_name": "霜刃の一息",
@@ -1846,25 +1842,27 @@ static func relic_lifesteal_ratio(member_index: int) -> float:
 	return maxf(0.0, equipped_relic_float(member_index, "lifesteal_ratio", 0.0))
 
 
-## 戦闘リジェネ定義（interval/fraction 両方ある装備者のみ）。
+## 戦闘リジェネ定義（interval/fraction 両方あるレリック・キャラパッシブ）。
 static func combat_regen_defs_for_party() -> Array:
 	var out: Array = []
-	for i: int in GameState.party_members.size():
-		if GameState.party_members[i] == null:
+	for i: int in GameState.combatant_count():
+		var member: Resource = GameState.get_combatant(i)
+		if member == null:
 			continue
-		var def: Dictionary = equipped_relic_def(i)
-		if def.is_empty():
-			continue
-		var interval: float = float(def.get("combat_regen_interval_sec", 0.0))
-		var frac: float = float(def.get("combat_regen_max_hp_fraction", 0.0))
-		if interval <= 0.0 or frac <= 0.0:
-			continue
-		out.append({
-			"member_index": i,
-			"interval_sec": interval,
-			"max_hp_fraction": frac,
-			"display_name": str(def.get("display_name", "")),
-		})
+		for raw_def: Variant in for_member(member):
+			if raw_def is not Dictionary:
+				continue
+			var def: Dictionary = raw_def
+			var interval: float = float(def.get("combat_regen_interval_sec", 0.0))
+			var frac: float = float(def.get("combat_regen_max_hp_fraction", 0.0))
+			if interval <= 0.0 or frac <= 0.0:
+				continue
+			out.append({
+				"member_index": i,
+				"interval_sec": interval,
+				"max_hp_fraction": frac,
+				"display_name": str(def.get("display_name", "")),
+			})
 	return out
 
 

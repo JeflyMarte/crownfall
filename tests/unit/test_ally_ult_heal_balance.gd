@@ -1,6 +1,6 @@
 extends GutTest
 
-## P3-BAL-ALLY-FIX-001-4 — タイタンロア強化。野戦調合は最傷1体30%。セリンは予備瓶へ移行。
+## タイタンロア強化。エリアス固有は戦闘終了時パーティ中回復（E-K）。セリンは予備瓶。
 
 
 func test_titan_roar_recommended_buff() -> void:
@@ -14,11 +14,12 @@ func test_titan_roar_recommended_buff() -> void:
 	assert_true(skill.tags.has("taunt"))
 
 
-func test_elias_field_elixir_most_injured_30() -> void:
+func test_elias_field_elixir_combat_end_party_20() -> void:
 	var elias: Dictionary = CombatPassives.get_def("elias_field_elixir")
-	assert_eq(str(elias.get("trigger", "")), "on_combat_start")
-	assert_eq(str(elias.get("target", "")), "most_injured")
-	assert_almost_eq(float(elias.get("heal_max_hp_fraction", 0.0)), 0.30, 0.001)
+	assert_eq(str(elias.get("display_name", "")), "野営の残り香")
+	assert_eq(str(elias.get("trigger", "")), "on_combat_end")
+	assert_eq(str(elias.get("target", "")), "party")
+	assert_almost_eq(float(elias.get("heal_max_hp_fraction", 0.0)), 0.20, 0.001)
 
 
 func test_serin_spare_vial_combat_heal() -> void:
