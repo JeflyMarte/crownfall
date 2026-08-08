@@ -548,6 +548,8 @@ static func can_alchemy(base: Resource, fodder: Resource) -> Dictionary:
 		return fail.call("神話装備は錬成素材にできません")
 	if item_rarity(base) >= Enums.Rarity.MYTHIC:
 		return fail.call("神話装備は錬成できません")
+	if is_item_locked(fodder):
+		return fail.call("ロック中の装備は錬成素材にできません")
 	## P3-FORGE-ALCHEMY-001-5b: 装備中も可（素材は実行時に外す）。
 	var from_lv: int = get_equip_level(base)
 	if from_lv >= EQUIP_MAX_LEVEL:
@@ -594,6 +596,25 @@ static func perform_alchemy(base: Resource, fodder: Resource) -> Dictionary:
 	}
 
 
+static func is_item_locked(item: Resource) -> bool:
+	return item != null and ("is_locked" in item) and bool(item.is_locked)
+
+
+static func set_item_locked(item: Resource, locked: bool) -> bool:
+	if item == null or not ("is_locked" in item):
+		return false
+	item.is_locked = locked
+	return true
+
+
+static func toggle_item_locked(item: Resource) -> bool:
+	## 切替後のロック状態を返す。失敗時は false。
+	if item == null or not ("is_locked" in item):
+		return false
+	item.is_locked = not bool(item.is_locked)
+	return bool(item.is_locked)
+
+
 static func can_dismantle_item(item: Resource) -> Dictionary:
 	var fail := func(reason: String) -> Dictionary:
 		return {"ok": false, "reason": reason}
@@ -603,6 +624,8 @@ static func can_dismantle_item(item: Resource) -> Dictionary:
 		return fail.call("未鑑定の装備は分解できません")
 	if GameState.find_item_equipped_owner(item) != null:
 		return fail.call("装備中のアイテムは分解できません")
+	if is_item_locked(item):
+		return fail.call("ロック中の装備は分解できません")
 	return {"ok": true, "reason": ""}
 
 static func _dismantle_base_yields(item: Resource) -> Dictionary:

@@ -117,6 +117,24 @@ static func apply_equip_level_badge(
 	)
 
 
+## 誤分解・誤錬成防止ロック（右上 🔒）。
+static func apply_lock_badge(parent: Control, item: Resource, cell_size: Vector2) -> void:
+	if parent == null or item == null:
+		return
+	if not EquipmentEnhancer.is_item_locked(item):
+		return
+	var font_size: int = maxi(14, int(cell_size.y * 0.22))
+	var width: float = float(font_size) * 1.15
+	add_corner_badge(
+		parent,
+		"🔒",
+		Color(1.0, 0.92, 0.55, 1.0),
+		Vector2(cell_size.x - width - 2.0, 1.0),
+		font_size,
+		4
+	)
+
+
 ## ドロップ直後の New バッジ（アイコン中央・点滅）。次のダンジョン潜行まで。
 static func apply_new_badge(parent: Control, item: Resource, cell_size: Vector2) -> void:
 	if parent == null or item == null:

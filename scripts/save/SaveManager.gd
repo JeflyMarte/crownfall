@@ -670,6 +670,7 @@ func _serialize_inventory() -> Array:
 				item.rolled_bonus_stats if "rolled_bonus_stats" in item else []
 			),
 			"perfect_roll_count": int(item.perfect_roll_count) if "perfect_roll_count" in item else 0,
+			"is_locked": bool(item.is_locked) if "is_locked" in item else false,
 		})
 	return out
 
@@ -1220,6 +1221,7 @@ func _deserialize_inventory(inv_data: Array) -> Array:
 			item.rolled_bonus_stats = _deserialize_affix_ids(entry.get("rolled_bonus_stats", []))
 		if entry.has("perfect_roll_count"):
 			item.perfect_roll_count = int(entry.get("perfect_roll_count", 0))
+		item.is_locked = bool(entry.get("is_locked", false))
 		_WeaponStatResolver.migrate_legacy_element_power_on_weapon(item)
 		_EquipmentRandomMods.ensure_migrated(item)
 		items.append(item)
@@ -1254,6 +1256,7 @@ func _serialize_armor_inventory() -> Array:
 				item.rolled_bonus_stats if "rolled_bonus_stats" in item else []
 			),
 			"perfect_roll_count": int(item.perfect_roll_count) if "perfect_roll_count" in item else 0,
+			"is_locked": bool(item.is_locked) if "is_locked" in item else false,
 		})
 	return out
 
@@ -1300,6 +1303,7 @@ func _deserialize_armor_inventory(inv_data: Array) -> Array:
 			item.rolled_bonus_stats = _deserialize_affix_ids(entry.get("rolled_bonus_stats", []))
 		if entry.has("perfect_roll_count"):
 			item.perfect_roll_count = int(entry.get("perfect_roll_count", 0))
+		item.is_locked = bool(entry.get("is_locked", false))
 		_EquipmentRandomMods.ensure_migrated(item)
 		items.append(item)
 	return items
@@ -1329,6 +1333,7 @@ func _serialize_accessory_inventory() -> Array:
 				item.rolled_bonus_stats if "rolled_bonus_stats" in item else []
 			),
 			"perfect_roll_count": int(item.perfect_roll_count) if "perfect_roll_count" in item else 0,
+			"is_locked": bool(item.is_locked) if "is_locked" in item else false,
 		})
 	return out
 
@@ -1365,6 +1370,7 @@ func _deserialize_accessory_inventory(inv_data: Array) -> Array:
 			item.rolled_bonus_stats = _deserialize_affix_ids(entry.get("rolled_bonus_stats", []))
 		if entry.has("perfect_roll_count"):
 			item.perfect_roll_count = int(entry.get("perfect_roll_count", 0))
+		item.is_locked = bool(entry.get("is_locked", false))
 		_EquipmentRandomMods.ensure_migrated(item)
 		items.append(item)
 	return items

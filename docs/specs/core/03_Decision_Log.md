@@ -3829,7 +3829,7 @@ ELITE/BOSS/遍在希少種（P3-D166）は別枠。重みは **当該 Biome 雑�
 | P3-FORGE-003-6 | **返却（炉研ぎボーナス）** — `enhance_level` 每に **共通+1**。+4/+5 強化品は同帯主鉱石+0〜1、**+4/+5 のみ**上位鉱石+1（P3-MAT-004 帯に準拠） | 100%還元禁止・投資の一部回収 |
 | P3-FORGE-003-7 | **exploit 防止** — 分解返却 ≤ 同一装備クラフト必要素材×**80%**（クラフト品）。返す素材は `max(1, floor(…))`。ドロップ品は固定表（**P3-BAL-DISMANTLE-001** で60%→80%＋ゼロ潰し修正） | クラフトループ増殖禁止 |
 | P3-FORGE-003-8 | **SSOT** — `EquipmentEnhancer.dismantle_preview` / `dismantle_item`（返却 Dictionary・inventory 削除） | 炉研ぎと同ファイル |
-| P3-FORGE-003-9 | **据置** — Gold 返却・お気に入りロック・`equip_level` による返却差 | MVP最小化 |
+| P3-FORGE-003-9 | **据置** — Gold 返却・`equip_level` による返却差。お気に入りロック → **P3-UX-EQUIP-LOCK-001** | MVP最小化 |
 | P3-FORGE-003-10 | **Impl 順** — **P3-MAT-004 / P3-FORGE-002 完了後** | 返却先5種 ID の確定が先 |
 | P3-FORGE-003-11 | **一括分解** — 分解タブ内に **`◇◆を一括分解`** ボタン。対象＝**未装備・鑑定済み・◇◆のみ**（武器+防具+装飾を横断） | インベントリ整理。✦★は個別分解のみ |
 | P3-FORGE-003-12 | **一括UI** — 押下で確認ダイアログ（**件数**＋**獲得素材合計**プレビュー）→ OK で実行。0件時はボタン disabled またはトースト | 誤操作防止 |
@@ -7475,6 +7475,19 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-PET-JACK-KIT-001-4 | `guard_minor` 新設（被ダメ×0.8）・`guard` と相互排他 | 「少し防御」 |
 | P3-BAL-PET-JACK-KIT-001-5 | 旧 remap: rend→crack／savage→ward／nibble→bulwark | セーブ互換 |
 | P3-BAL-PET-JACK-KIT-001-6 | **SSOT**＝`87_JackSkillKit.md`（`69`／`78`／`42` 上書き） | Decision 本体 |
+
+## 装備ロック（誤分解・誤錬成防止）（2026-08-08 — P3-UX-EQUIP-LOCK-001）
+
+> **オーナー指示** — 装備一覧の長押しで🔒。ロック中は錬成素材・分解対象にしない。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-EQUIP-LOCK-001-1 | **フィールド** — `Weapon/Armor/AccessoryInstance.is_locked`（セーブ永続） | 個体単位 |
+| P3-UX-EQUIP-LOCK-001-2 | **UI** — 装備一覧長押しでトグル。右上🔒。詳細オーバーレイも併表示 | 既存長押し詳細を維持 |
+| P3-UX-EQUIP-LOCK-001-3 | **錬成** — ロック中は**素材不可**（主材は可） | 誤消滅防止 |
+| P3-UX-EQUIP-LOCK-001-4 | **分解** — ロック中は単体・一括とも不可 | 同上 |
+| P3-UX-EQUIP-LOCK-001-5 | **据置** — 炉研ぎ／装着／焼直しはロック非干渉 | スコープ最小 |
+| P3-UX-EQUIP-LOCK-001-6 | **上書き** — P3-FORGE-003-9 の「お気に入りロック据置」 | 本 Decision が正 |
 
 ## 錬成Lv上昇×0.25（2026-08-08 — P3-BAL-ALCHEMY-GAIN-025-001）
 

@@ -107,6 +107,30 @@ func test_alchemy_allows_equipped_base_and_unequips_fodder() -> void:
 	assert_eq(member_a.equipped_weapon, base, "base stays equipped")
 
 
+func test_locked_fodder_cannot_alchemy() -> void:
+	## P3-UX-EQUIP-LOCK-001: ロック中は錬成素材不可。主材は可。
+	var base: Resource = _make_weapon(12)
+	var fodder: Resource = _make_weapon(10)
+	assert_true(EquipmentEnhancer.set_item_locked(fodder, true))
+	var check: Dictionary = EquipmentEnhancer.can_alchemy(base, fodder)
+	assert_false(bool(check.get("ok", false)))
+	assert_true(str(check.get("reason", "")).contains("ロック"))
+	assert_true(EquipmentEnhancer.set_item_locked(base, true))
+	assert_true(EquipmentEnhancer.set_item_locked(fodder, false))
+	var check2: Dictionary = EquipmentEnhancer.can_alchemy(base, fodder)
+	assert_true(bool(check2.get("ok", false)), "locked base may still be alchemy target: %s" % str(check2))
+
+
+func test_locked_item_cannot_dismantle() -> void:
+	var item: Resource = _make_weapon(8)
+	assert_true(bool(EquipmentEnhancer.can_dismantle_item(item).get("ok", false)))
+	assert_true(EquipmentEnhancer.set_item_locked(item, true))
+	var check: Dictionary = EquipmentEnhancer.can_dismantle_item(item)
+	assert_false(bool(check.get("ok", false)))
+	assert_true(str(check.get("reason", "")).contains("ロック"))
+	assert_false(EquipmentEnhancer.list_bulk_dismantle_candidates().has(item))
+
+
 func test_equip_preserves_level_above_member() -> void:
 	## 装着時に装備LvをキャラLvへ永続クリップしない（P3-EQ-LVL-001-4 は EXP 上限のみ）。
 	var member := Adventurer.new()

@@ -2107,8 +2107,8 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 	if job_blocked:
 		btn.tooltip_text = "%s\n（%s）" % [item_name, JobStatCalculator.unequip_reason_weapon(view_member, item)]
 	else:
-		btn.tooltip_text = "%s\n（長押しで効果）" % item_name
-	## 短押し=着脱、長押し=効果オーバーレイ（Button.pressed は使わず gui_input で統一）。
+		btn.tooltip_text = "%s\n（長押しでロック／詳細）" % item_name
+	## 短押し=着脱、長押し=ロック切替＋詳細（Button.pressed は使わず gui_input で統一）。
 	_bind_inventory_cell_interaction(btn, _inventory_item_action.bind(item, category))
 	btn.disabled = not _can_change_equipment_on_view()
 	if is_on_self:
@@ -2153,6 +2153,11 @@ func _make_relic_cell(relic_id: String) -> Button:
 func _inventory_item_action(is_long_press: bool, item: Resource, category: String) -> void:
 	if is_long_press:
 		if item != null:
+			## P3-UX-EQUIP-LOCK-001: 長押しでロック切替（詳細も併せて表示）。
+			_EquipmentEnhancer.toggle_item_locked(item)
+			SaveManager.save_game()
+			_rebuild_inventory_grid()
+			_rebuild_equip_slots()
 			_show_item_stats_overlay(item, category, true)
 		return
 	_tap_inventory_item(item, category)
@@ -2589,7 +2594,8 @@ func _apply_item_badges(
 	EquipmentUiHelper.apply_equip_level_badge(btn, item, size)
 	if category == "weapon":
 		EquipmentUiHelper.apply_enhance_badge(btn, item, category, size, COLOR_GOLD)
-	## 装備中の「装」は出さない。ドロップ直後は中央 New 点滅。
+	## 装備中の「装」は出さない。ドロップ直後は中央 New 点滅。ロックは右上。
+	EquipmentUiHelper.apply_lock_badge(btn, item, size)
 	EquipmentUiHelper.apply_new_badge(btn, item, size)
 
 # ボタン隅にバッジ（レアリティ宝石 / 装備中マーク）を重ねる。

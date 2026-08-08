@@ -2918,6 +2918,9 @@ func _sorted_alchemy_fodder_candidates() -> Array:
 	for item in _inventory_for_category(_category):
 		if item == null or item == _selected_alchemy_base:
 			continue
+		## ロック中は素材候補から除外（P3-UX-EQUIP-LOCK-001）。
+		if _EquipmentEnhancer.is_item_locked(item):
+			continue
 		## 装備中も素材可。実行時に外して消滅。
 		items.append(item)
 	items.sort_custom(func(a: Resource, b: Resource) -> bool:

@@ -37,3 +37,5 @@ extends Resource
 @export var rolled_bonus_stats: Array[String] = []
 ## ランダムステータスで最高値を引いた数（表示名⭐️用）。
 @export var perfect_roll_count: int = 0
+## 誤分解・誤錬成防止ロック（P3-UX-EQUIP-LOCK-001）。
+@export var is_locked: bool = false
