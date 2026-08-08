@@ -24,6 +24,10 @@ const COMMANDER_SCENE: String = "res://scenes/commander/CommanderScene.tscn"
 const SETTINGS_SCENE: String = "res://scenes/settings/SettingsScene.tscn"
 const EVENT_SCENE: String = "res://scenes/event/EventScene.tscn"
 const _GOLD_ICON_PATH: String = "res://assets/ui/batch2/ICO_Gold.png"
+## 拠点左上の等級アイコン。枠 content_margin を詰めて本体を大きく見せる。
+const RANK_PORTRAIT_PX: float = 60.0
+const RANK_PORTRAIT_CONTENT_MARGIN: float = 4.0
+const PLAYER_CARD_MIN_SIZE: Vector2 = Vector2(196, 72)
 
 @onready var _menu_vbox: VBoxContainer = $HubView/LeftMenuPanel/MenuScroll/MenuVBox
 @onready var _label_gold: Label = $HubView/TopBar/TopBarRow/GoldChip/GoldRow/LabelGold
@@ -665,7 +669,7 @@ func _apply_typography() -> void:
 	HeaderCurrencyHelper.apply_to_row($HubView/TopBar/TopBarRow)
 	UiTypography.apply_display(_label_daily_title, UiTypography.SIZE_BODY_SMALL)
 	UiTypography.apply_caption(_label_daily_reset)
-	UiTypography.apply_display(_portrait_glyph, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	UiTypography.apply_display(_portrait_glyph, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
 	UiTypography.apply_body(_label_menu_title, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_SUB)
 
 func _decorate_panels() -> void:
@@ -683,8 +687,21 @@ func _decorate_panels() -> void:
 	if strip != null:
 		strip.visible = false
 	_portrait_frame.add_theme_stylebox_override(
-		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_NORMAL)
+		"panel", _hub_rank_portrait_style(CombatUiFrames.TIER_NORMAL)
 	)
+	_portrait_frame.custom_minimum_size = Vector2(RANK_PORTRAIT_PX, RANK_PORTRAIT_PX)
+	_player_card.custom_minimum_size = PLAYER_CARD_MIN_SIZE
+
+func _hub_rank_portrait_style(tier: String) -> StyleBoxTexture:
+	## CombatUiFrames の通常枠は余白10〜14pxで小バッジが潰れるため、拠点用に余白を縮小。
+	var base: StyleBoxTexture = CombatUiFrames.panel_style(tier)
+	var style: StyleBoxTexture = base.duplicate() as StyleBoxTexture
+	var m: float = RANK_PORTRAIT_CONTENT_MARGIN
+	style.content_margin_left = m
+	style.content_margin_top = m
+	style.content_margin_right = m
+	style.content_margin_bottom = m
+	return style
 
 func _build_left_menu() -> void:
 	var to_remove: Array[Node] = []
@@ -875,9 +892,8 @@ func _update_player_card() -> void:
 	var frame_tier: String = CombatUiFrames.TIER_NORMAL
 	if _CommanderProfile.is_rank_at_least(_CommanderProfile.GOLD_SEAL_RANK):
 		frame_tier = CombatUiFrames.TIER_CARD_ACTIVE
-	_portrait_frame.add_theme_stylebox_override(
-		"panel", CombatUiFrames.panel_style(frame_tier)
-	)
+	_portrait_frame.add_theme_stylebox_override("panel", _hub_rank_portrait_style(frame_tier))
+	_portrait_frame.custom_minimum_size = Vector2(RANK_PORTRAIT_PX, RANK_PORTRAIT_PX)
 	var tooltip := "マイページを開く"
 	var pending: int = _CommanderGiftBox.pending_count()
 	if pending > 0:
