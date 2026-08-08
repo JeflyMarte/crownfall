@@ -7605,3 +7605,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-LORE-BLESS-COMBAT-001-2 | 種類は据置（exp／gold／equip のいずれか ×1.1） | 変更なし |
 | P3-BAL-LORE-BLESS-COMBAT-001-3 | 分かれ道三択の寿命は据置（次が戦闘限定のため） | 本変更の対象外 |
 | P3-BAL-LORE-BLESS-COMBAT-001-4 | **SSOT** — `10_NonCombatTension.md` §3.1 | Decision 本体 |
+
+## 職ビルドテーマとパッシブ再編（2026-08-08 — P3-BAL-JOB-THEME-001）
+
+> **オーナー指示** — 職ごとテーマ3・非重複。キャラ割り当て GO。火鷹パッシブは変更しない。スキルもテーマに合わせて見直してよい。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-JOB-THEME-001-1 | パッシブ＝個性ラベル1本。職キットが本体 | 設計方針 |
+| P3-BAL-JOB-THEME-001-2 | SW: 出血／一撃／会心。RG: 標的／拘束／探索。VG: 挑発／味方バフ／カウンター。AL: デバフ／回復／属性。BT: ペット／状態異常／吸血 | オーナー確定 |
+| P3-BAL-JOB-THEME-001-3 | 割り当て — 出血アルド・一撃カイダ・会心火鷹／標的リーヴァ・拘束シアン・探索イヴァル／挑発ガレン・バフヴァルデン・カウンターボルグ・挑発分岐ウォール／デバフレノール・回復セリン・属性エリアス／ペットネリ・異常ミレイ・吸血ルーシェ | オーナー GO |
+| P3-BAL-JOB-THEME-001-4 | **火鷹・血潮の代償は変更しない** | オーナー明示 |
+| P3-BAL-JOB-THEME-001-5 | エリアスは属性へ（クリア後全体回復は廃止予定）。BT二軸併記をやめる | テーマ整合 |
+| P3-BAL-JOB-THEME-001-6 | **SSOT** — `93_JobBuildThemesPassives.md`。`70_PassiveKitLock` はテーマ面で後継へ | Decision 本体 |
