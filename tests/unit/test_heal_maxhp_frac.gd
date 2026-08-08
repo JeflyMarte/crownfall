@@ -17,6 +17,8 @@ func test_heal_frac_constants_match_skills() -> void:
 	assert_eq(str(DataRegistry.get_skill_data("salve_burst").target_type), "all_party")
 	assert_almost_eq(float(DataRegistry.get_skill_data("mend").cooldown), 8.0, 0.001)
 	assert_almost_eq(float(DataRegistry.get_skill_data("salve_burst").cooldown), 12.0, 0.001)
+	assert_lte(float(DataRegistry.get_skill_data("mend").cast_time), 0.0, "mend must be instant")
+	assert_lte(float(DataRegistry.get_skill_data("salve_burst").cast_time), 0.0, "salve_burst must be instant")
 	assert_almost_eq(
 		float(DataRegistry.get_skill_data("grand_elixir").power_multiplier),
 		BalanceConfig.HEAL_FRAC_GRAND_ELIXIR,

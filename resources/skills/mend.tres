@@ -19,6 +19,6 @@ slot_type = "skill"
 range_type = "mid"
 apply_status_id = ""
 apply_status_chance = 0.0
-cast_time = 1.0
+cast_time = 0.0
 reserve_condition = "ally_injured"
 reserve_value = ""
