@@ -9,9 +9,39 @@ func test_player_skill_mapping_covers_expected_ids() -> void:
 		"toxin_dart", "snare_shot", "mend", "empower", "ultimate_strike",
 		"ouga_retsudan", "titan_roar", "grand_elixir", "dead_eye", "beast_dominion",
 		"pet_bond_rally", "pet_command_fang", "pet_bond_guard", "aimed_shot", "herd_call",
+		"keen_slash", "riposte_stance", "attuned_bolt", "trail_ward", "rally_vapors",
+		"blade_tempest", "blood_mist_slash", "bulwark_aura", "volley_shot", "beast_hobble",
+		"miasma_cloud",
 	]
 	for skill_id in expected:
 		assert_false(_SkillIconHelper.get_base_id(skill_id).is_empty(), skill_id)
+		assert_false(_SkillIconHelper.resolve_base_id(skill_id).is_empty(), skill_id)
+
+
+func test_job_learnable_skills_have_base_icons() -> void:
+	## 現行5職の習得スキルは装備UIでベースアイコンが必ず出る。
+	var job_ids: Array[String] = [
+		"swordsman", "vanguard", "ranger", "alchemist", "beast_tamer",
+	]
+	for job_id in job_ids:
+		var job: Resource = DataRegistry.get_job_data(job_id)
+		assert_not_null(job, job_id)
+		var ids: Array = []
+		if "learnable_skill_ids" in job:
+			ids = job.learnable_skill_ids
+		for raw in ids:
+			var sid: String = str(raw)
+			assert_false(
+				_SkillIconHelper.resolve_base_id(sid).is_empty(),
+				"%s / %s" % [job_id, sid]
+			)
+		if "ultimate_skill_id" in job:
+			var uid: String = str(job.ultimate_skill_id)
+			if not uid.is_empty():
+				assert_false(
+					_SkillIconHelper.resolve_base_id(uid).is_empty(),
+					"%s ultimate %s" % [job_id, uid]
+				)
 
 
 func test_unknown_skill_has_no_base() -> void:
