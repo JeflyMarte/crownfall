@@ -374,37 +374,26 @@ func _populate_equipped_skill_names(member: Resource, build_blurb: String = "") 
 	UiTypography.apply_caption(header, COLOR_GOLD)
 	_skills_col.add_child(header)
 
-	## [{ "name": String, "effect": String }, ...]
-	var entries: Array[Dictionary] = []
+	## 装備スキル名のみ（効果文は出さない）。
+	var names: Array[String] = []
 	if member != null:
 		for sid: String in GameState.get_equipped_skill_ids(member):
 			var skill_data: Resource = DataRegistry.get_skill_data(sid)
 			var nm: String = str(skill_data.display_name) if skill_data != null else sid
-			var effect: String = ""
-			if skill_data != null:
-				effect = str(skill_data.description).strip_edges().replace("\n", "")
 			if not nm.is_empty():
-				entries.append({"name": nm, "effect": effect})
-	if entries.is_empty():
-		entries.append({"name": "なし", "effect": ""})
+				names.append(nm)
+	if names.is_empty():
+		names.append("なし")
 
 	var y: float = ShowcaseUiTokensScript.SKILL_HEADER_H + 2.0
 	var name_h: float = ShowcaseUiTokensScript.SKILL_ROW_H
 	var pad_x: float = ShowcaseUiTokensScript.SKILL_PAD_X
 	var value_w: float = maxf(24.0, _skills_panel.size.x - pad_x * 2.0)
-	var desc_font: Font = UiTypography.body_font()
-	var desc_fs: int = ShowcaseUiTokensScript.SKILL_DESC_FONT_SIZE
 	var has_blurb: bool = not build_blurb.strip_edges().is_empty()
-	var desc_max_h: float = (
-		ShowcaseUiTokensScript.SKILL_DESC_MAX_H_WITH_BLURB
-		if has_blurb
-		else ShowcaseUiTokensScript.SKILL_DESC_MAX_H
-	)
-	for i in range(entries.size()):
-		var nm: String = str(entries[i].get("name", ""))
-		var effect: String = str(entries[i].get("effect", ""))
+	for i in range(names.size()):
+		var nm: String = names[i]
 		var name_lbl := Label.new()
-		name_lbl.text = nm
+		name_lbl.text = nm if nm == "なし" else "『%s』" % nm
 		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		name_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -418,31 +407,7 @@ func _populate_equipped_skill_names(member: Resource, build_blurb: String = "") 
 		)
 		_skills_col.add_child(name_lbl)
 		y += name_h
-		if not effect.is_empty():
-			var desc_h: float = 24.0
-			if desc_font != null:
-				var measured: Vector2 = desc_font.get_multiline_string_size(
-					effect,
-					HORIZONTAL_ALIGNMENT_LEFT,
-					value_w,
-					desc_fs
-				)
-				## アウトライン分を足し、上限内で全文を収める。
-				desc_h = clampf(measured.y + 6.0, 18.0, desc_max_h)
-			var desc_lbl := Label.new()
-			desc_lbl.text = effect
-			desc_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-			desc_lbl.vertical_alignment = VERTICAL_ALIGNMENT_TOP
-			desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			## 高さ上限時にはみ出してビルド見出しと重ならないようクリップ。
-			desc_lbl.clip_text = true
-			desc_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			desc_lbl.position = Vector2(pad_x, y)
-			desc_lbl.size = Vector2(value_w, desc_h)
-			UiTypography.apply_body(desc_lbl, desc_fs, COLOR_SUB)
-			_skills_col.add_child(desc_lbl)
-			y += desc_h
-		if i < entries.size() - 1:
+		if i < names.size() - 1:
 			y += ShowcaseUiTokensScript.SKILL_ENTRY_GAP
 
 	if has_blurb:
@@ -458,24 +423,20 @@ func _populate_equipped_skill_names(member: Resource, build_blurb: String = "") 
 		_skills_col.add_child(blurb_hdr)
 		y += ShowcaseUiTokensScript.SKILL_HEADER_H
 		var blurb_text: String = build_blurb.strip_edges()
-		var blurb_h: float = 36.0
-		if desc_font != null:
-			var blurb_measured: Vector2 = desc_font.get_multiline_string_size(
-				blurb_text,
-				HORIZONTAL_ALIGNMENT_LEFT,
-				value_w,
-				ShowcaseUiTokensScript.BUILD_BLURB_FONT_SIZE
-			)
-			blurb_h = clampf(
-				blurb_measured.y + 6.0,
-				24.0,
-				ShowcaseUiTokensScript.BUILD_BLURB_MAX_H
-			)
+		## 日本語は Label の AUTOWRAP_ARBITRARY で折り返す。高さは字数から概算。
+		var room: float = maxf(24.0, _skills_panel.size.y - y - 4.0)
+		var approx_cols: float = maxf(8.0, value_w / maxf(10.0, float(ShowcaseUiTokensScript.BUILD_BLURB_FONT_SIZE) * 0.95))
+		var approx_lines: float = maxf(2.0, ceil(float(blurb_text.length()) / approx_cols))
+		var blurb_h: float = clampf(
+			approx_lines * (float(ShowcaseUiTokensScript.BUILD_BLURB_FONT_SIZE) + 5.0) + 8.0,
+			36.0,
+			minf(ShowcaseUiTokensScript.BUILD_BLURB_MAX_H, room)
+		)
 		var blurb_lbl := Label.new()
 		blurb_lbl.text = blurb_text
 		blurb_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		blurb_lbl.vertical_alignment = VERTICAL_ALIGNMENT_TOP
-		blurb_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		blurb_lbl.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 		blurb_lbl.clip_text = true
 		blurb_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		blurb_lbl.position = Vector2(pad_x, y)

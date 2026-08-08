@@ -15,8 +15,8 @@ const MODE_TAB_STAFF := Rect2(360, 152, 282, 72)
 const MODE_ROW := Rect2(78, 152, 564, 72)
 const EQUIP_RECT := Rect2(70, 175, 168, 730)
 const STATS_RECT := Rect2(482, 175, 168, 460)
-## ステータス焼込枠の直下。やや左寄せ・効果全文が収まる高さ。
-const SKILLS_RECT := Rect2(450, 652, 188, 250)
+## ステータス焼込枠の直下。スキル名＋ビルド説明（効果文なし）。
+const SKILLS_RECT := Rect2(430, 640, 220, 270)
 const IDLE_CENTER := Vector2(360, 688)
 const IDLE_HOST_SIZE := Vector2(260, 320)
 ## 名前テキストのみ（枠なし）。焼込名札内の下寄り。
@@ -57,22 +57,18 @@ const STAT_KEYS: Array[String] = [
 	"crit_rate",
 	"crit_damage",
 ]
-## スキルカード（見出し＋装備スキル名＋効果全文）。
+## スキルカード（見出し＋『スキル名』。効果文は出さない）。
 const SKILL_HEADER_H: float = 24.0
-const SKILL_ROW_H: float = 20.0
-const SKILL_DESC_MAX_H: float = 200.0
+const SKILL_ROW_H: float = 32.0
 const SKILL_ENTRY_GAP: float = 4.0
-## スキル説明と「✧ ビルド ✧」のあいだ（重なり防止）。
-const SKILL_TO_BUILD_GAP: float = 14.0
-const SKILL_PAD_X: float = 6.0
-const SKILL_NAME_FONT_SIZE: int = 13
-const SKILL_DESC_FONT_SIZE: int = 11
+## スキル名と「✧ ビルド ✧」のあいだ。
+const SKILL_TO_BUILD_GAP: float = 10.0
+const SKILL_PAD_X: float = 8.0
+const SKILL_NAME_FONT_SIZE: int = 18
 const SKILL_HEADER_TEXT: String = "✧ スキル ✧"
 const BUILD_BLURB_HEADER: String = "✧ ビルド ✧"
-const BUILD_BLURB_FONT_SIZE: int = 11
-const BUILD_BLURB_MAX_H: float = 72.0
-## ビルド説明を出すときスキル効果の高さ上限を抑えて収める。
-const SKILL_DESC_MAX_H_WITH_BLURB: float = 84.0
+const BUILD_BLURB_FONT_SIZE: int = 12
+const BUILD_BLURB_MAX_H: float = 150.0
 
 ## 選択中タブは暗く、非選択は明るめの金文字。
 const COLOR_TAB_ACTIVE_BG := Color(0.02, 0.02, 0.04, 0.72)

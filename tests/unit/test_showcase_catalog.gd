@@ -165,12 +165,18 @@ func test_showcase_scene_shows_equipped_skill_card() -> void:
 	assert_not_null(name_lbl)
 	assert_false(str(name_lbl.text).is_empty())
 	assert_ne(name_lbl.text, ShowcaseUiTokens.SKILL_HEADER_TEXT)
-	## スキル名の直下に効果文（description）。
+	assert_true(str(name_lbl.text).begins_with("『"), "skill name should use 『』")
+	assert_true(str(name_lbl.text).ends_with("』"), "skill name should use 『』")
+	## 効果文は出さない。次はビルド見出し（スタッフ作例）。
 	assert_gte(col.get_child_count(), 3)
-	var effect_lbl: Label = col.get_child(2) as Label
-	assert_not_null(effect_lbl)
-	assert_false(str(effect_lbl.text).is_empty())
-	assert_ne(effect_lbl.text, name_lbl.text)
+	var build_hdr: Label = col.get_child(2) as Label
+	assert_not_null(build_hdr)
+	assert_eq(build_hdr.text, ShowcaseUiTokens.BUILD_BLURB_HEADER)
+	var blurb_lbl: Label = col.get_child(3) as Label
+	assert_not_null(blurb_lbl)
+	assert_false(str(blurb_lbl.text).is_empty())
+	assert_eq(int(blurb_lbl.autowrap_mode), int(TextServer.AUTOWRAP_ARBITRARY))
+	assert_gte(str(blurb_lbl.text).length(), 40)
 	## 装飾下のレリックスロットにアイコンがある。
 	var equip_col: Control = scene.get_node("EquipPanel/EquipCol") as Control
 	assert_not_null(equip_col)

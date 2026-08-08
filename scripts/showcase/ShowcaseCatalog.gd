@@ -25,7 +25,7 @@ const STAFF_SHOWCASE_EQUIP_LEVEL: int = 99
 ## character_id = 肖像／個人補正用（adventurer_* / gacha_helper_*）。
 ## display_name + build_name → 名札「アルド(出血主砲ビルド)」。
 ## player_name = 内部番号（ビルド1…）。一覧ソート用。名札には使わない。
-## build_blurb = スキル欄下の短い役割説明。
+## build_blurb = スキル欄下の役割説明（複数文可）。
 const STAFF_PRESETS: Array = [
 	{
 		"id": "staff_aldo_bleed",
@@ -34,7 +34,7 @@ const STAFF_PRESETS: Array = [
 		"character_id": "adventurer_0",
 		"display_name": "アルド",
 		"build_name": "出血主砲ビルド",
-		"build_blurb": "出血を重ねて火力を伸ばす主砲型。高火力レリックで押し切る。",
+		"build_blurb": "出血を重ねて火力を伸ばす主砲型。斬り込みで傷を広げ、高火力レリックで一気に押し切る。盾役の後ろで手数を出し、ボス戦の削り役として組む想定。",
 		"job_id": "swordsman",
 		"level": 99,
 		"rarity": 3,
@@ -53,7 +53,7 @@ const STAFF_PRESETS: Array = [
 		"character_id": "adventurer_3",
 		"display_name": "ガレン",
 		"build_name": "防壁盾役ビルド",
-		"build_blurb": "ヘイトと耐久で前線を受ける盾役。味方を守る防壁装備構成。",
+		"build_blurb": "ヘイトと耐久で前線を受ける盾役。味方を守る防壁装備で被弾を受け止め、突撃系スキルで敵の並びを崩す。主砲の後ろ盾として、長期戦でも倒れにくい構成。",
 		"job_id": "vanguard",
 		"level": 99,
 		"rarity": 3,
@@ -72,7 +72,7 @@ const STAFF_PRESETS: Array = [
 		"character_id": "gacha_helper_c",
 		"display_name": "セリン",
 		"build_name": "野営ヒーラービルド",
-		"build_blurb": "回復と支援でパーティを支える調剤型。安定した継戦力向け。",
+		"build_blurb": "回復と支援でパーティを支える調剤型。野営の継戦力を意識した装備で、削られた味方を戻しつつ安定した攻防を保つ。攻略の軸になるサポーター見本。",
 		"job_id": "alchemist",
 		"level": 99,
 		"rarity": 3,
@@ -91,7 +91,7 @@ const STAFF_PRESETS: Array = [
 		"character_id": "adventurer_1",
 		"display_name": "リーヴァ",
 		"build_name": "標的シナジービルド",
-		"build_blurb": "標的を付けて味方の集中火力を引き出す射撃型。連携向き。",
+		"build_blurb": "標的を付けて味方の集中火力を引き出す射撃型。印を起点に主砲・ペットが同じ敵へ集まる連携向け。遠距離から戦場の優先順位を決める見本構成。",
 		"job_id": "ranger",
 		"level": 99,
 		"rarity": 3,
@@ -99,7 +99,7 @@ const STAFF_PRESETS: Array = [
 		"armor_id": "flurry_light_mail",
 		"accessory_id": "pierce_charm",
 		"relic_id": "relic_hunter_sigil",
-		"equipped_skill_ids": ["hunting_ground_mark"],
+		"equipped_skill_ids": ["hunter_mark"],
 		"enhance_level": 4,
 		"equip_level": 99,
 	},
@@ -110,7 +110,7 @@ const STAFF_PRESETS: Array = [
 		"character_id": "adventurer_4",
 		"display_name": "ミレイ",
 		"build_name": "毒牙ビルド",
-		"build_blurb": "毒とペット連携で削る指揮型。継続ダメージと相棒運用の見本。",
+		"build_blurb": "毒とペット連携で削る指揮型。継続ダメージを積みつつ相棒の攻撃を支え、ボスやエリートの長期戦で効く。群れと状態異常を軸にしたビーストテイマー見本。",
 		"job_id": "beast_tamer",
 		"level": 99,
 		"rarity": 3,
@@ -118,7 +118,7 @@ const STAFF_PRESETS: Array = [
 		"armor_id": "beastcall_mantle",
 		"accessory_id": "beastlord_fang",
 		"relic_id": "relic_scout_lens",
-		"equipped_skill_ids": ["venom_spray"],
+		"equipped_skill_ids": ["toxin_dart"],
 		"enhance_level": 4,
 		"equip_level": 99,
 	},
