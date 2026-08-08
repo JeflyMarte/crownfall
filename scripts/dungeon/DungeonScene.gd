@@ -23,7 +23,7 @@ const AUTO_DELAY_GRIND: float = 0.6
 const CHR_BODY_TARGET_PX: float = 140.0
 ## 個体ごとの体格補正（正規化後）。職全体には掛けない（助っ人ヴァンガード等を誤って大きくしない）。
 const CHR_BODY_TARGET_MULT_BY_MEMBER_ID: Dictionary = {
-	"adventurer_0": 0.95, ## アルド：少し小さく
+	"adventurer_0": 1.10, ## アルド
 	"adventurer_3": 1.20, ## ガレン
 	"gacha_helper_p": 1.20, ## 火鷹
 }
