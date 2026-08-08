@@ -20,7 +20,7 @@
 | `beast_vet_care` 血還の矢 | 敵1（ドレイン） | 攻撃 **×1.1**／自己＝与ダメ**50%** | **9.5** | 回復枠から分離（`83`） |
 | `camp_draught` 野営の一滴 | 全体各員 | **8%** | **10.0** | 旧自己10% |
 | `pet_pounce` つつき介抱 | 最傷1（自己除外） | **8%** | **10.0** | 旧10%・自己可 |
-| `pet_jack_savage` 癒やしの寄り添い | 最傷1 | **14%** | **11.0** | 旧18%・CD8.0 |
+| `pet_jack_ward` 守り吠え | 味全（バフ付帯） | **5%** | **9.0** | 旧寄り添い14%廃止（`87`） |
 | `pet_bond_rally` 相棒鼓舞 | ペット | **10%**（バフ付帯） | **4.0** | 攻守バフと同時（2026-08-06） |
 | `salve_burst` 大治癒 | 全体 | 各 **12%** | 12.0 | 据置（薄い全体） |
 | `grand_elixir` | 全体 | 各 **20%**＋クレンズ | 35 | 必殺・据置 |
@@ -33,6 +33,7 @@
 
 ## SSOT
 
-- `resources/skills/{mend,beast_vet_care,camp_draught,pet_pounce,pet_jack_savage,pet_bond_rally}.tres`
+- `resources/skills/{mend,beast_vet_care,camp_draught,pet_pounce,pet_jack_ward,pet_bond_rally}.tres`
+- ジャックキット本体: `87_JackSkillKit.md`
 - `BalanceConfig.HEAL_FRAC_*`／`SKILL_DRAIN_HEAL_RATIO`
 - 上書き: `42_HealMaxHpFraction.md`／`43_BtRgSupportHeal.md`／`83_BtRgKitTune.md`

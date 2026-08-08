@@ -16,6 +16,10 @@ const EQUIPPED_SKILL_REMAP: Dictionary = {
 	"iron_guard": "offensive_stance",
 	"apex_guard": "assault_shatter",
 	"shield_quake": "drain_slash",
+	## ジャックキット再編（P3-BAL-PET-JACK-KIT-001）
+	"pet_jack_rend": "pet_jack_crack",
+	"pet_jack_savage": "pet_jack_ward",
+	"pet_nibble": "pet_jack_bulwark",
 }
 
 

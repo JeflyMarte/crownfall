@@ -4,18 +4,18 @@
 
 [resource]
 script = ExtResource("1")
-id = "pet_jack_frenzy"
-display_name = "群れ指揮"
-description = "遠吠えで隊を指揮し、与ダメージを高める。開幕から使える本線鼓舞。"
+id = "pet_jack_crack"
+display_name = "砕き牙"
+description = "牙で装甲を噛み砕き、敵の防御を下げる。"
 skill_type = "player"
-target_type = "all_party"
+target_type = "enemy"
 power_multiplier = 1.0
-cooldown = 7.5
+cooldown = 4.5
 trigger_type = "cooldown"
-effect_type = "buff"
-tags = Array[String](["support", "buff", "pet", "aoe"])
+effect_type = "damage"
+tags = Array[String](["melee", "pierce", "pet", "debuff"])
 element = ""
-apply_status_id = "empower"
+apply_status_id = "armor_break_light"
 apply_status_chance = 1.0
 slot_type = "skill"
 range_type = "melee"

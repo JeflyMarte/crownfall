@@ -52,18 +52,19 @@ func test_heal_hierarchy_mend_is_best_character_single() -> void:
 	var mend: Resource = DataRegistry.get_skill_data("mend")
 	var camp: Resource = DataRegistry.get_skill_data("camp_draught")
 	var pounce: Resource = DataRegistry.get_skill_data("pet_pounce")
-	var savage: Resource = DataRegistry.get_skill_data("pet_jack_savage")
+	var ward: Resource = DataRegistry.get_skill_data("pet_jack_ward")
 	assert_gt(float(mend.power_multiplier), float(camp.power_multiplier))
 	assert_gt(float(mend.power_multiplier), float(pounce.power_multiplier))
-	assert_gt(float(mend.power_multiplier), float(savage.power_multiplier))
+	assert_gt(float(mend.power_multiplier), float(ward.power_multiplier))
 	assert_lt(float(mend.cooldown), float(camp.cooldown))
 	assert_lt(float(mend.cooldown), float(pounce.cooldown))
-	assert_lt(float(mend.cooldown), float(savage.cooldown))
 	## つつきは旧CD5.5から伸ばす。自己非対象。
 	assert_gte(float(pounce.cooldown), 9.5)
 	assert_true(pounce.tags.has("exclude_self"))
 	assert_almost_eq(float(pounce.power_multiplier), BalanceConfig.HEAL_FRAC_PET_POUNCE, 0.001)
-	assert_almost_eq(float(savage.power_multiplier), BalanceConfig.HEAL_FRAC_PET_JACK_SAVAGE, 0.001)
+	## 守り吠え＝薄い全体付帯回復（P3-BAL-PET-JACK-KIT-001）
+	assert_true(ward.tags.has("party_maxhp_heal"))
+	assert_almost_eq(float(ward.power_multiplier), BalanceConfig.HEAL_FRAC_PET_JACK_WARD, 0.001)
 
 
 func test_get_member_max_hp() -> void:

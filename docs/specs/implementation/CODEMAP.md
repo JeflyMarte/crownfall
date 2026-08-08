@@ -141,7 +141,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 
 | `blacksmith/` | `BlacksmithScene.gd`（生産／炉研ぎ／**焼直し**／**錬成**／分解 — **P3-FORGE-ALCHEMY-001**／**P3-FORGE-REFORGE-001**）・`BlacksmithUiHelper.gd`・**`ForgeUiTokens.gd`** |
 | `gacha/` | **`GachaSystem.gd`**・**`GachaRarityConfig.gd`**・**`GachaLimitBreak.gd`**（**P3-GACHA-LIMIT-001**）・**`GachaRevealPresenter.gd`**（**P3-GACHA-REVEAL-001**）・**`GachaScene.gd`**（P3-UI2-020・**P3-GACHA-002/003**・**P3-UI-GACHA**・**P3-GACHA-FEATURE-IDLE-001** Featured idle・**P3-GACHA-FEATURE-BLURB-001** 特徴行・**P3-GACHA-EQ-SEAL-UI-001** 招き↔封蔵 ←→）・**`GachaEquipSystem.gd`**（封蔵の匣・灰冠27）・**`GachaUiTokens.gd`**・**`GachaUiHelper.gd`** |
-| `pets/` | **`PetSystem.gd`**・**`PetData.gd`**（ジャック／色変え・**P3-PET-SURVEY-UNLOCK-001** WW/BS調査100%解放・三角＝サポ／火力／状態異常 **P3-BAL-PET-TRIANGLE-001**） |
+| `pets/` | **`PetSystem.gd`**・**`PetData.gd`**（ジャック／色変え・**P3-PET-SURVEY-UNLOCK-001** WW/BS調査100%解放・三角＝サポ／火力／状態異常。ジャックキット＝**P3-BAL-PET-JACK-KIT-001**） |
 | `survey/` | **`SurveySystem`**／**`SurveyConfig`**／**`SurveyScene`**／**`SurveyClaimResultOverlay`**（サイクル受取＝鍛冶分解同型ポップ＋派遣EXP表示）／**`SurveyCompleteRewards`**（完全調査100%ごと景品→0%・ペット初回のみ・P3-SURVEY-COMPLETE-001）。派遣EXP＝P3-SURVEY-DISPATCH-EXP-001。DISPATCH素材＝Biome重み／武器＝派遣先`weapon_pool`（P3-SURVEY-REWARD-VAR-001） |
 | `tickets/` | **`TicketIds`**／**`TicketInventory`**／**`TicketSystem`**（無料ガチャ・**封蔵開封券**・LB★2/3/4） |
 

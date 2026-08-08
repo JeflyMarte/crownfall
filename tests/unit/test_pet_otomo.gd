@@ -81,7 +81,7 @@ func test_pet_skill_unlocks_by_level() -> void:
 	_PetSystem.sync_pet_runtime(GameState.active_pet)
 	assert_eq(GameState.active_pet.equipped_skill_ids.size(), 1)
 	assert_eq(SkillProgression.get_unlocked_pet_skill_ids(GameState.active_pet).size(), 5)
-	assert_eq(SkillProgression.get_pet_required_level(GameState.active_pet, "pet_nibble"), 32)
+	assert_eq(SkillProgression.get_pet_required_level(GameState.active_pet, "pet_jack_bulwark"), 32)
 
 
 func test_pet_skill_equip_toggle_at_max_level() -> void:
@@ -91,12 +91,12 @@ func test_pet_skill_equip_toggle_at_max_level() -> void:
 	assert_eq(GameState.active_pet.equipped_skill_ids.size(), 1)
 	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_jack_frenzy"))
 	## 別スキルを選ぶと1枠を置換
-	GameState.toggle_member_skill(GameState.active_pet, "pet_jack_savage")
+	GameState.toggle_member_skill(GameState.active_pet, "pet_jack_ward")
 	assert_eq(GameState.active_pet.equipped_skill_ids.size(), 1)
-	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_jack_savage"))
+	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_jack_ward"))
 	assert_false(GameState.active_pet.equipped_skill_ids.has("pet_jack_frenzy"))
 	## 解除できる
-	GameState.toggle_member_skill(GameState.active_pet, "pet_jack_savage")
+	GameState.toggle_member_skill(GameState.active_pet, "pet_jack_ward")
 	assert_eq(GameState.active_pet.equipped_skill_ids.size(), 0)
 	## normalize で解放済み先頭が戻る
 	SkillProgression.normalize_equipped_skills(GameState.active_pet)
@@ -120,11 +120,11 @@ func test_pet_level_up_syncs_new_skills() -> void:
 func test_pet_data_and_skills_exist() -> void:
 	var data: Resource = _PetSystem.get_pet_data("pet_jack")
 	assert_not_null(data)
-	assert_not_null(DataRegistry.get_skill_data("pet_nibble"))
 	assert_not_null(DataRegistry.get_skill_data("pet_pounce"))
-	assert_not_null(DataRegistry.get_skill_data("pet_jack_rend"))
 	assert_not_null(DataRegistry.get_skill_data("pet_jack_frenzy"))
-	assert_not_null(DataRegistry.get_skill_data("pet_jack_savage"))
+	assert_not_null(DataRegistry.get_skill_data("pet_jack_crack"))
+	assert_not_null(DataRegistry.get_skill_data("pet_jack_ward"))
+	assert_not_null(DataRegistry.get_skill_data("pet_jack_bulwark"))
 	assert_false(_PetSystem.sprite_path_for(GameState.active_pet).is_empty())
 
 
@@ -142,15 +142,25 @@ func test_pet_base_stats_are_buffed_150() -> void:
 
 
 func test_jack_skills_are_support_oriented() -> void:
-	## Lv1全体鼓舞。回復／単体鼓舞／つなぎダメ。火力特化ではない。
+	## P3-BAL-PET-JACK-KIT-001: 指揮／介抱／砕き牙／守り吠え／鉄壁。火力特化ではない。
 	assert_eq(str(DataRegistry.get_skill_data("pet_jack_frenzy").effect_type), "buff")
 	assert_eq(str(DataRegistry.get_skill_data("pet_jack_frenzy").target_type), "all_party")
+	assert_eq(str(DataRegistry.get_skill_data("pet_jack_frenzy").display_name), "群れ指揮")
 	assert_eq(str(DataRegistry.get_skill_data("pet_pounce").effect_type), "heal")
-	assert_eq(str(DataRegistry.get_skill_data("pet_jack_rend").effect_type), "buff")
-	assert_eq(str(DataRegistry.get_skill_data("pet_jack_savage").effect_type), "heal")
-	assert_eq(str(DataRegistry.get_skill_data("pet_nibble").effect_type), "damage")
+	assert_eq(str(DataRegistry.get_skill_data("pet_jack_crack").effect_type), "damage")
+	assert_eq(str(DataRegistry.get_skill_data("pet_jack_crack").apply_status_id), "armor_break_light")
+	assert_eq(str(DataRegistry.get_skill_data("pet_jack_ward").effect_type), "buff")
+	assert_true(DataRegistry.get_skill_data("pet_jack_ward").tags.has("party_maxhp_heal"))
+	assert_eq(str(DataRegistry.get_skill_data("pet_jack_bulwark").apply_status_id), "guard")
+	assert_gte(float(DataRegistry.get_skill_data("pet_jack_bulwark").cooldown), 13.0)
 	assert_eq(str(GameState.active_pet.tactics_id), "support_focus")
 	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_jack_frenzy"))
+
+
+func test_jack_legacy_skill_ids_remap() -> void:
+	assert_eq(SkillProgression.remap_equipped_skill_id("pet_jack_rend"), "pet_jack_crack")
+	assert_eq(SkillProgression.remap_equipped_skill_id("pet_jack_savage"), "pet_jack_ward")
+	assert_eq(SkillProgression.remap_equipped_skill_id("pet_nibble"), "pet_jack_bulwark")
 
 
 func test_jack_basic_attack_is_melee_not_ranged() -> void:
@@ -159,7 +169,7 @@ func test_jack_basic_attack_is_melee_not_ranged() -> void:
 	assert_true(GameState.is_pet_combatant(pet_i))
 	assert_true(GameState.active_pet.equipped_skill_ids.has("pet_jack_frenzy"))
 	assert_eq(str(DataRegistry.get_skill_data("pet_jack_frenzy").range_type), "melee")
-	assert_eq(str(DataRegistry.get_skill_data("pet_jack_rend").range_type), "melee")
+	assert_eq(str(DataRegistry.get_skill_data("pet_jack_crack").range_type), "melee")
 	assert_eq(CombatRange.resolve_member_default(pet_i), "melee")
 	assert_eq(CombatRange.resolve_for_action(pet_i), "melee")
 	assert_eq(GameState.formation_range_outgoing_multiplier(pet_i, "melee"), 1.0)

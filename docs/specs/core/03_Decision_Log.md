@@ -7462,3 +7462,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-GRANVEL-B-LATER-001-3 | F1 即時全体重み **2.2→1.6** | 頻度も緩和 |
 | P3-BAL-GRANVEL-B-LATER-001-4 | **据置** — セルディオン／イベントボス／Hex・大技・通常薙ぎ | スコープ |
 | P3-BAL-GRANVEL-B-LATER-001-5 | **SSOT**＝`86_GranvelBLaterBossNerf.md`（`75` 該当分上書き） | Decision 本体 |
+
+## ジャックスキル再編（2026-08-08 — P3-BAL-PET-JACK-KIT-001）
+
+> **オーナー GO** — 回復・鼓舞の二重をやめ、指揮／つつき／防御DOWN攻撃／重め全体防御／薄守＋薄回復。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-PET-JACK-KIT-001-1 | Lv1 **群れ指揮**（旧・群れの士気／`pet_jack_frenzy`） | 本線鼓舞 |
+| P3-BAL-PET-JACK-KIT-001-2 | Lv8 つつき介抱据置／Lv16 **砕き牙**（`armor_break_light`） | 介抱＋崩し |
+| P3-BAL-PET-JACK-KIT-001-3 | Lv24 **守り吠え**（`guard_minor`＋味全5%）／Lv32 **鉄壁の遠吠え**（`guard`・CD14） | 守り二段 |
+| P3-BAL-PET-JACK-KIT-001-4 | `guard_minor` 新設（被ダメ×0.8）・`guard` と相互排他 | 「少し防御」 |
+| P3-BAL-PET-JACK-KIT-001-5 | 旧 remap: rend→crack／savage→ward／nibble→bulwark | セーブ互換 |
+| P3-BAL-PET-JACK-KIT-001-6 | **SSOT**＝`87_JackSkillKit.md`（`69`／`78`／`42` 上書き） | Decision 本体 |

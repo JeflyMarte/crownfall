@@ -7,7 +7,7 @@ extends RefCounted
 const AURA_STATUS_IDS: Array[String] = [
 	"poison", "chill", "shock", "ignite", "curse", "major_curse", "bleed", "stun", "fear",
 	## P3-UX-COMBAT-VFX-001: バフ／攻防デバフも常駐オーラでログ無し視認
-	"empower", "empower_minor", "empower_pet", "guard", "mark", "vulnerable", "armor_break", "armor_break_light", "slow", "enrage", "regen",
+	"empower", "empower_minor", "empower_pet", "guard", "guard_minor", "mark", "vulnerable", "armor_break", "armor_break_light", "slow", "enrage", "regen",
 ]
 
 const STATUS_COLOR: Dictionary = {
@@ -27,6 +27,7 @@ const STATUS_COLOR: Dictionary = {
 	"empower_minor": Color(0.85, 0.6, 0.35),
 	"empower_pet": Color(0.95, 0.5, 0.25),
 	"guard": Color(0.4, 0.55, 0.85),
+	"guard_minor": Color(0.5, 0.65, 0.88),
 	"bleed": Color(0.9, 0.28, 0.28),
 	"slow": Color(0.47, 0.67, 0.82),
 	"enrage": Color(0.9, 0.35, 0.16),
@@ -152,7 +153,7 @@ static func unit_tint_from_statuses(statuses: Array) -> Color:
 static func is_buff_status(status_id: String) -> bool:
 	if status_id.is_empty():
 		return false
-	if status_id == "empower" or status_id == "empower_minor" or status_id == "empower_pet" or status_id == "guard":
+	if status_id == "empower" or status_id == "empower_minor" or status_id == "empower_pet" or status_id == "guard" or status_id == "guard_minor":
 		return true
 	var data: Resource = DataRegistry.get_status_effect(status_id)
 	if data == null:

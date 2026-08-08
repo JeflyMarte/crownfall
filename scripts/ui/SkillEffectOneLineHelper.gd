@@ -50,15 +50,16 @@ static func _buff_one_line(skill_data: Resource, target: String) -> String:
 	var statuses: String = _status_names(skill_data)
 	var taunt: bool = skill_data.tags.has("taunt")
 	var pet_heal: bool = skill_data.tags.has("pet_maxhp_heal")
+	var party_heal: bool = skill_data.tags.has("party_maxhp_heal")
 	if statuses.is_empty():
 		if taunt:
 			return "%sを強化＋挑発" % target
-		if pet_heal:
+		if pet_heal or party_heal:
 			return "%sを強化＋HP回復" % target
 		return "%sを強化" % target
 	if taunt:
 		return "%sに%s＋挑発" % [target, statuses]
-	if pet_heal:
+	if pet_heal or party_heal:
 		return "%sに%s＋HP回復" % [target, statuses]
 	return "%sに%s" % [target, statuses]
 

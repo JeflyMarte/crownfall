@@ -556,11 +556,13 @@ const STATUS_ICON_DEF: Dictionary = {
 	"fear": {"abbrev": "恐", "color": Color(0.55, 0.35, 0.6)},
 	"vulnerable": {"abbrev": "脆", "color": Color(0.95, 0.45, 0.45)},
 	"armor_break": {"abbrev": "破", "color": Color(0.8, 0.6, 0.3)},
+	"armor_break_light": {"abbrev": "破", "color": Color(0.85, 0.68, 0.38)},
 	"mark": {"abbrev": "標", "color": Color(0.95, 0.35, 0.55)},
 	"empower": {"abbrev": "攻", "color": Color(0.95, 0.55, 0.2)},
 	"empower_minor": {"abbrev": "攻", "color": Color(0.85, 0.6, 0.35)},
 	"empower_pet": {"abbrev": "絆", "color": Color(0.95, 0.5, 0.25)},
 	"guard": {"abbrev": "防", "color": Color(0.4, 0.55, 0.85)},
+	"guard_minor": {"abbrev": "防", "color": Color(0.5, 0.65, 0.88)},
 	"bleed": {"abbrev": "出血", "color": Color(0.9, 0.28, 0.28)},
 	"slow": {"abbrev": "鈍", "color": Color(0.47, 0.67, 0.82)},
 	"enrage": {"abbrev": "激", "color": Color(0.9, 0.35, 0.16)},
@@ -595,6 +597,7 @@ const SUPPORT_VFX_TINT: Dictionary = {
 	"empower_minor": Color(0.92, 0.7, 0.4, 1.0),
 	"empower_pet": Color(1.0, 0.68, 0.3, 1.0),
 	"guard": Color(0.45, 0.78, 1.0, 1.0),
+	"guard_minor": Color(0.55, 0.82, 1.0, 1.0),
 	"default_buff": Color(1.0, 0.9, 0.45, 1.0),
 }
 const ULTIMATE_GOLD: Color = Color(1.0, 0.78, 0.22)
@@ -6160,6 +6163,11 @@ func _apply_member_buff_effects(member_idx: int, skill_data: Resource) -> Dictio
 	var pet_healed: int = 0
 	if skill_data != null and skill_data.tags.has("pet_maxhp_heal"):
 		pet_healed = _apply_pet_maxhp_heal_from_buff(member_idx, skill_data)
+	var party_healed: int = 0
+	if skill_data != null and skill_data.tags.has("party_maxhp_heal"):
+		party_healed = _apply_party_heal_from_skill(member_idx, skill_data, 1.1)
+		if party_healed > 0:
+			_update_hp_bars()
 	return {
 		"applied": applied,
 		"status_id": status_id,
@@ -6171,6 +6179,7 @@ func _apply_member_buff_effects(member_idx: int, skill_data: Resource) -> Dictio
 		"wants_taunt": wants_taunt,
 		"all_party": skill_id == "herd_call" or str(skill_data.target_type) == "all_party",
 		"pet_healed": pet_healed,
+		"party_healed": party_healed,
 	}
 
 
@@ -6211,7 +6220,9 @@ func _member_buff_log_line(display_name: String, skill_data: Resource, summary: 
 		return "\n【スキル】%s: %s に[%s]" % [display_name, t_name, label]
 	if bool(summary.get("all_party", false)):
 		var taunt_tag: String = "・注意を引いた" if bool(summary.get("wants_taunt", false)) else ""
-		return "\n【スキル】%s: 味方全体に[%s]（%d）%s" % [display_name, label, applied, taunt_tag]
+		var party_heal: int = int(summary.get("party_healed", 0))
+		var heal_tag: String = "・合計%d回復" % party_heal if party_heal > 0 else ""
+		return "\n【スキル】%s: 味方全体に[%s]（%d）%s%s" % [display_name, label, applied, taunt_tag, heal_tag]
 	return "\n【スキル】%s: 味方%d体に[%s]" % [display_name, applied, label]
 
 

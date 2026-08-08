@@ -97,7 +97,8 @@ const HEAL_FRAC_CAMP_DRAUGHT: float = 0.08
 const HEAL_FRAC_PET_POUNCE: float = 0.08
 ## スキル `drain` タグ: 与ダメに対する自己回復割合（レリック吸血と加算）。
 const SKILL_DRAIN_HEAL_RATIO: float = 0.5
-const HEAL_FRAC_PET_JACK_SAVAGE: float = 0.14
+## ジャック守り吠え（味全バフ付帯の薄い回復。P3-BAL-PET-JACK-KIT-001）。
+const HEAL_FRAC_PET_JACK_WARD: float = 0.05
 ## BT 相棒鼓舞（バフ＋ペット maxHP 割合回復。CD短めの付帯回復）。
 const HEAL_FRAC_PET_BOND_RALLY: float = 0.10
 ## 回復部屋の最低回復（P3-BAL-NONCOMBAT-001: 各員 maxHP×割合と比較）

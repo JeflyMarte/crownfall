@@ -4,18 +4,18 @@
 
 [resource]
 script = ExtResource("1")
-id = "pet_jack_frenzy"
-display_name = "群れ指揮"
-description = "遠吠えで隊を指揮し、与ダメージを高める。開幕から使える本線鼓舞。"
+id = "pet_jack_bulwark"
+display_name = "鉄壁の遠吠え"
+description = "渾身の遠吠えで隊全体に厚い防御をまとう。回転は遅い。"
 skill_type = "player"
 target_type = "all_party"
 power_multiplier = 1.0
-cooldown = 7.5
+cooldown = 14.0
 trigger_type = "cooldown"
 effect_type = "buff"
-tags = Array[String](["support", "buff", "pet", "aoe"])
+tags = Array[String](["support", "buff", "guard", "pet", "aoe"])
 element = ""
-apply_status_id = "empower"
+apply_status_id = "guard"
 apply_status_chance = 1.0
 slot_type = "skill"
 range_type = "melee"

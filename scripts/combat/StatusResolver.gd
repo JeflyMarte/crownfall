@@ -9,6 +9,8 @@ const MUTUALLY_EXCLUSIVE: Dictionary = {
 	"empower": ["empower_minor"],
 	"empower_minor": ["empower"],
 	"empower_pet": [],
+	"guard": ["guard_minor"],
+	"guard_minor": ["guard"],
 }
 
 var _active: Dictionary = {}  # unit_id -> Array[StatusInstance]

@@ -20,7 +20,7 @@
 | `beast_vet_care` | **ドレイン攻撃**（power **1.1**／自己＝与ダメ**50%**）／CD **9.5** — heal ではない |
 | `camp_draught` | **8%**（全体・各員）／CD **10.0** |
 | `pet_pounce` | **8%**（単体・最傷・自己除外）／CD **10.0** |
-| `pet_jack_savage` | **14%**（単体・最傷）／CD **11.0** |
+| `pet_jack_ward` | **5%**（味全・バフ付帯）／CD **9.0**（`87_JackSkillKit`・旧寄り添い廃止） |
 | `pet_bond_rally` | **10%**（ペット・バフ付帯）／CD **4.0**（`empower_pet` と同時） |
 
 装備 `healing_bonus` は算出後に平坦加算。役割／進化の heal 倍率は従来どおり乗算。  
