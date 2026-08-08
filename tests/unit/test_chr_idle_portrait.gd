@@ -96,13 +96,41 @@ func test_beast_tamer_idle_animates_in_place() -> void:
 	_assert_stable_height_and_feet(textures, 8.0)
 
 
-func test_vanguard_idle_filters_zoom_frames() -> void:
+func test_vanguard_idle_stabilizes_without_side_slide() -> void:
+	## ガレン職: 高さズームは正規化。横は内容中心合わせ（足元合わせだと胴体スライド）。
 	var paths: PackedStringArray = _ChrIdlePortrait.idle_frame_paths("vanguard")
 	assert_gt(paths.size(), 1)
+	_ChrIdlePortrait._prepared_idle_cache.erase("vanguard")
 	var textures: Array[Texture2D] = _ChrIdlePortrait.load_idle_textures("vanguard")
-	assert_gte(textures.size(), 2, "mild zoom idle keeps a playable loop")
-	assert_lt(textures.size(), paths.size(), "mild zoom idle drops shrunken frames")
-	_assert_stable_height_and_feet(textures, 28.0)
+	assert_eq(textures.size(), paths.size(), "severe zoom idle keeps all frames via normalize")
+	_assert_stable_height_and_content_center(textures, 6.0)
+
+
+func _assert_stable_height_and_content_center(
+	textures: Array[Texture2D], max_center_span: float
+) -> void:
+	var heights: Array[int] = []
+	var centers: Array[float] = []
+	for tex in textures:
+		var img: Image = tex.get_image()
+		assert_not_null(img)
+		if img.is_compressed():
+			img.decompress()
+		var used: Rect2i = img.get_used_rect()
+		heights.append(used.size.y)
+		centers.append(float(used.position.x) + float(used.size.x) * 0.5)
+	var min_h: int = heights[0]
+	var max_h: int = heights[0]
+	for h in heights:
+		min_h = mini(min_h, h)
+		max_h = maxi(max_h, h)
+	assert_lte(max_h - min_h, 2, "idle height should stay near-stable")
+	var min_c: float = centers[0]
+	var max_c: float = centers[0]
+	for c in centers:
+		min_c = minf(min_c, c)
+		max_c = maxf(max_c, c)
+	assert_lt(max_c - min_c, max_center_span, "should not slide sideways")
 
 
 func _assert_stable_height_and_feet(textures: Array[Texture2D], max_foot_span: float) -> void:

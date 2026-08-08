@@ -1,11 +1,11 @@
 extends SceneTree
 
-## 高さ揺れが重度の Idle PNG を足元固定で焼き直す（モバイルでも拡縮しないため）。
+## 高さ揺れが重度の Idle PNG を正規化焼き（縦＝足元・横＝内容中心）。
 ## Usage: godot --headless --path . -s tools/bake_chr_idle_stabilize.gd
 
 const _ChrIdlePortrait = preload("res://scripts/ui/ChrIdlePortrait.gd")
 
-## 焼き対象（重度ズーム揺れ）。軽微（vanguard 等）は間引き側に任せ、PNG は触らない。
+## 焼き対象（重度ズーム揺れ）。軽微は間引き側に任せ、PNG は触らない。
 const FOLDERS: PackedStringArray = ["beast_tamer"]
 
 

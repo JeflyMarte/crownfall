@@ -105,8 +105,8 @@ const CATEGORY_ICON_PX: int = 32
 const PORTRAIT_PX: int = 200
 const PORTRAIT_STACK_SIZE: Vector2 = Vector2(200, 268)
 const PEDESTAL_HEIGHT_PX: int = 88
-## 足元を台座に乗せるための重ね（px）。
-const PORTRAIT_PEDESTAL_OVERLAP_PX: int = 40
+## 足元を台座に乗せるための重ね（px）。大きいほどキャラが下。
+const PORTRAIT_PEDESTAL_OVERLAP_PX: int = 56
 const STAT_ICON_PX: int = 28
 ## アセット生成サイズ（`generate_equipment_ui_assets.py`）。
 const INV_CELL_DESIGN_PX: int = 144

@@ -159,7 +159,8 @@ static func _filter_stable_height_frames(
 	return out
 
 
-## 重度のズーム揺れを、基準高さ・足元固定でその場アニメ可能にする。
+## 重度のズーム揺れを、基準高さ・縦は足元／横は内容中心で揃える。
+## 横を足元に合わせると胴体が左右に滑る（ヴァンガード等）ため content center X を使う。
 static func _stabilize_idle_in_place(
 	textures: Array[Texture2D],
 	images: Array[Image],
@@ -171,6 +172,7 @@ static func _stabilize_idle_in_place(
 	var canvas_w: int = images[0].get_width()
 	var canvas_h: int = images[0].get_height()
 	var ref_foot: Vector2 = _foot_anchor(images[0], ref_rect)
+	var ref_cx: float = float(ref_rect.position.x) + float(ref_rect.size.x) * 0.5
 	var out: Array[Texture2D] = []
 	for img in images:
 		var used: Rect2i = img.get_used_rect()
@@ -181,11 +183,10 @@ static func _stabilize_idle_in_place(
 		var new_w: int = maxi(1, int(round(float(used.size.x) * scale)))
 		var cropped: Image = img.get_region(used)
 		cropped.resize(new_w, target_h, Image.INTERPOLATE_NEAREST)
-		var src_foot: Vector2 = _foot_anchor(img, used)
-		var src_foot_local_x: float = (src_foot.x - float(used.position.x)) * scale
 		var canvas := Image.create(canvas_w, canvas_h, false, Image.FORMAT_RGBA8)
 		canvas.fill(Color(0, 0, 0, 0))
-		var dest_x: int = int(round(ref_foot.x - src_foot_local_x))
+		## 横: 内容中心（左右スライド防止）。縦: 足元（上下ズレ防止）。
+		var dest_x: int = int(round(ref_cx - float(new_w) * 0.5))
 		var dest_y: int = int(round(ref_foot.y - float(target_h)))
 		dest_x = clampi(dest_x, -new_w + 1, canvas_w - 1)
 		dest_y = clampi(dest_y, -target_h + 1, canvas_h - 1)
