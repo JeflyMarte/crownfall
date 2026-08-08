@@ -22,7 +22,7 @@ const SLOT_DEBUG: String = "debug"
 ## `_migrate_save_data` に v(n)→v(n+1) の段階マイグレーションを追加する。
 ## v0 = バージョンフィールド無しの旧セーブ（レガシー party/equipment/job/dungeon id を含む）
 ## v1 = save_version フィールド導入（2026-07-02）
-const SAVE_VERSION: int = 14
+const SAVE_VERSION: int = 15
 
 ## セッション中の読み書き先。タイトルで本編／デバッグを切り替える。
 var _active_slot: String = SLOT_NORMAL
@@ -66,6 +66,7 @@ func save_game() -> bool:
 		"hub_survey_achievements_claimed": GameState.hub_survey_achievements_claimed.duplicate(true),
 		"hub_survey_complete_claimed": GameState.hub_survey_complete_claimed.duplicate(true),
 		"hub_survey_last_member_ids": GameState.hub_survey_last_member_ids.duplicate(),
+		"hub_survey_party_backup_ids": GameState.hub_survey_party_backup_ids.duplicate(),
 		"current_dungeon_id": GameState.current_dungeon_id,
 		"discovery_registry": GameState.discovery_registry,
 		"unlocked_craft_outputs": GameState.unlocked_craft_outputs.duplicate(true),
@@ -207,7 +208,22 @@ func _migrate_save_data(data: Dictionary) -> Dictionary:
 		data = _migrate_save_v12_to_v13(data)
 	if version < 14:
 		data = _migrate_save_v13_to_v14(data)
+	if version < 15:
+		data = _migrate_save_v14_to_v15(data)
 	data["save_version"] = SAVE_VERSION
+	return data
+
+
+## P3-FIX-SURVEY-PARTY-BACKUP-001: 派遣前編成の独立バックアップ。
+func _migrate_save_v14_to_v15(data: Dictionary) -> Dictionary:
+	if not data.has("hub_survey_party_backup_ids") or not (data["hub_survey_party_backup_ids"] is Array):
+		var from_cycle: Array = []
+		var cycle: Variant = data.get("hub_survey_cycle", {})
+		if cycle is Dictionary:
+			var raw: Variant = (cycle as Dictionary).get("party_ids_before", [])
+			if raw is Array:
+				from_cycle = (raw as Array).duplicate()
+		data["hub_survey_party_backup_ids"] = from_cycle
 	return data
 
 
@@ -684,6 +700,10 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.hub_survey_complete_claimed = (data["hub_survey_complete_claimed"] as Dictionary).duplicate(true)
 	else:
 		GameState.hub_survey_complete_claimed = {}
+	if data.has("hub_survey_party_backup_ids") and data["hub_survey_party_backup_ids"] is Array:
+		GameState.hub_survey_party_backup_ids = (data["hub_survey_party_backup_ids"] as Array).duplicate()
+	else:
+		GameState.hub_survey_party_backup_ids = []
 	if data.has("hub_survey_last_member_ids") and data["hub_survey_last_member_ids"] is Array:
 		GameState.hub_survey_last_member_ids = (data["hub_survey_last_member_ids"] as Array).duplicate()
 	else:
@@ -1017,7 +1037,7 @@ func _apply_roster_save(data: Dictionary) -> void:
 	_sync_gacha_roster_metadata()
 	_restore_active_party(data)
 	GameState.omit_gacha_helpers_from_roster()
-	## 受取待ちセーブは完了時点で編成を戻す（旧セーブの欠けもここで補う）。ロード中は再セーブしない。
+	## 受取待ち／受取後に残ったバックアップ欠員をここで補う。ロード中は再セーブしない。
 	_SurveySystem.ensure_party_restored_if_awaiting_claim(false)
 
 

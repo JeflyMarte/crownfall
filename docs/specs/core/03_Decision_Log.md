@@ -7476,6 +7476,18 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-PET-JACK-KIT-001-5 | 旧 remap: rend→crack／savage→ward／nibble→bulwark | セーブ互換 |
 | P3-BAL-PET-JACK-KIT-001-6 | **SSOT**＝`87_JackSkillKit.md`（`69`／`78`／`42` 上書き） | Decision 本体 |
 
+## 調査室・編成バックアップ再修復（2026-08-08 — P3-FIX-SURVEY-PARTY-BACKUP-001）
+
+> **オーナー報告** — 受取後に4人編成が2人になる再発。cycle クリア後に ensure 不能／空 ids＋party_restored スキップが穴。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-FIX-SURVEY-PARTY-BACKUP-001-1 | **`hub_survey_party_backup_ids`** を cycle 外に永続。開始時保存・完全復帰後のみクリア | 受取後も再修復可 |
+| P3-FIX-SURVEY-PARTY-BACKUP-001-2 | 空の `party_ids_before` では「完全」とみなさない（party_restored スキップ禁止） | 欠員確定事故 |
+| P3-FIX-SURVEY-PARTY-BACKUP-001-3 | 復元はバックアップ全員が戻ったときだけ成功 | 途中欠員の true 禁止 |
+| P3-FIX-SURVEY-PARTY-BACKUP-001-4 | 編成画面／ロードの ensure が orphan backup も修復 | 受取失敗後の救済 |
+| P3-FIX-SURVEY-PARTY-BACKUP-001-5 | **上書き** — P3-FIX-SURVEY-AUDIT-A-001-1 の復元経路を強化 | 本 Decision が正 |
+
 ## ペット基礎ステ差分化（2026-08-08 — P3-BAL-PET-STAT-DIVERGE-001）
 
 > **オーナー GO（案B）** — スキル据置のまま、基礎ステだけ役割差を付ける。
