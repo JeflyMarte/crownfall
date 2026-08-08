@@ -33,6 +33,16 @@ alwaysApply: false
 | `メイン画面.png` | `UI_BG_Base.png` | 手動コピー＋シーン参照確認 |
 | `キャラ画面.png` | `equipment_ui/UI_BG_Equipment.png` | 手動コピー |
 
+## キャラ戦闘ドット（Desktop → res://）
+
+| Desktop（`キャラドット/`・zip） | プロジェクト先 | 取込 |
+|---|---|---|
+| `リーヴァ.zip`／`ガレン.zip`（＋職名zip可） | `assets/characters/{ranger,vanguard}/` + `CHR_Ranger`／`CHR_Vanguard.tres` | `tools/import_job_chr_sprites.py --only リーヴァ ガレン` |
+| 旧 `アイコン/キャラクター/` 職名zip | 同上 | 同スクリプト（フォルダ自動選択） |
+
+- 戦闘 idle ループは **walk** フレーム。`idle_*.png` は UI 用に残す
+- 差替後は Godot 再起動／`--import` 相当で `.ctex` 更新
+
 ## キャラアイコン（Desktop → res://）
 
 | Desktop（`キャラアイコン/`・日本語ファイル名） | プロジェクト先 | 取込 |

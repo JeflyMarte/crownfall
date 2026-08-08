@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Import main-5 job dungeon sprites from Desktop キャラクター zips (P3-ART-CHR-002).
+"""Import job dungeon sprites from Desktop character zips (P3-ART-CHR-002).
+
+Sources (first existing wins):
+  - Desktop/キャラドット/*.zip  （キャラ名: リーヴァ／ガレン …）
+  - Desktop/アイコン/キャラクター/*.zip  （職名: レンジャー／ヴァンガード …）
 
 Source anim folders: walk / atack|attack / hurt / death / idle|Idle
 Game SpriteFrames: idle(=walk loop), attack, hurt, death
@@ -7,6 +11,7 @@ Idle source frames are kept as idle_*.png for later UI use (not the combat loop)
 """
 from __future__ import annotations
 
+import argparse
 import shutil
 import unicodedata
 import zipfile
@@ -14,7 +19,6 @@ from pathlib import Path
 
 from PIL import Image
 
-DESKTOP = Path("/Users/marte/Desktop/アイコン/キャラクター")
 ROOT = Path(__file__).resolve().parents[1]
 OUT_ROOT = ROOT / "assets" / "characters"
 ANIM_ROOT = ROOT / "resources" / "animation"
@@ -22,7 +26,18 @@ WORK = Path("/tmp/crownfall_chr_import")
 TARGET = 232
 PAD_RATIO = 0.08
 
-JOB_MAP = {
+DESKTOP_CANDIDATES = [
+	Path("/Users/marte/Desktop/キャラドット"),
+	Path("/Users/marte/Desktop/アイコン/キャラクター"),
+]
+
+## zip stem（NFC）→ (job_id, SpriteFrames stem)
+ZIP_MAP = {
+	"リーヴァ": ("ranger", "CHR_Ranger"),
+	"ガレン": ("vanguard", "CHR_Vanguard"),
+	"アルド": ("swordsman", "CHR_Swordsman"),
+	"エリアス": ("alchemist", "CHR_Alchemist"),
+	"ミレイ": ("beast_tamer", "CHR_BeastTamer"),
 	"ソードマン": ("swordsman", "CHR_Swordsman"),
 	"レンジャー": ("ranger", "CHR_Ranger"),
 	"アルケミスト": ("alchemist", "CHR_Alchemist"),
@@ -40,51 +55,31 @@ ANIM_MAP = {
 	"idle": "idle",
 }
 
-IMPORT_TEMPLATE = """[remap]
-
-importer="texture"
-type="CompressedTexture2D"
-uid="uid://{uid}"
-path="res://.godot/imported/{name}-{uid}.ctex"
-metadata={{
-"vram_texture": false
-}}
-
-[deps]
-
-source_file="res://assets/characters/{rel}"
-dest_files=["res://.godot/imported/{name}-{uid}.ctex"]
-
-[params]
-
-compress/mode=0
-compress/high_quality=false
-compress/lossy_quality=0.7
-compress/hdr_compression=1
-compress/normal_map=0
-compress/channel_pack=0
-mipmaps/generate=false
-mipmaps/limit=-1
-roughness/mode=0
-roughness/src_normal=""
-process/fix_transparent=false
-process/hdr_as_srgb=false
-process/hdr_clamp_exposure=false
-process/size_limit=0
-detect_3d/compress_to=1
-"""
-
 
 def nfc(s: str) -> str:
 	return unicodedata.normalize("NFC", s)
 
 
-def extract_zips() -> Path:
+def resolve_desktop() -> Path:
+	for p in DESKTOP_CANDIDATES:
+		if p.is_dir() and any(p.glob("*.zip")):
+			return p
+	raise FileNotFoundError(
+		"Desktop zip folder not found. Tried:\n  " + "\n  ".join(str(p) for p in DESKTOP_CANDIDATES)
+	)
+
+
+def extract_zips(desktop: Path, only: set[str] | None) -> Path:
 	if WORK.exists():
 		shutil.rmtree(WORK)
 	WORK.mkdir(parents=True)
-	for zpath in sorted(DESKTOP.glob("*.zip")):
+	for zpath in sorted(desktop.glob("*.zip")):
 		name = nfc(zpath.stem)
+		if only is not None and name not in only:
+			continue
+		if name not in ZIP_MAP:
+			print(f"skip unknown zip: {name}")
+			continue
 		dest = WORK / name
 		dest.mkdir(parents=True, exist_ok=True)
 		with zipfile.ZipFile(zpath) as zf:
@@ -141,15 +136,6 @@ def fit_square(im: Image.Image, size: int = TARGET) -> Image.Image:
 
 def write_import(png_path: Path, job_id: str) -> None:
 	rel = f"{job_id}/{png_path.name}"
-	uid = f"chr{job_id.replace('_', '')}{png_path.stem}".lower()[:20]
-	# stable-ish uid from path
-	uid = "uid://c" + "".join(c for c in f"{job_id}{png_path.stem}" if c.isalnum())[:16]
-	text = IMPORT_TEMPLATE.format(
-		uid=uid.replace("uid://", ""),
-		name=png_path.name,
-		rel=rel,
-	)
-	# fix uid line — template embeds uid twice awkwardly; rewrite simply
 	uid_body = "".join(c for c in f"{job_id}_{png_path.stem}" if c.isalnum())[:18]
 	imp = png_path.with_suffix(png_path.suffix + ".import")
 	imp.write_text(
@@ -284,6 +270,8 @@ def process_job(folder_name: str, job_id: str, tres_stem: str) -> None:
 			if nfc(p.name) == folder_name:
 				job_src = p
 				break
+	if not job_src.exists():
+		raise FileNotFoundError(f"extracted folder missing: {folder_name}")
 	print(f"\n== {folder_name} → {job_id} ==")
 	counts = {}
 	for key in ("walk", "attack", "hurt", "death", "idle"):
@@ -293,20 +281,37 @@ def process_job(folder_name: str, job_id: str, tres_stem: str) -> None:
 
 
 def main() -> None:
-	extract_zips()
-	for folder, (job_id, tres_stem) in JOB_MAP.items():
+	parser = argparse.ArgumentParser(description=__doc__)
+	parser.add_argument(
+		"--only",
+		nargs="+",
+		default=None,
+		help="Import only these zip stems (NFC), e.g. リーヴァ ガレン",
+	)
+	parser.add_argument(
+		"--desktop",
+		type=Path,
+		default=None,
+		help="Override Desktop zip folder",
+	)
+	args = parser.parse_args()
+	desktop = args.desktop if args.desktop is not None else resolve_desktop()
+	only = {nfc(x) for x in args.only} if args.only else None
+	print(f"desktop: {desktop}")
+	extract_zips(desktop, only)
+	targets = only if only is not None else set(ZIP_MAP.keys())
+	for folder in sorted(targets):
+		if folder not in ZIP_MAP:
+			raise SystemExit(f"unknown character/job zip: {folder}")
+		job_id, tres_stem = ZIP_MAP[folder]
+		src = WORK / folder
+		if not src.exists():
+			# skip missing when importing all from mixed desktop
+			if only is None:
+				print(f"skip missing extract: {folder}")
+				continue
+			raise FileNotFoundError(f"zip not extracted: {folder}")
 		process_job(folder, job_id, tres_stem)
-	# archive old swordsman sheet (no longer referenced)
-	sheet = OUT_ROOT / "CHR_Swordsman_Sheet.png"
-	if sheet.exists():
-		archive = OUT_ROOT / "_omitted"
-		archive.mkdir(exist_ok=True)
-		dest = archive / "CHR_Swordsman_Sheet.png"
-		shutil.move(str(sheet), str(dest))
-		imp = OUT_ROOT / "CHR_Swordsman_Sheet.png.import"
-		if imp.exists():
-			shutil.move(str(imp), str(archive / "CHR_Swordsman_Sheet.png.import"))
-		print(f"archived {sheet.name} → _omitted/")
 	print("\nDONE")
 
 
