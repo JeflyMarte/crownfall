@@ -7673,3 +7673,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-EQ-THEME-COV-001-2 | クラシック飾3＋フィル武5＋翠枝／祝槌をテーマ転用（dawnrally据置） | 不足9テーマ |
 | P3-EQ-THEME-COV-001-3 | `treasure_room_weight_add` を装備からも集計 | 地平の偵察弓 |
 | P3-EQ-THEME-COV-001-4 | **SSOT** — `95_JobThemeLegendaryCoverage.md`／`56` 追記 | Decision 本体 |
+
+## 職テーマL・武器種整合（2026-08-08 — P3-EQ-THEME-COV-001 追記）
+
+> **オーナー指摘** — 職ごとに装備できる武器種が決まっている。テーマ効果は装備可能な種別にだけ載せる。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-THEME-COV-001-5 | 武器テーマ転用は職×`preferred_weapon_types` 必須 | オーナー |
+| P3-EQ-THEME-COV-001-6 | SW一撃＝祝槌（剣）／VGカウンター＝戦剣／BT吸血＝血討弓／RG標的＝猛弓 | 再割当 |
+| P3-EQ-THEME-COV-001-7 | **SSOT** — `95_JobThemeLegendaryCoverage.md` §1-6 | Decision 本体 |

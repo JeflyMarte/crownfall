@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 id = "aegis_line_sword"
-display_name = "防壁の戦剣"
-description = "戦列の盾代わりに振るう重めの剣。敵の視線を一身に集め、斬るたびに守りが厚くなる。"
+display_name = "応撃の戦剣"
+description = "応撃の構えで構える戦剣。開戦とともに反撃を蓄え、敵の視線も一身に集める。"
 fixed_skill_id = ""
 fixed_passive_id = "eq_wpn_aegis_line_sword"
 base_attack = 260

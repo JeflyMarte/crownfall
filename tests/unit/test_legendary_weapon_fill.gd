@@ -46,11 +46,11 @@ func test_passive_numbers() -> void:
 	assert_almost_eq(float(volley.get("basic_aoe_splash_mult", 1.0)), 0.55, 0.001)
 	assert_eq(int(volley.get("treasure_room_weight_add", 0)), 25)
 	var war: Dictionary = CombatPassives.get_def("eq_wpn_vanguard_war_bow")
-	assert_almost_eq(float(war.get("counter_damage_mult", 1.0)), 1.30, 0.001)
-	assert_eq(str(war.get("effect", "")), "grant_counter_charges")
-	assert_eq(int(war.get("counter_charges", 0)), 1)
+	assert_almost_eq(float(war.get("outgoing_vs_status_mult", 1.0)), 1.20, 0.001)
+	assert_eq(str(war.get("status_id", "")), "mark")
+	assert_almost_eq(float(war.get("status_chance", 0.0)), 0.25, 0.001)
 	var reg: Dictionary = CombatPassives.get_def("eq_wpn_regicide_longbow")
-	assert_almost_eq(float(reg.get("first_attack_mult", 1.0)), 1.45, 0.001)
+	assert_almost_eq(float(reg.get("lifesteal_ratio", 0.0)), 0.08, 0.001)
 	var amp: Dictionary = CombatPassives.get_def("eq_wpn_amplify_orb_staff")
 	assert_almost_eq(float(amp.get("elemental_outgoing_mult", 1.0)), 1.25, 0.001)
 	var silent: Dictionary = CombatPassives.get_def("eq_wpn_silent_rite_staff")
@@ -59,9 +59,9 @@ func test_passive_numbers() -> void:
 	assert_eq(str(silent.get("effect", "")), "random_enemy_status")
 
 
-func test_vanguard_war_bow_counter() -> void:
+func test_vanguard_war_bow_mark() -> void:
 	_equip("vanguard_war_bow")
-	assert_almost_eq(CombatPassives.counter_damage_mult_for_member(0), 1.30, 0.001)
+	assert_almost_eq(CombatPassives.outgoing_vs_status_mult_for_member(0, ["mark"]), 1.20, 0.001)
 
 
 func test_helpers_expose_flags() -> void:
@@ -75,6 +75,7 @@ func test_helpers_expose_flags() -> void:
 	assert_almost_eq(CombatPassives.weapon_basic_aoe_splash_mult(0), 0.55, 0.001)
 	_equip("regicide_longbow")
 	assert_almost_eq(CombatPassives.weapon_outgoing_vs_boss_mult(0), 1.0, 0.001)
+	assert_almost_eq(CombatPassives.member_lifesteal_ratio(0), 0.08, 0.001)
 
 
 func test_icons_and_pools() -> void:
