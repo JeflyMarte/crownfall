@@ -10,8 +10,9 @@ const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45)
 const COLOR_SUB: Color = Color(0.72, 0.69, 0.62)
 const COLOR_ACCENT: Color = Color(0.75, 0.82, 0.95, 1)
 ## ScrollTouch の PASS 化後も短押しを拾う（装備画面と同ポリシー）。
-const CELL_PRESS_MOVE_CANCEL_PX: float = 28.0
-const CELL_LONG_PRESS_SEC: float = 0.45
+## iPhone は静止長押しでも微細 ScreenDrag が来る。累積キャンセル禁止（フリック／実スクロールのみ）。
+const CELL_PRESS_FLICK_CANCEL_PX: float = 40.0
+const CELL_LONG_PRESS_SEC: float = 0.50
 const _CELL_PRESS_NONE: int = 0
 const _CELL_PRESS_TOUCH: int = 1
 const _CELL_PRESS_MOUSE: int = 2
@@ -44,13 +45,15 @@ var _selected_cell_btn: Button = null
 var _cell_pointer_down: bool = false
 var _cell_long_press_fired: bool = false
 var _cell_press_origin: Vector2 = Vector2.ZERO
-var _cell_press_travel: float = 0.0
 var _cell_press_source: int = _CELL_PRESS_NONE
-var _cell_press_timer: SceneTreeTimer = null
+var _cell_press_scroll_v: int = 0
+var _cell_long_press_timer: Timer = null
 var _cell_press_item: Resource = null
 var _cell_press_category: String = ""
 var _cell_press_relic_id: String = ""
 var _cell_press_btn: Button = null
+var _lock_toast: Label = null
+var _lock_toast_tween: Tween = null
 
 func _ready() -> void:
 	$Header/HeaderRow/LabelTitle.text = ""
@@ -79,6 +82,7 @@ func _ready() -> void:
 	)
 	_build_category_chips()
 	_update_sort_filter_labels()
+	_ensure_long_press_timer()
 	call_deferred("_sync_inventory_scroll_height")
 	_refresh_display()
 
@@ -338,7 +342,6 @@ func _on_item_cell_gui_input(
 			return
 		_cell_press_source = _CELL_PRESS_TOUCH if is_touch else _CELL_PRESS_MOUSE
 		_cell_press_origin = _cell_event_position(event)
-		_cell_press_travel = 0.0
 		_begin_cell_press(item, category, "", btn)
 	else:
 		if not _cell_pointer_down:
@@ -363,7 +366,6 @@ func _on_relic_cell_gui_input(event: InputEvent, relic_id: String, btn: Button) 
 			return
 		_cell_press_source = _CELL_PRESS_TOUCH if is_touch else _CELL_PRESS_MOUSE
 		_cell_press_origin = _cell_event_position(event)
-		_cell_press_travel = 0.0
 		_begin_cell_press(null, "relic", relic_id, btn)
 	else:
 		if not _cell_pointer_down:
@@ -393,28 +395,42 @@ func _cell_event_position(event: InputEvent) -> Vector2:
 	return Vector2.ZERO
 
 func _should_cancel_cell_press_for_move(event: InputEvent) -> bool:
+	## スクロールが動いたらキャンセル（長押し中の指ぶれは無視）。
+	if _inventory_scroll != null and _inventory_scroll.scroll_vertical != _cell_press_scroll_v:
+		return true
+	## 累積ではなく「1イベントのフリック」だけキャンセル（iPhone 微動対策）。
 	if event is InputEventScreenDrag:
-		_cell_press_travel += (event as InputEventScreenDrag).relative.length()
-		return _cell_press_travel >= CELL_PRESS_MOVE_CANCEL_PX
+		return (event as InputEventScreenDrag).relative.length() >= CELL_PRESS_FLICK_CANCEL_PX
 	if event is InputEventMouseMotion:
 		var motion: InputEventMouseMotion = event as InputEventMouseMotion
 		if (motion.button_mask & MOUSE_BUTTON_MASK_LEFT) == 0:
 			return false
-		return _cell_press_origin.distance_to(motion.position) >= CELL_PRESS_MOVE_CANCEL_PX
+		return _cell_press_origin.distance_to(motion.position) >= CELL_PRESS_FLICK_CANCEL_PX
 	return false
+
+func _ensure_long_press_timer() -> void:
+	if _cell_long_press_timer != null and is_instance_valid(_cell_long_press_timer):
+		return
+	_cell_long_press_timer = Timer.new()
+	_cell_long_press_timer.name = "CatalogCellLongPressTimer"
+	_cell_long_press_timer.one_shot = true
+	_cell_long_press_timer.wait_time = CELL_LONG_PRESS_SEC
+	_cell_long_press_timer.timeout.connect(_on_cell_long_press_timeout)
+	add_child(_cell_long_press_timer)
 
 func _begin_cell_press(
 	item: Resource, category: String, relic_id: String, btn: Button
 ) -> void:
-	_cancel_cell_press_timer_only()
+	_ensure_long_press_timer()
+	_cell_long_press_timer.stop()
 	_cell_pointer_down = true
 	_cell_long_press_fired = false
 	_cell_press_item = item
 	_cell_press_category = category
 	_cell_press_relic_id = relic_id
 	_cell_press_btn = btn
-	_cell_press_timer = get_tree().create_timer(CELL_LONG_PRESS_SEC)
-	_cell_press_timer.timeout.connect(_on_cell_long_press_timeout)
+	_cell_press_scroll_v = _inventory_scroll.scroll_vertical if _inventory_scroll != null else 0
+	_cell_long_press_timer.start(CELL_LONG_PRESS_SEC)
 
 func _on_cell_long_press_timeout() -> void:
 	if not _cell_pointer_down:
@@ -429,7 +445,8 @@ func _end_cell_press() -> void:
 		return
 	_cell_pointer_down = false
 	_cell_press_source = _CELL_PRESS_NONE
-	_cancel_cell_press_timer_only()
+	if _cell_long_press_timer != null:
+		_cell_long_press_timer.stop()
 	if not _cell_long_press_fired:
 		if not _cell_press_relic_id.is_empty():
 			_on_relic_cell_pressed(_cell_press_relic_id, _cell_press_btn)
@@ -440,18 +457,12 @@ func _end_cell_press() -> void:
 	_cell_press_relic_id = ""
 	_cell_press_btn = null
 
-func _cancel_cell_press_timer_only() -> void:
-	if _cell_press_timer != null:
-		if _cell_press_timer.timeout.is_connected(_on_cell_long_press_timeout):
-			_cell_press_timer.timeout.disconnect(_on_cell_long_press_timeout)
-		_cell_press_timer = null
-
 func _cancel_cell_press() -> void:
 	_cell_pointer_down = false
 	_cell_long_press_fired = false
 	_cell_press_source = _CELL_PRESS_NONE
-	_cell_press_travel = 0.0
-	_cancel_cell_press_timer_only()
+	if _cell_long_press_timer != null:
+		_cell_long_press_timer.stop()
 	_cell_press_item = null
 	_cell_press_category = ""
 	_cell_press_relic_id = ""
@@ -462,7 +473,7 @@ func _toggle_catalog_item_lock(item: Resource, category: String, btn: Button) ->
 		return
 	if category != "weapon" and category != "armor" and category != "accessory":
 		return
-	EquipmentEnhancer.toggle_item_locked(item)
+	var now_locked: bool = EquipmentEnhancer.toggle_item_locked(item)
 	SaveManager.save_game()
 	## バッジだけ更新（全グリッド再生成は重い）。
 	if btn != null and is_instance_valid(btn):
@@ -476,6 +487,37 @@ func _toggle_catalog_item_lock(item: Resource, category: String, btn: Button) ->
 		)
 	if item == _selected_item and category == _selected_category:
 		_refresh_detail_panel()
+	_show_lock_toast("ロックしました" if now_locked else "ロックを解除しました")
+
+func _show_lock_toast(text: String) -> void:
+	if text.is_empty():
+		return
+	if _lock_toast == null or not is_instance_valid(_lock_toast):
+		_lock_toast = Label.new()
+		_lock_toast.name = "LockToast"
+		_lock_toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_lock_toast.z_index = 80
+		_lock_toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_lock_toast.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		_lock_toast.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+		_lock_toast.offset_left = 24.0
+		_lock_toast.offset_right = -24.0
+		_lock_toast.offset_top = -160.0
+		_lock_toast.offset_bottom = -112.0
+		UiTypography.apply_body(_lock_toast, UiTypography.SIZE_BODY, COLOR_GOLD)
+		add_child(_lock_toast)
+	_lock_toast.text = text
+	_lock_toast.visible = true
+	_lock_toast.modulate.a = 1.0
+	if _lock_toast_tween != null and is_instance_valid(_lock_toast_tween):
+		_lock_toast_tween.kill()
+	_lock_toast_tween = create_tween()
+	_lock_toast_tween.tween_interval(0.9)
+	_lock_toast_tween.tween_property(_lock_toast, "modulate:a", 0.0, 0.25)
+	_lock_toast_tween.tween_callback(func() -> void:
+		if _lock_toast != null:
+			_lock_toast.visible = false
+	)
 
 func _clear_item_cell_overlay_badges(btn: Button) -> void:
 	if btn == null:
@@ -552,11 +594,15 @@ func _refresh_detail_panel() -> void:
 	if not _selected_relic_id.is_empty():
 		EquipmentItemDetailHelper.populate_relic_stats_panel(_detail_host, _selected_relic_id, self)
 		return
+	## populate は host をクリアする。ロック行は後から先頭へ移す（下に隠れない）。
 	EquipmentItemDetailHelper.populate_stats_panel(_detail_host, _selected_item, _selected_category, self)
 	_append_catalog_lock_row()
+	var lock_row: Node = _detail_host.get_node_or_null("CatalogLockRow")
+	if lock_row != null:
+		_detail_host.move_child(lock_row, 0)
 
 func _append_catalog_lock_row() -> void:
-	## Mac など長押しが取りにくい環境向け。装備一覧の詳細内からのみロック可能。
+	## 短押しで詳細を開いたあと、ここから確実にロックできる（長押しの代替）。
 	if _selected_item == null:
 		return
 	if (
@@ -566,12 +612,21 @@ func _append_catalog_lock_row() -> void:
 	):
 		return
 	var row := HBoxContainer.new()
+	row.name = "CatalogLockRow"
 	row.add_theme_constant_override("separation", 8)
-	row.alignment = BoxContainer.ALIGNMENT_END
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_detail_host.add_child(row)
+	var hint := Label.new()
+	hint.text = "長押しでも切替可"
+	hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_caption(hint, COLOR_SUB)
+	row.add_child(hint)
 	var btn := Button.new()
 	var locked: bool = EquipmentEnhancer.is_item_locked(_selected_item)
-	btn.text = "ロック解除" if locked else "ロックする"
+	btn.text = "🔒 ロック解除" if locked else "🔒 ロックする"
+	btn.custom_minimum_size = Vector2(160, 44)
+	btn.set_meta(&"_cf_keep_mouse_stop", true)
+	btn.mouse_filter = Control.MOUSE_FILTER_STOP
 	UiTypography.apply_menu_button(btn)
 	btn.pressed.connect(_on_catalog_detail_lock_pressed)
 	row.add_child(btn)

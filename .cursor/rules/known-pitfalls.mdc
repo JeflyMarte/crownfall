@@ -105,6 +105,7 @@ alwaysApply: false
 | キャラ／装備一覧でセル上スクロールが効かない | 長押し用 `gui_input` で press 時に `accept_event()` → 親 Scroll がドラッグ開始できない | セルは `accept_event` しない（PASS＋gui_input で短タップ／長押し）。スクロールは親に任せる |
 | iPhoneで装備長押しが効かない | ①所持が `pressed` のみ ②絶対座標の Touch/Drag 差で即キャンセル ③`emulate_mouse` の二重 release で短押し扱い | 所持も `_bind_inventory_cell_interaction`。Touch は **relative 累積**（≈28px）。Touch 中は Mouse の press/release を無視 |
 | Macで装備ロック長押しが効かない | ロック操作をキャラ画面に置いていた／Mouse 微動 | **装備一覧のみ**長押し。Touch=relative／Mouse=絶対距離。詳細の「ロックする」でも可 |
+| iPhoneで装備一覧の長押しロックが効かない | ScreenDrag の**相対移動累積**で即キャンセル。詳細のロックボタンが下に隠れがち | 累積禁止（フリック1発／実スクロールのみ）。Timer ノード。詳細先頭にロックボタン＋トースト |
 | 武器に「炎上付与」と「状態付与 炎上」が二重 | 専用 `*_chance` と `on_hit_status` が併存抽選 | **P3-EQ-STATUS-UNIFY-001**: 状態付与のみ。専用行は sanitize で統合。`test_unify_legacy_ignite_into_on_hit` |
 | 他人装備を黙って奪う | 付け替え確認なしで即装備 | 他人装備中は「〇〇が装備してます。付け替えますか？」確認後に装備 |
 | ミレイ習得スキルのアイコンが空白 | `pet_bond_*` が `SkillIconHelper.SKILL_TO_BASE` 未登録 → ally アイコン null | 相棒鼓舞=buff／指揮の牙=mark／絆の守り=guard。ベース無し時は個別アートへフォールバック |
