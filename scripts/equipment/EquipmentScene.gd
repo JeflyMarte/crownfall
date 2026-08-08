@@ -216,7 +216,6 @@ var _inv_press_travel: float = 0.0
 ## emulate_mouse_from_touch で ScreenTouch と MouseButton が二重に来る対策。
 var _inv_press_source: int = _INV_PRESS_NONE
 var _detail_pinned: bool = false
-var _detail_lock_btn: Button = null
 var _portrait_idle_textures: Array[Texture2D] = []
 var _portrait_idle_frame: int = 0
 var _portrait_idle_accum: float = 0.0
@@ -1878,7 +1877,7 @@ func _make_slot(
 		_attach_item_icon(
 			btn, icon, cell_px, EquipmentUiTokens.SLOT_DESIGN_PX, _item_id(item, category), category
 		)
-		btn.tooltip_text = "%s\n（左下の錠クリックでロック／長押しで詳細）" % _item_label(item, category)
+		btn.tooltip_text = "%s\n（長押しで詳細）" % _item_label(item, category)
 		var rarity: int = _item_rarity(item, category)
 		_apply_item_cell_styles(btn, rarity, cell_px)
 		_apply_item_badges(btn, item, category, cell_size, true)
@@ -1897,11 +1896,6 @@ func _make_slot(
 func _equip_slot_action(is_long_press: bool, category: String, item: Resource) -> void:
 	if is_long_press:
 		if item != null:
-			## 装着スロット長押しでもロック切替（所持一覧と同方針）。
-			_EquipmentEnhancer.toggle_item_locked(item)
-			SaveManager.save_game()
-			_rebuild_inventory_grid()
-			_rebuild_equip_slots()
 			_show_item_stats_overlay(item, category, true)
 		return
 	_on_slot_pressed(category)
@@ -2119,9 +2113,9 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 	if job_blocked:
 		btn.tooltip_text = "%s\n（%s）" % [item_name, JobStatCalculator.unequip_reason_weapon(view_member, item)]
 	else:
-		btn.tooltip_text = "%s\n（左下の錠クリックでロック／長押しで詳細）" % item_name
-	## 短押し=着脱、左下錠クリック=ロック、長押し／右クリック／Shift+クリック=ロック＋詳細。
-	## disabled にしない: ペット閲覧でもロックを受け付ける（着脱は tap 側で拒否）。
+		btn.tooltip_text = "%s\n（長押しで詳細）" % item_name
+	## 短押し=着脱、長押し=詳細。ロック操作は装備一覧のみ（P3-UX-EQUIP-LOCK-001）。
+	## disabled にしない: ペット閲覧でも長押し詳細を受け付ける（着脱は tap 側で拒否）。
 	_bind_inventory_cell_interaction(btn, _inventory_item_action.bind(item, category))
 	if is_on_self:
 		btn.modulate = Color(0.72, 0.72, 0.72, 0.85)
@@ -2170,11 +2164,6 @@ func _make_relic_cell(relic_id: String) -> Button:
 func _inventory_item_action(is_long_press: bool, item: Resource, category: String) -> void:
 	if is_long_press:
 		if item != null:
-			## P3-UX-EQUIP-LOCK-001: 長押しでロック切替（詳細も併せて表示）。
-			_EquipmentEnhancer.toggle_item_locked(item)
-			SaveManager.save_game()
-			_rebuild_inventory_grid()
-			_rebuild_equip_slots()
 			_show_item_stats_overlay(item, category, true)
 		return
 	_tap_inventory_item(item, category)
@@ -2187,27 +2176,9 @@ func _inventory_relic_action(is_long_press: bool, relic_id: String) -> void:
 	_on_relic_equip_pressed(relic_id)
 
 func _bind_inventory_cell_interaction(btn: Button, action: Callable) -> void:
-	btn.gui_input.connect(_on_inventory_cell_gui_input.bind(btn, action))
+	btn.gui_input.connect(_on_inventory_cell_gui_input.bind(action))
 
-func _on_inventory_cell_gui_input(event: InputEvent, btn: Button, action: Callable) -> void:
-	## Desktop: 右クリック／Shift|Ctrl|Cmd+左クリックでロック／詳細。
-	if event is InputEventMouseButton and event.pressed:
-		var mb: InputEventMouseButton = event as InputEventMouseButton
-		if mb.button_index == MOUSE_BUTTON_RIGHT:
-			if action.is_valid():
-				action.call(true)
-			if btn != null:
-				btn.accept_event()
-			return
-		if (
-			mb.button_index == MOUSE_BUTTON_LEFT
-			and (mb.shift_pressed or mb.ctrl_pressed or mb.meta_pressed)
-		):
-			if action.is_valid():
-				action.call(true)
-			if btn != null:
-				btn.accept_event()
-			return
+func _on_inventory_cell_gui_input(event: InputEvent, action: Callable) -> void:
 	if _inv_pointer_down and _should_cancel_inventory_press_for_move(event):
 		_cancel_inventory_press()
 		return
@@ -2355,7 +2326,6 @@ func _show_relic_stats_overlay(relic_id: String, pinned: bool = false) -> void:
 	_detail_equip_btn.visible = member != null
 	## 他人装備中も付け替え確認経由で装備可。
 	_detail_equip_btn.disabled = member == null
-	_refresh_detail_lock_btn()
 	_detail_overlay.visible = true
 
 func _add_owner_portrait_badge(btn: Button, owner_member: Resource, cell_size: Vector2) -> void:
@@ -2440,11 +2410,6 @@ func _ensure_item_detail_overlay() -> void:
 	action_row.add_theme_constant_override("separation", 8)
 	action_row.alignment = BoxContainer.ALIGNMENT_END
 	outer.add_child(action_row)
-	_detail_lock_btn = Button.new()
-	_detail_lock_btn.text = "ロック"
-	UiTypography.apply_menu_button(_detail_lock_btn)
-	_detail_lock_btn.pressed.connect(_on_detail_lock_pressed)
-	action_row.add_child(_detail_lock_btn)
 	_detail_equip_btn = Button.new()
 	_detail_equip_btn.text = "装備する"
 	UiTypography.apply_menu_button(_detail_equip_btn)
@@ -2471,38 +2436,7 @@ func _show_item_stats_overlay(item: Resource, category: String, pinned: bool = f
 		_detail_equip_btn.tooltip_text = JobStatCalculator.unequip_reason_weapon(view_member, item)
 	else:
 		_detail_equip_btn.tooltip_text = ""
-	_refresh_detail_lock_btn()
 	_detail_overlay.visible = true
-
-func _refresh_detail_lock_btn() -> void:
-	if _detail_lock_btn == null:
-		return
-	var show_lock: bool = (
-		_overlay_item != null
-		and (_overlay_category == "weapon" or _overlay_category == "armor" or _overlay_category == "accessory")
-	)
-	_detail_lock_btn.visible = show_lock
-	if not show_lock:
-		return
-	if _EquipmentEnhancer.is_item_locked(_overlay_item):
-		_detail_lock_btn.text = "ロック解除"
-	else:
-		_detail_lock_btn.text = "ロック"
-
-func _on_detail_lock_pressed() -> void:
-	if _overlay_item == null:
-		return
-	if (
-		_overlay_category != "weapon"
-		and _overlay_category != "armor"
-		and _overlay_category != "accessory"
-	):
-		return
-	_EquipmentEnhancer.toggle_item_locked(_overlay_item)
-	SaveManager.save_game()
-	_rebuild_inventory_grid()
-	_rebuild_equip_slots()
-	_refresh_detail_lock_btn()
 
 func _on_detail_equip_pressed() -> void:
 	if _overlay_category == "skill":
@@ -2684,17 +2618,9 @@ func _apply_item_badges(
 	EquipmentUiHelper.apply_equip_level_badge(btn, item, size)
 	if category == "weapon":
 		EquipmentUiHelper.apply_enhance_badge(btn, item, category, size, COLOR_GOLD)
-	## 装備中の「装」は出さない。ドロップ直後は中央 New 点滅。左下錠はクリックでロック。
-	EquipmentUiHelper.apply_lock_toggle(btn, item, size, _on_item_lock_clicked.bind(item))
+	## 装備中の「装」は出さない。ドロップ直後は中央 New 点滅。ロック表示のみ（操作は装備一覧）。
+	EquipmentUiHelper.apply_lock_badge(btn, item, size)
 	EquipmentUiHelper.apply_new_badge(btn, item, size)
-
-func _on_item_lock_clicked(item: Resource) -> void:
-	if item == null:
-		return
-	_EquipmentEnhancer.toggle_item_locked(item)
-	SaveManager.save_game()
-	_rebuild_inventory_grid()
-	_rebuild_equip_slots()
 
 # ボタン隅にバッジ（レアリティ宝石 / 装備中マーク）を重ねる。
 func _add_corner_badge(
@@ -4269,7 +4195,6 @@ func _show_skill_detail_overlay(
 		_detail_equip_btn.visible = unlocked
 		## 満枠でも他スキル装備可（置換）。未解放のみ不可。
 		_detail_equip_btn.disabled = not unlocked
-	_refresh_detail_lock_btn()
 	_detail_overlay.visible = true
 
 func _skill_detail_text(skill_data: Resource, unlocked: bool = true, req_lv: int = 1) -> String:

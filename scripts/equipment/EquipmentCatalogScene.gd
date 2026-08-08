@@ -10,7 +10,11 @@ const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45)
 const COLOR_SUB: Color = Color(0.72, 0.69, 0.62)
 const COLOR_ACCENT: Color = Color(0.75, 0.82, 0.95, 1)
 ## ScrollTouch の PASS 化後も短押しを拾う（装備画面と同ポリシー）。
-const CELL_PRESS_MOVE_CANCEL_PX: float = 20.0
+const CELL_PRESS_MOVE_CANCEL_PX: float = 28.0
+const CELL_LONG_PRESS_SEC: float = 0.45
+const _CELL_PRESS_NONE: int = 0
+const _CELL_PRESS_TOUCH: int = 1
+const _CELL_PRESS_MOUSE: int = 2
 
 @onready var _button_back: Button = $Header/HeaderRow/ButtonBack
 @onready var _label_gold: Label = $Header/HeaderRow/GoldChip/GoldRow/LabelGold
@@ -38,10 +42,15 @@ var _selected_category: String = ""
 var _selected_relic_id: String = ""
 var _selected_cell_btn: Button = null
 var _cell_pointer_down: bool = false
+var _cell_long_press_fired: bool = false
 var _cell_press_origin: Vector2 = Vector2.ZERO
+var _cell_press_travel: float = 0.0
+var _cell_press_source: int = _CELL_PRESS_NONE
+var _cell_press_timer: SceneTreeTimer = null
 var _cell_press_item: Resource = null
 var _cell_press_category: String = ""
 var _cell_press_relic_id: String = ""
+var _cell_press_btn: Button = null
 
 func _ready() -> void:
 	$Header/HeaderRow/LabelTitle.text = ""
@@ -264,8 +273,10 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 	btn.set_meta("cf_category", category)
 	var owner_member: Resource = GameState.find_item_equipped_owner(item)
 	var is_equipped: bool = owner_member != null
-	btn.tooltip_text = EquipmentItemDetailHelper.short_name(item, category)
-	## ScrollTouch が mouse_filter=PASS にするため pressed は不発になりやすい。gui_input で短押しを取る。
+	btn.tooltip_text = "%s\n（短押しで詳細／長押しでロック）" % EquipmentItemDetailHelper.short_name(
+		item, category
+	)
+	## 短押し=詳細、長押し=ロック（P3-UX-EQUIP-LOCK-001。キャラ画面ではロックしない）。
 	btn.gui_input.connect(_on_item_cell_gui_input.bind(item, category, btn))
 	var selected: bool = (
 		_selected_relic_id.is_empty()
@@ -300,7 +311,7 @@ func _make_relic_cell(relic_id: String) -> Button:
 	btn.set_meta("cf_category", "relic")
 	btn.set_meta("cf_relic_id", relic_id)
 	var owner_member: Resource = GameState.find_relic_equipped_owner(relic_id)
-	btn.tooltip_text = EquipmentItemDetailHelper.relic_hover_summary(relic_id)
+	btn.tooltip_text = "%s\n（短押しで詳細）" % EquipmentItemDetailHelper.relic_hover_summary(relic_id)
 	btn.gui_input.connect(_on_relic_cell_gui_input.bind(relic_id, btn))
 	var selected: bool = relic_id == _selected_relic_id and not relic_id.is_empty()
 	if selected:
@@ -320,22 +331,23 @@ func _on_item_cell_gui_input(
 		return
 	if not _is_cell_pointer_event(event):
 		return
+	var is_touch: bool = event is InputEventScreenTouch
+	var is_mouse: bool = event is InputEventMouseButton
 	if event.pressed:
-		_cell_pointer_down = true
+		if _cell_pointer_down:
+			return
+		_cell_press_source = _CELL_PRESS_TOUCH if is_touch else _CELL_PRESS_MOUSE
 		_cell_press_origin = _cell_event_position(event)
-		_cell_press_item = item
-		_cell_press_category = category
-		_cell_press_relic_id = ""
+		_cell_press_travel = 0.0
+		_begin_cell_press(item, category, "", btn)
 	else:
-		if (
-			_cell_pointer_down
-			and _cell_press_item == item
-			and _cell_press_category == category
-			and _cell_press_relic_id.is_empty()
-		):
-			_on_cell_pressed(item, category, btn)
-		_cancel_cell_press()
-	## accept_event しない: セル上ドラッグを親 InventoryScroll へ渡す（タップは gui_input で処理）。
+		if not _cell_pointer_down:
+			return
+		if _cell_press_source == _CELL_PRESS_TOUCH and is_mouse:
+			return
+		if _cell_press_source == _CELL_PRESS_MOUSE and is_touch:
+			return
+		_end_cell_press()
 
 
 func _on_relic_cell_gui_input(event: InputEvent, relic_id: String, btn: Button) -> void:
@@ -344,16 +356,23 @@ func _on_relic_cell_gui_input(event: InputEvent, relic_id: String, btn: Button) 
 		return
 	if not _is_cell_pointer_event(event):
 		return
+	var is_touch: bool = event is InputEventScreenTouch
+	var is_mouse: bool = event is InputEventMouseButton
 	if event.pressed:
-		_cell_pointer_down = true
+		if _cell_pointer_down:
+			return
+		_cell_press_source = _CELL_PRESS_TOUCH if is_touch else _CELL_PRESS_MOUSE
 		_cell_press_origin = _cell_event_position(event)
-		_cell_press_item = null
-		_cell_press_category = "relic"
-		_cell_press_relic_id = relic_id
+		_cell_press_travel = 0.0
+		_begin_cell_press(null, "relic", relic_id, btn)
 	else:
-		if _cell_pointer_down and _cell_press_relic_id == relic_id:
-			_on_relic_cell_pressed(relic_id, btn)
-		_cancel_cell_press()
+		if not _cell_pointer_down:
+			return
+		if _cell_press_source == _CELL_PRESS_TOUCH and is_mouse:
+			return
+		if _cell_press_source == _CELL_PRESS_MOUSE and is_touch:
+			return
+		_end_cell_press()
 
 func _is_cell_pointer_event(event: InputEvent) -> bool:
 	if event is InputEventMouseButton:
@@ -375,10 +394,8 @@ func _cell_event_position(event: InputEvent) -> Vector2:
 
 func _should_cancel_cell_press_for_move(event: InputEvent) -> bool:
 	if event is InputEventScreenDrag:
-		return (
-			_cell_press_origin.distance_to((event as InputEventScreenDrag).position)
-			>= CELL_PRESS_MOVE_CANCEL_PX
-		)
+		_cell_press_travel += (event as InputEventScreenDrag).relative.length()
+		return _cell_press_travel >= CELL_PRESS_MOVE_CANCEL_PX
 	if event is InputEventMouseMotion:
 		var motion: InputEventMouseMotion = event as InputEventMouseMotion
 		if (motion.button_mask & MOUSE_BUTTON_MASK_LEFT) == 0:
@@ -386,11 +403,99 @@ func _should_cancel_cell_press_for_move(event: InputEvent) -> bool:
 		return _cell_press_origin.distance_to(motion.position) >= CELL_PRESS_MOVE_CANCEL_PX
 	return false
 
-func _cancel_cell_press() -> void:
+func _begin_cell_press(
+	item: Resource, category: String, relic_id: String, btn: Button
+) -> void:
+	_cancel_cell_press_timer_only()
+	_cell_pointer_down = true
+	_cell_long_press_fired = false
+	_cell_press_item = item
+	_cell_press_category = category
+	_cell_press_relic_id = relic_id
+	_cell_press_btn = btn
+	_cell_press_timer = get_tree().create_timer(CELL_LONG_PRESS_SEC)
+	_cell_press_timer.timeout.connect(_on_cell_long_press_timeout)
+
+func _on_cell_long_press_timeout() -> void:
+	if not _cell_pointer_down:
+		return
+	_cell_long_press_fired = true
+	## レリックはロック対象外。武／防／飾のみ。
+	if _cell_press_item != null and _cell_press_relic_id.is_empty():
+		_toggle_catalog_item_lock(_cell_press_item, _cell_press_category, _cell_press_btn)
+
+func _end_cell_press() -> void:
+	if not _cell_pointer_down:
+		return
 	_cell_pointer_down = false
+	_cell_press_source = _CELL_PRESS_NONE
+	_cancel_cell_press_timer_only()
+	if not _cell_long_press_fired:
+		if not _cell_press_relic_id.is_empty():
+			_on_relic_cell_pressed(_cell_press_relic_id, _cell_press_btn)
+		elif _cell_press_item != null:
+			_on_cell_pressed(_cell_press_item, _cell_press_category, _cell_press_btn)
 	_cell_press_item = null
 	_cell_press_category = ""
 	_cell_press_relic_id = ""
+	_cell_press_btn = null
+
+func _cancel_cell_press_timer_only() -> void:
+	if _cell_press_timer != null:
+		if _cell_press_timer.timeout.is_connected(_on_cell_long_press_timeout):
+			_cell_press_timer.timeout.disconnect(_on_cell_long_press_timeout)
+		_cell_press_timer = null
+
+func _cancel_cell_press() -> void:
+	_cell_pointer_down = false
+	_cell_long_press_fired = false
+	_cell_press_source = _CELL_PRESS_NONE
+	_cell_press_travel = 0.0
+	_cancel_cell_press_timer_only()
+	_cell_press_item = null
+	_cell_press_category = ""
+	_cell_press_relic_id = ""
+	_cell_press_btn = null
+
+func _toggle_catalog_item_lock(item: Resource, category: String, btn: Button) -> void:
+	if item == null:
+		return
+	if category != "weapon" and category != "armor" and category != "accessory":
+		return
+	EquipmentEnhancer.toggle_item_locked(item)
+	SaveManager.save_game()
+	## バッジだけ更新（全グリッド再生成は重い）。
+	if btn != null and is_instance_valid(btn):
+		_clear_item_cell_overlay_badges(btn)
+		_apply_item_badges(
+			btn,
+			item,
+			category,
+			_inv_cell_size,
+			GameState.find_item_equipped_owner(item) != null
+		)
+	if item == _selected_item and category == _selected_category:
+		_refresh_detail_panel()
+
+func _clear_item_cell_overlay_badges(btn: Button) -> void:
+	if btn == null:
+		return
+	var to_free: Array[Node] = []
+	for child in btn.get_children():
+		var n: String = str(child.name)
+		if n == "ItemIcon" or n == "OwnerBadge":
+			continue
+		if (
+			n == "RarityCornerBadge"
+			or n == "LegendaryBadge"
+			or n == "LockBadge"
+			or n == "NewEquipBadgeHost"
+			or child is Label
+		):
+			to_free.append(child)
+	for node in to_free:
+		btn.remove_child(node)
+		node.queue_free()
 
 func _on_cell_pressed(item: Resource, category: String, btn: Button) -> void:
 	## 詳細だけ更新。グリッド全再生成はしない（所持数が多いと実機で重い）。
@@ -448,6 +553,33 @@ func _refresh_detail_panel() -> void:
 		EquipmentItemDetailHelper.populate_relic_stats_panel(_detail_host, _selected_relic_id, self)
 		return
 	EquipmentItemDetailHelper.populate_stats_panel(_detail_host, _selected_item, _selected_category, self)
+	_append_catalog_lock_row()
+
+func _append_catalog_lock_row() -> void:
+	## Mac など長押しが取りにくい環境向け。装備一覧の詳細内からのみロック可能。
+	if _selected_item == null:
+		return
+	if (
+		_selected_category != "weapon"
+		and _selected_category != "armor"
+		and _selected_category != "accessory"
+	):
+		return
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	row.alignment = BoxContainer.ALIGNMENT_END
+	_detail_host.add_child(row)
+	var btn := Button.new()
+	var locked: bool = EquipmentEnhancer.is_item_locked(_selected_item)
+	btn.text = "ロック解除" if locked else "ロックする"
+	UiTypography.apply_menu_button(btn)
+	btn.pressed.connect(_on_catalog_detail_lock_pressed)
+	row.add_child(btn)
+
+func _on_catalog_detail_lock_pressed() -> void:
+	if _selected_item == null:
+		return
+	_toggle_catalog_item_lock(_selected_item, _selected_category, _selected_cell_btn)
 
 func _attach_item_icon(
 	btn: Button,
@@ -507,7 +639,8 @@ func _apply_item_badges(
 	EquipmentUiHelper.apply_equip_level_badge(btn, item, size)
 	if category == "weapon":
 		EquipmentUiHelper.apply_enhance_badge(btn, item, category, size, COLOR_GOLD)
-	## 装備中の「装」は出さない。ドロップ直後は中央 New 点滅。
+	## 装備中の「装」は出さない。ドロップ直後は中央 New 点滅。ロックは右下。
+	EquipmentUiHelper.apply_lock_badge(btn, item, size)
 	EquipmentUiHelper.apply_new_badge(btn, item, size)
 
 func _add_corner_badge(
