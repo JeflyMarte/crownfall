@@ -5,9 +5,9 @@
 
 [sub_resource type="Resource" id="Stats_jack"]
 script = ExtResource("2")
-hp = 630
-attack = 105
-defense = 53
+hp = 750
+attack = 85
+defense = 58
 
 [resource]
 script = ExtResource("1")

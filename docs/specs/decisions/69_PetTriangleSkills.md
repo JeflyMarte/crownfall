@@ -23,4 +23,4 @@
 - `resources/pets/pet_*.tres`
 - `resources/skills/pet_*`
 - `PetSystem.create_pet_adventurer`／`sync_pet_runtime`
-- `docs/specs/decisions/67_PetSupportBuff.md`（基礎ステ×1.5は維持）
+- `docs/specs/decisions/67_PetSupportBuff.md`（基礎ステは **`88_PetStatDiverge.md` で差分化**）

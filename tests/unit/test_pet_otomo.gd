@@ -128,17 +128,23 @@ func test_pet_data_and_skills_exist() -> void:
 	assert_false(_PetSystem.sprite_path_for(GameState.active_pet).is_empty())
 
 
-func test_pet_base_stats_are_buffed_150() -> void:
-	## P3-BAL-PET-SUPPORT-001: 基礎 ×1.5 → 630/105/53
-	for pid: String in ["pet_jack", "pet_ash", "pet_ink"]:
-		var data: Resource = _PetSystem.get_pet_data(pid)
-		assert_not_null(data, pid)
-		assert_eq(int(data.base_stats.hp), 630, pid)
-		assert_eq(int(data.base_stats.attack), 105, pid)
-		assert_eq(int(data.base_stats.defense), 53, pid)
-	assert_eq(int(GameState.active_pet.base_stats.hp), 630)
-	assert_eq(int(GameState.active_pet.base_stats.attack), 105)
-	assert_eq(int(GameState.active_pet.base_stats.defense), 53)
+func test_pet_base_stats_diverge_by_role() -> void:
+	## P3-BAL-PET-STAT-DIVERGE-001: ジャック耐久／アッシュ火力／インク基準
+	var jack: Resource = _PetSystem.get_pet_data("pet_jack")
+	assert_eq(int(jack.base_stats.hp), 750)
+	assert_eq(int(jack.base_stats.attack), 85)
+	assert_eq(int(jack.base_stats.defense), 58)
+	var ash: Resource = _PetSystem.get_pet_data("pet_ash")
+	assert_eq(int(ash.base_stats.hp), 580)
+	assert_eq(int(ash.base_stats.attack), 130)
+	assert_eq(int(ash.base_stats.defense), 42)
+	var ink: Resource = _PetSystem.get_pet_data("pet_ink")
+	assert_eq(int(ink.base_stats.hp), 630)
+	assert_eq(int(ink.base_stats.attack), 105)
+	assert_eq(int(ink.base_stats.defense), 53)
+	assert_eq(int(GameState.active_pet.base_stats.hp), 750)
+	assert_eq(int(GameState.active_pet.base_stats.attack), 85)
+	assert_eq(int(GameState.active_pet.base_stats.defense), 58)
 
 
 func test_jack_skills_are_support_oriented() -> void:

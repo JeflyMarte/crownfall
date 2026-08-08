@@ -5,9 +5,9 @@
 
 [sub_resource type="Resource" id="Stats_ash"]
 script = ExtResource("2")
-hp = 630
-attack = 105
-defense = 53
+hp = 580
+attack = 130
+defense = 42
 
 [resource]
 script = ExtResource("1")

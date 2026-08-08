@@ -100,7 +100,7 @@ static func create_pet_adventurer(pet_id: String = STARTER_PET_ID) -> Resource:
 		stats.attack = int(data.base_stats.attack)
 		stats.defense = int(data.base_stats.defense)
 	else:
-		## P3-BAL-PET-SUPPORT-001: 基礎×1.5（630/105/53）
+		## P3-BAL-PET-STAT-DIVERGE-001: PetData 欠落時のフォールバック（インク基準）
 		stats.hp = 630
 		stats.attack = 105
 		stats.defense = 53

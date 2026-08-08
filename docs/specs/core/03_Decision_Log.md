@@ -7475,3 +7475,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-PET-JACK-KIT-001-4 | `guard_minor` 新設（被ダメ×0.8）・`guard` と相互排他 | 「少し防御」 |
 | P3-BAL-PET-JACK-KIT-001-5 | 旧 remap: rend→crack／savage→ward／nibble→bulwark | セーブ互換 |
 | P3-BAL-PET-JACK-KIT-001-6 | **SSOT**＝`87_JackSkillKit.md`（`69`／`78`／`42` 上書き） | Decision 本体 |
+
+## ペット基礎ステ差分化（2026-08-08 — P3-BAL-PET-STAT-DIVERGE-001）
+
+> **オーナー GO（案B）** — スキル据置のまま、基礎ステだけ役割差を付ける。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-PET-STAT-DIVERGE-001-1 | ジャック **750/85/58**（HP高・ATK低） | サポート耐久 |
+| P3-BAL-PET-STAT-DIVERGE-001-2 | アッシュ **580/130/42**（ATK高・DEF低） | 火力 |
+| P3-BAL-PET-STAT-DIVERGE-001-3 | インク **630/105/53**（旧×1.5基準） | バランス |
+| P3-BAL-PET-STAT-DIVERGE-001-4 | **上書き** — P3-BAL-PET-SUPPORT-001 同一ステ／P3-PET-VARIANT-001-2 のステ同一 | 本 Decision が正 |
+| P3-BAL-PET-STAT-DIVERGE-001-5 | **SSOT**＝`88_PetStatDiverge.md` | Decision 本体 |
