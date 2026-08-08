@@ -16,7 +16,7 @@
 | 下帯サイズが部屋／段階で変わる（22↔26） | `NARRATIVE_BAND_FONT_SIZE` 固定。`_set_room_narrative_bbcode` に size 引数を持たせない |
 | Rich `fit_content` で説明1行↔報酬複数行の枠高が跳ぶ | `NARRATIVE_BAND_HEIGHT_PX` 固定＋縦中央。Rich は `fit_content=false` |
 | 入手行が文字だけ（アイコン無し） | `NonCombatNarrativeColors` の金／素材／武飾／加護に汎用 `[img]` |
-| 碑文加護を自動フェードで消す／泉に緑数字無し／宝箱を単色 Label | 碑文は次フロアまで。泉は緑VFX＋緑数字。宝箱は BBCode で金／武／飾色分け |
+| 碑文加護を自動フェードで消す／泉に緑数字無し／宝箱を単色 Label | 碑文テロップは次フロア入場まで。加護効果は次の戦闘フロアまで。泉は緑VFX＋緑数字。宝箱は BBCode で金／武／飾色分け |
 | 野戦調合／野営の調合で緑VFXだけ・+N無し／即 hide | `_present_member_heal`（VFX+緑数字）。非戦闘入場は短い hold 後に `_end_noncombat_party_feedback` |
 | 分かれ道・応急手当がログだけ／暗転中に演出／中央テロップだけ違う | HPは入場時適用、VFX・+N・**スキル名ポップ**・SEは暗転明け（戦闘は `_on_room_transition_finished`、非戦闘は overlay 待ち）。中央 display テロップ禁止。SEは泉と同型で直鳴らし |
 

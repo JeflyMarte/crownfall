@@ -280,6 +280,7 @@ func test_floor_choice_offer_slots_random_among_eligible() -> void:
 func test_lore_and_choice_stack_on_same_kind() -> void:
 	var dc: Node = _make_dc([Enums.RoomType.COMBAT, Enums.RoomType.COMBAT])
 	dc.floor_blessing_kind = "exp"
+	dc.floor_blessing_start_index = 1
 	dc.floor_blessing_room_index = 1
 	dc.grant_floor_choice_harvest(["exp", "gold"])
 	dc.current_room_index = 1

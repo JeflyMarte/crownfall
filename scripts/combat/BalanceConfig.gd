@@ -181,7 +181,7 @@ const LORE_FIRST_GOLD: int = 20
 const LORE_REPEAT_GOLD: int = 10
 const LORE_FIRST_MATERIAL_CHANCE: float = 0.10
 const LORE_FIRST_ACCESSORY_CHANCE: float = 0.08
-## 碑文成功時: 次フロアの EXP／Gold／装備ドロップ率のいずれか ×1.1。
+## 碑文成功時: 次部屋〜次の戦闘フロアまでの EXP／Gold／装備ドロップ率のいずれか ×1.1。
 const LORE_FLOOR_BLESSING_MULT: float = 1.1
 const LORE_FLOOR_BLESSING_KINDS: Array[String] = ["exp", "gold", "equip"]
 

@@ -515,9 +515,12 @@ var last_abyss_weather_rerolled: bool = false
 var last_abyss_weather_changed: bool = false
 var current_event: Dictionary = {}
 var run_damage_multiplier: float = 1.0
-## 碑文加護: 次フロア（部屋）限定。kind = exp|gold|equip。
+## 碑文加護: 次部屋〜次の戦闘フロアまで。kind = exp|gold|equip。
 var floor_blessing_kind: String = ""
+## 有効終了部屋（次の戦闘フロア index。動的再計算のフォールバック／表示用）。
 var floor_blessing_room_index: int = -1
+## 有効開始部屋（付与直後の次の部屋）。
+var floor_blessing_start_index: int = -1
 ## 分かれ道（P3-DG-FLOOR-CHOICE-001）: 次フロア限定。
 var floor_choice_room_index: int = -1
 var floor_choice_damage_mult: float = 1.0
@@ -804,13 +807,58 @@ func advance_room() -> void:
 func _clear_floor_blessing() -> void:
 	floor_blessing_kind = ""
 	floor_blessing_room_index = -1
+	floor_blessing_start_index = -1
+
+
+func _room_type_is_combat_floor(room_type: int) -> bool:
+	return (
+		room_type == Enums.RoomType.COMBAT
+		or room_type == Enums.RoomType.ELITE
+		or room_type == Enums.RoomType.BOSS
+	)
+
+
+## from_i 以降で最初の戦闘フロア。無いときは from_i（1部屋フォールバック）。
+func _next_combat_room_index(from_i: int) -> int:
+	if from_i < 0:
+		return -1
+	for i: int in range(from_i, room_sequence.size()):
+		if _room_type_is_combat_floor(int(room_sequence[i])):
+			return i
+	return from_i
+
+
+func _floor_blessing_end_index() -> int:
+	if floor_blessing_kind.is_empty():
+		return -1
+	var start_i: int = floor_blessing_start_index
+	if start_i < 0:
+		## 旧データ／テスト互換: room_index のみならその1部屋。
+		return floor_blessing_room_index
+	return _next_combat_room_index(start_i)
+
+
+func _is_floor_blessing_active_here() -> bool:
+	if floor_blessing_kind.is_empty():
+		return false
+	var start_i: int = floor_blessing_start_index
+	if start_i < 0:
+		return current_room_index == floor_blessing_room_index
+	var end_i: int = _floor_blessing_end_index()
+	return current_room_index >= start_i and current_room_index <= end_i
 
 
 func _expire_floor_blessing_if_needed() -> void:
 	if floor_blessing_kind.is_empty():
 		return
-	if current_room_index > floor_blessing_room_index:
+	var end_i: int = _floor_blessing_end_index()
+	if end_i < 0:
+		return
+	if current_room_index > end_i:
 		_clear_floor_blessing()
+	else:
+		## 表示・デバッグ用に終了 index を同期（深層チャンク延長後も追従）。
+		floor_blessing_room_index = end_i
 
 
 func _clear_floor_choice() -> void:
@@ -828,13 +876,14 @@ func _expire_floor_choice_if_needed() -> void:
 		_clear_floor_choice()
 
 
-## 碑文成功時。次フロア向けに EXP／Gold／装備ドロップのいずれか ×1.1。
+## 碑文成功時。次部屋〜次の戦闘フロアまで EXP／Gold／装備ドロップのいずれか ×1.1。
 func grant_lore_floor_blessing() -> Dictionary:
 	var kinds: Array[String] = BalanceConfig.LORE_FLOOR_BLESSING_KINDS.duplicate()
 	if kinds.is_empty():
 		return {}
 	floor_blessing_kind = str(kinds[randi() % kinds.size()])
-	floor_blessing_room_index = current_room_index + 1
+	floor_blessing_start_index = current_room_index + 1
+	floor_blessing_room_index = _floor_blessing_end_index()
 	return {
 		"kind": floor_blessing_kind,
 		"mult": BalanceConfig.LORE_FLOOR_BLESSING_MULT,
@@ -861,7 +910,7 @@ func floor_blessing_mult_for(kind: String) -> float:
 	if (
 		not floor_blessing_kind.is_empty()
 		and floor_blessing_kind == kind
-		and current_room_index == floor_blessing_room_index
+		and _is_floor_blessing_active_here()
 	):
 		mult *= BalanceConfig.LORE_FLOOR_BLESSING_MULT
 	if (
@@ -873,10 +922,7 @@ func floor_blessing_mult_for(kind: String) -> float:
 
 
 func has_active_floor_blessing() -> bool:
-	return (
-		not floor_blessing_kind.is_empty()
-		and current_room_index == floor_blessing_room_index
-	)
+	return _is_floor_blessing_active_here()
 
 
 func get_effective_run_damage_multiplier() -> float:

@@ -3942,7 +3942,7 @@ func _enter_current_room() -> void:
 		var kind: String = $DungeonController.floor_blessing_kind
 		var label: String = $DungeonController.floor_blessing_label(kind)
 		_append_log(
-			"[加護] 碑文の加護（%s ×%.1f）がこのフロアで有効"
+			"[加護] 碑文の加護（%s ×%.1f）が次の戦闘フロアまで有効"
 			% [label, BalanceConfig.LORE_FLOOR_BLESSING_MULT]
 		)
 	_apply_floor_choice_on_enter()
@@ -5081,8 +5081,8 @@ func _apply_lore_success_bonuses(first_time: bool) -> PackedStringArray:
 	if not bless.is_empty():
 		var label: String = str(bless.get("label", ""))
 		var mult: float = float(bless.get("mult", 1.1))
-		## 成功画面向けに短く（「次のフロアの経験値 ×1.1」）。
-		lines.append("加護: 次フロアの%s ×%.1f" % [label, mult])
+		## 成功画面向けに短く（「次の戦闘フロアまでの経験値 ×1.1」）。
+		lines.append("加護: 次の戦闘フロアまでの%s ×%.1f" % [label, mult])
 		_play_lore_floor_blessing_fx()
 		GameState.record_run_modifier("碑文の加護")
 	return lines

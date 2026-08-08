@@ -7594,3 +7594,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-PASSIVE-EKREWC-001-3 | **ウォール** — `garm_caravan_guard` → 不屈の鼓動。3秒ごとHP2%＋ヘイト70 | W-C |
 | P3-BAL-PASSIVE-EKREWC-001-4 | **id 据置**。開幕最傷回復／脆弱付与／致死耐えは廃止 | 互換 |
 | P3-BAL-PASSIVE-EKREWC-001-5 | **SSOT** — `92_PassiveRedesignEKREWC.md`／`70_PassiveKitLock.md` 追記 | Decision 本体 |
+
+## 碑文加護を次の戦闘フロアまで（2026-08-08 — P3-BAL-LORE-BLESS-COMBAT-001）
+
+> **オーナー指示** — 経験値アップ等の碑文バフは次フロア限りではなく、次の戦闘フロアまで持続。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-LORE-BLESS-COMBAT-001-1 | 碑文加護は **次部屋〜次の COMBAT／ELITE／BOSS まで**有効 | 非戦闘を挟むと無効化する穴 |
+| P3-BAL-LORE-BLESS-COMBAT-001-2 | 種類は据置（exp／gold／equip のいずれか ×1.1） | 変更なし |
+| P3-BAL-LORE-BLESS-COMBAT-001-3 | 分かれ道三択の寿命は据置（次が戦闘限定のため） | 本変更の対象外 |
+| P3-BAL-LORE-BLESS-COMBAT-001-4 | **SSOT** — `10_NonCombatTension.md` §3.1 | Decision 本体 |

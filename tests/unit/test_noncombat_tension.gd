@@ -56,19 +56,51 @@ func test_lore_floor_blessing_mult() -> void:
 	assert_eq(BalanceConfig.LORE_FLOOR_BLESSING_KINDS.size(), 3)
 
 
-func test_lore_floor_blessing_applies_on_next_room_only() -> void:
+func test_lore_floor_blessing_applies_until_next_combat() -> void:
 	var dc = _DungeonController.new()
+	dc.room_sequence = [
+		Enums.RoomType.COMBAT,
+		Enums.RoomType.EVENT,
+		Enums.RoomType.EVENT,
+		Enums.RoomType.TREASURE,
+		Enums.RoomType.COMBAT,
+		Enums.RoomType.COMBAT,
+	] as Array[int]
 	dc.current_room_index = 2
 	dc.floor_blessing_kind = ""
 	dc.floor_blessing_room_index = -1
+	dc.floor_blessing_start_index = -1
 	var granted: Dictionary = dc.grant_lore_floor_blessing()
 	assert_false(granted.is_empty())
-	assert_eq(int(dc.floor_blessing_room_index), 3)
+	assert_eq(int(dc.floor_blessing_start_index), 3)
+	assert_eq(int(dc.floor_blessing_room_index), 4)
 	assert_almost_eq(dc.floor_blessing_mult_for(str(granted["kind"])), 1.0, 0.0001)
 	dc.current_room_index = 3
 	assert_almost_eq(dc.floor_blessing_mult_for(str(granted["kind"])), 1.1, 0.0001)
 	assert_almost_eq(dc.floor_blessing_mult_for("nope"), 1.0, 0.0001)
 	dc.current_room_index = 4
+	assert_almost_eq(dc.floor_blessing_mult_for(str(granted["kind"])), 1.1, 0.0001)
+	dc.current_room_index = 5
+	dc._expire_floor_blessing_if_needed()
+	assert_eq(dc.floor_blessing_kind, "")
+	dc.free()
+
+
+func test_lore_floor_blessing_next_room_combat_is_one_floor() -> void:
+	var dc = _DungeonController.new()
+	dc.room_sequence = [
+		Enums.RoomType.EVENT,
+		Enums.RoomType.EVENT,
+		Enums.RoomType.COMBAT,
+		Enums.RoomType.COMBAT,
+	] as Array[int]
+	dc.current_room_index = 1
+	var granted: Dictionary = dc.grant_lore_floor_blessing()
+	assert_eq(int(dc.floor_blessing_start_index), 2)
+	assert_eq(int(dc.floor_blessing_room_index), 2)
+	dc.current_room_index = 2
+	assert_almost_eq(dc.floor_blessing_mult_for(str(granted["kind"])), 1.1, 0.0001)
+	dc.current_room_index = 3
 	dc._expire_floor_blessing_if_needed()
 	assert_eq(dc.floor_blessing_kind, "")
 	dc.free()
