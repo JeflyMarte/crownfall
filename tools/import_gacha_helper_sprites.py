@@ -46,6 +46,11 @@ HELPER_MAP = {
 	"ホダカ": ("helper_p", "CHR_Helper_p"),
 }
 
+## 戦闘 idle(=walk) の FPS。既定 8。カクつきやすい個体は上げる。
+WALK_SPEED_BY_HELPER: dict[str, float] = {
+	"helper_n": 12.0,  # ボルグ
+}
+
 ANIM_MAP = {
 	"walk": "walk",
 	"atack": "attack",
@@ -220,10 +225,11 @@ def write_sprite_frames(folder_id: str, tres_stem: str, counts: dict[str, int]) 
 	walk_frames = ", ".join(
 		f'{{"duration": 1.0, "texture": ExtResource("{i}")}}' for i in range(1, walk_n + 1)
 	)
+	walk_speed = float(WALK_SPEED_BY_HELPER.get(folder_id, 8.0))
 	lines.append(f'"frames": [{walk_frames}],')
 	lines.append('"loop": true,')
 	lines.append('"name": &"idle",')
-	lines.append('"speed": 8.0')
+	lines.append(f'"speed": {walk_speed}')
 	lines.append("}, {")
 
 	cursor = walk_n + 1

@@ -23,12 +23,14 @@ const AUTO_DELAY_GRIND: float = 0.6
 const CHR_BODY_TARGET_PX: float = 140.0
 ## 個体ごとの体格補正（正規化後）。職全体には掛けない（助っ人ヴァンガード等を誤って大きくしない）。
 const CHR_BODY_TARGET_MULT_BY_MEMBER_ID: Dictionary = {
-	"adventurer_0": 1.06, ## アルド（約148px・ほんの少し縮小）
+	"adventurer_0": 1.03, ## アルド（約144px）
 	"adventurer_3": 1.10, ## ガレン（154px）
-	"gacha_helper_e": 1.05, ## ルーシェ（約147px・ほんの少し拡大）
+	"gacha_helper_b": 1.05, ## イヴァル（約147px）
+	"gacha_helper_e": 1.05, ## ルーシェ（約147px）
 	"gacha_helper_f": 1.10, ## カイダ（154px）
 	"gacha_helper_k": 150.0 / 140.0, ## レノール（150px）
-	"gacha_helper_m": 1.05, ## シアン（約147px・ほんの少し拡大）
+	"gacha_helper_m": 1.05, ## シアン（約147px）
+	"gacha_helper_n": 1.05, ## ボルグ（約147px）
 	"gacha_helper_p": 1.20, ## 火鷹（168px）
 }
 ## ペットは味方より一回り小さく（P3-PET-OTOMO-001 polish）
