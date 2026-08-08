@@ -53,8 +53,8 @@ func test_perform_alchemy_raises_base_and_removes_fodder() -> void:
 	assert_eq(GameState.inventory.size(), 1)
 	assert_true(base in GameState.inventory)
 	assert_false(fodder in GameState.inventory)
-	## Lv10素材 → +2 / 帯×1.5 → 360G（P3-BAL-ALCHEMY-GOLD-AB-001）
-	assert_eq(GameState.gold, 1000 - 360)
+	## Lv10素材 → +2 / 帯×1.5 / ◇×1 → 540G（P3-BAL-ALCHEMY-RARITY-GOLD-001）
+	assert_eq(GameState.gold, 1000 - 540)
 
 
 func test_alchemy_rejects_different_categories() -> void:
@@ -77,14 +77,22 @@ func test_alchemy_caps_at_99() -> void:
 	assert_true(bool(result.get("ok", false)))
 	assert_eq(int(base.equip_level), 99)
 	assert_eq(int(result.get("gain", 0)), 2)
-	## Lv20素材 → 帯×1.5 → 2×120×1.5=360G（P3-BAL-ALCHEMY-GOLD-AB-001）
-	assert_eq(GameState.gold, 1000 - 360)
+	## Lv20素材 → 帯×1.5 → 2×180×1.5=540G（P3-BAL-ALCHEMY-RARITY-GOLD-001）
+	assert_eq(GameState.gold, 1000 - 540)
 
 
 func test_alchemy_gold_tier_mult() -> void:
-	assert_eq(EquipmentEnhancer.alchemy_gold_cost(5, 10), 900)
-	assert_eq(EquipmentEnhancer.alchemy_gold_cost(5, 21), 1200)
-	assert_eq(EquipmentEnhancer.alchemy_gold_cost(5, 51), 1800)
+	assert_eq(EquipmentEnhancer.alchemy_gold_cost(5, 10), 1350)
+	assert_eq(EquipmentEnhancer.alchemy_gold_cost(5, 21), 1800)
+	assert_eq(EquipmentEnhancer.alchemy_gold_cost(5, 51), 2700)
+
+
+func test_alchemy_gold_scales_with_base_rarity() -> void:
+	## 主材レアで炉研ぎと同倍率。
+	assert_eq(EquipmentEnhancer.alchemy_gold_cost(5, 10, Enums.Rarity.COMMON), 1350)
+	assert_eq(EquipmentEnhancer.alchemy_gold_cost(5, 10, Enums.Rarity.RARE), 1688)
+	assert_eq(EquipmentEnhancer.alchemy_gold_cost(5, 10, Enums.Rarity.EPIC), 2160)
+	assert_eq(EquipmentEnhancer.alchemy_gold_cost(5, 10, Enums.Rarity.LEGENDARY), 4050)
 
 
 func test_alchemy_allows_equipped_base_and_unequips_fodder() -> void:

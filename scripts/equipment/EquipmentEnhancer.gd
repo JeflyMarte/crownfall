@@ -27,8 +27,8 @@ const EQUIP_EXP_PER_LEVEL: int = 5
 const DISMANTLE_CRAFT_RETURN_CAP: float = 0.8
 ## 錬成 — P3-FORGE-ALCHEMY-001／上昇量は P3-BAL-ALCHEMY-GAIN-025-001
 const ALCHEMY_LEVEL_FACTOR: float = 0.25
-## P3-BAL-ALCHEMY-GOLD-AB-001（オーナー A+B）: 単価 60→120／帯 1–20×1.5・21–50×2・51+×3
-const ALCHEMY_GOLD_PER_GAIN: int = 120
+## P3-BAL-ALCHEMY-RARITY-GOLD-001: 単価180＋主材レア倍率（炉研ぎと同表）。帯は AB-001 据置。
+const ALCHEMY_GOLD_PER_GAIN: int = 180
 const ALCHEMY_CONFIRM_ENHANCE_LEVEL: int = 3
 
 const GOLD_BY_NEXT_LEVEL: Dictionary = {
@@ -495,9 +495,16 @@ static func alchemy_gold_tier_mult(fodder_level: int) -> float:
 	return 1.5
 
 
-static func alchemy_gold_cost(applied_gain: int, fodder_level: int = 1) -> int:
-	var mult: float = alchemy_gold_tier_mult(fodder_level)
-	return int(ceil(float(maxi(0, applied_gain) * ALCHEMY_GOLD_PER_GAIN) * mult))
+## 実上昇×単価×帯×主材レア倍率（炉研ぎ `FORGE_GOLD_RARITY_MULT` と同表）。
+static func alchemy_gold_cost(
+	applied_gain: int,
+	fodder_level: int = 1,
+	base_rarity: int = Enums.Rarity.COMMON
+) -> int:
+	var tier: float = alchemy_gold_tier_mult(fodder_level)
+	var rarity_mult: float = forge_gold_rarity_mult(base_rarity)
+	var raw: float = float(maxi(0, applied_gain) * ALCHEMY_GOLD_PER_GAIN) * tier * rarity_mult
+	return int(ceil(raw))
 
 
 static func alchemy_needs_confirm(fodder: Resource) -> bool:
@@ -519,7 +526,7 @@ static func alchemy_preview(base: Resource, fodder: Resource) -> Dictionary:
 	var gain_raw: int = alchemy_level_gain(fodder)
 	var to_lv: int = mini(EQUIP_MAX_LEVEL, from_lv + gain_raw)
 	var applied: int = to_lv - from_lv
-	var gold: int = alchemy_gold_cost(applied, get_equip_level(fodder))
+	var gold: int = alchemy_gold_cost(applied, get_equip_level(fodder), item_rarity(base))
 	return {
 		"ok": true,
 		"reason": "",
@@ -558,7 +565,7 @@ static func can_alchemy(base: Resource, fodder: Resource) -> Dictionary:
 	var applied: int = to_lv - from_lv
 	if applied <= 0:
 		return fail.call("レベルが上がりません")
-	var gold: int = alchemy_gold_cost(applied, get_equip_level(fodder))
+	var gold: int = alchemy_gold_cost(applied, get_equip_level(fodder), item_rarity(base))
 	if GameState.gold < gold:
 		return fail.call("ゴールドが足りません")
 	return {

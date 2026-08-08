@@ -2146,10 +2146,9 @@ func _update_reforge_action(item: Resource, forge_at_max: bool) -> void:
 		_reason_label.visible = false
 	if forge_at_max:
 		## +5 時は焼直しコストを詳細に出す（炉研ぎコストは無し）。
-		var rarity: int = _EquipmentEnhancer.item_rarity(item)
-		var gold_cost: int = int(check.get("gold_cost", _EquipmentReforgeHelper.get_gold_cost(rarity)))
+		var gold_cost: int = int(check.get("gold_cost", _EquipmentReforgeHelper.get_gold_cost(item)))
 		var materials: Dictionary = check.get(
-			"materials", _EquipmentReforgeHelper.get_material_cost(rarity)
+			"materials", _EquipmentReforgeHelper.get_material_cost(item)
 		)
 		if _selected_reforge_mod_index >= 0:
 			_update_cost_panel(gold_cost, materials)

@@ -2,46 +2,30 @@ class_name EquipmentReforgeHelper
 extends RefCounted
 
 ## 鍛冶屋「焼直し」— 武器／防具／装飾の random_mods 1枠再抽選（P3-FORGE-REFORGE-001）。
+## Gold／素材は炉研ぎと同じ（次段。上限到達時は +5 相当 — P3-BAL-REFORGE-MATCH-FORGE-001）。
 
 const _ERM = preload("res://scripts/equipment/EquipmentRandomMods.gd")
 const _Enh = preload("res://scripts/equipment/EquipmentEnhancer.gd")
 
-## P3-BAL-FORGE-GOLD-HEAVY-001: 焼直しも底上げ。L／エンシェント／ミシックは重い。
-const GOLD_BY_RARITY: Dictionary = {
-	Enums.Rarity.COMMON: 100,
-	Enums.Rarity.RARE: 160,
-	Enums.Rarity.EPIC: 250,
-	Enums.Rarity.LEGENDARY: 500,
-	Enums.Rarity.MYTHIC: 800,
-	Enums.Rarity.SET: 700,
-}
+
+## 炉研ぎの「次に払う段」（+5 済みなら +5 コスト）。
+static func forge_step_level(item: Resource) -> int:
+	var cur: int = _Enh.get_enhance_level(item)
+	if cur >= _Enh.MAX_FORGE_LEVEL:
+		return _Enh.MAX_FORGE_LEVEL
+	return cur + 1
 
 
-static func get_gold_cost(item_rarity: int) -> int:
-	var r: int = clampi(item_rarity, Enums.Rarity.COMMON, Enums.Rarity.SET)
-	return int(GOLD_BY_RARITY.get(r, 100))
+static func get_gold_cost(item: Resource) -> int:
+	if item == null:
+		return 0
+	return _Enh.get_gold_cost(forge_step_level(item), _Enh.item_rarity(item))
 
 
-static func get_material_cost(item_rarity: int) -> Dictionary:
-	var r: int = clampi(item_rarity, Enums.Rarity.COMMON, Enums.Rarity.LEGENDARY)
-	match r:
-		Enums.Rarity.COMMON, Enums.Rarity.RARE:
-			return {
-				_Enh.COMMON_MATERIAL_ID: 1,
-				_Enh.BASE_ORE_ID: 1,
-			}
-		Enums.Rarity.EPIC:
-			return {
-				_Enh.COMMON_MATERIAL_ID: 2,
-				_Enh.RARE_ORE_ID: 1,
-			}
-		Enums.Rarity.LEGENDARY:
-			return {
-				_Enh.COMMON_MATERIAL_ID: 2,
-				_Enh.LEGEND_ORE_ID: 1,
-			}
-		_:
-			return {_Enh.COMMON_MATERIAL_ID: 1, _Enh.BASE_ORE_ID: 1}
+static func get_material_cost(item: Resource) -> Dictionary:
+	if item == null:
+		return {}
+	return _Enh.get_material_cost(forge_step_level(item), _Enh.item_rarity(item))
 
 
 static func is_mod_reforgeable(mod: Dictionary) -> bool:
@@ -75,9 +59,8 @@ static func can_reforge(item: Resource, mod_index: int) -> Dictionary:
 		return fail.call("効果の選択が不正です")
 	if not is_mod_reforgeable(mod as Dictionary):
 		return fail.call("この効果は焼直しできません")
-	var rarity: int = _Enh.item_rarity(item)
-	var gold_cost: int = get_gold_cost(rarity)
-	var materials: Dictionary = get_material_cost(rarity)
+	var gold_cost: int = get_gold_cost(item)
+	var materials: Dictionary = get_material_cost(item)
 	if GameState.gold < gold_cost:
 		return fail.call("ゴールドが足りません")
 	if not CraftHelper.has_enough_materials(materials):

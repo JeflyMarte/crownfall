@@ -175,16 +175,27 @@ func test_armor_and_accessory_can_reforge() -> void:
 	assert_true(bool(xres.get("ok", false)), str(xres))
 
 
-func test_cost_table_by_rarity() -> void:
-	assert_eq(_Reforge.get_gold_cost(Enums.Rarity.COMMON), 100)
-	assert_eq(_Reforge.get_gold_cost(Enums.Rarity.RARE), 160)
-	assert_eq(_Reforge.get_gold_cost(Enums.Rarity.EPIC), 250)
-	assert_eq(_Reforge.get_gold_cost(Enums.Rarity.LEGENDARY), 500)
-	assert_eq(_Reforge.get_gold_cost(Enums.Rarity.SET), 700)
-	assert_eq(_Reforge.get_gold_cost(Enums.Rarity.MYTHIC), 800)
-	var epic_mats: Dictionary = _Reforge.get_material_cost(Enums.Rarity.EPIC)
-	assert_eq(int(epic_mats.get("relic_shard", 0)), 2)
-	assert_eq(int(epic_mats.get("ancient_bone", 0)), 1)
+func test_cost_matches_forge_step() -> void:
+	## P3-BAL-REFORGE-MATCH-FORGE-001: 焼直し Gold／素材＝炉研ぎ次段。
+	var inst: Resource = _make_weapon("iron_sword")
+	inst.enhance_level = 0
+	assert_eq(_Reforge.forge_step_level(inst), 1)
+	assert_eq(_Reforge.get_gold_cost(inst), EquipmentEnhancer.get_gold_cost(1, Enums.Rarity.COMMON))
+	var mats0: Dictionary = _Reforge.get_material_cost(inst)
+	var forge0: Dictionary = EquipmentEnhancer.get_material_cost(1, Enums.Rarity.COMMON)
+	assert_eq(mats0.hash(), forge0.hash(), "mats should match forge +1")
+	for k: Variant in forge0.keys():
+		assert_eq(int(mats0.get(k, -1)), int(forge0[k]), str(k))
+	inst.enhance_level = 4
+	assert_eq(_Reforge.forge_step_level(inst), 5)
+	assert_eq(_Reforge.get_gold_cost(inst), EquipmentEnhancer.get_gold_cost(5, Enums.Rarity.COMMON))
+	inst.enhance_level = 5
+	assert_eq(_Reforge.forge_step_level(inst), 5)
+	assert_eq(_Reforge.get_gold_cost(inst), EquipmentEnhancer.get_gold_cost(5, Enums.Rarity.COMMON))
+	assert_eq(EquipmentEnhancer.get_gold_cost(1, Enums.Rarity.LEGENDARY), 300)
+	var epic_mats: Dictionary = EquipmentEnhancer.get_material_cost(1, Enums.Rarity.EPIC)
+	assert_eq(int(epic_mats.get("relic_shard", 0)), 1)
+	assert_eq(int(epic_mats.get("epic_ore", 0)), 1)
 
 
 func test_stat_rows_include_mod_index_for_reforge_mark() -> void:

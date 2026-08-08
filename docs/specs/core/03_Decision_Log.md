@@ -7569,3 +7569,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-CRAFT-GOLD-C-001-2 | **素材** — `MATERIALS_BY_RARITY` 据置 | スコープを Gold のみに |
 | P3-BAL-CRAFT-GOLD-C-001-3 | **上書き** — P3-BAL-FORGE-GOLD-HEAVY-001-5 の生産 Gold | 本 Decision が正 |
 | P3-BAL-CRAFT-GOLD-C-001-4 | **SSOT** — `90_CraftGoldCapC.md`／`CraftHelper.GOLD_BY_RARITY` | Decision 本体 |
+
+## 錬成レアGold＋焼直し＝炉研ぎ（2026-08-08 — P3-BAL-ALCHEMY-RARITY-GOLD-001 / P3-BAL-REFORGE-MATCH-FORGE-001）
+
+> **オーナー指示** — 錬成Goldをレア比例で上げる。焼直しコストは強化と同じ。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-ALCHEMY-RARITY-GOLD-001-1 | **単価** — 120→**180** | 全体が安い |
+| P3-BAL-ALCHEMY-RARITY-GOLD-001-2 | **レア倍率** — 炉研ぎ `FORGE_GOLD_RARITY_MULT` を主材に適用 | 比例の正 |
+| P3-BAL-ALCHEMY-RARITY-GOLD-001-3 | **帯** — AB-001 据置（1.5／2／3） | 変更なし |
+| P3-BAL-REFORGE-MATCH-FORGE-001-1 | **焼直し Gold／素材** — 炉研ぎ次段と同一（+5 済みは +5 相当） | オーナー指定 |
+| P3-BAL-REFORGE-MATCH-FORGE-001-2 | **上書き** — HEAVY-001-4 の焼直し固定表／AB-001 の「レア無し」 | 本 Decision が正 |
+| P3-BAL-ALCHEMY-RARITY-GOLD-001-4 | **SSOT** — `91_AlchemyRarityGoldReforgeMatch.md` | Decision 本体 |
