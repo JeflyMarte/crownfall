@@ -69,7 +69,7 @@ func test_new_aoe_and_party_skills_exist() -> void:
 		assert_not_null(sk, sid)
 		assert_eq(str(sk.target_type), "all_enemies", sid)
 		assert_eq(str(sk.effect_type), "damage", sid)
-	var party_ids: Array[String] = ["bulwark_aura", "rally_vapors", "herd_call", "offensive_stance", "trail_ward"]
+	var party_ids: Array[String] = ["bulwark_aura", "rally_vapors", "herd_call", "offensive_stance"]
 	for sid in party_ids:
 		var sk2: Resource = DataRegistry.get_skill_data(sid)
 		assert_not_null(sk2, sid)
@@ -95,7 +95,7 @@ func test_riposte_stance_is_self_guard_counter() -> void:
 func test_trail_ward_exploration_tag() -> void:
 	var ward: Resource = DataRegistry.get_skill_data("trail_ward")
 	assert_true(ward.tags.has("exploration"))
-	assert_eq(str(ward.apply_status_id), "guard_minor")
+	assert_true(ward.tags.has("equip_passive"))
 
 
 func test_vg_theme_skills() -> void:
@@ -197,13 +197,23 @@ func test_attuned_bolt_uses_weapon_element() -> void:
 	assert_true(str(bolt.element).is_empty())
 	assert_true(bolt.tags.has("weapon_element"))
 	assert_eq(str(bolt.effect_type), "damage")
+	assert_almost_eq(float(bolt.power_multiplier), 1.5, 0.001)
+	assert_almost_eq(float(bolt.apply_status_chance), 0.3, 0.001)
 	assert_eq(SkillProgression.remap_equipped_skill_id("frail_dust"), "attuned_bolt")
+	assert_eq(ElementResolver.status_id_for_element("fire"), "ignite")
+	assert_eq(ElementResolver.status_id_for_element("ice"), "chill")
+	assert_eq(ElementResolver.status_id_for_element("lightning"), "shock")
+	assert_eq(ElementResolver.status_id_for_element("dark"), "curse")
+	assert_eq(ElementResolver.status_id_for_element("holy"), "vulnerable")
 
 
-func test_trail_ward_noncombat_heal_constant() -> void:
+func test_trail_ward_equip_passive_only() -> void:
 	assert_almost_eq(CombatPassives.TRAIL_WARD_NONCOMBAT_HEAL_FRAC, 0.05, 0.001)
 	assert_almost_eq(CombatPassives.TRAIL_WARD_TRAP_MULT, 0.75, 0.001)
 	var ward: Resource = DataRegistry.get_skill_data("trail_ward")
+	assert_true(ward.tags.has("equip_passive"))
+	assert_eq(str(ward.effect_type), "none")
+	assert_true(str(ward.apply_status_id).is_empty())
 	assert_true(str(ward.description).contains("5%"))
 	assert_true(str(ward.description).contains("罠"))
 

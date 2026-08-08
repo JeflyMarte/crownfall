@@ -1472,6 +1472,8 @@ func _member_has_ready_skill(member_idx: int, ctx: Dictionary) -> bool:
 		var sd: Resource = DataRegistry.get_skill_data(sid)
 		if sd == null:
 			continue
+		if sd.tags.has("equip_passive"):
+			continue
 		if not CombatTactics.skill_reserve_met(sd, ctx):
 			continue
 		if _skill_executor.can_cast(sd, _member_skill_cd_key(member_idx, sd)):
@@ -5620,6 +5622,20 @@ func _apply_skill_status_to_enemy_slot(member_idx: int, skill_data: Resource, ta
 	if skill_data == null or target_slot < 0 or not $CombatController.is_enemy_slot_alive(target_slot):
 		return
 	var base_info: Dictionary = _calc_attack_base(member_idx)
+	if skill_data.tags.has("weapon_element") and skill_data.apply_status_chance > 0.0:
+		var elem: String = _resolve_skill_element(skill_data, member_idx)
+		var elem_sid: String = ElementResolverScript.status_id_for_element(elem)
+		if not elem_sid.is_empty():
+			if randf() <= EvolutionTraits.effective_status_chance(member_idx, skill_data.apply_status_chance):
+				if $CombatController.apply_status_to_enemy_slot(
+					target_slot, elem_sid, 1, base_info["base_damage"]
+				):
+					_party_applied_enemy_status(member_idx, target_slot, elem_sid)
+					var elem_eff: Resource = DataRegistry.get_status_effect(elem_sid)
+					var elem_label: String = elem_sid
+					if elem_eff != null:
+						elem_label = elem_eff.display_name
+					_append_log("[%s] 付与" % elem_label)
 	if not skill_data.apply_status_id.is_empty() and skill_data.apply_status_chance > 0.0:
 		if randf() <= EvolutionTraits.effective_status_chance(member_idx, skill_data.apply_status_chance):
 			if $CombatController.apply_status_to_enemy_slot(
@@ -8810,6 +8826,9 @@ func _try_member_weapon_skill(member_idx: int) -> bool:
 # スキル詠唱開始または即時発動（P3-D112）。Action Lock 中は _do_member_turn がここを経由しない。
 func _try_cast_member_skill(member_idx: int, skill_data: Resource, is_ultimate: bool) -> bool:
 	if skill_data == null:
+		return false
+	## 装備効果のみの探索技（踏破の護符など）は戦闘で撃たない。
+	if skill_data.tags.has("equip_passive"):
 		return false
 	if _is_member_skill_silenced(member_idx):
 		return false

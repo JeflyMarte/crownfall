@@ -46,6 +46,23 @@ static func get_weapon_prefix(element_id: String) -> String:
 		return ""
 	return str(ELEMENT_WEAPON_PREFIX.get(eid, ""))
 
+
+## 属性攻撃スキル用の対応状態（炎→炎上など）。未対応は空。
+static func status_id_for_element(element_id: String) -> String:
+	match normalize_element_id(element_id):
+		"fire":
+			return "ignite"
+		"ice":
+			return "chill"
+		"thunder":
+			return "shock"
+		"dark":
+			return "curse"
+		"holy":
+			return "vulnerable"
+		_:
+			return ""
+
 static func get_damage_multiplier(
 	attack_element: String,
 	weakness: Array[String],
