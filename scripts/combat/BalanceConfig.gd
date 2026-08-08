@@ -108,6 +108,15 @@ const ROOM_HEAL_AMOUNT: int = 10 * STAT_SCALE
 ## 泉成功時の回復割合（各生存者）。
 const ROOM_HEAL_MAX_HP_FRAC: float = 0.18
 
+# ── ボス／エリート CC（行動SKIP）耐性 P3-BAL-BOSS-CC-RESIST-001 ──
+## SKIP 抽選倍率（1行動1回・最大確率に乗算）。
+const CC_SKIP_MULT_BOSS: float = 0.5
+const CC_SKIP_MULT_ELITE: float = 0.75
+## ボスへのスタン付与 tick（通常 stun.tres=2 → 短縮）。
+const CC_STUN_DURATION_TICKS_BOSS: int = 1
+## 鈍化など interval_multiplier>1 の代理スキップ確率（耐性倍率の前）。
+const CC_INTERVAL_PROXY_SKIP_CHANCE: float = 0.5
+
 # ── 探索罠（最大HP割合 / P3-BAL-TRAP-TIER-001） ───────────────────────
 ## 配列 index = DungeonTierConfig TIER_NORMAL / HARD / NIGHTMARE
 ## 単体被弾（探索／罠部屋）

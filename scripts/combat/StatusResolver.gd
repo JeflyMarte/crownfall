@@ -25,7 +25,8 @@ func apply_status(
 	unit_id: String,
 	effect_id: String,
 	stacks_to_add: int = 1,
-	source_attack: int = 0
+	source_attack: int = 0,
+	duration_override: int = -1
 ) -> bool:
 	if effect_id.is_empty():
 		return false
@@ -37,10 +38,13 @@ func apply_status(
 		_active[unit_id] = []
 	var instances: Array = _active[unit_id]
 	_remove_exclusive_statuses(instances, effect_id)
+	var ticks: int = int(effect.duration_ticks)
+	if duration_override >= 0:
+		ticks = duration_override
 	for inst: StatusInstance in instances:
 		if inst.effect_id == effect_id:
 			inst.stacks = mini(effect.max_stacks, inst.stacks + stacks_to_add)
-			inst.remaining_ticks = effect.duration_ticks
+			inst.remaining_ticks = ticks
 			if source_attack > 0:
 				inst.source_attack = source_attack
 			return true
@@ -49,7 +53,7 @@ func apply_status(
 	var new_inst := StatusInstance.new()
 	new_inst.effect_id = effect_id
 	new_inst.stacks = mini(stacks_to_add, effect.max_stacks)
-	new_inst.remaining_ticks = effect.duration_ticks
+	new_inst.remaining_ticks = ticks
 	new_inst.source_attack = source_attack
 	instances.append(new_inst)
 	return true
@@ -135,47 +139,56 @@ func consume_status(unit_id: String, effect_id: String) -> int:
 		_active[unit_id] = survivors
 	return removed
 
-func should_skip_action(unit_id: String) -> bool:
-	if not _active.has(unit_id):
+## 1行動あたり最大1回の SKIP 抽選（P3-BAL-BOSS-CC-RESIST-001）。
+## `chance_mult`: ボス0.5／エリート0.75／通常1.0。
+func should_skip_action(unit_id: String, chance_mult: float = 1.0) -> bool:
+	var chance: float = best_skip_action_chance(unit_id) * maxf(0.0, chance_mult)
+	if chance <= 0.0:
 		return false
+	return randf() < clampf(chance, 0.0, 1.0)
+
+
+## 付与中 SKIP 系の最大確率（耐性倍率前）。鈍化は interval 代理。
+func best_skip_action_chance(unit_id: String) -> float:
+	if not _active.has(unit_id):
+		return 0.0
+	var best: float = 0.0
 	for inst: StatusInstance in _active[unit_id]:
 		var effect: Resource = DataRegistry.get_status_effect(inst.effect_id)
 		if effect == null:
 			continue
-		## skip_action_chance と interval_multiplier 代理は同一効果で二重抽選しない。
+		var chance: float = 0.0
 		if effect.skip_action_chance > 0.0:
-			if randf() < effect.skip_action_chance:
-				return true
+			chance = float(effect.skip_action_chance)
 		elif effect.effect_type == "stat_mod" and effect.interval_multiplier > 1.0:
-			if randf() < 0.5:
-				return true
-	return false
+			chance = BalanceConfig.CC_INTERVAL_PROXY_SKIP_CHANCE
+		if chance > best:
+			best = chance
+	return best
 
 
-## Guaranteed skip only (stun etc. with chance >= 1). No RNG — safe for UI preview.
-func has_guaranteed_action_skip(unit_id: String) -> bool:
-	if not _active.has(unit_id):
-		return false
-	for inst: StatusInstance in _active[unit_id]:
-		var effect: Resource = DataRegistry.get_status_effect(inst.effect_id)
-		if effect == null:
-			continue
-		if effect.skip_action_chance >= 1.0:
-			return true
-	return false
+## Guaranteed skip only (effective chance >= 1). No RNG — safe for UI preview.
+func has_guaranteed_action_skip(unit_id: String, chance_mult: float = 1.0) -> bool:
+	return best_skip_action_chance(unit_id) * maxf(0.0, chance_mult) >= 1.0
 
 func get_skip_action_label(unit_id: String) -> String:
 	if not _active.has(unit_id):
 		return ""
+	var best: float = -1.0
+	var label: String = ""
 	for inst: StatusInstance in _active[unit_id]:
 		var effect: Resource = DataRegistry.get_status_effect(inst.effect_id)
 		if effect == null:
 			continue
-		if effect.skip_action_chance > 0.0 or (
-			effect.effect_type == "stat_mod" and effect.interval_multiplier > 1.0
-		):
-			return effect.display_name
-	return ""
+		var chance: float = 0.0
+		if effect.skip_action_chance > 0.0:
+			chance = float(effect.skip_action_chance)
+		elif effect.effect_type == "stat_mod" and effect.interval_multiplier > 1.0:
+			chance = BalanceConfig.CC_INTERVAL_PROXY_SKIP_CHANCE
+		if chance > best:
+			best = chance
+			label = str(effect.display_name)
+	return label
 
 func get_outgoing_damage_multiplier(unit_id: String) -> float:
 	var mult: float = 1.0

@@ -1156,7 +1156,13 @@ func apply_status(
 			return false
 		if _ArmorStatResolver.member_immune_to_status(member_idx, effect_id):
 			return false
-	return _status_resolver.apply_status(unit_id, effect_id, stacks, source_attack)
+		return _status_resolver.apply_status(unit_id, effect_id, stacks, source_attack)
+	var duration_override: int = -1
+	if unit_id.begins_with("enemy_") and effect_id == "stun":
+		var slot: int = int(unit_id.substr(6))
+		if enemy_cc_tier_at(slot) == "boss":
+			duration_override = BalanceConfig.CC_STUN_DURATION_TICKS_BOSS
+	return _status_resolver.apply_status(unit_id, effect_id, stacks, source_attack, duration_override)
 
 func apply_status_to_active_enemy(
 	effect_id: String,
@@ -1172,6 +1178,50 @@ func apply_status_to_enemy_slot(
 	source_attack: int = 0
 ) -> bool:
 	return apply_status(enemy_status_unit_id(slot), effect_id, stacks, source_attack)
+
+
+## "boss" | "elite" | "normal"（P3-BAL-BOSS-CC-RESIST-001）。
+func enemy_cc_tier_at(slot: int) -> String:
+	var data: Resource = get_enemy_data_at(slot)
+	if data == null:
+		return "normal"
+	var et: int = int(data.enemy_type)
+	if et == Enums.EnemyType.BOSS:
+		return "boss"
+	if et == Enums.EnemyType.ELITE:
+		return "elite"
+	return "normal"
+
+
+func enemy_cc_skip_mult_at(slot: int) -> float:
+	match enemy_cc_tier_at(slot):
+		"boss":
+			return BalanceConfig.CC_SKIP_MULT_BOSS
+		"elite":
+			return BalanceConfig.CC_SKIP_MULT_ELITE
+		_:
+			return 1.0
+
+
+func should_enemy_skip_action_at(slot: int) -> bool:
+	return _status_resolver.should_skip_action(
+		enemy_status_unit_id(slot), enemy_cc_skip_mult_at(slot)
+	)
+
+func should_enemy_skip_action() -> bool:
+	return should_enemy_skip_action_at(active_enemy_index)
+
+## Status-forced skip only (no RNG). Safe for Now Playing / turn-order badges.
+func peek_enemy_status_skip_at(slot: int) -> bool:
+	return _status_resolver.has_guaranteed_action_skip(
+		enemy_status_unit_id(slot), enemy_cc_skip_mult_at(slot)
+	)
+
+func get_enemy_skip_action_label_at(slot: int) -> String:
+	return _status_resolver.get_skip_action_label(enemy_status_unit_id(slot))
+
+func get_enemy_skip_action_label() -> String:
+	return get_enemy_skip_action_label_at(active_enemy_index)
 
 func apply_damage_to_enemy_slot(slot: int, amount: int) -> void:
 	if not is_in_combat:
@@ -1217,22 +1267,6 @@ func tick_all_statuses() -> Array[Dictionary]:
 		if is_member_alive(i):
 			results.append_array(_status_resolver.tick_unit("party_%d" % i))
 	return results
-
-func should_enemy_skip_action_at(slot: int) -> bool:
-	return _status_resolver.should_skip_action(enemy_status_unit_id(slot))
-
-func should_enemy_skip_action() -> bool:
-	return should_enemy_skip_action_at(active_enemy_index)
-
-## Status-forced skip only (no RNG). Safe for Now Playing / turn-order badges.
-func peek_enemy_status_skip_at(slot: int) -> bool:
-	return _status_resolver.has_guaranteed_action_skip(enemy_status_unit_id(slot))
-
-func get_enemy_skip_action_label_at(slot: int) -> String:
-	return _status_resolver.get_skip_action_label(enemy_status_unit_id(slot))
-
-func get_enemy_skip_action_label() -> String:
-	return get_enemy_skip_action_label_at(active_enemy_index)
 
 func should_member_skip_action_at(member_index: int) -> bool:
 	if member_index < 0 or member_index >= party_combat_hp.size():
