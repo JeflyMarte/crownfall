@@ -36,10 +36,12 @@ func _make_weapon(level: int, rarity_hint_id: String = "iron_sword") -> Resource
 	return item
 
 
-func test_alchemy_gain_is_half_fodder_level_min_1() -> void:
+func test_alchemy_gain_is_quarter_fodder_level_min_1() -> void:
+	## P3-BAL-ALCHEMY-GAIN-025-001: floor(素材Lv×0.25)、最低1
 	assert_eq(EquipmentEnhancer.alchemy_level_gain(_make_weapon(1)), 1)
-	assert_eq(EquipmentEnhancer.alchemy_level_gain(_make_weapon(10)), 5)
-	assert_eq(EquipmentEnhancer.alchemy_level_gain(_make_weapon(11)), 5)
+	assert_eq(EquipmentEnhancer.alchemy_level_gain(_make_weapon(10)), 2)
+	assert_eq(EquipmentEnhancer.alchemy_level_gain(_make_weapon(11)), 2)
+	assert_eq(EquipmentEnhancer.alchemy_level_gain(_make_weapon(40)), 10)
 
 
 func test_perform_alchemy_raises_base_and_removes_fodder() -> void:
@@ -47,12 +49,12 @@ func test_perform_alchemy_raises_base_and_removes_fodder() -> void:
 	var fodder: Resource = _make_weapon(10)
 	var result: Dictionary = EquipmentEnhancer.perform_alchemy(base, fodder)
 	assert_true(bool(result.get("ok", false)), str(result))
-	assert_eq(int(base.equip_level), 17)
+	assert_eq(int(base.equip_level), 14)
 	assert_eq(GameState.inventory.size(), 1)
 	assert_true(base in GameState.inventory)
 	assert_false(fodder in GameState.inventory)
-	## Lv10素材 → +5 / 帯×1.5 → 900G（P3-BAL-ALCHEMY-GOLD-AB-001）
-	assert_eq(GameState.gold, 1000 - 900)
+	## Lv10素材 → +2 / 帯×1.5 → 360G（P3-BAL-ALCHEMY-GOLD-AB-001）
+	assert_eq(GameState.gold, 1000 - 360)
 
 
 func test_alchemy_rejects_different_categories() -> void:
@@ -99,7 +101,7 @@ func test_alchemy_allows_equipped_base_and_unequips_fodder() -> void:
 	assert_true(EquipmentEnhancer.alchemy_needs_confirm(fodder))
 	var result: Dictionary = EquipmentEnhancer.perform_alchemy(base, fodder)
 	assert_true(bool(result.get("ok", false)), str(result))
-	assert_eq(int(base.equip_level), 17)
+	assert_eq(int(base.equip_level), 14)
 	assert_eq(member_b.equipped_weapon, null, "fodder must be unequipped before remove")
 	assert_false(fodder in GameState.inventory)
 	assert_eq(member_a.equipped_weapon, base, "base stays equipped")

@@ -3904,7 +3904,7 @@ ELITE/BOSS/遍在希少種（P3-D166）は別枠。重みは **当該 Biome 雑�
 | # | 決定 | 根拠 |
 |---|---|---|
 | P3-FORGE-ALCHEMY-001-1 | **同種のみ**（武器↔武器 / 防具↔防具 / 装飾↔装飾）。同一ID不要 | 在庫が回り、育成用途に合う |
-| P3-FORGE-ALCHEMY-001-2 | **上昇** — `max(1, floor(素材Lv × 0.5))`。結果は 99 まで。実上昇量で Gold 計算 | わかりやすさ |
+| P3-FORGE-ALCHEMY-001-2 | **上昇** — 旧 `×0.5` → **P3-BAL-ALCHEMY-GAIN-025-001** で `×0.25`。結果は 99 まで。実上昇量で Gold 計算 | わかりやすさ |
 | P3-FORGE-ALCHEMY-001-3 | **Gold** — 旧 `20 × 実上昇` → **P3-BAL-ECO-001** で `30 × 実上昇` → **P3-BAL-FORGE-002** で素材Lv帯倍率を追加 | シンク強化 |
 | P3-FORGE-ALCHEMY-001-4 | **引き継ぎなし** — レア／ロール／接頭接尾／炉研ぎ＋は主材維持。素材は消滅（分解報酬なし） | 軸分離 |
 | P3-FORGE-ALCHEMY-001-5 | **（旧）装備中不可**（主材・素材とも）。★3以上 or 炉研ぎ+3以上素材は確認ダイアログ | 事故防止 |
@@ -7475,6 +7475,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-PET-JACK-KIT-001-4 | `guard_minor` 新設（被ダメ×0.8）・`guard` と相互排他 | 「少し防御」 |
 | P3-BAL-PET-JACK-KIT-001-5 | 旧 remap: rend→crack／savage→ward／nibble→bulwark | セーブ互換 |
 | P3-BAL-PET-JACK-KIT-001-6 | **SSOT**＝`87_JackSkillKit.md`（`69`／`78`／`42` 上書き） | Decision 本体 |
+
+## 錬成Lv上昇×0.25（2026-08-08 — P3-BAL-ALCHEMY-GAIN-025-001）
+
+> **オーナー GO（案B）** — 錬成1回の装備Lv伸びが速すぎるため上昇係数を半減相当に。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-ALCHEMY-GAIN-025-001-1 | **上昇** — `max(1, floor(素材Lv × 0.25))`（旧 ×0.5） | 伸び速度を約半分 |
+| P3-BAL-ALCHEMY-GAIN-025-001-2 | **据置** — Gold式（120×上昇×帯）／同種のみ／99上限 | Goldは上がり量に連動して自然減 |
+| P3-BAL-ALCHEMY-GAIN-025-001-3 | **SSOT** — `EquipmentEnhancer.ALCHEMY_LEVEL_FACTOR`／`P3-FORGE-ALCHEMY-001-2` 上書き | 実装正 |
 
 ## 調査室・編成バックアップ再修復（2026-08-08 — P3-FIX-SURVEY-PARTY-BACKUP-001）
 
