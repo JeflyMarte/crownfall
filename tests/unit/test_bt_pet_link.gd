@@ -44,18 +44,21 @@ func test_beast_tamer_learns_pet_skills() -> void:
 
 func test_mirei_poison_fang_and_pack_instinct() -> void:
 	var mirei: Dictionary = CombatPassives.get_def("mirei_swarm_resonance")
-	assert_eq(str(mirei.get("display_name", "")), "毒牙の共鳴")
-	assert_eq(str(mirei.get("status_id", "")), "poison")
-	assert_almost_eq(float(mirei.get("status_chance", 0.0)), 0.20, 0.001)
-	assert_almost_eq(float(mirei.get("pet_outgoing_mult", 1.0)), 1.5, 0.001)
-	assert_almost_eq(float(mirei.get("pet_defense_mult", 1.0)), 1.5, 0.001)
-	assert_almost_eq(float(mirei.get("pet_max_hp_mult", 1.0)), 1.5, 0.001)
+	assert_eq(str(mirei.get("display_name", "")), "毒牙")
+	assert_eq(str(mirei.get("effect", "")), "random_enemy_status")
+	assert_true(mirei.get("status_pool", []).has("poison"))
+	assert_almost_eq(float(mirei.get("status_chance", 0.0)), 0.28, 0.001)
+	assert_false(mirei.has("pet_outgoing_mult"))
 	var pack: Dictionary = CombatPassives.get_def("pack_instinct")
 	assert_eq(str(pack.get("display_name", "")), "群れの指揮")
 	assert_eq(float(pack.get("pet_outgoing_mult", 1.0)), 1.10)
 
 
-func test_pet_outgoing_mult_from_mirei() -> void:
-	## ミレイ編成時はペット与ダメ ×1.5
-	var mult: float = CombatPassives.pet_outgoing_mult_from_party()
-	assert_almost_eq(mult, 1.5, 0.001)
+func test_pet_outgoing_mult_from_neri_not_mirei() -> void:
+	## ミレイ単体ではペット倍率なし。ネリ編成で ×1.25。
+	assert_almost_eq(CombatPassives.pet_outgoing_mult_from_party(), 1.0, 0.001)
+	var neri: Resource = Adventurer.new()
+	neri.id = "gacha_helper_o"
+	neri.job_id = "beast_tamer"
+	GameState.party_members = [neri]
+	assert_almost_eq(CombatPassives.pet_outgoing_mult_from_party(), 1.25, 0.001)

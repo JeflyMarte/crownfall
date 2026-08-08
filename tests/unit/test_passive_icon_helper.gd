@@ -26,13 +26,13 @@ func test_unknown_passive_uses_fallback_icon() -> void:
 	assert_not_null(_PassiveIconHelper.make_icon("nonexistent_passive"))
 
 
-func test_elias_field_elixir_uses_vial_not_sword_fallback() -> void:
-	var vial: String = "res://assets/ui/passives/ICO_PASSIVE_SpareVial.png"
-	if not ResourceLoader.exists(vial):
-		pass_test("spare vial art not installed")
+func test_elias_field_elixir_uses_hex_not_sword_fallback() -> void:
+	var hex: String = "res://assets/ui/skills/base/ICO_SKILL_BASE_Hex_fg.png"
+	if not ResourceLoader.exists(hex):
+		pass_test("hex art not installed")
 		return
 	var path: String = _PassiveIconHelper.resolve_texture_path("elias_field_elixir")
-	assert_eq(path, vial)
+	assert_eq(path, hex)
 	assert_ne(path, _PassiveIconHelper.FALLBACK_PATH)
 
 
@@ -40,7 +40,7 @@ func test_base_roster_passive_icons_are_thematic() -> void:
 	var expected: Dictionary = {
 		"ald_royal_flame": "res://assets/ui/status/ICO_STA_Bleed.png",
 		"riva_lone_focus": "res://assets/ui/skills/base/ICO_SKILL_BASE_Mark_fg.png",
-		"elias_field_elixir": "res://assets/ui/passives/ICO_PASSIVE_SpareVial.png",
+		"elias_field_elixir": "res://assets/ui/skills/base/ICO_SKILL_BASE_Hex_fg.png",
 		"galen_sacred_bastion": "res://assets/ui/passives/ICO_PASSIVE_Bulwark.png",
 		"mirei_swarm_resonance": "res://assets/ui/status/ICO_STA_Poison.png",
 	}

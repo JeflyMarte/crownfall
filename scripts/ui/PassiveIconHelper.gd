@@ -14,7 +14,7 @@ const ICON_ALIAS: Dictionary = {
 	"ald_royal_flame": "sword_charge",
 	"galen_sacred_bastion": "bulwark",
 	"mirei_swarm_resonance": "tamer_whistle",
-	"elias_field_elixir": "spare_vial",
+	"elias_field_elixir": "field_medic",
 	# ガチャ助っ人
 	"leon_sword_focus": "sword_charge",
 	"durante_vial_echo": "spare_vial",
@@ -26,10 +26,10 @@ const ICON_ALIAS: Dictionary = {
 	"garm_caravan_guard": "greatshield_order",
 	"lenore_seal_echo": "sword_charge",
 	"torva_frost_breath": "battle_fervor",
-	"borg_gate_voice": "wind_reading",
+	"borg_gate_voice": "bulwark",
 	"neri_waterfowl_call": "pack_instinct",
 	"hodaka_blood_price": "battle_fervor",
-	"sian_silent_line": "formation_eye",
+	"sian_silent_line": "foresight",
 }
 
 ## パッシブ群に近い絵が無い場合の直接パス（スキルベース等）。
@@ -38,6 +38,9 @@ const ICON_PATH_OVERRIDE: Dictionary = {
 	"riva_lone_focus": "res://assets/ui/skills/base/ICO_SKILL_BASE_Mark_fg.png",
 	"mirei_swarm_resonance": "res://assets/ui/status/ICO_STA_Poison.png",
 	"lenore_seal_echo": "res://assets/ui/skills/base/ICO_SKILL_BASE_Hex_fg.png",
+	"elias_field_elixir": "res://assets/ui/skills/base/ICO_SKILL_BASE_Hex_fg.png",
+	"sian_silent_line": "res://assets/ui/status/ICO_STA_Chill.png",
+	"mira_beast_call": "res://assets/ui/status/ICO_STA_Bleed.png",
 }
 
 

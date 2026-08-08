@@ -7627,8 +7627,8 @@ func _apply_member_lifesteal(member_idx: int, damage: int, skill_id: String = ""
 		return
 	if not $CombatController.is_member_alive(member_idx):
 		return
-	var ratio: float = CombatPassives.relic_lifesteal_ratio(member_idx)
 	var sid: String = str(skill_id)
+	var ratio: float = CombatPassives.member_lifesteal_ratio(member_idx, sid)
 	if not sid.is_empty() and sid != "basic_attack" and sid != "counter_attack":
 		var sd: Resource = DataRegistry.get_skill_data(sid)
 		if sd != null and sd.tags.has("drain"):

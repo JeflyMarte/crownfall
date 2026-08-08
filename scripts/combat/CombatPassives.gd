@@ -16,7 +16,8 @@ extends RefCounted
 ##   party_outgoing_mult / party_incoming_mult / death_save_once / death_save_chance /
 ##   death_save_heal_max_hp_fraction / death_save_outgoing_mult / death_save_outgoing_duration_sec /
 ##   exploration_damage_immune / exploration_damage_party_mult /
-##   outgoing_mult_requires_hp_below / outgoing_vs_status_mult / outgoing_vs_buff_mult /
+##   outgoing_mult_requires_hp_below / elemental_outgoing_mult / outgoing_vs_status_mult / outgoing_vs_buff_mult /
+##   lifesteal_ratio / lifesteal_basic_only /
 ##   pet_outgoing_mult / pet_defense_mult / pet_max_hp_mult / pet_revive_on_combat_end_chance /
 ##   pet_heal_on_action_max_hp_fraction / threat_base_add /
 ##   redirect_rear_hit_chance / lifesteal_ratio / combat_regen_* / treasure_room_weight_add /
@@ -114,14 +115,9 @@ const _DEFS: Dictionary = {
 		"cooldown": 0.0,
 	},
 	"elias_field_elixir": {
-		"display_name": "野営の残り香",
-		"description": "戦闘終了時、生存している味方のHPを20%回復する。",
-		"trigger": "on_combat_end",
-		"condition": "always",
-		"effect": "heal",
-		"target": "party",
-		"heal_max_hp_fraction": 0.20,
-		"cooldown": 0.0,
+		"display_name": "万象の触媒",
+		"description": "属性つきの攻撃・スキルの与ダメージが20%上昇する。",
+		"elemental_outgoing_mult": 1.20,
 	},
 	"galen_sacred_bastion": {
 		"display_name": "聖盾の砦",
@@ -130,18 +126,14 @@ const _DEFS: Dictionary = {
 		"threat_base_add": 80.0,
 	},
 	"mirei_swarm_resonance": {
-		"display_name": "毒牙の共鳴",
-		"description": "攻撃時20%の確率で敵に毒を付与する。ペットのステータスが1.5倍になる。",
+		"display_name": "毒牙",
+		"description": "攻撃時28%の確率で、毒・出血・炎上のいずれかを付与する。",
 		"trigger": "on_attack",
 		"condition": "always",
-		"effect": "apply_status",
-		"status_id": "poison",
-		"target": "enemy",
-		"status_chance": 0.20,
+		"effect": "random_enemy_status",
+		"status_pool": ["poison", "bleed", "ignite"],
+		"status_chance": 0.28,
 		"cooldown": 0.0,
-		"pet_outgoing_mult": 1.5,
-		"pet_defense_mult": 1.5,
-		"pet_max_hp_mult": 1.5,
 	},
 	# ---- ジョブフォールバック（非基本ロスター・助っ人等） ----
 	"bulwark": {
@@ -201,16 +193,10 @@ const _DEFS: Dictionary = {
 		"cooldown": 0.0,
 	},
 	"mira_beast_call": {
-		"display_name": "獣呼びの絆",
-		"description": "攻撃時20%の確率で敵に冷却を付与する。自分の行動時、ペットのHPを最大の10%回復する。",
-		"trigger": "on_attack",
-		"condition": "always",
-		"effect": "apply_status",
-		"status_id": "chill",
-		"target": "enemy",
-		"status_chance": 0.20,
-		"cooldown": 0.0,
-		"pet_heal_on_action_max_hp_fraction": 0.10,
+		"display_name": "血契の矢",
+		"description": "通常攻撃の与ダメージの15%を自身のHPとして吸収する。",
+		"lifesteal_ratio": 0.15,
+		"lifesteal_basic_only": true,
 	},
 	"valden_iron_oath": {
 		"display_name": "鉄誓の壁",
@@ -241,34 +227,30 @@ const _DEFS: Dictionary = {
 		"first_attack_mult": 1.5,
 	},
 	"sian_silent_line": {
-		"display_name": "静寂の構え",
-		"description": "後列のとき回避が上がる。戦闘中の最初の攻撃で敵に標的を付与する。",
-		"back_row_evasion_rate_add": 0.18,
+		"display_name": "沈黙の罠糸",
+		"description": "攻撃時28%の確率で、冷却・鈍化・恐怖のいずれかを付与する。",
 		"trigger": "on_attack",
 		"condition": "always",
-		"effect": "apply_status",
-		"status_id": "mark",
-		"target": "enemy",
-		"status_chance": 1.0,
-		"once_per_combat": true,
+		"effect": "random_enemy_status",
+		"status_pool": ["chill", "slow", "fear"],
+		"status_chance": 0.28,
 		"cooldown": 0.0,
 	},
 	"borg_gate_voice": {
-		"display_name": "門前の残像",
-		"description": "戦闘開始時、自身の回避が大きく上昇する（その戦闘中）。",
-		"trigger": "on_combat_start",
+		"display_name": "門前の応撃",
+		"description": "攻撃を受けたとき、通常攻撃相当で反撃する（再使用3.5秒）。",
+		"trigger": "on_hit_taken",
 		"condition": "always",
-		"effect": "grant_self_evasion",
-		"evasion_add": 0.22,
-		"cooldown": 0.0,
+		"effect": "counter_attack",
+		"cooldown": 3.5,
 	},
 	"neri_waterfowl_call": {
 		"display_name": "水鳥の指揮",
-		"description": "ペットのステータスが1.2倍になる。戦闘終了時、戦闘不能のペットを30%の確率で蘇生する。",
-		"pet_outgoing_mult": 1.2,
-		"pet_defense_mult": 1.2,
-		"pet_max_hp_mult": 1.2,
-		"pet_revive_on_combat_end_chance": 0.30,
+		"description": "ペットのステータスが1.25倍になる。戦闘終了時、戦闘不能のペットを25%の確率で蘇生する。",
+		"pet_outgoing_mult": 1.25,
+		"pet_defense_mult": 1.25,
+		"pet_max_hp_mult": 1.25,
+		"pet_revive_on_combat_end_chance": 0.25,
 		"pet_revive_max_hp_fraction": 0.30,
 	},
 	## プール助っ人 — 火鷹★4（撃破鼓舞＋行動スキップ）
@@ -1240,6 +1222,7 @@ static func character_stat_modifiers_for_member(member_index: int, hp_ratio: flo
 		"outgoing_mult": 1.0,
 		"incoming_mult": 1.0,
 		"first_attack_mult": 1.0,
+		"elemental_outgoing_mult": 1.0,
 	}
 	if member_index < 0 or member_index >= GameState.party_members.size():
 		return out
@@ -1254,7 +1237,9 @@ static func character_stat_modifiers_for_member(member_index: int, hp_ratio: flo
 			out["evasion_rate_add"] += float(def["evasion_rate_add"])
 		if def.has("back_row_evasion_rate_add") and GameState.is_member_back_row(member_index):
 			out["evasion_rate_add"] += float(def["back_row_evasion_rate_add"])
-		for key: String in ["ultimate_power_mult", "exp_gain_mult", "incoming_mult", "first_attack_mult"]:
+		for key: String in [
+			"ultimate_power_mult", "exp_gain_mult", "incoming_mult", "first_attack_mult", "elemental_outgoing_mult"
+		]:
 			if def.has(key):
 				out[key] *= float(def[key])
 		if def.has("outgoing_mult"):
@@ -1840,6 +1825,28 @@ static func redirect_rear_hit_chance_for(member_index: int) -> float:
 
 static func relic_lifesteal_ratio(member_index: int) -> float:
 	return maxf(0.0, equipped_relic_float(member_index, "lifesteal_ratio", 0.0))
+
+
+## レリック＋キャラ固有の吸血率。`lifesteal_basic_only` は通常攻撃のみ加算。
+static func member_lifesteal_ratio(member_index: int, skill_id: String = "") -> float:
+	var ratio: float = relic_lifesteal_ratio(member_index)
+	if member_index < 0 or member_index >= GameState.party_members.size():
+		return ratio
+	var member: Resource = GameState.party_members[member_index]
+	var sid: String = str(skill_id)
+	var is_basic: bool = sid.is_empty() or sid == "basic_attack"
+	for raw_def: Variant in for_member(member):
+		if raw_def is not Dictionary:
+			continue
+		var def: Dictionary = raw_def
+		if str(def.get("category", "")) == "relic":
+			continue
+		if not def.has("lifesteal_ratio"):
+			continue
+		if bool(def.get("lifesteal_basic_only", false)) and not is_basic:
+			continue
+		ratio += maxf(0.0, float(def["lifesteal_ratio"]))
+	return ratio
 
 
 ## 戦闘リジェネ定義（interval/fraction 両方あるレリック・キャラパッシブ）。

@@ -84,6 +84,7 @@ static func scale_passive_def(def: Dictionary, breakthrough: int) -> Dictionary:
 	for key: String in [
 		"outgoing_mult",
 		"outgoing_vs_status_mult",
+		"elemental_outgoing_mult",
 		"first_attack_mult",
 		"ultimate_power_mult",
 		"skill_power_mult",
@@ -123,6 +124,8 @@ static func scale_passive_def(def: Dictionary, breakthrough: int) -> Dictionary:
 		out["combat_regen_max_hp_fraction"] = minf(
 			0.05, float(out["combat_regen_max_hp_fraction"]) * scale
 		)
+	if out.has("lifesteal_ratio"):
+		out["lifesteal_ratio"] = minf(0.35, float(out["lifesteal_ratio"]) * scale)
 	if str(out.get("effect", "")) == "grant_party_incoming_mult" and out.has("mult"):
 		out["mult"] = _scale_mult_below_one(float(out["mult"]), scale)
 	if str(out.get("effect", "")) == "heal" and out.has("value"):

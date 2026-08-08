@@ -137,11 +137,11 @@ static func _status_label(status_id: String) -> String:
 ## パーセンテージとして本文中に埋め込まれる想定のスケール対象フィールド（生値0..1 → 表示%）。
 const _PASSIVE_SCALE_RATE_FIELDS: Array[String] = [
 	"status_chance", "evasion_rate_add", "incoming_block_chance",
-	"death_save_chance", "heal_max_hp_fraction",
+	"death_save_chance", "heal_max_hp_fraction", "lifesteal_ratio",
 ]
 ## ボーナス系倍率フィールド（(値-1)*100 が本文の%として埋め込まれる）。
 const _PASSIVE_SCALE_BONUS_MULT_FIELDS: Array[String] = [
-	"outgoing_mult", "pet_outgoing_mult", "ultimate_power_mult",
+	"outgoing_mult", "elemental_outgoing_mult", "pet_outgoing_mult", "ultimate_power_mult",
 	"skill_power_mult", "exp_gain_mult", "party_exp_gain_mult", "speed_mult",
 ]
 

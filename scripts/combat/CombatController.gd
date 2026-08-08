@@ -1308,6 +1308,13 @@ func get_member_outgoing_damage_multiplier(
 		mult *= GameState.formation_range_outgoing_multiplier(member_index, action_range)
 	mult *= _EvolutionTraits.member_outgoing_mult(member_index, is_skill, attack_element)
 	if not attack_element.is_empty():
+		var elem_any: float = float(
+			CombatPassives.character_stat_modifiers_for_member(member_index, hp_ratio).get(
+				"elemental_outgoing_mult", 1.0
+			)
+		)
+		if elem_any > 0.0 and not is_equal_approx(elem_any, 1.0):
+			mult *= elem_any
 		var elem_mults: Dictionary = CombatPassives.weapon_stat_modifiers_for_member(member_index).get("element_outgoing_mult", {})
 		if elem_mults is Dictionary and elem_mults.has(attack_element):
 			mult *= float(elem_mults[attack_element])

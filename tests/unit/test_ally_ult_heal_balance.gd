@@ -1,6 +1,6 @@
 extends GutTest
 
-## タイタンロア強化。エリアス固有は戦闘終了時パーティ中回復（E-K）。セリンは予備瓶。
+## タイタンロア強化。エリアス固有は属性全般。セリンは予備瓶。
 
 
 func test_titan_roar_recommended_buff() -> void:
@@ -14,12 +14,10 @@ func test_titan_roar_recommended_buff() -> void:
 	assert_true(skill.tags.has("taunt"))
 
 
-func test_elias_field_elixir_combat_end_party_20() -> void:
+func test_elias_field_elixir_elemental_all() -> void:
 	var elias: Dictionary = CombatPassives.get_def("elias_field_elixir")
-	assert_eq(str(elias.get("display_name", "")), "野営の残り香")
-	assert_eq(str(elias.get("trigger", "")), "on_combat_end")
-	assert_eq(str(elias.get("target", "")), "party")
-	assert_almost_eq(float(elias.get("heal_max_hp_fraction", 0.0)), 0.20, 0.001)
+	assert_eq(str(elias.get("display_name", "")), "万象の触媒")
+	assert_almost_eq(float(elias.get("elemental_outgoing_mult", 1.0)), 1.20, 0.001)
 
 
 func test_serin_spare_vial_combat_heal() -> void:
