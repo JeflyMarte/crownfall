@@ -5,18 +5,18 @@
 [resource]
 script = ExtResource("1")
 id = "rally_vapors"
-display_name = "鼓舞の煙"
-description = "薬煙で士気を高め、味方全体に鼓舞を付与する。"
+display_name = "腐食の煙"
+description = "腐食性の薬煙で敵全体を侵し、装甲の隙を作る。瘴気より威力は控えめで、脆弱を撒く。"
 skill_type = "player"
-target_type = "all_party"
-power_multiplier = 1.0
+target_type = "all_enemies"
+power_multiplier = 0.55
 cooldown = 7.0
 trigger_type = "cooldown"
-effect_type = "buff"
-tags = Array[String](["support", "buff"])
+effect_type = "damage"
+tags = Array[String](["magic", "debuff", "aoe"])
 element = ""
-apply_status_id = "empower"
-apply_status_chance = 1.0
+apply_status_id = "vulnerable"
+apply_status_chance = 0.35
 apply_status_id2 = ""
 apply_status_chance2 = 0.0
 slot_type = "skill"

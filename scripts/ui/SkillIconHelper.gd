@@ -97,7 +97,7 @@ const SKILL_TO_BASE: Dictionary = {
 	"arc_bolt": "hex",
 	"apex_hex": "hex",
 	"miasma_cloud": "hex",
-	"rally_vapors": "buff",
+	"rally_vapors": "debuff",
 	"toxin_dart": "poison",
 	"venom_burst": "poison",
 	"venom_spray": "poison",

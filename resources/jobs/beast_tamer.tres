@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "beast_tamer"
 display_name = "ビーストテイマー"
-description = "ペット連携・状態異常・吸血で戦う。號令で味方を薄く押し上げる。"
+description = "ペット連携・状態異常・吸血で戦う。群れ纏いで相棒を守る。"
 role = "support"
 base_hp_modifier = 1.0
 base_attack_modifier = 0.95

@@ -7660,3 +7660,5 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 |---|---|---|
 | P3-SKILL-THEME-KIT-001-7 | 踏破の護符装備中: 非戦闘フロア入場で味全 maxHP **5%** 回復＋罠×0.75。戦闘使用は味全 guard_minor | オーナー |
 | P3-SKILL-THEME-KIT-001-8 | AL Lv15＝**属性共鳴**（`attuned_bolt`）。装備武器の属性で攻撃。旧触媒の粉／`frail_dust` は remap | オーナー |
+| P3-SKILL-THEME-KIT-001-9 | AL拡張 `rally_vapors`＝**腐食の煙**（敵全弱ダメ＋脆弱35%） | オーナー案B |
+| P3-SKILL-THEME-KIT-001-10 | BT拡張 `herd_call`＝**群れ纏い**（味全小防御＋ペット15%回復） | オーナー案C |

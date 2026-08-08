@@ -62,14 +62,14 @@ func test_rg_bt_heal_and_apex() -> void:
 func test_new_aoe_and_party_skills_exist() -> void:
 	var aoe_ids: Array[String] = [
 		"blade_tempest", "blood_mist_slash", "volley_shot", "hunting_ground_mark",
-		"menace_strike", "miasma_cloud", "venom_spray",
+		"menace_strike", "miasma_cloud", "venom_spray", "rally_vapors",
 	]
 	for sid in aoe_ids:
 		var sk: Resource = DataRegistry.get_skill_data(sid)
 		assert_not_null(sk, sid)
 		assert_eq(str(sk.target_type), "all_enemies", sid)
 		assert_eq(str(sk.effect_type), "damage", sid)
-	var party_ids: Array[String] = ["bulwark_aura", "rally_vapors", "herd_call", "offensive_stance"]
+	var party_ids: Array[String] = ["bulwark_aura", "herd_call", "offensive_stance"]
 	for sid in party_ids:
 		var sk2: Resource = DataRegistry.get_skill_data(sid)
 		assert_not_null(sk2, sid)
@@ -168,16 +168,27 @@ func test_rend_is_bleed_applicator() -> void:
 	assert_lt(float(rend.power_multiplier), 1.25)
 
 
-func test_pet_bond_rally_stronger_than_herd() -> void:
+func test_pet_bond_and_herd_call_roles() -> void:
 	var bond: Resource = DataRegistry.get_skill_data("pet_bond_rally")
 	var herd: Resource = DataRegistry.get_skill_data("herd_call")
 	assert_eq(str(bond.apply_status_id), "empower_pet")
-	assert_lt(float(bond.cooldown), float(herd.cooldown))
-	assert_true(bond.tags.has("pet_maxhp_heal"), "相棒鼓舞はペットHP回復付帯")
+	assert_true(bond.tags.has("pet_maxhp_heal"))
+	assert_eq(str(herd.display_name), "群れ纏い")
+	assert_eq(str(herd.apply_status_id), "guard_minor")
+	assert_true(herd.tags.has("pet_maxhp_heal"))
+	assert_gt(BalanceConfig.HEAL_FRAC_PET_HERD_CALL, BalanceConfig.HEAL_FRAC_PET_BOND_RALLY)
 	var pet_emp: Resource = DataRegistry.get_status_effect("empower_pet")
 	var emp: Resource = DataRegistry.get_status_effect("empower")
 	assert_almost_eq(float(pet_emp.outgoing_damage_multiplier), float(emp.outgoing_damage_multiplier), 0.001)
 	assert_lt(float(pet_emp.incoming_damage_multiplier), 1.0)
+
+
+func test_corrosive_vapors_is_aoe_vulnerable() -> void:
+	var vapor: Resource = DataRegistry.get_skill_data("rally_vapors")
+	assert_eq(str(vapor.display_name), "腐食の煙")
+	assert_eq(str(vapor.target_type), "all_enemies")
+	assert_eq(str(vapor.apply_status_id), "vulnerable")
+	assert_lt(float(vapor.power_multiplier), float(DataRegistry.get_skill_data("miasma_cloud").power_multiplier))
 
 
 func test_curse_sigil_uses_major_curse() -> void:

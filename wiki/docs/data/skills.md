@@ -140,7 +140,7 @@
 | **衛士斬り** | player | damage | 1.1 | 無 | 3.5 | stun (25%) |
 | **足払斬** | player | damage | 1.1 | 無 | 4.0 | slow (40%) |
 | **重装斬** | player | damage | 1.55 | 無 | 4.5 | — |
-| **群れの號令** | player | buff | 1.0 | 無 | 6.0 | empower (100%) |
+| **群れ纏い** | player | buff | 1.0 | 無 | 6.0 | empower (100%) |
 | **アンブラボルト** | player | damage | 1.3 | 闇 | 3.0 | curse (45%) |
 | **狩人の標** | player | damage | 0.45 | 無 | 4.5 | mark (100%) |
 | **狩場の印** | player | damage | 0.7 | 無 | 5.5 | mark (32%) |
@@ -173,7 +173,7 @@
 | **疫呪弾** | player | damage | 1.6 | 闇 | 4.5 | curse (45%) |
 | **強射** | player | damage | 1.8 | 無 | 4.5 | — |
 | **クイックショット** | player | damage | 1.15 | 無 | 2.0 | — |
-| **鼓舞の煙** | player | buff | 1.0 | 無 | 7.0 | empower (100%) |
+| **腐食の煙** | player | buff | 1.0 | 無 | 7.0 | empower (100%) |
 | **裂傷斬** | player | damage | 1.35 | 無 | 3.5 | bleed (40%) |
 | **フロストエッジ** | player | damage | 1.3 | 無 | 3.5 | chill (35%) |
 | **大治癒** | player | heal | 0.12（全体） | 無 | 12.0 | — |

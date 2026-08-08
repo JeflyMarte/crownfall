@@ -29,8 +29,10 @@ func test_beast_tamer_learns_pet_skills() -> void:
 	assert_not_null(DataRegistry.get_skill_data("beast_vet_care"))
 	assert_not_null(DataRegistry.get_skill_data("apex_tame"))
 	var herd: Resource = DataRegistry.get_skill_data("herd_call")
-	assert_eq(str(herd.display_name), "群れの號令")
+	assert_eq(str(herd.display_name), "群れ纏い")
 	assert_eq(str(herd.target_type), "all_party")
+	assert_eq(str(herd.apply_status_id), "guard_minor")
+	assert_true(herd.tags.has("pet_maxhp_heal"))
 	## Lv15＝獣医／Lv50＝極意調教（P3-SKILL-RG-BT-ORDER-001）
 	var unlocks: Array = job.skill_unlocks
 	assert_eq(unlocks.size(), 7, "職キット7本")

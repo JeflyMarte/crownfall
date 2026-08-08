@@ -68,7 +68,7 @@
 | 1 | `hex_bolt` | アンブラボルト | テーマ | 速攻デバフ |
 | 8 | `mend` | 治癒 | テーマ | 単体回復 |
 | 15 | `attuned_bolt` | 属性共鳴 | テーマ | **属性**（装備武器属性・×1.5・対応状態30%。旧 `frail_dust` から置換） |
-| 22 | `rally_vapors` | 鼓舞の煙 | 拡張 | 味全 empower |
+| 22 | `rally_vapors` | 腐食の煙 | 拡張 | 敵全弱ダメ＋脆弱（瘴気より薄威力） |
 | 30 | `curse_sigil` | 呪印 | テーマ | 重デバフ |
 | 40 | `miasma_cloud` | 瘴気の霧 | テーマ | 群れデバフ |
 | 50 | `salve_burst` | 大治癒 | テーマ | 全体回復 |
@@ -81,7 +81,7 @@
 | 8 | `pet_bond_rally` | 相棒鼓舞 | テーマ | ペット強化 |
 | 15 | `beast_vet_care` | 血還の矢 | テーマ | 吸血 |
 | 22 | `beast_hobble` | 絡み矢 | テーマ | 誘導異常（冷却） |
-| 30 | `herd_call` | 群れの號令 | 拡張 | 味全 empower |
+| 30 | `herd_call` | 群れ纏い | 拡張 | 味全 guard_minor＋ペット maxHP15%回復 |
 | 40 | `pet_command_fang` | 指揮の牙 | テーマ | ペット連携 |
 | 50 | `apex_tame` | 極意調教 | テーマ | 長CD＋ペット |
 

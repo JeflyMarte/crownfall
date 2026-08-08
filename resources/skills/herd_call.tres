@@ -5,17 +5,22 @@
 [resource]
 script = ExtResource("1")
 id = "herd_call"
-display_name = "群れの號令"
-description = "號令をかけ、味方全体とペットに鼓舞を届ける。"
+display_name = "群れ纏い"
+description = "群れを纏めて守りを固める。味方全体に軽い防御を付与し、ペットを最大HPの15%回復する。"
 skill_type = "player"
 target_type = "all_party"
 power_multiplier = 1.0
-cooldown = 6.0
+cooldown = 6.5
 trigger_type = "cooldown"
 effect_type = "buff"
-tags = Array[String](["support", "buff", "pet"])
+tags = Array[String](["support", "buff", "pet", "pet_maxhp_heal"])
 element = ""
-apply_status_id = "empower"
+apply_status_id = "guard_minor"
 apply_status_chance = 1.0
+apply_status_id2 = ""
+apply_status_chance2 = 0.0
 slot_type = "skill"
 range_type = "long"
+cast_time = 0.0
+reserve_condition = ""
+reserve_value = ""

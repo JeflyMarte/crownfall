@@ -6336,6 +6336,8 @@ func _apply_pet_maxhp_heal_from_buff(caster_idx: int, skill_data: Resource) -> i
 	if max_hp <= 0:
 		return 0
 	var frac: float = BalanceConfig.HEAL_FRAC_PET_BOND_RALLY
+	if str(skill_data.id) == "herd_call":
+		frac = BalanceConfig.HEAL_FRAC_PET_HERD_CALL
 	var base: int = maxi(1, int(round(float(max_hp) * frac)))
 	var amount: int = _apply_healing_bonus(base, caster_idx)
 	var healed: int = $CombatController.heal_member(pet_idx, amount)

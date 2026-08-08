@@ -101,6 +101,8 @@ const SKILL_DRAIN_HEAL_RATIO: float = 0.5
 const HEAL_FRAC_PET_JACK_WARD: float = 0.05
 ## BT 相棒鼓舞（バフ＋ペット maxHP 割合回復。CD短めの付帯回復）。
 const HEAL_FRAC_PET_BOND_RALLY: float = 0.10
+## BT 群れ纏い（旧號令）のペット回復。相棒鼓舞より厚め。
+const HEAL_FRAC_PET_HERD_CALL: float = 0.15
 ## 回復部屋の最低回復（P3-BAL-NONCOMBAT-001: 各員 maxHP×割合と比較）
 const ROOM_HEAL_AMOUNT: int = 10 * STAT_SCALE
 ## 泉成功時の回復割合（各生存者）。
