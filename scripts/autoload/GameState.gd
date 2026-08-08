@@ -1278,6 +1278,51 @@ func get_combat_preset_summary(slot: int) -> String:
 		parts.append("カスタム%d" % custom_count)
 	return "・".join(parts)
 
+## 武+防+飾の所持合計（レリックは含まない — P3-EQ-INV-CAP-001）。
+func equipment_inventory_count() -> int:
+	return inventory.size() + armor_inventory.size() + accessory_inventory.size()
+
+
+func can_add_equipment(count: int = 1, ignore_cap: bool = false) -> bool:
+	if ignore_cap:
+		return true
+	if count <= 0:
+		return true
+	return equipment_inventory_count() + count <= Constants.MAX_EQUIPMENT_INVENTORY
+
+
+## 装備袋表示用（例: 10/200件）。
+func equipment_inventory_count_label() -> String:
+	return "%d/%d件" % [equipment_inventory_count(), Constants.MAX_EQUIPMENT_INVENTORY]
+
+
+func try_add_weapon_instance(instance: Resource, ignore_cap: bool = false) -> bool:
+	if instance == null:
+		return false
+	if not can_add_equipment(1, ignore_cap):
+		return false
+	inventory.append(instance)
+	return true
+
+
+func try_add_armor_instance(instance: Resource, ignore_cap: bool = false) -> bool:
+	if instance == null:
+		return false
+	if not can_add_equipment(1, ignore_cap):
+		return false
+	armor_inventory.append(instance)
+	return true
+
+
+func try_add_accessory_instance(instance: Resource, ignore_cap: bool = false) -> bool:
+	if instance == null:
+		return false
+	if not can_add_equipment(1, ignore_cap):
+		return false
+	accessory_inventory.append(instance)
+	return true
+
+
 func find_weapon_instance(instance_id: String) -> Resource:
 	if instance_id.is_empty():
 		return null
@@ -1922,7 +1967,9 @@ func _grant_member_starting_weapon(member: Resource) -> void:
 	var instance: Resource = _create_starting_weapon(member.id, weapon_id)
 	if instance == null:
 		return
-	inventory.append(instance)
+	## 初期武器は復元前提のため袋上限を超えても付与する。
+	if not try_add_weapon_instance(instance, true):
+		return
 	member.equipped_weapon = instance
 
 # 解放済みスターターの欠落のみ補完する（未解放は追加しない — P3-STORY-STARTER-001）。

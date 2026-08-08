@@ -51,7 +51,8 @@ static func grant_weapon(weapon_id: String) -> Resource:
 	instance.weapon_id = weapon_id
 	_WeaponStatResolver.apply_drop_stats(instance, weapon_data)
 	instance.is_appraised = true
-	GameState.inventory.append(instance)
+	if not GameState.try_add_weapon_instance(instance):
+		return null
 	GameState.note_equipment_obtained(instance)
 	GameState.mark_equipment_new(instance)
 	GameState.record_last_run_equipment_drop(instance, "weapon")

@@ -2412,7 +2412,8 @@ func _spawn_weapon(weapon_id: String) -> void:
 		instance, current_stage_data, current_dungeon_data, get_enemy_level()
 	)
 	_auto_appraise(instance, _AffixRoller.CATEGORY_WEAPON, weapon_data.rarity)
-	GameState.inventory.append(instance)
+	if not GameState.try_add_weapon_instance(instance):
+		return
 	last_weapon_dropped = weapon_id
 	EventBus.weapon_obtained.emit(weapon_id)
 	GameState.note_equipment_obtained(instance)
@@ -2470,7 +2471,8 @@ func _spawn_armor(armor_id: String) -> void:
 		instance, current_stage_data, current_dungeon_data, get_enemy_level()
 	)
 	_auto_appraise(instance, _AffixRoller.CATEGORY_ARMOR, armor_data.rarity)
-	GameState.armor_inventory.append(instance)
+	if not GameState.try_add_armor_instance(instance):
+		return
 	last_armor_dropped = armor_id
 	EventBus.armor_obtained.emit(armor_id)
 	GameState.note_equipment_obtained(instance)
@@ -2500,7 +2502,8 @@ func _spawn_accessory(accessory_id: String) -> void:
 		instance, current_stage_data, current_dungeon_data, get_enemy_level()
 	)
 	_auto_appraise(instance, _AffixRoller.CATEGORY_ACCESSORY, accessory_data.rarity)
-	GameState.accessory_inventory.append(instance)
+	if not GameState.try_add_accessory_instance(instance):
+		return
 	last_accessory_dropped = accessory_id
 	EventBus.accessory_obtained.emit(accessory_id)
 	GameState.note_equipment_obtained(instance)

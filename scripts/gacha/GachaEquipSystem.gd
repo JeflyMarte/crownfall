@@ -64,11 +64,11 @@ static func pull_cost() -> int:
 
 
 static func can_pull() -> bool:
-	return GameState.gacha_token >= PULL_COST
+	return GameState.can_add_equipment() and GameState.gacha_token >= PULL_COST
 
 
 static func can_pull_with_ticket() -> bool:
-	return TicketSystem.can_use_free_seal()
+	return GameState.can_add_equipment() and TicketSystem.can_use_free_seal()
 
 
 static func rate_display_text() -> String:
@@ -263,12 +263,14 @@ static func _is_eligible_standard(kind: String, item_id: String, data: Resource)
 
 ## 結果: { ok, reason?, kind, item_id, display_name, seat, blurb, rarity, pool, instance, paid_with_ticket }
 static func pull(use_ticket: bool = false) -> Dictionary:
+	if not GameState.can_add_equipment():
+		return {"ok": false, "reason": "inventory_full"}
 	var paid_with_ticket: bool = false
 	if use_ticket:
 		if not TicketSystem.try_consume_free_seal():
 			return {"ok": false, "reason": "no_ticket"}
 		paid_with_ticket = true
-	elif not can_pull():
+	elif GameState.gacha_token < PULL_COST:
 		return {"ok": false, "reason": "no_token"}
 	else:
 		GameState.gacha_token -= PULL_COST
@@ -283,7 +285,9 @@ static func pull(use_ticket: bool = false) -> Dictionary:
 	if inst == null:
 		_refund_pull_cost(paid_with_ticket)
 		return {"ok": false, "reason": "spawn_failed"}
-	_grant(kind, inst)
+	if not _grant(kind, inst):
+		_refund_pull_cost(paid_with_ticket)
+		return {"ok": false, "reason": "inventory_full"}
 	if GameState.has_method("note_equipment_obtained"):
 		GameState.note_equipment_obtained(inst)
 	## ダンジョンドロップと同様に New 表示対象へ。
@@ -405,14 +409,15 @@ static func _spawn_instance(kind: String, item_id: String) -> Resource:
 	return null
 
 
-static func _grant(kind: String, inst: Resource) -> void:
+static func _grant(kind: String, inst: Resource) -> bool:
 	match kind:
 		"weapon":
-			GameState.inventory.append(inst)
+			return GameState.try_add_weapon_instance(inst)
 		"armor":
-			GameState.armor_inventory.append(inst)
+			return GameState.try_add_armor_instance(inst)
 		"accessory":
-			GameState.accessory_inventory.append(inst)
+			return GameState.try_add_accessory_instance(inst)
+	return false
 
 
 static func _new_instance_id() -> String:

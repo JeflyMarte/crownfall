@@ -120,7 +120,8 @@ static func _grant_all_equipment() -> void:
 		inst.equip_level = EquipmentEnhancer.EQUIP_MAX_LEVEL
 		inst.equip_exp = 0
 		_WeaponStatResolver.apply_drop_stats(inst, data)
-		GameState.inventory.append(inst)
+		## デバッグ全所持は袋上限を超えてよい（検証用）。
+		GameState.try_add_weapon_instance(inst, true)
 		_DiscoveryRegistry.register("weapon", wid)
 		seq += 1
 	for data in DataRegistry.get_all_armor_data():
@@ -136,7 +137,7 @@ static func _grant_all_equipment() -> void:
 		ainst.rarity = int(data.rarity)
 		ainst.equip_level = 1
 		_ArmorStatResolver.apply_drop_stats(ainst, data)
-		GameState.armor_inventory.append(ainst)
+		GameState.try_add_armor_instance(ainst, true)
 		seq += 1
 	for data in DataRegistry.get_all_accessory_data():
 		if data == null:
@@ -150,7 +151,7 @@ static func _grant_all_equipment() -> void:
 		xinst.is_appraised = true
 		xinst.equip_level = 1
 		_AccessoryStatResolver.apply_drop_stats(xinst, data)
-		GameState.accessory_inventory.append(xinst)
+		GameState.try_add_accessory_instance(xinst, true)
 		seq += 1
 	# スターター武器が inventory に無いと装備復元が壊れるため、装備中を再付与
 	for member in GameState.roster:

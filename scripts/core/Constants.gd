@@ -64,6 +64,8 @@ const ULTIMATE_CHARGE_FILL_SECONDS: float = 100.0
 const MAX_EQUIPPED_PASSIVES: int = 1
 ## 1キャラが装備できるレリック数（解放型パッシブ・P3-RELIC-PASSIVE）。
 const MAX_EQUIPPED_RELIC_PASSIVES: int = 1
+## 装備袋の所持上限（武+防+飾の合算。レリックは解放型で別枠 — P3-EQ-INV-CAP-001）。
+const MAX_EQUIPMENT_INVENTORY: int = 200
 ## 必殺技スロットの既定スキル id（P3-D085）。ジョブ未指定時に使用。
 const DEFAULT_ULTIMATE_SKILL_ID: String = "ultimate_strike"
 

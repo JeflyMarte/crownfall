@@ -218,7 +218,8 @@ func _rebuild_inventory_grid() -> void:
 	entries = EquipmentUiHelper.filter_by_equipped_state(entries, _inventory_equipped_filter, -1)
 	if _inventory_filter != "relic":
 		entries = EquipmentEffectFamilyFilter.filter_entries(entries, _effect_families)
-	_label_count.text = "%d件" % entries.size()
+	## 袋上限は武+防+飾の合算（フィルタ／レリックタブでも母数は所持合計）。
+	_label_count.text = GameState.equipment_inventory_count_label()
 	if entries.is_empty():
 		var empty_msg: String = "該当する装備がありません"
 		if _inventory_filter == "relic":

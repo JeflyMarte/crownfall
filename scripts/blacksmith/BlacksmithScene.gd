@@ -3021,6 +3021,9 @@ func _on_craft_confirmed() -> void:
 	if craft.output_id.is_empty() or not CraftHelper.craft_output_exists(craft):
 		_log_craft_error("作成できません（出力不正）")
 		return
+	if not GameState.can_add_equipment():
+		_log_craft_error("装備袋がいっぱいです（%s）" % GameState.equipment_inventory_count_label())
+		return
 	if GameState.gold < craft.gold_cost:
 		_log_craft_error("ゴールドが足りません")
 		return
@@ -3267,7 +3270,8 @@ func _spawn_weapon(weapon_id: String) -> Resource:
 	instance.weapon_id = weapon_id
 	_WeaponStatResolver.apply_drop_stats(instance, weapon_data)
 	_auto_appraise(instance, _AffixRoller.CATEGORY_WEAPON, weapon_data.rarity)
-	GameState.inventory.append(instance)
+	if not GameState.try_add_weapon_instance(instance):
+		return null
 	GameState.note_equipment_obtained(instance)
 	return instance
 
@@ -3281,7 +3285,8 @@ func _spawn_armor(armor_id: String) -> Resource:
 	_ArmorStatResolver.apply_drop_stats(instance, armor_data)
 	instance.rarity = armor_data.rarity
 	_auto_appraise(instance, _AffixRoller.CATEGORY_ARMOR, armor_data.rarity)
-	GameState.armor_inventory.append(instance)
+	if not GameState.try_add_armor_instance(instance):
+		return null
 	GameState.note_equipment_obtained(instance)
 	return instance
 
@@ -3294,7 +3299,8 @@ func _spawn_accessory(accessory_id: String) -> Resource:
 	instance.accessory_id = accessory_id
 	_AccessoryStatResolver.apply_drop_stats(instance, accessory_data)
 	_auto_appraise(instance, _AffixRoller.CATEGORY_ACCESSORY, accessory_data.rarity)
-	GameState.accessory_inventory.append(instance)
+	if not GameState.try_add_accessory_instance(instance):
+		return null
 	GameState.note_equipment_obtained(instance)
 	return instance
 

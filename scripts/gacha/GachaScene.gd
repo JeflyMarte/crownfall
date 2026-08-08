@@ -1045,6 +1045,11 @@ func _ask_pull(use_ticket: bool) -> void:
 	if _summon_active or _pull_confirm_open:
 		return
 	if _is_seal_page():
+		if not GameState.can_add_equipment():
+			_label_result.text = "装備袋がいっぱいです（%s）。鍛冶で分解してください。" % (
+				GameState.equipment_inventory_count_label()
+			)
+			return
 		if use_ticket:
 			if not _GachaEquipSystem.can_pull_with_ticket():
 				_label_result.text = "封蔵開封券が足りません。"
@@ -1109,6 +1114,10 @@ func _start_pull(use_ticket: bool, page: int = -1) -> void:
 				_label_result.text = "封蔵開封券が足りません。"
 			elif eq_reason == "no_token":
 				_label_result.text = "%sが足りません。" % CurrencyHelper.DISPLAY_NAME
+			elif eq_reason == "inventory_full":
+				_label_result.text = "装備袋がいっぱいです（%s）。鍛冶で分解してください。" % (
+					GameState.equipment_inventory_count_label()
+				)
 			else:
 				_label_result.text = "開封に失敗しました（%s）。" % eq_reason
 			_set_pull_controls_enabled(true)
