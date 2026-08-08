@@ -110,7 +110,7 @@ const STAFF_PRESETS: Array = [
 		"character_id": "adventurer_4",
 		"display_name": "ミレイ",
 		"build_name": "毒牙ビルド",
-		"build_blurb": "毒とペット連携で削る指揮型。継続ダメージを積みつつ相棒の攻撃を支え、ボスやエリートの長期戦で効く。群れと状態異常を軸にしたビーストテイマー見本。",
+		"build_blurb": "毒牙で毒・出血・炎上を撒く指揮型。継続ダメージを積み、相棒と長期戦で削るビーストテイマー見本。",
 		"job_id": "beast_tamer",
 		"level": 99,
 		"rarity": 3,

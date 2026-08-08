@@ -7,7 +7,7 @@ script = ExtResource("1")
 id = "helper_n"
 display_name = "ボルグ"
 job_id = "vanguard"
-origin_note = "攻撃をかわし続ける、華麗な回避系タンク！"
+origin_note = "殴られたら殴り返すカウンタータンク！"
 summon_quote = "はっ、俺の後ろにいれば百点満点だろ？"
 rarity = 3
 passive_id = "borg_gate_voice"
@@ -15,7 +15,9 @@ sprite_resource_path = "res://resources/animation/CHR_Helper_n.tres"
 portrait_resource_path = "res://assets/gacha/portraits/ART_HELPER_helper_n.png"
 hometown = "アイアンヘイブン門前町"
 height_cm = 185
-likes = "自分の活躍、派手な回避"
+likes = "自分の活躍、決めの反撃"
 dislikes = "無視されること、地味な護衛任務"
-backstory = "自信家の門前盾。避けることを守りと呼び、主役は自分だと疑わない。\nそれでも危ない隙間には、結局いちばん早く立つ。\n自慢は長いが、盾の置き場は正確だ。"
-record_note = "門番上がりとの自己申告。回避が目立つ、と戦闘記録。"
+backstory = "自信家の門前盾。殴り返すことを守りと呼び、主役は自分だと疑わない。
+それでも危ない隙間には、結局いちばん早く立ち、被弾のたびに門前の応撃で斬り返す。
+自慢は長いが、盾の置き場は正確だ。"
+record_note = "門番上がりとの自己申告。被弾反撃の記録が目立つ。"
