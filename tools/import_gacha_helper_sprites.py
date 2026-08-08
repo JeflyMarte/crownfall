@@ -47,9 +47,8 @@ HELPER_MAP = {
 }
 
 ## 戦闘 idle(=walk) の FPS。既定 8。カクつきやすい個体は上げる。
-WALK_SPEED_BY_HELPER: dict[str, float] = {
-	"helper_n": 12.0,  # ボルグ
-}
+# 既定 walk speed は 8.0。個別上書きが必要なときだけ追加。
+WALK_SPEED_BY_HELPER: dict[str, float] = {}
 
 ANIM_MAP = {
 	"walk": "walk",
