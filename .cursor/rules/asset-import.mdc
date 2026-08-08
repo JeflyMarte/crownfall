@@ -23,6 +23,7 @@ alwaysApply: false
 | ガチャ全画面背景 | `gacha_ui/UI_BG_Gacha.png`（`GachaUiTokens.BG`） | `generate_gacha_ui_assets.py` の星空仮画像で上書き |
 | ガチャタイトル／キャッチ焼込 | `UI_Gacha_Banner_Title.png` / `UI_Gacha_Banner_Catchcopy.png` | Header Label 文言だけ変更／生成スクリプト上書き |
 | 封蔵タイトル／キャッチ焼込 | `UI_Gacha_Banner_Title_Seal.png` / `UI_Gacha_Banner_Catchcopy_Seal.png`（Downloads `武器ガチャタイトル.PNG` を黒抜き分割） | 招待状 `Banner_Title` を封蔵に流用 |
+| 装備ロックバッジ | `equipment/ICO_UI_EquipLock.png`（Downloads `ロック.PNG`・縁黒マット除去） | 絵文字🔒／文字「錠」だけに頼る |
 
 ## 画面背景（Desktop → res://）
 

@@ -8,8 +8,11 @@ const RARITY_CODES: Array[String] = ["N", "R", "E", "L", "M", "エンシェン�
 const RARITY_BADGE_POS: Vector2 = Vector2(5.0, 3.0)
 ## 装備Lv（左下）。炉研ぎ +N は右下。ロックも右下（+N の左へ寄せる）。
 const EQUIP_LEVEL_BADGE_POS: Vector2 = Vector2(4.0, -14.0)
-## 絵文字🔒は Noto に無く iOS で欠落する（★／⭐️と同型）。本文フォントの「錠」。
+## 詳細ボタン等の文言用（セル表示は ICO_UI_EquipLock）。
 const LOCK_BADGE_TEXT: String = "錠"
+const LOCK_BADGE_ICON_PATH: String = "res://assets/ui/equipment/ICO_UI_EquipLock.png"
+## セル短辺に対するロックアイコン比。
+const LOCK_BADGE_RATIO: float = 0.30
 const LEVEL_CAP: int = LevelSystem.MAX_LEVEL
 
 const SORT_LABELS: Dictionary = {
@@ -32,6 +35,21 @@ const CATEGORY_LABELS: Dictionary = {
 	"accessory": "装飾",
 	"relic": "レリック",
 }
+
+static var _lock_badge_tex: Texture2D
+
+
+static func lock_badge_size(cell_size: Vector2) -> Vector2:
+	var side: float = minf(cell_size.x, cell_size.y) * LOCK_BADGE_RATIO
+	return Vector2(side, side)
+
+
+static func lock_badge_texture() -> Texture2D:
+	if _lock_badge_tex != null:
+		return _lock_badge_tex
+	if ResourceLoader.exists(LOCK_BADGE_ICON_PATH):
+		_lock_badge_tex = load(LOCK_BADGE_ICON_PATH) as Texture2D
+	return _lock_badge_tex
 
 static func category_label(category: String) -> String:
 	return str(CATEGORY_LABELS.get(category, category))
@@ -80,10 +98,10 @@ static func apply_enhance_badge(
 		return
 	var font_size: int = enhance_badge_font_size(cell_size.y)
 	var width: float = float(font_size) * maxf(2.0, float(text.length()) * 0.72)
-	## ロック🔒が右下を使うので、ロック中は +N を左へずらす。
+	## ロックアイコンが右下を使うので、ロック中は +N を左へずらす。
 	var x: float = cell_size.x - width - 3.0
 	if EquipmentEnhancer.is_item_locked(item):
-		x -= float(font_size) * 1.2
+		x -= lock_badge_size(cell_size).x + 2.0
 	add_corner_badge(
 		parent,
 		text,
@@ -123,7 +141,7 @@ static func apply_equip_level_badge(
 	)
 
 
-## 誤分解・誤錬成防止ロック表示（右下「錠」。ロック中のみ。操作は装備一覧の長押し）。
+## 誤分解・誤錬成防止ロック表示（右下アイコン。ロック中のみ。操作は装備一覧の長押し）。
 static func apply_lock_badge(parent: Control, item: Resource, cell_size: Vector2) -> void:
 	if parent == null or item == null:
 		return
@@ -132,22 +150,40 @@ static func apply_lock_badge(parent: Control, item: Resource, cell_size: Vector2
 		stale.queue_free()
 	if not EquipmentEnhancer.is_item_locked(item):
 		return
-	var font_size: int = maxi(14, int(cell_size.y * 0.22))
-	var width: float = float(font_size) * 1.15
-	var lbl := Label.new()
-	lbl.name = "LockBadge"
-	lbl.text = LOCK_BADGE_TEXT
-	## 本文フォント必須。絵文字やテーマ既定だけだと iOS で欠落する。
-	UiTypography.apply_body(
-		lbl, font_size, Color(1.0, 0.92, 0.55, 1.0), UiTypography.OUTLINE_STRONG
+	var tex: Texture2D = lock_badge_texture()
+	var badge_size: Vector2 = lock_badge_size(cell_size)
+	if tex == null:
+		## フォールバック: 本文フォントの「錠」（絵文字🔒は iOS で欠落）。
+		var font_size: int = maxi(14, int(cell_size.y * 0.22))
+		var lbl := Label.new()
+		lbl.name = "LockBadge"
+		lbl.text = LOCK_BADGE_TEXT
+		UiTypography.apply_body(
+			lbl, font_size, Color(1.0, 0.92, 0.55, 1.0), UiTypography.OUTLINE_STRONG
+		)
+		lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		lbl.z_index = 8
+		lbl.position = Vector2(
+			cell_size.x - badge_size.x - 2.0,
+			cell_size.y - badge_size.y - 4.0
+		)
+		parent.add_child(lbl)
+		return
+	var icon := TextureRect.new()
+	icon.name = "LockBadge"
+	icon.texture = tex
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.z_index = 8
+	icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	icon.position = Vector2(
+		cell_size.x - badge_size.x - 2.0,
+		cell_size.y - badge_size.y - 4.0
 	)
-	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	lbl.z_index = 8
-	lbl.position = Vector2(
-		cell_size.x - width - 2.0,
-		cell_size.y - float(font_size) - 10.0
-	)
-	parent.add_child(lbl)
+	icon.size = badge_size
+	icon.custom_minimum_size = badge_size
+	parent.add_child(icon)
 
 
 ## ドロップ直後の New バッジ（アイコン中央・点滅）。次のダンジョン潜行まで。
