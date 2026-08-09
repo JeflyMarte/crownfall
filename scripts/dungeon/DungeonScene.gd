@@ -5153,9 +5153,10 @@ func _cleanse_one_party_debuff() -> String:
 
 func _apply_lore_success_bonuses(first_time: bool) -> PackedStringArray:
 	var lines: PackedStringArray = []
+	var gold: int = BalanceConfig.lore_gold(GameState.current_dungeon_tier)
+	$DungeonController.accumulate_rewards(0, gold)
 	if first_time:
-		$DungeonController.accumulate_rewards(0, BalanceConfig.LORE_FIRST_GOLD)
-		lines.append("ゴールド +%d" % BalanceConfig.LORE_FIRST_GOLD)
+		lines.append("ゴールド +%d" % gold)
 		if randf() < BalanceConfig.LORE_FIRST_MATERIAL_CHANCE:
 			var mat_id: String = "relic_shard"
 			var amt: int = _apply_material_bonus(1)
@@ -5168,8 +5169,7 @@ func _apply_lore_success_bonuses(first_time: bool) -> PackedStringArray:
 				GameState.last_run_accessory_dropped = acc_id
 				lines.append("装飾品: %s" % DataRegistry.get_accessory_name(acc_id))
 	else:
-		$DungeonController.accumulate_rewards(0, BalanceConfig.LORE_REPEAT_GOLD)
-		lines.append("ゴールド +%d（既知の記録）" % BalanceConfig.LORE_REPEAT_GOLD)
+		lines.append("ゴールド +%d（既知の記録）" % gold)
 	var bless: Dictionary = $DungeonController.grant_lore_floor_blessing()
 	if not bless.is_empty():
 		var label: String = str(bless.get("label", ""))

@@ -7908,3 +7908,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-TREASURE-GOLD-TIER-001-2 | **失敗半額連動** | 従来ルール |
 | P3-BAL-TREASURE-GOLD-TIER-001-3 | **SSOT** — `120_TreasureGoldByTier.md`／`BalanceConfig.treasure_gold` | 実装正 |
 | P3-BAL-TREASURE-GOLD-TIER-001-4 | **上書き** — 旧宝箱120G | 本 Decision が正 |
+
+## 碑文 Gold 難易度別（2026-08-09 — P3-BAL-LORE-GOLD-TIER-001）
+
+> **オーナー指定** — N500／H1000／NM3000。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-LORE-GOLD-TIER-001-1 | **N=500／H=1000／NM=3000**（初回・既知同額） | オーナー指定 |
+| P3-BAL-LORE-GOLD-TIER-001-2 | **SSOT** — `121_LoreGoldByTier.md`／`BalanceConfig.lore_gold` | 実装正 |
+| P3-BAL-LORE-GOLD-TIER-001-3 | **上書き** — 旧初回20／既知10 | 本 Decision が正 |
