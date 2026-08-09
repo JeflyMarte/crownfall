@@ -28,7 +28,11 @@ func test_trap_trigger_chance_raised() -> void:
 
 
 func test_treasure_success_rewards() -> void:
-	assert_eq(_DungeonController.TREASURE_GOLD, 120)
+	assert_eq(BalanceConfig.treasure_gold(0), 1000)
+	assert_eq(BalanceConfig.treasure_gold(1), 3000)
+	assert_eq(BalanceConfig.treasure_gold(2), 5000)
+	## 旧単一値互換＝ノーマル帯。
+	assert_eq(_DungeonController.TREASURE_GOLD, 1000)
 	## P3-BAL-TREASURE-EQUIP-001: 確率抽選廃止 → 装備1点確定。
 	assert_almost_eq(_DungeonController.TREASURE_ACCESSORY_CHANCE, 0.0, 0.0001)
 	assert_almost_eq(BalanceConfig.TREASURE_WEAPON_CHANCE, 0.0, 0.0001)

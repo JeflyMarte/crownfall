@@ -11,6 +11,7 @@ func before_each() -> void:
 	GameState.inventory.clear()
 	GameState.armor_inventory.clear()
 	GameState.accessory_inventory.clear()
+	GameState.current_dungeon_tier = 0
 
 
 func test_generate_treasure_loot_always_grants_one_equip() -> void:
@@ -24,7 +25,7 @@ func test_generate_treasure_loot_always_grants_one_equip() -> void:
 		var before_a: int = GameState.armor_inventory.size()
 		var before_x: int = GameState.accessory_inventory.size()
 		var loot: Dictionary = dc.generate_treasure_loot()
-		assert_eq(int(loot.get("gold", 0)), _DungeonController.TREASURE_GOLD)
+		assert_eq(int(loot.get("gold", 0)), BalanceConfig.treasure_gold(0))
 		var cat: String = str(loot.get("equip_category", ""))
 		assert_true(
 			cat == "weapon" or cat == "armor" or cat == "accessory",

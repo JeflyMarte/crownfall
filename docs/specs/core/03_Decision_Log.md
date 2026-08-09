@@ -7897,3 +7897,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-ELDION-OPENING-001-2 | **`incoming_status_chance_mult=0.55`** | ミスト帯と同帯の付与減衰 |
 | P3-BAL-ELDION-OPENING-001-3 | **`boss_buff_break_all`** | 他本編ボスと同解呪 |
 | P3-BAL-ELDION-OPENING-001-4 | **SSOT** — `119_EldionOpeningCompanions.md` | Decision 本体 |
+
+## 宝箱 Gold 難易度別（2026-08-09 — P3-BAL-TREASURE-GOLD-TIER-001）
+
+> **オーナー指定** — N1000／H3000／NM5000。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-TREASURE-GOLD-TIER-001-1 | **N=1000／H=3000／NM=5000** | オーナー指定 |
+| P3-BAL-TREASURE-GOLD-TIER-001-2 | **失敗半額連動** | 従来ルール |
+| P3-BAL-TREASURE-GOLD-TIER-001-3 | **SSOT** — `120_TreasureGoldByTier.md`／`BalanceConfig.treasure_gold` | 実装正 |
+| P3-BAL-TREASURE-GOLD-TIER-001-4 | **上書き** — 旧宝箱120G | 本 Decision が正 |

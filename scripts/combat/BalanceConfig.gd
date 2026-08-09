@@ -187,6 +187,8 @@ const TREASURE_SUCCESS_CHANCE_BY_TIER: Array[float] = [0.70, 0.50, 0.50]
 const LORE_SUCCESS_CHANCE_BY_TIER: Array[float] = [0.90, 0.80, 0.80]
 ## 旧・宝箱武器ドロップ率。P3-BAL-TREASURE-EQUIP-001 で確定1点方式へ置換（未使用）。
 const TREASURE_WEAPON_CHANCE: float = 0.0
+## 宝箱成功 Gold（N/H/NM — P3-BAL-TREASURE-GOLD-TIER-001）。失敗は半額。
+const TREASURE_GOLD_BY_TIER: Array[int] = [1000, 3000, 5000]
 ## 碑文成功（初回）の素材／装飾。
 const LORE_FIRST_GOLD: int = 20
 const LORE_REPEAT_GOLD: int = 10
@@ -218,6 +220,13 @@ static func treasure_success_chance(tier: int) -> float:
 
 static func lore_success_chance(tier: int) -> float:
 	return LORE_SUCCESS_CHANCE_BY_TIER[_trap_tier_index(tier)]
+
+
+static func treasure_gold(tier: int = -1) -> int:
+	var t: int = tier
+	if t < 0:
+		t = int(GameState.current_dungeon_tier)
+	return TREASURE_GOLD_BY_TIER[_trap_tier_index(t)]
 
 # ── 敵レベルスケール（P3-D081） ──────────────────────────────────────────
 const ENEMY_LEVEL_HP_K: float = 0.10
