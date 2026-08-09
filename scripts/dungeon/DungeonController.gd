@@ -2083,10 +2083,33 @@ func apply_boss_material_loot() -> Dictionary:
 		"bonus_material_amount": int(epic_bonus.get("amount", 0)),
 	}
 
+## 撃破した敵がこのランのボス本体か（召喚／護衛は false）。
+func is_run_boss_kill(enemy_data: Resource) -> bool:
+	if enemy_data == null:
+		return false
+	var expected: String = _resolve_run_boss_id()
+	if not expected.is_empty():
+		return str(enemy_data.id) == expected
+	return int(enemy_data.enemy_type) == Enums.EnemyType.BOSS
+
+
+func _resolve_run_boss_id() -> String:
+	if current_stage_data != null and not str(current_stage_data.boss_id).is_empty():
+		return str(current_stage_data.boss_id)
+	if current_dungeon_data == null:
+		return ""
+	var boss_id: String = str(current_dungeon_data.boss_id)
+	if boss_id.is_empty() and _is_abyss_run():
+		const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
+		boss_id = _AbyssDungeonConfig.parent_boss_id(str(current_dungeon_data.id))
+	return boss_id
+
+
 ## x-5 初回ボス討伐のレジェンド防具・装飾を確定付与（P3-EQ-LEG-001 / P3-BAL-DROP-001）。
 ## ティア別初回（Normal / Hard / Nightmare それぞれ1回）。同一 ★ 装備。
 ## 加えてビルド拡張Lを未所持から1点（P3-EQ-LEG-BUILD-001）。
-func apply_boss_legendary_loot(stage: Resource) -> Dictionary:
+## defeated_enemy_id はボス本体 id（召喚・護衛撃破では付与しない）。
+func apply_boss_legendary_loot(stage: Resource, defeated_enemy_id: String = "") -> Dictionary:
 	var bonus: Dictionary = {
 		"armor_id": "",
 		"accessory_id": "",
@@ -2094,6 +2117,9 @@ func apply_boss_legendary_loot(stage: Resource) -> Dictionary:
 		"build_id": "",
 	}
 	if stage == null or not bool(stage.has_boss_floor()):
+		return bonus
+	var expected_boss: String = str(stage.boss_id) if "boss_id" in stage else ""
+	if not expected_boss.is_empty() and defeated_enemy_id != expected_boss:
 		return bonus
 	var tier: int = _DungeonTierConfig.clamp_tier(GameState.current_dungeon_tier)
 	var stage_id: String = str(stage.id)

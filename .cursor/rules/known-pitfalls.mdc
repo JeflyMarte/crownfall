@@ -26,6 +26,7 @@ alwaysApply: false
 | 一時停止の戦闘ログが常に空 | populate が `SheetVBox/SheetContent` 直指定→Scroll 配下で null。RTL.text 読み戻し依存も脆い | `find_child("SheetContent")`＋`_battle_log_lines` バッファ。表示後に populate |
 | 非戦闘ナラティブ戻る／VFX位置／名ポップサイズ・帯VFX・付与テロップ／野戦調合に+N無し | reset誤用・味方非表示・一律28/48・ColorRect・VFXのみ | → **`14_Presentation_Pitfalls.md`**（回復は `_present_member_heal`） |
 | 味方撃破後もドットが歩き続ける | DoT 等が `visible=false` 未経由 | → **`14_Presentation_Pitfalls.md`**（`_hide_defeated_member_sprite`／sync） |
+| ネレイオン未撃破で潮鳴王の鎧 | BOSS部屋の召喚撃破でも `apply_boss_legendary_loot` | ボス本体 id 一致時のみ付与（`is_run_boss_kill`） |
 | ボス警告中に本体が写る | 入場準備後の status tint が modulate を不透明へ戻す／opaque フォールバック | 警告中 `visible=false`＋intro中 tint/HP更新停止。落下開始で初表示（`14_Presentation_Pitfalls`） |
 | ボスの激昂アイコンが付かない | ボス戦で状態異常行を全非表示 | → **`14_Presentation_Pitfalls.md`**（ボス頭上にも表示） |
 | レリックが地味で装備意味が薄い | 常時±5〜20%のみ | 尖鋭案B: 発火＋制約。`P3-UX-RELIC-TACTICS-B001` |

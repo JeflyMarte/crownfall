@@ -143,7 +143,7 @@ func test_boss_loot_grants_build_extra() -> void:
 	var dc: Node = _DungeonController.new()
 	add_child_autofree(dc)
 	dc.start_stage("mourngate_1_5")
-	var bonus: Dictionary = dc.apply_boss_legendary_loot(dc.current_stage_data)
+	var bonus: Dictionary = dc.apply_boss_legendary_loot(dc.current_stage_data, "serdion")
 	assert_eq(str(bonus["armor_id"]), "serdion_ward_plate")
 	assert_eq(str(bonus["accessory_id"]), "mourngate_royal_seal")
 	assert_false(str(bonus.get("build_id", "")).is_empty(), "ビルドLが追加付与される")

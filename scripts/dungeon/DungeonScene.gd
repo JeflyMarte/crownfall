@@ -8515,12 +8515,15 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 	$CombatController.clear_enemy_slot_status(killed_slot)
 	$CombatController.capture_rewards_at(killed_slot)
 	var defeated_enemy: Resource = $CombatController.get_enemy_data_at(killed_slot)
-	## 日課撃破（ボス・エリート含む）。部屋種別で追加目標も加算。
+	## 日課撃破（ボス本体／エリート含む）。召喚・護衛は kill_enemy のみ。
 	DailyMissionSystem.report_progress("kill_enemy")
-	if room_type == Enums.RoomType.BOSS or room_type == Enums.RoomType.MID_BOSS:
-		DailyMissionSystem.report_progress("kill_boss")
-	elif room_type == Enums.RoomType.ELITE:
+	if room_type == Enums.RoomType.ELITE:
 		DailyMissionSystem.report_progress("kill_elite")
+	elif (
+		(room_type == Enums.RoomType.BOSS or room_type == Enums.RoomType.MID_BOSS)
+		and $DungeonController.is_run_boss_kill(defeated_enemy)
+	):
+		DailyMissionSystem.report_progress("kill_boss")
 	var codex_investigation: bool = false
 	if defeated_enemy != null:
 		codex_investigation = (
@@ -8607,10 +8610,13 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 				log_lines.append(_format_equip_drop_log("武器", drop_id, drop_cat))
 		_append_equipment_drop_icon(drop_icons, drop_id, drop_cat)
 		_maybe_celebrate_rare_equip_drop(drop_id, drop_cat, bool(equip_drop.get("mythic", false)))
-	if room_type == Enums.RoomType.BOSS:
+	if room_type == Enums.RoomType.BOSS and $DungeonController.is_run_boss_kill(defeated_enemy):
 		var stage: Resource = $DungeonController.current_stage_data
+		var killed_boss_id: String = str(defeated_enemy.id) if defeated_enemy != null else ""
 		if stage != null:
-			var legendary_bonus: Dictionary = $DungeonController.apply_boss_legendary_loot(stage)
+			var legendary_bonus: Dictionary = $DungeonController.apply_boss_legendary_loot(
+				stage, killed_boss_id
+			)
 			if not str(legendary_bonus.get("armor_id", "")).is_empty():
 				var boss_arm: String = str(legendary_bonus["armor_id"])
 				GameState.last_run_armor_dropped = boss_arm
