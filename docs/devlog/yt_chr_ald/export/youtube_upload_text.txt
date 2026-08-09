@@ -1,0 +1,36 @@
+【ゆっくり解説】アルドは何が強い？｜『Crownfall』キャラ紹介（開発中）
+
+---
+
+▼説明欄（コピペ用）
+
+『Crownfall』キャラ紹介。初期ソードマン・アルドに絞って、初心者と上級者のかけあいで説明します。
+同職（カイダ／火鷹）との違い、固有「王炎の覇気」、公式の出血主砲ビルド、相性（リーヴァ／レノール／盾）、戦闘の見どころまで。
+現在も開発中です。
+
+攻略Wiki: https://crownfall-game.github.io/
+Note: https://note.com/abbey_load_1969
+
+■目次
+0:00 はじめに
+0:21 同職との違い
+0:56 出血が強さの核
+2:03 出血主砲ビルド
+2:51 相性とパーティ
+3:55 戦闘まとめ
+4:43 まとめ
+
+VOICEVOX: ずんだもん／四国めたん
+立ち絵: ずんだもん公式イラスト（SSS合同会社／ずんずんPJ）※めたん側は代替立ち絵
+https://zunko.jp/con_illust.html
+BGM: 本作拠点BGM（自作）
+
+#Crownfall #ゆっくり解説 #インディーゲーム #ハクスラ #RPG #キャラ紹介 #アルド #開発中 #Godot #VOICEVOX #ずんだもん #四国めたん
+
+---
+
+▼サムネ
+docs/devlog/yt_chr_ald/export/crownfall_chr_ald_thumb.jpg
+
+▼完成動画（ローカル）
+docs/devlog/yt_chr_ald/export/crownfall_chr_ald_yukkuri.mp4（約5:01）

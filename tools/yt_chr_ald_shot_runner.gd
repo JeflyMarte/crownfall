@@ -22,6 +22,7 @@ const ID_RIVA: String = "adventurer_1"
 const ID_GALEN: String = "adventurer_3"
 const ID_KAIDA: String = "gacha_helper_f"
 const ID_FIREHAWK: String = "gacha_helper_p"
+const ID_RENOL: String = "gacha_helper_k"
 
 const WPN_PULSE: String = "pulsekeen_edge"
 const ARM_BLOOD: String = "bloodpact_plate"
@@ -30,37 +31,41 @@ const SKILL_BLOOD: String = "blood_mist_slash"
 const RELIC_BERSERK: String = "relic_berserker_charm"
 
 ## "c"=キュー [from,to]／"k"=画面／"a"=引数／"s"=結果ステップ
+## cue 索引は voice/manifest.json（対話台本）と一致させること。
 const SHOTS: Array = [
 	# ---- S1 前振り ----
 	{"c": [0, 2], "k": "hub"},
-	{"c": [3, 4], "k": "equip", "a": ID_ALD},
-	{"c": [5, 7], "k": "roster"},
-	# ---- S2 何者か ----
-	{"c": [8, 10], "k": "equip", "a": ID_ALD},
-	{"c": [11, 16], "k": "equip_passive", "a": ID_ALD},
-	# ---- S3 同職比較 ----
-	{"c": [17, 17], "k": "equip", "a": ID_ALD},
-	{"c": [18, 20], "k": "equip_passive", "a": ID_KAIDA},
-	{"c": [21, 23], "k": "equip_passive", "a": ID_FIREHAWK},
-	{"c": [24, 28], "k": "equip", "a": ID_ALD},
-	# ---- S4 出血主砲 ----
-	{"c": [29, 30], "k": "showcase_staff", "a": "staff_aldo_bleed"},
-	{"c": [31, 31], "k": "weapon", "a": WPN_PULSE},
-	{"c": [32, 32], "k": "armor", "a": ARM_BLOOD},
-	{"c": [33, 33], "k": "accessory", "a": ACC_VEIN},
-	{"c": [34, 34], "k": "equip_skill", "a": ID_ALD},
-	{"c": [35, 37], "k": "showcase_staff", "a": "staff_aldo_bleed"},
-	{"c": [38, 40], "k": "weapon", "a": "ember_fang"},
+	{"c": [3, 5], "k": "equip", "a": ID_ALD},
+	{"c": [6, 7], "k": "roster"},
+	# ---- S2 同職比較 ----
+	{"c": [8, 12], "k": "equip_passive", "a": ID_KAIDA},
+	{"c": [13, 16], "k": "equip_passive", "a": ID_FIREHAWK},
+	{"c": [17, 23], "k": "equip", "a": ID_ALD},
+	# ---- S3 出血核心＋戦闘 ----
+	{"c": [24, 29], "k": "equip_passive", "a": ID_ALD},
+	{"c": [30, 37], "k": "dungeon"},
+	{"c": [38, 48], "k": "dungeon"},
+	# ---- S4 ビルド ----
+	{"c": [49, 50], "k": "showcase_staff", "a": "staff_aldo_bleed"},
+	{"c": [51, 51], "k": "weapon", "a": WPN_PULSE},
+	{"c": [52, 52], "k": "armor", "a": ARM_BLOOD},
+	{"c": [53, 53], "k": "accessory", "a": ACC_VEIN},
+	{"c": [54, 54], "k": "equip_skill", "a": ID_ALD},
+	{"c": [55, 64], "k": "showcase_staff", "a": "staff_aldo_bleed"},
+	{"c": [65, 68], "k": "dungeon"},
 	# ---- S5 相性 ----
-	{"c": [41, 46], "k": "roster"},
-	{"c": [47, 49], "k": "equip", "a": ID_ALD},
-	# ---- S6 戦闘 ----
-	{"c": [50, 53], "k": "dungeon"},
-	{"c": [54, 55], "k": "result_step", "a": "clear", "s": 2},
+	{"c": [69, 74], "k": "equip", "a": ID_RIVA},
+	{"c": [75, 79], "k": "equip_passive", "a": ID_RENOL},
+	{"c": [80, 85], "k": "equip", "a": ID_GALEN},
+	{"c": [86, 88], "k": "roster"},
+	{"c": [89, 94], "k": "dungeon"},
+	# ---- S6 戦闘まとめ ----
+	{"c": [95, 97], "k": "dungeon"},
+	{"c": [98, 99], "k": "result_step", "a": "clear", "s": 2},
+	{"c": [100, 109], "k": "equip", "a": ID_ALD},
 	# ---- S7 締め ----
-	{"c": [56, 60], "k": "equip", "a": ID_ALD},
-	{"c": [61, 63], "k": "hub"},
-	{"c": [64, 65], "k": "showcase_staff", "a": "staff_aldo_bleed"},
+	{"c": [110, 113], "k": "hub"},
+	{"c": [114, 116], "k": "showcase_staff", "a": "staff_aldo_bleed"},
 ]
 
 var _gs: Node
@@ -235,14 +240,17 @@ func _ensure_party_for_video() -> void:
 	var ald: Resource = _find_member(ID_ALD)
 	var riva: Resource = _find_member(ID_RIVA)
 	var galen: Resource = _find_member(ID_GALEN)
+	var renol: Resource = _find_member(ID_RENOL)
 	var party: Array = []
+	## 盾・主砲・標的・異常増幅（解説どおり）
+	if galen != null:
+		party.append(galen)
 	if ald != null:
 		party.append(ald)
 	if riva != null:
 		party.append(riva)
-	if galen != null:
-		party.append(galen)
-	## 4枠までスターターで埋める
+	if renol != null:
+		party.append(renol)
 	for m in _gs.call("get_roster"):
 		if party.size() >= int(_gs.get("ACTIVE_PARTY_SIZE")):
 			break
