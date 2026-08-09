@@ -42,8 +42,9 @@ const ROOM_MIN_COMBAT: int = 3     # COMBAT最低数（肩慣らし含む / BOSS
 
 
 ## P3-BAL-NONCOMBAT-001 / P3-BAL-TREASURE-EQUIP-001: 成功時 Gold＋装備1点確定（武／防／飾均等）
-## P3-BAL-DAILY-TREASURE-GOLD-001: 40 → 120（日課 Gold 底上げと同趣旨）
-const TREASURE_GOLD: int = 120
+## Gold は難易度別（P3-BAL-TREASURE-GOLD-TIER-001 → BalanceConfig.treasure_gold）。
+## 旧単一値互換（ノーマル帯）。正は BalanceConfig.treasure_gold(tier)。
+const TREASURE_GOLD: int = 1000
 ## 旧抽選率（P3-BAL-TREASURE-EQUIP-001 で廃止。参照互換のため残置）
 const TREASURE_ACCESSORY_CHANCE: float = 0.0
 const TREASURE_WEAPON_CHANCE: float = 0.0
@@ -2018,9 +2019,10 @@ func update_discovery(bonus: float = 0.0) -> void:
 
 func generate_treasure_loot() -> Dictionary:
 	## P3-BAL-TREASURE-EQUIP-001: 成功時は装備1点確定（武器／防具／装飾を均等）。追加抽選なし。
-	accumulate_rewards(0, TREASURE_GOLD)
+	var gold: int = BalanceConfig.treasure_gold(GameState.current_dungeon_tier)
+	accumulate_rewards(0, gold)
 	var result: Dictionary = {
-		"gold": TREASURE_GOLD,
+		"gold": gold,
 		"weapon_id": "",
 		"armor_id": "",
 		"accessory_id": "",
@@ -2065,7 +2067,10 @@ func _pick_treasure_equip_category() -> String:
 
 
 func generate_treasure_loot_failure() -> Dictionary:
-	var gold: int = maxi(1, int(round(float(TREASURE_GOLD) * 0.5)))
+	var gold: int = maxi(
+		1,
+		int(round(float(BalanceConfig.treasure_gold(GameState.current_dungeon_tier)) * 0.5))
+	)
 	accumulate_rewards(0, gold)
 	return {"gold": gold, "accessory_id": ""}
 
