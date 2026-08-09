@@ -3492,6 +3492,12 @@ ELITE/BOSS/遍在希少種（P3-D166）は別枠。重みは **当該 Biome 雑�
 | P3-BAL-FR-ELITE-MAMMOTH-001-2 | **氷晶マンモスをエリート化** | 硬殻タンク役 |
 | P3-BAL-FR-ELITE-MAMMOTH-001-3 | 氷晶の蹂躙を弱体（×1.40／CD14） | 過強緩和 |
 
+## 氷晶マンモス HP 減（2026-08-09 — P3-BAL-MAMMOTH-HP-001）
+
+| ID | 決定 | 理由 |
+|---|---|---|
+| P3-BAL-MAMMOTH-HP-001-1 | **`glacier_warden` max_hp 1650→1450** | オーナー・硬すぎ緩和 |
+
 ## 氷晶マンモス防御無視全体（2026-08-09 — P3-BAL-MAMMOTH-IGNORE-DEF-001）
 
 詳細: `docs/specs/decisions/113_MammothIgnoreDefAoE.md`
