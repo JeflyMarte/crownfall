@@ -39,6 +39,18 @@ func add_cooldown_seconds(cooldown_key: String, seconds: float) -> void:
 	var cur: float = float(_cooldown_remaining.get(cooldown_key, 0.0))
 	_cooldown_remaining[cooldown_key] = cur + seconds
 
+
+## 接頭辞一致キーを削除（死体スロット再利用時の敵 CD クリア用）。
+func clear_cooldown_keys_with_prefix(prefix: String) -> void:
+	if prefix.is_empty():
+		return
+	var to_erase: Array[String] = []
+	for key in _cooldown_remaining.keys():
+		if str(key).begins_with(prefix):
+			to_erase.append(str(key))
+	for key in to_erase:
+		_cooldown_remaining.erase(key)
+
 func calculate_damage(
 	skill_data: Resource,
 	base_damage: int,

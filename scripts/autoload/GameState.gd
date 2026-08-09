@@ -1663,6 +1663,8 @@ func reset_for_new_game() -> void:
 	ticket_inventory = {}
 	redeemed_codes = {}
 	owned_relics = []
+	saved_parties = []
+	showcase_member_id = ""
 	inventory = []
 	armor_inventory = []
 	accessory_inventory = []

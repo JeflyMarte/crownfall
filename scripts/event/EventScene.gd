@@ -91,7 +91,7 @@ func _ready() -> void:
 	_layout_guild_report()
 	_apply_typography()
 	_layout_chrome()
-	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.HOME)
+	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.NONE)
 	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)
 	EventSystem.event_updated.connect(_refresh)
 	ScrollTouchHelper.enable(_main_scroll)

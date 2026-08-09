@@ -7534,11 +7534,12 @@ func _execute_enemy_summon(skill: Resource, slot: int) -> bool:
 		var new_slot: int = $CombatController.append_enemy_to_swarm(template, cap)
 		if new_slot < 0:
 			break
-		## 死体スロット再利用時は撃破済フラグ／デバフ表示／スロット招集済をクリア。
-		## （slot: 鍵が残ると新個体の同種クローン召喚が不発になる）
+		## 死体スロット再利用時は撃破済フラグ／デバフ表示／スロット招集済／スロットCDをクリア。
+		## （slot: 鍵や enemy:N: CD9999 が残ると新個体の同種クローン召喚が不発になる）
 		_kill_award_slots.erase(new_slot)
 		_debuff_marks.erase(new_slot)
 		_enemy_summon_used.erase("slot:%d" % new_slot)
+		_skill_executor.clear_cooldown_keys_with_prefix("enemy:%d:" % new_slot)
 		spawned += 1
 		last_slot = new_slot
 		_reveal_appended_enemy_slot(new_slot)

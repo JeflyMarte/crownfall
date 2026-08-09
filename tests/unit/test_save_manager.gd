@@ -302,10 +302,14 @@ func test_reset_for_new_game_clears_progress() -> void:
 	GameState.dungeon_progress = {"mourngate": true}
 	GameState.starter_unlocked_ids = ["adventurer_0"]
 	GameState.starter_pick_pending = false
+	GameState.saved_parties = [{"name": "旧編成", "member_ids": ["adventurer_0"]}]
+	GameState.showcase_member_id = "adventurer_0"
 	GameState.reset_for_new_game()
 	assert_eq(GameState.gold, 0)
 	assert_eq(GameState.gacha_token, 0)
 	assert_eq(GameState.dungeon_progress.size(), 0)
+	assert_eq(GameState.saved_parties.size(), 0)
+	assert_eq(GameState.showcase_member_id, "")
 	if Constants.STARTER_STORY_RECRUIT:
 		assert_true(GameState.starter_pick_pending)
 		assert_eq(GameState.roster.size(), 0)
