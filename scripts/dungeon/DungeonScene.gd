@@ -7533,9 +7533,11 @@ func _execute_enemy_summon(skill: Resource, slot: int) -> bool:
 		var new_slot: int = $CombatController.append_enemy_to_swarm(template, cap)
 		if new_slot < 0:
 			break
-		## 死体スロット再利用時は撃破済フラグ／デバフ表示をクリア。
+		## 死体スロット再利用時は撃破済フラグ／デバフ表示／スロット招集済をクリア。
+		## （slot: 鍵が残ると新個体の同種クローン召喚が不発になる）
 		_kill_award_slots.erase(new_slot)
 		_debuff_marks.erase(new_slot)
+		_enemy_summon_used.erase("slot:%d" % new_slot)
 		spawned += 1
 		last_slot = new_slot
 		_reveal_appended_enemy_slot(new_slot)
@@ -8174,7 +8176,8 @@ func _reveal_appended_enemy_slot(slot: int) -> void:
 
 
 ## ボス呼び出し連れの表示。slot0 群れスプライトは出さず BossSprite を正とする。
-func _reveal_boss_add_slot(new_slot: int) -> void:
+## force_reload_all: 開幕同席など、全連れのシートを必ず現スロット敵に合わせる。
+func _reveal_boss_add_slot(new_slot: int, force_reload_all: bool = false) -> void:
 	var n: int = $CombatController.swarm_data.size()
 	_ensure_swarm_slots(n)
 	if _swarm_sprites.size() > 0:
@@ -8197,7 +8200,15 @@ func _reveal_boss_add_slot(new_slot: int) -> void:
 			spr.visible = false
 			continue
 		var is_new_slot: bool = i == new_slot
-		if is_new_slot or spr.sprite_frames == null:
+		var bound_id: String = str(spr.get_meta("enemy_id", ""))
+		## duplicate 元の旧部屋シートや別敵の残りを捨て、現スロット id に合わせる。
+		var need_reload: bool = (
+			force_reload_all
+			or is_new_slot
+			or spr.sprite_frames == null
+			or bound_id != id
+		)
+		if need_reload:
 			var frames: SpriteFrames = load(path) as SpriteFrames
 			if frames == null:
 				spr.visible = false
@@ -8210,7 +8221,12 @@ func _reveal_boss_add_slot(new_slot: int) -> void:
 		spr.position = _boss_add_combat_position(add_index)
 		spr.z_index = _BossSummonLayout.add_z_index(add_index)
 		spr.visible = $CombatController.is_enemy_slot_alive(i)
-		if is_new_slot and spr.visible and spr.sprite_frames != null and spr.sprite_frames.has_animation("idle"):
+		if (
+			(is_new_slot or force_reload_all or bound_id != id)
+			and spr.visible
+			and spr.sprite_frames != null
+			and spr.sprite_frames.has_animation("idle")
+		):
 			spr.play("idle")
 		_style_enemy_nameplate(_swarm_nameplates[i], true)
 		_swarm_nameplates[i].add_theme_font_size_override("font_size", name_fs)
@@ -11671,6 +11687,10 @@ func _swarm_display_scale_for_count(n: int) -> float:
 func _show_enemy_swarm(enemy_ids: Array) -> void:
 	_clear_swarm_slots()
 	if $DungeonController.current_room_type == Enums.RoomType.BOSS:
+		## 直前部屋の雑魚シートが duplicate で連れに残らないようクリア。
+		_enemy_sprite.sprite_frames = null
+		if _enemy_sprite.has_meta("enemy_id"):
+			_enemy_sprite.remove_meta("enemy_id")
 		_enemy_sprite.visible = false
 		_hp_bar_enemy.visible = false
 		_enemy_nameplate.visible = false
@@ -14699,7 +14719,8 @@ func _reveal_boss_opening_companions() -> void:
 	var n: int = $CombatController.swarm_data.size()
 	if n <= 1:
 		return
-	_reveal_boss_add_slot(n - 1)
+	## 全連れを現データで再読込（直前部屋のシート引き継ぎ防止）。
+	_reveal_boss_add_slot(n - 1, true)
 
 func _begin_boss_combat_entrance(lead: Resource) -> void:
 	if lead == null:

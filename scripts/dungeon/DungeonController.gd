@@ -1689,9 +1689,11 @@ func _append_boss_opening_companions(group: Array[Resource]) -> void:
 		var eid: String = str(raw_id)
 		if eid.is_empty():
 			continue
-		var companion: Resource = _EnemyTierVariantConfig.apply_for_current_tier(
-			DataRegistry.get_enemy_data(eid)
-		)
+		var base: Resource = DataRegistry.get_enemy_data(eid)
+		if base == null:
+			continue
+		## 同一 id 複数体でもインスタンスを分ける（共有 Resource の見た目／状態汚染防止）。
+		var companion: Resource = _EnemyTierVariantConfig.apply_for_current_tier(base.duplicate(true))
 		if companion == null:
 			continue
 		group.append(companion)

@@ -12,6 +12,25 @@ func test_eldion_opening_companions_and_resist() -> void:
 	assert_almost_eq(float(boss.incoming_status_chance_mult), 0.55, 0.001)
 	assert_true("boss_buff_break_all" in boss.skill_ids)
 	assert_not_null(DataRegistry.get_enemy_data("storm_joe"))
+	assert_eq(str(DataRegistry.get_enemy_data("storm_joe").display_name), "ストームジョー")
+	assert_eq(str(DataRegistry.get_enemy_data("wind_ripper").display_name), "スノーストーム")
+
+
+func test_eldion_opening_group_is_two_storm_joe() -> void:
+	## pick 経路でもスノーストームが混ざらないこと。
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	dc.current_dungeon_data = DataRegistry.get_dungeon_data("frostridge")
+	dc.current_stage_data = DataRegistry.get_stage_data("frostridge_5_5")
+	dc.current_room_type = Enums.RoomType.BOSS
+	GameState.current_dungeon_tier = 0
+	var group: Array = dc.pick_combat_enemy_group()
+	assert_eq(group.size(), 3)
+	assert_eq(str(group[0].id), "eldion")
+	assert_eq(str(group[1].id), "storm_joe")
+	assert_eq(str(group[2].id), "storm_joe")
+	assert_ne(group[1], group[2], "companions should be distinct instances")
 
 
 func test_eldion_phase_weights_include_buff_break() -> void:

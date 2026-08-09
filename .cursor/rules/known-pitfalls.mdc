@@ -35,6 +35,7 @@ alwaysApply: false
 | 追撃／マルチ DoT で撃破報酬二重 | `_on_enemy_slot_killed` が冪等でない | `_kill_award_slots`＋DoT 既死 skip＋`on_kill` は first_kill のみ |
 | 会心追撃等でトドメしても撃破パッシブ／キル数なし | `_on_enemy_slot_killed` のみ呼び `on_kill` 未発火 | killer 付きで集約発火（DoT／自爆は -1） |
 | 護衛撃破後にボス追加召喚できない | キャップが死体込み `swarm_data.size` | 死体スロット再利用＋上限は生存数 |
+| 死体再利用後に同種クローン召喚が不発 | `_mark_enemy_summon_used` の `slot:` が残り、再利用時未クリア | `_execute_enemy_summon` で `_kill_award_slots` と共に `slot:` を erase（`skill:` は残す） |
 | 4人編成以降で敵の殴り／DoTが痛くない | グローバルATK薄＋回復ループ | `ENEMY_GLOBAL_ATK`×1.25・味方DoT×1.40・`heal_block`／後列技 |
 | 被弾で防御が半永久半減 | on_hit `guard` 再付与が持続リセット＋短いCD | CD延長＋`skip_if_status_active`（付与中不発）。`110_GuardOnHitUptime` |
 | 調剤師の薬で常時半減 | 回復のたび `guard` 再付与・CDなし | 対象別 CD12＋付与中不発（`_maybe_apply_heal_guard`） |
@@ -287,5 +288,6 @@ alwaysApply: false
 | ポーズ中に沈黙が切れる | `Time.get_ticks_msec` 壁時計 | `CombatController` 残り秒＋戦闘クロック tick（監査 I） |
 | 召喚失敗後に通常攻撃まで出る | CD 消費後 `summon` が false → fallthrough | `_execute_enemy_skill` は CD 済みなら true（監査 I） |
 | ボス呼び出し敵が BossSprite に隠れる | 群れ配置がボスと同位置・z 下／slot0 二重 | → **`14_Presentation_Pitfalls.md`**（`BossSummonLayout`） |
+| エルディオン開幕ストーム1体が前部屋のスノーストーム見た目 | 連れスプライトが `EnemySprite.duplicate` で旧 `sprite_frames` を継承し、新規スロット以外は再読込しない | ボス入場で `EnemySprite.sprite_frames=null`。開幕は `_reveal_boss_add_slot(..., force_reload_all)`。`enemy_id` meta 不一致でも再読込 |
 | 冠呼び等の途中召集で強制終了 | `duplicate()` が SIGNALS コピー＋ノード捕獲ラムダ／`lbl.free()` と tween 競合 | SIGNALS なし duplicate＋`_on_swarm_sprite_animation_finished.bind(slot)`／スキル名は instance_id＋`queue_free` |
 | 右上バフ凡例にアイコンが見えない | 装備ステICOが黒地＋Emptyパネル | 金枠バッジ台座の上に TextureRect（`_make_field_buff_legend_row`） |
