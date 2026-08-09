@@ -51,14 +51,24 @@ func test_shared_rock_bison_untouched_by_biome_tips() -> void:
 	assert_almost_eq(float(data.incoming_status_chance_mult), 1.0, 0.001)
 
 
-func test_whisperwood_shells_are_def_thick_and_fire_weak() -> void:
+func test_whisperwood_is_dot_shell_not_fire() -> void:
+	## 霜（火）と被らない。DoT＋DEF厚が本体。
 	var shell: Resource = DataRegistry.get_enemy_data("moss_shell")
 	assert_not_null(shell)
 	assert_gte(int(shell.defense), 110)
-	assert_true("fire" in shell.element_weakness)
+	assert_false("fire" in shell.element_weakness)
+	assert_eq(str(shell.on_hit_status_id), "poison")
 	var widow: Resource = DataRegistry.get_enemy_data("spore_widow")
 	assert_not_null(widow)
-	assert_true("fire" in widow.element_weakness)
+	assert_false("fire" in widow.element_weakness)
 	var hint: String = _Themes.select_hint("whisperwood")
-	assert_true(hint.contains("火属性"), hint)
-	assert_true(hint.contains("殻") or hint.contains("物理"), hint)
+	assert_true(hint.contains("DoT") or hint.contains("毒"), hint)
+	assert_false(hint.contains("火属性"), hint)
+	var frost_hint: String = _Themes.select_hint("frostridge")
+	assert_true(frost_hint.contains("火"), frost_hint)
+
+
+func test_frostridge_keeps_fire_weak_identity() -> void:
+	var raptor: Resource = DataRegistry.get_enemy_data("frost_claw_raptor")
+	assert_not_null(raptor)
+	assert_true("fire" in raptor.element_weakness)

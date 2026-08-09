@@ -6,7 +6,7 @@ extends RefCounted
 
 const _HINTS: Dictionary = {
 	"mourngate": "傾向: 出血・継戦向き ／ 薄い編成は苦戦",
-	"whisperwood": "傾向: 火属性で殻を溶かす・DoT ／ 無属性の鈍い物理は苦戦",
+	"whisperwood": "傾向: 毒・出血のDoTで殻を削る ／ 瞬間火力のみは苦戦",
 	"mistfen": "傾向: 異常耐性・高火力向き ／ 毒沼に薄い編成は苦戦",
 	"blackshore": "傾向: ヴァンガード壁向き ／ 紙編成は苦戦",
 	"frostridge": "傾向: 火属性・属性特化向き ／ 無属性鈍火力は苦戦",
