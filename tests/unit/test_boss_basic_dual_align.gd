@@ -69,12 +69,12 @@ func test_all_bosses_have_dual_basic_attacks() -> void:
 			assert_eq(str(skill.effect_type), "damage", str(sid))
 			if str(skill.target_type) == "party":
 				saw_single = true
-				## エルディオンは開幕補強で単体×1.85（他ボスは案Aの×1.7）。
-				var expect_single: float = 1.85 if boss_id == "eldion" else 1.7
+				## エルディオンはソロ圧力で単体×2.2（他ボスは案Aの×1.7）。
+				var expect_single: float = 2.2 if boss_id == "eldion" else 1.7
 				assert_almost_eq(float(skill.power_multiplier), expect_single, 0.001, str(sid))
 			elif str(skill.target_type) == "all_party":
 				saw_cleave = true
-				var expect_cleave: float = 1.15 if boss_id == "eldion" else 1.0
+				var expect_cleave: float = 1.4 if boss_id == "eldion" else 1.0
 				assert_almost_eq(float(skill.power_multiplier), expect_cleave, 0.001, str(sid))
 		assert_true(saw_single, boss_id)
 		assert_true(saw_cleave, boss_id)
@@ -93,9 +93,9 @@ func test_instant_pressure_aoe_power() -> void:
 		assert_not_null(skill, sid)
 		assert_eq(str(skill.target_type), "all_party", sid)
 		var expect_power := 0.6 if boss_id in _LATER_MAIN_INSTANT_AOE_06 else 0.75
-		## エルディオン吐息は開幕補強で ×0.85。
+		## エルディオン吐息はソロ圧力で ×1.15。
 		if boss_id == "eldion":
-			expect_power = 0.85
+			expect_power = 1.15
 		assert_almost_eq(float(skill.power_multiplier), expect_power, 0.001, sid)
 		assert_lte(float(skill.cast_time), 0.0, sid)
 
@@ -105,7 +105,7 @@ func test_heavy_skills_are_two() -> void:
 		var sid: String = _HEAVY_SKILLS[boss_id]
 		var skill: Resource = DataRegistry.get_skill_data(sid)
 		assert_not_null(skill, sid)
-		var expect_heavy: float = 2.2 if boss_id == "eldion" else 2.0
+		var expect_heavy: float = 2.5 if boss_id == "eldion" else 2.0
 		assert_almost_eq(float(skill.power_multiplier), expect_heavy, 0.001, sid)
 
 
@@ -141,7 +141,7 @@ func test_boss_atk_scaled_with_serdion_ratio() -> void:
 		"granvel": 175,
 		"moldgar": 175,
 		"nereion": 191,
-		"eldion": 220,
+		"eldion": 300,
 		"chronos_wave": 250,
 		"valgard": 254,
 		"skarpedion": 184,
