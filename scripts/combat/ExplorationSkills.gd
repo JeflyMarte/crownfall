@@ -4,9 +4,14 @@ extends RefCounted
 ## 探索スキル群（P3-D117）。編成ロールが特定部屋で自動発動し、報酬/安全にボーナス。
 ## 戦闘スキルとは別枠。ロール判定は CombatSynergy と同型（1人以上で発動可）。
 ## 罠ダメージは最大HP割合（P3-TRAP-PCT-001 → P3-BAL-TRAP-TIER-001）。
+## 報酬4種はオミット（P3-BAL-OMIT-EXPLORE-REWARD-001）。罠解除のみ有効。
 
 ## 後方互換: ハード帯の探索罠発生率。
 const TRAP_CHANCE: float = 0.20
+
+## 採取／採掘／鍵開け／解読。false でプレイから外す（罠解除は別）。
+const REWARD_BONUSES_ENABLED: bool = false
+const REWARD_SKILL_IDS: Array[String] = ["gather", "mine", "lockpick", "decipher"]
 
 const _SKILLS: Dictionary = {
 	"gather": {
@@ -43,7 +48,12 @@ static func skill_ids() -> Array:
 static func label(skill_id: String) -> String:
 	return str(_SKILLS.get(skill_id, {}).get("label", skill_id))
 
+static func is_reward_skill(skill_id: String) -> bool:
+	return skill_id in REWARD_SKILL_IDS
+
 static func has_skill_for_room(members: Array, skill_id: String, room_type: int) -> bool:
+	if is_reward_skill(skill_id) and not REWARD_BONUSES_ENABLED:
+		return false
 	var def: Dictionary = _SKILLS.get(skill_id, {})
 	if def.is_empty():
 		return false
@@ -102,6 +112,8 @@ static func active_labels(members: Array) -> PackedStringArray:
 	var roles: Dictionary = _party_roles(members)
 	var out: PackedStringArray = []
 	for skill_id: String in _SKILLS:
+		if is_reward_skill(skill_id) and not REWARD_BONUSES_ENABLED:
+			continue
 		if _roles_match(_SKILLS[skill_id].get("roles", []), roles):
 			out.append(label(skill_id))
 	return out

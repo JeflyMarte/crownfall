@@ -1598,6 +1598,17 @@
 | P3-D117-4 | **可視化**: ログ `[探索]`・装備タブ `ExplorationSkills.active_labels` | 編成画面で使えるスキル可読化 |
 | P3-D117-5 | **スコープ外**: プレイヤー手動発動・探索スキルCD・部屋構成変更・専用探索部屋・スキル習得/成長・罠の種類拡充 | MVP最小化。高速周回(E-15)は後続 |
 
+## 探索報酬ボーナス・オミット（2026-08-09 — P3-BAL-OMIT-EXPLORE-REWARD-001）
+
+詳細: `docs/specs/decisions/122_OmitExplorationRewardBonuses.md`
+
+| ID | 決定 | 理由 |
+|---|---|---|
+| P3-BAL-OMIT-EXPLORE-REWARD-001-1 | **採取／採掘／鍵開け／解読をオミット** | 本体報酬と二重・額が陳腐 |
+| P3-BAL-OMIT-EXPLORE-REWARD-001-2 | **罠解除は残す** | 安全機能 |
+| P3-BAL-OMIT-EXPLORE-REWARD-001-3 | `REWARD_BONUSES_ENABLED=false` | 再有効化はフラグ |
+| P3-BAL-OMIT-EXPLORE-REWARD-001-4 | 探索方針（D098）非スコープ | 別系統 |
+
 ## 高速周回・戦闘スキップ MVP（2026-07-01 — P3-D118・残ロードマップ フェーズE-15）
 
 > クリア済みダンジョンの周回 QoL。通常戦闘のみ即時撃破し、報酬は通常撃破と同型。
