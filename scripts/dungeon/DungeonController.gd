@@ -1713,20 +1713,26 @@ func _swarm_pool_enemies(include_escorts: bool) -> Array[Resource]:
 
 # 戦闘の敵編成を返す（P3-D082 + P3-D110 混成 + P3-WANDER-001 放浪差し込み + P3-BAL-SWARM-001 護衛）。
 # 本編 BOSS は単体。無限 BOSS は階帯パック（P3-BAL-TIER-ENC-A-001）。
-# ELITE は N/H=護衛1〜2、NM=双エリート薄護衛 or 単＋護衛2〜3。COMBAT は放浪→群れ。
+# ELITE は N/H=護衛1〜2、NM=双エリート薄護衛 or 単＋護衛2〜3。
+# COMBAT 放浪は通常群れにまぎれる（P3-BAL-WANDER-MIX-001）。ビッグダックのみ単独据置。
 func pick_combat_enemy_group() -> Array[Resource]:
 	var group: Array[Resource] = []
+	var wander: Resource = null
 	if current_room_type == Enums.RoomType.COMBAT:
-		var wander: Resource = try_pick_wandering_enemy()
-		if wander != null:
+		wander = try_pick_wandering_enemy()
+		## 裂け目 Hard+: 通常ダック群れの代わりにビッグ 1〜2（P3-ENEMY-BIG-COSMIC-DUCK-002）
+		if wander == null:
+			var rift_big: Array[Resource] = _try_cosmic_rift_big_combat_group()
+			if not rift_big.is_empty():
+				return rift_big
+		## ビッグコズミックダックは体格・圧のため単独遭遇を維持。
+		elif str(wander.id) == _WanderingEnemyConfig.ID_BIG_COSMIC_DUCK:
 			group.append(wander)
 			return group
-		## 裂け目 Hard+: 通常ダック群れの代わりにビッグ 1〜2（P3-ENEMY-BIG-COSMIC-DUCK-002）
-		var rift_big: Array[Resource] = _try_cosmic_rift_big_combat_group()
-		if not rift_big.is_empty():
-			return rift_big
 	var base: Resource = pick_combat_enemy_data()
 	if base == null:
+		if wander != null:
+			group.append(wander)
 		return group
 	group.append(base)
 	if current_room_type == Enums.RoomType.BOSS:
@@ -1744,7 +1750,17 @@ func pick_combat_enemy_group() -> Array[Resource]:
 	## 降臨: データ未設定でも群れ厚め（Nでも）。tres の forced_swarm があればそちら優先。
 	var descent_swarm: bool = (not forced_swarm) and _is_descent_event_dungeon()
 	var escorts: bool = bool(base.escorts_minions)
-	if not bool(base.can_swarm) and not forced_swarm and not descent_swarm and not escorts:
+	## 放浪混入時は群れを強制して「まぎれ」させる（イベント／降臨の下限は据置）。
+	var force_pack_for_wander: bool = wander != null and not forced_swarm and not descent_swarm
+	if (
+		not bool(base.can_swarm)
+		and not forced_swarm
+		and not descent_swarm
+		and not escorts
+		and not force_pack_for_wander
+	):
+		if wander != null:
+			return _embed_wandering_in_combat_group(group, wander)
 		return group
 	var swarm_chance: float = SWARM_CHANCE
 	if forced_swarm:
@@ -1758,7 +1774,11 @@ func pick_combat_enemy_group() -> Array[Resource]:
 		swarm_chance *= _early_stage_swarm_chance_mult()
 	swarm_chance *= _DungeonTierConfig.swarm_chance_mult(GameState.current_dungeon_tier)
 	swarm_chance = minf(0.95, swarm_chance * EventSystem.get_swarm_chance_mult())
+	if force_pack_for_wander:
+		swarm_chance = 1.0
 	if randf() >= swarm_chance:
+		if wander != null:
+			return _embed_wandering_in_combat_group(group, wander)
 		return group
 	## 敵ごとの swarm_min を尊重（1許可）。イベント forced_swarm／降臨は下限2。
 	var lo: int = maxi(1, int(base.swarm_min))
@@ -1769,6 +1789,9 @@ func pick_combat_enemy_group() -> Array[Resource]:
 	elif descent_swarm:
 		lo = maxi(2, BalanceConfig.DESCENT_EVENT_SWARM_MIN)
 		hi = maxi(lo, BalanceConfig.DESCENT_EVENT_SWARM_MAX)
+	elif force_pack_for_wander:
+		lo = 2
+		hi = maxi(2, hi)
 	var size_bonus: int = _DungeonTierConfig.swarm_size_bonus(GameState.current_dungeon_tier)
 	hi = mini(_DungeonTierConfig.swarm_size_cap(), hi + size_bonus)
 	## モーンゲート 1-1〜1-3 ノーマル: 群れ最高2体（forced_swarm／降臨は対象外）。
@@ -1785,9 +1808,13 @@ func pick_combat_enemy_group() -> Array[Resource]:
 	## 護衛リーダー: 追加枠は常に雑魚。雑魚プールが空なら単体のまま。
 	if escorts:
 		if minions.is_empty():
+			if wander != null:
+				return _embed_wandering_in_combat_group(group, wander)
 			return group
 		for _i in (size - 1):
 			group.append(minions[randi() % minions.size()])
+		if wander != null:
+			return _embed_wandering_in_combat_group(group, wander)
 		return group
 	var mixed_chance: float = _DungeonTierConfig.swarm_mixed_chance(GameState.current_dungeon_tier)
 	var use_mixed: bool = capable.size() >= 2 and randf() < mixed_chance
@@ -1802,6 +1829,31 @@ func pick_combat_enemy_group() -> Array[Resource]:
 			group.append(candidates[randi() % candidates.size()])
 		else:
 			group.append(base)
+	if wander != null:
+		return _embed_wandering_in_combat_group(group, wander)
+	return group
+
+
+## 放浪個体を群れの末尾スロットへ差し込む（リードは章雑魚のまま）。
+func _embed_wandering_in_combat_group(
+	group: Array[Resource], wander: Resource
+) -> Array[Resource]:
+	if wander == null:
+		return group
+	if group.is_empty():
+		return [wander] as Array[Resource]
+	var cap: int = _DungeonTierConfig.swarm_size_cap()
+	if group.size() == 1:
+		var base: Resource = group[0]
+		var pack_hi: int = mini(cap, maxi(2, int(base.swarm_max)))
+		var early_cap: int = _early_normal_swarm_size_cap()
+		if early_cap > 0:
+			pack_hi = mini(pack_hi, early_cap)
+		var pack_size: int = maxi(2, mini(pack_hi, 3))
+		while group.size() < pack_size:
+			group.append(base)
+	## 末尾を放浪に差し替え（吸血ヒル／吸血ヒル／ダック）。
+	group[group.size() - 1] = wander
 	return group
 
 func try_pick_wandering_enemy(rng: RandomNumberGenerator = null) -> Resource:

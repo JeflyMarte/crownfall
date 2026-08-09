@@ -1,15 +1,20 @@
 extends GutTest
 
-## P3-ENEMY-ROCK-BISON-001 / P3-BAL-ROCK-BISON-SPAWN-001 — ロックバイソン。
+## P3-ENEMY-ROCK-BISON-001 / P3-BAL-ROCK-BISON-WANDER-001 — ロックバイソン。
 
 const _DungeonController = preload("res://scripts/dungeon/DungeonController.gd")
+const _WanderingEnemyConfig = preload("res://scripts/dungeon/WanderingEnemyConfig.gd")
 
 const _EVENT_ONLY: Array[String] = [
 	"golden_nest",
 	"shadow_hunt",
 	"crown_rookery",
 	"cosmic_rift",
+]
+
+const _POOL_KEEP: Array[String] = [
 	"rock_stampede",
+	"valgard_boundary",
 ]
 
 
@@ -23,7 +28,8 @@ func test_rock_bison_data_shape() -> void:
 	assert_eq(int(data.swarm_max), 2)
 	assert_eq(int(data.codex_danger), 2)
 	assert_almost_eq(float(data.material_drop_chance_mult), 1.75, 0.0001)
-	assert_almost_eq(float(data.spawn_weight_mult), 0.2, 0.0001)
+	assert_true(bool(data.is_wandering))
+	assert_eq(int(data.wander_flee_after_turns), 0)
 	assert_true(data.codex_materials.is_empty())
 
 
@@ -39,7 +45,7 @@ func test_default_enemy_material_mult_is_one() -> void:
 	assert_almost_eq(float(boar.material_drop_chance_mult), 1.0, 0.0001)
 
 
-func test_rock_bison_in_all_non_event_pools() -> void:
+func test_rock_bison_pool_only_stampede_and_valgard() -> void:
 	var dungeons: Array = DataRegistry.get_all_dungeon_data()
 	assert_gt(dungeons.size(), 0)
 	for data in dungeons:
@@ -48,10 +54,15 @@ func test_rock_bison_in_all_non_event_pools() -> void:
 		var pool: Array = data.enemy_pool
 		if dungeon_id == "rock_stampede":
 			assert_eq(pool, ["rock_bison"], "%s should be bison-only" % dungeon_id)
+		elif dungeon_id in _POOL_KEEP:
+			assert_true("rock_bison" in pool, "%s missing rock_bison" % dungeon_id)
 		elif dungeon_id in _EVENT_ONLY:
 			assert_false("rock_bison" in pool, "%s should stay single-species" % dungeon_id)
 		else:
-			assert_true("rock_bison" in pool, "%s missing rock_bison" % dungeon_id)
+			assert_false(
+				"rock_bison" in pool,
+				"%s should not keep pool bison (wander instead)" % dungeon_id
+			)
 
 
 func test_rock_bison_dedicated_art() -> void:
@@ -74,8 +85,21 @@ func test_rock_bison_dedicated_art() -> void:
 	)
 
 
-func test_rock_bison_spawn_weight_thins_mistfen_d2() -> void:
-	## D2= bone_picker(1.0) + rock_bison(0.2) → 帯内≈17%。全体≈8%（旧0.4時≈11%）。
+func test_rock_bison_wander_chance_matches_raven_band() -> void:
+	assert_almost_eq(_WanderingEnemyConfig.spawn_chance_rock_bison(0), 0.015, 0.0001)
+	assert_almost_eq(
+		_WanderingEnemyConfig.spawn_chance_rock_bison(0),
+		_WanderingEnemyConfig.spawn_chance_crown_raven(0),
+		0.0001
+	)
+	## N: duck+raven+scarab=0.055 → bison until 0.070
+	assert_eq(
+		_WanderingEnemyConfig.wandering_id_for_roll(0.06),
+		_WanderingEnemyConfig.ID_ROCK_BISON
+	)
+
+
+func test_mistfen_pool_pick_no_longer_floods_bison() -> void:
 	seed(424242)
 	var dc: Node = _DungeonController.new()
 	add_child_autofree(dc)
@@ -86,8 +110,4 @@ func test_rock_bison_spawn_weight_thins_mistfen_d2() -> void:
 		var enemy: Resource = dc.pick_enemy_data()
 		if str(enemy.id) == "rock_bison":
 			bison += 1
-	var ratio: float = float(bison) / float(total)
-	assert_true(
-		ratio > 0.04 and ratio < 0.14,
-		"mistfen_3_1 bison ~8%% after weight 0.2 (got %.2f)" % ratio
-	)
+	assert_eq(bison, 0, "pool pick must not yield rock_bison after wander move")

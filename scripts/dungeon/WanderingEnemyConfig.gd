@@ -10,6 +10,7 @@ const ID_COSMIC_DUCK: String = "cosmic_duck"
 const ID_BIG_COSMIC_DUCK: String = "big_cosmic_duck"
 const ID_CROWN_RAVEN: String = "crown_raven"
 const ID_GOLDEN_SCARAB: String = "golden_scarab"
+const ID_ROCK_BISON: String = "rock_bison"
 const ID_SHADOW_STALKER: String = "shadow_stalker"
 ## 影狩り出現フロア入場時の部屋種別トランジション用ナレーション。
 const SHADOW_STALKER_OMEN_LINE: String = "──死を告げる羽音が近づく。この気配…影狩だ。"
@@ -24,10 +25,11 @@ const ENEMY_ID_ALIASES: Dictionary = {
 }
 
 ## COMBAT 部屋の基準出現率（ノーマル帯）。Hard/NM は rarity_weight_mult と同型で上昇。
-## 案A（P3-WANDER-004）: 既存据置＋新2種追加。合計 ≈ 6.3%。
+## 放浪5種合計 ≈ 7.8%（バイソンは pool 横断をやめ同帯へ・P3-BAL-ROCK-BISON-WANDER-001）。
 const SPAWN_CHANCE_COSMIC_DUCK: float = 0.025
 const SPAWN_CHANCE_CROWN_RAVEN: float = 0.015
 const SPAWN_CHANCE_GOLDEN_SCARAB: float = 0.015
+const SPAWN_CHANCE_ROCK_BISON: float = 0.015
 const SPAWN_CHANCE_SHADOW_STALKER: float = 0.008
 
 ## Hard+ 放浪ダック成功時のビッグ昇格率（P3-ENEMY-BIG-COSMIC-DUCK-002 案A）。
@@ -98,6 +100,24 @@ static func is_golden_scarab(enemy_data: Resource) -> bool:
 	return str(enemy_data.id) == ID_GOLDEN_SCARAB
 
 
+static func is_rock_bison(enemy_data: Resource) -> bool:
+	if enemy_data == null:
+		return false
+	return str(enemy_data.id) == ID_ROCK_BISON
+
+
+static func is_wandering_id(enemy_id: String) -> bool:
+	var eid: String = canonical_enemy_id(enemy_id)
+	return eid in [
+		ID_COSMIC_DUCK,
+		ID_BIG_COSMIC_DUCK,
+		ID_CROWN_RAVEN,
+		ID_GOLDEN_SCARAB,
+		ID_ROCK_BISON,
+		ID_SHADOW_STALKER,
+	]
+
+
 ## 伝説プール補完＋神話別枠の対象（レイヴン／影狩り）。
 static func grants_legendary_equip_pool(enemy_data: Resource) -> bool:
 	return is_crown_raven(enemy_data) or is_shadow_stalker(enemy_data)
@@ -137,6 +157,11 @@ static func spawn_chance_crown_raven(tier: int = _DungeonTierConfig.TIER_NORMAL)
 static func spawn_chance_golden_scarab(tier: int = _DungeonTierConfig.TIER_NORMAL) -> float:
 	var base: float = SPAWN_CHANCE_GOLDEN_SCARAB * spawn_mult_for_tier(tier)
 	return minf(0.45, base * EventSystem.get_wander_spawn_mult(ID_GOLDEN_SCARAB))
+
+
+static func spawn_chance_rock_bison(tier: int = _DungeonTierConfig.TIER_NORMAL) -> float:
+	var base: float = SPAWN_CHANCE_ROCK_BISON * spawn_mult_for_tier(tier)
+	return minf(0.45, base * EventSystem.get_wander_spawn_mult(ID_ROCK_BISON))
 
 
 static func spawn_chance_shadow_stalker(tier: int = _DungeonTierConfig.TIER_NORMAL) -> float:
@@ -217,6 +242,7 @@ static func wandering_id_for_roll(
 	var duck_chance: float = spawn_chance_cosmic_duck(tier)
 	var raven_chance: float = spawn_chance_crown_raven(tier)
 	var scarab_chance: float = spawn_chance_golden_scarab(tier)
+	var bison_chance: float = spawn_chance_rock_bison(tier)
 	var stalker_chance: float = (
 		spawn_chance_shadow_stalker(tier) if allow_shadow_stalker else 0.0
 	)
@@ -230,6 +256,9 @@ static func wandering_id_for_roll(
 	if roll < cursor + scarab_chance:
 		return ID_GOLDEN_SCARAB
 	cursor += scarab_chance
+	if roll < cursor + bison_chance:
+		return ID_ROCK_BISON
+	cursor += bison_chance
 	if roll < cursor + stalker_chance:
 		return ID_SHADOW_STALKER
 	return ""

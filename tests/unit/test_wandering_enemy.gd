@@ -41,12 +41,20 @@ func test_roll_golden_scarab_band() -> void:
 	assert_eq(_WanderingEnemyConfig.wandering_id_for_roll(0.045), _WanderingEnemyConfig.ID_GOLDEN_SCARAB)
 
 
-func test_roll_shadow_stalker_band() -> void:
-	## N: …scarab ends 0.055 → stalker until 0.063
-	assert_eq(_WanderingEnemyConfig.wandering_id_for_roll(0.058), _WanderingEnemyConfig.ID_SHADOW_STALKER)
-	## 1-1〜1-3 相当: 影狩り帯の roll でも空
+func test_roll_rock_bison_band() -> void:
+	## N: duck+raven+scarab=0.055 → bison until 0.070
 	assert_eq(
-		_WanderingEnemyConfig.wandering_id_for_roll(0.058, 0, false),
+		_WanderingEnemyConfig.wandering_id_for_roll(0.06),
+		_WanderingEnemyConfig.ID_ROCK_BISON
+	)
+
+
+func test_roll_shadow_stalker_band() -> void:
+	## N: …bison ends 0.070 → stalker until 0.078
+	assert_eq(_WanderingEnemyConfig.wandering_id_for_roll(0.072), _WanderingEnemyConfig.ID_SHADOW_STALKER)
+	## 1-1〜1-3 相当: 影狩り帯の roll でも空（バイソン帯は残る）
+	assert_eq(
+		_WanderingEnemyConfig.wandering_id_for_roll(0.072, 0, false),
 		""
 	)
 
@@ -98,13 +106,14 @@ func test_spawn_chance_scales_with_dungeon_tier() -> void:
 	assert_almost_eq(nm_duck, 0.025 * 1.6, 0.0001)
 	assert_almost_eq(_WanderingEnemyConfig.spawn_chance_crown_raven(2), 0.015 * 1.6, 0.0001)
 	assert_almost_eq(_WanderingEnemyConfig.spawn_chance_golden_scarab(0), 0.015, 0.0001)
+	assert_almost_eq(_WanderingEnemyConfig.spawn_chance_rock_bison(0), 0.015, 0.0001)
 	assert_almost_eq(_WanderingEnemyConfig.spawn_chance_shadow_stalker(0), 0.008, 0.0001)
 	assert_almost_eq(_WanderingEnemyConfig.spawn_chance_shadow_stalker(2), 0.008 * 1.6, 0.0001)
 	## ノーマル帯では外れる roll が、ナイトメアでは影狩り帯に入る
-	## N total=0.063 / NM: duck0.04+raven0.024+scarab0.024=0.088 → stalker to ~0.1008
-	assert_eq(_WanderingEnemyConfig.wandering_id_for_roll(0.07, 0), "")
+	## N total=0.078 / NM: duck0.04+raven0.024+scarab0.024+bison0.024=0.112 → stalker to ~0.1248
+	assert_eq(_WanderingEnemyConfig.wandering_id_for_roll(0.08, 0), "")
 	assert_eq(
-		_WanderingEnemyConfig.wandering_id_for_roll(0.09, 2),
+		_WanderingEnemyConfig.wandering_id_for_roll(0.115, 2),
 		_WanderingEnemyConfig.ID_SHADOW_STALKER
 	)
 
@@ -180,26 +189,38 @@ func test_shadow_stalker_high_risk_loot() -> void:
 	assert_eq(str(skill.apply_status_id2), "armor_break")
 
 
-func test_pick_wandering_replaces_combat_pool() -> void:
+func test_pick_wandering_mixes_into_combat_swarm() -> void:
 	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
 	var dc: Node = dc_script.new()
 	add_child_autofree(dc)
-	dc.current_dungeon_data = DataRegistry.get_dungeon_data("mourngate")
+	dc.current_dungeon_data = DataRegistry.get_dungeon_data("mistfen")
 	dc.current_room_type = Enums.RoomType.COMBAT
-	var saw_wander: bool = false
+	var saw_mixed_wander: bool = false
 	var wander_ids: Array[String] = [
-		"cosmic_duck", "crown_raven", "golden_scarab", "shadow_stalker"
+		"cosmic_duck", "crown_raven", "golden_scarab", "rock_bison", "shadow_stalker"
 	]
-	for seed_val: int in range(200):
+	for seed_val: int in range(400):
 		seed(seed_val)
 		var group: Array = dc.pick_combat_enemy_group()
-		if group.size() != 1:
+		if group.size() < 2:
 			continue
-		var eid: String = str(group[0].id)
-		if eid in wander_ids:
-			saw_wander = true
+		var has_wander: bool = false
+		var has_local: bool = false
+		for e: Resource in group:
+			var eid: String = str(e.id)
+			if eid in wander_ids or eid == "big_cosmic_duck":
+				has_wander = true
+			else:
+				has_local = true
+		if has_wander and has_local:
+			saw_mixed_wander = true
+			## 末尾が放浪（まぎれ）
+			assert_true(
+				str(group[group.size() - 1].id) in wander_ids
+				or str(group[group.size() - 1].id) == "big_cosmic_duck"
+			)
 			break
-	assert_true(saw_wander, "200 trials should hit wandering spawn")
+	assert_true(saw_mixed_wander, "400 trials should hit wander mixed into local pack")
 
 
 func test_weapon_drop_chance_override() -> void:
@@ -362,8 +383,9 @@ func test_planned_wander_used_on_combat_pick() -> void:
 	dc._wander_plan_ready = true
 	dc._planned_wander_by_room = {3: _WanderingEnemyConfig.ID_SHADOW_STALKER}
 	var group: Array = dc.pick_combat_enemy_group()
-	assert_eq(group.size(), 1)
-	assert_eq(str(group[0].id), "shadow_stalker")
+	assert_gte(group.size(), 2, "放浪は章雑魚群れにまぎれる")
+	assert_eq(str(group[group.size() - 1].id), "shadow_stalker")
+	assert_ne(str(group[0].id), "shadow_stalker")
 
 
 func test_save_v6_to_v7_merges_legacy_wander_codex() -> void:

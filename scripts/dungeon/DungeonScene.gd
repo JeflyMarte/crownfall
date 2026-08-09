@@ -4051,7 +4051,12 @@ func _enter_current_room() -> void:
 				_queue_or_begin_special_combat_entrance("elite", lead)
 				return
 			if group.size() > 1:
-				if _enemy_group_is_mixed(group):
+				if _enemy_group_has_wanderer(group):
+					var wander_names: PackedStringArray = []
+					for e: Resource in group:
+						wander_names.append(e.display_name)
+					_append_log("【放浪混成】%s" % " / ".join(wander_names))
+				elif _enemy_group_is_mixed(group):
 					var names: PackedStringArray = []
 					for e: Resource in group:
 						names.append(e.display_name)
@@ -11269,6 +11274,13 @@ func _enemy_group_is_mixed(group: Array) -> bool:
 	var lead_id: String = str(group[0].id)
 	for i in range(1, group.size()):
 		if str(group[i].id) != lead_id:
+			return true
+	return false
+
+
+func _enemy_group_has_wanderer(group: Array) -> bool:
+	for e: Variant in group:
+		if e is Resource and bool((e as Resource).is_wandering):
 			return true
 	return false
 

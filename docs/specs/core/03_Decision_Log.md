@@ -6626,6 +6626,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-ROCK-BISON-SPAWN-002-2 | **据置** — 全非イベント pool・群れ1〜2・素材率×1.75・岩角専任・境界廊二重 | 補給／降臨の役割は残す |
 | P3-BAL-ROCK-BISON-SPAWN-002-3 | **上書き** — `001-1` の 0.4 | 本 Decision が正 |
 
+## ロックバイソン放浪化＋放浪群れ混入（2026-08-09 — P3-BAL-ROCK-BISON-WANDER-001 / P3-BAL-WANDER-MIX-001）
+
+| ID | 決定 | 理由 |
+|---|---|---|
+| P3-BAL-ROCK-BISON-WANDER-001-1 | **バイソンを放浪枠へ** — 基準1.5%。非イベント pool から除去（岩角・境界廊は据置） | 出現過多の是正 |
+| P3-BAL-WANDER-MIX-001-1 | **放浪は群れ末尾にまぎれる**（単独置換廃止）。ビッグダックのみ単独 | オーナー例（ヒル×2＋ダック） |
+| P3-BAL-ROCK-BISON-WANDER-001-2 | **SSOT** — `105_RockBisonWanderMix.md`。SPAWN-001/002 の pool 方針を上書き | Decision 本体 |
+
 ## 属性値表示スケール（2026-08-02 — P3-EQ-ELEMENT-POWER-SCALE-001）
 
 > **オーナー GO** — 属性値1がしょぼく見える。効果はそのまま3桁表示へ。
