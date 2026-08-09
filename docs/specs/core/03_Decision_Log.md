@@ -7720,3 +7720,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-DISMANTLE-GOLD-001-3 | **UI** — プレビュー／確認／結果に Gold。一括は合算 | 手触り明確 |
 | P3-BAL-DISMANTLE-GOLD-001-4 | **上書き** — P3-FORGE-003-9 の Gold 据置 | 本 Decision が正 |
 | P3-BAL-DISMANTLE-GOLD-001-5 | **SSOT** — `103_DismantleGold.md`／`EquipmentEnhancer` | 実装正 |
+
+## 章別ビルドテーマ（2026-08-09 — P3-BAL-BIOME-BUILD-THEME-001）
+
+> **オーナー方針** — ダンジョンごとに有効ビルドを決め、それ以外は少し苦戦。禁止はしない。圧力は中。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-BIOME-BUILD-THEME-001-1 | **5章テーマ表** — モーン出血／WW火／ミスト耐性・火力／BS壁／霜火属性 | オーナー例＋データ整合 |
+| P3-BAL-BIOME-BUILD-THEME-001-2 | **圧力・中** — 敵尖り＋ミストは味方異常付与減衰。クリア不能・編成ロックなし | 遊びを残す |
+| P3-BAL-BIOME-BUILD-THEME-001-3 | **UI** — 選択画面に「傾向:」一行（`BiomeBuildThemes`） | 明示 |
+| P3-BAL-BIOME-BUILD-THEME-001-4 | **据置** — 地形×1.15 復活／無限強制／ガチャ章連動 | 別GO |
+| P3-BAL-BIOME-BUILD-THEME-001-5 | **SSOT** — `104_BiomeBuildThemes.md` | Decision 本体 |

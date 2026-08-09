@@ -1158,11 +1158,28 @@ func apply_status(
 			return false
 		return _status_resolver.apply_status(unit_id, effect_id, stacks, source_attack)
 	var duration_override: int = -1
-	if unit_id.begins_with("enemy_") and effect_id == "stun":
+	if unit_id.begins_with("enemy_"):
 		var slot: int = int(unit_id.substr(6))
-		if enemy_cc_tier_at(slot) == "boss":
+		## 章テーマ: 敵の incoming_status_chance_mult で付与を減衰（ミスト等）。
+		if not _enemy_passes_incoming_status_roll(slot):
+			return false
+		if effect_id == "stun" and enemy_cc_tier_at(slot) == "boss":
 			duration_override = BalanceConfig.CC_STUN_DURATION_TICKS_BOSS
 	return _status_resolver.apply_status(unit_id, effect_id, stacks, source_attack, duration_override)
+
+
+func _enemy_passes_incoming_status_roll(slot: int) -> bool:
+	var data: Resource = get_enemy_data_at(slot)
+	if data == null:
+		return true
+	var mult: float = 1.0
+	if "incoming_status_chance_mult" in data:
+		mult = float(data.incoming_status_chance_mult)
+	if mult >= 0.999:
+		return true
+	if mult <= 0.0:
+		return false
+	return randf() <= mult
 
 func apply_status_to_active_enemy(
 	effect_id: String,

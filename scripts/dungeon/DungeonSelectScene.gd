@@ -6,6 +6,7 @@ const DUNGEON_SCENE: String = "res://scenes/dungeon/DungeonScene.tscn"
 
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 const _AbyssDungeonConfig = preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
+const _BiomeBuildThemes = preload("res://scripts/dungeon/BiomeBuildThemes.gd")
 const _EventDungeonTitleHelper = preload("res://scripts/ui/EventDungeonTitleHelper.gd")
 
 const THUMB_SIZE: Vector2 = Vector2(72, 72)
@@ -1138,6 +1139,10 @@ func _refresh_featured() -> void:
 
 	var meta_parts: Array[String] = []
 	if unlocked_featured:
+		## 章別ビルドテーマ（P3-BAL-BIOME-BUILD-THEME-001）。
+		var theme_hint: String = _BiomeBuildThemes.select_hint(_featured_dungeon_id)
+		if not theme_hint.is_empty():
+			meta_parts.append(theme_hint)
 		if stage != null and _uses_stage_cards(_featured_dungeon_id):
 			if not title_baked:
 				meta_parts.append(str(stage.display_name))

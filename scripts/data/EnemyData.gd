@@ -28,6 +28,9 @@ extends Resource
 @export var attack_element: String = ""
 @export var on_hit_status_id: String = ""
 @export var on_hit_status_chance: float = 0.0
+## 味方などからこの敵へ状態異常を付与するときの成功率倍率（P3-BAL-BIOME-BUILD-THEME-001）。
+## 1.0=通常。<1 で弾かれやすい（ミストフェン雑魚など）。
+@export var incoming_status_chance_mult: float = 1.0
 ## ボス/エリート用スキル。skill_ids の中から skill_use_chance で発動を試行する。
 @export var skill_ids: Array[String] = []
 @export var skill_use_chance: float = 0.0

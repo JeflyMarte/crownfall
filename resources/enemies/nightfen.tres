@@ -26,6 +26,7 @@ element_resist = Array[String](["dark"])
 attack_element = "dark"
 on_hit_status_id = "fear"
 on_hit_status_chance = 0.2
+incoming_status_chance_mult = 0.55
 can_swarm = false
 swarm_min = 2
 swarm_max = 2

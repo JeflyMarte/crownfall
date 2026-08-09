@@ -25,6 +25,7 @@ element_weakness = Array[String](["thunder"])
 element_resist = Array[String]([])
 on_hit_status_id = "bleed"
 on_hit_status_chance = 0.25
+incoming_status_chance_mult = 0.55
 can_swarm = true
 swarm_min = 2
 swarm_max = 4
