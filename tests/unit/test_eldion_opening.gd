@@ -30,6 +30,8 @@ func test_eldion_boss_group_is_solo() -> void:
 func test_eldion_phase2_full_heal_flag() -> void:
 	var p1: Dictionary = CombatBossPhases.phase_def("eldion", 1)
 	assert_true(bool(p1.get("full_heal_on_enter", false)))
+	assert_eq(str(p1.get("full_heal_cutin_name", "")), "氷河の再誕")
+	assert_eq(str(p1.get("full_heal_cutin_effect", "")), "自身のHPを全回復する")
 	var p2: Dictionary = CombatBossPhases.phase_def("eldion", 2)
 	assert_false(bool(p2.get("full_heal_on_enter", false)))
 
