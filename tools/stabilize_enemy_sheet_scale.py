@@ -6,6 +6,9 @@ scale pulse). Upscaling fattens the silhouette; instead, replace unstable
 cells by cycling stable early frames (height within --max-dh of that
 anim's frame 0).
 
+IMPORTANT: Prefer --anims idle only. Applying a tight --max-dh to attack/hurt
+collapses motion into near-static frames (Oldrex regression).
+
 Sheet layout: horizontal 96x96 cells
   idle   = 0..8
   attack = 9..17
@@ -14,7 +17,6 @@ Sheet layout: horizontal 96x96 cells
 
 Usage:
   python3 tools/stabilize_enemy_sheet_scale.py ENM_Oldrex --all-tiers --max-dh 2
-  python3 tools/stabilize_enemy_sheet_scale.py ENM_Oldrex --all-tiers --max-dh 2 --anims attack,hurt
   python3 tools/stabilize_enemy_sheet_scale.py ENM_WindRipper --all-tiers --max-dh 10
 """
 
