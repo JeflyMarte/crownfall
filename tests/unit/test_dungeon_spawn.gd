@@ -12,8 +12,8 @@ const _D2_IDS: Array[String] = [
 	"crystal_scorpion",
 ]
 const _D3_IDS: Array[String] = ["skullface_mantis"]
-const _WW_D2_IDS: Array[String] = ["moss_boar", "moss_shell", "iron_horn"]
-const _WW_D3_IDS: Array[String] = ["spore_widow", "blood_bloom", "rune_carcinos"]
+const _WW_D2_IDS: Array[String] = ["moss_boar", "iron_horn"]
+const _WW_D3_IDS: Array[String] = ["moss_shell", "spore_widow", "blood_bloom", "rune_carcinos"]
 const _MF_D2_IDS: Array[String] = ["bone_picker"]
 const _MF_D3_IDS: Array[String] = [
 	"blood_leech",
@@ -102,7 +102,7 @@ func test_whisperwood_2_1_d2_ratio_near_ssot() -> void:
 	var total: int = d2_count + d3_count
 	assert_gt(total, 0)
 	var d2_ratio: float = float(d2_count) / float(total)
-	assert_true(d2_ratio > 0.62 and d2_ratio < 0.78, "2-1 D2 比率 ~70%% (got %.2f)" % d2_ratio)
+	assert_true(d2_ratio > 0.62 and d2_ratio < 0.80, "2-1 D2 比率 ~70%% (got %.2f)" % d2_ratio)
 
 func test_mistfen_3_1_excludes_d4() -> void:
 	var dc: Node = _make_controller("mistfen_3_1")

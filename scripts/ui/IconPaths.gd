@@ -967,6 +967,10 @@ static func display_texture_for_weapon(weapon_id: String, tex: Texture2D) -> Tex
 		return tex
 	if _bow_display_cache.has(weapon_id):
 		return _bow_display_cache[weapon_id] as Texture2D
+	## 未鑑定アイコンは実武器マスタ無し（日課報酬表示用）。tres 欠落 ERROR を避ける。
+	if weapon_id == "unidentified":
+		_bow_display_cache[weapon_id] = tex
+		return tex
 	var data: Resource = DataRegistry.get_weapon_data(weapon_id)
 	if data == null or str(data.weapon_type) != "bow":
 		_bow_display_cache[weapon_id] = tex

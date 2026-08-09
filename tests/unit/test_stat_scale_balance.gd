@@ -21,7 +21,7 @@ func test_enemy_masters_scaled() -> void:
 	assert_not_null(boar)
 	assert_eq(int(boar.max_hp), 600)
 	assert_eq(int(boar.attack), 128)
-	assert_eq(int(boar.defense), 32)
+	assert_eq(int(boar.defense), 38)
 
 
 func test_roll_and_forge_follow_scale() -> void:

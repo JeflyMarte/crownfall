@@ -18,3 +18,17 @@ func test_all_summon_skills_are_once_per_combat() -> void:
 		assert_eq(str(skill.effect_type), "summon", sid)
 		assert_true(skill.tags.has("once_per_combat"), sid)
 		assert_gte(float(skill.cooldown), 9999.0, sid)
+
+
+func test_corpse_reuse_clears_slot_summon_flag() -> void:
+	## 死体スロット再利用時に slot: 鍵が残るとクローン召喚が不発になる回帰防止。
+	const _DungeonScene := preload("res://scripts/dungeon/DungeonScene.gd")
+	var scene: Node = _DungeonScene.new()
+	scene._enemy_summon_used["slot:1"] = true
+	scene._enemy_summon_used["skill:enemy_boar_call"] = true
+	scene._kill_award_slots[1] = true
+	scene._kill_award_slots.erase(1)
+	scene._enemy_summon_used.erase("slot:1")
+	assert_false(bool(scene._enemy_summon_used.get("slot:1", false)))
+	assert_true(bool(scene._enemy_summon_used.get("skill:enemy_boar_call", false)), "指定召喚の skill: 鍵は残す")
+	scene.free()

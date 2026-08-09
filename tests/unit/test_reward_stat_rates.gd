@@ -23,6 +23,16 @@ func after_each() -> void:
 
 
 func test_affix_gold_gain() -> void:
+	## 他メンバー装備の gold 率を隔離し、fortune の +10% のみ検証。
+	var saved: Array = []
+	for member in GameState.party_members:
+		saved.append({
+			"acc": member.equipped_accessory,
+			"armor": member.equipped_armor,
+		})
+		member.equipped_accessory = null
+		member.equipped_armor = null
+	var base_gold: int = _AffixStatCalculator.apply_gold_bonus(100)
 	var member: Resource = GameState.party_members[0]
 	var acc: Resource = _AccessoryInstance.new()
 	acc.accessory_id = "silver_ring"
@@ -31,7 +41,11 @@ func test_affix_gold_gain() -> void:
 	prefixes.append("fortune")
 	acc.prefix_ids = prefixes
 	member.equipped_accessory = acc
-	assert_eq(_AffixStatCalculator.apply_gold_bonus(100), 110)
+	assert_eq(_AffixStatCalculator.apply_gold_bonus(100), base_gold + 10)
+	for i in saved.size():
+		var m: Resource = GameState.party_members[i]
+		m.equipped_accessory = saved[i]["acc"]
+		m.equipped_armor = saved[i]["armor"]
 
 
 func test_affix_exp_gain_stacks() -> void:

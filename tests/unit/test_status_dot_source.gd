@@ -10,7 +10,12 @@ func test_poison_ticks_without_source_attack() -> void:
 	var ticks: Array = resolver.tick_unit("party_0")
 	assert_eq(ticks.size(), 1)
 	assert_eq(str(ticks[0].get("effect_id", "")), "poison")
-	assert_eq(int(ticks[0].get("damage", 0)), BalanceConfig.DOT_FLAT_POISON)
+	## 味方上 DoT は ENEMY_DOT_ON_PARTY_MULT（敵圧力）を乗せる。
+	var expect: int = maxi(
+		1,
+		int(round(float(BalanceConfig.DOT_FLAT_POISON) * BalanceConfig.ENEMY_DOT_ON_PARTY_MULT))
+	)
+	assert_eq(int(ticks[0].get("damage", 0)), expect)
 
 
 func test_poison_scales_with_source_attack() -> void:

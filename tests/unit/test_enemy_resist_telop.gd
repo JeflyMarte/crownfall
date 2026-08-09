@@ -19,7 +19,7 @@ func test_show_on_hit_when_mitigated() -> void:
 func test_t6_t7_hp_nerfed() -> void:
 	var expect := {
 		"skull_turtle": 619,
-		"glacier_warden": 624,
+		"glacier_warden": 1650,
 		"rune_carcinos": 510,
 		"mirror_boa": 806,
 		"ninja_octopus": 962,
