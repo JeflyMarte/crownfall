@@ -101,6 +101,10 @@ static func scale_passive_def(def: Dictionary, breakthrough: int) -> Dictionary:
 		out["incoming_mult"] = _scale_mult_below_one(float(out["incoming_mult"]), scale)
 	if out.has("party_incoming_mult"):
 		out["party_incoming_mult"] = _scale_mult_below_one(float(out["party_incoming_mult"]), scale)
+	if out.has("party_incoming_status_chance_mult"):
+		out["party_incoming_status_chance_mult"] = _scale_mult_below_one(
+			float(out["party_incoming_status_chance_mult"]), scale
+		)
 	for key: String in [
 		"evasion_rate_add",
 		"back_row_evasion_rate_add",

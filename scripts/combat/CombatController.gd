@@ -1194,6 +1194,10 @@ func apply_status(
 			return false
 		if _ArmorStatResolver.member_immune_to_status(member_idx, effect_id):
 			return false
+		## 有益バフ以外はパーティ異常耐性（ヴァルデン鉄誓など）で減衰。
+		if not StatusResolver.is_beneficial_status(effect_id):
+			if not _party_passes_incoming_status_roll():
+				return false
 		return _status_resolver.apply_status(unit_id, effect_id, stacks, source_attack)
 	var duration_override: int = -1
 	if unit_id.begins_with("enemy_"):
@@ -1213,6 +1217,15 @@ func _enemy_passes_incoming_status_roll(slot: int) -> bool:
 	var mult: float = 1.0
 	if "incoming_status_chance_mult" in data:
 		mult = float(data.incoming_status_chance_mult)
+	if mult >= 0.999:
+		return true
+	if mult <= 0.0:
+		return false
+	return randf() <= mult
+
+
+func _party_passes_incoming_status_roll() -> bool:
+	var mult: float = CombatPassives.party_incoming_status_chance_mult()
 	if mult >= 0.999:
 		return true
 	if mult <= 0.0:

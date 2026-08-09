@@ -75,8 +75,9 @@ func test_core_passives_scale_for_gacha_member() -> void:
 	var found_scaled: bool = false
 	for d: Variant in defs:
 		if str(d.get("id", "")) == "valden_iron_oath":
-			## party_incoming 0.90 → 軽減幅 0.10 * 1.5 = 0.15 → 0.85
-			assert_almost_eq(float(d.get("party_incoming_mult", 1.0)), 0.85, 0.001)
+			## party_incoming_status 0.60 → 耐性幅 0.40 * 1.5 = 0.60 → 0.40
+			assert_almost_eq(float(d.get("party_incoming_status_chance_mult", 1.0)), 0.40, 0.001)
+			assert_false(d.has("party_incoming_mult"))
 			assert_false(d.has("effect"))
 			assert_false(d.has("heal_max_hp_fraction"))
 			found_scaled = true

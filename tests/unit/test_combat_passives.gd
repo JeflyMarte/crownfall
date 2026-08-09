@@ -163,12 +163,19 @@ func test_starter_and_gacha_passive_redesign() -> void:
 	var whistle: Dictionary = CombatPassives.get_def("tamer_whistle")
 	assert_eq(str(whistle.get("status_id", "")), "chill")
 	var valden: Dictionary = CombatPassives.get_def("valden_iron_oath")
-	assert_eq(float(valden.get("party_incoming_mult", 0.0)), 0.90)
+	assert_almost_eq(float(valden.get("party_incoming_status_chance_mult", 1.0)), 0.60, 0.001)
+	assert_false(valden.has("party_incoming_mult"))
 	assert_false(valden.has("passive_condition"))
 	assert_false(valden.has("effect"))
 	assert_false(valden.has("trigger"))
 	assert_false(valden.has("heal_max_hp_fraction"))
 	assert_eq(str(valden.get("display_name", "")), "鉄誓の壁")
+	assert_eq(float(CombatPassives.party_incoming_status_chance_mult()), 1.0)
+	var prev_party: Array = GameState.party_members.duplicate()
+	var valden_m: Resource = _make_member("gacha_helper_a", "vanguard", 4)
+	GameState.party_members = [valden_m]
+	assert_almost_eq(float(CombatPassives.party_incoming_status_chance_mult()), 0.60, 0.001)
+	GameState.party_members = prev_party
 
 
 func test_kaida_first_attack_mult() -> void:

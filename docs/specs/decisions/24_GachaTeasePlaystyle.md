@@ -30,7 +30,7 @@ Featured 左の `origin_note` を、出身・物語調ではなく **ユーザ�
 
 | ID | 名前 | passive_id | origin_note |
 |---|---|---|---|
-| helper_a | ヴァルデン | valden_iron_oath | 味方全体の被ダメを抑える、鉄誓の守護神！！ |
+| helper_a | ヴァルデン | valden_iron_oath | 味方全体が状態異常を受けにくい、鉄誓の守護神！！ |
 | helper_b | イヴァル | ivar_trail_sight | 罠ダメを半減し、自分は無効。探索向き狩人！ |
 | helper_c | セリン | serin_quick_mend | 味方が半血を切ったら最傷を中回復する、予備瓶のヒーラー！ |
 | helper_e | ルーシェ | mira_beast_call | 通常攻撃で吸血する継戦型ビーストテイマー！ |

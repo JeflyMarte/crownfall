@@ -14,7 +14,8 @@ extends RefCounted
 ## heal target: "party"（既定・全体）| "self" | "most_injured"（最傷1体・治癒スキルと同型）
 ## stat_mod（常時）: evasion_rate_add / back_row_evasion_rate_add / outgoing_mult / incoming_mult / first_attack_mult /
 ##   ultimate_power_mult / exp_gain_mult / party_exp_gain_mult /
-##   party_outgoing_mult / party_incoming_mult / death_save_once / death_save_chance /
+##   party_outgoing_mult / party_incoming_mult / party_incoming_status_chance_mult /
+##   death_save_once / death_save_chance /
 ##   death_save_heal_max_hp_fraction / death_save_outgoing_mult / death_save_outgoing_duration_sec /
 ##   exploration_damage_immune / exploration_damage_party_mult /
 ##   outgoing_mult_requires_hp_below / elemental_outgoing_mult / outgoing_vs_status_mult / outgoing_vs_buff_mult /
@@ -201,8 +202,8 @@ const _DEFS: Dictionary = {
 	},
 	"valden_iron_oath": {
 		"display_name": "鉄誓の壁",
-		"description": "味方全体の被ダメージを軽減する。",
-		"party_incoming_mult": 0.90,
+		"description": "味方全体が状態異常を受けにくくなる。",
+		"party_incoming_status_chance_mult": 0.60,
 	},
 	"kaida_arena_edge": {
 		"display_name": "一閃の賭け",
@@ -1543,7 +1544,7 @@ static func party_incoming_mult() -> float:
 			var def: Dictionary = raw_def
 			if def.has("party_incoming_mult"):
 				mult *= float(def["party_incoming_mult"])
-		## キャラ固有のパーティ被ダメ軽減（鉄誓の壁など）。前列限定を尊重。
+		## キャラ固有のパーティ被ダメ軽減。前列限定を尊重。
 		for pid: String in GameState.get_equipped_character_passive_ids(member):
 			var cdef: Dictionary = get_def(pid)
 			if cdef.is_empty() or not cdef.has("party_incoming_mult"):
@@ -1552,6 +1553,28 @@ static func party_incoming_mult() -> float:
 				if GameState.is_member_back_row(member_index):
 					continue
 			mult *= float(cdef["party_incoming_mult"])
+		member_index += 1
+	return mult
+
+
+## パーティ全体の被状態異常付与率（1未満＝耐性。有益バフは対象外）。
+static func party_incoming_status_chance_mult() -> float:
+	var mult: float = 1.0
+	var member_index: int = 0
+	for member: Resource in GameState.party_members:
+		if member == null:
+			member_index += 1
+			continue
+		for raw_def: Variant in for_member(member):
+			if raw_def is not Dictionary:
+				continue
+			var def: Dictionary = raw_def
+			if not def.has("party_incoming_status_chance_mult"):
+				continue
+			if str(def.get("passive_condition", "")) == "front_row_only":
+				if GameState.is_member_back_row(member_index):
+					continue
+			mult *= float(def["party_incoming_status_chance_mult"])
 		member_index += 1
 	return mult
 
@@ -2145,6 +2168,12 @@ static func _passive_effect_summary(def: Dictionary) -> String:
 			parts.append("前列時 パーティ被ダメ ×%.2f" % float(def["party_incoming_mult"]))
 		else:
 			parts.append("パーティ被ダメ ×%.2f" % float(def["party_incoming_mult"]))
+	if def.has("party_incoming_status_chance_mult"):
+		var status_mult: float = float(def["party_incoming_status_chance_mult"])
+		if status_mult < 1.0:
+			parts.append(
+				"パーティ状態異常耐性 %d%%" % int(round((1.0 - status_mult) * 100.0))
+			)
 	if str(def.get("effect", "")) == "grant_self_evasion":
 		parts.append("開幕回避 +%d%%" % int(round(float(def.get("evasion_add", 0.0)) * 100.0)))
 	if float(def.get("threat_base_add", 0.0)) > 0.0:

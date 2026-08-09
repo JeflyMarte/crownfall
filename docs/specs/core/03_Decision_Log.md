@@ -3465,6 +3465,14 @@ ELITE/BOSS/遍在希少種（P3-D166）は別枠。重みは **当該 Biome 雑�
 | P3-BAL-HARD-SHELL-PRESSURE-001-1 | **スカル／船喰らい／オルド＝詠唱特大全体**、**モス＝毒前列** | 持久戦解消 |
 | P3-BAL-HARD-SHELL-PRESSURE-001-2 | スキル使用率上げ＋核スキル重み優先 | 出番確保 |
 
+## ヴァルデン状態異常耐性化（2026-08-09 — P3-BAL-VALDEN-STATUS-RESIST-001）
+
+詳細: `docs/specs/decisions/114_ValdenStatusResist.md`
+
+| ID | 決定 | 理由 |
+|---|---|---|
+| P3-BAL-VALDEN-STATUS-RESIST-001-1 | 鉄誓の壁＝**パーティ状態異常付与×0.60**（被ダメ軽減廃止） | 過強解消・異常帯で差別化 |
+
 ## 氷晶マンモス防御無視全体（2026-08-09 — P3-BAL-MAMMOTH-IGNORE-DEF-001）
 
 詳細: `docs/specs/decisions/113_MammothIgnoreDefAoE.md`
