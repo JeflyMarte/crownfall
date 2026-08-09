@@ -441,9 +441,11 @@ func mark_stage_cleared(stage_id: String, tier: int = -1) -> void:
 			pending_starter_recruit_id = str(pick.get("id", ""))
 			last_run_starter_recruited_id = pending_starter_recruit_id
 			last_run_starter_recruited_name = str(pick.get("name", ""))
+			pending_clear_nina_teaser = true
+		## 本編×-5 ノーマル初回は功績トーク（加入候補がなくても。⑤最終で初期5揃い済み対策）。
+		if _StarterRecruitment.is_recruit_eligible_stage(stage_id, t):
 			pending_clear_stage_id = stage_id
 			pending_clear_nina_merit = true
-			pending_clear_nina_teaser = true
 		## ③ミストフェン初回クリア → ノノカ調査室合流（加入ストーリーの後に拠点で表示）。
 		if (
 			biome_id == "mistfen"
