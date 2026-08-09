@@ -49,3 +49,16 @@ func test_shared_rock_bison_untouched_by_biome_tips() -> void:
 	var data: Resource = DataRegistry.get_enemy_data("rock_bison")
 	assert_not_null(data)
 	assert_almost_eq(float(data.incoming_status_chance_mult), 1.0, 0.001)
+
+
+func test_whisperwood_shells_are_def_thick_and_fire_weak() -> void:
+	var shell: Resource = DataRegistry.get_enemy_data("moss_shell")
+	assert_not_null(shell)
+	assert_gte(int(shell.defense), 110)
+	assert_true("fire" in shell.element_weakness)
+	var widow: Resource = DataRegistry.get_enemy_data("spore_widow")
+	assert_not_null(widow)
+	assert_true("fire" in widow.element_weakness)
+	var hint: String = _Themes.select_hint("whisperwood")
+	assert_true(hint.contains("火属性"), hint)
+	assert_true(hint.contains("殻") or hint.contains("物理"), hint)

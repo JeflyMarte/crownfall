@@ -7732,3 +7732,4 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-BIOME-BUILD-THEME-001-3 | **UI** — 選択画面に「傾向:」一行（`BiomeBuildThemes`） | 明示 |
 | P3-BAL-BIOME-BUILD-THEME-001-4 | **据置** — 地形×1.15 復活／無限強制／ガチャ章連動 | 別GO |
 | P3-BAL-BIOME-BUILD-THEME-001-5 | **SSOT** — `104_BiomeBuildThemes.md` | Decision 本体 |
+| P3-BAL-BIOME-BUILD-THEME-001-6 | **ウィスパーウッド確定** — 火で殻を溶かす＋DoT。専用敵は DEF 厚＋火弱点揃え | オーナー追指定 |
