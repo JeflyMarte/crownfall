@@ -1714,7 +1714,7 @@ func _swarm_pool_enemies(include_escorts: bool) -> Array[Resource]:
 # 戦闘の敵編成を返す（P3-D082 + P3-D110 混成 + P3-WANDER-001 放浪差し込み + P3-BAL-SWARM-001 護衛）。
 # 本編 BOSS は単体。無限 BOSS は階帯パック（P3-BAL-TIER-ENC-A-001）。
 # ELITE は N/H=護衛1〜2、NM=双エリート薄護衛 or 単＋護衛2〜3。
-# COMBAT 放浪は通常群れにまぎれる（P3-BAL-WANDER-MIX-001）。ビッグダックのみ単独据置。
+# COMBAT 放浪は通常群れにまぎれる（P3-BAL-WANDER-MIX-001）。ビッグダック／影狩は単独据置。
 func pick_combat_enemy_group() -> Array[Resource]:
 	var group: Array[Resource] = []
 	var wander: Resource = null
@@ -1725,8 +1725,11 @@ func pick_combat_enemy_group() -> Array[Resource]:
 			var rift_big: Array[Resource] = _try_cosmic_rift_big_combat_group()
 			if not rift_big.is_empty():
 				return rift_big
-		## ビッグコズミックダックは体格・圧のため単独遭遇を維持。
-		elif str(wander.id) == _WanderingEnemyConfig.ID_BIG_COSMIC_DUCK:
+		## ビッグコズミックダック／影狩は圧・予兆のため単独遭遇を維持。
+		elif str(wander.id) in [
+			_WanderingEnemyConfig.ID_BIG_COSMIC_DUCK,
+			_WanderingEnemyConfig.ID_SHADOW_STALKER,
+		]:
 			group.append(wander)
 			return group
 	var base: Resource = pick_combat_enemy_data()

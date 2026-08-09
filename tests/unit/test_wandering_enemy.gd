@@ -196,8 +196,8 @@ func test_pick_wandering_mixes_into_combat_swarm() -> void:
 	dc.current_dungeon_data = DataRegistry.get_dungeon_data("mistfen")
 	dc.current_room_type = Enums.RoomType.COMBAT
 	var saw_mixed_wander: bool = false
-	var wander_ids: Array[String] = [
-		"cosmic_duck", "crown_raven", "golden_scarab", "rock_bison", "shadow_stalker"
+	var mix_ids: Array[String] = [
+		"cosmic_duck", "crown_raven", "golden_scarab", "rock_bison"
 	]
 	for seed_val: int in range(400):
 		seed(seed_val)
@@ -208,17 +208,14 @@ func test_pick_wandering_mixes_into_combat_swarm() -> void:
 		var has_local: bool = false
 		for e: Resource in group:
 			var eid: String = str(e.id)
-			if eid in wander_ids or eid == "big_cosmic_duck":
+			if eid in mix_ids:
 				has_wander = true
-			else:
+			elif eid != "shadow_stalker" and eid != "big_cosmic_duck":
 				has_local = true
 		if has_wander and has_local:
 			saw_mixed_wander = true
-			## 末尾が放浪（まぎれ）
-			assert_true(
-				str(group[group.size() - 1].id) in wander_ids
-				or str(group[group.size() - 1].id) == "big_cosmic_duck"
-			)
+			## 末尾が放浪（まぎれ）。影狩／ビッグは混入対象外。
+			assert_true(str(group[group.size() - 1].id) in mix_ids)
 			break
 	assert_true(saw_mixed_wander, "400 trials should hit wander mixed into local pack")
 
@@ -383,9 +380,23 @@ func test_planned_wander_used_on_combat_pick() -> void:
 	dc._wander_plan_ready = true
 	dc._planned_wander_by_room = {3: _WanderingEnemyConfig.ID_SHADOW_STALKER}
 	var group: Array = dc.pick_combat_enemy_group()
-	assert_gte(group.size(), 2, "放浪は章雑魚群れにまぎれる")
-	assert_eq(str(group[group.size() - 1].id), "shadow_stalker")
-	assert_ne(str(group[0].id), "shadow_stalker")
+	## 影狩は単独（予兆・圧）。他放浪は群れ混入。
+	assert_eq(group.size(), 1)
+	assert_eq(str(group[0].id), "shadow_stalker")
+
+
+func test_shadow_stalker_stays_solo_not_mixed() -> void:
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	dc.current_dungeon_data = DataRegistry.get_dungeon_data("mistfen")
+	dc.current_room_type = Enums.RoomType.COMBAT
+	dc.current_room_index = 1
+	dc._wander_plan_ready = true
+	dc._planned_wander_by_room = {1: _WanderingEnemyConfig.ID_SHADOW_STALKER}
+	var group: Array = dc.pick_combat_enemy_group()
+	assert_eq(group.size(), 1)
+	assert_eq(str(group[0].id), "shadow_stalker")
 
 
 func test_save_v6_to_v7_merges_legacy_wander_codex() -> void:
