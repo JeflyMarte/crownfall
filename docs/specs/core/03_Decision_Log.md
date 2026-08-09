@@ -3434,6 +3434,7 @@ ELITE/BOSS/遍在希少種（P3-D166）は別枠。重みは **当該 Biome 雑�
 | P3-BAL-ENEMY-PRESSURE-001-2 | **味方上 DoT ×1.40**（`ENEMY_DOT_ON_PARTY_MULT`） | 敵DoTが脅威にならない |
 | P3-BAL-ENEMY-PRESSURE-001-3 | **`heal_block`（回復封じ）** | 4人回復ループを一時停止 |
 | P3-BAL-ENEMY-PRESSURE-001-4 | **後列技倍率上げ＋ヒルを回復封じ役へ** | 役割圧力 |
+| P3-BAL-ENEMY-PRESSURE-001-5 | **雑魚ダメージ技 0.85〜1.20 を×1.25〜1.30**（ボスcleave除外） | スキルが薄い |
 
 ## レジェンド武器アイコン個別作画（2026-07-09 — P3-ART-LEG-WPN-001）
 

@@ -15,9 +15,11 @@
 | P3-BAL-ENEMY-PRESSURE-001-2 | **味方への DoT に `ENEMY_DOT_ON_PARTY_MULT`（1.40）** | 敵付与 DoT のみ厚く。味方→敵 DoT は据置 |
 | P3-BAL-ENEMY-PRESSURE-001-3 | **新状態 `heal_block`（回復封じ）** — 被回復×0・数 tick。吸血等 `apply_received_mult=false` は通す | 回復ループを一時的に止める |
 | P3-BAL-ENEMY-PRESSURE-001-4 | **章役割** — ヒル＝回復封じ／ウィドウ・マンティス・霜爪・グレイオス＝後列重い一撃の倍率上げ | 既存枠を強化（新敵なし） |
+| P3-BAL-ENEMY-PRESSURE-001-5 | **雑魚ダメージ技（倍率0.85〜1.20）を×1.25〜1.30**。ボス `*_basic_cleave` 等は除外 | 案B。スキルが通常攻撃より弱く感じる問題 |
 
 ## 非スコープ
 
 - 敵HPグローバル変更
 - Hard/NM 別倍率の再設計
-- 全敵スキルの一括リバランス
+- 低倍率AoE／DoT载体（0.85未満）の一括引き上げ（必要なら別GO）
+- ボス専用技の一括リバランス
