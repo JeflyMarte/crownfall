@@ -930,6 +930,7 @@ func heal_member(index: int, amount: int, apply_received_mult: bool = true) -> i
 	if apply_received_mult:
 		var heal_mult: float = CombatPassives.relic_heal_received_mult(index)
 		heal_mult *= CombatWeather.heal_received_multiplier(GameState.get_weather())
+		heal_mult *= _status_resolver.get_healing_received_multiplier("party_%d" % index)
 		if not is_equal_approx(heal_mult, 1.0):
 			adjusted = int(round(float(amount) * heal_mult))
 	if adjusted <= 0:

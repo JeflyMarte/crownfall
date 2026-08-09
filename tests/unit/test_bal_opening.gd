@@ -5,7 +5,7 @@ extends GutTest
 
 func test_enemy_global_mult_constants() -> void:
 	assert_almost_eq(BalanceConfig.ENEMY_GLOBAL_HP_MULT, 2.00, 0.001)
-	assert_almost_eq(BalanceConfig.ENEMY_GLOBAL_ATK_MULT, 1.30, 0.001)
+	assert_almost_eq(BalanceConfig.ENEMY_GLOBAL_ATK_MULT, 1.625, 0.001)
 	assert_almost_eq(BalanceConfig.TRASH_ENEMY_ATK_MULT, 1.5, 0.001)
 	assert_almost_eq(BalanceConfig.ALLY_ATK_BONUS_SCALE, 0.40, 0.001)
 

@@ -4,16 +4,16 @@
 
 [resource]
 script = ExtResource("1")
-id = "enemy_mist_reap"
-display_name = "霧鎌斬り"
-description = "霧に紛れ一瞬だけ姿を消し、後列へ鎌を振り下ろす。"
+id = "enemy_blood_wound"
+display_name = "血傷の呪い"
+description = "吸いついた傷に呪いを残し、しばらく回復を封じる。"
 skill_type = "enemy"
 target_type = "party_back"
-power_multiplier = 1.55
-cooldown = 5.0
+power_multiplier = 1.15
+cooldown = 7.0
 trigger_type = "cooldown"
 effect_type = "damage"
-tags = Array[String]([])
+tags = Array[String](["control", "heal_block"])
 element = ""
-apply_status_id = "poison"
-apply_status_chance = 0.45
+apply_status_id = "heal_block"
+apply_status_chance = 1.0
