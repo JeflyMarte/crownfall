@@ -40,6 +40,7 @@ alwaysApply: false
 | 硬殻雑魚が回復ループで膠着 | 単体バーストのみ・使用率低・自己バフ優先 | 詠唱全体／毒前列＋使用率・重み優先。`112_HardShellPressureSkills` |
 | マンモスがタンク装甲で痛くない | DEF 逓減で全体も薄くなる | `SkillData.ignore_defense`＋詠唱全体。`113_MammothIgnoreDefAoE` |
 | ヴァルデン常時全体被ダメ軽減が過強 | パーティ×0.90が常時乗算 | 状態異常付与×0.60へ差し替え。`114_ValdenStatusResist` |
+| 編成変更後に全員レリックが外れる | ロードで owned_relics 復元前に normalize が未所持扱いで装備破棄→その後の save が永続化 | `owned_relics` を roster より先に復元。`115_RelicLoadOrderFix` |
 | ボス警告中に本体が写る | 入場準備後の status tint が modulate を不透明へ戻す／opaque フォールバック | 警告中 `visible=false`＋intro中 tint/HP更新停止。落下開始で初表示（`14_Presentation_Pitfalls`） |
 | ボスの激昂アイコンが付かない | ボス戦で状態異常行を全非表示 | → **`14_Presentation_Pitfalls.md`**（ボス頭上にも表示） |
 | レリックが地味で装備意味が薄い | 常時±5〜20%のみ | 尖鋭案B: 発火＋制約。`P3-UX-RELIC-TACTICS-B001` |

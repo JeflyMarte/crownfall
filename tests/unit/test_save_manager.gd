@@ -104,6 +104,32 @@ func test_roundtrip_keeps_base_roster_complete() -> void:
 	assert_eq(GameState.roster.size(), before_size, "ロスター人数が保存前後で一致すること")
 	assert_false(GameState.party_members.is_empty(), "アクティブ編成が復元されること")
 
+
+func test_roundtrip_preserves_equipped_relics() -> void:
+	## owned_relics を roster normalize より先に戻さないと装備レリックが全落ちする。
+	assert_gte(GameState.roster.size(), 2)
+	var a: Resource = GameState.roster[0]
+	var b: Resource = GameState.roster[1]
+	var a_id: String = str(a.id)
+	var b_id: String = str(b.id)
+	GameState.owned_relics = ["relic_war_banner", "relic_aegis_shard"]
+	GameState.set_member_relic(a, "relic_war_banner")
+	GameState.set_member_relic(b, "relic_aegis_shard")
+	assert_true(SaveManager.save_game())
+	GameState.owned_relics = []
+	for m in GameState.roster:
+		if m != null:
+			m.equipped_passive_ids = [] as Array[String]
+	assert_true(SaveManager.load_game())
+	assert_true(GameState.owned_relics.has("relic_war_banner"))
+	assert_true(GameState.owned_relics.has("relic_aegis_shard"))
+	var la: Resource = GameState.find_roster_member_by_id(a_id)
+	var lb: Resource = GameState.find_roster_member_by_id(b_id)
+	assert_not_null(la)
+	assert_not_null(lb)
+	assert_eq(GameState.get_equipped_relic_passive_id(la), "relic_war_banner")
+	assert_eq(GameState.get_equipped_relic_passive_id(lb), "relic_aegis_shard")
+
 # ── b) job_id マイグレーション ────────────────────────────────────────────────
 
 func test_migrate_job_id_legacy_names() -> void:

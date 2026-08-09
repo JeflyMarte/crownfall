@@ -129,3 +129,24 @@ func test_save_v4_migrates_relic_id_field() -> void:
 	var entry: Dictionary = migrated["roster"][0]
 	assert_false(entry.has("relic_id"))
 	assert_true("relic_aegis_shard" in entry["equipped_passives"])
+
+
+func test_set_member_relic_idempotent() -> void:
+	var member: Resource = _make_member("relic_idem")
+	GameState.roster = [member]
+	GameState.owned_relics = ["relic_war_banner"]
+	GameState.set_member_relic(member, "relic_war_banner")
+	assert_eq(GameState.get_equipped_relic_passive_id(member), "relic_war_banner")
+	GameState.set_member_relic(member, "relic_war_banner")
+	assert_eq(GameState.get_equipped_relic_passive_id(member), "relic_war_banner")
+	GameState.roster = []
+	GameState.owned_relics = []
+
+
+func test_normalize_drops_relic_when_unowned() -> void:
+	var member: Resource = _make_member("relic_drop")
+	member.equipped_passive_ids = ["relic_war_banner"] as Array[String]
+	member.passive_slots_customized = true
+	GameState.owned_relics = []
+	PassiveProgression.normalize_equipped_passives(member)
+	assert_eq(GameState.get_equipped_relic_passive_id(member), "")

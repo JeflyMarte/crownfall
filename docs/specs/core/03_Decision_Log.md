@@ -3473,6 +3473,15 @@ ELITE/BOSS/遍在希少種（P3-D166）は別枠。重みは **当該 Biome 雑�
 |---|---|---|
 | P3-BAL-VALDEN-STATUS-RESIST-001-1 | 鉄誓の壁＝**パーティ状態異常付与×0.60**（被ダメ軽減廃止） | 過強解消・異常帯で差別化 |
 
+## ロード時レリック装備消失修正（2026-08-09 — P3-FIX-RELIC-LOAD-ORDER-001）
+
+詳細: `docs/specs/decisions/115_RelicLoadOrderFix.md`
+
+| ID | 決定 | 理由 |
+|---|---|---|
+| P3-FIX-RELIC-LOAD-ORDER-001-1 | **`owned_relics` を roster normalize より先に復元** | 未所持扱いで装備全落ち |
+| P3-FIX-RELIC-LOAD-ORDER-001-2 | `set_member_relic` は set 意味（再適用で外れない） | トグル副作用 |
+
 ## 氷晶マンモス防御無視全体（2026-08-09 — P3-BAL-MAMMOTH-IGNORE-DEF-001）
 
 詳細: `docs/specs/decisions/113_MammothIgnoreDefAoE.md`

@@ -820,6 +820,8 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.pending_clear_nina_merit = false
 		GameState.pending_clear_nina_teaser = false
 		GameState.pending_clear_stage_id = ""
+	## 所持レリックは roster normalize より先（未所持扱いだと装備レリックが全落ちする）。
+	_apply_owned_relics_from_save(data)
 	_apply_roster_save(data)
 	## roster／所持復元後に生産レシピ解放を同期（旧セーブ移行）。
 	const _CraftHelperLoad := preload("res://scripts/crafting/CraftHelper.gd")
@@ -888,13 +890,7 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.combat_presets = (data["combat_presets"] as Array).duplicate(true)
 	if data.has("saved_parties") and data["saved_parties"] is Array:
 		GameState.saved_parties = (data["saved_parties"] as Array).duplicate(true)
-	if data.has("owned_relics") and data["owned_relics"] is Array:
-		var relics: Array = []
-		for rid in data["owned_relics"]:
-			var norm: String = CombatRelics.normalize_id(str(rid))
-			if not norm.is_empty() and norm not in relics:
-				relics.append(norm)
-		GameState.owned_relics = relics
+	## owned_relics は _apply_roster_save 前に復元済み（_apply_owned_relics_from_save）。
 	const _NinaRareAcquireGuide := preload("res://scripts/ui/NinaRareAcquireGuide.gd")
 	_NinaRareAcquireGuide.heal_flags_from_progress()
 	if data.has("daily_mission_state") and data["daily_mission_state"] is Dictionary:
@@ -1015,6 +1011,19 @@ func _deserialize_party(party_data: Array) -> Dictionary:
 	return {"members": members, "equipment_ids": equipment_ids}
 
 # roster + アクティブ編成の復元（P3-D036b）。旧 "party" のみのセーブも互換復元する。
+func _apply_owned_relics_from_save(data: Dictionary) -> void:
+	## normalize_equipped_passives が has_relic を見るため、roster 適用より先に所持を戻す。
+	if not data.has("owned_relics") or not (data["owned_relics"] is Array):
+		GameState.owned_relics = []
+		return
+	var relics: Array = []
+	for rid in data["owned_relics"]:
+		var norm: String = CombatPassives.migrate_relic_passive_id(str(rid))
+		if not norm.is_empty() and norm not in relics:
+			relics.append(norm)
+	GameState.owned_relics = relics
+
+
 func _apply_roster_save(data: Dictionary) -> void:
 	var roster_key: String = "roster" if data.has("roster") and data["roster"] is Array else ""
 	if roster_key.is_empty() and data.has("party") and data["party"] is Array:

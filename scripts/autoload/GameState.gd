@@ -978,15 +978,20 @@ func set_member_relic(member: Resource, relic_id: String) -> void:
 	if member == null:
 		return
 	var pid: String = CombatPassives.migrate_relic_passive_id(relic_id)
+	var char_ids: Array[String] = get_equipped_character_passive_ids(member).duplicate()
 	if pid.is_empty():
-		toggle_member_relic_passive(member, "")
+		_set_equipped_passive_slots(member, char_ids, "", true)
 		return
 	if not has_relic(pid):
 		return
+	## 同一レリックは1人だけ。toggle ではなく set（既装備の再適用で外れない）。
 	for other in roster:
-		if other != null and other != member and get_equipped_relic_passive_id(other) == pid:
-			toggle_member_relic_passive(other, "")
-	toggle_member_relic_passive(member, pid)
+		if other == null or other == member:
+			continue
+		if get_equipped_relic_passive_id(other) == pid:
+			var other_chars: Array[String] = get_equipped_character_passive_ids(other).duplicate()
+			_set_equipped_passive_slots(other, other_chars, "", true)
+	_set_equipped_passive_slots(member, char_ids, pid, true)
 
 # ---- 陣形（前列/後列・P3-D106） ----
 const FORMATION_FRONT: int = 0
