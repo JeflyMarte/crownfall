@@ -46,6 +46,17 @@ func test_blood_leech_has_heal_block_skill() -> void:
 	assert_eq(str(skill.target_type), "party_back")
 
 
+func test_trash_mid_power_skills_bumped() -> void:
+	## 案B: 旧1.0前後の雑魚技が底上げされている（ボスcleaveは据置）。
+	var moss: Resource = DataRegistry.get_skill_data("enemy_moss_spike")
+	assert_not_null(moss)
+	assert_gt(float(moss.power_multiplier), 1.20)
+	var bone: Resource = DataRegistry.get_skill_data("enemy_bone_fling")
+	assert_gt(float(bone.power_multiplier), 1.20)
+	var cleave: Resource = DataRegistry.get_skill_data("enemy_serdion_cleave")
+	assert_almost_eq(float(cleave.power_multiplier), 1.0, 0.001)
+
+
 func test_party_dot_uses_enemy_dot_mult() -> void:
 	var resolver: StatusResolver = StatusResolver.new()
 	assert_true(resolver.apply_status("party_0", "bleed", 1, 1000))
