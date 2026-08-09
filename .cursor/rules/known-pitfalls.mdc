@@ -37,6 +37,7 @@ alwaysApply: false
 | 被弾で防御が半永久半減 | on_hit `guard` 再付与が持続リセット＋短いCD | CD延長＋`skip_if_status_active`（付与中不発）。`110_GuardOnHitUptime` |
 | 調剤師の薬で常時半減 | 回復のたび `guard` 再付与・CDなし | 対象別 CD12＋付与中不発（`_maybe_apply_heal_guard`） |
 | 味方強化が戦場で剥がれない | 敵にバフ剥がし手段なし | `effect_type=dispel`（有益バフのみ）。`111_EnemyBuffDispel` |
+| 硬殻雑魚が回復ループで膠着 | 単体バーストのみ・使用率低・自己バフ優先 | 詠唱全体／毒前列＋使用率・重み優先。`112_HardShellPressureSkills` |
 | ボス警告中に本体が写る | 入場準備後の status tint が modulate を不透明へ戻す／opaque フォールバック | 警告中 `visible=false`＋intro中 tint/HP更新停止。落下開始で初表示（`14_Presentation_Pitfalls`） |
 | ボスの激昂アイコンが付かない | ボス戦で状態異常行を全非表示 | → **`14_Presentation_Pitfalls.md`**（ボス頭上にも表示） |
 | レリックが地味で装備意味が薄い | 常時±5〜20%のみ | 尖鋭案B: 発火＋制約。`P3-UX-RELIC-TACTICS-B001` |

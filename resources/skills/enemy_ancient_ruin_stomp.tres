@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_ancient_ruin_stomp"
+display_name = "遺構崩し"
+description = "巨体で遺構床を踏み砕き、隊全体へ特大ダメージ。詠唱あり。"
+skill_type = "enemy"
+target_type = "all_party"
+power_multiplier = 2.2
+cooldown = 12.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["aoe", "cast_nuke"])
+element = ""
+apply_status_id = "armor_break"
+apply_status_chance = 0.45
+cast_time = 1.0
