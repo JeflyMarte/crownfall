@@ -35,7 +35,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 **ボス開幕オーラ（P3-BAL-BOSS-AURA-A-001）:** 入場時 `boss_*_hex` 状態を味方全員へ。BOSS速度は人数係数、ATK×1.22、hex CD6。
 **ティア遭遇圧（P3-BAL-TIER-ENC-A-001）:** 群れ率 H×1.35／NM×1.75。NMエリート=双エリート薄護衛 or 単＋護衛2〜3。本編ボス単体。無限ボス編成=`AbyssDungeonConfig.boss_pack_kind`（33群／66エリート／99+抽選）。  
 **ティア見た目／呼称（P3-ENEMY-TIER-VAR）:** `EnemyTierVariantConfig.gd` — 同IDの Hard/NM 表示名＋個性上書き（ベース数値据置）。スプライトは `DungeonScene.ENEMY_SPRITE_MAP_BY_TIER` / `BOSS_*_BY_TIER`（①〜④：モーンゲート／ウィスパーウッド／ミストフェン／ブラックショア）。  
-**初期5ストーリー（P3-STORY-STARTER）:** `StarterPickScene` / `StarterRecruitment` — 開始1人選択、メイン章5（×-5）ノーマル初回で候補確定。実加入は拠点 `StarterJoinOverlay`（セリフ→ガチャ入手リビール）。`pending_starter_recruit_id` セーブ。`STARTER_RECRUIT_BETA_EXTRA=false`。
+**初期5ストーリー（P3-STORY-STARTER）:** `StarterPickScene` / `StarterRecruitment` — 開始1人選択、メイン①〜④の×-5ノーマル初回で候補確定（**5-5は加入なし**）。実加入は拠点 `StarterJoinOverlay`。`pending_starter_recruit_id` セーブ。`STARTER_RECRUIT_BETA_EXTRA=false`。
 
 ---
 

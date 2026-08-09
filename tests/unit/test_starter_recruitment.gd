@@ -7,15 +7,19 @@ const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 
 
 func before_each() -> void:
-	# GUT シードを崩してストーリー経路を単体検証する
 	GameState.roster.clear()
 	GameState.party_members.clear()
 	GameState.starter_unlocked_ids.clear()
 	GameState.starter_pick_pending = true
 	GameState.stage_progress.clear()
+	GameState.dungeon_progress.clear()
+	GameState.dungeon_tier_cleared.clear()
+	GameState.pending_starter_recruit_id = ""
+	GameState.pending_clear_nina_merit = false
+	GameState.pending_clear_nina_teaser = false
+	GameState.pending_clear_stage_id = ""
 	GameState.last_run_starter_recruited_id = ""
 	GameState.last_run_starter_recruited_name = ""
-	GameState.pending_starter_recruit_id = ""
 	GameState.inventory.clear()
 	GameState.armor_inventory.clear()
 	GameState.accessory_inventory.clear()
@@ -23,6 +27,10 @@ func before_each() -> void:
 
 func after_each() -> void:
 	GameState.seed_all_starters_unlocked()
+	GameState.pending_clear_nina_merit = false
+	GameState.pending_clear_nina_teaser = false
+	GameState.pending_clear_stage_id = ""
+	GameState.pending_starter_recruit_id = ""
 
 
 func test_select_starting_sets_single_roster() -> void:
@@ -96,6 +104,29 @@ func test_beta_extra_off_chapters_2_to_4_do_not_recruit() -> void:
 	GameState.mark_stage_cleared("mourngate_1_2", _DungeonTierConfig.TIER_NORMAL)
 	assert_eq(GameState.roster.size(), 1)
 	assert_eq(GameState.last_run_starter_recruited_id, "")
+
+
+func test_frostridge_5_5_does_not_recruit() -> void:
+	## 5-5 は仲間加入なし（開始1＋①〜④×-5で初期5揃い）。
+	GameState.select_starting_adventurer("adventurer_0")
+	assert_false(
+		_StarterRecruitment.is_recruit_eligible_stage(
+			"frostridge_5_5", _DungeonTierConfig.TIER_NORMAL
+		)
+	)
+	assert_true(
+		_StarterRecruitment.is_clear_merit_eligible_stage(
+			"frostridge_5_5", _DungeonTierConfig.TIER_NORMAL
+		)
+	)
+	var pick: Dictionary = _StarterRecruitment.pick_recruit_after_first_clear(
+		"frostridge_5_5", _DungeonTierConfig.TIER_NORMAL
+	)
+	assert_true(pick.is_empty())
+	GameState.mark_stage_cleared("frostridge_5_5", _DungeonTierConfig.TIER_NORMAL)
+	assert_eq(GameState.pending_starter_recruit_id, "")
+	assert_false(GameState.pending_clear_nina_teaser)
+	assert_true(GameState.pending_clear_nina_merit)
 
 
 func test_old_save_migration_unlocks_present_starters() -> void:
