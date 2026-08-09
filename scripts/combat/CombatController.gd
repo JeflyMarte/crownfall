@@ -228,13 +228,18 @@ func is_swarm_density_solo() -> bool:
 
 func _scale_enemy_combat_stats(enemy_data: Resource) -> Dictionary:
 	var lf: float = float(maxi(0, enemy_level - 1))
-	var is_boss: bool = int(enemy_data.enemy_type) == Enums.EnemyType.BOSS
+	var enemy_type: int = int(enemy_data.enemy_type)
+	var is_boss: bool = enemy_type == Enums.EnemyType.BOSS
+	var is_trash: bool = enemy_type == Enums.EnemyType.NORMAL
 	var party_hp_mult: float = _party_size_balance_multiplier(PARTY_BALANCE_HP_SHARE)
 	var atk_share: float = (
 		BalanceConfig.BOSS_PARTY_BALANCE_ATK_SHARE if is_boss else PARTY_BALANCE_ATK_SHARE
 	)
 	var party_atk_mult: float = _party_size_balance_multiplier(atk_share)
 	var boss_atk_mult: float = BalanceConfig.BOSS_ATK_MULT if is_boss else 1.0
+	var trash_atk_mult: float = (
+		BalanceConfig.TRASH_ENEMY_ATK_MULT if is_trash else 1.0
+	)
 	var hp: int = maxi(1, int(round(
 		float(enemy_data.max_hp)
 		* (1.0 + ENEMY_LEVEL_HP_K * lf)
@@ -249,6 +254,7 @@ func _scale_enemy_combat_stats(enemy_data: Resource) -> Dictionary:
 		* BalanceConfig.ENEMY_GLOBAL_ATK_MULT
 		* _swarm_density_atk_mult
 		* boss_atk_mult
+		* trash_atk_mult
 	)))
 	var df: int = maxi(0, int(enemy_data.defense))
 	var xp: int = maxi(0, int(round(float(enemy_data.exp_reward) * (1.0 + ENEMY_LEVEL_EXP_K * lf))))

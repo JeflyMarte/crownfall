@@ -235,6 +235,8 @@ const PARTY_BALANCE_ATK_SHARE: float = 0.40
 ## OPENING-002: HP をさらに上げて数撃交換に（ATK グローバルは据置＝逓減式で脅威を出す）。
 const ENEMY_GLOBAL_HP_MULT: float = 2.00
 const ENEMY_GLOBAL_ATK_MULT: float = 1.30
+## 雑魚（NORMAL）のみ ATK 追加倍率（P3-BAL-TRASH-ATK-150-001）。ELITE/BOSS は据置。
+const TRASH_ENEMY_ATK_MULT: float = 1.5
 ## ★帯ボーナス＋個人ステ補正の圧縮（素体 BASE_MEMBER_HP は据置）。
 ## HP/DEF は 0.70 据置。ATK のみさらに圧縮して一撃感を抑える（OPENING-002）。
 const ALLY_STAT_BONUS_SCALE: float = 0.70
