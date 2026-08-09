@@ -580,6 +580,7 @@ const STATUS_ICON_DEF: Dictionary = {
 	"slow": {"abbrev": "鈍", "color": Color(0.47, 0.67, 0.82)},
 	"enrage": {"abbrev": "激", "color": Color(0.9, 0.35, 0.16)},
 	"mire_toxin": {"abbrev": "瘴", "color": Color(0.35, 0.7, 0.28)},
+	"heal_block": {"abbrev": "封", "color": Color(0.72, 0.18, 0.42)},
 	## 敵スキル沈黙（StatusEffect ではなく戦闘ローカル）。頭上❌と併用。
 	"skill_silence": {"abbrev": "❌", "color": Color(0.75, 0.12, 0.18)},
 }

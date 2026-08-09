@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="StatusEffectData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/StatusEffectData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "heal_block"
+display_name = "回復封じ"
+tier = 1
+max_stacks = 1
+duration_ticks = 4
+effect_type = "stat_mod"
+element_tag = ""
+dot_percent_of_attack = 0.0
+dot_flat = 0
+interval_multiplier = 1.0
+skip_action_chance = 0.0
+outgoing_damage_multiplier = 1.0
+incoming_damage_multiplier = 1.0
+defense_reduction = 0.0
+healing_received_multiplier = 0.0

@@ -93,6 +93,9 @@ func tick_unit(unit_id: String) -> Array[Dictionary]:
 					p_mult *= MIRE_TOXIN_POISON_MULT
 				if not is_equal_approx(p_mult, 1.0):
 					dmg = maxi(1, int(round(float(dmg) * p_mult)))
+			## 味方上の DoT のみ厚く（敵付与想定・P3-BAL-ENEMY-PRESSURE-001）。
+			if dmg > 0 and unit_id.begins_with("party_"):
+				dmg = maxi(1, int(round(float(dmg) * BalanceConfig.ENEMY_DOT_ON_PARTY_MULT)))
 			if dmg > 0:
 				results.append({
 					"effect_id": inst.effect_id,
@@ -216,6 +219,20 @@ func get_incoming_damage_multiplier(unit_id: String) -> float:
 			continue
 		if effect.incoming_damage_multiplier > 0.0:
 			mult *= effect.incoming_damage_multiplier
+	return mult
+
+
+## 被回復倍率（heal_block=0 等）。未付与は 1.0。
+func get_healing_received_multiplier(unit_id: String) -> float:
+	var mult: float = 1.0
+	if not _active.has(unit_id):
+		return mult
+	for inst: StatusInstance in _active[unit_id]:
+		var effect: Resource = DataRegistry.get_status_effect(inst.effect_id)
+		if effect == null:
+			continue
+		if "healing_received_multiplier" in effect:
+			mult *= float(effect.healing_received_multiplier)
 	return mult
 
 # 対象に乗った状態異常の DEF 減少率（armor_break 等・P3-D107）。

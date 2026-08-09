@@ -90,6 +90,8 @@ static func _effect_one_line_body(status_id: String) -> String:
 		return "スキル・必殺封印"
 	if status_id == "mire_toxin":
 		return "毒ダメージ増"
+	if status_id == "heal_block":
+		return "回復不可"
 	var data: Resource = DataRegistry.get_status_effect(status_id)
 	if data == null:
 		return ""

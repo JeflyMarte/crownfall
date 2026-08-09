@@ -102,7 +102,7 @@ func test_ally_stat_bonus_scale_is_opening_balance() -> void:
 	assert_almost_eq(BalanceConfig.ALLY_STAT_BONUS_SCALE, 0.70, 0.001)
 	assert_almost_eq(BalanceConfig.ALLY_ATK_BONUS_SCALE, 0.40, 0.001)
 	assert_almost_eq(BalanceConfig.ENEMY_GLOBAL_HP_MULT, 2.00, 0.001)
-	assert_almost_eq(BalanceConfig.ENEMY_GLOBAL_ATK_MULT, 1.30, 0.001)
+	assert_almost_eq(BalanceConfig.ENEMY_GLOBAL_ATK_MULT, 1.625, 0.001)
 
 
 func test_rarity_total_order_four_gt_three_gt_two() -> void:
