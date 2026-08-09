@@ -13,6 +13,8 @@ const _PetSystem = preload("res://scripts/pets/PetSystem.gd")
 var gold: int = 0
 ## タイトル「デバッグ」適用セーブ。βスコープ／章解放をバイパス（永続）。
 var debug_full_unlock: bool = false
+## 検証プローブ用（非セーブ）。ダンジョン開始時にボス部屋へシークする。
+var debug_start_at_boss: bool = false
 
 # 編成中（アクティブ）の冒険者リスト（Adventurer Resource × 最大3）。roster の部分集合（参照）。
 var party_members: Array = []
@@ -1659,6 +1661,7 @@ func reset_for_new_game() -> void:
 	## 魔晶石ははじめガイド完了後にギルド支給（CurrencyGainFx）。
 	gacha_token = 0
 	debug_full_unlock = false
+	debug_start_at_boss = false
 	owned_helpers = {}
 	ticket_inventory = {}
 	redeemed_codes = {}

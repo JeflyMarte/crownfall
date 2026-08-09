@@ -1143,6 +1143,8 @@ func _ready() -> void:
 	else:
 		GameState.current_stage_id = ""
 		$DungeonController.start_dungeon(dungeon_id)
+	if GameState.debug_start_at_boss:
+		_seek_debug_boss_room()
 	$CombatController.reset_party_hp_for_run()
 	$CombatController.reset_member_ultimate_charge()
 	_pending_floor_choice = false
@@ -1884,8 +1886,28 @@ func _run_location_prefix() -> String:
 		return _DungeonTierConfig.display_name(GameState.current_dungeon_tier)
 	return "B1"
 
+func _seek_debug_boss_room() -> void:
+	var dc: Node = $DungeonController
+	if dc == null or dc.room_sequence.is_empty():
+		return
+	var boss_i: int = -1
+	for i: int in dc.room_sequence.size():
+		if int(dc.room_sequence[i]) == Enums.RoomType.BOSS:
+			boss_i = i
+	if boss_i < 0:
+		boss_i = dc.room_sequence.size() - 1
+	dc.current_room_index = boss_i
+	dc.current_room_type = int(dc.room_sequence[boss_i])
+	dc.is_completed = false
+
+
 func _begin_dungeon_dive_intro() -> void:
 	_init_dungeon_presentation_ui()
+	if GameState.debug_start_at_boss:
+		## 検証プローブ: 導入を飛ばして即ボス部屋へ。
+		_apply_combat_speed(4.0)
+		call_deferred("_finish_dungeon_dive_intro")
+		return
 	_dive_intro_active = true
 	$AutoProgressTimer.stop()
 	_clear_transition_fx()
