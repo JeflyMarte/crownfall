@@ -780,7 +780,18 @@ func _get_view_members() -> Array:
 			out.append(m)
 	if GameState.active_pet != null and not out.has(GameState.active_pet):
 		out.append(GameState.active_pet)
+	out.sort_custom(_cmp_view_member_by_level)
 	return out
+
+
+func _cmp_view_member_by_level(a: Resource, b: Resource) -> bool:
+	if a == null or b == null:
+		return a != null
+	if int(a.level) != int(b.level):
+		return int(a.level) > int(b.level)
+	if int(a.rarity) != int(b.rarity):
+		return int(a.rarity) > int(b.rarity)
+	return str(a.display_name) < str(b.display_name)
 
 
 func _is_viewing_pet() -> bool:

@@ -2401,14 +2401,23 @@ func _alchemy_fodder_grouped_rows() -> Array:
 	var out: Array = []
 	for key in groups.keys():
 		out.append(groups[key])
-	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
-		var ra: int = int(a.get("rarity", 0))
-		var rb: int = int(b.get("rarity", 0))
-		if ra != rb:
-			return ra > rb
-		return str(a.get("display_name", "")) < str(b.get("display_name", ""))
-	)
+	out.sort_custom(_cmp_alchemy_fodder_group_row)
 	return out
+
+
+func _cmp_alchemy_fodder_group_row(a: Dictionary, b: Dictionary) -> bool:
+	## 装備Lv降順 → レア降順 → 名前。サンプルはグループ内最高Lv個体。
+	var sample_a: Resource = a.get("sample") as Resource
+	var sample_b: Resource = b.get("sample") as Resource
+	var la: int = _EquipmentEnhancer.get_equip_level(sample_a)
+	var lb: int = _EquipmentEnhancer.get_equip_level(sample_b)
+	if la != lb:
+		return la > lb
+	var ra: int = int(a.get("rarity", 0))
+	var rb: int = int(b.get("rarity", 0))
+	if ra != rb:
+		return ra > rb
+	return str(a.get("display_name", "")) < str(b.get("display_name", ""))
 
 
 func _on_alchemy_fodder_row_pressed(fodder: Resource) -> void:
