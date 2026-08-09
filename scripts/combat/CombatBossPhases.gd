@@ -194,6 +194,7 @@ const _DEFS: Dictionary = {
 				"enemy_eldion_glacial_breath": 1.6,
 				"enemy_eldion_crevasse": 1.4,
 				"enemy_eldion_glacial_regen": 1.2,
+				"boss_buff_break_all": 1.4,
 			},
 		},
 		{
@@ -208,6 +209,7 @@ const _DEFS: Dictionary = {
 				"enemy_eldion_glacial_breath": 2.0,
 				"enemy_eldion_crevasse": 1.8,
 				"enemy_eldion_glacial_regen": 1.8,
+				"boss_buff_break_all": 1.6,
 			},
 		},
 		{
@@ -222,6 +224,7 @@ const _DEFS: Dictionary = {
 				"enemy_eldion_glacial_breath": 2.0,
 				"enemy_eldion_crevasse": 2.5,
 				"enemy_eldion_glacial_regen": 2.2,
+				"boss_buff_break_all": 1.8,
 			},
 		},
 	],

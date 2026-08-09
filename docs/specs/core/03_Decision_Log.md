@@ -7885,3 +7885,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-ENEMY-TRAIT-001-4 | **見せ方** — 図鑑戦闘データ＋発火初回◇テロップ | 学習しやすく |
 | P3-BAL-ENEMY-TRAIT-001-5 | **トリッキーと別枠** — スポット配置方針は維持（Decision 35） | 一律トリッキー禁止を崩さない |
 | P3-BAL-ENEMY-TRAIT-001-6 | **SSOT** — `118_EnemyTrashTraits.md`／`CombatEnemyTraits.gd` | 実装正 |
+
+## エルディオン開幕同席＋耐性／解呪（2026-08-09 — P3-BAL-ELDION-OPENING-001）
+
+> **オーナー指示** — 弱すぎるので最初からストームジョー2体。状態異常耐性とバフ剥がしも。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-ELDION-OPENING-001-1 | **開幕 `storm_joe`×2** — `opening_companion_ids`＋入場着地後表示 | 途中召喚ではなく同席 |
+| P3-BAL-ELDION-OPENING-001-2 | **`incoming_status_chance_mult=0.55`** | ミスト帯と同帯の付与減衰 |
+| P3-BAL-ELDION-OPENING-001-3 | **`boss_buff_break_all`** | 他本編ボスと同解呪 |
+| P3-BAL-ELDION-OPENING-001-4 | **SSOT** — `119_EldionOpeningCompanions.md` | Decision 本体 |

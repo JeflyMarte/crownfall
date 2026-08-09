@@ -45,3 +45,4 @@ func test_carriers_have_dispel_skills() -> void:
 	assert_true(DataRegistry.get_enemy_data("serdion").skill_ids.has("boss_buff_break_all"))
 	assert_true(DataRegistry.get_enemy_data("moldgar").skill_ids.has("boss_buff_break_all"))
 	assert_true(DataRegistry.get_enemy_data("nereion").skill_ids.has("boss_buff_break_all"))
+	assert_true(DataRegistry.get_enemy_data("eldion").skill_ids.has("boss_buff_break_all"))

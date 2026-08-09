@@ -31,6 +31,9 @@ extends Resource
 ## 味方などからこの敵へ状態異常を付与するときの成功率倍率（P3-BAL-BIOME-BUILD-THEME-001）。
 ## 1.0=通常。<1 で弾かれやすい（ミストフェン雑魚など）。
 @export var incoming_status_chance_mult: float = 1.0
+## 本編ボス開幕から同席する敵 id（重複可・例: storm_joe×2）。空＝単体。
+## BOSS 部屋の `pick_combat_enemy_group` が先頭ボスの直後に追加する（P3-BAL-ELDION-OPENING-001）。
+@export var opening_companion_ids: Array[String] = []
 ## ボス/エリート用スキル。skill_ids の中から skill_use_chance で発動を試行する。
 @export var skill_ids: Array[String] = []
 @export var skill_use_chance: float = 0.0

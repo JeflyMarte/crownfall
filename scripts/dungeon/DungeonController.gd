@@ -1672,6 +1672,31 @@ func _append_minions(group: Array[Resource], count: int) -> void:
 		group.append(minions[randi() % minions.size()])
 
 
+## ボス開幕同席（P3-BAL-ELDION-OPENING-001）。lead.opening_companion_ids をキャップまで追加。
+func _append_boss_opening_companions(group: Array[Resource]) -> void:
+	if group.is_empty():
+		return
+	var lead: Resource = group[0]
+	if lead == null or not ("opening_companion_ids" in lead):
+		return
+	var ids: Array = lead.opening_companion_ids
+	if ids.is_empty():
+		return
+	var cap: int = _DungeonTierConfig.swarm_size_cap()
+	for raw_id: Variant in ids:
+		if group.size() >= cap:
+			break
+		var eid: String = str(raw_id)
+		if eid.is_empty():
+			continue
+		var companion: Resource = _EnemyTierVariantConfig.apply_for_current_tier(
+			DataRegistry.get_enemy_data(eid)
+		)
+		if companion == null:
+			continue
+		group.append(companion)
+
+
 ## 無限ボス編成（P3-BAL-TIER-ENC-A-001）。本編ボスは呼ばない。
 func _append_abyss_boss_pack(group: Array[Resource]) -> void:
 	const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
@@ -1712,7 +1737,7 @@ func _swarm_pool_enemies(include_escorts: bool) -> Array[Resource]:
 	return out
 
 # 戦闘の敵編成を返す（P3-D082 + P3-D110 混成 + P3-WANDER-001 放浪差し込み + P3-BAL-SWARM-001 護衛）。
-# 本編 BOSS は単体。無限 BOSS は階帯パック（P3-BAL-TIER-ENC-A-001）。
+# 本編 BOSS は単体＋任意の開幕同席（EnemyData.opening_companion_ids）。無限は階帯パック追加。
 # ELITE は N/H=護衛1〜2、NM=双エリート薄護衛 or 単＋護衛2〜3。
 # COMBAT 放浪は通常群れにまぎれる（P3-BAL-WANDER-MIX-001）。ビッグダック／影狩は単独据置。
 func pick_combat_enemy_group() -> Array[Resource]:
@@ -1739,6 +1764,7 @@ func pick_combat_enemy_group() -> Array[Resource]:
 		return group
 	group.append(base)
 	if current_room_type == Enums.RoomType.BOSS:
+		_append_boss_opening_companions(group)
 		if _is_abyss_run():
 			_append_abyss_boss_pack(group)
 		return group

@@ -14681,6 +14681,8 @@ func _finish_boss_combat_entrance(lead: Resource) -> void:
 		_boss_sprite.visible = true
 	elif lead != null:
 		_show_boss_sprite(str(lead.id))
+	## 開幕同席（エルディオン＋ストームジョー等）をボス着地後に表示。
+	_reveal_boss_opening_companions()
 	_update_hp_bars()
 	if lead != null:
 		_append_log("【ボス】%s があらわれた" % lead.display_name)
@@ -14688,6 +14690,16 @@ func _finish_boss_combat_entrance(lead: Resource) -> void:
 	if _try_combat_skip():
 		return
 	_start_combat_after_appear_delay()
+
+
+## 戦闘開始時から swarm にいるボス連れを表示（召喚演出なし）。
+func _reveal_boss_opening_companions() -> void:
+	if not _boss_sprite.visible:
+		return
+	var n: int = $CombatController.swarm_data.size()
+	if n <= 1:
+		return
+	_reveal_boss_add_slot(n - 1)
 
 func _begin_boss_combat_entrance(lead: Resource) -> void:
 	if lead == null:
