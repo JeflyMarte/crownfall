@@ -26,6 +26,7 @@ element_resist = Array[String]([])
 attack_element = ""
 on_hit_status_id = ""
 on_hit_status_chance = 0.0
+incoming_status_chance_mult = 0.55
 can_swarm = false
 codex_class = "鳥類"
 codex_danger = 4

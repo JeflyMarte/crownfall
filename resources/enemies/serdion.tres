@@ -26,6 +26,7 @@ element_resist = Array[String]([])
 attack_element = "dark"
 on_hit_status_id = ""
 on_hit_status_chance = 0.0
+incoming_status_chance_mult = 0.55
 skill_ids = Array[String](["boss_enrage", "boss_serdion_hex", "boss_decree_wave", "enemy_serdion_roar", "boss_buff_break_all"])
 skill_use_chance = 0.55
 codex_class = "古代種"
