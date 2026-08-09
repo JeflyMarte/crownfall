@@ -3411,6 +3411,16 @@ ELITE/BOSS/遍在希少種（P3-D166）は別枠。重みは **当該 Biome 雑�
 |---|---|---|
 | P3-FIX-BOSS-LEG-SUMMON-001-1 | **章★／神話／イベントボス報酬はボス本体撃破時のみ**（`is_run_boss_kill`）。召喚・護衛は対象外 | ネレイオン召喚鮫撃破で潮鳴王の鎧が出た |
 
+## 撃破報酬ゲート（護衛・召喚・二重付与）（2026-08-09 — P3-FIX-KILL-REWARD-GATES-001）
+
+詳細: `docs/specs/decisions/108_KillRewardGates.md`
+
+| ID | 決定 | 理由 |
+|---|---|---|
+| P3-FIX-KILL-REWARD-GATES-001-1 | **エリートボーナス／`kill_elite`／エリート武器率・レリック**は `is_run_elite_kill` 時のみ | 護衛撃破でエリート報酬が乗っていた |
+| P3-FIX-KILL-REWARD-GATES-001-2 | **ボス Discovery／death アニメ／ボス武器率・レリック**は `is_run_boss_kill` 時のみ | 召喚を本体扱いしていた |
+| P3-FIX-KILL-REWARD-GATES-001-3 | **撃破報酬はスロット冪等**＋DoT 既死 skip＋追撃後 hooks は first_kill のみ | 二重 EXP／ドロップ |
+
 ## レジェンド武器アイコン個別作画（2026-07-09 — P3-ART-LEG-WPN-001）
 
 > **オーナー GO（2026-07-09）** — ★武器10本を手描き差し替え。Phase A=運用整備。
