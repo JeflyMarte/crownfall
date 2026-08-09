@@ -42,7 +42,7 @@ var _formation_pick_slot: int = -1
 var _active_pick_slot: int = -1
 ## 下リスト先行の入れ替え候補（一覧タップ → パーティ枠タップ）。
 var _roster_pick_member: Resource = null
-var _sort_by_rarity: bool = true
+var _sort_by_rarity: bool = false
 var _role_filter_index: int = 0
 ## false=冒険者一覧 / true=ペット一覧
 var _show_pets: bool = false
