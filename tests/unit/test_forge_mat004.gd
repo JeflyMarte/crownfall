@@ -49,6 +49,20 @@ func test_dismantle_common_weapon_yields_base_and_common() -> void:
 	assert_true(preview.get("ok", false))
 	assert_eq(preview["materials"].get(_Enh.BASE_ORE_ID), 1)
 	assert_eq(preview["materials"].get(_Enh.COMMON_MATERIAL_ID), 1)
+	assert_eq(int(preview.get("gold", 0)), 25)
+
+
+func test_dismantle_grants_gold_and_enhance_bonus() -> void:
+	var weapon: Resource = load("res://scripts/domain/WeaponInstance.gd").new()
+	weapon.weapon_id = "iron_sword"
+	weapon.is_appraised = true
+	weapon.enhance_level = 2
+	GameState.inventory.append(weapon)
+	var gold_before: int = GameState.gold
+	var result: Dictionary = _Enh.dismantle_item(weapon)
+	assert_true(bool(result.get("ok", false)))
+	assert_eq(int(result.get("gold", 0)), 35)
+	assert_eq(GameState.gold, gold_before + 35)
 
 
 func test_can_dismantle_has_no_materials_preview_has() -> void:
@@ -95,5 +109,8 @@ func test_bulk_dismantle_only_common_and_rare() -> void:
 	GameState.inventory.append(common_w)
 	var candidates: Array = _Enh.list_bulk_dismantle_candidates()
 	assert_eq(candidates.size(), 1)
-	_Enh.dismantle_bulk_common_rare()
+	var gold_before: int = GameState.gold
+	var bulk: Dictionary = _Enh.dismantle_bulk_common_rare()
 	assert_eq(GameState.inventory.size(), 0)
+	assert_eq(int(bulk.get("gold", 0)), 25)
+	assert_eq(GameState.gold, gold_before + 25)

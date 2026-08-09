@@ -347,7 +347,8 @@ func _ensure_skills_panel() -> void:
 	_skills_panel.z_index = 5
 	_skills_panel.visible = false
 	_skills_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_skills_panel.clip_contents = true
+	## ビルド説明をパネル端で切らない（高さは SKILLS_RECT で戦力枠直前まで確保）。
+	_skills_panel.clip_contents = false
 	_skills_panel.add_theme_stylebox_override("panel", ShowcaseUiTokensScript.skill_card_style())
 	_skills_col = Control.new()
 	_skills_col.name = "SkillsCol"
@@ -423,28 +424,24 @@ func _populate_equipped_skill_names(member: Resource, build_blurb: String = "") 
 		_skills_col.add_child(blurb_hdr)
 		y += ShowcaseUiTokensScript.SKILL_HEADER_H
 		var blurb_text: String = build_blurb.strip_edges()
-		## 日本語は Label の AUTOWRAP_ARBITRARY で折り返す。高さは字数から概算。
+		## 日本語は AUTOWRAP_ARBITRARY。高さはツリー投入後に実測（字数概算は途中切れの原因）。
 		var room: float = maxf(24.0, _skills_panel.size.y - y - 4.0)
-		var approx_cols: float = maxf(8.0, value_w / maxf(10.0, float(ShowcaseUiTokensScript.BUILD_BLURB_FONT_SIZE) * 0.95))
-		var approx_lines: float = maxf(2.0, ceil(float(blurb_text.length()) / approx_cols))
-		var blurb_h: float = clampf(
-			approx_lines * (float(ShowcaseUiTokensScript.BUILD_BLURB_FONT_SIZE) + 5.0) + 8.0,
-			36.0,
-			minf(ShowcaseUiTokensScript.BUILD_BLURB_MAX_H, room)
-		)
 		var blurb_lbl := Label.new()
 		blurb_lbl.text = blurb_text
 		blurb_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		blurb_lbl.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 		blurb_lbl.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
-		blurb_lbl.clip_text = true
 		blurb_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		blurb_lbl.custom_minimum_size = Vector2(value_w, 0)
 		blurb_lbl.position = Vector2(pad_x, y)
-		blurb_lbl.size = Vector2(value_w, blurb_h)
 		UiTypography.apply_body(
 			blurb_lbl, ShowcaseUiTokensScript.BUILD_BLURB_FONT_SIZE, COLOR_BODY
 		)
 		_skills_col.add_child(blurb_lbl)
+		var needed_h: float = maxf(36.0, blurb_lbl.get_minimum_size().y)
+		var blurb_h: float = minf(needed_h, minf(ShowcaseUiTokensScript.BUILD_BLURB_MAX_H, room))
+		blurb_lbl.clip_text = needed_h > blurb_h + 1.0
+		blurb_lbl.size = Vector2(value_w, blurb_h)
 
 func _ensure_change_member_button() -> void:
 	if _btn_change_member != null:

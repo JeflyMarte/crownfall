@@ -972,7 +972,9 @@ func _show_forge_item_result(
 	_log_craft("%s: %s" % [title, EquipmentItemDetailHelper.short_name(item, category)])
 
 
-func _show_forge_dismantle_result(materials: Dictionary, headline: String = "") -> void:
+func _show_forge_dismantle_result(
+	materials: Dictionary, headline: String = "", gold: int = 0
+) -> void:
 	_ensure_result_overlay()
 	_apply_result_chrome("分解完了", "dismantle")
 	for child in _result_detail_host.get_children():
@@ -994,9 +996,14 @@ func _show_forge_dismantle_result(materials: Dictionary, headline: String = "") 
 		UiTypography.apply_body(head, UiTypography.SIZE_BODY_SMALL, COLOR_TEXT_STRONG)
 		col.add_child(head)
 	var gained := Label.new()
-	gained.text = "獲得素材"
+	gained.text = "獲得"
 	UiTypography.apply_caption(gained, UiTypography.COLOR_GOLD)
 	col.add_child(gained)
+	if gold > 0:
+		var gold_row := Label.new()
+		gold_row.text = "ゴールド × %d" % gold
+		UiTypography.apply_body(gold_row, UiTypography.SIZE_BODY, COLOR_TEXT_STRONG)
+		col.add_child(gold_row)
 	var mat_ids: Array = materials.keys()
 	mat_ids.sort()
 	var any: bool = false
@@ -1006,13 +1013,15 @@ func _show_forge_dismantle_result(materials: Dictionary, headline: String = "") 
 			continue
 		any = true
 		col.add_child(_make_dismantle_result_material_row(str(mat_id_v), qty))
-	if not any:
+	if not any and gold <= 0:
 		var empty := Label.new()
-		empty.text = "（素材なし）"
+		empty.text = "（なし）"
 		UiTypography.apply_caption(empty, COLOR_SUB_STRONG)
 		col.add_child(empty)
 	_result_overlay.visible = true
-	_log_craft("分解完了: %s" % _format_material_summary(materials))
+	_log_craft(
+		"分解完了: %s" % _format_dismantle_yield_summary(materials, gold)
+	)
 
 
 func _make_dismantle_result_material_row(mat_id: String, qty: int) -> Control:
@@ -2179,8 +2188,8 @@ func _rebuild_dismantle_detail() -> void:
 	_update_hero_icon(_item_id_for_category(item, _category), _category, rarity)
 	_title_label.text = _EquipmentEnhancer.get_display_name(item)
 	_title_label.add_theme_color_override("font_color", BlacksmithUiHelper.rarity_name_color(rarity))
-	_subtitle_label.text = "分解すると以下の素材を獲得"
-	_populate_dismantle_yield(preview.get("materials", {}))
+	_subtitle_label.text = "分解すると以下を獲得"
+	_populate_dismantle_yield(preview.get("materials", {}), int(preview.get("gold", 0)))
 	var can_do: bool = bool(preview.get("ok", false))
 	_cost_panel.visible = false
 	_craft_button.visible = true
@@ -2192,10 +2201,12 @@ func _rebuild_dismantle_detail() -> void:
 		_reason_label.text = str(preview.get("reason", ""))
 		_reason_label.visible = not _reason_label.text.is_empty()
 
-func _populate_dismantle_yield(materials: Dictionary) -> void:
-	if materials.is_empty():
-		_add_stat_row("獲得素材", "なし")
+func _populate_dismantle_yield(materials: Dictionary, gold: int = 0) -> void:
+	if materials.is_empty() and gold <= 0:
+		_add_stat_row("獲得", "なし")
 		return
+	if gold > 0:
+		_add_stat_row("ゴールド", "× %d" % gold)
 	for mat_id in materials:
 		var qty: int = int(materials[mat_id])
 		if qty <= 0:
@@ -2287,6 +2298,16 @@ func _format_material_summary(materials: Dictionary) -> String:
 		if qty <= 0:
 			continue
 		parts.append("%s×%d" % [DataRegistry.get_material_name(str(mat_id)), qty])
+	return " / ".join(parts) if not parts.is_empty() else "なし"
+
+
+func _format_dismantle_yield_summary(materials: Dictionary, gold: int = 0) -> String:
+	var parts: PackedStringArray = []
+	if gold > 0:
+		parts.append("ゴールド×%d" % gold)
+	var mats: String = _format_material_summary(materials)
+	if mats != "なし" and not mats.is_empty():
+		parts.append(mats)
 	return " / ".join(parts) if not parts.is_empty() else "なし"
 
 func _on_craft_button_pressed() -> void:
@@ -3152,21 +3173,21 @@ func _on_dismantle_pressed() -> void:
 	if not bool(preview.get("ok", false)):
 		_log_craft_error(str(preview.get("reason", "分解できません")))
 		return
-	var mat_summary: String = _format_material_summary(preview.get("materials", {}))
-	if mat_summary.is_empty():
-		mat_summary = "（素材なし）"
+	var yield_summary: String = _format_dismantle_yield_summary(
+		preview.get("materials", {}), int(preview.get("gold", 0))
+	)
 	if _EquipmentEnhancer.item_rarity(item) >= Enums.Rarity.LEGENDARY:
 		_pending_dismantle_item = item
 		_legendary_dismantle_confirm.dialog_text = (
 			"L装備「%s」を分解します。\n獲得: %s\n本当によろしいですか？（1/2）"
-			% [_EquipmentEnhancer.get_display_name(item), mat_summary]
+			% [_EquipmentEnhancer.get_display_name(item), yield_summary]
 		)
 		_legendary_dismantle_confirm.popup_centered()
 		return
 	_pending_dismantle_item = item
 	_single_dismantle_confirm.dialog_text = (
 		"「%s」を分解しますか？\n獲得: %s\n分解すると元に戻せません。"
-		% [_EquipmentEnhancer.get_display_name(item), mat_summary]
+		% [_EquipmentEnhancer.get_display_name(item), yield_summary]
 	)
 	_single_dismantle_confirm.popup_centered()
 
@@ -3188,12 +3209,12 @@ func _on_legendary_dismantle_step1() -> void:
 	if _pending_dismantle_item == null:
 		return
 	var preview: Dictionary = _EquipmentEnhancer.dismantle_preview(_pending_dismantle_item)
-	var mat_summary: String = _format_material_summary(preview.get("materials", {}))
-	if mat_summary.is_empty():
-		mat_summary = "（素材なし）"
+	var yield_summary: String = _format_dismantle_yield_summary(
+		preview.get("materials", {}), int(preview.get("gold", 0))
+	)
 	_legendary_dismantle_final_confirm.dialog_text = (
 		"「%s」を分解すると元に戻せません。\n獲得: %s\n最終確認です。（2/2）"
-		% [_EquipmentEnhancer.get_display_name(_pending_dismantle_item), mat_summary]
+		% [_EquipmentEnhancer.get_display_name(_pending_dismantle_item), yield_summary]
 	)
 	_legendary_dismantle_final_confirm.popup_centered()
 
@@ -3214,7 +3235,7 @@ func _execute_dismantle(item: Resource) -> void:
 	_selected_dismantle_item = null
 	_selected_enhance_item = null
 	var materials: Dictionary = result.get("materials", {})
-	_show_forge_dismantle_result(materials)
+	_show_forge_dismantle_result(materials, "", int(result.get("gold", 0)))
 	_refresh_all()
 	_play_forge_success_feedback(FORGE_FLASH_DISMANTLE)
 
@@ -3226,7 +3247,12 @@ func _on_bulk_dismantle_pressed() -> void:
 		return
 	_dismantle_confirm.dialog_text = (
 		"N・R装備 %d件を分解します。\n獲得: %s\nよろしいですか？"
-		% [count, _format_material_summary(preview.get("materials", {}))]
+		% [
+			count,
+			_format_dismantle_yield_summary(
+				preview.get("materials", {}), int(preview.get("gold", 0))
+			),
+		]
 	)
 	_dismantle_confirm.popup_centered()
 
@@ -3243,7 +3269,8 @@ func _on_bulk_dismantle_confirmed() -> void:
 	var materials: Dictionary = result.get("materials", {})
 	_show_forge_dismantle_result(
 		materials,
-		"N・R装備 %d件を分解しました。" % int(result.get("count", 0))
+		"N・R装備 %d件を分解しました。" % int(result.get("count", 0)),
+		int(result.get("gold", 0))
 	)
 	_refresh_all()
 	_play_forge_success_feedback(FORGE_FLASH_DISMANTLE)

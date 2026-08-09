@@ -3829,7 +3829,7 @@ ELITE/BOSS/遍在希少種（P3-D166）は別枠。重みは **当該 Biome 雑�
 | P3-FORGE-003-6 | **返却（炉研ぎボーナス）** — `enhance_level` 每に **共通+1**。+4/+5 強化品は同帯主鉱石+0〜1、**+4/+5 のみ**上位鉱石+1（P3-MAT-004 帯に準拠） | 100%還元禁止・投資の一部回収 |
 | P3-FORGE-003-7 | **exploit 防止** — 分解返却 ≤ 同一装備クラフト必要素材×**80%**（クラフト品）。返す素材は `max(1, floor(…))`。ドロップ品は固定表（**P3-BAL-DISMANTLE-001** で60%→80%＋ゼロ潰し修正） | クラフトループ増殖禁止 |
 | P3-FORGE-003-8 | **SSOT** — `EquipmentEnhancer.dismantle_preview` / `dismantle_item`（返却 Dictionary・inventory 削除） | 炉研ぎと同ファイル |
-| P3-FORGE-003-9 | **据置** — Gold 返却・`equip_level` による返却差。お気に入りロック → **P3-UX-EQUIP-LOCK-001** | MVP最小化 |
+| P3-FORGE-003-9 | **据置** — ~~Gold 返却~~（→ **P3-BAL-DISMANTLE-GOLD-001**）・`equip_level` による返却差。お気に入りロック → **P3-UX-EQUIP-LOCK-001** | MVP最小化 |
 | P3-FORGE-003-10 | **Impl 順** — **P3-MAT-004 / P3-FORGE-002 完了後** | 返却先5種 ID の確定が先 |
 | P3-FORGE-003-11 | **一括分解** — 分解タブ内に **`◇◆を一括分解`** ボタン。対象＝**未装備・鑑定済み・◇◆のみ**（武器+防具+装飾を横断） | インベントリ整理。✦★は個別分解のみ |
 | P3-FORGE-003-12 | **一括UI** — 押下で確認ダイアログ（**件数**＋**獲得素材合計**プレビュー）→ OK で実行。0件時はボタン disabled またはトースト | 誤操作防止 |
@@ -7706,3 +7706,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-FIX-SURVEY-PARTY-HARDEN-001-4 | 調査対象変更時も ensure（orphan 癒し）。変更自体は編成非破壊を維持 | 操作フロー上の欠員残存を拾う |
 | P3-FIX-SURVEY-PARTY-HARDEN-001-5 | **延長** — P3-FIX-SURVEY-PARTY-BACKUP-001／RESULT-001 | 復元経路の再発防止 |
 | P3-FIX-SURVEY-PARTY-HARDEN-001-6 | **cancel** は cycle クリア（派遣ロック解除）後に復元 | ロック中は `set_active_party` が拒否され中止後欠員になる |
+
+## 分解で Gold 入手（2026-08-09 — P3-BAL-DISMANTLE-GOLD-001）
+
+> **オーナー依頼** — 分解でも Gold を入手したい。P3-FORGE-003-9 の Gold 据置を上書き。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-DISMANTLE-GOLD-001-1 | **ベース** — ◇25／◆40／✦80／★・ミシック200（SET=◇） | 炉研ぎ+1 の約20〜25%スクラップ |
+| P3-BAL-DISMANTLE-GOLD-001-2 | **炉研ぎ** — enhance×5 Gold。素材返却・80%キャップ据置 | 投資の一部回収 |
+| P3-BAL-DISMANTLE-GOLD-001-3 | **UI** — プレビュー／確認／結果に Gold。一括は合算 | 手触り明確 |
+| P3-BAL-DISMANTLE-GOLD-001-4 | **上書き** — P3-FORGE-003-9 の Gold 据置 | 本 Decision が正 |
+| P3-BAL-DISMANTLE-GOLD-001-5 | **SSOT** — `103_DismantleGold.md`／`EquipmentEnhancer` | 実装正 |

@@ -16,7 +16,8 @@ const MODE_ROW := Rect2(78, 152, 564, 72)
 const EQUIP_RECT := Rect2(70, 175, 168, 730)
 const STATS_RECT := Rect2(482, 175, 168, 460)
 ## ステータス焼込枠の直下。スキル名＋ビルド説明（効果文なし）。
-const SKILLS_RECT := Rect2(430, 640, 220, 270)
+## 下端は戦力枠直前。ステと重ならないよう y≥636。
+const SKILLS_RECT := Rect2(400, 636, 250, 278)
 const IDLE_CENTER := Vector2(360, 688)
 const IDLE_HOST_SIZE := Vector2(260, 320)
 ## 名前テキストのみ（枠なし）。焼込名札内の下寄り。
@@ -68,7 +69,7 @@ const SKILL_NAME_FONT_SIZE: int = 18
 const SKILL_HEADER_TEXT: String = "✧ スキル ✧"
 const BUILD_BLURB_HEADER: String = "✧ ビルド ✧"
 const BUILD_BLURB_FONT_SIZE: int = 12
-const BUILD_BLURB_MAX_H: float = 150.0
+const BUILD_BLURB_MAX_H: float = 190.0
 
 ## 選択中タブは暗く、非選択は明るめの金文字。
 const COLOR_TAB_ACTIVE_BG := Color(0.02, 0.02, 0.04, 0.72)

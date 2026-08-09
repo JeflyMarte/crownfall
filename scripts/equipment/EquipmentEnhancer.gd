@@ -25,6 +25,16 @@ const EQUIP_LEGENDARY_GROWTH_MULT: float = 1.25
 const EQUIP_EXP_BASE: int = 10
 const EQUIP_EXP_PER_LEVEL: int = 5
 const DISMANTLE_CRAFT_RETURN_CAP: float = 0.8
+## 分解 Gold（P3-BAL-DISMANTLE-GOLD-001）。炉研ぎ+1 の約20〜25%相当のスクラップ。
+const DISMANTLE_GOLD_BY_RARITY: Dictionary = {
+	Enums.Rarity.COMMON: 25,
+	Enums.Rarity.RARE: 40,
+	Enums.Rarity.EPIC: 80,
+	Enums.Rarity.LEGENDARY: 200,
+	Enums.Rarity.MYTHIC: 200,
+	Enums.Rarity.SET: 25,
+}
+const DISMANTLE_GOLD_PER_ENHANCE: int = 5
 ## 錬成 — P3-FORGE-ALCHEMY-001／上昇量は P3-BAL-ALCHEMY-GAIN-025-001
 const ALCHEMY_LEVEL_FACTOR: float = 0.25
 ## P3-BAL-ALCHEMY-RARITY-GOLD-001: 単価180＋主材レア倍率（炉研ぎと同表）。帯は AB-001 据置。
@@ -673,6 +683,15 @@ static func _dismantle_base_yields(item: Resource) -> Dictionary:
 			yields[COMMON_MATERIAL_ID] = 1
 	return yields
 
+
+static func dismantle_gold_yield(item: Resource) -> int:
+	if item == null:
+		return 0
+	var rarity: int = item_rarity(item)
+	var base_gold: int = int(DISMANTLE_GOLD_BY_RARITY.get(rarity, DISMANTLE_GOLD_BY_RARITY[Enums.Rarity.COMMON]))
+	var enhance_gold: int = get_enhance_level(item) * DISMANTLE_GOLD_PER_ENHANCE
+	return maxi(0, base_gold + enhance_gold)
+
 static func _dismantle_enhance_bonus(item: Resource) -> Dictionary:
 	var bonus: Dictionary = {}
 	var enhance: int = get_enhance_level(item)
@@ -734,7 +753,12 @@ static func dismantle_preview(item: Resource) -> Dictionary:
 	var yields: Dictionary = _dismantle_base_yields(item)
 	_merge_material_dict(yields, _dismantle_enhance_bonus(item))
 	yields = _cap_dismantle_by_craft_return(item, yields)
-	return {"ok": true, "reason": "", "materials": yields}
+	return {
+		"ok": true,
+		"reason": "",
+		"materials": yields,
+		"gold": dismantle_gold_yield(item),
+	}
 
 static func _remove_item_from_inventory(item: Resource) -> bool:
 	var idx: int = -1
@@ -765,7 +789,10 @@ static func dismantle_item(item: Resource) -> Dictionary:
 	var materials: Dictionary = preview.get("materials", {})
 	for mat_id in materials:
 		GameState.add_material(str(mat_id), int(materials[mat_id]))
-	return {"ok": true, "reason": "", "materials": materials}
+	var gold: int = int(preview.get("gold", 0))
+	if gold > 0:
+		GameState.gold += gold
+	return {"ok": true, "reason": "", "materials": materials, "gold": gold}
 
 static func list_bulk_dismantle_candidates() -> Array:
 	var out: Array = []
@@ -789,25 +816,37 @@ static func _is_bulk_dismantle_candidate(item: Resource) -> bool:
 static func dismantle_bulk_preview() -> Dictionary:
 	var items: Array = list_bulk_dismantle_candidates()
 	var total: Dictionary = {}
+	var total_gold: int = 0
 	for item in items:
 		var preview: Dictionary = dismantle_preview(item)
 		if bool(preview.get("ok", false)):
 			_merge_material_dict(total, preview.get("materials", {}))
-	return {"ok": true, "count": items.size(), "materials": total, "items": items}
+			total_gold += int(preview.get("gold", 0))
+	return {
+		"ok": true,
+		"count": items.size(),
+		"materials": total,
+		"gold": total_gold,
+		"items": items,
+	}
 
 static func dismantle_bulk_common_rare() -> Dictionary:
 	var preview: Dictionary = dismantle_bulk_preview()
 	var items: Array = preview.get("items", [])
 	if items.is_empty():
-		return {"ok": false, "reason": "分解対象がありません", "count": 0, "materials": {}}
+		return {"ok": false, "reason": "分解対象がありません", "count": 0, "materials": {}, "gold": 0}
 	for item in items:
 		if not _remove_item_from_inventory(item):
 			continue
 	for mat_id in preview.get("materials", {}):
 		GameState.add_material(str(mat_id), int(preview["materials"][mat_id]))
+	var gold: int = int(preview.get("gold", 0))
+	if gold > 0:
+		GameState.gold += gold
 	return {
 		"ok": true,
 		"reason": "",
 		"count": items.size(),
 		"materials": preview.get("materials", {}),
+		"gold": gold,
 	}
