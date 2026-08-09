@@ -6633,6 +6633,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-ROCK-BISON-WANDER-001-1 | **バイソンを放浪枠へ** — 基準1.5%。非イベント pool から除去（岩角・境界廊は据置） | 出現過多の是正 |
 | P3-BAL-WANDER-MIX-001-1 | **放浪は群れ末尾にまぎれる**（単独置換廃止）。ビッグダック／影狩は単独 | オーナー例（ヒル×2＋ダック） |
 | P3-BAL-WANDER-MIX-001-2 | **影狩は混入対象外** | オーナー指示 |
+
+## DoT 役割分化＋成長追従（2026-08-09 — P3-BAL-DOT-IDENTITY-001）
+
+| ID | 決定 | 理由 |
+|---|---|---|
+| P3-BAL-DOT-IDENTITY-001-1 | **毒**＝固定16＋ATK×10%・6tick／**炎上**＝固定12＋ATK×18%・3tick／**出血**＝ATK×20%据置 | 案A・後半薄さ＋役割差 |
+| P3-BAL-DOT-IDENTITY-001-2 | **SSOT** — `106_DotIdentityScale.md` | Decision 本体 |
 | P3-BAL-ROCK-BISON-WANDER-001-2 | **SSOT** — `105_RockBisonWanderMix.md`。SPAWN-001/002 の pool 方針を上書き | Decision 本体 |
 
 ## 属性値表示スケール（2026-08-02 — P3-EQ-ELEMENT-POWER-SCALE-001）

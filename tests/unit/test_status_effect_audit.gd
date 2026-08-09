@@ -35,7 +35,8 @@ func test_ignite_ticks_flat() -> void:
 	assert_true(resolver.apply_status("enemy_0", "ignite", 1, 0))
 	var ticks: Array = resolver.tick_unit("enemy_0")
 	assert_eq(ticks.size(), 1)
-	assert_eq(int(ticks[0].get("damage", 0)), 24)
+	## source_attack=0 でも固定分は入る（P3-BAL-DOT-IDENTITY-001）。
+	assert_eq(int(ticks[0].get("damage", 0)), BalanceConfig.DOT_FLAT_IGNITE)
 
 
 func test_stun_and_fear_skip_chance_fields() -> void:

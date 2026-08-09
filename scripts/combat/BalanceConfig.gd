@@ -247,8 +247,16 @@ const THREAT_TAUNT: float = 40.0 * float(STAT_SCALE)  # 挑発（防御スロッ
 const THREAT_DECAY: float = 0.90
 
 # ── 状態／コンボの平坦値（旧スケール×STAT_SCALE） ───────────────────────
-const DOT_FLAT_POISON: int = 4 * STAT_SCALE
-const DOT_FLAT_IGNITE: int = 3 * STAT_SCALE
+## DoT 役割（P3-BAL-DOT-IDENTITY-001）: 毒＝長く薄く／炎上＝短く厚く／出血＝ATK比例。
+## 実数値の正は resources/status/*.tres。ここは参照・テスト用の鏡。
+const DOT_FLAT_POISON: int = 2 * STAT_SCALE
+const DOT_FLAT_IGNITE: int = 3 * STAT_SCALE / 2
+const DOT_PCT_POISON: float = 0.10
+const DOT_PCT_IGNITE: float = 0.18
+const DOT_PCT_BLEED: float = 0.20
+const DOT_TICKS_POISON: int = 6
+const DOT_TICKS_IGNITE: int = 3
+const DOT_TICKS_BLEED: int = 5
 const COMBO_POISON_PER_STACK: int = 8 * STAT_SCALE
 const COMBO_BLEED_PER_STACK: int = 6 * STAT_SCALE
 const SPARE_VIAL_HEAL: int = 12 * STAT_SCALE

@@ -57,12 +57,11 @@ func test_effect_summary_armor_break() -> void:
 func test_effect_one_line_dot_uses_ongoing_damage() -> void:
 	## DoT は CT 間隔。壁時計「1秒」は使わない。名前付き。
 	var poison: String = _Helper.effect_one_line("poison")
-	assert_eq(poison, "毒:継続ダメージ")
+	assert_eq(poison, "毒:継続（固定＋攻撃）")
 	assert_false(poison.contains("刻"))
 	assert_false(poison.contains("1秒"))
 	var ignite: String = _Helper.effect_one_line("ignite")
-	assert_true(ignite.ends_with(":継続ダメージ"), ignite)
-	assert_true(ignite.contains(":"), ignite)
+	assert_eq(ignite, "炎上:継続（固定＋攻撃）")
 	var bleed: String = _Helper.effect_one_line("bleed")
 	assert_true(bleed.ends_with(":継続ダメージ"), bleed)
 

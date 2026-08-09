@@ -54,8 +54,12 @@ static func effect_summary(status_id: String) -> String:
 	var dot_pct: float = float(data.dot_percent_of_attack)
 	if dot_flat > 0 or dot_pct > 0.001:
 		## CT 進行で一定間隔（壁時計の1秒ではない）。秒表記は誤解を招く。
-		if dot_pct > 0.001:
-			parts.append("継続ダメージが続く")
+		if dot_flat > 0 and dot_pct > 0.001:
+			parts.append(
+				"継続ダメージ（%d＋攻撃の約%d%%）" % [dot_flat, int(round(dot_pct * 100.0))]
+			)
+		elif dot_pct > 0.001:
+			parts.append("継続ダメージ（攻撃の約%d%%）" % int(round(dot_pct * 100.0)))
 		else:
 			parts.append("継続ダメージ（%d）" % dot_flat)
 	var ticks: int = int(data.duration_ticks)
@@ -91,6 +95,8 @@ static func _effect_one_line_body(status_id: String) -> String:
 		return ""
 	var dot_flat: int = int(data.dot_flat)
 	var dot_pct: float = float(data.dot_percent_of_attack)
+	if dot_flat > 0 and dot_pct > 0.001:
+		return "継続（固定＋攻撃）"
 	if dot_flat > 0 or dot_pct > 0.001:
 		return "継続ダメージ"
 	var skip: float = float(data.skip_action_chance)

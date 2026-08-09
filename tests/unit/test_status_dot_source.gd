@@ -10,7 +10,25 @@ func test_poison_ticks_without_source_attack() -> void:
 	var ticks: Array = resolver.tick_unit("party_0")
 	assert_eq(ticks.size(), 1)
 	assert_eq(str(ticks[0].get("effect_id", "")), "poison")
-	assert_gt(int(ticks[0].get("damage", 0)), 0)
+	assert_eq(int(ticks[0].get("damage", 0)), BalanceConfig.DOT_FLAT_POISON)
+
+
+func test_poison_scales_with_source_attack() -> void:
+	## 毒＝固定＋ATK×10%（長く薄く）。
+	var resolver = _StatusResolver.new()
+	assert_true(resolver.apply_status("enemy_0", "poison", 1, 100))
+	var ticks: Array = resolver.tick_unit("enemy_0")
+	assert_eq(ticks.size(), 1)
+	assert_eq(int(ticks[0].get("damage", 0)), BalanceConfig.DOT_FLAT_POISON + 10)
+
+
+func test_ignite_scales_short_and_thick() -> void:
+	## 炎上＝固定＋ATK×18%（短く厚く）。
+	var resolver = _StatusResolver.new()
+	assert_true(resolver.apply_status("enemy_0", "ignite", 1, 100))
+	var ticks: Array = resolver.tick_unit("enemy_0")
+	assert_eq(ticks.size(), 1)
+	assert_eq(int(ticks[0].get("damage", 0)), BalanceConfig.DOT_FLAT_IGNITE + 18)
 
 
 func test_bleed_needs_source_attack() -> void:
