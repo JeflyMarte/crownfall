@@ -94,7 +94,7 @@
 | 状態異常アイコンが敵HPバー裏／ネーム帯と同帯 | `COMBAT_OVERLAY_Z+3`＋ネーム（エリートはバッジ）上端より上 |
 | ボスの激昂など頭上アイコンが付かない | `_update_status_icons` がボス時に行を全非表示にしていた | ボスも `_boss_sprite` 上に表示。スタック上端は `_enemy_nameplate.offset_top` |
 | ボス／エリートを雑魚と同寸、またはボス過大で Header 貫通 | `BOSS_BODY_*`／`ENEMY_BODY_SCALE_MULT`／`FROSTRIDGE_SOLO_DISPLAY_SCALE`。群れは体数スケール |
-| 敵待機が拡大縮小パルス（シート内の体高さ揺れ） | PixelLab が足元固定で体を縮める。アップスケール焼き直しは横に太る。**PNG差替後も `.godot/imported` が古いと旧ズームが残る** | `tools/stabilize_enemy_sheet_scale.py`（重度は `--freeze`）。差替後 `godot --headless --import`。Hard/Nightmare も同処理 |
+| 敵待機が拡大縮小パルス（シート内の体高さ揺れ） | PixelLab が足元固定で体を縮める。**`--freeze` は不自然**。import 未更新でも旧ズーム残存 | `stabilize_enemy_sheet_scale.py --max-dh` で安定セル循環（オルド≈2／ストーム≈10）。差替後 `--import`。Hard/Nightmare 同処理 |
 | 雑魚が全部同じ殴り合いに見える | スキル／軽減だけだと役割が薄い | `EnemyData.trait_id`＋`CombatEnemyTraits`（Decision 118）。トリッキーと別枠 |
 | ボス呼び出し敵が BossSprite に隠れる／slot0 二重表示 | BossSprite 据置＋連れは `BossSummonLayout` で左右手前。slot0 群れ非表示。HP/状態も連れ分表示 |
 | 連れネーム／技名がボス胴体に貼る | 立ち位置オフセット拡大＋`overlay_nudge_px` で外側・上へクリアランス |
