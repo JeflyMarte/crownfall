@@ -45,6 +45,9 @@ const FORGE_FLASH_ENHANCE: Color = Color(0.72, 0.86, 1.0)
 const FORGE_FLASH_ALCHEMY: Color = Color(0.55, 0.92, 0.78)
 const FORGE_FLASH_DISMANTLE: Color = Color(0.86, 0.72, 1.0)
 const FORGE_FLASH_PEAK_ALPHA: float = 0.32
+## 不足テロップ（P3-UX-FORGE-SHORTAGE-TELOP-001）
+const SHORTAGE_TELOP_HOLD_SEC: float = 1.15
+const SHORTAGE_TELOP_FADE_SEC: float = 0.35
 ## 下段ストリップ（作成可能／錬成素材）。BottomNav 上に専用帯を確保する。
 ## チップ高(112)＋ヘッダ分。外枠テクスチャ無しなので余白は控えめ。
 const CRAFTABLE_STRIP_HEIGHT_PX: float = 148.0
@@ -165,6 +168,8 @@ var _mat_long_press_fired: bool = false
 var _mat_press_timer: SceneTreeTimer = null
 var _mat_press_name: String = ""
 var _mat_press_origin: Vector2 = Vector2.ZERO
+var _shortage_telop: Label = null
+var _shortage_telop_tween: Tween = null
 
 func _ready() -> void:
 	_label_title.text = ""
@@ -173,6 +178,7 @@ func _ready() -> void:
 	HeaderCurrencyHelper.apply_to_row($Header/HeaderRow)
 	_ensure_body_scroll()
 	_ensure_detail_scroll()
+	_ensure_shortage_telop()
 	_mode_button_group = ButtonGroup.new()
 	_btn_produce.button_group = _mode_button_group
 	_btn_enhance.button_group = _mode_button_group
@@ -1921,11 +1927,15 @@ func _rebuild_produce_detail() -> void:
 	_populate_unique_from_craft(craft)
 	_update_cost_panel(int(craft.gold_cost), craft.required_materials)
 	_craft_button.text = "生産する"
-	_craft_button.disabled = not can_craft
+	## Gold／素材不足でも押下可 → テロップで不足を伝える。
+	_craft_button.disabled = not CraftHelper.can_attempt_craft(craft)
 	if can_craft:
 		_reason_label.visible = false
 	else:
-		_reason_label.text = _craft_button_label(craft, false)
+		var shortage: String = CraftHelper.craft_shortage_message(craft)
+		_reason_label.text = (
+			shortage if not shortage.is_empty() else _craft_button_label(craft, false)
+		)
 		_reason_label.visible = not _reason_label.text.is_empty()
 	_layout_detail_action_anchor()
 
@@ -1961,7 +1971,7 @@ func _rebuild_enhance_detail() -> void:
 		_update_cost_panel(gold_cost, materials)
 		_craft_button.visible = true
 		_craft_button.text = "炉で研ぐ（+%d）" % next_level
-		_craft_button.disabled = not bool(check.get("ok", false))
+		_craft_button.disabled = not _EquipmentEnhancer.can_attempt_enhance_item(item)
 		if not bool(check.get("ok", false)):
 			_reason_label.text = str(check.get("reason", ""))
 			_reason_label.visible = not _reason_label.text.is_empty()
@@ -2975,9 +2985,10 @@ func _craft_button_label(craft: Resource, can_craft: bool) -> String:
 	var lock_reason: String = CraftHelper.craft_lock_reason(craft)
 	if not lock_reason.is_empty():
 		return lock_reason
-	if GameState.gold < craft.gold_cost:
-		return "ゴールド不足"
-	return "素材不足"
+	var shortage: String = CraftHelper.craft_shortage_message(craft)
+	if not shortage.is_empty():
+		return shortage
+	return "作成できません"
 
 func _on_craft_pressed(craft: Resource) -> void:
 	if craft.output_type != "armor" and craft.output_type != "accessory" and craft.output_type != "weapon":
@@ -2990,11 +3001,9 @@ func _on_craft_pressed(craft: Resource) -> void:
 	if not lock_reason.is_empty():
 		_log_craft_error(lock_reason)
 		return
-	if GameState.gold < craft.gold_cost:
-		_log_craft_error("ゴールドが足りません")
-		return
-	if not CraftHelper.has_enough_materials(craft.required_materials):
-		_log_craft_error("素材が足りません")
+	var shortage: String = CraftHelper.craft_shortage_message(craft)
+	if not shortage.is_empty():
+		_log_craft_error(shortage)
 		return
 	_pending_craft = craft
 	var item_name: String = DataRegistry.get_item_name(craft.output_id, craft.output_type)
@@ -3019,11 +3028,9 @@ func _on_craft_confirmed() -> void:
 	if not GameState.can_add_equipment():
 		_log_craft_error("装備袋がいっぱいです（%s）" % GameState.equipment_inventory_count_label())
 		return
-	if GameState.gold < craft.gold_cost:
-		_log_craft_error("ゴールドが足りません")
-		return
-	if not CraftHelper.has_enough_materials(craft.required_materials):
-		_log_craft_error("素材が足りません")
+	var shortage: String = CraftHelper.craft_shortage_message(craft)
+	if not shortage.is_empty():
+		_log_craft_error(shortage)
 		return
 	GameState.gold -= craft.gold_cost
 	GameState.consume_materials(craft.required_materials)
@@ -3308,6 +3315,57 @@ func _log_craft(msg: String) -> void:
 func _log_craft_error(msg: String) -> void:
 	AudioManager.play_sfx("ui_error")
 	_log_craft(msg)
+	if msg.contains("足りません"):
+		_show_forge_shortage_telop(msg)
+
+
+func _ensure_shortage_telop() -> void:
+	if _shortage_telop != null and is_instance_valid(_shortage_telop):
+		return
+	var host: Control = _flash_overlay.get_parent() as Control
+	if host == null:
+		host = self
+	_shortage_telop = Label.new()
+	_shortage_telop.name = "ShortageTelop"
+	_shortage_telop.visible = false
+	_shortage_telop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_shortage_telop.z_index = 40
+	_shortage_telop.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	_shortage_telop.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_shortage_telop.grow_vertical = Control.GROW_DIRECTION_BOTH
+	_shortage_telop.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_shortage_telop.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_shortage_telop.custom_minimum_size = Vector2(420, 48)
+	UiTypography.apply_display(_shortage_telop, UiTypography.SIZE_DISPLAY_TITLE, COLOR_SHORT)
+	_shortage_telop.add_theme_color_override("font_outline_color", Color(0.08, 0.05, 0.04, 0.92))
+	_shortage_telop.add_theme_constant_override("outline_size", 8)
+	host.add_child(_shortage_telop)
+
+
+func _show_forge_shortage_telop(msg: String) -> void:
+	if msg.is_empty():
+		return
+	_ensure_shortage_telop()
+	if _shortage_telop == null:
+		return
+	if _shortage_telop_tween != null and is_instance_valid(_shortage_telop_tween):
+		_shortage_telop_tween.kill()
+	_shortage_telop.text = msg
+	_shortage_telop.visible = true
+	_shortage_telop.modulate = Color(1, 1, 1, 0)
+	_shortage_telop.scale = Vector2.ONE
+	_shortage_telop_tween = create_tween()
+	_shortage_telop_tween.tween_property(_shortage_telop, "modulate:a", 1.0, 0.12)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_shortage_telop_tween.tween_interval(SHORTAGE_TELOP_HOLD_SEC)
+	_shortage_telop_tween.tween_property(_shortage_telop, "modulate:a", 0.0, SHORTAGE_TELOP_FADE_SEC)\
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	_shortage_telop_tween.tween_callback(_hide_forge_shortage_telop)
+
+
+func _hide_forge_shortage_telop() -> void:
+	if _shortage_telop != null:
+		_shortage_telop.visible = false
 
 func _play_forge_success_feedback(flash_color: Color) -> void:
 	AudioManager.play_sfx("forge_action")

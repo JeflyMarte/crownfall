@@ -226,10 +226,56 @@ static func craft_output_exists(craft: Resource) -> bool:
 
 
 static func has_enough_materials(required: Dictionary) -> bool:
+	return first_missing_material_id(required).is_empty()
+
+
+## 不足している素材 id（先頭1件）。足りていれば空。
+static func first_missing_material_id(required: Dictionary) -> String:
+	if required.is_empty():
+		return ""
 	for mat_id in required:
-		if GameState.get_material_quantity(str(mat_id)) < int(required[mat_id]):
-			return false
+		var need: int = int(required[mat_id])
+		if need <= 0:
+			continue
+		if GameState.get_material_quantity(str(mat_id)) < need:
+			return str(mat_id)
+	return ""
+
+
+## 例: 「基礎鉱が足りません」。特定できないとき汎用文。
+static func material_shortage_message(required: Dictionary) -> String:
+	var mid: String = first_missing_material_id(required)
+	if mid.is_empty():
+		return "素材が足りません"
+	var mat_name: String = DataRegistry.get_material_name(mid)
+	if mat_name.is_empty():
+		mat_name = mid
+	return "%sが足りません" % mat_name
+
+
+## 生産ボタン押下可（解放・袋容量など）。Gold／素材不足は別途テロップ。
+static func can_attempt_craft(craft: Resource) -> bool:
+	if craft == null:
+		return false
+	if not is_craft_unlocked(craft):
+		return false
+	if craft.output_type != "armor" and craft.output_type != "accessory" and craft.output_type != "weapon":
+		return false
+	if craft.output_id.is_empty() or not craft_output_exists(craft):
+		return false
 	return true
+
+
+## Gold／素材不足の表示文。足りていれば空。
+static func craft_shortage_message(craft: Resource, gold: int = -1) -> String:
+	if craft == null:
+		return ""
+	var available_gold: int = GameState.gold if gold < 0 else gold
+	if available_gold < int(craft.gold_cost):
+		return "ゴールドが足りません"
+	if not has_enough_materials(craft.required_materials):
+		return material_shortage_message(craft.required_materials)
+	return ""
 
 
 static func is_craft_unlocked(craft: Resource) -> bool:

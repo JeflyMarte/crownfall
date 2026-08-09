@@ -266,9 +266,21 @@ static func can_enhance_item(item: Resource) -> Dictionary:
 	var gold_cost: int = get_gold_cost(next_level, rarity)
 	var materials: Dictionary = get_material_cost(next_level, rarity)
 	if GameState.gold < gold_cost:
-		return fail.call("ゴールドが足りません")
+		return {
+			"ok": false,
+			"reason": "ゴールドが足りません",
+			"next_level": next_level,
+			"gold_cost": gold_cost,
+			"materials": materials,
+		}
 	if not CraftHelper.has_enough_materials(materials):
-		return fail.call("素材が足りません")
+		return {
+			"ok": false,
+			"reason": CraftHelper.material_shortage_message(materials),
+			"next_level": next_level,
+			"gold_cost": gold_cost,
+			"materials": materials,
+		}
 	return {
 		"ok": true,
 		"reason": "",
@@ -276,6 +288,15 @@ static func can_enhance_item(item: Resource) -> Dictionary:
 		"gold_cost": gold_cost,
 		"materials": materials,
 	}
+
+
+## 炉研ぎボタン押下可（鑑定済・未上限）。Gold／素材不足は別途テロップ。
+static func can_attempt_enhance_item(item: Resource) -> bool:
+	if item == null or item_category(item).is_empty():
+		return false
+	if not bool(item.is_appraised):
+		return false
+	return get_enhance_level(item) < MAX_FORGE_LEVEL
 
 static func can_enhance(weapon: Resource) -> Dictionary:
 	return can_enhance_item(weapon)
