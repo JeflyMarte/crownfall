@@ -95,8 +95,8 @@ func test_alchemy_gold_scales_with_base_rarity() -> void:
 	assert_eq(EquipmentEnhancer.alchemy_gold_cost(5, 10, Enums.Rarity.LEGENDARY), 4050)
 
 
-func test_alchemy_allows_equipped_base_and_unequips_fodder() -> void:
-	## P3-FORGE-ALCHEMY-001-5b: 装備中も錬成可。素材は外れて消滅。
+func test_alchemy_allows_equipped_base_but_blocks_equipped_fodder() -> void:
+	## 主材は装備中可。素材は装備中不可（一覧非表示と一致）。
 	assert_gte(GameState.party_members.size(), 2, "need two party members")
 	var member_a: Resource = GameState.party_members[0]
 	var member_b: Resource = GameState.party_members[1]
@@ -104,13 +104,15 @@ func test_alchemy_allows_equipped_base_and_unequips_fodder() -> void:
 	var fodder: Resource = _make_weapon(10)
 	member_a.equipped_weapon = base
 	member_b.equipped_weapon = fodder
+	var check_equipped_fodder: Dictionary = EquipmentEnhancer.can_alchemy(base, fodder)
+	assert_false(bool(check_equipped_fodder.get("ok", false)), "equipped fodder blocked")
+	assert_true(str(check_equipped_fodder.get("reason", "")).contains("装備中"))
+	member_b.equipped_weapon = null
 	var check: Dictionary = EquipmentEnhancer.can_alchemy(base, fodder)
-	assert_true(bool(check.get("ok", false)), "equipped base+fodder should be allowed: %s" % str(check))
-	assert_true(EquipmentEnhancer.alchemy_needs_confirm(fodder))
+	assert_true(bool(check.get("ok", false)), "unequipped fodder ok: %s" % str(check))
 	var result: Dictionary = EquipmentEnhancer.perform_alchemy(base, fodder)
 	assert_true(bool(result.get("ok", false)), str(result))
 	assert_eq(int(base.equip_level), 14)
-	assert_eq(member_b.equipped_weapon, null, "fodder must be unequipped before remove")
 	assert_false(fodder in GameState.inventory)
 	assert_eq(member_a.equipped_weapon, base, "base stays equipped")
 

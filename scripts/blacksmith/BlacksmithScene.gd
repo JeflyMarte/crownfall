@@ -2421,8 +2421,6 @@ func _show_alchemy_fodder_confirm(fodder: Resource) -> void:
 			int(preview.get("gold_cost", 0)),
 		]
 	)
-	if GameState.find_item_equipped_owner(fodder) != null:
-		lines.append("※素材は装備中です。外れて消滅します。")
 	lines.append("素材は消滅します（分解報酬なし）。")
 	_alchemy_confirm.dialog_text = "\n".join(lines)
 	_alchemy_confirm.popup_centered()
@@ -2920,13 +2918,11 @@ func _sorted_alchemy_fodder_candidates() -> Array:
 		## ロック中は素材候補から除外（P3-UX-EQUIP-LOCK-001）。
 		if _EquipmentEnhancer.is_item_locked(item):
 			continue
-		## 装備中も素材可。実行時に外して消滅。
+		## 装備中は素材一覧に出さない（外してから候補へ）。
+		if _is_item_equipped(item):
+			continue
 		items.append(item)
 	items.sort_custom(func(a: Resource, b: Resource) -> bool:
-		var ae: bool = _is_item_equipped(a)
-		var be: bool = _is_item_equipped(b)
-		if ae != be:
-			return ae
 		var la: int = _EquipmentEnhancer.get_equip_level(a)
 		var lb: int = _EquipmentEnhancer.get_equip_level(b)
 		if la != lb:

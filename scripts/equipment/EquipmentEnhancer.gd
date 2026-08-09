@@ -510,9 +510,6 @@ static func alchemy_gold_cost(
 static func alchemy_needs_confirm(fodder: Resource) -> bool:
 	if fodder == null:
 		return false
-	## 装備中素材は外れて消滅するため確認対象。
-	if GameState.find_item_equipped_owner(fodder) != null:
-		return true
 	if item_rarity(fodder) >= Enums.Rarity.EPIC:
 		return true
 	return get_enhance_level(fodder) >= ALCHEMY_CONFIRM_ENHANCE_LEVEL
@@ -557,7 +554,9 @@ static func can_alchemy(base: Resource, fodder: Resource) -> Dictionary:
 		return fail.call("神話装備は錬成できません")
 	if is_item_locked(fodder):
 		return fail.call("ロック中の装備は錬成素材にできません")
-	## P3-FORGE-ALCHEMY-001-5b: 装備中も可（素材は実行時に外す）。
+	## 装備中は素材不可（一覧非表示と一致。外してから選ぶ）。
+	if GameState.find_item_equipped_owner(fodder) != null:
+		return fail.call("装備中の装備は錬成素材にできません")
 	var from_lv: int = get_equip_level(base)
 	if from_lv >= EQUIP_MAX_LEVEL:
 		return fail.call("主材は装備レベル上限です")
