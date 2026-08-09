@@ -637,8 +637,11 @@ const COMBAT_START_DELAY_SEC: float = 1.5
 const LOG_MUTED: Color = UiTypography.COLOR_LOG
 const LOG_TAG: Color = Color("#C9A0FF")
 const LOG_DAMAGE_OUT: Color = Color("#FFD700")
-const LOG_DAMAGE_CRIT: Color = Color("#FFF176")
+## 会心ダメージテロップ／ログ（通常の白っぽい与ダメと明確に差が付く黄）。
+const LOG_DAMAGE_CRIT: Color = Color("#FFEB3B")
 const LOG_DAMAGE_IN: Color = Color("#FF8A65")
+## 味方被ダメの頭上数字（非会心）。会心は LOG_DAMAGE_CRIT。
+const DAMAGE_TELOP_IN: Color = Color(1.0, 0.35, 0.35)
 const LOG_HEAL: Color = Color("#81C784")
 const LOG_ENEMY_NORMAL: Color = Color("#E8C4B0")
 const LOG_ENEMY_ELITE: Color = Color("#FF9E7A")
@@ -3725,6 +3728,12 @@ func _outgoing_damage_telop_color(is_critical: bool, is_ultimate: bool = false) 
 	if is_ultimate:
 		return ULTIMATE_GOLD
 	return Color(1.0, 0.98, 0.92)
+
+
+func _incoming_damage_telop_color(is_critical: bool) -> Color:
+	if is_critical:
+		return LOG_DAMAGE_CRIT
+	return DAMAGE_TELOP_IN
 
 func _sync_status_auras() -> void:
 	if not $CombatController.is_in_combat:
@@ -7769,7 +7778,9 @@ func _apply_enemy_damage_to_targets(
 			if dmg > 0:
 				_spawn_hit_vfx(hit_pos, skill_elem, 1.0, is_crit)
 				var dmg_scale: float = 1.25 if is_crit else 1.0
-				_spawn_damage_number(str(dmg), hit_pos, Color(1.0, 0.35, 0.35), dmg_scale)
+				_spawn_damage_number(
+					str(dmg), hit_pos, _incoming_damage_telop_color(is_crit), dmg_scale
+				)
 		var density_tag: String = $CombatController.get_density_log_tag(ti)
 		var crit_tag: String = " CRITICAL!" if is_crit else ""
 		var block_tag: String = " Block!" if blocked else ""
@@ -8477,7 +8488,7 @@ func _resolve_enemy_attack_impact_async(payload: Dictionary) -> void:
 			_spawn_damage_number(
 				str(enemy_result["final"]),
 				hit_pos,
-				Color(1.0, 0.35, 0.35),
+				_incoming_damage_telop_color(is_crit),
 				dmg_scale
 			)
 	if not $CombatController.is_member_alive(target_idx) and target_idx < _chr_sprites.size():
@@ -10315,7 +10326,7 @@ func _resolve_party_attack_impact_async(payload: Dictionary) -> void:
 				str(s_dmg),
 				_enemy_slot_pos(s_slot),
 				_outgoing_damage_telop_color(s_crit),
-				1.0
+				1.25 if s_crit else 1.0
 			)
 			if not _deal_member_damage_to_enemy(
 				member_idx, s_dmg, s_slot, "basic_attack", "通常攻撃", s_crit, true
