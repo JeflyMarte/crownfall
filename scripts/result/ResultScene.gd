@@ -11,6 +11,7 @@ const MvpScoreScript: Script = preload("res://scripts/result/MvpScore.gd")
 const MvpPresentationScript: Script = preload("res://scripts/result/MvpPresentation.gd")
 const SkillIconHelperScript: Script = preload("res://scripts/ui/SkillIconHelper.gd")
 const _MaterialUiTokens = preload("res://scripts/equipment/MaterialUiTokens.gd")
+const _EquipmentUiTokens = preload("res://scripts/equipment/EquipmentUiTokens.gd")
 const _ChrIdlePortraitView = preload("res://scripts/ui/ChrIdlePortraitView.gd")
 const _SurveySystem := preload("res://scripts/survey/SurveySystem.gd")
 const CLEAR_BANNER_TEX: Texture2D = preload("res://assets/ui/result/UI_Result_Clear.png")
@@ -1318,15 +1319,19 @@ func _make_relic_drop_cell(relic_id: String) -> Control:
 	var icon_wrap := CenterContainer.new()
 	icon_wrap.custom_minimum_size = Vector2(DROP_EQUIP_ICON_PX, DROP_EQUIP_ICON_PX)
 	icon_wrap.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	## 装備一覧の所持セルと同じレリック専用枠（UI_Equip_InvCell_RELIC）。
 	var frame: PanelContainer = PanelContainer.new()
 	frame.custom_minimum_size = Vector2(DROP_EQUIP_ICON_PX, DROP_EQUIP_ICON_PX)
-	frame.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD))
+	frame.add_theme_stylebox_override(
+		"panel", _EquipmentUiTokens.relic_cell_style(false, DROP_EQUIP_ICON_PX)
+	)
 	var icon_key: String = CombatPassives.relic_icon_key(relic_id)
 	var tex: Texture2D = IconPaths.get_icon_texture(icon_key, "relic")
 	if tex != null:
 		var icon: TextureRect = TextureRect.new()
 		icon.texture = tex
-		icon.custom_minimum_size = Vector2(DROP_EQUIP_ICON_PX - 12, DROP_EQUIP_ICON_PX - 12)
+		icon.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		icon.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -1334,6 +1339,8 @@ func _make_relic_drop_cell(relic_id: String) -> Control:
 	else:
 		var glyph: Label = Label.new()
 		glyph.text = "遺"
+		glyph.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		glyph.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		glyph.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		glyph.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		glyph.add_theme_font_size_override("font_size", 28)
