@@ -7938,3 +7938,19 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-LORE-GOLD-TIER-001-1 | **N=500／H=1000／NM=3000**（初回・既知同額） | オーナー指定 |
 | P3-BAL-LORE-GOLD-TIER-001-2 | **SSOT** — `121_LoreGoldByTier.md`／`BalanceConfig.lore_gold` | 実装正 |
 | P3-BAL-LORE-GOLD-TIER-001-3 | **上書き** — 旧初回20／既知10 | 本 Decision が正 |
+
+
+## 影狩限定武器・死告（2026-08-10 — P3-EQ-SHADOW-DEATHREAP-001）
+
+> **オーナー GO** — 影狩撃破で限定 L 武器。雑魚のみ15%即死。N〜NM同率。攻撃スキル含む。武器種すべて。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-SHADOW-DEATHREAP-001-1 | **武器4種**（剣／双鎌／弓／杖）・共通パッシブ `eq_wpn_deathreap` | 全職が組めるご褒美 |
+| P3-EQ-SHADOW-DEATHREAP-001-2 | **即死15%** — NORMAL かつ非放浪のみ。攻撃＋攻撃系スキル命中時 | オーナー指定・型1 |
+| P3-EQ-SHADOW-DEATHREAP-001-3 | **対象外へ出血25%** | エリート／ボス／放浪向け保険 |
+| P3-EQ-SHADOW-DEATHREAP-001-4 | **難易度** — N／H／NM 同率 | オーナー指定 |
+| P3-EQ-SHADOW-DEATHREAP-001-5 | **入手** — 未所持時確定1本／以降25%（未所持種優先）。汎用影狩ドロップ据置 | GO 推奨どおり |
+| P3-EQ-SHADOW-DEATHREAP-001-6 | **除外** — 通常★プール／鍛冶／灰冠／SET | 限定経路の防衛 |
+| P3-EQ-SHADOW-DEATHREAP-001-7 | **SSOT** — `123_ShadowStalkerDeathreapWeapons.md`／`ShadowStalkerLoot.gd` | 実装正 |
+

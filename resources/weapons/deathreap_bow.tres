@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "deathreap_bow"
+display_name = "死告の弓"
+description = "薄暮の獣道で張られた影の弓。矢は雑魚の急所だけを選ぶ。"
+fixed_skill_id = ""
+fixed_passive_id = "eq_wpn_deathreap"
+base_attack = 200
+rarity = 3
+base_attack_speed = 1.2
+base_critical_rate = 0.13
+base_knockback = 0.1
+base_stagger_power = 0.1
+base_attack_range = 3.0
+weight = 0.75
+element = "dark"
+weapon_type = "bow"
+tags = Array[String](["pierce", "dark", "deathreap"])
+flavor_text = "聞こえた羽音の、その先にある沈黙を矢にする。"

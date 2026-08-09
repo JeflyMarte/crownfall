@@ -13,6 +13,7 @@ const MythicLoot = preload("res://scripts/equipment/MythicLoot.gd")
 const _BuildLegendaryLoot = preload("res://scripts/equipment/BuildLegendaryLoot.gd")
 const _AbyssLegendaryWeapons = preload("res://scripts/dungeon/AbyssLegendaryWeapons.gd")
 const _EventExclusiveRewards = preload("res://scripts/dungeon/EventExclusiveRewards.gd")
+const _ShadowStalkerLoot = preload("res://scripts/dungeon/ShadowStalkerLoot.gd")
 const _BalanceConfig = preload("res://scripts/combat/BalanceConfig.gd")
 
 const ROOM_SEQUENCE: Array[int] = [
@@ -2288,6 +2289,17 @@ func roll_kill_equip_drop(room_type: int, enemy_data: Resource = null) -> Dictio
 	return {"category": "weapon", "id": weapon_id}
 
 
+## 影狩撃破の死告武器別枠（P3-EQ-SHADOW-DEATHREAP-001）。汎用装備ドロップとは独立。
+func try_shadow_stalker_deathreap_drop(enemy_data: Resource) -> String:
+	if not _WanderingEnemyConfig.is_shadow_stalker(enemy_data):
+		return ""
+	var weapon_id: String = _ShadowStalkerLoot.try_grant_on_kill()
+	if weapon_id.is_empty():
+		return ""
+	last_weapon_dropped = weapon_id
+	return weapon_id
+
+
 func _roll_multi_category_equip_drop(enemy_data: Resource) -> Dictionary:
 	var chance: float = minf(
 		1.0,
@@ -2440,6 +2452,8 @@ func _all_legendary_ids(category: String) -> Array[String]:
 		if item_id in _BuildLegendaryLoot.all_ids():
 			continue
 		if category == "weapon" and _AbyssLegendaryWeapons.is_abyss_legendary_id(item_id):
+			continue
+		if category == "weapon" and _ShadowStalkerLoot.is_deathreap_id(item_id):
 			continue
 		if category == "weapon" and _EventExclusiveRewards.is_event_exclusive_weapon(item_id):
 			continue

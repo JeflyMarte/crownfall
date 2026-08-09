@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "deathreap_staff"
+display_name = "死告の杖"
+description = "影狩の薄羽を束ねた杖。詠唱の先で、雑魚の灯だけが消える。"
+fixed_skill_id = ""
+fixed_passive_id = "eq_wpn_deathreap"
+base_attack = 185
+rarity = 3
+base_attack_speed = 1.0
+base_critical_rate = 0.09
+base_knockback = 0.15
+base_stagger_power = 0.12
+base_attack_range = 2.5
+weight = 0.95
+element = "dark"
+weapon_type = "staff"
+tags = Array[String](["dark", "deathreap"])
+flavor_text = "宵闇の境界で折れた羽軸が、杖頭で黒く輝く。"

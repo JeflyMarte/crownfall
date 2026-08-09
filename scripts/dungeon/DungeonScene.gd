@@ -739,6 +739,7 @@ const AffixStatCalculatorScript: Script = preload("res://scripts/equipment/Affix
 const JobStatCalculatorScript: Script = preload("res://scripts/equipment/JobStatCalculator.gd")
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
 const _WanderingEnemyConfig = preload("res://scripts/dungeon/WanderingEnemyConfig.gd")
+const _ShadowStalkerLoot = preload("res://scripts/dungeon/ShadowStalkerLoot.gd")
 const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd")
 const _CommanderPermitBoost = preload("res://scripts/commander/CommanderPermitBoost.gd")
 const _AbyssWeaponEffects = preload("res://scripts/combat/AbyssWeaponEffects.gd")
@@ -8887,6 +8888,13 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 				log_lines.append(_format_equip_drop_log("武器", drop_id, drop_cat))
 		_append_equipment_drop_icon(drop_icons, drop_id, drop_cat)
 		_maybe_celebrate_rare_equip_drop(drop_id, drop_cat, bool(equip_drop.get("mythic", false)))
+	## 影狩限定・死告武器（汎用装備ドロップと別枠）
+	var deathreap_id: String = $DungeonController.try_shadow_stalker_deathreap_drop(defeated_enemy)
+	if not deathreap_id.is_empty():
+		GameState.last_run_weapon_dropped = deathreap_id
+		log_lines.append(_format_equip_drop_log("武器", deathreap_id, "weapon"))
+		_append_equipment_drop_icon(drop_icons, deathreap_id, "weapon")
+		_maybe_celebrate_rare_equip_drop(deathreap_id, "weapon", false)
 	if room_type == Enums.RoomType.BOSS and $DungeonController.is_run_boss_kill(defeated_enemy):
 		var stage: Resource = $DungeonController.current_stage_data
 		var killed_boss_id: String = str(defeated_enemy.id) if defeated_enemy != null else ""
@@ -9995,6 +10003,39 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 			_passive_skill_echo_depth += 1
 			applied = _try_member_equipped_skill(member_idx)
 			_passive_skill_echo_depth -= 1
+		"instant_kill_trash":
+			## 影狩・死告武器（P3-EQ-SHADOW-DEATHREAP-001）。通常雑魚のみ15%即死。
+			var ik_slot: int = int(ctx.get("target_slot", -1))
+			if ik_slot < 0:
+				ik_slot = $CombatController.get_member_target_slot(member_idx)
+			if ik_slot < 0 or not $CombatController.is_enemy_slot_alive(ik_slot):
+				return false
+			var ik_data: Resource = $CombatController.get_enemy_data_at(ik_slot)
+			if _ShadowStalkerLoot.is_instant_kill_eligible(ik_data):
+				var ik_chance: float = float(p.get("status_chance", 0.15))
+				if randf() <= ik_chance:
+					var remain: int = maxi(1, $CombatController.get_enemy_hp_at(ik_slot))
+					$CombatController.apply_damage_to_enemy_slot(ik_slot, remain)
+					$CombatController.add_threat(
+						member_idx, float(remain) * CombatController.THREAT_DAMAGE_K
+					)
+					GameState.record_run_damage(member_idx, remain, "instant_kill_trash", "死告")
+					var ik_pos: Vector2 = _enemy_slot_pos(ik_slot)
+					_spawn_hit_vfx(ik_pos)
+					_spawn_damage_number("即死", ik_pos, Color(0.72, 0.35, 1.0), 1.1)
+					_update_hp_bars()
+					applied = true
+					_check_boss_phase_transition(ik_slot)
+					if $CombatController.get_enemy_hp_at(ik_slot) <= 0:
+						combat_ended = _on_enemy_slot_killed(ik_slot, member_idx)
+			else:
+				var bleed_chance: float = float(p.get("bleed_chance", 0.25))
+				if randf() <= bleed_chance:
+					var bleed_atk: int = _dot_source_attack_for_member(member_idx, ctx)
+					if $CombatController.apply_status_to_enemy_slot(ik_slot, "bleed", 1, bleed_atk):
+						applied = true
+						_party_applied_enemy_status(member_idx, ik_slot, "bleed")
+						_update_status_icons()
 		"bonus_damage":
 			var slot: int = int(ctx.get("target_slot", -1))
 			var base_dmg: int = int(ctx.get("damage", 0))

@@ -17,6 +17,7 @@ const KNOWN_PASSIVE_EFFECTS: Array[String] = [
 	"grant_next_attack_mult",
 	"aoe_burst",
 	"abyss_ice_shell_counter",
+	"instant_kill_trash",
 	"refund_ct",
 	"grant_self_evasion",
 	"grant_counter_charges",

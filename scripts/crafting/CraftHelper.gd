@@ -50,8 +50,12 @@ static func is_craftable_master(output_type: String, output_id: String) -> bool:
 		return false
 	if _EquipmentSetBonuses.is_set_piece_id(output_id):
 		return false
-	## 灰冠の九（封蔵）／深層専用は鍛冶生産の別枠（入手解放しない）。
-	if output_id.begins_with("kaiwan_") or output_id.begins_with("abyss_"):
+	## 灰冠の九（封蔵）／深層専用／影狩死告は鍛冶生産の別枠（入手解放しない）。
+	if (
+		output_id.begins_with("kaiwan_")
+		or output_id.begins_with("abyss_")
+		or output_id.begins_with("deathreap_")
+	):
 		return false
 	var data: Resource = _master_data(output_type, output_id)
 	if data == null:

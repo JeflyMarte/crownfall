@@ -10,7 +10,7 @@ extends RefCounted
 ## condition: "always" | "self_hp_below"（value=HP割合）| "ally_hp_below"（味方誰かHP割合）
 ## effect: "apply_status" | "heal" | "bonus_damage" | "counter_attack" | "grant_next_attack_mult" |
 ##   "refund_ct" | "grant_party_incoming_mult" | "grant_self_evasion" | "grant_counter_charges" |
-##   "aoe_burst" | "abyss_ice_shell_counter"
+##   "aoe_burst" | "abyss_ice_shell_counter" | "instant_kill_trash"
 ## heal target: "party"（既定・全体）| "self" | "most_injured"（最傷1体・治癒スキルと同型）
 ## stat_mod（常時）: evasion_rate_add / back_row_evasion_rate_add / outgoing_mult / incoming_mult / first_attack_mult /
 ##   ultimate_power_mult / exp_gain_mult / party_exp_gain_mult /
@@ -784,6 +784,18 @@ const _DEFS: Dictionary = {
 		"effect": "apply_status",
 		"status_id": "empower",
 		"target": "self",
+		"cooldown": 0.0,
+	},
+	## 影狩限定・死告（P3-EQ-SHADOW-DEATHREAP-001）
+	"eq_wpn_deathreap": {
+		"display_name": "死告の刈り取り",
+		"category": "weapon",
+		"description": "攻撃命中時15%で通常雑魚を即撃破（放浪・エリート・ボス不可）。対象外の敵には25%で出血。",
+		"trigger": "on_attack",
+		"condition": "always",
+		"effect": "instant_kill_trash",
+		"status_chance": 0.15,
+		"bleed_chance": 0.25,
 		"cooldown": 0.0,
 	},
 	"eq_wpn_silvaria_fang": {
