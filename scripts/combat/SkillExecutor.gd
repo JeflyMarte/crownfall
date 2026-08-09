@@ -31,6 +31,14 @@ func get_cooldown_remaining(cooldown_key: String) -> float:
 		return 0.0
 	return maxf(0.0, float(_cooldown_remaining.get(cooldown_key, 0.0)))
 
+
+## 残りCDへ秒数を加算（敵特性「重圧」等）。必殺キーには使わないこと。
+func add_cooldown_seconds(cooldown_key: String, seconds: float) -> void:
+	if cooldown_key.is_empty() or seconds <= 0.0:
+		return
+	var cur: float = float(_cooldown_remaining.get(cooldown_key, 0.0))
+	_cooldown_remaining[cooldown_key] = cur + seconds
+
 func calculate_damage(
 	skill_data: Resource,
 	base_damage: int,

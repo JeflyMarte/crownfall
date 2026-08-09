@@ -38,3 +38,4 @@ codex_materials = Array[String]([])
 skill_ids = Array[String](["enemy_mist_reap", "enemy_mist_scythe"])
 skill_use_chance = 0.28
 incoming_skill_mult = 0.2
+trait_id = "back_focus"

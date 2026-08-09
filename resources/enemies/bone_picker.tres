@@ -36,5 +36,6 @@ codex_danger = 2
 codex_habitat = "霧沼・腐水域の縁"
 codex_research_note = "腐肉食の鳥を祖先とし、沼縁の残骸を漁る拾荒種。嘴は骨を割り、弱った獲物の体温を嗅ぎ分ける。群れで舞い降り、傷のある探索者から先に襲う。危険を察して腐縁逃避で飛び去ることがあり、その場合は収穫がない。"
 codex_materials = Array[String]([])
+trait_id = "skill_tax"
 skill_ids = Array[String](["enemy_bone_scavenge", "enemy_bone_flee", "enemy_buff_break"])
 skill_use_chance = 0.28

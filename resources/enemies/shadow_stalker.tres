@@ -32,6 +32,7 @@ codex_danger = 5
 codex_habitat = "宵闇の獣道（遍在）"
 codex_research_note = "薄暮と霧の境界を好み、探索隊の後列を狙う大型の夜行適応獣。害意は明確で、羽音が聞こえた時点で後衛はすでに標的になっている。倒すと獲物から剥ぎ取った武具や蓄えを落とす。遭遇そのものが危険だが、撃破報酬は遍在希少種のなかでも厚い。ジョブ名の影狩人とは無関係の野生種。"
 codex_materials = Array[String]([])
+trait_id = "double_tap"
 skill_ids = Array[String](["enemy_shadow_reap"])
 skill_use_chance = 0.5
 is_wandering = true

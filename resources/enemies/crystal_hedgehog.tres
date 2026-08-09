@@ -34,5 +34,6 @@ codex_danger = 2
 codex_habitat = "崩れた地下水路"
 codex_research_note = "ハリネズミを祖先とし、水路に溶けた鉱物を針へ蓄積して結晶化させる。危険を察すると結晶の針を一斉に射出して身を守る遠隔型。帯電しやすい結晶質ゆえか、放電を浴びると針ごと砕けやすい。単独を好む。追い詰められると晶砕爆散で自ら砕け、前列を巻き込む（撃破報酬は残る）。"
 codex_materials = Array[String](["relic_shard", "ancient_bone"])
+trait_id = "thorns"
 skill_ids = Array[String](["enemy_crystal_rain", "enemy_crystal_burst"])
 skill_use_chance = 0.25

@@ -35,3 +35,4 @@ codex_materials = Array[String](["relic_shard", "ancient_bone"])
 skill_ids = Array[String](["enemy_memory_howl", "enemy_memory_bite"])
 skill_use_chance = 0.22
 lifesteal_ratio = 0.3
+trait_id = "lifesteal"

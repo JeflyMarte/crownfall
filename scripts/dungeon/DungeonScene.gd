@@ -739,6 +739,7 @@ const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd
 const _CommanderPermitBoost = preload("res://scripts/commander/CommanderPermitBoost.gd")
 const _AbyssWeaponEffects = preload("res://scripts/combat/AbyssWeaponEffects.gd")
 const _EnemyResistTelop = preload("res://scripts/combat/EnemyResistTelop.gd")
+const _CombatEnemyTraits = preload("res://scripts/combat/CombatEnemyTraits.gd")
 const _BossSummonLayout = preload("res://scripts/combat/BossSummonLayout.gd")
 ## T10 沈黙（スキル／必殺封じ）秒数。
 const ENEMY_SILENCE_DURATION_SEC: float = 5.0
@@ -6883,6 +6884,8 @@ func _deal_member_damage_to_enemy(
 				"is_critical": is_critical,
 			}
 		)
+		if is_basic:
+			_apply_enemy_traits_after_basic_hit(member_idx, target_slot)
 		var tide_burst: int = _AbyssWeaponEffects.after_attack_hit(member_idx, target_slot, damage)
 		if tide_burst > 0 and $CombatController.is_enemy_slot_alive(target_slot):
 			$CombatController.apply_damage_to_enemy_slot(target_slot, tide_burst)
@@ -7778,6 +7781,8 @@ func _apply_enemy_damage_to_targets(
 			lines.append("%s に %d%s%s%s" % [mname, dmg, density_tag, crit_tag, block_tag])
 		_try_apply_enemy_skill_hit_statuses(skill, ti, dmg, atk_slot)
 		_on_member_damaged(ti, {"attacker_slot": atk_slot})
+		if dmg > 0:
+			_apply_enemy_traits_after_dealt_damage(atk_slot, ti, dmg)
 	_append_log("敵スキル【%s】%s%s\n  %s" % [skill.display_name, row_tag, dist_tag, " / ".join(lines)])
 
 func _try_apply_enemy_skill_hit_statuses(
@@ -7856,15 +7861,125 @@ func _try_announce_enemy_trait_once(
 	_append_log("[特性] %s" % msg)
 
 
+## パッシブ特性名テロップ（Decision 118）。戦闘内・スロット×特性で1回。
+func _try_announce_enemy_named_trait(enemy_slot: int, trait_id: String) -> void:
+	if trait_id.is_empty():
+		return
+	var key: String = "trait:%s:%d" % [trait_id, enemy_slot]
+	_try_announce_enemy_trait_once(key, enemy_slot, _CombatEnemyTraits.display_name(trait_id))
+
+
+func _enemy_trait_id_at(slot: int) -> String:
+	var data: Resource = $CombatController.get_enemy_data_at(slot)
+	return _CombatEnemyTraits.trait_id_of(data)
+
+
+## 味方が通常攻撃で敵を殴った直後（棘反撃／接触異常）。
+func _apply_enemy_traits_after_basic_hit(member_idx: int, enemy_slot: int) -> void:
+	var data: Resource = $CombatController.get_enemy_data_at(enemy_slot)
+	var tid: String = _CombatEnemyTraits.trait_id_of(data)
+	if tid.is_empty():
+		return
+	if tid == _CombatEnemyTraits.TRAIT_THORNS and $CombatController.is_member_alive(member_idx):
+		var atk: int = $CombatController.get_enemy_attack_at(enemy_slot)
+		var thorns: int = _CombatEnemyTraits.thorns_damage(atk)
+		$CombatController.apply_damage_to_member(member_idx, thorns)
+		GameState.record_run_damage_taken(member_idx, thorns)
+		_try_announce_enemy_named_trait(enemy_slot, _CombatEnemyTraits.TRAIT_THORNS)
+		if member_idx < _chr_sprites.size():
+			var hit_pos: Vector2 = _chr_sprites[member_idx].global_position
+			_spawn_damage_number(str(thorns), hit_pos, Color(1.0, 0.55, 0.35), 0.9)
+			_play_chr_hurt(member_idx)
+		if not $CombatController.is_member_alive(member_idx):
+			_hide_defeated_member_sprite(member_idx)
+		_update_hp_bars()
+	elif tid == _CombatEnemyTraits.TRAIT_TOUCH_AILMENT and $CombatController.is_member_alive(member_idx):
+		var status_id: String = ""
+		if data != null and "on_hit_status_id" in data:
+			status_id = str(data.on_hit_status_id).strip_edges()
+		if status_id.is_empty():
+			return
+		if randf() > _CombatEnemyTraits.TOUCH_AILMENT_CHANCE:
+			return
+		var source_atk: int = $CombatController.get_enemy_attack_at(enemy_slot)
+		if $CombatController.apply_status("party_%d" % member_idx, status_id, 1, source_atk):
+			_on_party_status_applied(member_idx, status_id)
+			_try_announce_enemy_named_trait(enemy_slot, _CombatEnemyTraits.TRAIT_TOUCH_AILMENT)
+
+
+## 敵撃破時（死に際／群れの怒り）。逃走退場では呼ばない。
+func _apply_enemy_traits_on_enemy_killed(killed_slot: int) -> void:
+	var data: Resource = $CombatController.get_enemy_data_at(killed_slot)
+	var tid: String = _CombatEnemyTraits.trait_id_of(data)
+	if tid == _CombatEnemyTraits.TRAIT_DEATH_NOVA:
+		var atk: int = $CombatController.get_enemy_attack_at(killed_slot)
+		var nova: int = _CombatEnemyTraits.death_nova_damage(atk)
+		_try_announce_enemy_named_trait(killed_slot, _CombatEnemyTraits.TRAIT_DEATH_NOVA)
+		for i: int in GameState.combatant_count():
+			if not $CombatController.is_member_alive(i):
+				continue
+			$CombatController.apply_damage_to_member(i, nova)
+			GameState.record_run_damage_taken(i, nova)
+			if i < _chr_sprites.size():
+				_spawn_damage_number(str(nova), _chr_sprites[i].global_position, Color(1.0, 0.4, 0.55), 0.95)
+				_play_chr_hurt(i)
+			if not $CombatController.is_member_alive(i):
+				_hide_defeated_member_sprite(i)
+		_update_hp_bars()
+		_append_log("[特性] 死に際 %d" % nova)
+	## 生存中の群れの怒り持ちへ激昂。
+	for slot: int in $CombatController.swarm_hp.size():
+		if slot == killed_slot:
+			continue
+		if not $CombatController.is_enemy_slot_alive(slot):
+			continue
+		var other: Resource = $CombatController.get_enemy_data_at(slot)
+		if not _CombatEnemyTraits.has_trait(other, _CombatEnemyTraits.TRAIT_PACK_RAGE):
+			continue
+		if $CombatController.apply_status_to_enemy_slot(slot, _CombatEnemyTraits.PACK_RAGE_STATUS, 1, 0):
+			_try_announce_enemy_named_trait(slot, _CombatEnemyTraits.TRAIT_PACK_RAGE)
+			_update_status_icons()
+
+
+## 敵攻撃が味方に実ダメを通したあと（重圧／狙い宣言）。
+func _apply_enemy_traits_after_dealt_damage(attacker_slot: int, member_idx: int, damage: int) -> void:
+	if damage <= 0 or attacker_slot < 0 or member_idx < 0:
+		return
+	var data: Resource = $CombatController.get_enemy_data_at(attacker_slot)
+	var tid: String = _CombatEnemyTraits.trait_id_of(data)
+	if tid.is_empty():
+		return
+	if tid == _CombatEnemyTraits.TRAIT_FRONT_FOCUS or tid == _CombatEnemyTraits.TRAIT_BACK_FOCUS:
+		_try_announce_enemy_named_trait(attacker_slot, tid)
+	elif tid == _CombatEnemyTraits.TRAIT_SKILL_TAX:
+		_apply_enemy_skill_tax_to_member(attacker_slot, member_idx)
+	elif tid == _CombatEnemyTraits.TRAIT_LOW_HP_HASTE:
+		var max_hp: int = $CombatController.get_enemy_max_hp_at(attacker_slot)
+		var hp: int = $CombatController.get_enemy_hp_at(attacker_slot)
+		if max_hp > 0 and float(hp) / float(max_hp) <= _CombatEnemyTraits.LOW_HP_HASTE_RATIO:
+			_try_announce_enemy_named_trait(attacker_slot, tid)
+
+
+func _apply_enemy_skill_tax_to_member(attacker_slot: int, member_idx: int) -> void:
+	var skill_data: Resource = _get_job_skill_data(member_idx)
+	if skill_data == null:
+		return
+	if str(skill_data.slot_type) == "ultimate":
+		return
+	if str(skill_data.trigger_type) != "cooldown":
+		return
+	var cd_key: String = _member_skill_cd_key(member_idx, skill_data)
+	_skill_executor.add_cooldown_seconds(cd_key, _CombatEnemyTraits.SKILL_TAX_SEC)
+	_try_announce_enemy_named_trait(attacker_slot, _CombatEnemyTraits.TRAIT_SKILL_TAX)
+
+
 func _apply_enemy_lifesteal(attacker_slot: int, damage: int) -> void:
 	if damage <= 0 or attacker_slot < 0:
 		return
 	if not $CombatController.is_enemy_slot_alive(attacker_slot):
 		return
 	var data: Resource = $CombatController.get_enemy_data_at(attacker_slot)
-	if data == null or not ("lifesteal_ratio" in data):
-		return
-	var ratio: float = float(data.lifesteal_ratio)
+	var ratio: float = _CombatEnemyTraits.lifesteal_ratio_of(data)
 	if ratio <= 0.0:
 		return
 	var heal_amount: int = maxi(1, int(round(float(damage) * ratio)))
@@ -7875,6 +7990,7 @@ func _apply_enemy_lifesteal(attacker_slot: int, damage: int) -> void:
 		return
 	_update_hp_bars()
 	_present_enemy_heal(attacker_slot, healed)
+	_try_announce_enemy_named_trait(attacker_slot, _CombatEnemyTraits.TRAIT_LIFESTEAL)
 	_try_announce_enemy_trait_once("lifesteal:%d" % attacker_slot, attacker_slot, "ダメージを吸収した！")
 
 
@@ -8388,6 +8504,38 @@ func _resolve_enemy_attack_impact_async(payload: Dictionary) -> void:
 	_append_log(log_text)
 	_on_member_damaged(target_idx, {"attacker_slot": slot})
 	_try_apply_enemy_hit_status(target_idx, slot)
+	if int(enemy_result["final"]) > 0:
+		_apply_enemy_traits_after_dealt_damage(slot, target_idx, int(enemy_result["final"]))
+		## 追撃: 通常2ヒット目（弱）。
+		if (
+			$CombatController.is_in_combat
+			and $CombatController.is_member_alive(target_idx)
+			and _CombatEnemyTraits.has_trait(
+				$CombatController.get_enemy_data_at(slot), _CombatEnemyTraits.TRAIT_DOUBLE_TAP
+			)
+		):
+			_try_announce_enemy_named_trait(slot, _CombatEnemyTraits.TRAIT_DOUBLE_TAP)
+			var tap: Dictionary = _calc_enemy_damage_to_member(
+				target_idx, _CombatEnemyTraits.DOUBLE_TAP_POWER, attacker_atk, slot
+			)
+			if not bool(tap.get("missed", false)) and int(tap.get("final", 0)) > 0:
+				var tap_dmg: int = int(tap["final"])
+				$CombatController.apply_damage_to_member(target_idx, tap_dmg)
+				$CombatController.add_threat(target_idx, float(tap_dmg) * CombatController.THREAT_TAKEN_K)
+				GameState.record_run_damage_taken(target_idx, tap_dmg)
+				_apply_enemy_lifesteal(slot, tap_dmg)
+				_apply_enemy_traits_after_dealt_damage(slot, target_idx, tap_dmg)
+				if target_idx < _chr_sprites.size():
+					_spawn_damage_number(
+						str(tap_dmg),
+						_chr_sprites[target_idx].global_position,
+						Color(1.0, 0.35, 0.35),
+						0.9
+					)
+					_play_chr_hurt(target_idx)
+				if not $CombatController.is_member_alive(target_idx) and target_idx < _chr_sprites.size():
+					_chr_sprites[target_idx].visible = false
+				_append_log("敵の追撃: %s に %d" % [member_name, tap_dmg])
 	_update_hp_bars()
 	if $CombatController.is_party_wiped():
 		_end_combat_cinematic_lock()
@@ -8823,6 +8971,10 @@ func _on_enemy_slot_killed(killed_slot: int, killer_member_idx: int = -1) -> boo
 			return true
 		return false
 	_kill_award_slots[killed_slot] = true
+	_apply_enemy_traits_on_enemy_killed(killed_slot)
+	if $CombatController.is_party_wiped():
+		_handle_party_wipe()
+		return true
 	if killer_member_idx >= 0:
 		if $CombatController.is_member_alive(killer_member_idx):
 			var frac: float = CombatPassives.on_kill_refund_fraction(killer_member_idx)

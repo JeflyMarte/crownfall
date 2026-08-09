@@ -38,3 +38,4 @@ codex_materials = Array[String]([])
 skill_ids = Array[String](["enemy_tide_spear", "enemy_undertow"])
 skill_use_chance = 0.22
 lifesteal_ratio = 0.3
+trait_id = "lifesteal"

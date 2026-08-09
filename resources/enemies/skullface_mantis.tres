@@ -35,5 +35,6 @@ codex_danger = 3
 codex_habitat = "王座の深淵連絡路"
 codex_research_note = "カマキリを祖先とし、霊廟の湿気に適応した大型捕食者。脱皮殻の胸板模様が人の顔に似るため「骸面」と呼ばれる。後列を狙い、鎌の一振りで出血を刻む。火を嫌うが、炎の光に引き寄せられる個体も記録されている。"
 codex_materials = Array[String](["relic_shard", "ancient_bone"])
+trait_id = "double_tap"
 skill_ids = Array[String](["enemy_skullface_reap", "enemy_skullface_slash"])
 skill_use_chance = 0.34

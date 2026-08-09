@@ -34,5 +34,6 @@ codex_danger = 3
 codex_habitat = "霧沼・停滞池"
 codex_research_note = "蛙を祖先とし、腐植土の病原を毒腺に濃縮した大型種。膨らんだ鳴嚢から泡状の毒を散布し、瘴気で毒の痛みを増幅する。沼毒は病であって呪いではない、と記録部は繰り返し注記している。"
 codex_materials = Array[String]([])
+trait_id = "death_nova"
 skill_ids = Array[String](["enemy_mire_miasma", "enemy_mire_toxin_bloom"])
 skill_use_chance = 0.38

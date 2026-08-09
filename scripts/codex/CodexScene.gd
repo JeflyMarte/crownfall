@@ -10,6 +10,7 @@ const UNKNOWN_DISPLAY: String = "???"
 const DEFAULT_ICON_SIZE: Vector2 = Vector2(48, 48)
 const ENEMY_ART_SIZE: Vector2 = Vector2(256, 256)
 const _CodexRichText = preload("res://scripts/codex/CodexRichText.gd")
+const _CombatEnemyTraits = preload("res://scripts/combat/CombatEnemyTraits.gd")
 
 ## 実績タブは `Constants.CODEX_ACHIEVE_PLAYABLE` で制御（P3-CODEX-ACHIEVE-OMIT）。
 ## ダンジョンタブは `Constants.CODEX_DUNGEON_PLAYABLE` で制御（P3-CODEX-DG-OMIT-001）。
@@ -561,6 +562,10 @@ func _apply_enemy_combat_data(entry: Dictionary, stage: int, codex_class: String
 			lines.append("%s %s（%d％）" % [_CodexRichText.emph("攻撃で付与:"), st_name, int(round(chance * 100.0))])
 		else:
 			lines.append("%s %s" % [_CodexRichText.emph("攻撃で付与:"), st_name])
+	var trait_id: String = str(entry.get("trait_id", ""))
+	var trait_line: String = _CombatEnemyTraits.codex_line(trait_id)
+	if not trait_line.is_empty():
+		lines.append("%s %s" % [_CodexRichText.emph("特性:"), trait_line])
 	if not codex_class.is_empty():
 		lines.append("%s %s" % [_CodexRichText.emph("特効:"), codex_class])
 	if stage >= 5:

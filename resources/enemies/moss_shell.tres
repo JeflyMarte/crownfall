@@ -33,6 +33,7 @@ codex_danger = 3
 codex_habitat = "囁きの森・倒木帯"
 codex_research_note = "甲虫を祖先とし、外殻表面に苔を育てて擬態する硬殻種。静止時は苔むした岩と見分けがつかない。苔甲を展開し、群れの傷を再生で塞ぐ。追い詰められると苔胞子を爆散させ、前列を毒で蝕む。"
 codex_materials = Array[String]([])
+trait_id = "low_hp_haste"
 skill_ids = Array[String](["enemy_moss_carapace", "enemy_moss_mend", "enemy_moss_spore_burst"])
 skill_use_chance = 0.36
 skill_weights = {

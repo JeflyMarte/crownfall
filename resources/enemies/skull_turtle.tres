@@ -34,6 +34,7 @@ codex_danger = 3
 codex_habitat = "沈没航路・干潟"
 codex_research_note = "亀を祖先とし、沈没船の白骨に擬態した硬甲の亀。甲羅には塩結晶と藤壺が析出し、並の刃を弾く。動かぬ骨だと思って踏んだ探索者の記録が複数残る。通常の斬撃は通りにくく、スキルや属性で抉るのが定石。長引くと墓鳴の地響きで隊ごと締めに来る。"
 codex_materials = Array[String]([])
+trait_id = "thorns"
 skill_ids = Array[String](["enemy_skull_carapace", "enemy_skull_bash", "enemy_skull_tomb_quake"])
 skill_use_chance = 0.38
 skill_weights = {

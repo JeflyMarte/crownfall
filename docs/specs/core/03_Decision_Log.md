@@ -7872,3 +7872,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-NAMED-TRASH-STAT-001-2 | **ドレッドジョー** — HP680／ATK248／DEF48 | 低HP是正＋上位火力 |
 | P3-BAL-NAMED-TRASH-STAT-001-3 | **沼地の王** — HP1050／ATK176／DEF112 | 低ATK是正＋核耐久 |
 | P3-BAL-NAMED-TRASH-STAT-001-4 | **SSOT** — `117_NamedTrashStatBump.md` | Decision 本体 |
+
+## 雑魚パッシブ特性（2026-08-09 — P3-BAL-ENEMY-TRAIT-001）
+
+> **オーナー GO** — 推奨カタログ＋割り付け＋効果値で進める（「ここまで GO」）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-ENEMY-TRAIT-001-1 | **定義** — スキル／ステ／軽減ではないパッシブ特殊能力。1雑魚1つ | 役割の読みを増やす |
+| P3-BAL-ENEMY-TRAIT-001-2 | **カタログ10種** — 棘／死に際／群れ怒り／前後狙い／吸血／接触／瀕死加速／追撃／重圧 | 相談確定 |
+| P3-BAL-ENEMY-TRAIT-001-3 | **対象** — 本編プール雑魚＋放浪。エリート／ボスは後続 | スコープ制御 |
+| P3-BAL-ENEMY-TRAIT-001-4 | **見せ方** — 図鑑戦闘データ＋発火初回◇テロップ | 学習しやすく |
+| P3-BAL-ENEMY-TRAIT-001-5 | **トリッキーと別枠** — スポット配置方針は維持（Decision 35） | 一律トリッキー禁止を崩さない |
+| P3-BAL-ENEMY-TRAIT-001-6 | **SSOT** — `118_EnemyTrashTraits.md`／`CombatEnemyTraits.gd` | 実装正 |

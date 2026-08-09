@@ -72,3 +72,5 @@ extends Resource
 @export var incoming_skill_mult: float = 1.0
 ## パーティへ与えた実ダメに対する自己回復割合（T11吸血）。0=なし。
 @export var lifesteal_ratio: float = 0.0
+## 雑魚パッシブ特性 id（P3-BAL-ENEMY-TRAIT-001）。空＝なし。スキル／軽減とは別枠。
+@export var trait_id: String = ""

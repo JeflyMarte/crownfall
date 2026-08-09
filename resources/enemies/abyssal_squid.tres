@@ -35,5 +35,6 @@ codex_danger = 4
 codex_habitat = "沈没航路・潮境の深み"
 codex_research_note = "頭足類を祖先とし、沈没旗艦の影で虚空の触腕を伸ばす深部種。通称ヴォイドテンタクル。墨ではなく濃い潮と虚ろな霧を吐き、標的を付けた獲物へ腕を集中させる。浅瀬の蛸より大型で、単独を好む。"
 codex_materials = Array[String]([])
+trait_id = "skill_tax"
 skill_ids = Array[String](["enemy_void_coil", "enemy_abyss_jet"])
 skill_use_chance = 0.3

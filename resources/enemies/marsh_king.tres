@@ -35,5 +35,6 @@ codex_danger = 3
 codex_habitat = "霧沼・軟泥帯"
 codex_research_note = "オオサンショウウオを祖先とし、腐植泥そのものに擬態する巨大両生類。動かぬこと数日、獲物が踏み込んだ瞬間だけ泥ごと呑み込む。土地の古い呼び名から沼の小さな王と綽名された。"
 codex_materials = Array[String]([])
+trait_id = "pack_rage"
 skill_ids = Array[String](["enemy_bog_spray", "enemy_marsh_bite"])
 skill_use_chance = 0.25

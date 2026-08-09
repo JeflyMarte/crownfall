@@ -1,5 +1,6 @@
 class_name CatalogHelper
 extends RefCounted
+const _CombatEnemyTraits = preload("res://scripts/combat/CombatEnemyTraits.gd")
 
 const _CodexContent := preload("res://scripts/codex/CodexContentHelper.gd")
 const _GuideCatalog := preload("res://scripts/codex/GuideCatalog.gd")
@@ -174,6 +175,7 @@ func _build_enemy_entries() -> Array:
 			"on_hit_status_id": data.on_hit_status_id,
 			"on_hit_status_chance": data.on_hit_status_chance,
 			"skill_ids": data.skill_ids.duplicate(),
+			"trait_id": _CombatEnemyTraits.trait_id_of(data),
 		})
 	return entries
 

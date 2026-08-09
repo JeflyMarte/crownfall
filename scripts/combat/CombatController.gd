@@ -10,6 +10,7 @@ const _StatusResolver = preload("res://scripts/combat/StatusResolver.gd")
 const _EvolutionTraits = preload("res://scripts/systems/EvolutionTraits.gd")
 const _PetSystem = preload("res://scripts/pets/PetSystem.gd")
 const _AbyssWeaponEffects = preload("res://scripts/combat/AbyssWeaponEffects.gd")
+const _CombatEnemyTraits = preload("res://scripts/combat/CombatEnemyTraits.gd")
 const _EquipmentSetBonuses = preload("res://scripts/equipment/EquipmentSetBonuses.gd")
 const _CommanderPermitBoost = preload("res://scripts/commander/CommanderPermitBoost.gd")
 
@@ -94,6 +95,7 @@ const THREAT_DECAY: float = BalanceConfig.THREAT_DECAY
 const THREAT_TARGET_BIAS_MAX: String = "max_threat"
 const THREAT_TARGET_BIAS_LOWEST_HP: String = "lowest_hp"
 const THREAT_TARGET_BIAS_BACK_ROW: String = "back_row"
+const THREAT_TARGET_BIAS_FRONT_ROW: String = "front_row"
 const THREAT_TARGET_BIAS_LOWEST_THREAT: String = "lowest_threat"
 const MELEE_ATTACK_RANGE_MAX: float = CombatRange.MID_RANGE_MAX  # これ以下＝前列優先ターゲット（P3-D106d/f）
 
@@ -1126,7 +1128,14 @@ func pick_enemy_target_from_indices(indices: Array[int], attacker_slot: int = -1
 
 func _enemy_target_bias(attacker_slot: int) -> String:
 	var data: Resource = get_enemy_data_at(attacker_slot) if attacker_slot >= 0 else current_enemy_data
-	if data == null or not ("threat_target_bias" in data):
+	if data == null:
+		return THREAT_TARGET_BIAS_MAX
+	var trait_id: String = _CombatEnemyTraits.trait_id_of(data)
+	if trait_id == _CombatEnemyTraits.TRAIT_FRONT_FOCUS:
+		return THREAT_TARGET_BIAS_FRONT_ROW
+	if trait_id == _CombatEnemyTraits.TRAIT_BACK_FOCUS:
+		return THREAT_TARGET_BIAS_BACK_ROW
+	if not ("threat_target_bias" in data):
 		return THREAT_TARGET_BIAS_MAX
 	var bias: String = str(data.threat_target_bias)
 	if bias.is_empty():
@@ -1143,8 +1152,11 @@ func _enemy_target_score(member_index: int, attacker_slot: int) -> float:
 			var hp: int = party_combat_hp[member_index] if member_index < party_combat_hp.size() else 0
 			return 1.0 - float(hp) / float(max_hp)
 		THREAT_TARGET_BIAS_BACK_ROW:
-			var score: float = _threat_of(member_index)
-			return score * (2.0 if GameState.is_member_back_row(member_index) else 0.55)
+			var score_back: float = _threat_of(member_index)
+			return score_back * (2.0 if GameState.is_member_back_row(member_index) else 0.55)
+		THREAT_TARGET_BIAS_FRONT_ROW:
+			var score_front: float = _threat_of(member_index)
+			return score_front * (2.0 if not GameState.is_member_back_row(member_index) else 0.55)
 		THREAT_TARGET_BIAS_LOWEST_THREAT:
 			return 1000.0 - _threat_of(member_index)
 		_:
@@ -1662,6 +1674,11 @@ func get_enemy_initiative_score_at(slot: int) -> float:
 	var mult: float = _swarm_density_spd_mult
 	if int(d.enemy_type) == Enums.EnemyType.BOSS:
 		mult *= BalanceConfig.boss_party_speed_mult(GameState.combatant_count())
+	if _CombatEnemyTraits.has_trait(d, _CombatEnemyTraits.TRAIT_LOW_HP_HASTE):
+		var max_hp: int = get_enemy_max_hp_at(slot)
+		var hp: int = get_enemy_hp_at(slot)
+		if max_hp > 0 and float(hp) / float(max_hp) <= _CombatEnemyTraits.LOW_HP_HASTE_RATIO:
+			mult *= _CombatEnemyTraits.LOW_HP_HASTE_SPD_MULT
 	return base * mult
 
 # ---- CT/ATB スケジューラ（P3-D084） ----
