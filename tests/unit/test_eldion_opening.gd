@@ -11,8 +11,8 @@ func test_eldion_opening_companions_and_resist() -> void:
 	assert_almost_eq(float(boss.incoming_status_chance_mult), 0.55, 0.001)
 	assert_true("boss_buff_break_all" in boss.skill_ids)
 	assert_eq(int(boss.max_hp), 2550)
-	assert_eq(int(boss.attack), 195)
-	assert_almost_eq(float(boss.skill_use_chance), 0.6, 0.001)
+	assert_eq(int(boss.attack), 220)
+	assert_almost_eq(float(boss.skill_use_chance), 0.65, 0.001)
 	assert_not_null(DataRegistry.get_enemy_data("storm_joe"))
 	assert_eq(str(DataRegistry.get_enemy_data("storm_joe").display_name), "ストームジョー")
 	assert_eq(str(DataRegistry.get_enemy_data("wind_ripper").display_name), "スノーストーム")
@@ -36,7 +36,21 @@ func test_eldion_opening_group_is_one_storm_joe() -> void:
 func test_eldion_glacial_breath_power() -> void:
 	var skill: Resource = DataRegistry.get_skill_data("enemy_eldion_glacial_breath")
 	assert_not_null(skill)
-	assert_almost_eq(float(skill.power_multiplier), 0.7, 0.001)
+	assert_almost_eq(float(skill.power_multiplier), 0.85, 0.001)
+
+
+func test_eldion_firepower_skills() -> void:
+	assert_almost_eq(
+		float(DataRegistry.get_skill_data("enemy_eldion_basic_single").power_multiplier), 1.85, 0.001
+	)
+	assert_almost_eq(
+		float(DataRegistry.get_skill_data("enemy_eldion_basic_cleave").power_multiplier), 1.15, 0.001
+	)
+	assert_almost_eq(
+		float(DataRegistry.get_skill_data("enemy_eldion_crevasse").power_multiplier), 2.2, 0.001
+	)
+	var p2: Dictionary = CombatBossPhases.phase_def("eldion", 2)
+	assert_almost_eq(float(p2.get("attack_mult", 0.0)), 1.30, 0.001)
 
 
 func test_eldion_phase_weights_include_buff_break() -> void:
