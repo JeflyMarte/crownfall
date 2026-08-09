@@ -667,7 +667,7 @@ const LOG_ENEMY_TIER_BY_ID: Dictionary = {
 	"big_cosmic_duck": "boss",
 }
 const LOG_BRACKET_TAGS: PackedStringArray = [
-	"【必殺】", "【スキル】", "【エリート】", "【ボス】", "【混成】", "【フェーズ移行】",
+	"【必殺】", "【スキル】", "【エリート】", "【ボス】", "【混成】", "【フェーズ移行】", "【怒涛】",
 	"[パッシブ]", "[レリック]", "[防御]", "[詠唱]", "[探索]", "[罠]", "[コンボ]", "[連携]", "[戦術]",
 ]
 const NOW_PLAYING_PARTY_COLOR: Color = Color(0.92, 0.88, 0.78, 1.0)
@@ -4016,6 +4016,7 @@ func _enter_current_room() -> void:
 			_skill_cd_visual_rem.clear()
 			_round_active = false
 			_ct_status_accum = 0.0
+			_attrition_step_logged = 0
 			_passive_cd.clear()
 			_passive_attack_hits.clear()
 			_passive_first_attack_used.clear()
@@ -5279,6 +5280,8 @@ func _trap_feedback_world_pos(member_idx: int) -> Vector2:
 # 同期実行（await無し）のため再入は起きないが、安全のため _round_active を残す。
 const CT_PER_STATUS_TICK: float = 2.0
 var _ct_status_accum: float = 0.0
+## 怒涛段階の最終ログ値（P3-BAL-COMBAT-ATTRITION-001）。
+var _attrition_step_logged: int = 0
 # パッシブCD（P3-D088）。key="<member_idx>:<passive_id>" → 残りCT。
 var _passive_cd: Dictionary = {}
 var _passive_attack_hits: Dictionary = {}
@@ -5319,6 +5322,17 @@ func _on_combat_timer_timeout() -> void:
 	_run_combat_step()
 	_round_active = false
 
+
+func _maybe_announce_combat_attrition() -> void:
+	var step: int = $CombatController.get_attrition_step()
+	if step <= _attrition_step_logged:
+		return
+	_attrition_step_logged = step
+	var pct: int = int(round(float(step) * BalanceConfig.ATTRITION_MULT_PER_STEP * 100.0))
+	pct = mini(pct, int(round(BalanceConfig.ATTRITION_MULT_CAP * 100.0)))
+	_append_log("【怒涛】敵の攻勢が高まった（与ダメ＋%d%%）" % pct)
+
+
 func _run_combat_step() -> void:
 	if not $CombatController.is_in_combat:
 		return
@@ -5327,6 +5341,7 @@ func _run_combat_step() -> void:
 	var actor: Dictionary = $CombatController.advance_to_next_actor()
 	var delta: float = $CombatController.consume_last_ct_step()
 	_last_ct_step_ui = delta
+	_maybe_announce_combat_attrition()
 	# パッシブCDは進行 CT。スキルCDは戦闘クロック（_process）で進める。
 	if delta > 0.0:
 		_tick_passive_cd(delta)

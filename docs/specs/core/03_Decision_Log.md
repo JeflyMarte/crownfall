@@ -6642,6 +6642,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-DOT-IDENTITY-001-2 | **SSOT** — `106_DotIdentityScale.md` | Decision 本体 |
 | P3-BAL-ROCK-BISON-WANDER-001-2 | **SSOT** — `105_RockBisonWanderMix.md`。SPAWN-001/002 の pool 方針を上書き | Decision 本体 |
 
+## 長期戦怒涛＋硬殻バースト（2026-08-09 — P3-BAL-COMBAT-ATTRITION-001）
+
+| ID | 決定 | 理由 |
+|---|---|---|
+| P3-BAL-COMBAT-ATTRITION-001-1 | **怒涛** — grace 18CT 後、12CT ごとに敵与ダメ +12%（上限 +60%） | 回復ドレイン持久戦の締め |
+| P3-BAL-COMBAT-ATTRITION-001-2 | **硬殻バースト** — スカル＝髑髏砕き 1.85/CD8、船喰らい＝船体砕き 1.9/CD9 | 硬殻の脅威を一撃で出す |
+| P3-BAL-COMBAT-ATTRITION-001-3 | **SSOT** — `107_CombatAttritionHardBurst.md` | Decision 本体 |
+
 ## 属性値表示スケール（2026-08-02 — P3-EQ-ELEMENT-POWER-SCALE-001）
 
 > **オーナー GO** — 属性値1がしょぼく見える。効果はそのまま3桁表示へ。

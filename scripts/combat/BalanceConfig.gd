@@ -375,3 +375,25 @@ const COMBAT_KILL_EXP_MULT: float = 1.5
 ## 曜日枠イベントDG（PRIMARY_WEEKDAY）の撃破 EXP／Gold 倍率。時間帯降臨は対象外。
 ## 敵ステ・装備ドロップ・日次1回は据置。野外 EventSystem MOD_* とは別経路。
 const WEEKDAY_EVENT_REWARD_MULT: float = 2.0
+
+# ── 長期戦怒涛（P3-BAL-COMBAT-ATTRITION-001） ─────────────────────────────
+## 戦闘 CT が長いほど敵与ダメが段階上昇（回復ドレイン持久戦の締め）。
+## grace 経過後に第1段、以降 STEP_CT ごとに +MULT_PER_STEP（上限 CAP）。
+const ATTRITION_GRACE_CT: float = 18.0
+const ATTRITION_STEP_CT: float = 12.0
+const ATTRITION_MULT_PER_STEP: float = 0.12
+const ATTRITION_MULT_CAP: float = 0.60
+
+
+static func attrition_step(elapsed_ct: float) -> int:
+	if elapsed_ct <= ATTRITION_GRACE_CT:
+		return 0
+	return int(floor((elapsed_ct - ATTRITION_GRACE_CT) / ATTRITION_STEP_CT)) + 1
+
+
+static func attrition_outgoing_mult(elapsed_ct: float) -> float:
+	var steps: int = attrition_step(elapsed_ct)
+	if steps <= 0:
+		return 1.0
+	var bonus: float = minf(ATTRITION_MULT_CAP, float(steps) * ATTRITION_MULT_PER_STEP)
+	return 1.0 + bonus

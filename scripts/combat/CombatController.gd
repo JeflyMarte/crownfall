@@ -73,6 +73,8 @@ const _CT_EPSILON: float = 0.0001
 var unit_ct: Dictionary = {}
 # 直近 advance_to_next_actor で進めた CT 量（呼出側の状態異常/スキルCD進行に使う）
 var _last_ct_step: float = 0.0
+## 戦闘開始からの累積 CT（怒涛／P3-BAL-COMBAT-ATTRITION-001）。
+var _combat_ct_elapsed: float = 0.0
 # 詠唱中ペイロード（P3-D112）。key = "party_<i>" / "enemy_<slot>"。
 var _pending_casts: Dictionary = {}
 ## 直前の should_member_skip がパッシブ固有スキップだったか（ラベル用・1回消費）。
@@ -120,6 +122,7 @@ func start_combat(enemy_data: Resource, level: int = 1, apply_swarm_density: boo
 func start_combat_group(enemies: Array, level: int = 1, apply_swarm_density: bool = true) -> void:
 	is_in_combat = true
 	ultimate_charge_gain_mult = 1.0
+	_combat_ct_elapsed = 0.0
 	clear_death_save_state()
 	clear_member_skill_silence()
 	_member_passive_skip.clear()
@@ -1508,11 +1511,23 @@ func consume_enemy_status(effect_id: String) -> int:
 func consume_enemy_status_at(slot: int, effect_id: String) -> int:
 	return _status_resolver.consume_status(enemy_status_unit_id(slot), effect_id)
 
+func get_combat_ct_elapsed() -> float:
+	return _combat_ct_elapsed
+
+func get_attrition_step() -> int:
+	return BalanceConfig.attrition_step(_combat_ct_elapsed)
+
+func get_attrition_outgoing_mult() -> float:
+	return BalanceConfig.attrition_outgoing_mult(_combat_ct_elapsed)
+
 func get_enemy_outgoing_damage_multiplier() -> float:
 	return get_enemy_outgoing_damage_multiplier_at(active_enemy_index)
 
 func get_enemy_outgoing_damage_multiplier_at(slot: int) -> float:
-	return _status_resolver.get_outgoing_damage_multiplier(enemy_status_unit_id(slot))
+	return (
+		_status_resolver.get_outgoing_damage_multiplier(enemy_status_unit_id(slot))
+		* get_attrition_outgoing_mult()
+	)
 
 func get_enemy_status_summary() -> String:
 	return get_enemy_status_summary_at(active_enemy_index)
@@ -1648,6 +1663,7 @@ func advance_to_next_actor() -> Dictionary:
 	for key in unit_ct:
 		unit_ct[key] -= min_rem
 	_last_ct_step = min_rem
+	_combat_ct_elapsed += min_rem
 	var ready: Array[Dictionary] = []
 	for key in unit_ct:
 		if unit_ct[key] <= _CT_EPSILON:
