@@ -51,3 +51,25 @@ func test_append_enemy_to_swarm_and_refund_ct() -> void:
 	var before: float = float(cc.unit_ct["enemy_1"])
 	cc.refund_enemy_ct(1, 0.5)
 	assert_lt(float(cc.unit_ct["enemy_1"]), before)
+
+
+func test_append_reuses_corpse_slot_at_cap() -> void:
+	## 生存数に空きがあれば、死骸スロットを再利用して召集できる。
+	var cc: CombatController = CombatController.new()
+	add_child_autofree(cc)
+	var rat: Resource = DataRegistry.get_enemy_data("crown_eater_rat")
+	assert_not_null(rat)
+	cc.start_combat_group([rat, rat, rat], 1)
+	assert_eq(cc.swarm_data.size(), 3)
+	cc.apply_damage_to_enemy_slot(1, 99999)
+	assert_false(cc.is_enemy_slot_alive(1))
+	assert_eq(cc.living_enemy_count(), 2)
+	## cap=3・size=3 でも死体再利用で成功（旧実装は失敗）。
+	var reused: int = cc.append_enemy_to_swarm(rat, 3)
+	assert_eq(reused, 1)
+	assert_true(cc.is_enemy_slot_alive(1))
+	assert_eq(cc.swarm_data.size(), 3)
+	assert_eq(cc.living_enemy_count(), 3)
+	## 生存が cap に達したら拒否。
+	assert_eq(cc.append_enemy_to_swarm(rat, 3), -1)
+

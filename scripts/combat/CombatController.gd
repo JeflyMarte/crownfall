@@ -959,20 +959,48 @@ func get_enemy_hp_ratio(slot: int) -> float:
 	return float(get_enemy_hp_at(slot)) / float(maxhp)
 
 
-## 戦闘中に敵を末尾追加（T8 途中召集）。失敗時 -1。新規は満タン CT。
+## 戦闘中に敵を追加（T8 途中召集）。失敗時 -1。新規は満タン CT。
 ## ステ倍率は開始時の群れ人数連動を維持（召集で再計算しない）。
+## 死体スロット（hp<=0）があれば再利用し、生存数のみで size_cap を見る。
 func append_enemy_to_swarm(enemy_data: Resource, size_cap: int = 5) -> int:
 	if not is_in_combat or enemy_data == null:
 		return -1
-	if swarm_data.size() >= size_cap or living_enemy_count() >= size_cap:
+	if living_enemy_count() >= size_cap:
 		return -1
 	var scaled: Dictionary = _scale_enemy_combat_stats(enemy_data)
+	var hp: int = int(scaled["hp"])
+	var atk: int = int(scaled["atk"])
+	var defv: int = int(scaled["def"])
+	var expv: int = int(scaled["exp"])
+	var reuse: int = -1
+	for i: int in swarm_hp.size():
+		if swarm_hp[i] <= 0:
+			reuse = i
+			break
+	if reuse >= 0:
+		clear_enemy_slot_status(reuse)
+		clear_pending_cast("enemy", reuse)
+		swarm_data[reuse] = enemy_data
+		swarm_hp[reuse] = hp
+		swarm_max_hp[reuse] = hp
+		swarm_atk[reuse] = atk
+		swarm_def[reuse] = defv
+		swarm_exp[reuse] = expv
+		if reuse < enemy_phase_index.size():
+			enemy_phase_index[reuse] = 0
+		if reuse < wander_action_counts.size():
+			wander_action_counts[reuse] = 0
+		GameState.mark_enemy_seen(enemy_data.id)
+		_sync_ct_units()
+		return reuse
+	if swarm_data.size() >= size_cap:
+		return -1
 	swarm_data.append(enemy_data)
-	swarm_hp.append(int(scaled["hp"]))
-	swarm_max_hp.append(int(scaled["hp"]))
-	swarm_atk.append(int(scaled["atk"]))
-	swarm_def.append(int(scaled["def"]))
-	swarm_exp.append(int(scaled["exp"]))
+	swarm_hp.append(hp)
+	swarm_max_hp.append(hp)
+	swarm_atk.append(atk)
+	swarm_def.append(defv)
+	swarm_exp.append(expv)
 	enemy_phase_index.append(0)
 	wander_action_counts.append(0)
 	GameState.mark_enemy_seen(enemy_data.id)

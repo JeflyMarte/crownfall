@@ -30,6 +30,8 @@ alwaysApply: false
 | エリート護衛撃破でエリート報酬／`kill_elite` | ELITE 部屋種別だけでゲート | `is_run_elite_kill`（entity が ELITE）のみ。武器率・レリックも同様 |
 | ボス召喚で Discovery／death アニメ／高武器率 | BOSS 部屋種別だけでプレミアム | `is_run_boss_kill` で分岐（章★と同型） |
 | 追撃／マルチ DoT で撃破報酬二重 | `_on_enemy_slot_killed` が冪等でない | `_kill_award_slots`＋DoT 既死 skip＋`on_kill` は first_kill のみ |
+| 会心追撃等でトドメしても撃破パッシブ／キル数なし | `_on_enemy_slot_killed` のみ呼び `on_kill` 未発火 | killer 付きで集約発火（DoT／自爆は -1） |
+| 護衛撃破後にボス追加召喚できない | キャップが死体込み `swarm_data.size` | 死体スロット再利用＋上限は生存数 |
 | ボス警告中に本体が写る | 入場準備後の status tint が modulate を不透明へ戻す／opaque フォールバック | 警告中 `visible=false`＋intro中 tint/HP更新停止。落下開始で初表示（`14_Presentation_Pitfalls`） |
 | ボスの激昂アイコンが付かない | ボス戦で状態異常行を全非表示 | → **`14_Presentation_Pitfalls.md`**（ボス頭上にも表示） |
 | レリックが地味で装備意味が薄い | 常時±5〜20%のみ | 尖鋭案B: 発火＋制約。`P3-UX-RELIC-TACTICS-B001` |

@@ -6890,18 +6890,8 @@ func _deal_member_damage_to_enemy(
 			_append_log("[武器] 虚潮の印 爆発")
 			_check_boss_phase_transition(target_slot)
 	if $CombatController.get_enemy_hp_at(target_slot) <= 0:
-		## 追撃（on_attack）で先に撃破済みなら hooks／報酬は二重にしない。
-		var first_kill: bool = not bool(_kill_award_slots.get(target_slot, false))
-		if first_kill:
-			var frac: float = CombatPassives.on_kill_refund_fraction(member_idx)
-			if frac > 0.0:
-				$CombatController.refund_member_ct(member_idx, frac)
-			_fire_member_passives(
-				member_idx, "on_kill", {"damage": damage, "target_slot": target_slot}
-			)
-			GameState.record_run_kill(member_idx)
-			_AbyssWeaponEffects.clear_focus_on_enemy_death(target_slot)
-		return _on_enemy_slot_killed(target_slot)
+		## on_kill／キル集計は _on_enemy_slot_killed 側（追撃トドメも含め初回のみ）。
+		return _on_enemy_slot_killed(target_slot, member_idx)
 	return false
 
 
@@ -7226,8 +7216,7 @@ func _enemy_tricky_skill_allowed(skill: Resource, slot: int) -> bool:
 			if _enemy_summon_already_used(skill, slot):
 				return false
 			var cap: int = _DungeonTierConfig.swarm_size_cap()
-			if $CombatController.swarm_data.size() >= cap:
-				return false
+			## 死体スロットは再利用するため、生存数のみで上限判定。
 			if $CombatController.living_enemy_count() >= cap:
 				return false
 			## 指定召喚（ボス等）は一度限り・キャップのみ。同種クローンは HP≤50%。
@@ -7456,6 +7445,9 @@ func _execute_enemy_summon(skill: Resource, slot: int) -> bool:
 		var new_slot: int = $CombatController.append_enemy_to_swarm(template, cap)
 		if new_slot < 0:
 			break
+		## 死体スロット再利用時は撃破済フラグ／デバフ表示をクリア。
+		_kill_award_slots.erase(new_slot)
+		_debuff_marks.erase(new_slot)
 		spawned += 1
 		last_slot = new_slot
 		_reveal_appended_enemy_slot(new_slot)
@@ -8733,7 +8725,8 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 	_append_log("\n".join(log_lines))
 
 # 敵スロット撃破時。全滅なら true（戦闘終了済み）。冪等（二重報酬防止）。
-func _on_enemy_slot_killed(killed_slot: int) -> bool:
+## killer_member_idx>=0 の初回のみ on_kill／record_run_kill（DoT・自爆は -1）。
+func _on_enemy_slot_killed(killed_slot: int, killer_member_idx: int = -1) -> bool:
 	if bool(_kill_award_slots.get(killed_slot, false)):
 		if $CombatController.living_enemy_count() == 0:
 			if $CombatController.is_in_combat:
@@ -8741,6 +8734,18 @@ func _on_enemy_slot_killed(killed_slot: int) -> bool:
 			return true
 		return false
 	_kill_award_slots[killed_slot] = true
+	if killer_member_idx >= 0:
+		if $CombatController.is_member_alive(killer_member_idx):
+			var frac: float = CombatPassives.on_kill_refund_fraction(killer_member_idx)
+			if frac > 0.0:
+				$CombatController.refund_member_ct(killer_member_idx, frac)
+			_fire_member_passives(
+				killer_member_idx,
+				"on_kill",
+				{"damage": 0, "target_slot": killed_slot}
+			)
+		GameState.record_run_kill(killer_member_idx)
+	_AbyssWeaponEffects.clear_focus_on_enemy_death(killed_slot)
 	$CombatController.clear_pending_cast("enemy", killed_slot)
 	_debuff_marks.erase(killed_slot)
 	_award_enemy_kill_at(killed_slot)
@@ -9616,7 +9621,7 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 				applied = true
 				_check_boss_phase_transition(pulse_slot)
 				if $CombatController.get_enemy_hp_at(pulse_slot) <= 0:
-					combat_ended = _on_enemy_slot_killed(pulse_slot)
+					combat_ended = _on_enemy_slot_killed(pulse_slot, member_idx)
 		"heal":
 			# heal_value: condition 閾値の "value" と衝突する場合の回復量キー（P3-D155）
 			# target: self | most_injured（最傷1体）| party（既定・全体）
@@ -9714,7 +9719,7 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 				applied = true
 				_check_boss_phase_transition(slot)
 				if $CombatController.get_enemy_hp_at(slot) <= 0:
-					combat_ended = _on_enemy_slot_killed(slot)
+					combat_ended = _on_enemy_slot_killed(slot, member_idx)
 		"counter_attack":
 			var counter_slot: int = int(ctx.get("attacker_slot", -1))
 			if counter_slot < 0 or not $CombatController.is_enemy_slot_alive(counter_slot):
@@ -9760,7 +9765,7 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 			_update_hp_bars()
 			_check_boss_phase_transition(slot)
 			if $CombatController.get_enemy_hp_at(slot) <= 0:
-				combat_ended = _on_enemy_slot_killed(slot)
+				combat_ended = _on_enemy_slot_killed(slot, member_idx)
 			if not combat_ended:
 				var lock_n: int = int(p.get("basic_only_actions", 0))
 				if lock_n > 0:
@@ -9801,7 +9806,7 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 					_append_log("[パッシブ] 余波 +%d" % burst)
 					_check_boss_phase_transition(slot)
 					if $CombatController.get_enemy_hp_at(slot) <= 0:
-						combat_ended = _on_enemy_slot_killed(slot)
+						combat_ended = _on_enemy_slot_killed(slot, member_idx)
 						if combat_ended:
 							break
 				_update_hp_bars()
@@ -10388,7 +10393,7 @@ func _maybe_kaiwan_heal_spill(caster_idx: int, heal_basis: int) -> void:
 	_update_hp_bars()
 	_check_boss_phase_transition(slot)
 	if $CombatController.get_enemy_hp_at(slot) <= 0:
-		_on_enemy_slot_killed(slot)
+		_on_enemy_slot_killed(slot, caster_idx)
 
 
 ## 調剤師の薬など: 回復成功時に対象へ guard を付与。
